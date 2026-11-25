@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.Submersion.HorizontalLiftFiel
 public import TauCeti.Geometry.Manifold.Distribution.Horizontal
 public import TauCeti.Geometry.Manifold.MFDeriv.Curve
 import Mathlib.Geometry.Manifold.Instances.Icc
+import SymplecticGeometry.Geometry.Manifold.Distribution.Horizontal
 import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
 import TauCeti.Geometry.Manifold.IntegralCurve.Interval
 import TauCeti.Geometry.Manifold.IsManifold.Basic
@@ -56,6 +57,16 @@ trajectory of the time-dependent flow through `x`. The projection of that trajec
 the same equation on `B` on the interval, so they agree there
 (`TauCeti.timeDependentFlowOf_eq_of_hasMFDerivWithinAt`).
 
+Finally it glues these local lifts into a lift over all of `ℝ`
+(`TauCeti.IsEhresmannConnection.exists_isHorizontalMap_lift`). The times `t` for which some lift
+through `x` at `s` lies over `γ` on `Set.uIcc s t` form a set that is open and closed in `ℝ`:
+near any time, a lift over one trivialization, started at a nearby time of a lift already found,
+agrees with it on their common interval by uniqueness, and following the old lift up to a time
+inside that interval and the new one after it gives a longer lift. Lifts over the intervals
+`Set.Icc (s - k) (s + k)` then agree where both are defined, and near each time the global lift
+is one of them, so it is as smooth as they are and horizontal (horizontality is local:
+`TauCeti.IsHorizontalMap.of_forall_eventuallyEq`).
+
 ## Main results
 
 * `TauCeti.IsEhresmannConnection.curveVelocity_eq_horizontalLift_iff`: a differentiable curve has
@@ -67,6 +78,9 @@ the same equation on `B` on the interval, so they agree there
 * `TauCeti.IsEhresmannConnection.exists_isHorizontalMap_lift_of_mapsTo_baseSet`: for a proper map,
   a curve `γ` of `B` has a horizontal lift through any point over `γ s`, on a closed interval
   containing `s` that `γ` maps into the base set of one trivialization of the tangent bundle.
+* `TauCeti.IsEhresmannConnection.exists_isHorizontalMap_lift`: for a proper map, every `C^(n+1)`
+  curve of `B` has a `C^n` horizontal lift over all of `ℝ` through any point over one of its
+  values.
 
 ## References
 
@@ -322,6 +336,182 @@ theorem exists_isHorizontalMap_lift_of_mapsTo_baseSet (hn : 1 ≤ n)
       isPreconnected_Icc (fun t _ ↦ (hfc t).hasMFDerivWithinAt) hs hu
     rw [← h₁, ← h₂]
     simp [c, timeDependentFlowOf_self, hx]
+
+omit [FiniteDimensional ℝ E] [IsManifold I ∞ P] [I.Boundaryless] [T2Space P] in
+/-- The step of `TauCeti.IsEhresmannConnection.exists_isHorizontalMap_lift` that glues two curves:
+the curve that follows `c₁` up to the time `m` and `c₂` after it is `C^k` and horizontal, if `c₁`
+and `c₂` are and agree near `m`. -/
+private theorem contMDiff_isHorizontalMap_piecewise {k : ℕ∞ω} {c₁ c₂ : ℝ → P}
+    (hc₁ : ContMDiff 𝓘(ℝ, ℝ) I k c₁) (hc₂ : ContMDiff 𝓘(ℝ, ℝ) I k c₂)
+    (hh₁ : IsHorizontalMap 𝓘(ℝ, ℝ) D c₁) (hh₂ : IsHorizontalMap 𝓘(ℝ, ℝ) D c₂) {m : ℝ}
+    (hm : c₁ =ᶠ[𝓝 m] c₂) :
+    ContMDiff 𝓘(ℝ, ℝ) I k (fun u ↦ if u ≤ m then c₁ u else c₂ u) ∧
+      IsHorizontalMap 𝓘(ℝ, ℝ) D (fun u ↦ if u ≤ m then c₁ u else c₂ u) := by
+  have hloc (u : ℝ) : (fun u ↦ if u ≤ m then c₁ u else c₂ u) =ᶠ[𝓝 u] c₁ ∨
+      (fun u ↦ if u ≤ m then c₁ u else c₂ u) =ᶠ[𝓝 u] c₂ := by
+    rcases lt_trichotomy u m with hu | rfl | hu
+    · refine .inl ?_
+      filter_upwards [Iio_mem_nhds hu] with v hv
+      simp [le_of_lt hv]
+    · refine .inr ?_
+      filter_upwards [hm] with v hv
+      split_ifs
+      exacts [hv, rfl]
+    · refine .inr ?_
+      filter_upwards [Ioi_mem_nhds hu] with v hv
+      simp [not_le.2 (mem_Ioi.1 hv)]
+  refine ⟨fun u ↦ ?_, IsHorizontalMap.of_forall_eventuallyEq fun u ↦ ?_⟩
+  · rcases hloc u with h | h
+    · exact (hc₁ u).congr_of_eventuallyEq h
+    · exact (hc₂ u).congr_of_eventuallyEq h
+  · rcases hloc u with h | h
+    · exact ⟨c₁, hh₁, h⟩
+    · exact ⟨c₂, hh₂, h⟩
+
+include hD in
+/-- The first step of `TauCeti.IsEhresmannConnection.exists_isHorizontalMap_lift`: for every time
+`t`, a lift through `x` at time `s` over `Set.uIcc s t`. The times `t` with such a lift form an
+open and closed set: near each time, a lift over one trivialization continues any lift that
+reaches that neighbourhood. -/
+private theorem exists_isHorizontalMap_lift_uIcc (hn : 1 ≤ n)
+    (hf : ContMDiff I J (n + 1) f) (hfp : IsProperMap f) {γ : ℝ → B}
+    (hγ : ContMDiff 𝓘(ℝ, ℝ) J (n + 1) γ) {s : ℝ} {x : P} (hx : f x = γ s) (t : ℝ) :
+    ∃ c : ℝ → P, ContMDiff 𝓘(ℝ, ℝ) I n c ∧ IsHorizontalMap 𝓘(ℝ, ℝ) D c ∧
+      EqOn (f ∘ c) γ (uIcc s t) ∧ c s = x := by
+  have hn' : (1 : ℕ∞ω) ≤ n := by exact_mod_cast hn
+  have hn0 : (n : ℕ∞ω) ≠ 0 := (zero_lt_one.trans_le hn').ne'
+  have h2 : (2 : ℕ∞ω) ≤ n + 1 := by
+    have := add_le_add hn' (le_refl (1 : ℕ∞ω))
+    rwa [one_add_one_eq_two] at this
+  let S : Set ℝ := {t | ∃ c : ℝ → P, ContMDiff 𝓘(ℝ, ℝ) I n c ∧ IsHorizontalMap 𝓘(ℝ, ℝ) D c ∧
+      EqOn (f ∘ c) γ (uIcc s t) ∧ c s = x}
+  -- Near each time `t`, a lift over one trivialization continues any lift that reaches near `t`.
+  have hstep (t : ℝ) : ∃ ε > 0, ∀ t' ∈ S, dist t' t < ε → Metric.ball t ε ⊆ S := by
+    let e := trivializationAt F (TangentSpace J) (γ t)
+    obtain ⟨ε₀, hε₀, hball⟩ := Metric.mem_nhds_iff.1
+      (hγ.continuous.continuousAt.preimage_mem_nhds
+        (e.open_baseSet.mem_nhds (FiberBundle.mem_baseSet_trivializationAt' (γ t))))
+    obtain ⟨ε, hε, hεε⟩ : ∃ ε, 0 < ε ∧ ε < ε₀ := ⟨ε₀ / 2, by positivity, by linarith⟩
+    refine ⟨ε, hε, fun t' ⟨c₁, hc₁, hh₁, hγ₁, hs₁⟩ ht' t'' ht'' ↦ ?_⟩
+    have hmaps : MapsTo γ (Icc (t - ε) (t + ε)) e.baseSet := fun u hu ↦ hball (by
+      rw [Metric.mem_ball, Real.dist_eq, abs_lt]
+      constructor <;> linarith [hu.1, hu.2])
+    rw [Metric.mem_ball, Real.dist_eq, abs_lt] at ht''
+    rw [Real.dist_eq, abs_lt] at ht'
+    have ht'J : t' ∈ Icc (t - ε) (t + ε) := ⟨by linarith, by linarith⟩
+    obtain ⟨c₂, hc₂, hh₂, hγ₂, hs₂⟩ := hD.exists_isHorizontalMap_lift_of_mapsTo_baseSet hn hf
+      hfp hγ ht'J e hmaps (x := c₁ t') (hγ₁ right_mem_uIcc)
+    -- The two lifts agree where both lie over `γ`.
+    have hagree : EqOn c₁ c₂ (uIcc s t' ∩ Icc (t - ε) (t + ε)) := by
+      rw [uIcc, Icc_inter_Icc]
+      exact hD.eqOn_of_isHorizontalMap hn' (hf.of_le h2) (hγ.of_le h2) (hc₁.mdifferentiable hn0)
+        (hc₂.mdifferentiable hn0) hh₁ hh₂
+        (fun u hu ↦ hγ₁ (Icc_subset_Icc le_sup_left inf_le_left hu))
+        (fun u hu ↦ hγ₂ (Icc_subset_Icc le_sup_right inf_le_right hu))
+        ⟨sup_le inf_le_right ht'J.1, le_inf le_sup_right ht'J.2⟩ hs₂.symm
+    rcases lt_or_ge s (t - ε) with hs | hs
+    · -- `s` lies before the interval: follow `c₁`, then `c₂`.
+      have hm : c₁ =ᶠ[𝓝 ((t - ε + t') / 2)] c₂ := by
+        filter_upwards [Ioo_mem_nhds (show t - ε < (t - ε + t') / 2 by linarith)
+          (show (t - ε + t') / 2 < t' by linarith)] with v hv
+        exact hagree ⟨mem_uIcc.2 (.inl ⟨by linarith [hv.1], hv.2.le⟩),
+          ⟨hv.1.le, by linarith [hv.2]⟩⟩
+      obtain ⟨hcs, hhs⟩ := contMDiff_isHorizontalMap_piecewise hc₁ hc₂ hh₁ hh₂ hm
+      refine ⟨_, hcs, hhs, fun u hu ↦ ?_, by simp [show s ≤ (t - ε + t') / 2 by linarith, hs₁]⟩
+      rw [mem_uIcc] at hu
+      simp only [comp_apply]
+      split_ifs with hum
+      · exact hγ₁ (mem_uIcc.2 (.inl ⟨by rcases hu with h | h <;> linarith, by linarith⟩))
+      · exact hγ₂ ⟨by linarith, by rcases hu with h | h <;> linarith⟩
+    rcases lt_or_ge (t + ε) s with hs' | hs'
+    · -- `s` lies after the interval: follow `c₂`, then `c₁`.
+      have hm : c₂ =ᶠ[𝓝 ((t' + (t + ε)) / 2)] c₁ := by
+        filter_upwards [Ioo_mem_nhds (show t' < (t' + (t + ε)) / 2 by linarith)
+          (show (t' + (t + ε)) / 2 < t + ε by linarith)] with v hv
+        exact (hagree ⟨mem_uIcc.2 (.inr ⟨hv.1.le, by linarith [hv.2]⟩),
+          ⟨by linarith [hv.1], hv.2.le⟩⟩).symm
+      obtain ⟨hcs, hhs⟩ := contMDiff_isHorizontalMap_piecewise hc₂ hc₁ hh₂ hh₁ hm
+      refine ⟨_, hcs, hhs, fun u hu ↦ ?_,
+        by simp [show ¬ s ≤ (t' + (t + ε)) / 2 by linarith, hs₁]⟩
+      rw [mem_uIcc] at hu
+      simp only [comp_apply]
+      split_ifs with hum
+      · exact hγ₂ ⟨by rcases hu with h | h <;> linarith, by linarith⟩
+      · exact hγ₁ (mem_uIcc.2 (.inr ⟨by linarith, by rcases hu with h | h <;> linarith⟩))
+    · -- `s` lies in the interval: `c₂` is a lift through `x`.
+      refine ⟨c₂, hc₂, hh₂, fun u hu ↦ hγ₂ ?_, ?_⟩
+      · rcases mem_uIcc.1 hu with h | h <;> constructor <;> linarith
+      · rw [← hs₁]
+        exact (hagree ⟨left_mem_uIcc, hs, hs'⟩).symm
+  have hsS : s ∈ S := by
+    obtain ⟨c, hc, hh, hγc, hcs⟩ := hD.exists_isHorizontalMap_lift_of_mapsTo_baseSet hn hf hfp hγ
+      (left_mem_Icc.2 le_rfl) (trivializationAt F (TangentSpace J) (γ s))
+      (fun u hu ↦ by
+        rw [Icc_self, mem_singleton_iff] at hu
+        exact hu ▸ FiberBundle.mem_baseSet_trivializationAt' _) hx
+    exact ⟨c, hc, hh, by rwa [uIcc_self, ← Icc_self], hcs⟩
+  have hopen : IsOpen S := Metric.isOpen_iff.2 fun t ht ↦ by
+    obtain ⟨ε, hε, h⟩ := hstep t
+    exact ⟨ε, hε, h t ht (by simpa using hε)⟩
+  have hclosed : IsClosed S := closure_subset_iff_isClosed.1 fun t ht ↦ by
+    obtain ⟨ε, hε, h⟩ := hstep t
+    obtain ⟨t', ht', hd⟩ := Metric.mem_closure_iff.1 ht ε hε
+    exact h t' ht' (by rwa [dist_comm]) (Metric.mem_ball_self hε)
+  have hS : S = univ := IsClopen.eq_univ ⟨hclosed, hopen⟩ ⟨s, hsS⟩
+  exact (show t ∈ S from hS ▸ mem_univ t)
+
+include hD in
+/-- **Horizontal lifts of curves.** Let `D` be a `C^n` Ehresmann connection, `1 ≤ n`, on a proper
+`C^(n+1)` map `f : P → B` of finite-dimensional boundaryless Hausdorff manifolds, and `γ` a
+`C^(n+1)` curve in `B`. For every time `s` and every `x` with `f x = γ s`, there is a `C^n`
+horizontal curve `c` over `γ` with `c s = x`. For `n = ∞`, `f`, `γ` and `c` are all smooth. -/
+theorem exists_isHorizontalMap_lift (hn : 1 ≤ n)
+    (hf : ContMDiff I J (n + 1) f) (hfp : IsProperMap f) {γ : ℝ → B}
+    (hγ : ContMDiff 𝓘(ℝ, ℝ) J (n + 1) γ) {s : ℝ} {x : P} (hx : f x = γ s) :
+    ∃ c : ℝ → P, ContMDiff 𝓘(ℝ, ℝ) I n c ∧ IsHorizontalMap 𝓘(ℝ, ℝ) D c ∧ f ∘ c = γ ∧
+      c s = x := by
+  have hn' : (1 : ℕ∞ω) ≤ n := by exact_mod_cast hn
+  have hn0 : (n : ℕ∞ω) ≠ 0 := (zero_lt_one.trans_le hn').ne'
+  have h2 : (2 : ℕ∞ω) ≤ n + 1 := by
+    have := add_le_add hn' (le_refl (1 : ℕ∞ω))
+    rwa [one_add_one_eq_two] at this
+  -- A lift over `Set.Icc (s - k) (s + k)` for each `k`: lift from `s` back to `s - k`, then
+  -- from `s - k` on to `s + k`; by uniqueness the second lift passes through `x` at `s`.
+  have hlift (k : ℕ) : ∃ c : ℝ → P, ContMDiff 𝓘(ℝ, ℝ) I n c ∧ IsHorizontalMap 𝓘(ℝ, ℝ) D c ∧
+      EqOn (f ∘ c) γ (Icc (s - k) (s + k)) ∧ c s = x := by
+    obtain ⟨c₁, hc₁, hh₁, hγ₁, hs₁⟩ := hD.exists_isHorizontalMap_lift_uIcc hn hf hfp hγ hx (s - k)
+    obtain ⟨c₂, hc₂, hh₂, hγ₂, hs₂⟩ := hD.exists_isHorizontalMap_lift_uIcc hn hf hfp hγ
+      (hγ₁ right_mem_uIcc) (s + k)
+    rw [uIcc_of_ge (by linarith)] at hγ₁
+    rw [uIcc_of_le (by linarith)] at hγ₂
+    refine ⟨c₂, hc₂, hh₂, hγ₂, ?_⟩
+    rw [← hs₁]
+    exact hD.eqOn_of_isHorizontalMap hn' (hf.of_le h2) (hγ.of_le h2) (hc₂.mdifferentiable hn0)
+      (hc₁.mdifferentiable hn0) hh₂ hh₁ (hγ₂.mono (Icc_subset_Icc_right (by linarith))) hγ₁
+      (left_mem_Icc.2 (by linarith)) hs₂ (right_mem_Icc.2 (by linarith))
+  choose c hc hh hγc hcs using hlift
+  -- The lifts agree where both lie over `γ`.
+  have hagree (k l : ℕ) : EqOn (c k) (c l) (Icc (s - k) (s + k) ∩ Icc (s - l) (s + l)) := by
+    rw [Icc_inter_Icc]
+    exact hD.eqOn_of_isHorizontalMap hn' (hf.of_le h2) (hγ.of_le h2) ((hc k).mdifferentiable hn0)
+      ((hc l).mdifferentiable hn0) (hh k) (hh l)
+      (fun u hu ↦ hγc k (Icc_subset_Icc le_sup_left inf_le_left hu))
+      (fun u hu ↦ hγc l (Icc_subset_Icc le_sup_right inf_le_right hu))
+      ⟨sup_le (sub_le_self _ k.cast_nonneg) (sub_le_self _ l.cast_nonneg),
+        le_inf (le_add_of_nonneg_right k.cast_nonneg) (le_add_of_nonneg_right l.cast_nonneg)⟩
+      ((hcs k).trans (hcs l).symm)
+  -- At `u`, follow the lift over an interval that contains `u` in its interior.
+  let N : ℝ → ℕ := fun u ↦ ⌈|u - s|⌉₊ + 1
+  have hN (u : ℝ) : u ∈ Ioo (s - N u) (s + N u) := by
+    have := Nat.le_ceil |u - s|
+    simp only [N, Nat.cast_add, Nat.cast_one]
+    constructor <;> linarith [le_abs_self (u - s), neg_abs_le (u - s)]
+  have hloc (u : ℝ) : (fun v ↦ c (N v) v) =ᶠ[𝓝 u] c (N u) := by
+    filter_upwards [Ioo_mem_nhds (hN u).1 (hN u).2] with v hv
+    exact hagree (N v) (N u) ⟨Ioo_subset_Icc_self (hN v), Ioo_subset_Icc_self hv⟩
+  exact ⟨fun v ↦ c (N v) v, fun u ↦ (hc (N u) u).congr_of_eventuallyEq (hloc u),
+    IsHorizontalMap.of_forall_eventuallyEq fun u ↦ ⟨_, hh (N u), hloc u⟩,
+    funext fun u ↦ hγc (N u) (Ioo_subset_Icc_self (hN u)), hcs (N s)⟩
 
 end Existence
 
