@@ -199,12 +199,9 @@ theorem IsCircleConnectionForm.isBasic_mextDerivₗ (hα : IsCircleConnectionFor
       (mextDerivₗ (IB.prod (𝓡 1)) 1 α).val :=
   PrincipalBundle.isBasic_of_mpullback_op_smul (β := mextDerivₗ (IB.prod (𝓡 1)) 1 α)
     (fun z ↦ by rw [← SmoothForm.mextDerivₗ_mpullback, hα.mpullback_op_smul])
-    (RoughForm.isSemibasic_iff.mpr fun x v j hv ↦ by
-      -- Stated with the instances of `SmoothForm`, which `RoughForm.isSemibasic_iff` unfolds.
-      have h : (connectionCurvature (SmoothForm.mapCoeff
-          (ContinuousLinearMap.toSpanSingleton ℝ circleLieGenerator) α)).val x v = 0 :=
-        RoughForm.isSemibasic_iff.mp
-          (isConnectionForm_mapCoeff_iff.mpr hα).isSemibasic_connectionCurvature x v j hv
+    (SmoothForm.isSemibasic_iff.mpr fun x v j hv ↦ by
+      have h := SmoothForm.isSemibasic_iff.mp
+        (isConnectionForm_mapCoeff_iff.mpr hα).isSemibasic_connectionCurvature x v j hv
       rw [connectionCurvature_mapCoeff_toSpanSingleton, SmoothForm.coe_mapCoeff,
         RoughForm.mapCoeff_apply, ContinuousLinearMap.toSpanSingleton_apply, smul_eq_zero] at h
       exact h.resolve_right circleLieGenerator_ne_zero)
