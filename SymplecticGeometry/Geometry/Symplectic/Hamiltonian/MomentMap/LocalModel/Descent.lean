@@ -7,19 +7,22 @@ module
 
 public import SymplecticGeometry.Geometry.Lie.Subgroup.BalancedProduct
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Action
+public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Submersion
 
 import SymplecticGeometry.Geometry.Lie.Adjoint.Coadjoint
 import TauCeti.Geometry.Manifold.Algebra.SMul
+import TauCeti.Geometry.Symplectic.Manifold.Descent
 
 /-!
-# The descent of the local model's form: the vertical directions
+# The descent of the local model's form to `G ×_K (A × V)`
 
 Let `D : SymplecticGeometry.LocalModelData K V A` be the data of the Marle–Guillemin–Sternberg
 local model `G ×_K (A × V)`, with `A ≃ 𝔪*`. The two-form `D.form` on `G × (A × V)` descends to the
 balanced product when it is invariant under the action of `K` and vanishes on the vertical
 directions of the projection `G × (A × V) → G ×_K (A × V)` (Tau Ceti's
-`TauCeti.SmoothTwoForm.isBasic_of_mpullback_eq_of_ker_mfderiv_le`). This file proves the second
-condition.
+`TauCeti.SmoothTwoForm.isBasic_of_mpullback_eq_of_ker_mfderiv_le`). The first condition is
+`SymplecticGeometry.LocalModelData.mpullback_prodMap_mul_right_smul_form`; this file proves the
+second, and then descends the form.
 
 By `TauCeti.BalancedProduct.mem_ker_mfderiv_mk_toRightTranslation_iff`, the vertical vectors at
 `(g, p)` are `(-d(L_g) ξ', X)`, where `ξ` is in the Lie algebra of `K`, `ξ' ∈ 𝔥` is its image in
@@ -35,6 +38,13 @@ pairs:
 * `ι𝔪` vanishes on `ξ' ∈ 𝔥`, and the moment identity `dμ_V(v) b₂ ξ' = σ (ρ ξ' v, b₂)` cancels the
   term `σ (ρ ξ' v, b₂)` of `pr_V^* σ`.
 
+The descended form `ω` on `G ×_K (A × V)` is then Tau Ceti's `TauCeti.SmoothForm.descendedForm`
+along the surjective submersion `(g, p) ↦ [g, p]`. It is closed because `D.form` is, and it is
+invariant under the action `k • [g, p] = [k g, p]` of `G` because `D.form` is invariant under left
+translation of the factor `G`. This part follows Tau Ceti's descent of the Kirillov form to a
+coadjoint orbit, `Module.Dual.coadjointOrbitForm` and
+`Module.Dual.mpullback_smul_coadjointOrbitForm`.
+
 ## Main results
 
 * `SymplecticGeometry.LocalModelData.mvfderiv_covector_apply_fundamentalVectorField`: the
@@ -43,6 +53,14 @@ pairs:
 * `SymplecticGeometry.LocalModelData.ker_mfderiv_mk_le_ker_bilinFormAt_form`: the vertical
   directions of `G × (A × V) → G ×_K (A × V)` lie in the kernel of `D.form`, in the form of the
   hypothesis `hker` of `TauCeti.SmoothTwoForm.isBasic_of_mpullback_eq_of_ker_mfderiv_le`.
+* `SymplecticGeometry.LocalModelData.isBasic_form`: `D.form` is basic for the projection.
+* `SymplecticGeometry.LocalModelData.descendedForm`: the descended form `ω` on `G ×_K (A × V)`.
+* `SymplecticGeometry.LocalModelData.mpullback_mk_descendedForm`,
+  `SymplecticGeometry.LocalModelData.eq_descendedForm_iff`: `ω` is the unique two-form whose
+  pullback to `G × (A × V)` is `D.form`.
+* `SymplecticGeometry.LocalModelData.isClosed_descendedForm`: `ω` is closed.
+* `SymplecticGeometry.LocalModelData.mpullback_smul_descendedForm`: `ω` is invariant under the
+  action of `G`.
 
 ## References
 
@@ -168,6 +186,181 @@ theorem ker_mfderiv_mk_le_ker_bilinFormAt_form [I.Boundaryless] (x : G × (A × 
     rw [map_neg, LinearMap.add_apply, h₂, h₃, zero_add, hb]
   rw [hA, h₁, hB]
   ring
+
+/-! ### The descended form -/
+
+section Descended
+
+variable [I.Boundaryless]
+
+/-- **The local model's form is basic** for the projection `(g, p) ↦ [g, p]` of `G × (A × V)` onto
+the balanced product `G ×_K (A × V)`: it is invariant under the action
+`k • (g, p) = (g k⁻¹, k • p)` of `K`, whose orbits are the fibres, and vanishes on vertical
+vectors. -/
+theorem isBasic_form :
+    letI := D.fiberDistribMulAction
+    haveI := D.contMDiffSMul_fiberDistribMulAction
+    letI := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
+    RoughForm.IsBasic (V := ℝ) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
+      (fun p : G × (A × V) ↦ BalancedProduct.mk K (K.toRightTranslation p.1) p.2) D.form.val := by
+  let := D.fiberDistribMulAction
+  have := D.contMDiffSMul_fiberDistribMulAction
+  let := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
+  have hk (k : K) := ContMDiffSMul.contMDiff_const_smul (I := 𝓘(ℝ, F)) (I' := 𝓘(ℝ, A × V))
+    (n := ∞) (M := A × V) k
+  refine SmoothTwoForm.isBasic_of_mpullback_eq_of_ker_mfderiv_le
+    (τ := fun k : K ↦ Prod.map (· * (k : G)⁻¹) fun p : A × V ↦ k • p)
+    (BalancedProduct.isSubmersion_mk_toRightTranslation.contMDiff.mdifferentiable (by simp))
+    (fun k ↦ (contMDiff_mul_right.prodMap (hk k)).mdifferentiable (by simp))
+    (fun k ↦ funext fun x ↦ ?_) (fun x y hxy ↦ .inr ?_) D.ker_mfderiv_mk_le_ker_bilinFormAt_form
+    fun k ↦ by
+      simpa only [SmoothForm.coe_mpullback] using
+        congrArg Subtype.val (D.mpullback_prodMap_mul_right_smul_form k)
+  · -- `[g k⁻¹, k • p] = [g, k⁻¹ • k • p] = [g, p]`.
+    simp only [Function.comp_apply, Prod.map_fst, Prod.map_snd]
+    rw [← Subgroup.coe_inv, BalancedProduct.mk_toRightTranslation_mul, inv_smul_smul]
+  · obtain ⟨k, hk₁, hk₂⟩ :=
+      BalancedProduct.mk_toRightTranslation_eq_mk_toRightTranslation_iff.1 hxy.symm
+    exact ⟨k, Prod.ext hk₁ hk₂⟩
+
+/-- **The descended form of the local model**: the two-form on the balanced product
+`G ×_K (A × V)` whose pullback along the projection `(g, p) ↦ [g, p]` is `D.form`
+(`SymplecticGeometry.LocalModelData.eq_descendedForm_iff`). -/
+def descendedForm :
+    letI := D.fiberDistribMulAction
+    haveI := D.contMDiffSMul_fiberDistribMulAction
+    letI := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
+    haveI := BalancedProduct.isManifold_rightTranslation (K := K) (Z := A × V) (I := I)
+      (IZ := 𝓘(ℝ, A × V)) (F := F)
+    SmoothTwoForm 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
+      (BalancedProduct K K.RightTranslation (A × V)) :=
+  let := D.fiberDistribMulAction
+  have := D.contMDiffSMul_fiberDistribMulAction
+  let := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
+  have := BalancedProduct.isManifold_rightTranslation (K := K) (Z := A × V) (I := I)
+    (IZ := 𝓘(ℝ, A × V)) (F := F)
+  SmoothForm.descendedForm BalancedProduct.isSubmersion_mk_toRightTranslation
+    BalancedProduct.surjective_mk_toRightTranslation D.form D.isBasic_form
+
+theorem descendedForm_def :
+    letI := D.fiberDistribMulAction
+    haveI := D.contMDiffSMul_fiberDistribMulAction
+    letI := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
+    haveI := BalancedProduct.isManifold_rightTranslation (K := K) (Z := A × V) (I := I)
+      (IZ := 𝓘(ℝ, A × V)) (F := F)
+    D.descendedForm = SmoothForm.descendedForm BalancedProduct.isSubmersion_mk_toRightTranslation
+      BalancedProduct.surjective_mk_toRightTranslation D.form D.isBasic_form :=
+  (rfl)
+
+/-- The descended form of the local model pulls back to `D.form` along the projection
+`G × (A × V) → G ×_K (A × V)`. -/
+@[simp]
+theorem mpullback_mk_descendedForm :
+    letI := D.fiberDistribMulAction
+    haveI := D.contMDiffSMul_fiberDistribMulAction
+    letI := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
+    haveI := BalancedProduct.isManifold_rightTranslation (K := K) (Z := A × V) (I := I)
+      (IZ := 𝓘(ℝ, A × V)) (F := F)
+    ∀ hπ : ContMDiff (I.prod 𝓘(ℝ, A × V)) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))) ∞
+      (fun p : G × (A × V) ↦ BalancedProduct.mk K (K.toRightTranslation p.1) p.2),
+    SmoothForm.mpullback _ hπ D.descendedForm = D.form := by
+  let := D.fiberDistribMulAction
+  have := D.contMDiffSMul_fiberDistribMulAction
+  let := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
+  have := BalancedProduct.isManifold_rightTranslation (K := K) (Z := A × V) (I := I)
+    (IZ := 𝓘(ℝ, A × V)) (F := F)
+  intro hπ
+  rw [descendedForm_def]
+  exact SmoothForm.mpullback_descendedForm
+
+/-- **Uniqueness of the descended form**: it is the only two-form on `G ×_K (A × V)` whose pullback
+along the projection is `D.form`. -/
+theorem eq_descendedForm_iff :
+    letI := D.fiberDistribMulAction
+    haveI := D.contMDiffSMul_fiberDistribMulAction
+    letI := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
+    haveI := BalancedProduct.isManifold_rightTranslation (K := K) (Z := A × V) (I := I)
+      (IZ := 𝓘(ℝ, A × V)) (F := F)
+    ∀ {β : SmoothTwoForm 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
+      (BalancedProduct K K.RightTranslation (A × V))}
+      (hπ : ContMDiff (I.prod 𝓘(ℝ, A × V)) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))) ∞
+        (fun p : G × (A × V) ↦ BalancedProduct.mk K (K.toRightTranslation p.1) p.2)),
+    β = D.descendedForm ↔ SmoothForm.mpullback _ hπ β = D.form := by
+  let := D.fiberDistribMulAction
+  have := D.contMDiffSMul_fiberDistribMulAction
+  let := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
+  have := BalancedProduct.isManifold_rightTranslation (K := K) (Z := A × V) (I := I)
+    (IZ := 𝓘(ℝ, A × V)) (F := F)
+  intro β hπ
+  rw [descendedForm_def]
+  exact SmoothForm.eq_descendedForm_iff
+
+/-- The descended form of the local model evaluates on images under the differential of the
+projection `π : G × (A × V) → G ×_K (A × V)` as `D.form`: `ω_(π x)(dπ u, dπ w) = D.form_x(u, w)`. -/
+theorem eval₂_descendedForm_mfderiv (x : G × (A × V))
+    (u w : TangentSpace (I.prod 𝓘(ℝ, A × V)) x) :
+    letI := D.fiberDistribMulAction
+    haveI := D.contMDiffSMul_fiberDistribMulAction
+    letI := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
+    haveI := BalancedProduct.isManifold_rightTranslation (K := K) (Z := A × V) (I := I)
+      (IZ := 𝓘(ℝ, A × V)) (F := F)
+    SmoothBundleForm.eval₂ D.descendedForm (BalancedProduct.mk K (K.toRightTranslation x.1) x.2)
+        (mfderiv (I.prod 𝓘(ℝ, A × V)) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
+          (fun p : G × (A × V) ↦ BalancedProduct.mk K (K.toRightTranslation p.1) p.2) x u)
+        (mfderiv (I.prod 𝓘(ℝ, A × V)) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
+          (fun p : G × (A × V) ↦ BalancedProduct.mk K (K.toRightTranslation p.1) p.2) x w) =
+      SmoothBundleForm.eval₂ D.form x u w := by
+  let := D.fiberDistribMulAction
+  have := D.contMDiffSMul_fiberDistribMulAction
+  let := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
+  have := BalancedProduct.isManifold_rightTranslation (K := K) (Z := A × V) (I := I)
+    (IZ := 𝓘(ℝ, A × V)) (F := F)
+  rw [descendedForm_def]
+  exact SmoothTwoForm.eval₂_descendedForm_mfderiv x u w
+
+/-- The descended form of the local model is closed. -/
+theorem isClosed_descendedForm :
+    letI := D.fiberDistribMulAction
+    haveI := D.contMDiffSMul_fiberDistribMulAction
+    letI := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
+    haveI := BalancedProduct.isManifold_rightTranslation (K := K) (Z := A × V) (I := I)
+      (IZ := 𝓘(ℝ, A × V)) (F := F)
+    D.descendedForm.IsClosed := by
+  let := D.fiberDistribMulAction
+  have := D.contMDiffSMul_fiberDistribMulAction
+  let := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
+  have := BalancedProduct.isManifold_rightTranslation (K := K) (Z := A × V) (I := I)
+    (IZ := 𝓘(ℝ, A × V)) (F := F)
+  rw [descendedForm_def, SmoothForm.isClosed_descendedForm_iff]
+  exact D.isClosed_form
+
+/-- **`G` preserves the descended form**: the action `k • [g, p] = [k g, p]` of `k ∈ G` on
+`G ×_K (A × V)` pulls the descended form of the local model back to itself. -/
+@[simp]
+theorem mpullback_smul_descendedForm (k : G) :
+    letI := D.fiberDistribMulAction
+    haveI := D.contMDiffSMul_fiberDistribMulAction
+    letI := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
+    haveI := BalancedProduct.isManifold_rightTranslation (K := K) (Z := A × V) (I := I)
+      (IZ := 𝓘(ℝ, A × V)) (F := F)
+    ∀ hk : ContMDiff 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
+      𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))) ∞
+      fun y : BalancedProduct K K.RightTranslation (A × V) ↦ k • y,
+    SmoothForm.mpullback (k • ·) hk D.descendedForm = D.descendedForm := by
+  let := D.fiberDistribMulAction
+  have := D.contMDiffSMul_fiberDistribMulAction
+  let := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
+  have := BalancedProduct.isManifold_rightTranslation (K := K) (Z := A × V) (I := I)
+    (IZ := 𝓘(ℝ, A × V)) (F := F)
+  intro hk
+  have hπ := (BalancedProduct.isSubmersion_mk_toRightTranslation (K := K) (Z := A × V) (I := I)
+    (IZ := 𝓘(ℝ, A × V)) (F := F)).contMDiff
+  rw [D.eq_descendedForm_iff hπ, SmoothForm.mpullback_mpullback_of_comp_eq hπ hk
+    (contMDiff_mul_left.prodMap contMDiff_id) hπ
+    (funext fun p ↦ BalancedProduct.smul_mk_toRightTranslation k p.1 p.2),
+    mpullback_mk_descendedForm, mpullback_mul_left_form]
+
+end Descended
 
 end LocalModelData
 
