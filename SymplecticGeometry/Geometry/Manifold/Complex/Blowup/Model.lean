@@ -6,10 +6,13 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Complex.Basic
+public import Mathlib.Geometry.Manifold.Diffeomorph
 public import Mathlib.Topology.OpenPartialHomeomorph.Composition
 public import SymplecticGeometry.Algebra.Notation.Pi.Basic
 public import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
+public import TauCeti.Algebra.GroupWithZero.Fin.Tuple
 public import TauCeti.Analysis.Calculus.ContDiff.Pi
+public import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 public import TauCeti.Geometry.Manifold.AnalyticSubmanifold.Transport
 public import TauCeti.Geometry.Manifold.Immersion.Differential
 public import TauCeti.Geometry.Manifold.Instances.Projectivization
@@ -26,7 +29,8 @@ exceptional divisor, the fibre `ℙ ℂ E × {0}` over the origin.
 This file sets up the incidence set with its subspace topology, the two projections, the
 exceptional divisor, and the `n + 1` charts of McDuff–Salamon, Exercise 7.1.2 (i), with the
 transitions between them, and makes the incidence set a complex manifold on which both
-projections, and the inclusion into `ℙ ℂ E × E`, are holomorphic.
+projections, and the inclusion into `ℙ ℂ E × E`, are holomorphic. Off the divisor, the
+blowdown is a biholomorphism onto the nonzero vectors of `E`.
 
 ## Main definitions and results
 
@@ -65,6 +69,11 @@ projections, and the inclusion into `ℙ ℂ E × E`, are holomorphic.
   `SymplecticGeometry.BlowupModel.isMAnalyticSubmanifold_blowupModel`: so the incidence set is a
   complex submanifold of `ℙ ℂ E × E` of dimension `n + 1` (Tau Ceti's
   `TauCeti.IsMAnalyticSubmanifold`).
+* `SymplecticGeometry.BlowupModel.blowdownDiffeomorph n`: off the exceptional divisor, the blowdown
+  is a biholomorphism of open subsets onto `{z : E | z ≠ 0}`, with inverse `z ↦ ([z], z)`
+  (`coe_blowdownDiffeomorph`, `blowdownDiffeomorph_symm_apply`). Near `z` with `z i ≠ 0` the
+  inverse reads, in the chart `i`, as `z ↦ w` with `w i = z i` and `w j = z j / z i`
+  (`blowupModelChart_symm_insertNth_div`).
 
 ## Implementation notes
 
@@ -559,6 +568,84 @@ example : T2Space (BlowupModel n) := inferInstance
 example : SecondCountableTopology (BlowupModel n) := inferInstance
 
 end Manifold
+
+/-! ### The blowdown off the exceptional divisor -/
+
+section Blowdown
+
+open Function TopologicalSpace
+open scoped ContDiff Manifold
+
+/-- A nonzero vector `z` lies on the line it spans, so `(mk z, z)` is a point of the blowup. -/
+theorem mk_self_mem_blowupModel {z : Fin (n + 1) → ℂ} (hz : z ≠ 0) :
+    (mk ℂ z hz, z) ∈ blowupModel n := by
+  rw [mem_blowupModel_iff, submodule_mk]
+  exact Submodule.mem_span_singleton_self z
+
+/-- Off the exceptional divisor, the line of a point of the blowup is spanned by its blowdown. -/
+theorem mk_blowdown {p : BlowupModel n} (hp : p.blowdown ≠ 0) : mk ℂ p.blowdown hp = p.pr :=
+  mem_submodule_iff.1 p.blowdown_mem_submodule hp
+
+/-- For `z` with `z i ≠ 0`, the inverse of the chart `i` sends `w` with `w i = z i` and
+`w j = z j / z i` for `j ≠ i` to the point `(mk z, z)`. -/
+theorem blowupModelChart_symm_insertNth_div (i : Fin (n + 1)) {z : Fin (n + 1) → ℂ}
+    (hz : z i ≠ 0) :
+    (blowupModelChart i).symm (Fin.insertNth i (z i) fun j => z (i.succAbove j) / z i) =
+      ⟨(mk ℂ z (ne_of_apply_ne (· i) hz), z), mk_self_mem_blowupModel _⟩ := by
+  have hv : update (Fin.insertNth i (z i) fun j => z (i.succAbove j) / z i) i 1 =
+      (z i)⁻¹ • z := by
+    rw [Fin.update_insertNth, Fin.insertNth_one_div_eq_inv_smul i z hz]
+  refine ext ?_ ?_
+  · rw [pr_blowupModelChart_symm_apply, pr_mk, mk_eq_mk_iff']
+    exact ⟨(z i)⁻¹, hv.symm⟩
+  · rw [blowdown_blowupModelChart_symm_apply, blowdown_mk, hv, Fin.insertNth_apply_same,
+      smul_inv_smul₀ hz]
+
+variable (n) in
+/-- The blowdown `π` off the exceptional divisor, as a biholomorphism from the open complement of
+the divisor onto the open set of nonzero vectors of `E`. Its inverse sends `z ≠ 0` to the point
+`(mk z, z)`. -/
+noncomputable def blowdownDiffeomorph :
+    (⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ : Opens (BlowupModel n))
+      ≃ₘ^ω⟮𝓘(ℂ, Fin (n + 1) → ℂ), 𝓘(ℂ, Fin (n + 1) → ℂ)⟯
+      (⟨{z | z ≠ 0}, isOpen_ne⟩ : Opens (Fin (n + 1) → ℂ)) where
+  toFun p := ⟨p.val.blowdown, p.property⟩
+  invFun z := ⟨⟨_, mk_self_mem_blowupModel z.property⟩, z.property⟩
+  left_inv p := Subtype.ext <| ext (mk_blowdown p.property) rfl
+  right_inv _ := rfl
+  contMDiff_toFun := (TauCeti.ContMDiff.subtypeVal_comp_iff _ _).1
+    ((contMDiff_blowdown ω).comp contMDiff_subtypeVal)
+  contMDiff_invFun := by
+    refine (TauCeti.ContMDiff.subtypeVal_comp_iff _ _).1 fun z => ?_
+    obtain ⟨i, hi⟩ := Function.ne_iff.1 z.property
+    -- Near `z`, where the coordinate `i` stays nonzero, the inverse is read in the chart `i`.
+    have hL : ContDiff ℂ ω fun q : ℂ × (Fin n → ℂ) => Fin.insertNth (α := fun _ => ℂ) i q.1 q.2 :=
+      contDiff_fst.finInsertNth (F := fun _ => ℂ) i contDiff_snd
+    have hratio : ContDiffAt ℂ ω (fun v : Fin (n + 1) → ℂ =>
+        Fin.insertNth (α := fun _ => ℂ) i (v i) fun j => v (i.succAbove j) / v i) z.val :=
+      hL.contDiffAt.comp z.val <| (contDiffAt_apply ℂ (fun _ => ℂ) i z.val).prodMk
+        (contDiffAt_pi.2 fun j => (contDiffAt_apply ℂ (fun _ => ℂ) _ _).div
+          (contDiffAt_apply ℂ (fun _ => ℂ) _ _) hi)
+    have hnhds : ∀ᶠ y : (⟨{z | z ≠ 0}, isOpen_ne⟩ : Opens (Fin (n + 1) → ℂ)) in 𝓝 z,
+        y.val i ≠ 0 :=
+      ((continuous_apply i).comp continuous_subtypeVal).continuousAt.eventually_ne hi
+    refine ((contMDiff_blowupModelChart_symm i ω).contMDiffAt.comp z
+      (hratio.contMDiffAt.comp z contMDiff_subtypeVal.contMDiffAt)).congr_of_eventuallyEq ?_
+    filter_upwards [hnhds] with y hy
+    exact (blowupModelChart_symm_insertNth_div i hy).symm
+
+@[simp]
+theorem coe_blowdownDiffeomorph (p : (⟨(exceptionalDivisor n)ᶜ, _⟩ : Opens (BlowupModel n))) :
+    (blowdownDiffeomorph n p : Fin (n + 1) → ℂ) = p.val.blowdown :=
+  (rfl)
+
+@[simp]
+theorem blowdownDiffeomorph_symm_apply {z : Fin (n + 1) → ℂ} (hz : z ≠ 0) :
+    ((blowdownDiffeomorph n).symm ⟨z, hz⟩ : BlowupModel n) =
+      ⟨(mk ℂ z hz, z), mk_self_mem_blowupModel hz⟩ :=
+  (rfl)
+
+end Blowdown
 
 end BlowupModel
 
