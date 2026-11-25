@@ -65,6 +65,9 @@ are. The form of the completion of a Liouville domain, in the library's
   the glued space.
 * `SymplecticGeometry.GluedAlong.isLocalDiffeomorph_inl`, `isLocalDiffeomorph_inr`: the
   canonical maps are `C^n` local diffeomorphisms for the glued atlas.
+* `SymplecticGeometry.GluedAlong.desc_inl`, `desc_inr`, `continuousMap_ext`: continuous maps on `M₁`
+  and `M₂` that agree on the overlap give one on the glued space, and a continuous map on the
+  glued space is determined by its restrictions to `M₁` and `M₂`.
 * `SymplecticGeometry.GluedAlong.t2Space_iff`: when the glued space is Hausdorff.
 * `SymplecticGeometry.GluedAlong.t2Space_of_isClosed_graph`: the glued space is Hausdorff when
   `M₁` and `M₂` are and the graph of `φ` is closed in `M₁ × M₂`.
@@ -230,53 +233,65 @@ theorem inl_symm_apply (y : U₂) : inl φ (φ.symm y : M₁) = inr φ (y : M₂
 
 section Desc
 
-variable {X : Type*} {f₁ : M₁ → X} {f₂ : M₂ → X}
+variable {X : Type*} [TopologicalSpace X]
 
-open Classical in
-/-- The function on the glued space that is `f₁` on `M₁` and `f₂` on `M₂`. -/
-private def descFun (f₁ : M₁ → X) (f₂ : M₂ → X) (z : GluedAlong φ) : X :=
-  if hz : ∃ x, inl φ x = z then f₁ hz.choose
-  else f₂ ((exists_inl_or_exists_inr φ z).resolve_left hz).choose
+/-- The map on the disjoint union of the pieces of the gluing that is `f₁` on `M₁` and `f₂` on
+`M₂`. -/
+private def sigmaDesc (f₁ : C(M₁, X)) (f₂ : C(M₂, X)) : C((Σ i, (glueData φ).U i), X) :=
+  ContinuousMap.sigma fun
+    | ⟨false⟩ => f₁
+    | ⟨true⟩ => f₂
 
-private theorem descFun_inl (x : M₁) : descFun φ f₁ f₂ (inl φ x) = f₁ x := by
-  have hx : ∃ x', inl φ x' = inl φ x := ⟨x, rfl⟩
-  rw [descFun, dite_eq_left_of_eq_true (eq_true hx), inl_injective φ hx.choose_spec]
+/-- The quotient map from the disjoint union of the pieces of the gluing onto the glued
+space. -/
+private def sigmaι : C((Σ i, (glueData φ).U i), GluedAlong φ) :=
+  ⟨_, (glueData φ).isOpenQuotientMap_sigma_ι.continuous⟩
 
-private theorem descFun_inr (h : ∀ x : U₁, f₂ (φ x) = f₁ x) (y : M₂) :
-    descFun φ f₁ f₂ (inr φ y) = f₂ y := by
-  rw [descFun]
-  split_ifs with hz
-  · obtain ⟨hx, hy⟩ := (inl_eq_inr_iff φ).1 hz.choose_spec
-    exact (h ⟨_, hx⟩).symm.trans (congrArg f₂ hy)
-  · rw [inr_injective φ ((exists_inl_or_exists_inr φ _).resolve_left hz).choose_spec]
+/-- The glued space is the quotient of the disjoint union of the pieces by `sigmaι φ`. -/
+private theorem isQuotientMap_sigmaι : IsQuotientMap (sigmaι φ) :=
+  (glueData φ).isOpenQuotientMap_sigma_ι.isQuotientMap
 
-variable [TopologicalSpace X]
+/-- `sigmaDesc φ f₁ f₂` is constant on the fibres of the quotient map `sigmaι φ`. -/
+private theorem factorsThrough_sigmaDesc {f₁ : C(M₁, X)} {f₂ : C(M₂, X)}
+    (h : ∀ x : U₁, f₂ (φ x) = f₁ x) : Function.FactorsThrough (sigmaDesc φ f₁ f₂) (sigmaι φ) := by
+  -- On the points of `M₁` and `M₂`, `sigmaι φ` is `inl φ` and `inr φ` (`inl_def`, `inr_def`).
+  rintro ⟨⟨_ | _⟩, x⟩ ⟨⟨_ | _⟩, y⟩ hxy
+  · exact congrArg f₁ (inl_injective φ hxy)
+  · obtain ⟨hx, rfl⟩ := (inl_eq_inr_iff φ).1 hxy
+    exact (h ⟨x, hx⟩).symm
+  · obtain ⟨hy, rfl⟩ := (inr_eq_inl_iff φ).1 hxy
+    exact h ⟨y, hy⟩
+  · exact congrArg f₂ (inr_injective φ hxy)
 
 /-- **Maps out of the glued space.** Continuous maps `f₁ : M₁ → X` and `f₂ : M₂ → X` that agree
 on the overlap, `f₂ (φ x) = f₁ x` for `x ∈ U₁`, define the continuous map on `GluedAlong φ` that
 is `f₁` on `M₁` and `f₂` on `M₂` (`desc_inl`, `desc_inr`). -/
 def desc (f₁ : C(M₁, X)) (f₂ : C(M₂, X)) (h : ∀ x : U₁, f₂ (φ x) = f₁ x) :
-    C(GluedAlong φ, X) where
-  toFun := descFun φ f₁ f₂
-  continuous_toFun := by
-    refine continuous_iff_continuousAt.2 fun z ↦ ?_
-    rcases exists_inl_or_exists_inr φ z with ⟨x, rfl⟩ | ⟨y, rfl⟩
-    · refine (isOpenEmbedding_inl φ).continuousAt_iff.1 ?_
-      simpa only [Function.comp_def, descFun_inl] using f₁.continuous.continuousAt
-    · refine (isOpenEmbedding_inr φ).continuousAt_iff.1 ?_
-      simpa only [Function.comp_def, descFun_inr φ h] using f₂.continuous.continuousAt
+    C(GluedAlong φ, X) :=
+  -- The glued space is the quotient of the disjoint union of `M₁` and `M₂` by `sigmaι`.
+  (isQuotientMap_sigmaι φ).lift (sigmaDesc φ f₁ f₂) (factorsThrough_sigmaDesc φ h)
 
 /-- The map out of the glued space is `f₁` on `M₁`. -/
 @[simp]
 theorem desc_inl {f₁ : C(M₁, X)} {f₂ : C(M₂, X)} (h : ∀ x : U₁, f₂ (φ x) = f₁ x) (x : M₁) :
     desc φ f₁ f₂ h (inl φ x) = f₁ x :=
-  descFun_inl φ x
+  DFunLike.congr_fun ((isQuotientMap_sigmaι φ).lift_comp _ (factorsThrough_sigmaDesc φ h))
+    ⟨⟨false⟩, x⟩
 
 /-- The map out of the glued space is `f₂` on `M₂`. -/
 @[simp]
 theorem desc_inr {f₁ : C(M₁, X)} {f₂ : C(M₂, X)} (h : ∀ x : U₁, f₂ (φ x) = f₁ x) (y : M₂) :
     desc φ f₁ f₂ h (inr φ y) = f₂ y :=
-  descFun_inr φ h y
+  DFunLike.congr_fun ((isQuotientMap_sigmaι φ).lift_comp _ (factorsThrough_sigmaDesc φ h))
+    ⟨⟨true⟩, y⟩
+
+/-- Two continuous maps out of the glued space that agree on the images of `M₁` and of `M₂`
+are equal. -/
+theorem continuousMap_ext {f g : C(GluedAlong φ, X)} (h₁ : ∀ x, f (inl φ x) = g (inl φ x))
+    (h₂ : ∀ y, f (inr φ y) = g (inr φ y)) : f = g := by
+  ext z
+  rcases exists_inl_or_exists_inr φ z with ⟨x, rfl⟩ | ⟨y, rfl⟩
+  exacts [h₁ x, h₂ y]
 
 end Desc
 
