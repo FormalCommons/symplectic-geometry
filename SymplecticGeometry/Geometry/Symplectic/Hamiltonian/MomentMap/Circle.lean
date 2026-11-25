@@ -20,11 +20,21 @@ fundamental vector field of `ξ₁` vanishes at `x`, and by
 `SymplecticGeometry.mem_fixedPoints_circle_iff_fundamentalVectorField_eq_zero` this happens
 exactly at the fixed points of the action.
 
+Since the Lie algebra of `Circle` is spanned by `ξ₁`, the cocycle of any map `μ` to its dual
+vanishes, and the kernel of the differential of a moment map `μ` is that of `dH`. These are the
+facts that Tau Ceti's reduction of a level of a moment map
+(`TauCeti.SmoothTwoForm.IsMomentMap.existsUnique_isSymplectic_mpullback_eq_mpullback`) asks for
+in the circle case.
+
 ## Main results
 
 * `TauCeti.SmoothTwoForm.IsMomentMap.mem_criticalPoints_circlePeriodOneGenerator_iff`: at a
   point where `σ` is nondegenerate, `x` is critical for `⟨μ, ξ₁⟩` exactly when `x` is a fixed
   point of the circle action.
+* `TauCeti.SmoothTwoForm.momentCocycle_circle_eq_zero`: the cocycle of a map to the dual of the
+  Lie algebra of `Circle` vanishes.
+* `TauCeti.SmoothTwoForm.IsMomentMap.ker_differential_circle`: the kernel of the differential of
+  a circle moment map `μ` at `x` is that of `d⟨μ, ξ₁⟩`.
 
 ## References
 
@@ -36,6 +46,54 @@ public section
 
 open Manifold TauCeti SymplecticGeometry
 open scoped ContDiff Manifold
+
+namespace TauCeti.SmoothTwoForm
+
+section Cocycle
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
+
+/-- **The cocycle of a circle moment map vanishes.** For any two-form `σ`, infinitesimal action
+`a` of the Lie algebra of `Circle` and map `μ` to its dual, the cocycle
+`σ(Z_M, Z'_M) - μ_{⁅Z, Z'⁆}` is zero at every point, since the Lie algebra of `Circle` is
+one-dimensional. -/
+theorem momentCocycle_circle_eq_zero (σ : SmoothTwoForm I M)
+    (a : InfinitesimalAction (GroupLieAlgebra (𝓡 1) Circle) I M)
+    (μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle)) (x : M) :
+    σ.momentCocycle a μ x = 0 := by
+  refine momentCocycle_eq_zero_iff.2 fun Z Z' ↦ ?_
+  obtain ⟨c, rfl⟩ := exists_smul_circlePeriodOneGenerator_eq Z
+  obtain ⟨d, rfl⟩ := exists_smul_circlePeriodOneGenerator_eq Z'
+  rw [smul_lie, lie_smul, lie_self, smul_zero, smul_zero, map_zero,
+    ← SmoothForm.bilinFormAt_apply, ← InfinitesimalAction.eval_apply,
+    ← InfinitesimalAction.eval_apply, map_smul, map_smul, map_smul, LinearMap.smul_apply,
+    map_smul, SmoothForm.isAlt_bilinFormAt, smul_zero, smul_zero]
+
+/-- **The level tangent space of a circle moment map.** For a moment map `μ` of an infinitesimal
+action of the Lie algebra of `Circle`, the kernel of the differential `dμ_x : T_x M → 𝔤*` is the
+kernel of the differential of the single function `⟨μ, circlePeriodOneGenerator⟩`. -/
+theorem IsMomentMap.ker_differential_circle {σ : SmoothTwoForm I M}
+    {a : InfinitesimalAction (GroupLieAlgebra (𝓡 1) Circle) I M}
+    {μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle)} (h : σ.IsMomentMap a μ) (x : M) :
+    LinearMap.ker (h.differential x) =
+      LinearMap.ker (mfderiv I 𝓘(ℝ) (fun y ↦ μ y circlePeriodOneGenerator) x).toLinearMap := by
+  ext v
+  rw [LinearMap.mem_ker, LinearMap.mem_ker]
+  constructor
+  · intro hv
+    have := LinearMap.congr_fun hv circlePeriodOneGenerator
+    -- The tangent space of `ℝ` is `ℝ` by definition; `simpa` states the equation in `ℝ`.
+    exact (by simpa using this : _ = (0 : ℝ))
+  · intro hv
+    refine linearMap_ext_circlePeriodOneGenerator ?_
+    simp only [IsMomentMap.differential_apply, mvfderiv_apply_eq_mfderiv_apply,
+      LinearMap.zero_apply]
+    exact hv
+
+end Cocycle
+
+end TauCeti.SmoothTwoForm
 
 namespace TauCeti.SmoothTwoForm.IsMomentMap
 

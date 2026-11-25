@@ -11,7 +11,7 @@ public import SymplecticGeometry.Geometry.Manifold.Flow.Basic
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.RegularLevel
 public import SymplecticGeometry.Geometry.Symplectic.Coupling.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Circle
-public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap
+public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap.ReducedForm
 
 /-!
 # The converse of minimal coupling: the band as a product
@@ -74,6 +74,18 @@ projection of `P` are the slices of the coupling form, and the projection has sm
 sections (`TauCeti.ManifoldTotalSpace.exists_contMDiffOn_section`), so
 `SymplecticGeometry.IsSmoothFamily.of_mpullback_prodMk_eq` applies.
 
+For the reduced forms, let `σ` be symplectic. A smooth map `φ` from the total space of a
+principal circle bundle `P` to `M`, equivariant, with values in a level `H = t`, injective
+differential and tangent images `ker dH`, is level data for Tau Ceti's reduction of a level of a
+moment map (`TauCeti.SmoothTwoForm.IsMomentMap.existsUnique_isSymplectic_mpullback_eq_mpullback`),
+with the right circle action on the total space: the cocycle of `-μ` vanishes and
+`ker d(-μ) = ker dH`, since the Lie algebra of `Circle` is one-dimensional, the vertical vectors of
+`P` are the multiples of its fundamental field, which `dφ` sends to the orbit directions of `M`,
+and the fibres of `P` are orbits. So `φ^* σ` is the pull-back of a unique symplectic form on the
+base. The invariance of `φ^* σ` under the action on the total space is proved as in Tau Ceti's
+`TauCeti.SmoothTwoForm.IsEquivariantMomentMap.existsUnique_isSymplectic_mpullback_eq_mpullback`.
+The slices of the band map of a circle action are such maps.
+
 ## Main definitions
 
 * `SymplecticGeometry.bandMap v e a b`: the map `(q, s) ↦ φ_{s - a} (e q)`.
@@ -102,6 +114,12 @@ sections (`TauCeti.ManifoldTotalSpace.exists_contMDiffOn_section`), so
   nondegenerate at a point that the circle does not fix, `dH` does not vanish there.
 * `SymplecticGeometry.isCouplingForm_mpullback`: such a `ψ^* σ` is a coupling form for every
   family `τ` whose pull-backs `π^* (τ t)` are the pull-backs of `σ` along `ψ (·, t)`.
+* `SymplecticGeometry.existsUnique_isSymplectic_mpullback_projContMDiffMap_eq`: for `σ` symplectic,
+  an equivariant map `φ` from the total space of `P` into a level of `H`, with injective
+  differential and tangent images `ker dH`, has `φ^* σ = π^* τ` for a unique symplectic `τ`.
+* `SymplecticGeometry.existsUnique_isSymplectic_mpullback_eq_mpullback_bandMap`: in the setting of
+  `bandMap_orbitFiber`, with `f = H`, each slice of the band map pulls `σ` back to the pull-back
+  of a unique symplectic form on the base.
 * `SymplecticGeometry.IsCouplingForm.isSmoothFamily`: the family of a coupling form is smooth.
 
 ## References
@@ -421,6 +439,110 @@ theorem mfderiv_ne_zero_of_notMem_fixedPoints {σ : SmoothTwoForm I M}
 
 end Regular
 
+/-! ### The reduced forms of an equivariant map into a level -/
+
+section Reduced
+
+variable [FiniteDimensional ℝ E] [ContMDiffSMul (𝓡 1) I ∞ Circle M]
+  {EB HB B : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [TopologicalSpace HB]
+  {IB : ModelWithCorners ℝ EB HB} [IB.Boundaryless] [TopologicalSpace B] [ChartedSpace HB B]
+  [IsManifold IB ∞ B]
+  {P : B → Type*} [TopologicalSpace (TotalSpace Circle P)] [∀ b, TopologicalSpace (P b)]
+  [FiberBundle Circle P] [∀ b, MulAction Circleᵐᵒᵖ (P b)]
+  [PrincipalBundle Circle P] [ContMDiffFiberBundle ∞ Circle P IB (𝓡 1)]
+
+omit [T2Space M] [BoundarylessManifold I M] in
+/-- **The pull-back of a symplectic form to a level descends to the base.** Let a circle act
+smoothly on a finite-dimensional manifold `M`, preserving the symplectic form `σ`, with moment
+map `-μ`, and let `H = ⟨μ, circlePeriodOneGenerator⟩`. Let `P` be a smooth principal circle
+bundle over a boundaryless base `B`, and `φ` a smooth map from its total space to `M` with
+`φ (p • z) = z • φ p`, taking values in the level `H = t`, with injective differential whose
+range is `ker dH`. Then there is a unique symplectic form `τ` on `B` whose pull-back along the
+projection is `φ^* σ`. -/
+theorem existsUnique_isSymplectic_mpullback_projContMDiffMap_eq {σ : SmoothTwoForm I M}
+    (hσ : σ.IsSymplectic)
+    (hσs : ∀ g : Circle, SmoothForm.mpullback (fun x : M ↦ g • x)
+      (ContMDiffSMul.contMDiff_const_smul (I := 𝓡 1) (I' := I) g) σ = σ)
+    {μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle)}
+    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) fun x ↦ -μ x)
+    {φ : ManifoldTotalSpace Circle P → M} (hφ : ContMDiff (IB.prod (𝓡 1)) I ∞ φ)
+    (hφs : ∀ (g : Circle) p, φ (op g • p) = g • φ p) {t : ℝ}
+    (ht : ∀ p, μ (φ p) circlePeriodOneGenerator = t)
+    (hinj : ∀ p, Injective (mfderiv (IB.prod (𝓡 1)) I φ p))
+    (hrange : ∀ p, LinearMap.range (mfderiv (IB.prod (𝓡 1)) I φ p).toLinearMap =
+      LinearMap.ker (mfderiv I 𝓘(ℝ) (fun x ↦ μ x circlePeriodOneGenerator) (φ p)).toLinearMap) :
+    ∃! τ : SmoothTwoForm IB B, τ.IsSymplectic ∧
+      SmoothForm.mpullback (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1))
+        (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)).contMDiff τ =
+      SmoothForm.mpullback φ hφ σ := by
+  -- `-μ` is constant on the image of `φ`, since the Lie algebra is spanned by
+  -- `circlePeriodOneGenerator`.
+  obtain ⟨c, hc⟩ : ∃ c, ∀ p, -μ (φ p) = c := by
+    rcases isEmpty_or_nonempty (ManifoldTotalSpace Circle P) with hZ | ⟨⟨p₀⟩⟩
+    · exact ⟨0, fun p ↦ isEmptyElim p⟩
+    · exact ⟨-μ (φ p₀), fun p ↦ congrArg Neg.neg
+        (linearMap_ext_circlePeriodOneGenerator ((ht p).trans (ht p₀).symm))⟩
+  have hneg : (fun x ↦ (-μ x) circlePeriodOneGenerator) = -fun x ↦ μ x circlePeriodOneGenerator :=
+    funext fun _ ↦ LinearMap.neg_apply _ _
+  -- `dφ` sends the fundamental field of the bundle to that of `M`.
+  have hX (p : ManifoldTotalSpace Circle P) :
+      mfderiv (IB.prod (𝓡 1)) I φ p (rightFundamentalVectorField (IB.prod (𝓡 1))
+        circlePeriodOneGenerator p) = fundamentalVectorField I circlePeriodOneGenerator (φ p) :=
+    mfderiv_rightFundamentalVectorField_of_map_op_smul_eq_smul
+      ((hφ p).mdifferentiableAt (by simp))
+      (PrincipalBundle.mdifferentiableAt_orbit (n := ∞) (by simp) p 1)
+      (hφs · p) circlePeriodOneGenerator
+  have hann : lieAnnihilator ℝ (GroupLieAlgebra (𝓡 1) Circle) c = ⊤ := by
+    simp
+  refine hμ.existsUnique_isSymplectic_mpullback_eq_mpullback (K := Circleᵐᵒᵖ) hσ hφ hc
+    (fun _ ↦ SmoothTwoForm.momentCocycle_circle_eq_zero _ _ _ _) (fun p ↦ ?_)
+    (ManifoldTotalSpace.isSubmersion_projContMDiffMap ∞ Circle P IB (𝓡 1))
+    (ManifoldTotalSpace.surjective_projContMDiffMap ∞ Circle P IB (𝓡 1)) (fun p ↦ ?_)
+    (fun k ↦ contMDiff_const_smul k) (fun k p ↦ ?_) (fun p p' hpp' ↦ ?_) fun k ↦ ?_
+  · -- The level tangent space of `-μ` is `ker dH`.
+    rw [hμ.ker_differential_circle, hrange]
+    ext v
+    have h : (mfderiv I 𝓘(ℝ) (fun y ↦ (-μ y) circlePeriodOneGenerator) (φ p) v : ℝ) =
+        -mfderiv I 𝓘(ℝ) (fun y ↦ μ y circlePeriodOneGenerator) (φ p) v := by
+      rw [hneg, mfderiv_neg]
+      rfl
+    rw [LinearMap.mem_ker, LinearMap.mem_ker, ContinuousLinearMap.coe_coe,
+      ContinuousLinearMap.coe_coe]
+    exact (neg_eq_zero.symm.trans (Eq.congr_left h.symm) :)
+  · -- The vertical vectors are the multiples of the fundamental field, which `dφ` sends to the
+    -- orbit directions; `dφ` is injective.
+    rw [hann, LieSubalgebra.top_toSubmodule, Submodule.map_top]
+    ext u
+    rw [Submodule.mem_comap, LinearMap.mem_range]
+    constructor
+    · intro hu
+      obtain ⟨r, rfl⟩ :=
+        exists_eq_smul_rightFundamentalVectorField_of_mfderiv_proj_eq_zero
+          circlePeriodOneGenerator_ne_zero hu
+      refine ⟨r • circlePeriodOneGenerator, ?_⟩
+      rw [map_smul, InfinitesimalAction.eval_apply, InfinitesimalAction.fundamental_apply,
+        ContinuousLinearMap.coe_coe, map_smul, hX]
+    · rintro ⟨ξ, hξ⟩
+      obtain ⟨r, rfl⟩ := exists_smul_circlePeriodOneGenerator_eq ξ
+      have hu :
+          u = r • rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator p := by
+        refine hinj p ?_
+        rw [map_smul, InfinitesimalAction.eval_apply, InfinitesimalAction.fundamental_apply,
+          ContinuousLinearMap.coe_coe] at hξ
+        rw [map_smul, hX]
+        exact hξ.symm
+      rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe, hu, map_smul,
+        ManifoldTotalSpace.coe_projContMDiffMap,
+        PrincipalBundle.mfderiv_proj_rightFundamentalVectorField, smul_zero]
+  · simp
+  · obtain ⟨g, hg⟩ := PrincipalBundle.exists_op_smul_eq_of_proj_eq hpp'.symm
+    exact ⟨op g, hg⟩
+  · conv_rhs => rw [← hσs k.unop]
+    exact SmoothForm.mpullback_mpullback_of_comp_eq _ hφ hφ _
+      (funext fun p ↦ by simpa using hφs k.unop p) σ
+
+end Reduced
+
 /-! ### The band of a circle action -/
 
 section RegularLevel
@@ -586,6 +708,81 @@ theorem bandMap_orbitFiber_slice (hf : ContMDiff I 𝓘(ℝ) ∞ f)
       range_mfderiv_bandMap_slice (hv.of_le (by simp)) hcomplete hf.continuous hW hfv hband
         (fun x ↦ x.property) hιi (by simpa using hn.symm) t⟩
 
+
+omit [BoundarylessManifold I M] in
+/-- **The slices of the band of a circle action descend to symplectic forms.** In the setting of
+`SymplecticGeometry.bandMap_orbitFiber`, let the action preserve a symplectic form `σ`, with moment
+map `-μ` such that `f = ⟨μ, circlePeriodOneGenerator⟩`. Then for each `t ∈ [a, b]` there is a
+unique symplectic form `τ` on the base of `P` whose pull-back along the projection is the
+pull-back of `σ` along the slice `ψₜ = fun p ↦ bandMap v e a b (p, t)`. The smoothness of the
+band map, which `SymplecticGeometry.bandMap_orbitFiber` gives, is taken as an argument so that the
+pull-back along `ψₜ` can be written. -/
+theorem existsUnique_isSymplectic_mpullback_eq_mpullback_bandMap (hf : ContMDiff I 𝓘(ℝ) ∞ f)
+    (hreg : IsRegularValue I 𝓘(ℝ) f a)
+    (hn : Module.finrank ℝ E - Module.finrank ℝ ℝ = n)
+    (hinv : ∀ (g : Circle) (x : M), f (g • x) = f x)
+    (hfree : ∀ x, f x = a → MulAction.stabilizer Circle x = ⊥)
+    (hv : ContMDiff I I.tangent ∞ (fun x ↦ (⟨x, v x⟩ : TangentBundle I M)))
+    (hcomplete : IsCompleteVectorField v)
+    (hvinv : ∀ (g : Circle) (x : M), mfderiv I I (g • ·) x (v x) = v (g • x)) {W : Set M}
+    (hW : IsOpen W) (hfv : ∀ y ∈ W, mfderiv I 𝓘(ℝ) f y (v y) = 1)
+    (hband : f ⁻¹' Icc a b ⊆ W) {σ : SmoothTwoForm I M} (hσ : σ.IsSymplectic)
+    (hσs : ∀ g : Circle, SmoothForm.mpullback (fun x : M ↦ g • x)
+      (ContMDiffSMul.contMDiff_const_smul (I := 𝓡 1) (I' := I) g) σ = σ)
+    {μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle)}
+    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) fun x ↦ -μ x)
+    (hμf : ∀ x, μ x circlePeriodOneGenerator = f x) :
+    letI := regularLevelChartedSpace (fun x _ ↦ hf.contMDiffAt.of_le (by simp)) hreg hn
+    letI := levelOpMulAction a hinv
+    haveI := isManifold_regularLevel (by simp) (fun x _ ↦ hf.contMDiffAt) hreg hn
+    haveI := contMDiffSMul_levelOpMulAction (by simp) (fun x _ ↦ hf.contMDiffAt) hreg hn hinv
+      (IG := 𝓡 1)
+    haveI := ContMDiffSMul.continuousSMul (I := 𝓡 1) (I' := I) (G := Circle) (M := M) ∞
+    haveI := properSMul_levelOpMulAction (c := a) hinv
+    haveI := isCancelSMul_levelOpMulAction hinv hfree
+    letI := ProperSMul.orbitRelQuotientChartedSpace (𝓡 1) Circleᵐᵒᵖ 𝓘(ℝ, Fin n → ℝ)
+      {x : M // f x = a}
+    letI := (orbitFiber.atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a}).fiberBundle
+    haveI := orbitFiber.principalBundle (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a}
+    haveI := (orbitFiber.atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a})
+      |>.contMDiffFiberBundle
+      (orbitFiber.isContMDiff_atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a})
+    let IB := 𝓘(ℝ, ProperSMul.QuotientModelSpace (EuclideanSpace ℝ (Fin 1)) (Fin n → ℝ))
+    let P := orbitFiber Circleᵐᵒᵖ {x : M // f x = a}
+    let e : ManifoldTotalSpace Circle P → M := fun p ↦
+      ((orbitFiber.atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a}).totalSpaceDiffeomorph
+        (orbitFiber.isContMDiff_atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a}) p : M)
+    ∀ (hψ : ContMDiff ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) I ∞ (bandMap v e a b)) (t : Icc a b),
+      ∃! τ : SmoothTwoForm IB (MulAction.orbitRel.Quotient Circleᵐᵒᵖ {x : M // f x = a}),
+        τ.IsSymplectic ∧
+        SmoothForm.mpullback (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1))
+            (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)).contMDiff τ =
+          SmoothForm.mpullback (fun p ↦ bandMap v e a b (p, t))
+            (hψ.comp (contMDiff_id.prodMk contMDiff_const)) σ := by
+  let := regularLevelChartedSpace (fun x _ ↦ hf.contMDiffAt.of_le (by simp)) hreg hn
+  let := levelOpMulAction a hinv
+  have := isManifold_regularLevel (by simp) (fun x _ ↦ hf.contMDiffAt) hreg hn
+  have := contMDiffSMul_levelOpMulAction (by simp) (fun x _ ↦ hf.contMDiffAt) hreg hn hinv
+    (IG := 𝓡 1)
+  have := ContMDiffSMul.continuousSMul (I := 𝓡 1) (I' := I) (G := Circle) (M := M) ∞
+  have := properSMul_levelOpMulAction (c := a) hinv
+  have := isCancelSMul_levelOpMulAction hinv hfree
+  let := ProperSMul.orbitRelQuotientChartedSpace (𝓡 1) Circleᵐᵒᵖ 𝓘(ℝ, Fin n → ℝ)
+    {x : M // f x = a}
+  let := (orbitFiber.atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a}).fiberBundle
+  have := orbitFiber.principalBundle (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a}
+  have := (orbitFiber.atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a})
+    |>.contMDiffFiberBundle
+    (orbitFiber.isContMDiff_atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a})
+  intro IB P e hψ t
+  obtain ⟨-, hψs, hψf, -⟩ :=
+    bandMap_orbitFiber hf hreg hn hinv hfree hv hcomplete hvinv hW hfv hband (b := b)
+  have hs := bandMap_orbitFiber_slice hf hreg hn hinv hfree hv hcomplete hW hfv hband (b := b)
+  refine existsUnique_isSymplectic_mpullback_projContMDiffMap_eq hσ hσs hμ _
+    (fun g p ↦ hψs g (p, t)) (t := t) (fun p ↦ (hμf _).trans (hψf (p, t)))
+    (fun p ↦ LinearMap.ker_eq_bot.mp (hs t p).1) fun p ↦ ?_
+  rw [funext hμf]
+  exact (hs t p).2
 end RegularLevel
 
 /-! ### Smoothness of the family of reduced forms -/

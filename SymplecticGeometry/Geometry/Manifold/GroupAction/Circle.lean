@@ -32,6 +32,9 @@ its fundamental vector field `X_{ξ₁}` that later work on circle actions uses.
 
 ## Main results
 
+* `SymplecticGeometry.exists_smul_circlePeriodOneGenerator_eq`,
+  `SymplecticGeometry.linearMap_ext_circlePeriodOneGenerator`: `ξ₁` spans the Lie algebra of
+  `Circle`, so a linear map out of it is determined by its value at `ξ₁`.
 * `SymplecticGeometry.rightFundamentalVectorField_circlePeriodOneGenerator`: for a right circle
   action, the fundamental vector field of `ξ₁` is `2π` times that of `circleLieGenerator`.
 * `SymplecticGeometry.mulInvariantExp_smul_circlePeriodOneGenerator`: the one-parameter subgroup
@@ -78,6 +81,22 @@ theorem circlePeriodOneGenerator_def :
 theorem circlePeriodOneGenerator_ne_zero : circlePeriodOneGenerator ≠ 0 := by
   rw [circlePeriodOneGenerator_def]
   exact smul_ne_zero (by positivity) circleLieGenerator_ne_zero
+
+/-- Every element of the Lie algebra of `Circle` is a real multiple of `circlePeriodOneGenerator`.
+-/
+theorem exists_smul_circlePeriodOneGenerator_eq (ξ : GroupLieAlgebra (𝓡 1) Circle) :
+    ∃ c : ℝ, c • circlePeriodOneGenerator = ξ :=
+  (finrank_eq_one_iff_of_ne_zero' _ circlePeriodOneGenerator_ne_zero).mp
+    finrank_groupLieAlgebra_circle ξ
+
+/-- Two linear maps out of the Lie algebra of `Circle` that agree on `circlePeriodOneGenerator`
+are equal. -/
+theorem linearMap_ext_circlePeriodOneGenerator {N : Type*} [AddCommGroup N] [Module ℝ N]
+    {f g : GroupLieAlgebra (𝓡 1) Circle →ₗ[ℝ] N}
+    (h : f circlePeriodOneGenerator = g circlePeriodOneGenerator) : f = g :=
+  LinearMap.ext fun ξ ↦ by
+    obtain ⟨c, rfl⟩ := exists_smul_circlePeriodOneGenerator_eq ξ
+    rw [map_smul, map_smul, h]
 
 /-- For a right action of `Circle` on `M`, the fundamental vector field of
 `circlePeriodOneGenerator` is `2π` times that of `circleLieGenerator`. -/
