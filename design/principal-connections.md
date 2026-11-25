@@ -194,8 +194,8 @@ This file names it as a form.
   A.val x ![rightFundamentalVectorField (IB.prod IG) ξ x] = ξ`; the page's
   $A_p(p\xi)=\xi$ and $A_{pg}(vg)=\mathrm{Ad}(g^{-1})A_p(v)$.
 - `structure IsTensorialForm (a) : Prop`, for a `k`-form `a`: the same
-  equivariance, and `a.val x v = 0` whenever some `v j` is vertical (in the
-  kernel of the derivative of the projection).
+  equivariance, and `isSemibasic`: it is `RoughForm.IsSemibasic` for the
+  projection, vanishing whenever some argument is vertical.
 - `horizontal A x : Submodule ℝ (TangentSpace _ x)`, the kernel of $A_x$,
   for any one-form `A`, with `mem_horizontal_iff`;
   `IsConnectionForm.isCompl_horizontal`: it is a complement of the
@@ -246,8 +246,8 @@ This file names it as a form.
   mextDeriv A x ![v, w] + ⁅A.val x ![v], A.val x ![w]⁆`.
 - `IsConnectionForm.mpullback_op_smul_connectionCurvature`: the curvature is
   equivariant, by naturality of $d$ and of the wedge.
-- `IsConnectionForm.connectionCurvature_apply_eq_zero_of_vertical`: it
-  vanishes when one argument is vertical. With $\xi^\sharp$ the fundamental
+- `IsConnectionForm.isSemibasic_connectionCurvature`: it is semibasic,
+  vanishing when one argument is vertical. With $\xi^\sharp$ the fundamental
   field, differentiating the equivariance gives
   $L_{\xi^\sharp}A=-[\xi,A]$ (the $\mathfrak g$-valued version of the
   merged `mlieDerivForm_rightFundamentalVectorField_eq_zero`, proved the
