@@ -511,7 +511,7 @@ theorem dehnTwist_apply_of_notMem {x} (hx : x ∉ ι '' {z | cotangentNorm z ≤
     dehnTwist ι hR hU x = x
 theorem isCompact_image_setOf_cotangentNorm_le : IsCompact (ι '' {z | cotangentNorm z ≤ r₀})
 theorem mpullback_dehnTwist (hι : ι^* ω = (-symplecticForm)|U) : (dehnTwist ι hR hU)^* ω = ω
-theorem dehnTwist_apply_embedding (hιf : ∀ q, ι ⟨0_q, _⟩ = f q) (q : Sⁿ) :
+theorem dehnTwist_apply_embedding (hιf : ∀ q, ∃ h : 0_q ∈ U, ι ⟨0_q, h⟩ = f q) (q : Sⁿ) :
     dehnTwist ι hR hU (f q) = f (-q)
 theorem exists_symplecticEmbedding (hf : hω.isNondegenerate.IsLagrangianMap (𝓡 n) f) :
     ∃ (U : Opens T*Sⁿ) (V : Opens M) (ι : U ≃ₘ⟮_, I⟯ V),
@@ -530,8 +530,8 @@ theorem exists_mpullback_dehnTwist_sub_eq_of_two_le (hn : 2 ≤ n) … -- withou
 ```
 
 `dehnTwist` takes the diffeomorphism given by
-`IsLocalDiffeomorph.exists_diffeomorph_extend_of_isCompact` for the open
-embedding `ι` and the compact set $T(r_0)$
+`Diffeomorph.exists_extend_of_isCompact` for the conjugate by `ι` of the
+model twist on `V` and the compact image of $T(r_0)$
 (`isCompact_setOf_cotangentNorm_le`). Its two apply lemmas determine it.
 `exists_symplecticEmbedding` is the Lagrangian neighbourhood theorem
 composed with $N=m_{-1}$. A model twist with $T(r_0)\subseteq U$
