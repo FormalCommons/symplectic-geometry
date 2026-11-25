@@ -19,6 +19,7 @@ public import TauCeti.Geometry.Manifold.Riemannian.VolumeDensity.ChangeOfVariabl
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartialDiffeomorph
 public import SymplecticGeometry.Geometry.Manifold.Riemannian.PartialDiffeomorph
 public import SymplecticGeometry.LinearAlgebra.BilinearForm.Gram
+import SymplecticGeometry.Analysis.Calculus.ContDiff.Basis
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import Mathlib.Analysis.Calculus.BumpFunction.FiniteDimension
 import TauCeti.Geometry.Manifold.Riemannian.FormMetric
@@ -671,11 +672,8 @@ theorem contDiffOn_formInnerInChart [T2Space M] [IsManifold I ∞ M]
       LinearMap.BilinForm.toMatrix_toLinearMap₁₂]
     simp only [Matrix.of_apply]
   refine ContDiffOn.congr ?_ fun y _ ↦ hexp y
-  have hc (p) {F : E → E [⋀^Fin k]→L[ℝ] ℝ} (hF : ContDiffOn ℝ ∞ F s) :
-      ContDiffOn ℝ ∞ (fun y ↦ e.repr (F y) p) s :=
-    (LinearMap.toContinuousLinearMap (e.coord p)).contDiff.comp_contDiffOn hF
-  exact ContDiffOn.sum fun p _ ↦ ContDiffOn.sum fun q _ ↦ ((hc p hf).mul
-    ((contDiffOn_formInnerInChart_apply ψ (e p) (e q)).mono hs)).mul (hc q hg)
+  exact ContDiffOn.sum fun p _ ↦ ContDiffOn.sum fun q _ ↦ ((e.contDiffOn_repr hf p).mul
+    ((contDiffOn_formInnerInChart_apply ψ (e p) (e q)).mono hs)).mul (e.contDiffOn_repr hg q)
 
 end FormInnerSmooth
 
