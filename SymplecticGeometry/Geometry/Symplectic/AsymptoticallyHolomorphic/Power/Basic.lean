@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Associated.Metric
 public import SymplecticGeometry.Topology.VectorBundle.Associated.Basic
 public import TauCeti.Topology.VectorBundle.TensorProduct.Basic
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.CircleBundle
+public import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Tensor
 
 /-!
 # Powers of a principal circle bundle
@@ -75,6 +76,14 @@ is checked on `P × ℂ`, of which the total space is a quotient
 topology, and the real structure that instance search finds on them is the one of
 `TauCeti.complexEulerClass_tensorProduct`.
 
+Over a compact normal base, the two identifications compute the Euler classes
+(`TauCeti.complexEulerClass`). Through `powerAddEquiv`, Tau Ceti's
+`TauCeti.complexEulerClass_eq_of_fiberwise` and the library's
+`TauCeti.complexEulerClass_tensorProduct` (with finite trivializing covers from compactness), the
+class of `PowerBundle P k` is additive in `k`, so it is `k` times the class of `PowerBundle P 1`;
+through `powerOneEquiv`, for the unitary frames of a Hermitian line bundle `V`, that is `k` times
+the class of `V` (`SymplecticGeometry.PowerBundle.complexEulerClass_power`).
+
 The file states the instances that Tau Ceti's files ask of the model fibre, and checks the
 structures of the bundle by `example`s.
 
@@ -99,6 +108,13 @@ structures of the bundle by `example`s.
 * `SymplecticGeometry.PowerBundle.continuous_powerOneEquiv`,
   `SymplecticGeometry.PowerBundle.continuous_powerOneEquiv_symm`: `powerOneEquiv` and its inverse
   are continuous on total spaces.
+* `SymplecticGeometry.PowerBundle.complexEulerClass_add`,
+  `SymplecticGeometry.PowerBundle.complexEulerClass_eq_zsmul`: over a compact normal base,
+  `e(PowerBundle P (k + l)) = e(PowerBundle P k) + e(PowerBundle P l)`, and
+  `e(PowerBundle P k) = k • e(PowerBundle P 1)`.
+* `SymplecticGeometry.PowerBundle.complexEulerClass_power`: for the unitary frames of a Hermitian
+  line bundle `V` over a compact normal base, the Euler class of the bundle of weight `k` is
+  `k • e(V)`.
 
 ## References
 
@@ -418,6 +434,67 @@ theorem continuous_powerAddEquiv (k l : ℤ) :
       (continuous_const (y := (PowerModel.toComplex.symm 1 : PowerModel l))))).congr fun x ↦ ?_
   rw [Function.comp_apply, Function.comp_apply, ← powerAddEquiv_mk]
   simp
+
+/-! ### The Euler classes of the bundles of weight `k` -/
+
+namespace PowerBundle
+
+section EulerClass
+
+variable {B : Type} [TopologicalSpace B] [NormalSpace B] [CompactSpace B]
+  (P : B → Type) [TopologicalSpace (TotalSpace Circle P)] [∀ b, TopologicalSpace (P b)]
+  [FiberBundle Circle P] [∀ b, MulAction Circleᵐᵒᵖ (P b)] [PrincipalBundle Circle P]
+
+/-- **The Euler class is additive in the weight**: over a compact normal base, the Euler class of
+`PowerBundle P (k + l)` is the sum of those of `PowerBundle P k` and `PowerBundle P l`. -/
+theorem complexEulerClass_add (k l : ℤ) :
+    complexEulerClass (r := 0) (PowerModel (k + l)) (PowerBundle P (k + l))
+        (PowerModel.finrank_eq_one _) =
+      complexEulerClass (r := 0) (PowerModel k) (PowerBundle P k) (PowerModel.finrank_eq_one _) +
+        complexEulerClass (r := 0) (PowerModel l) (PowerBundle P l)
+          (PowerModel.finrank_eq_one _) :=
+  (complexEulerClass_eq_of_fiberwise _ _ (continuous_powerAddEquiv P k l)).trans
+    (complexEulerClass_tensorProduct (PowerModel.finrank_eq_one k) (PowerModel.finrank_eq_one l)
+      (.of_compactSpace ..) (.of_compactSpace ..))
+
+/-- Over a compact normal base, the Euler class of `PowerBundle P k` is `k` times that of
+`PowerBundle P 1`. -/
+theorem complexEulerClass_eq_zsmul (k : ℤ) :
+    complexEulerClass (r := 0) (PowerModel k) (PowerBundle P k) (PowerModel.finrank_eq_one _) =
+      k • complexEulerClass (r := 0) (PowerModel 1) (PowerBundle P 1)
+        (PowerModel.finrank_eq_one _) := by
+  -- The Euler class, as a function of the weight, is an additive map from `ℤ`.
+  let f : ℤ →+ _ := AddMonoidHom.mk' (fun k ↦ complexEulerClass (r := 0) (PowerModel k)
+    (PowerBundle P k) (PowerModel.finrank_eq_one _)) (complexEulerClass_add P)
+  simpa [f] using map_zsmul f k 1
+
+end EulerClass
+
+section PowerOneEulerClass
+
+open OrthonormalFrameBundle
+
+variable {B F : Type} [TopologicalSpace B] [NormalSpace B] [CompactSpace B]
+  [NormedAddCommGroup F] [NormedSpace ℂ F] [Fact (finrank ℂ F = 1)] {V : B → Type}
+  [∀ b, NormedAddCommGroup (V b)] [∀ b, InnerProductSpace ℂ (V b)]
+  [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle ℂ F V]
+  [ContinuousFiberNorm F V]
+
+local instance : FiniteDimensional ℂ F := .of_fact_finrank_eq_succ 0
+
+/-- **The Euler class of a power of a Hermitian line bundle**: over a compact normal base, for
+the principal `Circle`-bundle of unitary frames of a Hermitian line bundle `V`, the Euler class of
+the bundle of weight `k` is `k` times that of `V`. -/
+theorem complexEulerClass_power (k : ℤ) :
+    complexEulerClass (r := 0) (PowerModel k) (PowerBundle (Fiber ℂ F V ℂ) k)
+        (PowerModel.finrank_eq_one _) =
+      k • complexEulerClass (r := 0) F V Fact.out := by
+  rw [complexEulerClass_eq_zsmul, complexEulerClass_eq_of_fiberwise _ _
+    (φ := fun b ↦ (powerOneEquiv F V b).toContinuousLinearEquiv) continuous_powerOneEquiv]
+
+end PowerOneEulerClass
+
+end PowerBundle
 
 end SymplecticGeometry
 
