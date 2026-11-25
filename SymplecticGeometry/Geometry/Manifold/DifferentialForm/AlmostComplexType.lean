@@ -9,6 +9,7 @@ public import Mathlib.Topology.VectorBundle.Riemannian
 public import TauCeti.Geometry.Manifold.DifferentialForm.AlmostComplexType
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Complexification
 import SymplecticGeometry.Analysis.Normed.Module.Alternating.Derivation
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.MapCoeff
 
 /-!
 # The real derivation of smooth forms along an endomorphism field, and type projections
@@ -78,18 +79,6 @@ theorem realAlternatingDerivation_fin_zero
   simp
 
 omit [RiemannianBundle (fun x : M ↦ TangentSpace I x)] in
-/-- The real derivation of smooth forms along an endomorphism field is linear over smooth
-functions: it commutes with multiplication by a smooth function `g`. -/
-@[simp]
-theorem realAlternatingDerivation_funSMulₗ
-    (A : ContMDiffSection I (E →L[ℝ] E) ∞ fun x : M ↦ TangentSpace I x →L[ℝ] TangentSpace I x)
-    (g : C^∞⟮I, M; ℝ⟯) (φ : SmoothForm I M ℝ k) :
-    A.realAlternatingDerivation (SmoothForm.funSMulₗ g φ) =
-      SmoothForm.funSMulₗ g (A.realAlternatingDerivation φ) := by
-  ext x v
-  simp [SmoothForm.coe_funSMulₗ, Finset.mul_sum]
-
-omit [RiemannianBundle (fun x : M ↦ TangentSpace I x)] in
 /-- The derivation of smooth forms with values in a complex normed space `F` along an
 endomorphism field is linear over smooth real functions: it commutes with multiplication by a
 smooth function `g`. -/
@@ -113,6 +102,21 @@ theorem alternatingDerivation_mapCoeff_ofRealCLM
       SmoothForm.mapCoeff Complex.ofRealCLM (A.realAlternatingDerivation α) := by
   ext x v
   simp [RoughForm.mapCoeff_apply, ContinuousLinearMap.alternatingDerivation_apply]
+
+omit [RiemannianBundle (fun x : M ↦ TangentSpace I x)] in
+/-- The real derivation of smooth forms along an endomorphism field is linear over smooth
+functions: it commutes with multiplication by a smooth function `g`. -/
+@[simp]
+theorem realAlternatingDerivation_funSMulₗ
+    (A : ContMDiffSection I (E →L[ℝ] E) ∞ fun x : M ↦ TangentSpace I x →L[ℝ] TangentSpace I x)
+    (g : C^∞⟮I, M; ℝ⟯) (φ : SmoothForm I M ℝ k) :
+    A.realAlternatingDerivation (SmoothForm.funSMulₗ g φ) =
+      SmoothForm.funSMulₗ g (A.realAlternatingDerivation φ) :=
+  SmoothForm.mapCoeff_injective (L := Complex.ofRealCLM)
+    (fun _ _ h ↦ Complex.ofReal_injective (by simpa using h)) <| by
+    rw [← alternatingDerivation_mapCoeff_ofRealCLM, SmoothForm.mapCoeff_funSMulₗ,
+      alternatingDerivation_funSMulₗ, alternatingDerivation_mapCoeff_ofRealCLM,
+      SmoothForm.mapCoeff_funSMulₗ]
 
 omit [RiemannianBundle (fun x : M ↦ TangentSpace I x)] in
 /-- On complex forms, the derivation along an endomorphism field is the complexification of the
