@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Analysis.InnerProductSpace.Sphere.Stereographic
 public import TauCeti.Topology.Compactification.OnePoint.Collapse
 public import SymplecticGeometry.Topology.Compactification.OnePoint.Sphere
 
@@ -136,7 +137,8 @@ theorem sphereCollapse_apply_of_ne {x : sphere (0 : E) 1} {y : sphere (0 : F) 1}
 theorem sphereCollapse_eq_iff {z : sphere (0 : E) 1 × sphere (0 : F) 1} :
     sphereCollapse h p q r z = r ↔ z.1 = p ∨ z.2 = q := by
   have hr : (onePointHyperplaneHomeoUnitSphere (norm_eq_of_mem_sphere r)).symm r = ∞ :=
-    Homeomorph.symm_apply_eq _ |>.2 (onePointHyperplaneHomeoUnitSphere_apply_infty r).symm
+    Homeomorph.symm_apply_eq _ |>.2
+      (Subtype.ext (TauCeti.coe_onePointHyperplaneHomeoUnitSphere_infty _)).symm
   rw [sphereCollapse_def, ← Homeomorph.eq_symm_apply, hr,
     onePointCollapse_eq_infty_iff (isOpenEmbedding_sphereProdStereographicSymm p q).injective,
     range_sphereProdStereographicSymm, mem_prod, not_and_or, mem_compl_singleton_iff,
