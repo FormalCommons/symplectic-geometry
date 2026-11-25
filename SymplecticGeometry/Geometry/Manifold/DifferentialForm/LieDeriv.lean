@@ -9,6 +9,7 @@ public import SymplecticGeometry.Analysis.Calculus.DifferentialForm.LieDeriv
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
 public import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 public import TauCeti.Geometry.Manifold.VectorField.Prod
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
 import TauCeti.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
@@ -151,9 +152,10 @@ theorem mpullback_prodMk_mlieDerivForm_prodVectorField_zero_eq_zero
   -- The vertical lift of a vector field is the image of the field under `dι_s`.
   have hι (q : N × P) (i : Fin k) :
       Y i q = mfderiv J (K.prod J) (Prod.mk q.1) q.2 (V i q.2) := by
-    rw [mfderiv_prod_right]
-    -- `inr w` is `(0, w)` by definition.
-    exact (Manifold.prodVectorField_apply _ _ q).trans rfl
+    obtain ⟨s, y⟩ := q
+    apply (TauCeti.Manifold.tangentSpaceProdEquiv (s, y)).injective
+    rw [TauCeti.Manifold.tangentSpaceProdEquiv_prodVectorField,
+      TauCeti.Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_right, Pi.zero_apply]
   have hYv : (Y · (t, x)) = fun i ↦ mfderiv J (K.prod J) (Prod.mk t) x (v i) := by
     funext i
     rw [hι (t, x) i]
