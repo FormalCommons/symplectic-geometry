@@ -75,7 +75,7 @@ connection form is `θ^* dθ + π^* (σ^* α)`. The existence of connection form
 ## Implementation notes
 
 That `d α` vanishes on vertical vectors is the case `G = Circle` of
-`SymplecticGeometry.IsConnectionForm.connectionCurvature_apply_eq_zero_of_vertical`, applied to
+`SymplecticGeometry.IsConnectionForm.isSemibasic_connectionCurvature`, applied to
 `α ξ₀` through `SymplecticGeometry.isConnectionForm_mapCoeff_iff` and
 `SymplecticGeometry.connectionCurvature_mapCoeff_toSpanSingleton`.
 
@@ -200,8 +200,11 @@ theorem IsCircleConnectionForm.isBasic_mextDerivₗ (hα : IsCircleConnectionFor
   PrincipalBundle.isBasic_of_mpullback_op_smul (β := mextDerivₗ (IB.prod (𝓡 1)) 1 α)
     (fun z ↦ by rw [← SmoothForm.mextDerivₗ_mpullback, hα.mpullback_op_smul])
     (RoughForm.isSemibasic_iff.mpr fun x v j hv ↦ by
-      have h := (isConnectionForm_mapCoeff_iff.mpr hα).connectionCurvature_apply_eq_zero_of_vertical
-        x v j hv
+      -- Stated with the instances of `SmoothForm`, which `RoughForm.isSemibasic_iff` unfolds.
+      have h : (connectionCurvature (SmoothForm.mapCoeff
+          (ContinuousLinearMap.toSpanSingleton ℝ circleLieGenerator) α)).val x v = 0 :=
+        RoughForm.isSemibasic_iff.mp
+          (isConnectionForm_mapCoeff_iff.mpr hα).isSemibasic_connectionCurvature x v j hv
       rw [connectionCurvature_mapCoeff_toSpanSingleton, SmoothForm.coe_mapCoeff,
         RoughForm.mapCoeff_apply, ContinuousLinearMap.toSpanSingleton_apply, smul_eq_zero] at h
       exact h.resolve_right circleLieGenerator_ne_zero)
