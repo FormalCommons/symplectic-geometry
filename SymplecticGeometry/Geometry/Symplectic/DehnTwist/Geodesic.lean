@@ -59,7 +59,8 @@ direction.
 * `SymplecticGeometry.range_cotangentCoord`: the coordinates fill out
   `{(q, p) | ‖q‖ = 1, ⟪q, p⟫ = 0}`.
 * `SymplecticGeometry.contMDiff_cotangentMk`, `SymplecticGeometry.contMDiff_cotangentCoord`: both
-  maps are smooth.
+  maps are smooth. `SymplecticGeometry.contMDiff_of_contMDiff_cotangentCoord_comp`: a map into
+  `T*Sⁿ` is smooth when its coordinates are.
 * `SymplecticGeometry.cotangentNorm_eq_norm`: `‖p‖` is the norm of `z` for the round metric.
 * `SymplecticGeometry.isCompact_setOf_cotangentNorm_le`: the sets `{z | ‖p‖ ≤ r}` are compact.
 * `SymplecticGeometry.mpullback_cotangentCoord`: the coordinates, read in `E × E*` through
@@ -307,6 +308,22 @@ theorem contMDiff_cotangentCoord :
     contMDiff_finsetSum fun j _ ↦ (hcoeff j).smul contMDiff_const
   exact hsum.congr fun z ↦ (b.sum_repr' _).symm
 
+/-- A map into `T*Sⁿ` is smooth as soon as its coordinates `(q, p)` are smooth maps into
+`ℝⁿ⁺¹ × ℝⁿ⁺¹`. -/
+theorem contMDiff_of_contMDiff_cotangentCoord_comp {E H M : Type*} [NormedAddCommGroup E]
+    [NormedSpace ℝ E] [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M]
+    [ChartedSpace H M] [IsManifold I ∞ M] {f : M → CotangentBundle (𝓡 n) (𝕊 n)}
+    (hf : ContMDiff I 𝓘(ℝ, (𝔼 n) × 𝔼 n) ∞ (cotangentCoord ∘ f)) :
+    ContMDiff I ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) ∞ f := by
+  have : Fact (Module.finrank ℝ (𝔼 n) = n + 1) := ⟨finrank_euclideanSpace_fin⟩
+  have hq : ContMDiff I 𝓘(ℝ, 𝔼 n) ∞ (Prod.fst ∘ cotangentCoord ∘ f) :=
+    contDiff_fst.contMDiff.comp hf
+  have hp : ContMDiff I 𝓘(ℝ, 𝔼 n) ∞ (Prod.snd ∘ cotangentCoord ∘ f) :=
+    contDiff_snd.contMDiff.comp hf
+  refine (contMDiff_cotangentMk.comp
+    ((hq.codRestrict_sphere fun x ↦ (f x).proj.property).prodMk hp)).congr fun x ↦ ?_
+  exact (cotangentMk_cotangentCoord (f x)).symm
+
 /-- The norm `‖p‖` of the second coordinate of a covector on the unit sphere. It is the norm of
 the covector for the round metric (`cotangentNorm_eq_norm`). -/
 def cotangentNorm (z : CotangentBundle (𝓡 n) (𝕊 n)) : ℝ :=
@@ -448,6 +465,12 @@ theorem cotangentCoord_antipodal (z : CotangentBundle (𝓡 n) (𝕊 n)) :
     cotangentCoord (antipodal z) = -cotangentCoord z := by
   rw [antipodal_def, cotangentCoord_cotangent_orthogonal]
   ext <;> simp [Unitary.coe_neg, Matrix.neg_mulVec]
+
+/-- The antipodal map of `T*Sⁿ` preserves the norm `‖p‖`. -/
+@[simp]
+theorem cotangentNorm_antipodal (z : CotangentBundle (𝓡 n) (𝕊 n)) :
+    cotangentNorm (antipodal z) = cotangentNorm z := by
+  rw [cotangentNorm_def, cotangentNorm_def, cotangentCoord_antipodal, Prod.snd_neg, norm_neg]
 
 /-- The normalized geodesic flow of `T*Sⁿ`. Off the zero section it moves a covector with
 coordinates `(q, p)` for time `t` along the great circle through `q` in the direction `p / ‖p‖`,

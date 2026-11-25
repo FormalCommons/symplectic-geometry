@@ -286,9 +286,9 @@ projection as a smooth map, and `Q := πM *ᵖ P`.
   $w=(e\,y)_2^{-1}(e\,x)_2\,v$ by `sectionFunction_eq_inv_smul`.
 - `mfderiv_pullbackProjDiffeomorph_fundamental`: $\Phi$ carries
   $(x\xi,-X_\xi(v))$ to the fundamental field of $\xi$ on $Q$.
-- `isSubmersion_totalSpaceMk_mk` and `surjective_totalSpaceMk_mk`: $q$ is
+- `isSubmersion_chartedMk` and `surjective_chartedMk`: $q$ is
   a surjective submersion.
-- `existsUnique_mpullback_totalSpaceMk_mk_eq`: a smooth form on $P\times F$
+- `existsUnique_mpullback_chartedMk_eq`: a smooth form on $P\times F$
   invariant under the diagonal action and vanishing when one argument is
   $(x\xi,-X_\xi(v))$ is `mpullback q` of a form on $M$, unique by Tau
   Ceti's `SmoothForm.eq_descendedForm_iff`. It is Tau Ceti's
@@ -308,7 +308,7 @@ The connection induced by a connection form on $P\times_GF$
   vertical space follows from that of `horizontal` on $P$, since
   $\pi_M\circ[\cdot,v]=\pi_P$; smoothness of the distribution is
   checked in a local section of $P$, where it is the image of a smooth frame.
-- `IsConnectionForm.mfderiv_totalSpaceMk_mk_horizontalLift`: the horizontal
+- `IsConnectionForm.mfderiv_chartedMk_horizontalLift`: the horizontal
   lift at $[x,v]$ of $w$ is $dq$ of the horizontal lift of $w$ at $x$.
 
 This file is not used by the milestone; it is the connection that the
@@ -348,8 +348,8 @@ pulled back to `ManifoldTotalSpace G P × F` along `Prod.fst` and
   second expression, since $\hat x+X_{A v}$ vanishes on $(x\xi,-X_\xi)$ and
   $F_A$ vanishes on vertical vectors.
 - `associatedForm σ hμ hσG hA : SmoothForm (IB.prod IF) M ℝ 2`, the descended
-  form of `existsUnique_mpullback_totalSpaceMk_mk_eq`, with
-  `mpullback_totalSpaceMk_mk_associatedForm` (its pull-back along $q$ is
+  form of `existsUnique_mpullback_chartedMk_eq`, with
+  `mpullback_chartedMk_associatedForm` (its pull-back along $q$ is
   `weinsteinForm`), `isClosed_associatedForm`, and
   `mpullback_associatedForm_fiber`: for every point $x$ of the total space
   of $P$, its pull-back along the fibre inclusion $v\mapsto[x,v]$ is $\sigma$.

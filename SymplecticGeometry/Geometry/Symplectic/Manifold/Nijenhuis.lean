@@ -82,6 +82,7 @@ variable {E' H' N : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteD
   [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
   [TopologicalSpace N] [ChartedSpace H' N] [IsManifold I' ∞ N]
 
+attribute [local instance] IsManifold.minSmoothness_of_isRCLikeNormedField in
 /-- **Naturality of the Nijenhuis tensor for related vector fields.** Let `f : M → N` be `C²` at
 `x` and intertwine `J` on `M` with `K` on `N` near `x`, `df_z ∘ J_z = K_{f z} ∘ df_z`. If the vector
 fields `X, Y` on `M`, differentiable at `x`, are `f`-related near `x` to vector fields `V, W` on
@@ -96,8 +97,6 @@ theorem mfderiv_nijenhuis_of_eventually_related (K : SmoothAlmostComplexStructur
     (hW : MDiffAt (T% W) (f x)) (hXV : ∀ᶠ z in 𝓝 x, mfderiv I I' f z (X z) = V (f z))
     (hYW : ∀ᶠ z in 𝓝 x, mfderiv I I' f z (Y z) = W (f z)) :
     mfderiv I I' f x (J.nijenhuis x (X x) (Y x)) = K.nijenhuis (f x) (V (f x)) (W (f x)) := by
-  have : IsManifold I (minSmoothness ℝ 2) M := .of_le (n := ∞) (by simp)
-  have : IsManifold I' (minSmoothness ℝ 2) N := .of_le (n := ∞) (by simp)
   -- `J X` is related to `K V` near `x`, and likewise for `Y` and `W`.
   have hJ {A : Π z : M, TangentSpace I z} {B : Π y : N, TangentSpace I' y}
       (hAB : ∀ᶠ z in 𝓝 x, mfderiv I I' f z (A z) = B (f z)) :

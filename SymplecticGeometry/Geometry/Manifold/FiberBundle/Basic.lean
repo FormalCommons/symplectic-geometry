@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.FiberBundle.Basic
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal
+public import TauCeti.Geometry.Manifold.FiberBundle.Submersion
 
 /-!
 # Smooth maps into the charted total space of a fibre bundle
@@ -30,6 +31,9 @@ the trivialization of a principal bundle given by a local section.
   states its lemmas about the projection. Lemmas whose content does not depend on the smoothness
   index, such as those about derivatives, hold for `projContMDiffMap n` with any `n`.
 * `TauCeti.ManifoldTotalSpace.mdifferentiable_projContMDiffMap`: the projection is differentiable.
+* `TauCeti.ManifoldTotalSpace.surjective_projContMDiffMap`,
+  `TauCeti.ManifoldTotalSpace.isSubmersion_projContMDiffMap`: the projection is a surjective
+  submersion.
 * `TauCeti.ManifoldTotalSpace.projContMDiffMap_comp_homeomorph_mk`: a section is a right inverse
   of the projection.
 * `TauCeti.ManifoldTotalSpace.mfderiv_proj_mfderiv_section_apply`: the derivative of a section is
@@ -88,6 +92,24 @@ theorem mdifferentiable_projContMDiffMap :
     MDifferentiable (IB.prod IF) IB (projContMDiffMap n F E IB IF) := by
   rw [coe_projContMDiffMap]
   exact (contMDiff_proj 1 F E IB IF).mdifferentiable one_ne_zero
+
+variable (n F E IB IF) in
+/-- The projection of the charted total space of a fibre bundle with nonempty fibre is
+surjective. -/
+theorem surjective_projContMDiffMap [Nonempty F] :
+    Function.Surjective (projContMDiffMap n F E IB IF) := by
+  rw [coe_projContMDiffMap]
+  exact (FiberBundle.surjective_proj F E).comp (homeomorph F E).symm.surjective
+
+variable (n F E IB IF) in
+/-- The projection of the charted total space of a `C^n` fibre bundle over a `C^n` manifold, with
+a `C^n` manifold as fibre, is a `C^n` submersion (`TauCeti.ManifoldTotalSpace.isSubmersion_proj`,
+stated for `projContMDiffMap n`). -/
+theorem isSubmersion_projContMDiffMap [IsManifold IB n B] [IsManifold IF n F]
+    [ContMDiffFiberBundle n F E IB IF] :
+    Manifold.IsSubmersion (IB.prod IF) IB n (projContMDiffMap n F E IB IF) := by
+  rw [coe_projContMDiffMap]
+  exact isSubmersion_proj n F E IB IF
 
 /-- A section `τ` of a fibre bundle, read as a map into the charted total space, is a right
 inverse of the projection: `π ∘ τ = id`. -/
