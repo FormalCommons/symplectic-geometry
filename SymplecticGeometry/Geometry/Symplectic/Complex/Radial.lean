@@ -20,6 +20,7 @@ import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 import TauCeti.Geometry.Manifold.Complex.DdbarForm.Basic
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
+import TauCeti.Geometry.Manifold.MFDeriv.Opens
 public import TauCeti.Geometry.Manifold.Complex.LeviForm
 public import SymplecticGeometry.Geometry.Manifold.Complex.Plurisubharmonic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Rescale
@@ -77,6 +78,19 @@ The second half of the file is about radial maps. For `h : ℝ → ℝ` positive
   (`TauCeti.isLocalDiffeomorphAt_of_injective_mfderiv`). It is bijective onto the shell because
   `h` is strictly increasing, and so it is a diffeomorphism by Mathlib's
   `IsLocalDiffeomorph.diffeomorphOfBijective`.
+* `SymplecticGeometry.mpullback_radialMap_stdForm`: the pull-back of `ω₀` along the radial map
+  of `h` is `radialPotentialForm ι g hg` for every `g` smooth on `(0, ∞)` with `g'(s) = h(s) / s`
+  there. With `F z = ψ(s) z` and `ψ(s) = √(h(s) / s)`, the differential is
+  `dF v = ψ v + ψ'(s) ds(v) z` and `ds(v) = 2 ⟨z, v⟩`, so
+  `ω₀(dF v, dF w) = ψ² ω₀(v, w) + 2 ψ ψ' (⟨z, v⟩ ω₀(z, w) - ⟨z, w⟩ ω₀(z, v))`, which is
+  `radialPotentialForm_apply` as `ψ² = g'` and `(ψ²)' = g''`.
+* `SymplecticGeometry.isKahler_mpullback_radialMap`: if moreover `h' > 0` on `(0, ∞)`, that
+  pull-back is Kähler, by `isKahler_radialPotentialForm` for the primitive
+  `g t = ∫₁ᵗ h(u) / u du`, for which `g' = h / s > 0` and `(s g')' = h' > 0`.
+* `SymplecticGeometry.isKahler_mpullback_radialMap_of_profile`: the same for the radial map
+  `z ↦ f(|z|) z / |z|` of a profile `f` smooth on `(0, ∞)` with `f > 0` and `f' > 0`, read
+  through `h(s) = f(√s)²`, whose derivative `f(√s) f'(√s) / √s` is positive. This is the form in
+  which [McDuffSalamon2017], §7.1, states it.
 
 ## References
 
@@ -298,6 +312,25 @@ private theorem contDiffAt_radialScale (hs : ContDiffOn ℝ ∞ h (Ioi 0))
   (contDiffAt_comp_norm_sq_complexToRealEuclidean ((hs.div contDiffOn_id fun _ ht ↦
     ne_of_gt ht).sqrt fun t ht ↦ (div_pos (hh t ht) ht).ne') z).smul contDiffAt_id
 
+/-- The derivative of `radialScale h` at `w ≠ 0`: with `N = |·|²` and `ψ t = √(h t / t)`, it is
+`v ↦ ψ (N w) • v + (ψ' (N w) * N'(w) v) • w`. -/
+private theorem hasFDerivAt_radialScale (hs : ContDiffOn ℝ ∞ h (Ioi 0))
+    (hh : ∀ s ∈ Ioi (0 : ℝ), 0 < h s) {w : ι → ℂ}
+    (hw : 0 < ‖complexToRealEuclidean ι w‖ ^ 2) :
+    HasFDerivAt (radialScale h)
+      (√(h (‖complexToRealEuclidean ι w‖ ^ 2) / ‖complexToRealEuclidean ι w‖ ^ 2) •
+          ContinuousLinearMap.id ℝ (ι → ℂ) +
+        (deriv (fun t ↦ √(h t / t)) (‖complexToRealEuclidean ι w‖ ^ 2) •
+          fderiv ℝ (fun y ↦ ‖complexToRealEuclidean ι y‖ ^ 2) w).smulRight w) w := by
+  have hhd : HasDerivAt h (deriv h _) (‖complexToRealEuclidean ι w‖ ^ 2) :=
+    ((hs.contDiffAt (Ioi_mem_nhds hw)).differentiableAt (by simp)).hasDerivAt
+  have hψd : DifferentiableAt ℝ (fun t ↦ √(h t / t)) (‖complexToRealEuclidean ι w‖ ^ 2) :=
+    (DifferentiableAt.div hhd.differentiableAt differentiableAt_id hw.ne').sqrt
+      (div_pos (hh _ hw) hw).ne'
+  exact (hψd.hasDerivAt.comp_hasFDerivAt w
+    (contDiff_norm_sq_complexToRealEuclidean.differentiable (by simp) w).hasFDerivAt).smul
+      (hasFDerivAt_id w)
+
 /-- The differential of `radialScale h` is injective where `h' > 0`: the differential of
 `|F|² = h ∘ |·|²` kills the radial part of a vector in its kernel, and then the scalar factor
 `√(h s / s) ≠ 0` kills the rest. -/
@@ -305,19 +338,12 @@ private theorem injective_fderiv_radialScale (hs : ContDiffOn ℝ ∞ h (Ioi 0))
     (hh : ∀ s ∈ Ioi (0 : ℝ), 0 < h s) (hd : ∀ s ∈ Ioi (0 : ℝ), 0 < deriv h s) {w : ι → ℂ}
     (hw : 0 < ‖complexToRealEuclidean ι w‖ ^ 2) :
     Function.Injective (fderiv ℝ (radialScale h) w) := by
+  have hF := hasFDerivAt_radialScale hs hh hw
   set N : (ι → ℂ) → ℝ := fun w ↦ ‖complexToRealEuclidean ι w‖ ^ 2
-  set ψ : ℝ → ℝ := fun t ↦ √(h t / t)
   have hNd : ∀ y, HasFDerivAt N (fderiv ℝ N y) y := fun y ↦
     (contDiff_norm_sq_complexToRealEuclidean.differentiable (by simp) y).hasFDerivAt
   have hhd : HasDerivAt h (deriv h (N w)) (N w) :=
     ((hs.contDiffAt (Ioi_mem_nhds hw)).differentiableAt (by simp)).hasDerivAt
-  have hψd : DifferentiableAt ℝ ψ (N w) :=
-    (DifferentiableAt.div hhd.differentiableAt differentiableAt_id hw.ne').sqrt
-      (div_pos (hh _ hw) hw).ne'
-  have hF : HasFDerivAt (radialScale h)
-      (ψ (N w) • ContinuousLinearMap.id ℝ (ι → ℂ) +
-        (deriv ψ (N w) • fderiv ℝ N w).smulRight w) w :=
-    (hψd.hasDerivAt.comp_hasFDerivAt w (hNd w)).smul (hasFDerivAt_id w)
   have heq : N ∘ radialScale h =ᶠ[nhds w] h ∘ N :=
     (contDiff_norm_sq_complexToRealEuclidean.continuous.continuousAt.eventually
       (Ioi_mem_nhds hw)).mono fun y hy ↦ norm_sq_radialScale hh hy
@@ -468,6 +494,124 @@ theorem coe_radialMapDiffeomorph_apply (z : puncturedSpace (ι → ℂ)) :
     val_radialMap]
 
 end Diffeomorph
+
+/-! ### The pull-back of `ω₀` along a radial map -/
+
+/-- **The pull-back of `ω₀` along a radial map.** For `h` smooth and positive on `(0, ∞)`, the
+pull-back of the standard form `ω₀` of `(ι → ℂ) ∖ 0` along the radial map
+`z ↦ √(h |z|² / |z|²) • z` is the radial potential form of any `g` smooth on `(0, ∞)` with
+`g'(s) = h(s) / s` there. -/
+theorem mpullback_radialMap_stdForm (hs : ContDiffOn ℝ ∞ h (Ioi 0))
+    (hh : ∀ s ∈ Ioi (0 : ℝ), 0 < h s) {g : ℝ → ℝ} (hg : ContDiffOn ℝ ∞ g (Ioi 0))
+    (hgh : ∀ s ∈ Ioi (0 : ℝ), deriv g s = h s / s) :
+    SmoothForm.mpullback (radialMap h hh) (contMDiff_radialMap hs hh)
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal
+          (stdComplexPiSymplecticForm ι).constSmooth) =
+      radialPotentialForm ι g hg := by
+  refine SmoothBundleForm.ext_eval₂ fun z v w ↦ ?_
+  have hcomp : (Subtype.val ∘ radialMap h hh : puncturedSpace (ι → ℂ) → ι → ℂ) =
+      radialScale h ∘ Subtype.val := funext (val_radialMap hh)
+  rw [SmoothForm.mpullback_mpullback, SmoothForm.eval₂_mpullback,
+    SymplecticForm.eval₂_constSmooth_mfderiv_eq, hcomp]
+  have hD (u : TangentSpace 𝓘(ℝ, ι → ℂ) z) :
+      mvfderiv 𝓘(ℝ, ι → ℂ) (radialScale h ∘ Subtype.val) z u = fderiv ℝ (radialScale h) z u :=
+    by rw [mvfderiv_comp_subtype_val]; exact mvfderiv_eq_fderiv_apply _ _ u
+  rw [hD, hD, radialPotentialForm_apply, ← norm_sq_complexToRealEuclidean]
+  -- Read `v` and `w` as vectors of `ι → ℂ`.
+  revert v w
+  intro (v : ι → ℂ) (w : ι → ℂ)
+  have hz := norm_sq_complexToRealEuclidean_pos z
+  set S := ‖complexToRealEuclidean ι (z : ι → ℂ)‖ ^ 2
+  set ψ : ℝ → ℝ := fun t ↦ √(h t / t)
+  rw [(hasFDerivAt_radialScale hs hh hz).fderiv,
+    ((complexToRealEuclidean ι).hasFDerivAt.norm_sq).fderiv]
+  -- `g' = ψ²` near `S`, so `g'' (S) = 2 ψ(S) ψ'(S)`.
+  have hψ : ∀ t ∈ Ioi (0 : ℝ), ψ t ^ 2 = deriv g t := fun t ht ↦ by
+    rw [hgh t ht, Real.sq_sqrt (div_pos (hh t ht) ht).le]
+  have hψd : DifferentiableAt ℝ ψ S :=
+    (DifferentiableAt.div (((hs.contDiffAt (Ioi_mem_nhds hz)).differentiableAt (by simp)))
+      differentiableAt_id hz.ne').sqrt (div_pos (hh _ hz) hz).ne'
+  have h1 : deriv g S = ψ S ^ 2 := (hψ S hz).symm
+  have h2 : deriv (deriv g) S = 2 * ψ S * deriv ψ S := by
+    rw [← (Filter.eventuallyEq_of_mem (Ioi_mem_nhds hz) hψ).deriv_eq,
+      (hψd.hasDerivAt.fun_pow 2).deriv]
+    ring
+  rw [h1, h2]
+  simp only [add_apply, smul_apply, ContinuousLinearMap.id_apply,
+    ContinuousLinearMap.smulRight_apply, ContinuousLinearMap.comp_apply,
+    ContinuousLinearEquiv.coe_coe, innerSL_apply_apply, inner_complexToRealEuclidean,
+    stdComplexPiSymplecticForm_apply_eq_im, dotProduct_add, add_dotProduct, dotProduct_smul,
+    star_add, star_smul, smul_dotProduct, smul_eq_mul, nsmul_eq_mul]
+  have hvz : (star v ⬝ᵥ (z : ι → ℂ)).im = -(star (z : ι → ℂ) ⬝ᵥ v).im := by
+    rw [← stdComplexPiSymplecticForm_apply_eq_im, ← stdComplexPiSymplecticForm_apply_eq_im,
+      SymplecticForm.neg_eq]
+  have hzz : (star (z : ι → ℂ) ⬝ᵥ (z : ι → ℂ)).im = 0 := by
+    rw [← stdComplexPiSymplecticForm_apply_eq_im, SymplecticForm.self_eq_zero]
+  simp only [star_trivial, Complex.add_im, Complex.real_smul, Complex.mul_im, Complex.ofReal_re,
+    Complex.ofReal_im, hvz, hzz, zero_mul, add_zero, Nat.cast_ofNat, ψ, S]
+  ring
+
+/-- **Radial maps pull `ω₀` back to Kähler forms.** For `h` smooth on `(0, ∞)` with `h > 0` and
+`h' > 0` there, the pull-back of the standard form `ω₀` of `(ι → ℂ) ∖ 0` along the radial map
+`z ↦ √(h |z|² / |z|²) • z` is a Kähler form for the complex structure of `(ι → ℂ) ∖ 0`. -/
+theorem isKahler_mpullback_radialMap (hs : ContDiffOn ℝ ∞ h (Ioi 0))
+    (hh : ∀ s ∈ Ioi (0 : ℝ), 0 < h s) (hd : ∀ s ∈ Ioi (0 : ℝ), 0 < deriv h s) :
+    SmoothTwoForm.IsKahler
+      (SmoothForm.mpullback (radialMap h hh) (contMDiff_radialMap hs hh)
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal
+          (stdComplexPiSymplecticForm ι).constSmooth))
+      (ofComplexManifold (ι → ℂ) (puncturedSpace (ι → ℂ))) := by
+  -- `g = ∫₁ h(u) / u du` is a primitive of `h(s) / s` on `(0, ∞)`.
+  set q : ℝ → ℝ := fun t ↦ h t / t
+  have hq : ContDiffOn ℝ ∞ q (Ioi 0) := hs.div contDiffOn_id fun _ ht ↦ ne_of_gt ht
+  set g : ℝ → ℝ := fun t ↦ ∫ u in (1 : ℝ)..t, q u
+  have hgd : ∀ t ∈ Ioi (0 : ℝ), HasDerivAt g (q t) t := fun t ht ↦
+    intervalIntegral.integral_hasDerivAt_right
+      (hq.continuousOn.mono
+        (ordConnected_Ioi.uIcc_subset (mem_Ioi.2 one_pos) ht)).intervalIntegrable
+      (hq.continuousOn.stronglyMeasurableAtFilter isOpen_Ioi t ht)
+      (hq.continuousOn.continuousAt (Ioi_mem_nhds ht))
+  have hgq : EqOn (deriv g) q (Ioi 0) := fun t ht ↦ (hgd t ht).deriv
+  have hg : ContDiffOn ℝ ∞ g (Ioi 0) :=
+    (contDiffOn_infty_iff_deriv_of_isOpen isOpen_Ioi).2
+      ⟨fun t ht ↦ (hgd t ht).differentiableAt.differentiableWithinAt, hq.congr hgq⟩
+  rw [mpullback_radialMap_stdForm hs hh hg hgq]
+  refine isKahler_radialPotentialForm hg (fun s hs ↦ ?_) (fun s hs ↦ ?_)
+  · rw [hgq hs]
+    exact div_pos (hh s hs) hs
+  · -- `t g'(t) = h t` near `s`.
+    have heq : (fun t ↦ t * deriv g t) =ᶠ[nhds s] h :=
+      Filter.eventuallyEq_of_mem (Ioi_mem_nhds hs) fun t ht ↦ by
+        rw [hgq ht, mul_div_cancel₀ _ (ne_of_gt ht)]
+    rw [heq.deriv_eq]
+    exact hd s hs
+
+/-- **Radial maps pull `ω₀` back to Kähler forms**, for a radial map `z ↦ f(|z|) z / |z|` given
+by its radial profile `f`. Let `f` be smooth on `(0, ∞)`, with `f > 0` and `f' > 0` there, and
+let `h` be smooth and positive on `(0, ∞)` with `h(s) = f(√s)²` there, so that the radial map
+of `h` is `z ↦ f(|z|) z / |z|`. Then the pull-back of the standard form `ω₀` of `(ι → ℂ) ∖ 0`
+along this map is a Kähler form for the complex structure of `(ι → ℂ) ∖ 0`. -/
+theorem isKahler_mpullback_radialMap_of_profile {f : ℝ → ℝ} (hf : ContDiffOn ℝ ∞ f (Ioi 0))
+    (hf₀ : ∀ r ∈ Ioi (0 : ℝ), 0 < f r) (hf₁ : ∀ r ∈ Ioi (0 : ℝ), 0 < deriv f r)
+    (hs : ContDiffOn ℝ ∞ h (Ioi 0)) (hh : ∀ s ∈ Ioi (0 : ℝ), 0 < h s)
+    (hfh : ∀ s ∈ Ioi (0 : ℝ), h s = f √s ^ 2) :
+    SmoothTwoForm.IsKahler
+      (SmoothForm.mpullback (radialMap h hh) (contMDiff_radialMap hs hh)
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal
+          (stdComplexPiSymplecticForm ι).constSmooth))
+      (ofComplexManifold (ι → ℂ) (puncturedSpace (ι → ℂ))) := by
+  refine isKahler_mpullback_radialMap hs hh fun s hs ↦ ?_
+  -- `h'(s) = 2 f(√s) f'(√s) / (2 √s)`.
+  have hr : 0 < √s := Real.sqrt_pos.2 hs
+  have hfd : HasDerivAt f (deriv f √s) √s :=
+    ((hf.contDiffAt (Ioi_mem_nhds hr)).differentiableAt (by simp)).hasDerivAt
+  have hD : HasDerivAt (fun x ↦ f √x ^ 2) _ s :=
+    (hfd.comp s (Real.hasDerivAt_sqrt (ne_of_gt hs))).fun_pow 2
+  rw [(Filter.eventuallyEq_of_mem (Ioi_mem_nhds hs) hfh).deriv_eq, hD.deriv]
+  have := hf₀ _ hr
+  have := hf₁ _ hr
+  simp only [Nat.cast_ofNat, Function.comp_apply, Nat.add_one_sub_one, pow_one]
+  positivity
 
 end SymplecticGeometry
 
