@@ -29,6 +29,14 @@ of maps into `X` then reassociate by `rw`.
 * `TopCat.smallSingularSubcomplexπ_comp_chainComplexMap_smallSingularSubcomplexPairToUnion`:
   Tau Ceti's `TopCat.chainComplexπ_smallSingularSubcomplexPairToUnion`, restated through
   `TopCat.smallSingularSubcomplexπ` and `TopPair.singularChainComplexπOfSubset`.
+* `TopCat.toSmallSingularSubcomplexPair`: the map of singular pairs from `(X, A)`, for `A`
+  contained in a member of `U`, to `X` relative to the small chains. Tau Ceti has it as the private
+  `toSmallPair` of `Singular/MayerVietoris/Relative.lean`.
+* `TopCat.singularChainComplexπOfSubset_comp_chainComplexMap_toSmallSingularSubcomplexPair`: its
+  chain map takes the quotient map onto `C(X, A)` to the quotient map onto the chains relative to
+  the small chains.
+* `TopCat.chainComplexMap_toSmallSingularSubcomplexPair_comp_smallSingularSubcomplexPairToUnion`:
+  the map `C(X, U) ⟶ C(X, U ∪ V)` factors through the chains relative to the small chains.
 * `TopCat.isIso_homologyMap_smallSingularSubcomplexPairToUnion`: for `U` and `V` open in `U ∪ V`,
   the homology of `X` relative to its singular simplices lying in `U` or in `V` is that of
   `(X, U ∪ V)`. Tau Ceti proves this for `U` and `V` open in `X`, in the private lemma
@@ -117,6 +125,54 @@ theorem smallSingularSubcomplexπ_comp_chainComplexMap_smallSingularSubcomplexPa
         SSetPair.chainComplexMap (smallSingularSubcomplexPairToUnion U V) R =
       TopPair.singularChainComplexπOfSubset R (U ∪ V) :=
   chainComplexπ_smallSingularSubcomplexPairToUnion _ _ _
+
+/-- The map of singular pairs `(X, A) ⟶ (X, X.smallSingularSubcomplex U)` for a subset `A`
+contained in a member `U i` of the family `U`: the inclusion of the singular simplices of `A` into
+the small chains, and the identity on the singular simplicial set of `X`. -/
+noncomputable def toSmallSingularSubcomplexPair {X : TopCat.{w}} {ι : Type*} (U : ι → Set X)
+    {A : Set X} {i : ι} (h : A ⊆ U i) :
+    TopPair.toSSetPair.obj (TopPair.ofSubset A) ⟶ (X.smallSingularSubcomplex U).pair :=
+  SSetPair.homMk (toSmallSingularSubcomplex U h) (𝟙 _)
+    ((toSmallSingularSubcomplex_ι _ _).trans (Category.comp_id _).symm)
+
+/-- The map of singular pairs `(X, A) ⟶ (X, X.smallSingularSubcomplex U)` is the identity on the
+singular simplicial set of `X`. -/
+@[simp]
+lemma toSmallSingularSubcomplexPair_right {X : TopCat.{w}} {ι : Type*} (U : ι → Set X)
+    {A : Set X} {i : ι} (h : A ⊆ U i) :
+    (toSmallSingularSubcomplexPair U h).right = 𝟙 _ :=
+  (rfl)
+
+/-- The chain map of `TopCat.toSmallSingularSubcomplexPair` takes the quotient map from the chains
+of `X` onto the relative chains of `(X, A)` to the quotient map onto its chains relative to the
+small chains. -/
+@[reassoc]
+theorem singularChainComplexπOfSubset_comp_chainComplexMap_toSmallSingularSubcomplexPair
+    {X : TopCat.{w}} {ι : Type*} (U : ι → Set X) {A : Set X} {i : ι} (h : A ⊆ U i) (R : C) :
+    TopPair.singularChainComplexπOfSubset R A ≫
+        SSetPair.chainComplexMap (toSmallSingularSubcomplexPair U h) R =
+      smallSingularSubcomplexπ U R :=
+  -- the naturality of `SSetPair.chainComplexπ`, whose map on the ambient chains is that of
+  -- `(toSmallSingularSubcomplexPair U h).right`, the identity
+  (SSetPair.chainComplexπ_naturality R _).symm.trans
+    ((congrArg (· ≫ _) (CategoryTheory.Functor.map_id _ _)).trans (Category.id_comp _))
+
+/-- The map `C(X, U) ⟶ C(X, U ∪ V)` of relative chains factors through the chains of `X` relative
+to its singular simplices lying in `U` or in `V`. -/
+@[reassoc]
+theorem chainComplexMap_toSmallSingularSubcomplexPair_comp_smallSingularSubcomplexPairToUnion
+    {C : Type u} [Category.{v} C] [HasCoproducts.{w} C] [Abelian C]
+    {X : TopCat.{w}} (U V : Set X) (R : C) :
+    SSetPair.chainComplexMap
+        (toSmallSingularSubcomplexPair ![U, V] (A := U) (i := 0) subset_rfl) R ≫
+        SSetPair.chainComplexMap (smallSingularSubcomplexPairToUnion U V) R =
+      TopPair.singularChainComplexMap (TopPair.ofSubsetMap (𝟙 X) fun _ hx ↦ Or.inl hx) R := by
+  rw [← cancel_epi (TopPair.singularChainComplexπOfSubset R U),
+    singularChainComplexπOfSubset_comp_chainComplexMap_toSmallSingularSubcomplexPair_assoc ![U, V]
+      (A := U) (i := 0) subset_rfl R,
+    smallSingularSubcomplexπ_comp_chainComplexMap_smallSingularSubcomplexPairToUnion]
+  refine Eq.trans ?_ (TopPair.singularChainComplexπOfSubset_naturality R (𝟙 X) _)
+  simp
 
 /-- For `U` and `V` open in `U ∪ V`, the comparison of the chains of `X` relative to its singular
 simplices lying in `U` or in `V` with the relative chains of `(X, U ∪ V)` is an isomorphism on

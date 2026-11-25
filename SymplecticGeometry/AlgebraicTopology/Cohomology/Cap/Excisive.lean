@@ -29,10 +29,11 @@ The construction is the homological counterpart of Tau Ceti's relative cup produ
 `TopCat.singularRelativeCup` (`TauCeti/AlgebraicTopology/Cohomology/Cup/Relative.lean`), and the
 proof of its naturality, `TopCat.singularRelativeCap_naturality`, adapts that of
 `TopCat.singularRelativeCup_naturality`. The proof of the compatibility with the cap product of a
-pair, `TopCat.singularCap_comp_singularHomologyπ`, follows that of Tau Ceti's
-`TopPair.singularHomologyπ_comp_absoluteSingularCap` (`Cohomology/Cap/AbsoluteRelative.lean`): both
-are `TauCeti.ChainComplex.cap_naturality` along a descent of the Alexander–Whitney diagonal. Here
-the descent is that of the quotient map onto `C(X; U + V)` to the relative chains of `(X, U)`.
+pair, `TopCat.singularCap_comp_singularHomologyπ_eq_singularRelativeCap`, follows that of Tau
+Ceti's `TopPair.singularHomologyπ_comp_absoluteSingularCap`
+(`Cohomology/Cap/AbsoluteRelative.lean`): both are `TauCeti.ChainComplex.cap_naturality` along a
+descent of the Alexander–Whitney diagonal. Here the descent is along the chain map of
+`TopCat.toSmallSingularSubcomplexPair`, from the relative chains of `(X, U)` to `C(X; U + V)`.
 
 ## Main definitions and results
 
@@ -42,8 +43,9 @@ the descent is that of the quotient map onto `C(X; U + V)` to the relative chain
   value on the class of a cocycle and a class of cycles of `C(X; U + V)`.
 * `TopCat.singularRelativeCap_naturality`: naturality in maps `f : X ⟶ Y` carrying `U` into `U'`
   and `V` into `V'`, the projection formula `f_*(y ⌢ f^*a) = f_*y ⌢ a`.
-* `TopCat.singularCap_comp_singularHomologyπ`: compatibility with Tau Ceti's relative cap product
-  `TopPair.singularCap : Hᵖ(X, U) ⊗ Hₙ(X, U) ⟶ H_q(X)`, `j_*(y ⌢ a) = j_*y ⌢ a`.
+* `TopCat.singularCap_comp_singularHomologyπ_eq_singularRelativeCap`: compatibility with Tau Ceti's
+  relative cap product `TopPair.singularCap : Hᵖ(X, U) ⊗ Hₙ(X, U) ⟶ H_q(X)`,
+  `j_*(y ⌢ a) = j_*y ⌢ a`.
 
 ## References
 
@@ -151,69 +153,25 @@ theorem singularRelativeCap_naturality (u : T ⟶ R ⊗ S) (μ : M ⊗ S ⟶ N) 
     (SSetPair.chainComplexPairing_naturality
       (TopPair.toSSetPair.map (TopPair.ofSubsetMap f hfV)) μ).symm p q n h a
 
-section Compatibility
-
-/-- The quotient map from the chains of `X` to its chains relative to the singular simplices lying
-in `U` or in `V`, descended to the relative chains of `(X, U)`. -/
-private def singularChainComplexOfSubsetToSmall (U V : Set X) (R : C) :
-    (TopPair.ofSubset U).singularChainComplex R ⟶
-      (X.smallSingularSubcomplex ![U, V]).pair.chainComplex R :=
-  (CokernelCofork.IsColimit.desc'
-    ((TopPair.ofSubset U).isColimitCokernelCoforkSingularChainComplex R)
-    (smallSingularSubcomplexπ ![U, V] R)
-    (by
-      rw [TopPair.toSSetPair_obj_hom]
-      exact chainComplexMap_comp_smallSingularSubcomplexπ ![U, V] (i := 0)
-        TopPair.range_ofSubset_map.subset R)).val
-
-omit [MonoidalCategory C] [MonoidalPreadditive C] in
-@[reassoc]
-private lemma singularChainComplexπOfSubset_singularChainComplexOfSubsetToSmall (U V : Set X)
-    (R : C) :
-    TopPair.singularChainComplexπOfSubset R U ≫ singularChainComplexOfSubsetToSmall U V R =
-      smallSingularSubcomplexπ ![U, V] R :=
-  (CokernelCofork.IsColimit.desc'
-    ((TopPair.ofSubset U).isColimitCokernelCoforkSingularChainComplex R) _ _).property
-
 /-- **Compatibility with the relative cap product of a pair**, `j_*(y ⌢ a) = j_*y ⌢ a`: for a class
 `a` of `Hᵖ(X, U)` and a class `y` of `Hₙ(X, U)`, the image in `H_q(X, V)` of the relative cap
 product `y ⌢ a ∈ H_q(X)` (`TopPair.singularCap`) is the cap product of the excisive couple of `a`
 with the image of `y` in `Hₙ(X, U ∪ V)`. -/
-theorem singularCap_comp_singularHomologyπ (u : T ⟶ R ⊗ S) (μ : M ⊗ S ⟶ N) (U V : Set X)
-    (hU : IsOpen ((↑) ⁻¹' U : Set ↥(U ∪ V))) (hV : IsOpen ((↑) ⁻¹' V : Set ↥(U ∪ V)))
-    (p q n : ℕ) (h : p + q = n) (a : (TopPair.ofSubset U).singularCohomology R k M p) :
+theorem singularCap_comp_singularHomologyπ_eq_singularRelativeCap (u : T ⟶ R ⊗ S)
+    (μ : M ⊗ S ⟶ N) (U V : Set X) (hU : IsOpen ((↑) ⁻¹' U : Set ↥(U ∪ V)))
+    (hV : IsOpen ((↑) ⁻¹' V : Set ↥(U ∪ V))) (p q n : ℕ) (h : p + q = n)
+    (a : (TopPair.ofSubset U).singularCohomology R k M p) :
     (TopPair.ofSubset U).singularCap k u μ p q n h a ≫
         (TopPair.ofSubset V).singularHomologyπ N q =
       TopPair.singularHomologyMap (TopPair.ofSubsetMap (𝟙 X) fun _ hx ↦ Or.inl hx) T n ≫
         singularRelativeCap k u μ U V hU hV p q n h a := by
-  -- The map `Hₙ(X, U) ⟶ Hₙ(X, U ∪ V)` factors through the small-chain quotient.
-  have hj : singularChainComplexOfSubsetToSmall U V T ≫
-      SSetPair.chainComplexMap (smallSingularSubcomplexPairToUnion U V) T =
-      TopPair.singularChainComplexMap (TopPair.ofSubsetMap (𝟙 X) fun _ hx ↦ Or.inl hx) T := by
-    rw [← cancel_epi (TopPair.singularChainComplexπOfSubset T U),
-      singularChainComplexπOfSubset_singularChainComplexOfSubsetToSmall_assoc,
-      smallSingularSubcomplexπ_comp_chainComplexMap_smallSingularSubcomplexPairToUnion]
-    refine Eq.trans ?_ (TopPair.singularChainComplexπOfSubset_naturality T (𝟙 X) _)
-    simp
-  have hD : singularChainComplexOfSubsetToSmall U V T ≫ relativeAlexanderWhitneyDiagonal U V u =
-      (TopPair.ofSubset U).alexanderWhitneyDiagonal u ≫
-        HomologicalComplex.tensorHom (𝟙 _) (TopPair.singularChainComplexπOfSubset S V) := by
-    rw [← cancel_epi (TopPair.singularChainComplexπOfSubset T U),
-      singularChainComplexπOfSubset_singularChainComplexOfSubsetToSmall_assoc,
-      smallSingularSubcomplexπ_relativeAlexanderWhitneyDiagonal]
-    refine Eq.trans ?_ (TopPair.singularChainComplexπ_alexanderWhitneyDiagonal_assoc
-      (TopPair.ofSubset U) u _).symm
-    have hπ := HomologicalComplex.mapBifunctorMap_comp (curriedTensor C) (ComplexShape.down ℕ)
-      (TopPair.singularChainComplexπOfSubset R U) (𝟙 _) (𝟙 _)
-      (TopPair.singularChainComplexπOfSubset S V)
-    rw [Category.comp_id, Category.id_comp] at hπ
-    -- The whiskering on the right is `HomologicalComplex.tensorHom f (𝟙 _)` by definition.
-    exact (congrArg (X.alexanderWhitneyDiagonal u ≫ ·) hπ).trans (Category.assoc _ _ _).symm
   have := TauCeti.ChainComplex.cap_naturality (k := k) (relativeAlexanderWhitneyDiagonal U V u)
     ((TopPair.toSSetPair.obj (TopPair.ofSubset V)).chainComplexPairing μ)
     ((TopPair.ofSubset U).alexanderWhitneyDiagonal u) ((toSSet.obj X).chainComplexPairing μ)
-    (singularChainComplexOfSubsetToSmall U V T) (𝟙 _) (TopPair.singularChainComplexπOfSubset S V)
-    (TopPair.singularChainComplexπOfSubset N V) hD
+    (SSetPair.chainComplexMap
+      (toSmallSingularSubcomplexPair ![U, V] (A := U) (i := 0) subset_rfl) T)
+    (𝟙 _) (TopPair.singularChainComplexπOfSubset S V) (TopPair.singularChainComplexπOfSubset N V)
+    (chainComplexMap_toSmallSingularSubcomplexPair_relativeAlexanderWhitneyDiagonal U V u)
     (SSetPair.chainComplexπ_chainComplexPairing
       (TopPair.toSSetPair.obj (TopPair.ofSubset V)) μ).symm p q n h a
   have hid : HomologicalComplex.homologyMap
@@ -223,16 +181,17 @@ theorem singularCap_comp_singularHomologyπ (u : T ⟶ R ⊗ S) (μ : M ⊗ S �
     rw [op_id, CategoryTheory.Functor.map_id]
     exact HomologicalComplex.homologyMap_id _ _
   rw [hid, ModuleCat.id_apply] at this
-  have hH : homologyMap (singularChainComplexOfSubsetToSmall U V T) n ≫
+  -- The map `Hₙ(X, U) ⟶ Hₙ(X, U ∪ V)` factors through the small-chain quotient.
+  have hH : SSetPair.homologyMap
+      (toSmallSingularSubcomplexPair ![U, V] (A := U) (i := 0) subset_rfl) T n ≫
       SSetPair.homologyMap (smallSingularSubcomplexPairToUnion U V) T n =
       TopPair.singularHomologyMap (TopPair.ofSubsetMap (𝟙 X) fun _ hx ↦ Or.inl hx) T n :=
-    (homologyMap_comp _ _ _).symm.trans (congrArg (homologyMap · n) hj)
+    (homologyMap_comp _ _ _).symm.trans (congrArg (homologyMap · n)
+      (chainComplexMap_toSmallSingularSubcomplexPair_comp_smallSingularSubcomplexPairToUnion U V T))
   rw [← hH, Category.assoc, homologyMap_smallSingularSubcomplexPairToUnion_singularRelativeCap,
     TopPair.singularCap_def]
   -- `TopPair.singularCap` and `TopPair.singularHomologyπ` are, by definition, the cap product
   -- and the map on homology that `this` states its identity with.
   exact this
-
-end Compatibility
 
 end TopCat
