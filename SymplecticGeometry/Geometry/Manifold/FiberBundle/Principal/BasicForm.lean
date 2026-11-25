@@ -358,16 +358,17 @@ private theorem mextDeriv_apply_rightFundamentalVectorField_prod_inl (ξ : Group
   · rw [hL, SmoothForm.coe_mpullback, ← mpullback_mextDeriv_at (hι.contMDiffAt.of_le (by simp))
       ((A.contMDiff _).of_le (by simp)), mpullback_apply_pair,
       mvfderiv_comp_apply x (mdifferentiable_apply_rightFundamentalVectorField_prod ξ _)
-        (hι.mdifferentiableAt (by simp)), mfderiv_prod_left] at hC
+        (hι.mdifferentiableAt (by simp)), mfderiv_prodMk_left_apply,
+        mfderiv_prodMk_left_apply] at hC
     simp only [Pi.zero_apply, ContinuousAlternatingMap.coe_zero] at hC
     rw [eq_neg_iff_add_eq_zero]
     exact hC.symm
-  · rw [SmoothForm.mpullback_apply, mfderiv_prod_left]
+  · rw [SmoothForm.mpullback_apply]
     simp only [Function.comp_apply]
     congr 1
     ext i
     fin_cases i
-    rfl
+    exact mfderiv_prodMk_left_apply _
 
 omit [IB.Boundaryless] in
 /-- The identity of `mextDeriv_apply_rightFundamentalVectorField_prod` on vectors tangent to `N`:
@@ -420,12 +421,9 @@ private theorem mextDeriv_apply_rightFundamentalVectorField_prod_inr (ξ : Group
         (0 : Π y : N, TangentSpace IN y) q⟩ : TangentBundle (𝓘(ℝ).prod IN) (ℝ × N))) (0, n) :=
     Manifold.mdifferentiableAt_prodVectorField hT
       ((contMDiff_zeroSection ℝ (TangentSpace IN)).mdifferentiableAt one_ne_zero)
-  -- The vector `(0, v)` at `(0, n)` is the image of `v` under the differential of
-  -- `m ↦ (0, m)`; written so, it is a tangent vector of `ℝ × N` at `(0, n)`.
-  have hw : mfderiv IN (𝓘(ℝ).prod IN) (Prod.mk (0 : ℝ)) n v = ((0 : ℝ), v) :=
-    (TauCeti.Manifold.tangentSpaceProdEquiv_apply _ _).symm.trans
-      (TauCeti.Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_right v)
-  -- Cartan's formula on `ℝ × N` for the pulled-back form, along `∂ₛ`.
+  -- Cartan's formula on `ℝ × N` for the pulled-back form, along `∂ₛ`. The vector `(0, v)` at
+  -- `(0, n)` is written as the image of `v` under the differential of `m ↦ (0, m)`, so that it is
+  -- a tangent vector of `ℝ × N` at `(0, n)`.
   have hC := mlieDerivForm_apply_eq_mextDeriv_add
     (f := (fun q : ManifoldTotalSpace G P × N ↦
         A.val q ![(rightFundamentalVectorField (IB.prod IG) ξ q.1, (0 : EN))]) ∘
@@ -450,7 +448,8 @@ private theorem mextDeriv_apply_rightFundamentalVectorField_prod_inr (ξ : Group
     rw [hC, SmoothForm.coe_mpullback, ← mpullback_mextDeriv_at
       (hφ.contMDiffAt.of_le (by simp)) ((A.contMDiff _).of_le (by simp)), mpullback_apply,
       mvfderiv_comp_apply _ (mdifferentiable_apply_rightFundamentalVectorField_prod ξ _)
-        (hφ.mdifferentiableAt (by simp)), (hφ' _).mfderiv, hw] at hV2
+        (hφ.mdifferentiableAt (by simp)), (hφ' _).mfderiv,
+        mfderiv_prodMk_right_apply (I := 𝓘(ℝ)) (x := (0 : ℝ)) v] at hV2
     have hγ0 : γ 0 = x := by simp [hγdef, mulInvariantExp_zero]
     rw [← hγ0, eq_neg_iff_add_eq_zero, ← hV2]
     congr 2
