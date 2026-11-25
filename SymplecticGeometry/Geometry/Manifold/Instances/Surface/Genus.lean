@@ -438,7 +438,7 @@ theorem closedSurfaceData_succ (g : ℕ) :
     closedSurfaceData (g + 1) = (closedSurfaceData g).succ :=
   (rfl)
 
-/-- The **closed oriented surface of genus `g`**, as the connected sum of `g` tori: the unit
+/-- The **closed surface of genus `g`**, as the connected sum of `g` tori: the unit
 sphere `S²` for `g = 0`, and for `g + 1` the connected sum (`TauCeti.ConnectedSum`) of the torus
 `SymplecticGeometry.EuclideanTorus`, along its coordinate ball, with the surface of genus `g`,
 along a coordinate ball that misses the tori summed before. -/
