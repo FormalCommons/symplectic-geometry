@@ -37,8 +37,10 @@ is preserved by pulling back along diffeomorphisms, and it forces the Nijenhuis 
 the pullbacks along a chart of the constant vector fields of `E` span every tangent space, `J`
 carries them to one another, and their Lie brackets vanish, as in Tau Ceti's
 `SmoothAlmostComplexStructure.nijenhuis_const`, by Mathlib's `VectorField.mpullback_mlieBracket`.
-On a real surface, a structure is integrable exactly when isothermal charts of the smooth maximal
-atlas cover the surface.
+On a surface modelled on `𝓘(ℝ, ℂ)`, isothermal charts of the smooth maximal atlas around every
+point give integrability. Every smooth almost complex structure there has such charts, by Tau
+Ceti's `SmoothAlmostComplexStructure.exists_isIsothermalChart` and
+`IsIsothermalChart.mem_maximalAtlas_infty`, so both conditions hold for every structure.
 
 A linear complex structure `J₀` of the model with which all tangent coordinate changes commute
 defines a constant almost complex structure, `ofTangentCoordChange`; its construction follows Tau
@@ -65,7 +67,9 @@ itself it is integrable.
 * `TauCeti.SmoothAlmostComplexStructure.IsIntegrable.nijenhuis_eq_zero`: the Nijenhuis tensor of
   an integrable structure vanishes.
 * `TauCeti.SmoothAlmostComplexStructure.isIntegrable_iff_forall_exists_isIsothermalChart`: on a
-  surface, integrability is the existence of smooth isothermal charts around every point.
+  surface modelled on `𝓘(ℝ, ℂ)`, integrability is equivalent to the existence of smooth
+  isothermal charts around every point. Both hold for every structure; what the theorem adds is
+  that such charts give integrability.
 
 ## References
 
@@ -360,8 +364,14 @@ section Surface
 variable {M : Type*} [TopologicalSpace M] [ChartedSpace ℂ M] [IsManifold 𝓘(ℝ, ℂ) ∞ M]
   {j : SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) M}
 
-/-- An almost complex structure on a real surface is integrable exactly when every point lies in
-the source of an isothermal chart of the smooth maximal atlas. -/
+/-- On a surface modelled on `𝓘(ℝ, ℂ)`, a smooth almost complex structure is integrable if and
+only if every point lies in the source of an isothermal chart of the smooth maximal atlas.
+
+Both sides hold for every such structure: the left-hand side by `isIntegrable_of_finrank_eq_two`
+(in `Complex/Isothermal.lean`), the right-hand side by Tau Ceti's `exists_isIsothermalChart` and
+`IsIsothermalChart.mem_maximalAtlas_infty`. What the theorem adds
+is the backward direction: isothermal charts of the smooth maximal atlas around every point make
+the structure integrable. -/
 theorem isIntegrable_iff_forall_exists_isIsothermalChart :
     j.IsIntegrable ↔ ∀ x : M, ∃ e ∈ IsManifold.maximalAtlas 𝓘(ℝ, ℂ) ∞ M,
       IsIsothermalChart j e ∧ x ∈ e.source := by

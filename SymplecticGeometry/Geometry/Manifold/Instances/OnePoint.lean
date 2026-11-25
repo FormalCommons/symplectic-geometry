@@ -141,10 +141,8 @@ theorem isOrientationPreservingAt_equivProjectivization (x : OnePoint ℂ) :
   have hpt (v : ℂ) : mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin 1 → ℂ) (equivProjectivization ℂ) x v =
       mfderiv 𝓘(ℂ, ℂ) 𝓘(ℂ, Fin 1 → ℂ) P₀ x v := by
     rw [coe_diffeomorphProjectivization]
-    have h := ((contMDiff_equivProjectivization (𝕜 := ℂ) x).mdifferentiableAt
-      (by simp)).mfderiv_restrictScalars ℝ
-    rw [modelWithCornersSelf_restrictScalars, modelWithCornersSelf_restrictScalars] at h
-    exact (DFunLike.congr_fun h v).trans (ContinuousLinearMap.restrictScalarsTangent_apply _ v)
+    exact (contMDiff_equivProjectivization (𝕜 := ℂ) x).mdifferentiableAt (by simp)
+      |>.mfderiv_modelWithCornersSelf_restrictScalars_apply ℝ v
   let Lc : ℂ ≃L[ℂ] (Fin 1 → ℂ) := P₀.mfderivToContinuousLinearEquiv (by simp) x
   refine (Manifold.Orientation.isOrientationPreservingAt_iff _ _ _ _).2
     ⟨Lc.restrictScalars' ℝ, ?_, ?_⟩
