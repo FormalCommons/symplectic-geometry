@@ -20,6 +20,7 @@ import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Localization.Weights
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.WeightModel.Basic
 import SymplecticGeometry.Topology.Algebra.ConstMulAction
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import TauCeti.Geometry.Symplectic.Manifold.NeighborhoodGerm
 
 /-!
 # The localizing one-form of a circle action
@@ -309,28 +310,16 @@ theorem mextDerivₗ_cutoffWeightOneForm_half_apply_of_eventuallyEq_one {σ : Sm
     (hσ : SmoothTwoForm.IsSymplecticMapOn (stdForm ι).constSmooth σ Φ Φ.source) {x : M}
     (hx : ρ =ᶠ[𝓝 x] 1) :
     (mextDerivₗ I 1 (cutoffWeightOneForm Φ hρ hs fun _ ↦ 1 / 2)).val x = σ.val x := by
-  obtain ⟨z, hz, rfl⟩ : x ∈ Φ '' Φ.source := by
-    rw [Φ.toPartialEquiv.image_source_eq_target]
-    exact hs (subset_tsupport ρ (by simp [hx.self_of_nhds]))
+  have hxt : x ∈ Φ.target := hs (subset_tsupport ρ (by simp [hx.self_of_nhds]))
   ext v
+  have h := (Φ.isSymplecticMapOn_symm hσ (by simp)).apply hxt (v 0) (v 1)
   rw [mextDerivₗ_cutoffWeightOneForm_apply_of_eventuallyEq_one hρ hs _ hx,
-    TauCeti.mpullback_apply, mextDerivₗ_weightOneForm_apply]
-  have e (w : TangentSpace I (Φ z)) : mfderiv 𝓘(ℝ, StdSpace ι) I Φ z
-      (mfderiv I 𝓘(ℝ, StdSpace ι) Φ.symm (Φ z) w) = w := by
-    have h := Φ.mfderiv_apply_mfderiv_symm_apply (by simp) (Φ.map_source hz) w
-    rwa [Φ.symm_toPartialEquiv, Φ.left_inv hz] at h
-  have h := hσ.apply hz (mfderiv I 𝓘(ℝ, StdSpace ι) Φ.symm (Φ z) (v 0))
-    (mfderiv I 𝓘(ℝ, StdSpace ι) Φ.symm (Φ z) (v 1))
-  rw [e, e] at h
-  have key (a b : StdSpace ι) :
-      2 * ∑ j, 1 / 2 * (a.x j * b.y j - a.y j * b.x j) = stdForm ι a b := by
-    rw [stdForm_apply, Finset.mul_sum]
-    exact Finset.sum_congr rfl fun j _ ↦ by ring
-  refine (key _ _).trans ((SymplecticForm.constSmooth_apply _ _ _ _).symm.trans (h.symm.trans ?_))
+    TauCeti.mpullback_apply, mextDerivₗ_weightOneForm_half_apply]
+  refine (SymplecticForm.constSmooth_apply _ _ _ _).symm.trans (h.trans ?_)
   rw [SmoothBundleForm.eval₂_apply]
   congr 1
   ext i
-  fin_cases i <;> rfl
+  fin_cases i <;> simp
 
 end CutoffWeightOneForm
 
