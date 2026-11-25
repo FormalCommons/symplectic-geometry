@@ -343,7 +343,7 @@ $\mathbb CP^1$ with $S^2$, and that $y_1\cdots y_m$ has infinite order.
 
 - `TauCeti.Bundle.ContinuousComplexStructure.evalFundamentalClass_chernClass_sphere`:
   for $J$ on $TS^{2m}$, $\langle c_m(J.Fiber),[S^{2m}]_J\rangle=2$.
-- `TauCeti.Bundle.ContinuousComplexStructure.isEmpty_sphere_four_mul`:
+- `SymplecticGeometry.isEmpty_continuousComplexStructure_sphere_four_mul`:
   for `k ≠ 0`, no continuous complex structure on the tangent bundle of
   `sphere (0 : E) 1` with `finrank ℝ E = 4 * k + 1`.
 - `TauCeti.Bundle.ContinuousComplexStructure.isEmpty_sphere_four_mul_add_two`:
