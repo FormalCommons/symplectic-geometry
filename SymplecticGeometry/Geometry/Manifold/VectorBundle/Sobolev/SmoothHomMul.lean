@@ -84,6 +84,8 @@ section, and it lowers the order.
   `TauCeti.SobolevSection.eq_contMDiffHomMulL_iff`,
   `TauCeti.SobolevSection.chartValueL_contMDiffHomMulL_ae`: in chart `i`, the chart data of
   `Φ w` are `(A.hom h).coord i Φ y` applied to those of `w`.
+* `TauCeti.SobolevSection.chartValueL_contMDiffHomMulL_ae_self`: the same for `V₂ = V₁` and
+  `h = A.closure_dom_subset_baseSet`, with the chart data of `Φ w` read in `A` itself.
 * `TauCeti.SobolevSection.chartValueL_contMDiffHomMulL_ae_coord`: if `w` consists of the
   components of a section `s`, then `Φ w` consists of those of `x ↦ Φ x (s x)`.
 * `TauCeti.SobolevSection.contMDiffHomMulL_zero`, `TauCeti.SobolevSection.contMDiffHomMulL_add`,
@@ -490,6 +492,25 @@ theorem chartValueL_contMDiffHomMulL_ae_coord {w : SobolevSection A μ p k} {s :
   filter_upwards [chartValueL_contMDiffHomMulL_ae hΦ w i, hs i,
     ae_restrict_mem (A.image i).isOpen.measurableSet] with y hy hsy hyi
   rw [hy, hsy, A.coord_hom_apply h i Φ s hyi]
+
+/-- `TauCeti.SobolevSection.chartValueL_contMDiffHomMulL_ae` for a smooth section `Φ` of the
+endomorphism bundle of `V₁`, read in `A` itself: the chart data in chart `i` of `Φ w` are, almost
+everywhere on the image of chart `i`, the chart reading of `Φ` applied to the chart data of `w`. -/
+theorem chartValueL_contMDiffHomMulL_ae_self [∀ x, IsTopologicalAddGroup (V₁ x)]
+    [∀ x, ContinuousSMul ℝ (V₁ x)] {Φ : ∀ x, V₁ x →L[ℝ] V₁ x}
+    (hΦ : ContMDiff 𝓘(ℝ, E) (𝓘(ℝ, E).prod 𝓘(ℝ, F₁ →L[ℝ] F₁)) ∞
+      fun x ↦ TotalSpace.mk' (F₁ →L[ℝ] F₁) x (Φ x))
+    (w : SobolevSection A μ p k) (i : Fin A.n) :
+    A.sectionChartData.chartValueL μ p k i
+        (contMDiffHomMulL A A.closure_dom_subset_baseSet μ p k hΦ w :
+          (A.ofBaseSet A.closure_dom_subset_baseSet).sectionChartData.SobolevData μ p k)
+      =ᵐ[μ.restrict (A.image i)] fun y ↦
+        (A.hom (𝕜 := ℝ) A.closure_dom_subset_baseSet).coord i Φ y
+          (A.sectionChartData.chartValueL μ p k i w y) :=
+  -- `A.ofBaseSet A.closure_dom_subset_baseSet`, the atlas of the image, is `A` by the eta rule
+  -- for structures; the statement cannot be rewritten into this form, since the type of the
+  -- chart data depends on the atlas.
+  chartValueL_contMDiffHomMulL_ae hΦ w i
 
 /-- The map depends only on the hom section, not on the proof of its smoothness. -/
 theorem contMDiffHomMulL_congr (hΦΨ : Φ = Ψ) :

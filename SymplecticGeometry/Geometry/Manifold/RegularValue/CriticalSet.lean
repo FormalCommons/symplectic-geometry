@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 public import TauCeti.Geometry.Manifold.RegularValue
 import TauCeti.Geometry.Manifold.RegularValue.Open
 
@@ -14,7 +15,8 @@ import TauCeti.Geometry.Manifold.RegularValue.Open
 The critical set `criticalSet I I' f` of a map `f : M → N` between manifolds over a nontrivially
 normed field is the set of points at which `f` is not a regular point in the sense of Tau Ceti's
 `TauCeti.IsRegularPoint`, that is, at which the manifold derivative of `f` is not surjective.
-Tau Ceti's own `criticalPoints` is the corresponding notion for real-valued functions only.
+Tau Ceti's own `criticalPoints` is the corresponding notion for real-valued functions only, and
+`SymplecticGeometry.criticalSet_eq_criticalPoints` identifies the two for maps into `ℝ`.
 
 ## Main results
 
@@ -22,11 +24,15 @@ Tau Ceti's own `criticalPoints` is the corresponding notion for real-valued func
   critical set is the complement of the regular points.
 * `SymplecticGeometry.isClosed_criticalSet`: the critical set of a `C¹` map into a
   finite-dimensional manifold is closed, by Tau Ceti's `TauCeti.isOpen_setOf_isRegularPoint`.
+* `SymplecticGeometry.criticalSet_eq_criticalPoints`: for a real-valued function the critical
+  set is Tau Ceti's `TauCeti.criticalPoints`, by
+  `TauCeti.isRegularPoint_iff_notMem_criticalPoints`.
 -/
 
 public section
 
 open TauCeti
+open scoped Manifold
 
 namespace SymplecticGeometry
 
@@ -66,6 +72,15 @@ theorem isClosed_criticalSet [CompleteSpace 𝕜] [FiniteDimensional 𝕜 E'] [I
     IsClosed (criticalSet I I' f) := by
   rw [← isOpen_compl_iff, compl_criticalSet]
   exact isOpen_setOf_isRegularPoint hf hn
+
+/-- For a real-valued function, the critical set is Tau Ceti's `criticalPoints`, the set of points
+where the manifold derivative vanishes. -/
+theorem criticalSet_eq_criticalPoints {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H} {M : Type*} [TopologicalSpace M]
+    [ChartedSpace H M] (f : M → ℝ) :
+    criticalSet I 𝓘(ℝ) f = criticalPoints I f := by
+  ext x
+  rw [mem_criticalSet_iff, isRegularPoint_iff_notMem_criticalPoints, not_not]
 
 end SymplecticGeometry
 

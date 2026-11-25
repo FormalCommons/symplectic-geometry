@@ -51,7 +51,8 @@ time `π` is the antipodal map; and since `R' = 0` on `[r₀, ∞)`, the twist i
   `SymplecticGeometry.IsTwistProfile.deriv_eq_zero`: `R'(0) = 1 / 2`, so `0 < r₀`, and `R'`
   vanishes on `[r₀, ∞)`.
 * `SymplecticGeometry.IsTwistProfile.lineMap`: twist profiles of the same radius form an affine
-  subspace; `SymplecticGeometry.exists_isTwistProfile`: there is one for every `r₀ > 0`.
+  subspace; `SymplecticGeometry.exists_isTwistProfile`: there is one for every `r₀ > 0`;
+  `SymplecticGeometry.IsTwistProfile.mono`: a profile of radius `r₀` has every larger radius too.
 * `SymplecticGeometry.contMDiff_geodesicTwist`: the geodesic twist of `θ` is smooth when `θ` is,
   `cos ∘ θ` is even, `sin ∘ θ` is odd and `cos (θ 0) = -1`.
 * `SymplecticGeometry.coe_modelTwist_symm`: the inverse of the model twist of `R` is the model
@@ -208,6 +209,10 @@ theorem pos (hR : IsTwistProfile R r₀) : 0 < r₀ := by
   have h₀ := hR.deriv_eq_zero (not_lt.1 h)
   rw [hR.deriv_zero] at h₀
   norm_num at h₀
+
+/-- A twist profile of support radius `r₀` is also one of every larger support radius. -/
+theorem mono (hR : IsTwistProfile R r₀) {r₁ : ℝ} (h : r₀ ≤ r₁) : IsTwistProfile R r₁ :=
+  ⟨hR.contDiff, hR.apply_neg, fun _ ht ↦ hR.apply_of_le (h.trans ht)⟩
 
 /-- Twist profiles of the same support radius form an affine subspace: the combination
 `(1 - s) R₀ + s R₁` is a twist profile for every real `s`, not only for `s ∈ [0, 1]`. -/
@@ -524,6 +529,11 @@ theorem coe_modelTwist {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsTwistProfile R r�
 theorem coe_modelTwist_symm {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsTwistProfile R r₀) :
     ⇑(modelTwist (n := n) hR).symm = modelTwistFun fun t ↦ -R t :=
   (rfl)
+
+/-- The model twist depends only on the profile `R`, not on the support radius it is given. -/
+theorem modelTwist_congr {R : ℝ → ℝ} {r₀ r₁ : ℝ} (hR₀ : IsTwistProfile R r₀)
+    (hR₁ : IsTwistProfile R r₁) : modelTwist (n := n) hR₀ = modelTwist hR₁ :=
+  Diffeomorph.ext fun z ↦ by rw [coe_modelTwist, coe_modelTwist]
 
 /-- The model twist preserves the norm `μ` of covectors. -/
 theorem cotangentNorm_modelTwist {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsTwistProfile R r₀)
