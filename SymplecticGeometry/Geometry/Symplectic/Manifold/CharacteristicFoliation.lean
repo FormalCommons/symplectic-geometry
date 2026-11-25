@@ -15,6 +15,7 @@ import SymplecticGeometry.LinearAlgebra.Symplectic.Subspace
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.Submersion.Split
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
@@ -360,12 +361,11 @@ private theorem exists_isCharacteristicSubmersion_of_partialDiffeomorph
   -- The derivative of `p` is the second component of the derivative of `Φ`.
   have hderiv (u : U) (v : TangentSpace I u) :
       mfderiv I 𝓘(ℝ, F₂) p u v = (mfderiv I 𝓘(ℝ, F₁ × F₂) Φ u v).2 := by
-    have hD := (ContinuousLinearMap.snd ℝ F₁ F₂).hasMFDerivAt.comp (u : M)
-      (Φ.mdifferentiableAt (by simp) (huΦ u)).hasMFDerivAt
-    have h := TauCeti.Manifold.mfderiv_apply_of_subtype_val_comp_eq (I := I) (I' := 𝓘(ℝ, F₂))
-      (f := p) (A := ContinuousLinearMap.snd ℝ F₁ F₂ ∘ Φ)
-      (funext fun u ↦ congrArg Prod.snd (hΨ u)) v
-    rw [hD.mfderiv] at h
+    rw [TauCeti.Manifold.mfderiv_apply_of_subtype_val_comp_eq (I := I) (I' := 𝓘(ℝ, F₂))
+      (f := p) (A := fun z ↦ (Φ z).2) (funext fun u ↦ congrArg Prod.snd (hΨ u)) v]
+    have h := (Φ.mdifferentiableAt (by simp) (huΦ u)).mvfderiv_snd_apply v
+    rw [mvfderiv_apply_eq_mfderiv_apply (I := I) (fun z ↦ (Φ z).2) (u : M) v,
+      mvfderiv_apply_eq_mfderiv_apply (I := I) Φ (u : M) v] at h
     exact h
   have hpc : ContMDiff I 𝓘(ℝ, F₂) ∞ p :=
     (ContMDiff.subtypeVal_comp_iff _ _).1

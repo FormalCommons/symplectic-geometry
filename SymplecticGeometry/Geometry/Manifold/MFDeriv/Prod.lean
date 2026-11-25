@@ -10,15 +10,17 @@ public import Mathlib.Geometry.Manifold.MFDeriv.SpecificFunctions
 /-!
 # Partial derivatives of a map on a product manifold
 
-For a map `f : M × M' → M''` that is differentiable at `p`, the derivative of `f` at `p` on a
-tangent vector `(v, 0)` is the derivative at `p.1` of the slice `z ↦ f (z, p.2)` on `v`
-(`MDifferentiableAt.mfderiv_curry_left_apply`). This is the counterpart, for the first factor, of
-Tau Ceti's `MDifferentiableAt.mfderiv_uncurry_apply_zero_mk`, which treats tangent vectors
-`(0, w)`, and has the proof of Tau Ceti's lemma with the two summands of Mathlib's
+For a family `f : M → M' → M''` whose uncurried form is differentiable at `(x, y)`, the
+derivative of `Function.uncurry f` at `(x, y)` on a tangent vector `(v, 0)` is the derivative at
+`x` of the slice `z ↦ f z y` on `v` (`MDifferentiableAt.mfderiv_uncurry_apply_mk_zero`). This is
+the counterpart, for the first factor, of Tau Ceti's
+`MDifferentiableAt.mfderiv_uncurry_apply_zero_mk`, which treats tangent vectors `(0, w)`. It is
+stated in the same form, and has the proof of Tau Ceti's lemma with the two summands of Mathlib's
 `mfderiv_prod_eq_add_apply` exchanged.
 
-The differentiability hypothesis cannot be dropped: if `f` is not differentiable at `p`, its
-`mfderiv` is `0`, while a slice can still be differentiable with a nonzero derivative.
+The differentiability hypothesis cannot be dropped: if `Function.uncurry f` is not differentiable
+at `(x, y)`, its `mfderiv` is `0`, while a slice can still be differentiable with a nonzero
+derivative.
 -/
 
 public section
@@ -36,14 +38,14 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
 
 namespace MDifferentiableAt
 
-variable {f : M × M' → M''} {p : M × M'}
+variable {f : M → M' → M''} {x : M} {y : M'}
 
-/-- The derivative of a map on a product, differentiable at `p`, on a vector `(v, 0)` is the
-derivative of its slice `z ↦ f (z, p.2)` at `p.1` on `v`. -/
-theorem mfderiv_curry_left_apply (hf : MDifferentiableAt (I.prod I') I'' f p)
-    (v : E) :
-    mfderiv (I.prod I') I'' f p (v, (0 : E')) =
-      mfderiv I I'' (fun z ↦ f (z, p.2)) p.1 v :=
+/-- The differential of an uncurried family `(x, y) ↦ f x y`, differentiable at `(x, y)`, on a
+horizontal tangent vector `(v, 0)` is the differential of the slice `z ↦ f z y` at `x` on `v`. -/
+theorem mfderiv_uncurry_apply_mk_zero
+    (hf : MDifferentiableAt (I.prod I') I'' (Function.uncurry f) (x, y)) (v : TangentSpace I x) :
+    mfderiv (I.prod I') I'' (Function.uncurry f) (x, y) (v, 0) =
+      mfderiv I I'' (fun z ↦ f z y) x v :=
   (mfderiv_prod_eq_add_apply hf).trans <| (congrArg (_ + ·) (map_zero _)).trans (add_zero _)
 
 end MDifferentiableAt

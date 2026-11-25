@@ -228,8 +228,7 @@ theorem IsTangentWeights.mfderiv_smul_symm_single_of_eq_zero {p : M} {k : Fin n 
     {L : TangentSpace I p ≃L[ℝ] (Fin n → ℂ)} (h : IsTangentWeights σ p k L) {j : Fin n}
     (hkj : k j = 0) (g : Circle) :
     mfderiv I I (fun x : M ↦ g • x) p (L.symm (Pi.single j 1)) = L.symm (Pi.single j 1) := by
-  obtain ⟨θ, rfl⟩ := Circle.exp_surjective g
-  obtain ⟨t, rfl⟩ : ∃ t : ℝ, 2 * π * t = θ := ⟨θ / (2 * π), mul_div_cancel₀ _ (by positivity)⟩
+  obtain ⟨t, rfl⟩ := Circle.exp_two_pi_mul_surjective g
   apply L.injective
   rw [h.2 t, L.apply_symm_apply]
   funext i
@@ -272,33 +271,24 @@ theorem apply_circlePeriodOneGenerator_ne_zero_of_isolated (χ : Fin n → Circl
   set e := complexToRealEuclidean (Fin n)
   -- The points of the `j`-th complex axis.
   let f : ℝ → StdSpace (Fin n) := fun s ↦ e (Pi.single j (s : ℂ))
-  have hf : Continuous f := e.continuous.comp
-    (continuous_pi fun k ↦ by
-      rcases eq_or_ne k j with rfl | hk
-      · simpa using Complex.continuous_ofReal
-      · simp [hk, continuous_const])
+  have hf : Continuous f := e.continuous.comp ((continuous_single j).comp Complex.continuous_ofReal)
   have hf0 : f 0 = 0 := by simp [f]
-  have hfinj : ∀ s, f s = 0 → s = 0 := fun s hs ↦ by
-    have := congrFun (e.injective (hs.trans (map_zero e).symm)) j
-    simpa using this
+  have hfinj : ∀ s, f s = 0 → s = 0 := fun s hs ↦ by simpa [f, e] using hs
   -- Near `0`, the axis lies in the source, and each of its points is fixed.
   have hsrc : ∀ᶠ s in 𝓝 (0 : ℝ), f s ∈ Φ.source :=
     hf.continuousAt.preimage_mem_nhds (by rw [hf0]; exact Φ.open_source.mem_nhds h0)
   have hfix : ∀ᶠ s in 𝓝 (0 : ℝ), Φ (f s) ∈ MulAction.fixedPoints Circle M := by
     filter_upwards [hsrc] with s hs g
-    obtain ⟨θ, rfl⟩ := Circle.exp_surjective g
-    obtain ⟨t, rfl⟩ : ∃ t : ℝ, 2 * π * t = θ := ⟨θ / (2 * π), mul_div_cancel₀ _ (by positivity)⟩
-    have hχj : χ j (Circle.exp (2 * π * t)) = 1 := by
+    obtain ⟨t, rfl⟩ := mulInvariantExp_smul_circlePeriodOneGenerator_surjective g
+    have hχj : χ j (mulInvariantExp (I := 𝓡 1) (t • circlePeriodOneGenerator)) = 1 := by
       have hα : α j (t • circlePeriodOneGenerator) = t * α j circlePeriodOneGenerator :=
         (α j).map_smul t circlePeriodOneGenerator
-      rw [← mulInvariantExp_smul_circlePeriodOneGenerator, hχ, hα, hj]
+      rw [hχ, hα, hj]
       simp
-    have hu : (fun k ↦ (χ k (Circle.exp (2 * π * t)) : ℂ) * (Pi.single j (s : ℂ) : Fin n → ℂ) k) =
-        Pi.single j (s : ℂ) := by
+    have hu : (fun k ↦ (χ k (mulInvariantExp (I := 𝓡 1) (t • circlePeriodOneGenerator)) : ℂ) *
+        (Pi.single j (s : ℂ) : Fin n → ℂ) k) = Pi.single j (s : ℂ) := by
       funext k
-      rcases eq_or_ne k j with rfl | hk
-      · simp [hχj]
-      · simp [hk]
+      rw [← Pi.single_mul_right_apply j k fun k ↦ (χ k _ : ℂ), hχj, Circle.coe_one, one_mul]
     rw [← hequiv _ _ hs, hu]
   -- Away from `0`, these points differ from `p`, and they tend to `p`.
   have htend : Tendsto (fun s ↦ Φ (f s)) (𝓝[≠] (0 : ℝ)) (𝓝[≠] p) := by
