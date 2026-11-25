@@ -470,9 +470,7 @@ theorem mpullback_flowOf_neg_sub_apply [I.Boundaryless] [T2Space M] (hα : α.Is
         (fun q : S × ℝ ↦ flowOf α.reebVectorField q.2 (κ q.1)) ∘
           (fun p : S × ℝ ↦ (p.1, -p.2 - g p.1)) from rfl,
       mpullback_comp_at (hχ.mdifferentiableAt (by simp)) hFd, SmoothForm.coe_mpullback]
-    exact ContinuousAlternatingMap.ext fun u ↦ by
-      rw [TauCeti.mpullback_apply (fun p : S × ℝ ↦ (p.1, -p.2 - g p.1)),
-        TauCeti.mpullback_apply (fun p : S × ℝ ↦ (p.1, -p.2 - g p.1)), hflow]
+    exact TauCeti.mpullback_apply_congr hflow
   have hfst : MDifferentiable (IS.prod 𝓘(ℝ)) 𝓘(ℝ) (fun p : S × ℝ ↦ g p.1) :=
     (hg.comp (contMDiff_fst (n := ∞))).mdifferentiable (by simp)
   have hsnd : MDifferentiable (IS.prod 𝓘(ℝ)) 𝓘(ℝ) (fun p : S × ℝ ↦ p.2) :=
