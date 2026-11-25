@@ -63,13 +63,15 @@ to forms on manifolds):
 
 From Mathlib the part uses `AlternatingMap.map_linearDependent` and
 `Fin.append`. From part 48, *Symplectic fibrations*, it uses only
-`Geometry/Symplectic/Fibration/Basic.lean`: the structure
-`FiberAtlas`, its charts (trivializations smooth with smooth inverses),
-that they cover `B`, and oriented atlases, whose coordinate changes lie in
-`Diffeomorph.orientationPreservingSubgroup` of `o` at each base point. The
-statements below write these as `e ∈ A`, `b ∈ e.baseSet` and `A.IsOriented o`;
-the building issues use the names that `design/symplectic-fibrations.md` and
-the merged `Basic.lean` give them.
+`Geometry/Manifold/FiberBundle/MapFiber.lean` and
+`Geometry/Manifold/FiberBundle/StructureGroup.lean`: Tau Ceti's atlas
+`A : TauCeti.MapFiber.Atlas F π`, whose chart `A.trivAt b` at each `b` has
+`b` in its base set, smooth atlases `A.IsContMDiff ∞ I J IM` (charts smooth
+with smooth inverses), and oriented atlases,
+`A.HasStructureGroup (Diffeomorph.orientationPreservingSubgroup o)`. The
+statements below write these as `e ∈ A` (`e` is some `A.trivAt b'`),
+`b ∈ e.baseSet` and `A.IsOriented o`; the building issues use the names that
+`design/symplectic-fibrations.md` and those two files give them.
 
 ## Decisions
 
@@ -201,12 +203,11 @@ About 400 lines.
 
 The operator of an oriented fibration.
 
-- `FiberAtlas.fiberIntegrand A α b v : RoughForm J F ℝ m` for a chart
+- `TauCeti.MapFiber.Atlas.fiberIntegrand A α b v : RoughForm J F ℝ m` for a chart
   `e ∈ A` at `b`, the integrand read through `Ψ_e`: the pull-back along
   `y ↦ e.symm (b, y)` of `α (ṽ_1, …, ṽ_r, ·)`, with `ṽ_i` the derivative of
-  `e.symm` at `(b, y)` on `(v i, 0)`. The chart is part 48's chosen chart at
-  `b` (or `Classical.choose` of the cover).
-- `FiberAtlas.fiberIntegral (A : FiberAtlas …) (hA : A.IsOriented o) :
+  `e.symm` at `(b, y)` on `(v i, 0)`. The chart is `A.trivAt b`.
+- `TauCeti.MapFiber.Atlas.fiberIntegral (A : TauCeti.MapFiber.Atlas F π) (hA : A.IsOriented o) :
   SmoothForm IM M ℝ (r + m) →ₗ[ℝ] SmoothForm I B ℝ r`, with
   `fiberIntegral_apply`: the value at `b` on `v` is
   `integralTopForm o (A.fiberIntegrand α b v)`.
@@ -258,8 +259,10 @@ About 250 lines.
 - From Mathlib: `AlternatingMap.map_linearDependent`, `Fin.append`,
   `LinearEquiv.cast`.
 - From Tau Ceti: the declarations listed under *What exists*.
-- From other parts: *Symplectic fibrations*, only `Geometry/Symplectic/Fibration/Basic.lean`
-  (`FiberAtlas`, charts, cover, oriented atlases). The three product files use
+- From other parts: *Symplectic fibrations*, only
+  `Geometry/Manifold/FiberBundle/MapFiber.lean` and `StructureGroup.lean`
+  (smooth atlases `TauCeti.MapFiber.Atlas`, their charts `A.trivAt b`, and
+  oriented atlases as `HasStructureGroup`). The three product files use
   no part of the library.
 
 ## Issues
@@ -275,10 +278,10 @@ order; each waits only for those it names.
    diffeomorphisms. Waits for issue 1.
 3. **`FiberIntegral/Product/ExtDeriv.lean`**: `prodFiberIntegral_mextDeriv`.
    Waits for issues 1 and 2.
-4. **`FiberIntegral/Basic.lean`**: `FiberAtlas.fiberIntegral`, independence of
-   the chart and of the lifts, the integral over each fibre, the value in a
-   trivialization. Waits for issue 2 and for the issue of *Symplectic
-   fibrations* that adds `Geometry/Symplectic/Fibration/Basic.lean`.
+4. **`FiberIntegral/Basic.lean`**: `TauCeti.MapFiber.Atlas.fiberIntegral`,
+   independence of the chart and of the lifts, the integral over each fibre,
+   the value in a trivialization. Waits for issue 2 and for building issues 1
+   and 2 of *Symplectic fibrations* (`MapFiber.lean`, `StructureGroup.lean`).
 5. **`FiberIntegral/Calculus.lean`**: $d$, the projection formula and
    naturality for fibrations. Waits for issues 3 and 4.
 
