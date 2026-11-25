@@ -13,6 +13,7 @@ public import TauCeti.Geometry.Manifold.ContMDiff.ContinuousAlternatingMap
 public import TauCeti.LinearAlgebra.BilinearMap.Multilinear
 public import TauCeti.Topology.Algebra.Module.FiniteDimension
 public import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 
 /-!
 # Precomposition, flat maps and bilinear maps in bundles of continuous alternating maps
@@ -219,10 +220,9 @@ theorem flatAt_alternatingMapOfBilin {x : M} (β : V x →L[𝕜] V x →L[𝕜]
 @[simp]
 theorem alternatingMapOfBilin_flatAt {x : M} (α : V x [⋀^Fin 2]→L[𝕜] Trivial M G x)
     (hα : ∀ v, flatAt F α v v = 0) : alternatingMapOfBilin F (flatAt F α) hα = α := by
-  ext v
+  refine ContinuousAlternatingMap.ext_fin_two fun v w ↦ ?_
   rw [alternatingMapOfBilin_apply, flatAt_apply]
-  congr 1
-  exact FinVec.etaExpand_eq _
+  simp
 
 end Bundle
 
