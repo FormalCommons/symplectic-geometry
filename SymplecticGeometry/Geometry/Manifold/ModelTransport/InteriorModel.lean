@@ -371,6 +371,13 @@ theorem coe_interiorOpensDiffeomorph_symm_apply (x : I.interior M) :
     ((interiorOpensDiffeomorph I M n).symm x : M) = x := by
   rw [coe_interiorOpensDiffeomorph_symm]
 
+omit [FiniteDimensional 𝕜 E] [IsManifold I 1 M] in
+/-- The complement in `M` of the range of the inclusion of the interior of `M` is the
+boundary. -/
+theorem compl_range_subtypeVal_interior :
+    (Set.range (Subtype.val : I.interior M → M))ᶜ = I.boundary M := by
+  rw [Subtype.range_coe, compl_interior]
+
 /-- For a `C^n` manifold `M` over a finite-dimensional space `E`, the inclusion of Tau Ceti's
 charted interior `I.interior M`, modelled on `E`, into `M` is a `C^n` local diffeomorphism. -/
 theorem isLocalDiffeomorph_subtypeVal_interior :
