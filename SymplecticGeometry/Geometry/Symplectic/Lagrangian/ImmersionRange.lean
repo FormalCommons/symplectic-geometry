@@ -35,6 +35,9 @@ of `M`, a set satisfies either predicate only when `2 * r = finrank ℝ E`.
   such an immersion satisfies the predicate; these are the constructors.
 * `IsInjectiveLagrangianImmersionRange.isLagrangianImmersionRange`: the injective predicate implies
   the other one.
+* `IsLagrangianImmersionRange.two_mul_eq_finrank`,
+  `IsInjectiveLagrangianImmersionRange.two_mul_eq_finrank`: either predicate forces
+  `2 * r = finrank ℝ E`.
 
 ## References
 
@@ -117,6 +120,19 @@ theorem IsInjectiveLagrangianImmersionRange.isLagrangianImmersionRange
     hσ.IsLagrangianImmersionRange.{u} r A := by
   obtain ⟨S, _, _, hS, hT2, hSC, ι, hι, -, rfl⟩ := h
   exact isLagrangianImmersionRange_range hι
+
+/-- If `A` is the range of a Lagrangian immersion of dimension `r`, then `2 * r` is the dimension
+of `M`. -/
+theorem IsLagrangianImmersionRange.two_mul_eq_finrank
+    (h : hσ.IsLagrangianImmersionRange.{u} r A) : 2 * r = finrank ℝ E := by
+  obtain ⟨S, _, _, _, _, _, ι, hι, -⟩ := h
+  simpa using hι.two_mul_finrank
+
+/-- If `A` is the range of an injective Lagrangian immersion of dimension `r`, then `2 * r` is the
+dimension of `M`. -/
+theorem IsInjectiveLagrangianImmersionRange.two_mul_eq_finrank
+    (h : hσ.IsInjectiveLagrangianImmersionRange.{u} r A) : 2 * r = finrank ℝ E :=
+  h.isLagrangianImmersionRange.two_mul_eq_finrank
 
 end TauCeti.SmoothTwoForm.IsNondegenerate
 
