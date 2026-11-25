@@ -186,7 +186,7 @@ may adjust implicit arguments and instance arguments to what elaborates.
   $f$, its Łojasiewicz inequality, convergence and the moment limit), and
   `Stability.lean` (the boundedness and properness criteria and the
   milestone).
-- `Geometry/Symplectic/Hamiltonian/MomentMap/HilbertMumford.lean`: $\Lambda$,
+- `Geometry/Symplectic/Hamiltonian/MomentMap/HilbertMumford.lean`:
   weights, limit points, the slope identity, the moment-weight inequality
   and the criteria.
 
@@ -220,7 +220,7 @@ All in `SymplecticGeometry`, with `C : LieComplexification I G IC Gc`.
   `limitPoint C p ξ : M`, with `tendsto_limitPoint` for `ξ ∈ Λ`.
 - `nonzeroPeriods I G : Set 𝔤 := {ξ | ξ ≠ 0 ∧ mulInvariantExp ξ = 1}`,
   written $\Lambda$, invariant under `Ad` and under positive integer
-  multiples.
+  multiples, in `Geometry/Lie/Exponential/Periods.lean`.
 
 ## Main results
 
