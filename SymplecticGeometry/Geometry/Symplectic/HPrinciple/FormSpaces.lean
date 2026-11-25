@@ -11,8 +11,8 @@ public import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
 /-!
 # The spaces of nondegenerate and of symplectic forms
 
-The h-principle for symplectic forms on open manifolds compares two spaces of smooth two-forms
-on a manifold `M`: all nondegenerate ones, and the symplectic ones in a fixed de Rham class.
+Gromov's h-principle compares, on an open manifold `M`, two spaces of smooth two-forms: all
+nondegenerate ones, and the symplectic ones in a fixed de Rham class.
 Both are subsets of the type `Bundle.ContMDiffTwoForm I ⊤ E (TangentSpace I)` of smooth two-forms
 on the tangent bundle, which is given the frame topology (`ContMDiffSection.frameTopology`) of a
 covering frame system where a topology is needed; closedness and the class are read
