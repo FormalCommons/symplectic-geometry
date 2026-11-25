@@ -301,8 +301,12 @@ private theorem ker_restrict_eq_span_couplingField (h : IsCouplingForm σ τ) {t
       rw [hwe]
       exact (SmoothForm.bilinFormAt_apply σ (p, t) w _).symm.trans
         (LinearMap.congr_fun hk ⟨u₀, hu0⟩)
+    have hd' : mfderiv (IB.prod (𝓡 1)) IB (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1))
+        p w.1 = 0 := by
+      rw [ManifoldTotalSpace.coe_projContMDiffMap]
+      exact hd
     obtain ⟨c, hc⟩ := exists_eq_smul_rightFundamentalVectorField_of_mfderiv_proj_eq_zero
-      circlePeriodOneGenerator_ne_zero hd
+      circlePeriodOneGenerator_ne_zero hd'
     refine ⟨c, Subtype.ext ?_⟩
     refine Eq.trans ?_ hwe
     simp only [Submodule.coe_smul]
@@ -487,8 +491,10 @@ theorem mk_sub_mk_eq_neg_smul_realFirstChernClass (h : IsCouplingForm σ τ) (t 
         (ManifoldTotalSpace.homeomorph Circle P).symm.surjective)
       ((ManifoldTotalSpace.isSubmersion_proj ∞ Circle P IB (𝓡 1)).surjective_mfderiv (by simp))
       ?_
-    rw [← mextDerivₗ_primitive h, map_add, map_smul, hα.mpullback_curvature,
-      ← SmoothForm.mextDerivₗ_mpullback, ← hβ]
+    -- `mextDerivₗ_primitive` pulls back along the projection written out.
+    have hcurv := hα.mpullback_curvature
+    simp only [ManifoldTotalSpace.coe_projContMDiffMap] at hcurv hβ
+    rw [← mextDerivₗ_primitive h, map_add, map_smul, hcurv, ← SmoothForm.mextDerivₗ_mpullback, ← hβ]
     simp [β, map_sub, map_smul]
   refine (hα.mk_sub_mk_eq_smul_realFirstChernClass_iff _ _ _).2 ?_
   rw [hτ, exactForms_succ]

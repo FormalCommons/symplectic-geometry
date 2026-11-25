@@ -9,7 +9,7 @@ public import TauCeti.Geometry.Symplectic.Coadjoint
 public import TauCeti.Geometry.Symplectic.Cotangent.Basic
 public import TauCeti.LinearAlgebra.Submodule.Compl
 public import SymplecticGeometry.Algebra.Lie.Coadjoint
-public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Data
+public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Action
 
 /-!
 # The two-form of the local model at `(1, 0, 0)` and the linear normal form
@@ -277,24 +277,8 @@ theorem ι𝔪_snd_fst_linearModelMap_linearModelRepresentation (k : K)
     D.ι𝔪 (D.linearModelMap (D.linearModelRepresentation k x)).2.1 =
       coadjointRepresentation ℝ I G k (D.ι𝔪 (D.linearModelMap x).2.1) := by
   obtain ⟨⟨m, f⟩, q, b⟩ := x
-  ext ζ
-  obtain ⟨n, hn, r, hr, rfl⟩ :=
-    Submodule.mem_sup.1 (D.isCompl_𝔪_sup.sup_eq_top ▸ Submodule.mem_top (x := ζ))
-  have hr' : adjointRepresentation ℝ I G (k⁻¹ : K) r ∈ D.𝔥 ⊔ D.𝔮 := by
-    obtain ⟨y, hy, z, hz, rfl⟩ := Submodule.mem_sup.1 hr
-    rw [map_add]
-    exact Submodule.add_mem_sup (D.adjointRepresentation_mem_𝔥 _ hy)
-      (D.adjointRepresentation_mem_𝔮 _ hz)
-  have hn' : adjointRepresentation ℝ I G (k⁻¹ : K) n = D.adjoint𝔪 k⁻¹ ⟨n, hn⟩ :=
-    (D.coe_adjoint𝔪_apply k⁻¹ ⟨n, hn⟩).symm
-  simp only [InvMemClass.coe_inv] at hr' hn'
-  simp only [linearModelRepresentation_apply, linearModelMap_apply,
-    map_add, D.ι𝔪_apply_of_mem_sup _ hr, coadjointRepresentation_apply, add_zero]
-  rw [← adjointRepresentation_apply, ← adjointRepresentation_apply, D.ι𝔪_apply_of_mem_sup _ hr',
-    add_zero, hn', ι𝔪_apply_coe, LinearEquiv.apply_symm_apply]
-  have h := D.ι𝔪_apply_coe (D.equivDual𝔪.symm (D.adjoint𝔪.dual k f)) ⟨n, hn⟩
-  rw [LinearEquiv.apply_symm_apply, Representation.dual_apply] at h
-  exact h
+  rw [linearModelRepresentation_apply, linearModelMap_apply, linearModelMap_apply,
+    ι𝔪_symm_adjoint𝔪_dual]
 
 end LocalModelData
 
