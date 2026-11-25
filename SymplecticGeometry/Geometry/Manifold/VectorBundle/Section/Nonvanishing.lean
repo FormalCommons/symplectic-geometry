@@ -111,8 +111,6 @@ private theorem exists_homotopy_interior_ne_zero [ConnectedSpace M] (hdim : 1 < 
     {K : Set (I.interior M)} (hK : IsCompact K) (hKc : Kᶜ.Nonempty) :
     ∃ G : unitInterval × I.interior M → I.interior M, Continuous G ∧
       (∀ y, G (0, y) = y) ∧ ∀ y ∈ K, σ (G (1, y)) ≠ 0 := by
-  have : ConnectedSpace (I.interior M) :=
-    isConnected_iff_connectedSpace.1 (I.isConnected_interior (n := ∞) (by simp))
   have hZ : IsClosed {x : I.interior M | σ x = 0} :=
     σ.isClosed_setOf_eq_zero.preimage continuous_subtypeVal
   obtain ⟨Ψ, hΨ, -⟩ := exists_diffeotopy_apply_one_notMem (E := E) (N := I.interior M) (n := ∞)
