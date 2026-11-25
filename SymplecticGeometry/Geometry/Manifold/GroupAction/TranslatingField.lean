@@ -108,7 +108,7 @@ theorem exists_invariant_vectorField_mfderiv_eq_one {f : M → ℝ} (hf : ContMD
     ext v
     rw [← mvfderiv_apply_eq_mfderiv_apply, h0]
     rfl
-  obtain ⟨ρ, W, hρ, hρinv, hW, hKW, hWinv, hρW, hρc, hρU⟩ :=
+  obtain ⟨ρ, W, hρ, -, hρinv, hW, hKW, hWinv, hρW, hρc, hρU⟩ :=
     exists_invariant_contMDiff_eq_one_of_isCompact (I := I) J (G := G) hK
       (isOpen_ne_fun hq.continuous continuous_const) hKU
       (fun g x hx ↦ by simpa [U, hqinv] using hx)

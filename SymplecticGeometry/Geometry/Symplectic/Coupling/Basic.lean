@@ -490,11 +490,10 @@ theorem mk_sub_mk_eq_neg_smul_realFirstChernClass (h : IsCouplingForm σ τ) (t 
     rw [← mextDerivₗ_primitive h, map_add, map_smul, hα.mpullback_curvature,
       ← SmoothForm.mextDerivₗ_mpullback, ← hβ]
     simp [β, map_sub, map_smul]
-  rw [← map_sub, hα.realFirstChernClass_eq, smul_smul,
-    show -((t : ℝ) - s) * -(2 * Real.pi)⁻¹ = c by ring, ← map_smul,
-    deRhamCohomology.mk_eq_mk_iff]
-  simp only [Submodule.coe_sub, Submodule.coe_smul, hτ, add_sub_cancel_left, exactForms_succ]
-  exact LinearMap.mem_range_self _ γ
+  refine (hα.mk_sub_mk_eq_smul_realFirstChernClass_iff _ _ _).2 ?_
+  rw [hτ, exactForms_succ]
+  convert LinearMap.mem_range_self _ γ using 1
+  module
 
 end Cohomology
 

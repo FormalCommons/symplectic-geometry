@@ -111,8 +111,10 @@ under the inclusions concludes. The factor between two families with the same ke
 * `SymplecticGeometry.IsContactFamily.exists_grayField`: the Gray field of a smooth family of
   contact structures.
 * `SymplecticGeometry.IsContactFamily.grayDiffeotopy`: the Gray isotopy, with
-  `SymplecticGeometry.IsContactFamily.exists_grayField_grayDiffeotopy_apply`, which gives it as a
-  flow.
+  `SymplecticGeometry.IsContactFamily.grayDiffeotopy_def`, which gives it as the time-dependent
+  diffeotopy of the chosen Gray field, and
+  `SymplecticGeometry.IsContactFamily.exists_grayField_grayDiffeotopy_apply`, which gives it as
+  the flow of a field with the properties of the Gray field.
 * `SymplecticGeometry.IsContactFamily.transports_grayDiffeotopy`: the Gray isotopy transports the
   family.
 * `SymplecticGeometry.IsContactFamily.velocity_grayDiffeotopy_mem`: its velocity lies in the
@@ -756,6 +758,14 @@ noncomputable def grayDiffeotopy (hξ : IsContactFamily ξ) : Diffeotopy I ∞ M
     (isCompleteVectorField_timeDependentSuspensionField_of_compactSpace
       (hξ.exists_grayField.choose_spec.1.of_le (by simp)))
 
+/-- The Gray isotopy is the time-dependent diffeotopy of the Gray field chosen by
+`SymplecticGeometry.IsContactFamily.exists_grayField`. -/
+theorem grayDiffeotopy_def (hξ : IsContactFamily ξ) :
+    hξ.grayDiffeotopy = timeDependentFlowDiffeotopy le_top hξ.exists_grayField.choose_spec.1
+      (isCompleteVectorField_timeDependentSuspensionField_of_compactSpace
+        (hξ.exists_grayField.choose_spec.1.of_le (by simp))) :=
+  (rfl)
+
 /-- The Gray isotopy at time `t` is the time-dependent flow from time `0` to time `t` of a smooth
 field `Y` with the properties of `SymplecticGeometry.IsContactFamily.exists_grayField`: in `ξ` at
 the times of `[0, 1]`, where it is the Gray vector field of every local defining family. -/
@@ -770,7 +780,8 @@ theorem exists_grayField_grayDiffeotopy_apply (hξ : IsContactFamily ξ) :
         Manifold.tangentSpaceOpenEquiv ⟨x, hx⟩ (α.grayVectorField t ⟨x, hx⟩) = Y t x) ∧
       ∀ p : unitInterval × M, hξ.grayDiffeotopy p = timeDependentFlowOf Y 0 p.1 p.2 :=
   ⟨_, hξ.exists_grayField.choose_spec.1, hξ.exists_grayField.choose_spec.2.1,
-    hξ.exists_grayField.choose_spec.2.2, timeDependentFlowDiffeotopy_apply _ _ _⟩
+    hξ.exists_grayField.choose_spec.2.2,
+    fun p ↦ by rw [grayDiffeotopy_def, timeDependentFlowDiffeotopy_apply]⟩
 
 /-- **The Gray isotopy transports the family**: `ψ_t^* ξ_t = ξ_0` for every `t ∈ [0, 1]`. -/
 theorem transports_grayDiffeotopy (hξ : IsContactFamily ξ) :
@@ -780,9 +791,9 @@ theorem transports_grayDiffeotopy (hξ : IsContactFamily ξ) :
   have hY₁ := hY.of_le (m := 1) (by simp)
   have hc := isCompleteVectorField_timeDependentSuspensionField_of_compactSpace hY₁
   have hdom (s t : ℝ) (x : M) : ((s, t), x) ∈ timeDependentFlowDomain Y :=
-    (timeDependentFlowDomain_eq_univ hc).symm ▸ mem_univ _
+    mem_timeDependentFlowDomain.2 (hc.mem_flowDomain _ _)
   refine Diffeotopy.transports_iff.2 fun t x ↦ ?_
-  rw [grayDiffeotopy, timeDependentFlowDiffeotopy_apply,
+  rw [grayDiffeotopy_def, timeDependentFlowDiffeotopy_apply,
     Diffeotopy.timeSlice_timeDependentFlowDiffeotopy]
   -- The pullback of `ξ_s` by the flow from `0` to `s`, at `x`, as a function of `s`. It is locally
   -- constant, by the cocycle property of the flow and the transport near each time.
@@ -814,7 +825,7 @@ lies in `ξ_t` at `ψ_t x`, for every `t ∈ [0, 1]`, the ends included. -/
 theorem velocity_grayDiffeotopy_mem (hξ : IsContactFamily ξ) (t : unitInterval) (x : M) :
     mfderiv (I.prod (𝓡∂ 1)) I hξ.grayDiffeotopy.cylinderMap (x, t)
       ((0 : E), (1 : TangentSpace (𝓡∂ 1) t)) ∈ ξ t (hξ.grayDiffeotopy (t, x)) := by
-  rw [← Diffeotopy.velocity_apply, grayDiffeotopy,
+  rw [← Diffeotopy.velocity_apply, grayDiffeotopy_def,
     Diffeotopy.velocity_timeDependentFlowDiffeotopy]
   exact hξ.exists_grayField.choose_spec.2.1 t t.property _
 
