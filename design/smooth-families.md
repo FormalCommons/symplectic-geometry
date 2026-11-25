@@ -700,11 +700,12 @@ extensions take smooth families to smooth families. A file of its own keeps
 
 ### `Geometry/Manifold/DeRham/SmoothFamily/MayerVietoris.lean`
 
-For `[FiniteDimensional ℝ E] [T2Space M] [SigmaCompactSpace M]` (the
-hypotheses of Tau Ceti's Mayer–Vietoris sequence) and `U V : Opens M`:
+For `U V : Opens M` and a cut-off `c : MayerVietorisCutoff I U V` (which
+exists under `[FiniteDimensional ℝ E] [T2Space M] [SigmaCompactSpace M]`):
 
-- `SmoothCohomologySplitting.exists_isSmooth_sup`: smooth splittings on `U`,
-  `V` and `U ⊓ V` give one on `U ⊔ V`. The construction is the auxiliary page's
+- `SmoothCohomologySplitting.sup`: splittings on `U`, `V` and `U ⊓ V` give
+  one on `U ⊔ V`, smooth when they are
+  (`SmoothCohomologySplitting.IsSmooth.sup`). The construction is the auxiliary page's
   inductive step: first a correction by finitely many fixed closed forms
   that makes the restrictions to `U` and `V` exact, then a correction by
   finitely many fixed pairs that makes the class of the discrepancy on

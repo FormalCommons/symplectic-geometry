@@ -13,7 +13,8 @@ public import Mathlib.Analysis.InnerProductSpace.PiL2
 A square matrix `M` indexed by `m` acts on `EuclideanSpace 𝕜 m` by `Matrix.toEuclideanLin`.
 This file shows that moving the coordinates along `e : m ≃ n`, by Mathlib's
 `LinearIsometryEquiv.piLpCongrLeft`, turns this action into that of `Matrix.reindex e e M`.
-It proves Cauchy–Schwarz for the Hermitian product `star z ⬝ᵥ v` on `ι → 𝕜`. It also places
+It proves Cauchy–Schwarz for the Hermitian product `star z ⬝ᵥ v` on `ι → 𝕜`, and computes the
+real part of the Hermitian square `star z ⬝ᵥ z` of a complex vector. It also places
 the standard basis vectors of `EuclideanSpace 𝕜 ι` on the unit sphere, and shows
 that splitting `EuclideanSpace 𝕜 (ι ⊕ κ)` into two blocks by `EuclideanSpace.sumEquivProd`
 preserves the squared norm.
@@ -23,6 +24,7 @@ preserves the squared norm.
 * `Matrix.piLpCongrLeft_toEuclideanLin_apply`: `e (M z) = (reindex e e M) (e z)`.
 * `Matrix.norm_star_dotProduct_sq_le`: Cauchy–Schwarz for the Hermitian product,
   `‖star z ⬝ᵥ v‖² ≤ (∑ᵢ ‖zᵢ‖²) (∑ᵢ ‖vᵢ‖²)`, from Mathlib's `norm_inner_le_norm`.
+* `Matrix.re_star_dotProduct_self`: `Re (star z ⬝ᵥ z) = ∑ᵢ ‖zᵢ‖²` for `z : ι → ℂ`.
 * `EuclideanSpace.single_one_mem_sphere`: each standard basis vector has norm one.
 * `EuclideanSpace.norm_sq_sumEquivProd`: the squared norms of the two blocks of
   `sumEquivProd x` add up to `‖x‖²`.
@@ -53,6 +55,12 @@ theorem norm_star_dotProduct_sq_le {ι : Type*} [Fintype ι] (z v : ι → 𝕜)
     dotProduct_comm] at h
   rw [← EuclideanSpace.norm_sq_eq, ← EuclideanSpace.norm_sq_eq, ← mul_pow]
   exact pow_le_pow_left₀ (norm_nonneg _) h 2
+
+/-- The real part of the Hermitian square of a complex vector is its squared Euclidean norm:
+`Re (star z ⬝ᵥ z) = ∑ᵢ ‖zᵢ‖²`. -/
+theorem re_star_dotProduct_self {ι : Type*} [Fintype ι] (z : ι → ℂ) :
+    (star z ⬝ᵥ z).re = ∑ i, ‖z i‖ ^ 2 := by
+  simp [dotProduct, Complex.re_sum, Complex.conj_mul', ← Complex.ofReal_pow]
 
 end Matrix
 
