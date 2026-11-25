@@ -43,6 +43,10 @@ orbit map is differentiable at `1`, it differentiates through inversion (Tau Cet
 `TauCeti.GroupLieAlgebra.mfderiv_inv_one_apply`), with the steps of Tau Ceti's
 `TauCeti.LeftToRightAction.mfderiv_equiv_symm_rightFundamentalVectorField_of_mdifferentiableAt`;
 when it is not, neither is `g ↦ g⁻¹ • x`, and both sides are zero.
+`TauCeti.mfderiv_inv_smul_apply` moves this to any point `g`: since
+`h⁻¹ • x = (g⁻¹ * h)⁻¹ • (g⁻¹ • x)`, the derivative at `g` sends `v` to `-ξ_M(g⁻¹ • x)`, for `ξ`
+the image of `v` under the derivative of `h ↦ g⁻¹ * h`. `TauCeti.mfderiv_inv_smul_comp_apply`
+is its form along a map `γ : N → G`, for `y ↦ (γ y)⁻¹ • x`.
 
 `TauCeti.mfderiv_rightFundamentalVectorField_of_map_op_smul_eq_smul` is the mixed case of the
 first statement: a map `f : M → N` with `f (x • g) = g • f x`, from a right action to a left one,
@@ -127,12 +131,15 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
   {E' : Type*} [NormedAddCommGroup E'] [NormedSpace 𝕜 E']
   {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners 𝕜 E' H'}
   {M : Type*} [TopologicalSpace M] [ChartedSpace H' M]
+  {E'' : Type*} [NormedAddCommGroup E''] [NormedSpace 𝕜 E'']
+  {H'' : Type*} [TopologicalSpace H''] {I'' : ModelWithCorners 𝕜 E'' H''}
+  {N : Type*} [TopologicalSpace N] [ChartedSpace H'' N]
 
 /-- **The inverse orbit map differentiates to minus the fundamental vector field.** For a Lie
 group `G` acting on `M`, the derivative at `1` of `g ↦ g⁻¹ • x` sends `ξ` to `-ξ_M(x)`. -/
 theorem mfderiv_inv_smul_one_apply [LieGroup I 1 G] [MulAction G M] {x : M}
     (ξ : GroupLieAlgebra I G) :
-    mfderiv I I' (fun g : G ↦ g⁻¹ • x) 1 ξ = -fundamentalVectorField I' ξ x := by
+    mfderiv I I' (fun g : G ↦ g⁻¹ • x) 1 ξ = -fundamentalVectorField (I := I) (G := G) I' ξ x := by
   have hinv : MDifferentiableAt I I (fun g : G ↦ g⁻¹) 1 :=
     (contMDiff_inv I 1).mdifferentiableAt one_ne_zero
   by_cases horbit : MDifferentiableAt I I' (fun g : G ↦ g • x) 1
@@ -145,6 +152,48 @@ theorem mfderiv_inv_smul_one_apply [LieGroup I 1 G] [MulAction G M] {x : M}
     rw [mfderiv_zero_of_not_mdifferentiableAt h, fundamentalVectorField_apply,
       mfderiv_zero_of_not_mdifferentiableAt horbit]
     exact neg_zero.symm
+
+/-- **The inverse orbit map at any point.** For a Lie group `G` acting on `M`, the derivative at
+`g` of `h ↦ h⁻¹ • x` sends `v` to `-ξ_M(g⁻¹ • x)`, where `ξ` is the left trivialization of `v`:
+its image under the derivative at `g` of `h ↦ g⁻¹ * h`. -/
+theorem mfderiv_inv_smul_apply [LieGroup I 1 G] [MulAction G M] {x : M} (g : G)
+    (v : TangentSpace I g) :
+    mfderiv I I' (fun h : G ↦ h⁻¹ • x) g v =
+      -fundamentalVectorField (I := I) (G := G) I' (mfderiv I I (g⁻¹ * ·) g v) (g⁻¹ • x) := by
+  have hL : MDifferentiableAt I I (g⁻¹ * ·) g :=
+    (contMDiff_mul_left (I := I) (n := 1)).mdifferentiableAt one_ne_zero
+  -- `h⁻¹ • x = (g⁻¹ * h)⁻¹ • (g⁻¹ • x)`: the map factors through `h ↦ g⁻¹ * h`.
+  have hcomp : (fun h : G ↦ h⁻¹ • x) = (fun k : G ↦ k⁻¹ • g⁻¹ • x) ∘ (g⁻¹ * ·) := by
+    funext h
+    simp [mul_smul]
+  have h1 := mfderiv_inv_smul_one_apply (I := I) (G := G) (I' := I') (x := g⁻¹ • x)
+    (mfderiv I I (g⁻¹ * ·) g v : GroupLieAlgebra I G)
+  rw [hcomp, ← h1]
+  by_cases hk : MDifferentiableAt I I' (fun k : G ↦ k⁻¹ • g⁻¹ • x) 1
+  · exact mfderiv_comp_apply_of_eq g hk hL (inv_mul_cancel g) v
+  · -- Left multiplication by `g` undoes that by `g⁻¹`, so neither map is differentiable.
+    have hR : MDifferentiableAt I I (g * ·) 1 :=
+      (contMDiff_mul_left (I := I) (n := 1)).mdifferentiableAt one_ne_zero
+    have h : ¬ MDifferentiableAt I I' ((fun k : G ↦ k⁻¹ • g⁻¹ • x) ∘ (g⁻¹ * ·)) g :=
+      fun h ↦ hk <| by
+        simpa [Function.comp_def] using h.comp_of_eq (x := 1) hR (mul_one g)
+    rw [mfderiv_zero_of_not_mdifferentiableAt h, mfderiv_zero_of_not_mdifferentiableAt hk]
+    -- Both sides are the zero vector, of tangent spaces at points that agree only up to
+    -- `inv_mul_cancel`, so `ContinuousLinearMap.zero_apply` cannot rewrite them.
+    rfl
+
+/-- **The inverse orbit map along a map.** If `γ : N → G` is differentiable at `y` and
+`h ↦ h⁻¹ • x` is differentiable at `γ y`, then the derivative at `y` of `y ↦ (γ y)⁻¹ • x`
+sends `w` to `-ξ_M((γ y)⁻¹ • x)`, where `ξ` is the left trivialization at `γ y` of `dγ_y w`. -/
+theorem mfderiv_inv_smul_comp_apply [LieGroup I 1 G] [MulAction G M] {x : M} {γ : N → G} {y : N}
+    (hγ : MDifferentiableAt I'' I γ y)
+    (hx : MDifferentiableAt I I' (fun h : G ↦ h⁻¹ • x) (γ y)) (w : TangentSpace I'' y) :
+    mfderiv I'' I' (fun y ↦ (γ y)⁻¹ • x) y w =
+      -fundamentalVectorField (I := I) (G := G) I'
+        (mfderiv I I ((γ y)⁻¹ * ·) (γ y) (mfderiv I'' I γ y w))
+        ((γ y)⁻¹ • x) := by
+  rw [← mfderiv_inv_smul_apply (G := G)]
+  exact mfderiv_comp_apply_of_eq (g := fun h : G ↦ h⁻¹ • x) y hx hγ rfl w
 
 end TauCeti
 
