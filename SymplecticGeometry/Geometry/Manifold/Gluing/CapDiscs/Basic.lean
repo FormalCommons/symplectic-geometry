@@ -679,8 +679,7 @@ theorem range_inl_union_iUnion_range_inr :
     range (inl c γ hγ hinj) ∪ ⋃ i, range (inr c γ hγ hinj i) = univ := by
   refine eq_univ_of_forall fun x ↦ ?_
   obtain ⟨y, rfl⟩ | ⟨⟨i, w⟩, rfl⟩ :=
-    (GluedAlong.range_inl_union_range_inr (annuliDiffeomorph (c := c) hγ hinj)).symm.subset
-      (mem_univ x)
+    GluedAlong.exists_inl_or_exists_inr (annuliDiffeomorph (c := c) hγ hinj) x
   · refine Or.inl ⟨((𝓡∂ 2).interiorOpensDiffeomorph S ∞).symm y, ?_⟩
     rw [inl, Diffeomorph.apply_symm_apply]
   · refine Or.inr (mem_iUnion.2 ⟨i, (remodelDiffeomorph complexDiffeomorph ball).symm w, ?_⟩)
