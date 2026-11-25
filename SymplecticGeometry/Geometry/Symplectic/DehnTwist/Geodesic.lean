@@ -28,6 +28,7 @@ import TauCeti.Geometry.Manifold.Riemannian.Sphere.Gradient
 import TauCeti.Geometry.Manifold.VectorBundle.Bilinear.SmulRight
 import TauCeti.Geometry.Manifold.VectorBundle.Cotangent.ModelSpace
 import TauCeti.Geometry.Symplectic.Manifold.Flat
+import TauCeti.Topology.Order.Sublevel
 
 /-!
 # Euclidean coordinates and the normalized geodesic flow on the cotangent bundle of the sphere
@@ -64,10 +65,12 @@ direction.
   maps are smooth. `SymplecticGeometry.contMDiff_of_contMDiff_cotangentCoord_comp`: a map into
   `T*Sⁿ` is smooth when its coordinates are.
 * `SymplecticGeometry.cotangentNorm_eq_norm`: `‖p‖` is the norm of `z` for the round metric.
+* `SymplecticGeometry.cotangentNorm_eq_zero_iff`: `‖p‖ = 0` exactly on the zero section.
 * `SymplecticGeometry.contMDiffAt_cotangentNorm`: `‖p‖` is smooth off the zero section.
 * `SymplecticGeometry.isCompact_setOf_cotangentNorm_le`: the sets `{z | ‖p‖ ≤ r}` are compact;
   `SymplecticGeometry.isCompact_setOf_cotangentNorm_coe_le`: so is their trace on an open set
-  that contains them.
+  that contains them. `SymplecticGeometry.exists_pos_setOf_cotangentNorm_le_subset`: every
+  neighbourhood of the zero section contains `{z | ‖p‖ ≤ r}` for some `r > 0`.
 * `SymplecticGeometry.cotangentCoord_zeroSection`: the zero covector at `q` has coordinates
   `(q, 0)`; `SymplecticGeometry.antipodal_zeroSection`: `antipodal` sends it to the zero covector
   at `-q`.
@@ -154,7 +157,7 @@ noncomputable section
 namespace SymplecticGeometry
 
 open Bundle Metric Set TauCeti TauCeti.Manifold
-open scoped Manifold ContDiff InnerProductSpace EuclideanSpace
+open scoped Manifold ContDiff InnerProductSpace EuclideanSpace Topology
 
 variable {n : ℕ}
 
@@ -387,6 +390,18 @@ theorem cotangentNorm_zeroSection (q : 𝕊 n) :
       (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ) q) = 0 := by
   rw [cotangentNorm_def, cotangentCoord_zeroSection, norm_zero]
 
+/-- A covector has norm `0` exactly when it lies on the zero section. -/
+theorem cotangentNorm_eq_zero_iff {z : CotangentBundle (𝓡 n) (𝕊 n)} :
+    cotangentNorm z = 0 ↔ z ∈ range (zeroSection (EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)
+      (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ)) := by
+  refine ⟨fun h ↦ ?_, ?_⟩
+  · rw [cotangentNorm_eq_norm, ContinuousLinearMap.opNorm_zero_iff] at h
+    obtain ⟨q, p⟩ := z
+    obtain rfl : p = 0 := h
+    exact ⟨q, rfl⟩
+  · rintro ⟨q, rfl⟩
+    exact cotangentNorm_zeroSection q
+
 theorem continuous_cotangentNorm : Continuous (cotangentNorm (n := n)) :=
   continuous_norm.comp (continuous_snd.comp contMDiff_cotangentCoord.continuous)
 
@@ -410,6 +425,16 @@ theorem isCompact_setOf_cotangentNorm_coe_le
     IsCompact {z : U | cotangentNorm (z : CotangentBundle (𝓡 n) (𝕊 n)) ≤ r} :=
   Topology.IsInducing.subtypeVal.isCompact_preimage' (isCompact_setOf_cotangentNorm_le r)
     (by rwa [Subtype.range_coe])
+
+/-- Every neighbourhood of the zero section of `T*Sⁿ` contains `{z | ‖p‖ ≤ r}` for some
+`r > 0`. -/
+theorem exists_pos_setOf_cotangentNorm_le_subset {W : Set (CotangentBundle (𝓡 n) (𝕊 n))}
+    (hW : W ∈ 𝓝ˢ (range (zeroSection (EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)
+      (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ)))) :
+    ∃ r > 0, {z | cotangentNorm z ≤ r} ⊆ W :=
+  exists_pos_sublevel_subset_of_isCompact_of_mem_nhdsSet one_pos
+    (isCompact_setOf_cotangentNorm_le 1) continuous_cotangentNorm.continuousOn
+    (fun z hz ↦ (cotangentNorm_nonneg z).lt_of_ne' fun h ↦ hz (cotangentNorm_eq_zero_iff.1 h)) hW
 
 /-- The first coordinate of the differential of `cotangentCoord` is the differential of the
 inclusion `Sⁿ → ℝⁿ⁺¹` applied to the differential of the bundle projection: the first
