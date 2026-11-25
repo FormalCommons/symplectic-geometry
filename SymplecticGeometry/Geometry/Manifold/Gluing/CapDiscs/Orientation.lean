@@ -138,9 +138,6 @@ private instance instIsManifoldPiece : ∀ k : Option ι, IsManifold (𝓡 2) �
   | none => inferInstanceAs (IsManifold _ ∞ (InteriorPiece 1 S))
   | some _ => inferInstanceAs (IsManifold _ ∞ discOpens)
 
-private instance (k : Option ι) : IsManifold (𝓡 2) 1 (piece S ι k) :=
-  IsManifold.of_le (n := ∞) (by norm_num)
-
 /-- The maps of the pieces into the capped surface. -/
 private def pieceMap : ∀ k : Option ι, piece S ι k → capDiscs c γ hγ hinj
   | none => fun x ↦ inl c γ hγ hinj (interiorPieceDiffeomorph.symm x)

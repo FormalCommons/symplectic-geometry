@@ -86,8 +86,7 @@ theorem mpullback_verticalForm_apply {EX HX X : Type*} [NormedAddCommGroup EX]
       mpullback IX I (Prod.snd ∘ f) (β (f x).1) x := by
   rw [mpullback_comp_at hf mdifferentiableAt_snd]
   -- Both sides only read the value at `f x` of the form on `N × M`.
-  ext v
-  simp only [mpullback_apply, verticalForm_apply_eq_mpullback_snd]
+  exact mpullback_apply_congr (verticalForm_apply_eq_mpullback_snd β (f x))
 
 omit [IsManifold I 1 M] [IsManifold J 1 N] in
 /-- Pulling back the vertical form of a family `β` along a product map `Prod.map f g` of

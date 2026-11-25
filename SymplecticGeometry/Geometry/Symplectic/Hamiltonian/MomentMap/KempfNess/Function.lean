@@ -7,6 +7,8 @@ module
 
 public import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 public import SymplecticGeometry.Geometry.Lie.Complexification
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Basic
+import TauCeti.Analysis.Calculus.IntervalIntegral.ParametricPrimitive
 
 /-!
 # The Kempf–Ness function
@@ -25,7 +27,7 @@ For `p : M`, the *Kempf–Ness function* `Φ_p : Gc → ℝ` is defined through 
 
 where `exp(iξ)` is `C.expI ξ`. This file defines `Φ_p`, shows that it vanishes on `G` and that it
 is invariant under right multiplication by `G`, so that it descends to the space `Gc ⧸ G` of
-cosets `gG`.
+cosets `gG`, and shows that it is smooth when the action and the components of `μ` are.
 
 ## Main definitions
 
@@ -42,6 +44,11 @@ cosets `gG`.
 * `SymplecticGeometry.kempfNessFunction_mul_toHom`: `Φ_p (g * C.toHom u) = Φ_p g`.
 * `SymplecticGeometry.kempfNessFunctionQuotient_mk`: the induced function on cosets agrees with
   `Φ_p` on representatives.
+* `SymplecticGeometry.contMDiff_kempfNessFunction`: `Φ_p` is smooth.
+
+The smoothness reads `Φ_p` through the diffeomorphism `C.polar` as the integral over `[0, 1]` of a
+smooth function on `𝔤 × ℝ`, and applies Tau Ceti's
+`intervalIntegral.contDiff_parametric_primitive_of_contDiff` to it.
 
 ## References
 
@@ -136,6 +143,36 @@ def kempfNessFunctionQuotient : Gc ⧸ C.toHom.range → ℝ :=
 theorem kempfNessFunctionQuotient_mk (g : Gc) :
     kempfNessFunctionQuotient C μ p (g : Gc ⧸ C.toHom.range) = kempfNessFunction C μ p g :=
   (rfl)
+
+section Smooth
+
+variable [FiniteDimensional ℝ E]
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
+  {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
+  [TopologicalSpace M] [ChartedSpace H' M] [ContMDiffSMul IC I' ∞ Gc M]
+
+/-- The Kempf–Ness function is smooth on `Gc` when `Gc` acts smoothly on `M` and each component
+`x ↦ μ x ξ` of `μ` is smooth, as for a moment map (Tau Ceti's `IsMomentMap.contMDiff`). -/
+theorem contMDiff_kempfNessFunction (hμ : ∀ ξ, ContMDiff I' 𝓘(ℝ) ∞ fun x ↦ μ x ξ) :
+    ContMDiff IC 𝓘(ℝ) ∞ (kempfNessFunction C μ p) := by
+  -- The integrand `(ξ, t) ↦ μ (C.expI (-(t • ξ)) • p) ξ`, on the model space `E × ℝ`.
+  have hx : ContMDiff 𝓘(ℝ, E × ℝ) I' ∞ fun q : E × ℝ ↦ C.expI (-(q.2 • q.1)) • p :=
+    (C.contMDiff_expI.comp (contDiff_snd.smul contDiff_fst).neg.contMDiff).smul contMDiff_const
+  have hF : ContDiff ℝ ∞ (Function.uncurry fun (ξ : E) (t : ℝ) ↦
+      μ (C.expI (-(t • ξ)) • p) ξ) :=
+    contMDiff_iff_contDiff.1 <|
+      ((contMDiff_toContinuousLinearMap_of_contMDiff_apply hμ).comp hx).clm_apply
+        contDiff_fst.contMDiff
+  -- Its integral over `[0, 1]`, a smooth function of `ξ`, composed with `g ↦ (C.polar.symm g).1`.
+  have hΦ := (intervalIntegral.contDiff_parametric_primitive_of_contDiff hF 0).comp
+    (contDiff_id.prodMk (contDiff_const (c := (1 : ℝ))))
+  refine (hΦ.contMDiff.comp (contMDiff_fst.comp C.polar.symm.contMDiff)).congr fun g ↦ ?_
+  rw [kempfNessFunction_def]
+  -- The sides differ only in the type of `(C.polar.symm g).1`: the model space `E` on the left,
+  -- the Lie algebra `GroupLieAlgebra I G` on the right, which is `E` by definition.
+  rfl
+
+end Smooth
 
 end SymplecticGeometry
 

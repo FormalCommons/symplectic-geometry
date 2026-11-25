@@ -56,19 +56,19 @@ form on `M`.
   `Φ⁻¹ (m, y)` is the `w` with `[y, w] = m`.
 * `TauCeti.AssociatedBundle.mfderiv_pullbackProjDiffeomorph_fundamental`: the derivative of `Φ`
   sends `(x ξ, -X_ξ(v))` to the fundamental vector of `ξ` on `Q` at `Φ (x, v)`.
-* `TauCeti.AssociatedBundle.surjective_totalSpaceMk_mk` and
-  `TauCeti.AssociatedBundle.isSubmersion_totalSpaceMk_mk`: `q` is a surjective submersion.
+* `TauCeti.AssociatedBundle.surjective_chartedMk` and
+  `TauCeti.AssociatedBundle.isSubmersion_chartedMk`: `q` is a surjective submersion.
 * `TauCeti.AssociatedBundle.contMDiff_op_smul_inv_smul`: the diagonal action is `C^n`.
-* `TauCeti.AssociatedBundle.contMDiff_totalSpaceMk_mk_left`: for fixed `v`, `x ↦ [x, v]` is
-  `C^n`, and `TauCeti.AssociatedBundle.mfderiv_proj_totalSpaceMk_mk_apply`: composed with the
+* `TauCeti.AssociatedBundle.contMDiff_chartedMk_left`: for fixed `v`, `x ↦ [x, v]` is
+  `C^n`, and `TauCeti.AssociatedBundle.mfderiv_proj_chartedMk_apply`: composed with the
   derivative of the projection of `M`, its derivative is that of the projection of `P`.
-* `TauCeti.AssociatedBundle.totalSpaceMk_mk_op_smul_inv_smul` and
-  `TauCeti.AssociatedBundle.totalSpaceMk_mk_eq_totalSpaceMk_mk_iff`: `q` is invariant under the
+* `TauCeti.AssociatedBundle.chartedMk_op_smul_inv_smul` and
+  `TauCeti.AssociatedBundle.chartedMk_eq_chartedMk_iff`: `q` is invariant under the
   diagonal action, and its fibres are the orbits.
-* `TauCeti.AssociatedBundle.mfderiv_totalSpaceMk_mk_eq_zero_iff`: the kernel of the derivative
+* `TauCeti.AssociatedBundle.mfderiv_chartedMk_eq_zero_iff`: the kernel of the derivative
   of `q` at `(x, v)` is made of the vectors `(x ξ, -X_ξ(v))`.
-* `TauCeti.AssociatedBundle.isBasic_totalSpaceMk_mk` and
-  `TauCeti.AssociatedBundle.existsUnique_mpullback_totalSpaceMk_mk_eq`: a smooth form on `P × F`
+* `TauCeti.AssociatedBundle.isBasic_chartedMk` and
+  `TauCeti.AssociatedBundle.existsUnique_mpullback_chartedMk_eq`: a smooth form on `P × F`
   invariant under the diagonal action and vanishing on the vectors `(x ξ, -X_ξ(v))` is basic for
   `q`, and is the pull-back along `q` of a unique smooth form on `M`.
 
@@ -98,8 +98,8 @@ The declarations from `pullbackProjSection` to `mfderiv_pullbackProjDiffeomorph_
 `[∀ b, Nonempty (P b)]`. Their statements need it, not only their proofs: Mathlib's and Tau
 Ceti's fibre bundle structure on the pull-back `Q` asks for it, and so does `pullbackEquiv`. A
 caller supplies it with `have := FiberBundle.nonempty_fiber G P`, since `G` is nonempty. The
-statements after them do not mention `Q`. Of these, `isSubmersion_totalSpaceMk_mk` and
-`mfderiv_totalSpaceMk_mk_eq_zero_iff` derive the hypothesis in their proofs in this way; the
+statements after them do not mention `Q`. Of these, `isSubmersion_chartedMk` and
+`mfderiv_chartedMk_eq_zero_iff` derive the hypothesis in their proofs in this way; the
 descent theorems reach `Q` only through those two results and need no such step.
 
 The descent does not transport the descent of basic forms on principal bundles along `Φ`: Tau
@@ -209,7 +209,7 @@ theorem lift_pullbackProjMk (x : ManifoldTotalSpace G P × F) :
 
 /-- **The quotient map onto the associated bundle is surjective**: every point of `P ×_G F` is a
 class `[x, v]`. -/
-theorem surjective_totalSpaceMk_mk : Function.Surjective (chartedMk G F P) := by
+theorem surjective_chartedMk : Function.Surjective (chartedMk G F P) := by
   intro y
   obtain ⟨⟨p, v⟩, hp⟩ := (isOpenQuotientMap_totalSpaceMk_mk G P F).surjective
     ((ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm y)
@@ -218,7 +218,7 @@ theorem surjective_totalSpaceMk_mk : Function.Surjective (chartedMk G F P) := by
   exact (congrArg _ hp).trans (Homeomorph.apply_symm_apply _ _)
 
 /-- **The quotient map is invariant under the diagonal action**: `[x · g, g⁻¹ • v] = [x, v]`. -/
-theorem totalSpaceMk_mk_op_smul_inv_smul (g : G) (x : ManifoldTotalSpace G P × F) :
+theorem chartedMk_op_smul_inv_smul (g : G) (x : ManifoldTotalSpace G P × F) :
     chartedMk G F P (op g • x.1, g⁻¹ • x.2) = chartedMk G F P x := by
   rw [chartedMk_apply, chartedMk_apply, ManifoldTotalSpace.homeomorph_symm_smul, mk_smul_inv_smul]
 
@@ -233,7 +233,7 @@ theorem contMDiff_op_smul_inv_smul [LieGroup IG n G] [ContMDiffSMul IG IF n G F]
 variable (n IB IF) in
 /-- For a fixed `v : F`, the map `x ↦ [x, v]` from the total space of `P` to that of the associated
 bundle is `C^n`. -/
-theorem contMDiff_totalSpaceMk_mk_left [ContMDiffSMul IG IF n G F] (v : F) :
+theorem contMDiff_chartedMk_left [ContMDiffSMul IG IF n G F] (v : F) :
     ContMDiff (IB.prod IG) (IB.prod IF) n fun x : ManifoldTotalSpace G P ↦
       chartedMk G F P (x, v) :=
   (contMDiff_chartedMk n IB IG IF).comp (contMDiff_id.prodMk contMDiff_const)
@@ -242,7 +242,7 @@ theorem contMDiff_totalSpaceMk_mk_left [ContMDiffSMul IG IF n G F] (v : F) :
 of the projection of the associated bundle at `[x, v]`, composed with that of `x' ↦ [x', v]` at
 `x`, is the derivative of the projection of `P` at `x`, up to the identification
 `tangentSpaceCast` of the tangent spaces of the base at the two equal base points. -/
-theorem mfderiv_proj_totalSpaceMk_mk_apply [ContMDiffSMul IG IF n G F] (hn : n ≠ 0)
+theorem mfderiv_proj_chartedMk_apply [ContMDiffSMul IG IF n G F] (hn : n ≠ 0)
     (x : ManifoldTotalSpace G P) (v : F) (w : TangentSpace (IB.prod IG) x) :
     mfderiv (IB.prod IG) IB (fun x' : ManifoldTotalSpace G P ↦
         ((ManifoldTotalSpace.homeomorph G P).symm x').proj) x w =
@@ -265,12 +265,12 @@ theorem mfderiv_proj_totalSpaceMk_mk_apply [ContMDiffSMul IG IF n G F] (hn : n �
     mfderiv_comp_apply x
       ((ManifoldTotalSpace.contMDiff_proj n F (AssociatedBundle G P F) IB IF).mdifferentiableAt
         hn)
-      ((contMDiff_totalSpaceMk_mk_left n IB IF v).mdifferentiableAt hn)]
+      ((contMDiff_chartedMk_left n IB IF v).mdifferentiableAt hn)]
   simp only [Function.comp_apply]
 
 /-- **The fibres of the quotient map are the orbits of the diagonal action**: `[x, v] = [y, w]`
 exactly when `(y, w) = (x · g, g⁻¹ • v)` for some `g : G`. -/
-theorem totalSpaceMk_mk_eq_totalSpaceMk_mk_iff {x y : ManifoldTotalSpace G P × F} :
+theorem chartedMk_eq_chartedMk_iff {x y : ManifoldTotalSpace G P × F} :
     chartedMk G F P x = chartedMk G F P y ↔
       ∃ g : G, y = (op g • x.1, g⁻¹ • x.2) := by
   rw [chartedMk_apply, chartedMk_apply,
@@ -422,7 +422,7 @@ theorem pullbackProjDiffeomorph_smul (g : G) (x : ManifoldTotalSpace G P × F) :
     ManifoldTotalSpace.smul_homeomorph]
   congr 1
   refine Pullback.totalSpace_ext ?_ ?_
-  · rw [pullbackProjMk_proj, pullbackProjMk_proj, totalSpaceMk_mk_op_smul_inv_smul]
+  · rw [pullbackProjMk_proj, pullbackProjMk_proj, chartedMk_op_smul_inv_smul]
   · rw [lift_pullbackProjMk, ManifoldTotalSpace.homeomorph_symm_smul]
     -- `Pullback.lift` of a point `⟨m, s⟩` is `⟨πM m, s⟩` by definition; `Pullback.lift_mk` does not
     -- rewrite here, since the fibre of `Q` is not reducibly that of `P`.
@@ -502,7 +502,7 @@ local notation "Q" => (πM : ManifoldTotalSpace F (AssociatedBundle G P F) → B
 `P` (`1 ≤ n`) with finite-dimensional base and structure group, and a `C^n` action of `G` on a
 finite-dimensional manifold `F`, all without boundary, the map `(x, v) ↦ [x, v]` from `P × F`
 onto `P ×_G F` is a `C^n` submersion. -/
-theorem isSubmersion_totalSpaceMk_mk (hn : 1 ≤ n) :
+theorem isSubmersion_chartedMk (hn : 1 ≤ n) :
     Manifold.IsSubmersion ((IB.prod IG).prod IF) (IB.prod IF) n (chartedMk G F P) := by
   have := FiberBundle.nonempty_fiber G P
   have hn₀ : n ≠ 0 := (zero_lt_one.trans_le hn).ne'
@@ -522,7 +522,7 @@ omit [FiniteDimensional 𝕜 EB] [IB.Boundaryless] [FiniteDimensional 𝕜 EG] [
 /-- **The vertical vectors of the quotient map are the fundamental vectors of the diagonal
 action.** A tangent vector to `P × F` at `(x, v)` is killed by the derivative of
 `(x, v) ↦ [x, v]` exactly when it is `(x ξ, -X_ξ(v))` for some `ξ` in the Lie algebra of `G`. -/
-theorem mfderiv_totalSpaceMk_mk_eq_zero_iff (hn : 1 ≤ n) (x : ManifoldTotalSpace G P × F)
+theorem mfderiv_chartedMk_eq_zero_iff (hn : 1 ≤ n) (x : ManifoldTotalSpace G P × F)
     (w : TangentSpace ((IB.prod IG).prod IF) x) :
     mfderiv ((IB.prod IG).prod IF) (IB.prod IF) (chartedMk G F P) x w = 0 ↔
       ∃ ξ : GroupLieAlgebra IG G,
@@ -586,7 +586,7 @@ variable {B G F : Type*}
 form on `P × F` that is invariant under the diagonal action `(x, v) ↦ (x · g, g⁻¹ • v)` and
 vanishes as soon as one of its arguments at `(x, v)` is `(x ξ, -X_ξ(v))` for some `ξ` in the Lie
 algebra of `G` is basic for the quotient map `(x, v) ↦ [x, v]` onto `P ×_G F`. -/
-theorem isBasic_totalSpaceMk_mk
+theorem isBasic_chartedMk
     {β : SmoothForm ((IB.prod IG).prod IF) (ManifoldTotalSpace G P × F) V k}
     (hβ : ∀ g : G, SmoothForm.mpullback
       (fun x : ManifoldTotalSpace G P × F ↦ (op g • x.1, g⁻¹ • x.2))
@@ -600,10 +600,10 @@ theorem isBasic_totalSpaceMk_mk
     (σ := fun (g : G) (x : ManifoldTotalSpace G P × F) ↦ (op g • x.1, g⁻¹ • x.2))
     ((contMDiff_chartedMk ∞ IB IG IF).mdifferentiable (by simp))
     (fun g ↦ (contMDiff_op_smul_inv_smul (n := ∞) g).mdifferentiable (by simp))
-    (fun g ↦ funext (totalSpaceMk_mk_op_smul_inv_smul g))
-    (fun x y hxy ↦ Or.inr ((totalSpaceMk_mk_eq_totalSpaceMk_mk_iff.1 hxy).imp fun _ h ↦ h.symm))
+    (fun g ↦ funext (chartedMk_op_smul_inv_smul g))
+    (fun x y hxy ↦ Or.inr ((chartedMk_eq_chartedMk_iff.1 hxy).imp fun _ h ↦ h.symm))
     (fun x v j hj ↦ ?_) fun g ↦ ?_
-  · obtain ⟨ξ, hξ⟩ := (mfderiv_totalSpaceMk_mk_eq_zero_iff ENat.LEInfty.out x (v j)).1 hj
+  · obtain ⟨ξ, hξ⟩ := (mfderiv_chartedMk_eq_zero_iff ENat.LEInfty.out x (v j)).1 hj
     exact hfund x v j ξ hξ.symm
   · rw [← SmoothForm.coe_mpullback _ (contMDiff_op_smul_inv_smul g), hβ]
 
@@ -611,7 +611,7 @@ theorem isBasic_totalSpaceMk_mk
 invariant under the diagonal action `(x, v) ↦ (x · g, g⁻¹ • v)` and vanishes as soon as one of
 its arguments at `(x, v)` is `(x ξ, -X_ξ(v))` for some `ξ` in the Lie algebra of `G` is the
 pull-back of exactly one smooth form on `P ×_G F` along the quotient map `(x, v) ↦ [x, v]`. -/
-theorem existsUnique_mpullback_totalSpaceMk_mk_eq [FiniteDimensional ℝ EB] [IB.Boundaryless]
+theorem existsUnique_mpullback_chartedMk_eq [FiniteDimensional ℝ EB] [IB.Boundaryless]
     [FiniteDimensional ℝ EG] [IG.Boundaryless] [FiniteDimensional ℝ EF] [IF.Boundaryless]
     [ContMDiffFiberBundle ∞ F (AssociatedBundle G P F) IB IF]
     {β : SmoothForm ((IB.prod IG).prod IF) (ManifoldTotalSpace G P × F) V k}
@@ -624,10 +624,10 @@ theorem existsUnique_mpullback_totalSpaceMk_mk_eq [FiniteDimensional ℝ EB] [IB
         β.val x v = 0) :
     ∃! γ : SmoothForm (IB.prod IF) (ManifoldTotalSpace F (AssociatedBundle G P F)) V k,
       SmoothForm.mpullback (chartedMk G F P) (contMDiff_chartedMk ∞ IB IG IF) γ = β := by
-  have hq := isSubmersion_totalSpaceMk_mk (n := ∞) (IB := IB) (IG := IG) (IF := IF) (G := G)
+  have hq := isSubmersion_chartedMk (n := ∞) (IB := IB) (IG := IG) (IF := IF) (G := G)
     (F := F) (P := P) ENat.LEInfty.out
-  exact ⟨_, SmoothForm.mpullback_descendedForm (hf := hq) (hsurj := surjective_totalSpaceMk_mk)
-    (hα := isBasic_totalSpaceMk_mk hβ hfund), fun _ ↦ SmoothForm.eq_descendedForm_iff.2⟩
+  exact ⟨_, SmoothForm.mpullback_descendedForm (hf := hq) (hsurj := surjective_chartedMk)
+    (hα := isBasic_chartedMk hβ hfund), fun _ ↦ SmoothForm.eq_descendedForm_iff.2⟩
 
 end Descent
 

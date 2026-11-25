@@ -45,8 +45,9 @@ the case of the linear data of `SymplecticGeometry.localModelCovector` and
   extensions by zero given by the splitting.
 * `SymplecticGeometry.LocalModelData.momentMap`, `SymplecticGeometry.LocalModelData.covector`,
   `SymplecticGeometry.LocalModelData.form`: `μ_V`, `ν` and the two-form.
-* `SymplecticGeometry.LocalModelData.adjoint𝔪`, `SymplecticGeometry.LocalModelData.adjoint𝔮`,
-  `SymplecticGeometry.LocalModelData.repV`: the representations of `K` on `𝔪`, `𝔮` and `V`.
+* `SymplecticGeometry.LocalModelData.adjoint𝔥`, `SymplecticGeometry.LocalModelData.adjoint𝔪`,
+  `SymplecticGeometry.LocalModelData.adjoint𝔮`, `SymplecticGeometry.LocalModelData.repV`: the
+  representations of `K` on `𝔥`, `𝔪`, `𝔮` and `V`.
 * `SymplecticGeometry.LocalModelData.ofBot`: the data for the trivial subgroup, with `𝔪 = 𝔤_τ`
   and the trivial representation.
 
@@ -182,10 +183,32 @@ def adjoint𝔪 : Representation ℝ K D.𝔪 :=
   Subrepresentation.toRepresentation (ρ := (adjointRepresentation ℝ I G).comp K.subtype)
     ⟨D.𝔪, fun k _ hξ ↦ D.adjointRepresentation_mem_𝔪 k hξ⟩
 
+theorem adjoint𝔪_def :
+    D.adjoint𝔪 =
+      Subrepresentation.toRepresentation (ρ := (adjointRepresentation ℝ I G).comp K.subtype)
+        ⟨D.𝔪, fun k _ hξ ↦ D.adjointRepresentation_mem_𝔪 k hξ⟩ :=
+  (rfl)
+
+/-- The adjoint representation of `K` on its Lie algebra `𝔥`. -/
+def adjoint𝔥 : Representation ℝ K D.𝔥 :=
+  Subrepresentation.toRepresentation (ρ := (adjointRepresentation ℝ I G).comp K.subtype)
+    ⟨D.𝔥, fun k _ hξ ↦ D.adjointRepresentation_mem_𝔥 k hξ⟩
+
+theorem adjoint𝔥_def :
+    D.adjoint𝔥 =
+      Subrepresentation.toRepresentation (ρ := (adjointRepresentation ℝ I G).comp K.subtype)
+        ⟨D.𝔥, fun k _ hξ ↦ D.adjointRepresentation_mem_𝔥 k hξ⟩ :=
+  (rfl)
+
 /-- The adjoint representation of `K` on `𝔮`. -/
 def adjoint𝔮 : Representation ℝ K D.𝔮 :=
   Subrepresentation.toRepresentation (ρ := (adjointRepresentation ℝ I G).comp K.subtype)
     ⟨D.𝔮, fun k _ hξ ↦ D.adjointRepresentation_mem_𝔮 k hξ⟩
+
+@[simp]
+theorem coe_adjoint𝔥_apply (k : K) (h : D.𝔥) :
+    (D.adjoint𝔥 k h : GroupLieAlgebra I G) = adjointRepresentation ℝ I G k h :=
+  (rfl)
 
 @[simp]
 theorem coe_adjoint𝔪_apply (k : K) (m : D.𝔪) :

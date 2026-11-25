@@ -231,7 +231,7 @@ part 48's.
   `parallelTransportIn_parallelTransportIn` (composition through a middle
   trivialization), `parallelTransportIn_self` (`s = t` and `e = e'` give
   the identity), and the bundled
-  `parallelTransportInDiffeomorph : Z ≃ₘ⟮IZ, IZ⟯ Z` with
+  `parallelTransportInDiffeomorph : Z ≃ₘ^n⟮IZ, IZ⟯ Z` with
   `coe_parallelTransportInDiffeomorph` and its inverse, the transport from
   `t` to `s`. For a loop at `b` and one trivialization at `b`, this is the
   holonomy.
