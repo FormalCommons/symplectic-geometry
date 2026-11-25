@@ -321,19 +321,18 @@ private def evalDual (x : M') (v : Fin l → TangentSpace I' x) (φ : StrongDual
   map_smul' _ _ := by simp
 
 /-- Let `S` be a finite-dimensional submodule of forms and `T : D →ₗ[ℝ] S` a map such that
-`S.subtype ∘ₗ T` preserves smooth families. Then every linear functional on `S` is smooth along
-the image under `T` of a smooth family over a smooth manifold `N`. -/
-theorem PreservesSmoothFamilies.contMDiff_dual_apply [FiniteDimensional ℝ S] {T : D →ₗ[ℝ] S}
-    (hT : PreservesSmoothFamilies.{uE, uH, uN} (S.subtype ∘ₗ T)) {EN : Type uE}
-    [NormedAddCommGroup EN] [NormedSpace ℝ EN] {HN : Type uH} [TopologicalSpace HN]
-    {N : Type uN} [TopologicalSpace N] [ChartedSpace HN N] {J : ModelWithCorners ℝ EN HN}
-    [IsManifold J ∞ N] {α : N → D} (hα : IsSmoothFamily J (fun t ↦ (α t : SmoothForm I M F k)))
-    (f : Module.Dual ℝ S) :
-    ContMDiff J 𝓘(ℝ) ∞ (fun t ↦ f (T (α t))) := by
+`S.subtype ∘ₗ T` preserves smooth families. Then every linear functional on `S`, after `T`, is
+smooth along smooth families. -/
+theorem PreservesSmoothFamilies.smoothAlongFamilies_comp [FiniteDimensional ℝ S]
+    {T : D →ₗ[ℝ] S} (hT : PreservesSmoothFamilies.{uE, uH, uN} (S.subtype ∘ₗ T))
+    (f : Module.Dual ℝ S) : SmoothAlongFamilies.{uE, uH, uN} (f ∘ₗ T) := by
+  rw [smoothAlongFamilies_def]
+  intro EN _ _ HN _ N _ _ J _ α hα
+  simp only [LinearMap.comp_apply]
   -- `X := S` makes Lean use the module instances of `S` itself, which it cannot match with
   -- those coming from an `AddCommGroup` through `smoothBundleForms`, whose definition is not
-  -- exposed. `x` is given because the separating condition is elaborated before the goal fixes
-  -- the family.
+  -- exposed. `x` is given because the separating condition is elaborated before the goal
+  -- fixes the family.
   refine contMDiff_dual_apply_of_separating (J := J) (X := S) (x := fun t ↦ T (α t))
     (s := Set.range fun p : (x : M') × (Fin l → TangentSpace I' x) × StrongDual ℝ G ↦
       evalDual (S := S) p.1 p.2.1 p.2.2) (fun z hz ↦ ?_) ?_ f
@@ -344,14 +343,6 @@ theorem PreservesSmoothFamilies.contMDiff_dual_apply [FiniteDimensional ℝ S] {
     exact ⟨_, ⟨⟨x, v, φ⟩, rfl⟩, hφ⟩
   rintro _ ⟨⟨x, v, φ⟩, rfl⟩
   exact φ.contMDiff.comp ((hT α hα).contMDiff_apply x v)
-
-/-- Let `S` be a finite-dimensional submodule of forms and `T : D →ₗ[ℝ] S` a map such that
-`S.subtype ∘ₗ T` preserves smooth families. Then every linear functional on `S`, after `T`, is
-smooth along smooth families. -/
-theorem PreservesSmoothFamilies.smoothAlongFamilies_comp [FiniteDimensional ℝ S]
-    {T : D →ₗ[ℝ] S} (hT : PreservesSmoothFamilies.{uE, uH, uN} (S.subtype ∘ₗ T))
-    (f : Module.Dual ℝ S) : SmoothAlongFamilies.{uE, uH, uN} (f ∘ₗ T) :=
-  fun _ hα ↦ by simpa only [LinearMap.comp_apply] using hT.contMDiff_dual_apply hα f
 
 /-- Let `b` be a finite basis of a space `S` of forms, and `T : D →ₗ[ℝ] S` a map whose
 coordinate functionals `b.coord i ∘ₗ T` are smooth along smooth families. Then `T` followed by
