@@ -96,7 +96,7 @@ pencil theorem produces one:
 Both predicates come with the trivial example of the projection
 `Prod.snd : Σ × ℙ ℂ (Fin 2 → ℂ) → ℙ ℂ (Fin 2 → ℂ)` for a closed surface
 with an area form, the product form and the product structure, which has
-no critical points. The local models are in `Model.lean`.
+no critical points. The local quadric is in `Model.lean`.
 
 ### The transversality for pairs
 
@@ -260,7 +260,7 @@ and `TauCeti.eulerChar_complexProjectiveSpace`.
 | `Geometry/Manifold/ConnectedSum/EulerCharacteristic.lean` | the Euler characteristic of a connected sum | 2 |
 | `Geometry/Manifold/ConnectedSum/Iterate.lean` | `IsReversedProjectiveSum` and its Euler characteristic | 2 |
 | `Geometry/Symplectic/Lefschetz/Basic.lean` | `IsLefschetzFibration`, `IsLefschetzPencil`, `fiberClosure`, the product example | 3 |
-| `Geometry/Symplectic/Lefschetz/Model.lean` | the local models $z_1^2+z_2^2$ and $[z_1:z_2]$ | 3 |
+| `Geometry/Symplectic/Lefschetz/Model.lean` | the local model $z_1^2+z_2^2$ | 3 |
 | `Geometry/Symplectic/Lefschetz/EulerCharacteristic.lean` | $\chi=2\chi(F)+\ell$ | 4 |
 | `Geometry/Symplectic/Lefschetz/Transversality/Pair.lean` | conditions 1 and 2 | 5 |
 | `Geometry/Symplectic/Lefschetz/Transversality/Derivative.lean` | condition 3 and its consequences | 6 |
@@ -333,8 +333,10 @@ Namespace `SymplecticGeometry.LefschetzModel`.
   `IsLefschetzFibration.manifoldMorseIndex_comp`, the same for `μ ∘ π` at a
   critical point `p` of `π`, for any `μ` with nonzero derivative at `π p`,
   through the chart of `exists_model`;
-- `pencilModel`, $[z_1:z_2]$ on $\mathbb C^2\setminus0$, a submersion whose
-  fibres are the punctured complex lines.
+- the model $[z_1:z_2]$ on $\mathbb C^2\setminus0$ is `Projectivization.mkNonzero ℂ 1`
+  of `Geometry/Manifold/Projectivization/Hopf.lean`, regular at every point
+  (`isRegularPoint_mkNonzero`), whose fibres are the punctured complex lines
+  (`preimage_mkNonzero_singleton_mk`).
 
 ### `Geometry/Symplectic/Lefschetz/EulerCharacteristic.lean`
 
@@ -408,7 +410,7 @@ $g_k$).
 
 ### `Geometry/Symplectic/Lefschetz/Pencil.lean`
 
-- `pencilModel_eq_pr`: `pencilModel` is the projection `pr` of *Complex
+- `mkNonzero_eq_pr`: `Projectivization.mkNonzero ℂ 1` is the projection `pr` of *Complex
   blowup*'s incidence set composed with the inverse of its blowdown off
   $Z$, so `pr` extends it across the exceptional divisor, as a submersion
   there.
