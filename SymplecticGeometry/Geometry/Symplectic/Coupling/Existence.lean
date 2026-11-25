@@ -106,9 +106,8 @@ def couplingOneForm (α : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circ
     (SmoothForm.mpullback Prod.fst contMDiff_fst α) +
   SmoothForm.mpullback Prod.swap (contMDiff_snd.prodMk contMDiff_fst)
     (SmoothForm.ofSlices (J := 𝓡∂ 1) _ (isSmoothFamily_iff_contMDiff.mp
-      (hβ.mpullback (fun y : ManifoldTotalSpace Circle P ↦
-          ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj)
-        (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1)))))
+      (hβ.mpullback (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1))
+        (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)).contMDiff)))
 
 variable {α : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1}
   {β : Set.Icc a b → SmoothForm IB B ℝ 1} (hβ : IsSmoothFamily (𝓡∂ 1) β)
@@ -122,9 +121,8 @@ theorem couplingOneForm_def :
         (SmoothForm.mpullback Prod.fst contMDiff_fst α) +
       SmoothForm.mpullback Prod.swap (contMDiff_snd.prodMk contMDiff_fst)
         (SmoothForm.ofSlices (J := 𝓡∂ 1) _ (isSmoothFamily_iff_contMDiff.mp
-          (hβ.mpullback (fun y : ManifoldTotalSpace Circle P ↦
-              ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj)
-            (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1))))) :=
+          (hβ.mpullback (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1))
+            (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)).contMDiff))) :=
   (rfl)
 
 /-- The underlying rough form of `SymplecticGeometry.couplingOneForm`: at `x`, the sum of
@@ -135,9 +133,8 @@ theorem coe_couplingOneForm :
       ((2 * Real.pi)⁻¹ * ((x.2 : ℝ) - a)) • mpullback _ (IB.prod (𝓡 1)) Prod.fst α.val x +
         mpullback _ ((𝓡∂ 1).prod (IB.prod (𝓡 1))) Prod.swap
           (verticalForm (𝓡∂ 1) fun t ↦ (SmoothForm.mpullback
-            (fun y : ManifoldTotalSpace Circle P ↦
-              ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj)
-            (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1)) (β t)).val) x := by
+            (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1))
+            (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)).contMDiff (β t)).val) x := by
   rw [couplingOneForm_def, SmoothForm.add_toRoughForm, SmoothForm.coe_mpullback (f := Prod.swap),
     SmoothForm.coe_ofSlices]
   exact congrArg (· + _) ((SmoothForm.coe_funSMulₗ _ _).trans
@@ -149,13 +146,12 @@ theorem couplingOneForm_apply (x : ManifoldTotalSpace Circle P × Set.Icc a b)
     (v : Fin 1 → TangentSpace ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) x) :
     (couplingOneForm α β hβ).val x v =
       (2 * Real.pi)⁻¹ * ((x.2 : ℝ) - a) * α.val x.1 (fun i ↦ (v i).1) +
-        (β x.2).val ((ManifoldTotalSpace.homeomorph Circle P).symm x.1).proj
-          (fun i ↦ mfderiv (IB.prod (𝓡 1)) IB (fun y : ManifoldTotalSpace Circle P ↦
-            ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj) x.1 (v i).1) := by
+        (β x.2).val (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1) x.1)
+          (fun i ↦ mfderiv (IB.prod (𝓡 1)) IB
+            (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)) x.1 (v i).1) := by
   have hswap := mpullback_verticalForm_apply (J := 𝓡∂ 1) (f := Prod.swap)
-    (fun t ↦ (SmoothForm.mpullback (fun y : ManifoldTotalSpace Circle P ↦
-        ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj)
-      (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1)) (β t)).val)
+    (fun t ↦ (SmoothForm.mpullback (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1))
+      (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)).contMDiff (β t)).val)
     ((contMDiff_snd.prodMk contMDiff_fst).mdifferentiableAt (n := 1) one_ne_zero (x := x))
   have hcomp : (Prod.snd ∘ Prod.swap :
       ManifoldTotalSpace Circle P × Set.Icc a b → ManifoldTotalSpace Circle P) = Prod.fst :=
@@ -173,9 +169,8 @@ theorem mpullback_slice_couplingOneForm (t : Set.Icc a b) :
     SmoothForm.mpullback (fun p : ManifoldTotalSpace Circle P ↦ (p, t))
         (contMDiff_id.prodMk contMDiff_const) (couplingOneForm α β hβ) =
       ((2 * Real.pi)⁻¹ * ((t : ℝ) - a)) • α +
-        SmoothForm.mpullback (fun y : ManifoldTotalSpace Circle P ↦
-            ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj)
-          (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1)) (β t) := by
+        SmoothForm.mpullback (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1))
+          (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)).contMDiff (β t) := by
   refine Subtype.ext <| funext fun p ↦ ContinuousAlternatingMap.ext fun v ↦ ?_
   rw [SmoothForm.mpullback_apply, couplingOneForm_apply]
   simp only [mfderiv_prod_left, Submodule.coe_add, SetLike.val_smul, SmoothForm.coe_mpullback,
@@ -195,18 +190,16 @@ coupling form for `τ` (`IsCircleConnectionForm.isCouplingForm_couplingForm`). -
 def couplingForm (σ : SmoothTwoForm IB B) :
     SmoothTwoForm ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (ManifoldTotalSpace Circle P × Set.Icc a b) :=
   SmoothForm.mpullback Prod.fst contMDiff_fst
-      (SmoothForm.mpullback (fun y : ManifoldTotalSpace Circle P ↦
-          ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj)
-        (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1)) σ) +
+      (SmoothForm.mpullback (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1))
+        (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)).contMDiff σ) +
     mextDerivₗ ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) 1 (couplingOneForm α β hβ)
 
 /-- The definition of `SymplecticGeometry.couplingForm`. -/
 theorem couplingForm_def (σ : SmoothTwoForm IB B) :
     couplingForm α β hβ σ =
       SmoothForm.mpullback Prod.fst contMDiff_fst
-          (SmoothForm.mpullback (fun y : ManifoldTotalSpace Circle P ↦
-              ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj)
-            (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1)) σ) +
+          (SmoothForm.mpullback (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1))
+            (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)).contMDiff σ) +
         mextDerivₗ ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) 1 (couplingOneForm α β hβ) :=
   (rfl)
 
@@ -220,9 +213,8 @@ theorem isClosed_couplingForm {σ : SmoothTwoForm IB B} (hσ : σ.IsClosed) :
 theorem mpullback_slice_couplingForm (σ : SmoothTwoForm IB B) (t : Set.Icc a b) :
     SmoothForm.mpullback (fun p : ManifoldTotalSpace Circle P ↦ (p, t))
         (contMDiff_id.prodMk contMDiff_const) (couplingForm α β hβ σ) =
-      SmoothForm.mpullback (fun y : ManifoldTotalSpace Circle P ↦
-          ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj)
-        (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1))
+      SmoothForm.mpullback (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1))
+        (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)).contMDiff
         (σ + mextDerivₗ IB 1 (β t)) +
       ((2 * Real.pi)⁻¹ * ((t : ℝ) - a)) • mextDerivₗ (IB.prod (𝓡 1)) 1 α := by
   rw [couplingForm_def, map_add, SmoothForm.mpullback_mpullback, ← SmoothForm.mextDerivₗ_mpullback,
@@ -256,18 +248,17 @@ theorem mpullback_smul_couplingOneForm (hα : IsCircleConnectionForm α) (z : Ci
         (fun y : ManifoldTotalSpace Circle P ↦ op z • y) x.1 (w i)) = α.val x.1 w := by
     rw [← SmoothForm.mpullback_apply _ hz, hα.mpullback_op_smul]
   have h₂ (w : Fin 1 → TangentSpace (IB.prod (𝓡 1)) x.1) :
-      (β x.2).val ((ManifoldTotalSpace.homeomorph Circle P).symm (op z • x.1)).proj
-        (fun i ↦ mfderiv (IB.prod (𝓡 1)) IB (fun y : ManifoldTotalSpace Circle P ↦
-          ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj) (op z • x.1)
+      (β x.2).val (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1) (op z • x.1))
+        (fun i ↦ mfderiv (IB.prod (𝓡 1)) IB
+          (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)) (op z • x.1)
           (mfderiv (IB.prod (𝓡 1)) (IB.prod (𝓡 1))
             (fun y : ManifoldTotalSpace Circle P ↦ op z • y) x.1 (w i))) =
-      (β x.2).val ((ManifoldTotalSpace.homeomorph Circle P).symm x.1).proj
-        (fun i ↦ mfderiv (IB.prod (𝓡 1)) IB (fun y : ManifoldTotalSpace Circle P ↦
-          ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj) x.1 (w i)) := by
+      (β x.2).val (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1) x.1)
+        (fun i ↦ mfderiv (IB.prod (𝓡 1)) IB
+          (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)) x.1 (w i)) := by
     have h := congrArg (fun φ ↦ φ.val x.1 w)
       (PrincipalBundle.mpullback_op_smul_mpullback_proj (IG := 𝓡 1) z (β x.2))
-    rwa [SmoothForm.mpullback_apply, SmoothForm.mpullback_apply, SmoothForm.mpullback_apply,
-      ManifoldTotalSpace.coe_projContMDiffMap] at h
+    rwa [SmoothForm.mpullback_apply, SmoothForm.mpullback_apply, SmoothForm.mpullback_apply] at h
   rw [SmoothForm.mpullback_apply, couplingOneForm_apply, couplingOneForm_apply, hD]
   exact congrArg₂ _ (congrArg _ (h₁ fun i ↦ (v i).1)) (h₂ fun i ↦ (v i).1)
 
@@ -281,12 +272,14 @@ theorem couplingOneForm_apply_couplingField (hα : IsCircleConnectionForm α)
     funext i
     fin_cases i
     exact couplingField_fst x
-  have hπ : (fun i ↦ mfderiv (IB.prod (𝓡 1)) IB (fun y : ManifoldTotalSpace Circle P ↦
-      ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj) x.1
+  have hπ : (fun i ↦ mfderiv (IB.prod (𝓡 1)) IB
+      (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)) x.1
         ((![couplingField IB P a b x] i).1)) = 0 := by
     funext i
     fin_cases i
-    simp
+    -- Tau Ceti's lemma is stated with the projection written out
+    rw [Matrix.cons_val_fin_one, couplingField_fst, ManifoldTotalSpace.coe_projContMDiffMap]
+    exact PrincipalBundle.mfderiv_proj_rightFundamentalVectorField _ _
   rw [couplingOneForm_apply, hv, hπ, rightFundamentalVectorField_circlePeriodOneGenerator,
     Pi.smul_apply, ContinuousAlternatingMap.vecCons_smul,
     hα.apply_rightFundamentalVectorField, ContinuousAlternatingMap.map_zero]
@@ -303,7 +296,6 @@ theorem mpullback_smul_couplingForm (hα : IsCircleConnectionForm α) (σ : Smoo
         (couplingForm α β hβ σ) =
       couplingForm α β hβ σ := by
   have h := PrincipalBundle.mpullback_op_smul_mpullback_proj (IG := 𝓡 1) (P := P) z σ
-  simp only [ManifoldTotalSpace.coe_projContMDiffMap] at h
   rw [couplingForm_def, map_add, ← SmoothForm.mextDerivₗ_mpullback,
     hα.mpullback_smul_couplingOneForm hβ,
     SmoothForm.mpullback_mpullback_of_comp_eq _ contMDiff_fst contMDiff_fst
@@ -323,19 +315,19 @@ theorem interior_couplingForm (hα : IsCircleConnectionForm α) (σ : SmoothTwoF
   ext v
   rw [RoughForm.interior_apply, couplingForm_def, SmoothForm.add_toRoughForm]
   have h0 : (SmoothForm.mpullback Prod.fst contMDiff_fst
-      (SmoothForm.mpullback (fun y : ManifoldTotalSpace Circle P ↦
-          ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj)
-        (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1)) σ)).val x
+      (SmoothForm.mpullback (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1))
+        (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)).contMDiff σ)).val x
         ![couplingField IB P a b x, v] = 0 := by
     rw [SmoothForm.mpullback_mpullback, SmoothForm.coe_mpullback]
     refine (RoughForm.isBasic_mpullback _).apply_eq_zero_of_mfderiv_eq_zero (j := 0) ?_
-    rw [mfderiv_comp x ((ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1)).mdifferentiableAt
-      (by simp)) mdifferentiableAt_fst, ContinuousLinearMap.comp_apply, mfderiv_fst,
+    rw [mfderiv_comp x (ManifoldTotalSpace.mdifferentiable_projContMDiffMap x.1)
+      mdifferentiableAt_fst, ContinuousLinearMap.comp_apply, mfderiv_fst,
       Matrix.cons_val_zero]
-    have h : mfderiv (IB.prod (𝓡 1)) IB (fun y : ManifoldTotalSpace Circle P ↦
-        ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj) x.1
-          (couplingField IB P a b x).1 = 0 := by
-      rw [couplingField_fst, PrincipalBundle.mfderiv_proj_rightFundamentalVectorField]
+    have h : mfderiv (IB.prod (𝓡 1)) IB (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1))
+        x.1 (couplingField IB P a b x).1 = 0 := by
+      -- Tau Ceti's lemma is stated with the projection written out
+      rw [couplingField_fst, ManifoldTotalSpace.coe_projContMDiffMap,
+        PrincipalBundle.mfderiv_proj_rightFundamentalVectorField]
     -- `ContinuousLinearMap.fst` takes the first component by definition; `coe_fst'` does not
     -- fire, since the vector is typed as a tangent vector of the product
     exact h
@@ -367,10 +359,7 @@ theorem isCouplingForm_couplingForm (hα : IsCircleConnectionForm α)
   mpullback_smul := hα.mpullback_smul_couplingForm hβ σ
   interior_eq := hα.interior_couplingForm hβ σ
   mpullback_slice t := by
-    -- `mpullback_slice_couplingForm` pulls back along the projection written out.
-    have hcurv := hα.mpullback_curvature
-    simp only [ManifoldTotalSpace.coe_projContMDiffMap] at hcurv
-    rw [mpullback_slice_couplingForm, hdβ, ← hcurv, ← map_smul, ← map_add]
+    rw [mpullback_slice_couplingForm, hdβ, ← hα.mpullback_curvature, ← map_smul, ← map_add]
     congr 1
     module
 

@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 public import SymplecticGeometry.Geometry.Manifold.Flow.Basic
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.RegularLevel
 public import SymplecticGeometry.Geometry.Symplectic.Coupling.Basic
+public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap
 
 /-!
 # The converse of minimal coupling: the band as a product
@@ -44,6 +45,16 @@ the coordinate of the interval, and it sends `SymplecticGeometry.couplingField` 
 fundamental vector field of `SymplecticGeometry.circlePeriodOneGenerator` on `M`
 (`SymplecticGeometry.mfderiv_bandMap_couplingField`).
 
+The last section turns these properties into those of a coupling form. Let the circle action
+preserve a closed two-form `σ` on `M`, with moment map `-μ` (`ι_{X_M} σ = -dH` for
+`H = ⟨μ, circlePeriodOneGenerator⟩`). For any smooth `ψ : P × [a, b] → M` that is equivariant,
+has `H ∘ ψ` the coordinate of the interval and sends `couplingField` to `X_M`, the form
+`ψ^* σ` is closed (`TauCeti.SmoothForm.IsClosed.mpullback`), invariant (the composition law of
+pull-backs), and has `ι_{(X, 0)} ψ^* σ = -dt`: `X_M` is a Hamiltonian vector field of `-H`,
+and pulling back along `ψ` gives one of `-H ∘ ψ` for `ψ^* σ`
+(`TauCeti.SmoothTwoForm.IsHamiltonianVectorField.mpullback`). Its slice at `t` is the
+pull-back of `σ` along `ψ (·, t)`.
+
 ## Main definitions
 
 * `SymplecticGeometry.bandMap v e a b`: the map `(q, s) ↦ φ_{s - a} (e q)`.
@@ -60,6 +71,11 @@ fundamental vector field of `SymplecticGeometry.circlePeriodOneGenerator` on `M`
 * `SymplecticGeometry.bandMap_orbitFiber`: all of these for the circle bundle of a regular level
   of an invariant function, with `e` the inclusion of the level after
   `TauCeti.MapFiber.Atlas.totalSpaceDiffeomorph`.
+* `SymplecticGeometry.mpullback_op_smul_mpullback`,
+  `SymplecticGeometry.interior_couplingField_mpullback`: for `σ` invariant with moment map
+  `-μ` and `ψ` as above, `ψ^* σ` is invariant and `ι_{(X, 0)} ψ^* σ = -dt`.
+* `SymplecticGeometry.isCouplingForm_mpullback`: such a `ψ^* σ` is a coupling form for every
+  family `τ` whose pull-backs `π^* (τ t)` are the pull-backs of `σ` along `ψ (·, t)`.
 
 ## References
 
@@ -215,6 +231,92 @@ theorem mfderiv_bandMap_couplingField {e : ManifoldTotalSpace Circle P → M}
     (bandMap_op_smul (hv.of_le (by simp)) hinv he' · x) circlePeriodOneGenerator
 
 end CouplingField
+
+/-! ### The pull-back of an invariant form by an equivariant map -/
+
+section Pullback
+
+variable {EB HB B : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [TopologicalSpace HB]
+  {IB : ModelWithCorners ℝ EB HB} [TopologicalSpace B] [ChartedSpace HB B] [IsManifold IB ∞ B]
+  {P : B → Type*} [TopologicalSpace (TotalSpace Circle P)] [∀ b, TopologicalSpace (P b)]
+  [FiberBundle Circle P] [∀ b, MulAction Circleᵐᵒᵖ (P b)]
+  [PrincipalBundle Circle P] [ContMDiffFiberBundle ∞ Circle P IB (𝓡 1)]
+  [CompleteSpace E] [ContMDiffSMul (𝓡 1) I ∞ Circle M]
+  {ψ : ManifoldTotalSpace Circle P × Icc a b → M}
+  (hψ : ContMDiff ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) I ∞ ψ) {σ : SmoothTwoForm I M}
+
+omit [T2Space M] [BoundarylessManifold I M] [CompleteSpace E] in
+/-- **Invariance of the pull-back.** If the two-form `σ` on `M` is invariant under the circle
+action and `ψ : P × [a, b] → M` is equivariant, `ψ (p • z, t) = z • ψ (p, t)`, then `ψ^* σ` is
+invariant under the circle action `(p, t) ↦ (p • z, t)` on the first factor. -/
+theorem mpullback_op_smul_mpullback
+    (hσ : ∀ g : Circle, SmoothForm.mpullback (fun x : M ↦ g • x)
+      (ContMDiffSMul.contMDiff_const_smul (I := 𝓡 1) (I' := I) g) σ = σ)
+    (hψs : ∀ (z : Circle) (x : ManifoldTotalSpace Circle P × Icc a b),
+      ψ (op z • x.1, x.2) = z • ψ x) (z : Circle) :
+    SmoothForm.mpullback (fun x : ManifoldTotalSpace Circle P × Icc a b ↦ (op z • x.1, x.2))
+        (((contMDiff_const_smul (op z)).comp contMDiff_fst).prodMk contMDiff_snd)
+        (SmoothForm.mpullback ψ hψ σ) =
+      SmoothForm.mpullback ψ hψ σ := by
+  conv_rhs => rw [← hσ z]
+  exact SmoothForm.mpullback_mpullback_of_comp_eq _ hψ hψ _ (funext (hψs z)) σ
+
+omit [T2Space M] [BoundarylessManifold I M] [PrincipalBundle Circle P] in
+/-- **The Hamiltonian identity of the pull-back.** Let a circle act smoothly on `M`, and let
+`-μ` be a moment map of the action for the two-form `σ`, so that `ι_{X_M} σ = -d H` with
+`H = ⟨μ, circlePeriodOneGenerator⟩` and `X_M` the fundamental vector field of
+`circlePeriodOneGenerator`. If `ψ : P × [a, b] → M` sends the field `couplingField IB P a b` to
+`X_M` and `H (ψ (p, t)) = t`, then the contraction of `ψ^* σ` with `couplingField IB P a b` is
+`-dt`. -/
+theorem interior_couplingField_mpullback
+    {μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle)}
+    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) fun x ↦ -μ x)
+    (hH : ∀ x, μ (ψ x) circlePeriodOneGenerator = x.2)
+    (hX : ∀ x, mfderiv ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) I ψ x (couplingField IB P a b x) =
+      fundamentalVectorField I circlePeriodOneGenerator (ψ x)) :
+    RoughForm.interior (couplingField IB P a b) (SmoothForm.mpullback ψ hψ σ).val =
+      -mextDeriv (RoughForm.ofFunction ((IB.prod (𝓡 1)).prod (𝓡∂ 1))
+        fun x : ManifoldTotalSpace Circle P × Icc a b ↦ (x.2 : ℝ)) := by
+  have h := (hμ.isHamiltonianVectorField circlePeriodOneGenerator).mpullback hψ
+    (fun x ↦ hμ.mdifferentiableAt _ (ψ x)) (by simpa only [InfinitesimalAction.fundamental_apply])
+  have hcomp : ((fun x ↦ (-μ x) circlePeriodOneGenerator) ∘ ψ) =
+      (-1 : ℝ) • fun x : ManifoldTotalSpace Circle P × Icc a b ↦ (x.2 : ℝ) :=
+    funext fun x ↦ by simp [hH]
+  rwa [hcomp, SmoothTwoForm.isHamiltonianVectorField_iff_interior_eq, RoughForm.ofFunction_smul,
+    mextDeriv_smul, neg_one_smul] at h
+
+omit [T2Space M] [BoundarylessManifold I M] in
+/-- **The pull-back of an invariant form with a moment map is a coupling form.** Let a circle act
+smoothly on `M`, preserving the closed two-form `σ`, with moment map `-μ`, and let
+`H = ⟨μ, circlePeriodOneGenerator⟩`. Let `ψ : P × [a, b] → M` be smooth and equivariant,
+`ψ (p • z, t) = z • ψ (p, t)`, with `H (ψ (p, t)) = t`, sending the field
+`couplingField IB P a b` to the fundamental vector field of `circlePeriodOneGenerator`. If, for
+each `t`, the pull-back of `σ` along `ψ (·, t)` is `π^* (τ t)`, then `ψ^* σ` is a coupling form
+for `τ`. -/
+theorem isCouplingForm_mpullback (hσc : σ.IsClosed)
+    (hσ : ∀ g : Circle, SmoothForm.mpullback (fun x : M ↦ g • x)
+      (ContMDiffSMul.contMDiff_const_smul (I := 𝓡 1) (I' := I) g) σ = σ)
+    {μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle)}
+    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) fun x ↦ -μ x)
+    (hψs : ∀ (z : Circle) (x : ManifoldTotalSpace Circle P × Icc a b),
+      ψ (op z • x.1, x.2) = z • ψ x)
+    (hH : ∀ x, μ (ψ x) circlePeriodOneGenerator = x.2)
+    (hX : ∀ x, mfderiv ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) I ψ x (couplingField IB P a b x) =
+      fundamentalVectorField I circlePeriodOneGenerator (ψ x))
+    {τ : Icc a b → SmoothTwoForm IB B}
+    (hτ : ∀ t, SmoothForm.mpullback (fun p : ManifoldTotalSpace Circle P ↦ ψ (p, t))
+        (hψ.comp (contMDiff_id.prodMk contMDiff_const)) σ =
+      SmoothForm.mpullback (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1))
+        (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)).contMDiff (τ t)) :
+    IsCouplingForm (SmoothForm.mpullback ψ hψ σ) τ where
+  isClosed := hσc.mpullback ψ hψ
+  mpullback_smul := mpullback_op_smul_mpullback hψ hσ hψs
+  interior_eq := interior_couplingField_mpullback hψ hμ hH hX
+  mpullback_slice t := by
+    simpa only [SmoothForm.mpullback_mpullback, Function.comp_def,
+      ManifoldTotalSpace.coe_projContMDiffMap] using hτ t
+
+end Pullback
 
 /-! ### The band of a circle action -/
 

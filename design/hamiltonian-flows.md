@@ -179,11 +179,8 @@ These settle the questions that `DESIGN.md` leaves to this file.
    a point where the function vanishes at every time, which holds for
    Seeley's formula, a combination of values at the same point; the issue
    of `ContMDiff/TimeExtension.lean` states it as `timeExtend_eq_zero`.
-   `PoissonAlgebra.lean` takes nothing from *Smooth families*, and
-   `Flux/Hamiltonian.lean` only the merged `DeRham/GoodCover/Basic.lean` and
-   `DifferentialForm/SmoothFamily/HomotopyOperator.lean`, and
-   `DifferentialForm/SmoothFamily/Poincare.lean` built on them, through
-   `DeRham/FamilyPrimitive.lean`.
+   `PoissonAlgebra.lean` and `Flux/Hamiltonian.lean` take nothing from
+   *Smooth families*.
 4. **Hamiltonians from exactness** come from Tau Ceti, not from the
    smooth-primitive map of `DeRham/SmoothFamily/GoodCover.lean`, which needs a compact
    manifold. If every $\alpha_t=\iota_{X_t}\omega$ is exact, each has a
@@ -292,7 +289,7 @@ Imports between the files: `Velocity.lean` imports `Instances/Icc.lean`,
 `Flux/Hamiltonian.lean` import `Velocity.lean`; `SymplecticIsotopy.lean`
 imports `DifferentialForm/SmoothFamily/Basic.lean` of *Smooth families*, for
 `isSmoothFamily_interiorₗ`; `Flux/Hamiltonian.lean`
-imports `Diffeotopy/Basic.lean` and `DeRham/FamilyPrimitive.lean`, which
+imports `Diffeotopy/Basic.lean`; `DeRham/FamilyPrimitive.lean`
 imports `DifferentialForm/SmoothFamily/Poincare.lean` and `DeRham/Map.lean` of *Smooth families*;
 `Flux/CompactSupport.lean` imports `Flux/Hamiltonian.lean` and
 `SymplecticIsotopy.lean`, and `DifferentialForm/TimeExtension.lean` of
@@ -338,9 +335,6 @@ would give `-X₁` there. Further hypotheses are named where they are needed.
     Mathlib's `ContMDiff.contMDiff_tangentMap` and
     Tau Ceti's `TauCeti.contMDiff_one_tangentSpace_Icc`; the smoothness of each slice, used
     to build the section, is its composite with `Prod.mk t`;
-  - `mpullback_timeSlice_interior_velocity_apply`: for a two-form `σ`,
-    `(φ_t^* ι_{X_t} σ)_x v = (Φ.cylinderMap^* σ)_{(x, t)}(∂ₜ, (v, 0))`, the
-    integrand of `fluxForm` and of `HasHamiltonian`.
   - `mfderiv_cylinderMap_time`, for `Φ : Diffeotopy J n M` with `1 ≤ n`: the
     motion sends `∂ₜ` at `(x, t)` to the velocity of `s ↦ Φ (s, x)` at `t`;
     that it sends `(v, 0)` to `dφ_t v` is Tau Ceti's
@@ -619,11 +613,11 @@ Each is a few hundred lines; each is blocked by the issues it names.
    `Flux/Hamiltonian.lean`: `hasHamiltonian_iff_contMDiff_and_isHamiltonianVectorField_velocity`,
    `hasHamiltonian_comp_iff`, the three rules and the uniqueness lemmas.
    About 250 lines. Blocked by 1.
-5. **Hamiltonians from exactness.** In `DeRham/FamilyPrimitive.lean` and
-   `Flux/Hamiltonian.lean`: the
-   parametric Poincaré lemma in degree one, the smooth primitives of a
+5. **Hamiltonians from exactness.** In `DeRham/FamilyPrimitive.lean`: the
+   parametric Poincaré lemma in degree one and the smooth primitives of a
    family of exact forms from Tau Ceti's theorem on all of $M$
-   (`exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms`),
+   (`exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms`). In
+   `Flux/Hamiltonian.lean`, which does not use them:
    `exists_hasHamiltonian_of_forall_mem_exactForms` and
    `isHamiltonian_iff_forall_interiorₗ_velocity_mem_exactForms`. About 350
    lines. Blocked by 4.

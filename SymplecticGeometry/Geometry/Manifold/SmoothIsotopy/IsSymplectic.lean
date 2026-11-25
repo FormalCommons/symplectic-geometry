@@ -33,8 +33,8 @@ velocity forms of such isotopies, and the closedness of their slices, are in
   `TauCeti.SmoothIsotopy.IsSymplectic.symm`: every slice of a symplectic isotopy, as a smooth
   embedding, pulls `σ` back to `τ`, and reversing time keeps an isotopy symplectic.
 * `TauCeti.SmoothIsotopy.IsSymplectic.of_apply_eq_diffeotopy_apply`,
-  `TauCeti.SmoothIsotopy.IsSymplectic.of_apply_eq_apply_diffeomorph`: an isotopy that is a
-  symplectic isotopy composed with a diffeotopy preserving `σ`, or with a diffeomorphism of the
+  `TauCeti.SmoothIsotopy.IsSymplectic.of_apply_eq_apply_comp`: an isotopy that is a symplectic
+  isotopy composed with a diffeotopy preserving `σ`, or precomposed with a smooth map into the
   source, is symplectic.
 * `TauCeti.SmoothIsotopy.IsSymplectic.restrict`: the restriction of a symplectic isotopy to an
   open subset of its source (`TauCeti.SmoothIsotopy.restrict`) is symplectic for the restricted
@@ -108,19 +108,18 @@ theorem IsSymplectic.of_apply_eq_diffeotopy_apply {g₀ g₁ : C^∞⟮J, P; I, 
     ((Φ.timeSlice t).contMDiff.mdifferentiable (by simp)), hΦt]
   exact hF.mpullback_timeSlice t
 
-/-- **Composition with a diffeomorphism of the source.** If `F` is symplectic for `τ` and `σ`, and
-`χ : Q → P` is a diffeomorphism, then an isotopy `G` with `G (t, y) = F (t, χ y)` is symplectic for
-`χ^* τ` and `σ`. -/
-theorem IsSymplectic.of_apply_eq_apply_diffeomorph {E'' H'' : Type*} [NormedAddCommGroup E'']
+/-- **Precomposition with a smooth map.** If `F` is symplectic for `τ` and `σ`, and `χ : Q → P` is
+smooth, then an isotopy `G` with `G (t, y) = F (t, χ y)` is symplectic for `χ^* τ` and `σ`. -/
+theorem IsSymplectic.of_apply_eq_apply_comp {E'' H'' : Type*} [NormedAddCommGroup E'']
     [NormedSpace ℝ E''] [TopologicalSpace H''] {J' : ModelWithCorners ℝ E'' H''} {Q : Type*}
     [TopologicalSpace Q] [ChartedSpace H'' Q] [IsManifold J' ∞ Q] {g₀ g₁ : C^∞⟮J', Q; I, M⟯}
     {τ : SmoothTwoForm J P} {σ : SmoothTwoForm I M} {F : SmoothIsotopy f₀ f₁}
-    {G : SmoothIsotopy g₀ g₁} (hF : F.IsSymplectic τ σ) (χ : Q ≃ₘ⟮J', J⟯ P)
+    {G : SmoothIsotopy g₀ g₁} (hF : F.IsSymplectic τ σ) {χ : Q → P} (hχ : ContMDiff J' J ∞ χ)
     (hG : ∀ t y, G (t, y) = F (t, χ y)) :
-    G.IsSymplectic (SmoothForm.mpullback χ χ.contMDiff τ) σ := fun t ↦ by
+    G.IsSymplectic (SmoothForm.mpullback χ hχ τ) σ := fun t ↦ by
   have hfun : (fun y ↦ G (t, y)) = F.timeSlice t ∘ χ :=
     funext fun y ↦ by rw [hG, Function.comp_apply, timeSlice_apply]
-  rw [hfun, mpullback_comp (χ.contMDiff.mdifferentiable (by simp))
+  rw [hfun, mpullback_comp (hχ.mdifferentiable (by simp))
     ((F.timeSlice t).contMDiff.mdifferentiable (by simp)), hF.mpullback_timeSlice t,
     SmoothForm.coe_mpullback]
 
@@ -132,12 +131,7 @@ theorem IsSymplectic.restrict {V W : TopologicalSpace.Opens P} {g₀ g₁ : C^�
     (hF : F.IsSymplectic τ σ) (h : V ≤ W) :
     (F.restrict h).IsSymplectic
       (SmoothForm.mpullback (TopologicalSpace.Opens.inclusion h) (contMDiff_inclusion h) τ) σ :=
-  fun t ↦ by
-  have hfun : (fun x ↦ F.restrict h (t, x)) = F.timeSlice t ∘ TopologicalSpace.Opens.inclusion h :=
-    funext fun x ↦ by rw [restrict_apply, Function.comp_apply, timeSlice_apply]
-  rw [hfun, mpullback_comp ((contMDiff_inclusion (n := ∞) h).mdifferentiable (by simp))
-    ((F.timeSlice t).contMDiff.mdifferentiable (by simp)), hF.mpullback_timeSlice t,
-    SmoothForm.coe_mpullback]
+  hF.of_apply_eq_apply_comp _ fun _ _ ↦ restrict_apply _ _ _
 
 end SmoothIsotopy
 
