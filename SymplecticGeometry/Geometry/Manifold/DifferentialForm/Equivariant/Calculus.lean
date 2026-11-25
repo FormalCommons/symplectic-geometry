@@ -44,7 +44,8 @@ zero.
 * `SymplecticGeometry.formCalculus_apply`: its component of degree `2 k` is `F⁽ᵏ⁾(f) τ ^ k / k!`,
   and `SymplecticGeometry.formCalculus_apply_of_odd`: its components of odd degree vanish. For
   `k ≤ finrank ℝ E`, `SymplecticGeometry.formCalculus_apply_of_le` gives the first in every
-  dimension.
+  dimension, and `SymplecticGeometry.formCalculus_apply_eq_zero`: every component whose degree
+  is not `2 m` for some `m ≤ finrank ℝ E` vanishes.
 * `SymplecticGeometry.commute_formCalculus`: it commutes with every form of mixed degree.
 * `SymplecticGeometry.formCalculus_apply_val`: the same at a point `x`, and
   `SymplecticGeometry.formCalculus_val_congr`: the components at `x` depend only on `f x` and
@@ -52,7 +53,8 @@ zero.
 * `SymplecticGeometry.formCalculus_exp_add_const`: the exponential takes constants out,
   `exp(f + c + τ) = e ^ c exp(f + τ)`, and `SymplecticGeometry.formCalculus_exp_val_of_eq_add`:
   its pointwise form.
-* `SymplecticGeometry.formCalculus_zero_component`: its component of degree `0` is `F ∘ f`, in
+* `SymplecticGeometry.formCalculus_zero_component`: its component of degree `0` is the
+  coefficient `F ∘ f` (`SymplecticGeometry.coe_formCalculusCoeff_zero`), in
   every dimension, and `SymplecticGeometry.formCalculus_zero_component_val`: the same at a point.
 * `SymplecticGeometry.formCalculus_id`: for `F = id` it is `f + τ`, and
   `SymplecticGeometry.formCalculus_const`: for a constant `F = c` it is `c`.
@@ -106,6 +108,12 @@ theorem formCalculusCoeff_apply (F : ℝ → ℝ) (hF : ContDiff ℝ ∞ F) (f :
     (x : M) : formCalculusCoeff F hF f k x = iteratedDeriv k F (f x) :=
   (rfl)
 
+/-- The coefficient of degree `0` is the function `F ∘ f`. -/
+@[simp]
+theorem coe_formCalculusCoeff_zero (F : ℝ → ℝ) (hF : ContDiff ℝ ∞ F) (f : C^∞⟮I, M; ℝ⟯) :
+    ⇑(formCalculusCoeff F hF f 0) = F ∘ f :=
+  funext fun x ↦ by simp
+
 section
 
 variable [IsManifold I 1 M]
@@ -130,13 +138,18 @@ theorem formCalculus_def (F : ℝ → ℝ) (hF : ContDiff ℝ ∞ F) (f : C^∞�
 
 variable (F : ℝ → ℝ) (hF : ContDiff ℝ ∞ F) (f : C^∞⟮I, M; ℝ⟯) (τ : SmoothForm I M ℝ 2)
 
-/-- The components of odd degree of `F(f + τ)` vanish. -/
-theorem formCalculus_apply_of_odd : ∀ k, Odd k → formCalculus F hF f τ k = 0 := by
-  intro k hk
+/-- The component of degree `k` of `F(f + τ)` vanishes if `k` is not `2 * m` for any
+`m ≤ finrank ℝ E`, since no term of the sum has degree `k`. -/
+theorem formCalculus_apply_eq_zero {k : ℕ} (hk : ∀ m ≤ finrank ℝ E, k ≠ 2 * m) :
+    formCalculus F hF f τ k = 0 := by
   rw [formCalculus_def, DirectSum.sum_apply]
-  refine Finset.sum_eq_zero fun m _ ↦ DirectSum.of_eq_of_ne _ _ _ ?_
-  rintro rfl
-  exact Nat.not_odd_iff_even.mpr (even_two_mul m) hk
+  exact Finset.sum_eq_zero fun m hm ↦ DirectSum.of_eq_of_ne _ _ _
+    (hk m (Nat.lt_succ_iff.mp (Finset.mem_range.mp hm)))
+
+/-- The components of odd degree of `F(f + τ)` vanish. -/
+theorem formCalculus_apply_of_odd : ∀ k, Odd k → formCalculus F hF f τ k = 0 :=
+  fun _ hk ↦ formCalculus_apply_eq_zero F hF f τ fun m _ h ↦
+    Nat.not_odd_iff_even.mpr (h ▸ even_two_mul m) hk
 
 /-- The component of degree `2 k` of `F(f + τ)` is `F⁽ᵏ⁾(f) τ ^ k / k!`, for `k ≤ finrank ℝ E`,
 in every dimension. -/
@@ -150,23 +163,21 @@ theorem formCalculus_apply_of_le {k : ℕ} (hk : k ≤ finrank ℝ E) :
   · intro hk'
     exact absurd (Finset.mem_range.mpr (by omega)) hk'
 
-/-- The component of degree `0` of `F(f + τ)` is the function `F ∘ f`. -/
+/-- The component of degree `0` of `F(f + τ)` is the `0`-form of the coefficient
+`formCalculusCoeff F hF f 0`, the function `F ∘ f` (`coe_formCalculusCoeff_zero`). -/
 @[simp]
 theorem formCalculus_zero_component :
-    formCalculus F hF f τ 0 = SmoothForm.ofFunction ⟨F ∘ f, hF.contMDiff.comp f.contMDiff⟩ := by
+    formCalculus F hF f τ 0 = SmoothForm.ofFunction (formCalculusCoeff F hF f 0) := by
   -- The degree `2 * 0` of `formCalculus_apply_of_le` reduces to `0`.
   refine (formCalculus_apply_of_le F hF f τ (Nat.zero_le _)).trans ?_
   rw [Nat.factorial_zero, Nat.cast_one, inv_one, one_smul, SmoothForm.wedgePow_zero,
     SmoothForm.funSMulₗ_ofFunction, mul_one]
-  exact congrArg _ (ContMDiffMap.ext fun x ↦ by simp)
 
 /-- The component of degree `0` of `F(f + τ)` at a point `x` is the constant `F (f x)`. -/
 theorem formCalculus_zero_component_val (x : M) :
     (formCalculus F hF f τ 0).val x =
-      ContinuousAlternatingMap.constOfIsEmpty ℝ (TangentSpace I x) (Fin 0) (F (f x)) :=
-  (congrArg (fun ψ : SmoothForm I M ℝ 0 ↦ ψ.val x) (formCalculus_zero_component F hF f τ)).trans
-    ((congrFun (SmoothForm.coe_ofFunction _) x).trans
-      (RoughForm.ofFunction_apply_eq_constOfIsEmpty _ x))
+      ContinuousAlternatingMap.constOfIsEmpty ℝ (TangentSpace I x) (Fin 0) (F (f x)) := by
+  simp [RoughForm.ofFunction_apply_eq_constOfIsEmpty]
 
 /-- `F(f + τ)` commutes with every smooth form of mixed degree, since all its components have
 even degree. -/
@@ -185,11 +196,8 @@ theorem formCalculus_apply (k : ℕ) :
   obtain hk | hk := le_or_gt k (finrank ℝ E)
   · exact formCalculus_apply_of_le F hF f τ hk
   · -- Beyond `finrank ℝ E` the power `τ ^ k` vanishes, and no term has degree `2 k`.
-    rw [SmoothForm.eq_zero_of_finrank_lt (by omega) (τ.wedgePow k), map_zero, smul_zero,
-      formCalculus_def, DirectSum.sum_apply]
-    refine Finset.sum_eq_zero fun m hm ↦ DirectSum.of_eq_of_ne _ _ _ ?_
-    rw [Finset.mem_range] at hm
-    omega
+    rw [SmoothForm.eq_zero_of_finrank_lt (by omega) (τ.wedgePow k), map_zero, smul_zero]
+    exact formCalculus_apply_eq_zero F hF f τ fun m hm ↦ by omega
 
 /-- The component of degree `2 k` of `F(f + τ)` at a point `x` is
 `(k!)⁻¹ F⁽ᵏ⁾(f x) (τ x) ^ k`. -/
@@ -214,9 +222,10 @@ theorem formCalculus_val_congr {f' : C^∞⟮I, M; ℝ⟯} {τ' : SmoothForm I M
   · -- In infinite dimension `finrank ℝ E = 0`, so only the term of degree `0` is left.
     obtain rfl | hk := eq_or_ne k 0
     · rw [formCalculus_zero_component_val, formCalculus_zero_component_val, hf]
-    · rw [formCalculus_def, formCalculus_def, finrank_of_not_finite hE]
-      simp only [zero_add, Finset.sum_range_one]
-      rw [DirectSum.of_eq_of_ne _ _ _ (by omega), DirectSum.of_eq_of_ne _ _ _ (by omega)]
+    · have hk' : ∀ m ≤ finrank ℝ E, k ≠ 2 * m := fun m hm ↦ by
+        rw [finrank_of_not_finite hE] at hm
+        omega
+      rw [formCalculus_apply_eq_zero F hF f τ hk', formCalculus_apply_eq_zero F hF f' τ' hk']
 
 omit [IsManifold I 1 M] [FiniteDimensional ℝ E] in
 /-- The coefficients of the exponential at `f + c`, for a constant `c`, are `e ^ c` times those
