@@ -27,7 +27,8 @@ and its inverse. So the gluing is compatible in the sense of Tau Ceti's
 `TopCat.GlueData.IsCompatible`, and `TopCat.GlueData.chartedSpace` and
 `TopCat.GlueData.IsCompatible.isManifold` make `GluedAlong φ` a charted space over the model of
 `M₁` and `M₂`, and a `C^n` manifold when they are, for which `inl` and `inr` are `C^n` local
-diffeomorphisms. The glued space need not be Hausdorff even when `M₁` and `M₂` are.
+diffeomorphisms. The glued space need not be Hausdorff even when `M₁` and `M₂` are; it is when,
+moreover, the graph of `φ` is closed in `M₁ × M₂`.
 
 ## Main definitions
 
@@ -41,6 +42,8 @@ diffeomorphisms. The glued space need not be Hausdorff even when `M₁` and `M�
   `range_inl_union_range_inr`, `inl_eq_inr_iff`: the topology of the glued space.
 * `SymplecticGeometry.GluedAlong.isLocalDiffeomorph_inl`, `isLocalDiffeomorph_inr`: the
   canonical maps are `C^n` local diffeomorphisms for the glued atlas.
+* `SymplecticGeometry.GluedAlong.t2Space_of_isClosed_graph`: the glued space is Hausdorff when
+  `M₁` and `M₂` are and the graph of `φ` is closed in `M₁ × M₂`.
 
 The compatibility proof follows Tau Ceti's `TauCeti.isCompatible_doubleGlueData`, which treats
 the gluing of two copies of one space along an open subset by the identity.
@@ -188,6 +191,24 @@ theorem inr_apply (x : U₁) : inr φ (φ x : M₂) = inl φ (x : M₁) :=
 @[simp]
 theorem inl_symm_apply (y : U₂) : inl φ (φ.symm y : M₁) = inr φ (y : M₂) := by
   rw [← inr_apply, Diffeomorph.apply_symm_apply]
+
+/-- **Hausdorff criterion for the glued space.** If `M₁` and `M₂` are Hausdorff and the graph
+of `φ`, as a subset of `M₁ × M₂`, is closed, then the glued space is Hausdorff. -/
+theorem t2Space_of_isClosed_graph [T2Space M₁] [T2Space M₂]
+    (hφ : IsClosed {p : M₁ × M₂ | ∃ u : U₁, (u : M₁) = p.1 ∧ (φ u : M₂) = p.2}) :
+    T2Space (GluedAlong φ) := by
+  -- The two-piece criterion asks, for `x ∉ U₁` and `y ∉ U₂`, for neighbourhoods `A ∋ x` and
+  -- `B ∋ y` such that `φ` maps no point of `U₁ ∩ A` into `B`: take `A ×ˢ B` off the graph.
+  -- It is stated for the glued space of `glueData φ`, which `GluedAlong φ` is by definition.
+  refine (TopCat.GlueData.ofHomeomorph_t2Space_iff φ.toHomeomorph).2
+    ⟨‹_›, ‹_›, fun x hx y _ ↦ ?_⟩
+  have hxy : (x, y) ∈ {p : M₁ × M₂ | ∃ u : U₁, (u : M₁) = p.1 ∧ (φ u : M₂) = p.2}ᶜ := by
+    rintro ⟨u, rfl, -⟩
+    exact hx u.property
+  obtain ⟨A, hA, B, hB, hAB⟩ := mem_nhds_prod_iff.1 (hφ.isOpen_compl.mem_nhds hxy)
+  refine ⟨A, hA, B, hB, fun z hz hz' ↦ ?_⟩
+  rw [Diffeomorph.coe_toHomeomorph] at hz'
+  exact hAB (mk_mem_prod hz hz') ⟨z, rfl, rfl⟩
 
 /-- The canonical map from `M₁` is a `C^n` local diffeomorphism for the glued atlas. -/
 theorem isLocalDiffeomorph_inl [IsManifold I n M₁] [IsManifold I n M₂] :
