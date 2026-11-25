@@ -609,17 +609,15 @@ theorem _root_.Function.Even.mvfderiv_comp_cotangentNorm_eq_zero {g : ℝ → �
       (fun w : CotangentBundle (𝓡 n) (𝕊 n) ↦ g (cotangentNorm w)) z = 0 := by
   -- In the coordinates `(q, p)` the function is `g ‖p‖`, whose derivative at `p = 0` is `0`.
   have hp : (cotangentCoord z).2 = 0 := norm_eq_zero.1 ((cotangentNorm_def z).symm.trans hz)
-  have hF := hg.hasFDerivAt_comp_norm_zero (V := 𝔼 n) hd
-  rw [← hp] at hF
-  have hq : MDifferentiableAt ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ, 𝔼 n)
-      (fun w : CotangentBundle (𝓡 n) (𝕊 n) ↦ (cotangentCoord w).2) z :=
-    (contDiff_snd.contMDiff.comp contMDiff_cotangentCoord).mdifferentiableAt (by simp)
+  have hF := (hp ▸ hg.hasFDerivAt_comp_norm_zero (V := 𝔼 n) hd).comp (cotangentCoord z)
+    hasFDerivAt_snd
   have hfun : (fun w : CotangentBundle (𝓡 n) (𝕊 n) ↦ g (cotangentNorm w)) =
-      (fun v : 𝔼 n ↦ g ‖v‖) ∘ fun w ↦ (cotangentCoord w).2 := by
-    ext w
-    rw [Function.comp_apply, cotangentNorm_def]
-  rw [mvfderiv_eq_zero_iff, hfun, (hF.hasMFDerivAt.comp z hq.hasMFDerivAt).mfderiv]
-  exact ContinuousLinearMap.zero_comp _
+      ((fun v : 𝔼 n ↦ g ‖v‖) ∘ Prod.snd) ∘ cotangentCoord :=
+    funext fun w ↦ by simp only [Function.comp_apply, cotangentNorm_def]
+  rw [ContinuousLinearMap.zero_comp] at hF
+  ext w
+  rw [zero_apply, mvfderiv_apply_eq_mfderiv_apply, hfun]
+  exact (hF.mfderiv_comp_cotangentCoord_apply w).trans (zero_apply _)
 
 /-- For a twist profile `R`, the function `t ↦ R'(t) t - R(t)` is even. -/
 theorem IsTwistProfile.even_deriv_mul_sub {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsTwistProfile R r₀) :
