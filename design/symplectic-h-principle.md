@@ -883,7 +883,7 @@ CW type by domination (Decision 5), about Tau Ceti's notion, so in its
 namespace:
 
 ```lean
-theorem TauCeti.CWType.of_homotopic_comp {X : Type u} {K : Type*} [TopologicalSpace X]
+theorem TauCeti.CWType.of_comp_homotopic_id {X : Type u} {K : Type*} [TopologicalSpace X]
     [TopologicalSpace K] [TauCeti.CWType K] {i : C(X, K)} {r : C(K, X)}
     (h : (r.comp i).Homotopic (ContinuousMap.id X)) : TauCeti.CWType X
 ```
@@ -935,7 +935,7 @@ one convex subset of `O`. Hence the map `ψ` from the realization of
 well defined, continuous by `continuous_iff_faceInclusion`, and the
 straight segment from `x` to `ψ (ρ.toNerve x)` stays in `O`. So `O` is
 dominated by a CW complex (`realizationCWComplex`, `instT2SpaceRealization`,
-`TauCeti.CWType.of_cwComplex_univ`), and `TauCeti.CWType.of_homotopic_comp`
+`TauCeti.CWType.of_cwComplex_univ`), and `TauCeti.CWType.of_comp_homotopic_id`
 gives the theorem.
 
 ### `Geometry/Manifold/VectorBundle/Symplectic/Topology.lean`
@@ -978,7 +978,7 @@ The spaces, in the topology of the departure *Spaces of forms*:
   forms, or the preimage under `tangentEquiv` of the coset
   `α + exactForms I M 2`) and the open set of
   `isOpen_setOf_forall_mem_nondegenerate` for `closure (Set.range j)`; then
-  `TauCeti.CWType.of_homotopic_comp` with the inclusion,
+  `TauCeti.CWType.of_comp_homotopic_id` with the inclusion,
   $\omega\mapsto j^*\omega$ (nondegenerate since the slices of `h` are
   embeddings between manifolds of one dimension; in the class by
   `mpullback_sub_mem_exactForms_of_homotopy`), and the homotopy of
