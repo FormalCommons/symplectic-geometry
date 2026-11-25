@@ -12,7 +12,6 @@ import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import SymplecticGeometry.Geometry.Symplectic.Moser.Equivariant
-import SymplecticGeometry.Geometry.Symplectic.Moser.Family
 import TauCeti.Geometry.Manifold.PartitionOfUnity.Compact
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.ProdIcc
 import TauCeti.Topology.Algebra.Module.Alternating.Basic
@@ -129,7 +128,7 @@ the cutoff is `1` and the segment nondegenerate, and the slices `ω̃₀ + s •
 derivative `dσ̃` in `s`. So the time-one map pulls `ω̃₀ + dσ̃` back to `ω̃₀` at `(x, t)`
 (`IsCouplingForm.mpullback_timeDependentFlowOf_moserField_lineMapFamily_prodIccExtension_apply`,
 from `TauCeti.SmoothTwoForm.mpullback_timeDependentFlowOf_moserField_lineMapFamily_apply` of
-`Moser/Family.lean`).
+`Moser/Field.lean`).
 
 ## References
 
@@ -894,7 +893,7 @@ theorem mpullback_timeDependentFlowOf_moserField_lineMapFamily_prodIccExtension_
       (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1
         (ω₁ - ω₀)))) hρ hnd
   refine SmoothTwoForm.mpullback_timeDependentFlowOf_moserField_lineMapFamily_apply
-    (isClosed_prodIccExtension h₀.isClosed) (add_sub_cancel_left W D) hX
+    (isClosed_prodIccExtension h₀.isClosed) (add_sub_cancel_left W D) (hX.of_le (by simp))
     (isCompleteVectorField_timeDependentSuspensionField_moserField (hX.of_le (by simp)) hρc)
     fun s hs ↦ ?_
   -- the trajectory of `(x, t)` stays on the level `P × {t}`, near which `ρ = 1`
