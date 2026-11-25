@@ -364,7 +364,7 @@ invariant, which fixes the problem of arcs that leave a component of
 `M \ K i` and come back:
 
 * (R) for every `i`, the part of a ray (as built so far) outside `K i` is
-  one connected piece containing its current endpoint.
+  empty or one connected piece containing its current endpoint.
 
 Stage `j` starts with `K j` known. Its rays are those started before, whose
 endpoints lie outside `K j`, and a new one for each `p ∈ P` outside `K j`,
