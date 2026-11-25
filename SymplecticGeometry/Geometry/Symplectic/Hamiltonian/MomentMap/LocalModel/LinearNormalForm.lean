@@ -5,9 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.RepresentationTheory.Subrepresentation
 public import TauCeti.Geometry.Symplectic.Coadjoint
 public import TauCeti.Geometry.Symplectic.Cotangent.Basic
+public import TauCeti.LinearAlgebra.Submodule.Compl
+public import SymplecticGeometry.Algebra.Lie.Coadjoint
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Data
 
 /-!
@@ -34,9 +35,7 @@ model: no change of sign is needed.
 * `SymplecticGeometry.LocalModelData.linearModelMap`: the injective linear map
   `(𝔪 × 𝔪*) × (𝔮 × V) → 𝔤 × A × V`, `((m, f), (q, b)) ↦ (m + q, f, b)`, onto the complement
   `(𝔪 ⊕ 𝔮) × A × V` of `𝔥 × 0`.
-* `SymplecticGeometry.LocalModelData.adjoint𝔪`, `SymplecticGeometry.LocalModelData.adjoint𝔮`,
-  `SymplecticGeometry.LocalModelData.repV`: the representations of `K` on `𝔪`, `𝔮` and `V`, and
-  `SymplecticGeometry.LocalModelData.linearModelRepresentation`, the representation of `K` on the
+* `SymplecticGeometry.LocalModelData.linearModelRepresentation`: the representation of `K` on the
   model, by the adjoint action on `𝔪` and `𝔮`, its dual on `𝔪*` and `rep` on `V`.
 
 ## Main results
@@ -47,17 +46,16 @@ model: no change of sign is needed.
   `linearModelMap`, the form at `(1, 0, 0)` is the form of the linear normal form model.
 * `SymplecticGeometry.LocalModelData.isCompl_range_linearModelMap`: the range of
   `linearModelMap` is a complement of `𝔥 × 0`.
-* `SymplecticGeometry.LocalModelData.eval₂_form_one_zero_eq_zero_iff`: the kernel of the form at
-  `(1, 0, 0)` is the space `𝔥 × 0` of the directions `(ξ, 0, 0)` with `ξ ∈ 𝔥`.
+* `SymplecticGeometry.LocalModelData.forall_eval₂_form_one_zero_eq_zero_iff`: the kernel of the
+  form at `(1, 0, 0)` is the space `𝔥 × 0` of the directions `(ξ, 0, 0)` with `ξ ∈ 𝔥`.
 * `SymplecticGeometry.LocalModelData.fst_linearModelMap_linearModelRepresentation`,
   `SymplecticGeometry.LocalModelData.ι𝔪_snd_fst_linearModelMap_linearModelRepresentation`,
   `SymplecticGeometry.LocalModelData.snd_snd_linearModelMap_linearModelRepresentation`:
   `linearModelMap` intertwines the action of `K` on the model with the action
   `(ξ, a, b) ↦ (Ad_k ξ, Ad*_k a, k • b)` of `K` on `𝔤 × A × V`, the coadjoint action on `A` being
-  read in `𝔤*` through `ι𝔪`. This is the action of `K` on the tangent space at `(1, 0, 0)` by the
-  differentials of `(g, η, v) ↦ (k g k⁻¹, Ad*_k η, k • v)`, which fix that point.
-* `SymplecticGeometry.LocalModelData.adjointRepresentation_mem_𝔥`: `𝔥` is invariant under the
-  adjoint action of `K`.
+  read in `𝔤*` through `ι𝔪`. That this is the action on the tangent space at `(1, 0, 0)` by the
+  differentials of the maps `(g, η, v) ↦ (k g k⁻¹, Ad*_k η, k • v)` is expected, but is not
+  proved here.
 
 ## References
 
@@ -91,13 +89,6 @@ variable {K : Subgroup G} [IsClosed (K : Set G)] [CompactSpace K] [FiniteDimensi
   (D : LocalModelData (I := I) K (F := F) V A)
 
 /-! ### The form at `(1, 0, 0)` -/
-
-/-- An element `ξ` of `𝔤` lies in the coadjoint stabilizer `𝔤_τ` exactly when `τ ⁅ξ, ζ⁆ = 0`
-for every `ζ`. -/
-theorem mem_lieAnnihilator_τ_iff {ξ : GroupLieAlgebra I G} :
-    ξ ∈ (lieAnnihilator ℝ (GroupLieAlgebra I G) D.τ).toSubmodule ↔ ∀ ζ, D.τ ⁅ξ, ζ⁆ = 0 := by
-  rw [← D.τ.ker_kirillovForm, LinearMap.mem_ker, LinearMap.ext_iff]
-  simp only [Module.Dual.kirillovForm_apply, LinearMap.zero_apply]
 
 /-- **The form of the local model at `(1, 0, 0)`.** It pairs the tangent vectors `(ξᵢ, aᵢ, bᵢ)` to
 `τ ⁅ξ₁, ξ₂⁆ - ι𝔪 a₁ ξ₂ + ι𝔪 a₂ ξ₁ + σ (b₁, b₂)`. -/
@@ -158,15 +149,7 @@ theorem range_linearModelMap :
 theorem isCompl_range_linearModelMap :
     IsCompl (LinearMap.range D.linearModelMap) (D.𝔥.prod ⊥) := by
   rw [range_linearModelMap]
-  have h := D.isCompl_𝔥_sup.symm
-  constructor
-  · rw [Submodule.disjoint_def]
-    rintro ⟨ξ, p⟩ ⟨hξ, -⟩ ⟨hξ', hp⟩
-    exact Prod.ext (Submodule.disjoint_def.1 h.disjoint _ hξ hξ') hp
-  · rw [codisjoint_iff, eq_top_iff]
-    rintro ⟨ξ, p⟩ -
-    obtain ⟨y, hy, z, hz, rfl⟩ := Submodule.mem_sup.1 (h.sup_eq_top ▸ Submodule.mem_top (x := ξ))
-    exact Submodule.mem_sup.2 ⟨(y, p), ⟨hy, trivial⟩, (z, 0), ⟨hz, rfl⟩, by simp⟩
+  exact D.isCompl_𝔥_sup.symm.prod isCompl_top_bot
 
 /-- **The form of the local model at `(1, 0, 0)` is the linear normal form.** On tangent vectors
 `linearModelMap xᵢ`, the form at `(1, 0, 0)` is the form of the linear normal form model
@@ -185,10 +168,8 @@ theorem eval₂_form_one_zero_linearModelMap
   rw [D.eval₂_form_one_zero_of_tangentSpaceProdEquiv_eq hu₁ hu₂]
   have h𝔮 (a : A) (q : D.𝔮) : D.ι𝔪 a q = 0 :=
     D.ι𝔪_apply_of_mem_sup a (Submodule.mem_sup_right q.property)
-  have h₁ := D.mem_lieAnnihilator_τ_iff.1 (D.𝔪_le_lieAnnihilator m₁.property)
-  have h₂ (ξ : GroupLieAlgebra I G) : D.τ ⁅ξ, (m₂ : GroupLieAlgebra I G)⁆ = 0 := by
-    rw [← lie_skew, map_neg, D.mem_lieAnnihilator_τ_iff.1 (D.𝔪_le_lieAnnihilator m₂.property),
-      neg_zero]
+  have h₁ := D.τ.mem_lieAnnihilator_iff.1 (D.𝔪_le_lieAnnihilator m₁.property)
+  have h₂ := D.τ.mem_lieAnnihilator_iff'.1 (D.𝔪_le_lieAnnihilator m₂.property)
   simp only [lie_add, add_lie, map_add, h₁, h₂, ι𝔪_apply_coe, h𝔮, LinearEquiv.apply_symm_apply,
     SymplecticForm.prod_apply, cotangentSymplecticForm_apply,
     Module.Dual.kirillovSymplecticForm_apply]
@@ -196,102 +177,47 @@ theorem eval₂_form_one_zero_linearModelMap
 
 /-- **The kernel of the form of the local model at `(1, 0, 0)`.** A tangent vector at `(1, 0, 0)`
 pairs to zero with every tangent vector exactly when it is `(ξ, 0, 0)` for some `ξ ∈ 𝔥`. -/
-theorem eval₂_form_one_zero_eq_zero_iff
+theorem forall_eval₂_form_one_zero_eq_zero_iff
     (u : TangentSpace (I.prod 𝓘(ℝ, A × V)) ((1 : G), ((0 : A), (0 : V)))) :
     (∀ u', D.form.eval₂ ((1 : G), ((0 : A), (0 : V))) u u' = 0) ↔
       tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V))) u ∈ D.𝔥.prod ⊥ := by
   set e := tangentSpaceProdEquiv (I := I) (J := 𝓘(ℝ, A × V)) ((1 : G), ((0 : A), (0 : V)))
   rcases hu : e u with ⟨ξ, a, b⟩
-  have hval (u' : TangentSpace (I.prod 𝓘(ℝ, A × V)) ((1 : G), ((0 : A), (0 : V)))) :
-      D.form.eval₂ ((1 : G), ((0 : A), (0 : V))) u u' =
-        D.τ ⁅ξ, (e u').1⁆ - D.ι𝔪 a (e u').1 + D.ι𝔪 (e u').2.1 ξ + D.σ b (e u').2.2 :=
-    D.eval₂_form_one_zero_of_tangentSpaceProdEquiv_eq hu rfl
-  simp only [hval, Submodule.mem_prod]
+  simp only [Submodule.mem_prod]
   constructor
-  · intro h
-    have h' (ξ' : GroupLieAlgebra I G) (a' : A) (b' : V) :
-        D.τ ⁅ξ, ξ'⁆ - D.ι𝔪 a ξ' + D.ι𝔪 a' ξ + D.σ b b' = 0 := by
-      simpa using h (e.symm (ξ', (a', b')))
-    -- `σ` is nondegenerate, so `b = 0`.
-    have hb : b = 0 := D.σ.nondegenerate.1 b fun b' ↦ by
-      have h0 := h' 0 0 b'
-      have hl : ⁅ξ, (0 : GroupLieAlgebra I G)⁆ = 0 := lie_zero ξ
-      rw [hl] at h0
-      simpa using h0
-    -- `ι𝔪 a' ξ = 0` for every `a'`, so the component of `ξ` in `𝔪` vanishes.
-    obtain ⟨m, hm, r, hr, rfl⟩ :=
-      Submodule.mem_sup.1 (D.isCompl_𝔪_sup.sup_eq_top ▸ Submodule.mem_top (x := ξ))
-    have hm0 : m = 0 := by
-      have := (Module.forall_dual_apply_eq_zero_iff ℝ (⟨m, hm⟩ : D.𝔪)).1 fun f ↦ by
-        have h0 := h' 0 (D.equivDual𝔪.symm f) 0
-        rw [map_add, D.ι𝔪_apply_of_mem_sup _ hr] at h0
-        rw [← LinearEquiv.apply_symm_apply D.equivDual𝔪 f, ← ι𝔪_apply_coe]
-        simpa using h0
-      exact congrArg Subtype.val this
-    subst hm0
-    rw [zero_add] at h' ⊢
-    -- `τ ⁅r, m'⁆ = 0` for `m' ∈ 𝔪`, so `ι𝔪 a` vanishes on `𝔪`, and `a = 0`.
-    have ha : a = 0 := by
-      refine D.equivDual𝔪.map_eq_zero_iff.1 (LinearMap.ext fun m' ↦ ?_)
-      have h0 := h' m' 0 0
-      have hτ : D.τ ⁅r, (m' : GroupLieAlgebra I G)⁆ = 0 := by
-        rw [← lie_skew, map_neg,
-          D.mem_lieAnnihilator_τ_iff.1 (D.𝔪_le_lieAnnihilator m'.property), neg_zero]
-      simp only [hτ, map_zero, LinearMap.zero_apply, add_zero, zero_sub, neg_eq_zero,
-        ι𝔪_apply_coe, hb] at h0
-      simpa using h0
-    subst ha
-    -- `τ ⁅r, ·⁆ = 0`, so `r ∈ 𝔤_τ = 𝔥 ⊕ 𝔪`, and `r ∈ 𝔥 ⊕ 𝔮` gives `r ∈ 𝔥`.
-    have hrτ : r ∈ D.𝔥 ⊔ D.𝔪 := D.𝔥_sup_𝔪 ▸ D.mem_lieAnnihilator_τ_iff.2 fun ξ' ↦ by
-      simpa [hb] using h' ξ' 0 0
-    obtain ⟨y, hy, z, hz, rfl⟩ := Submodule.mem_sup.1 hrτ
-    have hz0 : z = 0 := Submodule.disjoint_def.1 D.isCompl_𝔪_sup.disjoint _ hz (by
-      simpa using sub_mem hr (Submodule.mem_sup_left hy))
-    exact ⟨by simpa [hz0] using hy, by rw [hb]; exact zero_mem _⟩
+  · intro h0
+    obtain ⟨h, hh, r, hr, rfl⟩ :=
+      Submodule.mem_sup.1 (D.isCompl_𝔥_sup.sup_eq_top ▸ Submodule.mem_top (x := ξ))
+    obtain ⟨m, hm, q, hq, rfl⟩ := Submodule.mem_sup.1 hr
+    -- The `𝔥` component of `u` pairs to zero with every vector, so `u` pairs as the vector
+    -- `linearModelMap x` of the model, and `x = 0` since the model's form is nondegenerate.
+    set x : (D.𝔪 × Module.Dual ℝ D.𝔪) × (D.𝔮 × V) :=
+      ((⟨m, hm⟩, D.equivDual𝔪 a), (⟨q, hq⟩, b))
+    have hx : x = 0 :=
+      (cotangentSymplecticForm.prod ((D.τ.kirillovSymplecticForm D.isCompl_𝔮).prod D.σ)
+        ).nondegenerate.1 x fun y ↦ by
+        refine (D.eval₂_form_one_zero_linearModelMap (e.apply_symm_apply _)
+          (e.apply_symm_apply (D.linearModelMap y))).symm.trans
+          (Eq.trans ?_ (h0 (e.symm (D.linearModelMap y))))
+        have hy := (e.apply_symm_apply (D.linearModelMap y)).trans (D.linearModelMap_apply ..)
+        rw [D.eval₂_form_one_zero_of_tangentSpaceProdEquiv_eq hu hy,
+          D.eval₂_form_one_zero_of_tangentSpaceProdEquiv_eq
+            ((e.apply_symm_apply _).trans (D.linearModelMap_apply ..)) hy,
+          LinearEquiv.symm_apply_apply, Submodule.coe_mk, Submodule.coe_mk, add_lie h,
+          map_add D.τ ⁅h, _⁆, D.τ.mem_lieAnnihilator_iff.1 (D.𝔥_le_lieAnnihilator hh),
+          map_add (D.ι𝔪 _) h, D.ι𝔪_apply_of_mem_sup _ (Submodule.mem_sup_left hh), zero_add,
+          zero_add, add_lie, map_add D.τ]
+    simp only [x, Prod.mk_eq_zero, Submodule.mk_eq_zero, LinearEquiv.map_eq_zero_iff] at hx
+    obtain ⟨⟨rfl, rfl⟩, rfl, rfl⟩ := hx
+    exact ⟨by simpa using hh, zero_mem _⟩
   · rintro ⟨hξ, hab⟩ u'
     obtain ⟨rfl, rfl⟩ := Prod.mk_eq_zero.1 hab
-    rw [D.mem_lieAnnihilator_τ_iff.1 (D.𝔥_le_lieAnnihilator hξ),
+    rw [D.eval₂_form_one_zero_of_tangentSpaceProdEquiv_eq hu rfl,
+      D.τ.mem_lieAnnihilator_iff.1 (D.𝔥_le_lieAnnihilator hξ),
       D.ι𝔪_apply_of_mem_sup _ (Submodule.mem_sup_left hξ)]
     simp
 
 /-! ### The action of `K` -/
-
-/-- The Lie algebra `𝔥` of `K` is invariant under the adjoint action of `K`. -/
-theorem adjointRepresentation_mem_𝔥 (k : K) {ξ : GroupLieAlgebra I G} (hξ : ξ ∈ D.𝔥) :
-    adjointRepresentation ℝ I G k ξ ∈ D.𝔥 := by
-  rw [← D.range_groupLieAlgebraMap_subtype] at hξ ⊢
-  obtain ⟨ζ, rfl⟩ := hξ
-  refine ⟨adjointContinuousLinearMap (I := 𝓘(ℝ, F)) k ζ, ?_⟩
-  rw [ContinuousLinearMap.coe_coe, MonoidHom.groupLieAlgebraMap_adjointContinuousLinearMap,
-    adjointRepresentation_apply, Subgroup.coe_subtype]
-
-/-- The adjoint representation of `K` on `𝔪`. -/
-def adjoint𝔪 : Representation ℝ K D.𝔪 :=
-  Subrepresentation.toRepresentation (ρ := (adjointRepresentation ℝ I G).comp K.subtype)
-    ⟨D.𝔪, fun k _ hξ ↦ D.adjointRepresentation_mem_𝔪 k hξ⟩
-
-/-- The adjoint representation of `K` on `𝔮`. -/
-def adjoint𝔮 : Representation ℝ K D.𝔮 :=
-  Subrepresentation.toRepresentation (ρ := (adjointRepresentation ℝ I G).comp K.subtype)
-    ⟨D.𝔮, fun k _ hξ ↦ D.adjointRepresentation_mem_𝔮 k hξ⟩
-
-@[simp]
-theorem coe_adjoint𝔪_apply (k : K) (m : D.𝔪) :
-    (D.adjoint𝔪 k m : GroupLieAlgebra I G) = adjointRepresentation ℝ I G k m :=
-  (rfl)
-
-@[simp]
-theorem coe_adjoint𝔮_apply (k : K) (q : D.𝔮) :
-    (D.adjoint𝔮 k q : GroupLieAlgebra I G) = adjointRepresentation ℝ I G k q :=
-  (rfl)
-
-/-- The representation `rep` of `K` on `V`, as a `Representation`. -/
-def repV : Representation ℝ K V :=
-  LinearEquiv.automorphismGroup.toLinearMapMonoidHom.comp D.rep
-
-@[simp]
-theorem repV_apply (k : K) (v : V) : D.repV k v = D.rep k v :=
-  (rfl)
 
 /-- The representation of `K` on the linear normal form model `(𝔪 × 𝔪*) × (𝔮 × V)`: the adjoint
 action on `𝔪` and `𝔮`, its dual on `𝔪*` and `rep` on `V`, as in Tau Ceti's equivariant linear normal
@@ -307,13 +233,20 @@ theorem linearModelRepresentation_def :
         (D.adjoint𝔮.prod D.repV) :=
   (rfl)
 
+@[simp]
+theorem linearModelRepresentation_apply (k : K) (m : D.𝔪) (f : Module.Dual ℝ D.𝔪) (q : D.𝔮)
+    (b : V) :
+    D.linearModelRepresentation k ((m, f), (q, b)) =
+      ((D.adjoint𝔪 k m, D.adjoint𝔪.dual k f), (D.adjoint𝔮 k q, D.repV k b)) :=
+  (rfl)
+
 /-- The action of `k` on the model moves the `𝔤`-component of `linearModelMap` by `Ad_k`. -/
 theorem fst_linearModelMap_linearModelRepresentation (k : K)
     (x : (D.𝔪 × Module.Dual ℝ D.𝔪) × (D.𝔮 × V)) :
     (D.linearModelMap (D.linearModelRepresentation k x)).1 =
       adjointRepresentation ℝ I G k (D.linearModelMap x).1 := by
   obtain ⟨⟨m, f⟩, q, b⟩ := x
-  simp only [linearModelRepresentation_def, Representation.prod_apply_apply, linearModelMap_apply,
+  simp only [linearModelRepresentation_apply, linearModelMap_apply,
     coe_adjoint𝔪_apply, coe_adjoint𝔮_apply, map_add]
 
 /-- The action of `k` on the model moves the `V`-component of `linearModelMap` by `rep k`. -/
@@ -322,7 +255,7 @@ theorem snd_snd_linearModelMap_linearModelRepresentation (k : K)
     (D.linearModelMap (D.linearModelRepresentation k x)).2.2 =
       D.rep k (D.linearModelMap x).2.2 := by
   obtain ⟨⟨m, f⟩, q, b⟩ := x
-  simp [linearModelRepresentation_def]
+  simp
 
 /-- The action of `k` on the model moves the `A`-component of `linearModelMap`, read in `𝔤*`
 through `ι𝔪`, by the coadjoint action `Ad*_k`. -/
@@ -342,7 +275,7 @@ theorem ι𝔪_snd_fst_linearModelMap_linearModelRepresentation (k : K)
   have hn' : adjointRepresentation ℝ I G (k⁻¹ : K) n = D.adjoint𝔪 k⁻¹ ⟨n, hn⟩ :=
     (D.coe_adjoint𝔪_apply k⁻¹ ⟨n, hn⟩).symm
   simp only [InvMemClass.coe_inv] at hr' hn'
-  simp only [linearModelRepresentation_def, Representation.prod_apply_apply, linearModelMap_apply,
+  simp only [linearModelRepresentation_apply, linearModelMap_apply,
     map_add, D.ι𝔪_apply_of_mem_sup _ hr, coadjointRepresentation_apply, add_zero]
   rw [← adjointRepresentation_apply, ← adjointRepresentation_apply, D.ι𝔪_apply_of_mem_sup _ hr',
     add_zero, hn', ι𝔪_apply_coe, LinearEquiv.apply_symm_apply]
