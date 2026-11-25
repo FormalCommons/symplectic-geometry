@@ -19,6 +19,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.HomotopyOperator
 import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 import SymplecticGeometry.LinearAlgebra.BilinearForm.Nondegenerate
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 
 /-!
 # Coupling forms
@@ -245,8 +246,8 @@ theorem eval₂_inl_inl (h : IsCouplingForm σ τ) (p : ManifoldTotalSpace Circl
         (mfderiv (IB.prod (𝓡 1)) IB (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)) p
           w) := by
   have := congrArg (fun φ ↦ SmoothBundleForm.eval₂ φ p v w) (h.mpullback_slice t)
-  simp only [SmoothForm.eval₂_mpullback, mfderiv_prod_left] at this
-  -- `ContinuousLinearMap.inl _ _ _ v` is `(v, 0)`, and `(p, t).1` is `p`, by definition
+  simp only [SmoothForm.eval₂_mpullback, mfderiv_prodMk_left_apply] at this
+  -- `(p, t).1` is `p` by definition
   exact this
 
 /-- The Hamiltonian identity of a coupling form in terms of the second component:
