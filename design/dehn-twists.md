@@ -258,19 +258,19 @@ theorem contMDiffOn_vectorBundleRescaledFamily [IB.Boundaryless] [CompleteSpace 
     ContMDiffOn _ _ ∞ (vectorBundleRescaledFamily ψ) (U' ×ˢ univ)
 
 theorem CotangentBundle.exists_smoothIsotopy_of_eqOn_zeroSection
-    [CompactSpace L] {U : Opens T*L} (hU : range (zeroSection …) ⊆ U)
+    [FiniteDimensional ℝ E] {U : Opens T*L} (hU : range (zeroSection …) ⊆ U)
     (ψ : C^∞⟮_, U; _, T*L⟯) (hψ : IsOpenEmbedding ψ)
     (hψ0 : ∀ x, ψ ⟨0_x, _⟩ = 0_x)
     (hψω : mpullback ψ (symplecticForm J L) = mpullback Subtype.val (symplecticForm J L)) :
     ∃ (U' : Opens T*L) (hU' : U' ≤ U) (hzero : range (zeroSection …) ⊆ U')
-      (F : SmoothIsotopy (inclusion of U') (ψ ∘ inclusion U' U)),
+      (F : SmoothIsotopy (ContMDiffMap.id.restrict U') (ψ ∘ inclusion U' U)),
       F.IsSymplectic (symplecticForm restricted to U') (symplecticForm J L) ∧
       (∀ t x, F (t, ⟨0_x, _⟩) = 0_x) ∧ ∀ t, IsOpenEmbedding (F (t, ·))
 ```
 
 The isotopy is `vectorBundleRescaledFamily ψ`, the family $m_{1/t}\circ\psi\circ m_t$
-of *Decisions*, on a star-shaped neighbourhood $U'$, which exists because
-`L` is compact. Its smoothness at $t=0$ is Hadamard's lemma in the fibre
+of *Decisions*, on the star-shaped neighbourhood $U'$ given by Tau Ceti's
+`VectorBundle.radialCore`. Its smoothness at $t=0$ is Hadamard's lemma in the fibre
 variable, in the trivializations of `T*L`. Those are linear on fibres, so
 they commute with $m_t$. The first jet along the zero section gives the
 value at $t=0$, as *Decisions* says. For $t>0$ each slice is symplectic by
@@ -377,8 +377,8 @@ the norm on covectors is that of Tau Ceti's round metric, the global instance
 `{z | cotangentNorm z ≤ r}`. It is closed and lies in the image of
 `codiscBundle` under $m_{\max(r,1)}$ (`vectorBundleScalarDiffeomorph`),
 hence is compact by `isCompact_codiscBundle`. The great circle through
-`q` in the direction `p/‖p‖` is Tau Ceti's `sphereGreatCircle`, whose
-period and antipode give `geodesicFlow_two_pi` and `geodesicFlow_pi`. The
+`q` in the direction `p/‖p‖` is Tau Ceti's `sphereGreatCircle`, the base
+curve of the flow; its values at `2π` and `π` are checked in coordinates. The
 flow statement is a computation in coordinates: the velocity of the curve is
 the vector $(p/|p|,-|p|q)$ at the base point $(q,p)$, and contracting it
 with $-d\lambda$ gives $d\mu$, computed with `mpullback_cotangentCoord`. The

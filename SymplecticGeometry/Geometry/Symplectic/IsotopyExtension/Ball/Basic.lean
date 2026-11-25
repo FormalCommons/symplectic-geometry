@@ -340,9 +340,7 @@ theorem IsSymplecticBallEmbedding.exists_lt_isSymplecticBallEmbedding_eqOn [Fini
     rw [mpullback_comp_at (Φ.contMDiff.mdifferentiable (by simp) z)
       (((hjO _ hzO).contMDiffAt (hOo.mem_nhds hzO)).mdifferentiableAt (by simp)), ← hN z hzN,
       SmoothForm.coe_mpullback]
-    ext v
-    conv_rhs => rw [mpullback_apply, hO _ hzO]
-    rw [mpullback_apply]
+    exact mpullback_apply_congr (hO _ hzO).symm
   have hKW : K ⊆ Φ ⁻¹' O ∩ N := fun z hz ↦ ⟨by rw [mem_preimage, hΦK z hz]; exact hKO hz, hKN hz⟩
   obtain ⟨r, hr, hjΦ⟩ := exists_lt_isSymplecticBallEmbedding_of_injOn
     ((Φ.continuous.isOpen_preimage _ hOo).inter hNo) hKW

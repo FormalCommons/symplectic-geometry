@@ -349,9 +349,7 @@ theorem exists_diffeomorph_opens_mpullback_eq {e : X → Y}
   rw [hΨ, TauCeti.mpullback_comp_at (ee.symm.mdifferentiableAt (by simp) hyt)
     (Φ.mdifferentiableAt (by simp) hys)]
   calc _ = TauCeti.mpullback IY IX ee.symm (TauCeti.mpullback IX IY ee τ.val) y :=
-        ContinuousAlternatingMap.ext fun u ↦ by
-          rw [TauCeti.mpullback_apply (⇑ee.symm), TauCeti.mpullback_apply (⇑ee.symm), hΦ _ hys,
-            TauCeti.SmoothForm.coe_mpullback, hee]
+        TauCeti.mpullback_apply_congr (by rw [hΦ _ hys, TauCeti.SmoothForm.coe_mpullback, hee])
     _ = _ := ee.mpullback_symm_mpullback_apply (by simp) τ.val hyt
 
 end Transport
