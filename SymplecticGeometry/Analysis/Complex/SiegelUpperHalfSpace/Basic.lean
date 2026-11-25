@@ -11,7 +11,6 @@ public import Mathlib.Algebra.Order.Star.Real
 public import Mathlib.LinearAlgebra.Matrix.Symmetric
 public import Mathlib.Topology.Instances.Matrix
 import TauCeti.Analysis.Matrix.PosDef
-import TauCeti.Examples.Algebra.Module.ZLattice.PeriodMatrix
 public import SymplecticGeometry.LinearAlgebra.Matrix.OfReal
 public import SymplecticGeometry.LinearAlgebra.Matrix.PosDef.Basic
 
@@ -166,15 +165,12 @@ section I
 
 variable [DecidableEq ι]
 
-private theorem map_re_I_smul_one : (Complex.I • (1 : Matrix ι ι ℂ)).map Complex.re = 0 := by
-  rw [smul_one_eq_diagonal, diagonal_map (by simp)]
-  simp
-
 /-- The base point `i𝟙` of the Siegel upper half space. -/
 protected def I : SiegelUpperHalfSpace ι where
   coe := Complex.I • (1 : Matrix ι ι ℂ)
   isSymm := isSymm_one.smul _
-  posDef_map_im := TauCeti.PeriodMatrixExample.map_im_I_smul_one (ι := ι) ▸ PosDef.one
+  posDef_map_im := by
+    simpa using PosDef.one
 
 @[simp]
 theorem coe_I : (SiegelUpperHalfSpace.I : SiegelUpperHalfSpace ι) =
@@ -182,12 +178,12 @@ theorem coe_I : (SiegelUpperHalfSpace.I : SiegelUpperHalfSpace ι) =
   (rfl)
 
 @[simp]
-theorem re_I : (SiegelUpperHalfSpace.I : SiegelUpperHalfSpace ι).re = 0 :=
-  map_re_I_smul_one
+theorem re_I : (SiegelUpperHalfSpace.I : SiegelUpperHalfSpace ι).re = 0 := by
+  simp [re_def]
 
 @[simp]
-theorem im_I : (SiegelUpperHalfSpace.I : SiegelUpperHalfSpace ι).im = 1 :=
-  TauCeti.PeriodMatrixExample.map_im_I_smul_one
+theorem im_I : (SiegelUpperHalfSpace.I : SiegelUpperHalfSpace ι).im = 1 := by
+  simp [im_def]
 
 instance : Inhabited (SiegelUpperHalfSpace ι) := ⟨SiegelUpperHalfSpace.I⟩
 
