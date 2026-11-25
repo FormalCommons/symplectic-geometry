@@ -13,6 +13,7 @@ import Mathlib.Topology.PartitionOfUnity
 import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Complement
 import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Basic
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Exact
+import SymplecticGeometry.Algebra.Exact.Basic
 import TauCeti.Topology.VectorBundle.Hom
 import TauCeti.Topology.VectorBundle.Section
 import TauCeti.Topology.PartitionOfUnity.Basic
@@ -113,8 +114,15 @@ def tangentNormalEquiv (x : M) :
 /-- The isomorphism given by a right inverse `r` sends `(u, a)` to `df u + r a`. -/
 @[simp]
 theorem tangentNormalEquiv_apply (x : M) (p : (TangentSpace I ×ᵇ fun x ↦ f.NormalSpace x hn) x) :
-    f.tangentNormalEquiv hn r hr x p = mfderiv I J f x p.1 + r x p.2 :=
-  (rfl)
+    f.tangentNormalEquiv hn r hr x p = mfderiv I J f x p.1 + r x p.2 := by
+  -- `erw`: the coercion of `LinearEquiv.toContinuousLinearEquiv` uses the fibre instances that
+  -- `tangentNormalEquiv` provides with `haveI`, which `rw` does not match up to reducible defeq.
+  rw [tangentNormalEquiv]
+  erw [LinearEquiv.coe_toContinuousLinearEquiv_symm']
+  simp only [Function.Exact.splitSurjectiveEquiv_symm_apply, ContinuousLinearMap.coe_coe]
+  -- The two sides differ only in that the sum is taken in the pullback fibre `(f *ᵖ T) x` on the
+  -- left and in `T (f x)` on the right, which are the same type.
+  rfl
 
 /-- The normal component of the inverse of the isomorphism is the normal class. -/
 @[simp]
