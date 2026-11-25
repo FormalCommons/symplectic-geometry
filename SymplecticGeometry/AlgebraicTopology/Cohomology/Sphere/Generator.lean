@@ -38,6 +38,9 @@ top cohomology of `Sᵃ` and `Sᵇ`, `a, b ≥ 1`, and `γ_a`, `γ_b` the standa
   `TopCat.singularKronecker_singularCup_fst_snd_singularHomologyCross`.
 * `TopCat.eq_singularKronecker_smul_singularCup_sphereGenerator`: so every class `x` of
   `Hᵃ⁺ᵇ(Sᵃ × Sᵇ; k)` is `⟨x, γ_a × γ_b⟩ • (pr₁^* θ_a ⌣ pr₂^* θ_b)`.
+* `TopCat.exists_eq_zsmul_integralCup_sphereGenerator`: in the integral cohomology
+  `TopCat.integralCohomology`, every class of degree `a + b` of `Sᵃ × Sᵇ` is an integer multiple
+  of the integral cup product `pr₁^* θ_a ⌣ pr₂^* θ_b`.
 
 ## References
 
@@ -178,6 +181,30 @@ theorem eq_singularKronecker_smul_singularCup_sphereGenerator {d e N : ℕ}
   simp
 
 end SphereProdSphere
+
+/-- **The top integral cohomology of a product of two spheres.** Every class of the integral
+cohomology `Hᵃ⁺ᵇ(Sᵃ × Sᵇ; ℤ)`, `a = d + 1`, `b = e + 1`, is an integer multiple of the integral
+cup product `pr₁^* θ_a ⌣ pr₂^* θ_b`, where `θ_a`, `θ_b` are the generators of the top cohomology
+of the two spheres dual to their standard homology generators, read in integral cohomology through
+`TopCat.integralCohomologyEquiv`. -/
+theorem exists_eq_zsmul_integralCup_sphereGenerator {d e N : ℕ} (h : d + 1 + (e + 1) = N)
+    (x : (sphere.{0} (d + 1) ⊗ sphere.{0} (e + 1)).integralCohomology N) :
+    ∃ r : ℤ, x = r • (sphere.{0} (d + 1) ⊗ sphere.{0} (e + 1)).integralCup (d + 1) (e + 1) N h
+      (TopCat.singularCohomologyMap (fst _ _) (d + 1)
+        (((sphere.{0} (d + 1)).integralCohomologyEquiv (d + 1)).symm
+          (singularCohomologyTopCatSphereGenerator ℤ d)))
+      (TopCat.singularCohomologyMap (snd _ _) (e + 1)
+        (((sphere.{0} (e + 1)).integralCohomologyEquiv (e + 1)).symm
+          (singularCohomologyTopCatSphereGenerator ℤ e))) := by
+  obtain ⟨v, rfl⟩ :=
+    ((sphere.{0} (d + 1) ⊗ sphere.{0} (e + 1)).integralCohomologyEquiv N).symm.surjective x
+  obtain ⟨r, rfl⟩ := exists_eq_smul_singularCup_sphereGenerator ℤ h v
+  refine ⟨r, ?_⟩
+  -- `r • _` is the action of `ℤ` on an additive group here, and the module action over `ℤ`
+  -- in `exists_eq_smul_singularCup_sphereGenerator`; `Int.cast_smul_eq_zsmul` relates them.
+  rw [← Int.cast_smul_eq_zsmul ℤ, Int.cast_id, LinearEquiv.map_smul,
+    integralCohomologyEquiv_symm_singularCup, integralCohomologyEquiv_symm_naturality,
+    integralCohomologyEquiv_symm_naturality]
 
 end TopCat
 
