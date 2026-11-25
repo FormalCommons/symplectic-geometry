@@ -30,6 +30,8 @@ two trivializations, these inclusions differ by the coordinate change.
 
 * `Bundle.Trivialization.fiberInclusion_coordChange`: the inclusions of a fibre through two
   trivializations differ by their coordinate change.
+* `Bundle.Trivialization.coordChange_compHomeomorph`: precomposing two trivializations with a
+  homeomorphism leaves their coordinate change unchanged.
 * `FiberBundle.isOpen_of_forall_mem_iff_snd_mem`: a set of the total space that every
   trivialization `trivializationAt F E b` reads, on its source, as the preimage of an open set of
   the model fibre under the fibre coordinate, is open.
@@ -79,6 +81,15 @@ lemma fiberInclusion_coordChange (e₁ e₂ : Trivialization F proj) {b : B} (h�
     e₂.fiberInclusion h₂ (e₁.coordChange e₂ b f) = e₁.fiberInclusion h₁ f := by
   rw [fiberInclusion_apply, fiberInclusion_apply, e₁.mk_coordChange e₂ h₁ h₂]
   exact e₂.toOpenPartialHomeomorph.left_inv (e₂.mem_source.2 (by rwa [e₁.proj_symm_apply' h₁]))
+
+/-- Precomposing two trivializations with a homeomorphism does not change their coordinate
+changes. -/
+@[simp]
+theorem coordChange_compHomeomorph {Z' : Type*} [TopologicalSpace Z']
+    (e e' : Trivialization F proj) (h : Z' ≃ₜ Z) (b : B) :
+    (e.compHomeomorph h).coordChange (e'.compHomeomorph h) b = e.coordChange e' b := by
+  ext v
+  simp [coordChange, Trivialization.compHomeomorph]
 
 end Bundle.Trivialization
 
