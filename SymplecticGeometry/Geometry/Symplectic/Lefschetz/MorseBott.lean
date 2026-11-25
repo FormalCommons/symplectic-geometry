@@ -16,9 +16,12 @@ import TauCeti.Geometry.Manifold.SmoothEmbedding.LeftInverse
 Let `μ` be Tau Ceti's moment function on `ℂℙ¹ = ℙ ℂ (Fin 2 → ℂ)` with the weights `(0, 1)`,
 `[z₀ : z₁] ↦ ‖z₁‖² / (‖z₀‖² + ‖z₁‖²)`, a Morse function whose critical points are the two
 coordinate points `c 0 = [1 : 0]` and `c 1 = [0 : 1]`, of index `0` and `2`. For a smooth map
-`π : X → ℂℙ¹` for which `c 0` and `c 1` are regular values, the critical points of `μ ∘ π` are
-the points of the two fibres `π⁻¹(c k)`, together with the critical points of `π`. This file
-packages them as a family of smooth embeddings, indexed by `Fin 2 ⊕ criticalSet π`:
+`π : X → ℂℙ¹` for which `c 0` and `c 1` are regular values, the critical points of `μ ∘ π` off
+the critical set `criticalSet π` of `π` are exactly the points of the two fibres `π⁻¹(c k)`. A
+point of `criticalSet π` need not be a critical point of `μ ∘ π`, since `dπ` may there have rank
+one, but it is one when `π` is a Lefschetz fibration, whose derivative vanishes at its critical
+points. This file defines, for every such smooth `π`, a family of smooth embeddings indexed by
+`Fin 2 ⊕ criticalSet π`:
 
 * the piece `inl k` is the fibre `π⁻¹(c k)` with Tau Ceti's regular-fibre atlas
   `TauCeti.regularFiberChartedSpace`, embedded by its inclusion;
@@ -51,6 +54,9 @@ submersion, adding the critical points of `π` as pieces of their own.
 
 ## Main results
 
+* `SymplecticGeometry.IsLefschetzFibration.manifoldMorseIndex_projectiveMomentFunction_comp`: at
+  each critical point of a Lefschetz fibration `π`, `μ ∘ π` has a nondegenerate critical point of
+  Morse index `2`.
 * `SymplecticGeometry.IsLefschetzFibration.isMorseBottFamily_momentPullback`: the family exhibits
   `μ ∘ π` as a Morse–Bott function.
 * `SymplecticGeometry.IsLefschetzFibration.manifoldMorseIndex_momentPullback`: the Morse index of
@@ -91,14 +97,12 @@ theorem projectiveMomentFunction_coordinatePoint (k : Fin 2) :
     projectiveMomentFunction ℂ (fun i : Fin 2 ↦ ((i : ℕ) : ℝ)) (coordinatePoint k) = k := by
   rw [coordinatePoint_def, projectiveMomentFunction_mk_single]
 
-theorem coordinatePoint_injective : Injective coordinatePoint := fun k k' h ↦ by
-  have := congrArg (projectiveMomentFunction ℂ fun i : Fin 2 ↦ ((i : ℕ) : ℝ)) h
-  simp only [projectiveMomentFunction_coordinatePoint, Nat.cast_inj] at this
-  exact Fin.ext this
+theorem coordinatePoint_injective : Injective coordinatePoint := fun k k' h ↦
+  mk_single_injective (by simpa only [coordinatePoint_def] using h)
 
 /-- The critical points of the moment function with the weights `(0, 1)` are the two coordinate
 points. -/
-theorem criticalPoints_projectiveMomentFunction :
+theorem criticalPoints_projectiveMomentFunction_eq_range_coordinatePoint :
     criticalPoints 𝓘(ℝ, Fin 1 → ℂ) (projectiveMomentFunction ℂ fun i : Fin 2 ↦ ((i : ℕ) : ℝ)) =
       range coordinatePoint :=
   TauCeti.criticalPoints_projectiveMomentFunction
@@ -110,9 +114,18 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSp
 
 /-- The dimension of the piece `j`: that of a regular fibre, `dim X - 2`, for the fibres, and `0`
 for the critical points of `π`. -/
-abbrev dim : Fin 2 ⊕ criticalSet I 𝓘(ℝ, Fin 1 → ℂ) π → ℕ
+@[expose] def dim : Fin 2 ⊕ criticalSet I 𝓘(ℝ, Fin 1 → ℂ) π → ℕ
   | .inl _ => Module.finrank ℝ E - Module.finrank ℝ (Fin 1 → ℂ)
   | .inr _ => 0
+
+@[simp]
+theorem dim_inl (k : Fin 2) :
+    dim I π (.inl k) = Module.finrank ℝ E - Module.finrank ℝ (Fin 1 → ℂ) :=
+  (rfl)
+
+@[simp]
+theorem dim_inr (p : criticalSet I 𝓘(ℝ, Fin 1 → ℂ) π) : dim I π (.inr p) = 0 :=
+  (rfl)
 
 /-- The source of the piece `j`: the fibre `π⁻¹(c k)` over the coordinate point `c k` for
 `j = inl k`, and the trivial space `Fin 0 → ℝ` for `j = inr p`. -/
@@ -156,6 +169,12 @@ theorem chartedSpace_inl (k : Fin 2) :
       regularFiberChartedSpace (by simp) hπ BoundarylessManifold.isInteriorPoint (hreg k) :=
   (rfl)
 
+omit [IsManifold I ∞ X] in
+/-- On the piece of a critical point, the atlas is that of the model space itself. -/
+theorem chartedSpace_inr (p : criticalSet I 𝓘(ℝ, Fin 1 → ℂ) π) :
+    chartedSpace hπ hreg (.inr p) = chartedSpaceSelf (Fin (dim I π (.inr p)) → ℝ) :=
+  (rfl)
+
 /-- Each piece is a smooth manifold. -/
 theorem isManifold :
     letI := chartedSpace hπ hreg
@@ -169,23 +188,25 @@ theorem isManifold :
 the constant map at `p` for `inr p`. -/
 def embedding :
     letI := chartedSpace hπ hreg
-    ∀ j, SmoothEmbedding 𝓘(ℝ, Fin (dim I π j) → ℝ) I ∞ (Piece I π j) X := by
+    ∀ j, SmoothEmbedding 𝓘(ℝ, Fin (dim I π j) → ℝ) I ∞ (Piece I π j) X :=
   letI := chartedSpace hπ hreg
-  rintro (k | p)
-  · exact SmoothEmbedding.ofIsSmoothEmbedding _
+  fun
+  | .inl k => SmoothEmbedding.ofIsSmoothEmbedding _
       (isSmoothEmbedding_coe_regularFiber (by simp) hπ BoundarylessManifold.isInteriorPoint
         (hreg k))
-  · haveI : Subsingleton (Fin (dim I π (.inr p)) → ℝ) :=
-      inferInstanceAs (Subsingleton (Fin 0 → ℝ))
-    exact SmoothEmbedding.ofIsSmoothEmbedding _
+  | .inr p =>
+    haveI : Subsingleton (Fin (dim I π (.inr p)) → ℝ) := by rw [dim_inr]; infer_instance
+    SmoothEmbedding.ofIsSmoothEmbedding _
       (isSmoothEmbedding_const_of_subsingleton (by simp) (p : X))
 
+@[simp]
 theorem embedding_inl_apply (k : Fin 2) (x : Piece I π (.inl k)) :
     embedding hπ hreg (.inl k) x = (x : {x : X // π x = coordinatePoint k}).val := by
   let := chartedSpace hπ hreg
   simp only [embedding]
   exact SmoothEmbedding.ofIsSmoothEmbedding_apply _ _ _
 
+@[simp]
 theorem embedding_inr_apply (p : criticalSet I 𝓘(ℝ, Fin 1 → ℂ) π) (x : Piece I π (.inr p)) :
     embedding hπ hreg (.inr p) x = p := by
   let := chartedSpace hπ hreg
@@ -193,6 +214,7 @@ theorem embedding_inr_apply (p : criticalSet I 𝓘(ℝ, Fin 1 → ℂ) π) (x :
   exact SmoothEmbedding.ofIsSmoothEmbedding_apply _ _ _
 
 /-- The image of the piece `inl k` is the fibre over `c k`. -/
+@[simp]
 theorem range_embedding_inl (k : Fin 2) :
     range (embedding hπ hreg (.inl k)) = π ⁻¹' {coordinatePoint k} := by
   ext x
@@ -202,6 +224,7 @@ theorem range_embedding_inl (k : Fin 2) :
   exact (y : {x : X // π x = coordinatePoint k}).property
 
 /-- The image of the piece `inr p` is the point `p`. -/
+@[simp]
 theorem range_embedding_inr (p : criticalSet I 𝓘(ℝ, Fin 1 → ℂ) π) :
     range (embedding hπ hreg (.inr p)) = {(p : X)} := by
   ext x
@@ -227,7 +250,7 @@ include h hreg
 omit [FiniteDimensional ℝ E] in
 /-- When the coordinate points are regular values of a Lefschetz fibration `π`, every critical
 point of `π` is a nondegenerate critical point of `μ ∘ π` of Morse index `2`. -/
-private theorem isManifoldNondegenerateCriticalPoint_comp_of_mem_criticalSet
+theorem manifoldMorseIndex_projectiveMomentFunction_comp
     {p : X} (hp : p ∈ criticalSet I 𝓘(ℝ, Fin 1 → ℂ) π) :
     IsManifoldNondegenerateCriticalPoint I
         ((projectiveMomentFunction ℂ fun i : Fin 2 ↦ ((i : ℕ) : ℝ)) ∘ π) p ∧
@@ -235,7 +258,7 @@ private theorem isManifoldNondegenerateCriticalPoint_comp_of_mem_criticalSet
         2 := by
   refine h.manifoldMorseIndex_comp hp (contMDiff_projectiveMomentFunction _ _) fun h0 ↦ ?_
   obtain ⟨k, hk⟩ : π p ∈ range coordinatePoint := by
-    rw [← MomentPullback.criticalPoints_projectiveMomentFunction]
+    rw [← criticalPoints_projectiveMomentFunction_eq_range_coordinatePoint]
     exact mem_criticalPoints_iff_mfderiv_eq_zero.2 h0
   exact (mem_criticalSet_iff.1 hp) ((hreg k).isRegularPoint hk.symm)
 
@@ -265,9 +288,10 @@ theorem isMorseBottFamily_momentPullback (hconn : ∀ k, IsConnected (π ⁻¹' 
     · exact isNondegenerateCriticalSubmanifold_comp_regularFiber (by simp) hπ (hreg k)
         (isManifoldNondegenerateCriticalPoint_projectiveMomentFunction fun i hi ↦
           fun hik ↦ hi (Fin.ext (Nat.cast_injective hik)))
-    · refine SmoothEmbedding.isNondegenerateCriticalSubmanifold_iff_of_subsingleton.2 fun z ↦ ?_
+    · have : Subsingleton (Fin (dim I π (.inr p)) → ℝ) := by rw [dim_inr]; infer_instance
+      refine SmoothEmbedding.isNondegenerateCriticalSubmanifold_iff_of_subsingleton.2 fun z ↦ ?_
       rw [embedding_inr_apply]
-      exact (h.isManifoldNondegenerateCriticalPoint_comp_of_mem_criticalSet hreg p.property).1
+      exact (h.manifoldMorseIndex_projectiveMomentFunction_comp hreg p.property).1
   · rintro (k | p) (k' | p') hne'
     · rw [onFun, range_embedding_inl, range_embedding_inl]
       refine disjoint_left.2 fun x hx hx' ↦ hne' ?_
@@ -285,7 +309,7 @@ theorem isMorseBottFamily_momentPullback (hconn : ∀ k, IsConnected (π ⁻¹' 
     · have hreg' : IsRegularPoint I 𝓘(ℝ, Fin 1 → ℂ) π x := not_not.1 (mt mem_criticalSet_iff.2 hc)
       rw [hreg'.mem_criticalPoints_comp_iff ((hπ x).mdifferentiableAt (by simp))
         ((contMDiff_projectiveMomentFunction (r := 1) _ _).mdifferentiableAt one_ne_zero),
-        MomentPullback.criticalPoints_projectiveMomentFunction] at hx
+        criticalPoints_projectiveMomentFunction_eq_range_coordinatePoint] at hx
       obtain ⟨k, hk⟩ := hx
       exact ⟨.inl k, by rw [range_embedding_inl]; exact hk.symm⟩
 
@@ -304,11 +328,11 @@ theorem manifoldMorseIndex_momentPullback :
     have hx := x.property
     rw [((hreg k).isRegularPoint hx).manifoldMorseIndex_comp
       (contMDiff_projectiveMomentFunction _ _) ((h.contMDiff x.val).of_le (by simp)) (by
-        rw [hx, MomentPullback.criticalPoints_projectiveMomentFunction]
+        rw [hx, criticalPoints_projectiveMomentFunction_eq_range_coordinatePoint]
         exact mem_range_self k), hx, coordinatePoint_def,
       manifoldMorseIndex_projectiveMomentFunction_natCast_complex]
   · rw [embedding_inr_apply, index_inr]
-    exact (h.isManifoldNondegenerateCriticalPoint_comp_of_mem_criticalSet hreg p.property).2
+    exact (h.manifoldMorseIndex_projectiveMomentFunction_comp hreg p.property).2
 
 end IsLefschetzFibration
 
