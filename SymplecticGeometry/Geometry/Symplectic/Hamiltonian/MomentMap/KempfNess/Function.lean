@@ -146,7 +146,7 @@ theorem kempfNessFunctionQuotient_mk (g : Gc) :
 
 section Smooth
 
-variable [FiniteDimensional ℝ E] [FiniteDimensional ℝ EC]
+variable [FiniteDimensional ℝ E]
   {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
   {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
   [TopologicalSpace M] [ChartedSpace H' M] [ContMDiffSMul IC I' ∞ Gc M]

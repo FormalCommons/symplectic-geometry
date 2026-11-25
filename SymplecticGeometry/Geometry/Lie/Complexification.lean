@@ -232,15 +232,6 @@ theorem expI_add_smul (ξ : GroupLieAlgebra I G) (s t : ℝ) :
     C.expI ((s + t) • ξ) = C.expI (s • ξ) * C.expI (t • ξ) := by
   simp only [expI_def, map_smul, mulInvariantExp_add_smul (I := IC)]
 
-/-- The exponential of the imaginary directions is smooth, as a map on the model space `E` of the
-Lie algebra of `G`. -/
-theorem contMDiff_expI [FiniteDimensional ℝ E] [FiniteDimensional ℝ EC] :
-    ContMDiff 𝓘(ℝ, E) IC ∞ fun ξ : E ↦ C.expI ξ :=
-  -- `ξ ↦ cplx (lieMap ξ)` is a linear map between the finite-dimensional model spaces; the
-  -- `show` reads it there, since the Lie algebras carry no topology of their own.
-  contMDiff_mulInvariantExp.comp (LinearMap.toContinuousLinearMap
-    (show E →ₗ[ℝ] EC from C.cplx.toLinearMap ∘ₗ C.lieMap.toLinearMap)).contMDiff
-
 /-- The polar decomposition: `polar (ξ, u) = expI ξ * toHom u`. Unlike the field `polar_apply'`,
 it takes `ξ` in the Lie algebra `GroupLieAlgebra I G`, so that it rewrites `C.polar (ξ, u)` for
 the elements of the Lie algebra, such as `t • ξ`. -/
@@ -248,6 +239,12 @@ the elements of the Lie algebra, such as `t • ξ`. -/
 theorem polar_apply (ξ : GroupLieAlgebra I G) (u : G) :
     C.polar (ξ, u) = C.expI ξ * C.toHom u :=
   C.polar_apply' ξ u
+
+/-- The exponential of the imaginary directions is smooth, as a map on the model space `E` of the
+Lie algebra of `G`: it is `ξ ↦ polar (ξ, 1)`. -/
+theorem contMDiff_expI : ContMDiff 𝓘(ℝ, E) IC ∞ fun ξ : E ↦ C.expI ξ :=
+  (C.polar.contMDiff.comp (contMDiff_id.prodMk (contMDiff_const (c := (1 : G))))).congr
+    fun ξ ↦ (C.polar_apply ξ 1).trans (by rw [map_one, mul_one]) |>.symm
 
 /-- The inverse of the polar decomposition reads `expI ξ * toHom u` as the pair `(ξ, u)`. -/
 @[simp]
