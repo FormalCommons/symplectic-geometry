@@ -103,6 +103,7 @@ variable {i : ι} {j : κ} {g : B → F →L[𝕜] G} {hg : Continuous g}
   {hgs : tsupport g ⊆ Z.baseSet i ∩ W.baseSet j}
 
 /-- The fibre map of `ofChart i j g hg hgs` at `x` is `g x` read from chart `i` to chart `j`. -/
+@[simp]
 theorem fiberMap_ofChart (x : B) :
     (ofChart i j g hg hgs).fiberMap x =
       (W.coordChange j (W.indexAt x) x).comp ((g x).comp (Z.coordChange (Z.indexAt x) i x)) :=
@@ -122,7 +123,6 @@ theorem operator_ofChart (k : ι) (l : κ) (x : ↥(Z.baseSet k ∩ W.baseSet l)
   rw [operator_eq, fiberMap_ofChart, inChartCoordinates_ofChart_eq hgs x.property]
 
 /-- In the charts `i` and `j`, the chart operator of `ofChart i j g hg hgs` is `g`. -/
-@[simp]
 theorem operator_ofChart_self (x : ↥(Z.baseSet i ∩ W.baseSet j)) :
     (ofChart i j g hg hgs).operator i j x = g x := by
   ext v
@@ -133,7 +133,7 @@ theorem operator_ofChart_self (x : ↥(Z.baseSet i ∩ W.baseSet j)) :
 @[simp]
 theorem ofChart_zero (h : tsupport (0 : B → F →L[𝕜] G) ⊆ Z.baseSet i ∩ W.baseSet j) :
     ofChart i j 0 continuous_zero h = 0 :=
-  fiberMap_injective <| funext fun x ↦ by simp [fiberMap_ofChart]
+  fiberMap_injective <| funext fun x ↦ by simp
 
 /-- `ofChart` is additive in the operator field. -/
 theorem ofChart_add {g' : B → F →L[𝕜] G} (hg' : Continuous g')
@@ -164,6 +164,7 @@ variable {𝕜 B : Type*} [NontriviallyNormedField 𝕜] [TopologicalSpace B]
 /-- For finite-rank cores, the fibre map at `x` of the morphism given by an operator field `g` in
 charts `i` and `j` is `g x` composed with the transitions from the chart at `x` to `i` and from `j`
 to the chart at `x`. -/
+@[simp high]
 theorem fiberMap_ofChart (i j : B) (g : B → (Fin A.rank → 𝕜) →L[𝕜] (Fin D.rank → 𝕜))
     (hg : Continuous g) (hgs : tsupport g ⊆ A.core.baseSet i ∩ D.core.baseSet j) (x : B) :
     (VectorBundleCore.CoordinateHom.ofChart i j g hg hgs : A ⟶ D).fiberMap x =
