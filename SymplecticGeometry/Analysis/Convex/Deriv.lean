@@ -11,7 +11,7 @@ public import Mathlib.Analysis.InnerProductSpace.Basic
 import Mathlib.Analysis.InnerProductSpace.Calculus
 
 /-!
-# Strict convexity from second derivatives along segments
+# Convexity and derivatives
 
 A real function `f` on a convex subset `s` of a real vector space, continuous on `s`, is strictly
 convex on `s` if, for all distinct `x, y ∈ s`, the restriction `t ↦ f (x + t • (y - x))` has a
@@ -25,10 +25,15 @@ the differential of `ψ` does not shrink vectors and `‖ψ u - c‖` times the 
 derivative of `ψ` stays below `1`: its second derivative along `v` is
 `2 ‖Dψ v‖ ^ 2 + 2 ⟪ψ u - c, D²ψ v v⟫`.
 
+Finally, a real function that is convex on `[x, ∞)` and has a positive right derivative at `x`
+tends to `∞` at `∞`, since there it lies above its tangent line at `x`.
+
 ## Main results
 
 * `SymplecticGeometry.strictConvexOn_of_deriv2_add_smul_pos`.
 * `ContDiffOn.strictConvexOn_norm_sub_sq`.
+* `ConvexOn.tendsto_atTop_of_hasDerivWithinAt_Ioi_pos`: a convex function with a positive right
+  derivative at a point tends to `∞` at `∞`.
 
 The first proof adapts that of Tau Ceti's `TauCeti.convexOn_of_hasFDerivAt_gradient` (convexity
 from a nonnegative Hessian along segments) to strict convexity, with the second derivative along
@@ -129,4 +134,17 @@ theorem ContDiffOn.strictConvexOn_norm_sub_sq {T F : Type*} [NormedAddCommGroup 
     exact mul_self_le_mul_self hv0.le (h₁ p hp v)
   have := neg_abs_le ⟪ψ p - c, fderiv ℝ (fderiv ℝ ψ) p v v⟫
   rw [real_inner_comm (ψ p - c)]
+  linarith
+
+/-- A function on `ℝ`, convex on `[x, ∞)` and with a positive right derivative at `x`, tends to
+`∞` at `∞`: it lies above its tangent line at `x` there. -/
+theorem ConvexOn.tendsto_atTop_of_hasDerivWithinAt_Ioi_pos {f : ℝ → ℝ} {x f' : ℝ}
+    (hfc : ConvexOn ℝ (Ici x) f) (hf : HasDerivWithinAt f f' (Ioi x) x) (hf' : 0 < f') :
+    Tendsto f atTop atTop := by
+  refine tendsto_atTop_mono' atTop ?_ <| tendsto_atTop_add_const_left _ (f x) <|
+    (tendsto_atTop_add_const_right _ (-x) tendsto_id).const_mul_atTop hf'
+  filter_upwards [eventually_gt_atTop x] with y hy
+  have h := hfc.le_slope_of_hasDerivWithinAt_Ioi self_mem_Ici hy.le hy hf
+  rw [slope_def_field, le_div_iff₀ (sub_pos.2 hy)] at h
+  simp only [id, ← sub_eq_add_neg]
   linarith
