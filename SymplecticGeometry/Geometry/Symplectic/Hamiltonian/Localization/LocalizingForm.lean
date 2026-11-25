@@ -44,12 +44,14 @@ the fixed points:
 * `SymplecticGeometry.cutoffWeightOneForm_apply_weightChart`: on a vector field `X` that `dΦ`
   relates to the generator of the rotations by the angles `2π kⱼ`, its value at `Φ z` is
   `ρ (Φ z) * (2π ∑ⱼ kⱼ² (xⱼ² + yⱼ²))`; it vanishes where `ρ` does
-  (`SymplecticGeometry.cutoffWeightOneForm_apply_of_eq_zero`), so it is nonnegative on `X` when
+  (`SymplecticGeometry.cutoffWeightOneForm_apply_of_eq_zero`), so it is nonnegative on `X` where
   `ρ` is (`SymplecticGeometry.cutoffWeightOneForm_apply_nonneg`).
 
 ## References
 
 * [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §5.6
+* N. Berline, E. Getzler and M. Vergne, *Heat Kernels and Dirac Operators*, Grundlehren der
+  mathematischen Wissenschaften 298, Springer, 1992, §7.2
 -/
 
 public section
@@ -151,20 +153,20 @@ theorem cutoffWeightOneForm_apply_weightChart {X : (x : M) → TangentSpace I x}
   exact weightOneForm_apply_weightGenerator_two_pi_mul k z
 
 /-- The cut-off model one-form is nonnegative on a vector field `X` that the differential of `Φ`
-relates, at each point of the source, to the generator `weightGenerator ((2π) • k)`, when the
-cut-off `ρ` is nonnegative. -/
+relates, at each point of the source, to the generator `weightGenerator ((2π) • k)`, at each
+point `x` where the cut-off `ρ` is nonnegative. -/
 theorem cutoffWeightOneForm_apply_nonneg {X : (x : M) → TangentSpace I x}
     (hX : ∀ z ∈ Φ.source, mfderiv 𝓘(ℝ, StdSpace ι) I Φ z
       (EuclideanSpace.sumEquivProd.symm
         (weightGenerator ((2 * π) • k) (EuclideanSpace.sumEquivProd z))) = X (Φ z))
-    (hρ₀ : ∀ x, 0 ≤ ρ x) (x : M) : 0 ≤ (cutoffWeightOneForm Φ hρ hs k).val x ![X x] := by
+    {x : M} (hρ₀ : 0 ≤ ρ x) : 0 ≤ (cutoffWeightOneForm Φ hρ hs k).val x ![X x] := by
   by_cases hx : ρ x = 0
   · rw [cutoffWeightOneForm_apply_of_eq_zero Φ hρ hs k hx]
   obtain ⟨z, hz, rfl⟩ : x ∈ Φ '' Φ.source := by
     rw [Φ.toPartialEquiv.image_source_eq_target]
     exact hs (subset_tsupport ρ hx)
   rw [cutoffWeightOneForm_apply_weightChart hρ hs k hz (hX z hz)]
-  exact mul_nonneg (hρ₀ _) (by positivity)
+  exact mul_nonneg hρ₀ (by positivity)
 
 variable {Φ} in
 /-- **The cut-off model one-form is invariant.** Let `g` act on `M` smoothly, preserving `ρ`,
