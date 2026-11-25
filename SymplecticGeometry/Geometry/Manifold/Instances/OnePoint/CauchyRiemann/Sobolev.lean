@@ -5,12 +5,16 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Analysis.Complex.Beltrami.ZeroOnePart
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Basic
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.CauchyRiemann.ZeroOneForm
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.Hilbert
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.CovariantDerivative
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.SmoothHomMul
 public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.ZeroOneForm
+import SymplecticGeometry.Analysis.Normed.Operator.ComplexLinearPart
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.ZeroOnePart
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Tames
 
 /-!
 # The Cauchy–Riemann operators `D_J` of `𝒪(1)` on Sobolev sections
@@ -67,6 +71,23 @@ realizes an operator that is Cauchy–Riemann for the complex structure of the c
 * `SymplecticGeometry.continuous_twistOneDelBarSobolev`: `D_J` depends continuously on `J`;
   `SymplecticGeometry.continuous_twistOneDelBarSobolev_tames` restricts this to the structures
   tamed by a two-form.
+* `SymplecticGeometry.exists_coord_zeroOnePart_twistOneDelBar_apply`: for `J` tamed together
+  with `i` by a two-form, in each chart of a finite bundle atlas of `𝒪(1)` the reading of the
+  `(0,1)`-part for `i` of `D_J s` is the complex-antilinear map whose value at `1` is
+  `c₂ (∂bar u + μ ∂u) + Z u`, for the reading `u` of `s`, with `c₂`, `μ`, `Z` smooth near the
+  closed chart image, `c₂ ≠ 0` and `‖μ‖ ≤ m < 1` there. The coefficient `μ` is the negative of
+  the Beltrami coefficient of `J` in the chart, so the bound is `norm_beltrami_lt_one_of_tames`
+  and compactness. The reading of the two `(0,1)`-projections is
+  `TauCeti.FiniteBundleAtlas.coord_tangentHom_zeroOnePart_zeroOnePart`, the pointwise algebra is
+  in `SymplecticGeometry.Analysis.Complex.Beltrami.ZeroOnePart`, and `Z` comes from the
+  zeroth-order term of the connection, which is complex linear
+  (`chartZeroOrder_twistOneConnection_smul`).
+
+The proof of `exists_coord_zeroOnePart_twistOneDelBar_apply` adapts those of Tau Ceti's
+`TauCeti.FiniteBundleAtlas.coord_tangentHom_eq_complexAntilinearPartL_fderiv_add_chartZeroOrder`
+and `TauCeti.FiniteBundleAtlas.exists_norm_chartZeroOrder_apply_le`
+(`TauCeti/Geometry/Manifold/VectorBundle/CauchyRiemann/Chart.lean`), the case `μ = 0`, `c₂ = 1`
+of an operator that is Cauchy–Riemann for `i`, to the operators `D_J`.
 
 ## References
 
@@ -78,7 +99,8 @@ public section
 
 open Bundle MeasureTheory Set TauCeti TauCeti.Manifold
 open OnePoint (twistCore)
-open scoped Manifold ContDiff ENNReal TauCeti.ComplexManifold VectorBundle.ComplexToReal
+open ComplexConjugate
+open scoped Manifold ContDiff ENNReal Topology TauCeti.ComplexManifold VectorBundle.ComplexToReal
 
 noncomputable section
 
@@ -213,5 +235,120 @@ theorem continuous_twistOneDelBarSobolev_tames (hcover : ∀ x, ∃ i, x ∈ U i
     Continuous fun J : {J // σ.Tames J} ↦ twistOneDelBarSobolev J.val k := by
   let _ := SmoothAlmostComplexStructure.frameTopology e U hU
   exact (continuous_twistOneDelBarSobolev e U hU hcover k).comp continuous_subtypeVal
+
+/-! ### The operator in the charts of an atlas -/
+
+/-- In every chart of a finite bundle atlas of `𝒪(1)`, the zeroth-order term of the connection
+`twistOneConnection` commutes with complex scalars on the chart image, since the connection is
+complex linear. -/
+theorem chartZeroOrder_twistOneConnection_smul
+    (A : FiniteBundleAtlas ℂ (OnePoint ℂ) ℂ (twistCore (𝕜 := ℂ) 1).Fiber) (i : Fin A.n) {z : ℂ}
+    (hz : z ∈ A.image i) (c v : ℂ) :
+    A.chartZeroOrder twistOneConnection i z (c • v) =
+      c • A.chartZeroOrder twistOneConnection i z v := by
+  have hcov := isCovariantDerivativeOn_twistOneConnection.mono (subset_univ (A.triv i).baseSet)
+  have hx : (A.chart i).symm z ∈ (A.triv i).baseSet :=
+    A.dom_subset_baseSet i (A.symm_mem_dom hz)
+  have hσ := Manifold.mdifferentiableAt_symm_of_mem_baseSet (I := 𝓘(ℝ, ℂ)) v hx
+  have heq : twistOneConnection (fun x ↦ (A.triv i).symm x (c • v)) ((A.chart i).symm z) =
+      twistOneConnection (c • fun x ↦ (A.triv i).symm x v) ((A.chart i).symm z) := by
+    refine isCovariantDerivativeOn_twistOneConnection.congr_of_eventuallyEq
+      (Manifold.mdifferentiableAt_symm_of_mem_baseSet (c • v) hx) (hσ.const_smul_section c)
+      Filter.univ_mem ?_
+    filter_upwards [(A.triv i).open_baseSet.mem_nhds hx] with y hy
+    rw [Pi.smul_apply, ← (A.triv i).coe_symmₗ (R := ℂ) hy, map_smul]
+  rw [hcov.chartZeroOrder_apply_eq_coord_tangentHom A hz,
+    hcov.chartZeroOrder_apply_eq_coord_tangentHom A hz,
+    FiniteBundleAtlas.coord_tangentHom, FiniteBundleAtlas.coord_tangentHom, heq,
+    twistOneConnection_const_smul c hσ]
+  ext w
+  simp only [ContinuousLinearMap.inCoordinates, ContinuousLinearMap.comp_apply, smul_apply]
+  rw [Trivialization.coe_continuousLinearMapAt_eq_coe_continuousLinearMapAt ℝ ℂ, map_smul,
+    ← Trivialization.coe_continuousLinearMapAt_eq_coe_continuousLinearMapAt ℝ ℂ]
+
+/-- **`D_J` in the charts.** Let a two-form `σ` tame both `J` and the standard structure `i` of
+the sphere, and let `A` be a finite bundle atlas of `𝒪(1)`, such as `twistCoreAtlas 1`. For each
+chart `i` of `A` there are an open set `U` containing the closure of the chart image and
+functions `c₂ μ Z : ℂ → ℂ`, smooth on `U`, with `c₂ ≠ 0` on `U` and `‖μ‖ ≤ m` on the closure of
+the chart image for some `m < 1`, such that the following holds for every section `s` of `𝒪(1)`
+and every point `z` of the chart image over which `s` is differentiable. With `u = A.coord i s`
+the chart reading of `s`, the chart reading at `z` of the `(0,1)`-part for `i` of `D_J s` is the
+complex-antilinear map `v ↦ conj v · (c₂ (∂bar u + μ ∂u) + Z u)`. -/
+theorem exists_coord_zeroOnePart_twistOneDelBar_apply
+    {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)} (hJ : σ.Tames J) (hi : σ.Tames 𝒊)
+    (A : FiniteBundleAtlas ℂ (OnePoint ℂ) ℂ (twistCore (𝕜 := ℂ) 1).Fiber) (i : Fin A.n) :
+    ∃ U : Set ℂ, IsOpen U ∧ closure (A.image i : Set ℂ) ⊆ U ∧
+      ∃ c₂ μ Z : ℂ → ℂ, ContDiffOn ℝ ∞ c₂ U ∧ ContDiffOn ℝ ∞ μ U ∧ ContDiffOn ℝ ∞ Z U ∧
+        (∀ z ∈ U, c₂ z ≠ 0) ∧ (∃ m < 1, ∀ z ∈ closure (A.image i : Set ℂ), ‖μ z‖ ≤ m) ∧
+        ∀ (s : Π x, (twistCore (𝕜 := ℂ) 1).Fiber x), ∀ z ∈ A.image i,
+          MDifferentiableAt 𝓘(ℝ, ℂ) (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ))
+            (fun x ↦ TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) 1).Fiber) x (s x))
+            ((A.chart i).symm z) →
+          ∀ v : ℂ, A.tangentHom.coord i (fun x ↦ 𝒊.zeroOnePart (twistOneDelBar J s x)) z v =
+            conj v * (c₂ z * ((fderiv ℝ (A.coord i s) z).complexAntilinearPart 1 +
+                μ z * (fderiv ℝ (A.coord i s) z).complexLinearPart 1) +
+              Z z * A.coord i s z) := by
+  set K := J.inChart (A.center i) with hK
+  set G : ℂ → ℂ →L[ℝ] ℂ := fun z ↦ A.chartZeroOrder twistOneConnection i z 1 with hG
+  set U : Set ℂ := (A.chart i).target ∩ (A.chart i).symm ⁻¹' (A.triv i).baseSet
+  have hUt : U ⊆ (extChartAt 𝓘(ℝ, ℂ) (A.center i)).target := fun z hz ↦ by simpa using hz.1
+  -- `J` read in the chart is a complex structure on `ℂ` with `K 1 ≠ -i`.
+  have hKK (z : ℂ) (hz : z ∈ U) (v : ℂ) : K z (K z v) = -v :=
+    J.inChart_inChart (A.center i) (hUt hz) v
+  have hK1 (z : ℂ) (hz : z ∈ U) : K z 1 ≠ -Complex.I := fun h ↦ by
+    have := SmoothAlmostComplexStructure.im_inChart_apply_one_pos_of_tames hJ hi (A.center i)
+      (hUt hz)
+    rw [← hK, h] at this
+    norm_num at this
+  have hden (z : ℂ) (hz : z ∈ U) : conj (K z 1) - Complex.I ≠ 0 := fun h ↦ hK1 z hz (by
+    simpa using congrArg conj (sub_eq_zero.1 h))
+  set c₂ : ℂ → ℂ := fun z ↦ 2⁻¹ * (1 + Complex.I * conj ((K z).complexLinearPart 1))
+  set μ : ℂ → ℂ := fun z ↦ (K z 1 - Complex.I) / (conj (K z 1) - Complex.I) with hμ
+  set Z : ℂ → ℂ := fun z ↦ c₂ z * ((G z).complexAntilinearPart 1 +
+    μ z * (G z).complexLinearPart 1)
+  have hKs : ContDiffOn ℝ ∞ K U := (J.contDiffOn_inChart (A.center i)).mono hUt
+  have hGs : ContDiffOn ℝ ∞ G U := by
+    have := (isCovariantDerivativeOn_twistOneConnection.contDiffOn_chartZeroOrder A
+      (contMDiffCovariantDerivativeOn_twistOneConnection ⊤) isOpen_univ i)
+    rw [inter_univ] at this
+    exact this.clm_apply contDiffOn_const
+  have hconj {f : ℂ → ℂ} (hf : ContDiffOn ℝ ∞ f U) : ContDiffOn ℝ ∞ (fun z ↦ conj (f z)) U :=
+    Complex.conjCLE.contDiff.comp_contDiffOn hf
+  have hK1s : ContDiffOn ℝ ∞ (fun z ↦ K z 1) U := hKs.clm_apply contDiffOn_const
+  have hc₂s : ContDiffOn ℝ ∞ c₂ U := contDiffOn_const.mul
+    (contDiffOn_const.add (contDiffOn_const.mul (hconj (hKs.complexLinearPart_apply 1))))
+  have hμs : ContDiffOn ℝ ∞ μ U := by
+    simp only [hμ, div_eq_mul_inv]
+    exact (hK1s.sub contDiffOn_const).mul (((hconj hK1s).sub contDiffOn_const).inv hden)
+  have hcl : closure (A.image i : Set ℂ) ⊆ U :=
+    (A.closure_image_subset_chart_image_closure_dom i).trans (A.chart_image_closure_dom_subset i)
+  refine ⟨U, (A.chart i).isOpen_inter_preimage_symm (A.triv i).open_baseSet, hcl, c₂, μ, Z, hc₂s,
+    hμs, hc₂s.mul ((hGs.complexAntilinearPart_apply 1).add (hμs.mul
+      (hGs.complexLinearPart_apply 1))), fun z hz ↦ mul_ne_zero (inv_ne_zero two_ne_zero)
+      (ContinuousLinearMap.one_add_I_mul_conj_complexLinearPart_one_ne_zero (hKK z hz) (hK1 z hz)),
+    ?_, ?_⟩
+  · -- `‖μ‖ < 1` at every point, and the closure of the chart image is compact.
+    have hlt (z : ℂ) (hz : z ∈ U) : ‖μ z‖ < 1 := by
+      have := norm_beltrami_lt_one_of_tames J hJ hi (A.center i) (hUt hz)
+      rwa [← norm_neg, ← neg_div, neg_sub] at this
+    obtain ⟨a, ha, hle⟩ := (A.isCompact_closure_image i).exists_forall_le'
+      (hμs.continuousOn.norm.neg.mono hcl) fun z hz ↦ neg_lt_neg (hlt z (hcl hz))
+    exact ⟨-a, by linarith, fun z hz ↦ le_neg_of_le_neg (hle z hz)⟩
+  · intro s z hz hs v
+    have hzU : z ∈ U := hcl (subset_closure hz)
+    have hcov := isCovariantDerivativeOn_twistOneConnection.mono (subset_univ (A.triv i).baseSet)
+    -- `Γu` is `u · Γ1`, since the zeroth-order term is complex linear.
+    have hΓ : A.chartZeroOrder twistOneConnection i z (A.coord i s z) = A.coord i s z • G z := by
+      rw [hG, ← chartZeroOrder_twistOneConnection_smul A i hz, smul_eq_mul, mul_one]
+    simp_rw [twistOneDelBar_def]
+    rw [A.coord_tangentHom_zeroOnePart_zeroOnePart J hz,
+      ContinuousLinearMap.complexAntilinearPartL_half_smul_add_I_smul_comp_apply (hKK z hzU)
+        (hK1 z hzU),
+      hcov.coord_tangentHom_eq_fderiv_add_chartZeroOrder A hz hs, hΓ]
+    simp only [ContinuousLinearMap.complexLinearPart_add,
+      ContinuousLinearMap.complexAntilinearPart_add, add_apply,
+      ContinuousLinearMap.complexLinearPart_complex_smul,
+      ContinuousLinearMap.complexAntilinearPart_complex_smul, smul_apply, smul_eq_mul, c₂, μ, Z]
+    ring
 
 end SymplecticGeometry
