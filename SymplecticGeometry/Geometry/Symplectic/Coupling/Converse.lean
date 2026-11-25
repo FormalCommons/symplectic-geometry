@@ -85,15 +85,16 @@ of the circle bundle of the level `H = a`, is an equivariant map into the level 
 injective differential and tangent images `ker dH`, so it pulls `σ` back to the pull-back of a
 unique symplectic form on the base
 (`SymplecticGeometry.existsUnique_isSymplectic_mpullback_eq_mpullback_bandMap`, which applies
-`SymplecticGeometry.existsUnique_isSymplectic_mpullback_projContMDiffMap_eq` of
+`TauCeti.SmoothTwoForm.IsMomentMap.existsUnique_isSymplectic_mpullback_projContMDiffMap_eq` of
 `Hamiltonian/Reduction/Circle.lean`).
 
 The last section puts these together into the converse of minimal coupling
 (`SymplecticGeometry.exists_isCouplingForm_comp_eq`). Let the circle preserve a symplectic form
 `σ` with moment map `-μ`, and let the band `K = H⁻¹([a, b])` be compact with the action free on
-it. Then `H` has no critical point on `K`
-(`SymplecticGeometry.mfderiv_ne_zero_of_notMem_fixedPoints`, in
-`Hamiltonian/MomentMap/Circle.lean`), so `a` is a regular value of `H` and
+it. Then `⟨-μ, circlePeriodOneGenerator⟩ = -H` has no critical point on `K`
+(`TauCeti.SmoothTwoForm.IsMomentMap.mem_criticalPoints_circlePeriodOneGenerator_iff`, in
+`Hamiltonian/MomentMap/Circle.lean`), and nor has `H` (`TauCeti.criticalPoints_neg`), so `a` is a
+regular value of `H` and
 `SymplecticGeometry.exists_invariant_vectorField_mfderiv_eq_one` gives the field `v`; `H` is
 invariant (`TauCeti.SmoothTwoForm.IsMomentMap.apply_smul_circle`), so `H⁻¹(a)` is a free invariant
 regular level (`SymplecticGeometry.isFreeRegularLevel_of_stabilizer_eq_bot`). The band map
@@ -445,8 +446,12 @@ theorem isFreeRegularLevel_of_stabilizer_eq_bot {σ : SmoothTwoForm I M}
     IsFreeRegularLevel Circle I (fun y ↦ μ y circlePeriodOneGenerator) c
       (Module.finrank ℝ E - 1) where
   contMDiffAt x _ := (hμ.contMDiff_of_neg circlePeriodOneGenerator).contMDiffAt
-  isRegularValue := isRegularValue_of_notMem_fixedPoints hμ hσ fun x hx ↦
-    MulAction.notMem_fixedPoints_of_stabilizer_eq_bot (hfree x hx)
+  isRegularValue := by
+    -- `-c` is a regular value of `⟨-μ, circlePeriodOneGenerator⟩ = -H`.
+    have hreg := hμ.isRegularValue_of_notMem_fixedPoints hσ (c := -c) fun x hx ↦
+      MulAction.notMem_fixedPoints_of_stabilizer_eq_bot (hfree x (by simpa using hx))
+    rw [← neg_neg c, ← isRegularValue_neg_iff, Pi.neg_def]
+    simpa using hreg
   finrank_sub := by rw [Module.finrank_self]
   apply_smul g x := congrArg (· circlePeriodOneGenerator) (neg_injective (hμ.apply_smul_circle g x))
   stabilizer_eq_bot := hfree
@@ -583,11 +588,14 @@ theorem existsUnique_isSymplectic_mpullback_eq_mpullback_bandMap (hf : Continuou
   intro IB P e hψ t
   obtain ⟨-, hψs, hψf, -⟩ := bandMap_orbitFiber hf h hv hcomplete hvinv hW hfv hband (b := b)
   have hs := bandMap_orbitFiber_slice hf h hv hcomplete hW hfv hband (b := b)
-  refine existsUnique_isSymplectic_mpullback_projContMDiffMap_eq hσ hσs hμ _
-    (fun g p ↦ hψs g (p, t)) (t := t) (fun p ↦ (hμf _).trans (hψf (p, t)))
+  refine hμ.existsUnique_isSymplectic_mpullback_projContMDiffMap_eq hσ hσs _
+    (fun g p ↦ hψs g (p, t)) (t := -t)
+    (fun p ↦ (LinearMap.neg_apply _ _).trans (congrArg Neg.neg ((hμf _).trans (hψf (p, t)))))
     (fun p ↦ LinearMap.ker_eq_bot.mp (hs t p).1) fun p ↦ ?_
-  rw [funext hμf]
-  exact (hs t p).2
+  -- The component of `-μ` along `circlePeriodOneGenerator` is `-f`.
+  rw [show (fun x ↦ (-μ x) circlePeriodOneGenerator) = -f from funext fun x ↦ by simp [hμf],
+    mfderiv_neg, ContinuousLinearMap.toLinearMap_neg]
+  exact (hs t p).2.trans (LinearMap.ker_neg _).symm
 
 end RegularLevel
 
@@ -685,9 +693,13 @@ theorem exists_isCouplingForm_comp_eq (hσ : σ.IsSymplectic)
   intro IB B P
   -- An invariant complete field `v` with `dH(v) = 1` near the band, where `dH ≠ 0`.
   obtain ⟨v, W, hv, -, hvc, hvinv, hW, hKW, -, hvf⟩ :=
-    exists_invariant_vectorField_mfderiv_eq_one (𝓡 1) (G := Circle) hf h.apply_smul hK fun x hx ↦
-      mfderiv_ne_zero_of_notMem_fixedPoints hμ (hσ.isNondegenerate.nondegenerate_bilinFormAt x)
+    exists_invariant_vectorField_mfderiv_eq_one (𝓡 1) (G := Circle) hf h.apply_smul hK fun x hx ↦ by
+      -- `x` is not a critical point of `⟨-μ, circlePeriodOneGenerator⟩ = -H`.
+      have hx' := (hμ.mem_criticalPoints_circlePeriodOneGenerator_iff
+        (hσ.isNondegenerate.nondegenerate_bilinFormAt x)).not.2
         (MulAction.notMem_fixedPoints_of_stabilizer_eq_bot (hfree x hx))
+      rw [Ne, ← mem_criticalPoints_iff_mfderiv_eq_zero, ← criticalPoints_neg, Pi.neg_def]
+      simpa [H] using hx'
   obtain ⟨hψ, hψs, hψf, hinj, hrange, hX⟩ :=
     bandMap_orbitFiber hf.continuous h hv hvc hvinv hW hvf hKW (b := b)
   have hτ := existsUnique_isSymplectic_mpullback_eq_mpullback_bandMap hf.continuous h hv
