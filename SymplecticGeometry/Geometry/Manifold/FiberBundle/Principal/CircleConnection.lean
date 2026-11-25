@@ -123,7 +123,7 @@ theorem exists_eq_smul_rightFundamentalVectorField_of_mfderiv_proj_eq_zero {n : 
     rw [ManifoldTotalSpace.coe_projContMDiffMap] at hv
     exact hv
   obtain ⟨η, rfl⟩ := hv'
-  obtain ⟨c, hc⟩ := exists_smul_eq_of_ne_zero_circle hξ η
+  obtain ⟨c, hc⟩ := exists_smul_eq_of_finrank_eq_one finrank_groupLieAlgebra_circle hξ η
   refine ⟨c, ?_⟩
   rw [PrincipalBundle.rightFundamentalLinearMap_apply, ← hc]
   exact congrFun (rightFundamentalVectorField_smul c _) x
@@ -182,7 +182,8 @@ theorem isConnectionForm_mapCoeff_iff :
   · refine smul_left_injective ℝ circleLieGenerator_ne_zero ?_
     simp only [one_smul]
     rw [← hval, hA.apply_rightFundamentalVectorField]
-  · obtain ⟨c, rfl⟩ := exists_smul_eq_of_ne_zero_circle circleLieGenerator_ne_zero ξ
+  · obtain ⟨c, rfl⟩ :=
+      exists_smul_eq_of_finrank_eq_one finrank_groupLieAlgebra_circle circleLieGenerator_ne_zero ξ
     rw [hval, rightFundamentalVectorField_smul, Pi.smul_apply,
       ContinuousAlternatingMap.vecCons_smul, hα.apply_rightFundamentalVectorField, smul_eq_mul,
       mul_one]
