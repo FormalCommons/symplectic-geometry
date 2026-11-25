@@ -26,6 +26,10 @@ Tau Ceti's `TauCeti.SmoothTwoForm.isHamiltonianVectorField_zero_iff`, by which t
 Hamiltonian vector field of `f` exactly when `df` vanishes everywhere; for constant functions it is
 Tau Ceti's `TauCeti.SmoothTwoForm.isHamiltonianVectorField_const`.
 
+Adding to `σ` a two-form that pairs a Hamiltonian vector field with every tangent vector to zero
+keeps it a Hamiltonian vector field of the same function
+(`TauCeti.SmoothTwoForm.IsHamiltonianVectorField.add_of_eval₂_eq_zero`).
+
 The results extend Tau Ceti's file of the same path, in its namespace.
 
 ## References
@@ -47,6 +51,15 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topological
 theorem isHamiltonianVectorField_zero_of_isLocallyConstant (hf : IsLocallyConstant f) :
     σ.IsHamiltonianVectorField f 0 :=
   isHamiltonianVectorField_zero_iff.2 fun _ ↦ by rw [mvfderiv_eq_zero_iff, hf.mfderiv_eq_zero]
+
+/-- If `X` is a Hamiltonian vector field of `f` for `σ` and the two-form `τ` pairs `X` with every
+tangent vector to zero, then `X` is a Hamiltonian vector field of `f` for `σ + τ`. -/
+theorem IsHamiltonianVectorField.add_of_eval₂_eq_zero {τ : SmoothTwoForm I M}
+    {X : (x : M) → TangentSpace I x} (hX : σ.IsHamiltonianVectorField f X)
+    (hτ : ∀ x v, SmoothBundleForm.eval₂ τ x (X x) v = 0) :
+    (σ + τ).IsHamiltonianVectorField f X :=
+  isHamiltonianVectorField_iff.2 fun x v ↦ by
+    rw [SmoothBundleForm.eval₂_add, hτ, add_zero, isHamiltonianVectorField_iff.1 hX]
 
 end TauCeti.SmoothTwoForm
 
