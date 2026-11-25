@@ -5,8 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.FirstJet.Linearization
 public import TauCeti.Geometry.Manifold.VectorBundle.FirstJet.Connection
-public import TauCeti.Geometry.Manifold.VectorBundle.Section.Linearization
 
 /-!
 # Covariant derivatives at a zero of a section
@@ -17,14 +17,13 @@ without any connection, by differentiating `σ` in a trivialization. This file s
 covariant derivative `∇` computes it: `∇σ(x)` is this linearization.
 
 The proof goes through first jets: at a zero, the first jet `j¹σ(x)` is the jet of its
-linearization under the inclusion `Hom(TₓM, Vₓ) → J¹Vₓ`, and Tau Ceti's splitting
+linearization under the inclusion `Hom(TₓM, Vₓ) → J¹Vₓ`
+(`TauCeti.FirstJetBundle.jet_eq_ofDeriv_sectionLinearization`), and Tau Ceti's splitting
 `TauCeti.FirstJetBundle.covariantDerivative` of the first-jet sequence by `∇` sends `j¹σ(x)` to
 `∇σ(x)` and is a left inverse of that inclusion.
 
 ## Main results
 
-* `TauCeti.FirstJetBundle.jet_eq_ofDeriv_sectionLinearization`: at a zero, the first jet of a
-  section is the jet of its linearization.
 * `IsCovariantDerivativeOn.apply_eq_sectionLinearization`: a covariant derivative on a set
   containing a zero `x` of a section differentiable at `x` sends it to its linearization at `x`;
   `CovariantDerivative.apply_eq_sectionLinearization` is the case of a global covariant
@@ -49,25 +48,6 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] [CompleteSpace 𝕜]
   [∀ x, Module 𝕜 (V x)] [∀ x, TopologicalSpace (V x)] [∀ x, IsTopologicalAddGroup (V x)]
   [∀ x, ContinuousSMul 𝕜 (V x)] [FiberBundle F V] [VectorBundle 𝕜 F V] [FiniteDimensional 𝕜 F]
   [IsManifold I 1 M] [ContMDiffVectorBundle 1 F V I] {σ : Π x : M, V x} {x : M}
-
-namespace TauCeti.FirstJetBundle
-
-omit [CompleteSpace 𝕜] [FiniteDimensional 𝕜 F] in
-/-- At a zero `x` of a section `σ`, the first jet `j¹σ(x)` is the jet, under the inclusion
-`Hom(TₓM, Vₓ) → J¹Vₓ`, of the linearization of `σ` at `x`. -/
-theorem jet_eq_ofDeriv_sectionLinearization (hzero : σ x = 0) :
-    jet I F σ x = ofDeriv I F x (sectionLinearization (F := F) I id σ x) := by
-  have hx := mem_baseSet_trivializationAt F V x
-  refine Prod.ext ?_ ?_
-  · rw [jet_fst, ofDeriv_fst, hzero]
-    exact congrArg Prod.snd ((trivializationAt F V x).zeroSection 𝕜 hx)
-  · rw [ofDeriv_snd, jet_snd_eq_mvfderiv]
-    ext v
-    simp only [ContinuousLinearMap.comp_apply, sectionLinearization_def, id_eq,
-      (trivializationAt F V x).continuousLinearMapAt_symmL hx]
-
-end TauCeti.FirstJetBundle
-
 
 namespace IsCovariantDerivativeOn
 
