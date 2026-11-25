@@ -43,9 +43,9 @@ structures are defined. It makes `f` increase strictly along `X` away from the c
 ## Implementation notes
 
 The declarations about gradient-like fields are in the namespace `TauCeti`, since they concern
-only Tau Ceti's and Mathlib's notions. The metric is a `Bundle.ContMDiffRiemannianMetric`, and the norm of the gradient
-is taken for the `RiemannianBundle` instance that it defines, as in Tau Ceti's
-`TauCeti.IsAdaptedPseudoGradient.exists_contMDiffRiemannianMetric_neg_mgradient_eq`; this
+only Tau Ceti's and Mathlib's notions. The metric is a `Bundle.ContMDiffRiemannianMetric`, and
+the norm of the gradient is taken for the `RiemannianBundle` instance that it defines, as in
+Tau Ceti's `TauCeti.IsAdaptedPseudoGradient.exists_contMDiffRiemannianMetric_neg_mgradient_eq`; this
 instance is introduced in the statements only.
 
 ## References
