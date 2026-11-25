@@ -30,6 +30,9 @@ the direct sum `⨁ k, H^{2k}(X; ℤ)` is a commutative ring. This file builds i
   homogeneous, `a ^ (k + 1)` being `a ^ k ⌣ a` in degree `2(k + 1)`.
 * `TopCat.aeval_evenIntegralCohomologyOf_apply`: for a class `a` of degree two and `p ∈ ℤ[X]`,
   the component of degree `2i` of `p(a)` is `pᵢ • a ^ i`.
+* `TopCat.one_add_evenIntegralCohomologyOf_pow_apply`: the component of degree `2k` of
+  `(1 + a) ^ n` is `n.choose k • a ^ k`; `TopCat.one_add_evenIntegralCohomologyOf_pow_apply_one`
+  is its case `k = 1`, `n • a`.
 * `TopCat.evenIntegralCohomologyMap f`: the ring map induced by a continuous map `f : X ⟶ Y`,
   the pull-back in each degree, with `evenIntegralCohomologyMap_of`,
   `evenIntegralCohomologyMap_toAddMonoidHom` (as an additive map, the direct sum of the
@@ -228,6 +231,21 @@ theorem aeval_evenIntegralCohomologyOf_apply (a : X.integralCohomology 2) (p : P
   · intro h
     rw [Polynomial.coeff_eq_zero_of_natDegree_lt (by simpa using h), zero_smul,
       DirectSum.zero_apply]
+
+/-- For a class `a` of degree two, the component of degree `2k` of `(1 + a) ^ n` is the binomial
+coefficient `n.choose k` times the component of degree `2k` of `a ^ k`. -/
+theorem one_add_evenIntegralCohomologyOf_pow_apply (a : X.integralCohomology 2) (n k : ℕ) :
+    ((1 + X.evenIntegralCohomologyOf 1 a) ^ n) k =
+      (n.choose k : ℤ) • (X.evenIntegralCohomologyOf 1 a ^ k) k := by
+  have h := X.aeval_evenIntegralCohomologyOf_apply a ((1 + Polynomial.X) ^ n) k
+  simp only [map_pow, map_add, map_one, Polynomial.aeval_X] at h
+  rw [h, Polynomial.coeff_one_add_X_pow]
+
+/-- For a class `a` of degree two, the component of degree two of `(1 + a) ^ n` is `n • a`. -/
+theorem one_add_evenIntegralCohomologyOf_pow_apply_one (a : X.integralCohomology 2) (n : ℕ) :
+    ((1 + X.evenIntegralCohomologyOf 1 a) ^ n) 1 = (n : ℤ) • a := by
+  rw [one_add_evenIntegralCohomologyOf_pow_apply, Nat.choose_one_right, pow_one,
+    DirectSum.of_eq_same]
 
 variable {X} {Y Z : TopCat.{0}}
 

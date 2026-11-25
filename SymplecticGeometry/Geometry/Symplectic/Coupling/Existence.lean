@@ -53,7 +53,7 @@ condition `[τ t] - [τ a] = -(t - a) c₁(P)`. That condition makes the forms
 * `SymplecticGeometry.exists_isCouplingForm`: over a compact Hausdorff boundaryless base, a
   smooth family `τ` of symplectic forms satisfying the cohomological condition has a coupling
   form, and it is symplectic. The primitives `β t` come from
-  `SymplecticGeometry.exists_isSmoothFamily_mextDerivₗ_eq_Icc`, since a compact manifold has a
+  `SymplecticGeometry.exists_isSmoothFamily_mextDerivₗ_eq`, since a compact manifold has a
   finite good cover (`SymplecticGeometry.hasFiniteGoodCover_of_compactSpace`), and the coupling
   form is symplectic by `SymplecticGeometry.IsCouplingForm.isSymplectic`.
 
@@ -394,7 +394,7 @@ theorem exists_isCouplingForm [IB.Boundaryless] [FiniteDimensional ℝ EB] [Comp
     convert (hα.mk_sub_mk_eq_smul_realFirstChernClass_iff _ _ _).1 (hcoh t a') using 1
     module
   obtain ⟨β, hβ, hdβ⟩ :=
-    exists_isSmoothFamily_mextDerivₗ_eq_Icc hasFiniteGoodCover_of_compactSpace hη hex
+    exists_isSmoothFamily_mextDerivₗ_eq hasFiniteGoodCover_of_compactSpace hη hex
   have h := hα.isCouplingForm_couplingForm hβ (hτs a').isClosed hdβ
   exact ⟨_, h, h.isSymplectic fun t ↦ (hτs t).isNondegenerate⟩
 
