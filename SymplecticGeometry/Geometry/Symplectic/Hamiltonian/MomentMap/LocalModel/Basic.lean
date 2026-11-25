@@ -7,7 +7,7 @@ module
 
 public import TauCeti.Geometry.Symplectic.Coadjoint.LieGroup
 public import TauCeti.Geometry.Symplectic.Cotangent.Bundle.LeftTrivialization
-public import SymplecticGeometry.Geometry.Manifold.ContMDiff.LinearMap
+public import TauCeti.Geometry.Manifold.ContMDiff.FiniteDimension
 public import TauCeti.Geometry.Manifold.MFDeriv.ContinuousLinearMap
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Linear
@@ -89,6 +89,18 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensi
   {J : ModelWithCorners ℝ E' H'} [TopologicalSpace N] [ChartedSpace H' N]
   {ν : N → Module.Dual ℝ (GroupLieAlgebra I G)}
 
+omit [LieGroup I ∞ G] in
+/-- If the components `p ↦ ν p ξ` of a family of covectors on `𝔤` are smooth, then so is the
+family read as continuous linear maps `N → E →L[ℝ] ℝ`, on `E = 𝔤`: the form in which Tau Ceti's
+lemmas on the left trivialization take it. -/
+theorem contMDiff_toContinuousLinearMap_of_contMDiff_apply
+    (hν : ∀ ξ, ContMDiff J 𝓘(ℝ) ∞ fun p ↦ ν p ξ) :
+    -- The `show` is needed: `GroupLieAlgebra I G` is `E` by definition but has no normed
+    -- instances, so the covectors are read as linear maps on `E`, which are continuous.
+    ContMDiff J 𝓘(ℝ, E →L[ℝ] ℝ) ∞
+      fun p ↦ LinearMap.toContinuousLinearMap (show E →ₗ[ℝ] ℝ from ν p) :=
+  fun p ↦ contMDiffAt_clm_apply.2 fun ξ ↦ hν ξ p
+
 variable [IsManifold J 1 N]
 
 /-- The two-form `-d⟨ν, θ⟩ + pr_N^* β` on `G × N`: the sum of the pullback of the canonical
@@ -98,8 +110,7 @@ The map `Φ ∘ (id × ν)` sends `(g, p)` to the covector `ν p ∘ d(L_{g⁻¹
 def leftInvariantCovectorMapForm (hν : ∀ ξ, ContMDiff J 𝓘(ℝ) ∞ fun p ↦ ν p ξ)
     (β : SmoothForm J N ℝ 2) : SmoothForm (I.prod J) (G × N) ℝ 2 :=
   SmoothForm.mpullback (Prod.map id _) (contMDiff_id.prodMap
-      ((LinearMap.contMDiff_toContinuousLinearMap_iff
-        (f := fun p ↦ show E →ₗ[ℝ] ℝ from ν p)).2 hν))
+      (contMDiff_toContinuousLinearMap_of_contMDiff_apply hν))
       (SmoothForm.mpullback (leftTrivialization I G) (leftTrivialization I G).contMDiff
         (symplecticForm I G)) +
     SmoothForm.mpullback Prod.snd contMDiff_snd β
@@ -108,8 +119,7 @@ theorem leftInvariantCovectorMapForm_def (hν : ∀ ξ, ContMDiff J 𝓘(ℝ) �
     (β : SmoothForm J N ℝ 2) :
     leftInvariantCovectorMapForm hν β =
       SmoothForm.mpullback (Prod.map id _) (contMDiff_id.prodMap
-          ((LinearMap.contMDiff_toContinuousLinearMap_iff
-            (f := fun p ↦ show E →ₗ[ℝ] ℝ from ν p)).2 hν))
+          (contMDiff_toContinuousLinearMap_of_contMDiff_apply hν))
           (SmoothForm.mpullback (leftTrivialization I G) (leftTrivialization I G).contMDiff
             (symplecticForm I G)) +
         SmoothForm.mpullback Prod.snd contMDiff_snd β :=
@@ -131,8 +141,7 @@ theorem mpullback_mul_left_leftInvariantCovectorMapForm
     SmoothForm.mpullback (Prod.map (k * ·) id) (contMDiff_mul_left.prodMap contMDiff_id)
         (leftInvariantCovectorMapForm hν β) =
       leftInvariantCovectorMapForm hν β := by
-  have hf := (LinearMap.contMDiff_toContinuousLinearMap_iff
-      (f := fun p ↦ show E →ₗ[ℝ] ℝ from ν p)).2 hν
+  have hf := contMDiff_toContinuousLinearMap_of_contMDiff_apply hν
   have hΦ := (leftTrivialization I G).contMDiff.comp (contMDiff_id.prodMap hf)
   -- Left translation of the factor `G` becomes the cotangent-lifted action of `k` on `T*G`.
   have h : (leftTrivialization I G ∘ Prod.map id
@@ -183,8 +192,7 @@ theorem eval₂_leftInvariantCovectorMapForm
         mvfderiv J (fun y ↦ ν y (mfderiv I I (g⁻¹ * ·) g (tangentSpaceProdEquiv (g, p) u₁).1)) p
           (tangentSpaceProdEquiv (g, p) u₂).2 +
         β.eval₂ p (tangentSpaceProdEquiv (g, p) u₁).2 (tangentSpaceProdEquiv (g, p) u₂).2 := by
-  have hf := (LinearMap.contMDiff_toContinuousLinearMap_iff
-      (f := fun p ↦ show E →ₗ[ℝ] ℝ from ν p)).2 hν
+  have hf := contMDiff_toContinuousLinearMap_of_contMDiff_apply hν
   have hd (ξ : GroupLieAlgebra I G) (w : TangentSpace J p) :
       mvfderiv J (fun y ↦ ν y ξ) p w =
         mvfderiv J (fun y ↦ LinearMap.toContinuousLinearMap (show E →ₗ[ℝ] ℝ from ν y)) p w ξ :=
@@ -300,9 +308,10 @@ variable [FiniteDimensional ℝ A] [FiniteDimensional ℝ V]
   (ι𝔥 : Module.Dual ℝ 𝔥 →ₗ[ℝ] Module.Dual ℝ (GroupLieAlgebra I G))
 
 /-- The two-form of the local model on `G × (A × V)`: the form
-`Φ_ν^* ω + pr_V^* σ = -d⟨ν, θ⟩ + pr_V^* σ` of `SymplecticGeometry.leftInvariantCovectorMapForm`,
-for the covectors `ν = localModelCovector σ ρ τ ι𝔪 ι𝔥` and the constant two-form `σ` on `V`
-pulled back along the projection `pr_V : A × V → V`. -/
+`(id × ν)^* Φ^* ω + pr_V^* σ = -d⟨ν, θ⟩ + pr_V^* σ` of
+`SymplecticGeometry.leftInvariantCovectorMapForm`, with `Φ` Tau Ceti's left trivialization of
+`T*G`, for the covectors `ν = localModelCovector σ ρ τ ι𝔪 ι𝔥` and the constant two-form `σ` on
+`V` pulled back along the projection `pr_V : A × V → V`. -/
 def localModelForm : SmoothForm (I.prod 𝓘(ℝ, A × V)) (G × (A × V)) ℝ 2 :=
   leftInvariantCovectorMapForm (contMDiff_localModelCovector_apply σ ρ τ ι𝔪 ι𝔥)
     (SmoothForm.mpullback Prod.snd contDiff_snd.contMDiff σ.constSmooth)
