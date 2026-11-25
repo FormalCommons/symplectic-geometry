@@ -184,8 +184,9 @@ section LowerOrder
 variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℂ F]
 
 /-- **The lower-order term of the commutator.** Let `μ` be of class `C^{k+1}` on an open set `U`
-containing a compact set `K`, and `1 ≤ p`. There is a constant `C` such that for every `v` of class
-`C^{k+1}` with `tsupport v ⊆ K` and every `j ≤ k`, the `Lᵖ` norm of the derivative of order `j` of
+containing a compact set `K`, let `ν` be finite on compact sets, and `1 ≤ p`. There is a constant
+`C` such that for every `v` of class `C^{k+1}` with `tsupport v ⊆ K` and every `j ≤ k`, the `Lᵖ(ν)`
+norm of the derivative of order `j` of
 `(∂ₐμ) ∂v(·) 1` is at most `C` times the sum of the `Lᵖ` norms of the derivatives of `v` of order
 at most `k + 1`. -/
 theorem exists_eLpNorm_iteratedFDeriv_fderiv_smul_wirtingerDeriv_le (ν : Measure ℂ)
