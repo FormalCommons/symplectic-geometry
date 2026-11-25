@@ -522,8 +522,7 @@ Named like Tau Ceti's file, in `TauCeti.SmoothForm.IsContactForm`, with
 
   The chart is Tau Ceti's strict chart followed by
   `σ.toDiffeomorph.toPartialDiffeomorph` (`PartialDiffeomorph.trans`), whose
-  differential is `PartialDiffeomorph.mvfderiv_trans_toDiffeomorph` in
-  `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean`; the form identity holds
+  differential is Tau Ceti's `ContinuousLinearEquiv.mvfderiv_comp_apply`; the form identity holds
   because $\sigma$ pulls `innerProductContactForm V` back to its negative.
   The Reeb clause: the chart carries $R_\alpha$ to the Reeb field of
   `-innerProductContactForm V`, by
@@ -785,10 +784,7 @@ Expected size: 650 lines, in two issues (L1 and L2).
   `C^(m + 1)` structures from `C^∞` ones, in
   `Geometry/Manifold/TubularNeighborhood/Riemannian/Injective.lean`,
   `LegendrianNeighborhood.lean` and `Family.lean`.
-- *Moser isotopy*: `PartialDiffeomorph.mvfderiv_trans_toDiffeomorph` of
-  `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean`, already merged (for
-  `Darboux/Strict.lean`),
-  `SmoothForm.mpullback_prodMk_mpullback_prodMap'` and its variants of
+- *Moser isotopy*: `SmoothForm.mpullback_prodMk_mpullback_prodMap'` and its variants of
   `Geometry/Manifold/DifferentialForm/Pullback/Family.lean`, already merged
   (for `Flow/Family.lean`, `Family.lean` and `Gray.lean`), and
   `PartialDiffeomorph.exists_diffeomorph_opens_mpullback_eq` of

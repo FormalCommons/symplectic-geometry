@@ -6,7 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Symplectic.Manifold.Darboux
-import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 
 /-!
 # Darboux charts with a prescribed derivative
@@ -77,11 +78,13 @@ theorem trans_toDiffeomorph_darbouxChart {F₁ F₂ : Type*}
   intro chart'
   have hsrc : chart'.source = chart.source := by simp [chart']
   have hcoe (y : M) : chart' y = L (chart y) := by simp [chart']
-  have hderiv (x : M) (hx : x ∈ chart.source) :
-      mvfderiv I chart' x = L.toContinuousLinearMap.comp (mvfderiv I chart x) :=
-    chart.mvfderiv_trans_toDiffeomorph L hx
-  refine ⟨hsrc, hcoe, hderiv, fun x hx v w ↦ ?_⟩
-  rw [hderiv x hx, ContinuousLinearMap.comp_apply, ContinuousLinearMap.comp_apply,
+  have hderiv (x : M) :
+      mvfderiv I chart' x = L.toContinuousLinearMap.comp (mvfderiv I chart x) := by
+    ext v
+    rw [show ⇑chart' = ⇑L ∘ ⇑chart from funext hcoe, L.mvfderiv_comp_apply,
+      ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe]
+  refine ⟨hsrc, hcoe, fun x _ ↦ hderiv x, fun x hx v w ↦ ?_⟩
+  rw [hderiv x, ContinuousLinearMap.comp_apply, ContinuousLinearMap.comp_apply,
     ContinuousLinearEquiv.coe_coe, ← ContinuousLinearEquiv.coe_toLinearEquiv, hL.apply,
     hchart x hx v w]
 
@@ -108,9 +111,12 @@ theorem apply_fderiv_transition_eq (form₀ : SymplecticForm F) {σ : SmoothTwoF
   have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
   obtain ⟨a, rfl⟩ := (φ.bijective_mvfderiv hn hxφ).surjective v
   obtain ⟨b, rfl⟩ := (φ.bijective_mvfderiv hn hxφ).surjective w
-  have hcomp := ψ.fderiv_comp_symm_comp_mvfderiv φ hn hxψ hxφ
-  rw [← ContinuousLinearMap.comp_apply, hcomp, ← ContinuousLinearMap.comp_apply, hcomp,
-    ← hψ, hφ]
+  have hcomp (a : TangentSpace I x) :
+      fderiv ℝ (fun z ↦ ψ (φ.symm z)) (φ x) (mvfderiv I φ x a) = mvfderiv I ψ x a := by
+    have h := φ.mfderiv_symm_trans_apply_mfderiv_apply ψ hn hxφ hxψ a
+    rwa [PartialDiffeomorph.coe_trans, mfderiv_eq_fderiv, ← mvfderiv_apply_eq_mfderiv_apply,
+      ← mvfderiv_apply_eq_mfderiv_apply] at h
+  rw [hcomp, hcomp, ← hψ, hφ]
 
 end SymplecticForm
 

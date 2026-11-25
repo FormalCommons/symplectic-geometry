@@ -130,7 +130,7 @@ change different lines.
 | `Geometry/Manifold/DifferentialForm/Opens.lean` | restriction of forms along `Subtype.val` to an open subset: surjectivity, regularity, and the exterior derivative; the pull-back of restricted forms along a partial diffeomorphism of open subsets, read in the ambient manifolds as a diffeomorphism between its source and its target (`PartialDiffeomorph.mpullback_toDiffeomorphSourceTarget_liftOpens`) | — |
 | `Geometry/Manifold/DifferentialForm/Pullback/Family.lean` | the slices of a reparametrized segment of forms (`SmoothForm.lineMapFamily`), for the underlying rough forms; the slices of a pullback along `Prod.map c f` | — |
 | `Geometry/Manifold/DifferentialForm/Smooth.lean` | `TauCeti.SmoothForm.bilinFormAt` of sums, real multiples, zero, negatives and differences of two-forms; `TauCeti.SmoothForm.funSMulₗ` under sums and constants of functions and under pullback | — |
-| `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean` | the derivative of a transition between partial diffeomorphisms, composed with a differential; the differential of a partial diffeomorphism followed by a continuous linear equivalence (`PartialDiffeomorph.mvfderiv_trans_toDiffeomorph`) | 5 |
+| `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean` | the differential of the inverse of a partial diffeomorphism at a point of its target, as a continuous linear equivalence (`PartialDiffeomorph.mfderivSymmEquiv`) | 5 |
 | `Geometry/Manifold/TubularNeighborhood/RelativePoincare.lean` | a primitive of the difference of two closed forms with the same pullback to `f(Q)`, as a smooth form on a tube around `f(Q)` | — |
 | `Geometry/Symplectic/Manifold/Darboux.lean` | Darboux charts with prescribed derivative, symplectic transitions, the milestone | 5 |
 | `Geometry/Symplectic/Manifold/Family.lean` | openness of nondegeneracy for families and segments of two-forms | 1 |
@@ -539,9 +539,8 @@ composition with a linear symplectomorphism is Tau Ceti's private
 `trans_toDiffeomorph_darboux` (`chart.trans L.toDiffeomorph.toPartialDiffeomorph`).
 This file restates it as a public lemma, `trans_toDiffeomorph_darbouxChart`,
 credited in the module docstring, with the source, the values and the
-derivative at every point of the source; the derivative comes from
-`PartialDiffeomorph.mvfderiv_trans_toDiffeomorph` in
-`Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean`. The derivative of `χ` at `p` is
+derivative at every point of the source; the derivative comes from Tau
+Ceti's `ContinuousLinearEquiv.mvfderiv_comp_apply`. The derivative of `χ` at `p` is
 invertible because `χ` is a partial diffeomorphism
 (`PartialDiffeomorph.bijective_mvfderiv`). It is symplectic by the chart
 identity at `p`.
@@ -561,10 +560,8 @@ theorem apply_fderiv_transition_eq (form₀ : SymplecticForm F) {ω : SmoothTwoF
       (fderiv ℝ (fun z ↦ ψ (φ.symm z)) (φ x) w) = form₀ v w
 ```
 
-The proof uses the chain rule
-`PartialDiffeomorph.fderiv_comp_symm_comp_mvfderiv`, in
-`Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean` (named like Tau Ceti's
-file, since it holds for any partial diffeomorphisms into normed spaces).
+The proof uses Tau Ceti's chain rule
+`PartialDiffeomorph.mfderiv_symm_trans_apply_mfderiv_apply`.
 `mvfderiv I φ x` is surjective, so both sides are `ω` at `x`, read through
 the two charts. It needs only that both charts pull the same constant form
 back to `ω` at `x`, so `ω` needs no hypothesis.

@@ -17,6 +17,7 @@ import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Coordinates
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Symplectic.Finrank
 import TauCeti.Geometry.Manifold.VectorField.LieBracket
+import TauCeti.Geometry.Manifold.VectorField.ModelChart
 import TauCeti.Geometry.Manifold.VectorBundle.Hom
 
 /-!
@@ -147,32 +148,34 @@ theorem IsIntegrable.nijenhuis_eq_zero [FiniteDimensional ℝ E]
   have hψx : ContMDiffAt I 𝓘(ℝ, E) ∞ ψ x :=
     ψ.contMDiffOn.contMDiffAt (ψ.open_source.mem_nhds hx)
   -- The pullbacks along `ψ` of the constant vector fields of `E`.
-  let V : E → Π z : E, TangentSpace 𝓘(ℝ, E) z := fun u _ ↦ u
-  let X : E → Π y : M, TangentSpace I y := fun u ↦ VectorField.mpullback I 𝓘(ℝ, E) ψ (V u)
-  have hconst (u : E) : MDiffAt (T% (V u)) (ψ x) :=
-    ((contMDiffAt_vectorSpace_iff_contDiffAt (𝕜 := ℝ) (V := V u) (x := ψ x)
-      (n := 1)).mpr contDiffAt_const).mdifferentiableAt one_ne_zero
+  let X : E → Π y : M, TangentSpace I y := fun u ↦
+    VectorField.mpullback I 𝓘(ℝ, E) ψ (constVectorField u)
+  have hconst (u : E) : MDiffAt (T% (constVectorField u)) (ψ x) :=
+    mdifferentiable_constVectorField u (ψ x)
   have hX (u : E) : MDiffAt (T% (X u)) x :=
     (hconst u).mpullback_vectorField hψx (ψ.isInvertible_mfderiv hn hx) (by simp)
   -- Near `x`, `J` maps the pullback of `u` to the pullback of `J₀ u`.
   have hJX (u : E) : (fun y ↦ J y (X u y)) =ᶠ[𝓝 x] X (J₀ u) := by
     filter_upwards [ψ.open_source.mem_nhds hx] with y hy
     have hy' := ψ.isInvertible_mfderiv hn hy
+    simp only [X, VectorField.mpullback_apply, constVectorField_apply,
+      NormedSpace.fromTangentSpace_symm_apply]
     refine (hy'.inverse_apply_eq.2 ?_).symm
     exact ((hψ y hy _).trans (congrArg J₀ (hy'.self_apply_inverse u))).symm
   -- The Lie bracket of two such pullbacks vanishes at `x`.
   have hbr (u u' : E) : mlieBracket I (X u) (X u') x = 0 := by
-    rw [← mpullback_mlieBracket (hconst u) (hconst u') hψx (by simp)]
-    have : mlieBracket 𝓘(ℝ, E) (V u) (V u') = 0 :=
-      funext fun z ↦ mlieBracket_const_model_space u u' z
-    rw [this, VectorField.mpullback_zero, Pi.zero_apply]
+    rw [← mpullback_mlieBracket (hconst u) (hconst u') hψx (by simp),
+      mlieBracket_constVectorField, VectorField.mpullback_zero, Pi.zero_apply]
   have hN (u u' : E) : J.nijenhuis x (X u x) (X u' x) = 0 := by
     rw [nijenhuis_apply J (hX u) (hX u'), (hJX u).mlieBracket_vectorField_eq (hJX u'),
       (hJX u).mlieBracket_vectorField_eq (EventuallyEq.refl _ (X u')),
       (EventuallyEq.refl _ (X u)).mlieBracket_vectorField_eq (hJX u'), hbr, hbr, hbr, hbr]
     simp
-  have hsurj (v : TangentSpace I x) : X (mfderiv I 𝓘(ℝ, E) ψ x v) x = v :=
-    (ψ.isInvertible_mfderiv hn hx).inverse_apply_self v
+  have hsurj (v : TangentSpace I x) : X (mfderiv I 𝓘(ℝ, E) ψ x v) x = v := by
+    simp only [X, VectorField.mpullback_apply]
+    exact (congrArg (mfderiv I 𝓘(ℝ, E) ψ x).inverse ((constVectorField_apply _ _).trans
+      (NormedSpace.fromTangentSpace_symm_apply _ _))).trans
+      ((ψ.isInvertible_mfderiv hn hx).inverse_apply_self v)
   ext v w
   have h := hN (mfderiv I 𝓘(ℝ, E) ψ x v) (mfderiv I 𝓘(ℝ, E) ψ x w)
   rw [hsurj, hsurj] at h
@@ -192,14 +195,13 @@ theorem mfderiv_trans_apply_eq_of_fderiv_apply_eq {G G' : Type*} [NormedAddCommG
       mfderiv I 𝓘(ℝ, G') (ψ.trans Θ) y (J y v) =
         J₁ (mfderiv I 𝓘(ℝ, G') (ψ.trans Θ) y v) := by
   intro y hy v
-  rw [PartialDiffeomorph.trans_source] at hy
   have hd (u : TangentSpace I y) : mfderiv I 𝓘(ℝ, G') (ψ.trans Θ) y u =
       fderiv ℝ Θ (ψ y) (mfderiv I 𝓘(ℝ, G) ψ y u) := by
-    rw [PartialDiffeomorph.coe_trans, mfderiv_comp_apply y (Θ.mdifferentiableAt (by simp) hy.2)
-      (ψ.mdifferentiableAt (by simp) hy.1), mfderiv_eq_fderiv]
-    -- `NormedSpace.fromTangentSpace` is the identity of `G` and of `G'`, which Mathlib states by
-    -- no lemma.
+    rw [ψ.mfderiv_trans Θ (by simp) hy, mfderiv_eq_fderiv]
+    -- `NormedSpace.fromTangentSpace` is the identity of `G` and of `G'`, and the tangent spaces at
+    -- `Θ (ψ y)` and at `(ψ.trans Θ) y` are the same type, so the two sides agree by definition.
     rfl
+  rw [PartialDiffeomorph.trans_source] at hy
   rw [hd, hd, hψ y hy.1 v]
   exact hΘ _ hy.2 _
 

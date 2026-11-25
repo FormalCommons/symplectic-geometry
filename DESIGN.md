@@ -2104,9 +2104,7 @@ complete target and a function on the whole half-space.
   Darboux charts followed by a linear symplectomorphism; and that transition
   maps of such charts have symplectic derivatives), with lemmas on
   nondegenerate two-forms in
-  `Geometry/Symplectic/Manifold/Family.lean` and `Flat.lean`, and the chain
-  rule for transitions that `Darboux.lean` uses, in
-  `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean`, and the bilinear forms
+  `Geometry/Symplectic/Manifold/Family.lean` and `Flat.lean`, and the bilinear forms
   of sums, multiples and differences of smooth two-forms in
   `Geometry/Manifold/DifferentialForm/Smooth.lean`, and the primitive on a
   tube of a difference of closed forms in
@@ -2309,16 +2307,14 @@ complete target and a function on the whole half-space.
   smooth field is smooth), which `Hamiltonian.lean` uses, and `Standard.lean`
   and `Pullback.lean` (both named like Tau Ceti's files: the Reeb field of the
   standard form, and the transport of Reeb vectors by a local pullback, which
-  `Darboux/Strict.lean` uses, as it uses
-  `PartialDiffeomorph.mvfderiv_trans_toDiffeomorph` from
-  `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean`).
+  `Darboux/Strict.lean` uses, as it uses Tau Ceti's
+  `ContinuousLinearEquiv.mvfderiv_comp_apply`).
 - **Builds on:** Tau Ceti (contact forms, Reeb fields, contact Hamiltonians,
   strict and distribution Darboux charts, Gray's theorem for families over
   `ℝ`); `Family.lean` and `Gray.lean` also on *Smooth families*
   (`ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean`,
   `Diffeotopy/Real.lean`); `LegendrianNeighborhood.lean` also on *Symplectic
-  neighbourhoods* (`Lagrangian.lean`); `Darboux/Strict.lean` also on
-  *Moser isotopy* (`LocalDiffeomorph/MFDeriv.lean`, merged). The other
+  neighbourhoods* (`Lagrangian.lean`). The other
   files can start at once.
 - **Milestones:** *Contact vector fields and contact Hamiltonians*, *Contact
   Darboux theorem*, *Gray stability*, *Legendrian neighbourhood theorem*.
@@ -3546,7 +3542,7 @@ behind.
 | 2 | *Integration over the fibre* | *Symplectic fibrations* (only `StructureGroup.lean`) |
 | 2 | *Sphere bundles over surfaces* | *Diffeomorphisms of the 2-sphere* (`ComplexStructure.lean` for `DeRham/SphereBundle.lean`; up to `Trivialization.lean` for `SphereBundle/Basic.lean` and the files after it; `Smale.lean` for `Clutching.lean` and `Classification.lean`), *Symplectic fibrations* (only `Basic.lean`), *Principal connections* (only `Fibration/Associated.lean`, for `RuledSurface.lean`); `Smoothing.lean` can start at once |
 | 3 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
-| 3 | *Contact geometry* | *Smooth families* (only `Family.lean` and `Gray.lean`, through `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `Diffeotopy/Real.lean`); *Symplectic neighbourhoods* (only `LegendrianNeighborhood.lean`, through `Lagrangian.lean`); *Moser isotopy* (only `Darboux/Strict.lean`, through `LocalDiffeomorph/MFDeriv.lean`, merged); the other files of the part can start at once |
+| 3 | *Contact geometry* | *Smooth families* (only `Family.lean` and `Gray.lean`, through `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `Diffeotopy/Real.lean`); *Symplectic neighbourhoods* (only `LegendrianNeighborhood.lean`, through `Lagrangian.lean`); the other files of the part can start at once |
 | 3 | *Coupling forms* | *Symplectic fibrations*, *Parallel transport*, *Integration over the fibre*, *Flux homomorphism* (only `Family.lean`), *Compatible symplectic forms* (only `Thurston.lean`, for `SimplyConnected.lean`); in `Curvature.lean`, the curvature identity and the local curvature formula wait only for *Symplectic fibrations* and *Parallel transport* (`Curvature.lean`), and the equivalence also waits for `Holonomy.lean` and *Flux homomorphism* (`Family.lean`) |
 | 4 | *First Chern class of nondegenerate forms* | *First Chern number* (only `FirstChernClass.lean`, #784); merged files of *Symplectic vector bundles*; `Geometry/Manifold/DifferentialForm/Pullback/Family.lean` of *Moser isotopy*, which is merged |
 | 4 | *Adjunction* | *First Chern number* (only `FirstChernClass.lean`, `ChernNumber/Basic.lean` and `ChernNumber/Axioms.lean`); `NormalSpace/ComplexStructure.lean` and `NormalSplitting.lean` can start at once |
