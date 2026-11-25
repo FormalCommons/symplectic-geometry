@@ -30,7 +30,9 @@ derivatives of `v` with those of its partials `∂₁v` and `∂_I v` is general
 * `TauCeti.conjWirtingerDeriv_add_smul_wirtingerDeriv_congr`: `P v` depends on `μ` only on the
   topological support of `v`, since `∂v` vanishes off it
   (`TauCeti.wirtingerDeriv_of_notMem_tsupport`, in
-  `SymplecticGeometry.Analysis.Complex.Wirtinger.Basic`).
+  `SymplecticGeometry.Analysis.Complex.Wirtinger.Basic`); for the same reason the topological
+  support of `P v` lies in that of `v`
+  (`TauCeti.tsupport_conjWirtingerDeriv_add_smul_wirtingerDeriv_subset`).
 * `TauCeti.eLpNorm_iteratedFDeriv_wirtingerDeriv_one_le`: the `Lᵖ` norm of `Dᵐ(∂v(·) 1)` is at
   most that of `D^{m+1} v`, from Tau Ceti's `TauCeti.iteratedFDeriv_wirtingerDeriv_one`.
 * `TauCeti.exists_eLpNorm_iteratedFDeriv_fderiv_smul_wirtingerDeriv_le`: for `μ` of class
@@ -95,6 +97,14 @@ theorem conjWirtingerDeriv_fderiv_apply_add_smul_wirtingerDeriv {μ : V → ℂ}
     add_apply, smul_apply, smulRight_apply, fderiv_conjWirtingerDeriv_apply hv,
     fderiv_wirtingerDeriv_apply hv]
   abel
+
+/-- The operator `∂̄ + μ ∂` does not enlarge the topological support: the topological support
+of `∂̄v(·) b + μ ∂v(·) b` lies in that of `v`. -/
+theorem tsupport_conjWirtingerDeriv_add_smul_wirtingerDeriv_subset (μ : V → ℂ) (b : V) :
+    tsupport (fun z ↦ conjWirtingerDeriv v z b + μ z • wirtingerDeriv v z b) ⊆ tsupport v :=
+  closure_minimal (fun z hz ↦ by_contra fun h ↦ hz (by
+    simp [conjWirtingerDeriv_of_notMem_tsupport h, wirtingerDeriv_of_notMem_tsupport h]))
+    (isClosed_tsupport v)
 
 /-- The operator `∂̄ + μ ∂` only sees `μ` on the topological support of `v`: two coefficients
 that agree there give the same `∂̄v(·) b + μ ∂v(·) b`. -/
