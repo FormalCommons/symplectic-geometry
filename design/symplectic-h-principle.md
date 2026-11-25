@@ -834,10 +834,10 @@ three steps:
 Steps 2 and 3 need the splitting's maps to take smooth families over `L` to
 smooth families. `PreservesSmoothFamilies`, which issue 6 below generalizes
 from `unitInterval` to any parameter manifold, gives this.
-The proof is the book's: for $m=1$, the primitives
-given near the two ends of the core are patched across a narrow band around
-it with cutoff functions, the zig-zag immersion giving the band enough
-length to keep the error small; then induction on $m$, with
+For $m=1$ the proof differs from the book's: the cube is compressed
+towards the core, near which the contraction along the fibres gives one
+primitive of a form close to `τ`, so no patching and no zig-zag are needed
+(`HandleCore/OneDimensional.lean`); then induction on $m$, with
 the cutoffs and the nondegeneracy bounds chosen uniformly over `K` by
 compactness, and the attaching collars fixed once in the working lemma
 (the neighbourhoods `W` and `W'`). The docstring of
