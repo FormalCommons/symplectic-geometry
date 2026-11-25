@@ -389,32 +389,6 @@ theorem stdComplexStructure_complexToRealEuclidean (v : ι → ℂ) :
   rw [stdComplexStructure_def, AlmostComplexStructure.transport_apply]
   simp [AlmostComplexStructure.ofComplexModule_apply]
 
-/-- `complexToRealEuclidean ι` is compatible with the norms: scaling by `a : ℂ` scales the norm
-of the image by `‖a‖`. -/
-theorem norm_complexToRealEuclidean_smul (a : ℂ) (v : ι → ℂ) :
-    ‖complexToRealEuclidean ι (a • v)‖ = ‖a‖ * ‖complexToRealEuclidean ι v‖ := by
-  have h : ‖complexToRealEuclidean ι (a • v)‖ ^ 2 =
-      (‖a‖ * ‖complexToRealEuclidean ι v‖) ^ 2 := by
-    rw [mul_pow, ← real_inner_self_eq_norm_sq (complexToRealEuclidean ι (a • v)),
-      ← real_inner_self_eq_norm_sq (complexToRealEuclidean ι v), inner_complexToRealEuclidean,
-      inner_complexToRealEuclidean, star_smul, smul_dotProduct,
-      dotProduct_smul, smul_eq_mul, smul_eq_mul, Complex.star_def, ← mul_assoc,
-      Complex.conj_mul', ← Complex.ofReal_pow, Complex.re_ofReal_mul]
-  exact (pow_left_inj₀ (norm_nonneg _) (by positivity) two_ne_zero).1 h
-
-/-- The squared norm of `complexToRealEuclidean ι u` is `∑ᵢ ‖uᵢ‖²`. -/
-theorem norm_sq_complexToRealEuclidean (u : ι → ℂ) :
-    ‖complexToRealEuclidean ι u‖ ^ 2 = ∑ i, ‖u i‖ ^ 2 := by
-  rw [← real_inner_self_eq_norm_sq, inner_complexToRealEuclidean, dotProduct, Complex.re_sum]
-  refine Finset.sum_congr rfl fun i _ ↦ ?_
-  rw [Pi.star_apply, Complex.star_def, Complex.conj_mul', ← Complex.ofReal_pow, Complex.ofReal_re]
-
-/-- The real part of the Hermitian square of a complex vector is its squared Euclidean norm:
-`Re (star z ⬝ᵥ z) = ∑ᵢ ‖zᵢ‖²`. -/
-theorem _root_.Matrix.re_star_dotProduct_self (z : ι → ℂ) :
-    (star z ⬝ᵥ z).re = ∑ i, ‖z i‖ ^ 2 := by
-  rw [← inner_complexToRealEuclidean, real_inner_self_eq_norm_sq, norm_sq_complexToRealEuclidean]
-
 /-- The standard symplectic form of `ι → ℂ` is the imaginary part of the Hermitian product:
 `ω₀(z, w) = Im (star z ⬝ᵥ w)`. -/
 theorem _root_.TauCeti.stdComplexPiSymplecticForm_apply_eq_im (z w : ι → ℂ) :
@@ -1016,6 +990,23 @@ theorem stdDarbouxBasisOf_repr_zero {m : ℕ} (τ : Fin m ≃ ι) (z : StdSpace 
 theorem stdDarbouxBasisOf_repr_one {m : ℕ} (τ : Fin m ≃ ι) (z : StdSpace ι) (k : Fin m) :
     (stdDarbouxBasisOf τ).repr z (k, 1) = z.y (τ k) := by
   simp [stdDarbouxBasisOf_def, Basis.map_repr]
+
+/-- The relabelled standard Darboux basis is the coordinate basis of `StdSpace ι`, reindexed
+along the bijection `Fin m × Fin 2 ≃ ι ⊕ ι` that sends `(k, 0)` to `Sum.inl (τ k)` and `(k, 1)`
+to `Sum.inr (τ k)`. -/
+theorem stdDarbouxBasisOf_eq_reindex {m : ℕ} (τ : Fin m ≃ ι) :
+    stdDarbouxBasisOf τ = (EuclideanSpace.basisFun (ι ⊕ ι) ℝ).toBasis.reindex
+      ((SymplecticForm.darbouxIndexEquiv m).trans
+        ((Equiv.sumComm _ _).trans (τ.sumCongr τ))).symm := by
+  classical
+  exact Basis.eq_of_apply_eq fun ⟨k, i⟩ ↦ by fin_cases i <;> simp
+
+/-- The relabelled standard Darboux basis is orthonormal. -/
+theorem orthonormal_stdDarbouxBasisOf {m : ℕ} (τ : Fin m ≃ ι) :
+    Orthonormal ℝ (stdDarbouxBasisOf τ) := by
+  rw [stdDarbouxBasisOf_eq_reindex, ← OrthonormalBasis.reindex_toBasis,
+    OrthonormalBasis.coe_toBasis]
+  exact OrthonormalBasis.orthonormal _
 
 /-- The relabelled standard Darboux basis is a Darboux basis of `ω₀`. -/
 theorem isDarbouxBasis_stdDarbouxBasisOf {m : ℕ} (τ : Fin m ≃ ι) :
