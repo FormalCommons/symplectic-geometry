@@ -51,8 +51,8 @@ from one projective space to a product of two.
 ## References
 
 * [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*, 3rd ed.][McDuffSalamon2017],
-  Example 7.1.7, where the rational elliptic surface is a bihomogeneous zero set in
-  `ℂP² × ℂP¹`.
+  Example 7.1.7, for the rational elliptic surface, which these zero sets in
+  `ℂP² × ℂP¹` are meant to model.
 -/
 
 public section
