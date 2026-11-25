@@ -202,23 +202,16 @@ that is, it vanishes as soon as one of its arguments is vertical. -/
 theorem IsConnectionForm.isSemibasic_connectionCurvature {n : ℕ∞ω} (hA : IsConnectionForm A) :
     RoughForm.IsSemibasic (F := GroupLieAlgebra IG G) IB
       (ManifoldTotalSpace.projContMDiffMap n G P IB IG) (connectionCurvature A).val := by
-  -- Stated with the instances of `SmoothForm`, which `RoughForm.isSemibasic_iff` unfolds.
-  have h (x : ManifoldTotalSpace G P) (v : Fin 2 → TangentSpace (IB.prod IG) x) (j : Fin 2)
-      (hv : mfderiv (IB.prod IG) IB (ManifoldTotalSpace.projContMDiffMap n G P IB IG) x (v j) =
-        0) : (connectionCurvature A).val x v = 0 := by
-    rw [ManifoldTotalSpace.coe_projContMDiffMap] at hv
-    have hv' : v j ∈ LinearMap.range (PrincipalBundle.rightFundamentalLinearMap IB IG x) := by
-      rw [PrincipalBundle.range_rightFundamentalLinearMap_eq_ker_mfderiv_proj]
-      exact hv
-    obtain ⟨ξ, hξ⟩ := hv'
-    rw [PrincipalBundle.rightFundamentalLinearMap_apply] at hξ
-    have hv01 : v = ![v 0, v 1] := (FinVec.etaExpand_eq _).symm
-    obtain rfl | rfl : j = 0 ∨ j = 1 := by fin_cases j <;> simp
-    · rw [hv01, ← hξ]
-      exact hA.connectionCurvature_apply_rightFundamentalVectorField ξ x (v 1)
-    · rw [hv01, ContinuousAlternatingMap.apply_vecCons_swap, ← hξ,
-        hA.connectionCurvature_apply_rightFundamentalVectorField, neg_zero]
-  exact RoughForm.isSemibasic_iff.mpr h
+  have h (x : ManifoldTotalSpace G P) : ((connectionCurvature A).val x).toAlternatingMap ∈
+      (mfderiv (IB.prod IG) IB (ManifoldTotalSpace.projContMDiffMap n G P IB IG)
+        x).ker.conormalForms (Fin 2) (GroupLieAlgebra IG G) := by
+    rw [Submodule.mem_conormalForms_fin_two_iff_le_ker, ManifoldTotalSpace.coe_projContMDiffMap,
+      ← PrincipalBundle.range_rightFundamentalLinearMap_eq_ker_mfderiv_proj]
+    rintro _ ⟨ξ, rfl⟩
+    refine LinearMap.mem_ker.mpr (LinearMap.ext fun w ↦ ?_)
+    simpa [PrincipalBundle.rightFundamentalLinearMap_apply] using
+      hA.connectionCurvature_apply_rightFundamentalVectorField ξ x w
+  exact RoughForm.isSemibasic_def.mpr fun x ↦ RoughForm.isSemibasicAt_def.mpr (h x)
 
 /-- **The curvature of a connection form is tensorial**: it is an equivariant two-form of type
 `Ad` that vanishes as soon as one of its arguments is vertical. -/

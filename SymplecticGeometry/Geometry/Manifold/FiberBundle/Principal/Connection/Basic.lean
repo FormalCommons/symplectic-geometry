@@ -150,18 +150,17 @@ theorem zero :
 theorem add (ha : IsTensorialForm a) (hb : IsTensorialForm b) : IsTensorialForm (a + b) :=
   ⟨fun g ↦ by rw [map_add, map_add, ha.mpullback_op_smul, hb.mpullback_op_smul], by
     rw [Submodule.coe_add]
-    -- Naming `F` makes instance search start from the instances of `GroupLieAlgebra`, not from
-    -- the unfolded ones that `ha.isSemibasic` carries.
-    exact RoughForm.IsSemibasic.add (F := GroupLieAlgebra IG G) ha.isSemibasic hb.isSemibasic⟩
+    exact RoughForm.isSemibasic_def.mpr fun x ↦ RoughForm.isSemibasicAt_def.mpr <| add_mem
+      (RoughForm.isSemibasicAt_def.mp (RoughForm.isSemibasic_def.mp ha.isSemibasic x))
+      (RoughForm.isSemibasicAt_def.mp (RoughForm.isSemibasic_def.mp hb.isSemibasic x))⟩
 
 /-- A real multiple of a tensorial form is tensorial. -/
 theorem smul (ha : IsTensorialForm a) (c : ℝ) : IsTensorialForm (c • a) :=
   ⟨fun g ↦ by rw [map_smul, map_smul, ha.mpullback_op_smul], by
     rw [Submodule.coe_smul]
-    -- Instance search does not find `ContinuousConstSMul ℝ 𝔤` for the unfolded instances that
-    -- `ha.isSemibasic` carries, so the instance of the tangent space is given by hand.
-    exact @RoughForm.IsSemibasic.smul _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-      (instContinuousConstSMulTangentSpace IG 1) _ ha.isSemibasic c⟩
+    exact RoughForm.isSemibasic_def.mpr fun x ↦ RoughForm.isSemibasicAt_def.mpr <|
+      Submodule.smul_mem _ c
+        (RoughForm.isSemibasicAt_def.mp (RoughForm.isSemibasic_def.mp ha.isSemibasic x))⟩
 
 /-- The negative of a tensorial form is tensorial. -/
 theorem neg (ha : IsTensorialForm a) : IsTensorialForm (-a) := by
