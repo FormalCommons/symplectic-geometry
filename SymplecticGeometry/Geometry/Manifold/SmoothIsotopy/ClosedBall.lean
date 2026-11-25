@@ -6,12 +6,11 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Orientation
-import Mathlib.Analysis.InnerProductSpace.Calculus
 import SymplecticGeometry.Geometry.Manifold.Orientation.Preserving
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Neighborhood
+import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.UnivBall
 import TauCeti.Analysis.InnerProductSpace.Calculus
-import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import TauCeti.Topology.Algebra.Module.Determinant
 import TauCeti.Topology.MetricSpace.SeparatedBalls
 
 /-!
@@ -39,8 +38,6 @@ not be a smooth domain.
 
 ## Main results
 
-* `Manifold.IsSmoothEmbedding.comp_univBall`: a smooth embedding of an open set containing
-  `ball c ρ`, precomposed with `univBall c ρ`, is a smooth embedding of `E`.
 * `SymplecticGeometry.exists_diffeotopy_eqOn_closedBall_of_isOrientationPreservingAt`: the disc
   theorem for embeddings of a closed ball.
 
@@ -56,37 +53,6 @@ open Set Metric Function OpenPartialHomeomorph TauCeti
 open scoped Manifold ContDiff
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
-
-namespace Manifold.IsSmoothEmbedding
-
-variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {H : Type*} [TopologicalSpace H]
-  {J : ModelWithCorners ℝ F H} {N : Type*} [TopologicalSpace N] [ChartedSpace H N] {n : ℕ∞ω}
-
-/-- Let `n ≤ ∞`. If `f` restricts to a `C^n` embedding of an open set `V` containing the ball
-`ball c ρ`, with `0 < ρ`, then `f` precomposed with Mathlib's radial diffeomorphism
-`univBall c ρ` of `E` onto that ball is a `C^n` embedding of `E`. -/
-theorem comp_univBall {f : E → N} {V : TopologicalSpace.Opens E}
-    (hf : IsSmoothEmbedding 𝓘(ℝ, E) J n (fun x : V ↦ f x)) {c : E} {ρ : ℝ} (hρ : 0 < ρ)
-    (hV : ball c ρ ⊆ V) (hn : n ≤ ∞) : IsSmoothEmbedding 𝓘(ℝ, E) J n (f ∘ univBall c ρ) := by
-  have hmem (x : E) : univBall c ρ x ∈ V :=
-    hV (univBall_target c hρ ▸ (univBall c ρ).map_source (by simp [univBall_source]))
-  -- `univBall c ρ` is a local diffeomorphism, since it is smooth with smooth inverse on the ball.
-  let Φ : PartialDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) E E n :=
-    PartialDiffeomorph.ofOpenPartialHomeomorph (univBall c ρ)
-      ((contDiff_univBall (n := ⊤)).of_le hn).contDiffOn
-      (univBall_target c hρ ▸ (contDiffOn_univBall_symm (n := ⊤)).of_le hn)
-  have hψ : IsLocalDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) n (univBall c ρ) := fun x ↦
-    isLocalDiffeomorphAt_of_eqOn (Φ := Φ) (by simp [Φ, univBall_source]) fun _ _ ↦ by simp [Φ]
-  -- The same map, with values in `V`.
-  let g : E → V := fun x ↦ ⟨univBall c ρ x, hmem x⟩
-  have hg : IsLocalDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) n g := fun x ↦
-    (hψ x).of_comp_left (f := Subtype.val) (e := g) (isLocalDiffeomorph_subtype_val _)
-      ((continuous_univBall c ρ).subtype_mk hmem).continuousAt
-  have hge : Topology.IsEmbedding g := Topology.IsEmbedding.subtypeVal.of_comp_iff.1
-    ((univBall c ρ).isOpenEmbedding (univBall_source c ρ)).isEmbedding
-  exact isSmoothEmbedding_comp_isLocalDiffeomorph (f := fun x : V ↦ f x) hg hge hf
-
-end Manifold.IsSmoothEmbedding
 
 namespace SymplecticGeometry
 
@@ -132,14 +98,8 @@ theorem exists_diffeotopy_eqOn_closedBall_of_isOrientationPreservingAt [T2Space 
   -- `univBall 0 ρ` fixes `0` and has derivative `ρ • id` there, so it preserves `o` at `0`.
   have hψo : o.IsOrientationPreservingAt o (univBall (0 : E) ρ) 0 := by
     refine Manifold.Orientation.isOrientationPreservingAt_of_det_fderiv_pos o ?_
-    have hD : fderiv ℝ (univBall (0 : E) ρ) 0 = ρ • ContinuousLinearMap.id ℝ E := by
-      rw [(hasFDerivAt_univBall hρ0 0 0).fderiv]
-      simp
-    rw [hD]
-    have : (ρ • ContinuousLinearMap.id ℝ E).det = ρ ^ Module.finrank ℝ E := by
-      simp [ContinuousLinearMap.det, LinearMap.det_smul]
-    rw [this]
-    positivity
+    rw [(hasFDerivAt_univBall hρ0 0 0).fderiv]
+    simpa using pow_pos hρ0 (Module.finrank ℝ E)
   have hFo : o.IsOrientationPreservingAt oM F 0 := by
     simpa [F] using (univBall_apply_zero (0 : E) ρ ▸ hfo).comp hψo
   have hGo : o.IsOrientationPreservingAt oM G 0 := by
