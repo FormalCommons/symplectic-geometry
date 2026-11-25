@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Symplectic.DehnTwist.Model
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.Diffeomorph.Extend
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Lift
 
 /-!
 # The Dehn twist along a Lagrangian sphere
@@ -44,6 +45,11 @@ neighbourhood theorem for the form `dλ`,
   preserves `σ`.
 * `SymplecticGeometry.dehnTwist_apply_embedding`: if `ι` sends the zero covector at `q` to `f q`,
   the twist maps `f q` to `f (-q)`.
+* `SymplecticGeometry.dehnTwist_eq_of_apply_eq_comp`: precomposing `ι` with a diffeomorphism `c` of
+  `T*Sⁿ` that commutes with the model twist does not change the twist.
+* `SymplecticGeometry.exists_dehnTwist_eq_comp_orthogonal`: for `A ∈ O(n + 1)`, precomposing `ι`
+  with the cotangent lift `c` of `A`, on `c⁻¹(U)`, gives an embedding of the same kind for
+  `f ∘ A`, with the same twist.
 
 ## Implementation notes
 
@@ -63,6 +69,9 @@ since `τ_R` preserves `ω_can` (`mpullback_modelTwist_symplecticForm`).
   before Proposition 1.11 (arXiv version 2): the Dehn twist along a framed Lagrangian sphere.
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], 3rd ed.,
   p. 270 (the compactly supported twist).
+* [P. Seidel, *Floer homology and the symplectic isotopy problem*][Seidel1997Thesis], Proposition
+  2.3 (for `n = 2`): the twist does not depend on the choices, one of which is a parametrization
+  of the sphere up to `O(n + 1)`.
 -/
 
 public section
@@ -183,6 +192,88 @@ theorem dehnTwist_apply_embedding (ι : U ≃ₘ⟮𝓣 n, I⟯ V) (hR : IsTwist
   obtain ⟨h, hq⟩ := hιf q
   obtain ⟨h', hq'⟩ := hιf (-q)
   simp [← hq, ← hq']
+
+
+/-- **Reparametrizing by a symmetry of the model.** Let `c` be a diffeomorphism of `T*Sⁿ` that
+commutes with the model twist `τ_R`, and let `ι'`, from an open set `U'` onto an open set `V'` of
+`M`, be `ι ∘ c` on `U' = c⁻¹(U)`. Then `ι'` and `ι` give the same Dehn twist. -/
+theorem dehnTwist_eq_of_apply_eq_comp {U' : Opens (𝕋 n)} {V' : Opens M}
+    (c : (𝕋 n) ≃ₘ⟮𝓣 n, 𝓣 n⟯ 𝕋 n) (ι : U ≃ₘ⟮𝓣 n, I⟯ V) (ι' : U' ≃ₘ⟮𝓣 n, I⟯ V')
+    (hUU' : ∀ z, z ∈ U' ↔ c z ∈ U) (hι : ∀ z : U', (ι' z : M) = ι ⟨c z, (hUU' z).1 z.property⟩)
+    (hR : IsTwistProfile R r₀) (hc : ∀ z, modelTwist hR (c z) = c (modelTwist hR z))
+    (hU : {z : 𝕋 n | cotangentNorm z ≤ r₀} ⊆ (U : Set (𝕋 n)))
+    (hU' : {z : 𝕋 n | cotangentNorm z ≤ r₀} ⊆ (U' : Set (𝕋 n))) :
+    dehnTwist ι' hR hU' = dehnTwist ι hR hU := by
+  ext x
+  by_cases hx : x ∈ range fun z : U ↦ (ι z : M)
+  · obtain ⟨y, rfl⟩ := hx
+    -- Every point of `U` is `c z` for a point `z` of `U'`.
+    obtain ⟨z, rfl⟩ : ∃ z : U', (⟨c z, (hUU' z).1 z.property⟩ : U) = y :=
+      ⟨⟨c.symm y, (hUU' _).2 (by rw [c.apply_symm_apply]; exact y.property)⟩,
+        Subtype.ext (c.apply_symm_apply _)⟩
+    dsimp only
+    rw [← hι z, dehnTwist_apply_val, hι, hι z, dehnTwist_apply_val]
+    simp only [hc]
+  · -- Off the image of `ι`, which contains that of `ι'`, neither twist moves `x`.
+    rw [dehnTwist_apply_of_notMem ι' hR hU' ?_,
+      dehnTwist_apply_of_notMem ι hR hU fun h ↦ hx (image_subset_range _ _ h)]
+    rintro ⟨z, -, rfl⟩
+    exact hx ⟨_, (hι z).symm⟩
+
+/-- **Reparametrizing the sphere by an orthogonal map.** Let `ι` pull `σ` back to `-ω_can` and
+send the zero covector at each `q ∈ Sⁿ` to `f q`, and let `A ∈ O(n + 1)`, acting on `Sⁿ` by the
+diffeomorphism `a = orthogonalToDiffSphere n ∞ A`. Then `ι ∘ c`, for the cotangent lift `c` of
+`a`, is defined on the open set `U' = c⁻¹(U)`, which contains `{z | μ z ≤ r₀}`; it pulls `σ`
+back to `-ω_can`, sends the zero covector at `q` to `f (a q)`, and gives the same Dehn twist as
+`ι`. -/
+theorem exists_dehnTwist_eq_comp_orthogonal [IsManifold I ∞ M] {σ : SmoothTwoForm I M}
+    (ι : U ≃ₘ⟮𝓣 n, I⟯ V) (hR : IsTwistProfile R r₀)
+    (hU : {z : 𝕋 n | cotangentNorm z ≤ r₀} ⊆ (U : Set (𝕋 n)))
+    (hι : SmoothForm.mpullback ι ι.contMDiff
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) =
+      SmoothForm.mpullback Subtype.val contMDiff_subtypeVal
+        (-CotangentBundle.symplecticForm (𝓡 n) (𝕊 n)))
+    {f : (𝕊 n) → M}
+    (hιf : ∀ q, ∃ h : zeroSection (EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)
+      (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ) q ∈ U, (ι ⟨_, h⟩ : M) = f q)
+    (A : Matrix.orthogonalGroup (Fin (n + 1)) ℝ) :
+    ∃ (U' : Opens (𝕋 n)) (ι' : U' ≃ₘ⟮𝓣 n, I⟯ V)
+      (hUU' : ∀ z, z ∈ U' ↔ (orthogonalToDiffSphere n ∞ A).cotangent z ∈ U)
+      (hU' : {z : 𝕋 n | cotangentNorm z ≤ r₀} ⊆ (U' : Set (𝕋 n))),
+      (∀ z : U', (ι' z : M) = ι ⟨(orthogonalToDiffSphere n ∞ A).cotangent z,
+        (hUU' z).1 z.property⟩) ∧
+      SmoothForm.mpullback ι' ι'.contMDiff
+          (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) =
+        SmoothForm.mpullback Subtype.val contMDiff_subtypeVal
+          (-CotangentBundle.symplecticForm (𝓡 n) (𝕊 n)) ∧
+      (∀ q, ∃ h : zeroSection (EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)
+        (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ) q ∈ U',
+        (ι' ⟨_, h⟩ : M) = f (orthogonalToDiffSphere n ∞ A q)) ∧
+      dehnTwist ι' hR hU' = dehnTwist ι hR hU := by
+  set c := (orthogonalToDiffSphere n ∞ A).cotangent
+  let U' : Opens (𝕋 n) := ⟨c ⁻¹' U, U.isOpen.preimage c.continuous⟩
+  have hUU' (z : 𝕋 n) : z ∈ U' ↔ c z ∈ U := Iff.rfl
+  let ι' : U' ≃ₘ⟮𝓣 n, I⟯ V := (c.subtype hUU').trans ι
+  have hι' (z : U') : (ι' z : M) = ι ⟨c z, (hUU' z).1 z.property⟩ := by
+    rw [Diffeomorph.coe_trans, Function.comp_apply]
+    exact congrArg (fun w ↦ (ι w : M)) (Subtype.ext (c.subtype_apply_coe hUU' z))
+  have hU' : {z : 𝕋 n | cotangentNorm z ≤ r₀} ⊆ (U' : Set (𝕋 n)) := fun z hz ↦
+    hU (by rwa [mem_ofPred_eq, cotangentNorm_cotangent_orthogonal])
+  refine ⟨U', ι', hUU', hU', hι', ?_, fun q ↦ ?_,
+    dehnTwist_eq_of_apply_eq_comp c ι ι' hUU' hι' hR (modelTwist_cotangent_orthogonal hR A) hU hU'⟩
+  · -- `ι'` is the restriction of `c` followed by `ι`, and `c` preserves `ω_can`.
+    rw [SmoothForm.mpullback_congr ι'.contMDiff (ι.contMDiff.comp (c.subtype hUU').contMDiff)
+        (Diffeomorph.coe_trans _ _),
+      ← SmoothForm.mpullback_mpullback _ _ (c.subtype hUU').contMDiff ι.contMDiff, hι,
+      SmoothForm.mpullback_mpullback_of_comp_eq (c.subtype hUU').contMDiff contMDiff_subtypeVal
+        contMDiff_subtypeVal c.contMDiff
+        (funext (c.subtype_apply_coe hUU')),
+      map_neg, Diffeomorph.mpullback_cotangent_symplecticForm, map_neg]
+  · obtain ⟨h, hq⟩ := hιf (orthogonalToDiffSphere n ∞ A q)
+    have hc := Diffeomorph.cotangent_zeroSection (orthogonalToDiffSphere n ∞ A) q
+    refine ⟨(hUU' _).2 (by rwa [hc]), ?_⟩
+    rw [hι', ← hq]
+    exact congrArg (fun w ↦ (ι w : M)) (Subtype.ext hc)
 
 end Twist
 
