@@ -10,6 +10,8 @@ public import TauCeti.Geometry.Symplectic.Manifold.LiouvilleMeasure
 public import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+import SymplecticGeometry.MeasureTheory.Measure.Haar.InnerProductSpace
+import SymplecticGeometry.MeasureTheory.Measure.Lebesgue.HalfSqRadius
 
 /-!
 # Integrating the symplectic volume form
@@ -44,6 +46,15 @@ measure (`SymplecticGeometry.liouvilleMeasure_constSmooth_stdForm`), so a symple
 `TauCeti.SymplecticForm.liouvilleMeasure_constSmooth_stdSymplecticForm`: the Darboux basis
 `SymplecticGeometry.stdDarbouxBasisOf` is the coordinate basis, reindexed, and the Haar measure
 of an orthonormal basis is `volume`.
+
+One Lebesgue integral over `StdSpace ι` is computed here, the one that the Liouville integral of
+a localizing form near a fixed point comes to: for weights `wⱼ > 0` and `F` of class `C^m`
+with compact support, `m` the number of elements of `ι`,
+`∫ F⁽ᵐ⁾(-∑ⱼ wⱼ (xⱼ² + yⱼ²)) dz = F(0) πᵐ / ∏ⱼ wⱼ`
+(`SymplecticGeometry.integral_stdSpace_iteratedDeriv_neg_sum_mul_sq`). It is
+`MeasureTheory.integral_iteratedDeriv_neg_sum_mul_sq` read through
+`EuclideanSpace.sumEquivProd`, which preserves Lebesgue measure
+(`EuclideanSpace.volume_preserving_sumEquivProd`).
 
 ## References
 
@@ -188,6 +199,19 @@ theorem liouvilleMeasure_constSmooth_stdForm {ι : Type*} [Fintype ι] {m : ℕ}
       fin_cases i <;> simp [e, Equiv.boolProdEquivSum, finTwoEquiv]
   rw [SymplecticForm.liouvilleMeasure_constSmooth _ (isDarbouxBasis_stdDarbouxBasisOf c), hb,
     Basis.addHaar_reindex, OrthonormalBasis.addHaar_eq_volume]
+
+/-- For weights `wⱼ > 0` and `F` of class `C^m` with compact support, where `m` is the number of
+elements of `ι`, the integral over `StdSpace ι` of `F⁽ᵐ⁾(-∑ⱼ wⱼ (xⱼ² + yⱼ²))` is
+`F 0 * π ^ m / ∏ⱼ wⱼ`. -/
+theorem integral_stdSpace_iteratedDeriv_neg_sum_mul_sq {ι : Type*} [Fintype ι] {F : ℝ → ℝ}
+    (hF : ContDiff ℝ (Fintype.card ι) F) (hFc : HasCompactSupport F) {w : ι → ℝ}
+    (hw : ∀ j, 0 < w j) :
+    ∫ z : StdSpace ι, iteratedDeriv (Fintype.card ι) F (-∑ j, w j * (z.x j ^ 2 + z.y j ^ 2)) =
+      F 0 * Real.pi ^ Fintype.card ι / ∏ j, w j := by
+  rw [← integral_iteratedDeriv_neg_sum_mul_sq hF hFc hw,
+    ← (EuclideanSpace.volume_preserving_sumEquivProd _ _).integral_comp
+      EuclideanSpace.sumEquivProd.toHomeomorph.measurableEmbedding]
+  simp only [StdSpace.sumEquivProd_apply_fst, StdSpace.sumEquivProd_apply_snd]
 
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
