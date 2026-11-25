@@ -64,6 +64,8 @@ on every fibre: this is Weinstein's construction.
   `SymplecticGeometry.isClosed_associatedForm`, `SymplecticGeometry.mpullback_associatedForm_fiber`:
   the associated form pulls back to Weinstein's form, is closed, and pulls back to `σ` along each
   fibre inclusion `v ↦ [x, v]`.
+* `SymplecticGeometry.eq_associatedForm_iff`: the associated form is the only two-form on
+  `P ×_G F` whose pull-back to `P × F` is Weinstein's form.
 * `SymplecticGeometry.exists_isClosed_mpullback_eq_weinsteinForm`: Weinstein's construction.
 
 ## Implementation notes
@@ -449,13 +451,13 @@ theorem eq_associatedForm_iff {σ : SmoothTwoForm IF F}
     {μ : F → Module.Dual ℝ (GroupLieAlgebra IG G)} (hμ : σ.IsEquivariantMomentMap fun v ↦ -μ v)
     (hσG : ∀ g : G, SmoothForm.mpullback (fun v : F ↦ g • v)
       (ContMDiffSMul.contMDiff_const_smul (I := IG) g) σ = σ)
-    {hμs : ∀ ξ, ContMDiff IF 𝓘(ℝ) ∞ fun v ↦ μ v ξ}
     {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1}
     (hA : IsConnectionForm A)
     {τ : SmoothForm (IB.prod IF) (ManifoldTotalSpace F (AssociatedBundle G P F)) ℝ 2} :
     τ = associatedForm σ hμ hσG hA ↔
       SmoothForm.mpullback (AssociatedBundle.chartedMk G F P)
-        (AssociatedBundle.contMDiff_chartedMk ∞ IB IG IF) τ = weinsteinForm σ μ hμs A :=
+        (AssociatedBundle.contMDiff_chartedMk ∞ IB IG IF) τ =
+        weinsteinForm σ μ hμ.toIsMomentMap.contMDiff_of_neg A :=
   SmoothForm.eq_descendedForm_iff
 
 /-- The associated form is **closed** when `σ` is: its pull-back, Weinstein's form, is closed, and
