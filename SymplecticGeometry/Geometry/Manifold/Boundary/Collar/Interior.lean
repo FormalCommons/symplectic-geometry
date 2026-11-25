@@ -116,8 +116,7 @@ theorem interiorModelCoord_snd_pos (q : c.interiorModelRange) :
 
 /-- The collar coordinates are a `C^k` local diffeomorphism from the interior, modelled on
 `ℝⁿ⁺¹`, to `∂W × [0, 1)`. -/
-theorem isLocalDiffeomorph_interiorModelCoord [IsManifold (𝓡∂ (n + 1)) 1 W]
-    [IsManifold (𝓡∂ (n + 1)) k W] :
+theorem isLocalDiffeomorph_interiorModelCoord [IsManifold (𝓡∂ (n + 1)) 1 W] :
     IsLocalDiffeomorph (𝓡 (n + 1)) ((𝓡 n).prod (𝓡∂ 1)) k c.interiorModelCoord := by
   intro q
   have hg : IsLocalDiffeomorphAt (𝓡 (n + 1)) (𝓡∂ (n + 1)) k

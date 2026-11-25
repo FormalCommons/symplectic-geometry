@@ -464,27 +464,17 @@ theorem range_inrInterior : range (inrInterior c) = inr c '' (𝓡∂ (n + 1)).i
   rw [image_eq_range]
   exact congrArg range (funext (inrInterior_apply c))
 
-/-- The copy of the interior of `W`, as the complement of the boundary. -/
-private def interiorToCompl (p : (𝓡∂ (n + 1)).interior W) : ↥((𝓡∂ (n + 1)).boundary W)ᶜ :=
-  ⟨p.val, by rw [ModelWithCorners.compl_boundary]; exact p.property⟩
-
-omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
-private theorem isOpenEmbedding_interiorToCompl :
-    IsOpenEmbedding (interiorToCompl (n := n) (W := W)) := by
-  refine (IsEmbedding.subtypeVal.codRestrict _ _).isOpenEmbedding_of_surjective fun x ↦ ?_
-  have hx : (x : W) ∈ (𝓡∂ (n + 1)).interior W := by
-    rw [← ModelWithCorners.compl_boundary]; exact x.property
-  exact ⟨⟨x, hx⟩, rfl⟩
-
 /-- The first copy of the interior of `W` is an open embedding into the double. -/
 theorem isOpenEmbedding_inlInterior : IsOpenEmbedding (inlInterior c) :=
   (DoubleAlong.isOpenEmbedding_inl_compl _ ((𝓡∂ (n + 1)).isClosed_boundary
-    (n := ∞) (by simp))).comp isOpenEmbedding_interiorToCompl
+    (n := ∞) (by simp))).comp
+    (Homeomorph.setCongr (𝓡∂ (n + 1)).compl_boundary.symm).isOpenEmbedding
 
 /-- The second copy of the interior of `W` is an open embedding into the double. -/
 theorem isOpenEmbedding_inrInterior : IsOpenEmbedding (inrInterior c) :=
   (DoubleAlong.isOpenEmbedding_inr_compl _ ((𝓡∂ (n + 1)).isClosed_boundary
-    (n := ∞) (by simp))).comp isOpenEmbedding_interiorToCompl
+    (n := ∞) (by simp))).comp
+    (Homeomorph.setCongr (𝓡∂ (n + 1)).compl_boundary.symm).isOpenEmbedding
 
 /-! ### The smooth structure -/
 
