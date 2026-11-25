@@ -52,6 +52,8 @@ also shows that a diffeotopy has a Hamiltonian as soon as every `ι_{X_t} σ` is
   from the jointly smooth primitives of
   `SymplecticGeometry.exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms`, applied to the
   family `t ↦ ι_{X_t} σ`, which is smooth by `SymplecticGeometry.isSmoothFamily_interiorₗ`.
+* `TauCeti.Diffeotopy.flux_congr`: equal diffeotopies have equal fluxes, whatever proofs that
+  their final maps preserve the closed form are given.
 
 ## Implementation notes
 
@@ -292,6 +294,15 @@ theorem isHamiltonian_iff_forall_interiorₗ_velocity_mem_exactForms
   rw [exactForms_succ]
   exact ⟨⟨_, (isSmoothForm_ofFunction_iff.2 hs).mem_smoothBundleForms⟩,
     (SmoothTwoForm.isHamiltonianVectorField_iff_interiorₗ_eq.1 (by simpa using hX t)).symm⟩
+
+/-- The flux of a diffeotopy depends only on the diffeotopy: equal diffeotopies have equal fluxes,
+whichever proofs that their final maps preserve `τ` are given. -/
+theorem flux_congr {τ : closedForms J M 2} (e : Φ = Ψ)
+    (hΦ : Φ.final ∈ SmoothForm.diffeomorphStabilizer τ.val)
+    (hΨ : Ψ.final ∈ SmoothForm.diffeomorphStabilizer τ.val) : Φ.flux τ hΦ = Ψ.flux τ hΨ := by
+  subst e
+  rfl
+
 end TauCeti.Diffeotopy
 
 end
