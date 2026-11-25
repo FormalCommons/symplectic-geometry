@@ -150,7 +150,6 @@ section Complex
 variable {E : Type u} [NormedAddCommGroup E] [NormedSpace ℝ E]
   {M : Type*} [TopologicalSpace M] [ChartedSpace E M] [IsManifold 𝓘(ℝ, E) 1 M]
   {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F] [NormedSpace ℂ F]
-  [IsScalarTower ℝ ℂ F]
   {V : M → Type*} [TopologicalSpace (TotalSpace F V)] [∀ x, AddCommGroup (V x)]
   [∀ x, Module ℝ (V x)] [∀ x, Module ℂ (V x)] [∀ x, IsScalarTower ℝ ℂ (V x)]
   [∀ x, TopologicalSpace (V x)] [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)]
@@ -183,10 +182,7 @@ theorem chartZeroOrder_apply_smul {i : Fin A.n}
   rw [hcov.chartZeroOrder_apply_eq_coord_tangentHom A hz,
     hcov.chartZeroOrder_apply_eq_coord_tangentHom A hz,
     FiniteBundleAtlas.coord_tangentHom, FiniteBundleAtlas.coord_tangentHom, heq, hc hx hσ]
-  ext w
-  simp only [ContinuousLinearMap.inCoordinates, ContinuousLinearMap.comp_apply, smul_apply]
-  rw [Trivialization.coe_continuousLinearMapAt_eq_coe_continuousLinearMapAt ℝ ℂ, map_smul,
-    ← Trivialization.coe_continuousLinearMapAt_eq_coe_continuousLinearMapAt ℝ ℂ]
+  exact ContinuousLinearMap.inCoordinates_smul _ _
 
 end Complex
 
