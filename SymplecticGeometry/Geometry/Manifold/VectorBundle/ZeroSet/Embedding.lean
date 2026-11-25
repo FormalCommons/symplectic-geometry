@@ -263,6 +263,14 @@ theorem range_ofTransverseSection :
     range (ofTransverseSection hm hsm hs hE) = {x | s x = 0} := by
   rw [coe_ofTransverseSection, Subtype.range_coe]
 
+/-- A point of the zero set of a transverse section is a zero of the section. -/
+theorem ofTransverseSection_apply_eq_zero (z : ↥{x : X | s x = 0}) :
+    letI := transverseZeroSetChartedSpace hm hsm hs hE
+    s (ofTransverseSection hm hsm hs hE z) = 0 := by
+  let := transverseZeroSetChartedSpace hm hsm hs hE
+  rw [coe_ofTransverseSection]
+  exact z.property
+
 /-- The zero set of a transverse section is a closed embedded submanifold. -/
 theorem isClosed_range_ofTransverseSection :
     letI := transverseZeroSetChartedSpace hm hsm hs hE

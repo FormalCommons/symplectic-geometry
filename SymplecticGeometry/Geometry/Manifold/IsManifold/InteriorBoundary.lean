@@ -36,6 +36,8 @@ chart of the maximal atlas.
   boundary, every chart of the maximal atlas has an open extended target.
 * `ModelWithCorners.dense_interior`: the interior of `M` is dense.
 * `ModelWithCorners.interiorOpens`: the interior of `M` as an open subset.
+* `ModelWithCorners.compl_range_subtypeVal_interior`: the complement of the range of the
+  inclusion `I.interior M → M` is the boundary.
 * `ModelWithCorners.BoundarylessManifold.interior`: the interior of `M` is a manifold without
   boundary.
 * `ModelWithCorners.isConnected_interior`: the interior of a connected manifold is connected.
@@ -157,6 +159,12 @@ def interiorOpens [IsManifold I 1 M] : Opens M :=
 @[simp]
 theorem coe_interiorOpens [IsManifold I 1 M] : (I.interiorOpens M : Set M) = I.interior M :=
   (rfl)
+
+/-- The complement in `M` of the range of the inclusion of the interior of `M` is the
+boundary. -/
+theorem compl_range_subtypeVal_interior :
+    (range (Subtype.val : I.interior M → M))ᶜ = I.boundary M := by
+  rw [Subtype.range_coe, compl_interior]
 
 @[simp]
 theorem mem_interiorOpens [IsManifold I 1 M] {x : M} :
