@@ -11,9 +11,10 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.CauchyRiemann.Ze
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.Hilbert
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.CovariantDerivative
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.SmoothHomMul
-public import SymplecticGeometry.Analysis.Complex.Wirtinger.Beurling.Estimate
 public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.ZeroOneForm
 import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.SMulLp
+import SymplecticGeometry.Analysis.Complex.Wirtinger.Beurling.Estimate
+import SymplecticGeometry.Analysis.Complex.Wirtinger.Commutator
 import SymplecticGeometry.Analysis.Normed.Operator.ComplexLinearPart
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.ZeroOnePart
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Tames
@@ -453,8 +454,8 @@ private theorem exists_sum_eLpNorm_iteratedFDeriv_mul_le {W U T K : Set ℂ} (hW
   have hPvW : tsupport Pv ⊆ W := by
     refine (closure_minimal (fun z hz ↦ ?_) (isClosed_tsupport v)).trans hvW
     by_contra h
-    exact hz (by simp [Pv, wirtingerDeriv_eq_complexLinearPart,
-      conjWirtingerDeriv_eq_complexAntilinearPart, fderiv_of_notMem_tsupport (𝕜 := ℝ) h])
+    exact hz (by simp [Pv, conjWirtingerDeriv_of_notMem_tsupport h,
+      wirtingerDeriv_of_notMem_tsupport h])
   have hPv : EqOn Pv (fun z ↦ a z • θ z 1 + b z • u z) W := fun z hz ↦
     conjWirtingerDeriv_add_smul_wirtingerDeriv_eq_of_eventuallyEq_smul
       (hvw.eventuallyEq_of_mem (hW.mem_nhds hz))
