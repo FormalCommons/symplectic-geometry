@@ -687,8 +687,9 @@ table may fall behind.
   coordinates, `stdForm`, `stdComplexStructure`, the product comparison,
   `isSymplectomorphism_piLpCongrLeft_sumCongr` with its coordinates
   `StdSpace.x_piLpCongrLeft_sumCongr` and `StdSpace.y_piLpCongrLeft_sumCongr`,
-  `StdSpace.sumEquiv`, and the additions of *Lagrangian Grassmannian*:
-  `StdSpace.complexEuclideanEquiv`, `StdSpace.swap`, `StdSpace.finSumIsometry`),
+  `stdDarbouxBasisOf` with its lemmas, `StdSpace.sumEquiv`, and the additions
+  of *Lagrangian Grassmannian*: `StdSpace.complexEuclideanEquiv`, `StdSpace.swap`,
+  `StdSpace.finSumIsometry`),
   `LinearAlgebra/Symplectic/Standard/Matrix.lean` (the matrix dictionary).
 - **Builds on:** Mathlib, Tau Ceti. `Matrix.lean` also imports two general
   matrix files that *Siegel upper half space* lists:
