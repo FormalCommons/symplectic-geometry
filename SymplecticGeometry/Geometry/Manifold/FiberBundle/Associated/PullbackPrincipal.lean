@@ -62,6 +62,8 @@ form on `M`.
 * `TauCeti.AssociatedBundle.contMDiff_chartedMk_left`: for fixed `v`, `x ↦ [x, v]` is
   `C^n`, and `TauCeti.AssociatedBundle.mfderiv_proj_chartedMk_apply`: composed with the
   derivative of the projection of `M`, its derivative is that of the projection of `P`.
+* `TauCeti.AssociatedBundle.contMDiff_chartedMk_right`: for fixed `x`, the fibre inclusion
+  `v ↦ [x, v]` is `C^n`.
 * `TauCeti.AssociatedBundle.chartedMk_op_smul_inv_smul` and
   `TauCeti.AssociatedBundle.chartedMk_eq_chartedMk_iff`: `q` is invariant under the
   diagonal action, and its fibres are the orbits.
@@ -237,6 +239,13 @@ theorem contMDiff_chartedMk_left [ContMDiffSMul IG IF n G F] (v : F) :
     ContMDiff (IB.prod IG) (IB.prod IF) n fun x : ManifoldTotalSpace G P ↦
       chartedMk G F P (x, v) :=
   (contMDiff_chartedMk n IB IG IF).comp (contMDiff_id.prodMk contMDiff_const)
+
+variable (n IB IG IF) in
+/-- For a fixed point `x` of the total space of `P`, the inclusion `v ↦ [x, v]` of `F` onto the
+fibre of the associated bundle through `[x, v]` is `C^n`. -/
+theorem contMDiff_chartedMk_right [ContMDiffSMul IG IF n G F] (x : ManifoldTotalSpace G P) :
+    ContMDiff IF (IB.prod IF) n fun v : F ↦ chartedMk G F P (x, v) :=
+  (contMDiff_chartedMk n IB IG IF).comp (contMDiff_const.prodMk contMDiff_id)
 
 /-- **The projection of `[x, v]` is the projection of `x`, on tangent vectors.** The derivative
 of the projection of the associated bundle at `[x, v]`, composed with that of `x' ↦ [x', v]` at
