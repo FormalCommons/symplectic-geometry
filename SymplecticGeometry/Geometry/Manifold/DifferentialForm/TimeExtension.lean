@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.ContMDiff.TimeExtension
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
+public import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 
 /-!
 # Time extension of forms
@@ -26,11 +27,17 @@ linear in `Ω`.
 The extension keeps the slices of `Ω`, not its components along the time direction: the form
 `timeExtend Ω` vanishes on that direction.
 
+For `a < b`, the same construction applies to forms on `M × Icc a b`, with the interval as the
+second factor: they are carried to `unitInterval × M` by swapping the factors and Mathlib's affine
+homeomorphism `iccHomeoI a b`, extended, and carried back to `M × ℝ`.
+
 ## Main definitions
 
 * `TauCeti.SmoothForm.timeExtendSlice Ω s`: the slice at time `s : ℝ` of the extension of `Ω`.
 * `TauCeti.SmoothForm.timeExtend`: the linear map from forms on `unitInterval × M` to forms on
   `ℝ × M` that extends the slices.
+* `TauCeti.SmoothForm.timeExtendIcc`: the linear map from forms on `M × Icc a b` to forms on
+  `M × ℝ` that extends the slices.
 
 ## Main results
 
@@ -39,6 +46,11 @@ The extension keeps the slices of `Ω`, not its components along the time direct
 * `TauCeti.SmoothForm.timeExtendSlice_mpullback_prodMap`,
   `TauCeti.SmoothForm.timeExtend_mpullback_prodMap`: the time extension commutes with pullback
   along `Prod.map id g` for a smooth map `g` of the space factor.
+* `TauCeti.SmoothForm.mpullback_prodMk_timeExtendIcc`,
+  `TauCeti.SmoothForm.timeExtendIcc_apply_eq_zero`,
+  `TauCeti.SmoothForm.timeExtendIcc_mpullback_prodMap`: the extension of a form on `M × Icc a b`
+  keeps its slices at the times of `[a, b]`, vanishes on vectors along `ℝ`, and commutes with
+  pullback along `Prod.map g id`.
 * `SymplecticGeometry.isSmoothFamily_timeExtendSlice`: the slices of the extension form a smooth
   family over `ℝ`.
 * `SymplecticGeometry.IsSmoothFamily.exists_extend`: a smooth family of forms over
@@ -267,6 +279,102 @@ theorem timeExtend_mpullback_prodMap (hg : ContMDiff I I' ∞ g)
   congr 1
 
 end Naturality
+
+section Icc
+
+variable {a b : ℝ} [hab : Fact (a < b)]
+
+/-- **The time extension of forms on `M × [a, b]`.** For a boundaryless manifold `M` and
+`a < b`, the linear map that sends a smooth form `η` on `M × Icc a b` to a smooth form on
+`M × ℝ` with the same slices at the times of `[a, b]`: `η` is carried to `unitInterval × M` by
+swapping the factors and the affine homeomorphism `iccHomeoI a b`, extended there by
+`TauCeti.SmoothForm.timeExtend`, and carried back to `M × ℝ` by `s ↦ (s - a) / (b - a)`. -/
+def timeExtendIcc :
+    SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F k →ₗ[ℝ]
+      SmoothForm (I.prod 𝓘(ℝ, ℝ)) (M × ℝ) F k :=
+  mpullback (fun p : M × ℝ ↦ ((p.2 - a) / (b - a), p.1))
+      ((((contDiff_id.sub contDiff_const).div_const _).contMDiff.comp contMDiff_snd).prodMk
+        contMDiff_fst) ∘ₗ timeExtend ∘ₗ
+    mpullback (fun q : unitInterval × M ↦ (q.2, (iccHomeoI a b hab.out).symm q.1))
+      (contMDiff_snd.prodMk ((contMDiff_iccHomeoI_symm hab.out).comp contMDiff_fst))
+
+/-- `TauCeti.SmoothForm.timeExtendIcc η` is the pullback along `(x, s) ↦ ((s - a) / (b - a), x)`
+of the time extension of the pullback of `η` along `(u, x) ↦ (x, (iccHomeoI a b _).symm u)`. -/
+theorem timeExtendIcc_def (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F k) :
+    timeExtendIcc η =
+      mpullback (fun p : M × ℝ ↦ ((p.2 - a) / (b - a), p.1))
+        ((((contDiff_id.sub contDiff_const).div_const _).contMDiff.comp contMDiff_snd).prodMk
+          contMDiff_fst)
+        (timeExtend (mpullback
+          (fun q : unitInterval × M ↦ (q.2, (iccHomeoI a b hab.out).symm q.1))
+          (contMDiff_snd.prodMk ((contMDiff_iccHomeoI_symm hab.out).comp contMDiff_fst)) η)) :=
+  (rfl)
+
+/-- At a time `t ∈ [a, b]`, the slice of `TauCeti.SmoothForm.timeExtendIcc η` is the slice of
+`η`. -/
+theorem mpullback_prodMk_timeExtendIcc (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F k)
+    (t : Icc a b) :
+    mpullback (fun x : M ↦ (x, (t : ℝ))) (contMDiff_id.prodMk contMDiff_const)
+        (timeExtendIcc η) =
+      mpullback (fun x : M ↦ (x, t)) (contMDiff_id.prodMk contMDiff_const) η := by
+  set u := iccHomeoI a b hab.out t
+  have h₁ : (fun p : M × ℝ ↦ ((p.2 - a) / (b - a), p.1)) ∘ (fun x : M ↦ (x, (t : ℝ))) =
+      Prod.mk (u : ℝ) :=
+    funext fun x ↦ by simp [u, iccHomeoI_apply_coe]
+  have h₂ : (fun q : unitInterval × M ↦ (q.2, (iccHomeoI a b hab.out).symm q.1)) ∘
+      Prod.mk u = fun x : M ↦ (x, t) :=
+    funext fun x ↦ by simp [u]
+  rw [timeExtendIcc_def, mpullback_mpullback,
+    mpullback_congr (g := Prod.mk (u : ℝ)) _ (contMDiff_const.prodMk contMDiff_id) h₁,
+    mpullback_prodMk_timeExtend,
+    mpullback_mpullback]
+  exact mpullback_congr _ _ h₂ η
+
+/-- `TauCeti.SmoothForm.timeExtendIcc η` vanishes on tangent vectors `v` as soon as one of them,
+`v i`, has no component along `M`. -/
+theorem timeExtendIcc_apply_eq_zero (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F k)
+    (p : M × ℝ) (v : Fin k → TangentSpace (I.prod 𝓘(ℝ, ℝ)) p) (i : Fin k)
+    (hv : (Manifold.tangentSpaceProdEquiv p (v i)).1 = 0) :
+    (timeExtendIcc η).val p v = 0 := by
+  rw [timeExtendIcc_def, mpullback_apply, timeExtend_def, ofSlices_apply]
+  refine ContinuousAlternatingMap.map_coord_zero _ i ?_
+  rw [Manifold.tangentSpaceProdEquiv_apply] at hv
+  have hc : MDifferentiableAt (I.prod 𝓘(ℝ, ℝ)) 𝓘(ℝ, ℝ) (fun p : M × ℝ ↦ (p.2 - a) / (b - a)) p :=
+    (((contDiff_id.sub contDiff_const).div_const (b - a)).contMDiff (n := 1).comp
+      contMDiff_snd).mdifferentiableAt one_ne_zero
+  rw [mfderiv_prodMk hc mdifferentiableAt_fst, mfderiv_fst,
+    Manifold.tangentSpaceProdEquiv_apply]
+  exact (congrArg Prod.snd (ContinuousLinearMap.prod_apply _ _ (v i))).trans hv
+
+section Naturality
+
+variable {E' H' M' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+  [TopologicalSpace M'] [ChartedSpace H' M'] {I' : ModelWithCorners ℝ E' H'} [IsManifold I' ∞ M']
+  [BoundarylessManifold I' M'] {g : M → M'}
+
+/-- **Naturality of the time extension on `M × [a, b]`.** For a smooth map `g : M → M'` and a
+smooth form `η` on `M' × Icc a b`, the time extension of the pullback of `η` along `g × id` is
+the pullback along `g × id` of the time extension of `η`. -/
+theorem timeExtendIcc_mpullback_prodMap (hg : ContMDiff I I' ∞ g)
+    (η : SmoothForm (I'.prod (𝓡∂ 1)) (M' × Icc a b) F k) :
+    timeExtendIcc (mpullback (Prod.map g id) (hg.prodMap contMDiff_id) η) =
+      mpullback (Prod.map g id) (hg.prodMap contMDiff_id) (timeExtendIcc η) := by
+  rw [timeExtendIcc_def, timeExtendIcc_def,
+    mpullback_mpullback_of_comp_eq
+      (f := fun q : unitInterval × M ↦ (q.2, (iccHomeoI a b hab.out).symm q.1))
+      (g := Prod.map g id) (f' := Prod.map id g)
+      (g' := fun q : unitInterval × M' ↦ (q.2, (iccHomeoI a b hab.out).symm q.1)) _ _
+      (contMDiff_id.prodMap hg)
+      (contMDiff_snd.prodMk ((contMDiff_iccHomeoI_symm hab.out).comp contMDiff_fst))
+      (funext fun _ ↦ rfl) η,
+    timeExtend_mpullback_prodMap hg]
+  exact mpullback_mpullback_of_comp_eq (f := fun p : M × ℝ ↦ ((p.2 - a) / (b - a), p.1))
+    (g := Prod.map id g) (f' := Prod.map g id)
+    (g' := fun p : M' × ℝ ↦ ((p.2 - a) / (b - a), p.1)) _ _ _ _ (funext fun _ ↦ rfl) _
+
+end Naturality
+
+end Icc
 
 end TauCeti.SmoothForm
 
