@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 public import SymplecticGeometry.Geometry.Manifold.Flow.Basic
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.RegularLevel
+public import SymplecticGeometry.Geometry.Manifold.GroupAction.TranslatingField
 public import SymplecticGeometry.Geometry.Symplectic.Coupling.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Circle
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap.ReducedForm
@@ -437,6 +438,35 @@ theorem mfderiv_ne_zero_of_notMem_fixedPoints {σ : SmoothTwoForm I M}
   rwa [← hμ.mem_criticalPoints_circlePeriodOneGenerator_iff hσ, hneg, criticalPoints_neg,
     mem_criticalPoints_iff_mfderiv_eq_zero] at hx
 
+omit [T2Space M] [BoundarylessManifold I M] in
+/-- The Hamiltonian `H = ⟨μ, circlePeriodOneGenerator⟩` of a moment map `-μ` is smooth. -/
+theorem contMDiff_of_isMomentMap_neg {σ : SmoothTwoForm I M}
+    {μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle)}
+    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) fun x ↦ -μ x) :
+    ContMDiff I 𝓘(ℝ) ∞ fun y ↦ μ y circlePeriodOneGenerator := by
+  simpa using (hμ.contMDiff circlePeriodOneGenerator).neg
+
+/-- **A level of free orbits is a regular value of the Hamiltonian.** Let a circle act smoothly
+on a Hausdorff boundaryless manifold `M`, with moment map `-μ` for a nondegenerate two-form `σ`,
+and let `H = ⟨μ, circlePeriodOneGenerator⟩`. If the action is free on the level `H = c`, then
+`c` is a regular value of `H`. -/
+theorem isRegularValue_of_stabilizer_eq_bot {σ : SmoothTwoForm I M}
+    {μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle)}
+    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) fun x ↦ -μ x)
+    (hσ : σ.IsNondegenerate) {c : ℝ}
+    (hfree : ∀ x, μ x circlePeriodOneGenerator = c → MulAction.stabilizer Circle x = ⊥) :
+    IsRegularValue I 𝓘(ℝ) (fun y ↦ μ y circlePeriodOneGenerator) c := by
+  refine isRegularValue_iff.2 fun x hx ↦ ?_
+  rw [isRegularPoint_iff_notMem_criticalPoints, mem_criticalPoints_iff_mfderiv_eq_zero]
+  have hσx : (σ.bilinFormAt x).Nondegenerate :=
+    ((SmoothForm.isAlt_bilinFormAt σ x).isRefl.nondegenerate_iff_separatingLeft).2 fun v hv ↦
+      SmoothTwoForm.isNondegenerate_iff_separatingLeft.1 hσ x v fun w ↦ by
+        simpa only [SmoothForm.bilinFormAt_apply] using hv w
+  refine mfderiv_ne_zero_of_notMem_fixedPoints hμ hσx fun hfix ↦ ?_
+  have hgx : Circle.exp Real.pi ∈ MulAction.stabilizer Circle x := hfix _
+  rw [hfree x hx, Subgroup.mem_bot] at hgx
+  exact Circle.exp_pi_ne_one hgx
+
 end Regular
 
 /-! ### The reduced forms of an equivariant map into a level -/
@@ -783,6 +813,124 @@ theorem IsCouplingForm.isSmoothFamily [∀ b, MulAction Circleᵐᵒᵖ (P b)] [
     (ManifoldTotalSpace.exists_contMDiffOn_section ∞ Circle P IB (𝓡 1)) hσ.mpullback_slice
 
 end SmoothFamily
+
+/-! ### The converse of minimal coupling -/
+
+section Converse
+
+attribute [local instance] MulOpposite.chartedSpace
+
+variable [FiniteDimensional ℝ E] [I.Boundaryless] [ContMDiffSMul (𝓡 1) I ∞ Circle M]
+  [SigmaCompactSpace M] {σ : SmoothTwoForm I M}
+  {μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle)}
+
+/-- **The converse of minimal coupling.** Let a circle act smoothly on a Hausdorff, σ-compact,
+boundaryless finite-dimensional manifold `M`, preserving a symplectic form `σ`, with moment map
+`-μ`, and let `H = ⟨μ, circlePeriodOneGenerator⟩`, so that `ι_{X_M} σ = -dH`. Let `a < b`, let
+the band `K = H⁻¹([a, b])` be compact, and let the action be free on `K`. Let `P` be the circle
+bundle `orbitFiber` of the level `H⁻¹(a)`, a regular level, over the orbit space `B`, built with
+the local instances of `GroupAction/RegularLevel.lean`. Then there are a map
+`ψ : P × [a, b] → M` and a family `τ` of two-forms on `B` such that
+
+* `ψ` is smooth and equivariant, `ψ (p • z, t) = z • ψ (p, t)`;
+* `ψ` is injective, with range `K`, and `H (ψ (p, t)) = t`;
+* `τ` is a smooth family of symplectic forms;
+* `ψ^* σ` is a coupling form for `τ`.
+
+By `SymplecticGeometry.IsCouplingForm.mk_sub_mk_eq_neg_smul_realFirstChernClass`, the classes of
+the forms `τ t` then move linearly in `t`, with slope minus the real first Chern class of `P`.
+
+Milestone: *Minimal coupling*. -/
+theorem exists_isCouplingForm_comp_eq (hσ : σ.IsSymplectic)
+    (hσs : ∀ g : Circle, SmoothForm.mpullback (fun x : M ↦ g • x)
+      (ContMDiffSMul.contMDiff_const_smul (I := 𝓡 1) (I' := I) g) σ = σ)
+    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) fun x ↦ -μ x)
+    (hK : IsCompact ((fun x ↦ μ x circlePeriodOneGenerator) ⁻¹' Icc a b))
+    (hfree : ∀ x, μ x circlePeriodOneGenerator ∈ Icc a b → MulAction.stabilizer Circle x = ⊥) :
+    let H : M → ℝ := fun x ↦ μ x circlePeriodOneGenerator
+    haveI hf : ContMDiff I 𝓘(ℝ) ∞ H := contMDiff_of_isMomentMap_neg hμ
+    haveI hfreea : ∀ x, H x = a → MulAction.stabilizer Circle x = ⊥ := fun x hx ↦
+      hfree x (show H x ∈ Icc a b by rw [hx]; exact left_mem_Icc.2 (Fact.out : a < b).le)
+    haveI hreg : IsRegularValue I 𝓘(ℝ) H a :=
+      isRegularValue_of_stabilizer_eq_bot hμ hσ.isNondegenerate hfreea
+    haveI hn : Module.finrank ℝ E - Module.finrank ℝ ℝ = Module.finrank ℝ E - 1 := by
+      rw [Module.finrank_self]
+    haveI hinv : ∀ (g : Circle) (x : M), H (g • x) = H x := fun g x ↦
+      congrArg (· circlePeriodOneGenerator) (neg_injective (hμ.apply_smul_circle g x))
+    letI := regularLevelChartedSpace (fun x _ ↦ hf.contMDiffAt.of_le (by simp)) hreg hn
+    letI := levelOpMulAction a hinv
+    haveI := isManifold_regularLevel (by simp) (fun x _ ↦ hf.contMDiffAt) hreg hn
+    haveI := contMDiffSMul_levelOpMulAction (by simp) (fun x _ ↦ hf.contMDiffAt) hreg hn hinv
+      (IG := 𝓡 1)
+    haveI := ContMDiffSMul.continuousSMul (I := 𝓡 1) (I' := I) (G := Circle) (M := M) ∞
+    haveI := properSMul_levelOpMulAction (c := a) hinv
+    haveI := isCancelSMul_levelOpMulAction hinv hfreea
+    letI := ProperSMul.orbitRelQuotientChartedSpace (𝓡 1) Circleᵐᵒᵖ
+      𝓘(ℝ, Fin (Module.finrank ℝ E - 1) → ℝ) {x : M // H x = a}
+    letI := (orbitFiber.atlas (𝓡 1) Circle 𝓘(ℝ, Fin (Module.finrank ℝ E - 1) → ℝ)
+      {x : M // H x = a}).fiberBundle
+    haveI := orbitFiber.principalBundle (𝓡 1) Circle 𝓘(ℝ, Fin (Module.finrank ℝ E - 1) → ℝ)
+      {x : M // H x = a}
+    haveI := (orbitFiber.atlas (𝓡 1) Circle 𝓘(ℝ, Fin (Module.finrank ℝ E - 1) → ℝ)
+      {x : M // H x = a}).contMDiffFiberBundle
+      (orbitFiber.isContMDiff_atlas (𝓡 1) Circle 𝓘(ℝ, Fin (Module.finrank ℝ E - 1) → ℝ)
+        {x : M // H x = a})
+    let IB := 𝓘(ℝ, ProperSMul.QuotientModelSpace (EuclideanSpace ℝ (Fin 1))
+      (Fin (Module.finrank ℝ E - 1) → ℝ))
+    let B := MulAction.orbitRel.Quotient Circleᵐᵒᵖ {x : M // H x = a}
+    let P := orbitFiber Circleᵐᵒᵖ {x : M // H x = a}
+    ∃ (ψ : ManifoldTotalSpace Circle P × Icc a b → M)
+      (hψ : ContMDiff ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) I ∞ ψ) (τ : Icc a b → SmoothTwoForm IB B),
+      (∀ (g : Circle) (x : ManifoldTotalSpace Circle P × Icc a b), ψ (op g • x.1, x.2) = g • ψ x) ∧
+      Injective ψ ∧ range ψ = H ⁻¹' Icc a b ∧ (∀ x, H (ψ x) = x.2) ∧
+      IsSmoothFamily (𝓡∂ 1) τ ∧ (∀ t, (τ t).IsSymplectic) ∧
+      IsCouplingForm (SmoothForm.mpullback ψ hψ σ) τ := by
+  intro H
+  have hf : ContMDiff I 𝓘(ℝ) ∞ H := contMDiff_of_isMomentMap_neg hμ
+  have hfreea : ∀ x, H x = a → MulAction.stabilizer Circle x = ⊥ := fun x hx ↦
+    hfree x (show H x ∈ Icc a b by rw [hx]; exact left_mem_Icc.2 (Fact.out : a < b).le)
+  have hreg : IsRegularValue I 𝓘(ℝ) H a :=
+    isRegularValue_of_stabilizer_eq_bot hμ hσ.isNondegenerate hfreea
+  have hn : Module.finrank ℝ E - Module.finrank ℝ ℝ = Module.finrank ℝ E - 1 := by
+    rw [Module.finrank_self]
+  have hinv : ∀ (g : Circle) (x : M), H (g • x) = H x := fun g x ↦
+    congrArg (· circlePeriodOneGenerator) (neg_injective (hμ.apply_smul_circle g x))
+  let := regularLevelChartedSpace (fun x _ ↦ hf.contMDiffAt.of_le (by simp)) hreg hn
+  let := levelOpMulAction a hinv
+  have := isManifold_regularLevel (by simp) (fun x _ ↦ hf.contMDiffAt) hreg hn
+  have := contMDiffSMul_levelOpMulAction (by simp) (fun x _ ↦ hf.contMDiffAt) hreg hn hinv
+    (IG := 𝓡 1)
+  have := ContMDiffSMul.continuousSMul (I := 𝓡 1) (I' := I) (G := Circle) (M := M) ∞
+  have := properSMul_levelOpMulAction (c := a) hinv
+  have := isCancelSMul_levelOpMulAction hinv hfreea
+  let := ProperSMul.orbitRelQuotientChartedSpace (𝓡 1) Circleᵐᵒᵖ
+    𝓘(ℝ, Fin (Module.finrank ℝ E - 1) → ℝ) {x : M // H x = a}
+  let := (orbitFiber.atlas (𝓡 1) Circle 𝓘(ℝ, Fin (Module.finrank ℝ E - 1) → ℝ)
+    {x : M // H x = a}).fiberBundle
+  have := orbitFiber.principalBundle (𝓡 1) Circle 𝓘(ℝ, Fin (Module.finrank ℝ E - 1) → ℝ)
+    {x : M // H x = a}
+  have := (orbitFiber.atlas (𝓡 1) Circle 𝓘(ℝ, Fin (Module.finrank ℝ E - 1) → ℝ)
+    {x : M // H x = a}).contMDiffFiberBundle
+    (orbitFiber.isContMDiff_atlas (𝓡 1) Circle 𝓘(ℝ, Fin (Module.finrank ℝ E - 1) → ℝ)
+      {x : M // H x = a})
+  intro IB B P
+  -- An invariant complete field `v` with `dH(v) = 1` near the band, where `dH ≠ 0`.
+  obtain ⟨v, W, hv, -, hvc, hvinv, hW, hKW, -, hvf⟩ :=
+    exists_invariant_vectorField_mfderiv_eq_one (𝓡 1) (G := Circle) hf hinv hK fun x hx ↦ by
+      have := isRegularValue_of_stabilizer_eq_bot hμ hσ.isNondegenerate (c := H x)
+        (fun y hy ↦ hfree y (show H y ∈ Icc a b from (show H y = H x from hy) ▸ hx))
+        |>.isRegularPoint rfl
+      rwa [isRegularPoint_iff_notMem_criticalPoints, mem_criticalPoints_iff_mfderiv_eq_zero]
+        at this
+  obtain ⟨hψ, hψs, hψf, hinj, hrange, hX⟩ :=
+    bandMap_orbitFiber hf hreg hn hinv hfreea hv hvc hvinv hW hvf hKW (b := b)
+  have hτ := existsUnique_isSymplectic_mpullback_eq_mpullback_bandMap hf hreg hn hinv hfreea hv
+    hvc hvinv hW hvf hKW hσ hσs hμ (fun _ ↦ rfl) hψ
+  choose τ hτs hτ using fun t ↦ (hτ t).exists
+  have hc := isCouplingForm_mpullback hψ hσ.isClosed hσs hμ hψs hψf hX fun t ↦ (hτ t).symm
+  exact ⟨_, hψ, τ, hψs, hinj, hrange, hψf, hc.isSmoothFamily, hτs, hc⟩
+
+end Converse
 
 end SymplecticGeometry
 
