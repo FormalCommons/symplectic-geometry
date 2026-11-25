@@ -12,10 +12,11 @@ public import TauCeti.Topology.VectorBundle.TensorProduct.Basic
 /-!
 # The line bundles of a scalar cocycle
 
-A `SymplecticGeometry.ScalarCocycle 𝕜 X ι` is an open cover `U i` of a topological space `X`
-with continuous, nowhere vanishing functions `g i j : X → 𝕜` on the overlaps `U i ∩ U j` that
-satisfy the cocycle identity `g i j * g j k = g i k`. For every `k : ℤ`, the powers `g j i ^ k`
-glue trivial lines over the `U i` into a line bundle.
+A `SymplecticGeometry.ScalarCocycle 𝕜 X ι` is an open cover `U i` of a topological space `X`,
+with a preferred chart `indexAt x` containing each point `x`, and continuous, nowhere vanishing
+functions `g i j : X → 𝕜` on the overlaps `U i ∩ U j` that satisfy the cocycle identity
+`g i j * g j k = g i k`. For every `k : ℤ`, the powers `g j i ^ k` glue trivial lines over the
+`U i` into a line bundle.
 
 * `SymplecticGeometry.ScalarCocycle.lineBundleCore c k`: that line bundle, as a vector bundle
   core with model fibre `𝕜`, whose coordinate change from the chart `i` to the chart `j` is
@@ -34,13 +35,15 @@ The smoothness of the line bundle over a manifold,
 ## Implementation notes
 
 The core follows Tau Ceti's `TauCeti.signedPointTwistCore` and `Projectivization.twistCore`:
-scalar coordinate changes `ContinuousLinearMap.lsmul 𝕜 𝕜` of a scalar cocycle. The cores for
-`k + l`, `k` and `l` share their charts and their preferred chart at each point, so the tensor
-isomorphism needs no scalar factor. Apart from that factor, the tensor section adapts the
-library's `Projectivization.twistCoreTensorEquiv`,
-`Projectivization.tensorProduct_localTriv_twistCoreTensorEquiv` and
-`Projectivization.continuous_twistCoreTensorEquiv`
-(`SymplecticGeometry/Geometry/Manifold/Projectivization/TwistCore.lean`).
+scalar coordinate changes `ContinuousLinearMap.lsmul 𝕜 𝕜` of a scalar cocycle. As in Tau Ceti's
+`TauCeti.fiberBundleCoreOfGroupCocycle`, the preferred charts are data of the cocycle, so that a
+cocycle can be given the preferred charts of an existing core, as
+`Projectivization.twistScalarCocycle` is given those of `Projectivization.twistCore`. The cores
+for `k + l`, `k` and `l` share their charts and their preferred chart at each point, so the
+tensor isomorphism needs no scalar factor. The tensor section adapts the proofs that the
+library first gave for `Projectivization.twistCoreTensorEquiv`, which
+`SymplecticGeometry/Geometry/Manifold/Projectivization/TwistCore.lean` now derives from
+`lineBundleCoreTensorEquiv`.
 
 ## References
 
@@ -55,15 +58,18 @@ open scoped TensorProduct TauCeti.ModuleTopology
 
 namespace SymplecticGeometry
 
-/-- A scalar cocycle on a topological space `X`: an open cover `U` of `X` indexed by `ι` and
-continuous, nowhere vanishing functions `g i j` on the overlaps `U i ∩ U j` with
-`g i j * g j k = g i k` on triple overlaps. -/
+/-- A scalar cocycle on a topological space `X`: an open cover `U` of `X` indexed by `ι`, with
+a preferred chart `indexAt x` containing each point `x`, and continuous, nowhere vanishing
+functions `g i j` on the overlaps `U i ∩ U j` with `g i j * g j k = g i k` on triple
+overlaps. -/
 @[ext]
 structure ScalarCocycle (𝕜 X ι : Type*) [NontriviallyNormedField 𝕜] [TopologicalSpace X] where
   /-- The open sets of the cover. -/
   U : ι → Set X
   isOpen_U (i : ι) : IsOpen (U i)
-  iUnion_U : ⋃ i, U i = univ
+  /-- The preferred chart at a point: a chart of the cover that contains it. -/
+  indexAt : X → ι
+  mem_U_indexAt (x : X) : x ∈ U (indexAt x)
   /-- The cocycle. -/
   g : ι → ι → X → 𝕜
   continuousOn_g (i j : ι) : ContinuousOn (g i j) (U i ∩ U j)
@@ -75,13 +81,8 @@ namespace ScalarCocycle
 variable {𝕜 X ι : Type*} [NontriviallyNormedField 𝕜] [TopologicalSpace X]
   (c : ScalarCocycle 𝕜 X ι)
 
-theorem exists_mem_U (x : X) : ∃ i, x ∈ c.U i :=
-  mem_iUnion.1 (c.iUnion_U ▸ mem_univ x)
-
-/-- A chart of the cover containing `x`. -/
-def indexAt (x : X) : ι := (c.exists_mem_U x).choose
-
-theorem mem_U_indexAt (x : X) : x ∈ c.U (c.indexAt x) := (c.exists_mem_U x).choose_spec
+theorem iUnion_U : ⋃ i, c.U i = univ :=
+  eq_univ_of_forall fun x ↦ mem_iUnion.2 ⟨c.indexAt x, c.mem_U_indexAt x⟩
 
 theorem g_self {i : ι} {x : X} (hi : x ∈ c.U i) : c.g i i x = 1 :=
   (mul_eq_right₀ (c.g_ne_zero hi hi)).1 (c.g_mul_g hi hi hi)
