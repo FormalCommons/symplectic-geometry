@@ -136,12 +136,7 @@ theorem firstChernClass_tangentSpace :
         (firstChernClass (Fin m → ℂ)
           (TangentSpace 𝓘(ℂ, Fin m → ℂ) : ℙ ℂ (Fin (m + 1) → ℂ) → Type)) =
       ((m + 1 : ℕ) : ℤ) • hyperplaneClass (Fin (m + 1) → ℂ) := by
-  rw [← chernClass_one_eq_firstChernClass, ← totalChernClass_apply, totalChernClass_tangentSpace]
-  -- The component of degree two of `(1 + h) ^ (m + 1)` is `m + 1` times `h`.
-  have h := TopCat.aeval_evenIntegralCohomologyOf_apply (TopCat.of (ℙ ℂ (Fin (m + 1) → ℂ)))
-    (hyperplaneClass (Fin (m + 1) → ℂ)) ((1 + Polynomial.X) ^ (m + 1)) 1
-  simp only [map_pow, map_add, map_one, Polynomial.aeval_X] at h
-  rw [h, add_comm (1 : Polynomial ℤ), Polynomial.coeff_X_add_one_pow, Nat.choose_one_right,
-    pow_one, DirectSum.of_eq_same]
+  rw [← chernClass_one_eq_firstChernClass, ← totalChernClass_apply, totalChernClass_tangentSpace,
+    TopCat.one_add_evenIntegralCohomologyOf_pow_apply_one]
 
 end Projectivization
