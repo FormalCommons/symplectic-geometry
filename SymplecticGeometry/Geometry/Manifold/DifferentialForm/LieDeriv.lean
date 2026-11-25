@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
 public import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 public import TauCeti.Geometry.Manifold.VectorField.Prod
 import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
+import TauCeti.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
 
 /-!
@@ -120,6 +121,7 @@ variable {EN HN : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] [CompleteS
   [TopologicalSpace H'] {J : ModelWithCorners ℝ E' H'} {P : Type*} [TopologicalSpace P]
   [ChartedSpace H' P] [IsManifold J 2 P]
 
+attribute [local instance] IsManifold.minSmoothness_of_isRCLikeNormedField in
 /-- **Lie derivatives of a form with constant slices.** Let `β` be a form on `N × P` whose slices
 `ι_s^* β`, `ι_s : y ↦ (s, y)`, do not depend on `s ∈ N`, and let `X` be a vector field on `N`,
 lifted horizontally to `(X, 0)` on `N × P`. Then the slice at time `t` of the Lie derivative
@@ -132,9 +134,6 @@ theorem mpullback_prodMk_mlieDerivForm_prodVectorField_zero_eq_zero
     (hslice : ∀ s, mpullback J (K.prod J) (Prod.mk s) β = mpullback J (K.prod J) (Prod.mk t) β) :
     mpullback J (K.prod J) (Prod.mk t)
       (mlieDerivForm (Manifold.prodVectorField X (0 : Π y : P, TangentSpace J y)) β) x = 0 := by
-  have h2 : minSmoothness ℝ 2 = 2 := minSmoothness_of_isRCLikeNormedField
-  have : IsManifold K (minSmoothness ℝ 2) N := by rw [h2]; infer_instance
-  have : IsManifold J (minSmoothness ℝ 2) P := by rw [h2]; infer_instance
   have : IsManifold K 1 N := .of_le one_le_two
   have : IsManifold J 1 P := .of_le one_le_two
   ext v

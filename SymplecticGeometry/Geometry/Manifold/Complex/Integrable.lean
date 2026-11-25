@@ -140,6 +140,7 @@ theorem isIntegrable_of_forall_exists_isLocalDiffeomorphAt
   rw [hd]
   exact hJ y (hts (hΦt hy)) v
 
+attribute [local instance] IsManifold.minSmoothness_of_isRCLikeNormedField in
 /-- **The Nijenhuis tensor of an integrable structure vanishes.** -/
 theorem IsIntegrable.nijenhuis_eq_zero [FiniteDimensional ℝ E]
     {J : SmoothAlmostComplexStructure I M} (hJ : J.IsIntegrable) : J.nijenhuis = 0 := by
@@ -147,7 +148,6 @@ theorem IsIntegrable.nijenhuis_eq_zero [FiniteDimensional ℝ E]
   funext x
   obtain ⟨ψ, J₀, hx, hψ⟩ := hJ x
   have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
-  have : IsManifold I (minSmoothness ℝ 2) M := .of_le (n := ∞) (by simp)
   have hψx : ContMDiffAt I 𝓘(ℝ, E) ∞ ψ x :=
     ψ.contMDiffOn.contMDiffAt (ψ.open_source.mem_nhds hx)
   -- The pullbacks along `ψ` of the constant vector fields of `E`.
