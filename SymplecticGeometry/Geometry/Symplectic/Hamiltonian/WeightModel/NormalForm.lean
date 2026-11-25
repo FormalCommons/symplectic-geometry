@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Symplectic.Hamiltonian.WeightModel.NormalForm
+public import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 import SymplecticGeometry.Analysis.InnerProductSpace.PiL2
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.WeightModel.Basic
@@ -22,7 +23,8 @@ library's sign, `d⟨μ, ξ⟩ = -ι_{ξ_M} σ` (so that Tau Ceti's moment map i
 fixed point. This file reads Tau Ceti's weight chart
 `TauCeti.SmoothTwoForm.IsMomentMap.exists_weightModelChart` in the library's conventions
 (`SymplecticGeometry.exists_weightChart`; with the fundamental vector fields,
-`SymplecticGeometry.exists_weightChart_fundamentalVectorField`):
+`SymplecticGeometry.exists_weightChart_fundamentalVectorField`, which gives a chart with all the
+properties below, bundled as `SymplecticGeometry.IsWeightChart`):
 
 * the chart goes from the model to `M`: it is the inverse of Tau Ceti's chart, composed with
   `EuclideanSpace.sumEquivProd`, and is defined on a round ball of `StdSpace (Fin n)`, centred at
@@ -55,6 +57,109 @@ namespace SymplecticGeometry
 
 open TauCeti
 
+attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
+
+section IsWeightChart
+
+variable {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
+  {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H' M] [IsManifold I' ∞ M]
+  {σ : SmoothTwoForm I' M}
+  {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G] [T2Space G]
+  [MulAction G M]
+  {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)}
+
+/-- **A weight chart at a fixed point.** `Φ` is a weight chart of the action of `G` on `(M, σ)`
+with moment map `μ`, at `p`, with characters `χₖ : G → S¹`, period-one weights `αₖ ∈ 𝔤*` and
+radius `r`, if
+
+* `χₖ (exp ξ) = e^{2π i αₖ(ξ)}`;
+* the source of `Φ` is the ball of radius `r > 0` about `0` in `StdSpace (Fin n)`, and
+  `Φ 0 = p`;
+* in the complex coordinates `z = complexToRealEuclidean (Fin n) u`, `Φ` is equivariant for the
+  action `uₖ ↦ χₖ(g) uₖ` of `g` on the ball;
+* `Φ` pulls `σ` back to the standard form `stdForm (Fin n)` on the ball;
+* at every `z` in the ball and for every `ξ ∈ 𝔤`, the differential of `Φ` at `z` sends the
+  generator `(-2π αₖ(ξ) yₖ(z), 2π αₖ(ξ) xₖ(z))` of the weight rotation, read through
+  `EuclideanSpace.sumEquivProd`, to the fundamental vector field `ξ_M` at `Φ z`;
+* `μ (Φ z) = μ p + π Σₖ (xₖ(z)² + yₖ(z)²) αₖ` on the ball.
+
+The weights then lie in the character lattice
+(`SymplecticGeometry.IsWeightChart.exists_int_of_mulInvariantExp_eq_one`), and the target of `Φ`
+is `G`-invariant (`SymplecticGeometry.IsWeightChart.smul_mem_target`). -/
+structure IsWeightChart (σ : SmoothTwoForm I' M) (μ : M → Module.Dual ℝ (GroupLieAlgebra I G))
+    (p : M) {n : ℕ} (χ : Fin n → G →ₜ* Circle) (α : Fin n → StrongDual ℝ E)
+    (Φ : PartialDiffeomorph 𝓘(ℝ, StdSpace (Fin n)) I' (StdSpace (Fin n)) M ∞) (r : ℝ) :
+    Prop where
+  /-- The characters are the exponentials of the period-one weights. -/
+  apply_mulInvariantExp : ∀ k (ξ : GroupLieAlgebra I G),
+    χ k (mulInvariantExp (I := I) ξ) = Circle.exp (2 * π * α k ξ)
+  /-- The radius is positive. -/
+  radius_pos : 0 < r
+  /-- The source is the ball of radius `r` about `0`. -/
+  source_eq : Φ.source = Metric.ball 0 r
+  /-- The chart is centred at `p`. -/
+  apply_zero : Φ 0 = p
+  /-- `Φ` is equivariant, for the action of `g` by `uₖ ↦ χₖ(g) uₖ` in complex coordinates. -/
+  equivariant : ∀ g : G, ∀ u : Fin n → ℂ, complexToRealEuclidean (Fin n) u ∈ Φ.source →
+    complexToRealEuclidean (Fin n) (fun k ↦ (χ k g : ℂ) * u k) ∈ Φ.source ∧
+      Φ (complexToRealEuclidean (Fin n) fun k ↦ (χ k g : ℂ) * u k) =
+        g • Φ (complexToRealEuclidean (Fin n) u)
+  /-- `Φ` pulls `σ` back to the standard form on its source. -/
+  isSymplecticMapOn : SmoothTwoForm.IsSymplecticMapOn (stdForm (Fin n)).constSmooth σ Φ Φ.source
+  /-- The differential of `Φ` sends the generator of the weight rotation to `ξ_M`. -/
+  mfderiv_weightGenerator : ∀ z ∈ Φ.source, ∀ ξ : GroupLieAlgebra I G,
+    mfderiv 𝓘(ℝ, StdSpace (Fin n)) I' Φ z
+        (EuclideanSpace.sumEquivProd.symm
+          (weightGenerator (fun k ↦ 2 * π * α k ξ) (EuclideanSpace.sumEquivProd z))) =
+      fundamentalVectorField I' ξ (Φ z)
+  /-- The moment map is quadratic in the chart. -/
+  momentMap_apply : ∀ z ∈ Φ.source, ∀ ξ : GroupLieAlgebra I G,
+    μ (Φ z) ξ = μ p ξ + π * ∑ k, α k ξ * (z.x k ^ 2 + z.y k ^ 2)
+
+namespace IsWeightChart
+
+variable {p : M} {n : ℕ} {χ : Fin n → G →ₜ* Circle} {α : Fin n → StrongDual ℝ E}
+  {Φ : PartialDiffeomorph 𝓘(ℝ, StdSpace (Fin n)) I' (StdSpace (Fin n)) M ∞} {r : ℝ}
+
+/-- The centre `0` of a weight chart lies in its source. -/
+theorem zero_mem_source (h : IsWeightChart σ μ p χ α Φ r) : 0 ∈ Φ.source := by
+  rw [h.source_eq]
+  exact Metric.mem_ball_self h.radius_pos
+
+/-- The fixed point `p` lies in the target of a weight chart at `p`. -/
+theorem mem_target (h : IsWeightChart σ μ p χ α Φ r) : p ∈ Φ.target := by
+  rw [← h.apply_zero]
+  exact Φ.map_source h.zero_mem_source
+
+/-- The weights of a weight chart lie in the character lattice: `αₖ(ξ) ∈ ℤ` whenever
+`exp ξ = 1`. -/
+theorem exists_int_of_mulInvariantExp_eq_one (h : IsWeightChart σ μ p χ α Φ r) (k : Fin n)
+    {ξ : GroupLieAlgebra I G} (hξ : mulInvariantExp (I := I) ξ = 1) : ∃ m : ℤ, α k ξ = m := by
+  have h1 : Circle.exp (2 * π * α k ξ) = 1 := by
+    rw [← h.apply_mulInvariantExp, hξ, map_one]
+  obtain ⟨m, hm⟩ := Circle.exp_eq_one.1 h1
+  refine ⟨m, ?_⟩
+  have hπ : (2 * π : ℝ) ≠ 0 := by positivity
+  apply mul_left_cancel₀ hπ
+  rw [hm, mul_comm]
+
+/-- The target of a weight chart is invariant under the action of `G`. -/
+theorem smul_mem_target (h : IsWeightChart σ μ p χ α Φ r) (g : G) {x : M} (hx : x ∈ Φ.target) :
+    g • x ∈ Φ.target := by
+  obtain ⟨u, hu⟩ := (complexToRealEuclidean (Fin n)).surjective (Φ.symm x)
+  have hsrc : complexToRealEuclidean (Fin n) u ∈ Φ.source := hu ▸ Φ.map_target hx
+  obtain ⟨h₁, h₂⟩ := h.equivariant g u hsrc
+  have hx' : Φ (complexToRealEuclidean (Fin n) u) = x := by rw [hu]; exact Φ.right_inv hx
+  rw [← hx', ← h₂]
+  exact Φ.map_source h₁
+
+end IsWeightChart
+
+end IsWeightChart
+
 variable {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
   {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'} [I'.Boundaryless]
   {M : Type*} [TopologicalSpace M] [ChartedSpace H' M] [IsManifold I' ∞ M]
@@ -65,14 +170,11 @@ variable {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimens
   [IsTopologicalGroup G] [CompactSpace G] [MulAction G M] [ContMDiffSMul I I' ∞ G M]
   {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)}
 
-attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
-
-/-- **The weight chart at a fixed point, with the fundamental vector fields.** The chart of
-`SymplecticGeometry.exists_weightChart`, with all of its properties, and in addition: at every
-`z` in the ball and for every `ξ ∈ 𝔤`, the differential of `Φ` at `z` sends the generator of the
-weight rotation by the angles `2π αₖ(ξ)`, the vector `(-2π αₖ(ξ) yₖ(z), 2π αₖ(ξ) xₖ(z))` read
-through `EuclideanSpace.sumEquivProd`, to the value at `Φ z` of the fundamental vector field
-`ξ_M`. -/
+/-- **The weight chart at a fixed point, with the fundamental vector fields.** Under the
+hypotheses of `SymplecticGeometry.exists_weightChart`, there is a weight chart at the fixed point
+`p` (`SymplecticGeometry.IsWeightChart`): the chart of `SymplecticGeometry.exists_weightChart`,
+with all of its properties, whose differential in addition sends the generator of the weight
+rotation by the angles `2π αₖ(ξ)` to the fundamental vector field `ξ_M`. -/
 theorem exists_weightChart_fundamentalVectorField
     (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental I G I' M) fun x ↦ -μ x)
     (hσ : σ.IsSymplectic)
@@ -81,26 +183,8 @@ theorem exists_weightChart_fundamentalVectorField
     {p : M} (hp : ∀ g : G, g • p = p) :
     ∃ (n : ℕ) (χ : Fin n → G →ₜ* Circle) (α : Fin n → StrongDual ℝ E)
       (Φ : PartialDiffeomorph 𝓘(ℝ, StdSpace (Fin n)) I' (StdSpace (Fin n)) M ∞) (r : ℝ),
-      (∀ k (ξ : GroupLieAlgebra I G),
-        χ k (mulInvariantExp (I := I) ξ) = Circle.exp (2 * π * α k ξ)) ∧
-      (∀ k (ξ : GroupLieAlgebra I G), mulInvariantExp (I := I) ξ = 1 → ∃ m : ℤ, α k ξ = m) ∧
-      0 < r ∧ Φ.source = Metric.ball 0 r ∧ Φ 0 = p ∧
-      (∀ g : G, ∀ x ∈ Φ.target, g • x ∈ Φ.target) ∧
-      (∀ g : G, ∀ u : Fin n → ℂ, complexToRealEuclidean (Fin n) u ∈ Φ.source →
-        complexToRealEuclidean (Fin n) (fun k ↦ (χ k g : ℂ) * u k) ∈ Φ.source ∧
-        Φ (complexToRealEuclidean (Fin n) fun k ↦ (χ k g : ℂ) * u k) =
-          g • Φ (complexToRealEuclidean (Fin n) u)) ∧
-      (∀ z ∈ Φ.source, ∀ v w : StdSpace (Fin n),
-        σ.eval₂ (Φ z) (mfderiv 𝓘(ℝ, StdSpace (Fin n)) I' Φ z v)
-          (mfderiv 𝓘(ℝ, StdSpace (Fin n)) I' Φ z w) = stdForm (Fin n) v w) ∧
-      (∀ z ∈ Φ.source, ∀ ξ : GroupLieAlgebra I G,
-        mfderiv 𝓘(ℝ, StdSpace (Fin n)) I' Φ z
-            (EuclideanSpace.sumEquivProd.symm
-              (weightGenerator (fun k ↦ 2 * π * α k ξ) (EuclideanSpace.sumEquivProd z))) =
-          fundamentalVectorField I' ξ (Φ z)) ∧
-      ∀ z ∈ Φ.source, ∀ ξ : GroupLieAlgebra I G,
-        μ (Φ z) ξ = μ p ξ + π * ∑ k, α k ξ * (z.x k ^ 2 + z.y k ^ 2) := by
-  obtain ⟨n, χ, β, chart, r, hβ, hβℤ, hpchart, hchartp, hr, htarget, hequiv, hform, hvf, hmom⟩ :=
+      IsWeightChart σ μ p χ α Φ r := by
+  obtain ⟨n, χ, β, chart, r, hβ, -, hpchart, hchartp, hr, htarget, hequiv, hform, hvf, hmom⟩ :=
     hμ.exists_weightModelChart hσ hG hp
   let A : StdSpace (Fin n) ≃L[ℝ] EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin n) :=
     EuclideanSpace.sumEquivProd
@@ -126,20 +210,11 @@ theorem exists_weightChart_fundamentalVectorField
     simp only [α, FunLike.coe_smul, Pi.smul_apply, smul_eq_mul]
   have hβα (k : Fin n) (ξ : E) : β k ξ = 2 * π * α k ξ := by
     rw [hα, ← mul_assoc, mul_inv_cancel₀ (by positivity : (2 * π : ℝ) ≠ 0), one_mul]
-  refine ⟨n, χ, α, Φ, r, fun k ξ ↦ by rw [hβ, hβα k ξ], fun k ξ hξ ↦ ?_, hr, ?_, ?_, ?_, ?_, ?_,
-    ?_, ?_⟩
-  · -- Integrality: `ξ / 2π` lies in Tau Ceti's period lattice.
-    obtain ⟨m, hm⟩ := hβℤ k ((2 * π)⁻¹ • ξ) (by
-      rwa [smul_smul, mul_inv_cancel₀ (by positivity : (2 * π : ℝ) ≠ 0), one_smul])
-    refine ⟨m, ?_⟩
-    rw [hα k ξ, ← hm]
-    exact ((β k).map_smul ((2 * π)⁻¹) ξ).symm
+  refine ⟨n, χ, α, Φ, r, fun k ξ ↦ by rw [hβ, hβα k ξ], hr, ?_, ?_, ?_, ?_, ?_, ?_⟩
   · ext z
     rw [hsrc, Set.mem_preimage, htarget, Set.mem_ofPred_eq, EuclideanSpace.norm_sq_sumEquivProd,
       mem_ball_zero_iff, sq_lt_sq₀ (norm_nonneg _) hr.le]
   · rw [hΦ, map_zero, ← hchartp]; exact chart.left_inv hpchart
-  · intro g x hx
-    rw [htgt] at hx ⊢; exact (hequiv g x hx).1
   · intro g u hu
     obtain ⟨h₁, h₂⟩ := hequiv g _ (hΦsrc hu)
     have hrot : A (complexToRealEuclidean (Fin n) fun k ↦ (χ k g : ℂ) * u k) =
@@ -149,13 +224,13 @@ theorem exists_weightChart_fundamentalVectorField
     refine ⟨?_, ?_⟩
     · rw [hsrc, Set.mem_preimage, hrot]; exact chart.map_source h₁
     · rw [hΦ, hrot]; exact chart.left_inv h₁
-  · intro z hz v w
+  · refine SmoothTwoForm.isSymplecticMapOn_iff.2 fun z hz v w ↦ ?_
     -- `chart'` undoes the differential of its inverse `Φ`.
     have hd (u : StdSpace (Fin n)) :
         mvfderiv I' chart' (Φ z) (mfderiv 𝓘(ℝ, StdSpace (Fin n)) I' Φ z u) = u := by
       rw [mvfderiv_apply_eq_mfderiv_apply]
       exact chart'.mfderiv_apply_mfderiv_symm_apply (by simp) hz u
-    rw [hform' _ (hΦsrc hz), hd v, hd w]
+    rw [SymplecticForm.constSmooth_apply (stdForm (Fin n)) z v w, hform' _ (hΦsrc hz), hd v, hd w]
   · intro z hz (ξ : E)
     -- Tau Ceti's chart sends `ξ_M` to the generator; `chart'` is that chart followed by
     -- `A⁻¹`, and `Φ` is the inverse of `chart'`. As in the moment map step below, `ξ` is
@@ -194,7 +269,7 @@ radius `r > 0` about `0` in `StdSpace (Fin n)` onto a `G`-invariant open set of 
 
 * in the complex coordinates `z = complexToRealEuclidean (Fin n) u`, `Φ` is equivariant for the
   action `uₖ ↦ χₖ(g) uₖ` of `g` on the ball;
-* `Φ` pulls `σ` back to the standard form `stdForm (Fin n)`;
+* `Φ` pulls `σ` back to the standard form `stdForm (Fin n)` on the ball;
 * `μ (Φ z) = μ p + π Σₖ (xₖ(z)² + yₖ(z)²) αₖ` on the ball.
 
 Milestone: *Equivariant Darboux theorem and quadratic local moment maps*. -/
@@ -220,9 +295,13 @@ theorem exists_weightChart
           (mfderiv 𝓘(ℝ, StdSpace (Fin n)) I' Φ z w) = stdForm (Fin n) v w) ∧
       ∀ z ∈ Φ.source, ∀ ξ : GroupLieAlgebra I G,
         μ (Φ z) ξ = μ p ξ + π * ∑ k, α k ξ * (z.x k ^ 2 + z.y k ^ 2) := by
-  obtain ⟨n, χ, α, Φ, r, hχ, hαℤ, hr, hsrc, hΦ0, htgt, hequiv, hform, -, hmom⟩ :=
-    exists_weightChart_fundamentalVectorField hμ hσ hG hp
-  exact ⟨n, χ, α, Φ, r, hχ, hαℤ, hr, hsrc, hΦ0, htgt, hequiv, hform, hmom⟩
+  obtain ⟨n, χ, α, Φ, r, h⟩ := exists_weightChart_fundamentalVectorField hμ hσ hG hp
+  exact ⟨n, χ, α, Φ, r, h.apply_mulInvariantExp,
+    fun k _ hξ ↦ h.exists_int_of_mulInvariantExp_eq_one k hξ, h.radius_pos, h.source_eq,
+    h.apply_zero, fun g _ hx ↦ h.smul_mem_target g hx, h.equivariant,
+    fun z hz v w ↦ (h.isSymplecticMapOn.apply hz v w).trans
+      (SymplecticForm.constSmooth_apply (stdForm (Fin n)) z v w),
+    h.momentMap_apply⟩
 
 end SymplecticGeometry
 
