@@ -13,6 +13,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Manifold.ComplexOrientation
 public import TauCeti.AlgebraicTopology.Cellular.EulerCharacteristic.Genus
 public import TauCeti.Geometry.Manifold.Morse.CWModel
 import SymplecticGeometry.Geometry.Manifold.Degree.Collapse
+import SymplecticGeometry.Geometry.Symplectic.Manifold.Volume
 import TauCeti.Geometry.Symplectic.Manifold.Sphere
 
 /-!

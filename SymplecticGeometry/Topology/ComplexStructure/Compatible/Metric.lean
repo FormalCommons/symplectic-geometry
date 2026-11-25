@@ -8,7 +8,7 @@ module
 public import SymplecticGeometry.Analysis.InnerProductSpace.Symplectic.PolarComplexStructure.Smooth
 public import SymplecticGeometry.Topology.ComplexStructure.Compatible.Matrix
 public import TauCeti.Geometry.Symplectic.Cayley.Contractible
-public import Mathlib.Topology.Homotopy.Affine
+public import SymplecticGeometry.Topology.Homotopy.Affine
 public import Mathlib.Topology.Homotopy.Equiv
 
 /-!
@@ -86,15 +86,8 @@ theorem coe_compatiblePolar_apply (g : innerProducts V) :
 products, from `g ↦ g_{J_{g,ω}}` to the identity. -/
 noncomputable def metricStraightHomotopy :
     ((compatibleMetric ω).comp (compatiblePolar ω)).Homotopy
-      (ContinuousMap.id (innerProducts V)) where
-  toFun p := ⟨ContinuousMap.Homotopy.affine
-      ((ContinuousMap.subtypeVal _).comp ((compatibleMetric ω).comp (compatiblePolar ω)))
-      (ContinuousMap.subtypeVal _) p,
-    (convex_innerProducts V).lineMap_mem (compatibleMetric ω _).property p.2.property
-      p.1.property⟩
-  continuous_toFun := (ContinuousMap.Homotopy.affine _ _).continuous.subtype_mk _
-  map_zero_left g := Subtype.ext <| ContinuousMap.Homotopy.apply_zero _ g
-  map_one_left g := Subtype.ext <| ContinuousMap.Homotopy.apply_one _ g
+      (ContinuousMap.id (innerProducts V)) :=
+  ContinuousMap.Homotopy.affineOfConvex (convex_innerProducts V) _ _
 
 /-- The value of `metricStraightHomotopy ω` at `(t, g)` is `(1 - t) • g_{J_{g,ω}} + t • g`. -/
 @[simp]
@@ -103,7 +96,8 @@ theorem coe_metricStraightHomotopy_apply (p : unitInterval × innerProducts V) :
       (1 - (p.1 : ℝ)) •
         (ω.associatedBilinForm (metricPolarComplexStructure p.2 ω)).toContinuousBilinearMap +
         (p.1 : ℝ) • (p.2 : V →L[ℝ] V →L[ℝ] ℝ) :=
-  AffineMap.lineMap_apply_module _ _ _
+  (ContinuousMap.Homotopy.coe_affineOfConvex_apply _ _ _ p).trans
+    (AffineMap.lineMap_apply_module _ _ _)
 
 /-- The map `J ↦ g_J` is a homotopy equivalence from the `ω`-compatible complex structures to the
 inner products of `V`, with homotopy inverse `g ↦ J_{g,ω}`. The composite on compatible
