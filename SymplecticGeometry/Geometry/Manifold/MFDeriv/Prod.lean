@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.MFDeriv.SpecificFunctions
+public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 
 /-!
 # Partial derivatives of a map on a product manifold
@@ -21,6 +22,15 @@ stated in the same form, and has the proof of Tau Ceti's lemma with the two summ
 The differentiability hypothesis cannot be dropped: if `Function.uncurry f` is not differentiable
 at `(x, y)`, its `mfderiv` is `0`, while a slice can still be differentiable with a nonzero
 derivative.
+
+Read through Tau Ceti's identification `TauCeti.Manifold.tangentSpaceProdEquiv` of the tangent
+space of a product with the product of the tangent spaces, the differential of the slice inclusion
+`y ↦ (x, y)` sends `w` to `(0, w)` (`TauCeti.Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_right`)
+and that of `x ↦ (x, y)` sends `v` to `(v, 0)`
+(`TauCeti.Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_left`). These restate Mathlib's
+`mfderiv_prod_right` and `mfderiv_prod_left` on vectors, so that proofs need not unfold the tangent
+space of a product to the product of the model spaces. They sit next to Tau Ceti's
+`TauCeti.Manifold.tangentSpaceProdEquiv_mfderiv_prodMap_id`, which treats `Prod.map id φ`.
 -/
 
 public section
@@ -49,5 +59,25 @@ theorem mfderiv_uncurry_apply_mk_zero
   (mfderiv_prod_eq_add_apply hf).trans <| (congrArg (_ + ·) (map_zero _)).trans (add_zero _)
 
 end MDifferentiableAt
+
+namespace TauCeti.Manifold
+
+variable {x : M} {y : M'}
+
+/-- Under the identification of the tangent space of `M × M'` with the product of the tangent
+spaces, the differential at `y` of the slice inclusion `z ↦ (x, z)` sends `w` to `(0, w)`. -/
+theorem tangentSpaceProdEquiv_mfderiv_prodMk_right (w : TangentSpace I' y) :
+    tangentSpaceProdEquiv (x, y) (mfderiv I' (I.prod I') (fun z ↦ (x, z)) y w) = (0, w) := by
+  rw [mfderiv_prod_right, tangentSpaceProdEquiv_apply]
+  exact ContinuousLinearMap.inr_apply ..
+
+/-- Under the identification of the tangent space of `M × M'` with the product of the tangent
+spaces, the differential at `x` of the slice inclusion `z ↦ (z, y)` sends `v` to `(v, 0)`. -/
+theorem tangentSpaceProdEquiv_mfderiv_prodMk_left (v : TangentSpace I x) :
+    tangentSpaceProdEquiv (x, y) (mfderiv I (I.prod I') (fun z ↦ (z, y)) x v) = (v, 0) := by
+  rw [mfderiv_prod_left, tangentSpaceProdEquiv_apply]
+  exact ContinuousLinearMap.inl_apply ..
+
+end TauCeti.Manifold
 
 end
