@@ -432,18 +432,20 @@ For a smooth vector bundle `E' → X` with model fibre `F'` and a smooth
 section `s` transverse to the zero section (at each zero, the vertical
 derivative $D s(x):T_xX\to E'_x$, read in any trivialization, is onto):
 
-- `TauCeti.SmoothEmbedding.ofTransverseSection s hs`: the inclusion of the
-  zero set, with Tau Ceti's manifold structure `sectionZeroChartedSpace`
+- `TauCeti.SmoothEmbedding.ofTransverseSection hm hsm hs hE`: the inclusion of
+  the zero set, with the atlas `SymplecticGeometry.transverseZeroSetChartedSpace` built from Tau
+  Ceti's `sectionZeroChartedSpace`
   (modelled on a space of dimension `dim X - r`, through identifications of
   the kernels of the derivative), and the immersion
-  `isImmersionOfComplement_coe_sectionZero`, as a `SmoothEmbedding`, with
+  `SymplecticGeometry.isImmersionOfComplement_coe_transverseZeroSet`, as a `SmoothEmbedding`, with
   `isClosed_range_ofTransverseSection`. Tau Ceti's atlas is stated for a
   base modelled directly on a normed space, with chosen trivializations,
   surjectivity and complemented kernels as data; a base over a general
   boundaryless model `J` is first carried to Tau Ceti's
   `BoundarylessModel J X`, as `Geometry/Manifold/RegularValue/Level.lean`
-  does for level sets, and `ofTransverseSection` takes the section, its
-  transversality and these choices, which are made once from `hs`.
+  does for level sets, and `ofTransverseSection` takes the order `hm : m ≠ 0`,
+  the smoothness `hsm` of the section, its transversality `hs` and the
+  dimension `hE` of the model; the choices are made once from `hs`.
 
 ### `Geometry/Manifold/VectorBundle/ZeroSet/NormalSpace.lean`
 
