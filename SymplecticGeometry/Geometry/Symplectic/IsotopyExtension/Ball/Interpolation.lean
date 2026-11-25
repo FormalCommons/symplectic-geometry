@@ -18,6 +18,7 @@ import TauCeti.Analysis.Normed.Module.Alternating.Curry
 import TauCeti.Geometry.Manifold.Diffeomorph.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
 import TauCeti.Topology.Algebra.Module.Alternating.Basic
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 
 /-!
 # A family of maps along a ball with prescribed ends
@@ -237,13 +238,11 @@ private theorem exists_contMDiffOn_mpullback_eq_of_path [FiniteDimensional ℝ E
     fun z _ ↦ by simp only [Set.Icc.coe_zero, hP0, one_apply_eq_self, hψ0], ?_⟩
   · -- `(k t)^* σ = (P t)^* (ψ t ∘ j₀)^* σ = ω₀` at `0`.
     have hcomp : (fun z ↦ ψ t (j₀ (P t z))) = (fun z ↦ ψ t (j₀ z)) ∘ P t := rfl
-    ext m
-    -- `FinVec.etaExpand m` is `![m 0, m 1]` by definition; `show` states that form, which
-    -- `mpullback_apply_pair` needs.
+    ext m₀ m₁
     rw [hcomp, mpullback_comp_at (P t).differentiableAt.mdifferentiableAt
-      (by rw [map_zero]; exact hψj t), show m = ![m 0, m 1] from (FinVec.etaExpand_eq m).symm,
-      mpullback_apply_pair, mfderiv_eq_fderiv, (P t).fderiv, map_zero]
-    exact (hPF t (m 0) (m 1)).trans (hω₀ _ _).symm
+      (by rw [map_zero]; exact hψj t), mpullback_apply_pair, mfderiv_eq_fderiv, (P t).fderiv,
+      map_zero]
+    exact (hPF t m₀ m₁).trans (hω₀ _ _).symm
   · -- `d (k 1)_0 = d (ψ 1 ∘ j₀)_0 ∘ B = d (j₁)_0`.
     have hcomp : (fun z ↦ ψ ((1 : unitInterval) : ℝ) (j₀ (P ((1 : unitInterval) : ℝ) z))) =
         (fun z ↦ ψ 1 (j₀ z)) ∘ B := by
