@@ -1007,18 +1007,15 @@ Facts about two-forms in the frame topology of a covering frame system
   `ContMDiffSection.continuous_map_frameTopology`. The issue fixes the
   exact form of the pullback here.
 - `Bundle.ContMDiffTwoForm.continuous_tangentEquiv_symm_mpullback_subtypeVal`:
-  for `U : Opens M` and covering frames on `M` and on `U`, restriction,
-  `ω ↦ tangentEquiv.symm (SmoothForm.mpullback Subtype.val
+  for `U : Opens M`, covering frames on `M` and any frames on `U`,
+  restriction, `ω ↦ tangentEquiv.symm (SmoothForm.mpullback Subtype.val
   contMDiff_subtypeVal (tangentEquiv ω))`, is continuous from the two-forms
-  on `M` to those on `U`. By `frameTopology_eq_of_covers` the frames may
-  be taken to be the `trivializationAt` of the bundle of two-forms at the
-  points, with their base sets; the charts of `U` are restrictions of
-  those of `M`, so each frame coordinate of the restriction is one of `ω`
-  composed with an inclusion of open sets, and continuity follows by
-  `ContMDiffMap.continuous_comp_manifoldWeakWhitney`, as in the proof of
-  Tau Ceti's `ContMDiffSection.continuous_restrict_frameTopology`. That
-  lemma itself lands in the pulled-back bundle over `U`, not in the
-  tangent bundle of `U`, which is why the statement here is needed.
+  on `M` to those on `U`. Tau Ceti's
+  `ContMDiffSection.continuous_restrict_frameTopology` lands in the
+  pulled-back bundle over `U`, not in the tangent bundle of `U`, which is
+  why the statement here is needed. It is that lemma followed by the
+  fibrewise map `v ↦ v ∘ dι` into the two-forms on `U`, which is continuous
+  by Tau Ceti's `ContMDiffSection.continuous_map_frameTopology`.
 
 ### `Geometry/Symplectic/HPrinciple/FormSpaces.lean`
 
