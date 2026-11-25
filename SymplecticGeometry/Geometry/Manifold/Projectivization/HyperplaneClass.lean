@@ -79,24 +79,6 @@ private theorem homogeneousSection_X_zero_eq_zero_iff (x : ℙ ℂ (Fin 2 → �
   · rintro ⟨a, rfl⟩
     simp
 
-/-- Read in the chart at `[0 : 1]` and the preferred trivialization of `𝒪(1)` there, the section
-`v ↦ v 0` is `y ↦ y 0`. -/
-private theorem trivializationAt_homogeneousSection_X_zero (y : Fin 1 → ℂ) :
-    (trivializationAt ℂ (twistCore (𝕜 := ℂ) (n := 1) 1).Fiber pointAtInfinity
-      ⟨(chartAt (Fin 1 → ℂ) pointAtInfinity).symm y,
-        homogeneousSection (𝕜 := ℂ) (n := 1) 1 (X 0)
-          ((chartAt (Fin 1 → ℂ) pointAtInfinity).symm y)⟩).2 = y 0 := by
-  rw [VectorBundleCore.trivializationAt, ← VectorBundleCore.localTrivAt_def,
-    twistCore_localTriv_apply, chartAt_eq_affineOpenPartialHomeomorph_twistCore_indexAt 1,
-    twistCore_indexAt_mk_single, coe_affineOpenPartialHomeomorph_symm]
-  have h := twistTransition_mul_homogeneousSection (𝕜 := ℂ) 1 (X 0) 1 ((affineChart 1).symm y)
-  rw [Nat.cast_one, pow_one, eval_X] at h
-  have ht : y ∈ (affineChart (K := ℂ) 1).target := by simp
-  have hy : (affineChart (K := ℂ) 1).symm y ∈ affineOpen 1 :=
-    affineChart_source (K := ℂ) 1 ▸ (affineChart 1).map_target ht
-  rw [h, rep_div_rep_eq_insertNth_affineChart 0 hy, (affineChart 1).right_inv ht]
-  simp
-
 /-- **The hyperplane class evaluates to one on the projective line.** The hyperplane class of
 `ℂℙ¹ = ℙ ℂ (Fin 2 → ℂ)`, evaluated on the fundamental class of `ℂℙ¹` for its complex orientation,
 is `1`. -/
@@ -130,7 +112,11 @@ theorem complexManifoldEvalFundamentalClass_hyperplaneClass :
     funext y
     rw [ContinuousLinearMap.coe_restrictScalars', ContinuousLinearEquiv.coe_coe,
       ContinuousLinearEquiv.coe_funUnique, Function.eval, Fin.default_eq_zero]
-    exact trivializationAt_homogeneousSection_X_zero y
+    have h := trivializationAt_homogeneousSection_chartAt_symm (isHomogeneous_X ℂ 0)
+      pointAtInfinity y
+    rw [Nat.cast_one] at h
+    rw [h, twistCore_indexAt_mk_single]
+    simp
   exact sectionIndex_eq_one_of_complexLinear (finrank_fin_fun ℂ) hs
     ((homogeneousSection_X_zero_eq_zero_iff _).2 rfl) _
     (mem_baseSet_trivializationAt _ _ _) _ hA
