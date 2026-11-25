@@ -7,7 +7,7 @@ module
 
 public import TauCeti.Analysis.Complex.Wirtinger.IteratedFDeriv
 public import TauCeti.Analysis.Calculus.IteratedFDeriv.Lp
-public import SymplecticGeometry.Analysis.Complex.Wirtinger.Basic
+import SymplecticGeometry.Analysis.Complex.Wirtinger.Basic
 import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.FDerivApply
 import TauCeti.Analysis.Calculus.BumpFunction.Cutoff
 
