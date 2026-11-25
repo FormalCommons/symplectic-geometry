@@ -8,12 +8,12 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Basic
 import Mathlib.Analysis.InnerProductSpace.Calculus
 import SymplecticGeometry.Analysis.Complex.QuadraticLeviForm
-import SymplecticGeometry.LinearAlgebra.Matrix.DotProduct
+import SymplecticGeometry.Analysis.InnerProductSpace.PiL2
 import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 import TauCeti.Geometry.Manifold.Complex.DdbarForm.Basic
 public import TauCeti.Geometry.Manifold.Complex.LeviForm
 public import SymplecticGeometry.Geometry.Manifold.Complex.Plurisubharmonic
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.Kahler
+import SymplecticGeometry.Geometry.Symplectic.Manifold.Rescale
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 
 /-!
@@ -43,11 +43,11 @@ blowup constructions read the forms they build off `Z` in these terms.
 * `SymplecticGeometry.radialPotentialForm_apply_I_smul`: on `(v, i v)` the form is
   `g'(s) |v|² + g''(s) |star z ⬝ᵥ v|²`.
 * `SymplecticGeometry.isManifoldStrictlyPlurisubharmonicAt_radialPotential`: if `g' > 0` and
-  `(s g')' = g' + s g'' > 0` on `(0, ∞)`, the potential `g ∘ s` is strictly plurisubharmonic on
-  `Z`. When `g'' < 0`, Cauchy–Schwarz `|star z ⬝ᵥ v|² ≤ |z|² |v|²`
+  `(s g')' = g' + s g'' > 0` at `s = |z|²`, the potential `g ∘ s` is strictly plurisubharmonic at
+  `z`. When `g'' < 0`, Cauchy–Schwarz `|star z ⬝ᵥ v|² ≤ |z|² |v|²`
   (`Matrix.norm_star_dotProduct_sq_le`) bounds the value on `(v, i v)` below by
   `(g' + s g'') |v|²`.
-* `SymplecticGeometry.isKahler_radialPotentialForm`: under the same hypotheses the form is Kähler
+* `SymplecticGeometry.isKahler_radialPotentialForm`: if both hold on `(0, ∞)`, the form is Kähler
   for `J`, as a positive multiple of the form of a strictly plurisubharmonic function
   (`SymplecticGeometry.isKahler_mextDerivₗ_covectorComplexStructure`).
 * `SymplecticGeometry.radialPotentialForm_id`: for `g = id` the form is `ω₀`, restricted to `Z`.
@@ -180,13 +180,13 @@ theorem radialPotentialForm_apply_I_smul (g : ℝ → ℝ) (hg : ContDiffOn ℝ 
     Complex.normSq_apply]
   ring
 
-/-- **Radial potentials are strictly plurisubharmonic.** If `g' > 0` and `(s g')' > 0` on
-`(0, ∞)`, the radial potential `z ↦ g |z|²` is strictly plurisubharmonic at every point of
-`(ι → ℂ) ∖ 0`. -/
+/-- **Radial potentials are strictly plurisubharmonic.** Let `s = |z|²` at a point `z` of
+`(ι → ℂ) ∖ 0`. If `g'(s) > 0` and `(t g')'(s) > 0`, the radial potential `z ↦ g |z|²` is strictly
+plurisubharmonic at `z`. -/
 theorem isManifoldStrictlyPlurisubharmonicAt_radialPotential {g : ℝ → ℝ}
-    (hg : ContDiffOn ℝ ∞ g (Ioi 0)) (hg₁ : ∀ s ∈ Ioi (0 : ℝ), 0 < deriv g s)
-    (hg₂ : ∀ s ∈ Ioi (0 : ℝ), 0 < deriv (fun t ↦ t * deriv g t) s)
-    (z : puncturedSpace (ι → ℂ)) :
+    (hg : ContDiffOn ℝ ∞ g (Ioi 0)) (z : puncturedSpace (ι → ℂ))
+    (hg₁ : 0 < deriv g (∑ i, ‖(z : ι → ℂ) i‖ ^ 2))
+    (hg₂ : 0 < deriv (fun t ↦ t * deriv g t) (∑ i, ‖(z : ι → ℂ) i‖ ^ 2)) :
     IsManifoldStrictlyPlurisubharmonicAt (ι → ℂ) (radialPotential hg) z := by
   rw [isManifoldStrictlyPlurisubharmonicAt_iff_forall_pos]
   intro v hv
@@ -213,14 +213,12 @@ theorem isManifoldStrictlyPlurisubharmonicAt_radialPotential {g : ℝ → ℝ}
   have hd : DifferentiableAt ℝ (deriv g) s :=
     ((hg.deriv_of_isOpen (m := 1) isOpen_Ioi (by simp)).differentiableOn
       one_ne_zero).differentiableAt (Ioi_mem_nhds hs)
-  have h₂ := hg₂ s hs
   rw [deriv_fun_mul (c := fun t ↦ t) differentiableAt_fun_id hd, deriv_id'', one_mul]
-    at h₂
-  have h₁ := hg₁ s hs
+    at hg₂
   have hN := Complex.normSq_nonneg (star (z : ι → ℂ) ⬝ᵥ v)
   rcases le_or_gt 0 (deriv (deriv g) s) with h | h
-  · nlinarith [mul_nonneg h hN, mul_pos h₁ hA]
-  · nlinarith [mul_le_mul_of_nonpos_left hCS h.le, mul_pos h₂ hA]
+  · nlinarith [mul_nonneg h hN, mul_pos hg₁ hA]
+  · nlinarith [mul_le_mul_of_nonpos_left hCS h.le, mul_pos hg₂ hA]
 
 /-- **Radial potential forms are Kähler.** If `g' > 0` and `(s g')' > 0` on `(0, ∞)`, the form of
 the radial potential `z ↦ g |z|²` is a Kähler form for the complex structure of `(ι → ℂ) ∖ 0`. -/
@@ -230,8 +228,10 @@ theorem isKahler_radialPotentialForm {g : ℝ → ℝ} (hg : ContDiffOn ℝ ∞ 
     (radialPotentialForm ι g hg).IsKahler
       (ofComplexManifold (ι → ℂ) (puncturedSpace (ι → ℂ))) := by
   rw [radialPotentialForm_def]
-  exact (isKahler_mextDerivₗ_covectorComplexStructure
-    (isManifoldStrictlyPlurisubharmonicAt_radialPotential hg hg₁ hg₂)).smul (by norm_num)
+  refine (isKahler_mextDerivₗ_covectorComplexStructure fun z ↦ ?_).smul _ (by norm_num)
+  have hz : ∑ i, ‖(z : ι → ℂ) i‖ ^ 2 ∈ Ioi 0 := by
+    simpa only [mem_Ioi, norm_sq_complexToRealEuclidean] using norm_sq_complexToRealEuclidean_pos z
+  exact isManifoldStrictlyPlurisubharmonicAt_radialPotential hg z (hg₁ _ hz) (hg₂ _ hz)
 
 /-- For `g = id` the radial potential form is the standard form `ω₀`, restricted to
 `(ι → ℂ) ∖ 0`. -/

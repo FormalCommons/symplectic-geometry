@@ -49,7 +49,6 @@ In the namespace `TauCeti.SmoothTwoForm`:
 * `Compatible.inner_nijenhuis_and_leviCivita_hom_eq_zero_iff`: the formula and the equivalence
   for a compatible pair and the Levi-Civita connection of `g_J`.
 * `Compatible.leviCivita_hom_toEndomorphism_eq_zero_iff_isKahler`: the Kähler form of it.
-* `IsKahler.smul`: scaling by a positive real number keeps the Kähler property for `J`.
 
 ## Implementation notes
 
@@ -180,18 +179,6 @@ theorem Compatible.leviCivita_hom_toEndomorphism_eq_zero_iff_isKahler (hJ : σ.C
         (CovariantDerivative.leviCivitaConnection I M) J.toEndomorphism = 0 ↔
       σ.IsKahler J := by
   rw [hJ.inner_nijenhuis_and_leviCivita_hom_eq_zero_iff.2, isKahler_iff, and_iff_right hJ]
-
-/-- A positive multiple of a Kähler form for `J` is a Kähler form for `J`. -/
-theorem IsKahler.smul {σ : SmoothTwoForm I M} {J : SmoothAlmostComplexStructure I M}
-    (h : σ.IsKahler J) {c : ℝ} (hc : 0 < c) : (c • σ).IsKahler J where
-  isClosed := h.isClosed.smul c
-  compatible :=
-    ⟨invariant_iff.2 fun x v w ↦ by
-        simp only [SmoothForm.eval₂_smul, h.compatible.invariant.apply x v w],
-      tames_iff.2 fun x v hv ↦ by
-        simpa only [SmoothForm.eval₂_smul, smul_eq_mul] using
-          mul_pos hc (tames_iff.1 h.compatible.tames x v hv)⟩
-  nijenhuis_eq_zero := h.nijenhuis_eq_zero
 
 end SmoothTwoForm
 
