@@ -1084,10 +1084,12 @@ issues, in an order where each issue's blockers come before it.
    `d α`) and `IsCircleConnectionForm.curvature_eq_iff` (it characterizes the
    curvature); `α + π^* a` is a connection form for every 1-form `a` on `M`,
    any two differ by such an `a`, and `curvature (α + π^* a) = curvature α +
-   d a`; existence of a connection form, by a partition of unity from the
-   trivializations of the atlas; and the local form
+   d a`; and the local form
    $d\theta+\pi^*s^*\alpha$ in the trivialization of a local section `s`
-   (`TauCeti.PrincipalBundle.trivializationOfSection`). General lemmas that
+   (`TauCeti.PrincipalBundle.trivializationOfSection`). A connection form
+   exists by `exists_isCircleConnectionForm`, in
+   `Geometry/Manifold/FiberBundle/Principal/Connection/Circle.lean`, the case
+   `G = Circle` of `exists_isConnectionForm`. General lemmas that
    the proofs use have files of their own:
    `Geometry/Manifold/DeRham/Circle.lean` (the rotations of the circle preserve
    `TauCeti.circleAngularForm`), at the place of the Tau Ceti file of the same
