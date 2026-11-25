@@ -64,7 +64,7 @@ private def hamiltonianPairs (σ : SmoothTwoForm I M) (a : InfinitesimalAction �
   zero_mem' := by
     refine ⟨contMDiff_const, ?_⟩
     rw [Prod.snd_zero, Prod.fst_zero, map_zero]
-    exact IsHamiltonianVectorField.zero
+    exact isHamiltonianVectorField_zero_iff.2 fun _ ↦ mvfderiv_zero
   smul_mem' c p hp := by
     refine ⟨(contMDiff_const : ContMDiff I 𝓘(ℝ) ∞ fun _ : M ↦ c).smul hp.1, ?_⟩
     rw [Prod.smul_snd, Prod.smul_fst, map_smul]
