@@ -53,6 +53,13 @@ a smooth manifold, the inclusion of each disc into the disjoint union being a lo
 diffeomorphism (`TauCeti.isLocalDiffeomorph_sigmaMk`). The construction follows the gluing of
 `TauCeti.SmoothCollar.WithEnd` (`Geometry/Manifold/Boundary/Collar/End.lean`).
 
+The capped surface is Hausdorff when `S` is, by the two-piece form
+`TopCat.GlueData.ofHomeomorph_t2Space_iff` of Tau Ceti's criterion
+`TopCat.GlueData.t2Space_iff_forall_nhds`. Both pieces are Hausdorff, so it remains to separate
+an interior point `p` from a point `z` of the `i`-th disc with `‖z‖ ≤ 1`. The point `p` lies
+off the compact circle `γ i`, hence, by compactness, off the collar points `c (γ i θ, t)` for
+every `θ` and every small enough `t`; these are the points of an annulus `1 < ‖z‖ < 1 + ε`.
+
 ## Main definitions
 
 * `SymplecticGeometry.capDiscs`: the capped surface, a smooth manifold modelled on `ℝ²`.
@@ -74,6 +81,7 @@ diffeomorphism (`TauCeti.isLocalDiffeomorph_sigmaMk`). The construction follows 
 * `SymplecticGeometry.capDiscs.range_inl_union_iUnion_range_inr`: the interior and the discs cover
   the capped surface; `disjoint_range_inr`: distinct discs are disjoint;
   `inr_mem_range_inl_iff`: a point of a disc lies in the interior exactly on the annulus.
+* `SymplecticGeometry.capDiscs.instT2Space`: the capped surface is Hausdorff when `S` is.
 
 ## References
 
@@ -82,7 +90,7 @@ diffeomorphism (`TauCeti.isLocalDiffeomorph_sigmaMk`). The construction follows 
 * M. W. Hirsch, *Differential Topology*, Springer GTM 33, 1976, Chapter 8, §2 (gluing manifolds
   along boundaries by collars).
 * John M. Lee, *Introduction to Smooth Manifolds*, second edition, Springer GTM 218, 2013,
-  Chapter 1 (the smooth manifold chart lemma).
+  Chapter 1 (the smooth manifold chart lemma, and the Hausdorff condition on a glued space).
 -/
 
 public section
@@ -737,6 +745,84 @@ theorem inr_mem_range_inl_iff {i : ι} {z : ball} :
   have h : (⟨i, remodelDiffeomorph complexDiffeomorph ball z⟩ : DiscsPiece ι) ∈ annuli ι :=
     he ▸ ((annuliDiffeomorph hγ hinj).toHomeomorph ⟨_, hx⟩).property
   rwa [mem_annuli, mem_annulus, DiscPiece.val_remodelDiffeomorph] at h
+
+/-! ### The Hausdorff property -/
+
+section T2
+
+variable [T2Space S]
+
+/-- An interior point `p` of `S` has a neighbourhood that the `i`-th disc meets only in a thin
+annulus `1 < ‖z‖`, at distance `ε` from the boundary circle `‖z‖ = 1`. -/
+private theorem exists_nhds_inr_ne_inl (i : ι) (p : (𝓡∂ 2).interiorOpens S) :
+    ∃ ε > 0, ∃ V ∈ 𝓝 p, ∀ q ∈ V, ∀ z : ball, ‖(z : ℂ)‖ < 1 + ε →
+      inr c γ hγ hinj i z ≠ inl c γ hγ hinj q := by
+  -- Separate `p` from the compact boundary circle `γ i` by `A ∋ p` and an open `B ⊇ γ i`.
+  have hC : IsCompact (range fun θ ↦ (γ i θ : S)) :=
+    isCompact_range (continuous_subtypeVal.comp (hγ i).isLocalHomeomorph.continuous)
+  have hp : (p : S) ∉ range fun θ ↦ (γ i θ : S) := by
+    rintro ⟨θ, hθ⟩
+    have hb : (p : S) ∈ (𝓡∂ 2).boundary S := hθ ▸ (γ i θ).property
+    exact disjoint_left.1 ModelWithCorners.disjoint_interior_boundary
+      (ModelWithCorners.mem_interiorOpens_iff_mem_interior.1 p.property) hb
+  obtain ⟨B, hB, A, hA, hAB⟩ := Filter.disjoint_iff.1 (hC.disjoint_nhdsSet_nhds hp)
+  obtain ⟨B', hB'o, hCB', hB'B⟩ := mem_nhdsSet_iff_exists.1 hB
+  -- The collar coordinates `(γ i θ, t)` whose collar point lies in `B'`, read in `∂S × [0, ∞)`.
+  let V : Set (↥((𝓡∂ 2).boundary S) × EuclideanHalfSpace 1) :=
+    Prod.map id Subtype.val '' (c ⁻¹' B')
+  have hV : IsOpen V :=
+    (IsOpenEmbedding.id.prodMap (normalIioOpens 1).isOpen.isOpenEmbedding_subtypeVal).isOpenMap _
+      (hB'o.preimage c.continuous)
+  let F : ℝ × AddCircle (1 : ℝ) → ↥((𝓡∂ 2).boundary S) × EuclideanHalfSpace 1 :=
+    fun x ↦ (γ i x.2, normalRay x.1)
+  have hF : Continuous F :=
+    ((hγ i).isLocalHomeomorph.continuous.comp continuous_snd).prodMk
+      (continuous_normalRay.comp continuous_fst)
+  have hev : ∀ᶠ r in 𝓝 (0 : ℝ), ∀ θ ∈ univ, F (r, θ) ∈ V := by
+    refine isCompact_univ.eventually_forall_of_forall_eventually fun θ _ ↦ ?_
+    refine hF.continuousAt.preimage_mem_nhds (hV.mem_nhds ⟨(γ i θ, normalIioOpensZero one_pos),
+      ?_, ?_⟩)
+    · rw [mem_preimage, c.apply_zero]
+      exact hCB' ⟨θ, rfl⟩
+    · simp [F, normalRay_zero]
+  obtain ⟨ε, hε, hεV⟩ := Metric.eventually_nhds_iff.1 hev
+  refine ⟨ε, hε, Subtype.val ⁻¹' A, continuous_subtypeVal.continuousAt.preimage_mem_nhds hA,
+    fun q hq z hzε hzq ↦ ?_⟩
+  have hz : 1 < ‖(z : ℂ)‖ := (inr_mem_range_inl_iff c γ hγ hinj).1 ⟨q, hzq.symm⟩
+  rw [inr_eq_inl c γ hγ hinj hz] at hzq
+  obtain rfl := (isOpenEmbedding_capDiscs_inl c γ hγ hinj).injective hzq
+  obtain ⟨w, hw, hwF⟩ := hεV (y := ‖(z : ℂ)‖ - 1)
+    (by rw [Real.dist_eq, sub_zero, abs_of_pos (by linarith)]; linarith)
+    ((arg z / (2 * π) : ℝ) : AddCircle (1 : ℝ)) (mem_univ _)
+  have hw' : w = gluingCoord γ i z :=
+    Prod.ext ((congrArg Prod.fst hwF).trans (gluingCoord_fst i z).symm)
+      (Subtype.ext ((congrArg Prod.snd hwF).trans (coe_gluingCoord_snd i z).symm))
+  exact disjoint_left.1 hAB (hB'B (hw' ▸ hw)) hq
+
+/-- The capped surface is Hausdorff when `S` is. -/
+instance instT2Space : T2Space (capDiscs c γ hγ hinj) := by
+  -- The criterion for a space glued from two pieces: the interior of `S` and the discs are
+  -- Hausdorff, and it remains to separate a point of the interior from a point `w` of the
+  -- `i`-th disc with `‖w‖ ≤ 1`.
+  refine (TopCat.GlueData.ofHomeomorph_t2Space_iff _).2
+    ⟨inferInstance, inferInstance, ?_⟩
+  rintro x - ⟨i, w⟩ hw
+  let φ := (𝓡∂ 2).interiorOpensDiffeomorph S ∞
+  obtain ⟨ε, hε, V, hV, hsep⟩ := exists_nhds_inr_ne_inl c γ hγ hinj i (φ.symm x)
+  let ψ := remodelDiffeomorph complexDiffeomorph ball
+  have hW : IsOpen {w : DiscPiece | ‖(ψ.symm w : ℂ)‖ < 1 + ε} :=
+    isOpen_lt (continuous_subtypeVal.comp ψ.symm.continuous).norm continuous_const
+  refine ⟨φ.symm ⁻¹' V, φ.symm.continuous.continuousAt.preimage_mem_nhds hV,
+    Sigma.mk i '' {w : DiscPiece | ‖(ψ.symm w : ℂ)‖ < 1 + ε},
+    (isOpenMap_sigmaMk _ hW).mem_nhds ⟨w, ?_, rfl⟩, ?_⟩
+  · rw [mem_annuli, mem_annulus, DiscPiece.val, not_lt] at hw
+    exact hw.trans_lt (lt_add_of_pos_right _ hε)
+  rintro q hq ⟨w', hw', he⟩
+  refine hsep _ hq (ψ.symm w') hw' ?_
+  rw [inr, inl, Diffeomorph.apply_symm_apply, φ.apply_symm_apply, he]
+  exact TopCat.GlueData.ofHomeomorph_ι_true_apply _ q
+
+end T2
 
 end capDiscs
 

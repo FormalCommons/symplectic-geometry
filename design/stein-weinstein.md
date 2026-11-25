@@ -244,23 +244,22 @@ with $\omega_\varphi$ for `SmoothForm.ofFunction` of a smooth `φ`.
 Issue 4:
 
 - `isManifoldStrictlyPlurisubharmonicAt_iff_forall_pos`: for `f`
-  smooth at `x`, `IsManifoldStrictlyPlurisubharmonicAt E f x` holds iff
+  in `C^∞⟮𝓘(ℝ, E), M; ℝ⟯`, `IsManifoldStrictlyPlurisubharmonicAt E f x` holds iff
   $0<\omega_f(v,\,i v)$ at `x` for every `v ≠ 0`, from the identity of
   issue 3, `mk_ddbarForm_apply_eq_two_mul_manifoldLeviForm` and
   `isManifoldStrictlyPlurisubharmonicAt_iff`. This is the lemma that
   `DESIGN.md` asks for.
 - `IsSteinFunction E φ` (a structure: `contMDiff`, `isProperMap`,
   `bddBelow`, `isStrictlyPlurisubharmonic`), with `IsSteinFunction.comp`
-  (`h ∘ φ` for smooth `h` with `h' > 0`, `h'' ≥ 0` and `h` tending to
-  infinity, from Tau Ceti's `IsManifoldStrictlyPlurisubharmonicAt.scalar_comp`),
+  (`h ∘ φ` for smooth `h` with `h' > 0` and `h'' ≥ 0`,
+  from Tau Ceti's `IsManifoldStrictlyPlurisubharmonicAt.scalar_comp`),
   `IsSteinFunction.exists_isMorse` (Tau Ceti's perturbation), and the
   example `isSteinFunction_norm_sq` ($|z|^2$ on `E`).
 - For a Stein function, $\omega_\varphi$ is a Kähler form for
   `ofComplexManifold E M`: `IsSteinFunction.isKahler` (Tau
   Ceti's `TauCeti.SmoothTwoForm.IsKahler`; closed, compatible by the
-  positivity lemma and the $J$-invariance of `ddbarForm`, and the
-  Nijenhuis tensor vanishes by the library's
-  `isIntegrable_ofComplexManifold` and `IsIntegrable.nijenhuis_eq_zero`). Hence
+  positivity lemma and the $J$-invariance of `ddbarForm`, and
+  `TauCeti.SmoothTwoForm.isKahler_ofComplexManifold_iff`). Hence
   `IsSteinFunction.isSymplectic`.
 
 Expected size: 350 lines.
