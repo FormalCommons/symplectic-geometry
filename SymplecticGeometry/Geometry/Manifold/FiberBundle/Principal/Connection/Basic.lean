@@ -122,8 +122,9 @@ structure IsTensorialForm {k : ℕ}
       (contMDiff_const_smul (op g)) a = SmoothForm.mapCoeff (adjointContinuousLinearMap g⁻¹) a
   /-- A tensorial form vanishes as soon as one of its arguments is vertical. -/
   apply_eq_zero_of_vertical (x : ManifoldTotalSpace G P) (v : Fin k → TangentSpace (IB.prod IG) x)
-    (j : Fin k) (hv : mfderiv (IB.prod IG) IB (fun y : ManifoldTotalSpace G P ↦
-      ((ManifoldTotalSpace.homeomorph G P).symm y).proj) x (v j) = 0) : a.val x v = 0
+    (j : Fin k)
+    (hv : mfderiv (IB.prod IG) IB (ManifoldTotalSpace.projContMDiffMap ∞ G P IB IG) x (v j) = 0) :
+    a.val x v = 0
 
 namespace IsTensorialForm
 
@@ -238,10 +239,10 @@ theorem apply_mfderiv_op_smul (hA : IsConnectionForm A) (g : G) (x : ManifoldTot
 
 /-- The horizontal space of a connection form is a complement of the vertical space, the kernel
 of the derivative of the projection. -/
-theorem isCompl_horizontal (hA : IsConnectionForm A) (x : ManifoldTotalSpace G P) :
+theorem isCompl_horizontal {n : ℕ∞ω} (hA : IsConnectionForm A) (x : ManifoldTotalSpace G P) :
     IsCompl (horizontal A x)
-      (mfderiv (IB.prod IG) IB (fun y : ManifoldTotalSpace G P ↦
-        ((ManifoldTotalSpace.homeomorph G P).symm y).proj) x).ker := by
+      (mfderiv (IB.prod IG) IB (ManifoldTotalSpace.projContMDiffMap n G P IB IG) x).ker := by
+  rw [ManifoldTotalSpace.coe_projContMDiffMap]
   set e := PrincipalBundle.verticalLinearEquiv IB IG (P := P) x
   set f : TangentSpace (IB.prod IG) x →ₗ[ℝ] GroupLieAlgebra IG G :=
     ((ContinuousAlternatingMap.ofSubsingleton ℝ (TangentSpace (IB.prod IG) x)
@@ -276,8 +277,9 @@ theorem add_isTensorialForm (hA : IsConnectionForm A)
   apply_rightFundamentalVectorField x ξ := by
     rw [Submodule.coe_add, Pi.add_apply, ContinuousAlternatingMap.add_apply,
       hA.apply_rightFundamentalVectorField,
-      ha.apply_eq_zero_of_vertical x _ 0
-        (PrincipalBundle.mfderiv_proj_rightFundamentalVectorField x ξ), add_zero]
+      ha.apply_eq_zero_of_vertical x _ 0 (by
+        rw [ManifoldTotalSpace.coe_projContMDiffMap]
+        exact PrincipalBundle.mfderiv_proj_rightFundamentalVectorField x ξ), add_zero]
 
 /-- The difference of two connection forms is a tensorial one-form. -/
 theorem isTensorialForm_sub (hA : IsConnectionForm A)
@@ -288,6 +290,7 @@ theorem isTensorialForm_sub (hA : IsConnectionForm A)
   apply_eq_zero_of_vertical x v j hv := by
     -- A vertical vector is the value of the fundamental vector field of some `ξ`.
     obtain rfl : j = 0 := Subsingleton.elim _ _
+    rw [ManifoldTotalSpace.coe_projContMDiffMap] at hv
     set ξ := (PrincipalBundle.verticalLinearEquiv IB IG (P := P) x).symm ⟨v 0, hv⟩
     have hv : v = ![rightFundamentalVectorField (IB.prod IG) ξ x] := by
       funext i
@@ -311,21 +314,23 @@ end IsConnectionForm
 /-- **Tensorial forms for a commutative structure group are the basic forms.** When `G` is
 commutative, its adjoint action is trivial, and a smooth `𝔤`-valued form on the total space is
 tensorial exactly when it is basic for the projection. -/
-theorem isTensorialForm_iff_isBasic [IsMulCommutative G] {k : ℕ}
+theorem isTensorialForm_iff_isBasic [IsMulCommutative G] {n : ℕ∞ω} {k : ℕ}
     {a : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) k} :
     IsTensorialForm a ↔ RoughForm.IsBasic (V := GroupLieAlgebra IG G) IB
-      (fun y : ManifoldTotalSpace G P ↦ ((ManifoldTotalSpace.homeomorph G P).symm y).proj)
-      a.val := by
+      (ManifoldTotalSpace.projContMDiffMap n G P IB IG) a.val := by
   -- The adjoint action of a commutative group is trivial.
   have hAd (g : G) : SmoothForm.mapCoeff (adjointContinuousLinearMap g⁻¹) a = a := by
     rw [adjointContinuousLinearMap_eq_id, SmoothForm.mapCoeff_id, LinearMap.id_apply]
   refine ⟨fun h ↦ PrincipalBundle.isBasic_of_mpullback_op_smul
-      (fun g ↦ (h.mpullback_op_smul g).trans (hAd g)) h.apply_eq_zero_of_vertical,
-    fun h ↦ ⟨fun g ↦ ?_, fun x v j hv ↦ h.apply_eq_zero_of_mfderiv_eq_zero hv⟩⟩
+      (fun g ↦ (h.mpullback_op_smul g).trans (hAd g)) fun x v j hv ↦
+        h.apply_eq_zero_of_vertical x v j (by
+          rw [ManifoldTotalSpace.coe_projContMDiffMap] at hv ⊢; exact hv),
+    fun h ↦ ⟨fun g ↦ ?_, fun x v j hv ↦ h.apply_eq_zero_of_mfderiv_eq_zero (by
+      rw [ManifoldTotalSpace.coe_projContMDiffMap] at hv ⊢; exact hv)⟩⟩
   rw [hAd]
   apply Subtype.ext
   rw [SmoothForm.coe_mpullback]
-  exact h.mpullback_eq ((ManifoldTotalSpace.contMDiff_proj ∞ G P IB IG).mdifferentiable (by simp))
+  exact h.mpullback_eq ManifoldTotalSpace.mdifferentiable_projContMDiffMap
     ((contMDiff_const_smul (I := IB.prod IG) (n := ∞) (op g)).mdifferentiable (by simp))
     (PrincipalBundle.proj_comp_op_smul g)
 

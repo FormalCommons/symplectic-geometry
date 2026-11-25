@@ -266,7 +266,8 @@ theorem mpullback_smul_couplingOneForm (hα : IsCircleConnectionForm α) (z : Ci
           ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj) x.1 (w i)) := by
     have h := congrArg (fun φ ↦ φ.val x.1 w)
       (PrincipalBundle.mpullback_op_smul_mpullback_proj (IG := 𝓡 1) z (β x.2))
-    rwa [SmoothForm.mpullback_apply, SmoothForm.mpullback_apply, SmoothForm.mpullback_apply] at h
+    rwa [SmoothForm.mpullback_apply, SmoothForm.mpullback_apply, SmoothForm.mpullback_apply,
+      ManifoldTotalSpace.coe_projContMDiffMap] at h
   rw [SmoothForm.mpullback_apply, couplingOneForm_apply, couplingOneForm_apply, hD]
   exact congrArg₂ _ (congrArg _ (h₁ fun i ↦ (v i).1)) (h₂ fun i ↦ (v i).1)
 
@@ -301,11 +302,12 @@ theorem mpullback_smul_couplingForm (hα : IsCircleConnectionForm α) (σ : Smoo
         (((contMDiff_const_smul (op z)).comp contMDiff_fst).prodMk contMDiff_snd)
         (couplingForm α β hβ σ) =
       couplingForm α β hβ σ := by
+  have h := PrincipalBundle.mpullback_op_smul_mpullback_proj (IG := 𝓡 1) (P := P) z σ
+  simp only [ManifoldTotalSpace.coe_projContMDiffMap] at h
   rw [couplingForm_def, map_add, ← SmoothForm.mextDerivₗ_mpullback,
     hα.mpullback_smul_couplingOneForm hβ,
     SmoothForm.mpullback_mpullback_of_comp_eq _ contMDiff_fst contMDiff_fst
-      (contMDiff_const_smul (op z)) rfl,
-    PrincipalBundle.mpullback_op_smul_mpullback_proj (IG := 𝓡 1) z σ]
+      (contMDiff_const_smul (op z)) rfl, h]
 
 variable [IB.Boundaryless]
 
