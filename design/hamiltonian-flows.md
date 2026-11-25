@@ -261,7 +261,8 @@ These settle the questions that `DESIGN.md` leaves to this file.
    `Geometry/Manifold/Instances/Icc.lean`, for the smoothness of the unit
    vector field of an interval, which concerns intervals only, and
    `Geometry/Manifold/MFDeriv/Prod.lean`, for the derivative of a map on a
-   product on `(0, w)` and `(v, 0)`, which concerns products only. Tau Ceti has a
+   product on `(v, 0)`, which concerns products only (the case `(0, w)` is Tau
+   Ceti's `MDifferentiableAt.mfderiv_uncurry_apply_zero_mk`). Tau Ceti has a
    folder `Geometry/Diffeomorphism/Diffeotopy/` with no `Velocity.lean`. The two
    flux files stay flat in `Geometry/Symplectic/Flux/`: a folder
    `Flux/Hamiltonian/` here would stand beside Tau Ceti's
