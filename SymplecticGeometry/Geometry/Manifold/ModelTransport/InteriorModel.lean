@@ -8,6 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.Instances.Real
 public import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
 public import TauCeti.Geometry.Manifold.Boundary.Interior
+public import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 public import TauCeti.Geometry.Manifold.Orientation.Pullback
 public import TauCeti.Geometry.Manifold.ModelTransport.Interior
@@ -34,6 +35,14 @@ charts the extended charts of `M` restricted to the interior. The copy
 `I.interiorOpens M`, needs no finite dimension, and comes with the diffeomorphism
 `interiorModelDiffeomorph` and the local diffeomorphism `InteriorModel.isLocalDiffeomorph_val`
 into `M`, whose range is the complement of the boundary (`InteriorModel.range_val_interiorOpens`).
+The open subset `I.interiorOpens M` and Tau Ceti's charted interior `I.interior M` have the same
+points, and `ModelWithCorners.interiorOpensDiffeomorph` identifies them as `C^n` manifolds. Into
+`I.interior M`, the identity is smooth by `ContMDiff.codRestrict_interior`: a `C^n` map into `M`
+with values in the interior is `C^n` into `I.interior M`, since read in the chart of the interior
+it is the map followed by an extended chart of `M`. Into `I.interiorOpens M`, it is smooth by
+Tau Ceti's `TauCeti.ContMDiff.subtypeVal_comp_iff` and
+`ModelWithCorners.contMDiff_subtypeVal_interior`. Orientations are carried across it as they are
+by `toInteriorModel`, with the same proofs.
 
 ## Main definitions
 
@@ -53,6 +62,11 @@ into `M`, whose range is the complement of the boundary (`InteriorModel.range_va
   `InteriorModel I M`, for `M` without boundary points. For the interior of a manifold `S` with
   boundary oriented by `o`, the orientation of its copy is
   `(o.restrict (I.interiorOpens S)).toInteriorModel`.
+* `ModelWithCorners.interiorOpensDiffeomorph I M n`: for `E` finite-dimensional, the identity of
+  the interior of a `C^n` manifold `M`, as a `C^n` diffeomorphism from the open subset
+  `I.interiorOpens M` to Tau Ceti's charted interior `I.interior M`.
+* `TauCeti.Manifold.Orientation.toInterior`: an orientation of `I.interiorOpens M`, carried to
+  `I.interior M`.
 
 ## Main results
 
@@ -78,6 +92,15 @@ into `M`, whose range is the complement of the boundary (`InteriorModel.range_va
   `TauCeti.Manifold.Orientation.eq_toInteriorModel_iff`: the carried orientation is the only one
   for which the inverse does. `TauCeti.Manifold.Orientation.toInteriorModel_neg`: carrying
   commutes with reversing the orientation.
+* `ContMDiff.codRestrict_interior`: a `C^n` map with values in the interior of `M` is `C^n`
+  into Tau Ceti's charted interior `I.interior M`.
+* `ModelWithCorners.coe_interiorOpensDiffeomorph_apply`,
+  `ModelWithCorners.coe_interiorOpensDiffeomorph_symm_apply`: the diffeomorphism
+  `I.interiorOpens M ≃ I.interior M` and its inverse fix the underlying points of `M`.
+* `TauCeti.Manifold.Orientation.isOrientationPreservingAt_interiorOpensDiffeomorph`,
+  `TauCeti.Manifold.Orientation.isOrientationPreservingAt_interiorOpensDiffeomorph_symm`,
+  `TauCeti.Manifold.Orientation.eq_toInterior_iff`, `TauCeti.Manifold.Orientation.toInterior_neg`:
+  the same facts for the orientation carried to `I.interior M`.
 
 ## References
 
@@ -285,6 +308,71 @@ end HalfSpace
 
 end SymplecticGeometry
 
+namespace ModelWithCorners
+
+variable {𝕜 E H : Type*} [NontriviallyNormedField 𝕜] [NormedAddCommGroup E] [NormedSpace 𝕜 E]
+  [FiniteDimensional 𝕜 E] [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I 1 M]
+
+variable {E' H' : Type*} [NormedAddCommGroup E'] [NormedSpace 𝕜 E'] [TopologicalSpace H']
+  {J : ModelWithCorners 𝕜 E' H'} {N : Type*} [TopologicalSpace N] [ChartedSpace H' N]
+
+omit [IsManifold I 1 M] in
+/-- A `C^n` map `f : N → M` into a `C^n` manifold `M`, with values in the interior of `M`, is
+`C^n` as a map into Tau Ceti's charted interior `I.interior M`, modelled on `E`. -/
+theorem _root_.ContMDiff.codRestrict_interior {n : ℕ∞ω} [IsManifold I n M] {f : N → M}
+    (hf : ContMDiff J I n f) (h : ∀ x, f x ∈ I.interior M) :
+    ContMDiff J 𝓘(𝕜, E) n (Set.codRestrict f (I.interior M) h) := by
+  intro x
+  rw [contMDiffAt_iff_target]
+  refine ⟨(hf.continuous.codRestrict h).continuousAt, ?_⟩
+  -- Read in the chart of the interior at `f x`, the map is the extended chart of `M` at `f x`
+  -- composed with `f`.
+  have he : extChartAt 𝓘(𝕜, E) (Set.codRestrict f (I.interior M) h x) ∘
+      Set.codRestrict f (I.interior M) h = extChartAt I (f x) ∘ f := by
+    ext y
+    simp only [Function.comp_apply, extChartAt_coe, modelWithCornersSelf_coe, id_eq,
+      chartAt_interior_apply, Set.val_codRestrict_apply]
+  rw [he]
+  exact (contMDiffAt_extChartAt (n := n)).comp x hf.contMDiffAt
+
+variable (I M) in
+/-- For a `C^n` manifold `M` over a finite-dimensional space `E`, the identity of the interior
+of `M`, as a `C^n` diffeomorphism from the open subset `I.interiorOpens M`, modelled on `I`, to
+Tau Ceti's charted interior `I.interior M`, modelled on `E`. -/
+def interiorOpensDiffeomorph (n : ℕ∞ω) [IsManifold I n M] :
+    I.interiorOpens M ≃ₘ^n⟮I, 𝓘(𝕜, E)⟯ I.interior M where
+  toEquiv := Equiv.subtypeEquivRight fun _ ↦ I.mem_interiorOpens_iff_mem_interior
+  contMDiff_toFun := contMDiff_subtypeVal.codRestrict_interior _
+  contMDiff_invFun := (TauCeti.ContMDiff.subtypeVal_comp_iff (I.interiorOpens M) _).1
+    (contMDiff_subtypeVal_interior I)
+
+variable {n : ℕ∞ω} [IsManifold I n M]
+
+theorem coe_interiorOpensDiffeomorph :
+    ⇑(interiorOpensDiffeomorph I M n) =
+      fun x ↦ ⟨x, I.mem_interiorOpens_iff_mem_interior.1 x.property⟩ :=
+  (rfl)
+
+theorem coe_interiorOpensDiffeomorph_symm :
+    ⇑(interiorOpensDiffeomorph I M n).symm =
+      fun x ↦ ⟨x, I.mem_interiorOpens_iff_mem_interior.2 x.property⟩ :=
+  (rfl)
+
+/-- The diffeomorphism sends each interior point to the same point of `M`. -/
+@[simp]
+theorem coe_interiorOpensDiffeomorph_apply (x : I.interiorOpens M) :
+    (interiorOpensDiffeomorph I M n x : M) = x := by
+  rw [coe_interiorOpensDiffeomorph]
+
+/-- The inverse diffeomorphism sends each interior point to the same point of `M`. -/
+@[simp]
+theorem coe_interiorOpensDiffeomorph_symm_apply (x : I.interior M) :
+    ((interiorOpensDiffeomorph I M n).symm x : M) = x := by
+  rw [coe_interiorOpensDiffeomorph_symm]
+
+end ModelWithCorners
+
 namespace TauCeti.Manifold.Orientation
 
 open SymplecticGeometry
@@ -342,6 +430,67 @@ theorem eq_toInteriorModel_iff {o : Orientation I M ι}
 theorem toInteriorModel_neg (o : Orientation I M ι) :
     (-o).toInteriorModel = -o.toInteriorModel := by
   simp only [toInteriorModel_def, pullback_neg]
+
+section Interior
+
+variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} {M : Type*} [TopologicalSpace M]
+  [ChartedSpace H M] [IsManifold I 1 M] {ι : Type*} [Fintype ι]
+
+/-- An orientation `o` of the interior of `M`, as the open subset `I.interiorOpens M`, carried to
+Tau Ceti's charted interior `I.interior M`: the orientation for which the identification
+`ModelWithCorners.interiorOpensDiffeomorph I M n` preserves orientation
+(`isOrientationPreservingAt_interiorOpensDiffeomorph`). -/
+def toInterior (o : Orientation I (I.interiorOpens M) ι) : Orientation 𝓘(ℝ, E) (I.interior M) ι :=
+  o.pullback (I.interiorOpensDiffeomorph M 1).symm.contMDiff
+    (fun x ↦ ((I.interiorOpensDiffeomorph M 1).symm.isLocalDiffeomorph x).isInvertible_mfderiv
+      one_ne_zero)
+    o.card_eq
+
+theorem toInterior_def (o : Orientation I (I.interiorOpens M) ι) :
+    o.toInterior = o.pullback (I.interiorOpensDiffeomorph M 1).symm.contMDiff
+      (fun x ↦ ((I.interiorOpensDiffeomorph M 1).symm.isLocalDiffeomorph x).isInvertible_mfderiv
+        one_ne_zero)
+      o.card_eq :=
+  (rfl)
+
+/-- The inverse `I.interior M → I.interiorOpens M` of the identification preserves orientation,
+from the carried orientation to `o`, at every regularity `n`. -/
+theorem isOrientationPreservingAt_interiorOpensDiffeomorph_symm
+    (o : Orientation I (I.interiorOpens M) ι) (n : ℕ∞ω) [IsManifold I n M]
+    (x : I.interior M) :
+    IsOrientationPreservingAt o.toInterior o (I.interiorOpensDiffeomorph M n).symm x := by
+  rw [ModelWithCorners.coe_interiorOpensDiffeomorph_symm,
+    ← ModelWithCorners.coe_interiorOpensDiffeomorph_symm (n := 1), toInterior_def]
+  exact isOrientationPreservingAt_pullback _ _ _ _ x
+
+/-- The identification `I.interiorOpens M → I.interior M` preserves orientation, from `o` to the
+carried orientation, at every regularity `n`. -/
+theorem isOrientationPreservingAt_interiorOpensDiffeomorph
+    (o : Orientation I (I.interiorOpens M) ι) (n : ℕ∞ω) [IsManifold I n M]
+    (p : I.interiorOpens M) :
+    IsOrientationPreservingAt o o.toInterior (I.interiorOpensDiffeomorph M n) p := by
+  rw [ModelWithCorners.coe_interiorOpensDiffeomorph,
+    ← ModelWithCorners.coe_interiorOpensDiffeomorph (n := 1)]
+  exact (isOrientationPreservingAt_interiorOpensDiffeomorph_symm o 1 _).diffeomorph_symm
+    (e := (I.interiorOpensDiffeomorph M 1).symm) one_ne_zero
+
+/-- The carried orientation is the only orientation of `I.interior M` from which the inverse of
+the identification, at any regularity `n`, preserves orientation at every point. -/
+theorem eq_toInterior_iff {o : Orientation I (I.interiorOpens M) ι}
+    {o' : Orientation 𝓘(ℝ, E) (I.interior M) ι} (n : ℕ∞ω) [IsManifold I n M] :
+    o' = o.toInterior ↔
+      ∀ x, IsOrientationPreservingAt o' o (I.interiorOpensDiffeomorph M n).symm x := by
+  rw [toInterior_def, eq_pullback_iff, ModelWithCorners.coe_interiorOpensDiffeomorph_symm,
+    ModelWithCorners.coe_interiorOpensDiffeomorph_symm]
+
+/-- Carrying the opposite orientation gives the opposite of the carried orientation. -/
+@[simp]
+theorem toInterior_neg (o : Orientation I (I.interiorOpens M) ι) :
+    (-o).toInterior = -o.toInterior := by
+  simp only [toInterior_def, pullback_neg]
+
+end Interior
 
 end TauCeti.Manifold.Orientation
 

@@ -16,7 +16,8 @@ import TauCeti.Geometry.Manifold.Instances.Icc
 
 The inclusion `Icc x y → ℝ` of a closed interval, `x < y`, is differentiable everywhere, ends
 included (`mdifferentiable_subtypeVal_Icc`, `mdifferentiableAt_subtypeVal_Icc`), by Mathlib's
-`contMDiff_subtypeVal_Icc`.
+`contMDiff_subtypeVal_Icc`. Its derivative sends `r` times the unit tangent vector `1` to `r`
+(`mfderiv_subtypeVal_Icc_smul_one`).
 
 A closed interval `[x, y]`, `x < y`, with its manifold-with-boundary structure, carries the unit
 tangent vector `1` of Mathlib's `oneTangentSpaceIcc` at every point. The vector field `z ↦ 1` is
@@ -66,6 +67,13 @@ theorem mdifferentiableAt_subtypeVal_Icc (z : Icc x y) :
     MDifferentiableAt (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : Icc x y → ℝ) z :=
   mdifferentiable_subtypeVal_Icc z
 
+/-- The derivative of the inclusion `Icc x y → ℝ` sends `r` times the unit tangent vector `1` to
+`r`. -/
+theorem mfderiv_subtypeVal_Icc_smul_one (z : Icc x y) (r : ℝ) :
+    mfderiv (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : Icc x y → ℝ) z (r • (1 : TangentSpace (𝓡∂ 1) z)) = r := by
+  rw [map_smul, mfderiv_subtypeVal_Icc_one]
+  exact mul_one (M := ℝ) _
+
 section Cylinder
 
 variable {E' H' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
@@ -108,8 +116,7 @@ theorem eq_smul_one_of_mfderiv_subtypeVal_Icc {z : Icc x y} {v : TangentSpace (�
     v = r • (1 : TangentSpace (𝓡∂ 1) z) := by
   -- The inclusion has invertible derivative, which sends `1` to `1`.
   refine (TauCeti.isInvertible_mfderiv_subtypeVal_Icc z).injective ?_
-  rw [map_smul, mfderiv_subtypeVal_Icc_one, h]
-  exact (mul_one (M := ℝ) _).symm
+  rw [mfderiv_subtypeVal_Icc_smul_one, h]
 
 /-- Let `f` be a map from a manifold `M` into a closed interval `[x, y]`, `x < y`, differentiable
 at `t`. If the derivative at `t` of `Subtype.val ∘ f : M → ℝ` sends `v` to `r`, then the

@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.AlgebraicTopology.Cohomology.HomotopyInvariance
+public import TauCeti.RingTheory.PowerSeries.ChernCharacter
 public import SymplecticGeometry.Algebra.BigOperators.Homogenization
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.Cup.OpenCover
 public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Naturality
@@ -40,6 +41,9 @@ classes of `E₁ ⊕ E₂`.
 * `chernClass_prod`: `c_k(E₁ ⊕ E₂) = ∑_{i ≤ k} cᵢ(E₁) ⌣ c_{k-i}(E₂)`, and in degree two
   `chernClass_one_prod`: `c₁(E₁ ⊕ E₂) = c₁(E₁) + c₁(E₂)`.
 * `totalChernClass_prod`: the **Whitney sum formula** `c(E₁ ⊕ E₂) = c(E₁) c(E₂)`.
+* `chernSeries_chernClass`: Tau Ceti's `TauCeti.chernSeries` of the Chern classes is the Chern
+  series `c_t(E) = ∑ c_k(E) tᵏ`, and `mk_evenIntegralCohomologyOf_chernClass_prod`: the Whitney
+  sum formula for it, `c_t(E₁ ⊕ E₂) = c_t(E₁) c_t(E₂)`.
 
 ## References
 
@@ -179,6 +183,22 @@ private theorem sum_mul_pow_mul_sum_mul_pow {R : Type*} [CommRing R]
   rw [evenIntegralCohomologyOf_chernClassCauchy, map_sum]
   simp only [map_mul]
 
+variable (G₁ E₁) in
+/-- Tau Ceti's `TauCeti.chernSeries` of the Chern classes `c₁(E), …, cₙ(E)` of `E`, in the even
+integral cohomology ring, is the Chern series `c_t(E) = ∑ c_k(E) tᵏ`. -/
+theorem chernSeries_chernClass :
+    chernSeries (fun i : Fin (finrank ℂ G₁) ↦
+        (TopCat.of B).evenIntegralCohomologyOf (i + 1) (chernClass G₁ E₁ (i + 1))) =
+      PowerSeries.mk fun k ↦ (TopCat.of B).evenIntegralCohomologyOf k (chernClass G₁ E₁ k) := by
+  refine PowerSeries.ext fun k ↦ ?_
+  rcases k with _ | k
+  · simpa [coeff_chernSeries] using (TopCat.evenIntegralCohomologyOf_one _).symm
+  · simp only [coeff_chernSeries, PowerSeries.coeff_mk, Nat.add_one_ne_zero, ↓reduceIte,
+      Nat.add_sub_cancel]
+    split_ifs with hk
+    · rfl
+    · rw [chernClass_eq_zero_of_finrank_lt G₁ E₁ (by omega), map_zero]
+
 variable [FiniteDimensional ℂ G₁] [FiniteDimensional ℂ G₂] [CompactSpace B]
 
 /-- The Cauchy product of the Chern classes satisfies the defining relation of the Chern classes
@@ -248,6 +268,19 @@ theorem totalChernClass_prod :
   simp only [one_pow, mul_one, RingHom.id_apply] at h
   rw [totalChernClass_def, totalChernClass_def, totalChernClass_def, h, Module.finrank_prod]
   exact Finset.sum_congr rfl fun k _ ↦ congrArg _ (chernClass_prod k)
+
+/-- **The Whitney sum formula for the Chern series.** Over a compact base, the power series
+`c_t(E) = ∑ c_k(E) tᵏ` with coefficients in the even integral cohomology ring is multiplicative:
+`c_t(E₁ ⊕ E₂) = c_t(E₁) c_t(E₂)`. -/
+theorem mk_evenIntegralCohomologyOf_chernClass_prod :
+    (PowerSeries.mk fun k ↦
+        (TopCat.of B).evenIntegralCohomologyOf k (chernClass (G₁ × G₂) (E₁ ×ᵇ E₂) k)) =
+      (PowerSeries.mk fun k ↦ (TopCat.of B).evenIntegralCohomologyOf k (chernClass G₁ E₁ k)) *
+        PowerSeries.mk fun k ↦ (TopCat.of B).evenIntegralCohomologyOf k (chernClass G₂ E₂ k) := by
+  refine PowerSeries.ext fun k ↦ ?_
+  rw [PowerSeries.coeff_mul, PowerSeries.coeff_mk, chernClass_prod,
+    evenIntegralCohomologyOf_chernClassCauchy, Finset.Nat.sum_antidiagonal_eq_sum_range_succ_mk]
+  simp only [PowerSeries.coeff_mk]
 
 end SymplecticGeometry.Bundle
 
