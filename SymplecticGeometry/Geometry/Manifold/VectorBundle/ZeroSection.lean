@@ -6,11 +6,16 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.VectorBundle.Basic
+public import Mathlib.Geometry.Manifold.VectorBundle.Pullback
+public import Mathlib.Geometry.Manifold.VectorBundle.Tangent
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.ZeroSection
 import TauCeti.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LeftInverse
 import TauCeti.Geometry.Manifold.VectorBundle.Submersion
+import TauCeti.Geometry.Manifold.VectorBundle.Pullback
+import TauCeti.Geometry.Manifold.VectorBundle.Scalar
+import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
 
 /-!
 # The zero section of a vector bundle as a smooth embedding
@@ -21,7 +26,9 @@ embedding: the bundle projection is a smooth left inverse of it. This file bundl
 `SymplecticGeometry.Bundle.zeroSectionEmbedding`, so that results about submanifolds, such as the
 neighbourhood theorems, apply to it, and shows that its image is closed. It also reads the zero
 section in the preferred charts of the total space, and computes the differential of a map along
-the zero section on horizontal and on vertical vectors.
+the zero section on horizontal and on vertical vectors. Finally, for a map on the total space
+that is smooth along the zero section, the velocities at `0` of the images of the rays
+`t ↦ t • v` in the fibres form a smooth map on the total space.
 
 The file has the path of Tau Ceti's `Geometry/Manifold/VectorBundle/ZeroSection.lean`, which
 splits the tangent spaces along the zero section. The zero section as an embedding is the
@@ -30,8 +37,8 @@ library's own definition, in `SymplecticGeometry.Bundle`. Of the other lemmas,
 `zeroSectionTangentEquiv_symm_inl`, `mfderiv_zeroSectionTangentEquiv_symm_inl` and
 `mfderiv_zeroSectionTangentEquiv_symm_inr`, about Tau Ceti's splitting, are in Tau Ceti's
 namespace `TauCeti.Bundle`, and
-`extChartAt_symm_apply_zero_of_mem_baseSet`, about the charts of the total space, in Mathlib's
-namespace `Bundle`.
+`extChartAt_symm_apply_zero_of_mem_baseSet`, about the charts of the total space, and
+`contMDiff_mfderiv_smul_curve`, about maps on the total space, in Mathlib's namespace `Bundle`.
 
 ## Main definitions
 
@@ -53,6 +60,9 @@ namespace `Bundle`.
 * `TauCeti.Bundle.mfderiv_zeroSectionTangentEquiv_symm_inr`: at `0_b`, the differential of a map
   `f` on the total space sends the vertical vector `(0, v)` of Tau Ceti's splitting to the
   velocity at `0` of `t ↦ f (t • v)`.
+* `Bundle.contMDiff_mfderiv_smul_curve`: for a map `Φ` on the total space, smooth along the zero
+  section, where it restricts to a smooth map `f`, the velocities at `0` of `t ↦ Φ (t • v)` form
+  a smooth map into the pull-back along `f` of the tangent bundle.
 -/
 
 public section
@@ -174,5 +184,62 @@ theorem mfderiv_zeroSectionTangentEquiv_symm_inr {f : TotalSpace F V → M} {b :
   exact (mfderiv_comp_apply_of_eq (0 : 𝕜) hf hl (by simp [zeroSection]) (1 : 𝕜)).symm
 
 end TauCeti.Bundle
+
+namespace Bundle
+
+open scoped Topology
+
+variable {𝕜 F EB HB EN HN N : Type*} [NontriviallyNormedField 𝕜] {V : B → Type*}
+  [NormedAddCommGroup F] [NormedSpace 𝕜 F] [TopologicalSpace (TotalSpace F V)]
+  [∀ x, TopologicalSpace (V x)] [∀ x, AddCommMonoid (V x)] [∀ x, Module 𝕜 (V x)]
+  [NormedAddCommGroup EB] [NormedSpace 𝕜 EB] [TopologicalSpace HB]
+  {IB : ModelWithCorners 𝕜 EB HB} [ChartedSpace HB B] [IsManifold IB ∞ B]
+  [FiberBundle F V] [VectorBundle 𝕜 F V] [ContMDiffVectorBundle ∞ F V IB]
+  [NormedAddCommGroup EN] [NormedSpace 𝕜 EN] [TopologicalSpace HN]
+  {J : ModelWithCorners 𝕜 EN HN} [TopologicalSpace N] [ChartedSpace HN N] [IsManifold J ∞ N]
+
+/-- Let `Φ` be a map on the total space of a smooth vector bundle, smooth at every zero vector,
+which restricts to a smooth map `f` on the zero section. Then the velocities at `0` of the curves
+`t ↦ Φ ⟨b, t • v⟩`, which are tangent vectors at `Φ 0_b = f b`, form a smooth map from the total
+space into the pull-back along `f` of the tangent bundle. -/
+theorem contMDiff_mfderiv_smul_curve {Φ : TotalSpace F V → N} {f : C^∞⟮IB, B; J, N⟯}
+    (hΦ : ∀ b, ContMDiffAt (IB.prod 𝓘(𝕜, F)) J ∞ Φ (zeroSection F V b))
+    (hfΦ : Φ ∘ zeroSection F V = f) :
+    ContMDiff (IB.prod 𝓘(𝕜, F)) (IB.prod 𝓘(𝕜, EN)) ∞
+      (fun p : TotalSpace F V ↦
+        (⟨p.proj, mfderiv 𝓘(𝕜) J (fun t : 𝕜 ↦ Φ ⟨p.proj, t • p.snd⟩) 0 (1 : 𝕜)⟩ :
+          TotalSpace EN ((f : B → N) *ᵖ (TangentSpace J)))) := by
+  have : IsManifold J (∞ + 1) N := by simpa using (inferInstance : IsManifold J ∞ N)
+  have h0 (q : TotalSpace F V) : Φ ⟨q.proj, (0 : 𝕜) • q.snd⟩ = f q.proj := by
+    rw [zero_smul]
+    exact congrFun hfΦ q.proj
+  intro p₀
+  rw [Pullback.contMDiffAt_iff f (f.contMDiff _), contMDiffAt_totalSpace_iff]
+  refine ⟨contMDiffAt_proj _, (f.contMDiff _).comp _ (contMDiffAt_proj _), ?_⟩
+  -- The curves form a smooth family parametrized by the total space.
+  have hF : ContMDiffAt ((IB.prod 𝓘(𝕜, F)).prod 𝓘(𝕜)) J ∞
+      (Function.uncurry fun (p : TotalSpace F V) (t : 𝕜) ↦ Φ ⟨p.proj, t • p.snd⟩) (p₀, 0) :=
+    (hΦ p₀.proj).comp_of_eq (contMDiffAt_snd.smul_totalSpace contMDiffAt_fst)
+      (by simp [zeroSection])
+  refine ((ContMDiffAt.mfderiv _ (fun _ ↦ (0 : 𝕜)) hF (m := ∞) contMDiffAt_const
+    (by simp)).clm_apply (contMDiffAt_const (c := (1 : 𝕜)))).congr_of_eventuallyEq ?_
+  let e := trivializationAt EN (TangentSpace J) (f p₀.proj)
+  have hb : ∀ᶠ p in 𝓝 p₀, f p.proj ∈ e.baseSet :=
+    (f.contMDiff.continuous.comp (FiberBundle.continuous_proj F V)).continuousAt.preimage_mem_nhds
+      (e.open_baseSet.mem_nhds (mem_baseSet_trivializationAt EN (TangentSpace J) (f p₀.proj)))
+  filter_upwards [hb] with p hp
+  -- The base point of the coordinate change is `Φ 0_b`, which is `f b`.
+  have key (b : N) (w : EN) (hb : b = f p.proj) :
+      e.continuousLinearMapAt 𝕜 b w = (e ⟨f p.proj, w⟩).2 := by
+    subst hb
+    exact e.continuousLinearMapAt_apply_of_mem 𝕜 hp w
+  simp only [Pullback.lift, inTangentCoordinates, ContinuousLinearMap.inCoordinates,
+    ContinuousLinearMap.comp_apply, TangentBundle.symmL_model_space, h0 p₀]
+  -- `(D ∘L 1) 1` is `D 1` by definition; the source `TangentSpace 𝓘(𝕜) 0` of `D`, which is `𝕜`
+  -- only by definition, keeps `ContinuousLinearMap.comp_apply` from rewriting it.
+  exact (key _ _ (h0 p)).symm
+
+end Bundle
+
 
 end

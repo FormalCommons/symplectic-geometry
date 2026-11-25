@@ -774,7 +774,7 @@ three steps:
    `|‖u‖ - 1| < ε` and `‖v‖ < 1 + ε`, for a small `ε > 0`. It has a finite
    good cover by convex slabs, so it has a `SmoothCohomologySplitting`
    (`HasFiniteGoodCover.nonempty_smoothCohomologySplitting`) and a linear
-   primitive map on exact three-forms (`exists_primitiveMap_of_hasFiniteGoodCover`).
+   primitive map on exact three-forms, that splitting's `exactPrimitive`.
 2. Off `K` the forms `τ λ` need not be closed on `W₀`. So subtract from each
    restriction `τ λ|W₀` the primitive given by step 1 of `d (τ λ|W₀)`. The
    difference is closed for every `λ`, depends smoothly on `λ`, and is
