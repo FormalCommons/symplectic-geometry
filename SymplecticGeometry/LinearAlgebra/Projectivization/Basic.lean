@@ -26,6 +26,8 @@ For a linear form `φ` on a vector space `V` over a field `K`, every point `x` o
 * `Projectivization.apply_normalizedRep`: `φ` takes the value `1` on the normalized
   representative, on `Projectivization.linearProjectionDomain φ`.
 * `Projectivization.normalizedRep_ne_zero`: the normalized representative is nonzero there.
+* `Projectivization.normalizedRep_eq_zero_iff`: it is `0` exactly off
+  `Projectivization.linearProjectionDomain φ`.
 * `Projectivization.apply_smul_normalizedRep`: a vector `u` of the line `x` is
   `φ u • normalizedRep φ x`.
 * `Projectivization.mem_range_map_iff`: over a division ring, a point is in the image of the map
@@ -115,6 +117,19 @@ theorem apply_normalizedRep {φ : V →ₗ[K] K} {x : ℙ K V} (hx : x ∈ linea
 vanish, is nonzero. -/
 theorem normalizedRep_ne_zero {φ : V →ₗ[K] K} {x : ℙ K V} (hx : x ∈ linearProjectionDomain φ) :
     normalizedRep φ x ≠ 0 := fun h ↦ one_ne_zero (by rw [← apply_normalizedRep hx, h, map_zero])
+
+/-- The normalized representative of a point outside `linearProjectionDomain φ`, where `φ`
+vanishes, is `0`. -/
+theorem normalizedRep_of_notMem {φ : V →ₗ[K] K} {x : ℙ K V}
+    (hx : x ∉ linearProjectionDomain φ) : normalizedRep φ x = 0 := by
+  rw [mem_linearProjectionDomain_iff, not_not] at hx
+  rw [normalizedRep_def, hx, inv_zero, zero_smul]
+
+/-- The normalized representative of `x` is `0` exactly when `x` lies outside
+`linearProjectionDomain φ`, that is, when `φ` vanishes on `x`. -/
+theorem normalizedRep_eq_zero_iff {φ : V →ₗ[K] K} {x : ℙ K V} :
+    normalizedRep φ x = 0 ↔ x ∉ linearProjectionDomain φ :=
+  ⟨fun h hx ↦ normalizedRep_ne_zero hx h, normalizedRep_of_notMem⟩
 
 /-- A vector of the line `x` is the multiple of the normalized representative by its value
 under `φ`. -/
