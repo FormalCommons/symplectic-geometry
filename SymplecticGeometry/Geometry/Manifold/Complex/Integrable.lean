@@ -9,12 +9,14 @@ public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import TauCeti.Geometry.Manifold.Complex.Isothermal
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Pullback
+public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Restriction
 public import TauCeti.Geometry.Symplectic.Manifold.Nijenhuis
 import Mathlib.Geometry.Manifold.MFDeriv.Tangent
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Coordinates
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.VectorField.LieBracket
 import TauCeti.Geometry.Manifold.VectorField.ModelChart
 import TauCeti.Geometry.Manifold.VectorBundle.Hom
@@ -62,6 +64,9 @@ itself it is integrable.
   `TauCeti.SmoothAlmostComplexStructure.isIntegrable_ofTangentCoordChange`: the constant structure
   of a complex structure of the model that commutes with the changes of coordinates, and its
   integrability.
+* `TauCeti.SmoothAlmostComplexStructure.isIntegrable_restrictOpen_source`: `J` is integrable on
+  the source of a partial diffeomorphism onto an open subset of a normed space whose derivative
+  carries `J` to a fixed linear complex structure.
 * `TauCeti.SmoothAlmostComplexStructure.IsIntegrable.pullback`: integrability is invariant under
   pullback along a diffeomorphism.
 * `TauCeti.SmoothAlmostComplexStructure.IsIntegrable.nijenhuis_eq_zero`: the Nijenhuis tensor of
@@ -222,6 +227,40 @@ theorem mfderiv_trans_toDiffeomorph_apply_eq_transport {G G' : Type*} [NormedAdd
           (mfderiv I 𝓘(ℝ, G') (ψ.trans L.toDiffeomorph.toPartialDiffeomorph) y v) :=
   J.mfderiv_trans_apply_eq_of_fderiv_apply_eq hψ fun _ _ w ↦ by
     simp [ContinuousLinearEquiv.fderiv]
+
+/-- **A chart in which `J` is constant makes `J` integrable on its source.** If the derivative
+of a partial diffeomorphism `φ` from `M` onto an open subset of a normed space `G` carries `J` to a
+fixed linear complex structure `J₀` of `G` at every point of its source, then the restriction of
+`J` to the source of `φ` is integrable. -/
+theorem isIntegrable_restrictOpen_source {G : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G]
+    {φ : PartialDiffeomorph I 𝓘(ℝ, G) M G ∞} {J₀ : AlmostComplexStructure G}
+    (hφ : ∀ y ∈ φ.source, ∀ v : TangentSpace I y,
+      mfderiv I 𝓘(ℝ, G) φ y (J y v) = J₀ (mfderiv I 𝓘(ℝ, G) φ y v)) :
+    (J.restrictOpen ⟨φ.source, φ.open_source⟩).IsIntegrable := by
+  set U : TopologicalSpace.Opens M := ⟨φ.source, φ.open_source⟩
+  have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
+  rw [isIntegrable_iff_mfderiv]
+  intro x
+  -- The restriction of `φ` to `U` is a chart of `U` into `G` in which `J` is `J₀`.
+  let ψ := φ.subtypeRestr U ⟨x⟩
+  have hψ : (ψ : U → G) = φ ∘ Subtype.val := funext (φ.subtypeRestr_apply U ⟨x⟩)
+  have hsource : ψ.source = univ := by
+    rw [PartialDiffeomorph.subtypeRestr_source]
+    exact eq_univ_of_forall fun y ↦ y.property
+  have hd (y : U) (v : TangentSpace I y) : mfderiv I 𝓘(ℝ, G) ψ y v =
+      mfderiv I 𝓘(ℝ, G) φ y (Manifold.tangentSpaceOpenEquiv (I := I) y v) := by
+    rw [hψ, mfderiv_comp_apply y (φ.mdifferentiableAt hn y.property)
+      (contMDiff_subtypeVal.mdifferentiableAt one_ne_zero), Manifold.mfderiv_subtype_val,
+      ContinuousLinearEquiv.coe_coe]
+  have hJ : ∀ y ∈ ψ.source, ∀ v : TangentSpace I y,
+      mfderiv I 𝓘(ℝ, G) ψ y (J.restrictOpen U y v) = J₀ (mfderiv I 𝓘(ℝ, G) ψ y v) :=
+    fun y _ v ↦ by
+      rw [hd, hd, restrictOpen_apply, ContinuousLinearEquiv.apply_symm_apply, hφ y y.property]
+  -- A linear isomorphism `G ≃ E` brings it to the model of `M`.
+  obtain ⟨e, -⟩ := φ.isInvertible_mfderiv hn x.property
+  let L : G ≃L[ℝ] E := e.symm
+  exact ⟨ψ.trans L.toDiffeomorph.toPartialDiffeomorph, J₀.transport L.toLinearEquiv,
+    by simp [hsource], (J.restrictOpen U).mfderiv_trans_toDiffeomorph_apply_eq_transport hJ L⟩
 
 /-- **Integrability is invariant under pullback.** The pullback of an integrable almost complex
 structure along a diffeomorphism is integrable. -/
