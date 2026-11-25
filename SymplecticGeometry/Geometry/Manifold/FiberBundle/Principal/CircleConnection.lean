@@ -55,8 +55,6 @@ connection form is `θ^* dθ + π^* (σ^* α)`. The existence of connection form
 
 * `SymplecticGeometry.isConnectionForm_mapCoeff_iff`: `α ξ₀` is a connection form exactly when
   `α` is a circle connection form.
-* `SymplecticGeometry.connectionCurvature_mapCoeff_toSpanSingleton_circleLieGenerator`: for every
-  real one-form `α` on a manifold, the curvature of `α ξ₀` is `(dα) ξ₀`.
 * `SymplecticGeometry.IsCircleConnectionForm.mpullback_curvature`,
   `SymplecticGeometry.IsCircleConnectionForm.curvature_eq_iff`: the curvature is the unique form on
   the base whose pull-back is `d α`.
@@ -78,7 +76,8 @@ connection form is `θ^* dθ + π^* (σ^* α)`. The existence of connection form
 
 That `d α` vanishes on vertical vectors is the case `G = Circle` of
 `SymplecticGeometry.IsConnectionForm.connectionCurvature_apply_eq_zero_of_vertical`, applied to
-`α ξ₀` through the two comparison lemmas above.
+`α ξ₀` through `SymplecticGeometry.isConnectionForm_mapCoeff_iff` and
+`SymplecticGeometry.connectionCurvature_mapCoeff_toSpanSingleton`.
 
 The two local lemmas over a trivialization are short rewrites with
 `Bundle.Trivialization.mpullback_op_smul_mpullback_snd` and
@@ -188,27 +187,6 @@ theorem isConnectionForm_mapCoeff_iff :
       ContinuousAlternatingMap.vecCons_smul, hα.apply_rightFundamentalVectorField, smul_eq_mul,
       mul_one]
 
-/-- The curvature of the `𝔤`-valued form `α ξ₀`, for a real one-form `α` on any manifold and
-`ξ₀ = circleLieGenerator`, is `(dα) ξ₀`: the bracket term `½ [A ∧ A]` vanishes since `𝔤` is
-spanned by `ξ₀`. -/
-theorem connectionCurvature_mapCoeff_toSpanSingleton_circleLieGenerator
-    {EM HM M : Type*} [NormedAddCommGroup EM] [NormedSpace ℝ EM] [TopologicalSpace HM]
-    {IM : ModelWithCorners ℝ EM HM} [TopologicalSpace M] [ChartedSpace HM M] [IsManifold IM ∞ M]
-    (α : SmoothForm IM M ℝ 1) :
-    connectionCurvature
-        (SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ circleLieGenerator) α) =
-      SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ circleLieGenerator)
-        (mextDerivₗ IM 1 α) := by
-  have hwedge : SmoothForm.wedgeWith
-      (lieL ℝ (GroupLieAlgebra (𝓡 1) Circle) (GroupLieAlgebra (𝓡 1) Circle))
-      (SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ circleLieGenerator) α)
-      (SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ circleLieGenerator) α) = 0 := by
-    rw [← SmoothForm.mapCoeff_wedgeWith (ContinuousLinearMap.mul ℝ ℝ) _ _ _ 0
-      fun a b ↦ by simp]
-    ext x v
-    simp [SmoothForm.coe_mapCoeff, RoughForm.mapCoeff_apply]
-  rw [connectionCurvature_def, hwedge, smul_zero, add_zero, SmoothForm.mextDerivₗ_mapCoeff]
-
 /-! ### The curvature -/
 
 section Curvature
@@ -224,7 +202,7 @@ theorem IsCircleConnectionForm.isBasic_mextDerivₗ (hα : IsCircleConnectionFor
     fun x v j hv ↦ by
       have h := (isConnectionForm_mapCoeff_iff.mpr hα).connectionCurvature_apply_eq_zero_of_vertical
         x v j hv
-      rw [connectionCurvature_mapCoeff_toSpanSingleton_circleLieGenerator, SmoothForm.coe_mapCoeff,
+      rw [connectionCurvature_mapCoeff_toSpanSingleton, SmoothForm.coe_mapCoeff,
         RoughForm.mapCoeff_apply, ContinuousLinearMap.toSpanSingleton_apply, smul_eq_zero] at h
       exact h.resolve_right circleLieGenerator_ne_zero
 
