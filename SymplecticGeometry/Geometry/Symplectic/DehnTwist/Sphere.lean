@@ -16,7 +16,7 @@ import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Fiberwise
 /-!
 # The Dehn twist along a Lagrangian sphere
 
-Let `M` be a manifold without boundary with a two-form `σ`, and let `Sⁿ ⊆ ℝⁿ⁺¹` be the unit sphere,
+Let `M` be a Hausdorff manifold with a two-form `σ`, and let `Sⁿ ⊆ ℝⁿ⁺¹` be the unit sphere,
 with the canonical symplectic form `ω_can = CotangentBundle.symplecticForm` on `T*Sⁿ`. Given a
 diffeomorphism `ι : U ≃ V` from an open set `U` of `T*Sⁿ` onto an open set `V` of `M`, and a twist
 profile `R` of support radius `r₀` with `{z | μ z ≤ r₀} ⊆ U` (`μ = cotangentNorm`), the Dehn twist
@@ -25,7 +25,7 @@ twist `modelTwist hR`, and the identity off `V`.
 
 When `ι` pulls `σ` back to `-ω_can`, the twist preserves `σ`, and when `ι` sends the zero
 covector at `q` to `f q` for a map `f : Sⁿ → M`, it maps `f q` to `f (-q)`. For a Lagrangian
-embedding `f` of the sphere into a symplectic manifold such a `ι` exists.
+embedding `f` of the sphere into a symplectic manifold without boundary such a `ι` exists.
 
 ## Main definitions
 
