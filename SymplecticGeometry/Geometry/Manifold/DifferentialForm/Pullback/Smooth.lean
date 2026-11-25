@@ -146,8 +146,7 @@ theorem mpullback_comp_prodMk_apply {E₂ H₂ M₂ : Type*} [NormedAddCommGroup
   refine (DFunLike.congr_fun (mpullback_comp_at (f := Prod.mk s) (g := f)
     (mdifferentiableAt_const.prodMk mdifferentiableAt_id) hf φ) m).trans ?_
   rw [mpullback_apply]
-  exact congrArg _ (funext fun i ↦ (Manifold.tangentSpaceProdEquiv_apply _ _).symm.trans
-    (Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_right (m i)))
+  exact congrArg _ (funext fun i ↦ mfderiv_prodMk_right_apply (m i))
 
 /-- Let `f : E₁ × E₂ → M'`, on a product of normed spaces, be differentiable at `(s, z)` for the
 model `𝓘(ℝ, E₁ × E₂)`. The pullback of `φ` along the slice `z ↦ f (s, z)`, at `z` on vectors

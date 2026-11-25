@@ -14,6 +14,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Coupling.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Circle
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap.ReducedForm
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 
 /-!
 # The converse of minimal coupling
@@ -334,10 +335,8 @@ theorem mfderiv_bandMap_couplingField {e : ManifoldTotalSpace Circle P → M}
   have hk' : mfderiv (IB.prod (𝓡 1)) ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (fun q ↦ (q, x.2)) x.1
       (rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator x.1) =
       couplingField IB P a b x := by
-    rw [mfderiv_prod_left, couplingField_def]
-    -- The tangent space of `P × [a, b]` at `x` is by definition the product of the tangent
-    -- spaces, in which `ContinuousLinearMap.inl` sends `w` to `(w, 0)`.
-    rfl
+    rw [couplingField_def]
+    exact mfderiv_prodMk_left_apply _
   rw [← hk', ← mfderiv_comp_apply_of_eq x.1 hψ hk rfl]
   exact mfderiv_rightFundamentalVectorField_of_map_op_smul_eq_smul
     (f := bandMap v e a b ∘ fun q ↦ (q, x.2)) (hψ.comp x.1 hk)

@@ -201,12 +201,14 @@ blowup* compares in `Normalized/Weight.lean` (the book's comparison of (7.1.14)
 with Theorem 7.1.21); and *Complex blowup*'s `ConnectedSum.lean` gives an
 orientation-preserving diffeomorphism from that blowup to
 $M\#\overline{\mathbb CP}{}^2$. Iterating, the blowup at $N$ points is an iterated
-connected sum, recorded by the predicate `IsReversedProjectiveSum M X N`
+connected sum, recorded by the predicate `IsReversedProjectiveSum oM oX N`
 of `Geometry/Manifold/ConnectedSum/Iterate.lean`, defined by recursion on
 `N`: for `N = 0`, an orientation-preserving diffeomorphism `M ≃ X`; for
-`N + 1`, a manifold `Y : Type` with `IsReversedProjectiveSum M Y N` and an
+`N + 1`, a manifold `Y : Type` with `IsReversedProjectiveSum oM oY N` and an
 orientation-preserving diffeomorphism from `X` to a
-`TauCeti.OrientedConnectedSum` of `Y` and $\overline{\mathbb CP}{}^2$. By the
+`TauCeti.OrientedConnectedSum` of `Y` and $\overline{\mathbb CP}{}^2$. Here `X`
+and `Y` are charted on `EuclideanSpace ℂ (Fin 2)`, an inner product space as
+the oriented connected sum needs, and all orientations are indexed by `Fin 4`. By the
 *Disc theorem* of *Connected sums* the choice of the balls does not matter,
 but the predicate does not need that.
 
@@ -296,11 +298,11 @@ Beside Tau Ceti's `Geometry/Manifold/ConnectedSum/`, in the namespace
 
 Namespace `SymplecticGeometry`.
 
-- `IsReversedProjectiveSum M X N`, as in *Decisions*, with the lemmas
+- `IsReversedProjectiveSum oM oX N`, as in *Decisions*, with the lemmas
   `isReversedProjectiveSum_zero_iff`, `IsReversedProjectiveSum.succ` (the
   constructor), and `IsReversedProjectiveSum.eulerChar_eq`:
   `eulerChar X = eulerChar M + N` in dimension four, by
-  `eulerChar_connectedSum` and `eulerChar_complexProjectiveSpace`.
+  `eulerChar_orientedConnectedSum` and `EuclideanComplexProjectiveSpace.eulerChar_eq`.
 
 ### `Geometry/Symplectic/Lefschetz/Basic.lean`
 
@@ -315,8 +317,9 @@ of real dimension four, not yet compact.
   finite set in $\mathbb CP^1$), and `IsLefschetzFibration.comp_projectivizationMap`:
   composing with the map of $\mathbb CP^1$ induced by `g : GL (Fin 2) ℂ`
   gives a Lefschetz fibration.
-- `IsLefschetzFibration.isIntegrable_on` and `mdifferentiableAt_of_mem`:
-  `J` is integrable, and `π` holomorphic, on the chart domains of the model.
+- `IsLefschetzFibration.isIntegrable_on`, and `IsLefschetzChart.isIntegrable_on`
+  and `IsLefschetzChart.mdifferentiableAt_of_mem`: `J` is integrable, and `π`
+  holomorphic, on the chart domains of the model.
 - The example: `isLefschetzFibration_snd` and `isLefschetzPencil_empty`
   for the product of a closed surface with $\mathbb CP^1$, with the product
   form of an area form and `fubiniStudyForm` and the product structure.
@@ -342,7 +345,7 @@ Namespace `SymplecticGeometry.LefschetzModel`.
 
 - `IsLefschetzFibration.eulerChar_eq`: for a compact connected `X`, a
   Lefschetz fibration `π`, and connected regular fibres,
-  `eulerChar X = 2 * eulerChar F + (criticalPoints π).ncard` for any regular
+  `eulerChar X = 2 * eulerChar F + (criticalSet I 𝓘(ℝ, Fin 1 → ℂ) π).ncard` for any regular
   fibre `F` (as Tau Ceti's regular fibre manifold of `RegularValue/ManifoldLevel.lean`),
   by *Decisions*. With the genus, `eulerChar X = 4 - 4 * g + ℓ`, by
   `TauCeti.HomologicalOrientation.genus_eq_surfaceGenus`.
@@ -417,7 +420,7 @@ $g_k$).
 - The iterated blowup $\widetilde M$ of *Decisions*, with its form, its
   blowdown map $\beta$, the Lefschetz fibration $\tilde\pi$ with
   $\tilde\pi=\pi\circ\beta$ off the exceptional divisors, and
-  `IsReversedProjectiveSum M M̃ (k ^ 2 * m)`.
+  `IsReversedProjectiveSum oM oM̃ (k ^ 2 * m)`.
 - `card_criticalPoints`: $\ell=3mk^2+2k\langle K\smile a,[M]\rangle+\chi(M)$,
   from `IsLefschetzFibration.eulerChar_eq`, `IsReversedProjectiveSum.eulerChar_eq`
   and `two_mul_genus_sub_two`; the fibres of $\tilde\pi$ are the fibre
@@ -431,7 +434,7 @@ $g_k$).
   symplectic surface representing $\mathrm{PD}(k[\omega])$ in real
   homology, of genus `g` with `2 * g - 2 = m * k ^ 2 + k * ⟨K ⌣ a, [M]⟩`;
   and a symplectic four-manifold `M̃ : Type`, with
-  `IsReversedProjectiveSum M M̃ (m * k ^ 2)`, a tame structure and a
+  `IsReversedProjectiveSum oM oM̃ (m * k ^ 2)`, a tame structure and a
   Lefschetz fibration on it agreeing with `π` under the blowdown off the
   exceptional divisors, whose number of critical points is
   `3 * m * k ^ 2 + 2 * k * ⟨K ⌣ a, [M]⟩ + eulerChar M`. Its docstring ends
