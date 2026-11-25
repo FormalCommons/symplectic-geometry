@@ -48,11 +48,22 @@ over any nontrivially normed field.
   and of its inverse at the radial retraction of the point.
 * `TauCeti.FiniteRankBundleCore.clutchingOneIso` and `clutching_one`: the clutching by the
   identity is isomorphic to the pullback of `E` along `Prod.fst`.
+* `TauCeti.FiniteRankBundleCore.clutchingWhitneySumIso` and `clutching_whitneySum`: the
+  clutching of `E₁ ⊕ E₂` by the block-diagonal family `whitneyMapIso f₁ f₂` is the Whitney sum of
+  the clutchings of `E₁` by `f₁` and of `E₂` by `f₂`.
+* `TauCeti.FiniteRankBundleCore.clutchingTensorIso` and `clutching_tensor`: the clutching of
+  `E₁ ⊗ E₂` by the tensor product `f₁ ⊗ᵢ f₂` of the families is the tensor product of the
+  clutchings, for instance the twist of a clutching by a line bundle with its clutching function.
 
 The clutched core is `TauCeti.FiniteRankBundleCore.glue`, applied to the cover of
 `X × ℙ ℂ (Fin 2 → ℂ)` by the preimages of the two discs. The clutching by the identity glues by
 the identity (`clutchingAut_refl`), so it is the gluing by the identity (`clutching_refl`), and
 `clutchingOneIso` is this equality followed by `TauCeti.FiniteRankBundleCore.glueReflIso`.
+The clutching by a direct sum or tensor product of families glues by the direct sum or tensor
+product of the gluing automorphisms (`clutchingAut_whitneyMapIso`, `clutchingAut_tensorIso`), so
+its transitions are those of the Whitney sum or tensor product of the clutchings
+(`TauCeti.FiniteRankBundleCore.coordChange_glue_whitneyMapIso`, `coordChange_glue_tensorIso`), and
+the identity of coordinates is an isomorphism (`TauCeti.FiniteRankBundleCore.constIso`).
 
 ## References
 
@@ -384,6 +395,129 @@ theorem fiberMap_clutchingOneIso_inv (x : X × ℙ ℂ (Fin 2 → ℂ)) :
 pullback of `E` along `Prod.fst`. -/
 theorem clutching_one : Nonempty (E.clutching (Iso.refl _) ≅ E.pullback ContinuousMap.fst) :=
   ⟨E.clutchingOneIso⟩
+
+/-! ### Clutching Whitney sums and tensor products -/
+
+section Operations
+
+open MonoidalCategory
+
+variable {E₁ E₂ : FiniteRankBundleCore 𝕜 X}
+  (f₁ : E₁.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
+    E₁.pullback (ContinuousMap.fst : C(X × Circle, X)))
+  (f₂ : E₂.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
+    E₂.pullback (ContinuousMap.fst : C(X × Circle, X)))
+
+/-- The clutching by the direct sum of two families glues by the direct sum of the automorphisms
+by which the clutchings by the two families glue. -/
+theorem clutchingAut_whitneyMapIso :
+    clutchingAut (whitneySum E₁ E₂) (whitneyMapIso f₁ f₂) =
+      whitneyMapIso (clutchingAut E₁ f₁) (clutchingAut E₂ f₂) :=
+  Iso.ext <| by
+    rw [whitneyMapIso_hom]
+    -- The gluing automorphism `clutchingAut` is by definition the pullback along `clutchingMap`.
+    exact (congrArg (pullbackMap · (clutchingMap X)) (whitneyMapIso_hom f₁ f₂)).trans
+      (pullbackMap_whitneyMap f₁.hom f₂.hom (clutchingMap X))
+
+/-- The clutching by the tensor product of two families glues by the tensor product of the
+automorphisms by which the clutchings by the two families glue. -/
+theorem clutchingAut_tensorIso :
+    clutchingAut (tensor E₁ E₂) (f₁ ⊗ᵢ f₂) = clutchingAut E₁ f₁ ⊗ᵢ clutchingAut E₂ f₂ :=
+  Iso.ext (pullbackMap_tensorHom f₁.hom f₂.hom (clutchingMap X))
+
+/-- The transitions of the clutching of `E₁ ⊕ E₂` by the block-diagonal family of `f₁` and `f₂`
+are those of the Whitney sum of the clutching of `E₁` by `f₁` and that of `E₂` by `f₂`. -/
+theorem coordChange_clutching_whitneyMapIso (x y b : X × ℙ ℂ (Fin 2 → ℂ)) :
+    ((whitneySum E₁ E₂).clutching (whitneyMapIso f₁ f₂)).core.coordChange x y b =
+      (whitneySum (E₁.clutching f₁) (E₂.clutching f₂)).core.coordChange x y b := by
+  have h := coordChange_glue_whitneyMapIso (A := E₁.pullback ContinuousMap.fst)
+    (D := E₂.pullback ContinuousMap.fst) (isOpen_innerDisc.preimage continuous_snd)
+    (isOpen_outerDisc.preimage continuous_snd)
+    (by rw [← preimage_union, innerDisc_union_outerDisc, preimage_univ])
+    (clutchingAut E₁ f₁) (clutchingAut E₂ f₂) x y b
+  rw [← clutchingAut_whitneyMapIso] at h
+  -- The clutched core is by definition this gluing (`clutching_def`).
+  exact h
+
+/-- The transitions of the clutching of `E₁ ⊗ E₂` by the tensor product of `f₁` and `f₂` are those
+of the tensor product of the clutching of `E₁` by `f₁` and that of `E₂` by `f₂`. -/
+theorem coordChange_clutching_tensorIso (x y b : X × ℙ ℂ (Fin 2 → ℂ)) :
+    ((tensor E₁ E₂).clutching (f₁ ⊗ᵢ f₂)).core.coordChange x y b =
+      (tensor (E₁.clutching f₁) (E₂.clutching f₂)).core.coordChange x y b := by
+  have h := coordChange_glue_tensorIso (A := E₁.pullback ContinuousMap.fst)
+    (D := E₂.pullback ContinuousMap.fst) (isOpen_innerDisc.preimage continuous_snd)
+    (isOpen_outerDisc.preimage continuous_snd)
+    (by rw [← preimage_union, innerDisc_union_outerDisc, preimage_univ])
+    (clutchingAut E₁ f₁) (clutchingAut E₂ f₂) x y b
+  rw [← clutchingAut_tensorIso] at h
+  -- The clutched core is by definition this gluing (`clutching_def`).
+  exact h
+
+/-- **Clutching a Whitney sum.** The clutching of `E₁ ⊕ E₂` by the block-diagonal family of `f₁`
+and `f₂` is isomorphic to the Whitney sum of the clutching of `E₁` by `f₁` and that of `E₂` by
+`f₂`, by the identity in coordinates. -/
+def clutchingWhitneySumIso :
+    (whitneySum E₁ E₂).clutching (whitneyMapIso f₁ f₂) ≅
+      whitneySum (E₁.clutching f₁) (E₂.clutching f₂) :=
+  constIso (fun _ _ hb ↦ ⟨⟨hb.1.1, hb.2⟩, hb.1.2, hb.2⟩) (ContinuousLinearEquiv.refl 𝕜 _)
+    fun x y b _ _ ↦ by
+      rw [coordChange_clutching_whitneyMapIso]
+      -- Composition with the identity, once the ranks of the fibre models are unfolded.
+      rfl
+
+@[simp]
+theorem fiberMap_clutchingWhitneySumIso_hom (x : X × ℙ ℂ (Fin 2 → ℂ)) :
+    (clutchingWhitneySumIso f₁ f₂).hom.fiberMap x = .id 𝕜 _ := by
+  rw [clutchingWhitneySumIso]
+  exact fiberMap_constIso_hom _ _ _ x
+
+@[simp]
+theorem fiberMap_clutchingWhitneySumIso_inv (x : X × ℙ ℂ (Fin 2 → ℂ)) :
+    (clutchingWhitneySumIso f₁ f₂).inv.fiberMap x = .id 𝕜 _ := by
+  rw [clutchingWhitneySumIso]
+  exact fiberMap_constIso_inv _ _ _ x
+
+/-- **Clutching a Whitney sum.** The clutching of `E₁ ⊕ E₂` by the block-diagonal family of `f₁`
+and `f₂` is isomorphic to the Whitney sum of the clutching of `E₁` by `f₁` and that of `E₂` by
+`f₂`. -/
+theorem clutching_whitneySum :
+    Nonempty ((whitneySum E₁ E₂).clutching (whitneyMapIso f₁ f₂) ≅
+      whitneySum (E₁.clutching f₁) (E₂.clutching f₂)) :=
+  ⟨clutchingWhitneySumIso f₁ f₂⟩
+
+/-- **Clutching a tensor product.** The clutching of `E₁ ⊗ E₂` by the tensor product of the
+families `f₁` and `f₂` is isomorphic to the tensor product of the clutching of `E₁` by `f₁` and
+that of `E₂` by `f₂`, by the identity in coordinates. -/
+def clutchingTensorIso :
+    (tensor E₁ E₂).clutching (f₁ ⊗ᵢ f₂) ≅ tensor (E₁.clutching f₁) (E₂.clutching f₂) :=
+  constIso (fun _ _ hb ↦ ⟨⟨hb.1.1, hb.2⟩, hb.1.2, hb.2⟩) (ContinuousLinearEquiv.refl 𝕜 _)
+    fun x y b _ _ ↦ by
+      rw [coordChange_clutching_tensorIso]
+      -- Composition with the identity, once the ranks of the fibre models are unfolded.
+      rfl
+
+@[simp]
+theorem fiberMap_clutchingTensorIso_hom (x : X × ℙ ℂ (Fin 2 → ℂ)) :
+    (clutchingTensorIso f₁ f₂).hom.fiberMap x = .id 𝕜 _ := by
+  rw [clutchingTensorIso]
+  exact fiberMap_constIso_hom _ _ _ x
+
+@[simp]
+theorem fiberMap_clutchingTensorIso_inv (x : X × ℙ ℂ (Fin 2 → ℂ)) :
+    (clutchingTensorIso f₁ f₂).inv.fiberMap x = .id 𝕜 _ := by
+  rw [clutchingTensorIso]
+  exact fiberMap_constIso_inv _ _ _ x
+
+/-- **Clutching a tensor product.** The clutching of `E₁ ⊗ E₂` by the tensor product of the
+families `f₁` and `f₂` is isomorphic to the tensor product of the clutching of `E₁` by `f₁` and
+that of `E₂` by `f₂`. For a line bundle `E₂` with a clutching family `f₂`, this twists a
+clutching by the clutching of a line bundle. -/
+theorem clutching_tensor :
+    Nonempty ((tensor E₁ E₂).clutching (f₁ ⊗ᵢ f₂) ≅
+      tensor (E₁.clutching f₁) (E₂.clutching f₂)) :=
+  ⟨clutchingTensorIso f₁ f₂⟩
+
+end Operations
 
 end TauCeti.FiniteRankBundleCore
 
