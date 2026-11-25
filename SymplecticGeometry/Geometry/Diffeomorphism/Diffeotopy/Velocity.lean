@@ -233,7 +233,8 @@ theorem mfderiv_cylinderMap_curve {c : unitInterval → M} {s : unitInterval}
   -- definitional unfolding: the tangent space of `M × I` is the product of the tangent spaces
   -- by definition, and that lemma does not rewrite across the identification.
   congr 1
-  · exact (hd.mfderiv_curry_left_apply _).symm.trans (Φ.mfderiv_cylinderMap_inl (by simp) _ _)
+  · exact (MDifferentiableAt.mfderiv_uncurry_apply_mk_zero (f := fun x s ↦ Φ.cylinderMap (x, s))
+      hd _).symm.trans (Φ.mfderiv_cylinderMap_inl (by simp) _ _)
   · exact (MDifferentiableAt.mfderiv_uncurry_apply_zero_mk
       (f := fun x s ↦ Φ.cylinderMap (x, s)) hd _).symm
 
