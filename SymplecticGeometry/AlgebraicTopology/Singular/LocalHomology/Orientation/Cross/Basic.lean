@@ -14,6 +14,7 @@ import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
 import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.Assoc
 import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.CubicalPair
 import TauCeti.Algebra.Category.ModuleCat.SpanSingleton
+import all TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
 
 /-!
 # The cross product of local orientations
@@ -34,15 +35,18 @@ classes coming from absolute homology it is the absolute cross product
 relative to `(X ∖ {x}) × Y ∪ X × (Y ∖ {y})`, with the coefficients split again by the inverse of
 `ModuleCat.uliftTensorSelfIso`, it is the cross product of pairs
 (`SymplecticGeometry.localHomologyCross_comp_homologyMap_uliftTensorSelfIso_inv`).
+The identity of `X × Y` is an isomorphism between the two pairs, `TopPair.prodComplSingletonIso`,
+built from Tau Ceti's `TopPair.ofSubsetIso`. `TopPair.uliftIntSingularHomologyIso_hom` writes
+Tau Ceti's change of coefficients from `ULift ℤ` to `ℤ` as the map in homology induced on chains.
 
 The main result is that the cross product of two local orientations of real vector spaces at the
 origin is a local orientation of their product
 (`SymplecticGeometry.isLocalOrientation_localHomologyCross`). With the coefficients `ULift ℤ` read
-as `ℤ` through `TauCeti.uliftIntIso`, the cross product of local homology classes is Tau Ceti's
-Künneth map of the pairs `(X, X ∖ {x})` and `(Y, Y ∖ {y})`, `TauCeti.singularHomologyKunnethPair`,
-on the summand of bidegree `(p, q)`
-(`SymplecticGeometry.localHomologyCross_comp_homologyMap_uliftIntIso_hom`). This is the comparison
-of the cubical and the simplicial cross products of pairs,
+as `ℤ` through `TopPair.uliftIntSingularHomologyIso`, the cross product of local homology classes
+is Tau Ceti's Künneth map of the pairs `(X, X ∖ {x})` and `(Y, Y ∖ {y})`,
+`TauCeti.singularHomologyKunnethPair`, on the summand of bidegree `(p, q)`
+(`SymplecticGeometry.localHomologyCross_comp_uliftIntSingularHomologyIso_hom`). This is the
+comparison of the cubical and the simplicial cross products of pairs,
 `TauCeti.ι_singularHomologyKunnethPair_eq_singularHomologyCrossRelPair`, together with the
 naturality of the cross product of pairs in the coefficients. Tau Ceti's
 `TauCeti.span_singularHomologyKunnethPair_tmul_eq_top` then shows that the cross product of local
@@ -69,8 +73,8 @@ here.
 
 ## Main results
 
-* `SymplecticGeometry.localHomologyCross_comp_homologyMap_uliftIntIso_hom`: the cross product of
-  local homology classes is the Künneth map of the pairs.
+* `SymplecticGeometry.localHomologyCross_comp_uliftIntSingularHomologyIso_hom`: the cross product
+  of local homology classes is the Künneth map of the pairs.
 * `SymplecticGeometry.isLocalOrientation_localHomologyCross_of_isZero`,
   `SymplecticGeometry.isLocalOrientation_localHomologyCross`: the cross product of local
   orientations is a local orientation, at points with projective local homology concentrated in
@@ -97,6 +101,50 @@ noncomputable section
 open CategoryTheory MonoidalCategory CartesianMonoidalCategory Limits Set Topology Module
 open TopCat (mapsTo_preimage_fst_compl_union_preimage_snd_compl
   mapsTo_compl_singleton_preimage_fst_compl_union_preimage_snd_compl)
+
+namespace TopPair
+
+universe u
+
+/-- Tau Ceti's change of coefficients `TopPair.uliftIntSingularHomologyIso`, from `ULift ℤ` to `ℤ`,
+is the map in homology induced by `TauCeti.uliftIntIso` on relative singular chains. -/
+lemma uliftIntSingularHomologyIso_hom (P : TopPair.{0}) (k : ℕ) :
+    (uliftIntSingularHomologyIso P k).hom = HomologicalComplex.homologyMap
+      (((SSetPair.chainComplexFunctor (ModuleCat.{0} ℤ)).map TauCeti.uliftIntIso.hom).app
+        (toSSetPair.obj P)) k :=
+  (rfl)
+
+variable {X Y : Type u} [TopologicalSpace X] [TopologicalSpace Y]
+
+/-- For points `x : X` and `y : Y`, the pair `(X × Y, (X ∖ {x}) × Y ∪ X × (Y ∖ {y}))`, with
+`X × Y` written as `TopCat.of X ⊗ TopCat.of Y`, is isomorphic to `(X × Y, X × Y ∖ {(x, y)})` by
+the identity of `X × Y`. -/
+def prodComplSingletonIso (x : X) (y : Y) :
+    ofSubset (CartesianMonoidalCategory.fst (TopCat.of X) (TopCat.of Y) ⁻¹'
+          ({x}ᶜ : Set (TopCat.of X)) ∪
+        CartesianMonoidalCategory.snd (TopCat.of X) (TopCat.of Y) ⁻¹'
+          ({y}ᶜ : Set (TopCat.of Y))) ≅
+      ofSubset ({(x, y)}ᶜ : Set (TopCat.of (X × Y))) :=
+  ofSubsetIso (TopCat.homeoOfIso (TopCat.tensorObjIsoProd X Y)) fun p ↦
+    ⟨fun h ↦ mapsTo_preimage_fst_compl_union_preimage_snd_compl x y h, fun h ↦ by
+      have := mapsTo_compl_singleton_preimage_fst_compl_union_preimage_snd_compl x y h
+      rwa [← TopCat.homeoOfIso_symm_apply, Homeomorph.symm_apply_apply] at this⟩
+
+@[simp]
+lemma prodComplSingletonIso_hom (x : X) (y : Y) :
+    (prodComplSingletonIso x y).hom =
+      ofSubsetMap _ (mapsTo_preimage_fst_compl_union_preimage_snd_compl x y) := by
+  rw [prodComplSingletonIso, ofSubsetIso_hom]
+  congr 1
+
+@[simp]
+lemma prodComplSingletonIso_inv (x : X) (y : Y) :
+    (prodComplSingletonIso x y).inv =
+      ofSubsetMap _ (mapsTo_compl_singleton_preimage_fst_compl_union_preimage_snd_compl x y) := by
+  rw [prodComplSingletonIso, ofSubsetIso_inv]
+  congr 1
+
+end TopPair
 
 namespace SymplecticGeometry
 
@@ -162,10 +210,9 @@ theorem localHomologyCross_comp_homologyMap_uliftTensorSelfIso_inv (x : X) (y : 
         (ModuleCat.of ℤ (ULift.{0} ℤ)) (ModuleCat.of ℤ (ULift.{0} ℤ)) p q n h := by
   have hpm : TopPair.ofSubsetMap _ (mapsTo_preimage_fst_compl_union_preimage_snd_compl x y) ≫
       TopPair.ofSubsetMap _
-        (mapsTo_compl_singleton_preimage_fst_compl_union_preimage_snd_compl x y) = 𝟙 _ :=
-    (TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ (fun _ hv ↦ hv)
-      (TopCat.tensorObjIsoProd X Y).hom_inv_id).trans
-      (TopPair.ofSubsetMap_id _)
+        (mapsTo_compl_singleton_preimage_fst_compl_union_preimage_snd_compl x y) = 𝟙 _ := by
+    rw [← TopPair.prodComplSingletonIso_hom, ← TopPair.prodComplSingletonIso_inv,
+      Iso.hom_inv_id]
   have key : TopCat.singularHomologyCrossRelPair (TopCat.of X) (TopCat.of Y) {x}ᶜ {y}ᶜ
         (ModuleCat.of ℤ (ULift.{0} ℤ)) (ModuleCat.of ℤ (ULift.{0} ℤ)) p q n h ≫
       HomologicalComplex.homologyMap (((SSetPair.chainComplexFunctor (ModuleCat.{0} ℤ)).map
@@ -277,18 +324,16 @@ theorem localHomologyMap_tensorHom_localHomologyMap_localHomologyCross (f : C(X,
   exact (Category.assoc _ _ _).trans ((congrArg (_ ≫ ·) h2).trans (Category.assoc _ _ _).symm)
 
 /-- **The cross product of local homology classes is the Künneth map.** With the coefficients
-`ULift ℤ` read as `ℤ` through `TauCeti.uliftIntIso`, the cross product of local homology classes at
-`x` and `y` is the inclusion of the summand `Hₚ(X, X ∖ {x}; ℤ) ⊗ H_q(Y, Y ∖ {y}; ℤ)` followed by
-Tau Ceti's Künneth map of the pairs, `TauCeti.singularHomologyKunnethPair`, and by the map of pairs
-given by the identity of `X × Y`. -/
-theorem localHomologyCross_comp_homologyMap_uliftIntIso_hom (x : X) (y : Y) (p q n : ℕ)
+`ULift ℤ` read as `ℤ` through `TopPair.uliftIntSingularHomologyIso`, the cross product of local
+homology classes at `x` and `y` is the inclusion of the summand
+`Hₚ(X, X ∖ {x}; ℤ) ⊗ H_q(Y, Y ∖ {y}; ℤ)` followed by Tau Ceti's Künneth map of the pairs,
+`TauCeti.singularHomologyKunnethPair`, and by the map of pairs given by the identity of `X × Y`. -/
+@[reassoc, elementwise]
+theorem localHomologyCross_comp_uliftIntSingularHomologyIso_hom (x : X) (y : Y) (p q n : ℕ)
     (h : p + q = n) :
-    localHomologyCross x y p q n h ≫ HomologicalComplex.homologyMap
-        (((SSetPair.chainComplexFunctor (ModuleCat.{0} ℤ)).map uliftIntIso.hom).app _) n =
-      (HomologicalComplex.homologyMap
-          (((SSetPair.chainComplexFunctor (ModuleCat.{0} ℤ)).map uliftIntIso.hom).app _) p ⊗ₘ
-        HomologicalComplex.homologyMap
-          (((SSetPair.chainComplexFunctor (ModuleCat.{0} ℤ)).map uliftIntIso.hom).app _) q) ≫
+    localHomologyCross x y p q n h ≫ (TopPair.uliftIntSingularHomologyIso _ n).hom =
+      ((TopPair.uliftIntSingularHomologyIso _ p).hom ⊗ₘ
+          (TopPair.uliftIntSingularHomologyIso _ q).hom) ≫
         GradedObject.Monoidal.ιTensorObj
           (fun i ↦ (TopPair.ofSubset ({x}ᶜ : Set (TopCat.of X))).singularHomology
             (ModuleCat.of ℤ ℤ) i)
@@ -306,6 +351,7 @@ theorem localHomologyCross_comp_homologyMap_uliftIntIso_hom (x : X) (y : Y) (p q
     (uliftTensorSelfIso_hom_comp_uliftIntIso_hom.trans
       (congrArg (_ ≫ ·) integralCoeffMul_eq_leftUnitor_hom))
   simp only [Functor.map_comp, NatTrans.comp_app, HomologicalComplex.homologyMap_comp] at e
+  simp only [TopPair.uliftIntSingularHomologyIso_hom]
   rw [localHomologyCross_eq, Category.assoc, Category.assoc,
     ← TopPair.singularHomologyMap_coefficient_naturality, reassoc_of% e,
     reassoc_of% (ι_singularHomologyKunnethPair_eq_singularHomologyCrossRelPair ℤ
@@ -329,41 +375,22 @@ theorem isLocalOrientation_localHomologyCross_of_isZero [T1Space X] [T1Space Y] 
     IsLocalOrientation (x, y) n ((localHomologyCross x y p q n h).hom (z₁ ⊗ₜ z₂)) := by
   subst h
   -- Read with coefficients `ℤ`, the hypotheses are those of Tau Ceti's Künneth lemma.
-  let c {Z : Type} [TopologicalSpace Z] (S : Set Z) (k : ℕ) := HomologicalComplex.homologyMap
-    (((SSetPair.chainComplexFunctor (ModuleCat.{0} ℤ)).map uliftIntIso.hom).app
-      (TopPair.toSSetPair.obj (TopPair.ofSubset (Sᶜ : Set (TopCat.of Z))))) k
   have hX' (i : ℕ) (hi : i ≠ p) : IsZero (localHomology (ModuleCat.of ℤ ℤ) ({x} : Set X) i) :=
-    (hX i hi).of_iso (asIso (c {x} i)).symm
+    (hX i hi).of_iso (TopPair.uliftIntSingularHomologyIso _ i).symm
   have : Projective (localHomology (ModuleCat.of ℤ ℤ) ({x} : Set X) p) :=
-    Projective.of_iso (asIso (c {x} p)) inferInstance
+    Projective.of_iso (TopPair.uliftIntSingularHomologyIso _ p) inferInstance
   have key := span_singularHomologyKunnethPair_tmul_eq_top hX'
-    (((ModuleCat.span_singleton_apply_eq_top_iff (c {x} p)).2
-      ((isLocalOrientation_iff_span_eq_top _ _ _).1 hz₁)))
-    (((ModuleCat.span_singleton_apply_eq_top_iff (c {y} q)).2
-      ((isLocalOrientation_iff_span_eq_top _ _ _).1 hz₂)))
-  -- The map of pairs given by the identity of `X × Y` is onto, since the subspaces
-  -- `(X ∖ {x}) × Y ∪ X × (Y ∖ {y})` and `X × Y ∖ {(x, y)}` are equal.
-  have hid : TopPair.ofSubsetMap _
-        (mapsTo_compl_singleton_preimage_fst_compl_union_preimage_snd_compl x y) ≫
-      TopPair.ofSubsetMap _ (mapsTo_preimage_fst_compl_union_preimage_snd_compl x y) = 𝟙 _ :=
-    (TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ (fun _ hv ↦ hv)
-      (TopCat.tensorObjIsoProd X Y).inv_hom_id).trans (TopPair.ofSubsetMap_id _)
-  have hs : Function.Surjective (TopPair.singularHomologyMap (TopPair.ofSubsetMap _
-      (mapsTo_preimage_fst_compl_union_preimage_snd_compl x y)) (ModuleCat.of ℤ ℤ) (p + q)).hom :=
-    fun w ↦ ⟨(TopPair.singularHomologyMap (TopPair.ofSubsetMap _
-      (mapsTo_compl_singleton_preimage_fst_compl_union_preimage_snd_compl x y))
-        (ModuleCat.of ℤ ℤ) (p + q)).hom w, by
-        rw [← ConcreteCategory.comp_apply, ← TopPair.singularHomologyMap_comp, hid,
-          TopPair.singularHomologyMap_id, ConcreteCategory.id_apply]⟩
-  rw [isLocalOrientation_iff_span_eq_top,
-    ← ModuleCat.span_singleton_apply_eq_top_iff (c {(x, y)} _), ← ConcreteCategory.comp_apply,
-    localHomologyCross_comp_homologyMap_uliftIntIso_hom, ConcreteCategory.comp_apply,
-    ← Category.assoc, ConcreteCategory.comp_apply, Submodule.span_singleton_eq_top_iff]
-  rw [Submodule.span_singleton_eq_top_iff] at key
-  intro u
-  obtain ⟨u', rfl⟩ := hs u
-  obtain ⟨r, hr⟩ := key u'
-  exact ⟨r, (LinearMap.map_smul _ r _).symm.trans (congrArg _ hr)⟩
+    (isLocalOrientation_iff_span_uliftIntSingularHomologyIso_hom_eq_top.1 hz₁)
+    (isLocalOrientation_iff_span_uliftIntSingularHomologyIso_hom_eq_top.1 hz₂)
+  -- The identity of `X × Y` is an isomorphism of pairs onto the complement of `(x, y)`.
+  have : IsIso (TopPair.singularHomologyMap (TopPair.ofSubsetMap _
+      (mapsTo_preimage_fst_compl_union_preimage_snd_compl x y)) (ModuleCat.of ℤ ℤ) (p + q)) := by
+    rw [← TopPair.prodComplSingletonIso_hom, ← TopPair.singularHomologyMapIso_hom]
+    infer_instance
+  rw [isLocalOrientation_iff_span_uliftIntSingularHomologyIso_hom_eq_top,
+    localHomologyCross_comp_uliftIntSingularHomologyIso_hom_apply,
+    ModuleCat.span_singleton_apply_eq_top_iff]
+  exact key
 
 end Cross
 
