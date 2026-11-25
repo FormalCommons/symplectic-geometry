@@ -233,13 +233,11 @@ theorem IsGeneratedBy.exists_sub_eq (hF : Φ.IsGeneratedBy σ F) (hG : Φ.IsGene
       hF.contMDiff.comp (contMDiff_id.prodMk contMDiff_const)
     have hg : ContMDiff J 𝓘(ℝ) ∞ fun y ↦ G (y, t) :=
       hG.contMDiff.comp (contMDiff_id.prodMk contMDiff_const)
-    refine ((hf.sub hg).mdifferentiable (by simp)).isLocallyConstant_of_mfderiv_eq_zero
-      fun y ↦ mvfderiv_eq_zero_iff.1 ?_
-    ext w
-    have hFw := SmoothTwoForm.isHamiltonianVectorField_iff.1 (hF.isHamiltonianVectorField t) y w
-    have hGw := SmoothTwoForm.isHamiltonianVectorField_iff.1 (hG.isHamiltonianVectorField t) y w
-    rw [mvfderiv_fun_sub (hf.mdifferentiableAt (by simp)) (hg.mdifferentiableAt (by simp)),
-      sub_apply, ← hFw, ← hGw, sub_self, zero_apply]
+    have h := (hF.isHamiltonianVectorField t).sub (hG.isHamiltonianVectorField t)
+      (hf.mdifferentiable (by simp)) (hg.mdifferentiable (by simp))
+    rw [sub_self] at h
+    exact ((hf.sub hg).mdifferentiable (by simp)).isLocallyConstant_of_mfderiv_eq_zero
+      fun y ↦ mvfderiv_eq_zero_iff.1 (SmoothTwoForm.isHamiltonianVectorField_zero_iff.1 h y)
   let r := Function.surjInv (ConnectedComponents.surjective_coe (α := M))
   refine ⟨fun i t ↦ F (r i, t) - G (r i, t), fun i ↦ ?_, fun p ↦ ?_⟩
   · exact (hF.contMDiff.comp (contMDiff_const.prodMk contMDiff_id)).sub
