@@ -138,9 +138,7 @@ private theorem eventually_continuousAt_nhdsGT_scalar {g : (Fin 1 → ℝ) → �
   set A : Set (Fin 1 → ℝ) := {x | a < x 0} ∩ {x | x 0 < b}
   have hA : IsSemialgebraic A := by
     simpa using (isSemialgebraic_eval_lt (C a) (X 0)).inter (isSemialgebraic_eval_lt (X 0) (C b))
-  have hAs : A ⊆ s := fun x hx ↦ by
-    have : x = ![x 0] := by ext i; fin_cases i; simp
-    exact this ▸ hb hx
+  have hAs : A ⊆ s := fun x hx ↦ FinVec.etaExpand_eq x ▸ hb hx
   have hgA := hg.mono hA hAs
   -- The graph of `g` over `A`, in the plane, with the value as coordinate `0`.
   let e : Fin 1 ⊕ Unit → Fin 2 := Sum.elim (fun _ ↦ 1) fun _ ↦ 0
