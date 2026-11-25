@@ -17,6 +17,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Basic
 public import TauCeti.Geometry.Manifold.MFDeriv.ContinuousLinearMap
 public import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
+import TauCeti.Data.Fin.VecNotation
 
 /-!
 # Weinstein's form on `P × F` and its descent to `P ×_G F`
@@ -484,7 +485,7 @@ theorem mpullback_associatedForm_fiber {σ : SmoothTwoForm IF F}
   have hd : (fun i ↦ mfderiv IF ((IB.prod IG).prod IF) (fun v : F ↦ (x, v)) v (![a, b] i)) =
       ![mfderiv IF ((IB.prod IG).prod IF) (fun v : F ↦ (x, v)) v a,
         mfderiv IF ((IB.prod IG).prod IF) (fun v : F ↦ (x, v)) v b] :=
-    funext fun i ↦ by fin_cases i <;> rfl
+    Matrix.comp_vec2 _ a b
   rw [SmoothForm.mpullback_apply, hd, weinsteinForm_apply hμ,
     Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_right,
     Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_right, (A.val x).map_coord_zero 0 rfl,
