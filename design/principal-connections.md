@@ -208,14 +208,15 @@ This file names it as a form.
   (`∃! a, IsTensorialForm a ∧ A' = A + a`).
 - `isTensorialForm_iff_isBasic` for commutative $G$: a tensorial form is a
   basic form, with the merged `isBasic_of_mpullback_op_smul`.
-- The circle comparison, for `G = Circle`, in
-  `Principal/Connection/Circle.lean`:
+- The circle comparison, for `G = Circle`:
   `isConnectionForm_mapCoeff_iff : IsConnectionForm
   (SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ
-  circleLieGenerator) α) ↔ IsCircleConnectionForm α`, and every
+  circleLieGenerator) α) ↔ IsCircleConnectionForm α`, in
+  `Principal/CircleConnection.lean`, and every
   $\mathfrak g$-valued connection form is of this form for a unique
   $\alpha$, a circle connection form
-  (`IsConnectionForm.existsUnique_eq_mapCoeff`).
+  (`IsConnectionForm.existsUnique_eq_mapCoeff`, in
+  `Principal/Connection/Circle.lean`).
 
 ### `Geometry/Manifold/FiberBundle/Principal/Connection/Existence.lean`
 
