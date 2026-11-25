@@ -554,7 +554,6 @@ theorem iUnion_range_pieceMap : ⋃ j, range (pieceMap c (n := n) (W := W) j) = 
 and the band sit in it as the interior of `W` and the end piece `(-1, 1) × ∂W`, and so do the
 second copy and the band reflected by `s ↦ -s`. -/
 
-omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 private theorem endMap_of_nonpos {s : bandInterval} (hs : (s : ℝ) ≤ 0)
     (x : (𝓡∂ (n + 1)).boundary W) :
     WithEnd.endMap c (s, x) =
@@ -562,7 +561,6 @@ private theorem endMap_of_nonpos {s : bandInterval} (hs : (s : ℝ) ≤ 0)
   have h := WithEnd.endMap_neg_eq_inclusion c x (negNormalIioRay bandInterval_subset s)
   rwa [negNormalIioRay_coe_apply_of_nonpos bandInterval_subset hs, neg_neg] at h
 
-omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 private theorem endMap_neg_of_nonneg {s : bandInterval} (hs : 0 ≤ (s : ℝ))
     (x : (𝓡∂ (n + 1)).boundary W) :
     WithEnd.endMap c (-s, x) =
@@ -570,7 +568,6 @@ private theorem endMap_neg_of_nonneg {s : bandInterval} (hs : 0 ≤ (s : ℝ))
   have h := WithEnd.endMap_neg_eq_inclusion c x (posNormalIioRay bandInterval_subset_Iio s)
   rwa [posNormalIioRay_coe_apply_of_nonneg bandInterval_subset_Iio hs] at h
 
-omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 private theorem inl_eq_bandPt_iff (p : (𝓡∂ (n + 1)).interior W)
     (q : bandInterval × (𝓡∂ (n + 1)).boundary W) :
     inl c p.val = bandPt c q ↔ WithEnd.inclusion c p.val = WithEnd.endMap c (q.1, q.2) := by
@@ -586,7 +583,6 @@ private theorem inl_eq_bandPt_iff (p : (𝓡∂ (n + 1)).interior W)
     exact disjoint_left.1 (𝓡∂ (n + 1)).disjoint_interior_boundary p.property
       ((WithEnd.eq_of_inclusion_eq_endMap c hs h).symm ▸ x.property)
 
-omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 private theorem inr_eq_bandPt_iff (p : (𝓡∂ (n + 1)).interior W)
     (q : bandInterval × (𝓡∂ (n + 1)).boundary W) :
     inr c p.val = bandPt c q ↔ WithEnd.inclusion c p.val = WithEnd.endMap c (-q.1, q.2) := by

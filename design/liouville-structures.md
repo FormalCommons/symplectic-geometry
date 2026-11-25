@@ -523,22 +523,24 @@ Expected size: 400 lines.
 
 ### `Geometry/Manifold/Boundary/Collar/End.lean`
 
-In `TauCeti.SmoothCollar`, for `W` modelled on `𝓡∂ (n + 1)` and
+In `TauCeti.SmoothCollar`, for a smooth `W` modelled on `𝓡∂ (n + 1)`
+(`IsManifold (𝓡∂ (n + 1)) ∞ W`, which the gluing diffeomorphism needs) and
 `c : SmoothCollar n ∞ W`; Hausdorffness of `W` is assumed only for the `T2Space`
 instance and `isClosedEmbedding_inclusion`. This is differential topology, with no forms:
 
 - `WithEnd c : Type`, the manifold $W\cup_{\partial W}([0,\infty)\times\partial W)$,
-  the glued space of `c.glueData : TopCat.GlueData`, glued from the interior
+  the space `SymplecticGeometry.GluedAlong` (`Gluing/Pair.lean`) of a diffeomorphism of
+  open subsets of the interior
   of `W` (as Tau Ceti's charted interior `(𝓡∂ (n + 1)).interior W`,
   `TauCeti/Geometry/Manifold/Boundary/Interior.lean`) and
-  `Ioi (-1) × ∂W`, along `(s, x) ↦ c (x, -s)` on `Ioo (-1) 0 × ∂W`, with
-  Tau Ceti's `Geometry/Manifold/Gluing/GlueData.lean`; the second piece is
+  `Ioi (-1) × ∂W`, `(s, x) ↦ c (x, -s)` on `Ioo (-1) 0 × ∂W`; the second piece is
   re-modelled by a linear equivalence
   `ℝ × EuclideanSpace ℝ (Fin n) ≃L[ℝ] EuclideanSpace ℝ (Fin (n + 1))`
   as `SymplecticGeometry.Remodel` (`ModelTransport/Remodel.lean`). The pieces,
-  overlaps and their atlases are private, except the interior overlap and its
+  overlaps and the gluing diffeomorphism are private, except the interior overlap and its
   collar coordinates, `c.interiorRange` and `c.interiorCoord` of
-  `Boundary/Collar/Interior.lean`. Instances: `TopologicalSpace`, `T2Space` (for `T2Space W`),
+  `Boundary/Collar/Interior.lean`. Instances, from `GluedAlong`: `TopologicalSpace`
+  (`c.topologicalSpaceWithEnd`), `T2Space` (for `T2Space W`),
   `ChartedSpace (EuclideanSpace ℝ (Fin (n + 1)))` (`c.chartedSpaceWithEnd`),
   `IsManifold (𝓡 (n + 1)) ∞`, with no compactness or countability
   hypothesis.
