@@ -6,14 +6,19 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Topology.Algebra.Module.Alternating.Basic
+public import SymplecticGeometry.LinearAlgebra.Alternating.Basic
 
 /-!
-# Continuous alternating maps of one vector
+# Continuous alternating maps
 
 A continuous alternating map of degree one is determined by its values on the one-element
 families `![w]`. This file states that as the extensionality lemma
 `ContinuousAlternatingMap.ext_fin_one`, so that a proof that two such maps agree can start with
 `ext w` and work with a vector `w` instead of a family `v : Fin 1 → M`.
+
+A continuous alternating map vanishes on a family two of whose members are multiples of one
+vector (`ContinuousAlternatingMap.map_eq_zero_of_eq_smul`), as an alternating map does
+(`AlternatingMap.map_eq_zero_of_eq_smul`).
 -/
 
 public section
@@ -30,6 +35,12 @@ theorem ext_fin_one {f g : M [⋀^Fin 1]→L[R] N} (h : ∀ w, f ![w] = g ![w]) 
   ext fun v ↦ by
     rw [← FinVec.etaExpand_eq v]
     exact h (v 0)
+
+/-- A continuous alternating map vanishes on a family `v` whose members `v i` and `v j`, for
+`i ≠ j`, are multiples `a • x` and `b • x` of the same vector `x`. -/
+theorem map_eq_zero_of_eq_smul {ι : Type*} (f : M [⋀^ι]→L[R] N) {v : ι → M} {i j : ι}
+    (hij : i ≠ j) {x : M} {a b : R} (hi : v i = a • x) (hj : v j = b • x) : f v = 0 :=
+  f.toAlternatingMap.map_eq_zero_of_eq_smul hij hi hj
 
 end ContinuousAlternatingMap
 
