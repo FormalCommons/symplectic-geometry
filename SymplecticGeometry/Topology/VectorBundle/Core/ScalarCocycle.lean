@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Topology.Algebra.Module.TensorProduct
 public import TauCeti.Topology.VectorBundle.Hom
 public import TauCeti.Topology.VectorBundle.TensorProduct.Basic
 
@@ -136,22 +137,6 @@ section Tensor
 
 variable (k l : ℤ)
 
-/-- The isomorphism `v ↦ v ⊗ 1` from `𝕜` to `𝕜 ⊗[𝕜] 𝕜`, the model of
-`lineBundleCoreTensorEquiv` on the model fibres. -/
-private def tensorEquivModel : 𝕜 ≃L[𝕜] 𝕜 ⊗[𝕜] 𝕜 :=
-  LinearEquiv.toContinuousLinearEquivOfIsModuleTopology (TensorProduct.rid 𝕜 𝕜).symm
-
-private theorem tensorEquivModel_apply (v : 𝕜) :
-    (tensorEquivModel (𝕜 := 𝕜)) v = v ⊗ₜ[𝕜] (1 : 𝕜) := by
-  rw [tensorEquivModel, LinearEquiv.coe_toContinuousLinearEquivOfIsModuleTopology,
-    TensorProduct.rid_symm_apply]
-
-private theorem tensorEquivModel_symm_apply (a b : 𝕜) :
-    (tensorEquivModel (𝕜 := 𝕜)).symm (a ⊗ₜ[𝕜] b) = a * b := by
-  rw [ContinuousLinearEquiv.symm_apply_eq, tensorEquivModel_apply]
-  apply (TensorProduct.rid 𝕜 𝕜).injective
-  simp [mul_comm]
-
 /-- The fibrewise isomorphism from the line bundle of `k + l` to the tensor product of those of
 `k` and `l`, `a ↦ a ⊗ 1` in every chart (`tensorProduct_localTriv_lineBundleCoreTensorEquiv`).
 It is continuous on total spaces in both directions (`continuous_lineBundleCoreTensorEquiv` and
@@ -160,19 +145,19 @@ def lineBundleCoreTensorEquiv (x : X) :
     (c.lineBundleCore (k + l)).Fiber x ≃L[𝕜]
       (c.lineBundleCore k).Fiber x ⊗[𝕜] (c.lineBundleCore l).Fiber x :=
   -- The fibres of `lineBundleCore` are `𝕜`, and their tensor product is `𝕜 ⊗[𝕜] 𝕜`.
-  tensorEquivModel
+  (TensorProduct.ridL 𝕜 𝕜).symm
 
 theorem lineBundleCoreTensorEquiv_apply (x : X) (v : 𝕜) :
     c.lineBundleCoreTensorEquiv k l x v =
       TensorProduct.tmul 𝕜 (M := (c.lineBundleCore k).Fiber x)
         (N := (c.lineBundleCore l).Fiber x) v (1 : 𝕜) :=
-  tensorEquivModel_apply v
+  TensorProduct.ridL_symm_apply 𝕜 𝕜 v
 
 theorem lineBundleCoreTensorEquiv_symm_apply (x : X) (a b : 𝕜) :
     (c.lineBundleCoreTensorEquiv k l x).symm
         (TensorProduct.tmul 𝕜 (M := (c.lineBundleCore k).Fiber x)
           (N := (c.lineBundleCore l).Fiber x) a b) = a * b :=
-  tensorEquivModel_symm_apply a b
+  (TensorProduct.ridL_tmul 𝕜 𝕜 a b).trans (mul_comm b a)
 
 /-- **`lineBundleCoreTensorEquiv` in a chart.** Over `U i`, read through the charts `i` of the
 line bundles of `k + l`, `k` and `l`, `lineBundleCoreTensorEquiv` is `a ↦ a ⊗ 1`. -/
