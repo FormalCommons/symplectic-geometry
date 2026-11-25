@@ -397,13 +397,8 @@ theorem exists_isCouplingForm [IB.Boundaryless] [FiniteDimensional ℝ EB] [Comp
       (contMDiff_subtypeVal_Icc.sub contMDiff_const))
   have hex (t : Set.Icc a b) :
       τ t - τ a' - ((t : ℝ) - a) • (2 * Real.pi)⁻¹ • hα.curvature ∈ exactForms IB B (1 + 1) := by
-    have h := hcoh t a'
-    rw [← map_sub, hα.realFirstChernClass_eq, smul_smul, ← map_smul,
-      deRhamCohomology.mk_eq_mk_iff] at h
-    convert h using 2
-    simp only [Submodule.coe_smul, smul_smul]
-    congr 1
-    ring
+    convert (hα.mk_sub_mk_eq_smul_realFirstChernClass_iff _ _ _).1 (hcoh t a') using 1
+    module
   obtain ⟨β, hβ, hdβ⟩ :=
     exists_isSmoothFamily_mextDerivₗ_eq_Icc hasFiniteGoodCover_of_compactSpace hη hex
   have h := hα.isCouplingForm_couplingForm hβ (hτs a').isClosed hdβ
