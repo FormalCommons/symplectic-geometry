@@ -938,9 +938,9 @@ model fibres:
 ### `Topology/VectorBundle/Orientation/Complex/Tensor.lean`
 
 - `TauCeti.complexEulerClass_tensorProduct`: for complex line bundles `L`,
-  `L'` over a normal base, each with a finite trivializing cover (over a
-  compact Hausdorff base until issue 24 generalizes it), the Euler class of
-  `L ⊗ L'` (Tau Ceti's `Topology/VectorBundle/TensorProduct/Basic.lean`) is
+  `L'` over a normal base, each with a finite trivializing cover, the
+  Euler class of `L ⊗ L'` (Tau Ceti's
+  `Topology/VectorBundle/TensorProduct/Basic.lean`) is
   the sum of
   their Euler classes. Proof: a fibrewise injection into a trivial bundle
   (`TauCeti.weightedTrivializationMap`) gives classifying maps to
