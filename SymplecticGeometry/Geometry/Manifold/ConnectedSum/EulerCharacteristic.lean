@@ -30,8 +30,10 @@ open coordinate balls `e₁ : E → M` and `e₂ : E → N`, the connected sum
   connected sum `TauCeti.OrientedConnectedSum oM oN`.
 
 The finite CW type of the summands and of the connected sum enters as instance arguments; since
-`TauCeti.FiniteCWType` is a proposition, any proof will do, and for compact manifolds
-`TauCeti.FiniteCWType.of_isManifold` provides one.
+`TauCeti.FiniteCWType` is a proposition, any proof will do. For the summands
+`TauCeti.FiniteCWType.of_isManifold` provides one, and for the connected sum too when it is a
+smooth manifold, as it is when `e₁` and `e₂` are smooth local diffeomorphisms
+(`TauCeti.ConnectedSum.isManifold`).
 
 ## Proof
 
@@ -47,6 +49,11 @@ cover (`TauCeti.eulerChar_add_eulerChar_inter_of_union_eq_univ`) gives the formu
 proof of `TauCeti.eulerChar_compl_of_finite`, the punctured model space is first carried to a
 Euclidean space in the universe of the connected sum.
 
+The embedding of the punctured model space onto the overlap of the two summands, and the
+computation of its range, adapt the private declarations `TauCeti.ConnectedSum.neckMap`,
+`TauCeti.ConnectedSum.isEmbedding_neckMap` and `TauCeti.ConnectedSum.range_neckMap` of Tau
+Ceti's `TauCeti/Geometry/Manifold/ConnectedSum/FundamentalGroup.lean`.
+
 ## References
 
 * [A. Kosinski, *Differential Manifolds*][Kosinski1993], Chapter VI, Section 1.
@@ -61,13 +68,12 @@ universe u v w
 
 namespace TauCeti.ConnectedSum
 
-variable {E : Type v} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+section Puncture
+
+variable {E : Type v} [NormedAddCommGroup E] [NormedSpace ℝ E]
   {H : Type w} [TopologicalSpace H] (I : ModelWithCorners ℝ E H) [I.Boundaryless]
   {M : Type u} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M] [T2Space M]
   [CompactSpace M]
-  {N : Type u} [TopologicalSpace N] [ChartedSpace H N] [IsManifold I ∞ N] [T2Space N]
-  [CompactSpace N]
-  {e₁ : E → M} {e₂ : E → N}
 
 include I in
 /-- A compact boundaryless manifold with the centre of a coordinate ball removed has finite CW
@@ -87,6 +93,18 @@ theorem eulerChar_puncture (e : E → M) [FiniteCWType M] [FiniteCWType (punctur
   let h : puncture e ≃ₜ ({e 0}ᶜ : Set M) := Homeomorph.setCongr (coe_puncture e)
   rw [h.eulerChar_eq, hS.eulerChar_compl_of_isManifold I, ncard_singleton, Nat.cast_one,
     mul_one]
+
+end Puncture
+
+section InnerProduct
+
+variable {E : Type v} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  {H : Type w} [TopologicalSpace H] (I : ModelWithCorners ℝ E H) [I.Boundaryless]
+  {M : Type u} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M] [T2Space M]
+  [CompactSpace M]
+  {N : Type u} [TopologicalSpace N] [ChartedSpace H N] [IsManifold I ∞ N] [T2Space N]
+  [CompactSpace N]
+  {e₁ : E → M} {e₂ : E → N}
 
 include I in
 /-- **The Euler characteristic of a connected sum.** Let `M` and `N` be compact Hausdorff smooth
@@ -138,6 +156,8 @@ theorem eulerChar_connectedSum (h₁ : IsOpenEmbedding e₁) (h₂ : IsOpenEmbed
     (complSingletonHomotopyEquivSphere (0 : E')).eulerChar_eq, eulerChar_sphere_eq_one_sub, hE',
     eulerChar_puncture I e₁, eulerChar_puncture I e₂] at key
   linear_combination key
+
+end InnerProduct
 
 end TauCeti.ConnectedSum
 
