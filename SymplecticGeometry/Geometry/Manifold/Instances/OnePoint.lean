@@ -214,7 +214,8 @@ end OnePoint
 
 namespace SymplecticGeometry
 
-open OnePoint
+open OnePoint (diffeomorphSphere homeomorphSphere sphereCoordsIsometry fubiniStudyForm)
+open scoped OnePoint
 
 /-! ### Inverse stereographic projection from the north pole and the area form of the sphere -/
 /-- **The round sphere is `4π` times the Fubini–Study sphere, as an area form.** Inverse
@@ -250,7 +251,7 @@ theorem mpullback_diffeomorphSphere_symm_fubiniStudyForm :
     funext (diffeomorphSphere (homeomorphSphere ∞) sphereCoordsIsometry).apply_symm_apply
   have h₄ : (4 * Real.pi)⁻¹ • (4 * Real.pi) • fubiniStudyForm = fubiniStudyForm := by
     rw [smul_smul, inv_mul_cancel₀ (by positivity), one_smul]
-  rw [← h₄, _root_.map_smul, ← mpullback_diffeomorphSphere_sphereVolumeForm,
+  rw [← h₄, map_smul, ← mpullback_diffeomorphSphere_sphereVolumeForm,
     SmoothForm.mpullback_mpullback]
   simp only [hid, SmoothForm.mpullback_id, LinearMap.id_apply]
 

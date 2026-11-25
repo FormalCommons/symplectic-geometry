@@ -10,7 +10,6 @@ public import Mathlib.Geometry.Manifold.VectorBundle.ContMDiffSection
 public import TauCeti.Geometry.Manifold.VectorField.Prod
 import Mathlib.Analysis.Calculus.Deriv.AffineMap
 import TauCeti.Geometry.Manifold.Instances.Icc
-import TauCeti.Geometry.Manifold.VectorField.Regularity
 
 /-!
 # The inclusion and the unit vector field of a closed interval
