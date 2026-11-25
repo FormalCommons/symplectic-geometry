@@ -41,8 +41,9 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
   {J : ModelWithCorners 𝕜 E' H'} [TopologicalSpace N] [ChartedSpace H' N]
   {n : WithTop ℕ∞} {f : M → N}
 
-/-- If `f : M → N` is an immersion of a nonempty manifold and the model space of `N` has larger
-finite rank than that of `M`, then the complement chosen by the immersion is nontrivial. -/
+/-- If `f : M → N` is an immersion of a nonempty manifold, and the model space `E'` of `N` has
+larger `finrank` than the model space `E` of `M`, then the complement chosen by the immersion is
+nontrivial. -/
 theorem nontrivial_complement [Nonempty M] (h : IsImmersion I J n f)
     (hE : finrank 𝕜 E < finrank 𝕜 E') : Nontrivial h.complement := by
   obtain ⟨x⟩ := ‹Nonempty M›
