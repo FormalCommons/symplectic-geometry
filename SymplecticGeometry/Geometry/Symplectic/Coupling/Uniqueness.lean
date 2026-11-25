@@ -8,7 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.IntervalContraction
 public import SymplecticGeometry.Geometry.Symplectic.Coupling.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
-import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.ProdIcc
 import TauCeti.Topology.Algebra.Module.Alternating.Basic
 
@@ -490,9 +490,10 @@ theorem nondegenerate_bilinFormAt_prodIccExtension_add_smul (h₀ : IsCouplingFo
           (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1
             (ω₁ - ω₀)))).bilinFormAt (x, t)).Nondegenerate := by
   -- the inclusion sends `(x, ⟨t, ht⟩)` to `(x, t)`, by definition of `Prod.map`
-  refine (SmoothTwoForm.nondegenerate_bilinFormAt_mpullback_iff
-    (contMDiff_id.prodMap contMDiff_subtypeVal_Icc) _
-    (Manifold.isInvertible_mfderiv_prodMap_id_subtypeVal_Icc (x, ⟨t, ht⟩))).mp ?_
+  refine (SmoothTwoForm.nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv
+    (Manifold.isInvertible_mfderiv_prodMap_id_subtypeVal_Icc (x, ⟨t, ht⟩))
+    (congrFun (SmoothForm.coe_mpullback _ (contMDiff_id.prodMap contMDiff_subtypeVal_Icc) _)
+      (x, ⟨t, ht⟩)).symm).mpr ?_
   rw [mpullback_prodMap_subtypeVal_prodIccExtension_add_smul h₀ h₁ s]
   exact ((h₀.lineMap h₁ s).isNondegenerate hτ).nondegenerate_bilinFormAt (x, ⟨t, ht⟩)
 
