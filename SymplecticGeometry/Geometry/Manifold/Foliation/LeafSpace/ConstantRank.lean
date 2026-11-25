@@ -33,6 +33,8 @@ map that `f` induces on the leaf space is then an immersion.
   leaf space is an immersion.
 * `TauCeti.Foliation.LeafSpace.injective_lift_ofConstantRank`: if every fibre is preconnected,
   the map induced by `f` on the leaf space is injective.
+* `TauCeti.Foliation.LeafSpace.t2Space_ofConstantRank`: if moreover `N` is Hausdorff, so is that
+  leaf space.
 
 ## Implementation notes
 
@@ -219,6 +221,14 @@ theorem LeafSpace.injective_lift_ofConstantRank (hf : ContMDiff I J (n + 1) f)
       (hr := hr) (hn := hn)) :=
   LeafSpace.injective_lift_iff.2 fun _ y hxy ↦
     sameLeaf_ofConstantRank_of_isPreconnected_preimage_singleton hf hr hn (h (f y)) hxy rfl
+
+/-- If every fibre of a map `f` of constant rank into a Hausdorff space is preconnected, the leaf
+space of its kernel foliation is Hausdorff. -/
+theorem LeafSpace.t2Space_ofConstantRank [T2Space N] (hf : ContMDiff I J (n + 1) f)
+    (hr : ∀ x, mfderivRank I J f x = r) (hn : 1 ≤ n) (h : ∀ b, IsPreconnected (f ⁻¹' {b})) :
+    T2Space (ofConstantRank hf hr hn).LeafSpace :=
+  T2Space.of_injective_continuous (LeafSpace.injective_lift_ofConstantRank hf hr hn h)
+    (LeafSpace.continuous_lift hf.continuous)
 
 end Fibres
 

@@ -157,9 +157,7 @@ theorem t2Space_leafSpace_ofConstantRank
   letI := Foliation.leafSpaceChartedSpace hR
   haveI := Foliation.isManifold_leafSpace hR
   haveI := hc.isSmoothEmbedding.isImmersion.isManifold
-  T2Space.of_injective_continuous (hc.injective_leafSpaceLift hR hg hgi hpc)
-    (Foliation.LeafSpace.continuous_lift
-      ((Foliation.contMDiff_leafSpaceMk hR).comp hc.isSmoothEmbedding.contMDiff).continuous)
+  Foliation.LeafSpace.t2Space_ofConstantRank _ _ hn hpc
 
 /-- The range of the map induced by `leafSpaceMk ∘ c` on the leaf space of the kernel foliation of
 `leafSpaceMk ∘ c` on `C` is the image of `range c` in the leaf space of the characteristic
@@ -179,16 +177,15 @@ theorem range_leafSpaceLift (hc : IsCleanIntersection I J K L f g c)
   let := Foliation.leafSpaceChartedSpace hR
   have := Foliation.isManifold_leafSpace hR
   have := hc.isSmoothEmbedding.isImmersion.isManifold
-  rw [← Foliation.leafSpaceMk_surjective.range_comp, Foliation.LeafSpace.lift_comp_leafSpaceMk,
-    Set.range_comp]
+  rw [Foliation.LeafSpace.range_lift, Set.range_comp]
 
 /-- **The map induced on the leaf space of a clean intersection is a Lagrangian immersion.**
 Let `f` be a coisotropic immersion with regular characteristic foliation, `g` a Lagrangian
 immersion, and `c` a clean intersection of `f` and `g` from a nonempty boundaryless manifold `C`.
 Let `τ` be a nondegenerate two-form on the leaf space of `f` whose pullback to `N` is `f^* σ`.
 Then the map induced by `leafSpaceMk ∘ c` from the leaf space of the kernel foliation of
-`leafSpaceMk ∘ c` on `C`, with the charts of `isRegular_ofConstantRank`, is a Lagrangian immersion
-for `τ`. -/
+`leafSpaceMk ∘ c` on `C`, with the charts `leafSpaceChartedSpace` of `isRegular_ofConstantRank`,
+is a Lagrangian immersion for `τ`. -/
 theorem isLagrangianImmersion_leafSpaceLift [Nonempty C] (hc : IsCleanIntersection I J K L f g c)
     (hR : (h.characteristicFoliation hi hf hσc hn).IsRegular) (hg : hσ.IsLagrangianMap K g)
     (hgi : IsImmersion K I ∞ g) :
