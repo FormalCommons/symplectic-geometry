@@ -329,7 +329,8 @@ charted space `leafSpaceChartedSpace hR`:
 
 The pointwise statements. With `f`, `hR` and `τ` as above (of `τ`, only
 `τ.IsNondegenerate` is used), `g` with
-`hσ.IsLagrangianMap K g` and `IsImmersion K I ∞ g`, and
+`hσ.IsLagrangianMap K g` (`hσ.IsLagrangianImmersion K g` for the rank
+`mfderivRank_leafSpaceMk_comp_eq`), and
 `hc : IsCleanIntersection I J K L f g c`:
 
 - `Foliation.ker_mfderiv_leafSpaceMk_comp`, in
@@ -352,11 +353,13 @@ The pointwise statements. With `f`, `hR` and `τ` as above (of `τ`, only
 
 ### `Geometry/Symplectic/Coisotropic/Lagrangian/Immersion.lean`
 
-- `IsCleanIntersection.exists_isLagrangianImmersion_range_eq_image`: for a
+- `IsCleanIntersection.isLagrangianImmersionRange_leafSpaceMk_image`: for a
   Lagrangian immersion `g`, second countable `N` (then `C` is too, `c`
-  being an embedding), nonempty `N`, and boundaryless `C`, there are a
+  being an embedding), nonempty `N`, and boundaryless `C`,
+  `hτ.IsLagrangianImmersionRange.{u} r (leafSpaceMk '' range c)` for
+  `r = finrank ℝ G - (finrank ℝ E - finrank ℝ F)`: there are a
   type `S`, in
-  the universe of `C`, with a charted space on
+  the universe `u` of `C`, with a charted space on
   `EuclideanSpace ℝ (Fin (finrank ℝ G - (finrank ℝ E - finrank ℝ F)))`,
   a smooth manifold, Hausdorff and second countable, and a Lagrangian
   immersion `ι : S → LeafSpace` for `τ` with
@@ -382,20 +385,22 @@ The pointwise statements. With `f`, `hR` and `τ` as above (of `τ`, only
   `(leafSpaceMk ∘ c) ⁻¹' {b}`. The embedding `f ∘ c` maps this fibre
   homeomorphically onto the part of that set in `f '' range c`, which is
   open and closed in it by `isClopen_range`.
-- `IsCleanIntersection.exists_isLagrangianImmersion_range_eq_image_and_transverse_and_injective`,
+- `IsCleanIntersection.isLagrangianImmersionRange_leafSpaceMk_image_and_transverse_and_injective`,
   the milestone, for a Lagrangian immersion `g` and second countable,
   nonempty `N`: the general statement of `Immersion.lean`; for
   nonempty `C` under transversality,
   `isLagrangianImmersion_leafSpaceMk_comp_of_transverse`; and, if the leaf
   space of $Q$ is Hausdorff (`T2Space`) and every fibre of
-  `leafSpaceMk ∘ c` is preconnected, a Hausdorff second countable manifold
+  `leafSpaceMk ∘ c` is preconnected,
+  `hτ.IsInjectiveLagrangianImmersionRange.{u} r (leafSpaceMk '' range c)`:
+  a Hausdorff second countable manifold
   with an injective Lagrangian immersion onto `leafSpaceMk '' range c`, the leaf
   space of `C` with the induced map (smooth by
   `IsSubmersion.contMDiff_comp_iff`, an immersion by
   `isImmersion_iff_ker_mfderiv_comp`, Lagrangian by
   `isLagrangianMap_comp_submersion_iff`). No embedding is claimed.
   Milestone: *Clean reduction of Lagrangian submanifolds*.
-- `IsCleanIntersection.exists_injective_isLagrangianImmersion_of_isCoisotropicEmbedding`:
+- `IsCleanIntersection.isInjectiveLagrangianImmersionRange_of_isCoisotropicEmbedding`:
   the injective case with the plan's hypothesis, for an embedded $Q$ with
   Hausdorff leaf space when `range g ∩ f '' (leafSpaceMk ⁻¹' {b})` is
   preconnected for every `b`, by `isPreconnected_preimage_leafSpaceMk_comp`.

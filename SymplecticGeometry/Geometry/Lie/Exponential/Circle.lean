@@ -30,6 +30,8 @@ under Tau Ceti's `leftInvariantDerivationEquivGroupLieAlgebra`.
 * `SymplecticGeometry.finrank_groupLieAlgebra_circle`: the Lie algebra of `Circle` has
   dimension one.
 * `SymplecticGeometry.exists_smul_eq_of_ne_zero_circle`: so every nonzero element spans it.
+* `SymplecticGeometry.linearMap_ext_of_ne_zero_circle`: a linear map out of it is determined by
+  its value at any nonzero element.
 * `SymplecticGeometry.circleLieGenerator_ne_zero`: the generator is nonzero.
 * `SymplecticGeometry.leftInvariantDerivationEquivGroupLieAlgebra_circleExpGenerator`: Tau Ceti's
   `circleExpGenerator` corresponds to `circleLieGenerator`.
@@ -74,6 +76,15 @@ since the Lie algebra has dimension one. -/
 theorem exists_smul_eq_of_ne_zero_circle {ξ₀ : GroupLieAlgebra (𝓡 1) Circle} (hξ₀ : ξ₀ ≠ 0)
     (ξ : GroupLieAlgebra (𝓡 1) Circle) : ∃ c : ℝ, c • ξ₀ = ξ :=
   (finrank_eq_one_iff_of_ne_zero' _ hξ₀).mp finrank_groupLieAlgebra_circle ξ
+
+/-- Two linear maps out of the Lie algebra of `Circle` that agree at a nonzero element `ξ₀` are
+equal. -/
+theorem linearMap_ext_of_ne_zero_circle {N : Type*} [AddCommMonoid N] [Module ℝ N]
+    {ξ₀ : GroupLieAlgebra (𝓡 1) Circle} (hξ₀ : ξ₀ ≠ 0)
+    {f g : GroupLieAlgebra (𝓡 1) Circle →ₗ[ℝ] N} (h : f ξ₀ = g ξ₀) : f = g :=
+  LinearMap.ext fun ξ ↦ by
+    obtain ⟨c, rfl⟩ := exists_smul_eq_of_ne_zero_circle hξ₀ ξ
+    rw [map_smul, map_smul, h]
 
 attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField in
 /-- Tau Ceti's generator `circleExpGenerator` of `Circle.exp`, a left-invariant derivation, is
