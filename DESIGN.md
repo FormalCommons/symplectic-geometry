@@ -3858,15 +3858,13 @@ For §7.3 of `atlas/constructing-symplectic-manifolds.md`.
 - **Files:** in `Geometry/Symplectic/HPrinciple/`: `HandleCore.lean`
   (Lemma 7.3.2: relative extension of exact nondegenerate forms over a
   handle core of dimension $m<2n$, for compact families of parameters,
-  with the attaching collars and uniform cut-offs as the page asks),
-  `Telescope.lean` (the induction over the handles of a proper Morse
-  exhaustion without critical points of index $2n$, with Tau Ceti's
-  `TauCeti.IsMorse.exists_regular_sublevel_exhaustion`; the exact case and
-  then a prescribed class $a$, through a fixed closed representative) and
+  with the attaching collars and uniform cut-offs as the page asks) and
   `OpenManifold.lean` (Theorem 7.3.1, both assertions, for manifolds
-  without boundary and with no compact component) and `Parametric.lean`
-  (the parametric statement: the inclusion of the symplectic forms of
-  class $a$ into the nondegenerate two-forms is a homotopy equivalence,
+  without boundary and with no compact component, by the same compression
+  route as `Parametric.lean`, for a fixed closed representative of $a$)
+  and `Parametric.lean` (the parametric statement: the inclusion of the
+  symplectic forms of class $a$ into the nondegenerate two-forms is a
+  homotopy equivalence,
   for the compact-open $C^\infty$ topology of the departure *Spaces of forms*, by
   the compression route of Eliashberg–Mishachev, Theorems 10.2.1–10.2.2,
   with their parameter-relative holonomic approximation, Theorem 4.7.4,
@@ -3875,16 +3873,17 @@ For §7.3 of `atlas/constructing-symplectic-manifolds.md`.
   proper Morse function without critical points of top index on such a
   manifold, which neither library has, is a file the design file places
   under `Geometry/Manifold/Morse/`.
-- **Builds on:** the merged *Smooth families* and *Moser isotopy*; Tau
-  Ceti's Morse theory (`Geometry/Manifold/Morse/`) and nondegenerate and
-  symplectic two-forms.
+- **Builds on:** the merged *Smooth families*, *Moser isotopy* and
+  *Symplectic vector bundles*; Tau Ceti's Morse theory
+  (`Geometry/Manifold/Morse/`) and nondegenerate and symplectic two-forms.
 - **Milestones:** *Gromov's h-principle for symplectic forms on open
   manifolds* (existence and the path-component statement in
   `OpenManifold.lean`, the parametric homotopy equivalence in
   `Parametric.lean`),
   *Relative extension of exact symplectic forms over a handle core*. The
-  design file chooses between the book's handle induction and the
-  compression route of Eliashberg–Mishachev that the page also gives.
+  design file takes the compression route of Eliashberg–Mishachev for all
+  three statements of the first milestone, not the book's handle
+  induction.
 
 ### 64. Asymptotically holomorphic sections (needs `design/asymptotically-holomorphic-sections.md`)
 
@@ -4012,7 +4011,7 @@ behind.
 | 0 | *Connected sums* | — |
 | 0 | *Poincaré duals of submanifolds* | — |
 | 0 | *Almost complex spheres* | — (it uses only merged files of *Chern classes*) |
-| 0 | *Symplectic h-principle* | — (it uses only merged files of *Smooth families* and *Moser isotopy*) |
+| 0 | *Symplectic h-principle* | — (it uses merged files of *Smooth families*, *Moser isotopy* and *Symplectic vector bundles*; `HandleCore.lean` also waits for the generalization of `PreservesSmoothFamilies` to any parameter manifold that *Compatible symplectic forms* plans) |
 | 1 | *Unitary group topology* | *Symplectic group* (only the file on $\mathrm{Sp}(2n)$; the other files can start at once) |
 | 1 | *Symplectic vector spaces* | *Standard model*, *Symplectic group* |
 | 1 | *Lagrangian Grassmannian* | *Standard model*, *Symplectic vector spaces* (only `Subspace.lean`, which is merged) |
@@ -4301,7 +4300,7 @@ existing inputs.
 | *Symplectic fibre connected sum with trivial normal bundles* | *Symplectic sums* (`Fibre.lean`). |
 | *Fundamental group after summing with the rational elliptic surface* | *Symplectic sums* (`RationalEllipticSurface.lean`, `FundamentalGroup.lean`). Existing input: `TauCeti.isPushout_fundamentalGroup`. |
 | *Gompf's realization of finitely presented groups* | *Symplectic sums* (`FinitelyPresented.lean`). Existing input: `Group.IsFinitelyPresented.exists_mulEquiv_presentedGroup`. |
-| *Gromov's h-principle for symplectic forms on open manifolds* | *Symplectic h-principle* (`Telescope.lean`, `OpenManifold.lean`, `Parametric.lean`). Existing input: `TauCeti.IsMorse.exists_regular_sublevel_exhaustion`. |
+| *Gromov's h-principle for symplectic forms on open manifolds* | *Symplectic h-principle* (`OpenManifold.lean`, `Parametric.lean`). Existing input: `TauCeti.exists_isMorse_isProperMap_bddBelow`. |
 | *Relative extension of exact symplectic forms over a handle core* | *Symplectic h-principle* (`HandleCore.lean`). |
 | *Donaldson's symplectic hypersurface theorem* | *Asymptotically holomorphic sections* (`Hypersurface.lean`). |
 | *Symplectic zero set criterion for a line bundle section* | *Asymptotically holomorphic sections* (`ZeroSet.lean`), with *Poincaré duals of submanifolds*. |
@@ -4416,7 +4415,9 @@ Both milestones, proved in full. Their parts wait for no part of
   two-forms. Tau Ceti has none on `SmoothTwoForm`, so the statements about
   spaces of forms are made on *Symplectic vector bundles*'
   `Bundle.ContMDiffTwoForm` of the tangent bundle, in the same compact-open
-  $C^\infty$ topology as the structures.
+  $C^\infty$ topology as the structures. The parametric statement of
+  *Gromov's h-principle for symplectic forms on open manifolds* (part 63,
+  `Parametric.lean`) is stated in it too.
 - **The signature theorem.** *Chern classes of projective hypersurfaces*
   derives the signature and $b^\pm$ of a surface in $\mathbb CP^3$ from the
   Hirzebruch signature theorem, which the page quotes and which no page
