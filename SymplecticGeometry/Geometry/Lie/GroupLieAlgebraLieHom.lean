@@ -34,9 +34,9 @@ The exponential law is the tangent-space form of Tau Ceti's `map_lieExp` (Tau Ce
 privately, as `monoidHom_mulInvariantExp`); here it is derived from `map_lieExp`. Injectivity is
 derived from Tau Ceti's `ContinuousMonoidHom.lieMap_injective_of_discreteTopology_ker`. The
 naturality of `Ad` restates Tau Ceti's `MonoidHom.groupLieAlgebraMap_adjointContinuousLinearMap`
-for `groupLieAlgebraLieHom` and `TauCeti.Lie.tangentAd`. The proof of `mfderiv_inv_mul_mfderiv`
-follows the step of Tau Ceti's `ContMDiffMonoidMorphism.mpullback_leftInvariantForm` that
-differentiates `(φ x)⁻¹ * φ y = φ (x⁻¹ * y)` at `x`.
+for `groupLieAlgebraLieHom` and `TauCeti.Lie.tangentAd`. The identity `mfderiv_inv_mul_mfderiv`
+is derived from Tau Ceti's `ContMDiffMonoidMorphism.mfderiv_mulInvariantVectorField`, by writing
+`v` as the value at `x` of a left-invariant vector field.
 -/
 
 public section
@@ -93,16 +93,10 @@ theorem ContMDiffMonoidMorphism.mfderiv_inv_mul_mfderiv
     (φ : ContMDiffMonoidMorphism I I' ∞ G G') (x : G) (v : TangentSpace I x) :
     mfderiv I' I' ((φ x)⁻¹ * ·) (φ x) (mfderiv I I' φ x v) =
       φ.groupLieAlgebraLieHom (mfderiv I I (x⁻¹ * ·) x v) := by
-  have hφ : MDifferentiable I I' φ := φ.contMDiff_toFun.mdifferentiable (by simp)
-  have hcomp : (fun y : G' ↦ (φ x)⁻¹ * y) ∘ φ = φ ∘ (x⁻¹ * ·) := by
-    funext y
-    simp
-  rw [← mfderiv_comp_apply_of_eq x mdifferentiableAt_mul_left (hφ x) rfl, hcomp,
-    mfderiv_comp_apply_of_eq x (hφ _) mdifferentiableAt_mul_left (inv_mul_cancel x),
-    coe_groupLieAlgebraLieHom]
-  -- The two sides apply `mfderiv I I' φ 1` to a vector of `TangentSpace I (x⁻¹ * x)`, which is
-  -- definitionally `TangentSpace I 1` (both are `E`), so the lemma is applied as a term.
-  exact (MonoidHom.groupLieAlgebraMap_apply _ _ _).symm
+  obtain ⟨X, rfl⟩ := TauCeti.exists_mulInvariantVectorField_eq v
+  rw [φ.mfderiv_mulInvariantVectorField, TauCeti.mfderiv_inv_mul_mulInvariantVectorField,
+    TauCeti.mfderiv_inv_mul_mulInvariantVectorField,
+    ContMDiffMonoidMorphism.coe_groupLieAlgebraLieHom]
 
 end Adjoint
 
