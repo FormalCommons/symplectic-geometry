@@ -7,24 +7,27 @@ module
 
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import TauCeti.Geometry.Manifold.Instances.Projectivization
-public import TauCeti.Geometry.Manifold.RegularValue
+public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Symplectic.Complex.Module.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Restriction
+public import TauCeti.Geometry.Symplectic.Manifold.JHolomorphic
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
+public import SymplecticGeometry.Geometry.Manifold.RegularValue.CriticalSet
 public import SymplecticGeometry.Geometry.Symplectic.Lefschetz.Model
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
 /-!
 # Lefschetz fibrations
 
-A Lefschetz fibration of a real four-manifold `X` over `ℂℙ¹ = ℙ ℂ (Fin 2 → ℂ)` is a map
+A Lefschetz fibration of a real manifold `X` over `ℂℙ¹ = ℙ ℂ (Fin 2 → ℂ)` is a smooth map
 `π : X → ℂℙ¹` together with a two-form `ω` and an almost complex structure `J` such that `ω` tames
 `J`, distinct critical points of `π` have distinct values, near each critical point `π` reads as
 the quadric `z₁² + z₂²` in a `J`-holomorphic chart, and `ω` is nondegenerate on the kernel of the
-derivative of `π` at each regular point. This is McDuff–Salamon's Definition 7.4.10, with the
-almost complex structure part of the data.
+derivative of `π` at each regular point. This follows McDuff–Salamon's Definition 7.4.10, with
+the almost complex structure part of the data, but in more generality: nothing fixes the dimension
+of `X` (a chart into `ℂ²` at a critical point forces real dimension four only near that point,
+and a fibration without critical points may have any dimension), and `ω` is only a two-form that
+tames `J`, not assumed closed.
 
 `ℂℙ¹` is a real manifold modelled on `𝓘(ℝ, Fin 1 → ℂ)` through Tau Ceti's
 `Projectivization.instIsManifoldReal`, and its complex coordinates are the affine charts
@@ -33,12 +36,11 @@ almost complex structure part of the data.
 The book asks moreover that `J` be integrable, and `π` holomorphic, near the critical points.
 Here both follow from the holomorphic chart: on the source of a chart `φ` as in the definition,
 the restriction of `J` is integrable (`IsLefschetzChart.isIntegrable_on`), and `π` read through
-`φ⁻¹` is holomorphic (`IsLefschetzChart.mdifferentiableAt_of_mem`).
+`φ⁻¹` is holomorphic (`IsLefschetzChart.contMDiffAt_comp_symm` and
+`IsLefschetzChart.mdifferentiableAt_of_mem`).
 
 ## Main definitions
 
-* `SymplecticGeometry.criticalSet I I' f`: the critical points of a map `f` between manifolds,
-  the points that are not regular points in the sense of Tau Ceti's `IsRegularPoint`.
 * `SymplecticGeometry.IsLefschetzChart J π p φ i`: `φ` is a `J`-holomorphic chart of `X`
   centred at `p` into `ℂ²` in which `π`, read in the affine chart `affineChart i`, is the quadric
   `z₁² + z₂²` up to the constant `affineChart i (π p)`.
@@ -48,8 +50,9 @@ the restriction of `J` is integrable (`IsLefschetzChart.isIntegrable_on`), and `
 
 * `SymplecticGeometry.IsLefschetzChart.isIntegrable_on`: `J` is integrable on the source of a
   Lefschetz chart.
-* `SymplecticGeometry.IsLefschetzChart.mdifferentiableAt_of_mem`: `π ∘ φ⁻¹` is holomorphic on
-  the target of a Lefschetz chart `φ`.
+* `SymplecticGeometry.IsLefschetzChart.contMDiffAt_comp_symm` and
+  `SymplecticGeometry.IsLefschetzChart.mdifferentiableAt_of_mem`: `π ∘ φ⁻¹` is holomorphic on the
+  target of a Lefschetz chart `φ`.
 * `SymplecticGeometry.IsLefschetzFibration.isIntegrable_on`: every critical point of a Lefschetz
   fibration has an open neighbourhood on which `J` is integrable.
 
@@ -65,37 +68,6 @@ open Set Filter TopologicalSpace TauCeti Projectivization
 open scoped Manifold Topology LinearAlgebra.Projectivization
 
 namespace SymplecticGeometry
-
-section CriticalSet
-
-variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
-  {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E]
-  {H : Type*} [TopologicalSpace H] (I : ModelWithCorners 𝕜 E H)
-  {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
-  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace 𝕜 E']
-  {H' : Type*} [TopologicalSpace H'] (I' : ModelWithCorners 𝕜 E' H')
-  {N : Type*} [TopologicalSpace N] [ChartedSpace H' N]
-
-/-- The critical set of a map `f : M → N` between manifolds: the points at which the manifold
-derivative of `f` is not surjective, the complement of the regular points of Tau Ceti's
-`IsRegularPoint`. -/
-def criticalSet (f : M → N) : Set M :=
-  {x | ¬ IsRegularPoint I I' f x}
-
-variable {I I'}
-
-@[simp]
-theorem mem_criticalSet_iff {f : M → N} {x : M} :
-    x ∈ criticalSet I I' f ↔ ¬ IsRegularPoint I I' f x :=
-  Iff.rfl
-
-/-- The complement of the critical set is the set of regular points. -/
-theorem compl_criticalSet (f : M → N) :
-    (criticalSet I I' f)ᶜ = {x | IsRegularPoint I I' f x} := by
-  ext x
-  simp
-
-end CriticalSet
 
 section Lefschetz
 
@@ -117,20 +89,22 @@ structure IsLefschetzChart (J : SmoothAlmostComplexStructure I X) (π : X → �
   apply_eq_zero : φ p = 0
   /-- `π` maps the source of the chart into the affine open `affineOpen i`. -/
   source_subset : φ.source ⊆ π ⁻¹' affineOpen i
-  /-- The chart is `J`-holomorphic. -/
-  mfderiv_apply : ∀ y ∈ φ.source, ∀ v : TangentSpace I y,
-    mfderiv I 𝓘(ℝ, Fin 2 → ℂ) φ y (J y v) =
-      AlmostComplexStructure.ofComplexModule (Fin 2 → ℂ) (mfderiv I 𝓘(ℝ, Fin 2 → ℂ) φ y v)
+  /-- The chart is `J`-holomorphic, for the complex structure of `ℂ²`. -/
+  isPseudoholomorphicAt : ∀ y ∈ φ.source, IsPseudoholomorphicAt J
+    (SmoothAlmostComplexStructure.ofComplexManifold (Fin 2 → ℂ) (Fin 2 → ℂ)) φ y
   /-- In the chart, `π` is the quadric `z₁² + z₂²` up to the constant `π p`. -/
   affineChart_apply : ∀ x ∈ φ.source,
     affineChart i (π x) 0 = affineChart i (π p) 0 + LefschetzModel.quadric (φ x)
 
 /-- A map `π : X → ℂℙ¹` is a *Lefschetz fibration* for the two-form `ω` and the almost
-complex structure `J` when `ω` tames `J`, `π` is injective on its critical points, `π` has a
-Lefschetz chart at every critical point, and at every regular point the restriction of `ω` to the
-kernel of the derivative of `π` is nondegenerate. -/
+complex structure `J` when `π` is smooth, `ω` tames `J`, `π` is injective on its critical
+points, `π` has a Lefschetz chart at every critical point, and at every regular point the
+restriction of `ω` to the kernel of the derivative of `π` is nondegenerate. Neither the
+dimension of `X` nor the closedness of `ω` is assumed. -/
 structure IsLefschetzFibration (ω : SmoothTwoForm I X) (J : SmoothAlmostComplexStructure I X)
     (π : X → ℙ ℂ (Fin 2 → ℂ)) : Prop where
+  /-- `π` is smooth. -/
+  contMDiff : ContMDiff I 𝓘(ℝ, Fin 1 → ℂ) (⊤ : ℕ∞) π
   /-- `ω` tames `J`. -/
   tames : ω.Tames J
   /-- Each fibre of `π` contains at most one critical point. -/
@@ -149,43 +123,25 @@ open scoped ContDiff
 variable {J : SmoothAlmostComplexStructure I X} {π : X → ℙ ℂ (Fin 2 → ℂ)} {p : X}
   {φ : PartialDiffeomorph I 𝓘(ℝ, Fin 2 → ℂ) X (Fin 2 → ℂ) ∞} {i : Fin 2}
 
+/-- The derivative of a Lefschetz chart carries `J` to multiplication by `i` on `ℂ²`. -/
+theorem mfderiv_apply (h : IsLefschetzChart J π p φ i) {y : X} (hy : y ∈ φ.source)
+    (v : TangentSpace I y) :
+    mfderiv I 𝓘(ℝ, Fin 2 → ℂ) φ y (J y v) =
+      AlmostComplexStructure.ofComplexModule (Fin 2 → ℂ) (mfderiv I 𝓘(ℝ, Fin 2 → ℂ) φ y v) := by
+  exact ((h.isPseudoholomorphicAt y hy).mfderiv_apply_commute v).trans
+    ((SmoothAlmostComplexStructure.ofComplexManifold_apply (E := Fin 2 → ℂ) (M := Fin 2 → ℂ) _
+      _).trans (AlmostComplexStructure.ofComplexModule_apply (V := Fin 2 → ℂ) _).symm)
+
 /-- **`J` is integrable on the source of a Lefschetz chart.** -/
 theorem isIntegrable_on (h : IsLefschetzChart J π p φ i) :
-    (J.restrictOpen ⟨φ.source, φ.open_source⟩).IsIntegrable := by
-  set U : Opens X := ⟨φ.source, φ.open_source⟩
-  have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
-  rw [SmoothAlmostComplexStructure.isIntegrable_iff_mfderiv]
-  intro x
-  -- The restriction of `φ` to `U` is a `J`-holomorphic chart of `U` into `ℂ²`.
-  let ψ := φ.subtypeRestr U ⟨x⟩
-  have hψ : (ψ : U → Fin 2 → ℂ) = φ ∘ Subtype.val := funext (φ.subtypeRestr_apply U ⟨x⟩)
-  have hsource : ψ.source = univ := by
-    rw [PartialDiffeomorph.subtypeRestr_source]
-    exact eq_univ_of_forall fun y ↦ y.property
-  have hd (y : U) (v : TangentSpace I y) : mfderiv I 𝓘(ℝ, Fin 2 → ℂ) ψ y v =
-      mfderiv I 𝓘(ℝ, Fin 2 → ℂ) φ y (Manifold.tangentSpaceOpenEquiv (I := I) y v) := by
-    rw [hψ, mfderiv_comp_apply y (φ.mdifferentiableAt hn y.property)
-      (contMDiff_subtypeVal.mdifferentiableAt one_ne_zero), Manifold.mfderiv_subtype_val,
-      ContinuousLinearEquiv.coe_coe]
-  have hJ : ∀ y ∈ ψ.source, ∀ v : TangentSpace I y,
-      mfderiv I 𝓘(ℝ, Fin 2 → ℂ) ψ y (J.restrictOpen U y v) =
-        AlmostComplexStructure.ofComplexModule (Fin 2 → ℂ)
-          (mfderiv I 𝓘(ℝ, Fin 2 → ℂ) ψ y v) := fun y _ v ↦ by
-    rw [hd, hd, SmoothAlmostComplexStructure.restrictOpen_apply,
-      ContinuousLinearEquiv.apply_symm_apply, h.mfderiv_apply y y.property]
-  -- A linear isomorphism `ℂ² ≃ E` brings it to the model of `X`.
-  obtain ⟨e, -⟩ := φ.isInvertible_mfderiv hn x.property
-  let L : (Fin 2 → ℂ) ≃L[ℝ] E := e.symm
-  exact ⟨ψ.trans L.toDiffeomorph.toPartialDiffeomorph,
-    (AlmostComplexStructure.ofComplexModule (Fin 2 → ℂ)).transport L.toLinearEquiv,
-    by simp [hsource],
-    (J.restrictOpen U).mfderiv_trans_toDiffeomorph_apply_eq_transport hJ L⟩
+    (J.restrictOpen ⟨φ.source, φ.open_source⟩).IsIntegrable :=
+  J.isIntegrable_restrictOpen_source fun _ hy ↦ h.mfderiv_apply hy
 
 /-- **`π` is holomorphic in a Lefschetz chart**: on the target of `φ`, the map `π ∘ φ⁻¹` from
-`ℂ²` to `ℂℙ¹` is complex differentiable. -/
-theorem mdifferentiableAt_of_mem (h : IsLefschetzChart J π p φ i) {z : Fin 2 → ℂ}
+`ℂ²` to `ℂℙ¹` is a smooth map of complex manifolds. -/
+theorem contMDiffAt_comp_symm (h : IsLefschetzChart J π p φ i) {z : Fin 2 → ℂ}
     (hz : z ∈ φ.target) :
-    MDifferentiableAt 𝓘(ℂ, Fin 2 → ℂ) 𝓘(ℂ, Fin 1 → ℂ) (π ∘ φ.symm) z := by
+    ContMDiffAt 𝓘(ℂ, Fin 2 → ℂ) 𝓘(ℂ, Fin 1 → ℂ) ∞ (π ∘ φ.symm) z := by
   let g : (Fin 2 → ℂ) → Fin 1 → ℂ := fun w _ ↦ affineChart i (π p) 0 + LefschetzModel.quadric w
   have hg : ContDiff ℂ ∞ g :=
     contDiff_pi.2 fun _ ↦ contDiff_const.add LefschetzModel.contDiff_quadric
@@ -202,9 +158,15 @@ theorem mdifferentiableAt_of_mem (h : IsLefschetzChart J π p φ i) {z : Fin 2 �
       rw [show φ (φ.symm w) = w from φ.toPartialEquiv.right_inv hw]
     simp only [Function.comp_apply]
     rw [← hc, (affineChart i).left_inv hmem]
-  refine MDifferentiableAt.congr_of_eventuallyEq ?_ heq
-  exact ((contMDiff_affineChart_symm i ∞).mdifferentiableAt (by simp)).comp z
-    (hg.contMDiff.mdifferentiableAt (by simp))
+  exact ((contMDiff_affineChart_symm i ∞).contMDiffAt.comp z hg.contMDiff.contMDiffAt
+    ).congr_of_eventuallyEq heq
+
+/-- **`π` is holomorphic in a Lefschetz chart**: on the target of `φ`, the map `π ∘ φ⁻¹` from
+`ℂ²` to `ℂℙ¹` is complex differentiable. -/
+theorem mdifferentiableAt_of_mem (h : IsLefschetzChart J π p φ i) {z : Fin 2 → ℂ}
+    (hz : z ∈ φ.target) :
+    MDifferentiableAt 𝓘(ℂ, Fin 2 → ℂ) 𝓘(ℂ, Fin 1 → ℂ) (π ∘ φ.symm) z :=
+  (h.contMDiffAt_comp_symm hz).mdifferentiableAt (by simp)
 
 end IsLefschetzChart
 
