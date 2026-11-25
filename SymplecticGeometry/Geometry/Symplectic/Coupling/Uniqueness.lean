@@ -727,11 +727,11 @@ theorem mfderiv_smul_moserField_lineMapFamily_prodIccExtension (h₀ : IsCouplin
 /-- **The cut-off Moser flow is equivariant.** Let `ω₀` and `ω₁` be coupling forms for the same
 family and `z : Circle`. For the family `s ↦ ω̃₀ + s • dσ̃` on `P × ℝ` (as in
 `SymplecticGeometry.IsCouplingForm.mpullback_prodMap_subtypeVal_prodIccExtension_add_smul`),
-the one-form `σ̃` and a cutoff `ρ` invariant under `(x, t) ↦ (op z • x, t)` at every time, if the
+the one-form `σ̃` and a cutoff `ρ` invariant under `(x, r) ↦ (op z • x, r)` at every time, if the
 cut-off Moser field is jointly `C¹`, then its time-dependent flow from `s` to `t` commutes with
-`(x, t) ↦ (op z • x, t)`. -/
+`(x, r) ↦ (op z • x, r)`. -/
 theorem timeDependentFlowOf_moserField_lineMapFamily_prodIccExtension_smul
-    [CompleteSpace EB] [T2Space (ManifoldTotalSpace Circle P)] (h₀ : IsCouplingForm ω₀ τ)
+    [T2Space (ManifoldTotalSpace Circle P)] (h₀ : IsCouplingForm ω₀ τ)
     (h₁ : IsCouplingForm ω₁ τ) (z : Circle) {ρ : ℝ × (ManifoldTotalSpace Circle P × ℝ) → ℝ}
     (hρ : ∀ (s : ℝ) (p : ManifoldTotalSpace Circle P × ℝ), ρ (s, (op z • p.1, p.2)) = ρ (s, p))
     (hX : ContMDiff (𝓘(ℝ, ℝ).prod ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)))
