@@ -5,8 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.RepresentationTheory.Dual
-public import TauCeti.RepresentationTheory.Subrepresentation
+public import SymplecticGeometry.Geometry.Lie.Adjoint.Splitting
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Data
 
 /-!
@@ -21,13 +20,13 @@ representations of `K` on `𝔥` and `𝔪` with the coadjoint representation of
 The representation of `K` on `A` is the dual of the adjoint representation on `𝔪`, transported
 to `A` by `D.equivDual𝔪`.
 
-The equivariance of the extensions by zero is that of the projections of the splitting, Tau
-Ceti's `Subrepresentation.isIntertwiningMap_projectionOnto`, dualized by
-`Representation.IsIntertwiningMap.dualMap`.
+The invariance of the sums is that of a sup of subrepresentations (Mathlib's lattice of
+`Subrepresentation`). The equivariance of the extensions by zero is the case of the splitting of
+`TauCeti.Lie.dualMap_projectionOnto_dual`, which follows the route described in the module
+docstring of Tau Ceti's `TauCeti/Geometry/Lie/Adjoint/Splitting.lean`.
 
 ## Main definitions
 
-* `SymplecticGeometry.LocalModelData.adjoint𝔥`: the adjoint representation of `K` on `𝔥`.
 * `SymplecticGeometry.LocalModelData.repA`: the representation of `K` on `A ≃ 𝔪*`, the dual of
   `SymplecticGeometry.LocalModelData.adjoint𝔪`.
 
@@ -38,7 +37,7 @@ Ceti's `Subrepresentation.isIntertwiningMap_projectionOnto`, dualized by
   invariant under the adjoint action of `K`.
 * `SymplecticGeometry.LocalModelData.ι𝔥_adjoint𝔥_dual`,
   `SymplecticGeometry.LocalModelData.ι𝔪_symm_adjoint𝔪_dual`: `ι𝔥` and `ι𝔪` are equivariant.
-* `SymplecticGeometry.LocalModelData.ι𝔪_repA`: `ι𝔪 (k • η) = Ad*_k (ι𝔪 η)`.
+* `SymplecticGeometry.LocalModelData.ι𝔪_repA`: `ι𝔪 (repA k η) = Ad*_k (ι𝔪 η)`.
 
 ## References
 
@@ -75,51 +74,30 @@ variable {K : Subgroup G} [IsClosed (K : Set G)] [CompactSpace K] [FiniteDimensi
 
 /-- The sum `𝔪 ⊕ 𝔮` is invariant under the adjoint action of `K`. -/
 theorem adjointRepresentation_mem_𝔪_sup (k : K) {ξ : GroupLieAlgebra I G}
-    (hξ : ξ ∈ D.𝔪 ⊔ D.𝔮) : adjointRepresentation ℝ I G k ξ ∈ D.𝔪 ⊔ D.𝔮 := by
-  obtain ⟨y, hy, z, hz, rfl⟩ := Submodule.mem_sup.1 hξ
-  rw [map_add]
-  exact Submodule.add_mem_sup (D.adjointRepresentation_mem_𝔪 k hy)
-    (D.adjointRepresentation_mem_𝔮 k hz)
+    (hξ : ξ ∈ D.𝔪 ⊔ D.𝔮) : adjointRepresentation ℝ I G k ξ ∈ D.𝔪 ⊔ D.𝔮 :=
+  ((⟨D.𝔪, fun k _ h ↦ D.adjointRepresentation_mem_𝔪 k h⟩ :
+      Subrepresentation ((adjointRepresentation ℝ I G).comp K.subtype)) ⊔
+    ⟨D.𝔮, fun k _ h ↦ D.adjointRepresentation_mem_𝔮 k h⟩).apply_mem_toSubmodule k hξ
 
 /-- The sum `𝔥 ⊕ 𝔮` is invariant under the adjoint action of `K`. -/
 theorem adjointRepresentation_mem_𝔥_sup (k : K) {ξ : GroupLieAlgebra I G}
-    (hξ : ξ ∈ D.𝔥 ⊔ D.𝔮) : adjointRepresentation ℝ I G k ξ ∈ D.𝔥 ⊔ D.𝔮 := by
-  obtain ⟨y, hy, z, hz, rfl⟩ := Submodule.mem_sup.1 hξ
-  rw [map_add]
-  exact Submodule.add_mem_sup (D.adjointRepresentation_mem_𝔥 k hy)
-    (D.adjointRepresentation_mem_𝔮 k hz)
-
-/-! ### The adjoint representation on `𝔥` -/
-
-/-- The adjoint representation of `K` on its Lie algebra `𝔥`. -/
-def adjoint𝔥 : Representation ℝ K D.𝔥 :=
-  Subrepresentation.toRepresentation (ρ := (adjointRepresentation ℝ I G).comp K.subtype)
-    ⟨D.𝔥, fun k _ hξ ↦ D.adjointRepresentation_mem_𝔥 k hξ⟩
-
-theorem adjoint𝔥_def :
-    D.adjoint𝔥 =
-      Subrepresentation.toRepresentation (ρ := (adjointRepresentation ℝ I G).comp K.subtype)
-        ⟨D.𝔥, fun k _ hξ ↦ D.adjointRepresentation_mem_𝔥 k hξ⟩ :=
-  (rfl)
-
-@[simp]
-theorem coe_adjoint𝔥_apply (k : K) (h : D.𝔥) :
-    (D.adjoint𝔥 k h : GroupLieAlgebra I G) = adjointRepresentation ℝ I G k h :=
-  (rfl)
+    (hξ : ξ ∈ D.𝔥 ⊔ D.𝔮) : adjointRepresentation ℝ I G k ξ ∈ D.𝔥 ⊔ D.𝔮 :=
+  ((⟨D.𝔥, fun k _ h ↦ D.adjointRepresentation_mem_𝔥 k h⟩ :
+      Subrepresentation ((adjointRepresentation ℝ I G).comp K.subtype)) ⊔
+    ⟨D.𝔮, fun k _ h ↦ D.adjointRepresentation_mem_𝔮 k h⟩).apply_mem_toSubmodule k hξ
 
 /-! ### Equivariance of the extensions by zero -/
+
 /-- The extension by zero `ι𝔥 : 𝔥* → 𝔤*` is equivariant: it takes the dual of the adjoint
 representation of `K` on `𝔥` to the coadjoint representation, `ι𝔥 (f ∘ Ad_{k⁻¹}) = Ad*_k (ι𝔥 f)`.
 -/
 theorem ι𝔥_adjoint𝔥_dual (k : K) (f : Module.Dual ℝ D.𝔥) :
     D.ι𝔥 (D.adjoint𝔥.dual k f) = coadjointRepresentation ℝ I G k (D.ι𝔥 f) := by
-  have h := ((Subrepresentation.isIntertwiningMap_projectionOnto
-    (ρ := (adjointRepresentation ℝ I G).comp K.subtype)
-    (ρ₁ := ⟨D.𝔥, fun k _ hξ ↦ D.adjointRepresentation_mem_𝔥 k hξ⟩)
-    (ρ₂ := ⟨D.𝔪 ⊔ D.𝔮, fun k _ hξ ↦ D.adjointRepresentation_mem_𝔪_sup k hξ⟩)
-    (Subrepresentation.isCompl_toSubmodule.1 D.isCompl_𝔥_sup)).dualMap).isIntertwining k f
-  rw [Representation.dual_comp, MonoidHom.comp_apply, Subgroup.coe_subtype,
-    ← coadjointRepresentation_def, ← adjoint𝔥_def] at h
+  have h := dualMap_projectionOnto_dual
+    (S := ⟨D.𝔥, fun k _ hξ ↦ D.adjointRepresentation_mem_𝔥 k hξ⟩)
+    (T := ⟨D.𝔪 ⊔ D.𝔮, fun k _ hξ ↦ D.adjointRepresentation_mem_𝔪_sup k hξ⟩)
+    (Subrepresentation.isCompl_toSubmodule.1 D.isCompl_𝔥_sup) k f
+  rw [← adjoint𝔥_def] at h
   rw [ι𝔥_def]
   -- `h` is about the subrepresentation with carrier `D.𝔥`, whose `toSubmodule` reduces to it.
   exact h
@@ -130,13 +108,11 @@ representation of `K` on `𝔪` to the coadjoint representation. Here `𝔪*` is
 theorem ι𝔪_symm_adjoint𝔪_dual (k : K) (f : Module.Dual ℝ D.𝔪) :
     D.ι𝔪 (D.equivDual𝔪.symm (D.adjoint𝔪.dual k f)) =
       coadjointRepresentation ℝ I G k (D.ι𝔪 (D.equivDual𝔪.symm f)) := by
-  have h := ((Subrepresentation.isIntertwiningMap_projectionOnto
-    (ρ := (adjointRepresentation ℝ I G).comp K.subtype)
-    (ρ₁ := ⟨D.𝔪, fun k _ hξ ↦ D.adjointRepresentation_mem_𝔪 k hξ⟩)
-    (ρ₂ := ⟨D.𝔥 ⊔ D.𝔮, fun k _ hξ ↦ D.adjointRepresentation_mem_𝔥_sup k hξ⟩)
-    (Subrepresentation.isCompl_toSubmodule.1 D.isCompl_𝔪_sup)).dualMap).isIntertwining k f
-  rw [Representation.dual_comp, MonoidHom.comp_apply, Subgroup.coe_subtype,
-    ← coadjointRepresentation_def, ← adjoint𝔪_def] at h
+  have h := dualMap_projectionOnto_dual
+    (S := ⟨D.𝔪, fun k _ hξ ↦ D.adjointRepresentation_mem_𝔪 k hξ⟩)
+    (T := ⟨D.𝔥 ⊔ D.𝔮, fun k _ hξ ↦ D.adjointRepresentation_mem_𝔥_sup k hξ⟩)
+    (Subrepresentation.isCompl_toSubmodule.1 D.isCompl_𝔪_sup) k f
+  rw [← adjoint𝔪_def] at h
   rw [ι𝔪_def, LinearMap.comp_apply, LinearMap.comp_apply, LinearEquiv.coe_coe,
     LinearEquiv.apply_symm_apply, LinearEquiv.apply_symm_apply]
   -- `h` is about the subrepresentation with carrier `D.𝔪`, whose `toSubmodule` reduces to it.
@@ -159,7 +135,7 @@ theorem equivDual𝔪_repA (k : K) (η : A) :
   rw [repA_apply, LinearEquiv.apply_symm_apply]
 
 /-- The extension by zero `ι𝔪 : A → 𝔤*` intertwines the representation of `K` on `A ≃ 𝔪*` with
-the coadjoint representation: `ι𝔪 (k • η) = Ad*_k (ι𝔪 η)`. -/
+the coadjoint representation: `ι𝔪 (repA k η) = Ad*_k (ι𝔪 η)`. -/
 theorem ι𝔪_repA (k : K) (η : A) :
     D.ι𝔪 (D.repA k η) = coadjointRepresentation ℝ I G k (D.ι𝔪 η) := by
   rw [repA_apply, ι𝔪_symm_adjoint𝔪_dual, LinearEquiv.symm_apply_apply]
