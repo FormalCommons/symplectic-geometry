@@ -3680,8 +3680,10 @@ auxiliary pages, and the symplectic parts wait for it.
   a nonconstant holomorphic curve has a unique holomorphic lift, its value
   at a zero given by the first nonvanishing derivative), `Basic.lean` (the
   blowup $\widetilde M$ of a manifold at $p_0$ with respect to a holomorphic
-  chart near $p_0$, as $(M\setminus\{p_0\})\cup\mathbb P(T_{p_0}M)$ with the
-  charts $\tilde\phi$; it is a complex manifold where $M$ is one; $\pi_M$;
+  chart near $p_0$, glued with Tau Ceti's `TopCat.GlueData` from
+  $M\setminus\{p_0\}$ and the part of the model over the chart's image, so
+  that $Z$ is $\mathbb P(T_{p_0}M)$ read in the chart and the second piece
+  gives the charts $\tilde\phi$; it is a complex manifold where $M$ is one; $\pi_M$;
   uniqueness of the structure; the holomorphic embedding of $Z$; and the
   comparison of two holomorphically compatible charts, by `Lift.lean`),
   `Curve.lean` (lifts of curves), `AlmostComplex.lean` (the blowup of an
@@ -4277,8 +4279,8 @@ existing inputs.
 
 | Milestone | Where |
 |---|---|
-| *Tautological line bundle and the exceptional divisor* | *Complex blowup* (`Model.lean`, `SelfIntersection.lean`). Existing input: the merged `complexEulerClass_twistCore_neg_one`, which is $c_1(L)=-h$. |
-| *Complex blowup at a point* | *Complex blowup* (`Lift.lean`, `Basic.lean`). |
+| *Tautological line bundle and the exceptional divisor* | *Complex blowup* (`Tautological.lean`, `SelfIntersection.lean`). Existing input: the merged `complexEulerClass_twistCore_neg_one`, which is $c_1(L)=-h$. |
+| *Complex blowup at a point* | *Complex blowup* (`Basic.lean`, `Curve.lean`). |
 | *Blowup as a connected sum with the reversed projective space* | *Connected sums* (first statement), *Complex blowup* (`ConnectedSum.lean`, `ExceptionalClass.lean`). Existing input: `TauCeti.ConnectedSum.nonempty_diffeomorph_of_isOrientationReversingAt`, which does not state that the orientations are preserved. |
 | *Kähler forms on the blowup of complex space* | *Symplectic blowup* (`Model.lean`, `Profile.lean`). Existing input: the merged `isKahler_fubiniStudyForm`. |
 | *Symplectic blowup along a ball* | *Symplectic blowup* (`Weight.lean`), with *Isotopy extension*'s ball extension for the larger ball. |

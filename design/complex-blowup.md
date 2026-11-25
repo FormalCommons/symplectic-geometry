@@ -64,36 +64,58 @@ part into `DESIGN.md` added two about `CanonicalBundle.lean`.
 
 ### The projectivized tangent space at the centre
 
-The blowup of `M` at `p₀` along a chart `c : BlowupChart M p₀` is the type
+The blowup of `M` at `p₀` along a chart `c : BlowupChart M p₀` is glued
+from two pieces with Tau Ceti's gluing of manifolds,
+`Geometry/Manifold/Gluing/GlueData.lean`, as the library's
+`Geometry/Manifold/Gluing/CapDiscs/` already does:
 
 ```
-def Blowup (c : BlowupChart M p₀) : Type _ := {x : M // x ≠ p₀} ⊕ ℙ ℂ E
+def Blowup.glueData (c : BlowupChart M p₀) : TopCat.GlueData := TopCat.GlueData.mk' …
+def Blowup (c : BlowupChart M p₀) : Type := (Blowup.glueData c).toGlueData.glued
 ```
 
-in which the second summand is the set of lines of $T_{p_0}M$ read in the
-chart: the point `ℓ` stands for the line $d\phi(p_0)^{-1}\ell$. So the
-exceptional divisor is Tau Ceti's complex manifold `ℙ ℂ E` itself, and no
-manifold structure on `ℙ ℂ (TangentSpace I p₀)` is needed: Tau Ceti has
-charts only on `ℙ 𝕜 (Fin (n + 1) → 𝕜)`, and `TangentSpace` is a def that
-instance search does not unfold. The type depends on `c` so that its
-instances do; two charts give blowups related by `Blowup.chartChange`
-(below), which is the identity off $Z$ and $\ell\mapsto[d(\phi'\circ\phi^{-1})(0)\ell]$
-on $Z$. The page's description of $Z$ as the lines of $T_{p_0}M$ is the
-bijection `Blowup.directionEquiv c : ℙ ℂ (TangentSpace 𝓘(ℂ, E) p₀) ≃ ℙ ℂ E`,
+The index type is `Bool`. The piece `false` is the open set
+`{x : M | x ≠ p₀}`, and the piece `true` is the open set
+`blowdown ⁻¹' c.target` of `BlowupModel n`. They overlap in
+`{x | x ≠ p₀} ∩ c.source` and in `blowdown ⁻¹' (c.target \ {0})`, glued
+by $\pi^{-1}\circ\phi$ and its inverse $\phi^{-1}\circ\pi$, which are
+`blowdownDiffeomorph n` composed with `c` restricted. `M : Type`, since
+the pieces of a `TopCat.GlueData` share one universe and the model is in
+`Type`. Each piece and each overlap is an open subset of a manifold charted
+on `E` and carries its atlas, so the glued space gets Tau Ceti's
+`TopCat.GlueData.chartedSpace`; its charts are those of `M` away from
+$p_0$, and the charts `blowupModelChart i ∘ c.lift` of the model, where
+`c.lift` is $\tilde\phi$, the inverse of the second canonical map.
+
+The exceptional divisor $Z$ is the image of the zero section of the model
+under the second canonical map, so it is Tau Ceti's complex manifold
+`ℙ ℂ E` itself, and no manifold structure on `ℙ ℂ (TangentSpace I p₀)` is
+needed: Tau Ceti has charts only on `ℙ 𝕜 (Fin (n + 1) → 𝕜)`, and
+`TangentSpace` is a def that instance search does not unfold. The point
+`ℓ` of $Z$ stands for the line $d\phi(p_0)^{-1}\ell$ of $T_{p_0}M$. The
+type depends on `c` so that its instances do; two charts give blowups
+related by `Blowup.chartChange` (below), which is the identity off $Z$ and
+$\ell\mapsto[d(\phi'\circ\phi^{-1})(0)\ell]$ on $Z$. The page's description
+of $Z$ as the lines of $T_{p_0}M$ is the bijection
+`Blowup.directionEquiv c : ℙ ℂ (TangentSpace 𝓘(ℂ, E) p₀) ≃ ℙ ℂ E`,
 Mathlib's `Projectivization.map` of `mfderiv` of the chart at $p_0$; the
 milestone uses it to state the value of $\tilde\phi$ on $Z$ for every chart.
 
-The topology and the charts come together from Mathlib's `ChartedSpaceCore`
-(`Geometry/Manifold/ChartedSpace.lean`), since the sum type has no topology
-of its own: its atlas is the charts of `M` restricted to $M\setminus p_0$
-and read on the left summand, and the charts
-`blowupModelChart i ∘ c.lift` of the model, where `c.lift` is
-$\tilde\phi$. The same atlas is analytic over `ℂ` when `c` is in the complex
-maximal atlas of a complex manifold, and smooth over `ℝ` when `c` is in the
-real maximal atlas of a smooth manifold charted on `E`: the transition maps
-are $\phi'\circ\phi^{-1}\circ\pi$ composed with model charts, and those of
-the model. So one construction gives the complex blowup and the smooth
-blowup that *Symplectic blowup* needs.
+The gluing is compatible, `TopCat.GlueData.IsCompatible`, over `ℂ` at `ω`
+when `c` is in the complex maximal atlas of a complex manifold, and over `ℝ`
+at `∞` when `c` is in the real maximal atlas of a smooth manifold charted
+on `E`: the inclusions of the overlaps are inclusions of open subsets, and
+the transitions are the restrictions of `blowdownDiffeomorph n` and of `c`,
+which is a local diffeomorphism by its membership in the maximal atlas. So
+one construction gives the complex blowup and the smooth blowup that
+*Symplectic blowup* needs, and Tau Ceti's API gives the rest:
+`IsCompatible.isManifold` the instances, `IsCompatible.partialDiffeomorphι`
+and `IsCompatible.isLocalDiffeomorph_ι` the pieces as open submanifolds,
+`IsCompatible.contMDiff_iff` and `IsCompatible.isLocalDiffeomorph_iff` the
+maps out of the blowup, such as $\pi_M$, `t2Space_iff_forall_nhds` and
+`secondCountableTopology` the topology, and
+`TauCeti.diffeomorphOfForallIsLocalDiffeomorphEquiv`
+(`Geometry/Manifold/Gluing/Basic.lean`) the uniqueness of the structure.
 
 ### The almost complex blowup
 
@@ -275,35 +297,53 @@ in coordinates.
 
 ### `Blowup/Basic.lean`
 
-Namespace `SymplecticGeometry`, for `M` with `[TopologicalSpace M]
+Namespace `SymplecticGeometry`, for `M : Type` with `[TopologicalSpace M]
 [ChartedSpace E M]` and `p₀ : M`.
 
 - `BlowupChart M p₀`, a structure: an `OpenPartialHomeomorph M E`
   (`toOpenPartialHomeomorph`, with a coercion) with `mem_source : p₀ ∈ source`
   and `map_center : toOpenPartialHomeomorph p₀ = 0`; `@[ext]`.
-- `Blowup c` as in *Decisions*, with `Blowup.blowdown c` ($\pi_M$),
-  `Blowup.exceptionalDivisor c` (the range of `Sum.inr`), the `@[simp]`
-  lemmas `blowdown_inl`, `blowdown_inr`, and
-  `Blowup.lift c : Blowup c → BlowupModel n` ($\tilde\phi$, defined on
-  `blowdown ⁻¹' c.source`) with `lift_inl`, `lift_inr`.
-- The `ChartedSpaceCore` of *Decisions*, and from it the instances
-  `TopologicalSpace (Blowup c)` and `ChartedSpace E (Blowup c)`;
-  `isOpen_exceptionalDivisor_compl`, `isClosed_exceptionalDivisor`,
-  `isOpenEmbedding_inl`, `continuous_blowdown`. `T2Space` and
-  `SecondCountableTopology` when `M` has them (for $T_2$: points of $Z$ are
-  separated in a chart; a point of $Z$ and a point $x\ne p_0$ by a chart ball
-  about $p_0$ that misses a neighbourhood of $x$).
-- `Blowup.isManifold_complex` and `Blowup.isManifold_real`: with
-  `[Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, E) ω M)]`,
-  resp. the real atlas at `∞`, the instances `IsManifold 𝓘(ℂ, E) ω (Blowup c)`
-  and `IsManifold 𝓘(ℝ, E) ∞ (Blowup c)`. The transitions are holomorphic,
-  resp. smooth, by `blowdownDiffeomorph` and the model's.
-- `contMDiff_blowdown` and `blowdownDiffeomorph c`: $\pi_M$ is holomorphic
-  (resp. smooth), and a biholomorphism (resp. diffeomorphism) from the
-  complement of $Z$ onto `{x | x ≠ p₀}`, as open subsets.
-- `Blowup.divisorEmbedding c`, `Sum.inr` as a `TauCeti.SmoothEmbedding
-  𝓘(ℂ, Fin n → ℂ) 𝓘(ℂ, E) ω (ℙ ℂ E) (Blowup c)` ($\tilde\iota$), and the
-  real one.
+- `Blowup.glueData c` and `Blowup c` as in *Decisions*, with
+  `glueData_U_false`, `glueData_U_true`, `glueData_V` and `glueData_t_apply`
+  for its pieces, overlaps and transitions; the canonical maps
+  `Blowup.inl c : {x : M // x ≠ p₀} → Blowup c` and
+  `Blowup.inr c : blowdown ⁻¹' c.target → Blowup c`, with `range_inl`,
+  `range_inr`, `inl_eq_inr_iff` (through `TopCat.GlueData.ι_eq_iff_rel`)
+  and `range_inl_union_range_inr`; `Blowup.divisor c ℓ`, `inr` of
+  `zeroSection ℓ`, and `Blowup.exceptionalDivisor c`, its range, with
+  `mem_exceptionalDivisor_iff`.
+- `Blowup.lift c : Blowup c → BlowupModel n` ($\tilde\phi$), the inverse
+  of `inr` on its range followed by the inclusion, with `lift_inr`, and
+  `lift_inl`: for `x ∈ c.source` it is `(mk (c x), c x)`.
+- The topology and the atlas are the glued ones, `TopCat.GlueData.chartedSpace`
+  as an instance `ChartedSpace E (Blowup c)`; `isOpen_range_inl`,
+  `isClosed_exceptionalDivisor`, `isOpenEmbedding_inl`, `isOpenEmbedding_inr`
+  (Mathlib's `TopCat.GlueData.ι_isOpenEmbedding`). `SecondCountableTopology`
+  when `M` has it, by Tau Ceti's `TopCat.GlueData.secondCountableTopology`,
+  and `T2Space` when `M` has it, by `TopCat.GlueData.t2Space_iff_forall_nhds`:
+  a point `x` of the first piece outside `c.source` and a point of $Z$ have
+  neighbourhoods `A` and `blowdown ⁻¹' c '' B` with `B` a neighbourhood of
+  $p_0$ whose closure misses `A`.
+- `Blowup.isCompatible_complex` and `Blowup.isCompatible_real`: with
+  `c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, E) ω M`, resp.
+  the real atlas at `∞`, the gluing is `TopCat.GlueData.IsCompatible` over
+  `𝓘(ℂ, E)` at `ω`, resp. `𝓘(ℝ, E)` at `∞`, by `blowdownDiffeomorph n` and
+  the chart. The instances `IsManifold 𝓘(ℂ, E) ω (Blowup c)` and
+  `IsManifold 𝓘(ℝ, E) ∞ (Blowup c)`, under the corresponding
+  `[Fact (c.toOpenPartialHomeomorph ∈ …)]`, are `IsCompatible.isManifold`;
+  `isLocalDiffeomorph_inl` and `isLocalDiffeomorph_inr` are
+  `IsCompatible.isLocalDiffeomorph_ι`.
+- `Blowup.blowdown c` ($\pi_M$), Tau Ceti's
+  `TopCat.GlueData.IsCompatible.descContMDiffMap` of the inclusion on the
+  first piece and `c.symm ∘ BlowupModel.blowdown` on the second, with the
+  `@[simp]` lemmas `blowdown_inl`, `blowdown_inr`, and `contMDiff_blowdown`;
+  `blowdownDiffeomorph c`: a biholomorphism (resp. diffeomorphism) from the
+  complement of $Z$, the range of `inl`, onto `{x | x ≠ p₀}`, as open
+  subsets, the inverse of `IsCompatible.partialDiffeomorphι` of the first
+  piece.
+- `Blowup.divisorEmbedding c`, `Blowup.divisor c` as a `TauCeti.SmoothEmbedding
+  𝓘(ℂ, Fin n → ℂ) 𝓘(ℂ, E) ω (ℙ ℂ E) (Blowup c)` ($\tilde\iota$), `inr`
+  composed with the model's `zeroSectionEmbedding n`, and the real one.
 - `Blowup.liftChart c φ`: for any `φ : BlowupChart M p₀` in the same maximal
   atlas, $\tilde\phi$ of `φ` on `Blowup c`, `liftMap` of
   `φ ∘ c.symm` composed with `c.lift`; `liftChart_inl`, and `liftChart_inr`:
@@ -311,16 +351,28 @@ Namespace `SymplecticGeometry`, for `M` with `[TopologicalSpace M]
   `directionEquiv` is the page's $([d\phi(p_0)v],0)$.
   `liftChart_mem_maximalAtlas`: it is a holomorphic chart, a biholomorphism
   from `blowdown ⁻¹' φ.source` onto the open set `blowdown ⁻¹' φ.target` of
-  the model, by `liftPartialDiffeomorph`.
+  the model, by `liftPartialDiffeomorph` and
+  `IsCompatible.isLocalDiffeomorph_iff`.
 - `Blowup.chartChange c c'`, the biholomorphism `Blowup c ≃ Blowup c'` for
-  two charts of the same atlas, the identity off $Z$; `blowdown_chartChange`.
+  two charts of the same atlas: `descContMDiffMap` of `inl c'` on the first
+  piece and, on the second, of `inr c'` of `liftMap` of `c' ∘ c.symm` over
+  the source of `c' ∘ c.symm` and `inl c'` of `c.symm ∘ blowdown` off $Z$,
+  which agree where both are defined. It is a local biholomorphism by
+  `IsCompatible.isLocalDiffeomorph_iff` and `liftPartialDiffeomorph`, and
+  bijective with inverse the same map for `c'` and `c`, so a biholomorphism
+  by Mathlib's `IsLocalDiffeomorph.diffeomorphOfBijective`. Tau Ceti's
+  `IsCompatible.gluedDiffeomorph` does not apply, since the lift is defined
+  only over the source of `c' ∘ c.symm` and not on the whole second piece.
+  `chartChange_inl`, `chartChange_inr`, `blowdown_chartChange`.
 - `Blowup.exists_diffeomorph_coe_eq_of_blowdown` (uniqueness): if `X` is a complex
   manifold and `e : X ≃ Blowup c` is a bijection such that `blowdown ∘ e`
   is holomorphic and biholomorphic off `e ⁻¹' Z`, and
   `c.lift ∘ e` is a biholomorphism onto its image near `e ⁻¹' Z`, then `e`
-  is a biholomorphism. This is the page's uniqueness of the structure,
-  stated on structures carried by another type, so that no two instances
-  meet on one type.
+  is a biholomorphism. The hypotheses say that `e.symm ∘ inl` and
+  `e.symm ∘ inr` are local biholomorphisms, so `e` is Tau Ceti's
+  `TauCeti.diffeomorphOfForallIsLocalDiffeomorphEquiv`. This is the page's
+  uniqueness of the structure, stated on structures carried by another type,
+  so that no two instances meet on one type.
 
 ### `Blowup/Curve.lean`
 
@@ -524,14 +576,16 @@ For a complex manifold `M` and `c` in the complex atlas.
 - Tau Ceti: projective space as a complex manifold
   (`Geometry/Manifold/Instances/Projectivization.lean`, `affineOpen`,
   `affineChart`), `Projectivization.twistCore`, analytic submanifolds
-  (`IsMAnalyticSubmanifold`), smooth embeddings and their normal bundles
+  (`IsMAnalyticSubmanifold`), the gluing of manifolds
+  (`Geometry/Manifold/Gluing/`: `GlueData.lean`, `Map.lean`, `Basic.lean`;
+  `Topology/Category/TopCat/GlueData.lean`), smooth embeddings and their normal bundles
   (`SmoothEmbedding`, `NormalSpace`, `DefiningFunctions`), the complex
   regularity lemmas (`Geometry/Manifold/Complex/Analytic.lean`), almost
   complex structures (`localPullback`, `ofComplexManifold`), orientations
   of complex manifolds, `TauCeti.ConnectedSum` and
   `TauCeti.OrientedConnectedSum`, the canonical bundle with `coordForm`,
   tensor products of bundles, and `signedPointTwistCore` as a pattern.
-- Mathlib: `ChartedSpaceCore`, `Projectivization.map`, `analyticOrderAt`,
+- Mathlib: `TopCat.GlueData`, `Projectivization.map`, `analyticOrderAt`,
   the identity theorem, `Bundle.Pullback`.
 - The library: `Projectivization.Tautological` and
   `tautologicalTwistCoreEquiv`, `complexEulerClass_twistCore_neg_one`,
