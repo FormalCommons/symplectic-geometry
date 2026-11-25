@@ -85,9 +85,9 @@ fourth.
     (`TauCeti.SmoothForm.timeExtend`, after reparametrization) extends it
     to `P × ℝ`. The extended forms are closed, invariant, and agree with
     the given ones on $P\times[a,b]$. The flow of the cut-off Moser field on
-    `P × ℝ` then keeps every slice $P\times\{\lambda\}$ near $[a,b]$, so it
-    restricts to a diffeomorphism of $P\times[a,b]$ that maps each boundary
-    level to itself.
+    `P × ℝ` then keeps every slice $P\times\{\lambda\}$ with
+    $\lambda\in[a,b]$, so it restricts to a diffeomorphism of $P\times[a,b]$
+    that maps each boundary level to itself.
   - *Converse.* The region is a band in a boundaryless manifold (next
     point), and the flow that identifies its levels is a flow on that
     manifold.
@@ -303,17 +303,21 @@ Proof:
    $[0,1]\times[a,b]$ and supported where the extended forms are
    nondegenerate (an open condition, by compactness of $P$). The cut-off
    Moser field (`moserField`) is smooth, compactly supported, invariant, and
-   tangent to the slices near $[a,b]$. Tangency: $\iota_XK\omega_0$ is the
+   tangent to the slices over $[a,b]$. Tangency: $\iota_XK\omega_0$ is the
    function $\lambda-a$, so by Cartan's formula and invariance the extension
-   has $\iota_X\tilde\omega_0=-e'(\lambda)\,d\lambda$ for the extension $e$
-   of $\lambda-a$, with $e'=1$ on $[a,b]$, and the argument of step 3
-   applies wherever $e'\ne0$. Its flow is jointly smooth
+   has $\iota_X\tilde\omega_0=-de$ for the time extension $e$ of
+   $\lambda-a$, and the argument of step 3 gives $de(Y_s)=0$ at every
+   point. Over $[a,b]$ we have $de=d\lambda$, so $d\lambda(Y_s)=0$ there.
+   Its flow is jointly smooth
    (`TauCeti.contMDiff_timeDependentFlowOf_param`), equivariant
    (`Moser/Equivariant.lean`), and satisfies Moser's equation where the
    cutoff is $1$.
 5. The time-one map preserves each $P\times\{\lambda\}$ for
-   $\lambda\in[a,b]$, so it restricts to a diffeomorphism of
-   $P\times[a,b]$ whose inverse is the restriction of the inverse flow.
+   $\lambda\in[a,b]$: by uniqueness of integral curves, a trajectory that
+   starts on such a level is the trajectory of the field restricted to that
+   level, to which it is tangent by step 4. So it restricts to a
+   diffeomorphism of $P\times[a,b]$ whose inverse is the restriction of the
+   inverse flow.
 
 About 600 lines. If it grows past that, steps 1–3 go first, in one issue,
 and steps 4–5 in a second.
