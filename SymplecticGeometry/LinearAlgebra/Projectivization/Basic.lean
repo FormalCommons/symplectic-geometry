@@ -127,6 +127,7 @@ theorem normalizedRep_of_notMem {φ : V →ₗ[K] K} {x : ℙ K V}
 
 /-- The normalized representative of `x` is `0` exactly when `x` lies outside
 `linearProjectionDomain φ`, that is, when `φ` vanishes on `x`. -/
+@[simp]
 theorem normalizedRep_eq_zero_iff {φ : V →ₗ[K] K} {x : ℙ K V} :
     normalizedRep φ x = 0 ↔ x ∉ linearProjectionDomain φ :=
   ⟨fun h hx ↦ normalizedRep_ne_zero hx h, normalizedRep_of_notMem⟩
