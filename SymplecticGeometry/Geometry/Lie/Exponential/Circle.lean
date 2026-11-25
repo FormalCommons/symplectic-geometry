@@ -29,7 +29,6 @@ under Tau Ceti's `leftInvariantDerivationEquivGroupLieAlgebra`.
 
 * `SymplecticGeometry.finrank_groupLieAlgebra_circle`: the Lie algebra of `Circle` has
   dimension one.
-* `SymplecticGeometry.exists_smul_eq_of_ne_zero_circle`: so every nonzero element spans it.
 * `SymplecticGeometry.circleLieGenerator_ne_zero`: the generator is nonzero.
 * `SymplecticGeometry.leftInvariantDerivationEquivGroupLieAlgebra_circleExpGenerator`: Tau Ceti's
   `circleExpGenerator` corresponds to `circleLieGenerator`.
@@ -68,12 +67,6 @@ theorem finrank_groupLieAlgebra_circle :
     Module.finrank ℝ (GroupLieAlgebra (𝓡 1) Circle) = 1 :=
   (groupLieAlgebraEquivModelVectorSpace (I := 𝓡 1) (G := Circle)).finrank_eq.trans
     finrank_euclideanSpace_fin
-
-/-- Every element of the Lie algebra of `Circle` is a real multiple of any nonzero element `ξ₀`,
-since the Lie algebra has dimension one. -/
-theorem exists_smul_eq_of_ne_zero_circle {ξ₀ : GroupLieAlgebra (𝓡 1) Circle} (hξ₀ : ξ₀ ≠ 0)
-    (ξ : GroupLieAlgebra (𝓡 1) Circle) : ∃ c : ℝ, c • ξ₀ = ξ :=
-  (finrank_eq_one_iff_of_ne_zero' _ hξ₀).mp finrank_groupLieAlgebra_circle ξ
 
 attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField in
 /-- Tau Ceti's generator `circleExpGenerator` of `Circle.exp`, a left-invariant derivation, is
