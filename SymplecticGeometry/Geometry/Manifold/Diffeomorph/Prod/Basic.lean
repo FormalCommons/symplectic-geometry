@@ -60,6 +60,12 @@ theorem coe_reflProdCongr (ψ : M ≃ₘ^n⟮I, I'⟯ M') :
     ⇑(ψ.reflProdCongr N (J := J)) = Prod.map id ψ :=
   (rfl)
 
+/-- Mathlib's product `ψ.prodCongr (Diffeomorph.refl J N n)` of `ψ` with the identity of `N`
+sends `x` to `(ψ x.1, x.2)`. -/
+theorem coe_prodCongr_refl (ψ : M ≃ₘ^n⟮I, I'⟯ M') :
+    ⇑(ψ.prodCongr (Diffeomorph.refl J N n)) = fun x ↦ (ψ x.1, x.2) :=
+  (rfl)
+
 @[simp]
 theorem reflProdCongr_symm (ψ : M ≃ₘ^n⟮I, I'⟯ M') :
     (ψ.reflProdCongr N (J := J)).symm = ψ.symm.reflProdCongr N :=
