@@ -19,9 +19,7 @@
 # Otherwise one job at a time builds the modules that the note lacks, and
 # jobs that start meanwhile wait for it and then find them in the note. That
 # holds also when Tau Ceti's cache has nothing or cannot be read: one job
-# compiles, and the others take its work. It does not hold when Lake fails
-# before it asks the cache: then the script tries again and compiles nothing
-# (see below).
+# compiles, and the others take its work.
 #
 # The script never fails: whatever goes wrong, it says so, and the build that
 # follows compiles what is missing. If it is stopped, it stops its build, and
@@ -81,7 +79,7 @@ state=$notes/$(cat lean-toolchain lake-manifest.json | sha256sum | cut -c1-16)
 mkdir -p "$notes" || exit 0
 # `.modules` is the note of the modules built so far, `.mapped` says that
 # Tau Ceti's cache has told which builds it has for these dependencies, and
-# `.unread` is the time of the last run that did not learn that.
+# `.unread` is the time of the last run that asked and did not learn that.
 missing() {
   sort -u "$state.modules" 2>/dev/null | comm -23 "$tmp/imports.txt" - > "$tmp/missing.txt"
   [ -s "$tmp/missing.txt" ]
@@ -120,10 +118,11 @@ printf '%s\n' \
 # and says `downloading build outputs` when it asks. A command that fails
 # without that line did not get that far: something here stopped it, such as
 # another Lake command that sets up `.lake/packages` at the same moment. That
-# says nothing about the cache, so the script leaves no note and tries again,
-# for 5 minutes. If Lake still cannot ask then, the script builds nothing: a
-# build from source would keep the jobs that share the cache waiting for
-# modules that Tau Ceti's cache may well have.
+# says nothing about the cache, so the script leaves no note and tries again
+# every 20 seconds until 5 minutes have passed, which is 10 minutes at most,
+# since the last command has its own limit. Only then does it compile from
+# source, like a run that got no answer, and still without a note: the next
+# run asks again.
 if [ ! -e "$state.mapped" ] && [ -z "$(find "$state.unread" -mmin -15 2>/dev/null)" ]; then
   since=$SECONDS
   while true; do
@@ -144,8 +143,8 @@ if [ ! -e "$state.mapped" ] && [ -z "$(find "$state.unread" -mmin -15 2>/dev/nul
       break
     fi
     if [ $((SECONDS - since)) -ge 300 ]; then
-      warn "Lake could not ask Tau Ceti's cache for 5 minutes, see the lines above; no Tau Ceti module is built here. Run the script again when no other Lake command runs in this checkout; otherwise the build that follows compiles what is missing"
-      exit 0
+      warn "Lake could not ask Tau Ceti's cache for 5 minutes, see the lines above; the Tau Ceti modules are compiled from source"
+      break
     fi
     say "Lake did not get as far as asking Tau Ceti's cache, see the lines above; if another Lake command is setting up the packages, this passes; trying again in 20 seconds"
     run sleep 20
