@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Chart
+public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
@@ -19,7 +20,10 @@ structure `J` on `M` forward along a chart `ψ : M → G` into a normed space: a
 Ceti's `ContMDiffAlmostComplexStructure.chartPushforward_apply`, and, for a smooth chart
 `ψ : PartialDiffeomorph I 𝓘(ℝ, G) M G ∞`, the facts that the derivatives of `ψ` and of its
 inverse intertwine `J` with its pushforward, and that the pushforward squares to `-1` on the
-target of `ψ`.
+target of `ψ`. At each point of the target the pushforward is then an almost complex structure on
+`G`, which depends continuously on the point on a boundaryless manifold; if `ψ` pulls a
+symplectic form `σ₀` on `G` back to a two-form compatible with `J`, then `σ₀` is compatible
+with it.
 
 ## Main declarations
 
@@ -31,6 +35,13 @@ target of `ψ`.
   pushforward squares to `-1` on the target.
 * `TauCeti.SmoothAlmostComplexStructure.forall_chartPushforward_apply_eq_iff`: a chart pushes `J`
   forward to a fixed map exactly when its derivative intertwines `J` with that map.
+* `TauCeti.SmoothAlmostComplexStructure.chartPushforwardAt`: the pushforward at a point of the
+  target, as an almost complex structure, and
+  `TauCeti.SmoothAlmostComplexStructure.continuous_toContinuousLinearMap_chartPushforwardAt`: its
+  continuity in the operator norm.
+* `TauCeti.SmoothAlmostComplexStructure.compatible_chartPushforwardAt`: a chart that pulls a
+  symplectic form `σ₀` back to a form compatible with `J` makes `σ₀` compatible with the
+  pushforward of `J` at every point of its target.
 
 ## References
 
@@ -105,6 +116,78 @@ theorem forall_chartPushforward_apply_eq_iff (ψ : PartialDiffeomorph I 𝓘(ℝ
   · rw [chartPushforward_apply]
     exact (h _ (ψ.map_target hp) _).trans
       (congrArg J₀ (ψ.mfderiv_apply_mfderiv_symm_apply (by simp) hp w))
+
+/-! ### The pushforward at a point as an almost complex structure -/
+
+/-- At a point `p` of the target of a smooth chart `ψ` into a normed space, the pushforward of `J`
+along `ψ` at `p`, as an almost complex structure on `G`. -/
+noncomputable def chartPushforwardAt (ψ : PartialDiffeomorph I 𝓘(ℝ, G) M G ∞) {p : G}
+    (hp : p ∈ ψ.target) : AlmostComplexStructure G where
+  toLinearMap := (J.chartPushforward ψ.toOpenPartialHomeomorph p).toLinearMap
+  square_neg := LinearMap.ext fun w ↦ J.chartPushforward_apply_chartPushforward_apply ψ hp w
+
+/-- The linear map of `J.chartPushforwardAt ψ hp` is the pushforward of `J` along `ψ` at `p`. -/
+@[simp]
+theorem toLinearMap_chartPushforwardAt (ψ : PartialDiffeomorph I 𝓘(ℝ, G) M G ∞) {p : G}
+    (hp : p ∈ ψ.target) :
+    (J.chartPushforwardAt ψ hp).toLinearMap =
+      (J.chartPushforward ψ.toOpenPartialHomeomorph p).toLinearMap :=
+  (rfl)
+
+/-- The almost complex structure `J.chartPushforwardAt ψ hp` acts as the pushforward of `J`
+along `ψ` at `p`. -/
+theorem chartPushforwardAt_apply (ψ : PartialDiffeomorph I 𝓘(ℝ, G) M G ∞) {p : G}
+    (hp : p ∈ ψ.target) (w : G) :
+    J.chartPushforwardAt ψ hp w = J.chartPushforward ψ.toOpenPartialHomeomorph p w :=
+  (rfl)
+
+/-- In finite dimension, the continuous linear map of the almost complex structure
+`J.chartPushforwardAt ψ hp` is the pushforward of `J` along `ψ` at `p`. -/
+theorem toContinuousLinearMap_chartPushforwardAt [FiniteDimensional ℝ G]
+    (ψ : PartialDiffeomorph I 𝓘(ℝ, G) M G ∞) {p : G} (hp : p ∈ ψ.target) :
+    LinearMap.toContinuousLinearMap (J.chartPushforwardAt ψ hp).toLinearMap =
+      J.chartPushforward ψ.toOpenPartialHomeomorph p := by
+  ext w
+  simp
+
+/-- On a boundaryless manifold, the almost complex structures `J.chartPushforwardAt ψ hp` depend
+continuously, in the operator norm, on the point `p` of the target of a smooth chart `ψ` into a
+finite-dimensional normed space. -/
+theorem continuous_toContinuousLinearMap_chartPushforwardAt [I.Boundaryless]
+    [FiniteDimensional ℝ G] (ψ : PartialDiffeomorph I 𝓘(ℝ, G) M G ∞) :
+    Continuous fun p : ψ.target ↦
+      LinearMap.toContinuousLinearMap (J.chartPushforwardAt ψ p.property).toLinearMap := by
+  simp only [toContinuousLinearMap_chartPushforwardAt]
+  exact continuousOn_iff_continuous_domRestrict.1
+    (J.contDiffOn_chartPushforward ψ.contMDiffOn ψ.symm.contMDiffOn).continuousOn
+
+/-- Let `ψ` be a smooth chart into a normed space `G` that pulls a symplectic form `σ₀` on `G`
+back to the two-form `σ` on its source. If `σ` is compatible with `J`, then at every point `p` of
+the target of `ψ`, `σ₀` is compatible with the pushforward of `J` along `ψ` at `p`. -/
+theorem compatible_chartPushforwardAt {σ : SmoothTwoForm I M} (hσ : σ.Compatible J)
+    {σ₀ : SymplecticForm G} (ψ : PartialDiffeomorph I 𝓘(ℝ, G) M G ∞)
+    (hψ : ∀ x ∈ ψ.source, ∀ v w : TangentSpace I x,
+      σ.eval₂ x v w = σ₀ (mvfderiv I ψ x v) (mvfderiv I ψ x w))
+    {p : G} (hp : p ∈ ψ.target) :
+    σ₀.Compatible (J.chartPushforwardAt ψ hp) := by
+  have hx : ψ.symm p ∈ ψ.source := ψ.map_target hp
+  have hψψ (w : G) : mfderiv I 𝓘(ℝ, G) ψ (ψ.symm p) (mfderiv 𝓘(ℝ, G) I ψ.symm p w) = w :=
+    ψ.mfderiv_apply_mfderiv_symm_apply (by simp) hp w
+  -- Read `σ₀` and the pushforward through the derivative of `ψ⁻¹` at `p`.
+  have hσe (w w' : G) : σ₀ w w' =
+      σ.eval₂ (ψ.symm p) (mfderiv 𝓘(ℝ, G) I ψ.symm p w) (mfderiv 𝓘(ℝ, G) I ψ.symm p w') := by
+    rw [hψ _ hx, mvfderiv_apply_eq_mfderiv_apply, mvfderiv_apply_eq_mfderiv_apply, hψψ, hψψ]
+  have hJe (w : G) : mfderiv 𝓘(ℝ, G) I ψ.symm p (J.chartPushforwardAt ψ hp w) =
+      J (ψ.symm p) (mfderiv 𝓘(ℝ, G) I ψ.symm p w) := by
+    rw [chartPushforwardAt_apply]
+    exact J.mfderiv_symm_apply_chartPushforward_apply ψ hp w
+  refine (σ₀.compatible_iff _).2 ⟨(σ₀.invariant_iff _).2 fun w w' ↦ ?_, fun w hw ↦ ?_⟩
+  · rw [hσe, hσe, hJe, hJe]
+    exact hσ.invariant.apply _ _ _
+  · rw [hσe, hJe]
+    refine SmoothTwoForm.tames_iff.1 hσ.tames _ _ fun h ↦ hw ?_
+    rw [← hψψ w, h]
+    exact map_zero _
 
 end SmoothAlmostComplexStructure
 
