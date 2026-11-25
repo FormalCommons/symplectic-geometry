@@ -35,6 +35,15 @@ almost everywhere then changes `∂̄` by a term of norm at most `m ‖∂̄v‖
   for a compactly supported `v` with a weak derivative `D ∈ L²`, where `∂v` and `∂̄v` are the
   complex-linear and complex-antilinear parts of `D`. Mollification reduces them to the
   Schwartz case.
+* `ContDiff.eLpNorm_conjWirtingerDeriv_le_of_norm_le` and `ContDiff.eLpNorm_fderiv_le_of_norm_le`:
+  for a compactly supported `C¹` map `v` and a coefficient with `‖μ‖ ≤ m` only on the support
+  of `v`, the estimate `(1 - m) ‖∂̄v‖₂ ≤ ‖∂̄v + μ ∂v‖₂` and, for `m < 1`, the bound
+  `‖Dv‖₂ ≤ 2 (1 - m)⁻¹ ‖∂̄v + μ ∂v‖₂` of the whole derivative. They follow from the previous two
+  results, applied to the classical derivative (Tau Ceti's `ContDiffOn.hasWeakFDerivOn_fderiv`)
+  and to the coefficient `μ` cut off outside the support of `v`, where `∂v` vanishes. The bound
+  of `Dv` by `∂v` and `∂̄v` adapts the proof of Tau Ceti's
+  `TauCeti.exists_eLpNorm_fderiv_cauchyTransform_le`.
+
 The absorption step is `MeasureTheory.one_sub_mul_eLpNorm_le_eLpNorm_add_smul`, and the passage
 to the limit `MeasureTheory.eLpNorm_le_eLpNorm_of_tendsto`, with Tau Ceti's
 `MeasureTheory.tendsto_eLpNorm_comp_sub_comp_of_tendsto` for the convergence of `∂` and `∂̄` of
@@ -151,6 +160,78 @@ theorem HasWeakFDerivOn.eLpNorm_complexAntilinearPart_le_of_norm_le
       continuous_complexLinearPart).comp_aestronglyMeasurable hD.aestronglyMeasurable)
     hμ hμm (h.eLpNorm_complexLinearPart_le_eLpNorm_complexAntilinearPart hv hD)
     hQ.eLpNorm_ne_top
+
+
+/-- **The estimate for `∂̄ + μ ∂` on compactly supported `C¹` maps.** If `v` is a compactly
+supported `C¹` map on the plane and `‖μ‖ ≤ m` on the topological support of `v`, then
+`(1 - m) ‖∂̄v‖₂ ≤ ‖∂̄v + μ ∂v‖₂`. Off the support of `v` the coefficient `μ` is arbitrary, since
+`∂v` vanishes there. -/
+theorem _root_.ContDiff.eLpNorm_conjWirtingerDeriv_le_of_norm_le {v : ℂ → F}
+    (hv : ContDiff ℝ 1 v) (hc : HasCompactSupport v) {μ : ℂ → ℂ}
+    (hμ : AEStronglyMeasurable μ volume) {m : ℝ≥0} (hμm : ∀ z ∈ tsupport v, ‖μ z‖ ≤ m) :
+    (1 - (m : ℝ≥0∞)) * eLpNorm (fun z ↦ conjWirtingerDeriv v z 1) 2 volume ≤
+      eLpNorm (fun z ↦ conjWirtingerDeriv v z 1 + μ z • wirtingerDeriv v z 1) 2 volume := by
+  have hν : AEStronglyMeasurable ((tsupport v).indicator μ) volume :=
+    hμ.indicator (isClosed_tsupport v).measurableSet
+  have hνm : ∀ᵐ z, ‖(tsupport v).indicator μ z‖ ≤ m := .of_forall fun z ↦ by
+    by_cases hz : z ∈ tsupport v
+    · simpa [Set.indicator_of_mem hz] using hμm z hz
+    · simp [Set.indicator_of_notMem hz]
+  have heq : (fun z ↦ conjWirtingerDeriv v z 1 + (tsupport v).indicator μ z •
+      wirtingerDeriv v z 1) = fun z ↦ conjWirtingerDeriv v z 1 + μ z • wirtingerDeriv v z 1 := by
+    ext z
+    by_cases hz : z ∈ tsupport v
+    · rw [Set.indicator_of_mem hz]
+    · simp [Set.indicator_of_notMem hz, wirtingerDeriv_eq_complexLinearPart,
+        fderiv_of_notMem_tsupport (𝕜 := ℝ) hz]
+  have hD : MemLp (fderiv ℝ v) 2 volume :=
+    (hv.continuous_fderiv one_ne_zero).memLp_of_hasCompactSupport (hc.fderiv (𝕜 := ℝ))
+  have := (hv.contDiffOn (s := Set.univ)).hasWeakFDerivOn_fderiv (μ := volume) (Ω := ⊤)
+    |>.eLpNorm_complexAntilinearPart_le_of_norm_le hc hD hν hνm
+  simpa only [← wirtingerDeriv_eq_complexLinearPart, ← conjWirtingerDeriv_eq_complexAntilinearPart,
+    heq] using this
+
+/-- **The bound of the whole derivative by `∂̄ + μ ∂`.** If `v` is a compactly supported `C¹` map
+on the plane and `‖μ‖ ≤ m < 1` on the topological support of `v`, then
+`‖Dv‖₂ ≤ 2 (1 - m)⁻¹ ‖∂̄v + μ ∂v‖₂`. -/
+theorem _root_.ContDiff.eLpNorm_fderiv_le_of_norm_le {v : ℂ → F}
+    (hv : ContDiff ℝ 1 v) (hc : HasCompactSupport v) {μ : ℂ → ℂ}
+    (hμ : AEStronglyMeasurable μ volume) {m : ℝ≥0} (hm : m < 1)
+    (hμm : ∀ z ∈ tsupport v, ‖μ z‖ ≤ m) :
+    eLpNorm (fderiv ℝ v) 2 volume ≤ 2 * (1 - (m : ℝ≥0∞))⁻¹ *
+      eLpNorm (fun z ↦ conjWirtingerDeriv v z 1 + μ z • wirtingerDeriv v z 1) 2 volume := by
+  have hdv : Continuous (fderiv ℝ v) := hv.continuous_fderiv one_ne_zero
+  have hD : MemLp (fderiv ℝ v) 2 volume := hdv.memLp_of_hasCompactSupport (hc.fderiv (𝕜 := ℝ))
+  have hw : Continuous fun z ↦ wirtingerDeriv v z 1 := hv.continuous_wirtingerDeriv_apply 1
+  have hcw : Continuous fun z ↦ conjWirtingerDeriv v z 1 :=
+    hv.continuous_conjWirtingerDeriv_apply 1
+  have hle : eLpNorm (fun z ↦ wirtingerDeriv v z 1) 2 volume ≤
+      eLpNorm (fun z ↦ conjWirtingerDeriv v z 1) 2 volume := by
+    simpa only [← wirtingerDeriv_eq_complexLinearPart,
+      ← conjWirtingerDeriv_eq_complexAntilinearPart] using
+      (hv.contDiffOn (s := Set.univ)).hasWeakFDerivOn_fderiv (μ := volume) (Ω := ⊤)
+        |>.eLpNorm_complexLinearPart_le_eLpNorm_complexAntilinearPart hc hD
+  have hm₀ : (1 - (m : ℝ≥0∞)) ≠ 0 := (tsub_pos_of_lt (by exact_mod_cast hm)).ne'
+  have habs : eLpNorm (fun z ↦ conjWirtingerDeriv v z 1) 2 volume ≤ (1 - (m : ℝ≥0∞))⁻¹ *
+      eLpNorm (fun z ↦ conjWirtingerDeriv v z 1 + μ z • wirtingerDeriv v z 1) 2 volume := by
+    rw [← ENNReal.div_eq_inv_mul, ENNReal.le_div_iff_mul_le (.inl hm₀) (.inl (by simp)), mul_comm]
+    exact hv.eLpNorm_conjWirtingerDeriv_le_of_norm_le hc hμ hμm
+  calc eLpNorm (fderiv ℝ v) 2 volume
+      ≤ eLpNorm (fun z ↦ ‖wirtingerDeriv v z 1‖ + ‖conjWirtingerDeriv v z 1‖) 2 volume :=
+        eLpNorm_mono_real hdv.aestronglyMeasurable
+          (norm_fderiv_le_norm_wirtingerDeriv_add_norm_conjWirtingerDeriv v)
+    _ ≤ eLpNorm (fun z ↦ wirtingerDeriv v z 1) 2 volume +
+          eLpNorm (fun z ↦ conjWirtingerDeriv v z 1) 2 volume := by
+        refine (eLpNorm_add_le (f := fun z ↦ ‖wirtingerDeriv v z 1‖)
+          (g := fun z ↦ ‖conjWirtingerDeriv v z 1‖) one_le_two).trans_eq ?_
+        rw [eLpNorm_norm _ hw.aestronglyMeasurable, eLpNorm_norm _ hcw.aestronglyMeasurable]
+    _ ≤ 2 * eLpNorm (fun z ↦ conjWirtingerDeriv v z 1) 2 volume := by
+        rw [two_mul]
+        gcongr
+    _ ≤ 2 * (1 - (m : ℝ≥0∞))⁻¹ *
+          eLpNorm (fun z ↦ conjWirtingerDeriv v z 1 + μ z • wirtingerDeriv v z 1) 2 volume := by
+        rw [mul_assoc]
+        gcongr
 
 end TauCeti
 
