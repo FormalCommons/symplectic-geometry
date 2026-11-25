@@ -1150,9 +1150,13 @@ the normalization of $h$ as stated above. It imports
 `Topology/VectorBundle/Orientation/SectionIndex/ComplexLinear.lean` and
 `Geometry/Manifold/Complex/HomologicalOrientation.lean`.
 
+#### `Topology/VectorBundle/Complex/ChernClass/FirstChernClass.lean` (addition)
+
+`Projectivization.firstChernClass_tautological`, as stated above. It needs
+no manifold structure and no Euler sequence.
+
 #### `Geometry/Manifold/Projectivization/ChernClass.lean` (addition)
 
-`Projectivization.firstChernClass_tautological` and
 `Projectivization.firstChernClass_tangentSpace`, as stated above; the file
 then imports `ChernClass/FirstChernClass.lean`.
 
@@ -1273,7 +1277,8 @@ at once.
     24.
 26. **$c_1$ on projective space and the normalization of $h$.**
     `Geometry/Manifold/Projectivization/HyperplaneClass.lean` and the
-    addition to `Geometry/Manifold/Projectivization/ChernClass.lean`.
+    additions to `ChernClass/FirstChernClass.lean` and
+    `Geometry/Manifold/Projectivization/ChernClass.lean`.
 
 With 25 and 26 merged the milestone *First Chern class of a complex vector
 bundle* is proved. *Complex blowup*'s `ChernClass.lean` waits for 25 and 26,

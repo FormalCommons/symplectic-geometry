@@ -268,17 +268,271 @@ $(f_\lambda,G_\lambda)$ is holonomic on a neighbourhood of the cube.
 
 ```lean
 theorem TauCeti.exists_isMorse_isProperMap_manifoldMorseIndex_lt
-    (hM : ∀ x : M, ¬ IsCompact (connectedComponent x)) :
+    (hE : Module.finrank ℝ E ≠ 1) (hM : ∀ x : M, ¬ IsCompact (connectedComponent x)) :
     ∃ g : C^∞⟮I, M; 𝓘(ℝ), ℝ⟯, IsMorse I g ∧ IsProperMap g ∧ BddBelow (Set.range g) ∧
       ∀ x ∈ criticalPoints I g, manifoldMorseIndex I g x < Module.finrank ℝ E
 ```
 
-Route: start from `exists_isMorse_isProperMap_bddBelow`; the local maxima
-form a closed discrete set; in each noncompact component join each of them
-by a proper smooth ray to infinity, the rays disjoint and missing the other
-critical points (locally finitely many choices in an exhaustion); in a
-tubular neighbourhood of each ray, modify the function to one without
-critical points that increases along the ray, keeping properness.
+**Why the modification near the rays must create critical points.** A
+function that differs from a proper Morse function `f` only near the rays
+from its maxima, is proper, and has no critical point near the rays does
+not exist in general. On $\mathbb R^2$ take `f` proper with exactly three
+critical points, a minimum, a saddle and a maximum. A proper function with
+finitely many critical points, all nondegenerate, has
+$\sum_x(-1)^{\operatorname{ind}x}=\chi(\mathbb R^2)=1$, since the sublevel
+above the last critical value is a deformation retract of the plane; the
+minimum and the saddle alone give $0$. So the modified function has new
+critical points near the ray. The route below allows them, and makes sure
+that none has index $\dim M$: at each of them the Hessian takes a positive
+value on some vector. A small perturbation then makes the function Morse
+with all these indices below $\dim M$.
+
+**Dimension.** In dimension one disjoint rays cannot avoid the other
+critical points (a ray from a maximum on a line meets a minimum), and the
+argument for that case would need the classification of noncompact
+connected one-manifolds, which neither library has. The part does not need
+it: the engine works in dimension $2n$, where $M$ is empty or of even
+dimension (a nondegenerate two-form at a point gives
+`TauCeti.SymplecticForm.even_finrank`). Hence the hypothesis `hE`. In
+dimension zero `hM` makes `M` empty, and any `g` does.
+
+Proof, in dimension at least two:
+
+1. Take `g₀` from `exists_isMorse_isProperMap_bddBelow`. Its critical
+   points form a closed discrete set
+   (`IsMorse.finite_criticalPoints_inter`); let `P` be those of index $\dim M$, the strict local
+   maxima (`eventually_lt_of_manifoldMorseIndex_eq_finrank`), and `Q` the
+   others.
+2. Rays from `P` avoiding `Q` (`ProperRay.lean`), and open neighbourhoods
+   `O p` of the rays, pairwise disjoint and missing `Q`, for instance
+   $\{x : d(x,R_p) < d(x,R'_p)/2\}$ for a metric `d`, with $R_p$ the ray and
+   $R'_p$ the closed union of `Q` and the other rays.
+3. A tube `Φ p` around each ray inside `O p` (`TubularNeighborhood/Ray.lean`),
+   with the sets `Φ p '' (Ici (-2) ×ˢ closedBall 0 2)` closed and locally
+   finite: take the prescribed neighbourhood `O'` of `γ p '' Ici (-2)`
+   disjoint from the compact `K j` of an exhaustion for every `j` such that
+   `γ p '' Ici (-2)` misses `K (j + 1)`.
+4. `g₁ := g₀ + ∑ p, μ p ∘ (Φ p)⁻¹`, each term extended by zero, with `μ p`
+   from `HalfCylinder.lean` applied to `g₀ ∘ Φ p`. The sum is locally
+   finite, so `g₁` is smooth; `g₁ ≥ g₀`, so `g₁` is proper and bounded
+   below. On `A := ⋃ p, Φ p '' (Ici (-2) ×ˢ closedBall 0 2)` every critical
+   point of `g₁` has a vector on which `criticalHessian I g₁` is positive
+   (at a critical point the Hessian of the chart `(Φ p)⁻¹` and of the
+   preferred chart are congruent,
+   `TauCeti.criticalHessian_apply_eq_of_mem_maximalAtlas`). Off the interior
+   of `A`, `g₁ = g₀` near each point.
+5. Let `c` be the control of `PositiveDirection.lean` for `g₁` and `A`, and
+   `C := (⋃ p, Φ p '' (Ioi (-2) ×ˢ ball 0 2))ᶜ`, closed, on which `g₁` is
+   Morse since it is `g₀` there. `ContMDiffMap.exists_isMorse_isProperMap_mem_ball`
+   gives `g ∈ c.ball g₁`, Morse, proper, within `1` of `g₁` (so bounded
+   below) and equal to `g₁` near `C`. A critical point of `g` in `A` has
+   index below $\dim M$ by the choice of `c` and
+   `manifoldMorseIndex_eq_finrank_iff`; one outside `A` lies in `C`, where
+   `g = g₀` near it, so it is a point of `Q`.
+
+#### `Geometry/Manifold/ProperRay.lean`
+
+Rays from a closed discrete set, in the namespace `SymplecticGeometry`:
+
+```lean
+theorem exists_rays (hE : 2 ≤ Module.finrank ℝ E)
+    (hM : ∀ x : M, ¬ IsCompact (connectedComponent x))
+    {P Q : Set M} (hP : IsClosed P) [DiscreteTopology P] (hQ : IsClosed Q)
+    [DiscreteTopology Q] (hPQ : Disjoint P Q) :
+    ∃ γ : P → TauCeti.SmoothEmbedding 𝓘(ℝ) I ∞ ℝ M,
+      (∀ p, γ p 0 = p) ∧ (∀ p, Filter.Tendsto (γ p) Filter.atTop (Filter.cocompact M)) ∧
+      LocallyFinite (fun p ↦ γ p '' Set.Ici (-2)) ∧
+      Pairwise (Disjoint on fun p ↦ Set.range (γ p)) ∧ ∀ p, Disjoint (Set.range (γ p)) Q
+```
+
+Only the half `t ≥ 0` goes to infinity; for `t ≤ 0` the ray is a short
+straight segment through `p` in a chart, so that it is an embedding of all
+of `ℝ`, which the tubular neighbourhood theorem needs.
+
+Route. Fix a proper smooth `h : M → ℝ` (Tau Ceti's
+`Geometry/Manifold/Exhaustion.lean`). For a level `c` let `F c` be
+`{h ≤ c}` together with the components of `{h > c}` whose closure is
+compact. `F c` is compact, every component of `M \ F c` is noncompact, and
+`F c ⊆ F c'` for `c ≤ c'` (a component of `M \ F c'` is connected and
+noncompact, so it lies in a noncompact component of `{h > c}`). The sets
+`K j := F (c j)` are chosen during the construction, with `c (j + 1)` in
+`(c j + 1, c j + 2)`, so `K j ⊆ interior (K (j + 1))` and the `K j` exhaust
+`M`.
+
+Each ray is grown one arc per stage, and the construction keeps this
+invariant, which fixes the problem of arcs that leave a component of
+`M \ K i` and come back:
+
+* (R) for every `i`, the part of a ray (as built so far) outside `K i` is
+  empty or one connected piece containing its current endpoint.
+
+Stage `j` starts with `K j` known. Its rays are those started before, whose
+endpoints lie outside `K j`, and a new one for each `p ∈ P` outside `K j`,
+not yet used, in `F (c j + 2)`, beginning with a short straight segment
+through `p` outside `K j`. The arcs of the stage are built one after
+another. For a ray with endpoint `x`, let `W` be the component of
+`M \ K j` containing `x`, and `U` the open set left from `W` by removing
+`P ∪ Q`, the closures of all rays as built so far and a small closed ball
+around `x`. Take a short straight segment `σ` from `x` inside one chart `φ`
+at `x`, continuing the ray, and the final diffeomorphism `Ψ` of a
+compactly supported diffeotopy inside `U` that sends the far end of `σ` to
+a point of `U` outside `F (c j + 2)`
+(`TauCeti.exists_diffeotopy_final_comp_eq_of_isPreconnected`). The arc
+`α := Ψ '' σ` is straight in the chart `φ ∘ Ψ⁻¹` along its whole length,
+and joins the ray smoothly at `x`.
+
+When the stage's arcs are built, choose `c (j + 1)` in
+`(c j + 1, c j + 2)` that is a regular value of `h` and of `h ∘ α` for each
+arc `α` of the stage (Sard for `h`, and for the finitely many functions
+`h ∘ α` of one variable `addHaar_image_eq_zero_of_det_fderivWithin_eq_zero`).
+Then each `α` meets `{h = c (j + 1)}` at finitely many parameters, crossing
+it, so the parameters where `α` lies outside `K (j + 1)` form finitely many
+intervals, the last one ending at the far end, which lies outside
+`F (c j + 2) ⊇ K (j + 1)`. Cut `α` at a parameter just after the start of
+the first such interval (at once, for a new ray that starts outside
+`K (j + 1)`), close enough that the cut arc stays in
+`interior (F (c j + 2))`. The cut end is still straight in `φ ∘ Ψ⁻¹`, so
+the next arc continues it smoothly.
+
+Why (R) holds after the stage: an arc of stage `j` lies outside `K j`,
+leaves `K (j + 1)` only in its final piece, and lies in
+`interior (K (j + 2))`, since `F (c j + 2) ⊆ interior (K (j + 2))`. So
+outside `K i` a ray consists of its arcs of stages `≥ i`, which lie outside
+`K i`, and the final piece of its arc of stage `i - 1`; arcs of stages
+`≤ i - 2` lie inside `K i`.
+
+Why `U` is connected and leaves `F (c j + 2)`: by (R) for `K j`, each ray
+meets `W` in a single closed arc of `W` that ends at the ray's endpoint and
+either is compact or runs out of `W` at its other end, and the ray of `x`
+together with the ball is such a set with the boundary sphere as its free
+end. In dimension at least two, removing finitely many disjoint such sets
+and a closed discrete set from a connected manifold leaves it connected: a
+path that crosses one of the arcs is rerouted around the free end, inside a
+thin neighbourhood of the compact part of the arc between the crossing and
+that end, which misses the other removed sets; points of `P ∪ Q` are
+avoided as in
+`TauCeti.isPreconnected_sdiff_of_isOpen_of_isDiscrete_of_one_lt_rank`.
+This is where `hE` is used. `U` leaves `F (c j + 2)`, since `W` has
+noncompact closure and the removed sets have empty interior. Without (R)
+this fails in dimension two: an arc of an earlier stage that leaves `W` and
+returns cuts off a bounded part of `W`.
+
+Every arc of stage `j` lies outside `K j`, and each stage adds finitely many
+arcs, which gives local finiteness and the limit at infinity.
+
+#### `Geometry/Manifold/VectorBundle/Real.lean`
+
+A smooth vector bundle over `ℝ` is smoothly trivial: for
+`[ContMDiffVectorBundle ∞ F T 𝓘(ℝ)]` with fibre `F` finite-dimensional,
+`Bundle.exists_diffeomorph_prod_of_real` gives a diffeomorphism
+`TotalSpace F T ≃ₘ^∞⟮𝓘(ℝ).prod 𝓘(ℝ, F), 𝓘(ℝ).prod 𝓘(ℝ, F)⟯ ℝ × F` over `ℝ`,
+linear on each fibre. Tau Ceti has only the continuous statement over
+contractible bases (`Topology/VectorBundle/Contractible.lean`). Route:
+frames on the intervals of a locally finite cover of `ℝ` by intervals over
+which the bundle is trivial, glued outward from `0` in both directions.
+Where the frame `e` built so far and the next frame `e'` overlap, they
+differ by a smooth `A : ℝ → GL`, and `e'` is replaced by `e' · A ∘ φ`, with
+`φ` smooth, equal to the identity on the part of the overlap nearer `0` and
+constant on the other part.
+
+#### `Geometry/Manifold/TubularNeighborhood/Ray.lean`
+
+The tube around a ray, with `V := EuclideanSpace ℝ (Fin (Module.finrank ℝ E - 1))`:
+
+```lean
+theorem TauCeti.SmoothEmbedding.exists_rayTube (γ : SmoothEmbedding 𝓘(ℝ) I ∞ ℝ M)
+    (hγ : Filter.Tendsto γ Filter.atTop (Filter.cocompact M))
+    {O O' : Set M} (hO : IsOpen O) (hγO : Set.range γ ⊆ O)
+    (hO' : IsOpen O') (hγO' : γ '' Set.Ici (-2) ⊆ O') :
+    ∃ Φ : ℝ × V → M, Manifold.IsSmoothEmbedding 𝓘(ℝ).prod 𝓘(ℝ, V) I ∞ Φ ∧
+      IsOpen (Set.range Φ) ∧ Set.range Φ ⊆ O ∧ (∀ t, Φ (t, 0) = γ t) ∧
+      IsClosed (Φ '' (Set.Ici (-2) ×ˢ Metric.closedBall 0 2)) ∧
+      Φ '' (Set.Ici (-2) ×ˢ Metric.closedBall 0 2) ⊆ O'
+```
+
+Route: Tau Ceti's `SmoothEmbedding.exists_diffeomorph_normalBundle_subset`
+(`TubularNeighborhood/Existence.lean`) inside `O` identifies the total
+space of the normal bundle with an open neighbourhood of the ray, and
+`Bundle.exists_diffeomorph_prod_of_real` identifies that total space with
+`ℝ × V`. Then `(t, y) ↦ (t, r t • y)` for a smooth `r > 0` that decreases
+fast enough, by properness of `γ` on `Ici (-2)`, makes the stated set closed
+and puts it inside `O'`. Over `t < -2` the tube need not be closed or lie in
+`O'`.
+
+#### `Analysis/Calculus/Morse/HalfCylinder.lean`
+
+The Euclidean modification, in the namespace `SymplecticGeometry`, for an
+inner product space `V` of finite dimension and `S := Ici (-1) ×ˢ closedBall 0 1`
+in `ℝ × V`:
+
+```lean
+theorem exists_nonneg_halfCylinder_hessian_pos {f : ℝ × V → ℝ} (hf : ContDiff ℝ ∞ f)
+    (h0 : TauCeti.IsNondegenerateCriticalPoint f 0)
+    (hcrit : ∀ x ∈ Set.Ici (-1 : ℝ) ×ˢ Metric.closedBall (0 : V) 1, fderiv ℝ f x = 0 → x = 0) :
+    ∃ μ : ℝ × V → ℝ, ContDiff ℝ ∞ μ ∧ 0 ≤ μ ∧
+      tsupport μ ⊆ Set.Ici (-1) ×ˢ Metric.closedBall 0 1 ∧
+      ∀ x, fderiv ℝ (f + μ) x = 0 → x ∈ Set.Ici (-1) ×ˢ Metric.closedBall 0 1 →
+        ∃ v, 0 < fderiv ℝ (fderiv ℝ (f + μ)) x v v
+```
+
+The construction is `μ (t, y) = β ‖y‖ * Λ t`, where:
+
+- `β : ℝ → [0, 1]` is smooth, `1` on `[0, 1/2]`, decreasing, `0` from `1`
+  on, and `exp (-a / (1 - r))` for `r` near `1`. Then for every `K` there
+  is `s > 0` with `β'' ≥ K * |β'|` on `[1 - s, 1)`, and `β ≥ β (1 - s) > 0`
+  on `[0, 1 - s]`; `‖β'‖ ≤ B` everywhere.
+- `Λ ≥ 0` vanishes up to some `t₀ ∈ (-1, -ρ)`, and
+  `Λ' = exp (H t)` after it, with `H' ≥ L` and `H → -∞` at `t₀`, so `Λ` is
+  smooth, `Λ' > 0` and `Λ'' ≥ L * Λ'` on `(t₀, ∞)`, and `Λ` is convex,
+  hence `Λ' t ≥ Λ t / (t - t₀)`. Here `L` is a smooth function of `t`,
+  large in terms of the bounds below, and `Λ' ≥ A` on `[-ρ, ρ]`.
+
+Fix `ρ ≤ 1/2`, and for each `t` bounds `‖∇²f‖ ≤ C t` on the part of `S`
+with first coordinate in `[t - 1, t + 1]`, and `|∂_t f| + ‖∇_y f‖ ≥ ε t > 0`
+on that part outside the interior of the box `[-ρ, ρ] × closedBall 0 ρ`
+(positive by `hcrit` and compactness, since `0` is inside the box). With
+`F = f + μ`, at a critical point `x = (t, y)` in `S`:
+
+- *In the box*, `β = 1`, so `∇F = ∇f + Λ' t • e_t` with `‖∇f‖ ≤ 2 C ρ`
+  (as `∇f 0 = 0`); this is not zero once `A > 2 C ρ`. So there are no critical points there,
+  and `0` is not one.
+- *Elsewhere*, `Λ t > 0` or `Λ' t > 0` (else `x` is critical for `f`), and:
+  - if `‖∇_y f‖ < ε/2`, then `β Λ' = -∂_t f > ε/2` (from `∂_t F = 0`), and in the direction
+    `e_t` the Hessian of `F` is `∂²_t f + β Λ'' ≥ -C + L ε / 2 > 0`;
+  - if `‖∇_y f‖ ≥ ε/2`, then `Λ |β'| = ‖∇_y f‖ ≥ ε/2` (from `∇_y F = 0`),
+    so `Λ ≥ ε/(2B)`. Take `K = 4C/ε + 1` and its `s`. If `‖y‖ ≥ 1 - s`,
+    in the radial direction `y/‖y‖` the Hessian is `∂²_r f + Λ β'' ≥ -C + K ε/2 > 0`. If
+    `‖y‖ < 1 - s`, then `β ≥ β (1 - s)`, `Λ' ≥ ε / (2 B (t - t₀))`, and in
+    the direction `e_t` the Hessian is at least
+    `-C + β (1 - s) L ε / (2 B (t - t₀)) > 0`.
+
+The conditions on `L` and `A` are finitely many continuous lower bounds in
+`t`, so a smooth `L` meets them. The proof is long; it splits into the
+cutoff `β` with its estimates, the profile `Λ` with its estimates, and the
+case analysis above.
+
+#### `Geometry/Manifold/Morse/PositiveDirection.lean`
+
+A positive direction of the Hessian at the critical points on a closed set
+survives small perturbations, in the namespace `TauCeti`:
+
+```lean
+theorem exists_strongCkControl_criticalHessian_pos (f : C^∞⟮I, M; 𝓘(ℝ), ℝ⟯)
+    {A : Set M} (hA : IsClosed A)
+    (hfA : ∀ x ∈ A, mfderiv I 𝓘(ℝ) f x = 0 → ∃ v, 0 < criticalHessian I f x v v) :
+    ∃ c : ContMDiffMap.StrongCkControl I M ∞, ∀ g ∈ c.ball f, ∀ x ∈ A,
+      mfderiv I 𝓘(ℝ) g x = 0 → ∃ v, 0 < criticalHessian I g x v v
+```
+
+Route: cover `A` by a locally finite family of compact sets in chart
+targets. On each, in that chart, `max (‖D u‖) (sup_{‖v‖ = 1} D²u (v, v))`
+is continuous and positive for `u = f ∘ φ⁻¹`, so bounded below by some
+`δ`; a `C²` tolerance `δ/2` keeps it positive. At a critical point the
+fixed chart and the preferred chart give congruent Hessians
+(`criticalHessian_apply_eq_of_mem_maximalAtlas`). Then
+`manifoldMorseIndex_eq_finrank_iff` turns the conclusion into
+`manifoldMorseIndex I g x < Module.finrank ℝ E` at nondegenerate critical
+points.
 
 ### `Geometry/Manifold/Morse/Core/`
 
@@ -418,7 +672,7 @@ public lemma of its own in this file.
 The band cores of an open manifold, from issue 4:
 
 ```lean
-theorem TauCeti.exists_isMorse_bandCore_seq
+theorem TauCeti.exists_isMorse_bandCore_seq (hE : Module.finrank ℝ E ≠ 1)
     (hM : ∀ x : M, ¬ IsCompact (connectedComponent x)) :
     ∃ (g : C^∞⟮I, M; 𝓘(ℝ), ℝ⟯) (d e : ℕ → ℝ), IsMorse I g ∧ IsProperMap g ∧
       (∀ x, e 0 < g x) ∧ (∀ k, d k < e k ∧ e k < d (k + 1)) ∧
@@ -426,7 +680,8 @@ theorem TauCeti.exists_isMorse_bandCore_seq
       ∀ k, Nonempty (BandCore I g (d k) (e k) (e (k + 1)))
 ```
 
-`g` comes from `TauCeti.exists_isMorse_isProperMap_manifoldMorseIndex_lt`.
+`g` comes from `TauCeti.exists_isMorse_isProperMap_manifoldMorseIndex_lt`. The engine
+supplies `hE` as that theorem's section explains.
 Its critical values form a discrete set, so the levels can be chosen with all
 critical values in the intervals `(e k, d (k + 1))`, at most one in each;
 `exists_bandCore` then applies to `(d k, e k, e (k + 1))`, or
@@ -772,8 +1027,25 @@ Each is a few hundred lines; each issue's blockers come before it.
    before the induction.
 3. **Parametric relative holonomic approximation.**
    `Analysis/Calculus/HolonomicApproximation/Parametric.lean`. Blocked by 2.
-4. **Morse functions without top-index critical points.**
-   `Geometry/Manifold/Morse/OpenManifold.lean`.
+4. **Morse functions without top-index critical points**, in six building
+   issues, in this order:
+   - 4a. **Rays.** `Geometry/Manifold/ProperRay.lean`: `exists_rays`.
+     Blocked by nothing.
+   - 4b. **Vector bundles over the line are trivial.**
+     `Geometry/Manifold/VectorBundle/Real.lean`:
+     `Bundle.exists_diffeomorph_prod_of_real`. Blocked by nothing.
+   - 4c. **Tubes around rays.** `Geometry/Manifold/TubularNeighborhood/Ray.lean`:
+     `TauCeti.SmoothEmbedding.exists_rayTube`. Blocked by 4b.
+   - 4d. **The model modification.** `Analysis/Calculus/Morse/HalfCylinder.lean`:
+     `exists_nonneg_halfCylinder_hessian_pos`. Blocked by nothing. If it
+     exceeds the size limit, the cutoff `β` and the profile `Λ` with their
+     estimates become an issue of their own before it.
+   - 4e. **Positive directions survive perturbation.**
+     `Geometry/Manifold/Morse/PositiveDirection.lean`:
+     `TauCeti.exists_strongCkControl_criticalHessian_pos`. Blocked by nothing.
+   - 4f. **The theorem.** `Geometry/Manifold/Morse/OpenManifold.lean`:
+     `TauCeti.exists_isMorse_isProperMap_manifoldMorseIndex_lt`. Blocked by
+     4a, 4c, 4d and 4e.
 5. **The band cores**, `Geometry/Manifold/Morse/Core/`, in four building
    issues, in this order:
    - 5a. **The structure.** `Morse/Core/Basic.lean`: `BandCore`, its API
