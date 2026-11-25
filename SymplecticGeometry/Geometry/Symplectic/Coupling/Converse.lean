@@ -14,10 +14,9 @@ public import SymplecticGeometry.Geometry.Manifold.GroupAction.TranslatingField
 public import SymplecticGeometry.Geometry.Symplectic.Coupling.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Circle
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
+public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Reduction.Circle
 public import SymplecticGeometry.GroupTheory.GroupAction.FixedPoints
-public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap.ReducedForm
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
-import SymplecticGeometry.LinearAlgebra.FiniteDimensional.FinrankOne
 
 /-!
 # The converse of minimal coupling
@@ -76,32 +75,25 @@ and pulling back along `ψ` gives one of `-H ∘ ψ` for `ψ^* σ`
 (`TauCeti.SmoothTwoForm.IsHamiltonianVectorField.mpullback`). Its slice at `t` is the
 pull-back of `σ` along `ψ (·, t)`.
 
-A point that the circle does not fix is not critical for `H` where `σ` is nondegenerate: the
-moment map of `σ` is `-μ`, whose component `-H` has the critical points of `H`, and these are the
-fixed points of the action
-(`TauCeti.SmoothTwoForm.IsMomentMap.mem_criticalPoints_circlePeriodOneGenerator_iff`).
-
 The file also proves that the family `τ` of a coupling form is smooth: its pull-backs along the
 projection of `P` are the slices of the coupling form, and the projection has smooth local
 sections (`TauCeti.ManifoldTotalSpace.exists_contMDiffOn_section`), so
 `SymplecticGeometry.IsSmoothFamily.of_mpullback_prodMk_eq` applies.
 
-For the reduced forms, let `σ` be symplectic. A smooth map `φ` from the total space of a
-principal circle bundle `P` to `M`, equivariant, with values in a level `H = t`, injective
-differential and tangent images `ker dH`, is level data for Tau Ceti's reduction of a level of a
-moment map (`TauCeti.SmoothTwoForm.IsMomentMap.existsUnique_isSymplectic_mpullback_eq_mpullback`),
-with the right circle action on the total space: the cocycle of `-μ` vanishes and
-`ker d(-μ) = ker dH`, since the Lie algebra of `Circle` is one-dimensional, the vertical vectors of
-`P` are the multiples of its fundamental field, which `dφ` sends to the orbit directions of `M`,
-and the fibres of `P` are orbits. So `φ^* σ` is the pull-back of a unique symplectic form on the
-base. The invariance of `φ^* σ` under the action on the total space is proved as in Tau Ceti's
-`TauCeti.SmoothTwoForm.IsEquivariantMomentMap.existsUnique_isSymplectic_mpullback_eq_mpullback`.
-The slices of the band map of a circle action are such maps.
+For `σ` symplectic, the slice at `t` of the band map of a circle action, read on the total space
+of the circle bundle of the level `H = a`, is an equivariant map into the level `H = t` with
+injective differential and tangent images `ker dH`, so it pulls `σ` back to the pull-back of a
+unique symplectic form on the base
+(`SymplecticGeometry.existsUnique_isSymplectic_mpullback_eq_mpullback_bandMap`, which applies
+`SymplecticGeometry.existsUnique_isSymplectic_mpullback_projContMDiffMap_eq` of
+`Hamiltonian/Reduction/Circle.lean`).
 
 The last section puts these together into the converse of minimal coupling
 (`SymplecticGeometry.exists_isCouplingForm_comp_eq`). Let the circle preserve a symplectic form
 `σ` with moment map `-μ`, and let the band `K = H⁻¹([a, b])` be compact with the action free on
-it. Then `H` has no critical point on `K`, so `a` is a regular value of `H` and
+it. Then `H` has no critical point on `K`
+(`SymplecticGeometry.mfderiv_ne_zero_of_notMem_fixedPoints`, in
+`Hamiltonian/MomentMap/Circle.lean`), so `a` is a regular value of `H` and
 `SymplecticGeometry.exists_invariant_vectorField_mfderiv_eq_one` gives the field `v`; `H` is
 invariant (`TauCeti.SmoothTwoForm.IsMomentMap.apply_smul_circle`), so `H⁻¹(a)` is a free invariant
 regular level (`SymplecticGeometry.isFreeRegularLevel_of_stabilizer_eq_bot`). The band map
@@ -133,19 +125,12 @@ the family `τ`, and `ψ^* σ` is a coupling form for `τ`, whose classes then m
 * `SymplecticGeometry.mpullback_op_smul_mpullback`,
   `SymplecticGeometry.interior_couplingField_mpullback`: for `σ` invariant with moment map
   `-μ` and `ψ` as above, `ψ^* σ` is invariant and `ι_{(X, 0)} ψ^* σ = -dt`.
-* `SymplecticGeometry.mfderiv_ne_zero_of_notMem_fixedPoints`: for `σ` with moment map `-μ`,
-  nondegenerate at a point that the circle does not fix, `dH` does not vanish there.
 * `SymplecticGeometry.isCouplingForm_mpullback`: such a `ψ^* σ` is a coupling form for every
   family `τ` whose pull-backs `π^* (τ t)` are the pull-backs of `σ` along `ψ (·, t)`.
-* `SymplecticGeometry.existsUnique_isSymplectic_mpullback_projContMDiffMap_eq`: for `σ` symplectic,
-  an equivariant map `φ` from the total space of `P` into a level of `H`, with injective
-  differential and tangent images `ker dH`, has `φ^* σ = π^* τ` for a unique symplectic `τ`.
 * `SymplecticGeometry.existsUnique_isSymplectic_mpullback_eq_mpullback_bandMap`: in the setting of
   `bandMap_orbitFiber`, with `f = H`, each slice of the band map pulls `σ` back to the pull-back
   of a unique symplectic form on the base.
 * `SymplecticGeometry.IsCouplingForm.isSmoothFamily`: the family of a coupling form is smooth.
-* `SymplecticGeometry.isRegularValue_of_notMem_fixedPoints`: a level that contains no fixed
-  point of the action is a regular value of `H`.
 * `SymplecticGeometry.isFreeRegularLevel_of_stabilizer_eq_bot`: a level on which the action is
   free is a free invariant regular level of `H`.
 * `SymplecticGeometry.exists_isCouplingForm_comp_eq`: the converse of minimal coupling.
@@ -441,39 +426,11 @@ theorem isCouplingForm_mpullback (hσc : σ.IsClosed)
 
 end Pullback
 
-/-! ### Points off the fixed set are regular for the Hamiltonian -/
+/-! ### Free levels of the Hamiltonian -/
 
 section Regular
 
 variable [T2Space M] [BoundarylessManifold I M] [CompleteSpace E] [ContMDiffSMul (𝓡 1) I ∞ Circle M]
-
-/-- **A point off the fixed set is not critical for the Hamiltonian.** Let a circle act smoothly
-on a Hausdorff boundaryless manifold `M`, with moment map `-μ` for a two-form `σ`, and let
-`H = ⟨μ, circlePeriodOneGenerator⟩`. If `σ` is nondegenerate at `x` and some element of the
-circle moves `x`, then `dH` does not vanish at `x`. -/
-theorem mfderiv_ne_zero_of_notMem_fixedPoints {σ : SmoothTwoForm I M}
-    {μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle)}
-    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) fun x ↦ -μ x)
-    {x : M} (hσ : (σ.bilinFormAt x).Nondegenerate) (hx : x ∉ MulAction.fixedPoints Circle M) :
-    mfderiv I 𝓘(ℝ) (fun y ↦ μ y circlePeriodOneGenerator) x ≠ 0 := by
-  have hneg : (fun y ↦ (-μ y) circlePeriodOneGenerator) = -fun y ↦ μ y circlePeriodOneGenerator :=
-    funext fun _ ↦ LinearMap.neg_apply _ _
-  rwa [← hμ.mem_criticalPoints_circlePeriodOneGenerator_iff hσ, hneg, criticalPoints_neg,
-    mem_criticalPoints_iff_mfderiv_eq_zero] at hx
-
-/-- **A level without fixed points is a regular value of the Hamiltonian.** Let a circle act
-smoothly on a Hausdorff boundaryless manifold `M`, with moment map `-μ` for a nondegenerate
-two-form `σ`, and let `H = ⟨μ, circlePeriodOneGenerator⟩`. If no point of the level `H = c` is
-fixed by the whole circle, then `c` is a regular value of `H`. -/
-theorem isRegularValue_of_notMem_fixedPoints {σ : SmoothTwoForm I M}
-    {μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle)}
-    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) fun x ↦ -μ x)
-    (hσ : σ.IsNondegenerate) {c : ℝ}
-    (hfix : ∀ x, μ x circlePeriodOneGenerator = c → x ∉ MulAction.fixedPoints Circle M) :
-    IsRegularValue I 𝓘(ℝ) (fun y ↦ μ y circlePeriodOneGenerator) c := by
-  refine isRegularValue_iff.2 fun x hx ↦ ?_
-  rw [isRegularPoint_iff_notMem_criticalPoints, mem_criticalPoints_iff_mfderiv_eq_zero]
-  exact mfderiv_ne_zero_of_notMem_fixedPoints hμ (hσ.nondegenerate_bilinFormAt x) (hfix x hx)
 
 /-- **A free level of the Hamiltonian is a free invariant regular level.** Let a circle act
 smoothly on a Hausdorff boundaryless manifold `M`, with moment map `-μ` for a nondegenerate
@@ -495,88 +452,6 @@ theorem isFreeRegularLevel_of_stabilizer_eq_bot {σ : SmoothTwoForm I M}
   stabilizer_eq_bot := hfree
 
 end Regular
-
-/-! ### The reduced forms of an equivariant map into a level -/
-
-section Reduced
-
-variable [FiniteDimensional ℝ E] [ContMDiffSMul (𝓡 1) I ∞ Circle M]
-  {EB HB B : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [TopologicalSpace HB]
-  {IB : ModelWithCorners ℝ EB HB} [IB.Boundaryless] [TopologicalSpace B] [ChartedSpace HB B]
-  [IsManifold IB ∞ B]
-  {P : B → Type*} [TopologicalSpace (TotalSpace Circle P)] [∀ b, TopologicalSpace (P b)]
-  [FiberBundle Circle P] [∀ b, MulAction Circleᵐᵒᵖ (P b)]
-  [PrincipalBundle Circle P] [ContMDiffFiberBundle ∞ Circle P IB (𝓡 1)]
-
-/-- **The pull-back of a symplectic form to a level descends to the base.** Let a circle act
-smoothly on a finite-dimensional manifold `M`, preserving the symplectic form `σ`, with moment
-map `-μ`, and let `H = ⟨μ, circlePeriodOneGenerator⟩`. Let `P` be a smooth principal circle
-bundle over a boundaryless base `B`, and `φ` a smooth map from its total space to `M` with
-`φ (p • z) = z • φ p`, taking values in the level `H = t`, with injective differential whose
-range is `ker dH`. Then there is a unique symplectic form `τ` on `B` whose pull-back along the
-projection is `φ^* σ`. -/
-theorem existsUnique_isSymplectic_mpullback_projContMDiffMap_eq {σ : SmoothTwoForm I M}
-    (hσ : σ.IsSymplectic)
-    (hσs : ∀ g : Circle, SmoothForm.mpullback (fun x : M ↦ g • x)
-      (ContMDiffSMul.contMDiff_const_smul (I := 𝓡 1) (I' := I) g) σ = σ)
-    {μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle)}
-    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) fun x ↦ -μ x)
-    {φ : ManifoldTotalSpace Circle P → M} (hφ : ContMDiff (IB.prod (𝓡 1)) I ∞ φ)
-    (hφs : ∀ (g : Circle) p, φ (op g • p) = g • φ p) {t : ℝ}
-    (ht : ∀ p, μ (φ p) circlePeriodOneGenerator = t)
-    (hinj : ∀ p, Injective (mfderiv (IB.prod (𝓡 1)) I φ p))
-    (hrange : ∀ p, LinearMap.range (mfderiv (IB.prod (𝓡 1)) I φ p).toLinearMap =
-      LinearMap.ker (mfderiv I 𝓘(ℝ) (fun x ↦ μ x circlePeriodOneGenerator) (φ p)).toLinearMap) :
-    ∃! τ : SmoothTwoForm IB B, τ.IsSymplectic ∧
-      SmoothForm.mpullback (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1))
-        (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)).contMDiff τ =
-      SmoothForm.mpullback φ hφ σ := by
-  -- `-μ` is constant on the image of `φ`, since the Lie algebra is spanned by
-  -- `circlePeriodOneGenerator`.
-  obtain ⟨c, hc⟩ : ∃ c, ∀ p, -μ (φ p) = c := by
-    rcases isEmpty_or_nonempty (ManifoldTotalSpace Circle P) with hZ | ⟨⟨p₀⟩⟩
-    · exact ⟨0, fun p ↦ isEmptyElim p⟩
-    · exact ⟨-μ (φ p₀), fun p ↦ congrArg Neg.neg
-        (LinearMap.ext_of_finrank_eq_one finrank_groupLieAlgebra_circle
-          circlePeriodOneGenerator_ne_zero ((ht p).trans (ht p₀).symm))⟩
-  have hneg : (fun x ↦ (-μ x) circlePeriodOneGenerator) = -fun x ↦ μ x circlePeriodOneGenerator :=
-    funext fun _ ↦ LinearMap.neg_apply _ _
-  -- `dφ` sends the fundamental fields of the bundle to those of `M`.
-  have hX (p : ManifoldTotalSpace Circle P) :
-      (mfderiv (IB.prod (𝓡 1)) I φ p).toLinearMap ∘ₗ
-          PrincipalBundle.rightFundamentalLinearMap IB (𝓡 1) p =
-        (InfinitesimalAction.fundamental (𝓡 1) Circle I M).eval (φ p) :=
-    LinearMap.ext fun ξ ↦ by
-      rw [LinearMap.comp_apply, PrincipalBundle.rightFundamentalLinearMap_apply,
-        ContinuousLinearMap.coe_coe, InfinitesimalAction.eval_apply,
-        InfinitesimalAction.fundamental_apply]
-      exact mfderiv_rightFundamentalVectorField_of_map_op_smul_eq_smul
-        ((hφ p).mdifferentiableAt (by simp))
-        (PrincipalBundle.mdifferentiableAt_orbit (n := ∞) (by simp) p 1) (hφs · p) ξ
-  have hann : lieAnnihilator ℝ (GroupLieAlgebra (𝓡 1) Circle) c = ⊤ := by
-    simp
-  refine hμ.existsUnique_isSymplectic_mpullback_eq_mpullback (K := Circleᵐᵒᵖ) hσ hφ hc
-    (fun _ ↦ SmoothTwoForm.momentCocycle_circle_eq_zero _ _ _ _) (fun p ↦ ?_)
-    (ManifoldTotalSpace.isSubmersion_projContMDiffMap ∞ Circle P IB (𝓡 1))
-    (ManifoldTotalSpace.surjective_projContMDiffMap ∞ Circle P IB (𝓡 1)) (fun p ↦ ?_)
-    (fun k ↦ contMDiff_const_smul k) (fun k p ↦ ?_) (fun p p' hpp' ↦ ?_) fun k ↦ ?_
-  · -- The level tangent space of `-μ` is `ker dH`.
-    rw [hμ.ker_differential_circle, hrange, hneg, mfderiv_neg, ContinuousLinearMap.toLinearMap_neg]
-    exact (LinearMap.ker_neg _).symm
-  · -- The vertical vectors are the fundamental fields, which `dφ` sends to the orbit
-    -- directions; `dφ` is injective.
-    rw [hann, LieSubalgebra.top_toSubmodule, Submodule.map_top, ← hX, LinearMap.range_comp,
-      Submodule.comap_map_eq_of_injective (hinj p),
-      PrincipalBundle.range_rightFundamentalLinearMap_eq_ker_mfderiv_proj,
-      ManifoldTotalSpace.coe_projContMDiffMap]
-  · simp
-  · obtain ⟨g, hg⟩ := PrincipalBundle.exists_op_smul_eq_of_proj_eq hpp'.symm
-    exact ⟨op g, hg⟩
-  · conv_rhs => rw [← hσs k.unop]
-    exact SmoothForm.mpullback_mpullback_of_comp_eq _ hφ hφ _
-      (funext fun p ↦ by simpa using hφs k.unop p) σ
-
-end Reduced
 
 /-! ### The band of a circle action -/
 
