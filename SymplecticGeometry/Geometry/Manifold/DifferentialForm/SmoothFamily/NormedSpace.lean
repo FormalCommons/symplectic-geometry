@@ -30,8 +30,11 @@ survives every perturbation of the value that is small enough, with one bound fo
   are nondegenerate at every point of `S` for every `t ∈ K`, then there is `r > 0` such that
   every two-form `σ` with `‖σ x - τ t x‖ < r`, for some `t ∈ K` and `x ∈ S`, is nondegenerate
   at `x`.
+* `SymplecticGeometry.IsSmoothFamily.exists_pos_forall_nondegenerate_sub_smul`: the same `r`
+  works along segments: `τ t - s • η` is nondegenerate at `x ∈ S` for `t ∈ K`, `s ∈ [0, 1]`
+  and every two-form `η` with `‖η x‖ < r`.
 
-The last one combines the openness of nondegenerate alternating maps (Tau Ceti's
+The second one combines the openness of nondegenerate alternating maps (Tau Ceti's
 `TauCeti.isOpen_setOf_nondegenerate`) with Mathlib's `IsCompact.exists_thickening_subset_open`,
 applied to the compact image of `K × S`.
 -/
@@ -87,6 +90,28 @@ theorem exists_pos_forall_nondegenerate [FiniteDimensional ℝ E]
   have := hrU (Metric.mem_thickening_iff.2 ⟨_, mem_image_of_mem _ (mk_mem_prod ht hx),
     (dist_eq_norm _ _).trans_lt hσ⟩)
   rwa [hB]
+
+/-- **Uniform nondegeneracy along segments.** Let `τ` be a smooth family of two-forms on a
+finite-dimensional normed space `E`, nondegenerate at every point of a compact set `S` for every
+parameter in a compact set `K`. Then there is `r > 0` such that for every two-form `η` on `E`
+with `‖η x‖ < r` at a point `x ∈ S`, the two-forms `τ t - s • η` with `t ∈ K` and `s ∈ [0, 1]`
+are nondegenerate at `x`. -/
+theorem exists_pos_forall_nondegenerate_sub_smul [FiniteDimensional ℝ E]
+    {τ : N → SmoothTwoForm 𝓘(ℝ, E) E} (h : IsSmoothFamily J τ) {K : Set N} {S : Set E}
+    (hK : IsCompact K) (hS : IsCompact S)
+    (hτ : ∀ t ∈ K, ∀ x ∈ S, ((τ t).bilinFormAt x).Nondegenerate) :
+    ∃ r > 0, ∀ t ∈ K, ∀ x ∈ S, ∀ η : SmoothTwoForm 𝓘(ℝ, E) E,
+      @norm (E [⋀^Fin 2]→L[ℝ] ℝ) _ (η.val x) < r → ∀ s ∈ Icc (0 : ℝ) 1,
+        ((τ t - s • η).bilinFormAt x).Nondegenerate := by
+  obtain ⟨r, hr, H⟩ := h.exists_pos_forall_nondegenerate hK hS hτ
+  refine ⟨r, hr, fun t ht x hx η hη s hs ↦ H t ht x hx _ ?_⟩
+  -- The value of `τ t - s • η` at `x` differs from that of `τ t` by `s` times that of `η`.
+  have key (a b : E [⋀^Fin 2]→L[ℝ] ℝ) : ‖a - s • b - a‖ ≤ ‖b‖ := by
+    rw [sub_sub_cancel_left, norm_neg, norm_smul, Real.norm_eq_abs, abs_of_nonneg hs.1]
+    exact mul_le_of_le_one_left (norm_nonneg _) hs.2
+  simp only [Submodule.coe_sub, Submodule.coe_smul, Pi.sub_apply, Pi.smul_apply]
+  -- The values of forms on `E` are alternating maps on `E` itself, so `key` applies to them.
+  exact (key _ _).trans_lt hη
 
 end SymplecticGeometry.IsSmoothFamily
 
