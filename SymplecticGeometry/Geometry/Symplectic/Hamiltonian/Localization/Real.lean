@@ -42,6 +42,19 @@ lives only on the chart, it is cut off by an invariant cut-off that is `1` near 
 derivative along `X`, and `SymplecticGeometry.integralTopForm_mul_formCalculus_exp_of_forall_or`
 removes the factor `exp(d_ħ θ₀)`.
 
+## The cut-off level and the radii around the fixed points
+
+To cut `F(d_ħ θ)` into pieces near the fixed points, `SymplecticGeometry.exists_cutoffLevel_radii`
+chooses, for charts `Φᵢ` about finitely many distinct centres and a continuous `f ≥ 0` that
+vanishes only at the centres (in the application `f = θ(X)`), a level `δ > 0` and radii
+`0 < aᵢ < bᵢ` inside the charts, such that the images `Φᵢ '' ball 0 bᵢ` are pairwise disjoint,
+`ħ f ≤ δ` only on the union of the images `Φᵢ '' ball 0 aᵢ`, and the model integrand of the
+contribution of a fixed point vanishes for `‖z‖ ≥ aᵢ` when `F` is supported in `[-δ, δ]`. Since
+the centres are distinct, the images under the `Φᵢ` of the neighbourhood filters of `0` are
+pairwise disjoint, so `Pairwise.exists_mem_filter_basis_of_disjoint` gives balls with pairwise
+disjoint images; and `IsCompact.exists_forall_le'` gives `f` a positive lower bound on the
+compact complement of the small images.
+
 ## The top component of `F(d_ħ θ)` on a weight chart
 
 Let `Φ` be a partial diffeomorphism from `StdSpace (Fin n)` to `M` that pulls `σ` back to the
@@ -96,6 +109,84 @@ open scoped Manifold ContDiff Topology DirectSum
 namespace SymplecticGeometry
 
 open TauCeti
+
+section CutoffLevel
+
+variable {M : Type*} [TopologicalSpace M] [CompactSpace M] [T2Space M]
+
+/-- **The cut-off level and the radii around the fixed points.** Let `M` be a compact Hausdorff
+space and, for `i` in a finite type, let `Φ i` be an open partial homeomorphism from
+`StdSpace (Fin (n i))` to `M` whose source contains `ball 0 (s i)`, with `s i > 0` and pairwise
+distinct centres `Φ i 0`, and let `k i j` be nonzero reals. Let `f : M → ℝ` be continuous and
+nonnegative, vanishing only at the centres, and let `ħ > 0`. Then there are `δ > 0` and radii
+`0 < a i < b i ≤ s i` such that the sets `Φ i '' ball 0 (b i)` are pairwise disjoint, every `x`
+with `ħ f(x) ≤ δ` lies in some `Φ i '' ball 0 (a i)`, and
+`δ < 2πħ ∑ⱼ kᵢⱼ² (xⱼ(z)² + yⱼ(z)²)` for every `z` with `a i ≤ ‖z‖`. -/
+theorem exists_cutoffLevel_radii {ι : Type*} [Finite ι] {n : ι → ℕ}
+    (Φ : ∀ i, OpenPartialHomeomorph (StdSpace (Fin (n i))) M) {s : ι → ℝ} (hs0 : ∀ i, 0 < s i)
+    (hs : ∀ i, ball 0 (s i) ⊆ (Φ i).source) (hinj : Function.Injective fun i ↦ Φ i 0)
+    {k : ∀ i, Fin (n i) → ℝ} (hk : ∀ i j, k i j ≠ 0) {f : M → ℝ} (hf : Continuous f)
+    (hf0 : ∀ x, 0 ≤ f x) (hfz : ∀ x, f x = 0 → ∃ i, x = Φ i 0) {ħ : ℝ} (hħ : 0 < ħ) :
+    ∃ δ > 0, ∃ a b : ι → ℝ, (∀ i, 0 < a i ∧ a i < b i ∧ b i ≤ s i) ∧
+      Pairwise (fun i j ↦ Disjoint (Φ i '' ball 0 (b i)) (Φ j '' ball 0 (b j))) ∧
+      (∀ x, ħ * f x ≤ δ → ∃ i, x ∈ Φ i '' ball 0 (a i)) ∧
+      ∀ i (z : StdSpace (Fin (n i))), a i ≤ ‖z‖ →
+        δ < 2 * π * ħ * ∑ j, k i j ^ 2 * (z.x j ^ 2 + z.y j ^ 2) := by
+  -- Balls about `0` whose images under the `Φ i` are pairwise disjoint.
+  have h0 (i : ι) : (0 : StdSpace (Fin (n i))) ∈ (Φ i).source := hs i (mem_ball_self (hs0 i))
+  have hd : Pairwise (Function.onFun Disjoint fun i ↦
+      Filter.map (Φ i) (𝓝 (0 : StdSpace (Fin (n i))))) :=
+    fun i j hij ↦ (disjoint_nhds_nhds.2 (hinj.ne hij)).mono
+      ((Φ i).continuousAt (h0 i)) ((Φ j).continuousAt (h0 j))
+  obtain ⟨c, hc0, hcd⟩ := hd.exists_mem_filter_basis_of_disjoint fun i ↦ nhds_basis_ball.map _
+  set b : ι → ℝ := fun i ↦ min (c i) (s i)
+  set a : ι → ℝ := fun i ↦ b i / 2
+  have hb0 (i : ι) : 0 < b i := lt_min (hc0 i) (hs0 i)
+  have ha0 (i : ι) : 0 < a i := half_pos (hb0 i)
+  have hab (i : ι) : a i < b i := half_lt_self (hb0 i)
+  have has (i : ι) : ball (0 : StdSpace (Fin (n i))) (a i) ⊆ (Φ i).source :=
+    (ball_subset_ball ((hab i).le.trans (min_le_right _ _))).trans (hs i)
+  -- Off the balls of radius `a i`, `f` is bounded below by some `m > 0`.
+  set K : Set M := (⋃ i, Φ i '' ball 0 (a i))ᶜ
+  have hK : IsCompact K := (isOpen_iUnion fun i ↦
+    (Φ i).isOpen_image_of_subset_source isOpen_ball (has i)).isClosed_compl.isCompact
+  have hfK : ∀ x ∈ K, 0 < f x := fun x hx ↦ (hf0 x).lt_of_ne fun h ↦ by
+    obtain ⟨i, rfl⟩ := hfz x h.symm
+    exact hx (mem_iUnion.2 ⟨i, mem_image_of_mem _ (mem_ball_self (ha0 i))⟩)
+  obtain ⟨m, hm0, hm⟩ := hK.exists_forall_le' hf.continuousOn hfK
+  -- A lower bound `κ i > 0` for the squares of the weights of each chart.
+  have hκ (i : ι) : ∃ κ > 0, ∀ j, κ ≤ k i j ^ 2 := by
+    obtain ⟨κ, hκ, hκ0⟩ := ((Filter.eventually_all.2 fun j ↦
+      Ioo_mem_nhdsGT (by have := hk i j; positivity : (0 : ℝ) < k i j ^ 2)).and
+      (self_mem_nhdsWithin (s := Ioi (0 : ℝ)) (a := 0))).exists
+    exact ⟨κ, hκ0, fun j ↦ (hκ j).2.le⟩
+  choose κ hκ0 hκ using hκ
+  -- `δ` below `ħ m` and below each `2πħ κ i (a i)²`.
+  have hpos (i : ι) : 0 < 2 * π * ħ * κ i * a i ^ 2 := by
+    have := hκ0 i; have := ha0 i; positivity
+  obtain ⟨δ, hδ, hδ0⟩ := (((Filter.eventually_all.2 fun i ↦ Ioo_mem_nhdsGT (hpos i)).and
+    (Ioo_mem_nhdsGT (mul_pos hħ hm0))).and
+    (self_mem_nhdsWithin (s := Ioi (0 : ℝ)) (a := 0))).exists
+  refine ⟨δ, hδ0, a, b, fun i ↦ ⟨ha0 i, hab i, min_le_right _ _⟩, fun i j hij ↦ ?_,
+    fun x hx ↦ ?_, fun i z hz ↦ ?_⟩
+  · exact (hcd hij).mono (image_mono (ball_subset_ball (min_le_left _ _)))
+      (image_mono (ball_subset_ball (min_le_left _ _)))
+  · by_contra hxa
+    have hxK : x ∈ K := by simpa [K] using hxa
+    have := mul_le_mul_of_nonneg_left (hm x hxK) hħ.le
+    linarith [hδ.2.2]
+  · have hsq : a i ^ 2 ≤ ‖z‖ ^ 2 := pow_le_pow_left₀ (ha0 i).le hz 2
+    have hsum : κ i * ‖z‖ ^ 2 ≤ ∑ j, k i j ^ 2 * (z.x j ^ 2 + z.y j ^ 2) := by
+      rw [StdSpace.norm_sq_eq_sum, Finset.mul_sum]
+      exact Finset.sum_le_sum fun j _ ↦
+        mul_le_mul_of_nonneg_right (hκ i j) (by positivity)
+    have h2 : 2 * π * ħ * κ i * a i ^ 2 ≤ 2 * π * ħ * ∑ j, k i j ^ 2 * (z.x j ^ 2 + z.y j ^ 2) := by
+      have := mul_le_mul_of_nonneg_left hsq (hκ0 i).le
+      have : (0 : ℝ) ≤ 2 * π * ħ := by positivity
+      nlinarith
+    exact (hδ.1 i).2.trans_le h2
+
+end CutoffLevel
 
 section WeightChart
 
