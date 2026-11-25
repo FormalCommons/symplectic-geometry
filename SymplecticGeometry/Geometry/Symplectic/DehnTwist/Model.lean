@@ -8,13 +8,12 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.DehnTwist.Geodesic
 public import SymplecticGeometry.Geometry.Symplectic.Flux.CompactSupport
 import Mathlib.Analysis.Calculus.Deriv.Shift
-import Mathlib.Analysis.InnerProductSpace.Calculus
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv
-import Mathlib.Geometry.Manifold.Instances.Icc
 import Mathlib.Geometry.Manifold.IntegralCurve.Transform
 import SymplecticGeometry.Analysis.Calculus.ContDiff.Even
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
+import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 
 /-!
 # The model Dehn twist on the cotangent bundle of the sphere
@@ -61,8 +60,8 @@ time `π` is the antipodal map; and since `R' = 0` on `[r₀, ∞)`, the twist i
   `R` its value at time `2π` is the model twist, which is thus the time-`2π` map of `R ∘ μ` there.
 * `SymplecticGeometry.contMDiff_twistPrimitive`, `SymplecticGeometry.twistPrimitive_of_le`: the
   primitive of the model twist of a twist profile is smooth, and vanishes where `μ ≥ r₀`.
-* `Function.Even.mvfderiv_comp_cotangentNorm_eq_zero`: for a smooth even `g`, the differential of
-  `g ∘ μ` vanishes on the zero section.
+* `Function.Even.mvfderiv_comp_cotangentNorm_eq_zero`: for an even `g` differentiable at `0`, the
+  differential of `g ∘ μ` vanishes on the zero section.
 * `SymplecticGeometry.exists_isCompactlySupportedHamiltonian_modelTwist`: two model twists of the
   same support radius `r₀` differ by the time-one map of a compactly supported Hamiltonian
   diffeotopy that fixes every point with `μ ≥ r₀`;
@@ -89,7 +88,7 @@ diffeotopy `φ_t` (`TauCeti.Diffeotopy.exists_isCompactlySupportedHamiltonian`).
 `t ↦ τ_{R_t} z`, for `R_t = (1 - t) R₀ + t R₁`, solves the equation of `φ_t`: off the zero section
 it is the geodesic flow from `τ_{R₀} z` at the constant speed `2π (R₁' - R₀') (μ z)`, an integral
 curve of the Hamiltonian vector field of `G` (`isMIntegralCurve_geodesicFlow_comp`), and on the
-zero section it is constant, where `dG = 0` because `G` is a smooth function of `‖p‖²`. Hence
+zero section it is constant, where `dG = 0` because `R₁ - R₀` is even. Hence
 `φ_t (τ_{R₀} z) = τ_{R_t} z` (`TauCeti.Diffeotopy.apply_eq_of_mfderiv_eq_velocity`). Both
 `φ₁ ∘ τ_{R₀} = τ_{R₁}` and the fixing of the points with `μ ≥ r₀`, including those with
 `μ = r₀`, follow from that identity, since all the twists are the identity there.
@@ -201,6 +200,12 @@ theorem deriv_lineMap (h₀ : IsTwistProfile R₀ r₀) (h₁ : IsTwistProfile R
     deriv (fun t ↦ (1 - s) * R₀ t + s * R₁ t) t = (1 - s) * deriv R₀ t + s * deriv R₁ t :=
   (((h₀.contDiff.differentiable (by simp) t).hasDerivAt.const_mul _).add
     ((h₁.contDiff.differentiable (by simp) t).hasDerivAt.const_mul _)).deriv
+
+/-- The difference `R₁ - R₀` of two twist profiles of the same radius is even. -/
+theorem even_sub (h₀ : IsTwistProfile R₀ r₀) (h₁ : IsTwistProfile R₁ r₀) :
+    (fun t ↦ R₁ t - R₀ t).Even := fun t ↦ by
+  simp only [h₀.apply_neg, h₁.apply_neg]
+  ring
 
 end IsTwistProfile
 
@@ -524,28 +529,23 @@ theorem _root_.Function.Even.contMDiff_comp_cotangentNorm {f : ℝ → ℝ} (hf 
   exact ((hf.contDiff_comp_norm (V := 𝔼 n) hc).comp contDiff_snd).contMDiff.comp
     contMDiff_cotangentCoord
 
-/-- For a smooth even function `g : ℝ → ℝ`, the differential of `z ↦ g (μ z)` vanishes on the
-zero section of `T*Sⁿ`. -/
+/-- For an even function `g : ℝ → ℝ` that is differentiable at `0`, the differential of
+`z ↦ g (μ z)` vanishes on the zero section of `T*Sⁿ`. -/
 theorem _root_.Function.Even.mvfderiv_comp_cotangentNorm_eq_zero {g : ℝ → ℝ} (hg : g.Even)
-    (hc : ContDiff ℝ ∞ g) {z : CotangentBundle (𝓡 n) (𝕊 n)} (hz : cotangentNorm z = 0) :
+    (hd : DifferentiableAt ℝ g 0) {z : CotangentBundle (𝓡 n) (𝕊 n)} (hz : cotangentNorm z = 0) :
     mvfderiv ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ))
       (fun w : CotangentBundle (𝓡 n) (𝕊 n) ↦ g (cotangentNorm w)) z = 0 := by
-  -- By Whitney's theorem `g t = h (t ^ 2)`, and `p ↦ ‖p‖ ^ 2` has derivative `0` at `p = 0`.
-  obtain ⟨h, hh, hgh⟩ := hg.exists_contDiff_comp_sq hc
+  -- In the coordinates `(q, p)` the function is `g ‖p‖`, whose derivative at `p = 0` is `0`.
   have hp : (cotangentCoord z).2 = 0 := norm_eq_zero.1 ((cotangentNorm_def z).symm.trans hz)
-  have hsq : HasFDerivAt (fun v : 𝔼 n ↦ ‖v‖ ^ 2) (0 : (𝔼 n) →L[ℝ] ℝ) 0 := by
-    simpa using (hasStrictFDerivAt_norm_sq (0 : 𝔼 n)).hasFDerivAt
-  have hh₀ : HasDerivAt h (deriv h 0) 0 := (hh.differentiable (by simp) 0).hasDerivAt
-  have hF : HasFDerivAt (h ∘ fun v : 𝔼 n ↦ ‖v‖ ^ 2) (deriv h 0 • (0 : (𝔼 n) →L[ℝ] ℝ)) 0 :=
-    HasDerivAt.comp_hasFDerivAt (0 : 𝔼 n) (by simpa using hh₀) hsq
-  rw [smul_zero, ← hp] at hF
+  have hF := hg.hasFDerivAt_comp_norm_zero (V := 𝔼 n) hd
+  rw [← hp] at hF
   have hq : MDifferentiableAt ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ, 𝔼 n)
       (fun w : CotangentBundle (𝓡 n) (𝕊 n) ↦ (cotangentCoord w).2) z :=
     (contDiff_snd.contMDiff.comp contMDiff_cotangentCoord).mdifferentiableAt (by simp)
   have hfun : (fun w : CotangentBundle (𝓡 n) (𝕊 n) ↦ g (cotangentNorm w)) =
-      (h ∘ fun v : 𝔼 n ↦ ‖v‖ ^ 2) ∘ fun w ↦ (cotangentCoord w).2 := by
+      (fun v : 𝔼 n ↦ g ‖v‖) ∘ fun w ↦ (cotangentCoord w).2 := by
     ext w
-    rw [Function.comp_apply, Function.comp_apply, hgh, cotangentNorm_def]
+    rw [Function.comp_apply, cotangentNorm_def]
   rw [mvfderiv_eq_zero_iff, hfun, (hF.hasMFDerivAt.comp z hq.hasMFDerivAt).mfderiv]
   exact ContinuousLinearMap.zero_comp _
 
@@ -597,8 +597,10 @@ theorem apply_modelTwist_eq_modelTwist_lineMap {R₀ R₁ : ℝ → ℝ} {r₀ :
       fun y ↦ 2 * π * (R₁ (cotangentNorm y) - R₀ (cotangentNorm y)))
     (t : unitInterval) (z : CotangentBundle (𝓡 n) (𝕊 n)) :
     Φ (t, modelTwist h₀ z) = modelTwist (h₀.lineMap h₁ t) z := by
-  set g : ℝ → ℝ := fun t ↦ 2 * π * (R₁ t - R₀ t) with hg
-  have hgc : ContDiff ℝ ∞ g := contDiff_const.mul (h₁.contDiff.sub h₀.contDiff)
+  set g : ℝ → ℝ := fun t ↦ 2 * π * (R₁ t - R₀ t)
+  have hgd (t : ℝ) : HasDerivAt g (2 * π * (deriv R₁ t - deriv R₀ t)) t :=
+    (((h₁.contDiff.differentiable (by simp) t).hasDerivAt.sub
+      (h₀.contDiff.differentiable (by simp) t).hasDerivAt).const_mul _)
   have hσ := CotangentBundle.isSymplectic_symplecticForm (I := 𝓡 n) (M := 𝕊 n)
   -- Both curves start at `τ_{R₀} z`; it remains to see that `s ↦ τ_{R_s} z` solves the equation
   -- of `φ_t` (`TauCeti.Diffeotopy.apply_eq_of_mfderiv_eq_velocity`).
@@ -611,40 +613,35 @@ theorem apply_modelTwist_eq_modelTwist_lineMap {R₀ R₁ : ℝ → ℝ} {r₀ :
   rw [hγt, hγt]
   by_cases hz : cotangentNorm z = 0
   · -- On the zero section `γ` stays at `-z`, where `dG` vanishes, as `R₁ - R₀` is even.
-    have hge : g.Even := fun t ↦ by
-      simp only [hg, h₀.apply_neg, h₁.apply_neg]
-      ring
+    have hge : g.Even := fun t ↦ congrArg (2 * π * ·) (h₀.even_sub h₁ t)
     have hc : γ = fun _ ↦ antipodal z := by
       rw [hγ]
       funext s
       rw [coe_modelTwist, modelTwistFun_def, ite_eq_left hz]
     refine Φ.apply_eq_of_mfderiv_eq_velocity (hc ▸ mdifferentiable_const) (fun s ↦ ?_) t
     rw [hc, mfderiv_const, hX s, (hσ.isNondegenerate.hamiltonianVectorField_eq_zero_iff).2
-      (hge.mvfderiv_comp_cotangentNorm_eq_zero hgc (by rwa [cotangentNorm_antipodal]))]
-    -- Both sides are the zero vector, of tangent spaces that agree only up to unfolding.
-    rfl
+      (hge.mvfderiv_comp_cotangentNorm_eq_zero (hgd 0).differentiableAt
+        (by rwa [cotangentNorm_antipodal]))]
+    simp
   · -- Off it `γ` is the geodesic flow from `τ_{R₀} z` at the speed `g' (μ z)`, an integral
     -- curve of the Hamiltonian vector field of `g ∘ μ`.
     have hw : cotangentNorm (modelTwist h₀ z) ≠ 0 := by rwa [cotangentNorm_modelTwist]
-    have hcurve := isMIntegralCurve_geodesicFlow_comp hw (hgc.differentiable (by simp) _)
+    have hcurve := isMIntegralCurve_geodesicFlow_comp hw (hgd _).differentiableAt
     rw [Function.comp_def] at hcurve
-    have hdg : deriv g (cotangentNorm z) =
-        2 * π * (deriv R₁ (cotangentNorm z) - deriv R₀ (cotangentNorm z)) :=
-      (((h₁.contDiff.differentiable (by simp) _).hasDerivAt.sub
-        (h₀.contDiff.differentiable (by simp) _).hasDerivAt).const_mul _).deriv
     have hc : γ = (fun s : ℝ ↦ geodesicFlow (s * deriv g (cotangentNorm (modelTwist h₀ z)))
         (modelTwist h₀ z)) ∘ Subtype.val := by
       rw [hγ]
       funext s
       rw [Function.comp_apply, cotangentNorm_modelTwist, modelTwist_of_cotangentNorm_ne_zero _ hz,
-        modelTwist_of_cotangentNorm_ne_zero h₀ hz, ← geodesicFlow_add, h₀.deriv_lineMap h₁, hdg]
+        modelTwist_of_cotangentNorm_ne_zero h₀ hz, ← geodesicFlow_add, h₀.deriv_lineMap h₁,
+        (hgd _).deriv]
       congr 1
       ring
-    have hval (s : unitInterval) : MDifferentiableAt (𝓡∂ 1) 𝓘(ℝ) Subtype.val s :=
-      (contMDiff_subtypeVal_Icc (n := 1)).mdifferentiable one_ne_zero s
     refine Φ.apply_eq_of_mfderiv_eq_velocity
-      (hc ▸ fun s ↦ (hcurve s).mdifferentiableAt.comp s (hval s)) (fun s ↦ ?_) t
-    rw [hc, ((hcurve s).comp s (hval s).hasMFDerivAt).mfderiv, hX s]
+      (hc ▸ fun s ↦ (hcurve s).mdifferentiableAt.comp s (mdifferentiableAt_subtypeVal_Icc s))
+      (fun s ↦ ?_) t
+    rw [hc, ((hcurve s).comp s (mdifferentiableAt_subtypeVal_Icc s).hasMFDerivAt).mfderiv,
+      hX s]
     -- `(A ∘L B) 1` is `A (B 1)` by definition, but `ContinuousLinearMap.comp_apply` does not
     -- rewrite here: the tangent space of `[0, 1]` at `s` is `ℝ` only up to unfolding.
     exact (congrArg (ContinuousLinearMap.smulRight (1 : ℝ →L[ℝ] ℝ) _)
@@ -653,8 +650,7 @@ theorem apply_modelTwist_eq_modelTwist_lineMap {R₀ R₁ : ℝ → ℝ} {r₀ :
 /-- **Model twists of the same radius are Hamiltonian isotopic.** For twist profiles `R₀` and
 `R₁` with the same support radius `r₀`, there is a compactly supported Hamiltonian diffeotopy
 `φ_t` of `T*Sⁿ`, for the canonical symplectic form, that fixes every point with `μ ≥ r₀` at
-every time and satisfies `φ₁ ∘ τ_{R₀} = τ_{R₁}`. It is generated by the time-independent
-Hamiltonian `2π (R₁ - R₀) ∘ μ`. -/
+every time and satisfies `φ₁ ∘ τ_{R₀} = τ_{R₁}`. -/
 theorem exists_isCompactlySupportedHamiltonian_modelTwist {R₀ R₁ : ℝ → ℝ} {r₀ : ℝ}
     (h₀ : IsTwistProfile R₀ r₀) (h₁ : IsTwistProfile R₁ r₀) :
     ∃ Φ : Diffeotopy ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) ∞
@@ -663,9 +659,7 @@ theorem exists_isCompactlySupportedHamiltonian_modelTwist {R₀ R₁ : ℝ → �
         (∀ t z, r₀ ≤ cotangentNorm z → Φ (t, z) = z) ∧
           ∀ z, Φ.final (modelTwist h₀ z) = modelTwist h₁ z := by
   set g : ℝ → ℝ := fun t ↦ 2 * π * (R₁ t - R₀ t) with hg
-  have hge : g.Even := fun t ↦ by
-    simp only [hg, h₀.apply_neg, h₁.apply_neg]
-    ring
+  have hge : g.Even := fun t ↦ congrArg (2 * π * ·) (h₀.even_sub h₁ t)
   have hσ := CotangentBundle.isSymplectic_symplecticForm (I := 𝓡 n) (M := 𝕊 n)
   have hG : ContMDiff (((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)).prod (𝓡∂ 1)) 𝓘(ℝ) ∞
       fun p : CotangentBundle (𝓡 n) (𝕊 n) × unitInterval ↦ g (cotangentNorm p.1) :=
