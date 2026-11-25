@@ -21,6 +21,8 @@ orbit of `x` for the normalized Haar measure `TauCeti.haarProb G`.
 * `SymplecticGeometry.orbitAverage`: the orbit average of a function.
 * `SymplecticGeometry.orbitAverage_smul`: the orbit average is `G`-invariant.
 * `SymplecticGeometry.orbitAverage_eq_self`: a `G`-invariant function is its own orbit average.
+* `SymplecticGeometry.orbitAverage_const`, `SymplecticGeometry.orbitAverage_orbitAverage`: the
+  orbit average of a constant, and of an orbit average.
 * `SymplecticGeometry.orbitAverage_eq_of_eqOn`,
   `SymplecticGeometry.orbitAverage_eq_zero_of_notMem`: the orbit average keeps the value
   that `f` takes on a `G`-invariant set.
@@ -82,6 +84,18 @@ theorem orbitAverage_eq_self [CompleteSpace F] {f : M → F}
     (hf : ∀ (g : G) (x : M), f (g • x) = f x) :
     orbitAverage G f = f :=
   funext fun x ↦ by simp [orbitAverage_def, hf]
+
+/-- The orbit average of a constant function is that constant. -/
+@[simp]
+theorem orbitAverage_const [CompleteSpace F] (c : F) :
+    orbitAverage G (fun _ : M ↦ c) = fun _ ↦ c :=
+  orbitAverage_eq_self fun _ _ ↦ rfl
+
+/-- Averaging over the orbits twice is the same as averaging once. -/
+@[simp]
+theorem orbitAverage_orbitAverage [CompleteSpace F] (f : M → F) :
+    orbitAverage G (orbitAverage G f) = orbitAverage G f :=
+  orbitAverage_eq_self (orbitAverage_smul f)
 
 /-- If `f` vanishes outside a `G`-invariant set `s`, then so does its orbit average. -/
 theorem orbitAverage_eq_zero_of_notMem {f : M → F} {s : Set M}
