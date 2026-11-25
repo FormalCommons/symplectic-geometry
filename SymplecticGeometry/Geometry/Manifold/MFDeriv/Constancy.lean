@@ -11,6 +11,7 @@ public import Mathlib.Analysis.Convex.Basic
 import Mathlib.Analysis.Calculus.MeanValue
 import Mathlib.Geometry.Manifold.MFDeriv.Atlas
 import Mathlib.Geometry.Manifold.MFDeriv.FDeriv
+import TauCeti.Geometry.Manifold.MFDeriv.Constancy
 
 /-!
 # Locally constant maps and vanishing differentials
@@ -33,6 +34,11 @@ preconnected sets) does not reach. The proof adapts the chart argument of Tau Ce
 `MDifferentiableOn.eventuallyEq_const_of_mfderiv_eq_zero`, with Mathlib's
 `Convex.norm_image_sub_le_of_norm_hasFDerivWithin_le` in place of
 `Convex.is_const_of_fderivWithin_eq_zero`.
+
+`MDifferentiable.eq_of_mfderiv_eq` is the manifold form of Mathlib's `eq_of_fderiv_eq`: two
+differentiable maps from a preconnected real manifold to a real normed space, with the same
+differential everywhere and the same value at one point, are equal. It applies Tau Ceti's
+`MDifferentiable.apply_eq_of_mfderiv_eq_zero` to their difference.
 -/
 
 public section
@@ -101,5 +107,24 @@ theorem apply_eq_of_hasMFDerivWithinAt_zero (hs : Convex ℝ s)
   exact hlc.apply_eq_of_preconnectedSpace ⟨x, hx⟩ ⟨y, hy⟩
 
 end Convex
+
+namespace MDifferentiable
+
+variable {E F H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [NormedAddCommGroup F]
+  [NormedSpace ℝ F] [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+
+/-- Two differentiable maps from a preconnected real manifold to a real normed space, with the
+same differential at every point and the same value at one point, are equal. -/
+theorem eq_of_mfderiv_eq [IsManifold I 1 M] [PreconnectedSpace M] {f g : M → F}
+    (hf : MDifferentiable I 𝓘(ℝ, F) f) (hg : MDifferentiable I 𝓘(ℝ, F) g)
+    (hfg : ∀ x, mfderiv I 𝓘(ℝ, F) f x = mfderiv I 𝓘(ℝ, F) g x) (x : M) (hx : f x = g x) :
+    f = g := by
+  funext y
+  have h := (hf.sub hg).apply_eq_of_mfderiv_eq_zero
+    (fun z ↦ (mfderiv_sub (hf z) (hg z)).trans (sub_eq_zero.2 (hfg z))) y x
+  simpa [hx, sub_eq_zero] using h
+
+end MDifferentiable
 
 end
