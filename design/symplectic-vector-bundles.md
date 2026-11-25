@@ -1227,13 +1227,13 @@ continuity is `continuous_fiberwiseMap`; that one is Tau Ceti's
   forms, $\omega$ and $\omega_{g,J_{g,\omega}}$ both tame $J_{g,\omega}$, and
   the straight line `AffineMap.lineMap` between them, for $t$ in
   `unitInterval`, stays nondegenerate by `tames_lineMap_compatibleForm`.
-  It is continuous in $(t,\omega)$ by Mathlib's
-  `ContinuousMap.Homotopy.affine`: the second end is
+  So it is the homotopy
+  `ContinuousMap.Homotopy.affineOfSegmentSubset` from the identity to the
+  composite: the second end is
   continuous in $\omega$ as the composite of the two continuity lemmas above,
   and the frame topology is a topological vector space
   (`isTopologicalAddGroup_frameTopology`, `continuousSMul_frameTopology`).
-  At time $0$ it is $\omega$ (`AffineMap.lineMap_apply_zero`), at time $1$
-  the composite (`AffineMap.lineMap_apply_one`). This is
+  This is
   `ContMDiffTwoForm.homotopic_compatibleForm_polarComplexStructure`. On the
   structures the path is stated for two metrics `g₀` and `g₁`, so that
   `polarComplexStructure_homotopic` can use it too: $J$ and
