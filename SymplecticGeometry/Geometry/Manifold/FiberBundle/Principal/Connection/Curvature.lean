@@ -183,11 +183,11 @@ theorem IsConnectionForm.connectionCurvature_apply_rightFundamentalVectorField
 /-- **The curvature of a connection form is horizontal**: it vanishes as soon as one of its
 arguments is vertical, that is, in the kernel of the derivative of the projection. -/
 theorem IsConnectionForm.connectionCurvature_apply_eq_zero_of_vertical
-    (hA : IsConnectionForm A) (x : ManifoldTotalSpace G P)
+    {n : ℕ∞ω} (hA : IsConnectionForm A) (x : ManifoldTotalSpace G P)
     (v : Fin 2 → TangentSpace (IB.prod IG) x) (j : Fin 2)
-    (hv : mfderiv (IB.prod IG) IB (fun y : ManifoldTotalSpace G P ↦
-      ((ManifoldTotalSpace.homeomorph G P).symm y).proj) x (v j) = 0) :
+    (hv : mfderiv (IB.prod IG) IB (ManifoldTotalSpace.projContMDiffMap n G P IB IG) x (v j) = 0) :
     (connectionCurvature A).val x v = 0 := by
+  rw [ManifoldTotalSpace.coe_projContMDiffMap] at hv
   have hv' : v j ∈ LinearMap.range (PrincipalBundle.rightFundamentalLinearMap IB IG x) := by
     rw [PrincipalBundle.range_rightFundamentalLinearMap_eq_ker_mfderiv_proj]
     exact hv

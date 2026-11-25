@@ -9,6 +9,7 @@ public import Mathlib.Geometry.Manifold.VectorBundle.CovariantDerivative.LeviCiv
 public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.AlongCurve.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.AlongCurve.Metric
 import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.LeviCivita.Basic
+import TauCeti.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.ContinuousLinearMap
 import TauCeti.Geometry.Manifold.MFDeriv.Curve
 import TauCeti.Geometry.Manifold.VectorField.LieBracket
@@ -66,6 +67,7 @@ variable
   {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
   {f : M → F} {B : F →L[ℝ] F →L[ℝ] ℝ}
 
+attribute [local instance] IsManifold.minSmoothness_of_isRCLikeNormedField in
 /-- **The Gauss formula for a bilinear form.** Let `f : M → F` be a `C²` map into a real normed
 space, and `B` a symmetric continuous bilinear form on `F` for which the differential of `f`
 preserves inner products, `⟪v, w⟫ = B (df v) (df w)`. Then a Levi-Civita connection `∇`
@@ -78,9 +80,6 @@ theorem IsLeviCivitaConnection.inner_apply_eq_bilin_mvfderiv (h : cov.IsLeviCivi
     (w : TangentSpace I x) :
     inner ℝ (cov Y x (X x)) w =
       B (mvfderiv I (fun y ↦ mvfderiv I f y (Y y)) x (X x)) (mvfderiv I f x w) := by
-  have : IsManifold I (minSmoothness ℝ 2) M := by
-    rw [minSmoothness_of_isRCLikeNormedField]
-    infer_instance
   have hn : minSmoothness ℝ 2 ≤ (2 : ℕ∞ω) := by simp [minSmoothness_of_isRCLikeNormedField]
   let Z : Π y : M, TangentSpace I y := extend E w
   have hZ : MDiffAt (T% Z) x := mdifferentiableAt_extend I E w
