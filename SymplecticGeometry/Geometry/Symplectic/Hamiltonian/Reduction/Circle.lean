@@ -60,7 +60,6 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimen
   [FiberBundle Circle P] [∀ b, MulAction Circleᵐᵒᵖ (P b)]
   [PrincipalBundle Circle P] [ContMDiffFiberBundle ∞ Circle P IB (𝓡 1)]
 
-attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField in
 /-- **The pull-back of a symplectic form to a level descends to the base.** Let a circle act
 smoothly on a finite-dimensional manifold `M`, preserving the symplectic form `σ`, with moment
 map `μ`, and let `H = ⟨μ, circlePeriodOneGenerator⟩`. Let `P` be a smooth principal circle

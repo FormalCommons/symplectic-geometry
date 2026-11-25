@@ -27,13 +27,17 @@ nondegenerate a level of `H` without fixed points is a regular value of `H`. For
 `-μ`, the sign convention of the converse of minimal coupling, the same holds for `H`, since `-H`
 has the critical points of `H` (`TauCeti.criticalPoints_neg`).
 
-Since the Lie algebra of `Circle` is spanned by `ξ₁`, the cocycle of any map `μ` to its dual
-vanishes, and the kernel of the differential of a moment map `μ` is that of `dH`. A moment map `μ`
-is invariant under the action, and since the coadjoint action of the abelian group `Circle` is
-trivial (`TauCeti.Lie.coadjointRepresentation_eq_one`), it is a group-level moment map in Tau
-Ceti's sense. These are the facts that Tau Ceti's reduction of a level of a moment map
+Since the Lie algebra of `Circle` is spanned by `ξ₁`, the kernel of the differential of a moment
+map `μ` is that of `dH`. A moment map `μ` is invariant under the action, and since the coadjoint
+action of the abelian group `Circle` is trivial (`TauCeti.Lie.coadjointRepresentation_eq_one`),
+it is a group-level moment map in Tau Ceti's sense. The kernel identity and this equivariance are
+what Tau Ceti's equivariant reduction of a level
 (`TauCeti.SmoothTwoForm.IsEquivariantMomentMap.existsUnique_isSymplectic_mpullback_eq_mpullback`)
-asks for in the circle case.
+needs in the circle case; that theorem derives the vanishing of the cocycle itself.
+
+Separately, for the same reason the cocycle of any map `μ` to the dual of the Lie algebra of
+`Circle` vanishes. This is one hypothesis of the non-equivariant reduction
+`TauCeti.SmoothTwoForm.IsMomentMap.existsUnique_isSymplectic_mpullback_eq_mpullback`.
 
 ## Main results
 
@@ -179,7 +183,6 @@ theorem isRegularValue_of_notMem_fixedPoints [T2Space M] [BoundarylessManifold I
 
 /-! ### Circle moment maps are coadjoint-equivariant -/
 
-attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField in
 /-- **A circle moment map is coadjoint-equivariant.** A moment map `μ` of a smooth circle action
 is a group-level moment map: the coadjoint action of the abelian group `Circle` is trivial, and
 `μ` is invariant under the action. -/
