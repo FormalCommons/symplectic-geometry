@@ -14,6 +14,7 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 import TauCeti.Geometry.Manifold.IntegralCurve.Interval
 import TauCeti.Geometry.Manifold.Flow.Diffeomorph
 import TauCeti.Geometry.Manifold.VectorField.ModelChart
+import TauCeti.Geometry.Manifold.ContMDiff.MFDeriv
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Prod
 
 /-!
@@ -63,9 +64,9 @@ More generally, for a `C^(n+1)` family `Γ : N × ℝ → B` of curves whose cur
 interval into the base set, one family of fields, jointly `C^n` in the parameter as well, serves
 for all parameters near `a₀`
 (`Bundle.Trivialization.exists_timeDependentField_param_eq_curveVelocity`); a single curve is a
-constant family. The velocities of the curves, read in `e`, are the tangent map of `Γ` applied to
-the unit vector in time, as in the proof of Tau Ceti's `ContMDiffAt.contMDiffAt_curveVelocity_snd`
-for a parameter in the scalar field. They are multiplied by smooth cutoffs, in parameter and
+constant family. The velocities of the curves, read in `e`, are the tangent maps of the curves
+applied to the unit vector in time, which are jointly smooth by Tau Ceti's
+`ContMDiff.contMDiff_tangentMap_family`. They are multiplied by smooth cutoffs, in parameter and
 time and in space, from Tau Ceti's `IsCompact.exists_contMDiff_one_nhds_tsupport_subset`, equal
 to `1` near `{a₀} × [a, b]` and near its image, and mapped back by `e.symmL`, which vanishes off
 the base set. Since the interval is compact, both cutoffs are `1` on the product of a
@@ -358,22 +359,11 @@ theorem exists_timeDependentField_param_eq_curveVelocity {n : ℕ∞} {Γ : N ×
       {p : N × ℝ | χ p = 1 ∧ ψ (Γ p) = 1} ∈ 𝓝ˢ {a₀} ×ˢ 𝓝ˢ (Icc a b))
   -- The velocities of the curves of the family, as a map to the tangent bundle.
   have hvel : ContMDiff (IN.prod 𝓘(ℝ, ℝ)) J.tangent n
-      (fun p : N × ℝ ↦ (⟨Γ p, curveVelocity J (fun r ↦ Γ (p.1, r)) p.2⟩ : TangentBundle J B)) := by
-    have hσ : ContMDiff (IN.prod 𝓘(ℝ, ℝ)) (IN.prod 𝓘(ℝ, ℝ)).tangent n
-        (fun p : N × ℝ ↦ (⟨p, ((0 : EN), (1 : ℝ))⟩ : TangentBundle (IN.prod 𝓘(ℝ, ℝ)) (N × ℝ))) :=
-      (contMDiff_equivTangentBundleProd_symm (I := IN) (M := N) (I' := 𝓘(ℝ, ℝ))
-        (M' := ℝ)).comp (((contMDiff_zeroSection ℝ (TangentSpace IN)).comp contMDiff_fst).prodMk
-          ((contMDiff_tangentBundle_mk_const (1 : ℝ)).comp contMDiff_snd))
-    refine ((hΓ.contMDiff_tangentMap le_rfl).comp hσ).congr fun ⟨c, u⟩ ↦ ?_
-    have hd : HasMFDerivAt 𝓘(ℝ, ℝ) (IN.prod 𝓘(ℝ, ℝ)) (fun r ↦ (c, r)) u
-        ((1 : ℝ →L[ℝ] ℝ).smulRight (((0 : EN), (1 : ℝ)) : TangentSpace (IN.prod 𝓘(ℝ, ℝ)) (c, u))) :=
-      ((hasMFDerivAt_const c u).prodMk (hasMFDerivAt_id u)).congr_mfderiv
-        (ContinuousLinearMap.ext_ring (one_smul ℝ (((0 : EN), (1 : ℝ)) : EN × ℝ)).symm)
-    have hΓd := (hΓ.mdifferentiableAt (by simp)).hasMFDerivAt.comp u hd
-    simp only [comp_apply, tangentMap]
-    rw [curveVelocity_apply, show (fun r ↦ Γ (c, r)) = Γ ∘ fun r ↦ (c, r) from rfl, hΓd.mfderiv]
-    exact congrArg (TotalSpace.mk _) (congrArg (mfderiv (IN.prod 𝓘(ℝ, ℝ)) J Γ (c, u))
-      (one_smul ℝ (((0 : EN), (1 : ℝ)) : EN × ℝ)))
+      (fun p : N × ℝ ↦ (⟨Γ p, curveVelocity J (fun r ↦ Γ (p.1, r)) p.2⟩ : TangentBundle J B)) :=
+    have : IsManifold IN (n + 1) N := .of_le (n := ∞) (by exact_mod_cast le_top)
+    (ContMDiff.contMDiff_tangentMap_family (f := fun c r ↦ Γ (c, r)) hΓ le_rfl).comp
+      (contMDiff_fst.prodMk ((contMDiff_tangentBundle_mk_const (1 : ℝ)).comp contMDiff_snd))
+      |>.congr fun p ↦ by simp [tangentMap, curveVelocity_apply]
   -- The velocities read in `e`, cut off in the parameter and time.
   let v : N × ℝ → F := fun p ↦ (e ⟨Γ p, curveVelocity J (fun r ↦ Γ (p.1, r)) p.2⟩).2
   have hv {p : N × ℝ} (hp : Γ p ∈ e.baseSet) :

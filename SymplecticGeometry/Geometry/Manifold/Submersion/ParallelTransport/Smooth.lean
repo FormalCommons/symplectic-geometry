@@ -197,10 +197,7 @@ private theorem exists_contMDiff_parallelTransport_param_of_mapsTo_baseSet (hn :
   have hX : ContMDiff ((IN.prod 𝓘(ℝ, ℝ)).prod I) I.tangent n
       (fun p : (N × ℝ) × P ↦
         (⟨p.2, hD.horizontalLiftField (V p.1.1 p.1.2) p.2⟩ : TangentBundle I P)) :=
-    hD.contMDiff_horizontalLift (g := Prod.snd)
-      (w := fun p : (N × ℝ) × P ↦ ⟨f p.2, V p.1.1 p.1.2 (f p.2)⟩) (fun _ ↦ rfl) hf contMDiff_snd
-      (hV.comp (contMDiff_id.prodMap (hf.of_le le_self_add))) |>.congr fun p ↦ by
-        rw [horizontalLiftField_apply]
+    hD.contMDiff_horizontalLiftField_timeDependent (V := fun q : N × ℝ ↦ V q.1 q.2) hf hV
   have hflow := contMDiff_timeDependentFlowOf_param hn hX fun c ↦
     hD.isCompleteVectorField_timeDependentSuspensionField_horizontalLiftField hn hf hfp (hVc c) hK
       (hV0 c)
