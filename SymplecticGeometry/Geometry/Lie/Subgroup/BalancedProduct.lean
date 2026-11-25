@@ -61,12 +61,9 @@ the left-invariant vector field of the image `ξ'` of `ξ` in `Lie(G)`. -/
 theorem fundamentalVectorField_toRightTranslation (ξ : GroupLieAlgebra IK K) (g : G) :
     fundamentalVectorField I ξ (K.toRightTranslation g) =
       -mulInvariantVectorField (K.subtype.groupLieAlgebraMap IK I ξ) g := by
-  have hsub : MDifferentiableAt IK I K.subtype 1 := by
-    have h := (ContMDiffSMul.contMDiff_smul_const (I := IK) (I' := I) (n := 1)
-      (1 : G)).mdifferentiableAt (x := (1 : K)) one_ne_zero
-    convert h using 1
-    funext k
-    simp [Subgroup.smul_def]
+  have hsub : MDifferentiableAt IK I K.subtype 1 :=
+    (K.contMDiff_subtypeVal_of_contMDiffSMul (I := I) (I' := IK) (n := 1)).mdifferentiableAt
+      one_ne_zero
   have hinv : MDifferentiableAt I I (fun x : G ↦ x⁻¹) 1 :=
     (contMDiff_inv I 1).mdifferentiableAt one_ne_zero
   have hmul : MDifferentiableAt I I (fun x : G ↦ g * x) 1 :=
