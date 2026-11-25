@@ -25,8 +25,8 @@ subsets and along inducing maps without changing spaces.
   subsets.
 * `SymplecticGeometry.CoveringDimLE.of_isInducing`: the bound for `f '' K` gives the bound
   for `K` along an inducing map `f`.
-* `SymplecticGeometry.coveringDimLE_image_val_iff`: for `K` in an open subspace `S`, the bound
-  for `K` in `S` and for its image in `X` agree.
+* `Topology.IsInducing.coveringDimLE_image_iff`: along an inducing map `f`, the bound for `K`
+  and for `f '' K` agree; for a subspace, `IsInducing.subtypeVal.coveringDimLE_image_iff`.
 * `SymplecticGeometry.CoveringDimLE.exists_finset_card_le`: in a normal space, for `K`
   closed, a refinement inside a given open neighbourhood of `K` in which every point of `X`
   lies in at most `n + 1` members.
@@ -90,9 +90,8 @@ theorem subset (h : CoveringDimLE K n) (hLK : L ⊆ K) (hL : IsClosed L) :
     rcases Finset.mem_insert.1 hU' with rfl | hU𝒰
     · exact absurd hx (hVU' hxV)
     · exact ⟨V, Finset.mem_filter.2 ⟨hV𝒱, U, hU𝒰, hVU'⟩, hxV⟩
-  · refine le_trans (Finset.card_le_card fun V hV' => ?_) (hcard x (hLK hx))
-    simp only [Finset.mem_filter] at hV' ⊢
-    exact ⟨hV'.1.1, hV'.2⟩
+  · exact (Finset.card_le_card (Finset.filter_subset_filter _ (Finset.filter_subset _ _))).trans
+      (hcard x (hLK hx))
 
 /-- The bound passes back along an inducing map: if `f '' K` satisfies it in `Y`, then `K`
 satisfies it in `X`. -/
@@ -126,36 +125,58 @@ theorem of_isInducing {f : X → Y} (hf : Topology.IsInducing f) {K : Set X}
 end CoveringDimLE
 
 /-- The empty set satisfies the bound for every `n`. -/
+@[simp]
 theorem coveringDimLE_empty (n : ℕ) : CoveringDimLE (∅ : Set X) n :=
   fun _ _ _ => ⟨∅, by simp, by simp, by simp, by simp⟩
 
-/-- For a set `K` of an open subspace `S` of `X`, the bound for `K` in `S` is the bound for
-its image in `X`. -/
-theorem coveringDimLE_image_val_iff {S : Set X} (hS : IsOpen S) {K : Set S} {n : ℕ} :
-    CoveringDimLE ((↑) '' K : Set X) n ↔ CoveringDimLE K n := by
+end SymplecticGeometry
+
+namespace Topology.IsInducing
+
+open SymplecticGeometry
+
+variable {X Y : Type*} [TopologicalSpace X] [TopologicalSpace Y]
+
+/-- Along an inducing map `f`, the bound for `f '' K` in `Y` is the bound for `K` in `X`. -/
+theorem coveringDimLE_image_iff {f : X → Y} (hf : IsInducing f) {K : Set X} {n : ℕ} :
+    CoveringDimLE (f '' K) n ↔ CoveringDimLE K n := by
   classical
-  refine ⟨CoveringDimLE.of_isInducing Topology.IsInducing.subtypeVal, fun h 𝒰 hU hK => ?_⟩
-  obtain ⟨𝒱, hV, hKV, hVU, hcard⟩ := h (𝒰.image ((↑) ⁻¹' ·))
-    (by simpa using fun U hU𝒰 => (hU U hU𝒰).preimage continuous_subtypeVal)
+  refine ⟨CoveringDimLE.of_isInducing hf, fun h 𝒰 hU hK => ?_⟩
+  obtain ⟨𝒱, hV, hKV, hVU, hcard⟩ := h (𝒰.image (f ⁻¹' ·))
+    (by simpa using fun U hU𝒰 => (hU U hU𝒰).preimage hf.continuous)
     (fun x hx => by
-      obtain ⟨U, hU𝒰, hxU⟩ := hK (mem_image_of_mem _ hx)
+      obtain ⟨U, hU𝒰, hxU⟩ := hK (mem_image_of_mem f hx)
       exact ⟨_, Finset.mem_image_of_mem _ hU𝒰, hxU⟩)
-  refine ⟨𝒱.image ((↑) '' ·), ?_, ?_, ?_, ?_⟩
-  · simpa using fun V hV𝒱 => hS.isOpenMap_subtypeVal V (hV V hV𝒱)
-  · rintro _ ⟨x, hx, rfl⟩
-    obtain ⟨V, hV𝒱, hxV⟩ := hKV hx
-    exact ⟨_, Finset.mem_image_of_mem _ hV𝒱, mem_image_of_mem _ hxV⟩
-  · simp only [Finset.mem_image, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂]
-    intro V hV𝒱
+  have hpre : ∀ V ∈ 𝒱, ∃ W : Set Y, IsOpen W ∧ f ⁻¹' W = V :=
+    fun V hV𝒱 => hf.isOpen_iff.1 (hV V hV𝒱)
+  have hsub : ∀ V ∈ 𝒱, ∃ U ∈ 𝒰, V ⊆ f ⁻¹' U := fun V hV𝒱 => by
     obtain ⟨_, hU', hVU'⟩ := hVU V hV𝒱
     obtain ⟨U, hU𝒰, rfl⟩ := Finset.mem_image.1 hU'
-    exact ⟨U, hU𝒰, (image_mono hVU').trans (image_preimage_subset _ _)⟩
+    exact ⟨U, hU𝒰, hVU'⟩
+  choose! g hgo hgf using hpre
+  choose! u hu𝒰 hVu using hsub
+  refine ⟨𝒱.image fun V => g V ∩ u V, ?_, ?_, ?_, ?_⟩
+  · simpa using fun V hV𝒱 => (hgo V hV𝒱).inter (hU _ (hu𝒰 V hV𝒱))
+  · rintro _ ⟨x, hx, rfl⟩
+    obtain ⟨V, hV𝒱, hxV⟩ := hKV hx
+    have hxg : f x ∈ g V := by rw [← mem_preimage, hgf V hV𝒱]; exact hxV
+    exact ⟨_, Finset.mem_image_of_mem _ hV𝒱, hxg, hVu V hV𝒱 hxV⟩
+  · simp only [Finset.mem_image, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂]
+    exact fun V hV𝒱 => ⟨u V, hu𝒰 V hV𝒱, inter_subset_right⟩
   · rintro _ ⟨x, hx, rfl⟩
     rw [Finset.filter_image]
     refine Finset.card_image_le.trans (le_trans (Finset.card_le_card fun V hV' => ?_)
       (hcard x hx))
-    simp only [Finset.mem_filter, Subtype.val_injective.mem_set_image] at hV' ⊢
-    exact hV'
+    simp only [Finset.mem_filter] at hV' ⊢
+    refine ⟨hV'.1, ?_⟩
+    rw [← hgf V hV'.1]
+    exact hV'.2.1
+
+end Topology.IsInducing
+
+namespace SymplecticGeometry
+
+variable {X : Type*} [TopologicalSpace X]
 
 open Classical in
 /-- In a normal space, a closed set `K` with `CoveringDimLE K n`, a finite cover `𝒰` of `K` by
@@ -203,16 +224,14 @@ theorem CoveringDimLE.exists_finset_card_le [NormalSpace X] {K : Set X} {n : ℕ
       hvi.trans inter_subset_left⟩
   · obtain ⟨i, hxi⟩ := mem_iUnion.1 (hKv hx)
     exact ⟨v i \ B, Finset.mem_image_of_mem _ (Finset.mem_univ i), hxi, hKB x hx⟩
-  · have hsub : {W ∈ Finset.univ.image (fun i => v i \ B) | x ∈ W} ⊆
-        ({i | x ∈ v i \ B} : Finset 𝒱).image fun i => v i \ B := fun W hW => by
-      simp only [Finset.mem_filter, Finset.mem_image, Finset.mem_univ, true_and] at hW ⊢
-      obtain ⟨⟨i, rfl⟩, hxi⟩ := hW
-      exact ⟨i, hxi, rfl⟩
-    refine (Finset.card_le_card hsub).trans (Finset.card_image_le.trans (not_lt.1 fun hlt => ?_))
+  · rw [Finset.filter_image]
+    refine Finset.card_image_le.trans (not_lt.1 fun hlt => ?_)
     obtain ⟨i, hi⟩ := Finset.card_pos.1 (Nat.zero_lt_of_lt hlt)
-    refine (Finset.mem_filter.1 hi).2.2 (hmemB x (hlt.trans_le (Finset.card_le_card ?_)))
+    simp only [Finset.mem_filter] at hi
+    refine hi.2.2 (hmemB x (hlt.trans_le (Finset.card_le_card ?_)))
     intro j hj
-    exact Finset.mem_filter.2 ⟨Finset.mem_univ j, subset_closure (Finset.mem_filter.1 hj).2.1⟩
+    simp only [Finset.mem_filter] at hj ⊢
+    exact ⟨Finset.mem_univ j, subset_closure hj.2.1⟩
 
 end SymplecticGeometry
 

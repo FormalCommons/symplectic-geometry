@@ -1045,8 +1045,8 @@ In the namespace `SymplecticGeometry`, for a topological space `X`:
 - `CoveringDimLE.mono` (in `n`), `coveringDimLE_empty`,
   `CoveringDimLE.subset` (to a closed subset), `CoveringDimLE.of_isInducing`
   (from `f '' K` to `K` for an inducing map `f`) and
-  `coveringDimLE_image_val_iff` (for `K` in an open subspace `S`, the bound
-  in `S` and in `X` agree).
+  `Topology.IsInducing.coveringDimLE_image_iff` (for an inducing map `f`,
+  the bound for `K` and for `f '' K` agree).
 - `CoveringDimLE.exists_finset_card_le`: in a normal space, for `K` closed
   with `CoveringDimLE K n`, a finite cover `𝒰` of `K` by open sets and an
   open `O ⊇ K`, there is a finite set of open subsets of `O`, each inside a
