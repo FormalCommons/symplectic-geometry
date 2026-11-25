@@ -184,7 +184,6 @@ Liouville measure `|ω₀ᵐ / m!|` is `volume`. -/
 theorem liouvilleMeasure_constSmooth_stdForm {ι : Type*} [Fintype ι] {m : ℕ}
     [hm : Fact (finrank ℝ (StdSpace ι) = 2 * m)] :
     (stdForm ι).constSmooth.liouvilleMeasure m = volume := by
-  classical
   have hι : Fintype.card ι = m := by
     have := hm.out
     rw [finrank_stdSpace] at this

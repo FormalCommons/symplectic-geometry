@@ -1022,24 +1022,16 @@ along the bijection `Fin m × Fin 2 ≃ ι ⊕ ι` that sends `(k, 0)` to `Sum.i
 to `Sum.inr (τ k)`. -/
 theorem stdDarbouxBasisOf_eq_reindex {m : ℕ} (τ : Fin m ≃ ι) :
     stdDarbouxBasisOf τ = (EuclideanSpace.basisFun (ι ⊕ ι) ℝ).toBasis.reindex
-      ((Equiv.prodComm _ _).trans
-        ((Equiv.prodCongr finTwoEquiv τ).trans (Equiv.boolProdEquivSum ι))).symm := by
+      ((SymplecticForm.darbouxIndexEquiv m).trans
+        ((Equiv.sumComm _ _).trans (τ.sumCongr τ))).symm := by
   classical
-  exact Basis.eq_of_apply_eq fun ⟨k, i⟩ ↦ by
-    fin_cases i <;> simp [Equiv.boolProdEquivSum, finTwoEquiv]
-
-/-- The relabelled standard Darboux basis is the basis underlying the orthonormal coordinate
-basis of `StdSpace ι`, reindexed as in `stdDarbouxBasisOf_eq_reindex`. -/
-theorem stdDarbouxBasisOf_eq_toBasis {m : ℕ} (τ : Fin m ≃ ι) :
-    stdDarbouxBasisOf τ = ((EuclideanSpace.basisFun (ι ⊕ ι) ℝ).reindex
-      ((Equiv.prodComm _ _).trans
-        ((Equiv.prodCongr finTwoEquiv τ).trans (Equiv.boolProdEquivSum ι))).symm).toBasis := by
-  rw [OrthonormalBasis.reindex_toBasis, stdDarbouxBasisOf_eq_reindex]
+  exact Basis.eq_of_apply_eq fun ⟨k, i⟩ ↦ by fin_cases i <;> simp
 
 /-- The relabelled standard Darboux basis is orthonormal. -/
 theorem orthonormal_stdDarbouxBasisOf {m : ℕ} (τ : Fin m ≃ ι) :
     Orthonormal ℝ (stdDarbouxBasisOf τ) := by
-  rw [stdDarbouxBasisOf_eq_toBasis, OrthonormalBasis.coe_toBasis]
+  rw [stdDarbouxBasisOf_eq_reindex, ← OrthonormalBasis.reindex_toBasis,
+    OrthonormalBasis.coe_toBasis]
   exact OrthonormalBasis.orthonormal _
 
 /-- The relabelled standard Darboux basis is a Darboux basis of `ω₀`. -/
