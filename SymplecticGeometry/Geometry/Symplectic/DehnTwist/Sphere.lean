@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.DehnTwist.Model
+public import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.IsSymplectic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Basic
@@ -71,6 +72,11 @@ neighbourhood theorem for the form `dλ`,
   `f ∘ A`, with the same twist.
 * `SymplecticGeometry.eq_dehnTwist`: a diffeomorphism of `M` that satisfies the two apply lemmas
   on `ι '' {z | μ z ≤ r₀}` and off it is the twist.
+* `SymplecticGeometry.exists_diffeotopy_dehnTwist_eq_of_smoothIsotopy`: if a smooth isotopy of
+  local diffeomorphisms from an open set `W ⊇ {z | μ z ≤ r₀}` into `M`, each pulling `σ` back
+  to `-ω_can`, runs from the restriction of `ι₀` to `W` to that of `ι₁`, the twists of `ι₀`
+  and `ι₁` differ by the final map of a compactly supported diffeotopy of `M` that preserves `σ`
+  at all times.
 * `SymplecticGeometry.exists_diffeotopy_dehnTwist_eq_of_apply_zeroSection`: if `ι₁` and `ι₂` both
   pull `σ` back to `-ω_can` and send the zero covector at `q` to `f q`, their twists, for any
   two profiles, differ by the final map of a compactly supported diffeotopy of `M` that
@@ -108,7 +114,8 @@ pull `σ` back to `-ω_can`. By compactness `U` contains `{z | μ z ≤ r}` for 
 of profile above replaces both profiles by one profile `R` of radius `r`. The slices of `G` are
 smooth embeddings between manifolds of the same dimension (Tau Ceti's
 `IsLocalDiffeomorphAt.finrank_eq`, applied to `ι₁`), hence local diffeomorphisms (Tau Ceti's
-`Manifold.IsImmersion.isLocalDiffeomorph`), so
+`Manifold.IsImmersion.isLocalDiffeomorph`). For such an isotopy
+(`exists_diffeotopy_dehnTwist_eq_of_smoothIsotopy`),
 `TauCeti.SmoothIsotopy.exists_diffeotopy_comp_eq_extend_of_isSymplectic` moves the restriction
 of `τ_R` to `U` along `G`. Its transplant along `G_0` is the twist of `ι₁`, and its transplant
 along `G_1` is the twist of `ι₂` (`eq_dehnTwist`). The three diffeotopies compose in the
@@ -424,77 +431,64 @@ theorem exists_diffeotopy_dehnTwist_eq_of_isTwistProfile [IsManifold I ∞ M]
         dehnTwist_apply_of_notMem ι hR₂ hU₂ fun h ↦ hx (image_subset_range _ _ h),
         Diffeotopy.final_apply, hΦK 1 x hK]
 
-/-- The step of `exists_diffeotopy_dehnTwist_eq_of_apply_zeroSection` for one profile: if a
-symplectic isotopy `G` of open embeddings of `U ⊇ {z | μ z ≤ r₀}` joins the restrictions of `ι₁`
-and `ι₂` to `U`, their twists for a profile of radius `r₀` differ by the final map of a compactly
-supported diffeotopy preserving `σ`. -/
-private theorem mul_inv_mem_compactlySupportedIsotopyStabilizer_of_smoothIsotopy
-    [IsManifold I ∞ M] [I.Boundaryless] [FiniteDimensional ℝ F] {σ : SmoothTwoForm I M}
-    {U₁ U₂ : Opens (𝕋 n)} {V₁ V₂ : Opens M} (ι₁ : U₁ ≃ₘ⟮𝓣 n, I⟯ V₁) (ι₂ : U₂ ≃ₘ⟮𝓣 n, I⟯ V₂)
-    (hU : U ≤ U₁ ⊓ U₂)
-    (G : SmoothIsotopy
-      ((SmoothEmbedding.ofOpens (I := I) (n := ∞) V₁).toContMDiffMap.comp
-        (ι₁.toContMDiffMap.comp
-          (SmoothEmbedding.inclusion (hU.trans inf_le_left)).toContMDiffMap))
-      ((SmoothEmbedding.ofOpens (I := I) (n := ∞) V₂).toContMDiffMap.comp
-        (ι₂.toContMDiffMap.comp
-          (SmoothEmbedding.inclusion (hU.trans inf_le_right)).toContMDiffMap)))
+/-- **Moving the neighbourhood along a symplectic isotopy moves the twist.** Let `W` be an open set
+of `T*Sⁿ` containing `{z | μ z ≤ r₀}` and contained in the domains `U₀` and `U₁` of
+`ι₀ : U₀ ≃ V₀` and `ι₁ : U₁ ≃ V₁`. Let `G` be a smooth isotopy from the restriction of `ι₀` to
+`W` to that of `ι₁`, whose slices are local diffeomorphisms pulling `σ` back to `-ω_can`. Then the
+twists of `ι₀` and `ι₁` for a profile `R` of radius `r₀` differ by the final map of a diffeotopy
+of `M` that preserves `σ` at all times and fixes every point outside a compact set at all
+times. -/
+theorem exists_diffeotopy_dehnTwist_eq_of_smoothIsotopy [IsManifold I ∞ M]
+    [BoundarylessManifold I M]
+    {σ : SmoothTwoForm I M} {W U₀ U₁ : Opens (𝕋 n)} {V₀ V₁ : Opens M}
+    (ι₀ : U₀ ≃ₘ⟮𝓣 n, I⟯ V₀) (ι₁ : U₁ ≃ₘ⟮𝓣 n, I⟯ V₁) (hW₀ : W ≤ U₀) (hW₁ : W ≤ U₁)
+    {g₀ g₁ : C^∞⟮𝓣 n, W; I, M⟯} (hg₀ : ∀ z : W, g₀ z = ι₀ ⟨z, hW₀ z.property⟩)
+    (hg₁ : ∀ z : W, g₁ z = ι₁ ⟨z, hW₁ z.property⟩) (G : SmoothIsotopy g₀ g₁)
+    (hGd : ∀ t, IsLocalDiffeomorph (𝓣 n) I ∞ fun z : W ↦ G (t, z))
     (hGσ : G.IsSymplectic (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal
       (-CotangentBundle.symplecticForm (𝓡 n) (𝕊 n))) σ)
-    (hR : IsTwistProfile R r₀) (hrU : {z : 𝕋 n | cotangentNorm z ≤ r₀} ⊆ (U : Set (𝕋 n))) :
-    dehnTwist ι₂ hR (hrU.trans (hU.trans inf_le_right)) *
-        (dehnTwist ι₁ hR (hrU.trans (hU.trans inf_le_left)))⁻¹ ∈
-      SmoothForm.compactlySupportedIsotopyStabilizer σ := by
-  -- The slices of `G` are local diffeomorphisms: smooth embeddings between manifolds of the
-  -- same dimension, as `ι₁` shows.
-  have hGd (t : unitInterval) : IsLocalDiffeomorph (𝓣 n) I ∞ fun z : U ↦ G (t, z) := by
-    rcases isEmpty_or_nonempty U with _ | ⟨⟨z, hz⟩⟩
-    · exact fun z ↦ isEmptyElim z
-    have hd := (ι₁.isLocalDiffeomorph ⟨z, (le_inf_iff.1 hU).1 hz⟩).finrank_eq (by simp)
-    exact (G.isSmoothEmbedding t).isImmersion.isLocalDiffeomorph hd (by simp)
-  -- Move the model twist, restricted to `U`, along `G`.
+    (hR : IsTwistProfile R r₀) (hrW : {z : 𝕋 n | cotangentNorm z ≤ r₀} ⊆ (W : Set (𝕋 n))) :
+    ∃ (Φ : Diffeotopy I ∞ M) (K : Set M), IsCompact K ∧
+      (∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ) ∧
+      (∀ t x, x ∉ K → Φ (t, x) = x) ∧
+      ∀ x, Φ.final (dehnTwist ι₀ hR (hrW.trans hW₀) x) = dehnTwist ι₁ hR (hrW.trans hW₁) x := by
+  -- Move the model twist, restricted to `W`, along `G`.
   obtain ⟨Λ₀, Φ, hΦG, hΦK, hΛ₀g, hΛ₀K, -, hΦσ, hΦΛ₀K⟩ :=
-    G.exists_diffeotopy_comp_eq_extend_of_isSymplectic hGd hGσ (modelTwistOn hR hrU)
+    G.exists_diffeotopy_comp_eq_extend_of_isSymplectic hGd hGσ (modelTwistOn hR hrW)
       (SmoothForm.mem_diffeomorphStabilizer_mpullback_of_semiconj contMDiff_subtypeVal
-        (modelTwistOn_apply_coe hR hrU) (by
+        (modelTwistOn_apply_coe hR hrW) (by
           rw [SmoothForm.diffeomorphStabilizer_neg, SmoothForm.mem_diffeomorphStabilizer]
           exact mpullback_modelTwist_symplecticForm hR))
-      (isCompact_setOf_cotangentNorm_coe_le hrU) fun _ ↦ modelTwistOn_apply_of_notMem hR hrU
+      (isCompact_setOf_cotangentNorm_coe_le hrW) fun _ ↦ modelTwistOn_apply_of_notMem hR hrW
   -- At either end of `G`, a map that commutes with the model twist through that end
   -- agrees with the twist of the corresponding `ι` on `{z | μ z ≤ r₀}`.
-  have hend {U' : Opens (𝕋 n)} {V' : Opens M} (ι : U' ≃ₘ⟮𝓣 n, I⟯ V') (h' : U ≤ U') (Λ : M → M)
-      (z : U') (hz : cotangentNorm (z : 𝕋 n) ≤ r₀)
-      (hΛ : Λ (((SmoothEmbedding.ofOpens (I := I) (n := ∞) V').toContMDiffMap.comp
-          (ι.toContMDiffMap.comp (SmoothEmbedding.inclusion h').toContMDiffMap)) ⟨z, hrU hz⟩) =
-        ((SmoothEmbedding.ofOpens (I := I) (n := ∞) V').toContMDiffMap.comp
-          (ι.toContMDiffMap.comp (SmoothEmbedding.inclusion h').toContMDiffMap))
-          (modelTwistOn hR hrU ⟨z, hrU hz⟩)) :
-      Λ (ι z) = ι ⟨modelTwist hR z, (modelTwist_mem_iff hR (hrU.trans h') z).2 z.property⟩ := by
-    simp only [ContMDiffMap.comp_apply, SmoothEmbedding.coe_toContMDiffMap,
-      SmoothEmbedding.inclusion_apply, Subtype.coe_eta, Diffeomorph.coe_coe,
-      SmoothEmbedding.ofOpens_apply] at hΛ
+  have hend {U' : Opens (𝕋 n)} {V' : Opens M} (ι : U' ≃ₘ⟮𝓣 n, I⟯ V') (h' : W ≤ U') (g : W → M)
+      (hg : ∀ z : W, g z = ι ⟨z, h' z.property⟩) (Λ : M → M) (z : U')
+      (hz : cotangentNorm (z : 𝕋 n) ≤ r₀)
+      (hΛ : Λ (g ⟨z, hrW hz⟩) = g (modelTwistOn hR hrW ⟨z, hrW hz⟩)) :
+      Λ (ι z) = ι ⟨modelTwist hR z, (modelTwist_mem_iff hR (hrW.trans h') z).2 z.property⟩ := by
+    rw [hg, hg] at hΛ
     rw [hΛ]
-    exact congrArg (fun w ↦ (ι w : M))
-      (Subtype.ext (by simpa using modelTwistOn_apply_coe hR hrU ⟨z, hrU hz⟩))
-  -- `Λ₀` is the twist of `ι₁`, and `Φ₁ ∘ Λ₀` that of `ι₂`.
-  have h₁ : Λ₀ = dehnTwist ι₁ hR (hrU.trans (hU.trans inf_le_left)) := by
-    refine eq_dehnTwist ι₁ hR _ (fun z hz ↦ hend ι₁ _ Λ₀ z hz (hΛ₀g _)) fun x hx ↦ hΛ₀K x ?_
+    exact congrArg (fun w ↦ (ι w : M)) (Subtype.ext (modelTwistOn_apply_coe hR hrW _))
+  -- `Λ₀` is the twist of `ι₀`, and `Φ₁ ∘ Λ₀` that of `ι₁`.
+  have h₀ : Λ₀ = dehnTwist ι₀ hR (hrW.trans hW₀) := by
+    refine eq_dehnTwist ι₀ hR _ (fun z hz ↦ hend ι₀ hW₀ g₀ hg₀ Λ₀ z hz (hΛ₀g _))
+      fun x hx ↦ hΛ₀K x ?_
     rintro ⟨w, hw, rfl⟩
-    exact hx ⟨⟨w, (le_inf_iff.1 hU).1 w.property⟩, hw, by simp⟩
-  have h₂ : Φ.final * Λ₀ = dehnTwist ι₂ hR (hrU.trans (hU.trans inf_le_right)) := by
-    refine eq_dehnTwist ι₂ hR _ (fun z hz ↦ ?_) fun x hx ↦ ?_
+    exact hx ⟨⟨w, hW₀ w.property⟩, hw, (hg₀ w).symm⟩
+  have h₁ : Φ.final * Λ₀ = dehnTwist ι₁ hR (hrW.trans hW₁) := by
+    refine eq_dehnTwist ι₁ hR _ (fun z hz ↦ ?_) fun x hx ↦ ?_
     · rw [Diffeomorph.mul_apply, Diffeotopy.final_apply, ← Diffeotopy.timeSlice_apply]
-      have h := hΦG 1 ⟨z, hrU hz⟩
+      have h := hΦG 1 ⟨z, hrW hz⟩
       rw [G.apply_one, G.apply_one] at h
-      exact hend ι₂ _ (fun x ↦ Φ.timeSlice 1 (Λ₀ x)) z hz h
+      exact hend ι₁ hW₁ g₁ hg₁ (fun x ↦ Φ.timeSlice 1 (Λ₀ x)) z hz h
     · rw [Diffeomorph.mul_apply, Diffeotopy.final_apply, ← Diffeotopy.timeSlice_apply]
       refine hΦΛ₀K 1 x ?_
       rintro ⟨w, hw, rfl⟩
-      exact hx ⟨⟨w, (le_inf_iff.1 hU).2 w.property⟩, hw, by simp [G.apply_one]⟩
-  rw [← h₁, ← h₂, mul_inv_cancel_right]
-  exact SmoothForm.mem_compactlySupportedIsotopyStabilizer.2 ⟨Φ, _,
-    (isCompact_univ.prod (isCompact_setOf_cotangentNorm_coe_le hrU)).image
-      G.contMDiff.continuous, hΦσ, hΦK, rfl⟩
+      exact hx ⟨⟨w, hW₁ w.property⟩, hw, by simp [G.apply_one, hg₁]⟩
+  refine ⟨Φ, _, (isCompact_univ.prod (isCompact_setOf_cotangentNorm_coe_le hrW)).image
+    G.contMDiff.continuous, hΦσ, hΦK, fun x ↦ ?_⟩
+  rw [← h₀, ← h₁, Diffeomorph.mul_apply]
 
 /-- **Two neighbourhoods of the same sphere give isotopic twists.** Let `ι₁ : U₁ ≃ V₁` and
 `ι₂ : U₂ ≃ V₂` be diffeomorphisms from open sets of `T*Sⁿ` onto open sets of a manifold `M`
@@ -545,8 +539,16 @@ theorem exists_diffeotopy_dehnTwist_eq_of_apply_zeroSection [IsManifold I ∞ M]
   have hC := exists_diffeotopy_dehnTwist_eq_of_isTwistProfile ι₂ hι₂ hR
     (hrU.trans (hU.trans inf_le_right)) hR₂ hU₂
   rw [← SmoothForm.mul_inv_mem_compactlySupportedIsotopyStabilizer_iff] at hA hC
-  have hB := mul_inv_mem_compactlySupportedIsotopyStabilizer_of_smoothIsotopy ι₁ ι₂ hU G hGσ hR
-    hrU
+  -- The slices of `G` are local diffeomorphisms: smooth embeddings between manifolds of the
+  -- same dimension, as `ι₁` shows.
+  have hGd (t : unitInterval) : IsLocalDiffeomorph (𝓣 n) I ∞ fun z : U ↦ G (t, z) := by
+    rcases isEmpty_or_nonempty U with _ | ⟨⟨z, hz⟩⟩
+    · exact fun z ↦ isEmptyElim z
+    have hd := (ι₁.isLocalDiffeomorph ⟨z, (le_inf_iff.1 hU).1 hz⟩).finrank_eq (by simp)
+    exact (G.isSmoothEmbedding t).isImmersion.isLocalDiffeomorph hd (by simp)
+  have hB := SmoothForm.mul_inv_mem_compactlySupportedIsotopyStabilizer_iff.2 <|
+    exists_diffeotopy_dehnTwist_eq_of_smoothIsotopy ι₁ ι₂ (hU.trans inf_le_left)
+      (hU.trans inf_le_right) (fun z ↦ by simp) (fun z ↦ by simp) G hGd hGσ hR hrU
   simpa only [mul_assoc, inv_mul_cancel_left] using mul_mem (mul_mem hC hB) hA
 
 end Twist
