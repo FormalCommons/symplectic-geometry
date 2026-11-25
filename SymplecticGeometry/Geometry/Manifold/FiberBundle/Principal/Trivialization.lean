@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Basic
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal.FundamentalVectorField
 public import TauCeti.Topology.FiberBundle.Principal.Basic
@@ -15,8 +16,8 @@ public import TauCeti.Topology.FiberBundle.Principal.Basic
 Let `P` be a smooth principal `G`-bundle with charted total space
 `TauCeti.ManifoldTotalSpace G P`, and `e` an equivariant trivialization of `P`
 (`Trivialization.IsEquivariant`). Its fibre coordinate `θ x = (e x).2 ∈ G`, read on the charted
-total space, is `Bundle.Trivialization.manifoldSnd e`, defined here for any fibre bundle. It
-satisfies `θ (x • g) = θ x * g` over the base set of `e`
+total space, is `Bundle.Trivialization.manifoldSnd e`, defined for any fibre bundle in
+`FiberBundle/Basic.lean`. It satisfies `θ (x • g) = θ x * g` over the base set of `e`
 (`Bundle.Trivialization.manifoldSnd_op_smul`). This file records two consequences of this identity
 for `θ` differentiable over the base set of `e`, stated for an arbitrary form or for none:
 
@@ -43,31 +44,6 @@ open Bundle Manifold MulOpposite TauCeti
 open scoped Manifold ContDiff Topology
 
 namespace Bundle.Trivialization
-
-section ManifoldSnd
-
-variable {B F : Type*} {E : B → Type*} [TopologicalSpace B] [TopologicalSpace F]
-  [TopologicalSpace (TotalSpace F E)] (e : Trivialization F (π F E))
-
-/-- The fibre coordinate of a trivialization `e` of a fibre bundle with fibre `F`, as a map on
-the charted total space `TauCeti.ManifoldTotalSpace F E`: the second component of `e`. -/
-def manifoldSnd (x : ManifoldTotalSpace F E) : F :=
-  (e ((ManifoldTotalSpace.homeomorph F E).symm x)).2
-
-theorem manifoldSnd_def :
-    e.manifoldSnd = fun x ↦ (e ((ManifoldTotalSpace.homeomorph F E).symm x)).2 :=
-  (rfl)
-
-theorem manifoldSnd_apply (x : ManifoldTotalSpace F E) :
-    e.manifoldSnd x = (e ((ManifoldTotalSpace.homeomorph F E).symm x)).2 :=
-  (rfl)
-
-@[simp]
-theorem manifoldSnd_homeomorph (p : TotalSpace F E) :
-    e.manifoldSnd (ManifoldTotalSpace.homeomorph F E p) = (e p).2 := by
-  rw [manifoldSnd_apply, Homeomorph.symm_apply_apply]
-
-end ManifoldSnd
 
 variable {EB HB B : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [TopologicalSpace HB]
   {IB : ModelWithCorners ℝ EB HB} [TopologicalSpace B] [ChartedSpace HB B]

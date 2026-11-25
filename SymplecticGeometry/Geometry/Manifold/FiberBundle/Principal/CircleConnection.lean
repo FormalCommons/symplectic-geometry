@@ -444,7 +444,6 @@ theorem IsCircleConnectionForm.apply_eq_mpullback_add_mpullback (hα : IsCircleC
   have hθd (y : ManifoldTotalSpace Circle P)
       (hy : ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj ∈ e.baseSet) :
       MDifferentiableAt (IB.prod (𝓡 1)) (𝓡 1) θ y := by
-    rw [hθdef, Trivialization.manifoldSnd_def]
     exact (PrincipalBundle.contMDiffAt_snd_trivializationOfSection hσ'
       (by rwa [PrincipalBundle.baseSet_trivializationOfSection] at hy)).mdifferentiableAt
         (by simp)
@@ -515,7 +514,6 @@ theorem IsCircleConnectionForm.mpullback_apply_eq_mpullback_division_add
   have hxt : ((ManifoldTotalSpace.homeomorph Circle P).symm (t x)).proj ∈ U := by
     simpa [t] using hx
   have hθd : MDifferentiableAt (IB.prod (𝓡 1)) (𝓡 1) θ (t x) := by
-    rw [hθdef, Trivialization.manifoldSnd_def]
     exact (PrincipalBundle.contMDiffAt_snd_trivializationOfSection hσ hxt).mdifferentiableAt
       (by simp)
   have hloc := hα.apply_eq_mpullback_add_mpullback hU hσc hσ hxt

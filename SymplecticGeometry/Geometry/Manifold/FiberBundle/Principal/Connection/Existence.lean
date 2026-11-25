@@ -136,10 +136,8 @@ theorem exists_isConnectionForm [FiniteDimensional ℝ EB] [T2Space B] [SigmaCom
     ((ManifoldTotalSpace.homeomorph G P).symm x).proj with hp
   have hpc : ContMDiff (IB.prod IG) IB ∞ p := ManifoldTotalSpace.contMDiff_proj ∞ G P IB IG
   have hθd (b : B) (x : ManifoldTotalSpace G P) (hx : p x ∈ (trivializationAt G P b).baseSet) :
-      ContMDiffAt (IB.prod IG) IG ∞ (trivializationAt G P b).manifoldSnd x := by
-    rw [Trivialization.manifoldSnd_def]
-    exact (ManifoldTotalSpace.contMDiffOn_trivialization_snd_comp _ (f := fun x ↦ x)
-      contMDiffOn_id fun _ hx ↦ hx).contMDiffAt
+      ContMDiffAt (IB.prod IG) IG ∞ (trivializationAt G P b).manifoldSnd x :=
+    ((trivializationAt G P b).contMDiffOn_manifoldSnd (IB := IB)).contMDiffAt
       (((trivializationAt G P b).open_baseSet.preimage hpc.continuous).mem_nhds hx)
   have hθ (b : B) (x : ManifoldTotalSpace G P) (hx : p x ∈ (trivializationAt G P b).baseSet) :=
     (hθd b x hx).mdifferentiableAt (by simp)

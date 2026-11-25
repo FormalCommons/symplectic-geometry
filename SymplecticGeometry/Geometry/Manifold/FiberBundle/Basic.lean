@@ -18,8 +18,9 @@ Tau Ceti charts the total space of a fibre bundle whose model fibre is a manifol
 `TauCeti.ManifoldTotalSpace.homeomorph`. Smoothness of a family of points of the bundle, such as a
 local section, is stated for its composite with that homeomorphism, while continuity is usually
 stated in `Bundle.TotalSpace F E` itself. This file relates the two, pulls differential forms
-on the total space back along such sections, and records the smoothness of the fibre coordinate of
-the trivialization of a principal bundle given by a local section.
+on the total space back along such sections, names the fibre coordinate of a trivialization as a
+map on the charted total space, and records its smoothness, in particular for the trivialization
+of a principal bundle given by a local section.
 
 ## Main results
 
@@ -42,6 +43,9 @@ the trivialization of a principal bundle given by a local section.
   `a`.
 * `TauCeti.ManifoldTotalSpace.mpullback_add_mpullback_proj_apply`: the pull-back of `α + π^* a`
   along a section is the pull-back of `α` plus `a`.
+* `Bundle.Trivialization.manifoldSnd`: the fibre coordinate of a trivialization, as a map on the
+  charted total space; `Bundle.Trivialization.contMDiffOn_manifoldSnd`: it is `C^n` over the base
+  set of a trivialization in the atlas.
 * `TauCeti.PrincipalBundle.contMDiffAt_snd_trivializationOfSection`: the fibre coordinate of the
   trivialization that a `C^n` local section determines is `C^n` over the section's domain.
 -/
@@ -169,6 +173,56 @@ end Pullback
 
 end TauCeti.ManifoldTotalSpace
 
+/-! ### The fibre coordinate of a trivialization -/
+
+namespace Bundle.Trivialization
+
+section ManifoldSnd
+
+variable {B F : Type*} {E : B → Type*} [TopologicalSpace B] [TopologicalSpace F]
+  [TopologicalSpace (TotalSpace F E)] (e : Trivialization F (π F E))
+
+/-- The fibre coordinate of a trivialization `e` of a fibre bundle with fibre `F`, as a map on
+the charted total space `TauCeti.ManifoldTotalSpace F E`: the second component of `e`. -/
+def manifoldSnd (x : TauCeti.ManifoldTotalSpace F E) : F :=
+  (e ((TauCeti.ManifoldTotalSpace.homeomorph F E).symm x)).2
+
+theorem manifoldSnd_def :
+    e.manifoldSnd = fun x ↦ (e ((TauCeti.ManifoldTotalSpace.homeomorph F E).symm x)).2 :=
+  (rfl)
+
+theorem manifoldSnd_apply (x : TauCeti.ManifoldTotalSpace F E) :
+    e.manifoldSnd x = (e ((TauCeti.ManifoldTotalSpace.homeomorph F E).symm x)).2 :=
+  (rfl)
+
+@[simp]
+theorem manifoldSnd_homeomorph (p : TotalSpace F E) :
+    e.manifoldSnd (TauCeti.ManifoldTotalSpace.homeomorph F E p) = (e p).2 := by
+  rw [manifoldSnd_apply, Homeomorph.symm_apply_apply]
+
+end ManifoldSnd
+
+section Smooth
+
+variable {n : ℕ∞ω} {𝕜 B F : Type*} {E : B → Type*} [NontriviallyNormedField 𝕜]
+  {EB : Type*} [NormedAddCommGroup EB] [NormedSpace 𝕜 EB] {HB : Type*} [TopologicalSpace HB]
+  {IB : ModelWithCorners 𝕜 EB HB} [TopologicalSpace B] [ChartedSpace HB B]
+  [TopologicalSpace (TotalSpace F E)] [∀ b, TopologicalSpace (E b)]
+  {EF : Type*} [NormedAddCommGroup EF] [NormedSpace 𝕜 EF] {HF : Type*}
+  [TopologicalSpace HF] {IF : ModelWithCorners 𝕜 EF HF} [TopologicalSpace F] [ChartedSpace HF F]
+  [FiberBundle F E] [TauCeti.ContMDiffFiberBundle n F E IB IF]
+
+/-- The fibre coordinate of a trivialization `e` in the atlas of a `C^n` fibre bundle is `C^n`
+over the base set of `e`. -/
+theorem contMDiffOn_manifoldSnd (e : Trivialization F (π F E)) [MemTrivializationAtlas e] :
+    ContMDiffOn (IB.prod IF) IF n e.manifoldSnd
+      ((fun x ↦ ((TauCeti.ManifoldTotalSpace.homeomorph F E).symm x).proj) ⁻¹' e.baseSet) :=
+  TauCeti.ManifoldTotalSpace.contMDiffOn_trivialization_snd_comp e contMDiffOn_id fun _ hx ↦ hx
+
+end Smooth
+
+end Bundle.Trivialization
+
 /-! ### The fibre coordinate of the trivialization of a local section -/
 
 namespace TauCeti.PrincipalBundle
@@ -191,9 +245,7 @@ theorem contMDiffAt_snd_trivializationOfSection
     (hσ' : ContMDiffOn IB (IB.prod IG) n
       (fun b ↦ ManifoldTotalSpace.homeomorph G P ⟨b, σ b⟩) U)
     {x : ManifoldTotalSpace G P} (hx : ((ManifoldTotalSpace.homeomorph G P).symm x).proj ∈ U) :
-    ContMDiffAt (IB.prod IG) IG n
-      (fun y ↦ (trivializationOfSection σ hU hσ ((ManifoldTotalSpace.homeomorph G P).symm y)).2)
-      x :=
+    ContMDiffAt (IB.prod IG) IG n (trivializationOfSection σ hU hσ).manifoldSnd x :=
   (contMDiff_snd.comp_contMDiffOn (contMDiffOn_trivializationOfSection hσ')).contMDiffAt
     ((hU.preimage (ManifoldTotalSpace.contMDiff_proj n G P IB IG).continuous).mem_nhds hx)
 
