@@ -199,12 +199,12 @@ theorem IsCircleConnectionForm.isBasic_mextDerivₗ (hα : IsCircleConnectionFor
       (mextDerivₗ (IB.prod (𝓡 1)) 1 α).val :=
   PrincipalBundle.isBasic_of_mpullback_op_smul (β := mextDerivₗ (IB.prod (𝓡 1)) 1 α)
     (fun z ↦ by rw [← SmoothForm.mextDerivₗ_mpullback, hα.mpullback_op_smul])
-    fun x v j hv ↦ by
+    (RoughForm.isSemibasic_iff.mpr fun x v j hv ↦ by
       have h := (isConnectionForm_mapCoeff_iff.mpr hα).connectionCurvature_apply_eq_zero_of_vertical
         x v j hv
       rw [connectionCurvature_mapCoeff_toSpanSingleton, SmoothForm.coe_mapCoeff,
         RoughForm.mapCoeff_apply, ContinuousLinearMap.toSpanSingleton_apply, smul_eq_zero] at h
-      exact h.resolve_right circleLieGenerator_ne_zero
+      exact h.resolve_right circleLieGenerator_ne_zero)
 
 /-- The **curvature** of a connection form `α` on a principal `Circle`-bundle over `B`: the unique
 smooth `2`-form on `B` whose pull-back along the projection is `d α`
@@ -282,7 +282,8 @@ theorem IsCircleConnectionForm.existsUnique_eq_add_mpullback (hα : IsCircleConn
   have hsub := ManifoldTotalSpace.isSubmersion_projContMDiffMap ∞ Circle P IB (𝓡 1)
   -- The difference `β - α` is invariant and vanishes on vertical vectors, so it is basic.
   have hbasic := PrincipalBundle.isBasic_of_mpullback_op_smul (n := ∞) (β := β - α)
-    (fun z ↦ by rw [map_sub, hα.mpullback_op_smul, hβ.mpullback_op_smul]) fun x v j hv ↦ by
+    (fun z ↦ by rw [map_sub, hα.mpullback_op_smul, hβ.mpullback_op_smul])
+    (RoughForm.isSemibasic_iff.mpr fun x v j hv ↦ by
       set ξ := rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator x
       obtain rfl : j = 0 := Subsingleton.elim _ _
       obtain ⟨c, hc⟩ := exists_eq_smul_rightFundamentalVectorField_of_mfderiv_proj_eq_zero
@@ -295,7 +296,7 @@ theorem IsCircleConnectionForm.existsUnique_eq_add_mpullback (hα : IsCircleConn
         ((β - α).val x).map_coord_zero (0 : Fin 1) rfl,
         Submodule.coe_sub, Pi.sub_apply, ContinuousAlternatingMap.sub_apply,
         hα.apply_rightFundamentalVectorField, hβ.apply_rightFundamentalVectorField, sub_self,
-        smul_zero, add_zero]
+        smul_zero, add_zero])
   refine ⟨SmoothForm.descendedForm hsub hsurj (β - α) hbasic, ?_,
     fun a' ha' ↦ SmoothForm.eq_descendedForm_iff.mpr ?_⟩
   · beta_reduce

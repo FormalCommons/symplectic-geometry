@@ -6,13 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.DehnTwist.Model
-public import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Lagrangian
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
-import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
 import TauCeti.Geometry.Manifold.Diffeomorph.Extend
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
-import TauCeti.Geometry.Manifold.VectorBundle.Scalar
-import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Fiberwise
 
 /-!
 # The Dehn twist along a Lagrangian sphere
@@ -29,7 +25,10 @@ the identity off `V`.
 When `ι` pulls `σ` back to `-ω_can = dλ`, that is, when `ι` is symplectic for the sources' form,
 the twist preserves `σ`, and when `ι` sends the zero covector at `q` to `f q` for a map
 `f : Sⁿ → M`, it maps `f q` to `f (-q)`. For a Lagrangian embedding `f` of the sphere into a
-symplectic manifold without boundary such a `ι` exists.
+second countable symplectic manifold without boundary such a `ι` exists, by the Lagrangian
+neighbourhood theorem for the form `dλ`,
+`TauCeti.SmoothTwoForm.IsNondegenerate.IsLagrangianMap.exists_symplectomorphism_cotangent_neg`
+(`Geometry/Symplectic/Neighborhood/Lagrangian.lean`).
 
 ## Main definitions
 
@@ -45,9 +44,6 @@ symplectic manifold without boundary such a `ι` exists.
   preserves `σ`.
 * `SymplecticGeometry.dehnTwist_apply_embedding`: if `ι` sends the zero covector at `q` to `f q`,
   the twist maps `f q` to `f (-q)`.
-* `SymplecticGeometry.exists_symplecticEmbedding`: for a Lagrangian embedding `f` of `Sⁿ` into a
-  symplectic manifold there is such a `ι`, pulling `σ` back to `-ω_can` and extending `f` along
-  the zero section.
 
 ## Implementation notes
 
@@ -61,22 +57,12 @@ compact set. The twist preserves `σ` by `TauCeti.SmoothForm.mem_diffeomorphStab
 for the same embedding: the restriction of `τ_R` to `U` preserves the restriction of `-ω_can`,
 since `τ_R` preserves `ω_can` (`mpullback_modelTwist_symplecticForm`).
 
-The Lagrangian neighbourhood theorem
-`TauCeti.SmoothTwoForm.IsNondegenerate.IsLagrangianMap.exists_symplectomorphism_cotangent` gives a
-diffeomorphism `ψ` that pulls `σ` back to `ω_can = -dλ` and extends `f`. The Dehn twist of the
-sources asks for an `ι` that pulls `σ` back to their form `dλ = -ω_can` instead, so `ι = ψ ∘ N`
-for the fibrewise negation `N` of `T*Sⁿ`, Tau Ceti's `vectorBundleScalarDiffeomorph` by `-1`,
-which pulls `ω_can` back to `-ω_can`
-(`TauCeti.CotangentBundle.mpullback_vectorBundleScalarDiffeomorph_symplecticForm`) and fixes the
-zero section (`TauCeti.vectorBundleScalarDiffeomorph_zeroSection`).
-
 ## References
 
 * [P. Seidel, *A long exact sequence for symplectic Floer cohomology*][Seidel2003], the paragraph
   before Proposition 1.11 (arXiv version 2): the Dehn twist along a framed Lagrangian sphere.
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], 3rd ed.,
-  Theorem 3.4.13 (the Lagrangian neighbourhood theorem) and p. 270 (the compactly supported
-  twist).
+  p. 270 (the compactly supported twist).
 -/
 
 public section
@@ -199,41 +185,6 @@ theorem dehnTwist_apply_embedding (ι : U ≃ₘ⟮𝓣 n, I⟯ V) (hR : IsTwist
   simp [← hq, ← hq']
 
 end Twist
-
-/-- **Symplectic embeddings around a Lagrangian sphere.** For a Lagrangian embedding `f` of the
-unit sphere `Sⁿ` into a symplectic manifold `(M, σ)`, there is a diffeomorphism `ι` from an open
-neighbourhood `U` of the zero section of `T*Sⁿ` onto an open set `V` of `M` that pulls the
-restriction of `σ` back to that of `-ω_can`, so that `ι` is symplectic for the form `dλ` of the
-cited sources, and sends the zero covector at `q` to `f q`. -/
-theorem exists_symplecticEmbedding [FiniteDimensional ℝ F] [I.Boundaryless] [IsManifold I ∞ M]
-    [T2Space M] [SecondCountableTopology M] {σ : SmoothTwoForm I M} {hσ : σ.IsSymplectic}
-    {f : SmoothEmbedding (𝓡 n) I ∞ (𝕊 n) M} (hf : hσ.isNondegenerate.IsLagrangianMap (𝓡 n) f) :
-    ∃ (U : Opens (𝕋 n)) (V : Opens M) (ι : U ≃ₘ⟮𝓣 n, I⟯ V),
-      SmoothForm.mpullback ι ι.contMDiff
-          (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) =
-        SmoothForm.mpullback Subtype.val contMDiff_subtypeVal
-          (-CotangentBundle.symplecticForm (𝓡 n) (𝕊 n)) ∧
-      ∀ q, ∃ h : zeroSection (EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)
-        (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ) q ∈ U, (ι ⟨_, h⟩ : M) = f q := by
-  obtain ⟨U, V, ψ, hψ0, hψσ⟩ := hf.exists_symplectomorphism_cotangent (hσ := hσ)
-  -- The fibrewise negation `N` of `T*Sⁿ`, which fixes the zero section.
-  let N := vectorBundleScalarDiffeomorph (I := 𝓡 n) (F := EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)
-    (V := fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ) (fun _ ↦ (-1 : ℝ))
-    (contMDiff_const (n := ∞)) fun _ ↦ by norm_num
-  have hN0 (q : 𝕊 n) : N (zeroSection _ _ q) = zeroSection _ _ q :=
-    vectorBundleScalarDiffeomorph_zeroSection _ _ _ q
-  let U' : Opens (𝕋 n) := ⟨N ⁻¹' U, U.isOpen.preimage N.continuous⟩
-  let N' : U' ≃ₘ⟮𝓣 n, 𝓣 n⟯ U := N.subtype fun _ ↦ Iff.rfl
-  refine ⟨U', V, N'.trans ψ, ?_, fun q ↦ ?_⟩
-  · rw [SmoothForm.mpullback_trans, hψσ, SmoothForm.mpullback_mpullback_of_comp_eq _ _
-      contMDiff_subtypeVal N.contMDiff (funext fun z ↦ Diffeomorph.subtype_apply_coe _ _ z),
-      CotangentBundle.mpullback_vectorBundleScalarDiffeomorph_symplecticForm]
-    rw [← neg_one_smul ℝ (CotangentBundle.symplecticForm (𝓡 n) (𝕊 n))]
-  · obtain ⟨h, hq, -⟩ := hψ0 q
-    refine ⟨show N (zeroSection _ _ q) ∈ U by rwa [hN0], ?_⟩
-    rw [Diffeomorph.coe_trans, Function.comp_apply, ← hq]
-    congr 2
-    exact Subtype.ext ((Diffeomorph.subtype_apply_coe _ _ _).trans (hN0 q))
 
 end SymplecticGeometry
 
