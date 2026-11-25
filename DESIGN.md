@@ -1964,8 +1964,9 @@ complete target and a function on the whole half-space.
   `TauCeti.Diffeotopy.velocity`), with
   `Geometry/Manifold/Instances/Icc.lean` (the unit vector field of an
   interval is smooth), `Geometry/Manifold/MFDeriv/Prod.lean` (the
-  derivative of a map on a product on `(0, w)` and `(v, 0)` is a partial
-  derivative),
+  derivative of a map on a product on `(v, 0)` is a partial derivative;
+  on `(0, w)` it is Tau Ceti's
+  `MDifferentiableAt.mfderiv_uncurry_apply_zero_mk`),
   `Geometry/Diffeomorphism/Diffeotopy/Basic.lean` (facts about diffeotopies
   of any smoothness, used by `Flux/Hamiltonian.lean`),
   `Geometry/Symplectic/Hamiltonian/SymplecticIsotopy.lean`
@@ -3027,7 +3028,7 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
   which the page leaves open between the limiting argument of the book and
   Bjorndahl–Karshon's local-to-global theorem with the local normal form
   along orbits (Tau Ceti has its linear part, `MomentMap/LinearNormalForm.lean`);
-  and the form of the induction on the torus.
+  and whether it needs an induction on the torus.
 
 ### 43. Equivariant localization (needs `design/equivariant-localization.md`)
 

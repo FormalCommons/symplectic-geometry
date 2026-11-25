@@ -153,10 +153,8 @@ theorem mpullback_div_norm_zpow_planeAngularForm_apply {w : ℂ} (hw : w ≠ 0) 
   have hcomp : (fun z : ℂ ↦ (z / ‖z‖) ^ k) = (fun z : ℂ ↦ z ^ k) ∘ fun z : ℂ ↦ z / ‖z‖ := rfl
   have h : mpullback 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (fun z : ℂ ↦ z / ‖z‖)
       (mpullback 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (fun z : ℂ ↦ z ^ k) planeAngularForm) w =
-      mpullback 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (fun z : ℂ ↦ z / ‖z‖) ((k : ℝ) • planeAngularForm) w := by
-    ext v
-    rw [mpullback_apply, mpullback_zpow_planeAngularForm_apply hn, mpullback_apply]
-    rfl
+      mpullback 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (fun z : ℂ ↦ z / ‖z‖) ((k : ℝ) • planeAngularForm) w :=
+    mpullback_apply_congr (mpullback_zpow_planeAngularForm_apply hn k)
   rw [hcomp, mpullback_comp_at hdiv hpow, h, mpullback_smul, Pi.smul_apply,
     mpullback_div_norm_planeAngularForm_apply hw, mul_smul]
 
