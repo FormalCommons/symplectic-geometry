@@ -225,9 +225,9 @@ the page's statement.
   case $m=0$ holds too and is not excluded.
 - The normalization of $h$:
   `Projectivization.complexManifoldEvalFundamentalClass_map_hyperplaneClass`,
-  for every injective `ι : (Fin 2 → ℂ) →ₗ[ℂ] (Fin (m + 1) → ℂ)`: the
+  for every complex normed space `W` and injective `ι : (Fin 2 → ℂ) →ₗ[ℂ] W`: the
   pull-back of `hyperplaneClass` along the induced map
-  `ℙ ℂ (Fin 2 → ℂ) → ℙ ℂ (Fin (m + 1) → ℂ)`, evaluated by
+  `ℙ ℂ (Fin 2 → ℂ) → ℙ ℂ W`, evaluated by
   `complexManifoldEvalFundamentalClass` (the complex orientation), is `1`.
   With `bijective_zsmul_hyperplaneClass_pow` for `k = 1`, which makes $h$ a
   generator of $H^2$, this identifies `hyperplaneClass` with the page's $h$.
