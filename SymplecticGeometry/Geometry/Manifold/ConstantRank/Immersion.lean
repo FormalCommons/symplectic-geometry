@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.ConstantRank.Factorization
 public import TauCeti.Geometry.Manifold.Immersion.Differential
 public import TauCeti.Geometry.Manifold.Instances.Sigma
+import SymplecticGeometry.Geometry.Manifold.Immersion.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Sigma
 import SymplecticGeometry.Topology.Sets.Opens.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Opens
@@ -74,7 +75,7 @@ theorem ContMDiff.exists_isImmersion_range_eq_of_mfderivRank_eq [FiniteDimension
   rcases isEmpty_or_nonempty M with hM | ⟨⟨x₀⟩⟩
   · refine ⟨Σ _ : ULift.{v} ℕ, (⊥ : Opens (EuclideanSpace 𝕜 (Fin r))), inferInstance,
       inferInstance, inferInstance, inferInstance, inferInstance, isEmptyElim,
-      ContMDiff.isImmersion_of_injective_mfderiv isEmptyElim hn isEmptyElim, ?_,
+      IsImmersion.of_isEmpty _ J n _, ?_,
       fun _ _ ↦ isEmptyElim⟩
     rw [range_eq_empty, range_eq_empty]
   have hn0 : n ≠ 0 := ne_of_gt (zero_lt_one.trans_le hn)
