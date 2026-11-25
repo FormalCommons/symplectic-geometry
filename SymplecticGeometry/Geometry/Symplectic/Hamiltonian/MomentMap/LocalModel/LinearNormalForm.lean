@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Symplectic.Coadjoint
 public import TauCeti.Geometry.Symplectic.Cotangent.Basic
 public import TauCeti.LinearAlgebra.Submodule.Compl
 public import SymplecticGeometry.Algebra.Lie.Coadjoint
+public import SymplecticGeometry.Geometry.Lie.Adjoint.Differential
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Action
 
 /-!
@@ -53,8 +54,8 @@ model: no change of sign is needed.
   form at `(1, 0, 0)` is the space `𝔥 × 0` of the directions `(ξ, 0, 0)` with `ξ ∈ 𝔥`.
 * `SymplecticGeometry.LocalModelData.tangentSpaceProdEquiv_mfderiv_conj_smul_one_zero`: for
   `k ∈ K`, the differential at `(1, 0, 0)` of `(g, p) ↦ (k g k⁻¹, k • p)` is
-  `(ξ, a, b) ↦ (Ad_k ξ, repA k a, rep k b)`. Its `G` component is Tau Ceti's definition of
-  `adjointRepresentation` as the differential of conjugation (`adjointContinuousLinearMap_apply`),
+  `(ξ, a, b) ↦ (Ad_k ξ, repA k a, rep k b)`. Its `G` component is
+  `TauCeti.Lie.mfderiv_conj_one_apply` (`Ad_k` is the differential at `1` of conjugation),
   and its fibre component is `mfderiv_fiberDistribMulAction_const_smul`, combined by
   `TauCeti.Manifold.mfderiv_prodMap_apply`.
 * `SymplecticGeometry.LocalModelData.linearModelMap_linearModelRepresentation`: `linearModelMap`
@@ -270,26 +271,20 @@ theorem tangentSpaceProdEquiv_mfderiv_conj_smul_one_zero (k : K)
   let := D.fiberDistribMulAction
   -- The map is the product of conjugation by `k`, whose differential at `1` is `Ad_k`, and of
   -- the linear action of `k` on `A × V`.
-  have hconj :
-      (fun g : G ↦ (k : G) * g * (k : G)⁻¹) = conjDiffeomorph (I := I) (n := 1) (k : G) :=
-    funext fun g ↦ (conjDiffeomorph_apply _ g).symm
-  have hf : MDifferentiableAt I I (fun g : G ↦ (k : G) * g * (k : G)⁻¹) 1 :=
-    hconj ▸ (conjDiffeomorph (I := I) (n := 1) (k : G)).mdifferentiable one_ne_zero 1
   have hg : MDifferentiableAt 𝓘(ℝ, A × V) 𝓘(ℝ, A × V) (fun q : A × V ↦ k • q) 0 :=
     D.fiberDistribMulAction_smul_eq_toContinuousLinearMap k ▸
       ContinuousLinearMap.mdifferentiableAt _
-  have hAd : mfderiv I I (fun g : G ↦ (k : G) * g * (k : G)⁻¹) 1 ξ =
-      adjointRepresentation ℝ I G k ξ := by
-    rw [adjointRepresentation_apply, adjointContinuousLinearMap_apply, ← hconj]
   rw [← (tangentSpaceProdEquiv _).symm_apply_apply u, hu]
   refine (congrArg (tangentSpaceProdEquiv _)
-    (mfderiv_prodMap_apply (p := ((1 : G), ((0 : A), (0 : V)))) hf hg (ξ, (a, b)))).trans ?_
+    (mfderiv_prodMap_apply (p := ((1 : G), ((0 : A), (0 : V))))
+      ((mdifferentiable_conj (k : G)).mdifferentiableAt) hg (ξ, (a, b)))).trans ?_
   -- The point of `tangentSpaceProdEquiv_symm_apply` is given, since the image of `(1, 0, 0)` is
   -- written in two ways that agree only up to unfolding.
   rw [tangentSpaceProdEquiv_apply,
     tangentSpaceProdEquiv_symm_apply (p := ((k : G) * 1 * (k : G)⁻¹, k • ((0 : A), (0 : V))))]
-  exact Prod.ext hAd ((D.mfderiv_fiberDistribMulAction_const_smul k 0 (a, b)).trans
-    (D.fiberDistribMulAction_smul k (a, b)))
+  exact Prod.ext (mfderiv_conj_one_apply (k : G) ξ)
+    ((D.mfderiv_fiberDistribMulAction_const_smul k 0 (a, b)).trans
+      (D.fiberDistribMulAction_smul k (a, b)))
 
 /-- **`linearModelMap` is equivariant.** The action of `k ∈ K` on the linear normal form model is
 taken by `linearModelMap` to the differential at `(1, 0, 0)` of the map
