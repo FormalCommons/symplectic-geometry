@@ -7,6 +7,8 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.HomotopyOperator
 public import SymplecticGeometry.Geometry.Manifold.Instances.Icc
+public import TauCeti.Analysis.Calculus.DifferentialForm.Relative.Basic
+import TauCeti.Topology.UnitInterval
 
 /-!
 # The fibrewise contraction of a product onto its first factor
@@ -15,6 +17,9 @@ For real normed spaces `E` and `F`, the map `Φ ((u, v), s) = (u, s • v)` on `
 (`SymplecticGeometry.prodFiberContraction`) is a smooth homotopy from the projection
 `g (u, v) = (u, 0)` onto the core `E × {0}` to the identity. Its derivative at `((u, v), s)`
 sends `(w, r ∂ₜ)` to `(w₁, s w₂ + r v)` (`SymplecticGeometry.mfderiv_prodFiberContraction`).
+The map is Tau Ceti's flat fibre scaling `TauCeti.fiberScaling` on `(E × F) × ℝ`, restricted
+to times in `[0, 1]`, and its smoothness and derivative come from `TauCeti.contDiff_fiberScaling`
+and `TauCeti.fderiv_fiberScaling_apply` by the chain rule.
 
 Let `h` be the homotopy operator `TauCeti.SmoothForm.homotopyOperator`, and `τ` a smooth
 `(k + 1)`-form on `E × F`. The cochain-homotopy identity
@@ -33,6 +38,13 @@ Since `Φ` is smooth, `ω ↦ h (Φ^* ω)` takes smooth families of forms to smo
 (`SymplecticGeometry.preservesSmoothFamilies_homotopyOperator_mpullback`, or
 `SymplecticGeometry.IsSmoothFamily.homotopyOperator` after
 `SymplecticGeometry.IsSmoothFamily.mpullback`).
+
+This file carries Tau Ceti's flat relative Poincaré construction
+(`TauCeti/Analysis/Calculus/DifferentialForm/Relative/Basic.lean`) over to the manifold homotopy
+operator `TauCeti.SmoothForm.homotopyOperator` on the cylinder `(E × F) × [0, 1]`. The bound
+`norm_mfderiv_prodFiberContraction_comp_inl_le` and the bound on `h (Φ^* σ)` adapt the steps of
+`TauCeti.norm_fiberwisePoincareHomotopy_le`, and the identity for `d (h (Φ^* τ))` follows the
+plan of `TauCeti.mextDeriv_vectorBundlePoincareHomotopy_add_vectorBundlePoincareHomotopy_mextDeriv`.
 
 ## Main definitions
 
@@ -54,7 +66,7 @@ Since `Φ` is smooth, `ω ↦ h (Φ^* ω)` takes smooth families of forms to smo
 * [R. Bott and L. W. Tu, *Differential Forms in Algebraic Topology*][BottTu1982], §4 (the
   homotopy operator).
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017],
-  Lemma 7.3.2 (the use of a homotopy operator near a one-dimensional handle core).
+  Lemma 7.3.2 (the result whose one-dimensional case this file serves).
 -/
 
 public section
@@ -71,46 +83,59 @@ variable {E F G : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
 variable (E F) in
 /-- The **fibrewise contraction** of `E × F` onto `E × {0}`: the map
 `((u, v), s) ↦ (u, s • v)` on `(E × F) × [0, 1]`, the identity at `s = 1` and the projection
-`(u, v) ↦ (u, 0)` at `s = 0`. -/
+`(u, v) ↦ (u, 0)` at `s = 0`. It is the flat fibre scaling `TauCeti.fiberScaling` with the
+time restricted to `[0, 1]`. -/
 def prodFiberContraction (x : (E × F) × unitInterval) : E × F :=
-  (x.1.1, (x.2 : ℝ) • x.1.2)
+  fiberScaling (x.1, (x.2 : ℝ))
 
 theorem prodFiberContraction_def (x : (E × F) × unitInterval) :
-    prodFiberContraction E F x = (x.1.1, (x.2 : ℝ) • x.1.2) :=
+    prodFiberContraction E F x = fiberScaling (x.1, (x.2 : ℝ)) :=
   (rfl)
+
+variable (E F) in
+/-- The fibrewise contraction is the flat fibre scaling after the inclusion of `[0, 1]` into
+`ℝ`. -/
+theorem prodFiberContraction_eq_comp :
+    prodFiberContraction E F =
+      fiberScaling ∘ Prod.map (id : E × F → E × F) (Subtype.val : unitInterval → ℝ) :=
+  funext prodFiberContraction_def
+
+/-- The fibrewise contraction sends `((u, v), s)` to `(u, s • v)`. -/
+theorem prodFiberContraction_apply (x : (E × F) × unitInterval) :
+    prodFiberContraction E F x = (x.1.1, (x.2 : ℝ) • x.1.2) := by
+  rw [prodFiberContraction_def, fiberScaling_apply]
 
 /-- The fibrewise contraction does not move the point of `E`. -/
 @[simp]
 theorem prodFiberContraction_fst (x : (E × F) × unitInterval) :
-    (prodFiberContraction E F x).1 = x.1.1 :=
-  (rfl)
+    (prodFiberContraction E F x).1 = x.1.1 := by
+  rw [prodFiberContraction_apply]
 
 /-- The fibrewise contraction scales the point of `F`. -/
 @[simp]
 theorem prodFiberContraction_snd (x : (E × F) × unitInterval) :
-    (prodFiberContraction E F x).2 = (x.2 : ℝ) • x.1.2 :=
-  (rfl)
+    (prodFiberContraction E F x).2 = (x.2 : ℝ) • x.1.2 := by
+  rw [prodFiberContraction_apply]
 
 /-- At time `1` the fibrewise contraction is the identity. -/
 @[simp]
 theorem prodFiberContraction_one (p : E × F) : prodFiberContraction E F (p, 1) = p := by
-  simp [prodFiberContraction_def]
+  simp [prodFiberContraction_apply]
 
 /-- At time `0` the fibrewise contraction is the projection onto `E × {0}`. -/
 @[simp]
 theorem prodFiberContraction_zero (p : E × F) :
     prodFiberContraction E F (p, 0) = (p.1, 0) := by
-  simp [prodFiberContraction_def]
+  simp [prodFiberContraction_apply]
 
 variable [NormedAddCommGroup E] [NormedSpace ℝ E] [NormedAddCommGroup G] [NormedSpace ℝ G]
 
 variable (E F) in
 /-- The fibrewise contraction is smooth, up to the ends of the unit interval. -/
 theorem contMDiff_prodFiberContraction :
-    ContMDiff (𝓘(ℝ, E × F).prod (𝓡∂ 1)) 𝓘(ℝ, E × F) ∞ (prodFiberContraction E F) :=
-  (contDiff_fst.contMDiff.comp contMDiff_fst).prodMk_space
-    ((contMDiff_subtypeVal_Icc.comp contMDiff_snd).smul
-      (contDiff_snd.contMDiff.comp contMDiff_fst))
+    ContMDiff (𝓘(ℝ, E × F).prod (𝓡∂ 1)) 𝓘(ℝ, E × F) ∞ (prodFiberContraction E F) := by
+  rw [prodFiberContraction_eq_comp]
+  exact contDiff_fiberScaling.contMDiff.comp contMDiff_prodMap_id_subtypeVal_Icc
 
 /-- **The derivative of the fibrewise contraction.** At `((u, v), s)`, it sends `(w, r • 1)`,
 where `1` is the unit tangent vector of the interval, to `(w₁, s • w₂ + r • v)`. -/
@@ -118,35 +143,15 @@ theorem mfderiv_prodFiberContraction (x : (E × F) × unitInterval) (w : E × F)
     mfderiv (𝓘(ℝ, E × F).prod (𝓡∂ 1)) 𝓘(ℝ, E × F) (prodFiberContraction E F) x
         (w, r • (1 : TangentSpace (𝓡∂ 1) x.2)) =
       (w.1, (x.2 : ℝ) • w.2 + r • x.1.2) := by
-  refine (mfderiv_prod_eq_add_apply (v := ((w, r • (1 : TangentSpace (𝓡∂ 1) x.2)) :
-    TangentSpace (𝓘(ℝ, E × F).prod (𝓡∂ 1)) x))
-    (((contMDiff_prodFiberContraction E F).mdifferentiable (by simp)) x)).trans ?_
-  -- The partial derivative in the point of `E × F`, for the time `x.2` fixed.
-  have hd₁ : HasFDerivAt (fun p : E × F ↦ ((p.1, (x.2 : ℝ) • p.2) : E × F))
-      ((ContinuousLinearMap.fst ℝ E F).prod ((x.2 : ℝ) • ContinuousLinearMap.snd ℝ E F)) x.1 :=
-    hasFDerivAt_fst.prodMk (hasFDerivAt_snd.const_smul _)
-  have e₁ : mfderiv 𝓘(ℝ, E × F) 𝓘(ℝ, E × F) (fun p : E × F ↦ ((p.1, (x.2 : ℝ) • p.2) : E × F))
-      x.1 w = (w.1, (x.2 : ℝ) • w.2) := by
-    rw [mfderiv_eq_fderiv, hd₁.fderiv]
-    -- The tangent spaces of `E × F` are `E × F` itself, through the identity
-    -- `NormedSpace.fromTangentSpace`, which Mathlib does not evaluate.
-    rfl
-  -- The partial derivative in time, for the point `x.1` fixed.
-  have hd₂ : HasFDerivAt (fun r : ℝ ↦ ((x.1.1, r • x.1.2) : E × F))
-      ((0 : ℝ →L[ℝ] E).prod ((ContinuousLinearMap.id ℝ ℝ).smulRight x.1.2)) (x.2 : ℝ) :=
-    (hasFDerivAt_const _ _).prodMk ((hasFDerivAt_id _).smul_const _)
-  have e₂ : mfderiv (𝓡∂ 1) 𝓘(ℝ, E × F)
-      ((fun r : ℝ ↦ ((x.1.1, r • x.1.2) : E × F)) ∘ Subtype.val) x.2
-      (r • (1 : TangentSpace (𝓡∂ 1) x.2)) = (0, r • x.1.2) := by
-    refine (mfderiv_comp_apply x.2 hd₂.differentiableAt.mdifferentiableAt
-      (mdifferentiableAt_subtypeVal_Icc x.2) _).trans ?_
-    rw [mfderiv_subtypeVal_Icc_smul_one, mfderiv_eq_fderiv, hd₂.fderiv]
-    -- As in `e₁`, `NormedSpace.fromTangentSpace` is the identity.
-    exact Prod.ext rfl rfl
-  -- The partial maps are those of `e₁` and `e₂` only up to unfolding `prodFiberContraction`,
-  -- and their tangent spaces at the image points differ in the same way, hence `erw`.
-  erw [e₁, e₂]
-  exact Prod.ext (add_zero w.1) rfl
+  have hs : MDifferentiableAt 𝓘(ℝ, (E × F) × ℝ) 𝓘(ℝ, E × F) fiberScaling (x.1, (x.2 : ℝ)) :=
+    ((contDiff_fiberScaling (r := 1)).differentiable one_ne_zero).differentiableAt
+      |>.mdifferentiableAt
+  rw [prodFiberContraction_eq_comp]
+  refine (mfderiv_comp_apply x hs
+    ((contMDiff_prodMap_id_subtypeVal_Icc (n := 1)).mdifferentiable one_ne_zero x) _).trans ?_
+  rw [mfderiv_prodMap_id_subtypeVal_Icc, mfderiv_eq_fderiv]
+  -- The identifications `NormedSpace.fromTangentSpace` around `fderiv` are the identity.
+  exact fderiv_fiberScaling_apply _ _
 
 /-- The time derivative of the fibrewise contraction at `((u, v), s)` is `(0, v)`. -/
 theorem mfderiv_prodFiberContraction_time (x : (E × F) × unitInterval) :
@@ -154,16 +159,20 @@ theorem mfderiv_prodFiberContraction_time (x : (E × F) × unitInterval) :
         ((0 : E × F), (1 : TangentSpace (𝓡∂ 1) x.2)) = (0, x.1.2) := by
   have h := mfderiv_prodFiberContraction x 0 1
   rw [one_smul] at h
-  rw [h]
-  exact Prod.ext rfl (by simp)
+  rw [h, Prod.fst_zero, Prod.snd_zero, smul_zero, zero_add, one_smul]
 
-/-- The spatial derivative of the fibrewise contraction at `((u, v), s)` sends `w` to
-`(w₁, s • w₂)`. -/
-theorem mfderiv_prodFiberContraction_inl (x : (E × F) × unitInterval) (w : E × F) :
-    mfderiv (𝓘(ℝ, E × F).prod (𝓡∂ 1)) 𝓘(ℝ, E × F) (prodFiberContraction E F) x
-        (w, (0 : TangentSpace (𝓡∂ 1) x.2)) = (w.1, (x.2 : ℝ) • w.2) := by
+/-- The spatial derivative of the fibrewise contraction at `((u, v), s)`, the restriction of its
+derivative to `E × F`, is `(w₁, w₂) ↦ (w₁, s • w₂)`. -/
+theorem mfderiv_prodFiberContraction_comp_inl (x : (E × F) × unitInterval) :
+    (mfderiv (𝓘(ℝ, E × F).prod (𝓡∂ 1)) 𝓘(ℝ, E × F) (prodFiberContraction E F) x).comp
+        (.inl ℝ (E × F) (EuclideanSpace ℝ (Fin 1))) =
+      (ContinuousLinearMap.fst ℝ E F).prod ((x.2 : ℝ) • ContinuousLinearMap.snd ℝ E F) := by
+  refine ContinuousLinearMap.ext fun w ↦ ?_
   have h := mfderiv_prodFiberContraction x w 0
-  rwa [zero_smul, zero_smul, add_zero] at h
+  rw [zero_smul, zero_smul, add_zero] at h
+  -- The two sides are `h` read through `comp_apply`, `inl_apply` and `prod_apply`. The tangent
+  -- space of the cylinder is `(E × F) × ℝ¹` only by unfolding, so `rw` cannot apply these.
+  exact h
 
 /-- The spatial derivative of the fibrewise contraction has operator norm at most `1`, for the
 sup norm of `E × F`. -/
@@ -171,16 +180,12 @@ theorem norm_mfderiv_prodFiberContraction_comp_inl_le (x : (E × F) × unitInter
     @norm (E × F →L[ℝ] E × F) _
       ((mfderiv (𝓘(ℝ, E × F).prod (𝓡∂ 1)) 𝓘(ℝ, E × F) (prodFiberContraction E F) x).comp
         (.inl ℝ (E × F) (EuclideanSpace ℝ (Fin 1)))) ≤ 1 := by
+  rw [mfderiv_prodFiberContraction_comp_inl]
   refine ContinuousLinearMap.opNorm_le_bound _ zero_le_one fun w ↦ ?_
-  -- The tangent space of the cylinder is `(E × F) × ℝ¹` only by unfolding, so `comp_apply` and
-  -- `inl_apply` need `erw`.
-  erw [ContinuousLinearMap.comp_apply, ContinuousLinearMap.inl_apply,
-    mfderiv_prodFiberContraction_inl]
-  rw [one_mul, Prod.norm_def, Prod.norm_def, norm_smul]
-  have hs : ‖(x.2 : ℝ)‖ ≤ 1 := by
-    rw [Real.norm_eq_abs, abs_le]
-    exact ⟨by linarith [x.2.property.1], x.2.property.2⟩
-  exact max_le_max le_rfl (mul_le_of_le_one_left (norm_nonneg _) hs)
+  rw [ContinuousLinearMap.prod_apply, smul_apply, ContinuousLinearMap.coe_fst',
+    ContinuousLinearMap.coe_snd', one_mul, Prod.norm_def, Prod.norm_def, norm_smul]
+  exact max_le_max le_rfl
+    (mul_le_of_le_one_left (norm_nonneg _) (unitInterval.abs_coe_le_one x.2))
 
 /-- **The fibrewise contraction pulls back to a primitive up to an error term.** Let `E` have
 dimension at most `k`, and `τ` be a smooth `(k + 1)`-form on `E × F` with values in a Banach
@@ -221,7 +226,7 @@ theorem norm_homotopyOperator_mpullback_prodFiberContraction_apply_le {k : ℕ}
       ‖p.2‖ * C := by
   have hC : 0 ≤ C := (norm_nonneg _).trans (h 0)
   refine norm_homotopyOperator_mpullback_apply_le _ σ p fun t ↦ ?_
-  rw [mfderiv_prodFiberContraction_time]
+  rw [mfderiv_prodFiberContraction_time, prodFiberContraction_apply]
   have hv : @norm (E × F) _ (0, p.2) = ‖p.2‖ := by simp [Prod.norm_def]
   rw [hv]
   calc _ ≤ C * ‖p.2‖ * 1 ^ k :=
