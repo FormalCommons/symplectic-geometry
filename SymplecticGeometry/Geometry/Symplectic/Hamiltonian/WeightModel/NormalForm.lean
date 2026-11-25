@@ -162,7 +162,7 @@ theorem exists_weightChart_fundamentalVectorField
     -- read in the model space `E`.
     have h := chart'.mfderiv_symm_apply_mfderiv_apply (by simp)
       (by simpa [chart'] using hΦsrc hz) (fundamentalVectorField (I := I) (G := G) I' ξ (Φ z))
-    rw [← mvfderiv_apply_eq_mfderiv_apply (f := chart'), hderiv _ (hΦsrc hz),
+    rw [← mvfderiv_apply_eq_mfderiv_apply (f := chart'), hderiv (Φ z),
       ContinuousLinearMap.comp_apply, mvfderiv_apply_eq_mfderiv_apply, hvf _ (hΦsrc hz) ξ,
       weightInfinitesimalAction_apply, hchartΦ hz,
       show chart' (Φ z) = z from chart'.right_inv hz] at h
