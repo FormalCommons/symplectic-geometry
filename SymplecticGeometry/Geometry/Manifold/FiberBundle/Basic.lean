@@ -25,7 +25,13 @@ the trivialization of a principal bundle given by a local section.
 * `TauCeti.ManifoldTotalSpace.continuousOn_of_contMDiffOn_homeomorph`: a map into the total space
   whose composite with `homeomorph F E` is `C^n` on a set is continuous on that set.
 * `TauCeti.ManifoldTotalSpace.projContMDiffMap`: the projection to the base as a `C^n` map, along
-  which bundles over the base pull back to the total space.
+  which bundles over the base pull back to the total space. Its coercion simplifies to the map
+  `fun x ↦ ((homeomorph F E).symm x).proj` (`coe_projContMDiffMap`), the form in which Tau Ceti
+  states its lemmas about the projection. Lemmas whose content does not depend on the smoothness
+  index, such as those about derivatives, hold for `projContMDiffMap n` with any `n`.
+* `TauCeti.ManifoldTotalSpace.mdifferentiable_projContMDiffMap`: the projection is differentiable.
+* `TauCeti.ManifoldTotalSpace.projContMDiffMap_comp_homeomorph_mk`: a section is a right inverse
+  of the projection.
 * `TauCeti.ManifoldTotalSpace.mfderiv_proj_mfderiv_section_apply`: the derivative of a section is
   a right inverse of the derivative of the projection.
 * `TauCeti.ManifoldTotalSpace.mpullback_mpullback_proj_apply`: a section pulls `π^* a` back to
@@ -69,24 +75,35 @@ variable (n F E IB IF) in
 @[expose] def projContMDiffMap : C^n⟮IB.prod IF, ManifoldTotalSpace F E; IB, B⟯ :=
   ⟨fun x ↦ ((homeomorph F E).symm x).proj, contMDiff_proj n F E IB IF⟩
 
-/-- The `C^n` projection is the projection, read through `homeomorph F E`. -/
+/-- The `C^n` projection is the projection, read through `homeomorph F E`. This is the simp normal
+form, so that `simp` can use Tau Ceti's lemmas about the projection, which are stated with the
+map written out. -/
 @[simp]
 theorem coe_projContMDiffMap :
     ⇑(projContMDiffMap n F E IB IF) = fun x ↦ ((homeomorph F E).symm x).proj := (rfl)
+
+/-- The projection of the charted total space is differentiable, whatever the smoothness index
+`n` of `projContMDiffMap n` (which does not change the underlying map). -/
+theorem mdifferentiable_projContMDiffMap :
+    MDifferentiable (IB.prod IF) IB (projContMDiffMap n F E IB IF) := by
+  rw [coe_projContMDiffMap]
+  exact (contMDiff_proj 1 F E IB IF).mdifferentiable one_ne_zero
+
+/-- A section `τ` of a fibre bundle, read as a map into the charted total space, is a right
+inverse of the projection: `π ∘ τ = id`. -/
+theorem projContMDiffMap_comp_homeomorph_mk (τ : ∀ b, E b) :
+    projContMDiffMap n F E IB IF ∘ (fun b ↦ homeomorph F E ⟨b, τ b⟩) = id :=
+  funext fun b ↦ by simp
 
 /-- A section `τ` of a fibre bundle, differentiable at `x` as a map into the charted total space, is
 a right inverse of the projection to first order at `x`: `dπ (dτ v) = v`. -/
 theorem mfderiv_proj_mfderiv_section_apply {τ : ∀ b, E b} {x : B}
     (hτ : MDifferentiableAt IB (IB.prod IF) (fun b ↦ homeomorph F E ⟨b, τ b⟩) x)
     (v : TangentSpace IB x) :
-    mfderiv (IB.prod IF) IB (fun y : ManifoldTotalSpace F E ↦ ((homeomorph F E).symm y).proj)
-        (homeomorph F E ⟨x, τ x⟩)
+    mfderiv (IB.prod IF) IB (projContMDiffMap n F E IB IF) (homeomorph F E ⟨x, τ x⟩)
         (mfderiv IB (IB.prod IF) (fun b ↦ homeomorph F E ⟨b, τ b⟩) x v) = v := by
-  have hpt : (fun y : ManifoldTotalSpace F E ↦ ((homeomorph F E).symm y).proj) ∘
-      (fun b ↦ homeomorph F E ⟨b, τ b⟩) = id :=
-    funext fun b ↦ by simp
-  rw [← mfderiv_comp_apply x ((contMDiff_proj 1 F E IB IF _).mdifferentiableAt one_ne_zero) hτ,
-    hpt, mfderiv_id, ContinuousLinearMap.id_apply]
+  rw [← mfderiv_comp_apply x (mdifferentiable_projContMDiffMap _) hτ,
+    projContMDiffMap_comp_homeomorph_mk, mfderiv_id, ContinuousLinearMap.id_apply]
 
 end AnyField
 
@@ -106,16 +123,12 @@ variable {B F : Type*} {E : B → Type*}
 omit [IsManifold IB ∞ B] [IsManifold IF ∞ F] [ContMDiffFiberBundle ∞ F E IB IF] in
 /-- A section `τ` of a fibre bundle, differentiable at `x` as a map into the charted total space,
 pulls the pull-back `π^* a` of a form on the base back to `a` at `x`. -/
-theorem mpullback_mpullback_proj_apply (a : RoughForm IB B G k) {τ : ∀ b, E b} {x : B}
+theorem mpullback_mpullback_proj_apply {n : ℕ∞ω} (a : RoughForm IB B G k) {τ : ∀ b, E b} {x : B}
     (hτ : MDifferentiableAt IB (IB.prod IF) (fun b ↦ homeomorph F E ⟨b, τ b⟩) x) :
     TauCeti.mpullback IB (IB.prod IF) (fun b ↦ homeomorph F E ⟨b, τ b⟩)
-        (TauCeti.mpullback (IB.prod IF) IB
-          (fun y : ManifoldTotalSpace F E ↦ ((homeomorph F E).symm y).proj) a) x = a x := by
-  have hpt : (fun y : ManifoldTotalSpace F E ↦ ((homeomorph F E).symm y).proj) ∘
-      (fun b ↦ homeomorph F E ⟨b, τ b⟩) = id :=
-    funext fun b ↦ by simp
-  rw [← mpullback_comp_at hτ ((contMDiff_proj 1 F E IB IF _).mdifferentiableAt one_ne_zero), hpt,
-    mpullback_id]
+        (TauCeti.mpullback (IB.prod IF) IB (projContMDiffMap n F E IB IF) a) x = a x := by
+  rw [← mpullback_comp_at hτ (mdifferentiable_projContMDiffMap _),
+    projContMDiffMap_comp_homeomorph_mk, mpullback_id]
 
 /-- The pull-back of `α + π^* a` along a section `τ` of a fibre bundle, differentiable at `x` as a
 map into the charted total space, is `τ^* α + a` at `x`. -/
@@ -124,9 +137,8 @@ theorem mpullback_add_mpullback_proj_apply
     {τ : ∀ b, E b} {x : B}
     (hτ : MDifferentiableAt IB (IB.prod IF) (fun b ↦ homeomorph F E ⟨b, τ b⟩) x) :
     TauCeti.mpullback IB (IB.prod IF) (fun b ↦ homeomorph F E ⟨b, τ b⟩)
-        (α + SmoothForm.mpullback
-          (fun y : ManifoldTotalSpace F E ↦ ((homeomorph F E).symm y).proj)
-          (contMDiff_proj ∞ F E IB IF) a).val x =
+        (α + SmoothForm.mpullback (projContMDiffMap ∞ F E IB IF)
+          (projContMDiffMap ∞ F E IB IF).contMDiff a).val x =
       TauCeti.mpullback IB (IB.prod IF) (fun b ↦ homeomorph F E ⟨b, τ b⟩) α.val x + a.val x := by
   rw [Submodule.coe_add, SmoothForm.coe_mpullback, mpullback_add, Pi.add_apply,
     mpullback_mpullback_proj_apply a.val hτ]
