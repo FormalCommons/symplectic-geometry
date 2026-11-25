@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
 import Mathlib.Analysis.Calculus.Deriv.Shift
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv
+import Mathlib.Geometry.Manifold.IntegralCurve.Transform
 import SymplecticGeometry.Analysis.Calculus.ContDiff.Even
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import TauCeti.Geometry.Manifold.DifferentialForm.Squared
@@ -49,9 +50,15 @@ time `π` is the antipodal map; and since `R' = 0` on `[r₀, ∞)`, the twist i
   `cos ∘ θ` is even, `sin ∘ θ` is odd and `cos (θ 0) = -1`.
 * `SymplecticGeometry.coe_modelTwist_symm`: the inverse of the model twist of `R` is the model
   twist of `-R`.
+* `SymplecticGeometry.modelTwist_of_cotangentNorm_ne_zero`: off the zero section the model twist
+  of `z` is `σ_{2π R'(μ z)} z`.
 * `SymplecticGeometry.modelTwist_apply_of_le`: the model twist is the identity where `μ ≥ r₀`.
 * `SymplecticGeometry.modelTwist_cotangent_orthogonal`: it commutes with the cotangent lift of
   every orthogonal transformation of `ℝⁿ⁺¹`.
+* `SymplecticGeometry.isMIntegralCurve_geodesicFlow_comp`: off the zero section, the geodesic flow
+  run at the constant speed `φ'(μ z)` is an integral curve of the Hamiltonian vector field of
+  `φ ∘ μ`; `SymplecticGeometry.isMIntegralCurve_geodesicFlow_twistProfile`: for a twist profile
+  `R` its value at time `2π` is the model twist, which is thus the time-`2π` map of `R ∘ μ` there.
 * `SymplecticGeometry.contMDiff_twistPrimitive`, `SymplecticGeometry.twistPrimitive_of_le`: the
   primitive of the model twist of a twist profile is smooth, and vanishes where `μ ≥ r₀`.
 * `SymplecticGeometry.mpullback_modelTwist_liouvilleForm`: the model twist pulls the Liouville
@@ -90,9 +97,9 @@ The symplecticity follows by applying `d`, since `d (dK) = 0`.
 * [P. Seidel, *A long exact sequence for symplectic Floer cohomology*][Seidel2003], Lemma 1.8
   and equation (1.7) (arXiv version 2): the model twist on `T*Sⁿ` built from the normalized
   geodesic flow.
+* [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], 3rd ed.,
+  p. 270: the model twist as the time-`2π` map of a function of the norm, and its primitive.
 * [P. Seidel, *Lectures on four-dimensional Dehn twists*][Seidel2008], §1a.
-* [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], third
-  edition, p. 270: the primitive of the twist.
 * [V. I. Arnold, *Some remarks on symplectic monodromy of Milnor fibrations*][Arnold1995], one of
   the early sources on twists of `T*Sⁿ`.
 * H. Whitney, *Differentiable even functions*, Duke Math. J. 10 (1943), 159–160.
@@ -489,6 +496,13 @@ theorem modelTwist_apply_of_le {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsTwistProfi
   rw [coe_modelTwist, modelTwistFun_def, ite_eq_right (hR.pos.trans_le hz).ne',
     hR.deriv_eq_zero hz, mul_zero, geodesicFlow_zero]
 
+/-- Off the zero section, the model twist moves `z` along the geodesic flow for the time
+`2π R'(μ z)`. -/
+theorem modelTwist_of_cotangentNorm_ne_zero {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsTwistProfile R r₀)
+    {z : CotangentBundle (𝓡 n) (𝕊 n)} (hz : cotangentNorm z ≠ 0) :
+    modelTwist hR z = geodesicFlow (2 * π * deriv R (cotangentNorm z)) z := by
+  rw [coe_modelTwist, modelTwistFun_def, ite_eq_right hz]
+
 /-- The model twist commutes with the cotangent lift of every orthogonal transformation of
 `ℝⁿ⁺¹`. -/
 theorem modelTwist_cotangent_orthogonal {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsTwistProfile R r₀)
@@ -503,6 +517,40 @@ theorem modelTwist_cotangent_orthogonal {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsT
     cotangentCoord_cotangent_orthogonal, hG, twistCoord_def, twistCoord_def,
     LinearIsometryEquiv.norm_map]
   simp only [map_add, map_sub, map_smul]
+
+/-! ### The model twist as a Hamiltonian flow -/
+
+/-- **Reparametrized geodesic flows are Hamiltonian flows of functions of the norm.** Off the zero
+section, for a function `φ` differentiable at `μ z`, the curve
+`t ↦ geodesicFlow (t * φ'(μ z)) z` is an integral curve of the Hamiltonian vector field of
+`φ ∘ μ` for the canonical symplectic form of `T*Sⁿ`, with Tau Ceti's convention `ι_X ω = dH`. -/
+theorem isMIntegralCurve_geodesicFlow_comp {φ : ℝ → ℝ} {z : CotangentBundle (𝓡 n) (𝕊 n)}
+    (hz : cotangentNorm z ≠ 0) (hφ : DifferentiableAt ℝ φ (cotangentNorm z)) :
+    IsMIntegralCurve (fun t ↦ geodesicFlow (t * deriv φ (cotangentNorm z)) z) fun w ↦
+      (CotangentBundle.symplecticForm (𝓡 n) (𝕊 n)).hamiltonianVectorField
+        (φ ∘ cotangentNorm) w := by
+  intro t
+  have hw := cotangentNorm_geodesicFlow (t * deriv φ (cotangentNorm z)) z
+  have hμ : MDifferentiableAt ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ)
+      cotangentNorm (geodesicFlow (t * deriv φ (cotangentNorm z)) z) :=
+    (contMDiffAt_cotangentNorm (by rwa [hw])).mdifferentiableAt (by simp)
+  dsimp only
+  rw [SmoothTwoForm.hamiltonianVectorField_comp (by rwa [hw]) hμ, hw]
+  exact (isMIntegralCurve_geodesicFlow hz).comp_mul (deriv φ (cotangentNorm z)) t
+
+/-- **Off the zero section, the model twist is the time-`2π` map of the Hamiltonian `R ∘ μ`.** For
+a twist profile `R` and `z` off the zero section, `t ↦ geodesicFlow (t * R'(μ z)) z` is an
+integral curve of the Hamiltonian vector field of `R ∘ μ`, and its value at `t = 2π` is the model
+twist of `z`. Only the second half uses that `R` is a twist profile; the first holds for every `R`
+differentiable at `μ z` (`isMIntegralCurve_geodesicFlow_comp`). -/
+theorem isMIntegralCurve_geodesicFlow_twistProfile {R : ℝ → ℝ} {r₀ : ℝ}
+    (hR : IsTwistProfile R r₀) {z : CotangentBundle (𝓡 n) (𝕊 n)} (hz : cotangentNorm z ≠ 0) :
+    IsMIntegralCurve (fun t ↦ geodesicFlow (t * deriv R (cotangentNorm z)) z) (fun w ↦
+        (CotangentBundle.symplecticForm (𝓡 n) (𝕊 n)).hamiltonianVectorField
+          (R ∘ cotangentNorm) w) ∧
+      geodesicFlow (2 * π * deriv R (cotangentNorm z)) z = modelTwist hR z :=
+  ⟨isMIntegralCurve_geodesicFlow_comp hz (hR.contDiff.differentiable (by simp) _),
+    (modelTwist_of_cotangentNorm_ne_zero hR hz).symm⟩
 
 /-! ### The primitive of the model twist -/
 

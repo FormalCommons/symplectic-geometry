@@ -311,7 +311,8 @@ theorem isInvolutiveDistribution_of_curvature_eq_zero [FiniteDimensional 𝕜 F]
     (hv.contMDiffOn i).contMDiffAt (hO.mem_nhds hxO)
   -- The brackets of the frame are horizontal, since the curvature vanishes.
   exact hX.mlieBracket_mem_of_forall_mlieBracket_mem hn hOx
-    (fun i j ↦ (hD.curvature_eq_zero_iff_mem hn ((hf x).of_le (add_le_add_left hn 1))
+    (fun i j ↦ (hD.curvature_eq_zero_iff_mem hn
+      ((hf x).of_le (SymplecticGeometry.two_le_add_one_of_one_le hn))
       ((hvx i).of_le hn) ((hvx j).of_le hn)).1 (h (hvx i) (hvx j)))
     (hV.mdifferentiableAt hUx) (hW.mdifferentiableAt hUx) (eventually_of_mem hUx hVD)
     (eventually_of_mem hUx hWD)
