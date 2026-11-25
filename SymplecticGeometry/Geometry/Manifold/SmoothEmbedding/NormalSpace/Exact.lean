@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Geometry.Manifold.IsManifold.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Basic
 
 /-!
@@ -21,6 +22,9 @@ With the injectivity of the differential (Mathlib's
 
 * `TauCeti.SmoothEmbedding.exact_mfderiv_normalClass`: the differential and the normal class map
   are exact, in the form of `Function.Exact`.
+* `TauCeti.SmoothEmbedding.finrank_normalSpace_eq`: under the dimension condition
+  `dim P = dim F - dim E` of Tau Ceti's normal bundle charts, the normal spaces have the dimension
+  of the model fibre `P`.
 -/
 
 public section
@@ -40,6 +44,15 @@ sequence `T_x M → T_{f x} N → ν_x`. -/
 theorem exact_mfderiv_normalClass (f : SmoothEmbedding I J n M N) (x : M) (hn : n ≠ 0) :
     Function.Exact (mfderiv I J f x).toLinearMap (f.normalClass x hn) :=
   LinearMap.exact_iff.2 (f.normalClass_ker x hn)
+
+/-- If a space `P` has dimension `dim F - dim E`, as the model fibre of Tau Ceti's normal bundle
+charts does, then each normal space of a smooth embedding has the dimension of `P`. -/
+theorem finrank_normalSpace_eq {P : Type*} [AddCommGroup P] [Module 𝕜 P] [FiniteDimensional 𝕜 F]
+    (f : SmoothEmbedding I J n M N) (hn : n ≠ 0)
+    (hdim : Module.finrank 𝕜 P = Module.finrank 𝕜 F - Module.finrank 𝕜 E) (x : M) :
+    Module.finrank 𝕜 (f.NormalSpace x hn) = Module.finrank 𝕜 P := by
+  rw [f.finrank_normalSpace x hn, hdim, TauCeti.finrank_tangentSpace,
+    TauCeti.finrank_tangentSpace]
 
 end TauCeti.SmoothEmbedding
 
