@@ -26,9 +26,11 @@ hypothesis. For a finite-dimensional `X`, the family itself, read through any li
 `t ↦ ∑ i, b.coord i (x t) • f (b i)`.
 
 No topology on `X` is involved: smoothness is only asked of the scalar functions
-`t ↦ f (x t)`. The last two results are the exceptions: for a finite-dimensional normed space `E`
-over a complete field, a family of linear functionals on `E` whose values are `C^n` is `C^n` as
-a family of continuous linear maps `E →L[𝕜] 𝕜`, by Tau Ceti's `TauCeti.contMDiffAt_clm_apply`.
+`t ↦ f (x t)`. The results that follow are the exceptions: for a finite-dimensional normed space
+`E` over a complete field, a family of linear functionals on `E` whose values are `C^n` is `C^n`
+as a family of continuous linear maps `E →L[𝕜] 𝕜`, by Tau Ceti's `TauCeti.contMDiffAt_clm_apply`.
+Evaluated along a `C^n` map between manifolds on a `C^n` family of vectors, such a family then
+gives a `C^n` function, by Mathlib's `ContMDiffAt.clm_apply`.
 A family whose values are differentiable is likewise differentiable as such a family, by Tau
 Ceti's `TauCeti.differentiableAt_clm_apply`, and through it the derivative of the values of `ν`
 on a varying vector comes from Mathlib's `fderiv_clm_apply`.
@@ -44,6 +46,9 @@ on a varying vector comes from Mathlib's `fderiv_clm_apply`.
   normed space.
 * `contMDiff_toContinuousLinearMap_of_contMDiff_apply`: for a finite-dimensional normed space `E`,
   if `t ↦ ν t ξ` is `C^n` for every `ξ : E`, then `ν` is `C^n` as a map into `E →L[𝕜] 𝕜`.
+* `contMDiffAt_dual_comp_apply`, `contMDiff_dual_comp_apply`: for a family `ν` of functionals on a
+  finite-dimensional normed space `X`, with `C^n` values, a `C^n` map `x : M → N` between
+  manifolds and a `C^n` map `c : M → X`, `z ↦ ν (x z) (c z)` is `C^n`.
 * `differentiableAt_toContinuousLinearMap_comp`, `differentiableAt_dual_comp_apply`,
   `differentiable_dual_comp_apply`: for a family `ν` of functionals on a finite-dimensional
   normed space `X`, with differentiable values, and a differentiable map `x : F → N` from a normed
@@ -121,6 +126,38 @@ theorem contMDiff_toContinuousLinearMap_of_contMDiff_apply [CompleteSpace 𝕜]
     {ν : N → Module.Dual 𝕜 E} (hν : ∀ ξ, ContMDiff J 𝓘(𝕜) n fun t ↦ ν t ξ) :
     ContMDiff J 𝓘(𝕜, E →L[𝕜] 𝕜) n fun t ↦ LinearMap.toContinuousLinearMap (ν t) :=
   fun t ↦ TauCeti.contMDiffAt_clm_apply.2 fun ξ ↦ hν ξ t
+
+section ContMDiffPairing
+
+variable [CompleteSpace 𝕜] {X : Type*} [NormedAddCommGroup X] [NormedSpace 𝕜 X]
+  [FiniteDimensional 𝕜 X] {ν : N → Module.Dual 𝕜 X}
+  {EM HM M : Type*} [NormedAddCommGroup EM] [NormedSpace 𝕜 EM] [TopologicalSpace HM]
+  {I : ModelWithCorners 𝕜 EM HM} [TopologicalSpace M] [ChartedSpace HM M]
+  {x : M → N} {y : M} {c : M → X}
+
+/-- **Smoothness at a point of a family of functionals evaluated on a family of vectors.** Let
+`ν : N → Module.Dual 𝕜 X` be a family of functionals on a finite-dimensional normed space `X`,
+indexed by a manifold `N`, and `x : M → N` a map between manifolds that is `C^n` at `y`. If every
+value `t ↦ ν t ξ` is `C^n` at `x y` and `c : M → X` is `C^n` at `y`, then `z ↦ ν (x z) (c z)` is
+`C^n` at `y`. -/
+theorem contMDiffAt_dual_comp_apply (hν : ∀ ξ, ContMDiffAt J 𝓘(𝕜) n (fun t ↦ ν t ξ) (x y))
+    (hx : ContMDiffAt I J n x y) (hc : ContMDiffAt I 𝓘(𝕜, X) n c y) :
+    ContMDiffAt I 𝓘(𝕜) n (fun z ↦ ν (x z) (c z)) y := by
+  have hL : ContMDiffAt J 𝓘(𝕜, X →L[𝕜] 𝕜) n
+      (fun t ↦ LinearMap.toContinuousLinearMap (ν t)) (x y) :=
+    TauCeti.contMDiffAt_clm_apply.2 hν
+  simpa using (hL.comp y hx).clm_apply hc
+
+/-- **Smoothness of a family of functionals evaluated on a family of vectors.** Let
+`ν : N → Module.Dual 𝕜 X` be a family of functionals on a finite-dimensional normed space `X`,
+indexed by a manifold `N`, with `C^n` values `t ↦ ν t ξ`, and `x : M → N` a `C^n` map between
+manifolds. If `c : M → X` is `C^n`, then so is `z ↦ ν (x z) (c z)`. -/
+theorem contMDiff_dual_comp_apply (hν : ∀ ξ, ContMDiff J 𝓘(𝕜) n fun t ↦ ν t ξ)
+    (hx : ContMDiff I J n x) (hc : ContMDiff I 𝓘(𝕜, X) n c) :
+    ContMDiff I 𝓘(𝕜) n fun z ↦ ν (x z) (c z) := fun y ↦
+  contMDiffAt_dual_comp_apply (fun ξ ↦ hν ξ (x y)) (hx y) (hc y)
+
+end ContMDiffPairing
 
 section Pairing
 
