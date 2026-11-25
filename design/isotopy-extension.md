@@ -494,7 +494,7 @@ compact set: the first with `β = 0`, the second with that set `univ`. Its route
    *Hamiltonian flows*)
    gives `Φ (t, f₀ x) = k (t, x)`.
 5. The slices preserve `ω`, in `exists_interior_velocity_eq`, by
-   `TauCeti.Diffeotopy.forall_timeSlice_mem_diffeomorphStabilizer_iff`, since
+   `TauCeti.Diffeotopy.timeSlice_timeDependentFlowDiffeotopy_mem_diffeomorphStabilizer`, since
    $\beta_t+dG_t$ is closed for $t\in[0,1]$; the time extension need not be
    closed past the ends. In the Hamiltonian case `G` generates `Φ`
    (`TauCeti.Diffeotopy.IsGeneratedBy`), so `Φ` is compactly supported Hamiltonian by

@@ -5,8 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Geometry.Manifold.IntegralCurve.Basic
 public import TauCeti.Geometry.Diffeomorphism.Sphere
 public import TauCeti.Geometry.Manifold.Diffeomorph.Cotangent
+public import TauCeti.Geometry.Manifold.MFDeriv.Curve
 public import TauCeti.Geometry.Manifold.Riemannian.Sphere.Basic
 public import TauCeti.Geometry.Manifold.Riemannian.Sphere.Geodesic
 public import TauCeti.Geometry.Manifold.VectorBundle.Cotangent.Basic
@@ -14,11 +16,17 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Riesz
 public import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Liouville
 public import TauCeti.Geometry.Symplectic.Cotangent.InnerProduct
 public import TauCeti.Geometry.Symplectic.Cotangent.Liouville
+public import TauCeti.Geometry.Symplectic.Hamiltonian.Manifold
+import Mathlib.Analysis.InnerProductSpace.Calculus
+import Mathlib.Analysis.SpecialFunctions.Sqrt
 import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.Codisc
+import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
+import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 import TauCeti.Geometry.Manifold.Riemannian.Sphere.Gradient
 import TauCeti.Geometry.Manifold.VectorBundle.Bilinear.SmulRight
 import TauCeti.Geometry.Manifold.VectorBundle.Cotangent.ModelSpace
+import TauCeti.Geometry.Symplectic.Manifold.Flat
 
 /-!
 # Euclidean coordinates and the normalized geodesic flow on the cotangent bundle of the sphere
@@ -70,6 +78,11 @@ direction.
   `SymplecticGeometry.geodesicFlow_pi`: off the zero section, its time-`π` map is `antipodal`.
 * `SymplecticGeometry.not_exists_continuous_eqOn_geodesicFlow`: for `0 < t < π` and `n ≥ 1`, no
   continuous map of `T*Sⁿ` agrees with the time-`t` map off the zero section.
+* `SymplecticGeometry.isMIntegralCurve_geodesicFlow`: off the zero section, the orbits of the flow
+  are integral curves of the Hamiltonian vector field of `cotangentNorm` for the canonical
+  symplectic form; `SymplecticGeometry.eval₂_symplecticForm_eq_stdSymplecticForm` gives that form
+  in the coordinates `(q, p)`, and `SymplecticGeometry.fst_mfderiv_cotangentCoord` the differential
+  of `q`.
 
 ## Implementation notes
 
@@ -97,6 +110,15 @@ has no continuous extension across the zero section: along the rays `s • u` an
 `s > 0`, at a point `q` with `u ⊥ q`, the base points of the images are constant and differ, while
 both rays tend to the zero covector at `q`.
 
+The Hamiltonian statement is checked in the same coordinates. Pulling the linear Liouville form
+back by `cotangentCoord` (`mpullback_cotangentCoord`) and commuting the pullback with the exterior
+derivative (`TauCeti.mpullback_mextDeriv`) writes `ω = -dλ` as `∑ⱼ dqⱼ ∧ dpⱼ` on the coordinate
+differentials. The velocity of an orbit at `(q, p)` reads `(p / ‖p‖, -‖p‖ q)`, so its contraction
+with `ω` sends a tangent vector with coordinate differentials `(δq, δp)` to
+`⟪p, δp⟫ / ‖p‖ + ‖p‖ ⟪q, δq⟫`. The second term vanishes since `δq ⊥ q`, and the first is `dμ`, so
+`TauCeti.SmoothTwoForm.hamiltonianVectorField_eq_iff_of_isInvertible_flat` identifies the velocity
+with `X_μ`.
+
 ## References
 
 * [P. Seidel, *A long exact sequence for symplectic Floer cohomology*][Seidel2003], §1, where the
@@ -111,7 +133,7 @@ noncomputable section
 
 namespace SymplecticGeometry
 
-open Bundle Metric Set TauCeti
+open Bundle Metric Set TauCeti TauCeti.Manifold
 open scoped Manifold ContDiff InnerProductSpace EuclideanSpace
 
 variable {n : ℕ}
@@ -317,6 +339,52 @@ theorem isCompact_setOf_cotangentNorm_le (r : ℝ) :
     IsCompact {z : CotangentBundle (𝓡 n) (𝕊 n) | cotangentNorm z ≤ r} := by
   simpa only [cotangentNorm_eq_norm] using CotangentBundle.isCompact_setOf_norm_snd_le r
 
+/-- The first coordinate of the differential of `cotangentCoord` is the differential of the
+inclusion `Sⁿ → ℝⁿ⁺¹` applied to the differential of the bundle projection: the first
+coordinate of `cotangentCoord z` is the base point of `z`. -/
+theorem fst_mfderiv_cotangentCoord (x : CotangentBundle (𝓡 n) (𝕊 n))
+    (w : TangentSpace ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) x) :
+    (mfderiv ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ, (𝔼 n) × 𝔼 n)
+        cotangentCoord x w).1 =
+      mvfderiv (𝓡 n) ((↑) : (𝕊 n) → 𝔼 n) x.proj
+        (mfderiv ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) (𝓡 n) TotalSpace.proj x
+          w) := by
+  have hΨ : MDifferentiableAt ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ))
+      𝓘(ℝ, (𝔼 n) × 𝔼 n) cotangentCoord x :=
+    contMDiff_cotangentCoord.mdifferentiableAt (by simp)
+  have hfst := mfderiv_comp_apply x (g := ContinuousLinearMap.fst ℝ (𝔼 n) (𝔼 n))
+    (ContinuousLinearMap.fst ℝ (𝔼 n) (𝔼 n)).mdifferentiableAt hΨ w
+  have hproj := mfderiv_comp_apply x (g := ((↑) : (𝕊 n) → 𝔼 n))
+    (contMDiff_coe_sphere.mdifferentiableAt one_ne_zero)
+    ((contMDiff_proj (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ)).mdifferentiableAt
+      one_ne_zero : MDifferentiableAt ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) (𝓡 n)
+        (π (EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ) (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ)) x)
+    w
+  have hcomp : Prod.fst ∘ cotangentCoord (n := n) = ((↑) : (𝕊 n) → 𝔼 n) ∘ TotalSpace.proj :=
+    funext fun z ↦ by simp [cotangentCoord_fst]
+  rw [ContinuousLinearMap.mfderiv_eq, ContinuousLinearMap.coe_fst', hcomp] at hfst
+  rw [mvfderiv_apply_eq_mfderiv_apply, ← hproj, hfst]
+  -- A tangent vector of the model space `𝔼 n × 𝔼 n` is a pair, on which `fst` is `Prod.fst`.
+  rfl
+
+/-- The differential of `cotangentCoord` followed by Tau Ceti's identification
+`TauCeti.cotangentInnerEquiv` is that identification applied to the differential of
+`cotangentCoord`. -/
+theorem mfderiv_cotangentInnerEquiv_comp_cotangentCoord_apply (z : CotangentBundle (𝓡 n) (𝕊 n))
+    (u : TangentSpace ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) z) :
+    mfderiv ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ))
+      𝓘(ℝ, (𝔼 n) × StrongDual ℝ (𝔼 n)) (TauCeti.cotangentInnerEquiv ∘ cotangentCoord) z u =
+    TauCeti.cotangentInnerEquiv (V := 𝔼 n)
+      (mfderiv ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ, (𝔼 n) × 𝔼 n)
+        cotangentCoord z u) := by
+  refine (mfderiv_comp_apply z (g := ⇑(TauCeti.cotangentInnerEquiv (V := 𝔼 n)))
+    (TauCeti.cotangentInnerEquiv (V := 𝔼 n)).mdifferentiableAt
+    (contMDiff_cotangentCoord.mdifferentiableAt (by simp)) u).trans ?_
+  rw [ContinuousLinearEquiv.mfderiv_eq]
+  -- The coercion of `cotangentInnerEquiv` to a linear map, applied to a tangent vector of the
+  -- model space, is the equivalence itself; the types differ only by `TangentSpace`.
+  rfl
+
 /-- The coordinates `cotangentCoord`, followed by Tau Ceti's identification
 `(q, p) ↦ (q, ⟪p, ·⟫)` of `ℝⁿ⁺¹ × ℝⁿ⁺¹` with `ℝⁿ⁺¹ × (ℝⁿ⁺¹)*`, pull the linear Liouville form
 `TauCeti.cotangentLiouvilleForm`, the form `∑ⱼ pⱼ dqⱼ`, back to the Liouville form of `T*Sⁿ`. -/
@@ -327,32 +395,15 @@ theorem mpullback_cotangentCoord :
       (CotangentBundle.liouvilleForm (𝓡 n) (𝕊 n)).val := by
   funext z
   ext v
-  have hf : MDifferentiableAt ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ))
-      𝓘(ℝ, (𝔼 n) × StrongDual ℝ (𝔼 n)) (TauCeti.cotangentInnerEquiv ∘ cotangentCoord) z :=
-    ((TauCeti.cotangentInnerEquiv (V := 𝔼 n)).contDiff.contMDiff.comp
-      contMDiff_cotangentCoord).mdifferentiableAt (by simp)
-  have hfst := mfderiv_comp_apply z
-    (g := ContinuousLinearMap.fst ℝ (𝔼 n) (StrongDual ℝ (𝔼 n)))
-    (ContinuousLinearMap.fst ℝ (𝔼 n) (StrongDual ℝ (𝔼 n))).mdifferentiableAt hf (v 0)
-  have hproj := mfderiv_comp_apply z (g := ((↑) : (𝕊 n) → 𝔼 n))
-    (contMDiff_coe_sphere.mdifferentiableAt one_ne_zero)
-    ((contMDiff_proj (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ)).mdifferentiableAt
-      one_ne_zero : MDifferentiableAt ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) (𝓡 n)
-        (π (EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ) (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ)) z)
-    (v 0)
-  have hcomp : Prod.fst ∘ TauCeti.cotangentInnerEquiv ∘ cotangentCoord (n := n) =
-      ((↑) : (𝕊 n) → 𝔼 n) ∘ TotalSpace.proj :=
-    funext fun z ↦ by simp [cotangentCoord_fst]
-  rw [ContinuousLinearMap.mfderiv_eq, ContinuousLinearMap.coe_fst', hcomp] at hfst
   -- The form has the type of a model-space form only up to unfolding `TangentSpace`, so the
   -- evaluation lemmas are applied by unification rather than by `rw`.
   refine ((TauCeti.mpullback_apply _ _ z v).trans
     (TauCeti.cotangentLiouvilleForm_apply _ _)).trans ?_
   rw [CotangentBundle.liouvilleForm_apply, Function.comp_apply,
     TauCeti.cotangentInnerEquiv_apply_snd_apply, ← inner_cotangentCoord_snd,
-    mvfderiv_apply_eq_mfderiv_apply, ← hproj, hfst]
-  -- A tangent vector of the model space `𝔼 n × (𝔼 n)*` is a pair, on which `fst` is `Prod.fst`.
-  rfl
+    mfderiv_cotangentInnerEquiv_comp_cotangentCoord_apply]
+  exact congrArg _ ((TauCeti.cotangentInnerEquiv_apply_fst _).trans
+    (fst_mfderiv_cotangentCoord z (v 0)))
 
 /-- The cotangent lift of the diffeomorphism of `Sⁿ` induced by a linear isometry `e` of `ℝⁿ⁺¹`
 acts in coordinates by `(q, p) ↦ (e q, e p)`. -/
@@ -564,6 +615,147 @@ theorem not_exists_continuous_eqOn_geodesicFlow [NeZero n] {t : ℝ} (ht₀ : 0 
   rcases h with h | h
   · exact (mul_pos two_pos (div_pos hsin hu')).ne' h
   · exact hu h
+
+/-- The orbit `t ↦ geodesicFlow t z` of a covector under the normalized geodesic flow is smooth;
+it is constant when `z` lies on the zero section. -/
+theorem contMDiff_geodesicFlow (z : CotangentBundle (𝓡 n) (𝕊 n)) :
+    ContMDiff 𝓘(ℝ) ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) ∞
+      (geodesicFlow · z) := by
+  by_cases hz : cotangentNorm z = 0
+  · simp only [geodesicFlow_of_cotangentNorm_eq_zero hz]
+    exact contMDiff_const
+  simp only [geodesicFlow_def, dite_eq_right hz]
+  refine contMDiff_cotangentMk.comp (f := fun t ↦ (_, _)) (ContMDiff.prodMk ?_ ?_)
+  · refine ContMDiff.of_le ?_ le_top
+    exact contMDiff_sphereGreatCircle _ _ ((real_inner_smul_right _ _ _).trans
+      (mul_eq_zero_of_right _ (inner_proj_cotangentCoord_snd z)))
+  · exact ((Real.contDiff_cos.smul contDiff_const).sub
+      ((Real.contDiff_sin.mul contDiff_const).smul contDiff_const)).contMDiff
+
+/-- **The canonical symplectic form in the coordinates `(q, p)`.** The differential of
+`cotangentCoord` carries the canonical symplectic form of `T*Sⁿ` to the standard form
+`ω₀((δq, δp), (δq', δp')) = ⟪δq, δp'⟫ - ⟪δp, δq'⟫` (`TauCeti.stdSymplecticForm`) of
+`ℝⁿ⁺¹ × ℝⁿ⁺¹`: the form `∑ⱼ dqⱼ ∧ dpⱼ` restricted to the image of `T*Sⁿ`. -/
+theorem eval₂_symplecticForm_eq_stdSymplecticForm (z : CotangentBundle (𝓡 n) (𝕊 n))
+    (v w : TangentSpace ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) z) :
+    SmoothBundleForm.eval₂ (CotangentBundle.symplecticForm (𝓡 n) (𝕊 n)) z v w =
+      stdSymplecticForm
+        (mfderiv ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ, (𝔼 n) × 𝔼 n)
+          cotangentCoord z v)
+        (mfderiv ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ, (𝔼 n) × 𝔼 n)
+          cotangentCoord z w) := by
+  have hΦ : ContMDiff ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ))
+      𝓘(ℝ, (𝔼 n) × StrongDual ℝ (𝔼 n)) ∞ (TauCeti.cotangentInnerEquiv ∘ cotangentCoord) :=
+    (TauCeti.cotangentInnerEquiv (V := 𝔼 n)).contDiff.contMDiff.comp contMDiff_cotangentCoord
+  have hL : IsSmoothBundleForm (I := 𝓘(ℝ, (𝔼 n) × StrongDual ℝ (𝔼 n))) (F := ℝ)
+      (V := Trivial ((𝔼 n) × StrongDual ℝ (𝔼 n)) ℝ) 1
+      (fun x ↦ TauCeti.cotangentLiouvilleForm x) :=
+    (isSmoothBundleForm_def 1 _).mpr
+      ((isSmoothForm_modelSpace_iff.mpr contDiff_cotangentLiouvilleForm).contMDiff)
+  have h1 : mextDeriv (I := 𝓘(ℝ, (𝔼 n) × StrongDual ℝ (𝔼 n)))
+      (fun x ↦ TauCeti.cotangentLiouvilleForm x) (TauCeti.cotangentInnerEquiv (cotangentCoord z)) =
+      extDeriv TauCeti.cotangentLiouvilleForm (TauCeti.cotangentInnerEquiv (cotangentCoord z)) :=
+    mextDeriv_eq_extDeriv _ _
+  rw [SmoothBundleForm.eval₂_apply, CotangentBundle.symplecticForm_eq_neg_mextDeriv,
+    ← mpullback_cotangentCoord, ← mpullback_mextDeriv (hΦ.of_le (by simp)) hL, Pi.neg_apply,
+    ContinuousAlternatingMap.neg_apply, mpullback_apply, Function.comp_apply, h1]
+  refine (neg_extDeriv_cotangentLiouvilleForm_apply _ _).trans ?_
+  simp only [Matrix.cons_val_zero, Matrix.cons_val_one]
+  rw [mfderiv_cotangentInnerEquiv_comp_cotangentCoord_apply,
+    mfderiv_cotangentInnerEquiv_comp_cotangentCoord_apply]
+  exact isSymplectomorphism_cotangentInnerEquiv.apply _ _
+
+/-- The differential of the first coordinate `q` of a covector is orthogonal to `q`, as the base
+point stays on the unit sphere. -/
+theorem inner_fst_mfderiv_cotangentCoord (x : CotangentBundle (𝓡 n) (𝕊 n))
+    (w : TangentSpace ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) x) :
+    ⟪(cotangentCoord x).1,
+      (mfderiv ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ, (𝔼 n) × 𝔼 n)
+        cotangentCoord x w).1⟫_ℝ = 0 := by
+  rw [fst_mfderiv_cotangentCoord, cotangentCoord_fst]
+  exact inner_coe_mvfderiv_subtypeVal_sphere _ _
+
+/-- Off the zero section, the differential of the norm `μ = ‖p‖` is `δp ↦ ⟪p, δp⟫ / ‖p‖`, read
+through the differential of `cotangentCoord`. -/
+theorem mvfderiv_cotangentNorm {x : CotangentBundle (𝓡 n) (𝕊 n)} (hx : cotangentNorm x ≠ 0)
+    (w : TangentSpace ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) x) :
+    mvfderiv ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) cotangentNorm x w =
+      ⟪(cotangentCoord x).2,
+        (mfderiv ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ, (𝔼 n) × 𝔼 n)
+          cotangentCoord x w).2⟫_ℝ / cotangentNorm x := by
+  have hΨ : MDifferentiableAt ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ))
+      𝓘(ℝ, (𝔼 n) × 𝔼 n) cotangentCoord x :=
+    contMDiff_cotangentCoord.mdifferentiableAt (by simp)
+  have h2 : ‖(cotangentCoord x).2‖ ^ 2 ≠ 0 := pow_ne_zero 2 hx
+  have hg := ((hasFDerivAt_snd (p := cotangentCoord x)).norm_sq).sqrt h2
+  have hcomp : cotangentNorm (n := n) = (fun y : (𝔼 n) × 𝔼 n ↦ √(‖y.2‖ ^ 2)) ∘ cotangentCoord :=
+    funext fun z ↦ by simp [cotangentNorm_def, Real.sqrt_sq (norm_nonneg _)]
+  have key (u : (𝔼 n) × 𝔼 n) :
+      ((1 / (2 * √(‖(cotangentCoord x).2‖ ^ 2))) • 2 • (innerSL ℝ (cotangentCoord x).2).comp
+        (ContinuousLinearMap.snd ℝ (𝔼 n) (𝔼 n))) u =
+      ⟪(cotangentCoord x).2, u.2⟫_ℝ / cotangentNorm x := by
+    simp only [Real.sqrt_sq (norm_nonneg _), one_div, mul_inv_rev, smul_apply,
+      ContinuousLinearMap.comp_apply, ContinuousLinearMap.coe_snd', coe_innerSL_apply,
+      nsmul_eq_mul, Nat.cast_ofNat, smul_eq_mul, cotangentNorm_def]
+    field_simp
+  rw [mvfderiv_apply_eq_mfderiv_apply]
+  conv_lhs => rw [hcomp]
+  rw [mfderiv_comp_apply x hg.differentiableAt.mdifferentiableAt hΨ, hg.hasMFDerivAt.mfderiv]
+  exact key _
+
+/-- Off the zero section, the velocity of the orbit `t ↦ geodesicFlow t z` at a covector with
+coordinates `(q, p)` reads `(p / ‖p‖, -‖p‖ q)` in coordinates. -/
+theorem mfderiv_cotangentCoord_curveVelocity_geodesicFlow {z : CotangentBundle (𝓡 n) (𝕊 n)}
+    (hz : cotangentNorm z ≠ 0) (t : ℝ) :
+    mfderiv ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ, (𝔼 n) × 𝔼 n)
+        cotangentCoord (geodesicFlow t z)
+        (curveVelocity ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ))
+          (geodesicFlow · z) t) =
+      ((cotangentNorm z)⁻¹ • (cotangentCoord (geodesicFlow t z)).2,
+        -(cotangentNorm z • (cotangentCoord (geodesicFlow t z)).1)) := by
+  have hΨ : MDifferentiableAt ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ))
+      𝓘(ℝ, (𝔼 n) × 𝔼 n) cotangentCoord (geodesicFlow t z) :=
+    contMDiff_cotangentCoord.mdifferentiableAt (by simp)
+  have h := hasDerivAt_comp_curve hΨ (hasMFDerivAt_curveVelocity
+    ((contMDiff_geodesicFlow z).mdifferentiableAt (x := t) (by simp)))
+  have hF : HasDerivAt (cotangentCoord ∘ (geodesicFlow · z))
+      (-Real.sin t • (cotangentCoord z).1 +
+          (Real.cos t / ‖(cotangentCoord z).2‖) • (cotangentCoord z).2,
+        -Real.sin t • (cotangentCoord z).2 -
+          (Real.cos t * ‖(cotangentCoord z).2‖) • (cotangentCoord z).1) t := by
+    rw [show cotangentCoord ∘ (geodesicFlow · z) = _ from
+      funext fun s ↦ cotangentCoord_geodesicFlow hz s]
+    exact (((Real.hasDerivAt_cos t).smul_const _).add
+      (((Real.hasDerivAt_sin t).div_const _).smul_const _)).prodMk
+      (((Real.hasDerivAt_cos t).smul_const _).sub
+        (((Real.hasDerivAt_sin t).mul_const _).smul_const _))
+  have hN : ‖(cotangentCoord z).2‖ ≠ 0 := (cotangentNorm_def z).symm.trans_ne hz
+  rw [← mvfderiv_apply_eq_mfderiv_apply, h.unique hF, cotangentCoord_geodesicFlow hz,
+    cotangentNorm_def]
+  refine Prod.ext ?_ ?_ <;> dsimp only <;> match_scalars <;> field_simp
+
+/-- **The normalized geodesic flow is the Hamiltonian flow of the norm.** Off the zero section,
+the orbit `t ↦ geodesicFlow t z` is an integral curve of the Hamiltonian vector field of
+`cotangentNorm` for the canonical symplectic form `ω = -dλ` of `T*Sⁿ`, with Tau Ceti's convention
+`ι_(X_μ) ω = dμ`. -/
+theorem isMIntegralCurve_geodesicFlow {z : CotangentBundle (𝓡 n) (𝕊 n)}
+    (hz : cotangentNorm z ≠ 0) :
+    IsMIntegralCurve (geodesicFlow · z) fun w ↦
+      (CotangentBundle.symplecticForm (𝓡 n) (𝕊 n)).hamiltonianVectorField cotangentNorm w := by
+  refine isMIntegralCurve_iff_curveVelocity_eq.mpr fun t ↦
+    ⟨(contMDiff_geodesicFlow z).mdifferentiableAt (by simp), ?_⟩
+  have hx : cotangentNorm (geodesicFlow t z) ≠ 0 := by rwa [cotangentNorm_geodesicFlow]
+  symm
+  rw [SmoothTwoForm.hamiltonianVectorField_eq_iff_of_isInvertible_flat
+    (CotangentBundle.isSymplectic_symplecticForm.isNondegenerate.isInvertible_flat _)]
+  intro w
+  rw [eval₂_symplecticForm_eq_stdSymplecticForm]
+  refine (stdSymplecticForm_apply _ _).trans ?_
+  rw [mfderiv_cotangentCoord_curveVelocity_geodesicFlow hz, mvfderiv_cotangentNorm hx,
+    real_inner_smul_left, inner_neg_left, real_inner_smul_left, inner_fst_mfderiv_cotangentCoord,
+    cotangentNorm_geodesicFlow]
+  field_simp
+  ring
 
 end SymplecticGeometry
 

@@ -611,7 +611,8 @@ private theorem mfderiv_collarFlow_apply {q : ℝ × (𝓡∂ (n + 1)).boundary 
       Y (h.collarFlow q) := by
   obtain ⟨s, x⟩ := q
   have hs : s ∈ Ioo (-h.collarWidth) 0 := hq.1
-  have := (h.mdifferentiableAt_collarFlow hq).mfderiv_curry_left_apply (1 : ℝ)
+  have := MDifferentiableAt.mfderiv_uncurry_apply_mk_zero (f := fun s x ↦ h.collarFlow (s, x))
+    (h.mdifferentiableAt_collarFlow hq) (1 : ℝ)
   rw [(((h.isMIntegralCurveOn_collarFlow x) s (Ioo_subset_Ioc_self hs)).hasMFDerivAt
     (Ioc_mem_nhds hs.1 hs.2)).mfderiv] at this
   rw [Manifold.prodVectorField_constVectorField_zero_apply]
