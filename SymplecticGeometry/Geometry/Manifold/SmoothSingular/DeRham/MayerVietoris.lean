@@ -7,7 +7,7 @@ module
 
 public import TauCeti.AlgebraicTopology.Cohomology.MayerVietoris.Basic
 public import TauCeti.Geometry.Manifold.DeRham.MayerVietoris
-public import TauCeti.Geometry.Manifold.SmoothSingular.DeRham
+public import TauCeti.Geometry.Manifold.SmoothSingular.DeRham.Basic
 public import TauCeti.Geometry.Manifold.SmoothSingular.MayerVietoris
 public import TauCeti.Geometry.Manifold.SmoothSingular.SingularCohomology
 public import SymplecticGeometry.Geometry.Manifold.SmoothSingular.MayerVietorisCochain

@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Manifold.Riemannian.L2Form
+public import TauCeti.Geometry.Manifold.Riemannian.L2Form.Basic
 public import SymplecticGeometry.Geometry.Manifold.IsManifold.SecondCountable
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.Chart
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartialDiffeomorph

@@ -11,7 +11,7 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.CauchyRiemann.Ze
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.Hilbert
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.CovariantDerivative
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.SmoothHomMul
-public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.ZeroOneForm
+public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.ZeroOneForm.Basic
 import SymplecticGeometry.Analysis.Normed.Operator.ComplexLinearPart
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.ZeroOnePart
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Tames

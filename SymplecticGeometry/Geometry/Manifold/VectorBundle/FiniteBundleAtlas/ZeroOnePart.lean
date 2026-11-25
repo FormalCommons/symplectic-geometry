@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.ZeroOneForm
+public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.ZeroOneForm.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.Basic
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.CauchyRiemann.ZeroOneForm
