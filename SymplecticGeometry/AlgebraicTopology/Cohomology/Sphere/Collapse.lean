@@ -11,6 +11,7 @@ public import SymplecticGeometry.Topology.Compactification.OnePoint.Sphere
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Degree
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Prod
 public import TauCeti.Geometry.Manifold.Instances.TopCatSphere
+public import SymplecticGeometry.AlgebraicTopology.Cohomology.Sphere.Generator
 
 /-!
 # The collapse map `S^a × S^b → S^{a+b}`
@@ -41,13 +42,23 @@ equivalence `(ℝ ∙ p)ᗮ × (ℝ ∙ q)ᗮ ≃ (ℝ ∙ r)ᗮ`, followed by M
 * `SymplecticGeometry.exists_singularHomologyMap_sphereCollapse_singularHomologyCross_eq_zsmul`:
   in integral homology of degree `a + b`, the collapse map sends the cross product `γ_a × γ_b`
   of the standard generators of the homology of the spheres to `±γ_{a+b}`.
+* `SymplecticGeometry.exists_singularCohomologyMap_sphereCollapse_eq_smul_singularCup` and
+  `SymplecticGeometry.exists_singularCohomologyMap_sphereCollapse_eq_smul_integralCup`: in
+  cohomology of degree `a + b` with coefficients `ℤ`, and in integral cohomology, there is one
+  sign `ε = ±1` such that the collapse map pulls each class `u` back to
+  `(ε * ⟨u, γ_{a+b}⟩) • (pr₁^* θ_a ⌣ pr₂^* θ_b)`, with `θ_a`, `θ_b` the dual generators of the
+  top cohomology of the spheres.
 
-The last result is read on Tau Ceti's spheres `TopCat.sphere`. The cross product is a
-fundamental class
+The last three results are read on Tau Ceti's spheres `TopCat.sphere`. For the first, the cross
+product is a fundamental class
 (`TauCeti.IsFundamentalClass.singularHomologyTopCatSphereGenerator_singularHomologyCross`), and
 so is `γ_{a+b}`. A point off the wedge has a one-point fibre at which the map is a local
 homeomorphism, so `TauCeti.IsFundamentalClass.map_eq_or_eq_neg_of_isLocalHomeomorphOn_unit`
-gives the sign.
+gives the sign. For the other two, a class `x` of degree `a + b` on `S^a × S^b` is
+`⟨x, γ_a × γ_b⟩ • (pr₁^* θ_a ⌣ pr₂^* θ_b)`
+(`TopCat.eq_singularKronecker_smul_singularCup_sphereGenerator`), and for `x = κ^* u` the
+naturality of the Kronecker pairing gives `⟨κ^* u, γ_a × γ_b⟩ = ⟨u, κ_*(γ_a × γ_b)⟩ =
+ε * ⟨u, γ_{a+b}⟩`.
 
 ## References
 
@@ -308,6 +319,107 @@ theorem exists_singularHomologyMap_sphereCollapse_singularHomologyCross_eq_zsmul
     with hf' | hf'
   · exact ⟨1, .inl rfl, hf'.trans (one_zsmul _).symm⟩
   · exact ⟨-1, .inr rfl, hf'.trans (neg_one_zsmul _).symm⟩
+
+section SingularCohomology
+
+/- Cohomology with coefficients `ℤ` is taken here with the `ℤ`-linear structure
+`ModuleCat.instLinear` of `ModuleCat ℤ`, the one with which Tau Ceti states its sphere generators
+and its cup products over a commutative ring, rather than the structure
+`Linear.preadditiveIntLinear` of a preadditive category. -/
+attribute [local instance high] ModuleCat.instLinear
+
+/-- **The collapse map in cohomology.** Let `a = d + 1` and `b = e + 1`, and read the collapse
+map `κ : S^a × S^b → S^{a+b}` on Tau Ceti's spheres `TopCat.sphere` through
+`TauCeti.sphereHomeomorphTopCatSphere`. There is a sign `ε = ±1` such that every class
+`u ∈ H^{a+b}(S^{a+b}; ℤ)` pulls back to `κ^* u = (ε * ⟨u, γ_{a+b}⟩) • (pr₁^* θ_a ⌣ pr₂^* θ_b)`,
+where `⟨u, γ_{a+b}⟩` is the evaluation `TauCeti.singularCohomologyTopCatSphereEquiv` of `u` on
+the standard generator and `θ_a`, `θ_b` are the dual generators
+`TauCeti.singularCohomologyTopCatSphereGenerator`. -/
+theorem exists_singularCohomologyMap_sphereCollapse_eq_smul_singularCup :
+    ∃ ε : ℤ, (ε = 1 ∨ ε = -1) ∧
+      ∀ u : (TopCat.sphere.{0} (d + 1 + e + 1)).singularCohomology (𝟙_ (ModuleCat.{0} ℤ)) ℤ
+        (𝟙_ (ModuleCat.{0} ℤ)) (d + 1 + (e + 1)),
+      TopCat.singularCohomologyMap (TopCat.ofHom
+            (X := ↑(TopCat.sphere.{0} (d + 1) ⊗ TopCat.sphere.{0} (e + 1)))
+            (Y := ↑(TopCat.sphere.{0} (d + 1 + e + 1)))
+            (((sphereHomeomorphTopCatSphere (by omega) :
+                  sphere (0 : G) 1 ≃ₜ TopCat.sphere.{0} (d + 1 + e + 1)) :
+                C(sphere (0 : G) 1, TopCat.sphere.{0} (d + 1 + e + 1))).comp
+              ((sphereCollapse h p q r).comp
+                (((sphereHomeomorphTopCatSphere hE).symm.prodCongr
+                  (sphereHomeomorphTopCatSphere hF).symm :
+                    TopCat.sphere.{0} (d + 1) × TopCat.sphere.{0} (e + 1) ≃ₜ _) :
+                  C(TopCat.sphere.{0} (d + 1) × TopCat.sphere.{0} (e + 1),
+                    sphere (0 : E) 1 × sphere (0 : F) 1)))))
+          (d + 1 + (e + 1)) u =
+        (ε * singularCohomologyTopCatSphereEquiv ℤ (𝟙_ (ModuleCat.{0} ℤ)) (d + 1 + e) u) •
+          (TopCat.sphere.{0} (d + 1) ⊗ TopCat.sphere.{0} (e + 1)).singularCup ℤ (λ_ _).inv
+            (λ_ _).hom (d + 1) (e + 1) (d + 1 + (e + 1)) rfl
+            (TopCat.singularCohomologyMap (CartesianMonoidalCategory.fst _ _) (d + 1)
+              (singularCohomologyTopCatSphereGenerator ℤ d))
+            (TopCat.singularCohomologyMap (CartesianMonoidalCategory.snd _ _) (e + 1)
+              (singularCohomologyTopCatSphereGenerator ℤ e)) := by
+  obtain ⟨ε, hε, hγ⟩ :=
+    exists_singularHomologyMap_sphereCollapse_singularHomologyCross_eq_zsmul h p q r hE hF
+  refine ⟨ε, hε, fun u ↦ ?_⟩
+  rw [TopCat.eq_singularKronecker_smul_singularCup_sphereGenerator ℤ rfl
+    (TopCat.singularCohomologyMap _ _ u)]
+  -- `(ε * _) • _` is the action of `ℤ` on an additive group here, and the module action over
+  -- `ℤ` in `eq_singularKronecker_smul_singularCup_sphereGenerator`.
+  rw [← Int.cast_smul_eq_zsmul ℤ, Int.cast_id]
+  congr 1
+  rw [TopCat.singularKronecker_naturality, ConcreteCategory.comp_apply]
+  -- `hγ` reads the map with source the product type rather than the monoidal product.
+  refine (congrArg ((TopCat.sphere.{0} (d + 1 + e + 1)).singularKronecker ℤ _ u).hom hγ).trans ?_
+  rw [map_zsmul, singularCohomologyTopCatSphereEquiv_apply, smul_eq_mul]
+  -- The two sides differ only in writing the degree as `d + 1 + (e + 1)` or `d + 1 + e + 1`.
+  rfl
+
+end SingularCohomology
+
+/-- **The collapse map in integral cohomology.** Let `a = d + 1` and `b = e + 1`, and read the
+collapse map `κ : S^a × S^b → S^{a+b}` on Tau Ceti's spheres `TopCat.sphere` through
+`TauCeti.sphereHomeomorphTopCatSphere`. There is a sign `ε = ±1` such that every class
+`u ∈ H^{a+b}(S^{a+b}; ℤ)` of the integral cohomology `TopCat.integralCohomology` pulls back to
+`κ^* u = (ε * ⟨u, γ_{a+b}⟩) • (pr₁^* θ_a ⌣ pr₂^* θ_b)`, the cup product being
+`TopCat.integralCup`. Here `⟨u, γ_{a+b}⟩` is the evaluation
+`TauCeti.singularCohomologyTopCatSphereEquiv` of `u` on the standard generator, and `θ_a`, `θ_b`
+are the dual generators `TauCeti.singularCohomologyTopCatSphereGenerator`, both read in integral
+cohomology through `TopCat.integralCohomologyEquiv`. -/
+theorem exists_singularCohomologyMap_sphereCollapse_eq_smul_integralCup :
+    ∃ ε : ℤ, (ε = 1 ∨ ε = -1) ∧
+      ∀ u : (TopCat.sphere.{0} (d + 1 + e + 1)).integralCohomology (d + 1 + (e + 1)),
+      TopCat.singularCohomologyMap (TopCat.ofHom
+            (X := ↑(TopCat.sphere.{0} (d + 1) ⊗ TopCat.sphere.{0} (e + 1)))
+            (Y := ↑(TopCat.sphere.{0} (d + 1 + e + 1)))
+            (((sphereHomeomorphTopCatSphere (by omega) :
+                  sphere (0 : G) 1 ≃ₜ TopCat.sphere.{0} (d + 1 + e + 1)) :
+                C(sphere (0 : G) 1, TopCat.sphere.{0} (d + 1 + e + 1))).comp
+              ((sphereCollapse h p q r).comp
+                (((sphereHomeomorphTopCatSphere hE).symm.prodCongr
+                  (sphereHomeomorphTopCatSphere hF).symm :
+                    TopCat.sphere.{0} (d + 1) × TopCat.sphere.{0} (e + 1) ≃ₜ _) :
+                  C(TopCat.sphere.{0} (d + 1) × TopCat.sphere.{0} (e + 1),
+                    sphere (0 : E) 1 × sphere (0 : F) 1)))))
+          (d + 1 + (e + 1)) u =
+        (ε * singularCohomologyTopCatSphereEquiv ℤ (𝟙_ (ModuleCat.{0} ℤ)) (d + 1 + e)
+            ((TopCat.sphere.{0} (d + 1 + e + 1)).integralCohomologyEquiv (d + 1 + (e + 1)) u)) •
+          (TopCat.sphere.{0} (d + 1) ⊗ TopCat.sphere.{0} (e + 1)).integralCup (d + 1) (e + 1)
+            (d + 1 + (e + 1)) rfl
+            (TopCat.singularCohomologyMap (CartesianMonoidalCategory.fst _ _) (d + 1)
+              (((TopCat.sphere.{0} (d + 1)).integralCohomologyEquiv (d + 1)).symm
+                (singularCohomologyTopCatSphereGenerator ℤ d)))
+            (TopCat.singularCohomologyMap (CartesianMonoidalCategory.snd _ _) (e + 1)
+              (((TopCat.sphere.{0} (e + 1)).integralCohomologyEquiv (e + 1)).symm
+                (singularCohomologyTopCatSphereGenerator ℤ e))) := by
+  obtain ⟨ε, hε, hu⟩ :=
+    exists_singularCohomologyMap_sphereCollapse_eq_smul_singularCup h p q r hE hF
+  refine ⟨ε, hε, fun u ↦ ?_⟩
+  obtain ⟨v, rfl⟩ := ((TopCat.sphere.{0} (d + 1 + e + 1)).integralCohomologyEquiv
+    (d + 1 + (e + 1))).symm.surjective u
+  rw [LinearEquiv.apply_symm_apply, ← TopCat.integralCohomologyEquiv_symm_naturality, hu,
+    map_zsmul, TopCat.integralCohomologyEquiv_symm_singularCup,
+    TopCat.integralCohomologyEquiv_symm_naturality, TopCat.integralCohomologyEquiv_symm_naturality]
 
 end Homology
 
