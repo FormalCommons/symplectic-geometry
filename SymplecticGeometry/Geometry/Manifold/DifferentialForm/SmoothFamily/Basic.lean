@@ -18,6 +18,7 @@ import TauCeti.Geometry.Manifold.MFDeriv.Prod
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Vertical
 public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 
 /-!
 # Smooth families of forms
@@ -255,10 +256,9 @@ theorem val_apply_eq_mpullback_val_apply {η : SmoothForm (I.prod J) (M × N) F 
   rw [mpullback_apply]
   refine hη.apply_eq_of_mfderiv_eq fun i ↦ ?_
   have hd (y : TangentSpace I p.1) : mfderiv I (I.prod J) (fun x ↦ (x, p.2)) p.1 y =
-      (Manifold.tangentSpaceProdEquiv (I := I) (J := J) p).symm (y, 0) := by
-    rw [mfderiv_prod_left, Manifold.tangentSpaceProdEquiv_symm_apply]
-    -- `inl_apply` lands in the product of the tangent spaces, the same type as the left side.
-    exact ContinuousLinearMap.inl_apply y
+      (Manifold.tangentSpaceProdEquiv (I := I) (J := J) p).symm (y, 0) :=
+    (ContinuousLinearEquiv.eq_symm_apply _).mpr
+      (TauCeti.Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_left y)
   rw [hd, mfderiv_fst_apply, mfderiv_fst_apply, Manifold.tangentSpaceProdEquiv_symm_apply,
     Manifold.tangentSpaceProdEquiv_apply]
 
