@@ -281,7 +281,7 @@ parallel transport. About 550 lines.
   Theorem 1.2.5 of [GuilleminLermanSternberg1996]: the sum over a smooth
   partition of unity `ρ` of `B` subordinate to the base sets of
   `(ρ i ∘ π) • (pull-back of σ along x ↦ (e_i x).2)`. It is smooth by the
-  library's `SmoothPartitionOfUnity.IsSubordinate.isSmoothForm_finsum_smul_comp`.
+  Tau Ceti's `TauCeti.isSmoothForm_sum_finsupport_smul_mpullback`.
   It restricts to `σ` because the weights sum to one and each chart pulls
   back to `σ`. For vertical closedness write `θ_i` for the pull-back of
   `σ` along `x ↦ (e_i x).2`; it is closed, as `σ` is. So the derivative of

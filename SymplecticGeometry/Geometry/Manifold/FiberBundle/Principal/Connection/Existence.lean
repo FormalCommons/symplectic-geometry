@@ -7,8 +7,8 @@ module
 
 public import SymplecticGeometry.Geometry.Lie.MaurerCartan
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Basic
-public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Trivialization
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartitionOfUnity
+import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Trivialization
+import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.PartitionOfUnity
 import TauCeti.Geometry.Manifold.PartitionOfUnity.Basic
 
 /-!
@@ -148,25 +148,25 @@ theorem exists_isConnectionForm [FiniteDimensional ℝ EB] [T2Space B] [SigmaCom
     TauCeti.mpullback (IB.prod IG) IG (trivializationAt G P b).manifoldSnd
       (leftMaurerCartanForm IG G).val
   let A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1 :=
-    ⟨fun x ↦ ∑ᶠ b, ρ b (p x) • ℓ b x, IsSmoothForm.mem_smoothBundleForms <|
-      hρ.isSmoothForm_finsum_smul_comp (fun b ↦ (trivializationAt G P b).open_baseSet) hpc
-        fun b x hx ↦ (((SmoothForm.isSmoothForm _).contMDiff _).mpullback_form (hθd b x hx)
-          (by simp)).contMDiffWithinAt⟩
-  have hA (x : ManifoldTotalSpace G P) : A.val x = ∑ᶠ b, ρ b (p x) • ℓ b x := rfl
+    ⟨fun x ↦ ∑ b ∈ ρ.finsupport (p x), ρ b (p x) • ℓ b x, IsSmoothForm.mem_smoothBundleForms <|
+      isSmoothForm_sum_finsupport_smul_mpullback hρ
+        (fun b ↦ (trivializationAt G P b).open_baseSet) hpc hθd (leftMaurerCartanForm IG G)⟩
+  have hA (x : ManifoldTotalSpace G P) (v : Fin 1 → TangentSpace (IB.prod IG) x) :
+      A.val x v = ∑ b ∈ ρ.finsupport (p x), ρ b (p x) • ℓ b x v := by
+    simp only [A, ContinuousAlternatingMap.sum_apply, ContinuousAlternatingMap.smul_apply]
   refine ⟨A, fun g ↦ ?_, fun x ξ ↦ ?_⟩
   · refine Subtype.ext (funext fun x ↦ ?_)
     ext v
     have hpg : p (op g • x) = p x := by simp [hp, ManifoldTotalSpace.homeomorph_symm_smul]
     rw [SmoothForm.coe_mpullback, mpullback_apply, SmoothForm.coe_mapCoeff,
-      RoughForm.mapCoeff_apply, hA, hA, ρ.finsum_smul_comp_apply, ρ.finsum_smul_comp_apply,
-      map_sum, hpg]
+      RoughForm.mapCoeff_apply, hA, hA, map_sum, hpg]
     refine Finset.sum_congr rfl fun b hb ↦ ?_
     have h := DFunLike.congr_fun (mpullback_op_smul_mpullback_trivialization_snd_maurerCartan
       (hθ b) (hρ.mem_of_mem_finsupport hb) g) v
     rw [mpullback_apply, RoughForm.mapCoeff_apply] at h
     rw [map_smul, ← h]
   · rw [hA]
-    exact SmoothPartitionOfUnity.finsum_smul_comp_apply_eq_of_forall_eq (Set.mem_univ _)
+    exact ρ.sum_finsupport_smul_eq_of_forall_eq (Set.mem_univ _)
       fun b hb ↦ mpullback_trivialization_snd_maurerCartan_apply_rightFundamentalVectorField
         (hθ b) (hρ.mem_of_mem_finsupport hb) ξ
 
