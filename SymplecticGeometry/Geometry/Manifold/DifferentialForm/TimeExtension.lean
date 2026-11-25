@@ -52,6 +52,8 @@ homeomorphism `iccHomeoI a b`, extended, and carried back to `M × ℝ`.
   `TauCeti.SmoothForm.timeExtendIcc_mpullback_prodMap`: the extension of a form on `M × Icc a b`
   keeps its slices at the times of `[a, b]`, vanishes on vectors along `ℝ`, and commutes with
   pullback along `Prod.map g id`.
+* `TauCeti.SmoothForm.mpullback_prodMap_subtypeVal_timeExtendIcc`: restricted back to
+  `M × Icc a b`, the extension of a form with no component along the interval is that form.
 * `SymplecticGeometry.isSmoothFamily_timeExtendSlice`: the slices of the extension form a smooth
   family over `ℝ`.
 * `SymplecticGeometry.IsSmoothFamily.exists_extend`: a smooth family of forms over
@@ -346,6 +348,41 @@ theorem timeExtendIcc_apply_eq_zero (η : SmoothForm (I.prod (𝓡∂ 1)) (M × 
       contMDiff_snd).mdifferentiableAt one_ne_zero
   rw [mfderiv_prodMk hc mdifferentiableAt_fst, Manifold.tangentSpaceProdEquiv_apply]
   exact (mfderiv_fst_apply p (v i)).trans hv
+
+/-- **Restriction of the time extension to `M × [a, b]`.** Let `η` be a smooth form on
+`M × Icc a b` that vanishes whenever one of its arguments has zero component along `M`. Then the
+pullback of `TauCeti.SmoothForm.timeExtendIcc η` along `id × Subtype.val : M × Icc a b → M × ℝ`
+is `η`. -/
+theorem mpullback_prodMap_subtypeVal_timeExtendIcc
+    (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F k)
+    (hη : ∀ (p : M × Icc a b) (v : Fin k → TangentSpace (I.prod (𝓡∂ 1)) p) (i : Fin k),
+      (Manifold.tangentSpaceProdEquiv p (v i)).1 = 0 → η.val p v = 0) :
+    mpullback (Prod.map id Subtype.val) (contMDiff_id.prodMap contMDiff_subtypeVal_Icc)
+      (timeExtendIcc η) = η := by
+  refine eq_of_forall_mpullback_eq (fun p v i hv ↦ ?_) hη fun t ↦ ?_
+  · -- The differential of `id × Subtype.val` keeps the component along `M`.
+    rw [mpullback_apply]
+    refine timeExtendIcc_apply_eq_zero η _ _ i ?_
+    have hf : MDifferentiableAt (I.prod (𝓡∂ 1)) (I.prod 𝓘(ℝ, ℝ))
+        (Prod.map id (Subtype.val : Icc a b → ℝ)) p :=
+      (contMDiff_id.prodMap contMDiff_subtypeVal_Icc).mdifferentiableAt (n := 1) one_ne_zero
+    rw [Manifold.tangentSpaceProdEquiv_apply] at hv
+    rw [Manifold.tangentSpaceProdEquiv_apply, ← hf.mfderiv_fst_apply]
+    exact (mfderiv_fst_apply p (v i)).trans hv
+  · rw [mpullback_mpullback,
+      mpullback_congr (f := Prod.map id Subtype.val ∘ fun x : M ↦ (x, t))
+        (g := fun x : M ↦ (x, (t : ℝ))) _ (contMDiff_id.prodMk contMDiff_const)
+        (funext fun _ ↦ rfl)]
+    exact mpullback_prodMk_timeExtendIcc η t
+
+/-- **Restriction of the time extension of functions to `M × [a, b]`.** For a smooth `0`-form
+`η` on `M × Icc a b`, the pullback of `TauCeti.SmoothForm.timeExtendIcc η` along
+`id × Subtype.val : M × Icc a b → M × ℝ` is `η`. -/
+theorem mpullback_prodMap_subtypeVal_timeExtendIcc₀
+    (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F 0) :
+    mpullback (Prod.map id Subtype.val) (contMDiff_id.prodMap contMDiff_subtypeVal_Icc)
+      (timeExtendIcc η) = η :=
+  mpullback_prodMap_subtypeVal_timeExtendIcc η fun _ _ i ↦ i.elim0
 
 section Naturality
 
