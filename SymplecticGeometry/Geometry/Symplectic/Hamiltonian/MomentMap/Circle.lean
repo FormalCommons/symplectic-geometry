@@ -102,7 +102,7 @@ namespace TauCeti.SmoothTwoForm.IsMomentMap
 
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
-  [IsManifold I ∞ M] [T2Space M] [BoundarylessManifold I M] [MulAction Circle M]
+  [IsManifold I ∞ M] [MulAction Circle M]
   [ContMDiffSMul (𝓡 1) I ∞ Circle M] {σ : SmoothTwoForm I M}
   {μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle)}
 
@@ -110,7 +110,7 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpa
 boundaryless manifold with moment map `μ` for `σ`, and a point `x` at which `σ` is
 nondegenerate, `x` is a critical point of `H = ⟨μ, circlePeriodOneGenerator⟩` exactly when every
 element of the circle fixes `x`. -/
-theorem mem_criticalPoints_circlePeriodOneGenerator_iff
+theorem mem_criticalPoints_circlePeriodOneGenerator_iff [T2Space M] [BoundarylessManifold I M]
     (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) μ)
     {x : M} (hσ : (σ.bilinFormAt x).Nondegenerate) :
     x ∈ criticalPoints I (fun y ↦ μ y circlePeriodOneGenerator) ↔
@@ -118,8 +118,6 @@ theorem mem_criticalPoints_circlePeriodOneGenerator_iff
   rw [hμ.mem_criticalPoints_iff hσ, InfinitesimalAction.fundamental_apply,
     mem_fixedPoints_circle_iff_fundamentalVectorField_eq_zero (I' := I)]
 
-omit [T2Space M] [BoundarylessManifold I M] in
-attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField in
 /-- **A circle moment map is invariant.** For a smooth circle action with moment map `μ` for `σ`,
 `μ (g • x) = μ x` for every `g` in the circle. -/
 theorem apply_smul_circle
