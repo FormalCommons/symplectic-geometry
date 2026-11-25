@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Diffeotopy
 public import TauCeti.Geometry.Manifold.TwoForm.Basic
@@ -35,6 +36,9 @@ velocity forms of such isotopies, and the closedness of their slices, are in
   `TauCeti.SmoothIsotopy.IsSymplectic.of_apply_eq_apply_diffeomorph`: an isotopy that is a
   symplectic isotopy composed with a diffeotopy preserving `σ`, or with a diffeomorphism of the
   source, is symplectic.
+* `TauCeti.SmoothIsotopy.IsSymplectic.restrict`: the restriction of a symplectic isotopy to an
+  open subset of its source (`TauCeti.SmoothIsotopy.restrict`) is symplectic for the restricted
+  form.
 
 ## References
 
@@ -117,6 +121,21 @@ theorem IsSymplectic.of_apply_eq_apply_diffeomorph {E'' H'' : Type*} [NormedAddC
   have hfun : (fun y ↦ G (t, y)) = F.timeSlice t ∘ χ :=
     funext fun y ↦ by rw [hG, Function.comp_apply, timeSlice_apply]
   rw [hfun, mpullback_comp (χ.contMDiff.mdifferentiable (by simp))
+    ((F.timeSlice t).contMDiff.mdifferentiable (by simp)), hF.mpullback_timeSlice t,
+    SmoothForm.coe_mpullback]
+
+/-- **Restriction to an open subset.** If an isotopy `F` of an open set `W ⊆ P` is symplectic for
+`τ` and `σ`, then its restriction to an open `V ⊆ W` is symplectic for the restriction of `τ` to
+`V` and for `σ`. -/
+theorem IsSymplectic.restrict {V W : TopologicalSpace.Opens P} {g₀ g₁ : C^∞⟮J, W; I, M⟯}
+    {τ : SmoothTwoForm J W} {σ : SmoothTwoForm I M} {F : SmoothIsotopy g₀ g₁}
+    (hF : F.IsSymplectic τ σ) (h : V ≤ W) :
+    (F.restrict h).IsSymplectic
+      (SmoothForm.mpullback (TopologicalSpace.Opens.inclusion h) (contMDiff_inclusion h) τ) σ :=
+  fun t ↦ by
+  have hfun : (fun x ↦ F.restrict h (t, x)) = F.timeSlice t ∘ TopologicalSpace.Opens.inclusion h :=
+    funext fun x ↦ by rw [restrict_apply, Function.comp_apply, timeSlice_apply]
+  rw [hfun, mpullback_comp ((contMDiff_inclusion (n := ∞) h).mdifferentiable (by simp))
     ((F.timeSlice t).contMDiff.mdifferentiable (by simp)), hF.mpullback_timeSlice t,
     SmoothForm.coe_mpullback]
 
