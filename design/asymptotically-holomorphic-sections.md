@@ -556,7 +556,7 @@ and the prerequisites, placed by topic.
   formula $d+ik\,\sigma^*\alpha$ in a unitary frame
   (`powerConnection_apply_frame`) and curvature $ik\,F_\alpha$. For a section
   $s$, $\partial s(x)$ and $\bar\partial s(x)$ are `J.oneZeroPart (D s x)` and
-  `J.zeroOnePart (D s x)` (Tau Ceti), with `oneZeroPart_add_zeroOnePart`;
+  Tau Ceti's `J.zeroOnePart (D s x)`, with `oneZeroPart_add_zeroOnePart`;
   `oneZeroPart` and that lemma are in
   `Geometry/Manifold/VectorBundle/CauchyRiemann/OneZeroPart.lean`.
 - `ZeroSet.lean`: for any covariant derivative $D$ on a bundle of normed

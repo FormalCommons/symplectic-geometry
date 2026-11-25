@@ -19,7 +19,10 @@ complementary `(1,0)`-part `v ↦ ½ (η v - i • η (j v))`
 (`TauCeti.SmoothAlmostComplexStructure.toLinearMap_oneZeroPart`), and the decomposition
 `η = η^{1,0} + η^{0,1}`
 (`TauCeti.SmoothAlmostComplexStructure.oneZeroPart_add_zeroOnePart`), which follows from Tau
-Ceti's `TauCeti.complexLinearPart_add_complexAntilinearPart`.
+Ceti's `TauCeti.complexLinearPart_add_complexAntilinearPart`. The definition `oneZeroPart` and
+the lemmas `oneZeroPart_apply` and `toLinearMap_oneZeroPart` are adapted from Tau Ceti's
+`TauCeti.SmoothAlmostComplexStructure.zeroOnePart`, `zeroOnePart_apply` and
+`toLinearMap_zeroOnePart`, with the sign of the `i • η (j v)` term changed from `+` to `-`.
 
 For a covariant derivative `D` on `V` and a section `s`, the one-form `η = D s x` gives
 `∂ s(x) = j.oneZeroPart (D s x)` and `∂̄ s(x) = j.zeroOnePart (D s x)`, and the decomposition reads
@@ -119,6 +122,17 @@ theorem oneZeroPart_oneZeroPart (η : TangentSpace I x →L[ℝ] V x) :
     j.oneZeroPart (j.oneZeroPart η) = j.oneZeroPart η := by
   rw [oneZeroPart_eq_sub_zeroOnePart (η := j.oneZeroPart η), zeroOnePart_oneZeroPart, sub_zero]
 
+/-- A one-form has zero `(1,0)`-part exactly when it is a `(0,1)`-form. -/
+theorem oneZeroPart_eq_zero_iff {η : TangentSpace I x →L[ℝ] V x} :
+    j.oneZeroPart η = 0 ↔ j.IsZeroOneForm η := by
+  rw [oneZeroPart_eq_sub_zeroOnePart, sub_eq_zero, eq_comm, zeroOnePart_eq_self_iff]
+
+/-- A one-form is its own `(1,0)`-part exactly when it is complex linear for `j`:
+`η (j v) = i • η v` for every tangent vector `v`. -/
+theorem oneZeroPart_eq_self_iff {η : TangentSpace I x →L[ℝ] V x} :
+    j.oneZeroPart η = η ↔ ∀ v, η (j x v) = Complex.I • η v := by
+  rw [oneZeroPart_eq_sub_zeroOnePart, sub_eq_self, zeroOnePart_eq_zero_iff]
+
 @[simp]
 theorem oneZeroPart_add (η η' : TangentSpace I x →L[ℝ] V x) :
     j.oneZeroPart (η + η') = j.oneZeroPart η + j.oneZeroPart η' := by
@@ -128,6 +142,11 @@ theorem oneZeroPart_add (η η' : TangentSpace I x →L[ℝ] V x) :
 @[simp]
 theorem oneZeroPart_zero : j.oneZeroPart (0 : TangentSpace I x →L[ℝ] V x) = 0 := by
   simp [oneZeroPart_eq_sub_zeroOnePart]
+
+/-- The `(1,0)`-projection commutes with finite sums. -/
+theorem oneZeroPart_sum {κ : Type*} (s : Finset κ) (η : κ → TangentSpace I x →L[ℝ] V x) :
+    j.oneZeroPart (∑ i ∈ s, η i) = ∑ i ∈ s, j.oneZeroPart (η i) := by
+  simp only [oneZeroPart_eq_sub_zeroOnePart, zeroOnePart_sum, Finset.sum_sub_distrib]
 
 theorem oneZeroPart_smul (c : ℝ) (η : TangentSpace I x →L[ℝ] V x) :
     j.oneZeroPart (c • η) = c • j.oneZeroPart η := by
