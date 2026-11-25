@@ -288,7 +288,7 @@ variable {F : Type} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensiona
 equivalences of fibres that are continuous on total spaces, have complexifications with the same
 total Chern class. -/
 theorem totalChernClass_complexification_congr
-    {F' : Type} [NormedAddCommGroup F'] [NormedSpace ℝ F'] [FiniteDimensional ℝ F']
+    {F' : Type} [NormedAddCommGroup F'] [NormedSpace ℝ F']
     {E' : B → Type} [∀ x, AddCommGroup (E' x)] [∀ x, Module ℝ (E' x)]
     [TopologicalSpace (TotalSpace F' E')] [∀ x, TopologicalSpace (E' x)] [FiberBundle F' E']
     [VectorBundle ℝ F' E']
