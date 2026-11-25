@@ -36,6 +36,9 @@ the trivialization of a principal bundle given by a local section.
   submersion.
 * `TauCeti.ManifoldTotalSpace.projContMDiffMap_comp_homeomorph_mk`: a section is a right inverse
   of the projection.
+* `TauCeti.ManifoldTotalSpace.exists_contMDiffOn_section`: over a neighbourhood of every point of
+  the base there is a `C^n` local section, the inverse of a trivialization at a constant fibre
+  coordinate.
 * `TauCeti.ManifoldTotalSpace.mfderiv_proj_mfderiv_section_apply`: the derivative of a section is
   a right inverse of the derivative of the projection.
 * `TauCeti.ManifoldTotalSpace.mpullback_mpullback_proj_apply`: a section pulls `π^* a` back to
@@ -126,6 +129,23 @@ theorem mfderiv_proj_mfderiv_section_apply {τ : ∀ b, E b} {x : B}
         (mfderiv IB (IB.prod IF) (fun b ↦ homeomorph F E ⟨b, τ b⟩) x v) = v := by
   rw [← mfderiv_comp_apply x (mdifferentiable_projContMDiffMap _) hτ,
     projContMDiffMap_comp_homeomorph_mk, mfderiv_id, ContinuousLinearMap.id_apply]
+
+variable (n F E IB IF) in
+/-- **Local sections of a fibre bundle.** Over an open neighbourhood of every point of the base
+of a `C^n` fibre bundle with nonempty model fibre, there is a map into the charted total space
+that is `C^n` there and is a section of the projection there. It is the inverse of a
+trivialization at a constant fibre coordinate. -/
+theorem exists_contMDiffOn_section [ContMDiffFiberBundle n F E IB IF] [Nonempty F] (x : B) :
+    ∃ U : Set B, IsOpen U ∧ x ∈ U ∧ ∃ s : B → ManifoldTotalSpace F E,
+      ContMDiffOn IB (IB.prod IF) n s U ∧ ∀ y ∈ U, projContMDiffMap n F E IB IF (s y) = y := by
+  set e := trivializationAt F E x
+  let v : F := Classical.arbitrary F
+  refine ⟨e.baseSet, e.open_baseSet, mem_baseSet_trivializationAt F E x,
+    fun b ↦ homeomorph F E (e.toOpenPartialHomeomorph.symm (b, v)), ?_, fun y hy ↦ ?_⟩
+  · exact (contMDiffOn_trivialization_symm e).comp (contMDiffOn_id.prodMk contMDiffOn_const)
+      fun b hb ↦ e.mem_target.2 hb
+  · simp only [coe_projContMDiffMap, Homeomorph.symm_apply_apply]
+    exact e.proj_symm_apply' hy
 
 end AnyField
 
