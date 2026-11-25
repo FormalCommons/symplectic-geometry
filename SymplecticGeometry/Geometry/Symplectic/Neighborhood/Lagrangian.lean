@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Liouville
 public import TauCeti.Geometry.Symplectic.Lagrangian.Manifold
 public import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.WeinsteinChart
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
+import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
 import TauCeti.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.VectorBundle.Pullback
@@ -175,7 +176,7 @@ theorem IsLagrangianMap.exists_symplectomorphism_cotangent_neg {σ : SmoothTwoFo
   let U' : Opens (CotangentBundle J L) := ⟨N ⁻¹' U, U.isOpen.preimage N.continuous⟩
   let N' : U' ≃ₘ⟮J.prod 𝓘(ℝ, EL →L[ℝ] ℝ), J.prod 𝓘(ℝ, EL →L[ℝ] ℝ)⟯ U :=
     N.subtype fun _ ↦ Iff.rfl
-  refine ⟨U', V, N'.trans ψ, ⟨⟨fun q ↦ ?_⟩, isSymplectomorphism_iff_mpullback_eq.2 ?_⟩⟩
+  refine ⟨U', V, N'.trans ψ, ⟨⟨fun q ↦ ?_⟩, ?_⟩⟩
   · obtain ⟨h, hq, -⟩ := hψ0 q
     have h' : zeroSection _ _ q ∈ U' := by
       rw [Opens.mem_mk, Set.mem_preimage, hN0]
@@ -184,9 +185,9 @@ theorem IsLagrangianMap.exists_symplectomorphism_cotangent_neg {σ : SmoothTwoFo
     rw [Diffeomorph.coe_trans, Function.comp_apply, ← hq]
     congr 2
     exact Subtype.ext ((Diffeomorph.subtype_apply_coe _ _ _).trans (hN0 q))
-  · rw [SmoothForm.mpullback_trans, hψσ, SmoothForm.mpullback_mpullback_of_comp_eq _ _
-      contMDiff_subtypeVal N.contMDiff (funext fun z ↦ Diffeomorph.subtype_apply_coe _ _ z),
-      CotangentBundle.mpullback_fiberNeg_symplecticForm]
+  · exact ((isSymplectomorphism_iff_mpullback_eq.2
+      (CotangentBundle.mpullback_fiberNeg_symplecticForm (I := J) (M := L))).subtype
+      fun _ ↦ Iff.rfl).trans (isSymplectomorphism_iff_mpullback_eq.2 hψσ) (by simp)
 
 end TauCeti.SmoothTwoForm.IsNondegenerate
 
