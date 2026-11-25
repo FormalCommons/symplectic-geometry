@@ -37,13 +37,15 @@ sends `1` to the open upper half plane
 derivative of the inverse chart, the complex structure of `N` sends `D 1` to `D i`
 (Tau Ceti's `ofComplexManifold_apply_mfderivWithin_extChartAt_symm_one`),
 and expanding `σ` in the basis `D 1`, `D i` gives
-`σ(D 1, J D 1) = Im (J.inChart y z 1) · σ(D 1, D i)`.
+`σ(D 1, J D 1) = Im (J.inChart y z 1) · σ(D 1, D i)`. In particular `J.inChart y z 1 ≠ -i`
+(`TauCeti.SmoothAlmostComplexStructure.inChart_apply_one_ne_neg_I_of_tames`).
 
 ## Main results
 
 * `TauCeti.SmoothAlmostComplexStructure.ne_neg_of_tames`.
 * `TauCeti.SmoothAlmostComplexStructure.injOn_zeroOnePart_of_tames`.
 * `TauCeti.SmoothAlmostComplexStructure.im_inChart_apply_one_pos_of_tames`.
+* `TauCeti.SmoothAlmostComplexStructure.inChart_apply_one_ne_neg_I_of_tames`.
 
 ## References
 
@@ -140,5 +142,17 @@ theorem im_inChart_apply_one_pos_of_tames {σ : SmoothTwoForm 𝓘(ℝ, ℂ) N}
   have h2 := SmoothTwoForm.tames_iff.1 hi x (D 1) hd
   rw [← hk, h3, hI] at h1
   exact pos_of_mul_pos_left h1 h2.le
+
+/-- On a complex curve `N`, let a smooth two-form `σ` tame a smooth almost complex structure `J`
+and the complex structure of `N`. Then `J`, read in the chart at `y` at a point `z` of the chart
+target, does not send `1` to `-i`. -/
+theorem inChart_apply_one_ne_neg_I_of_tames {σ : SmoothTwoForm 𝓘(ℝ, ℂ) N}
+    {J : SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) N} (hJ : σ.Tames J)
+    (hi : σ.Tames (ofComplexManifold ℂ N)) (y : N) {z : ℂ}
+    (hz : z ∈ (extChartAt 𝓘(ℝ, ℂ) y).target) :
+    J.inChart y z 1 ≠ -Complex.I := fun h ↦ by
+  have := im_inChart_apply_one_pos_of_tames hJ hi y hz
+  rw [h] at this
+  norm_num at this
 
 end TauCeti.SmoothAlmostComplexStructure

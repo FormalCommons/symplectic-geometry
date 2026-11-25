@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.VectorBundle.Hom
 public import TauCeti.Geometry.Manifold.VectorBundle.Trivial
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 
 /-!
 # Fibrewise linear maps as sections of hom bundles
@@ -85,10 +86,8 @@ theorem Bundle.Trivial.contMDiffWithinAt_comp_mk_iff {EN HN N : Type*} [NormedAd
     ContMDiffWithinAt (I.prod 𝓘(𝕜, W)) J n (fun p : M × W ↦ g ⟨p.1, p.2⟩) s (x, v) ↔
       ContMDiffWithinAt (I.prod 𝓘(𝕜, W)) J n g
         ((fun p : TotalSpace W (Trivial M W) ↦ (p.proj, p.snd)) ⁻¹' s) ⟨x, v⟩ := by
-  -- The inverse of the inverse of `diffeomorphProd` has the forward formula, by structure eta.
-  have e : ⇑(diffeomorphProd I M W n).symm.symm = fun p ↦ (p.proj, p.snd) :=
-    funext (diffeomorphProd_apply I M W n)
-  simpa only [Function.comp_def, diffeomorphProd_symm_apply, e] using
+  simpa only [Function.comp_def, diffeomorphProd_symm_apply, Diffeomorph.symm_symm,
+    funext (diffeomorphProd_apply I M W n)] using
     (diffeomorphProd I M W n).symm.contMDiffWithinAt_comp_diffeomorph_iff le_rfl
 
 omit [CompleteSpace 𝕜] [FiniteDimensional 𝕜 W] in
