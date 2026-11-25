@@ -134,8 +134,6 @@ theorem mpullback_prodMk_mlieDerivForm_prodVectorField_zero_eq_zero
     (hslice : ∀ s, mpullback J (K.prod J) (Prod.mk s) β = mpullback J (K.prod J) (Prod.mk t) β) :
     mpullback J (K.prod J) (Prod.mk t)
       (mlieDerivForm (Manifold.prodVectorField X (0 : Π y : P, TangentSpace J y)) β) x = 0 := by
-  have : IsManifold K 1 N := .of_le one_le_two
-  have : IsManifold J 1 P := .of_le one_le_two
   ext v
   -- Extend each vector `v i` to a field `V i` on `P`, and lift it vertically to `(0, V i)`.
   set V : Fin k → Π y : P, TangentSpace J y := fun i ↦ FiberBundle.extend E' (v i)
