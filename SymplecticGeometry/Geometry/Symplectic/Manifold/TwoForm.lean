@@ -39,6 +39,9 @@ a vector space.
 * `TauCeti.SmoothTwoForm.injective_mfderiv_of_mpullback_apply_eq`.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.symplecticFormAt_mfderiv_mfderiv`: the symplectic form
   of `ω₁` at `f x₀` on two differentials of `f` is the pull-back `f^* ω₁` at `x₀`.
+* `TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_mpullback_iff`: through a map whose
+  differential at `x₀` is invertible, `f^* ω₁` is nondegenerate at `x₀` exactly when `ω₁` is
+  nondegenerate at `f x₀`.
 
 ## References
 
@@ -126,6 +129,23 @@ theorem IsNondegenerate.symplecticFormAt_mfderiv_mfderiv {ω₁ : SmoothTwoForm 
       (SmoothForm.mpullback f hf ω₁).bilinFormAt x₀ v w := by
   rw [IsNondegenerate.symplecticFormAt_apply, SmoothForm.bilinFormAt_apply,
     SmoothForm.eval₂_mpullback]
+
+/-- If the differential of a smooth map `f : M₀ → M₁` at `x₀` is invertible, then the pull-back
+`f^* ω₁` is nondegenerate at `x₀` exactly when `ω₁` is nondegenerate at `f x₀`. The point `x₀`
+may lie on the boundary of `M₀`, where `f` need not be a local diffeomorphism. -/
+theorem nondegenerate_bilinFormAt_mpullback_iff {f : M₀ → M₁} (hf : ContMDiff I₀ I₁ ∞ f)
+    (ω₁ : SmoothTwoForm I₁ M₁) {x₀ : M₀} (hdf : (mfderiv I₀ I₁ f x₀).IsInvertible) :
+    ((SmoothForm.mpullback f hf ω₁).bilinFormAt x₀).Nondegenerate ↔
+      (ω₁.bilinFormAt (f x₀)).Nondegenerate := by
+  obtain ⟨e, he⟩ := hdf
+  have h : (SmoothForm.mpullback f hf ω₁).bilinFormAt x₀ =
+      LinearMap.BilinForm.congr e.symm.toLinearEquiv (ω₁.bilinFormAt (f x₀)) := by
+    refine LinearMap.ext₂ fun v w ↦ ?_
+    rw [LinearMap.BilinForm.congr_apply, ContinuousLinearEquiv.coe_symm_toLinearEquiv,
+      ContinuousLinearEquiv.symm_symm, SmoothForm.bilinFormAt_apply, SmoothForm.bilinFormAt_apply,
+      SmoothForm.eval₂_mpullback, ← he]
+    simp only [ContinuousLinearEquiv.coe_coe]
+  rw [h, LinearMap.BilinForm.nondegenerate_congr_iff]
 
 end TauCeti.SmoothTwoForm
 
