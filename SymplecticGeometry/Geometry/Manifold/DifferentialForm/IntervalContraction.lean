@@ -268,8 +268,9 @@ theorem prodIccHomotopyOperator_apply_inr [CompleteSpace F]
       zero_ne_one, smul_zero, neg_zero, smul_zero]
 
 /-- `K η`, for a two-form `η` on `M × [a, b]`, vanishes on every tangent vector whose component
-along `M` is zero. This is `SymplecticGeometry.prodIccHomotopyOperator_apply_inr` in the form of
-the hypothesis of `TauCeti.SmoothForm.mpullback_prodMap_subtypeVal_timeExtendIcc`. -/
+along `M` is zero. This is `SymplecticGeometry.prodIccHomotopyOperator_apply_inr` in the
+componentwise form (`TauCeti.SmoothForm.isFstSemibasic_iff`) of
+`TauCeti.SmoothForm.IsFstSemibasic (prodIccHomotopyOperator I M a b F 1 η)`. -/
 theorem prodIccHomotopyOperator_apply_eq_zero [CompleteSpace F]
     (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F 2) (x : M × Icc a b)
     (v : Fin 1 → TangentSpace (I.prod (𝓡∂ 1)) x) (i : Fin 1)
