@@ -173,6 +173,9 @@ def ofConstantRank (hf : ContMDiff I J (n + 1) f) (hr : ∀ x, mfderivRank I J f
     have h2 : minSmoothness 𝕜 2 ≤ n + 1 := by
       rw [minSmoothness_of_isRCLikeNormedField]
       exact SymplecticGeometry.two_le_add_one_of_one_le hn
+    -- `2 ≤ n + 1` holds only by `hn`, which instance search cannot use, so no instance lowers
+    -- `IsManifold _ (n + 1) _`; going through `IsManifold _ 2 _` and
+    -- `IsManifold.minSmoothness_of_isRCLikeNormedField` would need the same two `have`s.
     have : IsManifold I (minSmoothness 𝕜 2) M := .of_le h2
     have : IsManifold J (minSmoothness 𝕜 2) N := .of_le h2
     have : CompleteSpace E := FiniteDimensional.completeSpace 𝕜 E
