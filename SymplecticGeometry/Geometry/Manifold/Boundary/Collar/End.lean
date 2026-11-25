@@ -47,8 +47,8 @@ assumed.
 * `TauCeti.SmoothCollar.WithEnd.range_inclusion_union`, `disjoint_range_inclusion_endMap_image`,
   `isOpenCover`.
 
-The retraction descends through `Multicoequalizer.desc` as in Tau Ceti's
-`TopCat.GlueData.IsCompatible.descContMDiffMap`; the boundary immersion changes models as in
+The retraction is `SymplecticGeometry.GluedAlong.desc` of the inclusion of the interior and of
+the map of the end piece into the collar; the boundary immersion changes models as in
 `isImmersionAt_chordDisc_of_mem` (Tau Ceti, `KnotTheory/Slice/ConnectedSum.lean`).
 
 ## References
@@ -61,7 +61,7 @@ The retraction descends through `Multicoequalizer.desc` as in Tau Ceti's
 
 public section
 
-open Set Function Topology Manifold TopologicalSpace CategoryTheory SymplecticGeometry
+open Set Function Topology Manifold TopologicalSpace SymplecticGeometry
 open scoped Manifold ContDiff
 
 noncomputable section
@@ -223,10 +223,6 @@ private theorem endRetract_interiorToEndPt (q : c.interiorRange) :
     c.endRetract (c.interiorToEndPt q) = q.val.val := by
   rw [interiorToEndPt_def, endRetract_collarToEnd, apply_interiorCoord]
 
-private theorem endRetract_eq_val_endToInterior (q : endOverlap (n := n) (W := W)) :
-    c.endRetract q.val = (c.endToInterior q : (𝓡∂ (n + 1)).interior W).val :=
-  (c.endToInterior_val q).symm
-
 private theorem endRetract_mem_boundary {q : EndPiece n W} (hq : q ∉ endOverlap) :
     c.endRetract q ∈ (𝓡∂ (n + 1)).boundary W := by
   have h0 : ((q.coord.1 : endInterval) : ℝ) ≥ 0 := not_lt.1 hq
@@ -309,35 +305,15 @@ instance : IsManifold (𝓡 (n + 1)) ∞ c.WithEnd :=
   inferInstanceAs (IsManifold _ ∞ (GluedAlong c.interiorEndDiffeomorph))
 
 /-- The canonical map of the interior piece into `c.WithEnd`. -/
-private def interiorIncl : (𝓡∂ (n + 1)).interior W → c.WithEnd :=
+private abbrev interiorIncl : (𝓡∂ (n + 1)).interior W → c.WithEnd :=
   GluedAlong.inl c.interiorEndDiffeomorph
 
 /-- The canonical map of the end piece into `c.WithEnd`. -/
-private def endIncl : EndPiece n W → c.WithEnd := GluedAlong.inr c.interiorEndDiffeomorph
-
-private theorem isOpenEmbedding_interiorIncl : IsOpenEmbedding c.interiorIncl :=
-  GluedAlong.isOpenEmbedding_inl _
-
-private theorem isOpenEmbedding_endIncl : IsOpenEmbedding c.endIncl :=
-  GluedAlong.isOpenEmbedding_inr _
-
-private theorem isLocalDiffeomorph_interiorIncl :
-    IsLocalDiffeomorph (𝓡 (n + 1)) (𝓡 (n + 1)) ∞ c.interiorIncl :=
-  GluedAlong.isLocalDiffeomorph_inl _
-
-private theorem isLocalDiffeomorph_endIncl :
-    IsLocalDiffeomorph (𝓡 (n + 1)) (𝓡 (n + 1)) ∞ c.endIncl :=
-  GluedAlong.isLocalDiffeomorph_inr _
-
-private theorem interiorIncl_or_endIncl (z : c.WithEnd) :
-    (∃ p, c.interiorIncl p = z) ∨ ∃ q, c.endIncl q = z := by
-  rcases (GluedAlong.range_inl_union_range_inr c.interiorEndDiffeomorph).ge (mem_univ z) with
-    ⟨p, rfl⟩ | ⟨q, rfl⟩
-  exacts [.inl ⟨p, rfl⟩, .inr ⟨q, rfl⟩]
+private abbrev endIncl : EndPiece n W → c.WithEnd := GluedAlong.inr c.interiorEndDiffeomorph
 
 /-- `c.WithEnd` is Hausdorff when `W` is. -/
 instance [T2Space W] : T2Space c.WithEnd := by
-  refine (TopCat.GlueData.ofHomeomorph_t2Space_iff c.interiorEndDiffeomorph.toHomeomorph).2
+  refine (GluedAlong.t2Space_iff c.interiorEndDiffeomorph).2
     ⟨inferInstanceAs (T2Space ((𝓡∂ (n + 1)).interior W)),
       inferInstanceAs (T2Space (endInterval × (𝓡∂ (n + 1)).boundary W)), fun x _ y hy ↦ ?_⟩
   obtain ⟨A, hA, B, hB, hAB⟩ := c.exists_separation x hy
@@ -402,36 +378,23 @@ theorem endMap_zero (x : (𝓡∂ (n + 1)).boundary W) : endMap c (0, x) = inclu
   have := endMap_neg_eq_inclusion c x (normalIioOpensZero one_pos)
   rwa [coe_normalIioOpensZero, val_zero_apply, neg_zero, apply_zero] at this
 
-/-- The retraction, as a morphism out of the glued space of
-`GluedAlong.glueData c.interiorEndDiffeomorph`, which is `c.WithEnd` by definition. -/
-private def retractionHom :
-    (GluedAlong.glueData c.interiorEndDiffeomorph).toGlueData.glued ⟶ TopCat.of W :=
-  Limits.Multicoequalizer.desc (GluedAlong.glueData c.interiorEndDiffeomorph).toGlueData.diagram
-    (TopCat.of W)
-    (fun i ↦ match i with
-      | ⟨false⟩ => TopCat.ofHom ⟨Subtype.val, continuous_subtypeVal⟩
-      | ⟨true⟩ => TopCat.ofHom ⟨c.endRetract, c.continuous_endRetract⟩)
-    (by
-      rintro ⟨⟨_ | _⟩, ⟨_ | _⟩⟩ <;> ext x
-      · rfl
-      · exact (c.endRetract_interiorToEndPt x).symm
-      · exact c.endRetract_eq_val_endToInterior x
-      · rfl)
-
 /-- The retraction of `c.WithEnd` onto `W`: the identity on `W`, and `(s, x) ↦ x` for `s ≥ 0`. -/
-def retraction : C(c.WithEnd, W) := (retractionHom c).hom
+def retraction : C(c.WithEnd, W) :=
+  GluedAlong.desc c.interiorEndDiffeomorph ⟨Subtype.val, continuous_subtypeVal⟩
+    ⟨c.endRetract, c.continuous_endRetract⟩ fun q ↦ by
+      rw [ContinuousMap.coe_mk, ContinuousMap.coe_mk, interiorEndDiffeomorph_apply,
+        interiorToEnd_val, endRetract_interiorToEndPt]
 
 private theorem retraction_interiorIncl (p : (𝓡∂ (n + 1)).interior W) :
     retraction c (c.interiorIncl p) = p.val := by
-  rw [interiorIncl, GluedAlong.inl_def]
-  exact ConcreteCategory.congr_hom (Limits.Multicoequalizer.π_desc
-    (GluedAlong.glueData c.interiorEndDiffeomorph).toGlueData.diagram (TopCat.of W) _ _ ⟨false⟩) p
+  -- `c.WithEnd` is `GluedAlong c.interiorEndDiffeomorph` by definition, so the map out of the
+  -- glued space applies.
+  exact GluedAlong.desc_inl _ _ p
 
 private theorem retraction_endIncl (q : EndPiece n W) :
     retraction c (c.endIncl q) = c.endRetract q := by
-  rw [endIncl, GluedAlong.inr_def]
-  exact ConcreteCategory.congr_hom (Limits.Multicoequalizer.π_desc
-    (GluedAlong.glueData c.interiorEndDiffeomorph).toGlueData.diagram (TopCat.of W) _ _ ⟨true⟩) q
+  -- As for `retraction_interiorIncl`.
+  exact GluedAlong.desc_inr _ _ q
 
 /-- The retraction is a left inverse of the inclusion. -/
 @[simp] theorem retraction_inclusion (p : W) : retraction c (inclusion c p) = p := by
@@ -459,7 +422,7 @@ private theorem isImmersionAt_endIncl_collarToEnd
       (endModelEquiv n)) '' range ((𝓡 n).prod 𝓘(ℝ)) = range (𝓡 (n + 1)) := by
     simp
   have h₂ := isImmersionAt_diffeomorph_comp_of_image_range_eq _ hB e le_rfl h₁
-  exact isImmersionAt_isLocalDiffeomorphAt_comp (c.isLocalDiffeomorph_endIncl _) h₂
+  exact isImmersionAt_isLocalDiffeomorphAt_comp (GluedAlong.isLocalDiffeomorph_inr _ _) h₂
 
 namespace WithEnd
 
@@ -481,7 +444,7 @@ private theorem inclusion_comp_subtypeVal :
 theorem isOpenEmbedding_inclusion_comp_subtypeVal :
     IsOpenEmbedding (inclusion c ∘ ((↑) : (𝓡∂ (n + 1)).interiorOpens W → W)) := by
   rw [inclusion_comp_subtypeVal]
-  exact c.isOpenEmbedding_interiorIncl.comp
+  exact (GluedAlong.isOpenEmbedding_inl _).comp
     ((𝓡∂ (n + 1)).interiorOpensDiffeomorph W ∞).toHomeomorph.isOpenEmbedding
 
 /-- The inclusion is a local diffeomorphism at interior points. -/
@@ -492,7 +455,7 @@ theorem isLocalDiffeomorphAt_inclusion {p : W} (hp : p ∈ (𝓡∂ (n + 1)).int
         (𝓡∂ (n + 1)).interiorOpens W) := by
     rw [inclusion_comp_subtypeVal]
     exact (((𝓡∂ (n + 1)).interiorOpensDiffeomorph W ∞).isLocalDiffeomorph _).comp
-      (hg := c.isLocalDiffeomorph_interiorIncl _)
+      (hg := GluedAlong.isLocalDiffeomorph_inl _ _)
   exact h.of_comp_right (isLocalDiffeomorph_subtype_val _)
 
 private theorem isImmersionAt_inclusion_collar
@@ -576,7 +539,7 @@ theorem isLocalDiffeomorphOn_endMap :
       (⟨s, hs⟩, x) := by
     rw [endMap_comp_endIntervalVal]
     exact ((remodelDiffeomorph (endModelDiffeomorph n) _).isLocalDiffeomorph _).comp
-      (hg := c.isLocalDiffeomorph_endIncl _)
+      (hg := GluedAlong.isLocalDiffeomorph_inr _ _)
   exact h.of_comp_right (isLocalDiffeomorph_endIntervalVal _)
 
 /-- On `(-1, ∞) × ∂W`, `endMap` is smooth. -/
@@ -584,13 +547,11 @@ theorem contMDiffOn_endMap :
     ContMDiffOn (𝓘(ℝ).prod (𝓡 n)) (𝓡 (n + 1)) ∞ (endMap c) (Ioi (-1) ×ˢ univ) :=
   (isLocalDiffeomorphOn_endMap c).contMDiffOn
 
-private theorem endIncl_injective : Injective c.endIncl := GluedAlong.inr_injective _
-
 /-- On `(-1, ∞) × ∂W`, `endMap` is injective. -/
 theorem injOn_endMap : InjOn (endMap c) (Ioi (-1) ×ˢ univ) := by
   rintro ⟨s, x⟩ ⟨hs, -⟩ ⟨s', x'⟩ ⟨hs', -⟩ h
   rw [endMap_of_lt c hs, endMap_of_lt c hs'] at h
-  have := endIncl_injective c h
+  have := GluedAlong.inr_injective _ h
   have h1 := congrArg (fun q : EndPiece n W ↦ (q.coord.1 : ℝ)) this
   have h2 := congrArg (fun q : EndPiece n W ↦ q.coord.2) this
   simp only [EndPiece.coord] at h1 h2
@@ -610,13 +571,13 @@ private theorem endMap_image_eq {U : Set (ℝ × (𝓡∂ (n + 1)).boundary W)}
 theorem isOpen_endMap_image {U : Set (ℝ × (𝓡∂ (n + 1)).boundary W)} (hU : U ⊆ Ioi (-1) ×ˢ univ)
     (ho : IsOpen U) : IsOpen (endMap c '' U) := by
   rw [endMap_image_eq c hU]
-  exact c.isOpenEmbedding_endIncl.isOpenMap _
+  exact (GluedAlong.isOpenEmbedding_inr _).isOpenMap _
     (ho.preimage (continuous_subtypeVal.prodMap continuous_id))
 
 /-- Every point of `c.WithEnd` is a point of `W` or a point `(s, x)` of the end with `0 < s`. -/
 theorem exists_eq_inclusion_or_endMap (z : c.WithEnd) :
     (∃ p, inclusion c p = z) ∨ ∃ s x, 0 < s ∧ endMap c (s, x) = z := by
-  rcases interiorIncl_or_endIncl c z with ⟨p, rfl⟩ | ⟨q, rfl⟩
+  rcases GluedAlong.exists_inl_or_exists_inr _ z with ⟨p, rfl⟩ | ⟨q, rfl⟩
   · refine Or.inl ⟨p.val, ?_⟩
     rw [inclusion_apply_of_mem_interior c p.property]
   · obtain ⟨⟨s, hs⟩, x⟩ := q
@@ -663,7 +624,7 @@ theorem disjoint_range_inclusion_endMap_image :
   subst hp
   rw [← endMap_zero, endMap_of_lt c (show (-1 : ℝ) < 0 by norm_num),
     endMap_of_lt c (show (-1 : ℝ) < s by linarith)] at h
-  have h1 := congrArg (fun q : EndPiece n W ↦ (q.coord.1 : ℝ)) (endIncl_injective c h)
+  have h1 := congrArg (fun q : EndPiece n W ↦ (q.coord.1 : ℝ)) (GluedAlong.inr_injective _ h)
   simp only [EndPiece.coord] at h1
   linarith
 
@@ -686,7 +647,7 @@ private theorem endMap_image_Ioi : endMap c '' (Ioi (-1) ×ˢ univ) = range c.en
 def interiorPart : Opens c.WithEnd :=
   ⟨inclusion c '' (𝓡∂ (n + 1)).interior W, by
     rw [image_inclusion_interior]
-    exact c.isOpenEmbedding_interiorIncl.isOpen_range⟩
+    exact (GluedAlong.isOpenEmbedding_inl _).isOpen_range⟩
 
 /-- The image of `(-1, ∞) × ∂W`, an open subset of `c.WithEnd`. -/
 def endPart : Opens c.WithEnd :=
@@ -704,13 +665,13 @@ def endPart : Opens c.WithEnd :=
 theorem isOpenCover : IsOpenCover ![interiorPart c, endPart c] := by
   refine IsOpenCover.mk (eq_top_iff.2 fun z _ ↦ ?_)
   rw [Opens.mem_iSup]
-  rcases interiorIncl_or_endIncl c z with ⟨p, rfl⟩ | ⟨q, rfl⟩
+  rcases GluedAlong.exists_inl_or_exists_inr _ z with ⟨p, hp⟩ | ⟨q, hq⟩
   · refine ⟨0, ?_⟩
     rw [Matrix.cons_val_zero, ← SetLike.mem_coe, coe_interiorPart, image_inclusion_interior]
-    exact mem_range_self p
+    exact ⟨p, hp⟩
   · refine ⟨1, ?_⟩
     rw [Matrix.cons_val_one, Matrix.cons_val_zero, ← SetLike.mem_coe, coe_endPart, endMap_image_Ioi]
-    exact mem_range_self q
+    exact ⟨q, hq⟩
 
 end WithEnd
 
