@@ -8,19 +8,25 @@ module
 public import Mathlib.Analysis.Complex.Circle
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import TauCeti.Analysis.Complex.Euclidean.Space
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+public import SymplecticGeometry.Geometry.Manifold.GroupAction.Circle
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Localization.WeightOneForm
+public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.WeightModel.NormalForm
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartialDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.GroupAction.InvariantCutoff
+import SymplecticGeometry.Geometry.Manifold.GroupAction.InvariantOneForm
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Localization.Weights
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.WeightModel.Basic
+import SymplecticGeometry.Topology.Algebra.ConstMulAction
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 
 /-!
-# Invariant cut-offs and cut-off model one-forms at a fixed point, in the weight chart
+# The localizing one-form of a circle action
 
 The localizing one-form of the Duistermaat–Heckman formula is glued from model forms near the
-fixed points and an averaged form elsewhere. This file gives the cut-offs of that gluing.
+fixed points and an averaged form elsewhere. This file gives the cut-offs of that gluing, the
+cut-off model forms, and the glued form.
 
 * `SymplecticGeometry.exists_smul_invariant_cutoff_weightChart`: let `Φ` be a smooth partial
   diffeomorphism from `StdSpace (Fin n)` to a Hausdorff manifold `M` with a `G`-action, equivariant
@@ -46,6 +52,21 @@ the fixed points:
   `ρ (Φ z) * (2π ∑ⱼ kⱼ² (xⱼ² + yⱼ²))`; it vanishes where `ρ` does
   (`SymplecticGeometry.cutoffWeightOneForm_apply_of_eq_zero`), so it is nonnegative on `X` where
   `ρ` is (`SymplecticGeometry.cutoffWeightOneForm_apply_nonneg`).
+
+The localizing one-form is `θ = ∑ᵢ ρᵢ (Φᵢ⁻¹)^* θ_{kᵢ} + (1 - ∑ᵢ ρᵢ) β`, for weight charts `Φᵢ`
+at the fixed points, invariant cut-offs `ρᵢ` with pairwise disjoint supports, and an invariant
+one-form `β` with `β(X) > 0` off the fixed points
+(`SymplecticGeometry.exists_invariant_smoothForm_apply_circle_nonneg`):
+
+* `SymplecticGeometry.exists_localizingForm_of_weightCharts`: for finitely many weight charts
+  with distinct centres and nonzero weights, on a σ-compact Hausdorff manifold with a smooth
+  circle action, such a `θ` is invariant, `θ(X) ≥ 0` with equality exactly at the fixed points,
+  and `θ` is the pulled-back model form near the centre of each chart;
+* `SymplecticGeometry.exists_localizingForm`: for a Hamiltonian circle action with isolated fixed
+  points on a compact symplectic manifold, the same, with the weight charts of
+  `SymplecticGeometry.exists_weightChart_fundamentalVectorField` at all the fixed points, which
+  are finitely many (`finite_fixedPoints`) and have nonzero weights
+  (`SymplecticGeometry.apply_circlePeriodOneGenerator_ne_zero_of_isolated`).
 
 ## References
 
@@ -223,6 +244,273 @@ theorem mpullback_smul_cutoffWeightOneForm {G : Type*} [SMul G M] (χ : ι → G
   exact TauCeti.mpullback_fun_smul_eq_self hρg hφ
 
 end CutoffWeightOneForm
+
+/-! ### Gluing the model one-forms -/
+
+section Gluing
+
+open TauCeti
+
+variable [T2Space M]
+
+/-- Invariant cut-offs at the centres of finitely many weight charts with distinct centres: each
+is supported in the image of its chart, equals `1` on the image of a ball about `0`, and no two
+of them are nonzero at the same point. -/
+private theorem exists_smul_invariant_cutoffs_weightCharts {G : Type*} [Group G] [MulAction G M]
+    {ι : Type*} [Finite ι] {n : ι → ℕ} (χ : ∀ i, Fin (n i) → G → Circle)
+    (Φ : ∀ i, PartialDiffeomorph 𝓘(ℝ, StdSpace (Fin (n i))) I (StdSpace (Fin (n i))) M ∞)
+    (hequiv : ∀ i (g : G) (u : Fin (n i) → ℂ),
+      complexToRealEuclidean (Fin (n i)) u ∈ (Φ i).source →
+      complexToRealEuclidean (Fin (n i)) (fun j ↦ (χ i j g : ℂ) * u j) ∈ (Φ i).source ∧
+        Φ i (complexToRealEuclidean (Fin (n i)) fun j ↦ (χ i j g : ℂ) * u j) =
+          g • Φ i (complexToRealEuclidean (Fin (n i)) u))
+    (h0 : ∀ i, (0 : StdSpace (Fin (n i))) ∈ (Φ i).source)
+    (hinj : Function.Injective fun i ↦ Φ i 0) :
+    ∃ ρ : ι → M → ℝ, (∀ i, ContMDiff I 𝓘(ℝ) ∞ (ρ i)) ∧ (∀ i x, ρ i x ∈ Icc 0 1) ∧
+      (∀ i (g : G) x, ρ i (g • x) = ρ i x) ∧ (∀ i, tsupport (ρ i) ⊆ (Φ i).target) ∧
+      (∀ i j x, ρ i x ≠ 0 → ρ j x ≠ 0 → i = j) ∧
+      ∀ i, ∃ s > 0, ball 0 s ⊆ (Φ i).source ∧ ∀ z ∈ ball 0 s, ρ i (Φ i z) = 1 := by
+  -- Disjoint open neighbourhoods of the centres, and a ball about `0` in each chart that `Φ i`
+  -- sends into the neighbourhood of its centre.
+  obtain ⟨U, hU, hdisj⟩ := (Set.finite_range fun i ↦ Φ i 0).t2_separation
+  have hc (i : ι) : ∃ c > 0, ball (0 : StdSpace (Fin (n i))) c ⊆
+      (Φ i).source ∩ Φ i ⁻¹' U (Φ i 0) :=
+    Metric.isOpen_iff.1 ((Φ i).toOpenPartialHomeomorph.isOpen_inter_preimage (hU _).2) 0
+      ⟨h0 i, (hU _).1⟩
+  choose c hc0 hc using hc
+  have hb (i : ι) : closedBall (0 : StdSpace (Fin (n i))) (c i / 2) ⊆ ball 0 (c i) :=
+    closedBall_subset_ball (by linarith [hc0 i])
+  choose ρ hρ h01 hinv h1 hsupp using fun i ↦
+    exists_smul_invariant_cutoff_weightChart (χ i) (Φ i) (hequiv i) (a := c i / 4)
+      (b := c i / 2) (by linarith [hc0 i]) (by linarith [hc0 i])
+      (((hb i).trans (hc i)).trans inter_subset_left)
+  have hsU (i : ι) : tsupport (ρ i) ⊆ (Φ i).target ∩ U (Φ i 0) := by
+    intro x hx
+    obtain ⟨z, hz, rfl⟩ := hsupp i hx
+    have hz' := hc i (hb i hz)
+    exact ⟨(Φ i).map_source hz'.1, hz'.2⟩
+  refine ⟨ρ, hρ, h01, hinv, fun i ↦ (hsU i).trans inter_subset_left, fun i j x hi hj ↦ ?_,
+    fun i ↦ ⟨c i / 4, by linarith [hc0 i], ?_, fun z hz ↦ ?_⟩⟩
+  · by_contra hij
+    exact Set.disjoint_left.1 (hdisj (mem_range_self i) (mem_range_self j) (hinj.ne hij))
+      (hsU i (subset_tsupport _ hi)).2 (hsU j (subset_tsupport _ hj)).2
+  · exact ((ball_subset_ball (by linarith [hc0 i])).trans (hc i)).trans inter_subset_left
+  · exact h1 i (mem_image_of_mem _ (ball_subset_closedBall hz))
+
+variable [FiniteDimensional ℝ E] [I.Boundaryless] [IsManifold I ∞ M] [SigmaCompactSpace M]
+  [MulAction Circle M] [ContMDiffSMul (𝓡 1) I ∞ Circle M]
+
+/-- **Gluing model one-forms along weight charts.** Let the circle act smoothly on a σ-compact
+Hausdorff manifold `M` without boundary, with `X` the fundamental vector field of the period-one
+generator `circlePeriodOneGenerator`. Let `Φᵢ`, for `i` in a finite type, be smooth partial
+diffeomorphisms from `StdSpace (Fin nᵢ)` to `M`, defined at `0`, with pairwise distinct centres
+`Φᵢ 0`, such that
+
+* in the complex coordinates `z = complexToRealEuclidean (Fin nᵢ) u`, `g` sends `Φᵢ z` to `Φᵢ` of
+  `uⱼ ↦ χᵢⱼ(g) uⱼ`, for maps `χᵢⱼ : S¹ → S¹`;
+* the differential of `Φᵢ` sends the generator of the rotations by the angles `2π kᵢⱼ` to `X`;
+* the weights `kᵢⱼ` are nonzero.
+
+Then there is a smooth one-form `θ` on `M`, invariant under the action, with `θ(X) ≥ 0`, with
+equality exactly at the fixed points, and equal on the image under `Φᵢ` of a ball about `0` to
+the pullback `(Φᵢ⁻¹)^* θ_{kᵢ}` of the model one-form `weightOneForm kᵢ`. -/
+theorem exists_localizingForm_of_weightCharts {ι : Type*} [Finite ι] {n : ι → ℕ}
+    (χ : ∀ i, Fin (n i) → Circle → Circle)
+    (Φ : ∀ i, PartialDiffeomorph 𝓘(ℝ, StdSpace (Fin (n i))) I (StdSpace (Fin (n i))) M ∞)
+    (k : ∀ i, Fin (n i) → ℝ)
+    (hequiv : ∀ i (g : Circle) (u : Fin (n i) → ℂ),
+      complexToRealEuclidean (Fin (n i)) u ∈ (Φ i).source →
+      complexToRealEuclidean (Fin (n i)) (fun j ↦ (χ i j g : ℂ) * u j) ∈ (Φ i).source ∧
+        Φ i (complexToRealEuclidean (Fin (n i)) fun j ↦ (χ i j g : ℂ) * u j) =
+          g • Φ i (complexToRealEuclidean (Fin (n i)) u))
+    (hX : ∀ i, ∀ z ∈ (Φ i).source, mfderiv 𝓘(ℝ, StdSpace (Fin (n i))) I (Φ i) z
+      (EuclideanSpace.sumEquivProd.symm
+        (weightGenerator ((2 * π) • k i) (EuclideanSpace.sumEquivProd z))) =
+          fundamentalVectorField I circlePeriodOneGenerator (Φ i z))
+    (h0 : ∀ i, (0 : StdSpace (Fin (n i))) ∈ (Φ i).source)
+    (hinj : Function.Injective fun i ↦ Φ i 0) (hk : ∀ i j, k i j ≠ 0) :
+    ∃ θ : SmoothForm I M ℝ 1,
+      (∀ g : Circle, SmoothForm.mpullback (g • ·)
+        (ContMDiffSMul.contMDiff_const_smul (I := 𝓡 1) (I' := I) g) θ = θ) ∧
+      (∀ x, 0 ≤ θ.val x ![fundamentalVectorField I circlePeriodOneGenerator x]) ∧
+      (∀ x, θ.val x ![fundamentalVectorField I circlePeriodOneGenerator x] = 0 ↔
+        x ∈ MulAction.fixedPoints Circle M) ∧
+      ∀ i, ∃ s > 0, ball 0 s ⊆ (Φ i).source ∧
+        ∀ x ∈ Φ i '' ball 0 s, θ.val x =
+          TauCeti.mpullback I 𝓘(ℝ, StdSpace (Fin (n i))) (Φ i).symm
+            (weightOneForm (k i)).val x := by
+  have := Fintype.ofFinite ι
+  obtain ⟨ρ, hρ, h01, hinv, hsupp, hdisj, h1⟩ :=
+    exists_smul_invariant_cutoffs_weightCharts χ Φ hequiv h0 hinj
+  obtain ⟨β, hβinv, hβ⟩ := exists_invariant_smoothForm_apply_circle_nonneg (I := I) (M := M)
+  let τ : ι → SmoothForm I M ℝ 1 := fun i ↦ cutoffWeightOneForm (Φ i) (hρ i) (hsupp i) (k i)
+  let f : C^∞⟮I, M; ℝ⟯ :=
+    ⟨fun x ↦ 1 - ∑ i, ρ i x, contMDiff_const.sub (ContMDiff.sum fun i _ ↦ hρ i)⟩
+  set X := fundamentalVectorField I circlePeriodOneGenerator (M := M)
+  -- At each point at most one cut-off is nonzero, so their sum is at most `1`.
+  have hone {x : M} {i : ι} (hi : ρ i x ≠ 0) (j : ι) (hj : j ≠ i) : ρ j x = 0 :=
+    by_contra fun h ↦ hj (hdisj j i x h hi)
+  have hsum_le (x : M) : ∑ i, ρ i x ≤ 1 := by
+    by_cases h : ∃ i, ρ i x ≠ 0
+    · obtain ⟨i, hi⟩ := h
+      rw [Finset.sum_eq_single i (fun j _ hj ↦ hone hi j hj) (by simp)]
+      exact (h01 i x).2
+    · push Not at h
+      simp [h]
+  have hval (x : M) : (∑ i, τ i + SmoothForm.funSMulₗ f β).val x =
+      ∑ i, (τ i).val x + (1 - ∑ i, ρ i x) • β.val x := by
+    rw [SmoothForm.add_toRoughForm, SmoothForm.coe_funSMulₗ]
+    simp [f]
+  have hvalX (x : M) : (∑ i, τ i + SmoothForm.funSMulₗ f β).val x ![X x] =
+      ∑ i, (τ i).val x ![X x] + (1 - ∑ i, ρ i x) * β.val x ![X x] := by
+    simp [hval]
+  have hτ (i : ι) (x : M) : 0 ≤ (τ i).val x ![X x] :=
+    cutoffWeightOneForm_apply_nonneg (Φ i) (hρ i) (hsupp i) (k i) (hX i) (h01 i x).1
+  have hβX (x : M) : 0 ≤ (1 - ∑ i, ρ i x) * β.val x ![X x] :=
+    mul_nonneg (by linarith [hsum_le x]) (hβ x).1
+  refine ⟨∑ i, τ i + SmoothForm.funSMulₗ f β, fun g ↦ ?_, fun x ↦ ?_,
+    fun x ↦ ⟨fun hx ↦ ?_, fun hx ↦ ?_⟩, fun i ↦ ?_⟩
+  · -- Each piece is invariant.
+    rw [map_add, map_sum]
+    congr 1
+    · exact Finset.sum_congr rfl fun i _ ↦
+        mpullback_smul_cutoffWeightOneForm (hρ i) (hsupp i) (k i) (χ i) g (hequiv i g) _
+          (hinv i g)
+    · refine Subtype.ext ?_
+      rw [SmoothForm.coe_mpullback, SmoothForm.coe_funSMulₗ]
+      refine TauCeti.mpullback_fun_smul_eq_self (fun x ↦ ?_) fun x _ ↦ ?_
+      · simp [f, hinv]
+      · have h := congrArg Subtype.val (hβinv g)
+        rw [SmoothForm.coe_mpullback] at h
+        exact congrFun h x
+  · rw [hvalX]
+    exact add_nonneg (Finset.sum_nonneg fun i _ ↦ hτ i x) (hβX x)
+  · -- Off the fixed points, `β(X) > 0`; so if `θ(X) = 0`, some cut-off is `1`, and the model
+    -- form vanishes on `X` only at the centre of its chart, which is fixed.
+    by_contra hfix
+    rw [hvalX] at hx
+    obtain ⟨hτ0, hβ0⟩ :=
+      (add_eq_zero_iff_of_nonneg (Finset.sum_nonneg fun i _ ↦ hτ i x) (hβX x)).1 hx
+    have hβpos : β.val x ![X x] ≠ 0 := fun h ↦ hfix ((hβ x).2.1 h)
+    have hs1 : ∑ i, ρ i x = 1 := by
+      have := (mul_eq_zero.1 hβ0).resolve_right hβpos
+      linarith
+    obtain ⟨i, hi⟩ : ∃ i, ρ i x ≠ 0 := by
+      by_contra h
+      push Not at h
+      simp [h] at hs1
+    obtain ⟨z, hz, rfl⟩ : x ∈ Φ i '' (Φ i).source := by
+      rw [(Φ i).toPartialEquiv.image_source_eq_target]
+      exact hsupp i (subset_tsupport _ hi)
+    have hτi := (Finset.sum_eq_zero_iff_of_nonneg fun j _ ↦ hτ j _).1 hτ0 i (Finset.mem_univ _)
+    rw [cutoffWeightOneForm_apply_weightChart (hρ i) (hsupp i) (k i) hz (hX i z hz)] at hτi
+    have hq : ∑ j, k i j ^ 2 * (z.x j ^ 2 + z.y j ^ 2) = 0 := by
+      have := (mul_eq_zero.1 hτi).resolve_left hi
+      simpa [Real.pi_ne_zero] using this
+    have hterm := (Finset.sum_eq_zero_iff_of_nonneg fun j _ ↦ by positivity).1 hq
+    have hxy (j : Fin (n i)) : z.x j = 0 ∧ z.y j = 0 := by
+      have h := (mul_eq_zero.1 (hterm j (Finset.mem_univ _))).resolve_left
+        (pow_ne_zero _ (hk i j))
+      rw [add_eq_zero_iff_of_nonneg (sq_nonneg _) (sq_nonneg _)] at h
+      exact ⟨pow_eq_zero_iff two_ne_zero |>.1 h.1, pow_eq_zero_iff two_ne_zero |>.1 h.2⟩
+    obtain rfl : z = 0 := StdSpace.ext (funext fun j ↦ by simp [(hxy j).1])
+      (funext fun j ↦ by simp [(hxy j).2])
+    refine hfix fun g ↦ ?_
+    have hu : (fun j ↦ (χ i j g : ℂ) * (0 : Fin (n i) → ℂ) j) = 0 := by
+      funext j
+      simp
+    have h := (hequiv i g 0 (by rw [map_zero]; exact h0 i)).2
+    rw [hu, map_zero] at h
+    exact h.symm
+  · rw [show X x = 0 from mem_fixedPoints_circle_iff_fundamentalVectorField_eq_zero.1 hx,
+      show (![0] : Fin 1 → TangentSpace I x) = 0 by simp, ContinuousAlternatingMap.map_zero]
+  · -- Near the centre of `Φ i`, only the `i`-th cut-off is nonzero, and it is `1`.
+    obtain ⟨s, hs, hss, hs1⟩ := h1 i
+    refine ⟨s, hs, hss, ?_⟩
+    rintro _ ⟨z, hz, rfl⟩
+    have hi : ρ i (Φ i z) = 1 := hs1 z hz
+    have hj := hone (x := Φ i z) (i := i) (by rw [hi]; exact one_ne_zero)
+    rw [hval, Finset.sum_eq_single i (fun j _ hj' ↦ by
+        simp [τ, cutoffWeightOneForm_val, hj j hj']) (by simp),
+      Finset.sum_eq_single i (fun j _ hj' ↦ hj j hj') (by simp), hi]
+    simp [τ, cutoffWeightOneForm_val, hi]
+
+
+/-- **The localizing one-form.** Let the circle act smoothly on a compact symplectic manifold
+`(M, σ)` without boundary, preserving `σ`, with a moment map `μ` in the sign
+`d⟨μ, ξ⟩ = -ι_{ξ_M} σ`, and with isolated fixed points; let `X` be the fundamental vector field
+of the period-one generator `ξ₁ = circlePeriodOneGenerator`. Then there is a smooth one-form `θ`
+on `M`, invariant under the action, with `θ(X) ≥ 0`, with equality exactly at the fixed points,
+and such that at each fixed point `p` there is a weight chart `Φ` at `p`, with all the properties
+that `SymplecticGeometry.exists_weightChart_fundamentalVectorField` gives, whose weights
+`kⱼ = αⱼ(ξ₁)` are nonzero, and a radius `0 < s ≤ r` such that on `Φ '' ball 0 s` the form `θ`
+is the pullback `(Φ⁻¹)^* θₖ` of the model one-form `weightOneForm k`. -/
+theorem exists_localizingForm [CompactSpace M] {σ : SmoothTwoForm I M}
+    {μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle)}
+    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) fun x ↦ -μ x)
+    (hσ : σ.IsSymplectic)
+    (hG : ∀ g : Circle, SmoothForm.mpullback (fun x : M ↦ g • x)
+      (ContMDiffSMul.contMDiff_const_smul (I := 𝓡 1) g) σ = σ)
+    (hiso : ∀ p ∈ MulAction.fixedPoints Circle M,
+      ∀ᶠ x in 𝓝[≠] p, x ∉ MulAction.fixedPoints Circle M) :
+    ∃ θ : SmoothForm I M ℝ 1,
+      (∀ g : Circle, SmoothForm.mpullback (g • ·)
+        (ContMDiffSMul.contMDiff_const_smul (I := 𝓡 1) (I' := I) g) θ = θ) ∧
+      (∀ x, 0 ≤ θ.val x ![fundamentalVectorField I circlePeriodOneGenerator x]) ∧
+      (∀ x, θ.val x ![fundamentalVectorField I circlePeriodOneGenerator x] = 0 ↔
+        x ∈ MulAction.fixedPoints Circle M) ∧
+      ∀ p ∈ MulAction.fixedPoints Circle M,
+        ∃ (n : ℕ) (χ : Fin n → Circle →ₜ* Circle)
+          (α : Fin n → StrongDual ℝ (EuclideanSpace ℝ (Fin 1)))
+          (Φ : PartialDiffeomorph 𝓘(ℝ, StdSpace (Fin n)) I (StdSpace (Fin n)) M ∞) (r s : ℝ),
+          (∀ j (ξ : GroupLieAlgebra (𝓡 1) Circle),
+            χ j (mulInvariantExp (I := 𝓡 1) ξ) = Circle.exp (2 * π * α j ξ)) ∧
+          (∀ j (ξ : GroupLieAlgebra (𝓡 1) Circle),
+            mulInvariantExp (I := 𝓡 1) ξ = 1 → ∃ m : ℤ, α j ξ = m) ∧
+          0 < r ∧ Φ.source = ball 0 r ∧ Φ 0 = p ∧
+          (∀ g : Circle, ∀ x ∈ Φ.target, g • x ∈ Φ.target) ∧
+          (∀ (g : Circle) (u : Fin n → ℂ), complexToRealEuclidean (Fin n) u ∈ Φ.source →
+            complexToRealEuclidean (Fin n) (fun j ↦ (χ j g : ℂ) * u j) ∈ Φ.source ∧
+            Φ (complexToRealEuclidean (Fin n) fun j ↦ (χ j g : ℂ) * u j) =
+              g • Φ (complexToRealEuclidean (Fin n) u)) ∧
+          (∀ z ∈ Φ.source, ∀ v w : StdSpace (Fin n),
+            σ.eval₂ (Φ z) (mfderiv 𝓘(ℝ, StdSpace (Fin n)) I Φ z v)
+              (mfderiv 𝓘(ℝ, StdSpace (Fin n)) I Φ z w) = stdForm (Fin n) v w) ∧
+          (∀ z ∈ Φ.source, ∀ ξ : GroupLieAlgebra (𝓡 1) Circle,
+            mfderiv 𝓘(ℝ, StdSpace (Fin n)) I Φ z
+                (EuclideanSpace.sumEquivProd.symm
+                  (weightGenerator (fun j ↦ 2 * π * α j ξ) (EuclideanSpace.sumEquivProd z))) =
+              fundamentalVectorField I ξ (Φ z)) ∧
+          (∀ z ∈ Φ.source, ∀ ξ : GroupLieAlgebra (𝓡 1) Circle,
+            μ (Φ z) ξ = μ p ξ + π * ∑ j, α j ξ * (z.x j ^ 2 + z.y j ^ 2)) ∧
+          (∀ j, α j circlePeriodOneGenerator ≠ 0) ∧ 0 < s ∧ s ≤ r ∧
+          ∀ x ∈ Φ '' ball 0 s, θ.val x = TauCeti.mpullback I 𝓘(ℝ, StdSpace (Fin n)) Φ.symm
+            (weightOneForm fun j ↦ α j circlePeriodOneGenerator).val x := by
+  have : ContinuousConstSMul Circle M :=
+    ⟨fun g ↦ (ContMDiffSMul.contMDiff_const_smul (I := 𝓡 1) (I' := I) (n := ∞) g).continuous⟩
+  have := (finite_fixedPoints hiso).to_subtype
+  choose n χ α Φ r hχ hαℤ hr hsrc hΦ0 htgt hequiv hform hvf hmom using
+    fun p : MulAction.fixedPoints Circle M ↦
+      exists_weightChart_fundamentalVectorField hμ hσ hG (p := p.val) p.property
+  have h0 (p : MulAction.fixedPoints Circle M) : (0 : StdSpace (Fin (n p))) ∈ (Φ p).source := by
+    rw [hsrc]
+    exact mem_ball_self (hr p)
+  have hk (p : MulAction.fixedPoints Circle M) (j : Fin (n p)) :
+      α p j circlePeriodOneGenerator ≠ 0 :=
+    apply_circlePeriodOneGenerator_ne_zero_of_isolated (fun j ↦ χ p j) (α p) (hχ p)
+      (Φ p).toOpenPartialHomeomorph (fun g u hu ↦ (hequiv p g u hu).2) (h0 p) (hΦ0 p)
+      (hiso p.val p.property) j
+  obtain ⟨θ, hinv, hnonneg, hzero, hloc⟩ := exists_localizingForm_of_weightCharts
+    (fun p j ↦ χ p j) Φ (fun p j ↦ α p j circlePeriodOneGenerator) hequiv
+    (fun p z hz ↦ by
+      simpa only [Pi.smul_def, smul_eq_mul] using hvf p z hz circlePeriodOneGenerator) h0
+    (fun p q h ↦ Subtype.ext ((hΦ0 p).symm.trans (h.trans (hΦ0 q)))) hk
+  refine ⟨θ, hinv, hnonneg, hzero, fun p hp ↦ ?_⟩
+  obtain ⟨s, hs, -, hθ⟩ := hloc ⟨p, hp⟩
+  refine ⟨n ⟨p, hp⟩, χ _, α _, Φ _, r _, min s (r ⟨p, hp⟩), hχ _, hαℤ _, hr _, hsrc _, hΦ0 _,
+    htgt _, hequiv _, hform _, hvf _, hmom _, hk _, lt_min hs (hr _), min_le_right _ _,
+    fun x hx ↦ hθ x (image_mono (ball_subset_ball (min_le_left _ _)) hx)⟩
+end Gluing
 
 end SymplecticGeometry
 
