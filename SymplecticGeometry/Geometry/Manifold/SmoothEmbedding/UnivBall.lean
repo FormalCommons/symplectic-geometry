@@ -8,7 +8,6 @@ module
 public import Mathlib.Analysis.InnerProductSpace.Calculus
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import Mathlib.Geometry.Manifold.SmoothEmbedding
-import SymplecticGeometry.Analysis.Normed.Module.Ball.Homeomorph
 import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
@@ -29,6 +28,7 @@ The first proof is that of the local diffeomorphism step inside Tau Ceti's
 
 ## Main results
 
+* `OpenPartialHomeomorph.range_univBall`: the range of `univBall c r` is `ball c r`, for `0 < r`.
 * `OpenPartialHomeomorph.isLocalDiffeomorph_univBall`: `univBall c ρ` is a `C^n` local
   diffeomorphism, for `n ≤ ∞`.
 * `Manifold.IsSmoothEmbedding.comp_univBall`: a smooth embedding of an open set containing
@@ -43,6 +43,18 @@ open scoped Manifold ContDiff
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {n : ℕ∞ω} {c : E} {ρ : ℝ}
 
 namespace OpenPartialHomeomorph
+
+section Range
+
+variable {P : Type*} [PseudoMetricSpace P] [NormedAddTorsor E P]
+
+/-- For `0 < r`, Mathlib's map `univBall c r : E → P` has as range the ball `ball c r`. -/
+theorem range_univBall (c : P) {r : ℝ} (hr : 0 < r) :
+    range (univBall (E := E) c r) = ball c r := by
+  rw [← univBall_target c hr, ← image_univ, ← univBall_source c r,
+    (univBall c r).image_source_eq_target]
+
+end Range
 
 /-- For `n ≤ ∞`, Mathlib's map `univBall c ρ` is a `C^n` local diffeomorphism of `E`. It maps
 `E` onto the ball `ball c ρ` if `0 < ρ`, and is the translation by `c` otherwise. -/
@@ -76,7 +88,7 @@ theorem comp_univBall {f : E → N} {V : TopologicalSpace.Opens E}
     (hf : IsSmoothEmbedding 𝓘(ℝ, E) J n (fun x : V ↦ f x)) (hρ : 0 < ρ)
     (hV : ball c ρ ⊆ V) (hn : n ≤ ∞) : IsSmoothEmbedding 𝓘(ℝ, E) J n (f ∘ univBall c ρ) := by
   have hmem (x : E) : univBall c ρ x ∈ V :=
-    hV (univBall_mem_ball hρ x)
+    hV (range_univBall c hρ ▸ mem_range_self x)
   -- The same map, with values in `V`.
   let g : E → V := fun x ↦ ⟨univBall c ρ x, hmem x⟩
   have hg : IsLocalDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) n g := fun x ↦

@@ -165,7 +165,7 @@ theorem integralTopForm_formCalculus_mul [FiniteDimensional ℝ E] [IsManifold I
         (-ħ • SmoothForm.ofFunctionEquiv.symm (SmoothForm.interiorProduct ⟨X, hX⟩ θ))
         (mextDerivₗ I 1 θ) * β) m).val = integralTopForm o (β m).val := by
   -- Hadamard's lemma gives a smooth `G` with `u G(u) = 1 - F(u)`.
-  obtain ⟨g, hg, hFg⟩ := ContDiff.exists_contDiff_sub_eq_smul (n := ⊤) (hF.of_le (by simp)) 0
+  obtain ⟨g, hg, hFg, -⟩ := ContDiff.exists_contDiff_sub_eq_smul (n := ⊤) (hF.of_le (by simp)) 0
   set G : ℝ → ℝ := fun u ↦ -g u
   have hG : ContDiff ℝ ∞ G := hg.neg
   have hFG : ∀ u, u * G u = 1 - F u := fun u ↦ by

@@ -11,7 +11,6 @@ public import Mathlib.Topology.Instances.AddCircle.Real
 public import SymplecticGeometry.Geometry.Manifold.ModelTransport.ModelPi
 public import SymplecticGeometry.Geometry.Manifold.ModelTransport.Remodel
 public import TauCeti.Geometry.Manifold.Instances.AddCircle
-import SymplecticGeometry.Analysis.Normed.Module.Ball.Homeomorph
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.UnivBall
 import TauCeti.Geometry.Manifold.Instances.AddCircle.Torus
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Diffeomorph
@@ -178,9 +177,11 @@ private theorem injOn_cover : InjOn cover (Metric.ball ballCenter (1 / 4)) := by
     ⟨by linarith, by linarith⟩ ⟨by linarith, by linarith⟩).1 h
 
 /-- The coordinate ball of the torus is injective. -/
-theorem ball_injective : Function.Injective ball := fun s t h ↦
-  ((univBall ballCenter (1 / 4)).isOpenEmbedding (univBall_source _ _)).injective
-    (injOn_cover (univBall_mem_ball (by norm_num) s) (univBall_mem_ball (by norm_num) t) h)
+theorem ball_injective : Function.Injective ball := by
+  have hball (x) : univBall ballCenter (1 / 4) x ∈ Metric.ball ballCenter (1 / 4) :=
+    (range_univBall ballCenter (by norm_num : (0 : ℝ) < 1 / 4)).subset (mem_range_self x)
+  exact fun s t h ↦ ((univBall ballCenter (1 / 4)).isOpenEmbedding (univBall_source _ _)).injective
+    (injOn_cover (hball s) (hball t) h)
 
 /-- The coordinate ball of the torus is an open embedding. -/
 theorem isOpenEmbedding_ball : IsOpenEmbedding ball :=
@@ -201,9 +202,9 @@ theorem disjoint_closure_range_ball (i : Fin 2) :
   have hK : closure (range ball) ⊆ cover '' closedBall ballCenter (1 / 4) := by
     refine closure_minimal ?_ ((isCompact_closedBall _ _).image
       isLocalHomeomorph_cover.continuous).isClosed
-    rintro _ ⟨v, rfl⟩
-    exact ⟨univBall ballCenter (1 / 4) v,
-      Metric.ball_subset_closedBall (univBall_mem_ball (by norm_num) v), rfl⟩
+    rintro _ ⟨x, rfl⟩
+    exact ⟨univBall ballCenter (1 / 4) x, Metric.ball_subset_closedBall
+      ((range_univBall ballCenter (by norm_num : (0 : ℝ) < 1 / 4)).subset (mem_range_self x)), rfl⟩
   refine disjoint_left.2 fun x hx hx0 ↦ ?_
   obtain ⟨t, ht, rfl⟩ := hK hx
   have h := abs_le.1 (abs_sub_le_of_mem_closedBall ht i)

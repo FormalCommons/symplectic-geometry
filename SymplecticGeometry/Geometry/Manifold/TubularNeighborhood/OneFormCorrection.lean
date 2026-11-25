@@ -88,8 +88,7 @@ theorem exists_contMDiff_mextDeriv_eq_mpullback_prodMk [CompactSpace Q]
   rcases isEmpty_or_nonempty Q with hQ | hQ
   · exact ⟨0, contMDiff_const, ⟨∅, isCompact_empty, empty_subset _, by simp⟩,
       fun _ q ↦ isEmptyElim q, fun _ q ↦ isEmptyElim q⟩
-  have : LocallyCompactSpace H := I.locallyCompactSpace
-  have : LocallyCompactSpace M := ChartedSpace.locallyCompactSpace H M
+  have : LocallyCompactSpace M := Manifold.locallyCompact_of_finiteDimensional I
   -- A tubular neighbourhood `Φ` of `f`, onto an open set `W ⊆ O`.
   let P := EuclideanSpace ℝ (Fin (Module.finrank ℝ E - Module.finrank ℝ E'))
   have hdim : Module.finrank ℝ P = Module.finrank ℝ E - Module.finrank ℝ E' := by simp [P]
