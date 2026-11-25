@@ -8,7 +8,6 @@ module
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.Axioms
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.NormalSplitting
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.SelfIntersection
-import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 
 /-!
 # The adjunction formula

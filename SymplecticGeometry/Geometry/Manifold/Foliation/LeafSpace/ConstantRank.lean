@@ -62,7 +62,7 @@ variable {E F H G M N : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Finit
 
 section Regular
 
-variable [IsManifold I (∞ + 1) M] [IsManifold J (∞ + 1) N]
+variable [IsManifold I ∞ M] [IsManifold J ∞ N]
 
 /-- A criterion for a slice of the kernel foliation of a map `f` of constant rank `r`: a smooth
 map `s` from an open set of `EuclideanSpace ℝ (Fin (dim E - (dim E - r)))` to the source is a slice

@@ -18,7 +18,6 @@ import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 import TauCeti.Geometry.Manifold.Distribution.VectorBundle
 import TauCeti.Geometry.Manifold.TwoForm.Kernel
 import TauCeti.Geometry.Symplectic.Lagrangian.Presymplectic
-import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 
 /-!
 # Smooth frames of the splitting along a submanifold

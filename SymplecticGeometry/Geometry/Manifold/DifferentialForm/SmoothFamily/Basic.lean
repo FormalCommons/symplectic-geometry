@@ -68,6 +68,10 @@ Families live on `N × M`, the parameter first. A form on `M × N` is turned aro
 * `SymplecticGeometry.isSmoothFamily_const` and the closure lemmas `IsSmoothFamily.add`, `.neg`,
   `.sub`, `.smul`, `.fun_smul`, `.funSMul`, `.sum`, `.mpullback`, `.mpullback_family`,
   `.mextDeriv`, `.extendByZero_smul` and `.comp`.
+* `SymplecticGeometry.IsSmoothFamily.of_mpullback`: a family is smooth when its pullbacks along a
+  smooth map with smooth local sections over an open cover of its target form a smooth family.
+* `SymplecticGeometry.IsSmoothFamily.of_mpullback_prodMk_eq`: in particular, a family is smooth
+  when its pullbacks along such a map are the slices of a smooth form.
 * `SymplecticGeometry.isSmoothFamily_interiorₗ`: the contractions of a two-form with a jointly
   smooth family of vector fields form a smooth family of one-forms.
 * `SymplecticGeometry.isSmoothFamily_iff_mpullback_inclusion_sup`: smoothness of a family on
@@ -90,6 +94,14 @@ computes. Locality in `M` comes from Tau Ceti's
 `IsLocalDiffeomorphAt.contMDiffAt_mpullback_form_iff`, applied to `id × (U ↪ W)`, and the proof
 of `SymplecticGeometry.IsSmoothFamily.extendByZero_smul` follows that of Tau Ceti's
 `TauCeti.IsSmoothForm.extendByZero`.
+
+The descent of smooth families along a map `f` with local sections
+(`SymplecticGeometry.IsSmoothFamily.of_mpullback`) follows the proof of Tau Ceti's
+`Manifold.IsSubmersion.isSmoothForm_mpullback_iff`, for the vertical forms of the families and
+the map `id × f`, with the local sections `id × s`: near each point, a form is the pullback of
+its pullback along `f`, by Tau Ceti's `TauCeti.contMDiffAt_mpullback_form_iff_of_section`. Unlike
+that lemma, it needs no boundaryless source, so `N × M'` may have boundary, as for
+`N = Set.Icc a b`.
 
 The value of a form with no component along `N` is computed from its slices by Tau Ceti's
 `Submodule.conormalForms_apply_eq_of_sub_mem`: an alternating map that vanishes when one argument
@@ -488,6 +500,49 @@ protected theorem comp (hα : IsSmoothFamily J α) (φ : N' → N) (hφ : ContMD
   refine ⟨SmoothForm.mpullback (Prod.map φ id) (hφ.prodMap contMDiff_id) Ω, fun s ↦ ?_⟩
   have hcomp : (Prod.map φ id ∘ Prod.mk s : M → N × M) = Prod.mk (φ s) := rfl
   simp only [← hΩ, SmoothForm.mpullback_mpullback, hcomp]
+
+/-- **Smooth families descend along maps with local sections.** Let `f : M' → M` be smooth, and
+let every point of `M` have an open neighbourhood `U` with a map `s`, smooth on `U`, such that
+`f (s y) = y` for `y ∈ U`. A family `α` of forms on `M` whose pullbacks along `f` form a smooth
+family is smooth. -/
+theorem of_mpullback {f : M' → M} (hf : ContMDiff I' I ∞ f)
+    (hsec : ∀ x : M, ∃ U : Set M, IsOpen U ∧ x ∈ U ∧
+      ∃ s : M → M', ContMDiffOn I I' ∞ s U ∧ ∀ y ∈ U, f (s y) = y)
+    (h : IsSmoothFamily J (fun t ↦ SmoothForm.mpullback f hf (α t))) :
+    IsSmoothFamily J α := by
+  rw [isSmoothFamily_iff_isSmoothForm, isSmoothForm_def] at h ⊢
+  rintro ⟨t, x⟩
+  obtain ⟨U, hU, hxU, s, hs, hfs⟩ := hsec x
+  have hpull : mpullback (J.prod I') (J.prod I) (Prod.map id f)
+      (verticalForm J fun t ↦ (α t).val) =
+        verticalForm J fun t ↦ (SmoothForm.mpullback f hf (α t)).val := by
+    rw [mpullback_prodMap_verticalForm _ mdifferentiable_id (hf.mdifferentiable (by simp))]
+    simp only [id_eq, SmoothForm.coe_mpullback]
+  have key := contMDiffAt_mpullback_form_iff_of_section (m := ∞) (n := ∞)
+    (f := Prod.map id f) (x := (t, s x)) (s := Prod.map id s) (U := univ ×ˢ U)
+    («ω» := verticalForm J fun t ↦ (α t).val)
+    (isOpen_univ.prod hU) ⟨mem_univ _, by simpa only [Prod.map_snd, hfs x hxU] using hxU⟩
+    (by simp only [Prod.map_apply, id_eq, hfs x hxU])
+    ((contMDiffOn_univ.mpr contMDiff_id).prodMap hs)
+    (fun y hy ↦ Prod.ext rfl (hfs y.2 hy.2))
+    (contMDiff_id.prodMap hf).contMDiffAt (by simp)
+  rw [hpull] at key
+  simpa only [Prod.map_apply, id_eq, hfs x hxU] using key.mp (h (t, s x))
+
+/-- **A family read off the slices of a smooth form is smooth.** Let `f : M' → M` be smooth with
+smooth local sections over an open neighbourhood of every point of `M`, and `σ` a smooth form on
+`M' × N`. A family `τ` of forms on `M` whose pullback `f^* (τ t)` along `f` is, for every `t`,
+the pullback of `σ` along `x ↦ (x, t)` is smooth. -/
+theorem of_mpullback_prodMk_eq {f : M' → M} (hf : ContMDiff I' I ∞ f)
+    (hsec : ∀ x : M, ∃ U : Set M, IsOpen U ∧ x ∈ U ∧
+      ∃ s : M → M', ContMDiffOn I I' ∞ s U ∧ ∀ y ∈ U, f (s y) = y)
+    {σ : SmoothForm (I'.prod J) (M' × N) F k} {τ : N → SmoothForm I M F k}
+    (h : ∀ t, SmoothForm.mpullback (fun x ↦ (x, t)) (contMDiff_id.prodMk contMDiff_const) σ =
+      SmoothForm.mpullback f hf (τ t)) :
+    IsSmoothFamily J τ := by
+  refine of_mpullback hf hsec ?_
+  simp_rw [← h, ← SmoothForm.mpullback_prodMk_mpullback_prodComm]
+  exact isSmoothFamily_mpullback_prodMk _
 
 end Maps
 

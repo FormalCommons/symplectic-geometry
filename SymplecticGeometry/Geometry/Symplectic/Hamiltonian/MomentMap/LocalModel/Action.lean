@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Lie.Adjoint.Splitting
+public import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Data
 
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
@@ -22,7 +23,8 @@ model. First its linear algebra: the sums `𝔪 ⊕ 𝔮` and `𝔥 ⊕ 𝔮` ar
 extensions by zero `ι𝔥 : 𝔥* → 𝔤*` and `ι𝔪 : 𝔪* → 𝔤*` intertwine the duals of the adjoint
 representations of `K` on `𝔥` and `𝔪` with the coadjoint representation of `K` on `𝔤*`.
 The representation of `K` on `A` is the dual of the adjoint representation on `𝔪`, transported
-to `A` by `D.equivDual𝔪`.
+to `A` by `D.equivDual𝔪`. Also, the infinitesimal map `ρ : 𝔥 → sp(V, σ)` and the moment map
+`μ_V : V → 𝔥*` are equivariant for the representation `rep` of `K` on `V`.
 
 Then the action `k • (η, v) = (repA k η, rep k v)` on `A × V`, and its smoothness, so that the
 balanced product `G ×_K (A × V)` is a manifold when the model of `G` is boundaryless (Tau Ceti's
@@ -37,7 +39,12 @@ coadjoint representation, which are smooth on `G` (Tau Ceti's
 The invariance of the sums is that of a sup of subrepresentations (Mathlib's lattice of
 `Subrepresentation`). The equivariance of the extensions by zero is the case of the splitting of
 `TauCeti.Lie.dualMap_projectionOnto_dual`, which follows the route described in the module
-docstring of Tau Ceti's `TauCeti/Geometry/Lie/Adjoint/Splitting.lean`.
+docstring of Tau Ceti's `TauCeti/Geometry/Lie/Adjoint/Splitting.lean`. The equivariance of `ρ`
+is that of the orbit derivatives of the linear representation `rep` of `K` on `V`, the
+library's `TauCeti.mfderiv_linearEquiv_apply_adjointContinuousLinearMap`, read through
+`D.mfderiv_rep_apply` and the naturality `MonoidHom.groupLieAlgebraMap_adjointContinuousLinearMap`
+of the adjoint action for the inclusion `K → G`. That of `μ_V` follows from it, since each
+`rep k` preserves `σ`.
 
 ## Main definitions
 
@@ -56,6 +63,10 @@ docstring of Tau Ceti's `TauCeti/Geometry/Lie/Adjoint/Splitting.lean`.
 * `SymplecticGeometry.LocalModelData.ι𝔥_adjoint𝔥_dual`,
   `SymplecticGeometry.LocalModelData.ι𝔪_symm_adjoint𝔪_dual`: `ι𝔥` and `ι𝔪` are equivariant.
 * `SymplecticGeometry.LocalModelData.ι𝔪_repA`: `ι𝔪 (repA k η) = Ad*_k (ι𝔪 η)`.
+* `SymplecticGeometry.LocalModelData.ρ_adjoint𝔥`: `ρ (Ad_k ξ) = rep k ∘ ρ ξ ∘ rep k⁻¹`.
+* `SymplecticGeometry.LocalModelData.momentMap_rep`,
+  `SymplecticGeometry.LocalModelData.ι𝔥_momentMap_rep`: `μ_V` is equivariant, and
+  `ι𝔥 (μ_V (rep k v)) = Ad*_k (ι𝔥 (μ_V v))`.
 * `SymplecticGeometry.LocalModelData.contMDiff_repA`: the representation on `A` is smooth.
 * `SymplecticGeometry.LocalModelData.contMDiffSMul_fiberDistribMulAction`: the action of `K` on
   `A × V` is smooth.
@@ -226,6 +237,47 @@ theorem contMDiffSMul_fiberDistribMulAction :
     contMDiff_fst.prodMk (contDiff_snd.contMDiff.comp contMDiff_snd)
   exact ⟨((D.contMDiff_repA.comp hA).prodMk_space (D.contMDiff_rep.comp hV)).congr
     fun p ↦ D.fiberDistribMulAction_smul p.1 p.2⟩
+
+/-! ### Equivariance of `ρ` and of `μ_V` -/
+
+/-- The infinitesimal map `ρ : 𝔥 → sp(V, σ)` is equivariant:
+`ρ (Ad_k ξ) v = rep k (ρ ξ (rep k⁻¹ v))` for `k ∈ K`, `ξ ∈ 𝔥` and `v ∈ V`. -/
+theorem ρ_adjoint𝔥_apply (k : K) (ξ : D.𝔥) (v : V) :
+    (D.ρ (D.adjoint𝔥 k ξ) : Module.End ℝ V) v =
+      D.rep k ((D.ρ ξ : Module.End ℝ V) (D.rep k⁻¹ v)) := by
+  obtain ⟨ζ, hζ⟩ := D.range_groupLieAlgebraMap_subtype.ge ξ.property
+  obtain rfl : ξ = ⟨_, D.groupLieAlgebraMap_subtype_mem_𝔥 ζ⟩ := Subtype.ext hζ.symm
+  have hAd : D.adjoint𝔥 k ⟨_, D.groupLieAlgebraMap_subtype_mem_𝔥 ζ⟩ =
+      ⟨_, D.groupLieAlgebraMap_subtype_mem_𝔥 (adjointContinuousLinearMap (I := 𝓘(ℝ, F)) k ζ)⟩ :=
+    Subtype.ext <| by
+      simp only [coe_adjoint𝔥_apply, adjointRepresentation_apply,
+        MonoidHom.groupLieAlgebraMap_adjointContinuousLinearMap, Subgroup.coe_subtype]
+  rw [hAd, ← mfderiv_rep_apply, ← mfderiv_rep_apply]
+  exact mfderiv_linearEquiv_apply_adjointContinuousLinearMap D.rep
+    (D.contMDiff_rep.of_le (by simp)) k ζ v
+
+/-- The infinitesimal map `ρ : 𝔥 → sp(V, σ)` is equivariant: `ρ (Ad_k ξ)` is the conjugate
+`rep k ∘ ρ ξ ∘ rep k⁻¹` of `ρ ξ`. -/
+theorem ρ_adjoint𝔥 (k : K) (ξ : D.𝔥) :
+    (D.ρ (D.adjoint𝔥 k ξ) : Module.End ℝ V) =
+      (D.rep k).toLinearMap ∘ₗ (D.ρ ξ : Module.End ℝ V) ∘ₗ (D.rep k⁻¹).toLinearMap :=
+  LinearMap.ext (D.ρ_adjoint𝔥_apply k ξ)
+
+/-- The moment map `μ_V : V → 𝔥*` is equivariant: `μ_V (rep k v)` is the dual of the adjoint
+representation of `K` on `𝔥` applied to `μ_V v`. -/
+theorem momentMap_rep (k : K) (v : V) :
+    D.momentMap (D.rep k v) = D.adjoint𝔥.dual k (D.momentMap v) := by
+  ext ξ
+  rw [momentMap_apply, Representation.dual_apply, Module.Dual.transpose_apply,
+    LinearMap.comp_apply, momentMap_apply, ρ_adjoint𝔥_apply, inv_inv,
+    ← (D.isSymplectomorphism_rep k).apply (D.rep k⁻¹ _) v, ← D.repV_apply k⁻¹,
+    ← D.repV_apply k (D.repV k⁻¹ _), Representation.self_inv_apply]
+
+/-- The moment map `μ_V`, extended by zero to `𝔤*`, is equivariant:
+`ι𝔥 (μ_V (rep k v)) = Ad*_k (ι𝔥 (μ_V v))`. -/
+theorem ι𝔥_momentMap_rep (k : K) (v : V) :
+    D.ι𝔥 (D.momentMap (D.rep k v)) = coadjointRepresentation ℝ I G k (D.ι𝔥 (D.momentMap v)) := by
+  rw [momentMap_rep, ι𝔥_adjoint𝔥_dual]
 
 end LocalModelData
 
