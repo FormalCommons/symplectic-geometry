@@ -207,7 +207,7 @@ end Homotopy
 
 section Extension
 
-variable [IB.Boundaryless] {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
+variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
 
 /-- **Invariance of the time extension.** If a form `η` on `P × [a, b]` is invariant under the
 action of `z : Circle` on the total space, then so is its time extension to `P × ℝ`
@@ -409,8 +409,6 @@ theorem mpullback_bot_apply_prodVectorField_eq_zero (h : IsCouplingForm η τ)
 
 section Extension
 
-variable [IB.Boundaryless]
-
 /-- **Invariance of the extended primitive.** For two coupling forms `ω₀` and `ω₁` for the same
 family, the extension to `P × ℝ` of the primitive `K (ω₁ - ω₀)` is invariant under the action of
 every `z : Circle` on the total space. -/
@@ -445,7 +443,7 @@ contraction of its extension `ω̃₀` to `P × ℝ` (`SymplecticGeometry.prodIc
 field `(X, 0)` is `-de`, where `e` is the time extension of the height `t - a`
 (`SymplecticGeometry.prodIccHeight`). Over `[a, b]`, `de` is `dt`
 (`SymplecticGeometry.mextDerivₗ_timeExtendIcc_prodIccHeight_apply`). -/
-theorem prodIccExtension_apply_prodVectorField (h : IsCouplingForm ω₀ τ)
+theorem prodIccExtension_apply_prodVectorField [IB.Boundaryless] (h : IsCouplingForm ω₀ τ)
     (p : ManifoldTotalSpace Circle P × ℝ) (w : TangentSpace ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) p) :
     (prodIccExtension (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1 ω₀).val p
       ![Manifold.prodVectorField
@@ -546,6 +544,8 @@ theorem univ_prod_Icc_subset_setOf_nondegenerate_prodIccExtension_add_smul
           (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1
             (ω₁ - ω₀)))).bilinFormAt (x, p.2)).Nondegenerate} :=
   fun p hp x ↦ nondegenerate_bilinFormAt_prodIccExtension_add_smul h₀ h₁ hτ p.1 x hp.2
+
+variable [IB.Boundaryless]
 
 /-- **`dσ̃` vanishes on `(X, 0)`.** For two coupling forms `ω₀` and `ω₁` for the same family, the
 exterior derivative of the extension `σ̃` to `P × ℝ` of the primitive `K (ω₁ - ω₀)` vanishes when
@@ -655,6 +655,7 @@ theorem moserField_lineMapFamily_prodIccExtension_snd_eq_zero (h₀ : IsCoupling
   rw [← mextDerivₗ_timeExtendIcc_prodIccHeight_apply x t]
   exact mextDerivₗ_timeExtendIcc_prodIccHeight_apply_moserField h₀ h₁ ρ s (x, t)
 
+omit [IB.Boundaryless] in
 /-- **The cut-off Moser field is invariant.** Let `ω₀` and `ω₁` be coupling forms for the same
 family and `z : Circle`. For the family `s ↦ ω̃₀ + s • dσ̃` on `P × ℝ` (as in
 `SymplecticGeometry.IsCouplingForm.mpullback_prodMap_subtypeVal_prodIccExtension_add_smul`),
@@ -713,6 +714,7 @@ theorem mfderiv_smul_moserField_lineMapFamily_prodIccExtension (h₀ : IsCouplin
 
 variable [CompactSpace B] [FiniteDimensional ℝ EB]
 
+omit [IB.Boundaryless] in
 /-- **A cutoff in the parameters.** Let `ω₀` and `ω₁` be coupling forms for the same family `τ`
 of nondegenerate forms, over a compact base modelled on a finite-dimensional space. There is a
 smooth `ρ : ℝ × ℝ → ℝ` with values in `[0, 1]` and compact support, equal to `1` on a
@@ -736,6 +738,7 @@ theorem exists_contMDiff_tsupport_subset_setOf_nondegenerate_prodIccExtension_ad
     ((prod_mono (subset_univ _) subset_rfl).trans
       (univ_prod_Icc_subset_setOf_nondegenerate_prodIccExtension_add_smul h₀ h₁ hτ))
 
+omit [IB.Boundaryless] in
 /-- **The cutoff of the extended Moser field.** Let `ω₀` and `ω₁` be coupling forms for the same
 family `τ` of nondegenerate forms, over a compact base modelled on a finite-dimensional space.
 There is `ρ : ℝ × ℝ → ℝ` with values in `[0, 1]` such that the function

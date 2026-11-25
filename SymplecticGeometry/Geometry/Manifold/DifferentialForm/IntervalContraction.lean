@@ -321,11 +321,11 @@ end Height
 
 section Extension
 
-variable [IsManifold I ∞ M] [BoundarylessManifold I M] {F : Type*} [NormedAddCommGroup F]
+variable [IsManifold I ∞ M] {F : Type*} [NormedAddCommGroup F]
   [NormedSpace ℝ F] {k : ℕ}
 
 variable (I M a b F k) in
-/-- **The extension of a form on `M × [a, b]` to `M × ℝ`.** For a boundaryless manifold `M`, it
+/-- **The extension of a form on `M × [a, b]` to `M × ℝ`.** For a manifold `M`, it
 sends a `(k + 1)`-form `η` on `M × Icc a b` to `pr^* ι_a^* η + d (ext (K η))` on `M × ℝ`, where
 `pr^* ι_a^*` is the pull-back along `(x, t) ↦ (x, a)`, `K` is
 `SymplecticGeometry.prodIccHomotopyOperator` and `ext` is the time extension
@@ -354,12 +354,12 @@ theorem isClosed_prodIccExtension {η : SmoothForm (I.prod (𝓡∂ 1)) (M × Ic
   rw [prodIccExtension_apply]
   exact (hη.mpullback _ _).add (SmoothForm.isClosed_mextDerivₗ _)
 
-/-- **Naturality of the extension to `M × ℝ`.** For a smooth map `f : N → M` of boundaryless
+/-- **Naturality of the extension to `M × ℝ`.** For a smooth map `f : N → M` of
 manifolds, pulling the extension of `η` back along `f × id` gives the extension of the pull-back
 of `η` along `f × id`. -/
 theorem mpullback_prodMap_prodIccExtension [CompleteSpace F] {E' H' N : Type*}
     [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
-    [TopologicalSpace N] [ChartedSpace H' N] [IsManifold I' ∞ N] [BoundarylessManifold I' N]
+    [TopologicalSpace N] [ChartedSpace H' N] [IsManifold I' ∞ N]
     {f : N → M} (hf : ContMDiff I' I ∞ f) (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F (k + 1)) :
     SmoothForm.mpullback (Prod.map f id) (hf.prodMap contMDiff_id)
         (prodIccExtension I M a b F k η) =
