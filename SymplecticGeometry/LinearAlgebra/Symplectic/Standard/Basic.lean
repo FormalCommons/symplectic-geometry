@@ -12,6 +12,7 @@ public import TauCeti.Analysis.Complex.Euclidean.Space
 public import TauCeti.Geometry.Symplectic.Complex.CoordinateSpace
 public import TauCeti.Geometry.Symplectic.Complex.ImInner.Basic
 public import TauCeti.Geometry.Symplectic.CompatibleMetric
+public import TauCeti.Geometry.Symplectic.Darboux.EuclideanBasis
 public import TauCeti.Geometry.Symplectic.Prod.Basic
 public import TauCeti.Geometry.Symplectic.StandardCompatible
 public import TauCeti.Geometry.Symplectic.SymplecticTransport
@@ -68,6 +69,11 @@ the `x`- and `y`-coordinates of `z` (`StdSpace.sumEquivProd_apply_fst`,
 `σ : ι ≃ κ` is symplectic, with its coordinates given by `x_piLpCongrLeft_sumCongr` and
 `y_piLpCongrLeft_sumCongr`, and that it commutes with `J₀`
 (`stdComplexStructure_piLpCongrLeft_sumCongr`, `isComplexLinearMap_piLpCongrLeft_sumCongr`).
+Composing the two, `SymplecticGeometry.stdDarbouxBasisOf τ`, for `τ : Fin m ≃ ι`, carries Tau
+Ceti's `TauCeti.stdDarbouxBasis m` to `StdSpace ι`: a Darboux basis of `ω₀`
+(`isDarbouxBasis_stdDarbouxBasisOf`) whose vector `(k, 0)` is the unit vector of `x_{τ k}` and
+`(k, 1)` that of `y_{τ k}` (`stdDarbouxBasisOf_zero`, `stdDarbouxBasisOf_one`), with coordinates
+`stdDarbouxBasisOf_repr_zero` and `stdDarbouxBasisOf_repr_one`.
 The splitting `SymplecticGeometry.StdSpace.sumEquiv ι κ` of
 `StdSpace (ι ⊕ κ)` into `StdSpace ι × StdSpace κ` carries `ω₀` to the direct sum of the two
 standard forms (`isSymplectomorphism_sumEquiv`). Through it, `StdSpace.stdInl k m` includes
@@ -962,6 +968,62 @@ theorem isComplexLinearMap_sumEquivProd :
       (EuclideanSpace.sumEquivProd (𝕜 := ℝ) (ι := ι) (κ := ι)).toLinearEquiv.toLinearMap := by
   rw [← stdComplexStructure_transport_sumEquivProd]
   exact AlmostComplexStructure.isComplexLinearMap_transport _ _
+
+/-! ### The standard Darboux basis -/
+
+section DarbouxBasis
+
+open Module
+
+/-- The standard Darboux basis of `StdSpace ι`, after a labelling `τ : Fin m ≃ ι` of the
+coordinate pairs: Tau Ceti's `stdDarbouxBasis m`, carried to `StdSpace ι` along
+`EuclideanSpace.sumEquivProd` and the relabelling `τ`. It sends `(k, 0)` to the unit vector of
+`x_{τ k}` and `(k, 1)` to that of `y_{τ k}`. -/
+noncomputable def stdDarbouxBasisOf {m : ℕ} (τ : Fin m ≃ ι) :
+    Basis (Fin m × Fin 2) ℝ (StdSpace ι) :=
+  (stdDarbouxBasis m).map
+    ((EuclideanSpace.sumEquivProd (𝕜 := ℝ) (ι := Fin m) (κ := Fin m)).toLinearEquiv.symm.trans
+      (LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (τ.sumCongr τ)).toLinearEquiv)
+
+theorem stdDarbouxBasisOf_def {m : ℕ} (τ : Fin m ≃ ι) :
+    stdDarbouxBasisOf τ = (stdDarbouxBasis m).map
+      ((EuclideanSpace.sumEquivProd (𝕜 := ℝ) (ι := Fin m) (κ := Fin m)).toLinearEquiv.symm.trans
+        (LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (τ.sumCongr τ)).toLinearEquiv) :=
+  (rfl)
+
+/-- The basis vector of index `(k, 0)` in `stdDarbouxBasisOf τ` is the unit vector of
+`x_{τ k}`. -/
+@[simp]
+theorem stdDarbouxBasisOf_zero [DecidableEq ι] {m : ℕ} (τ : Fin m ≃ ι) (k : Fin m) :
+    stdDarbouxBasisOf τ (k, 0) = EuclideanSpace.single (Sum.inl (τ k)) (1 : ℝ) := by
+  ext j <;> simp [stdDarbouxBasisOf_def, Basis.map_apply, Equiv.eq_symm_apply, eq_comm]
+
+/-- The basis vector of index `(k, 1)` in `stdDarbouxBasisOf τ` is the unit vector of
+`y_{τ k}`. -/
+@[simp]
+theorem stdDarbouxBasisOf_one [DecidableEq ι] {m : ℕ} (τ : Fin m ≃ ι) (k : Fin m) :
+    stdDarbouxBasisOf τ (k, 1) = EuclideanSpace.single (Sum.inr (τ k)) (1 : ℝ) := by
+  ext j <;> simp [stdDarbouxBasisOf_def, Basis.map_apply, Equiv.eq_symm_apply, eq_comm]
+
+/-- The coordinate of index `(k, 0)` in `stdDarbouxBasisOf τ` is `x_{τ k}`. -/
+@[simp]
+theorem stdDarbouxBasisOf_repr_zero {m : ℕ} (τ : Fin m ≃ ι) (z : StdSpace ι) (k : Fin m) :
+    (stdDarbouxBasisOf τ).repr z (k, 0) = z.x (τ k) := by
+  simp [stdDarbouxBasisOf_def, Basis.map_repr]
+
+/-- The coordinate of index `(k, 1)` in `stdDarbouxBasisOf τ` is `y_{τ k}`. -/
+@[simp]
+theorem stdDarbouxBasisOf_repr_one {m : ℕ} (τ : Fin m ≃ ι) (z : StdSpace ι) (k : Fin m) :
+    (stdDarbouxBasisOf τ).repr z (k, 1) = z.y (τ k) := by
+  simp [stdDarbouxBasisOf_def, Basis.map_repr]
+
+/-- The relabelled standard Darboux basis is a Darboux basis of `ω₀`. -/
+theorem isDarbouxBasis_stdDarbouxBasisOf {m : ℕ} (τ : Fin m ≃ ι) :
+    (stdForm ι).IsDarbouxBasis (stdDarbouxBasisOf τ) :=
+  (isDarbouxBasis_stdDarbouxBasis m).map
+    (isSymplectomorphism_sumEquivProd.symm.trans (isSymplectomorphism_piLpCongrLeft_sumCongr τ))
+
+end DarbouxBasis
 
 /-! ### The standard plane as `ℂ` -/
 
