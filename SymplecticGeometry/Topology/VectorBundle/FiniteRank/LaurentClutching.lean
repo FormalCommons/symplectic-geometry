@@ -15,8 +15,10 @@ public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.SMul
 Let `A` and `D` be finite-rank complex cores over `X`, and let `a i : A ⟶ D` be morphisms indexed
 by `i : ℤ`. For `N : ℕ`, the Laurent family `∑_{|i| ≤ N} a_i(x) u^i` is a morphism between the
 pullbacks of `A` and `D` to `X × Circle`, whose fibre map at `(x, u)` is
-`∑ i ∈ Finset.Icc (-N) N, u ^ i • a_i(x)`. Taking `A = D = E`, these are the Laurent clutching
-functions of [Hatcher2017, §2.1], to which every clutching function over `X × S²` can be brought.
+`∑ i ∈ Finset.Icc (-N) N, u ^ i • a_i(x)`. Such a family need not be invertible. Taking
+`A = D = E`, the invertible ones are the Laurent clutching functions of [Hatcher2017, §2.1]:
+clutching functions on the pullback of `E` to `X × Circle` that are Laurent polynomials in the
+circle coordinate.
 
 It is built from Tau Ceti's pullback of morphisms (`TauCeti.FiniteRankBundleCore.pullbackMap`),
 the multiplication of morphisms by continuous scalar functions on the base
