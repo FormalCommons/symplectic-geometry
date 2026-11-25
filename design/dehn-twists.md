@@ -10,8 +10,8 @@ are Lemmas 2.1 and 2.2 and Proposition 2.3 of Seidel's thesis
 [Seidel1997Thesis], repeated in [Seidel2008], §1a. McDuff–Salamon
 [McDuffSalamon2017] describe the compactly supported twist on p. 270 and
 prove the Lagrangian neighbourhood theorem as Theorem 3.4.13. Arnold
-[Arnold1995] introduced the twist on $T^*S^n$. The smoothness of a smooth even
-function as a function of $t^2$ is Whitney's theorem (H. Whitney,
+[Arnold1995] is one of the early sources on twists of $T^*S^n$. The smoothness
+of a smooth even function as a function of $t^2$ is Whitney's theorem (H. Whitney,
 *Differentiable even functions*, Duke Mathematical Journal 10 (1943),
 159–160).
 
