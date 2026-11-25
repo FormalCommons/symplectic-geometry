@@ -59,9 +59,17 @@ the same file, applied to the diffeomorphism `Diffeomorph.reflProdCongr ℝ ψ` 
 A `C^(n+1)` curve `γ` that maps a closed interval into the base set of a trivialization `e` of
 the tangent bundle is a trajectory, on that interval, of a jointly `C^n` time-dependent field that
 vanishes outside a compact set (`Bundle.Trivialization.exists_timeDependentField_eq_curveVelocity`).
-The velocity of `γ`, read in `e`, is multiplied by smooth cutoffs in time and in space from Tau
-Ceti's `IsCompact.exists_contMDiff_one_nhds_tsupport_subset`, equal to `1` on the interval and on
-its image, and is mapped back by `e.symmL`, which vanishes off the base set.
+More generally, for a `C^(n+1)` family `Γ : N × ℝ → B` of curves whose curve at `a₀` maps the
+interval into the base set, one family of fields, jointly `C^n` in the parameter as well, serves
+for all parameters near `a₀`
+(`Bundle.Trivialization.exists_timeDependentField_param_eq_curveVelocity`); a single curve is a
+constant family. The velocities of the curves, read in `e`, are the tangent map of `Γ` applied to
+the unit vector in time, as in the proof of Tau Ceti's `ContMDiffAt.contMDiffAt_curveVelocity_snd`
+for a parameter in the scalar field. They are multiplied by smooth cutoffs, in parameter and
+time and in space, from Tau Ceti's `IsCompact.exists_contMDiff_one_nhds_tsupport_subset`, equal
+to `1` near `{a₀} × [a, b]` and near its image, and mapped back by `e.symmL`, which vanishes off
+the base set. Since the interval is compact, both cutoffs are `1` on the product of a
+neighbourhood of `a₀` with the interval.
 
 ## Main results
 
@@ -82,6 +90,8 @@ its image, and is mapped back by `e.symmL`, which vanishes off the base set.
   the other.
 * `Bundle.Trivialization.exists_timeDependentField_eq_curveVelocity`: a compactly supported
   time-dependent field whose value along a curve, on a closed interval, is its velocity.
+* `Bundle.Trivialization.exists_timeDependentField_param_eq_curveVelocity`: the same for the
+  curves of a family near a given parameter, with fields that depend smoothly on the parameter.
 -/
 
 public section
@@ -311,6 +321,98 @@ open scoped Topology
 variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
   {G : Type*} [TopologicalSpace G] {J : ModelWithCorners ℝ F G}
   {B : Type*} [TopologicalSpace B] [ChartedSpace G B] [IsManifold J ∞ B] [T2Space B]
+  {EN : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] [FiniteDimensional ℝ EN]
+  {HN : Type*} [TopologicalSpace HN] {IN : ModelWithCorners ℝ EN HN}
+  {N : Type*} [TopologicalSpace N] [ChartedSpace HN N] [IsManifold IN ∞ N] [T2Space N]
+
+/-- **A compactly supported field through the velocities of a family of curves.** Let
+`Γ : N × ℝ → B` be a `C^(n+1)` family of curves in `B`, with parameters in a
+finite-dimensional Hausdorff manifold `N`, whose curve at `a₀` maps `Set.Icc a b` into the base
+set of a trivialization `e` of the tangent bundle of `B`. There are a neighbourhood `U` of `a₀`
+and a family `V c` of time-dependent vector fields on `B`, jointly `C^n` in parameter, time
+and point, vanishing outside one compact set `K`, such that for `c ∈ U` and `u ∈ Set.Icc a b`
+the value of `V c u` at `Γ (c, u)` is the velocity at `u` of the curve `r ↦ Γ (c, r)`. -/
+theorem exists_timeDependentField_param_eq_curveVelocity {n : ℕ∞} {Γ : N × ℝ → B}
+    (e : Trivialization F (π F (TangentSpace J))) [MemTrivializationAtlas e]
+    (hΓ : ContMDiff (IN.prod 𝓘(ℝ, ℝ)) J (n + 1) Γ) {a₀ : N} {a b : ℝ}
+    (hΓe : MapsTo (fun u ↦ Γ (a₀, u)) (Icc a b) e.baseSet) :
+    ∃ U ∈ 𝓝 a₀, ∃ (V : N → ℝ → Π y : B, TangentSpace J y) (K : Set B), IsCompact K ∧
+      ContMDiff ((IN.prod 𝓘(ℝ, ℝ)).prod J) J.tangent n
+        (fun p : (N × ℝ) × B ↦ (⟨p.2, V p.1.1 p.1.2 p.2⟩ : TangentBundle J B)) ∧
+      (∀ c u, ∀ y ∉ K, V c u y = 0) ∧
+      ∀ c ∈ U, ∀ u ∈ Icc a b, V c u (Γ (c, u)) = curveVelocity J (fun r ↦ Γ (c, r)) u := by
+  have hC : IsCompact ({a₀} ×ˢ Icc a b) := isCompact_singleton.prod isCompact_Icc
+  have hCO : {a₀} ×ˢ Icc a b ⊆ Γ ⁻¹' e.baseSet := by
+    rintro ⟨c, u⟩ ⟨hc, hu⟩
+    obtain rfl : c = a₀ := mem_singleton_iff.1 hc
+    exact hΓe hu
+  -- Cut-offs in the parameters and time, and in space.
+  obtain ⟨χ, hχ, hχ1, -, hχO, -⟩ := hC.exists_contMDiff_one_nhds_tsupport_subset
+    (IN.prod 𝓘(ℝ, ℝ)) (e.open_baseSet.preimage hΓ.continuous) hCO
+  obtain ⟨ψ, hψ, hψ1, hψc, hψU, -⟩ := (hC.image hΓ.continuous
+    ).exists_contMDiff_one_nhds_tsupport_subset J e.open_baseSet (image_subset_iff.2 hCO)
+  -- Both are `1` on a tube around `{a₀} × Icc a b`.
+  obtain ⟨U, hU, T, hT, hUT⟩ := mem_prod_iff.1 (by
+    rw [← isCompact_singleton.nhdsSet_prod_eq isCompact_Icc]
+    exact hχ1.and ((hΓ.continuous.tendsto_nhdsSet (mapsTo_image Γ _)).eventually hψ1) :
+      {p : N × ℝ | χ p = 1 ∧ ψ (Γ p) = 1} ∈ 𝓝ˢ {a₀} ×ˢ 𝓝ˢ (Icc a b))
+  -- The velocities of the curves of the family, as a map to the tangent bundle.
+  have hvel : ContMDiff (IN.prod 𝓘(ℝ, ℝ)) J.tangent n
+      (fun p : N × ℝ ↦ (⟨Γ p, curveVelocity J (fun r ↦ Γ (p.1, r)) p.2⟩ : TangentBundle J B)) := by
+    have hσ : ContMDiff (IN.prod 𝓘(ℝ, ℝ)) (IN.prod 𝓘(ℝ, ℝ)).tangent n
+        (fun p : N × ℝ ↦ (⟨p, ((0 : EN), (1 : ℝ))⟩ : TangentBundle (IN.prod 𝓘(ℝ, ℝ)) (N × ℝ))) :=
+      (contMDiff_equivTangentBundleProd_symm (I := IN) (M := N) (I' := 𝓘(ℝ, ℝ))
+        (M' := ℝ)).comp (((contMDiff_zeroSection ℝ (TangentSpace IN)).comp contMDiff_fst).prodMk
+          ((contMDiff_tangentBundle_mk_const (1 : ℝ)).comp contMDiff_snd))
+    refine ((hΓ.contMDiff_tangentMap le_rfl).comp hσ).congr fun ⟨c, u⟩ ↦ ?_
+    have hd : HasMFDerivAt 𝓘(ℝ, ℝ) (IN.prod 𝓘(ℝ, ℝ)) (fun r ↦ (c, r)) u
+        ((1 : ℝ →L[ℝ] ℝ).smulRight (((0 : EN), (1 : ℝ)) : TangentSpace (IN.prod 𝓘(ℝ, ℝ)) (c, u))) :=
+      ((hasMFDerivAt_const c u).prodMk (hasMFDerivAt_id u)).congr_mfderiv
+        (ContinuousLinearMap.ext_ring (one_smul ℝ (((0 : EN), (1 : ℝ)) : EN × ℝ)).symm)
+    have hΓd := (hΓ.mdifferentiableAt (by simp)).hasMFDerivAt.comp u hd
+    simp only [comp_apply, tangentMap]
+    rw [curveVelocity_apply, show (fun r ↦ Γ (c, r)) = Γ ∘ fun r ↦ (c, r) from rfl, hΓd.mfderiv]
+    exact congrArg (TotalSpace.mk _) (congrArg (mfderiv (IN.prod 𝓘(ℝ, ℝ)) J Γ (c, u))
+      (one_smul ℝ (((0 : EN), (1 : ℝ)) : EN × ℝ)))
+  -- The velocities read in `e`, cut off in the parameter and time.
+  let v : N × ℝ → F := fun p ↦ (e ⟨Γ p, curveVelocity J (fun r ↦ Γ (p.1, r)) p.2⟩).2
+  have hv {p : N × ℝ} (hp : Γ p ∈ e.baseSet) :
+      ContMDiffAt (IN.prod 𝓘(ℝ, ℝ)) 𝓘(ℝ, F) n v p :=
+    ((e.contMDiffAt_iff (e.mem_source.2 hp)).1 (hvel p)).2
+  let w : N × ℝ → F := fun p ↦ χ p • v p
+  have hw : ContMDiff (IN.prod 𝓘(ℝ, ℝ)) 𝓘(ℝ, F) n w :=
+    ContMDiffOn.contMDiff_smul_of_tsupport_subset (fun p hp ↦ (hv hp).contMDiffWithinAt)
+      (e.open_baseSet.preimage hΓ.continuous)
+      (hχ.of_le (by exact_mod_cast le_top)).contMDiffOn hχO
+  -- The field read in `e` as `ψ y • w (c, u)`, which `ψ` cuts off in space.
+  let V : N → ℝ → Π y : B, TangentSpace J y := fun c u y ↦ e.symmL ℝ y (ψ y • w (c, u))
+  have hV0 {c : N} {u : ℝ} {y : B} (hy : y ∉ tsupport ψ) : V c u y = 0 := by
+    simp only [V, image_eq_zero_of_notMem_tsupport hy, zero_smul, map_zero]
+  refine ⟨U, nhdsSet_singleton (x := a₀) ▸ hU, V, tsupport ψ, hψc, ?_, fun c u y hy ↦ hV0 hy,
+    fun c hc u hu ↦ ?_⟩
+  · rintro ⟨q₀, y₀⟩
+    by_cases hy₀ : y₀ ∈ e.baseSet
+    · have hsm : ContMDiffAt ((IN.prod 𝓘(ℝ, ℝ)).prod J) 𝓘(ℝ, F) n
+          (fun p : (N × ℝ) × B ↦ (e (⟨p.2, V p.1.1 p.1.2 p.2⟩ : TangentBundle J B)).2)
+          (q₀, y₀) := by
+        refine ((((hψ.of_le (by exact_mod_cast le_top)) y₀).comp (q₀, y₀) contMDiffAt_snd).smul
+          ((hw q₀).comp (q₀, y₀) contMDiffAt_fst)).congr_of_eventuallyEq ?_
+        filter_upwards [continuousAt_snd.preimage_mem_nhds (e.open_baseSet.mem_nhds hy₀)]
+          with p hp
+        simp only [V, e.symmL_apply hp, e.apply_mk_symm hp, Pi.smul_apply', comp_apply]
+      exact (e.contMDiffAt_iff (e.mem_source.2 hy₀)).2 ⟨contMDiffAt_snd, hsm⟩
+    · -- Off the base set, `ψ` vanishes nearby and so does the field.
+      have hy : y₀ ∉ tsupport ψ := fun h ↦ hy₀ (hψU h)
+      refine (((contMDiff_zeroSection _ _).contMDiffAt).comp (q₀, y₀)
+        contMDiffAt_snd).congr_of_eventuallyEq ?_
+      filter_upwards [continuousAt_snd.preimage_mem_nhds
+        ((isClosed_tsupport ψ).isOpen_compl.mem_nhds hy)] with p hp
+      simp [zeroSection, hV0 hp]
+  · obtain ⟨hχ1, hψ1⟩ := hUT (mk_mem_prod hc (subset_of_mem_nhdsSet hT hu))
+    have hb : Γ (c, u) ∈ e.baseSet :=
+      hχO (subset_tsupport _ (by simp [hχ1] : χ (c, u) ≠ 0))
+    simp only [V, w, v, hψ1, hχ1, one_smul, e.symmL_apply hb]
+    exact e.symm_apply_apply_mk hb _
 
 /-- **A compactly supported field through the velocities of a curve.** Let `γ` be a `C^(n+1)`
 curve in `B` that maps `Set.Icc a b` into the base set of a trivialization `e` of the tangent
@@ -324,48 +426,11 @@ theorem exists_timeDependentField_eq_curveVelocity {n : ℕ∞} {γ : ℝ → B}
       ContMDiff (𝓘(ℝ, ℝ).prod J) J.tangent n
         (fun p : ℝ × B ↦ (⟨p.2, V p.1 p.2⟩ : TangentBundle J B)) ∧
       (∀ u, ∀ y ∉ K, V u y = 0) ∧ ∀ u ∈ Icc a b, V u (γ u) = curveVelocity J γ u := by
-  -- Cut-offs in time and in space, equal to `1` on `Set.Icc a b` and on its image.
-  obtain ⟨χ, hχ, hχ1, -, hχO, -⟩ := isCompact_Icc.exists_contMDiff_one_nhds_tsupport_subset
-    𝓘(ℝ, ℝ) (e.open_baseSet.preimage hγ.continuous) hγe
-  obtain ⟨ψ, hψ, hψ1, hψc, hψU, -⟩ := (isCompact_Icc.image hγ.continuous
-    ).exists_contMDiff_one_nhds_tsupport_subset J e.open_baseSet hγe.image_subset
-  -- The velocity of `γ` read in `e`, cut off in time.
-  let v : ℝ → F := fun u ↦ (e ⟨γ u, curveVelocity J γ u⟩).2
-  have hv {u : ℝ} (hu : γ u ∈ e.baseSet) : ContMDiffAt 𝓘(ℝ, ℝ) 𝓘(ℝ, F) n v u := by
-    have hlift := hγ.contMDiffAt.contMDiffAt_curveVelocityLift (m := n) (t := u) le_rfl
-    rw [show curveVelocityLift J γ = fun u ↦ ⟨γ u, curveVelocity J γ u⟩ from
-      funext (curveVelocityLift_apply γ)] at hlift
-    exact ((e.contMDiffAt_iff (e.mem_source.2 hu)).1 hlift).2
-  let w : ℝ → F := fun u ↦ χ u • v u
-  have hw : ContMDiff 𝓘(ℝ, ℝ) 𝓘(ℝ, F) n w :=
-    ContMDiffOn.contMDiff_smul_of_tsupport_subset (fun u hu ↦ (hv hu).contMDiffWithinAt)
-      (e.open_baseSet.preimage hγ.continuous)
-      (hχ.of_le (by exact_mod_cast le_top)).contMDiffOn hχO
-  -- The field read in `e` as `ψ y • w u`, which `ψ` cuts off in space.
-  let V : ℝ → Π y : B, TangentSpace J y := fun u y ↦ e.symmL ℝ y (ψ y • w u)
-  have hV0 {u : ℝ} {y : B} (hy : y ∉ tsupport ψ) : V u y = 0 := by
-    simp only [V, image_eq_zero_of_notMem_tsupport hy, zero_smul, map_zero]
-  refine ⟨V, tsupport ψ, hψc, ?_, fun u y hy ↦ hV0 hy, fun u hu ↦ ?_⟩
-  · rintro ⟨u₀, y₀⟩
-    by_cases hy₀ : y₀ ∈ e.baseSet
-    · have hsm : ContMDiffAt (𝓘(ℝ, ℝ).prod J) 𝓘(ℝ, F) n
-          (fun p : ℝ × B ↦ (e (⟨p.2, V p.1 p.2⟩ : TangentBundle J B)).2) (u₀, y₀) := by
-        refine ((((hψ.of_le (by exact_mod_cast le_top)) y₀).comp (u₀, y₀) contMDiffAt_snd).smul
-          ((hw u₀).comp (u₀, y₀) contMDiffAt_fst)).congr_of_eventuallyEq ?_
-        filter_upwards [continuousAt_snd.preimage_mem_nhds (e.open_baseSet.mem_nhds hy₀)]
-          with p hp
-        simp only [V, e.symmL_apply hp, e.apply_mk_symm hp, Pi.smul_apply', comp_apply]
-      exact (e.contMDiffAt_iff (e.mem_source.2 hy₀)).2 ⟨contMDiffAt_snd, hsm⟩
-    · -- Off the base set, `ψ` vanishes nearby and so does the field.
-      have hy : y₀ ∉ tsupport ψ := fun h ↦ hy₀ (hψU h)
-      refine (((contMDiff_zeroSection _ _).contMDiffAt).comp (u₀, y₀)
-        contMDiffAt_snd).congr_of_eventuallyEq ?_
-      filter_upwards [continuousAt_snd.preimage_mem_nhds
-        ((isClosed_tsupport ψ).isOpen_compl.mem_nhds hy)] with p hp
-      simp [zeroSection, hV0 hp]
-  · simp only [V, w, hψ1.self_of_nhdsSet _ (mem_image_of_mem γ hu), hχ1.self_of_nhdsSet _ hu,
-      one_smul, e.symmL_apply (hγe hu)]
-    exact e.symm_apply_apply_mk (hγe hu) _
+  -- The constant family of curves `(c, u) ↦ γ u`, with parameters in `ℝ`.
+  obtain ⟨U, hU, V, K, hK, hV, hV0, hVγ⟩ := e.exists_timeDependentField_param_eq_curveVelocity
+    (IN := 𝓘(ℝ, ℝ)) (Γ := fun p : ℝ × ℝ ↦ γ p.2) (hγ.comp contMDiff_snd) (a₀ := 0) hγe
+  exact ⟨V 0, K, hK, hV.comp ((contMDiff_const.prodMk contMDiff_fst).prodMk contMDiff_snd),
+    hV0 0, hVγ 0 (mem_of_mem_nhds hU)⟩
 
 end Bundle.Trivialization
 
