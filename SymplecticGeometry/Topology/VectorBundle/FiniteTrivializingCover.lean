@@ -20,6 +20,8 @@ what a classifying map to a finite-dimensional projective space needs.
 
 * `SymplecticGeometry.Bundle.HasFiniteTrivializingCover R F E`: some finite set of `R`-linear
   trivializations of `E` has base sets covering `B`.
+* `SymplecticGeometry.Bundle.HasFiniteTrivializingCover.of_finite`: a finite indexed family of
+  linear trivializations whose base sets cover `B` gives one.
 * `SymplecticGeometry.Bundle.HasFiniteTrivializingCover.of_compactSpace`: every vector bundle
   over a compact base has one.
 * `SymplecticGeometry.Bundle.HasFiniteTrivializingCover.of_card_finsupport_le`: a partition of
@@ -66,6 +68,19 @@ theorem hasFiniteTrivializingCover_def :
 
 variable {R F E}
 
+/-- A finite family of linear trivializations whose base sets cover `B` is a finite trivializing
+cover. -/
+theorem HasFiniteTrivializingCover.of_finite {ι : Type*} [Finite ι]
+    (e : ι → Trivialization F (π F E)) [∀ i, (e i).IsLinear R]
+    (h : ⋃ i, (e i).baseSet = univ) : HasFiniteTrivializingCover R F E := by
+  classical
+  have := Fintype.ofFinite ι
+  refine ⟨Finset.univ.image e, ?_, ?_⟩
+  · simp only [Finset.mem_image]
+    rintro _ ⟨i, -, rfl⟩
+    infer_instance
+  · simpa [Set.iUnion_exists, Set.biUnion_and'] using h
+
 /-- A partition of unity of `B` subordinate to the base sets of linear trivializations `e i`, in
 which every point lies in the support of at most `N` of its functions, gives a finite
 trivializing cover: Tau Ceti's gap trivializations of sizes `0, …, N` cover `B`. -/
@@ -73,17 +88,13 @@ theorem HasFiniteTrivializingCover.of_card_finsupport_le {κ : Type*}
     (ρ : PartitionOfUnity κ B univ) (e : κ → Trivialization F (π F E)) [∀ i, (e i).IsLinear R]
     (he : ρ.IsSubordinate fun i ↦ (e i).baseSet) {N : ℕ}
     (hN : ∀ x, (ρ.finsupport x).card ≤ N) : HasFiniteTrivializingCover R F E := by
-  classical
-  refine ⟨(Finset.range (N + 1)).image (ρ.gapTrivialization e he), ?_, ?_⟩
-  · simp only [Finset.mem_image]
-    rintro _ ⟨n, -, rfl⟩
-    infer_instance
-  · refine eq_univ_of_forall fun x ↦ ?_
-    obtain ⟨n, hn⟩ := mem_iUnion.1 (ρ.subset_iUnion_gapTrivialization_baseSet e he (mem_univ x))
-    have hpos : 0 < ρ.gapPartition n x := by simpa using hn
-    obtain ⟨S, rfl, hS⟩ := ρ.exists_gap_pos_of_gapPartition_pos hpos
-    have hle : S.card ≤ N := (Finset.card_le_card (ρ.subset_finsupport_of_gap_pos hS)).trans (hN x)
-    exact mem_biUnion (Finset.mem_image_of_mem _ (Finset.mem_range.2 (Nat.lt_succ_of_le hle))) hn
+  refine .of_finite (fun n : Fin (N + 1) ↦ ρ.gapTrivialization e he n)
+    (eq_univ_of_forall fun x ↦ ?_)
+  obtain ⟨n, hn⟩ := mem_iUnion.1 (ρ.subset_iUnion_gapTrivialization_baseSet e he (mem_univ x))
+  have hpos : 0 < ρ.gapPartition n x := by simpa using hn
+  obtain ⟨S, rfl, hS⟩ := ρ.exists_gap_pos_of_gapPartition_pos hpos
+  have hle : S.card ≤ N := (Finset.card_le_card (ρ.subset_finsupport_of_gap_pos hS)).trans (hN x)
+  exact mem_iUnion.2 ⟨⟨S.card, Nat.lt_succ_of_le hle⟩, hn⟩
 
 end Definition
 
@@ -97,17 +108,14 @@ variable {𝕜 B F : Type*} [NontriviallyNormedField 𝕜] [TopologicalSpace B]
 many of the trivializations `trivializationAt`. -/
 theorem HasFiniteTrivializingCover.of_compactSpace [CompactSpace B] [VectorBundle 𝕜 F E] :
     HasFiniteTrivializingCover 𝕜 F E := by
-  classical
   obtain ⟨t, ht⟩ := isCompact_univ.elim_finite_subcover
     (fun x : B ↦ (trivializationAt F E x).baseSet)
     (fun x ↦ (trivializationAt F E x).open_baseSet)
     fun x _ ↦ mem_iUnion.2 ⟨x, mem_baseSet_trivializationAt F E x⟩
-  refine ⟨t.image (trivializationAt F E), ?_, eq_univ_of_forall fun x ↦ ?_⟩
-  · simp only [Finset.mem_image]
-    rintro _ ⟨y, -, rfl⟩
-    infer_instance
-  · obtain ⟨y, hy, hxy⟩ := mem_iUnion₂.1 (ht (mem_univ x))
-    exact mem_biUnion (Finset.mem_image_of_mem _ hy) hxy
+  refine .of_finite (fun y : t ↦ trivializationAt F E (y : B))
+    (eq_univ_of_forall fun x ↦ ?_)
+  obtain ⟨y, hy, hxy⟩ := mem_iUnion₂.1 (ht (mem_univ x))
+  exact mem_iUnion.2 ⟨⟨y, hy⟩, hxy⟩
 
 /-- Over a normal base, a bundle with a finite trivializing cover and finite-dimensional model
 fibre admits a continuous fibrewise injective linear map into the trivial bundle
