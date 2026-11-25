@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Normed
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.WeightModel.Basic
 public import TauCeti.Analysis.Convex.LocalToGlobal
 public import TauCeti.Geometry.Symplectic.Hamiltonian.WeightModel.NormalForm
@@ -16,6 +17,7 @@ import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 import SymplecticGeometry.Geometry.Lie.Subgroup.IdentityComponent
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Chart
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.WeightModel.ConvexChart
+import SymplecticGeometry.LinearAlgebra.Projection
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.Restrict
 import TauCeti.Topology.Algebra.ConstMulAction
@@ -101,6 +103,13 @@ And the local convexity itself:
   `TauCeti.exists_isConvexChart_inter_preimage_ball`; they are carried back to `M` by
   `TauCeti.IsConvexChart.image_iff`.
 
+## Implementation notes
+
+The isotropy algebra `𝔤_x` and the subspaces `𝔮` are submodules of `GroupLieAlgebra I G` itself,
+so that `μ y` applies to their elements directly. Their duals `StrongDual ℝ 𝔤_x` and
+`StrongDual ℝ 𝔮` use the norm that `open scoped GroupLieAlgebra` puts on the Lie algebra
+(`GroupLieAlgebra.instNormedAddCommGroup`).
+
 ## References
 
 * [C. Bjorndahl and Y. Karshon, *Revisiting Tietze–Nakajima: local and global convexity for
@@ -112,7 +121,7 @@ public section
 
 noncomputable section
 
-open scoped ContDiff Manifold Topology
+open scoped ContDiff GroupLieAlgebra Manifold Topology
 
 namespace TauCeti
 
@@ -194,7 +203,8 @@ theorem exists_weightModelChart_isotropy
     (h : σ.IsMomentMap (InfinitesimalAction.fundamental I G I' M) μ) (hσ : σ.IsSymplectic)
     (hG : ∀ g : G, SmoothForm.mpullback (fun x : M ↦ g • x)
       (ContMDiffSMul.contMDiff_const_smul (I := I) g) σ = σ) (x : M) :
-    let 𝔤ₓ : Submodule ℝ E := ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule
+    let 𝔤ₓ : Submodule ℝ (GroupLieAlgebra I G) :=
+      ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule
     let K : Subgroup G := (Subgroup.connectedComponentOfOne (MulAction.stabilizer G x)).map
       (MulAction.stabilizer G x).subtype
     ∃ (n : ℕ) (χ : Fin n → K →ₜ* Circle)
@@ -210,10 +220,10 @@ theorem exists_weightModelChart_isotropy
         σ.eval₂ y v w = stdSymplecticForm (mvfderiv I' chart y v) (mvfderiv I' chart y w)) ∧
       (∀ y ∈ chart.source, ∀ ξ : 𝔤ₓ,
         mfderiv I' 𝓘(ℝ, EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin n)) chart y
-          (fundamentalVectorField I' (show GroupLieAlgebra I G from (ξ : E)) y) =
+          (fundamentalVectorField I' (ξ : GroupLieAlgebra I G) y) =
             weightInfinitesimalAction α (chart y) ξ) ∧
       ∀ y ∈ chart.source, ∀ ξ : 𝔤ₓ,
-        μ y (ξ : E) = μ x (ξ : E) + weightMomentMap α (chart y) ξ := by
+        μ y ξ = μ x ξ + weightMomentMap α (chart y) ξ := by
   intro 𝔤ₓ K
   set S := MulAction.stabilizer G x
   have hS : IsClosed (S : Set G) := isClosed_stabilizer
@@ -229,10 +239,10 @@ theorem exists_weightModelChart_isotropy
   obtain ⟨n, χ, α, chart, r, hα, -, hx, h0, hr, htarget, hequiv, hform, hgen, hμ⟩ :=
     hK.exists_weightModelChart hσ (fun g ↦ hG g) (p := x)
       fun g ↦ Subgroup.map_subtype_le _ g.property
-  -- The differential of the inclusion `K → G` identifies the Lie algebra of `K` with `𝔤ₓ`, which
-  -- the statement reads as a submodule of `E`, the model of `GroupLieAlgebra I G`.
+  -- The differential of the inclusion `K → G` identifies the Lie algebra of `K` with `𝔤ₓ`.
   let e : GroupLieAlgebra 𝓘(ℝ, F) K ≃ₗ[ℝ] 𝔤ₓ := d.groupLieAlgebraEquivIsotropy (I' := I')
-  have he (ξ : 𝔤ₓ) : K.subtype.groupLieAlgebraMap 𝓘(ℝ, F) I (e.symm ξ) = (ξ : E) :=
+  have he (ξ : 𝔤ₓ) :
+      K.subtype.groupLieAlgebraMap 𝓘(ℝ, F) I (e.symm ξ) = (ξ : GroupLieAlgebra I G) :=
     d.groupLieAlgebraMap_subtype_groupLieAlgebraEquivIsotropy_symm ξ
   -- The weights `α k`, functionals on the model `F` of `K`, read on its Lie algebra.
   let β (k : Fin n) : Module.Dual ℝ (GroupLieAlgebra 𝓘(ℝ, F) K) := (α k : F →ₗ[ℝ] ℝ)
@@ -375,7 +385,7 @@ theorem contDiffAt_comp_symm_sub_comp_subtype [FiniteDimensional ℝ E]
     {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
     {chart : PartialDiffeomorph I' 𝓘(ℝ, F) M F ∞}
     (h : σ.IsMomentMap (InfinitesimalAction.fundamental I G I' M) μ) (hx : x ∈ chart.source)
-    (𝔮 : Submodule ℝ E) :
+    (𝔮 : Submodule ℝ (GroupLieAlgebra I G)) :
     ContDiffAt ℝ ∞
       (fun z ↦ LinearMap.toContinuousLinearMap ((μ (chart.symm z) - μ x) ∘ₗ 𝔮.subtype))
       (chart x) := by
@@ -385,7 +395,7 @@ theorem contDiffAt_comp_symm_sub_comp_subtype [FiniteDimensional ℝ E]
   simp only [LinearMap.coe_toContinuousLinearMap']
   refine ContDiffAt.sub ?_ contDiffAt_const
   rw [← contMDiffAt_iff_contDiffAt]
-  exact (h.contMDiff (ξ : E)).contMDiffAt.comp _
+  exact (h.contMDiff (ξ : GroupLieAlgebra I G)).contMDiffAt.comp _
     ((chart.symm.contMDiffOn _ hxt).contMDiffAt (chart.open_target.mem_nhds hxt))
 
 omit [IsMulCommutative G] in
@@ -395,14 +405,13 @@ theorem fderiv_comp_symm_sub_comp_subtype_apply_apply [FiniteDimensional ℝ E]
     {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
     {chart : PartialDiffeomorph I' 𝓘(ℝ, F) M F ∞}
     (h : σ.IsMomentMap (InfinitesimalAction.fundamental I G I' M) μ) (hx : x ∈ chart.source)
-    (𝔮 : Submodule ℝ E) (w : F) (ξ : 𝔮) :
+    (𝔮 : Submodule ℝ (GroupLieAlgebra I G)) (w : F) (ξ : 𝔮) :
     fderiv ℝ (fun z ↦ LinearMap.toContinuousLinearMap ((μ (chart.symm z) - μ x) ∘ₗ 𝔮.subtype))
         (chart x) w ξ =
-      fderiv ℝ (fun z ↦ μ (chart.symm z) (ξ : E)) (chart x) w := by
+      fderiv ℝ (fun z ↦ μ (chart.symm z) ξ) (chart x) w := by
   set Fq : F → StrongDual ℝ 𝔮 := fun z ↦
     LinearMap.toContinuousLinearMap ((μ (chart.symm z) - μ x) ∘ₗ 𝔮.subtype)
-  -- `μ` takes values in the dual of `GroupLieAlgebra I G`, which is `E` only up to unfolding.
-  have hFq (z) (ξ : 𝔮) : Fq z ξ = μ (chart.symm z) (ξ : E) - μ x (ξ : E) := rfl
+  have hFq (z) (ξ : 𝔮) : Fq z ξ = μ (chart.symm z) ξ - μ x ξ := by simp [Fq]
   have hd : DifferentiableAt ℝ Fq (chart x) :=
     (contDiffAt_comp_symm_sub_comp_subtype h hx 𝔮).differentiableAt (by simp)
   calc fderiv ℝ Fq (chart x) w ξ = fderiv ℝ (fun z ↦ Fq z ξ) (chart x) w := by
@@ -423,7 +432,7 @@ theorem exists_fderiv_comp_symm_sub_comp_subtype_weightModelSplit_symm_eq [Finit
     (hK : ∀ g : K, (g : G) • x = x)
     (hχ : ∀ g : K, ∀ᶠ y in 𝓝 x,
       chart ((g : G) • y) = weightRotation (fun k ↦ Complex.arg (χ k g)) (chart y))
-    {𝔮 : Submodule ℝ E}
+    {𝔮 : Submodule ℝ (GroupLieAlgebra I G)}
     (h𝔮 : Disjoint 𝔮 ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule)
     {p : ι → Prop} [DecidablePred p] (hp : ∀ k, p k → χ k ≠ 1) (φ : StrongDual ℝ 𝔮) :
     ∃ b : EuclideanSpace ℝ {k // ¬p k} × EuclideanSpace ℝ {k // ¬p k},
@@ -471,16 +480,18 @@ component of `Θ`. -/
 theorem exists_openPartialHomeomorph_weightMomentMap_prod
     (h : σ.IsMomentMap (InfinitesimalAction.fundamental I G I' M) μ) (hσ : σ.IsSymplectic)
     (hG : ∀ g : G, SmoothForm.mpullback (fun x : M ↦ g • x)
-      (ContMDiffSMul.contMDiff_const_smul (I := I) g) σ = σ) (x : M) {𝔮 : Submodule ℝ E}
+      (ContMDiffSMul.contMDiff_const_smul (I := I) g) σ = σ) (x : M)
+    {𝔮 : Submodule ℝ (GroupLieAlgebra I G)}
     (h𝔮 : Disjoint 𝔮 ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule) :
-    let 𝔤ₓ : Submodule ℝ E := ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule
+    let 𝔤ₓ : Submodule ℝ (GroupLieAlgebra I G) :=
+      ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule
     ∃ (ι : Type) (_ : Fintype ι) (β : ι → StrongDual ℝ 𝔤ₓ) (W : Type) (_ : NormedAddCommGroup W)
       (_ : NormedSpace ℝ W) (_ : FiniteDimensional ℝ W)
       (Θ : OpenPartialHomeomorph M
         (StrongDual ℝ 𝔮 × W × (EuclideanSpace ℝ ι × EuclideanSpace ℝ ι))),
       (∀ k, β k ≠ 0) ∧ x ∈ Θ.source ∧ Θ x = 0 ∧
-      (∀ y ∈ Θ.source, ∀ ξ : 𝔤ₓ, μ y (ξ : E) = μ x (ξ : E) + weightMomentMap β (Θ y).2.2 ξ) ∧
-      ∀ y ∈ Θ.source, ∀ ξ : 𝔮, μ y (ξ : E) = μ x (ξ : E) + (Θ y).1 ξ := by
+      (∀ y ∈ Θ.source, ∀ ξ : 𝔤ₓ, μ y ξ = μ x ξ + weightMomentMap β (Θ y).2.2 ξ) ∧
+      ∀ y ∈ Θ.source, ∀ ξ : 𝔮, μ y ξ = μ x ξ + (Θ y).1 ξ := by
   intro 𝔤ₓ
   classical
   obtain ⟨n, χ, α, chart, -, hα, hx, h0, -, -, hequiv, hform, -, hμ⟩ :=
@@ -494,7 +505,7 @@ theorem exists_openPartialHomeomorph_weightMomentMap_prod
   -- The `𝔮*`-part of `μ - μ x`, read in the chart.
   set Fq : EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin n) → StrongDual ℝ 𝔮 := fun z ↦
     LinearMap.toContinuousLinearMap ((μ (chart.symm z) - μ x) ∘ₗ 𝔮.subtype)
-  have hFq (z) (ξ : 𝔮) : Fq z ξ = μ (chart.symm z) (ξ : E) - μ x (ξ : E) := rfl
+  have hFq (z) (ξ : 𝔮) : Fq z ξ = μ (chart.symm z) ξ - μ x ξ := by simp [Fq]
   have hFqd : ContDiffAt ℝ 1 Fq (T 0) := by
     rw [map_zero T, ← h0]
     exact (contDiffAt_comp_symm_sub_comp_subtype h hx 𝔮).of_le (by simp)
@@ -553,7 +564,8 @@ theorem exists_isConvexChart
     {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V]
     (e : Module.Dual ℝ (GroupLieAlgebra I G) ≃ₗ[ℝ] V) (x : M) :
     ∃ U, x ∈ U ∧ IsConvexChart (e ∘ μ) U := by
-  set 𝔤ₓ : Submodule ℝ E := ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule
+  set 𝔤ₓ : Submodule ℝ (GroupLieAlgebra I G) :=
+    ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule
   obtain ⟨𝔮, h𝔮⟩ := Submodule.exists_isCompl 𝔤ₓ
   obtain ⟨ι, _, β, W, _, _, _, Θ, -, hx, h0, hμk, hμq⟩ :=
     exists_openPartialHomeomorph_weightMomentMap_prod h hσ hG x h𝔮.symm.disjoint
@@ -565,9 +577,7 @@ theorem exists_isConvexChart
     ((LinearMap.toContinuousLinearMap.symm.prodCongr LinearMap.toContinuousLinearMap.symm).trans
       (LinearMap.ofIsComplProdEquiv h𝔮)).trans e
   have hL {y : M} (hy : y ∈ Θ.source) : e (μ y) = e (μ x) + L (f (Θ y)) := by
-    -- `μ y - μ x` agrees with the product form on `𝔤ₓ` and on `𝔮`. Its values are differences of
-    -- values of `μ` only up to unfolding the linear structure of `GroupLieAlgebra I G`, so the
-    -- two cases are proved by terms rather than by `simp`.
+    -- `μ y - μ x` agrees with the product form on `𝔤ₓ` and on `𝔮`.
     have hμ : μ y - μ x = LinearMap.ofIsCompl h𝔮
         ((weightMomentMap β (Θ y).2.2 : StrongDual ℝ 𝔤ₓ) : 𝔤ₓ →ₗ[ℝ] ℝ)
         ((Θ y).1 : 𝔮 →ₗ[ℝ] ℝ) :=
@@ -575,11 +585,9 @@ theorem exists_isConvexChart
         fun ξ ↦ eq_sub_of_add_eq' (hμq y hy ξ).symm).symm
     calc e (μ y) = e (μ x + (μ y - μ x)) := by rw [add_sub_cancel]
       _ = e (μ x) + L (f (Θ y)) := by
-        rw [map_add, hμ]
-        -- `L` passes from `E →ₗ[ℝ] ℝ` to the domain of `e`, the dual of `GroupLieAlgebra I G`,
-        -- whose linear structure is that of `E` only up to unfolding, so
-        -- `LinearEquiv.trans_apply` does not rewrite here and the two sides agree by `rfl`.
-        rfl
+        rw [map_add, hμ, LinearEquiv.trans_apply, LinearEquiv.trans_apply,
+          LinearEquiv.prodCongr_apply, LinearMap.ofIsComplProdEquiv_apply]
+        simp [hf]
   -- A product of balls inside the target of `Θ`, around `Θ x = 0`.
   obtain ⟨δ, hδ, hball⟩ := Metric.isOpen_iff.1 Θ.open_target 0 (h0 ▸ Θ.map_source hx)
   set P : Set (StrongDual ℝ 𝔮 × W × (EuclideanSpace ℝ ι × EuclideanSpace ℝ ι)) :=
