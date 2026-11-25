@@ -539,7 +539,7 @@ composition with a linear symplectomorphism is Tau Ceti's private
 `trans_toDiffeomorph_darboux` (`chart.trans L.toDiffeomorph.toPartialDiffeomorph`).
 This file restates it as a public lemma, `trans_toDiffeomorph_darbouxChart`,
 credited in the module docstring, with the source, the values and the
-derivative at every point of the source; the derivative comes from Tau
+derivative at every point; the derivative comes from Tau
 Ceti's `ContinuousLinearEquiv.mvfderiv_comp_apply`. The derivative of `χ` at `p` is
 invertible because `χ` is a partial diffeomorphism
 (`PartialDiffeomorph.bijective_mvfderiv`). It is symplectic by the chart

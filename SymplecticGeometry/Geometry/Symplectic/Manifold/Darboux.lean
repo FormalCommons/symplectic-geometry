@@ -29,7 +29,7 @@ derivatives preserve that form.
 
 * `TauCeti.SmoothTwoForm.trans_toDiffeomorph_darbouxChart`: composing a Darboux chart with a
   linear symplectomorphism gives a Darboux chart for the target form, with the composed
-  derivative at every point of the source.
+  derivative at every point.
 * `TauCeti.SymplecticForm.apply_fderiv_transition_eq`: the derivatives of transition maps between
   two Darboux charts for the same constant form preserve that form.
 * `TauCeti.SmoothTwoForm.exists_darbouxChart_mvfderiv_eq_of_isInteriorPoint`: Darboux charts with
@@ -60,8 +60,8 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 
 /-- Composing a chart `chart` into `F₁` that pulls `form₁` back to `σ` with a linear
 symplectomorphism `L : (F₁, form₁) ≃ (F₂, form₂)` gives a chart into `F₂` with the same source,
-with values `L ∘ chart` and derivative `L ∘ d chart` at every point of the source, which pulls
-`form₂` back to `σ`. -/
+with values `L ∘ chart` and derivative `L ∘ d chart` at every point, which pulls `form₂` back to `σ`
+on the source. -/
 theorem trans_toDiffeomorph_darbouxChart {F₁ F₂ : Type*}
     [NormedAddCommGroup F₁] [NormedSpace ℝ F₁] [NormedAddCommGroup F₂] [NormedSpace ℝ F₂]
     {σ : SmoothTwoForm I M} {form₁ : SymplecticForm F₁} {form₂ : SymplecticForm F₂}
@@ -71,8 +71,7 @@ theorem trans_toDiffeomorph_darbouxChart {F₁ F₂ : Type*}
     (L : F₁ ≃L[ℝ] F₂) (hL : SymplecticForm.IsSymplectomorphism form₁ form₂ L.toLinearEquiv) :
     let chart' := chart.trans L.toDiffeomorph.toPartialDiffeomorph
     chart'.source = chart.source ∧ (∀ x, chart' x = L (chart x)) ∧
-      (∀ x ∈ chart.source,
-        mvfderiv I chart' x = L.toContinuousLinearMap.comp (mvfderiv I chart x)) ∧
+      (∀ x, mvfderiv I chart' x = L.toContinuousLinearMap.comp (mvfderiv I chart x)) ∧
       ∀ x ∈ chart.source, ∀ v w : TangentSpace I x,
         σ.eval₂ x v w = form₂ (mvfderiv I chart' x v) (mvfderiv I chart' x w) := by
   intro chart'
@@ -83,7 +82,7 @@ theorem trans_toDiffeomorph_darbouxChart {F₁ F₂ : Type*}
     ext v
     rw [show ⇑chart' = ⇑L ∘ ⇑chart from funext hcoe, L.mvfderiv_comp_apply,
       ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe]
-  refine ⟨hsrc, hcoe, fun x _ ↦ hderiv x, fun x hx v w ↦ ?_⟩
+  refine ⟨hsrc, hcoe, hderiv, fun x hx v w ↦ ?_⟩
   rw [hderiv x, ContinuousLinearMap.comp_apply, ContinuousLinearMap.comp_apply,
     ContinuousLinearEquiv.coe_coe, ← ContinuousLinearEquiv.coe_toLinearEquiv, hL.apply,
     hchart x hx v w]
@@ -165,7 +164,7 @@ theorem exists_darbouxChart_mvfderiv_eq_of_isInteriorPoint {σ : SmoothTwoForm I
   obtain ⟨hsrc, hcoe, hderiv, hpull⟩ := trans_toDiffeomorph_darbouxChart hχ B hB
   refine ⟨_, hsrc ▸ hpχ, by rw [hcoe, hχp, map_zero], ?_, fun x hx ↦ hpull x (hsrc ▸ hx)⟩
   ext v
-  rw [hderiv p hpχ, ContinuousLinearMap.comp_apply, ← hD]
+  rw [hderiv p, ContinuousLinearMap.comp_apply, ← hD]
   simp [B]
 
 /-- **Darboux charts with a prescribed derivative.** Let `(M, σ)` be a boundaryless symplectic
