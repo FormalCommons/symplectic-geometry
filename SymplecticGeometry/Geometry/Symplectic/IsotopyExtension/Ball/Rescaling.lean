@@ -14,7 +14,7 @@ import TauCeti.Geometry.Manifold.ContMDiff.Prod
 # Rescaling a family of symplectic germs to its linearization
 
 Let `θ` be a smooth family over `[0, 1]` of symplectic embeddings of the closed ball `B(ρ)` of
-`StdSpace (Fin n)` into itself, with the standard form `ω₀`, each of which fixes `0`. The
+`StdSpace (Fin n)` into `StdSpace (Fin n)`, with the standard form `ω₀`, each fixing `0`. The
 rescalings `z ↦ s⁻¹ • θ_t (s • z)`, `0 < s ≤ 1`, are again symplectic, since `ω₀` is constant, and
 as `s → 0` they tend to the derivative `dθ_t(0)`, smoothly in `(t, s)`. Composing with a smooth
 two-parameter family `Q (t, s)` of linear maps preserving `ω₀`, with `Q (t, 1) = 1` and
@@ -35,6 +35,11 @@ The smoothness at `s = 0` is that of the library's `fiberRescale`
   form back to itself at a point iff its derivative there preserves the form.
 * `TauCeti.SymplecticForm.mpullback_constSmooth_inv_smul_comp_smul`: a rescaling of a map that
   pulls a constant symplectic form back to itself at `s • z` does so at `z`.
+* `TauCeti.SymplecticForm.injective_of_apply_apply_eq`: a linear map preserving a symplectic form
+  is injective.
+* `SymplecticGeometry.IsSymplecticBallEmbedding.inv_smul_comp_smul_comp`: the rescaling
+  `z ↦ s⁻¹ • j (s • Q z)` of a symplectic embedding `j` of a ball, after a linear map `Q`
+  preserving `stdForm`, is a symplectic embedding of a smaller ball.
 * `SymplecticGeometry.IsSymplecticBallFamily.exists_rescaling_family`: the two-parameter family
   joining the identity to `θ` described above.
 
