@@ -182,21 +182,13 @@ theorem nondegenerate_restrict_ker_mfderiv_iff_separatingLeft [IsManifold IF ∞
   have hrefl : ((τ.bilinFormAt (e.fiberInclusion hb v)).restrict
       (mfderiv IM IB proj (e.fiberInclusion hb v)).ker).IsRefl :=
     (TauCeti.SmoothForm.isAlt_bilinFormAt τ _).isRefl.domRestrict _
-  refine hrefl.nondegenerate_iff_separatingLeft.trans ⟨fun h u hu ↦ ?_, fun h ⟨u, hu⟩ hw ↦ ?_⟩
-  · refine (injective_iff_map_eq_zero _).1 (e.injective_mfderiv_fiberInclusion he hb v) u <|
-      congrArg Subtype.val (h ⟨_, hrange ▸ LinearMap.mem_range_self _ u⟩ fun ⟨w, hw⟩ ↦ ?_)
-    rw [← hrange] at hw
-    obtain ⟨w, rfl⟩ := LinearMap.mem_range.1 hw
-    rw [LinearMap.BilinForm.restrict_apply, LinearMap.domRestrict_apply,
-      Submodule.coe_mk, Submodule.coe_mk, ContinuousLinearMap.coe_coe, ← hpull]
-    exact hu w
-  · have hu' := hu
-    rw [← hrange] at hu'
-    obtain ⟨u', rfl⟩ := LinearMap.mem_range.1 hu'
-    refine Subtype.ext ?_
-    rw [Submodule.coe_mk, Submodule.coe_zero, h u' fun w ↦ ?_, map_zero]
-    rw [hpull]
-    exact hw ⟨_, hrange ▸ LinearMap.mem_range_self _ w⟩
+  let i := (LinearEquiv.ofInjective _ (e.injective_mfderiv_fiberInclusion he hb v)).trans
+    (LinearEquiv.ofEq _ _ hrange)
+  refine hrefl.nondegenerate_iff_separatingLeft.trans ?_
+  rw [← LinearMap.separatingLeft_congr_iff i.symm i.symm]
+  convert Iff.rfl
+  ext u w
+  simp [i, hpull]
 
 end Bundle.Trivialization
 
