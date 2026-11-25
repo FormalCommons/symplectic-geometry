@@ -29,8 +29,8 @@ on `M × [a, b]` with
   (`SymplecticGeometry.mextDerivₗ_prodIccHomotopyOperator`);
 * `f^* (K η) = K (f^* η)` for a smooth `f : M → M` acting on the first factor
   (`SymplecticGeometry.mpullback_prodMap_prodIccHomotopyOperator`);
-* `K η` vanishes whenever one of its arguments has no component along `M`
-  (`SymplecticGeometry.prodIccHomotopyOperator_apply_eq_zero`): the derivative of the
+* `K η` is semibasic for `Prod.fst`: it vanishes whenever one of its arguments has no component
+  along `M` (`SymplecticGeometry.isSemibasic_fst_prodIccHomotopyOperator`): the derivative of the
   contraction sends both that argument and the unit time vector into the line of the interval,
   and an alternating form vanishes when two of its arguments lie on one line
   (`ContinuousAlternatingMap.map_eq_zero_of_eq_smul`).
@@ -238,14 +238,12 @@ theorem prodIccHomotopyOperator_apply_apply [CompleteSpace F]
   exact Fin.cases rfl (fun _ ↦ rfl) i
 
 /-- **`K η` has no component along the interval.** For a `(k + 1)`-form `η` on `M × [a, b]`,
-the `k`-form `K η` vanishes on every family of tangent vectors one of which has zero component
-along `M`. This is the componentwise form (`TauCeti.RoughForm.isSemibasic_fst_iff`) of
-`TauCeti.RoughForm.IsSemibasic I Prod.fst (prodIccHomotopyOperator I M a b F k η).val`. -/
-theorem prodIccHomotopyOperator_apply_eq_zero [CompleteSpace F]
-    (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F (k + 1)) (x : M × Icc a b)
-    (v : Fin k → TangentSpace (I.prod (𝓡∂ 1)) x) (i : Fin k)
-    (hv : (Manifold.tangentSpaceProdEquiv x (v i)).1 = 0) :
-    (prodIccHomotopyOperator I M a b F k η).val x v = 0 := by
+the `k`-form `K η` is semibasic for `Prod.fst : M × [a, b] → M`: it vanishes on every family of
+tangent vectors one of which has zero component along `M`. -/
+theorem isSemibasic_fst_prodIccHomotopyOperator [CompleteSpace F]
+    (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F (k + 1)) :
+    RoughForm.IsSemibasic (F := F) I Prod.fst (prodIccHomotopyOperator I M a b F k η).val := by
+  refine RoughForm.isSemibasic_fst_iff.mpr fun x v i hv ↦ ?_
   rw [Manifold.tangentSpaceProdEquiv_apply] at hv
   refine (prodIccHomotopyOperator_apply_apply η x v).trans ?_
   refine (intervalIntegral.integral_congr (g := fun _ ↦ (0 : F)) fun r _ ↦ ?_).trans
@@ -382,7 +380,7 @@ theorem mpullback_prodMap_subtypeVal_timeExtendIcc_prodIccHomotopyOperator [Comp
         (SmoothForm.timeExtendIcc (prodIccHomotopyOperator I M a b F k η)) =
       prodIccHomotopyOperator I M a b F k η :=
   SmoothForm.mpullback_prodMap_subtypeVal_timeExtendIcc _
-    (RoughForm.isSemibasic_fst_iff.mpr (prodIccHomotopyOperator_apply_eq_zero η))
+    (isSemibasic_fst_prodIccHomotopyOperator η)
 
 /-- **Restriction of the extension.** The extension to `M × ℝ` of a closed form `η` on
 `M × [a, b]` restricts to `η` on `M × [a, b]`. -/
@@ -392,7 +390,7 @@ theorem mpullback_prodMap_subtypeVal_prodIccExtension [CompleteSpace F]
         (prodIccExtension I M a b F k η) = η := by
   rw [prodIccExtension_apply, map_add,
     SmoothForm.mpullback_prodMap_subtypeVal_mextDerivₗ_timeExtendIcc _
-      (RoughForm.isSemibasic_fst_iff.mpr (prodIccHomotopyOperator_apply_eq_zero η)),
+      (isSemibasic_fst_prodIccHomotopyOperator η),
     mextDerivₗ_prodIccHomotopyOperator ((SmoothForm.isClosed_iff_mextDerivₗ_eq_zero _).mp hη),
     SmoothForm.mpullback_mpullback,
     SmoothForm.mpullback_congr
