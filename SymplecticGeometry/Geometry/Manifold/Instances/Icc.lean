@@ -200,7 +200,8 @@ theorem mfderiv_mul_left_one (T t : unitInterval) :
   rw [hval, const_smul_mfderiv (SymplecticGeometry.mdifferentiableAt_subtypeVal_Icc t)]
   -- The tangent spaces of `ℝ` at `t` and at `(T • Subtype.val) t` are equal only up to
   -- unfolding, so `smul_apply` does not rewrite the left side.
-  exact (congrArg ((T : ℝ) • ·) (mfderiv_subtypeVal_Icc_one t)).trans (mul_one (M := ℝ) _)
+  exact (map_smul _ (T : ℝ) 1).symm.trans
+    (SymplecticGeometry.mfderiv_subtypeVal_Icc_smul_one t T)
 
 end unitInterval
 
