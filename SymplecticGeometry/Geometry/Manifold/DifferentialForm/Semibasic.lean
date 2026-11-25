@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Basic
+public import TauCeti.Geometry.Manifold.DifferentialForm.Smooth
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 public import SymplecticGeometry.LinearAlgebra.Alternating.Conormal
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
@@ -44,6 +45,11 @@ pullbacks are reached through `TauCeti.SmoothForm.coe_mpullback`.
   `p` exactly when it vanishes at `p` on every tuple one of whose vectors has zero component
   along `M`; and `TauCeti.RoughForm.IsSemibasic.mpullback_prodMap`: pullback along a product of
   differentiable maps keeps forms semibasic for `Prod.fst`.
+* `TauCeti.SmoothForm.isSemibasicAt_iff_ker_mfderiv_le`: a smooth two-form `σ` is semibasic for
+  `f` at `x` exactly when the kernel of the differential of `f` at `x` lies in the kernel of the
+  bilinear form `σ.bilinFormAt x`. So the hypothesis `hker` of Tau Ceti's
+  `TauCeti.SmoothTwoForm.isBasic_of_mpullback_eq_of_ker_mfderiv_le` says that `σ` is semibasic;
+  the proof of the converse direction follows the pointwise step of that proof.
 -/
 
 public section
@@ -303,5 +309,40 @@ theorem IsSemibasic.mpullback_prodMap {E' H' M' EN' HN' N' : Type*} [NormedAddCo
 end Prod
 
 end TauCeti.RoughForm
+
+namespace TauCeti.SmoothForm
+
+variable {E H M EB HB B : Type*}
+  [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  [TopologicalSpace M] [ChartedSpace H M] {I : ModelWithCorners ℝ E H} [IsManifold I 1 M]
+  [NormedAddCommGroup EB] [NormedSpace ℝ EB] [TopologicalSpace HB]
+  [TopologicalSpace B] [ChartedSpace HB B] {IB : ModelWithCorners ℝ EB HB} {f : M → B}
+
+/-- **Semibasic two-forms.** A smooth two-form `σ` is semibasic for `f` at `x` exactly when every
+vector in the kernel of the differential of `f` at `x` lies in the kernel of the bilinear form
+`σ_x`. -/
+theorem isSemibasicAt_iff_ker_mfderiv_le {σ : SmoothForm I M ℝ 2} {x : M} :
+    RoughForm.IsSemibasicAt IB f σ.val x ↔
+      (mfderiv I IB f x).ker ≤ LinearMap.ker (σ.bilinFormAt x) := by
+  refine ⟨fun hσ u hu ↦ mem_ker_bilinFormAt_iff.mpr fun w ↦ hσ.apply_eq_zero ![u, w] 0 hu,
+    fun hker ↦ RoughForm.isSemibasicAt_iff.mpr fun v j hj ↦ ?_⟩
+  -- A vector in the kernel of `df_x` is a null direction of `σ_x`, in either slot.
+  have hnull (u w : TangentSpace I x) (hu : mfderiv I IB f x u = 0) :
+      SmoothBundleForm.eval₂ σ x u w = 0 := by
+    rw [← bilinFormAt_apply, LinearMap.mem_ker.1 (hker hu), LinearMap.zero_apply]
+  have hv : v = ![v 0, v 1] := (FinVec.etaExpand_eq v).symm
+  rw [hv, ← SmoothBundleForm.eval₂_apply]
+  obtain rfl | rfl : j = 0 ∨ j = 1 := by fin_cases j <;> simp
+  · exact hnull _ _ hj
+  · rw [SmoothBundleForm.eval₂_swap, hnull _ _ hj, neg_zero]
+
+/-- A smooth two-form `σ` is semibasic for `f` exactly when, at every point `x`, every vector in
+the kernel of the differential of `f` at `x` lies in the kernel of the bilinear form `σ_x`. -/
+theorem isSemibasic_iff_ker_mfderiv_le {σ : SmoothForm I M ℝ 2} :
+    RoughForm.IsSemibasic IB f σ.val ↔
+      ∀ x, (mfderiv I IB f x).ker ≤ LinearMap.ker (σ.bilinFormAt x) :=
+  forall_congr' fun _ ↦ isSemibasicAt_iff_ker_mfderiv_le
+
+end TauCeti.SmoothForm
 
 end

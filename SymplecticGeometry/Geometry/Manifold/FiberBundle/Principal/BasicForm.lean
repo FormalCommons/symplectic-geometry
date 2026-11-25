@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.MapCoeff
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Descent
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal.FundamentalVectorField
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Semibasic
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
 import TauCeti.Geometry.Lie.Adjoint.Infinitesimal
 import TauCeti.Geometry.Lie.Exponential.Derivative.Basic
@@ -40,8 +41,9 @@ applies: the points of a fibre are related by the action, through the division m
   action.
 * `TauCeti.PrincipalBundle.mpullback_op_smul_mpullback_proj`: forms pulled back from the base are
   invariant under the action.
-* `TauCeti.PrincipalBundle.isBasic_of_mpullback_op_smul`: an invariant form that vanishes on
-  vertical vectors is basic for the projection. It is Tau Ceti's
+* `TauCeti.PrincipalBundle.isBasic_of_mpullback_op_smul`: an invariant form that is semibasic
+  for the projection (`TauCeti.RoughForm.IsSemibasic`), that is, vanishes on
+  vertical vectors, is basic for the projection. It is Tau Ceti's
   `TauCeti.RoughForm.isBasic_of_mpullback_eq` for the right translations of a principal bundle.
 * `TauCeti.PrincipalBundle.hasDerivAt_mpullback_op_mulInvariantExp_smul`: the Lie derivative of a
   form differentiable at a point along the fundamental vector field of `ξ` is the velocity at `0`
@@ -149,24 +151,22 @@ theorem mpullback_op_smul_mpullback_proj {F : Type*} [NormedAddCommGroup F] [Nor
         (ManifoldTotalSpace.projContMDiffMap ∞ G P IB IG).contMDiff a := by
   simp only [SmoothForm.mpullback_mpullback, proj_comp_op_smul]
 
-/-- **Invariant forms that vanish on vertical vectors are basic.** On a smooth principal bundle, a
-smooth form that is invariant under the right action of `G` and vanishes as soon as one of its
-arguments is vertical, that is, in the kernel of the derivative of the projection, is basic for
-the projection. -/
+/-- **Invariant semibasic forms are basic.** On a smooth principal bundle, a smooth form that is
+invariant under the right action of `G` and semibasic for the projection, that is, vanishes as
+soon as one of its arguments is vertical, is basic for the projection. -/
 theorem isBasic_of_mpullback_op_smul {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
     {k : ℕ} {n : ℕ∞ω} {β : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) F k}
     (hβ : ∀ g : G, SmoothForm.mpullback (fun x : ManifoldTotalSpace G P ↦ op g • x)
       (contMDiff_const_smul (op g)) β = β)
-    (hvert : ∀ x (v : Fin k → TangentSpace (IB.prod IG) x) j,
-      mfderiv (IB.prod IG) IB (ManifoldTotalSpace.projContMDiffMap n G P IB IG) x (v j) = 0 →
-        β.val x v = 0) :
+    (hvert : RoughForm.IsSemibasic (F := F) IB
+      (ManifoldTotalSpace.projContMDiffMap n G P IB IG) β.val) :
     RoughForm.IsBasic (V := F) IB (ManifoldTotalSpace.projContMDiffMap n G P IB IG) β.val := by
   refine RoughForm.isBasic_of_mpullback_eq
     (σ := fun (g : G) (x : ManifoldTotalSpace G P) ↦ op g • x)
     ManifoldTotalSpace.mdifferentiable_projContMDiffMap
     (fun g ↦ (contMDiff_const_smul (I := IB.prod IG) (n := ∞) (op g)).mdifferentiable (by simp))
-    proj_comp_op_smul (fun x y hxy ↦ Or.inr (exists_op_smul_eq_of_proj_eq hxy.symm)) hvert
-    fun g ↦ ?_
+    proj_comp_op_smul (fun x y hxy ↦ Or.inr (exists_op_smul_eq_of_proj_eq hxy.symm))
+    (RoughForm.isSemibasic_iff.mp hvert) fun g ↦ ?_
   rw [← SmoothForm.coe_mpullback _ (contMDiff_const_smul (op g)), hβ]
 
 end Basic

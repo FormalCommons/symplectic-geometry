@@ -343,9 +343,9 @@ theorem isTensorialForm_iff_isBasic [IsMulCommutative G] {n : ℕ∞ω} {k : ℕ
   have hAd (g : G) : SmoothForm.mapCoeff (adjointContinuousLinearMap g⁻¹) a = a := by
     rw [adjointContinuousLinearMap_eq_id, SmoothForm.mapCoeff_id, LinearMap.id_apply]
   refine ⟨fun h ↦ PrincipalBundle.isBasic_of_mpullback_op_smul
-      (fun g ↦ (h.mpullback_op_smul g).trans (hAd g)) fun x v j hv ↦
-        h.apply_eq_zero_of_vertical x v j (by
-          rw [ManifoldTotalSpace.coe_projContMDiffMap] at hv ⊢; exact hv),
+      (fun g ↦ (h.mpullback_op_smul g).trans (hAd g))
+      (RoughForm.isSemibasic_iff.mpr fun x v j hv ↦ h.apply_eq_zero_of_vertical x v j (by
+        rw [ManifoldTotalSpace.coe_projContMDiffMap] at hv ⊢; exact hv)),
     fun h ↦ ⟨fun g ↦ ?_, fun x v j hv ↦ h.apply_eq_zero_of_mfderiv_eq_zero (by
       rw [ManifoldTotalSpace.coe_projContMDiffMap] at hv ⊢; exact hv)⟩⟩
   rw [hAd]

@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Descent
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Semibasic
 import TauCeti.Geometry.Manifold.IsManifold.Basic
 
 /-!
@@ -16,7 +17,9 @@ on the image of the point under `f` and on the images of the arguments under the
 `f`. This file draws two consequences, for any map `f : M → M'`:
 
 * `TauCeti.RoughForm.IsBasic.apply_eq_zero_of_mfderiv_eq_zero`: a basic form vanishes as soon as
-  one of its arguments lies in the kernel of the derivative of `f`.
+  one of its arguments lies in the kernel of the derivative of `f`. In other words
+  (`TauCeti.RoughForm.IsBasic.isSemibasic`), it is semibasic for `f`
+  (`TauCeti.RoughForm.IsSemibasic`).
 * `TauCeti.RoughForm.IsBasic.mpullback_eq`: for a differentiable `f`, a basic form is invariant
   under every differentiable self-map `σ` with `f ∘ σ = f`.
 
@@ -52,6 +55,11 @@ theorem IsBasic.apply_eq_zero_of_mfderiv_eq_zero (hα : IsBasic I' f α) {x : M}
   rcases eq_or_ne i j with rfl | hi
   · simp [hv]
   · simp [Function.update_of_ne hi]
+
+/-- A form that is basic for `f` is semibasic for `f`: at every point, it vanishes as soon as one
+of its arguments lies in the kernel of the derivative of `f`. -/
+theorem IsBasic.isSemibasic (hα : IsBasic I' f α) : IsSemibasic I' f α :=
+  isSemibasic_iff.mpr fun _ _ _ hv ↦ hα.apply_eq_zero_of_mfderiv_eq_zero hv
 
 /-- A form that is basic for a differentiable map `f` is invariant under every differentiable
 self-map `σ` over `f`, that is, with `f ∘ σ = f`. -/

@@ -22,7 +22,6 @@ import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 import TauCeti.Geometry.Symplectic.Manifold.Darboux
 import TauCeti.Geometry.Symplectic.Manifold.Opens
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Semibasic
-import TauCeti.LinearAlgebra.Alternating.Curry
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
@@ -153,14 +152,8 @@ namespace IsCharacteristicSubmersion
 /-- At every point `x`, `σ_x` vanishes as soon as one of its arguments lies in the kernel of the
 derivative of a characteristic submersion `p` at `x`: `σ` is semibasic for `p`. -/
 theorem isSemibasic (hp : IsCharacteristicSubmersion IB σ p) :
-    RoughForm.IsSemibasic IB p σ.val := by
-  refine RoughForm.isSemibasic_def.mpr fun x ↦ RoughForm.isSemibasicAt_def.mpr
-    (Submodule.mem_conormalForms.2 fun (m : Fin 2 → TangentSpace I x) j hj ↦ ?_)
-  rw [hp.ker_mfderiv x, mem_ker_bilinFormAt_iff] at hj
-  refine AlternatingMap.map_eq_zero_of_curryLeft_eq_zero (x := m j) ?_ rfl
-  ext u
-  have e : Matrix.vecCons (m j) u = ![m j, u 0] := (FinVec.etaExpand_eq _).symm
-  simpa [AlternatingMap.curryLeft_apply_apply, e] using hj (u 0)
+    RoughForm.IsSemibasic IB p σ.val :=
+  SmoothForm.isSemibasic_iff_ker_mfderiv_le.mpr fun x ↦ (hp.ker_mfderiv x).le
 
 /-- At a point `x`, the value of `σ_x` on two vectors depends only on their images under the
 derivative of a characteristic submersion `p` at `x`. -/
