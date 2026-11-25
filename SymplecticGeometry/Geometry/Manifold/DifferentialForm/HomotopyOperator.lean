@@ -52,6 +52,9 @@ on a smooth manifold `M` possibly with boundary or corners. Smoothness of `h φ`
   times `t`, of `‖φ (Φ (x, t))‖ ‖DΦ (x, t) ∂ₜ‖ ‖DΦ (x, t) ∘ inl‖ ^ k`. Its proof follows Tau Ceti's
   `TauCeti.norm_cylinderHomotopy_pullback_le`, the same bound for the flat cylinder homotopy
   operator on `E × ℝ`.
+* `TauCeti.eventually_homotopyOperator_mpullback_eq_zero`: for a continuous
+  `Φ : M × [0, 1] → N` mapping `S × [0, 1]` into an open set on which `φ` vanishes, with `S`
+  compact, `h (Φ^* φ)` vanishes on a neighbourhood of `S`.
 
 ## References
 
@@ -223,5 +226,40 @@ theorem norm_homotopyOperator_mpullback_apply_le {E' H' N : Type*} [NormedAddCom
         exact mul_le_mul_of_nonneg_right (h t) (by positivity)
 
 end Norm
+
+section Vanishing
+
+open scoped Topology
+
+variable {E H M F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+  [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
+  {E' H' N : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+  {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace N] [ChartedSpace H' N]
+
+/-- The homotopy operator of a pullback `Φ^* φ` vanishes at `x` when `φ` vanishes at every point
+`Φ (x, t)` of the path of `x`. -/
+theorem homotopyOperator_mpullback_apply_eq_zero_of_forall {Φ : M × Icc (0 : ℝ) 1 → N}
+    {φ : RoughForm I' N F (k + 1)} {x : M} (h : ∀ t, φ (Φ (x, t)) = 0) :
+    homotopyOperator (mpullback (I.prod (𝓡∂ 1)) I' Φ φ) x = 0 :=
+  homotopyOperator_apply_eq_zero fun t v ↦ by
+    rw [mpullback_apply_eq_compContinuousLinearMap, h t]
+    simp
+
+/-- Let `Φ : M × [0, 1] → N` be continuous and let `φ` be a form on `N` that vanishes on an open
+set `U`. If `Φ` maps `S × [0, 1]` into `U` for a compact `S ⊆ M`, then the homotopy operator of
+`Φ^* φ` vanishes on a neighbourhood of `S`. -/
+theorem eventually_homotopyOperator_mpullback_eq_zero {Φ : M × Icc (0 : ℝ) 1 → N}
+    (hΦ : Continuous Φ) {φ : RoughForm I' N F (k + 1)} {U : Set N} (hU : IsOpen U)
+    (hφ : ∀ y ∈ U, φ y = 0) {S : Set M} (hS : IsCompact S) (hSU : ∀ x ∈ S, ∀ t, Φ (x, t) ∈ U) :
+    ∀ᶠ x in 𝓝ˢ S, homotopyOperator (mpullback (I.prod (𝓡∂ 1)) I' Φ φ) x = 0 := by
+  -- By the tube lemma, a neighbourhood `u` of `S` has `u × [0, 1]` inside `Φ⁻¹ U`.
+  obtain ⟨u, v, hu, -, hSu, hv, huv⟩ := generalized_tube_lemma hS isCompact_univ
+    (hU.preimage hΦ) fun p hp ↦ hSU p.1 hp.1 p.2
+  exact Filter.mem_of_superset (hu.mem_nhdsSet.2 hSu) fun x hx ↦
+    homotopyOperator_mpullback_apply_eq_zero_of_forall fun t ↦
+      hφ _ (huv ⟨hx, hv (mem_univ t)⟩)
+
+end Vanishing
 
 end TauCeti
