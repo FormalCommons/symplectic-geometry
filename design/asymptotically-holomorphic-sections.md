@@ -395,11 +395,11 @@ meets $Z$ within $\rho\|v\|\le\rho$ of $c$.
    ball stays within $O(D)$ of its maximum, is what replaces the
    monotonicity of Lelong numbers here: it bounds what is lost when the
    centre moves from $y$ to $c$.
-5. **Slices.** Let $v\ne0$, and let $A\subseteq E$ meet each complex line
+5. **Slices.** Let $v\ne0$, and let a closed $A\subseteq E$ meet each complex line
    $c+\mathbb Cv$ in at most $N$ points. Then the set of $c\in$ `ball 0 1`
    with $c+sv\in A$ for some $\|s\|<\rho$ has volume at most
-   $C_mN\rho^2\|v\|^2$. After a linear isometry that takes $v/\|v\|$ to
-   the first basis vector, Fubini's theorem integrates over the lines, on
+   $C_mN\rho^2\|v\|^2$. Tonelli's theorem along $E=K^\perp\oplus K$, for
+   the complex line $K=\mathbb Cv$, integrates over the lines, on
    each of which the set lies in $N$ discs of radius $\rho\|v\|$. For
    $A=Z$ and $P_{\rm top}(v)\ne0$, $N=D$.
 6. **Assembly.** For $c$ in the $t$-thickening of $Z$, step 4 with $a=t$
@@ -553,9 +553,11 @@ and the prerequisites, placed by topic.
 - `PowerConnection.lean`: the connection $D_k$ on `L k` as a Mathlib
   `CovariantDerivative`. It is complex linear and metric, has the local
   formula $d+ik\,\sigma^*\alpha$ in a unitary frame
-  (`powerConnection_apply_frame`) and curvature $ik\,F_\alpha$. The file
-  also defines $\partial$ and $\bar\partial$ of a section, with
-  `partial_add_dbar`.
+  (`powerConnection_apply_frame`) and curvature $ik\,F_\alpha$. For a section
+  $s$, $\partial s(x)$ and $\bar\partial s(x)$ are `J.oneZeroPart (D s x)` and
+  Tau Ceti's `J.zeroOnePart (D s x)`, with `oneZeroPart_add_zeroOnePart`;
+  `oneZeroPart` and that lemma are in
+  `Geometry/Manifold/VectorBundle/CauchyRiemann/OneZeroPart.lean`.
 - `ZeroSet.lean`: for any covariant derivative $D$ on a bundle of normed
   complex lines over a manifold with compatible $J$:
   `isTransverse_of_norm_dbar_lt` (surjective
