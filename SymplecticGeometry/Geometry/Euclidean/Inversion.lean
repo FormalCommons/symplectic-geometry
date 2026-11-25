@@ -22,6 +22,8 @@ the regions `R ^ 2 / r < ‖x‖` and `‖x‖ < r` of the punctured space, for 
 (`EuclideanGeometry.norm_inversion_zero_lt_iff`, `EuclideanGeometry.lt_norm_inversion_zero_iff`).
 These extend Tau Ceti's `EuclideanGeometry.norm_inversion_lt_inv_iff` and
 `EuclideanGeometry.inv_lt_norm_inversion_iff` from the unit sphere to any radius.
+Inversion about the origin also commutes with scaling, once the radius is scaled as well
+(`EuclideanGeometry.inversion_zero_smul`).
 -/
 
 public section
@@ -44,6 +46,22 @@ theorem inversion_circleMap (c : ℂ) (R r θ : ℝ) :
 section Norm
 
 variable {V : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V]
+
+/-- Inversion about the origin commutes with scaling by `a`, when the radius is scaled by `a` too:
+`inversion 0 (a * R) (a • x) = a • inversion 0 R x`. -/
+theorem inversion_zero_smul (a R : ℝ) (x : V) :
+    inversion (0 : V) (a * R) (a • x) = a • inversion 0 R x := by
+  rcases eq_or_ne a 0 with rfl | ha
+  · simp
+  rcases eq_or_ne x 0 with rfl | hx
+  · simp
+  have : ‖x‖ ≠ 0 := norm_ne_zero_iff.2 hx
+  simp only [inversion, dist_zero_right, vsub_eq_sub, sub_zero, vadd_eq_add, add_zero, norm_smul,
+    Real.norm_eq_abs]
+  rw [smul_comm]
+  congr 1
+  rw [div_pow, div_pow, mul_pow, mul_pow, sq_abs]
+  field_simp
 
 /-- For `r > 0`, inversion about the origin in the sphere of radius `R` maps a point `x ≠ 0` into
 the region `‖w‖ < r` exactly when `R ^ 2 / r < ‖x‖`. -/
