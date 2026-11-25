@@ -45,6 +45,9 @@ the case of the linear data of `SymplecticGeometry.localModelCovector` and
   extensions by zero given by the splitting.
 * `SymplecticGeometry.LocalModelData.momentMap`, `SymplecticGeometry.LocalModelData.covector`,
   `SymplecticGeometry.LocalModelData.form`: `μ_V`, `ν` and the two-form.
+* `SymplecticGeometry.LocalModelData.sub𝔥`, `SymplecticGeometry.LocalModelData.sub𝔪`,
+  `SymplecticGeometry.LocalModelData.sub𝔮`: `𝔥`, `𝔪` and `𝔮` as subrepresentations of the
+  adjoint representation of `K` on `𝔤`.
 * `SymplecticGeometry.LocalModelData.adjoint𝔥`, `SymplecticGeometry.LocalModelData.adjoint𝔪`,
   `SymplecticGeometry.LocalModelData.adjoint𝔮`, `SymplecticGeometry.LocalModelData.repV`: the
   representations of `K` on `𝔥`, `𝔪`, `𝔮` and `V`.
@@ -178,32 +181,61 @@ theorem adjointRepresentation_mem_𝔥 (k : K) {ξ : GroupLieAlgebra I G} (hξ :
   rw [ContinuousLinearMap.coe_coe, MonoidHom.groupLieAlgebraMap_adjointContinuousLinearMap,
     adjointRepresentation_apply, Subgroup.coe_subtype]
 
-/-- The adjoint representation of `K` on `𝔪`. -/
-def adjoint𝔪 : Representation ℝ K D.𝔪 :=
-  Subrepresentation.toRepresentation (ρ := (adjointRepresentation ℝ I G).comp K.subtype)
-    ⟨D.𝔪, fun k _ hξ ↦ D.adjointRepresentation_mem_𝔪 k hξ⟩
+/-! ### The splitting as subrepresentations -/
 
-theorem adjoint𝔪_def :
-    D.adjoint𝔪 =
-      Subrepresentation.toRepresentation (ρ := (adjointRepresentation ℝ I G).comp K.subtype)
-        ⟨D.𝔪, fun k _ hξ ↦ D.adjointRepresentation_mem_𝔪 k hξ⟩ :=
+-- The three definitions below are exposed so that other files see `D.sub𝔥.toSubmodule` as `D.𝔥`
+-- by definition: the types of the API, such as `Module.Dual ℝ D.𝔥`, are stated with `D.𝔥`.
+
+/-- The Lie algebra `𝔥` of `K`, as a subrepresentation of the adjoint representation of `K` on
+`𝔤`. -/
+@[expose]
+def sub𝔥 : Subrepresentation ((adjointRepresentation ℝ I G).comp K.subtype) :=
+  ⟨D.𝔥, fun k _ hξ ↦ D.adjointRepresentation_mem_𝔥 k hξ⟩
+
+/-- The complement `𝔪` of `𝔥` in `𝔤_τ`, as a subrepresentation of the adjoint representation of
+`K` on `𝔤`. -/
+@[expose]
+def sub𝔪 : Subrepresentation ((adjointRepresentation ℝ I G).comp K.subtype) :=
+  ⟨D.𝔪, fun k _ hξ ↦ D.adjointRepresentation_mem_𝔪 k hξ⟩
+
+/-- The complement `𝔮` of `𝔤_τ` in `𝔤`, as a subrepresentation of the adjoint representation of
+`K` on `𝔤`. -/
+@[expose]
+def sub𝔮 : Subrepresentation ((adjointRepresentation ℝ I G).comp K.subtype) :=
+  ⟨D.𝔮, fun k _ hξ ↦ D.adjointRepresentation_mem_𝔮 k hξ⟩
+
+@[simp]
+theorem toSubmodule_sub𝔥 : D.sub𝔥.toSubmodule = D.𝔥 :=
+  (rfl)
+
+@[simp]
+theorem toSubmodule_sub𝔪 : D.sub𝔪.toSubmodule = D.𝔪 :=
+  (rfl)
+
+@[simp]
+theorem toSubmodule_sub𝔮 : D.sub𝔮.toSubmodule = D.𝔮 :=
   (rfl)
 
 /-- The adjoint representation of `K` on its Lie algebra `𝔥`. -/
 def adjoint𝔥 : Representation ℝ K D.𝔥 :=
-  Subrepresentation.toRepresentation (ρ := (adjointRepresentation ℝ I G).comp K.subtype)
-    ⟨D.𝔥, fun k _ hξ ↦ D.adjointRepresentation_mem_𝔥 k hξ⟩
+  D.sub𝔥.toRepresentation
 
-theorem adjoint𝔥_def :
-    D.adjoint𝔥 =
-      Subrepresentation.toRepresentation (ρ := (adjointRepresentation ℝ I G).comp K.subtype)
-        ⟨D.𝔥, fun k _ hξ ↦ D.adjointRepresentation_mem_𝔥 k hξ⟩ :=
+theorem adjoint𝔥_def : D.adjoint𝔥 = D.sub𝔥.toRepresentation :=
+  (rfl)
+
+/-- The adjoint representation of `K` on `𝔪`. -/
+def adjoint𝔪 : Representation ℝ K D.𝔪 :=
+  D.sub𝔪.toRepresentation
+
+theorem adjoint𝔪_def : D.adjoint𝔪 = D.sub𝔪.toRepresentation :=
   (rfl)
 
 /-- The adjoint representation of `K` on `𝔮`. -/
 def adjoint𝔮 : Representation ℝ K D.𝔮 :=
-  Subrepresentation.toRepresentation (ρ := (adjointRepresentation ℝ I G).comp K.subtype)
-    ⟨D.𝔮, fun k _ hξ ↦ D.adjointRepresentation_mem_𝔮 k hξ⟩
+  D.sub𝔮.toRepresentation
+
+theorem adjoint𝔮_def : D.adjoint𝔮 = D.sub𝔮.toRepresentation :=
+  (rfl)
 
 @[simp]
 theorem coe_adjoint𝔥_apply (k : K) (h : D.𝔥) :
