@@ -10,6 +10,7 @@ public import Mathlib.Topology.Sets.Opens
 public import SymplecticGeometry.Topology.VectorBundle.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.FiberScaling
 public import TauCeti.Geometry.Manifold.VectorBundle.ZeroSection
+public import TauCeti.Topology.VectorBundle.Radial
 
 import Mathlib.Analysis.Calculus.LineDeriv.Basic
 import SymplecticGeometry.Analysis.Calculus.FiberRescale
@@ -68,6 +69,11 @@ with parameters.
   zero section that `ψ` fixes.
 * `SymplecticGeometry.contMDiffOn_vectorBundleRescaledFamily`: the rescaled family is smooth on
   `U' × [0, 1]` whenever `m_t` sends `U'` into `U` for every `t ∈ [0, 1]`.
+* `SymplecticGeometry.contMDiff_vectorBundleRescaledFamily_of_subset_radialCore`: in particular
+  it is smooth on `[0, 1] × W` for an open set `W` in the radial core of `U`
+  (`TauCeti.VectorBundle.radialCore`).
+* `SymplecticGeometry.vectorBundleRescaledFamily_comp_subtypeVal_of_subset_radialCore`: on such
+  a `W`, the slice at `t > 0` is `m_{1/t} ∘ ψ ∘ m_t` with `m_t` seen as a map `W → U`.
 
 Along the way: fibre scaling read in a linear trivialization,
 `TauCeti.vectorBundleFiberScaling_eq_trivialization_symm`.
@@ -644,5 +650,71 @@ theorem contMDiffOn_vectorBundleRescaledFamily [IsManifold IB ∞ B]
   · exact contMDiffWithinAt_vectorBundleRescaledFamily_of_ne_zero hstar ψ hψ' hψψ' hz ht
 
 end Smooth
+
+end SymplecticGeometry
+
+/-! ### The rescaled family on a radial core
+
+On a set `W` contained in the radial core of `U` (`TauCeti.VectorBundle.radialCore`), every
+fibre scaling `m_t`, `t ∈ [0, 1]`, maps `W` into `U`. So the rescaled family is smooth on
+`[0, 1] × W`, and for `t > 0` its slice on `W` factors through `U`. The radial core needs
+additive inverses in the fibres. -/
+
+namespace SymplecticGeometry
+
+variable {EB HB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [TopologicalSpace HB]
+  {IB : ModelWithCorners ℝ EB HB} {B F : Type*} [TopologicalSpace B] [ChartedSpace HB B]
+  {V : B → Type*} [∀ b, AddCommGroup (V b)] [∀ b, Module ℝ (V b)]
+  [NormedAddCommGroup F] [NormedSpace ℝ F] [TopologicalSpace (TotalSpace F V)]
+  [∀ b, TopologicalSpace (V b)] [FiberBundle F V] [VectorBundle ℝ F V]
+  {U : Opens (TotalSpace F V)}
+
+/-- **Smoothness of the rescaled family on a radial core.** Let `V → B` be a smooth real vector
+bundle with complete model fibre over a Hausdorff manifold without boundary, `U` an open set of
+its total space and `ψ : U → V` a smooth map that fixes every point of the zero section lying in
+`U`. On an open set `W` of vectors whose radial segments lie in `U`, the rescaled family
+`(t, z) ↦ vectorBundleRescaledFamily ψ (z, t)` is smooth on `[0, 1] × W`. -/
+theorem contMDiff_vectorBundleRescaledFamily_of_subset_radialCore [IsManifold IB ∞ B]
+    [ContMDiffVectorBundle ∞ F V IB] [IB.Boundaryless] [CompleteSpace F] [T2Space B]
+    {W : Opens (TotalSpace F V)} (hW : (W : Set (TotalSpace F V)) ⊆ VectorBundle.radialCore U)
+    {ψ : U → TotalSpace F V} (hψ : ContMDiff (IB.prod 𝓘(ℝ, F)) (IB.prod 𝓘(ℝ, F)) ∞ ψ)
+    (hψ0 : ∀ x (hx : zeroSection F V x ∈ U), ψ ⟨_, hx⟩ = zeroSection F V x) :
+    ContMDiff ((𝓡∂ 1).prod (IB.prod 𝓘(ℝ, F))) (IB.prod 𝓘(ℝ, F)) ∞
+      fun p : unitInterval × W ↦ vectorBundleRescaledFamily ψ ((p.2 : TotalSpace F V), p.1) :=
+  (contMDiffOn_vectorBundleRescaledFamily (U' := W) (fun z hz t ↦ by
+      rw [vectorBundleFiberScaling_apply]
+      exact VectorBundle.mem_radialCore.1 (hW hz) t t.prop) hψ hψ0).comp_contMDiff
+    ((contMDiff_subtypeVal.comp contMDiff_snd).prodMk contMDiff_fst)
+    fun p ↦ ⟨p.2.prop, mem_univ _⟩
+
+/-- For `t ∈ (0, 1]`, the dilation `m_t` (`TauCeti.vectorBundleScalarDiffeomorph`) maps every set
+`W` of vectors whose radial segments lie in `U` into `U`. -/
+theorem mapsTo_vectorBundleScalarDiffeomorph_of_subset_radialCore
+    {W : Set (TotalSpace F V)} (hW : W ⊆ VectorBundle.radialCore U) {t : Icc (0 : ℝ) 1}
+    (ht : 0 < (t : ℝ)) :
+    MapsTo (vectorBundleScalarDiffeomorph (I := IB) (n := ∞) (fun _ ↦ (t : ℝ)) contMDiff_const
+      (fun _ ↦ ht.ne')) W U := fun z hz ↦ by
+  rw [vectorBundleScalarDiffeomorph_apply]
+  exact VectorBundle.mem_radialCore.1 (hW hz) t t.prop
+
+/-- **The slices of the rescaled family on a radial core.** For `t ∈ (0, 1]` and an open set `W` of
+vectors whose radial segments lie in `U`, the slice at `t` of the rescaled family of `ψ`,
+restricted to `W`, is `m_{1/t} ∘ ψ ∘ m_t`, where `m_c` is the dilation by `c` and `m_t` is seen
+as a map from `W` to `U`. -/
+theorem vectorBundleRescaledFamily_comp_subtypeVal_of_subset_radialCore
+    {W : Opens (TotalSpace F V)} (hW : (W : Set (TotalSpace F V)) ⊆ VectorBundle.radialCore U)
+    (ψ : U → TotalSpace F V)
+    {t : Icc (0 : ℝ) 1} (ht : 0 < (t : ℝ)) :
+    (fun z : W ↦ vectorBundleRescaledFamily ψ ((z : TotalSpace F V), t)) =
+      vectorBundleScalarDiffeomorph (I := IB) (n := ∞) (fun _ ↦ (t : ℝ)⁻¹) contMDiff_const
+          (fun _ ↦ inv_ne_zero ht.ne') ∘ ψ ∘
+        fun z : W ↦ (⟨_, mapsTo_vectorBundleScalarDiffeomorph_of_subset_radialCore (IB := IB) hW ht
+          z.prop⟩ : U) := by
+  funext z
+  have hz : vectorBundleFiberScaling F V ((z : TotalSpace F V), t) ∈ U := by
+    rw [vectorBundleFiberScaling_apply]
+    exact VectorBundle.mem_radialCore.1 (hW z.prop) t t.prop
+  rw [vectorBundleRescaledFamily_of_pos (IB := IB) ψ ht _ hz]
+  simp [vectorBundleFiberScaling_apply, vectorBundleScalarDiffeomorph_apply]
 
 end SymplecticGeometry
