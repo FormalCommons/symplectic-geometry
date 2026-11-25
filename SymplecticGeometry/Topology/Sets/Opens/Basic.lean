@@ -12,8 +12,10 @@ public import Mathlib.Topology.Separation.Basic
 # The empty open set and complements of finite sets
 
 The bottom element `⊥ : Opens X` of the open sets of a topological space has no points
-(`TopologicalSpace.Opens.isEmpty_bot`). As an instance, it lets the empty open set serve as an
-empty space, for instance as an empty open submanifold, without an inline proof each time.
+(`TopologicalSpace.Opens.isEmpty_bot`), and neither has a supremum of open sets over an empty
+finset (`TopologicalSpace.Opens.isEmpty_biSup_of_not_nonempty`). As an instance, the first lets
+the empty open set serve as an empty space, for instance as an empty open submanifold, without
+an inline proof each time.
 
 In a T1 space a finite set is closed, so the complement of a finite set `B` is an open set,
 `B.complOpens` (`Finset.complOpens`), with `Finset.coe_complOpens` and `Finset.mem_complOpens`.
@@ -28,6 +30,12 @@ namespace TopologicalSpace.Opens
 /-- The empty open set of a topological space has no points. -/
 instance isEmpty_bot {X : Type*} [TopologicalSpace X] : IsEmpty (⊥ : Opens X) :=
   ⟨fun x ↦ x.property⟩
+
+/-- A supremum of open sets over an empty finset has no points. -/
+theorem isEmpty_biSup_of_not_nonempty {X α : Type*} [TopologicalSpace X] {s : Finset α}
+    (h : ¬s.Nonempty) (f : α → Opens X) : IsEmpty (⨆ a ∈ s, f a : Opens X) := by
+  rw [Finset.not_nonempty_iff_eq_empty.mp h]
+  simpa using isEmpty_bot
 
 end TopologicalSpace.Opens
 
