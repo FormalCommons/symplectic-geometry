@@ -12,10 +12,10 @@ public import TauCeti.Geometry.Lie.Adjoint.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.MapCoeff
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal.FundamentalVectorField
 public import TauCeti.Geometry.Manifold.Submersion.EhresmannConnection.Basic
-import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Basic
 import SymplecticGeometry.Geometry.Manifold.Distribution.OneFormKernel
 import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.FiberBundle.Submersion
+import TauCeti.Geometry.Manifold.IsManifold.Basic
 
 /-!
 # Connection forms on principal bundles
@@ -286,7 +286,7 @@ theorem isEhresmannConnection_horizontal [FiniteDimensional ℝ EB] [FiniteDimen
     have h := SmoothForm.isContMDiffDistribution_ker_degreeOneEquiv (n := ∞) A fun x ξ ↦
       ⟨rightFundamentalVectorField (IB.prod IG) ξ x, by
         rw [SmoothForm.degreeOneEquiv_apply_apply_vec, hA.apply_rightFundamentalVectorField]⟩
-    rw [Module.finrank_prod, GroupLieAlgebra.finrank_eq, Nat.add_sub_cancel] at h
+    rw [Module.finrank_prod, TauCeti.finrank_tangentSpace, Nat.add_sub_cancel] at h
     rwa [show horizontal A = _ from funext (horizontal_def A)]
 
 /-! ### The affine structure of connection forms -/
