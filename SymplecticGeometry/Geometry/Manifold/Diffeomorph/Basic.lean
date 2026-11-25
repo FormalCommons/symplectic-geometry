@@ -8,13 +8,21 @@ module
 public import Mathlib.Geometry.Manifold.Diffeomorph
 
 /-!
-# Diffeomorphisms between empty manifolds
+# Basic facts about diffeomorphisms
+
+Facts about Mathlib's diffeomorphisms `M ≃ₘ^n⟮I, I'⟯ M'` that Mathlib does not state: inverting a
+diffeomorphism twice gives it back, and two empty manifolds are diffeomorphic even when their
+models differ.
 
 Two empty manifolds are diffeomorphic, whatever their models: the empty map is smooth in both
 directions. Mathlib's `Diffeomorph.empty` gives this only when both manifolds have the same model
 with corners; this file allows two models. The empty open set `⊥ : Opens M` of a manifold is
 such an empty manifold, by the instance `TopologicalSpace.Opens.isEmpty_bot` of
 `Topology/Sets/Opens/Basic.lean`.
+
+## Main results
+
+* `Diffeomorph.symm_symm`, `Diffeomorph.symm_bijective`: `Diffeomorph.symm` is an involution.
 
 ## Main definitions
 
@@ -23,8 +31,12 @@ such an empty manifold, by the instance `TopologicalSpace.Opens.isEmpty_bot` of
 
 ## Implementation notes
 
-The definition is Mathlib's `Diffeomorph.empty`, with the model of the target freed from that of
-the source. It belongs upstream as a generalization of that definition.
+`Diffeomorph.symm_symm` and `Diffeomorph.symm_bijective` are Mathlib's `Equiv.symm_symm` and
+`Equiv.symm_bijective`, for diffeomorphisms.
+
+The definition `Diffeomorph.ofIsEmpty` is Mathlib's `Diffeomorph.empty`, with the model of the
+target freed from that of the source. All of this file belongs upstream, `Diffeomorph.ofIsEmpty`
+as a generalization of `Diffeomorph.empty`.
 -/
 
 public section
@@ -38,7 +50,20 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
   [NormedAddCommGroup E'] [NormedSpace 𝕜 E'] [TopologicalSpace H] [TopologicalSpace H']
   {I : ModelWithCorners 𝕜 E H} {I' : ModelWithCorners 𝕜 E' H'}
   [TopologicalSpace M] [ChartedSpace H M] [TopologicalSpace M'] [ChartedSpace H' M']
-  {n : WithTop ℕ∞} [IsEmpty M] [IsEmpty M']
+  {n : WithTop ℕ∞}
+
+/-- Inverting a diffeomorphism twice gives it back. -/
+@[simp]
+theorem symm_symm (h : M ≃ₘ^n⟮I, I'⟯ M') : h.symm.symm = h :=
+  rfl
+
+/-- Inversion is a bijection from the diffeomorphisms `M → M'` to the diffeomorphisms
+`M' → M`. -/
+theorem symm_bijective :
+    Function.Bijective (Diffeomorph.symm : (M ≃ₘ^n⟮I, I'⟯ M') → M' ≃ₘ^n⟮I', I⟯ M) :=
+  Function.bijective_iff_has_inverse.2 ⟨_, symm_symm, symm_symm⟩
+
+variable [IsEmpty M] [IsEmpty M']
 
 /-- The diffeomorphism between two empty manifolds, modelled on possibly different models with
 corners `I` and `I'`. -/
