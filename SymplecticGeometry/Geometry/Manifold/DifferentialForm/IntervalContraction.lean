@@ -394,7 +394,7 @@ theorem mpullback_prodMap_subtypeVal_prodIccExtension [CompleteSpace F]
         (prodIccExtension I M a b F k η) = η := by
   rw [prodIccExtension_apply, map_add,
     SmoothForm.mpullback_prodMap_subtypeVal_mextDerivₗ_timeExtendIcc _
-      (prodIccHomotopyOperator_apply_eq_zero η),
+      (SmoothForm.isFstSemibasic_iff.mpr (prodIccHomotopyOperator_apply_eq_zero η)),
     mextDerivₗ_prodIccHomotopyOperator ((SmoothForm.isClosed_iff_mextDerivₗ_eq_zero _).mp hη),
     SmoothForm.mpullback_mpullback,
     SmoothForm.mpullback_congr

@@ -421,13 +421,12 @@ theorem mpullback_prodMap_subtypeVal_timeExtendIcc₀
   mpullback_prodMap_subtypeVal_timeExtendIcc η (isFstSemibasic_of_degree_zero η)
 
 /-- **Restriction of the exterior derivative of a time extension.** Let `η` be a smooth form on
-`M × Icc a b` that vanishes whenever one of its arguments has zero component along `M`. Then the
-pullback of `d (TauCeti.SmoothForm.timeExtendIcc η)` along
+`M × Icc a b` semibasic for `Prod.fst`: it vanishes whenever one of its arguments has zero
+component along `M`. Then the pullback of `d (TauCeti.SmoothForm.timeExtendIcc η)` along
 `id × Subtype.val : M × Icc a b → M × ℝ` is `dη`. -/
 theorem mpullback_prodMap_subtypeVal_mextDerivₗ_timeExtendIcc
     (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F k)
-    (hη : ∀ (p : M × Icc a b) (v : Fin k → TangentSpace (I.prod (𝓡∂ 1)) p) (i : Fin k),
-      (Manifold.tangentSpaceProdEquiv p (v i)).1 = 0 → η.val p v = 0) :
+    (hη : IsFstSemibasic η) :
     mpullback (Prod.map id Subtype.val) (contMDiff_id.prodMap contMDiff_subtypeVal_Icc)
       (mextDerivₗ (I.prod 𝓘(ℝ, ℝ)) k (timeExtendIcc η)) = mextDerivₗ (I.prod (𝓡∂ 1)) k η := by
   rw [← mextDerivₗ_mpullback, mpullback_prodMap_subtypeVal_timeExtendIcc η hη]
@@ -439,7 +438,7 @@ theorem mpullback_prodMap_subtypeVal_mextDerivₗ_timeExtendIcc₀
     (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F 0) :
     mpullback (Prod.map id Subtype.val) (contMDiff_id.prodMap contMDiff_subtypeVal_Icc)
       (mextDerivₗ (I.prod 𝓘(ℝ, ℝ)) 0 (timeExtendIcc η)) = mextDerivₗ (I.prod (𝓡∂ 1)) 0 η :=
-  mpullback_prodMap_subtypeVal_mextDerivₗ_timeExtendIcc η fun _ _ i ↦ i.elim0
+  mpullback_prodMap_subtypeVal_mextDerivₗ_timeExtendIcc η (isFstSemibasic_of_degree_zero η)
 
 section Naturality
 

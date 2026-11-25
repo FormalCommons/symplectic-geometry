@@ -57,8 +57,8 @@ is `-dt`. The time extension `A` of `K ω₀` is invariant, so Cartan's formula
 (`TauCeti.PrincipalBundle.mextDeriv_apply_rightFundamentalVectorField_prod`) gives
 `ι_{(X, 0)} dA = -d (A (X, 0)) = -de`, where `e` is the time extension of the height `t - a`
 (`SymplecticGeometry.prodIccHeight`). The first summand of `ω̃₀` vanishes on `(X, 0)`, since the
-projection to the bottom level does not move the point of the interval
-(`SymplecticGeometry.IsCouplingForm.mpullback_bot_apply_prodVectorField`), so
+projection to the bottom level fixes the point of `P` and kills the direction of the interval
+(`SymplecticGeometry.IsCouplingForm.mpullback_bot_apply_prodVectorField_eq_zero`), so
 `ι_{(X, 0)} ω̃₀ = -de` (`SymplecticGeometry.IsCouplingForm.prodIccExtension_apply_prodVectorField`),
 and `de = dt` over `[a, b]` (`SymplecticGeometry.mextDerivₗ_timeExtendIcc_prodIccHeight_apply`).
 
@@ -322,7 +322,7 @@ theorem mfderiv_snd_eq_zero_of_apply_eq_neg (h : IsCouplingForm η τ)
 pull-back of `η` along the projection `(x, t) ↦ (x, a)` of `P × ℝ` onto the bottom level vanishes
 on the field `(X, 0)`: the projection sends `(X, 0)` to `(X, 0)`, and every tangent vector to one
 with no component along the interval. -/
-theorem mpullback_bot_apply_prodVectorField (h : IsCouplingForm η τ)
+theorem mpullback_bot_apply_prodVectorField_eq_zero (h : IsCouplingForm η τ)
     (p : ManifoldTotalSpace Circle P × ℝ) (w : TangentSpace ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) p) :
     (SmoothForm.mpullback (fun x : ManifoldTotalSpace Circle P × ℝ ↦ (x.1, (⊥ : Icc a b)))
       (contMDiff_fst.prodMk contMDiff_const) η).val p
@@ -447,7 +447,7 @@ theorem prodIccExtension_apply_prodVectorField (h : IsCouplingForm ω₀ τ)
       PrincipalBundle.mextDeriv_apply_rightFundamentalVectorField_prod hA, hAX,
       mextDerivₗ_zero_apply]
   rw [prodIccExtension_apply, Submodule.coe_add, Pi.add_apply, ContinuousAlternatingMap.add_apply,
-    mpullback_bot_apply_prodVectorField h, h₂, zero_add]
+    mpullback_bot_apply_prodVectorField_eq_zero h, h₂, zero_add]
 
 end Extension
 
