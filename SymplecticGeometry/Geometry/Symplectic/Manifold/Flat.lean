@@ -36,6 +36,8 @@ what makes the Moser flow fix `x` to first order ([McDuffSalamon2017], §3.2;
   `σ♭` is invertible, and
   `TauCeti.SmoothTwoForm.IsNondegenerate.interior_flat_inverse_ofSubsingleton`, the identity of
   rough one-forms for a nondegenerate `σ`.
+* `TauCeti.SmoothTwoForm.exists_forall_val_apply_eq`: in finite dimensions, at a point where
+  `σ` is nondegenerate, every covector is `σ_x(z, ·)` for some vector `z`.
 * `TauCeti.SmoothTwoForm.contMDiffAt_sectionAlong_flat_inverse_apply`: the field `(σ♭)⁻¹ c`, for
   a family of two-forms along a map, is smooth where `c` and the forms are and the flat map is
   invertible. For a single two-form, Tau Ceti's `TauCeti.SmoothTwoForm.contMDiffAt_inverse_flat`
@@ -104,6 +106,20 @@ theorem IsNondegenerate.interior_flat_inverse_ofSubsingleton [FiniteDimensional 
         σ.val = β :=
   funext fun x ↦ (interior_flat_inverse_apply σ _ (h.isInvertible_flat x)).trans
     ((ContinuousAlternatingMap.ofSubsingleton ℝ (TangentSpace I x) ℝ 0).apply_symm_apply _)
+
+/-- On a finite-dimensional manifold, let `σ` be a two-form that is nondegenerate at `x`: the
+only vector `v` with `σ_x(v, w) = 0` for all `w` is `0`. Then every covector `c` at `x` is
+`σ_x(z, ·)` for some vector `z`. -/
+theorem exists_forall_val_apply_eq [FiniteDimensional ℝ E] (σ : SmoothTwoForm I M) {x : M}
+    (hσ : ∀ v : TangentSpace I x, (∀ w, σ.val x ![v, w] = 0) → v = 0)
+    (c : TangentSpace I x →L[ℝ] ℝ) : ∃ z : TangentSpace I x, ∀ v, σ.val x ![z, v] = c v := by
+  have hnd : (σ.bilinFormAt x).Nondegenerate :=
+    (SmoothForm.isAlt_bilinFormAt σ x).isRefl.nondegenerate_iff_separatingLeft.2
+      fun v hv ↦ hσ v fun w ↦ (SmoothBundleForm.eval₂_apply _ x v w).symm.trans
+        ((SmoothForm.bilinFormAt_apply σ x v w).symm.trans (hv w))
+  obtain ⟨z, hz⟩ := (isInvertible_flat_iff.2 hnd).surjective c
+  exact ⟨z, fun v ↦ (SmoothBundleForm.eval₂_apply _ x z v).symm.trans
+    ((flat_apply σ x z v).symm.trans (congrArg (fun L ↦ L v) hz))⟩
 
 variable [CompleteSpace E]
 
