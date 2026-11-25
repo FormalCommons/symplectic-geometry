@@ -8,6 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.VectorBundle.Hom
 public import SymplecticGeometry.Analysis.Sobolev.Wkp.SmoothMultiplicationBound
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.Basic
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.FrameTopology
 public import TauCeti.Analysis.Sobolev.Wkp.SmoothCoefficients
 public import TauCeti.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.Hom
 public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.ContMDiffSection
@@ -35,7 +36,11 @@ order at most `k` of the chart readings of `Φ` on the chart images
 norm of the Sobolev sections, which is the largest norm of their components
 (`TauCeti.SectionChartData.norm_contDiffOnCLMApplyL_le`). With the linearity in `Φ`, the action
 is then continuous in `Φ` for the `C^k` convergence of the chart readings on the chart images
-(`TauCeti.SobolevSection.tendsto_contMDiffHomMulL`).
+(`TauCeti.SobolevSection.tendsto_contMDiffHomMulL`). In particular it is continuous in `Φ` for
+the frame topology `ContMDiffSection.frameTopology` of a covering frame system on smooth sections
+of the hom bundle (`TauCeti.SobolevSection.tendsto_contMDiffHomMulL_of_tendsto`), whose
+convergence gives that of the chart readings by
+`TauCeti.FiniteBundleAtlas.tendstoUniformlyOn_iteratedFDeriv_coord_of_tendsto`.
 
 The construction is first carried out for general chart data
 (`TauCeti.SectionChartData.contDiffOnCLMApplyL`): from the chart data `C` of one bundle to the
@@ -95,6 +100,8 @@ section, and it lowers the order.
   between the actions of two hom sections, are bounded by a constant times the `C^k` size of the
   chart readings on the chart images.
 * `TauCeti.SobolevSection.tendsto_contMDiffHomMulL`: continuity in the hom section.
+* `TauCeti.SobolevSection.tendsto_contMDiffHomMulL_of_tendsto`: continuity in the hom section for
+  the frame topology on smooth sections of the hom bundle.
 
 ## References
 
@@ -652,6 +659,23 @@ theorem tendsto_contMDiffHomMulL {ι : Type*} {l : Filter ι} {Φ : ι → ∀ x
     exact (ht i j (Finset.mem_range.2 (Nat.lt_succ_of_le hj)) y hy).le
   · rw [mul_div_assoc', div_lt_iff₀ (by positivity)]
     linarith
+
+/-- **Continuity in the hom section for the frame topology.** If smooth sections `s t` of the hom
+bundle tend to `s₀` along `l` in the frame topology of a frame system covering `M`, then the action
+of `s t` on `W^{k,p}` converges in operator norm to that of `s₀`. -/
+theorem tendsto_contMDiffHomMulL_of_tendsto {κ : Type*}
+    {e : κ → Trivialization (F₁ →L[ℝ] F₂) (π (F₁ →L[ℝ] F₂) fun x ↦ V₁ x →L[ℝ] V₂ x)}
+    [∀ i, MemTrivializationAtlas (e i)] {U : κ → TopologicalSpace.Opens M}
+    {hU : ∀ i, (U i : Set M) ⊆ (e i).baseSet} (hcover : ∀ x, ∃ i, x ∈ U i) {ι : Type*}
+    {l : Filter ι} {s : ι → Cₛ^∞⟮𝓘(ℝ, E); F₁ →L[ℝ] F₂, fun x ↦ V₁ x →L[ℝ] V₂ x⟯}
+    {s₀ : Cₛ^∞⟮𝓘(ℝ, E); F₁ →L[ℝ] F₂, fun x ↦ V₁ x →L[ℝ] V₂ x⟯}
+    (hs : letI := ContMDiffSection.frameTopology (I := 𝓘(ℝ, E)) (n := ∞) e U hU
+      Filter.Tendsto s l (nhds s₀)) :
+    Filter.Tendsto (fun t ↦ contMDiffHomMulL A h μ p k (s t).contMDiff) l
+      (nhds (contMDiffHomMulL A h μ p k s₀.contMDiff)) :=
+  tendsto_contMDiffHomMulL (fun t ↦ (s t).contMDiff) s₀.contMDiff fun i _ _ ↦
+    (tendstoUniformlyOn_iteratedFDeriv_coord_of_tendsto hcover hs (A.hom (𝕜 := ℝ) h) i
+      (by exact_mod_cast le_top)).mono (image_hom (h := h) i).ge
 
 end SobolevSection
 
