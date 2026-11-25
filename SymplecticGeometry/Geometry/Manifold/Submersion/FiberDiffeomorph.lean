@@ -17,18 +17,17 @@ with the fibre over a value `b₀` as model fibre
 (`Manifold.IsSubmersion.exists_trivialization_of_isProperMap`). So, with the regular-fibre atlas
 `TauCeti.regularFiberChartedSpace` on each fibre, the fibres over the points of a neighbourhood
 of `b₀` are diffeomorphic to the fibre over `b₀`, by the fibre coordinate of such a
-trivialization (`Bundle.Trivialization.mapFiberDiffeomorph`). Over a preconnected base, being
-diffeomorphic is then an equivalence relation with open classes, so it has one class
-(`PreconnectedSpace.induction₂'`). Points outside the range of `f` need no trivialization: the
-range is open, since a submersion is an open map, and closed, since `f` is proper, so it is
-empty or all of `B`, and if it is empty every fibre is empty. This is Ehresmann's fibration
+trivialization (`Bundle.Trivialization.mapFiberDiffeomorph`). The same holds near a point `b₀`
+outside the range of `f`: the range is closed, since `f` is proper, so all fibres near `b₀` are
+empty. Over a preconnected base, being diffeomorphic is then an equivalence relation with open
+classes, so it has one class (`PreconnectedSpace.induction₂'`). This is Ehresmann's fibration
 theorem in the form that all fibres are diffeomorphic
 (`Manifold.IsSubmersion.nonempty_diffeomorph_mapFiber`).
 
 ## Main results
 
 * `Manifold.IsSubmersion.eventually_nonempty_diffeomorph_mapFiber`: the fibres of a smooth proper
-  submersion near a value `b₀` are diffeomorphic to the fibre over `b₀`.
+  submersion near any point `b₀` are diffeomorphic to the fibre over `b₀`.
 * `Manifold.IsSubmersion.nonempty_diffeomorph_mapFiber`: any two fibres of a smooth proper
   submersion from a σ-compact manifold to a connected manifold are diffeomorphic.
 
@@ -64,21 +63,30 @@ local notation "fiberAtlas" hf:max b:max => regularFiberChartedSpace (m := ∞) 
   (IsSubmersion.contMDiff hf) BoundarylessManifold.isInteriorPoint
   (IsSubmersion.isRegularValue hf (by simp) b)
 
-/-- Over the points of a neighbourhood of a value `b₀` of a smooth proper submersion `f`, the
-fibres of `f`, with their regular-fibre atlases, are diffeomorphic to the fibre over `b₀`. -/
+/-- Over the points of a neighbourhood of any point `b₀`, the fibres of a smooth proper
+submersion `f`, with their regular-fibre atlases, are diffeomorphic to the fibre over `b₀`. -/
 theorem eventually_nonempty_diffeomorph_mapFiber (hf : IsSubmersion I J ∞ f)
-    (hfp : IsProperMap f) {b₀ : B} (hb₀ : b₀ ∈ range f) :
+    (hfp : IsProperMap f) (b₀ : B) :
     ∀ᶠ b in 𝓝 b₀,
       letI := fiberAtlas hf b₀
       letI := fiberAtlas hf b
       Nonempty (MapFiber f b ≃ₘ⟮𝓘(ℝ, Fin (finrank ℝ E - finrank ℝ F) → ℝ),
         𝓘(ℝ, Fin (finrank ℝ E - finrank ℝ F) → ℝ)⟯ MapFiber f b₀) := by
   let := fiberAtlas hf b₀
-  obtain ⟨e, hb₀e, he, he'⟩ := hf.exists_trivialization_of_isProperMap hfp hb₀
-  filter_upwards [e.open_baseSet.mem_nhds hb₀e] with b hb
-  let := fiberAtlas hf b
-  exact ⟨e.mapFiberDiffeomorph he he' hb (isSmoothEmbedding_coe_regularFiber (by simp)
-    hf.contMDiff BoundarylessManifold.isInteriorPoint (hf.isRegularValue (by simp) b))⟩
+  by_cases hb₀ : b₀ ∈ range f
+  · obtain ⟨e, hb₀e, he, he'⟩ := hf.exists_trivialization_of_isProperMap hfp hb₀
+    filter_upwards [e.open_baseSet.mem_nhds hb₀e] with b hb
+    let := fiberAtlas hf b
+    exact ⟨e.mapFiberDiffeomorph he he' hb (isSmoothEmbedding_coe_regularFiber (by simp)
+      hf.contMDiff BoundarylessManifold.isInteriorPoint (hf.isRegularValue (by simp) b))⟩
+  · -- Off the range of `f`, which is closed, all fibres are empty.
+    filter_upwards [hfp.isClosedMap.isClosed_range.isOpen_compl.mem_nhds hb₀] with b hb
+    have hempty (c : B) (hc : c ∉ range f) : IsEmpty (MapFiber f c) :=
+      ⟨fun x ↦ hc ⟨x.val, x.property⟩⟩
+    have := hempty b hb
+    have := hempty b₀ hb₀
+    let := fiberAtlas hf b
+    exact ⟨.empty⟩
 
 /-- **Ehresmann's fibration theorem: the fibres of a proper submersion are diffeomorphic.** Let
 `f : P → B` be a smooth proper submersion from a σ-compact Hausdorff manifold to a connected
@@ -93,30 +101,20 @@ theorem nonempty_diffeomorph_mapFiber [PreconnectedSpace B] (hf : IsSubmersion I
     letI := fiberAtlas hf b₁
     Nonempty (MapFiber f b₀ ≃ₘ⟮𝓘(ℝ, Fin (finrank ℝ E - finrank ℝ F) → ℝ),
       𝓘(ℝ, Fin (finrank ℝ E - finrank ℝ F) → ℝ)⟯ MapFiber f b₁) := by
-  -- The range of `f` is clopen, so it is empty or everything.
-  have hclopen : IsClopen (range f) :=
-    ⟨hfp.isClosedMap.isClosed_range, hf.isOpenMap.isOpen_range⟩
-  rcases isClopen_iff.1 hclopen with h | h
-  · have (b : B) : IsEmpty (MapFiber f b) :=
-      ⟨fun x ↦ (h ▸ mem_range_self x.val : f x.val ∈ (∅ : Set B))⟩
-    let := fiberAtlas hf b₀
-    let := fiberAtlas hf b₁
-    exact ⟨.empty⟩
-  · refine PreconnectedSpace.induction₂' (fun b₀ b₁ ↦
-      letI := fiberAtlas hf b₀
-      letI := fiberAtlas hf b₁
-      Nonempty (MapFiber f b₀ ≃ₘ⟮𝓘(ℝ, Fin (finrank ℝ E - finrank ℝ F) → ℝ),
-        𝓘(ℝ, Fin (finrank ℝ E - finrank ℝ F) → ℝ)⟯ MapFiber f b₁)) (fun b ↦ ?_) ⟨?_⟩ b₀ b₁
-    · filter_upwards [eventually_nonempty_diffeomorph_mapFiber hf hfp (h ▸ mem_univ b)]
-        with b' ⟨φ⟩
-      let := fiberAtlas hf b
-      let := fiberAtlas hf b'
-      exact ⟨⟨φ.symm⟩, ⟨φ⟩⟩
-    · rintro a b c ⟨φ⟩ ⟨ψ⟩
-      let := fiberAtlas hf a
-      let := fiberAtlas hf b
-      let := fiberAtlas hf c
-      exact ⟨φ.trans ψ⟩
+  refine PreconnectedSpace.induction₂' (fun b₀ b₁ ↦
+    letI := fiberAtlas hf b₀
+    letI := fiberAtlas hf b₁
+    Nonempty (MapFiber f b₀ ≃ₘ⟮𝓘(ℝ, Fin (finrank ℝ E - finrank ℝ F) → ℝ),
+      𝓘(ℝ, Fin (finrank ℝ E - finrank ℝ F) → ℝ)⟯ MapFiber f b₁)) (fun b ↦ ?_) ⟨?_⟩ b₀ b₁
+  · filter_upwards [eventually_nonempty_diffeomorph_mapFiber hf hfp b] with b' ⟨φ⟩
+    let := fiberAtlas hf b
+    let := fiberAtlas hf b'
+    exact ⟨⟨φ.symm⟩, ⟨φ⟩⟩
+  · rintro a b c ⟨φ⟩ ⟨ψ⟩
+    let := fiberAtlas hf a
+    let := fiberAtlas hf b
+    let := fiberAtlas hf c
+    exact ⟨φ.trans ψ⟩
 
 end Manifold.IsSubmersion
 

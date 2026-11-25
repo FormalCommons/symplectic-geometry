@@ -24,12 +24,17 @@ set of `e`, read through `e` (`Bundle.Trivialization.fiberInclusion`), is a smoo
 of `proj`. The coordinate change between two such trivializations over `b` is a diffeomorphism of
 `F`. For Tau Ceti's smooth atlases of a map (`TauCeti.MapFiber.Atlas.IsContMDiff`) this says that
 `proj` is a submersion. Conversely, every smooth fibre bundle gives a smooth atlas of the
-projection of its charted total space.
+projection of its charted total space. Finally, if the fibre over `b` carries a manifold structure
+whose inclusion into `M` is a smooth embedding, the fibre coordinate of `e` is a diffeomorphism
+from the fibre onto `F`, and its underlying homeomorphism is
+`Bundle.Trivialization.mapFiberHomeomorph`.
 
 ## Main definitions
 
 * `Bundle.Trivialization.coordChangeDiffeomorph`: the coordinate change between two smooth
   trivializations over a point of both base sets, as a diffeomorphism of the model fibre.
+* `Bundle.Trivialization.mapFiberDiffeomorph`: the fibre coordinate of a smooth trivialization,
+  as a diffeomorphism from a fibre whose inclusion is a smooth embedding onto the model fibre.
 * `TauCeti.ManifoldTotalSpace.mapFiberAtlas`: the atlas of the projection of the charted total
   space of a fibre bundle, made of the bundle's trivializations.
 
