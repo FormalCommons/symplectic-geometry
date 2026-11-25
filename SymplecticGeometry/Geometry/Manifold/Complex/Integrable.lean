@@ -387,6 +387,12 @@ open scoped TauCeti.ComplexManifold
 variable {E M : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] [TopologicalSpace M]
   [ChartedSpace E M] [IsManifold 𝓘(ℂ, E) ∞ M]
 
+/-- On every tangent space of a complex manifold, which is the model `E`, the almost complex
+structure `ofComplexManifold E M` is that of `E` as a complex vector space. -/
+theorem ofComplexManifold_apply_eq_ofComplexModule (x : M) (v : E) :
+    ofComplexManifold E M x v = AlmostComplexStructure.ofComplexModule E v :=
+  (ofComplexManifold_apply x v).trans (AlmostComplexStructure.ofComplexModule_apply v).symm
+
 /-- **The almost complex structure of a complex manifold is integrable**: in every holomorphic
 chart it is multiplication by `i`. -/
 theorem isIntegrable_ofComplexManifold : (ofComplexManifold E M).IsIntegrable :=
@@ -396,8 +402,7 @@ theorem isIntegrable_ofComplexManifold : (ofComplexManifold E M).IsIntegrable :=
         -- The chart is holomorphic, so its real derivative commutes with multiplication by `i`.
         have h := (mdifferentiableAt_atlas (I := 𝓘(ℂ, E)) (chart_mem_atlas E x)
           hy).mfderiv_ofComplexManifold_apply v
-        exact h.trans ((ofComplexManifold_apply (E := E) (M := E) _ _).trans
-          (AlmostComplexStructure.ofComplexModule_apply (V := E) _).symm)⟩
+        exact h.trans (ofComplexManifold_apply_eq_ofComplexModule _ _)⟩
 
 end ComplexManifold
 
@@ -423,8 +428,7 @@ theorem isIntegrable_iff_forall_exists_isIsothermalChart :
     exact ⟨e, he.mem_maximalAtlas_infty, he, hx⟩
   · obtain ⟨e, he, hj, hx⟩ := h x
     exact ⟨e, he, hx, AlmostComplexStructure.ofComplexModule ℂ, fun y hy v ↦
-      (hj.mfderiv_apply_commute hy v).trans ((ofComplexManifold_apply _ _).trans
-        (AlmostComplexStructure.ofComplexModule_apply (V := ℂ) _).symm)⟩
+      (hj.mfderiv_apply_commute hy v).trans (ofComplexManifold_apply_eq_ofComplexModule _ _)⟩
 
 end Surface
 
