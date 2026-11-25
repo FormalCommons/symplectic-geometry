@@ -16,7 +16,53 @@ import TauCeti.AlgebraicTopology.Cohomology.HomotopyInvariance
 import TauCeti.Geometry.Manifold.Metrizable
 
 /-!
-# Test
+# The Mayer–Vietoris step of the de Rham theorem
+
+Let `M` be a Hausdorff `σ`-compact smooth manifold modelled on a finite-dimensional real model with
+corners, and `U`, `V` open subsets of `M`. This file shows that if the de Rham homomorphism
+`TauCeti.deRhamHom` is bijective in every degree on `U`, on `V` and on `U ⊓ V`, then it is
+bijective in every degree on `U ⊔ V` (`TauCeti.bijective_deRhamHom_sup`). This is the inductive
+step of the proof of the de Rham theorem by induction over open covers.
+
+The proof is the five lemma
+(`LinearMap.bijective_of_surjective_of_bijective_of_bijective_of_injective`) applied to the ladder
+whose rows are the Mayer–Vietoris sequences in de Rham and in singular cohomology and whose rungs
+are de Rham homomorphisms. The squares made of restrictions commute by the naturality of the de
+Rham homomorphism (`TauCeti.deRhamHom_map`), and the square made of the connecting maps by
+`TauCeti.deRhamHom_mayerVietorisδ`. In degree zero the de Rham homomorphism is bijective on every
+manifold (`TauCeti.bijective_deRhamHom_zero`).
+
+The singular Mayer–Vietoris sequence of Tau Ceti
+(`TauCeti/AlgebraicTopology/Cohomology/MayerVietoris/Module.lean`) is stated for two open sets
+covering the space, and `TauCeti.deRhamHom_mayerVietorisδ` for two open sets covering `M`. The
+step is first proved under the hypothesis `U ⊔ V = ⊤`, and then in general by applying that case
+on the manifold `U ⊔ V`, whose open subsets with the points of `U` and of `V` are diffeomorphic to
+`U` and `V`. De Rham's theorem holds on a manifold if and only if it holds on a diffeomorphic one
+(`Diffeomorph.bijective_deRhamHom_iff`).
+
+The exactness of the de Rham Mayer–Vietoris sequence is stated here as exactness of linear maps,
+with the product module `H^n_dR(U) × H^n_dR(V)` as middle term
+(`TauCeti.deRhamCohomology.exact_mayerVietoris_prod_coprod`,
+`TauCeti.deRhamCohomology.exact_mayerVietoris_coprod_mayerVietorisδ`,
+`TauCeti.deRhamCohomology.exact_mayerVietorisδ_mayerVietoris_prod`), from the long exact
+homology sequence of the short exact sequence `TauCeti.mayerVietorisShortComplex_shortExact`. This
+follows Tau Ceti's `TopCat.exact_singularCohomologyMayerVietorisToProd_fromProd`,
+`TopCat.exact_singularCohomologyMayerVietorisFromProd_δ` and
+`TopCat.exact_singularCohomologyMayerVietorisδ_toProd`, which do the same for singular cohomology.
+
+## Main results
+
+* `TauCeti.deRhamCohomology.exact_mayerVietoris_prod_coprod`,
+  `TauCeti.deRhamCohomology.exact_mayerVietoris_coprod_mayerVietorisδ`,
+  `TauCeti.deRhamCohomology.exact_mayerVietorisδ_mayerVietoris_prod`: exactness of the de Rham
+  Mayer–Vietoris sequence at its three kinds of terms.
+* `Diffeomorph.bijective_deRhamHom_iff`: the de Rham theorem is invariant under diffeomorphisms.
+* `TauCeti.bijective_deRhamHom_sup`: the Mayer–Vietoris step of the de Rham theorem.
+
+## References
+
+* John M. Lee, *Introduction to Smooth Manifolds*, 2nd ed., Graduate Texts in Mathematics 218,
+  Springer, 2013, Chapter 18, proof of Theorem 18.14.
 -/
 
 public section
@@ -36,6 +82,8 @@ namespace deRhamCohomology
 variable [FiniteDimensional ℝ E] [IsManifold I ∞ M] [T2Space M] [SigmaCompactSpace M]
   (U V : Opens M)
 
+/-- **Exactness of the de Rham Mayer–Vietoris sequence at `H^n_dR(U) × H^n_dR(V)`**: the classes of
+`U` and `V` whose restrictions to `U ⊓ V` agree are the restrictions of a class of `U ⊔ V`. -/
 theorem exact_mayerVietoris_prod_coprod (n : ℕ) :
     Function.Exact
       ((map (I := I) (I' := I) (Opens.inclusion (le_sup_left : U ≤ U ⊔ V))
@@ -58,6 +106,9 @@ theorem exact_mayerVietoris_prod_coprod (n : ℕ) :
     (LinearMap.ext fun x ↦
       ConcreteCategory.congr_hom (ModuleCat.biprodIsoProd_hom_comp_ofHom_coprod _ _) x) this
 
+/-- **Exactness of the de Rham Mayer–Vietoris sequence at `H^n_dR(U ⊓ V)`**: the kernel of the
+connecting map `H^n_dR(U ⊓ V) → H^{n+1}_dR(U ⊔ V)` consists of the differences of restrictions of
+classes of `U` and of `V`. -/
 theorem exact_mayerVietoris_coprod_mayerVietorisδ (n : ℕ) :
     Function.Exact
       ((map (I := I) (I' := I) (Opens.inclusion (inf_le_left : U ⊓ V ≤ U))
@@ -77,6 +128,8 @@ theorem exact_mayerVietoris_coprod_mayerVietorisδ (n : ℕ) :
       ConcreteCategory.congr_hom (ModuleCat.biprodIsoProd_hom_comp_ofHom_coprod _ _) x)
     (LinearMap.ext fun x ↦ by exact ConcreteCategory.congr_hom (ofHom_mayerVietorisδ U V n) x) this
 
+/-- **Exactness of the de Rham Mayer–Vietoris sequence at `H^{n+1}_dR(U ⊔ V)`**: the classes of
+`U ⊔ V` that vanish on `U` and on `V` are the images of the connecting map. -/
 theorem exact_mayerVietorisδ_mayerVietoris_prod (n : ℕ) :
     Function.Exact (mayerVietorisδ I U V n)
       ((map (I := I) (I' := I) (Opens.inclusion (le_sup_left : U ≤ U ⊔ V))
@@ -100,6 +153,8 @@ section Step
 
 variable [FiniteDimensional ℝ E] [IsManifold I ∞ M] [T2Space M] [SigmaCompactSpace M]
 
+/-- **The de Rham theorem is invariant under diffeomorphisms**: if `M` and `N` are diffeomorphic,
+the de Rham homomorphism of `M` in degree `k` is bijective if and only if that of `N` is. -/
 theorem _root_.Diffeomorph.bijective_deRhamHom_iff {E' H' : Type} [NormedAddCommGroup E']
     [NormedSpace ℝ E'] [FiniteDimensional ℝ E'] [TopologicalSpace H'] {J : ModelWithCorners ℝ E' H'}
     {N : Type} [TopologicalSpace N] [ChartedSpace H' N] [T2Space N] [SigmaCompactSpace N]
@@ -110,6 +165,7 @@ theorem _root_.Diffeomorph.bijective_deRhamHom_iff {E' H' : Type} [NormedAddComm
         deRhamHom J N k :=
     funext fun c ↦ by
       rw [Function.comp_apply, deRhamCohomology.equivOfDiffeomorph_apply, deRhamHom_map]
+      -- Both continuous maps are `Φ`.
       rfl
   have := Φ.toHomeomorph.toHomotopyEquiv.isIso_singularCohomologyMap (ModuleCat.of ℝ ℝ) ℝ
     (ModuleCat.of ℝ ℝ) k
@@ -122,6 +178,7 @@ theorem _root_.Diffeomorph.bijective_deRhamHom_iff {E' H' : Type} [NormedAddComm
 variable {U V : Opens M} [SigmaCompactSpace U] [SigmaCompactSpace V]
   [SigmaCompactSpace (U ⊓ V : Opens M)] [SigmaCompactSpace (U ⊔ V : Opens M)]
 
+/-- The Mayer–Vietoris step of the de Rham theorem for two open sets covering `M`. -/
 private theorem bijective_deRhamHom_of_sup_eq_top (hUV : U ⊔ V = ⊤)
     (hU : ∀ k, Function.Bijective (deRhamHom I U k))
     (hV : ∀ k, Function.Bijective (deRhamHom I V k))
@@ -151,6 +208,7 @@ private theorem bijective_deRhamHom_of_sup_eq_top (hUV : U ⊔ V = ⊤)
     simp only [LinearMap.comp_apply, LinearMap.prodMap_apply, LinearMap.coprod_apply,
       LinearMap.neg_apply, ← sub_eq_add_neg, map_sub, deRhamHom_map]
     rw [TopCat.singularCohomologyMayerVietorisFromProd_apply]
+    -- The inclusions of `U ⊓ V` in `U` and in `V`, as continuous maps and as smooth maps, agree.
     rfl
   rw [← Function.Bijective.of_comp_iff' (ConcreteCategory.bijective_of_isIso
     (TopCat.singularCohomologyMap g (n + 1)))]
@@ -181,6 +239,7 @@ private theorem bijective_deRhamHom_of_sup_eq_top (hUV : U ⊔ V = ⊤)
     rw [TopCat.singularCohomologyMayerVietorisToProd_apply, ← ConcreteCategory.comp_apply,
       ← ConcreteCategory.comp_apply, ← TopCat.singularCohomologyMap_comp,
       ← TopCat.singularCohomologyMap_comp]
+    -- Going from `U` (resp. `V`) to `M` and then to `U ⊔ V` is the inclusion in `U ⊔ V`.
     rfl
   · exact hc (n + 1)
   · rw [LinearMap.coe_prodMap]
@@ -206,6 +265,12 @@ private def diffeomorphOfMemIff {W S : Opens M} (T : Opens W) (hS : S ≤ W)
     exact contMDiff_subtypeVal
 
 omit [SigmaCompactSpace M] in
+/-- **The Mayer–Vietoris step of the de Rham theorem.** Let `U` and `V` be open subsets of `M`. If
+the de Rham homomorphism is bijective in every degree on `U`, on `V` and on `U ⊓ V`, then it is
+bijective in every degree on `U ⊔ V`.
+
+The instance hypotheses on `U`, `V`, `U ⊓ V` and `U ⊔ V` always hold, by
+`TauCeti.Manifold.sigmaCompactSpace_opens`. -/
 theorem bijective_deRhamHom_sup (hU : ∀ k, Function.Bijective (deRhamHom I U k))
     (hV : ∀ k, Function.Bijective (deRhamHom I V k))
     (hUV : ∀ k, Function.Bijective (deRhamHom I (U ⊓ V : Opens M) k)) (k : ℕ) :
