@@ -32,6 +32,12 @@ complex-antilinear map `v ↦ conj v · c (∂bar L + μ ∂L)` with `c = ½ (1 
 (`ContinuousLinearMap.complexAntilinearPartL_half_smul_add_I_smul_comp_apply`): this is the
 pointwise form of a Cauchy–Riemann operator for `K` read against the standard structure of `ℂ`.
 
+Under the same hypotheses, that complex-antilinear part vanishes exactly when `L` is complex
+linear for `K`, `L ∘ K = i L`
+(`ContinuousLinearMap.complexAntilinearPartL_half_smul_add_I_smul_comp_eq_zero_iff`): the
+`(0,1)`-projection for `K` is complex antilinear for `K`, and a map that is complex linear for
+`i` and antilinear for `K` vanishes when `K 1 ≠ -i`.
+
 ## References
 
 * [D. McDuff, D. Salamon, *J-holomorphic Curves and Symplectic Topology*][McDuffSalamon2012],
@@ -162,6 +168,51 @@ theorem complexAntilinearPartL_half_smul_add_I_smul_comp_apply {K : ℂ →L[ℝ
     complexAntilinearPart_half_smul_add_I_smul_comp_apply_one]
   have hμ := one_add_I_mul_conj_complexLinearPart_one_mul_div_eq hK hK1
   linear_combination (-2⁻¹ * conj v * L.complexLinearPart 1) * hμ
+
+/-- **Complex linearity for `K` from the `(0,1)`-projection.** Let `K` be a real-linear complex
+structure on `ℂ` with `K 1 ≠ -i`. A real-linear `L : ℂ → ℂ` is complex linear for `K`, that is
+`L (K v) = i L v` for all `v`, exactly when the `(0,1)`-projection `½ (L + i L K)` of `L` for `K`
+has no complex-antilinear part.
+
+Without `K 1 ≠ -i` this fails: for `K v = -i v` and `L = id`, the projection is `L` itself, which
+is complex linear, but `L (K 1) = -i ≠ i L 1`. -/
+theorem complexAntilinearPartL_half_smul_add_I_smul_comp_eq_zero_iff {K : ℂ →L[ℝ] ℂ}
+    (hK : ∀ v, K (K v) = -v) (hK1 : K 1 ≠ -Complex.I) (L : ℂ →L[ℝ] ℂ) :
+    complexAntilinearPartL ((2⁻¹ : ℝ) • (L + Complex.I • L.comp K)) = 0 ↔
+      ∀ v, L (K v) = Complex.I • L v := by
+  set N := (2⁻¹ : ℝ) • (L + Complex.I • L.comp K)
+  have hNv (v : ℂ) : N v = (2⁻¹ : ℝ) • (L v + Complex.I • L (K v)) := rfl
+  rw [complexAntilinearPartL_eq_zero_iff]
+  constructor
+  · intro h
+    -- `N` is complex linear, so `N v = v N 1`.
+    have hlin (v : ℂ) : N v = v * N 1 := by
+      conv_lhs => rw [← Complex.re_add_im v]
+      rw [show (v.re : ℂ) + v.im * Complex.I = v.re • (1 : ℂ) + v.im • (Complex.I • 1) by
+        simp [Complex.real_smul]]
+      rw [map_add, map_smul, map_smul, h, smul_eq_mul, Complex.real_smul, Complex.real_smul]
+      conv_rhs => rw [← Complex.re_add_im v]
+      ring
+    -- `N` is complex antilinear for `K`: `N (K 1) = -i N 1`.
+    have hNK : N (K 1) = -Complex.I * N 1 := by
+      rw [hNv, hNv, hK]
+      simp only [map_neg, smul_eq_mul, Complex.real_smul]
+      push_cast
+      linear_combination (2⁻¹ : ℂ) * L (K 1) * Complex.I_sq
+    -- So `(K 1 + i) N 1 = 0`, and `N = 0` since `K 1 ≠ -i`.
+    have h1 : N 1 = 0 := by
+      have : (K 1 + Complex.I) * N 1 = 0 := by rw [add_mul, ← hlin, hNK]; ring
+      exact (mul_eq_zero.1 this).resolve_left fun h ↦ hK1 (eq_neg_of_add_eq_zero_left h)
+    intro v
+    have h0 := hlin v
+    rw [h1, mul_zero, hNv, Complex.real_smul, mul_eq_zero] at h0
+    have h0 := h0.resolve_left (by norm_num)
+    rw [smul_eq_mul]
+    linear_combination (-Complex.I) * h0 + L (K v) * Complex.I_sq
+  · intro h v
+    have hz (v : ℂ) : N v = 0 := by
+      rw [hNv, h, smul_smul, Complex.I_mul_I, neg_one_smul, add_neg_cancel, smul_zero]
+    rw [hz, hz, smul_zero]
 
 end ContinuousLinearMap
 
