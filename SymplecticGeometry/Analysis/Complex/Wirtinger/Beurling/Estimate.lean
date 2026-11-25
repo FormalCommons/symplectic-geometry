@@ -9,15 +9,18 @@ public import TauCeti.Analysis.Complex.Wirtinger.Beurling.Cauchy
 public import TauCeti.Analysis.Normed.Operator.ComplexLinearPart
 public import TauCeti.Analysis.Sobolev.WeakDeriv.Basic
 import TauCeti.Analysis.Calculus.BumpFunction.Convolution
+import TauCeti.Analysis.Calculus.BumpFunction.Cutoff
 import TauCeti.Analysis.Complex.Wirtinger.Lp
 import TauCeti.Analysis.Sobolev.Mollification.Basic
 import TauCeti.MeasureTheory.Function.Lp.ApproximateIdentity
 import TauCeti.MeasureTheory.Function.UnifTight
+import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.FDerivApply
+import SymplecticGeometry.Analysis.Complex.Wirtinger.Commutator
 import SymplecticGeometry.Analysis.Normed.Operator.ComplexLinearPart
 import SymplecticGeometry.MeasureTheory.Function.LpSeminorm.TriangleInequality
 
 /-!
-# The `L²` estimate for `∂̄ + μ ∂` in the plane
+# The `L²` estimate for `∂̄ + μ ∂` in the plane, and its higher orders
 
 For maps `v` from the plane to a complex Hilbert space, the `L²` Beurling transform has norm at
 most one and sends `∂̄v` to `∂v`, so `‖∂v‖₂ ≤ ‖∂̄v‖₂`. A coefficient `μ` with `‖μ‖ ≤ m`
@@ -44,6 +47,16 @@ almost everywhere then changes `∂̄` by a term of norm at most `m ‖∂̄v‖
   and to the coefficient `μ` cut off outside the support of `v`, where `∂v` vanishes. The bound
   of `Dv` by `∂v` and `∂̄v` is Tau Ceti's `TauCeti.eLpNorm_wirtingerPartsCLM_le`, through
   `TauCeti.fderiv_eq_wirtingerPartsCLM`.
+* `TauCeti.exists_sum_eLpNorm_iteratedFDeriv_le_of_norm_le`: the estimate at every order. For
+  `μ` smooth near a compact set `K` with `‖μ‖ ≤ m < 1` on `K`, the `L²` norms of the derivatives
+  of order at most `k + 1` of a smooth `v` supported in `K` are bounded by a constant times those
+  of order at most `k` of `∂̄v + μ ∂v` and of `v`. The proof is an induction on `k`, starting from
+  `ContDiff.eLpNorm_fderiv_le_of_norm_le`. The step applies the order-`k` estimate to the
+  partial derivatives `∂₁v` and `∂_I v`, rewrites `∂̄ + μ ∂` of them by the commutator
+  `TauCeti.conjWirtingerDeriv_fderiv_apply_add_smul_wirtingerDeriv`, bounds its lower-order term
+  by `TauCeti.exists_eLpNorm_iteratedFDeriv_fderiv_smul_wirtingerDeriv_le`, and returns to `v`
+  by `ContDiff.eLpNorm_iteratedFDeriv_succ_le_add_fderiv_apply_one_I`. A cutoff reduces it to a
+  coefficient smooth on the whole plane.
 
 The absorption step is `MeasureTheory.one_sub_mul_eLpNorm_le_eLpNorm_add_smul`, and the passage
 to the limit `MeasureTheory.eLpNorm_le_eLpNorm_of_tendsto`, with Tau Ceti's
@@ -53,7 +66,8 @@ the mollified maps.
 ## References
 
 * [D. McDuff and D. Salamon, *J-holomorphic Curves and Symplectic Topology*][McDuffSalamon2012],
-  Appendix B (the Beurling transform on `L²`).
+  Appendix B (the Beurling transform on `L²`; derivatives of higher order from the estimate
+  applied to partial derivatives).
 -/
 
 public section
@@ -62,6 +76,24 @@ open MeasureTheory Complex Filter Topology ContinuousLinearMap
 open scoped ENNReal NNReal SchwartzMap Convolution ContDiff
 
 namespace TauCeti
+
+section ContDiff
+
+variable {V W : Type*} [NormedAddCommGroup V] [NormedSpace ℂ V] [NormedAddCommGroup W]
+  [NormedSpace ℂ W] {g : V → W} {m n : WithTop ℕ∞}
+
+/-- The conjugate Wirtinger derivative of a `C^(m+1)` map, evaluated on a fixed vector, is
+`C^m`. -/
+theorem _root_.ContDiff.conjWirtingerDeriv_apply (hg : ContDiff ℝ n g) (hmn : m + 1 ≤ n)
+    (v : V) : ContDiff ℝ m (fun z ↦ conjWirtingerDeriv g z v) :=
+  contDiff_iff_contDiffAt.2 fun _ ↦ hg.contDiffAt.conjWirtingerDeriv_apply hmn v
+
+/-- The Wirtinger derivative of a `C^(m+1)` map, evaluated on a fixed vector, is `C^m`. -/
+theorem _root_.ContDiff.wirtingerDeriv_apply (hg : ContDiff ℝ n g) (hmn : m + 1 ≤ n) (v : V) :
+    ContDiff ℝ m (fun z ↦ wirtingerDeriv g z v) :=
+  contDiff_iff_contDiffAt.2 fun _ ↦ hg.contDiffAt.wirtingerDeriv_apply hmn v
+
+end ContDiff
 
 variable {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℂ F] [CompleteSpace F]
 
@@ -230,6 +262,179 @@ theorem _root_.ContDiff.eLpNorm_fderiv_le_of_norm_le {v : ℂ → F}
           eLpNorm (fun z ↦ conjWirtingerDeriv v z 1 + μ z • wirtingerDeriv v z 1) 2 volume := by
         rw [mul_assoc]
         gcongr
+
+section HigherOrder
+
+omit [CompleteSpace F] in
+/-- The step of the induction for one partial derivative `∂ₐv`, `‖a‖ = 1`: the order-`k`
+estimate applied to `∂ₐv`, with the commutator and the lower-order bound, bounds the derivatives
+of `∂ₐv` up to order `k + 1`. -/
+private theorem sum_eLpNorm_iteratedFDeriv_fderiv_apply_le {K : Set ℂ} {μ : ℂ → ℂ}
+    (hμ : ContDiff ℝ ∞ μ) {k : ℕ} {C₀ C₁ : ℝ≥0}
+    (h₀ : ∀ v : ℂ → F, ContDiff ℝ ∞ v → tsupport v ⊆ K →
+      ∑ j ∈ Finset.range (k + 2), eLpNorm (iteratedFDeriv ℝ j v) 2 volume ≤
+        C₀ * (∑ j ∈ Finset.range (k + 1), eLpNorm (iteratedFDeriv ℝ j
+            (fun z ↦ conjWirtingerDeriv v z 1 + μ z • wirtingerDeriv v z 1)) 2 volume +
+          ∑ j ∈ Finset.range (k + 1), eLpNorm (iteratedFDeriv ℝ j v) 2 volume))
+    {a : ℂ} (ha : ‖a‖ = 1)
+    (h₁ : ∀ v : ℂ → F, ContDiff ℝ (k + 1 : ℕ) v → tsupport v ⊆ K → ∀ j ≤ k,
+      eLpNorm (iteratedFDeriv ℝ j (fun z ↦ fderiv ℝ μ z a • wirtingerDeriv v z 1)) 2 volume ≤
+        C₁ * ∑ i ∈ Finset.range (k + 2), eLpNorm (iteratedFDeriv ℝ i v) 2 volume)
+    {v : ℂ → F} (hv : ContDiff ℝ ∞ v) (hvK : tsupport v ⊆ K) :
+    ∑ j ∈ Finset.range (k + 2), eLpNorm (iteratedFDeriv ℝ j (fun z ↦ fderiv ℝ v z a)) 2 volume ≤
+      C₀ * (∑ j ∈ Finset.range (k + 2), eLpNorm (iteratedFDeriv ℝ j
+            (fun z ↦ conjWirtingerDeriv v z 1 + μ z • wirtingerDeriv v z 1)) 2 volume +
+          (k + 1 : ℝ≥0∞) * C₁ *
+            ∑ j ∈ Finset.range (k + 2), eLpNorm (iteratedFDeriv ℝ j v) 2 volume +
+          ∑ j ∈ Finset.range (k + 2), eLpNorm (iteratedFDeriv ℝ j v) 2 volume) := by
+  set P : (ℂ → F) → ℂ → F := fun u z ↦ conjWirtingerDeriv u z 1 + μ z • wirtingerDeriv u z 1
+  set w : ℂ → F := fun z ↦ fderiv ℝ v z a
+  set g : ℂ → F := fun z ↦ fderiv ℝ μ z a • wirtingerDeriv v z 1
+  set A := ∑ j ∈ Finset.range (k + 2), eLpNorm (iteratedFDeriv ℝ j (P v)) 2 volume
+  set B := ∑ j ∈ Finset.range (k + 2), eLpNorm (iteratedFDeriv ℝ j v) 2 volume
+  have hw : ContDiff ℝ ∞ w := (hv.fderiv_right (m := ∞) (by simp)).clm_apply contDiff_const
+  have hPv : ContDiff ℝ ∞ (P v) :=
+    (hv.conjWirtingerDeriv_apply (by simp) 1).add (hμ.smul (hv.wirtingerDeriv_apply (by simp) 1))
+  have hdPv : ContDiff ℝ ∞ (fun z ↦ fderiv ℝ (P v) z a) :=
+    (hPv.fderiv_right (m := ∞) (by simp)).clm_apply contDiff_const
+  -- The commutator: `P (∂ₐv) = ∂ₐ (P v) - (∂ₐμ) ∂v`.
+  have hcomm : P w = (fun z ↦ fderiv ℝ (P v) z a) - g := funext fun z ↦ by
+    rw [Pi.sub_apply]
+    exact conjWirtingerDeriv_fderiv_apply_add_smul_wirtingerDeriv (hv.of_le (by simp)).contDiffAt
+      (hμ.differentiable (by simp) z) a 1
+  have hg : ContDiff ℝ ∞ g := by
+    rw [show g = (fun z ↦ fderiv ℝ (P v) z a) - P w by rw [hcomm, sub_sub_cancel]]
+    exact hdPv.sub ((hw.conjWirtingerDeriv_apply (by simp) 1).add
+      (hμ.smul (hw.wirtingerDeriv_apply (by simp) 1)))
+  have hPw : ∀ j ≤ k, eLpNorm (iteratedFDeriv ℝ j (P w)) 2 volume ≤
+      eLpNorm (iteratedFDeriv ℝ (j + 1) (P v)) 2 volume + C₁ * B := by
+    intro j hj
+    rw [hcomm, iteratedFDeriv_sub (hdPv.of_le (by simp)) (hg.of_le (by simp))]
+    refine (eLpNorm_sub_le one_le_two).trans ?_
+    gcongr
+    · simpa [ha] using (hPv.of_le (by simp)).eLpNorm_iteratedFDeriv_fderiv_apply_le volume a 2
+    · exact h₁ v (hv.of_le (by simp)) hvK j hj
+  have hwv : ∀ j, eLpNorm (iteratedFDeriv ℝ j w) 2 volume ≤
+      eLpNorm (iteratedFDeriv ℝ (j + 1) v) 2 volume := fun j ↦ by
+    simpa [ha] using (hv.of_le (by simp)).eLpNorm_iteratedFDeriv_fderiv_apply_le volume a 2
+  refine (h₀ w hw ((tsupport_fderiv_apply_subset ℝ a).trans hvK)).trans ?_
+  gcongr (C₀ : ℝ≥0∞) * ?_
+  calc _ ≤ ∑ j ∈ Finset.range (k + 1),
+          (eLpNorm (iteratedFDeriv ℝ (j + 1) (P v)) 2 volume + C₁ * B) +
+        ∑ j ∈ Finset.range (k + 1), eLpNorm (iteratedFDeriv ℝ (j + 1) v) 2 volume := by
+        gcongr with j hj
+        · exact hPw j (Finset.mem_range_succ_iff.1 hj)
+        · exact hwv j
+    _ ≤ A + (k + 1 : ℝ≥0∞) * C₁ * B + B := by
+        rw [Finset.sum_add_distrib, Finset.sum_const, Finset.card_range, nsmul_eq_mul,
+          ← mul_assoc]
+        push_cast
+        gcongr
+        · exact le_of_le_of_eq le_self_add
+            (Finset.sum_range_succ' (fun j ↦ eLpNorm (iteratedFDeriv ℝ j (P v)) 2 volume)
+              (k + 1)).symm
+        · exact le_of_le_of_eq le_self_add
+            (Finset.sum_range_succ' (fun j ↦ eLpNorm (iteratedFDeriv ℝ j v) 2 volume) (k + 1)).symm
+
+/-- The estimate at every order for a coefficient `μ` smooth on the whole plane. -/
+private theorem exists_sum_eLpNorm_iteratedFDeriv_le_of_contDiff {K : Set ℂ} (hK : IsCompact K)
+    {μ : ℂ → ℂ} (hμ : ContDiff ℝ ∞ μ) {m : ℝ≥0} (hm : m < 1) (hμK : ∀ z ∈ K, ‖μ z‖ ≤ m)
+    (k : ℕ) :
+    ∃ C : ℝ≥0, ∀ v : ℂ → F, ContDiff ℝ ∞ v → tsupport v ⊆ K →
+      ∑ j ∈ Finset.range (k + 2), eLpNorm (iteratedFDeriv ℝ j v) 2 volume ≤
+        C * (∑ j ∈ Finset.range (k + 1), eLpNorm (iteratedFDeriv ℝ j
+            (fun z ↦ conjWirtingerDeriv v z 1 + μ z • wirtingerDeriv v z 1)) 2 volume +
+          ∑ j ∈ Finset.range (k + 1), eLpNorm (iteratedFDeriv ℝ j v) 2 volume) := by
+  induction k with
+  | zero =>
+    have hm₀ : (1 - (m : ℝ≥0∞))⁻¹ ≠ ⊤ :=
+      ENNReal.inv_ne_top.2 (tsub_pos_of_lt (by exact_mod_cast hm)).ne'
+    refine ⟨(1 + 2 * (1 - (m : ℝ≥0∞))⁻¹).toNNReal, fun v hv hvK ↦ ?_⟩
+    rw [ENNReal.coe_toNNReal (by finiteness)]
+    have hμv : AEStronglyMeasurable μ (volume.restrict (tsupport v)) :=
+      hμ.continuous.aestronglyMeasurable
+    have h := (hv.of_le (by simp)).eLpNorm_fderiv_le_of_norm_le
+      (hK.of_isClosed_subset (isClosed_tsupport v) hvK) hμv hm fun z hz ↦ hμK z (hvK hz)
+    simp only [zero_add, Finset.sum_range_succ, Finset.sum_range_zero]
+    have hPv : ContDiff ℝ ∞ (fun z ↦ conjWirtingerDeriv v z 1 + μ z • wirtingerDeriv v z 1) :=
+      (hv.conjWirtingerDeriv_apply (by simp) 1).add (hμ.smul (hv.wirtingerDeriv_apply (by simp) 1))
+    rw [eLpNorm_congr_norm_ae ((hv.continuous_iteratedFDeriv (by simp)).aestronglyMeasurable)
+        ((hv.continuous_fderiv (by simp)).aestronglyMeasurable)
+        (.of_forall fun _ ↦ norm_iteratedFDeriv_one v),
+      eLpNorm_congr_norm_ae ((hPv.continuous_iteratedFDeriv (by simp)).aestronglyMeasurable)
+        hPv.continuous.aestronglyMeasurable (.of_forall fun _ ↦ norm_iteratedFDeriv_zero)]
+    set A := eLpNorm (fun z ↦ conjWirtingerDeriv v z 1 + μ z • wirtingerDeriv v z 1) 2 volume
+    set B := eLpNorm (iteratedFDeriv ℝ 0 v) 2 volume
+    calc B + eLpNorm (fderiv ℝ v) 2 volume ≤ (A + B) + 2 * (1 - (m : ℝ≥0∞))⁻¹ * (A + B) := by
+          gcongr
+          · exact le_add_self
+          · exact h.trans (by gcongr; exact le_self_add)
+      _ = _ := by ring
+  | succ k ih =>
+    obtain ⟨C₀, hC₀⟩ := ih
+    have hμk : ContDiffOn ℝ (k + 1 : ℕ) μ Set.univ :=
+      (contDiff_infty.1 hμ (k + 1)).contDiffOn
+    obtain ⟨C₁, hC₁⟩ := exists_eLpNorm_iteratedFDeriv_fderiv_smul_wirtingerDeriv_le (F := F)
+      volume one_le_two hK isOpen_univ (Set.subset_univ K) hμk 1
+    obtain ⟨C₂, hC₂⟩ := exists_eLpNorm_iteratedFDeriv_fderiv_smul_wirtingerDeriv_le (F := F)
+      volume one_le_two hK isOpen_univ (Set.subset_univ K) hμk I
+    refine ⟨1 + C₀ * (2 + (k + 1) * C₁) + C₀ * (2 + (k + 1) * C₂), fun v hv hvK ↦ ?_⟩
+    set A := ∑ j ∈ Finset.range (k + 2), eLpNorm (iteratedFDeriv ℝ j
+      (fun z ↦ conjWirtingerDeriv v z 1 + μ z • wirtingerDeriv v z 1)) 2 volume
+    set B := ∑ j ∈ Finset.range (k + 2), eLpNorm (iteratedFDeriv ℝ j v) 2 volume
+    have h₁ := sum_eLpNorm_iteratedFDeriv_fderiv_apply_le hμ hC₀ (by simp) hC₁ hv hvK
+    have h₂ := sum_eLpNorm_iteratedFDeriv_fderiv_apply_le hμ hC₀ (by simp) hC₂ hv hvK
+    have hB : eLpNorm (iteratedFDeriv ℝ 0 v) 2 volume ≤ B :=
+      Finset.single_le_sum (f := fun j ↦ eLpNorm (iteratedFDeriv ℝ j v) 2 volume)
+        (fun _ _ ↦ bot_le) (by simp)
+    calc ∑ j ∈ Finset.range (k + 1 + 2), eLpNorm (iteratedFDeriv ℝ j v) 2 volume
+        = ∑ j ∈ Finset.range (k + 2), eLpNorm (iteratedFDeriv ℝ (j + 1) v) 2 volume +
+            eLpNorm (iteratedFDeriv ℝ 0 v) 2 volume := Finset.sum_range_succ' _ _
+      _ ≤ ∑ j ∈ Finset.range (k + 2),
+            (eLpNorm (iteratedFDeriv ℝ j (fun z ↦ fderiv ℝ v z 1)) 2 volume +
+              eLpNorm (iteratedFDeriv ℝ j (fun z ↦ fderiv ℝ v z I)) 2 volume) + B := by
+          gcongr with j
+          exact (hv.of_le (by simp)).eLpNorm_iteratedFDeriv_succ_le_add_fderiv_apply_one_I
+            volume one_le_two
+      _ ≤ C₀ * (A + (k + 1 : ℝ≥0∞) * C₁ * B + B) + C₀ * (A + (k + 1 : ℝ≥0∞) * C₂ * B + B) + B := by
+          rw [Finset.sum_add_distrib]
+          gcongr
+      _ ≤ C₀ * ((A + B) + (k + 1 : ℝ≥0∞) * C₁ * (A + B) + (A + B)) +
+            C₀ * ((A + B) + (k + 1 : ℝ≥0∞) * C₂ * (A + B) + (A + B)) + (A + B) := by
+          gcongr <;> first | exact le_self_add | exact le_add_self
+      _ = _ := by push_cast; ring
+
+/-- **The `W^{k+1,2}` estimate for `∂̄ + μ ∂` in the plane.** Let `K ⊆ ℂ` be compact, `μ` smooth
+on an open set `U ⊇ K` with `‖μ‖ ≤ m < 1` on `K`, and `k : ℕ`. There is a constant `C` such that
+every smooth `v : ℂ → F` with `tsupport v ⊆ K` satisfies
+`∑_{j ≤ k + 1} ‖Dʲv‖₂ ≤ C (∑_{j ≤ k} ‖Dʲ(∂̄v + μ ∂v)‖₂ + ∑_{j ≤ k} ‖Dʲv‖₂)`. -/
+theorem exists_sum_eLpNorm_iteratedFDeriv_le_of_norm_le {K U : Set ℂ} (hK : IsCompact K)
+    (hU : IsOpen U) (hKU : K ⊆ U) {μ : ℂ → ℂ} (hμ : ContDiffOn ℝ ∞ μ U) {m : ℝ≥0} (hm : m < 1)
+    (hμK : ∀ z ∈ K, ‖μ z‖ ≤ m) (k : ℕ) :
+    ∃ C : ℝ≥0, ∀ v : ℂ → F, ContDiff ℝ ∞ v → tsupport v ⊆ K →
+      ∑ j ∈ Finset.range (k + 2), eLpNorm (iteratedFDeriv ℝ j v) 2 volume ≤
+        C * (∑ j ∈ Finset.range (k + 1), eLpNorm (iteratedFDeriv ℝ j
+            (fun z ↦ conjWirtingerDeriv v z 1 + μ z • wirtingerDeriv v z 1)) 2 volume +
+          ∑ j ∈ Finset.range (k + 1), eLpNorm (iteratedFDeriv ℝ j v) 2 volume) := by
+  -- Replace `μ` by `ρ = χ μ`, smooth on the plane and equal to `μ` on `K`.
+  obtain ⟨χ, hχ, -, hχ1, -, hχU⟩ := hK.exists_contDiff_cutoff_eventuallyEq_one hU hKU
+  set ρ : ℂ → ℂ := fun z ↦ χ z • μ z
+  have hρK (z : ℂ) (hz : z ∈ K) : ρ z = μ z := by simp [ρ, (hχ1 z hz).self_of_nhds]
+  obtain ⟨C, hC⟩ := exists_sum_eLpNorm_iteratedFDeriv_le_of_contDiff (F := F) (μ := ρ) hK
+    (hμ.contDiff_smul_of_tsupport_subset hU hχ.contDiffOn hχU) hm
+    (fun z hz ↦ by rw [hρK z hz]; exact hμK z hz) k
+  refine ⟨C, fun v hv hvK ↦ ?_⟩
+  -- Since `∂v` vanishes off the support of `v`, `∂̄v + ρ ∂v = ∂̄v + μ ∂v`.
+  have heq : (fun z ↦ conjWirtingerDeriv v z 1 + ρ z • wirtingerDeriv v z 1) =
+      fun z ↦ conjWirtingerDeriv v z 1 + μ z • wirtingerDeriv v z 1 := by
+    funext z
+    by_cases hz : z ∈ tsupport v
+    · rw [hρK z (hvK hz)]
+    · simp [wirtingerDeriv_eq_complexLinearPart, fderiv_of_notMem_tsupport (𝕜 := ℝ) hz]
+  rw [← heq]
+  exact hC v hv hvK
+
+end HigherOrder
 
 end TauCeti
 
