@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Symplectic.Manifold.Family
 import Mathlib.Topology.Compactness.Compact
 import Mathlib.Topology.Maps.Proper.Basic
+import TauCeti.Geometry.Symplectic.Manifold.Opens
 import TauCeti.Topology.Compactness.Compact
 import TauCeti.Topology.VectorBundle.Hom
 
@@ -35,6 +36,10 @@ open sets on which the Moser fields of Moser's argument are defined
   segment `σ₀ + s (σ₁ - σ₀)`, as a set of points `(s, x)` of `ℝ × M`.
 * `TauCeti.SmoothTwoForm.isOpen_setOf_nondegenerate_bilinFormAt`: in finite dimensions, the set of
   points at which a two-form is nondegenerate is open.
+* `TauCeti.SmoothTwoForm.isNondegenerate_mpullback_subtype_val_iff`,
+  `TauCeti.SmoothForm.IsClosed.isSymplectic_mpullback_subtype_val`: a two-form restricted to an
+  open set is nondegenerate exactly when the form is nondegenerate at each point of the set, and
+  then symplectic if the form is closed.
 * `TauCeti.SmoothTwoForm.isOpen_setOf_forall_mem_Icc_nondegenerate`: in finite dimensions, the
   set of points at which the whole segment from `σ₀` to `σ₁` is nondegenerate is open.
 * `TauCeti.SmoothTwoForm.isOpen_setOf_forall_nondegenerate_bilinFormAt_add_smul`: in finite
@@ -100,6 +105,26 @@ theorem isOpen_setOf_nondegenerate_bilinFormAt [FiniteDimensional ℝ E] (σ : S
   exact Continuous.isOpen_setOf_clm_bundle_isInvertible (𝕜 := ℝ) (F₁ := E) (F₂ := E →L[ℝ] ℝ)
     (E₁ := TangentSpace I) (E₂ := fun x : M ↦ TangentSpace I x →L[ℝ] ℝ) (b := id)
     (ϕ := σ.flat) σ.contMDiff_flat.continuous
+
+/-- The restriction of a two-form `σ` to an open set `U` is nondegenerate if and only if `σ` is
+nondegenerate at every point of `U`. -/
+theorem isNondegenerate_mpullback_subtype_val_iff {σ : SmoothTwoForm I M}
+    {U : TopologicalSpace.Opens M} :
+    IsNondegenerate (SmoothForm.mpullback (Subtype.val : U → M) contMDiff_subtypeVal σ) ↔
+      ∀ x ∈ U, (σ.bilinFormAt x).Nondegenerate :=
+  ⟨fun h x hx ↦ (nondegenerate_bilinFormAt_mpullback_subtype_val_iff ⟨x, hx⟩).1
+      (h.nondegenerate_bilinFormAt _),
+    fun h ↦ isNondegenerate_iff_forall_ker_bilinFormAt_eq_bot.2 fun x ↦
+      ((nondegenerate_bilinFormAt_mpullback_subtype_val_iff (σ := σ) x).2
+        (h x x.property)).ker_eq_bot⟩
+
+/-- A closed two-form `σ` that is nondegenerate at every point of an open set `U` restricts to a
+symplectic form on `U`. -/
+theorem _root_.TauCeti.SmoothForm.IsClosed.isSymplectic_mpullback_subtype_val
+    {σ : SmoothTwoForm I M} (hσ : σ.IsClosed) {U : TopologicalSpace.Opens M}
+    (h : ∀ x ∈ U, (σ.bilinFormAt x).Nondegenerate) :
+    IsSymplectic (SmoothForm.mpullback (Subtype.val : U → M) contMDiff_subtypeVal σ) :=
+  ⟨hσ.mpullback _ _, isNondegenerate_mpullback_subtype_val_iff.2 h⟩
 
 /-- **Nondegeneracy of whole slices is an open condition on the parameter.** For a smooth
 two-form `σ` on `N × M` with `M` compact, the set of parameters `t` at which the slice

@@ -10,7 +10,6 @@ public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Local
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.LinearNormalForm
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
-import TauCeti.Geometry.Symplectic.Manifold.Opens
 
 /-!
 # The local model's descended form is symplectic near the zero section
@@ -33,7 +32,8 @@ open neighbourhood of the zero section `{[g, 0] | g ∈ G}`.
   nondegenerate along the zero section.
 * The set where `ω` is nondegenerate is open
   (`TauCeti.SmoothTwoForm.isOpen_setOf_nondegenerate_bilinFormAt`) and `G`-invariant, and `ω`
-  restricts to a closed nondegenerate form on it.
+  restricts to a symplectic form on it
+  (`TauCeti.SmoothForm.IsClosed.isSymplectic_mpullback_subtype_val`).
 
 The last step follows the proof of Tau Ceti's
 `TauCeti.CotangentBundle.exists_opens_isNondegenerate_mpullback_coisotropicModelForm`.
@@ -171,13 +171,10 @@ theorem exists_opens_isSymplectic_mpullback_descendedForm :
   have := BalancedProduct.isManifold_rightTranslation (K := K) (Z := A × V) (I := I)
     (IZ := 𝓘(ℝ, A × V)) (F := F)
   -- `U` is the set of points at which the descended form is nondegenerate.
-  refine ⟨⟨_, SmoothTwoForm.isOpen_setOf_nondegenerate_bilinFormAt D.descendedForm⟩,
+  exact ⟨⟨_, SmoothTwoForm.isOpen_setOf_nondegenerate_bilinFormAt D.descendedForm⟩,
     D.nondegenerate_bilinFormAt_descendedForm_mk_zero,
     fun k y hy ↦ (D.nondegenerate_bilinFormAt_descendedForm_smul_iff k y).2 hy,
-    D.isClosed_descendedForm.mpullback _ _,
-    SmoothTwoForm.isNondegenerate_iff_forall_ker_bilinFormAt_eq_bot.2 fun y ↦ ?_⟩
-  exact ((SmoothTwoForm.nondegenerate_bilinFormAt_mpullback_subtype_val_iff y).2
-    y.property).ker_eq_bot
+    D.isClosed_descendedForm.isSymplectic_mpullback_subtype_val fun _ hy ↦ hy⟩
 
 end LocalModelData
 
