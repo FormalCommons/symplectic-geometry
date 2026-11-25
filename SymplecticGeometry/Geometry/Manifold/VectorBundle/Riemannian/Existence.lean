@@ -67,9 +67,9 @@ theorem exists_contMDiffRiemannianMetric_inner_mem_of_local
     ∃ g : ContMDiffRiemannianMetric IB n F E, ∀ b, g.inner b ∈ c b := by
   obtain ⟨g, -, hg⟩ := exists_contMDiffRiemannianMetric_inner_eq_and_inner_mem_of_locallyFinite
     (A := (Empty.elim : Empty → Set B)) (U := Empty.elim) (β := Empty.elim)
-    (fun i ↦ i.elim) (locallyFinite_of_finite _) (fun i ↦ i.elim) (fun i ↦ i.elim)
-    (fun i ↦ i.elim) (fun i ↦ i.elim) (fun i ↦ i.elim) (fun i ↦ i.elim) hc (fun i ↦ i.elim)
-    fun x₀ _ ↦ hloc x₀
+    (hA := (·.elim)) (hAf := locallyFinite_of_finite _) (hAd := (·.elim)) (hU := (·.elim))
+    (hAU := (·.elim)) (hβ := (·.elim)) (hsymm := (·.elim)) (hpos := (·.elim)) (hc := hc)
+    (hβc := (·.elim)) (hloc := fun x₀ _ ↦ hloc x₀)
   exact ⟨g, hg⟩
 
 end TauCeti
