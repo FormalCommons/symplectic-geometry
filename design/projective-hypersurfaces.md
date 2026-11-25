@@ -349,8 +349,8 @@ the tensor products on total spaces.
   iterated direct sum for the Whitney formula.
 - `twistCoreTensorEquiv k l x`: the fibrewise equivalence
   `(twistCore (k + l)).Fiber x ≃L[𝕜] (twistCore k).Fiber x ⊗[𝕜]
-  (twistCore l).Fiber x`, `a ↦ a ⊗ 1` in each chart, compatible with the
-  transitions by `twistTransition_add`, continuous on total spaces for Tau
+  (twistCore l).Fiber x`, `a ↦ a ⊗ 1` in each chart, derived from
+  `ScalarCocycle.lineBundleCoreTensorEquiv`, continuous on total spaces for Tau
   Ceti's tensor product bundle (`Topology/VectorBundle/TensorProduct/Basic.lean`);
   and `twistCoreZeroTrivialization`, the trivialization of `twistCore 0`
   (`twistTransition_zero`). #1040 uses the case `k = 1`, `l = -1`; if it
