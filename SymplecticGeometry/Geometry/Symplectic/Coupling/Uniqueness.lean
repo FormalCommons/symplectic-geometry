@@ -554,9 +554,10 @@ theorem exists_contMDiff_tsupport_subset_setOf_nondegenerate_prodIccExtension_ad
 
 /-- **The cutoff of the extended Moser field.** Let `ω₀` and `ω₁` be coupling forms for the same
 family `τ` of nondegenerate forms, over a compact base modelled on a finite-dimensional space.
-There is `ρ : ℝ × ℝ → ℝ` such that the function `(s, (x, t)) ↦ ρ (s, t)` on `ℝ × (P × ℝ)` is
-smooth, has compact support, equals `1` on a neighbourhood of `[0, 1] × P × [a, b]`, and at each
-point `(s, p)` of its topological support the form `ω̃₀ + s • dσ̃` (as in
+There is `ρ : ℝ × ℝ → ℝ` with values in `[0, 1]` such that the function
+`ρ ∘ Prod.map id Prod.snd`, that is `(s, (x, t)) ↦ ρ (s, t)`, on `ℝ × (P × ℝ)` is smooth, has
+compact support, equals `1` on a neighbourhood of `[0, 1] × P × [a, b]`, and at each point
+`(s, p)` of its topological support the form `ω̃₀ + s • dσ̃` (as in
 `SymplecticGeometry.IsCouplingForm.mpullback_prodMap_subtypeVal_prodIccExtension_add_smul`) is
 nondegenerate at `p`. As it does not depend on the point of `P`, it is invariant under the
 action of every `z : Circle` on `P`. -/
@@ -564,36 +565,31 @@ theorem exists_cutoff_prodIccExtension_add_smul (h₀ : IsCouplingForm ω₀ τ)
     (h₁ : IsCouplingForm ω₁ τ) (hτ : ∀ t, (τ t).IsNondegenerate) :
     ∃ ρ : ℝ × ℝ → ℝ,
       ContMDiff (𝓘(ℝ, ℝ).prod ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ))) 𝓘(ℝ) ∞
-        (fun p : ℝ × (ManifoldTotalSpace Circle P × ℝ) ↦ ρ (p.1, p.2.2)) ∧
-      HasCompactSupport (fun p : ℝ × (ManifoldTotalSpace Circle P × ℝ) ↦ ρ (p.1, p.2.2)) ∧
+        (ρ ∘ Prod.map id (Prod.snd (α := ManifoldTotalSpace Circle P))) ∧
+      HasCompactSupport (ρ ∘ Prod.map id (Prod.snd (α := ManifoldTotalSpace Circle P))) ∧
       (∀ᶠ p in 𝓝ˢ (Icc 0 1 ×ˢ (univ ×ˢ Icc a b)),
-        (fun p : ℝ × (ManifoldTotalSpace Circle P × ℝ) ↦ ρ (p.1, p.2.2)) p = 1) ∧
-      (∀ p ∈ tsupport (fun p : ℝ × (ManifoldTotalSpace Circle P × ℝ) ↦ ρ (p.1, p.2.2)),
+        ρ ((p : ℝ × (ManifoldTotalSpace Circle P × ℝ)).1, p.2.2) = 1) ∧
+      (∀ p ∈ tsupport (ρ ∘ Prod.map id (Prod.snd (α := ManifoldTotalSpace Circle P))),
         ((prodIccExtension (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1 ω₀ +
           p.1 • mextDerivₗ ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) 1 (SmoothForm.timeExtendIcc
             (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1
               (ω₁ - ω₀)))).bilinFormAt p.2).Nondegenerate) ∧
-      ∀ (z : Circle) (p : ℝ × (ManifoldTotalSpace Circle P × ℝ)),
-        (fun p : ℝ × (ManifoldTotalSpace Circle P × ℝ) ↦ ρ (p.1, p.2.2))
-          (p.1, (op z • p.2.1, p.2.2)) =
-        (fun p : ℝ × (ManifoldTotalSpace Circle P × ℝ) ↦ ρ (p.1, p.2.2)) p := by
-  obtain ⟨ρ, hρ, h1, hc, hs, -⟩ :=
+      (∀ (z : Circle) (s : ℝ) (x : ManifoldTotalSpace Circle P) (t : ℝ),
+        (ρ ∘ Prod.map id Prod.snd) (s, (op z • x, t)) = (ρ ∘ Prod.map id Prod.snd) (s, (x, t))) ∧
+      ∀ q, ρ q ∈ Icc 0 1 := by
+  obtain ⟨ρ, hρ, h1, hc, hs, h01⟩ :=
     exists_contMDiff_tsupport_subset_setOf_nondegenerate_prodIccExtension_add_smul h₀ h₁ hτ
-  have hΨ : Continuous fun p : ℝ × (ManifoldTotalSpace Circle P × ℝ) ↦ (p.1, p.2.2) := by
+  have hΨ : Continuous (Prod.map id (Prod.snd (α := ManifoldTotalSpace Circle P)) :
+      ℝ × (ManifoldTotalSpace Circle P × ℝ) → ℝ × ℝ) := by
     fun_prop
-  -- the preimage of `tsupport ρ` is closed, and lies in the image of `tsupport ρ × P`, which is
-  -- compact as `P` is
-  have hK : IsCompact ((fun p : ℝ × (ManifoldTotalSpace Circle P × ℝ) ↦ (p.1, p.2.2)) ⁻¹'
-      tsupport ρ) :=
-    ((hc.isCompact.prod isCompact_univ).image
-      (by fun_prop : Continuous fun q : (ℝ × ℝ) × ManifoldTotalSpace Circle P ↦
-        (q.1.1, (q.2, q.1.2)))).of_isClosed_subset ((isClosed_tsupport ρ).preimage hΨ)
-      fun y hy ↦ ⟨((y.1, y.2.2), y.2.1), ⟨hy, mem_univ _⟩, rfl⟩
+  -- `Prod.map id Prod.snd` is proper as `P` is compact, so the preimage of `tsupport ρ` is compact
   refine ⟨ρ, hρ.comp (contMDiff_fst.prodMk (contMDiff_snd.comp contMDiff_snd)),
-    .intro' hK ((isClosed_tsupport ρ).preimage hΨ) fun _ hz ↦ image_eq_zero_of_notMem_tsupport hz,
+    .intro' ((isProperMap_id.prodMap isProperMap_snd_of_compactSpace).isCompact_preimage
+      hc.isCompact) ((isClosed_tsupport ρ).preimage hΨ)
+      fun _ hz ↦ image_eq_zero_of_notMem_tsupport (f := ρ) hz,
     (hΨ.tendsto_nhdsSet (s := Icc 0 1 ×ˢ (univ ×ˢ Icc a b)) (t := Icc 0 1 ×ˢ Icc a b)
       fun _ hp ↦ ⟨hp.1, hp.2.2⟩).eventually h1,
-    fun p hp ↦ hs (tsupport_comp_subset_preimage ρ hΨ hp) p.2.1, fun _ _ ↦ rfl⟩
+    fun p hp ↦ hs (tsupport_comp_subset_preimage ρ hΨ hp) p.2.1, fun _ _ _ _ ↦ rfl, h01⟩
 
 end Extension
 
