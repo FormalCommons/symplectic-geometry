@@ -84,11 +84,11 @@ pencil theorem produces one:
   The book's integrability of `J` near the critical points, and the
   holomorphy of `π` there, follow from the holomorphic chart, and are
   lemmas, not fields.
-- `IsLefschetzPencil ω J B π`, for a finite `B : Set X` and a smooth
-  `π : ↥Bᶜ → ℙ ℂ (Fin 2 → ℂ)` on the open complement (Mathlib's manifold
-  structure on an open subset), with fields: the restriction of `ω` and `J`
-  makes `π` an `IsLefschetzFibration`; and at every `b ∈ B` a `J`-holomorphic
-  open embedding `φ` near `b` with `φ b = 0` and
+- `IsLefschetzPencil ω J B π`, for `B : Finset X` in a T1 space `X` and a smooth
+  `π : B.complOpens → ℙ ℂ (Fin 2 → ℂ)` on the open complement (Mathlib's manifold
+  structure on an open subset), with fields: `tames : ω.Tames J` on all of
+  `X`; the restriction of `ω` and `J` makes `π` an `IsLefschetzFibration`;
+  and at every `b ∈ B` a `J`-holomorphic open embedding `φ` near `b` with `φ b = 0` and
   `π x = Projectivization.mk ℂ (φ x) _` for `x ≠ b` near `b`.
 - `fiberClosure B π t`, the set `Subtype.val '' (π ⁻¹' {t}) ∪ B`, with
   `fiberClosure_def` and `isClosed_fiberClosure`.
@@ -430,7 +430,7 @@ $g_k$).
 - **Milestone** `exists_isLefschetzPencil`: under the setting, for every
   integral lift `a` and compatible `J`, for all sufficiently large `k`
   (`∀ᶠ k in Filter.atTop`) there are a tame structure `J'`, a finite set
-  `B` with `B.ncard = m * k ^ 2` and `π` with `IsLefschetzPencil ω J' B π`,
+  `B : Finset M` with `B.card = m * k ^ 2` and `π` with `IsLefschetzPencil ω J' B π`,
   such that every fibre closure over a regular value is a closed connected
   symplectic surface representing $\mathrm{PD}(k[\omega])$ in real
   homology, of genus `g` with `2 * g - 2 = m * k ^ 2 + k * ⟨K ⌣ a, [M]⟩`;

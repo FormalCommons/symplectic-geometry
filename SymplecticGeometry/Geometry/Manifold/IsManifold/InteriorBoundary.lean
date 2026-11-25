@@ -40,7 +40,9 @@ chart of the maximal atlas.
   inclusion `I.interior M → M` is the boundary.
 * `ModelWithCorners.BoundarylessManifold.interior`: the interior of `M` is a manifold without
   boundary.
-* `ModelWithCorners.isConnected_interior`: the interior of a connected manifold is connected.
+* `ModelWithCorners.isConnected_interior`: the interior of a connected manifold is connected;
+  `ModelWithCorners.connectedSpace_interior` and `ModelWithCorners.connectedSpace_interiorOpens`
+  are the corresponding instances, for the interior as a subtype and as an open subset.
 * `ModelWithCorners.compactSpace_boundary`: the boundary of a compact charted space over a
   finite-dimensional real model is compact.
 
@@ -181,6 +183,11 @@ theorem mem_interiorOpens_iff_mem_interior [IsManifold I 1 M] {x : M} :
 instance BoundarylessManifold.interior [IsManifold I 1 M] :
     BoundarylessManifold I (I.interiorOpens M) :=
   ⟨fun x ↦ I.isInteriorPoint_iff_isInteriorPoint_val.2 x.property⟩
+
+/-- The interior of a connected `C¹` manifold is connected. -/
+instance connectedSpace_interior [IsManifold I 1 M] [ConnectedSpace M] :
+    ConnectedSpace (I.interior M) :=
+  isConnected_iff_connectedSpace.1 (I.isConnected_interior one_ne_zero)
 
 /-- The interior of a connected `C¹` manifold, as an open submanifold, is connected. -/
 instance connectedSpace_interiorOpens [IsManifold I 1 M] [ConnectedSpace M] :

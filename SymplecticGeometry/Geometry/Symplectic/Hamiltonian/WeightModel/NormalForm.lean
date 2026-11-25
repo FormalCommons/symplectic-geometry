@@ -156,6 +156,41 @@ theorem smul_mem_target (h : IsWeightChart σ μ p χ α Φ r) (g : G) {x : M} (
   rw [← hx', ← h₂]
   exact Φ.map_source h₁
 
+/-- The centre `p` of a weight chart is fixed by every `g : G`. -/
+theorem smul_eq (h : IsWeightChart σ μ p χ α Φ r) (g : G) : g • p = p := by
+  have h₀ : complexToRealEuclidean (Fin n) 0 ∈ Φ.source := by
+    rw [map_zero]; exact h.zero_mem_source
+  have h0 := (h.equivariant g 0 h₀).2
+  simp only [Pi.zero_apply, mul_zero] at h0
+  rw [← Pi.zero_def, map_zero, h.apply_zero] at h0
+  exact h0.symm
+
+/-- On the target of a weight chart, `Φ⁻¹` intertwines the action of `g` with the rotation
+`uₖ ↦ χₖ(g) uₖ` in the complex coordinates `z = complexToRealEuclidean (Fin n) u`. -/
+theorem symm_smul (h : IsWeightChart σ μ p χ α Φ r) (g : G) {y : M} (hy : y ∈ Φ.target) :
+    Φ.symm (g • y) = complexToRealEuclidean (Fin n) fun k ↦
+      (χ k g : ℂ) * (complexToRealEuclidean (Fin n)).symm (Φ.symm y) k := by
+  set C := complexToRealEuclidean (Fin n)
+  have hu : C (C.symm (Φ.symm y)) ∈ Φ.source := by
+    rw [C.apply_symm_apply]; exact Φ.map_target hy
+  obtain ⟨h₁, h₂⟩ := h.equivariant g _ hu
+  rw [PartialDiffeomorph.symm_toPartialEquiv] at h₁ h₂ ⊢
+  rw [C.apply_symm_apply, Φ.right_inv hy] at h₂
+  rw [← h₂, Φ.left_inv h₁]
+
+/-- The model space of a manifold that has a weight chart from `StdSpace (Fin n)` has real
+dimension `2 * n`. -/
+theorem finrank_eq (h : IsWeightChart σ μ p χ α Φ r) : Module.finrank ℝ E' = 2 * n := by
+  rw [← ((Φ.isLocalDiffeomorphAt _ _ ∞ h.zero_mem_source).finrank_eq (by simp)),
+    finrank_stdSpace, Fintype.card_fin]
+
+/-- On a manifold modelled on a space of real dimension `2 * m`, a weight chart is defined on
+`StdSpace (Fin m)`: `n = m`. -/
+theorem eq_of_finrank_eq (h : IsWeightChart σ μ p χ α Φ r) {m : ℕ}
+    (hE : Module.finrank ℝ E' = 2 * m) : n = m := by
+  have := h.finrank_eq
+  omega
+
 end IsWeightChart
 
 end IsWeightChart
