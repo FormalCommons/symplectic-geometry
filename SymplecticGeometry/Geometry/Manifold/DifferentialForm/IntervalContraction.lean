@@ -10,7 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.TimeExtensio
 public import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 import TauCeti.Geometry.Manifold.Instances.Icc
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
-import TauCeti.Topology.Algebra.Module.Alternating.Basic
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 
 /-!
 # The contraction of `M × [a, b]` onto its bottom level
@@ -29,20 +29,21 @@ on `M × [a, b]` with
   (`SymplecticGeometry.mextDerivₗ_prodIccHomotopyOperator`);
 * `f^* (K η) = K (f^* η)` for a smooth `f : M → M` acting on the first factor
   (`SymplecticGeometry.mpullback_prodMap_prodIccHomotopyOperator`);
-* for a two-form `η`, `K η` vanishes on the direction of the interval
-  (`SymplecticGeometry.prodIccHomotopyOperator_apply_inr`), that is, on every vector with no
-  component along `M` (`SymplecticGeometry.prodIccHomotopyOperator_apply_eq_zero`).
+* `K η` vanishes whenever one of its arguments has no component along `M`
+  (`SymplecticGeometry.prodIccHomotopyOperator_apply_eq_zero`): the derivative of the
+  contraction sends both that argument and the unit time vector into the line of the interval,
+  and an alternating form vanishes when two of its arguments lie on one line
+  (`ContinuousAlternatingMap.map_eq_zero_of_eq_smul`).
 
 For a boundaryless `M`, a closed form `η` on `M × [a, b]` is therefore `pr^* η + d (K η)`.
-When `η` is a two-form, `K η` has no component along the interval, so it is the restriction to
+Since `K η` has no component along the interval, it is the restriction to
 `M × [a, b]` of its time extension to `M × ℝ` (`TauCeti.SmoothForm.timeExtendIcc`,
 `SymplecticGeometry.mpullback_prodMap_subtypeVal_timeExtendIcc_prodIccHomotopyOperator`).
 Replacing `K η` by its time extension gives a form on `M × ℝ`
 (`SymplecticGeometry.prodIccExtension`), closed when `η` is
 (`SymplecticGeometry.isClosed_prodIccExtension`), that commutes with pull-back along `f × id`
-(`SymplecticGeometry.mpullback_prodMap_prodIccExtension`) and, for a closed two-form `η`,
-restricts to `η` on `M × [a, b]`
-(`SymplecticGeometry.mpullback_prodMap_subtypeVal_prodIccExtension`).
+(`SymplecticGeometry.mpullback_prodMap_prodIccExtension`) and, for a closed `η`, restricts to `η`
+on `M × [a, b]` (`SymplecticGeometry.mpullback_prodMap_subtypeVal_prodIccExtension`).
 
 ## References
 
@@ -206,43 +207,49 @@ theorem mpullback_prodMap_prodIccHomotopyOperator [CompleteSpace F] {E' H' N : T
     SmoothForm.mpullback_mpullback]
   simp only [prodIccContraction_comp_prodMap]
 
-/-- The value of `K η` on a tangent vector `w`, for a two-form `η`: the integral over the unit
-interval of `η` at `c (x, u)` on the images under the derivative of the contraction of the unit
-time vector and of `w`. -/
+/-- The value of `K η` on tangent vectors `w₁, …, w_k`, for a `(k + 1)`-form `η`: the integral
+over the unit interval of `η` at `c (x, u)` on the images under the derivative of the
+contraction of the unit time vector and of the vectors `(wᵢ, 0)`. -/
 theorem prodIccHomotopyOperator_apply_apply [CompleteSpace F]
-    (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F 2) (x : M × Icc a b)
-    (w : TangentSpace (I.prod (𝓡∂ 1)) x) :
-    (prodIccHomotopyOperator I M a b F 1 η).val x ![w] = ∫ r in (0 : ℝ)..1,
+    (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F (k + 1)) (x : M × Icc a b)
+    (w : Fin k → TangentSpace (I.prod (𝓡∂ 1)) x) :
+    (prodIccHomotopyOperator I M a b F k η).val x w = ∫ r in (0 : ℝ)..1,
       η.val (prodIccContraction M a b (x, projIcc 0 1 zero_le_one r))
-        ![mfderiv ((I.prod (𝓡∂ 1)).prod (𝓡∂ 1)) (I.prod (𝓡∂ 1))
+        (Matrix.vecCons (mfderiv ((I.prod (𝓡∂ 1)).prod (𝓡∂ 1)) (I.prod (𝓡∂ 1))
             (prodIccContraction M a b) (x, projIcc 0 1 zero_le_one r)
             ((0 : TangentSpace (I.prod (𝓡∂ 1)) x),
-              (1 : TangentSpace (𝓡∂ 1) (projIcc 0 1 zero_le_one r))),
-          mfderiv ((I.prod (𝓡∂ 1)).prod (𝓡∂ 1)) (I.prod (𝓡∂ 1))
+              (1 : TangentSpace (𝓡∂ 1) (projIcc 0 1 zero_le_one r))))
+          fun i ↦ mfderiv ((I.prod (𝓡∂ 1)).prod (𝓡∂ 1)) (I.prod (𝓡∂ 1))
             (prodIccContraction M a b) (x, projIcc 0 1 zero_le_one r)
-            (w, (0 : EuclideanSpace ℝ (Fin 1)))] := by
+            (w i, (0 : EuclideanSpace ℝ (Fin 1)))) := by
   rw [prodIccHomotopyOperator_apply, SmoothForm.coe_homotopyOperator]
   refine (homotopyOperator_apply_apply ((SmoothForm.mpullback (prodIccContraction M a b)
-    (contMDiff_prodIccContraction I M a b) η).isSmoothForm.of_le (by simp)) x ![w]).trans ?_
+    (contMDiff_prodIccContraction I M a b) η).isSmoothForm.of_le (by simp)) x w).trans ?_
   refine intervalIntegral.integral_congr fun r _ ↦ ?_
   rw [SmoothForm.mpullback_apply]
   congr 1
   funext i
-  fin_cases i <;> rfl
+  exact Fin.cases rfl (fun _ ↦ rfl) i
 
-/-- **`K η` has no component along the interval.** For a two-form `η` on `M × [a, b]`, the
-one-form `K η` vanishes on every vector `(0, v)` tangent to `[a, b]`. -/
-theorem prodIccHomotopyOperator_apply_inr [CompleteSpace F]
-    (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F 2) (x : M × Icc a b)
-    (v : TangentSpace (𝓡∂ 1) x.2) :
-    (prodIccHomotopyOperator I M a b F 1 η).val x ![((0 : TangentSpace I x.1), v)] = 0 := by
-  refine (prodIccHomotopyOperator_apply_apply η x _).trans ?_
+/-- **`K η` has no component along the interval.** For a `(k + 1)`-form `η` on `M × [a, b]`,
+the `k`-form `K η` vanishes on every family of tangent vectors one of which has zero component
+along `M`. This is the hypothesis of `TauCeti.SmoothForm.mpullback_prodMap_subtypeVal_timeExtendIcc`
+for `K η`. -/
+theorem prodIccHomotopyOperator_apply_eq_zero [CompleteSpace F]
+    (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F (k + 1)) (x : M × Icc a b)
+    (v : Fin k → TangentSpace (I.prod (𝓡∂ 1)) x) (i : Fin k)
+    (hv : (Manifold.tangentSpaceProdEquiv x (v i)).1 = 0) :
+    (prodIccHomotopyOperator I M a b F k η).val x v = 0 := by
+  rw [Manifold.tangentSpaceProdEquiv_apply] at hv
+  refine (prodIccHomotopyOperator_apply_apply η x v).trans ?_
   refine (intervalIntegral.integral_congr (g := fun _ ↦ (0 : F)) fun r _ ↦ ?_).trans
     intervalIntegral.integral_zero
   dsimp only
   generalize projIcc 0 1 zero_le_one r = u
-  obtain ⟨s, hs⟩ : ∃ s : ℝ, mfderiv (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : Icc a b → ℝ) x.2 v = s := ⟨_, rfl⟩
-  -- both images are multiples of the unit vector `e` along `[a, b]`
+  obtain ⟨s, hs⟩ : ∃ s : ℝ,
+      mfderiv (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : Icc a b → ℝ) x.2 (v i).2 = s := ⟨_, rfl⟩
+  -- both the image of the unit time vector and that of `v i` are multiples of the unit vector
+  -- `e` along `[a, b]`
   set e : TangentSpace (I.prod (𝓡∂ 1)) (prodIccContraction M a b (x, u)) :=
     ((0 : TangentSpace I x.1), (1 : TangentSpace (𝓡∂ 1) (prodIccContraction M a b (x, u)).2))
   have he : ∀ c : ℝ, ((0 : TangentSpace I x.1),
@@ -256,32 +263,14 @@ theorem prodIccHomotopyOperator_apply_inr [CompleteSpace F]
     -- `0 : TangentSpace (I.prod (𝓡∂ 1)) x` is the pair of zeros, by definition
     exact h
   have h₂ : mfderiv ((I.prod (𝓡∂ 1)).prod (𝓡∂ 1)) (I.prod (𝓡∂ 1)) (prodIccContraction M a b)
-      (x, u) (((0 : TangentSpace I x.1), v), (0 : EuclideanSpace ℝ (Fin 1))) =
+      (x, u) (v i, (0 : EuclideanSpace ℝ (Fin 1))) =
       ((u : ℝ) * s + ((x.2 : ℝ) - a) * 0) • e := by
     have h := mfderiv_prodIccContraction (x, u) (0 : TangentSpace I x.1) s 0
     rw [zero_smul, ← eq_smul_one_of_mfderiv_subtypeVal_Icc hs, he] at h
+    rw [show v i = ((0 : TangentSpace I x.1), (v i).2) from Prod.ext hv rfl]
     -- the model space of the tangent spaces of the unit interval is `EuclideanSpace ℝ (Fin 1)`
     exact h
-  rw [h₁, h₂, ContinuousAlternatingMap.vecCons_smul,
-    ContinuousAlternatingMap.apply_vecCons_swap, ContinuousAlternatingMap.vecCons_smul,
-    (η.val (prodIccContraction M a b (x, u))).map_eq_zero_of_eq ![e, e] (i := 0) (j := 1) rfl
-      zero_ne_one, smul_zero, neg_zero, smul_zero]
-
-/-- `K η`, for a two-form `η` on `M × [a, b]`, vanishes on every tangent vector whose component
-along `M` is zero. This is `SymplecticGeometry.prodIccHomotopyOperator_apply_inr` in the form of
-the hypothesis of `TauCeti.SmoothForm.mpullback_prodMap_subtypeVal_timeExtendIcc`. -/
-theorem prodIccHomotopyOperator_apply_eq_zero [CompleteSpace F]
-    (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F 2) (x : M × Icc a b)
-    (v : Fin 1 → TangentSpace (I.prod (𝓡∂ 1)) x) (i : Fin 1)
-    (hv : (Manifold.tangentSpaceProdEquiv x (v i)).1 = 0) :
-    (prodIccHomotopyOperator I M a b F 1 η).val x v = 0 := by
-  rw [Manifold.tangentSpaceProdEquiv_apply, Subsingleton.elim i 0] at hv
-  have h : v = ![((0 : TangentSpace I x.1), (v 0).2)] := by
-    funext j
-    rw [Subsingleton.elim j 0, Matrix.cons_val_zero]
-    exact Prod.ext hv rfl
-  rw [h]
-  exact prodIccHomotopyOperator_apply_inr η x _
+  exact (η.val _).map_eq_zero_of_eq_smul (i := 0) (j := i.succ) (Fin.succ_ne_zero i).symm h₁ h₂
 
 end Homotopy
 
@@ -298,7 +287,7 @@ sends a `(k + 1)`-form `η` on `M × Icc a b` to `pr^* ι_a^* η + d (ext (K η)
 `pr^* ι_a^*` is the pull-back along `(x, t) ↦ (x, a)`, `K` is
 `SymplecticGeometry.prodIccHomotopyOperator` and `ext` is the time extension
 `TauCeti.SmoothForm.timeExtendIcc`. When `η` is closed, this form is closed
-(`SymplecticGeometry.isClosed_prodIccExtension`), and for a closed two-form `η` it restricts to
+(`SymplecticGeometry.isClosed_prodIccExtension`), and for a closed `η` it restricts to
 `η` on `M × [a, b]` (`SymplecticGeometry.mpullback_prodMap_subtypeVal_prodIccExtension`). -/
 def prodIccExtension :
     SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F (k + 1) →ₗ[ℝ]
@@ -340,22 +329,22 @@ theorem mpullback_prodMap_prodIccExtension [CompleteSpace F] {E' H' N : Type*}
     (contMDiff_fst.prodMk contMDiff_const) (contMDiff_fst.prodMk contMDiff_const)
     (hf.prodMap contMDiff_id) (funext fun _ ↦ rfl) η
 
-/-- The extension of `K η` to `M × ℝ`, for a two-form `η` on `M × [a, b]`, restricts to `K η` on
-`M × [a, b]`: `K η` has no component along the interval. -/
+/-- The extension of `K η` to `M × ℝ`, for a `(k + 1)`-form `η` on `M × [a, b]`, restricts to `K η`
+on `M × [a, b]`: `K η` has no component along the interval. -/
 theorem mpullback_prodMap_subtypeVal_timeExtendIcc_prodIccHomotopyOperator [CompleteSpace F]
-    (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F 2) :
+    (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F (k + 1)) :
     SmoothForm.mpullback (Prod.map id Subtype.val) (contMDiff_id.prodMap contMDiff_subtypeVal_Icc)
-        (SmoothForm.timeExtendIcc (prodIccHomotopyOperator I M a b F 1 η)) =
-      prodIccHomotopyOperator I M a b F 1 η :=
+        (SmoothForm.timeExtendIcc (prodIccHomotopyOperator I M a b F k η)) =
+      prodIccHomotopyOperator I M a b F k η :=
   SmoothForm.mpullback_prodMap_subtypeVal_timeExtendIcc _
     (prodIccHomotopyOperator_apply_eq_zero η)
 
-/-- **Restriction of the extension.** The extension to `M × ℝ` of a closed two-form `η` on
+/-- **Restriction of the extension.** The extension to `M × ℝ` of a closed form `η` on
 `M × [a, b]` restricts to `η` on `M × [a, b]`. -/
 theorem mpullback_prodMap_subtypeVal_prodIccExtension [CompleteSpace F]
-    {η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F 2} (hη : η.IsClosed) :
+    {η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F (k + 1)} (hη : η.IsClosed) :
     SmoothForm.mpullback (Prod.map id Subtype.val) (contMDiff_id.prodMap contMDiff_subtypeVal_Icc)
-        (prodIccExtension I M a b F 1 η) = η := by
+        (prodIccExtension I M a b F k η) = η := by
   rw [prodIccExtension_apply, map_add, ← SmoothForm.mextDerivₗ_mpullback,
     mpullback_prodMap_subtypeVal_timeExtendIcc_prodIccHomotopyOperator,
     mextDerivₗ_prodIccHomotopyOperator ((SmoothForm.isClosed_iff_mextDerivₗ_eq_zero _).mp hη),
