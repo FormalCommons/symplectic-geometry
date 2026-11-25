@@ -2486,34 +2486,21 @@ complete target and a function on the whole half-space.
 
 - **Files:** `Geometry/Manifold/Complex/Isothermal.lean` (named like Tau
   Ceti's file: every smooth almost complex structure on a surface modelled
-  on `𝓘(ℝ, ℂ)` has smooth isothermal charts, from Tau Ceti's planar
-  `TauCeti.Beltrami.exists_isothermal_chart_of_contDiffAt` read through the
-  charts of the surface and made smooth by
-  `TauCeti.Beltrami.contDiffOn_infty_of_fderiv_comp` with the regularity
-  below; hence every almost
+  on `𝓘(ℝ, ℂ)` has smooth isothermal charts, from Tau Ceti's smooth planar
+  `TauCeti.Beltrami.exists_centered_smooth_isothermal_chart` read through the
+  charts of the surface; hence every almost
   complex structure on a boundaryless manifold of real dimension two, over any
   two-dimensional model, is `IsIntegrable`; and isothermal coordinates for
   a Riemannian metric on an oriented surface, through the structure of
   rotation by a right angle that the metric and the orientation give,
   Mathlib's `Orientation.rightAngleRotation` fibrewise); and, in
-  `Analysis/Complex/Beltrami/` beside Tau Ceti's files, the regularity of
-  planar isothermal charts.
-- **Missing work: regularity.** Tau Ceti's planar charts are only $C^1$,
-  with Hölder derivative, and
-  `TauCeti.Beltrami.contDiffOn_infty_of_fderiv_comp` does not produce
-  smoother ones: it assumes that around each point there is, for every
-  $m$, an isothermal chart of class $C^m$, and concludes that a given chart
-  is smooth. `IsIntegrable` asks for smooth charts, so this part proves
-  that assumption: for a smooth tame $J$ on the plane and every $m$, each
-  point has an isothermal chart of class $C^m$. One way is to run Tau
-  Ceti's contraction $h=\mu(1+Bh)$ (`Beltrami/Holder.lean`) in the space
-  of $C^{k,\alpha}$ functions supported in the disc, since the Beurling
-  operator $B$ commutes with derivatives of compactly supported functions
-  and the rescaling of `Beltrami/Isothermal.lean` makes the higher Hölder
-  norms of the coefficient small too; another is Tau Ceti's interior
-  elliptic regularity (`Analysis/Pseudodifferential/InteriorRegularity.lean`)
-  applied to a chart. The design file chooses the route and splits the
-  step into issues.
+  `Analysis/Complex/Beltrami/` beside Tau Ceti's files, planar charts of
+  class $C^{k+1}$ for a small $C^{k,\alpha}$ coefficient.
+- **Regularity.** Tau Ceti's `Beltrami/Isothermal.lean` gives planar
+  isothermal charts of every finite order and smooth ones
+  (`TauCeti.Beltrami.exists_isothermal_chart_finite_order`,
+  `TauCeti.Beltrami.exists_centered_smooth_isothermal_chart`), so the
+  surface charts need no planar regularity from the part.
 - **Builds on:** *Nijenhuis tensor* (only `Integrable.lean`); Tau Ceti's
   Beltrami files.
 - **Milestones:** *Integrability of almost complex structures on surfaces*.
@@ -3081,8 +3068,9 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
   criteria); the Łojasiewicz inequality's files are those of
   `design/kahler-stability.md`.
 - **Builds on:** Tau Ceti (`TauCeti.SmoothTwoForm.IsKahler`, invariant inner
-  products `TauCeti.Lie.exists_isSymm_bilinForm_Ad_invariant`, limits of
-  gradient trajectories `tendsto_maximalIntegralCurve_neg_mgradient_of_mapClusterPt`).
+  products
+  `TauCeti.Lie.exists_isSymm_posDef_continuousBilinearMap_adjoint_invariant`,
+  limits of gradient trajectories `tendsto_maximalIntegralCurve_neg_mgradient_of_mapClusterPt`).
 - **Milestones:** *Kempf–Ness correspondence*, *Hilbert–Mumford numerical
   criteria*.
 - **The design file decides:** how $G^{\mathbb C}$ and its action are
@@ -3675,7 +3663,7 @@ manifolds and characteristic classes*).
 | *Levi-Civita derivative of a compatible almost complex structure* | *Almost Kähler geometry*. Existing inputs: Mathlib's `CovariantDerivative.leviCivitaConnection`, Tau Ceti's `CovariantDerivative.hom` and `TauCeti.SmoothForm.mextDeriv_apply_two`. |
 | *Nijenhuis tensor* | *Nijenhuis tensor*. Existing parts: `TauCeti.SmoothAlmostComplexStructure.nijenhuis`, `nijenhuis_apply`, `nijenhuis_antisymm`, `nijenhuis_self`, `nijenhuis_apply_left`, `nijenhuis_apply_right`, `nijenhuis_eq_zero_of_finrank_eq_two`, `nijenhuis_const`, `isInvolutiveComplexDistribution_eigenspace_I_iff`. |
 | *Parallel almost complex structures and the Kähler condition* | *Almost Kähler geometry*, with $N_J=0$ in condition 2, as the page asks. |
-| *Integrability of almost complex structures on surfaces* | *Isothermal coordinates*. Existing inputs: `TauCeti.Beltrami.exists_isothermal_chart_of_contDiffAt` ($C^1$ charts only), `TauCeti.Beltrami.contDiffOn_infty_of_fderiv_comp` (which assumes $C^m$ charts for every $m$). Missing: isothermal charts of class $C^m$ for smooth $J$, built by the part. |
+| *Integrability of almost complex structures on surfaces* | *Isothermal coordinates*. Existing inputs: `TauCeti.Beltrami.exists_isothermal_chart_finite_order` (planar charts of class $C^{k+1}$), `TauCeti.Beltrami.exists_centered_smooth_isothermal_chart` (smooth planar charts with smooth inverse). Missing: those charts read through the charts of a surface, `IsIntegrable` in real dimension two, and isothermal coordinates, built by the part. |
 | *Fubini–Study form on complex projective space* | *Complex projective space*. Existing inputs: Tau Ceti's complex manifold `ℙ ℂ (Fin (n + 1) → ℂ)`, `TauCeti.SmoothTwoForm.existsUnique_isSymplectic_mpullback_eq`, `OnePoint.fubiniStudyForm`. |
 | *Complex submanifolds of Kähler manifolds* | *Complex submanifolds*; its last sentence *Complex projective space*. Existing input: the linear `TauCeti.SymplecticForm.Compatible.restrict`. |
 | *Kähler structure on the space of compatible linear complex structures* | *Space of compatible complex structures*. Existing inputs: `TauCeti.SymplecticForm.compatibleTangentSpace`, `TauCeti.SymplecticForm.Compatible.compatibleCayleyEquiv`, and the bijection with $\mathcal S_n$ of *Siegel upper half space*. |
@@ -3845,19 +3833,14 @@ classification of 2-sphere bundles waits for them.
 - **Surfaces.** For *Integrability of almost complex structures on
   surfaces* the page prefers the route through local existence of
   $J$-holomorphic discs. The library takes the Beltrami route instead.
-  Tau Ceti has the $C^1$ half of both routes
-  (`TauCeti.Beltrami.exists_isothermal_chart_of_contDiffAt` for charts,
-  `TauCeti.exists_fderiv_one_add_apply_fderiv_I_eq_zero_of_contDiffAt` for
-  discs), and both need a separate regularity step for smooth $J$. The
-  Beltrami route gives the charts directly, Tau Ceti reduces their
-  smoothness to charts of each finite order
-  (`TauCeti.Beltrami.contDiffOn_infty_of_fderiv_comp`), and its
-  `IsothermalSurface` takes the charts from there; the disc route would
-  still have to build a chart from a family of discs and prove that family
-  smooth. What remains is the finite-order regularity, which *Isothermal
-  coordinates* builds, and reading the planar charts through the charts of
-  a surface. Local existence of $J$-holomorphic discs stays available for
-  the later theory of curves.
+  Tau Ceti now gives smooth planar isothermal charts, with smooth inverse
+  (`TauCeti.Beltrami.exists_centered_smooth_isothermal_chart`), while for
+  discs it has the $C^1$ step
+  (`TauCeti.exists_fderiv_one_add_apply_fderiv_I_eq_zero_of_contDiffAt`);
+  the disc route would still have to build a chart from a family of discs
+  and prove that family smooth. *Isothermal coordinates* only reads Tau
+  Ceti's planar charts through the charts of a surface. Local existence of
+  $J$-holomorphic discs stays available for the later theory of curves.
 - **Kähler.** The library's Kähler pairs are Tau Ceti's `IsKahler`, with
   $N_J=0$ in place of integrability, and the book's integrability is the
   separate predicate `IsIntegrable` (see *Almost complex structures, Kähler

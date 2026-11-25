@@ -13,7 +13,7 @@ import SymplecticGeometry.Geometry.Symplectic.Flux.Countable
 /-!
 # Smooth paths of Hamiltonian diffeomorphisms
 
-Let `σ` be a closed two-form on a closed connected manifold `M`. This file shows that a
+Let `σ` be a closed two-form on a closed manifold `M`. This file shows that a
 diffeotopy `φ_t` all of whose maps are Hamiltonian diffeomorphisms of `σ` is a Hamiltonian
 diffeotopy (McDuff–Salamon, Proposition 10.2.12).
 
@@ -30,8 +30,7 @@ at `T = 0`. A continuous function on `[0, 1]` with countably many values is cons
 truncation has zero flux, and `φ_t` is Hamiltonian by
 `TauCeti.Diffeotopy.isHamiltonian_of_forall_flux_truncate_eq_zero`.
 
-Nondegeneracy of `σ` is not used. Connectedness of `M` enters through the countability of the
-periods of `Γ_σ`.
+Nondegeneracy of `σ` is not used, and neither is connectedness of `M`.
 
 ## Main results
 
@@ -56,10 +55,10 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensi
   [TopologicalSpace M] [ChartedSpace H M] [IsManifold J ∞ M] [T2Space M]
 
 /-- **Smooth paths of Hamiltonian diffeomorphisms are Hamiltonian.** Let `σ` be a closed two-form
-on a closed connected manifold. A diffeotopy `φ_t` such that every `φ_t` is a Hamiltonian
+on a closed manifold. A diffeotopy `φ_t` such that every `φ_t` is a Hamiltonian
 diffeomorphism of `σ` is a Hamiltonian diffeotopy of `σ`. -/
 theorem isHamiltonian_of_forall_timeSlice_mem_hamiltonianGroup [CompactSpace M]
-    [ConnectedSpace M] {σ : closedForms J M 2} {Φ : Diffeotopy J ∞ M}
+    {σ : closedForms J M 2} {Φ : Diffeotopy J ∞ M}
     (h : ∀ t, Φ.timeSlice t ∈ SmoothForm.hamiltonianGroup σ.val) :
     Φ.IsHamiltonian σ.val := by
   have hΦ (t : unitInterval) : Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ.val :=

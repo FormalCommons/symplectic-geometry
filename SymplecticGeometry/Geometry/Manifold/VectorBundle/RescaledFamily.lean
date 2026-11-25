@@ -303,8 +303,7 @@ theorem vectorBundleRescaledFamily_zero_eq_mfderiv [IB.Boundaryless] [T2Space B]
   have hxs : x ∈ (extChartAt IB x).source := mem_extChartAt_source x
   -- `ψ` extended by the identity outside `U`
   set ψ' : TotalSpace F V → TotalSpace F V := Subtype.val.extend ψ id
-  have hψψ' : ψ = ψ' ∘ Subtype.val :=
-    funext fun z ↦ (Subtype.val_injective.extend_apply _ _ _).symm
+  have hψψ' : ψ = ψ' ∘ Subtype.val := (Function.extend_comp Subtype.val_injective ψ id).symm
   have hψ' : MDifferentiableAt (IB.prod 𝓘(ℝ, F)) (IB.prod 𝓘(ℝ, F)) ψ' (zeroSection F V x) := by
     rw [hψψ'] at hψ
     exact Manifold.mdifferentiableAt_comp_subtype_val_iff.1 hψ

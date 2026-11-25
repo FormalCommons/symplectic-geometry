@@ -11,6 +11,7 @@ public import Mathlib.MeasureTheory.Integral.Bochner.Basic
 public import Mathlib.MeasureTheory.Function.LpSeminorm.Basic
 import Mathlib.Analysis.Calculus.FDeriv.CompCLM
 import Mathlib.MeasureTheory.Function.LocallyIntegrable
+import SymplecticGeometry.Analysis.Calculus.ContDiff.Comp
 import SymplecticGeometry.MeasureTheory.Function.LpSeminorm.TriangleInequality
 import TauCeti.Analysis.Calculus.LineDeriv.IntegrationByParts
 import TauCeti.Analysis.Calculus.SecondDerivative
@@ -217,8 +218,7 @@ theorem integral_apply_eq_integral_transpose_apply {ι : Type*} [Fintype ι] (hU
       fderiv ℝ (fun z ↦ fderiv ℝ a z u) y u' = 0 := by
     simp [fderiv_of_notMem_tsupport ℝ fun h ↦ hy (tsupport_fderiv_apply_subset ℝ u h)]
   have hdda (u u' : E) : Continuous fun y ↦ fderiv ℝ (fun z ↦ fderiv ℝ a z u) y u' :=
-    (((ha.fderiv_right (m := 1) (by norm_num)).clm_apply contDiff_const).continuous_fderiv
-      one_ne_zero).clm_apply continuous_const
+    (ha.fderiv_apply_const (m := 1) (by norm_num) _).continuous_fderiv_apply_const one_ne_zero _
   have hAw (i j : ι) : ContDiffOn ℝ 2 (fun y ↦ A i j y • w y) U := (hA i j).smul hw
   -- Split `w (P a)` into its terms, and transpose each of them.
   rw [integral_congr_ae (g := fun y ↦ ∑ i, ∑ j, w y (A i j y • fderiv ℝ (fun z ↦ fderiv ℝ a z
@@ -230,7 +230,7 @@ theorem integral_apply_eq_integral_transpose_apply {ι : Type*} [Fintype ι] (hU
     (fun i j ↦ int _ (hw.continuousOn.clm_apply ((hA i j).continuousOn.smul
       (hdda _ _).continuousOn)) fun y hy ↦ by simp [h2 y hy])
     (fun i ↦ int _ (hw.continuousOn.clm_apply ((hB i).continuousOn.clm_apply
-      ((ha.continuous_fderiv two_ne_zero).clm_apply continuous_const).continuousOn))
+      (ha.continuous_fderiv_apply_const two_ne_zero _).continuousOn))
       fun y hy ↦ by simp [h1 y hy])
     (int _ (hw.continuousOn.clm_apply (hC.clm_apply ha.continuous.continuousOn))
       fun y hy ↦ by simp [h0 y hy])]
@@ -386,7 +386,7 @@ private theorem integral_mul_apply_eq_integral_sum_sum_neg_comp_add {ι : Type*}
   have hBt (i j : ι) : ContDiffOn ℝ 1 (Bt i j) U := (hA i j).smul contDiffOn_const
   set g : ι → E → F := fun i y ↦ fderiv ℝ a y (v i)
   have hg (i : ι) : ContDiff ℝ 1 (g i) :=
-    (ha.fderiv_right (m := 1) (by norm_num)).clm_apply contDiff_const
+    ha.fderiv_apply_const (by norm_num) _
   have hgU (i : ι) : tsupport (g i) ⊆ U := (tsupport_fderiv_apply_subset ℝ (v i)).trans haU
   have h0 (y : E) (hy : y ∉ tsupport a) : a y = 0 := image_eq_zero_of_notMem_tsupport hy
   have h1 (y : E) (hy : y ∉ tsupport a) (i : ι) : g i y = 0 := by
@@ -415,7 +415,7 @@ private theorem integral_mul_apply_eq_integral_sum_sum_neg_comp_add {ι : Type*}
     (fun i y ↦ w y (B i y (g i y))) (fun y ↦ w y (C y (a y)))
     (fun i j ↦ integrable_of_continuousOn_of_eq_zero hac haU (hw.continuousOn.clm_apply
       ((hBt i j).continuousOn.clm_apply
-        (((hg i).continuous_fderiv one_ne_zero).clm_apply continuous_const).continuousOn))
+        ((hg i).continuous_fderiv_apply_const one_ne_zero _).continuousOn))
       fun y hy ↦ by simp [w, h0 y hy]) hT₁ hT₀]
   simp only [integral_apply_apply_fderiv_eq_integral_neg_apply (μ := μ) hU (hBt _ _) hw (hg _)
     (hac.fderiv_apply (𝕜 := ℝ) _) (hgU _)]
@@ -460,7 +460,7 @@ private theorem exists_abs_integral_mul_apply_le {ι : Type*} [Fintype ι] (hU :
   rw [integral_mul_apply_eq_integral_sum_sum_neg_comp_add hU v hA hB hC hφ ℓ ha hac haU]
   set g : ι → E → F := fun i y ↦ fderiv ℝ a y (v i)
   have hg (i : ι) : ContDiff ℝ 1 (g i) :=
-    (ha.fderiv_right (m := 1) (by norm_num)).clm_apply contDiff_const
+    ha.fderiv_apply_const (by norm_num) _
   have h0 (y : E) (hy : y ∉ tsupport a) : a y = 0 := image_eq_zero_of_notMem_tsupport hy
   have h1 (y : E) (hy : y ∉ tsupport a) (i : ι) : g i y = 0 := by
     simp [g, fderiv_of_notMem_tsupport ℝ hy]
@@ -524,11 +524,10 @@ theorem exists_abs_integral_sum_mul_apply_le {ι κ : Type*} [Fintype ι] [Finty
   have hPa : ContinuousOn (fun y ↦ ∑ i, ∑ j, A i j y • fderiv ℝ (fun z ↦ fderiv ℝ a z (v i)) y
       (v j) + ∑ i, B i y (fderiv ℝ a y (v i)) + C y (a y)) U :=
     ((continuousOn_finsetSum _ fun i _ ↦ continuousOn_finsetSum _ fun j _ ↦
-      (hA i j).continuousOn.smul ((((ha.fderiv_right (m := 1) (by norm_num)).clm_apply
-        contDiff_const).continuous_fderiv one_ne_zero).clm_apply
-          continuous_const).continuousOn).add
+      (hA i j).continuousOn.smul ((ha.fderiv_apply_const (m := 1) (by norm_num)
+        _).continuous_fderiv_apply_const one_ne_zero _).continuousOn).add
       (continuousOn_finsetSum _ fun i _ ↦ (hB i).clm_apply
-        ((ha.continuous_fderiv two_ne_zero).clm_apply continuous_const).continuousOn)).add
+        (ha.continuous_fderiv_apply_const two_ne_zero _).continuousOn)).add
       (hC.clm_apply ha.continuous.continuousOn)
   have hint (q : κ) : Integrable (fun y ↦ ℓ q (a y) * φ q y
       (∑ i, ∑ j, A i j y • fderiv ℝ (fun z ↦ fderiv ℝ a z (v i)) y (v j) +

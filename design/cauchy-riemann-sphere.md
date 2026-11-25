@@ -377,14 +377,14 @@ lines.
   on `V` (`ContMDiffCovariantDerivativeOn F ∞ cov univ`), a continuous linear
   map `SobolevSection A μ p (k + 1) →L[ℝ] SobolevSection A.tangentHom μ p k`,
   whose chart data are $du_i+\Gamma_iu_i$, with $du_i$ from the weak
-  derivative (`SectionChartData.chartDerivL`) and $\Gamma_i$ the chart
+  derivative (`SectionChartData.chartDerivDataL`) and $\Gamma_i$ the chart
   reading of `cov` on the frame of chart `i`. It adapts the proof of
   `TauCeti.IsRealCauchyRiemannOperator.sobolevL`
   (`Sobolev/CauchyRiemann.lean`) from the antilinear part of the derivative
   to the whole derivative and from order one to every order, and its module
   docstring says so.
 - `IsCovariantDerivativeOn.chartValueL_sobolevL_ae`, and
-  `IsCovariantDerivativeOn.sobolevL_ofContMDiffSection`: on smooth sections
+  `IsCovariantDerivativeOn.chartValueL_sobolevL_ofContMDiffSection_ae`: on smooth sections
   it is `cov`.
 
 About 350 lines.

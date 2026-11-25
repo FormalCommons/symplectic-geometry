@@ -11,9 +11,8 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Regularity
 public import Mathlib.LinearAlgebra.Complex.Orientation
 import SymplecticGeometry.Analysis.Calculus.Deriv.EventuallyConst
 import TauCeti.Analysis.InnerProductSpace.NormPow
-import Mathlib.MeasureTheory.Constructions.HaarToSphere
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
-import Mathlib.MeasureTheory.Measure.Lebesgue.VolumeOfBalls
+import TauCeti.MeasureTheory.Integral.PolarCoord
 import TauCeti.MeasureTheory.Measure.Haar.OfBasis
 import TauCeti.Topology.Algebra.Support
 
@@ -32,8 +31,8 @@ These forms are the local models of the curvature of a connection on a circle bu
 outside a disc: in polar coordinates `β(r) dθ` interpolates between the zero form near the centre
 and the angular form near the boundary circle.
 
-The integral is computed in polar form through Mathlib's `integral_fun_norm_addHaar`: on `ℂ`, the
-integral of `f(‖z‖)` is `2π ∫₀^∞ f(r) r dr`.
+The integral is computed in polar form through Tau Ceti's `TauCeti.integral_fun_norm_complex`:
+on `ℂ`, the integral of `f(‖z‖)` is `2π ∫₀^∞ f(r) r dr`.
 
 The standard orientation is `TauCeti.Manifold.Orientation.complex`, the constant orientation
 given by `Complex.orientation`. It is the orientation of `ℂ` as a complex manifold, but Tau
@@ -246,12 +245,12 @@ theorem integralTopForm_mextDeriv_radialAngularForm (hβ : ContDiff ℝ 1 β) (h
       Complex.basisOneI rfl,
     Complex.addHaar_basisOneI]
   simp only [mextDeriv_radialAngularForm_basisOneI hβd ha hβa]
-  rw [integral_fun_norm_addHaar volume (fun t ↦ deriv β t / t)]
+  rw [TauCeti.integral_fun_norm_complex (fun t ↦ deriv β t / t)]
   -- Polar form: `∫_ℂ f(‖z‖) = 2 π ∫₀^∞ f(r) r dr`, and here `f(r) r = β'(r)`.
-  have hpolar : ∫ t in Ioi (0 : ℝ), t ^ (Module.finrank ℝ ℂ - 1) • (deriv β t / t) =
+  have hpolar : ∫ t in Ioi (0 : ℝ), t • (deriv β t / t) =
       ∫ t in Ioi (0 : ℝ), deriv β t := by
     refine setIntegral_congr_fun measurableSet_Ioi fun t (ht : 0 < t) ↦ ?_
-    simp only [Complex.finrank_real_complex, Nat.add_one_sub_one, pow_one, smul_eq_mul]
+    rw [smul_eq_mul]
     field_simp
   have hderiv : ∫ t in Ioi (0 : ℝ), deriv β t = 1 := by
     rw [setIntegral_eq_of_subset_of_forall_sdiff_eq_zero measurableSet_Ioi
@@ -261,8 +260,7 @@ theorem integralTopForm_mextDeriv_radialAngularForm (hβ : ContDiff ℝ 1 β) (h
       intervalIntegral.integral_deriv_eq_sub (fun t _ ↦ hβd t)
         ((hβ.continuous_deriv (by simp)).intervalIntegrable _ _),
       hβb b le_rfl, hβa 0 ha.le, sub_zero]
-  rw [hpolar, hderiv, Complex.finrank_real_complex, measureReal_def, Complex.volume_ball]
-  simp
+  rw [hpolar, hderiv, smul_eq_mul, mul_one]
 
 end SymplecticGeometry
 

@@ -40,9 +40,9 @@ writes these classes, and the Thom classes they come from, with chain coefficien
 values `ULift ℤ` and the structure `CategoryTheory.Linear.preadditiveIntLinear` of `ModuleCat ℤ`,
 while its Thom map takes chain coefficients and values `ℤ` and the structure
 `ModuleCat.instLinear`. The changes of coefficients of `ChangeOfCoefficients.lean` carry the Thom
-class to one with coefficients `ℤ` and its Euler class along, and
-`TopCat.integralCohomologyLinearEquiv` and `TopCat.uliftIntegralCohomologyIso` carry the result
-to `TopCat.integralCohomology`.
+class to one with coefficients `ℤ` and its Euler class along, and the inverse of Tau Ceti's
+`TopCat.integralCohomologyEquiv` and `TopCat.uliftIntegralCohomologyIso` carry the result to
+`TopCat.integralCohomology`.
 
 ## Main results
 
@@ -158,7 +158,7 @@ theorem bijective_integralCup_eulerClass [CompactSpace B] {d p l m : ℕ}
       integralCoeffIso.symm).singularCohomologyLinearCongr (L₂ := ModuleCat.instLinear)
     (Subsingleton.elim _ _)
   have hzero (n : ℕ) (hn : IsZero ((thomPair F E).snd.integralCohomology n)) :=
-    hn.of_iso ((thomPair F E).snd.integralCohomologyLinearEquiv n).toModuleIso
+    hn.of_iso (((thomPair F E).snd.integralCohomologyEquiv n).symm).toModuleIso
   have hbij := bijective_singularCup_eulerClass (M := 𝟙_ (ModuleCat.{0} ℤ)) hl h _
     (bijective_thomMap_of_compactSpace _ p m h hU') (hzero l hEl) (hzero m hEm)
   rw [← unitors_equal] at hbij
@@ -167,12 +167,12 @@ theorem bijective_integralCup_eulerClass [CompactSpace B] {d p l m : ℕ}
     (ModuleCat.of ℤ ℤ) integralCoeffIso.symm.hom (finrank ℝ F)
   have h₂ := eulerClass_comp_singularCohomologyValueMap_apply (F := F) (E := E)
     (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ uliftIntIso.hom (finrank ℝ F)
-  rw [← LinearEquiv.apply_symm_apply ((TopCat.of B).integralCohomologyLinearEquiv _)
+  rw [← LinearEquiv.symm_apply_apply ((TopCat.of B).integralCohomologyEquiv _)
       ((TopCat.uliftIntegralCohomologyIso _ _).hom (eulerClass _ ℤ _ F E _ U)),
-    TopCat.integralCohomologyLinearEquiv_symm_apply, TopCat.uliftIntegralCohomologyIso_hom, h₂, h₁]
+    TopCat.integralCohomologyEquiv_apply, TopCat.uliftIntegralCohomologyIso_hom, h₂, h₁]
   -- The values are written `ModuleCat.of ℤ ℤ` in `hbij` and `𝟙_ (ModuleCat ℤ)`, which Mathlib
   -- defines to be it, in the goal, so `rw` cannot carry one to the other; `exact` matches them.
-  refine (TopCat.bijective_integralCup_integralCohomologyLinearEquiv_iff _ p _ m h _).2 ?_
+  refine (TopCat.bijective_integralCup_integralCohomologyEquiv_symm_iff _ p _ m h _).2 ?_
   convert hbij using 4
   exact congrArg _ (singularCohomologyLinearCongr_eulerClass (F := F) (E := E) _ _ _ _ _)
 
