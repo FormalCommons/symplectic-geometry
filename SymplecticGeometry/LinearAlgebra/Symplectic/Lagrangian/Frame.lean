@@ -16,6 +16,7 @@ public import TauCeti.Geometry.Symplectic.Lagrangian.Constructions
 public import TauCeti.Geometry.Symplectic.Lagrangian.TotallyReal
 public import TauCeti.LinearAlgebra.Matrix.Rank
 public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Basic
+public import TauCeti.LinearAlgebra.Prod
 
 /-!
 # Lagrangian frames and graphs in the standard model
@@ -145,14 +146,11 @@ theorem graphY_zero : graphY (0 : Matrix ι ι ℝ) = LinearMap.ker x := by
   ext z
   simp
 
-/-- Every graph `{(x, A x)}` is complementary to the vertical subspace `{x = 0}`. -/
+/-- Every graph `{(x, A x)}` is complementary to the vertical subspace `{x = 0}`. This is
+`LinearMap.isCompl_graph_ker_fst` carried to `StdSpace ι` by `equivProd`. -/
 theorem isCompl_graph_ker_x (A : Matrix ι ι ℝ) : IsCompl (graph A) (LinearMap.ker x) := by
-  refine ⟨Submodule.disjoint_def.2 fun z hz hx ↦ ?_, Submodule.codisjoint_iff_exists_add_eq.2
-    fun z ↦ ⟨(equivProd ι).symm (z.x, A *ᵥ z.x), z - (equivProd ι).symm (z.x, A *ᵥ z.x),
-      by simp, by simp, by abel⟩⟩
-  rw [LinearMap.mem_ker] at hx
-  rw [mem_graph_iff, hx, mulVec_zero] at hz
-  exact StdSpace.ext (by simpa using hx) (by simpa using hz)
+  convert Submodule.isCompl_map (equivProd ι).symm (LinearMap.isCompl_graph_ker_fst A.mulVecLin)
+    <;> ext z <;> simp [Submodule.mem_map_equiv]
 
 /-- A matrix is determined by its graph over the `y`-coordinates. -/
 theorem graphY_injective :
