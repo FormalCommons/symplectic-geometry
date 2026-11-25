@@ -41,8 +41,13 @@ pairs:
 The descended form `ω` on `G ×_K (A × V)` is then Tau Ceti's `TauCeti.SmoothForm.descendedForm`
 along the surjective submersion `(g, p) ↦ [g, p]`. It is closed because `D.form` is, and it is
 invariant under the action `k • [g, p] = [k g, p]` of `G` because `D.form` is invariant under left
-translation of the factor `G`. This part follows Tau Ceti's descent of the Kirillov form to a
-coadjoint orbit, `Module.Dual.coadjointOrbitForm` and
+translation of the factor `G`. This part adapts Tau Ceti's descent of the Kirillov form to a
+coadjoint orbit, in `TauCeti/Geometry/Symplectic/Coadjoint/Orbit.lean`, one declaration at a
+time: `isBasic_form` follows `Module.Dual.isBasic_leftInvariantKirillovForm`, `descendedForm`
+follows `Module.Dual.coadjointOrbitForm`, `mpullback_mk_descendedForm` follows
+`Module.Dual.mpullback_quotientMk_coadjointOrbitForm`, `eq_descendedForm_iff` follows
+`Module.Dual.eq_coadjointOrbitForm_iff`, `eval₂_descendedForm_mfderiv` follows
+`Module.Dual.eval₂_coadjointOrbitForm_mfderiv`, and `mpullback_smul_descendedForm` follows
 `Module.Dual.mpullback_smul_coadjointOrbitForm`.
 
 ## Main results
