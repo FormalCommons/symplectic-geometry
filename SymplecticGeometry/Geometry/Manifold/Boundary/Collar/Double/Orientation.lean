@@ -25,8 +25,8 @@ import TauCeti.Topology.Algebra.Module.Determinant
 # The orientation of the double
 
 Let `W` be a manifold with boundary over the half-space `𝓡∂ (n + 1)`, `c` a smooth collar of its
-boundary, and `o` an orientation of the interior of `W`, re-modelled on `ℝⁿ⁺¹` as
-`SymplecticGeometry.InteriorModel`. The double `c.Double` (`Collar/Double/Basic.lean`) has
+boundary, and `o` an orientation of the interior of `W`, as Tau Ceti's charted interior
+`(𝓡∂ (n + 1)).interior W` over `ℝⁿ⁺¹`. The double `c.Double` (`Collar/Double/Basic.lean`) has
 exactly one orientation, `TauCeti.SmoothCollar.Double.orientation c o`, for which the first copy
 `inlInterior c` of the interior preserves orientation from `o` and the second copy
 `inrInterior c` preserves orientation from `-o`. The sign changes because the collar coordinate
@@ -150,14 +150,14 @@ private theorem isLocalDiffeomorph_bandCollar :
   exact h.comp (hg := c.isLocalDiffeomorph _)
 
 /-- The collar point `c (x, 1/2 - s/4)`, read in the copy of the interior of `W` over `ℝⁿ⁺¹`. -/
-private def bandInterior (p : BandParam n W) : InteriorPiece n W :=
-  interiorPieceDiffeomorph (bandCollar c p)
+private def bandInterior (p : BandParam n W) : (𝓡∂ (n + 1)).interior W :=
+  (𝓡∂ (n + 1)).interiorOpensDiffeomorph W ∞ (bandCollar c p)
 
 private theorem isLocalDiffeomorph_bandInterior :
     IsLocalDiffeomorph (𝓘(ℝ).prod (𝓡 n)) (𝓡 (n + 1)) ∞ (bandInterior c) := fun p ↦
   (isLocalDiffeomorph_bandCollar c p).comp (hg := Diffeomorph.isLocalDiffeomorph _ _)
 
-variable (o : Manifold.Orientation (𝓡 (n + 1)) (InteriorPiece n W) (Fin (n + 1)))
+variable (o : Manifold.Orientation (𝓡 (n + 1)) ((𝓡∂ (n + 1)).interior W) (Fin (n + 1)))
 
 /-- The orientation of the parameters of the band, pulled back from `o` along `bandInterior`. -/
 private def bandParamOrientation :
@@ -259,7 +259,7 @@ private theorem det_mfderiv_bandParamAffine {a b : ℝ} (hb : b ≠ 0) {s₀ : b
 
 private theorem val_bandInterior (p : BandParam n W) :
     (bandInterior c p).val = c (p.2, bandDepth p.1) :=
-  InteriorModel.val_interiorModelDiffeomorph _
+  ModelWithCorners.coe_interiorOpensDiffeomorph_apply _
 
 /-- The point `bandMap c (s, x)` of the double, at the parameter `(s, x)` of the band. -/
 private def bandPoint (p : BandParam n W) : c.Double := bandIncl c (remodelBand n W p)
@@ -277,29 +277,29 @@ private theorem continuous_bandPoint : Continuous (bandPoint c) :=
 
 section Copy
 
-variable {c} {j : InteriorPiece n W → c.Double} (hj : IsOpenEmbedding j)
+variable {c} {j : (𝓡∂ (n + 1)).interior W → c.Double} (hj : IsOpenEmbedding j)
 
 /-- The point of the copy `j` of the interior of `W` at the parameter `p` of the band, when the
 band point lies on that copy. -/
-private def copyParam (p : BandParam n W) : InteriorPiece n W :=
+private def copyParam (p : BandParam n W) : (𝓡∂ (n + 1)).interior W :=
   -- The inverse of `j` needs a point of the interior of `W`; `p` gives one.
-  have : Nonempty (InteriorPiece n W) := ⟨bandInterior c p⟩
+  have : Nonempty ((𝓡∂ (n + 1)).interior W) := ⟨bandInterior c p⟩
   (hj.toOpenPartialHomeomorph j).symm (bandPoint c p)
 
 private theorem copyParam_def (p : BandParam n W) :
-    have : Nonempty (InteriorPiece n W) := ⟨bandInterior c p⟩
+    have : Nonempty ((𝓡∂ (n + 1)).interior W) := ⟨bandInterior c p⟩
     copyParam hj p = (hj.toOpenPartialHomeomorph j).symm (bandPoint c p) :=
   (rfl)
 
 private theorem apply_copyParam {p : BandParam n W} (hp : bandPoint c p ∈ range j) :
     j (copyParam hj p) = bandPoint c p := by
-  have : Nonempty (InteriorPiece n W) := ⟨bandInterior c p⟩
+  have : Nonempty ((𝓡∂ (n + 1)).interior W) := ⟨bandInterior c p⟩
   rw [copyParam_def]
   exact (hj.toOpenPartialHomeomorph j).right_inv (by rwa [hj.toOpenPartialHomeomorph_target])
 
-private theorem copyParam_eq {p : BandParam n W} {q : InteriorPiece n W}
+private theorem copyParam_eq {p : BandParam n W} {q : (𝓡∂ (n + 1)).interior W}
     (h : j q = bandPoint c p) : copyParam hj p = q := by
-  have : Nonempty (InteriorPiece n W) := ⟨q⟩
+  have : Nonempty ((𝓡∂ (n + 1)).interior W) := ⟨q⟩
   rw [copyParam_def, ← h]
   exact (hj.toOpenPartialHomeomorph j).left_inv (by simp)
 
@@ -313,7 +313,7 @@ private theorem isLocalDiffeomorphAt_copyParam
     (hjd : IsLocalDiffeomorph (𝓡 (n + 1)) (𝓡 (n + 1)) ∞ j) {p : BandParam n W}
     (hp : bandPoint c p ∈ range j) :
     IsLocalDiffeomorphAt (𝓘(ℝ).prod (𝓡 n)) (𝓡 (n + 1)) ∞ (copyParam hj) p := by
-  have : Nonempty (InteriorPiece n W) := ⟨bandInterior c p⟩
+  have : Nonempty ((𝓡∂ (n + 1)).interior W) := ⟨bandInterior c p⟩
   have hcont : ContinuousAt (copyParam hj) p := by
     have he : copyParam hj = (hj.toOpenPartialHomeomorph j).symm ∘ bandPoint c :=
       funext fun p' ↦ copyParam_def hj p'
@@ -368,11 +368,13 @@ end Copy
 
 /-! ### The two copies of the interior -/
 
+omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 private theorem bandPoint_mem_range_inlInterior_iff (p : BandParam n W) :
     bandPoint c p ∈ range (inlInterior c) ↔ (p.1 : ℝ) < 0 := by
   rw [bandPoint_apply]
   exact bandMap_mem_range_inlInterior_iff c (mem_bandInterval.1 p.1.property) p.2
 
+omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 private theorem bandPoint_mem_range_inrInterior_iff (p : BandParam n W) :
     bandPoint c p ∈ range (inrInterior c) ↔ 0 < (p.1 : ℝ) := by
   rw [bandPoint_apply]
@@ -457,12 +459,12 @@ private theorem isOrientationPreservingAt_copyParam_inr {p : BandParam n W} (hp 
 tangent orientation of the double wherever they meet, if the band parameters carry into `j`
 preserving orientation, from the band orientation to `oj`. -/
 private theorem map_orientationAt_eq_bandIncl
-    {j : InteriorPiece n W → c.Double} (hj : IsOpenEmbedding j)
+    {j : (𝓡∂ (n + 1)).interior W → c.Double} (hj : IsOpenEmbedding j)
     (hjd : IsLocalDiffeomorph (𝓡 (n + 1)) (𝓡 (n + 1)) ∞ j)
-    {oj : Manifold.Orientation (𝓡 (n + 1)) (InteriorPiece n W) (Fin (n + 1))}
+    {oj : Manifold.Orientation (𝓡 (n + 1)) ((𝓡∂ (n + 1)).interior W) (Fin (n + 1))}
     (hpres : ∀ p, bandPoint c p ∈ range j →
       IsOrientationPreservingAt (bandParamOrientation c o) oj (copyParam hj) p)
-    {x : InteriorPiece n W} {y : BandPiece n W} (h : j x = bandIncl c y) :
+    {x : (𝓡∂ (n + 1)).interior W} {y : BandPiece n W} (h : j x = bandIncl c y) :
     _root_.Orientation.map (Fin (n + 1))
         ((hjd x).mfderivToContinuousLinearEquiv (NeZero.ne _)).toLinearEquiv
         (oj.orientationAt x) =
@@ -540,7 +542,7 @@ private theorem orientation_def :
 
 /-- The first copy of the interior of `W` preserves orientation, from `o` to the orientation of
 the double. -/
-theorem isOrientationPreservingAt_inlInterior (p : InteriorPiece n W) :
+theorem isOrientationPreservingAt_inlInterior (p : (𝓡∂ (n + 1)).interior W) :
     IsOrientationPreservingAt o (orientation c o) (inlInterior c) p := by
   rw [orientation_def]
   exact isOrientationPreservingAt_iGlue (isLocalDiffeomorph_pieceMap c) (iUnion_range_pieceMap c)
@@ -548,7 +550,7 @@ theorem isOrientationPreservingAt_inlInterior (p : InteriorPiece n W) :
 
 /-- The second copy of the interior of `W` preserves orientation, from `-o` to the orientation of
 the double: the collar coordinate is reflected from one copy to the other. -/
-theorem isOrientationPreservingAt_inrInterior (p : InteriorPiece n W) :
+theorem isOrientationPreservingAt_inrInterior (p : (𝓡∂ (n + 1)).interior W) :
     IsOrientationPreservingAt (-o) (orientation c o) (inrInterior c) p := by
   rw [orientation_def]
   exact isOrientationPreservingAt_iGlue (isLocalDiffeomorph_pieceMap c) (iUnion_range_pieceMap c)
