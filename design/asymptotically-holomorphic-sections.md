@@ -414,7 +414,7 @@ and the prerequisites, placed by topic.
   `complexEulerClass L = -a` and a connection form $\alpha$ on its unitary
   frame bundle with `hα.curvature = -(2 * π) • ω`; the sign of the Euler
   class is that of prerequisite 3.
-- `Power.lean`: `L k`, the associated bundle for $g\cdot z=g^kz$; its
+- `Power/Basic.lean`: `L k`, the associated bundle for $g\cdot z=g^kz$; its
   Hermitian metric; `powerOneEquiv : L 1 ≃ L`, `powerAddEquiv` with Tau
   Ceti's tensor product; `complexEulerClass_power` (`k •` the class of
   `L`, so $-k\,a$ for the bundle of `LineBundle.lean`).
@@ -526,7 +526,7 @@ statement.
 4. **Chern–Weil in degree two** (`Hermitian/ChernWeil.lean`, and the
    pull-back lemmas in `Principal/RealChernClass.lean`). Waits for 3.
 5. **The prequantum line bundle** (`LineBundle.lean`). Waits for 1, 3 and 4.
-6. **Powers of a Hermitian line bundle** (`Power.lean`). Waits for nothing.
+6. **Powers of a Hermitian line bundle** (`Power/Basic.lean`). Waits for nothing.
 7. **The connection on the powers** (`PowerConnection.lean`). Waits for 6.
 8. **Real-linear forms with dominant complex-linear part**
    (`DominantLinearPart.lean`). Waits for nothing.
