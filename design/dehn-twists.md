@@ -446,14 +446,12 @@ argument, as $\cos(-\theta)$ is even and $\sin(-\theta)$ odd.
 The support, $O(n+1)$-equivariance and `twistPrimitive` (the function
 $R'(t)t-R(t)$ is even, so Whitney applies) follow from the coordinates.
 
-**Exactness and symplecticity.** On $\mu\ne0$, the pullback of $\lambda$ by
-$z\mapsto\sigma_{\theta(\mu z)}z$ is $\lambda+\mu\,d(\theta\circ\mu)$, by
-`mpullback_liouvilleForm_apply_of_proj_comp_eq` and the coordinate
-formulas. With $\theta=2\pi R'$ this is $\lambda+dK$ for
-$K=$ `twistPrimitive R`. Both sides are smooth forms on `T*Sⁿ`, and the
-complement of the zero section is dense for $n\ge1$, so they agree
-everywhere. For $n=0$ the zero section is open, the bundle has rank $0$,
-$\lambda=0$, and `modelTwistFun R` is the antipodal map of $S^0$. Symplecticity
+**Exactness and symplecticity.** The pullback of $\lambda$ is computed in
+the coordinates $(q,p)$ at every covector, the zero section included, so
+no density argument and no separate case $n=0$ are needed. With $C$, $S$
+the Whitney functions of $\cos\theta$, $\sin\theta$ ($\theta=2\pi R'$) and
+$K=$ `twistPrimitive R` $=k(\|p\|^2)$, it is $\lambda+dK$, by
+$C^2+\|p\|^2S^2=1$ and the identity $2s(CS'-SC')+CS=2k'$ for $s\ge0$. Symplecticity
 follows by $d$, as $d\,dK=0$; no separate computation is needed.
 
 **Hamiltonian descriptions.** `isMIntegralCurve_geodesicFlow_twistProfile`
