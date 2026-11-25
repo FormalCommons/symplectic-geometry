@@ -36,9 +36,12 @@ Mayer–Vietoris connecting map `SSet.mayerVietorisCochainδ`, with sign `+1`
 (`TauCeti.deRhamCohomology.ofHom_mayerVietorisδ_comp_homologyMap_deRhamIntegration`).
 
 The map `TauCeti.smallSmoothSingularSubcomplexToSup`, the lemma that it lands in the range of
-`U ⊔ V`, and `TauCeti.smallSmoothSingularSubcomplexToSup_smoothSingularSubcomplexMap` adapt Tau
-Ceti's `TopCat.smallSingularSubcomplexToUnion`, its private `smallSubcomplex_le_range` and
-`TopCat.smallSingularSubcomplexToUnion_comp` from continuous to smooth simplices. The proofs about
+`U ⊔ V`, `TauCeti.smallSmoothSingularSubcomplexToSup_smoothSingularSubcomplexMap` and
+`TauCeti.toSmallSmoothSingularSubcomplex_smallSmoothSingularSubcomplexToSup` adapt Tau Ceti's
+`TopCat.smallSingularSubcomplexToUnion`, its private `smallSubcomplex_le_range`,
+`TopCat.smallSingularSubcomplexToUnion_comp` and its private
+`toSmallSingularSubcomplex_comp_smallSingularSubcomplexToUnion` from continuous to smooth
+simplices. The proofs about
 integration follow Tau Ceti's `TauCeti.smoothMayerVietorisδ_ι` and
 `SSet.mayerVietorisCochainδ_naturality`, which build a morphism of short complexes and apply
 `HomologicalComplex.HomologySequence.δ_naturality` in the same way.
