@@ -40,6 +40,9 @@ which makes it smooth also at `0`, whether or not `F' 0 = 0`.
   `u G(u) = 1 - F(u)`.
 * `SymplecticGeometry.integralTopForm_formCalculus_mul`: the localization lemma, that
   `F(η) β` and `β` have the same integral for `F 0 = 1` and `d_ħ β = 0`.
+* `SymplecticGeometry.integralTopForm_mul_formCalculus_exp_of_forall_or`: `γ exp(f + τ)` and
+  `e ^ c γ` have the same integral when, wherever `γ` does not vanish, `f + τ` is
+  `c + d_ħ θ` for an invariant one-form `θ`.
 
 ## References
 
@@ -185,6 +188,34 @@ theorem integralTopForm_formCalculus_mul [FiniteDimensional ℝ E] [IsManifold I
     integralTopForm_sub_of_compactSpace o ((β m).isSmoothForm.of_le (by simp))
       ((_ : SmoothForm I M ℝ m).isSmoothForm.of_le (by simp)), sub_eq_zero] at h0
   exact h0.symm
+
+/-- **The exponential where it is that of an invariant one-form.** Let `θ` be a one-form with zero
+Lie derivative along `X`, and `γ` an equivariantly closed form on a compact boundaryless manifold
+of dimension `m`. If, at every point where some component of `γ` is nonzero, the function `f`
+is `-ħ θ(X) + c` and the two-form `τ` is `dθ`, then the integral of the top component of
+`γ exp(f + τ)` is `e ^ c` times that of `γ`. -/
+theorem integralTopForm_mul_formCalculus_exp_of_forall_or [FiniteDimensional ℝ E]
+    [IsManifold I ∞ M] {hX : ContMDiff I I.tangent ∞ (fun x ↦ (X x : TangentBundle I M))}
+    [CompactSpace M] [T2Space M] [BoundarylessManifold I M] {m : ℕ}
+    (o : Manifold.Orientation I M (Fin m)) {θ : SmoothForm I M ℝ 1}
+    (hθ : mlieDerivForm X θ.val = 0) {γ : ⨁ k, SmoothForm I M ℝ k}
+    (hγ : cartanDiff X hX ħ γ = 0) {f : C^∞⟮I, M; ℝ⟯} {τ : SmoothForm I M ℝ 2} (c : ℝ)
+    (h : ∀ x, (∀ i, (γ i).val x = 0) ∨
+      (f x = -ħ * θ.val x ![X x] + c ∧ τ.val x = (mextDerivₗ I 1 θ).val x)) :
+    integralTopForm o ((γ * formCalculus Real.exp Real.contDiff_exp f τ) m).val =
+      Real.exp c * integralTopForm o (γ m).val := by
+  set η := formCalculus Real.exp Real.contDiff_exp
+    (-ħ • SmoothForm.ofFunctionEquiv.symm (SmoothForm.interiorProduct ⟨X, hX⟩ θ))
+    (mextDerivₗ I 1 θ)
+  -- Where `γ` does not vanish, `exp(f + τ) = e ^ c exp(d_ħ θ)`.
+  have hη : γ * formCalculus Real.exp Real.contDiff_exp f τ = γ * (Real.exp c • η) := by
+    refine SmoothForm.mul_eq_mul_left_of_forall_or fun x ↦ (h x).imp_right fun ⟨hf, hτ⟩ j ↦ ?_
+    rw [DirectSum.smul_apply, SmoothForm.smul_toRoughForm, Pi.smul_apply]
+    exact formCalculus_exp_val_of_eq_add _ _ (by simp [hf]) hτ j
+  -- The even form `exp(d_ħ θ)` commutes with `γ`.
+  rw [hη, mul_smul_comm, ← (commute_formCalculus _ _ _ _ γ).eq, DirectSum.smul_apply,
+    SmoothForm.smul_toRoughForm, integralTopForm_smul,
+    integralTopForm_formCalculus_mul o _ _ Real.exp_zero hθ hγ]
 
 end SymplecticGeometry
 
