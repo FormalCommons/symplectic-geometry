@@ -14,6 +14,9 @@ Tau Ceti's `TauCeti.FiniteRankBundleCore.isoOfContinuousEquiv` builds an isomorp
 finite-rank cores from a family of fibrewise continuous linear equivalences that is continuous on
 total spaces. This file gives the converse construction.
 
+* `TauCeti.FiniteRankBundleCore.fiberMap_hom_inv_id` and
+  `TauCeti.FiniteRankBundleCore.fiberMap_inv_hom_id`: the fibre maps of the two halves of an
+  isomorphism are inverse to each other;
 * `TauCeti.FiniteRankBundleCore.isoFiberEquiv e x`: the continuous linear equivalence between the
   fibres over `x`, in coordinates, given by an isomorphism `e : A ≅ D` of finite-rank cores, with
   the fibre map of `e.hom` as the map and that of `e.inv` as its inverse;
@@ -46,13 +49,24 @@ namespace FiniteRankBundleCore
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {B : Type*} [TopologicalSpace B]
   {A D : FiniteRankBundleCore 𝕜 B}
 
+/-- The fibre map of `e.inv` after that of `e.hom`, for an isomorphism `e : A ≅ D` of finite-rank
+cores, is the identity of the fibre of `A`. -/
+@[simp] theorem fiberMap_hom_inv_id (e : A ≅ D) (x : B) :
+    (e.inv.fiberMap x).comp (e.hom.fiberMap x) = .id 𝕜 _ := by
+  rw [← fiberMap_comp, Iso.hom_inv_id, fiberMap_id]
+
+/-- The fibre map of `e.hom` after that of `e.inv`, for an isomorphism `e : A ≅ D` of finite-rank
+cores, is the identity of the fibre of `D`. -/
+@[simp] theorem fiberMap_inv_hom_id (e : A ≅ D) (x : B) :
+    (e.hom.fiberMap x).comp (e.inv.fiberMap x) = .id 𝕜 _ := by
+  rw [← fiberMap_comp, Iso.inv_hom_id, fiberMap_id]
+
 /-- The continuous linear equivalence between the fibres over `x` of two finite-rank cores, in
 their coordinates `Fin A.rank → 𝕜` and `Fin D.rank → 𝕜`, given by an isomorphism `e : A ≅ D`: the
 fibre map of `e.hom`, with inverse the fibre map of `e.inv`. -/
 def isoFiberEquiv (e : A ≅ D) (x : B) : (Fin A.rank → 𝕜) ≃L[𝕜] (Fin D.rank → 𝕜) :=
   ContinuousLinearEquiv.ofContinuousLinearMap (e.hom.fiberMap x) (e.inv.fiberMap x)
-    (by rw [← fiberMap_comp, Iso.inv_hom_id, fiberMap_id])
-    (by rw [← fiberMap_comp, Iso.hom_inv_id, fiberMap_id])
+    (fiberMap_inv_hom_id e x) (fiberMap_hom_inv_id e x)
 
 @[simp] theorem toContinuousLinearMap_isoFiberEquiv (e : A ≅ D) (x : B) :
     (isoFiberEquiv e x : (Fin A.rank → 𝕜) →L[𝕜] (Fin D.rank → 𝕜)) = e.hom.fiberMap x := by
