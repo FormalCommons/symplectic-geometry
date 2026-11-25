@@ -5,7 +5,6 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Topology.Algebra.Module.Determinant
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 
 /-!
@@ -26,9 +25,6 @@ linear equivalence.
 
 * `PartialDiffeomorph.mfderiv_symm_apply_mfderiv_apply_of_mem_target`: for `y` in the target of
   `Φ`, `d(Φ⁻¹)_y ∘ dΦ_{Φ⁻¹ y}` is the identity.
-* `OpenPartialHomeomorph.det_fderiv_symm_trans_ne_zero`: the transition `ψ₂ ∘ ψ₁⁻¹` between two
-  smooth open partial homeomorphisms with smooth inverses, from a manifold into a
-  normed space, has a derivative of nonzero determinant on its source.
 -/
 
 public section
@@ -93,36 +89,3 @@ theorem toContinuousLinearMap_mfderivSymmEquiv_symm (Φ : PartialDiffeomorph I J
 end MFDerivSymmEquiv
 
 end PartialDiffeomorph
-
-namespace OpenPartialHomeomorph
-
-variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
-  {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E]
-  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H}
-  {M : Type*} [TopologicalSpace M] [ChartedSpace H M] {n : WithTop ℕ∞}
-  {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
-
-/-- Let `ψ₁` and `ψ₂` be open partial homeomorphisms from `M` into a normed space `F`, both `C^n`
-with `C^n` inverses for some `n ≠ 0`. At each point of the source of the
-transition `ψ₂ ∘ ψ₁⁻¹`, its derivative has nonzero determinant. -/
-theorem det_fderiv_symm_trans_ne_zero {ψ₁ ψ₂ : OpenPartialHomeomorph M F}
-    (hψ₁ : ContMDiffOn I 𝓘(𝕜, F) n ψ₁ ψ₁.source)
-    (hψ₁s : ContMDiffOn 𝓘(𝕜, F) I n ψ₁.symm ψ₁.target)
-    (hψ₂ : ContMDiffOn I 𝓘(𝕜, F) n ψ₂ ψ₂.source)
-    (hψ₂s : ContMDiffOn 𝓘(𝕜, F) I n ψ₂.symm ψ₂.target) (hn : n ≠ 0) {w : F}
-    (hw : w ∈ (ψ₁.symm.trans ψ₂).source) :
-    (fderiv 𝕜 (ψ₁.symm.trans ψ₂) w).det ≠ 0 := by
-  set T := ψ₁.symm.trans ψ₂
-  obtain ⟨hT, hTs⟩ := contDiffOn_symm_trans_and_symm_of_contMDiffOn hψ₁ hψ₁s hψ₂ hψ₂s
-  have hd : DifferentiableAt 𝕜 T w :=
-    (hT.differentiableOn hn).differentiableAt (T.open_source.mem_nhds hw)
-  have hds : DifferentiableAt 𝕜 T.symm (T w) :=
-    (hTs.differentiableOn hn).differentiableAt (T.open_target.mem_nhds (T.map_source hw))
-  have hev : (T.symm ∘ T : F → F) =ᶠ[nhds w] id := T.eventually_left_inverse hw
-  have hid : (fderiv 𝕜 T.symm (T w)).comp (fderiv 𝕜 T w) = ContinuousLinearMap.id 𝕜 F := by
-    rw [← fderiv_comp w hds hd, hev.fderiv_eq, fderiv_id]
-  have h : (fderiv 𝕜 T.symm (T w)).det * (fderiv 𝕜 T w).det = 1 := by
-    simpa [ContinuousLinearMap.det, LinearMap.det_comp] using congrArg ContinuousLinearMap.det hid
-  exact right_ne_zero_of_mul_eq_one h
-
-end OpenPartialHomeomorph

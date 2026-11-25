@@ -11,9 +11,9 @@ public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiem
 public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Smooth
 import SymplecticGeometry.Analysis.Complex.Wirtinger.Similarity.Weak
 import SymplecticGeometry.Geometry.Manifold.Complex.Isothermal
-import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.ZeroOnePart
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Tames
+import TauCeti.Analysis.Calculus.FDeriv.Equiv
 import TauCeti.Analysis.Sobolev.W1p.ChangeOfVariables
 import TauCeti.Geometry.Manifold.VectorField.Regularity
 import TauCeti.MeasureTheory.Function.Jacobian
@@ -341,11 +341,11 @@ theorem exists_ae_eq_exp_neg_mul_of_twistOneDelBarSobolev_eq_zero
       ψ.toOpenPartialHomeomorph.source := by simpa using ψ.contMDiffOn
   have hψ₁s : ContMDiffOn 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) ∞ ψ.toOpenPartialHomeomorph.symm
       ψ.toOpenPartialHomeomorph.target := by simpa using ψ.symm.contMDiffOn
-  have hT : ContDiffOn ℝ ∞ T Ω :=
-    (OpenPartialHomeomorph.contDiffOn_symm_trans_of_contMDiffOn contMDiffOn_chart hψ₁s).mono hΩT
+  have hTs := OpenPartialHomeomorph.contDiffOn_symm_trans_and_symm_of_contMDiffOn hψ₁ hψ₁s
+    (contMDiffOn_chart (x := (twistCoreAtlas 1).center i)) contMDiffOn_chart_symm
+  have hT : ContDiffOn ℝ ∞ T Ω := hTs.1.mono hΩT
   have hdet (z : ℂ) (hz : z ∈ (Ω : Set ℂ)) : (fderiv ℝ T z).det ≠ 0 :=
-    OpenPartialHomeomorph.det_fderiv_symm_trans_ne_zero hψ₁ hψ₁s contMDiffOn_chart
-      contMDiffOn_chart_symm hn (hΩT hz)
+    T.det_fderiv_ne_zero_of_contDiffOn hTs.1 hTs.2 hn (hΩT hz)
   have hinj : InjOn T Ω := T.injOn.mono hΩT
   have hmaps : MapsTo T Ω ((twistCoreAtlas 1).image i) := fun z hz ↦ by
     rw [hTcoe]
@@ -435,9 +435,9 @@ theorem exists_contDiffOn_ae_eq_chartValueL_of_twistOneDelBarSobolev_eq_zero
       ψ.toOpenPartialHomeomorph.source := by simpa using ψ.contMDiffOn
   have hψ₁s : ContMDiffOn 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) ∞ ψ.toOpenPartialHomeomorph.symm
       ψ.toOpenPartialHomeomorph.target := by simpa using ψ.symm.contMDiffOn
-  have hS : ContDiffOn ℝ ∞ S U :=
-    (OpenPartialHomeomorph.contDiffOn_symm_trans_of_contMDiffOn hψ₁ contMDiffOn_chart_symm).mono
-      hUS
+  have hSs := OpenPartialHomeomorph.contDiffOn_symm_trans_and_symm_of_contMDiffOn
+    (contMDiffOn_chart (x := (twistCoreAtlas 1).center i)) contMDiffOn_chart_symm hψ₁ hψ₁s
+  have hS : ContDiffOn ℝ ∞ S U := hSs.1.mono hUS
   have hmaps : MapsTo S U (ψ.target ∩ ψ.symm ⁻¹' (twistCoreAtlas 1).dom i) := fun z hz ↦ by
     simpa [S, ψ.left_inv hz.2.1] using ⟨ψ.map_source hz.2.1, hz.2.2⟩
   have hF : ContDiffOn ℝ ∞ (fun z ↦ Complex.exp (-g z) * h z)
@@ -453,8 +453,7 @@ theorem exists_contDiffOn_ae_eq_chartValueL_of_twistOneDelBarSobolev_eq_zero
   -- Pull the local form back along `S`, which has invertible derivative on `U`.
   have hae' := MeasureTheory.ae_restrict_comp_of_differentiableOn (μ := volume) hU
     (hS.differentiableOn hn) (S.injOn.mono hUS)
-    (fun z hz ↦ OpenPartialHomeomorph.det_fderiv_symm_trans_ne_zero contMDiffOn_chart
-      contMDiffOn_chart_symm hψ₁ hψ₁s hn (hUS hz)) hmaps hae
+    (fun z hz ↦ S.det_fderiv_ne_zero_of_contDiffOn hSs.1 hSs.2 hn (hUS hz)) hmaps hae
   filter_upwards [hae', ae_restrict_mem hU.measurableSet] with z hz hzU
   have hφz : φ (ψ.symm (S z)) = z := by
     simp [S, ψ.left_inv hzU.2.1, φ.right_inv hzU.1]
