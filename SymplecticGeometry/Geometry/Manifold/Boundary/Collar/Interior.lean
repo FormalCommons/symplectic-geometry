@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.ModelTransport.InteriorModel
+public import SymplecticGeometry.Geometry.Manifold.Boundary.Interior
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Smooth
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
@@ -16,25 +16,25 @@ Let `W` be a manifold with boundary, modelled on the half-space `EuclideanHalfSp
 `c : ∂W × [0, 1) → W` a `C^k` collar of its boundary. A collar point `c (x, t)` is an interior
 point of `W` exactly when its depth `t` is positive. This file gives the inverse of the collar on
 the interior of `W`, as Tau Ceti's charted interior `(𝓡∂ (n + 1)).interior W` over `ℝⁿ⁺¹`: on
-the open subset `c.interiorModelRange` of the points covered by the collar, the collar
-coordinates `c.interiorModelCoord` form a `C^k` local diffeomorphism into `∂W × [0, 1)` that
+the open subset `c.interiorRange` of the points covered by the collar, the collar
+coordinates `c.interiorCoord` form a `C^k` local diffeomorphism into `∂W × [0, 1)` that
 takes values of positive depth. Gluings of other manifolds to the interior of `W` along the
 collar, such as attaching an end (`Boundary/Collar/End.lean`) or capping boundary circles with
 discs (`Gluing/CapDiscs/Basic.lean`), are built on these coordinates.
 
 ## Main definitions
 
-* `TauCeti.SmoothCollar.interiorModelRange`: the part of the interior of `W`, re-modelled on
+* `TauCeti.SmoothCollar.interiorRange`: the part of the charted interior of `W`, over
   `ℝⁿ⁺¹`, covered by the collar.
-* `TauCeti.SmoothCollar.interiorModelCoord`: the collar coordinates of a point of it.
+* `TauCeti.SmoothCollar.interiorCoord`: the collar coordinates of a point of it.
 
 ## Main results
 
 * `TauCeti.SmoothCollar.apply_mem_interior_iff`, `apply_mem_interior_iff_pos`: a collar point is
   interior exactly when its depth is not zero, or positive.
-* `TauCeti.SmoothCollar.apply_interiorModelCoord`: the collar sends the collar coordinates of a
+* `TauCeti.SmoothCollar.apply_interiorCoord`: the collar sends the collar coordinates of a
   point back to the point.
-* `TauCeti.SmoothCollar.isLocalDiffeomorph_interiorModelCoord`: the collar coordinates are a
+* `TauCeti.SmoothCollar.isLocalDiffeomorph_interiorCoord`: the collar coordinates are a
   smooth local diffeomorphism.
 
 ## References
@@ -44,7 +44,7 @@ discs (`Gluing/CapDiscs/Basic.lean`), are built on these coordinates.
 
 public section
 
-open Set Function TopologicalSpace SymplecticGeometry
+open Set Function TopologicalSpace
 open scoped Manifold ContDiff
 
 noncomputable section
@@ -73,54 +73,54 @@ theorem apply_mem_interior_iff_pos (p : ↥((𝓡∂ (n + 1)).boundary W) × nor
 
 /-- The part of the charted interior of `W`, modelled on `ℝⁿ⁺¹`, covered by the
 collar: the points `c (x, t)` with `t > 0`. -/
-def interiorModelRange : Opens ((𝓡∂ (n + 1)).interior W) :=
+def interiorRange : Opens ((𝓡∂ (n + 1)).interior W) :=
   ⟨Subtype.val ⁻¹' range c, c.isOpen_range.preimage continuous_subtypeVal⟩
 
-theorem mem_interiorModelRange {q : (𝓡∂ (n + 1)).interior W} :
-    q ∈ c.interiorModelRange ↔ q.val ∈ range c := Iff.rfl
+theorem mem_interiorRange {q : (𝓡∂ (n + 1)).interior W} :
+    q ∈ c.interiorRange ↔ q.val ∈ range c := Iff.rfl
 
-/-- A point of `c.interiorModelRange` lies in the image of the collar. -/
-theorem val_mem_opensRange (q : c.interiorModelRange) : q.val.val ∈ c.opensRange :=
-  c.mem_opensRange.2 (c.mem_interiorModelRange.1 q.property)
+/-- A point of `c.interiorRange` lies in the image of the collar. -/
+theorem val_mem_opensRange (q : c.interiorRange) : q.val.val ∈ c.opensRange :=
+  c.mem_opensRange.2 (c.mem_interiorRange.1 q.property)
 
 /-- The collar coordinates `(x, t)` of a point `c (x, t)` of the interior covered by the
 collar. -/
-def interiorModelCoord (q : c.interiorModelRange) :
+def interiorCoord (q : c.interiorRange) :
     ↥((𝓡∂ (n + 1)).boundary W) × normalIioOpens 1 :=
   c.diffeomorphOpensRange.symm ⟨q.val.val, c.val_mem_opensRange q⟩
 
-theorem interiorModelCoord_def (q : c.interiorModelRange) :
-    c.interiorModelCoord q = c.diffeomorphOpensRange.symm ⟨q.val.val, c.val_mem_opensRange q⟩ :=
+theorem interiorCoord_def (q : c.interiorRange) :
+    c.interiorCoord q = c.diffeomorphOpensRange.symm ⟨q.val.val, c.val_mem_opensRange q⟩ :=
   (rfl)
 
-@[simp] theorem apply_interiorModelCoord (q : c.interiorModelRange) :
-    c (c.interiorModelCoord q) = q.val.val :=
+@[simp] theorem apply_interiorCoord (q : c.interiorRange) :
+    c (c.interiorCoord q) = q.val.val :=
   c.apply_diffeomorphOpensRange_symm _
 
 /-- The collar coordinates of a point are the unique preimage of the point under the collar. -/
-theorem interiorModelCoord_eq_iff {q : c.interiorModelRange}
+theorem interiorCoord_eq_iff {q : c.interiorRange}
     {p : ↥((𝓡∂ (n + 1)).boundary W) × normalIioOpens 1} :
-    c.interiorModelCoord q = p ↔ c p = q.val.val :=
-  ⟨fun h ↦ h ▸ c.apply_interiorModelCoord q,
-    fun h ↦ c.injective (by rw [apply_interiorModelCoord, h])⟩
+    c.interiorCoord q = p ↔ c p = q.val.val :=
+  ⟨fun h ↦ h ▸ c.apply_interiorCoord q,
+    fun h ↦ c.injective (by rw [apply_interiorCoord, h])⟩
 
-theorem continuous_interiorModelCoord : Continuous c.interiorModelCoord :=
+theorem continuous_interiorCoord : Continuous c.interiorCoord :=
   c.diffeomorphOpensRange.symm.continuous.comp
     (Continuous.subtype_mk (continuous_subtypeVal.comp continuous_subtypeVal) _)
 
 /-- The collar coordinates of a point of the interior have positive depth. -/
-theorem interiorModelCoord_snd_pos (q : c.interiorModelRange) :
-    0 < ((c.interiorModelCoord q).2 : EuclideanHalfSpace 1).val 0 := by
-  rw [← apply_mem_interior_iff_pos, apply_interiorModelCoord]
+theorem interiorCoord_snd_pos (q : c.interiorRange) :
+    0 < ((c.interiorCoord q).2 : EuclideanHalfSpace 1).val 0 := by
+  rw [← apply_mem_interior_iff_pos, apply_interiorCoord]
   exact q.val.property
 
 /-- The collar coordinates are a `C^k` local diffeomorphism from the interior, modelled on
 `ℝⁿ⁺¹`, to `∂W × [0, 1)`. -/
-theorem isLocalDiffeomorph_interiorModelCoord [IsManifold (𝓡∂ (n + 1)) 1 W] :
-    IsLocalDiffeomorph (𝓡 (n + 1)) ((𝓡 n).prod (𝓡∂ 1)) k c.interiorModelCoord := by
+theorem isLocalDiffeomorph_interiorCoord [IsManifold (𝓡∂ (n + 1)) 1 W] :
+    IsLocalDiffeomorph (𝓡 (n + 1)) ((𝓡 n).prod (𝓡∂ 1)) k c.interiorCoord := by
   intro q
   have hg : IsLocalDiffeomorphAt (𝓡 (n + 1)) (𝓡∂ (n + 1)) k
-      (fun q : c.interiorModelRange ↦ (⟨q.val.val, c.val_mem_opensRange q⟩ : c.opensRange)) q := by
+      (fun q : c.interiorRange ↦ (⟨q.val.val, c.val_mem_opensRange q⟩ : c.opensRange)) q := by
     refine isLocalDiffeomorphAt_subtypeVal_comp_iff.1 ?_
     exact (isLocalDiffeomorph_subtype_val q).comp
       (hg := (𝓡∂ (n + 1)).isLocalDiffeomorph_subtypeVal_interior _)
