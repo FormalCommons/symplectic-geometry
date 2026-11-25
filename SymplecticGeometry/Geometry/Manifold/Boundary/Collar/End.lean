@@ -252,12 +252,10 @@ private instance instIsManifoldPiece :
 /-- Each overlap is an open subset of its piece, with the induced atlas. -/
 private instance instChartedSpaceOverlap (p : c.glueData.J × c.glueData.J) :
     ChartedSpace (EuclideanSpace ℝ (Fin (n + 1))) (c.glueData.V p) :=
-  -- The overlap is an open subset of `ofHomeomorphPiece`, which instance search does not see
-  -- as `c.glueData.U`; state the piece's atlas at that type.
-  letI : ChartedSpace _
-      (TopCat.GlueData.ofHomeomorphPiece (InteriorPiece n W) (EndPiece n W) p.1) :=
-    c.instChartedSpacePiece p.1
-  (TopCat.GlueData.ofHomeomorphOverlap c.interiorModelRange endOverlap p.1 p.2).instChartedSpace
+  -- `show` gives the overlap the type `Opens (c.glueData.U p.1)`, so that the piece's atlas
+  -- `instChartedSpacePiece` applies; elaborated alone it is an `Opens` of `ofHomeomorphPiece`.
+  Opens.instChartedSpace (show Opens (c.glueData.U p.1) from
+    TopCat.GlueData.ofHomeomorphOverlap c.interiorModelRange endOverlap p.1 p.2)
 
 private theorem isLocalDiffeomorph_interiorToEndPt :
     IsLocalDiffeomorph (𝓡 (n + 1)) (𝓡 (n + 1)) ∞ c.interiorToEndPt := fun q ↦ by

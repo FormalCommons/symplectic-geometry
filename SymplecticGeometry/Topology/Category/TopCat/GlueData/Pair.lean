@@ -22,7 +22,11 @@ and `e x = y` (`TopCat.GlueData.ofHomeomorph_ι_false_eq_ι_true_iff`).
 * `TopCat.GlueData.ofHomeomorph`: the gluing of `X` and `Y` along `e`.
 * `TopCat.GlueData.ofHomeomorphPiece`, `TopCat.GlueData.ofHomeomorphOverlap`: its pieces, and
   its overlaps as open subsets of the pieces, for every pair of indices
-  (`TopCat.GlueData.ofHomeomorph_V`, `TopCat.GlueData.ofHomeomorph_f`).
+  (`TopCat.GlueData.ofHomeomorph_V`, `TopCat.GlueData.ofHomeomorph_f`). The `@[simp]`
+  lemmas `TopCat.GlueData.ofHomeomorph_V_self`, `TopCat.GlueData.ofHomeomorph_V_false_true` and
+  the like give the overlaps at the gluing's own index type, and
+  `TopCat.GlueData.ofHomeomorph_f_false_true` and `TopCat.GlueData.ofHomeomorph_f_true_false`
+  the inclusions of the two overlaps of different pieces.
 * `TopCat.GlueData.ofHomeomorph_ι_false_eq_ι_true_iff`,
   `TopCat.GlueData.ofHomeomorph_ι_true_eq_ι_false_iff`: when points of the two pieces are
   identified.
@@ -118,18 +122,56 @@ and the transition maps are `e` and `e.symm`. -/
 @[simp] theorem ofHomeomorph_J : (ofHomeomorph e).J = ULift.{u} Bool := (rfl)
 
 /-- The pieces of the gluing along `e` are those of `ofHomeomorphPiece X Y`. -/
-@[simp] theorem ofHomeomorph_U (i : (ofHomeomorph e).J) :
+theorem ofHomeomorph_U (i : ULift.{u} Bool) :
     (ofHomeomorph e).U i = ofHomeomorphPiece X Y i := (rfl)
 
 /-- The overlap of the pieces `i` and `j` of the gluing along `e` is the open subset
 `ofHomeomorphOverlap U V i j` of the piece `i`. -/
-@[simp] theorem ofHomeomorph_V (i j : (ofHomeomorph e).J) :
-    (ofHomeomorph e).V (i, j) = (Opens.toTopCat _).obj (ofHomeomorphOverlap U V i j) := (rfl)
+theorem ofHomeomorph_V (i j : ULift.{u} Bool) :
+    (ofHomeomorph e).V (i, j) =
+      (Opens.toTopCat (ofHomeomorphPiece X Y i)).obj (ofHomeomorphOverlap U V i j) := (rfl)
 
 /-- The overlap of the pieces `i` and `j` of the gluing along `e` includes into the piece `i` as
 the open subset `ofHomeomorphOverlap U V i j`. -/
-@[simp] theorem ofHomeomorph_f (i j : (ofHomeomorph e).J) :
+theorem ofHomeomorph_f (i j : ULift.{u} Bool) :
     (ofHomeomorph e).f i j = (ofHomeomorphOverlap U V i j).inclusion' := (rfl)
+
+/-- The piece of index `false` of the gluing along `e` is `X`. -/
+@[simp] theorem ofHomeomorph_U_false : (ofHomeomorph e).U ⟨false⟩ = TopCat.of X := (rfl)
+
+/-- The piece of index `true` of the gluing along `e` is `Y`. -/
+@[simp] theorem ofHomeomorph_U_true : (ofHomeomorph e).U ⟨true⟩ = TopCat.of Y := (rfl)
+
+/-- Each piece of the gluing along `e` overlaps itself in the whole piece. -/
+@[simp] theorem ofHomeomorph_V_self (i : (ofHomeomorph e).J) :
+    (ofHomeomorph e).V (i, i) = (Opens.toTopCat ((ofHomeomorph e).U i)).obj ⊤ := by
+  rcases i with ⟨_ | _⟩ <;> rfl
+
+/-- In the gluing along `e`, the piece `X` overlaps itself in the whole of `X`. -/
+@[simp] theorem ofHomeomorph_V_false_false :
+    (ofHomeomorph e).V (⟨false⟩, ⟨false⟩) = (Opens.toTopCat (TopCat.of X)).obj ⊤ := (rfl)
+
+/-- In the gluing along `e`, the piece `Y` overlaps itself in the whole of `Y`. -/
+@[simp] theorem ofHomeomorph_V_true_true :
+    (ofHomeomorph e).V (⟨true⟩, ⟨true⟩) = (Opens.toTopCat (TopCat.of Y)).obj ⊤ := (rfl)
+
+/-- In the gluing along `e`, the piece `X` overlaps the piece `Y` in `U`. -/
+@[simp] theorem ofHomeomorph_V_false_true :
+    (ofHomeomorph e).V (⟨false⟩, ⟨true⟩) = (Opens.toTopCat (TopCat.of X)).obj U := (rfl)
+
+/-- In the gluing along `e`, the piece `Y` overlaps the piece `X` in `V`. -/
+@[simp] theorem ofHomeomorph_V_true_false :
+    (ofHomeomorph e).V (⟨true⟩, ⟨false⟩) = (Opens.toTopCat (TopCat.of Y)).obj V := (rfl)
+
+/-- In the gluing along `e`, the overlap of `X` with `Y` includes into `X` as the open
+subset `U`. -/
+theorem ofHomeomorph_f_false_true :
+    (ofHomeomorph e).f ⟨false⟩ ⟨true⟩ = Opens.inclusion' (X := TopCat.of X) U := (rfl)
+
+/-- In the gluing along `e`, the overlap of `Y` with `X` includes into `Y` as the open
+subset `V`. -/
+theorem ofHomeomorph_f_true_false :
+    (ofHomeomorph e).f ⟨true⟩ ⟨false⟩ = Opens.inclusion' (X := TopCat.of Y) V := (rfl)
 
 /-- The transition map from the overlap `U` to the overlap `V` is `e`. -/
 @[simp] theorem ofHomeomorph_t_false_true :
