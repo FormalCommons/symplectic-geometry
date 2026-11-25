@@ -52,13 +52,12 @@ interior and of the discs are `GluedAlong.inl` and `GluedAlong.inr`, composed wi
 identification of the interior with Tau Ceti's charted interior and with the inclusion of each
 disc into the disjoint union, a local diffeomorphism (`TauCeti.isLocalDiffeomorph_sigmaMk`).
 
-The capped surface is Hausdorff when `S` is. Since `GluedAlong` is the glued space of the
-two-piece gluing data `TopCat.GlueData.ofHomeomorph`, this follows from
-`TopCat.GlueData.ofHomeomorph_t2Space_iff`, the two-piece form of Tau Ceti's criterion
-`TopCat.GlueData.t2Space_iff_forall_nhds`. Both pieces are Hausdorff, so it remains to separate
-an interior point `p` from a point `z` of the `i`-th disc with `‖z‖ ≤ 1`. The point `p` lies
-off the compact circle `γ i`, hence, by compactness, off the collar points `c (γ i θ, t)` for
-every `θ` and every small enough `t`; these are the points of an annulus `1 < ‖z‖ < 1 + ε`.
+The capped surface is Hausdorff when `S` is, by the criterion `GluedAlong.t2Space_iff`, the
+two-piece form of Tau Ceti's `TopCat.GlueData.t2Space_iff_forall_nhds`. Both pieces are
+Hausdorff, so it remains to separate an interior point `p` from a point `z` of the `i`-th disc
+with `‖z‖ ≤ 1`. The point `p` lies off the compact circle `γ i`, hence, by compactness, off the
+collar points `c (γ i θ, t)` for every `θ` and every small enough `t`; these are the points of an
+annulus `1 < ‖z‖ < 1 + ε`.
 
 ## Main definitions
 
@@ -758,11 +757,10 @@ private theorem exists_nhds_inr_ne_inl (i : ι) (p : (𝓡∂ 2).interiorOpens S
 
 /-- The capped surface is Hausdorff when `S` is. -/
 instance instT2Space : T2Space (capDiscs c γ hγ hinj) := by
-  -- `GluedAlong` is the glued space of `TopCat.GlueData.ofHomeomorph`, whose criterion applies.
   -- The criterion for a space glued from two pieces: the interior of `S` and the discs are
   -- Hausdorff, and it remains to separate a point of the interior from a point `w` of the
   -- `i`-th disc with `‖w‖ ≤ 1`.
-  refine (TopCat.GlueData.ofHomeomorph_t2Space_iff _).2
+  refine (GluedAlong.t2Space_iff _).2
     ⟨inferInstance, inferInstance, ?_⟩
   rintro x - ⟨i, w⟩ hw
   let φ := (𝓡∂ 2).interiorOpensDiffeomorph S ∞
