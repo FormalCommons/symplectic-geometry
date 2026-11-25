@@ -35,6 +35,8 @@ The segment `σ_t = σ₀ + t (σ₁ - σ₀)` with a primitive `β` constant in
 * `SymplecticGeometry.moserField`: the cut-off Moser field of a family of two-forms.
 * `SymplecticGeometry.interior_moserField`, `SymplecticGeometry.interior_moserField_eq`:
   the identity `ι_{X_t} σ_t = -ρ(t, ·) β_t`.
+* `SymplecticGeometry.exists_isCompact_moserField_eq_zero`: for a cutoff with compact support,
+  the field vanishes at every time outside one compact subset of `M`.
 * `SymplecticGeometry.contMDiffAt_moserField`, `SymplecticGeometry.contMDiff_moserField`: the
   field is jointly smooth on `N × M` where `ρ` is smooth and `σ_t` is nondegenerate at every
   point `(t, x)` of the support of `ρ`.
@@ -109,6 +111,13 @@ theorem moserField_eq_zero_of_apply_eq_zero {t : N} {x : M}
 theorem moserField_eq_zero_of_notMem_tsupport {t : N} {x : M} (h : (t, x) ∉ tsupport ρ) :
     moserField σ β ρ t x = 0 := by
   rw [moserField_def, image_eq_zero_of_notMem_tsupport h, zero_smul]
+
+/-- When the cutoff `ρ` has compact support, the cut-off Moser field vanishes, at every time,
+outside a compact subset of `M`: the projection of the support of `ρ`. -/
+theorem exists_isCompact_moserField_eq_zero (hρ : HasCompactSupport ρ) :
+    ∃ K : Set M, IsCompact K ∧ ∀ t, ∀ x ∉ K, moserField σ β ρ t x = 0 :=
+  ⟨Prod.snd '' tsupport ρ, hρ.isCompact.image continuous_snd, fun _ _ hx ↦
+    moserField_eq_zero_of_notMem_tsupport fun h ↦ hx ⟨_, h, rfl⟩⟩
 
 /-- Where the flat map of the slice `σ_t` at `x` is invertible, the Moser field satisfies
 `ι_{X_t} σ_t = -ρ(t, x) β_t` at `x`. -/
