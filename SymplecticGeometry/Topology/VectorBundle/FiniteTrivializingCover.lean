@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Topology.VectorBundle.Countable
 public import TauCeti.Topology.VectorBundle.TrivialEmbedding
+public import TauCeti.Topology.VectorBundle.Transfer
 
 /-!
 # Finite trivializing covers of vector bundles
@@ -30,6 +31,10 @@ what a classifying map to a finite-dimensional projective space needs.
   `PartitionOfUnity.gapTrivialization` of Tau Ceti of sizes `0, …, N`. This is the argument of
   Milnor–Stasheff, Lemma 5.9, where the bound `N` makes the countable family of gap
   trivializations finite.
+* `SymplecticGeometry.Bundle.HasFiniteTrivializingCover.of_continuousLinearEquiv`: a finite
+  trivializing cover passes along a fibrewise continuous linear equivalence of bundles over the
+  same base that is a homeomorphism of total spaces, through Tau Ceti's
+  `Bundle.Trivialization.compContinuousLinearEquiv`, which keeps each base set.
 * `SymplecticGeometry.Bundle.HasFiniteTrivializingCover.exists_continuous_injective_fin`: over a
   normal base, a bundle with a finite trivializing cover and finite-dimensional model fibre has a
   continuous fibrewise injective linear map into a trivial bundle `B × (Fin N → 𝕜)`.
@@ -95,6 +100,23 @@ theorem HasFiniteTrivializingCover.of_card_finsupport_le {κ : Type*}
   obtain ⟨S, rfl, hS⟩ := ρ.exists_gap_pos_of_gapPartition_pos hpos
   have hle : S.card ≤ N := (Finset.card_le_card (ρ.subset_finsupport_of_gap_pos hS)).trans (hN x)
   exact mem_iUnion.2 ⟨⟨S.card, Nat.lt_succ_of_le hle⟩, hn⟩
+
+/-- A finite trivializing cover passes along a fibrewise isomorphism of bundles over the same
+base: if `Φ x : E x ≃L[R] E' x` is continuous on total spaces, with continuous inverse, and `E`
+has a finite trivializing cover with model `F`, then so does `E'`. -/
+theorem HasFiniteTrivializingCover.of_continuousLinearEquiv [∀ x, TopologicalSpace (E x)]
+    {E' : B → Type*} [TopologicalSpace (TotalSpace F E')] [∀ x, AddCommMonoid (E' x)]
+    [∀ x, Module R (E' x)] [∀ x, TopologicalSpace (E' x)]
+    (h : HasFiniteTrivializingCover R F E) (Φ : ∀ x, E x ≃L[R] E' x)
+    (hΦ : Continuous fun p : TotalSpace F E ↦ TotalSpace.mk' F p.proj (Φ p.proj p.snd))
+    (hΦ' : Continuous fun p : TotalSpace F E' ↦ TotalSpace.mk' F p.proj ((Φ p.proj).symm p.snd)) :
+    HasFiniteTrivializingCover R F E' := by
+  obtain ⟨s, hlin, hcover⟩ := h
+  have hind := (Topology.IsEmbedding.of_leftInverse (fun p ↦ by simp) hΦ hΦ').isInducing
+  have := fun e : s ↦ hlin e e.property
+  refine .of_finite (fun e : s ↦ (e : Trivialization F (π F E)).compContinuousLinearEquiv
+    (fun x ↦ (Φ x).symm) hind) ?_
+  simpa [iUnion_subtype] using hcover
 
 end Definition
 
