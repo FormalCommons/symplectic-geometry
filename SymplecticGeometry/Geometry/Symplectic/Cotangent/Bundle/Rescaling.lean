@@ -93,7 +93,7 @@ theorem vectorBundleRescaledFamily_zero_eq_self [IsManifold J ∞ L] [J.Boundary
     intro v
     simp only [D]
     rw [show ψ = ψ' ∘ Subtype.val from
-      funext fun z ↦ (Subtype.val_injective.extend_apply _ _ _).symm]
+      (Function.extend_comp Subtype.val_injective ψ id).symm]
     exact Manifold.mfderiv_comp_subtype_val_apply (x := p) v
   -- `dψ` fixes the horizontal vectors `(v, 0)`, since `ψ` fixes the zero section near `0_x`
   have hZ : ψ' ∘ Z =ᶠ[𝓝 x] Z := by
@@ -105,7 +105,7 @@ theorem vectorBundleRescaledFamily_zero_eq_self [IsManifold J ∞ L] [J.Boundary
     intro v
     rw [hD, Bundle.mfderiv_zeroSectionTangentEquiv_symm_inl
       ((ContMDiffAt.extend_subtypeVal (hψ p) id).mdifferentiableAt (by simp)) hZ,
-      Bundle.zeroSectionTangentEquiv_symm_eq, Prod.mk_zero_zero, map_zero, add_zero]
+      Bundle.zeroSectionTangentEquiv_symm_inl]
   -- `dψ` preserves `ω` at `0_x`
   have hσ : ∀ ξ η, SmoothBundleForm.eval₂ σ (Z x) (D ξ) (D η) =
       SmoothBundleForm.eval₂ σ (Z x) ξ η := fun ξ η ↦
