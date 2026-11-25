@@ -5,7 +5,6 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Analysis.Calculus.InverseFunctionTheorem.ContDiff
 public import Mathlib.LinearAlgebra.Matrix.Dual
 public import Mathlib.Topology.Algebra.Module.FiniteDimensionBilinear
 public import SymplecticGeometry.Analysis.Complex.HolomorphicQuadratic
@@ -13,6 +12,7 @@ public import TauCeti.Geometry.Manifold.Morse.Basic
 public import TauCeti.Geometry.Manifold.Morse.Index
 import Mathlib.Analysis.Calculus.Deriv.Shift
 import Mathlib.Analysis.Calculus.DSlope
+import TauCeti.Analysis.Analytic.Inverse
 import TauCeti.Analysis.Complex.BranchLogRoot
 
 /-!
@@ -41,7 +41,8 @@ about it that the rest of the theory uses.
   point `0` is a nondegenerate critical point of `z ↦ Re (c * quadric z)`, of Morse index `2`.
 * `SymplecticGeometry.LefschetzModel.exists_openPartialHomeomorph_apply_add_quadric`: after a
   holomorphic change `h` of the base coordinate with `h' c ≠ 0`, the map `w ↦ h (c + quadric w)`
-  is again `h c + quadric`, in new holomorphic coordinates near `0`.
+  is again `h c + quadric`, in biholomorphic coordinates near `0` whose domain lies in any
+  prescribed neighbourhood of `0`.
 
 The Morse index is computed with Tau Ceti's
 `ContinuousLinearMap.morseIndex_re_apply_self_of_ker_eq_bot`: the real part of a holomorphic
@@ -49,10 +50,12 @@ quadratic form whose polarization is injective has Morse index the complex dimen
 critical point is nondegenerate by
 `ContinuousLinearMap.isNondegenerateCriticalPoint_re_apply_self_of_ker_eq_bot`.
 
-The reparametrisation writes `h (c + t) = h c + t * g t` with the slope `g = dslope _ 0`, takes
-a holomorphic square root `s` of `g` near `0` from Tau Ceti's
-`TauCeti.exists_eventuallyEq_pow_iff_dvd`, and applies the inverse function theorem
-(`ContDiffAt.toOpenPartialHomeomorph`) to `w ↦ s (quadric w) • w`.
+The reparametrisation adapts the proof of Tau Ceti's
+`AnalyticAt.exists_openPartialHomeomorph_sub_eq_pow` from one variable to the quadric on `ℂ²`.
+It writes `h (c + t) = h c + t * g t` with the slope `g = dslope _ 0`, takes a holomorphic
+square root `s` of `g` near `0` from Tau Ceti's `TauCeti.exists_eventuallyEq_pow_iff_dvd`, and
+applies Tau Ceti's analytic inverse function theorem `AnalyticAt.exists_openPartialHomeomorph`
+to `w ↦ s (quadric w) • w`.
 
 ## References
 
@@ -196,13 +199,13 @@ theorem manifoldMorseIndex_re_mul_quadric {c : ℂ} (hc : c ≠ 0) :
 with `h' c ≠ 0`, keeps the exact model: there is a biholomorphic change of coordinates `e` of
 `ℂ²` near `0`, fixing `0`, with `h (c + quadric w) = h c + quadric (e w)` on its source.
 
-Here `e` is a partial homeomorphism whose source is a neighbourhood of `0`, complex analytic
-on its source, with invertible complex derivative there. Explicitly, `e w = s (quadric w) • w`
-for a holomorphic square root `s` of the slope `t ↦ (h (c + t) - h c) / t` of `h` at `c`. -/
+Here `e` is a partial homeomorphism whose source is a neighbourhood of `0` contained in the
+given neighbourhood `U` of `0`; it is complex analytic on its source, and its inverse is
+complex analytic on its target. -/
 theorem exists_openPartialHomeomorph_apply_add_quadric {h : ℂ → ℂ} {c : ℂ}
-    (hh : AnalyticAt ℂ h c) (hc : deriv h c ≠ 0) :
+    (hh : AnalyticAt ℂ h c) (hc : deriv h c ≠ 0) {U : Set (Fin 2 → ℂ)} (hU : U ∈ 𝓝 0) :
     ∃ e : OpenPartialHomeomorph (Fin 2 → ℂ) (Fin 2 → ℂ), 0 ∈ e.source ∧ e 0 = 0 ∧
-      AnalyticOnNhd ℂ e e.source ∧ (∀ w ∈ e.source, (fderiv ℂ e w).IsInvertible) ∧
+      e.source ⊆ U ∧ AnalyticOnNhd ℂ e e.source ∧ AnalyticOnNhd ℂ e.symm e.target ∧
       ∀ w ∈ e.source, h (c + quadric w) = h c + quadric (e w) := by
   -- `h (c + t) = h c + t * g t`, with `g` the slope of `h` at `c`, and `g 0 = h' c ≠ 0`.
   set g := dslope (fun t ↦ h (c + t)) 0
@@ -235,24 +238,13 @@ theorem exists_openPartialHomeomorph_apply_add_quadric {h : ℂ → ℂ} {c : �
     refine (h1.differentiableAt.hasFDerivAt.smul (hasFDerivAt_id 0)).congr_fderiv ?_
     ext v i
     simp [f']
-  -- The inverse function theorem, restricted to where `ψ` is analytic with invertible
-  -- derivative.
-  have hcd := (hψa 0 h0V).contDiffAt (n := ω)
-  set e₀ := hcd.toOpenPartialHomeomorph ψ hd (by simp)
-  set O := V ∩ fderiv ℂ ψ ⁻¹' {T | T.IsInvertible}
-  have hO : IsOpen O :=
-    ((hψa.contDiffOn hVo.uniqueDiffOn (n := 1)).continuousOn_fderiv_of_isOpen hVo
-      le_rfl).isOpen_inter_preimage hVo ContinuousLinearMap.isOpen_setOfPred_isInvertible
-  refine ⟨e₀.restrOpen O hO, ?_, ?_, ?_, ?_, ?_⟩
-  · exact ⟨hcd.mem_toOpenPartialHomeomorph_source hd _, h0V, ⟨f', hd.fderiv.symm⟩⟩
-  · simp [e₀, ψ]
-  · exact fun w hw ↦ hψa w hw.2.1
-  · exact fun w hw ↦ hw.2.2
-  · intro w hw
-    have hq := (hW _ hw.2.1).2
-    simp only [OpenPartialHomeomorph.coe_restrOpen, e₀, ContDiffAt.toOpenPartialHomeomorph_coe,
-      ψ, quadric_smul, hgeq, ← hq]
-    ring
+  -- The analytic inverse function theorem, with source inside `U ∩ V`.
+  obtain ⟨e, he, h0e, hesub, hea, hei⟩ :=
+    (hψa 0 h0V).exists_openPartialHomeomorph hd.fderiv (inter_mem hU (hVo.mem_nhds h0V))
+  refine ⟨e, h0e, by simp [he, ψ], fun w hw ↦ (hesub hw).1, he ▸ hea, hei, fun w hw ↦ ?_⟩
+  have hq := (hW _ (hesub hw).2).2
+  simp only [he, ψ, quadric_smul, hgeq, ← hq]
+  ring
 
 end SymplecticGeometry.LefschetzModel
 
