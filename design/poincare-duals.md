@@ -261,34 +261,49 @@ In the setting of Tau Ceti's `TopCat.pullbackCupRestrict` (a map
   with `thomEquivOfSecondCountableTopology_apply`, named after Tau Ceti's
   `thomEquivOfCompactSpace`. Proof as in *Decisions*.
 
-### `Geometry/Manifold/SmoothEmbedding/NormalSpace/ThomClass.lean`
+### `Topology/VectorBundle/Orientation/ThomClass.lean`
 
-- `Orientation.modelThomGenerator ω`, for `ω : Orientation ℝ P (Fin r)`:
+- `Orientation.modelThomGenerator ω hP`, for `ω : Orientation ℝ P (Fin r)`
+  and `hP : finrank ℝ P = r`:
   the class of $H^r(P,P\setminus0;\mathrm{ULift}\,\mathbb Z)$ selected by
   `ω`, Tau Ceti's `Orientation.localCohomologyClass` for `r = n + 1` and the
-  unit class for `r = 0` ($P$ is then a point and $P\setminus0$ empty);
+  unit class for `r = 0` ($P$ is then a point and $P\setminus0$ empty), up
+  to the sign of `ω`;
   `modelThomGenerator_neg` and `span_modelThomGenerator` (it generates).
-- `TauCeti.SmoothEmbedding.normalThomClass f hdim o g`: the Thom class of
-  `o`, `o.thomClassOfModel` with a fixed orientation `ω₀` of `P` (from
-  `Module.finBasisOfFinrankEq`, as in Tau Ceti's `exists_isThomClass`) and a
-  class `g` of the model pair, generic in the coefficients;
-  `isThomClass_normalThomClass` when `g` generates; `normalThomClass_neg`.
-  The class of the orientation is `normalThomClass f hdim o
-  (modelThomGenerator ω₀)`; `thomClassOfModel_modelThomGenerator_eq` says
-  that it does not depend on `ω₀` (both `ω` and `g` change sign), and
-  `normalThomClass_eq_thomClass` that for `r = n + 1` it is
-  `o.thomClass`, by `eq_thomClass_iff`.
+- `TauCeti.VectorBundleOrientation.canonicalThomClass o hr`, for
+  `o : VectorBundleOrientation F E (Fin r)` over any base and
+  `hr : finrank ℝ F = r`: the class of $H^r(E,E_0;\mathrm{ULift}\,\mathbb Z)$
+  restricting on each fibre to the generator selected by the fibre
+  orientation. It takes no choice of an orientation of `F`. Its fibre
+  restrictions, `singularCohomologyMap_fiberThomPairMap_canonicalThomClass`:
+  for every linear trivialization `e` at `x`, the pull-back, by
+  `(e.continuousLinearEquivAt ℝ x hx).complZeroPairIso`, of
+  `modelThomGenerator (e.mapOrientation _ hx (o x))`; the uniqueness
+  `eq_canonicalThomClass_iff`; `isThomClass_canonicalThomClass`,
+  `canonicalThomClass_neg`, and `canonicalThomClass_eq_thomClass` (for
+  `r = n + 1` it is `o.thomClass`). It is glued from the fibre generators
+  as Tau Ceti's `thomClass` is, not taken from `thomClassOfModel`: that
+  class is stated with the `ℤ`-linear structure `ModuleCat.instLinear`,
+  while `localCohomologyClass`, `thomClass` and the integral classes here
+  use `Linear.preadditiveIntLinear`.
+
+### `Geometry/Manifold/SmoothEmbedding/NormalSpace/ThomClass.lean`
+
+- `TauCeti.SmoothEmbedding.normalThomClass f hdim o`: the Thom class of
+  `o`, `o.canonicalThomClass rfl`, with coefficients `ULift ℤ`;
+  `isThomClass_normalThomClass`, `normalThomClass_neg` and
+  `normalThomClass_eq_thomClass`, that for `r = n + 1` it is
+  `o.thomClass`, from the lemmas of `canonicalThomClass`.
 - `TauCeti.SmoothEmbedding.singularCohomologyMap_fiberThomPairMap_normalThomClass`:
-  the restriction of `normalThomClass f hdim o (modelThomGenerator ω₀)` to
+  the restriction of `normalThomClass f hdim o` to
   the fibre pair over `x` (`fiberThomPairMap`) is the generator selected by
   `o x`. As the fibres carry no norm, it is read in a trivialization: for
   every linear trivialization `e` at `x`, the restriction is the pull-back,
   by `(e.continuousLinearEquivAt ℝ x hx).complZeroPairIso`, of
-  `modelThomGenerator (e.mapOrientation _ hx (o x))`. From Tau Ceti's
-  `singularCohomologyMap_fiberThomPairMap_thomClassOfModel_of_mapOrientation_eq`,
-  its `_eq_neg` variant and `modelThomGenerator_neg`.
+  `modelThomGenerator (e.mapOrientation _ hx (o x))`. From
+  `singularCohomologyMap_fiberThomPairMap_canonicalThomClass`.
 - `TauCeti.SmoothEmbedding.intNormalThomClass f hdim o`: the class
-  `normalThomClass f hdim o (modelThomGenerator ω₀)` carried to chain
+  `normalThomClass f hdim o` carried to chain
   coefficients and values `ℤ` by `ULift ℤ ≅ ℤ`
   (`singularCohomologyChainCoefficientMap` and the value map of
   `Topology/VectorBundle/Thom/ChangeOfCoefficients.lean`), a Thom class by
@@ -328,7 +343,7 @@ With `hf : IsClosed (range f)` and a normalized tube `Φ` with open image
   `exists_isNormalizedTube_subset` with `O = univ`; `dualClassOf f hf u`,
   its image in $H^n(X)$.
 - `relDualClass f hf o` and `dualClass f hf o`, the classes of
-  `normalThomClass f hdim o (modelThomGenerator ω₀)`, with coefficients
+  `normalThomClass f hdim o`, with coefficients
   `ULift ℤ`.
 - `dualClassOf_restrict_compl`: the restriction of `dualClassOf f hf u` to
   $X\setminus\operatorname{range}f$ is zero (exactness of the pair);
@@ -345,7 +360,7 @@ With `hf : IsClosed (range f)` and a normalized tube `Φ` with open image
 
 - `eq_relDualClassOf_iff_forall_slice`: for a Thom class `u` of the
   normal bundle in degree `r = finrank ℝ P` (in particular
-  `normalThomClass f hdim o g` with `g` a generator), a class of
+  `normalThomClass f hdim o`), a class of
   $H^r(X,X\setminus Z)$ is `relDualClassOf f hf u` exactly when its
   restriction along each normal slice of a normalized tube is the fibre
   restriction of `u`; by excision and Tau Ceti's uniqueness by fibre
