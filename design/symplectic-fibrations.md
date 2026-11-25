@@ -191,7 +191,7 @@ About 350 lines.
   restricts to `σ` has structure group `diffeomorphStabilizer σ`, since
   each coordinate change pulls $\sigma$ back to itself. This is how
   `SymplecticFibres.lean` produces its symplectic atlas.
-- Affine structure: `mpullback_fiberInclusion_mpullback_eq_zero` (for
+- Affine structure: `Bundle.Trivialization.mpullback_fiberInclusion_mpullback_eq_zero` (for
   `k ≥ 1`, `π^*β` pulls back to zero along fibre inclusions, since
   `π ∘ fiberInclusion` is constant), `restrictsTo_add_iff` (if `τ`
   restricts to `σ`, then `τ + β` does exactly when `β` pulls back to zero
