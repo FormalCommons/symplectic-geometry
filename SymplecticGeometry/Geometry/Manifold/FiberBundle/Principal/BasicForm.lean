@@ -19,6 +19,7 @@ import TauCeti.Geometry.Manifold.DifferentialForm.Flow
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import TauCeti.Geometry.Manifold.VectorField.Prod
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
 
 /-!
@@ -421,10 +422,9 @@ private theorem mextDeriv_apply_rightFundamentalVectorField_prod_inr (ξ : Group
       ((contMDiff_zeroSection ℝ (TangentSpace IN)).mdifferentiableAt one_ne_zero)
   -- The vector `(0, v)` at `(0, n)` is the image of `v` under the differential of
   -- `m ↦ (0, m)`; written so, it is a tangent vector of `ℝ × N` at `(0, n)`.
-  have hw : mfderiv IN (𝓘(ℝ).prod IN) (Prod.mk (0 : ℝ)) n v = ((0 : ℝ), v) := by
-    rw [mfderiv_prod_right]
-    -- The zero of `TangentSpace 𝓘(ℝ) 0` is that of `ℝ` under another name of the instance.
-    exact ContinuousLinearMap.inr_apply v
+  have hw : mfderiv IN (𝓘(ℝ).prod IN) (Prod.mk (0 : ℝ)) n v = ((0 : ℝ), v) :=
+    (TauCeti.Manifold.tangentSpaceProdEquiv_apply _ _).symm.trans
+      (TauCeti.Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_right v)
   -- Cartan's formula on `ℝ × N` for the pulled-back form, along `∂ₛ`.
   have hC := mlieDerivForm_apply_eq_mextDeriv_add
     (f := (fun q : ManifoldTotalSpace G P × N ↦
