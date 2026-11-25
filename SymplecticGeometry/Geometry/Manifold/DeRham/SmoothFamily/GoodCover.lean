@@ -112,7 +112,8 @@ theorem SmoothCohomologySplitting.isSmooth_ofIsEmpty [IsManifold I ∞ M] [IsEmp
     (ofIsEmpty I M).IsSmooth.{uE, uH, uN} :=
   ⟨fun _ ↦ preservesSmoothFamilies_zero, fun _ ↦ preservesSmoothFamilies_zero⟩
 
-/-- Transport of a splitting along an equality `W = W'` of open sets keeps smoothness. -/
+/-- Transport of a splitting along an equality `W = W'` of open sets keeps and reflects
+smoothness. -/
 theorem SmoothCohomologySplitting.isSmooth_eqRec_iff [IsManifold I ∞ M] {W W' : Opens M}
     (h : W = W') (σ : SmoothCohomologySplitting I W) :
     (h ▸ σ : SmoothCohomologySplitting I W').IsSmooth.{uE, uH, uN} ↔ σ.IsSmooth.{uE, uH, uN} := by
