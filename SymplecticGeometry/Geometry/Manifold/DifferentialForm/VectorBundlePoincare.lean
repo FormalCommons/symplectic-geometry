@@ -246,21 +246,15 @@ theorem exists_contMDiff_mextDeriv_ofFunction_eq_of_mextDerivₗ_eq_zero
   -- The primitive is the relative Poincaré operator of `η'` plus `h ∘ π`.
   set P := vectorBundlePoincareHomotopy η'
   have hPs : IsSmoothForm (IB.prod 𝓘(ℝ, FV)) ∞ P := hη's.vectorBundlePoincareHomotopy (r := ⊤)
-  have hPf : RoughForm.ofFunction (IB.prod 𝓘(ℝ, FV)) (fun z ↦ P z 0) = P := by
-    funext z
-    ext v
-    rw [RoughForm.ofFunction_apply, Subsingleton.elim v 0]
+  have hPf : IsSmoothForm (IB.prod 𝓘(ℝ, FV)) ∞
+      (RoughForm.ofFunction (IB.prod 𝓘(ℝ, FV)) fun z ↦ P z 0) :=
+    RoughForm.eq_ofFunction P ▸ hPs
   have hhπ : ContMDiff (IB.prod 𝓘(ℝ, FV)) 𝓘(ℝ) ∞ (h ∘ π FV V) :=
     hh.comp (contMDiff_proj V)
-  refine ⟨fun z ↦ P z 0 + h z.proj,
-    (isSmoothForm_ofFunction_iff.mp (by rwa [hPf])).add hhπ, fun z hz ↦ ?_⟩
-  have hsum : RoughForm.ofFunction (IB.prod 𝓘(ℝ, FV)) (fun z ↦ P z 0 + h z.proj) =
-      P + RoughForm.ofFunction (IB.prod 𝓘(ℝ, FV)) (h ∘ π FV V) := by
-    funext z
-    ext v
-    simp [RoughForm.ofFunction_apply, Subsingleton.elim v 0]
-  rw [hsum, IsSmoothForm.mextDeriv_add (hPs.of_le (by simp))
-      ((isSmoothForm_ofFunction_iff.mpr hhπ).of_le (by simp)), Pi.add_apply, ← hρη,
+  have hPg := isSmoothForm_ofFunction_iff.mp hPf
+  refine ⟨(fun z ↦ P z 0) + h ∘ π FV V, hPg.add hhπ, fun z hz ↦ ?_⟩
+  rw [mextDeriv_ofFunction_add (hPg.mdifferentiable (by simp)) (hhπ.mdifferentiable (by simp)),
+    ← RoughForm.eq_ofFunction, Pi.add_apply, ← hρη,
     mextDeriv_vectorBundlePoincareHomotopy_apply_of_forall_mextDeriv_eq_zero
       (hη's.of_le (by simp)) hW hdη'W hz, sub_add_cancel, hη'W z hz]
 

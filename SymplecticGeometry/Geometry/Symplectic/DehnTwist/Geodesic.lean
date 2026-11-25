@@ -72,7 +72,7 @@ direction.
   `SymplecticGeometry.isCompact_setOf_cotangentNorm_coe_le`: so is their trace on an open set
   that contains them. `SymplecticGeometry.exists_pos_setOf_cotangentNorm_le_subset`: every
   neighbourhood of the zero section contains `{z | ‖p‖ ≤ r}` for some `r > 0`.
-  `SymplecticGeometry.exists_gt_setOf_cotangentNorm_le_subset`: an open set that contains
+  `SymplecticGeometry.exists_gt_setOf_cotangentNorm_le_subset`: every neighbourhood of
   `{z | ‖p‖ ≤ r}` contains `{z | ‖p‖ ≤ r'}` for some `r' > r`.
 * `SymplecticGeometry.cotangentNorm_vectorBundleFiberScaling`: fibre scaling by `t ∈ [0, 1]`
   multiplies `‖p‖` by `t`, so it maps `{z | ‖p‖ < r}` into itself
@@ -442,9 +442,10 @@ theorem exists_pos_setOf_cotangentNorm_le_subset {W : Set (CotangentBundle (𝓡
     (isCompact_setOf_cotangentNorm_le 1) continuous_cotangentNorm.continuousOn
     (fun z hz ↦ (cotangentNorm_nonneg z).lt_of_ne' fun h ↦ hz (cotangentNorm_eq_zero_iff.1 h)) hW
 
-/-- For an open set `U ⊇ {z | ‖p‖ ≤ r}` of `T*Sⁿ`, also `{z | ‖p‖ ≤ r'} ⊆ U` for some `r' > r`. -/
-theorem exists_gt_setOf_cotangentNorm_le_subset {U : Set (CotangentBundle (𝓡 n) (𝕊 n))}
-    (hU : IsOpen U) {r : ℝ} (hrU : {z | cotangentNorm z ≤ r} ⊆ U) :
+/-- Every neighbourhood `U` of `{z | ‖p‖ ≤ r}` in `T*Sⁿ` contains `{z | ‖p‖ ≤ r'}` for some
+`r' > r`. -/
+theorem exists_gt_setOf_cotangentNorm_le_subset {r : ℝ} {U : Set (CotangentBundle (𝓡 n) (𝕊 n))}
+    (hU : U ∈ 𝓝ˢ {z | cotangentNorm z ≤ r}) :
     ∃ r' > r, {z | cotangentNorm z ≤ r'} ⊆ U := by
   have hset (c : ℝ) : {z : CotangentBundle (𝓡 n) (𝕊 n) | cotangentNorm z - r ≤ c} =
       {z | cotangentNorm z ≤ r + c} := by
@@ -454,7 +455,7 @@ theorem exists_gt_setOf_cotangentNorm_le_subset {U : Set (CotangentBundle (𝓡 
     (f := fun z ↦ cotangentNorm z - r) one_pos
     (hset 1 ▸ isCompact_setOf_cotangentNorm_le (r + 1))
     (continuous_cotangentNorm.sub continuous_const).continuousOn
-    (fun z hz ↦ sub_pos.2 (not_le.1 hz)) (hU.mem_nhdsSet.2 hrU)
+    (fun z hz ↦ sub_pos.2 (not_le.1 hz)) hU
   exact ⟨r + δ, lt_add_of_pos_right r hδ, hset δ ▸ hδU⟩
 
 /-- Fibre scaling by `t ∈ [0, 1]` multiplies `‖p‖` by `t`. -/
@@ -462,10 +463,8 @@ theorem cotangentNorm_vectorBundleFiberScaling (z : CotangentBundle (𝓡 n) (�
     (t : Icc (0 : ℝ) 1) :
     cotangentNorm (vectorBundleFiberScaling (EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)
       (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ) (z, t)) = t * cotangentNorm z := by
-  rw [cotangentNorm_eq_norm, cotangentNorm_eq_norm, vectorBundleFiberScaling_apply]
-  -- This is `norm_smul`; instance search does not find `NormSMulClass` for covectors.
-  rw [(NormedSpace.toNormSMulClass (𝕜 := ℝ) (E := TangentSpace (𝓡 n) z.proj →L[ℝ] ℝ)).norm_smul,
-    Real.norm_of_nonneg t.property.1]
+  rw [cotangentNorm_eq_norm, cotangentNorm_eq_norm,
+    CotangentBundle.norm_snd_vectorBundleFiberScaling]
 
 /-- Fibre scaling by each `t ∈ [0, 1]` maps `{z | ‖p‖ < r}` into itself. -/
 theorem vectorBundleFiberScaling_mem_setOf_cotangentNorm_lt {r : ℝ}
