@@ -280,16 +280,16 @@ theorem contMDiff_repr_mk {k : ℕ} {ι : Type*} (b : Module.Basis ι ℝ (deRha
 include σ in
 /-- **Smooth primitives of a family that is exact at some parameters.** Let `τ` be a smooth
 family of `(k + 1)`-forms over a manifold `N` such that `τ t` is exact for every `t` in a set `K`.
-Then there is a smooth family `β` of `k`-forms with `d (β t) = τ t` for every `t ∈ K`. Off `K`,
-`τ t` is first corrected to the closed form `τ t - h (d (τ t))`, with `h` the primitive on exact
-forms; on `K` the correction vanishes. -/
+The `k`-forms `β t` can be chosen to depend smoothly on `t`, with `d (β t) = τ t` whenever
+`t ∈ K`. -/
 theorem exists_isSmoothFamily_mextDerivₗ_eq_of_mem_exactForms {k : ℕ}
     {EN : Type uE} [NormedAddCommGroup EN] [NormedSpace ℝ EN] {HN : Type uH} [TopologicalSpace HN]
     {N : Type uN} [TopologicalSpace N] [ChartedSpace HN N] {J : ModelWithCorners ℝ EN HN}
     [IsManifold J ∞ N] {τ : N → SmoothForm I M ℝ (k + 1)} (hτ : IsSmoothFamily J τ) {K : Set N}
     (hK : ∀ t ∈ K, τ t ∈ exactForms I M (k + 1)) :
     ∃ β : N → SmoothForm I M ℝ k, IsSmoothFamily J β ∧ ∀ t ∈ K, mextDerivₗ I k (β t) = τ t := by
-  -- The exterior derivatives of `τ`, as exact forms.
+  -- Off `K` the form `τ t` need not be closed: correct it by `h (d (τ t))`, with `h` the primitive
+  -- on exact forms. On `K` the correction vanishes. First the exterior derivatives of `τ`.
   let dτ : N → exactForms I M (k + 1 + 1) :=
     fun t ↦ ⟨mextDerivₗ I (k + 1) (τ t), by
       rw [exactForms_succ]; exact LinearMap.mem_range_self _ _⟩
