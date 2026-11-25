@@ -137,7 +137,7 @@ variable {T T₁ T₂ : D →ₗ[ℝ] SmoothForm I' M' G l}
 protected theorem add (h₁ : PreservesSmoothFamilies.{uE, uH, uN} T₁)
     (h₂ : PreservesSmoothFamilies.{uE, uH, uN} T₂) :
     PreservesSmoothFamilies.{uE, uH, uN} (T₁ + T₂) := fun α hα ↦ by
-  simpa only [LinearMap.add_apply, Pi.add_def] using (h₁ α hα).add (h₂ α hα)
+  simpa only [LinearMap.add_apply] using (h₁ α hα).add (h₂ α hα)
 
 /-- A constant multiple of a map preserving smooth families preserves smooth families. -/
 protected theorem smul (hT : PreservesSmoothFamilies.{uE, uH, uN} T) (c : ℝ) :
@@ -153,7 +153,7 @@ protected theorem neg (hT : PreservesSmoothFamilies.{uE, uH, uN} T) :
 protected theorem sub (h₁ : PreservesSmoothFamilies.{uE, uH, uN} T₁)
     (h₂ : PreservesSmoothFamilies.{uE, uH, uN} T₂) :
     PreservesSmoothFamilies.{uE, uH, uN} (T₁ - T₂) := fun α hα ↦ by
-  simpa only [LinearMap.sub_apply, Pi.sub_def] using (h₁ α hα).sub (h₂ α hα)
+  simpa only [LinearMap.sub_apply] using (h₁ α hα).sub (h₂ α hα)
 
 /-- **Composition.** If `T` preserves smooth families and takes its values in a submodule `D'`,
 and `S`, defined on `D'`, preserves smooth families, then so does `S` after `T`. -/
@@ -228,18 +228,22 @@ variable {f f₁ f₂ : D →ₗ[ℝ] ℝ}
 /-- The sum of two functionals smooth along smooth families is smooth along smooth families. -/
 protected theorem add (h₁ : SmoothAlongFamilies.{uE, uH, uN} f₁)
     (h₂ : SmoothAlongFamilies.{uE, uH, uN} f₂) : SmoothAlongFamilies.{uE, uH, uN} (f₁ + f₂) :=
-  fun α hα ↦ contDiff_add.contMDiff.comp ((h₁ α hα).prodMk_space (h₂ α hα))
+  fun α hα ↦ by
+    simpa only [LinearMap.add_apply, Function.comp_def] using
+      contDiff_add.contMDiff.comp ((h₁ α hα).prodMk_space (h₂ α hα))
 
 /-- A constant multiple of a functional smooth along smooth families is smooth along smooth
 families. -/
 protected theorem smul (hf : SmoothAlongFamilies.{uE, uH, uN} f) (c : ℝ) :
     SmoothAlongFamilies.{uE, uH, uN} (c • f) :=
-  fun α hα ↦ ((contDiff_const_smul c).contMDiff).comp (hf α hα)
+  fun α hα ↦ by
+    simpa only [LinearMap.smul_apply, Function.comp_def] using
+      (contDiff_const_smul c).contMDiff.comp (hf α hα)
 
 /-- The negative of a functional smooth along smooth families is smooth along smooth families. -/
 protected theorem neg (hf : SmoothAlongFamilies.{uE, uH, uN} f) :
     SmoothAlongFamilies.{uE, uH, uN} (-f) :=
-  fun α hα ↦ by simpa only [LinearMap.neg_apply, Pi.neg_def] using (hf α hα).neg
+  fun α hα ↦ by simpa only [LinearMap.neg_apply] using (hf α hα).neg
 
 /-- The difference of two functionals smooth along smooth families is smooth along smooth
 families. -/
@@ -253,7 +257,8 @@ protected theorem comp {D' : Submodule ℝ (SmoothForm I' M' G l)} {g : D' →�
     {T : D →ₗ[ℝ] SmoothForm I' M' G l} (hg : SmoothAlongFamilies.{uE, uH, uN} g)
     (hT : PreservesSmoothFamilies.{uE, uH, uN} T) (h : ∀ x, T x ∈ D') :
     SmoothAlongFamilies.{uE, uH, uN} (g ∘ₗ T.codRestrict D' h) :=
-  fun α hα ↦ hg (fun t ↦ T.codRestrict D' h (α t)) (hT α hα)
+  fun α hα ↦ by
+    simpa only [LinearMap.comp_apply] using hg (fun t ↦ T.codRestrict D' h (α t)) (hT α hα)
 
 end SmoothAlongFamilies
 
@@ -347,7 +352,7 @@ smooth along smooth families. -/
 theorem PreservesSmoothFamilies.smoothAlongFamilies_comp [FiniteDimensional ℝ S]
     {T : D →ₗ[ℝ] S} (hT : PreservesSmoothFamilies.{uE, uH, uN} (S.subtype ∘ₗ T))
     (f : Module.Dual ℝ S) : SmoothAlongFamilies.{uE, uH, uN} (f ∘ₗ T) :=
-  fun _ hα ↦ hT.contMDiff_dual_apply hα f
+  fun _ hα ↦ by simpa only [LinearMap.comp_apply] using hT.contMDiff_dual_apply hα f
 
 /-- Let `b` be a finite basis of a space `S` of forms, and `T : D →ₗ[ℝ] S` a map whose
 coordinates `t ↦ b.repr (T (α t)) i` are smooth along every smooth family `α`. Then `T`
