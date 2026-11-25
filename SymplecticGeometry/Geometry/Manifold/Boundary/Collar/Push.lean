@@ -25,6 +25,8 @@ the boundary is (`TauCeti.IsCollar.exists_homotopy_push`).
 
 ## Main results
 
+* `TauCeti.IsCollar.coe_complHomotopyEquiv_symm_notMem_collarPart`: the homotopy inverse of
+  `TauCeti.IsCollar.complHomotopyEquiv` misses the collar points of depth less than `1 / 4`.
 * `TauCeti.IsCollar.exists_homotopy_push`: a compact Hausdorff manifold with boundary is pushed,
   by a map homotopic to the identity, into a compact subset of its interior that misses a
   nonempty open subset of the interior when the boundary is not empty.
@@ -42,6 +44,24 @@ public section
 namespace TauCeti
 
 open Set Topology
+
+/-- The homotopy inverse of `TauCeti.IsCollar.complHomotopyEquiv` misses the points of depth less
+than `1 / 4` in the collar: it sends a collar point of depth `s` to depth `max s (1 / 2 - s)`, and
+fixes the points off the collar. -/
+theorem IsCollar.coe_complHomotopyEquiv_symm_notMem_collarPart {M N : Type*} [TopologicalSpace M]
+    [TopologicalSpace N] {f : N → M} {c : N × Ico (0 : ℝ) 1 → M} (hc : IsCollar f c)
+    [CompactSpace N] [T2Space M] (x : M) :
+    (hc.complHomotopyEquiv.symm x : M) ∉ collarPart c (1 / 4) := by
+  by_cases hxc : x ∈ range c
+  · obtain ⟨p, rfl⟩ := hxc
+    rw [hc.coe_complHomotopyEquiv_symm_apply,
+      apply_mem_collarPart_iff hc.isOpenEmbedding.injective, max_lt_iff]
+    intro h
+    linarith [h.1, h.2]
+  · rw [hc.coe_complHomotopyEquiv_symm_apply_of_notMem_range hxc]
+    intro hx
+    obtain ⟨p, -, hp⟩ := mem_collarPart_iff.1 hx
+    exact hxc ⟨p, hp⟩
 
 variable {M : Type*} [TopologicalSpace M]
   {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
@@ -79,22 +99,11 @@ theorem IsCollar.exists_homotopy_push [CompactSpace M] [T2Space M]
   · rintro ⟨x, hx⟩
     exact ⟨c (⟨x, hx⟩, ⟨1 / 8, by norm_num, by norm_num⟩), mem_image_of_mem _
       (show (1 / 8 : ℝ) ∈ Ioo 0 (1 / 4) by norm_num)⟩
-  · -- The homotopy inverse raises the depth of a collar point to at least `1 / 4`, and fixes
-    -- the points off the collar.
-    rintro _ ⟨x, rfl⟩ hx
-    have hgx : (e.symm x : M) ∈ collarPart c (1 / 4) := by
-      have he (y : ((range ((↑) : I.boundary M → M))ᶜ : Set M)) : e.toFun y = y :=
-        congrFun hc.coe_complHomotopyEquiv y
-      simpa only [ContinuousMap.comp_apply, ContinuousMap.HomotopyEquiv.coe_invFun, he] using hx
-    by_cases hxc : x ∈ range c
-    · obtain ⟨p, rfl⟩ := hxc
-      rw [hc.coe_complHomotopyEquiv_symm_apply,
-        apply_mem_collarPart_iff hc.isOpenEmbedding.injective] at hgx
-      obtain ⟨h₁, h₂⟩ := max_lt_iff.1 hgx
-      linarith
-    · rw [hc.coe_complHomotopyEquiv_symm_apply_of_notMem_range hxc] at hgx
-      obtain ⟨p, -, hp⟩ := mem_collarPart_iff.1 hgx
-      exact hxc ⟨p, hp⟩
+  · rintro _ ⟨x, rfl⟩
+    -- Tau Ceti states `coe_complHomotopyEquiv` for the coercion of `e`, which is that of `e.toFun`.
+    have he : ⇑e.toFun = Subtype.val := hc.coe_complHomotopyEquiv
+    simpa only [ContinuousMap.comp_apply, ContinuousMap.HomotopyEquiv.coe_invFun, he,
+      mem_compl_iff] using hc.coe_complHomotopyEquiv_symm_notMem_collarPart x
 
 end TauCeti
 
