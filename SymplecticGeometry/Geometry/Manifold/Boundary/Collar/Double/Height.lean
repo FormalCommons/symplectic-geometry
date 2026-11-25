@@ -252,6 +252,7 @@ theorem coe_homeomorphSublevel (w : W) : (homeomorphSublevel c w : c.Double) = i
 
 variable [IsManifold (𝓡∂ (n + 1)) ∞ W]
 
+omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 /-- The strict sublevel set `{height < 0}` is the first copy of the interior of `W`. -/
 theorem preimage_height_Iio : height c ⁻¹' Iio 0 = range (inlInterior c) := by
   rw [range_inlInterior, ← (𝓡∂ (n + 1)).compl_boundary]
@@ -278,6 +279,7 @@ theorem isOpen_range_inrInterior_union_bandMap_image :
   (isOpenEmbedding_inrInterior c).isOpen_range.union
     (isOpen_bandMap_image c subset_rfl (isOpen_Ioo.prod isOpen_univ))
 
+omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 /-- The two copies of the interior of `W`, each with the band, cover the double. -/
 theorem range_inlInterior_union_bandMap_image_union_range_inrInterior_union_bandMap_image :
     (range (inlInterior c) ∪ bandMap c '' (Ioo (-1) 1 ×ˢ univ)) ∪
@@ -287,6 +289,7 @@ theorem range_inlInterior_union_bandMap_image_union_range_inrInterior_union_band
   simp only [mem_union]
   tauto
 
+omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 /-- The two copies of the interior of `W`, each with the band, meet in the band. -/
 theorem range_inlInterior_union_bandMap_image_inter_range_inrInterior_union_bandMap_image :
     (range (inlInterior c) ∪ bandMap c '' (Ioo (-1) 1 ×ˢ univ)) ∩
@@ -297,6 +300,7 @@ theorem range_inlInterior_union_bandMap_image_inter_range_inrInterior_union_band
   · exact absurd hr ((disjoint_range_inlInterior_inrInterior c).notMem_of_mem_left hl)
   all_goals assumption
 
+omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 /-- The sublevel set `{height ≤ 0}` lies in the first copy of the interior of `W` together with
 the band. -/
 theorem preimage_height_Iic_subset_range_inlInterior_union_bandMap_image :
@@ -307,9 +311,10 @@ theorem preimage_height_Iic_subset_range_inlInterior_union_bandMap_image :
   · exact Or.inl h
   · rw [inrInterior_apply] at hz
     exact absurd ((height_inr_eq_zero_iff c).1 (le_antisymm hz (height_inr_nonneg c _)))
-      p.val_notMem_boundary
+      (disjoint_left.1 (𝓡∂ (n + 1)).disjoint_interior_boundary p.property)
   · exact Or.inr h
 
+omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 /-- The superlevel set `{height ≥ 0}` lies in the second copy of the interior of `W` together
 with the band. -/
 theorem preimage_height_Ici_subset_range_inrInterior_union_bandMap_image :
@@ -333,6 +338,7 @@ private theorem contMDiffAt_height_bandMap {s : ℝ} (hs : s ∈ Ioo (-1) 1)
     (s, x) ∈ Ioo (-1 : ℝ) 1 ×ˢ (univ : Set ((𝓡∂ (n + 1)).boundary W)))] with p hp
   exact height_bandMap c hp.1 p.2
 
+omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 /-- Off the middle `|s| ≤ 1/2` of the band, the height is `-1` on the first copy of the interior
 of `W`. -/
 private theorem height_eq_neg_one {z : c.Double} (hz : z ∈ range (inlInterior c))
@@ -349,6 +355,7 @@ private theorem height_eq_neg_one {z : c.Double} (hz : z ∈ range (inlInterior 
     exact height_bandMap_of_le_neg c hlt.le (neg_depth_mem_Ioo t).1 x
   · exact height_inl_of_notMem_range c hw
 
+omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 /-- Off the middle `|s| ≤ 1/2` of the band, the height is `1` on the second copy of the interior
 of `W`. -/
 private theorem height_eq_one {z : c.Double} (hz : z ∈ range (inrInterior c))
@@ -408,6 +415,7 @@ theorem isRegularValue_height_zero : IsRegularValue (𝓡 (n + 1)) 𝓘(ℝ) (he
   rw [← ContinuousLinearMap.coe_comp, ← h]
   exact fun v ↦ ⟨(v, 0), rfl⟩
 
+omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 /-- The homeomorphism of `W` with `{height ≤ 0}` maps the interior of `W` onto `{height < 0}`. -/
 theorem image_interior_homeomorphSublevel :
     homeomorphSublevel c '' (𝓡∂ (n + 1)).interior W = Subtype.val ⁻¹' (height c ⁻¹' Iio 0) := by
