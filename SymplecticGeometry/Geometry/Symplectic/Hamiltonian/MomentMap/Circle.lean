@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.Circle
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap.Critical
+import SymplecticGeometry.LinearAlgebra.FiniteDimensional.FinrankOne
 
 /-!
 # Critical points of a circle moment map
@@ -98,7 +99,8 @@ theorem IsMomentMap.ker_differential_circle {σ : SmoothTwoForm I M}
     -- The tangent space of `ℝ` is `ℝ` by definition; `simpa` states the equation in `ℝ`.
     exact (by simpa using this : _ = (0 : ℝ))
   · intro hv
-    refine linearMap_ext_of_ne_zero_circle circlePeriodOneGenerator_ne_zero ?_
+    refine LinearMap.ext_of_finrank_eq_one finrank_groupLieAlgebra_circle
+      circlePeriodOneGenerator_ne_zero ?_
     simp only [IsMomentMap.differential_apply, mvfderiv_apply_eq_mfderiv_apply,
       LinearMap.zero_apply]
     exact hv
@@ -132,7 +134,8 @@ theorem mem_criticalPoints_circlePeriodOneGenerator_iff [T2Space M] [Boundaryles
 theorem apply_smul_circle
     (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) μ) (g : Circle)
     (x : M) : μ (g • x) = μ x := by
-  refine linearMap_ext_of_ne_zero_circle circlePeriodOneGenerator_ne_zero ?_
+  refine LinearMap.ext_of_finrank_eq_one finrank_groupLieAlgebra_circle
+    circlePeriodOneGenerator_ne_zero ?_
   obtain ⟨t, rfl⟩ := mulInvariantExp_smul_circlePeriodOneGenerator_surjective g
   -- `t ↦ exp(t ξ₁) • x` is an integral curve of the Hamiltonian vector field of `⟨μ, ξ₁⟩`, along
   -- which `⟨μ, ξ₁⟩` is conserved.

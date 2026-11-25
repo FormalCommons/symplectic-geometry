@@ -161,8 +161,8 @@ theorem exists_diffeotopy_comp_eq_extend [T2Space M] {g₀ g₁ : C^∞⟮I', W;
 isotopy from `g₀` to `g₁` of maps `W → M` whose slices are local diffeomorphisms pulling `σ` back
 to `τ`, and `Λ` a diffeomorphism of `W` preserving `τ` and fixing every point outside a compact
 set `K`. Then there are a diffeomorphism `Λ₀` of `M` and a diffeotopy `Φ` of `M` as in
-`TauCeti.SmoothIsotopy.exists_diffeotopy_comp_eq_extend`, and moreover `Λ₀` and every slice `Φ_t`
-preserve `σ`. -/
+`TauCeti.SmoothIsotopy.exists_diffeotopy_comp_eq_extend`, such that `Φ_t ∘ Λ₀` fixes every point
+outside `G_t '' K` for each `t`, and moreover `Λ₀` and every slice `Φ_t` preserve `σ`. -/
 theorem exists_diffeotopy_comp_eq_extend_of_isSymplectic [T2Space M] {g₀ g₁ : C^∞⟮I', W; I, M⟯}
     (G : SmoothIsotopy g₀ g₁) (hGd : ∀ t, IsLocalDiffeomorph I' I ∞ (fun w ↦ G (t, w)))
     {τ : SmoothTwoForm I' W} {σ : SmoothTwoForm I M} (hG : G.IsSymplectic τ σ)
@@ -173,7 +173,8 @@ theorem exists_diffeotopy_comp_eq_extend_of_isSymplectic [T2Space M] {g₀ g₁ 
       (∀ t x, x ∉ (fun p ↦ G p) '' (univ ×ˢ K) → Φ (t, x) = x) ∧
       (∀ w, Λ₀ (g₀ w) = g₀ (Λ w)) ∧ (∀ x ∉ g₀ '' K, Λ₀ x = x) ∧
       Λ₀ ∈ SmoothForm.diffeomorphStabilizer σ ∧
-      ∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ := by
+      (∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ) ∧
+      ∀ t, ∀ x ∉ (fun w ↦ G (t, w)) '' K, Φ.timeSlice t (Λ₀ x) = x := by
   obtain ⟨Λ₀, Φ, h₁, h₂, h₃⟩ := G.exists_diffeotopy_timeSlice_comp_eq_extend hGd Λ hK hΛ
   -- `Φ_t * Λ₀ = Φ_t ∘ Λ₀` is the transplant of `Λ` along `G_t`, so it preserves `σ`.
   have hΛt (t : unitInterval) :
@@ -186,7 +187,7 @@ theorem exists_diffeotopy_comp_eq_extend_of_isSymplectic [T2Space M] {g₀ g₁ 
         rw [Diffeomorph.mul_def, Diffeomorph.coe_trans, Function.comp_apply, h₃ t x hx]
   have hΛ₀ : Λ₀ ∈ SmoothForm.diffeomorphStabilizer σ := by
     simpa [Φ.timeSlice_zero] using hΛt 0
-  refine ⟨Λ₀, Φ, h₁, h₂, fun w ↦ ?_, fun x hx ↦ ?_, hΛ₀, fun t ↦ ?_⟩
+  refine ⟨Λ₀, Φ, h₁, h₂, fun w ↦ ?_, fun x hx ↦ ?_, hΛ₀, fun t ↦ ?_, h₃⟩
   · simpa [Φ.timeSlice_zero] using h₁ 0 w
   · simpa [Φ.timeSlice_zero] using h₃ 0 x (by simpa using hx)
   · exact (Subgroup.mul_mem_cancel_right _ hΛ₀).1 (hΛt t)
