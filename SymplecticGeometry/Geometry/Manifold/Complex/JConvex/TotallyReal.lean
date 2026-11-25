@@ -7,6 +7,8 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Hypersurface
 public import SymplecticGeometry.Geometry.Manifold.Complex.LeviForm
+public import SymplecticGeometry.Geometry.Manifold.Complex.TotallyReal.AdaptedChart
+public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.ContMDiff
 public import SymplecticGeometry.LinearAlgebra.TotallyReal.Basic
 public import TauCeti.Analysis.InnerProductSpace.Calculus
 public import TauCeti.Geometry.Contact.Pullback
@@ -58,19 +60,22 @@ where its Hessian does not depend on the chart; the statements here do not need 
 Tau Ceti's criterion holds at every point for the Hessian in the preferred chart.
 
 Finally it applies the criterion to the squared distance in an adapted chart. For a totally real
-embedding `ι : N → M` modelled on a real inner product space `V`, Tau Ceti's
-`TauCeti.IsTotallyRealEmbedding.exists_adaptedChart` gives charts `ψ : M → V × V` that flatten
-the image of `ι` onto `V × {0}` (`TauCeti.IsAdaptedChart`). For such a chart:
+embedding `ι : N → M` with `N` modelled on `F`, Tau Ceti's
+`TauCeti.IsTotallyRealEmbedding.exists_adaptedChart` gives charts `ψ : M → F × F` that flatten
+the image of `ι` onto `F × {0}` (`TauCeti.IsAdaptedChart`). Fix a linear isomorphism
+`e : F ≃L[ℝ] W` onto a real inner product space, which amounts to choosing an inner product on
+`F`. For such a chart:
 
 * `TauCeti.IsAdaptedChart.norm_sq_snd_eq_zero_iff`: on the source of `ψ`, the function
-  `x ↦ ‖(ψ x).2‖²` vanishes exactly on the image, where it has critical points
+  `x ↦ ‖e (ψ x).2‖²` vanishes exactly on the image, where it has critical points
   (`TauCeti.IsAdaptedChart.mem_criticalPoints_norm_sq_snd`);
 * `TauCeti.IsAdaptedChart.criticalHessian_norm_sq_snd_apply`: its critical Hessian at a point of
-  the image is `2 ⟪(dψ u).2, (dψ w).2⟫`, by Tau Ceti's second-order chain rule
+  the image is `2 ⟪e (dψ u).2, e (dψ w).2⟫`, by Tau Ceti's second-order chain rule
   `TauCeti.criticalHessian_comp_apply`;
-* `TauCeti.IsAdaptedChart.snd_mfderiv_eq_zero_iff` and
-  `TauCeti.IsAdaptedChart.criticalHessian_norm_sq_snd_pos`: `dψ` sends exactly the tangent image
-  of `ι` into `V × {0}`, so this Hessian is positive off the tangent image;
+* `TauCeti.IsAdaptedChart.criticalHessian_norm_sq_snd_pos`: this Hessian is positive off the
+  tangent image of `ι`, since `dψ` sends exactly that image into `F × {0}`
+  (`TauCeti.IsAdaptedChart.snd_mfderiv_eq_zero_iff`, in
+  `SymplecticGeometry.Geometry.Manifold.Complex.TotallyReal.AdaptedChart`);
 * `IsTotallyRealEmbedding.setOf_isManifoldStrictlyPlurisubharmonicAt_norm_sq_snd_mem_nhdsSet`:
   for a complex manifold, with the adapted chart taken for
   `(ofComplexManifold E M).toContMDiff ℓ`, `ℓ ≥ 2`, the function is strictly plurisubharmonic on a
@@ -219,143 +224,85 @@ end SymplecticGeometry
 
 /-! ### Squared distance in an adapted chart -/
 
-namespace TauCeti.SmoothAlmostComplexStructure
-
-variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
-  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
-
-/-- Viewing a smooth almost complex structure at a finite regularity leaves its pointwise
-structures unchanged. -/
-@[simp]
-theorem almostComplexStructureAt_toContMDiff (J : SmoothAlmostComplexStructure I M) (n : ℕ∞) :
-    (J.toContMDiff n).almostComplexStructureAt = J.almostComplexStructureAt := by
-  funext x
-  ext v
-  rw [ContMDiffAlmostComplexStructure.almostComplexStructureAt_toLinearMap,
-    almostComplexStructureAt_toLinearMap, toContMDiff_toEndomorphism_apply]
-
-end TauCeti.SmoothAlmostComplexStructure
-
 namespace TauCeti.IsAdaptedChart
 
-variable {E H M V : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+variable {E H M F W : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
-  [NormedAddCommGroup V] [InnerProductSpace ℝ V] {ℓ : ℕ∞}
-  {J : ContMDiffAlmostComplexStructure I ℓ M} {s : Set M} {ψ : OpenPartialHomeomorph M (V × V)}
+  [NormedAddCommGroup F] [NormedSpace ℝ F] [NormedAddCommGroup W] [InnerProductSpace ℝ W]
+  {ℓ : ℕ∞} {J : ContMDiffAlmostComplexStructure I ℓ M} {s : Set M}
+  {ψ : OpenPartialHomeomorph M (F × F)} {e : F ≃L[ℝ] W}
 
-/-- In a chart adapted to `s`, the squared norm of the normal coordinate vanishes on the source
-exactly at the points of `s`. -/
+/-- In a chart adapted to `s`, and for a linear isomorphism `e` from the normal coordinate space
+onto an inner product space, the function `x ↦ ‖e (ψ x).2‖²` vanishes on the source exactly at
+the points of `s`. -/
 theorem norm_sq_snd_eq_zero_iff (hψ : IsAdaptedChart J s ψ) {x : M} (hx : x ∈ ψ.source) :
-    ‖(ψ x).2‖ ^ 2 = 0 ↔ x ∈ s := by
+    ‖e (ψ x).2‖ ^ 2 = 0 ↔ x ∈ s := by
   rw [← hψ.isImage hx]
   simp
 
-/-- In a chart adapted to `s`, the points of `s` in the source are critical points of the
-squared norm of the normal coordinate, which is its minimum there. -/
+/-- In a chart adapted to `s`, the points of `s` in the source are critical points of
+`x ↦ ‖e (ψ x).2‖²`, which takes its minimum `0` there. -/
 theorem mem_criticalPoints_norm_sq_snd [I.Boundaryless] (hψ : IsAdaptedChart J s ψ) {x : M}
-    (hx : x ∈ ψ.source ∩ s) : x ∈ criticalPoints I (fun y ↦ ‖(ψ y).2‖ ^ 2) := by
+    (hx : x ∈ ψ.source ∩ s) : x ∈ criticalPoints I (fun y ↦ ‖e (ψ y).2‖ ^ 2) := by
   refine IsLocalMin.mem_criticalPoints (Filter.Eventually.of_forall fun y ↦ ?_)
     BoundarylessManifold.isInteriorPoint
   dsimp only
   rw [(hψ.norm_sq_snd_eq_zero_iff hx.1).2 hx.2]
   positivity
 
-/-- A chart adapted with regularity `ℓ ≥ 2` is `C²` at each point of its source. -/
-theorem contMDiffAt (hψ : IsAdaptedChart J s ψ) (hℓ : 2 ≤ ℓ) {x : M} (hx : x ∈ ψ.source) :
-    ContMDiffAt I 𝓘(ℝ, V × V) 2 ψ x :=
-  ((hψ.contMDiffOn x hx).contMDiffAt (ψ.open_source.mem_nhds hx)).of_le (WithTop.coe_le_coe.2 hℓ)
-
-/-- The squared norm of the normal coordinate of a chart adapted with regularity `ℓ ≥ 2` is `C²`
-at each point of its source. -/
-theorem contMDiffAt_norm_sq_snd (hψ : IsAdaptedChart J s ψ) (hℓ : 2 ≤ ℓ) {x : M}
-    (hx : x ∈ ψ.source) : ContMDiffAt I 𝓘(ℝ) 2 (fun y ↦ ‖(ψ y).2‖ ^ 2) x :=
+/-- For a chart adapted with regularity `ℓ`, the function `y ↦ ‖e (ψ y).2‖²` is `C^ℓ` at each
+point of the source. -/
+theorem contMDiffAt_norm_sq_snd (hψ : IsAdaptedChart J s ψ) {x : M} (hx : x ∈ ψ.source) :
+    ContMDiffAt I 𝓘(ℝ) ℓ (fun y ↦ ‖e (ψ y).2‖ ^ 2) x :=
   (contDiff_norm_sq ℝ).contMDiff.contMDiffAt.comp x
-    (contDiff_snd.contMDiff.contMDiffAt.comp x (hψ.contMDiffAt hℓ hx))
+    ((e.contDiff.comp contDiff_snd).contMDiff.contMDiffAt.comp x (hψ.contMDiffAt hx))
 
 /-- **The Hessian of the squared distance in an adapted chart.** At a point `x` of `s` in the
 source of a chart `ψ` adapted to `s` with regularity `ℓ ≥ 2`, the critical Hessian of
-`y ↦ ‖(ψ y).2‖²` is `2 ⟪(dψ u).2, (dψ w).2⟫`. -/
+`y ↦ ‖e (ψ y).2‖²` is `2 ⟪e (dψ u).2, e (dψ w).2⟫`. -/
 theorem criticalHessian_norm_sq_snd_apply [I.Boundaryless] (hψ : IsAdaptedChart J s ψ)
     (hℓ : 2 ≤ ℓ) {x : M} (hx : x ∈ ψ.source ∩ s) (u w : TangentSpace I x) :
-    criticalHessian I (fun y ↦ ‖(ψ y).2‖ ^ 2) x u w =
-      2 * inner ℝ (mfderiv I 𝓘(ℝ, V × V) ψ x u).2 (mfderiv I 𝓘(ℝ, V × V) ψ x w).2 := by
-  have hψx := hψ.contMDiffAt hℓ hx.1
-  have hφ : ContMDiffAt I 𝓘(ℝ, V) 2 (fun y ↦ (ψ y).2) x :=
-    contDiff_snd.contMDiff.contMDiffAt.comp x hψx
-  have hcrit : (ψ x).2 ∈ criticalPoints 𝓘(ℝ, V) (fun z : V ↦ ‖z‖ ^ 2) := by
+    criticalHessian I (fun y ↦ ‖e (ψ y).2‖ ^ 2) x u w =
+      2 * inner ℝ (e (mfderiv I 𝓘(ℝ, F × F) ψ x u).2) (e (mfderiv I 𝓘(ℝ, F × F) ψ x w).2) := by
+  have hψx := (hψ.contMDiffAt hx.1).of_le (WithTop.coe_le_coe.2 hℓ)
+  have hφ : ContMDiffAt I 𝓘(ℝ, W) 2 (fun y ↦ e (ψ y).2) x :=
+    (e.contDiff.comp contDiff_snd).contMDiff.contMDiffAt.comp x hψx
+  have hcrit : e (ψ x).2 ∈ criticalPoints 𝓘(ℝ, W) (fun z : W ↦ ‖z‖ ^ 2) := by
     refine IsLocalMin.mem_criticalPoints (Filter.Eventually.of_forall fun z ↦ ?_)
       BoundarylessManifold.isInteriorPoint
     rw [show (ψ x).2 = 0 from (hψ.isImage hx.1).2 hx.2]
-    simp only [norm_zero, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, zero_pow]
+    simp only [map_zero, norm_zero, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, zero_pow]
     positivity
-  -- The second-order chain rule at the critical point `(ψ x).2 = 0` of `‖·‖²`.
-  have h := criticalHessian_comp_apply (f := fun z : V ↦ ‖z‖ ^ 2) rfl
+  -- The second-order chain rule at the critical point `e (ψ x).2 = 0` of `‖·‖²`.
+  have h := criticalHessian_comp_apply (f := fun z : W ↦ ‖z‖ ^ 2) rfl
     (contDiff_norm_sq ℝ).contMDiff.contMDiffAt hφ hcrit u w
-  have hD : mfderiv I 𝓘(ℝ, V) (fun y ↦ (ψ y).2) x =
-      (ContinuousLinearMap.snd ℝ V V).comp (mfderiv I 𝓘(ℝ, V × V) ψ x) :=
-    (hasFDerivAt_snd.hasMFDerivAt.comp x (hψx.mdifferentiableAt two_ne_zero).hasMFDerivAt).mfderiv
+  have hD : mfderiv I 𝓘(ℝ, W) (fun y ↦ e (ψ y).2) x =
+      ((e : F →L[ℝ] W).comp (ContinuousLinearMap.snd ℝ F F)).comp
+        (mfderiv I 𝓘(ℝ, F × F) ψ x) :=
+    ((e.hasFDerivAt.comp _ hasFDerivAt_snd).hasMFDerivAt.comp x
+      (hψx.mdifferentiableAt two_ne_zero).hasMFDerivAt).mfderiv
   rw [hD, criticalHessian_modelSpace] at h
-  -- `(snd ∘L dψ) u` is `(dψ u).2` by definition, read in `TangentSpace 𝓘(ℝ, V) (ψ x).2 = V`.
-  exact h.trans (TauCeti.fderiv_fderiv_norm_sq_apply (E := V) _ _ _)
+  -- `(e ∘L snd ∘L dψ) u` is `e (dψ u).2` by definition, read in
+  -- `TangentSpace 𝓘(ℝ, W) (e (ψ x).2) = W`.
+  exact h.trans (TauCeti.fderiv_fderiv_norm_sq_apply (E := W) _ _ _)
 
 section Embedding
 
-variable {H' N : Type*} [TopologicalSpace H'] {I' : ModelWithCorners ℝ V H'} [TopologicalSpace N]
-  [ChartedSpace H' N] [FiniteDimensional ℝ E] [FiniteDimensional ℝ V] {k : ℕ∞ω}
+variable {H' N : Type*} [TopologicalSpace H'] {I' : ModelWithCorners ℝ F H'} [TopologicalSpace N]
+  [ChartedSpace H' N] [FiniteDimensional ℝ E] [FiniteDimensional ℝ F] {k : ℕ∞ω}
   {A : ∀ y : M, AlmostComplexStructure (TangentSpace I y)} {ι : N → M}
-
-/-- **The tangent image in an adapted chart.** Let `ψ` be a chart adapted to the image of a
-`C^k` totally real embedding `ι`, with `k, ℓ ≥ 1`. At a point `ι y` of the source of `ψ`, the
-derivative of `ψ` sends a tangent vector into the zero section `V × {0}` exactly when the vector
-is tangent to `ι`. -/
-theorem snd_mfderiv_eq_zero_iff (h : IsTotallyRealEmbedding I' I k A ι) (hk : 1 ≤ k)
-    (hψ : IsAdaptedChart J (range ι) ψ) (hℓ : 1 ≤ ℓ) {y : N} (hy : ι y ∈ ψ.source)
-    (v : TangentSpace I (ι y)) :
-    (mfderiv I 𝓘(ℝ, V × V) ψ (ι y) v).2 = 0 ↔
-      v ∈ LinearMap.range (mfderiv I' I ι y).toLinearMap := by
-  have hℓ0 : (ℓ : ℕ∞ω) ≠ 0 := by exact_mod_cast (zero_lt_one.trans_le hℓ).ne'
-  have hψd : ψ.MDifferentiable I 𝓘(ℝ, V × V) :=
-    ⟨hψ.contMDiffOn.mdifferentiableOn hℓ0, hψ.contMDiffOn_symm.mdifferentiableOn hℓ0⟩
-  have hψy := hψd.mdifferentiableAt hy
-  have hιy : MDifferentiableAt I' I ι y :=
-    (h.isSmoothEmbedding.contMDiff y).mdifferentiableAt (zero_lt_one.trans_le hk).ne'
-  set D := mfderiv I 𝓘(ℝ, V × V) ψ (ι y)
-  set K := LinearMap.ker ((LinearMap.snd ℝ V V).comp D.toLinearMap)
-  -- Membership in `K` is by definition the vanishing of `(dψ v).2`.
-  change v ∈ K ↔ _
-  -- `ψ ∘ ι` stays in the zero section near `y`, so `dψ ∘ dι` takes values in `V × {0}`.
-  have hle : LinearMap.range (mfderiv I' I ι y).toLinearMap ≤ K := by
-    have hzero : Prod.snd ∘ ψ ∘ ι =ᶠ[𝓝 y] fun _ ↦ (0 : V) :=
-      eventually_of_mem (h.isSmoothEmbedding.contMDiff.continuous.continuousAt.preimage_mem_nhds
-        (ψ.open_source.mem_nhds hy)) fun z hz ↦ (hψ.isImage hz).2 (mem_range_self z)
-    have hcomp := (hasFDerivAt_snd.hasMFDerivAt.comp y
-      (hψy.hasMFDerivAt.comp y hιy.hasMFDerivAt)).mfderiv
-    rw [hzero.mfderiv_eq, mfderiv_const] at hcomp
-    rintro _ ⟨t, rfl⟩
-    exact congr($hcomp.symm t)
-  -- Both have the dimension of `V`: `dι` is injective and `dψ` is onto.
-  suffices hK : LinearMap.range (mfderiv I' I ι y).toLinearMap = K by rw [hK]
-  refine Submodule.eq_of_le_of_finrank_eq hle ?_
-  have hsurj : LinearMap.range ((LinearMap.snd ℝ V V).comp D.toLinearMap) = ⊤ :=
-    LinearMap.range_eq_top.2 ((LinearMap.snd_surjective (R := ℝ) (M := V) (M₂ := V)).comp
-      (hψd.mfderiv_surjective hy))
-  have hrn := LinearMap.finrank_range_add_finrank_ker ((LinearMap.snd ℝ V V).comp D.toLinearMap)
-  rw [hsurj, finrank_top, TauCeti.finrank_tangentSpace, ← h.two_mul_finrank] at hrn
-  rw [LinearMap.finrank_range_of_inj (h.mfderiv_injective y), TauCeti.finrank_tangentSpace]
-  -- Unfold `K`, so that `omega` sees the kernel of `hrn`.
-  change _ = finrank ℝ (LinearMap.ker ((LinearMap.snd ℝ V V).comp D.toLinearMap))
-  omega
 
 /-- **Positivity of the Hessian off the tangent image.** Let `ψ` be a chart adapted, with
 regularity `ℓ ≥ 2`, to the image of a `C^k` totally real embedding `ι`, `k ≥ 1`. At a point `ι y`
-of the source of `ψ`, the critical Hessian of `x ↦ ‖(ψ x).2‖²` is positive on every tangent vector
-that is not tangent to `ι`. -/
+of the source of `ψ`, the critical Hessian of `x ↦ ‖e (ψ x).2‖²` is positive on every tangent
+vector that is not tangent to `ι`. -/
 theorem criticalHessian_norm_sq_snd_pos [I.Boundaryless] (h : IsTotallyRealEmbedding I' I k A ι)
     (hk : 1 ≤ k) (hψ : IsAdaptedChart J (range ι) ψ) (hℓ : 2 ≤ ℓ) {y : N} (hy : ι y ∈ ψ.source)
     {v : TangentSpace I (ι y)} (hv : v ∉ LinearMap.range (mfderiv I' I ι y).toLinearMap) :
-    0 < criticalHessian I (fun x ↦ ‖(ψ x).2‖ ^ 2) (ι y) v v := by
+    0 < criticalHessian I (fun x ↦ ‖e (ψ x).2‖ ^ 2) (ι y) v v := by
   rw [hψ.criticalHessian_norm_sq_snd_apply hℓ ⟨hy, mem_range_self y⟩, real_inner_self_eq_norm_sq]
   have := (hψ.snd_mfderiv_eq_zero_iff h hk (one_le_two.trans hℓ) hy v).not.2 hv
+  have : e (mfderiv I 𝓘(ℝ, F × F) ψ (ι y) v).2 ≠ 0 := by simpa using this
   positivity
 
 end Embedding
@@ -368,20 +315,23 @@ open SmoothAlmostComplexStructure
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] [FiniteDimensional ℂ E]
   {M : Type*} [TopologicalSpace M] [ChartedSpace E M] [IsManifold 𝓘(ℂ, E) ∞ M]
-  {V H' N : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V] [FiniteDimensional ℝ V]
-  [TopologicalSpace H'] {I' : ModelWithCorners ℝ V H'} [TopologicalSpace N] [ChartedSpace H' N]
+  {F W H' N : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
+  [NormedAddCommGroup W] [InnerProductSpace ℝ W]
+  [TopologicalSpace H'] {I' : ModelWithCorners ℝ F H'} [TopologicalSpace N] [ChartedSpace H' N]
   {k : ℕ∞ω} {ι : N → M}
 
 /-- **The squared distance in an adapted chart is strictly plurisubharmonic near a totally real
-submanifold.** Let `ι` be a `C^k` totally real embedding, `k ≥ 1`, into a complex manifold, and
-`ψ` a chart adapted, with regularity `ℓ ≥ 2`, to its image and to the complex structure. Then
-`x ↦ ‖(ψ x).2‖²`, the squared distance to the zero section in the chart, is strictly
+submanifold.** Let `ι` be a `C^k` totally real embedding, `k ≥ 1`, into a complex manifold,
+`ψ` a chart adapted, with regularity `ℓ ≥ 2`, to its image and to the complex structure, and `e`
+a linear isomorphism from the normal coordinate space onto an inner product space. Then
+`x ↦ ‖e (ψ x).2‖²`, a squared distance to the zero section in the chart, is strictly
 plurisubharmonic on a neighbourhood of the part of the image in the source of `ψ`. -/
 theorem setOf_isManifoldStrictlyPlurisubharmonicAt_norm_sq_snd_mem_nhdsSet
     (h : IsTotallyRealEmbedding I' 𝓘(ℝ, E) k (ofComplexManifold E M).almostComplexStructureAt ι)
-    (hk : 1 ≤ k) {ℓ : ℕ∞} {ψ : OpenPartialHomeomorph M (V × V)}
-    (hψ : IsAdaptedChart ((ofComplexManifold E M).toContMDiff ℓ) (range ι) ψ) (hℓ : 2 ≤ ℓ) :
-    {x | IsManifoldStrictlyPlurisubharmonicAt E (fun x ↦ ‖(ψ x).2‖ ^ 2) x} ∈
+    (hk : 1 ≤ k) {ℓ : ℕ∞} {ψ : OpenPartialHomeomorph M (F × F)}
+    (hψ : IsAdaptedChart ((ofComplexManifold E M).toContMDiff ℓ) (range ι) ψ) (hℓ : 2 ≤ ℓ)
+    (e : F ≃L[ℝ] W) :
+    {x | IsManifoldStrictlyPlurisubharmonicAt E (fun x ↦ ‖e (ψ x).2‖ ^ 2) x} ∈
       𝓝ˢ (ψ.source ∩ range ι) := by
   rw [mem_nhdsSet_iff_forall]
   rintro _ ⟨hy, y, rfl⟩
@@ -391,27 +341,28 @@ theorem setOf_isManifoldStrictlyPlurisubharmonicAt_norm_sq_snd_mem_nhdsSet
     exact (isMaximalTotallyRealMap_iff.1 h.isMaximalTotallyRealMap y).isTotallyReal
   exact (SymplecticGeometry.isManifoldStrictlyPlurisubharmonicAt_of_criticalHessian_pos hL
     fun v hv ↦ hψ.criticalHessian_norm_sq_snd_pos h hk hℓ hy hv).eventually
-    (hψ.contMDiffAt_norm_sq_snd hℓ hy)
+    ((hψ.contMDiffAt_norm_sq_snd hy).of_le (WithTop.coe_le_coe.2 hℓ))
 
 /-- **Adapted charts in which the squared distance is strictly plurisubharmonic.** Let `ι` be a
-`C^k` totally real embedding, `k ≥ 3`, into a complex manifold. Near each point `ι y` of its
-image there is a chart `ψ`, adapted with regularity `2` to the image and to the complex structure,
-such that `x ↦ ‖(ψ x).2‖²` is strictly plurisubharmonic on a neighbourhood of the part of the
-image in the source of `ψ`. -/
+`C^k` totally real embedding, `k ≥ 3`, into a complex manifold, and `e` a linear isomorphism
+from the model space of its source onto an inner product space (such as `toEuclidean`). Near
+each point `ι y` of its image there is a chart `ψ`, adapted with regularity `2` to the image and
+to the complex structure, such that `x ↦ ‖e (ψ x).2‖²` is strictly plurisubharmonic on a
+neighbourhood of the part of the image in the source of `ψ`. -/
 theorem exists_isAdaptedChart_norm_sq_snd
     [I'.Boundaryless] [IsManifold I' k N]
     (h : IsTotallyRealEmbedding I' 𝓘(ℝ, E) k (ofComplexManifold E M).almostComplexStructureAt ι)
-    (hk : 3 ≤ k) (y : N) :
-    ∃ ψ : OpenPartialHomeomorph M (V × V), ι y ∈ ψ.source ∧
+    (hk : 3 ≤ k) (e : F ≃L[ℝ] W) (y : N) :
+    ∃ ψ : OpenPartialHomeomorph M (F × F), ι y ∈ ψ.source ∧
       IsAdaptedChart ((ofComplexManifold E M).toContMDiff 2) (range ι) ψ ∧
-      {x | IsManifoldStrictlyPlurisubharmonicAt E (fun x ↦ ‖(ψ x).2‖ ^ 2) x} ∈
+      {x | IsManifoldStrictlyPlurisubharmonicAt E (fun x ↦ ‖e (ψ x).2‖ ^ 2) x} ∈
         𝓝ˢ (ψ.source ∩ range ι) := by
   have h' : IsTotallyRealEmbedding I' 𝓘(ℝ, E) k
       ((ofComplexManifold E M).toContMDiff 2).almostComplexStructureAt ι := by
     rwa [almostComplexStructureAt_toContMDiff]
   obtain ⟨ψ, -, -, -, -, hy, -, hψ⟩ := h'.exists_adaptedChart one_le_two hk y
   exact ⟨ψ, hy, hψ, h.setOf_isManifoldStrictlyPlurisubharmonicAt_norm_sq_snd_mem_nhdsSet
-    (le_trans (by norm_num) hk) hψ le_rfl⟩
+    (le_trans (by norm_num) hk) hψ le_rfl e⟩
 
 end TauCeti.IsTotallyRealEmbedding
 
