@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Basic
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.CauchyRiemann.ZeroOneForm
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.FrameTopology
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.CovariantDerivative
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.SmoothHomMul
 public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.ZeroOneForm
@@ -43,6 +44,14 @@ projection loses nothing when a two-form tames both `J` and `i`: then the `(0,1)
 for `i` is injective on the `(0,1)`-forms for `J` at every point
 (`TauCeti.SmoothAlmostComplexStructure.injOn_zeroOnePart_of_tames`).
 
+Only the middle factor depends on `J`. So `D_J` is continuous in `J`, from the `C^∞` topology
+`TauCeti.SmoothAlmostComplexStructure.frameTopology` to the operator norm
+(`SymplecticGeometry.continuous_twistOneDelBarSobolev`): the section of `(0,1)`-projections is
+continuous in `J` (`TauCeti.SmoothAlmostComplexStructure.continuous_zeroOnePartSection`), so the
+derivatives of its chart readings converge uniformly
+(`TauCeti.FiniteBundleAtlas.tendstoUniformlyOn_iteratedFDeriv_coord_of_tendsto`), and then its
+action converges in operator norm (`TauCeti.SobolevSection.tendsto_contMDiffHomMulL`).
+
 Tau Ceti's realization `TauCeti.IsRealCauchyRiemannOperator.sobolevSuccL`
 (`Geometry/Manifold/VectorBundle/Sobolev/CauchyRiemann/HigherOrder.lean`) is not used: it
 realizes an operator that is Cauchy–Riemann for the complex structure of the charts, which
@@ -56,6 +65,9 @@ realizes an operator that is Cauchy–Riemann for the complex structure of the c
 * `SymplecticGeometry.chartValueL_twistOneDelBarSobolev_ofContMDiffSection_ae_coord`: on a
   `C^{k+1}` section `s`, its chart data agree almost everywhere with the chart readings of the
   `(0,1)`-part for `i` of `D_J s`.
+* `SymplecticGeometry.continuous_twistOneDelBarSobolev`: `D_J` depends continuously on `J`;
+  `SymplecticGeometry.continuous_twistOneDelBarSobolev_tames` restricts this to the structures
+  tamed by a two-form.
 
 ## References
 
@@ -154,5 +166,107 @@ theorem chartValueL_twistOneDelBarSobolev_ofContMDiffSection_ae_coord
   rw [twistOneDelBarSobolev_apply]
   simp_rw [twistOneDelBar_def]
   exact h
+/-! ### Continuity in the almost complex structure -/
+
+/-! Instance search for the spaces below exceeds its default budget when it is nested inside
+another search, so the instances are named here once. -/
+
+local instance : NormedAddCommGroup ((ℂ →L[ℝ] ℂ) →L[ℝ] ℂ →L[ℝ] ℂ) := inferInstance
+
+local instance :
+    TopologicalSpace (TotalSpace ((ℂ →L[ℝ] ℂ) →L[ℝ] ℂ →L[ℝ] ℂ) fun x : OnePoint ℂ ↦
+      (TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] VectorBundleCore.Fiber (twistCore (𝕜 := ℂ) 1) x) →L[ℝ]
+        TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] VectorBundleCore.Fiber (twistCore (𝕜 := ℂ) 1) x) :=
+  ContinuousLinearMap.topologicalSpaceTotalSpace (RingHom.id ℝ) _ _ _ _
+
+local instance (k : ℕ) :
+    NormedAddCommGroup (zeroOneSobolevSections (twistCoreAtlas 1) volume 2 k) :=
+  inferInstance
+
+local instance (k : ℕ) : NormedSpace ℝ (zeroOneSobolevSections (twistCoreAtlas 1) volume 2 k) :=
+  inferInstance
+
+/-- The finite bundle atlas of `𝒪(1)`-valued one-forms. -/
+local notation "𝓐" => (FiniteBundleAtlas.tangentHom (twistCoreAtlas 1))
+
+/-- The bundle of real endomorphisms of the `𝒪(1)`-valued one-forms. -/
+local notation "𝓔" => fun x : OnePoint ℂ ↦
+  (TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] VectorBundleCore.Fiber (twistCore (𝕜 := ℂ) 1) x) →L[ℝ]
+    TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] VectorBundleCore.Fiber (twistCore (𝕜 := ℂ) 1) x
+
+variable {ι : Type*}
+  (e : ι → Trivialization (ℂ →L[ℝ] ℂ) (π (ℂ →L[ℝ] ℂ) (fun x : OnePoint ℂ ↦
+    TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] TangentSpace 𝓘(ℝ, ℂ) x)))
+  [∀ i, MemTrivializationAtlas (e i)] (U : ι → TopologicalSpace.Opens (OnePoint ℂ))
+  (hU : ∀ i, (U i : Set (OnePoint ℂ)) ⊆ (e i).baseSet)
+
+/-- As `J` tends to `J₀`, the derivatives of the chart readings of the field `Φ_J` of
+`(0,1)`-projections converge uniformly on the chart images. -/
+private theorem tendstoUniformlyOn_iteratedFDeriv_coord_zeroOnePartL (hcover : ∀ x, ∃ i, x ∈ U i)
+    (J₀ : SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) (OnePoint ℂ))
+    (i : Fin (twistCoreAtlas 1).n) (j : ℕ) :
+    let _ := SmoothAlmostComplexStructure.frameTopology e U hU
+    TendstoUniformlyOn
+      (fun J : SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) (OnePoint ℂ) ↦ iteratedFDeriv ℝ j
+        ((FiniteBundleAtlas.hom (𝕜 := ℝ) 𝓐 (FiniteBundleAtlas.closure_dom_subset_baseSet 𝓐)).coord
+          i fun x ↦ J.zeroOnePartL x))
+      (iteratedFDeriv ℝ j
+        ((FiniteBundleAtlas.hom (𝕜 := ℝ) 𝓐 (FiniteBundleAtlas.closure_dom_subset_baseSet 𝓐)).coord
+          i fun x ↦ J₀.zeroOnePartL x)) (nhds J₀) (FiniteBundleAtlas.image 𝓐 i) := by
+  let _ := SmoothAlmostComplexStructure.frameTopology e U hU
+  -- The preferred trivializations of the bundle `𝓔` give frames that cover the sphere.
+  let e' (x : OnePoint ℂ) := trivializationAt ((ℂ →L[ℝ] ℂ) →L[ℝ] ℂ →L[ℝ] ℂ) 𝓔 x
+  let U' (x : OnePoint ℂ) : TopologicalSpace.Opens (OnePoint ℂ) := ⟨_, (e' x).open_baseSet⟩
+  have hs := @Continuous.tendsto _ _ (SmoothAlmostComplexStructure.frameTopology e U hU)
+    (ContMDiffSection.frameTopology (I := 𝓘(ℝ, ℂ)) (n := ∞) e' U' fun _ ↦ subset_rfl) _
+    (SmoothAlmostComplexStructure.continuous_zeroOnePartSection
+      (F := ℂ) (V := (twistCore (𝕜 := ℂ) 1).Fiber) e U hU hcover e' U' fun _ ↦ subset_rfl) J₀
+  have h := FiniteBundleAtlas.tendstoUniformlyOn_iteratedFDeriv_coord_of_tendsto
+    (fun x ↦ ⟨x, mem_baseSet_trivializationAt _ _ x⟩) hs
+    (FiniteBundleAtlas.hom (𝕜 := ℝ) 𝓐 (FiniteBundleAtlas.closure_dom_subset_baseSet 𝓐)) i
+    (j := j) (by exact_mod_cast le_top)
+  have hcoe (J : SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) (OnePoint ℂ)) :
+      ⇑(J.zeroOnePartSection (F := ℂ) (V := (twistCore (𝕜 := ℂ) 1).Fiber)) =
+        fun x ↦ J.zeroOnePartL x :=
+    funext J.zeroOnePartSection_apply
+  simp only [hcoe] at h
+  exact h.mono (FiniteBundleAtlas.image_hom (𝕜 := ℝ) (A := 𝓐)
+    (h := FiniteBundleAtlas.closure_dom_subset_baseSet 𝓐) i).ge
+
+/-- The action of the field `Φ_J` of `(0,1)`-projections on Sobolev one-forms depends continuously
+on `J`. -/
+private theorem continuous_contMDiffHomMulL_zeroOnePartL (hcover : ∀ x, ∃ i, x ∈ U i) (k : ℕ) :
+    let _ := SmoothAlmostComplexStructure.frameTopology e U hU
+    Continuous fun J : SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) (OnePoint ℂ) ↦
+      SobolevSection.contMDiffHomMulL 𝓐 (FiniteBundleAtlas.closure_dom_subset_baseSet 𝓐)
+        volume 2 k (J.contMDiff_zeroOnePartL le_rfl) := by
+  let _ := SmoothAlmostComplexStructure.frameTopology e U hU
+  exact continuous_iff_continuousAt.2 fun J₀ ↦ SobolevSection.tendsto_contMDiffHomMulL (A := 𝓐)
+    (h := FiniteBundleAtlas.closure_dom_subset_baseSet 𝓐) (μ := volume) (p := 2) (k := k)
+    (l := nhds J₀) (Φ := fun J x ↦ J.zeroOnePartL x) (Φ₀ := fun x ↦ J₀.zeroOnePartL x)
+    (fun J ↦ J.contMDiff_zeroOnePartL le_rfl) (J₀.contMDiff_zeroOnePartL le_rfl)
+    fun i j _ ↦ tendstoUniformlyOn_iteratedFDeriv_coord_zeroOnePartL e U hU hcover J₀ i j
+
+/-- **Continuity in `J`.** For frames `e`, `U` of the tangent endomorphism bundle of the sphere
+whose domains cover it, the operator `twistOneDelBarSobolev J k` depends continuously on `J`, from
+the `C^∞` topology `SmoothAlmostComplexStructure.frameTopology e U hU` on almost complex
+structures to the operator norm topology. -/
+theorem continuous_twistOneDelBarSobolev (hcover : ∀ x, ∃ i, x ∈ U i) (k : ℕ) :
+    let _ := SmoothAlmostComplexStructure.frameTopology e U hU
+    Continuous fun J ↦ twistOneDelBarSobolev J k := by
+  let _ := SmoothAlmostComplexStructure.frameTopology e U hU
+  rw [funext (twistOneDelBarSobolev_def · k)]
+  exact continuous_const.clm_comp
+    ((continuous_contMDiffHomMulL_zeroOnePartL e U hU hcover k).clm_comp continuous_const)
+
+/-- **Continuity in `J` on the structures tamed by `σ`.** The restriction of
+`continuous_twistOneDelBarSobolev` to the almost complex structures tamed by a two-form `σ`, with
+the subspace topology of `SmoothAlmostComplexStructure.frameTopology e U hU`. -/
+theorem continuous_twistOneDelBarSobolev_tames (hcover : ∀ x, ∃ i, x ∈ U i)
+    (σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)) (k : ℕ) :
+    let _ := SmoothAlmostComplexStructure.frameTopology e U hU
+    Continuous fun J : {J // σ.Tames J} ↦ twistOneDelBarSobolev J.val k := by
+  let _ := SmoothAlmostComplexStructure.frameTopology e U hU
+  exact (continuous_twistOneDelBarSobolev e U hU hcover k).comp continuous_subtypeVal
 
 end SymplecticGeometry
