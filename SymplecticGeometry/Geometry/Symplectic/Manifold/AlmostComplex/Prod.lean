@@ -27,9 +27,10 @@ almost complex structures `ofComplexManifold E M` and `ofComplexManifold F N` is
 `ofComplexManifold (E × F) (M × N)` is multiplication by `i` too. The two structures live over the
 models `𝓘(ℝ, E × F)` and `𝓘(ℝ, E).prod 𝓘(ℝ, F)`, which are equal (`modelWithCornersSelf_prod`)
 but not definitionally, so they are compared on tangent vectors, both tangent spaces being
-`E × F`. A form on `M × N` over the product model, such as `σ.prod τ`, then tames the complex
-structure of `M × N` in the sense that `σ.prod τ (v, i v) > 0` for every nonzero `v`
-(`TauCeti.SmoothAlmostComplexStructure.tames_prod_ofComplexManifold`).
+`E × F`. So if `σ` and `τ` tame the complex structures of `M` and `N`, then `σ.prod τ (v, i v) > 0`
+for every nonzero tangent vector `v` of `M × N`
+(`TauCeti.SmoothAlmostComplexStructure.eval₂_prod_ofComplexManifold_pos`). This is a pointwise
+statement, not a `Tames` statement: the form and the structure are over different models.
 
 ## Main results
 
@@ -41,17 +42,17 @@ structure of `M × N` in the sense that `σ.prod τ (v, i v) > 0` for every nonz
 * `TauCeti.SmoothAlmostComplexStructure.ofComplexManifold_prod_apply`: the almost complex
   structure of the product complex manifold agrees on tangent vectors with the product of the
   almost complex structures of the factors.
-* `TauCeti.SmoothAlmostComplexStructure.tames_prod_ofComplexManifold`: forms taming the complex
-  structures of two complex manifolds give a product form that tames the complex structure of
-  their product.
+* `TauCeti.SmoothAlmostComplexStructure.eval₂_prod_ofComplexManifold_pos`: if forms tame the
+  complex structures of two complex manifolds, their product form is positive on `(v, i v)` for
+  every nonzero tangent vector `v` of the product complex manifold.
 
 ## Implementation notes
 
-Tau Ceti obtains `compatible_prod` from its block structures `prodFamily`, but `prod` does not
-unfold to `prodFamily` outside its module, so the two taming statements are proved here on
-components: by `TauCeti.SmoothTwoForm.eval₂_prod` and
-`TauCeti.SmoothAlmostComplexStructure.prod_apply`, the product form on
-`(v, (J × L) v)` is the sum of `σ` on `(v₁, J v₁)` and `τ` on `(v₂, L v₂)`.
+The two statements on pairs are proved on components. By `TauCeti.SmoothTwoForm.eval₂_prod` and
+`TauCeti.SmoothAlmostComplexStructure.prod_apply`, the product form on `(v, (J × L) v)` is the
+sum of `σ` on `(v₁, J v₁)` and `τ` on `(v₂, L v₂)` (`eval₂_prod_prod_apply`). Taming then follows
+at each point from the linear `TauCeti.SymplecticForm.prod_tames`, as in Tau Ceti's
+`TauCeti.SmoothAlmostComplexStructure.tames_prodFamily`, and invariance follows by `simp`.
 
 ## References
 
@@ -92,24 +93,14 @@ theorem eval₂_prod_prod_apply (σ : SmoothTwoForm I P) (τ : SmoothTwoForm I' 
 /-- **Products of tame pairs are tame.** If `σ` tames `J` and `τ` tames `L`, the product form
 `pr₁^*σ + pr₂^*τ` tames `J × L`. -/
 theorem tames_prod (hσ : σ.Tames J) (hτ : τ.Tames L) : (σ.prod τ).Tames (prod J L) := by
-  rw [SmoothTwoForm.tames_iff] at hσ hτ ⊢
+  rw [SmoothTwoForm.tames_iff]
   intro p v hv
+  have h := SymplecticForm.prod_tames (hσ.isNondegenerate.tames_iff.1 hσ p.1)
+    (hτ.isNondegenerate.tames_iff.1 hτ p.2) (Manifold.tangentSpaceProdEquiv p v)
+    ((Manifold.tangentSpaceProdEquiv p).map_ne_zero_iff.2 hv)
+  rw [SymplecticForm.prod_apply_prod_self] at h
   rw [eval₂_prod_prod_apply]
-  set e := Manifold.tangentSpaceProdEquiv (I := I) (J := I') p
-  -- Each summand is nonnegative, and positive when its component is nonzero.
-  have h₁ (u : TangentSpace I p.1) : 0 ≤ σ.eval₂ p.1 u (J p.1 u) := by
-    rcases eq_or_ne u 0 with rfl | hu
-    · simp
-    · exact (hσ p.1 u hu).le
-  have h₂ (u : TangentSpace I' p.2) : 0 ≤ τ.eval₂ p.2 u (L p.2 u) := by
-    rcases eq_or_ne u 0 with rfl | hu
-    · simp
-    · exact (hτ p.2 u hu).le
-  have hev : e v ≠ 0 := e.map_ne_zero_iff.2 hv
-  by_cases hv₁ : (e v).1 = 0
-  · have hv₂ : (e v).2 ≠ 0 := fun h ↦ hev (Prod.ext hv₁ h)
-    exact add_pos_of_nonneg_of_pos (h₁ _) (hτ p.2 _ hv₂)
-  · exact add_pos_of_pos_of_nonneg (hσ p.1 _ hv₁) (h₂ _)
+  simpa using h
 
 /-- **Products of invariant pairs are invariant.** If `J` preserves `σ` and `L` preserves `τ`, then
 `J × L` preserves the product form `pr₁^*σ + pr₂^*τ`. -/
@@ -152,12 +143,12 @@ theorem ofComplexManifold_prod_apply (p : M × N) (v : E × F) :
       (ofComplexManifold E M).prod (ofComplexManifold F N) p v :=
   (ofComplexManifold_apply p v).trans (prod_ofComplexManifold_apply p v).symm
 
-/-- **Product forms tame the complex structure of a product.** If `σ` tames the almost complex
-structure of the complex manifold `M` and `τ` that of `N`, then the product form
-`pr₁^*σ + pr₂^*τ` is positive on `(v, J v)` for every nonzero tangent vector `v` of `M × N`, where
-`J` is the almost complex structure of the complex manifold `M × N` with the product charts
-`TauCeti.chartedSpaceProd`. -/
-theorem tames_prod_ofComplexManifold {σ : SmoothTwoForm 𝓘(ℝ, E) M}
+/-- If `σ` tames the almost complex structure of the complex manifold `M` and `τ` that of `N`,
+then the product form `pr₁^*σ + pr₂^*τ` is positive on `(v, J v)` for every nonzero tangent vector
+`v` of `M × N`, where `J` is the almost complex structure of the complex manifold `M × N` with the
+product charts `TauCeti.chartedSpaceProd`. The form and `J` are over the different models
+`𝓘(ℝ, E).prod 𝓘(ℝ, F)` and `𝓘(ℝ, E × F)`, so this is not a `Tames` statement. -/
+theorem eval₂_prod_ofComplexManifold_pos {σ : SmoothTwoForm 𝓘(ℝ, E) M}
     {τ : SmoothTwoForm 𝓘(ℝ, F) N} (hσ : σ.Tames (ofComplexManifold E M))
     (hτ : τ.Tames (ofComplexManifold F N)) (p : M × N) (v : E × F) (hv : v ≠ 0) :
     0 < (σ.prod τ).eval₂ p v (ofComplexManifold (E × F) (M × N) p v) := by
