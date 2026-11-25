@@ -32,7 +32,7 @@ the restriction of a compactly supported Hamiltonian diffeotopy `Φ` of `M` that
    Thus `e` is a smooth isotopy of `V` (`TauCeti.SmoothIsotopy.ofForallIsSmoothEmbedding`;
    `SymplecticGeometry.IsSymplecticBallFamily.exists_smoothIsotopy`). For `ρ < ρ' < r`, take for
    `k` its restriction to the open ball `P = ball 0 ρ'` (`TauCeti.SmoothIsotopy.restrict`); it is
-   symplectic.
+   symplectic (`SymplecticGeometry.IsSymplecticBallFamily.exists_smoothIsotopy_isSymplectic`).
 2. The velocity forms of `k` are closed
    (`TauCeti.SmoothIsotopy.IsSymplectic.mextDeriv_mpullback_prodMk_velocityForm`). Since `P` is
    convex, it is smoothly contractible (`Convex.isSmoothlyContractible`), and the forms have a
@@ -63,6 +63,8 @@ The milestone theorem is the conjunction of this extension and the enlargement o
 
 * `SymplecticGeometry.IsSymplecticBallFamily.exists_smoothIsotopy`: for `0 < r`, a smooth family
   of symplectic embeddings of `B(r)` is a smooth isotopy of some open neighbourhood of `B(r)`.
+* `SymplecticGeometry.IsSymplecticBallFamily.exists_smoothIsotopy_isSymplectic`: on an open set
+  `P ⊆ B(r)`, such a family is a symplectic isotopy of `P`.
 * `SymplecticGeometry.IsSymplecticBallFamily.exists_hasHamiltonian_forall_apply_eq`: a smooth
   family of symplectic embeddings of `B(r)` is, on `B(ρ)` for `0 ≤ ρ < r`, the restriction of a
   compactly supported Hamiltonian diffeotopy.
@@ -114,6 +116,34 @@ theorem IsSymplecticBallFamily.exists_smoothIsotopy [FiniteDimensional ℝ E] [I
     SmoothIsotopy.ofForallIsSmoothEmbedding (heU.mono (prod_mono subset_rfl hVU)) hV
       (fun _ ↦ rfl) fun _ ↦ rfl, SmoothIsotopy.ofForallIsSmoothEmbedding_apply _ _ _ _⟩
 
+/-- A smooth family `e` of symplectic embeddings of `B(r)`, `0 < r`, restricts on every open set
+`P ⊆ B(r)` to a symplectic isotopy `k` of `P` with `k (t, z) = e (t, z)`: every slice of `k`
+pulls `σ` back to the restriction to `P` of the standard form `ω₀`. -/
+theorem IsSymplecticBallFamily.exists_smoothIsotopy_isSymplectic [FiniteDimensional ℝ E]
+    [I.Boundaryless] [T2Space M] {r : ℝ} (hr : 0 < r)
+    {e : unitInterval × StdSpace (Fin n) → M} (he : IsSymplecticBallFamily σ r e)
+    {P : TopologicalSpace.Opens (StdSpace (Fin n))}
+    (hPr : (P : Set (StdSpace (Fin n))) ⊆ closedBall 0 r) :
+    ∃ (f₀ f₁ : C^∞⟮𝓘(ℝ, StdSpace (Fin n)), P; I, M⟯) (k : SmoothIsotopy f₀ f₁),
+      (∀ p, k p = e (p.1, p.2)) ∧ k.IsSymplectic (SmoothForm.mpullback
+        (Subtype.val : P → StdSpace (Fin n)) contMDiff_subtypeVal (stdForm (Fin n)).constSmooth)
+        σ := by
+  obtain ⟨U, hUo, hrU, heU⟩ := he.exists_contMDiffOn
+  obtain ⟨V, hrV, f₀, f₁, kV, hkV⟩ := he.exists_smoothIsotopy hr
+  let k := kV.restrict (V := P) (hPr.trans hrV)
+  have hk (p : unitInterval × P) : k p = e (p.1, p.2) :=
+    (SmoothIsotopy.restrict_apply _ _ p).trans (hkV _)
+  refine ⟨_, _, k, hk, SmoothIsotopy.isSymplectic_def.2 fun t ↦ funext fun z ↦ ?_⟩
+  have hz : (z : StdSpace (Fin n)) ∈ closedBall 0 r := hPr z.property
+  have hcomp : (fun x : P ↦ k (t, x)) = (fun y ↦ e (t, y)) ∘ Subtype.val :=
+    funext fun x ↦ hk (t, x)
+  have hslice : ContMDiffOn 𝓘(ℝ, StdSpace (Fin n)) I ∞ (fun y ↦ e (t, y)) U :=
+    heU.comp (contMDiffOn_const.prodMk contMDiffOn_id) fun y hy ↦ ⟨mem_univ _, hy⟩
+  rw [hcomp, mpullback_comp_at ((contMDiff_subtypeVal (n := 1) z).mdifferentiableAt one_ne_zero)
+    ((hslice _ (hrU hz)).contMDiffAt (hUo.mem_nhds (hrU hz)) |>.mdifferentiableAt
+      (by simp)), SmoothForm.coe_mpullback_subtype_val_apply, mpullback_subtype_val_apply,
+    (he.isSymplecticBallEmbedding t).mpullback_eq_of_mem_closedBall hr hz]
+
 /-- **Hamiltonian extension of a family of symplectic balls.** Let `σ` be a symplectic form on a
 Hausdorff, σ-compact, boundaryless manifold `M` of dimension `2n`, and `e` a smooth family over
 `[0, 1]` of symplectic embeddings of the closed ball `B(r)` of `StdSpace (Fin n)`. For
@@ -130,28 +160,11 @@ theorem IsSymplecticBallFamily.exists_hasHamiltonian_forall_apply_eq [FiniteDime
       (∀ t, ∀ y ∉ K, Φ (t, y) = y) ∧ ∀ t, ∀ z ∈ closedBall 0 ρ, Φ (t, e (0, z)) = e (t, z) := by
   obtain ⟨ρ', hρρ', hρ'r⟩ := exists_between hρr
   have hr : 0 < r := by linarith
-  obtain ⟨U, hUo, hrU, heU⟩ := he.exists_contMDiffOn
-  obtain ⟨V, hrV, f₀, f₁, kV, hkV⟩ := he.exists_smoothIsotopy hr
-  -- On the open ball `P = ball 0 ρ'`, the family `e` is the restriction `k` of `kV`.
+  -- On the open ball `P = ball 0 ρ'`, the family `e` is a symplectic isotopy `k`.
   let P : TopologicalSpace.Opens (StdSpace (Fin n)) := ⟨ball 0 ρ', isOpen_ball⟩
-  have hPr : (P : Set (StdSpace (Fin n))) ⊆ closedBall 0 r :=
-    ball_subset_closedBall.trans (closedBall_subset_closedBall hρ'r.le)
-  let k := kV.restrict (V := P) (hPr.trans hrV)
-  have hk (p : unitInterval × P) : k p = e (p.1, p.2) :=
-    (SmoothIsotopy.restrict_apply _ _ p).trans (hkV _)
-  -- `k` is symplectic, so its velocity forms are closed.
-  have hks : k.IsSymplectic (SmoothForm.mpullback (Subtype.val : P → StdSpace (Fin n))
-      contMDiff_subtypeVal (stdForm (Fin n)).constSmooth) σ := by
-    refine SmoothIsotopy.isSymplectic_def.2 fun t ↦ funext fun z ↦ ?_
-    have hz : (z : StdSpace (Fin n)) ∈ closedBall 0 r := hPr z.property
-    have hcomp : (fun x : P ↦ k (t, x)) = (fun y ↦ e (t, y)) ∘ Subtype.val :=
-      funext fun x ↦ hk (t, x)
-    have hslice : ContMDiffOn 𝓘(ℝ, StdSpace (Fin n)) I ∞ (fun y ↦ e (t, y)) U :=
-      heU.comp (contMDiffOn_const.prodMk contMDiffOn_id) fun y hy ↦ ⟨mem_univ _, hy⟩
-    rw [hcomp, mpullback_comp_at ((contMDiff_subtypeVal (n := 1) z).mdifferentiableAt one_ne_zero)
-      ((hslice _ (hrU hz)).contMDiffAt (hUo.mem_nhds (hrU hz)) |>.mdifferentiableAt
-        (by simp)), SmoothForm.coe_mpullback_subtype_val_apply, mpullback_subtype_val_apply,
-      (he.isSymplecticBallEmbedding t).mpullback_eq_of_mem_closedBall hr hz]
+  obtain ⟨f₀, f₁, k, hk, hks⟩ := he.exists_smoothIsotopy_isSymplectic hr (P := P)
+    (ball_subset_closedBall.trans (closedBall_subset_closedBall hρ'r.le))
+  -- Its velocity forms are closed.
   set α : unitInterval → SmoothForm 𝓘(ℝ, StdSpace (Fin n)) P ℝ 1 := fun t ↦
     SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) (k.velocityForm σ)
   have hcl (t : unitInterval) : α t ∈ closedForms 𝓘(ℝ, StdSpace (Fin n)) P 1 :=
