@@ -93,9 +93,7 @@ theorem ContMDiffOn.exists_comp_eq_of_mfderivRank_le {f : M → N} {s : Set M} {
     p.contMDiff.comp_contMDiffOn Φ.contMDiffOn, fun y hy ↦ ?_,
     Ψ.symm.contMDiffOn.comp j.contMDiff.contMDiffOn hmapsTo, fun u hu ↦ ?_⟩
   · rw [image_comp, Φ.image_source_eq_target]
-  · rw [comp_apply, comp_apply, hjp, ← hlin' y hy]
-    -- `Ψ.symm` is `Ψ.toPartialEquiv.symm` by definition; Mathlib states no lemma for it.
-    exact Ψ.left_inv (hmap hy)
+  · simp [hjp, ← hlin' y hy, hmap hy]
   · have hloc : IsLocalDiffeomorphAt I 𝓘(𝕜, E) n Φ y :=
       Φ.isLocalDiffeomorphAt I 𝓘(𝕜, E) n hy
     obtain ⟨L, hL⟩ := hloc.isInvertible_mfderiv hn0
