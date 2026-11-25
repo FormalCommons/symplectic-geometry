@@ -348,7 +348,7 @@ theorem mpullback_prodMap_subtypeVal_timeExtendIcc_prodIccHomotopyOperator [Comp
         (SmoothForm.timeExtendIcc (prodIccHomotopyOperator I M a b F 1 η)) =
       prodIccHomotopyOperator I M a b F 1 η :=
   SmoothForm.mpullback_prodMap_subtypeVal_timeExtendIcc _
-    (prodIccHomotopyOperator_apply_eq_zero η)
+    (SmoothForm.isFstSemibasic_iff.mpr (prodIccHomotopyOperator_apply_eq_zero η))
 
 /-- **Restriction of the extension.** The extension to `M × ℝ` of a closed two-form `η` on
 `M × [a, b]` restricts to `η` on `M × [a, b]`. -/
