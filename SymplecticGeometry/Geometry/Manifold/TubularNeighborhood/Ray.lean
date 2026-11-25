@@ -67,13 +67,13 @@ private theorem exists_pos_forall_norm_le_mem {C : Set ℝ} (hC : IsCompact C) {
   linarith
 
 variable [NormedSpace ℝ V] [FiniteDimensional ℝ V] {M : Type*} [TopologicalSpace M] [T2Space M]
-  [WeaklyLocallyCompactSpace M] [SigmaCompactSpace M]
 
 /-- Let `Ψ : ℝ × V → M` be continuous, with `Ψ (t, 0)` tending to infinity as `t → ∞`, and let
 `O'` be an open set containing `Ψ (t, 0)` for all `t ≥ a`. Then there is a smooth positive
 function `r : ℝ → ℝ` such that the image under `Ψ` of `{(t, y) | a ≤ t ∧ ‖y‖ ≤ r t}` is closed
 and contained in `O'`. -/
-theorem Continuous.exists_contDiff_pos_isClosed_image_subset {Ψ : ℝ × V → M} (hΨ : Continuous Ψ)
+theorem Continuous.exists_contDiff_pos_isClosed_image_subset [WeaklyLocallyCompactSpace M]
+    [SigmaCompactSpace M] {Ψ : ℝ × V → M} (hΨ : Continuous Ψ)
     (hγ : Tendsto (fun t ↦ Ψ (t, 0)) atTop (cocompact M)) {a : ℝ} {O' : Set M}
     (hO' : IsOpen O') (hγO' : ∀ t, a ≤ t → Ψ (t, 0) ∈ O') :
     ∃ r : ℝ → ℝ, ContDiff ℝ ∞ r ∧ (∀ t, 0 < r t) ∧
@@ -169,6 +169,8 @@ theorem exists_rayTube (γ : SmoothEmbedding 𝓘(ℝ) I ∞ ℝ M)
   have hdim : Module.finrank ℝ V = Module.finrank ℝ E - Module.finrank ℝ ℝ := by
     rw [Module.finrank_self]; omega
   have hn : (∞ : ℕ∞ω) ≠ 0 := by simp
+  have : LocallyCompactSpace H := I.locallyCompactSpace
+  have : LocallyCompactSpace M := ChartedSpace.locallyCompactSpace H M
   let := γ.normalSpaceFiberBundle hn hdim
   let := γ.normalSpaceVectorBundle hn hdim
   have : IsManifold 𝓘(ℝ) ((∞ : ℕ∞ω) + 1) ℝ := IsManifold.of_le (n := ∞) (by simp)
