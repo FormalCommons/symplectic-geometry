@@ -361,9 +361,12 @@ private theorem exists_isCharacteristicSubmersion_of_partialDiffeomorph
   -- The derivative of `p` is the second component of the derivative of `Φ`.
   have hderiv (u : U) (v : TangentSpace I u) :
       mfderiv I 𝓘(ℝ, F₂) p u v = (mfderiv I 𝓘(ℝ, F₁ × F₂) Φ u v).2 := by
-    exact (TauCeti.Manifold.mfderiv_apply_of_subtype_val_comp_eq (I := I) (I' := 𝓘(ℝ, F₂))
-      (f := p) (A := fun z ↦ (Φ z).2) (funext fun u ↦ congrArg Prod.snd (hΨ u)) v).trans
-      ((Φ.mdifferentiableAt (by simp) (huΦ u)).mvfderiv_snd_apply v)
+    rw [TauCeti.Manifold.mfderiv_apply_of_subtype_val_comp_eq (I := I) (I' := 𝓘(ℝ, F₂))
+      (f := p) (A := fun z ↦ (Φ z).2) (funext fun u ↦ congrArg Prod.snd (hΨ u)) v]
+    have h := (Φ.mdifferentiableAt (by simp) (huΦ u)).mvfderiv_snd_apply v
+    rw [mvfderiv_apply_eq_mfderiv_apply (I := I) (fun z ↦ (Φ z).2) (u : M) v,
+      mvfderiv_apply_eq_mfderiv_apply (I := I) Φ (u : M) v] at h
+    exact h
   have hpc : ContMDiff I 𝓘(ℝ, F₂) ∞ p :=
     (ContMDiff.subtypeVal_comp_iff _ _).1
       ((contDiff_snd.contMDiff.comp contMDiff_subtypeVal).comp Ψ.contMDiff)
