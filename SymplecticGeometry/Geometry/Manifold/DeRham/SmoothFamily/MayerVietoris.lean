@@ -783,7 +783,7 @@ theorem isSmoothFamily_exactOnPieces :
 /-- `primitiveLeft` along a smooth family is a smooth family. -/
 theorem isSmoothFamily_primitiveLeft :
     IsSmoothFamily J (fun t ↦ c.primitiveLeft σU σV k (α t)) :=
-  preservesSmoothFamilies_def.mp (σU.preservesSmoothFamilies_primitive k) J
+  preservesSmoothFamilies_def.mp (σU.preservesSmoothFamilies_primitive k)
     (fun t ↦ closedForms.mpullback (Opens.inclusion le_sup_left) (contMDiff_inclusion _) (k + 1)
       (c.exactOnPieces σU σV k (α t))) (by
     simpa only [closedForms.coe_mpullback] using
@@ -792,7 +792,7 @@ theorem isSmoothFamily_primitiveLeft :
 /-- `primitiveRight` along a smooth family is a smooth family. -/
 theorem isSmoothFamily_primitiveRight :
     IsSmoothFamily J (fun t ↦ c.primitiveRight σU σV k (α t)) :=
-  preservesSmoothFamilies_def.mp (σV.preservesSmoothFamilies_primitive k) J
+  preservesSmoothFamilies_def.mp (σV.preservesSmoothFamilies_primitive k)
     (fun t ↦ closedForms.mpullback (Opens.inclusion le_sup_right) (contMDiff_inclusion _) (k + 1)
       (c.exactOnPieces σU σV k (α t))) (by
     simpa only [closedForms.coe_mpullback] using
@@ -813,7 +813,7 @@ theorem isSmoothFamily_overlapLift_fst :
   preservesSmoothFamilies_def.mp
     ((σUV.preservesSmoothFamilies_subtype_comp_projSpace k).comp_of_finiteDimensional
     ((closedForms I U k).subtype ∘ₗ LinearMap.fst ℝ (closedForms I U k) (closedForms I V k) ∘ₗ
-      σUV.overlapLift k ∘ₗ σUV.rangeProj k)) J _
+      σUV.overlapLift k ∘ₗ σUV.rangeProj k)) _
     (c.isSmoothFamily_discrepancy σU σV hα)
 
 /-- The fixed closed forms on `V` of step 2 along a smooth family form a smooth family. -/
@@ -823,7 +823,7 @@ theorem isSmoothFamily_overlapLift_snd :
   preservesSmoothFamilies_def.mp
     ((σUV.preservesSmoothFamilies_subtype_comp_projSpace k).comp_of_finiteDimensional
     ((closedForms I V k).subtype ∘ₗ LinearMap.snd ℝ (closedForms I U k) (closedForms I V k) ∘ₗ
-      σUV.overlapLift k ∘ₗ σUV.rangeProj k)) J _
+      σUV.overlapLift k ∘ₗ σUV.rangeProj k)) _
     (c.isSmoothFamily_discrepancy σU σV hα)
 
 /-- The corrected discrepancy along a smooth family is a smooth family. -/
@@ -844,7 +844,7 @@ theorem isSmoothFamily_exactCorrectionLeft :
   | zero => simpa [exactCorrectionLeft] using isSmoothFamily_const (J := J) 0
   | succ j =>
     exact (c.isSmoothFamily_extendLeft
-      (preservesSmoothFamilies_def.mp (σUV.preservesSmoothFamilies_primitive j) J _
+      (preservesSmoothFamilies_def.mp (σUV.preservesSmoothFamilies_primitive j) _
       (c.isSmoothFamily_correctedDiscrepancy σU σV σUV hα))).mextDeriv
 
 /-- The exact part cut off to `V` of the corrected discrepancy along a smooth family is a smooth
@@ -856,7 +856,7 @@ theorem isSmoothFamily_exactCorrectionRight :
   | zero => simpa [exactCorrectionRight] using isSmoothFamily_const (J := J) 0
   | succ j =>
     exact (c.isSmoothFamily_extendRight
-      (preservesSmoothFamilies_def.mp (σUV.preservesSmoothFamilies_primitive j) J _
+      (preservesSmoothFamilies_def.mp (σUV.preservesSmoothFamilies_primitive j) _
       (c.isSmoothFamily_correctedDiscrepancy σU σV σUV hα))).mextDeriv
 
 /-- Any linear map applied to the component of step 2 in the fixed complement along a smooth
@@ -867,7 +867,7 @@ theorem isSmoothFamily_complementPart_comp
     IsSmoothFamily J (fun t ↦ L (c.complementPart σU σV σUV k (α t))) :=
   preservesSmoothFamilies_def.mp
     ((σUV.preservesSmoothFamilies_subtype_comp_projSpace k).comp_of_finiteDimensional
-    (L ∘ₗ σUV.complProj k)) J _
+    (L ∘ₗ σUV.complProj k)) _
     (c.isSmoothFamily_discrepancy σU σV hα)
 
 end Families
@@ -875,7 +875,7 @@ end Families
 /-- The new projection takes smooth families to smooth families. -/
 theorem preservesSmoothFamilies_supProj (k : ℕ) :
     PreservesSmoothFamilies.{uE, uH, uN} (c.supProj σU σV σUV k) :=
-    preservesSmoothFamilies_def.mpr fun J _ α hα ↦ by
+    preservesSmoothFamilies_def.mpr fun α hα ↦ by
   simpa only [supProj_def, LinearMap.add_apply, LinearMap.comp_apply, Submodule.subtype_apply] using
     (c.isSmoothFamily_liftPair σU σV hα).add (c.isSmoothFamily_complementPart_comp σU σV σUV hα
       (c.connecting k ∘ₗ Submodule.inclusion (σUV.overlapCompl_inf_space_le_closedForms k)))
@@ -883,7 +883,7 @@ theorem preservesSmoothFamilies_supProj (k : ℕ) :
 /-- The new primitive takes smooth families to smooth families. -/
 theorem preservesSmoothFamilies_supPrimitive (k : ℕ) :
     PreservesSmoothFamilies.{uE, uH, uN} (c.supPrimitive σU σV σUV k) :=
-    preservesSmoothFamilies_def.mpr fun J _ α hα ↦ by
+    preservesSmoothFamilies_def.mpr fun α hα ↦ by
   refine isSmoothFamily_iff_mpullback_inclusion_sup.mpr ⟨?_, ?_⟩
   · simpa only [mpullback_supPrimitive_left, primitivePieceLeft,
       LinearMap.sub_apply, LinearMap.comp_apply, Submodule.subtype_apply, LinearMap.fst_apply]

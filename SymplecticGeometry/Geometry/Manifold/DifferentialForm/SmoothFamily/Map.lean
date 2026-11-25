@@ -100,7 +100,7 @@ family `α` of forms in `D` over `N` that is smooth as a family of forms on `M`,
 def PreservesSmoothFamilies (T : D →ₗ[ℝ] SmoothForm I' M' G l) : Prop :=
   ∀ {EN : Type uE} [NormedAddCommGroup EN] [NormedSpace ℝ EN] {HN : Type uH}
     [TopologicalSpace HN] {N : Type uN} [TopologicalSpace N] [ChartedSpace HN N]
-    (J : ModelWithCorners ℝ EN HN) [IsManifold J ∞ N] (α : N → D),
+    {J : ModelWithCorners ℝ EN HN} [IsManifold J ∞ N] (α : N → D),
     IsSmoothFamily J (fun t ↦ (α t : SmoothForm I M F k)) → IsSmoothFamily J (fun t ↦ T (α t))
 
 /-- The defining property of `SymplecticGeometry.PreservesSmoothFamilies`. -/
@@ -108,20 +108,20 @@ theorem preservesSmoothFamilies_def {T : D →ₗ[ℝ] SmoothForm I' M' G l} :
     PreservesSmoothFamilies.{uE, uH, uN} T ↔
       ∀ {EN : Type uE} [NormedAddCommGroup EN] [NormedSpace ℝ EN] {HN : Type uH}
         [TopologicalSpace HN] {N : Type uN} [TopologicalSpace N] [ChartedSpace HN N]
-        (J : ModelWithCorners ℝ EN HN) [IsManifold J ∞ N] (α : N → D),
+        {J : ModelWithCorners ℝ EN HN} [IsManifold J ∞ N] (α : N → D),
         IsSmoothFamily J (fun t ↦ (α t : SmoothForm I M F k)) →
           IsSmoothFamily J (fun t ↦ T (α t)) :=
   Iff.rfl
 
 /-- The zero map preserves smooth families. -/
 theorem preservesSmoothFamilies_zero :
-    PreservesSmoothFamilies.{uE, uH, uN} (0 : D →ₗ[ℝ] SmoothForm I' M' G l) := fun _ _ _ _ ↦ by
+    PreservesSmoothFamilies.{uE, uH, uN} (0 : D →ₗ[ℝ] SmoothForm I' M' G l) := fun _ _ ↦ by
   simp only [LinearMap.zero_apply]
   exact isSmoothFamily_const 0
 
 /-- The inclusion of a submodule of forms preserves smooth families. -/
 theorem preservesSmoothFamilies_subtype : PreservesSmoothFamilies.{uE, uH, uN} D.subtype :=
-  fun _ _ _ hα ↦ hα
+  fun _ hα ↦ hα
 
 namespace PreservesSmoothFamilies
 
@@ -130,24 +130,24 @@ variable {T T₁ T₂ : D →ₗ[ℝ] SmoothForm I' M' G l}
 /-- The sum of two maps preserving smooth families preserves smooth families. -/
 protected theorem add (h₁ : PreservesSmoothFamilies.{uE, uH, uN} T₁)
     (h₂ : PreservesSmoothFamilies.{uE, uH, uN} T₂) :
-    PreservesSmoothFamilies.{uE, uH, uN} (T₁ + T₂) := fun J _ α hα ↦ by
-  simpa only [LinearMap.add_apply] using (h₁ J α hα).add (h₂ J α hα)
+    PreservesSmoothFamilies.{uE, uH, uN} (T₁ + T₂) := fun α hα ↦ by
+  simpa only [LinearMap.add_apply] using (h₁ α hα).add (h₂ α hα)
 
 /-- A constant multiple of a map preserving smooth families preserves smooth families. -/
 protected theorem smul (hT : PreservesSmoothFamilies.{uE, uH, uN} T) (c : ℝ) :
-    PreservesSmoothFamilies.{uE, uH, uN} (c • T) := fun J _ α hα ↦ by
-  simpa only [LinearMap.smul_apply] using (hT J α hα).smul c
+    PreservesSmoothFamilies.{uE, uH, uN} (c • T) := fun α hα ↦ by
+  simpa only [LinearMap.smul_apply] using (hT α hα).smul c
 
 /-- The negative of a map preserving smooth families preserves smooth families. -/
 protected theorem neg (hT : PreservesSmoothFamilies.{uE, uH, uN} T) :
     PreservesSmoothFamilies.{uE, uH, uN} (-T) :=
-  fun J _ α hα ↦ by simpa only [LinearMap.neg_apply] using (hT J α hα).neg
+  fun α hα ↦ by simpa only [LinearMap.neg_apply] using (hT α hα).neg
 
 /-- The difference of two maps preserving smooth families preserves smooth families. -/
 protected theorem sub (h₁ : PreservesSmoothFamilies.{uE, uH, uN} T₁)
     (h₂ : PreservesSmoothFamilies.{uE, uH, uN} T₂) :
-    PreservesSmoothFamilies.{uE, uH, uN} (T₁ - T₂) := fun J _ α hα ↦ by
-  simpa only [LinearMap.sub_apply] using (h₁ J α hα).sub (h₂ J α hα)
+    PreservesSmoothFamilies.{uE, uH, uN} (T₁ - T₂) := fun α hα ↦ by
+  simpa only [LinearMap.sub_apply] using (h₁ α hα).sub (h₂ α hα)
 
 /-- **Composition.** If `T` preserves smooth families and takes its values in a submodule `D'`,
 and `S`, defined on `D'`, preserves smooth families, then so does `S` after `T`. -/
@@ -155,27 +155,27 @@ protected theorem comp {D' : Submodule ℝ (SmoothForm I' M' G l)}
     {S : D' →ₗ[ℝ] SmoothForm I'' M'' G' l'} (hS : PreservesSmoothFamilies.{uE, uH, uN} S)
     (hT : PreservesSmoothFamilies.{uE, uH, uN} T) (h : ∀ x, T x ∈ D') :
     PreservesSmoothFamilies.{uE, uH, uN} (S ∘ₗ T.codRestrict D' h) :=
-  fun J _ α hα ↦ hS J (fun t ↦ T.codRestrict D' h (α t)) (hT J α hα)
+  fun α hα ↦ hS (fun t ↦ T.codRestrict D' h (α t)) (hT α hα)
 
 /-- Following a map that preserves smooth families by the exterior derivative gives a map that
 preserves smooth families. -/
 protected theorem mextDerivₗ [IsManifold I' 2 M'] (hT : PreservesSmoothFamilies.{uE, uH, uN} T) :
     PreservesSmoothFamilies.{uE, uH, uN} (mextDerivₗ I' l ∘ₗ T) :=
-  fun J _ α hα ↦ (hT J α hα).mextDeriv
+  fun α hα ↦ (hT α hα).mextDeriv
 
 /-- Following a map that preserves smooth families by the pullback along a smooth map gives a map
 that preserves smooth families. -/
 protected theorem mpullback (hT : PreservesSmoothFamilies.{uE, uH, uN} T) (f : M'' → M')
     (hf : ContMDiff I'' I' ∞ f) :
     PreservesSmoothFamilies.{uE, uH, uN} (SmoothForm.mpullback f hf ∘ₗ T) :=
-  fun J _ α hα ↦ (hT J α hα).mpullback f hf
+  fun α hα ↦ (hT α hα).mpullback f hf
 
 /-- Following a map that preserves smooth families by the multiplication with a smooth function
 gives a map that preserves smooth families. -/
 protected theorem funSMul (hT : PreservesSmoothFamilies.{uE, uH, uN} T)
     (g : C^∞⟮I', M'; ℝ⟯) :
     PreservesSmoothFamilies.{uE, uH, uN} (SmoothForm.funSMulₗ g ∘ₗ T) :=
-  fun J _ α hα ↦ (hT J α hα).funSMul g
+  fun α hα ↦ (hT α hα).funSMul g
 
 /-- **Gluing.** A map into the forms on `U ⊔ V` preserves smooth families when its restrictions
 to `U` and to `V` do. -/
@@ -186,7 +186,7 @@ protected theorem of_mpullback_inclusion_sup {U V : Opens M'}
     (hV : PreservesSmoothFamilies.{uE, uH, uN}
       (SmoothForm.mpullback (Opens.inclusion le_sup_right) (contMDiff_inclusion _) ∘ₗ T)) :
     PreservesSmoothFamilies.{uE, uH, uN} T :=
-  fun J _ α hα ↦ isSmoothFamily_iff_mpullback_inclusion_sup.mpr ⟨hU J α hα, hV J α hα⟩
+  fun α hα ↦ isSmoothFamily_iff_mpullback_inclusion_sup.mpr ⟨hU α hα, hV α hα⟩
 
 end PreservesSmoothFamilies
 
@@ -199,13 +199,13 @@ theorem preservesSmoothFamilies_sum_smulRight {ι : Type*} (s : Finset ι)
     (c : ι → D →ₗ[ℝ] ℝ) (w : ι → SmoothForm I' M' G l)
     (hc : ∀ {EN : Type uE} [NormedAddCommGroup EN] [NormedSpace ℝ EN] {HN : Type uH}
       [TopologicalSpace HN] {N : Type uN} [TopologicalSpace N] [ChartedSpace HN N]
-      (J : ModelWithCorners ℝ EN HN) [IsManifold J ∞ N] (α : N → D),
+      {J : ModelWithCorners ℝ EN HN} [IsManifold J ∞ N] (α : N → D),
       IsSmoothFamily J (fun t ↦ (α t : SmoothForm I M F k)) →
         ∀ i ∈ s, ContMDiff J 𝓘(ℝ) ∞ (fun t ↦ c i (α t))) :
-    PreservesSmoothFamilies.{uE, uH, uN} (∑ i ∈ s, (c i).smulRight (w i)) := fun J _ α hα ↦ by
+    PreservesSmoothFamilies.{uE, uH, uN} (∑ i ∈ s, (c i).smulRight (w i)) := fun α hα ↦ by
   simp only [LinearMap.sum_apply, LinearMap.smulRight_apply]
   exact IsSmoothFamily.sum fun i hi ↦
-    (isSmoothFamily_const (w i)).fun_smul (hc J α hα i hi)
+    (isSmoothFamily_const (w i)).fun_smul (hc α hα i hi)
 
 section Families
 
@@ -276,7 +276,7 @@ theorem PreservesSmoothFamilies.contMDiff_dual_apply [FiniteDimensional ℝ S] {
     obtain ⟨φ, hφ⟩ := SeparatingDual.exists_ne_zero (R := ℝ) hv
     exact ⟨_, ⟨⟨x, v, φ⟩, rfl⟩, hφ⟩
   rintro _ ⟨⟨x, v, φ⟩, rfl⟩
-  exact φ.contMDiff.comp ((hT J α hα).contMDiff_apply x v)
+  exact φ.contMDiff.comp ((hT α hα).contMDiff_apply x v)
 
 /-- Let `b` be a finite basis of a space `S` of forms, and `T : D →ₗ[ℝ] S` a map whose
 coordinates `t ↦ b.repr (T (α t)) i` are smooth along every smooth family `α`. Then `T`
@@ -285,13 +285,13 @@ theorem preservesSmoothFamilies_comp_of_contMDiff_repr {ι : Type*} [Finite ι]
     (b : Module.Basis ι ℝ S) {T : D →ₗ[ℝ] S}
     (h : ∀ {EN : Type uE} [NormedAddCommGroup EN] [NormedSpace ℝ EN] {HN : Type uH}
       [TopologicalSpace HN] {N : Type uN} [TopologicalSpace N] [ChartedSpace HN N]
-      (J : ModelWithCorners ℝ EN HN) [IsManifold J ∞ N] (α : N → D),
+      {J : ModelWithCorners ℝ EN HN} [IsManifold J ∞ N] (α : N → D),
       IsSmoothFamily J (fun t ↦ (α t : SmoothForm I M F k)) →
         ∀ i, ContMDiff J 𝓘(ℝ) ∞ (fun t ↦ b.repr (T (α t)) i))
     (U : S →ₗ[ℝ] SmoothForm I'' M'' G' l') : PreservesSmoothFamilies.{uE, uH, uN} (U ∘ₗ T) :=
-  fun J _ α hα ↦ by
+  fun α hα ↦ by
     simpa only [LinearMap.comp_apply] using
-      isSmoothFamily_comp_of_contMDiff_repr b U (x := fun t ↦ T (α t)) (h J α hα)
+      isSmoothFamily_comp_of_contMDiff_repr b U (x := fun t ↦ T (α t)) (h α hα)
 
 /-- **Maps into a finite-dimensional space of forms.** A linear map `T` into a
 finite-dimensional space `S` of forms with a basis `b` preserves smooth families exactly when, for
@@ -302,11 +302,11 @@ theorem preservesSmoothFamilies_iff_contMDiff_repr {ι : Type*} [Finite ι]
     PreservesSmoothFamilies.{uE, uH, uN} (S.subtype ∘ₗ T) ↔
       ∀ {EN : Type uE} [NormedAddCommGroup EN] [NormedSpace ℝ EN] {HN : Type uH}
         [TopologicalSpace HN] {N : Type uN} [TopologicalSpace N] [ChartedSpace HN N]
-        (J : ModelWithCorners ℝ EN HN) [IsManifold J ∞ N] (α : N → D),
+        {J : ModelWithCorners ℝ EN HN} [IsManifold J ∞ N] (α : N → D),
         IsSmoothFamily J (fun t ↦ (α t : SmoothForm I M F k)) →
           ∀ i, ContMDiff J 𝓘(ℝ) ∞ (fun t ↦ b.repr (T (α t)) i) := by
   have := Module.Finite.of_basis b
-  exact ⟨fun hT ↦ fun _ _ _ hα i ↦ hT.contMDiff_dual_apply hα (b.coord i),
+  exact ⟨fun hT ↦ fun _ hα i ↦ hT.contMDiff_dual_apply hα (b.coord i),
     fun h ↦ preservesSmoothFamilies_comp_of_contMDiff_repr b h S.subtype⟩
 
 /-- A map that preserves smooth families into a finite-dimensional space `S` of forms, followed by
@@ -316,7 +316,7 @@ theorem PreservesSmoothFamilies.comp_of_finiteDimensional [FiniteDimensional ℝ
     (U : S →ₗ[ℝ] SmoothForm I'' M'' G' l') : PreservesSmoothFamilies.{uE, uH, uN} (U ∘ₗ T) :=
   have := Module.Free.of_divisionRing ℝ S
   preservesSmoothFamilies_comp_of_contMDiff_repr (Module.finBasis ℝ S)
-    (fun _ _ _ hα i ↦ hT.contMDiff_dual_apply hα ((Module.finBasis ℝ S).coord i)) U
+    (fun _ hα i ↦ hT.contMDiff_dual_apply hα ((Module.finBasis ℝ S).coord i)) U
 
 end FiniteDimensional
 

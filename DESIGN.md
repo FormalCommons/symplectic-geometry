@@ -4016,7 +4016,7 @@ behind.
 | 0 | *Connected sums* | — |
 | 0 | *Poincaré duals of submanifolds* | — |
 | 0 | *Almost complex spheres* | — (it uses only merged files of *Chern classes*) |
-| 0 | *Symplectic h-principle* | — (it uses merged files of *Smooth families*, *Moser isotopy* and *Symplectic vector bundles*; `HandleCore.lean` also waits for the generalization of `PreservesSmoothFamilies` to any parameter manifold that *Compatible symplectic forms* plans) |
+| 0 | *Symplectic h-principle* | — (it uses merged files of *Smooth families*, *Moser isotopy* and *Symplectic vector bundles*) |
 | 1 | *Unitary group topology* | *Symplectic group* (only the file on $\mathrm{Sp}(2n)$; the other files can start at once) |
 | 1 | *Symplectic vector spaces* | *Standard model*, *Symplectic group* |
 | 1 | *Lagrangian Grassmannian* | *Standard model*, *Symplectic vector spaces* (only `Subspace.lean`, which is merged) |

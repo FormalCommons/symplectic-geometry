@@ -400,7 +400,7 @@ Smooth families of forms over a parameter manifold `N` (model
 
 - `SymplecticGeometry.PreservesSmoothFamilies
   {D : Submodule ℝ (SmoothForm I M F k)} (T : D →ₗ[ℝ] SmoothForm I' M' G l) :
-  Prop := ∀ {EN : Type uE} … {N : Type uN} … (J : ModelWithCorners ℝ EN HN)
+  Prop := ∀ {EN : Type uE} … {N : Type uN} … {J : ModelWithCorners ℝ EN HN}
   [IsManifold J ∞ N] (α : N → D), IsSmoothFamily J
   (fun t ↦ (α t : SmoothForm I M F k)) → IsSmoothFamily J
   (fun t ↦ T (α t))`, over every smooth parameter manifold in the universes

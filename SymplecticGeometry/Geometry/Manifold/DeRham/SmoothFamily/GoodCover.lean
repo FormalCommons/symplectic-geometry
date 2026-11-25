@@ -164,7 +164,9 @@ theorem HasFiniteGoodCover.nonempty_smoothCohomologySplitting (hM : HasFiniteGoo
 /-- **Smooth families of primitives.** On a Hausdorff σ-compact manifold, modelled on a
 finite-dimensional space, that has a finite good cover, there is a linear map `P` from the exact
 `(k + 1)`-forms to the `k`-forms with `d (P η) = η` for every exact form `η`, which takes smooth
-families of exact forms over any smooth parameter manifold to smooth families of forms.
+families of exact forms to smooth families of forms over every smooth parameter manifold whose
+model space, model and points lie in the universes `uE`, `uH` and `uN` of
+`PreservesSmoothFamilies`. The map `P` may depend on these universes.
 
 Milestone: *Smooth families of primitives*. -/
 theorem exists_primitiveMap_of_hasFiniteGoodCover (hM : HasFiniteGoodCover I M) (k : ℕ) :
@@ -182,7 +184,7 @@ theorem exists_isSmoothFamily_mextDerivₗ_eq (hM : HasFiniteGoodCover I M) {k :
     (hex : ∀ t, η t ∈ exactForms I M (k + 1)) :
     ∃ α : N → SmoothForm I M ℝ k, IsSmoothFamily J α ∧ ∀ t, mextDerivₗ I k (α t) = η t := by
   obtain ⟨P, hP, hPs⟩ := exists_primitiveMap_of_hasFiniteGoodCover hM k
-  exact ⟨fun t ↦ P ⟨η t, hex t⟩, preservesSmoothFamilies_def.mp hPs J _ hη, fun t ↦ hP _⟩
+  exact ⟨fun t ↦ P ⟨η t, hex t⟩, preservesSmoothFamilies_def.mp hPs _ hη, fun t ↦ hP _⟩
 
 /-- A Hausdorff σ-compact manifold, modelled on a finite-dimensional space, that has a finite
 good cover has finite-dimensional de Rham cohomology in every degree. -/

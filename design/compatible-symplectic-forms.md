@@ -267,10 +267,10 @@ About 300 lines.
 
 ### Smooth families over a manifold parameter
 
-The merged *Smooth families* states its parametric results for families
-over the unit interval only: `PreservesSmoothFamilies`
-(`DifferentialForm/SmoothFamily/Map.lean`) quantifies over families
-`unitInterval → D`, and so do the Mayer–Vietoris steps of
+As first merged, *Smooth families* stated its parametric results for
+families over the unit interval only: `PreservesSmoothFamilies`
+(`DifferentialForm/SmoothFamily/Map.lean`) quantified over families
+`unitInterval → D`, and so did the Mayer–Vietoris steps of
 `DeRham/SmoothFamily/MayerVietoris.lean` and
 `exists_isSmoothFamily_mextDerivₗ_eq` (`DeRham/SmoothFamily/GoodCover.lean`).
 The reduction in `AreaForm.lean` needs primitives of a family over a ball
@@ -293,9 +293,9 @@ apply. Issue 9 below is a refactor of those files:
 
 Every use is updated in the same pull request, and
 `design/smooth-families.md` where it states these declarations for the
-unit interval. If the generalized `PreservesSmoothFamilies` cannot be
-stated in one universe, issue 9 adds instead a predicate for a given
-parameter model and keeps the unit-interval one as its case.
+unit interval. The fallback of a predicate for one given parameter model
+was not needed: the generalized `PreservesSmoothFamilies` takes the
+universes as parameters.
 
 ### `Geometry/Symplectic/Moser/Parameter.lean`
 

@@ -97,6 +97,6 @@ theorem preservesSmoothFamilies_homotopyOperator_mpullback {Φ : M' × Icc (0 : 
     (hΦ : ContMDiff (I'.prod (𝓡∂ 1)) I ∞ Φ) (D : Submodule ℝ (SmoothForm I M F (k + 1))) :
     PreservesSmoothFamilies
       (SmoothForm.homotopyOperator ∘ₗ SmoothForm.mpullback Φ hΦ ∘ₗ D.subtype) :=
-  preservesSmoothFamilies_def.mpr fun _ _ _ hα ↦ (hα.mpullback Φ hΦ).homotopyOperator
+  preservesSmoothFamilies_def.mpr fun _ hα ↦ (hα.mpullback Φ hΦ).homotopyOperator
 
 end SymplecticGeometry

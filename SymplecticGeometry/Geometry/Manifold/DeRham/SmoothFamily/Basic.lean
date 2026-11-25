@@ -310,13 +310,13 @@ def ofDiffeomorph : SmoothCohomologySplitting.{uE, uH, uN} I M where
       (by simpa using hex)
     simp only [closedForms.coe_mpullback, SmoothForm.mpullback_symm_mpullback] at h
     rw [τ.eq_zero_of_mem_exactForms k hs h, map_zero]
-  preservesSmoothFamilies_proj k := preservesSmoothFamilies_def.mpr fun J _ α hα ↦
-    preservesSmoothFamilies_def.mp ((τ.preservesSmoothFamilies_proj k).mpullback Φ Φ.contMDiff) J
+  preservesSmoothFamilies_proj k := preservesSmoothFamilies_def.mpr fun α hα ↦
+    preservesSmoothFamilies_def.mp ((τ.preservesSmoothFamilies_proj k).mpullback Φ Φ.contMDiff)
       (fun t ↦ closedForms.mpullback Φ.symm Φ.symm.contMDiff k (α t))
       (by simpa only [closedForms.coe_mpullback] using hα.mpullback _ Φ.symm.contMDiff)
-  preservesSmoothFamilies_primitive k := preservesSmoothFamilies_def.mpr fun J _ α hα ↦
+  preservesSmoothFamilies_primitive k := preservesSmoothFamilies_def.mpr fun α hα ↦
     preservesSmoothFamilies_def.mp
-      ((τ.preservesSmoothFamilies_primitive k).mpullback Φ Φ.contMDiff) J
+      ((τ.preservesSmoothFamilies_primitive k).mpullback Φ Φ.contMDiff)
       (fun t ↦ closedForms.mpullback Φ.symm Φ.symm.contMDiff (k + 1) (α t))
       (by simpa only [closedForms.coe_mpullback] using hα.mpullback _ Φ.symm.contMDiff)
 
