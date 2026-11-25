@@ -236,10 +236,11 @@ In the namespace `TopCat`, for `X : TopCat.{0}`, with
   `uliftIntIso` carries Tau Ceti's `ModuleCat.uliftTensorSelfIso ℤ`, the
   multiplication `a ⊗ b ↦ ⟨a.down * b.down⟩` of the values, to
   `integralCoeffMul`.
-- `integralCohomologyLinearEquiv X n`, the linear equivalence from
+- the inverse of Tau Ceti's `TopCat.integralCohomologyEquiv X n`, from
   cohomology with chain coefficients and values `ℤ`, in the form
   `TopCat.lerayHirsch` takes for `k = ℤ`, to `X.integralCohomology n`,
-  with `_naturality` and `_singularCup`.
+  with `integralCohomologyEquiv_symm_naturality` and
+  `integralCohomologyEquiv_symm_singularCup`.
 
 ### `AlgebraicTopology/Cohomology/ChangeOfValues.lean`
 
@@ -338,7 +339,7 @@ homology projective in every degree and finitely generated in degrees
   `π^*` (the summand of the unit class, when `c 0` is the unit), the form
   the splitting principle uses.
 - The integral form, for `TopCat.integralCohomology` and `integralCup`,
-  through `TopCat.integralCohomologyLinearEquiv`; the
+  through the inverse of `TopCat.integralCohomologyEquiv`; the
   Chern classes use only this form. Its map `TopCat.integralLerayHirsch` is
   additive, with `TopCat.integralLerayHirsch_bijective`, the additive
   equivalence `TopCat.integralLerayHirschEquiv` and

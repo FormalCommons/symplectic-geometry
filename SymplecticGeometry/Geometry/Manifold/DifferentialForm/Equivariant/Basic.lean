@@ -34,7 +34,8 @@ this.
   `SymplecticGeometry.cartanDiff_zero_param`: at `ħ = 0` it is `d`.
 * `SymplecticGeometry.cartanDiff_of_mul`: the graded Leibniz rule for a homogeneous left factor,
   and `SymplecticGeometry.cartanDiff_mul_of_even`: `d_ħ` is a derivation on products whose left
-  factor has only components of even degree.
+  factor has only components of even degree, and `SymplecticGeometry.cartanDiff_of_pow_succ`: the
+  power rule for a homogeneous form of even degree.
 * `SymplecticGeometry.cartanDiff_cartanDiff`: `d_ħ² = -ħ L_X` on homogeneous forms, from Cartan's
   formula `SymplecticGeometry.mixedExtDeriv_mixedInterior_add`; so
   `SymplecticGeometry.cartanDiff_cartanDiff_of_mlieDerivForm_eq_zero`: `d_ħ² = 0` on forms whose
@@ -145,6 +146,21 @@ theorem cartanDiff_mul_of_even {α : ⨁ k, SmoothForm I M ℝ k} (hα : ∀ k, 
   rcases Nat.even_or_odd k with hk | hk
   · rw [cartanDiff_of_mul, hk.neg_one_pow, one_smul]
   · rw [hα k hk, map_zero, zero_mul, map_zero, zero_mul, zero_mul, add_zero]
+
+/-- The power rule for the Cartan differential of a homogeneous form `φ` of even degree:
+`d_ħ φ ^ (n + 1) = (n + 1) φ ^ n d_ħ φ`. -/
+theorem cartanDiff_of_pow_succ (hk : Even k) (φ : SmoothForm I M ℝ k) (n : ℕ) :
+    cartanDiff X hX ħ (DirectSum.of (fun k ↦ SmoothForm I M ℝ k) k φ ^ (n + 1)) =
+      ((n + 1 : ℕ) : ℝ) • (DirectSum.of _ k φ ^ n * cartanDiff X hX ħ (DirectSum.of _ k φ)) := by
+  set T := DirectSum.of (fun k ↦ SmoothForm I M ℝ k) k φ
+  have hT : Commute T (cartanDiff X hX ħ T) := SmoothForm.commute_of_of_even hk φ _
+  induction n with
+  | zero => rw [pow_one, pow_zero, one_mul, Nat.cast_one, one_smul]
+  | succ n ih =>
+    rw [pow_succ', cartanDiff_of_mul, ih, hk.neg_one_pow, one_smul, mul_smul_comm, ← mul_assoc,
+      ← pow_succ', ← (hT.pow_left (n + 1)).eq]
+    push_cast
+    module
 
 /-- The square of the Cartan differential on a homogeneous form is `-ħ` times the Lie derivative
 along `X`: `d_ħ² φ = -ħ L_X φ`. -/
