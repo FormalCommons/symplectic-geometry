@@ -6,9 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.ProjectiveSpace
+public import TauCeti.AlgebraicTopology.Cellular.ComplexProjective.Basic
 public import TauCeti.AlgebraicTopology.Cohomology.IntegralCup
 public import TauCeti.AlgebraicTopology.Cohomology.UniversalCoefficient
-public import TauCeti.AlgebraicTopology.Homotopy.Hurewicz.ComplexProjectiveSpace
 
 /-!
 # The hyperplane class on the second homology of complex projective space
@@ -29,9 +29,9 @@ applied to `h` read through `TopCat.integralCohomologyEquiv`; the sign is not fi
 ## Proof
 
 `H₂(ℙ ℂ V; ℤ)` is isomorphic to `ℤ`: carry it along
-`Projectivization.complexProjectiveSpaceHomeomorph` to Tau Ceti's `ℂPⁿ`, where the Hurewicz map
-`π₂ → H₂` is bijective (`HomotopyGroup.bijective_hurewiczIntHom_of_simplyConnectedSpace`) and
-`π₂(ℂPⁿ) ≅ ℤ` (`TauCeti.ComplexProjectiveSpace.pi2MulEquivInt`). The Kronecker map
+`Projectivization.complexProjectiveSpaceHomeomorph` to Tau Ceti's `ℂPⁿ`, whose singular homology
+in degree `2` is that of its cellular chain complex, a single copy of `ℤ` from its one `2`-cell
+(`TauCeti.ComplexProjectiveSpace.singularHomologyIso`). The Kronecker map
 `H²(ℙ ℂ V; ℤ) → Hom(H₂(ℙ ℂ V; ℤ), ℤ)` is onto (`TopCat.singularKronecker_surjective`), and every
 class of `H²(ℙ ℂ V; ℤ)` is a multiple `m • h` (`Projectivization.exists_eq_zsmul_hyperplaneClass`).
 So an isomorphism `H₂(ℙ ℂ V; ℤ) ≅ ℤ` is `m` times the pairing with `h`; being onto, it forces
@@ -39,16 +39,15 @@ So an isomorphism `H₂(ℙ ℂ V; ℤ) ≅ ℤ` is `m` times the pairing with `
 
 ## References
 
-* A. Hatcher, *Algebraic Topology*, Cambridge University Press, 2002, Section 3.1 (the universal
-  coefficient theorem) and Section 4.2 (the Hurewicz theorem and the homotopy groups of complex
-  projective space).
+* A. Hatcher, *Algebraic Topology*, Cambridge University Press, 2002, Section 2.2 (the cellular
+  homology of complex projective space) and Section 3.1 (the universal coefficient theorem).
 -/
 
 public section
 
 noncomputable section
 
-open CategoryTheory AlgebraicTopology HomotopyGroup Metric Module
+open CategoryTheory AlgebraicTopology Module
 open scoped LinearAlgebra.Projectivization MonoidalCategory
 
 /- The Kronecker pairing below is that of cohomology with chain coefficients and cochain values
@@ -66,14 +65,9 @@ variable {V : Type} [NormedAddCommGroup V] [NormedSpace ℂ V] {n : ℕ}
 private def singularHomologyTwoLinearEquivInt (hV : finrank ℂ V = n + 1) (hn : n ≠ 0) :
     ((singularHomologyFunctor (ModuleCat.{0} ℤ) 2).obj (𝟙_ (ModuleCat.{0} ℤ))).obj
         (TopCat.of (ℙ ℂ V)) ≃ₗ[ℤ] ℤ :=
-  let v : sphere (0 : EuclideanSpace ℂ (Fin (n + 1))) 1 := ⟨EuclideanSpace.single 0 1, by simp⟩
-  let e : _ ≃+ ℤ :=
-    (((singularHomologyFunctor (ModuleCat.{0} ℤ) 2).obj (𝟙_ (ModuleCat.{0} ℤ))).mapIso
-      (TopCat.isoOfHomeo (complexProjectiveSpaceHomeomorph hV))).toLinearEquiv.toAddEquiv.symm.trans
-    ((AddEquiv.ofBijective _ (bijective_hurewiczIntHom_of_simplyConnectedSpace
-        (TauCeti.ComplexProjectiveSpace.mk n v))).symm.trans
-      (TauCeti.ComplexProjectiveSpace.pi2MulEquivInt v hn).toAdditive)
-  { e with map_smul' := fun m y => (map_intCast_smul e ℤ ℤ m y).trans (by simp) }
+  ((((singularHomologyFunctor (ModuleCat.{0} ℤ) 2).obj (𝟙_ (ModuleCat.{0} ℤ))).mapIso
+      (TopCat.isoOfHomeo (complexProjectiveSpaceHomeomorph hV))).symm ≪≫
+    TauCeti.ComplexProjectiveSpace.singularHomologyIso (i := 1) _ (by omega)).toLinearEquiv
 
 /-- The Kronecker pairing with the hyperplane class `h`, `x ↦ ⟨h, x⟩`, is a bijection from the
 integral second homology of `ℙ ℂ V` onto `ℤ`, when `finrank ℂ V = n + 1` and `n ≠ 0`. -/
