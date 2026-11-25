@@ -338,17 +338,11 @@ private theorem exists_comp {h : ℝ → ℝ} (hh : ContDiff ℝ ∞ h) (hpos : 
   set i₀ := φ.cubicIndex
   set c := f x
   -- `h t = h c + (t - c) G t` with `G` smooth and `G c = h' c > 0`.
-  obtain ⟨G, hGs, hhG⟩ :=
+  obtain ⟨G, hGs, hhG, hGc⟩ :=
     ContDiff.exists_contDiff_sub_eq_smul (n := ⊤) (f := h) (by simpa using hh) c
   have hhG' : h = fun t ↦ h c + (t - c) * G t := funext fun t ↦ by
     rw [← smul_eq_mul, ← hhG]
     ring
-  have hGc : deriv h c = G c := by
-    have hd : HasDerivAt (fun t ↦ h c + (t - c) * G t) (G c) c := by
-      simpa using (((hasDerivAt_id' c).sub_const c).mul
-        (hGs.differentiable (by simp) c).hasDerivAt).const_add (h c)
-    rw [hhG']
-    exact hd.deriv
   -- The normal form in the coordinates `L`, minus `f x`.
   set U : (Fin (Module.finrank ℝ E) → ℝ) → ℝ := fun z ↦ φ.normalForm (L.symm z) - c with hU
   have hUs : ContDiff ℝ ∞ U := (φ.contDiff_normalForm.comp L.symm.contDiff).sub contDiff_const
@@ -364,7 +358,7 @@ private theorem exists_comp {h : ℝ → ℝ} (hh : ContDiff ℝ ∞ h) (hpos : 
   set a : (Fin (Module.finrank ℝ E) → ℝ) → ℝ := fun z ↦ G (c + U z) with ha
   have has : ContDiff ℝ ∞ a := hGs.comp (contDiff_const.add hUs)
   have ha0 : 0 < a 0 := by
-    simpa [ha, hUc, birthDeathPotential_apply, ← hGc] using hpos
+    simpa [ha, hUc, birthDeathPotential_apply, hGc] using hpos
   -- The rescaled coordinates `W z = (zᵢ a(z) ^ pᵢ)ᵢ`, a local diffeomorphism at `0`.
   set p : Fin (Module.finrank ℝ E) → ℝ := fun i ↦ if i = i₀ then (3 : ℝ)⁻¹ else 2⁻¹
   set W : (Fin (Module.finrank ℝ E) → ℝ) → Fin (Module.finrank ℝ E) → ℝ :=
