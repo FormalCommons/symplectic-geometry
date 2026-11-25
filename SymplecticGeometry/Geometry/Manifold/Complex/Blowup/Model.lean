@@ -9,6 +9,8 @@ public import Mathlib.Analysis.Complex.Basic
 public import Mathlib.Topology.OpenPartialHomeomorph.Composition
 public import SymplecticGeometry.Algebra.Notation.Pi.Basic
 public import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
+public import TauCeti.Analysis.Calculus.ContDiff.Pi
+public import TauCeti.Geometry.Manifold.Instances.Projectivization
 public import TauCeti.Topology.Algebra.Projectivization
 
 /-!
@@ -21,7 +23,8 @@ exceptional divisor, the fibre `ℙ ℂ E × {0}` over the origin.
 
 This file sets up the incidence set with its subspace topology, the two projections, the
 exceptional divisor, and the `n + 1` charts of McDuff–Salamon, Exercise 7.1.2 (i), with the
-transitions between them. The complex manifold structure comes later.
+transitions between them, and makes the incidence set a complex manifold on which both
+projections, and the inclusion into `ℙ ℂ E × E`, are holomorphic.
 
 ## Main definitions and results
 
@@ -45,6 +48,25 @@ transitions between them. The complex manifold structure comes later.
   `SymplecticGeometry.BlowupModel.blowupModelChart_symm_trans_apply`: the transition from the
   chart `i` to the chart `k`. For `k ≠ i` it is defined where `w k ≠ 0`, and sends `w` to `w'`
   with `w' k = w i * w k` and `w' j = v j / w k` for `j ≠ k`, where `v = update w i 1`.
+* `SymplecticGeometry.BlowupModel.instChartedSpace` and
+  `SymplecticGeometry.BlowupModel.instIsManifold`: these charts form an atlas modelled on `E`, whose
+  transitions are analytic, so the blowup is a complex manifold of dimension `n + 1` (a `C^r`
+  manifold for every `r`). The chart at `p` is taken at the index Tau Ceti's atlas of `ℙ ℂ E` uses
+  at `p.pr`. Instance search finds `T2Space` and `SecondCountableTopology` from the subspace.
+* `SymplecticGeometry.BlowupModel.contMDiff_iff_forall_contMDiff_comp_blowupModelChart_symm`: a
+  map out of the blowup is `C^r` exactly when it is `C^r` read in each chart.
+* `SymplecticGeometry.BlowupModel.contMDiff_pr`, `SymplecticGeometry.BlowupModel.contMDiff_blowdown`
+  and `SymplecticGeometry.BlowupModel.contMDiff_blowupModel_val`: the projection to `ℙ ℂ E`, the
+  blowdown and the inclusion into `ℙ ℂ E × E` are holomorphic.
+
+## Implementation notes
+
+The atlas, the choice of `chartAt`, the proof of the manifold instance by
+`isManifold_of_contDiffOn`, and the smoothness of the charts and of their inverses follow Tau Ceti's
+`Projectivization.instChartedSpace`, `Projectivization.instIsManifold`,
+`Projectivization.contMDiffOn_affineChart` and `Projectivization.contMDiff_affineChart_symm`
+(`TauCeti.Geometry.Manifold.Instances.Projectivization`). The projection is shown holomorphic by
+Tau Ceti's `Projectivization.contMDiffAt_of_eventually_eq_mk`.
 
 ## References
 
@@ -345,6 +367,133 @@ theorem blowupModelChart_symm_trans_apply_of_ne (k : Fin (n + 1)) (w : Fin (n + 
   simp [hj]
 
 end Chart
+
+/-! ### The complex manifold structure -/
+
+section Manifold
+
+open Function
+open scoped ContDiff Manifold
+
+/-- The atlas of the blowup consisting of its `n + 1` charts `blowupModelChart i`. The chart at a
+point `p` is the chart at the index that Tau Ceti's atlas of `ℙ ℂ E` uses at `p.pr`. -/
+noncomputable instance instChartedSpace : ChartedSpace (Fin (n + 1) → ℂ) (BlowupModel n) where
+  atlas := Set.range blowupModelChart
+  chartAt p := blowupModelChart (exists_mem_affineOpen p.pr).choose
+  mem_chart_source p := by
+    rw [blowupModelChart_source]
+    exact (exists_mem_affineOpen p.pr).choose_spec
+  chart_mem_atlas _ := Set.mem_range_self _
+
+/-- The charts of the atlas of the blowup are exactly the charts `blowupModelChart i`. -/
+theorem mem_atlas_iff (e : OpenPartialHomeomorph (BlowupModel n) (Fin (n + 1) → ℂ)) :
+    e ∈ atlas (Fin (n + 1) → ℂ) (BlowupModel n) ↔ ∃ i, blowupModelChart i = e :=
+  Iff.rfl
+
+/-- Each chart `blowupModelChart i` belongs to the atlas of the blowup. -/
+theorem blowupModelChart_mem_atlas (i : Fin (n + 1)) :
+    blowupModelChart i ∈ atlas (Fin (n + 1) → ℂ) (BlowupModel n) :=
+  Set.mem_range_self i
+
+/-- The chart at `p` is the chart `blowupModelChart i` at the index `i` that Tau Ceti's atlas of
+`ℙ ℂ E` uses at `p.pr`. -/
+theorem chartAt_eq (p : BlowupModel n) :
+    chartAt (Fin (n + 1) → ℂ) p = blowupModelChart (exists_mem_affineOpen p.pr).choose :=
+  (rfl)
+
+/-- The transitions between the charts of the blowup are `C^r` for every `r`, including the
+analytic order `ω`. -/
+theorem contDiffOn_blowupModelChart_symm_trans (i k : Fin (n + 1)) (r : ℕ∞ω) :
+    ContDiffOn ℂ r ((blowupModelChart i).symm.trans (blowupModelChart k))
+      ((blowupModelChart i).symm.trans (blowupModelChart k)).source := by
+  have hv (j : Fin (n + 1)) : ContDiff ℂ r fun w : Fin (n + 1) → ℂ => update w i 1 j :=
+    (contDiff_apply ℂ (fun _ => ℂ) j).comp (ContDiff.update_self i contDiff_const)
+  rw [blowupModelChart_symm_trans_source]
+  refine contDiffOn_pi.2 fun j => ?_
+  by_cases hj : j = k
+  · subst hj
+    refine (((contDiff_apply ℂ (fun _ => ℂ) i).mul (hv j)).contDiffOn).congr fun w _ => ?_
+    exact blowupModelChart_symm_trans_apply_self i j w
+  · refine ((hv j).contDiffOn.div (hv k).contDiffOn fun w hw => hw).congr fun w _ => ?_
+    exact blowupModelChart_symm_trans_apply_of_ne i k w hj
+
+/-- The blowup of `ℂⁿ⁺¹` at the origin, with the charts `blowupModelChart i`, is a `C^r` manifold
+for every `r`; for `r = ω` it is a complex manifold of dimension `n + 1`. -/
+instance instIsManifold (r : ℕ∞ω) : IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) r (BlowupModel n) := by
+  apply isManifold_of_contDiffOn
+  rintro _ _ ⟨i, rfl⟩ ⟨k, rfl⟩
+  simpa using contDiffOn_blowupModelChart_symm_trans i k r
+
+/-- Each chart `blowupModelChart i` lies in the maximal atlas of the blowup. -/
+theorem blowupModelChart_mem_maximalAtlas (r : ℕ∞ω) (i : Fin (n + 1)) :
+    blowupModelChart i ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) r (BlowupModel n) :=
+  IsManifold.subset_maximalAtlas (blowupModelChart_mem_atlas i)
+
+/-- Each chart of the blowup is a `C^r` map on its source. -/
+theorem contMDiffOn_blowupModelChart (i : Fin (n + 1)) (r : ℕ∞ω) :
+    ContMDiffOn 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) r (blowupModelChart i)
+      (blowupModelChart i).source :=
+  contMDiffOn_of_mem_maximalAtlas (blowupModelChart_mem_maximalAtlas r i)
+
+/-- The inverse of each chart of the blowup is a `C^r` map on all of `E`. -/
+theorem contMDiff_blowupModelChart_symm (i : Fin (n + 1)) (r : ℕ∞ω) :
+    ContMDiff 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) r (blowupModelChart (n := n) i).symm := by
+  rw [← contMDiffOn_univ]
+  simpa using contMDiffOn_symm_of_mem_maximalAtlas (blowupModelChart_mem_maximalAtlas r i)
+
+/-- A map out of the blowup is `C^r` if and only if it is `C^r` read in each chart
+`blowupModelChart i`, that is, composed with the inverse of each chart, a map defined on all of
+`E`. -/
+theorem contMDiff_iff_forall_contMDiff_comp_blowupModelChart_symm {F H M : Type*}
+    [NormedAddCommGroup F] [NormedSpace ℂ F] [TopologicalSpace H] {I : ModelWithCorners ℂ F H}
+    [TopologicalSpace M] [ChartedSpace H M] {f : BlowupModel n → M} {r : ℕ∞ω} :
+    ContMDiff 𝓘(ℂ, Fin (n + 1) → ℂ) I r f ↔
+      ∀ i, ContMDiff 𝓘(ℂ, Fin (n + 1) → ℂ) I r (f ∘ (blowupModelChart i).symm) := by
+  refine ⟨fun hf i => hf.comp (contMDiff_blowupModelChart_symm i r), fun hf p => ?_⟩
+  obtain ⟨i, hi⟩ := exists_mem_affineOpen p.pr
+  have hsrc : (blowupModelChart i).source ∈ 𝓝 p :=
+    (blowupModelChart i).open_source.mem_nhds (by rw [blowupModelChart_source]; exact hi)
+  refine (((hf i).comp_contMDiffOn (contMDiffOn_blowupModelChart i r)).congr fun q hq => ?_)
+    |>.contMDiffAt hsrc
+  rw [comp_apply, comp_apply, (blowupModelChart i).left_inv hq]
+
+/-- The projection of the blowup to `ℙ ℂ E` is `C^r` for every `r`; for `r = ω` it is
+holomorphic. -/
+theorem contMDiff_pr (r : ℕ∞ω) :
+    ContMDiff 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin n → ℂ) r (pr : BlowupModel n → _) :=
+  -- In the chart `i`, the line `pr` is spanned by `update w i 1`.
+  contMDiff_iff_forall_contMDiff_comp_blowupModelChart_symm.2 fun i _ =>
+    contMDiffAt_of_eventually_eq_mk
+      (ContDiff.update_self i contDiff_const).contMDiff.contMDiffAt
+      (Eventually.of_forall fun w =>
+        ⟨update_ne_zero w i one_ne_zero, pr_blowupModelChart_symm_apply i w⟩)
+
+/-- The blowdown map of the blowup to `E` is `C^r` for every `r`; for `r = ω` it is
+holomorphic. -/
+theorem contMDiff_blowdown (r : ℕ∞ω) :
+    ContMDiff 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) r (blowdown : BlowupModel n → _) :=
+  -- In the chart `i`, the blowdown is `w ↦ w i • update w i 1`.
+  contMDiff_iff_forall_contMDiff_comp_blowupModelChart_symm.2 fun i =>
+    (((contDiff_apply ℂ (fun _ => ℂ) i).smul
+      (ContDiff.update_self i contDiff_const)).contMDiff).congr fun w =>
+        blowdown_blowupModelChart_symm_apply i w
+
+/-- The inclusion of the blowup into `ℙ ℂ E × E` is `C^r` for every `r`; for `r = ω` it is
+holomorphic. -/
+theorem contMDiff_blowupModel_val (r : ℕ∞ω) :
+    ContMDiff 𝓘(ℂ, Fin (n + 1) → ℂ) (𝓘(ℂ, Fin n → ℂ).prod 𝓘(ℂ, Fin (n + 1) → ℂ)) r
+      (Subtype.val : BlowupModel n → ℙ ℂ (Fin (n + 1) → ℂ) × (Fin (n + 1) → ℂ)) := by
+  have h : (Subtype.val : BlowupModel n → _) = fun p => (pr p, blowdown p) :=
+    funext fun p => Prod.ext (pr_def p).symm (blowdown_def p).symm
+  rw [h]
+  exact (contMDiff_pr r).prodMk (contMDiff_blowdown r)
+
+-- Instance search finds the subspace instances of `ℙ ℂ E × E`.
+example : T2Space (BlowupModel n) := inferInstance
+
+example : SecondCountableTopology (BlowupModel n) := inferInstance
+
+end Manifold
 
 end BlowupModel
 

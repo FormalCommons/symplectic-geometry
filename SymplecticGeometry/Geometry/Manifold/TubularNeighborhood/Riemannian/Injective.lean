@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Existence
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Neighborhood
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Radial
 public import TauCeti.Geometry.Manifold.VectorBundle.ZeroSection
+public import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.Normalized
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
 import SymplecticGeometry.GroupTheory.GroupAction.Hom
 import TauCeti.Geometry.Manifold.IsManifold.Basic
@@ -20,9 +21,9 @@ import TauCeti.Geometry.Manifold.IsManifold.Basic
 
 Let `f : M → N` be a smooth embedding between boundaryless manifolds, `N` Hausdorff and second
 countable, with normal bundle `ν`. This file gives a smooth map `T : ν → N`, injective on all of
-`ν`, equal to `f` on the zero section, whose differential sends the vertical vector `v` at `0_x`
-to a vector with normal class `c x • v`, for a function `c > 0`
-(`TauCeti.SmoothEmbedding.exists_contMDiff_injective_normalBundle`).
+`ν`, equal to `f` on the zero section, whose normal derivative `f.normalFiberDeriv hn hdim T x`
+(the normal class of its differential at `0_x` on vertical vectors) is `c x` times the identity,
+for a function `c > 0` (`TauCeti.SmoothEmbedding.exists_contMDiff_injective_normalBundle`).
 
 The map is the normal exponential of an auxiliary Riemannian metric on `N`, which is a
 diffeomorphism on a neighbourhood of the zero section (Tau Ceti's
@@ -36,8 +37,8 @@ chain rule. Unlike Tau Ceti's tubular diffeomorphisms, the statement records tha
 ## Main results
 
 * `TauCeti.SmoothEmbedding.exists_contMDiff_injective_normalBundle`: a smooth injective
-  `T : ν → N` with `T (0_x) = f x`, whose vertical differential at `0_x` is a positive multiple of
-  the identity, read through the normal class.
+  `T : ν → N` with `T (0_x) = f x`, whose normal derivative at each `x` is a positive multiple of
+  the identity.
 
 ## References
 
@@ -63,8 +64,8 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimen
   {P : Type*} [NormedAddCommGroup P] [NormedSpace ℝ P] [FiniteDimensional ℝ P]
 
 /-- A smooth embedding `f` extends to a smooth map `T` of its normal bundle into the target,
-injective on the whole bundle and equal to `f` on the zero section, whose differential at `0_x`
-sends the vertical vector `v` to a vector with normal class `c x • v`, where `c x > 0`. -/
+injective on the whole bundle and equal to `f` on the zero section, whose normal derivative
+`f.normalFiberDeriv hn hdim T x` sends `v` to `c x • v`, where `c x > 0`. -/
 theorem exists_contMDiff_injective_normalBundle (f : SmoothEmbedding I J ∞ M N)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) :
     letI := f.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hdim
@@ -74,9 +75,7 @@ theorem exists_contMDiff_injective_normalBundle (f : SmoothEmbedding I J ∞ M N
       (∀ x, T (zeroSection P _ x) = f x) ∧
       ∃ c : M → ℝ, (∀ x, 0 < c x) ∧
         ∀ x (v : f.NormalSpace x (WithTop.coe_ne_zero.2 ENat.top_ne_zero)),
-        f.normalClass x (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-          (mfderiv (I.prod 𝓘(ℝ, P)) J T (zeroSection P _ x)
-            ((Bundle.zeroSectionTangentEquiv (I := I) x).symm (0, v))) = c x • v := by
+        f.normalFiberDeriv (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hdim T x v = c x • v := by
   have hn : (∞ : ℕ∞ω) ≠ 0 := by simp
   let := f.normalSpaceFiberBundle hn hdim
   let := f.normalSpaceVectorBundle hn hdim
@@ -139,7 +138,7 @@ theorem exists_contMDiff_injective_normalBundle (f : SmoothEmbedding I J ∞ M N
   -- `s' 0 = r x`.
   have hΨ0 : MDifferentiableAt (I.prod 𝓘(ℝ, P)) J Ψ (zeroSection P ν x) :=
     (Ψ.contMDiffOn.contMDiffAt (Ψ.open_source.mem_nhds (hzero x))).mdifferentiableAt (by simp)
-  rw [Bundle.mfderiv_zeroSectionTangentEquiv_symm_inr ((hT _).mdifferentiableAt (by simp))]
+  rw [normalFiberDeriv_apply_eq_mfderiv_smul f hn hdim ((hT _).mdifferentiableAt (by simp))]
   let line : ℝ → TotalSpace P ν := fun t ↦ ⟨x, t • v⟩
   have hl : ContMDiff 𝓘(ℝ) (I.prod 𝓘(ℝ, P)) 1 line :=
     contMDiff_id.smul_totalSpace (contMDiff_const (c := (⟨x, v⟩ : TotalSpace P ν)))
@@ -174,7 +173,6 @@ theorem exists_contMDiff_injective_normalBundle (f : SmoothEmbedding I J ∞ M N
       r x • f.normalRepresentative x hn v := by
     rw [hfun]
     exact h2.trans ((congrArg _ hs1).trans (hlin.trans (congrArg _ key)))
-  rw [h1]
-  exact (map_smul _ _ _).trans (congrArg _ (normalClass_normalRepresentative ..))
+  rw [h1, map_smul, normalClassL_apply, normalClass_normalRepresentative]
 
 end TauCeti.SmoothEmbedding
