@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Analysis.Convex.Deriv
 public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 public import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import Mathlib.Analysis.Calculus.Deriv.MeanValue
@@ -35,11 +36,12 @@ two strictly plurisubharmonic functions is strictly plurisubharmonic.
   `SymplecticGeometry.abs_deriv_smoothedAbs_le_one`,
   `SymplecticGeometry.iteratedDeriv_two_smoothedAbs_nonneg`: smoothness, derivative, and the
   bounds on its first two derivatives.
+* `SymplecticGeometry.convexOn_smoothedAbs`: convexity.
 * `SymplecticGeometry.smoothedAbs_eq_abs`, `SymplecticGeometry.abs_le_smoothedAbs`,
   `SymplecticGeometry.smoothedAbs_le_abs_add`: comparison with `|t|`.
 * `SymplecticGeometry.smoothedMax`: the smoothed maximum, with `contDiff_smoothedMax`,
-  `smoothedMax_eq_max`, `smoothedMax_eq_left`, `smoothedMax_eq_right`, `le_smoothedMax` and
-  `smoothedMax_le`.
+  `smoothedMax_eq_max`, `smoothedMax_eq_left`, `smoothedMax_eq_right`, `max_le_smoothedMax`
+  and `smoothedMax_le_max_add`.
 
 ## References
 
@@ -152,7 +154,12 @@ theorem abs_deriv_smoothedAbs_le_one (δ t : ℝ) : |deriv (smoothedAbs δ) t| �
   rw [deriv_smoothedAbs]
   exact abs_smoothedSign_le_one δ t
 
-/-- For `δ ≥ 0`, `smoothedAbs δ` is convex: its second derivative is nonnegative. -/
+/-- For `δ ≥ 0`, `smoothedAbs δ` is convex on `ℝ`. -/
+theorem convexOn_smoothedAbs (hδ : 0 ≤ δ) : ConvexOn ℝ univ (smoothedAbs δ) :=
+  Monotone.convexOn_univ_of_deriv (differentiable_smoothedAbs δ)
+    (by rw [deriv_smoothedAbs]; exact monotone_smoothedSign hδ)
+
+/-- For `δ ≥ 0`, the second derivative of `smoothedAbs δ` is nonnegative. -/
 theorem iteratedDeriv_two_smoothedAbs_nonneg (hδ : 0 ≤ δ) (t : ℝ) :
     0 ≤ iteratedDeriv 2 (smoothedAbs δ) t := by
   rw [iteratedDeriv_succ, iteratedDeriv_one, deriv_smoothedAbs]
@@ -251,9 +258,7 @@ theorem smoothedMax_comm (hδ : 0 < δ) (a b : ℝ) : smoothedMax δ a b = smoot
 theorem smoothedMax_eq_max (hδ : 0 < δ) {a b : ℝ} (h : δ ≤ |a - b|) :
     smoothedMax δ a b = max a b := by
   rw [smoothedMax_def, smoothedAbs_eq_abs hδ h]
-  rcases le_total a b with hab | hab
-  · rw [max_eq_right hab, abs_of_nonpos (sub_nonpos.2 hab)]; ring
-  · rw [max_eq_left hab, abs_of_nonneg (sub_nonneg.2 hab)]; ring
+  linarith [max_sub_min_eq_abs' a b, min_add_max a b]
 
 /-- For `δ > 0`, the smoothed maximum of `a` and `b` is `a` when `b + δ ≤ a`. -/
 theorem smoothedMax_eq_left (hδ : 0 < δ) {a b : ℝ} (h : b + δ ≤ a) : smoothedMax δ a b = a := by
@@ -265,19 +270,14 @@ theorem smoothedMax_eq_right (hδ : 0 < δ) {a b : ℝ} (h : a + δ ≤ b) : smo
   rw [smoothedMax_comm hδ, smoothedMax_eq_left hδ h]
 
 /-- For `δ > 0`, the smoothed maximum lies above the maximum. -/
-theorem le_smoothedMax (hδ : 0 < δ) (a b : ℝ) : max a b ≤ smoothedMax δ a b := by
-  have := abs_le_smoothedAbs hδ (a - b)
+theorem max_le_smoothedMax (hδ : 0 < δ) (a b : ℝ) : max a b ≤ smoothedMax δ a b := by
   rw [smoothedMax_def]
-  rcases le_total a b with hab | hab
-  · rw [max_eq_right hab, abs_of_nonpos (sub_nonpos.2 hab)] at *; linarith
-  · rw [max_eq_left hab, abs_of_nonneg (sub_nonneg.2 hab)] at *; linarith
+  linarith [abs_le_smoothedAbs hδ (a - b), max_sub_min_eq_abs' a b, min_add_max a b]
 
 /-- For `δ > 0`, the smoothed maximum lies below `max a b + δ / 2`. -/
-theorem smoothedMax_le (hδ : 0 < δ) (a b : ℝ) : smoothedMax δ a b ≤ max a b + δ / 2 := by
-  have := smoothedAbs_le_abs_add hδ (a - b)
+theorem smoothedMax_le_max_add (hδ : 0 < δ) (a b : ℝ) :
+    smoothedMax δ a b ≤ max a b + δ / 2 := by
   rw [smoothedMax_def]
-  rcases le_total a b with hab | hab
-  · rw [max_eq_right hab, abs_of_nonpos (sub_nonpos.2 hab)] at *; linarith
-  · rw [max_eq_left hab, abs_of_nonneg (sub_nonneg.2 hab)] at *; linarith
+  linarith [smoothedAbs_le_abs_add hδ (a - b), max_sub_min_eq_abs' a b, min_add_max a b]
 
 end SymplecticGeometry
