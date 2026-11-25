@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Geometry.Manifold.DifferentialForm.Interior
 public import TauCeti.Geometry.Manifold.MFDeriv.Prod
 public import TauCeti.Geometry.Manifold.VectorField.Prod
 public import SymplecticGeometry.Geometry.Manifold.ContMDiff.TimeExtension
@@ -48,6 +49,8 @@ homeomorphism `iccHomeoI a b`, extended, and carried back to `M × ℝ`.
 * `TauCeti.SmoothForm.timeExtendSlice_mpullback_prodMap`,
   `TauCeti.SmoothForm.timeExtend_mpullback_prodMap`: the time extension commutes with pullback
   along `Prod.map id g` for a smooth map `g` of the space factor.
+* `TauCeti.SmoothForm.timeExtendSlice_apply_cons`: if the slices of `Ω` contracted with a
+  vector field `V` on `M` are those of `Θ`, the same holds for the slices of their extensions.
 * `TauCeti.SmoothForm.mpullback_prodMk_timeExtendIcc`,
   `TauCeti.SmoothForm.timeExtendIcc_apply_eq_zero`,
   `TauCeti.SmoothForm.timeExtendIcc_mpullback_prodMap`: the extension of a form on `M × Icc a b`
@@ -56,7 +59,8 @@ homeomorphism `iccHomeoI a b`, extended, and carried back to `M × ℝ`.
 * `TauCeti.SmoothForm.timeExtendIcc_apply_cons_prodVectorField`: contracting the extension of
   `η` with the field `(V, 0)`, for a vector field `V` on `M`, gives the extension of the
   contraction of `η` with `(V, 0)`. Its proof reads the values of the extension through its
-  slices (`TauCeti.SmoothForm.timeExtendIcc_apply`).
+  slices (`TauCeti.SmoothForm.timeExtendIcc_apply`), where Tau Ceti's
+  `TauCeti.mpullback_interior_at` carries the contraction to each slice.
 * `SymplecticGeometry.isSmoothFamily_timeExtendSlice`: the slices of the extension form a smooth
   family over `ℝ`.
 * `SymplecticGeometry.IsSmoothFamily.exists_extend`: a smooth family of forms over
@@ -286,6 +290,26 @@ theorem timeExtend_mpullback_prodMap (hg : ContMDiff I I' ∞ g)
 
 end Naturality
 
+/-- **Contraction of the time extension with a field along `M`.** Let `V` be a vector field on
+`M`, and `Ω`, `Θ` smooth forms on `unitInterval × M` of degrees `k + 1` and `k` whose slices
+satisfy `Ω_t (V x, u) = Θ_t (u)` at every time `t ∈ [0, 1]` and point `x`. Then the slices of
+their time extensions satisfy the same identity at every real time `s`. -/
+theorem timeExtendSlice_apply_cons (V : Π x : M, TangentSpace I x)
+    {Ω : SmoothForm ((𝓡∂ 1).prod I) (unitInterval × M) F (k + 1)}
+    {Θ : SmoothForm ((𝓡∂ 1).prod I) (unitInterval × M) F k}
+    (h : ∀ (t : unitInterval) (x : M) (u : Fin k → TangentSpace I x),
+      (mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) Ω).val x (Fin.cons (V x) u) =
+        (mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) Θ).val x u)
+    (s : ℝ) (x : M) (u : Fin k → TangentSpace I x) :
+    (timeExtendSlice Ω s).val x (Fin.cons (V x) u) = (timeExtendSlice Θ s).val x u := by
+  rw [timeExtendSlice_apply, timeExtendSlice_apply]
+  -- Evaluation on fixed vectors is linear on the values, so it commutes with the extension.
+  exact (LinearMap.map_timeExtend (F := E [⋀^Fin (k + 1)]→L[ℝ] F) (G := F)
+    (ContinuousAlternatingMap.apply ℝ E F _).toLinearMap _ _).trans <|
+    (SymplecticGeometry.timeExtend_congr (fun t ↦ h t x u) _).trans
+      (LinearMap.map_timeExtend (F := E [⋀^Fin k]→L[ℝ] F) (G := F)
+        (ContinuousAlternatingMap.apply ℝ E F _).toLinearMap _ _).symm
+
 section Icc
 
 variable {a b : ℝ} [hab : Fact (a < b)]
@@ -428,17 +452,23 @@ private theorem mpullback_prodMk_mpullback_iccHomeoI_apply_cons (V : Π x : M, T
         (fun q : unitInterval × M ↦ (q.2, (iccHomeoI a b hab.out).symm q.1))
         (contMDiff_snd.prodMk ((contMDiff_iccHomeoI_symm hab.out).comp contMDiff_fst)) ζ)).val
       x u := by
-  rw [mpullback_prodMk_mpullback_iccHomeoI, mpullback_prodMk_mpullback_iccHomeoI, mpullback_apply,
-    mpullback_apply, ← h]
-  congr 1
-  funext i
-  cases i using Fin.cases
-  · rw [Fin.cons_zero, Fin.cons_zero, mfderiv_prod_left]
+  rw [mpullback_prodMk_mpullback_iccHomeoI, mpullback_prodMk_mpullback_iccHomeoI, coe_mpullback,
+    coe_mpullback]
+  -- Pointwise, `h` says that `ζ` is the interior product of `η` with `(V, 0)`.
+  have hζ : RoughForm.interior (I := I.prod (𝓡∂ 1)) (F := F) (Manifold.prodVectorField V 0) η.val =
+      ζ.val :=
+    funext fun q ↦ ContinuousAlternatingMap.ext fun w ↦ by
+      rw [RoughForm.interior_apply, Matrix.vecCons, h]
+  -- The slice inclusion `y ↦ (y, s)` relates `V` to `(V, 0)`.
+  have hd : mfderiv I (I.prod (𝓡∂ 1)) (fun y : M ↦ (y, (iccHomeoI a b hab.out).symm t)) x (V x) =
+      Manifold.prodVectorField V 0 (x, (iccHomeoI a b hab.out).symm t) := by
+    rw [mfderiv_prod_left]
     -- `inl_apply` lands in the product of the tangent spaces, the tangent space of the product.
     exact (ContinuousLinearMap.inl_apply (V x)).trans
       (Prod.ext (by rw [Manifold.prodVectorField_fst])
         (by rw [Manifold.prodVectorField_snd, Pi.zero_apply]))
-  · simp
+  rw [← hζ, TauCeti.mpullback_interior_at _ V _ _ hd, RoughForm.interior_apply,
+    Matrix.vecCons]
 
 /-- **Contraction of the time extension on `M × [a, b]` with a field along `M`.** Let `V` be a
 vector field on `M`, `η` a smooth `(k + 1)`-form on `M × Icc a b` and `ζ` a smooth `k`-form
@@ -453,7 +483,7 @@ theorem timeExtendIcc_apply_cons_prodVectorField (V : Π x : M, TangentSpace I x
     (p : M × ℝ) (v : Fin k → TangentSpace (I.prod 𝓘(ℝ, ℝ)) p) :
     (timeExtendIcc η).val p (Fin.cons (Manifold.prodVectorField V 0 p) v) =
       (timeExtendIcc ζ).val p v := by
-  rw [timeExtendIcc_apply, timeExtendIcc_apply, timeExtendSlice_apply, timeExtendSlice_apply]
+  rw [timeExtendIcc_apply, timeExtendIcc_apply]
   have hcons : (fun i ↦ (Fin.cons (α := fun _ ↦ TangentSpace (I.prod 𝓘(ℝ, ℝ)) p)
       (Manifold.prodVectorField V 0 p) v i).1) =
       Fin.cons (α := fun _ ↦ E) (V p.1) (fun i ↦ (v i).1) :=
@@ -463,13 +493,8 @@ theorem timeExtendIcc_apply_cons_prodVectorField (V : Π x : M, TangentSpace I x
       · exact Manifold.prodVectorField_fst V 0 p
       · rfl
   rw [hcons]
-  -- Evaluation on fixed vectors is linear on the values, so it commutes with the extension.
-  exact (LinearMap.map_timeExtend (F := E [⋀^Fin (k + 1)]→L[ℝ] F) (G := F)
-    (ContinuousAlternatingMap.apply ℝ E F _).toLinearMap _ _).trans <|
-    (SymplecticGeometry.timeExtend_congr
-      (fun t ↦ mpullback_prodMk_mpullback_iccHomeoI_apply_cons V h t p.1 _) _).trans
-      (LinearMap.map_timeExtend (F := E [⋀^Fin k]→L[ℝ] F) (G := F)
-        (ContinuousAlternatingMap.apply ℝ E F _).toLinearMap _ _).symm
+  exact timeExtendSlice_apply_cons V
+    (fun t x u ↦ mpullback_prodMk_mpullback_iccHomeoI_apply_cons V h t x u) _ _ _
 
 /-- If a smooth `(k + 1)`-form `η` on `M × Icc a b` vanishes as soon as its first argument is
 `(V q.1, 0)`, for a vector field `V` on `M`, then so does its time extension
