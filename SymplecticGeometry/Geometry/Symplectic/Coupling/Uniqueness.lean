@@ -57,7 +57,8 @@ is `-dt`. The time extension `A` of `K ω₀` is invariant, so Cartan's formula
 (`TauCeti.PrincipalBundle.mextDeriv_apply_rightFundamentalVectorField_prod`) gives
 `ι_{(X, 0)} dA = -d (A (X, 0)) = -de`, where `e` is the time extension of the height `t - a`
 (`SymplecticGeometry.prodIccHeight`). The first summand of `ω̃₀` vanishes on `(X, 0)`, since the
-projection to the bottom level does not move the point of the interval, so
+projection to the bottom level does not move the point of the interval
+(`SymplecticGeometry.IsCouplingForm.mpullback_bot_apply_prodVectorField`), so
 `ι_{(X, 0)} ω̃₀ = -de` (`SymplecticGeometry.IsCouplingForm.prodIccExtension_apply_prodVectorField`),
 and `de = dt` over `[a, b]` (`SymplecticGeometry.mextDerivₗ_timeExtendIcc_prodIccHeight_apply`).
 
