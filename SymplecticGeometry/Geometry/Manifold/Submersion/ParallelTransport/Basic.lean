@@ -396,7 +396,7 @@ theorem exists_isHorizontalMap_lift_of_mapsTo_baseSet (hn : 1 ≤ n)
   -- The lift is the trajectory of `X` through `x` at time `s`.
   let c : ℝ → P := fun u ↦ timeDependentFlowOf X s u x
   have hcd (u : ℝ) : HasMFDerivAt 𝓘(ℝ, ℝ) I c u ((1 : ℝ →L[ℝ] ℝ).smulRight (X u (c u))) :=
-    hasMFDerivAt_timeDependentFlowOf hX1 ((timeDependentFlowDomain_eq_univ hXc).symm ▸ mem_univ _)
+    hasMFDerivAt_timeDependentFlowOf hX1 (mem_timeDependentFlowDomain.2 (hXc.mem_flowDomain _ _))
   -- Its projection is a trajectory of `V`.
   have hfc (u : ℝ) : HasMFDerivAt 𝓘(ℝ, ℝ) J (f ∘ c) u
       ((1 : ℝ →L[ℝ] ℝ).smulRight (V u ((f ∘ c) u))) := by
