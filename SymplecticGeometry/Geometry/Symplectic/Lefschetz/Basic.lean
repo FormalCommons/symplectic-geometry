@@ -198,9 +198,7 @@ theorem isIntegrable_on (h : IsLefschetzFibration ω J π) {p : X}
 
 /-- **The Morse index of `μ ∘ π` at a critical point of a Lefschetz fibration.** If `p` is a
 critical point of a Lefschetz fibration `π` and `μ : ℂℙ¹ → ℝ` is `C²` at `π p` with nonzero
-derivative there, then `p` is a nondegenerate critical point of `μ ∘ π`, of Morse index `2`. In a
-Lefschetz chart `φ` at `p`, `μ ∘ π` is `ν ∘ quadric ∘ φ` for `ν` the function `μ` read in the
-affine chart and centred at `π p`, and `LefschetzModel.manifoldMorseIndex_comp_quadric` applies. -/
+derivative there, then `p` is a nondegenerate critical point of `μ ∘ π`, of Morse index `2`. -/
 theorem manifoldMorseIndex_comp [I.Boundaryless]
     (h : IsLefschetzFibration ω J π) {p : X} (hp : p ∈ criticalSet I 𝓘(ℝ, Fin 1 → ℂ) π)
     {μ : ℙ ℂ (Fin 2 → ℂ) → ℝ} (hμ : ContMDiffAt 𝓘(ℝ, Fin 1 → ℂ) 𝓘(ℝ) 2 μ (π p))

@@ -48,9 +48,9 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topological
 
 /-- **Nondegenerate critical points along a local diffeomorphism.** If `φ : M' → M` is a `C^n`
 local diffeomorphism at `y` with `2 ≤ n`, between boundaryless manifolds that may have different
-models, the model of `M'` being finite-dimensional, and `φ y` is a nondegenerate critical point
-of `f`, then `y` is a nondegenerate critical point of `f ∘ φ`. -/
-theorem isManifoldNondegenerateCriticalPoint_comp [FiniteDimensional ℝ E']
+models, and `φ y` is a nondegenerate critical point of `f`, then `y` is a nondegenerate critical
+point of `f ∘ φ`. -/
+theorem isManifoldNondegenerateCriticalPoint_comp
     (hφ : IsLocalDiffeomorphAt I' I n φ y) (hn : 2 ≤ n)
     (hf : IsManifoldNondegenerateCriticalPoint I f (φ y)) :
     IsManifoldNondegenerateCriticalPoint I' (f ∘ φ) y := by
@@ -59,18 +59,16 @@ theorem isManifoldNondegenerateCriticalPoint_comp [FiniteDimensional ℝ E']
     simp at hn
   have hφ₂ : ContMDiffAt I' I 2 φ y := hφ.contMDiffAt.of_le hn
   have hcrit := hf.mem_criticalPoints
-  have hreg : IsRegularPoint I' I φ y := hφ.isRegularPoint hn0
-  have hinj : Injective (mfderiv I' I φ y) := (hφ.isInvertible_mfderiv hn0).injective
-  have hinv := (isManifoldNondegenerateCriticalPoint_iff_criticalHessian.1 hf).2.2
-  refine .of_nondegenerate_criticalHessian (hf.contMDiffAt.comp y hφ₂)
-    ((hreg.mem_criticalPoints_comp_iff (hφ.mdifferentiableAt hn0)
-      (hf.contMDiffAt.mdifferentiableAt two_ne_zero)).2 hcrit) fun a ha ↦ hinj ?_
-  -- `Hess f (dφ a, ·)` vanishes on the image of `dφ`, which is everything, so `dφ a = 0`.
-  rw [map_zero]
-  refine hinv.injective (ContinuousLinearMap.ext fun v ↦ ?_)
-  obtain ⟨b, rfl⟩ := isRegularPoint_iff.1 hreg v
-  rw [← criticalHessian_comp_apply rfl hf.contMDiffAt hφ₂ hcrit, ha, map_zero,
-    zero_apply]
+  obtain ⟨L, hL⟩ := hφ.isInvertible_mfderiv hn0
+  obtain ⟨hf₂, -, A, hA⟩ := isManifoldNondegenerateCriticalPoint_iff_criticalHessian.1 hf
+  refine isManifoldNondegenerateCriticalPoint_iff_criticalHessian.2
+    ⟨hf₂.comp y hφ₂, mem_criticalPoints.1 (((hφ.isRegularPoint hn0).mem_criticalPoints_comp_iff
+      (hφ.mdifferentiableAt hn0) (hf₂.mdifferentiableAt two_ne_zero)).2 hcrit), ?_⟩
+  -- The critical Hessian of `f ∘ φ` is that of `f` with `dφ` applied to both arguments.
+  refine ⟨(L.trans A).trans (L.arrowCongr (.refl ℝ ℝ)).symm, ?_⟩
+  ext u w
+  rw [criticalHessian_comp_apply rfl hf₂ hφ₂ hcrit, ← hL, ← hA]
+  simp
 
 end IsLocalDiffeomorphAt
 

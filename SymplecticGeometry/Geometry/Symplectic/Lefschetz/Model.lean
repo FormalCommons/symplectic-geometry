@@ -8,6 +8,7 @@ module
 public import Mathlib.LinearAlgebra.Matrix.Dual
 public import Mathlib.Topology.Algebra.Module.FiniteDimensionBilinear
 public import SymplecticGeometry.Analysis.Complex.HolomorphicQuadratic
+import SymplecticGeometry.Analysis.Complex.RealFunctional
 public import TauCeti.Geometry.Manifold.Morse.Basic
 public import TauCeti.Geometry.Manifold.Morse.Index
 import Mathlib.Analysis.Calculus.Deriv.Shift
@@ -52,7 +53,8 @@ quadratic form whose polarization is injective has Morse index the complex dimen
 critical point is nondegenerate by
 `ContinuousLinearMap.isNondegenerateCriticalPoint_re_apply_self_of_ker_eq_bot`. For a general
 `ν`, Tau Ceti's `TauCeti.hessianQuadraticForm_comp_eq_fderiv_comp` replaces `ν` by its derivative
-at `0`, since the quadric is critical there.
+at `0`, since the quadric is critical there, and that derivative is `t ↦ Re (c * t)` by
+`ContinuousLinearMap.exists_apply_eq_re_mul`.
 
 The reparametrisation adapts the proof of Tau Ceti's
 `AnalyticAt.exists_openPartialHomeomorph_sub_eq_pow` from one variable to the quadric on `ℂ²`.
@@ -201,20 +203,14 @@ theorem manifoldMorseIndex_re_mul_quadric {c : ℂ} (hc : c ≠ 0) :
 
 /-- **The Morse index of a function of the quadric.** If `ν : ℂ → ℝ` is `C²` at `0` with nonzero
 real derivative there, then the origin is a nondegenerate critical point of `ν ∘ quadric` on `ℂ²`,
-of Morse index `2`. The derivative of `ν` at `0` is `t ↦ Re (c * t)` for some `c ≠ 0`, and since
-the quadric is critical at `0`, the Hessian of `ν ∘ quadric` there is that of
-`z ↦ Re (c * quadric z)`. -/
+of Morse index `2`. -/
 theorem manifoldMorseIndex_comp_quadric {ν : ℂ → ℝ} (hν : ContDiffAt ℝ 2 ν 0)
     (hd : fderiv ℝ ν 0 ≠ 0) :
     IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, Fin 2 → ℂ) (ν ∘ quadric) 0 ∧
       manifoldMorseIndex 𝓘(ℝ, Fin 2 → ℂ) (ν ∘ quadric) 0 = 2 := by
-  -- A real-linear functional on `ℂ` is `t ↦ Re (c * t)`, with `c = L 1 - L i * i`.
-  obtain ⟨c, hc⟩ : ∃ c : ℂ, ∀ t, fderiv ℝ ν 0 t = (c * t).re := by
-    refine ⟨fderiv ℝ ν 0 1 - fderiv ℝ ν 0 Complex.I * Complex.I, fun t ↦ ?_⟩
-    have ht : t = t.re • (1 : ℂ) + t.im • Complex.I := by simp
-    rw [ht, map_add, map_smul, map_smul]
-    simp
-    ring
+  -- The derivative of `ν` at `0` is `t ↦ Re (c * t)` with `c ≠ 0`; since the quadric is critical
+  -- at `0`, the Hessian of `ν ∘ quadric` there is that of `z ↦ Re (c * quadric z)`.
+  obtain ⟨c, hc⟩ := (fderiv ℝ ν 0).exists_apply_eq_re_mul
   have hc0 : c ≠ 0 := by
     rintro rfl
     exact hd (ContinuousLinearMap.ext fun t ↦ by simp [hc])
