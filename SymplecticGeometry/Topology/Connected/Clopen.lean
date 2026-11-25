@@ -21,11 +21,17 @@ with boundary, this shows that the interior of a connected manifold is connected
   trace on some `u ⊇ s` is open and closed in `u` lies in `t`.
 * `IsPreconnected.inter_of_isClopen_preimage_val`: cutting a preconnected set `s` by a set whose
   trace on some `u ⊇ s` is open and closed in `u` leaves a preconnected set.
+* `PreconnectedSpace.eq_zero_of_eventually_eq_zero`: on a preconnected space, let `f` be a
+  function such that at every point, zero or not, either `f` vanishes on a neighbourhood or `f`
+  has no zero on a punctured neighbourhood. If `f` vanishes near one point, then `f = 0`.
+
+The last result abstracts the open-and-closed argument of Tau Ceti's
+`TauCeti.not_eventually_eq_zero_of_conjWirtingerDeriv_apply_one_eq_mul`.
 -/
 
 public section
 
-open Set Topology Relation
+open Set Topology Relation Filter
 
 variable {X : Type*} [TopologicalSpace X]
 
@@ -68,5 +74,22 @@ theorem IsPreconnected.inter_of_isClopen_preimage_val {s t u : Set X} (hs : IsPr
   · rw [h]
     exact isPreconnected_empty
   rwa [inter_eq_left.2 (hs.subset_of_isClopen_preimage_val hsu ht h)]
+
+/-- **Unique continuation from a dichotomy.** On a preconnected space, let `f` be a function
+such that at each point `x`, either `f` vanishes on a neighbourhood of `x`, or `f` has no zero on
+a punctured neighbourhood of `x`. If `f` vanishes on a neighbourhood of one point, then `f = 0`. -/
+theorem PreconnectedSpace.eq_zero_of_eventually_eq_zero [PreconnectedSpace X] {M : Type*}
+    [Zero M] {f : X → M}
+    (hf : ∀ x, (∀ᶠ y in 𝓝 x, f y = 0) ∨ ∀ᶠ y in 𝓝[≠] x, f y ≠ 0) {z : X}
+    (hz : ∀ᶠ y in 𝓝 z, f y = 0) : f = 0 := by
+  set S := {x | ∀ᶠ y in 𝓝 x, f y = 0}
+  have hS : IsClopen S := by
+    refine ⟨isOpen_compl_iff.1 (isOpen_iff_mem_nhds.2 fun x hx ↦ ?_),
+      isOpen_setOfPred_eventually_nhds⟩
+    filter_upwards [eventually_nhdsWithin_iff.1 ((hf x).resolve_left hx)] with y hy hyS
+    obtain rfl | hyx := eq_or_ne y x
+    · exact hx hyS
+    · exact hy hyx hyS.self_of_nhds
+  exact funext fun x ↦ (hS.eq_univ ⟨z, hz⟩ ▸ mem_univ x : x ∈ S).self_of_nhds
 
 end
