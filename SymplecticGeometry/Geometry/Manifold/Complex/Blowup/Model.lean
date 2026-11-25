@@ -64,6 +64,8 @@ blowdown is a biholomorphism onto the nonzero vectors of `E`.
 * `SymplecticGeometry.BlowupModel.contMDiff_pr`, `SymplecticGeometry.BlowupModel.contMDiff_blowdown`
   and `SymplecticGeometry.BlowupModel.contMDiff_blowupModel_val`: the projection to `ℙ ℂ E`, the
   blowdown and the inclusion into `ℙ ℂ E × E` are holomorphic.
+* `SymplecticGeometry.BlowupModel.contMDiff_zeroSection`: the zero section is holomorphic, since
+  composed with the inclusion into `ℙ ℂ E × E` it is `ℓ ↦ (ℓ, 0)`.
 * `SymplecticGeometry.BlowupModel.isSmoothEmbedding_blowupModel_val`: the inclusion into
   `ℙ ℂ E × E` is a holomorphic embedding (`Manifold.IsSmoothEmbedding`), and
   `SymplecticGeometry.BlowupModel.isMAnalyticSubmanifold_blowupModel`: so the incidence set is a
@@ -548,6 +550,16 @@ theorem isSmoothEmbedding_blowupModel_val {r : ℕ∞ω} (hr : 1 ≤ r) :
     isOpen_univ (Set.mem_univ p) hr
     (((contMDiff_blowupModelChart_symm i r).contMDiffAt.comp _ hφ).mdifferentiableAt
       (by rintro rfl; simp at hr)) hleft
+
+/-- The zero section `ℓ ↦ (ℓ, 0)` of the blowup is `C^r` for every `r`; for `r = ω` it is
+holomorphic. -/
+theorem contMDiff_zeroSection (r : ℕ∞ω) :
+    ContMDiff 𝓘(ℂ, Fin n → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) r
+      (zeroSection : ℙ ℂ (Fin (n + 1) → ℂ) → BlowupModel n) := by
+  -- Composed with the inclusion into `ℙ ℂ E × E`, it is `ℓ ↦ (ℓ, 0)`.
+  refine ContMDiff.of_le ?_ le_top
+  exact ((isSmoothEmbedding_blowupModel_val (n := n) (r := ω) le_top).contMDiff_iff_comp).2
+    (contMDiff_id.prodMk contMDiff_const)
 
 /-- The incidence set `blowupModel n` is a complex submanifold of `ℙ ℂ E × E` of dimension
 `n + 1`: Tau Ceti's `TauCeti.IsMAnalyticSubmanifold` for the product model, with any continuous

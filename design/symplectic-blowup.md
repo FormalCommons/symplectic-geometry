@@ -254,7 +254,8 @@ Namespace `SymplecticGeometry.BlowupModel`, on `BlowupModel n`.
   its pull-back along `complexToRealEuclidean` is `stdForm` as a constant
   form.
 - `closedNbhd n ε`, `openNbhd n ε` as in *Setting*, with
-  `isCompact_closedNbhd`, `isOpen_openNbhd`, and `exceptionalDivisor_subset`
+  `isCompact_closedNbhd`, `isOpen_openNbhd`, and
+  `exceptionalDivisor_subset_openNbhd`, `exceptionalDivisor_subset_closedNbhd`
   for `0 < ε`.
 - `blowupForm n λ` ($\tilde\omega_\lambda$):
   `blowdown^* ω₀E + λ ^ 2 • pr^* fubiniStudyForm n`, with
