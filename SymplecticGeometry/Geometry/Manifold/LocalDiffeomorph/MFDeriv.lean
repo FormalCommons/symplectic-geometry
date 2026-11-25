@@ -31,6 +31,8 @@ manifold.
 
 ## Main results
 
+* `PartialDiffeomorph.toOpenPartialHomeomorph_mdifferentiable`: `Φ` and its inverse are
+  differentiable, in the sense of `OpenPartialHomeomorph.MDifferentiable`.
 * `PartialDiffeomorph.mfderiv_symm_apply_mfderiv_apply_of_mem_target`: for `y` in the target of
   `Φ`, `d(Φ⁻¹)_y ∘ dΦ_{Φ⁻¹ y}` is the identity.
 * `PartialDiffeomorph.contDiffOn_symm_trans_chartAt`,
@@ -56,6 +58,12 @@ section MFDerivSymmEquiv
 variable {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
   {H' : Type*} [TopologicalSpace H'] {J : ModelWithCorners 𝕜 F H'}
   {N : Type*} [TopologicalSpace N] [ChartedSpace H' N]
+
+/-- A partial diffeomorphism of nonzero regularity, as an open partial homeomorphism, is
+differentiable together with its inverse. -/
+theorem toOpenPartialHomeomorph_mdifferentiable (Φ : PartialDiffeomorph I J M N n) (hn : n ≠ 0) :
+    Φ.toOpenPartialHomeomorph.MDifferentiable I J :=
+  ⟨Φ.mdifferentiableOn hn, Φ.symm.mdifferentiableOn hn⟩
 
 /-- At a point `y` of the target of a partial diffeomorphism `Φ` of nonzero regularity, the
 differential of `Φ.symm` at `y` undoes the differential of `Φ` at `Φ.symm y`. -/
