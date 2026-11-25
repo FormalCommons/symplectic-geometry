@@ -553,9 +553,11 @@ and the prerequisites, placed by topic.
 - `PowerConnection.lean`: the connection $D_k$ on `L k` as a Mathlib
   `CovariantDerivative`. It is complex linear and metric, has the local
   formula $d+ik\,\sigma^*\alpha$ in a unitary frame
-  (`powerConnection_apply_frame`) and curvature $ik\,F_\alpha$. The file
-  also defines $\partial$ and $\bar\partial$ of a section, with
-  `partial_add_dbar`.
+  (`powerConnection_apply_frame`) and curvature $ik\,F_\alpha$. For a section
+  $s$, $\partial s(x)$ and $\bar\partial s(x)$ are `J.oneZeroPart (D s x)` and
+  Tau Ceti's `J.zeroOnePart (D s x)`, with `oneZeroPart_add_zeroOnePart`;
+  `oneZeroPart` and that lemma are in
+  `Geometry/Manifold/VectorBundle/CauchyRiemann/OneZeroPart.lean`.
 - `ZeroSet.lean`: for any covariant derivative $D$ on a bundle of normed
   complex lines over a manifold with compatible $J$:
   `isTransverse_of_norm_dbar_lt` (surjective
