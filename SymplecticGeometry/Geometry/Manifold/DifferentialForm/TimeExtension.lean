@@ -426,7 +426,7 @@ component along `M`. Then the pullback of `d (TauCeti.SmoothForm.timeExtendIcc �
 `id × Subtype.val : M × Icc a b → M × ℝ` is `dη`. -/
 theorem mpullback_prodMap_subtypeVal_mextDerivₗ_timeExtendIcc
     (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F k)
-    (hη : IsFstSemibasic η) :
+    (hη : IsSemibasic I Prod.fst η) :
     mpullback (Prod.map id Subtype.val) (contMDiff_id.prodMap contMDiff_subtypeVal_Icc)
       (mextDerivₗ (I.prod 𝓘(ℝ, ℝ)) k (timeExtendIcc η)) = mextDerivₗ (I.prod (𝓡∂ 1)) k η := by
   rw [← mextDerivₗ_mpullback, mpullback_prodMap_subtypeVal_timeExtendIcc η hη]
@@ -438,7 +438,7 @@ theorem mpullback_prodMap_subtypeVal_mextDerivₗ_timeExtendIcc₀
     (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F 0) :
     mpullback (Prod.map id Subtype.val) (contMDiff_id.prodMap contMDiff_subtypeVal_Icc)
       (mextDerivₗ (I.prod 𝓘(ℝ, ℝ)) 0 (timeExtendIcc η)) = mextDerivₗ (I.prod (𝓡∂ 1)) 0 η :=
-  mpullback_prodMap_subtypeVal_mextDerivₗ_timeExtendIcc η (isFstSemibasic_of_degree_zero η)
+  mpullback_prodMap_subtypeVal_mextDerivₗ_timeExtendIcc η (isSemibasic_of_degree_zero I Prod.fst η)
 
 section Naturality
 
