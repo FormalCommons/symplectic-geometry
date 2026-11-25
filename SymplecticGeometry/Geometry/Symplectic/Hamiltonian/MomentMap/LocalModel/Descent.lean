@@ -212,13 +212,10 @@ theorem mem_ker_mfderiv_mk_one_zero_iff [I.Boundaryless]
   let := D.fiberDistribMulAction
   have := D.contMDiffSMul_fiberDistribMulAction
   let := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
-  -- The infinitesimal action of `K` on `A × V` vanishes at `0`.
+  -- `K` fixes `0 ∈ A × V`, so its fundamental vector fields vanish there.
   have h0 (ξ : GroupLieAlgebra 𝓘(ℝ, F) K) :
-      fundamentalVectorField 𝓘(ℝ, A × V) ξ ((0 : A), (0 : V)) = 0 := by
-    rw [fundamentalVectorField_apply, mfderiv_fiberDistribMulAction_smul_apply]
-    simp only [map_zero, LinearMap.zero_comp, neg_zero, Prod.mk_zero_zero]
-    -- The zero of `A × V` is the zero of its tangent space at `0`.
-    exact Prod.mk_zero_zero
+      fundamentalVectorField 𝓘(ℝ, A × V) ξ ((0 : A), (0 : V)) = 0 :=
+    fundamentalVectorField_eq_zero_of_forall_smul_eq (fun k ↦ smul_zero k) ξ
   rw [BalancedProduct.mem_ker_mfderiv_mk_toRightTranslation_iff, tangentSpaceProdEquiv_apply]
   simp only [h0, mulInvariantVectorField_one]
   constructor
