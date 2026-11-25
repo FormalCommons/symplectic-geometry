@@ -9,7 +9,7 @@ public import SymplecticGeometry.LinearAlgebra.Complex.Complexification
 public import TauCeti.Topology.VectorBundle.Complex.Structure
 public import TauCeti.Topology.VectorBundle.Complexification
 public import TauCeti.Topology.VectorBundle.Conjugate
-public import TauCeti.Topology.VectorBundle.Hom
+import TauCeti.Topology.VectorBundle.Hom
 import TauCeti.Topology.VectorBundle.Section
 
 /-!
@@ -72,6 +72,8 @@ def complexificationEquiv (b : B) :
   (LinearEquiv.baseChange ℝ ℂ _ _ (J.fiberEquiv b).toLinearEquiv.symm).trans
     (Conjugate.complexificationEquiv (J.Fiber b))
 
+/-- `J.complexificationEquiv b` is the base change of `(J.fiberEquiv b).symm` followed by
+`TauCeti.Conjugate.complexificationEquiv (J.Fiber b)`. -/
 theorem complexificationEquiv_def (b : B) :
     J.complexificationEquiv b =
       (LinearEquiv.baseChange ℝ ℂ _ _ (J.fiberEquiv b).toLinearEquiv.symm).trans
