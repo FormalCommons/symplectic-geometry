@@ -18,6 +18,7 @@ public import SymplecticGeometry.Geometry.Manifold.Instances.Sphere
 import TauCeti.LinearAlgebra.TotallyReal.Finrank
 import TauCeti.Geometry.Lie.Adjoint.Exponential.Basic
 import SymplecticGeometry.Geometry.Lie.Adjoint.Commute
+import SymplecticGeometry.Geometry.Lie.Exponential.Derivative
 
 /-!
 # Complexifications of Lie groups
@@ -69,6 +70,9 @@ The complex structure `cplx` is not determined by the other fields.
   embedding.
 * `SymplecticGeometry.LieComplexification.toHom_mul_expI_mul_inv`: for connected `G`, conjugation
   by `toHom u` sends `expI ξ` to `expI (Ad u ξ)`.
+* `SymplecticGeometry.LieComplexification.mfderiv_inv_mul_mfderiv_expI_smul_mul_toHom`: for
+  connected `G`, the left-trivialized velocity of `τ ↦ expI (τ • ξ) * toHom u` is
+  `cplx (lieMap (Ad u⁻¹ ξ))` at every time.
 * `SymplecticGeometry.LieComplexification.circle_cplx_apply`,
   `SymplecticGeometry.LieComplexification.re_circle_lieMap`,
   `SymplecticGeometry.LieComplexification.circle_lieMap_circleLieGenerator`,
@@ -275,6 +279,11 @@ theorem expI_add_smul (ξ : GroupLieAlgebra I G) (s t : ℝ) :
     C.expI ((s + t) • ξ) = C.expI (s • ξ) * C.expI (t • ξ) := by
   simp only [expI_def, map_smul, mulInvariantExp_add_smul (I := IC)]
 
+/-- `expI (-ξ) = (expI ξ)⁻¹`. -/
+theorem expI_neg (ξ : GroupLieAlgebra I G) :
+    C.expI (-ξ) = (C.expI ξ)⁻¹ := by
+  simp only [expI_def, map_neg, mulInvariantExp_neg (I := IC)]
+
 /-- The polar decomposition: `polar (ξ, u) = expI ξ * toHom u`. Unlike the field `polar_apply'`,
 it takes `ξ` in the Lie algebra `GroupLieAlgebra I G`, so that it rewrites `C.polar (ξ, u)` for
 the elements of the Lie algebra, such as `t • ξ`. -/
@@ -348,6 +357,22 @@ theorem toHom_mul_expI_mul_inv [FiniteDimensional ℝ EC] [ConnectedSpace G] (u 
   rw [expI_def, expI_def, Lie.conj_mulInvariantExp, lieMap_def,
     ContMDiffMonoidMorphism.groupLieAlgebraLieHom_tangentAd, ← lieMap_def,
     Lie.map_tangentAd_apply_of_map_lie C.cplx.toLinearMap C.cplx_lie]
+
+/-- For connected `G`, the radial curve `τ ↦ expI (τ • ξ) * toHom u` of the polar decomposition
+has, at every time, the left-trivialized velocity `cplx (lieMap (Ad u⁻¹ ξ))`. -/
+theorem mfderiv_inv_mul_mfderiv_expI_smul_mul_toHom [FiniteDimensional ℝ EC] [ConnectedSpace G]
+    (ξ : GroupLieAlgebra I G) (u : G) (t : ℝ) :
+    mfderiv IC IC ((C.expI (t • ξ) * C.toHom u)⁻¹ * ·) (C.expI (t • ξ) * C.toHom u)
+        (mfderiv 𝓘(ℝ) IC (fun τ : ℝ ↦ C.expI (τ • ξ) * C.toHom u) t (1 : ℝ)) =
+      C.cplx (C.lieMap (Lie.tangentAd (I := I) u⁻¹ ξ)) := by
+  -- Conjugating by `toHom u` turns the curve into a left-translated exponential line.
+  have h (τ : ℝ) : C.expI (τ • ξ) * C.toHom u =
+      C.toHom u * mulInvariantExp (τ • C.cplx (C.lieMap (Lie.tangentAd (I := I) u⁻¹ ξ))) := by
+    rw [← C.cplx.apply_smul, ← map_smul, ← expI_def, ← map_smul, ← C.toHom_mul_expI_mul_inv,
+      map_inv, inv_inv]
+    group
+  rw [funext h, h t]
+  exact mfderiv_inv_mul_mfderiv_mul_mulInvariantExp_smul _ _ t
 
 end LieComplexification
 

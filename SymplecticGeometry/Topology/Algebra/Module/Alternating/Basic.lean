@@ -16,7 +16,8 @@ families `![w]`. This file states that as the extensionality lemma
 `ContinuousAlternatingMap.ext_fin_one`, so that a proof that two such maps agree can start with
 `ext w` and work with a vector `w` instead of a family `v : Fin 1 → M`. In degree two,
 `ContinuousAlternatingMap.ext_fin_two` does the same with the pairs `![v, w]`, so that a proof
-that two two-forms agree can start with `ext v w`.
+that two two-forms agree can start with `ext v w`. Both follow from `AlternatingMap.ext_fin_one`
+and `AlternatingMap.ext_fin_two` for the underlying alternating maps.
 
 A continuous alternating map vanishes on a family two of whose members are multiples of one
 vector (`ContinuousAlternatingMap.map_eq_zero_of_eq_smul`), as an alternating map does
@@ -34,17 +35,13 @@ variable {R M N : Type*} [Semiring R] [AddCommMonoid M] [Module R M] [Topologica
 family `![w]`. -/
 @[ext]
 theorem ext_fin_one {f g : M [⋀^Fin 1]→L[R] N} (h : ∀ w, f ![w] = g ![w]) : f = g :=
-  ext fun v ↦ by
-    rw [← FinVec.etaExpand_eq v]
-    exact h (v 0)
+  toAlternatingMap_injective <| AlternatingMap.ext_fin_one h
 
 /-- Two continuous alternating maps of two vectors are equal when they agree on every pair
 `![v, w]`. -/
 @[ext]
 theorem ext_fin_two {f g : M [⋀^Fin 2]→L[R] N} (h : ∀ v w, f ![v, w] = g ![v, w]) : f = g :=
-  ext fun u ↦ by
-    rw [← FinVec.etaExpand_eq u]
-    exact h (u 0) (u 1)
+  toAlternatingMap_injective <| AlternatingMap.ext_fin_two h
 
 /-- A continuous alternating map vanishes on a family `v` whose members `v i` and `v j`, for
 `i ≠ j`, are multiples `a • x` and `b • x` of the same vector `x`. -/
