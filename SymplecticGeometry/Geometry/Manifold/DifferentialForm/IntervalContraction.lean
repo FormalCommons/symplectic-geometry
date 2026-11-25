@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.HomotopyOperator
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.TimeExtension
 public import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 import TauCeti.Geometry.Manifold.Instances.Icc
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
@@ -29,7 +30,19 @@ on `M × [a, b]` with
 * `f^* (K η) = K (f^* η)` for a smooth `f : M → M` acting on the first factor
   (`SymplecticGeometry.mpullback_prodMap_prodIccHomotopyOperator`);
 * for a two-form `η`, `K η` vanishes on the direction of the interval
-  (`SymplecticGeometry.prodIccHomotopyOperator_apply_inr`).
+  (`SymplecticGeometry.prodIccHomotopyOperator_apply_inr`), that is, on every vector with no
+  component along `M` (`SymplecticGeometry.prodIccHomotopyOperator_apply_eq_zero`).
+
+For a boundaryless `M`, a closed form `η` on `M × [a, b]` is therefore `pr^* η + d (K η)`.
+When `η` is a two-form, `K η` has no component along the interval, so it is the restriction to
+`M × [a, b]` of its time extension to `M × ℝ` (`TauCeti.SmoothForm.timeExtendIcc`,
+`SymplecticGeometry.mpullback_prodMap_subtypeVal_timeExtendIcc_prodIccHomotopyOperator`).
+Replacing `K η` by its time extension gives a form on `M × ℝ`
+(`SymplecticGeometry.prodIccExtension`), closed when `η` is
+(`SymplecticGeometry.isClosed_prodIccExtension`), that commutes with pull-back along `f × id`
+(`SymplecticGeometry.mpullback_prodMap_prodIccExtension`) and, for a closed two-form `η`,
+restricts to `η` on `M × [a, b]`
+(`SymplecticGeometry.mpullback_prodMap_subtypeVal_prodIccExtension`).
 
 ## References
 
@@ -254,7 +267,106 @@ theorem prodIccHomotopyOperator_apply_inr [CompleteSpace F]
     (η.val (prodIccContraction M a b (x, u))).map_eq_zero_of_eq ![e, e] (i := 0) (j := 1) rfl
       zero_ne_one, smul_zero, neg_zero, smul_zero]
 
+/-- `K η`, for a two-form `η` on `M × [a, b]`, vanishes on every tangent vector whose component
+along `M` is zero. This is `SymplecticGeometry.prodIccHomotopyOperator_apply_inr` in the form of
+the hypothesis of `TauCeti.SmoothForm.mpullback_prodMap_subtypeVal_timeExtendIcc`. -/
+theorem prodIccHomotopyOperator_apply_eq_zero [CompleteSpace F]
+    (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F 2) (x : M × Icc a b)
+    (v : Fin 1 → TangentSpace (I.prod (𝓡∂ 1)) x) (i : Fin 1)
+    (hv : (Manifold.tangentSpaceProdEquiv x (v i)).1 = 0) :
+    (prodIccHomotopyOperator I M a b F 1 η).val x v = 0 := by
+  rw [Manifold.tangentSpaceProdEquiv_apply, Subsingleton.elim i 0] at hv
+  have h : v = ![((0 : TangentSpace I x.1), (v 0).2)] := by
+    funext j
+    rw [Subsingleton.elim j 0, Matrix.cons_val_zero]
+    exact Prod.ext hv rfl
+  rw [h]
+  exact prodIccHomotopyOperator_apply_inr η x _
+
 end Homotopy
+
+/-! ### The extension of a closed form to `M × ℝ` -/
+
+section Extension
+
+variable [IsManifold I ∞ M] [BoundarylessManifold I M] {F : Type*} [NormedAddCommGroup F]
+  [NormedSpace ℝ F] {k : ℕ}
+
+variable (I M a b F k) in
+/-- **The extension of a form on `M × [a, b]` to `M × ℝ`.** For a boundaryless manifold `M`, it
+sends a `(k + 1)`-form `η` on `M × Icc a b` to `pr^* ι_a^* η + d (ext (K η))` on `M × ℝ`, where
+`pr^* ι_a^*` is the pull-back along `(x, t) ↦ (x, a)`, `K` is
+`SymplecticGeometry.prodIccHomotopyOperator` and `ext` is the time extension
+`TauCeti.SmoothForm.timeExtendIcc`. When `η` is closed, this form is closed
+(`SymplecticGeometry.isClosed_prodIccExtension`), and for a closed two-form `η` it restricts to
+`η` on `M × [a, b]` (`SymplecticGeometry.mpullback_prodMap_subtypeVal_prodIccExtension`). -/
+def prodIccExtension :
+    SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F (k + 1) →ₗ[ℝ]
+      SmoothForm (I.prod 𝓘(ℝ, ℝ)) (M × ℝ) F (k + 1) :=
+  SmoothForm.mpullback (fun x : M × ℝ ↦ (x.1, (⊥ : Icc a b)))
+      (contMDiff_fst.prodMk contMDiff_const) +
+    mextDerivₗ (I.prod 𝓘(ℝ, ℝ)) k ∘ₗ SmoothForm.timeExtendIcc ∘ₗ
+      prodIccHomotopyOperator I M a b F k
+
+theorem prodIccExtension_apply (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F (k + 1)) :
+    prodIccExtension I M a b F k η =
+      SmoothForm.mpullback (fun x : M × ℝ ↦ (x.1, (⊥ : Icc a b)))
+          (contMDiff_fst.prodMk contMDiff_const) η +
+        mextDerivₗ (I.prod 𝓘(ℝ, ℝ)) k
+          (SmoothForm.timeExtendIcc (prodIccHomotopyOperator I M a b F k η)) :=
+  (rfl)
+
+/-- The extension of a closed form on `M × [a, b]` to `M × ℝ` is closed. -/
+theorem isClosed_prodIccExtension {η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F (k + 1)}
+    (hη : η.IsClosed) : (prodIccExtension I M a b F k η).IsClosed := by
+  rw [prodIccExtension_apply]
+  exact (hη.mpullback _ _).add (SmoothForm.isClosed_mextDerivₗ _)
+
+/-- **Naturality of the extension to `M × ℝ`.** For a smooth map `f : N → M` of boundaryless
+manifolds, pulling the extension of `η` back along `f × id` gives the extension of the pull-back
+of `η` along `f × id`. -/
+theorem mpullback_prodMap_prodIccExtension [CompleteSpace F] {E' H' N : Type*}
+    [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
+    [TopologicalSpace N] [ChartedSpace H' N] [IsManifold I' ∞ N] [BoundarylessManifold I' N]
+    {f : N → M} (hf : ContMDiff I' I ∞ f) (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F (k + 1)) :
+    SmoothForm.mpullback (Prod.map f id) (hf.prodMap contMDiff_id)
+        (prodIccExtension I M a b F k η) =
+      prodIccExtension I' N a b F k
+        (SmoothForm.mpullback (Prod.map f id) (hf.prodMap contMDiff_id) η) := by
+  rw [prodIccExtension_apply, prodIccExtension_apply, map_add, ← SmoothForm.mextDerivₗ_mpullback,
+    ← SmoothForm.timeExtendIcc_mpullback_prodMap hf, mpullback_prodMap_prodIccHomotopyOperator hf]
+  congr 1
+  exact SmoothForm.mpullback_mpullback_of_comp_eq (hf.prodMap contMDiff_id)
+    (contMDiff_fst.prodMk contMDiff_const) (contMDiff_fst.prodMk contMDiff_const)
+    (hf.prodMap contMDiff_id) (funext fun _ ↦ rfl) η
+
+/-- The extension of `K η` to `M × ℝ`, for a two-form `η` on `M × [a, b]`, restricts to `K η` on
+`M × [a, b]`: `K η` has no component along the interval. -/
+theorem mpullback_prodMap_subtypeVal_timeExtendIcc_prodIccHomotopyOperator [CompleteSpace F]
+    (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F 2) :
+    SmoothForm.mpullback (Prod.map id Subtype.val) (contMDiff_id.prodMap contMDiff_subtypeVal_Icc)
+        (SmoothForm.timeExtendIcc (prodIccHomotopyOperator I M a b F 1 η)) =
+      prodIccHomotopyOperator I M a b F 1 η :=
+  SmoothForm.mpullback_prodMap_subtypeVal_timeExtendIcc _
+    (prodIccHomotopyOperator_apply_eq_zero η)
+
+/-- **Restriction of the extension.** The extension to `M × ℝ` of a closed two-form `η` on
+`M × [a, b]` restricts to `η` on `M × [a, b]`. -/
+theorem mpullback_prodMap_subtypeVal_prodIccExtension [CompleteSpace F]
+    {η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F 2} (hη : η.IsClosed) :
+    SmoothForm.mpullback (Prod.map id Subtype.val) (contMDiff_id.prodMap contMDiff_subtypeVal_Icc)
+        (prodIccExtension I M a b F 1 η) = η := by
+  rw [prodIccExtension_apply, map_add, ← SmoothForm.mextDerivₗ_mpullback,
+    mpullback_prodMap_subtypeVal_timeExtendIcc_prodIccHomotopyOperator,
+    mextDerivₗ_prodIccHomotopyOperator ((SmoothForm.isClosed_iff_mextDerivₗ_eq_zero _).mp hη),
+    SmoothForm.mpullback_mpullback,
+    SmoothForm.mpullback_congr
+      (f := (fun x : M × ℝ ↦ (x.1, (⊥ : Icc a b))) ∘ Prod.map id Subtype.val)
+      (g := fun x : M × Icc a b ↦ (x.1, ⊥)) _ (contMDiff_fst.prodMk contMDiff_const)
+      (funext fun _ ↦ rfl),
+    add_sub_cancel]
+
+end Extension
 
 end SymplecticGeometry
 
