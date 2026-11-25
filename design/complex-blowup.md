@@ -152,8 +152,9 @@ once, in a general file, `Geometry/Manifold/Complex/Hypersurface/LineBundle.lean
 as a `VectorBundleCore ℂ X ℂ ι` in the pattern of Tau Ceti's
 `signedPointTwistCore` (`Geometry/Manifold/VectorBundle/Holomorphic/PointTwist/Basic.lean`):
 from a family of local defining functions $f_i$ on an open cover, holomorphic,
-with nowhere vanishing quotients on overlaps, the coordinate changes of
-$\mathcal O(kD)$ are $(f_j/f_i)^k$. It is a holomorphic line bundle in
+with holomorphic, nowhere vanishing transition functions $g_{ij}$ on overlaps,
+$f_i = g_{ij} f_j$ and $g_{ij}g_{jk} = g_{ik}$, the coordinate changes of
+$\mathcal O(kD)$ are $g_{ji}^k$. It is a holomorphic line bundle in
 Mathlib's sense, `ContMDiffVectorBundle ω`, which is the model the
 canonical bundle has: Tau Ceti's `TauCeti.CanonicalBundle`
 (`Geometry/Manifold/VectorBundle/Cotangent/Canonical.lean`) is Mathlib's
@@ -529,19 +530,20 @@ second countable.
 ### `Hypersurface/LineBundle.lean`
 
 `Geometry/Manifold/Complex/Hypersurface/LineBundle.lean`, namespace
-`SymplecticGeometry`, for a complex manifold `X` charted on `F`.
+`SymplecticGeometry`, for a complex manifold `X` with model `I : ModelWithCorners ℂ F H`.
 
-- `HypersurfaceData X ι`, a structure: open sets `U i` covering `X` and
-  holomorphic `f i : X → ℂ` on them, with $f_i/f_j$ holomorphic and nowhere
-  zero on $U_i\cap U_j$, and $df_i\ne0$ at the zeros of $f_i$; its divisor
+- `HypersurfaceData I X ι`, a structure: open sets `U i` covering `X`,
+  holomorphic `f i : X → ℂ` on them, and holomorphic, nowhere zero `g i j`
+  on $U_i\cap U_j$ with $f_i=g_{ij}f_j$ there and $g_{ij}g_{jk}=g_{ik}$; its divisor
   `D.support`, with `mem_support_iff`. A predicate on a set alone is not
   defined: the data is what the line bundle needs, and the blowup gives it.
 - `D.lineBundleCore k : VectorBundleCore ℂ X ℂ ι`, for `k : ℤ`, with
-  coordinate changes $(f_j/f_i)^k$ on overlaps (in the pattern of Tau
+  coordinate changes $g_{ji}^k$ on overlaps (in the pattern of Tau
   Ceti's `signedPointTwistCore`); `lineBundleCore_coordChange`, the
   instance `ContMDiffVectorBundle ω`, and `D.canonicalSection`, the
   holomorphic section of $\mathcal O(D)$ given by $f_i$ in chart $i$, which
-  vanishes exactly on the support, to first order.
+  vanishes exactly on the support; whether it vanishes to first order does
+  not depend on the chart (`mfderiv_f_eq_zero_iff`).
 - `D.lineBundleCoreTensorEquiv k l`: $\mathcal O((k+l)D)\cong
   \mathcal O(kD)\otimes\mathcal O(lD)$, as for the library's
   `twistCoreTensorEquiv`.
@@ -550,7 +552,7 @@ second countable.
 
 For a complex manifold `M` and `c` in the complex atlas.
 
-- `Blowup.hypersurfaceData c : HypersurfaceData (Blowup c) (Option (Fin (n + 1)))`:
+- `Blowup.hypersurfaceData c : HypersurfaceData 𝓘(ℂ, E) (Blowup c) (Option (Fin (n + 1)))`:
   the coordinate `w i` on the domain of `blowupModelChart i ∘ c.lift`, and
   `1` off $Z$; its support is the exceptional divisor.
 - `coordForm_blowdown`: in the chart `i`, the pull-back by $\pi$ of the
