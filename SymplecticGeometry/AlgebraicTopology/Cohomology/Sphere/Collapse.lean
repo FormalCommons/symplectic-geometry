@@ -38,18 +38,16 @@ equivalence `(ℝ ∙ p)ᗮ × (ℝ ∙ q)ᗮ ≃ (ℝ ∙ r)ᗮ`, followed by M
 * `SymplecticGeometry.isLocalHomeomorphOn_sphereCollapse`,
   `SymplecticGeometry.preimage_sphereCollapse_singleton`: off the wedge the collapse map is a
   local homeomorphism, and each point there is the only point of its fibre.
-* `SymplecticGeometry.singularHomologyMap_sphereCollapse_singularHomologyCross`: in integral
-  homology of degree `a + b`, the collapse map sends the cross product `γ_a × γ_b` of the
-  standard generators of the homology of the spheres to `±γ_{a+b}`.
+* `SymplecticGeometry.exists_singularHomologyMap_sphereCollapse_singularHomologyCross_eq_zsmul`:
+  in integral homology of degree `a + b`, the collapse map sends the cross product `γ_a × γ_b`
+  of the standard generators of the homology of the spheres to `±γ_{a+b}`.
 
 The last result is read on Tau Ceti's spheres `TopCat.sphere`. The cross product is a
 fundamental class
 (`TauCeti.IsFundamentalClass.singularHomologyTopCatSphereGenerator_singularHomologyCross`), and
 so is `γ_{a+b}`. A point off the wedge has a one-point fibre at which the map is a local
-homeomorphism, so
-`TauCeti.IsFundamentalClass.map_eq_or_eq_neg_of_isLocalHomeomorphOn`, stated for the
-coefficients `ULift ℤ`, gives the sign after a change of coefficients
-(`TauCeti.isFundamentalClass_singularHomologyFunctor_map_app_iff`).
+homeomorphism, so `TauCeti.IsFundamentalClass.map_eq_or_eq_neg_of_isLocalHomeomorphOn_unit`
+gives the sign.
 
 ## References
 
@@ -213,34 +211,30 @@ theorem preimage_sphereCollapse_singleton {z : sphere (0 : E) 1 × sphere (0 : F
     (hz : z ∈ ({p}ᶜ ×ˢ {q}ᶜ : Set (sphere (0 : E) 1 × sphere (0 : F) 1))) :
     sphereCollapse h p q r ⁻¹' {sphereCollapse h p q r z} = {z} := by
   refine Set.eq_singleton_iff_unique_mem.2 ⟨rfl, fun w hw ↦ ?_⟩
-  have hw' : w ∈ ({p}ᶜ ×ˢ {q}ᶜ : Set (sphere (0 : E) 1 × sphere (0 : F) 1)) := by
-    have hzr : sphereCollapse h p q r z ≠ r := by
-      rw [ne_eq, sphereCollapse_eq_iff]
-      exact not_or.2 hz
-    rw [Set.mem_preimage, Set.mem_singleton_iff] at hw
-    have := (sphereCollapse_eq_iff h p q r (z := w)).not.1 (hw ▸ hzr)
-    exact not_or.1 this
-  have := (sphereCollapseHomeomorph h p q r).injective (a₁ := ⟨w, hw'⟩) (a₂ := ⟨z, hz⟩)
-    (Subtype.ext (by simpa using hw))
-  exact congrArg Subtype.val this
+  rw [Set.mem_preimage, Set.mem_singleton_iff, sphereCollapse_def, sphereCollapse_def,
+    EmbeddingLike.apply_eq_iff_eq,
+    onePointCollapse_eq_onePointCollapse_iff
+      (isOpenEmbedding_sphereProdStereographicSymm p q).injective
+      (sphereCollapseEquiv h p q r).injective, range_sphereProdStereographicSymm] at hw
+  exact hw.resolve_right fun h ↦ h.2 hz
 
 section Homology
 
 open CategoryTheory MonoidalCategory AlgebraicTopology
 
 variable {d e : ℕ} (hE : finrank ℝ E = d + 1 + 1) (hF : finrank ℝ F = e + 1 + 1)
-  (hG : finrank ℝ G = d + 1 + e + 1 + 1)
 
 /-- **The collapse map has degree `±1`.** Let `a = d + 1` and `b = e + 1`, and read the collapse
 map `S^a × S^b → S^{a+b}` on Tau Ceti's spheres `TopCat.sphere` through
 `TauCeti.sphereHomeomorphTopCatSphere`. In integral homology of degree `a + b` it sends the cross
 product `γ_a × γ_b` of the standard generators `TauCeti.singularHomologyTopCatSphereGenerator`,
 read with coefficients `ℤ` through the unitor `ℤ ⊗ ℤ ≅ ℤ`, to `ε • γ_{a+b}` with `ε = ±1`. -/
-theorem singularHomologyMap_sphereCollapse_singularHomologyCross :
+theorem exists_singularHomologyMap_sphereCollapse_singularHomologyCross_eq_zsmul :
     ∃ ε : ℤ, (ε = 1 ∨ ε = -1) ∧
       (((singularHomologyFunctor (ModuleCat.{0} ℤ) (d + 1 + (e + 1))).obj
           (𝟙_ (ModuleCat.{0} ℤ))).map (TopCat.ofHom
-            (((sphereHomeomorphTopCatSphere hG : sphere (0 : G) 1 ≃ₜ TopCat.sphere.{0} _) :
+            (((sphereHomeomorphTopCatSphere (by omega) :
+                  sphere (0 : G) 1 ≃ₜ TopCat.sphere.{0} (d + 1 + e + 1)) :
                 C(sphere (0 : G) 1, TopCat.sphere.{0} (d + 1 + e + 1))).comp
               ((sphereCollapse h p q r).comp
                 (((sphereHomeomorphTopCatSphere hE).symm.prodCongr
@@ -259,29 +253,23 @@ theorem singularHomologyMap_sphereCollapse_singularHomologyCross :
   set Ψ : TopCat.sphere.{0} (d + 1) × TopCat.sphere.{0} (e + 1) ≃ₜ
       sphere (0 : E) 1 × sphere (0 : F) 1 :=
     (sphereHomeomorphTopCatSphere hE).symm.prodCongr (sphereHomeomorphTopCatSphere hF).symm
-  set Φ : sphere (0 : G) 1 ≃ₜ TopCat.sphere.{0} (d + 1 + e + 1) := sphereHomeomorphTopCatSphere hG
+  set Φ : sphere (0 : G) 1 ≃ₜ TopCat.sphere.{0} (d + 1 + e + 1) :=
+    sphereHomeomorphTopCatSphere (by omega)
   set f : C(TopCat.sphere.{0} (d + 1) × TopCat.sphere.{0} (e + 1),
       TopCat.sphere.{0} (d + 1 + e + 1)) :=
     (Φ : C(sphere (0 : G) 1, TopCat.sphere.{0} (d + 1 + e + 1))).comp
       ((sphereCollapse h p q r).comp (Ψ : C(_, sphere (0 : E) 1 × sphere (0 : F) 1)))
-  set H := singularHomologyFunctor (ModuleCat.{0} ℤ) (d + 1 + (e + 1))
-  set μ := (H.map (λ_ (𝟙_ (ModuleCat.{0} ℤ))).hom).app
+  set μ := ((singularHomologyFunctor (ModuleCat.{0} ℤ) (d + 1 + (e + 1))).map
+      (λ_ (𝟙_ (ModuleCat.{0} ℤ))).hom).app
     (TopCat.sphere.{0} (d + 1) ⊗ TopCat.sphere.{0} (e + 1))
     ((TopCat.singularHomologyCross _ _ (𝟙_ (ModuleCat.{0} ℤ)) (𝟙_ (ModuleCat.{0} ℤ))
       (d + 1) (e + 1) (d + 1 + (e + 1)) rfl).hom
       (singularHomologyTopCatSphereGenerator ℤ d ⊗ₜ singularHomologyTopCatSphereGenerator ℤ e))
-  -- Tau Ceti's degree results use the coefficients `ULift ℤ`.
-  set c : ModuleCat.of ℤ ℤ ≅ ModuleCat.of ℤ (ULift.{0} ℤ) :=
-    (ULift.moduleEquiv (R := ℤ) (M := ℤ)).symm.toModuleIso
   have hμ : IsFundamentalClass (M := TopCat.sphere.{0} (d + 1) × TopCat.sphere.{0} (e + 1)) μ :=
     (isFundamentalClass_singularHomologyFunctor_map_app_iff _ _).2
-      (IsFundamentalClass.singularHomologyTopCatSphereGenerator_singularHomologyCross
-        (N := TopCat.sphere.{0} (e + 1)) (F := ULift.{0} (Fin (e + 1)) → ℝ) (by simp)
-        (isFundamentalClass_singularHomologyTopCatSphereGenerator ℤ e))
-  have hμ' := (isFundamentalClass_singularHomologyFunctor_map_app_iff c μ).2 hμ
-  have hν' := (isFundamentalClass_singularHomologyFunctor_map_app_iff
-    (M := TopCat.sphere.{0} (d + 1 + e + 1)) c _).2
-    (isFundamentalClass_singularHomologyTopCatSphereGenerator ℤ (d + 1 + e))
+    (IsFundamentalClass.singularHomologyTopCatSphereGenerator_singularHomologyCross
+      (N := TopCat.sphere.{0} (e + 1)) (F := ULift.{0} (Fin (e + 1)) → ℝ) (by simp)
+      (isFundamentalClass_singularHomologyTopCatSphereGenerator ℤ e))
   -- `f` is a local homeomorphism near a point off the wedge, the only point of its fibre.
   set x := Ψ.symm (-p, -q)
   have hx : Ψ x ∈ ({p}ᶜ ×ˢ {q}ᶜ : Set (sphere (0 : E) 1 × sphere (0 : F) 1)) := by
@@ -307,20 +295,19 @@ theorem singularHomologyMap_sphereCollapse_singularHomologyCross :
   let : ChartedSpace ((ULift.{0} (Fin (d + 1)) → ℝ) × (ULift.{0} (Fin (e + 1)) → ℝ))
       (TopCat.sphere.{0} (d + 1) × TopCat.sphere.{0} (e + 1)) :=
     prodChartedSpace _ _ _ _
-  have hf' := hμ'.map_eq_or_eq_neg_of_isLocalHomeomorphOn
-      (M := TopCat.sphere.{0} (d + 1) × TopCat.sphere.{0} (e + 1))
-      (N := TopCat.sphere.{0} (d + 1 + e + 1))
+  -- Stated on `TopCat.of`, so that unification does not unfold `TopCat.sphere` and pick a
+  -- topology other than the instance on it.
+  set ν : ((TopCat.toSSet.obj (TopCat.of (TopCat.sphere.{0} (d + 1 + e + 1)))).homology
+      (ModuleCat.of ℤ ℤ) (d + 1 + (e + 1)) : ModuleCat.{0} ℤ) :=
+    singularHomologyTopCatSphereGenerator ℤ (d + 1 + e)
+  have hν : IsFundamentalClass ν :=
+    isFundamentalClass_singularHomologyTopCatSphereGenerator ℤ (d + 1 + e)
+  rcases hμ.map_eq_or_eq_neg_of_isLocalHomeomorphOn_unit
       (E := (ULift.{0} (Fin (d + 1)) → ℝ) × (ULift.{0} (Fin (e + 1)) → ℝ))
-      (F := ULift.{0} (Fin (d + 1 + e + 1)) → ℝ) (by simp) (by simp; omega) hν' hfib hs hx
-  -- Back to integral coefficients, along the coefficient change, which is injective.
-  have hinj : Function.Injective (((singularHomologyFunctor (ModuleCat.{0} ℤ) (d + 1 + e + 1)).map
-      c.hom).app (TopCat.sphere.{0} (d + 1 + e + 1))).hom :=
-    (ModuleCat.mono_iff_injective _).1 inferInstance
-  have hnat := congrArg (fun φ ↦ φ.hom μ) ((H.map c.hom).naturality (TopCat.ofHom f))
-  rcases hf' with hf' | hf'
-  · exact ⟨1, .inl rfl, hinj (hnat.trans (hf'.trans (by simp)))⟩
-  · refine ⟨-1, .inr rfl, hinj (hnat.trans (hf'.trans ?_))⟩
-    exact (map_neg _ _).symm.trans (congrArg _ (neg_one_zsmul _).symm)
+      (F := ULift.{0} (Fin (d + 1 + e + 1)) → ℝ) (by simp) (by simp; omega) hν hfib hs hx
+    with hf' | hf'
+  · exact ⟨1, .inl rfl, hf'.trans (one_zsmul _).symm⟩
+  · exact ⟨-1, .inr rfl, hf'.trans (neg_one_zsmul _).symm⟩
 
 end Homology
 
