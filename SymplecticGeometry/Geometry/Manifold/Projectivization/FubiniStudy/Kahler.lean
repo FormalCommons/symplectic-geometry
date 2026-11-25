@@ -15,6 +15,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.Kahler
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Submanifold
 import Mathlib.Analysis.InnerProductSpace.Calculus
 import Mathlib.Analysis.SpecialFunctions.Log.Deriv
+import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 
 /-!
 # The Fubini–Study form is Kähler

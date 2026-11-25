@@ -21,6 +21,7 @@ import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.WeightModel.Basic
 import SymplecticGeometry.Topology.Algebra.ConstMulAction
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Symplectic.Manifold.NeighborhoodGerm
+import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 
 /-!
 # The localizing one-form of a circle action
@@ -126,8 +127,8 @@ theorem exists_smul_invariant_cutoff_weightChart {n : ℕ} (χ : Fin n → G →
   obtain ⟨u, rfl⟩ : ∃ u, e u = z := ⟨e.symm z, e.apply_symm_apply z⟩
   obtain ⟨hs, hΦ⟩ := hequiv g u hz
   refine ⟨_, hs, ?_, hΦ⟩
-  rw [← sq_eq_sq₀ (norm_nonneg _) (norm_nonneg _), norm_sq_complexToRealEuclidean,
-    norm_sq_complexToRealEuclidean]
+  rw [← sq_eq_sq₀ (norm_nonneg _) (norm_nonneg _), TauCeti.norm_sq_complexToRealEuclidean,
+    TauCeti.norm_sq_complexToRealEuclidean]
   simp
 
 end InvariantCutoff
