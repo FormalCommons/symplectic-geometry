@@ -6,10 +6,14 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.DehnTwist.Geodesic
+public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+public import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
 import Mathlib.Analysis.Calculus.Deriv.Shift
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv
 import SymplecticGeometry.Analysis.Calculus.ContDiff.Even
+import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
+import TauCeti.Geometry.Manifold.DifferentialForm.Squared
 
 /-!
 # The model Dehn twist on the cotangent bundle of the sphere
@@ -50,6 +54,9 @@ time `π` is the antipodal map; and since `R' = 0` on `[r₀, ∞)`, the twist i
   every orthogonal transformation of `ℝⁿ⁺¹`.
 * `SymplecticGeometry.contMDiff_twistPrimitive`, `SymplecticGeometry.twistPrimitive_of_le`: the
   primitive of the model twist of a twist profile is smooth, and vanishes where `μ ≥ r₀`.
+* `SymplecticGeometry.mpullback_modelTwist_liouvilleForm`: the model twist pulls the Liouville
+  form `λ` back to `λ + dK` with `K = twistPrimitive R`, so it is exact;
+  `SymplecticGeometry.mpullback_modelTwist_symplecticForm`: it preserves `ω = -dλ`.
 
 ## Implementation notes
 
@@ -65,6 +72,18 @@ with `-θ` in place of `θ`, that is the model twist of `-R`, as the flow preser
 coordinate formula gives the equivariance under `O(n + 1)`, which acts on the coordinates by
 isometries. The function `t ↦ R'(t) t - R t` is even, so the primitive `twistPrimitive R`
 is smooth by `Function.Even.contDiff_comp_norm`, applied to the second coordinate.
+
+The exactness is checked in the coordinates `(q, p)` at every covector, the zero section
+included, so no density argument is needed. With `s = ‖p‖²`, the twist reads
+`(q, p) ↦ (C q + S p, C p - s S q)`, and the Liouville form reads `⟪p, δq⟫`
+(`liouvilleForm_apply_eq_inner_cotangentCoord`). On the image of `T*Sⁿ`, where `‖q‖ = 1`,
+`q ⊥ p`, `q ⊥ δq` and `⟪δq, p⟫ + ⟪q, δp⟫ = 0`, the pulled back form is
+`(C² + s S²) ⟪p, δq⟫ + (2 s (C S' - S C') + C S) ⟪p, δp⟫`. Write `K = k (‖p‖²)` by Whitney's
+theorem; then `dK = 2 k' ⟪p, δp⟫`. So exactness comes down to `C² + s S² = 1`, which is
+`cos² + sin² = 1`, and `2 s (C S' - S C') + C S = 2 k'`
+(`two_mul_mul_sub_add_mul_eq_two_mul_deriv`). The second identity follows for `s > 0` from
+differentiating the relations between `C`, `S`, `k` and `R`, and at `s = 0` by continuity.
+The symplecticity follows by applying `d`, since `d (dK) = 0`.
 
 ## References
 
@@ -481,5 +500,222 @@ theorem twistPrimitive_of_le {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsTwistProfile
     {z : CotangentBundle (𝓡 n) (𝕊 n)} (hz : r₀ ≤ cotangentNorm z) : twistPrimitive R z = 0 := by
   rw [twistPrimitive_def, hR.deriv_eq_zero hz, hR.apply_of_le hz]
   ring
+
+
+/-! ### Exactness and symplecticity of the model twist -/
+
+/-- Let `C`, `S` and `k` be `C¹` functions with `cos (θ t) = C (t ^ 2)`,
+`sin (θ t) = t * S (t ^ 2)` and `f t = k (t ^ 2)`, where `f' (t) = t θ' (t)`. Then
+`2 s (C S' - S C') + C S = 2 k'` at every `s ≥ 0`: at `s = t ^ 2 > 0` by differentiating the
+three relations, and at `s = 0` by continuity. -/
+theorem two_mul_mul_sub_add_mul_eq_two_mul_deriv {θ θ' C S f k : ℝ → ℝ}
+    (hθ : ∀ t, HasDerivAt θ (θ' t) t) (hf : ∀ t, HasDerivAt f (t * θ' t) t)
+    (hCd : ContDiff ℝ 1 C) (hSd : ContDiff ℝ 1 S) (hkd : ContDiff ℝ 1 k)
+    (hC : ∀ t, cos (θ t) = C (t ^ 2)) (hS : ∀ t, sin (θ t) = t * S (t ^ 2))
+    (hk : ∀ t, f t = k (t ^ 2)) (s : ℝ) (hs : 0 ≤ s) :
+    2 * s * (C s * deriv S s - S s * deriv C s) + C s * S s = 2 * deriv k s := by
+  have hC' : ∀ x, HasDerivAt C (deriv C x) x := fun x ↦
+    (hCd.differentiable one_ne_zero x).hasDerivAt
+  have hS' : ∀ x, HasDerivAt S (deriv S x) x := fun x ↦
+    (hSd.differentiable one_ne_zero x).hasDerivAt
+  have hk' : ∀ x, HasDerivAt k (deriv k x) x := fun x ↦
+    (hkd.differentiable one_ne_zero x).hasDerivAt
+  have key : ∀ t, 0 < t → 2 * t ^ 2 * (C (t ^ 2) * deriv S (t ^ 2) -
+      S (t ^ 2) * deriv C (t ^ 2)) + C (t ^ 2) * S (t ^ 2) = 2 * deriv k (t ^ 2) := by
+    intro t ht
+    have hsq : HasDerivAt (fun t : ℝ ↦ t ^ 2) (2 * t) t := by
+      simpa using hasDerivAt_pow 2 t
+    have h1 := ((hC' _).comp t hsq).unique
+      (show HasDerivAt (fun t ↦ C (t ^ 2)) (-sin (θ t) * θ' t) t by
+        rw [← funext hC]; exact (hθ t).cos)
+    have h2 := ((hasDerivAt_id' t).mul ((hS' _).comp t hsq)).unique
+      (show HasDerivAt (fun t ↦ t * S (t ^ 2)) (cos (θ t) * θ' t) t by
+        rw [← funext hS]; exact (hθ t).sin)
+    have h3 := ((hk' _).comp t hsq).unique
+      (show HasDerivAt (fun t ↦ k (t ^ 2)) (t * θ' t) t by rw [← funext hk]; exact hf t)
+    simp only [Function.comp_apply] at h1 h2 h3
+    have hcs := sin_sq_add_cos_sq (θ t)
+    rw [hS t, hC t] at hcs
+    rw [hC t] at h2
+    rw [hS t] at h1
+    have : t * (2 * t ^ 2 * (C (t ^ 2) * deriv S (t ^ 2) - S (t ^ 2) * deriv C (t ^ 2)) +
+        C (t ^ 2) * S (t ^ 2) - 2 * deriv k (t ^ 2)) = 0 := by
+      linear_combination (t * C (t ^ 2)) * h2 - t ^ 2 * S (t ^ 2) * h1 - h3 + θ' t * t * hcs
+    rcases mul_eq_zero.1 this with h | h
+    · exact absurd h ht.ne'
+    · linarith
+  have hcont : Continuous fun s ↦ 2 * s * (C s * deriv S s - S s * deriv C s) + C s * S s -
+      2 * deriv k s := by
+    have := hCd.continuous_deriv le_rfl
+    have := hSd.continuous_deriv le_rfl
+    have := hkd.continuous_deriv le_rfl
+    fun_prop
+  have hpos : Ioi (0 : ℝ) ⊆ {s | 2 * s * (C s * deriv S s - S s * deriv C s) + C s * S s -
+      2 * deriv k s = 0} := fun s hs ↦ by
+    have := key (√s) (sqrt_pos.2 hs)
+    rw [sq_sqrt (le_of_lt hs)] at this
+    simp only [mem_ofPred_eq]
+    linarith
+  have := (isClosed_eq hcont continuous_const).closure_subset_iff.2 hpos
+    (by rw [closure_Ioi]; exact hs)
+  simp only [mem_ofPred_eq] at this
+  linarith
+
+/-- The pointwise identity behind the exactness of the model twist. Let `⟪q, q⟫ = 1`, `q ⊥ p`,
+`q ⊥ δq` and `⟪δq, p⟫ + ⟪q, δp⟫ = 0`, as for the coordinates of a covector of `T*Sⁿ` and their
+differentials. If `C ^ 2 + ‖p‖² S ^ 2 = 1` and `2 ‖p‖² (C S' - S C') + C S = 2 k'`, then
+`p' = C p - ‖p‖² S q` paired with
+`δq' = C δq + 2 ⟪p, δp⟫ C' q + S δp + 2 ⟪p, δp⟫ S' p` is `⟪p, δq⟫ + k' (2 ⟪p, δp⟫)`. -/
+theorem inner_twistCoord_eq {q p dq dp : 𝔼 n} {C S C' S' k' : ℝ} (hqq : ⟪q, q⟫_ℝ = 1)
+    (hqp : ⟪q, p⟫_ℝ = 0) (hqdq : ⟪q, dq⟫_ℝ = 0) (hd : ⟪dq, p⟫_ℝ + ⟪q, dp⟫_ℝ = 0)
+    (h1 : C ^ 2 + ‖p‖ ^ 2 * S ^ 2 = 1)
+    (h2 : 2 * ‖p‖ ^ 2 * (C * S' - S * C') + C * S = 2 * k') :
+    ⟪C • p - (‖p‖ ^ 2 * S) • q,
+      C • dq + (2 * (⟪p, dp⟫_ℝ * C')) • q + (S • dp + (2 * (⟪p, dp⟫_ℝ * S')) • p)⟫_ℝ =
+      ⟪p, dq⟫_ℝ + k' * (2 * ⟪p, dp⟫_ℝ) := by
+  have hpp : ⟪p, p⟫_ℝ = ‖p‖ ^ 2 := real_inner_self_eq_norm_sq p
+  simp only [inner_add_right, inner_sub_left, real_inner_smul_left, real_inner_smul_right, hqq,
+    hpp, hqdq, real_inner_comm q p, hqp]
+  rw [real_inner_comm p dq] at hd
+  linear_combination (⟪p, dq⟫_ℝ) * h1 + ⟪p, dp⟫_ℝ * h2 - ‖p‖ ^ 2 * S ^ 2 * hd
+
+/-- For `C¹` functions `C` and `S`, the map `(q, p) ↦ C (‖p‖²) • q + S (‖p‖²) • p` (the first
+component of the model twist in coordinates) has at `(q, p)` a derivative sending `(δq, δp)` to
+`C δq + 2 ⟪p, δp⟫ C' q + S δp + 2 ⟪p, δp⟫ S' p`. -/
+theorem exists_hasFDerivAt_twistCoord_fst {C S : ℝ → ℝ} (hC : ContDiff ℝ 1 C)
+    (hS : ContDiff ℝ 1 S) (y : (𝔼 n) × 𝔼 n) :
+    ∃ L : ((𝔼 n) × 𝔼 n) →L[ℝ] 𝔼 n,
+      HasFDerivAt (fun y : (𝔼 n) × 𝔼 n ↦ C (‖y.2‖ ^ 2) • y.1 + S (‖y.2‖ ^ 2) • y.2) L y ∧
+      ∀ u, L u = C (‖y.2‖ ^ 2) • u.1 + (2 * (⟪y.2, u.2⟫_ℝ * deriv C (‖y.2‖ ^ 2))) • y.1 +
+        (S (‖y.2‖ ^ 2) • u.2 + (2 * (⟪y.2, u.2⟫_ℝ * deriv S (‖y.2‖ ^ 2))) • y.2) := by
+  have hn := (hasFDerivAt_snd (p := y)).norm_sq
+  have hC' := (hC.differentiable one_ne_zero _).hasDerivAt.hasFDerivAt.comp y hn
+  have hS' := (hS.differentiable one_ne_zero _).hasDerivAt.hasFDerivAt.comp y hn
+  exact ⟨_, (hC'.smul hasFDerivAt_fst).add (hS'.smul hasFDerivAt_snd), fun u ↦ by simp⟩
+
+/-- For a `C¹` function `k`, the differential of `z ↦ k (μ z ^ 2)`, `μ = cotangentNorm`, is
+`k' (‖p‖²) * 2 ⟪p, δp⟫` in the coordinates `(q, p)`. -/
+private theorem mvfderiv_comp_cotangentCoord_norm_sq {k : ℝ → ℝ} (hk : ContDiff ℝ 1 k)
+    (z : CotangentBundle (𝓡 n) (𝕊 n))
+    (w : TangentSpace ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) z) :
+    mvfderiv ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ))
+        ((fun y : (𝔼 n) × 𝔼 n ↦ k (‖y.2‖ ^ 2)) ∘ cotangentCoord) z w =
+      deriv k (‖(cotangentCoord z).2‖ ^ 2) * (2 * ⟪(cotangentCoord z).2,
+        (mfderiv ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ, (𝔼 n) × 𝔼 n)
+          cotangentCoord z w).2⟫_ℝ) := by
+  have hkn := (hk.differentiable one_ne_zero _).hasDerivAt.hasFDerivAt.comp _
+    (hasFDerivAt_snd (p := cotangentCoord z)).norm_sq
+  have hev : ∀ u : (𝔼 n) × 𝔼 n,
+      ((ContinuousLinearMap.toSpanSingleton ℝ (deriv k (‖(cotangentCoord z).2‖ ^ 2))).comp
+        (2 • (innerSL ℝ (cotangentCoord z).2).comp (ContinuousLinearMap.snd ℝ (𝔼 n) (𝔼 n)))) u =
+      deriv k (‖(cotangentCoord z).2‖ ^ 2) * (2 * ⟪(cotangentCoord z).2, u.2⟫_ℝ) := fun u ↦ by
+    simp only [ContinuousLinearMap.comp_apply, smul_apply, ContinuousLinearMap.coe_snd',
+      innerSL_apply_apply, ContinuousLinearMap.toSpanSingleton_apply, smul_eq_mul, nsmul_eq_mul]
+    ring
+  rw [mvfderiv_apply_eq_mfderiv_apply]
+  refine (mfderiv_comp_apply z hkn.differentiableAt.mdifferentiableAt
+    (contMDiff_cotangentCoord.mdifferentiableAt (by simp)) w).trans ?_
+  rw [hkn.hasMFDerivAt.mfderiv]
+  exact hev _
+
+/-- The model twist of a twist profile `R` pulls the Liouville form `λ` of `T*Sⁿ` back to
+`λ + dK`, where `K = twistPrimitive R` is the function `2π (R'(μ) μ - R(μ))`: the model twist is
+an exact symplectomorphism. -/
+theorem mpullback_modelTwist_liouvilleForm {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsTwistProfile R r₀) :
+    SmoothForm.mpullback (modelTwist (n := n) hR) (modelTwist hR).contMDiff
+        (CotangentBundle.liouvilleForm (𝓡 n) (𝕊 n)) =
+      CotangentBundle.liouvilleForm (𝓡 n) (𝕊 n) +
+        mextDerivₗ ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 0
+          (SmoothForm.ofFunction ⟨twistPrimitive R, contMDiff_twistPrimitive hR⟩) := by
+  -- Whitney's theorem writes `cos θ`, `sin θ` (`θ = 2π R'`) and the primitive through `t ^ 2`.
+  have hθ : ContDiff ℝ ∞ fun t ↦ 2 * π * deriv R t := contDiff_const.mul hR.contDiff_deriv
+  obtain ⟨C, hCd, hC⟩ := Function.Even.exists_contDiff_comp_sq
+    (f := fun t ↦ cos (2 * π * deriv R t)) hR.cos_two_pi_mul_deriv_neg (contDiff_cos.comp hθ)
+  obtain ⟨S, hSd, hS⟩ := Function.Odd.exists_contDiff_mul_comp_sq
+    (f := fun t ↦ sin (2 * π * deriv R t)) hR.sin_two_pi_mul_deriv_neg (contDiff_sin.comp hθ)
+  obtain ⟨k, hkd, hk⟩ := Function.Even.exists_contDiff_comp_sq
+    (f := fun t ↦ 2 * π * (deriv R t * t - R t))
+    (fun t ↦ congrArg (2 * π * ·) (hR.even_deriv_mul_sub t))
+    (contDiff_const.mul ((hR.contDiff_deriv.mul contDiff_id).sub hR.contDiff))
+  have hR' : ∀ t, HasDerivAt R (deriv R t) t := fun t ↦
+    (hR.contDiff.differentiable (by simp) t).hasDerivAt
+  have hR'' : ∀ t, HasDerivAt (deriv R) (deriv (deriv R) t) t := fun t ↦
+    (hR.contDiff_deriv.differentiable (by simp) t).hasDerivAt
+  have h1d := two_mul_mul_sub_add_mul_eq_two_mul_deriv (θ := fun t ↦ 2 * π * deriv R t)
+    (θ' := fun t ↦ 2 * π * deriv (deriv R) t) (f := fun t ↦ 2 * π * (deriv R t * t - R t))
+    (fun t ↦ (hR'' t).const_mul _)
+    (fun t ↦ ((((hR'' t).mul (hasDerivAt_id' t)).sub (hR' t)).const_mul (2 * π)).congr_deriv
+      (by ring))
+    (hCd.of_le (by simp)) (hSd.of_le (by simp)) (hkd.of_le (by simp)) hC hS hk
+  -- The twist and its primitive in the coordinates `(q, p)`.
+  set G : ((𝔼 n) × 𝔼 n) → ((𝔼 n) × 𝔼 n) := fun y ↦
+    (C (‖y.2‖ ^ 2) • y.1 + S (‖y.2‖ ^ 2) • y.2,
+      C (‖y.2‖ ^ 2) • y.2 - (‖y.2‖ ^ 2 * S (‖y.2‖ ^ 2)) • y.1)
+  have hτ : cotangentCoord ∘ modelTwist (n := n) hR = G ∘ cotangentCoord := funext fun y ↦ by
+    rw [Function.comp_apply, coe_modelTwist, modelTwistFun_eq_geodesicTwist,
+      cotangentCoord_geodesicTwist hC hS (by rw [hR.two_pi_mul_deriv_zero, cos_pi])]
+    -- The right side is `G` applied to the coordinates of `y`, by the definition of `G`.
+    rfl
+  have hK : twistPrimitive (n := n) R =
+      (fun y : (𝔼 n) × 𝔼 n ↦ k (‖y.2‖ ^ 2)) ∘ cotangentCoord := funext fun y ↦ by
+    rw [twistPrimitive_def, hk, Function.comp_apply, cotangentNorm_def]
+  apply Subtype.ext
+  funext z
+  ext v
+  obtain ⟨L, hL, hLu⟩ := exists_hasFDerivAt_twistCoord_fst (hCd.of_le (by simp))
+    (hSd.of_le (by simp)) (cotangentCoord z)
+  have hn : ContDiff ℝ ∞ fun x : (𝔼 n) × 𝔼 n ↦ ‖x.2‖ ^ 2 :=
+    (contDiff_norm_sq ℝ).comp contDiff_snd
+  have hGd : HasFDerivAt G (L.prod (fderiv ℝ _ (cotangentCoord z))) (cotangentCoord z) :=
+    hL.prodMk ((((hCd.comp hn).smul contDiff_snd).sub
+      ((hn.mul (hSd.comp hn)).smul contDiff_fst)).differentiable (by simp) _).hasFDerivAt
+  have hdq : (mfderiv ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ, (𝔼 n) × 𝔼 n)
+      (cotangentCoord ∘ modelTwist hR) z (v 0)).1 =
+      L (mfderiv ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ, (𝔼 n) × 𝔼 n)
+        cotangentCoord z (v 0)) := by
+    rw [hτ, mfderiv_comp_apply z hGd.differentiableAt.mdifferentiableAt
+      (contMDiff_cotangentCoord.mdifferentiableAt (by simp)), hGd.hasMFDerivAt.mfderiv]
+    -- The first component of `L.prod M` applied to a vector is `L` applied to it.
+    rfl
+  have hdK : (mextDerivₗ ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 0
+      (SmoothForm.ofFunction ⟨twistPrimitive R, contMDiff_twistPrimitive hR⟩)).val z v =
+      mvfderiv ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) (twistPrimitive R) z
+        (v 0) := by
+    rw [show v = ![v 0] from funext fun i ↦ by rw [Fin.fin_one_eq_zero i, Matrix.cons_val_zero],
+      mextDerivₗ_zero_apply]
+    exact congrArg (fun g ↦ mvfderiv _ g z (v 0)) (SmoothForm.ofFunction_apply_zero _)
+  have hτz : cotangentCoord (modelTwist hR z) = G (cotangentCoord z) := congrFun hτ z
+  -- The constraints on the coordinates and their differentials.
+  have hqq : ⟪(cotangentCoord z).1, (cotangentCoord z).1⟫_ℝ = 1 := by
+    rw [real_inner_self_eq_norm_sq, cotangentCoord_fst, norm_eq_of_mem_sphere, one_pow]
+  have hqp : ⟪(cotangentCoord z).1, (cotangentCoord z).2⟫_ℝ = 0 := by
+    rw [cotangentCoord_fst]
+    exact inner_proj_cotangentCoord_snd z
+  have hqdq := inner_fst_mfderiv_cotangentCoord z (v 0)
+  have hd := inner_fst_mfderiv_cotangentCoord_add_inner_snd z (v 0)
+  have h1 : C (‖(cotangentCoord z).2‖ ^ 2) ^ 2 +
+      ‖(cotangentCoord z).2‖ ^ 2 * S (‖(cotangentCoord z).2‖ ^ 2) ^ 2 = 1 := by
+    have := sin_sq_add_cos_sq (2 * π * deriv R ‖(cotangentCoord z).2‖)
+    rw [hC, hS] at this
+    linear_combination this
+  rw [SmoothForm.coe_mpullback, mpullback_liouvilleForm_apply_eq_inner_cotangentCoord
+    ((modelTwist hR).contMDiff.mdifferentiableAt (by simp)), AddMemClass.coe_add, Pi.add_apply,
+    ContinuousAlternatingMap.add_apply, liouvilleForm_apply_eq_inner_cotangentCoord, hdK, hK,
+    mvfderiv_comp_cotangentCoord_norm_sq (hkd.of_le (by simp)), hdq, hτz]
+  generalize (mfderiv ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ, (𝔼 n) × 𝔼 n)
+    cotangentCoord z (v 0) : (𝔼 n) × 𝔼 n) = u at hqdq hd ⊢
+  exact (congrArg (⟪(G (cotangentCoord z)).2, ·⟫_ℝ) (hLu u)).trans
+    (inner_twistCoord_eq hqq hqp hqdq hd h1 (h1d _ (sq_nonneg _)))
+
+/-- The model twist of a twist profile preserves the canonical symplectic form `ω = -dλ` of
+`T*Sⁿ`. -/
+theorem mpullback_modelTwist_symplecticForm {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsTwistProfile R r₀) :
+    SmoothForm.mpullback (modelTwist (n := n) hR) (modelTwist hR).contMDiff
+        (CotangentBundle.symplecticForm (𝓡 n) (𝕊 n)) =
+      CotangentBundle.symplecticForm (𝓡 n) (𝕊 n) := by
+  rw [CotangentBundle.symplecticForm_eq_neg_mextDerivₗ, map_neg,
+    ← SmoothForm.mextDerivₗ_mpullback, mpullback_modelTwist_liouvilleForm hR, map_add,
+    ← LinearMap.comp_apply (mextDerivₗ _ 1), mextDerivₗ_comp_mextDerivₗ, LinearMap.zero_apply,
+    add_zero]
 
 end SymplecticGeometry

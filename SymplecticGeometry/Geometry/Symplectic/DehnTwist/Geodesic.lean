@@ -85,6 +85,11 @@ direction.
   symplectic form; `SymplecticGeometry.eval₂_symplecticForm_eq_stdSymplecticForm` gives that form
   in the coordinates `(q, p)`, and `SymplecticGeometry.fst_mfderiv_cotangentCoord` the differential
   of `q`.
+* `SymplecticGeometry.liouvilleForm_apply_eq_inner_cotangentCoord`,
+  `SymplecticGeometry.mpullback_liouvilleForm_apply_eq_inner_cotangentCoord`: the Liouville form
+  and its pullbacks in the coordinates `(q, p)`, as `⟪p, δq⟫`; and
+  `SymplecticGeometry.inner_fst_mfderiv_cotangentCoord_add_inner_snd`: the differentials satisfy
+  `⟪δq, p⟫ + ⟪q, δp⟫ = 0`.
 
 ## Implementation notes
 
@@ -693,6 +698,55 @@ theorem inner_fst_mfderiv_cotangentCoord (x : CotangentBundle (𝓡 n) (𝕊 n))
         cotangentCoord x w).1⟫_ℝ = 0 := by
   rw [fst_mfderiv_cotangentCoord, cotangentCoord_fst]
   exact inner_coe_mvfderiv_subtypeVal_sphere _ _
+
+/-- The differentials `(δq, δp)` of the coordinates of a covector satisfy
+`⟪δq, p⟫ + ⟪q, δp⟫ = 0`, as `p` stays orthogonal to `q`. -/
+theorem inner_fst_mfderiv_cotangentCoord_add_inner_snd (x : CotangentBundle (𝓡 n) (𝕊 n))
+    (w : TangentSpace ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) x) :
+    ⟪(mfderiv ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ, (𝔼 n) × 𝔼 n)
+        cotangentCoord x w).1, (cotangentCoord x).2⟫_ℝ +
+      ⟪(cotangentCoord x).1,
+        (mfderiv ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ, (𝔼 n) × 𝔼 n)
+          cotangentCoord x w).2⟫_ℝ = 0 := by
+  have hΨ : MDifferentiableAt ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ))
+      𝓘(ℝ, (𝔼 n) × 𝔼 n) cotangentCoord x :=
+    contMDiff_cotangentCoord.mdifferentiableAt (by simp)
+  have hg := (hasFDerivAt_fst (p := cotangentCoord x)).inner ℝ
+    (hasFDerivAt_snd (p := cotangentCoord x))
+  rw [ContinuousLinearMap.fst_prod_snd, ContinuousLinearMap.comp_id] at hg
+  have hcomp : (fun y : (𝔼 n) × 𝔼 n ↦ ⟪y.1, y.2⟫_ℝ) ∘ cotangentCoord (n := n) = fun _ ↦ 0 :=
+    funext fun z ↦ by simp [cotangentCoord_fst]
+  have h := mfderiv_comp_apply x hg.differentiableAt.mdifferentiableAt hΨ w
+  rw [hcomp, mfderiv_const, hg.hasMFDerivAt.mfderiv, zero_apply] at h
+  exact (add_comm _ _).trans ((fderivInnerCLM_apply _ _ _).symm.trans h.symm)
+
+/-- The Liouville form in the coordinates `(q, p)`: it sends a tangent vector at a covector to
+`⟪p, δq⟫`, where `δq` is the differential of the first coordinate. -/
+theorem liouvilleForm_apply_eq_inner_cotangentCoord (y : CotangentBundle (𝓡 n) (𝕊 n))
+    (v : Fin 1 → TangentSpace ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) y) :
+    (CotangentBundle.liouvilleForm (𝓡 n) (𝕊 n)).val y v =
+      ⟪(cotangentCoord y).2,
+        (mfderiv ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ, (𝔼 n) × 𝔼 n)
+          cotangentCoord y (v 0)).1⟫_ℝ := by
+  rw [CotangentBundle.liouvilleForm_apply, fst_mfderiv_cotangentCoord, inner_cotangentCoord_snd]
+
+/-- The pullback of the Liouville form by a map `h` of `T*Sⁿ` that is differentiable at `z`, in
+the coordinates `(q, p)`: it sends a tangent vector at `z` to `⟪p', δq'⟫`, where `(q', p')` are
+the coordinates of `h z` and `δq'` is the differential of `q' ∘ h`. -/
+theorem mpullback_liouvilleForm_apply_eq_inner_cotangentCoord
+    {h : CotangentBundle (𝓡 n) (𝕊 n) → CotangentBundle (𝓡 n) (𝕊 n)}
+    {z : CotangentBundle (𝓡 n) (𝕊 n)}
+    (hh : MDifferentiableAt ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ))
+      ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) h z)
+    (v : Fin 1 → TangentSpace ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) z) :
+    mpullback ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ))
+        ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) h
+        (CotangentBundle.liouvilleForm (𝓡 n) (𝕊 n)).val z v =
+      ⟪(cotangentCoord (h z)).2,
+        (mfderiv ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ, (𝔼 n) × 𝔼 n)
+          (cotangentCoord ∘ h) z (v 0)).1⟫_ℝ := by
+  rw [mpullback_apply, liouvilleForm_apply_eq_inner_cotangentCoord, mfderiv_comp_apply z
+    (contMDiff_cotangentCoord.mdifferentiableAt (by simp)) hh]
 
 /-- Off the zero section, the differential of the norm `μ = ‖p‖` is `δp ↦ ⟪p, δp⟫ / ‖p‖`, read
 through the differential of `cotangentCoord`. -/
