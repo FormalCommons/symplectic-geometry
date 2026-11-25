@@ -343,6 +343,11 @@ private theorem mextDeriv_apply_rightFundamentalVectorField_prod_inl (ξ : Group
           (u, (0 : EN)) := by
   have hι : ContMDiff (IB.prod IG) ((IB.prod IG).prod IN) ∞
       (fun y : ManifoldTotalSpace G P ↦ (y, n)) := contMDiff_id.prodMk contMDiff_const
+  have hd (y : ManifoldTotalSpace G P) (w : TangentSpace (IB.prod IG) y) :
+      mfderiv (IB.prod IG) ((IB.prod IG).prod IN) (fun z : ManifoldTotalSpace G P ↦ (z, n)) y w =
+        (w, 0) :=
+    (Manifold.tangentSpaceProdEquiv_apply _ _).symm.trans
+      (Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_left w)
   have hα (g : G) : SmoothForm.mpullback (fun y : ManifoldTotalSpace G P ↦ op g • y)
       (contMDiff_const_smul (op g)) (SmoothForm.mpullback _ hι A) =
         SmoothForm.mpullback _ hι A := by
@@ -358,16 +363,16 @@ private theorem mextDeriv_apply_rightFundamentalVectorField_prod_inl (ξ : Group
   · rw [hL, SmoothForm.coe_mpullback, ← mpullback_mextDeriv_at (hι.contMDiffAt.of_le (by simp))
       ((A.contMDiff _).of_le (by simp)), mpullback_apply_pair,
       mvfderiv_comp_apply x (mdifferentiable_apply_rightFundamentalVectorField_prod ξ _)
-        (hι.mdifferentiableAt (by simp)), mfderiv_prod_left] at hC
+        (hι.mdifferentiableAt (by simp)), hd, hd] at hC
     simp only [Pi.zero_apply, ContinuousAlternatingMap.coe_zero] at hC
     rw [eq_neg_iff_add_eq_zero]
     exact hC.symm
-  · rw [SmoothForm.mpullback_apply, mfderiv_prod_left]
+  · rw [SmoothForm.mpullback_apply]
     simp only [Function.comp_apply]
     congr 1
     ext i
     fin_cases i
-    rfl
+    exact hd y _
 
 omit [IB.Boundaryless] in
 /-- The identity of `mextDeriv_apply_rightFundamentalVectorField_prod` on vectors tangent to `N`:

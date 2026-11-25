@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Lie.FundamentalVectorField.OrbitMap
 public import TauCeti.Geometry.Manifold.GroupAction.Orbit
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 
 /-!
 # Local sections of the orbit projection of a free proper action
@@ -101,7 +102,9 @@ theorem injective_mfderiv_smul_section (hU : IsOpen U) (hs : ContMDiffOn IB IM �
   have hι : MDifferentiableAt IK (IK.prod IB) (fun h : K ↦ (h, q)) k :=
     mdifferentiableAt_id.prodMk mdifferentiableAt_const
   have hv' : mfderiv IK (IK.prod IB) (fun h : K ↦ (h, q)) k w = v := by
-    rw [mfderiv_prod_left]
+    apply (TauCeti.Manifold.tangentSpaceProdEquiv _).injective
+    rw [TauCeti.Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_left,
+      TauCeti.Manifold.tangentSpaceProdEquiv_apply]
     exact Prod.ext rfl h2.symm
   have h1 := mfderiv_comp_apply k hΨ hι w
   have hcomp : Ψ ∘ (fun h : K ↦ (h, q)) = fun h : K ↦ h • s q := rfl

@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily
 import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.GoodCover
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Descent
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.BasicForm
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 
 /-!
 # Existence of coupling forms
@@ -172,13 +173,16 @@ theorem mpullback_slice_couplingOneForm (t : Set.Icc a b) :
         SmoothForm.mpullback (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1))
           (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)).contMDiff (β t) := by
   refine Subtype.ext <| funext fun p ↦ ContinuousAlternatingMap.ext fun v ↦ ?_
+  -- The slice inclusion `q ↦ (q, t)` sends `w` to a vector whose first component is `w`.
+  have hfst (w : TangentSpace (IB.prod (𝓡 1)) p) :
+      (mfderiv (IB.prod (𝓡 1)) ((IB.prod (𝓡 1)).prod (𝓡∂ 1))
+        (fun q : ManifoldTotalSpace Circle P ↦ (q, t)) p w).1 = w := by
+    exact congrArg Prod.fst ((TauCeti.Manifold.tangentSpaceProdEquiv_apply _ _).symm.trans
+      (TauCeti.Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_left (I' := 𝓡∂ 1) (y := t) w))
   rw [SmoothForm.mpullback_apply, couplingOneForm_apply]
-  simp only [mfderiv_prod_left, Submodule.coe_add, SetLike.val_smul, SmoothForm.coe_mpullback,
+  simp only [hfst, Submodule.coe_add, SetLike.val_smul, SmoothForm.coe_mpullback,
     Pi.add_apply, Pi.smul_apply, ContinuousAlternatingMap.add_apply,
     ContinuousAlternatingMap.coe_smul, smul_eq_mul, mpullback_apply]
-  -- the first component of `ContinuousLinearMap.inl _ _ _ w` is `w`; `inl_apply` does not fire,
-  -- since the components here are typed as tangent spaces of the product
-  rfl
 
 /-! ### The coupling form `pr^* π^* σ + d A` -/
 
