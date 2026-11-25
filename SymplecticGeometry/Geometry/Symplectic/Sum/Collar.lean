@@ -117,6 +117,15 @@ theorem mapsTo_annulusMap {δ ε : ℝ} (hδ : 0 ≤ δ) :
   · rw [Real.sqrt_lt' (hδ.trans_lt h₁ |>.trans h₂)]
     linarith
 
+/-- The annulus map is continuous at every point `z ≠ 0`, including those outside the disc of
+radius `√(ε² + δ²)`, where it vanishes. -/
+theorem continuousAt_annulusMap (δ ε : ℝ) {z : ℂ} (hz : z ≠ 0) :
+    ContinuousAt (annulusMap δ ε) z := by
+  rw [show annulusMap δ ε = fun w ↦ (√(ε ^ 2 + δ ^ 2 - ‖w‖ ^ 2) / ‖w‖) • conj w from
+    funext (annulusMap_def δ ε)]
+  exact ((continuous_const.sub (continuous_norm.pow 2)).sqrt.continuousAt.div
+    continuous_norm.continuousAt (norm_ne_zero_iff.2 hz)).smul Complex.continuous_conj.continuousAt
+
 /-- Away from `0`, the annulus map preserves the norm of `z` exactly on the circle of radius
 `√((δ² + ε²) / 2)`. -/
 theorem norm_annulusMap_eq_norm_iff (δ ε : ℝ) {z : ℂ} (hz : z ≠ 0) :
