@@ -9,6 +9,9 @@ public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Associated.Pullba
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Basic
 public import TauCeti.Geometry.Manifold.IsManifold.Basic
 public import TauCeti.Geometry.Manifold.FiberBundle.Submersion
+public import TauCeti.Geometry.Manifold.Submersion.EhresmannConnection.Basic
+import SymplecticGeometry.Geometry.Manifold.Distribution.Prod
+import SymplecticGeometry.Geometry.Manifold.Distribution.Pushforward
 
 /-!
 # The horizontal spaces induced by a connection form on an associated bundle
@@ -41,6 +44,10 @@ isomorphically onto the tangent space of the base, as that of `P` at `x` is.
 * `SymplecticGeometry.IsConnectionForm.mem_associatedHorizontal_iff`: the membership criterion.
 * `SymplecticGeometry.IsConnectionForm.isCompl_associatedHorizontal`: the induced horizontal space
   is a complement of the vertical space of the associated bundle.
+* `SymplecticGeometry.IsConnectionForm.isEhresmannConnection_associatedHorizontal`: the induced
+  horizontal spaces are a smooth Ehresmann connection (Tau Ceti's `TauCeti.IsEhresmannConnection`)
+  on the projection of the associated bundle, for finite-dimensional base, group and fibre
+  without boundary.
 
 ## Implementation notes
 
@@ -54,6 +61,18 @@ the former, since the tangent space of `P × F` is a product of tangent spaces o
 unfolding `TangentSpace`. Complementarity needs neither the kernel nor the surjectivity of the
 derivative of the quotient map: it only needs the derivative of the projection of `P` to be
 surjective (`TauCeti.ManifoldTotalSpace.isRegularPoint_proj`).
+
+Smoothness comes from `P × F`: there the distribution `ker A_x × 0` is smooth of rank `dim B`
+(`TauCeti.IsContMDiffDistribution.map_mfderiv_prod_left`, from
+`IsConnectionForm.isEhresmannConnection_horizontal`), the quotient map is a surjective
+submersion (`TauCeti.AssociatedBundle.isSubmersion_chartedMk`) whose derivative maps it onto
+the induced horizontal spaces, injectively since its composite with the derivative of the
+projection of `P ×_G F` is that of the projection of `P`. So the push-forward of
+`TauCeti.IsContMDiffDistribution.map_mfderiv_of_isSubmersion` applies; it reads the
+distribution through local sections of the quotient map. The statement takes the instance
+`[ContMDiffFiberBundle ∞ F (AssociatedBundle G P F) IB IF]`, which Tau Ceti's
+`TauCeti.AssociatedBundle.contMDiffFiberBundle` supplies, since `IsEhresmannConnection` needs a
+manifold structure on the charted total space of `P ×_G F`.
 
 ## References
 
@@ -214,6 +233,53 @@ theorem isCompl_associatedHorizontal (hA : IsConnectionForm A)
     refine ⟨L w, u - L w, Submodule.mem_map_of_mem hw, ?_, add_sub_cancel _ _⟩
     rw [map_add, hk, add_zero, hTL] at hw'
     rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe, map_sub, C.injective hw', sub_self]
+
+omit [IsManifold IB ∞ B] [LieGroup IG ∞ G] [ContMDiffFiberBundle ∞ G P IB IG] in
+/-- The derivative of `x' ↦ [x', v]` at `x` is that of the quotient map at `(x, v)` composed with
+the derivative of `x' ↦ (x', v)`, by the chain rule. -/
+private theorem mfderiv_chartedMk_comp_mfderiv_prod_left [IsManifold IF ∞ F]
+    (x : ManifoldTotalSpace G P) (v : F) :
+    (mfderiv ((IB.prod IG).prod IF) (IB.prod IF) (chartedMk G F P) (x, v)).comp
+        (mfderiv (IB.prod IG) ((IB.prod IG).prod IF) (fun x' ↦ (x', v)) x) =
+      mfderiv (IB.prod IG) (IB.prod IF)
+        (fun x' : ManifoldTotalSpace G P ↦ chartedMk G F P (x', v)) x :=
+  (mfderiv_comp x ((contMDiff_chartedMk ∞ IB IG IF).mdifferentiableAt (by simp))
+    (mdifferentiableAt_id.prodMk mdifferentiableAt_const)).symm
+
+/-- **The connection induced on an associated bundle is an Ehresmann connection.** For a
+connection form `A` on a principal `G`-bundle `P` and a smooth action of `G` on `F`, with base,
+group and fibre finite-dimensional and without boundary, the induced horizontal spaces are a
+smooth Ehresmann connection on the projection of `P ×_G F` to the base: complements of the
+vertical spaces that form a smooth distribution of rank `dim B`. -/
+theorem isEhresmannConnection_associatedHorizontal [FiniteDimensional ℝ EB] [IB.Boundaryless]
+    [FiniteDimensional ℝ EG] [IG.Boundaryless] [FiniteDimensional ℝ EF] [IF.Boundaryless]
+    [IsManifold IF ∞ F] [ContMDiffFiberBundle ∞ F (AssociatedBundle G P F) IB IF]
+    (hA : IsConnectionForm A) :
+    IsEhresmannConnection (IB.prod IF) IB ∞
+      (ManifoldTotalSpace.projContMDiffMap ∞ F (AssociatedBundle G P F) IB IF)
+      hA.associatedHorizontal := by
+  refine ⟨ManifoldTotalSpace.mdifferentiable_projContMDiffMap, fun y ↦ ?_, fun y ↦ ?_, ?_⟩
+  · rw [ManifoldTotalSpace.coe_projContMDiffMap]
+    exact hA.isCompl_associatedHorizontal y
+  · rw [ManifoldTotalSpace.coe_projContMDiffMap]
+    exact isRegularPoint_iff.1 (ManifoldTotalSpace.isRegularPoint_proj IB IF y)
+  refine (hA.isEhresmannConnection_horizontal.isContMDiffDistribution.map_mfderiv_prod_left
+    (I' := IF) (M' := F)).map_mfderiv_of_isSubmersion
+    (isSubmersion_chartedMk (n := ∞) ENat.LEInfty.out) surjective_chartedMk (by simp)
+    (fun ⟨x, v⟩ ↦ ?_) (fun ⟨x, v⟩ ↦ ?_)
+  · rw [← Submodule.map_comp, ← ContinuousLinearMap.toLinearMap_comp,
+      mfderiv_chartedMk_comp_mfderiv_prod_left, associatedHorizontal_eq]
+  · -- `dq` is injective on `ker A_x × 0`, since its composite with the derivative of the
+    -- projection of `P ×_G F` is the derivative of the projection of `P`, injective on `ker A_x`.
+    rintro _ ⟨w, hw, rfl⟩ _ ⟨w', hw', rfl⟩ h
+    simp only [ContinuousLinearMap.coe_coe, ← ContinuousLinearMap.comp_apply,
+      mfderiv_chartedMk_comp_mfderiv_prod_left] at h
+    have hc := hA.isCompl_horizontal (n := ∞) x
+    rw [ManifoldTotalSpace.coe_projContMDiffMap] at hc
+    have hTL := mfderiv_proj_chartedMk_apply (IB := IB) (IG := IG) (IF := IF) (n := ∞)
+      (by simp) x v
+    rw [LinearMap.injOn_of_disjoint_ker le_rfl hc.disjoint hw hw'
+      (by simp only [ContinuousLinearMap.coe_coe, hTL, h])]
 
 end IsConnectionForm
 
