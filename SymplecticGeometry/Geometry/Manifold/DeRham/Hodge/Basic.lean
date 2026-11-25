@@ -107,52 +107,67 @@ theorem mem_exactForms_of_hodgeLaplacian_mem_closedForms (o : Manifold.Orientati
   rw [← closedForms_inf_exactForms_sup_coexactForms o hkl]
   exact Submodule.mem_inf.2 ⟨hβ, hodgeLaplacian_mem_exactForms_sup_coexactForms o hkl β⟩
 
-/-! ### The analytic half -/
+/-! ### The analytic half
 
+The Dirichlet form on the Hodge `H¹` space is `LinearPMap.friedrichsForm` of the Hodge Laplacian
+on `L2Form I M k`, and the inclusion into `L2Form I M k` is `LinearPMap.friedrichsInclusion`. -/
+
+open _root_.LinearPMap in
 /-- A harmonic form, in the Hodge `H¹` space, lies in the kernel of the Dirichlet form. -/
-theorem _root_.SymplecticGeometry.H1Form.ofSmooth_mem_ker_dirichlet
+theorem _root_.SymplecticGeometry.H1Form.ofSmooth_mem_ker_friedrichsForm
     (o : Manifold.Orientation I M (Fin m)) (hkl : k + l = m) {α : SmoothForm I M ℝ k}
     (hα : α ∈ harmonicForms o hkl) :
-    (H1Form.ofSmooth α : H1Form o hkl) ∈ (H1Form.dirichlet (o := o) (hkl := hkl)).ker := by
+    (H1Form.ofSmooth α : H1Form o hkl) ∈
+      (friedrichsForm (L2Form.isSymmetricBoundedBelow_hodgeLaplacian o hkl)).ker := by
   rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe]
   ext v
-  rw [H1Form.dirichlet_comm, H1Form.dirichlet_ofSmooth_right, (mem_harmonicForms o hkl α).1 hα,
-    map_zero, inner_zero_right, zero_apply]
+  rw [friedrichsForm_eq_star, star_trivial, H1Form.friedrichsForm_ofSmooth_right,
+    (mem_harmonicForms o hkl α).1 hα, _root_.map_zero, inner_zero_right,
+    _root_.zero_apply]
 
+open _root_.LinearPMap in
 /-- **The harmonic forms are finite dimensional** on a closed oriented Riemannian manifold. They
 embed into the kernel of the Dirichlet form, which is finite dimensional by the Fredholm
 alternative, since the Dirichlet form satisfies Gårding's inequality relative to the compact
 inclusion of `H¹` into `L²`. -/
 instance finiteDimensional_harmonicForms (o : Manifold.Orientation I M (Fin m))
     (hkl : k + l = m) : FiniteDimensional ℝ (harmonicForms o hkl) := by
-  have := (H1Form.isCompactOperator_toL2 (o := o) (hkl := hkl)).finiteDimensional_ker_of_garding
-    (C₀ := 1) (β := 1) one_pos fun w ↦ by rw [one_mul, one_mul, H1Form.norm_sq_eq_dirichlet_add]
+  have := (H1Form.isCompactOperator_friedrichsInclusion (o := o)
+    (hkl := hkl)).finiteDimensional_ker_of_garding
+    (C₀ := 1) (β := 1) one_pos fun w ↦ by
+      rw [one_mul, one_mul, H1Form.norm_sq_eq_friedrichsForm_add]
   exact Module.Finite.of_injective
     (LinearMap.codRestrict _ (H1Form.ofSmooth ∘ₗ (harmonicForms o hkl).subtype)
-      fun α ↦ H1Form.ofSmooth_mem_ker_dirichlet o hkl α.property)
+      fun α ↦ H1Form.ofSmooth_mem_ker_friedrichsForm o hkl α.property)
     fun α β h ↦ Subtype.ext (H1Form.ofSmooth_injective (congrArg Subtype.val h))
 
+open _root_.LinearPMap in
 /-- An element of `H¹` in the kernel of the Dirichlet form is a harmonic form. -/
-theorem _root_.SymplecticGeometry.H1Form.exists_mem_harmonicForms_eq_ofSmooth_of_mem_ker_dirichlet
+theorem _root_.SymplecticGeometry.H1Form.exists_mem_harmonicForms_eq_ofSmooth_of_mem_ker
     (o : Manifold.Orientation I M (Fin m)) (hkl : k + l = m) {w : H1Form o hkl}
-    (hw : w ∈ (H1Form.dirichlet (o := o) (hkl := hkl)).ker) :
+    (hw : w ∈ (friedrichsForm (L2Form.isSymmetricBoundedBelow_hodgeLaplacian o hkl)).ker) :
     ∃ β ∈ harmonicForms o hkl, w = H1Form.ofSmooth β := by
   rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe] at hw
-  have hweak : L2Form.IsWeakSolution o hkl (H1Form.toL2 w) (L2Form.ofSmooth 0) :=
+  have hweak : L2Form.IsWeakSolution o hkl
+      (friedrichsInclusion (L2Form.isSymmetricBoundedBelow_hodgeLaplacian o hkl) w)
+      (L2Form.ofSmooth 0) :=
     L2Form.isWeakSolution_iff.2 fun φ ↦ by
-      rw [← H1Form.dirichlet_ofSmooth_right, hw, map_zero, inner_zero_left, zero_apply]
+      rw [← H1Form.friedrichsForm_ofSmooth_right, hw, _root_.map_zero, inner_zero_left,
+        _root_.zero_apply]
   obtain ⟨β, hβ, hΔ⟩ := L2Form.exists_eq_ofSmooth_of_isWeakSolution hweak
   exact ⟨β, (mem_harmonicForms o hkl β).2 hΔ,
-    H1Form.toL2_injective (by rw [hβ, H1Form.toL2_ofSmooth])⟩
+    friedrichsInclusion_injective _ (by rw [hβ, H1Form.friedrichsInclusion_ofSmooth])⟩
 
+open _root_.LinearPMap in
 /-- **The kernel of the Dirichlet form** consists of the harmonic forms. -/
-theorem _root_.SymplecticGeometry.H1Form.mem_ker_dirichlet_iff
+theorem _root_.SymplecticGeometry.H1Form.mem_ker_friedrichsForm_iff
     (o : Manifold.Orientation I M (Fin m)) (hkl : k + l = m) {w : H1Form o hkl} :
-    w ∈ (H1Form.dirichlet (o := o) (hkl := hkl)).ker ↔
+    w ∈ (friedrichsForm (L2Form.isSymmetricBoundedBelow_hodgeLaplacian o hkl)).ker ↔
       ∃ β ∈ harmonicForms o hkl, w = H1Form.ofSmooth β :=
-  ⟨H1Form.exists_mem_harmonicForms_eq_ofSmooth_of_mem_ker_dirichlet o hkl,
-    fun ⟨_, hβ, hw⟩ ↦ hw ▸ H1Form.ofSmooth_mem_ker_dirichlet o hkl hβ⟩
+  ⟨H1Form.exists_mem_harmonicForms_eq_ofSmooth_of_mem_ker o hkl,
+    fun ⟨_, hβ, hw⟩ ↦ hw ▸ H1Form.ofSmooth_mem_ker_friedrichsForm o hkl hβ⟩
 
+open _root_.LinearPMap in
 /-- **The Hodge decomposition of a smooth form**: on a closed oriented Riemannian manifold, every
 smooth `k`-form is `h + Δγ` with `h` harmonic and `γ` smooth. -/
 theorem exists_mem_harmonicForms_add_hodgeLaplacian (o : Manifold.Orientation I M (Fin m))
@@ -164,23 +179,28 @@ theorem exists_mem_harmonicForms_add_hodgeLaplacian (o : Manifold.Orientation I 
     (harmonicForms o hkl).map
       (L2Form.ofSmooth : SmoothForm I M ℝ k →ₗ[ℝ] SymplecticGeometry.L2Form I M k)
   obtain ⟨_, ⟨h, hh, rfl⟩, z, hz, hα⟩ := K.exists_add_mem_mem_orthogonal (L2Form.ofSmooth α)
-  have hperp : L2Form.ofSmooth (α - h) ∈ Kᗮ := by rwa [map_sub, hα, add_sub_cancel_left]
-  -- The functional `v ↦ ⟪α - h, toL2 v⟫` vanishes on the kernel of the Dirichlet form.
+  have hperp : L2Form.ofSmooth (α - h) ∈ Kᗮ := by rwa [_root_.map_sub, hα, add_sub_cancel_left]
+  set hS := L2Form.isSymmetricBoundedBelow_hodgeLaplacian o hkl
+  -- The functional `v ↦ ⟪α - h, v⟫` on `H¹` vanishes on the kernel of the Dirichlet form.
   have hgard (w : H1Form o hkl) :
-      1 * ‖w‖ ^ 2 ≤ H1Form.dirichlet w w + 1 * ‖H1Form.toL2 w‖ ^ 2 := by
-    rw [one_mul, one_mul, H1Form.norm_sq_eq_dirichlet_add]
-  obtain ⟨u, hu⟩ := (H1Form.isCompactOperator_toL2.exists_forall_apply_eq_iff_of_garding one_pos
-    hgard ((innerSL ℝ (L2Form.ofSmooth (α - h))).comp H1Form.toL2)).2 fun w hw ↦ by
-      obtain ⟨β, hβ, rfl⟩ := (H1Form.mem_ker_dirichlet_iff o hkl).1 <| by
+      1 * ‖w‖ ^ 2 ≤ friedrichsForm hS w w + 1 * ‖friedrichsInclusion hS w‖ ^ 2 := by
+    rw [one_mul, one_mul, H1Form.norm_sq_eq_friedrichsForm_add]
+  obtain ⟨u, hu⟩ :=
+    (H1Form.isCompactOperator_friedrichsInclusion.exists_forall_apply_eq_iff_of_garding one_pos
+      hgard ((innerSL ℝ (L2Form.ofSmooth (α - h))).comp (friedrichsInclusion hS))).2
+      fun w hw ↦ by
+      obtain ⟨β, hβ, rfl⟩ := (H1Form.mem_ker_friedrichsForm_iff o hkl).1 <| by
         rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe]
-        exact ContinuousLinearMap.ext fun v ↦ by rw [H1Form.dirichlet_comm]; exact hw v
-      rw [ContinuousLinearMap.comp_apply, innerSL_apply_apply, H1Form.toL2_ofSmooth]
+        exact ContinuousLinearMap.ext fun v ↦ by
+          rw [friedrichsForm_eq_star, star_trivial]; exact hw v
+      rw [ContinuousLinearMap.comp_apply, innerSL_apply_apply, H1Form.friedrichsInclusion_ofSmooth]
       exact Submodule.inner_left_of_mem_orthogonal (Submodule.mem_map_of_mem hβ) hperp
   -- Its solution is a weak solution of `Δu = α - h`, hence smooth.
-  have hweak : L2Form.IsWeakSolution o hkl (H1Form.toL2 u) (L2Form.ofSmooth (α - h)) :=
+  have hweak : L2Form.IsWeakSolution o hkl (friedrichsInclusion hS u)
+      (L2Form.ofSmooth (α - h)) :=
     L2Form.isWeakSolution_iff.2 fun φ ↦ by
-      rw [← H1Form.dirichlet_ofSmooth_right, hu, ContinuousLinearMap.comp_apply,
-        H1Form.toL2_ofSmooth, innerSL_apply_apply, real_inner_comm]
+      rw [← H1Form.friedrichsForm_ofSmooth_right, hu, ContinuousLinearMap.comp_apply,
+        H1Form.friedrichsInclusion_ofSmooth, innerSL_apply_apply, real_inner_comm]
   obtain ⟨γ, -, hγ⟩ := L2Form.exists_eq_ofSmooth_of_isWeakSolution hweak
   exact ⟨h, hh, γ, by rw [hγ, add_sub_cancel]⟩
 
