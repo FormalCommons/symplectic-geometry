@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Lie.MaurerCartan
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Basic
+public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Trivialization
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartitionOfUnity
 
 /-!
@@ -34,11 +35,11 @@ these local forms into a connection form on the whole total space, as soon as th
 
 ## Implementation notes
 
-The local lemmas adapt the proofs of
-`SymplecticGeometry.mpullback_op_smul_mpullback_trivialization_snd` and
-`SymplecticGeometry.mpullback_trivialization_snd_apply_rightFundamentalVectorField` (the case
-`G = Circle`, with the angular form of the circle in place of the Maurer–Cartan form) to a general
-Lie group. The circle case of the existence theorem,
+The local lemmas follow from two facts about the fibre coordinate that hold for any form,
+`Trivialization.mpullback_op_smul_mpullback_snd` and
+`Trivialization.mfderiv_snd_rightFundamentalVectorField` (`Principal/Trivialization.lean`), which
+also give the case `G = Circle`, with the angular form of the circle in place of the Maurer–Cartan
+form, in `Principal/CircleConnection.lean`. The circle case of the existence theorem,
 `SymplecticGeometry.exists_isCircleConnectionForm`, is derived from `exists_isConnectionForm` in
 `Principal/Connection/Circle.lean`.
 
@@ -96,24 +97,9 @@ theorem mpullback_op_smul_mpullback_trivialization_snd_maurerCartan
         (TauCeti.mpullback (IB.prod IG) IG (fun x : ManifoldTotalSpace G P ↦
           (e ((ManifoldTotalSpace.homeomorph G P).symm x)).2) (leftMaurerCartanForm IG G).val)
         x := by
-  set θ := fun x : ManifoldTotalSpace G P ↦ (e ((ManifoldTotalSpace.homeomorph G P).symm x)).2
-  have hS := e.open_baseSet.preimage (ManifoldTotalSpace.contMDiff_proj ∞ G P IB IG).continuous
-  have hgx : ((ManifoldTotalSpace.homeomorph G P).symm (op g • x)).proj ∈ e.baseSet := by
-    simpa [ManifoldTotalSpace.homeomorph_symm_smul] using hx
-  have hsmul : MDifferentiableAt (IB.prod IG) (IB.prod IG)
-      (fun y : ManifoldTotalSpace G P ↦ op g • y) x :=
-    (contMDiff_const_smul (I := IB.prod IG) (n := 1) (op g) x).mdifferentiableAt one_ne_zero
-  have hmul : MDifferentiableAt IG IG (fun w : G ↦ w * g) (θ x) :=
-    (contMDiff_mul_right (I := IG) (n := 1) (a := g) _).mdifferentiableAt one_ne_zero
-  -- Near `x`, the fibre coordinate of `y • g` is that of `y` times `g`.
-  have heq : θ ∘ (fun y ↦ op g • y) =ᶠ[nhds x] (fun w : G ↦ w * g) ∘ θ := by
-    filter_upwards [hS.mem_nhds hx] with y hy
-    simp only [Function.comp_apply, θ, ManifoldTotalSpace.homeomorph_symm_smul]
-    exact e.snd_apply_smul hy _ g
   have hR := congrArg Subtype.val (mpullback_mul_right_leftMaurerCartanForm (I := IG) g)
   rw [SmoothForm.coe_mpullback, SmoothForm.coe_mapCoeff] at hR
-  rw [← mpullback_comp_at hsmul (hθ _ hgx), heq.mpullback_eq, mpullback_comp_at (hθ _ hx) hmul,
-    hR, mpullback_mapCoeff]
+  rw [Trivialization.mpullback_op_smul_mpullback_snd hθ hx, hR, mpullback_mapCoeff]
 
 omit [IsManifold IB ∞ B] [ContMDiffFiberBundle ∞ G P IB IG] in
 /-- Let `e` be an equivariant trivialization whose fibre coordinate `θ` is differentiable over its
@@ -127,30 +113,13 @@ theorem mpullback_trivialization_snd_maurerCartan_apply_rightFundamentalVectorFi
         (e ((ManifoldTotalSpace.homeomorph G P).symm x)).2) (leftMaurerCartanForm IG G).val :
           RoughForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1) x
       ![rightFundamentalVectorField (IB.prod IG) ξ x] = ξ := by
-  set θ := fun x : ManifoldTotalSpace G P ↦ (e ((ManifoldTotalSpace.homeomorph G P).symm x)).2
-  have horb := PrincipalBundle.mdifferentiableAt_orbit (IB := IB) (IG := IG) (n := ∞)
-    (by simp) x 1
-  have hθx : MDifferentiableAt (IB.prod IG) IG θ (op (1 : G) • x) := by
-    rw [op_one, one_smul]
-    exact hθ _ hx
-  -- Along the orbit of `x`, the fibre coordinate is left multiplication by `θ x`.
-  have hcomp : θ ∘ (fun g : G ↦ op g • x) = fun g ↦ θ x * g :=
-    funext fun g ↦ by
-      simp only [Function.comp_apply, θ, ManifoldTotalSpace.homeomorph_symm_smul]
-      exact e.snd_apply_smul hx _ g
-  have hv : mfderiv (IB.prod IG) IG θ x (rightFundamentalVectorField (IB.prod IG) ξ x) =
-      mulInvariantVectorField ξ (θ x) := by
-    rw [GroupLieAlgebra.mulInvariantVectorField_apply, rightFundamentalVectorField_apply, ← hcomp,
-      mfderiv_comp_of_eq hθx horb rfl, op_one, one_smul]
-    -- `ContinuousLinearMap.comp_apply` does not rewrite here: the inner derivative lands in the
-    -- tangent space at `op 1 • x`, which is `x` only after `one_smul`.
-    rfl
-  have hvec : (fun i ↦ mfderiv (IB.prod IG) IG θ x
+  have hvec : (fun i ↦ mfderiv (IB.prod IG) IG (fun x : ManifoldTotalSpace G P ↦
+      (e ((ManifoldTotalSpace.homeomorph G P).symm x)).2) x
       (![rightFundamentalVectorField (IB.prod IG) ξ x] i)) =
-      ![mulInvariantVectorField ξ (θ x)] := by
+      ![mulInvariantVectorField ξ ((e ((ManifoldTotalSpace.homeomorph G P).symm x)).2)] := by
     funext i
     fin_cases i
-    exact hv
+    exact Trivialization.mfderiv_snd_rightFundamentalVectorField hx (hθ _ hx) ξ
   rw [mpullback_apply, hvec, leftMaurerCartanForm_apply_mulInvariantVectorField]
 
 end Local
