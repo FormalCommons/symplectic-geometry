@@ -7,7 +7,7 @@ module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.BoundaryDegree
 public import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.Maslov
-public import SymplecticGeometry.Geometry.Manifold.ModelTransport.InteriorModel
+public import SymplecticGeometry.Geometry.Manifold.Boundary.Interior
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.Basic
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.ArgumentPrinciple
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.UnitaryFrame

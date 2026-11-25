@@ -13,7 +13,7 @@ import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Push
 import SymplecticGeometry.Geometry.Manifold.IsManifold.SecondCountable
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.Generic
 import TauCeti.Geometry.Manifold.Boundary.Collar.Topological
-import SymplecticGeometry.Geometry.Manifold.ModelTransport.InteriorModel
+import TauCeti.Geometry.Manifold.ModelTransport.Interior
 import TauCeti.Geometry.Manifold.VectorBundle.Section.Generic
 import TauCeti.Geometry.Manifold.VectorBundle.Section.Module
 import TauCeti.Geometry.Manifold.VectorBundle.Section.Nonvanishing
@@ -56,6 +56,8 @@ public section
 open Bundle
 open scoped Manifold ContDiff Topology
 
+attribute [local instance] TauCeti.BoundarylessModel.interiorChartedSpace
+
 namespace SymplecticGeometry
 
 open Set Module TauCeti
@@ -79,9 +81,12 @@ private theorem exists_contMDiffSection_isDiscrete_interior [SecondCountableTopo
     (hF : finrank ℝ E ≤ finrank ℝ F) :
     ∃ σ : ContMDiffSection I F ∞ V, IsDiscrete {x : I.interiorOpens M | σ x = 0} := by
   let U := I.interiorOpens M
-  let N := InteriorModel I U
-  let j : C^∞⟮𝓘(ℝ, E), N; I, M⟯ :=
-    ⟨InteriorModel.val, InteriorModel.isLocalDiffeomorph_val.contMDiff⟩
+  let N := BoundarylessModel I U
+  have : SecondCountableTopology N := inferInstanceAs (SecondCountableTopology U)
+  let e :=BoundarylessModel.homeomorph I U
+  let j : C^∞⟮𝓘(ℝ, E), N; I, M⟯ := ⟨fun y ↦ (e.symm y : M), by
+    rw [← BoundarylessModel.coe_interiorDiffeomorph_symm I ∞]
+    exact contMDiff_subtypeVal.comp (BoundarylessModel.interiorDiffeomorph I ∞).symm.contMDiff⟩
   have : ContMDiffVectorBundle ∞ F ((j : C(N, M)) *ᵖ V) 𝓘(ℝ, E) :=
     ContMDiffVectorBundle.pullback F V 𝓘(ℝ, E) j
   obtain ⟨k, s, hspan⟩ :=
@@ -102,14 +107,14 @@ private theorem exists_contMDiffSection_isDiscrete_interior [SecondCountableTopo
   obtain ⟨a, ha⟩ := (dense_of_mem_residual hres).nonempty
   simp only [mem_ofPred_eq, key] at ha
   refine ⟨affineFamily 0 s a, ?_⟩
-  convert ha.image (interiorModelHomeomorph I U).symm.isInducing using 1
+  convert ha.image e.symm.isInducing using 1
   ext x
-  rw [(interiorModelHomeomorph I U).symm.image_eq_preimage_symm, Homeomorph.symm_symm,
+  rw [e.symm.image_eq_preimage_symm, Homeomorph.symm_symm,
     Set.mem_preimage, Set.mem_ofPred_eq, Set.mem_ofPred_eq]
   simp only [j, ContMDiffMap.coeFn_mk]
   have hz {p q : M} (h : p = q) : affineFamily 0 s a p = 0 ↔ affineFamily 0 s a q = 0 := by
     subst h; rfl
-  exact hz (InteriorModel.val_interiorModelHomeomorph x).symm
+  exact hz (congrArg Subtype.val (e.symm_apply_apply x)).symm
 
 omit [CompactSpace M] [FiniteDimensional ℝ F] [ContMDiffVectorBundle ∞ F V I] in
 /-- In the interior of a connected manifold of dimension at least two, let `σ` be a section whose
@@ -122,7 +127,7 @@ private theorem exists_homotopy_interior_ne_zero [ConnectedSpace M] (hdim : 1 < 
     ∃ G : unitInterval × I.interiorOpens M → I.interiorOpens M, Continuous G ∧
       (∀ y, G (0, y) = y) ∧ ∀ y ∈ K, σ (G (1, y)) ≠ 0 := by
   let U := I.interiorOpens M
-  let N := InteriorModel I U
+  let N := BoundarylessModel I U
   -- Restate the hypotheses for the topology of `N`, which is that of `U`.
   have hZ : IsClosed (X := N) {x : U | σ x = 0} :=
     σ.isClosed_setOf_eq_zero.preimage continuous_subtypeVal
