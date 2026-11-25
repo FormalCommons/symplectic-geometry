@@ -18,12 +18,13 @@ import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 
 Let `M` be a manifold without boundary modelled on a real Banach space, and let `f : M → ℝ`
 vanish at `x` with `df_x ≠ 0`, so that `{f = 0}` is a hypersurface near `x`. A function `g` that
-vanishes near `x` wherever `f` does is `a * f` near `x`, and `dg_x = a x • df_x`. If `f` and `g`
-are `C^(n+1)` on an open set around `x`, with `n : ℕ∞` (so `n = ∞` is allowed), the factor `a` is
-`C^n` at `x`; the same holds for `f` and `g` that are `C^(n+1)` at `x`, with `n : ℕ`. Hence two
-defining functions of the same hypersurface near a regular point differ by a factor that does not
-vanish at the point, and that is positive there when their differentials are positively
-proportional, as for two defining functions of a cooriented hypersurface.
+vanishes near `x` wherever `f` does is `a * f` near `x`, and `dg_x = a x • df_x`. If `M` is
+a `C^m` manifold and `f` and `g` are `C^m` on an open set around `x`, with `n + 1 ≤ m` for some
+`n : ℕ∞` (so smooth `f` and `g` are allowed), the factor `a` is `C^n` at `x`; the same holds for
+`f` and `g` that are `C^(n+1)` at `x`, with `n : ℕ`, with no smoothness assumed of the atlas of
+`M`. Hence two defining functions of the same hypersurface near a regular point differ by a factor
+that does not vanish at the point, and that is positive there when their differentials are
+positively proportional, as for two defining functions of a cooriented hypersurface.
 
 The proof reads `f` and `g` in the extended chart at `x` and applies the normed-space statement
 `ContDiffOn.exists_contDiffAt_eventuallyEq_mul_of_eq_zero`; both forms go through
@@ -33,8 +34,8 @@ chart.
 ## Main results
 
 * `ContMDiffOn.exists_contMDiffAt_eventuallyEq_mul_of_eq_zero`: for `f` and `g` that are
-  `C^(n+1)` on an open set `s ∋ x`, `g = a * f` near `x`, with `a` of class `C^n` at `x` and
-  `dg_x = a x • df_x`.
+  `C^m` on an open set `s ∋ x` of a `C^m` manifold, with `n + 1 ≤ m`, `g = a * f` near `x`,
+  with `a` of class `C^n` at `x` and `dg_x = a x • df_x`.
 * `ContMDiffOn.exists_contMDiffAt_eventuallyEq_mul_ne_zero`: for two defining functions, the
   factor does not vanish at `x`.
 * `ContMDiffOn.exists_contMDiffAt_eventuallyEq_mul_of_mvfderiv_eq_smul`,
@@ -101,16 +102,16 @@ theorem ContDiffOn.exists_contMDiffAt_eventuallyEq_mul_of_comp_extChartAt_symm {
 
 namespace ContMDiffOn
 
-variable {s : Set M} {n : ℕ∞} [IsManifold I (n + 1) M]
+variable {s : Set M} {m : WithTop ℕ∞} {n : ℕ∞} [IsManifold I m M]
 
 /-- **A function vanishing on a regular zero set is a multiple of the defining function.** On a
-manifold without boundary modelled on a real Banach space, let `f` and `g` be `C^(n+1)` on an
-open set `s` containing `x`, where `n : ℕ∞` may be `∞`, with `f x = 0`, `df_x ≠ 0`, and `g = 0`
-at every point of `s` where `f = 0`. Then there is `a`, of class `C^n` at `x`, with `g = a * f`
-near `x`; its value at `x` satisfies `dg_x = a x • df_x`. -/
+`C^m` manifold without boundary modelled on a real Banach space, let `f` and `g` be `C^m` on an
+open set `s` containing `x`, where `n + 1 ≤ m` and `n : ℕ∞` may be `∞`, with `f x = 0`,
+`df_x ≠ 0`, and `g = 0` at every point of `s` where `f = 0`. Then there is `a`, of class `C^n`
+at `x`, with `g = a * f` near `x`; its value at `x` satisfies `dg_x = a x • df_x`. -/
 theorem exists_contMDiffAt_eventuallyEq_mul_of_eq_zero (hs : IsOpen s) (hx : x ∈ s)
-    (hf : ContMDiffOn I 𝓘(ℝ) (n + 1) f s) (hg : ContMDiffOn I 𝓘(ℝ) (n + 1) g s) (hfx : f x = 0)
-    (hf' : mvfderiv I f x ≠ 0) (hfg : ∀ y ∈ s, f y = 0 → g y = 0) :
+    (hf : ContMDiffOn I 𝓘(ℝ) m f s) (hg : ContMDiffOn I 𝓘(ℝ) m g s) (hmn : n + 1 ≤ m)
+    (hfx : f x = 0) (hf' : mvfderiv I f x ≠ 0) (hfg : ∀ y ∈ s, f y = 0 → g y = 0) :
     ∃ a : M → ℝ, ContMDiffAt I 𝓘(ℝ) n a x ∧ g =ᶠ[𝓝 x] a * f ∧
       mvfderiv I g x = a x • mvfderiv I f x := by
   -- The part of the chart's target that the inverse chart maps into `s`.
@@ -119,47 +120,52 @@ theorem exists_contMDiffAt_eventuallyEq_mul_of_eq_zero (hs : IsOpen s) (hx : x �
     (continuousOn_extChartAt_symm x).isOpen_inter_preimage (isOpen_extChartAt_target x) hs
   have hxt : extChartAt I x x ∈ t :=
     ⟨mem_extChartAt_target x, by rwa [mem_preimage, extChartAt_to_inv]⟩
-  have hc {h : M → ℝ} (hh : ContMDiffOn I 𝓘(ℝ) (n + 1) h s) :
+  have hc {h : M → ℝ} (hh : ContMDiffOn I 𝓘(ℝ) m h s) :
       ContDiffOn ℝ (n + 1) (h ∘ (extChartAt I x).symm) t :=
-    contMDiffOn_iff_contDiffOn.1 (hh.comp' (contMDiffOn_extChartAt_symm x))
+    (contMDiffOn_iff_contDiffOn.1 (hh.comp' (contMDiffOn_extChartAt_symm x))).of_le hmn
   exact (hc hf).exists_contMDiffAt_eventuallyEq_mul_of_comp_extChartAt_symm ht hxt (hc hg) hfx
     hf' fun z hz ↦ hfg _ hz.2
 
-/-- **Two defining functions of a hypersurface differ by a nonvanishing factor.** On a manifold
-without boundary modelled on a real Banach space, let `f` and `g` be `C^(n+1)` on an open set `s`
-containing `x`, with `f x = 0`, `df_x ≠ 0`, `dg_x ≠ 0`, and `g = 0` at every point of `s` where
-`f = 0`. Then `g = a * f` near `x` for a function `a` that is `C^n` at `x` with `a x ≠ 0`. -/
+/-- **Two defining functions of a hypersurface differ by a nonvanishing factor.** On a `C^m`
+manifold without boundary modelled on a real Banach space, let `f` and `g` be `C^m` on an open
+set `s` containing `x`, where `n + 1 ≤ m`, with `f x = 0`, `df_x ≠ 0`, `dg_x ≠ 0`, and `g = 0` at
+every point of `s` where `f = 0`. Then `g = a * f` near `x` for a function `a` that is `C^n` at
+`x` with `a x ≠ 0`. -/
 theorem exists_contMDiffAt_eventuallyEq_mul_ne_zero (hs : IsOpen s) (hx : x ∈ s)
-    (hf : ContMDiffOn I 𝓘(ℝ) (n + 1) f s) (hg : ContMDiffOn I 𝓘(ℝ) (n + 1) g s) (hfx : f x = 0)
-    (hf' : mvfderiv I f x ≠ 0) (hg' : mvfderiv I g x ≠ 0) (hfg : ∀ y ∈ s, f y = 0 → g y = 0) :
+    (hf : ContMDiffOn I 𝓘(ℝ) m f s) (hg : ContMDiffOn I 𝓘(ℝ) m g s) (hmn : n + 1 ≤ m)
+    (hfx : f x = 0) (hf' : mvfderiv I f x ≠ 0) (hg' : mvfderiv I g x ≠ 0)
+    (hfg : ∀ y ∈ s, f y = 0 → g y = 0) :
     ∃ a : M → ℝ, ContMDiffAt I 𝓘(ℝ) n a x ∧ g =ᶠ[𝓝 x] a * f ∧ a x ≠ 0 := by
-  obtain ⟨a, ha, hga, hd⟩ := hf.exists_contMDiffAt_eventuallyEq_mul_of_eq_zero hs hx hg hfx hf' hfg
+  obtain ⟨a, ha, hga, hd⟩ := hf.exists_contMDiffAt_eventuallyEq_mul_of_eq_zero hs hx hg hmn hfx
+    hf' hfg
   exact ⟨a, ha, hga, fun h ↦ hg' (by rw [hd, h, zero_smul])⟩
 
-/-- **The factor between two defining functions at a point.** On a manifold without boundary
-modelled on a real Banach space, let `f` and `g` be `C^(n+1)` on an open set `s` containing `x`,
-with `f x = 0`, `df_x ≠ 0`, `dg_x = c • df_x`, and `g = 0` at every point of `s` where `f = 0`.
-Then `g = a * f` near `x` for a function `a` that is `C^n` at `x` with `a x = c`. -/
+/-- **The factor between two defining functions at a point.** On a `C^m` manifold without
+boundary modelled on a real Banach space, let `f` and `g` be `C^m` on an open set `s` containing
+`x`, where `n + 1 ≤ m`, with `f x = 0`, `df_x ≠ 0`, `dg_x = c • df_x`, and `g = 0` at every point
+of `s` where `f = 0`. Then `g = a * f` near `x` for a function `a` that is `C^n` at `x` with
+`a x = c`. -/
 theorem exists_contMDiffAt_eventuallyEq_mul_of_mvfderiv_eq_smul (hs : IsOpen s) (hx : x ∈ s)
-    (hf : ContMDiffOn I 𝓘(ℝ) (n + 1) f s) (hg : ContMDiffOn I 𝓘(ℝ) (n + 1) g s) (hfx : f x = 0)
-    (hf' : mvfderiv I f x ≠ 0) {c : ℝ} (hgf : mvfderiv I g x = c • mvfderiv I f x)
-    (hfg : ∀ y ∈ s, f y = 0 → g y = 0) :
+    (hf : ContMDiffOn I 𝓘(ℝ) m f s) (hg : ContMDiffOn I 𝓘(ℝ) m g s) (hmn : n + 1 ≤ m)
+    (hfx : f x = 0) (hf' : mvfderiv I f x ≠ 0) {c : ℝ}
+    (hgf : mvfderiv I g x = c • mvfderiv I f x) (hfg : ∀ y ∈ s, f y = 0 → g y = 0) :
     ∃ a : M → ℝ, ContMDiffAt I 𝓘(ℝ) n a x ∧ g =ᶠ[𝓝 x] a * f ∧ a x = c := by
-  obtain ⟨a, ha, hga, hd⟩ := hf.exists_contMDiffAt_eventuallyEq_mul_of_eq_zero hs hx hg hfx hf' hfg
+  obtain ⟨a, ha, hga, hd⟩ := hf.exists_contMDiffAt_eventuallyEq_mul_of_eq_zero hs hx hg hmn hfx
+    hf' hfg
   exact ⟨a, ha, hga, smul_left_injective ℝ hf' (by simp only [← hd, hgf])⟩
 
 /-- **Two defining functions of a cooriented hypersurface differ by a positive factor.** On a
-manifold without boundary modelled on a real Banach space, let `f` and `g` be `C^(n+1)` on an
-open set `s` containing `x`, with `f x = 0`, `df_x ≠ 0`, `dg_x = c • df_x` for some `c > 0`, and
-`g = 0` at every point of `s` where `f = 0`. Then `g = a * f` near `x` for a function `a` that is
-`C^n` at `x` with `a x > 0`. -/
+`C^m` manifold without boundary modelled on a real Banach space, let `f` and `g` be `C^m` on an
+open set `s` containing `x`, where `n + 1 ≤ m`, with `f x = 0`, `df_x ≠ 0`, `dg_x = c • df_x` for
+some `c > 0`, and `g = 0` at every point of `s` where `f = 0`. Then `g = a * f` near `x` for a
+function `a` that is `C^n` at `x` with `a x > 0`. -/
 theorem exists_contMDiffAt_eventuallyEq_mul_pos (hs : IsOpen s) (hx : x ∈ s)
-    (hf : ContMDiffOn I 𝓘(ℝ) (n + 1) f s) (hg : ContMDiffOn I 𝓘(ℝ) (n + 1) g s) (hfx : f x = 0)
-    (hf' : mvfderiv I f x ≠ 0) {c : ℝ} (hc : 0 < c) (hgf : mvfderiv I g x = c • mvfderiv I f x)
-    (hfg : ∀ y ∈ s, f y = 0 → g y = 0) :
+    (hf : ContMDiffOn I 𝓘(ℝ) m f s) (hg : ContMDiffOn I 𝓘(ℝ) m g s) (hmn : n + 1 ≤ m)
+    (hfx : f x = 0) (hf' : mvfderiv I f x ≠ 0) {c : ℝ} (hc : 0 < c)
+    (hgf : mvfderiv I g x = c • mvfderiv I f x) (hfg : ∀ y ∈ s, f y = 0 → g y = 0) :
     ∃ a : M → ℝ, ContMDiffAt I 𝓘(ℝ) n a x ∧ g =ᶠ[𝓝 x] a * f ∧ 0 < a x := by
   obtain ⟨a, ha, hga, hax⟩ :=
-    hf.exists_contMDiffAt_eventuallyEq_mul_of_mvfderiv_eq_smul hs hx hg hfx hf' hgf hfg
+    hf.exists_contMDiffAt_eventuallyEq_mul_of_mvfderiv_eq_smul hs hx hg hmn hfx hf' hgf hfg
   exact ⟨a, ha, hga, hax ▸ hc⟩
 
 end ContMDiffOn
