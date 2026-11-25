@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.ConstantRank.Factorization
 public import TauCeti.Geometry.Manifold.Immersion.Differential
 public import TauCeti.Geometry.Manifold.Instances.Sigma
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Sigma
+import SymplecticGeometry.Topology.Sets.Opens.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Opens
 
 /-!
@@ -68,9 +69,7 @@ theorem ContMDiff.exists_isImmersion_range_eq_of_mfderivRank_eq [FiniteDimension
   have := FiniteDimensional.completeSpace 𝕜 F
   -- For an empty `M`, the source is an empty disjoint union.
   rcases isEmpty_or_nonempty M with hM | ⟨⟨x₀⟩⟩
-  · have : IsEmpty (Σ _ : ℕ, (⊥ : Opens (EuclideanSpace 𝕜 (Fin r)))) :=
-      ⟨fun ⟨_, _, hx⟩ ↦ Opens.mem_bot.1 hx⟩
-    refine ⟨Σ _ : ℕ, (⊥ : Opens (EuclideanSpace 𝕜 (Fin r))), inferInstance, inferInstance,
+  · refine ⟨Σ _ : ℕ, (⊥ : Opens (EuclideanSpace 𝕜 (Fin r))), inferInstance, inferInstance,
       inferInstance, inferInstance, inferInstance, isEmptyElim,
       ContMDiff.isImmersion_of_injective_mfderiv isEmptyElim hn isEmptyElim, ?_,
       fun _ _ ↦ isEmptyElim⟩
