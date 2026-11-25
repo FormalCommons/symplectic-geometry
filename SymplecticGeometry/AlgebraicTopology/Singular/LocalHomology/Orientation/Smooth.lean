@@ -8,6 +8,7 @@ module
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.LocalIndex
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 public import TauCeti.Geometry.Manifold.Degree.Homological
+import TauCeti.Topology.Algebra.Module.Determinant
 
 /-!
 # Local orientations of a smooth orientation
@@ -92,10 +93,9 @@ theorem toHomologicalOrientation_apply_eq_localOrientationOfOrientedChart
   rw [toHomologicalOrientation_apply,
     localOrientationOfManifoldOrientation_eq_localOrientationOfOrientedChart_transHomeomorph
       o hE x rfl D hF hxφ, hω]
-  have hdet : (ContinuousLinearMap.id ℝ F).det = 1 := LinearMap.det_id
   apply Subtype.ext
   rw [OpenPartialHomeomorph.coe_localOrientationOfOrientedChart_eq_sign_det_smul _ _ φ χ hxφ hx
-    hd (hdet ▸ one_ne_zero), hdet, sign_one, SignType.coe_one, one_smul]
+    hd (by simp), ContinuousLinearMap.det_id, sign_one, SignType.coe_one, one_smul]
 
 
 section LocalHomologyMap

@@ -362,8 +362,7 @@ theorem clutchingFrame_apply (i : Bool) {x : M} (hx : x ∈ (clutchingLineBundle
     (v : StdSpace (Fin 1)) :
     clutchingFrame φ k i x hx v =
       ((clutchingLineBundle φ k).localTriv i).symm x (equivComplex (Fin 1) v) :=
-  (congrFun (((clutchingLineBundle φ k).localTriv i).symm_continuousLinearEquivAt_eq
-    (R := ℝ) hx) _).trans (((clutchingLineBundle φ k).localTriv i).symmL_apply hx _)
+  congrFun (((clutchingLineBundle φ k).localTriv i).continuousLinearEquivAt_symm_apply ℝ x hx) _
 
 /-- Read in `ℂ`, the frame of the chart `i` at `x` is `v ↦ e^{ik(j - i)θ} v`, where `j` is the
 chart that the core assigns to `x`. -/
