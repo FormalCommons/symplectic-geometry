@@ -6,7 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.MFDeriv.ModelChart
 
 /-!
