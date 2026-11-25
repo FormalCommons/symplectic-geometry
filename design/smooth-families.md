@@ -135,12 +135,12 @@ No statement of this part is one that the authors' errata
   added. A linear map `T` defined on a submodule of forms takes smooth
   families to smooth families when `t ↦ T (α t)` is a smooth family for every
   smooth family `α` with values in the submodule (`PreservesSmoothFamilies`).
-  (★) is the structure `SmoothCohomologySplitting I M`, which holds the
+  (★) is a splitting `σ : SmoothCohomologySplitting I M`, which holds the
   spaces $S^k$, the maps $p$ and $h$ of every degree at once, since the
-  induction uses all degrees together. The milestone is stated for a manifold
-  with a finite good cover; existence of such covers on compact boundaryless
-  manifolds is a separate theorem, as is finite-dimensionality of de Rham
-  cohomology there.
+  induction uses all degrees together, and a proof of `σ.IsSmooth`. The
+  milestone is stated for a manifold with a finite good cover; existence of
+  such covers on compact boundaryless manifolds is a separate theorem, as is
+  finite-dimensionality of de Rham cohomology there.
 - **The time extension.** It is built in three layers: Seeley's extension of
   functions on `ℝ` from $[0,1]$, with parameters in an open set of a normed
   space (`Analysis/Calculus/ContDiff/Seeley/`); its manifold form for maps
@@ -650,24 +650,29 @@ For `[IsManifold I ∞ M]`:
     proj (k + 1) z` (the identity $z=p(z)+d\,h(z)$, degree by degree, so that
     $\Omega^{-1}$ never occurs);
   - `eq_zero_of_mem_exactForms : s ∈ space k → s ∈ exactForms I M k → s = 0`;
-  - `preservesSmoothFamilies_proj` and `preservesSmoothFamilies_primitive`,
-    for the universe levels of `PreservesSmoothFamilies`, which the structure
-    takes as parameters.
+
+  and no universe parameters. Smoothness is the predicate
+  `SmoothCohomologySplitting.IsSmooth σ : Prop`, a structure with fields
+  `preservesSmoothFamilies_proj` and `preservesSmoothFamilies_primitive`, for
+  the universe levels of `PreservesSmoothFamilies`, which the predicate takes
+  as parameters.
 - From a splitting `σ`: `σ.mk_proj` (`proj` keeps the class), `σ.spaceEquiv
   k : σ.space k ≃ₗ[ℝ] deRhamCohomology I M k` (the class map is bijective),
   `σ.proj_eq_zero_iff` (`proj k z = 0` exactly when `z` is exact),
   `σ.finiteDimensional_deRhamCohomology`, `σ.exactPrimitive k :
   exactForms I M (k + 1) →ₗ[ℝ] SmoothForm I M ℝ k` with
-  `mextDerivₗ_exactPrimitive` and `preservesSmoothFamilies_exactPrimitive`,
-  and `σ.contMDiff_repr_mk`: for a basis `b` of `deRhamCohomology I M k` and a
-  smooth family `z` of closed forms, every `t ↦ b.repr (deRhamCohomology.mk I
-  k (z t)) i` is smooth on the parameter manifold, through `spaceEquiv` and
+  `mextDerivₗ_exactPrimitive`; and for `hσ : σ.IsSmooth`,
+  `hσ.preservesSmoothFamilies_exactPrimitive` and `hσ.contMDiff_repr_mk`: for
+  a basis `b` of `deRhamCohomology I M k` and a smooth family `z` of closed
+  forms, every `t ↦ b.repr (deRhamCohomology.mk I k (z t)) i` is smooth on
+  the parameter manifold, through `spaceEquiv` and
   `preservesSmoothFamilies_iff_smoothAlongFamilies_coord`.
 
 ### `Geometry/Manifold/DeRham/SmoothFamily/Contractible.lean`
 
-- `nonempty_smoothCohomologySplitting_of_isSmoothlyContractible
-  (h : IsSmoothlyContractible I N) : Nonempty (SmoothCohomologySplitting I N)`:
+- `SmoothCohomologySplitting.exists_isSmooth_of_isSmoothlyContractible
+  (h : IsSmoothlyContractible I N) : ∃ σ : SmoothCohomologySplitting I N,
+  σ.IsSmooth`:
   in degree zero the closed forms are the constants (a closed 0-form is
   constant along the contraction, by `mem_closedForms_zero_iff`), a space of
   dimension one; in positive degree `space = ⊥`, `proj = 0` and `primitive`
@@ -693,8 +698,8 @@ extensions take smooth families to smooth families. A file of its own keeps
 For `[FiniteDimensional ℝ E] [T2Space M] [SigmaCompactSpace M]` (the
 hypotheses of Tau Ceti's Mayer–Vietoris sequence) and `U V : Opens M`:
 
-- `nonempty_smoothCohomologySplitting_sup`: splittings on `U`, `V` and
-  `U ⊓ V` give one on `U ⊔ V`. The construction is the auxiliary page's
+- `SmoothCohomologySplitting.exists_isSmooth_sup`: smooth splittings on `U`,
+  `V` and `U ⊓ V` give one on `U ⊔ V`. The construction is the auxiliary page's
   inductive step: first a correction by finitely many fixed closed forms
   that makes the restrictions to `U` and `V` exact, then a correction by
   finitely many fixed pairs that makes the class of the discrepancy on
@@ -715,11 +720,12 @@ hypotheses of Tau Ceti's Mayer–Vietoris sequence) and `U V : Opens M`:
 For `[FiniteDimensional ℝ E] [IsManifold I ∞ M] [T2Space M]
 [SigmaCompactSpace M]`:
 
-- `IsFiniteGoodCover.nonempty_smoothCohomologySplitting (hU : IsFiniteGoodCover
-  I U) : Nonempty (SmoothCohomologySplitting I M)`, and the same from
+- `IsFiniteGoodCover.exists_smoothCohomologySplitting_isSmooth (hU :
+  IsFiniteGoodCover I U) : ∃ σ : SmoothCohomologySplitting I M, σ.IsSmooth`,
+  and the same from
   `HasFiniteGoodCover I M`: (★), by the strong induction of *Decisions*, the
   base case from `Contractible.lean`, the empty union by the zero splitting
-  (a lemma `nonempty_smoothCohomologySplitting_of_isEmpty`), and transport
+  (a lemma `SmoothCohomologySplitting.exists_isSmooth_of_isEmpty`), and transport
   from the open `⊤` to `M`.
 - The milestone: `exists_primitiveMap_of_hasFiniteGoodCover
   (hM : HasFiniteGoodCover I M) (k : ℕ) : ∃ P : exactForms I M (k + 1) →ₗ[ℝ]

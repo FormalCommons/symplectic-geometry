@@ -286,30 +286,22 @@ In the setting of Tau Ceti's `TopCat.pullbackCupRestrict` (a map
   class is stated with the `ℤ`-linear structure `ModuleCat.instLinear`,
   while `localCohomologyClass`, `thomClass` and the integral classes here
   use `Linear.preadditiveIntLinear`.
+- `TauCeti.VectorBundleOrientation.intCanonicalThomClass o hr`, over a base
+  in `Type`: the class `o.canonicalThomClass hr`, in degree
+  `finrank ℝ F`, carried to chain coefficients and values `ℤ` by
+  `ULift ℤ ≅ ℤ` (`singularCohomologyChainCoefficientMap` and the value map
+  of `Topology/VectorBundle/Thom/ChangeOfCoefficients.lean`), a Thom class
+  by `isThomClass_intCanonicalThomClass`.
 
 ### `Geometry/Manifold/SmoothEmbedding/NormalSpace/ThomClass.lean`
 
-- `TauCeti.SmoothEmbedding.normalThomClass f hdim o`: the Thom class of
-  `o`, `o.canonicalThomClass rfl`, with coefficients `ULift ℤ`;
-  `isThomClass_normalThomClass`, `normalThomClass_neg` and
-  `normalThomClass_eq_thomClass`, that for `r = n + 1` it is
-  `o.thomClass`, from the lemmas of `canonicalThomClass`.
-- `TauCeti.SmoothEmbedding.singularCohomologyMap_fiberThomPairMap_normalThomClass`:
-  the restriction of `normalThomClass f hdim o` to
-  the fibre pair over `x` (`fiberThomPairMap`) is the generator selected by
-  `o x`. As the fibres carry no norm, it is read in a trivialization: for
-  every linear trivialization `e` at `x`, the restriction is the pull-back,
-  by `(e.continuousLinearEquivAt ℝ x hx).complZeroPairIso`, of
-  `modelThomGenerator (e.mapOrientation _ hx (o x))`. From
-  `singularCohomologyMap_fiberThomPairMap_canonicalThomClass`.
-- `TauCeti.SmoothEmbedding.intNormalThomClass f hdim o`: the class
-  `normalThomClass f hdim o` carried to chain
-  coefficients and values `ℤ` by `ULift ℤ ≅ ℤ`
-  (`singularCohomologyChainCoefficientMap` and the value map of
-  `Topology/VectorBundle/Thom/ChangeOfCoefficients.lean`), a Thom class by
-  `IsThomClass.singularCohomologyChainCoefficientMap`.
-- `TauCeti.SmoothEmbedding.bijective_thomMap_normalThomClass`: the Thom map
-  of `intNormalThomClass f hdim o` is bijective,
+The Thom class of a normal orientation `o` is `o.canonicalThomClass rfl`
+of the normal bundle, with no name of its own; its fibre restrictions, read
+in a trivialization since the fibres carry no norm, are
+`singularCohomologyMap_fiberThomPairMap_canonicalThomClass`.
+
+- `TauCeti.SmoothEmbedding.bijective_thomMap_intCanonicalThomClass`: the Thom
+  map of `o.intCanonicalThomClass hr` is bijective,
   $H^k(Z;\mathbb Z)\cong H^{k+r}(\nu,\nu\setminus Z;\mathbb Z)$, from
   `bijective_thomMap_of_secondCountableTopology`.
 
@@ -343,7 +335,7 @@ With `hf : IsClosed (range f)` and a normalized tube `Φ` with open image
   `exists_isNormalizedTube_subset` with `O = univ`; `dualClassOf f hf u`,
   its image in $H^n(X)$.
 - `relDualClass f hf o` and `dualClass f hf o`, the classes of
-  `normalThomClass f hdim o`, with coefficients
+  `o.canonicalThomClass rfl`, with coefficients
   `ULift ℤ`.
 - `dualClassOf_restrict_compl`: the restriction of `dualClassOf f hf u` to
   $X\setminus\operatorname{range}f$ is zero (exactness of the pair);
@@ -352,7 +344,7 @@ With `hf : IsClosed (range f)` and a normalized tube `Φ` with open image
   `TauCeti.eulerClass R k M P _ n u`, since `Φ` composed with the zero
   section is `f`; `dualClass_restrict`, its case for `dualClass`, and
   `dualClass_restrict_eq_eulerClass`, for `r = n + 1`, with
-  `VectorBundleOrientation.eulerClass o` (by `normalThomClass_eq_thomClass`).
+  `VectorBundleOrientation.eulerClass o` (by `canonicalThomClass_eq_thomClass`).
 - `dualClassOf_neg`, `dualClass_neg` (reversing the orientation), and
   linearity of `relDualClassOf` in `u`.
 
@@ -360,7 +352,7 @@ With `hf : IsClosed (range f)` and a normalized tube `Φ` with open image
 
 - `eq_relDualClassOf_iff_forall_slice`: for a Thom class `u` of the
   normal bundle in degree `r = finrank ℝ P` (in particular
-  `normalThomClass f hdim o`), a class of
+  `o.canonicalThomClass rfl`), a class of
   $H^r(X,X\setminus Z)$ is `relDualClassOf f hf u` exactly when its
   restriction along each normal slice of a normalized tube is the fibre
   restriction of `u`; by excision and Tau Ceti's uniqueness by fibre
@@ -432,8 +424,8 @@ For closed `X` and `Z` (`[CompactSpace X]`), `hf`, and
   class.
 - the milestone theorem
   `TauCeti.SmoothEmbedding.bijective_thomMap_and_dualClass_cap_fundamentalClass`,
-  the conjunction of `bijective_thomMap_normalThomClass`,
-  `singularCohomologyMap_fiberThomPairMap_normalThomClass` (on each fibre
+  the conjunction of `bijective_thomMap_intCanonicalThomClass`,
+  `singularCohomologyMap_fiberThomPairMap_canonicalThomClass` (on each fibre
   the Thom class is the generator of the fibre's orientation),
   `dualClass_restrict_compl`, `dualClass_restrict` and, for closed oriented
   `X` and `Z` with the induced normal orientation,

@@ -9,6 +9,7 @@ public import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 public import SymplecticGeometry.Geometry.Lie.Complexification
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Basic
 public import TauCeti.Geometry.Lie.Adjoint.Representation.Coadjoint.Basic
+import Mathlib.Analysis.Convex.Deriv
 import SymplecticGeometry.Analysis.Calculus.ParametricIntervalIntegral
 import SymplecticGeometry.Geometry.Lie.Exponential.Derivative
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
@@ -37,7 +38,8 @@ cosets `gG`, shows that it is smooth when the action and the components of `μ` 
 its differential: for a complexified action and an equivariant moment map `-μ`, the differential
 of `Φ_p` at `g` is the one-form `ĝ ↦ μ (g⁻¹ • p) (C.im (g⁻¹ ĝ))`. Since `Gc` is connected, these two
 properties determine `Φ_p`; its critical points are the `g` with `μ (g⁻¹ • p) = 0`, so `Φ_p` has a
-critical point exactly when `p` is polystable.
+critical point exactly when `p` is polystable. Along the curves `t ↦ g * C.expI (t • ξ)` its second
+derivative is a squared norm, so `Φ_p` is convex along them.
 
 ## Main definitions
 
@@ -64,6 +66,12 @@ critical point exactly when `p` is polystable.
   `ĝ ↦ μ (g⁻¹ • p) (C.im (g⁻¹ ĝ))`.
 * `SymplecticGeometry.hasDerivAt_kempfNessFunction_comp`: along a curve `c` differentiable at
   `s₀`, the derivative of `Φ_p ∘ c` at `s₀` is the one-form evaluated on the velocity of `c`.
+* `SymplecticGeometry.hasDerivAt_kempfNessFunction_geodesic`,
+  `SymplecticGeometry.hasDerivAt_deriv_kempfNessFunction_geodesic`: along the curve
+  `t ↦ g * C.expI (t • ξ)`, the first derivative of `Φ_p` is `μ (C.expI (-(t • ξ)) • g⁻¹ • p) ξ`
+  and the second is the squared norm of the fundamental vector field of `ξ` at
+  `C.expI (-(t • ξ)) • g⁻¹ • p`.
+* `SymplecticGeometry.convexOn_kempfNessFunction_geodesic`: `Φ_p` is convex along these curves.
 * `SymplecticGeometry.eq_kempfNessFunction_of_mfderiv_eq`,
   `SymplecticGeometry.existsUnique_kempfNessFunction`: `Φ_p` is the only smooth function with this
   differential that vanishes on `G`; a differentiable one with this differential that vanishes at
@@ -90,6 +98,12 @@ and integrating along `t` (`intervalIntegral.hasDerivAt_integral_of_hasDerivAt_s
 `s ↦ g * exp (s • g⁻¹ ĝ)` with Tau Ceti's
 `HasMFDerivAt.hasDerivAt_comp_mul_mulInvariantExp_smul_zero`, and the derivative along any curve
 differentiable at a point then follows by the chain rule.
+
+Along `t ↦ g * C.expI (t • ξ)`, a left translate of a one-parameter subgroup whose
+left-trivialized velocity is `C.cplx (C.lieMap ξ)`, the derivative of `Φ_p` is read off
+`hasDerivAt_kempfNessFunction_comp`; its derivative in turn is `hasDerivAt_moment_expI` at
+`g⁻¹ • p` and time `-t`, and convexity follows from the monotonicity of the first derivative
+(`antitone_moment_expI`).
 
 ## References
 
@@ -388,6 +402,67 @@ theorem hasDerivAt_kempfNessFunction_comp (h : IsComplexifiedAction C J)
       (x := c s₀) (by simp)) (hasMFDerivAt_curveVelocity hc)
   rwa [mvfderiv, ContinuousLinearMap.comp_apply, mfderiv_kempfNessFunction C μ p h hμ hg,
     curveVelocity_apply] at hΦ
+
+/-- **The derivative of the Kempf–Ness function along a geodesic.** Let the action of `Gc` be a
+complexified action, let `-μ` be an equivariant moment map for `σ`, and let the metric be
+`g(u, w) = σ(u, J w)`. Then `t ↦ Φ_p (g * C.expI (t • ξ))` has at `t` the derivative
+`μ (C.expI (-(t • ξ)) • g⁻¹ • p) ξ`. -/
+theorem hasDerivAt_kempfNessFunction_geodesic (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
+    (g : Gc) (ξ : GroupLieAlgebra I G) (t : ℝ) :
+    HasDerivAt (fun s : ℝ ↦ kempfNessFunction C μ p (g * C.expI (s • ξ)))
+      (μ (C.expI (-(t • ξ)) • g⁻¹ • p) ξ) t := by
+  -- The curve is `s ↦ g * exp (s • ζ)` for the invariant direction `ζ = C.cplx (C.lieMap ξ)`.
+  set ζ : GroupLieAlgebra IC Gc := C.cplx (C.lieMap ξ)
+  have hexp (s : ℝ) : C.expI (s • ξ) = mulInvariantExp (s • ζ) := by
+    rw [C.expI_def, map_smul, C.cplx.apply_smul]
+  have hc : MDifferentiableAt 𝓘(ℝ) IC (fun s ↦ g * mulInvariantExp (s • ζ)) t :=
+    (contMDiff_const.mul (contMDiff_mulInvariantExp_smul ζ)).mdifferentiableAt (by simp)
+  have hD := hasDerivAt_kempfNessFunction_comp C μ p h hμ hg hc
+  rw [mfderiv_inv_mul_mfderiv_mul_mulInvariantExp_smul, C.im_cplx_lieMap, mul_inv_rev, mul_smul,
+    ← hexp, ← C.expI_neg] at hD
+  simpa only [Function.comp_def, hexp] using hD
+
+/-- **The second derivative of the Kempf–Ness function along a geodesic.** Let the action of
+`Gc` be a complexified action, let `-μ` be an equivariant moment map for `σ`, and let the metric
+be `g(u, w) = σ(u, J w)`. Then the derivative of `t ↦ Φ_p (g * C.expI (t • ξ))` has at `t` the
+derivative `‖X_ξ‖²`, the squared length of the fundamental vector field of `ξ` at the point
+`C.expI (-(t • ξ)) • g⁻¹ • p`. -/
+theorem hasDerivAt_deriv_kempfNessFunction_geodesic [FiniteDimensional ℝ E']
+    (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
+    (g : Gc) (ξ : GroupLieAlgebra I G) (t : ℝ) :
+    HasDerivAt (deriv fun s : ℝ ↦ kempfNessFunction C μ p (g * C.expI (s • ξ)))
+      (‖fundamentalVectorField I' ξ (C.expI (-(t • ξ)) • g⁻¹ • p)‖ ^ 2) t := by
+  have hd : (deriv fun s : ℝ ↦ kempfNessFunction C μ p (g * C.expI (s • ξ))) =
+      fun s ↦ μ (C.expI ((-s) • ξ) • g⁻¹ • p) ξ :=
+    funext fun s ↦ (hasDerivAt_kempfNessFunction_geodesic C μ p h hμ hg g ξ s).deriv.trans
+      (by rw [neg_smul])
+  -- `simp` cannot rewrite the base point of `fundamentalVectorField`, which its type depends on.
+  have hx : C.expI ((-t) • ξ) • g⁻¹ • p = C.expI (-(t • ξ)) • g⁻¹ • p := by rw [neg_smul]
+  rw [hd, ← hx]
+  convert (hasDerivAt_moment_expI h hμ.toIsMomentMap hg ξ (g⁻¹ • p) (-t)).comp t
+    (hasDerivAt_neg t) using 1
+  · rw [Function.comp_def]
+  · rw [neg_mul_neg, mul_one]
+
+/-- **Convexity of the Kempf–Ness function along geodesics.** Let the action of `Gc` be a
+complexified action, let `-μ` be an equivariant moment map for `σ`, and let the metric be
+`g(u, w) = σ(u, J w)`. Then `t ↦ Φ_p (g * C.expI (t • ξ))` is convex on `ℝ` for every `g` and
+`ξ`. -/
+theorem convexOn_kempfNessFunction_geodesic [FiniteDimensional ℝ E']
+    (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
+    (g : Gc) (ξ : GroupLieAlgebra I G) :
+    ConvexOn ℝ Set.univ fun t : ℝ ↦ kempfNessFunction C μ p (g * C.expI (t • ξ)) := by
+  have hD := hasDerivAt_kempfNessFunction_geodesic C μ p h hμ hg g ξ
+  refine Monotone.convexOn_univ_of_deriv (fun t ↦ (hD t).differentiableAt) fun a b hab ↦ ?_
+  -- The derivative is `μ (C.expI ((-t) • ξ) • g⁻¹ • p) ξ`, antitone in `-t`.
+  rw [(hD a).deriv, (hD b).deriv, ← neg_smul, ← neg_smul]
+  exact antitone_moment_expI h hμ.toIsMomentMap hg ξ (g⁻¹ • p) (neg_le_neg hab)
 
 /-- **Uniqueness of the Kempf–Ness function.** Let the action of `Gc` be a complexified action,
 let `-μ` be an equivariant moment map for `σ`, and let the metric be `g(u, w) = σ(u, J w)`. A
