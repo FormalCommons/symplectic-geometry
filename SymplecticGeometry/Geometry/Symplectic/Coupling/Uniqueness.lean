@@ -95,7 +95,7 @@ The cut-off Moser field `Y` on `P × ℝ` is `SymplecticGeometry.moserField` for
 `ω̃₀ + s • dσ̃`, the one-form `σ̃` pulled back along `Prod.snd`, and a cutoff `ρ` on
 `ℝ × (P × ℝ)`, such as the one of `IsCouplingForm.exists_cutoff_prodIccExtension_add_smul`. It is
 jointly smooth when `ρ` is smooth and the slices are nondegenerate on its support
-(`IsCouplingForm.contMDiff_moserField_lineMapFamily_prodIccExtension`); for `ρ` with compact
+(`SymplecticGeometry.contMDiff_moserField_lineMapFamily_prodIccExtension`); for `ρ` with compact
 support it vanishes outside a compact set (`SymplecticGeometry.exists_isCompact_moserField_eq_zero`
 of `Moser/Field.lean`). It is carried to itself by the differential of `(x, t) ↦ (op z • x, t)`
 when `ρ` is invariant (`IsCouplingForm.mfderiv_smul_moserField_lineMapFamily_prodIccExtension`,
@@ -782,7 +782,18 @@ theorem exists_cutoff_prodIccExtension_add_smul (h₀ : IsCouplingForm ω₀ τ)
       fun _ hp ↦ ⟨hp.1, hp.2.2⟩).eventually h1,
     fun p hp ↦ hs (tsupport_comp_subset_preimage ρ hΨ hp) p.2.1, fun _ _ _ _ ↦ rfl, h01⟩
 
-omit [∀ b, MulAction Circleᵐᵒᵖ (P b)] [PrincipalBundle Circle P] [CompactSpace B] in
+end Extension
+
+end IsCouplingForm
+
+/-! ### Smoothness of the cut-off Moser field -/
+
+section MoserField
+
+variable [IB.Boundaryless] [FiniteDimensional ℝ EB] {ω₀ ω₁ :
+    SmoothTwoForm ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (ManifoldTotalSpace Circle P × Icc a b)}
+
+omit [∀ b, MulAction Circleᵐᵒᵖ (P b)] [PrincipalBundle Circle P] in
 /-- **The cut-off Moser field is smooth.** Let `ω₀` and `ω₁` be forms on `P × [a, b]`, over a base
 modelled on a finite-dimensional space. For the family `s ↦ ω̃₀ + s • dσ̃` on `P × ℝ` (as in
 `SymplecticGeometry.IsCouplingForm.mpullback_prodMap_subtypeVal_prodIccExtension_add_smul`), the
@@ -813,9 +824,7 @@ theorem contMDiff_moserField_lineMapFamily_prodIccExtension
     rw [SmoothForm.mpullback_prodMk_lineMapFamily, add_sub_cancel_left, id]
     exact SmoothTwoForm.isInvertible_flat_iff.mpr (hnd p hp)
 
-end Extension
-
-end IsCouplingForm
+end MoserField
 
 end SymplecticGeometry
 
