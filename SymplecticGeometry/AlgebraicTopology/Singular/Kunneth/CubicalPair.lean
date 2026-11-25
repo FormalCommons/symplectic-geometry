@@ -28,7 +28,7 @@ pairs. Tau Ceti's homotopy between their absolute forms,
 `TauCeti.cubicalSingularCrossProductHomotopy`, is natural in both spaces
 (`TauCeti.cubicalSingularCrossProductHomotopy_hom_naturality`), so it vanishes on `N(A) ⊗ N(Y)`
 and on `N(X) ⊗ N(B)` after the projection to the chains of the pair, and it descends along the
-quotient maps in the two factors (`Homotopy.descCokernel`), one after the other.
+quotient maps in the two factors, one after the other (`Homotopy.descCokernel₂`).
 
 ## Main definitions
 
@@ -198,40 +198,6 @@ theorem cubicalSingularCrossProductHomotopy_hom_comp_singularChainComplexπOfSub
       (chainComplexMap_tensorHom_comp_singularChainComplexπOfSubset_eq_zero
         (ModuleCat.of k k) h) j).trans (zero_f _ _ j)))).trans comp_zero)
 
-/-- The homotopy `TauCeti.cubicalSingularCrossProductHomotopy`, descended to `N(X; k) ⊗ N(Y, B; k)`
-and projected to the chains of `(X × Y, A × Y ∪ X × B)`. -/
-private def homotopyFst :
-    Homotopy ((cokernel.π ((normalizedCubicalChainComplex k).map (ofSubset A).map) ⊗ₘ
-        𝟙 ((ofSubset B).cubicalChainComplex k)) ≫ cubicalCrossProductPairToSingular k A B)
-      ((cokernel.π ((normalizedCubicalChainComplex k).map (ofSubset A).map) ⊗ₘ
-        𝟙 ((ofSubset B).cubicalChainComplex k)) ≫ singularCrossProductPairOfCubical k A B) :=
-  have hS := shortExact_tensorLeftShortComplex_cubicalChainComplexShortComplex k X (ofSubset B)
-  Homotopy.descCokernel (cubicalSingularCrossProductHomotopy k X Y)
-    (HomologicalComplex.tensorHom (𝟙 _) ((normalizedCubicalChainComplex k).map (ofSubset B).map))
-    (HomologicalComplex.tensorHom (𝟙 _)
-      (cokernel.π ((normalizedCubicalChainComplex k).map (ofSubset B).map)))
-    (TopPair.singularChainComplexπOfSubset (ModuleCat.of k k) (fst X Y ⁻¹' A ∪ snd X Y ⁻¹' B)) _
-    (fun i ↦ (hS.map_of_exact (HomologicalComplex.eval _ _ i)).gIsCokernel)
-    (fun i j ↦ by
-      have h := cubicalSingularCrossProductHomotopy_hom_comp_singularChainComplexπOfSubset_eq_zero
-        k A B (𝟙 X) (ofSubset B).map (Or.inr (by rintro _ ⟨z, rfl⟩; exact z.property)) i j
-      rwa [CategoryTheory.Functor.map_id] at h)
-    ((Category.assoc _ _ _).symm.trans ((congrArg (· ≫ _)
-      (tensorHom_def' (C := ChainComplex (ModuleCat.{u} k) ℕ) _ _).symm).trans
-        (π_tensorHom_π_cubicalCrossProductPairToSingular k A B)))
-    ((Category.assoc _ _ _).symm.trans ((congrArg (· ≫ _)
-      (tensorHom_def' (C := ChainComplex (ModuleCat.{u} k) ℕ) _ _).symm).trans
-        (π_tensorHom_π_singularCrossProductPairOfCubical k A B)))
-
-private theorem tensorHom_id_π_f_homotopyFst_hom (i j : ℕ) :
-    (HomologicalComplex.tensorHom (𝟙 ((normalizedCubicalChainComplex k).obj X))
-        (cokernel.π ((normalizedCubicalChainComplex k).map (ofSubset B).map))).f i ≫
-      (homotopyFst k A B).hom i j =
-    (cubicalSingularCrossProductHomotopy k X Y).hom i j ≫
-      (TopPair.singularChainComplexπOfSubset (ModuleCat.of k k)
-        (fst X Y ⁻¹' A ∪ snd X Y ⁻¹' B)).f j :=
-  Homotopy.π_descCokernel_hom _ _ _ _ _ _ _ _ _ i j
-
 /-- **The cubical and the simplicial cross product of two pairs are chain homotopic**: the cubical
 cross product of the pairs `(X, A)` and `(Y, B)` followed by the comparison with singular chains,
 and the tensor product of the comparison maps of the pairs followed by the shuffle map of the
@@ -239,32 +205,43 @@ product of the pairs, `N(X, A; k) ⊗ N(Y, B; k) ⟶ C(X × Y, A × Y ∪ X × B
 homotopic. -/
 def cubicalSingularCrossProductPairHomotopy :
     Homotopy (cubicalCrossProductPairToSingular k A B) (singularCrossProductPairOfCubical k A B) :=
-  have hS :=
+  have hS₁ := shortExact_tensorLeftShortComplex_cubicalChainComplexShortComplex k X (ofSubset B)
+  have hS₂ :=
     shortExact_tensorRightShortComplex_cubicalChainComplexShortComplex k (ofSubset A) (ofSubset B)
-  Homotopy.descCokernel (homotopyFst k A B)
+  Homotopy.descCokernel₂ (cubicalSingularCrossProductHomotopy k X Y)
+    (TopPair.singularChainComplexπOfSubset (ModuleCat.of k k) (fst X Y ⁻¹' A ∪ snd X Y ⁻¹' B))
+    (HomologicalComplex.tensorHom (𝟙 _) ((normalizedCubicalChainComplex k).map (ofSubset B).map))
+    (HomologicalComplex.tensorHom (𝟙 _)
+      (cokernel.π ((normalizedCubicalChainComplex k).map (ofSubset B).map))) _
+    (fun i ↦ (hS₁.map_of_exact (HomologicalComplex.eval _ _ i)).gIsCokernel)
+    (fun i j ↦ by
+      have h := cubicalSingularCrossProductHomotopy_hom_comp_singularChainComplexπOfSubset_eq_zero
+        k A B (𝟙 X) (ofSubset B).map (Or.inr (by rintro _ ⟨z, rfl⟩; exact z.property)) i j
+      rwa [CategoryTheory.Functor.map_id] at h)
     (HomologicalComplex.tensorHom ((normalizedCubicalChainComplex k).map (ofSubset A).map)
       (𝟙 _))
     (HomologicalComplex.tensorHom
-      (cokernel.π ((normalizedCubicalChainComplex k).map (ofSubset A).map)) (𝟙 _))
-    (𝟙 _) _
-    (fun i ↦ (hS.map_of_exact (HomologicalComplex.eval _ _ i)).gIsCokernel)
+      (cokernel.π ((normalizedCubicalChainComplex k).map (ofSubset A).map)) (𝟙 _)) _
+    (fun i ↦ (hS₂.map_of_exact (HomologicalComplex.eval _ _ i)).gIsCokernel)
+    (HomologicalComplex.tensorHom (𝟙 ((normalizedCubicalChainComplex k).obj (ofSubset A).snd))
+      (cokernel.π ((normalizedCubicalChainComplex k).map (ofSubset B).map)))
+    (fun i ↦ ((shortExact_tensorLeftShortComplex_cubicalChainComplexShortComplex k
+      (ofSubset A).snd (ofSubset B)).map_of_exact (HomologicalComplex.eval _ _ i)).epi_g)
+    (HomologicalComplex.tensorHom ((normalizedCubicalChainComplex k).map (ofSubset A).map)
+      (𝟙 ((normalizedCubicalChainComplex k).obj Y)))
+    (whisker_exchange (C := ChainComplex (ModuleCat.{u} k) ℕ)
+      ((normalizedCubicalChainComplex k).map (ofSubset A).map)
+      (cokernel.π ((normalizedCubicalChainComplex k).map (ofSubset B).map)))
     (fun i j ↦ by
-      have : Epi ((HomologicalComplex.tensorHom
-          (𝟙 ((normalizedCubicalChainComplex k).obj (ofSubset A).snd))
-          (cokernel.π ((normalizedCubicalChainComplex k).map (ofSubset B).map))).f i) :=
-        ((shortExact_tensorLeftShortComplex_cubicalChainComplexShortComplex k (ofSubset A).snd
-          (ofSubset B)).map_of_exact (HomologicalComplex.eval _ _ i)).epi_g
-      refine (cancel_epi ((HomologicalComplex.tensorHom
-          (𝟙 ((normalizedCubicalChainComplex k).obj (ofSubset A).snd))
-          (cokernel.π ((normalizedCubicalChainComplex k).map (ofSubset B).map))).f i)).1 ?_
-      rw [comp_zero, id_f, Category.comp_id]
-      refine ((reassoc_of% ((comp_f _ _ i).symm.trans ((congr_hom (whisker_exchange
-        (C := ChainComplex (ModuleCat.{u} k) ℕ) _ _) i).trans (comp_f _ _ i)))) _).trans
-        ((congrArg (_ ≫ ·) (tensorHom_id_π_f_homotopyFst_hom k A B i j)).trans ?_)
       have h := cubicalSingularCrossProductHomotopy_hom_comp_singularChainComplexπOfSubset_eq_zero
         k A B (ofSubset A).map (𝟙 Y) (Or.inl (by rintro _ ⟨z, rfl⟩; exact z.property)) i j
       rwa [CategoryTheory.Functor.map_id] at h)
-    (Category.comp_id _).symm (Category.comp_id _).symm
+    ((Category.assoc _ _ _).symm.trans ((congrArg (· ≫ _)
+      (tensorHom_def' (C := ChainComplex (ModuleCat.{u} k) ℕ) _ _).symm).trans
+        (π_tensorHom_π_cubicalCrossProductPairToSingular k A B)))
+    ((Category.assoc _ _ _).symm.trans ((congrArg (· ≫ _)
+      (tensorHom_def' (C := ChainComplex (ModuleCat.{u} k) ℕ) _ _).symm).trans
+        (π_tensorHom_π_singularCrossProductPairOfCubical k A B)))
 
 /-- On `N(X; k) ⊗ N(Y; k)`, the homotopy `TauCeti.cubicalSingularCrossProductPairHomotopy` is Tau
 Ceti's homotopy `TauCeti.cubicalSingularCrossProductHomotopy` followed by the projection to the
@@ -278,8 +255,7 @@ theorem π_tensorHom_π_f_cubicalSingularCrossProductPairHomotopy_hom (i j : ℕ
       (TopPair.singularChainComplexπOfSubset (ModuleCat.of k k)
         (fst X Y ⁻¹' A ∪ snd X Y ⁻¹' B)).f j := by
   rw [tensorHom_def', comp_f, Category.assoc]
-  exact (congrArg (_ ≫ ·) ((Homotopy.π_descCokernel_hom _ _ _ _ _ _ _ _ _ i j).trans
-    (Category.comp_id _))).trans (tensorHom_id_π_f_homotopyFst_hom k A B i j)
+  exact Homotopy.π_π_descCokernel₂_hom ..
 
 /-- The cubical and the simplicial cross product of two pairs induce the same map on homology. -/
 theorem homologyMap_cubicalCrossProductPairToSingular_eq_singularCrossProductPairOfCubical (n : ℕ) :
