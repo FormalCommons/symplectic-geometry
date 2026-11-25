@@ -39,11 +39,12 @@ time: `completionEnd (s, x)` is the point of the end at time `s / ε` of `c.With
 The form `ω̂` is defined pointwise: on the image of `(-ε, ∞) × ∂W`, where the end map is an
 injective local diffeomorphism, it is `-d(e^s α)` read through the inverse of its differential;
 elsewhere, on the image of the interior of `W`, it is `σ` read through the inverse of the
-differential of the inclusion. The two descriptions agree on the overlap, the image of
-`(-ε, 0) × ∂W`, because `Φ` pulls `σ` back to `-d(e^s α)` there; so `ω̂` pulls back to `σ` at
-interior points of `W` and to `-d(e^s α)` on `(-ε, ∞) × ∂W`. Its smoothness follows from these
-pullbacks along local diffeomorphisms (`IsLocalDiffeomorphAt.contMDiffAt_mpullback_form_iff`),
-and the pullback to all of `W` from the density of the interior
+differential of the inclusion (the library's two-piece gluing `TauCeti.RoughForm.glue`). The
+two descriptions agree on the overlap, the image of `(-ε, 0) × ∂W`, because `Φ` pulls `σ`
+back to `-d(e^s α)` there; so `ω̂` pulls back to `σ` at interior points of `W` and to
+`-d(e^s α)` on `(-ε, ∞) × ∂W`. Its smoothness follows from these pullbacks along local
+diffeomorphisms (`TauCeti.RoughForm.isSmoothForm_glue`), and the pullback
+to all of `W` from the density of the interior
 (`TauCeti.SmoothBundleForm.eq_of_forall_mem_dense`). The primitive `λ̂` is built in the same way,
 and the field `Ŷ` likewise from `∂_s` and `Y`, which agree on the overlap because the lines of `Φ`
 are integral curves of `Y`. Reading a form through the inverse of a differential is what Tau
@@ -404,70 +405,35 @@ private theorem surjective_mfderiv_collarFlow {q : ℝ × (𝓡∂ (n + 1)).boun
 
 section Glue
 
-variable {k : ℕ}
+variable {k : ℕ} {αW : RoughForm (𝓡∂ (n + 1)) W ℝ k}
+  {αE : RoughForm (𝓘(ℝ).prod (𝓡 n)) (ℝ × (𝓡∂ (n + 1)).boundary W) ℝ k}
 
-open Classical in
-/-- The form on the completion that is `αE`, read through the end map, on the end
-`(-ε, ∞) × ∂W`, and `αW`, read through the inclusion, on the rest of `W`. -/
-private noncomputable def glue (αW : RoughForm (𝓡∂ (n + 1)) W ℝ k)
-    (αE : RoughForm (𝓘(ℝ).prod (𝓡 n)) (ℝ × (𝓡∂ (n + 1)).boundary W) ℝ k) :
-    RoughForm (𝓡 (n + 1)) h.Completion ℝ k := fun z ↦
-  if hz : ∃ q ∈ Ioi (-h.collarWidth) ×ˢ univ, h.completionEnd q = z then
-    RoughForm.pushforwardAt (𝓘(ℝ).prod (𝓡 n)) (𝓡 (n + 1)) h.completionEnd αE hz.choose z
-  else if hz' : ∃ p, h.toCompletion p = z then
-    RoughForm.pushforwardAt (𝓡∂ (n + 1)) (𝓡 (n + 1)) h.toCompletion αW hz'.choose z
-  else 0
-
-variable (αW : RoughForm (𝓡∂ (n + 1)) W ℝ k)
-  (αE : RoughForm (𝓘(ℝ).prod (𝓡 n)) (ℝ × (𝓡∂ (n + 1)).boundary W) ℝ k)
-
-private theorem glue_completionEnd {q : ℝ × (𝓡∂ (n + 1)).boundary W}
-    (hq : q ∈ Ioi (-h.collarWidth) ×ˢ univ) :
-    h.glue αW αE (h.completionEnd q) =
-      RoughForm.pushforwardAt (𝓘(ℝ).prod (𝓡 n)) (𝓡 (n + 1)) h.completionEnd αE q
-        (h.completionEnd q) := by
-  have hz : ∃ q' ∈ Ioi (-h.collarWidth) ×ˢ univ, h.completionEnd q' = h.completionEnd q :=
-    ⟨q, hq, rfl⟩
-  unfold glue
-  simp only [dite_eq_left hz]
-  rw [h.injOn_completionEnd hz.choose_spec.1 hq hz.choose_spec.2]
-
-private theorem glue_toCompletion {p : W}
-    (hp : ¬∃ q ∈ Ioi (-h.collarWidth) ×ˢ univ, h.completionEnd q = h.toCompletion p) :
-    h.glue αW αE (h.toCompletion p) =
-      RoughForm.pushforwardAt (𝓡∂ (n + 1)) (𝓡 (n + 1)) h.toCompletion αW p
-        (h.toCompletion p) := by
-  have hz : ∃ p', h.toCompletion p' = h.toCompletion p := ⟨p, rfl⟩
-  unfold glue
-  simp only [dite_eq_right hp, dite_eq_left hz]
-  rw [
-    h.injective_toCompletion hz.choose_spec]
-
+/-- The form glued from `αE` on the end and `αW` on `W` pulls back to `αE` on `(-ε, ∞) × ∂W`. -/
 private theorem mpullback_completionEnd_glue {q : ℝ × (𝓡∂ (n + 1)).boundary W}
     (hq : q ∈ Ioi (-h.collarWidth) ×ˢ univ) :
-    mpullback (𝓘(ℝ).prod (𝓡 n)) (𝓡 (n + 1)) h.completionEnd (h.glue αW αE) q = αE q :=
-  mpullback_apply_eq_of_apply_eq_pushforwardAt
+    mpullback (𝓘(ℝ).prod (𝓡 n)) (𝓡 (n + 1)) h.completionEnd
+      (RoughForm.glue (𝓡 (n + 1)) h.completionEnd (Ioi (-h.collarWidth) ×ˢ univ)
+        h.toCompletion αE αW) q = αE q :=
+  RoughForm.mpullback_glue_apply_of_mem h.injOn_completionEnd hq
     ((h.isLocalDiffeomorphOn_completionEnd ⟨q, hq⟩).isInvertible_mfderiv (by simp))
-    (h.glue_completionEnd αW αE hq)
-
-variable {αW αE}
 
 private theorem mpullback_toCompletion_glue_of_mem_interior
     (hc : ∀ q ∈ Ioo (-h.collarWidth) 0 ×ˢ univ,
       mpullback (𝓘(ℝ).prod (𝓡 n)) (𝓡∂ (n + 1)) h.collarFlow αW q = αE q)
     {p : W} (hp : p ∈ (𝓡∂ (n + 1)).interior W) :
-    mpullback (𝓡∂ (n + 1)) (𝓡 (n + 1)) h.toCompletion (h.glue αW αE) p = αW p := by
-  by_cases hz : ∃ q ∈ Ioi (-h.collarWidth) ×ˢ univ, h.completionEnd q = h.toCompletion p
+    mpullback (𝓡∂ (n + 1)) (𝓡 (n + 1)) h.toCompletion
+      (RoughForm.glue (𝓡 (n + 1)) h.completionEnd (Ioi (-h.collarWidth) ×ˢ univ)
+        h.toCompletion αE αW) p = αW p := by
+  by_cases hz : h.toCompletion p ∈ h.completionEnd '' (Ioi (-h.collarWidth) ×ˢ univ)
   · obtain ⟨q, hq, hpq⟩ := hz
     obtain ⟨hq', rfl⟩ := h.mem_Ioo_and_eq_collarFlow hp hq hpq
     refine (mpullback_apply_eq_mpullback_apply_iff (h.surjective_mfderiv_collarFlow hq')).1 ?_
     rw [← mpullback_comp_at (h.mdifferentiableAt_collarFlow hq')
       ((h.contMDiff_toCompletion _).mdifferentiableAt (by simp)),
-      ← (h.completionEnd_eventuallyEq hq').mpullback_eq, h.mpullback_completionEnd_glue αW αE hq,
+      ← (h.completionEnd_eventuallyEq hq').mpullback_eq, h.mpullback_completionEnd_glue hq,
       hc q hq']
-  · exact mpullback_apply_eq_of_apply_eq_pushforwardAt
+  · exact RoughForm.mpullback_glue_apply_of_notMem h.injective_toCompletion hz
       ((h.isLocalDiffeomorphAt_toCompletion hp).isInvertible_mfderiv (by simp))
-      (h.glue_toCompletion αW αE hz)
 
 /-- Every point of the completion is on the end `(-ε, ∞) × ∂W` or is an interior point of `W`. -/
 theorem exists_completionEnd_or_toCompletion (z : h.Completion) :
@@ -487,20 +453,15 @@ private theorem isSmoothForm_glue (hW : IsSmoothForm (𝓡∂ (n + 1)) ∞ αW)
     (hE : IsSmoothForm (𝓘(ℝ).prod (𝓡 n)) ∞ αE)
     (hc : ∀ q ∈ Ioo (-h.collarWidth) 0 ×ˢ univ,
       mpullback (𝓘(ℝ).prod (𝓡 n)) (𝓡∂ (n + 1)) h.collarFlow αW q = αE q) :
-    IsSmoothForm (𝓡 (n + 1)) ∞ (h.glue αW αE) := by
-  rw [isSmoothForm_def]
-  intro z
-  by_cases hz : ∃ q ∈ Ioi (-h.collarWidth) ×ˢ univ, h.completionEnd q = z
-  · obtain ⟨q, hq, rfl⟩ := hz
-    refine ((h.isLocalDiffeomorphOn_completionEnd ⟨q, hq⟩).contMDiffAt_mpullback_form_iff
-      (by simp)).1 ((hE.contMDiff q).congr_of_eventuallyEq ?_)
-    filter_upwards [(isOpen_Ioi.prod isOpen_univ).mem_nhds hq] with r hr
-    rw [h.mpullback_completionEnd_glue αW αE hr]
-  · obtain ⟨p, hp, rfl⟩ := (h.exists_completionEnd_or_toCompletion _).resolve_left hz
-    refine ((h.isLocalDiffeomorphAt_toCompletion hp).contMDiffAt_mpullback_form_iff
-      (by simp)).1 ((hW.contMDiff p).congr_of_eventuallyEq ?_)
-    filter_upwards [((𝓡∂ (n + 1)).isOpen_interior one_ne_zero).mem_nhds hp] with r hr
-    rw [h.mpullback_toCompletion_glue_of_mem_interior hc hr]
+    IsSmoothForm (𝓡 (n + 1)) ∞
+      (RoughForm.glue (𝓡 (n + 1)) h.completionEnd (Ioi (-h.collarWidth) ×ˢ univ)
+        h.toCompletion αE αW) := by
+  refine RoughForm.isSmoothForm_glue (isOpen_Ioi.prod isOpen_univ) h.injOn_completionEnd
+    h.isLocalDiffeomorphOn_completionEnd hE hW fun z hz ↦ ?_
+  obtain ⟨p, hp, rfl⟩ := (h.exists_completionEnd_or_toCompletion z).resolve_left hz
+  refine ⟨p, rfl, h.isLocalDiffeomorphAt_toCompletion hp, ?_⟩
+  filter_upwards [((𝓡∂ (n + 1)).isOpen_interior one_ne_zero).mem_nhds hp] with r hr
+  exact h.mpullback_toCompletion_glue_of_mem_interior hc hr
 
 end Glue
 
@@ -509,29 +470,35 @@ end Glue
 /-- The **form of the completion** `ω̂`: the two-form that is `σ` on `W` and the symplectization
 form `-d(e^s α)` of the contact form `α = fillingContactForm σ Y` on the end. -/
 noncomputable def completionForm : SmoothTwoForm (𝓡 (n + 1)) h.Completion :=
-  ⟨h.glue σ.val (mextDerivₗ (𝓘(ℝ).prod (𝓡 n)) 1
-      (-fillingContactForm σ ⟨Y, h.isOutwardPointingField.contMDiff⟩).symplectization).val,
+  ⟨RoughForm.glue (𝓡 (n + 1)) h.completionEnd (Ioi (-h.collarWidth) ×ˢ univ) h.toCompletion
+      (mextDerivₗ (𝓘(ℝ).prod (𝓡 n)) 1
+        (-fillingContactForm σ ⟨Y, h.isOutwardPointingField.contMDiff⟩).symplectization).val
+      σ.val,
     (h.isSmoothForm_glue σ.isSmoothForm (SmoothForm.isSmoothForm _)
       h.mpullback_collarFlow).mem_smoothBundleForms⟩
 
 /-- The **primitive of the completion** `λ̂`: the one-form that is the Liouville primitive
 `λ = -ι_Y σ` on `W` and `e^s α` on the end. -/
 noncomputable def completionPrimitive : SmoothForm (𝓡 (n + 1)) h.Completion ℝ 1 :=
-  ⟨h.glue (-σ.interiorₗ ⟨Y, h.isOutwardPointingField.contMDiff⟩).val
-      (fillingContactForm σ ⟨Y, h.isOutwardPointingField.contMDiff⟩).symplectization.val,
+  ⟨RoughForm.glue (𝓡 (n + 1)) h.completionEnd (Ioi (-h.collarWidth) ×ˢ univ) h.toCompletion
+      (fillingContactForm σ ⟨Y, h.isOutwardPointingField.contMDiff⟩).symplectization.val
+      (-σ.interiorₗ ⟨Y, h.isOutwardPointingField.contMDiff⟩).val,
     (h.isSmoothForm_glue (SmoothForm.isSmoothForm _) (SmoothForm.isSmoothForm _)
       h.mpullback_collarFlow_neg_interiorₗ).mem_smoothBundleForms⟩
 
 private theorem coe_completionForm :
     (h.completionForm : RoughForm (𝓡 (n + 1)) h.Completion ℝ 2) =
-      h.glue σ.val (mextDerivₗ (𝓘(ℝ).prod (𝓡 n)) 1
-        (-fillingContactForm σ ⟨Y, h.isOutwardPointingField.contMDiff⟩).symplectization).val :=
+      RoughForm.glue (𝓡 (n + 1)) h.completionEnd (Ioi (-h.collarWidth) ×ˢ univ) h.toCompletion
+        (mextDerivₗ (𝓘(ℝ).prod (𝓡 n)) 1
+          (-fillingContactForm σ ⟨Y, h.isOutwardPointingField.contMDiff⟩).symplectization).val
+        σ.val :=
   (rfl)
 
 private theorem coe_completionPrimitive :
     (h.completionPrimitive : RoughForm (𝓡 (n + 1)) h.Completion ℝ 1) =
-      h.glue (-σ.interiorₗ ⟨Y, h.isOutwardPointingField.contMDiff⟩).val
-        (fillingContactForm σ ⟨Y, h.isOutwardPointingField.contMDiff⟩).symplectization.val :=
+      RoughForm.glue (𝓡 (n + 1)) h.completionEnd (Ioi (-h.collarWidth) ×ˢ univ) h.toCompletion
+        (fillingContactForm σ ⟨Y, h.isOutwardPointingField.contMDiff⟩).symplectization.val
+        (-σ.interiorₗ ⟨Y, h.isOutwardPointingField.contMDiff⟩).val :=
   (rfl)
 
 /-- The form of the completion restricts to `σ` on `W`. -/
@@ -551,7 +518,7 @@ theorem mpullback_completionEnd_completionForm :
           (-fillingContactForm σ ⟨Y, h.isOutwardPointingField.contMDiff⟩).symplectization).val
             p := fun p hp ↦ by
   rw [coe_completionForm]
-  exact h.mpullback_completionEnd_glue _ _ hp
+  exact h.mpullback_completionEnd_glue hp
 
 /-- The primitive of the completion restricts to the Liouville primitive `-ι_Y σ` on `W`. -/
 theorem mpullback_toCompletion_completionPrimitive :
@@ -569,7 +536,7 @@ theorem mpullback_completionEnd_completionPrimitive :
         (fillingContactForm σ ⟨Y, h.isOutwardPointingField.contMDiff⟩).symplectization.val p :=
   fun p hp ↦ by
     rw [coe_completionPrimitive]
-    exact h.mpullback_completionEnd_glue _ _ hp
+    exact h.mpullback_completionEnd_glue hp
 
 /-! ### The Liouville field of the completion -/
 

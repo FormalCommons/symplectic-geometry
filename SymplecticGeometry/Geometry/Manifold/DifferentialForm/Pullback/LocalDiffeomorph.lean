@@ -14,6 +14,7 @@ public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 public import TauCeti.Geometry.Manifold.TwoForm.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
+import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.IsManifold.Basic
 
 /-!
@@ -60,6 +61,15 @@ space at `z` (meant for `z = f x`). When that differential is invertible, a form
 value at `f x` is this one pulls back to `α x`
 (`TauCeti.mpullback_apply_eq_of_apply_eq_pushforwardAt`). Reading a form through an inverse of a
 differential is what Tau Ceti's `TauCeti.RoughForm.descendedForm` does through a right inverse.
+
+Two such pushforwards glue pointwise: for `f₁ : M → M''` injective on `s₁` and an injective
+`f₂ : M' → M''`, `TauCeti.RoughForm.glue I'' f₁ s₁ f₂ α₁ α₂` is the pushforward of `α₁` on
+`f₁ '' s₁` and that of `α₂` at the other points of the range of `f₂`. It pulls back to `α₁` and
+`α₂` there (`TauCeti.RoughForm.mpullback_glue_apply_of_mem`,
+`TauCeti.RoughForm.mpullback_glue_apply_of_notMem`), and it is smooth when `f₁` and `f₂` are
+local diffeomorphisms whose images cover `M''` and its pull-back by `f₂` is `α₂` near each point
+off `f₁ '' s₁` (`TauCeti.RoughForm.isSmoothForm_glue`), by Tau Ceti's
+`IsLocalDiffeomorphAt.contMDiffAt_mpullback_form_iff`.
 
 Let `g : M → M'` be a local diffeomorphism pulling a form `σ` back to `τ`, and `Λ` a
 diffeomorphism of `M` preserving `τ`. A diffeomorphism `Ψ` of `M'` with `Ψ ∘ g = g ∘ Λ` that
@@ -129,6 +139,93 @@ theorem mpullback_apply_eq_of_apply_eq_pushforwardAt {α : RoughForm I M F k}
   simp only [ContinuousAlternatingMap.compContinuousLinearMap_apply, Function.comp_def,
     ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe, tangentSpaceCast_self,
     hf.inverse_apply_self]
+
+section Glue
+
+variable {E'' H'' M'' : Type*} [NormedAddCommGroup E''] [NormedSpace ℝ E''] [TopologicalSpace H'']
+  [TopologicalSpace M''] [ChartedSpace H'' M''] {I'' : ModelWithCorners ℝ E'' H''}
+  {f₁ : M → M''} {s₁ : Set M} {f₂ : M' → M''} {α₁ : RoughForm I M F k}
+  {α₂ : RoughForm I' M' F k} {y : M'}
+
+open Classical in
+variable (I'') in
+/-- The form on `M''` glued pointwise from a form `α₁` on `M` and a form `α₂` on `M'` along
+`f₁ : M → M''` and `f₂ : M' → M''`: at a point `f₁ x` with `x ∈ s₁` it is the pushforward of `α₁`
+from `x`, at the other points `f₂ y` the pushforward of `α₂` from `y`, and `0` off both images.
+It is meant for `f₁` injective on `s₁` and `f₂` injective (`glue_apply_of_mem`,
+`glue_apply_of_notMem`). -/
+noncomputable def RoughForm.glue (f₁ : M → M'') (s₁ : Set M) (f₂ : M' → M'')
+    (α₁ : RoughForm I M F k) (α₂ : RoughForm I' M' F k) : RoughForm I'' M'' F k := fun z ↦
+  if hz : ∃ x ∈ s₁, f₁ x = z then pushforwardAt I I'' f₁ α₁ hz.choose z
+  else if hz' : ∃ y, f₂ y = z then pushforwardAt I' I'' f₂ α₂ hz'.choose z
+  else 0
+
+open Classical in
+variable (I'') in
+theorem RoughForm.glue_def (f₁ : M → M'') (s₁ : Set M) (f₂ : M' → M'')
+    (α₁ : RoughForm I M F k) (α₂ : RoughForm I' M' F k) (z : M'') :
+    glue I'' f₁ s₁ f₂ α₁ α₂ z =
+      if hz : ∃ x ∈ s₁, f₁ x = z then pushforwardAt I I'' f₁ α₁ hz.choose z
+      else if hz' : ∃ y, f₂ y = z then pushforwardAt I' I'' f₂ α₂ hz'.choose z
+      else 0 :=
+  (rfl)
+
+/-- At `f₁ x` with `x ∈ s₁`, where `f₁` is injective on `s₁`, the glued form is the pushforward
+of `α₁` from `x`. -/
+theorem RoughForm.glue_apply_of_mem (hf₁ : InjOn f₁ s₁) (hx : x ∈ s₁) :
+    glue I'' f₁ s₁ f₂ α₁ α₂ (f₁ x) = pushforwardAt I I'' f₁ α₁ x (f₁ x) := by
+  have hz : ∃ x' ∈ s₁, f₁ x' = f₁ x := ⟨x, hx, rfl⟩
+  rw [glue_def, dite_eq_left hz, hf₁ hz.choose_spec.1 hx hz.choose_spec.2]
+
+/-- At `f₂ y` off `f₁ '' s₁`, where `f₂` is injective, the glued form is the pushforward of `α₂`
+from `y`. -/
+theorem RoughForm.glue_apply_of_notMem (hf₂ : Function.Injective f₂) (hy : f₂ y ∉ f₁ '' s₁) :
+    glue I'' f₁ s₁ f₂ α₁ α₂ (f₂ y) = pushforwardAt I' I'' f₂ α₂ y (f₂ y) := by
+  have hz : ¬∃ x ∈ s₁, f₁ x = f₂ y := fun ⟨x, hx, hxy⟩ ↦ hy ⟨x, hx, hxy⟩
+  have hz' : ∃ y', f₂ y' = f₂ y := ⟨y, rfl⟩
+  rw [glue_def, dite_eq_right hz, dite_eq_left hz', hf₂ hz'.choose_spec]
+
+/-- If `f₁` is injective on `s₁` and its differential at `x ∈ s₁` is invertible, the glued form
+pulls back along `f₁` to `α₁` at `x`. -/
+theorem RoughForm.mpullback_glue_apply_of_mem (hf₁ : InjOn f₁ s₁) (hx : x ∈ s₁)
+    (hd : (mfderiv I I'' f₁ x).IsInvertible) :
+    mpullback I I'' f₁ (glue I'' f₁ s₁ f₂ α₁ α₂) x = α₁ x :=
+  mpullback_apply_eq_of_apply_eq_pushforwardAt hd (glue_apply_of_mem hf₁ hx)
+
+/-- If `f₂` is injective, `f₂ y` is off `f₁ '' s₁` and the differential of `f₂` at `y` is
+invertible, the glued form pulls back along `f₂` to `α₂` at `y`. -/
+theorem RoughForm.mpullback_glue_apply_of_notMem (hf₂ : Function.Injective f₂)
+    (hy : f₂ y ∉ f₁ '' s₁) (hd : (mfderiv I' I'' f₂ y).IsInvertible) :
+    mpullback I' I'' f₂ (glue I'' f₁ s₁ f₂ α₁ α₂) y = α₂ y :=
+  mpullback_apply_eq_of_apply_eq_pushforwardAt hd (glue_apply_of_notMem hf₂ hy)
+
+open scoped ContDiff in
+/-- Let `f₁` be a smooth local diffeomorphism on an open set `s₁`, injective there, and let `α₁`
+and `α₂` be smooth forms. If every point off `f₁ '' s₁` is `f₂ y` for a point `y` at which `f₂` is
+a smooth local diffeomorphism and near which the glued form pulls back along `f₂` to `α₂`, then
+the glued form is smooth. -/
+theorem RoughForm.isSmoothForm_glue [IsManifold I 1 M] [IsManifold I' 1 M']
+    [IsManifold I'' 1 M''] (hs₁ : IsOpen s₁) (hf₁ : InjOn f₁ s₁)
+    (hd₁ : IsLocalDiffeomorphOn I I'' ∞ f₁ s₁) (hα₁ : IsSmoothForm I ∞ α₁)
+    (hα₂ : IsSmoothForm I' ∞ α₂)
+    (h₂ : ∀ z ∉ f₁ '' s₁, ∃ y, f₂ y = z ∧ IsLocalDiffeomorphAt I' I'' ∞ f₂ y ∧
+      ∀ᶠ r in 𝓝 y, mpullback I' I'' f₂ (glue I'' f₁ s₁ f₂ α₁ α₂) r = α₂ r) :
+    IsSmoothForm I'' ∞ (glue I'' f₁ s₁ f₂ α₁ α₂) := by
+  rw [isSmoothForm_def]
+  intro z
+  by_cases hz : z ∈ f₁ '' s₁
+  · obtain ⟨x, hx, rfl⟩ := hz
+    refine ((hd₁ ⟨x, hx⟩).contMDiffAt_mpullback_form_iff (by simp)).1
+      ((hα₁.contMDiff x).congr_of_eventuallyEq ?_)
+    filter_upwards [hs₁.mem_nhds hx] with r hr
+    rw [mpullback_glue_apply_of_mem hf₁ hr ((hd₁ ⟨r, hr⟩).isInvertible_mfderiv (by simp))]
+  · obtain ⟨y, rfl, hy, hc⟩ := h₂ z hz
+    refine (hy.contMDiffAt_mpullback_form_iff (by simp)).1
+      ((hα₂.contMDiff y).congr_of_eventuallyEq ?_)
+    filter_upwards [hc] with r hr
+    rw [hr]
+
+end Glue
 
 end TauCeti
 
