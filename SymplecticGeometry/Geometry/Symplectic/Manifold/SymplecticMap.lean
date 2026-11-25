@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 
 /-!
 # Symplectic maps on a set, pointwise
@@ -37,15 +38,12 @@ variable {E H M E' H' M' : Type*}
 
 /-- A symplectic map on `s` from `σ` to `σ'` pulls `σ'` back to `σ` at each point of `s`. -/
 theorem IsSymplecticMapOn.mpullback_apply (h : σ.IsSymplecticMapOn σ' φ s) {x : M}
-    (hx : x ∈ s) : TauCeti.mpullback I I' φ σ'.val x = σ.val x := by
-  ext v
-  have hv : v = ![v 0, v 1] := (FinVec.etaExpand_eq v).symm
-  have h' := h.apply hx (v 0) (v 1)
-  rw [SmoothBundleForm.eval₂_apply, SmoothBundleForm.eval₂_apply, ← hv] at h'
-  rw [← h', TauCeti.mpullback_apply, hv]
-  congr 1
-  funext i
-  fin_cases i <;> rfl
+    (hx : x ∈ s) : TauCeti.mpullback I I' φ σ'.val x = σ.val x :=
+  ContinuousAlternatingMap.ext_fin_two fun v w ↦ by
+    have h' := h.apply hx v w
+    rw [SmoothBundleForm.eval₂_apply, SmoothBundleForm.eval₂_apply] at h'
+    rw [TauCeti.mpullback_apply, ← h']
+    exact congrArg _ (funext fun i ↦ by fin_cases i <;> simp)
 
 end TauCeti.SmoothTwoForm
 

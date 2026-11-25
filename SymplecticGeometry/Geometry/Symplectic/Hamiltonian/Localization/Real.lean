@@ -12,8 +12,8 @@ public import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
 public import TauCeti.Geometry.Symplectic.Manifold.Volume
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Localization.LocalizingForm
 import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Symplectic.Manifold.NeighborhoodGerm
 
 /-!
@@ -30,8 +30,8 @@ For a smooth `F : ℝ → ℝ` and real `ħ`, put `f = -ħ θ(X)`. The component
 `F(f + dθ) = ∑ₘ F⁽ᵐ⁾(f) (dθ)ᵐ / m!` (`SymplecticGeometry.formCalculus`) at `Φ z`, for `z ∈ B`, is
 `2ⁿ ∏ⱼ kⱼ · F⁽ⁿ⁾(-2πħ ∑ⱼ kⱼ² (xⱼ² + yⱼ²)) · σⁿ / n!`
 (`SymplecticGeometry.formCalculus_apply_weightChart`). The proof reads every factor through `Φ`:
-`θ(X) = 2π ∑ⱼ kⱼ² (xⱼ² + yⱼ²)` by `weightOneForm_apply_weightGenerator_two_pi_mul`,
-`dθ` is `dθₖ` read through `Φ` by locality and naturality of the exterior derivative, and
+`θ(X) = 2π ∑ⱼ kⱼ² (xⱼ² + yⱼ²)` by `mpullback_symm_weightOneForm_apply_weightChart`,
+`dθ` is `dθₖ` read through `Φ` by `TauCeti.mextDerivₗ_apply_eq_of_eventuallyEq_mpullback`, and
 `(dθₖ)ⁿ = 2ⁿ ∏ⱼ kⱼ · ω₀ⁿ` by `wedgePow_mextDerivₗ_weightOneForm_apply`, while `σ` is `ω₀` read
 through `Φ` since `Φ` is symplectic.
 
@@ -58,27 +58,6 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topological
   {n : ℕ} {Φ : PartialDiffeomorph 𝓘(ℝ, StdSpace (Fin n)) I (StdSpace (Fin n)) M ∞}
   {k : Fin n → ℝ} {θ : SmoothForm I M ℝ 1} {s : ℝ}
 
-/-- On `Φ '' ball 0 s`, where `θ` is `θₖ` read through `Φ`, its exterior derivative is `dθₖ`
-read through `Φ`. -/
-private theorem mextDerivₗ_apply_eq_weightOneForm (hs : ball 0 s ⊆ Φ.source)
-    (hθ : ∀ x ∈ Φ '' ball 0 s,
-      θ.val x = TauCeti.mpullback I 𝓘(ℝ, StdSpace (Fin n)) Φ.symm (weightOneForm k).val x)
-    {x : M} (hx : x ∈ Φ '' ball 0 s) :
-    (mextDerivₗ I 1 θ).val x =
-      ((mextDerivₗ 𝓘(ℝ, StdSpace (Fin n)) 1 (weightOneForm k)).val
-        (Φ.symm x)).compContinuousLinearMap (mfderiv I 𝓘(ℝ, StdSpace (Fin n)) Φ.symm x) := by
-  have hxt : x ∈ Φ.target := by
-    obtain ⟨z, hz, rfl⟩ := hx
-    exact Φ.map_source (hs hz)
-  have hopen : IsOpen (Φ '' ball 0 s) :=
-    Φ.toOpenPartialHomeomorph.isOpen_image_of_subset_source isOpen_ball hs
-  rw [mextDerivₗ_apply, mextDerivₗ_apply,
-    mextDeriv_congr_of_eventuallyEq (Filter.eventually_of_mem (hopen.mem_nhds hx) hθ),
-    ← mpullback_mextDeriv_at
-      ((Φ.symm.contMDiffOn.contMDiffAt (Φ.open_target.mem_nhds hxt)).of_le (by simp))
-      (((weightOneForm k).contMDiff _).of_le (by simp)),
-    mpullback_apply_eq_compContinuousLinearMap]
-
 /-- At `Φ z`, the function `θ(X)` takes the value `2π ∑ⱼ kⱼ² (xⱼ(z)² + yⱼ(z)²)`. -/
 private theorem interiorProduct_apply_weightChart {X : (x : M) → TangentSpace I x}
     {hX : ContMDiff I I.tangent ∞ (fun x ↦ (X x : TangentBundle I M))} {z : StdSpace (Fin n)}
@@ -89,19 +68,9 @@ private theorem interiorProduct_apply_weightChart {X : (x : M) → TangentSpace 
         (weightGenerator ((2 * π) • k) (EuclideanSpace.sumEquivProd z))) = X (Φ z)) :
     SmoothForm.ofFunctionEquiv.symm (SmoothForm.interiorProduct ⟨X, hX⟩ θ) (Φ z) =
       2 * π * ∑ j, k j ^ 2 * (z.x j ^ 2 + z.y j ^ 2) := by
-  have hzz : Φ.symm.toPartialEquiv (Φ z) = z := by
-    rw [Φ.symm_toPartialEquiv]
-    exact Φ.left_inv hz
   rw [SmoothForm.ofFunctionEquiv_symm_apply, SmoothForm.interiorProduct_apply_degree_one,
-    ContMDiffSection.coeFn_mk, hθ, TauCeti.mpullback_apply]
-  have hv : (fun i ↦ mfderiv I 𝓘(ℝ, StdSpace (Fin n)) Φ.symm (Φ z) (![X (Φ z)] i)) =
-      ![EuclideanSpace.sumEquivProd.symm
-        (weightGenerator ((2 * π) • k) (EuclideanSpace.sumEquivProd z))] := by
-    funext i
-    rw [Fin.fin_one_eq_zero i, Matrix.cons_val_zero, Matrix.cons_val_zero, ← hXz]
-    exact Φ.mfderiv_symm_apply_mfderiv_apply (by simp) hz _
-  rw [hv, hzz]
-  exact weightOneForm_apply_weightGenerator_two_pi_mul k z
+    ContMDiffSection.coeFn_mk, hθ, mpullback_symm_weightOneForm_apply_weightChart k k hz hXz]
+  simp only [sq]
 
 /-- **The top component of `F(d_ħ θ)` on a weight chart.** Let `Φ` be a partial diffeomorphism
 from `StdSpace (Fin n)` to `M` that pulls `σ` back to the standard form on its source, let
@@ -144,7 +113,13 @@ theorem formCalculus_apply_weightChart [FiniteDimensional ℝ E] {σ : SmoothTwo
     rw [Fintype.card_fin] at h
     -- `h` is stated on `StdSpace (Fin n)`, the goal on the tangent space at `Φ.symm (Φ z)`.
     exact h
-  rw [formCalculus_apply_val, mextDerivₗ_apply_eq_weightOneForm hs hθ (mem_image_of_mem _ hz),
+  -- `θ` is `(Φ⁻¹)^* θₖ` on the open set `Φ '' ball 0 s`, a neighbourhood of `Φ z`.
+  have hθx : ∀ᶠ y in 𝓝 (Φ z),
+      θ.val y = TauCeti.mpullback I 𝓘(ℝ, StdSpace (Fin n)) Φ.symm (weightOneForm k).val y :=
+    Filter.eventually_of_mem ((Φ.toOpenPartialHomeomorph.isOpen_image_of_subset_source
+      isOpen_ball hs).mem_nhds (mem_image_of_mem _ hz)) hθ
+  rw [formCalculus_apply_val, mextDerivₗ_apply_eq_of_eventuallyEq_mpullback
+      ((Φ.symm.contMDiffOn.contMDiffAt (Φ.open_target.mem_nhds hxt)).of_le (by simp)) hθx,
     ← ContinuousAlternatingMap.wedgePow_compContinuousLinearMap, hpow,
     SmoothTwoForm.volumeForm_apply, hσx,
     ← ContinuousAlternatingMap.wedgePow_compContinuousLinearMap, ContMDiffMap.coe_smul,
