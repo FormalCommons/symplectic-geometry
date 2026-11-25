@@ -47,7 +47,9 @@ with Tau Ceti's model `EuclideanSpace ℝ ι × EuclideanSpace ℝ ι` of `ℂ^�
   and, when no weight is zero, vanishes only at `0`
   (`weightOneForm_apply_weightGenerator_eq_zero_iff`);
 * `mextDerivₗ_weightOneForm_apply`: its exterior derivative is `2 ∑ⱼ kⱼ dxⱼ ∧ dyⱼ`; for the
-  weights `kⱼ = 1/2` this is the standard form `ω₀` (`mextDerivₗ_weightOneForm_half_apply`).
+  weights `kⱼ = 1/2` this is the standard form `ω₀` (`mextDerivₗ_weightOneForm_half_apply`);
+* `wedgePow_mextDerivₗ_weightOneForm_apply`: with `n = Fintype.card ι`, its top wedge power
+  `(dθₖ)ⁿ` is `2ⁿ ∏ⱼ kⱼ · ω₀ⁿ`, by `SymplecticGeometry.wedgePow_card_eq_prod_smul`.
 
 ## References
 
@@ -261,6 +263,7 @@ theorem mextDerivₗ_weightOneForm_half_apply (z : StdSpace ι)
   refine Eq.trans ?_ (stdForm_apply (v 0) (v 1)).symm
   rw [Finset.mul_sum]
   exact Finset.sum_congr rfl fun j _ ↦ by ring
+
 /-- **The top wedge power of `dθₖ`.** With `n = Fintype.card ι`, the `n`-th wedge power of the
 exterior derivative `dθₖ = 2 ∑ⱼ kⱼ dxⱼ ∧ dyⱼ` at any point is `2ⁿ ∏ⱼ kⱼ` times the `n`-th wedge
 power `ω₀ⁿ` of the standard form `ω₀ = ∑ⱼ dxⱼ ∧ dyⱼ`, given as a continuous alternating map. -/
