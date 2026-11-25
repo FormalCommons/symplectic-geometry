@@ -10,7 +10,7 @@ public import Mathlib.LinearAlgebra.Dimension.Finrank
 public import Mathlib.RingTheory.Finiteness.Defs
 public import TauCeti.Topology.Algebra.Module.Alternating.Wedge.Pow
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Wedge.Basic
-import TauCeti.LinearAlgebra.Determinant.Basic
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.TopDegree
 import TauCeti.Topology.Algebra.Module.Alternating.TopDegree
 
 /-!
@@ -34,7 +34,7 @@ with `v`. Since contraction is an antiderivation
 * `ContinuousAlternatingMap.wedgePow_compContinuousLinearMap_eq_det_smul`: in dimension `2 n`,
   `(A^* ω) ^ n = det A • ω ^ n`, by Tau Ceti's
   `ContinuousAlternatingMap.wedgePow_compContinuousLinearMap` and
-  `AlternatingMap.compLinearMap_eq_det_smul`, since `ω ^ n` has top degree.
+  `ContinuousAlternatingMap.compContinuousLinearMap_eq_det_smul`, since `ω ^ n` has top degree.
 
 ## References
 
@@ -91,16 +91,17 @@ theorem pairedWedge_curryLeftTopological_wedgePow_eq_zero [Module.Finite ℝ E] 
 /-- **Top wedge power of a pullback.** On a real vector space of dimension `2 n`, the `n`-th
 wedge power of the pullback of a two-form `ω` along an endomorphism `A` is `det A` times the
 `n`-th wedge power of `ω`. -/
-theorem wedgePow_compContinuousLinearMap_eq_det_smul [Module.Finite ℝ E] {n : ℕ}
+theorem wedgePow_compContinuousLinearMap_eq_det_smul {n : ℕ}
     (hE : Module.finrank ℝ E = 2 * n) (ω : E [⋀^Fin 2]→L[ℝ] ℝ) (A : E →L[ℝ] E) :
     (ω.compContinuousLinearMap A).wedgePow n = A.toLinearMap.det • ω.wedgePow n := by
-  rw [← wedgePow_compContinuousLinearMap]
-  ext v
-  -- Read `compLinearMap_eq_det_smul` at `v`, without moving the pullback back into the
-  -- wedge power.
-  simpa [-wedgePow_compContinuousLinearMap, Function.comp_def] using
-    DFunLike.congr_fun (AlternatingMap.compLinearMap_eq_det_smul
-      (Module.finBasisOfFinrankEq ℝ E hE) (ω.wedgePow n).toAlternatingMap A.toLinearMap) v
+  by_cases hfin : Module.Finite ℝ E
+  · rw [← wedgePow_compContinuousLinearMap,
+      compContinuousLinearMap_eq_det_smul _ (Module.finBasisOfFinrankEq ℝ E hE)]
+  · -- Otherwise `finrank ℝ E = 0`, so `n = 0`, and `det A = 1`.
+    obtain rfl : n = 0 := by rw [Module.finrank_of_not_finite hfin] at hE; omega
+    rw [LinearMap.det_eq_one_of_not_module_finite hfin, one_smul]
+    ext v
+    exact (wedgePow_zero_apply _ v).trans (wedgePow_zero_apply _ v).symm
 
 end ContinuousAlternatingMap
 
