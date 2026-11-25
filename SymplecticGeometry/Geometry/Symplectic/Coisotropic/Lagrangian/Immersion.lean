@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Coisotropic.Lagrangian.Basic
 import SymplecticGeometry.Geometry.Manifold.ConstantRank.Immersion
+import SymplecticGeometry.Geometry.Symplectic.Lagrangian.Manifold
 
 /-!
 # The reduced Lagrangian as a Lagrangian immersion
@@ -101,8 +102,7 @@ theorem exists_isLagrangianImmersion_range_eq_image [L.Boundaryless] [Nonempty N
     let := ChartedSpace.empty
       (EuclideanSpace ℝ (Fin (finrank ℝ G - (finrank ℝ E - finrank ℝ F)))) PEmpty.{u + 1}
     refine ⟨PEmpty, inferInstance, inferInstance, inferInstance, inferInstance, inferInstance,
-      isEmptyElim, ⟨ContMDiff.isImmersion_of_injective_mfderiv (fun x ↦ isEmptyElim x) (by simp)
-        isEmptyElim, isIsotropicMap_iff_forall.2 isEmptyElim, ?_⟩, ?_⟩
+      isEmptyElim, isLagrangianImmersion_iff_of_isEmpty.2 ?_, ?_⟩
     · simp only [finrank_euclideanSpace_fin]
       omega
     · rw [range_eq_empty, range_eq_empty, image_empty]
