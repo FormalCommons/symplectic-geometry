@@ -24,6 +24,9 @@ So two maps with the same value and the same differential at `x` pull every form
 same value at `x` (`TauCeti.mpullback_apply_eq_of_mfderiv_eq`). With Tau Ceti's locality and
 naturality of the exterior derivative, it gives `dθ` at `x` for a smooth form `θ` that agrees
 near `x` with a pullback (`TauCeti.mextDerivₗ_apply_eq_of_eventuallyEq_mpullback`).
+With naturality alone, when `f` maps `s` into `t`, a form that is exact on a neighbourhood of `t`
+pulls back to one that is exact on a neighbourhood of `s`
+(`TauCeti.SmoothForm.exists_mem_nhdsSet_mextDerivₗ_mpullback_eq`).
 
 If `f : M → M` preserves a function `ρ`, and the pullback of `φ` along `f` agrees with `φ` where
 `ρ` does not vanish, then `f` pulls `ρ • φ` back to itself
@@ -31,7 +34,8 @@ If `f : M → M` preserves a function `ρ`, and the pullback of `φ` along `f` a
 soon as it is so on the support of the cut-off.
 
 Pulling a form back commutes with negation (`TauCeti.mpullback_neg`), as Tau Ceti's
-`TauCeti.mpullback_sub` says for subtraction.
+`TauCeti.mpullback_sub` says for subtraction. So a diffeomorphism preserves `-σ` exactly when it
+preserves `σ` (`TauCeti.SmoothForm.diffeomorphStabilizer_neg`).
 
 Pulling a smooth form of positive degree back along a constant map gives the zero form
 (`TauCeti.SmoothForm.mpullback_const`, the smooth case of Tau Ceti's
@@ -55,9 +59,13 @@ normed spaces with their own models, `𝓘(ℝ, E₁ × E₂)` is not syntactica
   the differential of the map at `x`.
 * `TauCeti.mextDerivₗ_apply_eq_of_eventuallyEq_mpullback`: if a smooth form agrees near `x` with
   `f^* α`, its exterior derivative at `x` is `dα` at `f x` composed with `mfderiv f x`.
+* `TauCeti.SmoothForm.exists_mem_nhdsSet_mextDerivₗ_mpullback_eq`: a form exact near `t` pulls
+  back along a map from `s` into `t` to a form exact near `s`.
 * `TauCeti.mpullback_fun_smul_eq_self`: a form multiplied by a function `ρ` is invariant under a
   map that preserves `ρ`, if the form is so where `ρ` does not vanish.
 * `TauCeti.mpullback_neg`: the pullback of `-φ` is minus the pullback of `φ`.
+* `TauCeti.SmoothForm.diffeomorphStabilizer_neg`: a diffeomorphism preserves `-σ` exactly when
+  it preserves `σ`.
 * `TauCeti.SmoothForm.mpullback_const`: the pullback of a smooth `(k + 1)`-form along a constant
   map is `0`.
 * `TauCeti.SmoothForm.mpullback_prodMk_left_mpullback_snd`: the slice `x ↦ (x, p)` of the
@@ -164,6 +172,13 @@ namespace SmoothForm
 
 variable [IsManifold I 1 M] [IsManifold I' 1 M']
 
+/-- A diffeomorphism preserves `-σ` exactly when it preserves `σ`. -/
+@[simp]
+theorem diffeomorphStabilizer_neg (σ : SmoothForm I M F k) :
+    diffeomorphStabilizer (-σ) = diffeomorphStabilizer σ := by
+  ext φ
+  simp only [mem_diffeomorphStabilizer, map_neg, neg_inj]
+
 /-- The pullback of a smooth form of positive degree along a constant map is zero. -/
 @[simp]
 theorem mpullback_const (c : M') (hc : ContMDiff I I' ∞ fun _ : M ↦ c)
@@ -205,6 +220,23 @@ theorem differentiable_apply_one_mfderiv (η : SmoothForm I' M' F 1) {γ : E →
     (hγ : ContMDiff 𝓘(ℝ, E) I' ∞ γ) (w : E) :
     Differentiable ℝ fun y ↦ η.val (γ y) ![mfderiv 𝓘(ℝ, E) I' γ y w] :=
   (contDiff_apply_one_mfderiv η hγ w).differentiable (by simp)
+
+end SmoothForm
+
+namespace SmoothForm
+
+variable [IsManifold I 2 M] [IsManifold I' 2 M']
+
+/-- Let `f` map `s` into `t`. If `dγ` is `τ` on a neighbourhood of `t`, then `d (f^* γ)` is
+`f^* τ` on a neighbourhood of `s`: a form exact near `t` pulls back to a form exact near `s`. -/
+theorem exists_mem_nhdsSet_mextDerivₗ_mpullback_eq {f : M → M'} (hf : ContMDiff I I' ∞ f)
+    {s : Set M} {t : Set M'} (hst : Set.MapsTo f s t) {γ : SmoothForm I' M' F k}
+    {τ : SmoothForm I' M' F (k + 1)} {V : Set M'} (hV : V ∈ 𝓝ˢ t)
+    (hγ : ∀ y ∈ V, (mextDerivₗ I' k γ).val y = τ.val y) :
+    ∃ V' ∈ 𝓝ˢ s, ∀ x ∈ V', (mextDerivₗ I k (mpullback f hf γ)).val x = (mpullback f hf τ).val x :=
+  ⟨f ⁻¹' V, hf.continuous.tendsto_nhdsSet hst hV, fun _ hx ↦ by
+    rw [mextDerivₗ_mpullback, coe_mpullback, coe_mpullback]
+    exact mpullback_apply_congr (hγ _ hx)⟩
 
 end SmoothForm
 

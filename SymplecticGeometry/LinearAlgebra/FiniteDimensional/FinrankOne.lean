@@ -5,11 +5,14 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.LinearAlgebra.FiniteDimensional.Defs
+public import Mathlib.LinearAlgebra.FiniteDimensional.Basic
 public import Mathlib.LinearAlgebra.Dimension.StrongRankCondition
 
 /-!
-# Modules of rank one given by a `Fact`
+# Modules of rank one
+
+A nonzero vector `v` of a vector space `V` of dimension one spans `V`
+(`finrank_eq_one_iff_of_ne_zero`), so a linear map out of `V` is determined by its value at `v`.
 
 A module `V` whose rank one is recorded as the instance `Fact (Module.finrank K V = 1)` gets two
 instances here: it is finite-dimensional over a division ring `K`, and its rank is that of `K`
@@ -30,6 +33,11 @@ so the instances create no diamond.
 * `FiniteDimensional.of_fact_finrank_eq_one`: a module of rank one is finite-dimensional.
 * `Module.fact_finrank_self_eq_of_fact_finrank_eq_one`: a module of rank one has the rank of the
   ring.
+
+## Main results
+
+* `LinearMap.ext_of_finrank_eq_one`: two linear maps out of a vector space of dimension one that
+  agree at a nonzero vector are equal.
 -/
 
 public section
@@ -46,5 +54,16 @@ instance Module.fact_finrank_self_eq_of_fact_finrank_eq_one {K V : Type*} [Semir
     [StrongRankCondition K] [AddCommMonoid V] [Module K V] [Fact (finrank K V = 1)] :
     Fact (finrank K K = finrank K V) :=
   ⟨by rw [finrank_self, Fact.out (p := finrank K V = 1)]⟩
+
+namespace LinearMap
+
+/-- Two linear maps out of a vector space of dimension one that agree at a nonzero vector are
+equal. -/
+theorem ext_of_finrank_eq_one {K V M : Type*} [DivisionRing K] [AddCommGroup V] [Module K V]
+    [AddCommMonoid M] [Module K M] (hV : finrank K V = 1) {v : V} (hv : v ≠ 0)
+    {f g : V →ₗ[K] M} (h : f v = g v) : f = g :=
+  ext_on ((finrank_eq_one_iff_of_ne_zero v hv).mp hV) (by simpa using h)
+
+end LinearMap
 
 end

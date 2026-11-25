@@ -14,6 +14,7 @@ import TauCeti.Analysis.Matrix.OrthogonalRows
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.RestrictScalars
+import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 
 /-!
 # Darboux charts of the Fubini–Study form
