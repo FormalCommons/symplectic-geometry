@@ -176,10 +176,29 @@ the only `dualClass` is a private helper of local orientations.
   applies; the binary step is `TopCat.bijective_pullbackCupRestrict_union`;
   the disjoint step is additivity of cohomology, the one new lemma. This
   works over any commutative ring and any coefficient module, and every
-  manifold here is second countable. *Chern classes*' Leray–Hirsch
-  induction, which has its own Mayer–Vietoris step
-  `TopCat.lerayHirschRestrict_union_bijective`, can take the same route for
-  the same question (#3276); this design does not decide that update.
+  manifold here is second countable. It is the one route to the Thom
+  isomorphism over a non-compact base in this library, and
+  `design/chern-classes.md` agrees. Two other routes were set aside:
+  - *Chern classes*' finite trivializing covers
+    (`HasFiniteTrivializingCover.of_chartedSpace`, its issue 23, with Tau
+    Ceti's `thomEquivOfBiUnionEqUniv`) would also give it over every
+    manifold, but this part, and through it the milestone, would then wait
+    for that extension's covering-dimension issues (17–23 there). The
+    finite covers stay where *Chern classes* needs them, for the
+    classifying maps of its Whitney formula.
+  - Tau Ceti's chain-level homology Thom isomorphism
+    `TauCeti.quasiIso_pushforwardCapChainMap_thomPair` (`Thom/Homology.lean`),
+    a quasi-isomorphism between complexes of free modules, gives a
+    cochain homotopy equivalence after `Hom(-, M)` by
+    `ChainComplex.homotopyEquivalences_linearYonedaFunctor_map_of_projective`,
+    over any base. Reading it as `thomMap` needs the cohomology of the
+    shifted complex and a comparison, cochain by cochain, of the dual of
+    the cap map with `pullbackCup`, which neither library has. That route
+    removes second countability, which no space here lacks.
+
+  *Chern classes*' Leray–Hirsch induction is not changed: it is stated
+  over a finite trivializing cover, and the plan asks for no $c_k$ over a
+  non-compact base (`design/chern-classes.md`, *The bases*).
 - **Normalized tubes.** The class carried by a tube depends on whether the
   tube preserves the fibre orientations, which Tau Ceti's tubes do not
   record. A tube is *normalized* if, at each $x\in Z$, the derivative at $0$
