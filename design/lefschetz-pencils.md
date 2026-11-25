@@ -302,7 +302,7 @@ Namespace `SymplecticGeometry`.
   `isReversedProjectiveSum_zero_iff`, `IsReversedProjectiveSum.succ` (the
   constructor), and `IsReversedProjectiveSum.eulerChar_eq`:
   `eulerChar X = eulerChar M + N` in dimension four, by
-  `eulerChar_orientedConnectedSum` and `eulerChar_projectivization_complex`.
+  `eulerChar_orientedConnectedSum` and `EuclideanComplexProjectiveSpace.eulerChar_eq`.
 
 ### `Geometry/Symplectic/Lefschetz/Basic.lean`
 
