@@ -32,7 +32,7 @@ coefficients of the family in place of those of the fixed form.
 * `TauCeti.SmoothForm.coe_mpullback_prodMk_lineMapFamily`: the slices of
   `TauCeti.SmoothForm.lineMapFamily`, stated for the underlying rough forms.
 * `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap'`: `ι_t^* (c × f)^* α = f^* ι_{c t}^* α`
-  for a smooth map `c` of parameter manifolds, with its case `f = id` over `ℝ`,
+  for a smooth map `c` of parameter manifolds, with its case `f = id`,
   `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap_id_right`; the case `c = id` is Tau
   Ceti's `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap`.
 * `ContMDiffAt.mpullback_form_family_of_family`: the pullbacks `(f p)^* (φ p)` of a smooth
@@ -84,10 +84,15 @@ theorem mpullback_prodMk_mpullback_prodMap' {EP HP P EP' HP' P' : Type*}
   mpullback_mpullback_of_comp_eq (contMDiff_const.prodMk contMDiff_id) (hc.prodMap hf) hf
     (contMDiff_const.prodMk contMDiff_id) rfl α
 
-/-- The slice at time `t` of the pullback of a form `α` on `ℝ × M` along `c × id`, for a smooth
-`c : ℝ → ℝ`, is the slice of `α` at time `c t`. -/
-theorem mpullback_prodMk_mpullback_prodMap_id_right {c : ℝ → ℝ}
-    (hc : ContMDiff 𝓘(ℝ) 𝓘(ℝ) ∞ c) (α : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F k) (t : ℝ) :
+/-- The slice at `t` of the pullback of a form `α` on `P × M` along `c × id`, for a smooth map
+`c : P' → P` of parameter manifolds, is the slice of `α` at `c t`. -/
+theorem mpullback_prodMk_mpullback_prodMap_id_right {EP HP P EP' HP' P' : Type*}
+    [NormedAddCommGroup EP] [NormedSpace ℝ EP] [TopologicalSpace HP]
+    {K : ModelWithCorners ℝ EP HP} [TopologicalSpace P] [ChartedSpace HP P] [IsManifold K 1 P]
+    [NormedAddCommGroup EP'] [NormedSpace ℝ EP'] [TopologicalSpace HP']
+    {K' : ModelWithCorners ℝ EP' HP'} [TopologicalSpace P'] [ChartedSpace HP' P']
+    [IsManifold K' 1 P'] {c : P' → P} (hc : ContMDiff K' K ∞ c)
+    (α : SmoothForm (K.prod I) (P × M) F k) (t : P') :
     mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
         (mpullback (Prod.map c id) (hc.prodMap contMDiff_id) α) =
       mpullback (Prod.mk (c t)) (contMDiff_const.prodMk contMDiff_id) α := by

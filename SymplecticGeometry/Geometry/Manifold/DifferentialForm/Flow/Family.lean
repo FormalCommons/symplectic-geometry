@@ -9,7 +9,6 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Family
 public import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
-import TauCeti.Analysis.ODE.ScalarLinear
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Product
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 
@@ -22,24 +21,11 @@ be a form on `ℝ × M` with slices `α_u = ι_u^* α`. Tau Ceti proves that if 
 `ι_u^* L_{∂_t} α + L_{X_u} α_u` equals `g_u • α_u` everywhere, then
 `(φ_{s,t}^* α_t)ₓ = exp (∫ₛᵗ g (u, φ_{s,u} x) du) • (α_s)ₓ`
 (`TauCeti.mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_mem`),
-and that if the rate vanishes only at the points `φ_{s,u} x` for `u` between `s` and `t`, then
-`(φ_{s,t}^* α_t)ₓ = (α_s)ₓ`
-(`TauCeti.mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_forall_mem_uIcc_of_mem`).
+and also the form of this identity that needs the rate only along the trajectory of `x`, for `u`
+between `s` and `t` (the variant of that theorem ending in `…_smul_of_forall_mem_uIcc`), which
+Gray's argument uses.
 
-This file combines the two: the rescaling identity
-`(φ_{s,t}^* α_t)ₓ = exp (∫ₛᵗ c u du) • (α_s)ₓ` holds as soon as the rate at `φ_{s,u} x` is
-`c u • α_u` at that point, for every `u` between `s` and `t`, with a coefficient `c` continuous in
-time, and `α` is `C¹` only along the trajectory. This is the form in which Gray's argument uses
-the identity when the contact structures are given only by local defining forms.
-
-The proof is that of Tau Ceti's
-`TauCeti.mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_mem`, with
-the derivative read only along the trajectory through
-`TauCeti.hasDerivAt_mpullback_timeDependentFlowOf_mpullback_prodMk` and the interval between `s`
-and `t` in place of the whole domain of the flow, as in Tau Ceti's
-`TauCeti.mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_forall_mem_uIcc_of_mem`.
-
-The file then treats the constant family `(u, y) ↦ β_y` of a form `β` on `M`, whose slices
+This file treats the constant family `(u, y) ↦ β_y` of a form `β` on `M`, whose slices
 are all `β` (`TauCeti.SmoothForm.mpullback_prodMk_mpullback_snd`). If `L_{X_u} β = g_u • β`
 for every time `u`, with `g` continuous, then
 `(φ_{s,t}^* β)ₓ = exp (∫ₛᵗ g (u, φ_{s,u} x) du) • βₓ` wherever the flow is defined: this is Tau
@@ -63,10 +49,6 @@ pullback along `id × f`, and it vanishes on forms pulled back from `M` along th
 
 ## Main results
 
-* `TauCeti.mpullback_timeDependentFlowOf_mpullback_prodMk_…_smul_of_forall_mem_uIcc_of_mem`
-  (in full, `…_prodMk_apply_eq_exp_integral_smul_of_forall_mem_uIcc_of_mem`): if the rate is
-  `c u • α_u` along the trajectory of `x` between `s` and `t`, then
-  `(φ_{s,t}^* α_t)ₓ = exp (∫ₛᵗ c u du) • (α_s)ₓ`.
 * `TauCeti.mpullback_timeDependentFlowOf_apply_eq_exp_integral_smul_of_mlieDerivForm_eq`: a smooth
   form with `L_{X_u} β = g_u • β` satisfies `(φ_{s,t}^* β)ₓ = exp (∫ₛᵗ g (u, φ_{s,u} x) du) • βₓ`
   wherever the flow is defined.
@@ -106,53 +88,6 @@ variable {E H M F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDim
   [TopologicalSpace M] [ChartedSpace H M] [IsManifold I 2 M] [T2Space M]
   [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
   {X : ℝ → (x : M) → TangentSpace I x} {α : RoughForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F k}
-
-/-- **Moser's principle along a trajectory**, rescaling case. Let `X` be a jointly `C²`
-time-dependent vector field with time-dependent flow `φ`, defined at `x` from time `s` to time `t`,
-and let `α` be a form on `ℝ × M` with slices `α_u = ι_u^* α`, which is `C¹` at `(u, φ_{s,u} x)`
-for every time `u` between `s` and `t`. If, for each such `u`, the rate
-`ι_u^* L_{∂_t} α + L_{X_u} α_u` at the point `φ_{s,u} x` is `c u • (α_u)_{φ_{s,u} x}`, for a
-function `c` of time continuous between `s` and `t`, then
-`(φ_{s,t}^* α_t)ₓ = exp (∫ₛᵗ c u du) • (α_s)ₓ`. Nothing is assumed away from the trajectory
-of `x`. -/
-theorem
-mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_forall_mem_uIcc_of_mem
-    (hX : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent 2
-      (fun p : ℝ × M ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle I M)))
-    {s t : ℝ} {x : M} (h : ((s, t), x) ∈ timeDependentFlowDomain X)
-    (hα : ∀ u ∈ uIcc s t, ContMDiffAt (𝓘(ℝ, ℝ).prod I)
-      ((𝓘(ℝ, ℝ).prod I).prod 𝓘(ℝ, (ℝ × E) [⋀^Fin k]→L[ℝ] F)) 1
-      (fun p ↦ TotalSpace.mk' ((ℝ × E) [⋀^Fin k]→L[ℝ] F) p (α p))
-      (u, timeDependentFlowOf X s u x))
-    {c : ℝ → ℝ} (hc : ContinuousOn c (uIcc s t))
-    (hL : ∀ u ∈ uIcc s t, (mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk u)
-          (mlieDerivForm (fun _ ↦ ((1 : ℝ), (0 : E))) α) +
-        mlieDerivForm (X u) (mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk u) α))
-          (timeDependentFlowOf X s u x) =
-        c u • mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk u) α (timeDependentFlowOf X s u x)) :
-    mpullback I I (timeDependentFlowOf X s t) (mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t) α) x =
-      Real.exp (∫ u in s..t, c u) • mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk s) α x := by
-  -- The flow from `(s, x)` is defined at all times between `s` and `t`.
-  have hJ := uIcc_subset_setOf_mem_timeDependentFlowDomain h
-  -- The pullbacks at `x`, as alternating maps on the model space.
-  set P : ℝ → E [⋀^Fin k]→L[ℝ] F := fun u ↦
-    mpullback I I (timeDependentFlowOf X s u) (mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk u) α) x
-  -- Between `s` and `t` they satisfy the scalar linear equation `P' = c • P`.
-  have hP (u : ℝ) (hu : u ∈ uIcc s t) : HasDerivWithinAt P (c u • P u) (uIcc s t) u := by
-    refine ((hasDerivAt_mpullback_timeDependentFlowOf_mpullback_prodMk hX (hJ hu)
-      (hα u hu)).congr_deriv ?_).hasDerivWithinAt
-    rw [mpullback_apply_eq_compContinuousLinearMapCLM, hL u hu, _root_.map_smul,
-      ← mpullback_apply_eq_compContinuousLinearMapCLM]
-    -- The two sides differ only in the unfolding of `P` and in whether the scalar action is that
-    -- of forms on the fibre `T_x M` or on the model space `E`.
-    rfl
-  have hP0 : P s = mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk s) α x := by
-    have hid : timeDependentFlowOf X s s = id := funext (timeDependentFlowOf_self X s)
-    exact (congrArg (fun f ↦ mpullback I I f (mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk s) α) x)
-      hid).trans (congrFun (mpullback_id _) x)
-  rw [← hP0]
-  exact eq_exp_integral_smul_of_hasDerivWithinAt_smul (V := E [⋀^Fin k]→L[ℝ] F) ordConnected_uIcc
-    hc hP left_mem_uIcc right_mem_uIcc
 
 /-- **Local time-dependent flows rescale eigenforms of the Lie derivatives.** Let `X` be a
 jointly `C²` time-dependent vector field and `β` a smooth form with `L_{X_u} β = g_u • β` for

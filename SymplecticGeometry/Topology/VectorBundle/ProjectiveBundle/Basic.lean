@@ -345,8 +345,7 @@ theorem trivializationAt_mk {b : B} (v : TotalSpace G E) (hv : v.snd ≠ 0)
     (hb : v.proj ∈ (trivializationAt G E b).baseSet) :
     trivializationAt (ℙ 𝕜 G) (fun b ↦ ℙ 𝕜 (E b)) b (mk 𝕜 v hv) =
       (v.proj, Projectivization.mk 𝕜 (trivializationAt G E b v).2
-        ((map_ne_zero_iff _ (((trivializationAt G E b).continuousLinearEquivAt 𝕜 v.proj
-          hb).injective)).2 hv)) := by
+        (((trivializationAt G E b).snd_apply_ne_zero_iff 𝕜 hb).2 hv)) := by
   rw [mk_def, trivializationAt_apply _ hb]
   simp
 
@@ -372,8 +371,8 @@ theorem continuous_mk' : Continuous (mk' 𝕜 G E) := by
     (e.continuousOn.comp continuous_subtypeVal.continuousOn fun w hw ↦ e.mem_source.2 hw).snd
   rw [continuousOn_iff_continuous_domRestrict]
   refine (Projectivization.continuous_mk (K := 𝕜) he.domRestrict fun w ↦
-    (map_ne_zero_iff _ (e.continuousLinearEquivAt 𝕜 _ w.property).injective).2
-      (mem_zeroSectionCompl.1 w.val.property)).congr fun w ↦ ?_
+    (e.snd_apply_ne_zero_iff 𝕜 w.property).2 (mem_zeroSectionCompl.1 w.val.property)).congr
+      fun w ↦ ?_
   exact (congrArg Prod.snd (trivializationAt_mk w.val.val (mem_zeroSectionCompl.1 w.val.property)
     w.property)).symm
 
@@ -384,16 +383,11 @@ theorem isOpenMap_mk' : IsOpenMap (mk' 𝕜 G E) := by
   rintro _ ⟨v, hvU, rfl⟩
   let e := trivializationAt G E v.val.proj
   let eP := trivializationAt (ℙ 𝕜 G) (fun b ↦ ℙ 𝕜 (E b)) v.val.proj
-  have hsymm (q : {q : B × {w : G // w ≠ 0} // q.1 ∈ e.baseSet}) :
-      e.toOpenPartialHomeomorph.symm (q.val.1, q.val.2.val) =
-        ⟨q.val.1, (e.continuousLinearEquivAt 𝕜 _ q.property).symm q.val.2.val⟩ :=
-    e.symm_apply_eq_mk_continuousLinearEquivAt_symm _ q.property _
   -- The nonzero vectors over the base set of `e`, in the coordinates of `e`.
   let σ (q : {q : B × {w : G // w ≠ 0} // q.1 ∈ e.baseSet}) : zeroSectionCompl G E :=
     ⟨e.toOpenPartialHomeomorph.symm (q.val.1, q.val.2.val), by
-      rw [hsymm, mem_zeroSectionCompl]
-      exact (map_ne_zero_iff _ (e.continuousLinearEquivAt 𝕜 _ q.property).symm.injective).2
-        q.val.2.property⟩
+      rw [← e.mk_symm q.property, mem_zeroSectionCompl]
+      exact (e.symm_apply_ne_zero_iff 𝕜 q.property).2 q.val.2.property⟩
   have hσ : Continuous σ :=
     (e.toOpenPartialHomeomorph.continuousOn_symm.comp_continuous
       (f := fun q : {q : B × {w : G // w ≠ 0} // q.1 ∈ e.baseSet} ↦ (q.val.1, q.val.2.val))
@@ -420,8 +414,7 @@ theorem isOpenMap_mk' : IsOpenMap (mk' 𝕜 G E) := by
     exact congrArg Prod.snd h2
   · exact eP.mem_source.2 hv
   · have hv0 : (e v.val).2 ≠ 0 :=
-      (map_ne_zero_iff _ (e.continuousLinearEquivAt 𝕜 _ hv).injective).2
-        (mem_zeroSectionCompl.1 v.property)
+      (e.snd_apply_ne_zero_iff 𝕜 hv).2 (mem_zeroSectionCompl.1 v.property)
     let qv : {q : B × {w : G // w ≠ 0} // q.1 ∈ e.baseSet} := ⟨(v.val.proj, ⟨_, hv0⟩), hv⟩
     have hσv : σ qv = v := Subtype.ext ((congrArg _ (e.mk_proj_snd' hv)).trans
       (e.symm_apply_apply (e.mem_source.2 hv)))
