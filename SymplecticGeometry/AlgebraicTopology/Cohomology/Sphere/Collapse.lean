@@ -39,6 +39,9 @@ equivalence `(ℝ ∙ p)ᗮ × (ℝ ∙ q)ᗮ ≃ (ℝ ∙ r)ᗮ`, followed by M
 * `SymplecticGeometry.isLocalHomeomorphOn_sphereCollapse`,
   `SymplecticGeometry.preimage_sphereCollapse_singleton`: off the wedge the collapse map is a
   local homeomorphism, and each point there is the only point of its fibre.
+* `SymplecticGeometry.topCatSphereCollapse`: the collapse map read on Tau Ceti's spheres
+  `TopCat.sphere`, as a morphism `Sᵃ ⊗ Sᵇ ⟶ Sᵃ⁺ᵇ` of `TopCat`
+  (`SymplecticGeometry.topCatSphereCollapse_apply`).
 * `SymplecticGeometry.exists_singularHomologyMap_sphereCollapse_singularHomologyCross_eq_zsmul`:
   in integral homology of degree `a + b`, the collapse map sends the cross product `γ_a × γ_b`
   of the standard generators of the homology of the spheres to `±γ_{a+b}`.
@@ -49,16 +52,16 @@ equivalence `(ℝ ∙ p)ᗮ × (ℝ ∙ q)ᗮ ≃ (ℝ ∙ r)ᗮ`, followed by M
   `(ε * ⟨u, γ_{a+b}⟩) • (pr₁^* θ_a ⌣ pr₂^* θ_b)`, with `θ_a`, `θ_b` the dual generators of the
   top cohomology of the spheres.
 
-The last three results are read on Tau Ceti's spheres `TopCat.sphere`. For the first, the cross
-product is a fundamental class
+The last three results are stated for `SymplecticGeometry.topCatSphereCollapse`. For the
+first, the cross product is a fundamental class
 (`TauCeti.IsFundamentalClass.singularHomologyTopCatSphereGenerator_singularHomologyCross`), and
 so is `γ_{a+b}`. A point off the wedge has a one-point fibre at which the map is a local
 homeomorphism, so `TauCeti.IsFundamentalClass.map_eq_or_eq_neg_of_isLocalHomeomorphOn_unit`
-gives the sign. For the other two, a class `x` of degree `a + b` on `S^a × S^b` is
-`⟨x, γ_a × γ_b⟩ • (pr₁^* θ_a ⌣ pr₂^* θ_b)`
-(`TopCat.eq_singularKronecker_smul_singularCup_sphereGenerator`), and for `x = κ^* u` the
-naturality of the Kronecker pairing gives `⟨κ^* u, γ_a × γ_b⟩ = ⟨u, κ_*(γ_a × γ_b)⟩ =
-ε * ⟨u, γ_{a+b}⟩`.
+gives the sign. For the second, the pull-back of a class `u` of degree `a + b` to `S^a × S^b`
+is `⟨u, κ_*(γ_a × γ_b)⟩ • (pr₁^* θ_a ⌣ pr₂^* θ_b)`
+(`TopCat.singularCohomologyMap_eq_singularKronecker_smul_singularCup_sphereGenerator`), and
+`⟨u, κ_*(γ_a × γ_b)⟩ = ε * ⟨u, γ_{a+b}⟩` by the first. The third is the second carried into
+integral cohomology by `TopCat.integralCohomologyEquiv`.
 
 ## References
 

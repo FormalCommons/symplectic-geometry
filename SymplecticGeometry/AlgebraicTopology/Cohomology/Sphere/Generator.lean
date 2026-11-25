@@ -13,8 +13,9 @@ public import TauCeti.AlgebraicTopology.Cohomology.Sphere.Product
 
 Let `θ ∈ Hᵈ⁺¹(Sᵈ⁺¹; ℤ)` be Tau Ceti's class `singularCohomologyTopCatSphereGenerator`, dual to the
 standard generator of `H_{d+1}(Sᵈ⁺¹)`, carried into the library's integral cohomology by
-`TopCat.integralCohomologyEquiv`. This file shows that `θ` generates `Hᵈ⁺¹(Sᵈ⁺¹; ℤ)`, and that
-cup product with its pull-back to `Sᵈ⁺¹ × Y` keeps classes of infinite order. It also shows
+`TopCat.integralCohomologyEquiv`, which this file names `TopCat.integralSphereGenerator`. It
+shows that `θ` generates `Hᵈ⁺¹(Sᵈ⁺¹; ℤ)`, and that cup product with its pull-back to `Sᵈ⁺¹ × Y`
+keeps classes of infinite order. It also shows
 that, over any commutative ring `k`, the class `pr₁^* θ_a ⌣ pr₂^* θ_b` spans `Hᵃ⁺ᵇ(Sᵃ × Sᵇ; k)`
 and takes the value `1` on the cross product `γ_a × γ_b` of the homology generators.
 
@@ -38,6 +39,10 @@ top cohomology of `Sᵃ` and `Sᵇ`, `a, b ≥ 1`, and `γ_a`, `γ_b` the standa
   `TopCat.singularKronecker_singularCup_fst_snd_singularHomologyCross`.
 * `TopCat.eq_singularKronecker_smul_singularCup_sphereGenerator`: so every class `x` of
   `Hᵃ⁺ᵇ(Sᵃ × Sᵇ; k)` is `⟨x, γ_a × γ_b⟩ • (pr₁^* θ_a ⌣ pr₂^* θ_b)`.
+* `TopCat.singularCohomologyMap_eq_singularKronecker_smul_singularCup_sphereGenerator`: for a
+  map `f : Sᵃ × Sᵇ ⟶ Z` and a class `u` of `Hᵃ⁺ᵇ(Z; k)`,
+  `f^* u = ⟨u, f_*(γ_a × γ_b)⟩ • (pr₁^* θ_a ⌣ pr₂^* θ_b)`, by the naturality
+  `TopCat.singularKronecker_naturality` of the Kronecker pairing.
 * `TopCat.exists_eq_zsmul_integralCup_sphereGenerator`: in the integral cohomology
   `TopCat.integralCohomology`, every class of degree `a + b` of `Sᵃ × Sᵇ` is an integer multiple
   of the integral cup product `pr₁^* θ_a ⌣ pr₂^* θ_b`.
