@@ -446,7 +446,8 @@ of `T*Sⁿ` containing `{z | μ z ≤ r₀}` and contained in the domains `U₀`
 twists of `ι₀` and `ι₁` for a profile `R` of radius `r₀` differ by the final map of a diffeotopy
 of `M` that preserves `σ` at all times and fixes every point outside a compact set at all
 times. -/
-theorem exists_diffeotopy_dehnTwist_eq_of_smoothIsotopy [IsManifold I ∞ M] [I.Boundaryless]
+theorem exists_diffeotopy_dehnTwist_eq_of_smoothIsotopy [IsManifold I ∞ M]
+    [BoundarylessManifold I M]
     {σ : SmoothTwoForm I M} {W U₀ U₁ : Opens (𝕋 n)} {V₀ V₁ : Opens M}
     (ι₀ : U₀ ≃ₘ⟮𝓣 n, I⟯ V₀) (ι₁ : U₁ ≃ₘ⟮𝓣 n, I⟯ V₁) (hW₀ : W ≤ U₀) (hW₁ : W ≤ U₁)
     {g₀ g₁ : C^∞⟮𝓣 n, W; I, M⟯} (hg₀ : ∀ z : W, g₀ z = ι₀ ⟨z, hW₀ z.property⟩)
@@ -492,7 +493,7 @@ theorem exists_diffeotopy_dehnTwist_eq_of_smoothIsotopy [IsManifold I ∞ M] [I.
     · rw [Diffeomorph.mul_apply, Diffeotopy.final_apply, ← Diffeotopy.timeSlice_apply]
       refine hΦΛ₀K 1 x ?_
       rintro ⟨w, hw, rfl⟩
-      exact hx ⟨⟨w, hW₁ w.property⟩, hw, by beta_reduce; rw [G.apply_one, hg₁]⟩
+      exact hx ⟨⟨w, hW₁ w.property⟩, hw, by simp [G.apply_one, hg₁]⟩
   refine ⟨Φ, _, (isCompact_univ.prod (isCompact_setOf_cotangentNorm_coe_le hrW)).image
     G.contMDiff.continuous, hΦσ, hΦK, fun x ↦ ?_⟩
   rw [← h₀, ← h₁, Diffeomorph.mul_apply]
