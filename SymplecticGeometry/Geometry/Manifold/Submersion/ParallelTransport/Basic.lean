@@ -418,7 +418,7 @@ theorem isHorizontalMap_timeDependentFlowOf_horizontalLiftField (hn : 1 ≤ n)
   let c : ℝ → P := fun u ↦ timeDependentFlowOf X s u x
   have hcd (u : ℝ) : HasMFDerivAt 𝓘(ℝ, ℝ) I c u ((1 : ℝ →L[ℝ] ℝ).smulRight (X u (c u))) :=
     hasMFDerivAt_timeDependentFlowOf (hX.of_le hn')
-      ((timeDependentFlowDomain_eq_univ hXc).symm ▸ mem_univ _)
+      (mem_timeDependentFlowDomain.2 (hXc.mem_flowDomain _ _))
   -- The projection of `c` is a trajectory of `V`.
   have hfc (u : ℝ) : HasMFDerivAt 𝓘(ℝ, ℝ) J (f ∘ c) u
       ((1 : ℝ →L[ℝ] ℝ).smulRight (V u ((f ∘ c) u))) := by
