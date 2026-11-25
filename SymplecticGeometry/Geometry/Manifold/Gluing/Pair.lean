@@ -197,18 +197,11 @@ of `φ`, as a subset of `M₁ × M₂`, is closed, then the glued space is Hausd
 theorem t2Space_of_isClosed_graph [T2Space M₁] [T2Space M₂]
     (hφ : IsClosed {p : M₁ × M₂ | ∃ u : U₁, (u : M₁) = p.1 ∧ (φ u : M₂) = p.2}) :
     T2Space (GluedAlong φ) := by
-  -- The two-piece criterion asks, for `x ∉ U₁` and `y ∉ U₂`, for neighbourhoods `A ∋ x` and
-  -- `B ∋ y` such that `φ` maps no point of `U₁ ∩ A` into `B`: take `A ×ˢ B` off the graph.
-  -- It is stated for the glued space of `glueData φ`, which `GluedAlong φ` is by definition.
-  refine (TopCat.GlueData.ofHomeomorph_t2Space_iff φ.toHomeomorph).2
-    ⟨‹_›, ‹_›, fun x hx y _ ↦ ?_⟩
-  have hxy : (x, y) ∈ {p : M₁ × M₂ | ∃ u : U₁, (u : M₁) = p.1 ∧ (φ u : M₂) = p.2}ᶜ := by
-    rintro ⟨u, rfl, -⟩
-    exact hx u.property
-  obtain ⟨A, hA, B, hB, hAB⟩ := mem_nhds_prod_iff.1 (hφ.isOpen_compl.mem_nhds hxy)
-  refine ⟨A, hA, B, hB, fun z hz hz' ↦ ?_⟩
-  rw [Diffeomorph.coe_toHomeomorph] at hz'
-  exact hAB (mk_mem_prod hz hz') ⟨z, rfl, rfl⟩
+  -- `GluedAlong φ` is by definition the glued space of `glueData φ`.
+  refine TopCat.GlueData.ofHomeomorph_t2Space_of_isClosed_range φ.toHomeomorph ?_
+  convert hφ using 1
+  ext ⟨x, y⟩
+  simp [Prod.ext_iff]
 
 /-- The canonical map from `M₁` is a `C^n` local diffeomorphism for the glued atlas. -/
 theorem isLocalDiffeomorph_inl [IsManifold I n M₁] [IsManifold I n M₂] :
