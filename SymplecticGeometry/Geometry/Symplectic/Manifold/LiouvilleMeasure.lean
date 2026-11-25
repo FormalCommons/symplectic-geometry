@@ -9,7 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.
 public import TauCeti.Geometry.Symplectic.Manifold.LiouvilleMeasure
 public import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+public import SymplecticGeometry.Analysis.InnerProductSpace.Symplectic.Ellipsoid.NormalForm
 
 /-!
 # Integrating the symplectic volume form
@@ -41,8 +41,9 @@ measure (`SymplecticGeometry.liouvilleMeasure_constSmooth_stdForm`), so a symple
 `StdSpace (Fin n)` turns a Liouville integral into a Lebesgue integral over the chart's source
 (`SymplecticGeometry.integral_liouvilleMeasure_of_isSymplecticMapOn_stdForm`). The proof of
 `liouvilleMeasure_constSmooth_stdForm` follows that of Tau Ceti's
-`TauCeti.SymplecticForm.liouvilleMeasure_constSmooth_stdSymplecticForm`: the coordinate vectors
-form a Darboux basis, and the Haar measure of an orthonormal basis is `volume`.
+`TauCeti.SymplecticForm.liouvilleMeasure_constSmooth_stdSymplecticForm`: the Darboux basis
+`SymplecticGeometry.stdDarbouxBasisOf` is the coordinate basis, reindexed, and the Haar measure
+of an orthonormal basis is `volume`.
 
 ## References
 
@@ -91,7 +92,7 @@ open Set TopologicalSpace
 variable {E' H' N : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
   [Fact (finrank ℝ E' = 2 * n)] [TopologicalSpace H'] {J : ModelWithCorners ℝ E' H'}
   [TopologicalSpace N] [ChartedSpace H' N] [IsManifold J ∞ N] [MeasurableSpace N] [BorelSpace N]
-  [SecondCountableTopology N] {τ : SmoothTwoForm J N} {Φ : PartialDiffeomorph J I N M ∞}
+  [HereditarilyLindelofSpace N] {τ : SmoothTwoForm J N} {Φ : PartialDiffeomorph J I N M ∞}
 
 /-- **Liouville measure through a symplectic partial diffeomorphism.** If a partial
 diffeomorphism `Φ : N → M` pulls `σ` back to `τ` on its source, then `Φ`, restricted to its
@@ -177,20 +178,16 @@ theorem liouvilleMeasure_constSmooth_stdForm {ι : Type*} [Fintype ι] {m : ℕ}
     have := hm.out
     rw [finrank_stdSpace] at this
     omega
-  -- The standard basis, ordered as `qₖ = e_{inl k}` and `pₖ = e_{inr k}`, is a Darboux basis.
+  -- The standard Darboux basis is the coordinate basis, reindexed.
   set c := (Fintype.equivFinOfCardEq hι).symm
   set e : Fin m × Fin 2 ≃ ι ⊕ ι := (Equiv.prodComm _ _).trans
     ((Equiv.prodCongr finTwoEquiv c).trans (Equiv.boolProdEquivSum ι))
-  set b := (EuclideanSpace.basisFun (ι ⊕ ι) ℝ).toBasis.reindex e.symm
-  have h0 (k : Fin m) : b (k, 0) = EuclideanSpace.single (Sum.inl (c k)) 1 := by
-    simp [b, e, Equiv.boolProdEquivSum, finTwoEquiv]
-  have h1 (k : Fin m) : b (k, 1) = EuclideanSpace.single (Sum.inr (c k)) 1 := by
-    simp [b, e, Equiv.boolProdEquivSum, finTwoEquiv]
-  have hb : (stdForm ι).IsDarbouxBasis b := by
-    refine ⟨fun i j ↦ ?_, fun i j ↦ ?_, fun i j ↦ ?_⟩ <;>
-      simp [h0, h1, StdSpace.x_apply, StdSpace.y_apply, c, eq_comm]
-  rw [SymplecticForm.liouvilleMeasure_constSmooth _ hb, Basis.addHaar_reindex,
-    OrthonormalBasis.addHaar_eq_volume]
+  have hb : stdDarbouxBasisOf c =
+      (EuclideanSpace.basisFun (ι ⊕ ι) ℝ).toBasis.reindex e.symm :=
+    Basis.eq_of_apply_eq fun ⟨k, i⟩ ↦ by
+      fin_cases i <;> simp [e, Equiv.boolProdEquivSum, finTwoEquiv]
+  rw [SymplecticForm.liouvilleMeasure_constSmooth _ (isDarbouxBasis_stdDarbouxBasisOf c), hb,
+    Basis.addHaar_reindex, OrthonormalBasis.addHaar_eq_volume]
 
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
