@@ -258,9 +258,7 @@ theorem contDiff_moment_expI_neg_smul_smul_apply (hμ : ∀ ξ, ContMDiff I' �
     ContDiff ℝ ∞ fun q : E × ℝ ↦ μ (C.expI (-(q.2 • q.1)) • p) q.1 := by
   have hx : ContMDiff 𝓘(ℝ, E × ℝ) I' ∞ fun q : E × ℝ ↦ C.expI (-(q.2 • q.1)) • p :=
     (C.contMDiff_expI.comp (contDiff_snd.smul contDiff_fst).neg.contMDiff).smul contMDiff_const
-  exact contMDiff_iff_contDiff.1 <|
-    ((contMDiff_toContinuousLinearMap_of_contMDiff_apply (E := E) hμ).comp hx).clm_apply
-      contDiff_fst.contMDiff
+  exact contMDiff_iff_contDiff.1 <| contMDiff_dual_comp_apply (X := E) hμ hx contDiff_fst.contMDiff
 
 /-- The Kempf–Ness function is smooth on `Gc` when `Gc` acts smoothly on `M` and each component
 `x ↦ μ x ξ` of `μ` is smooth, as for a moment map (Tau Ceti's `IsMomentMap.contMDiff`). -/
