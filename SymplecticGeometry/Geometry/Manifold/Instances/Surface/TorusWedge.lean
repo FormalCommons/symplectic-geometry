@@ -19,7 +19,8 @@ two circles `{x | x 1 = 0}` and `{x | x 0 = 0}` through the base point `0`. This
 it with Tau Ceti's wedge of two circles `TauCeti.WedgeSum fun _ : Fin 2 => (1 : Circle)`, the
 `i`-th circle `Circle` going to the points `Pi.single i [s]`, along Mathlib's homeomorphism
 `AddCircle.homeomorphCircle` of `AddCircle 1` with `Circle`. The map out of the wedge is
-`TauCeti.WedgeSum.lift`, injective by `TauCeti.WedgeSum.incl_eq_incl_iff`; the wedge is compact
+`TauCeti.WedgeSum.lift`; its coordinates are those of `TauCeti.WedgeSum.proj`, so it is injective
+by `TauCeti.WedgeSum.proj_injective`. The wedge is compact
 (`TauCeti.WedgeSum.compactSpace`) and the torus is Hausdorff, so this continuous bijection is a
 homeomorphism (`Continuous.homeoOfEquivCompactToT2`).
 
@@ -66,6 +67,7 @@ namespace SymplecticGeometry
 def torusCircles : Set (Fin 2 → AddCircle (1 : ℝ)) :=
   {x | x 0 = 0} ∪ {x | x 1 = 0}
 
+@[simp]
 theorem mem_torusCircles_iff {x : Fin 2 → AddCircle (1 : ℝ)} :
     x ∈ torusCircles ↔ x 0 = 0 ∨ x 1 = 0 :=
   Iff.rfl
@@ -74,11 +76,11 @@ theorem mem_torusCircles_iff {x : Fin 2 → AddCircle (1 : ℝ)} :
 `torusCircles`. -/
 theorem single_mem_torusCircles (i : Fin 2) (s : AddCircle (1 : ℝ)) :
     Pi.single i s ∈ torusCircles := by
-  fin_cases i <;> simp [mem_torusCircles_iff]
+  fin_cases i <;> simp
 
 /-- The base point `0` of the torus lies in `torusCircles`. -/
 theorem zero_mem_torusCircles : (0 : Fin 2 → AddCircle (1 : ℝ)) ∈ torusCircles := by
-  simpa using single_mem_torusCircles 0 0
+  simp
 
 /-- The loop `t ↦ Pi.single i [t]` of `torusCircles` at `0`, which goes once around its `i`-th
 circle: for `i = 0` the loop `t ↦ ([t], 0)`, for `i = 1` the loop `t ↦ (0, [t])`. -/
@@ -120,36 +122,24 @@ private def wedgeToTorusCircles :
     C(WedgeSum fun _ : Fin 2 => (1 : Circle), torusCircles) :=
   WedgeSum.lift circleIncl _ circleIncl_one
 
-private theorem wedgeToTorusCircles_injective : Function.Injective wedgeToTorusCircles := by
-  have key : ∀ (i : Fin 2) (z : Circle) (j : Fin 2) (w : Circle),
-      wedgeToTorusCircles (inclW i z) = wedgeToTorusCircles (inclW j w) →
-        inclW i z = inclW j w := by
-    intro i z j w h
-    simp only [wedgeToTorusCircles, WedgeSum.lift_incl, circleIncl, ContinuousMap.coe_mk,
-      Subtype.mk.injEq] at h
-    rw [WedgeSum.incl_eq_incl_iff]
-    by_cases hij : i = j
-    · subst hij
-      exact .inr (by rw [circleEquiv.injective (Pi.single_injective i h)])
-    · have hz := congrFun h i
-      have hw := congrFun h j
-      simp only [Pi.single_eq_same, Pi.single_eq_of_ne hij, Pi.single_eq_of_ne' hij] at hz hw
-      refine .inl ⟨circleEquiv.injective ?_, circleEquiv.injective ?_⟩
-      · simpa [Homeomorph.symm_apply_eq, AddCircle.homeomorphCircle_apply] using hz
-      · simpa [Homeomorph.symm_apply_eq, AddCircle.homeomorphCircle_apply] using hw.symm
-  have hb : WedgeSum.base (fun _ : Fin 2 => (1 : Circle)) =
-      inclW 0 1 :=
-    (WedgeSum.incl_apply_self 0).symm
-  intro a b h
-  induction a using WedgeSum.ind with
-  | base =>
-    induction b using WedgeSum.ind with
-    | base => rfl
-    | incl j w => rw [hb] at h ⊢; exact key _ _ _ _ h
+/-- The `j`-th coordinate of the image of `w` is `circleEquiv` of the projection of `w` onto the
+`j`-th circle. -/
+private theorem coe_wedgeToTorusCircles_apply (w : WedgeSum fun _ : Fin 2 => (1 : Circle))
+    (j : Fin 2) :
+    (wedgeToTorusCircles w : Fin 2 → AddCircle (1 : ℝ)) j =
+      circleEquiv (WedgeSum.proj _ j w) := by
+  induction w using WedgeSum.ind with
+  | base => simp [wedgeToTorusCircles, WedgeSum.proj_base]
   | incl i z =>
-    induction b using WedgeSum.ind with
-    | base => rw [hb] at h ⊢; exact key _ _ _ _ h
-    | incl j w => exact key _ _ _ _ h
+    simp only [wedgeToTorusCircles, WedgeSum.lift_incl, circleIncl, ContinuousMap.coe_mk]
+    by_cases hij : j = i
+    · subst hij
+      simp [WedgeSum.proj_incl_self]
+    · simp [Pi.single_eq_of_ne hij, WedgeSum.proj_incl_of_ne (Ne.symm hij)]
+
+private theorem wedgeToTorusCircles_injective : Function.Injective wedgeToTorusCircles :=
+  fun a b h => WedgeSum.proj_injective <| funext fun j => circleEquiv.injective <| by
+    rw [← coe_wedgeToTorusCircles_apply, ← coe_wedgeToTorusCircles_apply, h]
 
 private theorem wedgeToTorusCircles_surjective : Function.Surjective wedgeToTorusCircles := by
   rintro ⟨x, hx | hx⟩
