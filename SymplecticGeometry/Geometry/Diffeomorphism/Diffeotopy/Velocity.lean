@@ -41,6 +41,8 @@ the diffeotopy, in the sense of McDuff–Salamon, §3.1, and the time derivative
   Ceti's `TauCeti.Diffeotopy.mfderiv_cylinderMap_inl`.
 * `TauCeti.Diffeotopy.velocity_reparam`: if `ρ` has derivative `r` at `t`, the reparametrization
   of `φ` along `ρ` has velocity `r X_{ρ t}` at time `t`.
+* `TauCeti.Diffeotopy.eventually_velocity_reparam_eq_zero`: if `ρ` is constant near `t₀`, the
+  reparametrization of `φ` along `ρ` has velocity zero near `t₀`.
 * `TauCeti.Diffeotopy.forall_velocity_mem_iff`: the velocity lies in a family of subspaces `D_t`
   everywhere if and only if the time derivative of the motion at `(x, t)` lies in `D_t (φ_t x)`.
 * `TauCeti.Diffeotopy.contMDiff_velocity`, `TauCeti.Diffeotopy.contMDiff_smoothVelocity`: `X_t` is
@@ -82,7 +84,7 @@ being connected. This needs neither a finite-dimensional model nor a boundaryles
 public noncomputable section
 
 open Set
-open scoped Manifold ContDiff
+open scoped Manifold ContDiff Topology
 
 namespace TauCeti.Diffeotopy
 
@@ -125,6 +127,25 @@ theorem velocity_reparam (hn : 1 ≤ n) {ρ : C^n⟮𝓡∂ 1, unitInterval; �
   rw [velocity_apply, mfderiv_cylinderMap_time _ hn, Pi.smul_apply, reparam_apply,
     velocity_apply, mfderiv_cylinderMap_time _ hn, hcomp, mfderiv_comp_apply t hd hρ, hr,
     map_smul]
+
+/-- If `ρ` is constant near `t`, the reparametrization of a `C^n` diffeotopy, `1 ≤ n`, along `ρ`
+has velocity zero at time `t`. -/
+theorem velocity_reparam_eq_zero (hn : 1 ≤ n) {ρ : C^n⟮𝓡∂ 1, unitInterval; 𝓡∂ 1, unitInterval⟯}
+    {t c : unitInterval} (hρ : ∀ᶠ s in 𝓝 t, ρ s = c) : (Φ.reparam ρ).velocity t = 0 := by
+  have h : mfderiv (𝓡∂ 1) (𝓡∂ 1) ρ t 1 = (0 : ℝ) • (1 : TangentSpace (𝓡∂ 1) (ρ t)) := by
+    rw [Filter.EventuallyEq.mfderiv_eq (f := fun _ ↦ c) hρ, mfderiv_const]
+    simp
+  rw [Φ.velocity_reparam hn t h, zero_smul]
+
+/-- **Flat reparametrizations.** If `ρ` is constant near `t₀`, the reparametrization of a `C^n`
+diffeotopy, `1 ≤ n`, along `ρ` has velocity zero at all times near `t₀`. With Tau Ceti's
+`TauCeti.collaredFirstHalf`, constant near both ends of the unit interval
+(`TauCeti.eventually_collaredFirstHalf_eq_zero`, `TauCeti.eventually_collaredFirstHalf_eq_one`),
+this gives a reparametrization whose velocity vanishes near both ends. -/
+theorem eventually_velocity_reparam_eq_zero (hn : 1 ≤ n)
+    {ρ : C^n⟮𝓡∂ 1, unitInterval; 𝓡∂ 1, unitInterval⟯} {t₀ c : unitInterval}
+    (hρ : ∀ᶠ s in 𝓝 t₀, ρ s = c) : ∀ᶠ t in 𝓝 t₀, (Φ.reparam ρ).velocity t = 0 :=
+  hρ.eventually_nhds.mono fun _ ↦ Φ.velocity_reparam_eq_zero hn
 
 end Derivative
 

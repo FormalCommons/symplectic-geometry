@@ -8,6 +8,7 @@ module
 public import Mathlib.Topology.Algebra.Star.LinearMap
 public import TauCeti.Analysis.Normed.Operator.ExteriorPowerCoords
 import TauCeti.LinearAlgebra.Matrix.ConjTranspose
+import TauCeti.Topology.Algebra.Module.ContinuousLinearMap.Basic
 
 /-!
 # Compound matrices and entrywise conjugation
@@ -33,10 +34,9 @@ theorem exteriorPowerCoords_intrinsicStar (j : ℕ) {m n : ℕ}
     (g : (Fin m → 𝕜) →L[𝕜] (Fin n → 𝕜)) :
     (star (toConv g)).ofConv.exteriorPowerCoords j =
       (star (toConv (g.exteriorPowerCoords j))).ofConv := by
-  refine ContinuousLinearMap.coe_injective (LinearMap.pi_ext' fun t ↦ LinearMap.ext_ring ?_)
+  refine ContinuousLinearMap.pi_ext_single_one fun t ↦ ?_
   funext s
-  simp only [LinearMap.coe_comp, Function.comp_apply, LinearMap.coe_single,
-    ContinuousLinearMap.coe_coe, ContinuousLinearMap.exteriorPowerCoords_apply,
+  simp only [ContinuousLinearMap.coe_coe, ContinuousLinearMap.exteriorPowerCoords_apply,
     LinearMap.exteriorPowerCoords_single_apply, ContinuousLinearMap.intrinsicStar_apply,
     Pi.star_single, star_one, Pi.star_apply]
   rw [← starRingEnd_apply, RingHom.map_det, RingHom.mapMatrix_apply]
