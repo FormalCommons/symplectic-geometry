@@ -136,8 +136,7 @@ theorem singularCohomologyMap_fiberInclusion_projectiveBundleClass (b : B) :
       (continuous_const.prodMk (Projectivization.continuous_snd_tautological ℂ G))
       (fun v ↦ Set.mk_mem_prod hb (Set.mem_univ _))
     refine hs.congr fun v ↦ ?_
-    have hL (w : G) : L w = e.symm b w :=
-      (congrFun (e.symm_continuousLinearEquivAt_eq hb) w).trans (e.symmL_apply hb w)
+    have hL (w : G) : L w = e.symm b w := congrFun (e.continuousLinearEquivAt_symm_apply ℂ b hb) w
     exact congrArg (TotalSpace.mk' G b) ((hL _).symm.trans
       (Projectivization.coe_tautologicalMapEquiv_apply _ L.injective v.proj v.snd).symm)
 

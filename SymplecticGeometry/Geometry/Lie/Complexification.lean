@@ -239,6 +239,21 @@ theorem polar_apply (ξ : GroupLieAlgebra I G) (u : G) :
     C.polar (ξ, u) = C.expI ξ * C.toHom u :=
   C.polar_apply' ξ u
 
+/-- The inverse of the polar decomposition reads `expI ξ * toHom u` as the pair `(ξ, u)`. -/
+@[simp]
+theorem polar_symm_expI_mul_toHom (ξ : GroupLieAlgebra I G) (u : G) :
+    C.polar.symm (C.expI ξ * C.toHom u) = (ξ, u) := by
+  rw [← C.polar_apply, Diffeomorph.symm_apply_apply]
+  -- The sides differ only in the type of `ξ`: the first component of a point of `E × G` on the
+  -- left, an element of `GroupLieAlgebra I G` on the right, which is `E` by definition.
+  rfl
+
+/-- Every element of `Gc` is `expI ξ * toHom u` for the pair `(ξ, u)` that the inverse of the
+polar decomposition gives it. -/
+theorem expI_mul_toHom_polar_symm (g : Gc) :
+    C.expI (C.polar.symm g).1 * C.toHom (C.polar.symm g).2 = g :=
+  (C.polar_apply _ _).symm.trans (C.polar.apply_symm_apply g)
+
 /-- The polar decomposition at `ξ = 0` is the inclusion `toHom`. -/
 @[simp]
 theorem polar_zero_apply (u : G) : C.polar (0, u) = C.toHom u :=
