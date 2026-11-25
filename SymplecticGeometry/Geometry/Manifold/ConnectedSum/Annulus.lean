@@ -180,14 +180,14 @@ theorem gluingDiffeomorph_symm :
 /-- The gluing diffeomorphism for `Φ⁻¹` undoes the one for `Φ`. Since `simp` rewrites the inverse
 with `gluingDiffeomorph_symm`, this is the form in which it cancels the two maps. -/
 @[simp]
-theorem gluingDiffeomorph_symm_apply_apply (ξ : annulus E ε) :
+theorem gluingDiffeomorph_symm_apply_apply (ξ : annulus E (ε ^ 2) 1) :
     gluingDiffeomorph Φ.symm ε hε (n := n) (gluingDiffeomorph Φ ε hε (n := n) ξ) = ξ := by
   simpa using (gluingDiffeomorph Φ ε hε (n := n)).symm_apply_apply ξ
 
 /-- The gluing diffeomorphism for `Φ` undoes the one for `Φ⁻¹`. Since `simp` rewrites the inverse
 with `gluingDiffeomorph_symm`, this is the form in which it cancels the two maps. -/
 @[simp]
-theorem gluingDiffeomorph_apply_symm_apply (η : annulus E ε) :
+theorem gluingDiffeomorph_apply_symm_apply (η : annulus E (ε ^ 2) 1) :
     gluingDiffeomorph Φ ε hε (n := n) (gluingDiffeomorph Φ.symm ε hε (n := n) η) = η := by
   simpa using (gluingDiffeomorph Φ ε hε (n := n)).apply_symm_apply η
 
