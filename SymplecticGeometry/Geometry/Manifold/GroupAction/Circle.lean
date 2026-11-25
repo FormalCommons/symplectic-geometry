@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Analysis.SpecialFunctions.Complex.Circle
 public import SymplecticGeometry.Geometry.Lie.Exponential.Circle
+public import TauCeti.Geometry.Lie.FundamentalVectorField.Right
 public import TauCeti.Geometry.Manifold.GroupAction.InvariantForm
 
 /-!
@@ -30,6 +31,8 @@ its fundamental vector field `X_{ξ₁}` that later work on circle actions uses.
 
 ## Main results
 
+* `SymplecticGeometry.rightFundamentalVectorField_circlePeriodOneGenerator`: for a right circle
+  action, the fundamental vector field of `ξ₁` is `2π` times that of `circleLieGenerator`.
 * `SymplecticGeometry.mulInvariantExp_smul_circlePeriodOneGenerator`: the one-parameter subgroup
   of `ξ₁` is `t ↦ Circle.exp (2 * π * t)`.
 * `SymplecticGeometry.mulInvariantExp_intCast_smul_circlePeriodOneGenerator`: the exponential of
@@ -71,6 +74,16 @@ theorem circlePeriodOneGenerator_def :
 theorem circlePeriodOneGenerator_ne_zero : circlePeriodOneGenerator ≠ 0 := by
   rw [circlePeriodOneGenerator_def]
   exact smul_ne_zero (by positivity) circleLieGenerator_ne_zero
+
+/-- For a right action of `Circle` on `M`, the fundamental vector field of
+`circlePeriodOneGenerator` is `2π` times that of `circleLieGenerator`. -/
+theorem rightFundamentalVectorField_circlePeriodOneGenerator {E' : Type*}
+    [NormedAddCommGroup E'] [NormedSpace ℝ E'] {H' : Type*} [TopologicalSpace H']
+    (I' : ModelWithCorners ℝ E' H') {M : Type*} [TopologicalSpace M] [ChartedSpace H' M]
+    [MulAction Circleᵐᵒᵖ M] :
+    rightFundamentalVectorField (M := M) I' circlePeriodOneGenerator =
+      (2 * π) • rightFundamentalVectorField I' circleLieGenerator :=
+  by rw [circlePeriodOneGenerator_def, rightFundamentalVectorField_smul]
 
 attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
 
