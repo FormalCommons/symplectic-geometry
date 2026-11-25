@@ -51,16 +51,18 @@ Ceti's chain rule for the time maps, `TauCeti.mfderiv_flowOf_add_apply`, and
   `TauCeti.hasDerivAt_comp_flowOf` and the mean value inequality.
 * `TauCeti.eventually_apply_flowOf_eq_add`: if `df(v) = 1` near `φ_r x`, then
   `f (φ_s x) = f (φ_r x) + (s - r)` for `s` near `r`.
-* `TauCeti.apply_flowOf_eq_add_of_preimage_uIcc_subset`: for a complete field and a continuous
-  `f` with `df(v) = 1` on an open set `W`, `f (φ_t x) = f x + t` as soon as `W` contains every
-  level of `f` between `f x` and `f x + t`. Here the trajectory is not assumed to stay in `W`: the
-  times near which `f` grows like time form an open subset of `[0, t]` (or `[t, 0]`) that is
-  closed in it, so all of it, by connectedness.
+* `TauCeti.apply_flowOf_eq_add_of_preimage_uIcc_subset`: if time `t` is defined at `x`, `f` is
+  continuous and `df(v) = 1` on an open set `W`, then `f (φ_t x) = f x + t` as soon as `W`
+  contains every level of `f` between `f x` and `f x + t`. Here the trajectory is not assumed to
+  stay in `W`: the times near which `f` grows like time form an open subset of `[0, t]` (or
+  `[t, 0]`) that is closed in it, so all of it, by connectedness.
 * `TauCeti.apply_flowOf_sub_eq`, `TauCeti.flowOf_sub_level_injective`,
-  `TauCeti.range_flowOf_sub_level`: if moreover `W` contains the band `f⁻¹([a, b])`, the map
-  `(x, s) ↦ φ_{s - a} x` from `{x // f x = a} × [a, b]` to `M` takes `(x, s)` to the level `s`,
-  is injective, and has the band as its range. This is the local version of Tau Ceti's
-  `Flow.zeroLevelProductDiffeomorph`, where `f` grows like time along the whole flow.
+  `TauCeti.range_flowOf_sub_level`: if moreover the field is complete and `W` contains the band
+  `f⁻¹([a, b])`, the map `(x, s) ↦ φ_{s - a} x` from `{x // f x = a} × [a, b]` to `M` takes
+  `(x, s)` to the level `s`, is injective, and has the band as its range. This is the local
+  version of Tau Ceti's `Flow.zeroLevelProductDiffeomorph`, where `f` grows like time along the
+  whole flow. Tau Ceti's `Flow.bandHomeomorph`, `Flow.apply_eq_sub_of_mem_Icc` and
+  `TauCeti.apply_globalFlow_eq_sub` are close relatives under stronger hypotheses.
 -/
 
 public section
@@ -271,16 +273,17 @@ theorem eventually_apply_flowOf_eq_add
     exact (hball (hmem q hq)).2
   rwa [(flowOf_add hv hr hsr).2, add_sub_cancel] at key
 
-/-- **Translation along the flow between two levels.** Let `v` be a complete `C¹` vector field
-with maximal flow `φ`, and `f` a continuous function with `df(v) = 1` on an open set `W`. If `W`
-contains every point where `f` takes a value between `f x` and `f x + t`, then
-`f (φ_t x) = f x + t`, for `t` of either sign. -/
+/-- **Translation along the flow between two levels.** Let `v` be a `C¹` vector field with
+maximal flow `φ`, with time `t` defined at `x`, and `f` a continuous function with `df(v) = 1` on
+an open set `W`. If `W` contains every point where `f` takes a value between `f x` and `f x + t`,
+then `f (φ_t x) = f x + t`, for `t` of either sign. -/
 theorem apply_flowOf_eq_add_of_preimage_uIcc_subset
     (hv : ContMDiff I I.tangent 1 (fun x ↦ (⟨x, v x⟩ : TangentBundle I M)))
-    (hcomplete : IsCompleteVectorField v) {f : M → ℝ} (hf : Continuous f) {W : Set M}
+    {f : M → ℝ} (hf : Continuous f) {W : Set M}
     (hW : IsOpen W) (hfv : ∀ y ∈ W, mfderiv I 𝓘(ℝ) f y (v y) = 1) {t : ℝ} {x : M}
-    (hband : f ⁻¹' uIcc (f x) (f x + t) ⊆ W) :
+    (ht : (t, x) ∈ flowDomain v) (hband : f ⁻¹' uIcc (f x) (f x + t) ⊆ W) :
     f (flowOf v t x) = f x + t := by
+  have hdom := uIcc_subset_setOf_mem_flowDomain ht
   have hloc (r : ℝ) (hr : f (flowOf v r x) = f x + r) (hrt : r ∈ uIcc 0 t) :
       ∀ᶠ s in 𝓝 r, f (flowOf v s x) = f x + s := by
     have hrW : flowOf v r x ∈ W := hband <| by
@@ -288,19 +291,28 @@ theorem apply_flowOf_eq_add_of_preimage_uIcc_subset
       rcases mem_uIcc.1 hrt with ⟨h₁, h₂⟩ | ⟨h₁, h₂⟩
       · exact Or.inl ⟨by linarith, by linarith⟩
       · exact Or.inr ⟨by linarith, by linarith⟩
-    filter_upwards [eventually_apply_flowOf_eq_add hv hfv (hcomplete.mem_flowDomain r x)
-      (hW.mem_nhds hrW)] with s hs
+    filter_upwards [eventually_apply_flowOf_eq_add hv hfv (hdom hrt) (hW.mem_nhds hrW)]
+      with s hs
     rw [hs, hr]
     ring
-  have hg : Continuous fun s ↦ f (flowOf v s x) := hf.comp <| continuous_iff_continuousAt.2
-    fun s ↦ (mdifferentiableAt_flowOf hv (hcomplete.mem_flowDomain s x)).continuousAt
   -- The times near which `f` grows like time along the trajectory form an open set that
-  -- contains `0` and is closed in `uIcc 0 t`, so contains all of it.
-  have hsub : uIcc 0 t ⊆ {r | ∀ᶠ s in 𝓝 r, f (flowOf v s x) = f x + s} :=
-    isPreconnected_uIcc.subset_of_closure_inter_subset isOpen_setOfPred_eventually_nhds
-      ⟨0, left_mem_uIcc, hloc 0 (by rw [flowOf_zero, add_zero]) left_mem_uIcc⟩
-      fun r ⟨hr, hrt⟩ ↦ hloc r (closure_minimal (fun _ hs ↦ Eventually.self_of_nhds hs)
-        (isClosed_eq hg (continuous_const.add continuous_id)) hr) hrt
+  -- contains `0` and is closed in `uIcc 0 t`, so contains all of it. For the closedness,
+  -- `s ↦ f (φ_s x) - s` is continuous at each time of `uIcc 0 t` and equals `f x` on that set.
+  have hsub : uIcc 0 t ⊆ {r | ∀ᶠ s in 𝓝 r, f (flowOf v s x) = f x + s} := by
+    refine isPreconnected_uIcc.subset_of_closure_inter_subset isOpen_setOfPred_eventually_nhds
+      ⟨0, left_mem_uIcc, hloc 0 (by rw [flowOf_zero, add_zero]) left_mem_uIcc⟩ ?_
+    rintro r ⟨hr, hrt⟩
+    have hg : ContinuousAt (fun s ↦ f (flowOf v s x) - s) r :=
+      (hf.continuousAt.comp (mdifferentiableAt_flowOf hv (hdom hrt)).continuousAt).sub
+        continuousAt_id
+    have himage : (fun s ↦ f (flowOf v s x) - s) ''
+        {r | ∀ᶠ s in 𝓝 r, f (flowOf v s x) = f x + s} ⊆ {f x} := by
+      rintro _ ⟨s, hs, rfl⟩
+      simp only [mem_singleton_iff]
+      rw [hs.self_of_nhds, add_sub_cancel_right]
+    have hr' := closure_mono himage (mem_closure_image hg hr)
+    rw [closure_singleton, mem_singleton_iff] at hr'
+    exact hloc r (by linarith) hrt
   exact (hsub right_mem_uIcc).self_of_nhds
 
 section Band
@@ -320,8 +332,8 @@ theorem apply_flowOf_sub_eq {x : M} (hx : f x = a) {s : ℝ} (hs : s ∈ Icc a b
   have hsub : uIcc (f x) (f x + (s - a)) ⊆ Icc a b := by
     rw [hx, add_sub_cancel]
     exact uIcc_subset_Icc (left_mem_Icc.2 (hs.1.trans hs.2)) hs
-  rw [apply_flowOf_eq_add_of_preimage_uIcc_subset hv hcomplete hf hW hfv
-    ((preimage_mono hsub).trans hband), hx, add_sub_cancel]
+  rw [apply_flowOf_eq_add_of_preimage_uIcc_subset hv hf hW hfv
+    (hcomplete.mem_flowDomain _ _) ((preimage_mono hsub).trans hband), hx, add_sub_cancel]
 
 /-- **The flow from the bottom level of a band is injective.** Under the hypotheses of
 `TauCeti.apply_flowOf_sub_eq`, the map `(x, s) ↦ φ_{s - a} x` from the product of the level
@@ -353,8 +365,8 @@ theorem range_flowOf_sub_level :
       rw [add_sub_cancel]
       exact uIcc_subset_Icc hy (left_mem_Icc.2 (hy.1.trans hy.2))
     have hlev : f (flowOf v (a - f y) y) = a := by
-      rw [apply_flowOf_eq_add_of_preimage_uIcc_subset hv hcomplete hf hW hfv
-        ((preimage_mono hsub).trans hband), add_sub_cancel]
+      rw [apply_flowOf_eq_add_of_preimage_uIcc_subset hv hf hW hfv
+        (hcomplete.mem_flowDomain _ _) ((preimage_mono hsub).trans hband), add_sub_cancel]
     refine ⟨(⟨_, hlev⟩, ⟨f y, hy⟩), ?_⟩
     dsimp only
     rw [← neg_sub (f y) a, flowOf_flowOf_neg hv hcomplete]
