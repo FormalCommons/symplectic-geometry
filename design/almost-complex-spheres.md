@@ -271,13 +271,13 @@ The file has:
   and `newtonClassHom_pullback`, its compatibility with
   `SplitK0.mapRingHom (pullbackFunctor f)`.
 
-### `Topology/VectorBundle/Complex/KTheory/Clutching.lean`
+### `Topology/VectorBundle/FiniteRank/Clutching.lean`
 
 The clutching construction over $X\times\mathbb CP^1$ [Hatcher2017, §2.1]:
 $\mathbb CP^1$ is covered by the closed discs $|z|\le1$ and $|z|\ge1$ of
 the affine chart and $\infty$, meeting in the circle. For a core
 `E : FiniteRankBundleCore ℂ X` and a continuous family $f$ of
-automorphisms of $E$ over $X\times S^1$, `Bundle.clutching E f` is the
+automorphisms of $E$ over $X\times S^1$, `FiniteRankBundleCore.clutching E f` is the
 core in `FiniteRankBundleCore ℂ (X × ℙ ℂ (Fin 2 → ℂ))` obtained from
 $p^*E$ on the two discs, glued by $f$ along the circle, on the cover by
 slightly larger open discs and the trivializations of $E$. API:
@@ -343,7 +343,7 @@ $\mathbb CP^1$ with $S^2$, and that $y_1\cdots y_m$ has infinite order.
 
 - `TauCeti.Bundle.ContinuousComplexStructure.evalFundamentalClass_chernClass_sphere`:
   for $J$ on $TS^{2m}$, $\langle c_m(J.Fiber),[S^{2m}]_J\rangle=2$.
-- `TauCeti.Bundle.ContinuousComplexStructure.isEmpty_sphere_four_mul`:
+- `SymplecticGeometry.isEmpty_continuousComplexStructure_sphere_four_mul`:
   for `k ≠ 0`, no continuous complex structure on the tangent bundle of
   `sphere (0 : E) 1` with `finrank ℝ E = 4 * k + 1`.
 - `TauCeti.Bundle.ContinuousComplexStructure.isEmpty_sphere_four_mul_add_two`:
@@ -397,7 +397,7 @@ spheres*. Sizes are estimates in lines.
 | 4 | Tangent bundle of the sphere plus a trivial line | `Tangent/Sphere.lean` | — | 200 |
 | 5 | $\langle c_m(T_J),[S^{2m}]\rangle=2$, and no structure on $S^{4k}$ | `AlmostComplex/Sphere.lean` | 2, 3, 4 | 300 |
 | 6 | Newton classes as a homomorphism on the split Grothendieck group of bundle cores | `KTheory/Basic.lean` | 1 | 250 |
-| 7 | The clutching construction over $X\times\mathbb CP^1$ | `KTheory/Clutching.lean` | — | 500 |
+| 7 | The clutching construction over $X\times\mathbb CP^1$ | `FiniteRank/Clutching.lean` | — | 500 |
 | 8 | Every bundle is a clutching; Laurent clutching functions | `KTheory/ProductSphere.lean` | 7 | 450 |
 | 9 | Linear clutching, its splitting, and the surjective product theorem | `KTheory/ProductSphere.lean` | 8 | 500 |
 | 10 | $K((\mathbb CP^1)^m)$ and its Newton classes | `KTheory/ProjectiveLinePow.lean` | 6, 9 | 300 |
