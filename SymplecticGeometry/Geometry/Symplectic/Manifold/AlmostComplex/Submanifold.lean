@@ -230,7 +230,7 @@ restricted structure is not integrable. -/
 theorem IsIntegrable.restrict [FiniteDimensional ℝ E] [BoundarylessManifold I' N]
     (hint : J.IsIntegrable) : (J.restrict f hJ).IsIntegrable := by
   rw [isIntegrable_iff_mfderiv] at hint
-  refine isIntegrable_of_forall_exists_isLocalDiffeomorphAt _ fun x ↦ ?_
+  refine isIntegrable_of_forall_exists_isLocalDiffeomorphAt _ (G := E') fun x ↦ ?_
   obtain ⟨ψ, J₀, hx, hψ⟩ := hint (f x)
   have hfd (y : N) : MDifferentiableAt I' I f y := f.contMDiff.mdifferentiable hn y
   -- The differential `A = dψ ∘ df` of `ψ ∘ f` at `x` is injective and complex linear from the

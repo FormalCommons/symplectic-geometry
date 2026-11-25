@@ -820,7 +820,7 @@ three steps:
 1. The product collar `W₀ ⊇ A` is the set of `(u, v)` with
    `|‖u‖ - 1| < ε` and `‖v‖ < 1 + ε`, for a small `ε > 0`. It has a finite
    good cover by convex slabs, so it has a `SmoothCohomologySplitting`
-   (`HasFiniteGoodCover.exists_smoothCohomologySplitting_isSmooth`) and a linear
+   (`HasFiniteGoodCover.smoothCohomologySplitting`) and a linear
    primitive map on exact three-forms, that splitting's `exactPrimitive`.
 2. Off `K` the forms `τ λ` need not be closed on `W₀`. So subtract from each
    restriction `τ λ|W₀` the primitive given by step 1 of `d (τ λ|W₀)`. The

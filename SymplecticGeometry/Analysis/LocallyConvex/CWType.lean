@@ -8,10 +8,10 @@ module
 public import Mathlib.Topology.Algebra.Module.LocallyConvex
 public import Mathlib.Topology.Metrizable.Basic
 public import TauCeti.Topology.CWComplex.Classical.CWType
-import Mathlib.Topology.Homotopy.Affine
 import SymplecticGeometry.AlgebraicTopology.Homotopy.Domination
 import SymplecticGeometry.AlgebraicTopology.SimplicialComplex.Realization.Convex
 import SymplecticGeometry.AlgebraicTopology.SimplicialComplex.Realization.PartitionOfUnity
+import SymplecticGeometry.Topology.Homotopy.Affine
 import SymplecticGeometry.Topology.MetricSpace.PartitionOfUnity
 import TauCeti.AlgebraicTopology.SimplicialComplex.Realization.CWComplex.Basic
 import TauCeti.Topology.MetricSpace.ContinuousRadius
@@ -33,9 +33,10 @@ a partition of unity on `O`, indexed by `O`, subordinate to the balls `B(x, r x)
 puts `z` and every `xᵢ` in the ball `B(xⱼ, 2 * r xⱼ)`, hence in one convex subset of `O`
 (`PartitionOfUnity.IsSubordinate.exists_mem_forall_mem_of_ne_zero`). So the map `ψ` from the
 realization of the nerve of `ρ` to `O`, the linear extension of the inclusion of the vertices, is
-well defined (`AbstractSimplicialComplex.linearExtension_mem_of_convex`), and the segment from
-`ψ (ρ.toNerve x)` to `x`, the affine homotopy `ContinuousMap.Homotopy.affine`, lies in
-`O`. Thus `O` is dominated by the realization, a CW complex, and has CW type by
+well defined (`AbstractSimplicialComplex.linearExtension_mem_of_convex`). The segment from
+`ψ (ρ.toNerve x)` to `x` lies in `O`, so the straight-line homotopy
+`ContinuousMap.Homotopy.affineOfSegmentSubset` joins `ψ ∘ ρ.toNerve` to the identity of `O`.
+Thus `O` is dominated by the realization, a CW complex, and has CW type by
 `TauCeti.CWType.of_comp_homotopic_id`.
 
 ## Main results
@@ -105,19 +106,14 @@ theorem cwType_inter {E : Type u} [AddCommGroup E] [Module ℝ E]
   let ψ : C(ρ.nerve.Realization, ↥(C ∩ U)) :=
     ⟨fun p => ⟨_, hmem p⟩, (continuous_linearExtension _).subtype_mk hmem⟩
   -- The straight-line homotopy from `ψ ∘ ρ.toNerve` to the identity stays in `O`.
-  let F : C(↥(C ∩ U), E) := ⟨_, continuous_subtypeVal⟩
-  let G := ContinuousMap.Homotopy.affine (F.comp (ψ.comp ρ.toNerve)) F
-  have hseg (p : unitInterval × ↥(C ∩ U)) : G p ∈ C ∩ U := by
-    obtain ⟨i, hi⟩ := ρ.exists_pos (mem_univ p.2)
-    obtain ⟨S, hS, hSO, hxS, htS⟩ := key p.2 (ρ.finsupport p.2)
-      ⟨i, (ρ.mem_finsupport p.2).2 hi.ne'⟩ fun j hj => (ρ.mem_finsupport p.2).1 hj
-    refine hSO (hS.lineMap_mem ?_ hxS p.1.property)
+  have hseg (x : ↥(C ∩ U)) : segment ℝ (ψ (ρ.toNerve x) : E) x ⊆ C ∩ U := by
+    obtain ⟨i, hi⟩ := ρ.exists_pos (mem_univ x)
+    obtain ⟨S, hS, hSO, hxS, htS⟩ := key x (ρ.finsupport x)
+      ⟨i, (ρ.mem_finsupport x).2 hi.ne'⟩ fun j hj => (ρ.mem_finsupport x).1 hj
+    refine (hS.segment_subset ?_ hxS).trans hSO
     exact linearExtension_mem_of_convex hS _ _ (by simpa using htS)
   let H : (ψ.comp ρ.toNerve).Homotopy (ContinuousMap.id _) :=
-    { toFun := fun p => ⟨G p, hseg p⟩
-      continuous_toFun := G.continuous.subtype_mk hseg
-      map_zero_left := fun x => Subtype.ext (by simp [G, F])
-      map_one_left := fun x => Subtype.ext (by simp [G, F]) }
+    ContinuousMap.Homotopy.affineOfSegmentSubset _ _ hseg
   -- The realization of the nerve is a CW complex, for any linear order on the vertices.
   let : LinearOrder ↥(C ∩ U) := IsWellOrder.linearOrder WellOrderingRel
   let := realizationCWComplex ρ.nerve
