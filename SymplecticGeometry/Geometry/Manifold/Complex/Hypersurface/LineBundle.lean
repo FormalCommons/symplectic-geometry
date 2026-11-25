@@ -81,7 +81,7 @@ variable {F H : Type*} [NormedAddCommGroup F] [NormedSpace ℂ F] [TopologicalSp
 cover `U` of `X` indexed by `ι`, holomorphic functions `f i` on `U i`, and holomorphic, nowhere
 vanishing functions `g i j` on `U i ∩ U j` with `f i = g i j * f j` there, which form a cocycle.
 The `g` are the transition functions of the line bundle of the divisor. The common zero set
-`HypersurfaceData.support` is a smooth hypersurface only if no `f i` vanishes identically and the
+`HypersurfaceData.support` is a smooth hypersurface if no `f i` vanishes identically and the
 differential of each `f i` is nonzero on it, which the structure does not require. -/
 @[ext]
 structure HypersurfaceData (I : ModelWithCorners ℂ F H) (X : Type*) [TopologicalSpace X]
