@@ -122,7 +122,7 @@ open SmoothCollar.Double
 
 variable {S : Type} [TopologicalSpace S] [ChartedSpace (EuclideanHalfSpace 2) S]
   [IsManifold (𝓡∂ 2) ∞ S] [T2Space S] [CompactSpace S] [Nonempty ((𝓡∂ 2).boundary S)]
-  (o : Manifold.Orientation (𝓡 2) (InteriorPiece 1 S) (Fin 2))
+  (o : Manifold.Orientation (𝓡 2) ((𝓡∂ 2).interior S) (Fin 2))
   (c : SmoothCollar 1 ∞ S) {κ : Type*} [Fintype κ] [DecidableEq κ]
 
 /-- **The boundary Maslov index on the first copy of the double.** Let `S` be a compact surface
@@ -142,10 +142,10 @@ theorem boundaryMaslovIndex_eq_sublevelBoundaryMaslovIndex_height
   -- orientation of the double back along it gives `o`.
   let U : TopologicalSpace.Opens c.Double :=
     ⟨height c ⁻¹' Iio 0, isOpen_Iio.preimage (contMDiff_height c).continuous⟩
-  let φ : InteriorPiece 1 S ≃ₜ U :=
+  let φ : (𝓡∂ 2).interior S ≃ₜ U :=
     (isOpenEmbedding_inlInterior c).isEmbedding.toHomeomorph.trans
       (Homeomorph.setCongr (preimage_height_Iio c).symm)
-  have hφ (p : InteriorPiece 1 S) :
+  have hφ (p : (𝓡∂ 2).interior S) :
       (φ p : c.Double) = inlInterior c p :=
     rfl
   have ho : (((orientation c o).toHomologicalOrientation hn).comap U.isOpenEmbedding').comap
@@ -155,20 +155,20 @@ theorem boundaryMaslovIndex_eq_sublevelBoundaryMaslovIndex_height
       (comap_toHomologicalOrientation hn (isOpenEmbedding_inlInterior c)
         (isOrientationPreservingAt_inlInterior c o))
   -- The homeomorphism of `S` with `{height ≤ 0}` maps `∂S` to the level set `{height = 0}`.
-  let g : C(↥(range (InteriorModel.val (I := 𝓡∂ 2) (U := (𝓡∂ 2).interiorOpens S)))ᶜ,
+  let g : C(↥(range (Subtype.val : (𝓡∂ 2).interior S → S))ᶜ,
       sublevelBoundary (contMDiff_height c).continuous) :=
     ⟨fun z ↦ ⟨homeomorphSublevel c z, mem_sublevelBoundary_iff_eq_zero.2 <| by
         rw [coe_homeomorphSublevel, height_inl_eq_zero_iff]
-        exact InteriorModel.compl_range_val_interiorOpens.subset z.property⟩,
+        exact (𝓡∂ 2).compl_range_subtypeVal_interior.subset z.property⟩,
       ((homeomorphSublevel c).continuous.comp continuous_subtypeVal).subtype_mk _⟩
   -- On `∂S`, reading `Ψ` through `bandProj` gives `Ψ` back.
-  have hΨ : Ψ.comp (.inclusion InteriorModel.compl_range_val_interiorOpens.subset) =
+  have hΨ : Ψ.comp (.inclusion (𝓡∂ 2).compl_range_subtypeVal_interior.subset) =
       (Ψ.comp (sublevelBoundaryBandProj c)).comp g := by
     ext1 z
     simp only [ContinuousMap.comp_apply, sublevelBoundaryBandProj_apply]
     have hz : ((g z : height c ⁻¹' Iic 0) : c.Double) =
         bandMap c
-          (0, ContinuousMap.inclusion InteriorModel.compl_range_val_interiorOpens.subset z) :=
+          (0, ContinuousMap.inclusion (𝓡∂ 2).compl_range_subtypeVal_interior.subset z) :=
       (coe_homeomorphSublevel c _).trans (bandMap_zero c (ContinuousMap.inclusion _ z)).symm
     rw [hz, bandProj_bandMap c (by norm_num)]
   have := compactSpace_preimage_Iic (contMDiff_height c).continuous
@@ -190,7 +190,7 @@ open scoped Matrix.Norms.Operator
 variable {S : Type} [TopologicalSpace S] [ChartedSpace (EuclideanHalfSpace 2) S]
   [IsManifold (𝓡∂ 2) ∞ S] [T2Space S] [CompactSpace S] [ConnectedSpace S]
   (c : SmoothCollar 1 ∞ S)
-  (o : Manifold.Orientation (𝓡 2) (InteriorPiece 1 S) (Fin 2))
+  (o : Manifold.Orientation (𝓡 2) ((𝓡∂ 2).interior S) (Fin 2))
   (hS : ((𝓡∂ 2).boundary S).Nonempty)
 
 /-- **The double of a surface as a closed connected oriented surface.** For a compact connected

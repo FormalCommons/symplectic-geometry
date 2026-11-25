@@ -162,9 +162,7 @@ theorem mfderiv_prodIccContraction (x : (M × Icc a b) × unitInterval) (w : Tan
     change (0 : ℝ) + ((x.2 : ℝ) *
         ((show ℝ from mfderiv (𝓡∂ 1) 𝓘(ℝ) Subtype.val x.1.2 (r • 1)) - 0) +
       ((x.1.2 : ℝ) - a) * (show ℝ from mfderiv (𝓡∂ 1) 𝓘(ℝ) Subtype.val x.2 (q • 1))) = _
-    rw [map_smul, map_smul, mfderiv_subtypeVal_Icc_one, mfderiv_subtypeVal_Icc_one]
-    -- the tangent spaces of `ℝ` are `ℝ`, with its multiplication as scalar multiplication
-    change (0 : ℝ) + ((x.2 : ℝ) * (r * 1 - 0) + ((x.1.2 : ℝ) - a) * (q * 1)) = _
+    rw [mfderiv_subtypeVal_Icc_smul_one, mfderiv_subtypeVal_Icc_smul_one]
     ring
 
 /-! ### The homotopy operator of the contraction -/
