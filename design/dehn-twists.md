@@ -511,7 +511,7 @@ theorem dehnTwist_apply_of_notMem {x} (hx : x ∉ ι '' {z | cotangentNorm z ≤
     dehnTwist ι hR hU x = x
 theorem isCompact_image_setOf_cotangentNorm_le : IsCompact (ι '' {z | cotangentNorm z ≤ r₀})
 theorem mpullback_dehnTwist (hι : ι^* ω = (-symplecticForm)|U) : (dehnTwist ι hR hU)^* ω = ω
-theorem dehnTwist_apply_embedding (hιf : ∀ q, ι ⟨0_q, _⟩ = f q) (q : Sⁿ) :
+theorem dehnTwist_apply_embedding (hιf : ∀ q, ∃ h : 0_q ∈ U, ι ⟨0_q, h⟩ = f q) (q : Sⁿ) :
     dehnTwist ι hR hU (f q) = f (-q)
 theorem exists_symplecticEmbedding (hf : hω.isNondegenerate.IsLagrangianMap (𝓡 n) f) :
     ∃ (U : Opens T*Sⁿ) (V : Opens M) (ι : U ≃ₘ⟮_, I⟯ V),

@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Topology.Algebra.Module.FiniteDimension
+import SymplecticGeometry.LinearAlgebra.FiniteDimensional.Submodule
 
 /-!
 # Continuous linear maps on finite-dimensional spaces
@@ -17,8 +18,8 @@ is the continuous form of `Module.Basis.sum_repr`, beside Mathlib's `Module.Basi
 
 A subspace `S` of a finite-dimensional space `E` has a complement that is the image of an
 injective continuous linear map out of any finite-dimensional Hausdorff space `F` with
-`dim F + dim S = dim E`: compose a linear isomorphism of `F` onto a complement of `S`
-(`LinearEquiv.ofFinrankEq`) with the inclusion of that complement.
+`dim F + dim S = dim E`: an injective linear map onto a complement of `S`
+(`Submodule.exists_linearMap_injective_range_eq`) is continuous.
 
 ## Main results
 
@@ -68,11 +69,9 @@ theorem exists_continuousLinearMap_injective_isCompl_range (S : Submodule 𝕜 E
   have hd : finrank 𝕜 F = finrank 𝕜 C := by
     have := finrank_add_eq_of_isCompl hC
     omega
-  let e := LinearEquiv.ofFinrankEq F C hd
-  refine ⟨LinearMap.toContinuousLinearMap (C.subtype ∘ₗ e.toLinearMap), ?_, ?_⟩
-  · simpa using C.injective_subtype.comp e.injective
-  · rwa [LinearMap.coe_toContinuousLinearMap, LinearMap.range_comp_of_range_eq_top _ e.range,
-      range_subtype]
+  obtain ⟨L, hL, hr⟩ := C.exists_linearMap_injective_range_eq hd
+  exact ⟨LinearMap.toContinuousLinearMap L, by simpa using hL, by
+    rwa [LinearMap.coe_toContinuousLinearMap, hr]⟩
 
 end Submodule
 
