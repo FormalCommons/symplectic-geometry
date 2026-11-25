@@ -6,26 +6,26 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Symplectic.Coadjoint.LieGroup
-public import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Lift
+public import TauCeti.Geometry.Symplectic.Cotangent.Bundle.LeftTrivialization
 public import TauCeti.Geometry.Manifold.ContMDiff.FiniteDimension
-public import TauCeti.Geometry.Manifold.VectorField.Prod
+public import TauCeti.Geometry.Manifold.MFDeriv.ContinuousLinearMap
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Cotangent.Basic
-public import SymplecticGeometry.Geometry.Symplectic.Coadjoint.LieGroup
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Linear
-import TauCeti.Geometry.Manifold.MFDeriv.Prod
 
 /-!
-# Covectors moved by left translation, and the two-form of the local model
+# The two-form of the local model of a Hamiltonian action near an orbit
 
 Let `G` be a real Lie group with Lie algebra `𝔤`, `N` a manifold and `ν : N → 𝔤*` a family of
-covectors whose components `p ↦ ν p ξ` are smooth. This file studies the map
+covectors whose components `p ↦ ν p ξ` are smooth. Read through Tau Ceti's left trivialization
+`Φ : G × 𝔤* ≃ T*G`, `(g, a) ↦ g • a` (`TauCeti.CotangentBundle.leftTrivialization`), the map
+`Φ ∘ (id × ν) : G × N → T*G` sends `(g, p)` to the covector `ν p` moved from the identity to `g`
+by the cotangent lift of left multiplication. For a two-form `β` on `N`, this file studies the
+two-form
 
-`Φ_ν : G × N → T*G`, `Φ_ν (g, p) = g • ν p`,
+`(id × ν)^* Φ^* ω + pr_N^* β = -d⟨ν, θ⟩ + pr_N^* β`
 
-which moves the covector `ν p` at the identity to the point `g` by the cotangent lift of left
-multiplication (`SymplecticGeometry.leftInvariantCovectorMap`). For each `p`, the map
-`g ↦ Φ_ν (g, p)` is Tau Ceti's left-invariant covector field `(ν p).leftInvariantCovector`.
+on `G × N`, with `ω` the canonical symplectic form of `T*G` and `θ` the left-invariant
+Maurer–Cartan form (`SymplecticGeometry.leftInvariantCovectorMapForm`).
 
 The Marle–Guillemin–Sternberg local model of a Hamiltonian action near an orbit takes
 `N = 𝔪* × V` and `ν (η, v) = τ + η + μ_V(v)`; the last part of the file builds its two-form from
@@ -33,30 +33,23 @@ linear data.
 
 ## Main results
 
-* `SymplecticGeometry.proj_leftInvariantCovectorMap`,
-  `SymplecticGeometry.leftInvariantCovectorMap_snd_apply`: `Φ_ν (g, p)` is the covector
-  `ν p ∘ d(L_{g⁻¹})_g` at `g`.
-* `SymplecticGeometry.leftInvariantCovectorMap_mul`: `Φ_ν (k * g, p) = k • Φ_ν (g, p)`.
-* `SymplecticGeometry.contMDiff_leftInvariantCovectorMap`: `Φ_ν` is smooth.
-* `SymplecticGeometry.isClosed_mpullback_leftInvariantCovectorMap_symplecticForm`: the pullback
-  `Φ_ν^* ω` of the canonical symplectic form of `T*G` is closed.
-* `SymplecticGeometry.mpullback_mul_left_mpullback_leftInvariantCovectorMap_symplecticForm`:
-  `Φ_ν^* ω` is invariant under `(g, p) ↦ (k * g, p)`.
-* `SymplecticGeometry.mpullback_prodMk_mpullback_leftInvariantCovectorMap_symplecticForm`:
-  restricted to the slice `G × {p}`, `Φ_ν^* ω` is the left-invariant Kirillov form of `ν p`.
-* `SymplecticGeometry.leftInvariantCovectorMapForm`: for a two-form `β` on `N`, the two-form
-  `Φ_ν^* ω + pr_N^* β` on `G × N`, which is `-d⟨ν, θ⟩ + β` with `θ` the left-invariant
-  Maurer–Cartan form. It is closed when `β` is
-  (`SymplecticGeometry.isClosed_leftInvariantCovectorMapForm`), invariant under
-  `(g, p) ↦ (k * g, p)` (`SymplecticGeometry.mpullback_mul_left_leftInvariantCovectorMapForm`),
-  and on the slice `G × {p}` it is the left-invariant Kirillov form of `ν p`
+* `SymplecticGeometry.contMDiff_toContinuousLinearMap_comp`: `ν`, read as a family of continuous
+  functionals on the model space of `𝔤`, is smooth when its components are.
+* `SymplecticGeometry.leftInvariantCovectorMapForm`: the two-form `-d⟨ν, θ⟩ + pr_N^* β` on
+  `G × N`. It is closed when `β` is (`SymplecticGeometry.isClosed_leftInvariantCovectorMapForm`),
+  invariant under `(g, p) ↦ (k * g, p)`
+  (`SymplecticGeometry.mpullback_mul_left_leftInvariantCovectorMapForm`), and on the slice
+  `G × {p}` it is the left-invariant Kirillov form of `ν p`
   (`SymplecticGeometry.mpullback_prodMk_leftInvariantCovectorMapForm`).
+* `SymplecticGeometry.eval₂_leftInvariantCovectorMapForm`: at `(g, p)` the form pairs
+  `(v₁, w₁)` and `(v₂, w₂)` to
+  `(ν p).kirillovForm ξ₁ ξ₂ - d(ν · ξ₂)_p w₁ + d(ν · ξ₁)_p w₂ + β_p (w₁, w₂)`, where
+  `ξᵢ = d(L_{g⁻¹})_g vᵢ`.
 * `SymplecticGeometry.eval₂_leftInvariantCovectorMapForm_prodVectorField`: on product vector fields
-  `(X_{ξᵢ}, Yᵢ)`, with `X_{ξᵢ}` left-invariant, the form `Φ_ν^* ω + pr_N^* β` at `(g, p)` is
+  `(X_{ξᵢ}, Yᵢ)`, with `X_{ξᵢ}` left-invariant, the form at `(g, p)` is
   `ν p ⁅ξ₁, ξ₂⁆ - d(ν · ξ₂)_p (Y₁ p) + d(ν · ξ₁)_p (Y₂ p) + β_p (Y₁ p, Y₂ p)`.
-* `SymplecticGeometry.eval₂_leftInvariantCovectorMapForm_of_tangentSpaceProdEquiv_eq`,
-  `SymplecticGeometry.eval₂_leftInvariantCovectorMapForm`: for `N` a normed space, the same value
-  on tangent vectors `(d(L_g) ξᵢ, wᵢ)`, and so on all tangent vectors of `G × N`.
+* `SymplecticGeometry.eval₂_leftInvariantCovectorMapForm_of_tangentSpaceProdEquiv_eq`: for `N` a
+  normed space, the same value with Fréchet derivatives on tangent vectors `(d(L_g) ξᵢ, wᵢ)`.
 * `SymplecticGeometry.localModelCovector`: the covectors `ν (η, v) = τ + ι𝔪 η + ι𝔥 (μ_V v)` on
   `A × V`, given linear maps `ι𝔪 : A → 𝔤*` and `ι𝔥 : 𝔥* → 𝔤*` and the moment map
   `μ_V = σ.linearMomentMapComp ρ` of a linear map `ρ : 𝔥 → sp(V, σ)`, whose components are smooth
@@ -68,15 +61,10 @@ linear data.
   (`SymplecticGeometry.mpullback_prodMk_localModelForm`). The factor `A × V` carries the model
   `𝓘(ℝ, A × V)`.
 
-The smoothness adapts the proof of Tau Ceti's `Module.Dual.contMDiff_leftInvariantCovector`, and
-the invariance that of `Module.Dual.mpullback_mul_left_leftInvariantForm`, through the
-equivariance of `Φ_ν` and `TauCeti.CotangentBundle.mpullback_smul_symplecticForm`. The value on
-left-trivialized tangent vectors adapts the proof of Tau Ceti's
-`Module.Dual.eval₂_leftInvariantKirillovForm_mulInvariantVectorField` to product vector fields on
-`G × N`, through `TauCeti.Manifold.mlieBracket_prodVectorField`; its two first steps, the
-pullback of the Liouville form and `Φ_ν^* ω = -d(Φ_ν^* λ)`, follow the proofs of
-`Module.Dual.leftInvariantForm_apply` and
-`Module.Dual.leftInvariantKirillovForm_eq_mpullback_symplecticForm`.
+The values of the form come from Tau Ceti's
+`TauCeti.CotangentBundle.eval₂_mpullback_prodMap_leftTrivialization_symplecticForm`, and the
+invariance from `TauCeti.CotangentBundle.leftTrivialization_mul` and
+`TauCeti.CotangentBundle.mpullback_smul_symplecticForm`.
 
 ## References
 
@@ -87,7 +75,7 @@ pullback of the Liouville form and `Φ_ν^* ω = -d(Φ_ν^* λ)`, follow the pro
 
 public section
 
-open Bundle TauCeti TauCeti.Manifold
+open Bundle TauCeti TauCeti.Manifold TauCeti.CotangentBundle
 open scoped Manifold ContDiff
 
 noncomputable section
@@ -99,132 +87,54 @@ attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
 variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
   {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
-  {N : Type*} (ν : N → Module.Dual ℝ (GroupLieAlgebra I G))
+  {N : Type*} {E' H' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+  {J : ModelWithCorners ℝ E' H'} [TopologicalSpace N] [ChartedSpace H' N]
+  {ν : N → Module.Dual ℝ (GroupLieAlgebra I G)}
 
-/-- The map `G × N → T*G` of a family `ν : N → 𝔤*` of covectors: it sends `(g, p)` to the image
-`g • ν p` of the covector `ν p` at the identity under the cotangent lift of left multiplication,
-which is the covector `ν p ∘ d(L_{g⁻¹})_g` at `g`. -/
-def leftInvariantCovectorMap (q : G × N) : CotangentBundle I G :=
-  (ν q.2).leftInvariantCovector q.1
-
-theorem leftInvariantCovectorMap_def (q : G × N) :
-    leftInvariantCovectorMap ν q = (ν q.2).leftInvariantCovector q.1 :=
-  (rfl)
-
-@[simp]
-theorem leftInvariantCovectorMap_apply (g : G) (p : N) :
-    leftInvariantCovectorMap ν (g, p) = (ν p).leftInvariantCovector g :=
-  (rfl)
-
-/-- The covector `leftInvariantCovectorMap ν (g, p)` lies over `g`. -/
-@[simp]
-theorem proj_leftInvariantCovectorMap (q : G × N) : (leftInvariantCovectorMap ν q).proj = q.1 :=
-  (ν q.2).proj_leftInvariantCovector q.1
-
-/-- The value of `leftInvariantCovectorMap ν (g, p)` on a tangent vector `v` at `g` is
-`ν p (d(L_{g⁻¹})_g v)`. -/
-theorem leftInvariantCovectorMap_snd_apply (g : G) (p : N) (v : TangentSpace I g) :
-    (leftInvariantCovectorMap ν (g, p)).snd v = ν p (mfderiv I I (g⁻¹ * ·) g v) :=
-  (ν p).leftInvariantCovector_snd_apply g v
-
-/-- The map `leftInvariantCovectorMap ν` is equivariant for left multiplication on the factor `G`
-and the cotangent-lifted action on `T*G`. -/
-theorem leftInvariantCovectorMap_mul (k g : G) (p : N) :
-    leftInvariantCovectorMap ν (k * g, p) = k • leftInvariantCovectorMap ν (g, p) :=
-  (ν p).leftInvariantCovector_mul k g
-
-variable {E' H' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
-  {J : ModelWithCorners ℝ E' H'} [TopologicalSpace N] [ChartedSpace H' N] {ν}
-
-/-- The map `leftInvariantCovectorMap ν : G × N → T*G` is smooth when each component
-`p ↦ ν p ξ` of `ν` is. -/
-theorem contMDiff_leftInvariantCovectorMap (hν : ∀ ξ, ContMDiff J 𝓘(ℝ) ∞ fun p ↦ ν p ξ) :
-    ContMDiff (I.prod J) (I.prod 𝓘(ℝ, E →L[ℝ] ℝ)) ∞ (leftInvariantCovectorMap ν) := by
-  have h : leftInvariantCovectorMap ν = fun q : G × N ↦
-      q.1 • TotalSpace.mk' (E →L[ℝ] ℝ) (1 : G) (LinearMap.toContinuousLinearMap (ν q.2)) := by
-    funext q
-    rw [leftInvariantCovectorMap_def, ← Module.Dual.leftInvariantCovector_one,
-      ← Module.Dual.leftInvariantCovector_mul, mul_one]
-  -- `ν` is smooth as a family of continuous functionals on the model space `E` of `𝔤`, since its
-  -- components are; `ν'` is `ν` with `𝔤` read as `E`, which carries the norm.
-  let ν' : N → Module.Dual ℝ E := ν
-  have hc : ContMDiff J 𝓘(ℝ, E →L[ℝ] ℝ) ∞ fun p ↦ LinearMap.toContinuousLinearMap (ν' p) :=
-    fun p ↦ TauCeti.contMDiffAt_clm_apply.2 fun v ↦ by
-      simp only [LinearMap.coe_toContinuousLinearMap']
-      exact hν v p
-  rw [h]
-  exact contMDiff_fst.smul ((CotangentBundle.contMDiff_mk_comp (1 : G) hc).comp contMDiff_snd)
-
-/-! ### The pullback of the canonical symplectic form -/
-
-/-- The pullback `Φ_ν^* ω` of the canonical symplectic form of `T*G` along
-`Φ_ν = leftInvariantCovectorMap ν` is closed. -/
-theorem isClosed_mpullback_leftInvariantCovectorMap_symplecticForm [IsManifold J 2 N]
-    (hν : ∀ ξ, ContMDiff J 𝓘(ℝ) ∞ fun p ↦ ν p ξ) :
-    (SmoothForm.mpullback (leftInvariantCovectorMap ν) (contMDiff_leftInvariantCovectorMap hν)
-      (CotangentBundle.symplecticForm I G)).IsClosed :=
-  CotangentBundle.isSymplectic_symplecticForm.isClosed.mpullback _ _
+omit [LieGroup I ∞ G] in
+/-- A family `ν : N → 𝔤*` of covectors with smooth components `p ↦ ν p ξ` is smooth as a family
+of continuous functionals on the model space `E` of `𝔤`. -/
+theorem contMDiff_toContinuousLinearMap_comp (hν : ∀ ξ, ContMDiff J 𝓘(ℝ) ∞ fun p ↦ ν p ξ) :
+    ContMDiff J 𝓘(ℝ, E →L[ℝ] ℝ) ∞
+      fun p ↦ LinearMap.toContinuousLinearMap (show E →ₗ[ℝ] ℝ from ν p) :=
+  -- `ν p`, read as a continuous functional, has the values of `ν p`. `ν p` is a functional on `𝔤`,
+  -- which is only definitionally the model space `E`, so `LinearMap.coe_toContinuousLinearMap'`
+  -- cannot rewrite here and the step is definitional.
+  fun p ↦ TauCeti.contMDiffAt_clm_apply.2 fun v ↦ hν v p
 
 variable [IsManifold J 1 N]
 
-/-- The pullback `Φ_ν^* ω` of the canonical symplectic form of `T*G` along
-`Φ_ν = leftInvariantCovectorMap ν` is invariant under left translation `(g, p) ↦ (k * g, p)` of
-the factor `G`. -/
-@[simp]
-theorem mpullback_mul_left_mpullback_leftInvariantCovectorMap_symplecticForm
-    (hν : ∀ ξ, ContMDiff J 𝓘(ℝ) ∞ fun p ↦ ν p ξ) (k : G) :
-    SmoothForm.mpullback (Prod.map (k * ·) id) (contMDiff_mul_left.prodMap contMDiff_id)
-      (SmoothForm.mpullback (leftInvariantCovectorMap ν) (contMDiff_leftInvariantCovectorMap hν)
-        (CotangentBundle.symplecticForm I G)) =
-      SmoothForm.mpullback (leftInvariantCovectorMap ν) (contMDiff_leftInvariantCovectorMap hν)
-        (CotangentBundle.symplecticForm I G) := by
-  rw [SmoothForm.mpullback_mpullback_of_comp_eq (f := Prod.map (k * ·) id)
-    (g := leftInvariantCovectorMap ν) _ _ (contMDiff_leftInvariantCovectorMap hν)
-    (contMDiff_const_smul k) (funext fun q ↦ leftInvariantCovectorMap_mul ν k q.1 q.2),
-    CotangentBundle.mpullback_smul_symplecticForm]
-
-/-- On the slice `G × {p}`, the pullback `Φ_ν^* ω` of the canonical symplectic form of `T*G`
-along `Φ_ν = leftInvariantCovectorMap ν` is the left-invariant Kirillov form of `ν p`. -/
-@[simp]
-theorem mpullback_prodMk_mpullback_leftInvariantCovectorMap_symplecticForm
-    (hν : ∀ ξ, ContMDiff J 𝓘(ℝ) ∞ fun p ↦ ν p ξ) (p : N) :
-    SmoothForm.mpullback (fun g : G ↦ (g, p)) (contMDiff_id.prodMk contMDiff_const)
-      (SmoothForm.mpullback (leftInvariantCovectorMap ν) (contMDiff_leftInvariantCovectorMap hν)
-        (CotangentBundle.symplecticForm I G)) =
-      (ν p).leftInvariantKirillovForm := by
-  have h : leftInvariantCovectorMap ν ∘ (fun g : G ↦ (g, p)) = (ν p).leftInvariantCovector :=
-    funext fun g ↦ leftInvariantCovectorMap_apply ν g p
-  simp only [SmoothForm.mpullback_mpullback, h,
-    Module.Dual.leftInvariantKirillovForm_eq_mpullback_symplecticForm]
-
-/-! ### Adding the pullback of a two-form on `N` -/
-
-/-- The two-form `Φ_ν^* ω + pr_N^* β` on `G × N`: the sum of the pullback of the canonical
-symplectic form `ω` of `T*G` along `Φ_ν = leftInvariantCovectorMap ν` and the pullback of a
-two-form `β` on `N` along the projection `pr_N = Prod.snd`. -/
+/-- The two-form `-d⟨ν, θ⟩ + pr_N^* β` on `G × N`: the sum of the pullback of the canonical
+symplectic form `ω` of `T*G` along `Φ ∘ (id × ν)`, with `Φ : G × 𝔤* ≃ T*G` the left
+trivialization, and the pullback of a two-form `β` on `N` along the projection `pr_N = Prod.snd`.
+The map `Φ ∘ (id × ν)` sends `(g, p)` to the covector `ν p ∘ d(L_{g⁻¹})_g` at `g`. -/
 def leftInvariantCovectorMapForm (hν : ∀ ξ, ContMDiff J 𝓘(ℝ) ∞ fun p ↦ ν p ξ)
     (β : SmoothForm J N ℝ 2) : SmoothForm (I.prod J) (G × N) ℝ 2 :=
-  SmoothForm.mpullback (leftInvariantCovectorMap ν) (contMDiff_leftInvariantCovectorMap hν)
-      (CotangentBundle.symplecticForm I G) +
+  SmoothForm.mpullback (Prod.map id _) (contMDiff_id.prodMap
+      (contMDiff_toContinuousLinearMap_comp hν))
+      (SmoothForm.mpullback (leftTrivialization I G) (leftTrivialization I G).contMDiff
+        (symplecticForm I G)) +
     SmoothForm.mpullback Prod.snd contMDiff_snd β
 
 theorem leftInvariantCovectorMapForm_def (hν : ∀ ξ, ContMDiff J 𝓘(ℝ) ∞ fun p ↦ ν p ξ)
     (β : SmoothForm J N ℝ 2) :
     leftInvariantCovectorMapForm hν β =
-      SmoothForm.mpullback (leftInvariantCovectorMap ν) (contMDiff_leftInvariantCovectorMap hν)
-          (CotangentBundle.symplecticForm I G) +
+      SmoothForm.mpullback (Prod.map id _) (contMDiff_id.prodMap
+          (contMDiff_toContinuousLinearMap_comp hν))
+          (SmoothForm.mpullback (leftTrivialization I G) (leftTrivialization I G).contMDiff
+            (symplecticForm I G)) +
         SmoothForm.mpullback Prod.snd contMDiff_snd β :=
   (rfl)
 
-/-- The form `Φ_ν^* ω + pr_N^* β` on `G × N` is closed when `β` is. -/
+/-- The form `-d⟨ν, θ⟩ + pr_N^* β` on `G × N` is closed when `β` is. -/
 theorem isClosed_leftInvariantCovectorMapForm [IsManifold J 2 N]
     (hν : ∀ ξ, ContMDiff J 𝓘(ℝ) ∞ fun p ↦ ν p ξ) {β : SmoothForm J N ℝ 2} (hβ : β.IsClosed) :
     (leftInvariantCovectorMapForm hν β).IsClosed := by
   rw [leftInvariantCovectorMapForm_def]
-  exact (isClosed_mpullback_leftInvariantCovectorMap_symplecticForm hν).add
+  exact ((isSymplectic_symplecticForm.isClosed.mpullback _ _).mpullback _ _).add
     (hβ.mpullback _ contMDiff_snd)
 
-/-- The form `Φ_ν^* ω + pr_N^* β` on `G × N` is invariant under left translation
+/-- The form `-d⟨ν, θ⟩ + pr_N^* β` on `G × N` is invariant under left translation
 `(g, p) ↦ (k * g, p)` of the factor `G`. -/
 @[simp]
 theorem mpullback_mul_left_leftInvariantCovectorMapForm
@@ -232,12 +142,22 @@ theorem mpullback_mul_left_leftInvariantCovectorMapForm
     SmoothForm.mpullback (Prod.map (k * ·) id) (contMDiff_mul_left.prodMap contMDiff_id)
         (leftInvariantCovectorMapForm hν β) =
       leftInvariantCovectorMapForm hν β := by
+  have hf := contMDiff_toContinuousLinearMap_comp hν
+  have hΦ := (leftTrivialization I G).contMDiff.comp (contMDiff_id.prodMap hf)
+  -- Left translation of the factor `G` becomes the cotangent-lifted action of `k` on `T*G`.
+  have h : (leftTrivialization I G ∘ Prod.map id
+      fun p ↦ LinearMap.toContinuousLinearMap (show E →ₗ[ℝ] ℝ from ν p)) ∘
+        Prod.map (k * ·) id = (fun z : CotangentBundle I G ↦ k • z) ∘ (leftTrivialization I G ∘
+          Prod.map id fun p ↦ LinearMap.toContinuousLinearMap (show E →ₗ[ℝ] ℝ from ν p)) :=
+    funext fun q ↦ leftTrivialization_mul k q.1 _
   rw [leftInvariantCovectorMapForm_def, map_add,
-    mpullback_mul_left_mpullback_leftInvariantCovectorMap_symplecticForm hν,
     SmoothForm.mpullback_prodMap_mpullback_snd contMDiff_mul_left contMDiff_id,
     SmoothForm.mpullback_id, LinearMap.id_apply]
+  simp only [SmoothForm.mpullback_mpullback, h]
+  rw [← SmoothForm.mpullback_mpullback _ _ hΦ (contMDiff_const_smul k),
+    mpullback_smul_symplecticForm]
 
-/-- On the slice `G × {p}`, the form `Φ_ν^* ω + pr_N^* β` on `G × N` is the left-invariant
+/-- On the slice `G × {p}`, the form `-d⟨ν, θ⟩ + pr_N^* β` on `G × N` is the left-invariant
 Kirillov form of `ν p`: the term `pr_N^* β` vanishes there, as `pr_N` is constant on the slice. -/
 @[simp]
 theorem mpullback_prodMk_leftInvariantCovectorMapForm
@@ -245,105 +165,71 @@ theorem mpullback_prodMk_leftInvariantCovectorMapForm
     SmoothForm.mpullback (fun g : G ↦ (g, p)) (contMDiff_id.prodMk contMDiff_const)
         (leftInvariantCovectorMapForm hν β) =
       (ν p).leftInvariantKirillovForm := by
-  rw [leftInvariantCovectorMapForm_def, map_add,
-    mpullback_prodMk_mpullback_leftInvariantCovectorMap_symplecticForm hν,
-    SmoothForm.mpullback_prodMk_left_mpullback_snd, add_zero]
+  -- `Φ (g, ν p)` and the left-invariant covector field of `ν p` at `g` are covectors at `g` with
+  -- the values `ν p (d(L_{g⁻¹})_g v)`.
+  have h : (leftTrivialization I G ∘ Prod.map id
+      fun p ↦ LinearMap.toContinuousLinearMap (show E →ₗ[ℝ] ℝ from ν p)) ∘ (fun g : G ↦ (g, p)) =
+      (ν p).leftInvariantCovector :=
+    funext fun g ↦ CotangentBundle.ext (by simp) fun v ↦
+      (leftTrivialization_snd_apply _ v).trans ((ν p).leftInvariantCovector_snd_apply g v).symm
+  rw [leftInvariantCovectorMapForm_def, map_add, SmoothForm.mpullback_prodMk_left_mpullback_snd,
+    add_zero, Module.Dual.leftInvariantKirillovForm_eq_mpullback_symplecticForm]
+  simp only [SmoothForm.mpullback_mpullback, h]
 
-/-! ### The form on left-trivialized tangent vectors -/
+/-! ### The form on tangent vectors -/
 
-/-- The pullback `Φ_ν^* λ` of the Liouville form of `T*G` along `Φ_ν = leftInvariantCovectorMap ν`
-is the one-form `⟨ν, θ⟩` on `G × N`: at `(g, p)` it sends a tangent vector `(v, w)` to
-`ν p (d(L_{g⁻¹})_g v)`. -/
-theorem mpullback_leftInvariantCovectorMap_liouvilleForm_apply
-    (hν : ∀ ξ, ContMDiff J 𝓘(ℝ) ∞ fun p ↦ ν p ξ) (q : G × N)
-    (v : Fin 1 → TangentSpace (I.prod J) q) :
-    (SmoothForm.mpullback (leftInvariantCovectorMap ν) (contMDiff_leftInvariantCovectorMap hν)
-      (CotangentBundle.liouvilleForm I G)).val q v =
-      ν q.2 (mfderiv I I (q.1⁻¹ * ·) q.1 (tangentSpaceProdEquiv q (v 0)).1) := by
-  rw [SmoothForm.coe_mpullback,
-    CotangentBundle.mpullback_liouvilleForm_apply_of_proj_comp_eq (g := Prod.fst)
-      (proj_leftInvariantCovectorMap ν)
-      ((contMDiff_leftInvariantCovectorMap hν).mdifferentiableAt (by simp)),
-    mfderiv_fst_apply, tangentSpaceProdEquiv_apply]
-  exact leftInvariantCovectorMap_snd_apply ν q.1 q.2 _
-
-/-- The pullback `Φ_ν^* ω` of the canonical symplectic form `ω = -dλ` of `T*G` is `-d(Φ_ν^* λ)`,
-minus the exterior derivative of the pullback of the Liouville form. -/
-theorem mpullback_leftInvariantCovectorMap_symplecticForm_eq_neg_mextDerivₗ [IsManifold J 2 N]
-    (hν : ∀ ξ, ContMDiff J 𝓘(ℝ) ∞ fun p ↦ ν p ξ) :
-    SmoothForm.mpullback (leftInvariantCovectorMap ν) (contMDiff_leftInvariantCovectorMap hν)
-        (CotangentBundle.symplecticForm I G) =
-      -mextDerivₗ (I.prod J) 1 (SmoothForm.mpullback (leftInvariantCovectorMap ν)
-        (contMDiff_leftInvariantCovectorMap hν) (CotangentBundle.liouvilleForm I G)) := by
-  rw [SmoothForm.mextDerivₗ_mpullback, CotangentBundle.symplecticForm_eq_neg_mextDerivₗ, map_neg]
-
-/-- The pullback `Φ_ν^* ω` of the canonical symplectic form of `T*G` on the product vector fields
-`(X_{ξᵢ}, Yᵢ)` of left-invariant vector fields `X_{ξᵢ}` on `G` and vector fields `Yᵢ` on `N`
-differentiable at `p`: at `(g, p)` it is
-`ν p ⁅ξ₁, ξ₂⁆ - d(ν · ξ₂)_p (Y₁ p) + d(ν · ξ₁)_p (Y₂ p)`. -/
-theorem eval₂_mpullback_leftInvariantCovectorMap_symplecticForm_prodVectorField
-    [IsManifold J 2 N] [CompleteSpace E'] (hν : ∀ ξ, ContMDiff J 𝓘(ℝ) ∞ fun p ↦ ν p ξ)
-    (g : G) (p : N) (ξ₁ ξ₂ : GroupLieAlgebra I G) {Y₁ Y₂ : Π y : N, TangentSpace J y}
-    (hY₁ : MDifferentiableAt J J.tangent (T% Y₁) p)
-    (hY₂ : MDifferentiableAt J J.tangent (T% Y₂) p) :
-    (SmoothForm.mpullback (leftInvariantCovectorMap ν) (contMDiff_leftInvariantCovectorMap hν)
-        (CotangentBundle.symplecticForm I G)).eval₂ (g, p)
-        (prodVectorField (mulInvariantVectorField ξ₁) Y₁ (g, p))
-        (prodVectorField (mulInvariantVectorField ξ₂) Y₂ (g, p)) =
-      ν p ⁅ξ₁, ξ₂⁆ - mvfderiv J (fun p ↦ ν p ξ₂) p (Y₁ p) +
-        mvfderiv J (fun p ↦ ν p ξ₁) p (Y₂ p) := by
-  have : IsManifold J (minSmoothness ℝ 2) N := .of_le (n := 2) (by simp)
-  -- On a product field `(X_ξ, Y)` the one-form `Φ_ν^* λ` is the function `(g, p) ↦ ν p ξ`.
-  have hα (ξ : GroupLieAlgebra I G) (Y : Π y : N, TangentSpace J y) :
-      (fun q ↦ (SmoothForm.mpullback (leftInvariantCovectorMap ν)
-        (contMDiff_leftInvariantCovectorMap hν) (CotangentBundle.liouvilleForm I G)).val q
-          ![prodVectorField (mulInvariantVectorField ξ) Y q]) =
-        (fun p ↦ ν p ξ) ∘ Prod.snd := by
-    funext q
-    rw [mpullback_leftInvariantCovectorMap_liouvilleForm_apply hν, Matrix.cons_val_zero,
-      tangentSpaceProdEquiv_prodVectorField, mfderiv_inv_mul_mulInvariantVectorField,
-      Function.comp_apply]
-  -- The invariant formula `dα(X, Y) = X(α Y) - Y(α X) - α [X, Y]`; the bracket of product fields
-  -- is the product of the brackets, and `α` only reads its component along `G`.
-  rw [mpullback_leftInvariantCovectorMap_symplecticForm_eq_neg_mextDerivₗ hν,
-    SmoothBundleForm.eval₂_apply, NegMemClass.coe_neg, Pi.neg_apply, mextDerivₗ_apply,
-    ContinuousAlternatingMap.neg_apply,
-    SmoothForm.mextDeriv_apply_one
-      (mdifferentiableAt_prodVectorField (mdifferentiable_mulInvariantVectorField ξ₁ g) hY₁)
-      (mdifferentiableAt_prodVectorField (mdifferentiable_mulInvariantVectorField ξ₂ g) hY₂),
-    hα, hα, mvfderiv_comp_snd_apply, mvfderiv_comp_snd_apply,
-    mlieBracket_prodVectorField (mdifferentiable_mulInvariantVectorField ξ₁ g)
-      (mdifferentiable_mulInvariantVectorField ξ₂ g) hY₁ hY₂,
-    mpullback_leftInvariantCovectorMap_liouvilleForm_apply hν, Matrix.cons_val_zero,
-    tangentSpaceProdEquiv_prodVectorField, ← mulInvariantVector_mlieBracket,
-    mfderiv_inv_mul_mulInvariantVectorField, ← GroupLieAlgebra.bracket_def, prodVectorField_snd,
-    prodVectorField_snd]
-  abel
-
-/-- The form `Φ_ν^* ω + pr_N^* β` on `G × N` on the product vector fields `(X_{ξᵢ}, Yᵢ)` of
-left-invariant vector fields `X_{ξᵢ}` on `G` and vector fields `Yᵢ` on `N` differentiable at `p`:
-at `(g, p)` it is `ν p ⁅ξ₁, ξ₂⁆ - d(ν · ξ₂)_p (Y₁ p) + d(ν · ξ₁)_p (Y₂ p) + β_p (Y₁ p, Y₂ p)`. -/
-theorem eval₂_leftInvariantCovectorMapForm_prodVectorField [IsManifold J 2 N] [CompleteSpace E']
+/-- **The form `-d⟨ν, θ⟩ + pr_N^* β` on tangent vectors.** At `(g, p)` it pairs the tangent
+vectors `uᵢ = (vᵢ, wᵢ)` to
+`(ν p).kirillovForm ξ₁ ξ₂ - d(ν · ξ₂)_p w₁ + d(ν · ξ₁)_p w₂ + β_p (w₁, w₂)`, where
+`ξᵢ = d(L_{g⁻¹})_g vᵢ` and `(ν p).kirillovForm ξ₁ ξ₂ = ν p ⁅ξ₁, ξ₂⁆`. -/
+theorem eval₂_leftInvariantCovectorMapForm
     (hν : ∀ ξ, ContMDiff J 𝓘(ℝ) ∞ fun p ↦ ν p ξ) (β : SmoothForm J N ℝ 2) (g : G) (p : N)
-    (ξ₁ ξ₂ : GroupLieAlgebra I G) {Y₁ Y₂ : Π y : N, TangentSpace J y}
-    (hY₁ : MDifferentiableAt J J.tangent (T% Y₁) p)
-    (hY₂ : MDifferentiableAt J J.tangent (T% Y₂) p) :
+    (u₁ u₂ : TangentSpace (I.prod J) (g, p)) :
+    (leftInvariantCovectorMapForm hν β).eval₂ (g, p) u₁ u₂ =
+      (ν p).kirillovForm (mfderiv I I (g⁻¹ * ·) g (tangentSpaceProdEquiv (g, p) u₁).1)
+          (mfderiv I I (g⁻¹ * ·) g (tangentSpaceProdEquiv (g, p) u₂).1) -
+        mvfderiv J (fun y ↦ ν y (mfderiv I I (g⁻¹ * ·) g (tangentSpaceProdEquiv (g, p) u₂).1)) p
+          (tangentSpaceProdEquiv (g, p) u₁).2 +
+        mvfderiv J (fun y ↦ ν y (mfderiv I I (g⁻¹ * ·) g (tangentSpaceProdEquiv (g, p) u₁).1)) p
+          (tangentSpaceProdEquiv (g, p) u₂).2 +
+        β.eval₂ p (tangentSpaceProdEquiv (g, p) u₁).2 (tangentSpaceProdEquiv (g, p) u₂).2 := by
+  have hf := contMDiff_toContinuousLinearMap_comp hν
+  have hd (ξ : GroupLieAlgebra I G) (w : TangentSpace J p) :
+      mvfderiv J (fun y ↦ ν y ξ) p w =
+        mvfderiv J (fun y ↦ LinearMap.toContinuousLinearMap (show E →ₗ[ℝ] ℝ from ν y)) p w ξ :=
+    mvfderiv_clm_apply_const ((hf p).mdifferentiableAt (by simp)) ξ w
+  have hk : Module.Dual.kirillovForm (L := GroupLieAlgebra I G)
+      (LinearMap.toContinuousLinearMap (show E →ₗ[ℝ] ℝ from ν p) : E →ₗ[ℝ] ℝ) =
+      (ν p).kirillovForm :=
+    congrArg _ (LinearMap.coe_toContinuousLinearMap _)
+  rw [leftInvariantCovectorMapForm_def, SmoothBundleForm.eval₂_add,
+    eval₂_mpullback_prodMap_leftTrivialization_symplecticForm hf, SmoothForm.eval₂_mpullback_snd,
+    tangentSpaceProdEquiv_apply, tangentSpaceProdEquiv_apply]
+  linear_combination hd (mfderiv I I (g⁻¹ * ·) g u₂.1) u₁.2 -
+    hd (mfderiv I I (g⁻¹ * ·) g u₁.1) u₂.2 +
+    LinearMap.congr_fun (LinearMap.congr_fun hk (mfderiv I I (g⁻¹ * ·) g u₁.1))
+      (mfderiv I I (g⁻¹ * ·) g u₂.1)
+
+/-- The form `-d⟨ν, θ⟩ + pr_N^* β` on `G × N` on the product vector fields `(X_{ξᵢ}, Yᵢ)` of
+left-invariant vector fields `X_{ξᵢ}` on `G` and vector fields `Yᵢ` on `N`: at `(g, p)` it is
+`ν p ⁅ξ₁, ξ₂⁆ - d(ν · ξ₂)_p (Y₁ p) + d(ν · ξ₁)_p (Y₂ p) + β_p (Y₁ p, Y₂ p)`. -/
+theorem eval₂_leftInvariantCovectorMapForm_prodVectorField
+    (hν : ∀ ξ, ContMDiff J 𝓘(ℝ) ∞ fun p ↦ ν p ξ) (β : SmoothForm J N ℝ 2) (g : G) (p : N)
+    (ξ₁ ξ₂ : GroupLieAlgebra I G) (Y₁ Y₂ : Π y : N, TangentSpace J y) :
     (leftInvariantCovectorMapForm hν β).eval₂ (g, p)
         (prodVectorField (mulInvariantVectorField ξ₁) Y₁ (g, p))
         (prodVectorField (mulInvariantVectorField ξ₂) Y₂ (g, p)) =
       ν p ⁅ξ₁, ξ₂⁆ - mvfderiv J (fun p ↦ ν p ξ₂) p (Y₁ p) +
         mvfderiv J (fun p ↦ ν p ξ₁) p (Y₂ p) + β.eval₂ p (Y₁ p) (Y₂ p) := by
-  rw [leftInvariantCovectorMapForm_def, SmoothBundleForm.eval₂_add,
-    eval₂_mpullback_leftInvariantCovectorMap_symplecticForm_prodVectorField hν g p ξ₁ ξ₂ hY₁ hY₂,
-    SmoothForm.eval₂_mpullback_snd, tangentSpaceProdEquiv_prodVectorField,
-    tangentSpaceProdEquiv_prodVectorField]
+  rw [eval₂_leftInvariantCovectorMapForm, tangentSpaceProdEquiv_prodVectorField,
+    tangentSpaceProdEquiv_prodVectorField, mfderiv_inv_mul_mulInvariantVectorField,
+    mfderiv_inv_mul_mulInvariantVectorField, Module.Dual.kirillovForm_apply]
 
-/-- **The form `Φ_ν^* ω + pr_N^* β` on left-trivialized tangent vectors.** For `N` a normed space
+/-- **The form `-d⟨ν, θ⟩ + pr_N^* β` on left-trivialized tangent vectors.** For `N` a normed space
 `F`, at `(g, p)` the form pairs the tangent vectors `(d(L_g) ξᵢ, wᵢ)` to
 `ν p ⁅ξ₁, ξ₂⁆ - d(ν · ξ₂)_p w₁ + d(ν · ξ₁)_p w₂ + β_p (w₁, w₂)`. -/
 theorem eval₂_leftInvariantCovectorMapForm_of_tangentSpaceProdEquiv_eq {F : Type*}
-    [NormedAddCommGroup F] [NormedSpace ℝ F] [CompleteSpace F]
-    {ν : F → Module.Dual ℝ (GroupLieAlgebra I G)}
+    [NormedAddCommGroup F] [NormedSpace ℝ F] {ν : F → Module.Dual ℝ (GroupLieAlgebra I G)}
     (hν : ∀ ξ, ContMDiff 𝓘(ℝ, F) 𝓘(ℝ) ∞ fun p ↦ ν p ξ) (β : SmoothForm 𝓘(ℝ, F) F ℝ 2)
     {g : G} {p : F} {u₁ u₂ : TangentSpace (I.prod 𝓘(ℝ, F)) (g, p)} {ξ₁ ξ₂ : GroupLieAlgebra I G}
     {w₁ w₂ : F} (hu₁ : tangentSpaceProdEquiv (g, p) u₁ = (mulInvariantVectorField ξ₁ g, w₁))
@@ -351,45 +237,9 @@ theorem eval₂_leftInvariantCovectorMapForm_of_tangentSpaceProdEquiv_eq {F : Ty
     (leftInvariantCovectorMapForm hν β).eval₂ (g, p) u₁ u₂ =
       ν p ⁅ξ₁, ξ₂⁆ - fderiv ℝ (fun p ↦ ν p ξ₂) p w₁ + fderiv ℝ (fun p ↦ ν p ξ₁) p w₂ +
         β.eval₂ p w₁ w₂ := by
-  -- Extend `wᵢ` to the constant vector fields `Yᵢ` on `F`.
-  have hY (w : F) : ∃ Y : Π y : F, TangentSpace 𝓘(ℝ, F) y,
-      MDifferentiableAt 𝓘(ℝ, F) 𝓘(ℝ, F).tangent (T% Y) p ∧ Y p = w :=
-    ⟨fun _ ↦ w, ((contMDiff_vectorSpace_iff_contDiff (V := fun _ : F ↦ w)).2
-      contDiff_const).mdifferentiableAt (n := 1) one_ne_zero, rfl⟩
-  obtain ⟨Y₁, hY₁, rfl⟩ := hY w₁
-  obtain ⟨Y₂, hY₂, rfl⟩ := hY w₂
-  have hu (u : TangentSpace (I.prod 𝓘(ℝ, F)) (g, p)) (ξ : GroupLieAlgebra I G)
-      (Y : Π y : F, TangentSpace 𝓘(ℝ, F) y)
-      (h : tangentSpaceProdEquiv (g, p) u = (mulInvariantVectorField ξ g, Y p)) :
-      u = prodVectorField (mulInvariantVectorField ξ) Y (g, p) :=
-    (tangentSpaceProdEquiv (g, p)).injective (h.trans (tangentSpaceProdEquiv_prodVectorField
-      (mulInvariantVectorField ξ) Y (g, p)).symm)
-  rw [hu u₁ ξ₁ Y₁ hu₁, hu u₂ ξ₂ Y₂ hu₂,
-    eval₂_leftInvariantCovectorMapForm_prodVectorField hν β g p ξ₁ ξ₂ hY₁ hY₂,
+  rw [eval₂_leftInvariantCovectorMapForm, hu₁, hu₂, mfderiv_inv_mul_mulInvariantVectorField,
+    mfderiv_inv_mul_mulInvariantVectorField, Module.Dual.kirillovForm_apply,
     mvfderiv_eq_fderiv_apply, mvfderiv_eq_fderiv_apply]
-
-/-- The form `Φ_ν^* ω + pr_N^* β` on `G × F`, for `F` a normed space, on arbitrary tangent vectors
-`uᵢ = (vᵢ, wᵢ)` at `(g, p)`: with `ξᵢ = d(L_{g⁻¹})_g vᵢ`, it is
-`(ν p).kirillovForm ξ₁ ξ₂ - d(ν · ξ₂)_p w₁ + d(ν · ξ₁)_p w₂ + β_p (w₁, w₂)`, where
-`(ν p).kirillovForm ξ₁ ξ₂ = ν p ⁅ξ₁, ξ₂⁆`. -/
-theorem eval₂_leftInvariantCovectorMapForm {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
-    [CompleteSpace F] {ν : F → Module.Dual ℝ (GroupLieAlgebra I G)}
-    (hν : ∀ ξ, ContMDiff 𝓘(ℝ, F) 𝓘(ℝ) ∞ fun p ↦ ν p ξ) (β : SmoothForm 𝓘(ℝ, F) F ℝ 2)
-    (g : G) (p : F) (u₁ u₂ : TangentSpace (I.prod 𝓘(ℝ, F)) (g, p)) :
-    (leftInvariantCovectorMapForm hν β).eval₂ (g, p) u₁ u₂ =
-      (ν p).kirillovForm (mfderiv I I (g⁻¹ * ·) g (tangentSpaceProdEquiv (g, p) u₁).1)
-          (mfderiv I I (g⁻¹ * ·) g (tangentSpaceProdEquiv (g, p) u₂).1) -
-        fderiv ℝ (fun y ↦ ν y (mfderiv I I (g⁻¹ * ·) g (tangentSpaceProdEquiv (g, p) u₂).1)) p
-          (tangentSpaceProdEquiv (g, p) u₁).2 +
-        fderiv ℝ (fun y ↦ ν y (mfderiv I I (g⁻¹ * ·) g (tangentSpaceProdEquiv (g, p) u₁).1)) p
-          (tangentSpaceProdEquiv (g, p) u₂).2 +
-        β.eval₂ p (tangentSpaceProdEquiv (g, p) u₁).2 (tangentSpaceProdEquiv (g, p) u₂).2 := by
-  obtain ⟨ξ₁, hξ₁⟩ := exists_mulInvariantVectorField_eq (I := I) (tangentSpaceProdEquiv (g, p) u₁).1
-  obtain ⟨ξ₂, hξ₂⟩ := exists_mulInvariantVectorField_eq (I := I) (tangentSpaceProdEquiv (g, p) u₂).1
-  rw [eval₂_leftInvariantCovectorMapForm_of_tangentSpaceProdEquiv_eq hν β
-    (Prod.ext hξ₁.symm rfl) (Prod.ext hξ₂.symm rfl), ← hξ₁, ← hξ₂,
-    mfderiv_inv_mul_mulInvariantVectorField, mfderiv_inv_mul_mulInvariantVectorField,
-    Module.Dual.kirillovForm_apply]
 
 end SymplecticGeometry
 
