@@ -11,6 +11,8 @@ public import TauCeti.Geometry.Symplectic.Manifold.JHolomorphic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Leibniz
 public import TauCeti.Geometry.Manifold.Complex.DdbarForm.DC
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Wedge.Smooth.FunSMul
+public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 
 /-!
 # Real potentials and `∂∂bar`
@@ -26,7 +28,8 @@ turns this into `(i/2) ∂∂bar f = (1/4) d (J.covectorComplexStructure (d f))`
 Write `λ_f = -df ∘ J` and `ω_f = d λ_f`. The map `a ↦ -a ∘ J` is linear over smooth functions,
 so the chain rule and the Leibniz rule give `λ_f` and `ω_f` of a composite `g ∘ f` with
 `g : ℝ → ℝ`: `λ_{g ∘ f} = g'(f) λ_f` and `ω_{g ∘ f} = g'(f) ω_f + g''(f) df ∧ λ_f`. On a
-complex manifold, `ω_f` is twice Tau Ceti's real (1,1)-form `TauCeti.ddbarForm` of `f`.
+complex manifold, `ω_f` is twice Tau Ceti's real (1,1)-form `TauCeti.ddbarForm V u`, for the
+function `u` underlying `f`.
 
 ## Main declarations
 
@@ -55,8 +58,8 @@ The `∂∂bar` identities follow the pattern of Tau Ceti's `Dolbeault/DC.lean`,
 In the namespace `TauCeti`:
 
 * `coe_mextDerivₗ_covectorComplexStructure_eq_two_smul_ddbarForm`: on a complex manifold,
-  `ω_f = 2 • TauCeti.ddbarForm V f`, from `dC_mapCoeff_ofReal` and Tau Ceti's
-  `ddbarForm_apply_eq_inv_two_smul_mextDerivₗ_dC_apply`.
+  `ω_f = 2 • TauCeti.ddbarForm V u`, for the function `u` underlying `f`, from
+  `dC_mapCoeff_ofReal` and Tau Ceti's `ddbarForm_apply_eq_inv_two_smul_mextDerivₗ_dC_apply`.
 
 ## References
 
@@ -128,15 +131,12 @@ theorem del_delBar_mapCoeff_ofReal_of_nijenhuis_eq_zero [FiniteDimensional ℝ E
 
 /-- The almost complex structure `a ↦ -a ∘ J` on real one-forms is linear over smooth functions:
 it commutes with multiplication by a smooth function `g`. -/
+@[simp]
 theorem covectorComplexStructure_funSMulₗ (g : C^∞⟮I, M; ℝ⟯) (a : SmoothForm I M ℝ 1) :
     J.covectorComplexStructure (SmoothForm.funSMulₗ g a) =
       SmoothForm.funSMulₗ g (J.covectorComplexStructure a) := by
-  refine Subtype.ext <| funext fun x ↦ ?_
-  refine sub_eq_zero.1 <| (ContinuousAlternatingMap.eq_zero_iff_forall_apply_fin_one _).2
-    fun v ↦ ?_
-  rw [ContinuousAlternatingMap.sub_apply, sub_eq_zero, covectorComplexStructure_apply_vec,
-    SmoothForm.coe_funSMulₗ, SmoothForm.coe_funSMulₗ]
-  simp
+  refine Subtype.ext <| funext fun x ↦ ContinuousAlternatingMap.ext_fin_one fun v ↦ ?_
+  simp [SmoothForm.coe_funSMulₗ]
 
 /-- **The primitive `-dh ∘ J` of a composite.** If `h = g ∘ f` for a smooth real function `f`
 and a function `g : ℝ → ℝ` with derivative `g' x` at `f x` for every `x`, then
@@ -169,15 +169,11 @@ theorem mextDerivₗ_covectorComplexStructure_mextDerivₗ_ofFunction_comp_of_ha
       fun x ↦ ha x ▸ hg x,
     SmoothForm.mextDerivₗ_funSMulₗ, add_comm (SmoothForm.extDerivWedgeₗ _ _ _)]
   congr 1
-  -- `d a ∧ λ = (b df) ∧ λ = b (df ∧ λ)`, checked on each tuple of tangent vectors.
-  refine Subtype.ext <| funext fun x ↦ ContinuousAlternatingMap.ext fun v ↦ ?_
-  rw [SmoothForm.coe_funSMulₗ, ContinuousAlternatingMap.smul_apply,
-    SmoothForm.extDerivWedgeₗ_apply, SmoothForm.extDerivWedgeₗ_apply,
-    ← SmoothForm.coe_ofFunction, ← mextDerivₗ_apply, hda, SmoothForm.coe_funSMulₗ,
-    ← SmoothForm.coe_ofFunction, ← mextDerivₗ_apply]
-  simp only [RoughForm.wedge_def, RoughForm.wedgeWith_apply',
-    ContinuousAlternatingMap.pairedWedge_smul_left, ContinuousAlternatingMap.smul_apply]
-
+  -- `d a ∧ λ = (b df) ∧ λ = b (df ∧ λ)`.
+  rw [SmoothForm.extDerivWedgeₗ_def, SmoothForm.extDerivWedgeₗ_def, hda,
+    SmoothForm.wedge_funSMulₗ_left]
+  ext x v
+  simp [SmoothForm.coe_funSMulₗ]
 
 section Pullback
 
@@ -221,6 +217,7 @@ theorem SmoothAlmostComplexStructure.del_delBar_mapCoeff_ofReal_ofComplexManifol
         ((ofComplexManifold V N).covectorComplexStructure (mextDerivₗ 𝓘(ℝ, V) 0 f))) :=
   del_delBar_mapCoeff_ofReal_of_mextDerivₗ_eq_del_add_delBar
     mextDerivₗ_eq_del_add_delBar_ofComplexManifold f
+
 /-- On a complex manifold, for a real function `u` given by the smooth `0`-form `f`, the
 exterior derivative of `-df ∘ J` is twice Tau Ceti's real (1,1)-form `TauCeti.ddbarForm V u`,
 that is, `2 i∂∂bar u`. -/
@@ -229,17 +226,15 @@ theorem coe_mextDerivₗ_covectorComplexStructure_eq_two_smul_ddbarForm {u : N �
     (mextDerivₗ 𝓘(ℝ, V) 1
         ((ofComplexManifold V N).covectorComplexStructure (mextDerivₗ 𝓘(ℝ, V) 0 f))).val =
       (2 : ℝ) • ddbarForm V u := by
-  refine funext fun x ↦ ContinuousAlternatingMap.ext fun v ↦ Complex.ofReal_injective ?_
-  have hv : v = ![v 0, v 1] := funext fun i ↦ by fin_cases i <;> simp
+  refine funext fun x ↦ ContinuousAlternatingMap.ext_fin_two fun v w ↦ Complex.ofReal_injective ?_
   have key := ddbarForm_apply_eq_inv_two_smul_mextDerivₗ_dC_apply (u := u)
     (SmoothForm.mapCoeff Complex.ofRealCLM f) (fun y ↦ by
       rw [SmoothForm.coe_mapCoeff, RoughForm.mapCoeff_apply, hf, Complex.ofRealCLM_apply])
-    x (v 0) (v 1)
+    x v w
   rw [dC_mapCoeff_ofReal, SmoothForm.mextDerivₗ_mapCoeff, SmoothForm.coe_mapCoeff,
-    RoughForm.mapCoeff_apply, ← hv] at key
+    RoughForm.mapCoeff_apply] at key
   rw [Pi.smul_apply, ContinuousAlternatingMap.smul_apply, smul_eq_mul, Complex.ofReal_mul, key]
   simp
-
 
 end ComplexManifold
 
