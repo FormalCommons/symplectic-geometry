@@ -36,7 +36,8 @@ zero, so it does not change the moment map.
 
 The last part of the file descends this moment map to the balanced product `G ×_K (A × V)`.
 Since `ν (k • p) = Ad*_k (ν p)` for `k ∈ K`, the map `(g, p) ↦ Ad*_g (ν p)` is constant on the
-classes `[g, p] = [g k⁻¹, k • p]`, and so defines `μ_Y [g, p] = Ad*_g (ν p)`. The projection
+classes `[g, p] = [g k⁻¹, k • p]`, and so defines `μ_Y [g, p] = Ad*_g (ν p)`, as Tau Ceti's
+`TauCeti.BalancedProduct.liftRightTranslation` of `ν` for the coadjoint action. The projection
 `G × (A × V) → G ×_K (A × V)` is a `G`-equivariant surjective submersion which pulls the descended
 form back to the form upstairs, so Tau Ceti's
 `TauCeti.SmoothTwoForm.IsEquivariantMomentMap.of_mpullback_eq`, with the identity for the map
@@ -52,7 +53,8 @@ are smooth by `Manifold.IsSubmersion.contMDiff_comp_iff`.
   form, from linear data and from `SymplecticGeometry.LocalModelData`.
 * `SymplecticGeometry.LocalModelData.descendedMomentMap`: the moment map `μ_Y` on
   `G ×_K (A × V)`, with its value `SymplecticGeometry.LocalModelData.descendedMomentMap_mk` on
-  classes and `SymplecticGeometry.LocalModelData.descendedMomentMap_mk_zero` along the zero
+  classes, its equivariance `SymplecticGeometry.LocalModelData.descendedMomentMap_smul`, and
+  `SymplecticGeometry.LocalModelData.descendedMomentMap_mk_zero` along the zero
   section.
 * `SymplecticGeometry.LocalModelData.contMDiff_descendedMomentMap_apply`: its components are
   smooth.
@@ -186,12 +188,9 @@ def descendedMomentMap :
     letI := D.fiberDistribMulAction
     BalancedProduct K K.RightTranslation (A × V) → Module.Dual ℝ (GroupLieAlgebra I G) :=
   letI := D.fiberDistribMulAction
-  Quotient.lift
-    (fun x ↦ coadjointRepresentation ℝ I G (K.toRightTranslation.symm x.1) (D.covector x.2))
-    fun _ _ ⟨h, hh⟩ ↦ by
-      rw [← hh, Prod.smul_fst, Prod.smul_snd,
-        Subgroup.RightTranslation.toRightTranslation_symm_smul, covector_smul, ← mul_apply_eq_comp,
-        ← map_mul, inv_mul_cancel_right]
+  letI : MulAction G (Module.Dual ℝ (GroupLieAlgebra I G)) :=
+    MulAction.compHom _ (coadjointRepresentation ℝ I G)
+  BalancedProduct.liftRightTranslation ⟨D.covector, fun k p ↦ D.covector_smul k p⟩
 
 /-- The moment map of the local model at `[g, p]` is `Ad*_g (D.covector p)`. -/
 @[simp]
@@ -200,8 +199,24 @@ theorem descendedMomentMap_mk (g : G) (p : A × V) :
     D.descendedMomentMap (BalancedProduct.mk K (K.toRightTranslation g) p) =
       coadjointRepresentation ℝ I G g (D.covector p) := by
   let := D.fiberDistribMulAction
-  exact congrArg (fun g ↦ coadjointRepresentation ℝ I G g (D.covector p))
-    (K.toRightTranslation.symm_apply_apply g)
+  let : MulAction G (Module.Dual ℝ (GroupLieAlgebra I G)) :=
+    MulAction.compHom _ (coadjointRepresentation ℝ I G)
+  -- With the coadjoint action as `g • ·`, `D.descendedMomentMap` unfolds to
+  -- `liftRightTranslation` of the covectors, whose value on classes is `g • D.covector p`.
+  rw [← Module.End.smul_def, ← MulAction.compHom_smul_def]
+  exact BalancedProduct.liftRightTranslation_mk _ g p
+
+/-- The moment map of the local model is equivariant for the action `k • [g, p] = [k g, p]`
+of `G` on `G ×_K (A × V)` and the coadjoint action: `μ_Y (k • y) = Ad*_k (μ_Y y)`. -/
+theorem descendedMomentMap_smul (k : G)
+    (y : letI := D.fiberDistribMulAction; BalancedProduct K K.RightTranslation (A × V)) :
+    letI := D.fiberDistribMulAction
+    D.descendedMomentMap (k • y) = coadjointRepresentation ℝ I G k (D.descendedMomentMap y) := by
+  let := D.fiberDistribMulAction
+  induction y using BalancedProduct.induction_on_toRightTranslation with
+  | h g p =>
+    rw [BalancedProduct.smul_mk_toRightTranslation, descendedMomentMap_mk, descendedMomentMap_mk,
+      map_mul, mul_apply_eq_comp]
 
 /-- Along the zero section, the moment map of the local model is `[g, 0, 0] ↦ Ad*_g τ`. -/
 theorem descendedMomentMap_mk_zero (g : G) :
@@ -209,8 +224,7 @@ theorem descendedMomentMap_mk_zero (g : G) :
     D.descendedMomentMap (BalancedProduct.mk K (K.toRightTranslation g) ((0 : A), (0 : V))) =
       coadjointRepresentation ℝ I G g D.τ := by
   let := D.fiberDistribMulAction
-  rw [descendedMomentMap_mk, covector_def, localModelCovector_def, map_zero,
-    SymplecticForm.linearMomentMapComp_zero, map_zero, add_zero, add_zero]
+  rw [descendedMomentMap_mk, ← Prod.zero_eq_mk, covector_zero]
 
 variable [T2Space G] [I.Boundaryless]
 
