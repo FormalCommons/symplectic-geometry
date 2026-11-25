@@ -55,6 +55,8 @@ tangent space of `f₁` being symplectic, the difference vanishes.
 
 * `TauCeti.SmoothTwoForm.IsNondegenerate.HasSymplecticTangentImages.exists_symplectomorphism_opens`:
   the symplectic neighbourhood theorem.
+* `TauCeti.SmoothEmbedding.symplecticNormalForm_congr`: the normal symplectic form depends only
+  on the ambient form.
 
 ## References
 
@@ -66,6 +68,24 @@ public section
 
 open Bundle Manifold Module TopologicalSpace
 open scoped ContDiff Manifold Bundle
+
+namespace TauCeti.SmoothEmbedding
+
+/-- The normal symplectic form of an embedding depends only on the ambient two-form, not on the
+proofs of its nondegeneracy and of the symplecticity of the tangent images. -/
+theorem symplecticNormalForm_congr {EQ HQ Q EN HN N : Type*} [NormedAddCommGroup EQ]
+    [NormedSpace ℝ EQ] [TopologicalSpace HQ] {J : ModelWithCorners ℝ EQ HQ} [TopologicalSpace Q]
+    [ChartedSpace HQ Q] [NormedAddCommGroup EN] [NormedSpace ℝ EN] [FiniteDimensional ℝ EN]
+    [TopologicalSpace HN] {K : ModelWithCorners ℝ EN HN} [TopologicalSpace N] [ChartedSpace HN N]
+    [IsManifold K ∞ N] {σ₁ σ₂ : SmoothTwoForm K N} (h : σ₁ = σ₂) {hσ₁ : σ₁.IsNondegenerate}
+    {hσ₂ : σ₂.IsNondegenerate} {n : ℕ∞ω} {f : SmoothEmbedding J K n Q N}
+    (h₁ : hσ₁.HasSymplecticTangentImages J f) (h₂ : hσ₂.HasSymplecticTangentImages J f) (q : Q)
+    (hn : n ≠ 0) :
+    f.symplecticNormalForm h₁ q hn = f.symplecticNormalForm h₂ q hn := by
+  subst h
+  rfl
+
+end TauCeti.SmoothEmbedding
 
 namespace TauCeti.SmoothTwoForm.IsNondegenerate
 
