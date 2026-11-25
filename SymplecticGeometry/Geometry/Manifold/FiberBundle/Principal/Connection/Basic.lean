@@ -130,11 +130,10 @@ structure IsTensorialForm {k : ℕ}
   mpullback_op_smul (g : G) :
     SmoothForm.mpullback (fun x : ManifoldTotalSpace G P ↦ op g • x)
       (contMDiff_const_smul (op g)) a = SmoothForm.mapCoeff (adjointContinuousLinearMap g⁻¹) a
-  /-- A tensorial form vanishes as soon as one of its arguments is vertical. -/
-  apply_eq_zero_of_vertical (x : ManifoldTotalSpace G P) (v : Fin k → TangentSpace (IB.prod IG) x)
-    (j : Fin k)
-    (hv : mfderiv (IB.prod IG) IB (ManifoldTotalSpace.projContMDiffMap ∞ G P IB IG) x (v j) = 0) :
-    a.val x v = 0
+  /-- A tensorial form is semibasic for the projection: it vanishes as soon as one of its
+  arguments is vertical. -/
+  isSemibasic : RoughForm.IsSemibasic (F := GroupLieAlgebra IG G) IB
+    (ManifoldTotalSpace.projContMDiffMap ∞ G P IB IG) a.val
 
 namespace IsTensorialForm
 
@@ -144,21 +143,24 @@ variable {k : ℕ} {a b : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (Grou
 theorem zero :
     IsTensorialForm (0 : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P)
       (GroupLieAlgebra IG G) k) :=
-  ⟨fun g ↦ by rw [map_zero, map_zero], fun _ _ _ _ ↦ rfl⟩
+  ⟨fun g ↦ by rw [map_zero, map_zero], by
+    rw [ZeroMemClass.coe_zero]; exact RoughForm.isSemibasic_zero _ _⟩
 
 /-- The sum of two tensorial forms is tensorial. -/
 theorem add (ha : IsTensorialForm a) (hb : IsTensorialForm b) : IsTensorialForm (a + b) :=
-  ⟨fun g ↦ by rw [map_add, map_add, ha.mpullback_op_smul, hb.mpullback_op_smul],
-    fun x v j hv ↦ by
-      rw [Submodule.coe_add, Pi.add_apply, ContinuousAlternatingMap.add_apply,
-        ha.apply_eq_zero_of_vertical x v j hv, hb.apply_eq_zero_of_vertical x v j hv, add_zero]⟩
+  ⟨fun g ↦ by rw [map_add, map_add, ha.mpullback_op_smul, hb.mpullback_op_smul], by
+    rw [Submodule.coe_add]
+    exact RoughForm.isSemibasic_def.mpr fun x ↦ RoughForm.isSemibasicAt_def.mpr <| add_mem
+      (RoughForm.isSemibasicAt_def.mp (RoughForm.isSemibasic_def.mp ha.isSemibasic x))
+      (RoughForm.isSemibasicAt_def.mp (RoughForm.isSemibasic_def.mp hb.isSemibasic x))⟩
 
 /-- A real multiple of a tensorial form is tensorial. -/
 theorem smul (ha : IsTensorialForm a) (c : ℝ) : IsTensorialForm (c • a) :=
-  ⟨fun g ↦ by rw [map_smul, map_smul, ha.mpullback_op_smul],
-    fun x v j hv ↦ by
-      rw [Submodule.coe_smul, Pi.smul_apply, ContinuousAlternatingMap.smul_apply,
-        ha.apply_eq_zero_of_vertical x v j hv, smul_zero]⟩
+  ⟨fun g ↦ by rw [map_smul, map_smul, ha.mpullback_op_smul], by
+    rw [Submodule.coe_smul]
+    exact RoughForm.isSemibasic_def.mpr fun x ↦ RoughForm.isSemibasicAt_def.mpr <|
+      Submodule.smul_mem _ c
+        (RoughForm.isSemibasicAt_def.mp (RoughForm.isSemibasic_def.mp ha.isSemibasic x))⟩
 
 /-- The negative of a tensorial form is tensorial. -/
 theorem neg (ha : IsTensorialForm a) : IsTensorialForm (-a) := by
@@ -296,11 +298,13 @@ theorem add_isTensorialForm (hA : IsConnectionForm A)
   mpullback_op_smul g := by
     rw [map_add, map_add, hA.mpullback_op_smul, ha.mpullback_op_smul]
   apply_rightFundamentalVectorField x ξ := by
-    rw [Submodule.coe_add, Pi.add_apply, ContinuousAlternatingMap.add_apply,
-      hA.apply_rightFundamentalVectorField,
-      ha.apply_eq_zero_of_vertical x _ 0 (by
+    -- Stated with the instances of `SmoothForm`, which `RoughForm.isSemibasic_iff` unfolds.
+    have ha0 : a.val x ![rightFundamentalVectorField (IB.prod IG) ξ x] = 0 :=
+      RoughForm.isSemibasic_iff.mp ha.isSemibasic x _ 0 (by
         rw [ManifoldTotalSpace.coe_projContMDiffMap]
-        exact PrincipalBundle.mfderiv_proj_rightFundamentalVectorField x ξ), add_zero]
+        exact PrincipalBundle.mfderiv_proj_rightFundamentalVectorField x ξ)
+    rw [Submodule.coe_add, Pi.add_apply, ContinuousAlternatingMap.add_apply,
+      hA.apply_rightFundamentalVectorField, ha0, add_zero]
 
 /-- The difference of two connection forms is a tensorial one-form. -/
 theorem isTensorialForm_sub (hA : IsConnectionForm A)
@@ -308,17 +312,22 @@ theorem isTensorialForm_sub (hA : IsConnectionForm A)
     (hA' : IsConnectionForm A') : IsTensorialForm (A - A') where
   mpullback_op_smul g := by
     rw [map_sub, map_sub, hA.mpullback_op_smul, hA'.mpullback_op_smul]
-  apply_eq_zero_of_vertical x v j hv := by
-    -- A vertical vector is the value of the fundamental vector field of some `ξ`.
-    obtain rfl : j = 0 := Subsingleton.elim _ _
-    rw [ManifoldTotalSpace.coe_projContMDiffMap] at hv
-    set ξ := (PrincipalBundle.verticalLinearEquiv IB IG (P := P) x).symm ⟨v 0, hv⟩
-    have hv : v = ![rightFundamentalVectorField (IB.prod IG) ξ x] := by
-      funext i
-      rw [Subsingleton.elim i 0, Matrix.cons_val_zero,
-        PrincipalBundle.rightFundamentalVectorField_verticalLinearEquiv_symm]
-    rw [hv, Submodule.coe_sub, Pi.sub_apply, ContinuousAlternatingMap.sub_apply,
-      hA.apply_rightFundamentalVectorField, hA'.apply_rightFundamentalVectorField, sub_self]
+  isSemibasic := by
+    -- Stated with the instances of `SmoothForm`, which `RoughForm.isSemibasic_iff` unfolds.
+    have h (x : ManifoldTotalSpace G P) (v : Fin 1 → TangentSpace (IB.prod IG) x) (j : Fin 1)
+        (hv : mfderiv (IB.prod IG) IB (ManifoldTotalSpace.projContMDiffMap ∞ G P IB IG) x (v j) =
+          0) : (A - A').val x v = 0 := by
+      -- A vertical vector is the value of the fundamental vector field of some `ξ`.
+      obtain rfl : j = 0 := Subsingleton.elim _ _
+      rw [ManifoldTotalSpace.coe_projContMDiffMap] at hv
+      set ξ := (PrincipalBundle.verticalLinearEquiv IB IG (P := P) x).symm ⟨v 0, hv⟩
+      have hv : v = ![rightFundamentalVectorField (IB.prod IG) ξ x] := by
+        funext i
+        rw [Subsingleton.elim i 0, Matrix.cons_val_zero,
+          PrincipalBundle.rightFundamentalVectorField_verticalLinearEquiv_symm]
+      rw [hv, Submodule.coe_sub, Pi.sub_apply, ContinuousAlternatingMap.sub_apply,
+        hA.apply_rightFundamentalVectorField, hA'.apply_rightFundamentalVectorField, sub_self]
+    exact RoughForm.isSemibasic_iff.mpr h
 
 /-- **The connection forms are an affine space over the tensorial one-forms.** Any connection
 form `A'` is the sum of a given connection form `A` and a unique tensorial one-form. -/
@@ -344,10 +353,11 @@ theorem isTensorialForm_iff_isBasic [IsMulCommutative G] {n : ℕ∞ω} {k : ℕ
     rw [adjointContinuousLinearMap_eq_id, SmoothForm.mapCoeff_id, LinearMap.id_apply]
   refine ⟨fun h ↦ PrincipalBundle.isBasic_of_mpullback_op_smul
       (fun g ↦ (h.mpullback_op_smul g).trans (hAd g))
-      (RoughForm.isSemibasic_iff.mpr fun x v j hv ↦ h.apply_eq_zero_of_vertical x v j (by
-        rw [ManifoldTotalSpace.coe_projContMDiffMap] at hv ⊢; exact hv)),
-    fun h ↦ ⟨fun g ↦ ?_, fun x v j hv ↦ h.apply_eq_zero_of_mfderiv_eq_zero (by
-      rw [ManifoldTotalSpace.coe_projContMDiffMap] at hv ⊢; exact hv)⟩⟩
+      (by
+        have := h.isSemibasic
+        rw [ManifoldTotalSpace.coe_projContMDiffMap] at this ⊢; exact this),
+    fun h ↦ ⟨fun g ↦ ?_, by
+      have := h.isSemibasic; rw [ManifoldTotalSpace.coe_projContMDiffMap] at this ⊢; exact this⟩⟩
   rw [hAd]
   apply Subtype.ext
   rw [SmoothForm.coe_mpullback]

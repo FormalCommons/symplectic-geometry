@@ -36,7 +36,7 @@ realization of the nerve of `ρ` to `O`, the linear extension of the inclusion o
 well defined (`AbstractSimplicialComplex.linearExtension_mem_of_convex`), and the segment from
 `ψ (ρ.toNerve x)` to `x`, the affine homotopy `ContinuousMap.Homotopy.affine`, lies in
 `O`. Thus `O` is dominated by the realization, a CW complex, and has CW type by
-`TauCeti.CWType.of_homotopic_comp`.
+`TauCeti.CWType.of_comp_homotopic_id`.
 
 ## Main results
 
@@ -121,7 +121,7 @@ theorem cwType_inter {E : Type u} [AddCommGroup E] [Module ℝ E]
   -- The realization of the nerve is a CW complex, for any linear order on the vertices.
   let : LinearOrder ↥(C ∩ U) := IsWellOrder.linearOrder WellOrderingRel
   let := realizationCWComplex ρ.nerve
-  exact TauCeti.CWType.of_homotopic_comp ⟨H⟩
+  exact TauCeti.CWType.of_comp_homotopic_id ⟨H⟩
 
 end Convex
 

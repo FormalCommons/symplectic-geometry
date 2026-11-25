@@ -66,7 +66,7 @@ These settle the points that `DESIGN.md` leaves to this file.
   declarations on Tau Ceti's types. The name `SymplecticGeometry.FiberAtlas`
   of `DESIGN.md` is replaced by `TauCeti.MapFiber.Atlas` there.
 - **Structure groups.** A structure group is a subgroup
-  `H : Subgroup (F ≃ₘ⟮IF, IF⟯ F)`. Coordinate changes are compared between
+  `H : Subgroup (F ≃ₘ^n⟮IF, IF⟯ F)`. Coordinate changes are compared between
   two atlases, `A.CoordChangeMem A' H`; the structure group of one atlas is
   the case `A' = A`. A reduction of the structure group of `A` from `H` to
   `K` is an atlas `A'` with `A'.HasStructureGroup K` and

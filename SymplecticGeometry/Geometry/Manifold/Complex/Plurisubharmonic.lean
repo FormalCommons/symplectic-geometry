@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.Kahler
 public import TauCeti.Topology.Maps.Proper.Metric
 public import SymplecticGeometry.Analysis.Convex.Deriv
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Dolbeault.Potential
+public import SymplecticGeometry.Topology.Maps.Proper
 
 /-!
 # Stein functions and their Kähler forms
@@ -30,6 +31,8 @@ plurisubharmonic at every point. Its form `ω_f` is a Kähler form for `J`, and 
 
 * `SymplecticGeometry.isManifoldStrictlyPlurisubharmonicAt_iff_forall_pos`: a smooth `f` is
   strictly plurisubharmonic at `x` iff `0 < ω_f(v, i v)` at `x` for every `v ≠ 0`.
+* `SymplecticGeometry.isKahler_mextDerivₗ_covectorComplexStructure`: `ω_f` is Kähler for `J`
+  when `f` is strictly plurisubharmonic at every point.
 * `SymplecticGeometry.IsSteinFunction E φ`: smooth, proper, bounded below and strictly
   plurisubharmonic everywhere.
 * `SymplecticGeometry.IsSteinFunction.comp`: `h ∘ φ` is a Stein function for a smooth
@@ -92,6 +95,29 @@ theorem isManifoldStrictlyPlurisubharmonicAt_iff_forall_pos (f : C^∞⟮𝓘(�
     mextDerivₗ_covectorComplexStructure_apply_I_smul]
   exact forall₂_congr fun _ _ ↦ by constructor <;> intro h <;> linarith
 
+/-- **The form of a strictly plurisubharmonic function is Kähler.** If a smooth real function `f`
+on a complex manifold is strictly plurisubharmonic at every point, then `ω_f = d(-df ∘ J)` is a
+Kähler form for the complex structure of `M`. -/
+theorem isKahler_mextDerivₗ_covectorComplexStructure [FiniteDimensional ℂ E]
+    {f : C^∞⟮𝓘(ℝ, E), M; ℝ⟯} (hf : ∀ x, IsManifoldStrictlyPlurisubharmonicAt E f x) :
+    SmoothTwoForm.IsKahler (mextDerivₗ 𝓘(ℝ, E) 1 ((ofComplexManifold E M).covectorComplexStructure
+        (mextDerivₗ 𝓘(ℝ, E) 0 (SmoothForm.ofFunction f)))) (ofComplexManifold E M) := by
+  have hω := coe_mextDerivₗ_covectorComplexStructure_eq_two_smul_ddbarForm (u := f)
+    (SmoothForm.ofFunction f) fun y ↦ congrFun (SmoothForm.ofFunction_apply_zero f) y
+  -- Each tangent space is `E`, on which the complex structure is multiplication by `I`.
+  have hJ (x : M) (v : TangentSpace 𝓘(ℝ, E) x) :
+      (ofComplexManifold E M).toEndomorphism x v = Complex.I • (show E from v) :=
+    ofComplexManifold_apply (E := E) x v
+  refine SmoothTwoForm.isKahler_ofComplexManifold_iff.2
+    ⟨SmoothForm.isClosed_mextDerivₗ _, ⟨SmoothTwoForm.invariant_iff.2 fun x v w ↦ ?_,
+      SmoothTwoForm.tames_iff.2 fun x v hv ↦ ?_⟩⟩
+  · simp only [SmoothBundleForm.eval₂_apply]
+    rw [hJ, hJ, hω]
+    simpa using ddbarForm_apply_I_smul (E := E) f x v w
+  · simp only [SmoothBundleForm.eval₂_apply]
+    rw [hJ]
+    exact (isManifoldStrictlyPlurisubharmonicAt_iff_forall_pos f x).1 (hf x) v hv
+
 /-! ### Stein functions -/
 
 variable (E) in
@@ -130,10 +156,9 @@ theorem comp (hφ : IsSteinFunction E φ) {h : ℝ → ℝ} (hh : ContDiff ℝ �
       (hconv.subset (subset_univ _) (convex_Ici 0)) (hd 0).hasDerivAt.hasDerivWithinAt (hh₁ 0)
     obtain ⟨c, hc'⟩ := hK.bddAbove
     obtain ⟨b, hb⟩ := (hh_tendsto.eventually_gt_atTop c).exists_forall_of_atTop
-    obtain ⟨m, hm⟩ := hφ.bddBelow
-    have hsub : h ∘ φ ⁻¹' K ⊆ φ ⁻¹' Icc m b := fun x hx ↦
-      ⟨hm ⟨x, rfl⟩, (not_le.1 fun hbx ↦ (hb _ hbx).not_ge (hc' hx)).le⟩
-    exact (hφ.isProperMap.isCompact_preimage isCompact_Icc).of_isClosed_subset
+    have hsub : h ∘ φ ⁻¹' K ⊆ φ ⁻¹' Iic b := fun x hx ↦
+      (not_le.1 fun hbx ↦ (hb _ hbx).not_ge (hc' hx)).le
+    exact (hφ.isProperMap.isCompact_preimage_Iic hφ.bddBelow b).of_isClosed_subset
       (hK.isClosed.preimage hc) hsub
   bddBelow := by
     obtain ⟨m, hm⟩ := hφ.bddBelow
@@ -164,23 +189,8 @@ variable [FiniteDimensional ℂ E]
 `ω_f = d(-df ∘ J)` is a Kähler form for the complex structure of `M`. -/
 theorem isKahler {f : C^∞⟮𝓘(ℝ, E), M; ℝ⟯} (hf : IsSteinFunction E f) :
     SmoothTwoForm.IsKahler (mextDerivₗ 𝓘(ℝ, E) 1 ((ofComplexManifold E M).covectorComplexStructure
-        (mextDerivₗ 𝓘(ℝ, E) 0 (SmoothForm.ofFunction f)))) (ofComplexManifold E M) := by
-  have hω := coe_mextDerivₗ_covectorComplexStructure_eq_two_smul_ddbarForm (u := f)
-    (SmoothForm.ofFunction f) fun y ↦ congrFun (SmoothForm.ofFunction_apply_zero f) y
-  -- Each tangent space is `E`, on which the complex structure is multiplication by `I`.
-  have hJ (x : M) (v : TangentSpace 𝓘(ℝ, E) x) :
-      (ofComplexManifold E M).toEndomorphism x v = Complex.I • (show E from v) :=
-    ofComplexManifold_apply (E := E) x v
-  refine SmoothTwoForm.isKahler_ofComplexManifold_iff.2
-    ⟨SmoothForm.isClosed_mextDerivₗ _, ⟨SmoothTwoForm.invariant_iff.2 fun x v w ↦ ?_,
-      SmoothTwoForm.tames_iff.2 fun x v hv ↦ ?_⟩⟩
-  · simp only [SmoothBundleForm.eval₂_apply]
-    rw [hJ, hJ, hω]
-    simpa using ddbarForm_apply_I_smul (E := E) f x v w
-  · simp only [SmoothBundleForm.eval₂_apply]
-    rw [hJ]
-    exact (isManifoldStrictlyPlurisubharmonicAt_iff_forall_pos f x).1
-      (hf.isStrictlyPlurisubharmonic x) v hv
+        (mextDerivₗ 𝓘(ℝ, E) 0 (SmoothForm.ofFunction f)))) (ofComplexManifold E M) :=
+  isKahler_mextDerivₗ_covectorComplexStructure hf.isStrictlyPlurisubharmonic
 
 /-- For a Stein function `f`, the two-form `ω_f = d(-df ∘ J)` is symplectic. -/
 theorem isSymplectic {f : C^∞⟮𝓘(ℝ, E), M; ℝ⟯} (hf : IsSteinFunction E f) :

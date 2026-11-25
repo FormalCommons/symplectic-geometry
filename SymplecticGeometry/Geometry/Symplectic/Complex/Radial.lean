@@ -14,12 +14,15 @@ import Mathlib.Analysis.SpecialFunctions.Sqrt
 import Mathlib.Geometry.Manifold.LocalDiffeomorph
 import SymplecticGeometry.Analysis.Calculus.InverseFunctionTheorem.Deriv
 import SymplecticGeometry.Analysis.Complex.QuadraticLeviForm
+import SymplecticGeometry.Analysis.InnerProductSpace.PiL2
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 import TauCeti.Geometry.Manifold.Complex.DdbarForm.Basic
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Manifold.Complex.LeviForm
+public import SymplecticGeometry.Geometry.Manifold.Complex.Plurisubharmonic
+import SymplecticGeometry.Geometry.Symplectic.Manifold.Rescale
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 
 /-!
@@ -46,6 +49,16 @@ blowup constructions read the forms they build off `Z` in these terms.
   and from `∂s = star z ⬝ᵥ ·`
   (`TauCeti.extendRCLike_fderiv_norm_sq_complexToRealEuclidean`). Both are in
   `SymplecticGeometry/Analysis/Complex/QuadraticLeviForm.lean`.
+* `SymplecticGeometry.radialPotentialForm_apply_I_smul`: on `(v, i v)` the form is
+  `g'(s) |v|² + g''(s) |star z ⬝ᵥ v|²`.
+* `SymplecticGeometry.isManifoldStrictlyPlurisubharmonicAt_radialPotential`: if `g' > 0` and
+  `(s g')' = g' + s g'' > 0` at `s = |z|²`, the potential `g ∘ s` is strictly plurisubharmonic at
+  `z`. When `g'' < 0`, Cauchy–Schwarz `|star z ⬝ᵥ v|² ≤ |z|² |v|²`
+  (`Matrix.norm_star_dotProduct_sq_le`) bounds the value on `(v, i v)` below by
+  `(g' + s g'') |v|²`.
+* `SymplecticGeometry.isKahler_radialPotentialForm`: if both hold on `(0, ∞)`, the form is Kähler
+  for `J`, as a positive multiple of the form of a strictly plurisubharmonic function
+  (`SymplecticGeometry.isKahler_mextDerivₗ_covectorComplexStructure`).
 * `SymplecticGeometry.radialPotentialForm_id`: for `g = id` the form is `ω₀`, restricted to `Z`.
 * `SymplecticGeometry.radialPotentialForm_log`: for `ι = Fin (n + 1)` and `g = log` it is the
   Fubini–Study lift `SymplecticGeometry.fubiniStudyLift n`, since its primitive is
@@ -176,6 +189,73 @@ theorem radialPotentialForm_apply (g : ℝ → ℝ) (hg : ContDiffOn ℝ ∞ g (
     map_mul, Complex.conj_ofNat, smul_eq_mul]
   norm_num
   ring
+
+/-- On a vector and its rotation by `i`, the form of the radial potential `g ∘ s` at `z` is the
+Levi form `g'(s) |v|² + g''(s) |star z ⬝ᵥ v|²`, where `s = |z|²`. -/
+theorem radialPotentialForm_apply_I_smul (g : ℝ → ℝ) (hg : ContDiffOn ℝ ∞ g (Ioi 0))
+    (z : puncturedSpace (ι → ℂ)) (v : ι → ℂ) :
+    (radialPotentialForm ι g hg).eval₂ z v (Complex.I • v) =
+      deriv g (∑ i, ‖(z : ι → ℂ) i‖ ^ 2) * ∑ i, ‖v i‖ ^ 2 +
+        deriv (deriv g) (∑ i, ‖(z : ι → ℂ) i‖ ^ 2) *
+          Complex.normSq (star (z : ι → ℂ) ⬝ᵥ v) := by
+  rw [radialPotentialForm_apply g hg z v (Complex.I • v)]
+  simp only [stdComplexPiSymplecticForm_apply_eq_im, dotProduct_smul, smul_eq_mul,
+    Complex.mul_re, Complex.mul_im, Complex.I_re, Complex.I_im, Matrix.re_star_dotProduct_self,
+    Complex.normSq_apply]
+  ring
+
+/-- **Radial potentials are strictly plurisubharmonic.** Let `s = |z|²` at a point `z` of
+`(ι → ℂ) ∖ 0`. If `g'(s) > 0` and `(t g')'(s) > 0`, the radial potential `z ↦ g |z|²` is strictly
+plurisubharmonic at `z`. -/
+theorem isManifoldStrictlyPlurisubharmonicAt_radialPotential {g : ℝ → ℝ}
+    (hg : ContDiffOn ℝ ∞ g (Ioi 0)) (z : puncturedSpace (ι → ℂ))
+    (hg₁ : 0 < deriv g (∑ i, ‖(z : ι → ℂ) i‖ ^ 2))
+    (hg₂ : 0 < deriv (fun t ↦ t * deriv g t) (∑ i, ‖(z : ι → ℂ) i‖ ^ 2)) :
+    IsManifoldStrictlyPlurisubharmonicAt (ι → ℂ) (radialPotential hg) z := by
+  rw [isManifoldStrictlyPlurisubharmonicAt_iff_forall_pos]
+  intro v hv
+  have h4 : mextDerivₗ 𝓘(ℝ, ι → ℂ) 1
+      ((ofComplexManifold (ι → ℂ) (puncturedSpace (ι → ℂ))).covectorComplexStructure
+        (mextDerivₗ 𝓘(ℝ, ι → ℂ) 0 (SmoothForm.ofFunction (radialPotential hg)))) =
+      (4 : ℝ) • radialPotentialForm ι g hg := by
+    rw [radialPotentialForm_def, smul_inv_smul₀ four_ne_zero]
+  rw [(SmoothBundleForm.eval₂_apply _ z v (Complex.I • v)).symm.trans (by rw [h4]),
+    SmoothForm.eval₂_smul 4 (radialPotentialForm ι g hg) z v (Complex.I • v), smul_eq_mul,
+    radialPotentialForm_apply_I_smul g hg z v]
+  set s := ∑ i, ‖(z : ι → ℂ) i‖ ^ 2
+  have hs : 0 < s := by
+    simpa only [s, norm_sq_complexToRealEuclidean] using norm_sq_complexToRealEuclidean_pos z
+  have hA : 0 < ∑ i, ‖v i‖ ^ 2 := by
+    obtain ⟨i, hi⟩ := Function.ne_iff.1 hv
+    exact Finset.sum_pos' (fun j _ ↦ by positivity)
+      ⟨i, Finset.mem_univ _, pow_pos (norm_pos_iff.2 hi) 2⟩
+  -- Cauchy–Schwarz: `|star z ⬝ᵥ v|² ≤ |z|² |v|²`.
+  have hCS : Complex.normSq (star (z : ι → ℂ) ⬝ᵥ v) ≤ s * ∑ i, ‖v i‖ ^ 2 := by
+    rw [← Complex.sq_norm]
+    exact Matrix.norm_star_dotProduct_sq_le (z : ι → ℂ) v
+  -- `(s g')' = g' + s g''`.
+  have hd : DifferentiableAt ℝ (deriv g) s :=
+    ((hg.deriv_of_isOpen (m := 1) isOpen_Ioi (by simp)).differentiableOn
+      one_ne_zero).differentiableAt (Ioi_mem_nhds hs)
+  rw [deriv_fun_mul (c := fun t ↦ t) differentiableAt_fun_id hd, deriv_id'', one_mul]
+    at hg₂
+  have hN := Complex.normSq_nonneg (star (z : ι → ℂ) ⬝ᵥ v)
+  rcases le_or_gt 0 (deriv (deriv g) s) with h | h
+  · nlinarith [mul_nonneg h hN, mul_pos hg₁ hA]
+  · nlinarith [mul_le_mul_of_nonpos_left hCS h.le, mul_pos hg₂ hA]
+
+/-- **Radial potential forms are Kähler.** If `g' > 0` and `(s g')' > 0` on `(0, ∞)`, the form of
+the radial potential `z ↦ g |z|²` is a Kähler form for the complex structure of `(ι → ℂ) ∖ 0`. -/
+theorem isKahler_radialPotentialForm {g : ℝ → ℝ} (hg : ContDiffOn ℝ ∞ g (Ioi 0))
+    (hg₁ : ∀ s ∈ Ioi (0 : ℝ), 0 < deriv g s)
+    (hg₂ : ∀ s ∈ Ioi (0 : ℝ), 0 < deriv (fun t ↦ t * deriv g t) s) :
+    (radialPotentialForm ι g hg).IsKahler
+      (ofComplexManifold (ι → ℂ) (puncturedSpace (ι → ℂ))) := by
+  rw [radialPotentialForm_def]
+  refine (isKahler_mextDerivₗ_covectorComplexStructure fun z ↦ ?_).smul _ (by norm_num)
+  have hz : ∑ i, ‖(z : ι → ℂ) i‖ ^ 2 ∈ Ioi 0 := by
+    simpa only [mem_Ioi, norm_sq_complexToRealEuclidean] using norm_sq_complexToRealEuclidean_pos z
+  exact isManifoldStrictlyPlurisubharmonicAt_radialPotential hg z (hg₁ _ hz) (hg₂ _ hz)
 
 /-- For `g = id` the radial potential form is the standard form `ω₀`, restricted to
 `(ι → ℂ) ∖ 0`. -/
