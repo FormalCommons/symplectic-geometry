@@ -6,8 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
-import TauCeti.Analysis.Calculus.FDeriv.Equiv
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import TauCeti.Geometry.Manifold.MFDeriv.ModelChart
 
 /-!
 # The differential of the inverse of a partial diffeomorphism
@@ -20,9 +20,10 @@ linear equivalence.
 
 For a partial diffeomorphism `Φ` into a normed space `E` and a chart of a manifold modelled on
 `E`, the transitions between them, in both directions, are smooth with derivatives of nonzero
-determinant on their sources. They are Tau Ceti's
-`OpenPartialHomeomorph.contDiffOn_symm_trans_and_symm_of_contMDiffOn` and
-`OpenPartialHomeomorph.det_fderiv_ne_zero_of_contDiffOn` applied to `Φ` and the chart.
+determinant on their sources. Smoothness is Tau Ceti's
+`OpenPartialHomeomorph.contDiffOn_symm_trans_of_contMDiffOn`, and the determinants are Tau
+Ceti's `TauCeti.det_fderiv_symm_trans_ne_zero`, since `Φ` lies in the maximal atlas of the
+manifold.
 
 ## Main definitions
 
@@ -101,23 +102,6 @@ theorem toContinuousLinearMap_mfderivSymmEquiv_symm (Φ : PartialDiffeomorph I J
 
 end MFDerivSymmEquiv
 
-/-- The open partial homeomorphism of a `C^n` partial diffeomorphism is `C^n` on its source. -/
-theorem contMDiffOn_toOpenPartialHomeomorph {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
-    {H' : Type*} [TopologicalSpace H'] {J : ModelWithCorners 𝕜 F H'}
-    {N : Type*} [TopologicalSpace N] [ChartedSpace H' N] (Φ : PartialDiffeomorph I J M N n) :
-    ContMDiffOn I J n Φ.toOpenPartialHomeomorph Φ.toOpenPartialHomeomorph.source := by
-  rw [Φ.toFun'_toOpenPartialHomeomorph, Φ.toOpenPartialHomeomorph_source]
-  exact Φ.contMDiffOn
-
-/-- The inverse of the open partial homeomorphism of a `C^n` partial diffeomorphism is `C^n` on
-its target. -/
-theorem contMDiffOn_toOpenPartialHomeomorph_symm {F : Type*} [NormedAddCommGroup F]
-    [NormedSpace 𝕜 F] {H' : Type*} [TopologicalSpace H'] {J : ModelWithCorners 𝕜 F H'}
-    {N : Type*} [TopologicalSpace N] [ChartedSpace H' N] (Φ : PartialDiffeomorph I J M N n) :
-    ContMDiffOn J I n Φ.toOpenPartialHomeomorph.symm Φ.toOpenPartialHomeomorph.target := by
-  rw [Φ.coe_toOpenPartialHomeomorph_symm, Φ.toOpenPartialHomeomorph_target]
-  exact Φ.symm.contMDiffOn
-
 section ChartTransition
 
 variable {M' : Type*} [TopologicalSpace M'] [ChartedSpace E M'] {n : WithTop ℕ∞}
@@ -129,7 +113,7 @@ theorem contDiffOn_symm_trans_chartAt (Φ : PartialDiffeomorph 𝓘(𝕜, E) �
     ContDiffOn 𝕜 n (Φ.toOpenPartialHomeomorph.symm ≫ₕ chartAt E x)
       (Φ.toOpenPartialHomeomorph.symm ≫ₕ chartAt E x).source :=
   OpenPartialHomeomorph.contDiffOn_symm_trans_of_contMDiffOn contMDiffOn_chart
-    Φ.contMDiffOn_toOpenPartialHomeomorph_symm
+    Φ.symm.contMDiffOn
 
 /-- For a `C^n` partial diffeomorphism `Φ` from `M'` into `E` and `x : M'`, the transition
 `Φ ∘ (chartAt E x)⁻¹` is `C^n` on its source. -/
@@ -137,7 +121,7 @@ theorem contDiffOn_chartAt_symm_trans (Φ : PartialDiffeomorph 𝓘(𝕜, E) �
     ContDiffOn 𝕜 n ((chartAt E x).symm ≫ₕ Φ.toOpenPartialHomeomorph)
       ((chartAt E x).symm ≫ₕ Φ.toOpenPartialHomeomorph).source :=
   OpenPartialHomeomorph.contDiffOn_symm_trans_of_contMDiffOn
-    Φ.contMDiffOn_toOpenPartialHomeomorph (contMDiffOn_chart_symm (x := x))
+    Φ.contMDiffOn (contMDiffOn_chart_symm (x := x))
 
 /-- For a `C^n` partial diffeomorphism `Φ` from `M'` into `E`, `n ≠ 0`, and `x : M'`, the
 derivative of the transition `chartAt E x ∘ Φ⁻¹` has nonzero determinant on its source. -/
@@ -145,10 +129,9 @@ theorem det_fderiv_symm_trans_chartAt_ne_zero
     (Φ : PartialDiffeomorph 𝓘(𝕜, E) 𝓘(𝕜, E) M' E n) (hn : n ≠ 0) (x : M') {z : E}
     (hz : z ∈ (Φ.toOpenPartialHomeomorph.symm ≫ₕ chartAt E x).source) :
     (fderiv 𝕜 (Φ.toOpenPartialHomeomorph.symm ≫ₕ chartAt E x) z).det ≠ 0 :=
-  OpenPartialHomeomorph.det_fderiv_ne_zero_of_contDiffOn _ (Φ.contDiffOn_symm_trans_chartAt x)
-    (OpenPartialHomeomorph.contDiffOn_symm_trans_and_symm_of_contMDiffOn
-      Φ.contMDiffOn_toOpenPartialHomeomorph Φ.contMDiffOn_toOpenPartialHomeomorph_symm
-      contMDiffOn_chart (contMDiffOn_chart_symm (x := x))).2 hn hz
+  TauCeti.det_fderiv_symm_trans_ne_zero hn
+    (Φ.toOpenPartialHomeomorph.mem_maximalAtlas_of_contMDiffOn Φ.contMDiffOn Φ.symm.contMDiffOn)
+    (IsManifold.chart_mem_maximalAtlas x) hz
 
 /-- For a `C^n` partial diffeomorphism `Φ` from `M'` into `E`, `n ≠ 0`, and `x : M'`, the
 derivative of the transition `Φ ∘ (chartAt E x)⁻¹` has nonzero determinant on its source. -/
@@ -156,10 +139,9 @@ theorem det_fderiv_chartAt_symm_trans_ne_zero
     (Φ : PartialDiffeomorph 𝓘(𝕜, E) 𝓘(𝕜, E) M' E n) (hn : n ≠ 0) (x : M') {z : E}
     (hz : z ∈ ((chartAt E x).symm ≫ₕ Φ.toOpenPartialHomeomorph).source) :
     (fderiv 𝕜 ((chartAt E x).symm ≫ₕ Φ.toOpenPartialHomeomorph) z).det ≠ 0 :=
-  OpenPartialHomeomorph.det_fderiv_ne_zero_of_contDiffOn _ (Φ.contDiffOn_chartAt_symm_trans x)
-    (OpenPartialHomeomorph.contDiffOn_symm_trans_and_symm_of_contMDiffOn contMDiffOn_chart
-      (contMDiffOn_chart_symm (x := x)) Φ.contMDiffOn_toOpenPartialHomeomorph
-      Φ.contMDiffOn_toOpenPartialHomeomorph_symm).2 hn hz
+  TauCeti.det_fderiv_symm_trans_ne_zero hn (IsManifold.chart_mem_maximalAtlas x)
+    (Φ.toOpenPartialHomeomorph.mem_maximalAtlas_of_contMDiffOn Φ.contMDiffOn Φ.symm.contMDiffOn)
+    hz
 
 end ChartTransition
 
