@@ -307,7 +307,8 @@ private theorem hasDerivAt_kempfNessFunction_comp_of_contMDiff (h : IsComplexifi
   have hD : HasDerivAt (kempfNessFunction C μ p ∘ c)
       (α (1, 0) (s₀, 1) - α (1, 0) (s₀, 0)) s₀ := by
     refine (intervalIntegral.hasDerivAt_integral_of_hasDerivAt_snd (B := α (1, 0))
-      (hAs.of_le (by simp)) fun t _ ↦ ?_).congr_of_eventuallyEq
+      isOpen_univ (hAs.of_le (by simp)).contDiffOn (Set.subset_univ _)
+      fun t _ ↦ ?_).congr_of_eventuallyEq
         (Filter.Eventually.of_forall fun s ↦ by simp [kempfNessFunction_def, A, ξ])
     rw [← hA, fderiv_moment_inv_smul_im_comm h hμ hg p hγ (s₀, t) (1, 0) (0, 1)]
     exact ((differentiable_moment_inv_smul_im_mfderiv hμc p hγ (1, 0) (s₀, t)).hasFDerivAt.comp t
