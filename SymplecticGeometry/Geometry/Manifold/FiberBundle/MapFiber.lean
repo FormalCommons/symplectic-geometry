@@ -7,9 +7,11 @@ module
 
 public import Mathlib.Geometry.Manifold.MFDeriv.Atlas
 public import SymplecticGeometry.Topology.FiberBundle.Basic
+public import SymplecticGeometry.Topology.FiberBundle.ChangeModelFiber
 public import TauCeti.Geometry.Manifold.FiberBundle.MapFiber
 public import TauCeti.Geometry.Manifold.MFDeriv.Basic
 public import TauCeti.Geometry.Manifold.RegularValue
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Manifold.Submersion.Split
 
 /-!
@@ -191,6 +193,54 @@ theorem coordChangeDiffeomorph_symm :
     (e.coordChangeDiffeomorph e' he he_symm he' he'_symm hb hb').symm =
       e'.coordChangeDiffeomorph e he' he'_symm he he_symm hb' hb :=
   Diffeomorph.ext fun _ ↦ (rfl)
+
+/-! ### Fibres as manifolds -/
+
+section mapFiberDiffeomorph
+
+variable {EZ : Type*} [NormedAddCommGroup EZ] [NormedSpace 𝕜 EZ] {HZ : Type*}
+  [TopologicalSpace HZ] {IZ : ModelWithCorners 𝕜 EZ HZ}
+  [ChartedSpace HZ (TauCeti.MapFiber proj b)]
+
+/-- Let `e` be a trivialization of `proj : M → B` with model fibre `F`, `C^n` on its source with
+a `C^n` inverse on its target, and let `b` be a point of its base set. If the fibre
+`TauCeti.MapFiber proj b` carries a manifold structure for which its inclusion into `M` is a
+`C^n` embedding, then the fibre coordinate `x ↦ (e x).2` of `e` is a `C^n` diffeomorphism from
+the fibre onto `F`, with inverse `v ↦ e.symm (b, v)`. -/
+def mapFiberDiffeomorph (he : ContMDiffOn IM (IB.prod IF) n e e.source)
+    (he_symm : ContMDiffOn (IB.prod IF) IM n e.toOpenPartialHomeomorph.symm e.target)
+    (hb : b ∈ e.baseSet)
+    (hι : Manifold.IsSmoothEmbedding IZ IM n (Subtype.val : TauCeti.MapFiber proj b → M)) :
+    TauCeti.MapFiber proj b ≃ₘ^n⟮IZ, IF⟯ F where
+  toFun x := (e x).2
+  invFun v := ⟨e.toOpenPartialHomeomorph.symm (b, v), e.proj_symm_apply' hb⟩
+  left_inv x := by simpa using (e.mapFiberHomeomorph hb).symm_apply_apply x
+  right_inv v := by simpa using (e.mapFiberHomeomorph hb).apply_symm_apply v
+  contMDiff_toFun :=
+    (he.comp_contMDiff hι.contMDiff fun x ↦ e.mem_source.2 (x.property.symm ▸ hb)).snd
+  contMDiff_invFun := hι.contMDiff_iff_comp.2 <|
+    (e.contMDiff_fiberInclusion he_symm hb).congr fun v ↦ (e.fiberInclusion_apply hb v).symm
+
+variable (hι : Manifold.IsSmoothEmbedding IZ IM n (Subtype.val : TauCeti.MapFiber proj b → M))
+
+@[simp]
+theorem mapFiberDiffeomorph_apply (x : TauCeti.MapFiber proj b) :
+    e.mapFiberDiffeomorph he he_symm hb hι x = (e x).2 :=
+  (rfl)
+
+@[simp]
+theorem mapFiberDiffeomorph_symm_apply (v : F) :
+    (e.mapFiberDiffeomorph he he_symm hb hι).symm v =
+      ⟨e.toOpenPartialHomeomorph.symm (b, v), e.proj_symm_apply' hb⟩ :=
+  (rfl)
+
+/-- The homeomorphism underlying `Bundle.Trivialization.mapFiberDiffeomorph` is
+`Bundle.Trivialization.mapFiberHomeomorph`. -/
+theorem toHomeomorph_mapFiberDiffeomorph :
+    (e.mapFiberDiffeomorph he he_symm hb hι).toHomeomorph = e.mapFiberHomeomorph hb :=
+  Homeomorph.ext fun x ↦ (e.mapFiberHomeomorph_apply hb x).symm
+
+end mapFiberDiffeomorph
 
 end Bundle.Trivialization
 
