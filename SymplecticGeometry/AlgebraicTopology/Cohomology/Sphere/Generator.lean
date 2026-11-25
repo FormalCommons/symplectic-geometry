@@ -25,6 +25,18 @@ cup product with its pull-back to `Sᵈ⁺¹ × Y` keeps classes of infinite ord
   It is read off Tau Ceti's decomposition `TopCat.singularCohomologySphereProdSlantEquiv` of the
   cohomology of `Sᵈ⁺¹ × Y`, whose inverse sends `(0, c)` to `pr₁^* θ ⌣ pr₂^* c`.
 
+For two spheres, over any commutative ring `k`, with `θ_a`, `θ_b` the dual generators of the
+top cohomology of `Sᵃ` and `Sᵇ`, `a, b ≥ 1`, and `γ_a`, `γ_b` the standard homology generators:
+
+* `TopCat.exists_eq_smul_singularCup_sphereGenerator`: every class of `Hᵃ⁺ᵇ(Sᵃ × Sᵇ; k)` is a
+  multiple of `pr₁^* θ_a ⌣ pr₂^* θ_b`. The decomposition above, with `Y = Sᵇ`, has a first
+  summand `Hᵃ⁺ᵇ(Sᵇ; k) = 0` and a second summand `Hᵇ(Sᵇ; k)`, spanned by `θ_b`.
+* `TopCat.singularKronecker_singularCup_sphereGenerator_singularHomologyCross`: the class
+  `pr₁^* θ_a ⌣ pr₂^* θ_b` takes the value `1` on the cross product `γ_a × γ_b`, by Tau Ceti's
+  `TopCat.singularKronecker_singularCup_fst_snd_singularHomologyCross`.
+* `TopCat.eq_singularKronecker_smul_singularCup_sphereGenerator`: so every class `x` of
+  `Hᵃ⁺ᵇ(Sᵃ × Sᵇ; k)` is `⟨x, γ_a × γ_b⟩ • (pr₁^* θ_a ⌣ pr₂^* θ_b)`.
+
 ## References
 
 * A. Hatcher, *Algebraic Topology*, Cambridge University Press, 2002, Theorem 3.15 (the Künneth
@@ -33,7 +45,9 @@ cup product with its pull-back to `Sᵈ⁺¹ × Y` keeps classes of infinite ord
 
 public section
 
-open CategoryTheory MonoidalCategory CartesianMonoidalCategory
+universe w
+
+open CategoryTheory Limits MonoidalCategory CartesianMonoidalCategory
 
 namespace TopCat
 
@@ -83,6 +97,85 @@ theorem not_isOfFinAddOrder_integralCup_sphereGenerator (Y : TopCat.{0}) {d n N 
   refine ⟨k, hk, (Y.integralCohomologyEquiv n).injective ?_⟩
   have := congrArg (fun x ↦ (S (e₁ x)).2) hkc
   simpa using this
+
+section SphereProdSphere
+
+variable (k : Type w) [CommRing k]
+
+/-- **The top cohomology of a product of two spheres.** Over a commutative ring `k`, every class
+of `Hᵃ⁺ᵇ(Sᵃ × Sᵇ; k)`, `a = d + 1`, `b = e + 1`, is a multiple of `pr₁^* θ_a ⌣ pr₂^* θ_b`, where
+`θ_a`, `θ_b` are the generators of the top cohomology of the two spheres dual to their standard
+homology generators. -/
+theorem exists_eq_smul_singularCup_sphereGenerator {d e N : ℕ} (h : d + 1 + (e + 1) = N)
+    (x : (sphere.{w} (d + 1) ⊗ sphere.{w} (e + 1)).singularCohomology (𝟙_ (ModuleCat.{w} k)) k
+      (𝟙_ (ModuleCat.{w} k)) N) :
+    ∃ r : k, x = r • (sphere.{w} (d + 1) ⊗ sphere.{w} (e + 1)).singularCup k (λ_ _).inv
+      (λ_ _).hom (d + 1) (e + 1) N h
+      (TopCat.singularCohomologyMap (fst _ _) (d + 1) (singularCohomologyTopCatSphereGenerator k d))
+      (TopCat.singularCohomologyMap (snd _ _) (e + 1)
+        (singularCohomologyTopCatSphereGenerator k e)) := by
+  obtain rfl : N = e + 1 + (d + 1) := by omega
+  set S := singularCohomologySphereProdSlantEquiv (𝟙_ (ModuleCat.{w} k)) (sphere.{w} (e + 1))
+    (sphereBasePoint d) (e + 1)
+  -- the first component lies in `Hᵃ⁺ᵇ(Sᵇ; k)`, which vanishes
+  have hz : IsZero ((sphere.{w} (e + 1)).singularCohomology (𝟙_ (ModuleCat.{w} k)) k
+      (𝟙_ (ModuleCat.{w} k)) (e + 1 + d + 1)) :=
+    isZero_singularCohomology_topCatSphere_of_ne k _ (e + 1) (e + 1 + d) (by omega)
+  have h₁ : (S x).1 = 0 := (ModuleCat.subsingleton_of_isZero hz).elim _ _
+  set s := singularCohomologyTopCatSphereEquiv k (𝟙_ (ModuleCat.{w} k)) e
+  refine ⟨s (S x).2, ?_⟩
+  have h₂ : (S x).2 = s (S x).2 • singularCohomologyTopCatSphereGenerator k e :=
+    (s.symm_apply_apply _).symm.trans (singularCohomologyTopCatSphereEquiv_symm_eq_smul k e _)
+  conv_lhs => rw [← S.symm_apply_apply x, ← Prod.mk.eta (p := S x), h₁, h₂]
+  rw [singularCohomologySphereProdSlantEquiv_symm_apply, map_zero, zero_add, map_smul,
+    map_smul]
+
+/-- The class `pr₁^* θ_a ⌣ pr₂^* θ_b` of `Sᵃ × Sᵇ`, `a = d + 1`, `b = e + 1`, takes the value
+`1` on the cross product `γ_a × γ_b` of the standard homology generators, read with coefficients
+`k` through the unitor `k ⊗ k ≅ k`. -/
+@[simp]
+theorem singularKronecker_singularCup_sphereGenerator_singularHomologyCross {d e N : ℕ}
+    (h : d + 1 + (e + 1) = N) :
+    (sphere.{w} (d + 1) ⊗ sphere.{w} (e + 1)).singularKronecker k N
+      ((sphere.{w} (d + 1) ⊗ sphere.{w} (e + 1)).singularCup k (λ_ _).inv (λ_ _).hom
+        (d + 1) (e + 1) N h
+        (TopCat.singularCohomologyMap (fst _ _) (d + 1)
+          (singularCohomologyTopCatSphereGenerator k d))
+        (TopCat.singularCohomologyMap (snd _ _) (e + 1)
+          (singularCohomologyTopCatSphereGenerator k e)))
+      (((AlgebraicTopology.singularHomologyFunctor (ModuleCat.{w} k) N).map
+          (λ_ (𝟙_ (ModuleCat.{w} k))).hom).app (sphere.{w} (d + 1) ⊗ sphere.{w} (e + 1))
+        (singularHomologyCross _ _ (𝟙_ (ModuleCat.{w} k)) (𝟙_ (ModuleCat.{w} k))
+          (d + 1) (e + 1) N h
+          (singularHomologyTopCatSphereGenerator k d ⊗ₜ singularHomologyTopCatSphereGenerator k e)))
+      = 1 := by
+  rw [singularKronecker_singularCup_fst_snd_singularHomologyCross,
+    singularKronecker_singularCohomologyTopCatSphereGenerator,
+    singularKronecker_singularCohomologyTopCatSphereGenerator, mul_one]
+
+/-- A class `x` of `Hᵃ⁺ᵇ(Sᵃ × Sᵇ; k)`, `a = d + 1`, `b = e + 1`, is determined by its value on
+the cross product `γ_a × γ_b` of the standard homology generators:
+`x = ⟨x, γ_a × γ_b⟩ • (pr₁^* θ_a ⌣ pr₂^* θ_b)`. -/
+theorem eq_singularKronecker_smul_singularCup_sphereGenerator {d e N : ℕ}
+    (h : d + 1 + (e + 1) = N)
+    (x : (sphere.{w} (d + 1) ⊗ sphere.{w} (e + 1)).singularCohomology (𝟙_ (ModuleCat.{w} k)) k
+      (𝟙_ (ModuleCat.{w} k)) N) :
+    x = (sphere.{w} (d + 1) ⊗ sphere.{w} (e + 1)).singularKronecker k N x
+      (((AlgebraicTopology.singularHomologyFunctor (ModuleCat.{w} k) N).map
+          (λ_ (𝟙_ (ModuleCat.{w} k))).hom).app (sphere.{w} (d + 1) ⊗ sphere.{w} (e + 1))
+        (singularHomologyCross _ _ (𝟙_ (ModuleCat.{w} k)) (𝟙_ (ModuleCat.{w} k))
+          (d + 1) (e + 1) N h
+          (singularHomologyTopCatSphereGenerator k d ⊗ₜ singularHomologyTopCatSphereGenerator k e)))
+      • (sphere.{w} (d + 1) ⊗ sphere.{w} (e + 1)).singularCup k (λ_ _).inv (λ_ _).hom
+        (d + 1) (e + 1) N h
+        (TopCat.singularCohomologyMap (fst _ _) (d + 1)
+          (singularCohomologyTopCatSphereGenerator k d))
+        (TopCat.singularCohomologyMap (snd _ _) (e + 1)
+          (singularCohomologyTopCatSphereGenerator k e)) := by
+  obtain ⟨r, rfl⟩ := exists_eq_smul_singularCup_sphereGenerator k h x
+  simp
+
+end SphereProdSphere
 
 end TopCat
 
