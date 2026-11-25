@@ -12,6 +12,7 @@ import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
 import TauCeti.Geometry.Manifold.RegularValue
 import TauCeti.Geometry.Manifold.Submersion.Split
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
+import SymplecticGeometry.Topology.Algebra.Module.FiniteDimension
 
 /-!
 # The smooth leaf space of a regular foliation
@@ -271,13 +272,10 @@ regular: through `x`, the translate by `x` of a complement of `S`, parametrized 
 slice. -/
 theorem isRegular_ofSubmodule (hn : (1 : ℕ∞ω) ≤ ∞) : (ofSubmodule S hn).IsRegular := by
   refine isRegular_def.2 fun x ↦ ?_
-  obtain ⟨C, hSC⟩ := S.exists_isCompl
-  have hdim : finrank ℝ (EuclideanSpace ℝ (Fin (finrank ℝ E - finrank ℝ S))) = finrank ℝ C := by
-    rw [finrank_euclideanSpace_fin, ← Submodule.finrank_add_eq_of_isCompl hSC]
-    omega
-  set e := ContinuousLinearEquiv.ofFinrankEq hdim
-  set L : EuclideanSpace ℝ (Fin (finrank ℝ E - finrank ℝ S)) →L[ℝ] E :=
-    C.subtypeL.comp e.toContinuousLinearMap
+  obtain ⟨L, hL, hSL⟩ :=
+    S.exists_continuousLinearMap_injective_isCompl_range
+      (F := EuclideanSpace ℝ (Fin (finrank ℝ E - finrank ℝ S)))
+      (by rw [finrank_euclideanSpace_fin]; have := S.finrank_le; omega)
   set f : EuclideanSpace ℝ (Fin (finrank ℝ E - finrank ℝ S)) → E := fun u ↦ x + L u
   have hf : ContDiff ℝ ∞ f := contDiff_const.add L.contDiff
   have hm (u : (⊤ : Opens (EuclideanSpace ℝ (Fin (finrank ℝ E - finrank ℝ S)))))
@@ -295,23 +293,15 @@ theorem isRegular_ofSubmodule (hn : (1 : ℕ∞ω) ≤ ∞) : (ofSubmodule S hn)
   · rw [ofSubmodule_distribution]
     suffices hR : LinearMap.range
         (mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - finrank ℝ S))) 𝓘(ℝ, E)
-          (f ∘ Subtype.val) u).toLinearMap = C by
+          (f ∘ Subtype.val) u).toLinearMap = LinearMap.range (L : _ →ₗ[ℝ] E) by
       rw [hR]
-      exact hSC.symm
-    ext w
-    simp only [LinearMap.mem_range, ContinuousLinearMap.coe_coe]
-    constructor
-    · rintro ⟨v, rfl⟩
-      exact Eq.mpr (congrArg (· ∈ C) (hm u v)) (e v).property
-    · intro hw
-      exact ⟨e.symm ⟨w, hw⟩, (hm u _).trans (by simp [L])⟩
+      exact hSL.symm
+    exact congrArg LinearMap.range (LinearMap.ext (hm u))
   · intro u v huv
     rw [sameLeaf_ofSubmodule_iff] at huv
-    have h0 : (e v : E) - e u = 0 := by
-      have hC : (e v : E) - e u ∈ C := sub_mem (e v).property (e u).property
-      simp only [comp_apply, f, add_sub_add_left_eq_sub] at huv
-      exact (Submodule.disjoint_def.1 hSC.disjoint) _ huv hC
-    exact Subtype.ext (e.injective (Subtype.ext (sub_eq_zero.1 h0))).symm
+    simp only [comp_apply, f, add_sub_add_left_eq_sub, ← map_sub] at huv
+    have h0 := (Submodule.disjoint_def.1 hSL.disjoint) _ huv (LinearMap.mem_range_self _ _)
+    exact Subtype.ext (sub_eq_zero.1 (hL (h0.trans (map_zero L).symm))).symm
 
 /-- The leaf space of the foliation of a finite-dimensional space by the translates of a subspace
 is Hausdorff: a projection along the subspace onto a complement separates the leaves. -/
