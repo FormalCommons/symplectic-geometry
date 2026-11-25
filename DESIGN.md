@@ -521,7 +521,9 @@ the library.
   an element $a$ of $H^2(M;\mathbb Z)$ whose image in real singular cohomology
   is the image of $[\omega]$ under Tau Ceti's de Rham homomorphism
   `TauCeti.deRhamHom` (`Geometry/Manifold/SmoothSingular/SingularCohomology.lean`);
-  no de Rham theorem is used. The Hermitian line bundle of §7.4 has a unitary
+  the definition uses no de Rham theorem, and *Asymptotically holomorphic
+  sections* proves the de Rham theorem as a prerequisite, to read the lift as
+  a de Rham class. The Hermitian line bundle of §7.4 has a unitary
   connection whose curvature is $-2\pi i\omega$, as on the page;
   *Asymptotically holomorphic sections* rescales to Auroux's $\Omega=2\pi\omega$ inside its
   proofs only.
@@ -3891,12 +3893,13 @@ For §7.4 of `atlas/constructing-symplectic-manifolds.md`, up to the
 hypersurface theorem.
 
 - **Files:** in `Geometry/Symplectic/AsymptoticallyHolomorphic/`: `LineBundle.lean` (a
-  Hermitian line bundle with $c_1=a$ and a unitary connection of curvature
+  Hermitian line bundle with real Chern class $a$ and a unitary connection of curvature
   $-2\pi i\omega$; the connection from *Principal connections*'
   circle connection forms and the merged `realFirstChernClass` of
-  *Minimal coupling*, corrected by an imaginary one-form; that every
-  integral class of degree two is $c_1$ of some line bundle is not in
-  either library, and the design file plans it as prerequisite issues), `ZeroSet.lean`
+  *Minimal coupling*, corrected by an imaginary one-form; the de Rham
+  theorem, that every integral class of degree two is $c_1$ of some line
+  bundle, and the comparison of that class with the Chern–Weil one are not
+  in either library, and the design file plans them as prerequisite issues), `ZeroSet.lean`
   (Lemma 7.4.2: the inequality $|\bar\partial_Ds|<|\partial_Ds|$ at the
   zeros gives a transverse, symplectic zero set, of class
   $\mathrm{PD}(c_1(L))$ by *Poincaré duals of submanifolds*' zero-set
@@ -4462,8 +4465,10 @@ Both milestones, proved in full. Their parts wait for no part of
   Ceti maps de Rham classes to singular ones but has no de Rham theorem
   back, so the library builds the real class directly as a de Rham class by
   Chern–Weil, instead of taking the image of the integral class, and
-  compares the two only over closed oriented surfaces, through Chern
-  numbers.
+  compares the two over closed oriented surfaces, through Chern numbers.
+  *Asymptotically holomorphic sections* also compares them for Hermitian
+  line bundles over compact manifolds, which it needs to build its line
+  bundle from an integral lift.
 - **Diffeomorphisms of the 2-sphere.** The library takes the proof through
   the bundle over complex structures that the auxiliary page proposes, with
   the page's variant of step 1 that uses only the standard sphere, the
