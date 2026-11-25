@@ -65,7 +65,9 @@ direction.
   `T*Sⁿ` is smooth when its coordinates are.
 * `SymplecticGeometry.cotangentNorm_eq_norm`: `‖p‖` is the norm of `z` for the round metric.
 * `SymplecticGeometry.contMDiffAt_cotangentNorm`: `‖p‖` is smooth off the zero section.
-* `SymplecticGeometry.isCompact_setOf_cotangentNorm_le`: the sets `{z | ‖p‖ ≤ r}` are compact.
+* `SymplecticGeometry.isCompact_setOf_cotangentNorm_le`: the sets `{z | ‖p‖ ≤ r}` are compact;
+  `SymplecticGeometry.isCompact_setOf_cotangentNorm_coe_le`: so is their trace on an open set
+  that contains them.
 * `SymplecticGeometry.cotangentCoord_zeroSection`: the zero covector at `q` has coordinates
   `(q, 0)`; `SymplecticGeometry.antipodal_zeroSection`: `antipodal` sends it to the zero covector
   at `-q`.
@@ -396,6 +398,15 @@ theorem contMDiffAt_cotangentNorm {z : CotangentBundle (𝓡 n) (𝕊 n)} (hz : 
 theorem isCompact_setOf_cotangentNorm_le (r : ℝ) :
     IsCompact {z : CotangentBundle (𝓡 n) (𝕊 n) | cotangentNorm z ≤ r} := by
   simpa only [cotangentNorm_eq_norm] using CotangentBundle.isCompact_setOf_norm_snd_le r
+
+/-- For an open set `U ⊇ {z | ‖p‖ ≤ r}` of `T*Sⁿ`, the points of `U` with `‖p‖ ≤ r` form a
+compact subset of `U`. -/
+theorem isCompact_setOf_cotangentNorm_coe_le
+    {U : TopologicalSpace.Opens (CotangentBundle (𝓡 n) (𝕊 n))} {r : ℝ}
+    (hU : {z : CotangentBundle (𝓡 n) (𝕊 n) | cotangentNorm z ≤ r} ⊆ (U : Set _)) :
+    IsCompact {z : U | cotangentNorm (z : CotangentBundle (𝓡 n) (𝕊 n)) ≤ r} :=
+  Topology.IsInducing.subtypeVal.isCompact_preimage' (isCompact_setOf_cotangentNorm_le r)
+    (by rwa [Subtype.range_coe])
 
 /-- The first coordinate of the differential of `cotangentCoord` is the differential of the
 inclusion `Sⁿ → ℝⁿ⁺¹` applied to the differential of the bundle projection: the first

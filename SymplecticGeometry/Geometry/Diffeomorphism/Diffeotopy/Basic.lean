@@ -150,6 +150,7 @@ theorem subtype_symm_apply_coe (p : unitInterval × U) :
 
 /-- The time slices of the restriction `Φ.subtype U hU` are the restrictions of the time slices
 of `Φ` to `U` (Tau Ceti's `Diffeomorph.subtype`). -/
+@[simp]
 theorem timeSlice_subtype (t : unitInterval) :
     (Φ.subtype U hU).timeSlice t =
       (Φ.timeSlice t).subtype fun x ↦ by rw [timeSlice_apply]; exact hU t x :=
@@ -158,6 +159,7 @@ theorem timeSlice_subtype (t : unitInterval) :
 
 /-- The final map of the restriction `Φ.subtype U hU` is the restriction of the final map of `Φ`
 to `U` (Tau Ceti's `Diffeomorph.subtype`). -/
+@[simp]
 theorem final_subtype :
     (Φ.subtype U hU).final = Φ.final.subtype fun x ↦ by rw [final_apply]; exact hU 1 x :=
   Diffeomorph.ext fun x ↦ Subtype.ext <| by

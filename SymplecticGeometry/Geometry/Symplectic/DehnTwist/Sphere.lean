@@ -119,15 +119,6 @@ section Twist
 
 variable [T2Space M] {U : Opens (𝕋 n)} {V : Opens M} {R : ℝ → ℝ} {r₀ : ℝ}
 
-omit [TopologicalSpace H] [TopologicalSpace M] [ChartedSpace H M] [T2Space M] in
-/-- For an open set `U ⊇ {z | μ z ≤ r₀}` of `T*Sⁿ`, the points of `U` with `μ z ≤ r₀` form a
-compact subset of `U`. -/
-theorem isCompact_setOf_cotangentNorm_coe_le
-    (hU : {z : 𝕋 n | cotangentNorm z ≤ r₀} ⊆ (U : Set (𝕋 n))) :
-    IsCompact {z : U | cotangentNorm (z : 𝕋 n) ≤ r₀} :=
-  Topology.IsInducing.subtypeVal.isCompact_preimage' (isCompact_setOf_cotangentNorm_le r₀)
-    (by rwa [Subtype.range_coe])
-
 /-- The restriction to `U` of the model twist of radius `r₀`, when `U ⊇ {z | μ z ≤ r₀}`. -/
 private def modelTwistOn (hR : IsTwistProfile R r₀)
     (hU : {z : 𝕋 n | cotangentNorm z ≤ r₀} ⊆ (U : Set (𝕋 n))) : U ≃ₘ⟮𝓣 n, 𝓣 n⟯ U :=
