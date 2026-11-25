@@ -7,6 +7,7 @@ module
 
 public import TauCeti.AlgebraicTopology.Cellular.EulerCharacteristic.FiniteCWType
 public import TauCeti.Geometry.Manifold.ConnectedSum.Oriented
+import SymplecticGeometry.Geometry.Manifold.ConnectedSum.Neck
 import TauCeti.AlgebraicTopology.Cellular.EulerCharacteristic.MayerVietoris
 import TauCeti.AlgebraicTopology.Cellular.EulerCharacteristic.Sphere
 import TauCeti.Geometry.Manifold.Morse.CWModel.Puncture
@@ -41,18 +42,13 @@ The two punctured summands are open subspaces of the connected sum
 (`TauCeti.ConnectedSum.isOpenEmbedding_inl`, `TauCeti.ConnectedSum.isOpenEmbedding_inr`) which
 cover it. The first is homeomorphic to `M ∖ {e₁ 0}`, of Euler characteristic `χ(M) - (-1) ^ n`
 (`TauCeti.ConnectedSum.eulerChar_puncture`, from `Set.Finite.eulerChar_compl_of_isManifold`),
-and likewise for the second. They meet in the image
-of `E ∖ {0}` under `v ↦ e₁ v`, which is homotopy equivalent to the unit sphere of `E`
+and likewise for the second. They meet in the image of `E ∖ {0}` under `v ↦ e₁ v`
+(`TauCeti.ConnectedSum.neckHomeomorph`), which is homotopy equivalent to the unit sphere of `E`
 (`TauCeti.complSingletonHomotopyEquivSphere`), of Euler characteristic `1 - (-1) ^ n`
 (`TauCeti.eulerChar_sphere_eq_one_sub`). Additivity of the Euler characteristic along an open
 cover (`TauCeti.eulerChar_add_eulerChar_inter_of_union_eq_univ`) gives the formula. As in the
 proof of `TauCeti.eulerChar_compl_of_finite`, the punctured model space is first carried to a
 Euclidean space in the universe of the connected sum.
-
-The embedding of the punctured model space onto the overlap of the two summands, and the
-computation of its range, adapt the private declarations `TauCeti.ConnectedSum.neckMap`,
-`TauCeti.ConnectedSum.isEmbedding_neckMap` and `TauCeti.ConnectedSum.range_neckMap` of Tau
-Ceti's `TauCeti/Geometry/Manifold/ConnectedSum/FundamentalGroup.lean`.
 
 ## References
 
@@ -126,27 +122,12 @@ theorem eulerChar_connectedSum (h₁ : IsOpenEmbedding e₁) (h₂ : IsOpenEmbed
   let eV := (isOpenEmbedding_inr h₁ h₂).isEmbedding.toHomeomorph
   have := eU.symm.finiteCWType
   have := eV.symm.finiteCWType
-  -- Their intersection, the image of the punctured model space.
-  let φ : ({0}ᶜ : Set E) → ConnectedSum e₁ e₂ := fun v ↦
-    inl e₁ e₂ ⟨e₁ v, mem_puncture.2 fun h ↦ v.property (h₁.injective h)⟩
-  have hφ : IsEmbedding φ := (isOpenEmbedding_inl h₁ h₂).isEmbedding.comp
-    ((h₁.isEmbedding.comp IsEmbedding.subtypeVal).codRestrict _ _)
-  have hrange : range φ = U ∩ V := by
-    ext x
-    constructor
-    · rintro ⟨v, rfl⟩
-      refine ⟨⟨_, rfl⟩, ⟨_, (inl_eq_inr (e₂ := e₂) (v : E) _
-        (apply_inversion_mem_puncture h₂.injective v.property)).symm⟩⟩
-    · rintro ⟨⟨a, rfl⟩, ⟨b, hb⟩⟩
-      obtain ⟨v, hv, ha, -⟩ := (inl_eq_inr_iff h₁.injective).1 hb.symm
-      exact ⟨⟨v, hv⟩, congrArg (inl e₁ e₂) (Subtype.ext ha)⟩
   -- The punctured model space, carried to a Euclidean space in universe `u`.
   let E' := EuclideanSpace ℝ (ULift.{u} (Fin (finrank ℝ E)))
   have hE' : finrank ℝ E' = finrank ℝ E := by simp [E']
   let L : E ≃L[ℝ] E' := ContinuousLinearEquiv.ofFinrankEq hE'.symm
   let eI : (U ∩ V : Set (ConnectedSum e₁ e₂)) ≃ₜ ({0}ᶜ : Set E') :=
-    ((Homeomorph.setCongr hrange).symm.trans hφ.toHomeomorph.symm).trans
-      (L.toHomeomorph.subtype fun v ↦ by simp)
+    (neckHomeomorph h₁ h₂).symm.trans (L.toHomeomorph.subtype fun v ↦ by simp)
   have := (complSingletonHomotopyEquivSphere (0 : E')).finiteCWType
   have := eI.finiteCWType
   have key := eulerChar_add_eulerChar_inter_of_union_eq_univ

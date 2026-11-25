@@ -903,9 +903,9 @@ complex has CW type, proved here without mapping telescopes.
 The nerve of a partition of unity and its canonical map, for
 `ρ : PartitionOfUnity ι X`:
 
-- `PartitionOfUnity.nerve ρ : TauCeti.AbstractSimplicialComplex ι`, whose
-  faces are the nonempty finite `s` with `∃ x, ∀ i ∈ s, ρ i x ≠ 0`, with
-  `mem_nerve_iff`;
+- `PartitionOfUnity.nerve ρ : AbstractSimplicialComplex ι`, whose
+  faces are the nonempty finite `s` with `∃ x, ∀ i ∈ s, ρ i x ≠ 0` and the
+  singletons, with `mem_nerve_iff`;
 - `PartitionOfUnity.toNerve ρ : C(X, ρ.nerve.Realization)`, sending `x` to
   the point with barycentric coordinates `ρ i x`, with `toNerve_apply_coe`
   (its coordinates). Its continuity for the weak topology uses local
