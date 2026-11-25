@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Manifold.ConstantRank.Basic
+public import SymplecticGeometry.Geometry.Manifold.ConstantRank.Basic
 public import TauCeti.Geometry.Manifold.Distribution.Kernel
 public import TauCeti.Geometry.Manifold.Foliation.Leaf
 public import TauCeti.Geometry.Manifold.Submersion.Basic
@@ -35,11 +35,11 @@ Tau Ceti defines the leaves of a foliation, each leaf lies in a fibre of `f`.
 
 ## Implementation notes
 
-In the coordinates `φ`, `ψ` of Tau Ceti's rank theorem
-`ContMDiffOn.exists_openPartialHomeomorph_comp_eq_mfderiv_comp` around a point `x`, the map reads
-as the linear map `A` given by `mfderiv f x`. On the source of `φ`, the kernel of `mfderiv f y` is
-the preimage under `mfderiv φ y` of the fixed subspace `ker A` (by Tau Ceti's
-`IsLocalDiffeomorphAt.ker_mfderiv_comp` for `ψ`), so pulling back through `φ`, by
+In the partial diffeomorphisms `Φ`, `Ψ` that the rank theorem
+`ContMDiffOn.exists_partialDiffeomorph_comp_eq_mfderivModel_comp` gives around a point `x`, the map
+reads as the linear map `A = mfderivModel I J f x`. On the source of `Φ`, the kernel of
+`mfderiv f y` is the preimage under `mfderiv Φ y` of the fixed subspace `ker A` (by Tau Ceti's
+`IsLocalDiffeomorphAt.ker_mfderiv_comp` for `Ψ`), so pulling back through `Φ`, by
 `TauCeti.IsDistributionFrameOn.comap_mfderivWithin`, a constant frame of `ker A` from
 `TauCeti.isContMDiffDistribution_const` gives a local frame. This is the argument
 of Tau Ceti's `Manifold.IsSubmersionAtOfComplement.isDistributionFrameOn_ker_mfderiv`, whose proof
@@ -57,7 +57,7 @@ public section
 
 noncomputable section
 
-open Set Function Module TauCeti
+open Set Function Module TauCeti SymplecticGeometry
 open scoped Manifold ContDiff Topology
 
 namespace Manifold.IsSubmersion
@@ -101,20 +101,13 @@ theorem isContMDiffDistribution_ker_mfderiv [IsManifold I 1 M] (hf : ContMDiff I
   have hn : 1 ≤ n := le_add_self.trans hmn
   have hn0 : n ≠ 0 := ne_of_gt (zero_lt_one.trans_le hn)
   refine isContMDiffDistribution_iff.2 fun x ↦ ?_
-  obtain ⟨φ, ψ, hxφ, -, -, hφ, hφi, -, hψ, hψi, hmap, hlin⟩ :=
-    hf.contMDiffOn.exists_openPartialHomeomorph_comp_eq_mfderiv_comp isOpen_univ (mem_univ x) hn
-      fun y _ ↦ ((hr y).trans (hr x).symm).le
-  -- The map reads as the linear map `A` in the coordinates `φ` and `ψ`.
-  let A : E →L[𝕜] F := (tangentSpaceCastModel J (f x) : TangentSpace J (f x) →L[𝕜] F) ∘L
-    mfderiv I J f x ∘L ((tangentSpaceCastModel I x).symm : E →L[𝕜] TangentSpace I x)
+  obtain ⟨Φ, Ψ, hxΦ, -, -, -, hmap, hA⟩ :=
+    hf.contMDiffOn.exists_partialDiffeomorph_comp_eq_mfderivModel_comp isOpen_univ (mem_univ x)
+      hn fun y _ ↦ ((hr y).trans (hr x).symm).le
+  -- The map reads as the linear map `A` in the coordinates `Φ` and `Ψ`.
+  let A : E →L[𝕜] F := mfderivModel I J f x
   let K : Submodule 𝕜 E := LinearMap.ker (A : E →ₗ[𝕜] F)
-  let Φ : PartialDiffeomorph I 𝓘(𝕜, E) M E n :=
-    ⟨φ.toPartialEquiv, φ.open_source, φ.open_target, hφ, hφi⟩
-  let Ψ : PartialDiffeomorph J 𝓘(𝕜, F) N F n :=
-    ⟨ψ.toPartialEquiv, ψ.open_source, ψ.open_target, hψ, hψi⟩
-  -- `hlin` is this equation with the composites unfolded, for the coercions of `φ` and `ψ`.
-  have hA : EqOn (Ψ ∘ f) (A ∘ Φ) Φ.source := fun y hy ↦ hlin y hy
-  -- On the source of `φ`, the kernels are the preimages of `ker A` under the derivative of `φ`.
+  -- On the source of `Φ`, the kernels are the preimages of `ker A` under the derivative of `Φ`.
   have hker {y : M} (hy : y ∈ Φ.source) :
       (mfderiv I J f y).ker = K.comap (mfderiv I 𝓘(𝕜, E) Φ y).toLinearMap := by
     have h := Filter.EventuallyEq.mfderiv_eq (I := I) (I' := 𝓘(𝕜, F))
@@ -124,7 +117,7 @@ theorem isContMDiffDistribution_ker_mfderiv [IsManifold I 1 M] (hf : ContMDiff I
     rw [← (Ψ.isLocalDiffeomorphAt J 𝓘(𝕜, F) n (hmap hy)).ker_mfderiv_comp hn0
       (hf.mdifferentiableAt hn0), h]
     ext v
-    -- The derivative of `A ∘ φ` at `y` is `A ∘L mfderiv φ y`, up to the identification
+    -- The derivative of `A ∘ Φ` at `y` is `A ∘L mfderiv Φ y`, up to the identification
     -- `tangentSpaceCast` of tangent spaces of `F`.
     simp only [LinearMap.mem_ker, K, ContinuousLinearMap.coe_coe,
       ContinuousLinearMap.comp_apply]
@@ -133,20 +126,16 @@ theorem isContMDiffDistribution_ker_mfderiv [IsManifold I 1 M] (hf : ContMDiff I
   have hK : finrank 𝕜 K = finrank 𝕜 E - r := by
     have h := finrank_ker_mfderiv_add_mfderivRank (I := I) (J := J) (f := f) (x := x)
     rw [hr x] at h
-    have hcomp : K = (mfderiv I J f x).ker.map
-        ((tangentSpaceCastModel I x).toLinearEquiv : TangentSpace I x →ₗ[𝕜] E) := by
-      ext v
-      simp [K, A, Submodule.mem_map_equiv]
-    rw [hcomp, LinearEquiv.finrank_map_eq]
+    rw [show K = _ from ker_mfderivModel I J f x, LinearEquiv.finrank_map_eq]
     omega
   have : CompleteSpace E := FiniteDimensional.completeSpace 𝕜 E
-  -- Pull back through `φ` a constant frame of `K`.
+  -- Pull back through `Φ` a constant frame of `K`.
   have hC := isContMDiffDistribution_const (n := m) K
   rw [hK] at hC
-  obtain ⟨U, hU, hxU, X, hX⟩ := isContMDiffDistribution_iff.1 hC (φ x)
+  obtain ⟨U, hU, hxU, X, hX⟩ := isContMDiffDistribution_iff.1 hC (Φ x)
   have hY := hX.comap_mfderivWithin Φ hmn
-  refine ⟨φ.source ∩ φ ⁻¹' U, φ.isOpen_inter_preimage hU, ⟨hxφ, hxU⟩, _,
-    ⟨hY.contMDiffOn, hY.linearIndependent, fun {y} hy ↦ ?_⟩⟩
+  refine ⟨Φ.source ∩ Φ ⁻¹' U, Φ.contMDiffOn.continuousOn.isOpen_inter_preimage Φ.open_source hU,
+    ⟨hxΦ, hxU⟩, _, ⟨hY.contMDiffOn, hY.linearIndependent, fun {y} hy ↦ ?_⟩⟩
   rw [hY.span_eq hy, hker hy.1, Φ.mfderivWithin_source hy.1]
 
 end ContMDiff
