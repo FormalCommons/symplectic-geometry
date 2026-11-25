@@ -456,7 +456,8 @@ private theorem isSmoothForm_glue (hW : IsSmoothForm (𝓡∂ (n + 1)) ∞ αW)
     IsSmoothForm (𝓡 (n + 1)) ∞
       (RoughForm.glue (𝓡 (n + 1)) h.completionEnd (Ioi (-h.collarWidth) ×ˢ univ)
         h.toCompletion αE αW) := by
-  refine RoughForm.isSmoothForm_glue (isOpen_Ioi.prod isOpen_univ) h.injOn_completionEnd
+  refine RoughForm.isSmoothForm_glue (by simp) (isOpen_Ioi.prod isOpen_univ)
+    h.injOn_completionEnd
     h.isLocalDiffeomorphOn_completionEnd hE hW fun z hz ↦ ?_
   obtain ⟨p, hp, rfl⟩ := (h.exists_completionEnd_or_toCompletion z).resolve_left hz
   refine ⟨p, rfl, h.isLocalDiffeomorphAt_toCompletion hp, ?_⟩

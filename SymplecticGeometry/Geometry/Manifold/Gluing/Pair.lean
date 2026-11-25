@@ -329,7 +329,7 @@ def gluedForm (σ₁ : SmoothForm I M₁ F k) (σ₂ : SmoothForm I M₂ F k)
     SmoothForm I (GluedAlong φ) F k :=
   ⟨RoughForm.glue I (inl φ) univ (inr φ) σ₁.val σ₂.val,
     IsSmoothForm.mem_smoothBundleForms <|
-      RoughForm.isSmoothForm_glue isOpen_univ (inl_injective φ).injOn
+      RoughForm.isSmoothForm_glue (by simp) isOpen_univ (inl_injective φ).injOn
         (fun x ↦ isLocalDiffeomorph_inl φ x) σ₁.isSmoothForm σ₂.isSmoothForm
         fun z hz ↦ by
           obtain ⟨y, rfl⟩ := ((range_inl_union_range_inr φ).symm ▸ mem_univ z).resolve_left

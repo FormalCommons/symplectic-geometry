@@ -67,9 +67,10 @@ Two such pushforwards glue pointwise: for `f₁ : M → M''` injective on `s₁`
 `f₂ : M' → M''`, `TauCeti.RoughForm.glue I'' f₁ s₁ f₂ α₁ α₂` is the pushforward of `α₁` on
 `f₁ '' s₁` and that of `α₂` at the other points of the range of `f₂`. It pulls back to `α₁` and
 `α₂` there (`TauCeti.RoughForm.mpullback_glue_apply_of_mem`,
-`TauCeti.RoughForm.mpullback_glue_apply_of_notMem`), and it is smooth when `f₁` and `f₂` are
-local diffeomorphisms whose images cover `M''` and its pull-back by `f₂` is `α₂` near each point
-off `f₁ '' s₁` (`TauCeti.RoughForm.isSmoothForm_glue`), by Tau Ceti's
+`TauCeti.RoughForm.mpullback_glue_apply_of_notMem`), and it is `C^m` when `α₁` and `α₂` are,
+`f₁` and `f₂` are `C^n` local diffeomorphisms with `m + 1 ≤ n` whose images cover `M''`, and
+its pull-back by `f₂` is `α₂` near each point off `f₁ '' s₁`
+(`TauCeti.RoughForm.isSmoothForm_glue`), by Tau Ceti's
 `IsLocalDiffeomorphAt.contMDiffAt_mpullback_form_iff`.
 
 Let `g : M → M'` be a local diffeomorphism pulling a form `σ` back to `τ`, and `Λ` a
@@ -200,28 +201,28 @@ theorem RoughForm.mpullback_glue_apply_of_notMem (hf₂ : Function.Injective f�
     mpullback I' I'' f₂ (glue I'' f₁ s₁ f₂ α₁ α₂) y = α₂ y :=
   mpullback_apply_eq_of_apply_eq_pushforwardAt hd (glue_apply_of_notMem hf₂ hy)
 
-open scoped ContDiff in
-/-- Let `f₁` be a smooth local diffeomorphism on an open set `s₁`, injective there, and let `α₁`
-and `α₂` be smooth forms. If every point off `f₁ '' s₁` is `f₂ y` for a point `y` at which `f₂` is
-a smooth local diffeomorphism and near which the glued form pulls back along `f₂` to `α₂`, then
-the glued form is smooth. -/
+/-- Let `m + 1 ≤ n`, let `f₁` be a `C^n` local diffeomorphism on an open set `s₁`, injective
+there, and let `α₁` and `α₂` be `C^m` forms. If every point off `f₁ '' s₁` is `f₂ y` for a point
+`y` at which `f₂` is a `C^n` local diffeomorphism and near which the glued form pulls back along
+`f₂` to `α₂`, then the glued form is `C^m`. -/
 theorem RoughForm.isSmoothForm_glue [IsManifold I 1 M] [IsManifold I' 1 M']
-    [IsManifold I'' 1 M''] (hs₁ : IsOpen s₁) (hf₁ : InjOn f₁ s₁)
-    (hd₁ : IsLocalDiffeomorphOn I I'' ∞ f₁ s₁) (hα₁ : IsSmoothForm I ∞ α₁)
-    (hα₂ : IsSmoothForm I' ∞ α₂)
-    (h₂ : ∀ z ∉ f₁ '' s₁, ∃ y, f₂ y = z ∧ IsLocalDiffeomorphAt I' I'' ∞ f₂ y ∧
+    [IsManifold I'' 1 M''] {m : WithTop ℕ∞} (hmn : m + 1 ≤ n) (hs₁ : IsOpen s₁)
+    (hf₁ : InjOn f₁ s₁) (hd₁ : IsLocalDiffeomorphOn I I'' n f₁ s₁) (hα₁ : IsSmoothForm I m α₁)
+    (hα₂ : IsSmoothForm I' m α₂)
+    (h₂ : ∀ z ∉ f₁ '' s₁, ∃ y, f₂ y = z ∧ IsLocalDiffeomorphAt I' I'' n f₂ y ∧
       ∀ᶠ r in 𝓝 y, mpullback I' I'' f₂ (glue I'' f₁ s₁ f₂ α₁ α₂) r = α₂ r) :
-    IsSmoothForm I'' ∞ (glue I'' f₁ s₁ f₂ α₁ α₂) := by
+    IsSmoothForm I'' m (glue I'' f₁ s₁ f₂ α₁ α₂) := by
+  have hn : n ≠ 0 := by rintro rfl; simp at hmn
   rw [isSmoothForm_def]
   intro z
   by_cases hz : z ∈ f₁ '' s₁
   · obtain ⟨x, hx, rfl⟩ := hz
-    refine ((hd₁ ⟨x, hx⟩).contMDiffAt_mpullback_form_iff (by simp)).1
+    refine ((hd₁ ⟨x, hx⟩).contMDiffAt_mpullback_form_iff hmn).1
       ((hα₁.contMDiff x).congr_of_eventuallyEq ?_)
     filter_upwards [hs₁.mem_nhds hx] with r hr
-    rw [mpullback_glue_apply_of_mem hf₁ hr ((hd₁ ⟨r, hr⟩).isInvertible_mfderiv (by simp))]
+    rw [mpullback_glue_apply_of_mem hf₁ hr ((hd₁ ⟨r, hr⟩).isInvertible_mfderiv hn)]
   · obtain ⟨y, rfl, hy, hc⟩ := h₂ z hz
-    refine (hy.contMDiffAt_mpullback_form_iff (by simp)).1
+    refine (hy.contMDiffAt_mpullback_form_iff hmn).1
       ((hα₂.contMDiff y).congr_of_eventuallyEq ?_)
     filter_upwards [hc] with r hr
     rw [hr]
