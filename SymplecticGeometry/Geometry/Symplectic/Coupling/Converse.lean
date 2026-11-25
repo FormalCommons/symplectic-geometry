@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily
 public import SymplecticGeometry.Geometry.Manifold.Flow.Basic
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.RegularLevel
 public import SymplecticGeometry.Geometry.Symplectic.Coupling.Basic
+public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Circle
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap
 
 /-!
@@ -56,6 +57,11 @@ and pulling back along `ψ` gives one of `-H ∘ ψ` for `ψ^* σ`
 (`TauCeti.SmoothTwoForm.IsHamiltonianVectorField.mpullback`). Its slice at `t` is the
 pull-back of `σ` along `ψ (·, t)`.
 
+A point that the circle does not fix is not critical for `H` where `σ` is nondegenerate: the
+moment map of `σ` is `-μ`, whose component `-H` has the critical points of `H`, and these are the
+fixed points of the action
+(`TauCeti.SmoothTwoForm.IsMomentMap.mem_criticalPoints_circlePeriodOneGenerator_iff`).
+
 The file also proves that the family `τ` of a coupling form is smooth: its pull-backs along the
 projection of `P` are the slices of the coupling form, and the projection has smooth local
 sections (`TauCeti.ManifoldTotalSpace.exists_contMDiffOn_section`), so
@@ -80,6 +86,8 @@ sections (`TauCeti.ManifoldTotalSpace.exists_contMDiffOn_section`), so
 * `SymplecticGeometry.mpullback_op_smul_mpullback`,
   `SymplecticGeometry.interior_couplingField_mpullback`: for `σ` invariant with moment map
   `-μ` and `ψ` as above, `ψ^* σ` is invariant and `ι_{(X, 0)} ψ^* σ = -dt`.
+* `SymplecticGeometry.mfderiv_ne_zero_of_notMem_fixedPoints`: for `σ` with moment map `-μ`,
+  nondegenerate at a point that the circle does not fix, `dH` does not vanish there.
 * `SymplecticGeometry.isCouplingForm_mpullback`: such a `ψ^* σ` is a coupling form for every
   family `τ` whose pull-backs `π^* (τ t)` are the pull-backs of `σ` along `ψ (·, t)`.
 * `SymplecticGeometry.IsCouplingForm.isSmoothFamily`: the family of a coupling form is smooth.
@@ -324,6 +332,28 @@ theorem isCouplingForm_mpullback (hσc : σ.IsClosed)
       ManifoldTotalSpace.coe_projContMDiffMap] using hτ t
 
 end Pullback
+
+/-! ### Points off the fixed set are regular for the Hamiltonian -/
+
+section Regular
+
+variable [CompleteSpace E] [ContMDiffSMul (𝓡 1) I ∞ Circle M]
+
+/-- **A point off the fixed set is not critical for the Hamiltonian.** Let a circle act smoothly
+on a Hausdorff boundaryless manifold `M`, with moment map `-μ` for a two-form `σ`, and let
+`H = ⟨μ, circlePeriodOneGenerator⟩`. If `σ` is nondegenerate at `x` and some element of the
+circle moves `x`, then `dH` does not vanish at `x`. -/
+theorem mfderiv_ne_zero_of_notMem_fixedPoints {σ : SmoothTwoForm I M}
+    {μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle)}
+    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) fun x ↦ -μ x)
+    {x : M} (hσ : (σ.bilinFormAt x).Nondegenerate) (hx : x ∉ MulAction.fixedPoints Circle M) :
+    mfderiv I 𝓘(ℝ) (fun y ↦ μ y circlePeriodOneGenerator) x ≠ 0 := by
+  have hneg : (fun y ↦ (-μ y) circlePeriodOneGenerator) = -fun y ↦ μ y circlePeriodOneGenerator :=
+    funext fun _ ↦ LinearMap.neg_apply _ _
+  rwa [← hμ.mem_criticalPoints_circlePeriodOneGenerator_iff hσ, hneg, criticalPoints_neg,
+    mem_criticalPoints_iff_mfderiv_eq_zero] at hx
+
+end Regular
 
 /-! ### The band of a circle action -/
 
