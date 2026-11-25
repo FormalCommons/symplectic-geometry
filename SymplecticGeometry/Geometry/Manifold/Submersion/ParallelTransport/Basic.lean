@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Submersion.HorizontalLiftField
+public import SymplecticGeometry.Algebra.Order.Monoid.NatCast
 public import TauCeti.Geometry.Manifold.Distribution.Horizontal
 public import TauCeti.Geometry.Manifold.MFDeriv.Curve
 import Mathlib.Geometry.Manifold.Instances.Icc
@@ -307,8 +308,7 @@ theorem eqOn_Icc_inter_Icc_of_isHorizontalMap [T2Space P] (hn : 1 ≤ n)
     (ht₀ : t₀ ∈ Icc a b ∩ Icc a' b') (h : c₁ t₀ = c₂ t₀) :
     EqOn c₁ c₂ (Icc a b ∩ Icc a' b') := by
   have hn0 : n ≠ 0 := (zero_lt_one.trans_le hn).ne'
-  have h2 : (2 : ℕ∞ω) ≤ n + 1 := by
-    simpa [one_add_one_eq_two] using add_le_add_left hn 1
+  have h2 : (2 : ℕ∞ω) ≤ n + 1 := SymplecticGeometry.two_le_add_one_of_one_le hn
   rw [Icc_inter_Icc] at ht₀ ⊢
   exact hD.eqOn_of_isHorizontalMap hn (hf.of_le h2) (hγ.of_le h2) (hc₁.mdifferentiable hn0)
     (hc₂.mdifferentiable hn0) hh₁ hh₂ (hγ₁.mono (Icc_subset_Icc le_sup_left inf_le_left))
@@ -705,8 +705,7 @@ theorem parallelTransport_mem_preimage (hn : 1 ≤ n) (hf : ContMDiff I J (n + 1
     (hx : f x = γ s) (t : ℝ) : hD.parallelTransport γ s t x ∈ f ⁻¹' {γ t} := by
   obtain ⟨c, hc, hh, hγc, rfl⟩ := hD.exists_isHorizontalMap_lift hn hf hfp hγ hx
   have hn' : (1 : ℕ∞ω) ≤ n := mod_cast hn
-  have h2 : (2 : ℕ∞ω) ≤ n + 1 := by
-    simpa [one_add_one_eq_two] using add_le_add_left hn' 1
+  have h2 : (2 : ℕ∞ω) ≤ n + 1 := SymplecticGeometry.two_le_add_one_of_one_le hn'
   rw [hD.parallelTransport_eq_of_comp_eq hn' (hf.of_le h2) (hγ.of_le h2)
     (hc.mdifferentiable (zero_lt_one.trans_le hn').ne') hh hγc, mem_preimage, mem_singleton_iff,
     ← hγc, comp_apply]
@@ -720,8 +719,7 @@ theorem parallelTransport_parallelTransport (hn : 1 ≤ n) (hf : ContMDiff I J (
     hD.parallelTransport γ t u (hD.parallelTransport γ s t x) = hD.parallelTransport γ s u x := by
   obtain ⟨c, hc, hh, hγc, rfl⟩ := hD.exists_isHorizontalMap_lift hn hf hfp hγ hx
   have hn' : (1 : ℕ∞ω) ≤ n := mod_cast hn
-  have h2 : (2 : ℕ∞ω) ≤ n + 1 := by
-    simpa [one_add_one_eq_two] using add_le_add_left hn' 1
+  have h2 : (2 : ℕ∞ω) ≤ n + 1 := SymplecticGeometry.two_le_add_one_of_one_le hn'
   simp only [hD.parallelTransport_eq_of_comp_eq hn' (hf.of_le h2) (hγ.of_le h2)
     (hc.mdifferentiable (zero_lt_one.trans_le hn').ne') hh hγc]
 
@@ -758,8 +756,7 @@ theorem parallelTransport_comp (hn : 1 ≤ n) (hf : ContMDiff I J (n + 1) f)
   funext x
   by_cases hx : f x = γ (φ s)
   · have hn' : (1 : ℕ∞ω) ≤ n := mod_cast hn
-    have h2 : (2 : ℕ∞ω) ≤ n + 1 := by
-      simpa [one_add_one_eq_two] using add_le_add_left hn' 1
+    have h2 : (2 : ℕ∞ω) ≤ n + 1 := SymplecticGeometry.two_le_add_one_of_one_le hn'
     have hφ' : ContMDiff 𝓘(ℝ, ℝ) 𝓘(ℝ, ℝ) 2 φ := hφ.contMDiff
     obtain ⟨c, hc, hh, hγc, rfl⟩ := hD.exists_isHorizontalMap_lift hn hf hfp hγ hx
     have hc' : MDifferentiable 𝓘(ℝ, ℝ) I c := hc.mdifferentiable (zero_lt_one.trans_le hn').ne'

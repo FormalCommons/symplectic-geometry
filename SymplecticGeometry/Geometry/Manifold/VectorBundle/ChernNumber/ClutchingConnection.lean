@@ -317,9 +317,9 @@ theorem exists_isCircleConnectionForm_of_collar_eq_zpow_smul {ι : Type*} [Finit
   have hpull {τ : ∀ x, P x} {y : M}
       (hτ : ContMDiffAt (𝓡 2) ((𝓡 2).prod (𝓡 1)) ∞ (s τ) y) :
       mpullback (𝓡 2) ((𝓡 2).prod (𝓡 1)) (s τ) (α₀ + SmoothForm.mpullback
-        (fun y : ManifoldTotalSpace Circle P ↦
-          ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj)
-        (ManifoldTotalSpace.contMDiff_proj ∞ Circle P (𝓡 2) (𝓡 1)) a').val y = A τ y + a y :=
+        (ManifoldTotalSpace.projContMDiffMap ∞ Circle P (𝓡 2) (𝓡 1))
+        (ManifoldTotalSpace.projContMDiffMap ∞ Circle P (𝓡 2) (𝓡 1)).contMDiff a').val y =
+        A τ y + a y :=
     ManifoldTotalSpace.mpullback_add_mpullback_proj_apply α₀ a' (hτ.mdifferentiableAt (by simp))
   -- off the discs of radius `b` the curvature vanishes
   have hcurv_out {x : M} (hx : x ∈ U) : hα.curvature.val x = 0 := by

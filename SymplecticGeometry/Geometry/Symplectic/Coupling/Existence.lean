@@ -367,7 +367,10 @@ theorem isCouplingForm_couplingForm (hα : IsCircleConnectionForm α)
   mpullback_smul := hα.mpullback_smul_couplingForm hβ σ
   interior_eq := hα.interior_couplingForm hβ σ
   mpullback_slice t := by
-    rw [mpullback_slice_couplingForm, hdβ, ← hα.mpullback_curvature, ← map_smul, ← map_add]
+    -- `mpullback_slice_couplingForm` pulls back along the projection written out.
+    have hcurv := hα.mpullback_curvature
+    simp only [ManifoldTotalSpace.coe_projContMDiffMap] at hcurv
+    rw [mpullback_slice_couplingForm, hdβ, ← hcurv, ← map_smul, ← map_add]
     congr 1
     module
 

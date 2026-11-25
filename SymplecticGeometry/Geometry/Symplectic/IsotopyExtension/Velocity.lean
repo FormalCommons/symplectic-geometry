@@ -15,7 +15,6 @@ public import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.IsSymplectic
 public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv
-import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
 import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
@@ -55,8 +54,6 @@ diffeotopies and the cylinder `[0, 1] × M` of isotopies.
 ## Main definitions
 
 * `TauCeti.SmoothIsotopy.velocityForm σ F`: the one-form `ι_{∂ₜ} F^* σ` on `[0, 1] × P`.
-* `TauCeti.SmoothIsotopy.restrict G h`: the restriction of an isotopy `G` of an open `W ⊆ P` to
-  an open `V ⊆ W`.
 
 ## Main results
 
@@ -71,7 +68,8 @@ diffeotopies and the cylinder `[0, 1] × M` of isotopies.
 * `TauCeti.Diffeotopy.hasHamiltonian_iff_velocityForm`: Hamiltonians of a diffeotopy are the
   smooth functions whose slices are primitives of the slices of its velocity form.
 * `TauCeti.SmoothIsotopy.mpullback_prodMk_velocityForm_restrict`: the slices of the velocity form
-  of a restriction are the restrictions of the slices.
+  of a restriction (`TauCeti.SmoothIsotopy.restrict`, in
+  `SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Basic`) are the restrictions of the slices.
 * `TauCeti.SmoothIsotopy.exists_opens_forall_apply_eq_of_forall_isCompact`: if the restriction
   of an isotopy to an open `V ⊇ Q` agrees on each compact subset of `V` with a diffeotopy of a
   given kind, the isotopy agrees with one on an open neighbourhood of `Q`.
@@ -79,10 +77,9 @@ diffeotopies and the cylinder `[0, 1] × M` of isotopies.
 ## Implementation notes
 
 The form `σ` on `M` is not called `ω`, which is a token once the scope `ContDiff` is open. The
-proof of `hasHamiltonian_iff_velocityForm` reads the derivatives of the motion as that of
-`TauCeti.Diffeotopy.hasHamiltonian_iff_contMDiff_and_isHamiltonianVectorField_velocity` does,
-through `TauCeti.Diffeotopy.mfderiv_cylinderMap_time` and
-`TauCeti.Diffeotopy.mfderiv_cylinderMap_inl`.
+proof of `hasHamiltonian_iff_velocityForm` reads the derivatives of the motion through
+`TauCeti.Diffeotopy.mfderiv_cylinderMap_time` and `TauCeti.Diffeotopy.mfderiv_cylinderMap_inl`,
+much as Tau Ceti's `TauCeti.Diffeotopy.mpullback_cylinderMap_apply_eq_eval₂_velocity` does.
 
 ## References
 
@@ -228,25 +225,6 @@ section Restrict
 open TopologicalSpace
 
 variable {V W : Opens P} {g₀ g₁ : C^∞⟮J, W; I, M⟯}
-
-/-- The **restriction** of a smooth isotopy `G` of an open set `W ⊆ P` to an open set `V ⊆ W`:
-the isotopy `(t, x) ↦ G (t, x)` of `V`, from the restriction of `g₀` to that of `g₁`. -/
-def restrict (G : SmoothIsotopy g₀ g₁) (h : V ≤ W) :
-    SmoothIsotopy (g₀.comp (⟨Opens.inclusion h, contMDiff_inclusion h⟩ : C^∞⟮J, V; J, W⟯))
-      (g₁.comp (⟨Opens.inclusion h, contMDiff_inclusion h⟩ : C^∞⟮J, V; J, W⟯)) where
-  toContMDiffMap := ⟨fun p ↦ G (p.1, Opens.inclusion h p.2),
-    G.contMDiff.comp (contMDiff_fst.prodMk ((contMDiff_inclusion h).comp contMDiff_snd))⟩
-  map_zero_left _ := G.apply_zero _
-  map_one_left _ := G.apply_one _
-  isSmoothEmbedding t := isSmoothEmbedding_comp_isLocalDiffeomorph (f := fun y ↦ G (t, y))
-    (isLocalDiffeomorph_inclusion h) (Topology.IsEmbedding.inclusion h) (G.isSmoothEmbedding t)
-
-omit [IsManifold I ∞ M] in
-@[simp]
-theorem restrict_apply (G : SmoothIsotopy g₀ g₁) (h : V ≤ W) (p : unitInterval × V) :
-    G.restrict h p = G (p.1, Opens.inclusion h p.2) := by
-  rw [← toContMDiffMap_apply]
-  rfl
 
 /-- The slices of the velocity form of a restriction are the restrictions of the slices of the
 velocity form. -/

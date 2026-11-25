@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Submersion.HorizontalLiftField
+public import SymplecticGeometry.Algebra.Order.Monoid.NatCast
 public import Mathlib.Geometry.Manifold.VectorField.LieBracket
 public import Mathlib.LinearAlgebra.SesquilinearForm.Basic
 import TauCeti.Geometry.Manifold.IsManifold.Basic
@@ -326,7 +327,7 @@ theorem curvature_eq_zero_iff_isInvolutiveDistribution [FiniteDimensional 𝕜 F
   ⟨fun h ↦ hD.isInvolutiveDistribution_of_curvature_eq_zero hn hf
       fun _ _ _ hv₁ hv₂ ↦ h (hv₁.of_le hn) (hv₂.of_le hn),
     fun hDi _ _ _ hv₁ hv₂ ↦ hD.curvature_eq_zero_of_isInvolutiveDistribution hn
-      ((hf _).of_le (by rw [← one_add_one_eq_two]; exact add_le_add_left hn 1)) hDi hv₁ hv₂⟩
+      ((hf _).of_le (SymplecticGeometry.two_le_add_one_of_one_le hn)) hDi hv₁ hv₂⟩
 
 end Smooth
 

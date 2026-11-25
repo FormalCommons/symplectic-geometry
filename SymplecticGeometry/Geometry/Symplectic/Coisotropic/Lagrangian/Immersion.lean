@@ -49,7 +49,7 @@ variable {E H M F H' N : Type*}
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
   [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F] [TopologicalSpace H']
   {J : ModelWithCorners ℝ F H'} [J.Boundaryless] [TopologicalSpace N] [ChartedSpace H' N]
-  [IsManifold J ∞ N] [IsManifold J (∞ + 1) N]
+  [IsManifold J ∞ N]
   {G H'' P : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G] [TopologicalSpace H'']
   {K : ModelWithCorners ℝ G H''} [TopologicalSpace P] [ChartedSpace H'' P]
   {E₀ H₀ C : Type*} [NormedAddCommGroup E₀] [NormedSpace ℝ E₀] [TopologicalSpace H₀]
