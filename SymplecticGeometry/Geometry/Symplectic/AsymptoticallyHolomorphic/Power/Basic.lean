@@ -353,7 +353,8 @@ theorem continuous_powerOneEquiv :
   rw [(AssociatedBundle.isOpenQuotientMap_totalSpaceMk_mk Circle (Fiber ℂ F V ℂ)
     (PowerModel 1)).isQuotientMap.continuous_iff]
   refine (continuous_totalSpace_frame_apply.comp
-    ((TotalSpace.modelFiberHomeomorph ⟨rfl⟩).continuous.prodMap
+    ((TotalSpace.modelFiberHomeomorph
+      Bundle.isInducing_modelFiberEquiv_circleFiber).continuous.prodMap
       PowerModel.toComplex.continuous)).congr fun ⟨⟨b, φ⟩, z⟩ ↦ ?_
   rw [Function.comp_apply, Prod.map_apply, TotalSpace.coe_modelFiberHomeomorph,
     TotalSpace.modelFiberEquiv_apply]
@@ -479,8 +480,6 @@ variable {B F : Type} [TopologicalSpace B] [NormalSpace B] [CompactSpace B]
   [∀ b, NormedAddCommGroup (V b)] [∀ b, InnerProductSpace ℂ (V b)]
   [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle ℂ F V]
   [ContinuousFiberNorm F V]
-
-local instance : FiniteDimensional ℂ F := .of_fact_finrank_eq_succ 0
 
 /-- **The Euler class of a power of a Hermitian line bundle**: over a compact normal base, for
 the principal `Circle`-bundle of unitary frames of a Hermitian line bundle `V`, the Euler class of
