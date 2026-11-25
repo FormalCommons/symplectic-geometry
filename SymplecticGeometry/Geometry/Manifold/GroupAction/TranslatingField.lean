@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.GroupAction.CompactCutoff
+public import SymplecticGeometry.Geometry.Manifold.GroupAction.InvariantCutoff
 public import TauCeti.Geometry.Manifold.Flow.Complete
 public import TauCeti.Geometry.Manifold.Riemannian.Gradient.Isometry
 public import TauCeti.Geometry.Manifold.Riemannian.Invariant
