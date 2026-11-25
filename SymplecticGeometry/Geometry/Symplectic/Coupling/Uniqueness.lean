@@ -9,6 +9,8 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.IntervalCont
 public import SymplecticGeometry.Geometry.Symplectic.Coupling.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
+import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
+import TauCeti.Geometry.Manifold.PartitionOfUnity.Compact
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.ProdIcc
 import TauCeti.Topology.Algebra.Module.Alternating.Basic
 
@@ -77,6 +79,14 @@ is nondegenerate along all of `P × {t}`
 (`IsCouplingForm.univ_prod_Icc_subset_setOf_nondegenerate_prodIccExtension_add_smul`);
 for compact `B` that set is open
 (`TauCeti.SmoothTwoForm.isOpen_setOf_forall_nondegenerate_bilinFormAt_add_smul`).
+It contains the compact set `[0, 1] × [a, b]`, so Tau Ceti's smooth cutoff around a compact set
+(`IsCompact.exists_contMDiff_one_nhds_tsupport_subset`) gives a smooth `ρ : ℝ × ℝ → ℝ`, equal to
+`1` near `[0, 1] × [a, b]`, with compact support inside it
+(`IsCouplingForm.exists_contMDiff_tsupport_subset_setOf_nondegenerate_prodIccExtension_add_smul`).
+The cutoff of the extended Moser field is `(s, (x, t)) ↦ ρ (s, t)`: it is smooth, invariant
+under the circle action, compactly supported because `P` is compact, equal to `1` near
+`[0, 1] × P × [a, b]`, and the extended segment is nondegenerate on its support
+(`IsCouplingForm.exists_cutoff_prodIccExtension_add_smul`).
 
 ## References
 
@@ -89,7 +99,7 @@ public section
 noncomputable section
 
 open Bundle Manifold MulOpposite TauCeti Set
-open scoped Manifold ContDiff Fact.Manifold
+open scoped Manifold ContDiff Fact.Manifold Topology
 
 namespace SymplecticGeometry
 
@@ -516,6 +526,74 @@ theorem univ_prod_Icc_subset_setOf_nondegenerate_prodIccExtension_add_smul
           (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1
             (ω₁ - ω₀)))).bilinFormAt (x, p.2)).Nondegenerate} :=
   fun p hp x ↦ nondegenerate_bilinFormAt_prodIccExtension_add_smul h₀ h₁ hτ p.1 x hp.2
+
+variable [CompactSpace B] [FiniteDimensional ℝ EB]
+
+/-- **A cutoff in the parameters.** Let `ω₀` and `ω₁` be coupling forms for the same family `τ`
+of nondegenerate forms, over a compact base modelled on a finite-dimensional space. There is a
+smooth `ρ : ℝ × ℝ → ℝ` with values in `[0, 1]` and compact support, equal to `1` on a
+neighbourhood of `[0, 1] × [a, b]`, whose topological support lies in the set of pairs `(s, t)`
+such that `ω̃₀ + s • dσ̃` (as in
+`SymplecticGeometry.IsCouplingForm.mpullback_prodMap_subtypeVal_prodIccExtension_add_smul`) is
+nondegenerate at every point of `P × {t}`. -/
+theorem exists_contMDiff_tsupport_subset_setOf_nondegenerate_prodIccExtension_add_smul
+    (h₀ : IsCouplingForm ω₀ τ) (h₁ : IsCouplingForm ω₁ τ) (hτ : ∀ t, (τ t).IsNondegenerate) :
+    ∃ ρ : ℝ × ℝ → ℝ, ContMDiff (𝓘(ℝ, ℝ).prod 𝓘(ℝ, ℝ)) 𝓘(ℝ) ∞ ρ ∧
+      (∀ᶠ q in 𝓝ˢ (Icc 0 1 ×ˢ Icc a b), ρ q = 1) ∧ HasCompactSupport ρ ∧
+      tsupport ρ ⊆ {p : ℝ × ℝ | ∀ x : ManifoldTotalSpace Circle P,
+        ((prodIccExtension (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1 ω₀ +
+          p.1 • mextDerivₗ ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) 1 (SmoothForm.timeExtendIcc
+            (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1
+              (ω₁ - ω₀)))).bilinFormAt (x, p.2)).Nondegenerate} ∧
+      ∀ q, ρ q ∈ Icc 0 1 :=
+  (isCompact_Icc.prod isCompact_Icc).exists_contMDiff_one_nhds_tsupport_subset
+    (𝓘(ℝ, ℝ).prod 𝓘(ℝ, ℝ))
+    (SmoothTwoForm.isOpen_setOf_forall_nondegenerate_bilinFormAt_add_smul _ _)
+    ((prod_mono (subset_univ _) subset_rfl).trans
+      (univ_prod_Icc_subset_setOf_nondegenerate_prodIccExtension_add_smul h₀ h₁ hτ))
+
+/-- **The cutoff of the extended Moser field.** Let `ω₀` and `ω₁` be coupling forms for the same
+family `τ` of nondegenerate forms, over a compact base modelled on a finite-dimensional space.
+There is `ρ : ℝ × ℝ → ℝ` such that the function `(s, (x, t)) ↦ ρ (s, t)` on `ℝ × (P × ℝ)` is
+smooth, has compact support, equals `1` on a neighbourhood of `[0, 1] × P × [a, b]`, and at each
+point `(s, p)` of its topological support the form `ω̃₀ + s • dσ̃` (as in
+`SymplecticGeometry.IsCouplingForm.mpullback_prodMap_subtypeVal_prodIccExtension_add_smul`) is
+nondegenerate at `p`. As it does not depend on the point of `P`, it is invariant under the
+action of every `z : Circle` on `P`. -/
+theorem exists_cutoff_prodIccExtension_add_smul (h₀ : IsCouplingForm ω₀ τ)
+    (h₁ : IsCouplingForm ω₁ τ) (hτ : ∀ t, (τ t).IsNondegenerate) :
+    ∃ ρ : ℝ × ℝ → ℝ,
+      ContMDiff (𝓘(ℝ, ℝ).prod ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ))) 𝓘(ℝ) ∞
+        (fun p : ℝ × (ManifoldTotalSpace Circle P × ℝ) ↦ ρ (p.1, p.2.2)) ∧
+      HasCompactSupport (fun p : ℝ × (ManifoldTotalSpace Circle P × ℝ) ↦ ρ (p.1, p.2.2)) ∧
+      (∀ᶠ p in 𝓝ˢ (Icc 0 1 ×ˢ (univ ×ˢ Icc a b)),
+        (fun p : ℝ × (ManifoldTotalSpace Circle P × ℝ) ↦ ρ (p.1, p.2.2)) p = 1) ∧
+      (∀ p ∈ tsupport (fun p : ℝ × (ManifoldTotalSpace Circle P × ℝ) ↦ ρ (p.1, p.2.2)),
+        ((prodIccExtension (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1 ω₀ +
+          p.1 • mextDerivₗ ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) 1 (SmoothForm.timeExtendIcc
+            (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1
+              (ω₁ - ω₀)))).bilinFormAt p.2).Nondegenerate) ∧
+      ∀ (z : Circle) (p : ℝ × (ManifoldTotalSpace Circle P × ℝ)),
+        (fun p : ℝ × (ManifoldTotalSpace Circle P × ℝ) ↦ ρ (p.1, p.2.2))
+          (p.1, (op z • p.2.1, p.2.2)) =
+        (fun p : ℝ × (ManifoldTotalSpace Circle P × ℝ) ↦ ρ (p.1, p.2.2)) p := by
+  obtain ⟨ρ, hρ, h1, hc, hs, -⟩ :=
+    exists_contMDiff_tsupport_subset_setOf_nondegenerate_prodIccExtension_add_smul h₀ h₁ hτ
+  have hΨ : Continuous fun p : ℝ × (ManifoldTotalSpace Circle P × ℝ) ↦ (p.1, p.2.2) := by
+    fun_prop
+  -- the preimage of `tsupport ρ` is closed, and lies in the image of `tsupport ρ × P`, which is
+  -- compact as `P` is
+  have hK : IsCompact ((fun p : ℝ × (ManifoldTotalSpace Circle P × ℝ) ↦ (p.1, p.2.2)) ⁻¹'
+      tsupport ρ) :=
+    ((hc.isCompact.prod isCompact_univ).image
+      (by fun_prop : Continuous fun q : (ℝ × ℝ) × ManifoldTotalSpace Circle P ↦
+        (q.1.1, (q.2, q.1.2)))).of_isClosed_subset ((isClosed_tsupport ρ).preimage hΨ)
+      fun y hy ↦ ⟨((y.1, y.2.2), y.2.1), ⟨hy, mem_univ _⟩, rfl⟩
+  refine ⟨ρ, hρ.comp (contMDiff_fst.prodMk (contMDiff_snd.comp contMDiff_snd)),
+    .intro' hK ((isClosed_tsupport ρ).preimage hΨ) fun _ hz ↦ image_eq_zero_of_notMem_tsupport hz,
+    (hΨ.tendsto_nhdsSet (s := Icc 0 1 ×ˢ (univ ×ˢ Icc a b)) (t := Icc 0 1 ×ˢ Icc a b)
+      fun _ hp ↦ ⟨hp.1, hp.2.2⟩).eventually h1,
+    fun p hp ↦ hs (tsupport_comp_subset_preimage ρ hΨ hp) p.2.1, fun _ _ ↦ rfl⟩
 
 end Extension
 
