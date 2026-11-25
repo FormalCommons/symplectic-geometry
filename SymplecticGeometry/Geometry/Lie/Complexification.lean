@@ -59,6 +59,8 @@ The complex structure `cplx` is not determined by the other fields.
 * `SymplecticGeometry.LieComplexification.contMDiff_expI`: `expI` is smooth.
 * `SymplecticGeometry.LieComplexification.lieMap_re_add_cplx_lieMap_im`: every element `x` is
   `lieMap (re x) + cplx (lieMap (im x))`.
+* `SymplecticGeometry.LieComplexification.im_mfderiv_inv_mul_mfderiv_toHom_comp`: a map into
+  `Gc` that factors through `toHom` has left-trivialized derivatives with vanishing `im`.
 * `SymplecticGeometry.LieComplexification.cplx_lie_cplx`: `⁅cplx x, cplx y⁆ = -⁅x, y⁆`.
 * `SymplecticGeometry.LieComplexification.lie_add_cplx`,
   `SymplecticGeometry.LieComplexification.lie_lieMap_add_cplx_lieMap`,
@@ -238,6 +240,24 @@ theorem im_cplx_lieMap (ξ : GroupLieAlgebra I G) : C.im (C.cplx (C.lieMap ξ)) 
 @[simp]
 theorem im_lieMap (ξ : GroupLieAlgebra I G) : C.im (C.lieMap ξ) = 0 :=
   LinearMap.linearProjOfIsCompl_apply_right' _ _ _ _ _ ⟨ξ, rfl⟩
+
+/-- A map into `Gc` that factors through `C.toHom` has left-trivialized derivatives in the image
+of `lieMap`, so their component `im` vanishes: for `f : N → G` differentiable at `z` and `w`
+tangent at `z`, `im (d(L_{g⁻¹})_g (d(toHom ∘ f)_z w)) = 0`, where `g = toHom (f z)`. -/
+theorem im_mfderiv_inv_mul_mfderiv_toHom_comp {EN : Type*} [NormedAddCommGroup EN]
+    [NormedSpace ℝ EN] {HN : Type*} [TopologicalSpace HN] {IN : ModelWithCorners ℝ EN HN}
+    {N : Type*} [TopologicalSpace N] [ChartedSpace HN N] {f : N → G} {z : N}
+    (hf : MDifferentiableAt IN I f z) (w : TangentSpace IN z) :
+    C.im (mfderiv IC IC ((C.toHom (f z))⁻¹ * ·) (C.toHom (f z))
+      (mfderiv IN IC (C.toHom ∘ f) z w)) = 0 := by
+  have hc := mfderiv_comp_apply z ((C.toHom.contMDiff_toFun.mdifferentiable (by simp)) (f z)) hf w
+  have h0 (ξ : GroupLieAlgebra I G) : C.im (C.toHom.groupLieAlgebraLieHom ξ) = 0 := by
+    rw [← lieMap_def, im_lieMap]
+  -- `rw` cannot rewrite under `C.im` here: its argument has type
+  -- `TangentSpace IC ((C.toHom (f z))⁻¹ * C.toHom (f z))`, which is `GroupLieAlgebra IC Gc` only
+  -- up to unfolding, so the equalities are chained as terms.
+  exact (congrArg (fun v ↦ C.im (mfderiv IC IC ((C.toHom (f z))⁻¹ * ·) (C.toHom (f z)) v)) hc).trans
+    ((congrArg C.im (C.toHom.mfderiv_inv_mul_mfderiv (f z) (mfderiv IN I f z w))).trans (h0 _))
 
 /-- Every element of the Lie algebra of `Gc` is `lieMap (re x) + cplx (lieMap (im x))`. -/
 theorem lieMap_re_add_cplx_lieMap_im (x : GroupLieAlgebra IC Gc) :
