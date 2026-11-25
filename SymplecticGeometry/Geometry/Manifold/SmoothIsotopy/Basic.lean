@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Chart.CodRestrict
+public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Opens
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Comp
@@ -62,12 +63,12 @@ variable [IsManifold J n P] {V W : Opens P} {g₀ g₁ : C^n⟮J, W; I, M⟯}
 /-- The **restriction** of a smooth isotopy `G` of an open set `W ⊆ P` to an open set `V ⊆ W`:
 the isotopy `(t, x) ↦ G (t, x)` of `V`, from the restriction of `g₀` to that of `g₁`. -/
 def restrict (G : SmoothIsotopy g₀ g₁) (h : V ≤ W) :
-    SmoothIsotopy (g₀.comp (⟨Opens.inclusion h, contMDiff_inclusion h⟩ : C^n⟮J, V; J, W⟯))
-      (g₁.comp (⟨Opens.inclusion h, contMDiff_inclusion h⟩ : C^n⟮J, V; J, W⟯)) where
+    SmoothIsotopy (g₀.comp (SmoothEmbedding.inclusion h).toContMDiffMap)
+      (g₁.comp (SmoothEmbedding.inclusion h).toContMDiffMap) where
   toContMDiffMap := ⟨fun p ↦ G (p.1, Opens.inclusion h p.2),
     G.contMDiff.comp (contMDiff_fst.prodMk ((contMDiff_inclusion h).comp contMDiff_snd))⟩
-  map_zero_left _ := G.apply_zero _
-  map_one_left _ := G.apply_one _
+  map_zero_left x := (G.apply_zero _).trans (by simp)
+  map_one_left x := (G.apply_one _).trans (by simp)
   isSmoothEmbedding t := isSmoothEmbedding_comp_isLocalDiffeomorph (f := fun y ↦ G (t, y))
     (isLocalDiffeomorph_inclusion h) (Topology.IsEmbedding.inclusion h) (G.isSmoothEmbedding t)
 
