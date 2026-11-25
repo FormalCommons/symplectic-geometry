@@ -18,6 +18,7 @@ public import TauCeti.Geometry.Symplectic.Cotangent.InnerProduct
 public import TauCeti.Geometry.Symplectic.Cotangent.Liouville
 public import TauCeti.Geometry.Symplectic.Hamiltonian.Manifold
 import Mathlib.Analysis.InnerProductSpace.Calculus
+import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Cotangent
 import Mathlib.Analysis.SpecialFunctions.Sqrt
 import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.Codisc
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
@@ -63,6 +64,7 @@ direction.
   maps are smooth. `SymplecticGeometry.contMDiff_of_contMDiff_cotangentCoord_comp`: a map into
   `T*Sⁿ` is smooth when its coordinates are.
 * `SymplecticGeometry.cotangentNorm_eq_norm`: `‖p‖` is the norm of `z` for the round metric.
+* `SymplecticGeometry.contMDiffAt_cotangentNorm`: `‖p‖` is smooth off the zero section.
 * `SymplecticGeometry.isCompact_setOf_cotangentNorm_le`: the sets `{z | ‖p‖ ≤ r}` are compact.
 * `SymplecticGeometry.mpullback_cotangentCoord`: the coordinates, read in `E × E*` through
   `TauCeti.cotangentInnerEquiv`, pull the form `∑ⱼ pⱼ dqⱼ` (`TauCeti.cotangentLiouvilleForm`)
@@ -355,6 +357,13 @@ theorem cotangentNorm_eq_norm (z : CotangentBundle (𝓡 n) (𝕊 n)) : cotangen
 
 theorem continuous_cotangentNorm : Continuous (cotangentNorm (n := n)) :=
   continuous_norm.comp (continuous_snd.comp contMDiff_cotangentCoord.continuous)
+
+/-- Off the zero section, `cotangentNorm` is smooth. -/
+theorem contMDiffAt_cotangentNorm {z : CotangentBundle (𝓡 n) (𝕊 n)} (hz : cotangentNorm z ≠ 0) :
+    ContMDiffAt ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ) ∞ cotangentNorm z :=
+  (CotangentBundle.contMDiffAt_norm_snd
+      ((norm_ne_zero_iff (a := z.snd)).1 ((cotangentNorm_eq_norm z).symm.trans_ne hz))
+    ).congr_of_eventuallyEq (Filter.Eventually.of_forall cotangentNorm_eq_norm)
 
 /-- The covectors on the unit sphere with `‖p‖ ≤ r` form a compact set. -/
 theorem isCompact_setOf_cotangentNorm_le (r : ℝ) :

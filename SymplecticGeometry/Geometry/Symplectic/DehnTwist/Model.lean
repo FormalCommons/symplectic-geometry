@@ -10,7 +10,6 @@ import Mathlib.Analysis.Calculus.Deriv.Shift
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv
 import Mathlib.Geometry.Manifold.IntegralCurve.Transform
-import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Cotangent
 import SymplecticGeometry.Analysis.Calculus.ContDiff.Even
 
 /-!
@@ -45,6 +44,8 @@ time `π` is the antipodal map; and since `R' = 0` on `[r₀, ∞)`, the twist i
   `cos ∘ θ` is even, `sin ∘ θ` is odd and `cos (θ 0) = -1`.
 * `SymplecticGeometry.coe_modelTwist_symm`: the inverse of the model twist of `R` is the model
   twist of `-R`.
+* `SymplecticGeometry.modelTwist_of_cotangentNorm_ne_zero`: off the zero section the model twist
+  of `z` is `σ_{2π R'(μ z)} z`.
 * `SymplecticGeometry.modelTwist_apply_of_le`: the model twist is the identity where `μ ≥ r₀`.
 * `SymplecticGeometry.modelTwist_cotangent_orthogonal`: it commutes with the cotangent lift of
   every orthogonal transformation of `ℝⁿ⁺¹`.
@@ -424,6 +425,13 @@ theorem modelTwist_apply_of_le {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsTwistProfi
   rw [coe_modelTwist, modelTwistFun_def, ite_eq_right (hR.pos.trans_le hz).ne',
     hR.deriv_eq_zero hz, mul_zero, geodesicFlow_zero]
 
+/-- Off the zero section, the model twist moves `z` along the geodesic flow for the time
+`2π R'(μ z)`. -/
+theorem modelTwist_of_cotangentNorm_ne_zero {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsTwistProfile R r₀)
+    {z : CotangentBundle (𝓡 n) (𝕊 n)} (hz : cotangentNorm z ≠ 0) :
+    modelTwist hR z = geodesicFlow (2 * π * deriv R (cotangentNorm z)) z := by
+  rw [coe_modelTwist, modelTwistFun_def, ite_eq_right hz]
+
 /-- The model twist commutes with the cotangent lift of every orthogonal transformation of
 `ℝⁿ⁺¹`. -/
 theorem modelTwist_cotangent_orthogonal {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsTwistProfile R r₀)
@@ -452,12 +460,8 @@ theorem isMIntegralCurve_geodesicFlow_comp {φ : ℝ → ℝ} {z : CotangentBund
   intro t
   have hw := cotangentNorm_geodesicFlow (t * deriv φ (cotangentNorm z)) z
   have hμ : MDifferentiableAt ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ)
-      cotangentNorm (geodesicFlow (t * deriv φ (cotangentNorm z)) z) := by
-    have hs : (geodesicFlow (t * deriv φ (cotangentNorm z)) z).snd ≠ 0 :=
-      (norm_ne_zero_iff (a := (geodesicFlow (t * deriv φ (cotangentNorm z)) z).snd)).1
-        ((cotangentNorm_eq_norm _).symm.trans_ne (hw.trans_ne hz))
-    exact ((CotangentBundle.contMDiffAt_norm_snd (n := ∞) hs).mdifferentiableAt (by simp))
-      |>.congr_of_eventuallyEq (Filter.Eventually.of_forall cotangentNorm_eq_norm)
+      cotangentNorm (geodesicFlow (t * deriv φ (cotangentNorm z)) z) :=
+    (contMDiffAt_cotangentNorm (by rwa [hw])).mdifferentiableAt (by simp)
   dsimp only
   rw [SmoothTwoForm.hamiltonianVectorField_comp (by rwa [hw]) hμ, hw]
   exact (isMIntegralCurve_geodesicFlow hz).comp_mul (deriv φ (cotangentNorm z)) t
@@ -473,8 +477,8 @@ theorem isMIntegralCurve_geodesicFlow_twistProfile {R : ℝ → ℝ} {r₀ : ℝ
         (CotangentBundle.symplecticForm (𝓡 n) (𝕊 n)).hamiltonianVectorField
           (R ∘ cotangentNorm) w) ∧
       geodesicFlow (2 * π * deriv R (cotangentNorm z)) z = modelTwist hR z :=
-  ⟨isMIntegralCurve_geodesicFlow_comp hz (hR.contDiff.differentiable (by simp) _), by
-    rw [coe_modelTwist, modelTwistFun_def, ite_eq_right hz]⟩
+  ⟨isMIntegralCurve_geodesicFlow_comp hz (hR.contDiff.differentiable (by simp) _),
+    (modelTwist_of_cotangentNorm_ne_zero hR hz).symm⟩
 
 
 end SymplecticGeometry
