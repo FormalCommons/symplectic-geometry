@@ -212,6 +212,20 @@ theorem sphereToProjectiveLine_symm_apply (x : ℙ ℂ (Fin 2 → ℂ)) :
   rw [Diffeomorph.coe_toEquiv, Diffeomorph.apply_symm_apply, sphereToProjectiveLine_apply,
     Homeomorph.symm_apply_apply, Equiv.apply_symm_apply]
 
+/-- On the Pauli model, `sphereToProjectiveLine` is the identification of the Riemann sphere with
+`ℂP¹`: it sends `homeomorphSphere x` to `equivProjectivization ℂ x`. -/
+@[simp]
+theorem sphereToProjectiveLine_homeomorphSphere (x : OnePoint ℂ) :
+    sphereToProjectiveLine (homeomorphSphere x) = OnePoint.equivProjectivization ℂ x := by
+  rw [sphereToProjectiveLine_apply, Homeomorph.symm_apply_apply]
+
+/-- The inverse of `sphereToProjectiveLine` sends `equivProjectivization ℂ x` to the point
+`homeomorphSphere x` of the unit sphere. -/
+@[simp]
+theorem sphereToProjectiveLine_symm_equivProjectivization (x : OnePoint ℂ) :
+    sphereToProjectiveLine.symm (OnePoint.equivProjectivization ℂ x) = homeomorphSphere x := by
+  rw [sphereToProjectiveLine_symm_apply, Equiv.symm_apply_apply]
+
 /-- Off the north pole, `sphereToProjectiveLine` sends `x = (x₁, x₂, x₃)` to
 `[x₁ - i x₂ : 1 - x₃]`. -/
 theorem sphereToProjectiveLine_of_ne_northPole {p : sphere (0 : ℝ³) 1}
@@ -225,8 +239,8 @@ theorem sphereToProjectiveLine_of_ne_northPole {p : sphere (0 : ℝ³) 1}
   | infty => exact absurd rfl hp
   | coe z =>
     have h : (1 + Complex.normSq z : ℂ) ≠ 0 := mod_cast (by linarith [Complex.normSq_nonneg z])
-    rw [sphereToProjectiveLine_apply, Homeomorph.symm_apply_apply,
-      OnePoint.equivProjectivization_apply_coe, mk_eq_mk_iff']
+    rw [sphereToProjectiveLine_homeomorphSphere, OnePoint.equivProjectivization_apply_coe,
+      mk_eq_mk_iff']
     refine ⟨(1 + Complex.normSq z) / 2, ?_⟩
     ext k
     fin_cases k <;> simp [OnePoint.sphereCoords_coe] <;> field_simp
@@ -242,7 +256,7 @@ theorem sphereToProjectiveLine_of_ne_southPole {p : sphere (0 : ℝ³) 1}
         (fun h ↦ OnePoint.one_add_ne_zero_of_ne_neg_homeomorphSphere_infty hp
           (Complex.ofReal_eq_zero.1 (congrFun h 0))) := by
   obtain ⟨x, rfl⟩ := homeomorphSphere.surjective p
-  rw [sphereToProjectiveLine_apply, Homeomorph.symm_apply_apply]
+  rw [sphereToProjectiveLine_homeomorphSphere]
   induction x using OnePoint.rec with
   | infty =>
     rw [OnePoint.equivProjectivization_apply_infinity, mk_eq_mk_iff']
@@ -254,8 +268,7 @@ theorem sphereToProjectiveLine_of_ne_southPole {p : sphere (0 : ℝ³) 1}
       rintro h
       rw [map_eq_zero] at h
       subst h
-      exact hp (by rw [← OnePoint.diffeomorphSphere_sphereCoordsIsometry_apply,
-        OnePoint.diffeomorphSphere_zero])
+      exact hp OnePoint.homeomorphSphere_zero
     have h : (1 + Complex.normSq z : ℂ) ≠ 0 := mod_cast (by linarith [Complex.normSq_nonneg z])
     rw [OnePoint.equivProjectivization_apply_coe, mk_eq_mk_iff']
     refine ⟨(1 + Complex.normSq z) / (2 * starRingEnd ℂ z), ?_⟩

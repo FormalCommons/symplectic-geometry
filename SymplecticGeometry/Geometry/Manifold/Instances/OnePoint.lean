@@ -178,6 +178,12 @@ theorem coe_homeomorphSphere_infty :
   ext i
   fin_cases i <;> simp
 
+/-- The Pauli model `homeomorphSphere` sends `0` to the south pole, the antipode of the north pole
+`homeomorphSphere ∞`. -/
+@[simp]
+theorem homeomorphSphere_zero : homeomorphSphere (0 : ℂ) = -homeomorphSphere ∞ := by
+  rw [← diffeomorphSphere_sphereCoordsIsometry_apply, diffeomorphSphere_zero]
+
 /-- The inner product with the north pole `homeomorphSphere ∞` is the third coordinate. -/
 theorem inner_homeomorphSphere_infty (p : ℝ³) :
     inner ℝ (homeomorphSphere ∞ : ℝ³) p = p 2 := by
