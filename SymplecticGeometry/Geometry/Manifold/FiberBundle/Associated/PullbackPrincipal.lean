@@ -91,7 +91,9 @@ The declarations from `pullbackProjSection` to `mfderiv_pullbackProjDiffeomorph_
 `[∀ b, Nonempty (P b)]`. Their statements need it, not only their proofs: Mathlib's and Tau
 Ceti's fibre bundle structure on the pull-back `Q` asks for it, and so does `pullbackEquiv`. A
 caller supplies it with `have := FiberBundle.nonempty_fiber G P`, since `G` is nonempty. The
-statements after them do not mention `Q`, and their proofs derive the hypothesis in this way.
+statements after them do not mention `Q`. Of these, `isSubmersion_totalSpaceMk_mk` and
+`mfderiv_totalSpaceMk_mk_eq_zero_iff` derive the hypothesis in their proofs in this way; the
+descent theorems reach `Q` only through those two results and need no such step.
 
 The descent does not transport the descent of basic forms on principal bundles along `Φ`: Tau
 Ceti's `TauCeti.RoughForm.isBasic_of_mpullback_eq` applies to `q` directly, with the diagonal
