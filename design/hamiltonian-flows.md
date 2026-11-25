@@ -188,16 +188,12 @@ These settle the questions that `DESIGN.md` leaves to this file.
    smooth-primitive map of `DeRham/SmoothFamily/GoodCover.lean`, which needs a compact
    manifold. Let $\alpha_t=\iota_{X_t}\omega$, a smooth family; the
    Hamiltonian read along the motion is then $F_t\circ\phi_t$, by
-   `hasHamiltonian_comp_iff`. Choose a base point in each connected component of $M$ (through
-   `ConnectedComponents M`) and let $F_t$ be the primitive of $\alpha_t$
-   that vanishes at the base points.
-   - *Gluing.* Each component is open, since manifolds are locally
-     path-connected. On a component, Tau
-     Ceti's `TauCeti.exists_contMDiff_mvfderiv_eq_of_forall_exists` gives a
-     jointly smooth family of primitives vanishing at the base point; it
-     differs from $F$ by a constant, which is $0$. So $F$ is jointly smooth.
+   `hasHamiltonian_comp_iff`. A jointly smooth family $F_t$ of primitives of
+   the $\alpha_t$ is Tau Ceti's
+   `TauCeti.exists_contMDiff_mvfderiv_eq_of_forall_exists`, applied on all of
+   $M$, which need not be connected.
    This is the path integration of the page's proof route, done by Tau
-   Ceti's theorem on each component. It needs neither compactness nor nondegeneracy.
+   Ceti's theorem. It needs neither compactness nor nondegeneracy.
    The construction of $F$ uses no Poincaré lemma on chart neighbourhoods.
    Separately, `DeRham/FamilyPrimitive.lean` has the library's parametric
    Poincaré lemma in degree $1$ as a public lemma,
@@ -287,7 +283,7 @@ Tau Ceti unchanged.
 | `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean` | `Diffeotopy.velocity`, its joint smoothness, its value along the motion, its values for `refl` and the flow diffeotopies, and the pullback of $\iota_{X_t}\sigma$ by $\phi_t$ |
 | `Geometry/Symplectic/Hamiltonian/PoissonAlgebra.lean` | the Leibniz rule, the local time-dependent flow, the kernel and the quotient, the milestone *Hamiltonian flows and the Poisson algebra* |
 | `Geometry/Symplectic/Hamiltonian/SymplecticIsotopy.lean` | symplectic fields and their local flows, the book's bracket, the isotopy criterion, the milestone *Symplectic vector fields and isotopy generators* |
-| `Geometry/Manifold/DeRham/FamilyPrimitive.lean` | smooth primitives of a smooth family of one-forms: the parametric Poincaré lemma in degree one on a smoothly contractible manifold, and the gluing for exact forms on any manifold |
+| `Geometry/Manifold/DeRham/FamilyPrimitive.lean` | smooth primitives of a smooth family of one-forms: the parametric Poincaré lemma in degree one on a smoothly contractible manifold, and the smooth primitives of a family of exact forms on any manifold, from Tau Ceti's theorem on all of $M$ |
 | `Geometry/Symplectic/Flux/Hamiltonian.lean` | the page's $H_t$ beside `HasHamiltonian`, the three rules in the page's form, uniqueness, Hamiltonians from exactness |
 | `Geometry/Symplectic/Flux/CompactSupport.lean` | `IsCompactlySupportedHamiltonian`, `compactlySupportedHamiltonianGroup`, the flow of a compactly supported Hamiltonian, the milestone *Hamiltonian isotopies and their composition* |
 
@@ -454,7 +450,8 @@ In `TauCeti.Diffeotopy`, for any two-form `σ` unless said:
   direction builds the Hamiltonian as in Decision 4, with
   `exists_hasHamiltonian_of_forall_mem_exactForms` as the public
   statement.
-- The gluing of Decision 4 is a public lemma, in the namespace
+- The smooth primitives of a family of exact forms of Decision 4, from Tau
+  Ceti's theorem on all of $M$, are given by a public lemma, in the namespace
   `SymplecticGeometry` since its hypothesis is the library's
   `IsSmoothFamily`, in `Geometry/Manifold/DeRham/FamilyPrimitive.lean`,
   for any manifold `M` (no compactness, no form `σ`) and any parameter
@@ -626,7 +623,9 @@ Each is a few hundred lines; each is blocked by the issues it names.
    About 250 lines. Blocked by 1.
 5. **Hamiltonians from exactness.** In `DeRham/FamilyPrimitive.lean` and
    `Flux/Hamiltonian.lean`: the
-   parametric Poincaré lemma in degree one, the gluing (`exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms`),
+   parametric Poincaré lemma in degree one, the smooth primitives of a
+   family of exact forms from Tau Ceti's theorem on all of $M$
+   (`exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms`),
    `exists_hasHamiltonian_of_forall_mem_exactForms` and
    `isHamiltonian_iff_forall_interiorₗ_velocity_mem_exactForms`. About 350
    lines. Blocked by 4.
