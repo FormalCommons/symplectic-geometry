@@ -10,11 +10,14 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Equivariant.
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Localization.LocalizingForm
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Localization.WeightOneForm
+public import SymplecticGeometry.Geometry.Symplectic.Manifold.LiouvilleMeasure
 public import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
 public import TauCeti.Geometry.Symplectic.Manifold.Volume
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
+import SymplecticGeometry.MeasureTheory.Measure.Haar.InnerProductSpace
+import SymplecticGeometry.MeasureTheory.Measure.Lebesgue.HalfSqRadius
 import TauCeti.Geometry.Symplectic.Manifold.NeighborhoodGerm
 
 /-!
@@ -56,6 +59,24 @@ For a smooth `F : ℝ → ℝ` and real `ħ`, put `f = -ħ θ(X)`. The component
 `(dθₖ)ⁿ = 2ⁿ ∏ⱼ kⱼ · ω₀ⁿ` by `wedgePow_mextDerivₗ_weightOneForm_apply`, while `σ` is `ω₀` read
 through `Φ` since `Φ` is symplectic.
 
+## The contribution of a fixed point
+
+With `Φ`, `θ` and `X` as above, nonzero weights `k`, real `ħ > 0` and a smooth `F` with
+compact support, let `φ` be a top form that is the component of degree `2 n` of
+`F(-ħ θ(X) + dθ)` on `Φ '' B` and vanishes off it. If the model integrand
+`F⁽ⁿ⁾(-2πħ ∑ⱼ kⱼ² (xⱼ² + yⱼ²))` vanishes outside a ball of radius `a` smaller than that of `B`,
+then the integral of `φ` against the symplectic orientation is `F(0) / (ħⁿ ∏ⱼ kⱼ)`
+(`SymplecticGeometry.integralTopForm_formCalculus_weightChart`). By the computation above
+`φ = f σⁿ / n!` for a continuous compactly supported `f`; the integral of `φ` is the integral of
+`f` against the Liouville measure
+(`TauCeti.SmoothTwoForm.IsNondegenerate.integralTopForm_smul_volumeForm`), which the chart turns
+into a Lebesgue integral on `StdSpace (Fin n)`
+(`SymplecticGeometry.integral_liouvilleMeasure_of_isSymplecticMapOn_stdForm`). Read on
+`EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin n)`
+(`EuclideanSpace.volume_preserving_sumEquivProd`), it is
+`2ⁿ ∏ⱼ kⱼ · F(0) πⁿ / ∏ⱼ (2πħ kⱼ²)` by `MeasureTheory.integral_iteratedDeriv_neg_sum_mul_sq`.
+In dimension `0` all sums and products are empty and the value is `F(0)`.
+
 ## References
 
 * [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §5.6
@@ -67,7 +88,7 @@ public section
 
 noncomputable section
 
-open Set Metric Real
+open Set Metric Real MeasureTheory
 open scoped Manifold ContDiff Topology DirectSum
 
 namespace SymplecticGeometry
@@ -154,6 +175,117 @@ theorem formCalculus_apply_weightChart [FiniteDimensional ℝ E] {σ : SmoothTwo
   rw [show -ħ * (2 * π * ∑ j, k j ^ 2 * (z.x j ^ 2 + z.y j ^ 2)) =
     -(2 * π * ħ) * ∑ j, k j ^ 2 * (z.x j ^ 2 + z.y j ^ 2) by ring]
   ring
+
+/-- For weights `wⱼ > 0` and `F` of class `C^n` with compact support, the integral over
+`StdSpace (Fin n)` of `F⁽ⁿ⁾(-∑ⱼ wⱼ (xⱼ² + yⱼ²))` is `F 0 * π ^ n / ∏ⱼ wⱼ`. -/
+private theorem integral_stdSpace_iteratedDeriv_neg_sum_mul_sq {F : ℝ → ℝ}
+    (hF : ContDiff ℝ n F) (hFc : HasCompactSupport F) {w : Fin n → ℝ} (hw : ∀ j, 0 < w j) :
+    ∫ z : StdSpace (Fin n), iteratedDeriv n F (-∑ j, w j * (z.x j ^ 2 + z.y j ^ 2)) =
+      F 0 * π ^ n / ∏ j, w j := by
+  have h := integral_iteratedDeriv_neg_sum_mul_sq (ι := Fin n) (by simpa using hF) hFc hw
+  rw [Fintype.card_fin] at h
+  rw [← h, ← (EuclideanSpace.volume_preserving_sumEquivProd _ _).integral_comp
+    EuclideanSpace.sumEquivProd.toHomeomorph.measurableEmbedding]
+  simp only [StdSpace.sumEquivProd_apply_fst, StdSpace.sumEquivProd_apply_snd]
+
+/-- **The contribution of a fixed point.** Let `σ` be nondegenerate on a manifold modelled on a
+space of dimension `2 n`, let `Φ` be a partial diffeomorphism from `StdSpace (Fin n)` to `M`
+that pulls `σ` back to the standard form on its source, let `ball 0 s` lie in its source, let `θ`
+be the model one-form `θₖ` read through `Φ` on `Φ '' ball 0 s`, with weights `kⱼ ≠ 0`, and let
+`Φ` relate on `ball 0 s` the generator of the rotations by the angles `2π kⱼ` to `X`. Let
+`F : ℝ → ℝ` be smooth with compact support, `ħ > 0` and `a < s`, such that
+`F⁽ⁿ⁾(-2πħ ∑ⱼ kⱼ² (xⱼ(z)² + yⱼ(z)²))` vanishes for `‖z‖ > a`. If the top form `φ` is the
+component of degree `2 n` of `F(-ħ θ(X) + dθ)` on `Φ '' ball 0 s` and vanishes outside it, then
+its integral against the symplectic orientation is `F 0 / (ħ ^ n * ∏ j, k j)`. -/
+theorem integralTopForm_formCalculus_weightChart [FiniteDimensional ℝ E] [T2Space M]
+    [MeasurableSpace M] [BorelSpace M] [LindelofSpace M] [Fact (Module.finrank ℝ E = 2 * n)]
+    {σ : SmoothTwoForm I M} (hσn : σ.IsNondegenerate)
+    (hσ : SmoothTwoForm.IsSymplecticMapOn (stdForm (Fin n)).constSmooth σ Φ Φ.source)
+    (hs : ball 0 s ⊆ Φ.source)
+    (hθ : ∀ x ∈ Φ '' ball 0 s,
+      θ.val x = TauCeti.mpullback I 𝓘(ℝ, StdSpace (Fin n)) Φ.symm (weightOneForm k).val x)
+    {X : (x : M) → TangentSpace I x}
+    {hX : ContMDiff I I.tangent ∞ (fun x ↦ (X x : TangentBundle I M))}
+    (hXΦ : ∀ z ∈ ball 0 s, mfderiv 𝓘(ℝ, StdSpace (Fin n)) I Φ z (EuclideanSpace.sumEquivProd.symm
+        (weightGenerator ((2 * π) • k) (EuclideanSpace.sumEquivProd z))) = X (Φ z))
+    (hk : ∀ j, k j ≠ 0) {F : ℝ → ℝ} (hF : ContDiff ℝ ∞ F) (hFc : HasCompactSupport F)
+    {ħ : ℝ} (hħ : 0 < ħ) {a : ℝ} (has : a < s)
+    (hFa : ∀ z : StdSpace (Fin n), a < ‖z‖ →
+      iteratedDeriv n F (-(2 * π * ħ) * ∑ j, k j ^ 2 * (z.x j ^ 2 + z.y j ^ 2)) = 0)
+    {φ : RoughForm I M ℝ (2 * n)}
+    (hφ : ∀ z ∈ ball 0 s, φ (Φ z) = (formCalculus F hF
+        (-ħ • SmoothForm.ofFunctionEquiv.symm (SmoothForm.interiorProduct ⟨X, hX⟩ θ))
+        (mextDerivₗ I 1 θ) (2 * n)).val (Φ z))
+    (hφs : ∀ x ∉ Φ '' ball 0 s, φ x = 0) :
+    integralTopForm (hσn.volumeOrientation Fact.out) φ = F 0 / (ħ ^ n * ∏ j, k j) := by
+  -- The model integrand on `StdSpace (Fin n)`, with the weights `wⱼ = 2πħ kⱼ²`.
+  set w : Fin n → ℝ := fun j ↦ 2 * π * ħ * k j ^ 2
+  set G : StdSpace (Fin n) → ℝ :=
+    fun z ↦ iteratedDeriv n F (-(2 * π * ħ) * ∑ j, k j ^ 2 * (z.x j ^ 2 + z.y j ^ 2))
+  have hGw : G = fun z ↦ iteratedDeriv n F (-∑ j, w j * (z.x j ^ 2 + z.y j ^ 2)) := by
+    funext z
+    simp only [G, w, neg_mul, Finset.mul_sum, ← Finset.sum_neg_distrib]
+    exact congrArg _ (Finset.sum_congr rfl fun j _ ↦ by ring)
+  have hG0 {z : StdSpace (Fin n)} (hz : a < ‖z‖) : G z = 0 := hFa z hz
+  have hx (j : Fin n) : Continuous fun z : StdSpace (Fin n) ↦ z.x j :=
+    (continuous_apply j).comp StdSpace.x.continuous_of_finiteDimensional
+  have hy (j : Fin n) : Continuous fun z : StdSpace (Fin n) ↦ z.y j :=
+    (continuous_apply j).comp StdSpace.y.continuous_of_finiteDimensional
+  have hG : Continuous G :=
+    Continuous.comp (g := iteratedDeriv n F) (hF.continuous_iteratedDeriv n (by simp))
+      (by fun_prop)
+  set c : ℝ := 2 ^ n * ∏ j, k j
+  set f : M → ℝ := Φ.target.indicator fun x ↦ c * G (Φ.symm x) with hf_def
+  have hfΦ {z : StdSpace (Fin n)} (hz : z ∈ Φ.source) : f (Φ z) = c * G z := by
+    rw [hf_def, indicator_of_mem (Φ.map_source hz), Φ.symm_toPartialEquiv, Φ.left_inv hz]
+  have hf0 {x : M} (hx : x ∉ Φ.target) : f x = 0 := by rw [hf_def, indicator_of_notMem hx]
+  have hft {x : M} (hx : x ∈ Φ.target) (hxa : a < ‖Φ.symm x‖) : f x = 0 := by
+    rw [hf_def, indicator_of_mem hx, hG0 hxa, mul_zero]
+  have hsa : closedBall (0 : StdSpace (Fin n)) a ⊆ ball 0 s := closedBall_subset_ball has
+  set K := Φ '' closedBall 0 a
+  have hK : IsCompact K :=
+    (isCompact_closedBall _ _).image_of_continuousOn
+      (Φ.contMDiffOn.continuousOn.mono (hsa.trans hs))
+  have hfK : ∀ x ∉ K, f x = 0 := fun x hx ↦ by
+    by_cases hxt : x ∈ Φ.target
+    · exact hft hxt (not_le.1 fun h ↦ hx ⟨_, mem_closedBall_zero_iff.2 h, Φ.right_inv hxt⟩)
+    · exact hf0 hxt
+  have hU : IsOpen (Φ '' ball 0 s) :=
+    Φ.toOpenPartialHomeomorph.isOpen_image_of_subset_source isOpen_ball hs
+  have hf : Continuous f := by
+    refine ContinuousOn.continuous_of_tsupport_subset (s := Φ '' ball 0 s) ?_ hU
+      ((closure_minimal (Function.support_subset_iff'.2 hfK) hK.isClosed).trans
+        (image_mono hsa))
+    have hcont : ContinuousOn (fun x ↦ c * G (Φ.symm x)) (Φ '' ball 0 s) :=
+      continuousOn_const.mul (hG.comp_continuousOn (Φ.symm.contMDiffOn.continuousOn.mono
+        (by rintro _ ⟨z, hz, rfl⟩; exact Φ.map_source (hs hz))))
+    refine hcont.congr fun x ⟨z, hz, hzx⟩ ↦ ?_
+    rw [← hzx, hfΦ (hs hz)]
+    dsimp only
+    rw [Φ.symm_toPartialEquiv, Φ.left_inv (hs hz)]
+  -- `φ` is `f` times the symplectic volume form.
+  have hφf : φ = fun x ↦ f x • (σ.volumeForm n).val x := by
+    funext x
+    by_cases hx : x ∈ Φ '' ball 0 s
+    · obtain ⟨z, hz, rfl⟩ := hx
+      rw [hφ z hz, formCalculus_apply_weightChart hσ hs hθ hXΦ F hF ħ hz, hfΦ (hs hz)]
+    · rw [hφs x hx]
+      by_cases hxt : x ∈ Φ.target
+      · have hz : Φ.symm x ∉ ball 0 s := fun h ↦ hx ⟨_, h, Φ.right_inv hxt⟩
+        rw [hft hxt (has.trans_le (by simpa using hz)), zero_smul]
+      · rw [hf0 hxt, zero_smul]
+  have hw : ∀ j, 0 < w j := fun j ↦ by have := hk j; positivity
+  rw [hφf, hσn.integralTopForm_smul_volumeForm hf (HasCompactSupport.intro hK hfK),
+    integral_liouvilleMeasure_of_isSymplecticMapOn_stdForm hσ fun x hx ↦ hf0 hx,
+    setIntegral_congr_fun Φ.open_source.measurableSet fun z hz ↦ hfΦ hz,
+    setIntegral_eq_integral_of_forall_compl_eq_zero fun z hz ↦ by
+      rw [hG0 (has.trans_le (by simpa using fun h ↦ hz (hs h))), mul_zero],
+    integral_const_mul, hGw,
+    integral_stdSpace_iteratedDeriv_neg_sum_mul_sq (hF.of_le (by simp)) hFc hw]
+  simp only [c, w, Finset.prod_mul_distrib, Finset.prod_const, Finset.card_univ,
+    Fintype.card_fin, Finset.prod_pow]
+  have : ∏ j, k j ≠ 0 := Finset.prod_ne_zero_iff.2 fun j _ ↦ hk j
+  field_simp
 
 end WeightChart
 
