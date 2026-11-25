@@ -27,9 +27,9 @@ import Mathlib.Topology.DiscreteSubset
 import SymplecticGeometry.Topology.Connected.Clopen
 import TauCeti.Geometry.Manifold.VectorField.Regularity
 import TauCeti.MeasureTheory.Function.Jacobian
-import TauCeti.MeasureTheory.Function.LocalRepresentative
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.ContMDiffRepresentative
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.LowerOrder
 public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.Morrey
-import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.Basic
 
 /-!
 # Local form of the kernel of `D_J` on `𝒪(1)`, and its zeros
@@ -126,20 +126,14 @@ chart data near every point.
 
 Let `w` be a `W^{k+1,2}` section of `𝒪(1)` with `D_J w = 0`. Whether `D_J w = 0` holds depends only
 on the chart data of `w`, through a weak derivative of them, so forgetting the higher derivatives
-of `w` gives a `W^{1,2}` section in the kernel of `D_J` at order zero. Its local smooth
-representatives agree on overlaps, since two continuous functions equal almost everywhere on an
-open set are equal there, so they glue on each chart image
-(`TauCeti.exists_contDiffOn_ae_eq_of_locally`) and then across the charts into a section of
-`𝒪(1)` (`TauCeti.FiniteBundleAtlas.exists_continuous_coord_eqOn_of_ae_eq`). That section has smooth
-chart readings, so it is smooth (`TauCeti.FiniteBundleAtlas.contMDiff_of_contDiffOn_coord`), and it
-is the continuous representative `TauCeti.SobolevSection.toSection w`. On a smooth section the chart
+of `w` (`TauCeti.SectionChartData.toOrderOne`) gives a `W^{1,2}` section in the kernel of `D_J` at
+order zero. Its chart data have smooth representatives near every point, so `w` is represented by
+a smooth section (`TauCeti.SobolevSection.exists_contMDiff_ae_eq_coord_of_locally`), which is the
+continuous representative `TauCeti.SobolevSection.toSection w`. On a smooth section the chart
 data of the Sobolev operator are the readings of the `(0,1)`-part for `i` of `D_J s`, and taming
 makes that projection injective on the `(0,1)`-forms for `J`
 (`TauCeti.SmoothAlmostComplexStructure.injOn_zeroOnePart_of_tames`). So the kernel of the Sobolev
 operator is the space `twistOneKernel J` of smooth solutions.
-The gluing adapts the proof of Tau Ceti's
-`TauCeti.SobolevSection.exists_continuous_contDiffOn_coord_ae_eq_of_forall_zeroAtInfty`, which glues
-chartwise representatives of Sobolev data in the same way.
 
 ## Main results
 
@@ -786,41 +780,16 @@ theorem exists_contMDiff_ae_eq_coord_of_twistOneDelBarSobolev_eq_zero
       ContMDiff 𝓘(ℝ, ℂ) (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ)) ∞ (fun x ↦ TotalSpace.mk' ℂ x (t x)) ∧
         ∀ i, (twistCoreAtlas 1).sectionChartData.chartValueL volume 2 (k + 1) i w
           =ᵐ[volume.restrict ((twistCoreAtlas 1).image i)] (twistCoreAtlas 1).coord i t := by
-  -- An element of order one with the same chart data, which is in the kernel at order zero.
-  have hlow (l : ℕ) (v : SobolevSection (twistCoreAtlas 1) volume 2 (l + 1)) :
-      ∃ v' : SobolevSection (twistCoreAtlas 1) volume 2 1, ∀ i,
-        (twistCoreAtlas 1).sectionChartData.chartValueL volume 2 (l + 1) i v
-          =ᵐ[volume.restrict ((twistCoreAtlas 1).image i)]
-            (twistCoreAtlas 1).sectionChartData.chartValueL volume 2 1 i v' := by
-    induction l with
-    | zero => exact ⟨v, fun _ ↦ .rfl⟩
-    | succ l ih =>
-      obtain ⟨v', hv'⟩ := ih ((twistCoreAtlas 1).sectionChartData.lowerOrderL volume 2 (l + 1) v)
-      exact ⟨v', fun i ↦ by
-        rw [← SectionChartData.chartValueL_coe_lowerOrderL]
-        exact hv' i⟩
-  obtain ⟨w', hw'⟩ := hlow k w
-  have hw0 : twistOneDelBarSobolev J 0 w' = 0 :=
-    (twistOneDelBarSobolev_eq_zero_iff_of_chartValueL_ae_eq hw').1 hw
-  -- In each chart, the local smooth representatives glue to one on the chart image.
-  have hg (i : Fin (twistCoreAtlas 1).n) :
-      ∃ g : ℂ → ℂ, ContDiffOn ℝ ∞ g ((twistCoreAtlas 1).image i) ∧
-        (twistCoreAtlas 1).sectionChartData.chartValueL volume 2 1 i w'
-        =ᵐ[volume.restrict ((twistCoreAtlas 1).image i)] g :=
-    exists_contDiffOn_ae_eq_of_locally fun y hy ↦ by
-      obtain ⟨U, hU, hyU, -, f, hf, hae⟩ :=
-        exists_contDiffOn_ae_eq_chartValueL_of_twistOneDelBarSobolev_eq_zero hJ hi hw0 i hy
-      exact ⟨U, hU.mem_nhds hyU, f, hf, hae⟩
-  choose g hg hgw using hg
-  -- The representatives on the chart images glue to a section, which is smooth.
-  obtain ⟨s, hs⟩ := SobolevSection.exists_section_ae_eq_coord _ _ _ _ w'
-  obtain ⟨t, -, ht⟩ := FiniteBundleAtlas.exists_continuous_coord_eqOn_of_ae_eq (μ := volume)
-    (fun i ↦ (hg i).continuousOn) fun i ↦ (hs i).symm.trans (hgw i)
-  refine ⟨t, (twistCoreAtlas 1).contMDiff_of_contDiffOn_coord fun i ↦ (hg i).congr (ht i),
-    fun i ↦ ?_⟩
-  filter_upwards [hw' i, hgw i, ae_restrict_mem ((twistCoreAtlas 1).image i).isOpen.measurableSet]
-    with y h1 h2 hy
-  rw [h1, h2, ht i hy]
+  -- Forgetting the higher derivatives gives an element of order one, in the kernel at order zero.
+  have hw0 : twistOneDelBarSobolev J 0
+      ((twistCoreAtlas 1).sectionChartData.toOrderOne volume 2 k w) = 0 :=
+    (twistOneDelBarSobolev_eq_zero_iff_of_chartValueL_ae_eq fun i ↦ by
+      rw [SectionChartData.chartValueL_toOrderOne]).1 hw
+  refine SobolevSection.exists_contMDiff_ae_eq_coord_of_locally fun i y hy ↦ ?_
+  obtain ⟨U, hU, hyU, -, f, hf, hae⟩ :=
+    exists_contDiffOn_ae_eq_chartValueL_of_twistOneDelBarSobolev_eq_zero hJ hi hw0 i hy
+  exact ⟨U, hU.mem_nhds hyU, f, hf,
+    by rwa [SectionChartData.chartValueL_toOrderOne _ volume 2 k w i] at hae⟩
 
 /-- **Regularity of the kernel of `D_J`.** Let a two-form `σ` tame both `J` and the standard
 structure `i` of the sphere. For every order `k`, the continuous representative
