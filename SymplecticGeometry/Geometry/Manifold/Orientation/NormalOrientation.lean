@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle
 public import TauCeti.LinearAlgebra.Orientation.Exact.Basic
 public import TauCeti.Topology.VectorBundle.Orientation.Basic
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Exact
+import SymplecticGeometry.Algebra.Exact.Basic
 
 /-!
 # The normal orientation induced by orientations of a submanifold and its ambient manifold
@@ -143,9 +144,9 @@ private theorem chartSplitting_apply (p : E × P) :
         ((trivializationAt V (TangentSpace J) (f z₀)).linearEquivAt ℝ (f z) hzT).symm (B p.2) := by
   conv_rhs => rw [← ((f.normalSpaceTrivialization hn hdim z₀).linearEquivAt ℝ z hz).apply_symm_apply
     p.2]
-  -- Mathlib has no lemma for the value of `Function.Exact.splitSurjectiveEquiv`: its inverse is
-  -- `(u, a) ↦ D f(z) u + l a` by definition.
-  rfl
+  simp only [chartSplitting, LinearEquiv.trans_apply, LinearEquiv.prodCongr_apply,
+    Function.Exact.splitSurjectiveEquiv_symm_apply, LinearMap.comp_apply, LinearEquiv.coe_coe,
+    ContinuousLinearMap.coe_coe]
 
 /-- The normal class of the splitting of `(u, w)` is `N⁻¹ w`. -/
 private theorem normalClass_chartSplitting (p : E × P) :

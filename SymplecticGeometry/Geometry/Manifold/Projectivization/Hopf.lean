@@ -33,9 +33,12 @@ underlying real manifolds, using Tau Ceti's affine charts of `ℙ 𝕜 (Fin (n +
   `TauCeti.puncturedSpace (Fin (n + 1) → 𝕜)` onto `ℙ 𝕜 (Fin (n + 1) → 𝕜)`, for a nontrivially
   normed field `𝕜` that is a finite-dimensional normed `ℝ`-algebra, such as `ℝ` or `ℂ`. It is
   smooth of every order (`contMDiff_mkNonzero`), holomorphic over `𝕜` itself
-  (`contMDiff_mkNonzero_self`), and a submersion (`isSubmersion_mkNonzero`): over the affine open
-  of a coordinate `j` with `v j ≠ 0` it has the local section `z ↦ v j • Fin.insertNth j 1 z` in
-  the chart. The kernel of its derivative at `v` is the line `𝕜 ∙ v` (`ker_mfderiv_mkNonzero`),
+  (`contMDiff_mkNonzero_self`), and a submersion (`isSubmersion_mkNonzero`), regular at every
+  point (`isRegularPoint_mkNonzero`): over the affine open of a coordinate `j` with `v j ≠ 0` it
+  has the local section `z ↦ v j • Fin.insertNth j 1 z` in the chart. Its fibre over `[v]` is the
+  punctured line of the nonzero multiples of `v` (`preimage_mkNonzero_singleton_mk`). For `𝕜 = ℂ`
+  and `n = 1` it is the pencil `[z₀ : z₁]` on `ℂ² ∖ 0`. The kernel of its derivative at `v` is the
+  line `𝕜 ∙ v` (`ker_mfderiv_mkNonzero`),
   since `mkNonzero` is constant along that line and the dimensions agree.
 * `Projectivization.affineLift 𝕜 j` is the section `w ↦ Fin.insertNth j 1 w` of `mkNonzero` over
   the affine chart of `j`: `mkNonzero 𝕜 n ∘ affineLift 𝕜 j = (affineChart j).symm`
@@ -104,6 +107,15 @@ theorem mkNonzero_eq_mk' (v : TauCeti.puncturedSpace (Fin (n + 1) → 𝕜)) :
     mkNonzero 𝕜 n v = mk' 𝕜 ⟨(v : Fin (n + 1) → 𝕜), TauCeti.mem_puncturedSpace.1 v.property⟩ :=
   (rfl)
 
+/-- The fibre of `mkNonzero` over the line `[v]` is the punctured line through `v`: the nonzero
+vectors of the form `c • v`. -/
+theorem preimage_mkNonzero_singleton_mk {v : Fin (n + 1) → 𝕜} (hv : v ≠ 0) :
+    mkNonzero 𝕜 n ⁻¹' {mk 𝕜 v hv} =
+      {z : TauCeti.puncturedSpace (Fin (n + 1) → 𝕜) | ∃ c : 𝕜, (z : Fin (n + 1) → 𝕜) = c • v} := by
+  ext z
+  simp only [mem_preimage, mem_singleton_iff, mkNonzero_apply, mk_eq_mk_iff', mem_ofPred_eq]
+  exact exists_congr fun _ ↦ eq_comm
+
 variable (𝕜 n) in
 /-- Every point of projective space is the line through a nonzero vector. -/
 theorem surjective_mkNonzero : Surjective (mkNonzero 𝕜 n) := fun x ↦
@@ -136,11 +148,13 @@ theorem contMDiff_affineChart_symm_restrictScalars (j : Fin (n + 1)) (r : ℕ∞
     ContMDiff 𝓘(ℝ, Fin n → 𝕜) 𝓘(ℝ, Fin n → 𝕜) r (affineChart (K := 𝕜) j).symm :=
   (contMDiff_affineChart_symm (𝕜 := 𝕜) j r).restrictScalars' ℝ
 
-/-- Near `v`, the projection `mkNonzero` has the local section
-`y ↦ v j • Fin.insertNth j 1 (affineChart j y)` through `v`, for a coordinate `j` with `v j ≠ 0`,
-so its real derivative at `v` is surjective. -/
-private theorem surjective_mfderiv_mkNonzero (v : TauCeti.puncturedSpace (Fin (n + 1) → 𝕜)) :
-    Surjective (mfderiv 𝓘(ℝ, Fin (n + 1) → 𝕜) 𝓘(ℝ, Fin n → 𝕜) (mkNonzero 𝕜 n) v) := by
+/-- Every nonzero vector `v` is a regular point of the projection `mkNonzero` for the underlying
+real manifold structures: its real derivative at `v` is surjective. Near `v` the projection has
+the local section `y ↦ v j • Fin.insertNth j 1 (affineChart j y)` through `v`, for a coordinate
+`j` with `v j ≠ 0`. -/
+theorem isRegularPoint_mkNonzero (v : TauCeti.puncturedSpace (Fin (n + 1) → 𝕜)) :
+    TauCeti.IsRegularPoint 𝓘(ℝ, Fin (n + 1) → 𝕜) 𝓘(ℝ, Fin n → 𝕜) (mkNonzero 𝕜 n) v := by
+  rw [TauCeti.isRegularPoint_iff]
   have hv := TauCeti.mem_puncturedSpace.1 v.property
   obtain ⟨j, hj⟩ := Function.ne_iff.1 hv
   let s : ℙ 𝕜 (Fin (n + 1) → 𝕜) → TauCeti.puncturedSpace (Fin (n + 1) → 𝕜) := fun y ↦
@@ -179,7 +193,8 @@ underlying real manifolds. -/
 theorem isSubmersion_mkNonzero [FiniteDimensional ℝ 𝕜] :
     IsSubmersion 𝓘(ℝ, Fin (n + 1) → 𝕜) 𝓘(ℝ, Fin n → 𝕜) ∞ (mkNonzero 𝕜 n) :=
   ((contMDiff_mkNonzero 𝕜 n ∞).isSubmersionOfComplement_of_surjective_mfderiv
-    (by exact_mod_cast le_top) surjective_mfderiv_mkNonzero).isSubmersion
+    (by exact_mod_cast le_top)
+    fun v ↦ TauCeti.isRegularPoint_iff.1 (isRegularPoint_mkNonzero v)).isSubmersion
 
 /-- The real derivative of `mkNonzero` at `v` vanishes on the line `𝕜 ∙ v`, along which
 `mkNonzero` is constant. -/
