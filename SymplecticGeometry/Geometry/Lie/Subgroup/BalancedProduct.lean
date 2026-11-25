@@ -52,17 +52,17 @@ namespace Subgroup.RightTranslation
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {G : Type*} [Group G] {K : Subgroup G}
   {E H : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E] [TopologicalSpace H]
   {I : ModelWithCorners 𝕜 E H} [TopologicalSpace G] [ChartedSpace H G] [LieGroup I 1 G]
-  {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F] [ChartedSpace F K]
-  [ContMDiffSMul 𝓘(𝕜, F) I 1 K G]
+  {EK HK : Type*} [NormedAddCommGroup EK] [NormedSpace 𝕜 EK] [TopologicalSpace HK]
+  {IK : ModelWithCorners 𝕜 EK HK} [ChartedSpace HK K] [ContMDiffSMul IK I 1 K G]
 
 /-- **The fundamental vector fields of right translation.** For the action `h • g = g h⁻¹` of a
 subgroup `K` on `G`, the fundamental vector field of `ξ ∈ Lie(K)` at `g` is `-d(L_g)(ξ')`, minus
 the left-invariant vector field of the image `ξ'` of `ξ` in `Lie(G)`. -/
-theorem fundamentalVectorField_toRightTranslation (ξ : GroupLieAlgebra 𝓘(𝕜, F) K) (g : G) :
+theorem fundamentalVectorField_toRightTranslation (ξ : GroupLieAlgebra IK K) (g : G) :
     fundamentalVectorField I ξ (K.toRightTranslation g) =
-      -mulInvariantVectorField (K.subtype.groupLieAlgebraMap 𝓘(𝕜, F) I ξ) g := by
-  have hsub : MDifferentiableAt 𝓘(𝕜, F) I K.subtype 1 := by
-    have h := (ContMDiffSMul.contMDiff_smul_const (I := 𝓘(𝕜, F)) (I' := I) (n := 1)
+      -mulInvariantVectorField (K.subtype.groupLieAlgebraMap IK I ξ) g := by
+  have hsub : MDifferentiableAt IK I K.subtype 1 := by
+    have h := (ContMDiffSMul.contMDiff_smul_const (I := IK) (I' := I) (n := 1)
       (1 : G)).mdifferentiableAt (x := (1 : K)) one_ne_zero
     convert h using 1
     funext k
@@ -74,7 +74,7 @@ theorem fundamentalVectorField_toRightTranslation (ξ : GroupLieAlgebra 𝓘(�
   rw [fundamentalVectorField_apply]
   -- `K.RightTranslation` is `G` with the same charts, `K.toRightTranslation` is the identity, and
   -- `k • g = g k⁻¹`, so the orbit map of `g` is `k ↦ g k⁻¹`, a map into `G`.
-  change mfderiv 𝓘(𝕜, F) I ((fun x : G ↦ g * x) ∘ (fun x : G ↦ x⁻¹) ∘ K.subtype) 1 ξ = _
+  change mfderiv IK I ((fun x : G ↦ g * x) ∘ (fun x : G ↦ x⁻¹) ∘ K.subtype) 1 ξ = _
   rw [mfderiv_comp_apply_of_eq 1 hmul (hinv.comp_of_eq 1 hsub (by simp)) (by simp),
     mfderiv_comp_apply_of_eq 1 hinv hsub (by simp), ← MonoidHom.groupLieAlgebraMap_apply,
     GroupLieAlgebra.mfderiv_inv_one_apply, map_neg, GroupLieAlgebra.mulInvariantVectorField_apply]
