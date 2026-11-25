@@ -48,8 +48,8 @@ neighbourhood theorem for the form `dλ`,
 * `SymplecticGeometry.dehnTwist_eq_of_apply_eq_comp`: precomposing `ι` with a diffeomorphism `c` of
   `T*Sⁿ` that commutes with the model twist does not change the twist.
 * `SymplecticGeometry.exists_dehnTwist_eq_comp_orthogonal`: for `A ∈ O(n + 1)`, precomposing `ι`
-  with the cotangent lift of `A` gives an embedding of the same kind for `f ∘ A`, with the same
-  twist.
+  with the cotangent lift `c` of `A`, on `c⁻¹(U)`, gives an embedding of the same kind for
+  `f ∘ A`, with the same twist.
 
 ## Implementation notes
 
@@ -223,8 +223,9 @@ theorem dehnTwist_eq_of_apply_eq_comp {U' : Opens (𝕋 n)} {V' : Opens M}
 /-- **Reparametrizing the sphere by an orthogonal map.** Let `ι` pull `σ` back to `-ω_can` and
 send the zero covector at each `q ∈ Sⁿ` to `f q`, and let `A ∈ O(n + 1)`, acting on `Sⁿ` by the
 diffeomorphism `a = orthogonalToDiffSphere n ∞ A`. Then `ι ∘ c`, for the cotangent lift `c` of
-`a`, is defined on an open set `U'` containing `{z | μ z ≤ r₀}`, pulls `σ` back to `-ω_can`,
-sends the zero covector at `q` to `f (a q)`, and gives the same Dehn twist as `ι`. -/
+`a`, is defined on the open set `U' = c⁻¹(U)`, which contains `{z | μ z ≤ r₀}`; it pulls `σ`
+back to `-ω_can`, sends the zero covector at `q` to `f (a q)`, and gives the same Dehn twist as
+`ι`. -/
 theorem exists_dehnTwist_eq_comp_orthogonal [IsManifold I ∞ M] {σ : SmoothTwoForm I M}
     (ι : U ≃ₘ⟮𝓣 n, I⟯ V) (hR : IsTwistProfile R r₀)
     (hU : {z : 𝕋 n | cotangentNorm z ≤ r₀} ⊆ (U : Set (𝕋 n)))
@@ -237,7 +238,10 @@ theorem exists_dehnTwist_eq_comp_orthogonal [IsManifold I ∞ M] {σ : SmoothTwo
       (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ) q ∈ U, (ι ⟨_, h⟩ : M) = f q)
     (A : Matrix.orthogonalGroup (Fin (n + 1)) ℝ) :
     ∃ (U' : Opens (𝕋 n)) (ι' : U' ≃ₘ⟮𝓣 n, I⟯ V)
+      (hUU' : ∀ z, z ∈ U' ↔ (orthogonalToDiffSphere n ∞ A).cotangent z ∈ U)
       (hU' : {z : 𝕋 n | cotangentNorm z ≤ r₀} ⊆ (U' : Set (𝕋 n))),
+      (∀ z : U', (ι' z : M) = ι ⟨(orthogonalToDiffSphere n ∞ A).cotangent z,
+        (hUU' z).1 z.property⟩) ∧
       SmoothForm.mpullback ι' ι'.contMDiff
           (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) =
         SmoothForm.mpullback Subtype.val contMDiff_subtypeVal
@@ -255,7 +259,7 @@ theorem exists_dehnTwist_eq_comp_orthogonal [IsManifold I ∞ M] {σ : SmoothTwo
     exact congrArg (fun w ↦ (ι w : M)) (Subtype.ext (c.subtype_apply_coe hUU' z))
   have hU' : {z : 𝕋 n | cotangentNorm z ≤ r₀} ⊆ (U' : Set (𝕋 n)) := fun z hz ↦
     hU (by rwa [mem_ofPred_eq, cotangentNorm_cotangent_orthogonal])
-  refine ⟨U', ι', hU', ?_, fun q ↦ ?_,
+  refine ⟨U', ι', hUU', hU', hι', ?_, fun q ↦ ?_,
     dehnTwist_eq_of_apply_eq_comp c ι ι' hUU' hι' hR (modelTwist_cotangent_orthogonal hR A) hU hU'⟩
   · -- `ι'` is the restriction of `c` followed by `ι`, and `c` preserves `ω_can`.
     rw [SmoothForm.mpullback_congr ι'.contMDiff (ι.contMDiff.comp (c.subtype hUU').contMDiff)
