@@ -33,8 +33,6 @@ differential come from Tau Ceti's `Diffeomorph.mfderiv_comp_diffeomorph` and
 * `TauCeti.isImmersion_comp_diffeomorph_of_boundaryless`: precomposing an immersion with a
   diffeomorphism from a manifold on another model gives an immersion.
 * `TauCeti.isSmoothEmbedding_comp_diffeomorph_of_boundaryless`: the same for smooth embeddings.
-* `IsLocalDiffeomorph.isSmoothEmbedding`: an injective local diffeomorphism between boundaryless
-  manifolds, with a finite-dimensional target model, is a smooth embedding.
 
 ## Main definitions
 
@@ -83,19 +81,6 @@ theorem isSmoothEmbedding_comp_diffeomorph_of_boundaryless (e : M' ≃ₘ^n⟮I'
     (h : IsSmoothEmbedding I J n f) : IsSmoothEmbedding I' J n (f ∘ e) :=
   ⟨isImmersion_comp_diffeomorph_of_boundaryless e hn h.isImmersion,
     h.isEmbedding.comp e.toHomeomorph.isEmbedding⟩
-
-/-- **Injective local diffeomorphisms are smooth embeddings.** A `C^n` local diffeomorphism
-`g : M' → N`, `1 ≤ n`, that is injective is a smooth embedding, when `M'` and `N` have no boundary
-and `N` has a finite-dimensional model. -/
-theorem _root_.IsLocalDiffeomorph.isSmoothEmbedding {g : M' → N}
-    (hg : IsLocalDiffeomorph I' J n g) (hn : 1 ≤ n) (hinj : Function.Injective g) :
-    IsSmoothEmbedding I' J n g := by
-  have hn0 : n ≠ 0 := by rintro rfl; simp at hn
-  refine ⟨hg.contMDiff.isImmersion_of_injective_mfderiv hn fun x ↦ ?_,
-    (Topology.IsOpenEmbedding.of_continuous_injective_isOpenMap hg.contMDiff.continuous hinj
-      hg.isOpenMap).isEmbedding⟩
-  rw [← hg.mfderivToContinuousLinearEquiv_coe hn0 x]
-  exact (hg.mfderivToContinuousLinearEquiv hn0 x).injective
 
 namespace SmoothEmbedding
 

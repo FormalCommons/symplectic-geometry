@@ -7,18 +7,17 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Chart.CodRestrict
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Opens
-public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
-public import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Comp
+import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 
 /-!
-# Restricting and composing smooth isotopies
+# Restricting, precomposing and postcomposing smooth isotopies
 
-Three operations on a smooth isotopy `F : [0, 1] × P → M` of embeddings
+Operations on a smooth isotopy `F : [0, 1] × P → M` of embeddings
 (`TauCeti.SmoothIsotopy`), each of which keeps the motion and changes its source or its target:
 
 * restriction to an open subset of the source, when `P` is an open set `W` of a manifold and
@@ -31,11 +30,13 @@ Three operations on a smooth isotopy `F : [0, 1] × P → M` of embeddings
   allows a map `e` that is a local diffeomorphism only along the motion. Here `P` and `Q` are
   boundaryless and `Q` has a finite-dimensional model, so that composites of smooth embeddings are
   smooth embeddings (`Manifold.IsSmoothEmbedding.comp_of_boundaryless`). As in Tau Ceti's
-  `postcomp`, the endpoints are given as bundled maps that agree with `e ∘ f₀` and `e ∘ f₁`.
-
-The file also makes a smooth isotopy out of a smooth embedding `f : P → M` and a diffeotopy `Φ`
-of `P`: the motion `(t, x) ↦ f (Φ (t, x))`. Its construction follows Tau Ceti's
-`TauCeti.Diffeotopy.smoothIsotopy`, which moves `f` by a diffeotopy of `M` instead.
+  `postcomp`, the endpoints are given as bundled maps that agree with `e ∘ f₀` and `e ∘ f₁`;
+* precomposition with an injective local diffeomorphism `χ : Q → P`, where `Q` may be modelled on
+  another model than `P`; restriction is the case of the inclusion of an open set. Here `Q`, `P`
+  and `M` are boundaryless and `P` and `M` have finite-dimensional models, so that `χ` is a smooth
+  embedding (`IsLocalDiffeomorph.isSmoothEmbedding`) and the slices `F_t ∘ χ` are smooth
+  embeddings (`Manifold.IsSmoothEmbedding.comp_of_boundaryless`). The endpoints are given as
+  bundled maps that agree with `f₀ ∘ χ` and `f₁ ∘ χ`.
 
 ## Main definitions
 
@@ -45,8 +46,8 @@ of `P`: the motion `(t, x) ↦ f (Φ (t, x))`. Its construction follows Tau Ceti
   an isotopy into `U`.
 * `TauCeti.SmoothIsotopy.postcompSmoothEmbedding F e he hn g₀ g₁ hg₀ hg₁`: the isotopy
   `(t, x) ↦ e (F (t, x))`, from `g₀ = e ∘ f₀` to `g₁ = e ∘ f₁`.
-* `TauCeti.Diffeotopy.precompSmoothIsotopy Φ f`: the isotopy `(t, x) ↦ f (Φ (t, x))` of a smooth
-  embedding `f` by a diffeotopy `Φ` of its source, from `f` to `f ∘ Φ₁`.
+* `TauCeti.SmoothIsotopy.precompLocalDiffeomorph F χ hχ hχi hn g₀ g₁ hg₀ hg₁`: the isotopy
+  `(t, y) ↦ F (t, χ y)`, from `g₀ = f₀ ∘ χ` to `g₁ = f₁ ∘ χ`.
 -/
 
 public noncomputable section
@@ -147,37 +148,41 @@ theorem postcompSmoothEmbedding_apply (F : SmoothIsotopy f₀ f₁) (e : M → Q
 
 end Postcomp
 
-end TauCeti.SmoothIsotopy
+/-! ### Precomposition with an injective local diffeomorphism -/
 
+section Precomp
 
-/-! ### Precomposition with a diffeotopy of the source -/
+variable {E'' H'' : Type*} [NormedAddCommGroup E''] [NormedSpace ℝ E''] [TopologicalSpace H'']
+  {K : ModelWithCorners ℝ E'' H''} {Q : Type*} [TopologicalSpace Q] [ChartedSpace H'' Q]
+  [FiniteDimensional ℝ E] [FiniteDimensional ℝ E'] [I.Boundaryless] [J.Boundaryless]
+  [K.Boundaryless] [IsManifold I n M] [IsManifold J n P] [IsManifold K n Q]
+  {f₀ f₁ : C^n⟮J, P; I, M⟯}
 
-namespace TauCeti.Diffeotopy
-
-variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
-  {I : ModelWithCorners ℝ E H} {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
-  {E' H' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
-  {J : ModelWithCorners ℝ E' H'} {P : Type*} [TopologicalSpace P] [ChartedSpace H' P]
-  {n : ℕ∞ω} [IsManifold J n P]
-
-/-- The smooth isotopy `(t, x) ↦ f (Φ (t, x))` of a smooth embedding `f : P → M` given by a
-diffeotopy `Φ` of its source, from `f` to `f ∘ Φ₁`. It is the source-side counterpart of Tau
-Ceti's `TauCeti.Diffeotopy.smoothIsotopy`, which moves `f` by a diffeotopy of its target. -/
-def precompSmoothIsotopy (Φ : Diffeotopy J n P) (f : SmoothEmbedding J I n P M) :
-    SmoothIsotopy f.toContMDiffMap (f.compDiffeomorph Φ.final).toContMDiffMap where
-  toContMDiffMap := ⟨fun p ↦ f (Φ p), f.contMDiff.comp Φ.contMDiff⟩
-  map_zero_left x := congrArg f (Φ.apply_zero x)
-  map_one_left x := by simp [Φ.final_apply]
-  isSmoothEmbedding t := by
-    dsimp
-    simpa only [Function.comp_def, Diffeotopy.timeSlice_apply] using
-      isSmoothEmbedding_comp_diffeomorph (Φ.timeSlice t) f.isSmoothEmbedding
+/-- The **precomposition** of a smooth isotopy `F : [0, 1] × P → M` with an injective `C^n` local
+diffeomorphism `χ : Q → P`, `1 ≤ n`: the isotopy `(t, y) ↦ F (t, χ y)`. Here `Q`, `P` and `M` have
+no boundary, and `P` and `M` have finite-dimensional models. Its endpoints are given as bundled
+maps `g₀`, `g₁` that agree with `f₀ ∘ χ` and `f₁ ∘ χ`. -/
+def precompLocalDiffeomorph (F : SmoothIsotopy f₀ f₁) (χ : Q → P)
+    (hχ : IsLocalDiffeomorph K J n χ) (hχi : Function.Injective χ) (hn : 1 ≤ n)
+    (g₀ g₁ : C^n⟮K, Q; I, M⟯) (hg₀ : ∀ y, g₀ y = f₀ (χ y)) (hg₁ : ∀ y, g₁ y = f₁ (χ y)) :
+    SmoothIsotopy g₀ g₁ where
+  toContMDiffMap := ⟨fun p ↦ F (p.1, χ p.2),
+    F.contMDiff.comp (contMDiff_fst.prodMk (hχ.contMDiff.comp contMDiff_snd))⟩
+  map_zero_left y := (F.apply_zero (χ y)).trans (hg₀ y).symm
+  map_one_left y := (F.apply_one (χ y)).trans (hg₁ y).symm
+  isSmoothEmbedding t :=
+    (F.isSmoothEmbedding t).comp_of_boundaryless (hχ.isSmoothEmbedding hn hχi) hn
 
 @[simp]
-theorem precompSmoothIsotopy_apply (Φ : Diffeotopy J n P) (f : SmoothEmbedding J I n P M)
-    (p : unitInterval × P) : Φ.precompSmoothIsotopy f p = f (Φ p) :=
+theorem precompLocalDiffeomorph_apply (F : SmoothIsotopy f₀ f₁) (χ : Q → P)
+    (hχ : IsLocalDiffeomorph K J n χ) (hχi : Function.Injective χ) (hn : 1 ≤ n)
+    (g₀ g₁ : C^n⟮K, Q; I, M⟯) (hg₀ : ∀ y, g₀ y = f₀ (χ y)) (hg₁ : ∀ y, g₁ y = f₁ (χ y))
+    (p : unitInterval × Q) :
+    F.precompLocalDiffeomorph χ hχ hχi hn g₀ g₁ hg₀ hg₁ p = F (p.1, χ p.2) :=
   (rfl)
 
-end TauCeti.Diffeotopy
+end Precomp
+
+end TauCeti.SmoothIsotopy
 
 end
