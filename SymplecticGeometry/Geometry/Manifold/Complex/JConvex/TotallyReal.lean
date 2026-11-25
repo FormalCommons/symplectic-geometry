@@ -5,8 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.Complex.Plurisubharmonic
-public import TauCeti.LinearAlgebra.TotallyReal.Basic
+public import SymplecticGeometry.Geometry.Manifold.Complex.LeviForm
+public import SymplecticGeometry.LinearAlgebra.TotallyReal.Basic
+public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 
 /-!
 # Plurisubharmonic functions near totally real submanifolds
@@ -21,8 +22,8 @@ to a totally real submanifold, whose Hessian degenerates along the submanifold.
   `Hess f(v, v) > 0` for every `v` outside a real subspace `L` that is totally real for `J`
   (Tau Ceti's `TauCeti.IsTotallyReal`), then `f` is strictly plurisubharmonic at `x`. By Tau
   Ceti's `isManifoldStrictlyPlurisubharmonicAt_iff_criticalHessian`, one has to show
-  `Hess f(v, v) + Hess f(i v, i v) > 0` for `v ≠ 0`; at most one of `v` and `i v` lies in `L`,
-  and `Hess f` is nonnegative on `L` too, as a limit of its values off `L`.
+  `Hess f(v, v) + Hess f(i v, i v) > 0` for `v ≠ 0`, which is
+  `TauCeti.IsTotallyReal.add_pos_of_forall_notMem_pos` for `J`.
 * `SymplecticGeometry.setOf_isManifoldStrictlyPlurisubharmonicAt_mem_nhdsSet_range`: for a map
   `ι : N → M` with totally real tangent images, and `f` real `C²` along `ι(N)` with Hessian
   positive at each point `ι y` off the tangent image of `ι` at `y`, the function `f` is strictly
@@ -62,33 +63,15 @@ theorem isManifoldStrictlyPlurisubharmonicAt_of_criticalHessian_pos
     (hpos : ∀ v ∉ L, 0 < criticalHessian 𝓘(ℝ, E) f x v v) :
     IsManifoldStrictlyPlurisubharmonicAt E f x := by
   rw [isManifoldStrictlyPlurisubharmonicAt_iff_criticalHessian]
-  set B := criticalHessian 𝓘(ℝ, E) f x
-  -- No nonzero `v` has both `v` and `i v` in `L`.
-  have hI (v : E) (hv : v ∈ L) (hIv : Complex.I • v ∈ L) : v = 0 := by
-    have hmap : Complex.I • v ∈
-        L.map ((ofComplexManifold E M).toEndomorphism x).toLinearMap :=
-      ⟨v, hv, ofComplexManifold_apply x v⟩
-    have h0 : (Complex.I • v : E) = 0 := Submodule.disjoint_def.1 hL.disjoint _ hIv hmap
-    exact (smul_eq_zero.1 h0).resolve_left Complex.I_ne_zero
-  -- If some `w` lies off `L`, then `Hess f` is nonnegative everywhere: on `L` as the limit of
-  -- its values at `u + t • w`, `t ≠ 0`.
-  have hnonneg (w : E) (hw : w ∉ L) (u : E) : 0 ≤ B u u := by
-    by_cases hu : u ∈ L
-    · have hg : Continuous fun t : ℝ ↦ u + t • w := by fun_prop
-      have hcont : Continuous fun t : ℝ ↦ B (u + t • w) (u + t • w) :=
-        (B.continuous.comp hg).clm_apply hg
-      have hlim : Tendsto (fun t : ℝ ↦ B (u + t • w) (u + t • w)) (𝓝[≠] 0) (𝓝 (B u u)) := by
-        simpa using hcont.continuousAt (x := 0) |>.tendsto.mono_left nhdsWithin_le_nhds
-      refine ge_of_tendsto hlim (eventually_nhdsWithin_of_forall fun t ht ↦ (hpos _ ?_).le)
-      intro h
-      have htw : t • w ∈ L := (L.add_mem_iff_right hu).1 h
-      exact hw ((L.smul_mem_iff ht).1 htw)
-    · exact (hpos u hu).le
+  have hJv (v : E) : ((ofComplexManifold E M).toEndomorphism x).toLinearMap v = Complex.I • v :=
+    -- `toLinearMap` and `toEndomorphism` only coerce `ofComplexManifold E M x`.
+    ofComplexManifold_apply x v
+  have hJ : Function.Injective ((ofComplexManifold E M).toEndomorphism x).toLinearMap :=
+    fun v w h ↦ smul_right_injective E Complex.I_ne_zero <| (hJv v).symm.trans (h.trans (hJv w))
   intro v hv
-  by_cases h₁ : v ∈ L
-  · have h₂ : Complex.I • v ∉ L := fun h ↦ hv (hI v h₁ h)
-    exact add_pos_of_nonneg_of_pos (hnonneg _ h₂ v) (hpos _ h₂)
-  · exact add_pos_of_pos_of_nonneg (hpos v h₁) (hnonneg v h₁ _)
+  have h := hL.add_pos_of_forall_notMem_pos hJ hpos hv
+  rw [← hJv v]
+  exact h
 
 variable {F H' N : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [TopologicalSpace H']
   {I' : ModelWithCorners ℝ F H'} [TopologicalSpace N] [ChartedSpace H' N]

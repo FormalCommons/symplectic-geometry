@@ -17,8 +17,9 @@ near `x`, and so does strict plurisubharmonicity:
 * `TauCeti.IsStronglyPseudoconvexAt.eventually`,
 * `TauCeti.IsStrictlyPlurisubharmonicAt.eventually`.
 
-The second derivative of `f` is continuous at `x`, and the bilinear forms whose Levi form is
-positive on a subspace of codimension at most `q` form an open set
+The second derivative of `f` is continuous at `x` (Tau Ceti's
+`ContDiffAt.continuousAt_fderiv_fderiv`), and the bilinear forms whose Levi form is positive on a
+subspace of codimension at most `q` form an open set
 (`TauCeti.isOpen_setOf_re_leviForm_posOnSubspace`).
 
 ## References
@@ -41,10 +42,9 @@ variable {V : Type*} [NormedAddCommGroup V] [NormedSpace ℂ V] [FiniteDimension
 `q`-pseudoconvex at `x`, then it is strongly `q`-pseudoconvex at every point near `x`. -/
 theorem IsStronglyPseudoconvexAt.eventually {q : ℕ} (h : IsStronglyPseudoconvexAt q f x)
     (hf : ContDiffAt ℝ 2 f x) : ∀ᶠ y in 𝓝 x, IsStronglyPseudoconvexAt q f y := by
-  have hcont : ContinuousAt (fun y ↦ fderiv ℝ (fderiv ℝ f) y) x :=
-    ((hf.fderiv_right (m := 1) (by norm_num)).fderiv_right (m := 0) (by norm_num)).continuousAt
-  have hmem := hcont.eventually_mem ((isOpen_setOf_re_leviForm_posOnSubspace q).mem_nhds
-    (by simpa only [Set.mem_ofPred_eq, leviForm_def] using isStronglyPseudoconvexAt_iff.mp h))
+  have hmem := (hf.continuousAt_fderiv_fderiv le_rfl).eventually_mem
+    ((isOpen_setOf_re_leviForm_posOnSubspace q).mem_nhds
+      (by simpa only [Set.mem_ofPred_eq, leviForm_def] using isStronglyPseudoconvexAt_iff.mp h))
   filter_upwards [hmem] with y hy
   simpa only [isStronglyPseudoconvexAt_iff, Set.mem_ofPred_eq, leviForm_def] using hy
 
