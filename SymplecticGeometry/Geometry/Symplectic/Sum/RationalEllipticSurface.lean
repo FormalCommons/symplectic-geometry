@@ -52,7 +52,7 @@ coordinates `s, t` of the line. A point of the cone `K³ × K²` is written `Sum
   `ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)`, with the membership tests
   `SymplecticGeometry.mem_rationalEllipticSurface_iff` (on the chosen representatives) and
   `SymplecticGeometry.mk_mem_rationalEllipticSurface_iff` (on any nonzero ones).
-* The instances `ChartedSpace`, `IsManifold 𝓘(ℂ, _) ω`, `CompactSpace` and `T2Space` on it. The
+* The instances `ChartedSpace`, `IsManifold 𝓘(ℂ, _) ω` and `CompactSpace` on it. The
   model is `Fin (2 + 1 - Fintype.card Unit) → ℂ`, as the general atlas gives it; its dimension is
   `2` (`SymplecticGeometry.rationalEllipticSurface.finrank_model`).
 * `SymplecticGeometry.rationalEllipticSurface.embedding`: the inclusion into the product as an
@@ -260,12 +260,12 @@ theorem eq_inter_univ :
       complexProjectiveProdZeroLocus (m := 2) (n := 1) (fun _ : Unit ↦ hessePencil ℂ) ∩ univ := by
   rw [rationalEllipticSurface_def, inter_univ]
 
-/-- The cone Jacobian of the Hesse pencil is surjective at every point of the rational elliptic
-surface. -/
-theorem surjective_jacobiMatrixAt :
-    ∀ x ∈ rationalEllipticSurface, Function.Surjective
+/-- The cone Jacobian of the Hesse pencil is surjective at the chosen representatives of every
+point of `ℂℙ² × ℂℙ¹`, whether or not it lies on the rational elliptic surface. -/
+theorem surjective_jacobiMatrixAt (x : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)) :
+    Function.Surjective
       (jacobiMatrixAt (fun _ : Unit ↦ hessePencil ℂ) (Sum.elim x.1.rep x.2.rep)).mulVec :=
-  fun x _ ↦ mulVec_surjective_jacobiMatrixAt_iff_exists_eval_pderiv_ne_zero.2
+  mulVec_surjective_jacobiMatrixAt_iff_exists_eval_pderiv_ne_zero.2
     (exists_eval_pderiv_hessePencil_ne_zero three_ne_zero x.1.rep_ne_zero x.2.rep_ne_zero)
 
 /-- The atlas of the rational elliptic surface, induced by the slice charts of bihomogeneous zero
@@ -274,42 +274,46 @@ noncomputable instance instChartedSpace :
     ChartedSpace (Fin (2 + 1 - Fintype.card Unit) → ℂ) rationalEllipticSurface :=
   complexProjectiveProdZeroLocusChartedSpace (fun _ ↦ isWeightedHomogeneous_hessePencil_inl)
     (fun _ ↦ isWeightedHomogeneous_hessePencil_inr) isOpen_univ eq_inter_univ
-    surjective_jacobiMatrixAt
+    fun x _ ↦ surjective_jacobiMatrixAt x
 
 /-- The rational elliptic surface is a complex analytic manifold. -/
 instance instIsManifold :
     IsManifold 𝓘(ℂ, Fin (2 + 1 - Fintype.card Unit) → ℂ) ω rationalEllipticSurface :=
   isManifold_complexProjectiveProdZeroLocus (fun _ ↦ isWeightedHomogeneous_hessePencil_inl)
     (fun _ ↦ isWeightedHomogeneous_hessePencil_inr) isOpen_univ eq_inter_univ
-    surjective_jacobiMatrixAt ω
+    (fun x _ ↦ surjective_jacobiMatrixAt x) ω
 
 /-- The rational elliptic surface is compact, as every zero set in `ℂℙ² × ℂℙ¹` is. -/
 instance instCompactSpace : CompactSpace rationalEllipticSurface :=
   inferInstanceAs (CompactSpace (complexProjectiveProdZeroLocus _))
 
-/-- The rational elliptic surface is Hausdorff, as `ℂℙ² × ℂℙ¹` is. -/
-instance instT2Space : T2Space rationalEllipticSurface :=
-  inferInstanceAs (T2Space (Subtype _))
-
 /-- The model of the rational elliptic surface has complex dimension `2`: it is a surface. -/
 theorem finrank_model : Module.finrank ℂ (Fin (2 + 1 - Fintype.card Unit) → ℂ) = 2 := by
   rw [Fintype.card_unit, Module.finrank_fin_fun]
 
--- The body is exposed so that the lemmas about `complexProjectiveProdZeroLocusEmbedding` apply
--- to `rationalEllipticSurface.embedding` in other files.
 /-- The inclusion of the rational elliptic surface into `ℂℙ² × ℂℙ¹`, as an analytic embedding:
 `SymplecticGeometry.complexProjectiveProdZeroLocusEmbedding`. -/
-@[expose] noncomputable def embedding :
+noncomputable def embedding :
     SmoothEmbedding 𝓘(ℂ, Fin (2 + 1 - Fintype.card Unit) → ℂ)
       (𝓘(ℂ, Fin 2 → ℂ).prod 𝓘(ℂ, Fin 1 → ℂ)) ω rationalEllipticSurface
       (ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)) :=
   complexProjectiveProdZeroLocusEmbedding (fun _ ↦ isWeightedHomogeneous_hessePencil_inl)
     (fun _ ↦ isWeightedHomogeneous_hessePencil_inr) isOpen_univ eq_inter_univ
-    surjective_jacobiMatrixAt ω
+    (fun x _ ↦ surjective_jacobiMatrixAt x) ω
 
+/-- The embedding of the rational elliptic surface is the embedding of a bihomogeneous zero set,
+specialized to the Hesse pencil. -/
+theorem embedding_def :
+    embedding = complexProjectiveProdZeroLocusEmbedding
+      (fun _ ↦ isWeightedHomogeneous_hessePencil_inl)
+      (fun _ ↦ isWeightedHomogeneous_hessePencil_inr) isOpen_univ eq_inter_univ
+      (fun x _ ↦ surjective_jacobiMatrixAt x) ω :=
+  (rfl)
+
+/-- The embedding of the rational elliptic surface is the inclusion. -/
 @[simp]
-theorem coe_embedding : ⇑embedding = Subtype.val :=
-  coe_complexProjectiveProdZeroLocusEmbedding _ _ _ _ _ _
+theorem coe_embedding : ⇑embedding = Subtype.val := by
+  rw [embedding_def, coe_complexProjectiveProdZeroLocusEmbedding]
 
 /-- The projection of the rational elliptic surface to `ℂℙ²` is analytic. -/
 theorem contMDiff_fst :
