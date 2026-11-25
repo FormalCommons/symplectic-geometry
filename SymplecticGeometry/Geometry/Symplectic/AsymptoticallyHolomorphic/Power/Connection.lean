@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.Power.Basic
+public import SymplecticGeometry.Topology.FiberBundle.Associated.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.LocalFrame
 public import TauCeti.Geometry.Manifold.FiberBundle.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Basic
@@ -45,7 +46,8 @@ defines `σ_b`, asks for it; a caller supplies it with `FiberBundle.nonempty_fib
 * `SymplecticGeometry.powerConnectionAt α k b`: the connection `d + i k σ_b^* α` in the preferred
   frame at `b`, a covariant derivative over the base set of the preferred trivialization at `b`
   (`SymplecticGeometry.isCovariantDerivativeOn_powerConnectionAt`).
-* `SymplecticGeometry.powerConnection α k`: the connection `D_k` on `PowerBundle P k`.
+* `SymplecticGeometry.powerConnection α k`: a covariant derivative on `PowerBundle P k`, the
+  connection `D_k` when `α` is a connection form.
 
 ## Main results
 
@@ -71,8 +73,6 @@ open scoped Manifold ContDiff Topology
 
 namespace SymplecticGeometry
 
-attribute [local instance] finrank_real_complex_fact'
-
 variable {EB HB B : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [TopologicalSpace HB]
   {IB : ModelWithCorners ℝ EB HB} [TopologicalSpace B] [ChartedSpace HB B] [IsManifold IB ∞ B]
   {P : B → Type*} [TopologicalSpace (TotalSpace Circle P)] [∀ b, TopologicalSpace (P b)]
@@ -93,6 +93,7 @@ def powerConnectionForm (b x : B) :
           ⟨y, (trivializationAt Circle P b).symm y 1⟩) α.val x)))
 
 /-- `powerConnectionForm α k b x w` sends `v` to `(i k (σ_b^* α)_x v) • w`. -/
+@[simp]
 theorem powerConnectionForm_apply (b x : B) (w : PowerBundle P k x) (v : TangentSpace IB x) :
     powerConnectionForm α k b x w v =
       (Complex.I * k * (TauCeti.mpullback IB (IB.prod (𝓡 1))
@@ -108,6 +109,15 @@ def powerConnectionAt (b : B) (s : Π x, PowerBundle P k x) (x : B) :
       (trivializationAt (PowerModel k) (PowerBundle P k) b) s x +
     powerConnectionForm α k b x (s x)
 
+/-- `powerConnectionAt α k b` is the flat derivative of the preferred frame of `PowerBundle P k`
+at `b` plus `powerConnectionForm α k b`. -/
+theorem powerConnectionAt_def (b : B) (s : Π x, PowerBundle P k x) (x : B) :
+    powerConnectionAt α k b s x =
+      frameCovariantDerivative IB (Module.finBasis ℝ (PowerModel k))
+          (trivializationAt (PowerModel k) (PowerBundle P k) b) s x +
+        powerConnectionForm α k b x (s x) :=
+  (rfl)
+
 /-- `powerConnectionAt α k b` is a covariant derivative over the base set of the preferred
 trivialization of `P` at `b`. -/
 theorem isCovariantDerivativeOn_powerConnectionAt (b : B) :
@@ -119,9 +129,11 @@ theorem isCovariantDerivativeOn_powerConnectionAt (b : B) :
       (powerConnectionForm α k b)
   rwa [AssociatedBundle.baseSet_trivializationAt] at h
 
-/-- **The connection `D_k` on `PowerBundle P k`** defined by the `1`-form `α`: at each point `x`,
-the connection `d + i k σ_x^* α` read in the preferred frame at `x`, where `σ_x` is the preferred
-local section of `P` at `x` (`SymplecticGeometry.powerConnection_apply_trivializationAt`). -/
+/-- The covariant derivative on `PowerBundle P k` defined by a real `1`-form `α`: at each point
+`x`, the operator `d + i k σ_x^* α` read in the preferred frame at `x`, where `σ_x` is the
+preferred local section of `P` at `x` (`SymplecticGeometry.powerConnection_apply_trivializationAt`).
+It is a covariant derivative for every `α`. When `α` is a connection form, it is the connection
+`D_k`, which has this form in every local section of `P`. -/
 def powerConnection : CovariantDerivative IB (PowerModel k) (PowerBundle P k) where
   toFun s x := powerConnectionAt α k x s x
   isCovariantDerivativeOnUniv :=
@@ -162,7 +174,7 @@ theorem powerConnection_apply_trivializationAt {s : Π x, PowerBundle P k x}
     rw [Trivialization.localFrameCoeff_eq_coeff _
       (hxe := by rwa [AssociatedBundle.baseSet_trivializationAt])]
     simp only [hy, AssociatedBundle.trivializationAt_mk_symm_one hyU, Module.Basis.coord_apply]
-  rw [powerConnection_apply, powerConnectionAt, add_apply, hframe,
+  rw [powerConnection_apply, powerConnectionAt_def, add_apply, hframe,
     ContinuousLinearMap.comp_apply, Trivialization.symmL_apply _ hxe,
     AssociatedBundle.trivializationAt_symm_eq_mk hx, powerConnectionForm_apply, hs.self_of_nhds,
     ← AssociatedBundle.mk_smul_scalar, AssociatedBundle.mk_add]
