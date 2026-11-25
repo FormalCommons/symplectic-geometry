@@ -255,22 +255,6 @@ theorem mulVec_surjective_jacobiMatrixAt_sumElim_iff_of_mk_eq_mk {K : Type*} [Fi
   exact mulVec_surjective_jacobiMatrixAt_sumElim_smul_iff hp₁ hp₂ (left_ne_zero_of_smul hv)
     (left_ne_zero_of_smul hw) v' w'
 
-/-- Scaling the two blocks of the point by `s` and `t` multiplies the value of an equation of
-bidegree `(d₁ k, d₂ k)` by `s ^ d₁ k * t ^ d₂ k`. -/
-private theorem eval_sumElim_smul {K : Type*} [Field K]
-    {p : ι → MvPolynomial (Fin (m + 1) ⊕ Fin (n + 1)) K}
-    (hp₁ : ∀ k, (p k).IsWeightedHomogeneous (Sum.elim 1 0) (d₁ k))
-    (hp₂ : ∀ k, (p k).IsWeightedHomogeneous (Sum.elim 0 1) (d₂ k)) (s t : K)
-    (v : Fin (m + 1) → K) (w : Fin (n + 1) → K) (k : ι) :
-    eval (Sum.elim (s • v) (t • w)) (p k) = s ^ d₁ k * t ^ d₂ k * eval (Sum.elim v w) (p k) := by
-  have h₁ := (hp₁ k).aeval_pow_mul s (fun y ↦ t ^ (Sum.elim 0 1 y : ℕ) * Sum.elim v w y)
-  have h₂ := (hp₂ k).aeval_pow_mul t (Sum.elim v w)
-  have hz : (fun y ↦ s ^ (Sum.elim 1 0 y : ℕ) * (t ^ (Sum.elim 0 1 y : ℕ) * Sum.elim v w y)) =
-      Sum.elim (s • v) (t • w) := by
-    ext (c | c) <;> simp
-  simp only [hz, aeval_eq_eval] at h₁ h₂
-  rw [h₁, h₂, mul_assoc]
-
 /-- **The regularity test in a product of affine charts.** At a common zero `(v, w)` of a
 bihomogeneous family with `v i ≠ 0` and `w j ≠ 0`, the derivative of the chart equations at the
 chart coordinates of `(mk v, mk w)` is surjective exactly when the cone Jacobian at
@@ -289,7 +273,8 @@ theorem surjective_fderiv_prodChartEquations_affineChart_iff {i : Fin (m + 1)} {
     rw [affineChart_mk, affineChart_mk, Fin.insertNth_one_div_eq_inv_smul i v hi,
       Fin.insertNth_one_div_eq_inv_smul j w hj]
   rw [surjective_fderiv_prodChartEquations_iff hp₁ hp₂ fun k ↦ by
-      rw [prodChartEquations_apply, hb, eval_sumElim_smul hp₁ hp₂, hpvw, mul_zero], hb,
+      rw [prodChartEquations_apply, hb, (hp₁ k).eval_sumElim_smul_left,
+        (hp₂ k).eval_sumElim_smul_right, hpvw, mul_zero, mul_zero], hb,
     mulVec_surjective_jacobiMatrixAt_sumElim_smul_iff hp₁ hp₂ (inv_ne_zero hi) (inv_ne_zero hj)]
 
 /-- At a common zero `(v, w)` of a bihomogeneous family at which the cone Jacobian is surjective,
