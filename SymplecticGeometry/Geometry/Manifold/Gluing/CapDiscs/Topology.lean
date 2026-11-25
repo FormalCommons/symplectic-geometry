@@ -9,17 +9,14 @@ public import SymplecticGeometry.Geometry.Manifold.Gluing.CapDiscs.Basic
 import SymplecticGeometry.Topology.Compactness.LocallyFinite
 
 /-!
-# Capping with discs: Hausdorff, compact and connected
+# Capping with discs: compact and connected
 
 Let `capDiscs c γ hγ hinj` be the surface `S` capped with discs
 (`Gluing/CapDiscs/Basic.lean`). This file proves the point-set properties that make it a closed
-surface when `S` is a compact surface whose boundary the loops `γ i` parametrize.
+surface when `S` is a compact surface whose boundary the loops `γ i` parametrize; that it is
+Hausdorff when `S` is (`SymplecticGeometry.capDiscs.instT2Space`) is proved in `Basic.lean`,
+where the pieces of its gluing data are.
 
-* It is Hausdorff when `S` is. Points of the interior of `S`, or of one disc, are separated
-  there, and distinct discs are disjoint. A point `z` of the `i`-th disc with `‖z‖ ≤ 1` and an
-  interior point `p` are separated by the collar: `p` is away from the compact circle `γ i`, so
-  by compactness of the circle, `p` is also away from the collar points `c (γ i θ, t)` for all
-  `θ` and all small `t`, which are the points of a thin annulus `1 < ‖z‖ < 1 + ε` of the disc.
 * It is compact when `S` is compact and the `γ i` together cover the boundary. The ranges of the
   `γ i` are then a disjoint open cover of the compact boundary, so there are finitely many discs,
   and the capped surface is covered by the closed discs of radius `3 / 2` and the image of the
@@ -29,9 +26,9 @@ surface when `S` is a compact surface whose boundary the loops `γ i` parametriz
 
 ## Main results
 
-* `SymplecticGeometry.capDiscs.instT2Space`: the capped surface is Hausdorff when `S` is.
-* `SymplecticGeometry.capDiscs.compactSpace`: it is compact when `S` is compact and the loops
-  cover the boundary of `S`; `finite_of_compactSpace`: there are then finitely many loops.
+* `SymplecticGeometry.capDiscs.compactSpace`: the capped surface is compact when `S` is compact
+  and the loops cover the boundary of `S`; `finite_of_compactSpace`: there are then finitely
+  many loops.
 * `SymplecticGeometry.capDiscs.instConnectedSpace`: it is connected when `S` is.
 
 ## References
@@ -40,9 +37,6 @@ surface when `S` is a compact surface whose boundary the loops `γ i` parametriz
   §2.7 (the first Chern number of bundles over surfaces).
 * M. W. Hirsch, *Differential Topology*, Springer GTM 33, 1976, Chapter 8, §2 (gluing manifolds
   along boundaries by collars).
-* John M. Lee, *Introduction to Smooth Manifolds*, second edition, Springer GTM 218, 2013,
-  Chapter 1 (the Hausdorff condition on a space glued from charts, as in the smooth manifold
-  chart lemma; here it is proved directly for the glued surface).
 -/
 
 public section
@@ -64,97 +58,6 @@ namespace capDiscs
 variable (c : SmoothCollar 1 ∞ S) {ι : Type} (γ : ι → AddCircle (1 : ℝ) → (𝓡∂ 2).boundary S)
   (hγ : ∀ i, IsLocalDiffeomorph 𝓘(ℝ) (𝓡 1) ∞ (γ i))
   (hinj : Function.Injective fun p : ι × AddCircle (1 : ℝ) ↦ γ p.1 p.2)
-
-section T2
-
-variable [T2Space S]
-
-/-- An interior point `p` of `S` has a neighbourhood that the `i`-th disc meets only in a thin
-annulus `1 < ‖z‖`, at distance `ε` from the boundary circle `‖z‖ = 1`. -/
-private theorem exists_nhds_inr_ne_inl (i : ι) (p : (𝓡∂ 2).interiorOpens S) :
-    ∃ ε > 0, ∃ V ∈ 𝓝 p, ∀ q ∈ V, ∀ z : ball, ‖(z : ℂ)‖ < 1 + ε →
-      inr c γ hγ hinj i z ≠ inl c γ hγ hinj q := by
-  -- Separate `p` from the compact boundary circle `γ i` by `A ∋ p` and an open `B ⊇ γ i`.
-  have hC : IsCompact (range fun θ ↦ (γ i θ : S)) :=
-    isCompact_range (continuous_subtypeVal.comp (hγ i).isLocalHomeomorph.continuous)
-  have hp : (p : S) ∉ range fun θ ↦ (γ i θ : S) := by
-    rintro ⟨θ, hθ⟩
-    have hb : (p : S) ∈ (𝓡∂ 2).boundary S := hθ ▸ (γ i θ).property
-    exact disjoint_left.1 ModelWithCorners.disjoint_interior_boundary
-      (ModelWithCorners.mem_interiorOpens_iff_mem_interior.1 p.property) hb
-  obtain ⟨B, hB, A, hA, hAB⟩ := Filter.disjoint_iff.1 (hC.disjoint_nhdsSet_nhds hp)
-  obtain ⟨B', hB'o, hCB', hB'B⟩ := mem_nhdsSet_iff_exists.1 hB
-  -- The collar coordinates `(γ i θ, t)` whose collar point lies in `B'`, read in `∂S × [0, ∞)`.
-  let V : Set (↥((𝓡∂ 2).boundary S) × EuclideanHalfSpace 1) :=
-    Prod.map id Subtype.val '' (c ⁻¹' B')
-  have hV : IsOpen V :=
-    (IsOpenEmbedding.id.prodMap (normalIioOpens 1).isOpen.isOpenEmbedding_subtypeVal).isOpenMap _
-      (hB'o.preimage c.continuous)
-  let F : ℝ × AddCircle (1 : ℝ) → ↥((𝓡∂ 2).boundary S) × EuclideanHalfSpace 1 :=
-    fun x ↦ (γ i x.2, normalRay x.1)
-  have hF : Continuous F :=
-    ((hγ i).isLocalHomeomorph.continuous.comp continuous_snd).prodMk
-      (continuous_normalRay.comp continuous_fst)
-  have hev : ∀ᶠ r in 𝓝 (0 : ℝ), ∀ θ ∈ univ, F (r, θ) ∈ V := by
-    refine isCompact_univ.eventually_forall_of_forall_eventually fun θ _ ↦ ?_
-    refine hF.continuousAt.preimage_mem_nhds (hV.mem_nhds ⟨(γ i θ, normalIioOpensZero one_pos),
-      ?_, ?_⟩)
-    · rw [mem_preimage, c.apply_zero]
-      exact hCB' ⟨θ, rfl⟩
-    · simp [F, normalRay_zero]
-  obtain ⟨ε, hε, hεV⟩ := Metric.eventually_nhds_iff.1 hev
-  refine ⟨ε, hε, Subtype.val ⁻¹' A, continuous_subtypeVal.continuousAt.preimage_mem_nhds hA,
-    fun q hq z hzε hzq ↦ ?_⟩
-  have hz : 1 < ‖(z : ℂ)‖ := (inr_mem_range_inl_iff c γ hγ hinj).1 ⟨q, hzq.symm⟩
-  rw [inr_eq_inl c γ hγ hinj hz] at hzq
-  obtain rfl := (isOpenEmbedding_capDiscs_inl c γ hγ hinj).injective hzq
-  obtain ⟨w, hw, hwF⟩ := hεV (y := ‖(z : ℂ)‖ - 1)
-    (by rw [Real.dist_eq, sub_zero, abs_of_pos (by linarith)]; linarith)
-    ((arg z / (2 * π) : ℝ) : AddCircle (1 : ℝ)) (mem_univ _)
-  have hw' : w = gluingCoord γ i z :=
-    Prod.ext ((congrArg Prod.fst hwF).trans (gluingCoord_fst i z).symm)
-      (Subtype.ext ((congrArg Prod.snd hwF).trans (coe_gluingCoord_snd i z).symm))
-  exact disjoint_left.1 hAB (hB'B (hw' ▸ hw)) hq
-
-/-- The capped surface is Hausdorff when `S` is. -/
-instance instT2Space : T2Space (capDiscs c γ hγ hinj) := by
-  -- Distinct images of an open embedding of a Hausdorff space have disjoint neighbourhoods.
-  have key {X : Type} [TopologicalSpace X] [T2Space X] {f : X → capDiscs c γ hγ hinj}
-      (hf : IsOpenEmbedding f) {a b : X} (h : f a ≠ f b) : Disjoint (𝓝 (f a)) (𝓝 (f b)) := by
-    rw [← hf.map_nhds_eq, ← hf.map_nhds_eq, Filter.disjoint_map hf.injective]
-    exact disjoint_nhds_nhds.2 fun hab ↦ h (congrArg f hab)
-  have hinl := isOpenEmbedding_capDiscs_inl c γ hγ hinj
-  have hinr := isOpenEmbedding_capDiscs_inr c γ hγ hinj
-  -- A point of a disc and a distinct point of the interior.
-  have mixed {i : ι} {z : ball} {p : (𝓡∂ 2).interiorOpens S}
-      (h : inr c γ hγ hinj i z ≠ inl c γ hγ hinj p) :
-      Disjoint (𝓝 (inr c γ hγ hinj i z)) (𝓝 (inl c γ hγ hinj p)) := by
-    by_cases hz : 1 < ‖(z : ℂ)‖
-    · rw [inr_eq_inl c γ hγ hinj hz] at h ⊢
-      exact key hinl h
-    obtain ⟨ε, hε, V, hV, hsep⟩ := exists_nhds_inr_ne_inl c γ hγ hinj i p
-    have hU : {w : ball | ‖(w : ℂ)‖ < 1 + ε} ∈ 𝓝 z :=
-      (isOpen_lt (continuous_norm.comp continuous_subtypeVal) continuous_const).mem_nhds
-        (show ‖(z : ℂ)‖ < 1 + ε by linarith [not_lt.1 hz])
-    refine Filter.disjoint_iff.2 ⟨_, (hinr i).map_nhds_eq z ▸ image_mem_map hU, _,
-      hinl.map_nhds_eq p ▸ image_mem_map hV, disjoint_left.2 ?_⟩
-    rintro _ ⟨w, hw, rfl⟩ ⟨q, hq, hqw⟩
-    exact hsep q hq w hw hqw.symm
-  refine t2Space_iff_disjoint_nhds.2 fun x y hxy ↦ ?_
-  have hcover := range_inl_union_iUnion_range_inr c γ hγ hinj
-  have hx : x ∈ range (inl c γ hγ hinj) ∪ ⋃ i, range (inr c γ hγ hinj i) := hcover ▸ mem_univ x
-  have hy : y ∈ range (inl c γ hγ hinj) ∪ ⋃ i, range (inr c γ hγ hinj i) := hcover ▸ mem_univ y
-  simp only [mem_union, mem_iUnion] at hx hy
-  rcases hx with ⟨p, rfl⟩ | ⟨i, z, rfl⟩ <;> rcases hy with ⟨q, rfl⟩ | ⟨j, w, rfl⟩
-  · exact key hinl hxy
-  · exact (mixed (Ne.symm hxy)).symm
-  · exact mixed hxy
-  · obtain rfl | hij := eq_or_ne i j
-    · exact key (hinr i) hxy
-    · exact Filter.disjoint_iff.2 ⟨_, (hinr i).isOpen_range.mem_nhds (mem_range_self z), _,
-        (hinr j).isOpen_range.mem_nhds (mem_range_self w), disjoint_range_inr c γ hγ hinj hij⟩
-
-end T2
 
 section Compact
 
