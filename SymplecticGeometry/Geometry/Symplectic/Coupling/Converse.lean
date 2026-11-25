@@ -12,6 +12,7 @@ public import SymplecticGeometry.Geometry.Manifold.GroupAction.RegularLevel
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.TranslatingField
 public import SymplecticGeometry.Geometry.Symplectic.Coupling.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Circle
+public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap.ReducedForm
 
 /-!
@@ -132,8 +133,8 @@ circle bundle of `H⁻¹(a)` is the map `ψ`, the reduced forms of its slices ar
   `bandMap_orbitFiber`, with `f = H`, each slice of the band map pulls `σ` back to the pull-back
   of a unique symplectic form on the base.
 * `SymplecticGeometry.IsCouplingForm.isSmoothFamily`: the family of a coupling form is smooth.
-* `SymplecticGeometry.isRegularValue_of_stabilizer_eq_bot`: a level on which the action is free
-  is a regular value of `H`.
+* `SymplecticGeometry.isRegularValue_of_notMem_fixedPoints`: a level that contains no fixed
+  point of the action is a regular value of `H`.
 * `SymplecticGeometry.exists_isCouplingForm_comp_eq`: the converse of minimal coupling.
 
 ## References
@@ -451,30 +452,19 @@ theorem mfderiv_ne_zero_of_notMem_fixedPoints {σ : SmoothTwoForm I M}
   rwa [← hμ.mem_criticalPoints_circlePeriodOneGenerator_iff hσ, hneg, criticalPoints_neg,
     mem_criticalPoints_iff_mfderiv_eq_zero] at hx
 
-omit [T2Space M] [BoundarylessManifold I M] in
-/-- The Hamiltonian `H = ⟨μ, circlePeriodOneGenerator⟩` of a moment map `-μ` is smooth. -/
-theorem contMDiff_of_isMomentMap_neg {σ : SmoothTwoForm I M}
-    {μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle)}
-    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) fun x ↦ -μ x) :
-    ContMDiff I 𝓘(ℝ) ∞ fun y ↦ μ y circlePeriodOneGenerator := by
-  simpa using (hμ.contMDiff circlePeriodOneGenerator).neg
-
-/-- **A level of free orbits is a regular value of the Hamiltonian.** Let a circle act smoothly
-on a Hausdorff boundaryless manifold `M`, with moment map `-μ` for a nondegenerate two-form `σ`,
-and let `H = ⟨μ, circlePeriodOneGenerator⟩`. If the action is free on the level `H = c`, then
-`c` is a regular value of `H`. -/
-theorem isRegularValue_of_stabilizer_eq_bot {σ : SmoothTwoForm I M}
+/-- **A level without fixed points is a regular value of the Hamiltonian.** Let a circle act
+smoothly on a Hausdorff boundaryless manifold `M`, with moment map `-μ` for a nondegenerate
+two-form `σ`, and let `H = ⟨μ, circlePeriodOneGenerator⟩`. If no point of the level `H = c` is
+fixed by the whole circle, then `c` is a regular value of `H`. -/
+theorem isRegularValue_of_notMem_fixedPoints {σ : SmoothTwoForm I M}
     {μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle)}
     (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) fun x ↦ -μ x)
     (hσ : σ.IsNondegenerate) {c : ℝ}
-    (hfree : ∀ x, μ x circlePeriodOneGenerator = c → MulAction.stabilizer Circle x = ⊥) :
+    (hfix : ∀ x, μ x circlePeriodOneGenerator = c → x ∉ MulAction.fixedPoints Circle M) :
     IsRegularValue I 𝓘(ℝ) (fun y ↦ μ y circlePeriodOneGenerator) c := by
   refine isRegularValue_iff.2 fun x hx ↦ ?_
   rw [isRegularPoint_iff_notMem_criticalPoints, mem_criticalPoints_iff_mfderiv_eq_zero]
-  refine mfderiv_ne_zero_of_notMem_fixedPoints hμ (hσ.nondegenerate_bilinFormAt x) fun hfix ↦ ?_
-  have hgx : Circle.exp Real.pi ∈ MulAction.stabilizer Circle x := hfix _
-  rw [hfree x hx, Subgroup.mem_bot] at hgx
-  exact Circle.exp_pi_ne_one hgx
+  exact mfderiv_ne_zero_of_notMem_fixedPoints hμ (hσ.nondegenerate_bilinFormAt x) (hfix x hx)
 
 end Regular
 
@@ -833,6 +823,7 @@ variable [FiniteDimensional ℝ E] [I.Boundaryless] [ContMDiffSMul (𝓡 1) I �
   [SigmaCompactSpace M] {σ : SmoothTwoForm I M}
   {μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle)}
 
+omit [BoundarylessManifold I M] in
 /-- **The converse of minimal coupling.** Let a circle act smoothly on a Hausdorff, σ-compact,
 boundaryless finite-dimensional manifold `M`, preserving a symplectic form `σ`, with moment map
 `-μ`, and let `H = ⟨μ, circlePeriodOneGenerator⟩`, so that `ι_{X_M} σ = -dH`. Let `a < b`, let
@@ -858,12 +849,19 @@ theorem exists_isCouplingForm_comp_eq (hσ : σ.IsSymplectic)
     (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) fun x ↦ -μ x)
     (hK : IsCompact ((fun x ↦ μ x circlePeriodOneGenerator) ⁻¹' Icc a b))
     (hfree : ∀ x, μ x circlePeriodOneGenerator ∈ Icc a b → MulAction.stabilizer Circle x = ⊥) :
+    -- `I.Boundaryless` gives the boundaryless instance, so the theorem does not assume it
+    haveI : BoundarylessManifold I M := ModelWithCorners.instBoundarylessManifold
     let H : M → ℝ := fun x ↦ μ x circlePeriodOneGenerator
-    haveI hf : ContMDiff I 𝓘(ℝ) ∞ H := contMDiff_of_isMomentMap_neg hμ
+    haveI hf : ContMDiff I 𝓘(ℝ) ∞ H := hμ.contMDiff_of_neg circlePeriodOneGenerator
     haveI hfreea : ∀ x, H x = a → MulAction.stabilizer Circle x = ⊥ := fun x hx ↦
       hfree x (show H x ∈ Icc a b by rw [hx]; exact left_mem_Icc.2 (Fact.out : a < b).le)
+    haveI hfix : ∀ x, H x ∈ Icc a b → x ∉ MulAction.fixedPoints Circle M := fun x hx hx' ↦
+      Circle.exp_pi_ne_one <| Subgroup.mem_bot.1 <|
+        hfree x hx ▸ MulAction.mem_stabilizer_iff.2 (MulAction.mem_fixedPoints.1 hx' _)
     haveI hreg : IsRegularValue I 𝓘(ℝ) H a :=
-      isRegularValue_of_stabilizer_eq_bot hμ hσ.isNondegenerate hfreea
+      isRegularValue_of_notMem_fixedPoints hμ hσ.isNondegenerate fun x hx ↦
+        hfix x <| show H x ∈ Icc a b by
+          rw [show H x = a from hx]; exact left_mem_Icc.2 (Fact.out : a < b).le
     haveI hn : Module.finrank ℝ E - Module.finrank ℝ ℝ = Module.finrank ℝ E - 1 := by
       rw [Module.finrank_self]
     haveI hinv : ∀ (g : Circle) (x : M), H (g • x) = H x := fun g x ↦
@@ -904,11 +902,16 @@ theorem exists_isCouplingForm_comp_eq (hσ : σ.IsSymplectic)
             deRhamCohomology.mk IB 2 ⟨τ s, (hτ s).isClosed.mem_closedForms⟩ =
           -((t : ℝ) - s) • realFirstChernClass IB P := by
   intro H
-  have hf : ContMDiff I 𝓘(ℝ) ∞ H := contMDiff_of_isMomentMap_neg hμ
+  have hf : ContMDiff I 𝓘(ℝ) ∞ H := hμ.contMDiff_of_neg circlePeriodOneGenerator
   have hfreea : ∀ x, H x = a → MulAction.stabilizer Circle x = ⊥ := fun x hx ↦
     hfree x (show H x ∈ Icc a b by rw [hx]; exact left_mem_Icc.2 (Fact.out : a < b).le)
+  have hfix : ∀ x, H x ∈ Icc a b → x ∉ MulAction.fixedPoints Circle M := fun x hx hx' ↦
+    Circle.exp_pi_ne_one <| Subgroup.mem_bot.1 <|
+      hfree x hx ▸ MulAction.mem_stabilizer_iff.2 (MulAction.mem_fixedPoints.1 hx' _)
   have hreg : IsRegularValue I 𝓘(ℝ) H a :=
-    isRegularValue_of_stabilizer_eq_bot hμ hσ.isNondegenerate hfreea
+    isRegularValue_of_notMem_fixedPoints hμ hσ.isNondegenerate fun x hx ↦
+      hfix x <| show H x ∈ Icc a b by
+        rw [show H x = a from hx]; exact left_mem_Icc.2 (Fact.out : a < b).le
   have hn : Module.finrank ℝ E - Module.finrank ℝ ℝ = Module.finrank ℝ E - 1 := by
     rw [Module.finrank_self]
   have hinv : ∀ (g : Circle) (x : M), H (g • x) = H x := fun g x ↦
@@ -937,12 +940,9 @@ theorem exists_isCouplingForm_comp_eq (hσ : σ.IsSymplectic)
   intro IB B P
   -- An invariant complete field `v` with `dH(v) = 1` near the band, where `dH ≠ 0`.
   obtain ⟨v, W, hv, -, hvc, hvinv, hW, hKW, -, hvf⟩ :=
-    exists_invariant_vectorField_mfderiv_eq_one (𝓡 1) (G := Circle) hf hinv hK fun x hx ↦ by
-      have := isRegularValue_of_stabilizer_eq_bot hμ hσ.isNondegenerate (c := H x)
-        (fun y hy ↦ hfree y (show H y ∈ Icc a b from (show H y = H x from hy) ▸ hx))
-        |>.isRegularPoint rfl
-      rwa [isRegularPoint_iff_notMem_criticalPoints, mem_criticalPoints_iff_mfderiv_eq_zero]
-        at this
+    exists_invariant_vectorField_mfderiv_eq_one (𝓡 1) (G := Circle) hf hinv hK fun x hx ↦
+      mfderiv_ne_zero_of_notMem_fixedPoints hμ (hσ.isNondegenerate.nondegenerate_bilinFormAt x)
+        (hfix x hx)
   obtain ⟨hψ, hψs, hψf, hinj, hrange, hX⟩ :=
     bandMap_orbitFiber hf hreg hn hinv hfreea hv hvc hvinv hW hvf hKW (b := b)
   have hτ := existsUnique_isSymplectic_mpullback_eq_mpullback_bandMap hf hreg hn hinv hfreea hv
