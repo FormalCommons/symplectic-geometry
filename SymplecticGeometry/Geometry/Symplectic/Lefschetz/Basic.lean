@@ -197,8 +197,9 @@ theorem isRegularPoint (h : IsLefschetzChart J π p φ i) {x : X} (hx : x ∈ φ
     (hx0 : φ x ≠ 0) : IsRegularPoint I 𝓘(ℝ, Fin 1 → ℂ) π x := by
   let q : (Fin 2 → ℂ) → ℂ := fun w ↦ affineChart i (π p) 0 + LefschetzModel.quadric w
   let e := (ContinuousLinearEquiv.funUnique (Fin 1) ℝ ℂ).symm
-  have heq : π =ᶠ[𝓝 x] ((affineChart i).symm ∘ e ∘ q) ∘ φ :=
-    eventually_of_mem (φ.open_source.mem_nhds hx) fun y hy ↦ h.eqOn_source hy
+  have heq : π =ᶠ[𝓝 x] ((affineChart i).symm ∘ e ∘ q) ∘ φ := by
+    rw [ContinuousLinearEquiv.coe_funUnique_symm]
+    exact eventually_of_mem (φ.open_source.mem_nhds hx) fun y hy ↦ h.eqOn_source hy
   refine IsRegularPoint.congr_of_eventuallyEq ?_ heq
   refine ((PartialDiffeomorph.isLocalDiffeomorphAt _ _ _ φ hx).isRegularPoint_comp_iff
     (by simp)).2 ((IsRegularPoint.comp ?_ ((e.comp_isRegularPoint_iff).2 ?_)))
