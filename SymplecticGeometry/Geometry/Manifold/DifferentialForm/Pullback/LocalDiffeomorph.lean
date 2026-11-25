@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Geometry.Manifold.Algebra.SMul
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Interior
@@ -49,7 +50,9 @@ identities between a form `ω` at `f x` and its pullback at `x`: `dφ = ψ`
 (`IsLocalDiffeomorphAt.mextDeriv_apply_eq_iff`), `ι_Z ω = ψ` for fields related by the
 differential (`IsLocalDiffeomorphAt.interior_apply_eq_iff`), nondegeneracy of a two-form
 (`TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv`, which needs only
-an invertible differential at `x`), and, for a two-form closed at `f x`, the
+an invertible differential at `x`; for the action of an element of a group acting smoothly, on a
+two-form invariant under it, this is `TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_smul_iff`),
+and, for a two-form closed at `f x`, the
 identity `L_Z ω = ψ` (`IsLocalDiffeomorphAt.mlieDerivForm_apply_eq_iff`, through the
 pointwise Cartan formula `TauCeti.mlieDerivForm_eq_mextDeriv_interior_apply`). They are the
 pointwise forms, for a map that is a local diffeomorphism only near `x`, of Tau Ceti's
@@ -152,6 +155,22 @@ theorem nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv [IsManifold I 1 M]
     ext i
     fin_cases i <;> simp [← he]
   rw [hη, LinearMap.BilinForm.nondegenerate_congr_iff]
+
+open scoped ContDiff in
+/-- Let a group `G` act smoothly on `M`, and let the two-form `σ` on `M` be invariant under
+`y ↦ k • y`. Then `σ` is nondegenerate at `k • y` exactly when it is nondegenerate at `y`. -/
+theorem nondegenerate_bilinFormAt_smul_iff [IsManifold I 1 M] {EG HG G : Type*}
+    [NormedAddCommGroup EG] [NormedSpace ℝ EG] [TopologicalSpace HG]
+    {IG : ModelWithCorners ℝ EG HG} [TopologicalSpace G] [ChartedSpace HG G] [Group G]
+    [MulAction G M] [ContMDiffSMul IG I ∞ G M] {σ : SmoothForm I M ℝ 2} (k : G)
+    (hσ : SmoothForm.mpullback (k • ·) (ContMDiffSMul.contMDiff_const_smul (I := IG) k) σ = σ)
+    (y : M) :
+    (σ.bilinFormAt (k • y)).Nondegenerate ↔ (σ.bilinFormAt y).Nondegenerate := by
+  refine nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv
+    (((Diffeomorph.smul IG I ∞ k).isLocalDiffeomorph y).isInvertible_mfderiv (by simp)) ?_
+  have h := congrArg Subtype.val hσ
+  rw [SmoothForm.coe_mpullback] at h
+  exact congrFun h y
 
 end SmoothTwoForm
 
