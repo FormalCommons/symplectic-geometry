@@ -172,7 +172,7 @@ theorem exists_invariant_contMDiff_eq_one_of_isCompact {K U : Set M} (hK : IsCom
   refine ⟨orbitAverage G σ, W, hσ.orbitAverage J, orbitAverage_mem_Icc hσ01, orbitAverage_smul σ,
     hW, hKW, hWinv, fun x hx ↦ orbitAverage_eq_of_eqOn hWinv (fun y hy ↦ ?_) hx,
     HasCompactSupport.intro hD hρD,
-    (closure_minimal (support_subset_iff'.2 hρD) hD.isClosed).trans hDU⟩
+    (TauCeti.tsupport_subset_of_forall_notMem_eq_zero hρD hD.isClosed).trans hDU⟩
   simpa using interior_subset (hy 1)
 
 end SymplecticGeometry

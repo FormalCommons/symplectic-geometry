@@ -518,10 +518,8 @@ theorem exists_isSymplectic_stableHamiltonianModel [FiniteDimensional ℝ E] [Co
   obtain ⟨ε, hε, hle⟩ := SymplecticGeometry.exists_symmStrip_le
     (U := ⟨_, SmoothTwoForm.isOpen_setOf_nondegenerate_bilinFormAt (stableHamiltonianModel α σ)⟩)
     h.nondegenerate_bilinFormAt_stableHamiltonianModel_zero
-  refine ⟨ε, hε, (isClosed_stableHamiltonianModel h.isClosed).mpullback _ _,
-    SmoothTwoForm.isNondegenerate_iff_forall_ker_bilinFormAt_eq_bot.2 fun p ↦ ?_⟩
-  exact ((SmoothTwoForm.nondegenerate_bilinFormAt_mpullback_subtype_val_iff p).2
-    (hle p.property)).ker_eq_bot
+  exact ⟨ε, hε, (isClosed_stableHamiltonianModel h.isClosed).isSymplectic_mpullback_subtype_val
+    fun _ hp ↦ hle hp⟩
 
 /-- **The kernels of the slices of the model.** At a point `(r, x)` where the stable Hamiltonian
 model of a stable Hamiltonian structure `(α, σ)` on a finite-dimensional manifold is

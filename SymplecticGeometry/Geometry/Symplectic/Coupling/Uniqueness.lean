@@ -7,9 +7,11 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.IntervalContraction
 public import SymplecticGeometry.Geometry.Symplectic.Coupling.Basic
+public import SymplecticGeometry.Geometry.Symplectic.Moser.Field
 import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
+import SymplecticGeometry.Geometry.Symplectic.Moser.Equivariant
 import TauCeti.Geometry.Manifold.PartitionOfUnity.Compact
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.ProdIcc
 import TauCeti.Topology.Algebra.Module.Alternating.Basic
@@ -87,6 +89,24 @@ The cutoff of the extended Moser field is `(s, (x, t)) ↦ ρ (s, t)`: it is smo
 under the circle action, compactly supported because `P` is compact, equal to `1` near
 `[0, 1] × P × [a, b]`, and the extended segment is nondegenerate on its support
 (`IsCouplingForm.exists_cutoff_prodIccExtension_add_smul`).
+
+The cut-off Moser field `Y` on `P × ℝ` is `SymplecticGeometry.moserField` for the family
+`TauCeti.SmoothForm.lineMapFamily ω̃₀ (ω̃₀ + dσ̃) contDiff_id`, whose slice at `s` is
+`ω̃₀ + s • dσ̃`, the one-form `σ̃` pulled back along `Prod.snd`, and a cutoff `ρ` on
+`ℝ × (P × ℝ)`, such as the one of `IsCouplingForm.exists_cutoff_prodIccExtension_add_smul`. It is
+jointly smooth when `ρ` is smooth and the slices are nondegenerate on its support
+(`SymplecticGeometry.contMDiff_moserField_lineMapFamily`), and for `ρ` with compact support it
+vanishes outside a compact set (`SymplecticGeometry.exists_isCompact_moserField_eq_zero`), both
+of `Moser/Field.lean`. It is carried to itself by the differential of `(x, t) ↦ (op z • x, t)`
+when `ρ` is invariant (`IsCouplingForm.mfderiv_smul_moserField_lineMapFamily_prodIccExtension`,
+from `SymplecticGeometry.mfderiv_moserField`). Finally `de (Y_s) = 0` at every point: Cartan's
+formula for the invariant `σ̃`, which vanishes on `(X, 0)`, gives `ι_{(X, 0)} dσ̃ = 0`
+(`IsCouplingForm.mextDerivₗ_timeExtendIcc_prodIccHomotopyOperator_sub_apply_prodVectorField`),
+so, where the flat map of the slice is invertible,
+`-de (Y_s) = (ω̃₀ + s • dσ̃) ((X, 0), Y_s)` equals `ρ (s, p) σ̃ (X, 0) = 0`, and elsewhere `Y_s = 0`
+(`IsCouplingForm.mextDerivₗ_timeExtendIcc_prodIccHeight_apply_moserField`). As `de = dt` over
+`[a, b]`, the field has no component along `ℝ` there
+(`IsCouplingForm.moserField_lineMapFamily_prodIccExtension_snd_eq_zero`).
 
 ## References
 
@@ -526,6 +546,170 @@ theorem univ_prod_Icc_subset_setOf_nondegenerate_prodIccExtension_add_smul
           (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1
             (ω₁ - ω₀)))).bilinFormAt (x, p.2)).Nondegenerate} :=
   fun p hp x ↦ nondegenerate_bilinFormAt_prodIccExtension_add_smul h₀ h₁ hτ p.1 x hp.2
+
+/-- **`dσ̃` vanishes on `(X, 0)`.** For two coupling forms `ω₀` and `ω₁` for the same family, the
+exterior derivative of the extension `σ̃` to `P × ℝ` of the primitive `K (ω₁ - ω₀)` vanishes when
+its first argument is the field `(X, 0)`, where `X` is the period-one fundamental vector field of
+the circle action: `σ̃` is invariant and vanishes on `(X, 0)`, so Cartan's formula gives
+`ι_{(X, 0)} dσ̃ = -d (σ̃ (X, 0)) = 0`. -/
+theorem mextDerivₗ_timeExtendIcc_prodIccHomotopyOperator_sub_apply_prodVectorField
+    (h₀ : IsCouplingForm ω₀ τ) (h₁ : IsCouplingForm ω₁ τ) (p : ManifoldTotalSpace Circle P × ℝ)
+    (w : TangentSpace ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) p) :
+    (mextDerivₗ ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) 1 (SmoothForm.timeExtendIcc
+        (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1
+          (ω₁ - ω₀)))).val p
+      ![Manifold.prodVectorField
+        (rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator) 0 p, w] = 0 := by
+  have hY (q : ManifoldTotalSpace Circle P × ℝ) : Manifold.prodVectorField
+      (rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator) 0 q =
+      ((rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator q.1, (0 : ℝ)) :
+        TangentSpace ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) q) :=
+    Manifold.prodVectorField_apply
+      (rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator)
+      (0 : Π t : ℝ, TangentSpace 𝓘(ℝ, ℝ) t) q
+  -- the contraction of `σ̃` with `(X, 0)` is the zero function
+  have hAX : (fun q : ManifoldTotalSpace Circle P × ℝ ↦
+      (SmoothForm.timeExtendIcc
+        (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1
+          (ω₁ - ω₀))).val q
+        ![(rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator q.1,
+          (0 : ℝ))]) = fun _ ↦ 0 := by
+    funext q
+    rw [← hY]
+    exact timeExtendIcc_prodIccHomotopyOperator_sub_apply_prodVectorField h₀ h₁ q
+  rw [mextDerivₗ_apply, hY,
+    PrincipalBundle.mextDeriv_apply_rightFundamentalVectorField_prod
+      (mpullback_smul_timeExtendIcc_prodIccHomotopyOperator_sub h₀ h₁), hAX]
+  -- `erw`: the derivative is taken for the model of `P × ℝ` given by the product instances,
+  -- which `mfderiv_const` does not unify with syntactically
+  simp only [mvfderiv, neg_eq_zero]
+  erw [mfderiv_const, zero_apply]
+
+/-- **The cut-off Moser field preserves the extended height.** Let `ω₀` and `ω₁` be coupling
+forms for the same family. For the family `s ↦ ω̃₀ + s • dσ̃` on `P × ℝ` (as in
+`SymplecticGeometry.IsCouplingForm.mpullback_prodMap_subtypeVal_prodIccExtension_add_smul`),
+the one-form `σ̃` and any cutoff `ρ`, the cut-off Moser field `Y_s`
+(`SymplecticGeometry.moserField`) is killed at every point by `de`, where `e` is the time
+extension of the height `t - a` (`SymplecticGeometry.prodIccHeight`). -/
+theorem mextDerivₗ_timeExtendIcc_prodIccHeight_apply_moserField (h₀ : IsCouplingForm ω₀ τ)
+    (h₁ : IsCouplingForm ω₁ τ) (ρ : ℝ × (ManifoldTotalSpace Circle P × ℝ) → ℝ) (s : ℝ)
+    (p : ManifoldTotalSpace Circle P × ℝ) :
+    (mextDerivₗ ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) 0 (SmoothForm.timeExtendIcc
+        (prodIccHeight (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b))).val p
+      ![moserField
+        (SmoothForm.lineMapFamily
+          (prodIccExtension (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1 ω₀)
+          (prodIccExtension (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1 ω₀ +
+            mextDerivₗ ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) 1 (SmoothForm.timeExtendIcc
+              (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1
+                (ω₁ - ω₀)))) (contDiff_id (E := ℝ)))
+        (SmoothForm.mpullback Prod.snd contMDiff_snd (SmoothForm.timeExtendIcc
+          (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1
+            (ω₁ - ω₀)))) ρ s p] = 0 := by
+  set W := prodIccExtension (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1 ω₀
+  set S := SmoothForm.timeExtendIcc
+    (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1 (ω₁ - ω₀))
+  set X := Manifold.prodVectorField
+    (rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator)
+    (0 : Π t : ℝ, TangentSpace 𝓘(ℝ, ℝ) t) p
+  have hσ : SmoothForm.mpullback (Prod.mk s) (contMDiff_const.prodMk contMDiff_id)
+      (SmoothForm.lineMapFamily W (W + mextDerivₗ ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) 1 S)
+        (contDiff_id (E := ℝ))) = W + s • mextDerivₗ ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) 1 S := by
+    rw [SmoothForm.mpullback_prodMk_lineMapFamily, add_sub_cancel_left, id]
+  by_cases hinv : (SmoothTwoForm.flat (SmoothForm.mpullback (Prod.mk s)
+      (contMDiff_const.prodMk contMDiff_id) (SmoothForm.lineMapFamily W
+        (W + mextDerivₗ ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) 1 S) (contDiff_id (E := ℝ)))) p).IsInvertible
+  · -- `ι_{Y_s} (ω̃₀ + s • dσ̃) = -ρ σ̃` at `p`, evaluated on `(X, 0)`, where `σ̃` vanishes
+    have hY := congrArg (fun c ↦ c ![X])
+      (interior_moserField _ (SmoothForm.mpullback Prod.snd contMDiff_snd S) ρ hinv)
+    simp only [RoughForm.interior_apply, SmoothForm.mpullback_prodMk_mpullback_snd] at hY
+    rw [hσ, ContinuousAlternatingMap.apply_vecCons_swap, Submodule.coe_add, Pi.add_apply,
+      ContinuousAlternatingMap.add_apply, Submodule.coe_smul, Pi.smul_apply,
+      ContinuousAlternatingMap.smul_apply, prodIccExtension_apply_prodVectorField h₀,
+      mextDerivₗ_timeExtendIcc_prodIccHomotopyOperator_sub_apply_prodVectorField h₀ h₁,
+      smul_zero, add_zero, ContinuousAlternatingMap.smul_apply,
+      timeExtendIcc_prodIccHomotopyOperator_sub_apply_prodVectorField h₀ h₁, smul_zero,
+      neg_neg] at hY
+    exact hY
+  · rw [moserField_def, ContinuousLinearMap.inverse_of_not_isInvertible hinv, zero_apply,
+      smul_zero]
+    exact ContinuousAlternatingMap.map_coord_zero _ 0 rfl
+
+/-- **The cut-off Moser field is tangent to the levels over `[a, b]`.** In the setting of
+`SymplecticGeometry.IsCouplingForm.mextDerivₗ_timeExtendIcc_prodIccHeight_apply_moserField`, at
+every point `(x, t)` of `P × ℝ` with `t ∈ [a, b]` the cut-off Moser field has no component along
+`ℝ`. -/
+theorem moserField_lineMapFamily_prodIccExtension_snd_eq_zero (h₀ : IsCouplingForm ω₀ τ)
+    (h₁ : IsCouplingForm ω₁ τ) (ρ : ℝ × (ManifoldTotalSpace Circle P × ℝ) → ℝ) (s : ℝ)
+    (x : ManifoldTotalSpace Circle P) (t : Icc a b) :
+    (moserField
+        (SmoothForm.lineMapFamily
+          (prodIccExtension (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1 ω₀)
+          (prodIccExtension (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1 ω₀ +
+            mextDerivₗ ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) 1 (SmoothForm.timeExtendIcc
+              (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1
+                (ω₁ - ω₀)))) (contDiff_id (E := ℝ)))
+        (SmoothForm.mpullback Prod.snd contMDiff_snd (SmoothForm.timeExtendIcc
+          (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1
+            (ω₁ - ω₀)))) ρ s (x, t)).2 = 0 := by
+  rw [← mextDerivₗ_timeExtendIcc_prodIccHeight_apply x t]
+  exact mextDerivₗ_timeExtendIcc_prodIccHeight_apply_moserField h₀ h₁ ρ s (x, t)
+
+/-- **The cut-off Moser field is invariant.** Let `ω₀` and `ω₁` be coupling forms for the same
+family and `z : Circle`. For the family `s ↦ ω̃₀ + s • dσ̃` on `P × ℝ` (as in
+`SymplecticGeometry.IsCouplingForm.mpullback_prodMap_subtypeVal_prodIccExtension_add_smul`),
+the one-form `σ̃` and a cutoff `ρ` invariant under `(x, t) ↦ (op z • x, t)` at every time, the
+differential of `(x, t) ↦ (op z • x, t)` carries the cut-off Moser field `Y_s` at `p` to `Y_s` at
+the image of `p`. -/
+theorem mfderiv_smul_moserField_lineMapFamily_prodIccExtension (h₀ : IsCouplingForm ω₀ τ)
+    (h₁ : IsCouplingForm ω₁ τ) (z : Circle) {ρ : ℝ × (ManifoldTotalSpace Circle P × ℝ) → ℝ}
+    (hρ : ∀ (s : ℝ) (p : ManifoldTotalSpace Circle P × ℝ), ρ (s, (op z • p.1, p.2)) = ρ (s, p))
+    (s : ℝ) (p : ManifoldTotalSpace Circle P × ℝ) :
+    mfderiv ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ))
+        (fun x : ManifoldTotalSpace Circle P × ℝ ↦ (op z • x.1, x.2)) p
+        (moserField
+          (SmoothForm.lineMapFamily
+            (prodIccExtension (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1 ω₀)
+            (prodIccExtension (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1 ω₀ +
+              mextDerivₗ ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) 1 (SmoothForm.timeExtendIcc
+                (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1
+                  (ω₁ - ω₀)))) (contDiff_id (E := ℝ)))
+          (SmoothForm.mpullback Prod.snd contMDiff_snd (SmoothForm.timeExtendIcc
+            (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1
+              (ω₁ - ω₀)))) ρ s p) =
+      moserField
+        (SmoothForm.lineMapFamily
+          (prodIccExtension (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1 ω₀)
+          (prodIccExtension (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1 ω₀ +
+            mextDerivₗ ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) 1 (SmoothForm.timeExtendIcc
+              (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1
+                (ω₁ - ω₀)))) (contDiff_id (E := ℝ)))
+        (SmoothForm.mpullback Prod.snd contMDiff_snd (SmoothForm.timeExtendIcc
+          (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1
+            (ω₁ - ω₀)))) ρ s (op z • p.1, p.2) := by
+  set W := prodIccExtension (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1 ω₀
+  set S := SmoothForm.timeExtendIcc
+    (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1 (ω₁ - ω₀))
+  set g := (Diffeomorph.constSmul (M := ManifoldTotalSpace Circle P) (IB.prod (𝓡 1)) ∞
+    (op z)).prodCongr    (Diffeomorph.refl 𝓘(ℝ, ℝ) ℝ ∞)
+  have hg : ⇑g = fun x : ManifoldTotalSpace Circle P × ℝ ↦ (op z • x.1, x.2) := by
+    rw [Diffeomorph.coe_prodCongr, Diffeomorph.coe_constSmul, Diffeomorph.coe_refl]
+    -- `Prod.map f id` sends `x` to `(f x.1, x.2)`, by definition
+    rfl
+  have hW : SmoothForm.mpullback g g.contMDiff W = W :=
+    (SmoothForm.mpullback_congr _ _ hg W).trans
+      (mpullback_smul_prodIccExtension z (h₀.mpullback_smul z))
+  have hS : SmoothForm.mpullback g g.contMDiff S = S :=
+    (SmoothForm.mpullback_congr _ _ hg S).trans
+      (mpullback_smul_timeExtendIcc_prodIccHomotopyOperator_sub h₀ h₁ z)
+  have h := mfderiv_moserField g (t := s) (ρ := ρ)
+    (σ := SmoothForm.lineMapFamily W (W + mextDerivₗ ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) 1 S)
+      (contDiff_id (E := ℝ)))
+    (β := SmoothForm.mpullback Prod.snd contMDiff_snd S) ?_ ?_ (fun x ↦ by rw [hg]; exact hρ s x) p
+  · rwa [hg] at h
+  · rw [SmoothForm.mpullback_prodMk_lineMapFamily, add_sub_cancel_left, map_add, map_smul,
+      ← SmoothForm.mextDerivₗ_mpullback, hW, hS, id]
+  · rw [SmoothForm.mpullback_prodMk_mpullback_snd, hS]
 
 variable [CompactSpace B] [FiniteDimensional ℝ EB]
 
