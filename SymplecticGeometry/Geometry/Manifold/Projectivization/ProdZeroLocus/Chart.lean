@@ -7,13 +7,12 @@ module
 
 public import Mathlib.Analysis.Analytic.Polynomial
 public import Mathlib.Analysis.Calculus.ContDiff.Operations
-public import Mathlib.Analysis.Calculus.ContDiff.RCLike
+public import Mathlib.Analysis.Calculus.FDeriv.Analytic
 public import TauCeti.Analysis.MvPolynomial.Jacobian
 public import TauCeti.LinearAlgebra.Projectivization.AffineChart
 public import TauCeti.RingTheory.MvPolynomial.Jacobian.Basic
 
 import SymplecticGeometry.RingTheory.MvPolynomial.WeightedHomogeneous
-import TauCeti.RingTheory.MvPolynomial.WeightedHomogeneous
 
 /-!
 # Bihomogeneous equations in a product of affine charts
@@ -39,10 +38,6 @@ the derivative of these chart equations with the cone Jacobian `TauCeti.jacobiMa
   equations at the chart coordinates of `(mk v, mk w)` is surjective if and only if the cone
   Jacobian at `Sum.elim v w` is. The two Euler relations put two vectors in the kernel of the
   cone Jacobian that fill in the two missing coordinates.
-* `SymplecticGeometry.mulVec_surjective_jacobiMatrixAt_sumElim_iff_of_mk_eq_mk`: surjectivity of
-  the cone Jacobian depends only on the pair of projective points, since scaling the two blocks
-  separately scales its rows and columns by nonzero factors
-  (`SymplecticGeometry.jacobiMatrixAt_sumElim_smul_mul`).
 * `SymplecticGeometry.card_le_of_mulVec_surjective_jacobiMatrixAt_sumElim`: where the cone
   Jacobian is surjective at a common zero, there are at most `m + n` equations.
 
@@ -51,12 +46,17 @@ the nonvanishing of some evaluated partial derivative of `f`: this is Tau Ceti's
 `TauCeti.mulVec_surjective_jacobiMatrixAt_iff_exists_eval_pderiv_ne_zero`, which holds for any
 type of variables, so it applies here as it is.
 
+The regularity test moves to the chart point by scaling the two blocks of the point separately,
+which does not change whether the cone Jacobian is surjective
+(`TauCeti.mulVec_surjective_jacobiMatrixAt_sumElim_smul_iff`, in
+`SymplecticGeometry/RingTheory/MvPolynomial/WeightedHomogeneous.lean`, with
+`TauCeti.mulVec_surjective_jacobiMatrixAt_sumElim_iff_of_mk_eq_mk` for the independence of
+representatives).
+
 The proofs follow Tau Ceti's single-space versions:
 `TauCeti.surjective_fderiv_eval_dehomogenize_affineChart_iff` and its neighbours in
-`TauCeti/Geometry/Manifold/Projectivization/Polynomial.lean` for the regularity test,
-`TauCeti.mulVec_surjective_jacobiMatrixAt_iff_of_mk_eq_mk` in
-`TauCeti/RingTheory/MvPolynomial/Jacobian/Basic.lean` for the independence of representatives,
-and `TauCeti.card_le_of_surjective_jacobiMatrixAt` in
+`TauCeti/Geometry/Manifold/Projectivization/Polynomial.lean` for the regularity test, and
+`TauCeti.card_le_of_surjective_jacobiMatrixAt` in
 `TauCeti/Geometry/Manifold/Projectivization/ZeroLocus.lean` for the count of equations.
 
 ## References
@@ -72,7 +72,7 @@ open scoped ContDiff
 
 namespace SymplecticGeometry
 
-variable {𝕜 ι : Type*} [RCLike 𝕜] {m n : ℕ}
+variable {𝕜 ι : Type*} [NontriviallyNormedField 𝕜] {m n : ℕ}
 
 /-- The equations `p` read in the product of the standard affine charts where the homogeneous
 coordinate `i` of the first factor and `j` of the second are `1`. -/
@@ -114,8 +114,8 @@ private theorem sumElim_insertNth_eq (i : Fin (m + 1)) (j : Fin (n + 1))
   · refine Fin.succAboveCases j ?_ (fun b ↦ ?_) a <;> simp
 
 /-- The chart equations are polynomial, hence analytic. -/
-theorem contDiff_prodChartEquations [Fintype ι] (i : Fin (m + 1)) (j : Fin (n + 1))
-    (p : ι → MvPolynomial (Fin (m + 1) ⊕ Fin (n + 1)) 𝕜) {r : ℕ∞ω} :
+theorem contDiff_prodChartEquations [CompleteSpace 𝕜] [Fintype ι] (i : Fin (m + 1))
+    (j : Fin (n + 1)) (p : ι → MvPolynomial (Fin (m + 1) ⊕ Fin (n + 1)) 𝕜) {r : ℕ∞ω} :
     ContDiff 𝕜 r (prodChartEquations i j p) := by
   have hg : ContDiff 𝕜 r fun u : (Fin m → 𝕜) × (Fin n → 𝕜) ↦
       Sum.elim (i.insertNth 1 u.1) (j.insertNth 1 u.2) := by
@@ -148,20 +148,19 @@ theorem fderiv_prodChartEquations_apply (i : Fin (m + 1)) (j : Fin (n + 1))
     (TauCeti.hasFDerivAt_eval_family p _).fderiv]
 
 /-- The chart equations have a strict derivative everywhere. -/
-theorem hasStrictFDerivAt_prodChartEquations [Finite ι] (i : Fin (m + 1)) (j : Fin (n + 1))
-    (p : ι → MvPolynomial (Fin (m + 1) ⊕ Fin (n + 1)) 𝕜) (a : (Fin m → 𝕜) × (Fin n → 𝕜)) :
+theorem hasStrictFDerivAt_prodChartEquations [CompleteSpace 𝕜] [Finite ι] (i : Fin (m + 1))
+    (j : Fin (n + 1)) (p : ι → MvPolynomial (Fin (m + 1) ⊕ Fin (n + 1)) 𝕜)
+    (a : (Fin m → 𝕜) × (Fin n → 𝕜)) :
     HasStrictFDerivAt (prodChartEquations i j p) (fderiv 𝕜 (prodChartEquations i j p) a) a := by
   cases nonempty_fintype ι
-  exact (contDiff_prodChartEquations i j p (r := 1)).contDiffAt.hasStrictFDerivAt_fderiv
-    one_ne_zero
+  exact (contDiff_prodChartEquations i j p (r := ω)).contDiffAt.analyticAt.hasStrictFDerivAt
 
 section Bihomogeneous
 
 variable {d₁ d₂ : ι → ℕ}
 
 /-- At a zero in the chart, the derivative of the chart equations is surjective exactly when the
-cone Jacobian at the chart point is: the two Euler relations give two vectors in its kernel whose
-coordinates `Sum.inl i` and `Sum.inr j` are `1` and `0`, and `0` and `1`. -/
+cone Jacobian at the chart point is. -/
 theorem surjective_fderiv_prodChartEquations_iff {i : Fin (m + 1)} {j : Fin (n + 1)}
     {p : ι → MvPolynomial (Fin (m + 1) ⊕ Fin (n + 1)) 𝕜}
     (hp₁ : ∀ k, (p k).IsWeightedHomogeneous (Sum.elim 1 0) (d₁ k))
@@ -179,6 +178,9 @@ theorem surjective_fderiv_prodChartEquations_iff {i : Fin (m + 1)} {j : Fin (n +
   · obtain ⟨x, hx⟩ := h y
     exact ⟨_, hx⟩
   obtain ⟨z, rfl⟩ := h y
+  -- The two Euler relations give two vectors in the kernel of the cone Jacobian whose
+  -- coordinates `Sum.inl i` and `Sum.inr j` are `1` and `0`, and `0` and `1`: subtracting
+  -- them from `z` clears those two coordinates without changing its image.
   have h₁ := jacobiMatrixAt_mulVec_weight_mul_eq_zero hp₁ hb
   have h₂ := jacobiMatrixAt_mulVec_weight_mul_eq_zero hp₂ hb
   refine ⟨(fun c ↦ z (.inl (i.succAbove c)) - z (.inl i) * a.1 c,
@@ -191,69 +193,6 @@ theorem surjective_fderiv_prodChartEquations_iff {i : Fin (m + 1)} {j : Fin (n +
     · refine Fin.succAboveCases i ?_ (fun e ↦ ?_) c <;> simp [b]
     · refine Fin.succAboveCases j ?_ (fun e ↦ ?_) c <;> simp [b]
   simp only [hz, mulVec_sub, mulVec_smul, h₁, h₂, smul_zero, sub_zero]
-
-/-- How the cone Jacobian of a bihomogeneous family changes when the two blocks of the point
-are scaled by `s` and `t`: the entry in row `k` and column `x`, multiplied by `s` if `x` lies in
-the first block and by `t` if it lies in the second, is `s ^ d₁ k * t ^ d₂ k` times the entry at
-the unscaled point. -/
-theorem jacobiMatrixAt_sumElim_smul_mul {K : Type*} [Field K]
-    {p : ι → MvPolynomial (Fin (m + 1) ⊕ Fin (n + 1)) K}
-    (hp₁ : ∀ k, (p k).IsWeightedHomogeneous (Sum.elim 1 0) (d₁ k))
-    (hp₂ : ∀ k, (p k).IsWeightedHomogeneous (Sum.elim 0 1) (d₂ k)) (s t : K)
-    (v : Fin (m + 1) → K) (w : Fin (n + 1) → K) (k : ι) (x : Fin (m + 1) ⊕ Fin (n + 1)) :
-    s ^ (Sum.elim 1 0 x : ℕ) * t ^ (Sum.elim 0 1 x : ℕ) *
-        jacobiMatrixAt p (Sum.elim (s • v) (t • w)) k x =
-      s ^ d₁ k * t ^ d₂ k * jacobiMatrixAt p (Sum.elim v w) k x := by
-  have h₁ := (hp₁ k).aeval_pow_mul_pderiv s
-    (fun y ↦ t ^ (Sum.elim 0 1 y : ℕ) * Sum.elim v w y) x
-  have h₂ := (hp₂ k).aeval_pow_mul_pderiv t (Sum.elim v w) x
-  have hz : (fun y ↦ s ^ (Sum.elim 1 0 y : ℕ) * (t ^ (Sum.elim 0 1 y : ℕ) * Sum.elim v w y)) =
-      Sum.elim (s • v) (t • w) := by
-    ext (c | c) <;> simp
-  simp only [hz, aeval_eq_eval] at h₁ h₂
-  simp only [jacobiMatrixAt_apply]
-  linear_combination t ^ (Sum.elim 0 1 x : ℕ) * h₁ + s ^ d₁ k * h₂
-
-/-- Scaling the two blocks of the point by nonzero scalars does not change whether the cone
-Jacobian of a bihomogeneous family is surjective. -/
-theorem mulVec_surjective_jacobiMatrixAt_sumElim_smul_iff {K : Type*} [Field K]
-    {p : ι → MvPolynomial (Fin (m + 1) ⊕ Fin (n + 1)) K}
-    (hp₁ : ∀ k, (p k).IsWeightedHomogeneous (Sum.elim 1 0) (d₁ k))
-    (hp₂ : ∀ k, (p k).IsWeightedHomogeneous (Sum.elim 0 1) (d₂ k)) {s t : K} (hs : s ≠ 0)
-    (ht : t ≠ 0) (v : Fin (m + 1) → K) (w : Fin (n + 1) → K) :
-    (jacobiMatrixAt p (Sum.elim (s • v) (t • w))).mulVec.Surjective ↔
-      (jacobiMatrixAt p (Sum.elim v w)).mulVec.Surjective := by
-  have key (s t : K) (hs : s ≠ 0) (ht : t ≠ 0) (v : Fin (m + 1) → K) (w : Fin (n + 1) → K)
-      (h : (jacobiMatrixAt p (Sum.elim v w)).mulVec.Surjective) :
-      (jacobiMatrixAt p (Sum.elim (s • v) (t • w))).mulVec.Surjective := fun y ↦ by
-    obtain ⟨x, hx⟩ := h fun k ↦ (s ^ d₁ k * t ^ d₂ k)⁻¹ * y k
-    refine ⟨fun c ↦ s ^ (Sum.elim 1 0 c : ℕ) * t ^ (Sum.elim 0 1 c : ℕ) * x c, funext fun k ↦ ?_⟩
-    have hk := congr_fun hx k
-    have hst : s ^ d₁ k * t ^ d₂ k ≠ 0 := mul_ne_zero (pow_ne_zero _ hs) (pow_ne_zero _ ht)
-    simp only [mulVec, dotProduct] at hk ⊢
-    calc ∑ c, jacobiMatrixAt p (Sum.elim (s • v) (t • w)) k c *
-          (s ^ (Sum.elim 1 0 c : ℕ) * t ^ (Sum.elim 0 1 c : ℕ) * x c)
-        = ∑ c, s ^ d₁ k * t ^ d₂ k * (jacobiMatrixAt p (Sum.elim v w) k c * x c) :=
-          Finset.sum_congr rfl fun c _ ↦ by
-            linear_combination x c * jacobiMatrixAt_sumElim_smul_mul hp₁ hp₂ s t v w k c
-      _ = y k := by rw [← Finset.mul_sum, hk, mul_inv_cancel_left₀ hst]
-  refine ⟨fun h ↦ ?_, key s t hs ht v w⟩
-  simpa [smul_smul, hs, ht] using key s⁻¹ t⁻¹ (inv_ne_zero hs) (inv_ne_zero ht) _ _ h
-
-/-- Whether the cone Jacobian of a bihomogeneous family is surjective at a pair of nonzero
-vectors depends only on the pair of projective points they represent. -/
-theorem mulVec_surjective_jacobiMatrixAt_sumElim_iff_of_mk_eq_mk {K : Type*} [Field K]
-    {p : ι → MvPolynomial (Fin (m + 1) ⊕ Fin (n + 1)) K}
-    (hp₁ : ∀ k, (p k).IsWeightedHomogeneous (Sum.elim 1 0) (d₁ k))
-    (hp₂ : ∀ k, (p k).IsWeightedHomogeneous (Sum.elim 0 1) (d₂ k))
-    {v v' : Fin (m + 1) → K} {w w' : Fin (n + 1) → K} (hv : v ≠ 0) (hv' : v' ≠ 0)
-    (hw : w ≠ 0) (hw' : w' ≠ 0) (h₁ : mk K v hv = mk K v' hv') (h₂ : mk K w hw = mk K w' hw') :
-    (jacobiMatrixAt p (Sum.elim v w)).mulVec.Surjective ↔
-      (jacobiMatrixAt p (Sum.elim v' w')).mulVec.Surjective := by
-  obtain ⟨s, rfl⟩ := (mk_eq_mk_iff' K v v' hv hv').mp h₁
-  obtain ⟨t, rfl⟩ := (mk_eq_mk_iff' K w w' hw hw').mp h₂
-  exact mulVec_surjective_jacobiMatrixAt_sumElim_smul_iff hp₁ hp₂ (left_ne_zero_of_smul hv)
-    (left_ne_zero_of_smul hw) v' w'
 
 /-- **The regularity test in a product of affine charts.** At a common zero `(v, w)` of a
 bihomogeneous family with `v i ≠ 0` and `w j ≠ 0`, the derivative of the chart equations at the
