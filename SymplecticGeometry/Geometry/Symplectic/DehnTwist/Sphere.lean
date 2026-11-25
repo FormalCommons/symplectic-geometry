@@ -298,13 +298,12 @@ theorem dehnTwist_eq_of_apply_eq_comp {U' : Opens (𝕋 n)} {V' : Opens M}
   · by_cases hx' : x ∈ (fun z : U ↦ (ι z : M)) '' {z | cotangentNorm (z : 𝕋 n) ≤ r₀}
     · obtain ⟨y, -, rfl⟩ := hx'
       -- Every point of `U` is `c z` for a point `z` of `U'`.
-      obtain ⟨z, rfl⟩ : ∃ z : U', (⟨c z, (hUU' z).1 z.property⟩ : U) = y :=
-        ⟨⟨c.symm y, (hUU' _).2 (by rw [c.apply_symm_apply]; exact y.property)⟩,
-          Subtype.ext (c.apply_symm_apply _)⟩
+      obtain ⟨z, rfl⟩ := (c.toEquiv.subtypeEquiv hUU').surjective y
       -- The point `ι (c z) = ι' z` lies off `ι' '' {μ ≤ r₀}`, so the model twist fixes `z`.
       have hz : r₀ ≤ cotangentNorm (z : 𝕋 n) := le_of_not_ge fun hz ↦ hx ⟨z, hz, hι z⟩
       rw [dehnTwist_apply_val]
-      simp only [hc, modelTwist_apply_of_le hR hz]
+      simp only [Equiv.subtypeEquiv_apply, Diffeomorph.coe_toEquiv, hc,
+        modelTwist_apply_of_le hR hz]
     · exact dehnTwist_apply_of_notMem ι hR hU hx'
 
 /-- **Reparametrizing the sphere by an orthogonal map.** Let `ι` pull `σ` back to `-ω_can` and
