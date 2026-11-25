@@ -10,10 +10,12 @@ public import TauCeti.Geometry.Manifold.SmoothIsotopy.Diffeotopy
 public import TauCeti.Geometry.Manifold.VectorField.Prod
 public import TauCeti.Geometry.Symplectic.Flux.Hamiltonian
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 public import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 public import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.IsSymplectic
 public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
+import SymplecticGeometry.Geometry.Manifold.DeRham.FamilyPrimitive
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
@@ -51,6 +53,18 @@ are the integrands of Tau Ceti's `TauCeti.Diffeotopy.HasHamiltonian`. So a funct
 form are the differentials of the `F (·, t)`. This passes between the cylinder `M × [0, 1]` of
 diffeotopies and the cylinder `[0, 1] × M` of isotopies.
 
+For a family of isotopies `k_t` with a parameter `t ∈ [0, 1]`, given by a smooth map
+`Ĝ : [0, 1]² × P → M` as `k_t (s, x) = Ĝ ((t, s), x)`, the slices of the velocity forms are the
+slices of the one-form `ι_{∂ₛ} Ĝ^* σ` on `[0, 1]² × P`, with `∂ₛ = ((0, 1), 0)` the unit field of
+the second time coordinate (`SymplecticGeometry.unitIntervalSqSndField`). So they form a smooth
+family over `(t, s)`; the computation is that of `TauCeti.SmoothIsotopy.velocityForm_apply`,
+with one more time coordinate. When the `k_t` are symplectic, `σ` is closed and `P` is a
+nonempty open convex set, the parametric Poincaré lemma
+(`IsSmoothlyContractible.exists_contMDiff_mextDeriv_eq_of_forall_mem_closedForms`)
+then gives jointly smooth primitives. Normalized to vanish at a point of `P`, they vanish for each
+`t` at which `Ĝ ((t, ·), ·)` stands still, since the velocity forms vanish there and `P` is
+connected.
+
 ## Main definitions
 
 * `TauCeti.SmoothIsotopy.velocityForm σ F`: the one-form `ι_{∂ₜ} F^* σ` on `[0, 1] × P`.
@@ -73,6 +87,11 @@ diffeotopies and the cylinder `[0, 1] × M` of isotopies.
 * `TauCeti.SmoothIsotopy.exists_opens_forall_apply_eq_of_forall_isCompact`: if the restriction
   of an isotopy to an open `V ⊇ Q` agrees on each compact subset of `V` with a diffeotopy of a
   given kind, the isotopy agrees with one on an open neighbourhood of `Q`.
+* `SymplecticGeometry.isSmoothFamily_velocityForm`: the slices of the velocity forms of a jointly
+  smooth family of isotopies form a smooth family over both parameters.
+* `SymplecticGeometry.exists_contMDiff_velocityForm_eq_mextDeriv`: jointly smooth primitives of
+  the velocity forms of a family of symplectic isotopies of a convex set, zero where the family
+  stands still.
 
 ## Implementation notes
 
@@ -331,5 +350,110 @@ theorem hasHamiltonian_iff_velocityForm {σ : SmoothTwoForm I M} {Φ : Diffeotop
 end Diffeotopy
 
 end TauCeti
+
+namespace SymplecticGeometry
+
+open TauCeti
+
+/-! ### Families of isotopies with a parameter -/
+
+variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+  [IsManifold I ∞ M]
+
+section Family
+
+variable {E' H' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+  {J : ModelWithCorners ℝ E' H'} {P : Type*} [TopologicalSpace P] [ChartedSpace H' P]
+  [IsManifold J ∞ P]
+
+/-- **The velocity forms of a family of isotopies form a smooth family.** Let `Ĝ` be a smooth map
+`[0, 1]² × P → M`, and `k_t`, for each `t`, a smooth isotopy with `k_t (s, x) = Ĝ ((t, s), x)`.
+Then the slices `α_{t, s}` of the velocity forms of the `k_t` form a smooth family over
+`[0, 1]²`: they are the slices of `ι_{∂ₛ} Ĝ^* σ`. -/
+theorem isSmoothFamily_velocityForm (σ : SmoothTwoForm I M)
+    {Ĝ : (unitInterval × unitInterval) × P → M}
+    (hĜ : ContMDiff (((𝓡∂ 1).prod (𝓡∂ 1)).prod J) I ∞ Ĝ) {f₀ f₁ : unitInterval → C^∞⟮J, P; I, M⟯}
+    (k : ∀ t, SmoothIsotopy (f₀ t) (f₁ t)) (hk : ∀ t p, k t p = Ĝ ((t, p.1), p.2)) :
+    IsSmoothFamily ((𝓡∂ 1).prod (𝓡∂ 1)) fun q : unitInterval × unitInterval ↦
+      SmoothForm.mpullback (Prod.mk q.2) (contMDiff_const.prodMk contMDiff_id)
+        ((k q.1).velocityForm σ) := by
+  refine isSmoothFamily_def.2 ⟨SmoothForm.interiorProduct unitIntervalSqSndField
+    (SmoothForm.mpullback Ĝ hĜ σ),
+    fun ⟨t, s⟩ ↦ Subtype.ext <| funext fun x ↦ ContinuousAlternatingMap.ext_fin_one fun w ↦ ?_⟩
+  have hkt : (k t : unitInterval × P → M) = fun p ↦ Ĝ ((t, p.1), p.2) := funext (hk t)
+  have hĜd := hĜ.mdifferentiableAt (x := ((t, s), x)) (by simp)
+  rw [SmoothIsotopy.mpullback_prodMk_velocityForm σ (k t) s x w, hkt]
+  rw [SmoothForm.coe_mpullback, TauCeti.mpullback_apply, SmoothForm.coe_interiorProduct,
+    RoughForm.interior_apply, SmoothForm.coe_mpullback, TauCeti.mpullback_apply,
+    unitIntervalSqSndField_apply]
+  congr 1
+  funext i
+  fin_cases i
+  · exact (MDifferentiableAt.mfderiv_uncurry_apply_mk_zero (f := fun q y ↦ Ĝ (q, y)) hĜd _).trans
+      (MDifferentiableAt.mfderiv_uncurry_apply_zero_mk (f := fun t' s' ↦ Ĝ ((t', s'), x))
+        (MDifferentiableAt.curry_left (f := fun q y ↦ Ĝ (q, y)) hĜd) _)
+  · exact (congrArg (mfderiv _ I Ĝ ((t, s), x)) (mfderiv_prodMk_right_apply w)).trans
+      (MDifferentiableAt.mfderiv_uncurry_apply_zero_mk (f := fun q y ↦ Ĝ (q, y)) hĜd _)
+
+end Family
+
+variable {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [CompleteSpace E']
+
+/-- **Primitives of the velocity forms of a family of symplectic isotopies.** Let `σ` be a closed
+two-form on `M`, `P` a nonempty open convex subset of a Banach space, and `Ĝ : [0, 1]² × P → M`
+smooth. Let `k_t`, for each `t`, be a symplectic isotopy (for some two-form `τ_t` on `P`) with
+`k_t (s, x) = Ĝ ((t, s), x)`. Then there is a smooth `h` on `[0, 1]² × P` such that:
+* for all `t` and `s`, `h ((t, s), ·)` is a primitive of the slice at time `s` of the velocity
+  form of `k_t`;
+* `h ((t, ·), ·) = 0` for every `t` such that `Ĝ ((t, s), x) = Ĝ ((t, 0), x)` for all `s` and
+  `x`. -/
+theorem exists_contMDiff_velocityForm_eq_mextDeriv {σ : SmoothTwoForm I M} (hσ : σ.IsClosed)
+    {P : TopologicalSpace.Opens E'} (hPc : Convex ℝ (P : Set E')) (hPne : (P : Set E').Nonempty)
+    {Ĝ : (unitInterval × unitInterval) × P → M}
+    (hĜ : ContMDiff (((𝓡∂ 1).prod (𝓡∂ 1)).prod 𝓘(ℝ, E')) I ∞ Ĝ)
+    {f₀ f₁ : unitInterval → C^∞⟮𝓘(ℝ, E'), P; I, M⟯} (k : ∀ t, SmoothIsotopy (f₀ t) (f₁ t))
+    (hk : ∀ t p, k t p = Ĝ ((t, p.1), p.2)) {τ : unitInterval → SmoothTwoForm 𝓘(ℝ, E') P}
+    (hks : ∀ t, (k t).IsSymplectic (τ t) σ) :
+    ∃ h : (unitInterval × unitInterval) × P → ℝ,
+      ContMDiff (((𝓡∂ 1).prod (𝓡∂ 1)).prod 𝓘(ℝ, E')) 𝓘(ℝ) ∞ h ∧
+      (∀ t s, (SmoothForm.mpullback (Prod.mk s) (contMDiff_const.prodMk contMDiff_id)
+          ((k t).velocityForm σ)).val =
+        mextDeriv (RoughForm.ofFunction 𝓘(ℝ, E') fun x ↦ h ((t, s), x))) ∧
+      ∀ t, (∀ s x, Ĝ ((t, s), x) = Ĝ ((t, 0), x)) → ∀ s x, h ((t, s), x) = 0 := by
+  have hcl (q : unitInterval × unitInterval) :
+      SmoothForm.mpullback (Prod.mk q.2) (contMDiff_const.prodMk contMDiff_id)
+        ((k q.1).velocityForm σ) ∈ closedForms 𝓘(ℝ, E') P 1 :=
+    (mem_closedForms _ _).2 ((hks q.1).mextDeriv_mpullback_prodMk_velocityForm hσ q.2)
+  obtain ⟨h, hh, hdh⟩ := (Convex.isSmoothlyContractible hPc hPne
+    ).exists_contMDiff_mextDeriv_eq_of_forall_mem_closedForms
+    (isSmoothFamily_velocityForm σ hĜ k hk) hcl
+  -- Normalize the primitives to vanish at a point `x₀` of `P`.
+  obtain ⟨x₀, hx₀⟩ := hPne
+  have hd (t s : unitInterval) :
+      mextDeriv (RoughForm.ofFunction 𝓘(ℝ, E')
+        fun x ↦ h ((t, s), x) - h ((t, s), ⟨x₀, hx₀⟩)) =
+      mextDeriv (RoughForm.ofFunction 𝓘(ℝ, E') fun x ↦ h ((t, s), x)) :=
+    funext fun x ↦ mextDeriv_ofFunction_eq_of_eventuallyEq_add_const
+      (Filter.Eventually.of_forall fun y ↦ sub_eq_add_neg _ _)
+  refine ⟨fun q ↦ h q - h (q.1, ⟨x₀, hx₀⟩),
+    hh.sub (hh.comp (contMDiff_fst.prodMk contMDiff_const)),
+    fun t s ↦ ((hd t s).trans (hdh (t, s))).symm, fun t ht s x ↦ sub_eq_zero.2 ?_⟩
+  -- Where `Ĝ ((t, ·), ·)` does not move, the velocity forms vanish, so `h ((t, s), ·)` is
+  -- constant.
+  have hzero : mextDeriv (RoughForm.ofFunction 𝓘(ℝ, E') fun x ↦ h ((t, s), x)) = 0 := by
+    rw [hdh (t, s)]
+    refine funext fun y ↦ ContinuousAlternatingMap.ext_fin_one fun w ↦ ?_
+    have hconst : (fun s₁ ↦ k t (s₁, y)) = fun _ ↦ k t (0, y) :=
+      funext fun s₁ ↦ by rw [hk, hk, ht s₁ y]
+    refine (SmoothIsotopy.mpullback_prodMk_velocityForm σ (k t) s y w).trans ?_
+    rw [hconst, mfderiv_const, Pi.zero_apply, ContinuousAlternatingMap.coe_zero, Pi.zero_apply]
+    exact ContinuousAlternatingMap.map_coord_zero _ 0 rfl
+  have : PreconnectedSpace P := isPreconnected_iff_preconnectedSpace.1 hPc.isPreconnected
+  exact ((mextDeriv_ofFunction_eq_zero_iff
+    ((hh.comp (contMDiff_const.prodMk contMDiff_id)).mdifferentiable (by simp))).1 hzero
+    ).apply_eq_of_preconnectedSpace _ _
+
+end SymplecticGeometry
 
 end

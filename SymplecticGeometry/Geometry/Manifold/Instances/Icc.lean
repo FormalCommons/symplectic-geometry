@@ -9,6 +9,7 @@ public import Mathlib.Geometry.Manifold.Instances.Icc
 public import Mathlib.Geometry.Manifold.VectorBundle.ContMDiffSection
 public import TauCeti.Geometry.Manifold.VectorField.Prod
 import Mathlib.Analysis.Calculus.Deriv.AffineMap
+import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
 import TauCeti.Geometry.Manifold.Instances.Icc
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
 
@@ -30,7 +31,8 @@ smooth, up to both ends, by Tau Ceti's `TauCeti.contMDiff_one_tangentSpace_Icc`.
 On a cylinder `[0, 1] × P`, the product (Tau Ceti's `TauCeti.Manifold.prodVectorField`) of this
 field with the zero field of `P` is the unit time field `∂ₜ = (1, 0)`. It is smooth, up to both
 ends (`contMDiff_prodVectorField_one_zero`), so it is a smooth section of the tangent bundle
-(`unitIntervalTimeField`).
+(`unitIntervalTimeField`). In the same way, on `[0, 1]² × P` the unit field `∂ₛ = ((0, 1), 0)`
+of the second time coordinate is a smooth section (`unitIntervalSqSndField`).
 
 Every tangent vector of the interval is a real multiple of `1`: a vector that the inclusion sends
 to `r` is `r • 1` (`eq_smul_one_of_mfderiv_subtypeVal_Icc`). So the derivative of a map into the
@@ -145,6 +147,40 @@ theorem coe_unitIntervalTimeField :
       TauCeti.Manifold.prodVectorField (fun s : unitInterval ↦ (1 : TangentSpace (𝓡∂ 1) s))
         (0 : Π y : P, TangentSpace J y) :=
   (rfl)
+
+/-- The unit field `∂ₛ = ((0, 1), 0)` of the second time coordinate on `[0, 1]² × P`, as a
+smooth section of the tangent bundle. -/
+noncomputable def unitIntervalSqSndField :
+    Cₛ^∞⟮((𝓡∂ 1).prod (𝓡∂ 1)).prod J;
+      (EuclideanSpace ℝ (Fin 1) × EuclideanSpace ℝ (Fin 1)) × E',
+      TangentSpace (((𝓡∂ 1).prod (𝓡∂ 1)).prod J) (M := (unitInterval × unitInterval) × P)⟯ :=
+  ⟨TauCeti.Manifold.prodVectorField
+    (TauCeti.Manifold.prodVectorField (0 : Π t : unitInterval, TangentSpace (𝓡∂ 1) t)
+      fun s : unitInterval ↦ (1 : TangentSpace (𝓡∂ 1) s))
+    (0 : Π y : P, TangentSpace J y),
+    TauCeti.Manifold.contMDiff_prodVectorField
+      (TauCeti.Manifold.contMDiff_prodVectorField (Bundle.contMDiff_zeroSection ℝ _)
+        TauCeti.contMDiff_one_tangentSpace_Icc)
+      (Bundle.contMDiff_zeroSection ℝ (TangentSpace J))⟩
+
+/-- The field `∂ₛ` on `[0, 1]² × P` is the product field of `(0, 1)` on `[0, 1]²` and `0` on
+`P`. -/
+@[simp]
+theorem coe_unitIntervalSqSndField :
+    ⇑(unitIntervalSqSndField (J := J) (P := P)) = TauCeti.Manifold.prodVectorField
+      (TauCeti.Manifold.prodVectorField (0 : Π t : unitInterval, TangentSpace (𝓡∂ 1) t)
+        fun s : unitInterval ↦ (1 : TangentSpace (𝓡∂ 1) s))
+      (0 : Π y : P, TangentSpace J y) :=
+  (rfl)
+
+/-- The value of the field `∂ₛ` at `((t, s), x)` is `((0, 1), 0)`. -/
+theorem unitIntervalSqSndField_apply (p : (unitInterval × unitInterval) × P) :
+    unitIntervalSqSndField (J := J) p =
+      (((0 : EuclideanSpace ℝ (Fin 1)), (1 : TangentSpace (𝓡∂ 1) p.1.2)), (0 : E')) := by
+  rw [coe_unitIntervalSqSndField, TauCeti.Manifold.prodVectorField_apply,
+    TauCeti.Manifold.prodVectorField_apply, Pi.zero_apply, Pi.zero_apply]
+  -- The two sides differ only in the types `TangentSpace` and its model space for the zeros.
+  rfl
 
 end Cylinder
 
