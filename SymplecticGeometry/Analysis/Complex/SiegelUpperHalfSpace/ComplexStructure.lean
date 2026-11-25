@@ -16,6 +16,7 @@ import TauCeti.Analysis.Calculus.ContinuousLinearMapInverse
 import TauCeti.Analysis.Calculus.FDeriv.Inv
 import TauCeti.Analysis.Matrix.Sqrt
 import TauCeti.Geometry.Symplectic.Complex.Line
+import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Transpose
 import SymplecticGeometry.LinearAlgebra.ComplexStructure.Standard
 import SymplecticGeometry.LinearAlgebra.Matrix.Block
 import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
@@ -154,12 +155,13 @@ private theorem complexStructureMatrix_eq_mul_transpose_mul_J (Z : SiegelUpperHa
   set g : Matrix ι ι ℝ := ↑G
   set h : Matrix ι ι ℝ := ↑G⁻¹
   have hhg : h * g = 1 := by rw [← Units.val_mul, inv_mul_cancel, Units.val_one]
-  have hgh : g * h = 1 := by rw [← Units.val_mul, mul_inv_cancel, Units.val_one]
   have hYinv : Z.im⁻¹ = hᵀ * h := by
     rw [← hG]
     refine inv_eq_left_inv ?_
     calc hᵀ * h * (g * gᵀ) = hᵀ * (h * g) * gᵀ := by simp only [Matrix.mul_assoc]
-      _ = 1 := by rw [hhg, Matrix.mul_one, ← transpose_mul, hgh, transpose_one]
+      _ = 1 := by
+        rw [hhg, Matrix.mul_one]
+        exact mul_eq_one_comm.mp (GeneralLinearGroup.coe_transpose_mul_coe_inv_transpose G)
   have hX : Z.reᵀ = Z.re := Z.isSymm_re.eq
   rw [complexStructureMatrix_coe, hYinv, ← hG]
   simp only [fromBlocks_transpose, transpose_zero, transpose_transpose, transpose_mul, hX, J,
