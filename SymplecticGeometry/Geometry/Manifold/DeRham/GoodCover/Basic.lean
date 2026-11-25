@@ -9,6 +9,7 @@ public import Mathlib.Analysis.Convex.Star
 public import Mathlib.Geometry.Manifold.Diffeomorph
 public import Mathlib.Geometry.Manifold.Instances.Icc
 public import SymplecticGeometry.Geometry.Manifold.ContMDiff.LineMap
+public import SymplecticGeometry.Topology.Sets.Opens.Comap
 
 /-!
 # Smoothly contractible manifolds and finite good covers
@@ -280,28 +281,15 @@ namespace SymplecticGeometry
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 
 /-- A nonempty open subset `W` of an open subset `U` of a real normed space is smoothly
-contractible when its image in the space is star-convex, by straight lines. -/
+contractible when its image in the space is star-convex. This is
+`IsSmoothlyContractible.of_starConvex_image_extChartAt`, since the extended charts of `U` are the
+inclusion `U → E`. -/
 theorem IsSmoothlyContractible.of_starConvex_image_subtypeVal {U : Opens E} {W : Opens U}
     {c : E} (hW : StarConvex ℝ c (Subtype.val '' (W : Set U))) (hne : (W : Set U).Nonempty) :
     IsSmoothlyContractible 𝓘(ℝ, E) W := by
-  have hmem : ∀ {z : E}, z ∈ Subtype.val '' (W : Set U) → ∃ h : z ∈ U, (⟨z, h⟩ : U) ∈ W := by
-    rintro _ ⟨y, hy, rfl⟩
-    exact ⟨y.property, hy⟩
-  -- The straight line from `c` to `x`, at time `t`.
-  let G : W × unitInterval → E := fun p ↦ AffineMap.lineMap c ((p.1 : U) : E) (p.2 : ℝ)
-  have hG : ∀ p, G p ∈ Subtype.val '' (W : Set U) := fun p ↦
-    hW.segment_subset (mem_image_of_mem _ p.1.property) (lineMap_mem_segment ℝ _ _ p.2.property)
-  obtain ⟨hcU, hcW⟩ := hmem (hW.mem (hne.image _))
-  refine ⟨⟨⟨c, hcU⟩, hcW⟩, fun p ↦ ⟨⟨G p, (hmem (hG p)).1⟩, (hmem (hG p)).2⟩, ?_,
-    fun x ↦ ?_, fun x ↦ ?_⟩
-  · rw [← ContMDiff.subtypeVal_comp_iff, ← ContMDiff.subtypeVal_comp_iff]
-    exact contMDiff_const.lineMap
-      ((contMDiff_subtypeVal.comp (contMDiff_subtypeVal (U := W))).comp contMDiff_fst)
-      ((contMDiff_subtypeVal_Icc (x := 0) (y := 1)).comp contMDiff_snd)
-  · ext
-    simp [G]
-  · ext
-    simp [G]
+  obtain ⟨x, hx⟩ := hne
+  exact .of_starConvex_image_extChartAt (x := x) (fun y _ ↦ by simp [Opens.chartAt_eq])
+    (by simpa [Opens.chartAt_eq]) ⟨x, hx⟩
 
 /-- **Finite covers by convex open sets are good covers.** Let `V` be a finite family of convex
 open subsets of a real normed space whose union is the open set `U`. Then the sets `V i`, read as
@@ -310,17 +298,8 @@ theorem isFiniteGoodCover_comap_of_convex {ι : Type*} [Finite ι] {U : Opens E}
     {V : ι → Opens E} (hV : ∀ i, Convex ℝ (V i : Set E)) (hU : ⨆ i, V i = U) :
     IsFiniteGoodCover 𝓘(ℝ, E)
       fun i ↦ Opens.comap (⟨Subtype.val, continuous_subtypeVal⟩ : C(U, E)) (V i) := by
-  refine ⟨eq_top_iff.2 fun x _ ↦ ?_, fun s hs hne ↦ ?_⟩
-  · have hx : (x : E) ∈ ⨆ i, V i := hU ▸ x.property
-    obtain ⟨i, hi⟩ := Opens.mem_iSup.1 hx
-    exact Opens.mem_iSup.2 ⟨i, hi⟩
-  have himage : Subtype.val '' ((⨅ i ∈ s,
-      Opens.comap (⟨Subtype.val, continuous_subtypeVal⟩ : C(U, E)) (V i) : Opens U) : Set U) =
-      ⋂ i ∈ s, (V i : Set E) := by
-    obtain ⟨j, hj⟩ := hs
-    ext z
-    rw [← Finset.inf_eq_iInf, Opens.coe_finset_inf, Finset.inf_eq_iInf]
-    simpa using fun h ↦ hU ▸ Opens.mem_iSup.2 ⟨j, h j hj⟩
+  refine ⟨Opens.iSup_comap_val_eq_top hU, fun s hs hne ↦ ?_⟩
+  have himage := Opens.image_val_iInf_comap_val (fun i ↦ hU ▸ le_iSup V i) hs
   obtain ⟨z, hz⟩ := hne.image Subtype.val
   rw [himage] at hz
   refine IsSmoothlyContractible.of_starConvex_image_subtypeVal (c := z) ?_ hne
