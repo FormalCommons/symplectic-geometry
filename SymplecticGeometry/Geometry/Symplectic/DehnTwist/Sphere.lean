@@ -292,21 +292,19 @@ theorem dehnTwist_eq_of_apply_eq_comp {U' : Opens (𝕋 n)} {V' : Opens M}
     (hU : {z : 𝕋 n | cotangentNorm z ≤ r₀} ⊆ (U : Set (𝕋 n)))
     (hU' : {z : 𝕋 n | cotangentNorm z ≤ r₀} ⊆ (U' : Set (𝕋 n))) :
     dehnTwist ι' hR hU' = dehnTwist ι hR hU := by
-  ext x
-  by_cases hx : x ∈ range fun z : U ↦ (ι z : M)
-  · obtain ⟨y, rfl⟩ := hx
-    -- Every point of `U` is `c z` for a point `z` of `U'`.
-    obtain ⟨z, rfl⟩ : ∃ z : U', (⟨c z, (hUU' z).1 z.property⟩ : U) = y :=
-      ⟨⟨c.symm y, (hUU' _).2 (by rw [c.apply_symm_apply]; exact y.property)⟩,
-        Subtype.ext (c.apply_symm_apply _)⟩
-    dsimp only
-    rw [← hι z, dehnTwist_apply_val, hι, hι z, dehnTwist_apply_val]
+  refine (eq_dehnTwist ι' hR hU' (fun z _ ↦ ?_) fun x hx ↦ ?_).symm
+  · rw [hι, dehnTwist_apply_val, hι]
     simp only [hc]
-  · -- Off the image of `ι`, which contains that of `ι'`, neither twist moves `x`.
-    rw [dehnTwist_apply_of_notMem ι' hR hU' ?_,
-      dehnTwist_apply_of_notMem ι hR hU fun h ↦ hx (image_subset_range _ _ h)]
-    rintro ⟨z, -, rfl⟩
-    exact hx ⟨_, (hι z).symm⟩
+  · by_cases hx' : x ∈ (fun z : U ↦ (ι z : M)) '' {z | cotangentNorm (z : 𝕋 n) ≤ r₀}
+    · obtain ⟨y, -, rfl⟩ := hx'
+      -- Every point of `U` is `c z` for a point `z` of `U'`.
+      obtain ⟨z, rfl⟩ := (c.toEquiv.subtypeEquiv hUU').surjective y
+      -- The point `ι (c z) = ι' z` lies off `ι' '' {μ ≤ r₀}`, so the model twist fixes `z`.
+      have hz : r₀ ≤ cotangentNorm (z : 𝕋 n) := le_of_not_ge fun hz ↦ hx ⟨z, hz, hι z⟩
+      rw [dehnTwist_apply_val]
+      simp only [Equiv.subtypeEquiv_apply, Diffeomorph.coe_toEquiv, hc,
+        modelTwist_apply_of_le hR hz]
+    · exact dehnTwist_apply_of_notMem ι hR hU hx'
 
 /-- **Reparametrizing the sphere by an orthogonal map.** Let `ι` pull `σ` back to `-ω_can` and
 send the zero covector at each `q ∈ Sⁿ` to `f q`, and let `A ∈ O(n + 1)`, acting on `Sⁿ` by the
@@ -370,17 +368,10 @@ theorem dehnTwist_eq_of_le {U' : Opens (𝕋 n)} {V' : Opens M} (ι : U ≃ₘ�
     (ι' : U' ≃ₘ⟮𝓣 n, I⟯ V') (hUU' : U' ≤ U) (hι : ∀ z : U', (ι' z : M) = ι ⟨z, hUU' z.property⟩)
     (hR : IsTwistProfile R r₀) (hU : {z : 𝕋 n | cotangentNorm z ≤ r₀} ⊆ (U : Set (𝕋 n)))
     (hU' : {z : 𝕋 n | cotangentNorm z ≤ r₀} ⊆ (U' : Set (𝕋 n))) :
-    dehnTwist ι' hR hU' = dehnTwist ι hR hU := by
-  ext x
-  by_cases hx : x ∈ range fun z : U' ↦ (ι' z : M)
-  · obtain ⟨z, rfl⟩ := hx
-    dsimp only
-    rw [dehnTwist_apply_val, hι, hι, dehnTwist_apply_val]
-  · -- Off the image of `ι'`, neither twist moves `x`: the support of the twist of `ι` lies in it.
-    rw [dehnTwist_apply_of_notMem ι' hR hU' fun h ↦ hx (image_subset_range _ _ h),
-      dehnTwist_apply_of_notMem ι hR hU]
-    rintro ⟨z, hz, rfl⟩
-    exact hx ⟨⟨z, hU' hz⟩, hι _⟩
+    dehnTwist ι' hR hU' = dehnTwist ι hR hU :=
+  (eq_dehnTwist ι' hR hU' (fun z _ ↦ by rw [hι, dehnTwist_apply_val, hι])
+    fun x hx ↦ dehnTwist_apply_of_notMem ι hR hU fun ⟨z, hz, h⟩ ↦
+      hx ⟨⟨z, hU' hz⟩, hz, (hι _).trans h⟩).symm
 
 /-- **Changing the profile.** If `ι` pulls `σ` back to `-ω_can`, the Dehn twists of `ι` for two
 twist profiles `R₁` and `R₂` differ by the final map of a diffeotopy of `M` that preserves `σ` at
