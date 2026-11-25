@@ -120,8 +120,7 @@ theorem vectorBundlePoincareHomotopy_apply_eq_zero_of_forall
     (h : ∀ t, θ (vectorBundleFiberScaling FV V (z, t)) = 0) :
     vectorBundlePoincareHomotopy θ z = 0 := by
   rw [vectorBundlePoincareHomotopy_def]
-  refine homotopyOperator_apply_eq_zero fun t v ↦ ?_
-  rw [mpullback_apply, h t, ContinuousAlternatingMap.coe_zero, Pi.zero_apply]
+  exact homotopyOperator_mpullback_apply_eq_zero_of_forall h
 
 /-- **The relative Poincaré identity where the form is closed.** Let `η` be a `C¹` form of
 positive degree on the total space of a `C²` vector bundle over a `C²` base, and let `W` be a set
