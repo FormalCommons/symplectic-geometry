@@ -38,11 +38,6 @@ map is the identity, including the degenerate case `a = b`. Since an open set co
 contains some `(a - ε, b + ε)`, the values can also be kept in any such open set
 (`SymplecticGeometry.exists_contDiff_eqOn_id_Icc_mem_of_isOpen`).
 
-Finally it fixes a smooth odd function `SymplecticGeometry.smoothSign : ℝ → ℝ` that is the
-identity on `[-1/4, 1/4]`, `1` on `[1/2, ∞)` and `-1` on `(-∞, -1/2]`, and has the sign of its
-argument, by choosing one from Tau Ceti's `TauCeti.exists_contDiff_odd_truncation`; only these
-properties are used, so no formula is given.
-
 For any `0 ≤ r < R ≤ 1` it also gives a smooth odd function that is the identity on `[-r, r]`,
 `1` on `[R, ∞)`, bounded by `1` in absolute value, at least `t` at every `t ∈ [0, 1]`, and with
 derivative bounded by `1 + 2 (1 - r) / (R - r)` (`SymplecticGeometry.exists_contDiff_odd_clip`).
@@ -51,6 +46,12 @@ and `0` from `R` on, adapts the one in the proof of Tau Ceti's
 `TauCeti.exists_contDiff_odd_truncation`; with a single cutoff the bounds by `1` and by `t`
 follow. Taking `ν` from `TauCeti.exists_contDiff_antitone_cutoff_abs_deriv_le`, with slope at
 most `2 / (R - r)`, gives the bound on the derivative.
+
+Finally it fixes a smooth odd function `SymplecticGeometry.smoothSign : ℝ → ℝ` that is the
+identity on `[-1/4, 1/4]`, `1` on `[1/2, ∞)` and `-1` on `(-∞, -1/2]`, bounded by `1` in
+absolute value, and has the sign of its argument, by choosing the function of
+`SymplecticGeometry.exists_contDiff_odd_clip` for `r = 1/4` and `R = 1/2`; only these
+properties are used, so no formula is given.
 -/
 
 public section
@@ -248,21 +249,35 @@ theorem exists_contDiff_odd_clip {r R : ℝ} (hr : 0 ≤ r) (hrR : r < R) (hR : 
     · rw [← TauCeti.deriv_neg_eq_of_eventually_odd (.of_forall hodd)]
       exact hdle (-t) (by linarith)
 
-/-- The smooth odd truncation of the identity given by Tau Ceti's
-`TauCeti.exists_contDiff_odd_truncation` for `r = 1/4` and `R = 1/2`: a smooth odd function
-`ℝ → ℝ` that is the identity on `[-1/4, 1/4]`, `1` on `[1/2, ∞)` and `-1` on `(-∞, -1/2]`, and
-has the sign of its argument. -/
+/-- A smooth odd function `ℝ → ℝ` that is the identity on `[-1/4, 1/4]`, `1` on `[1/2, ∞)` and
+`-1` on `(-∞, -1/2]`, bounded by `1` in absolute value, and with the sign of its argument: the
+function that `SymplecticGeometry.exists_contDiff_odd_clip` gives for `r = 1/4` and
+`R = 1/2`. -/
 noncomputable def smoothSign : ℝ → ℝ :=
-  (TauCeti.exists_contDiff_odd_truncation (r := 1 / 4) (R := 1 / 2) (by norm_num)
+  (exists_contDiff_odd_clip (r := 1 / 4) (R := 1 / 2) (by norm_num) (by norm_num)
     (by norm_num)).choose
 
 private theorem smoothSign_spec :
     ContDiff ℝ ∞ smoothSign ∧ Function.Odd smoothSign ∧
       (∀ t, |t| ≤ 1 / 4 → smoothSign t = t) ∧ (∀ t, 1 / 2 ≤ t → smoothSign t = 1) ∧
       (∀ t, t ≤ -(1 / 2) → smoothSign t = -1) ∧ (∀ t, 0 < t → 0 < smoothSign t) ∧
-      (∀ t, t < 0 → smoothSign t < 0) :=
-  (TauCeti.exists_contDiff_odd_truncation (r := 1 / 4) (R := 1 / 2) (by norm_num)
-    (by norm_num)).choose_spec
+      (∀ t, t < 0 → smoothSign t < 0) ∧ ∀ t, |smoothSign t| ≤ 1 := by
+  obtain ⟨hc, hodd, hid, hone, habs, hge, -⟩ :
+      ContDiff ℝ ∞ smoothSign ∧ Function.Odd smoothSign ∧
+      (∀ t, |t| ≤ 1 / 4 → smoothSign t = t) ∧ (∀ t, 1 / 2 ≤ t → smoothSign t = 1) ∧
+      (∀ t, |smoothSign t| ≤ 1) ∧ (∀ t ∈ Set.Icc (0 : ℝ) 1, t ≤ smoothSign t) ∧
+      ∀ t, |deriv smoothSign t| ≤ 1 + 2 * (1 - 1 / 4) / (1 / 2 - 1 / 4) :=
+    (exists_contDiff_odd_clip (r := 1 / 4) (R := 1 / 2) (by norm_num) (by norm_num)
+      (by norm_num)).choose_spec
+  -- Positive on `(0, 1]` since it is at least `t` there, and `1` from `1/2` on.
+  have hpos (t : ℝ) (ht : 0 < t) : 0 < smoothSign t := by
+    rcases le_total t 1 with ht₁ | ht₁
+    · exact ht.trans_le (hge t ⟨ht.le, ht₁⟩)
+    · exact one_pos.trans_eq (hone t (by linarith)).symm
+  refine ⟨hc, hodd, hid, hone, fun t ht ↦ ?_, hpos, fun t ht ↦ ?_, habs⟩
+  · rw [← neg_neg t, hodd (-t), hone (-t) (by linarith)]
+  · rw [← neg_neg t, hodd (-t), neg_lt_zero]
+    exact hpos (-t) (by linarith)
 
 /-- `smoothSign` is smooth. -/
 theorem contDiff_smoothSign : ContDiff ℝ ∞ smoothSign :=
@@ -280,6 +295,10 @@ theorem smoothSign_of_le {s : ℝ} (hs : 1 / 2 ≤ s) : smoothSign s = 1 :=
 theorem smoothSign_of_le_neg {s : ℝ} (hs : s ≤ -(1 / 2)) : smoothSign s = -1 :=
   smoothSign_spec.2.2.2.2.1 s hs
 
+/-- `smoothSign` takes its values in `[-1, 1]`. -/
+theorem abs_smoothSign_le_one (s : ℝ) : |smoothSign s| ≤ 1 :=
+  smoothSign_spec.2.2.2.2.2.2.2 s
+
 /-- `smoothSign` is odd. -/
 @[simp]
 theorem smoothSign_neg (s : ℝ) : smoothSign (-s) = -smoothSign s :=
@@ -293,7 +312,7 @@ theorem smoothSign_zero : smoothSign 0 = 0 :=
 theorem smoothSign_pos_iff {s : ℝ} : 0 < smoothSign s ↔ 0 < s := by
   refine ⟨fun h ↦ lt_of_not_ge fun hs ↦ ?_, smoothSign_spec.2.2.2.2.2.1 s⟩
   rcases hs.lt_or_eq with hs | rfl
-  · exact (smoothSign_spec.2.2.2.2.2.2 s hs).not_gt h
+  · exact (smoothSign_spec.2.2.2.2.2.2.1 s hs).not_gt h
   · simp at h
 
 @[simp]
