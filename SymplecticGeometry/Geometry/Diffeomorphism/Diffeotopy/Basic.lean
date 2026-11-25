@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
 public import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Prod.Basic
+public import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 
 /-!
 # Basic facts about diffeotopies
@@ -20,16 +21,25 @@ at time zero, but composing it with `id × Ψ_0⁻¹`, for its time-zero slice `
 diffeotopy `t ↦ Ψ_t ∘ Ψ_0⁻¹` (`TauCeti.Diffeotopy.ofFstEq`). The time slices of a diffeotopy
 are the slices of its total diffeomorphism (`TauCeti.Diffeotopy.timeSlice_eq_slice`).
 
+A diffeotopy that fixes every point outside a set `K` at all times maps every set containing `K`
+onto itself at all times (`TauCeti.Diffeotopy.apply_mem_iff_of_subset`). A diffeotopy restricts
+to a diffeotopy of every open set that each time slice maps onto itself
+(`TauCeti.Diffeotopy.subtype`).
+
 ## Main definitions
 
 * `TauCeti.Diffeotopy.ofFstEq Ψ hΨ`: the diffeotopy `t ↦ Ψ_t ∘ Ψ_0⁻¹` of a time-preserving
   diffeomorphism `Ψ` of `[0, 1] × M`.
+* `TauCeti.Diffeotopy.subtype Φ U hU`: the restriction of `Φ` to an open set `U` that every time
+  slice maps onto itself.
 
 ## Main results
 
 * `TauCeti.Diffeotopy.connectedComponent_apply`: `φ_t x` lies in the connected component of `x`.
 * `TauCeti.Diffeotopy.timeSlice_eq_slice`: `Φ.timeSlice t` is the slice at `t` of the total
   diffeomorphism of `Φ` (`Diffeomorph.slice`).
+* `TauCeti.Diffeotopy.apply_mem_iff_of_subset`: a diffeotopy that is the identity off `K` maps
+  every superset of `K` onto itself at all times.
 -/
 
 public noncomputable section
@@ -101,6 +111,46 @@ theorem final_ofFstEq : (ofFstEq Ψ hΨ).final = (Ψ.slice hΨ 0).symm.trans (Ψ
   rw [final_def, timeSlice_ofFstEq]
 
 end ofFstEq
+
+/-! ### Invariant sets and restrictions -/
+
+/-- If a diffeotopy fixes every point outside `K` at all times, then each time slice maps `K` into
+itself, and so maps every set `U ⊇ K` onto itself: `φ_t x ∈ U ↔ x ∈ U`. -/
+theorem apply_mem_iff_of_subset (Φ : Diffeotopy J n M) {K U : Set M} (hKU : K ⊆ U)
+    (hΦK : ∀ t, ∀ x ∉ K, Φ (t, x) = x) (t : unitInterval) (x : M) : Φ (t, x) ∈ U ↔ x ∈ U := by
+  by_cases hx : x ∈ K
+  · -- A point of `K` is not sent outside `K`, where `φ_t` is the identity, as `φ_t` is injective.
+    have hΦx : Φ (t, x) ∈ K := by
+      by_contra h
+      have h' : Φ.timeSlice t (Φ (t, x)) = Φ.timeSlice t x := by
+        rw [timeSlice_apply, timeSlice_apply, hΦK t _ h]
+      exact h (by rw [(Φ.timeSlice t).injective h']; exact hx)
+    exact iff_of_true (hKU hΦx) (hKU hx)
+  · rw [hΦK t x hx]
+
+variable (Φ : Diffeotopy J n M) (U : TopologicalSpace.Opens M)
+  (hU : ∀ t x, Φ (t, x) ∈ U ↔ x ∈ U)
+
+/-- The restriction of a diffeotopy `Φ` of `M` to an open set `U` that every time slice maps onto
+itself, as a diffeotopy of `U`. -/
+def subtype : Diffeotopy J n U where
+  toDiffeomorph :=
+    { toFun := fun p ↦ (p.1, ⟨Φ (p.1, p.2), (hU p.1 p.2).2 p.2.property⟩)
+      invFun := fun p ↦ (p.1, ⟨Φ.symm (p.1, p.2),
+        (hU p.1 _).1 (by rw [apply_symm_apply_mk]; exact p.2.property)⟩)
+      left_inv := fun p ↦ Prod.ext rfl (Subtype.ext (Φ.symm_apply_apply_mk p.1 p.2))
+      right_inv := fun p ↦ Prod.ext rfl (Subtype.ext (Φ.apply_symm_apply_mk p.1 p.2))
+      contMDiff_toFun := contMDiff_fst.prodMk <| (ContMDiff.subtypeVal_comp_iff U _).1 <|
+        Φ.contMDiff.comp (contMDiff_fst.prodMk (contMDiff_subtypeVal.comp contMDiff_snd))
+      contMDiff_invFun := contMDiff_fst.prodMk <| (ContMDiff.subtypeVal_comp_iff U _).1 <|
+        Φ.symm.contMDiff.comp (contMDiff_fst.prodMk (contMDiff_subtypeVal.comp contMDiff_snd)) }
+  fst_apply _ := rfl
+  snd_apply_zero' x := Subtype.ext (Φ.apply_zero x)
+
+/-- The restriction `Φ.subtype U hU` moves a point of `U` as `Φ` does. -/
+@[simp]
+theorem subtype_apply_coe (p : unitInterval × U) : (Φ.subtype U hU p : M) = Φ (p.1, p.2) :=
+  (rfl)
 
 end TauCeti.Diffeotopy
 
