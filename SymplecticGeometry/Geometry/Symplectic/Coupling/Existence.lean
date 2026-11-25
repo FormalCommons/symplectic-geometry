@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Coupling.Basic
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
+import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.GoodCover
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Descent
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.BasicForm
 
@@ -49,6 +50,12 @@ condition `[τ t] - [τ a] = -(t - a) c₁(P)`. That condition makes the forms
   Its contraction with `(X, 0)` is computed by Cartan's identity for the invariant one-form `A`
   (`TauCeti.PrincipalBundle.mextDeriv_apply_rightFundamentalVectorField_prod`), which holds
   although the interval has boundary.
+* `SymplecticGeometry.exists_isCouplingForm`: over a compact Hausdorff boundaryless base, a
+  smooth family `τ` of symplectic forms satisfying the cohomological condition has a coupling
+  form, and it is symplectic. The primitives `β t` come from
+  `SymplecticGeometry.exists_isSmoothFamily_mextDerivₗ_eq_Icc`, since a compact manifold has a
+  finite good cover (`SymplecticGeometry.hasFiniteGoodCover_of_compactSpace`), and the coupling
+  form is symplectic by `SymplecticGeometry.IsCouplingForm.isSymplectic`.
 
 ## Implementation notes
 
@@ -365,6 +372,44 @@ theorem isCouplingForm_couplingForm (hα : IsCircleConnectionForm α)
     module
 
 end IsCircleConnectionForm
+
+/-- **Existence of coupling forms.** Let `P` be a smooth principal `Circle`-bundle over a compact
+Hausdorff boundaryless manifold `B`, modelled on a finite-dimensional space, and let `τ` be a
+family of symplectic forms `τ t` on `B`, smooth in `t ∈ [a, b]`, whose de Rham classes satisfy
+`[τ t] - [τ s] = -(t - s) c₁(P)` for all `t` and `s`. Then there is a coupling form `σ` for `τ`
+on `P × [a, b]`, and `σ` is symplectic.
+
+Milestone: *Minimal coupling*. -/
+theorem exists_isCouplingForm [IB.Boundaryless] [FiniteDimensional ℝ EB] [CompactSpace B]
+    [T2Space B]
+    {τ : Set.Icc a b → SmoothTwoForm IB B} (hτ : IsSmoothFamily (𝓡∂ 1) τ)
+    (hτs : ∀ t, (τ t).IsSymplectic)
+    (hcoh : ∀ t s, deRhamCohomology.mk IB 2 ⟨τ t, (hτs t).isClosed.mem_closedForms⟩ -
+        deRhamCohomology.mk IB 2 ⟨τ s, (hτs s).isClosed.mem_closedForms⟩ =
+      -((t : ℝ) - s) • realFirstChernClass IB P) :
+    ∃ σ : SmoothTwoForm ((IB.prod (𝓡 1)).prod (𝓡∂ 1))
+        (ManifoldTotalSpace Circle P × Set.Icc a b),
+      IsCouplingForm σ τ ∧ σ.IsSymplectic := by
+  obtain ⟨α, hα⟩ := exists_isCircleConnectionForm (IB := IB) (P := P)
+  let a' : Set.Icc a b := ⟨a, Set.left_mem_Icc.2 (Fact.out : a < b).le⟩
+  -- the forms `τ t - τ a - (t - a) (2π)⁻¹ F` are a smooth family of exact forms
+  have hη : IsSmoothFamily (𝓡∂ 1) fun t : Set.Icc a b ↦
+      τ t - τ a' - ((t : ℝ) - a) • (2 * Real.pi)⁻¹ • hα.curvature :=
+    (hτ.sub (isSmoothFamily_const _)).sub ((isSmoothFamily_const _).fun_smul
+      (contMDiff_subtypeVal_Icc.sub contMDiff_const))
+  have hex (t : Set.Icc a b) :
+      τ t - τ a' - ((t : ℝ) - a) • (2 * Real.pi)⁻¹ • hα.curvature ∈ exactForms IB B (1 + 1) := by
+    have h := hcoh t a'
+    rw [← map_sub, hα.realFirstChernClass_eq, smul_smul, ← map_smul,
+      deRhamCohomology.mk_eq_mk_iff] at h
+    convert h using 2
+    simp only [Submodule.coe_smul, smul_smul]
+    congr 1
+    ring
+  obtain ⟨β, hβ, hdβ⟩ :=
+    exists_isSmoothFamily_mextDerivₗ_eq_Icc hasFiniteGoodCover_of_compactSpace hη hex
+  have h := hα.isCouplingForm_couplingForm hβ (hτs a').isClosed hdβ
+  exact ⟨_, h, h.isSymplectic fun t ↦ (hτs t).isNondegenerate⟩
 
 end SymplecticGeometry
 
