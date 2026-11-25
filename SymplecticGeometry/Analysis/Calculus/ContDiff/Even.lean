@@ -58,7 +58,7 @@ namespace Function
 /-- A smooth odd function `f : ℝ → ℝ` is `t * k t` for a smooth even function `k`. -/
 theorem Odd.exists_contDiff_even_mul {f : ℝ → ℝ} (hf : f.Odd) (hc : ContDiff ℝ ∞ f) :
     ∃ k : ℝ → ℝ, ContDiff ℝ ∞ k ∧ k.Even ∧ ∀ t, f t = t * k t := by
-  obtain ⟨k, hkc, hk'⟩ := ContDiff.exists_contDiff_sub_eq_smul (n := ⊤) hc 0
+  obtain ⟨k, hkc, hk', -⟩ := ContDiff.exists_contDiff_sub_eq_smul (n := ⊤) hc 0
   have hk : ∀ t, f t = t * k t := fun t ↦ by
     simpa [hf.map_zero] using hk' t
   refine ⟨k, hkc, fun t ↦ ?_, hk⟩
