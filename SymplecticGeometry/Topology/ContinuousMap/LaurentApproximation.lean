@@ -21,8 +21,11 @@ polynomials in the circle variable whose coefficients are continuous functions o
 
 For `V = ℂ` the span of the Laurent monomials is a star subalgebra, since the conjugate of a unit
 complex number is its inverse, and it separates points, so the Stone–Weierstrass theorem
-`ContinuousMap.starSubalgebra_topologicalClosure_eq_top_of_separatesPoints` makes it dense. For
-general `V`, a map is a finite sum of scalar maps times the vectors of a basis.
+`ContinuousMap.starSubalgebra_topologicalClosure_eq_top_of_separatesPoints` makes it dense. This
+scalar case adapts Mathlib's `fourierSubalgebra`, `fourierSubalgebra_coe`,
+`fourierSubalgebra_closure_eq_top` and `span_fourier_closure_eq_top`
+(`Mathlib/Analysis/Fourier/AddCircle.lean`) to maps with a parameter in `X`. For general `V`, a
+map is a finite sum of scalar maps times the vectors of a basis.
 
 ## Main definitions
 
