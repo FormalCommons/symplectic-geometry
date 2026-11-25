@@ -351,20 +351,37 @@ near each critical point of the band to the linear field
 `IsCompact.exists_contMDiff_pseudoGradientOn_nhds`
 (`Morse/PseudoGradient/Existence.lean`) times a cutoff. Its flow is complete
 (as in `TauCeti.compactlySupportedFlowDiffeotopy`). For a nondegenerate
-critical point `p` of index `m`, with `a₀ < a < g p` and no other critical
-point with value in `[a₀, g p]` on the support, `TauCeti.exists_cubeChart_unstableSet`
-gives a smooth open embedding `φ : D m → M` with `φ 0 = p`, sending the cube
-into the unstable set of `p` for this flow and above `a₀`, and its sphere
-below `a`, such that every point of that unstable set at level at least `a`
-is in the image of the cube. The chart is the Morse chart, read with its
-negative coordinates first, followed by the time-`T` map of the flow, for a
-`T` by which the boundary of a small cube of negative coordinates has gone
-below `a`; the backward flow shrinks the negative coordinates, so the small
-cube is invariant under it and its time-`T` image is all of the unstable set
-reached by time `T`. A coordinatewise diffeomorphism of `ℝ` onto an interval
-then extends the chart to all of `D m`. Tau Ceti's slice charts
-`TauCeti.IsAdaptedPseudoGradient.exists_isSliceChart_unstableSet`
-(`Morse/Stable/Manifold.lean`) use the same composition on compact manifolds.
+critical point `p` of index `m`, with `a₀ < a < g p` and no critical point
+on the support with value in `[a₀, g p)` (points of the level `g p` itself
+are allowed, since no flow line from `p` reaches them),
+`TauCeti.exists_cubeChart_unstableSet` gives a smooth open embedding
+`φ : D m → M` with `φ 0 = p`, sending the cube into the unstable set of `p`
+for this flow and above `a₀`, and its sphere below `a`, such that every point
+of that unstable set at level at least `a` is in the image of the cube.
+
+The chart is built from hitting times, not from one fixed time, since
+different flow lines from `p` can take very different times to descend. Fix
+`a'` with `a₀ < a' < a`, and a small round ball `B` of negative coordinates
+of the Morse chart, read with its negative coordinates first, on which `X` is
+the linear field, so that the flow moves points of `B` radially. Each flow
+line from the sphere `∂B` meets the level `a'` exactly once and
+transversally, since `dg(X) < 0` there off the critical points, so the time
+`τ(u)` at which the line from `u ∈ ∂B` reaches `a'` is smooth in `u`
+(implicit function theorem) and bounded. Take a smooth `θ` on `B`, constant
+near `0`, equal to `τ(u)` at `r • u` for `r` near `1`, and with
+`r ↦ θ (r • u) + log r` strictly increasing; a cutoff in `log r` over a
+long enough interval gives one. Then `v ↦ Φ_{θ v} v`, extended to nearby
+positive coordinates of the Morse chart, is an open embedding near `B`
+(two points with the same image lie on one flow line, and the monotonicity
+rules that out), and maps `B` onto the part of the unstable set of `p` at
+level above `a'`, which lies above `a₀`. The part at level at least `a` is a
+compact subset of it; a radial diffeomorphism of `ℝ^m` onto the interior of
+`B`, a scaling that puts the preimage of that compact set inside the open
+cube, and a coordinatewise diffeomorphism of `ℝ` onto an interval in the
+positive coordinates then give the chart on all of `D m`. Tau Ceti's slice
+charts `TauCeti.IsAdaptedPseudoGradient.exists_isSliceChart_unstableSet`
+(`Morse/Stable/Manifold.lean`) compose a Morse chart with the flow in the
+same way on compact manifolds.
 
 #### `Morse/Core/Compression.lean`
 
@@ -377,7 +394,10 @@ theorem TauCeti.IsMorse.exists_bandCore (hg : IsMorse I g) (hp : IsProperMap g)
 ```
 
 The cubes are those of `Cube.lean` at the finitely many critical points of
-the level `v` (`TauCeti.IsMorse.finite_criticalPoints_inter`), disjoint since
+the level `v` (`TauCeti.IsMorse.finite_criticalPoints_inter`), all for the
+one field `X`: by `hcrit` no critical value lies in `[a₀, v)`, which is the
+hypothesis of `TauCeti.exists_cubeChart_unstableSet` at each of them, the
+other points of the level `v` being allowed. They are disjoint since
 unstable sets of distinct critical points are. The compression is the time-`T`
 map of the flow of `ρ • X`, with `ρ` zero near `{g ≤ a}` and one from just
 above `a` up to `b`; time slices of a flow are open embeddings. That
