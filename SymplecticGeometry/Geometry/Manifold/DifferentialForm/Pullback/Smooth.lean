@@ -27,8 +27,9 @@ soon as it is so on the support of the cut-off.
 Pulling a form back commutes with negation (`TauCeti.mpullback_neg`), as Tau Ceti's
 `TauCeti.mpullback_sub` says for subtraction.
 
-The differential of a constant map is zero, so pulling a smooth form of positive degree back
-along a constant map gives the zero form (`TauCeti.SmoothForm.mpullback_const`). So the slice
+Pulling a smooth form of positive degree back along a constant map gives the zero form
+(`TauCeti.SmoothForm.mpullback_const`, the smooth case of Tau Ceti's
+`TauCeti.mpullback_const`). So the slice
 `x ↦ (x, p)` of the pullback of such a form along the projection `M × M' → M'` is zero
 (`TauCeti.SmoothForm.mpullback_prodMk_left_mpullback_snd`).
 
@@ -144,9 +145,8 @@ variable [IsManifold I 1 M] [IsManifold I' 1 M']
 @[simp]
 theorem mpullback_const (c : M') (hc : ContMDiff I I' ∞ fun _ : M ↦ c)
     (φ : SmoothForm I' M' F (k + 1)) : mpullback (fun _ : M ↦ c) hc φ = 0 := by
-  refine Subtype.ext (funext fun x ↦ ContinuousAlternatingMap.ext fun v ↦ ?_)
-  rw [mpullback_apply, mfderiv_const]
-  exact (φ.val c).map_coord_zero 0 rfl
+  refine Subtype.ext ?_
+  rw [coe_mpullback, TauCeti.mpullback_const k.succ_ne_zero, ZeroMemClass.coe_zero]
 
 /-- The slice `x ↦ (x, p)` of the pullback of a smooth `(k + 1)`-form `β` on `M'` along the
 projection `M × M' → M'` is zero, since the projection is constant on the slice. -/

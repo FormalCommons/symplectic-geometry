@@ -361,7 +361,7 @@ theorem cotangentCoord_geodesicFlow {z} (hz : cotangentNorm z ≠ 0) (t : ℝ) :
       (cos t • q + (sin t / ‖p‖) • p, cos t • p - (sin t * ‖p‖) • q)
 theorem geodesicFlow_add, geodesicFlow_zero, geodesicFlow_two_pi,
   cotangentNorm_geodesicFlow, geodesicFlow_pi (hz) : geodesicFlow π z = antipodal z
-theorem not_exists_continuous_eqOn_geodesicFlow {t : ℝ} (ht₀ : 0 < t) (ht : t < π) :
+theorem not_exists_continuous_eqOn_geodesicFlow [NeZero n] {t : ℝ} (ht₀ : 0 < t) (ht : t < π) :
     ¬ ∃ g : T*Sⁿ → T*Sⁿ, Continuous g ∧ ∀ z, cotangentNorm z ≠ 0 → g z = geodesicFlow t z
 theorem isMIntegralCurve_geodesicFlow {z} (hz : cotangentNorm z ≠ 0) :
     IsMIntegralCurve (geodesicFlow · z)

@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.ContMDiff.Constructions
+import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 
 /-!
 # Smooth maps and open subsets
@@ -51,9 +52,7 @@ theorem ContMDiff.contMDiffOn_prod_opens_of_eq {n : WithTop ℕ∞} {U : Opens M
   -- On the open set `W = P × U`, `f` is `g` composed with `(p, x) ↦ (p, ⟨x, _⟩)`.
   let W : Opens (P × M) := ⟨univ ×ˢ U, isOpen_univ.prod U.isOpen⟩
   have hψ : ContMDiff (IP.prod J) J n (fun p : W ↦ (⟨p.val.2, p.property.2⟩ : U)) :=
-    fun p ↦
-      (ChartedSpace.liftPropWithinAt_subtypeVal_comp_iff (U := U) _ _ _).1
-        ((contMDiff_snd.comp contMDiff_subtypeVal) p)
+    (TauCeti.ContMDiff.subtypeVal_comp_iff U _).1 (contMDiff_snd.comp contMDiff_subtypeVal)
   intro p hp
   refine (contMDiffAt_subtype_iff (U := W) (x := ⟨p, hp⟩)).1 ?_ |>.contMDiffWithinAt
   exact ((hg.comp ((contMDiff_fst.comp contMDiff_subtypeVal).prodMk hψ)) ⟨p, hp⟩

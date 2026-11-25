@@ -403,7 +403,7 @@ def twistPiCoreCongr {ι' : Type*} [Fintype ι'] (e : ι ≃ ι') (x : ℙ 𝕜 
 theorem twistPiCoreCongr_apply {ι' : Type*} [Fintype ι'] (e : ι ≃ ι')
     (x : ℙ 𝕜 (Fin (n + 1) → 𝕜)) (v : (twistPiCore k ι).Fiber x) (a : ι) :
     twistPiCoreCongr k ι e x v (e a) = v a :=
-  Equiv.piCongrLeft_apply_apply (fun _ ↦ 𝕜) e v a
+  ContinuousLinearEquiv.piCongrLeft_apply_apply (R := 𝕜) (φ := fun _ ↦ 𝕜) e v a
 
 /-- `twistPiCoreCongr` is continuous on total spaces: in every standard chart it is the constant
 map `ContinuousLinearEquiv.piCongrLeft`, which commutes with the scalar coordinate changes. -/
