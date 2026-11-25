@@ -202,16 +202,13 @@ that is, it vanishes as soon as one of its arguments is vertical. -/
 theorem IsConnectionForm.isSemibasic_connectionCurvature {n : ℕ∞ω} (hA : IsConnectionForm A) :
     RoughForm.IsSemibasic (F := GroupLieAlgebra IG G) IB
       (ManifoldTotalSpace.projContMDiffMap n G P IB IG) (connectionCurvature A).val := by
-  have h (x : ManifoldTotalSpace G P) : ((connectionCurvature A).val x).toAlternatingMap ∈
-      (mfderiv (IB.prod IG) IB (ManifoldTotalSpace.projContMDiffMap n G P IB IG)
-        x).ker.conormalForms (Fin 2) (GroupLieAlgebra IG G) := by
-    rw [Submodule.mem_conormalForms_fin_two_iff_le_ker, ManifoldTotalSpace.coe_projContMDiffMap,
-      ← PrincipalBundle.range_rightFundamentalLinearMap_eq_ker_mfderiv_proj]
-    rintro _ ⟨ξ, rfl⟩
-    refine LinearMap.mem_ker.mpr (LinearMap.ext fun w ↦ ?_)
-    simpa [PrincipalBundle.rightFundamentalLinearMap_apply] using
-      hA.connectionCurvature_apply_rightFundamentalVectorField ξ x w
-  exact RoughForm.isSemibasic_def.mpr fun x ↦ RoughForm.isSemibasicAt_def.mpr (h x)
+  refine RoughForm.isSemibasic_def.mpr fun x ↦ RoughForm.isSemibasicAt_def.mpr ?_
+  rw [Submodule.mem_conormalForms_fin_two_iff_le_ker, ManifoldTotalSpace.coe_projContMDiffMap,
+    ← PrincipalBundle.range_rightFundamentalLinearMap_eq_ker_mfderiv_proj]
+  rintro _ ⟨ξ, rfl⟩
+  refine LinearMap.mem_ker.mpr (LinearMap.ext fun w ↦ ?_)
+  simpa [PrincipalBundle.rightFundamentalLinearMap_apply] using
+    hA.connectionCurvature_apply_rightFundamentalVectorField ξ x w
 
 /-- **The curvature of a connection form is tensorial**: it is an equivariant two-form of type
 `Ad` that vanishes as soon as one of its arguments is vertical. -/
