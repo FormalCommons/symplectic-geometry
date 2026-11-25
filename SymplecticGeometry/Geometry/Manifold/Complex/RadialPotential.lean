@@ -7,7 +7,7 @@ module
 
 public import Mathlib.Geometry.Manifold.ContMDiffMap
 public import SymplecticGeometry.Analysis.Complex.QuadraticLeviForm
-import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 
 /-!
 # Radial potentials on `ℂⁿ ∖ 0`
