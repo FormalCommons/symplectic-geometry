@@ -182,6 +182,12 @@ def adjoint𝔪 : Representation ℝ K D.𝔪 :=
   Subrepresentation.toRepresentation (ρ := (adjointRepresentation ℝ I G).comp K.subtype)
     ⟨D.𝔪, fun k _ hξ ↦ D.adjointRepresentation_mem_𝔪 k hξ⟩
 
+theorem adjoint𝔪_def :
+    D.adjoint𝔪 =
+      Subrepresentation.toRepresentation (ρ := (adjointRepresentation ℝ I G).comp K.subtype)
+        ⟨D.𝔪, fun k _ hξ ↦ D.adjointRepresentation_mem_𝔪 k hξ⟩ :=
+  (rfl)
+
 /-- The adjoint representation of `K` on `𝔮`. -/
 def adjoint𝔮 : Representation ℝ K D.𝔮 :=
   Subrepresentation.toRepresentation (ρ := (adjointRepresentation ℝ I G).comp K.subtype)
