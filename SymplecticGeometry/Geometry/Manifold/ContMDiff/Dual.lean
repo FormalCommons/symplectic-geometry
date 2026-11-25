@@ -5,11 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Analysis.Calculus.ContDiff.FiniteDimension
 public import Mathlib.Geometry.Manifold.Algebra.SMul
 public import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
 public import Mathlib.LinearAlgebra.Dual.Lemmas
 public import TauCeti.Geometry.Manifold.ContMDiff.FiniteDimension
+public import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 
 /-!
 # Smoothness of the values of linear functionals
@@ -43,9 +43,9 @@ Through that family, the derivative of the values of `ν` on a varying vector co
 * `contMDiff_toContinuousLinearMap_of_contMDiff_apply`: for a finite-dimensional normed space `E`,
   if `t ↦ ν t ξ` is `C^n` for every `ξ : E`, then `ν` is `C^n` as a map into `E →L[𝕜] 𝕜`.
 * `fderiv_dual_comp_apply`: for a family `ν` of functionals on a finite-dimensional normed space
-  `X`, indexed by `N`, with smooth values, a smooth map `x : F → N` from a normed space and a
-  map `c : F → X` differentiable at `y`, the derivative of `z ↦ ν (x z) (c z)` at `y` is
-  `ν (x y)` applied to that of `c`, plus the derivative of `ν · (c y)` along `x`.
+  `X`, indexed by `N`, with values `C^1` at `x y`, a map `x : F → N` from a normed space, `C^1`
+  at `y`, and a map `c : F → X` differentiable at `y`, the derivative of `z ↦ ν (x z) (c z)` at
+  `y` is `ν (x y)` applied to that of `c`, plus the derivative of `ν · (c y)` along `x`.
 -/
 
 public section
@@ -115,32 +115,33 @@ theorem contMDiff_toContinuousLinearMap_of_contMDiff_apply [CompleteSpace 𝕜]
   fun t ↦ TauCeti.contMDiffAt_clm_apply.2 fun ξ ↦ hν ξ t
 
 /-- **The derivative of a family of functionals evaluated on a family of vectors.** Let
-`ν : N → Module.Dual 𝕜 X` have `C^∞` values `t ↦ ν t ξ` on a manifold `N`, for every `ξ` of a
-finite-dimensional normed space `X`, and let `x : F → N` be a smooth map from a normed space. If
-`c : F → X` is differentiable at `y`, the derivative of `z ↦ ν (x z) (c z)` at `y` in the direction
-`v` is `ν (x y) (dc_y v) + d(ν · (c y))_{x y} (dx_y v)`. -/
+`ν : N → Module.Dual 𝕜 X` be a family of functionals on a finite-dimensional normed space `X`,
+indexed by a manifold `N`, and `x : F → N` a map from a normed space, such that `x` is `C^1` at
+`y` and every value `t ↦ ν t ξ` is `C^1` at `x y`. If `c : F → X` is differentiable at `y`, the
+derivative of `z ↦ ν (x z) (c z)` at `y` in the direction `v` is
+`ν (x y) (dc_y v) + d(ν · (c y))_{x y} (dx_y v)`. -/
 theorem fderiv_dual_comp_apply [CompleteSpace 𝕜] {X : Type*} [NormedAddCommGroup X]
     [NormedSpace 𝕜 X] [FiniteDimensional 𝕜 X] {ν : N → Module.Dual 𝕜 X}
-    (hν : ∀ ξ, ContMDiff J 𝓘(𝕜) ∞ fun t ↦ ν t ξ)
-    {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F] {x : F → N}
-    (hx : ContMDiff 𝓘(𝕜, F) J ∞ x) {c : F → X} {y : F} (hc : DifferentiableAt 𝕜 c y) (v : F) :
+    {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F] {x : F → N} {y : F}
+    (hν : ∀ ξ, ContMDiffAt J 𝓘(𝕜) 1 (fun t ↦ ν t ξ) (x y)) (hx : ContMDiffAt 𝓘(𝕜, F) J 1 x y)
+    {c : F → X} (hc : DifferentiableAt 𝕜 c y) (v : F) :
     fderiv 𝕜 (fun z ↦ ν (x z) (c z)) y v =
       ν (x y) (fderiv 𝕜 c y v) +
         mvfderiv J (fun t ↦ ν t (c y)) (x y) (mfderiv 𝓘(𝕜, F) J x y v) := by
-  -- Read `ν ∘ x` as a smooth family of continuous linear maps, and differentiate the evaluation.
+  -- Read `ν ∘ x` as a family of continuous linear maps, and differentiate the evaluation.
   set L : F → X →L[𝕜] 𝕜 := fun z ↦ LinearMap.toContinuousLinearMap (ν (x z))
-  have hL : ContDiff 𝕜 ∞ L := contDiff_clm_apply_iff.2 fun ξ ↦ by
-    simpa [L, Function.comp_def] using contMDiff_iff_contDiff.1 ((hν ξ).comp hx)
-  have hLd : DifferentiableAt 𝕜 L y := hL.differentiable (by simp) y
+  have hν' : ContMDiffAt J 𝓘(𝕜, X →L[𝕜] 𝕜) 1
+      (fun t ↦ LinearMap.toContinuousLinearMap (ν t)) (x y) :=
+    TauCeti.contMDiffAt_clm_apply.2 fun ξ ↦ by simpa using hν ξ
+  have hLd : DifferentiableAt 𝕜 L y :=
+    (contMDiffAt_iff_contDiffAt.1 (hν'.comp y hx)).differentiableAt one_ne_zero
   have h1 : (fun z ↦ ν (x z) (c z)) = fun z ↦ L z (c z) := by simp [L]
   have h2 : (fun z ↦ ν (x z) (c y)) = fun z ↦ L z (c y) := by simp [L]
   have hchain : mvfderiv J (fun t ↦ ν t (c y)) (x y) (mfderiv 𝓘(𝕜, F) J x y v) =
       fderiv 𝕜 (fun z ↦ L z (c y)) y v := by
-    rw [← h2, ← mvfderiv_comp_apply y ((hν (c y)).mdifferentiableAt (by simp))
-      (hx.mdifferentiableAt (by simp)) v, mvfderiv_eq_fderiv]
-    simp only [Function.comp_def]
-    -- `NormedSpace.fromTangentSpace` is the identity of `F`, and Mathlib states no lemma for it.
-    rfl
+    rw [← h2, ← mvfderiv_comp_apply y ((hν (c y)).mdifferentiableAt one_ne_zero)
+      (hx.mdifferentiableAt one_ne_zero) v]
+    exact TauCeti.mvfderiv_eq_fderiv_apply _ y v
   rw [hchain, h1, fderiv_clm_apply hLd hc, fderiv_clm_apply hLd (differentiableAt_const (c y))]
   simp [L]
 

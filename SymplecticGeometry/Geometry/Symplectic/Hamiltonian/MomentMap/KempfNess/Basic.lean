@@ -20,6 +20,7 @@ import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 import SymplecticGeometry.Geometry.Lie.MaurerCartan
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
 
 /-!
 # Complexified actions, stability and the gradient of the moment map
@@ -50,6 +51,8 @@ and the moment weights.
 
 * `SymplecticGeometry.IsComplexifiedAction.fundamentalVectorField_lieMap`: the fundamental vector
   field of `C.lieMap ξ` for the action of `Gc` is that of `ξ` for the action of `G`.
+* `SymplecticGeometry.IsComplexifiedAction.fundamentalVectorField_apply`: the fundamental vector
+  field of any `ζ` for the action of `Gc` is `X_{C.re ζ} + J X_{C.im ζ}`.
 * `SymplecticGeometry.IsComplexifiedAction.isMIntegralCurve_expI_smul`: the curve
   `t ↦ C.expI (t • ξ) • p` is an integral curve of `x ↦ J x (X_ξ x)`.
 * `SymplecticGeometry.isComplexifiedAction_circle`: the action of `ℂˣ` on `ℂ` by multiplication,
@@ -277,6 +280,17 @@ theorem fundamentalVectorField_lieMap (h : IsComplexifiedAction C J) (ξ : Group
   exact C.toHom.toMonoidHom.fundamentalVectorField_groupLieAlgebraMap
     (C.toHom.contMDiff_toFun.mdifferentiableAt (by simp)) (fun u x ↦ (h.toHom_smul u x).symm) ξ
 
+/-- For a complexified action, the fundamental vector field of any `ζ` in the Lie algebra of `Gc`
+is `X_{C.re ζ} + J X_{C.im ζ}`, where `X_{C.re ζ}` and `X_{C.im ζ}` are fundamental vector fields
+for the action of `G`. -/
+theorem fundamentalVectorField_apply [FiniteDimensional ℝ E] [FiniteDimensional ℝ EC]
+    (h : IsComplexifiedAction C J) (ζ : GroupLieAlgebra IC Gc) (x : M) :
+    fundamentalVectorField I' ζ x =
+      fundamentalVectorField I' (C.re ζ) x + J x (fundamentalVectorField I' (C.im ζ) x) := by
+  conv_lhs => rw [← C.lieMap_re_add_cplx_lieMap_im ζ]
+  rw [fundamentalVectorField_add, Pi.add_apply, h.fundamentalVectorField_cplx,
+    h.fundamentalVectorField_lieMap, h.fundamentalVectorField_lieMap]
+
 /-- **The imaginary one-parameter subgroups move points along `J X_ξ`.** For a complexified
 action, the curve `t ↦ C.expI (t • ξ) • p` is an integral curve of the vector field
 `x ↦ J x (X_ξ x)`, where `X_ξ` is the fundamental vector field of `ξ` for the action of `G`. -/
@@ -390,33 +404,22 @@ theorem fderiv_moment_inv_smul_im_comm (h : IsComplexifiedAction C J)
   have ha (u z : F) : mfderiv IC IC ((γ z)⁻¹ * ·) (γ z) (mfderiv 𝓘(ℝ, F) IC γ z u) = a u z := by
     simp [a, θ, leftMaurerCartanForm_apply]
   simp only [ha]
-  have hμc : ∀ ξ, ContMDiff I' 𝓘(ℝ) ∞ fun x ↦ μ x ξ := fun ξ ↦ by
-    simpa using (hμ.contMDiff ξ).neg
+  have hμc := hμ.toIsMomentMap.contMDiff_of_neg
   have hx : ContMDiff 𝓘(ℝ, F) I' ∞ fun z ↦ (γ z)⁻¹ • p :=
     ((contMDiff_inv IC ∞).comp hγ).smul contMDiff_const
   have hda (u : F) : Differentiable ℝ (a u) :=
     SmoothForm.differentiable_apply_one_mfderiv θ hγ u
   set imL := LinearMap.toContinuousLinearMap C.im
-  have hdim (u : F) (r : F) : fderiv ℝ (fun z ↦ C.im (a u z)) y r = C.im (fderiv ℝ (a u) y r) := by
-    have := (imL.hasFDerivAt.comp y (hda u y).hasFDerivAt).fderiv
-    exact congr($this r)
+  have hdim (u : F) (r : F) : fderiv ℝ (fun z ↦ C.im (a u z)) y r = C.im (fderiv ℝ (a u) y r) :=
+    congr($(imL.fderiv_comp_left (hda u y)) r)
   -- The derivative of the moving point is minus the fundamental vector field of `a u`.
   have hdx (u : F) : mfderiv 𝓘(ℝ, F) I' (fun z ↦ (γ z)⁻¹ • p) y u =
       -(fundamentalVectorField I' (C.re (a u y)) ((γ y)⁻¹ • p) +
         J ((γ y)⁻¹ • p) (fundamentalVectorField I' (C.im (a u y)) ((γ y)⁻¹ • p))) := by
-    refine (mfderiv_inv_smul_comp_apply (hγ.mdifferentiableAt (by simp))
+    rw [mfderiv_inv_smul_comp_apply (hγ.mdifferentiableAt (by simp))
       (((ContMDiffSMul.contMDiff_smul_const (n := ∞) p).comp (contMDiff_inv IC ∞)
-        ).mdifferentiableAt (by simp)) u).trans ?_
-    conv_lhs => rw [ha, ← C.lieMap_re_add_cplx_lieMap_im (a u y)]
-    rw [fundamentalVectorField_add, Pi.add_apply, h.fundamentalVectorField_cplx,
-      h.fundamentalVectorField_lieMap, h.fundamentalVectorField_lieMap]
+        ).mdifferentiableAt (by simp)) u, ha, h.fundamentalVectorField_apply]
   set x₀ := (γ y)⁻¹ • p
-  -- The derivative of a component of `μ`, by the moment map equation for `-μ`.
-  have hdμ (Z : GroupLieAlgebra I G) (u : TangentSpace I' x₀) :
-      mvfderiv I' (fun m ↦ μ m Z) x₀ u = -σ.eval₂ x₀ (fundamentalVectorField I' Z x₀) u := by
-    have h1 := hμ.eval₂_apply Z x₀ u
-    rw [InfinitesimalAction.fundamental_apply] at h1
-    rw [show (fun m ↦ μ m Z) = fun m ↦ -(-μ m) Z by ext; simp, mvfderiv_fun_neg, neg_apply, h1]
   have hside (u u' : F) : fderiv ℝ (fun z ↦ μ ((γ z)⁻¹ • p) (C.im (a u' z))) y u =
       μ x₀ (C.im (fderiv ℝ (a u') y u)) +
         σ.eval₂ x₀ (fundamentalVectorField I' (C.im (a u' y)) x₀)
@@ -425,8 +428,10 @@ theorem fderiv_moment_inv_smul_im_comm (h : IsComplexifiedAction C J)
           fundamentalVectorField I' (C.im (a u y)) x₀⟫ := by
     have hc : DifferentiableAt ℝ (fun z ↦ C.im (a u' z)) y := by
       simpa [imL, Function.comp_def] using imL.differentiableAt.comp y (hda u' y)
-    rw [fderiv_dual_comp_apply hμc hx hc u, hdim, hdμ,
-      hdx, SmoothBundleForm.eval₂_neg_right, SmoothBundleForm.eval₂_add_right, hg]
+    rw [fderiv_dual_comp_apply (fun ξ ↦ (hμc ξ).contMDiffAt.of_le (by simp))
+        (hx.contMDiffAt.of_le (by simp)) hc u, hdim, hμ.toIsMomentMap.mvfderiv_apply_of_neg,
+      InfinitesimalAction.fundamental_apply, hdx, SmoothBundleForm.eval₂_neg_right,
+      SmoothBundleForm.eval₂_add_right, hg]
     ring
   have hcoc := SmoothTwoForm.momentCocycle_eq_zero_iff.1 (hμ.momentCocycle_eq_zero x₀)
   simp only [InfinitesimalAction.fundamental_apply] at hcoc
