@@ -484,14 +484,18 @@ theorem existsUnique_isSymplectic_mpullback_projContMDiffMap_eq {σ : SmoothTwoF
         (linearMap_ext_circlePeriodOneGenerator ((ht p).trans (ht p₀).symm))⟩
   have hneg : (fun x ↦ (-μ x) circlePeriodOneGenerator) = -fun x ↦ μ x circlePeriodOneGenerator :=
     funext fun _ ↦ LinearMap.neg_apply _ _
-  -- `dφ` sends the fundamental field of the bundle to that of `M`.
+  -- `dφ` sends the fundamental fields of the bundle to those of `M`.
   have hX (p : ManifoldTotalSpace Circle P) :
-      mfderiv (IB.prod (𝓡 1)) I φ p (rightFundamentalVectorField (IB.prod (𝓡 1))
-        circlePeriodOneGenerator p) = fundamentalVectorField I circlePeriodOneGenerator (φ p) :=
-    mfderiv_rightFundamentalVectorField_of_map_op_smul_eq_smul
-      ((hφ p).mdifferentiableAt (by simp))
-      (PrincipalBundle.mdifferentiableAt_orbit (n := ∞) (by simp) p 1)
-      (hφs · p) circlePeriodOneGenerator
+      (mfderiv (IB.prod (𝓡 1)) I φ p).toLinearMap ∘ₗ
+          PrincipalBundle.rightFundamentalLinearMap IB (𝓡 1) p =
+        (InfinitesimalAction.fundamental (𝓡 1) Circle I M).eval (φ p) :=
+    LinearMap.ext fun ξ ↦ by
+      rw [LinearMap.comp_apply, PrincipalBundle.rightFundamentalLinearMap_apply,
+        ContinuousLinearMap.coe_coe, InfinitesimalAction.eval_apply,
+        InfinitesimalAction.fundamental_apply]
+      exact mfderiv_rightFundamentalVectorField_of_map_op_smul_eq_smul
+        ((hφ p).mdifferentiableAt (by simp))
+        (PrincipalBundle.mdifferentiableAt_orbit (n := ∞) (by simp) p 1) (hφs · p) ξ
   have hann : lieAnnihilator ℝ (GroupLieAlgebra (𝓡 1) Circle) c = ⊤ := by
     simp
   refine hμ.existsUnique_isSymplectic_mpullback_eq_mpullback (K := Circleᵐᵒᵖ) hσ hφ hc
@@ -500,40 +504,14 @@ theorem existsUnique_isSymplectic_mpullback_projContMDiffMap_eq {σ : SmoothTwoF
     (ManifoldTotalSpace.surjective_projContMDiffMap ∞ Circle P IB (𝓡 1)) (fun p ↦ ?_)
     (fun k ↦ contMDiff_const_smul k) (fun k p ↦ ?_) (fun p p' hpp' ↦ ?_) fun k ↦ ?_
   · -- The level tangent space of `-μ` is `ker dH`.
-    rw [hμ.ker_differential_circle, hrange]
-    ext v
-    have h : (mfderiv I 𝓘(ℝ) (fun y ↦ (-μ y) circlePeriodOneGenerator) (φ p) v : ℝ) =
-        -mfderiv I 𝓘(ℝ) (fun y ↦ μ y circlePeriodOneGenerator) (φ p) v := by
-      rw [hneg, mfderiv_neg]
-      rfl
-    rw [LinearMap.mem_ker, LinearMap.mem_ker, ContinuousLinearMap.coe_coe,
-      ContinuousLinearMap.coe_coe]
-    exact (neg_eq_zero.symm.trans (Eq.congr_left h.symm) :)
-  · -- The vertical vectors are the multiples of the fundamental field, which `dφ` sends to the
-    -- orbit directions; `dφ` is injective.
-    rw [hann, LieSubalgebra.top_toSubmodule, Submodule.map_top]
-    ext u
-    rw [Submodule.mem_comap, LinearMap.mem_range]
-    constructor
-    · intro hu
-      obtain ⟨r, rfl⟩ :=
-        exists_eq_smul_rightFundamentalVectorField_of_mfderiv_proj_eq_zero
-          circlePeriodOneGenerator_ne_zero hu
-      refine ⟨r • circlePeriodOneGenerator, ?_⟩
-      rw [map_smul, InfinitesimalAction.eval_apply, InfinitesimalAction.fundamental_apply,
-        ContinuousLinearMap.coe_coe, map_smul, hX]
-    · rintro ⟨ξ, hξ⟩
-      obtain ⟨r, rfl⟩ := exists_smul_circlePeriodOneGenerator_eq ξ
-      have hu :
-          u = r • rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator p := by
-        refine hinj p ?_
-        rw [map_smul, InfinitesimalAction.eval_apply, InfinitesimalAction.fundamental_apply,
-          ContinuousLinearMap.coe_coe] at hξ
-        rw [map_smul, hX]
-        exact hξ.symm
-      rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe, hu, map_smul,
-        ManifoldTotalSpace.coe_projContMDiffMap,
-        PrincipalBundle.mfderiv_proj_rightFundamentalVectorField, smul_zero]
+    rw [hμ.ker_differential_circle, hrange, hneg, mfderiv_neg, ContinuousLinearMap.toLinearMap_neg]
+    exact (LinearMap.ker_neg _).symm
+  · -- The vertical vectors are the fundamental fields, which `dφ` sends to the orbit
+    -- directions; `dφ` is injective.
+    rw [hann, LieSubalgebra.top_toSubmodule, Submodule.map_top, ← hX, LinearMap.range_comp,
+      Submodule.comap_map_eq_of_injective (hinj p),
+      PrincipalBundle.range_rightFundamentalLinearMap_eq_ker_mfderiv_proj,
+      ManifoldTotalSpace.coe_projContMDiffMap]
   · simp
   · obtain ⟨g, hg⟩ := PrincipalBundle.exists_op_smul_eq_of_proj_eq hpp'.symm
     exact ⟨op g, hg⟩
@@ -708,7 +686,6 @@ theorem bandMap_orbitFiber_slice (hf : ContMDiff I 𝓘(ℝ) ∞ f)
       range_mfderiv_bandMap_slice (hv.of_le (by simp)) hcomplete hf.continuous hW hfv hband
         (fun x ↦ x.property) hιi (by simpa using hn.symm) t⟩
 
-
 omit [BoundarylessManifold I M] in
 /-- **The slices of the band of a circle action descend to symplectic forms.** In the setting of
 `SymplecticGeometry.bandMap_orbitFiber`, let the action preserve a symplectic form `σ`, with moment
@@ -783,6 +760,7 @@ theorem existsUnique_isSymplectic_mpullback_eq_mpullback_bandMap (hf : ContMDiff
     (fun p ↦ LinearMap.ker_eq_bot.mp (hs t p).1) fun p ↦ ?_
   rw [funext hμf]
   exact (hs t p).2
+
 end RegularLevel
 
 /-! ### Smoothness of the family of reduced forms -/

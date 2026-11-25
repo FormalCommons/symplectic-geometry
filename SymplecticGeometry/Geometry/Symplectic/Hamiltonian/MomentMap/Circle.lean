@@ -63,8 +63,8 @@ theorem momentCocycle_circle_eq_zero (σ : SmoothTwoForm I M)
     (μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle)) (x : M) :
     σ.momentCocycle a μ x = 0 := by
   refine momentCocycle_eq_zero_iff.2 fun Z Z' ↦ ?_
-  obtain ⟨c, rfl⟩ := exists_smul_circlePeriodOneGenerator_eq Z
-  obtain ⟨d, rfl⟩ := exists_smul_circlePeriodOneGenerator_eq Z'
+  obtain ⟨c, rfl⟩ := exists_smul_eq_of_ne_zero_circle circlePeriodOneGenerator_ne_zero Z
+  obtain ⟨d, rfl⟩ := exists_smul_eq_of_ne_zero_circle circlePeriodOneGenerator_ne_zero Z'
   rw [smul_lie, lie_smul, lie_self, smul_zero, smul_zero, map_zero,
     ← SmoothForm.bilinFormAt_apply, ← InfinitesimalAction.eval_apply,
     ← InfinitesimalAction.eval_apply, map_smul, map_smul, map_smul, LinearMap.smul_apply,
