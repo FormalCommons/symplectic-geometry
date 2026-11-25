@@ -12,6 +12,7 @@ import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
 import TauCeti.Geometry.Manifold.MFDeriv.Curve
+import TauCeti.Topology.Compactness.Normed
 
 /-!
 # The completion of a Liouville domain is a completion in Tau Ceti's sense
@@ -123,17 +124,15 @@ theorem isCompleteVectorField_completionField [CompactSpace W] :
   -- The flow is defined for a uniform time `δ` on the compact image of `W`.
   have hK : IsCompact (range h.toCompletion) :=
     isCompact_range h.contMDiff_toCompletion.continuous
-  have htube : ∀ᶠ t in 𝓝 (0 : ℝ), ∀ z ∈ range h.toCompletion,
-      (t, z) ∈ flowDomain h.completionField :=
-    hK.eventually_forall_of_forall_eventually fun z _ ↦
+  obtain ⟨δ, hδ, hball⟩ := hK.exists_pos_forall_norm_lt
+    (Q := fun (t : ℝ) z ↦ (t, z) ∈ flowDomain h.completionField) fun z _ ↦
       (isOpen_flowDomain hv).mem_nhds (mem_flowDomain_zero hv z)
-  obtain ⟨δ, hδ, hball⟩ := Metric.eventually_nhds_iff_ball.1 htube
   refine isCompleteVectorField_of_exists_isMIntegralCurveOn hv (lt_min hδ hε) fun z ↦ ?_
   have hz := h.range_toCompletion_union.symm ▸ mem_univ z
   rcases hz with hz | ⟨⟨s, x⟩, ⟨hs, -⟩, rfl⟩
   · refine ⟨fun t ↦ flowOf h.completionField t z, flowOf_zero _ z,
-      (isMIntegralCurveOn_flowOf hv z).mono fun t ht ↦ hball t ?_ z hz⟩
-    rw [Metric.mem_ball, Real.dist_eq, sub_zero, abs_lt]
+      (isMIntegralCurveOn_flowOf hv z).mono fun t ht ↦ hball (x := t) ?_ z hz⟩
+    rw [Real.norm_eq_abs, abs_lt]
     exact ⟨(neg_le_neg (min_le_left δ _)).trans_lt ht.1, ht.2.trans_le (min_le_left _ _)⟩
   · refine ⟨fun t ↦ h.completionEnd (t + s, x), by simp, ?_⟩
     refine ((h.isMIntegralCurveOn_completionEnd x).comp_add s).mono fun t ht ↦ ?_
