@@ -166,16 +166,15 @@ diffeomorphism $\Phi$ above).
 
 ### `Geometry/Lie/MaurerCartan.lean`
 
-Tau Ceti has only the Maurer–Cartan form evaluated on a vector field
+Tau Ceti has the Maurer–Cartan form evaluated on a vector field
 (`TauCeti.leftMaurerCartanEval`, `Geometry/Lie/InvariantVectorField/Basic.lean`).
-This file makes it a form.
+This file names it as a form.
 
 - `leftMaurerCartanForm IG G : SmoothForm IG G (GroupLieAlgebra IG G) 1`,
   whose value at $g$ on $v$ is
   `mfderiv IG IG (fun h ↦ g⁻¹ * h) g v` (`leftMaurerCartanForm_apply`).
-  Its smoothness comes from its components in a basis of $\mathfrak g$,
-  which are Tau Ceti's left-invariant one-forms
-  `Module.Dual.leftInvariantForm` of the coordinate functionals.
+  It is Tau Ceti's left-invariant extension `TauCeti.leftInvariantSmoothForm`
+  of the identity of $\mathfrak g$, which gives its smoothness.
 - `leftMaurerCartanForm_apply_mulInvariantVectorField`: the value on the
   left-invariant field of $\xi$ is $\xi$.
 - `mpullback_mul_right_leftMaurerCartanForm`: the pull-back by right

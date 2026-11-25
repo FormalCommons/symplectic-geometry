@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
-import TauCeti.Geometry.Manifold.Diffeomorph.Basic
+import TauCeti.Geometry.Manifold.Distribution.Diffeomorph
 
 /-!
 # Diffeotopies that transport a family of distributions
@@ -25,6 +25,8 @@ is written with `Submodule.comap`, as Tau Ceti writes pullbacks of distributions
 ## Main results
 
 * `TauCeti.Diffeotopy.transports_iff`: the unfolding of the definition.
+* `TauCeti.Diffeotopy.transports_iff_forall_mem_iff`, `TauCeti.Diffeotopy.Transports.mem_iff`:
+  the same, as membership conditions at each time.
 * `TauCeti.Diffeotopy.transports_refl`: the constant diffeotopy transports every constant family.
 * `TauCeti.Diffeotopy.Transports.mfderiv_timeSlice_comp_symm_mem`: a transporting diffeotopy
   carries `ξ_s` into `ξ_t` along `φ_t ∘ φ_s⁻¹`, for all times `s` and `t`.
@@ -74,21 +76,35 @@ theorem transports_refl (D : Π x : M, Submodule ℝ (TangentSpace J x)) :
   rw [timeSlice_refl, Diffeomorph.coe_refl, mfderiv_id, refl_apply]
   exact (Submodule.comap_id _).symm
 
+/-- A diffeotopy transports `ξ` exactly when, at every time `t`, the differential of `ψ_t` carries
+`ξ_0` onto `ξ_t`: a vector at `x` lies in `ξ_0 x` if and only if its image lies in
+`ξ_t (ψ_t x)`. This is the form of the hypotheses of Tau Ceti's lemmas on diffeomorphisms that
+carry one distribution onto another, such as `Diffeomorph.mem_iff_mfderiv_trans_apply_mem`. -/
+theorem transports_iff_forall_mem_iff {Φ : Diffeotopy J n M}
+    {ξ : unitInterval → Π x : M, Submodule ℝ (TangentSpace J x)} :
+    Φ.Transports ξ ↔ ∀ t x (v : TangentSpace J x),
+      v ∈ ξ 0 x ↔ mfderiv J J (Φ.timeSlice t) x v ∈ ξ t (Φ.timeSlice t x) :=
+  forall_congr' fun _ ↦ forall_congr' fun _ ↦ by
+    rw [← timeSlice_apply, SetLike.ext_iff]
+    simp only [Submodule.mem_comap, ContinuousLinearMap.coe_coe]
+
+/-- If `Φ` transports `ξ`, then at every time `t` the differential of `ψ_t` carries `ξ_0` onto
+`ξ_t`. -/
+theorem Transports.mem_iff {Φ : Diffeotopy J n M}
+    {ξ : unitInterval → Π x : M, Submodule ℝ (TangentSpace J x)} (hΦ : Φ.Transports ξ)
+    (t : unitInterval) (x : M) (v : TangentSpace J x) :
+    v ∈ ξ 0 x ↔ mfderiv J J (Φ.timeSlice t) x v ∈ ξ t (Φ.timeSlice t x) :=
+  transports_iff_forall_mem_iff.1 hΦ t x v
+
 /-- If `χ` preserves the initial distribution `ξ_0` at all times and `Φ` transports `ξ`, then the
 composite diffeotopy `χ.trans Φ`, whose slice at `t` is `ψ_t ∘ χ_t`, transports `ξ`. -/
 theorem Transports.trans (hn : 1 ≤ n) {χ Φ : Diffeotopy J n M}
     {ξ : unitInterval → Π x : M, Submodule ℝ (TangentSpace J x)}
     (hχ : χ.Transports fun _ ↦ ξ 0) (hΦ : Φ.Transports ξ) : (χ.trans Φ).Transports ξ := by
-  have hn₀ : n ≠ 0 := (zero_lt_one.trans_le hn).ne'
-  intro t x
-  have hΦ' := hΦ t (χ.timeSlice t x)
-  rw [← timeSlice_apply] at hΦ'
-  have hχ' : ξ 0 x = (ξ 0 (χ.timeSlice t x)).comap (mfderiv J J (χ.timeSlice t) x).toLinearMap := by
-    rw [timeSlice_apply]; exact hχ t x
-  rw [← timeSlice_apply, timeSlice_trans, Diffeomorph.coe_trans,
-    mfderiv_comp x ((Φ.timeSlice t).mdifferentiable hn₀ _) ((χ.timeSlice t).mdifferentiable hn₀ _),
-    hχ', hΦ', ContinuousLinearMap.toLinearMap_comp, Function.comp_apply,
-    Submodule.comap_comp]
+  refine transports_iff_forall_mem_iff.2 fun t x v ↦ ?_
+  rw [timeSlice_trans]
+  exact Diffeomorph.mem_iff_mfderiv_trans_apply_mem _ _ (zero_lt_one.trans_le hn).ne'
+    (hχ.mem_iff t) (hΦ.mem_iff t) x v
 
 /-- **Transport between two times.** If `Φ` transports `ξ`, then for all times `s` and `t` the
 differential of `φ_t ∘ φ_s⁻¹` at `φ_s x` sends `ξ_s (φ_s x)` into `ξ_t (φ_t x)`. -/
@@ -99,21 +115,20 @@ theorem Transports.mfderiv_timeSlice_comp_symm_mem (hn : 1 ≤ n) {Φ : Diffeoto
     mfderiv J J (fun y ↦ Φ.timeSlice t ((Φ.timeSlice s).symm y)) (Φ.timeSlice s x) w ∈
       ξ t (Φ.timeSlice t x) := by
   have hn₀ : n ≠ 0 := (zero_lt_one.trans_le hn).ne'
-  have hs := hΦ s x
-  have ht := hΦ t x
-  rw [← timeSlice_apply] at hs ht
-  -- The vector `v` at `x` that `φ_s` sends to `w` lies in `ξ 0 x`, so `φ_t` sends it into `ξ t`.
-  set v : TangentSpace J x := mfderiv J J (Φ.timeSlice s).symm (Φ.timeSlice s x) w
-  have hdv : mfderiv J J (Φ.timeSlice s) x v = w :=
-    Diffeomorph.mfderiv_apply_mfderiv_symm_apply _ hn₀ x w
-  -- `φ_t ∘ φ_s⁻¹` is the composite of two diffeomorphisms, so its differential at `φ_s x` is
-  -- the composite of the differentials, and it sends `w` to the image of `v` under `φ_t`.
-  rw [show (fun y ↦ Φ.timeSlice t ((Φ.timeSlice s).symm y)) =
-      Φ.timeSlice t ∘ (Φ.timeSlice s).symm from rfl,
-    Diffeomorph.mfderiv_diffeomorph_comp _ hn₀, ContinuousLinearMap.comp_apply,
-    Diffeomorph.symm_apply_apply]
-  -- Membership in a `comap` is membership of the image.
-  exact ht.le (hs.ge ((congrArg (· ∈ ξ s _) hdv).mpr hw))
+  -- `φ_s⁻¹` carries `ξ_s` onto `ξ_0` and `φ_t` carries `ξ_0` onto `ξ_t`, so their composite
+  -- `φ_t ∘ φ_s⁻¹` carries `ξ_s` onto `ξ_t`.
+  have h := (Diffeomorph.mem_iff_mfderiv_trans_apply_mem _ _ hn₀
+    (Diffeomorph.mem_iff_mfderiv_symm_apply_mem _ hn₀ (hΦ.mem_iff s)) (hΦ.mem_iff t)
+    (Φ.timeSlice s x) w).1 hw
+  rw [Diffeomorph.coe_trans] at h
+  -- `h` is the claim at the base point `φ_t (φ_s⁻¹ (φ_s x))`, which is `φ_t x` only
+  -- propositionally; membership of a vector of the model space moves along that equality.
+  have hcongr : ∀ {y : M}, y = Φ.timeSlice t x → ∀ u : E,
+      (u : TangentSpace J y) ∈ ξ t y → (u : TangentSpace J (Φ.timeSlice t x)) ∈
+        ξ t (Φ.timeSlice t x) := by
+    rintro _ rfl _ hu
+    exact hu
+  exact hcongr (by rw [Function.comp_apply, Diffeomorph.symm_apply_apply]) _ h
 
 end TauCeti.Diffeotopy
 
