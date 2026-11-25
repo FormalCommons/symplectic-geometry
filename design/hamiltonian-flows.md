@@ -281,7 +281,7 @@ Tau Ceti unchanged.
 |---|---|
 | `Algebra/Lie/Quotient.lean` | `LieHom.coe_quotKerEquivRange_mk`: the value of `LieHom.quotKerEquivRange` on a class, for `PoissonAlgebra.lean` |
 | `Geometry/Manifold/Instances/Icc.lean` | `contMDiff_totalSpaceMk_one_Icc`: the unit vector field `z ↦ 1` of a closed interval is smooth |
-| `Geometry/Manifold/MFDeriv/Prod.lean` | `MDifferentiableAt.mfderiv_curry_right_apply`, `MDifferentiableAt.mfderiv_curry_left_apply`: the derivative of a map on a product on `(0, w)` and `(v, 0)` is a partial derivative |
+| `Geometry/Manifold/MFDeriv/Prod.lean` | `MDifferentiableAt.mfderiv_curry_left_apply`: the derivative of a map on a product on `(v, 0)` is a partial derivative; on `(0, w)` it is Tau Ceti's `MDifferentiableAt.mfderiv_uncurry_apply_zero_mk` |
 | `Geometry/Diffeomorphism/Diffeotopy/Basic.lean` | `connectedComponent_apply`: each slice keeps points in their components; that the slices and their inverses cancel in the coerced form `Φ (t, ·)` is Tau Ceti's `apply_mk_symm_apply` and `symm_apply_mk_apply` |
 | `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean` | `Diffeotopy.velocity`, its joint smoothness, its value along the motion, its values for `refl` and the flow diffeotopies, and the pullback of $\iota_{X_t}\sigma$ by $\phi_t$ |
 | `Geometry/Symplectic/Hamiltonian/PoissonAlgebra.lean` | the Leibniz rule, the local time-dependent flow, the kernel and the quotient, the milestone *Hamiltonian flows and the Poisson algebra* |
