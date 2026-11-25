@@ -149,7 +149,10 @@ theorem mfderiv_prodFiberContraction (x : (E × F) × unitInterval) (w : E × F)
   rw [prodFiberContraction_eq_comp]
   refine (mfderiv_comp_apply x hs
     ((contMDiff_prodMap_id_subtypeVal_Icc (n := 1)).mdifferentiable one_ne_zero x) _).trans ?_
-  rw [mfderiv_prodMap_id_subtypeVal_Icc, mfderiv_eq_fderiv]
+  have h := mfderiv_prodMap_id_subtypeVal_Icc (I := 𝓘(ℝ, E × F)) x w r
+  -- The model `𝓘(ℝ, E × F).prod 𝓘(ℝ, ℝ)` and its charted space are those of `(E × F) × ℝ`.
+  rw [← modelWithCornersSelf_prod, chartedSpaceSelf_prod] at h
+  rw [h, mfderiv_eq_fderiv]
   -- The identifications `NormedSpace.fromTangentSpace` around `fderiv` are the identity.
   exact fderiv_fiberScaling_apply _ _
 
