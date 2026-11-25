@@ -217,7 +217,7 @@ Namespace `SymplecticGeometry`, for `n : ℕ` and `E := Fin (n + 1) → ℂ`.
   $z_i=w_i$, $z_j=w_iw_j$.
 - The instances `ChartedSpace E (BlowupModel n)`, with `chartAt` the chart
   at the index Tau Ceti's charts of `ℙ ℂ E` use, and
-  `IsManifold 𝓘(ℂ, E) ω (BlowupModel n)`: the transition from chart `i` to
+  `IsManifold 𝓘(ℂ, E) r (BlowupModel n)` for every `r : ℕ∞ω`: the transition from chart `i` to
   chart `k` is $w'_k=w_iw_k$, $w'_j=v_j/w_k$ ($v=$`update w i 1`), analytic
   where $w_k\neq0$. `T2Space` and `SecondCountableTopology` from the
   subspace.
