@@ -5,8 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Topology.Algebra.Module.Alternating.Topology
 public import Mathlib.Topology.Algebra.Module.FiniteDimensionBilinear
 public import TauCeti.LinearAlgebra.BilinearForm.Basic
+public import TauCeti.LinearAlgebra.BilinearMap.Multilinear
 public import TauCeti.Topology.Algebra.Module.BilinearForm
 public import TauCeti.Topology.Algebra.Module.SymmetricBilinear.Basic
 
@@ -39,6 +41,10 @@ For continuous bilinear forms `β₀` on `V₀` and `β₁` on `V₁` and a cont
 `u ↦ β₁⁻¹ (β₀ u ∘ T)`. When `β₁` is invertible it is the unique map `A` with
 `β₁ (A u) y = β₀ u (T y)`, so `A` and `T` form an adjoint pair. In finite dimensions, for `β₁`
 nondegenerate, it is the linear map `(β₁.toDual)⁻¹ ∘ T.dualMap ∘ β₀`.
+
+Finally, a continuous alternating map `A` of two vectors gives the bilinear form
+`(v, w) ↦ A ![v, w]`. On a finite-dimensional normed space, the maps whose form is
+nondegenerate are an open set, by Tau Ceti's `TauCeti.isOpen_setOf_nondegenerate`.
 
 ## Main definitions
 
@@ -77,6 +83,8 @@ nondegenerate, it is the linear map `(β₁.toDual)⁻¹ ∘ T.dualMap ∘ β₀
   are an adjoint pair in the sense of `LinearMap.IsAdjointPair`.
 * `ContinuousLinearMap.coe_bilinAdjoint`: in finite dimensions, its linear map is
   `(β₁.toDual)⁻¹ ∘ T.dualMap ∘ β₀`.
+* `ContinuousAlternatingMap.isOpen_setOf_nondegenerate_toBilinMap`: in finite dimension, the
+  continuous alternating maps of two vectors with nondegenerate bilinear form are an open set.
 -/
 
 public section
@@ -355,5 +363,18 @@ theorem coe_bilinAdjoint (hβ₁ : β₁.toBilinForm.Nondegenerate) (T : V₁ �
 end BilinAdjoint
 
 end ContinuousLinearMap
+
+namespace ContinuousAlternatingMap
+
+/-- In finite dimension, the continuous alternating maps `A` of two vectors whose bilinear form
+`(v, w) ↦ A ![v, w]` is nondegenerate form an open set. -/
+theorem isOpen_setOf_nondegenerate_toBilinMap {𝕜 E : Type*} [NontriviallyNormedField 𝕜]
+    [NormedAddCommGroup E] [NormedSpace 𝕜 E] [FiniteDimensional 𝕜 E] :
+    IsOpen {A : E [⋀^Fin 2]→L[𝕜] 𝕜 |
+      LinearMap.BilinForm.Nondegenerate (MultilinearMap.toBilinMap A.toMultilinearMap)} :=
+  TauCeti.isOpen_setOf_nondegenerate fun v w ↦ by
+    simpa using continuous_eval_const ![v, w]
+
+end ContinuousAlternatingMap
 
 end
