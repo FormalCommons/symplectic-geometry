@@ -30,20 +30,21 @@ import TauCeti.MeasureTheory.Measure.Haar.Unique
 
 Let `M` be a closed oriented Riemannian manifold, `Δ = dδ + δd` its Hodge Laplacian on real
 `k`-forms and `⟪α, β⟫ = ∫_M ⟨α, β⟩ dV` the `L²` inner product of smooth forms
-(`TauCeti.SmoothForm.l2Inner`). Since `Δ` is symmetric and nonnegative for this inner product,
-`⟪α, β⟫ + ⟪Δα, β⟫ = ⟪α, β⟫ + ⟪dα, dβ⟫ + ⟪δα, δβ⟫` is again an inner product on the smooth forms,
-and it is definite because the `L²` part is. The Hilbert space `SymplecticGeometry.H1Form o hkl`
-is the completion of the smooth `k`-forms for it.
+(`TauCeti.SmoothForm.l2Inner`). On `L2Form I M k`, with domain the image of the smooth forms,
+`Δ` is a partial operator `SymplecticGeometry.L2Form.hodgeLaplacian o hkl`, which is symmetric
+and nonnegative (`L2Form.isSymmetricBoundedBelow_hodgeLaplacian`). The Hilbert space
+`SymplecticGeometry.H1Form o hkl` is its form domain, Tau Ceti's
+`LinearPMap.FriedrichsSpace` with lower bound `0`: the completion of the smooth `k`-forms for
+the inner product `⟪Δα, β⟫ + ⟪α, β⟫ = ⟪dα, dβ⟫ + ⟪δα, δβ⟫ + ⟪α, β⟫`.
 
-Its norm dominates the `L²` norm, so the identity of smooth forms extends to a continuous linear
-map `H1Form.toL2 : H1Form o hkl →L[ℝ] L2Form I M k` of norm at most one. The
-**Dirichlet form** `H1Form.dirichlet u v = ⟪u, v⟫ - ⟪toL2 u, toL2 v⟫` is a continuous bilinear
-form on `H1Form o hkl` that extends `⟪Δα, β⟫`, so that `‖u‖ ^ 2 = dirichlet u u + ‖toL2 u‖ ^ 2`
-(Gårding's identity) holds by definition. Against a smooth form it is the weak Laplacian:
-`dirichlet u (ofSmooth φ) = ⟪toL2 u, Δφ⟫`, which gives Green's identity
-`⟪u, ofSmooth φ⟫ = ⟪toL2 u, φ + Δφ⟫`. Hence an element `u` with `toL2 u = 0` is orthogonal to
-every smooth form, and `toL2` is injective. The Dirichlet form is nonnegative, so it satisfies
-the Cauchy–Schwarz inequality, which bounds `|⟪toL2 u, Δφ⟫|` by `‖u‖` times the `H¹` norm
+Tau Ceti supplies the rest of the structure: the injective contraction
+`LinearPMap.friedrichsInclusion` into `L2Form I M k`, and the **Dirichlet form**
+`LinearPMap.friedrichsForm`, a continuous form on `H1Form o hkl` that extends `⟪Δα, β⟫`. This
+file restates on smooth forms what they give: `H1Form.friedrichsForm_ofSmooth_right` says that
+against a smooth form `φ` the Dirichlet form is the weak Laplacian `⟪u, Δφ⟫`, and
+`H1Form.norm_sq_eq_friedrichsForm_add` is Gårding's identity
+`‖u‖ ^ 2 = D(u, u) + ‖u‖_{L²} ^ 2`. The Dirichlet form is nonnegative, so it satisfies the
+Cauchy–Schwarz inequality, which bounds `|⟪u, Δφ⟫|` by `‖u‖` times the `H¹` norm
 `√(‖φ‖ ^ 2 + ⟪Δφ, φ⟫)` of `φ`.
 
 By `SymplecticGeometry.L2Form.isLocallySobolev_one_of_forall_inner`, that bound makes every
@@ -53,24 +54,26 @@ supported in its source, a basis `bΛ` of the forms on `E`, an index `p` and coo
 `L²` form `u`, read through `e⁻¹`, is an `L²` function on `CoordinateSpace n`
 (`SymplecticGeometry.L2Form.localizeCoord`). Its distribution is, up to a nonzero constant, the
 coordinate distribution `Distribution.coordOfFun` of the localization, and it vanishes outside
-the compact image of the support of `χ`. So, for `u = toL2 v` with `v` in `H1Form o hkl`, Tau
-Ceti's `TemperedDistribution.memSobolev_of_isCompact_dsupport_of_forall_isLocallySobolevAt` puts
+the compact image of the support of `χ`. So, for `u` the image in `L2Form I M k` of some `v` in
+`H1Form o hkl`, Tau Ceti's
+`TemperedDistribution.memSobolev_of_isCompact_dsupport_of_forall_isLocallySobolevAt` puts
 it in the Bessel-potential space `H^1` of `CoordinateSpace n`. This defines a linear map
 `H1Form.localizeSobolev` from `H1Form o hkl` to `H^1`. Its graph is closed, because `H1Form o hkl`
 and `H^1` both map continuously into the tempered distributions, the second one injectively, so
 the map is bounded by the closed graph theorem `LinearMap.continuous_of_isClosed_graph`.
 
-The inclusion `H1Form.toL2` is a compact operator (`H1Form.isCompactOperator_toL2`). In a chart,
-take a Schwartz function `φ` equal to `1` near the compact set outside which the coordinate
-`L2Form.localizeCoord` of `toL2 u` vanishes. Multiplying by `φ` leaves that coordinate unchanged,
-so it is the image of `H1Form.localizeSobolev u` under multiplication by `φ` followed by the
-inclusion of `H^1` into `L²`, which is compact by Tau Ceti's Rellich theorem
+The inclusion of `H1Form o hkl` into `L2Form I M k` is a compact operator
+(`H1Form.isCompactOperator_friedrichsInclusion`). In a chart, take a Schwartz function `φ` equal
+to `1` near the compact set outside which the coordinate `L2Form.localizeCoord` of the image of
+`u` vanishes. Multiplying by `φ` leaves that coordinate unchanged, so it is the image of
+`H1Form.localizeSobolev u` under multiplication by `φ` followed by the inclusion of `H^1` into
+`L²`, which is compact by Tau Ceti's Rellich theorem
 `BesselPotentialSpace.isCompactOperator_inclusion_comp_smulLeftCLM`
-(`H1Form.isCompactOperator_localizeCoord_comp_toL2`). For a finite atlas and a subordinate
-partition of unity, the `L²` norm of a form is bounded by the norms of its localizations
-(`L2Form.exists_norm_le_sum_norm_localize`), and each localization by the norms of its
-coordinates (`L2Form.exists_norm_localize_le_mul_sum_norm_localizeCoord`). So `toL2` is
-dominated by finitely many compact operators, and is compact by
+(`H1Form.isCompactOperator_localizeCoord_comp_friedrichsInclusion`). For a finite atlas and a
+subordinate partition of unity, the `L²` norm of a form is bounded by the norms of its
+localizations (`L2Form.exists_norm_le_sum_norm_localize`), and each localization by the norms of
+its coordinates (`L2Form.exists_norm_localize_le_mul_sum_norm_localizeCoord`). So the inclusion
+is dominated by finitely many compact operators, and is compact by
 Tau Ceti's `IsCompactOperator.of_norm_le_mul_sum`.
 
 In degree zero, `H1Form o hl` for `hl : 0 + l = m` is Tau Ceti's Sobolev space
@@ -81,22 +84,27 @@ Laplacian of a function is minus its Laplace–Beltrami operator and by Green's 
 (`TauCeti.SmoothForm.l2Inner_hodgeLaplacian_zero_eq_integral_inner_mgradient`). So the two inner
 products agree on smooth functions, and the identification extends to a linear isometric
 equivalence `H1Form.sobolevH1Equiv o hl : H1Form o hl ≃ₗᵢ[ℝ] SobolevH1 I M`, which carries
-`H1Form.dirichlet` to `SobolevH1.dirichletForm`, and so the `L²` inner product of the images
-under `toL2` to that of the images under `SobolevH1.toLp`. Tau Ceti's Green identity asks for a
-model without boundary, `I.Boundaryless`, and so does this equivalence.
+`LinearPMap.friedrichsForm` to `SobolevH1.dirichletForm`, and so the `L²` inner product of the
+images in `L2Form I M 0` to that of the images under `SobolevH1.toLp`. Tau Ceti's Green identity
+asks for a model without boundary, `I.Boundaryless`, and so does this equivalence.
 
 ## Main definitions and results
 
+* `SymplecticGeometry.L2Form.hodgeLaplacian`: the Hodge Laplacian as a partial operator on
+  `L2Form I M k`, with `L2Form.toDomainHodgeLaplacian`, `L2Form.hodgeLaplacian_apply`,
+  `L2Form.hodgeLaplacian_toDomainHodgeLaplacian` and
+  `L2Form.isSymmetricBoundedBelow_hodgeLaplacian`.
 * `SymplecticGeometry.H1Form o hkl`: the Hilbert space, with `H1Form.ofSmooth`,
   `H1Form.inner_ofSmooth`, `H1Form.norm_ofSmooth_sq`, `H1Form.ofSmooth_injective`,
   `H1Form.denseRange_ofSmooth` and `H1Form.induction_on`.
-* `SymplecticGeometry.H1Form.toL2`: the inclusion into `L2Form I M k`, with `toL2_ofSmooth`,
-  `norm_toL2_le`, `inner_ofSmooth_right` and `toL2_injective`.
-* `SymplecticGeometry.H1Form.dirichlet`: the Dirichlet form, with `dirichlet_ofSmooth`,
-  `dirichlet_comm`, `dirichlet_self_nonneg`, `norm_sq_eq_dirichlet_add`,
-  `dirichlet_ofSmooth_right` and `abs_dirichlet_le`.
-* `SymplecticGeometry.H1Form.abs_inner_toL2_ofSmooth_hodgeLaplacian_le`: the bound
-  `|⟪toL2 u, Δφ⟫| ≤ ‖u‖ * √(‖φ‖ ^ 2 + ⟪Δφ, φ⟫)`, the hypothesis of
+* `SymplecticGeometry.H1Form.friedrichsInclusion_ofSmooth`,
+  `SymplecticGeometry.H1Form.friedrichsForm_ofSmooth`,
+  `SymplecticGeometry.H1Form.friedrichsForm_ofSmooth_right`,
+  `SymplecticGeometry.H1Form.norm_sq_eq_friedrichsForm_add` and
+  `SymplecticGeometry.H1Form.abs_friedrichsForm_le`: the inclusion into `L2Form I M k` and the
+  Dirichlet form on smooth forms, Gårding's identity and the Cauchy–Schwarz inequality.
+* `SymplecticGeometry.H1Form.abs_inner_friedrichsInclusion_ofSmooth_hodgeLaplacian_le`: the bound
+  `|⟪u, Δφ⟫| ≤ ‖u‖ * √(‖φ‖ ^ 2 + ⟪Δφ, φ⟫)` in `L2Form I M k`, the hypothesis of
   `SymplecticGeometry.L2Form.isLocallySobolev_one_of_forall_inner`.
 * `SymplecticGeometry.H1Form.sobolevH1Equiv`: in degree zero, the linear isometric equivalence
   with `TauCeti.Manifold.SobolevH1 I M`, with `sobolevH1Equiv_ofSmooth`,
@@ -112,37 +120,31 @@ model without boundary, `I.Boundaryless`, and so does this equivalence.
   `SymplecticGeometry.L2Form.exists_norm_localize_le_mul_sum_norm_localizeCoord`: the
   coordinates vanish outside the image of the support of the cutoff, and they control the
   localization.
-* `SymplecticGeometry.H1Form.isCompactOperator_localizeCoord_comp_toL2`: Rellich's theorem in a
-  chart.
-* `SymplecticGeometry.H1Form.isCompactOperator_toL2`: the inclusion of `H1Form o hkl` into
-  `L2Form I M k` is compact.
+* `SymplecticGeometry.H1Form.isCompactOperator_localizeCoord_comp_friedrichsInclusion`:
+  Rellich's theorem in a chart.
+* `SymplecticGeometry.H1Form.isCompactOperator_friedrichsInclusion`: the inclusion of
+  `H1Form o hkl` into `L2Form I M k` is compact.
 
 ## Implementation notes
 
-The construction of `H1Form` through the type synonym `SymplecticGeometry.PreH1Form`, and the
-names and proofs of `ofSmooth`, `inner_ofSmooth`, `denseRange_ofSmooth`, `induction_on`,
-`dirichlet`, `dirichlet_comm`, `dirichlet_self_nonneg`, `norm_sq_eq_dirichlet_add`,
-`dirichlet_ofSmooth_right`, `inner_ofSmooth_right` and `toL2_injective`, adapt those of Tau
-Ceti's `TauCeti.Manifold.SobolevH1` (`TauCeti/Geometry/Manifold/Riemannian/Sobolev/H1.lean`,
-itself after Mathlib's `PreGNS`: `SobolevH1.ofSmooth`, `SobolevH1.dirichletForm`,
-`SobolevH1.dirichletForm_comm`, `SobolevH1.dirichletForm_self_nonneg`,
-`SobolevH1.norm_sq_eq_dirichletForm_add`, `SobolevH1.dirichletForm_ofSmooth_right`,
-`SobolevH1.inner_ofSmooth_right` and `SobolevH1.toLp_injective`), with smooth `k`-forms and the
-Hodge Laplacian in place of smooth functions and the gradient, and `L2Form` in place of
-`Lp ℝ 2`. Since the `L²` part of the inner product is definite, the type synonym carries an
-`InnerProductSpace.Core` rather than a `PreInnerProductSpace.Core`, as in `L2.lean`. As
-`L2Form.localize` does, `toL2` is Mathlib's extension `LinearMap.extendOfNorm` of the
-inclusion of smooth forms into `L2Form I M k`, which is bounded by `norm_l2FormOfSmooth_le`.
+`H1Form` is Tau Ceti's `LinearPMap.FriedrichsSpace`
+(`TauCeti/Analysis/InnerProductSpace/LinearPMap/Friedrichs/Basic.lean`) of the Hodge Laplacian
+`L2Form.hodgeLaplacian o hkl` with lower bound `0`, and its inclusion into `L2Form I M k` and its
+Dirichlet form are Tau Ceti's `LinearPMap.friedrichsInclusion` and `LinearPMap.friedrichsForm`.
+The domain of the partial operator is the range of `L2Form.ofSmooth`, which is injective, so a
+vector of the domain is a smooth form (`L2Form.toDomainHodgeLaplacian`). A local notation `hΔ`
+stands for the proof `L2Form.isSymmetricBoundedBelow_hodgeLaplacian _ _` that the Friedrichs
+construction takes.
 
 The Bessel-potential space `H^1` is a complex space; `H1Form.localizeSobolev` is linear over `ℝ`
 for its real structure. The change of variables along `e⁻¹` in `L2Form.localizeCoord` is Tau
 Ceti's `MeasureTheory.Lp.compOfMapLeSmul`, since the image of the volume of `CoordinateSpace n`
 is a multiple of the volume of `E`.
 
-The proof of `H1Form.isCompactOperator_localizeCoord_comp_toL2` follows that of Tau Ceti's
-`TauCeti.Symbol.isCompactOperator_inclusion_comp_quantizeSobolev`: a Schwartz cutoff equal to `1`
-near a common compact support (`IsCompact.exists_schwartzMap_cutoff`), multiplication by which
-is the identity, reduces compactness to
+The proof of `H1Form.isCompactOperator_localizeCoord_comp_friedrichsInclusion` follows that of
+Tau Ceti's `TauCeti.Symbol.isCompactOperator_inclusion_comp_quantizeSobolev`: a Schwartz cutoff
+equal to `1` near a common compact support (`IsCompact.exists_schwartzMap_cutoff`),
+multiplication by which is the identity, reduces compactness to
 `BesselPotentialSpace.isCompactOperator_inclusion_comp_smulLeftCLM`.
 
 As Tau Ceti's `TauCeti.Manifold.SobolevH1.compRiemannianIsometry`

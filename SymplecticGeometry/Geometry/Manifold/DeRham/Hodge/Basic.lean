@@ -17,9 +17,10 @@ On a closed oriented Riemannian manifold `M` of dimension `m = k + l`, this file
 analytic half of the Hodge theorem, which Tau Ceti's `Geometry/Manifold/DeRham/Harmonic.lean`
 leaves open, and its consequences for de Rham cohomology.
 
-The Dirichlet form `H1Form.dirichlet` on the Hodge `H¹` space satisfies Gårding's inequality with
-constants `1` and `1` (`H1Form.norm_sq_eq_dirichlet_add`), and the inclusion `H1Form.toL2` into
-the `L²` forms is compact (`H1Form.isCompactOperator_toL2`). Tau Ceti's Fredholm alternative for
+The Dirichlet form `LinearPMap.friedrichsForm` on the Hodge `H¹` space satisfies Gårding's
+inequality with constants `1` and `1` (`H1Form.norm_sq_eq_friedrichsForm_add`), and the inclusion
+`LinearPMap.friedrichsInclusion` into the `L²` forms is compact
+(`H1Form.isCompactOperator_friedrichsInclusion`). Tau Ceti's Fredholm alternative for
 Gårding forms then gives:
 
 * the harmonic forms embed into the kernel of the Dirichlet form, which is finite dimensional;
