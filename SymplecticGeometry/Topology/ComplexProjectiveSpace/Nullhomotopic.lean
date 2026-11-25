@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Topology.ComplexProjectiveSpace.SecondHomology
-import TauCeti.AlgebraicTopology.Cohomology.Sphere.Basic
+import SymplecticGeometry.AlgebraicTopology.Cohomology.Sphere.Basic
 import TauCeti.AlgebraicTopology.Homotopy.Hurewicz.DiskBoundary
 import TauCeti.Topology.ComplexProjectiveSpace.Hopf.Exact
 
@@ -29,7 +29,8 @@ with `h` is injective on `H₂(ℙ ℂ V; ℤ)`
 (`Projectivization.bijective_singularKronecker_hyperplaneClass`), and
 `⟨h, g_*[S²]⟩ = ⟨g^* h, [S²]⟩` (`TopCat.singularKronecker_naturality`). Finally a class of
 `H²(S²; ℤ)` is zero exactly when it vanishes on `[S²]`, since evaluation on `[S²]` is a linear
-equivalence `H²(S²; ℤ) ≃ ℤ` (`TauCeti.singularCohomologyTopCatSphereEquiv`).
+equivalence `H²(S²; ℤ) ≃ ℤ`
+(`TopCat.singularKronecker_singularHomologyTopCatSphereGenerator_eq_zero_iff`).
 
 ## References
 
@@ -56,10 +57,11 @@ the structure `ModuleCat.instLinear`; instance search would otherwise find
 `CategoryTheory.Linear.preadditiveIntLinear`, the structure of integral cohomology. -/
 attribute [local instance high] ModuleCat.instLinear
 
-/-- A class of `Hᵈ⁺²(Sᵈ⁺²; ℤ)` vanishes exactly when it vanishes on the generator `[Sᵈ⁺²]`, in
-the form that `TopCat.Hom.nullhomotopic_iff_singularHomologyMap_eq_zero` uses. This is Tau Ceti's
-`TauCeti.singularCohomologyTopCatSphereEquiv`, read in that form; it is stated for every `d`,
-since Lean matches `d + 1 + 1` with `d + 2` at once, but not `1 + 1` with `2` in these terms. -/
+/-- A class of `Hᵈ⁺²(Sᵈ⁺²; ℤ)` vanishes exactly when it vanishes on the generator `[Sᵈ⁺²]` of
+`H_{d+2}(Sᵈ⁺²; ℤ)`, with `[Sᵈ⁺²]` written out as the class that
+`TopCat.Hom.nullhomotopic_iff_singularHomologyMap_eq_zero` names; this is
+`TopCat.singularKronecker_singularHomologyTopCatSphereGenerator_eq_zero_iff`. A step of the proof
+of `nullhomotopic_iff_singularCohomologyMap_hyperplaneClass_eq_zero`, at `d = 0`. -/
 private theorem singularKronecker_sphere_eq_zero_iff (d : ℕ)
     (c : (TopCat.diskBoundary.{0} (d + 3)).singularCohomology (𝟙_ (ModuleCat.{0} ℤ)) ℤ
       (𝟙_ (ModuleCat.{0} ℤ)) (d + 2)) :
@@ -76,9 +78,7 @@ private theorem singularKronecker_sphere_eq_zero_iff (d : ℕ)
     -- `TopCat.sphere (d + 2)` is `TopCat.diskBoundary (d + 3)` by definition
     rfl
   rw [← hgen]
-  exact (Eq.congr_left (TauCeti.singularCohomologyTopCatSphereEquiv_apply ℤ
-    (𝟙_ (ModuleCat.{0} ℤ)) (d + 1) c)).symm.trans
-      (TauCeti.singularCohomologyTopCatSphereEquiv ℤ (𝟙_ (ModuleCat.{0} ℤ)) (d + 1)).map_eq_zero_iff
+  exact TopCat.singularKronecker_singularHomologyTopCatSphereGenerator_eq_zero_iff _ (d + 1) c
 
 end UnitCoefficients
 
