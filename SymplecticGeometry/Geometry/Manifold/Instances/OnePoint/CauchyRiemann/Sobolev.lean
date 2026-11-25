@@ -11,14 +11,10 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.CauchyRiemann.Ze
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.Hilbert
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.CovariantDerivative
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.SmoothHomMul
-<<<<<<< HEAD
-public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.ZeroOneForm.Basic
-=======
 public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.ZeroOneForm.Basic
 import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.SMulLp
 import SymplecticGeometry.Analysis.Complex.Wirtinger.Beurling.Estimate
 import SymplecticGeometry.Analysis.Complex.Wirtinger.Commutator
->>>>>>> origin/main
 import SymplecticGeometry.Analysis.Normed.Operator.ComplexLinearPart
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.ZeroOnePart
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Tames

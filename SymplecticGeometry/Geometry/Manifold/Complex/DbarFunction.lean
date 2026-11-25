@@ -7,14 +7,9 @@ module
 
 public import TauCeti.Analysis.Complex.Wirtinger.Basic
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
-<<<<<<< HEAD
-public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Trivial.Basic
-import TauCeti.Geometry.Symplectic.Manifold.JHolomorphic
-=======
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Trivial.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
->>>>>>> origin/main
 
 /-!
 # `∂bar_J` of a function read in a chart that carries `J` to `i`
