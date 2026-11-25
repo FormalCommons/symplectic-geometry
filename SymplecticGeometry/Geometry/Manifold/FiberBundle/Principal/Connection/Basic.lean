@@ -11,6 +11,9 @@ public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.BasicFo
 public import TauCeti.Geometry.Lie.Adjoint.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.MapCoeff
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal.FundamentalVectorField
+public import TauCeti.Geometry.Manifold.Submersion.EhresmannConnection.Basic
+import SymplecticGeometry.Geometry.Manifold.Distribution.OneFormKernel
+import TauCeti.Geometry.Manifold.FiberBundle.Submersion
 
 /-!
 # Connection forms on principal bundles
@@ -30,7 +33,8 @@ adjoint bundle.
 
 The **horizontal space** of a one-form `A` at `x` is the kernel of `A_x`. For a connection form it
 is a complement of the vertical space `ker dπ_x`, and the action carries horizontal spaces to
-horizontal spaces.
+horizontal spaces. When `B` and `G` are finite-dimensional, the horizontal spaces of a connection
+form are a smooth Ehresmann connection on `π`.
 
 ## Main definitions
 
@@ -56,6 +60,11 @@ horizontal spaces.
   form is a complement of the vertical space.
 * `SymplecticGeometry.IsConnectionForm.mfderiv_op_smul_mem_horizontal`: the action preserves the
   horizontal spaces.
+* `SymplecticGeometry.IsConnectionForm.isEhresmannConnection_horizontal`: for finite-dimensional
+  `B` and `G`, the horizontal spaces of a connection form are a smooth Ehresmann connection
+  (Tau Ceti's `TauCeti.IsEhresmannConnection`) on the projection; they are smooth because they
+  are the kernels of `A`, which is onto `𝔤` at every point
+  (`TauCeti.SmoothForm.isContMDiffDistribution_ker_degreeOneEquiv`).
 
 ## Implementation notes
 
@@ -76,7 +85,7 @@ public section
 
 noncomputable section
 
-open Bundle Manifold MulOpposite TauCeti TauCeti.Lie
+open Bundle Manifold Module MulOpposite TauCeti TauCeti.Lie
 open scoped Manifold ContDiff GroupLieAlgebra
 
 namespace SymplecticGeometry
@@ -265,6 +274,37 @@ theorem mfderiv_op_smul_mem_horizontal (hA : IsConnectionForm A) (g : G)
     mfderiv (IB.prod IG) (IB.prod IG) (fun y : ManifoldTotalSpace G P ↦ op g • y) x v ∈
       horizontal A (op g • x) := by
   rw [mem_horizontal_iff, hA.apply_mfderiv_op_smul, mem_horizontal_iff.mp hv, map_zero]
+
+/-- **The horizontal spaces of a connection form are a smooth Ehresmann connection** on the
+projection of the principal bundle to its base: they are complements of the vertical spaces and
+form a smooth distribution of rank `dim B`. -/
+theorem isEhresmannConnection_horizontal [FiniteDimensional ℝ EB] [FiniteDimensional ℝ EG]
+    (hA : IsConnectionForm A) :
+    IsEhresmannConnection (IB.prod IG) IB ∞ (ManifoldTotalSpace.projContMDiffMap ∞ G P IB IG)
+      (horizontal A) where
+  mdifferentiable := ManifoldTotalSpace.mdifferentiable_projContMDiffMap
+  isCompl_ker := hA.isCompl_horizontal
+  surjective_mfderiv x := by
+    rw [ManifoldTotalSpace.coe_projContMDiffMap]
+    exact isRegularPoint_iff.1 (ManifoldTotalSpace.isRegularPoint_proj IB IG x)
+  isContMDiffDistribution := by
+    -- The horizontal spaces are the kernels of `A`, which is onto `𝔤` at every point.
+    have hker : horizontal A = fun x ↦ (SmoothForm.degreeOneEquiv A x).ker := by
+      funext x
+      ext v
+      rw [mem_horizontal_iff, LinearMap.mem_ker, ContinuousLinearMap.coe_coe,
+        SmoothForm.degreeOneEquiv_apply_apply_vec]
+    -- `∞ + 1` is `∞`, so the smooth structure of the total space serves as it is.
+    have : IsManifold (IB.prod IG) (∞ + 1) (ManifoldTotalSpace G P) :=
+      inferInstanceAs (IsManifold (IB.prod IG) ∞ _)
+    have h := SmoothForm.isContMDiffDistribution_ker_degreeOneEquiv (n := ∞) A fun x ξ ↦
+      ⟨rightFundamentalVectorField (IB.prod IG) ξ x, by
+        rw [SmoothForm.degreeOneEquiv_apply_apply_vec, hA.apply_rightFundamentalVectorField]⟩
+    have hrank : finrank ℝ (EB × EG) - finrank ℝ (GroupLieAlgebra IG G) = finrank ℝ EB := by
+      rw [Module.finrank_prod]
+      -- As a real vector space, `GroupLieAlgebra IG G` is the model space `EG`.
+      exact Nat.add_sub_cancel _ _
+    rwa [hker, ← hrank]
 
 /-! ### The affine structure of connection forms -/
 
