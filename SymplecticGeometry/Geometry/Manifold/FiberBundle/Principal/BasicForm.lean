@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Descent
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal.FundamentalVectorField
+public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
 import TauCeti.Geometry.Lie.Exponential.Derivative.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Flow
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
@@ -93,14 +94,11 @@ variable {B G : Type*}
   {P : B → Type*} [TopologicalSpace (TotalSpace G P)] [∀ b, TopologicalSpace (P b)]
   [FiberBundle G P] [∀ b, MulAction Gᵐᵒᵖ (P b)]
 
-omit [TopologicalSpace B] [∀ b, TopologicalSpace (P b)] [FiberBundle G P] [TopologicalSpace G] in
 /-- The projection of the charted total space of a principal bundle is invariant under the right
 action. -/
-@[simp]
-theorem proj_comp_op_smul (g : G) :
-    (fun y : ManifoldTotalSpace G P ↦ ((ManifoldTotalSpace.homeomorph G P).symm y).proj) ∘
-      (fun x ↦ op g • x) =
-      fun y ↦ ((ManifoldTotalSpace.homeomorph G P).symm y).proj := by
+theorem proj_comp_op_smul {n : ℕ∞ω} (g : G) :
+    ManifoldTotalSpace.projContMDiffMap n G P IB IG ∘ (fun x ↦ op g • x) =
+      ManifoldTotalSpace.projContMDiffMap n G P IB IG := by
   funext x
   simp [ManifoldTotalSpace.homeomorph_symm_smul]
 
@@ -124,16 +122,14 @@ theorem exists_op_smul_eq_of_proj_eq {x y : ManifoldTotalSpace G P}
 
 /-- A form pulled back from the base of a smooth principal bundle is invariant under the right
 action. -/
-@[simp]
 theorem mpullback_op_smul_mpullback_proj {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
     {k : ℕ} (g : G) (a : SmoothForm IB B F k) :
     SmoothForm.mpullback (fun x : ManifoldTotalSpace G P ↦ op g • x)
       (contMDiff_const_smul (op g)) (SmoothForm.mpullback
-        (fun y : ManifoldTotalSpace G P ↦ ((ManifoldTotalSpace.homeomorph G P).symm y).proj)
-        (ManifoldTotalSpace.contMDiff_proj ∞ G P IB IG) a) =
-      SmoothForm.mpullback
-        (fun y : ManifoldTotalSpace G P ↦ ((ManifoldTotalSpace.homeomorph G P).symm y).proj)
-        (ManifoldTotalSpace.contMDiff_proj ∞ G P IB IG) a := by
+        (ManifoldTotalSpace.projContMDiffMap ∞ G P IB IG)
+        (ManifoldTotalSpace.projContMDiffMap ∞ G P IB IG).contMDiff a) =
+      SmoothForm.mpullback (ManifoldTotalSpace.projContMDiffMap ∞ G P IB IG)
+        (ManifoldTotalSpace.projContMDiffMap ∞ G P IB IG).contMDiff a := by
   simp only [SmoothForm.mpullback_mpullback, proj_comp_op_smul]
 
 /-- **Invariant forms that vanish on vertical vectors are basic.** On a smooth principal bundle, a
@@ -141,18 +137,16 @@ smooth form that is invariant under the right action of `G` and vanishes as soon
 arguments is vertical, that is, in the kernel of the derivative of the projection, is basic for
 the projection. -/
 theorem isBasic_of_mpullback_op_smul {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
-    {k : ℕ} {β : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) F k}
+    {k : ℕ} {n : ℕ∞ω} {β : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) F k}
     (hβ : ∀ g : G, SmoothForm.mpullback (fun x : ManifoldTotalSpace G P ↦ op g • x)
       (contMDiff_const_smul (op g)) β = β)
     (hvert : ∀ x (v : Fin k → TangentSpace (IB.prod IG) x) j,
-      mfderiv (IB.prod IG) IB (fun y : ManifoldTotalSpace G P ↦
-        ((ManifoldTotalSpace.homeomorph G P).symm y).proj) x (v j) = 0 → β.val x v = 0) :
-    RoughForm.IsBasic (V := F) IB
-      (fun y : ManifoldTotalSpace G P ↦ ((ManifoldTotalSpace.homeomorph G P).symm y).proj)
-      β.val := by
+      mfderiv (IB.prod IG) IB (ManifoldTotalSpace.projContMDiffMap n G P IB IG) x (v j) = 0 →
+        β.val x v = 0) :
+    RoughForm.IsBasic (V := F) IB (ManifoldTotalSpace.projContMDiffMap n G P IB IG) β.val := by
   refine RoughForm.isBasic_of_mpullback_eq
     (σ := fun (g : G) (x : ManifoldTotalSpace G P) ↦ op g • x)
-    ((ManifoldTotalSpace.contMDiff_proj ∞ G P IB IG).mdifferentiable (by simp))
+    ManifoldTotalSpace.mdifferentiable_projContMDiffMap
     (fun g ↦ (contMDiff_const_smul (I := IB.prod IG) (n := ∞) (op g)).mdifferentiable (by simp))
     proj_comp_op_smul (fun x y hxy ↦ Or.inr (exists_op_smul_eq_of_proj_eq hxy.symm)) hvert
     fun g ↦ ?_
