@@ -6,14 +6,11 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Normed
+public import TauCeti.Analysis.Calculus.DifferentialForm.Basic
 public import TauCeti.Geometry.Lie.Adjoint.Basic
 public import TauCeti.Geometry.Lie.LeftInvariantForm
 public import TauCeti.Geometry.Manifold.DifferentialForm.MapCoeff
 public import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
-public import TauCeti.Geometry.Manifold.DifferentialForm.VectorField
-public import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
-public import TauCeti.Geometry.Manifold.VectorField.LieBracket
-public import TauCeti.Geometry.Manifold.VectorField.ModelChart
 
 /-!
 # The left Maurer–Cartan form
@@ -54,9 +51,10 @@ Smoothness and left-invariance come from Tau Ceti's `TauCeti.leftInvariantSmooth
 The Maurer–Cartan equation is Tau Ceti's `TauCeti.mextDeriv_leftInvariantForm`, which computes
 the exterior derivative of a left-invariant form by the Chevalley–Eilenberg differential, read
 on `θ`. The structure equation along `γ` pulls `θ` back to the normed space
-(`TauCeti.SmoothForm.mextDeriv_mpullback_apply_two`) and evaluates the exterior derivative of
-the pullback on two constant vector fields, whose bracket vanishes
-(`TauCeti.SmoothForm.mextDeriv_apply_one`).
+(`TauCeti.SmoothForm.mextDeriv_mpullback_apply_two`), identifies the exterior derivative there
+with that of a normed space (`TauCeti.mextDeriv_eq_extDeriv`), and evaluates it on a pair of
+directions as a difference of directional derivatives
+(`TauCeti.extDeriv_apply_pair_of_differentiableAt`).
 
 The norm on `𝔤` that `SmoothForm` needs is the scoped one of
 `SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Normed`; statements about this form need
@@ -149,7 +147,6 @@ is `dθ(v, w) = -⁅θ v, θ w⁆`, the bracket being that of `GroupLieAlgebra I
 theorem mextDeriv_leftMaurerCartanForm_apply (g : G) (v w : TangentSpace I g) :
     mextDeriv (leftMaurerCartanForm I G).val g ![v, w] =
       -⁅(leftMaurerCartanForm I G).val g ![v], (leftMaurerCartanForm I G).val g ![w]⁆ := by
-  have : CompleteSpace E := FiniteDimensional.completeSpace ℝ E
   obtain ⟨ξ, rfl⟩ := exists_mulInvariantVectorField_eq v
   obtain ⟨η, rfl⟩ := exists_mulInvariantVectorField_eq w
   have hvw : ![mulInvariantVectorField ξ g, mulInvariantVectorField η g] =
@@ -174,19 +171,16 @@ theorem fderiv_leftMaurerCartanForm_mfderiv_sub {γ : E' → G} (hγ : ContMDiff
       -⁅(leftMaurerCartanForm I G).val (γ x) ![mfderiv 𝓘(ℝ, E') I γ x v],
         (leftMaurerCartanForm I G).val (γ x) ![mfderiv 𝓘(ℝ, E') I γ x w]⁆ := by
   have hpull := SmoothForm.mextDeriv_mpullback_apply_two γ hγ (leftMaurerCartanForm I G) x v w
-  rw [SmoothForm.mextDeriv_apply_one (V := fun _ ↦ v) (W := fun _ ↦ w)
-    ((contMDiff_tangentBundle_mk_const v (n := 1)).mdifferentiableAt one_ne_zero)
-    ((contMDiff_tangentBundle_mk_const w (n := 1)).mdifferentiableAt one_ne_zero),
-    VectorField.mlieBracket_const_model_space, ContinuousAlternatingMap.map_coord_zero _ 0 rfl,
-    sub_zero, mextDeriv_leftMaurerCartanForm_apply] at hpull
-  have hfun (u : E') : (fun y ↦ (SmoothForm.mpullback γ hγ (leftMaurerCartanForm I G)).val y ![u]) =
+  have hd := ((isSmoothForm_modelSpace_iff.1 (SmoothForm.isSmoothForm
+    (SmoothForm.mpullback γ hγ (leftMaurerCartanForm I G)))).differentiable (by simp)) x
+  rw [mextDeriv_eq_extDeriv, mextDeriv_leftMaurerCartanForm_apply] at hpull
+  have hfun (u : E') : (fun y ↦ (SmoothForm.mpullback γ hγ (leftMaurerCartanForm I G)).val y
+      (fun _ ↦ u)) =
       fun y ↦ (leftMaurerCartanForm I G).val (γ y) ![mfderiv 𝓘(ℝ, E') I γ y u] :=
-    funext fun y ↦ SmoothForm.mpullback_apply_one γ hγ _ y u
-  rw [hfun, hfun] at hpull
-  -- `erw`: in `hpull` the directions `v`, `w` are tangent vectors of `E'`, which are
-  -- elements of `E'` only up to unfolding `TangentSpace`.
-  erw [mvfderiv_eq_fderiv_apply, mvfderiv_eq_fderiv_apply] at hpull
-  exact hpull
+    funext fun y ↦ (congrArg _ (by ext i; fin_cases i; rfl)).trans
+      (SmoothForm.mpullback_apply_one γ hγ _ y u)
+  rw [← hfun, ← hfun]
+  exact (extDeriv_apply_pair_of_differentiableAt hd v w).symm.trans hpull
 
 end StructureEquation
 
