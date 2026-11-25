@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Manifold.TubularNeighborhood.Riemannian.Coordinat
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
+public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Section
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
@@ -37,9 +38,9 @@ orthogonal representative. On the normal bundle `N` of `f₀`, consider the map
 `f₁` on the zero section, and at the zero vector over `q` its derivative is
 `(u, v) ↦ df₁ u + A q (rep₀ v) = A q (df₀ u + rep₀ v)`, that is, `A q` composed with the derivative
 of the normal exponential `normalExp` of `f₀`. Hence `Θ` is a local diffeomorphism along the zero
-section, and Tau Ceti's `IsLocalDiffeomorphOn.exists_partialDiffeomorph_near_section` makes it a
-partial diffeomorphism on a neighbourhood of the zero section. Composed with the inverse of the
-normal exponential of `f₀`, it gives `ψ`.
+section, and Tau Ceti's `TauCeti.exists_partialDiffeomorph_near_section_of_isLocalDiffeomorphAt`
+makes it a partial diffeomorphism on a neighbourhood of the zero section. Composed with the
+inverse of the normal exponential of `f₀`, it gives `ψ`.
 
 The computation of the derivative of `Θ` follows Tau Ceti's
 `TauCeti.SmoothEmbedding.mfderiv_normalExp_zeroSection_apply`, and the assembly near the zero
@@ -271,13 +272,6 @@ private theorem exists_partialDiffeomorph_twistedExp [SecondCountableTopology M�
     rw [mfderiv_twistedExp_zeroSection_apply_eq_apply_mfderiv_normalExp f₀ f₁ A hA hdim hAf,
       ← he, ContinuousLinearEquiv.coe_coe, ContinuousLinearEquiv.coe_coe]
     exact e.trans_apply (A q) w
-  let U : Set N := {p | IsLocalDiffeomorphAt (J.prod 𝓘(ℝ, P)) I₁ ∞ Θ p}
-  have hU : IsOpen U := isOpen_iff_mem_nhds.mpr fun _ hp ↦ hp.eventually
-  let S : Set N := U ∩ twistedExpDomain f₀ f₁ A
-  have hS : IsOpen S := hU.inter (isOpen_twistedExpDomain f₀ f₁ A hA hdim)
-  have hzS : range z ⊆ S := by
-    rintro _ ⟨q, rfl⟩
-    exact ⟨hΘz q, zeroSection_mem_twistedExpDomain f₀ f₁ A q⟩
   have : T2Space Q := f₀.isEmbedding.t2Space
   have : SecondCountableTopology Q := f₀.isEmbedding.isInducing.secondCountableTopology
   have := Manifold.locallyCompact_of_finiteDimensional (M := N) (J.prod 𝓘(ℝ, P))
@@ -286,10 +280,13 @@ private theorem exists_partialDiffeomorph_twistedExp [SecondCountableTopology M�
   have : MetrizableSpace N := Manifold.metrizableSpace (J.prod 𝓘(ℝ, P)) _
   have : Nonempty N := Nonempty.map z inferInstance
   have hΘf : Θ ∘ z = f₁ := funext (twistedExp_zeroSection f₀ f₁ A)
-  obtain ⟨Φ, hzΦ, -, -, hΦ⟩ := IsLocalDiffeomorphOn.exists_partialDiffeomorph_near_section
-    (fun p : S ↦ p.property.1) hS hzS (Bundle.Trivialization.continuous_zeroSection ℝ)
-    (π P (fun q ↦ f₀.NormalSpace q infty_ne_zero)) (FiberBundle.continuous_proj _ _)
-    (fun _ ↦ rfl) (hΘf ▸ f₁.isEmbedding.isInducing)
+  obtain ⟨Φ, hzΦ, -, -, -, hΦ⟩ :=
+    TauCeti.exists_partialDiffeomorph_near_section_of_isLocalDiffeomorphAt hΘz
+      (isOpen_twistedExpDomain f₀ f₁ A hA hdim)
+      (range_subset_iff.2 (zeroSection_mem_twistedExpDomain f₀ f₁ A)) isOpen_univ
+      (subset_univ _) (Bundle.Trivialization.continuous_zeroSection ℝ)
+      (π P (fun q ↦ f₀.NormalSpace q infty_ne_zero)) (FiberBundle.continuous_proj _ _)
+      (fun _ ↦ rfl) (hΘf ▸ f₁.isEmbedding.isInducing)
   exact ⟨Φ, fun q ↦ hzΦ (mem_range_self q), hΦ⟩
 
 include hA hdim in
