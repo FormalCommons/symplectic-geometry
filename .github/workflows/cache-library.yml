@@ -36,17 +36,18 @@ name: cache-library
 # the workflow and the build scripts of that same commit, with the token that
 # CI has, on files that it restored from main's saves alone: CI reads no
 # artifact in the merge queue. That is the code, and those are the saves,
-# that this job itself would have built with. The build is taken only if it
-# descends from the same build from source as this run's save would (the
-# file `from` in the artifact, against the name of the save), so the builds
-# from source replace what the saves carry along as they did before; the
+# that this job itself would have built with. The artifact is always a build
+# from nothing (CI hands one over only when it restored no save), and it is
+# taken only while main has no build from source for these dependencies (the
+# file `from` says `none`, as this run's save name does), so the builds from
+# source replace what the saves carry along as they did before; the
 # workflow cache-source never reads an artifact. `lake build --wfail` below
 # still runs over the build and fails as it would have. What is new: main's
 # save now trusts that nothing but the merge queue can start a run with the
 # event `merge_group` for a commit of main, where before it trusted only
-# this workflow's own runs on main. If no
-# such run or artifact is found, or anything about it is not as expected,
-# the run goes on from the latest save as before.
+# this workflow's own runs on main. If no such run or artifact is found, or
+# anything about it is not as expected, the run goes on from the latest save
+# as before.
 #
 # See cache-dependencies for what the three cache workflows share, and for
 # how the runs of one take turns. Here that means: one run builds at a time,
@@ -124,6 +125,8 @@ jobs:
       - name: take the merge queue's build of this commit
         id: queue
         if: steps.turn.outputs.go == 'true' && steps.name.outputs.from == 'none'
+        continue-on-error: true
+        timeout-minutes: 20
         env:
           GH_TOKEN: ${{ github.token }}
           FROM: ${{ steps.name.outputs.from }}
@@ -141,8 +144,9 @@ jobs:
               { echo "could not download the build of run $run"; return 1; }
             [ -f "$dir/from" ] && [ "$(cat "$dir/from")" = "$FROM" ] ||
               { echo "the build of run $run does not descend from the build from source that this run's save is named after, $FROM"; return 1; }
-            tar --use-compress-program unzstd -xf "$dir/build.tar.zst" -C "$dir/unpacked" && [ -d "$dir/unpacked/build" ] ||
-              { echo "could not unpack the build of run $run"; return 1; }
+            tar --use-compress-program unzstd -xf "$dir/build.tar.zst" -C "$dir/unpacked" && [ -d "$dir/unpacked/build" ] &&
+              [ -z "$(find "$dir/unpacked" ! -type f ! -type d -print -quit)" ] ||
+              { echo "could not unpack the build of run $run, or it holds something other than files and directories"; return 1; }
             rm -rf .lake/build && mv "$dir/unpacked/build" .lake/build || return 1
             rm -rf "$dir"
             echo "took the build of run $run"

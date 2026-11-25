@@ -9,9 +9,9 @@ on:
 # the library that the cache workflows saved on main, but never saves a cache
 # itself. A run of the merge queue that found no build of main's hands its
 # own to the workflow cache-library as an artifact, which needs no
-# permission; see the last steps. `actions: read` is for a pull request's run that finds no build of
-# main's: it looks for the build that an earlier run for the same pull
-# request kept, and downloads it.
+# permission; see the last steps. `actions: read` is for a pull request's
+# run that finds no build of main's: it looks for the build that an earlier
+# run for the same pull request kept, and downloads it.
 permissions:
   contents: read
   actions: read
@@ -213,8 +213,9 @@ jobs:
       # Lake builds only what has changed since, as it does from a save of
       # main's. The artifact's name has the pull request's number and the
       # same hash of the toolchain and the dependencies as the saves, and it
-      # counts only if its run was for this pull request's branch in this
-      # repository. A pull request from a fork gets none.
+      # counts only if its run was a run of this workflow for this pull
+      # request, on its branch in this repository. A pull request from a fork
+      # gets none.
       #
       # What this gives away: such a run no longer starts from main's saves
       # alone. It trusts files that an earlier commit of the same pull
@@ -234,6 +235,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           NAME: pr-${{ github.event.pull_request.number }}-${{ steps.setup.outputs.build }}
           BRANCH: ${{ github.head_ref }}
+          PR: ${{ github.event.pull_request.number }}
+        # A step that runs out of time counts as failed, and the run goes on
+        # without the earlier build.
+        continue-on-error: true
+        timeout-minutes: 20
         run: |
           set -o pipefail
           take() {
@@ -245,11 +251,16 @@ jobs:
                 | max_by(.created_at) | .workflow_run.id // empty') ||
               { echo "could not ask GitHub for the builds of earlier runs"; return 1; }
             [[ $run =~ ^[0-9]+$ ]] || { echo "no earlier run for this pull request kept a build for these dependencies"; return 1; }
+            timeout 60 gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run" |
+              jq -e --argjson pr "$PR" '.event == "pull_request" and .path == ".github/workflows/ci.yml"
+                and any(.pull_requests[]; .number == $pr)' >/dev/null ||
+              { echo "run $run was not a run of CI for this pull request"; return 1; }
             rm -rf "$dir" && mkdir -p "$dir/unpacked" .lake || return 1
             timeout 900 gh run download "$run" --repo "$GITHUB_REPOSITORY" --name "$NAME" --dir "$dir" ||
               { echo "could not download the build of run $run"; return 1; }
-            tar --use-compress-program unzstd -xf "$dir/build.tar.zst" -C "$dir/unpacked" && [ -d "$dir/unpacked/build" ] ||
-              { echo "could not unpack the build of run $run"; return 1; }
+            tar --use-compress-program unzstd -xf "$dir/build.tar.zst" -C "$dir/unpacked" && [ -d "$dir/unpacked/build" ] &&
+              [ -z "$(find "$dir/unpacked" ! -type f ! -type d -print -quit)" ] ||
+              { echo "could not unpack the build of run $run, or it holds something other than files and directories"; return 1; }
             rm -rf .lake/build && mv "$dir/unpacked/build" .lake/build || return 1
             rm -rf "$dir"
             echo "took the build of run $run"
@@ -274,12 +285,11 @@ jobs:
       # does not do this, and no run of CI reads such a build.
       #
       # The build goes as one tar file, which keeps the files' modes and the
-      # names under `.lake`, with a file `from` beside it: the build from
-      # source that the restored save descends from, as the save's name has
-      # it (see cache-library), or `none` if the run restored nothing or the
-      # save has none. cache-library takes the build only if that is the one
-      # its own save would descend from, so that the builds of main from its
-      # source still replace what the saves carry along.
+      # names under `.lake`, with a file `from` beside it that says `none`:
+      # the run restored no save, so its build descends from no build from
+      # source. cache-library takes the build only while its own save would
+      # be named `none` too, that is, while main has no build from source
+      # for these dependencies.
       #
       # GitHub deletes the artifact after a day, the shortest time it allows;
       # a move leaves a few of them, about 320 MB each. If either step
@@ -289,23 +299,16 @@ jobs:
         id: pack
         if: github.event_name == 'merge_group' && steps.library.outputs.cache-matched-key == ''
         continue-on-error: true
-        env:
-          BUILD: ${{ steps.setup.outputs.build }}
-          RESTORED: ${{ steps.library.outputs.cache-matched-key }}
+        timeout-minutes: 10
         run: |
           set -euo pipefail
-          kind=${RESTORED#"$BUILD-"}
-          case $kind in
-            '') from=none ;;
-            inc-*-* | src-*-*) from=${kind#*-}; from=${from%%-*} ;;
-            *) echo "::warning::the restored save has an unexpected name, $RESTORED, so main does not get this build"; exit 1 ;;
-          esac
           mkdir "$RUNNER_TEMP/queue-build"
-          printf '%s\n' "$from" >"$RUNNER_TEMP/queue-build/from"
+          echo none >"$RUNNER_TEMP/queue-build/from"
           tar --use-compress-program 'zstd -T0' -cf "$RUNNER_TEMP/queue-build/build.tar.zst" -C .lake build
       - name: hand the build to main
         if: github.event_name == 'merge_group' && steps.library.outputs.cache-matched-key == '' && steps.pack.outcome == 'success'
         continue-on-error: true
+        timeout-minutes: 10
         uses: actions/upload-artifact@v7
         with:
           name: queue-build
@@ -334,6 +337,7 @@ jobs:
           steps.library.outputs.cache-matched-key == '' &&
           github.event.pull_request.head.repo.full_name == github.repository
         continue-on-error: true
+        timeout-minutes: 10
         run: |
           set -euo pipefail
           [ -d .lake/build ] || { echo "the build left no files"; exit 0; }
@@ -342,6 +346,7 @@ jobs:
       - name: keep the build for this pull request's next run
         if: github.event_name == 'pull_request' && !cancelled() && steps.keep.outcome == 'success'
         continue-on-error: true
+        timeout-minutes: 10
         uses: actions/upload-artifact@v7
         with:
           name: pr-${{ github.event.pull_request.number }}-${{ steps.setup.outputs.build }}
