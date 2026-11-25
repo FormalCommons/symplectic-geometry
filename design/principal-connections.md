@@ -357,9 +357,9 @@ pulled back to `ManifoldTotalSpace G P × F` along `Prod.fst` and
   `exists_isClosed_mpullback_eq_weinsteinForm`: there is a closed
   two-form $\tau$ on $M$ whose pull-back along $q$ is
   `weinsteinForm σ μ _ A` and whose pull-back along each fibre inclusion is
-  $\sigma$; its docstring ends with "Milestone: *Weinstein's universal
-  construction for associated symplectic fibrations*." $F$ need not be
-  compact, nor $G$.
+  $\sigma$, together with the identity of `weinsteinForm_apply`; its
+  docstring ends with "Milestone: *Weinstein's universal construction for
+  associated symplectic fibrations*." $F$ need not be compact, nor $G$.
 
 ## Issues
 
