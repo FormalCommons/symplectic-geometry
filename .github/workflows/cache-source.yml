@@ -1,0 +1,92 @@
+name: cache-source
+
+# Builds main from its source, with no build of the library restored, and
+# saves that build: on a push to main, if the latest such build began an
+# hour ago or more, and whenever a run is started by hand. The workflow
+# cache-library starts from the latest of these builds.
+#
+# If the build fails, the run saves nothing, and the run of the next push
+# tries again. So a run of this workflow that fails at its build step says
+# that main does not build from its source. cache-library then goes on from
+# the last build from source that succeeded, and warns in its log once that
+# build is more than three hours old.
+#
+# A build takes about half an hour, and longer after a move of Tau Ceti. A
+# run of a push that comes while an earlier run still builds does not wait
+# for it and builds nothing: .github/cache-turn.sh tells it so. The run of a
+# later push builds. See cache-dependencies for what the three cache
+# workflows share.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# `actions: read` is for cache-turn.sh, which asks GitHub for the workflow's
+# runs.
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  # The limit is as for the job of cache-library.
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v7
+      - name: name the saves
+        id: names
+        uses: ./.github/actions/setup-lean
+        with:
+          names-only: true
+      # The name of a build from source has the time it began, in seconds.
+      - name: look for the latest build from source
+        id: look
+        uses: actions/cache/restore@v6
+        with:
+          path: .lake/build
+          key: ${{ steps.names.outputs.build }}-src-
+          restore-keys: ${{ steps.names.outputs.build }}-src-
+          lookup-only: true
+      # A run that someone started by hand always builds.
+      - name: see whether an hour has passed since that build began
+        id: age
+        if: github.event_name != 'workflow_dispatch'
+        env:
+          BUILD: ${{ steps.names.outputs.build }}
+          SOURCE: ${{ steps.look.outputs.cache-matched-key }}
+        run: |
+          last=${SOURCE#"$BUILD-src-"}
+          last=${last%%-*}
+          if [[ $last =~ ^[0-9]+$ ]] && [ $(( $(date +%s) - last )) -lt 3600 ]; then
+            echo "The latest build from source began less than an hour ago."
+          else
+            echo "due=true" >> "$GITHUB_OUTPUT"
+          fi
+      # A build that is going has not saved yet, so its time is not in the
+      # name that the step above read.
+      - name: see whether an earlier run still builds
+        id: turn
+        if: steps.age.outputs.due == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: .github/cache-turn.sh once
+      # The clock is read here, and the time goes into the name of the save.
+      - name: name the save, if a build from source is due
+        id: due
+        if: github.event_name == 'workflow_dispatch' || steps.turn.outputs.go == 'true'
+        env:
+          BUILD: ${{ steps.names.outputs.build }}
+        run: echo "key=$BUILD-src-$(date +%s)-$GITHUB_SHA-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" >> "$GITHUB_OUTPUT"
+      - name: set up Lean and restore the built dependencies
+        if: steps.due.outputs.key != ''
+        uses: ./.github/actions/setup-lean
+      - name: build
+        if: steps.due.outputs.key != ''
+        run: lake build --wfail
+      - name: save the build of the library
+        if: steps.due.outputs.key != ''
+        uses: actions/cache/save@v6
+        with:
+          path: .lake/build
+          key: ${{ steps.due.outputs.key }}

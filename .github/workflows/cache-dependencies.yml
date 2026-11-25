@@ -1,0 +1,92 @@
+name: cache-dependencies
+
+# One of the three workflows that save builds on main for CI to restore; the
+# others are cache-library and cache-source. Only these save; GitHub lets
+# runs on any branch restore main's caches, and a run of CI could not save
+# one for later runs: a pull request's run and a merge queue's run can
+# restore only their own saves and main's.
+#
+# This one builds the dependencies that the library imports: Mathlib's
+# files from its cache, and the Tau Ceti modules that the library's files
+# import, which `lake exe cache get` does not fetch. When it starts without
+# a save, as after a move of Tau Ceti, it takes those modules from Tau Ceti's
+# build cache where that has them, and compiles the rest; see the setup
+# action. It builds only those dependencies, never the library's own code,
+# and saves again only when the list of Tau Ceti modules that the library
+# imports has changed. Until it has saved, the other two workflows and CI
+# compile the modules that the latest save lacks.
+#
+# The three are separate workflows, so a slow run of one does not hold up
+# the saves of another. None uses GitHub's `concurrency`: it cancels a job
+# that waits when a later one comes to wait, and a cancelled job marks its
+# commit on main as failed. Instead .github/cache-turn.sh gives the runs of
+# one workflow their turns. In this workflow and in cache-library one run
+# builds at a time, and of the runs that wait for it only the one for main's
+# latest commit stays; the others end without a build. A run of cache-source
+# does not wait: it builds nothing while an earlier one builds.
+#
+# So a failed run of one of the three says that something is wrong: a build
+# failed, or a job reached its time limit, which GitHub shows as cancelled.
+# The wait for a turn counts towards that limit.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# `actions: read` is for cache-turn.sh, which asks GitHub for the workflow's
+# runs.
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  dependencies:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v7
+      - name: name the saves
+        id: names
+        uses: ./.github/actions/setup-lean
+        with:
+          names-only: true
+      # The key of the save names the list of imported Tau Ceti modules.
+      - name: look for a save with these modules
+        id: look
+        uses: actions/cache/restore@v6
+        with:
+          path: .lake/packages
+          key: ${{ steps.names.outputs.packages }}-${{ steps.names.outputs.imports }}
+          lookup-only: true
+      # Only a run that has to build takes a turn. The run that it waited
+      # for may have saved these modules, so it looks again.
+      - name: wait for the turn
+        id: turn
+        if: steps.look.outputs.cache-hit != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: .github/cache-turn.sh wait
+      - name: look again for a save with these modules
+        id: again
+        if: steps.turn.outputs.go == 'true'
+        uses: actions/cache/restore@v6
+        with:
+          path: .lake/packages
+          key: ${{ steps.names.outputs.packages }}-${{ steps.names.outputs.imports }}
+          lookup-only: true
+      # elan, then the latest save, or Mathlib's build cache and Tau Ceti's
+      # without one.
+      - name: set up Lean and restore the latest save
+        if: steps.turn.outputs.go == 'true' && steps.again.outputs.cache-hit != 'true'
+        uses: ./.github/actions/setup-lean
+      - name: build the imported Tau Ceti modules
+        if: steps.turn.outputs.go == 'true' && steps.again.outputs.cache-hit != 'true'
+        run: |
+          mapfile -t modules < <(sed 's/^/+/' "$RUNNER_TEMP/tauceti-imports.txt")
+          if [ ${#modules[@]} -gt 0 ]; then lake build "${modules[@]}"; fi
+      - name: save the built dependencies
+        if: steps.turn.outputs.go == 'true' && steps.again.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: .lake/packages
+          key: ${{ steps.names.outputs.packages }}-${{ steps.names.outputs.imports }}

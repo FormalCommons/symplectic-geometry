@@ -1,0 +1,103 @@
+name: cache-library
+
+# Keeps a build of the library, `.lake/build`, close to main, for CI to
+# restore: it restores the latest save, builds what main has changed since,
+# and saves again. CI restores the latest of these saves, and Lake then
+# builds only the files that differ from it and the files that import them,
+# directly or through other files. Lake takes a file's build from a save
+# only if the hash of the file's source, of its imports' builds, of the
+# toolchain and of the options is the one recorded with that build; it does
+# not go by the files' times.
+#
+# A run starts from the latest build of main from its source, which the
+# workflow cache-source saves, or from the latest save that descends from
+# it. So each save descends from the build from source that is the latest
+# when its run starts. While pull requests merge and both workflows succeed,
+# that build is at most a few hours old; the first run after a quiet spell
+# still starts from the build before it. While there is no build from source
+# for the current dependencies, as in the first runs after a move of Tau
+# Ceti, a run starts from the latest save of any kind.
+#
+# See cache-dependencies for what the three cache workflows share, and for
+# how the runs of one take turns. Here that means: one run builds at a time,
+# and when it ends, the run for main's latest commit builds next. The runs
+# for the commits between them do nothing, so while pull requests merge
+# faster than a run builds, a save is some commits behind main.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# `actions: read` is for cache-turn.sh, which asks GitHub for the workflow's
+# runs.
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  # Saves only `.lake/build`. The dependencies come from the latest save of
+  # cache-dependencies, as in CI. After a move of Tau Ceti there is none yet,
+  # and the setup then takes as long here as in CI, hence the limit. The
+  # wait for the turn counts towards it.
+  library:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v7
+      - name: wait for the turn
+        id: turn
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: .github/cache-turn.sh wait
+      - name: set up Lean and restore the built dependencies
+        id: setup
+        if: steps.turn.outputs.go == 'true'
+        uses: ./.github/actions/setup-lean
+      # The name of a build from source has the time it began, in seconds.
+      - name: look for the latest build from source
+        id: source
+        if: steps.turn.outputs.go == 'true'
+        uses: actions/cache/restore@v6
+        with:
+          path: .lake/build
+          key: ${{ steps.setup.outputs.build }}-src-
+          restore-keys: ${{ steps.setup.outputs.build }}-src-
+          lookup-only: true
+      # A save of this job is named after the build from source that it
+      # descends from, then the commit and the run. It starts from the latest
+      # save with that name, or from the build from source itself. While
+      # there is no build from source, it starts from the latest save there
+      # is.
+      - name: name the save
+        id: name
+        if: steps.turn.outputs.go == 'true'
+        env:
+          BUILD: ${{ steps.setup.outputs.build }}
+          SOURCE: ${{ steps.source.outputs.cache-matched-key }}
+        run: |
+          if [ -n "$SOURCE" ]; then
+            from=${SOURCE#"$BUILD-src-"}
+            from=${from%%-*}
+            printf '%s\n' "from=$from" 'restore<<END' "$BUILD-inc-$from-" "$BUILD-src-$from-" END >> "$GITHUB_OUTPUT"
+            if [[ $from =~ ^[0-9]+$ ]] && [ $(( $(date +%s) - from )) -ge 10800 ]; then
+              echo "::warning::The latest build of main from its source began $(( ($(date +%s) - from) / 60 )) minutes ago. That is expected after hours without a merge. Otherwise see the latest runs of the workflow cache-source."
+            fi
+          else
+            printf '%s\n' 'from=none' "restore=$BUILD-" >> "$GITHUB_OUTPUT"
+          fi
+      - name: restore the latest build of the library
+        if: steps.turn.outputs.go == 'true'
+        uses: actions/cache/restore@v6
+        with:
+          path: .lake/build
+          key: ${{ steps.setup.outputs.build }}-inc-${{ steps.name.outputs.from }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: ${{ steps.name.outputs.restore }}
+      - name: build
+        if: steps.turn.outputs.go == 'true'
+        run: lake build --wfail
+      - name: save the build of the library
+        if: steps.turn.outputs.go == 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: .lake/build
+          key: ${{ steps.setup.outputs.build }}-inc-${{ steps.name.outputs.from }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
