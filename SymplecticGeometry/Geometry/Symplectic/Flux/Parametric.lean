@@ -36,9 +36,8 @@ The construction is that of `TauCeti.Diffeotopy.exists_interior_velocity_eq`
 statement for one Hamiltonian at a time says nothing about smoothness in the parameter. The
 function `F`, read on `[0, 1] × (N × M)`, is extended in time to `ℝ × (N × M)` by Seeley's
 operator (`SymplecticGeometry.timeExtend`), which needs the boundaryless factor `N × M` and keeps
-the zeros of `F` (`SymplecticGeometry.timeExtend_eq_zero`). The differential of the extension
-The Hamiltonian fields `X_{a,u}` of the slices `G_{a,u}` of the extension `G` are jointly
-smooth in `(a, u)` and the point
+the zeros of `F` (`SymplecticGeometry.timeExtend_eq_zero`). The Hamiltonian fields `X_{a,u}` of the
+slices `G_{a,u}` of the extension `G` are jointly smooth in `(a, u)` and the point
 (`TauCeti.SmoothTwoForm.IsNondegenerate.contMDiff_hamiltonianVectorField_uncurry`, with
 parameter space `N × ℝ`). They vanish off `C`, so their suspensions are complete
 (`TauCeti.isCompleteVectorField_timeDependentSuspensionField`), and `φ^a` is
