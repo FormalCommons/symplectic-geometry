@@ -72,13 +72,13 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimension
   (hD : IsEhresmannConnection I J n f D)
 
 /-- **Parallel transport is the flow of a lifted field.** Let `D` be a `C^n` Ehresmann
-connection, `1 ≤ n`, on a proper `C^(n+1)` map `f : P → B`, `γ` a `C^(n+1)` curve in `B`, and `V`
-a jointly `C^n` time-dependent vector field on `B` that vanishes outside a compact set and whose
+connection, `1 ≤ n`, on a proper `C^(n+1)` map `f : P → B`, `γ` a `C²` curve in `B`, and `V` a
+jointly `C^n` time-dependent vector field on `B` that vanishes outside a compact set and whose
 value at `γ u` at time `u` is the velocity of `γ` at `u`, for every `u ∈ Set.uIcc s t`. On the
 fibre over `γ s`, parallel transport along `γ` from `s` to `t` is the time-dependent flow from `s`
 to `t` of the horizontal lift of `V`. -/
 theorem parallelTransport_eq_timeDependentFlowOf (hn : 1 ≤ n) (hf : ContMDiff I J (n + 1) f)
-    (hfp : IsProperMap f) {γ : ℝ → B} (hγ : ContMDiff 𝓘(ℝ, ℝ) J (n + 1) γ)
+    (hfp : IsProperMap f) {γ : ℝ → B} (hγ : ContMDiff 𝓘(ℝ, ℝ) J 2 γ)
     {V : ℝ → Π y : B, TangentSpace J y}
     (hV : ContMDiff (𝓘(ℝ, ℝ).prod J) J.tangent n
       (fun p : ℝ × B ↦ (⟨p.2, V p.1 p.2⟩ : TangentBundle J B)))
@@ -93,7 +93,7 @@ theorem parallelTransport_eq_timeDependentFlowOf (hn : 1 ≤ n) (hf : ContMDiff 
     simpa [one_add_one_eq_two] using add_le_add_left hn' 1
   obtain ⟨hc, hh, hγc⟩ := hD.isHorizontalMap_timeDependentFlowOf_horizontalLiftField hn hf hfp
     (hγ.mdifferentiable (by simp)) hV hK hV0 isPreconnected_uIcc hVγ left_mem_uIcc hx
-  exact hD.parallelTransport_eq hn' (hf.of_le h2) (hγ.of_le h2)
+  exact hD.parallelTransport_eq hn' (hf.of_le h2) hγ
     (hc.mdifferentiable (zero_lt_one.trans_le hn').ne') hh hγc (timeDependentFlowOf_self _ s x)
 
 include hD in
@@ -107,12 +107,14 @@ private theorem exists_diffeomorph_eqOn_parallelTransport_of_mapsTo_baseSet (hn 
     (hγe : MapsTo γ (Icc a b) e.baseSet) {s t : ℝ} (hs : s ∈ Icc a b) (ht : t ∈ Icc a b) :
     ∃ Ψ : P ≃ₘ^n⟮I, I⟯ P, EqOn Ψ (hD.parallelTransport γ s t) (f ⁻¹' {γ s}) := by
   have : IsManifold I n P := .of_le (n := ∞) (by exact_mod_cast le_top)
+  have h2 : (2 : ℕ∞ω) ≤ n + 1 := by
+    simpa [one_add_one_eq_two] using add_le_add_left (mod_cast hn : (1 : ℕ∞ω) ≤ n) 1
   obtain ⟨V, K, hK, hV, hV0, hVγ⟩ := e.exists_timeDependentField_eq_curveVelocity hγ hγe
   refine ⟨timeDependentFlowDiffeomorph
     (hD.isCompleteVectorField_timeDependentSuspensionField_horizontalLiftField hn hf hfp hV hK hV0)
     hn (hD.contMDiff_horizontalLiftField_timeDependent hf hV) s t, fun x hx ↦ ?_⟩
   rw [timeDependentFlowDiffeomorph_apply]
-  exact (hD.parallelTransport_eq_timeDependentFlowOf hn hf hfp hγ hV hK hV0
+  exact (hD.parallelTransport_eq_timeDependentFlowOf hn hf hfp (hγ.of_le h2) hV hK hV0
     (fun u hu ↦ hVγ u (uIcc_subset_Icc hs ht hu)) hx).symm
 
 include hD in
@@ -136,15 +138,10 @@ theorem exists_diffeomorph_eqOn_parallelTransport (hn : 1 ≤ n) (hf : ContMDiff
   -- It holds between nearby times: near `u`, `γ` stays in the base set of one trivialization.
   have hloc (u : ℝ) : ∀ᶠ v in 𝓝 u, R u v ∧ R v u := by
     let e := trivializationAt F (TangentSpace J) (γ u)
-    obtain ⟨ε, hε, hball⟩ := Metric.mem_nhds_iff.1
+    obtain ⟨a, b, hu, hab, hmaps⟩ := exists_Icc_mem_subset_of_mem_nhds
       (hγ.continuous.continuousAt.preimage_mem_nhds
         (e.open_baseSet.mem_nhds (FiberBundle.mem_baseSet_trivializationAt' (γ u))))
-    have hmaps : MapsTo γ (Icc (u - ε / 2) (u + ε / 2)) e.baseSet := fun v hv ↦ hball (by
-      rw [Metric.mem_ball, Real.dist_eq, abs_lt]
-      constructor <;> linarith [hv.1, hv.2])
-    have hu : u ∈ Icc (u - ε / 2) (u + ε / 2) := ⟨by linarith, by linarith⟩
-    filter_upwards [Icc_mem_nhds (by linarith : u - ε / 2 < u) (by linarith : u < u + ε / 2)]
-      with v hv
+    filter_upwards [hab] with v hv
     exact ⟨hD.exists_diffeomorph_eqOn_parallelTransport_of_mapsTo_baseSet hn hf hfp hγ e hmaps
       hu hv, hD.exists_diffeomorph_eqOn_parallelTransport_of_mapsTo_baseSet hn hf hfp hγ e hmaps
       hv hu⟩
