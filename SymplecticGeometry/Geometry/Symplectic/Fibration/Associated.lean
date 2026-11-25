@@ -249,26 +249,22 @@ theorem weinsteinForm_apply [CompleteSpace EF] [MulAction G F] [ContMDiffSMul IG
             fundamentalVectorField IF (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₂).1]) p.2] +
         μ p.2 ((connectionCurvature A).val p.1
           ![(Manifold.tangentSpaceProdEquiv p w₁).1, (Manifold.tangentSpaceProdEquiv p w₂).1]) := by
-  -- The moment map condition: `dμ_ξ(b) = σ(b, X_ξ)`.
-  have hd (ξ : GroupLieAlgebra IG G) (b : TangentSpace IF p.2) :
-      mvfderiv IF (fun v ↦ μ v ξ) p.2 b =
-        SmoothBundleForm.eval₂ σ p.2 b (fundamentalVectorField IF ξ p.2) := by
-    have h := hμ.toIsMomentMap.eval₂_apply ξ p.2 b
-    simp only [LinearMap.neg_apply, mvfderiv_fun_neg, neg_apply,
-      InfinitesimalAction.fundamental_apply] at h
-    rw [SmoothBundleForm.eval₂_swap, h, neg_neg]
   -- Infinitesimal equivariance: `σ(X_ξ, X_η) = -μ(⁅ξ, η⁆)`.
   have hc := SmoothTwoForm.momentCocycle_eq_zero_iff.1 (hμ.momentCocycle_eq_zero p.2)
     (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₁).1])
     (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₂).1])
   simp only [InfinitesimalAction.fundamental_apply, LinearMap.neg_apply] at hc
   rw [weinsteinForm_def, Submodule.coe_add, Pi.add_apply, ContinuousAlternatingMap.add_apply,
-    mextDerivₗ_momentPairing_apply, connectionCurvature_apply, map_add, hd, hd,
+    mextDerivₗ_momentPairing_apply, connectionCurvature_apply, map_add,
+    hμ.toIsMomentMap.mvfderiv_apply_of_neg, hμ.toIsMomentMap.mvfderiv_apply_of_neg,
+    InfinitesimalAction.fundamental_apply, InfinitesimalAction.fundamental_apply,
     ← SmoothBundleForm.eval₂_apply, ← SmoothBundleForm.eval₂_apply,
     SmoothForm.eval₂_mpullback_snd, SmoothBundleForm.eval₂_add_left,
     SmoothBundleForm.eval₂_add_right, SmoothBundleForm.eval₂_add_right, hc,
     SmoothBundleForm.eval₂_swap σ p.2 (fundamentalVectorField IF _ p.2)
-      (Manifold.tangentSpaceProdEquiv p w₂).2]
+      (Manifold.tangentSpaceProdEquiv p w₂).2,
+    SmoothBundleForm.eval₂_swap σ p.2 (fundamentalVectorField IF _ p.2)
+      (Manifold.tangentSpaceProdEquiv p w₁).2]
   ring
 
 /-- **Weinstein's form is closed** when `σ` is. -/

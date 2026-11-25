@@ -48,6 +48,9 @@ the fixed points:
 * `SymplecticGeometry.mpullback_smul_cutoffWeightOneForm`: it is invariant under each `g` that
   acts in the chart by `uⱼ ↦ χⱼ(g) uⱼ` and preserves `ρ`, since `θₖ` is invariant under the
   rotations `TauCeti.weightRotation` (`SymplecticGeometry.mpullback_weightRotation_weightOneForm`);
+* `SymplecticGeometry.mpullback_symm_weightOneForm_apply_weightChart`: before the cut-off, on a
+  vector field `X` that `dΦ` relates to the generator of the rotations by the angles `2π k'ⱼ`,
+  the value of `(Φ⁻¹)^* θₖ` at `Φ z` is `2π ∑ⱼ kⱼ k'ⱼ (xⱼ² + yⱼ²)`;
 * `SymplecticGeometry.cutoffWeightOneForm_apply_weightChart`: on a vector field `X` that `dΦ`
   relates to the generator of the rotations by the angles `2π k'ⱼ`, its value at `Φ z` is
   `ρ (Φ z) * (2π ∑ⱼ kⱼ k'ⱼ (xⱼ² + yⱼ²))`, and `ρ (Φ z) * (2π ∑ⱼ kⱼ² (xⱼ² + yⱼ²))` for `k' = k`
@@ -158,6 +161,31 @@ theorem cutoffWeightOneForm_val :
 theorem cutoffWeightOneForm_apply_of_eq_zero {x : M} (hx : ρ x = 0)
     (v : Fin 1 → TangentSpace I x) : (cutoffWeightOneForm Φ hρ hs k).val x v = 0 := by
   simp [cutoffWeightOneForm_val, hx]
+
+omit [IsManifold I ∞ M] in
+variable {Φ} in
+/-- On a vector field `X` that the differential of `Φ` relates, at `z`, to the generator
+`weightGenerator ((2π) • k')` of the rotations by the angles `2π k'ⱼ`, for weights `k'` that need
+not be those of the form, the model one-form read through `Φ`, `(Φ⁻¹)^* θₖ`, takes at `Φ z` the
+value `2π ∑ⱼ kⱼ k'ⱼ (xⱼ(z)² + yⱼ(z)²)`. -/
+theorem mpullback_symm_weightOneForm_apply_weightChart (k' : ι → ℝ)
+    {X : (x : M) → TangentSpace I x} {z : StdSpace ι} (hz : z ∈ Φ.source)
+    (hX : mfderiv 𝓘(ℝ, StdSpace ι) I Φ z
+      (EuclideanSpace.sumEquivProd.symm
+        (weightGenerator ((2 * π) • k') (EuclideanSpace.sumEquivProd z))) = X (Φ z)) :
+    TauCeti.mpullback I 𝓘(ℝ, StdSpace ι) Φ.symm (weightOneForm k).val (Φ z) ![X (Φ z)] =
+      2 * π * ∑ j, k j * k' j * (z.x j ^ 2 + z.y j ^ 2) := by
+  rw [TauCeti.mpullback_apply]
+  have hv : (fun i ↦ mfderiv I 𝓘(ℝ, StdSpace ι) Φ.symm (Φ z) (![X (Φ z)] i)) =
+      ![EuclideanSpace.sumEquivProd.symm
+        (weightGenerator ((2 * π) • k') (EuclideanSpace.sumEquivProd z))] := by
+    funext i
+    rw [Fin.fin_one_eq_zero i, Matrix.cons_val_zero, Matrix.cons_val_zero, ← hX]
+    exact Φ.mfderiv_symm_apply_mfderiv_apply (by simp) hz _
+  rw [hv, Φ.symm_toPartialEquiv, Φ.left_inv hz]
+  -- `hv` lists the vectors as points of `StdSpace ι`, the lemmas as tangent vectors at `z`.
+  exact (weightOneForm_apply_weightGenerator_smul k k' (2 * π) z).trans
+    (congrArg _ (weightOneForm_apply_weightGenerator k k' z))
 
 variable {Φ} in
 /-- On a vector field `X` that the differential of `Φ` relates, at `z`, to the generator
