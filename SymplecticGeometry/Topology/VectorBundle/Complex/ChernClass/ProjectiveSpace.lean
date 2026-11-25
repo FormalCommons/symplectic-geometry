@@ -10,8 +10,7 @@ public import SymplecticGeometry.AlgebraicTopology.Cohomology.EvenIntegralCohomo
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
 public import SymplecticGeometry.Topology.VectorBundle.ProjectiveBundle.Tautological
 public import SymplecticGeometry.Topology.VectorBundle.Thom.CupEulerClass
-public import TauCeti.AlgebraicTopology.Cellular.ComplexProjective.Cohomology
-public import TauCeti.Topology.ComplexProjectiveSpace.Projectivization
+public import SymplecticGeometry.Topology.ComplexProjectiveSpace.Cohomology
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.FiberwiseEquiv
 
 /-!
@@ -32,11 +31,6 @@ cohomology ring of `ℙ ℂ V` is `ℤ[X] ⧸ (X ^ (n + 1))`, with `X` going to 
   isomorphisms `Projectivization.tautologicalMapEquiv`, so this is the naturality of the Euler
   class, `TauCeti.complexEulerClass_eq_singularCohomologyMap_of_fiberwise`, together with that of
   `TopCat.uliftIntegralCohomologyIso`.
-* `Projectivization.complexProjectiveSpaceHomeomorph`: `ℙ ℂ V` is homeomorphic to Tau Ceti's
-  `ℂPⁿ`.
-* `Projectivization.isZero_integralCohomology_of_lt` and
-  `Projectivization.isZero_integralCohomology_of_odd`: `Hᵐ(ℙ ℂ V; ℤ) = 0` for `m > 2n` and for odd
-  `m`.
 * `Projectivization.projective_singularHomology`: the singular homology of `ℙ ℂ V` is projective
   in every degree, as the Leray–Hirsch theorem asks of a fibre.
 * `Projectivization.bijective_zsmul_hyperplaneClass_pow`: for `k ≤ n`, `m ↦ m • h ^ k` is a
@@ -67,9 +61,7 @@ degrees `1, …, 2n` (`TauCeti.isZero_singularCohomology_complSingleton_subtype_
 product with the Euler class `e`, and so with `h = -e`, is a bijection
 `H^{2k}(ℙ ℂ V; ℤ) → H^{2k+2}(ℙ ℂ V; ℤ)` for `k < n`, and induction from `H⁰(ℙ ℂ V; ℤ) = ℤ`
 (`TopCat.bijective_zsmul_integralCohomologyOne`) gives the classes `h ^ k`. Above degree `2n`
-the cohomology vanishes by Tau Ceti's `ComplexProjectiveSpace.isZero_singularCohomology_of_lt`,
-carried along `ComplexProjectiveSpace.homeomorphProjectivization` and a linear equivalence
-`(Fin (n + 1) → ℂ) ≃ V`.
+the cohomology vanishes (`Projectivization.isZero_integralCohomology_of_lt`).
 
 ## Implementation notes
 
@@ -128,30 +120,6 @@ section Ring
 open CategoryTheory Limits Polynomial
 
 variable {V : Type} [NormedAddCommGroup V] [NormedSpace ℂ V] {n : ℕ}
-
-/-- A complex projective space `ℙ ℂ V` with `finrank ℂ V = n + 1` is homeomorphic to Tau Ceti's
-`ℂPⁿ`, through Tau Ceti's `ComplexProjectiveSpace.homeomorphProjectivization` and a linear
-equivalence `(Fin (n + 1) → ℂ) ≃ V`. -/
-def complexProjectiveSpaceHomeomorph (hV : finrank ℂ V = n + 1) :
-    ComplexProjectiveSpace n ≃ₜ ℙ ℂ V :=
-  have : FiniteDimensional ℂ V := Module.finite_of_finrank_eq_succ hV
-  (ComplexProjectiveSpace.homeomorphProjectivization n).trans
-    (ContinuousLinearEquiv.ofFinrankEq (E := Fin (n + 1) → ℂ) (F := V)
-      (by rw [finrank_fin_fun, hV])).mapProjectivization
-
-/-- The integral cohomology of `ℙ ℂ V`, for `finrank ℂ V = n + 1`, vanishes above degree `2n`. -/
-theorem isZero_integralCohomology_of_lt (hV : finrank ℂ V = n + 1) {m : ℕ} (hm : 2 * n < m) :
-    IsZero ((TopCat.of (ℙ ℂ V)).integralCohomology m) :=
-  (ComplexProjectiveSpace.isZero_singularCohomology_of_lt _ _ hm).of_iso
-    ((singularCohomologyFunctor _ ℤ _ m).mapIso
-      (TopCat.isoOfHomeo (complexProjectiveSpaceHomeomorph hV)).op)
-
-/-- The integral cohomology of `ℙ ℂ V`, for `finrank ℂ V = n + 1`, vanishes in odd degrees. -/
-theorem isZero_integralCohomology_of_odd (hV : finrank ℂ V = n + 1) {m : ℕ} (hm : Odd m) :
-    IsZero ((TopCat.of (ℙ ℂ V)).integralCohomology m) :=
-  (ComplexProjectiveSpace.isZero_singularCohomology_of_odd _ _ hm).of_iso
-    ((singularCohomologyFunctor _ ℤ _ m).mapIso
-      (TopCat.isoOfHomeo (complexProjectiveSpaceHomeomorph hV)).op)
 
 section Homology
 

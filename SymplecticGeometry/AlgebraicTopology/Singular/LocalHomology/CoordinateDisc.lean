@@ -73,8 +73,9 @@ coordinate ball of `M`, `IsOpen.exists_isOpenEmbedding_apply_zero_eq`) pulls it 
 homological orientation of the ball, which is the canonical one or its opposite, since the ball is
 connected (`TauCeti.HomologicalOrientation.eq_or_eq_neg`). So `f` is a coordinate disc for `o` or
 for `-o` (`SymplecticGeometry.CoordinateDisc.ofComapEq`), and in the second case its reverse is one
-for `o`. Finitely many distinct points have pairwise disjoint open neighbourhoods
-(`Set.Finite.t2_separation`), and coordinate discs inside them have disjoint images.
+for `o`. Finitely many distinct points have pairwise disjoint neighbourhoods
+(`Pairwise.exists_mem_filter_of_disjoint`, applied to `pairwise_disjoint_nhds`), and coordinate
+discs inside them have disjoint images.
 
 On a smooth surface with a smooth orientation `o`, the coordinate discs can be taken of the form
 `ofChart`, for charts of the maximal smooth atlas that preserve orientation on all of their
@@ -1218,12 +1219,12 @@ theorem exists_coordinateDisc_pairwise_disjoint (hE : finrank ℝ E = 2)
     ∃ φ : ι → CoordinateDisc o, (∀ i, φ i 0 = x i) ∧
       (∀ i, Set.range (φ i) ⊆ U i) ∧
         Pairwise fun i j ↦ Disjoint (Set.range (φ i)) (Set.range (φ j)) := by
-  obtain ⟨V, hV, hVd⟩ := (Set.finite_range x).t2_separation
-  have hmem (i : ι) : U i ∩ V (x i) ∈ 𝓝 (x i) :=
-    Filter.inter_mem (hU i) ((hV (x i)).2.mem_nhds (hV (x i)).1)
+  obtain ⟨V, hV, hVd⟩ :=
+    (pairwise_disjoint_nhds.comp_of_injective hx).exists_mem_filter_of_disjoint
+  have hmem (i : ι) : U i ∩ V i ∈ 𝓝 (x i) := Filter.inter_mem (hU i) (hV i)
   choose φ hφx hφU using fun i ↦ exists_coordinateDisc hE o (hmem i)
   refine ⟨φ, hφx, fun i ↦ (hφU i).trans Set.inter_subset_left, fun i j hij ↦ ?_⟩
-  exact (hVd (Set.mem_range_self i) (Set.mem_range_self j) (hx.ne hij)).mono
+  exact (hVd hij).mono
     ((hφU i).trans Set.inter_subset_right) ((hφU j).trans Set.inter_subset_right)
 
 /-! ### Disjoint coordinate discs from oriented smooth charts -/
@@ -1260,15 +1261,15 @@ theorem exists_ofChart_pairwise_disjoint (o : Manifold.Orientation (𝓡 2) M (F
       (∀ i, Set.range (ofChart (e i) (hr i) (hc i) (he i)) ⊆ U i) ∧
       Pairwise fun i j ↦ Disjoint (Set.range (ofChart (e i) (hr i) (hc i) (he i)))
         (Set.range (ofChart (e j) (hr j) (hc j) (he j))) := by
-  obtain ⟨V, hV, hVd⟩ := (Set.finite_range x).t2_separation
-  have hmem (i : ι) : U i ∩ V (x i) ∈ 𝓝 (x i) :=
-    Filter.inter_mem (hU i) ((hV (x i)).2.mem_nhds (hV (x i)).1)
+  obtain ⟨V, hV, hVd⟩ :=
+    (pairwise_disjoint_nhds.comp_of_injective hx).exists_mem_filter_of_disjoint
+  have hmem (i : ι) : U i ∩ V i ∈ 𝓝 (x i) := Filter.inter_mem (hU i) (hV i)
   choose e r hr hatlas hxe hex hsU htgt hpres using fun i ↦
     Manifold.Orientation.exists_mem_maximalAtlas_isOrientationPreservingAt
       (Manifold.Orientation.euclideanSpace 2) o (hmem i)
   have hsU' (i : ι) : (e i).source ⊆ U i := (hsU i).trans Set.inter_subset_left
   have hdisj : Pairwise fun i j ↦ Disjoint (e i).source (e j).source := fun i j hij ↦
-    (hVd (Set.mem_range_self i) (Set.mem_range_self j) (hx.ne hij)).mono
+    (hVd hij).mono
       ((hsU i).trans Set.inter_subset_right) ((hsU j).trans Set.inter_subset_right)
   have hc (i : ι) : Metric.ball 0 (r i) ⊆ (e i).target := (htgt i).ge
   refine ⟨e, r, hr, hc, hpres, hatlas, hxe, htgt, hex, fun i ↦ ?_, hsU', hdisj,

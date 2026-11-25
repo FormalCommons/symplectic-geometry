@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Manifold.MFDeriv.Curve
 public import TauCeti.Geometry.Manifold.Riemannian.Sphere.Basic
 public import TauCeti.Geometry.Manifold.Riemannian.Sphere.Geodesic
 public import TauCeti.Geometry.Manifold.VectorBundle.Cotangent.Basic
+public import TauCeti.Geometry.Manifold.VectorBundle.FiberScaling
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Riesz
 public import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Liouville
 public import TauCeti.Geometry.Symplectic.Cotangent.InnerProduct
@@ -71,6 +72,11 @@ direction.
   `SymplecticGeometry.isCompact_setOf_cotangentNorm_coe_le`: so is their trace on an open set
   that contains them. `SymplecticGeometry.exists_pos_setOf_cotangentNorm_le_subset`: every
   neighbourhood of the zero section contains `{z | ‖p‖ ≤ r}` for some `r > 0`.
+  `SymplecticGeometry.exists_gt_setOf_cotangentNorm_le_subset`: every neighbourhood of
+  `{z | ‖p‖ ≤ r}` contains `{z | ‖p‖ ≤ r'}` for some `r' > r`.
+* `SymplecticGeometry.cotangentNorm_vectorBundleFiberScaling`: fibre scaling by `t ∈ [0, 1]`
+  multiplies `‖p‖` by `t`, so it maps `{z | ‖p‖ < r}` into itself
+  (`SymplecticGeometry.vectorBundleFiberScaling_mem_setOf_cotangentNorm_lt`).
 * `SymplecticGeometry.cotangentCoord_zeroSection`: the zero covector at `q` has coordinates
   `(q, 0)`; `SymplecticGeometry.antipodal_zeroSection`: `antipodal` sends it to the zero covector
   at `-q`.
@@ -435,6 +441,40 @@ theorem exists_pos_setOf_cotangentNorm_le_subset {W : Set (CotangentBundle (𝓡
   exists_pos_sublevel_subset_of_isCompact_of_mem_nhdsSet one_pos
     (isCompact_setOf_cotangentNorm_le 1) continuous_cotangentNorm.continuousOn
     (fun z hz ↦ (cotangentNorm_nonneg z).lt_of_ne' fun h ↦ hz (cotangentNorm_eq_zero_iff.1 h)) hW
+
+/-- Every neighbourhood `U` of `{z | ‖p‖ ≤ r}` in `T*Sⁿ` contains `{z | ‖p‖ ≤ r'}` for some
+`r' > r`. -/
+theorem exists_gt_setOf_cotangentNorm_le_subset {r : ℝ} {U : Set (CotangentBundle (𝓡 n) (𝕊 n))}
+    (hU : U ∈ 𝓝ˢ {z | cotangentNorm z ≤ r}) :
+    ∃ r' > r, {z | cotangentNorm z ≤ r'} ⊆ U := by
+  have hset (c : ℝ) : {z : CotangentBundle (𝓡 n) (𝕊 n) | cotangentNorm z - r ≤ c} =
+      {z | cotangentNorm z ≤ r + c} := by
+    ext z
+    exact sub_le_iff_le_add'
+  obtain ⟨δ, hδ, hδU⟩ := exists_pos_sublevel_subset_of_isCompact_of_mem_nhdsSet
+    (f := fun z ↦ cotangentNorm z - r) one_pos
+    (hset 1 ▸ isCompact_setOf_cotangentNorm_le (r + 1))
+    (continuous_cotangentNorm.sub continuous_const).continuousOn
+    (fun z hz ↦ sub_pos.2 (not_le.1 hz)) hU
+  exact ⟨r + δ, lt_add_of_pos_right r hδ, hset δ ▸ hδU⟩
+
+/-- Fibre scaling by `t ∈ [0, 1]` multiplies `‖p‖` by `t`. -/
+theorem cotangentNorm_vectorBundleFiberScaling (z : CotangentBundle (𝓡 n) (𝕊 n))
+    (t : Icc (0 : ℝ) 1) :
+    cotangentNorm (vectorBundleFiberScaling (EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)
+      (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ) (z, t)) = t * cotangentNorm z := by
+  rw [cotangentNorm_eq_norm, cotangentNorm_eq_norm,
+    CotangentBundle.norm_snd_vectorBundleFiberScaling]
+
+/-- Fibre scaling by each `t ∈ [0, 1]` maps `{z | ‖p‖ < r}` into itself. -/
+theorem vectorBundleFiberScaling_mem_setOf_cotangentNorm_lt {r : ℝ}
+    {z : CotangentBundle (𝓡 n) (𝕊 n)} (hz : cotangentNorm z < r) (t : Icc (0 : ℝ) 1) :
+    vectorBundleFiberScaling (EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)
+      (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ) (z, t) ∈ {z | cotangentNorm z < r} := by
+  rw [mem_ofPred_eq, cotangentNorm_vectorBundleFiberScaling]
+  calc (t : ℝ) * cotangentNorm z ≤ cotangentNorm z :=
+        mul_le_of_le_one_left (cotangentNorm_nonneg z) t.property.2
+    _ < r := hz
 
 /-- The first coordinate of the differential of `cotangentCoord` is the differential of the
 inclusion `Sⁿ → ℝⁿ⁺¹` applied to the differential of the bundle projection: the first

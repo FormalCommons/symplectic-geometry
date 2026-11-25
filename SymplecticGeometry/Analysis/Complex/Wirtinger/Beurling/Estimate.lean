@@ -15,6 +15,7 @@ import TauCeti.Analysis.Sobolev.Mollification.Basic
 import TauCeti.MeasureTheory.Function.Lp.ApproximateIdentity
 import TauCeti.MeasureTheory.Function.UnifTight
 import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.FDerivApply
+import SymplecticGeometry.Analysis.Complex.Wirtinger.Basic
 import SymplecticGeometry.Analysis.Complex.Wirtinger.Commutator
 import SymplecticGeometry.Analysis.Normed.Operator.ComplexLinearPart
 import SymplecticGeometry.MeasureTheory.Function.LpSeminorm.TriangleInequality
