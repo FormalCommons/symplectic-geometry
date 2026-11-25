@@ -40,6 +40,9 @@ which makes it smooth also at `0`, whether or not `F' 0 = 0`.
   `u G(u) = 1 - F(u)`.
 * `SymplecticGeometry.integralTopForm_formCalculus_mul`: the localization lemma, that
   `F(η) β` and `β` have the same integral for `F 0 = 1` and `d_ħ β = 0`.
+* `SymplecticGeometry.integralTopForm_mul_formCalculus_exp_of_forall_or`: `γ exp(f + τ)` and
+  `e ^ c γ` have the same integral when, wherever `γ` does not vanish, `f + τ` is
+  `c + d_ħ θ` for an invariant one-form `θ`.
 
 ## References
 
@@ -210,11 +213,9 @@ theorem integralTopForm_mul_formCalculus_exp_of_forall_or [FiniteDimensional ℝ
     rw [DirectSum.smul_apply, SmoothForm.smul_toRoughForm, Pi.smul_apply]
     exact formCalculus_exp_val_of_eq_add _ _ (by simp [hf]) hτ j
   -- The even form `exp(d_ħ θ)` commutes with `γ`.
-  have hcomm : Commute η γ := by
-    simp only [η, formCalculus_def]
-    exact Commute.sum_left _ _ _ fun k _ ↦ SmoothForm.commute_of_of_even (even_two_mul k) _ γ
-  rw [hη, mul_smul_comm, ← hcomm.eq, DirectSum.smul_apply, SmoothForm.smul_toRoughForm,
-    integralTopForm_smul, integralTopForm_formCalculus_mul o _ _ Real.exp_zero hθ hγ]
+  rw [hη, mul_smul_comm, ← (commute_formCalculus _ _ _ _ γ).eq, DirectSum.smul_apply,
+    SmoothForm.smul_toRoughForm, integralTopForm_smul,
+    integralTopForm_formCalculus_mul o _ _ Real.exp_zero hθ hγ]
 
 end SymplecticGeometry
 

@@ -47,9 +47,9 @@ namespace SymplecticGeometry
 
 open TauCeti
 
-variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
-  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
-  [I.Boundaryless] [IsManifold I ∞ M] [CompactSpace M] [T2Space M] [BoundarylessManifold I M]
+variable {E H' M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  [TopologicalSpace H'] {I : ModelWithCorners ℝ E H'} [TopologicalSpace M] [ChartedSpace H' M]
+  [I.Boundaryless] [IsManifold I ∞ M] [CompactSpace M] [T2Space M]
   [MulAction Circle M] [ContMDiffSMul (𝓡 1) I ∞ Circle M]
 
 namespace IsWeightChart
@@ -60,8 +60,8 @@ boundaryless manifold `M`, with `X` the fundamental vector field of the period-o
 two-form `σ` and a map `μ`, with `H = ⟨μ, ξ₁⟩`. Let `γ` be a form of mixed degree with
 `d_ħ γ = 0` whose components all vanish outside `Φ '' closedBall 0 a`, for some `a < r`. Then
 for every orientation `o` of `M`, the top component of `γ e^{σ - ħH}`, where
-`e^{σ - ħH} = formCalculus Real.exp _ (-ħ • H) σ`, has `e^{-ħ H(p)}` times the integral of the
-top component of `γ`. -/
+`e^{σ - ħH} = formCalculus Real.exp _ (-ħ • H) σ`, has integral `e^{-ħ H(p)}` times the
+integral of the top component of `γ`. -/
 theorem integralTopForm_mul_formCalculus_exp {σ : SmoothTwoForm I M}
     {μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle)} {p : M} {n : ℕ}
     {χ : Fin n → Circle →ₜ* Circle} {α : Fin n → StrongDual ℝ (EuclideanSpace ℝ (Fin 1))}
