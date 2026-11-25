@@ -72,16 +72,8 @@ theorem ContDiffOn.exists_contMDiffAt_eventuallyEq_mul_of_comp_extChartAt_symm {
     (hfg : ∀ z ∈ t, f ((extChartAt I x).symm z) = 0 → g ((extChartAt I x).symm z) = 0) :
     ∃ a : M → ℝ, ContMDiffAt I 𝓘(ℝ) n a x ∧ g =ᶠ[𝓝 x] a * f ∧
       mvfderiv I g x = a x • mvfderiv I f x := by
-  have htar : (extChartAt I x).target ∈ 𝓝 (extChartAt I x x) := extChartAt_target_mem_nhds x
-  have hfd : MDifferentiableAt I 𝓘(ℝ) f x :=
-    (TauCeti.contMDiffAt_iff_contDiffAt_comp_extChartAt_symm.2
-      (hf.contDiffAt (ht.mem_nhds hxt))).mdifferentiableAt (by simp)
-  have hgd : MDifferentiableAt I 𝓘(ℝ) g x :=
-    (TauCeti.contMDiffAt_iff_contDiffAt_comp_extChartAt_symm.2
-      (hg.contDiffAt (ht.mem_nhds hxt))).mdifferentiableAt (by simp)
   have hf'c : fderiv ℝ (f ∘ (extChartAt I x).symm) (extChartAt I x x) ≠ 0 := by
-    rwa [← fderivWithin_of_mem_nhds htar,
-      ← TauCeti.mvfderiv_eq_fderivWithin_extChartAt_target hfd]
+    rwa [← TauCeti.mvfderiv_eq_fderiv_comp_extChartAt_symm]
   have hfx' : (f ∘ (extChartAt I x).symm) (extChartAt I x x) = 0 := by
     rw [Function.comp_apply, extChartAt_to_inv, hfx]
   obtain ⟨b, hb, hgb, hdb⟩ :=
@@ -89,14 +81,13 @@ theorem ContDiffOn.exists_contMDiffAt_eventuallyEq_mul_of_comp_extChartAt_symm {
   refine ⟨b ∘ extChartAt I x, ?_, ?_, ?_⟩
   · refine TauCeti.contMDiffAt_iff_contDiffAt_comp_extChartAt_symm.2
       (hb.congr_of_eventuallyEq ?_)
-    filter_upwards [htar] with z hz
+    filter_upwards [extChartAt_target_mem_nhds x] with z hz
     simp only [Function.comp_apply, (extChartAt I x).right_inv hz]
   · have hc : Tendsto (extChartAt I x) (𝓝 x) (𝓝 (extChartAt I x x)) := continuousAt_extChartAt x
     filter_upwards [extChartAt_source_mem_nhds (I := I) x, hc.eventually hgb] with y hy hgy
     simpa only [Pi.mul_apply, Function.comp_apply, (extChartAt I x).left_inv hy] using hgy
-  · rw [TauCeti.mvfderiv_eq_fderivWithin_extChartAt_target hgd,
-      TauCeti.mvfderiv_eq_fderivWithin_extChartAt_target hfd,
-      fderivWithin_of_mem_nhds htar, fderivWithin_of_mem_nhds htar, hdb, Function.comp_apply]
+  · rw [TauCeti.mvfderiv_eq_fderiv_comp_extChartAt_symm,
+      TauCeti.mvfderiv_eq_fderiv_comp_extChartAt_symm, hdb, Function.comp_apply]
     -- The two sides differ only in reading the tangent space `TangentSpace I x` as `E`.
     rfl
 
