@@ -25,6 +25,10 @@ sets of the indices `j` with `S.find x - 2 ≤ j ≤ S.find x`, so the union of 
 locally finite cover in which every point lies in at most `3 * (n + 1)` members, and a
 partition of unity subordinate to it has the same bound.
 
+The shells, their finite refinements and the proof of local finiteness follow Mathlib's
+`refinement_of_locallyCompact_sigmaCompact_of_nhds_basis_set`; what is new here is the bound on
+the number of members of the refinement through each point.
+
 ## Main declarations
 
 * `SymplecticGeometry.exists_isSubordinate_card_finsupport_le`: the partition of unity of
@@ -101,11 +105,8 @@ theorem exists_isSubordinate_card_finsupport_le [T2Space X] [LocallyCompactSpace
     exact ⟨S.mem_iff_find_le.1 (interior_subset hx2), by omega⟩
   have hVcov : ⋃ k, V k = univ := by
     refine eq_univ_of_forall fun x => ?_
-    have hf : 1 ≤ S.find x := by simp [S]
-    have hx : x ∈ S (S.find x - 1 + 1) \ interior (S (S.find x - 1)) :=
-      ⟨by rw [Nat.sub_add_cancel hf]; exact S.mem_find x,
-        fun hx => by have := S.mem_iff_find_le.1 (interior_subset hx); omega⟩
-    obtain ⟨W, hW, hxW⟩ := hA𝒲 _ hx
+    obtain ⟨W, hW, hxW⟩ := hA𝒲 _ (sdiff_subset_sdiff_right interior_subset
+      ((CompactExhaustion.choice X).mem_sdiff_shiftr_find x))
     exact mem_iUnion.2 ⟨⟨(_, W), hW⟩, hxW⟩
   have hVlf : LocallyFinite V := by
     intro x
@@ -132,13 +133,9 @@ theorem exists_isSubordinate_card_finsupport_le [T2Space X] [LocallyCompactSpace
         have := hloc k x hxk
         simp only [Finset.mem_biUnion, Finset.mem_Icc, Finset.mem_image, Finset.mem_filter]
         exact ⟨k.val.1, by omega, k.val.2, ⟨k.property, hxk⟩, rfl⟩
-    _ ≤ ∑ j ∈ Finset.Icc (f - 2) f, ({W ∈ 𝒲 j | x ∈ W}.image (j, ·)).card :=
-        Finset.card_biUnion_le
-    _ ≤ ∑ _j ∈ Finset.Icc (f - 2) f, (n + 1) :=
-        Finset.sum_le_sum fun j _ => Finset.card_image_le.trans (hcard j x)
-    _ ≤ 3 * (n + 1) := by
-        rw [Finset.sum_const, smul_eq_mul, Nat.card_Icc]
-        exact Nat.mul_le_mul_right _ (by omega)
+    _ ≤ (Finset.Icc (f - 2) f).card * (n + 1) :=
+        Finset.card_biUnion_le_card_mul _ _ _ fun j _ => Finset.card_image_le.trans (hcard j x)
+    _ ≤ 3 * (n + 1) := Nat.mul_le_mul_right _ (by rw [Nat.card_Icc]; omega)
 
 end SymplecticGeometry
 
