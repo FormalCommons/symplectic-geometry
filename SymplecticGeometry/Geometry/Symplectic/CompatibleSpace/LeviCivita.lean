@@ -115,14 +115,12 @@ theorem mvfderiv_compatibleCLM_eq_of_inner_eq_trace {J : 𝒥}
         map_sub, map_smul, AlmostComplexStructure.apply_apply]
       linear_combination (norm := module) h
     · -- Move `J`, `X` and `Y` to the second argument of `ω`, and `J` to the left of `X`, `Y`.
-      have rJ (p q : V) : ω (J.val p) q = -ω p (J.val q) :=
-        eq_neg_of_add_eq_zero_left (J.property.invariant.apply_add_apply_eq_zero p q)
       have rX (p q : V) : ω (X p) q = -ω p (X q) := eq_neg_of_add_eq_zero_left (hXm.2 p q)
       have rY (p q : V) : ω (Y p) q = -ω p (Y q) := eq_neg_of_add_eq_zero_left (hYm.2 p q)
       simp only [hR, ContinuousLinearMap.coe_coe, sub_apply, smul_apply,
         mul_apply_eq_comp, add_apply, compatibleCLM_apply, map_sub, map_smul,
         map_add, LinearMap.sub_apply, LinearMap.smul_apply, LinearMap.add_apply, smul_eq_mul,
-        rJ, rX, rY, hXm.1, hYm.1, map_neg, neg_neg]
+        J.property.invariant.apply_apply_eq_neg, rX, rY, hXm.1, hYm.1, map_neg, neg_neg]
       linear_combination hskew u v
   -- So it is the ambient reading of a tangent vector `e`.
   obtain ⟨e, he⟩ : (R : V →L[ℝ] V) ∈ LinearMap.range

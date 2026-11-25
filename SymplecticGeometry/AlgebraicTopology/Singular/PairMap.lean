@@ -71,6 +71,8 @@ the relative homology of `(X, A)` as the map induced by `TopPair.singularChainCo
   relative chains.
 * `TopPair.chainComplexMap_comp_singularChainComplexπOfSubset_eq_zero_of_range_subset`: maps
   with range in `A` vanish on the chains relative to `A`.
+* `TopPair.chainComplexMap_tensorHom_comp_singularChainComplexπOfSubset_eq_zero`: a product of
+  maps, one of which has range in its subset, vanishes on the chains relative to `A × Y ∪ X × B`.
 * `TopPair.homologyMap_eq_singularHomologyπ_comp_inv`: a chain map into the relative chains of a
   pair, compatible with a map of pairs that is an isomorphism on homology, through the inverse of
   that isomorphism.
@@ -292,6 +294,22 @@ lemma chainComplexMap_comp_singularChainComplexπOfSubset_eq_zero_of_range_subse
     SSet.chainComplexMap (TopCat.toSSet.map f) R ≫ singularChainComplexπOfSubset R A = 0 :=
   chainComplexMap_comp_singularChainComplexπ_of_fac R (ofSubset A) f
     (TopCat.codRestrict f A fun z ↦ hf ⟨z, rfl⟩) (codRestrict_comp_ofSubset_map A _ _)
+
+open MonoidalCategory in
+/-- The product `f × g : Z × W ⟶ X × Y` of maps such that `f` lands in `A` or `g` lands in `B`
+sends singular chains to zero in the chains of `X × Y` relative to `A × Y ∪ X × B`. -/
+@[reassoc]
+lemma chainComplexMap_tensorHom_comp_singularChainComplexπOfSubset_eq_zero
+    {X Y Z W : TopCat.{w}} {A : Set X} {B : Set Y} {f : Z ⟶ X} {g : W ⟶ Y}
+    (h : Set.range f ⊆ A ∨ Set.range g ⊆ B) :
+    SSet.chainComplexMap (TopCat.toSSet.map (f ⊗ₘ g)) R ≫
+      singularChainComplexπOfSubset R
+        (CartesianMonoidalCategory.fst X Y ⁻¹' A ∪ CartesianMonoidalCategory.snd X Y ⁻¹' B) = 0 :=
+  chainComplexMap_comp_singularChainComplexπOfSubset_eq_zero_of_range_subset R (by
+    rintro _ ⟨z, rfl⟩
+    rcases h with h | h
+    · exact Or.inl (h ⟨z.1, rfl⟩)
+    · exact Or.inr (h ⟨z.2, rfl⟩))
 
 variable [CategoryWithHomology C]
 

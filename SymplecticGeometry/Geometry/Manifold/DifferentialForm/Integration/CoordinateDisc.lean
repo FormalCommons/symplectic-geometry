@@ -234,11 +234,8 @@ theorem integralTopForm_eq_sum_of_mpullback_ofChart_eq {ι : Type*} [Fintype ι]
     (hc i) (he i) (he' i) hβ ha hb hβa hβb ((htsupp i).trans (hKr i)) ?_
   rw [← hfk i]
   funext z
-  ext v
-  rw [mpullback_apply, mpullback_apply]
-  dsimp only [g]
-  rw [
-    indicator_of_mem (M := EuclideanSpace ℝ (Fin 2) [⋀^Fin 2]→L[ℝ] ℝ) (mem_range_self z) f]
+  exact mpullback_apply_congr
+    (indicator_of_mem (M := EuclideanSpace ℝ (Fin 2) [⋀^Fin 2]→L[ℝ] ℝ) (mem_range_self z) f)
 
 end CoordinateDisc
 
