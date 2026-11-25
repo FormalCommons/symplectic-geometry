@@ -358,8 +358,11 @@ section `s` transverse to the zero section (at each zero, the vertical
 derivative $D s(x):T_xX\to E'_x$, read in any trivialization, is onto):
 
 - `TauCeti.SmoothEmbedding.ofTransverseSection s hs`: the inclusion of the
-  zero set, with Tau Ceti's manifold structure `sectionZeroChartedSpace`, as
-  a `SmoothEmbedding`, with `isClosed_range_ofTransverseSection`;
+  zero set, with Tau Ceti's manifold structure `sectionZeroChartedSpace`
+  (modelled on a space of dimension `dim X - r`, through identifications of
+  the kernels of the derivative), and the immersion
+  `isImmersionOfComplement_coe_sectionZero`, as a `SmoothEmbedding`, with
+  `isClosed_range_ofTransverseSection`;
 - `normalSpaceEquivOfTransverseSection`: the isomorphism of the normal
   bundle of the zero set with the restriction of `E'`, induced by $Ds$
   (whose kernel is the tangent space of the zero set), as a fibrewise
