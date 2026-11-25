@@ -8,8 +8,8 @@ module
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.Volume
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.LineBundle
+public import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Structure
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.EulerClass
-public import TauCeti.Topology.VectorBundle.Orientation.FiberwiseEquiv
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Dual
 
@@ -30,8 +30,10 @@ of the complex line `(T_x M, J)` (`TauCeti.VectorBundleOrientation.complex`), th
   canonical orientation of the complex line to the symplectic orientation of `σ`.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.complexEulerClass_eq_eulerClass`: hence the Euler class
   `TauCeti.complexEulerClass` of the complex line bundle `(TM, J)` is the Euler class of the
-  tangent bundle oriented by the symplectic orientation of `σ`
-  (`TauCeti.VectorBundleOrientation.eulerClass_eq_of_fiberwise`).
+  tangent bundle oriented by the symplectic orientation of `σ`. It follows from
+  `TauCeti.Bundle.ContinuousComplexStructure.complexEulerClass_eq_eulerClass` for `J`, since
+  by `TauCeti.Bundle.ContinuousComplexStructure.map_fiberEquiv_complex` and the previous result
+  the complex orientation of `J` is the symplectic orientation of `σ`.
 
 ## Proof
 
@@ -127,12 +129,12 @@ theorem IsNondegenerate.complexEulerClass_eq_eulerClass (h : σ.IsNondegenerate)
     complexEulerClass ℂ J.toContinuousComplexStructure.Fiber (r := 0) (finrank_self ℂ) =
       (h.volumeOrientation (n := 1) hE).toVectorBundleOrientation.eulerClass hE := by
   set K := J.toContinuousComplexStructure
-  rw [complexEulerClass_def]
-  exact VectorBundleOrientation.eulerClass_eq_of_fiberwise _ hE _ _
-    (φ := K.fiberEquiv) ((K.totalSpaceHomeomorph ℂ).continuous.congr fun v ↦ by simp)
-    fun x ↦ by
-      rw [Manifold.Orientation.toVectorBundleOrientation_apply]
-      exact h.map_fiberEquiv_complex_eq_orientationAt hE hJ x
+  rw [K.complexEulerClass_eq_eulerClass ℂ hE]
+  congr 1
+  ext x
+  rw [Manifold.Orientation.toVectorBundleOrientation_apply]
+  exact (K.map_fiberEquiv_complex ℂ hE x).symm.trans
+    (h.map_fiberEquiv_complex_eq_orientationAt hE hJ x)
 
 end EulerClass
 
