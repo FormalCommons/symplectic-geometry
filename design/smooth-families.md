@@ -825,10 +825,6 @@ In `TauCeti.Diffeotopy`, for `[CompleteSpace E] [IsManifold I ∞ M]
   `SmoothTransition.lean` and `Diffeotopy/Real.lean` import for
   `mdifferentiableAt_subtypeVal_Icc`; it imports only Mathlib, so the level
   does not change.
-  And `Geometry/Manifold/VectorBundle/Tangent/Opens.lean` of *Contact geometry*,
-  which `Flow/TimeDependent.lean` imports to restrict a time-dependent field to
-  an open subset; it imports only Mathlib and Tau Ceti, so the level does not
-  change.
 - What later parts take: *Hamiltonian flows* uses `Diffeotopy/Real.lean` (for
   `SymplecticIsotopy.lean`) and `ContMDiff/TimeExtension.lean` with
   `timeExtend_eq_zero` (for `Flux/CompactSupport.lean`); *Moser isotopy* uses
