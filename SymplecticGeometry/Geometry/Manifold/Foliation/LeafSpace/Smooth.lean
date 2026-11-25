@@ -184,11 +184,7 @@ theorem surjective_mfderiv_leafSpaceMk (h : 𝓕.IsRegular) (x : M) :
   obtain ⟨U, s, hs, u, rfl⟩ := isRegular_def.1 h x
   obtain ⟨r, hr, hrs, hrl, -⟩ := hs.exists_retraction u
   have hL := (hs.isLocalDiffeomorph_leafSpaceMk_comp h) (r (s u))
-  have hn : (∞ : ℕ∞ω) ≠ 0 := by simp
-  have hLr : IsRegularPoint 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k)))
-      𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k))) (𝓕.leafSpaceMk ∘ s) (r (s u)) := by
-    rw [isRegularPoint_iff, ← hL.mfderivToContinuousLinearEquiv_coe hn]
-    exact (hL.mfderivToContinuousLinearEquiv hn).surjective
+  have hLr := hL.isRegularPoint (by simp)
   -- The retraction is a left inverse of the slice near `u`, so it is regular at `s u`.
   have hrr : IsRegularPoint I 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k))) r (s u) :=
     (isRegularValue_iff.1 (isRegularValue_id (I := 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k))))
