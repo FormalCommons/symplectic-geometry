@@ -38,6 +38,13 @@ of a principal bundle, `A` is usually a connection form.
   `𝔤` that preserve the bracket.
 * `SymplecticGeometry.IsConnectionForm.mpullback_op_smul_connectionCurvature`: the curvature of a
   connection form is equivariant, `R_g^* F_A = Ad(g⁻¹) ∘ F_A`.
+* `SymplecticGeometry.IsConnectionForm.connectionCurvature_apply_eq_zero_of_vertical`,
+  `SymplecticGeometry.IsConnectionForm.isTensorialForm_connectionCurvature`: the curvature of a
+  connection form vanishes as soon as one of its arguments is vertical, so it is a tensorial form
+  of type `Ad`. On a fundamental vector field `ξ^♯`, Cartan's formula and the Lie derivative
+  `L_{ξ^♯} A = -[ξ, A]` of `Principal/BasicForm.lean`
+  (`TauCeti.PrincipalBundle.mlieDerivForm_rightFundamentalVectorField_apply_eq_neg_lie`) give
+  `ι_{ξ^♯} d A = -[ξ, A]`, which the bracket term cancels.
 * `SymplecticGeometry.connectionCurvature_apply_horizontal`: the structure equation
   `F_A(X, Y) = -A([X, Y])` at a point near which the vector fields `X` and `Y` are horizontal,
   that is, near which `A` vanishes on them. The bracket `[X, Y]` is the usual one, Mathlib's
@@ -147,6 +154,60 @@ theorem IsConnectionForm.mpullback_op_smul_connectionCurvature {EB HB B : Type*}
       SmoothForm.mapCoeff (adjointContinuousLinearMap g⁻¹) (connectionCurvature A) := by
   rw [mpullback_connectionCurvature, hA.mpullback_op_smul,
     connectionCurvature_mapCoeff _ (adjointContinuousLinearMap_lie g⁻¹)]
+
+section Tensorial
+
+variable {EB HB B : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [TopologicalSpace HB]
+  {IB : ModelWithCorners ℝ EB HB} [TopologicalSpace B] [ChartedSpace HB B] [IsManifold IB ∞ B]
+  [IB.Boundaryless] [IG.Boundaryless]
+  {P : B → Type*} [TopologicalSpace (TotalSpace G P)] [∀ b, TopologicalSpace (P b)]
+  [FiberBundle G P] [∀ b, MulAction Gᵐᵒᵖ (P b)] [PrincipalBundle G P]
+  [ContMDiffFiberBundle ∞ G P IB IG]
+  {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1}
+
+/-- The curvature of a connection form vanishes when its first argument is the value of a
+fundamental vector field: by Cartan's formula, `ι_{ξ^♯} d A = -[ξ, A]`, which the bracket
+`[A(ξ^♯), A] = [ξ, A]` cancels. -/
+theorem IsConnectionForm.connectionCurvature_apply_rightFundamentalVectorField
+    (hA : IsConnectionForm A) (ξ : GroupLieAlgebra IG G) (x : ManifoldTotalSpace G P)
+    (w : TangentSpace (IB.prod IG) x) :
+    (connectionCurvature A).val x ![rightFundamentalVectorField (IB.prod IG) ξ x, w] = 0 := by
+  have hV := (PrincipalBundle.contMDiff_rightFundamentalVectorField (P := P) (IB := IB)
+    (m := 1) (n := ∞) (by simp) ξ x).mdifferentiableAt one_ne_zero
+  have h := mlieDerivForm_apply_eq_mextDeriv_add (f := fun _ ↦ ξ)
+    (fun y ↦ hA.apply_rightFundamentalVectorField y ξ) (A.mdifferentiable x) hV w
+  rw [PrincipalBundle.mlieDerivForm_rightFundamentalVectorField_apply_eq_neg_lie
+    hA.mpullback_op_smul, mvfderiv_const, zero_apply, add_zero] at h
+  rw [connectionCurvature_apply, hA.apply_rightFundamentalVectorField, ← h, neg_add_cancel]
+
+/-- **The curvature of a connection form is horizontal**: it vanishes as soon as one of its
+arguments is vertical, that is, in the kernel of the derivative of the projection. -/
+theorem IsConnectionForm.connectionCurvature_apply_eq_zero_of_vertical
+    (hA : IsConnectionForm A) (x : ManifoldTotalSpace G P)
+    (v : Fin 2 → TangentSpace (IB.prod IG) x) (j : Fin 2)
+    (hv : mfderiv (IB.prod IG) IB (fun y : ManifoldTotalSpace G P ↦
+      ((ManifoldTotalSpace.homeomorph G P).symm y).proj) x (v j) = 0) :
+    (connectionCurvature A).val x v = 0 := by
+  have hv' : v j ∈ LinearMap.range (PrincipalBundle.rightFundamentalLinearMap IB IG x) := by
+    rw [PrincipalBundle.range_rightFundamentalLinearMap_eq_ker_mfderiv_proj]
+    exact hv
+  obtain ⟨ξ, hξ⟩ := hv'
+  rw [PrincipalBundle.rightFundamentalLinearMap_apply] at hξ
+  have hv01 : v = ![v 0, v 1] := (FinVec.etaExpand_eq _).symm
+  obtain rfl | rfl : j = 0 ∨ j = 1 := by fin_cases j <;> simp
+  · rw [hv01, ← hξ]
+    exact hA.connectionCurvature_apply_rightFundamentalVectorField ξ x (v 1)
+  · rw [hv01, ContinuousAlternatingMap.apply_vecCons_swap, ← hξ,
+      hA.connectionCurvature_apply_rightFundamentalVectorField, neg_zero]
+
+/-- **The curvature of a connection form is tensorial**: it is an equivariant two-form of type
+`Ad` that vanishes as soon as one of its arguments is vertical. -/
+theorem IsConnectionForm.isTensorialForm_connectionCurvature (hA : IsConnectionForm A) :
+    IsTensorialForm (connectionCurvature A) where
+  mpullback_op_smul := hA.mpullback_op_smul_connectionCurvature
+  apply_eq_zero_of_vertical := hA.connectionCurvature_apply_eq_zero_of_vertical
+
+end Tensorial
 
 /-- **The structure equation.** If the vector fields `X` and `Y` are differentiable at `x` and
 horizontal for `A` near `x`, that is, `A` vanishes on them near `x`, then the curvature of `A` on
