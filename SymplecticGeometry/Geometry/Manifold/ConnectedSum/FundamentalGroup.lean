@@ -9,7 +9,7 @@ public import Mathlib.Geometry.Manifold.ChartedSpace
 public import Mathlib.LinearAlgebra.Dimension.Basic
 public import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.PuncturedPlane
 public import TauCeti.AlgebraicTopology.FundamentalGroup.VanKampen.Basic
-public import TauCeti.Geometry.Manifold.ConnectedSum.Basic
+public import SymplecticGeometry.Geometry.Manifold.ConnectedSum.Neck
 
 import Mathlib.Analysis.Normed.Module.Connected
 import Mathlib.CategoryTheory.Limits.Shapes.Pullback.IsPullback.Basic
@@ -45,9 +45,9 @@ in every dimension at least two, with the neck kept: the overlap is the puncture
 
 All spaces are taken in one universe, as the pushout is a square in `GrpCat`.
 
-The embedding of the neck into the connected sum, `neckMap`, and its two properties
-`isEmbedding_neckMap` and `range_neckMap`, adapt the private declarations of the same names in
-Tau Ceti's `TauCeti/Geometry/Manifold/ConnectedSum/FundamentalGroup.lean`, and the square is
+The maps `neckInl` and `neckInr`, and the homeomorphism `neckHomeomorph` of the neck onto the
+overlap of the two summands, are in `SymplecticGeometry/Geometry/Manifold/ConnectedSum/Neck.lean`.
+The square is
 `TauCeti.isPushout_fundamentalGroup` transported along homeomorphisms, as in Tau Ceti's
 `TauCeti.isPushout_fundamentalGroup_union`.
 
@@ -69,54 +69,7 @@ variable {E M N : Type u} [NormedAddCommGroup E]
   [TopologicalSpace M] [T1Space M] [TopologicalSpace N] [T1Space N]
   {e₁ : E → M} {e₂ : E → N}
 
-/-- The map `v ↦ e₁ v` from the punctured model space to the first punctured summand. -/
-def neckInl (h₁ : IsOpenEmbedding e₁) : C(({0}ᶜ : Set E), puncture e₁) where
-  toFun v := ⟨e₁ v, mem_puncture.2 (h₁.injective.ne v.property)⟩
-  continuous_toFun := (h₁.continuous.comp continuous_subtypeVal).subtype_mk _
-
-@[simp]
-theorem coe_neckInl_apply (h₁ : IsOpenEmbedding e₁) (v : ({0}ᶜ : Set E)) :
-    (neckInl h₁ v : M) = e₁ v :=
-  (rfl)
-
 variable [InnerProductSpace ℝ E]
-
-/-- The map `v ↦ e₂ (inversion 0 1 v)` from the punctured model space to the second punctured
-summand. -/
-noncomputable def neckInr (h₂ : IsOpenEmbedding e₂) : C(({0}ᶜ : Set E), puncture e₂) where
-  toFun v := ⟨e₂ (inversion 0 1 v), apply_inversion_mem_puncture h₂.injective v.property⟩
-  continuous_toFun := (h₂.continuous.comp (continuous_const.inversion continuous_const
-    continuous_subtypeVal fun v ↦ v.property)).subtype_mk _
-
-@[simp]
-theorem coe_neckInr_apply (h₂ : IsOpenEmbedding e₂) (v : ({0}ᶜ : Set E)) :
-    (neckInr h₂ v : N) = e₂ (inversion 0 1 v) :=
-  (rfl)
-
-/-- The two maps of the neck agree in the connected sum. -/
-theorem inl_neckInl_eq_inr_neckInr (h₁ : IsOpenEmbedding e₁) (h₂ : IsOpenEmbedding e₂)
-    (v : ({0}ᶜ : Set E)) : inl e₁ e₂ (neckInl h₁ v) = inr e₁ e₂ (neckInr h₂ v) :=
-  inl_eq_inr (v : E) _ _
-
-/-- The neck embedded in the connected sum. -/
-private def neckMap (h₁ : IsOpenEmbedding e₁) : ({0}ᶜ : Set E) → ConnectedSum e₁ e₂ :=
-  fun v ↦ inl e₁ e₂ (neckInl h₁ v)
-
-private theorem isEmbedding_neckMap (h₁ : IsOpenEmbedding e₁) (h₂ : IsOpenEmbedding e₂) :
-    IsEmbedding (neckMap (e₂ := e₂) h₁) := by
-  have he : IsEmbedding (neckInl h₁) :=
-    IsEmbedding.subtypeVal.of_comp_iff.mp (h₁.isEmbedding.comp IsEmbedding.subtypeVal)
-  exact (isOpenEmbedding_inl h₁ h₂).isEmbedding.comp he
-
-private theorem range_neckMap (h₁ : IsOpenEmbedding e₁) (h₂ : IsOpenEmbedding e₂) :
-    range (neckMap (e₂ := e₂) h₁) = range (inl e₁ e₂) ∩ range (inr e₁ e₂) := by
-  ext z
-  constructor
-  · rintro ⟨v, rfl⟩
-    exact ⟨⟨_, rfl⟩, ⟨_, (inl_neckInl_eq_inr_neckInr h₁ h₂ v).symm⟩⟩
-  · rintro ⟨⟨x, rfl⟩, y, hy⟩
-    obtain ⟨v, hv, hvx, -⟩ := (inl_eq_inr_iff h₁.injective).1 hy.symm
-    exact ⟨⟨v, hv⟩, congrArg (inl e₁ e₂) (Subtype.ext hvx)⟩
 
 section VanKampen
 
@@ -156,17 +109,16 @@ theorem isPushout_fundamentalGroup (h : 1 < Module.rank ℝ E) (h₁ : IsOpenEmb
       rw [← isPathConnected_iff_pathConnectedSpace, coe_puncture]
       exact isPathConnected_compl_of_finite_of_one_lt_rank h (finite_singleton (e₂ 0))
     exact isPathConnected_univ.image (continuous_inr e₁ e₂)
+  let σ₀ := neckHomeomorph h₁ h₂
   have hAB : IsPathConnected (range (inl e₁ e₂) ∩ range (inr e₁ e₂)) := by
-    rw [← range_neckMap h₁ h₂, ← image_univ]
     have : PathConnectedSpace ({0}ᶜ : Set E) :=
       isPathConnected_iff_pathConnectedSpace.mp
         (isPathConnected_compl_singleton_of_one_lt_rank h 0)
-    exact isPathConnected_univ.image (isEmbedding_neckMap h₁ h₂).continuous
-  let σ₀ : ({0}ᶜ : Set E) ≃ₜ ↥(range (inl e₁ e₂) ∩ range (inr e₁ e₂)) :=
-    (isEmbedding_neckMap h₁ h₂).toHomeomorph.trans (Homeomorph.setCongr (range_neckMap h₁ h₂))
+    exact isPathConnected_iff_pathConnectedSpace.mpr
+      (σ₀.surjective.pathConnectedSpace σ₀.continuous)
   let σ₁ := (isOpenEmbedding_inl h₁ h₂).isEmbedding.toHomeomorph
   let σ₂ := (isOpenEmbedding_inr h₁ h₂).isEmbedding.toHomeomorph
-  have h₀ : σ₀ v = ⟨x, hxA, hxB⟩ := rfl
+  have h₀ : σ₀ v = ⟨x, hxA, hxB⟩ := Subtype.ext (coe_neckHomeomorph_apply h₁ h₂ v)
   have hσ₁ : σ₁ (neckInl h₁ v) = ⟨x, hxA⟩ := rfl
   have hσ₂ : σ₂ (neckInr h₂ v) = ⟨x, hxB⟩ :=
     Subtype.ext (inl_neckInl_eq_inr_neckInr h₁ h₂ v).symm
@@ -191,7 +143,7 @@ theorem isPushout_fundamentalGroup (h : 1 < Module.rank ℝ E) (h₁ : IsOpenEmb
     ext w
     first
     | rfl
-    | exact inl_neckInl_eq_inr_neckInr h₁ h₂ w
+    | simp [σ₀, σ₁, σ₂, inl_neckInl_eq_inr_neckInr h₁ h₂ w]
 
 end VanKampen
 
