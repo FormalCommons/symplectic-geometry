@@ -27,6 +27,10 @@ class `C^n` (`expNegInvGlue.contDiff_sub_mul_exp`), and where `G` has derivative
 derivative there is `expNegInvGlue (t - t₀) * exp (G t) * ((t - t₀)⁻¹ ^ 2 + G')`
 (`expNegInvGlue.hasDerivAt_sub_mul_exp`), from Tau Ceti's `expNegInvGlue.hasDerivAt`.
 
+For `c < c₁ < b` it gives a smooth map `ℝ → ℝ` that is the identity up to `c₁`, sends `(c, ∞)`
+into `(c, b)`, and equals `c₁` from `b` on (`Real.exists_contDiff_eq_self_mapsTo_Ioo`): the map
+`x ↦ c₁ + (x - c₁) (1 - smoothTransition ((x - c₁) / (b - c₁)))`.
+
 For Tau Ceti's `TauCeti.collaredSmoothTransition`, the map `s ↦ smoothTransition (2 * s - 1 / 2)`,
 it adds that the map is `0` near `0` and `1` near `1`
 (`TauCeti.collaredSmoothTransition_eventuallyEq_zero`,
@@ -102,6 +106,41 @@ theorem hasDerivAt_sub_mul_exp {G : ℝ → ℝ} {G' : ℝ} (t₀ : ℝ) {t : �
   ring
 
 end expNegInvGlue
+
+namespace Real
+
+open Set
+open scoped ContDiff
+
+/-- For `c < c₁ < b` there is a smooth function `φ : ℝ → ℝ` that is the identity on `Iic c₁`,
+maps `Ioi c` into `Ioo c b`, and is constant, equal to `c₁`, on `Ici b`. -/
+theorem exists_contDiff_eq_self_mapsTo_Ioo {c c₁ b : ℝ} (hc : c < c₁) (hb : c₁ < b) :
+    ∃ φ : ℝ → ℝ, ContDiff ℝ ∞ φ ∧ (∀ x ≤ c₁, φ x = x) ∧ MapsTo φ (Ioi c) (Ioo c b) ∧
+      ∀ x, b ≤ x → φ x = c₁ := by
+  have hδ : 0 < b - c₁ := sub_pos.2 hb
+  have hone {x : ℝ} (hxb : b ≤ x) : smoothTransition ((x - c₁) / (b - c₁)) = 1 :=
+    smoothTransition.one_of_one_le ((one_le_div hδ).2 (sub_le_sub_right hxb c₁))
+  refine ⟨fun x ↦ c₁ + (x - c₁) * (1 - smoothTransition ((x - c₁) / (b - c₁))), ?_, ?_, ?_,
+    fun x hxb ↦ by simp [hone hxb]⟩
+  · fun_prop
+  · intro x hx
+    dsimp only
+    rw [smoothTransition.zero_of_nonpos (div_nonpos_of_nonpos_of_nonneg (by linarith) hδ.le)]
+    ring
+  · intro x hx
+    dsimp only
+    rcases le_or_gt x c₁ with hx₁ | hx₁
+    · rw [smoothTransition.zero_of_nonpos (div_nonpos_of_nonpos_of_nonneg (by linarith) hδ.le)]
+      exact ⟨by simp only [mem_Ioi] at hx; linarith, by linarith⟩
+    have h0 := smoothTransition.le_one ((x - c₁) / (b - c₁))
+    have h1 := smoothTransition.nonneg ((x - c₁) / (b - c₁))
+    refine ⟨by nlinarith, ?_⟩
+    rcases lt_or_ge x b with hxb | hxb
+    · nlinarith
+    · rw [hone hxb]
+      linarith
+
+end Real
 
 namespace TauCeti
 
