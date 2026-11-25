@@ -69,8 +69,6 @@ Steps 2 and 3 adapt the proof of Tau Ceti's `TauCeti.SmoothIsotopy.exists_diffeo
 
 ## Main results
 
-* `TauCeti.exists_pos_forall_isSmoothEmbedding_of_eventuallyEq`: a map that agrees near a compact
-  set with embeddings at times in `[0, 1]` has embedding slices near that set at nearby times.
 * `TauCeti.exists_contMDiff_forall_isSmoothEmbedding_comp`: a motion through embeddings at times
   near `[0, 1]`, run at the time of a cut-off, is a motion over `ℝ` through embeddings that is
   stationary outside a bounded interval.
@@ -116,26 +114,6 @@ variable {E E' H H' P N : Type*}
   {I : ModelWithCorners ℝ E H} {J : ModelWithCorners ℝ E' H'}
   [TopologicalSpace P] [ChartedSpace H' P] [TopologicalSpace N] [ChartedSpace H N]
   [I.Boundaryless] [J.Boundaryless] [IsManifold J ∞ P] [IsManifold I ∞ N] [T2Space N]
-
-/-- **Embedding slices near `[0, 1]`.** Let `G : ℝ × P → N` be smooth on an open set `S`
-containing `[0, 1] ×ˢ A`, with `A` compact, and let `F` be a family over `[0, 1]` of smooth
-embeddings of `P` into `N` such that, at each time `t ∈ [0, 1]`, the slice of `G` agrees with that
-of `F` near `A`. Then there are `δ > 0` and an open `V ⊇ A` with `(-δ, 1 + δ) ×ˢ V ⊆ S` such
-that the slices of `G` at times in `(-δ, 1 + δ)` are smooth embeddings of `V`. -/
-theorem exists_pos_forall_isSmoothEmbedding_of_eventuallyEq [FiniteDimensional ℝ E'] [T2Space P]
-    {S : Set (ℝ × P)} (hS : IsOpen S) {G : ℝ × P → N} (hG : ContMDiffOn (𝓘(ℝ).prod J) I ∞ G S)
-    {A : Set P} (hA : IsCompact A) (hAS : Icc 0 1 ×ˢ A ⊆ S) {F : unitInterval × P → N}
-    (hF : ∀ t, IsSmoothEmbedding J I ∞ fun x ↦ F (t, x))
-    (hGF : ∀ t (ht : t ∈ Icc (0 : ℝ) 1),
-      (fun x ↦ G (t, x)) =ᶠ[nhdsSet A] fun x ↦ F (⟨t, ht⟩, x)) :
-    ∃ δ > 0, ∃ V : TopologicalSpace.Opens P, A ⊆ V ∧ Ioo (-δ) (1 + δ) ×ˢ (V : Set P) ⊆ S ∧
-      ∀ t ∈ Ioo (-δ) (1 + δ), IsSmoothEmbedding J I ∞ (fun x : V ↦ G (t, x)) :=
-  exists_pos_forall_isSmoothEmbedding_of_injOn hS hG hA hAS
-    (fun t ht x hx y hy hxy ↦ (hF ⟨t, ht⟩).isEmbedding.injective <| by
-      simpa only [(hGF t ht).self_of_nhdsSet hx, (hGF t ht).self_of_nhdsSet hy] using hxy)
-    fun t ht x hx ↦ by
-      rw [((hGF t ht).filter_mono (nhds_le_nhdsSet hx)).mfderiv_eq]
-      exact (hF ⟨t, ht⟩).isImmersion.mfderiv_injective (by simp) x
 
 omit [FiniteDimensional ℝ E] [I.Boundaryless] [J.Boundaryless] [IsManifold J ∞ P] [IsManifold I ∞ N]
   [T2Space N] in
