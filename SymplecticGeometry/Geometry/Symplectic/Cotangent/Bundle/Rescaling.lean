@@ -21,6 +21,10 @@ import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
 import TauCeti.Geometry.Symplectic.Manifold.Opens
 import TauCeti.Geometry.Manifold.Immersion.Differential
 import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Fiberwise
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
+import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
+import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 
 /-!
 # Rescaling symplectic maps of a cotangent bundle towards the zero section
@@ -317,6 +321,242 @@ theorem exists_smoothIsotopy_of_eqOn_zeroSection [IsManifold J ∞ L] [J.Boundar
       (hsymp t))
     rwa [SmoothForm.coe_mpullback] at h
   · exact vectorBundleRescaledFamily_zeroSection _ (hψ0 x) t
+
+section TwoEmbeddings
+
+variable [IsManifold J ∞ L]
+  {EM HM : Type*} [NormedAddCommGroup EM] [NormedSpace ℝ EM]
+  [TopologicalSpace HM] {I : ModelWithCorners ℝ EM HM}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace HM M] [IsManifold I ∞ M]
+  {Ω : SmoothTwoForm I M} {c : ℝ} {U₀ U₁ : Opens (CotangentBundle J L)} {V₀ V₁ : Opens M}
+
+/-- The map `ι₁⁻¹ ∘ ι₀`, on the open set of points of `U₀` that `ι₀` maps into `V₁`, is an open
+embedding that fixes the zero section and preserves the canonical symplectic form. -/
+private theorem exists_symm_comp_of_apply_zeroSection_eq (hc : c ≠ 0)
+    (ι₀ : U₀ ≃ₘ⟮J.prod 𝓘(ℝ, E →L[ℝ] ℝ), I⟯ V₀) (ι₁ : U₁ ≃ₘ⟮J.prod 𝓘(ℝ, E →L[ℝ] ℝ), I⟯ V₁)
+    (h₀ : SmoothForm.mpullback ι₀ ι₀.contMDiff
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal Ω) =
+      SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (c • symplecticForm J L))
+    (h₁ : SmoothForm.mpullback ι₁ ι₁.contMDiff
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal Ω) =
+      SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (c • symplecticForm J L))
+    (hU₀ : range (zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ)) ⊆ U₀)
+    (hU₁ : range (zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ)) ⊆ U₁)
+    (h : ∀ x, (ι₀ ⟨_, hU₀ (mem_range_self x)⟩ : M) = ι₁ ⟨_, hU₁ (mem_range_self x)⟩) :
+    ∃ (W : Opens (CotangentBundle J L)) (hW : W ≤ U₀)
+      (hzW : range (zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ)) ⊆ W)
+      (ψ : C^∞⟮J.prod 𝓘(ℝ, E →L[ℝ] ℝ), W; J.prod 𝓘(ℝ, E →L[ℝ] ℝ), CotangentBundle J L⟯),
+      IsOpenEmbedding ψ ∧
+      (∀ x, ψ ⟨_, hzW (mem_range_self x)⟩ =
+        zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ) x) ∧
+      SmoothForm.mpullback ψ ψ.contMDiff (symplecticForm J L) =
+        SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (symplecticForm J L) ∧
+      ∀ z, ∃ hz : ψ z ∈ U₁, (ι₁ ⟨ψ z, hz⟩ : M) = ι₀ (Opens.inclusion hW z) := by
+  -- the open set of the points of `U₀` that `ι₀` maps into `V₁`
+  have hWo : IsOpen {z : CotangentBundle J L | ∃ hz : z ∈ U₀, (ι₀ ⟨z, hz⟩ : M) ∈ V₁} := by
+    have := U₀.isOpen.isOpenMap_subtypeVal _
+      (V₁.isOpen.preimage (continuous_subtypeVal.comp ι₀.continuous))
+    rwa [Subtype.coe_image] at this
+  let W : Opens (CotangentBundle J L) := ⟨_, hWo⟩
+  have hW : W ≤ U₀ := fun z hz ↦ hz.1
+  have hzW : range (zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ)) ⊆ W := by
+    rintro _ ⟨x, rfl⟩
+    exact ⟨hU₀ (mem_range_self x), (h x).symm ▸ (ι₁ _).property⟩
+  let k : W → V₁ := fun z ↦ ⟨ι₀ (Opens.inclusion hW z), z.property.2⟩
+  have hk : ContMDiff (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) I ∞ k := by
+    have h₀k : ContMDiff (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) I ∞ fun z : W ↦ (ι₀ (Opens.inclusion hW z) : M) :=
+      contMDiff_subtypeVal.comp (ι₀.contMDiff.comp (contMDiff_inclusion hW))
+    exact (ContMDiff.subtypeVal_comp_iff V₁ k).1 h₀k
+  let ψ : C^∞⟮J.prod 𝓘(ℝ, E →L[ℝ] ℝ), W; J.prod 𝓘(ℝ, E →L[ℝ] ℝ), CotangentBundle J L⟯ :=
+    ⟨fun z ↦ (ι₁.symm (k z) : CotangentBundle J L),
+      contMDiff_subtypeVal.comp (ι₁.symm.contMDiff.comp hk)⟩
+  have hincl : IsOpenEmbedding (Opens.inclusion hW) :=
+    (U₀.isOpen.isOpenEmbedding_subtypeVal.of_comp_iff _).1 W.isOpen.isOpenEmbedding_subtypeVal
+  have hke : IsOpenEmbedding k :=
+    (V₁.isOpen.isOpenEmbedding_subtypeVal.of_comp_iff k).1
+      (V₀.isOpen.isOpenEmbedding_subtypeVal.comp (ι₀.toHomeomorph.isOpenEmbedding.comp hincl))
+  -- `ψ` pulls `c • ω` back to its restriction, hence also `ω`
+  have hψc : SmoothForm.mpullback ψ ψ.contMDiff (c • symplecticForm J L) =
+      SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (c • symplecticForm J L) := by
+    have hψk : SmoothForm.mpullback ψ ψ.contMDiff (c • symplecticForm J L) =
+        SmoothForm.mpullback k hk (SmoothForm.mpullback ι₁.symm ι₁.symm.contMDiff
+          (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (c • symplecticForm J L))) := by
+      rw [SmoothForm.mpullback_mpullback, SmoothForm.mpullback_mpullback]
+      exact SmoothForm.mpullback_congr _ _ rfl _
+    rw [hψk, SmoothForm.mpullback_symm_eq_of_mpullback_eq h₁,
+      SmoothForm.mpullback_mpullback_of_comp_eq hk contMDiff_subtypeVal (contMDiff_inclusion hW)
+        (contMDiff_subtypeVal.comp ι₀.contMDiff) rfl, ← SmoothForm.mpullback_mpullback _ _
+        ι₀.contMDiff contMDiff_subtypeVal, h₀, SmoothForm.mpullback_mpullback]
+    exact SmoothForm.mpullback_congr _ _ rfl _
+  refine ⟨W, hW, hzW, ψ,
+    U₁.isOpen.isOpenEmbedding_subtypeVal.comp (ι₁.symm.toHomeomorph.isOpenEmbedding.comp hke),
+    fun x ↦ ?_, ?_, fun z ↦ ⟨(ι₁.symm (k z)).property, ?_⟩⟩
+  · have hkx : k ⟨_, hzW (mem_range_self x)⟩ = ι₁ ⟨_, hU₁ (mem_range_self x)⟩ := Subtype.ext (h x)
+    simp only [ψ, ContMDiffMap.coeFn_mk, hkx, Diffeomorph.symm_apply_apply]
+  · rw [map_smul, map_smul] at hψc
+    exact smul_right_injective _ hc hψc
+  · simp only [ψ, ContMDiffMap.coeFn_mk, Subtype.coe_eta, Diffeomorph.apply_symm_apply, k]
+
+/-- Pulling `Ω` back along `ι₁ ∘ q`, for a map `q` into `U₁`, gives `c` times the pullback of the
+canonical form along `q`, when `ι₁` pulls `Ω` back to `c` times the canonical form. -/
+private theorem mpullback_subtypeVal_comp_comp {P : Type*} [TopologicalSpace P]
+    [ChartedSpace (ModelProd H (E →L[ℝ] ℝ)) P] [IsManifold (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) ∞ P]
+    (ι₁ : U₁ ≃ₘ⟮J.prod 𝓘(ℝ, E →L[ℝ] ℝ), I⟯ V₁)
+    (h₁ : SmoothForm.mpullback ι₁ ι₁.contMDiff
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal Ω) =
+      SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (c • symplecticForm J L))
+    {q : P → U₁} (hq : ContMDiff (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) ∞ q) :
+    SmoothForm.mpullback (Subtype.val ∘ ι₁ ∘ q)
+        (contMDiff_subtypeVal.comp (ι₁.contMDiff.comp hq)) Ω =
+      c • SmoothForm.mpullback (Subtype.val ∘ q) (contMDiff_subtypeVal.comp hq)
+        (symplecticForm J L) := by
+  rw [← SmoothForm.mpullback_mpullback _ _ (ι₁.contMDiff.comp hq) contMDiff_subtypeVal,
+    ← SmoothForm.mpullback_mpullback _ _ hq ι₁.contMDiff, h₁, SmoothForm.mpullback_mpullback,
+    map_smul]
+
+variable [J.Boundaryless] [T2Space L] [FiniteDimensional ℝ E] [FiniteDimensional ℝ EM]
+  [I.Boundaryless]
+
+/-- **Uniqueness of Lagrangian neighbourhoods up to isotopy, for a multiple of the canonical
+form.** -/
+theorem exists_smoothIsotopy_of_apply_zeroSection_eq_smul (hc : c ≠ 0)
+    (ι₀ : U₀ ≃ₘ⟮J.prod 𝓘(ℝ, E →L[ℝ] ℝ), I⟯ V₀) (ι₁ : U₁ ≃ₘ⟮J.prod 𝓘(ℝ, E →L[ℝ] ℝ), I⟯ V₁)
+    (h₀ : SmoothForm.mpullback ι₀ ι₀.contMDiff
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal Ω) =
+      SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (c • symplecticForm J L))
+    (h₁ : SmoothForm.mpullback ι₁ ι₁.contMDiff
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal Ω) =
+      SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (c • symplecticForm J L))
+    (hU₀ : range (zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ)) ⊆ U₀)
+    (hU₁ : range (zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ)) ⊆ U₁)
+    (h : ∀ x, (ι₀ ⟨_, hU₀ (mem_range_self x)⟩ : M) = ι₁ ⟨_, hU₁ (mem_range_self x)⟩) :
+    ∃ (U : Opens (CotangentBundle J L)) (hU : U ≤ U₀ ⊓ U₁)
+      (hzero : range (zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ)) ⊆ U)
+      (G : SmoothIsotopy
+        (ContMDiffMap.comp ⟨Subtype.val, contMDiff_subtypeVal⟩
+          (ι₀.toContMDiffMap.comp
+            ⟨Opens.inclusion (hU.trans inf_le_left), contMDiff_inclusion _⟩))
+        (ContMDiffMap.comp ⟨Subtype.val, contMDiff_subtypeVal⟩
+          (ι₁.toContMDiffMap.comp
+            ⟨Opens.inclusion (hU.trans inf_le_right), contMDiff_inclusion _⟩))),
+      G.IsSymplectic
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (c • symplecticForm J L)) Ω ∧
+      (∀ (t : unitInterval) x,
+        G (t, ⟨_, hzero (mem_range_self x)⟩) = ι₀ ⟨_, hU₀ (mem_range_self x)⟩) ∧
+      ∀ t : unitInterval, IsOpenEmbedding fun z : U ↦ G (t, z) := by
+  obtain ⟨W, hW, hzW, ψ, hψe, hψ0, hψω, hψι⟩ :=
+    exists_symm_comp_of_apply_zeroSection_eq hc ι₀ ι₁ h₀ h₁ hU₀ hU₁ h
+  obtain ⟨U', hU'W, hzero', F, hFs, hF0, hFe⟩ :=
+    exists_smoothIsotopy_of_eqOn_zeroSection hzW ψ hψe hψ0 hψω
+  -- shrink `U'` to the points whose whole track under `F` stays in `U₁`
+  have hS : IsOpen {z : U' | ∀ t, F (t, z) ∈ U₁} := by
+    have hO := (U₁.isOpen.preimage F.contMDiff.continuous).isClosed_compl
+    convert (isClosedMap_snd_of_compactSpace (X := unitInterval) _ hO).isOpen_compl using 1
+    ext z
+    simp
+  obtain ⟨U, hUdef⟩ : ∃ U : Opens (CotangentBundle J L),
+      (U : Set (CotangentBundle J L)) = Subtype.val '' {z : U' | ∀ t, F (t, z) ∈ U₁} :=
+    ⟨⟨_, U'.isOpen.isOpenMap_subtypeVal _ hS⟩, rfl⟩
+  have hUU' : U ≤ U' := by
+    intro z hz
+    rw [← SetLike.mem_coe, hUdef] at hz
+    obtain ⟨z, -, rfl⟩ := hz
+    exact z.property
+  have hmem : ∀ t (z : U), F (t, Opens.inclusion hUU' z) ∈ U₁ := by
+    rintro t ⟨z, hz⟩
+    rw [← SetLike.mem_coe, hUdef] at hz
+    obtain ⟨w, hw, rfl⟩ := hz
+    exact hw t
+  have hzero : range (zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ)) ⊆ U := by
+    rintro _ ⟨x, rfl⟩
+    rw [hUdef]
+    refine ⟨⟨_, hzero' (mem_range_self x)⟩, fun t ↦ ?_, rfl⟩
+    rw [hF0]
+    exact hU₁ (mem_range_self x)
+  have hU : U ≤ U₀ ⊓ U₁ := fun z hz ↦ ⟨hW (hU'W (hUU' hz)), by
+    have := hmem 0 ⟨z, hz⟩
+    rwa [F.apply_zero, ContMDiffMap.restrict_apply, ContMDiffMap.id_apply] at this⟩
+  -- the isotopy `t ↦ ι₁ ∘ F_{1 - t}`, from `ι₀` to `ι₁`
+  have hmem' : ∀ p : unitInterval × U, F.symm (p.1, Opens.inclusion hUU' p.2) ∈ U₁ := fun p ↦ by
+    rw [SmoothIsotopy.symm_apply]
+    exact hmem _ _
+  let q : unitInterval × U → U₁ := fun p ↦ ⟨_, hmem' p⟩
+  have hq : ContMDiff ((𝓡∂ 1).prod (J.prod 𝓘(ℝ, E →L[ℝ] ℝ))) (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) ∞ q :=
+    (ContMDiff.subtypeVal_comp_iff U₁ q).1 (F.symm.contMDiff.comp
+      (contMDiff_fst.prodMk ((contMDiff_inclusion hUU').comp contMDiff_snd)))
+  have hqt : ∀ t, ContMDiff (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) ∞
+      fun z ↦ q (t, z) := fun t ↦ hq.comp (contMDiff_const.prodMk contMDiff_id)
+  have hFt : ∀ t, Manifold.IsSmoothEmbedding (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) ∞
+      fun z : U ↦ F.symm (t, Opens.inclusion hUU' z) := fun t ↦
+    isSmoothEmbedding_comp_isLocalDiffeomorph (f := fun y ↦ F.symm (t, y))
+      (isLocalDiffeomorph_inclusion hUU') (IsEmbedding.inclusion hUU') (F.symm.isSmoothEmbedding t)
+  refine ⟨U, hU, hzero,
+    { toContMDiffMap := ⟨fun p ↦ (ι₁ (q p) : M), contMDiff_subtypeVal.comp (ι₁.contMDiff.comp hq)⟩
+      map_zero_left := fun z ↦ ?_
+      map_one_left := fun z ↦ ?_
+      isSmoothEmbedding := fun t ↦ isSmoothEmbedding_subtypeVal_comp_iff.2
+        (ι₁.isSmoothEmbedding_comp (by simp) ((hFt t).codRestrict U₁ fun z ↦ hmem' (t, z))) },
+    SmoothIsotopy.isSymplectic_def.2 fun t ↦ ?_, fun t x ↦ ?_, fun t ↦ ?_⟩
+  · -- `F_1 = ψ`, and `ι₁ ∘ ψ = ι₀`
+    obtain ⟨hz, hψz⟩ := hψι (Opens.inclusion hU'W (Opens.inclusion hUU' z))
+    have hq0 : q (0, z) = ⟨_, hz⟩ := by
+      refine Subtype.ext ?_
+      -- `q` is a map into `U₁`; its value is a value of `F.symm`
+      change F.symm (0, _) = _
+      rw [SmoothIsotopy.symm_apply, unitInterval.symm_zero, F.apply_one]
+      rfl
+    -- the value of the bundled isotopy and of the bundled endpoint, as values of `ι₁` and `ι₀`
+    change (ι₁ (q (0, z)) : M) = ι₀ (Opens.inclusion (hU.trans inf_le_left) z)
+    rw [hq0, hψz]
+  · have hq1 : q (1, z) = Opens.inclusion (hU.trans inf_le_right) z := by
+      refine Subtype.ext ?_
+      -- `q` is a map into `U₁`; its value is a value of `F.symm`
+      change F.symm (1, _) = _
+      rw [SmoothIsotopy.symm_apply, unitInterval.symm_one, F.apply_zero,
+        ContMDiffMap.restrict_apply, ContMDiffMap.id_apply]
+    -- the value of the bundled isotopy and of the bundled endpoint, as values of `ι₁`
+    change (ι₁ (q (1, z)) : M) = ι₁ (Opens.inclusion (hU.trans inf_le_right) z)
+    rw [hq1]
+  · -- the slice is `ι₁ ∘ F_{1 - t}`, and `F_{1 - t}` pulls the canonical form back to its
+    -- restriction
+    have hFy : ContMDiff (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) ∞
+        fun y : U' ↦ F (unitInterval.symm t, y) :=
+      F.contMDiff.comp (contMDiff_const.prodMk contMDiff_id)
+    have hFσ : SmoothForm.mpullback _ hFy (symplecticForm J L) =
+        SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (symplecticForm J L) :=
+      Subtype.ext ((SmoothForm.coe_mpullback _ _ _).trans
+        (SmoothIsotopy.isSymplectic_def.1 hFs (unitInterval.symm t)))
+    have key := mpullback_subtypeVal_comp_comp ι₁ h₁ (hqt t)
+    have hval : SmoothForm.mpullback (Subtype.val ∘ fun z ↦ q (t, z))
+        (contMDiff_subtypeVal.comp (hqt t)) (symplecticForm J L) =
+        SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (symplecticForm J L) := by
+      rw [SmoothForm.mpullback_congr _ (hFy.comp (contMDiff_inclusion hUU'))
+          (funext fun z ↦ SmoothIsotopy.symm_apply _ _),
+        ← SmoothForm.mpullback_mpullback _ _ (contMDiff_inclusion hUU') hFy, hFσ,
+        SmoothForm.mpullback_mpullback]
+      exact SmoothForm.mpullback_congr _ _ rfl _
+    rw [hval, ← map_smul] at key
+    exact (SmoothForm.coe_mpullback _ _ _).symm.trans (congrArg Subtype.val key)
+  · -- `F` fixes the zero section, and `ι₁ = ι₀` there
+    have hqx : q (t, ⟨_, hzero (mem_range_self x)⟩) = ⟨_, hU₁ (mem_range_self x)⟩ := by
+      refine Subtype.ext ?_
+      change F.symm (t, _) = _
+      rw [SmoothIsotopy.symm_apply]
+      exact hF0 _ x
+    change (ι₁ (q (t, _)) : M) = _
+    rw [hqx]
+    exact (h x).symm
+  · have hinclU : IsOpenEmbedding (Opens.inclusion hUU') :=
+      (U'.isOpen.isOpenEmbedding_subtypeVal.of_comp_iff _).1 U.isOpen.isOpenEmbedding_subtypeVal
+    have hFU : IsOpenEmbedding fun z ↦ F (unitInterval.symm t, Opens.inclusion hUU' z) :=
+      (hFe _).comp hinclU
+    have hqe : IsOpenEmbedding fun z ↦ q (t, z) :=
+      (U₁.isOpen.isOpenEmbedding_subtypeVal.of_comp_iff _).1
+        ((funext fun z ↦ SmoothIsotopy.symm_apply _ _ : (Subtype.val ∘ fun z ↦ q (t, z)) =
+          fun z ↦ F (unitInterval.symm t, Opens.inclusion hUU' z)) ▸ hFU)
+    exact V₁.isOpen.isOpenEmbedding_subtypeVal.comp (ι₁.toHomeomorph.isOpenEmbedding.comp hqe)
+
+end TwoEmbeddings
 
 end SymplecticGeometry.CotangentBundle
 
