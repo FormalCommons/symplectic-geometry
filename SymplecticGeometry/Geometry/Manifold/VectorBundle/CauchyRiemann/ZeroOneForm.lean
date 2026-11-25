@@ -47,6 +47,8 @@ Ceti's `ContMDiffSection.continuous_map_frameTopology` gives the continuity of t
 * `TauCeti.SmoothAlmostComplexStructure.contMDiff_zeroOnePartL`: `zeroOnePartL j` is a smooth
   section of the endomorphism bundle of the one-forms.
 * `TauCeti.SmoothAlmostComplexStructure.zeroOnePartSection`: that smooth section, bundled.
+* `TauCeti.SmoothAlmostComplexStructure.topologicalSpaceTotalSpaceOneFormEnd`: the topology of
+  the total space of the endomorphism bundle of the one-forms, named as an instance.
 * `TauCeti.SmoothAlmostComplexStructure.continuous_zeroOnePartSection`: it depends continuously
   on the almost complex structure.
 
@@ -184,6 +186,14 @@ theorem contMDiff_totalSpace_zeroOnePartOfEnd :
   exact inCoordinates_zeroOnePartOfEnd hT hV p.snd
 
 /-! ### The `(0,1)`-projection as a smooth section -/
+
+/-- The topology of the total space of the bundle of endomorphisms of the bundle of `V`-valued
+one-forms, that of Mathlib's hom bundle. Instance search finds it for concrete bundles only within
+a larger budget than it has when nested in another search, so it is named here. -/
+instance topologicalSpaceTotalSpaceOneFormEnd :
+    TopologicalSpace (TotalSpace ((E →L[ℝ] F) →L[ℝ] E →L[ℝ] F)
+      fun x ↦ (TangentSpace I x →L[ℝ] V x) →L[ℝ] TangentSpace I x →L[ℝ] V x) :=
+  ContinuousLinearMap.topologicalSpaceTotalSpace (RingHom.id ℝ) _ _ _ _
 
 /-- The `(0,1)`-projections at the points of `M` form a `C^n` section of the bundle of
 endomorphisms of the bundle of `V`-valued one-forms, for every `n ≤ ∞`. -/

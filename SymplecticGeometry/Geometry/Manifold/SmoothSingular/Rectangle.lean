@@ -178,9 +178,9 @@ theorem rectangleIntegral_mem_range_closedFormHomologyPeriod (σ : closedForms I
   -- just below `0` (Tau Ceti's `ContMDiff.comp_fract_snd`, read on the product model).
   have hfract {F : ℝ × ℝ → M} (hF : ContMDiff 𝓘(ℝ, ℝ × ℝ) I ∞ F)
       (hF₁ : ∀ y {t : ℝ}, -(1 / 4) < t → t < 0 → F (y, t + 1) = F (y, t)) :
-      ContMDiff 𝓘(ℝ, ℝ × ℝ) I ∞ fun w : ℝ × ℝ ↦ F (w.1, Int.fract w.2) := by
-    rw [modelWithCornersSelf_prod, ← chartedSpaceSelf_prod] at hF ⊢
-    exact hF.comp_fract_snd (by norm_num) hF₁
+      ContMDiff 𝓘(ℝ, ℝ × ℝ) I ∞ fun w : ℝ × ℝ ↦ F (w.1, Int.fract w.2) :=
+    contMDiff_prod_modelWithCornersSelf_iff.1 <|
+      (contMDiff_prod_modelWithCornersSelf_iff.2 hF).comp_fract_snd (by norm_num) hF₁
   -- Flatten `u` by `ρ` and periodize it in the second coordinate, then in the first.
   set G : ℝ × ℝ → M := fun w ↦ u (ρ w.1, ρ (Int.fract w.2))
   have hG : ContMDiff 𝓘(ℝ, ℝ × ℝ) I ∞ G :=
