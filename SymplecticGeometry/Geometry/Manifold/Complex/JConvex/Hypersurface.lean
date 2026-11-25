@@ -100,7 +100,7 @@ theorem isJConvexLevel_norm_sq {V : Type*} [NormedAddCommGroup V] [InnerProductS
 
 /-- **The Levi form of a level depends on the defining function only up to a factor.** Let `f`
 vanish at `x`, and let `g = a f` near `x`, for `f` and `a` of class `C²` at `x`. On vectors `v`,
-`w` tangent to the complex tangencies of `{f = 0}` at `x`, that is with
+`w` in the complex tangent space of `{f = 0}` at `x`, that is with
 `df(v) = df(i v) = df(w) = df(i w) = 0`, the Levi form of `g` at `x` is `a x` times that of
 `f`. -/
 theorem manifoldLeviForm_apply_of_eventuallyEq_mul {f g a : M → ℝ} {x : M}
