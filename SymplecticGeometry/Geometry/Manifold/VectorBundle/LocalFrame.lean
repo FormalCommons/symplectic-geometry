@@ -20,8 +20,16 @@ are the image of the basis `s · (φ x)` under the linear map that sends `s' j (
 Where `φ` is the identity, they agree with `s`. So, if `φ` is the identity on `W ∩ W'` for an open
 `W ⊆ U`, they glue with `s` to a frame on `W ∪ W'` that is `s` on `W`.
 
+The file also gives the two general steps of such a gluing. A family of `C^n` sections whose
+values at each point of `U` are the vectors of a basis is a frame on `U`
+(`IsLocalFrameOn.of_forall_exists_basis`), and frames on open sets `U` and `U'` that agree on
+`U ∩ U'` glue to the piecewise frame on `U ∪ U'` (`IsLocalFrameOn.piecewise`, from
+`IsLocalFrameOn.union_of_isOpen`).
+
 ## Main results
 
+* `IsLocalFrameOn.of_forall_exists_basis`: a frame from pointwise bases.
+* `IsLocalFrameOn.piecewise`: two frames that agree on the overlap of their open sets glue.
 * `IsLocalFrameOn.exists_isLocalFrameOn_union`: two local frames glued along a map `φ` into their
   overlap.
 
@@ -49,6 +57,45 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] [CompleteSpace 𝕜]
   [FiberBundle F V] [VectorBundle 𝕜 F V]
   {n : ℕ∞ω} [ContMDiffVectorBundle n F V IB]
   {ι : Type*} [Finite ι] {s s' : ι → Π x, V x} {U U' : Set B}
+
+omit [CompleteSpace 𝕜] [FiniteDimensional 𝕜 F] [VectorBundle 𝕜 F V]
+  [ContMDiffVectorBundle n F V IB] [Finite ι] in
+/-- A family of sections that is `C^n` on `U`, and whose vectors at each point of `U` are those of
+a basis of the fibre, is a `C^n` local frame on `U`. -/
+theorem of_forall_exists_basis (hb : ∀ x ∈ U, ∃ b : Module.Basis ι 𝕜 (V x), ⇑b = (s · x))
+    (hs : ∀ i, ContMDiffOn IB (IB.prod 𝓘(𝕜, F)) n (T% (s i)) U) :
+    IsLocalFrameOn IB F n s U where
+  linearIndependent {x} hx := by
+    obtain ⟨b, hb⟩ := hb x hx
+    exact hb ▸ b.linearIndependent
+  generating {x} hx := by
+    obtain ⟨b, hb⟩ := hb x hx
+    exact hb ▸ b.span_eq.ge
+  contMDiffOn := hs
+
+omit [CompleteSpace 𝕜] [FiniteDimensional 𝕜 F] [VectorBundle 𝕜 F V]
+  [ContMDiffVectorBundle n F V IB] [Finite ι] in
+/-- A family of sections that is a `C^n` local frame on each of two open sets is a `C^n` local
+frame on their union. -/
+theorem union_of_isOpen (hs : IsLocalFrameOn IB F n s U) (hs' : IsLocalFrameOn IB F n s U')
+    (hU : IsOpen U) (hU' : IsOpen U') : IsLocalFrameOn IB F n s (U ∪ U') where
+  linearIndependent hx := hx.elim hs.linearIndependent hs'.linearIndependent
+  generating hx := hx.elim hs.generating hs'.generating
+  contMDiffOn i := (hs.contMDiffOn i).union_of_isOpen (hs'.contMDiffOn i) hU hU'
+
+omit [CompleteSpace 𝕜] [FiniteDimensional 𝕜 F] [VectorBundle 𝕜 F V]
+  [ContMDiffVectorBundle n F V IB] [Finite ι] in
+/-- `C^n` local frames `s` on an open set `U` and `s'` on an open set `U'` that agree on `U ∩ U'`
+glue to a `C^n` local frame on `U ∪ U'`: the family that is `s` on `U` and `s'` off `U`. -/
+theorem piecewise [∀ x, Decidable (x ∈ U)] (hs : IsLocalFrameOn IB F n s U)
+    (hs' : IsLocalFrameOn IB F n s' U') (hU : IsOpen U) (hU' : IsOpen U')
+    (hss' : ∀ i, ∀ x ∈ U ∩ U', s i x = s' i x) :
+    IsLocalFrameOn IB F n (fun i ↦ U.piecewise (s i) (s' i)) (U ∪ U') := by
+  refine (hs.congr fun i x hx ↦ ?_).union_of_isOpen (hs'.congr fun i x hx ↦ ?_) hU hU'
+  · rw [piecewise_eq_of_mem _ _ _ hx]
+  · by_cases hxU : x ∈ U
+    · rw [piecewise_eq_of_mem _ _ _ hxU, hss' i x ⟨hxU, hx⟩]
+    · rw [piecewise_eq_of_notMem _ _ _ hxU]
 
 /-- Two `C^n` local frames `s` on `U` and `s'` on `U'`, indexed by the same finite type, glue to a
 `C^n` local frame on `W ∪ W'` that is `s` on `W`, for open sets `W ⊆ U` and `W' ⊆ U'` that admit
@@ -84,29 +131,8 @@ theorem exists_isLocalFrameOn_union (hs : IsLocalFrameOn IB F n s U)
       hs''.contMDiffOn_coeff (hU.inter hU') le_rfl ((hs.contMDiffOn i).mono inter_subset_left) j
     exact ContMDiffOn.sum_section fun j _ ↦
       ((hA j).comp hφ hφW').smul_section ((hs'.contMDiffOn j).mono hW'U')
-  -- Off `W`, the glued family at a point of `W'` is the basis given by `hbasis`.
-  have hfam {x : B} (hxW : x ∉ W) (hx : x ∈ W') : ∃ b : Module.Basis ι 𝕜 (V x),
-      (fun i ↦ if x ∈ W then s i x else g i x) = ⇑b := by
-    obtain ⟨b, hb⟩ := hbasis hx
-    exact ⟨b, by simp [hxW, hb]⟩
-  refine ⟨fun i x ↦ if x ∈ W then s i x else g i x, ⟨fun {x} hx ↦ ?_, fun {x} hx ↦ ?_, fun i ↦ ?_⟩,
-    fun i x hx ↦ by simp [hx]⟩
-  · by_cases hxW : x ∈ W
-    · simpa [hxW] using hs.linearIndependent (hWU hxW)
-    · obtain ⟨b, hb⟩ := hfam hxW (hx.resolve_left hxW)
-      rw [hb]
-      exact b.linearIndependent
-  · by_cases hxW : x ∈ W
-    · simpa [hxW] using hs.generating (hWU hxW)
-    · obtain ⟨b, hb⟩ := hfam hxW (hx.resolve_left hxW)
-      rw [hb]
-      exact b.span_eq.ge
-  · refine ContMDiffOn.union_of_isOpen ?_ ?_ hW hW'
-    · exact ((hs.contMDiffOn i).mono hWU).congr fun x hx ↦ by simp [hx]
-    · refine (hgsmooth i).congr fun x hx ↦ ?_
-      by_cases hxW : x ∈ W
-      · simp [hxW, hgs ⟨hxW, hx⟩ i]
-      · simp [hxW]
+  exact ⟨_, (hs.mono hWU).piecewise (of_forall_exists_basis (fun _ ↦ hbasis) hgsmooth) hW hW'
+    fun i x hx ↦ (hgs hx i).symm, fun i x hx ↦ piecewise_eq_of_mem _ _ _ hx⟩
 
 end IsLocalFrameOn
 
