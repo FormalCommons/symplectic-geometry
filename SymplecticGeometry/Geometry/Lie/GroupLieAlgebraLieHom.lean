@@ -27,12 +27,16 @@ moves them to `groupLieAlgebraLieHom`, and states there the naturality of the ad
   smooth homomorphism is injective.
 * `ContMDiffMonoidMorphism.groupLieAlgebraLieHom_tangentAd`: `φ.groupLieAlgebraLieHom` intertwines
   `Ad g` and `Ad (φ g)`.
+* `ContMDiffMonoidMorphism.mfderiv_inv_mul_mfderiv`: `φ.groupLieAlgebraLieHom` carries the
+  left-trivialized derivative `d(L_{x⁻¹})_x v` to `d(L_{(φ x)⁻¹})_{φ x} (dφ_x v)`.
 
 The exponential law is the tangent-space form of Tau Ceti's `map_lieExp` (Tau Ceti proves it
 privately, as `monoidHom_mulInvariantExp`); here it is derived from `map_lieExp`. Injectivity is
 derived from Tau Ceti's `ContinuousMonoidHom.lieMap_injective_of_discreteTopology_ker`. The
 naturality of `Ad` restates Tau Ceti's `MonoidHom.groupLieAlgebraMap_adjointContinuousLinearMap`
-for `groupLieAlgebraLieHom` and `TauCeti.Lie.tangentAd`.
+for `groupLieAlgebraLieHom` and `TauCeti.Lie.tangentAd`. The identity `mfderiv_inv_mul_mfderiv`
+is derived from Tau Ceti's `ContMDiffMonoidMorphism.mfderiv_mulInvariantVectorField`, by writing
+`v` as the value at `x` of a left-invariant vector field.
 -/
 
 public section
@@ -81,6 +85,18 @@ theorem ContMDiffMonoidMorphism.groupLieAlgebraLieHom_tangentAd
   simpa only [ContMDiffMonoidMorphism.coe_groupLieAlgebraLieHom,
     TauCeti.Lie.tangentAd_apply, ContMDiffMonoidMorphism.coe_toMonoidHom] using
     φ.toMonoidHom.groupLieAlgebraMap_adjointContinuousLinearMap g ξ
+
+/-- A smooth homomorphism carries left-trivialized derivatives to left-trivialized derivatives
+through its Lie algebra map: for `v` tangent at `x`,
+`d(L_{(φ x)⁻¹})_{φ x} (dφ_x v) = φ.groupLieAlgebraLieHom (d(L_{x⁻¹})_x v)`. -/
+theorem ContMDiffMonoidMorphism.mfderiv_inv_mul_mfderiv
+    (φ : ContMDiffMonoidMorphism I I' ∞ G G') (x : G) (v : TangentSpace I x) :
+    mfderiv I' I' ((φ x)⁻¹ * ·) (φ x) (mfderiv I I' φ x v) =
+      φ.groupLieAlgebraLieHom (mfderiv I I (x⁻¹ * ·) x v) := by
+  obtain ⟨X, rfl⟩ := TauCeti.exists_mulInvariantVectorField_eq v
+  rw [φ.mfderiv_mulInvariantVectorField, TauCeti.mfderiv_inv_mul_mulInvariantVectorField,
+    TauCeti.mfderiv_inv_mul_mulInvariantVectorField,
+    ContMDiffMonoidMorphism.coe_groupLieAlgebraLieHom]
 
 end Adjoint
 
