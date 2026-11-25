@@ -153,7 +153,8 @@ formulation.
      nondegenerate forms onto the Cantor set $\{\pm1\}^{\mathbb N}$, since
      point evaluation is continuous. Sending $(\varepsilon_k)$ to the form
      equal to $\varepsilon_k\omega_0$ on the $k$-th copy is a continuous
-     map $c$ back, since each frame jet sees one copy only, and it lands
+     map $c$ back, since a compact set meets only finitely many copies, and
+     it lands
      in the symplectic forms of class $0$; and $s\circ c=\mathrm{id}$. If
      either space were homotopy equivalent to a CW complex $L$, there would
      be maps $u:\{\pm1\}^{\mathbb N}\to L$ and $v:L\to\{\pm1\}^{\mathbb N}$
@@ -187,11 +188,37 @@ formulation.
      absolute neighbourhood retracts. Last, a space dominated by a space of
      CW type has CW type, by CW approximation and the two halves of
      Whitehead's theorem.
-   - *The general statement waits.* When `M` does not compress into a
-     compact set, the milestone's last statement needs another route,
-     which this design does not have. That statement waits for one, with
-     no `ERRATA.md` entry, since nothing shows it false. The weak homotopy
-     equivalence is proved for every open `M`.
+   - *Component by component.* The homotopy equivalence is then proved
+     for every open `M` each of whose connected components compresses
+     into a compact set, which takes in the example above. As `M` is
+     locally connected, its components are open as well as closed, so
+     each is an open submanifold, Tau Ceti's `ConnectedComponents.opens`
+     (`isClopen_opens`): connected, not compact, and σ-compact as a closed
+     subset. Restricting to them identifies the two-forms on
+     `M`, in the frame topology, with the product, over the components,
+     of the two-forms on each. Restriction is continuous; conversely
+     every frame domain can be shrunk into a single component, so each
+     frame jet of a form on `M` is a frame jet of one of its
+     restrictions. (This is where a compact set meeting only finitely
+     many components enters.) Nondegeneracy and closedness hold on `M`
+     when they hold on every component, and so does exactness, since
+     primitives chosen on the components glue to a primitive on `M`. So
+     both spaces of forms on `M` are the products of the spaces on the
+     components, for the restrictions of `α`, and the inclusion is the
+     product of the inclusions. On each component the inclusion is a
+     homotopy equivalence by Whitehead's theorem, as above, and Mathlib's
+     `ContinuousMap.HomotopyEquiv.piCongrRight` takes the product of
+     these, for any number of factors, in the product topology. If `M`
+     compresses as a whole, by `h` ending at `j`, every component does:
+     each slice of `h` maps a component into itself, and the closure of
+     the image of a component under `j` is a closed subset of the compact
+     `closure (range j)`. So this statement replaces the compressed one.
+   - *The general statement waits.* When some component of `M` does not
+     compress into a compact set, which leaves a connected open manifold
+     of infinite type, the milestone's last statement needs another
+     route, which this design does not have. That statement waits for
+     one, with no `ERRATA.md` entry, since nothing shows it false. The
+     weak homotopy equivalence is proved for every open `M`.
 6. **Morse input.** The existence of a proper Morse function bounded below
    without critical points of index $\dim M$ on an open manifold is
    `Geometry/Manifold/Morse/OpenManifold.lean`; the cores and their
@@ -209,8 +236,8 @@ formulation.
 - Holonomic approximation is in coordinates (Decision 3), not on Tau Ceti's
   jet bundles.
 - `Parametric.lean` proves the weak homotopy equivalence for every open
-  `M`, and the homotopy equivalence only for an `M` that compresses into a
-  compact set (Decision 5).
+  `M`, and the homotopy equivalence only for an `M` each of whose
+  components compresses into a compact set (Decision 5).
 
 ## Files and their contents
 
@@ -517,11 +544,11 @@ A positive direction of the Hessian at the critical points on a closed set
 survives small perturbations, in the namespace `TauCeti`:
 
 ```lean
-theorem exists_strongCkControl_criticalHessian_pos (f : C^∞⟮I, M; 𝓘(ℝ), ℝ⟯)
+theorem exists_strongCkControl_criticalHessian_pos (hn : 2 ≤ n) (f : C^n⟮I, M; 𝓘(ℝ), ℝ⟯)
     {A : Set M} (hA : IsClosed A)
-    (hfA : ∀ x ∈ A, mfderiv I 𝓘(ℝ) f x = 0 → ∃ v, 0 < criticalHessian I f x v v) :
-    ∃ c : ContMDiffMap.StrongCkControl I M ∞, ∀ g ∈ c.ball f, ∀ x ∈ A,
-      mfderiv I 𝓘(ℝ) g x = 0 → ∃ v, 0 < criticalHessian I g x v v
+    (hfA : ∀ x ∈ A, x ∈ criticalPoints I f → ∃ v, 0 < criticalHessian I f x v v) :
+    ∃ c : ContMDiffMap.StrongCkControl I M n, c.order = 2 ∧ ∀ g ∈ c.ball f, ∀ x ∈ A,
+      x ∈ criticalPoints I g → ∃ v, 0 < criticalHessian I g x v v
 ```
 
 Route: cover `A` by a locally finite family of compact sets in chart
@@ -941,7 +968,7 @@ gives the theorem.
 
 ### `Geometry/Manifold/VectorBundle/Symplectic/Topology.lean`
 
-Two facts about two-forms in the frame topology of a covering frame system
+Facts about two-forms in the frame topology of a covering frame system
 (`letI := frameTopology …`, `hcover`), on a finite-dimensional base:
 
 - `Bundle.ContMDiffTwoForm.isOpen_setOf_forall_mem_nondegenerate`: for a
@@ -959,6 +986,19 @@ Two facts about two-forms in the frame topology of a covering frame system
   `continuous_prodMk_manifoldWeakWhitney`), as for Tau Ceti's
   `ContMDiffSection.continuous_map_frameTopology`. The issue fixes the
   exact form of the pullback here.
+- `Bundle.ContMDiffTwoForm.continuous_tangentEquiv_symm_mpullback_subtypeVal`:
+  for `U : Opens M` and covering frames on `M` and on `U`, restriction,
+  `ω ↦ tangentEquiv.symm (SmoothForm.mpullback Subtype.val
+  contMDiff_subtypeVal (tangentEquiv ω))`, is continuous from the two-forms
+  on `M` to those on `U`. By `frameTopology_eq_of_covers` the frames may
+  be taken to be the `trivializationAt` of the bundle of two-forms at the
+  points, with their base sets; the charts of `U` are restrictions of
+  those of `M`, so each frame coordinate of the restriction is one of `ω`
+  composed with an inclusion of open sets, and continuity follows by
+  `ContMDiffMap.continuous_comp_manifoldWeakWhitney`, as in the proof of
+  Tau Ceti's `ContMDiffSection.continuous_restrict_frameTopology`. That
+  lemma itself lands in the pulled-back bundle over `U`, not in the
+  tangent bundle of `U`, which is why the statement here is needed.
 
 ### `Geometry/Symplectic/HPrinciple/FormSpaces.lean`
 
@@ -989,6 +1029,63 @@ The spaces, in the topology of the departure *Spaces of forms*:
 - The docstrings say why the hypothesis on `j` is there: without it the
   spaces need not have CW type (Decision 5).
 
+### `Geometry/Manifold/DifferentialForm/Components.lean`
+
+Smooth forms of any degree on a manifold `M` and on its components, in
+Tau Ceti's namespace like `DifferentialForm/Opens.lean`, whose restriction
+along `Subtype.val` it uses:
+
+- `ConnectedComponents.isConnected_opens`: each `c.opens` is connected,
+  from Tau Ceti's `coe_opens_mk` and `isConnected_connectedComponent`. The
+  rest of the API of the components as open sets is Tau Ceti's, in
+  `TauCeti/Topology/ConnectedComponents.lean`: `mem_opens`, `coe_opens`,
+  `coe_opens_mk`, `isClopen_opens`, `pairwise_disjoint_opens` and
+  `iSup_opens`.
+- `TauCeti.SmoothForm.ofComponents`: a family of smooth `k`-forms on the
+  open submanifolds `c.opens` glues to one on `M`, equal near each point
+  to the extension by zero of one form of the family, which is smooth
+  there as the component is clopen. With
+  `mpullback_subtypeVal_ofComponents` (its restriction to `c.opens` is
+  the `c`-th form) and `ext_of_mpullback_subtypeVal` (forms with the same
+  restrictions to all components are equal), this gives the linear
+  equivalence `TauCeti.SmoothForm.componentsEquiv` with the product over
+  the components.
+- `TauCeti.SmoothForm.mem_closedForms_iff_forall_mpullback_subtypeVal` and
+  `mem_exactForms_iff_forall_mpullback_subtypeVal`: a form is closed, or
+  exact, exactly when each restriction to a component is. Forward, as
+  restriction commutes with `mextDeriv` (`TauCeti.mpullback_subtype_val_mextDeriv`);
+  back, for exactness, glue chosen primitives by `ofComponents`.
+
+### `Geometry/Symplectic/HPrinciple/Components.lean`
+
+The spaces of `FormSpaces.lean` split over the components (Decision 5).
+On each `c.opens` the frames are the `trivializationAt` of the bundle
+of two-forms at its points, with their base sets; any covering frames
+give the same topology.
+
+- `restrictComponentsHomeomorph`: for covering frames on `M`, the map
+  sending `ω` to the family of its restrictions to the components, as in
+  `continuous_tangentEquiv_symm_mpullback_subtypeVal`, is a homeomorphism
+  from the two-forms on `M` onto the product of the two-forms on the
+  components. Its inverse is `tangentEquiv.symm ∘ ofComponents` on the
+  `tangentEquiv` forms. Continuity of the inverse: by
+  `frameTopology_eq_of_covers` the frame domains on `M` can be cut down
+  to their intersections with the components, and each frame jet of a
+  form on `M` on such a domain is a frame jet of its restriction to that
+  component.
+- `mem_nondegenerateForms_iff_forall_restrict` and
+  `mem_symplecticFormsInClass_iff_forall_restrict`: `ω` is in the space on
+  `M` (for `α`) exactly when each restriction is in the space on the
+  component (for the restriction of `α`); nondegeneracy is pointwise, and
+  closedness and exactness are the lemmas of
+  `DifferentialForm/Components.lean`.
+- `nondegenerateFormsHomeomorphPi` and `symplecticFormsInClassHomeomorphPi`:
+  the restrictions of `restrictComponentsHomeomorph` to the two spaces,
+  onto the products of the spaces on the components (with
+  `Equiv.subtypePiEquivPi`), with the lemma that they carry
+  `Set.inclusion` on `M` to the product of the inclusions on the
+  components.
+
 ### `Geometry/Symplectic/HPrinciple/Parametric.lean`
 
 For the spaces of `FormSpaces.lean`:
@@ -997,12 +1094,23 @@ For the spaces of `FormSpaces.lean`:
   covering frames `e U hU` and open `M`, the inclusion is a
   `ContinuousMap.IsWeakHomotopyEquivalence`, from the continuous engine
   with `P` a disc and `P₀` its boundary sphere, and `P` a point.
-- `exists_homotopyEquiv_symplecticFormsInClass`: with the hypotheses of
-  `cwType_symplecticFormsInClass` as well, `∃ e : symplecticFormsInClass α ≃ₕ
+- `exists_homotopyEquiv_symplecticFormsInClass`: for covering frames, open
+  `M`, `hα : α ∈ closedForms I M 2`, and, for every
+  `c : ConnectedComponents M`, some `j : C^∞⟮I, c.opens; I, c.opens⟯`
+  with `Nonempty (TauCeti.SmoothIsotopy (ContMDiffMap.id) j)` and
+  `IsCompact (closure (Set.range j))`, `∃ e : symplecticFormsInClass α ≃ₕ
   nondegenerateForms I M, ⇑e.toFun = Set.inclusion
-  (symplecticFormsInClass_subset_nondegenerateForms α)`, by Whitehead's
-  theorem. Its docstring carries no milestone line: the milestone's last
-  statement, for every open `M`, waits (Decision 5).
+  (symplecticFormsInClass_subset_nondegenerateForms α)`. On each
+  component, `isWeakHomotopyEquivalence_inclusion_symplecticFormsInClass`
+  and the CW type of both spaces (`cwType_nondegenerateForms`,
+  `cwType_symplecticFormsInClass`) give a homotopy equivalence by
+  Whitehead's theorem, `hf.homotopyEquiv` with `homotopyEquiv_toFun`;
+  then `ContinuousMap.HomotopyEquiv.piCongrRight`, conjugated by the
+  homeomorphisms of `HPrinciple/Components.lean`
+  (`Homeomorph.toHomotopyEquiv`, `ContinuousMap.HomotopyEquiv.trans`).
+  The docstring says that an `M` that compresses as a whole satisfies the
+  hypothesis (Decision 5). It carries no milestone line: the milestone's
+  last statement, for every open `M`, waits (Decision 5).
 
 ## What the part uses
 
@@ -1082,7 +1190,7 @@ Each is a few hundred lines; each issue's blockers come before it.
     Blocked by nothing. Its building issues are 13 to 17.
 12. **The parametric statement.**
     `Geometry/Symplectic/HPrinciple/Parametric.lean`. Blocked by 9 and by
-    the building issues of 11.
+    the building issues of 11 and of 18.
 13. **CW type by domination.** `AlgebraicTopology/Homotopy/Domination.lean`.
     Blocked by nothing.
 14. **The nerve of a partition of unity.**
@@ -1096,6 +1204,18 @@ Each is a few hundred lines; each issue's blockers come before it.
 17. **CW type of the spaces of forms.**
     `Geometry/Symplectic/HPrinciple/FormSpaces.lean`. Blocked by 15 and 16.
     Issue 12 is then blocked by it, as a building issue of 11.
+18. **Design the homotopy equivalence component by component** (a design
+    issue, Decision 5). Blocked by nothing. Its building issues
+    are 19 to 21.
+19. **Forms on the components.**
+    `Geometry/Manifold/DifferentialForm/Components.lean`. Blocked by
+    nothing.
+20. **Restriction to an open subset in the frame topology.** The third
+    lemma of `Geometry/Manifold/VectorBundle/Symplectic/Topology.lean`.
+    Blocked by the building issue of 16 that creates the file.
+21. **The spaces of forms split over the components.**
+    `Geometry/Symplectic/HPrinciple/Components.lean`. Blocked by 17, 19
+    and 20. Issue 12 is then blocked by it, as a building issue of 18.
 
 
 ## References

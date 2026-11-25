@@ -27,9 +27,10 @@ Let `J` be a smooth almost complex structure on a boundaryless manifold `M` whos
 has real dimension two. This file shows that every point of `M` lies in the source of a smooth
 chart `ψ : M → ℂ`, a partial diffeomorphism onto an open subset of `ℂ`, whose derivative carries
 `J` to multiplication by `i` at every point of its source
-(`TauCeti.SmoothAlmostComplexStructure.exists_isothermal_partialDiffeomorph`). Followed by a fixed
-real linear isomorphism `ℂ ≃L[ℝ] E`, these charts make `J` integrable
-(`TauCeti.SmoothAlmostComplexStructure.isIntegrable_of_finrank_eq_two`).
+(`TauCeti.SmoothAlmostComplexStructure.exists_isothermal_partialDiffeomorph`). These charts make `J`
+integrable (`TauCeti.SmoothAlmostComplexStructure.isIntegrable_of_finrank_eq_two`), by
+`TauCeti.SmoothAlmostComplexStructure.isIntegrable_of_forall_exists_partialDiffeomorph`, which
+accepts charts into `ℂ` in place of the model `E`.
 
 On an oriented surface with a smooth Riemannian metric, Tau Ceti's
 `TauCeti.Manifold.Orientation.rightAngleAlmostComplexStructure` turns each oriented tangent plane
@@ -132,15 +133,9 @@ structure on a boundaryless manifold whose model space has real dimension two is
 Milestone: *Integrability of almost complex structures on surfaces*. -/
 theorem isIntegrable_of_finrank_eq_two (J : SmoothAlmostComplexStructure I M)
     (hE : Module.finrank ℝ E = 2) : J.IsIntegrable := by
-  rw [isIntegrable_iff_mfderiv]
-  have : FiniteDimensional ℝ E := Module.finite_of_finrank_eq_succ hE
-  let L : ℂ ≃L[ℝ] E :=
-    ContinuousLinearEquiv.ofFinrankEq (by rw [hE, Complex.finrank_real_complex])
-  intro x
+  refine J.isIntegrable_of_forall_exists_partialDiffeomorph (G := ℂ) fun x ↦ ?_
   obtain ⟨ψ, hx, hψ⟩ := J.exists_isothermal_partialDiffeomorph hE x
-  refine ⟨ψ.trans L.toDiffeomorph.toPartialDiffeomorph,
-    (AlmostComplexStructure.ofComplexModule ℂ).transport L.toLinearEquiv, by simpa using hx,
-    mfderiv_trans_toDiffeomorph_apply_eq_transport J (fun y hy v ↦ ?_) L⟩
+  refine ⟨ψ, AlmostComplexStructure.ofComplexModule ℂ, hx, fun y hy v ↦ ?_⟩
   rw [← mvfderiv_apply_eq_mfderiv_apply, ← mvfderiv_apply_eq_mfderiv_apply, hψ y hy v,
     AlmostComplexStructure.ofComplexModule_apply, smul_eq_mul]
 
