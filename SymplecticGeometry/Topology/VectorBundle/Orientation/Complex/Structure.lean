@@ -31,10 +31,9 @@ of `J b` on each fibre, and the canonical orientation
   class `TauCeti.complexEulerClass` of `J.Fiber` is the Euler class of `V` oriented by
   `J.orientation`, by `TauCeti.VectorBundleOrientation.eulerClass_eq_of_fiberwise`.
 
-The second statement follows
-`TauCeti.SmoothTwoForm.IsNondegenerate.complexEulerClass_eq_eulerClass`
-(`SymplecticGeometry/Geometry/Symplectic/Manifold/ComplexOrientation.lean`), which compares the
-Euler classes in the same way for a tamed complex structure on the tangent bundle of a surface.
+The surface case `TauCeti.SmoothTwoForm.IsNondegenerate.complexEulerClass_eq_eulerClass`
+(`SymplecticGeometry/Geometry/Symplectic/Manifold/ComplexOrientation.lean`), for a tamed complex
+structure on the tangent bundle of a surface, is derived from the second statement.
 
 ## Proof
 
