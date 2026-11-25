@@ -79,7 +79,7 @@ theorem exists_smul_eq_of_ne_zero_circle {ξ₀ : GroupLieAlgebra (𝓡 1) Circl
 
 /-- Two linear maps out of the Lie algebra of `Circle` that agree at a nonzero element `ξ₀` are
 equal. -/
-theorem linearMap_ext_of_ne_zero_circle {N : Type*} [AddCommGroup N] [Module ℝ N]
+theorem linearMap_ext_of_ne_zero_circle {N : Type*} [AddCommMonoid N] [Module ℝ N]
     {ξ₀ : GroupLieAlgebra (𝓡 1) Circle} (hξ₀ : ξ₀ ≠ 0)
     {f g : GroupLieAlgebra (𝓡 1) Circle →ₗ[ℝ] N} (h : f ξ₀ = g ξ₀) : f = g :=
   LinearMap.ext fun ξ ↦ by

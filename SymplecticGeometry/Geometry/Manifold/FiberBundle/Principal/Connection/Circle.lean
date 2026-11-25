@@ -73,8 +73,7 @@ theorem IsConnectionForm.existsUnique_eq_mapCoeff
       ContinuousLinearMap.id ℝ (GroupLieAlgebra (𝓡 1) Circle) := by
     refine ContinuousLinearMap.coe_injective <|
       linearMap_ext_of_ne_zero_circle circleLieGenerator_ne_zero ?_
-    rw [ContinuousLinearMap.coe_coe, ContinuousLinearMap.coe_coe, ContinuousLinearMap.comp_apply,
-      ContinuousLinearMap.toSpanSingleton_apply, hf, one_smul, ContinuousLinearMap.id_apply]
+    simp [hf]
   have hfL : f.comp (ContinuousLinearMap.toSpanSingleton ℝ circleLieGenerator) =
       ContinuousLinearMap.id ℝ ℝ := by
     ext
