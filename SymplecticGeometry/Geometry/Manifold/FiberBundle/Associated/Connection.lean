@@ -8,7 +8,6 @@ module
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Associated.PullbackPrincipal
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Basic
 public import TauCeti.Geometry.Manifold.IsManifold.Basic
-public import TauCeti.Geometry.Manifold.FiberBundle.Submersion
 public import TauCeti.Geometry.Manifold.Submersion.EhresmannConnection.Basic
 import SymplecticGeometry.Geometry.Manifold.Distribution.Prod
 import SymplecticGeometry.Geometry.Manifold.Distribution.Pushforward
@@ -60,7 +59,7 @@ without the cast. The derivative of `x' ↦ [x', v]` at `x` is the derivative of
 the former, since the tangent space of `P × F` is a product of tangent spaces only up to
 unfolding `TangentSpace`. Complementarity needs neither the kernel nor the surjectivity of the
 derivative of the quotient map: it only needs the derivative of the projection of `P` to be
-surjective (`TauCeti.ManifoldTotalSpace.isRegularPoint_proj`).
+surjective (`TauCeti.ManifoldTotalSpace.isSubmersion_projContMDiffMap`).
 
 Smoothness comes from `P × F`: there the distribution `ker A_x × 0` is smooth of rank `dim B`
 (`TauCeti.IsContMDiffDistribution.map_mfderiv_prod_left`, from
@@ -224,10 +223,8 @@ theorem isCompl_associatedHorizontal (hA : IsConnectionForm A)
   · rw [Submodule.codisjoint_iff_exists_add_eq]
     intro u
     -- Lift the image of `u` in the base to `P`, and take the horizontal part of the lift.
-    -- Tau Ceti states the regularity of the projection with the map written out.
-    have hreg := ManifoldTotalSpace.isRegularPoint_proj IB IG (E := P) x
-    rw [← ManifoldTotalSpace.coe_projContMDiffMap (n := ∞) (IB := IB) (IF := IG)] at hreg
-    obtain ⟨w', hw'⟩ := TauCeti.isRegularPoint_iff.1 hreg (C (T u))
+    obtain ⟨w', hw'⟩ := (ManifoldTotalSpace.isSubmersion_projContMDiffMap ∞ G P IB IG
+      ).surjective_mfderiv (by simp) x (C (T u))
     obtain ⟨w, k, hw, hk, rfl⟩ := Submodule.codisjoint_iff_exists_add_eq.1 hc.codisjoint w'
     simp only [LinearMap.mem_ker, ContinuousLinearMap.coe_coe] at hk
     refine ⟨L w, u - L w, Submodule.mem_map_of_mem hw, ?_, add_sub_cancel _ _⟩
@@ -260,8 +257,8 @@ theorem isEhresmannConnection_associatedHorizontal [FiniteDimensional ℝ EB] [I
       hA.associatedHorizontal := by
   refine ⟨ManifoldTotalSpace.mdifferentiable_projContMDiffMap, fun y ↦ ?_, fun y ↦ ?_, ?_⟩
   · exact hA.isCompl_associatedHorizontal y
-  · rw [ManifoldTotalSpace.coe_projContMDiffMap]
-    exact isRegularPoint_iff.1 (ManifoldTotalSpace.isRegularPoint_proj IB IF y)
+  · exact (ManifoldTotalSpace.isSubmersion_projContMDiffMap ∞ F (AssociatedBundle G P F) IB IF
+      ).surjective_mfderiv (by simp) y
   refine (hA.isEhresmannConnection_horizontal.isContMDiffDistribution.map_mfderiv_prod_left
     (I' := IF) (M' := F)).map_mfderiv_of_isSubmersion
     (isSubmersion_chartedMk (n := ∞) ENat.LEInfty.out) surjective_chartedMk (by simp)
