@@ -144,6 +144,12 @@ theorem inl_injective : Function.Injective (inl φ) := (isOpenEmbedding_inl φ).
 
 theorem inr_injective : Function.Injective (inr φ) := (isOpenEmbedding_inr φ).injective
 
+@[simp]
+theorem inl_inj {x x' : M₁} : inl φ x = inl φ x' ↔ x = x' := (inl_injective φ).eq_iff
+
+@[simp]
+theorem inr_inj {y y' : M₂} : inr φ y = inr φ y' ↔ y = y' := (inr_injective φ).eq_iff
+
 @[fun_prop]
 theorem continuous_inl : Continuous (inl φ) := (isOpenEmbedding_inl φ).continuous
 
@@ -161,9 +167,17 @@ theorem range_inl_union_range_inr : range (inl φ) ∪ range (inr φ) = univ :=
 
 /-- A point `x` of `M₁` and a point `y` of `M₂` have the same image in the glued space exactly
 when `x ∈ U₁` and `φ x = y`. -/
+@[simp, grind =]
 theorem inl_eq_inr_iff {x : M₁} {y : M₂} :
     inl φ x = inr φ y ↔ ∃ h : x ∈ U₁, (φ ⟨x, h⟩ : M₂) = y :=
   TopCat.GlueData.ofHomeomorph_ι_false_eq_ι_true_iff φ.toHomeomorph
+
+/-- A point `y` of `M₂` and a point `x` of `M₁` have the same image in the glued space exactly
+when `x ∈ U₁` and `φ x = y`. -/
+@[simp, grind =]
+theorem inr_eq_inl_iff {y : M₂} {x : M₁} :
+    inr φ y = inl φ x ↔ ∃ h : x ∈ U₁, (φ ⟨x, h⟩ : M₂) = y :=
+  eq_comm.trans (inl_eq_inr_iff φ)
 
 /-- A point of `U₁` and its image under `φ` have the same image in the glued space. -/
 @[simp]
