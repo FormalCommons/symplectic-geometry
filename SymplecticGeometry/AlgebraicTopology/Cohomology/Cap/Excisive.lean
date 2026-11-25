@@ -28,7 +28,11 @@ precomposed with the inverse of this isomorphism.
 The construction is the homological counterpart of Tau Ceti's relative cup product
 `TopCat.singularRelativeCup` (`TauCeti/AlgebraicTopology/Cohomology/Cup/Relative.lean`), and the
 proof of its naturality, `TopCat.singularRelativeCap_naturality`, adapts that of
-`TopCat.singularRelativeCup_naturality`.
+`TopCat.singularRelativeCup_naturality`. The proof of the compatibility with the cap product of a
+pair, `TopCat.singularCap_comp_singularHomologyπ`, follows that of Tau Ceti's
+`TopPair.singularHomologyπ_comp_absoluteSingularCap` (`Cohomology/Cap/AbsoluteRelative.lean`): both
+are `TauCeti.ChainComplex.cap_naturality` along a descent of the Alexander–Whitney diagonal. Here
+the descent is that of the quotient map onto `C(X; U + V)` to the relative chains of `(X, U)`.
 
 ## Main definitions and results
 
@@ -101,7 +105,7 @@ lemma homologyMap_smallSingularSubcomplexPairToUnion_singularRelativeCap (u : T 
 /-- The cap product of an excisive couple on the class of a cocycle `φ` of `(X, U)` and a class of
 cycles of the chains of `X` relative to its singular simplices lying in `U` or in `V`, sent to
 `Hₙ(X, U ∪ V)` by the small-chain isomorphism, is the class of their cap product. -/
-@[reassoc (attr := simp)]
+@[reassoc]
 lemma homologyπ_homologyMap_smallSingularSubcomplexPairToUnion_singularRelativeCap
     (u : T ⟶ R ⊗ S) (μ : M ⊗ S ⟶ N) (U V : Set X) (hU : IsOpen ((↑) ⁻¹' U : Set ↥(U ∪ V)))
     (hV : IsOpen ((↑) ⁻¹' V : Set ↥(U ∪ V))) (p q n : ℕ) (h : p + q = n)
