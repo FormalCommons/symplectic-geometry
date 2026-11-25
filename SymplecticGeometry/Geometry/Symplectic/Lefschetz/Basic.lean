@@ -15,6 +15,9 @@ public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
 public import SymplecticGeometry.Geometry.Manifold.RegularValue.CriticalSet
 public import SymplecticGeometry.Geometry.Symplectic.Lefschetz.Model
+public import TauCeti.Geometry.Manifold.RegularValue.Open
+import SymplecticGeometry.Topology.Connected.Projectivization
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 
 /-!
 # Lefschetz fibrations
@@ -55,6 +58,15 @@ the restriction of `J` is integrable (`IsLefschetzChart.isIntegrable_on`), and `
   target of a Lefschetz chart `φ`.
 * `SymplecticGeometry.IsLefschetzFibration.isIntegrable_on`: every critical point of a Lefschetz
   fibration has an open neighbourhood on which `J` is integrable.
+* `SymplecticGeometry.IsLefschetzChart.isRegularPoint`: in the source of a Lefschetz chart `φ`,
+  every point at which `φ` does not vanish is a regular point of `π`.
+* `SymplecticGeometry.IsLefschetzFibration.isDiscrete_criticalSet` and
+  `SymplecticGeometry.IsLefschetzFibration.finite_criticalPoints`: the critical points of a
+  Lefschetz fibration are isolated, hence finitely many when `X` is compact.
+* `SymplecticGeometry.IsLefschetzFibration.isOpen_regularValue` and
+  `SymplecticGeometry.IsLefschetzFibration.isConnected_regularValue`: for compact `X`, the regular
+  values form an open connected subset of `ℂℙ¹`, the complement of finitely many critical values
+  (`Projectivization.isConnected_compl_of_countable`).
 
 ## References
 
@@ -168,6 +180,42 @@ theorem mdifferentiableAt_of_mem (h : IsLefschetzChart J π p φ i) {z : Fin 2 �
     MDifferentiableAt 𝓘(ℂ, Fin 2 → ℂ) 𝓘(ℂ, Fin 1 → ℂ) (π ∘ φ.symm) z :=
   (h.contMDiffAt_comp_symm hz).mdifferentiableAt (by simp)
 
+/-- **Regular points in a Lefschetz chart.** A point `x` of the source of a Lefschetz
+chart `φ` with `φ x ≠ 0` is a regular point of `π`: there `π` is the quadric read through `φ` and
+the affine chart, and the quadric is regular away from `0`. -/
+theorem isRegularPoint (h : IsLefschetzChart J π p φ i) {x : X} (hx : x ∈ φ.source)
+    (hx0 : φ x ≠ 0) : IsRegularPoint I 𝓘(ℝ, Fin 1 → ℂ) π x := by
+  let q : (Fin 2 → ℂ) → ℂ := fun w ↦ affineChart i (π p) 0 + LefschetzModel.quadric w
+  let e := (ContinuousLinearEquiv.funUnique (Fin 1) ℝ ℂ).symm
+  have heq : π =ᶠ[𝓝 x] ((affineChart i).symm ∘ e ∘ q) ∘ φ := by
+    filter_upwards [φ.open_source.mem_nhds hx] with y hy
+    have hc : affineChart i (π y) = e (q (φ y)) := by
+      rw [ContinuousLinearEquiv.coe_funUnique_symm]
+      funext j
+      rw [Subsingleton.elim j 0, h.affineChart_apply _ hy, Function.const_apply]
+    have hmem : π y ∈ (affineChart (K := ℂ) i).source := by
+      rw [affineChart_source]
+      exact h.source_subset hy
+    simp only [Function.comp_apply]
+    rw [← hc, (affineChart i).left_inv hmem]
+  refine IsRegularPoint.congr_of_eventuallyEq ?_ heq
+  refine ((PartialDiffeomorph.isLocalDiffeomorphAt _ _ _ φ hx).isRegularPoint_comp_iff
+    (by simp)).2 ((IsRegularPoint.comp ?_ ((e.comp_isRegularPoint_iff).2 ?_)))
+  · -- The inverse of an affine chart is a local diffeomorphism.
+    rw [← coe_affineOpenPartialHomeomorph_symm]
+    exact ((affineOpenPartialHomeomorph i).isLocalDiffeomorphAt_symm_of_mem_maximalAtlas
+      (n := 1) (affineOpenPartialHomeomorph_mem_maximalAtlas i) (by simp)).isRegularPoint
+      one_ne_zero
+  · rw [isRegularPoint_iff_surjective_fderiv, fderiv_const_add]
+    exact LefschetzModel.surjective_fderiv_real_quadric hx0
+
+/-- The only critical point of `π` in the source of a Lefschetz chart at `p` is `p`. -/
+theorem eq_of_mem_criticalSet (h : IsLefschetzChart J π p φ i) {x : X} (hx : x ∈ φ.source)
+    (hxc : x ∈ criticalSet I 𝓘(ℝ, Fin 1 → ℂ) π) : x = p := by
+  by_contra hne
+  refine mem_criticalSet_iff.1 hxc (h.isRegularPoint hx fun h0 ↦ hne ?_)
+  exact φ.injOn hx h.mem_source (h0.trans h.apply_eq_zero.symm)
+
 end IsLefschetzChart
 
 namespace IsLefschetzFibration
@@ -182,6 +230,36 @@ theorem isIntegrable_on (h : IsLefschetzFibration ω J π) {p : X}
     ∃ U : Opens X, p ∈ U ∧ (J.restrictOpen U).IsIntegrable := by
   obtain ⟨φ, i, hφ⟩ := h.exists_model p hp
   exact ⟨⟨φ.source, φ.open_source⟩, hφ.mem_source, hφ.isIntegrable_on⟩
+
+/-- **The critical points of a Lefschetz fibration are isolated**: each has a neighbourhood, the
+source of a Lefschetz chart, that contains no other. -/
+theorem isDiscrete_criticalSet (h : IsLefschetzFibration ω J π) :
+    IsDiscrete (criticalSet I 𝓘(ℝ, Fin 1 → ℂ) π) := by
+  refine isDiscrete_iff_forall_mem_exists_isOpen.2 fun p hp ↦ ?_
+  obtain ⟨φ, i, hφ⟩ := h.exists_model p hp
+  refine ⟨φ.source, φ.open_source,
+    Subset.antisymm (fun x hx ↦ hφ.eq_of_mem_criticalSet hx.1 hx.2) ?_⟩
+  rintro x rfl
+  exact ⟨hφ.mem_source, hp⟩
+
+/-- **A Lefschetz fibration on a compact manifold has finitely many critical points.** -/
+theorem finite_criticalPoints [CompactSpace X] (h : IsLefschetzFibration ω J π) :
+    (criticalSet I 𝓘(ℝ, Fin 1 → ℂ) π).Finite :=
+  (isClosed_criticalSet h.contMDiff (by simp)).isCompact.finite h.isDiscrete_criticalSet
+
+/-- **The regular values of a Lefschetz fibration on a compact manifold form an open set.** -/
+theorem isOpen_regularValue [CompactSpace X] (h : IsLefschetzFibration ω J π) :
+    IsOpen {y | IsRegularValue I 𝓘(ℝ, Fin 1 → ℂ) π y} :=
+  isOpen_setOf_isRegularValue_of_isClosedMap h.contMDiff (by simp)
+    h.contMDiff.continuous.isClosedMap
+
+/-- **The regular values of a Lefschetz fibration on a compact manifold form a connected set**:
+the complement in `ℂℙ¹` of the finitely many critical values. -/
+theorem isConnected_regularValue [CompactSpace X] (h : IsLefschetzFibration ω J π) :
+    IsConnected {y | IsRegularValue I 𝓘(ℝ, Fin 1 → ℂ) π y} := by
+  rw [setOf_isRegularValue_eq_compl_image, ← criticalSet_def]
+  refine isConnected_compl_of_countable ?_ (h.finite_criticalPoints.image π).countable
+  simp [rank_pi]
 
 end IsLefschetzFibration
 
