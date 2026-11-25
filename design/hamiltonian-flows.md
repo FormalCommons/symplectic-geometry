@@ -188,16 +188,12 @@ These settle the questions that `DESIGN.md` leaves to this file.
    smooth-primitive map of `DeRham/SmoothFamily/GoodCover.lean`, which needs a compact
    manifold. Let $\alpha_t=\iota_{X_t}\omega$, a smooth family; the
    Hamiltonian read along the motion is then $F_t\circ\phi_t$, by
-   `hasHamiltonian_comp_iff`. Choose a base point in each connected component of $M$ (through
-   `ConnectedComponents M`) and let $F_t$ be the primitive of $\alpha_t$
-   that vanishes at the base points.
-   - *Gluing.* Each component is open, since manifolds are locally
-     path-connected. On a component, Tau
-     Ceti's `TauCeti.exists_contMDiff_mvfderiv_eq_of_forall_exists` gives a
-     jointly smooth family of primitives vanishing at the base point; it
-     differs from $F$ by a constant, which is $0$. So $F$ is jointly smooth.
+   `hasHamiltonian_comp_iff`. A jointly smooth family $F_t$ of primitives of
+   the $\alpha_t$ is Tau Ceti's
+   `TauCeti.exists_contMDiff_mvfderiv_eq_of_forall_exists`, applied on all of
+   $M$, which need not be connected.
    This is the path integration of the page's proof route, done by Tau
-   Ceti's theorem on each component. It needs neither compactness nor nondegeneracy.
+   Ceti's theorem. It needs neither compactness nor nondegeneracy.
    The construction of $F$ uses no Poincaré lemma on chart neighbourhoods.
    Separately, `DeRham/FamilyPrimitive.lean` has the library's parametric
    Poincaré lemma in degree $1$ as a public lemma,
