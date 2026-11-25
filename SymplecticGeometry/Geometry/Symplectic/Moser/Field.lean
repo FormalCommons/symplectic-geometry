@@ -37,6 +37,8 @@ The segment `σ_t = σ₀ + t (σ₁ - σ₀)` with a primitive `β` constant in
   the identity `ι_{X_t} σ_t = -ρ(t, ·) β_t`.
 * `SymplecticGeometry.exists_isCompact_moserField_eq_zero`: for a cutoff with compact support,
   the field vanishes at every time outside one compact subset of `M`.
+* `SymplecticGeometry.isCompleteVectorField_timeDependentSuspensionField_moserField`: for a cutoff
+  with compact support, the suspension of a jointly `C¹` field is complete.
 * `SymplecticGeometry.contMDiffAt_moserField`, `SymplecticGeometry.contMDiff_moserField`: the
   field is jointly smooth on `N × M` where `ρ` is smooth and `σ_t` is nondegenerate at every
   point `(t, x)` of the support of `ρ`.
@@ -121,6 +123,19 @@ theorem exists_isCompact_moserField_eq_zero (hρ : HasCompactSupport ρ) :
     ∃ K : Set M, IsCompact K ∧ ∀ t, ∀ x ∉ K, moserField σ β ρ t x = 0 :=
   ⟨Prod.snd '' tsupport ρ, hρ.isCompact.image continuous_snd, fun _ _ hx ↦
     moserField_eq_zero_of_notMem_tsupport fun h ↦ hx ⟨_, h, rfl⟩⟩
+
+/-- **The suspension of the cut-off Moser field is complete** when the cutoff has compact support
+and the field is jointly `C¹`: the field then vanishes, at every time, outside a fixed compact
+set, so its time-dependent flow is defined between any two times. -/
+theorem isCompleteVectorField_timeDependentSuspensionField_moserField [CompleteSpace E]
+    [T2Space M] [BoundarylessManifold I M] {σ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) ℝ 2}
+    {β : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) ℝ 1} {ρ : ℝ × M → ℝ}
+    (hX : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent 1
+      (fun p : ℝ × M ↦ (⟨p.2, moserField σ β ρ p.1 p.2⟩ : TangentBundle I M)))
+    (hρ : HasCompactSupport ρ) :
+    IsCompleteVectorField (timeDependentSuspensionField (moserField σ β ρ)) := by
+  obtain ⟨K, hK, hXK⟩ := exists_isCompact_moserField_eq_zero (J := 𝓘(ℝ, ℝ)) (σ := σ) (β := β) hρ
+  exact isCompleteVectorField_timeDependentSuspensionField hX hK hXK
 
 /-- Where the flat map of the slice `σ_t` at `x` is invertible, the Moser field satisfies
 `ι_{X_t} σ_t = -ρ(t, x) β_t` at `x`. -/
