@@ -266,15 +266,13 @@ theorem surjective_jacobiMatrixAt (x : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2
 
 /-- The atlas of the rational elliptic surface, induced by the slice charts of bihomogeneous zero
 sets in `ℂℙ² × ℂℙ¹`. -/
-noncomputable instance instChartedSpace :
-    ChartedSpace (Fin 2 → ℂ) rationalEllipticSurface :=
+noncomputable instance instChartedSpace : ChartedSpace (Fin 2 → ℂ) rationalEllipticSurface :=
   complexProjectiveProdZeroLocusChartedSpace (fun _ ↦ isWeightedHomogeneous_hessePencil_inl)
     (fun _ ↦ isWeightedHomogeneous_hessePencil_inr) isOpen_univ eq_inter_univ
     fun x _ ↦ surjective_jacobiMatrixAt x
 
 /-- The rational elliptic surface is a complex analytic manifold. -/
-instance instIsManifold :
-    IsManifold 𝓘(ℂ, Fin 2 → ℂ) ω rationalEllipticSurface :=
+instance instIsManifold : IsManifold 𝓘(ℂ, Fin 2 → ℂ) ω rationalEllipticSurface :=
   isManifold_complexProjectiveProdZeroLocus (fun _ ↦ isWeightedHomogeneous_hessePencil_inl)
     (fun _ ↦ isWeightedHomogeneous_hessePencil_inr) isOpen_univ eq_inter_univ
     (fun x _ ↦ surjective_jacobiMatrixAt x) ω
@@ -306,6 +304,8 @@ theorem embedding_def :
 @[simp]
 theorem coe_embedding : ⇑embedding = Subtype.val := by
   rw [embedding_def]
+  -- The general lemma writes the model as `Fin (2 + 1 - Fintype.card Unit) → ℂ`, so `rw` does not
+  -- find it here; `exact` accepts it, the two models being the same type by definition.
   exact coe_complexProjectiveProdZeroLocusEmbedding _ _ _ _ _ ω
 
 /-- The projection of the rational elliptic surface to `ℂℙ²` is analytic. -/
