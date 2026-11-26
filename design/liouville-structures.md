@@ -12,10 +12,7 @@ structures and their neighbourhood model* and *Completion of a strong
 filling*. The source is McDuff–Salamon [McDuffSalamon2017], §3.5: Definition
 3.5.27, Proposition 3.5.31 and Definition 3.5.32 (pp. 141–143), Exercise
 3.5.37 (p. 146), Definition 3.5.38 (p. 147) and the completion on p. 148.
-The extension across the boundary used for the collar of a filling is
-Seeley's [R. T. Seeley, *Extension of C^∞ functions defined in a half
-space*, Proc. Amer. Math. Soc. 15 (1964), 625–626]; the collar theorem it
-replaces is Hirsch, *Differential Topology*, Chapter 4, Theorem 6.1, and Lee,
+The collar theorem that the collar of a filling rests on is Hirsch, *Differential Topology*, Chapter 4, Theorem 6.1, and Lee,
 *Introduction to Smooth Manifolds*, 2nd ed., Theorem 9.25.
 
 Paths of Tau Ceti files are relative to `.lake/packages/TauCeti/TauCeti/`,
@@ -108,13 +105,11 @@ by `coe_interiorₗ`. For a strong filling `h`, `hY` is
   speed `ε`, are the integral curves of `Y` through the boundary points, for
   times in $(-\varepsilon,0]$ (`TauCeti.SmoothCollar.exists_eq_of_isOutwardPointing`,
   in `Geometry/Manifold/Boundary/Collar/Flow/`). It is proved in the extended
-  chart at a boundary point, where the field is extended across the boundary
-  by Seeley's extension in the normal coordinate, from *Smooth families*'
-  `exists_contDiff_eqOn_of_contDiffOn_halfSpace`
-  (`Analysis/Calculus/ContDiff/Seeley/Extension.lean`);
-  the extended field has a flow (Tau Ceti's, on the boundaryless `ℝⁿ⁺¹`),
-  whose backward lines from the boundary enter the interior and are there the integral curves of
-  `Y`, so the local collars agree and patch. For a strong filling the
+  chart at a boundary point, where the negative of the field has a local flow
+  on the half-space (Tau Ceti's
+  `TauCeti.exists_contDiffOn_localFlow_euclideanHalfSpace`),
+  whose forward lines from the boundary enter the interior and, run backward, are there the
+  integral curves of `Y`, so the local collars agree and patch. For a strong filling the
   collar formulas $\Phi^*\lambda=e^s\alpha$ and $\Phi^*\omega=-d(e^s\alpha)$
   then follow from Tau Ceti's on the interior (see `Filling.lean`).
 - **The completion of a Liouville domain against `TauCeti.IsLiouvilleCompletion`.**
@@ -177,7 +172,7 @@ Further choices:
 | `Geometry/Manifold/Strip.lean` | the slice maps of the strip as smooth maps, their differential, and slices of two-forms | 4 |
 | `Geometry/Manifold/SmoothEmbedding/Basic.lean` | the right slice `x ↦ (c, x)` of a product as a smooth embedding, beside Tau Ceti's file of that path | 4 |
 | `Geometry/Manifold/Boundary/Charts.lean` | boundary points in the extended charts of the half-space model; outward vectors are not tangent to the boundary | 5 |
-| `Geometry/Manifold/Boundary/Collar/Flow/Local.lean` | near one boundary point: the extended field and its flow from the boundary | 5 |
+| `Geometry/Manifold/Boundary/Collar/Flow/Local.lean` | near one boundary point: the local flow of the negative field (Tau Ceti's half-space flow) and its flow-out from the boundary | 5 |
 | `Geometry/Manifold/Boundary/Collar/Flow/Basic.lean` | the collar of a compact boundary along an outward field | 6 |
 | `Topology/Compactness/SigmaCompact.lean` | σ-compact open neighbourhoods of a compact set in a locally compact space (`IsCompact.exists_isOpen_isSigmaCompact_subset`); used in `Flow/Basic.lean` | — |
 | `Geometry/Manifold/Boundary/Collar/Opens.lean` | the diffeomorphism `∂V ≃ ∂W` for an open `V ⊇ ∂W` (`SymplecticGeometry.diffeomorphBoundaryOpens`), and a collar of `∂V` as one of `∂W` (`TauCeti.SmoothCollar.ofOpens`); used in `Flow/Basic.lean` | — |
@@ -428,21 +423,17 @@ In `TauCeti`, for `W` as in *Decisions* (no compactness), a field `Y` with
 `hY : IsOutwardPointingField Y` (Tau Ceti's smooth field that points outward
 along the boundary), and a boundary point `p`:
 
-- In the extended chart at `p`, the coordinate expression of the field,
-  smooth on a relatively open part of the half-space, agrees near `p` with a
-  smooth field on `ℝⁿ⁺¹` (`exists_contDiff_eqOn_mpullbackWithin_extChartAt_symm`,
-  from *Smooth families*'
-  `SymplecticGeometry.exists_contDiff_eqOn_of_contDiffOn_halfSpace` in
-  `Analysis/Calculus/ContDiff/Seeley/Extension.lean`): Seeley's extension in
-  the normal coordinate.
+- In the extended chart at `p`, the negative of the coordinate expression of
+  the field, smooth on a relatively open part of the half-space, has a local
+  flow there (Tau Ceti's `TauCeti.exists_contDiffOn_localFlow_euclideanHalfSpace`).
 - `exists_isMIntegralCurveOn_of_isOutwardPointing`: there are an open
   `B ∋ p` of `∂W`, `η > 0` and a map `γ : ℝ × ∂W → W` such that for `x ∈ B`
   the curve `s ↦ γ (s, x)` starts at `x`, lies in the interior of `W` for
   `s ∈ (-η, 0)` and is an integral curve of `Y` on `Ioc (-η) 0`
   (`IsMIntegralCurveOn`), and `(x, t) ↦ γ (-t.val 0, x)` is a local
   diffeomorphism (`IsLocalDiffeomorphOn ((𝓡 n).prod (𝓡∂ 1)) (𝓡∂ (n + 1)) ∞`)
-  on `B ×ˢ EuclideanHalfSpace.normalIio η`. In charts it is the flow of the
-  extended field from the boundary hyperplane, a local diffeomorphism of
+  on `B ×ˢ EuclideanHalfSpace.normalIio η`. In charts it is that flow
+  from the boundary hyperplane, a local diffeomorphism of
   boundaryless spaces since `Y p` is transverse to the boundary, restricted
   to the half-spaces
   (`PartialDiffeomorph.isLocalDiffeomorphAt_symm_comp_comp_model`, in
@@ -648,9 +639,7 @@ Expected size: 300 lines.
 
 ## What the part uses
 
-- *Smooth families*: Seeley's extension,
-  `Analysis/Calculus/ContDiff/Seeley/Extension.lean` and
-  `Geometry/Manifold/MFDeriv/Chart.lean`, only in
+- *Smooth families*: `Geometry/Manifold/MFDeriv/Chart.lean`, only in
   `Collar/Flow/Local.lean`;
   `Geometry/Manifold/LocalDiffeomorph/Basic.lean`, in
   `Collar/Flow/Local.lean` and `Collar/Flow/Basic.lean`
@@ -661,10 +650,7 @@ Expected size: 300 lines.
   `TauCeti.isLocalDiffeomorph_inclusion`), merged, in `Boundary/Collar/End.lean`
   and `StableHamiltonian.lean`.
 - *Cotangent bundles*: `Geometry/Manifold/Flow/Basic.lean`, merged, which this
-  part extends by the flow of a vector field on a normed space
-  (`TauCeti.contDiffOn_flowOf_uncurry`,
-  `TauCeti.hasFDerivAt_flowOf_uncurry_zero`), in `Collar/Flow/Local.lean`, and by integral
-  curves as trajectories of the flow (`IsMIntegralCurveOn.sub_mem_flowDomain`,
+  part extends by integral curves as trajectories of the flow (`IsMIntegralCurveOn.sub_mem_flowDomain`,
   `IsMIntegralCurveOn.flowOf_sub_eq`, `TauCeti.eventuallyEq_flowOf_sub_of_isMIntegralCurveOn`,
   `TauCeti.contMDiffAt_of_isMIntegralCurveOn`), in `Liouville/Scaling.lean`.
 - *Symplectic neighbourhoods*:
