@@ -52,8 +52,9 @@ coordinates `s, t` of the line. A point of the cone `K³ × K²` is written `Sum
   `SymplecticGeometry.mem_rationalEllipticSurface_iff` (on the chosen representatives) and
   `SymplecticGeometry.mk_mem_rationalEllipticSurface_iff` (on any nonzero ones).
 * The instances `ChartedSpace`, `IsManifold 𝓘(ℂ, _) ω` and `CompactSpace` on it. The
-  model is `Fin (2 + 1 - Fintype.card Unit) → ℂ`, as the general atlas gives it; its dimension is
-  `2` (`SymplecticGeometry.rationalEllipticSurface.finrank_model`).
+  model is `Fin 2 → ℂ`. The general atlas has the model `Fin (2 + 1 - Fintype.card Unit) → ℂ`,
+  the same type by definition; stating the instances on `Fin 2 → ℂ` keeps that index in `simp`
+  normal form, so that `simp` lemmas such as `coe_embedding` still apply after it has run.
 * `SymplecticGeometry.rationalEllipticSurface.embedding`: the inclusion into the product as an
   analytic embedding, for the model `𝓘(ℂ, Fin 2 → ℂ).prod 𝓘(ℂ, Fin 1 → ℂ)`.
 * `SymplecticGeometry.rationalEllipticSurface.contMDiff_fst` and
@@ -266,14 +267,14 @@ theorem surjective_jacobiMatrixAt (x : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2
 /-- The atlas of the rational elliptic surface, induced by the slice charts of bihomogeneous zero
 sets in `ℂℙ² × ℂℙ¹`. -/
 noncomputable instance instChartedSpace :
-    ChartedSpace (Fin (2 + 1 - Fintype.card Unit) → ℂ) rationalEllipticSurface :=
+    ChartedSpace (Fin 2 → ℂ) rationalEllipticSurface :=
   complexProjectiveProdZeroLocusChartedSpace (fun _ ↦ isWeightedHomogeneous_hessePencil_inl)
     (fun _ ↦ isWeightedHomogeneous_hessePencil_inr) isOpen_univ eq_inter_univ
     fun x _ ↦ surjective_jacobiMatrixAt x
 
 /-- The rational elliptic surface is a complex analytic manifold. -/
 instance instIsManifold :
-    IsManifold 𝓘(ℂ, Fin (2 + 1 - Fintype.card Unit) → ℂ) ω rationalEllipticSurface :=
+    IsManifold 𝓘(ℂ, Fin 2 → ℂ) ω rationalEllipticSurface :=
   isManifold_complexProjectiveProdZeroLocus (fun _ ↦ isWeightedHomogeneous_hessePencil_inl)
     (fun _ ↦ isWeightedHomogeneous_hessePencil_inr) isOpen_univ eq_inter_univ
     (fun x _ ↦ surjective_jacobiMatrixAt x) ω
@@ -282,14 +283,10 @@ instance instIsManifold :
 instance instCompactSpace : CompactSpace rationalEllipticSurface :=
   inferInstanceAs (CompactSpace (complexProjectiveProdZeroLocus _))
 
-/-- The model of the rational elliptic surface has complex dimension `2`: it is a surface. -/
-theorem finrank_model : Module.finrank ℂ (Fin (2 + 1 - Fintype.card Unit) → ℂ) = 2 := by
-  rw [Fintype.card_unit, Module.finrank_fin_fun]
-
 /-- The inclusion of the rational elliptic surface into `ℂℙ² × ℂℙ¹`, as an analytic embedding:
 `SymplecticGeometry.complexProjectiveProdZeroLocusEmbedding`. -/
 noncomputable def embedding :
-    SmoothEmbedding 𝓘(ℂ, Fin (2 + 1 - Fintype.card Unit) → ℂ)
+    SmoothEmbedding 𝓘(ℂ, Fin 2 → ℂ)
       (𝓘(ℂ, Fin 2 → ℂ).prod 𝓘(ℂ, Fin 1 → ℂ)) ω rationalEllipticSurface
       (ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)) :=
   complexProjectiveProdZeroLocusEmbedding (fun _ ↦ isWeightedHomogeneous_hessePencil_inl)
@@ -308,17 +305,18 @@ theorem embedding_def :
 /-- The embedding of the rational elliptic surface is the inclusion. -/
 @[simp]
 theorem coe_embedding : ⇑embedding = Subtype.val := by
-  rw [embedding_def, coe_complexProjectiveProdZeroLocusEmbedding]
+  rw [embedding_def]
+  exact coe_complexProjectiveProdZeroLocusEmbedding _ _ _ _ _ ω
 
 /-- The projection of the rational elliptic surface to `ℂℙ²` is analytic. -/
 theorem contMDiff_fst :
-    ContMDiff 𝓘(ℂ, Fin (2 + 1 - Fintype.card Unit) → ℂ) 𝓘(ℂ, Fin 2 → ℂ) ω
+    ContMDiff 𝓘(ℂ, Fin 2 → ℂ) 𝓘(ℂ, Fin 2 → ℂ) ω
       (fun x : rationalEllipticSurface ↦ (x : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)).1) :=
   _root_.contMDiff_fst.comp (coe_embedding ▸ embedding.contMDiff)
 
 /-- The projection of the rational elliptic surface to `ℂℙ¹` is analytic. -/
 theorem contMDiff_snd :
-    ContMDiff 𝓘(ℂ, Fin (2 + 1 - Fintype.card Unit) → ℂ) 𝓘(ℂ, Fin 1 → ℂ) ω
+    ContMDiff 𝓘(ℂ, Fin 2 → ℂ) 𝓘(ℂ, Fin 1 → ℂ) ω
       (fun x : rationalEllipticSurface ↦ (x : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)).2) :=
   _root_.contMDiff_snd.comp (coe_embedding ▸ embedding.contMDiff)
 

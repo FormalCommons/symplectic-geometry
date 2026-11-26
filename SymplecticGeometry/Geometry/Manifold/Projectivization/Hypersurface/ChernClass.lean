@@ -111,8 +111,8 @@ theorem totalChernClass_normalSpace :
 
 Milestone: *Chern classes of projective hypersurfaces*. -/
 theorem totalChernClass_tangentSpace_mul :
-    totalChernClass (Fin (n + 1 - Fintype.card Unit) → ℂ)
-        (TangentSpace 𝓘(ℂ, Fin (n + 1 - Fintype.card Unit) → ℂ) : X → Type) *
+    totalChernClass (Fin n → ℂ)
+        (TangentSpace 𝓘(ℂ, Fin n → ℂ) : X → Type) *
         (1 + d • (TopCat.of X).evenIntegralCohomologyOf 1 X.hyperplaneClass) =
       (1 + (TopCat.of X).evenIntegralCohomologyOf 1 X.hyperplaneClass) ^ (n + 2) := by
   rw [← totalChernClass_normalSpace, ← totalChernClass_prod,
@@ -142,8 +142,8 @@ private theorem coeff_tangentPoly {N k : ℕ} (hk : k < N) :
 /-- `c(TX)` is the value at `ι^* h` of `(∑_{j < N} (-d X) ^ j) (1 + X) ^ (n + 2)`, for any
 `N ≥ n + 2`. -/
 private theorem totalChernClass_eq_aeval {N : ℕ} (hN : n + 2 ≤ N) :
-    totalChernClass (Fin (n + 1 - Fintype.card Unit) → ℂ)
-        (TangentSpace 𝓘(ℂ, Fin (n + 1 - Fintype.card Unit) → ℂ) : X → Type) =
+    totalChernClass (Fin n → ℂ)
+        (TangentSpace 𝓘(ℂ, Fin n → ℂ) : X → Type) =
       Polynomial.aeval ((TopCat.of X).evenIntegralCohomologyOf 1 X.hyperplaneClass)
         (tangentPoly n d N) := by
   set a := (TopCat.of X).evenIntegralCohomologyOf 1 X.hyperplaneClass
@@ -164,8 +164,8 @@ and every `k`, `c_k(TX) = (∑_{j ≤ k} (n + 2).choose (k - j) (-d) ^ j) (ι^* 
 
 Milestone: *Chern classes of projective hypersurfaces*. -/
 theorem chernClass_tangentSpace (k : ℕ) :
-    chernClass (Fin (n + 1 - Fintype.card Unit) → ℂ)
-        (TangentSpace 𝓘(ℂ, Fin (n + 1 - Fintype.card Unit) → ℂ) : X → Type) k =
+    chernClass (Fin n → ℂ)
+        (TangentSpace 𝓘(ℂ, Fin n → ℂ) : X → Type) k =
       (∑ j ∈ Finset.range (k + 1), ((n + 2).choose (k - j) : ℤ) * (-(d : ℤ)) ^ j) •
         ((TopCat.of X).evenIntegralCohomologyOf 1 X.hyperplaneClass ^ k) k := by
   rw [← totalChernClass_apply, X.totalChernClass_eq_aeval (N := n + 2 + k + 1) (by omega),
@@ -176,8 +176,8 @@ theorem chernClass_tangentSpace (k : ℕ) :
 
 Milestone: *Chern classes of projective hypersurfaces*. -/
 theorem chernClass_one_tangentSpace :
-    chernClass (Fin (n + 1 - Fintype.card Unit) → ℂ)
-        (TangentSpace 𝓘(ℂ, Fin (n + 1 - Fintype.card Unit) → ℂ) : X → Type) 1 =
+    chernClass (Fin n → ℂ)
+        (TangentSpace 𝓘(ℂ, Fin n → ℂ) : X → Type) 1 =
       ((n + 2 : ℤ) - d) • X.hyperplaneClass := by
   rw [chernClass_tangentSpace, pow_one, DirectSum.of_eq_same]
   congr 1

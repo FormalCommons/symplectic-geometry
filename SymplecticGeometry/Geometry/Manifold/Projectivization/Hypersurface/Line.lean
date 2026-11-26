@@ -118,9 +118,9 @@ theorem card_eq (X : SmoothProjectiveHypersurface 0 d) : Nat.card X = d := by
 /-- A zero-dimensional smooth projective hypersurface is discrete, as every manifold modelled on
 a point is. -/
 instance instDiscreteTopology (X : SmoothProjectiveHypersurface 0 d) : DiscreteTopology X :=
-  have : Subsingleton (Fin (0 + 1 - Fintype.card Unit) → ℂ) :=
+  have : Subsingleton (Fin 0 → ℂ) :=
     inferInstanceAs (Subsingleton (Fin 0 → ℂ))
-  ChartedSpace.discreteTopology (Fin (0 + 1 - Fintype.card Unit) → ℂ) X.carrier
+  ChartedSpace.discreteTopology (Fin 0 → ℂ) X.carrier
 
 /-- A zero-dimensional smooth projective hypersurface is finite, being compact and discrete. -/
 instance instFinite (X : SmoothProjectiveHypersurface 0 d) : Finite X :=

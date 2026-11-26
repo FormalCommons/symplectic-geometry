@@ -109,7 +109,7 @@ each of its zeros, and which has finitely many zeros. -/
 theorem exists_surjective_linearSection_regular :
     ∃ ℓ : (Fin (n + 2) → ℂ) →ₗ[ℂ] Fin n → ℂ, Function.Surjective ℓ ∧
       (∀ z, X.linearSection ℓ z = 0 → Function.Surjective
-        (sectionLinearization 𝓘(ℝ, Fin (n + 1 - Fintype.card Unit) → ℂ) (F := Fin n → ℂ) id
+        (sectionLinearization 𝓘(ℝ, Fin n → ℂ) (F := Fin n → ℂ) id
           (X.linearSection ℓ) z)) ∧ {x | X.linearSection ℓ x = 0}.Finite := by
   -- The real family of the forms `x_j c e_k`, for `c ∈ {1, i}`, whose sections span every fibre.
   set f : Fin (n + 2) × Fin n × Fin 2 → (Fin (n + 2) → ℂ) →ₗ[ℂ] Fin n → ℂ := fun p ↦
@@ -120,10 +120,8 @@ theorem exists_surjective_linearSection_regular :
   have hℓ (a) (v : Fin (n + 2) → ℂ) (k : Fin n) : ℓ a v k =
       ∑ p, a p • (v p.1 * Pi.single (M := fun _ ↦ ℂ) p.2.1 (Complex.basisOneI p.2.2) k) := by
     simp [ℓ, f, LinearMap.sum_apply, Finset.sum_apply]
-  have hdim : finrank ℝ (Fin (n + 1 - Fintype.card Unit) → ℂ) = finrank ℝ (Fin n → ℂ) := by
-    rw [finrank_real_of_complex, finrank_model, finrank_real_of_complex, finrank_fin_fun]
   have hres := ContMDiffSection.mem_residual_setOf_regular_and_finite_zero_affineFamily 0
-    (fun p ↦ X.linearSection (f p)) X.span_range_linearSection_smulRight hdim
+    (fun p ↦ X.linearSection (f p)) X.span_range_linearSection_smulRight rfl
   have haff (a) : ContMDiffSection.affineFamily 0 (fun p ↦ X.linearSection (f p)) a =
       X.linearSection (ℓ a) := by
     ext x
@@ -163,7 +161,7 @@ transverse to `X`. -/
 theorem card_setOf_linearSection_eq_zero {ℓ : (Fin (n + 2) → ℂ) →ₗ[ℂ] Fin n → ℂ}
     (hℓ : Function.Surjective ℓ)
     (htr : ∀ z, X.linearSection ℓ z = 0 → Function.Surjective
-      (sectionLinearization 𝓘(ℝ, Fin (n + 1 - Fintype.card Unit) → ℂ) (F := Fin n → ℂ) id
+      (sectionLinearization 𝓘(ℝ, Fin n → ℂ) (F := Fin n → ℂ) id
         (X.linearSection ℓ) z)) :
     Nat.card {x : X | X.linearSection ℓ x = 0} = d := by
   -- The line `{ℓ = 0}` is the image of an injective `L : ℂ² → ℂⁿ⁺²` with range `ker ℓ`.
@@ -197,7 +195,7 @@ theorem card_setOf_linearSection_eq_zero {ℓ : (Fin (n + 2) → ℂ) →ₗ[ℂ
 
 Milestone: *Chern classes of projective hypersurfaces*. -/
 theorem evalFundamentalClass_hyperplaneClass_pow (X : SmoothProjectiveHypersurface (n + 1) d) :
-    complexManifoldEvalFundamentalClass (Fin (n + 1 + 1 - Fintype.card Unit) → ℂ) X finrank_model
+    complexManifoldEvalFundamentalClass (Fin (n + 1) → ℂ) X (Module.finrank_fin_fun ℂ)
       (((TopCat.of X).evenIntegralCohomologyOf 1 X.hyperplaneClass ^ (n + 1)) (n + 1)) = d := by
   obtain ⟨ℓ, hℓ, hreg, hfin⟩ := X.exists_surjective_linearSection_regular
   have hs : Continuous fun x ↦ TotalSpace.mk' (Fin (n + 1) → ℂ) x (X.linearSection ℓ x) :=
@@ -215,7 +213,7 @@ theorem evalFundamentalClass_hyperplaneClass_pow (X : SmoothProjectiveHypersurfa
   have hz0 : X.linearSection ℓ z = 0 := hfin.mem_toFinset.1 hz
   obtain ⟨A, hA⟩ := X.exists_continuousLinearEquiv_hasFDerivAt_trivializationAt_linearSection hℓ
     hz0 ((X.surjective_sectionLinearization_linearSection_iff hℓ hz0).1 (hreg z hz0))
-  exact sectionIndex_eq_one_of_complexLinear finrank_model hs hz0 _
+  exact sectionIndex_eq_one_of_complexLinear (Module.finrank_fin_fun ℂ) hs hz0 _
     (mem_baseSet_trivializationAt _ _ z) A hA
 
 end SmoothProjectiveHypersurface

@@ -94,17 +94,17 @@ theorem bettiNumber_of_ne (hd : d ≠ 0) {k : ℕ} (hk : k ≠ n) :
     grind
   by_cases hk' : k ≤ 2 * n
   · obtain ⟨m, rfl⟩ := Nat.exists_eq_add_one_of_ne_zero (by omega : n ≠ 0)
-    have hE : finrank ℝ (Fin (m + 1 + 1 - Fintype.card Unit) → ℂ) =
+    have hE : finrank ℝ (Fin (m + 1) → ℂ) =
         2 * m + 1 + 1 :=
-      finrank_real_of_finrank_complex_eq_add_one finrank_model
-    rw [(complexManifoldHomologicalOrientation _ X finrank_model).bettiNumber_eq_bettiNumber hE
-        (p := 2 * (m + 1) - k) (by omega),
+      finrank_real_of_finrank_complex_eq_add_one (Module.finrank_fin_fun ℂ)
+    rw [(complexManifoldHomologicalOrientation _ X
+        (Module.finrank_fin_fun ℂ)).bettiNumber_eq_bettiNumber hE (p := 2 * (m + 1) - k) (by omega),
       X.bettiNumber_of_lt ℚ hd (by omega)]
     simp [hk', Nat.even_sub hk']
   · rw [ite_eq_right_iff.2 fun h ↦ absurd h.2 hk']
     exact bettiNumber_eq_zero_of_finrank_lt X
-      (𝓘(ℂ, Fin (n + 1 - Fintype.card Unit) → ℂ).restrictScalars ℝ) ℚ
-      (by rw [finrank_real_of_complex, finrank_model]; omega)
+      (𝓘(ℂ, Fin n → ℂ).restrictScalars ℝ) ℚ
+      (by rw [finrank_real_of_complex, Module.finrank_fin_fun]; omega)
 
 /-- **The middle Betti number of a hypersurface.** For `d ≠ 0`, the `n`-th rational Betti number
 of a smooth hypersurface `X ⊆ ℂℙⁿ⁺¹` satisfies `(-1)ⁿ b_n = χ(X) - (n + 1) + [n even]`, where
@@ -112,8 +112,8 @@ of a smooth hypersurface `X ⊆ ℂℙⁿ⁺¹` satisfies `(-1)ⁿ b_n = χ(X) -
 theorem bettiNumber_middle (hd : d ≠ 0) :
     (-1 : ℤ) ^ n * bettiNumber ℚ X n = eulerChar X - (n + 1) + if Even n then 1 else 0 := by
   have h := eulerChar_eq_sum_range_finrank_singularHomology
-    (E := Fin (n + 1 - Fintype.card Unit) → ℂ) X ℚ
-  simp only [← bettiNumber_def, finrank_real_of_complex, finrank_model] at h
+    (E := Fin n → ℂ) X ℚ
+  simp only [← bettiNumber_def, finrank_real_of_complex, Module.finrank_fin_fun] at h
   have hn : n ∈ Finset.range (2 * n + 1) := Finset.mem_range.2 (by omega)
   have hterm : ∀ i ∈ (Finset.range (2 * n + 1)).erase n,
       (-1 : ℤ) ^ i * bettiNumber ℚ X i = if Even i then 1 else 0 := by

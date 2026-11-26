@@ -72,12 +72,12 @@ variable {n d : ℕ} (X : SmoothProjectiveHypersurface n d)
 complementary normal charts. -/
 noncomputable instance instFiberBundleNormalSpace :
     FiberBundle ℂ fun x : X ↦ X.embedding.NormalSpace x WithTop.top_ne_zero :=
-  X.embedding.normalSpaceFiberBundle WithTop.top_ne_zero (by rw [finrank_model]; simp)
+  X.embedding.normalSpaceFiberBundle WithTop.top_ne_zero (by rw [Module.finrank_fin_fun]; simp)
 
 /-- The normal bundle of a hypersurface is a complex vector bundle, of rank one. -/
 instance instVectorBundleNormalSpace :
     VectorBundle ℂ ℂ fun x : X ↦ X.embedding.NormalSpace x WithTop.top_ne_zero :=
-  X.embedding.normalSpaceVectorBundle WithTop.top_ne_zero (by rw [finrank_model]; simp)
+  X.embedding.normalSpaceVectorBundle WithTop.top_ne_zero (by rw [Module.finrank_fin_fun]; simp)
 
 /-- **The normal bundle of a hypersurface is `ι^* 𝒪(d)`, fibrewise.** At a point `x` of the
 hypersurface, the isomorphism of its normal space with the fibre `ℂ` of `𝒪(d)` at `x` induced by

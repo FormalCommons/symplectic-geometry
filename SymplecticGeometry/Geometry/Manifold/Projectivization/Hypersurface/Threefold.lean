@@ -56,8 +56,8 @@ has `c₁(TZ) = (5 - d) ι^* h`.
 
 Milestone: *Chern classes of projective hypersurfaces*. -/
 theorem chernClass_one_tangentSpace_threefold :
-    chernClass (Fin (3 + 1 - Fintype.card Unit) → ℂ)
-        (TangentSpace 𝓘(ℂ, Fin (3 + 1 - Fintype.card Unit) → ℂ) : Z → Type) 1 =
+    chernClass (Fin 3 → ℂ)
+        (TangentSpace 𝓘(ℂ, Fin 3 → ℂ) : Z → Type) 1 =
       (5 - d : ℤ) • Z.hyperplaneClass := by
   rw [chernClass_one_tangentSpace]
   norm_num

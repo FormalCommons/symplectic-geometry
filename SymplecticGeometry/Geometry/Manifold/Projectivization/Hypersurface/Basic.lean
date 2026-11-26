@@ -29,8 +29,9 @@ manifold of dimension `n`, through Tau Ceti's zero-locus API
 * `SymplecticGeometry.SmoothProjectiveHypersurface.carrier`: that zero locus, a subset of
   `ℙ ℂ (Fin (n + 2) → ℂ)`, to which the structure coerces as a type.
 * The instances `ChartedSpace`, `IsManifold 𝓘(ℂ, _) ω` and `CompactSpace` on it. The
-  model is `Fin (n + 1 - Fintype.card Unit) → ℂ`, as Tau Ceti gives it; its dimension is `n`
-  (`SymplecticGeometry.SmoothProjectiveHypersurface.finrank_model`).
+  model is `Fin n → ℂ`. Tau Ceti's atlas has the model `Fin (n + 1 - Fintype.card Unit) → ℂ`,
+  the same type by definition; stating the instances on `Fin n → ℂ` keeps that index in `simp`
+  normal form, so that `simp` lemmas such as `coe_embedding` still apply after it has run.
 * `SymplecticGeometry.SmoothProjectiveHypersurface.embedding`: the inclusion into
   `ℙ ℂ (Fin (n + 2) → ℂ)` as a bundled analytic embedding.
 * `SymplecticGeometry.SmoothProjectiveHypersurface.nonempty`: in positive degree the hypersurface
@@ -111,12 +112,12 @@ theorem carrier_eq_inter_univ :
 
 /-- The atlas of a smooth projective hypersurface, induced by Tau Ceti's slice charts of the zero
 locus. -/
-noncomputable instance instChartedSpace : ChartedSpace (Fin (n + 1 - Fintype.card Unit) → ℂ) X :=
+noncomputable instance instChartedSpace : ChartedSpace (Fin n → ℂ) X :=
   complexProjectiveZeroLocusChartedSpace (fun _ ↦ X.isHomogeneous) isOpen_univ
     X.carrier_eq_inter_univ X.surjective_jacobiMatrixAt
 
 /-- A smooth projective hypersurface is a complex analytic manifold. -/
-instance instIsManifold : IsManifold 𝓘(ℂ, Fin (n + 1 - Fintype.card Unit) → ℂ) ω X :=
+instance instIsManifold : IsManifold 𝓘(ℂ, Fin n → ℂ) ω X :=
   isManifold_complexProjectiveZeroLocus (fun _ ↦ X.isHomogeneous) isOpen_univ
     X.carrier_eq_inter_univ X.surjective_jacobiMatrixAt ω
 
@@ -124,16 +125,12 @@ instance instIsManifold : IsManifold 𝓘(ℂ, Fin (n + 1 - Fintype.card Unit) �
 instance instCompactSpace : CompactSpace X :=
   inferInstanceAs (CompactSpace (complexProjectiveZeroLocus _))
 
-/-- The model of a smooth projective hypersurface in `ℂℙⁿ⁺¹` has complex dimension `n`. -/
-theorem finrank_model : Module.finrank ℂ (Fin (n + 1 - Fintype.card Unit) → ℂ) = n := by
-  rw [Fintype.card_unit, Nat.add_sub_cancel, Module.finrank_fin_fun]
-
 -- The body is exposed so that Tau Ceti's lemmas about `complexProjectiveZeroLocusEmbedding` apply
 -- to `X.embedding` in other files.
 /-- The inclusion of a smooth projective hypersurface into projective space, as an analytic
 embedding: Tau Ceti's `TauCeti.complexProjectiveZeroLocusEmbedding`. -/
 @[expose] noncomputable def embedding :
-    SmoothEmbedding 𝓘(ℂ, Fin (n + 1 - Fintype.card Unit) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω X
+    SmoothEmbedding 𝓘(ℂ, Fin n → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω X
       (ℙ ℂ (Fin (n + 2) → ℂ)) :=
   complexProjectiveZeroLocusEmbedding (fun _ ↦ X.isHomogeneous) isOpen_univ
     X.carrier_eq_inter_univ X.surjective_jacobiMatrixAt ω

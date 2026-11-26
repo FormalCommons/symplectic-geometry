@@ -39,8 +39,8 @@ pinned versions, as for `DESIGN.md`. Tau Ceti paths are relative to
   `TauCeti.isManifold_complexProjectiveZeroLocus` takes. The carrier `X` is
   that zero locus, with Tau Ceti's atlas
   `TauCeti.complexProjectiveZeroLocusChartedSpace` for `V = univ`, modelled
-  on `𝓘(ℂ, Fin (n + 1 - Fintype.card Unit) → ℂ)` as Tau Ceti gives it (its
-  dimension is `n`, `finrank_model`). The inclusion is Tau Ceti's bundled
+  on `𝓘(ℂ, Fin n → ℂ)`, the same type as the `Fin (n + 1 - Fintype.card Unit) → ℂ`
+  that Tau Ceti gives, written in `simp` normal form. The inclusion is Tau Ceti's bundled
   embedding `TauCeti.complexProjectiveZeroLocusEmbedding`, written $\iota$.
   A structure, rather than three hypotheses on every statement, lets the
   atlas, the manifold structure and compactness be instances.
@@ -321,8 +321,7 @@ Namespace `SymplecticGeometry`.
 - `X.surjective_jacobiMatrixAt`, the cone-Jacobian form of `smooth`;
   `X.embedding`, Tau Ceti's `complexProjectiveZeroLocusEmbedding` for
   regularity `ω`, `@[expose]` so that Tau Ceti's lemmas about that embedding apply
-  to it, with `coe_embedding : ⇑X.embedding = Subtype.val`;
-  `finrank_model : finrank ℂ (Fin (n + 1 - Fintype.card Unit) → ℂ) = n`.
+  to it, with `coe_embedding : ⇑X.embedding = Subtype.val`.
 - `X.poly_ne_zero`, and `X.nonempty` for `d ≠ 0` (a homogeneous polynomial
   of positive degree in at least two variables has a nonzero zero over `ℂ`).
 - `fermat n d`, the hypersurface $\sum_j z_j^d=0$ of the book,

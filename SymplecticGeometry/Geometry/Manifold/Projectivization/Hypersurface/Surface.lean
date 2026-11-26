@@ -75,8 +75,8 @@ has `c₁(TX) = (4 - d) ι^* h`.
 
 Milestone: *Chern classes of projective hypersurfaces*. -/
 theorem chernClass_one_tangentSpace_surface :
-    chernClass (Fin (2 + 1 - Fintype.card Unit) → ℂ)
-        (TangentSpace 𝓘(ℂ, Fin (2 + 1 - Fintype.card Unit) → ℂ) : X → Type) 1 =
+    chernClass (Fin 2 → ℂ)
+        (TangentSpace 𝓘(ℂ, Fin 2 → ℂ) : X → Type) 1 =
       (4 - d : ℤ) • X.hyperplaneClass := by
   rw [chernClass_one_tangentSpace]
   norm_num
@@ -86,8 +86,8 @@ has `c₂(TX) = (d² - 4d + 6) (ι^* h)²`, where `(ι^* h)²` is read in `H⁴(
 
 Milestone: *Chern classes of projective hypersurfaces*. -/
 theorem chernClass_two_tangentSpace_surface :
-    chernClass (Fin (2 + 1 - Fintype.card Unit) → ℂ)
-        (TangentSpace 𝓘(ℂ, Fin (2 + 1 - Fintype.card Unit) → ℂ) : X → Type) 2 =
+    chernClass (Fin 2 → ℂ)
+        (TangentSpace 𝓘(ℂ, Fin 2 → ℂ) : X → Type) 2 =
       ((d : ℤ) ^ 2 - 4 * d + 6) •
         ((TopCat.of X).evenIntegralCohomologyOf 1 X.hyperplaneClass ^ 2) 2 := by
   rw [chernClass_tangentSpace]
@@ -122,12 +122,12 @@ theorem bettiNumber_two_fermat_zero : bettiNumber ℚ (fermat 2 0) 2 = 0 :=
 
 /-- On a surface in `ℂℙ³`, `⟨c₁ ⌣ c₁, [X]⟩ = (4 - d)² d`. -/
 theorem evalFundamentalClass_integralCup_chernClass_one_surface :
-    complexManifoldEvalFundamentalClass (Fin (2 + 1 - Fintype.card Unit) → ℂ) X finrank_model
+    complexManifoldEvalFundamentalClass (Fin 2 → ℂ) X (Module.finrank_fin_fun ℂ)
       ((TopCat.of X).integralCup (2 * 1) (2 * 1) (2 * (1 + 1)) rfl
-        (chernClass (Fin (2 + 1 - Fintype.card Unit) → ℂ)
-          (TangentSpace 𝓘(ℂ, Fin (2 + 1 - Fintype.card Unit) → ℂ) : X → Type) 1)
-        (chernClass (Fin (2 + 1 - Fintype.card Unit) → ℂ)
-          (TangentSpace 𝓘(ℂ, Fin (2 + 1 - Fintype.card Unit) → ℂ) : X → Type) 1)) =
+        (chernClass (Fin 2 → ℂ)
+          (TangentSpace 𝓘(ℂ, Fin 2 → ℂ) : X → Type) 1)
+        (chernClass (Fin 2 → ℂ)
+          (TangentSpace 𝓘(ℂ, Fin 2 → ℂ) : X → Type) 1)) =
       (4 - d : ℤ) ^ 2 * d := by
   rw [chernClass_one_tangentSpace_surface, TopCat.integralCup_zsmul_left, map_zsmul,
     map_zsmul, map_zsmul]
@@ -138,9 +138,9 @@ theorem evalFundamentalClass_integralCup_chernClass_one_surface :
 
 /-- On a surface in `ℂℙ³`, `⟨c₂, [X]⟩ = (d² - 4d + 6) d`. -/
 theorem evalFundamentalClass_chernClass_two_surface :
-    complexManifoldEvalFundamentalClass (Fin (2 + 1 - Fintype.card Unit) → ℂ) X finrank_model
-      (chernClass (Fin (2 + 1 - Fintype.card Unit) → ℂ)
-        (TangentSpace 𝓘(ℂ, Fin (2 + 1 - Fintype.card Unit) → ℂ) : X → Type) 2) =
+    complexManifoldEvalFundamentalClass (Fin 2 → ℂ) X (Module.finrank_fin_fun ℂ)
+      (chernClass (Fin 2 → ℂ)
+        (TangentSpace 𝓘(ℂ, Fin 2 → ℂ) : X → Type) 2) =
       ((d : ℤ) ^ 2 - 4 * d + 6) * d := by
   rw [chernClass_two_tangentSpace_surface, map_zsmul,
     evalFundamentalClass_hyperplaneClass_pow (n := 1), smul_eq_mul]
@@ -157,30 +157,33 @@ follows from the signature theorem in every degree.
 
 Milestone: *Chern classes of projective hypersurfaces*. -/
 theorem signature_surface (hd : d ≠ 0)
-    (hsignature : 3 * (complexManifoldHomologicalOrientation _ X finrank_model).signature
-        (finrank_real_of_finrank_complex_eq_add_one finrank_model)
+    (hsignature : 3 * (complexManifoldHomologicalOrientation _ X
+        (Module.finrank_fin_fun ℂ)).signature
+        (finrank_real_of_finrank_complex_eq_add_one (Module.finrank_fin_fun ℂ))
         (show 2 + 2 = 2 * 1 + 1 + 1 from rfl) =
-      complexManifoldEvalFundamentalClass (Fin (2 + 1 - Fintype.card Unit) → ℂ) X finrank_model
+      complexManifoldEvalFundamentalClass (Fin 2 → ℂ) X (Module.finrank_fin_fun ℂ)
         ((TopCat.of X).integralCup (2 * 1) (2 * 1) (2 * (1 + 1)) rfl
-          (chernClass (Fin (2 + 1 - Fintype.card Unit) → ℂ)
-            (TangentSpace 𝓘(ℂ, Fin (2 + 1 - Fintype.card Unit) → ℂ) : X → Type) 1)
-          (chernClass (Fin (2 + 1 - Fintype.card Unit) → ℂ)
-            (TangentSpace 𝓘(ℂ, Fin (2 + 1 - Fintype.card Unit) → ℂ) : X → Type) 1)) -
-        2 * complexManifoldEvalFundamentalClass (Fin (2 + 1 - Fintype.card Unit) → ℂ) X
-          finrank_model (chernClass (Fin (2 + 1 - Fintype.card Unit) → ℂ)
-            (TangentSpace 𝓘(ℂ, Fin (2 + 1 - Fintype.card Unit) → ℂ) : X → Type) 2)) :
-    3 * (complexManifoldHomologicalOrientation _ X finrank_model).signature
-        (finrank_real_of_finrank_complex_eq_add_one finrank_model)
+          (chernClass (Fin 2 → ℂ)
+            (TangentSpace 𝓘(ℂ, Fin 2 → ℂ) : X → Type) 1)
+          (chernClass (Fin 2 → ℂ)
+            (TangentSpace 𝓘(ℂ, Fin 2 → ℂ) : X → Type) 1)) -
+        2 * complexManifoldEvalFundamentalClass (Fin 2 → ℂ) X
+          (Module.finrank_fin_fun ℂ) (chernClass (Fin 2 → ℂ)
+            (TangentSpace 𝓘(ℂ, Fin 2 → ℂ) : X → Type) 2)) :
+    3 * (complexManifoldHomologicalOrientation _ X (Module.finrank_fin_fun ℂ)).signature
+        (finrank_real_of_finrank_complex_eq_add_one (Module.finrank_fin_fun ℂ))
         (show 2 + 2 = 2 * 1 + 1 + 1 from rfl) =
         (4 - (d : ℤ) ^ 2) * d ∧
       3 * (sigPos
-          ((complexManifoldHomologicalOrientation _ X finrank_model).intersectionQuadraticForm
-            (finrank_real_of_finrank_complex_eq_add_one finrank_model)
+          ((complexManifoldHomologicalOrientation _ X
+            (Module.finrank_fin_fun ℂ)).intersectionQuadraticForm
+            (finrank_real_of_finrank_complex_eq_add_one (Module.finrank_fin_fun ℂ))
             (show 2 + 2 = 2 * 1 + 1 + 1 from rfl)) : ℤ) =
         (d : ℤ) ^ 3 - 6 * d ^ 2 + 11 * d - 3 ∧
       3 * (sigNeg
-          ((complexManifoldHomologicalOrientation _ X finrank_model).intersectionQuadraticForm
-            (finrank_real_of_finrank_complex_eq_add_one finrank_model)
+          ((complexManifoldHomologicalOrientation _ X
+            (Module.finrank_fin_fun ℂ)).intersectionQuadraticForm
+            (finrank_real_of_finrank_complex_eq_add_one (Module.finrank_fin_fun ℂ))
             (show 2 + 2 = 2 * 1 + 1 + 1 from rfl)) : ℤ) =
         2 * (d : ℤ) ^ 3 - 6 * d ^ 2 + 7 * d - 3 := by
   rw [evalFundamentalClass_integralCup_chernClass_one_surface,
@@ -188,9 +191,9 @@ theorem signature_surface (hd : d ≠ 0)
     QuadraticForm.signature_def] at hsignature
   rw [HomologicalOrientation.signature_def, QuadraticForm.signature_def]
   have hb := congrArg (Nat.cast : ℕ → ℤ) <|
-    (complexManifoldHomologicalOrientation _ X finrank_model)
+    (complexManifoldHomologicalOrientation _ X (Module.finrank_fin_fun ℂ))
       |>.sigPos_add_sigNeg_intersectionQuadraticForm
-        (finrank_real_of_finrank_complex_eq_add_one finrank_model)
+        (finrank_real_of_finrank_complex_eq_add_one (Module.finrank_fin_fun ℂ))
         (show 2 + 2 = 2 * 1 + 1 + 1 from rfl)
         even_two
   push_cast at hb
