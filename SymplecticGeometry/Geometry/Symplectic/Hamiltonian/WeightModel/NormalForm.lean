@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Symplectic.Hamiltonian.WeightModel.NormalForm
 public import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 import SymplecticGeometry.Analysis.InnerProductSpace.PiL2
+import SymplecticGeometry.Geometry.Manifold.GroupAction.BoundarylessModel
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.WeightModel.Basic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Darboux
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
@@ -38,6 +39,13 @@ properties below, bundled as `SymplecticGeometry.IsWeightChart`):
 * `μ(Φ z) = μ(p) + π Σₖ |zₖ|² αₖ`, where `|zₖ|² = xₖ(z)² + yₖ(z)²`.
 
 Zero weights are allowed, and neither compactness of `M` nor isolatedness of `p` is assumed.
+
+Only `M` is assumed boundaryless (`BoundarylessManifold`), not its model. Tau Ceti's chart needs a
+model without boundary, so it is taken on the copy `TauCeti.BoundarylessModel I' M` of `M`,
+modelled on `E'`, with the carried action, the pulled back form and the composed moment map
+(moment maps pull back by `TauCeti.SmoothTwoForm.IsMomentMap.mpullback`), and carried back to `M`
+along `TauCeti.BoundarylessModel.interiorDiffeomorph`: weight charts move along equivariant
+diffeomorphisms (`SymplecticGeometry.IsWeightChart.trans_diffeomorph`).
 
 ## References
 
@@ -191,12 +199,59 @@ theorem eq_of_finrank_eq (h : IsWeightChart σ μ p χ α Φ r) {m : ℕ}
   have := h.finrank_eq
   omega
 
+/-- **Weight charts are carried along equivariant diffeomorphisms.** If `ψ : N → M` is a
+`G`-equivariant diffeomorphism and `Φ` is a weight chart at `q` of the action on `N`, for the
+pulled back form `ψ^* σ` and the moment map `μ ∘ ψ`, then `ψ ∘ Φ` is a weight chart at `ψ q` of
+the action on `(M, σ)` with moment map `μ`, with the same characters, weights and radius. -/
+theorem trans_diffeomorph {E'' : Type*} [NormedAddCommGroup E''] [NormedSpace ℝ E'']
+    {H'' : Type*} [TopologicalSpace H''] {I'' : ModelWithCorners ℝ E'' H''}
+    {N : Type*} [TopologicalSpace N] [ChartedSpace H'' N] [IsManifold I'' ∞ N] [MulAction G N]
+    [ContMDiffSMul I I'' ∞ G N] {q : N}
+    {Φ : PartialDiffeomorph 𝓘(ℝ, StdSpace (Fin n)) I'' (StdSpace (Fin n)) N ∞}
+    (ψ : N ≃ₘ⟮I'', I'⟯ M) (hψ : ∀ (g : G) (y : N), ψ (g • y) = g • ψ y)
+    (h : IsWeightChart (SmoothForm.mpullback ψ ψ.contMDiff σ) (μ ∘ ψ) q χ α Φ r) :
+    IsWeightChart σ μ (ψ q) χ α (Φ.trans ψ.toPartialDiffeomorph) r := by
+  have hcoe : ⇑(Φ.trans ψ.toPartialDiffeomorph) = ψ ∘ Φ := by
+    rw [PartialDiffeomorph.coe_trans]
+    simp [Diffeomorph.toPartialDiffeomorph_toPartialEquiv]
+  have hsrc : (Φ.trans ψ.toPartialDiffeomorph).source = Φ.source := by
+    rw [PartialDiffeomorph.trans_source]
+    simp
+  refine ⟨h.apply_mulInvariantExp, h.radius_pos, hsrc.trans h.source_eq, ?_, ?_, ?_, ?_, ?_⟩
+  · rw [hcoe, Function.comp_apply, h.apply_zero]
+  · intro g u hu
+    rw [hsrc] at hu ⊢
+    obtain ⟨h₁, h₂⟩ := h.equivariant g u hu
+    refine ⟨h₁, ?_⟩
+    rw [hcoe, Function.comp_apply, Function.comp_apply, h₂, hψ]
+  · rw [hcoe, hsrc]
+    exact ((SmoothTwoForm.isSymplecticMap_mpullback σ ψ.contMDiff).isSymplecticMapOn _).comp
+      h.isSymplecticMapOn (Set.mapsTo_univ _ _) (fun _ _ ↦ ψ.mdifferentiable (by simp) _)
+      (fun z hz ↦ Φ.mdifferentiableAt (by simp) hz)
+  · intro z hz (ξ : E)
+    rw [hsrc] at hz
+    have hd := mfderiv_comp_apply (x := z) (f := Φ) (g := ψ) (ψ.mdifferentiable (by simp) (Φ z))
+      (Φ.mdifferentiableAt (by simp) hz) (EuclideanSpace.sumEquivProd.symm
+        (weightGenerator (fun k ↦ 2 * π * α k ξ) (EuclideanSpace.sumEquivProd z)))
+    rw [h.mfderiv_weightGenerator z hz ξ] at hd
+    rw [hcoe]
+    refine hd.trans ?_
+    -- The orbit map `g ↦ g • Φ z` of `N` is differentiable.
+    have horbit : MDifferentiableAt I I'' (fun g : G ↦ g • Φ z) 1 :=
+      ((contMDiff_smul (I := I) (I' := I'') (n := ∞)).comp
+        (contMDiff_id.prodMk contMDiff_const)).mdifferentiableAt (by simp)
+    exact mfderiv_fundamentalVectorField_of_map_smul (ψ.mdifferentiable (by simp) _) horbit
+      (fun g ↦ hψ g _) ξ
+  · intro z hz ξ
+    rw [hcoe, Function.comp_apply]
+    exact h.momentMap_apply z (hsrc ▸ hz) ξ
+
 end IsWeightChart
 
 end IsWeightChart
 
 variable {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
-  {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'} [I'.Boundaryless]
+  {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
   {M : Type*} [TopologicalSpace M] [ChartedSpace H' M] [IsManifold I' ∞ M]
   {σ : SmoothTwoForm I' M}
   {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
@@ -205,12 +260,9 @@ variable {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimens
   [IsTopologicalGroup G] [CompactSpace G] [MulAction G M] [ContMDiffSMul I I' ∞ G M]
   {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)}
 
-/-- **The weight chart at a fixed point, with the fundamental vector fields.** Under the
-hypotheses of `SymplecticGeometry.exists_weightChart`, there is a weight chart at the fixed point
-`p` (`SymplecticGeometry.IsWeightChart`): the chart of `SymplecticGeometry.exists_weightChart`,
-with all of its properties, whose differential in addition sends the generator of the weight
-rotation by the angles `2π αₖ(ξ)` to the fundamental vector field `ξ_M`. -/
-theorem exists_weightChart_fundamentalVectorField
+/-- The weight chart of `SymplecticGeometry.exists_weightChart_fundamentalVectorField`, when the
+model of `M` has no boundary: Tau Ceti's chart, read in the library's conventions. -/
+private theorem exists_weightChart_fundamentalVectorField_of_boundaryless [I'.Boundaryless]
     (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental I G I' M) fun x ↦ -μ x)
     (hσ : σ.IsSymplectic)
     (hG : ∀ g : G, SmoothForm.mpullback (fun x : M ↦ g • x)
@@ -292,6 +344,57 @@ theorem exists_weightChart_fundamentalVectorField
     rw [LinearMap.neg_apply (μ (Φ z)) ξ, LinearMap.neg_apply (μ p) ξ] at h
     linarith
 
+/-- **The weight chart at a fixed point, with the fundamental vector fields.** Under the
+hypotheses of `SymplecticGeometry.exists_weightChart`, there is a weight chart at the fixed point
+`p` (`SymplecticGeometry.IsWeightChart`): the chart of `SymplecticGeometry.exists_weightChart`,
+with all of its properties, whose differential in addition sends the generator of the weight
+rotation by the angles `2π αₖ(ξ)` to the fundamental vector field `ξ_M`. -/
+theorem exists_weightChart_fundamentalVectorField [BoundarylessManifold I' M]
+    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental I G I' M) fun x ↦ -μ x)
+    (hσ : σ.IsSymplectic)
+    (hG : ∀ g : G, SmoothForm.mpullback (fun x : M ↦ g • x)
+      (ContMDiffSMul.contMDiff_const_smul (I := I) g) σ = σ)
+    {p : M} (hp : ∀ g : G, g • p = p) :
+    ∃ (n : ℕ) (χ : Fin n → G →ₜ* Circle) (α : Fin n → StrongDual ℝ E)
+      (Φ : PartialDiffeomorph 𝓘(ℝ, StdSpace (Fin n)) I' (StdSpace (Fin n)) M ∞) (r : ℝ),
+      IsWeightChart σ μ p χ α Φ r := by
+  -- Work on the copy `N` of `M` modelled on `E'`, which has no boundary, with the carried
+  -- action, the pulled back form and the composed moment map.
+  let _ := BoundarylessModel.interiorChartedSpace I' (M := M)
+  let N := BoundarylessModel I' M
+  let ψ : N ≃ₘ⟮𝓘(ℝ, E'), I'⟯ M := (BoundarylessModel.interiorDiffeomorph I' (M := M) ∞).symm
+  have hψ (g : G) (y : N) : ψ (g • y) = g • ψ y :=
+    BoundarylessModel.interiorDiffeomorph_symm_smul I' ∞ g y
+  have hfund (ξ : GroupLieAlgebra I G) (y : N) :
+      mfderiv 𝓘(ℝ, E') I' ψ y (fundamentalVectorField 𝓘(ℝ, E') ξ y) =
+        fundamentalVectorField I' ξ (ψ y) :=
+    mfderiv_fundamentalVectorField_of_map_smul (ψ.mdifferentiable (by simp) y)
+      (((contMDiff_smul (I := I) (I' := 𝓘(ℝ, E')) (n := ∞)).comp
+        (contMDiff_id.prodMk contMDiff_const)).mdifferentiableAt (by simp)) (fun g ↦ hψ g y) ξ
+  have hμ' := hμ.mpullback (a' := InfinitesimalAction.fundamental I G 𝓘(ℝ, E') N) ψ.contMDiff
+    fun ξ y ↦ by simpa only [InfinitesimalAction.fundamental_apply] using hfund ξ y
+  have hσ' : SmoothTwoForm.IsSymplectic (SmoothForm.mpullback ψ ψ.contMDiff σ) :=
+    (ψ.isLocalDiffeomorph.isSymplectic_mpullback_iff ψ.surjective).2 hσ
+  have hG' (g : G) : SmoothForm.mpullback (fun y : N ↦ g • y)
+      (ContMDiffSMul.contMDiff_const_smul (I := I) g) (SmoothForm.mpullback ψ ψ.contMDiff σ) =
+        SmoothForm.mpullback ψ ψ.contMDiff σ := by
+    have hg := ContMDiffSMul.contMDiff_const_smul (I := I) (I' := I') (n := ∞) (M := M) g
+    have hcongr : ∀ (f₁ f₂ : N → M) (h₁ : ContMDiff 𝓘(ℝ, E') I' ∞ f₁)
+        (h₂ : ContMDiff 𝓘(ℝ, E') I' ∞ f₂), f₁ = f₂ →
+        SmoothForm.mpullback (F := ℝ) (k := 2) f₁ h₁ = SmoothForm.mpullback f₂ h₂ := by
+      rintro f _ _ _ rfl
+      rfl
+    rw [← LinearMap.comp_apply, ← SmoothForm.mpullback_comp,
+      hcongr (ψ ∘ fun y : N ↦ g • y) ((fun x : M ↦ g • x) ∘ ψ) _ (hg.comp ψ.contMDiff)
+        (funext fun y ↦ hψ g y),
+      SmoothForm.mpullback_comp ψ (fun x : M ↦ g • x) ψ.contMDiff hg, LinearMap.comp_apply, hG g]
+  have hp' (g : G) : g • ψ.symm p = ψ.symm p := by
+    rw [← ψ.symm_apply_apply (g • ψ.symm p), hψ, Diffeomorph.apply_symm_apply, hp]
+  obtain ⟨n, χ, α, Φ, r, h⟩ :=
+    exists_weightChart_fundamentalVectorField_of_boundaryless (μ := μ ∘ ψ) hμ' hσ' hG' hp'
+  refine ⟨n, χ, α, Φ.trans ψ.toPartialDiffeomorph, r, ?_⟩
+  simpa only [Diffeomorph.apply_symm_apply] using h.trans_diffeomorph ψ hψ
+
 /-- **The weight chart at a fixed point, with period-one weights.** Let a compact commutative Lie
 group `G`, with Lie algebra `𝔤 = E`, act smoothly on a finite-dimensional symplectic manifold
 `(M, σ)` without boundary, preserving `σ`, with moment map `μ` in the sign
@@ -308,7 +411,7 @@ radius `r > 0` about `0` in `StdSpace (Fin n)` onto a `G`-invariant open set of 
 * `μ (Φ z) = μ p + π Σₖ (xₖ(z)² + yₖ(z)²) αₖ` on the ball.
 
 Milestone: *Equivariant Darboux theorem and quadratic local moment maps*. -/
-theorem exists_weightChart
+theorem exists_weightChart [BoundarylessManifold I' M]
     (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental I G I' M) fun x ↦ -μ x)
     (hσ : σ.IsSymplectic)
     (hG : ∀ g : G, SmoothForm.mpullback (fun x : M ↦ g • x)
