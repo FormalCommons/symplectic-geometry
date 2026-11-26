@@ -327,8 +327,31 @@ proves it for one map. Expected size: 250 lines.
 ### `Geometry/Manifold/SmoothIsotopy/Extension.lean`
 
 The file gives steps 1 and 2 of isotopy extension at every time, which
-`SmoothIsotopy/Family.lean` proves as the case of a point as parameter
-manifold of its parametric version:
+`SmoothIsotopy/Family.lean` proves below:
+
+1. `ContMDiff.exists_contMDiffOn_extend_unitInterval`. A smooth map on
+   `unitInterval × X` extends near a compact `L ⊆ X`: there are `δ > 0`, an
+   open `U ⊇ L` and a `G : ℝ × X → N`, smooth on `Ioo (-δ) (1 + δ) ×ˢ U`,
+   that agrees with the map on $[0,1]\times U$. Seeley's extension extends
+   maps into a normed
+   space, so the target is moved into one. Tau Ceti's
+   `IsCompact.exists_opens_nonempty_smoothEmbedding_euclidean`, built on the
+   map of Mathlib's `SmoothBumpCovering.embeddingPiTangent`, embeds a
+   neighbourhood `W` of the compact track of `L` into a Euclidean space,
+   with a smooth retraction of a
+   neighbourhood of its image onto it
+   (`TauCeti.SmoothEmbedding.exists_contMDiffOn_retraction`). The extension is
+   *Smooth families*' `ContMDiff/TimeExtension.lean` applied to the
+   composite with the embedding, followed by the retraction, for times close to $[0,1]$.
+2. Compose with a smooth `c : ℝ → (-δ, 1 + δ)` that is the identity on
+   $[0,1]$ and constant near $\pm\infty$. The result is constant beyond two
+   times `a < 0 < 1 < b`, has embedding slices for every real time, and is
+   the original map on $[0,1]$.
+
+### `Geometry/Manifold/SmoothIsotopy/Family.lean`
+
+The file proves isotopy extension at every time as the case of a point as
+parameter manifold of its parametric version:
 
 ```lean
 theorem TauCeti.SmoothIsotopy.exists_diffeotopy_forall_apply_eq
@@ -340,43 +363,27 @@ theorem TauCeti.SmoothIsotopy.exists_diffeotopy_forall_apply_eq
 ```
 
 Its statement is Tau Ceti's `exists_diffeotopy_apply_eq` without the change of
-time. The steps:
+time. The proof extends the graph of the family in time by step 1 of
+`Extension.lean`; the graph keeps the parameter fixed, and its slices are
+smooth embeddings near the compact set for times close to $[0,1]$ by
+`SmoothEmbedding/Neighborhood.lean` again. Step 2 of `Extension.lean` then
+makes it a motion over `ℝ`, and:
 
-1. `TauCeti.SmoothIsotopy.exists_contMDiff_extend`. There are `δ > 0`, an
-   open `V ⊇ A` and a `G : ℝ × P → N`, smooth on `Ioo (-δ) (1 + δ) ×ˢ V`,
-   that agrees with `F` on
-   $[0,1]\times V$ and whose slices are smooth embeddings of `V` for
-   $t\in(-\delta,1+\delta)$. Seeley's extension extends maps into a normed
-   space, so the target is moved into one. Tau Ceti's
-   `IsCompact.exists_opens_nonempty_smoothEmbedding_euclidean`, built on the
-   map of Mathlib's `SmoothBumpCovering.embeddingPiTangent`, embeds a
-   neighbourhood `W` of the compact track of `A` into a Euclidean space,
-   with a smooth retraction of a
-   neighbourhood of its image onto it
-   (`TauCeti.SmoothEmbedding.exists_contMDiffOn_retraction`). The extension is
-   *Smooth families*' `ContMDiff/TimeExtension.lean` applied to the
-   composite with the embedding, followed by the retraction, for times close to $[0,1]$. The
-   embedding property of the slices for those times comes from
-   `SmoothEmbedding/Neighborhood.lean` again.
-2. Compose with a smooth `c : ℝ → (-δ, 1 + δ)` that is the identity on
-   $[0,1]$ and constant near $\pm\infty$. The result is constant beyond two
-   times `a < 0 < 1 < b`, has embedding slices for every real time, and is
-   `F` on $[0,1]$.
 3. Tau Ceti's `TauCeti.exists_ambientVelocityField` gives a compactly
    supported smooth field `X` on `ℝ × N` with the velocity of the motion of
    `A`. Its flow, `TauCeti.timeDependentFlowDiffeotopy` (complete by
    `TauCeti.isCompleteVectorField_timeDependentSuspensionField`), is `Φ`.
    Uniqueness of integral curves gives `Φ (t, f₀ x) = F (t, x)`.
 
+The proof adapts Tau Ceti's
+`TauCeti.SmoothIsotopy.exists_diffeotopy_apply_eq`, which the module
+docstrings of both files credit.
+
 `TauCeti.SmoothIsotopy.exists_contMDiff_comp_eventuallyEq`,
 for `F` between manifolds of the same dimension and `h` smooth on
 `unitInterval × P`: a smooth `G` on `N × unitInterval`, vanishing off a
 compact set, with `G (F (t, y), t) = h (t, y)` for `y` near `A` (step 2 of
 `Flow.lean`), is in `Geometry/Manifold/SmoothIsotopy/Transport.lean`.
-
-Expected size: 450 lines. The proof adapts Tau Ceti's
-`TauCeti.SmoothIsotopy.exists_diffeotopy_apply_eq`, which the module docstring
-credits.
 
 ### `Geometry/Symplectic/IsotopyExtension/Velocity.lean`
 
