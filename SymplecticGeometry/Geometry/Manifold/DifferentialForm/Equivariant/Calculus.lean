@@ -12,6 +12,7 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Wedge.Smooth
 import Mathlib.Analysis.Calculus.IteratedDeriv.Lemmas
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Support
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import TauCeti.Topology.Algebra.Support
 
 /-!
 # The functional calculus of an even form
@@ -400,9 +401,8 @@ theorem formCalculus_sub (G : ℝ → ℝ) (hG : ContDiff ℝ ∞ G) (hFG : Cont
 /-- Each component of `F(f + τ)` vanishes outside `f ⁻¹' tsupport F`. -/
 theorem tsupport_formCalculus_subset (k : ℕ) :
     tsupport (α := E [⋀^Fin k]→L[ℝ] ℝ) (formCalculus F hF f τ k).val ⊆ f ⁻¹' tsupport F := by
-  refine closure_minimal (fun x hx ↦ ?_) ((isClosed_tsupport F).preimage f.contMDiff.continuous)
-  by_contra hfx
-  refine hx ?_
+  refine TauCeti.tsupport_subset_of_forall_notMem_eq_zero (fun x hfx ↦ ?_)
+    ((isClosed_tsupport F).preimage f.contMDiff.continuous)
   obtain hk | hk := Nat.even_or_odd k
   · obtain ⟨m, rfl⟩ := hk.two_dvd
     rw [formCalculus_apply]

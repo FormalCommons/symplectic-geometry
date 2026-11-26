@@ -57,7 +57,7 @@ theorem nullhomotopic_toCircle {γ : Path x x} (h : γ.Homotopic (Path.refl x)) 
   convert h.joined_toCircle
   ext ζ
   obtain ⟨t, rfl⟩ := TauCeti.unitToCircle_surjective ζ
-  simp [Path.toCircle_unitToCircle]
+  simp
 
 end Path.Homotopic
 

@@ -484,7 +484,7 @@ For a compact Hausdorff complex manifold `M` modelled on `𝓘(ℂ, E)` with
 - `SymplecticGeometry.evalFundamentalClass_chernClass_eq_eulerChar`:
   $\langle c_{r+1}(TM),[M]\rangle=\chi(M)$, from
   `chernClass_finrank_eq_complexEulerClass` (#1043), the previous item, and
-  `evalFundamentalClass_eulerClass_eq_eulerChar` (#1045). The evaluation
+  `evalFundamentalClass_eulerClass_eq_eulerChar_of_finiteCWType` (#1045). The evaluation
   must commute with `uliftIntegralCohomologyIso`, as the review of #896
   noted; if #1029 does not prove it, this issue does.
 
@@ -651,7 +651,7 @@ For `X : SmoothProjectiveHypersurface 1 d` with `d ≠ 0`:
   `chernClass_trivial` (#1037); `totalChernClass_prod` (#1038);
   `complexEulerClass_tensorProduct`, `complexEulerClass_twistCore_one`
   (#1040); `chernClass_finrank_eq_complexEulerClass` (#1043);
-  `evalFundamentalClass_eulerClass_eq_eulerChar` and the alternating sum
+  `evalFundamentalClass_eulerClass_eq_eulerChar_of_finiteCWType` and the alternating sum
   (#1045).
 - *First Chern number*'s prerequisites: Poincaré duality (#810), and the
   library's merged `Cap/RationalCoefficients.lean`.

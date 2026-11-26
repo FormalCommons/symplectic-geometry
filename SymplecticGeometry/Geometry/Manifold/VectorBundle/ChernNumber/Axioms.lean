@@ -64,7 +64,8 @@ class of `(TM, J)`, oriented as a complex line, evaluated on the fundamental cla
 is that of `TM` oriented by `o`
 (`TauCeti.SmoothTwoForm.IsNondegenerate.complexEulerClass_eq_eulerClass`). By Poincaré–Hopf its
 evaluation is the Euler characteristic
-(`TauCeti.Manifold.Orientation.evalFundamentalClass_eulerClass_eq_eulerChar`). The first Betti
+(`TauCeti.Manifold.Orientation.evalFundamentalClass_eulerClass_eq_eulerChar_of_finiteCWType`).
+The first Betti
 number of `M` is even (`TauCeti.HomologicalOrientation.even_finrank_singularHomology_one`), so
 the Euler characteristic is `2 - 2 g`
 (`TauCeti.HomologicalOrientation.eulerChar_eq_two_sub_two_mul_genus_iff_even_finrank` and
@@ -135,7 +136,7 @@ theorem symplecticChernNumber_tangent {σ : SmoothTwoForm 𝓘(ℝ, EM) M} (hσ 
     symplecticChernNumber_eq_chernNumber _ hn ℂ hJ.tames, chernNumber_def,
     firstChernClass_eq_complexEulerClass _ (finrank_self ℂ),
     hσ.complexEulerClass_eq_eulerClass hn hJ.tames, ho,
-    Manifold.Orientation.evalFundamentalClass_eulerClass_eq_eulerChar,
+    Manifold.Orientation.evalFundamentalClass_eulerClass_eq_eulerChar_of_finiteCWType,
     ((o.toHomologicalOrientation hn).eulerChar_eq_two_sub_two_mul_genus_iff_even_finrank hn).2
       ((o.toHomologicalOrientation hn).even_finrank_singularHomology_one hn),
     (o.toHomologicalOrientation hn).genus_eq_surfaceGenus hn]

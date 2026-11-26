@@ -9,6 +9,7 @@ public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 public import SymplecticGeometry.Analysis.Calculus.ContDiff.FTaylorSeries
 public import SymplecticGeometry.Analysis.Normed.Group.FunctionSeries
 public import SymplecticGeometry.Analysis.Sobolev.Trace.Reflection.Seeley
+import SymplecticGeometry.Topology.MetricSpace.Tube
 
 /-!
 # Seeley's extension
@@ -331,12 +332,13 @@ private theorem exists_bound_ftaylorSeriesWithin (hU : IsOpen U)
       ⟨(hC z hz).trans_lt (lt_add_one C), hKs hz⟩
     rw [hpre] at hz'
     exact hz'.1
-  obtain ⟨V, W, -, hW, hV, hW₀, hVW⟩ := generalized_tube_lemma isCompact_Icc isCompact_singleton
-    hu hKu
-  obtain ⟨r, hr, hrW⟩ := Metric.isOpen_iff.1 (hW.inter hU) x₀ ⟨hW₀ rfl, hx₀⟩
-  refine ⟨r, hr, max (C + 1) 0, le_max_right _ _, fun x hx ↦ (hrW hx).2, fun z hz₀ hz ↦ ?_⟩
+  obtain ⟨r, hr, hru⟩ := isCompact_Icc.exists_prod_ball_subset (hu.inter (isOpen_univ.prod hU))
+    fun z hz ↦ ⟨hKu hz, trivial, hKs hz |>.2⟩
+  have hrU : Metric.ball x₀ r ⊆ U := fun x hx ↦
+    (hru (mk_mem_prod (left_mem_Icc.2 (zero_le_one' ℝ)) hx)).2.2
+  refine ⟨r, hr, max (C + 1) 0, le_max_right _ _, hrU, fun z hz₀ hz ↦ ?_⟩
   rcases le_or_gt z.1 1 with hz₁ | hz₁
-  · have hzu : z ∈ u ∩ Ici 0 ×ˢ U := ⟨hVW ⟨hV ⟨hz₀, hz₁⟩, (hrW hz).1⟩, hz₀, (hrW hz).2⟩
+  · have hzu : z ∈ u ∩ Ici 0 ×ˢ U := ⟨(hru ⟨⟨hz₀, hz₁⟩, hz⟩).1, hz₀, hrU hz⟩
     rw [← hpre] at hzu
     exact hzu.1.le.trans (le_max_left _ _)
   · rw [hp_def, ftaylorSeriesWithin_eq_zero h1 hz₁, norm_zero]

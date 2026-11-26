@@ -8,7 +8,7 @@ module
 public import Mathlib.LinearAlgebra.QuadraticForm.Signature
 public import SymplecticGeometry.Algebra.Homology.ShortComplex.PreservesHomology
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.Basic
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.CompactSupport.Duality.Manifold
+public import TauCeti.AlgebraicTopology.Cohomology.CompactSupport.Duality.Manifold
 public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.RestrictScalars
 public import SymplecticGeometry.LinearAlgebra.QuadraticForm.Signature
 public import TauCeti.Algebra.Category.ModuleCat.RestrictScalars
@@ -593,7 +593,7 @@ theorem bijective_singularCapLinearMap_fundamentalClass [CompactSpace M] {p q : 
     (ConcreteCategory.bijective_of_isIso ((TopCat.of M).singularHomologyRatIso q).hom) _).1 ?_
   refine (funext (o.singularHomologyRatIso_hom_singularCapLinearMap hn h (p := p)) :
     _ ∘ _ = _ ∘ _ ∘ _) ▸ ?_
-  exact (o.bijective_dualityMap hn (ModuleCat.of ℤ ℚ) h).comp
+  exact (o.bijective_dualityMap hn (ModuleCat.of ℤ ℚ) _ _ h).comp
     ((ConcreteCategory.bijective_of_isIso _).comp (ConcreteCategory.bijective_of_isIso _))
 
 include o hn in

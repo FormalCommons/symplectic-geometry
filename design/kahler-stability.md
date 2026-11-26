@@ -34,7 +34,8 @@ may adjust implicit arguments and instance arguments to what elaborates.
   metric is $g_J(v,w)=\sigma(v,Jw)$, installed as a local
   `RiemannianBundle` instance through Tau Ceti's `Compatible.metric`, as
   `DESIGN.md` says under *Almost complex structures, Kähler manifolds and
-  characteristic classes*.
+  characteristic classes*. `tendsto_limitPoint` takes `I' = 𝓘(ℝ, E')`, the
+  model of Tau Ceti's Morse–Bott theorems on components of a moment map.
 - `G` acts smoothly (`[MulAction G M] [ContMDiffSMul I I' ∞ G M]`) and each
   `g • ·` preserves `σ` and `J`; these are hypotheses, not a predicate, as
   `DESIGN.md` says for symplectic actions.
@@ -217,7 +218,7 @@ All in `SymplecticGeometry`, with `C : LieComplexification I G IC Gc`.
   with `kempfNessFunction_polar` as its defining lemma.
 - `momentWeight C μ p ξ : ℝ`, the limit of `μ (C.expI (t • ξ) • p) ξ` as
   `t → ∞` (`limUnder atTop`), with `tendsto_momentWeight`, and
-  `limitPoint C p ξ : M`, with `tendsto_limitPoint` for `ξ ∈ Λ`.
+  `limitPoint C p ξ : M`, with `tendsto_limitPoint` for every `ξ`.
 - `nonzeroPeriods I G : Set 𝔤 := {ξ | ξ ≠ 0 ∧ mulInvariantExp ξ = 1}`,
   written $\Lambda$, invariant under `Ad` and under positive integer
   multiples, in `Geometry/Lie/Exponential/Periods.lean`.
@@ -280,7 +281,7 @@ All in `SymplecticGeometry`, with `C : LieComplexification I G IC Gc`.
 ### `HilbertMumford.lean`
 
 - `momentWeight_le`: $w_\mu(p,\xi)\le\langle\mu(p),\xi\rangle$, and
-  `tendsto_limitPoint` for `ξ ∈ nonzeroPeriods I G`.
+  `tendsto_limitPoint` for every `ξ`.
 - `tendsto_deriv_kempfNessFunction`: the slope identity, the limit of the
   derivative of $t\mapsto\Phi_p(\exp(-it\xi))$ is $-w_\mu(p,\xi)$.
 - `momentWeight_le_mul_norm`: the moment-weight inequality,

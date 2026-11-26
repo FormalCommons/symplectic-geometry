@@ -9,6 +9,7 @@ public import SymplecticGeometry.Analysis.Distribution.Coordinates
 public import SymplecticGeometry.Analysis.Distribution.EllipticSystem
 public import SymplecticGeometry.Analysis.Distribution.SmulLeft
 import Mathlib.Analysis.InnerProductSpace.Dual
+import SymplecticGeometry.Analysis.Calculus.ContDiff.Basis
 import SymplecticGeometry.Analysis.Distribution.NegativeSobolev
 import SymplecticGeometry.MeasureTheory.Function.LpSeminorm.LinearEquiv
 import TauCeti.Analysis.Calculus.BumpFunction.Cutoff
@@ -317,16 +318,13 @@ theorem exists_secondOrderSystem_coordOfFun {U : Set E} (hU : IsOpen U)
   have hext (f : E → ℝ) (hf : ContDiffOn ℝ ∞ f U) :
       ContDiff ℝ ∞ fun z ↦ χ (e.symm z) • f (e.symm z) :=
     (hf.contDiff_smul_of_tsupport_subset hU hχ.contDiffOn hχU).comp e.symm.contDiff
-  have hrepr {f : E → F} (hf : ContDiffOn ℝ ∞ f U) (l : κ) :
-      ContDiffOn ℝ ∞ (fun y ↦ bF.repr (f y) l) U := by
-    simpa [Function.comp_def] using (bF.coord l).toContinuousLinearMap.contDiff.comp_contDiffOn hf
   have hg (i j : ι) : ContDiff ℝ ∞ fun z ↦ -(χ (e.symm z) • A i j (e.symm z)) :=
     (hext _ (hA i j)).neg
   have hβ (k l : κ) (i : ι) :
       ContDiff ℝ ∞ fun z ↦ -(χ (e.symm z) • bF.repr (B i (e.symm z) (bF k)) l) :=
-    (hext _ (hrepr ((hB i).clm_apply contDiffOn_const) l)).neg
+    (hext _ (bF.contDiffOn_repr ((hB i).clm_apply contDiffOn_const) l)).neg
   have hγ (k l : κ) : ContDiff ℝ ∞ fun z ↦ χ (e.symm z) • bF.repr (C (e.symm z) (bF k)) l :=
-    hext _ (hrepr (hC.clm_apply contDiffOn_const) l)
+    hext _ (bF.contDiffOn_repr (hC.clm_apply contDiffOn_const) l)
   refine ⟨V, ⟨hxt, hx⟩, hVU, _, _, _, hg, hβ, hγ, ?_, fun hΩ _ hwV k φ ↦
     secondOrderSystem_coordOfFun_apply b hwV e hΩ bF bD hbD hg hβ hγ
       (fun _ _ y hy ↦ by simp [ht1 y hy.1]) (fun _ _ _ y hy ↦ by simp [ht1 y hy.1])

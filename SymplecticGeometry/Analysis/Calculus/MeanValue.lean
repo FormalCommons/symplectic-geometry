@@ -25,12 +25,13 @@ of holonomic approximation in [EliashbergMishachev2002], Chapter 3.
 * `SymplecticGeometry.taylor_sub_taylor_eq` and `SymplecticGeometry.norm_taylor_sub_taylor_le`:
   the Taylor maps at `a` and at `b` differ at `x` by minus the remainder `f b - f a - G a (b - a)`
   plus `(G a - G b) (x - b)`.
-* `IsCompact.exists_pos_norm_taylor_remainder_le`: over a compact set `K`, for a `C¹` map `f` and
-  a continuous `G`, the remainder `f x - f a - G a (x - a)` is at most
-  `(‖fderiv ℝ f a - G a‖ + η) * ‖x - a‖`, and `G x` is `η`-close to `G a`, for all `a ∈ K` and
-  `x` in a ball of radius independent of `a`. It follows from Tau Ceti's uniform first-order
-  estimate `IsCompact.exists_pos_forall_norm_sub_sub_fderiv_le`, applied to the constant family
-  `fun _ ↦ f`, and its uniform continuity lemma `IsCompact.exists_pos_forall_norm_sub_le`.
+* `IsCompact.exists_pos_norm_taylor_remainder_le`: over a compact set `K`, for a map `f` that is
+  `C¹` at each point of `K` and a `G` that is continuous at each point of `K`, the remainder
+  `f x - f a - G a (x - a)` is at most `(‖fderiv ℝ f a - G a‖ + η) * ‖x - a‖`, and `G x` is
+  `η`-close to `G a`, for all `a ∈ K` and `x` in a ball of radius independent of `a`. It follows
+  from Tau Ceti's uniform first-order estimate `IsCompact.exists_pos_forall_norm_sub_sub_fderiv_le`,
+  applied to the constant family `fun _ ↦ f`, and its uniform continuity lemma
+  `IsCompact.exists_pos_forall_norm_sub_le`.
 
 ## References
 
@@ -63,19 +64,19 @@ theorem norm_taylor_sub_taylor_le (f : E → F) (G : E → E →L[ℝ] F) (a b x
 
 end SymplecticGeometry
 
-/-- **Uniform Taylor estimate.** Let `f` be `C¹`, `G` continuous, `K` compact and `η > 0`. There
-is `ρ > 0` such that for every `a ∈ K` and every `x` with `‖x - a‖ < ρ`, the remainder
-`f x - f a - G a (x - a)` has norm at most `(‖fderiv ℝ f a - G a‖ + η) * ‖x - a‖`, and
-`‖G x - G a‖ ≤ η`. -/
+/-- **Uniform Taylor estimate.** Let `K` be compact, `f` be `C¹` at each point of `K`, `G` be
+continuous at each point of `K`, and `η > 0`. There is `ρ > 0` such that for every `a ∈ K` and
+every `x` with `‖x - a‖ < ρ`, the remainder `f x - f a - G a (x - a)` has norm at most
+`(‖fderiv ℝ f a - G a‖ + η) * ‖x - a‖`, and `‖G x - G a‖ ≤ η`. -/
 theorem IsCompact.exists_pos_norm_taylor_remainder_le {f : E → F} {G : E → E →L[ℝ] F}
-    {K : Set E} (hK : IsCompact K) (hf : ContDiff ℝ 1 f) (hG : Continuous G) {η : ℝ}
-    (hη : 0 < η) :
+    {K : Set E} (hK : IsCompact K) (hf : ∀ a ∈ K, ContDiffAt ℝ 1 f a)
+    (hG : ∀ a ∈ K, ContinuousAt G a) {η : ℝ} (hη : 0 < η) :
     ∃ ρ > 0, ∀ a ∈ K, ∀ x, ‖x - a‖ < ρ →
       ‖f x - f a - G a (x - a)‖ ≤ (‖fderiv ℝ f a - G a‖ + η) * ‖x - a‖ ∧ ‖G x - G a‖ ≤ η := by
   obtain ⟨ρ₁, hρ₁, h₁⟩ := hK.exists_pos_forall_norm_sub_sub_fderiv_le (F := fun _ ↦ f) (x := id)
-    (fun _ _ ↦ (hf.comp contDiff_snd).contDiffAt) continuousOn_id hη
+    (fun a ha ↦ (hf a ha).comp _ contDiffAt_snd) continuousOn_id hη
   obtain ⟨ρ₂, hρ₂, h₂⟩ := hK.exists_pos_forall_norm_sub_le (Φ := fun q : E × E ↦ G q.2)
-    continuousOn_id (fun _ _ ↦ (hG.comp continuous_snd).continuousAt) hη
+    continuousOn_id (fun a ha ↦ (hG a ha).comp continuousAt_snd) hη
   refine ⟨min ρ₁ ρ₂, lt_min hρ₁ hρ₂, fun a ha x hx ↦
     ⟨?_, h₂ a ha x (hx.le.trans (min_le_right _ _))⟩⟩
   have hrem := h₁ a ha (x - a) (hx.le.trans (min_le_left _ _))

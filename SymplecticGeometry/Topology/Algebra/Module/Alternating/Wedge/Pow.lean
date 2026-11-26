@@ -8,7 +8,7 @@ module
 public import Mathlib.LinearAlgebra.Determinant
 public import Mathlib.LinearAlgebra.Dimension.Finrank
 public import Mathlib.RingTheory.Finiteness.Defs
-public import TauCeti.Topology.Algebra.Module.Alternating.Wedge.Pow
+public import TauCeti.Topology.Algebra.Module.Alternating.Wedge.Pow.Basic
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Wedge.Basic
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.TopDegree
 import TauCeti.Topology.Algebra.Module.Alternating.TopDegree
