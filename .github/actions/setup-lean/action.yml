@@ -83,8 +83,10 @@ runs:
     # and a save of `.lake/packages`, work as before. If the cache has
     # nothing or cannot be read, the step gives a warning and compiles the
     # modules itself; if its build fails, it gives a warning, and the build
-    # that follows compiles what is missing. The script is the one that the
-    # agents' jobs run, and on a runner it has no other job to wait for.
+    # that follows compiles what is missing. If Lake fails before it asks
+    # the cache, the step tries again for 5 minutes before it compiles the
+    # modules itself. The script is the one that the agents' jobs run, and
+    # on a runner it has no other job to wait for.
     - name: take the imported Tau Ceti modules from Tau Ceti's build cache
       if: inputs.names-only != 'true' && steps.restore.outputs.cache-matched-key == ''
       shell: bash
