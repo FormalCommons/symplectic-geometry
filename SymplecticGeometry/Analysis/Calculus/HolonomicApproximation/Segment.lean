@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Translate
 import SymplecticGeometry.Analysis.Calculus.HolonomicApproximation.Basic
 import SymplecticGeometry.Analysis.Calculus.HolonomicApproximation.ZigZag
+import SymplecticGeometry.Analysis.Normed.Group.Pi
 
 /-!
 # Holonomic approximation over a segment
@@ -23,8 +24,9 @@ segment and fixed near its end points, and a smooth `f'`, equal to `f` near the 
 is `ε`-close to `f` in `C¹` with respect to `G` on an open set containing the image of the
 segment under `h 1`.
 
-The proof assembles two earlier results. `SymplecticGeometry.exists_holonomic_approximation_zigzag`
-gives `f'` near a zig-zag curve `u ↦ (u, r g₀ (u) e₀)` with `r < δ / 2`, and
+The proof assembles two earlier results. `SymplecticGeometry.exists_holonomic_approximation_zigzag`,
+in the case `m = 1` with no directions besides the core one, gives `f'` near a zig-zag curve
+`u ↦ (u, r g₀ (u) e₀)` with `r < δ / 2`, where `g₀ u = g (u 0)` for a profile `g : ℝ → ℝ`, and
 `SymplecticGeometry.exists_wiggling_diffeotopy`, applied to the profile `g₀` and the transverse
 direction `e₀` over the closed `δ / 2`-neighbourhood of the segment, gives a diffeotopy that moves
 the segment onto that curve. Since `g₀` vanishes near `± 1`, the diffeotopy fixes a neighbourhood
@@ -75,15 +77,39 @@ theorem exists_holonomic_approximation_segment {k : ℕ} (hk : 0 < k)
       ∃ U' ∈ 𝓝ˢ (sphere 0 1 ×ˢ {0}), EqOn f' f U' := by
   set j : Fin k := ⟨0, hk⟩
   have hδ2 : 0 < δ / 2 := by positivity
-  obtain ⟨r, g₀, f', V, hr, hrδ, hg₀, hg₀1, ⟨W₀, hW₀, hW₀g⟩, hV, hXV, hf', hf'V, hU''⟩ :=
-    exists_holonomic_approximation_zigzag j hf hG hU hUf hU' hε hδ2
+  -- For `m = 1`, the faces `|u 0| = 1` of the core segment are its end points, and the maps
+  -- `u ↦ G (update u 0 s, 0)` are constant.
+  have hnorm : ∀ u : Fin 1 → ℝ, ‖u‖ = |u 0| := fun u ↦ by
+    rw [Pi.norm_eq_norm_default, Fin.default_eq_zero, Real.norm_eq_abs]
+  have hface : {u ∈ closedBall (0 : Fin 1 → ℝ) 1 | |u 0| = 1} = sphere 0 1 := by
+    ext u
+    simp only [mem_ofPred_eq, mem_closedBall_zero_iff, mem_sphere_zero_iff_norm, hnorm]
+    exact ⟨fun h ↦ h.2, fun h ↦ ⟨h.le, h⟩⟩
+  have hupd : ∀ (u : Fin 1 → ℝ) s, Function.update u 0 s = fun _ ↦ s := fun u s ↦
+    funext fun i ↦ by rw [Subsingleton.elim i 0, Function.update_self]
+  obtain ⟨r, g, f', V, hr, hrδ, hg, hg1, ⟨b, hb, hbg⟩, hV, hXV, hf', hf'V, hU''⟩ :=
+    exists_holonomic_approximation_zigzag 0 j (J' := ∅) hf hG
+      (fun s ↦ by simp only [hupd]; exact contDiff_const)
+      (by simp only [hupd, fderiv_const_apply]; exact continuous_const)
+      (fun u _ v hv ↦ by
+        obtain rfl : v = 0 := funext fun i ↦ hv i (Finset.notMem_empty i)
+        rw [Prod.mk_zero_zero, map_zero, map_zero])
+      hU hUf (hface ▸ hU') (half_pos hε) hδ2
+  rw [hface] at hU''
+  set g₀ : (Fin 1 → ℝ) → ℝ := fun u ↦ g (u 0)
+  have hg₀ : ContDiff ℝ ∞ g₀ := hg.comp (by fun_prop)
+  have hg₀1 : ∀ u, |g₀ u| ≤ 1 := fun u ↦ hg1 _
+  obtain ⟨W₀, hW₀, hW₀g⟩ : ∃ W₀ ∈ 𝓝ˢ (sphere (0 : Fin 1 → ℝ) 1), ∀ u ∈ W₀, g₀ u = 0 :=
+    ⟨{u | 1 - b < |u 0|}, (isOpen_lt continuous_const (by fun_prop)).mem_nhdsSet.2 fun u hu ↦ by
+      rw [mem_sphere_zero_iff_norm, hnorm] at hu
+      simp only [mem_ofPred_eq, hu]; linarith, fun u hu ↦ hbg _ hu⟩
   -- The diffeotopy pushes the closed `δ / 2`-neighbourhood `K` of the segment along `eⱼ`.
   set S : Set ((Fin 1 → ℝ) × (Fin k → ℝ)) := closedBall 0 1 ×ˢ {0}
   set K := cthickening (δ / 2) S
   have hK : IsCompact K := ((isCompact_closedBall _ _).prod isCompact_singleton).cthickening
   obtain ⟨h, ⟨C, hC, hCK, hCh⟩, hsmall, hKh⟩ := exists_wiggling_diffeotopy hK j hr.le hrδ hg₀ hg₀1
   refine ⟨h, f', V, ⟨C, hC, ?_, hCh⟩, fun t x ↦ (hsmall t x).trans (half_lt_self hδ), ?_, hV, ?_,
-    hf', hf'V, hU''⟩
+    hf', fun x hx ↦ ⟨(hf'V x hx).1.trans (half_lt_self hε), ?_⟩, hU''⟩
   · calc C ⊆ thickening (δ / 2) K := hCK
       _ ⊆ thickening (δ / 2 + δ / 2) S := thickening_cthickening_subset _ hδ2.le _
       _ = thickening δ S := by rw [add_halves]
@@ -100,6 +126,10 @@ theorem exists_holonomic_approximation_segment {k : ℕ} (hk : 0 < k)
     subst hv
     rw [hKh 1 _ (self_subset_cthickening _ ⟨hu, rfl⟩)]
     simpa using hXV u hu
+  · -- In dimension one, every vector is in the direction `0`.
+    refine (ContinuousLinearMap.opNorm_le_bound _ (half_pos hε).le fun w ↦
+      (hf'V x hx).2 w fun i hi ↦ absurd (by simp [Subsingleton.elim i 0]) hi).trans_lt
+      (half_lt_self hε)
 
 end SymplecticGeometry
 

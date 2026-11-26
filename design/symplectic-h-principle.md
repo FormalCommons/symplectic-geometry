@@ -475,11 +475,14 @@ needed for it.
    and `i₀`, with `S 0 = S (n + 1) = f` near the faces `|u i₀| = 1`. The
    estimates `zigzag_section_estimate`, `zigzag_neighbour_estimate` and
    `zigzag_curve_estimate` become uniform over the other coordinates by
-   compactness of the cube. Smoothness of `S l` needs smoothness of
-   `u ↦ G (Function.update u i₀ c, 0)` only, which for `m = 1` holds with
-   `G` merely continuous, since that map is constant; so the hypothesis is
-   stated in that form and `exists_holonomic_approximation_segment` keeps
-   `Continuous G`.
+   compactness of the cube. Besides `Continuous G`, the hypothesis on `G` is
+   that each `u ↦ G (Function.update u i₀ c, 0)` is smooth and that
+   `(u, c) ↦ fderiv ℝ (fun u ↦ G (Function.update u i₀ c, 0)) u` is
+   continuous, which bounds that derivative uniformly on the cube; for
+   `m = 1` both hold with `G` merely continuous, since the map is constant,
+   so `exists_holonomic_approximation_segment` keeps `Continuous G`. The
+   holonomy in the directions `J'` is asked on the core vectors only, at
+   the points of `Q`.
 5. *Coordinates kept by the transverse push.* `exists_wiggling_diffeotopy`
    gains the clause `∀ t x, (h (t, x)).1 = x.1`, from a new clause of
    `exists_diffeotopy_apply_eq_add_smul` (`Diffeotopy/Translate.lean`):
