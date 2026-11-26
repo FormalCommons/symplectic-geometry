@@ -9,6 +9,10 @@ public import SymplecticGeometry.Geometry.Symplectic.Blowup.Profile
 import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 import SymplecticGeometry.Analysis.Complex.QuadraticLeviForm
 import Mathlib.Analysis.SpecialFunctions.Log.Deriv
+public import Mathlib.Analysis.InnerProductSpace.Laplacian
+public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Lift
+import TauCeti.Analysis.Normed.Group.Basic
+import TauCeti.Analysis.Calculus.ContDiff.Differentiable
 
 /-!
 # The area potential of the symplectic blowup
@@ -31,6 +35,25 @@ uses, before any form enters:
   `k` of a curve `u`, written `u t = (t - t₀)ᵏ • g t` near `t₀` with `g` analytic and
   `g t₀ ≠ 0`, as Mathlib's `AnalyticAt.analyticOrderAt_eq_natCast` gives it, the function
   `φ ∘ u` is `-l² k log |t - t₀|²` plus a function smooth at `t₀`, off `t₀`.
+
+It then proves the pointwise identity between the two densities at a point `t` with `u t ≠ 0`,
+each density being the value of the form on the derivatives of the curve along `1` and `i`:
+
+* `SymplecticGeometry.BlowupModel.eval₂_profileForm_mfderiv_curveLift`: for `u` complex
+  differentiable at `t` with `u t ≠ 0`, the density of the pull-back of `ω̃_{l,ε}` along
+  `curveLift u` is `g'(s) |v|² + g''(s) |star (u t) ⬝ᵥ v|²`, with `s = |u t|²` and `v = u'(t)`.
+  By `mfderiv_curveLift_of_ne_zero` the derivative of the lift at `t` is that of the inverse of
+  the blowdown off the divisor, the same for `blowdownPuncturedDiffeomorph`
+  (`mfderiv_subtypeVal_comp_blowdownPuncturedDiffeomorph_symm_apply`), along whose inverse
+  `ω̃_{l,ε}` pulls back to the radial potential form of `g`
+  (`mpullback_blowdownDiffeomorph_symm_profileForm`); its value on `(v, i v)` is
+  `radialPotentialForm_apply_I_smul`. Only the derivative of the lift at `t` enters, so no form
+  is pulled back along the lift itself, which is smooth only near `t`.
+* `SymplecticGeometry.BlowupModel.eval₂_ω₀E_sub_eval₂_profileForm_curveLift`: for `u` analytic
+  at `t`, the density of `u^* ω₀` minus that of the lift is `Δ (φ ∘ u) (t) / 4`. The density of
+  `u^* ω₀` is `|v|²` (`eval₂_constSmooth_stdComplexPiSymplecticForm_mfderiv`), and
+  `TauCeti.laplacian_comp_sum_norm_sq_div_four` computes `Δ (ψ |u|²) (t) / 4` as
+  `ψ'(s) |v|² + ψ''(s) |star (u t) ⬝ᵥ v|²`, here for `ψ(s) = s - g(s)`.
 
 ## References
 
@@ -118,6 +141,79 @@ theorem exists_areaPotential_comp_eq_log_add {u g : ℂ → Fin (n + 1) → ℂ}
         areaPotential_def l ε (u t)
     _ = _ := by rw [hlog]; ring
 
+
+/-! ### The two area densities along a curve -/
+
+section Density
+
+open scoped Laplacian Manifold TauCeti.ComplexManifold
+
+/-- The density of `(curveLift u)^* ω̃_{l,ε}` at a point `t` off the zeros of `u`, for `0 < l`,
+`0 < ε` and `u : ℂ → ℂⁿ⁺¹` complex differentiable at `t` with `u t ≠ 0`: the value of
+`profileForm n l ε` on the derivatives of the lift along `1` and `i` is
+`g'(s) |v|² + g''(s) |star (u t) ⬝ᵥ v|²`, for `v = u'(t)`, `s = |u t|²` and the radial potential
+`g(s) = s + l² log s + q(s)` of `ω̃_{l,ε}` off the exceptional divisor. -/
+theorem eval₂_profileForm_mfderiv_curveLift (hl : 0 < l) (hε : 0 < ε)
+    {u : ℂ → Fin (n + 1) → ℂ} {t : ℂ} (hu : DifferentiableAt ℂ u t) (h0 : u t ≠ 0) :
+    (profileForm n l ε).eval₂ (curveLift u t)
+        (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift u) t (1 : ℂ))
+        (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift u) t Complex.I) =
+      deriv (fun s ↦ s + l ^ 2 * Real.log s + blowupCorrection l ε s) (∑ i, ‖u t i‖ ^ 2) *
+          ∑ i, ‖deriv u t i‖ ^ 2 +
+        deriv (deriv fun s ↦ s + l ^ 2 * Real.log s + blowupCorrection l ε s)
+            (∑ i, ‖u t i‖ ^ 2) * Complex.normSq (star (u t) ⬝ᵥ deriv u t) := by
+  -- Off the divisor, read `ω̃_{l,ε}` through the blowdown as a radial potential form.
+  have key := SmoothForm.eval₂_mpullback _
+    (contMDiff_subtypeVal.comp (blowdownPuncturedDiffeomorph n).symm.contMDiff)
+    (profileForm n l ε) ⟨u t, mem_puncturedSpace.2 h0⟩
+    (deriv u t : Fin (n + 1) → ℂ) (Complex.I • deriv u t : Fin (n + 1) → ℂ)
+  rw [← SmoothForm.mpullback_mpullback _ _ (blowdownPuncturedDiffeomorph n).symm.contMDiff
+    contMDiff_subtypeVal, mpullback_blowdownDiffeomorph_symm_profileForm n hl hε,
+    radialPotentialForm_apply_I_smul, Function.comp_apply,
+    coe_blowdownPuncturedDiffeomorph_symm_apply] at key
+  rw [mfderiv_curveLift_of_ne_zero hu h0, mfderiv_curveLift_of_ne_zero hu h0, one_smul,
+    curveLift_of_ne_zero h0]
+  exact (congrArg₂ ((profileForm n l ε).eval₂ (ofNeZero h0))
+    (mfderiv_subtypeVal_comp_blowdownPuncturedDiffeomorph_symm_apply _ _).symm
+    (mfderiv_subtypeVal_comp_blowdownPuncturedDiffeomorph_symm_apply _ _).symm).trans key.symm
+
+/-- **The two area densities along a curve differ by a quarter Laplacian.** For `0 < l`, `0 < ε`
+and `u : ℂ → ℂⁿ⁺¹` analytic at `t` with `u t ≠ 0`, the density at `t` of `u^* ω₀` minus that of
+`(curveLift u)^* ω̃_{l,ε}`, each read on the derivatives along `1` and `i`, is
+`Δ (φ ∘ u) (t) / 4`, for the area potential `φ = areaPotential l ε` and Mathlib's Laplacian `Δ`. -/
+theorem eval₂_ω₀E_sub_eval₂_profileForm_curveLift (hl : 0 < l) (hε : 0 < ε)
+    {u : ℂ → Fin (n + 1) → ℂ} {t : ℂ} (hu : AnalyticAt ℂ u t) (h0 : u t ≠ 0) :
+    (ω₀E n).eval₂ (u t) (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) u t (1 : ℂ))
+        (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) u t Complex.I) -
+      (profileForm n l ε).eval₂ (curveLift u t)
+        (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift u) t (1 : ℂ))
+        (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift u) t Complex.I) =
+      Δ (areaPotential l ε ∘ u) t / 4 := by
+  set g : ℝ → ℝ := fun s ↦ s + l ^ 2 * Real.log s + blowupCorrection l ε s
+  set x := ∑ i, ‖u t i‖ ^ 2
+  have hx : 0 < x := sum_norm_sq_pos h0
+  -- In the variable `s = |z|²` the area potential is `s - g(s)`.
+  have hφ : areaPotential l ε ∘ u = fun s ↦ (fun r ↦ r - g r) (∑ i, ‖u s i‖ ^ 2) :=
+    funext fun s ↦ by
+      simp only [Function.comp_apply, areaPotential_def, norm_sq_complexToRealEuclidean, g]
+      ring
+  have hg : ContDiffOn ℝ ∞ g (Set.Ioi 0) := contDiffOn_add_mul_log_add_blowupCorrection hl hε
+  have hg2 : ∀ r ∈ Set.Ioi (0 : ℝ), ContDiffAt ℝ 2 g r :=
+    fun r hr ↦ (hg.contDiffAt (Ioi_mem_nhds hr)).of_le (by simp)
+  have h1 : deriv (fun r ↦ r - g r) =ᶠ[𝓝 x] fun r ↦ 1 - deriv g r :=
+    Filter.eventuallyEq_of_mem (Ioi_mem_nhds hx) fun r hr ↦ by
+      rw [deriv_fun_sub differentiableAt_fun_id ((hg2 r hr).differentiableAt (by simp)),
+        deriv_id'']
+  rw [ω₀E_def, eval₂_constSmooth_stdComplexPiSymplecticForm_mfderiv hu.differentiableAt,
+    eval₂_profileForm_mfderiv_curveLift hl hε hu.differentiableAt h0, hφ,
+    laplacian_comp_sum_norm_sq_div_four (ψ := fun r ↦ r - g r)
+      (contDiffAt_id.sub (hg2 x hx)) hu.contDiffAt,
+    h1.deriv_eq, h1.eq_of_nhds,
+    deriv_fun_sub (differentiableAt_const _) (hg2 x hx).differentiableAt_deriv_two,
+    deriv_const]
+  ring
+
+end Density
 end SymplecticGeometry.BlowupModel
 
 end

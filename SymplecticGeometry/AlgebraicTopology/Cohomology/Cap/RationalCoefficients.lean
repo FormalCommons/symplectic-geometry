@@ -15,7 +15,7 @@ public import TauCeti.AlgebraicTopology.Singular.BettiNumber
 
 import TauCeti.LinearAlgebra.QuadraticForm.Radical
 import TauCeti.LinearAlgebra.QuadraticForm.Signature
-import SymplecticGeometry.Algebra.Homology.ShortComplex.PreservesHomology
+import TauCeti.Algebra.Homology.ShortComplex.PreservesHomology
 import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.Basic
 import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.RestrictScalars
 
@@ -61,8 +61,8 @@ formulas of `SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.Basic`).
 
 As a consequence, for a compact oriented manifold, Tau Ceti's Poincaré duality for closed
 manifolds with values in `ℚ`
-(`TauCeti.HomologicalOrientation.bijective_singularCap_fundamentalClass`) makes the rational cap
-product with the rational fundamental class bijective
+(`TauCeti.HomologicalOrientation.bijective_singularCapAddHom_fundamentalClass`) makes the rational
+cap product with the rational fundamental class bijective
 (`TauCeti.HomologicalOrientation.bijective_singularCapLinearMap_fundamentalClass`). Its
 injectivity is the hypothesis of Tau Ceti's evenness criterion
 `TopCat.even_finrank_singularHomology_of_injective_singularCapLinearMap`. With Tau
@@ -96,7 +96,7 @@ formula on simplices, which the cap product computation needs; the change of coe
 one (`SSet.map_ιChainComplex_restrictScalarsChainIso_inv_f`).
 As in Tau Ceti's `Duality.lean`, `CategoryTheory.MonoidalPreadditive.monoidalLinearInt` is a
 local instance, so that the integral cap product here is built with the same instance as in
-Tau Ceti's `TauCeti.HomologicalOrientation.bijective_singularCap_fundamentalClass`.
+Tau Ceti's `TauCeti.HomologicalOrientation.bijective_singularCapAddHom_fundamentalClass`.
 
 The rational cochains and cohomology classes of the cochain-side and cap product statements are
 taken with coefficients `ModuleCat.of ℚ ℚ`, as in `TopCat.singularCochainComplexIntChainsIso`,
@@ -377,13 +377,14 @@ theorem bijective_singularCapLinearMap_fundamentalClass [CompactSpace M] {p q : 
   have e : ⇑(ConcreteCategory.hom ((TopCat.of M).singularHomologyRatIso q).hom) ∘
       ⇑((TopCat.of M).singularCapLinearMap ℚ h
         ((TopCat.of M).singularHomologyIntToRat n (o.fundamentalClass hn))) =
-      (fun β ↦ ((TopCat.of M).singularCap ℤ (ρ_ _).inv (ρ_ (ModuleCat.of ℤ ℚ)).hom p q n h
-        β).hom (o.fundamentalClass hn)) ∘
+      ⇑((TopCat.of M).singularCapAddHom ℤ (ρ_ _).inv (ρ_ (ModuleCat.of ℤ ℚ)).hom h
+        (o.fundamentalClass hn)) ∘
         ⇑(ConcreteCategory.hom ((TopCat.of M).singularCohomologyIntChainsIso ℚ p).hom) :=
     funext fun α ↦
       (TopCat.singularCap_singularCohomologyIntChainsIso_hom _ h α (o.fundamentalClass hn)).symm
+        |>.trans (TopCat.singularCapAddHom_apply ..).symm
   rw [e]
-  exact (o.bijective_singularCap_fundamentalClass hn (ModuleCat.of ℤ ℚ) p q h).comp
+  exact (o.bijective_singularCapAddHom_fundamentalClass hn (ModuleCat.of ℤ ℚ) p q h).comp
     (ConcreteCategory.bijective_of_isIso _)
 
 include o hn in

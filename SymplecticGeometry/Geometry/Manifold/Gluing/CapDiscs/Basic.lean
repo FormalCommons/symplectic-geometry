@@ -17,9 +17,9 @@ import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Local
 import SymplecticGeometry.Geometry.Manifold.Instances.AddCircle
 import SymplecticGeometry.Geometry.Manifold.Instances.HalfLine.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
-import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Sigma
 import SymplecticGeometry.Geometry.Manifold.ModelTransport.Remodel
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Deriv
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Sigma
 import TauCeti.Topology.Compactness.Normed
 import SymplecticGeometry.Geometry.Manifold.Boundary.Interior
 
@@ -577,7 +577,7 @@ annulus `1 < ‖z‖ < 2` of the `i`-th disc is identified with the point
 `c (γ i (arg z / 2π), ‖z‖ - 1)` of the interior (`capDiscs.inr_eq_inl`). It is a smooth manifold
 without boundary modelled on `ℝ²`. -/
 def capDiscs : Type :=
-  GluedAlong (capDiscs.annuliDiffeomorph (c := c) hγ hinj)
+  GluedAlong (capDiscs.annuliDiffeomorph (c := c) hγ hinj).toHomeomorph
 
 namespace capDiscs
 
@@ -585,7 +585,7 @@ namespace capDiscs
 the collar parts of the interior onto the annuli. -/
 @[instance_reducible]
 def topologicalSpace : TopologicalSpace (capDiscs c γ hγ hinj) :=
-  inferInstanceAs (TopologicalSpace (GluedAlong (annuliDiffeomorph (c := c) hγ hinj)))
+  inferInstanceAs (TopologicalSpace (GluedAlong (annuliDiffeomorph (c := c) hγ hinj).toHomeomorph))
 
 instance : TopologicalSpace (capDiscs c γ hγ hinj) := topologicalSpace c γ hγ hinj
 
@@ -593,21 +593,22 @@ instance : TopologicalSpace (capDiscs c γ hγ hinj) := topologicalSpace c γ h�
 collar parts of the interior onto the annuli. -/
 @[instance_reducible]
 def chartedSpace : ChartedSpace (EuclideanSpace ℝ (Fin 2)) (capDiscs c γ hγ hinj) :=
-  inferInstanceAs (ChartedSpace _ (GluedAlong (annuliDiffeomorph (c := c) hγ hinj)))
+  inferInstanceAs (ChartedSpace _ (GluedAlong (annuliDiffeomorph (c := c) hγ hinj).toHomeomorph))
 
 instance : ChartedSpace (EuclideanSpace ℝ (Fin 2)) (capDiscs c γ hγ hinj) :=
   chartedSpace c γ hγ hinj
 
 instance : IsManifold (𝓡 2) ∞ (capDiscs c γ hγ hinj) :=
-  inferInstanceAs (IsManifold (𝓡 2) ∞ (GluedAlong (annuliDiffeomorph (c := c) hγ hinj)))
+  inferInstanceAs
+    (IsManifold (𝓡 2) ∞ (GluedAlong (annuliDiffeomorph (c := c) hγ hinj).toHomeomorph))
 
 /-- The inclusion of the interior of `S` into the capped surface. -/
 def inl (p : (𝓡∂ 2).interiorOpens S) : capDiscs c γ hγ hinj :=
-  GluedAlong.inl (annuliDiffeomorph hγ hinj) ((𝓡∂ 2).interiorOpensDiffeomorph S ∞ p)
+  GluedAlong.inl (annuliDiffeomorph hγ hinj).toHomeomorph ((𝓡∂ 2).interiorOpensDiffeomorph S ∞ p)
 
 /-- The inclusion of the ball of radius `2` of `ℂ` into the capped surface as the `i`-th disc. -/
 def inr (i : ι) (z : ball) : capDiscs c γ hγ hinj :=
-  GluedAlong.inr (annuliDiffeomorph hγ hinj)
+  GluedAlong.inr (annuliDiffeomorph hγ hinj).toHomeomorph
     (⟨i, remodelDiffeomorph complexDiffeomorph ball z⟩ : DiscsPiece ι)
 
 /-- The inclusion of the interior of `S` is a smooth local diffeomorphism. -/
@@ -626,12 +627,12 @@ end capDiscs
 
 /-- The interior of `S` is an open subset of the capped surface. -/
 theorem isOpenEmbedding_capDiscs_inl : IsOpenEmbedding (capDiscs.inl c γ hγ hinj) :=
-  (GluedAlong.isOpenEmbedding_inl (capDiscs.annuliDiffeomorph (c := c) hγ hinj)).comp
+  (GluedAlong.isOpenEmbedding_inl (capDiscs.annuliDiffeomorph (c := c) hγ hinj).toHomeomorph).comp
     ((𝓡∂ 2).interiorOpensDiffeomorph S ∞).toHomeomorph.isOpenEmbedding
 
 /-- Each disc is an open subset of the capped surface. -/
 theorem isOpenEmbedding_capDiscs_inr (i : ι) : IsOpenEmbedding (capDiscs.inr c γ hγ hinj i) :=
-  (GluedAlong.isOpenEmbedding_inr (capDiscs.annuliDiffeomorph (c := c) hγ hinj)).comp
+  (GluedAlong.isOpenEmbedding_inr (capDiscs.annuliDiffeomorph (c := c) hγ hinj).toHomeomorph).comp
     (IsOpenEmbedding.sigmaMk.comp
       (remodelDiffeomorph capDiscs.complexDiffeomorph ball).toHomeomorph.isOpenEmbedding)
 
@@ -650,7 +651,7 @@ theorem inr_eq_inl {i : ι} {z : ball} (hz : 1 < ‖(z : ℂ)‖) :
       ⟨i, remodelDiffeomorph complexDiffeomorph ball z⟩ := by
     rw [annuliDiffeomorph_apply, toAnnuli_eq hγ hinj (gluingPoint (c := c) hγ i hz).property]
     exact Sigma.ext rfl (heq_of_eq h)
-  rw [inr, inl, ← hq, GluedAlong.inr_apply]
+  rw [inr, inl, ← hq, GluedAlong.inr_diffeomorph_apply]
   congr 1
   apply Subtype.val_injective
   rw [Set.coe_inclusion (SetLike.coe_subset_coe.2 (interiorOverlap_le_interiorOverlaps hγ i)),
@@ -673,7 +674,7 @@ theorem inr_ofReal_mul_toCircle_eq_inl {i : ι} {θ : AddCircle (1 : ℝ)} {t : 
     Subtype.ext (by rw [coe_toBall, polarPoint, hq, angle_apply hinj])
   refine ((GluedAlong.inl_eq_inr_iff _).2
     ⟨interiorOverlap_le_interiorOverlaps hγ i q.property, ?_⟩).symm
-  rw [annuliDiffeomorph_apply, toAnnuli_eq hγ hinj q.property]
+  rw [Diffeomorph.coe_toHomeomorph, annuliDiffeomorph_apply, toAnnuli_eq hγ hinj q.property]
   have h' : (annulusDiffeomorph hγ hinj i q : DiscPiece) =
       remodelDiffeomorph complexDiffeomorph ball ⟨_, ofReal_one_add_mul_toCircle_mem_ball t θ⟩ := by
     rw [coe_annulusDiffeomorph, val_toAnnulus, hz]
@@ -684,7 +685,7 @@ theorem range_inl_union_iUnion_range_inr :
     range (inl c γ hγ hinj) ∪ ⋃ i, range (inr c γ hγ hinj i) = univ := by
   refine eq_univ_of_forall fun x ↦ ?_
   obtain ⟨y, rfl⟩ | ⟨⟨i, w⟩, rfl⟩ :=
-    GluedAlong.exists_inl_or_exists_inr (annuliDiffeomorph (c := c) hγ hinj) x
+    GluedAlong.exists_inl_or_exists_inr (annuliDiffeomorph (c := c) hγ hinj).toHomeomorph x
   · refine Or.inl ⟨((𝓡∂ 2).interiorOpensDiffeomorph S ∞).symm y, ?_⟩
     rw [inl, Diffeomorph.apply_symm_apply]
   · refine Or.inr (mem_iUnion.2 ⟨i, (remodelDiffeomorph complexDiffeomorph ball).symm w, ?_⟩)

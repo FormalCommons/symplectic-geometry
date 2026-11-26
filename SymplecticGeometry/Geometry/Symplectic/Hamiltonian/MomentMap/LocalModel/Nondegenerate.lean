@@ -127,11 +127,13 @@ theorem nondegenerate_bilinFormAt_descendedForm_smul_iff (k : G) :
     (IZ := 𝓘(ℝ, A × V)) (F := F)
   have := BalancedProduct.contMDiffSMul_rightTranslation (K := K) (Z := A × V) (I := I)
     (IZ := 𝓘(ℝ, A × V)) (F := F)
-  have hk := ContMDiffSMul.contMDiff_const_smul (I := I) (n := ∞)
+  have := ContMDiffSMul.contMDiffConstSMul I (n := ∞) (G := G)
     (I' := 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))))
+    (M := BalancedProduct K K.RightTranslation (A × V))
+  have hk := ContMDiffConstSMul.contMDiff_const_smul
+    (I := 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))) (n := ∞)
     (M := BalancedProduct K K.RightTranslation (A × V)) k
-  exact SmoothTwoForm.nondegenerate_bilinFormAt_smul_iff (IG := I) k
-    (D.mpullback_smul_descendedForm k hk)
+  exact SmoothTwoForm.nondegenerate_bilinFormAt_smul_iff k (D.mpullback_smul_descendedForm k hk)
 
 /-- **The descended form is nondegenerate along the zero section**: at every point `[g, 0, 0]`. -/
 theorem nondegenerate_bilinFormAt_descendedForm_mk_zero (g : G) :

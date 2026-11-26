@@ -370,9 +370,8 @@ homomorphism sending `g` to its `0`-form. -/
 def ofFunctionRingHom : C^∞⟮I, M; ℝ⟯ →+* ⨁ k, SmoothForm I M ℝ k where
   toFun g := DirectSum.of (fun k ↦ SmoothForm I M ℝ k) 0 (ofFunction g)
   map_one' := of_zero_ofFunction_one
-  map_zero' := by rw [← ofFunctionEquiv_apply, map_zero, map_zero]
-  map_add' g g' := by
-    rw [← ofFunctionEquiv_apply, map_add, map_add, ofFunctionEquiv_apply, ofFunctionEquiv_apply]
+  map_zero' := by rw [ofFunction_zero, map_zero]
+  map_add' g g' := by rw [ofFunction_add, map_add]
   map_mul' g g' := (of_zero_ofFunction_mul g g').symm
 
 /-- `ofFunctionRingHom` sends a smooth function `g` to its `0`-form, in degree `0`. -/

@@ -72,17 +72,18 @@ theorem exists_contMDiff_injective_normalBundle (f : SmoothEmbedding I J ∞ M N
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) :
     letI := f.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hdim
     letI := f.normalSpaceVectorBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hdim
-    ∃ T : TotalSpace P (fun x ↦ f.NormalSpace x (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) → N,
+    ∃ T : TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x
+        (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) → N,
       ContMDiff (I.prod 𝓘(ℝ, P)) J ∞ T ∧ Injective T ∧
       (∀ x, T (zeroSection P _ x) = f x) ∧
       ∃ c : M → ℝ, (∀ x, 0 < c x) ∧
-        ∀ x (v : f.NormalSpace x (WithTop.coe_ne_zero.2 ENat.top_ne_zero)),
+        ∀ x (v : f.isImmersion.NormalSpace x (WithTop.coe_ne_zero.2 ENat.top_ne_zero)),
         f.normalFiberDeriv (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hdim T x v = c x • v := by
   have hn : (∞ : ℕ∞ω) ≠ 0 := by simp
   let := f.normalSpaceFiberBundle hn hdim
   let := f.normalSpaceVectorBundle hn hdim
   have := f.normalSpaceContMDiffVectorBundle (m := ∞) hn (by simp) hdim
-  let ν : M → Type _ := fun x ↦ f.NormalSpace x hn
+  let ν : M → Type _ := fun x ↦ f.isImmersion.NormalSpace x hn
   rcases isEmpty_or_nonempty M with hM | hM
   · have : IsEmpty (TotalSpace P ν) := ⟨fun p ↦ hM.false p.proj⟩
     exact ⟨isEmptyElim, fun p ↦ isEmptyElim p, fun p ↦ isEmptyElim p, fun x ↦ isEmptyElim x,
@@ -175,6 +176,6 @@ theorem exists_contMDiff_injective_normalBundle (f : SmoothEmbedding I J ∞ M N
       r x • f.normalRepresentative x hn v := by
     rw [hfun]
     exact h2.trans ((congrArg _ hs1).trans (hlin.trans (congrArg _ key)))
-  rw [h1, map_smul, normalClassL_apply, normalClass_normalRepresentative]
+  rw [h1, map_smul, Manifold.IsImmersion.normalClassL_apply, normalClass_normalRepresentative]
 
 end TauCeti.SmoothEmbedding

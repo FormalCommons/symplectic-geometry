@@ -23,8 +23,8 @@ Where `φ` is the identity, they agree with `s`. So, if `φ` is the identity on 
 
 The file also gives the general steps of such gluings. A family of `C^n` sections whose
 values at each point of `U` are the vectors of a basis is a frame on `U`
-(`IsLocalFrameOn.of_forall_exists_basis`), and so is a family of `finrank 𝕜 F` `C^n` sections that
-is linearly independent at each point (`IsLocalFrameOn.of_linearIndependent_of_card_eq_finrank`).
+(`IsLocalFrameOn.of_forall_exists_basis`); Tau Ceti's
+`IsLocalFrameOn.of_linearIndependent_of_card_eq_finrank` gives one from linear independence.
 A frame on each open set of a family is a frame on their union (`IsLocalFrameOn.iUnion_of_isOpen`),
 and frames on open sets `U` and `U'` that agree on `U ∩ U'` glue to the piecewise frame on `U ∪ U'`
 (`IsLocalFrameOn.piecewise`, from `IsLocalFrameOn.union_of_isOpen`).
@@ -38,8 +38,6 @@ with `B × F`.
 ## Main results
 
 * `IsLocalFrameOn.of_forall_exists_basis`: a frame from pointwise bases.
-* `IsLocalFrameOn.of_linearIndependent_of_card_eq_finrank`: a frame from linear independence and
-  a count.
 * `IsLocalFrameOn.iUnion_of_isOpen`: a family that is a frame on each of a family of open sets is
   a frame on their union.
 * `IsLocalFrameOn.piecewise`: two frames that agree on the overlap of their open sets glue.
@@ -113,20 +111,6 @@ theorem iUnion_of_isOpen {κ : Type*} {W : κ → Set B} (hs : ∀ k, IsLocalFra
     obtain ⟨k, hk⟩ := mem_iUnion.1 hx
     exact (hs k).generating hk
   contMDiffOn i := .iUnion_of_isOpen (fun k ↦ (hs k).contMDiffOn i) hW
-
-omit [CompleteSpace 𝕜] [ContMDiffVectorBundle n F V IB] [Finite ι] in
-/-- A family of `finrank 𝕜 F` sections that is `C^n` on `U` and linearly independent at each point
-of `U` is a `C^n` local frame on `U`. -/
-theorem of_linearIndependent_of_card_eq_finrank [Fintype ι]
-    (hli : ∀ x ∈ U, LinearIndependent 𝕜 (s · x)) (hcard : Fintype.card ι = Module.finrank 𝕜 F)
-    (hs : ∀ i, ContMDiffOn IB (IB.prod 𝓘(𝕜, F)) n (T% (s i)) U) :
-    IsLocalFrameOn IB F n s U where
-  linearIndependent {x} hx := hli x hx
-  generating {x} hx := by
-    have := VectorBundle.finiteDimensional 𝕜 F V x
-    exact ((hli x hx).span_eq_top_of_card_eq_finrank'
-      (hcard.trans (VectorBundle.finrank_eq 𝕜 F V x).symm)).ge
-  contMDiffOn := hs
 
 omit [CompleteSpace 𝕜] [FiniteDimensional 𝕜 F] [VectorBundle 𝕜 F V]
   [ContMDiffVectorBundle n F V IB] [Finite ι] in
