@@ -49,7 +49,7 @@ blowup constructions read the forms they build off `Z` in these terms.
   twice its imaginary part: Tau Ceti's chain rule `TauCeti.leviForm_scalar_comp_apply` (of which
   `TauCeti.manifoldLeviForm_scalar_comp_apply` is the manifold form) gives the Levi form of
   `g ∘ s`, from that of `s`, the Hermitian product `star v ⬝ᵥ w`
-  (`TauCeti.leviForm_norm_sq_complexToRealEuclidean`, by `TauCeti.leviForm_norm_sq`),
+  (`TauCeti.leviForm_norm_sq_complexToRealEuclidean`, by `TauCeti.leviForm_norm_sq_comp_apply`),
   and from `∂s = star z ⬝ᵥ ·`
   (`TauCeti.extendRCLike_fderiv_norm_sq_complexToRealEuclidean`). Both are in
   `SymplecticGeometry/Analysis/Complex/QuadraticLeviForm.lean`.
