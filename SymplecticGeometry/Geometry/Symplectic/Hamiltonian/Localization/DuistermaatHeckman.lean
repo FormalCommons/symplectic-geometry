@@ -34,8 +34,8 @@ measure, the measure of `σⁿ / n!`.
   functions analytic on `ℂ ∖ {0}`, which is connected. The two agree on the positive reals, so on
   `ℂ ∖ {0}` (`AnalyticOnNhd.eqOn_of_preconnected_of_frequently_eq`).
 * `SymplecticGeometry.tendsto_finsum_fixedPoints_liouvilleMeasure`: as `ħ → 0`, `ħ ≠ 0`, the right
-  side tends to the total Liouville measure of `M`, the value of the left side at `ħ = 0`; so the
-  right side has a removable singularity at `0`.
+  side tends to the total Liouville measure of `M`, the value of the left side at `ħ = 0`; so
+  `ħ = 0` is a removable singularity of the sum.
 
 ## References
 
