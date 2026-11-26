@@ -8,7 +8,9 @@ module
 public import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
 public import Mathlib.Analysis.InnerProductSpace.PiL2
 import Mathlib.Analysis.Calculus.Deriv.MeanValue
+import Mathlib.Analysis.Calculus.LineDeriv.Basic
 import Mathlib.Analysis.InnerProductSpace.Calculus
+import SymplecticGeometry.Topology.MetricSpace.Tube
 
 /-!
 # Discs attached J-orthogonally to a domain
@@ -34,10 +36,10 @@ moreover a smooth embedding with totally real tangent images.
 * `SymplecticGeometry.IsJOrthogonallyAttached.exists_lt_forall_neg`: for `C¹` data, just
   beyond the sphere the map `ι` takes values in `{φ < 0}`.
 * `SymplecticGeometry.IsJOrthogonallyAttached.comp`: the condition persists when `φ` is
-  replaced by `h ∘ φ`, for `h` with `h 0 = 0`, positive on `(0, ∞)`, and with positive derivative
+  replaced by `f ∘ φ`, for `f` with `f 0 = 0`, positive on `(0, ∞)`, and with positive derivative
   at `0`.
-* `SymplecticGeometry.IsJOrthogonallyAttached.comp_linearIsometryEquiv`: it persists under a
-  linear isometric reparametrization of the disc.
+* `SymplecticGeometry.IsJOrthogonallyAttached.comp_linearIsometry`: it persists under
+  precomposition of the disc with a linear isometry.
 * `SymplecticGeometry.isJOrthogonallyAttached_model`: the model. On
   `EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)`, with `p = (x + i y, w)`, the function
   `1 - |x|² + 2 (|y|² + |w|²)` and the inclusion of `EuclideanSpace ℝ (Fin k)` as `y = 0`,
@@ -132,11 +134,9 @@ theorem exists_lt_forall_neg [FiniteDimensional ℝ F] (h : IsJOrthogonallyAttac
   have hcont : Continuous fun p : F × ℝ ↦ fderiv ℝ g (p.2 • p.1) p.1 :=
     ((hg.continuous_fderiv one_ne_zero).comp (continuous_snd.smul continuous_fst)).clm_apply
       continuous_fst
-  obtain ⟨u, v, -, hv, hsu, h1v, huv⟩ := generalized_tube_lemma (isCompact_sphere (0 : F) 1)
-    (isCompact_singleton (x := (1 : ℝ)))
-    (n := {p : F × ℝ | fderiv ℝ g (p.2 • p.1) p.1 < 0}) (isOpen_lt hcont continuous_const)
+  obtain ⟨δ, hδ, huv⟩ := (isCompact_sphere (0 : F) 1).exists_prod_ball_subset (y := (1 : ℝ))
+    (U := {p : F × ℝ | fderiv ℝ g (p.2 • p.1) p.1 < 0}) (isOpen_lt hcont continuous_const)
     (by rintro ⟨x, t⟩ ⟨hx, rfl⟩; simpa using hneg x (by simpa using hx))
-  obtain ⟨δ, hδ, hδv⟩ := Metric.isOpen_iff.1 hv 1 (h1v rfl)
   refine ⟨1 + δ, by linarith, fun y hy1 hyr ↦ ?_⟩
   have hy0 : ‖y‖ ≠ 0 := by positivity
   set x : F := ‖y‖⁻¹ • y
@@ -150,8 +150,8 @@ theorem exists_lt_forall_neg [FiniteDimensional ℝ F] (h : IsJOrthogonallyAttac
       (fun t _ ↦ (hderiv t).continuousAt.continuousWithinAt) fun t ht ↦ ?_
     rw [interior_Icc] at ht
     rw [(hderiv t).deriv]
-    have hmem : (x, t) ∈ u ×ˢ v := by
-      refine ⟨hsu (by simpa using hx), hδv ?_⟩
+    have hmem : (x, t) ∈ sphere (0 : F) 1 ×ˢ ball 1 δ := by
+      refine ⟨by simpa using hx, ?_⟩
       rw [Real.ball_eq_Ioo]
       exact ⟨by linarith [ht.1], by linarith [ht.2]⟩
     exact huv hmem
@@ -179,15 +179,15 @@ theorem comp (h : IsJOrthogonallyAttached E φ ι) {f : ℝ → ℝ} {f' : ℝ} 
     rw [h.mvfderiv_I_smul_mfderiv x hx v, mul_zero]
 
 /-- **Reparametrizing the disc.** A disc attached J-orthogonally stays so after precomposition
-with a linear isometric equivalence. -/
-theorem comp_linearIsometryEquiv (h : IsJOrthogonallyAttached E φ ι) {F' : Type*}
-    [NormedAddCommGroup F'] [NormedSpace ℝ F'] (e : F' ≃ₗᵢ[ℝ] F) :
+with a linear isometry. -/
+theorem comp_linearIsometry (h : IsJOrthogonallyAttached E φ ι) {F' : Type*}
+    [NormedAddCommGroup F'] [NormedSpace ℝ F'] (e : F' →ₗᵢ[ℝ] F) :
     IsJOrthogonallyAttached E φ (ι ∘ e) := by
   have key {x : F'} (hx : ‖x‖ = 1) (v : TangentSpace 𝓘(ℝ, F') x) :
       mfderiv 𝓘(ℝ, F') 𝓘(ℝ, E) (ι ∘ e) x v = mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) ι (e x) (e v) := by
     have := mfderiv_comp_apply x (h.mdifferentiableAt (by simpa using hx))
-      e.toContinuousLinearEquiv.mdifferentiableAt v
-    rw [e.toContinuousLinearEquiv.mfderiv_eq] at this
+      e.toContinuousLinearMap.mdifferentiableAt v
+    rw [e.toContinuousLinearMap.mfderiv_eq] at this
     exact this
   refine ⟨fun x hx ↦ h.pos (e x) (by simpa using hx),
     fun x hx ↦ h.eq_zero (e x) (by simpa using hx),
@@ -234,21 +234,15 @@ theorem isJOrthogonallyAttached_model :
         ContDiff ℝ 1 fun p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) ↦ (p.1 i).im :=
       Complex.imCLM.contDiff.comp (h1 i)
     have hw : ContDiff ℝ 1 fun p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) ↦
-        ‖p.2‖ ^ 2 := by
-      simp_rw [EuclideanSpace.norm_sq_eq]
-      exact ContDiff.sum fun j _ ↦ (contDiff_norm_sq ℝ).comp
-        (((EuclideanSpace.proj j : EuclideanSpace ℂ (Fin m) →L[ℂ] ℂ).restrictScalars ℝ).contDiff
-          |>.comp contDiff_snd)
+        ‖p.2‖ ^ 2 :=
+      (contDiff_norm_sq ℂ).comp contDiff_snd
     fun_prop
   -- The differential of `φ₀` in a direction is the derivative along the line in that direction.
   have hline (p w : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) {c : ℝ}
       (hc : HasDerivAt (fun t : ℝ ↦ φ₀ (p + t • w)) c 0) :
       mvfderiv 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) φ₀ p w = c := by
-    have := (hφ₀.differentiable one_ne_zero p).hasFDerivAt.comp_hasDerivAt_of_eq (0 : ℝ)
-      (((hasDerivAt_id (0 : ℝ)).smul_const w).const_add p) (by simp)
-    simp only [id, one_smul] at this
     rw [mvfderiv_eq_fderiv]
-    exact this.unique hc
+    exact ((hφ₀.differentiable one_ne_zero p).hasFDerivAt.hasLineDerivAt w).unique hc
   suffices IsJOrthogonallyAttached _ φ₀ ⇑L' from this
   refine ⟨fun x hx ↦ ?_, fun x hx ↦ ?_, fun x hx ↦ ?_, fun x _ v ↦ ?_⟩
   · rw [hval]
@@ -262,8 +256,8 @@ theorem isJOrthogonallyAttached_model :
       have heq : (fun t : ℝ ↦ φ₀ (L' x + t • L' x)) = fun t ↦ 1 - (1 + t) ^ 2 := by
         funext t
         have : x + t • x = (1 + t) • x := by rw [add_smul, one_smul]
-        rw [← map_smul, ← map_add, hval, this, norm_smul, Real.norm_eq_abs, mul_pow, sq_abs, hx,
-          one_pow, mul_one]
+        rw [← map_smul, ← map_add, hval, this, norm_smul, hx]
+        simp
       rw [heq]
       simpa using (((hasDerivAt_id (0 : ℝ)).const_add 1).pow 2).const_sub 1
     rw [ContinuousLinearMap.mfderiv_eq]
@@ -275,15 +269,9 @@ theorem isJOrthogonallyAttached_model :
       have heq : (fun t : ℝ ↦ φ₀ (L' x + t • (Complex.I • L' v))) =
           fun t ↦ (1 - ‖x‖ ^ 2) + 2 * ‖v‖ ^ 2 * t ^ 2 := by
         funext t
-        simp only [LinearMap.coe_toContinuousLinearMap', LinearMap.coe_mk, AddHom.coe_mk,
-          Prod.smul_mk, smul_zero, Prod.mk_add_mk, add_zero, PiLp.add_apply, PiLp.smul_apply,
-          smul_eq_mul, Complex.real_smul, Complex.add_re, Complex.ofReal_re, Complex.mul_re,
-          Complex.I_re, zero_mul, Complex.I_im, Complex.ofReal_im, mul_zero, sub_self,
-          Complex.mul_im, one_mul, zero_add, Complex.add_im, mul_pow, norm_zero, ne_eq,
-          OfNat.ofNat_ne_zero, not_false_eq_true, zero_pow, Finset.mul_sum,
-          EuclideanSpace.real_norm_sq_eq, add_right_inj, φ₀, L', L]
-        rw [Finset.sum_mul]
-        exact Finset.sum_congr rfl fun _ _ ↦ by ring
+        simp [φ₀, L', L, EuclideanSpace.real_norm_sq_eq, Finset.mul_sum, Finset.sum_mul,
+          mul_pow]
+        ring_nf
       rw [heq]
       convert ((hasDerivAt_pow 2 (0 : ℝ)).const_mul (2 * ‖v‖ ^ 2)).const_add (1 - ‖x‖ ^ 2)
         using 1
