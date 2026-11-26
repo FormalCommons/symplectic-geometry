@@ -51,7 +51,10 @@ across it by `TauCeti.Manifold.Orientation.map`.
   a `C^n` local diffeomorphism.
 * `ModelWithCorners.hasMFDerivAt_subtypeVal_interior`,
   `ModelWithCorners.mfderiv_subtypeVal_interior`: its differential at each point is the identity
-  of `E`.
+  of `E`. The proof of `hasMFDerivAt_subtypeVal_interior` adapts that of Tau Ceti's
+  `ModelWithCorners.contMDiff_subtypeVal_interior`, with a derivative in place of smoothness.
+* `ModelWithCorners.mfderiv_comp_subtypeVal_interior`: so precomposing a map on `M` with the
+  inclusion does not change its differential at a point of the interior.
 * `TauCeti.Manifold.Orientation.isOrientationPreservingAt_interiorOpensDiffeomorph`,
   `TauCeti.Manifold.Orientation.isOrientationPreservingAt_interiorOpensDiffeomorph_symm`: the
   diffeomorphism `I.interiorOpens M ≃ I.interior M` and its inverse preserve orientation;
@@ -175,6 +178,18 @@ theorem mfderiv_subtypeVal_interior (x : I.interior M) :
     mfderiv 𝓘(𝕜, E) I (Subtype.val : I.interior M → M) x =
       ContinuousLinearMap.id 𝕜 (TangentSpace 𝓘(𝕜, E) x) :=
   (hasMFDerivAt_subtypeVal_interior x).mfderiv
+
+omit [IsManifold I 1 M] in
+/-- Precomposing a map `g : M → N`, differentiable at an interior point `x`, with the inclusion of
+Tau Ceti's charted interior `I.interior M` does not change its differential at `x`. -/
+theorem mfderiv_comp_subtypeVal_interior {g : M → N} (x : I.interior M)
+    (hg : MDifferentiableAt I J g x) :
+    mfderiv 𝓘(𝕜, E) J (g ∘ Subtype.val) x = mfderiv I J g x := by
+  rw [mfderiv_comp x hg (hasMFDerivAt_subtypeVal_interior x).mdifferentiableAt,
+    mfderiv_subtypeVal_interior]
+  -- The identity is that of `TangentSpace 𝓘(𝕜, E) x`, and the differential of `g` starts at
+  -- `TangentSpace I x`: both are `E`, but `rw [comp_id]` does not see it.
+  exact ContinuousLinearMap.comp_id _
 
 end ModelWithCorners
 

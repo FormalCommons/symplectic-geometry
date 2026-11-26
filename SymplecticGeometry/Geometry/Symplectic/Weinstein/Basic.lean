@@ -434,13 +434,7 @@ theorem isWeinsteinDomain_scalarRegularSublevel {n : ℕ} (hn : finrank ℝ E = 
     hι.comp (𝓡∂ (n + 1)).contMDiff_subtypeVal_interior
   have hdΦ (x) : mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin (n + 1))) 𝓘(ℝ, E) Φ x =
       mfderiv (𝓡∂ (n + 1)) 𝓘(ℝ, E) Subtype.val (x : {x | f x ≤ c}) := by
-    rw [show Φ = Subtype.val ∘ Subtype.val from rfl, mfderiv_comp x
-      ((hι _).mdifferentiableAt (by simp))
-      (((𝓡∂ (n + 1)).contMDiff_subtypeVal_interior (n := 1) x).mdifferentiableAt one_ne_zero),
-      ModelWithCorners.mfderiv_subtypeVal_interior]
-    -- The identity is that of `TangentSpace 𝓘(ℝ, ℝⁿ⁺¹) x`, and the differential of `ι` starts at
-    -- `TangentSpace (𝓡∂ (n + 1)) x`: both are `ℝⁿ⁺¹`, but `rw [comp_id]` does not see it.
-    exact ContinuousLinearMap.comp_id _
+    exact ModelWithCorners.mfderiv_comp_subtypeVal_interior x ((hι _).mdifferentiableAt (by simp))
   have hΦinv (x) :
       (mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin (n + 1))) 𝓘(ℝ, E) Φ x).IsInvertible := by
     rw [hdΦ]
