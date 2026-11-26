@@ -9,6 +9,7 @@ public import SymplecticGeometry.Analysis.Calculus.ContDiff.Basis
 public import TauCeti.Analysis.Sobolev.Wkp.Classical
 public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.Basic
 public import TauCeti.MeasureTheory.Function.LpSeminorm.LpNorm
+import TauCeti.Analysis.Calculus.ContDiff.Integrable
 
 /-!
 # Chart components of Sobolev data with a smooth reading
@@ -95,8 +96,7 @@ theorem memLp_iteratedFDeriv_of_chartValueL_ae_eq {i : Fin C.n} (w : C.SobolevDa
   (memLp_finsetSum _ fun j _ ↦
     ((Wkp.memLp_iteratedFDeriv_of_contDiffOn k (w i j) ((finBasis ℝ F).contDiffOn_repr hf j)
       (value_ae_eq_repr_of_chartValueL_ae_eq hw j) m hm).norm.const_mul _)).of_le
-    ((ContinuousOn.continuousOn_iteratedFDeriv hf (C.image i).isOpen
-      (by exact_mod_cast hm)).aestronglyMeasurable (C.image i).isOpen.measurableSet)
+    (hf.aestronglyMeasurable_iteratedFDeriv (C.image i).isOpen hm)
     (ae_norm_iteratedFDeriv_le_sum hf hm)
 
 /-- **The derivatives of a smooth reading are bounded by the components.** If the chart data in
@@ -121,8 +121,7 @@ theorem lpNorm_iteratedFDeriv_le_of_chartValueL_ae_eq {i : Fin C.n} (w : C.Sobol
   calc lpNorm (iteratedFDeriv ℝ m f) p ν
       ≤ 1 * lpNorm (∑ j, ‖finBasis ℝ F j‖ • φ j) p ν :=
         lpNorm_le_mul_lpNorm_of_ae_le_mul
-          ((ContinuousOn.continuousOn_iteratedFDeriv hf (C.image i).isOpen
-            (by exact_mod_cast hm)).aestronglyMeasurable (C.image i).isOpen.measurableSet)
+          (hf.aestronglyMeasurable_iteratedFDeriv (C.image i).isOpen hm)
           (memLp_finsetSum' _ fun j _ ↦ hmem' j)
           ((ae_norm_iteratedFDeriv_le_sum hf hm).mono fun y hy ↦ by
             simpa [φ, g, Finset.sum_apply] using hy)
@@ -156,9 +155,8 @@ theorem norm_le_mul_sum_lpNorm_iteratedFDeriv {i : Fin C.n} (w : C.SobolevData �
   refine Finset.sum_le_sum fun m hm ↦ ?_
   have hm : m ≤ k := Nat.lt_succ_iff.1 (Finset.mem_range.1 hm)
   refine lpNorm_le_mul_lpNorm_of_ae_le_mul
-    ((ContinuousOn.continuousOn_iteratedFDeriv ((finBasis ℝ F).contDiffOn_repr hf j)
-      (C.image i).isOpen (by exact_mod_cast hm)).aestronglyMeasurable
-      (C.image i).isOpen.measurableSet)
+    (((finBasis ℝ F).contDiffOn_repr hf j).aestronglyMeasurable_iteratedFDeriv
+      (C.image i).isOpen hm)
     (memLp_iteratedFDeriv_of_chartValueL_ae_eq w hf hw m hm)
     (ae_restrict_of_forall_mem (C.image i).isOpen.measurableSet fun y hy ↦ ?_)
   exact c.norm_iteratedFDeriv_comp_left

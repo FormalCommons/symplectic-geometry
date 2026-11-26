@@ -6,7 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Normed.Module.FiniteDimension
-public import TauCeti.Analysis.Calculus.ContDiff.Bounds
+public import Mathlib.Analysis.Calculus.ContDiff.Basic
+import Mathlib.Analysis.Normed.Operator.Bilinear
+import TauCeti.Analysis.Calculus.IteratedFDeriv.CompLinear
 
 /-!
 # Derivatives of a map into a finite-dimensional space through its coordinates
@@ -20,8 +22,8 @@ and a map `f : E → F`:
   derivative is at most `∑ j, ‖b j‖ * ‖iteratedFDeriv 𝕜 n (fun y ↦ b.repr (f y) j) x‖`.
 
 The second is a converse of Mathlib's `ContinuousLinearMap.norm_iteratedFDeriv_comp_left`, applied
-to the coordinate functionals. Its proof writes `f` as `∑ j, b.repr (f y) j • b j` and bounds each
-term by Tau Ceti's `ContDiffAt.norm_iteratedFDeriv_smul_const_le`.
+to the coordinate functionals. It is Tau Ceti's `TauCeti.norm_iteratedFDeriv_sum_comp_left_le`
+for the maps `c ↦ c • b j`, applied to `f = fun y ↦ ∑ j, b.repr (f y) j • b j`.
 -/
 
 public section
@@ -48,11 +50,8 @@ theorem norm_iteratedFDeriv_le_sum (b : Basis ι 𝕜 F) {f : E → F} {x : E} {
       ∑ j, ‖b j‖ * ‖iteratedFDeriv 𝕜 n (fun y ↦ b.repr (f y) j) x‖ := by
   have hc (j : ι) : ContDiffAt 𝕜 n (fun y ↦ b.repr (f y) j) x :=
     (LinearMap.toContinuousLinearMap (b.coord j)).contDiff.contDiffAt.comp x hf
-  have hf' : f = fun y ↦ ∑ j, b.repr (f y) j • b j := funext fun y ↦ (b.sum_repr (f y)).symm
-  nth_rw 1 [hf']
-  rw [iteratedFDeriv_fun_sum_apply (f := fun j y ↦ b.repr (f y) j • b j)
-    fun j _ ↦ (hc j).smul contDiffAt_const]
-  refine (norm_sum_le _ _).trans (Finset.sum_le_sum fun j _ ↦ ?_)
-  exact ((hc j).norm_iteratedFDeriv_smul_const_le (b j)).trans_eq (mul_comm _ _)
+  simpa only [ContinuousLinearMap.toSpanSingleton_apply, ContinuousLinearMap.norm_toSpanSingleton,
+    b.sum_repr] using TauCeti.norm_iteratedFDeriv_sum_comp_left_le Finset.univ
+      (fun j ↦ ContinuousLinearMap.toSpanSingleton 𝕜 (b j)) fun j _ ↦ hc j
 
 end Module.Basis
