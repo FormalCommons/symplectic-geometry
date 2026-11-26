@@ -7,7 +7,10 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Connected
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Homogeneity
+public import SymplecticGeometry.Topology.FilledHull
+import SymplecticGeometry.Analysis.Calculus.Deriv.CriticalValue
 import SymplecticGeometry.Geometry.Manifold.NullSet
+import SymplecticGeometry.Topology.Closure
 import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 
 /-!
@@ -37,6 +40,15 @@ closed discrete set of a manifold of dimension at least two. Each ray is grown a
   component of `Kᶜ` through `γ T` the image of an order-connected set that contains `T` once it
   is nonempty (`LeavesForGood.image_inter_connectedComponentIn`), the form that
   `exists_diffeomorph_grow_arc` takes.
+* `exists_mem_forall_exists_mem_Ioo_leavesForGood_filledSublevel`: the next level of the
+  exhaustion and the cut of the arcs of a stage. For a continuous `h` and countably many curves
+  `α k` from the interior of `filledSublevel h d` to its outside, with `h ∘ α k` differentiable,
+  some level `c` in a prescribed nonempty open set below `d` is crossed cleanly by every
+  `h ∘ α k` (`exists_mem_Ioo_forall_apply_eq_imp_deriv_ne_zero`), and each `α k` can be cut just
+  after its first exit from `filledSublevel h c`
+  (`exists_image_Icc_subset_filledSublevel_and_disjoint`), or at once if it starts outside, so
+  that the cut arc stays in the interior of `filledSublevel h d` and leaves `filledSublevel h c`
+  for good (`exists_mem_Ioo_leavesForGood_filledSublevel`).
 
 The set `U` is preconnected by `isPreconnected_sdiff_union_iUnion_image_of_one_lt_rank`, and
 `Ψ` is the final map of a diffeotopy given by Tau Ceti's homogeneity lemma
@@ -282,6 +294,83 @@ theorem LeavesForGood.image_inter_connectedComponentIn (h : LeavesForGood γ K D
   exact mem_image_of_mem γ ⟨ht, mem_preimage.2 (connectedComponentIn_subset _ _ htW)⟩
 
 end LeavesForGood
+
+section CutArcs
+
+variable {X : Type*} [TopologicalSpace X] [R0Space X] [LocallyConnectedSpace X] {h : X → ℝ}
+
+/-- **Cutting a curve just after its first exit.** Let `h : X → ℝ` be continuous, `c < d`, and
+`α : ℝ → X` a continuous curve with `α a` in the interior of `filledSublevel h d` and `α b`
+outside it, where `a < b`, whose crossings of the level `c` in `[a, b)` are isolated from the
+right. Then for some `s ∈ (a, b)` the arc `α '' [a, s]` lies in the interior of
+`filledSublevel h d`, its end `α s` lies outside `filledSublevel h c`, and `α` leaves
+`filledSublevel h c` for good along `[a, s]`. -/
+theorem exists_mem_Ioo_leavesForGood_filledSublevel (hh : Continuous h) {α : ℝ → X}
+    (hα : Continuous α) {a b c d : ℝ} (hab : a < b) (hcd : c < d)
+    (ha : α a ∈ interior (filledSublevel h d)) (hb : α b ∉ filledSublevel h d)
+    (hzero : ∀ t ∈ Ico a b, h (α t) = c → ∀ᶠ u in 𝓝[>] t, h (α u) ≠ c) :
+    ∃ s ∈ Ioo a b, α '' Icc a s ⊆ interior (filledSublevel h d) ∧
+      α s ∉ filledSublevel h c ∧ LeavesForGood α (filledSublevel h c) (Icc a s) := by
+  have hcF : filledSublevel h c ⊆ interior (filledSublevel h d) :=
+    filledSublevel_subset_interior hh hcd
+  by_cases hac : α a ∈ filledSublevel h c
+  · -- The curve starts in `filledSublevel h c`: cut it just after its first exit.
+    obtain ⟨s, ⟨has, hsb⟩, hIcc, ε₀, hε₀, hdisj⟩ :=
+      exists_image_Icc_subset_filledSublevel_and_disjoint hh hα hab hac
+        (fun hb' ↦ hb (filledSublevel_mono hcd.le hb')) hzero
+    have hs : α ⁻¹' interior (filledSublevel h d) ∩ Iio b ∩ Iic (s + ε₀) ∈ 𝓝[≥] s :=
+      Filter.inter_mem (Filter.inter_mem (nhdsWithin_le_nhds (hα.continuousAt.preimage_mem_nhds
+        (isOpen_interior.mem_nhds (hcF (hIcc (mem_image_of_mem α ⟨has, le_rfl⟩))))))
+        (nhdsWithin_le_nhds (Iio_mem_nhds hsb)))
+        (nhdsWithin_le_nhds (Iic_mem_nhds (by linarith)))
+    obtain ⟨u, hu, hsub⟩ := mem_nhdsGE_iff_exists_Icc_subset.1 hs
+    have hIoc : Ioc s u ⊆ Ioc s (s + ε₀) := fun t ht ↦ ⟨ht.1, (hsub (Ioc_subset_Icc_self ht)).2⟩
+    have hout : MapsTo α (Ioc s u) (filledSublevel h c)ᶜ := fun t ht ↦
+      disjoint_left.1 hdisj (mem_image_of_mem α (hIoc ht))
+    refine ⟨u, ⟨has.trans_lt hu, (hsub ⟨le_of_lt hu, le_rfl⟩).1.2⟩, ?_,
+      hout ⟨hu, le_rfl⟩, leavesForGood_Icc_of_mapsTo_of_mapsTo_compl (mapsTo_iff_image_subset.2
+        hIcc) hout⟩
+    rintro _ ⟨t, ⟨hat, htu⟩, rfl⟩
+    rcases le_or_gt t s with hts | hst
+    · exact hcF (hIcc (mem_image_of_mem α ⟨hat, hts⟩))
+    · exact (hsub ⟨hst.le, htu⟩).1.1
+  · -- The curve starts outside `filledSublevel h c`: cut it at once.
+    have hs : α ⁻¹' ((filledSublevel h c)ᶜ ∩ interior (filledSublevel h d)) ∩ Iio b ∈ 𝓝[≥] a :=
+      Filter.inter_mem (nhdsWithin_le_nhds (hα.continuousAt.preimage_mem_nhds
+        (((isClosed_filledSublevel hh).isOpen_compl.inter isOpen_interior).mem_nhds ⟨hac, ha⟩)))
+        (nhdsWithin_le_nhds (Iio_mem_nhds hab))
+    obtain ⟨u, hu, hsub⟩ := mem_nhdsGE_iff_exists_Icc_subset.1 hs
+    have hout : MapsTo α (Icc a u) (filledSublevel h c)ᶜ := fun t ht ↦ (hsub ht).1.1
+    refine ⟨u, ⟨hu, (hsub ⟨le_of_lt hu, le_rfl⟩).2⟩, ?_, hout ⟨le_of_lt hu, le_rfl⟩,
+      leavesForGood_of_mapsTo_compl hout⟩
+    rintro _ ⟨t, ht, rfl⟩
+    exact (hsub ht).1.2
+
+/-- **Choosing the next level and cutting the arcs.** Let `h : X → ℝ` be continuous, `d` a level
+and `O` a nonempty open set of levels below `d`, for instance `(c₀ + 1, c₀ + 2)` with `d = c₀ + 2`,
+less finitely many closed intervals. For countably many continuous curves `α k : ℝ → X` such that
+each `h ∘ α k` is differentiable, with `a k < b k`, `α k (a k)` in the interior of
+`filledSublevel h d` and `α k (b k)` outside it, there are a level `c ∈ O` and, for each `k`, a
+parameter `s ∈ (a k, b k)` such that `α k '' [a k, s]` lies in the interior of
+`filledSublevel h d`, `α k s` lies outside `filledSublevel h c`, and `α k` leaves
+`filledSublevel h c` for good along `[a k, s]`. -/
+theorem exists_mem_forall_exists_mem_Ioo_leavesForGood_filledSublevel (hh : Continuous h)
+    {ι : Type*} [Countable ι] {α : ι → ℝ → X} (hα : ∀ k, Continuous (α k))
+    (hdiff : ∀ k, Differentiable ℝ (h ∘ α k)) {a b : ι → ℝ} (hab : ∀ k, a k < b k) {d : ℝ}
+    (ha : ∀ k, α k (a k) ∈ interior (filledSublevel h d))
+    (hb : ∀ k, α k (b k) ∉ filledSublevel h d) {O : Set ℝ} (hO : IsOpen O) (hOn : O.Nonempty)
+    (hOd : O ⊆ Iio d) :
+    ∃ c ∈ O, ∀ k, ∃ s ∈ Ioo (a k) (b k), α k '' Icc (a k) s ⊆ interior (filledSublevel h d) ∧
+      α k s ∉ filledSublevel h c ∧ LeavesForGood (α k) (filledSublevel h c) (Icc (a k) s) := by
+  obtain ⟨x, hx⟩ := hOn
+  obtain ⟨l, u, hxlu, hluO⟩ := (mem_nhds_iff_exists_Ioo_subset.1 (hO.mem_nhds hx))
+  obtain ⟨c, hc, hreg⟩ :=
+    exists_mem_Ioo_forall_apply_eq_imp_deriv_ne_zero (fun k ↦ h ∘ α k) (hxlu.1.trans hxlu.2)
+  refine ⟨c, hluO hc, fun k ↦ exists_mem_Ioo_leavesForGood_filledSublevel hh (hα k) (hab k)
+    (hOd (hluO hc)) (ha k) (hb k) fun t _ htc ↦ ?_⟩
+  exact nhdsWithin_mono t (fun _ hu ↦ ne_of_gt hu) ((hreg k t htc (hdiff k t)).2)
+
+end CutArcs
 
 end SymplecticGeometry
 
