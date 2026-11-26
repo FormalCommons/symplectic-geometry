@@ -90,8 +90,8 @@ The same two cases carry an exactness identity from a chart to the manifold
 partial diffeomorphism into `M'`, `C ⊆ W ⊆ e.source` with `C` compact and `W` open, and `Φ` a
 diffeomorphism of `M'` that fixes every point off `e '' C`. If `(Φ ∘ e)^* θ - e^* θ = dk` on `W`
 for a function `k` that vanishes on `W` outside `C`, then `k ∘ e⁻¹` on `e '' W`, extended by zero
-(`ContMDiffOn.contMDiff_indicator`), is a smooth `K` with `Φ^* θ - θ = dK`. At a point of `e '' W`
-both sides pull back along `e` to the hypothesis
+(`PartialDiffeomorph.contMDiff_indicator_image_comp_symm`), is a smooth `K` with
+`Φ^* θ - θ = dK`. At a point of `e '' W` both sides pull back along `e` to the hypothesis
 (`IsLocalDiffeomorphAt.mextDeriv_apply_eq_iff`); off `e '' C`, `Φ` is the identity and `K` is `0`
 near the point. Seidel uses this to see that the Dehn twist along an exact Lagrangian sphere is
 an exact symplectomorphism.
@@ -441,8 +441,6 @@ theorem exists_mpullback_sub_eq_mextDerivₗ_of_partialDiffeomorph [IsManifold I
       mpullback Φ Φ.contMDiff θ - θ = mextDerivₗ I' 0 (ofFunction K) := by
   have hCc : _root_.IsClosed (e '' C) :=
     (e.isCompact_image_of_subset_source hC (hCW.trans hWe)).isClosed
-  have hWo : IsOpen (e '' W) := by
-    simpa using e.toOpenPartialHomeomorph.isOpen_image_of_subset_source hW (by simpa using hWe)
   -- `K` is `k ∘ e⁻¹` on `e '' W`, extended by `0`.
   set K₀ : M' → ℝ := (e '' W).indicator fun y ↦ k (e.symm y) with hK₀
   have hK₀e : ∀ z ∈ W, K₀ (e z) = k z := fun z hz ↦ by
@@ -453,17 +451,8 @@ theorem exists_mpullback_sub_eq_mextDerivₗ_of_partialDiffeomorph [IsManifold I
     · obtain ⟨z, hz, rfl⟩ := hxW
       rw [hK₀e z hz, hk0 z hz fun hzC ↦ hx (mem_image_of_mem _ hzC)]
     · exact indicator_of_notMem hxW _
-  have hK₀s : ContMDiff I' 𝓘(ℝ) ∞ K₀ := by
-    refine ContMDiffOn.contMDiff_indicator ?_ hWo hCc (image_mono hCW) fun x hxW hx ↦ ?_
-    · refine hk.comp (e.symm.contMDiffOn.mono ?_) ?_
-      · rintro _ ⟨z, hz, rfl⟩
-        exact e.map_source (hWe hz)
-      · rintro _ ⟨z, hz, rfl⟩
-        rw [mem_preimage, PartialDiffeomorph.symm_toPartialEquiv, e.left_inv (hWe hz)]
-        exact hz
-    · obtain ⟨z, hz, rfl⟩ := hxW
-      rw [PartialDiffeomorph.symm_toPartialEquiv, e.left_inv (hWe hz)]
-      exact hk0 z hz fun hzC ↦ hx (mem_image_of_mem _ hzC)
+  have hK₀s : ContMDiff I' 𝓘(ℝ) ∞ K₀ :=
+    e.contMDiff_indicator_image_comp_symm hk hC hW hCW hWe hk0
   set K : C^∞⟮I', M'; ℝ⟯ := ⟨K₀, hK₀s⟩
   have hKK : ⇑K = K₀ := ContMDiffMap.coeFn_mk K₀ hK₀s
   refine ⟨K, hKK ▸ hK₀C, hKK ▸ hK₀e, Subtype.ext (funext fun x ↦ ?_)⟩
@@ -479,17 +468,14 @@ theorem exists_mpullback_sub_eq_mextDerivₗ_of_partialDiffeomorph [IsManifold I
       ← mpullback_comp_at (e.mdifferentiableAt (by simp) (hWe hz))
         (Φ.contMDiff.mdifferentiable (by simp) _), hθk z hz]
     -- Near `z`, `K₀ ∘ e` is `k`.
-    exact mextDeriv_congr_of_eventuallyEq <| eventually_of_mem (hW.mem_nhds hz) fun y hy ↦ by
-      rw [RoughForm.ofFunction_apply_eq_constOfIsEmpty,
-        RoughForm.ofFunction_apply_eq_constOfIsEmpty, Function.comp_apply, hK₀e y hy]
+    exact mextDeriv_ofFunction_eq_of_eventuallyEq_add_const (c := 0) <|
+      eventually_of_mem (hW.mem_nhds hz) fun y hy ↦ by simp [hK₀e y hy]
   · -- Off `e '' C`, `Φ` is the identity and `K₀` vanishes near `x`.
     have hnhds := hCc.isOpen_compl.mem_nhds fun h ↦ hx (image_mono hCW h)
     have hid : (Φ : M' → M') =ᶠ[𝓝 x] id := eventually_of_mem hnhds hΦ
     rw [hid.mpullback_eq, TauCeti.mpullback_id, sub_self,
-      mextDeriv_congr_of_eventuallyEq (η := RoughForm.ofFunction I' (0 : M' → ℝ))
-        (eventually_of_mem hnhds fun y hy ↦ by
-          rw [RoughForm.ofFunction_apply_eq_constOfIsEmpty,
-            RoughForm.ofFunction_apply_eq_constOfIsEmpty, hK₀C y hy, Pi.zero_apply]),
+      mextDeriv_ofFunction_eq_of_eventuallyEq_add_const (g := 0) (c := 0)
+        (eventually_of_mem hnhds fun y hy ↦ by simp [hK₀C y hy]),
       mextDeriv_ofFunction_zero, Pi.zero_apply]
 
 end TauCeti.SmoothForm

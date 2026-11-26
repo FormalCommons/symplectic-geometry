@@ -39,6 +39,9 @@ other way:
   Hausdorff manifold `N`, transported to `χ ∘ ψ.symm` and extended by zero off `ψ.target`, is
   supported in `ψ '' tsupport χ`, so has compact support, and is continuous, or `C^n`, when `χ`
   is. When `N` is a normed space, the last gives `PartialDiffeomorph.contDiff_indicator_comp_symm`.
+* `PartialDiffeomorph.contMDiff_indicator_image_comp_symm`: the same for a function that is only
+  `C^n` on an open `W ⊆ ψ.source` and vanishes on `W` outside a compact subset, transported to
+  `ψ '' W` and extended by zero off it.
 -/
 
 public section
@@ -159,6 +162,28 @@ theorem contMDiff_indicator_comp_symm [T2Space N] {F : Type*} [NormedAddCommGrou
     (tsupport_indicator_comp_symm_subset hK hχ hy)
   exact ((hχc.comp_contMDiffOn ψ.symm.contMDiffOn).congr fun y hy ↦ indicator_of_mem hy _)
     |>.contMDiffAt (ψ.open_target.mem_nhds hyt)
+
+/-- Let `W ⊆ ψ.source` be open and `C ⊆ W` compact. If `χ` is `C^n` on `W` and vanishes on `W`
+outside `C`, the function `χ ∘ ψ.symm` on `ψ '' W`, extended by `0` off `ψ '' W`, is `C^n`. -/
+theorem contMDiff_indicator_image_comp_symm [T2Space N] {F : Type*} [NormedAddCommGroup F]
+    [NormedSpace 𝕜 F] {χ : M → F} {C W : Set M} (hχ : ContMDiffOn I 𝓘(𝕜, F) n χ W)
+    (hC : IsCompact C) (hW : IsOpen W) (hCW : C ⊆ W) (hWs : W ⊆ ψ.source)
+    (hχ0 : ∀ z ∈ W, z ∉ C → χ z = 0) :
+    ContMDiff I' 𝓘(𝕜, F) n ((ψ '' W).indicator fun y ↦ χ (ψ.symm y)) := by
+  have hWo : IsOpen (ψ '' W) := by
+    simpa using ψ.toOpenPartialHomeomorph.isOpen_image_of_subset_source hW (by simpa using hWs)
+  refine ContMDiffOn.contMDiff_indicator ?_ hWo
+    (ψ.isCompact_image_of_subset_source hC (hCW.trans hWs)).isClosed (image_mono hCW)
+    fun x hxW hx ↦ ?_
+  · refine hχ.comp (ψ.symm.contMDiffOn.mono ?_) ?_
+    · rintro _ ⟨z, hz, rfl⟩
+      exact ψ.map_source (hWs hz)
+    · rintro _ ⟨z, hz, rfl⟩
+      rw [mem_preimage, symm_toPartialEquiv, ψ.left_inv (hWs hz)]
+      exact hz
+  · obtain ⟨z, hz, rfl⟩ := hxW
+    rw [symm_toPartialEquiv, ψ.left_inv (hWs hz)]
+    exact hχ0 z hz fun hzC ↦ hx (mem_image_of_mem _ hzC)
 
 /-- If `χ` is `C^n` and its support is compact and lies in the source of a partial
 diffeomorphism `ψ` onto an open subset of a normed space, the function `χ ∘ ψ.symm`, extended
