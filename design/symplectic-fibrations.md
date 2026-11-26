@@ -376,7 +376,7 @@ constant fields `∂ i := bs i`.
   of `∂ i` for `τ.horizontalDistribution Prod.fst` at `(x, v)` is
   `(∂ i, X i x v)`, where `X i x` is the vector field on `F` with
   $\iota(X_i)\sigma(x)=\alpha_i(x)$. It is smooth in `(x, v)`, by
-  inverting $\sigma(x)$ (Tau Ceti's `IsNondegenerate.symplecticFormAt`).
+  inverting $\sigma(x)$ (Tau Ceti's `contMDiff_interiorEquiv_symm_mpullback_prodMk`).
 
 ### `Geometry/Symplectic/Fibration/SymplecticFibres.lean`
 
