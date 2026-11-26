@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.LinearAlgebra.QuadraticForm.Signature
-public import SymplecticGeometry.Algebra.Homology.ShortComplex.PreservesHomology
+public import TauCeti.Algebra.Homology.ShortComplex.PreservesHomology
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.Basic
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralChains
 public import TauCeti.AlgebraicTopology.Cohomology.CompactSupport.Duality.Manifold

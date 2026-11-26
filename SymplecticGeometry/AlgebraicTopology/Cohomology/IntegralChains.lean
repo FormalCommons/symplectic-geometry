@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Algebra.Category.ModuleCat.ChangeOfRings
-public import SymplecticGeometry.Algebra.Homology.ShortComplex.PreservesHomology
+public import TauCeti.Algebra.Homology.ShortComplex.PreservesHomology
 public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.RestrictScalars
 public import TauCeti.AlgebraicTopology.Cohomology.IntegralComparison
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
