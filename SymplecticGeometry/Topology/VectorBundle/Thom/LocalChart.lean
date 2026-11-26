@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.OpenEmbedding
 public import TauCeti.Topology.OpenPartialHomeomorph.Basic
 public import TauCeti.Topology.VectorBundle.Trivialization
+public import TauCeti.Topology.VectorBundle.ZeroSection
 
 /-!
 # A chart of the total space at a point of the zero section
@@ -35,7 +36,9 @@ by the second projection.
 * `Bundle.Trivialization.localChart`: the chart, and
   `Bundle.Trivialization.isOpenEmbedding_localChart`: it is an open embedding.
 * `Bundle.Trivialization.localChart_zero`,
+  `Bundle.Trivialization.localChart_preimage_singleton_zeroSection_subset`,
   `Bundle.Trivialization.localChart_mem_range_zeroSection_iff`,
+  `Bundle.Trivialization.localChart_preimage_zeroSectionCompl`,
   `Bundle.Trivialization.localChart_preimage_proj_preimage`,
   `Bundle.Trivialization.proj_comp_localChart`: where the chart sends the origin, which points it
   sends to the zero section and to the fibre over `b`, and how it meets the projection.
@@ -139,6 +142,12 @@ theorem localChart_mem_range_zeroSection_iff (hSe : MapsTo c.symm S e.baseSet)
     e.localChart c S x ∈ range (zeroSection P E) ↔ x.val.1 = 0 := by
   rw [← localChart_snd_eq_zero_iff hSe]
   exact ⟨fun ⟨b, hb⟩ ↦ hb ▸ rfl, fun h ↦ ⟨_, TotalSpace.ext rfl (heq_of_eq h.symm)⟩⟩
+
+/-- The chart pulls the nonzero vectors back to the points whose first coordinate, the one in the
+model fibre, is nonzero. -/
+theorem localChart_preimage_zeroSectionCompl (hSe : MapsTo c.symm S e.baseSet) :
+    e.localChart c S ⁻¹' zeroSectionCompl P E = Subtype.val ⁻¹' (Prod.fst ⁻¹' {0}ᶜ) :=
+  ext fun x ↦ mem_zeroSectionCompl.trans (localChart_snd_eq_zero_iff hSe x).not
 
 end Linear
 
@@ -260,6 +269,13 @@ theorem localChart_zero (hSe : MapsTo c.symm S e.baseSet) (hb : b ∈ c.source) 
   rw [localChart_apply hSe]
   exact TotalSpace.ext rfl (heq_of_eq ((not_iff_not.1 (e.symm_apply_ne_zero_iff ℝ (hSe h0))).2 rfl))
 
+/-- The chart sends only the origin to the point `0_b` of the zero section. -/
+theorem localChart_preimage_singleton_zeroSection_subset (hS : IsOpen S) (hSc : S ⊆ c.target)
+    (hSe : MapsTo c.symm S e.baseSet) (hb : b ∈ c.source) (hcb : c b = 0) (h0 : (0 : Q) ∈ S) :
+    e.localChart c S ⁻¹' {zeroSection P E b} ⊆ {⟨(0, 0), mk_mem_prod (mem_univ _) h0⟩} :=
+  fun _ hx ↦ (isOpenEmbedding_localChart hS hSc hSe).injective
+    (hx.trans (localChart_zero hSe hb hcb h0).symm)
+
 section LocalHomology
 
 variable {A : Type u} [Category.{v} A] [HasCoproducts.{w} A] [Abelian A] (R : A) [T1Space P]
@@ -323,10 +339,7 @@ theorem localChartFiberLocalHomologyIso_hom_comp_localHomologyRestriction [T1Spa
       localHomologyRestriction R
           (singleton_subset_iff.2 (rfl : ((0, 0) : P × Q).2 = 0)) k ≫
         (localChartLocalHomologyIso R hS hSc hSe hb hcb h0 k).hom := by
-  have hpt : e.localChart c S ⁻¹' {zeroSection P E b} ⊆
-      {⟨(0, 0), mk_mem_prod (mem_univ _) h0⟩} := fun x hx ↦
-    (isOpenEmbedding_localChart hS hSc hSe).injective
-      (hx.trans (localChart_zero hSe hb hcb h0).symm)
+  have hpt := localChart_preimage_singleton_zeroSection_subset hS hSc hSe hb hcb h0
   rw [localChartFiberLocalHomologyIso_hom _ _ _ _ _ _ _
       (localChart_preimage_proj_preimage hSc hSe hb hcb).subset,
     localChartLocalHomologyIso_hom _ _ _ _ _ _ _ hpt, Category.assoc,
