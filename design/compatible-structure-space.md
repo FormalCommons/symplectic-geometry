@@ -328,25 +328,17 @@ Mathlib, Tau Ceti and `LinearAlgebra/BilinearForm/SelfAdjoint.lean`.
 
 `selfAdjoint.instModuleFinite`: `Module.Finite R (selfAdjoint A)` for a finite
 star module `A` over a Noetherian ring `R` with trivial star, through Mathlib's
-`selfAdjoint.submodule`. `Finrank.lean` imports it for the finiteness of
-`selfAdjoint (Matrix ι ι ℝ)`.
+`selfAdjoint.submodule`.
 
-### `LinearAlgebra/Symplectic/CompatibleTangent/Finrank.lean`
+### The dimension of the tangent spaces
 
-- `TauCeti.SymplecticForm.Compatible.finrank_compatibleTangentSpace
-  (hJ : ω.Compatible J) (hn : Module.finrank ℝ V = 2 * n) :
-  Module.finrank ℝ (ω.compatibleTangentSpace J) = n * (n + 1)`.
-
-  Proof: `compatible_iff_exists_isSymplectomorphism_stdForm` (with
-  `ι = Fin n`) moves `(ω, J)` to `(stdForm, stdComplexStructure)` and, by the
-  conjugation lemma above, the tangent space to the one at $J_0$. There a
-  linear equivalence `stdTangentEquiv ι : selfAdjoint (Matrix ι ι ℝ) ×
-  selfAdjoint (Matrix ι ι ℝ) ≃ₗ[ℝ] (stdForm ι).compatibleTangentSpace
-  (stdComplexStructure ι)` sends `(X, Y)` to the map of
-  `fromBlocks X (-Y) (-Y) (-X)`; the dimension is twice
-  `Matrix.finrank_selfAdjoint` (*Lagrangian Grassmannian*'s merged
-  `LinearAlgebra/Matrix/SelfAdjoint.lean`). The equivalence is in the
-  namespace `SymplecticGeometry`, since it involves `StdSpace`.
+Tau Ceti's `TauCeti.SymplecticForm.Invariant.finrank_compatibleTangentSpace`
+(`Geometry/Symplectic/AlmostComplex/TangentFinrank.lean`): for a
+`J`-invariant `ω`, in particular a compatible one (`Compatible.invariant`),
+`Module.finrank ℝ (ω.compatibleTangentSpace J) =
+J.complexFinrank * (J.complexFinrank + 1)`, and
+`finrank_real_eq_two_mul_complexFinrank` turns `J.complexFinrank` into `n`
+when `V` has dimension `2 n`. The library has no file of its own for it.
 
 ### `Topology/ComplexStructure/Compatible/Cayley.lean`
 
@@ -405,7 +397,7 @@ to `c9d170eed5a8` (#2025) deleted.
 ### `Geometry/Manifold/Instances/CompatibleComplexStructures.lean`
 
 The manifold, in `TauCeti.SymplecticForm`. Besides Mathlib, Tau Ceti,
-`CompatibleTangent/Finrank.lean` and `Compatible/Cayley.lean`, it imports
+`Compatible/Cayley.lean`, it imports
 `Analysis/Calculus/FDeriv/Cayley.lean` and *Linear complex structures*'
 `Topology/ComplexStructure/Basic.lean`.
 
@@ -424,7 +416,8 @@ The manifold, in `TauCeti.SymplecticForm`. Besides Mathlib, Tau Ceti,
   `range_mfderiv_compatibleCLM (J : 𝒥 ω) : LinearMap.range (mfderiv 𝓘
   𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J) = ω.compatibleTangentSpaceCLM J`, from
   Tau Ceti's `mem_compatibleTangentSpace_of_hasFDerivAt` (inclusion),
-  injectivity and the two dimensions of `Finrank.lean`.
+  injectivity and the two dimensions given by Tau Ceti's
+  `Invariant.finrank_compatibleTangentSpace`.
 - `ω.compatibleTangentEquiv J : TangentSpace 𝓘 J ≃L[ℝ] ω.compatibleTangentSpaceCLM J`,
   the differential onto its range, with `coe_compatibleTangentEquiv_apply`.
 - `isSmoothEmbedding_compatibleCLM : Manifold.IsSmoothEmbedding 𝓘

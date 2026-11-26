@@ -15,7 +15,7 @@ public import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Symplectic.Cayley.Tangent
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Cayley
-import SymplecticGeometry.LinearAlgebra.Symplectic.CompatibleTangent.Finrank
+import TauCeti.Geometry.Symplectic.AlmostComplex.TangentFinrank
 import SymplecticGeometry.Topology.ComplexStructure.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 import SymplecticGeometry.LinearAlgebra.Symplectic.Compatible
@@ -360,16 +360,20 @@ theorem compatibleCLM_mul_mvfderiv_add_mvfderiv_mul_compatibleCLM (J : 𝒥)
 /-- The model space has dimension `n (n + 1)` when `V` has dimension `2 n`. -/
 theorem finrank_compatibleModel {n : ℕ} (hn : Module.finrank ℝ V = 2 * n) :
     Module.finrank ℝ ω.compatibleModel = n * (n + 1) := by
+  have h := (ω.compatibleBase : AlmostComplexStructure V).finrank_real_eq_two_mul_complexFinrank
   rw [compatibleModel_def, finrank_compatibleTangentSpaceCLM,
-    ω.compatibleBase.property.finrank_compatibleTangentSpace hn]
+    ω.compatibleBase.property.invariant.finrank_compatibleTangentSpace,
+    show (ω.compatibleBase : AlmostComplexStructure V).complexFinrank = n by omega]
 
 /-- The model space and the compatible tangent space at any `J` have the same dimension. -/
 theorem finrank_compatibleModel_eq (J : 𝒥) :
     Module.finrank ℝ ω.compatibleModel =
       Module.finrank ℝ (ω.compatibleTangentSpaceCLM J.val) := by
   obtain ⟨n, hn⟩ := ω.even_finrank
+  have h := J.val.finrank_real_eq_two_mul_complexFinrank
   rw [finrank_compatibleModel (n := n) (by omega), finrank_compatibleTangentSpaceCLM,
-    J.property.finrank_compatibleTangentSpace (n := n) (by omega)]
+    J.property.invariant.finrank_compatibleTangentSpace,
+    show J.val.complexFinrank = n by omega]
 
 variable (ω) in
 /-- The differential of the inclusion at `J`, as an isomorphism of the tangent space at `J` onto
