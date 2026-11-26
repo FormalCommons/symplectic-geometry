@@ -422,7 +422,7 @@ theorem map_orientationAt_normalTubeChartDeriv (hΦ : f.IsNormalizedTube hn hdim
           e.symm_apply_apply_mk hz]
         exact hz
       rw [hS]
-      exact (normalClassL_apply _ _ _ _).symm.trans (h.trans h2))
+      exact (Manifold.IsImmersion.normalClassL_apply _ _ _ _).symm.trans (h.trans h2))
     (oZ.orientationAt z) (normalOrientation f hn hdim oX oZ z) hm hr).symm.trans
     (ofExact_normalOrientation f hn hdim oX oZ z hm hr)
   have hSD : S.trans (normalTubeChartDeriv Φ z).toLinearEquiv =

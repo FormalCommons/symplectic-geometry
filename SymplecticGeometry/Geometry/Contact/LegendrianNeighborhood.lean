@@ -273,7 +273,7 @@ private theorem sliceDeriv_mem_kerDistribution_and_injective
     rw [SmoothEmbedding.normalFiberDeriv_apply] at h
     rw [hver]
     -- `exact`, not `rw`: the vector lies in the tangent space at `T 0_q`, which `rw` does not
-    -- identify with the tangent space at `g q` that `normalClassL_apply` expects.
+    -- identify with the tangent space at `g q` that `Manifold.IsImmersion.normalClassL_apply` expects.
     exact (Manifold.IsImmersion.normalClassL_apply ..).symm.trans h
   have hαvert (p : TangentSpace J q →L[ℝ] ℝ) : α.val (g q) ![D (e (0, p))] = 0 := by
     have h := g.normalSpaceEquivOfIsLegendrianImmersion_normalClass hf.toIsLegendrianImmersion

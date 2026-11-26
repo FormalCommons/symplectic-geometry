@@ -717,8 +717,8 @@ theorem singularCohomologyMap_normalSlice_transDiffeomorph {f : SmoothEmbedding 
     rintro _ rfl D
     have h := f.transDiffeomorphNormalSpaceEquiv_normalClass hn φ x D
     rw [tangentSpaceCast_apply] at h
-    rw [normalClassL_apply (f := f.transDiffeomorph φ.symm)]
-    exact (normalClassL_apply _ _ _ _).trans h.symm
+    rw [Manifold.IsImmersion.normalClassL_apply (hf := (f.transDiffeomorph φ.symm).isImmersion)]
+    exact (Manifold.IsImmersion.normalClassL_apply _ _ _ _).trans h.symm
   set A := (mfderiv J J φ (g' 0)).comp (A' : P →L[ℝ] TangentSpace J (g' 0))
   have hA (w : P) : f.isImmersion.normalClassL x hn (A w) = e.symmL ℝ x w := by
     refine (hdφ _ hg0' (A' w)).trans ?_

@@ -175,6 +175,6 @@ theorem exists_contMDiff_injective_normalBundle (f : SmoothEmbedding I J ∞ M N
       r x • f.normalRepresentative x hn v := by
     rw [hfun]
     exact h2.trans ((congrArg _ hs1).trans (hlin.trans (congrArg _ key)))
-  rw [h1, map_smul, normalClassL_apply, normalClass_normalRepresentative]
+  rw [h1, map_smul, Manifold.IsImmersion.normalClassL_apply, normalClass_normalRepresentative]
 
 end TauCeti.SmoothEmbedding
