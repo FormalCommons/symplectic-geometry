@@ -11,6 +11,9 @@ import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 /-!
 # Smooth maps and open subsets
 
+A map `f : M → N` is `C^n` on an open subset `U` of `M` exactly when its restriction to `U`, read
+as a manifold, is `C^n` (`contMDiff_subtype_iff`).
+
 Let `U` be an open subset of a manifold `M` and `n` a smoothness order. A map `f : P × M → N` that
 agrees on `P × U` with a `C^n` map `g : P × U → N` is `C^n` on `P × U`
 (`ContMDiff.contMDiffOn_prod_opens_of_eq`): on the open subset `P × U` of `P × M`, read as a
@@ -24,6 +27,8 @@ As a consequence, for a `C^n` map `Φ : P × U → U` and a map `k : P × M → 
 
 ## Main results
 
+* `contMDiff_subtype_iff`: a map is `C^n` on an open subset exactly when its restriction to that
+  subset is `C^n`.
 * `ContMDiff.contMDiffOn_prod_opens_of_eq`: a map that agrees on `P × U` with a `C^n` map on
   `P × U` is `C^n` on `P × U`.
 * `ContMDiff.contMDiffOn_opens_prod_of_eq`: the same on `U × P`.
@@ -34,6 +39,24 @@ public section
 
 open Set TopologicalSpace
 open scoped Manifold
+
+section Restrict
+
+variable {𝕜 E H M E' H' N : Type*} [NontriviallyNormedField 𝕜]
+  [NormedAddCommGroup E] [NormedSpace 𝕜 E] [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H}
+  [TopologicalSpace M] [ChartedSpace H M]
+  [NormedAddCommGroup E'] [NormedSpace 𝕜 E'] [TopologicalSpace H'] {I' : ModelWithCorners 𝕜 E' H'}
+  [TopologicalSpace N] [ChartedSpace H' N]
+
+/-- Let `U` be an open subset of `M`. The restriction to `U` of a map `f : M → N`, as a map on the
+manifold `U`, is `C^n` if and only if `f` is `C^n` on `U`. -/
+theorem contMDiff_subtype_iff {n : WithTop ℕ∞} {U : Opens M} {f : M → N} :
+    ContMDiff I I' n (fun x : U ↦ f x) ↔ ContMDiffOn I I' n f U :=
+  ⟨fun h x hx ↦ (contMDiffAt_subtype_iff (x := ⟨x, hx⟩)).1 (h _) |>.contMDiffWithinAt,
+    fun h x ↦ contMDiffAt_subtype_iff.2 <|
+      (h x x.property).contMDiffAt (U.isOpen.mem_nhds x.property)⟩
+
+end Restrict
 
 variable {EP HP P E H M E' H' N : Type*}
   [NormedAddCommGroup EP] [NormedSpace ℝ EP] [TopologicalSpace HP] {IP : ModelWithCorners ℝ EP HP}
@@ -53,10 +76,9 @@ theorem ContMDiff.contMDiffOn_prod_opens_of_eq {n : WithTop ℕ∞} {U : Opens M
   let W : Opens (P × M) := ⟨univ ×ˢ U, isOpen_univ.prod U.isOpen⟩
   have hψ : ContMDiff (IP.prod J) J n (fun p : W ↦ (⟨p.val.2, p.property.2⟩ : U)) :=
     (TauCeti.ContMDiff.subtypeVal_comp_iff U _).1 (contMDiff_snd.comp contMDiff_subtypeVal)
-  intro p hp
-  refine (contMDiffAt_subtype_iff (U := W) (x := ⟨p, hp⟩)).1 ?_ |>.contMDiffWithinAt
-  exact ((hg.comp ((contMDiff_fst.comp contMDiff_subtypeVal).prodMk hψ)) ⟨p, hp⟩
-    ).congr_of_eventuallyEq (Filter.Eventually.of_forall fun q ↦ hfg (q : P × M).1 _ q.property.2)
+  refine (contMDiff_subtype_iff (U := W)).1 fun p ↦ ?_
+  exact ((hg.comp ((contMDiff_fst.comp contMDiff_subtypeVal).prodMk hψ)) p).congr_of_eventuallyEq
+    (Filter.Eventually.of_forall fun q ↦ hfg (q : P × M).1 _ q.property.2)
 
 /-- Let `U` be an open subset of `M` and `g : U × P → N` a `C^n` map. A map `f : M × P → N` with
 `f (x, p) = g (⟨x, _⟩, p)` for every `x ∈ U` and every `p` is `C^n` on `U × P`. -/
