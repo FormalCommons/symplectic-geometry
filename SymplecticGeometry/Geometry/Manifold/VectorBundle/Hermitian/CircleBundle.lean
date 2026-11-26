@@ -79,8 +79,10 @@ principal `Circle`-bundle (`SymplecticGeometry.Bundle.contMDiffFiberBundle_circl
 through the fibre as `TauCeti.ManifoldTotalSpace Circle (Fiber ℂ F V ℂ)`; Tau Ceti's
 `TauCeti.ManifoldTotalSpace.isSubmersion_proj` applies to its projection. A family of unitary
 frames over an open set is smooth into this bundle exactly when its unit vectors are smooth into
-the total space of `V` (`SymplecticGeometry.Bundle.contMDiffOn_circleFiber_iff`). Hence the
-normalization `s / ‖s‖` of a smooth section `s` with no zero on an open set, as the family of
+the total space of `V` (`SymplecticGeometry.Bundle.contMDiffOn_circleFiber_iff`); the map that
+sends a frame to its unit vector is itself smooth
+(`SymplecticGeometry.Bundle.contMDiff_circleFiber_frame_one`). Hence the normalization
+`s / ‖s‖` of a smooth section `s` with no zero on an open set, as the family of
 frames `SymplecticGeometry.Bundle.normalizedFrame (s x)`, is smooth there
 (`SymplecticGeometry.Bundle.contMDiffOn_normalizedFrame`), and every point of the base has a
 smooth local section of the circle bundle
@@ -524,8 +526,10 @@ theorem contMDiffFiberBundle_circleFiber [IsManifold I n B] :
 
 variable [IsManifold I n B]
 
-/-- The map `φ ↦ ⟨x, φ 1⟩` from the unitary frames to the total space is `C^n`. -/
-private theorem contMDiff_frame_one :
+/-- The map sending a unitary frame `φ` of `V x` to its unit vector `⟨x, φ 1⟩` is `C^n`, from the
+total space of the smooth principal `Circle`-bundle of `contMDiffFiberBundle_circleFiber` to the
+total space of `V`. -/
+theorem contMDiff_circleFiber_frame_one :
     letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
     letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
     letI : IsContinuousRiemannianBundle F V :=
@@ -597,8 +601,8 @@ theorem contMDiffOn_circleFiber_iff {b : M → B} {U : Set M} (hU : IsOpen U) :
     instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
   have := contMDiffFiberBundle_circleFiber g hI
   intro σ
-  refine ⟨fun h ↦ ((contMDiff_frame_one g hI).comp_contMDiffOn h).congr fun m _ ↦ ?_,
-    fun h m₀ hm₀ ↦ ?_⟩
+  refine ⟨fun h ↦ ((contMDiff_circleFiber_frame_one g hI).comp_contMDiffOn h).congr
+    fun m _ ↦ ?_, fun h m₀ hm₀ ↦ ?_⟩
   · exact congrArg (fun p : TotalSpace Circle (Fiber ℂ F V ℂ) ↦ (⟨p.proj, p.snd.frame 1⟩ :
       TotalSpace F V))
       ((ManifoldTotalSpace.homeomorph Circle (Fiber ℂ F V ℂ)).symm_apply_apply ⟨b m, σ m⟩).symm
@@ -738,7 +742,7 @@ def circleBundleDiffeomorph (hn : 1 ≤ n) :
         circleBundleHomeomorph).toEquiv
     contMDiff_toFun := (isSmoothEmbedding_coe_sphereBundle (F := F) (V := V)
       (contMDiff_const (I := I) (c := (1 : ℝ))) hn fun _ ↦ one_pos).contMDiff_iff_comp.2
-        ((contMDiff_frame_one g hI).congr fun x ↦ by
+        ((contMDiff_circleFiber_frame_one g hI).congr fun x ↦ by
           simp [TotalSpace.coe_modelFiberHomeomorph, TotalSpace.modelFiberEquiv_apply])
     contMDiff_invFun := (contMDiff_circleBundleHomeomorph_symm g hI hn).congr fun p ↦ by
       simp [TotalSpace.coe_modelFiberHomeomorph_symm, TotalSpace.modelFiberEquiv_symm_apply] }

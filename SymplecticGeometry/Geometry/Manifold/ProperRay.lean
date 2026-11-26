@@ -40,6 +40,17 @@ closed discrete set of a manifold of dimension at least two. Each ray is grown a
   component of `Kᶜ` through `γ T` the image of an order-connected set that contains `T` once it
   is nonempty (`LeavesForGood.image_inter_connectedComponentIn`), the form that
   `exists_diffeomorph_grow_arc` takes.
+* `exists_grow_rays`: one arc for each of finitely many rays. Rays whose built parts
+  `γ k '' Iic (T k)` are disjoint, miss `s`, are closed off `s` and leave a closed set `K` for
+  good, each ending outside `K` in a component of `Kᶜ` with noncompact closure, are all extended
+  past a compact set `L`, with new arcs outside `K ∪ s`. The new built parts are again disjoint,
+  miss `s`, are closed off `s` and leave `K` for good. The rays grow one at a time: for the ray
+  `γ k`, `exists_diffeomorph_grow_arc` runs in the component `W` of `Kᶜ` through its endpoint,
+  with the parts in `W` of the rays ending in `W` as the arcs, each of the order-connected form
+  that `LeavesForGood.image_inter_connectedComponentIn` gives. A ray ending elsewhere does not
+  meet `W` (`LeavesForGood.apply_mem_connectedComponentIn`). The target outside `L` comes from
+  `exists_mem_sdiff_union_iUnion_image_notMem`. The diffeomorphism fixes
+  every built part, so only `γ k` changes.
 * `exists_mem_forall_exists_mem_Ioo_leavesForGood_filledSublevel`: the next level of the
   exhaustion and the cut of the arcs of a stage. For a continuous `h` and countably many curves
   `α k` from the interior of `filledSublevel h d` to its outside, with `h ∘ α k` differentiable,
@@ -293,7 +304,208 @@ theorem LeavesForGood.image_inter_connectedComponentIn (h : LeavesForGood γ K D
   rintro _ ⟨⟨t, ht, rfl⟩, htW⟩
   exact mem_image_of_mem γ ⟨ht, mem_preimage.2 (connectedComponentIn_subset _ _ htW)⟩
 
+/-- If a curve `γ`, continuous on an order-connected `D` with greatest element `T`, leaves `K`
+for good along `D`, and `γ t` lies in the connected component of `Kᶜ` through `x` for some
+`t ∈ D`, then so does `γ T`. -/
+theorem LeavesForGood.apply_mem_connectedComponentIn (h : LeavesForGood γ K D)
+    (hD : D.OrdConnected) (hT : IsGreatest D T) (hγ : ContinuousOn γ D) {x : X} {t : ℝ}
+    (ht : t ∈ D) (hx : γ t ∈ connectedComponentIn Kᶜ x) : γ T ∈ connectedComponentIn Kᶜ x := by
+  have h := h.mapsTo_connectedComponentIn hD hT hγ
+    ⟨ht, mem_preimage.2 (connectedComponentIn_subset _ _ hx)⟩
+  rw [connectedComponentIn_eq hx, ← connectedComponentIn_eq h]
+  exact mem_connectedComponentIn (connectedComponentIn_nonempty_iff.mp ⟨_, h⟩)
+
 end LeavesForGood
+
+section GrowRays
+
+variable {ι : Type*} {K L s : Set M} {γ : ι → ℝ → M} {T : ι → ℝ}
+
+/-- One step of the growth of a stage of rays: the ray `γ k` gets an arc `g '' Ioc (T k) T'` in
+the component of `Kᶜ` through its endpoint, off `s` and off the built parts of all the rays, that
+ends outside `L`. -/
+private theorem exists_grow_one_ray [Finite ι] (hE : 1 < Module.rank ℝ E) (hK : IsClosed K)
+    (hL : IsCompact L) (hs : IsClosed s) (hd : IsDiscrete s)
+    (hγ : ∀ j, IsSmoothEmbedding 𝓘(ℝ) I ∞ (γ j))
+    (hdisj : Pairwise (Disjoint on fun j ↦ γ j '' Iic (T j)))
+    (hγs : ∀ j, Disjoint (γ j '' Iic (T j)) s)
+    (hcl : ∀ j, closure (γ j '' Iic (T j)) \ s ⊆ γ j '' Iic (T j))
+    (hR : ∀ j, LeavesForGood (γ j) K (Iic (T j))) (hend : ∀ j, γ j (T j) ∉ K)
+    (hnc : ∀ j, ¬ IsCompact (closure (connectedComponentIn Kᶜ (γ j (T j))))) (k : ι) :
+    ∃ g : ℝ → M, ∃ T' : ℝ, IsSmoothEmbedding 𝓘(ℝ) I ∞ g ∧ T k < T' ∧
+      EqOn g (γ k) (Iic (T k)) ∧ g T' ∉ L ∧
+      g '' Ioc (T k) T' ⊆ connectedComponentIn Kᶜ (γ k (T k)) \ (s ∪ ⋃ j, γ j '' Iic (T j)) := by
+  have : LocallyConnectedSpace H := I.toHomeomorph.locallyConnectedSpace
+  have : LocallyConnectedSpace M := ChartedSpace.locallyConnectedSpace H M
+  set W := connectedComponentIn Kᶜ (γ k (T k))
+  have hγc : ∀ j, Continuous (γ j) := fun j ↦ (hγ j).isEmbedding.continuous
+  -- The arcs are the parts in `W` of the rays that end in `W`.
+  let J : {j // γ j (T j) ∈ W} → Set ℝ := fun j ↦ Iic (T j) ∩ γ j ⁻¹' Kᶜ
+  have himage (j : {j // γ j (T j) ∈ W}) : γ j '' J j = γ j '' Iic (T j) ∩ W := by
+    have h := (hR j).image_inter_connectedComponentIn ordConnected_Iic isGreatest_Iic
+      (hγc j).continuousOn
+    rw [← connectedComponentIn_eq j.property] at h
+    exact h.symm
+  have hmem {j : ι} {x : M} (hx : x ∈ γ j '' Iic (T j)) (hxW : x ∈ W) :
+      ∃ i : {j // γ j (T j) ∈ W}, x ∈ γ i '' J i := by
+    obtain ⟨t, ht, rfl⟩ := hx
+    exact ⟨⟨j, (hR j).apply_mem_connectedComponentIn ordConnected_Iic isGreatest_Iic
+      (hγc j).continuousOn ht hxW⟩, by
+      rw [himage]; exact ⟨mem_image_of_mem _ ht, hxW⟩⟩
+  have hWL : ¬ W ⊆ L := fun h ↦ hnc k (hL.closure_of_subset h)
+  obtain ⟨y, hyW, hyL⟩ := exists_mem_sdiff_union_iUnion_image_notMem hE
+    hK.isOpen_compl.connectedComponentIn hL.isClosed hWL hd
+    (f := fun j : {j // γ j (T j) ∈ W} ↦ γ j)
+    (fun j ↦ ((hγ j).contMDiff.mdifferentiable (by simp))) J
+  have hk : γ k (T k) ∈ W := mem_connectedComponentIn (hend k)
+  obtain ⟨Ψ, -, -, -, -, δ, hδ, hΨγ, heq, hΨy, hU⟩ := exists_diffeomorph_grow_arc hE
+    hK.isOpen_compl.connectedComponentIn isPreconnected_connectedComponentIn hs hd
+    (f := fun j : {j // γ j (T j) ∈ W} ↦ γ j) (fun j ↦ hγ j)
+    (fun j ↦ (hR j).ordConnected_inter_preimage_compl ordConnected_Iic)
+    (fun j ↦ ⟨T j, .inl ⟨⟨mem_Iic.2 le_rfl,
+      mem_preimage.2 (connectedComponentIn_subset _ _ j.property)⟩,
+      fun _ ht ↦ ht.1⟩⟩)
+    (fun j ↦ by
+      rw [himage]
+      exact fun x hx ↦ ⟨hx.2, disjoint_left.1 (hγs j) hx.1⟩)
+    (fun a b hab ↦ (hdisj (Subtype.coe_injective.ne hab)).mono
+      (image_mono inter_subset_left) (image_mono inter_subset_left))
+    (fun j ↦ by
+      rw [himage]
+      exact fun x ⟨hx, hxW, hxs⟩ ↦
+        ⟨hcl j ⟨closure_mono inter_subset_left hx, hxs⟩, hxW⟩)
+    (γ := γ k) (i₀ := ⟨k, hk⟩) rfl ⟨⟨mem_Iic.2 le_rfl, hend k⟩, fun _ ht ↦ ht.1⟩
+    (fun x ⟨hx, hxW⟩ ↦ mem_iUnion.2 (hmem hx hxW)) hyW
+  refine ⟨Ψ ∘ γ k, T k + δ, hΨγ, by linarith, heq, by simpa [hΨy] using hyL, fun x hx ↦ ?_⟩
+  obtain ⟨hxW, hx⟩ := hU hx
+  refine ⟨hxW, fun h ↦ hx (h.imp id fun h ↦ ?_)⟩
+  obtain ⟨j, hj⟩ := mem_iUnion.1 h
+  exact mem_iUnion.2 (hmem hj hxW)
+
+
+variable (I K s γ T) in
+/-- The hypotheses on a stage of rays kept while its rays grow one after another. -/
+private structure GrowRaysInv : Prop where
+  emb : ∀ j, IsSmoothEmbedding 𝓘(ℝ) I ∞ (γ j)
+  disj : Pairwise (Disjoint on fun j ↦ γ j '' Iic (T j))
+  disj_s : ∀ j, Disjoint (γ j '' Iic (T j)) s
+  cl : ∀ j, closure (γ j '' Iic (T j)) \ s ⊆ γ j '' Iic (T j)
+  leaves : ∀ j, LeavesForGood (γ j) K (Iic (T j))
+  notMem : ∀ j, γ j (T j) ∉ K
+  not_isCompact : ∀ j, ¬ IsCompact (closure (connectedComponentIn Kᶜ (γ j (T j))))
+
+omit [FiniteDimensional ℝ E] [I.Boundaryless] [IsManifold I ∞ M] in
+/-- Replacing the ray `γ k` by an extension `g` whose new arc lies in the component of `Kᶜ`
+through the endpoint of `γ k`, off `s` and off all the built parts, keeps the invariant. -/
+private theorem GrowRaysInv.update [DecidableEq ι] (h : GrowRaysInv I K s γ T) {k : ι}
+    {g : ℝ → M} {T' : ℝ} (hg : IsSmoothEmbedding 𝓘(ℝ) I ∞ g) (hT : T k < T')
+    (heq : EqOn g (γ k) (Iic (T k)))
+    (hN : g '' Ioc (T k) T' ⊆ connectedComponentIn Kᶜ (γ k (T k)) \ (s ∪ ⋃ j, γ j '' Iic (T j))) :
+    GrowRaysInv I K s (update γ k g) (update T k T') := by
+  have hB : g '' Iic T' = γ k '' Iic (T k) ∪ g '' Ioc (T k) T' := by
+    rw [← Iic_union_Ioc_eq_Iic hT.le, image_union, heq.image_eq]
+  have hNd (j : ι) : Disjoint (g '' Ioc (T k) T') (γ j '' Iic (T j)) :=
+    disjoint_left.2 fun x hx hx' ↦ (hN hx).2 (.inr (mem_iUnion.2 ⟨j, hx'⟩))
+  have hW : g T' ∈ connectedComponentIn Kᶜ (γ k (T k)) := (hN ⟨T', ⟨hT, le_rfl⟩, rfl⟩).1
+  refine ⟨fun j ↦ ?_, fun a b hab ↦ ?_, fun j ↦ ?_, fun j ↦ ?_, fun j ↦ ?_, fun j ↦ ?_,
+    fun j ↦ ?_⟩
+  · rcases eq_or_ne j k with rfl | hj
+    · simpa using hg
+    · simpa [hj] using h.emb j
+  · simp only [onFun]
+    rcases eq_or_ne a k with rfl | ha
+    · rw [update_self, update_self, update_of_ne hab.symm, update_of_ne hab.symm, hB]
+      exact disjoint_union_left.2 ⟨h.disj hab, hNd b⟩
+    rcases eq_or_ne b k with rfl | hb
+    · rw [update_self, update_self, update_of_ne hab, update_of_ne hab, hB]
+      exact disjoint_union_right.2 ⟨h.disj hab, (hNd a).symm⟩
+    simpa [ha, hb] using h.disj hab
+  · rcases eq_or_ne j k with rfl | hj
+    · rw [update_self, update_self, hB]
+      exact disjoint_union_left.2 ⟨h.disj_s j,
+        disjoint_left.2 fun x hx hxs ↦ (hN hx).2 (.inl hxs)⟩
+    · simpa [hj] using h.disj_s j
+  · rcases eq_or_ne j k with rfl | hj
+    · rw [update_self, update_self]
+      have hc : closure (g '' Ioc (T j) T') ⊆ g '' Iic T' :=
+        (closure_minimal (image_mono Ioc_subset_Icc_self)
+          (isCompact_Icc.image hg.contMDiff.continuous).isClosed).trans
+          (image_mono fun t ht ↦ mem_Iic.2 ht.2)
+      rintro x ⟨hx, hxs⟩
+      rw [hB, closure_union] at hx
+      exact hx.elim (fun hx ↦ hB ▸ subset_union_left (h.cl j ⟨hx, hxs⟩)) fun hx ↦ hc hx
+    · simpa [hj] using h.cl j
+  · rcases eq_or_ne j k with rfl | hj
+    · rw [update_self, update_self]
+      exact (h.leaves j).extend_Iic heq fun x hx ↦
+        connectedComponentIn_subset _ _ (hN ⟨x, hx, rfl⟩).1
+    · simpa [hj] using h.leaves j
+  · rcases eq_or_ne j k with rfl | hj
+    · simpa using connectedComponentIn_subset _ _ hW
+    · simpa [hj] using h.notMem j
+  · rcases eq_or_ne j k with rfl | hj
+    · simpa [← connectedComponentIn_eq hW] using h.not_isCompact j
+    · simpa [hj] using h.not_isCompact j
+
+/-- **Growing every ray of a stage by one arc.** Let `M` be a finite-dimensional Hausdorff
+boundaryless smooth manifold whose model space has rank greater than one, `K ⊆ M` closed,
+`L ⊆ M` compact and `s ⊆ M` closed and discrete. For `k` in a finite type let `γ k : ℝ → M` be a
+smooth embedding with built part `γ k '' Iic (T k)`, such that the built parts are pairwise
+disjoint, miss `s` and are closed off `s`, each ray leaves `K` for good along `Iic (T k)`, and its
+endpoint `γ k (T k)` lies outside `K` in a component of `Kᶜ` with noncompact closure. Then there are
+smooth embeddings `γ' k` and parameters `T' k > T k` with `γ' k = γ k` on `Iic (T k)`, new arcs
+`γ' k '' Ioc (T k) (T' k)` outside `K ∪ s`, new built parts `γ' k '' Iic (T' k)` that are
+pairwise disjoint, miss `s` and are closed off `s`, along which each `γ' k` leaves `K` for good,
+and endpoints `γ' k (T' k)` outside `L`. -/
+theorem exists_grow_rays [Finite ι] (hE : 1 < Module.rank ℝ E) (hK : IsClosed K)
+    (hL : IsCompact L) (hs : IsClosed s) (hd : IsDiscrete s)
+    (hγ : ∀ k, IsSmoothEmbedding 𝓘(ℝ) I ∞ (γ k))
+    (hdisj : Pairwise (Disjoint on fun k ↦ γ k '' Iic (T k)))
+    (hγs : ∀ k, Disjoint (γ k '' Iic (T k)) s)
+    (hcl : ∀ k, closure (γ k '' Iic (T k)) \ s ⊆ γ k '' Iic (T k))
+    (hR : ∀ k, LeavesForGood (γ k) K (Iic (T k))) (hend : ∀ k, γ k (T k) ∉ K)
+    (hnc : ∀ k, ¬ IsCompact (closure (connectedComponentIn Kᶜ (γ k (T k))))) :
+    ∃ (γ' : ι → ℝ → M) (T' : ι → ℝ), (∀ k, IsSmoothEmbedding 𝓘(ℝ) I ∞ (γ' k)) ∧
+      (∀ k, T k < T' k) ∧ (∀ k, EqOn (γ' k) (γ k) (Iic (T k))) ∧
+      (∀ k, γ' k '' Ioc (T k) (T' k) ⊆ (K ∪ s)ᶜ) ∧
+      Pairwise (Disjoint on fun k ↦ γ' k '' Iic (T' k)) ∧
+      (∀ k, Disjoint (γ' k '' Iic (T' k)) s) ∧
+      (∀ k, closure (γ' k '' Iic (T' k)) \ s ⊆ γ' k '' Iic (T' k)) ∧
+      (∀ k, LeavesForGood (γ' k) K (Iic (T' k))) ∧ ∀ k, γ' k (T' k) ∉ L := by
+  classical
+  have := Fintype.ofFinite ι
+  -- Grow the rays of a finite set `S` of indices, one after another.
+  suffices ∀ S : Finset ι, ∃ (γ' : ι → ℝ → M) (T' : ι → ℝ), GrowRaysInv I K s γ' T' ∧ ∀ k,
+      (k ∈ S → T k < T' k ∧ EqOn (γ' k) (γ k) (Iic (T k)) ∧
+        γ' k '' Ioc (T k) (T' k) ⊆ (K ∪ s)ᶜ ∧ γ' k (T' k) ∉ L) ∧
+      (k ∉ S → γ' k = γ k ∧ T' k = T k) by
+    obtain ⟨γ', T', h, h'⟩ := this Finset.univ
+    exact ⟨γ', T', h.emb, fun k ↦ ((h' k).1 (Finset.mem_univ k)).1,
+      fun k ↦ ((h' k).1 (Finset.mem_univ k)).2.1, fun k ↦ ((h' k).1 (Finset.mem_univ k)).2.2.1,
+      h.disj, h.disj_s, h.cl, h.leaves, fun k ↦ ((h' k).1 (Finset.mem_univ k)).2.2.2⟩
+  intro S
+  induction S using Finset.induction_on with
+  | empty =>
+    exact ⟨γ, T, ⟨hγ, hdisj, hγs, hcl, hR, hend, hnc⟩, fun k ↦
+      ⟨fun hk ↦ absurd hk (Finset.notMem_empty k), fun _ ↦ ⟨rfl, rfl⟩⟩⟩
+  | insert k S hk ih =>
+    obtain ⟨γ', T', h, h'⟩ := ih
+    obtain ⟨hγk, hTk⟩ := (h' k).2 hk
+    obtain ⟨g, T'', hg, hT, heq, hgL, hN⟩ := exists_grow_one_ray hE hK hL hs hd h.emb h.disj
+      h.disj_s h.cl h.leaves h.notMem h.not_isCompact k
+    refine ⟨update γ' k g, update T' k T'', h.update hg hT heq hN, fun j ↦ ?_⟩
+    rcases eq_or_ne j k with rfl | hj
+    · rw [hTk] at hT
+      rw [hγk, hTk] at heq
+      rw [hTk] at hN
+      refine ⟨fun _ ↦ ?_, fun hj ↦ absurd (Finset.mem_insert_self j S) hj⟩
+      simp only [update_self]
+      refine ⟨hT, heq, fun x hx hxKs ↦ ?_, hgL⟩
+      obtain ⟨hxW, hx⟩ := hN hx
+      exact hxKs.elim (connectedComponentIn_subset _ _ hxW) fun hxs ↦ hx (.inl hxs)
+    · simpa [hj] using h' j
+
+end GrowRays
 
 section CutArcs
 
