@@ -61,7 +61,8 @@ to the exceptional divisor `Z`, sets up the neighbourhoods `L(ε)` of `Z`, and i
   `SymplecticGeometry.BlowupModel.integralTopForm_blowupForm_line`: every projective line of the
   divisor has area `π l²`, by `integralTopForm_mpullback_map_fubiniStudyForm`.
 * `SymplecticGeometry.BlowupModel.blowdownPuncturedDiffeomorph n`: `blowdownDiffeomorph n` as a
-  real diffeomorphism from `L ∖ Z` onto `puncturedSpace E`, and
+  real diffeomorphism from `L ∖ Z` onto `puncturedSpace E`, holomorphic
+  (`SymplecticGeometry.BlowupModel.isPseudoholomorphic_blowdownPuncturedDiffeomorph`), and
   `SymplecticGeometry.BlowupModel.mpullback_blowdownDiffeomorph_symm_blowupForm`: along its
   inverse, `ω̃_l` pulls back to `radialPotentialForm` of `s ↦ s + l² log s`, the sum of
   `radialPotentialForm_id` (`ω₀`) and `l²` times `radialPotentialForm_log` (the pull-back of
@@ -328,6 +329,26 @@ theorem coe_blowdownPuncturedDiffeomorph_symm_apply (z : puncturedSpace (Fin (n 
     ((blowdownPuncturedDiffeomorph n).symm z : BlowupModel n) =
       ofNeZero (mem_puncturedSpace.1 z.property) := by
   simp [blowdownPuncturedDiffeomorph, blowdownDiffeomorph_symm_apply]
+
+open SmoothAlmostComplexStructure in
+/-- The blowdown, from the complement of the exceptional divisor onto `E ∖ 0`, is holomorphic. -/
+theorem isPseudoholomorphic_blowdownPuncturedDiffeomorph :
+    IsPseudoholomorphic
+      (ofComplexManifold (Fin (n + 1) → ℂ)
+        (⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ :
+          Opens (BlowupModel n)))
+      (ofComplexManifold (Fin (n + 1) → ℂ) (puncturedSpace (Fin (n + 1) → ℂ)))
+      (blowdownPuncturedDiffeomorph n) := by
+  have h : (Subtype.val ∘ blowdownPuncturedDiffeomorph n :
+      (⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ :
+        Opens (BlowupModel n)) → _) = blowdown ∘ Subtype.val :=
+    funext fun p ↦ coe_blowdownPuncturedDiffeomorph_apply p
+  have hc : ContMDiff 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ∞
+      (Subtype.val ∘ blowdownPuncturedDiffeomorph n) := by
+    rw [h]
+    exact (contMDiff_blowdown ∞).comp contMDiff_subtypeVal
+  exact isPseudoholomorphic_ofComplexManifold_iff.2
+    (((ContMDiff.subtypeVal_comp_iff _ _).1 hc).mdifferentiable (by simp))
 
 /-- The radial potential `s ↦ s + l² log s` is smooth on `(0, ∞)`. -/
 theorem contDiffOn_add_mul_log (l : ℝ) :

@@ -664,25 +664,6 @@ theorem mpullback_radialMap_profileForm {l ε : ℝ} (hl : 0 < l) (hε : 0 < ε)
       fun s hs ↦ deriv_add_mul_log_add_blowupCorrection hl hε hs,
     ← mpullback_blowdownDiffeomorph_symm_profileForm n hl hε, SmoothForm.mpullback_mpullback_symm]
 
-/-- The blowdown, from the complement of the exceptional divisor onto `E ∖ 0`, is holomorphic. -/
-theorem isPseudoholomorphic_blowdownPuncturedDiffeomorph :
-    IsPseudoholomorphic
-      (ofComplexManifold (Fin (n + 1) → ℂ)
-        (⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ :
-          Opens (BlowupModel n)))
-      (ofComplexManifold (Fin (n + 1) → ℂ) (puncturedSpace (Fin (n + 1) → ℂ)))
-      (blowdownPuncturedDiffeomorph n) := by
-  have h : (Subtype.val ∘ blowdownPuncturedDiffeomorph n :
-      (⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ :
-        Opens (BlowupModel n)) → _) = blowdown ∘ Subtype.val :=
-    funext fun p ↦ coe_blowdownPuncturedDiffeomorph_apply p
-  have hc : ContMDiff 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ∞
-      (Subtype.val ∘ blowdownPuncturedDiffeomorph n) := by
-    rw [h]
-    exact (contMDiff_blowdown ∞).comp contMDiff_subtypeVal
-  exact isPseudoholomorphic_ofComplexManifold_iff.2
-    (((ContMDiff.subtypeVal_comp_iff _ _).1 hc).mdifferentiable (by simp))
-
 /-- Off the exceptional divisor, `ω̃_{l,ε}` is compatible with the complex structure, for `0 < l`
 and `0 < ε`: its restriction there is the pull-back along the holomorphic blowdown of the radial
 potential form of `g(s) = s + l² log s + q(s)`, which is Kähler since `g'(s) = h(s) / s > 0` and
@@ -713,7 +694,7 @@ theorem compatible_mpullback_subtypeVal_profileForm {l ε : ℝ} (hl : 0 < l) (h
   rw [SmoothForm.mpullback_mpullback_symm] at h
   rw [h]
   exact (isKahler_radialPotentialForm _ hg₁ hg₂).compatible.mpullback
-    (isPseudoholomorphic_blowdownPuncturedDiffeomorph n) _
+    isPseudoholomorphic_blowdownPuncturedDiffeomorph _
     fun x ↦ ((blowdownPuncturedDiffeomorph n).isInvertible_mfderiv (x := x) (by simp)).injective
 
 /-- For `0 < l` and `0 < ε`, the form `ω̃_{l,ε}` is Kähler for the complex structure of the model
