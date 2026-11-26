@@ -52,13 +52,13 @@ with `LinearMap.inl` and `LinearMap.inr`. The fibre map is `K`-equivariant becau
   and is onto.
 * `SymplecticGeometry.LocalModelData.bijective_mkTangentMap_comp_linearModelMap`:
   `x ↦ dπ_(1, 0, 0) (linearModelMap x)` is bijective.
-* `SymplecticGeometry.LocalModelData.linearModelEquiv_mk_zero_mk_zero`: `linearModelEquiv` sends
-  `((m, 0), (q, 0))` to `dπ_(1, 0, 0) (ξ, 0)` whenever `ξ - (m + q) ∈ 𝔥`.
 * `SymplecticGeometry.LocalModelData.eval₂_descendedForm_linearModelEquiv`: through
   `linearModelEquiv`, the descended form at `[1, 0]` is the form of the linear normal form model.
 * `SymplecticGeometry.LocalModelData.linearModelEquiv_linearModelRepresentation`:
   `linearModelEquiv` takes the representation of `K` on the model to the differential at `[1, 0]`
   of the action of `K` on `G ×_K (A × V)`.
+* `SymplecticGeometry.LocalModelData.linearModelEquiv_mk_zero_mk_zero`: `linearModelEquiv` sends
+  `((m, 0), (q, 0))` to `orbitTangentMap ξ = dπ_(1, 0, 0) (ξ, 0)` whenever `ξ - (m + q) ∈ 𝔥`.
 * `SymplecticGeometry.LocalModelData.fiberTangentMap_smul`,
   `SymplecticGeometry.LocalModelData.injective_fiberTangentMap`,
   `SymplecticGeometry.LocalModelData.isCompl_range_orbitTangentMap_range_fiberTangentMap`: the
@@ -178,38 +178,8 @@ def linearModelEquiv :
     D.bijective_mkTangentMap_comp_linearModelMap
 
 theorem linearModelEquiv_apply (x : (D.𝔪 × Module.Dual ℝ D.𝔪) × (D.𝔮 × V)) :
-    letI := D.fiberDistribMulAction
-    haveI := D.contMDiffSMul_fiberDistribMulAction
-    letI := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
-    D.linearModelEquiv x =
-      mfderiv (I.prod 𝓘(ℝ, A × V)) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
-        (fun p : G × (A × V) ↦ BalancedProduct.mk K (K.toRightTranslation p.1) p.2)
-        ((1 : G), ((0 : A), (0 : V)))
-        ((tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V)))).symm (D.linearModelMap x)) :=
+    D.linearModelEquiv x = D.mkTangentMap (D.linearModelMap x) :=
   (rfl)
-
-/-- **Directions of `𝔤` in the image of `linearModelEquiv`.** For `m ∈ 𝔪` and `q ∈ 𝔮`,
-`linearModelEquiv ((m, 0), (q, 0))` is `dπ_(1, 0, 0) (ξ, 0)` for each `ξ ∈ 𝔤` with
-`ξ - (m + q) ∈ 𝔥`, where `π (g, p) = [g, p]`. -/
-theorem linearModelEquiv_mk_zero_mk_zero {ξ : GroupLieAlgebra I G} (m : D.𝔪) (q : D.𝔮)
-    (hξ : ξ - (m + q) ∈ D.𝔥) :
-    letI := D.fiberDistribMulAction
-    haveI := D.contMDiffSMul_fiberDistribMulAction
-    letI := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
-    D.linearModelEquiv ((m, 0), (q, 0)) =
-      mfderiv (I.prod 𝓘(ℝ, A × V)) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
-        (fun p : G × (A × V) ↦ BalancedProduct.mk K (K.toRightTranslation p.1) p.2)
-        ((1 : G), ((0 : A), (0 : V)))
-        ((tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V)))).symm (ξ, 0)) := by
-  let := D.fiberDistribMulAction
-  have := D.contMDiffSMul_fiberDistribMulAction
-  let := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
-  rw [linearModelEquiv_apply]
-  -- The difference of the two directions is `(m + q - ξ, 0)`, in the kernel `𝔥 × 0` of `dπ`.
-  refine (LinearMap.sub_mem_ker_iff (f := D.mkTangentMap)
-    (x := D.linearModelMap ((m, 0), (q, 0))) (y := (ξ, 0))).1 ?_
-  rw [ker_mkTangentMap, linearModelMap_apply, map_zero]
-  exact ⟨(congrArg (· ∈ D.𝔥) (neg_sub ξ _)).mp (neg_mem hξ), sub_eq_zero.2 rfl⟩
 
 /-- **The descended form at `[1, 0]` is the linear normal form.** Through `linearModelEquiv`, the
 descended form `ω` of the local model at `[1, 0]` is the form of the linear normal form model
@@ -230,7 +200,7 @@ theorem eval₂_descendedForm_linearModelEquiv (x₁ x₂ : (D.𝔪 × Module.Du
   let := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
   have := BalancedProduct.isManifold_rightTranslation (K := K) (Z := A × V) (I := I)
     (IZ := 𝓘(ℝ, A × V)) (F := F)
-  rw [linearModelEquiv_apply, linearModelEquiv_apply]
+  rw [linearModelEquiv_apply, linearModelEquiv_apply, mkTangentMap_apply, mkTangentMap_apply]
   exact (D.eval₂_descendedForm_mfderiv ((1 : G), ((0 : A), (0 : V))) _ _).trans
     (D.eval₂_form_one_zero_linearModelMap ((tangentSpaceProdEquiv _).apply_symm_apply _)
       ((tangentSpaceProdEquiv _).apply_symm_apply _))
@@ -314,7 +284,8 @@ theorem linearModelEquiv_linearModelRepresentation (k : K)
         ((tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V)))).symm (D.linearModelMap x)) :=
     (tangentSpaceProdEquiv_symm_apply (I := I) (J := 𝓘(ℝ, A × V)) _ _).trans
       ((D.linearModelMap_linearModelRepresentation k x).trans (tangentSpaceProdEquiv_apply _ _))
-  rw [linearModelEquiv_apply, linearModelEquiv_apply, h, mfderiv_smul_mfderiv_mk_one_zero]
+  rw [linearModelEquiv_apply, linearModelEquiv_apply, mkTangentMap_apply, mkTangentMap_apply, h,
+    mfderiv_smul_mfderiv_mk_one_zero]
 
 /-! ### The fibre directions and the orbit directions at `[1, 0]` -/
 
@@ -333,14 +304,7 @@ theorem fiberTangentMap_def :
   (rfl)
 
 theorem fiberTangentMap_apply (p : A × V) :
-    letI := D.fiberDistribMulAction
-    haveI := D.contMDiffSMul_fiberDistribMulAction
-    letI := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
-    D.fiberTangentMap p =
-      mfderiv (I.prod 𝓘(ℝ, A × V)) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
-        (fun p : G × (A × V) ↦ BalancedProduct.mk K (K.toRightTranslation p.1) p.2)
-        ((1 : G), ((0 : A), (0 : V)))
-        ((tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V)))).symm (0, p)) :=
+    D.fiberTangentMap p = D.mkTangentMap (0, p) :=
   (rfl)
 
 /-- **The orbit directions at `[1, 0]`.** The linear map `ξ ↦ dπ_(1, 0, 0) (ξ, 0)` from `𝔤` to
@@ -359,15 +323,24 @@ theorem orbitTangentMap_def :
   (rfl)
 
 theorem orbitTangentMap_apply (ξ : GroupLieAlgebra I G) :
-    letI := D.fiberDistribMulAction
-    haveI := D.contMDiffSMul_fiberDistribMulAction
-    letI := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
-    D.orbitTangentMap ξ =
-      mfderiv (I.prod 𝓘(ℝ, A × V)) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
-        (fun p : G × (A × V) ↦ BalancedProduct.mk K (K.toRightTranslation p.1) p.2)
-        ((1 : G), ((0 : A), (0 : V)))
-        ((tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V)))).symm (ξ, 0)) :=
+    D.orbitTangentMap ξ = D.mkTangentMap (ξ, 0) :=
   (rfl)
+
+/-- **Directions of `𝔤` in the image of `linearModelEquiv`.** For `m ∈ 𝔪` and `q ∈ 𝔮`,
+`linearModelEquiv ((m, 0), (q, 0))` is `orbitTangentMap ξ = dπ_(1, 0, 0) (ξ, 0)` for each `ξ ∈ 𝔤`
+with `ξ - (m + q) ∈ 𝔥`, where `π (g, p) = [g, p]`. -/
+theorem linearModelEquiv_mk_zero_mk_zero {ξ : GroupLieAlgebra I G} (m : D.𝔪) (q : D.𝔮)
+    (hξ : ξ - (m + q) ∈ D.𝔥) :
+    D.linearModelEquiv ((m, 0), (q, 0)) = D.orbitTangentMap ξ := by
+  let := D.fiberDistribMulAction
+  have := D.contMDiffSMul_fiberDistribMulAction
+  let := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
+  rw [linearModelEquiv_apply, orbitTangentMap_apply]
+  -- The difference of the two directions is `(m + q - ξ, 0)`, in the kernel `𝔥 × 0` of `dπ`.
+  refine (LinearMap.sub_mem_ker_iff (f := D.mkTangentMap)
+    (x := D.linearModelMap ((m, 0), (q, 0))) (y := (ξ, 0))).1 ?_
+  rw [ker_mkTangentMap, linearModelMap_apply, map_zero]
+  exact ⟨(congrArg (· ∈ D.𝔥) (neg_sub ξ _)).mp (neg_mem hξ), sub_eq_zero.2 rfl⟩
 
 /-- **The fibre directions are equivariant.** For `k ∈ K`, the differential at `[1, 0]` of
 `y ↦ k • y` sends `dπ_(1, 0, 0) (0, p)` to `dπ_(1, 0, 0) (0, k • p)`. -/
@@ -384,7 +357,8 @@ theorem fiberTangentMap_smul (k : K) (p : A × V) :
   let := D.fiberDistribMulAction
   have := D.contMDiffSMul_fiberDistribMulAction
   let := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
-  rw [fiberTangentMap_apply, fiberTangentMap_apply, mfderiv_smul_mfderiv_mk_one_zero]
+  rw [fiberTangentMap_apply, fiberTangentMap_apply, mkTangentMap_apply, mkTangentMap_apply,
+    mfderiv_smul_mfderiv_mk_one_zero]
   congr 1
   -- The differential of `(g, p) ↦ (k g k⁻¹, k • p)` at `(1, 0, 0)` sends `(0, p)` to
   -- `(Ad_k 0, k • p) = (0, k • p)`.
