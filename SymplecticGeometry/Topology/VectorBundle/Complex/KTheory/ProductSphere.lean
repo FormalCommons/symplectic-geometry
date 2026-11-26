@@ -17,6 +17,7 @@ import SymplecticGeometry.Topology.VectorBundle.FiniteRank.HomotopyInvariance
 import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 import SymplecticGeometry.Topology.VectorBundle.FiniteRank.LinearClutching
 import Mathlib.Topology.Separation.CompletelyRegular
+import SymplecticGeometry.Topology.ContinuousMap.LaurentApproximation
 
 /-!
 # Bundles over `X × ℂP¹` are clutchings; the clutched lines `L m`; linear clutchings
@@ -407,7 +408,7 @@ noncomputable def smulIdempotentAddIso {P : E ⟶ E} (hP : P ≫ P = P) :
   hom := circleCoord X •
       pullbackMap P (ContinuousMap.fst : C(X × Circle, X)) +
     pullbackMap (𝟙 E - P) (ContinuousMap.fst : C(X × Circle, X))
-  inv := (⟨fun w ↦ ((w.2⁻¹ : Circle) : ℂ), by fun_prop⟩ : C(X × Circle, ℂ)) •
+  inv := ContinuousMap.laurentMonomial (-1) (1 : C(X, ℂ)) •
       pullbackMap P (ContinuousMap.fst : C(X × Circle, X)) +
     pullbackMap (𝟙 E - P) (ContinuousMap.fst : C(X × Circle, X))
   hom_inv_id := hom_ext fun w ↦ ContinuousLinearMap.ext fun y ↦ by
