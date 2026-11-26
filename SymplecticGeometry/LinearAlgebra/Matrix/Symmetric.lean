@@ -10,6 +10,7 @@ public import Mathlib.LinearAlgebra.Matrix.Symmetric
 public import Mathlib.LinearAlgebra.Matrix.ConjTranspose
 public import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
 public import Mathlib.LinearAlgebra.Matrix.SesquilinearForm
+import TauCeti.LinearAlgebra.Matrix.OfReal
 
 /-!
 # Symmetric matrices
@@ -20,7 +21,9 @@ If `Aᵀ B = Bᵀ A`, then `A B⁻¹` is symmetric. When `B` is invertible, `A B
 `B⁻ᵀ (Aᵀ B) B⁻¹`, whose transpose is `B⁻ᵀ (Bᵀ A) B⁻¹`; otherwise Mathlib's `B⁻¹` is `0`.
 
 For a symmetric complex matrix `Z`, the conjugate transpose `Zᴴ` is the entrywise conjugate of `Z`,
-so the difference `Z - Zᴴ` is `2i` times the imaginary part of `Z`.
+so the difference `Z - Zᴴ` is `2i` times the imaginary part of `Z`. This is Tau Ceti's
+`Matrix.map_im_map_ofReal_of_transpose_eq` solved for `Z - Zᴴ`, the form in which the library
+rewrites with it.
 
 ## Main results
 
@@ -56,11 +59,7 @@ theorem isSymm_mul_nonsing_inv_of_transpose_mul_eq [Fintype n] [DecidableEq n] {
 entrywise. -/
 theorem IsSymm.sub_conjTranspose {Z : Matrix n n ℂ} (hZ : Z.IsSymm) :
     Z - Zᴴ = (2 * I) • (Z.map Complex.im).map ofReal := by
-  ext i j
-  simp only [Matrix.sub_apply, conjTranspose_apply, Matrix.smul_apply, map_apply, smul_eq_mul,
-    hZ.apply i j, Complex.star_def, Complex.sub_conj]
-  push_cast
-  ring
+  rw [map_im_map_ofReal_of_transpose_eq hZ.eq, smul_inv_smul₀ (by simp)]
 
 /-- A matrix is self-adjoint for the bilinear form of the identity matrix, `Aᵀ * 1 = 1 * A`,
 exactly when it is symmetric. With `mem_selfAdjointMatricesSubmodule`, `simp` reduces membership

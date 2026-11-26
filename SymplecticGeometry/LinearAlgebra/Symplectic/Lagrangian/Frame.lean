@@ -20,6 +20,7 @@ import SymplecticGeometry.LinearAlgebra.Matrix.OfReal
 import SymplecticGeometry.LinearAlgebra.Matrix.Rank
 import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 import SymplecticGeometry.LinearAlgebra.Symplectic.Subspace
+import TauCeti.LinearAlgebra.Matrix.Range
 import Mathlib.RingTheory.Flat.TorsionFree
 
 /-!
@@ -354,15 +355,13 @@ theorem LagrangianGrassmannian.exists_mul_eq_of_range_eq
     {Λ : LagrangianGrassmannian (stdForm ι)} {Z₁ Z₂ : Matrix (ι ⊕ ι) ι ℝ}
     (h₁ : LinearMap.range (toEuclideanLin Z₁) = Λ) (h₂ : LinearMap.range (toEuclideanLin Z₂) = Λ) :
     ∃ g : GL ι ℝ, Z₂ * (g : Matrix ι ι ℝ) = Z₁ := by
-  obtain ⟨L, hL⟩ := (toEuclideanLin Z₂).exists_leftInverse_of_injective
-    (LinearMap.ker_eq_bot.2 (injective_toEuclideanLin_of_range_eq h₂))
-  set g : Matrix ι ι ℝ := toEuclideanLin.symm (L ∘ₗ toEuclideanLin Z₁)
-  have hg : Z₂ * g = Z₁ := by
-    refine toEuclideanLin.injective (LinearMap.ext fun u ↦ ?_)
-    obtain ⟨v, hv⟩ : toEuclideanLin Z₁ u ∈ LinearMap.range (toEuclideanLin Z₂) := by
-      rw [h₂, ← h₁]; exact ⟨u, rfl⟩
-    rw [toLpLin_mul_same, LinearMap.comp_apply, LinearEquiv.apply_symm_apply,
-      LinearMap.comp_apply, ← hv, ← LinearMap.comp_apply L, hL, LinearMap.id_apply]
+  obtain ⟨g, hg⟩ := exists_mul_map_eq_of_span_le (S := ℝ) (B := Z₂) (C := Z₁) <| by
+    rw [← range_mulVecLin, ← range_mulVecLin]
+    rintro _ ⟨u, rfl⟩
+    obtain ⟨v, hv⟩ : toEuclideanLin Z₁ (WithLp.toLp 2 u) ∈ LinearMap.range (toEuclideanLin Z₂) := by
+      rw [h₂, ← h₁]; exact ⟨_, rfl⟩
+    exact ⟨WithLp.ofLp v, congrArg WithLp.ofLp hv⟩
+  rw [Algebra.algebraMap_self, RingHom.coe_id, map_id] at hg
   exact ⟨(isUnit_of_range_mul_eq (Z := Z₂) (hg ▸ h₁)).unit, hg⟩
 
 /-- The `x`-coordinates of `fromRows X Y` applied to `u` are `X u`. -/
