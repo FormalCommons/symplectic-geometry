@@ -9,7 +9,6 @@ public import TauCeti.Geometry.Manifold.FiberBundle.MapFiber
 public import TauCeti.Geometry.Manifold.GroupAction.Quotient
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 public import SymplecticGeometry.Geometry.Manifold.Algebra.MulOpposite
-public import SymplecticGeometry.Geometry.Manifold.GroupAction.LocalSection
 public import SymplecticGeometry.Topology.Algebra.ProperAction.Free
 public import SymplecticGeometry.Topology.FiberBundle.ChangeModelFiber
 
@@ -55,9 +54,9 @@ compact Lie groups.
 
 **Smoothness.** The trivialization of a smooth local section `s` over `U` has inverse
 `(q, g) ↦ op g • s q`. This is the map `(k, q) ↦ k • s q` after the diffeomorphism
-`(q, g) ↦ (op g, q)` built from `MulOpposite.opDiffeomorph`. The orbit space and `G` have
-dimensions adding up to that of `X`, so that map is a local diffeomorphism on `Gᵐᵒᵖ × U`
-(`SymplecticGeometry.isLocalDiffeomorphOn_smul_section`), and so is the inverse on `U × G`. The
+`(q, g) ↦ (op g, q)` built from `MulOpposite.opDiffeomorph`. For the slice charts of the
+orbit space, that map is a local diffeomorphism on `Gᵐᵒᵖ × U`
+(`ProperSMul.isLocalDiffeomorphAt_smul_section`), and so is the inverse on `U × G`. The
 trivialization, its inverse on its image, is then smooth
 (`IsLocalDiffeomorphOn.contMDiffOn_invFunOn`). So the atlas is smooth
 (`SymplecticGeometry.orbitFiber.isContMDiff_atlas`): Tau Ceti's
@@ -270,7 +269,6 @@ end Trivialization
 section Smooth
 
 attribute [local instance] MulOpposite.chartedSpace
-  LieGroup.minSmoothness_of_isRCLikeNormedField ContMDiffMul.boundarylessManifold
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   {H : Type*} [TopologicalSpace H] {IG : ModelWithCorners ℝ E H}
@@ -279,23 +277,22 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimension
   {H' : Type*} [TopologicalSpace H'] {IX : ModelWithCorners ℝ E' H'} [IX.Boundaryless]
   {X : Type*} [TopologicalSpace X] [ChartedSpace H' X] [IsManifold IX ∞ X]
   [MulAction Gᵐᵒᵖ X] [ContMDiffSMul IG IX ∞ Gᵐᵒᵖ X] [ProperSMul Gᵐᵒᵖ X] [IsCancelSMul Gᵐᵒᵖ X]
-  {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
-  {HB : Type*} [TopologicalSpace HB] {IB : ModelWithCorners ℝ EB HB}
-  [ChartedSpace HB (orbitRel.Quotient Gᵐᵒᵖ X)]
   {U : Set (orbitRel.Quotient Gᵐᵒᵖ X)} {s : orbitRel.Quotient Gᵐᵒᵖ X → X}
 
 namespace orbitFiber
 
-/-- `(q, g) ↦ op g • s q` is a local diffeomorphism on `U × G`: it is the map
-`(k, q) ↦ k • s q` of `SymplecticGeometry.isLocalDiffeomorphOn_smul_section` after the
-diffeomorphism `(q, g) ↦ (op g, q)`. -/
-private theorem isLocalDiffeomorphOn_op_smul_section [FiniteDimensional ℝ EB] [IB.Boundaryless]
-    [IsManifold IB ∞ (orbitRel.Quotient Gᵐᵒᵖ X)] (hU : IsOpen U) (hs : ContMDiffOn IB IX ∞ s U)
-    (hsec : ∀ q ∈ U, Quotient.mk (orbitRel Gᵐᵒᵖ X) (s q) = q)
-    (hπ : ContMDiff IX IB ∞ (Quotient.mk (orbitRel Gᵐᵒᵖ X)))
-    (hdim : Module.finrank ℝ E + Module.finrank ℝ EB = Module.finrank ℝ E') :
-    IsLocalDiffeomorphOn (IB.prod IG) IX ∞
+/-- For the slice charts of the orbit space, `(q, g) ↦ op g • s q` is a local diffeomorphism on
+`U × G`: it is the map `(k, q) ↦ k • s q` of Tau Ceti's
+`ProperSMul.isLocalDiffeomorphAt_smul_section` after the diffeomorphism `(q, g) ↦ (op g, q)`. -/
+private theorem isLocalDiffeomorphOn_op_smul_section (hU : IsOpen U)
+    (hs : letI := ProperSMul.orbitRelQuotientChartedSpace IG Gᵐᵒᵖ IX X
+      ContMDiffOn 𝓘(ℝ, ProperSMul.QuotientModelSpace E E') IX ∞ s U)
+    (hsec : ∀ q ∈ U, Quotient.mk (orbitRel Gᵐᵒᵖ X) (s q) = q) :
+    letI := ProperSMul.orbitRelQuotientChartedSpace IG Gᵐᵒᵖ IX X
+    IsLocalDiffeomorphOn (𝓘(ℝ, ProperSMul.QuotientModelSpace E E').prod IG) IX ∞
       (fun p : orbitRel.Quotient Gᵐᵒᵖ X × G ↦ op p.2 • s p.1) (U ×ˢ univ) := fun p ↦ by
+  let := ProperSMul.orbitRelQuotientChartedSpace IG Gᵐᵒᵖ IX X
+  set IB := 𝓘(ℝ, ProperSMul.QuotientModelSpace E E')
   let T : (orbitRel.Quotient Gᵐᵒᵖ X × G) ≃ₘ⟮IB.prod IG, IG.prod IB⟯
       (Gᵐᵒᵖ × orbitRel.Quotient Gᵐᵒᵖ X) :=
     (Diffeomorph.prodComm IB IG _ G ∞).trans
@@ -305,30 +302,31 @@ private theorem isLocalDiffeomorphOn_op_smul_section [FiniteDimensional ℝ EB] 
     funext fun p ↦ by simp [T]
   rw [← hT]
   exact IsLocalDiffeomorphAt.comp (hf := T.isLocalDiffeomorph p)
-    (hg := isLocalDiffeomorphOn_smul_section (IK := IG) hU hs hsec hπ hdim
-      ⟨T p, trivial, p.property.1⟩)
+    (hg := ProperSMul.isLocalDiffeomorphAt_smul_section (I := IG) hU hs hsec p.property.1 _)
 
-/-- The trivialization `orbitTrivializationOfSectionUnop` of a smooth local section is smooth on
-its source, and so is its inverse on its target: the inverse is `(q, g) ↦ op g • s q`, and the
-trivialization is the inverse of this injective local diffeomorphism. -/
-private theorem contMDiffOn_orbitTrivializationOfSectionUnop [ContinuousInv G]
-    [FiniteDimensional ℝ EB] [IB.Boundaryless] [IsManifold IB ∞ (orbitRel.Quotient Gᵐᵒᵖ X)]
-    (hU : IsOpen U)
-    (hs : ContMDiffOn IB IX ∞ s U) (hsec : ∀ q ∈ U, Quotient.mk (orbitRel Gᵐᵒᵖ X) (s q) = q)
-    (hπ : ContMDiff IX IB ∞ (Quotient.mk (orbitRel Gᵐᵒᵖ X)))
-    (hdim : Module.finrank ℝ E + Module.finrank ℝ EB = Module.finrank ℝ E') :
-    ContMDiffOn IX (IB.prod IG) ∞ (orbitTrivializationOfSectionUnop U hU s hs.continuousOn hsec)
+/-- The trivialization `orbitTrivializationOfSectionUnop` of a local section, smooth for the slice
+charts of the orbit space, is smooth on its source, and so is its inverse on its target: the
+inverse is `(q, g) ↦ op g • s q`, and the trivialization is the inverse of this injective local
+diffeomorphism. -/
+private theorem contMDiffOn_orbitTrivializationOfSectionUnop [ContinuousInv G] (hU : IsOpen U)
+    (hs : letI := ProperSMul.orbitRelQuotientChartedSpace IG Gᵐᵒᵖ IX X
+      ContMDiffOn 𝓘(ℝ, ProperSMul.QuotientModelSpace E E') IX ∞ s U)
+    (hsec : ∀ q ∈ U, Quotient.mk (orbitRel Gᵐᵒᵖ X) (s q) = q) :
+    letI := ProperSMul.orbitRelQuotientChartedSpace IG Gᵐᵒᵖ IX X
+    ContMDiffOn IX (𝓘(ℝ, ProperSMul.QuotientModelSpace E E').prod IG) ∞
+        (orbitTrivializationOfSectionUnop U hU s hs.continuousOn hsec)
         (orbitTrivializationOfSectionUnop U hU s hs.continuousOn hsec).source ∧
-      ContMDiffOn (IB.prod IG) IX ∞
+      ContMDiffOn (𝓘(ℝ, ProperSMul.QuotientModelSpace E E').prod IG) IX ∞
         (orbitTrivializationOfSectionUnop U hU s hs.continuousOn hsec).toOpenPartialHomeomorph.symm
         (orbitTrivializationOfSectionUnop U hU s hs.continuousOn hsec).target := by
+  let := ProperSMul.orbitRelQuotientChartedSpace IG Gᵐᵒᵖ IX X
   set e := orbitTrivializationOfSectionUnop (G := G) U hU s hs.continuousOn hsec
   set Φ := fun p : orbitRel.Quotient Gᵐᵒᵖ X × G ↦ op p.2 • s p.1
   have htarget : e.target = U ×ˢ univ := by
     rw [e.target_eq, orbitTrivializationOfSectionUnop_baseSet]
   have hsymm : EqOn e.toOpenPartialHomeomorph.symm Φ (U ×ˢ univ) := fun p hp ↦
     orbitTrivializationOfSectionUnop_symm_apply hp.1 p.2
-  have hloc := isLocalDiffeomorphOn_op_smul_section (IG := IG) hU hs hsec hπ hdim
+  have hloc := isLocalDiffeomorphOn_op_smul_section (IG := IG) hU hs hsec
   refine ⟨fun x hx ↦ ?_, htarget ▸ hloc.contMDiffOn.congr hsymm⟩
   have : Nonempty (orbitRel.Quotient Gᵐᵒᵖ X × G) := ⟨e x⟩
   have hinjOn : InjOn Φ (U ×ˢ univ) :=
@@ -432,7 +430,6 @@ theorem isContMDiff_atlas :
     letI := ProperSMul.orbitRelQuotientChartedSpace IG Gᵐᵒᵖ IX X
     (atlas IG G IX X).IsContMDiff ∞ 𝓘(ℝ, ProperSMul.QuotientModelSpace E E') IG IX := by
   let := ProperSMul.orbitRelQuotientChartedSpace IG Gᵐᵒᵖ IX X
-  have hπ := ProperSMul.contMDiff_quotientMk (I := IG) (G := Gᵐᵒᵖ) (I' := IX) (M := X)
   have key (q : orbitRel.Quotient Gᵐᵒᵖ X) :
       ContMDiffOn IX (𝓘(ℝ, ProperSMul.QuotientModelSpace E E').prod IG) ∞
           ((atlas IG G IX X).trivAt q) ((atlas IG G IX X).trivAt q).source ∧
@@ -440,11 +437,8 @@ theorem isContMDiff_atlas :
           ((atlas IG G IX X).trivAt q).toOpenPartialHomeomorph.symm
           ((atlas IG G IX X).trivAt q).target := by
     obtain ⟨U, hU, s, hs, hsec, -, h⟩ := exists_atlas_trivAt_eq IG G IX X q
-    have hle := finrank_le_of_properSMul_of_stabilizer_eq_bot IG IX
-      (IsCancelSMul.stabilizer_eq_bot (G := Gᵐᵒᵖ) q.out)
     rw [h]
-    exact contMDiffOn_orbitTrivializationOfSectionUnop hU hs hsec hπ
-      (by rw [ProperSMul.finrank_quotientModelSpace]; omega)
+    exact contMDiffOn_orbitTrivializationOfSectionUnop hU hs hsec
   exact ⟨fun q ↦ (key q).1, fun q ↦ (key q).2⟩
 
 end orbitFiber
