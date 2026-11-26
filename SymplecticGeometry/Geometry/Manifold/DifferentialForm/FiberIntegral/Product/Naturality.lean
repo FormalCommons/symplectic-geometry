@@ -214,7 +214,10 @@ theorem prodFiberIntegrand_mpullback_of_fst_eq [FiniteDimensional ℝ E'] {Φ : 
 
 variable [FiniteDimensional ℝ E] [FiniteDimensional ℝ E'] [FiniteDimensional ℝ E'']
   [IsManifold I ∞ B] [IsManifold J ∞ F] [IsManifold I' ∞ B'] [CompactSpace F] [T2Space F]
-  [I.Boundaryless] [I'.Boundaryless]
+
+section Boundaryless
+
+variable [I.Boundaryless] [I'.Boundaryless]
 
 /-- **The fibre integral commutes with pull-back along maps of the base.** For a smooth map
 `f : B' → B` and a smooth form `α` of degree `r + m` on `B × F`, the fibre integral of the
@@ -252,6 +255,9 @@ theorem prodFiberIntegral_wedge_mpullback_fst {p q : ℕ} (o : Manifold.Orientat
     simp only [Units.smul_def, zsmul_eq_mul, smul_eq_mul]
     ring
 
+end Boundaryless
+
+variable [BoundarylessManifold I B]
 
 /-- **Invariance under fibrewise orientation-preserving diffeomorphisms.** Let
 `Φ : B × F → B × F` be smooth and cover the identity of `B`, `Prod.fst ∘ Φ = Prod.fst`, and let
