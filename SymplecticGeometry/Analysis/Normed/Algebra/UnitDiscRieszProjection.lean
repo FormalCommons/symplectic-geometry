@@ -291,6 +291,7 @@ theorem continuousAt_unitDiscRieszProjection {a : A} (h : ∀ z ∈ spectrum ℂ
 
 /-- The Riesz projection of a family continuous within `s` at `x`, whose spectrum at `x` avoids
 the unit circle, is continuous within `s` at `x`. -/
+@[fun_prop]
 theorem _root_.ContinuousWithinAt.unitDiscRieszProjection {X : Type*} [TopologicalSpace X]
     {f : X → A} {s : Set X} {x : X} (hf : ContinuousWithinAt f s x)
     (h : ∀ z ∈ spectrum ℂ (f x), ‖z‖ ≠ 1) :
@@ -299,6 +300,7 @@ theorem _root_.ContinuousWithinAt.unitDiscRieszProjection {X : Type*} [Topologic
 
 /-- The Riesz projection of a family continuous at `x`, whose spectrum at `x` avoids the unit
 circle, is continuous at `x`. -/
+@[fun_prop]
 theorem _root_.ContinuousAt.unitDiscRieszProjection {X : Type*} [TopologicalSpace X]
     {f : X → A} {x : X} (hf : ContinuousAt f x) (h : ∀ z ∈ spectrum ℂ (f x), ‖z‖ ≠ 1) :
     ContinuousAt (fun y ↦ unitDiscRieszProjection (f y)) x :=
@@ -306,6 +308,7 @@ theorem _root_.ContinuousAt.unitDiscRieszProjection {X : Type*} [TopologicalSpac
 
 /-- The Riesz projection of a family continuous on `s`, whose spectra on `s` avoid the unit
 circle, is continuous on `s`. -/
+@[fun_prop]
 theorem _root_.ContinuousOn.unitDiscRieszProjection {X : Type*} [TopologicalSpace X]
     {f : X → A} {s : Set X} (hf : ContinuousOn f s)
     (h : ∀ x ∈ s, ∀ z ∈ spectrum ℂ (f x), ‖z‖ ≠ 1) :
@@ -314,6 +317,7 @@ theorem _root_.ContinuousOn.unitDiscRieszProjection {X : Type*} [TopologicalSpac
 
 /-- The Riesz projection depends continuously on the element, along a continuous family whose
 spectra avoid the unit circle. -/
+@[continuity, fun_prop]
 theorem _root_.Continuous.unitDiscRieszProjection {X : Type*} [TopologicalSpace X] {f : X → A}
     (hf : Continuous f) (h : ∀ x, ∀ z ∈ spectrum ℂ (f x), ‖z‖ ≠ 1) :
     Continuous fun x ↦ unitDiscRieszProjection (f x) :=
