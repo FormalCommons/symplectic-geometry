@@ -366,17 +366,15 @@ theorem singularHomologyπ_ofSubset_inter_eq_add (n : ℕ) :
         (haveI := TopPair.isIso_singularHomologyMap_excisionMap R U V
           (by rw [hU.interior_eq, hV.interior_eq, hUV]) n
         inv (TopPair.singularHomologyMap (TopPair.excisionMap U V) R n)) ≫
-        TopPair.singularHomologyMap (TopPair.ofSubsetMap (B := Subtype.val ⁻¹' V) (B' := U ∩ V)
-          (ofHom (ContinuousMap.subtypeVal U))
-          fun (x : U) (hx : x.val ∈ V) ↦ ⟨x.property, hx⟩) R n :
+        TopPair.singularHomologyMap
+          (TopPair.interPairMapOfSubset (subset_refl (U ∩ V))) R n :
         (toSSet.obj X).homology R n ⟶ _) +
       ((TopPair.ofSubset U).singularHomologyπ R n ≫
         (haveI := TopPair.isIso_singularHomologyMap_excisionMap R V U
           (by rw [hU.interior_eq, hV.interior_eq, Set.union_comm, hUV]) n
         inv (TopPair.singularHomologyMap (TopPair.excisionMap V U) R n)) ≫
-        TopPair.singularHomologyMap (TopPair.ofSubsetMap (B := Subtype.val ⁻¹' U) (B' := U ∩ V)
-          (ofHom (ContinuousMap.subtypeVal V))
-          fun (x : V) (hx : x.val ∈ U) ↦ ⟨hx, x.property⟩) R n :
+        TopPair.singularHomologyMap
+          (TopPair.interPairMapOfSubset (Set.inter_comm V U).subset) R n :
         (toSSet.obj X).homology R n ⟶ _) := by
   have := TopPair.isIso_singularHomologyMap_excisionMap R U V
     (by rw [hU.interior_eq, hV.interior_eq, hUV]) n
@@ -385,12 +383,11 @@ theorem singularHomologyπ_ofSubset_inter_eq_add (n : ℕ) :
   have hU₁ : Set.MapsTo (𝟙 X) (U ∩ V) U := (Set.mapsTo_id _).mono_right Set.inter_subset_left
   have hV₁ : Set.MapsTo (𝟙 X) (U ∩ V) V := (Set.mapsTo_id _).mono_right Set.inter_subset_right
   -- An inclusion `(A, A ∩ B) ⟶ (X, U ∩ V)` followed by `(X, U ∩ V) ⟶ (X, A)` induces zero.
-  have h₀ {A B : Set X} (h₁ : Set.MapsTo (ofHom (ContinuousMap.subtypeVal A))
-      (Subtype.val ⁻¹' B) (U ∩ V)) (h₂ : Set.MapsTo (𝟙 X) (U ∩ V) A) :
-      TopPair.singularHomologyMap (TopPair.ofSubsetMap _ h₁) R n ≫
+  have h₀ {A B : Set X} (h₁ : A ∩ B ⊆ U ∩ V) (h₂ : Set.MapsTo (𝟙 X) (U ∩ V) A) :
+      TopPair.singularHomologyMap (TopPair.interPairMapOfSubset h₁) R n ≫
         TopPair.singularHomologyMap (TopPair.ofSubsetMap (𝟙 X) h₂) R n = 0 := by
-    rw [← TopPair.singularHomologyMap_comp, TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq h₁ h₂
-      (h₂.comp h₁) (Category.comp_id _)]
+    rw [← TopPair.singularHomologyMap_comp, TopPair.interPairMapOfSubset_comp_ofSubsetMap_id,
+      TopPair.interPairMapOfSubset_eq_ofSubsetMap]
     exact TopPair.singularHomologyMap_ofSubsetMap_eq_zero_of_range_subset R _ _
       (fun _ ⟨y, hy⟩ ↦ hy ▸ y.property) n
   -- The steps below are `Eq.trans` rather than `rw` or `simp`: the two summands have the
