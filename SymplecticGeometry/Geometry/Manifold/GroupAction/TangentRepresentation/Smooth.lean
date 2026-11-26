@@ -11,7 +11,6 @@ public import TauCeti.Geometry.Manifold.GroupAction.TangentRepresentation
 public import SymplecticGeometry.Geometry.Lie.Subgroup.IdentityComponent
 
 import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
-import SymplecticGeometry.Geometry.Lie.GroupLieAlgebraLieHom
 import TauCeti.Geometry.Lie.Exponential.Derivative.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 
@@ -37,7 +36,7 @@ image `ξ` in the isotropy algebra `𝔤_x` under the differential of the inclus
 The proof of smoothness adapts that of Tau Ceti's `TauCeti.continuous_tangentRepresentation`,
 with Mathlib's `ContMDiffAt.mfderiv` for the smooth dependence of a derivative on a parameter.
 The derivative is computed along the exponential lines of `G_x`, which the inclusion carries to
-those of `G` (`ContMDiffMonoidMorphism.map_mulInvariantExp`), where Tau Ceti's
+those of `G` (`TauCeti.Lie.EmbeddedLieSubgroupData.coe_mulInvariantExp`), where Tau Ceti's
 `TauCeti.hasDerivAt_mfderiv_mulInvariantExp_smul_smul_isotropyLinearization` applies.
 
 ## References
@@ -134,12 +133,7 @@ theorem mfderiv_tangentRepresentation_apply_one
   -- The inclusion carries the exponential line of `ζ` in `G_x` to that of `ξ` in `G`.
   have hexp (t : ℝ) : ((mulInvariantExp (t • ζ) : stabilizer G x) : G) =
       mulInvariantExp (t • (stabilizer G x).subtype.groupLieAlgebraMap 𝓘(ℝ, F) I ζ) := by
-    rw [← d.subtypeVal_apply, d.subtypeVal.map_mulInvariantExp, map_smul,
-      ContMDiffMonoidMorphism.coe_groupLieAlgebraLieHom, MonoidHom.groupLieAlgebraMap_apply,
-      MonoidHom.groupLieAlgebraMap_apply, ContMDiffMonoidMorphism.coe_toMonoidHom,
-      mfderiv_congr (funext fun k ↦ d.subtypeVal_apply k), Subgroup.coe_subtype]
-    -- The two sides differ only in instance arguments, which agree up to unfolding.
-    rfl
+    rw [d.coe_mulInvariantExp, map_smul]
   have hφ : MDifferentiableAt 𝓘(ℝ, F) 𝓘(ℝ, E')
       (fun h : stabilizer G x ↦ show E' from tangentRepresentation hd h v) 1 :=
     (((contMDiff_tangentRepresentation_apply d hd).comp
