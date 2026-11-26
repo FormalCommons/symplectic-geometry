@@ -8,6 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.MFDeriv.Atlas
 public import Mathlib.Geometry.Manifold.VectorBundle.Tangent
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
+import TauCeti.Geometry.Manifold.VectorBundle.Trivialization
 
 /-!
 # Tangent vectors in the trivializations of the tangent bundle
@@ -23,9 +24,10 @@ Two facts on the coordinates of a tangent vector in a trivialization of the tang
   coordinate vector of `v` in the trivialization at `x₀` back to `v`. It is Mathlib's
   `TangentBundle.symmL_trivializationAt` applied to a vector.
 
-By the first fact, the inclusion `v ↦ (x, v)` of the tangent space at `x` into the tangent bundle
-reads as the identity of `E` in the trivialization at `x`, so it is smooth
-(`TangentBundle.contMDiff_totalSpaceMk`).
+The inclusion `v ↦ (x, v)` of the tangent space at `x` into the tangent bundle is smooth
+(`TangentBundle.contMDiff_totalSpaceMk`). This is the tangent-bundle case of Tau Ceti's
+`TauCeti.Manifold.contMDiff_totalSpaceMk`, stated with the model space `E` as its source, so that
+callers need not supply norms on the tangent spaces.
 -/
 
 public section
@@ -60,11 +62,16 @@ theorem mfderivWithin_extChartAt_symm_trivializationAt_snd {x₀ x : M}
       (Trivialization.symm_apply_apply_mk (trivializationAt E (TangentSpace I) x₀) hx v))
 
 /-- The inclusion `v ↦ (x, v)` of the tangent space at `x`, which is the model space `E`, into
-the tangent bundle is smooth. -/
+the tangent bundle is smooth. This is the tangent-bundle case of Tau Ceti's
+`TauCeti.Manifold.contMDiff_totalSpaceMk`. -/
 theorem contMDiff_totalSpaceMk {n : WithTop ℕ∞} (x : M) :
-    ContMDiff 𝓘(𝕜, E) I.tangent n fun v : E ↦ (⟨x, v⟩ : TangentBundle I M) := fun _ ↦
-  contMDiffAt_totalSpace_iff.2 ⟨contMDiffAt_const,
-    contMDiffAt_id.congr_of_eventuallyEq (.of_forall (trivializationAt_apply_self_snd (I := I) x))⟩
+    ContMDiff 𝓘(𝕜, E) I.tangent n fun v : E ↦ (⟨x, v⟩ : TangentBundle I M) := by
+  -- The tangent spaces have no global norm instances; each of them is `E` by definition.
+  let iN : ∀ x : M, NormedAddCommGroup (TangentSpace I x) := fun _ ↦ ‹NormedAddCommGroup E›
+  let iS : ∀ x : M, NormedSpace 𝕜 (TangentSpace I x) := fun _ ↦ ‹NormedSpace 𝕜 E›
+  exact @TauCeti.Manifold.contMDiff_totalSpaceMk n 𝕜 M E (TangentSpace I) _ _ _ _ iN iS
+    _ _ _ _ _ I _ _ (inferInstance : FiberBundle E (TangentSpace I))
+    (inferInstance : VectorBundle 𝕜 E (TangentSpace I)) x
 
 end TangentBundle
 
