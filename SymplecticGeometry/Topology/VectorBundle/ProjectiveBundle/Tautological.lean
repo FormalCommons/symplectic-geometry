@@ -65,6 +65,9 @@ fibre `ι → 𝕜` rather than `𝕜`.
   homeomorphic to the nonzero vectors of `V`.
 * `Projectivization.tautologicalMapEquiv`: the restriction of an injective linear map to the
   lines, a fibrewise isomorphism over `Projectivization.map`.
+* `Projectivization.tautologicalMapProjectivizationEquiv`: the restriction of a continuous
+  linear equivalence to the lines, a fibrewise isomorphism over
+  `ContinuousLinearEquiv.mapProjectivization`.
 * `SymplecticGeometry.Bundle.ProjectiveBundle.Tautological 𝕜 G E`: the tautological line over the
   projective bundle, with its trivializations `ProjectiveBundle.tautologicalTrivialization` and
   its `FiberBundle` and `VectorBundle` instances.
@@ -335,6 +338,42 @@ theorem rank_tautologicalCore : (tautologicalCore 𝕜 V).rank = 1 :=
   (rfl)
 
 end Tautological
+
+/-! ### Restriction of a continuous linear equivalence -/
+
+section MapProjectivization
+
+variable {K V : Type*} [DivisionRing K] [AddCommGroup V] [Module K V] [TopologicalSpace V]
+  {L W : Type*} [DivisionRing L] [AddCommGroup W] [Module L W] [TopologicalSpace W]
+  {σ : K →+* L} {σ' : L →+* K} [RingHomInvPair σ σ'] [RingHomInvPair σ' σ]
+
+/-- The line `e.mapProjectivization ℓ` is the image of the line `ℓ` under `e`. -/
+theorem _root_.ContinuousLinearEquiv.submodule_mapProjectivization (e : V ≃SL[σ] W)
+    (ℓ : ℙ K V) : (e.mapProjectivization ℓ).submodule = ℓ.submodule.map (e : V →ₛₗ[σ] W) := by
+  rw [ContinuousLinearEquiv.coe_mapProjectivization, submodule_map]
+
+end MapProjectivization
+
+section MapProjectivizationEquiv
+
+variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
+  {V : Type*} [AddCommGroup V] [Module 𝕜 V] [TopologicalSpace V]
+  {W : Type*} [AddCommGroup W] [Module 𝕜 W] [TopologicalSpace W]
+
+/-- A continuous linear equivalence `e : V ≃L[𝕜] W` restricts to an isomorphism of the line `ℓ`
+onto the line `e.mapProjectivization ℓ`: the fibrewise isomorphism of the tautological line of
+`ℙ 𝕜 V` with the pull-back of that of `ℙ 𝕜 W` along the homeomorphism `e.mapProjectivization`. -/
+def tautologicalMapProjectivizationEquiv (e : V ≃L[𝕜] W) (ℓ : ℙ 𝕜 V) :
+    Tautological 𝕜 V ℓ ≃L[𝕜] Tautological 𝕜 W (e.mapProjectivization ℓ) :=
+  e.ofSubmodules ℓ.submodule (e.mapProjectivization ℓ).submodule
+    (e.submodule_mapProjectivization ℓ).symm
+
+@[simp]
+theorem coe_tautologicalMapProjectivizationEquiv_apply (e : V ≃L[𝕜] W) (ℓ : ℙ 𝕜 V)
+    (v : Tautological 𝕜 V ℓ) : (tautologicalMapProjectivizationEquiv e ℓ v : W) = e v :=
+  (rfl)
+
+end MapProjectivizationEquiv
 
 /-! ### Pull-backs along maps of projective spaces -/
 
@@ -677,9 +716,7 @@ a fibrewise isomorphism `φ` is the tautological line of `E`: on the fibre over 
 isomorphism is the restriction of `φ` to `p`. -/
 def tautologicalMapEquiv (p : ProjectiveBundle 𝕜 G E) :
     Tautological 𝕜 G E p ≃L[𝕜] (map φ hφ *ᵖ (Tautological 𝕜 G' E')) p :=
-  ContinuousLinearEquiv.ofSubmodules (φ p.proj) p.snd.submodule
-    ((φ p.proj).mapProjectivization p.snd).submodule
-    (by rw [ContinuousLinearEquiv.coe_mapProjectivization, submodule_map])
+  tautologicalMapProjectivizationEquiv (φ p.proj) p.snd
 
 @[simp]
 theorem coe_tautologicalMapEquiv_apply (p : ProjectiveBundle 𝕜 G E) (v : Tautological 𝕜 G E p) :
