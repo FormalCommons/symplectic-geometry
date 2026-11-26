@@ -9,6 +9,7 @@ public import Mathlib.CategoryTheory.Idempotents.Basic
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Range
 public import TauCeti.Analysis.Normed.Operator.IdempotentRange
 public import TauCeti.Topology.VectorBundle.FiniteRank.Biproduct
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 import SymplecticGeometry.Topology.VectorBundle.Core.Basic
 
 /-!
@@ -49,7 +50,8 @@ All of this follows from the identities `rangeRestrict_rangeInclusion` and
 * `VectorBundleCore.CoordinateHom.isLocallyConstant_finrank_range_fiberMap`: the rank of a
   coordinate endomorphism with idempotent fibre maps is locally constant on the base.
 * `TauCeti.FiniteRankBundleCore.isIdempotentElem_fiberMap`: the fibre maps of an idempotent
-  endomorphism of a finite-rank core are idempotent.
+  endomorphism of a finite-rank core are idempotent, and
+  `TauCeti.FiniteRankBundleCore.fiberMap_fiberMap_of_comp_self` says so vector by vector.
 * `TauCeti.FiniteRankBundleCore.isLocallyConstant_finrank_range_fiberMap`: the rank of an
   idempotent endomorphism of a finite-rank core is locally constant on the base.
 * `TauCeti.FiniteRankBundleCore.finrank_range_fiberMap_eq`: over a preconnected base it is
@@ -121,6 +123,12 @@ theorem isIdempotentElem_fiberMap (hP : P ≫ P = P) (x : X) :
     IsIdempotentElem (P.fiberMap x) := by
   rw [IsIdempotentElem, ContinuousLinearMap.mul_def, ← fiberMap_comp, hP]
 
+/-- The fibre map of an idempotent endomorphism of a finite-rank core fixes each vector of its
+range: applying it twice to `v` gives its value at `v`. -/
+theorem fiberMap_fiberMap_of_comp_self (hP : P ≫ P = P) (x : X) (v : Fin E.rank → 𝕜) :
+    P.fiberMap x (P.fiberMap x v) = P.fiberMap x v := by
+  rw [← fiberMap_comp_apply, hP]
+
 /-- At each point, the rank of `𝟙 E - P` for an idempotent endomorphism `P` of a finite-rank core
 is the rank of the core minus the rank of `P`. -/
 theorem finrank_range_one_sub_fiberMap (hP : P ≫ P = P) (x : X) :
@@ -130,7 +138,7 @@ theorem finrank_range_one_sub_fiberMap (hP : P ≫ P = P) (x : X) :
   rw [Module.finrank_fin_fun, LinearMap.IsIdempotentElem.ker_eq_range_one_sub
     (ContinuousLinearMap.IsIdempotentElem.toLinearMap (isIdempotentElem_fiberMap hP x))] at hrk
   have h1 : ((𝟙 E - P).fiberMap x).toLinearMap = 1 - (P.fiberMap x).toLinearMap := by
-    ext v; simp [sub_eq_add_neg]
+    ext v; simp
   rw [h1]
   omega
 
