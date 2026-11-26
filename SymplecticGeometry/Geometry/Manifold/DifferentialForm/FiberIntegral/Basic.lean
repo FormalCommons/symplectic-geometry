@@ -6,11 +6,15 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegral.Product.Basic
+public import SymplecticGeometry.Geometry.Manifold.FiberBundle.StructureGroup
 public import TauCeti.Geometry.Manifold.FiberBundle.MapFiber
+public import TauCeti.Geometry.Manifold.Orientation.Preserving
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegral.Product.Naturality
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.MapFiber
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
+import TauCeti.Geometry.Manifold.DifferentialForm.Integration.ChangeOfVariables
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
 
 /-!
@@ -45,6 +49,16 @@ see such changes (`ContinuousAlternatingMap.map_append_add_of_mem`).
 In degree `m` (`r = 0`) the integrand is the pull-back of `α` along the fibre inclusion
 (`Bundle.Trivialization.fiberIntegrand_degree_zero`).
 
+Two trivializations over a common point `b` give integrands that differ by the pull-back along
+the coordinate change between them over `b`
+(`Bundle.Trivialization.fiberIntegrand_eq_mpullback_coordChange`): the coordinate change on
+`B × F` covers the identity of `B`, so `SymplecticGeometry.prodFiberIntegrand_mpullback_of_fst_eq`
+applies to it. For an atlas whose coordinate changes preserve an orientation `o` of `F`, change
+of variables along these diffeomorphisms of `F`
+(`Topology.IsOpenEmbedding.integralTopForm_mpullback_of_isOrientationPreservingAt`) shows that
+the integral over `F` of the integrand does not depend on the chart that reads it
+(`TauCeti.MapFiber.Atlas.integralTopForm_fiberIntegrand_trivAt`).
+
 ## Main definitions
 
 * `Bundle.Trivialization.fiberIntegrand e α b v`: the integrand read through `e`.
@@ -66,6 +80,10 @@ In degree `m` (`r = 0`) the integrand is the pull-back of `α` along the fibre i
   `TauCeti.MapFiber.Atlas.fiberIntegrand_apply_of_lift`: independence of the lifts.
 * `Bundle.Trivialization.fiberIntegrand_degree_zero`,
   `TauCeti.MapFiber.Atlas.fiberIntegrand_degree_zero`: the integrand in degree `m`.
+* `Bundle.Trivialization.fiberIntegrand_eq_mpullback_coordChange`: the integrands read through
+  two trivializations differ by the coordinate change.
+* `TauCeti.MapFiber.Atlas.integralTopForm_fiberIntegrand_trivAt`: for an oriented atlas, the
+  integral of the integrand does not depend on the chart.
 
 ## References
 
@@ -273,6 +291,54 @@ theorem fiberIntegrand_degree_zero
   exact hsymm.mfderiv_uncurry_apply_zero_mk (f := fun b y ↦ e.toOpenPartialHomeomorph.symm (b, y))
     (w j)
 
+/-- **Changing the trivialization.** Let `e` be differentiable with differentiable inverse, let the
+inverse of `e'` be differentiable on its target, let `b` lie in both base sets, and let the model
+space of `F` have dimension at most `m`. The integrand read through `e'` is the pull-back of the
+integrand read through `e` along the coordinate change `e'.coordChange e b` from `e'` to `e` over
+`b`. -/
+theorem fiberIntegrand_eq_mpullback_coordChange [FiniteDimensional ℝ E']
+    {e e' : Trivialization F proj} (he : e.toOpenPartialHomeomorph.MDifferentiable IM (I.prod J))
+    (he' : MDifferentiableOn (I.prod J) IM e'.toOpenPartialHomeomorph.symm e'.target) {b : B}
+    (hb : b ∈ e.baseSet) (hb' : b ∈ e'.baseSet) (hm : Module.finrank ℝ E' ≤ m)
+    (α : RoughForm IM M ℝ (r + m)) (v : Fin r → TangentSpace I b) :
+    e'.fiberIntegrand α b v = mpullback J J (e'.coordChange e b) (e.fiberIntegrand α b v) := by
+  -- The coordinate change, extended to all of `B × F` so that it covers the identity of `B`.
+  let Φ : B × F → B × F := fun p ↦ (p.1, e'.coordChange e p.1 p.2)
+  have hopen : IsOpen {p : B × F | p.1 ∈ e.baseSet ∩ e'.baseSet} :=
+    (e.open_baseSet.inter e'.open_baseSet).preimage continuous_fst
+  have hnhds (y : F) : {p : B × F | p.1 ∈ e.baseSet ∩ e'.baseSet} ∈ nhds (b, y) :=
+    hopen.mem_nhds ⟨hb, hb'⟩
+  -- Over both base sets, `Φ` is `e ∘ e'⁻¹`, so `e⁻¹ ∘ Φ` is `e'⁻¹` there.
+  have hΦ {p : B × F} (hp : p.1 ∈ e.baseSet ∩ e'.baseSet) :
+      Φ p = e (e'.toOpenPartialHomeomorph.symm p) :=
+    e'.mk_coordChange e hp.2 hp.1 p.2
+  have hsrc {p : B × F} (hp : p.1 ∈ e.baseSet ∩ e'.baseSet) :
+      e'.toOpenPartialHomeomorph.symm p ∈ e.source := by
+    rw [e.mem_source, e'.proj_symm_apply (e'.mem_target.2 hp.2)]
+    exact hp.1
+  have hd (y : F) : MDifferentiableAt (I.prod J) (I.prod J) Φ (b, y) := by
+    have hy : ((b, y) : B × F) ∈ e'.target := e'.mem_target.2 hb'
+    have h : MDifferentiableAt (I.prod J) (I.prod J)
+        (fun p ↦ e (e'.toOpenPartialHomeomorph.symm p)) (b, y) :=
+      (he.mdifferentiableAt (hsrc ⟨hb, hb'⟩)).comp _
+        ((he' _ hy).mdifferentiableAt (e'.open_target.mem_nhds hy))
+    refine (mdifferentiableAt_fst.prodMk h.snd).congr_of_eventuallyEq ?_
+    filter_upwards [hnhds y] with p hp
+    refine (hΦ hp).trans (Prod.ext ?_ rfl)
+    rw [e.coe_fst (hsrc hp), e'.proj_symm_apply (e'.mem_target.2 hp.2)]
+  have hev (y : F) : (e.toOpenPartialHomeomorph.symm ∘ Φ) =ᶠ[nhds (b, y)]
+      e'.toOpenPartialHomeomorph.symm := by
+    filter_upwards [hnhds y] with p hp
+    rw [comp_apply, hΦ hp]
+    exact e.toOpenPartialHomeomorph.left_inv (hsrc hp)
+  funext y
+  rw [fiberIntegrand_def, fiberIntegrand_def,
+    ← prodFiberIntegrand_mpullback_of_fst_eq (Φ := Φ) rfl hd hm]
+  ext w
+  rw [prodFiberIntegrand_apply, prodFiberIntegrand_apply, ← mpullback_comp_at (hd y)
+    (he.mdifferentiableAt_symm (e.mem_target.2 hb)),
+    mpullback_apply_eq_of_mfderiv_eq (hev y).eq_of_nhds (hev y).mfderiv_eq]
+
 end Bundle.Trivialization
 
 namespace TauCeti.MapFiber.Atlas
@@ -404,6 +470,23 @@ theorem fiberIntegrand_degree_zero (hA : A.IsContMDiff n I J IM) (hn : n ≠ 0)
   (A.trivAt b).fiberIntegrand_degree_zero ((hA.contMDiffOn_trivAt_symm b).mdifferentiableOn hn)
     (A.mem_baseSet_trivAt b) α v
 
+/-- **The integral of the integrand does not depend on the chart.** Let `A` be a `C^n` atlas,
+`n ≠ 0`, whose coordinate changes preserve the orientation `o` of `F`. For every chart
+`A.trivAt b'` whose base set contains `b`, the integral over `F` of the integrand read through
+`A.trivAt b'` is that of the integrand read through the chart `A.trivAt b` at `b`. -/
+theorem integralTopForm_fiberIntegrand_trivAt [FiniteDimensional ℝ E'] [IsManifold J 1 F]
+    (o : Manifold.Orientation J F (Fin m)) (hA : A.IsContMDiff n I J IM) {hn : n ≠ 0}
+    (ho : A.HasStructureGroup (Diffeomorph.orientationPreservingSubgroup hn o))
+    (α : RoughForm IM M ℝ (r + m)) {b b' : B} (hb : b ∈ (A.trivAt b').baseSet)
+    (v : Fin r → TangentSpace I b) :
+    integralTopForm o ((A.trivAt b').fiberIntegrand α b v) =
+      integralTopForm o (A.fiberIntegrand α b v) := by
+  obtain ⟨φ, hφ, hφe⟩ := hasStructureGroup_iff.1 ho b' b b hb (A.mem_baseSet_trivAt b)
+  rw [fiberIntegrand_def, Trivialization.fiberIntegrand_eq_mpullback_coordChange
+    (hA.mdifferentiable_trivAt hn b) ((hA.contMDiffOn_trivAt_symm b').mdifferentiableOn hn)
+    (A.mem_baseSet_trivAt b) hb (by simpa using o.card_eq.symm.le) α v, ← hφe]
+  exact φ.toHomeomorph.isOpenEmbedding.integralTopForm_mpullback_of_isOrientationPreservingAt
+    (Diffeomorph.mem_orientationPreservingSubgroup_iff.mp hφ) (by simp)
 end TauCeti.MapFiber.Atlas
 
 end
