@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.AlgebraicTopology.Cohomology.CompactSupport.Vanishing
+public import TauCeti.AlgebraicTopology.Cohomology.CompactSupport.Basic
 
 /-!
 # Invariance of cohomology with compact supports under homeomorphisms
@@ -33,7 +33,7 @@ public section
 
 noncomputable section
 
-open CategoryTheory Limits Topology
+open CategoryTheory Limits
 
 universe v u
 
