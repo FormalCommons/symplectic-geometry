@@ -312,25 +312,22 @@ Namespace `SymplecticGeometry.BlowupModel`, on `BlowupModel n`.
 ### `Blowup/Area.lean`
 
 - `blowdown_profileForm_area`: for `Ω : Set ℂ` bounded open, `u : ℂ → E`
-  smooth on a neighbourhood of `closure Ω` and holomorphic on `Ω`, with
+  `C¹` near every point of `closure Ω` and holomorphic on `Ω`, with
   $|u|>\lambda+\varepsilon$ on `frontier Ω`, finitely many zeros in `Ω` of
-  total order `m` (Mathlib's `analyticOrderAt`), and `ũ : Ω → BlowupModel n`
-  continuous with `blowdown ∘ ũ = u`, the integral over `Ω` of $u^*\omega_0$
-  is that of $\tilde u^*\tilde\omega_{\lambda,\varepsilon}$ plus
+  total order `m` (Mathlib's `analyticOrderNatAt`), and
+  `ũ : ℂ → BlowupModel n` continuous on `Ω` with `blowdown ∘ ũ = u` there,
+  the integral over `Ω` of $u^*\omega_0$ is that of $\tilde u^*\tilde\omega_{\lambda,\varepsilon}$ plus
   $m\pi\lambda^2$. The integrals are Lebesgue integrals over `Ω` of the
   densities $\sigma(\partial_xu,\partial_yu)$. `ũ` is `curveLift u` on `Ω`,
-  so holomorphic, by *Complex blowup*'s `curveLift_eq_of_blowdown_comp`
+  so holomorphic, by *Complex blowup*'s `eqOn_curveLift_of_blowdown_comp`
   (`Lift.lean`), and `continuousOn_curveLift` with `blowdown_curveLift`
   gives its existence.
-- Proof, the page's route: off the zeros the difference of the densities is
+- Proof: off the zeros the difference of the densities is
   $\tfrac14\Delta(\phi\circ u)$ with $\phi(s)=s-g(s)$, constant near
-  `frontier Ω`; Stokes on `Ω` minus small discs about the zeros (Tau Ceti's
-  `integralTopForm_mextDeriv_eq_zero` for the compactly supported part, and
-  the library's `integralTopForm_mextDeriv_radialAngularForm` or polar
-  coordinates on the discs), and the limit $m_j\pi\lambda^2$ of the
-  boundary terms at a zero of order $m_j$, where
-  $\phi\circ u=-\lambda^2m_j\log|t-t_j|^2+$ smooth; this is the limit of
-  $\int u^*\alpha_{\mathrm{FS}}$ with `fubiniStudyPrimitive`.
+  `frontier Ω`, and $\phi\circ u=-\lambda^2m_j\log|t-t_j|^2+$ smooth at a
+  zero of order $m_j$; the planar identity
+  `setIntegral_laplacian_eq_of_log_poles` (`LogarithmicPole.lean`) then gives
+  $\int_\Omega\Delta(\phi\circ u)=4\pi\lambda^2m$.
 - **Milestone** `kahler_blowupModel`: the conjunction of
   `isKahler_blowupForm` with the line area, `isKahler_mpullback_radialMap_of_profile`,
   `mpullback_radialMap_blowdown` with `shellSymplectomorph`, the

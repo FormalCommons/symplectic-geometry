@@ -18,7 +18,7 @@ import TauCeti.Analysis.Calculus.FDeriv.RestrictScalars
 import Mathlib.Analysis.Complex.CauchyIntegral
 
 /-!
-# The area potential of the symplectic blowup
+# The area potential and the area identity of the symplectic blowup
 
 For `0 < l` and `0 < ε`, the area of a holomorphic curve `u` in `E = ℂⁿ⁺¹` for the standard form
 `ω₀` and that of its lift to the model blowup for the form `ω̃_{l,ε}` (`profileForm`) differ, off
@@ -58,10 +58,28 @@ each density being the value of the form on the derivatives of the curve along `
   `TauCeti.laplacian_comp_sum_norm_sq_div_four` computes `Δ (ψ |u|²) (t) / 4` as
   `ψ'(s) |v|² + ψ''(s) |star (u t) ⬝ᵥ v|²`, here for `ψ(s) = s - g(s)`.
 
+From these it proves the area identity and the milestone:
+
+* `SymplecticGeometry.BlowupModel.blowdown_profileForm_area`: for a bounded open `Ω ⊆ ℂ` and a
+  curve `u` that is `C¹` near `closure Ω`, holomorphic on `Ω`, with `|u| > l + ε` on
+  `frontier Ω` and finitely many zeros in `Ω`, of total order `m`, the area of `u` for `ω₀`
+  over `Ω` is that of any continuous lift `ũ` for `ω̃_{l,ε}` plus `m π l²`. The lift is
+  `curveLift u` on `Ω` (`eqOn_curveLift_of_blowdown_comp`). The area potential along `u`,
+  changed at the zeros where only its Laplacian off them matters, is constant near `frontier Ω`
+  and has a pole `-l² k log |t - t₀|²` at a zero of order `k`, so the planar identity
+  `setIntegral_laplacian_eq_of_log_poles` gives `∫ Δ(φ ∘ u) = 4π l² m`; the densities of
+  `u^* ω₀` are integrable, as continuous functions on the compact `closure Ω`
+  (`integrableOn_eval₂_ω₀E_mfderiv`).
+* `SymplecticGeometry.BlowupModel.kahler_blowupModel`: the conjunction of the Kähler property
+  of `ω̃_l` and the area of the lines of the divisor, the Kähler property of pull-backs of `ω₀`
+  along radial maps, the identification of `ω̃_l` with `F_l^* ω₀` off the divisor and the shell
+  symplectomorphism, the properties of `ω̃_{l,ε}` with their smooth dependence on parameters, and
+  the area identity.
+
 ## References
 
-* [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], (7.1.7) and
-  the proof of Proposition 7.1.13.
+* [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], (7.1.7),
+  Lemma 7.1.11, Definition 7.1.12, Proposition 7.1.13 and its proof.
 -/
 
 public section
@@ -354,6 +372,96 @@ theorem blowdown_profileForm_area (hl : 0 < l) (hε : 0 < ε) {Ω : Set ℂ} (h�
   linear_combination -h1
 
 end AreaIdentity
+
+/-! ### Kähler forms on the blowup of complex space -/
+
+section Milestone
+
+open Set Projectivization SmoothAlmostComplexStructure
+open scoped Manifold ContDiff LinearAlgebra.Projectivization TauCeti.ComplexManifold
+
+variable (n) in
+/-- **Kähler forms on the model blowup of `E = ℂⁿ⁺¹`.**
+
+* For `l ≠ 0`, the form `ω̃_l = π^* ω₀ + l² pr^* ω_FS` (`blowupForm n l`) is Kähler for the
+  complex structure of the model blowup, and every projective line of the exceptional divisor
+  has area `π l²` for it.
+* For `f` smooth on `(0, ∞)` with `f > 0` and `f' > 0` there, the pull-back of `ω₀` along the
+  radial map `z ↦ f(|z|) z / |z|` of `E ∖ 0` (the radial map of the profile `s ↦ f(√s)²`) is
+  Kähler for the complex structure of `E ∖ 0`.
+* The radial map `F_l z = √(1 + l² / |z|²) z`, composed with the blowdown `π`, pulls `ω₀` back to
+  `ω̃_l` off the exceptional divisor, and for `0 ≤ l`, `0 ≤ ε` the map
+  `shellSymplectomorph n l ε` from the complement of the divisor in `L(ε)` onto the open shell
+  `l < |w| < √(l² + ε²)` carries `ω̃_l` to `ω₀`.
+* For `0 < l` and `0 < ε`, the form `ω̃_{l,ε} = profileForm n l ε` is Kähler, equal to `ω̃_l` on
+  `L(ε)` and to `π^* ω₀` off `L(l + ε)`, and it depends smoothly on smooth positive parameters.
+* The forms `ω̃_{l,ε}` satisfy the area identity `blowdown_profileForm_area`.
+
+Milestone: *Kähler forms on the blowup of complex space*. -/
+theorem kahler_blowupModel :
+    (∀ {l : ℝ}, l ≠ 0 →
+      (blowupForm n l).IsKahler (ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n)) ∧
+      ∀ (f : (Fin 2 → ℂ) →ₗ[ℂ] Fin (n + 1) → ℂ) (hf : Function.Injective f),
+        integralTopForm (complexCurveOrientation (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ)))
+          (SmoothForm.mpullback (zeroSection ∘ map f hf)
+            (((contMDiff_zeroSection ∞).restrictScalars' ℝ).comp
+              (contMDiff_map_restrictScalars f hf ∞))
+            (blowupForm n l)).val = Real.pi * l ^ 2) ∧
+    (∀ {f : ℝ → ℝ} (hf : ContDiffOn ℝ ∞ f (Ioi 0)) (hf₀ : ∀ r ∈ Ioi (0 : ℝ), 0 < f r),
+      (∀ r ∈ Ioi (0 : ℝ), 0 < deriv f r) →
+      SmoothTwoForm.IsKahler
+        (SmoothForm.mpullback
+          (radialMap (fun s ↦ f √s ^ 2) fun s hs ↦ pow_pos (hf₀ _ (Real.sqrt_pos.2 hs)) 2)
+          (contMDiff_radialMap ((hf.comp (contDiffOn_id.sqrt fun _ hx ↦ ne_of_gt hx)
+            fun _ hx ↦ Real.sqrt_pos.2 hx).pow 2) _)
+          (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal
+            (stdComplexPiSymplecticForm (Fin (n + 1))).constSmooth))
+        (ofComplexManifold (Fin (n + 1) → ℂ) (puncturedSpace (Fin (n + 1) → ℂ)))) ∧
+    (∀ l : ℝ,
+      SmoothForm.mpullback
+          (radialMap (fun s ↦ s + l ^ 2) (fun _ hs ↦ add_pos_of_pos_of_nonneg hs (sq_nonneg l)) ∘
+            blowdownPuncturedDiffeomorph n)
+          ((contMDiff_radialMap (h := fun s ↦ s + l ^ 2)
+            (contDiffOn_id.add contDiffOn_const) _).comp
+            (blowdownPuncturedDiffeomorph n).contMDiff)
+          (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (ω₀E n)) =
+        SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (blowupForm n l)) ∧
+    (∀ {l ε : ℝ} (hl : 0 ≤ l) (hε : 0 ≤ ε),
+      SmoothTwoForm.IsSymplectomorphism
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (blowupForm n l))
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (ω₀E n))
+        (shellSymplectomorph n l ε hl hε)) ∧
+    (∀ {l ε : ℝ}, 0 < l → 0 < ε →
+      (profileForm n l ε).IsKahler (ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n)) ∧
+      (∀ p ∈ closedNbhd n ε, (profileForm n l ε).val p = (blowupForm n l).val p) ∧
+      ∀ p ∉ closedNbhd n (l + ε), (profileForm n l ε).val p =
+        (SmoothForm.mpullback blowdown ((contMDiff_blowdown ∞).restrictScalars' ℝ)
+          (ω₀E n)).val p) ∧
+    (∀ {l ε : unitInterval → ℝ}, ContMDiff (𝓡∂ 1) 𝓘(ℝ) ∞ l → ContMDiff (𝓡∂ 1) 𝓘(ℝ) ∞ ε →
+      (∀ t, 0 < l t) → (∀ t, 0 < ε t) →
+      IsSmoothFamily (𝓡∂ 1) fun t ↦ profileForm n (l t) (ε t)) ∧
+    ∀ {l ε : ℝ}, 0 < l → 0 < ε → ∀ {Ω : Set ℂ}, IsOpen Ω → Bornology.IsBounded Ω →
+      ∀ {u : ℂ → Fin (n + 1) → ℂ}, (∀ t ∈ closure Ω, ContDiffAt ℝ 1 u t) →
+      DifferentiableOn ℂ u Ω →
+      (∀ t ∈ frontier Ω, l + ε < ‖complexToRealEuclidean (Fin (n + 1)) (u t)‖) →
+      ∀ {S : Finset ℂ}, {t ∈ Ω | u t = 0} = ↑S →
+      ∀ {ũ : ℂ → BlowupModel n}, ContinuousOn ũ Ω → (∀ t ∈ Ω, (ũ t).blowdown = u t) →
+      ∫ t in Ω, (ω₀E n).eval₂ (u t) (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) u t (1 : ℂ))
+          (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) u t Complex.I) =
+        (∫ t in Ω, (profileForm n l ε).eval₂ (ũ t)
+            (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ũ t (1 : ℂ))
+            (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ũ t Complex.I)) +
+          (∑ s ∈ S, analyticOrderNatAt u s) * Real.pi * l ^ 2 :=
+  ⟨fun hl ↦ ⟨isKahler_blowupForm hl, integralTopForm_blowupForm_line _⟩,
+    fun hf hf₀ hf₁ ↦ isKahler_mpullback_radialMap_of_profile hf hf₀ hf₁
+      ((hf.comp (contDiffOn_id.sqrt fun _ hx ↦ ne_of_gt hx) fun _ hx ↦ Real.sqrt_pos.2 hx).pow 2)
+      _ fun _ _ ↦ rfl,
+    mpullback_radialMap_blowdown, isSymplectomorphism_shellSymplectomorph,
+    fun hl hε ↦ ⟨isKahler_profileForm n hl hε, profileForm_eq_blowupForm_on n,
+      profileForm_eq_on_compl n hl hε⟩,
+    isSmoothFamily_profileForm n, blowdown_profileForm_area⟩
+
+end Milestone
 
 end SymplecticGeometry.BlowupModel
 
