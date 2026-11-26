@@ -8,7 +8,8 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Model
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Tautological
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Quotient
-import TauCeti.Geometry.Manifold.SmoothEmbedding.LeftInverse
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
+import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Equiv
 
 /-!
@@ -63,10 +64,9 @@ inverse, in the frame of the chart `k` of `𝒪(-1)` the image of `(ℓ, z)` has
 (`Projectivization.twistCore_localTriv_tautologicalTwistCoreEquiv`), a coordinate of the
 holomorphic map `BlowupModel.blowdown`.
 
-The zero section is holomorphic as the image under `blowupModelTotalSpaceDiffeomorph` of the zero
-section of `𝒪(-1)`, and an embedding by Tau Ceti's
-`ContMDiff.isSmoothEmbedding_of_leftInverse`, since `BlowupModel.pr` is a holomorphic left
-inverse of it.
+The zero section is the image under `blowupModelTotalSpaceDiffeomorph` of the zero section of
+`𝒪(-1)`, a holomorphic embedding by `SymplecticGeometry.Bundle.zeroSectionEmbedding`, so it is
+one too, by Tau Ceti's `Diffeomorph.isSmoothEmbedding_comp`.
 
 The differential of `blowdown` at `zeroSection ℓ` vanishes on the tangent image of the zero
 section, of dimension `n`, since `blowdown` vanishes on the zero section, and its image contains
@@ -214,15 +214,15 @@ noncomputable def zeroSectionEmbedding :
     TauCeti.SmoothEmbedding 𝓘(ℂ, Fin n → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω (ℙ ℂ (Fin (n + 1) → ℂ))
       (BlowupModel n) :=
   TauCeti.SmoothEmbedding.ofIsSmoothEmbedding zeroSection <| by
-    -- Through `blowupModelTotalSpaceDiffeomorph`, `zeroSection` is the zero section of `𝒪(-1)`,
-    -- and `pr` is a holomorphic left inverse of it.
+    -- Through `blowupModelTotalSpaceDiffeomorph`, `zeroSection` is the zero section of `𝒪(-1)`.
+    let e := Bundle.zeroSectionEmbedding 𝓘(ℂ, Fin n → ℂ) ℂ
+      (twistCore (𝕜 := ℂ) (n := n) (-1)).Fiber (n := ω) le_top
     have h : (zeroSection : ℙ ℂ (Fin (n + 1) → ℂ) → BlowupModel n) =
-        blowupModelTotalSpaceDiffeomorph n ∘ Bundle.zeroSection ℂ (twistCore (-1)).Fiber :=
-      funext fun ℓ => (blowupModelTotalSpaceDiffeomorph_zero ℓ).symm
-    refine ContMDiff.isSmoothEmbedding_of_leftInverse ?_ le_top (contMDiff_pr 1) pr_zeroSection
+        blowupModelTotalSpaceDiffeomorph n ∘ e := by
+      rw [Bundle.coe_zeroSectionEmbedding]
+      exact funext fun ℓ => (blowupModelTotalSpaceDiffeomorph_zero ℓ).symm
     rw [h]
-    exact (blowupModelTotalSpaceDiffeomorph n).contMDiff.comp
-      (Bundle.contMDiff_zeroSection ℂ (twistCore (-1)).Fiber)
+    exact (blowupModelTotalSpaceDiffeomorph n).isSmoothEmbedding_comp le_top e.isSmoothEmbedding
 
 variable (n) in
 /-- The underlying map of `zeroSectionEmbedding n` is `zeroSection`. -/
