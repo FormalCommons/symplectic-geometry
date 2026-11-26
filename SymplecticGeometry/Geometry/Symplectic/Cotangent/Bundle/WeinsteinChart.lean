@@ -13,6 +13,7 @@ public import TauCeti.Geometry.Manifold.VectorBundle.FiberScaling
 import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.VectorBundlePoincare
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
+import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.Isotropic
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Graph
 import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Lift
@@ -48,6 +49,9 @@ restriction of `σ` to `V`; theorems that need only it take that hypothesis.
   `Diffeomorph.mpullback_cotangent_symplecticForm`).
 * `SymplecticGeometry.CotangentBundle.AgreesOnZeroSection.contMDiff`: a map that agrees with `ι`
   on the zero section is smooth, being `ι` composed with the zero section.
+* `SymplecticGeometry.CotangentBundle.IsWeinsteinChart.mpullback_eq_zero`: the map `f` of a
+  Weinstein chart pulls `σ` back to `0`, as the zero section is Lagrangian
+  (`TauCeti.CotangentBundle.mpullback_eq_zero_of_apply_zeroSection`).
 * `SymplecticGeometry.CotangentBundle.IsWeinsteinChart.exists_contMDiff_mextDeriv_ofFunction_eq`:
   if `θ` is a primitive of `σ` (`dθ = σ`) and `f^*θ = dh`, then `ι^*θ - λ`, for the Liouville form
   `λ`, has a smooth primitive on every set `W` that contains the zero section, has closure in `U`
@@ -170,6 +174,15 @@ theorem IsWeinsteinChart.cotangent_subtype_trans {σ : SmoothTwoForm I M} {f : L
     ((SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq.2 (by
       rw [map_neg, Diffeomorph.mpullback_cotangent_symplecticForm])).subtype hUU').trans
       hι.isSymplectomorphism (by simp)
+
+/-- **The map of a Weinstein chart is isotropic.** If `ι` is a Weinstein chart of `f : L → M`
+for `σ`, with `L` finite-dimensional, then `f` pulls `σ` back to `0`. -/
+theorem IsWeinsteinChart.mpullback_eq_zero [FiniteDimensional ℝ E] {σ : SmoothTwoForm I M}
+    {f : L → M} {ι : U ≃ₘ⟮J.prod 𝓘(ℝ, E →L[ℝ] ℝ), I⟯ V} (hι : IsWeinsteinChart σ f ι) :
+    SmoothForm.mpullback f hι.contMDiff σ = 0 :=
+  mpullback_eq_zero_of_apply_zeroSection ι.contMDiff
+    (SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq.1 hι.isSymplectomorphism)
+    hι.exists_apply_eq
 
 /-- **A primitive of `ι^*θ - λ` near the zero section.** Let `ι : U ≃ V` be a Weinstein chart of
 `f : L → M` for `σ`, on a finite-dimensional Hausdorff σ-compact manifold `L`. Let `θ` be a
