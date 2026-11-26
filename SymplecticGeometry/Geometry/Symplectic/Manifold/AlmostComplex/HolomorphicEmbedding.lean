@@ -22,9 +22,10 @@ on every tangent space. The same holds for an embedding into a product `N × N'`
 manifolds and the product of the almost complex structures of `N` and `N'`, which is again
 multiplication by `i` (`TauCeti.SmoothAlmostComplexStructure.prod_ofComplexManifold_apply`).
 
-These are the hypotheses, written `∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn`,
-under which `AlmostComplex/Submanifold.lean` restricts an almost complex structure and pulls back
-taming forms. So a complex submanifold, such as a smooth hypersurface, is a symplectic
+These are the hypotheses, written
+`∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn)`, under which
+`AlmostComplex/Submanifold.lean` restricts an almost complex structure and pulls back taming
+forms. So a complex submanifold, such as a smooth hypersurface, is a symplectic
 submanifold for every form that tames the complex structure of the ambient manifold.
 
 ## Main results
