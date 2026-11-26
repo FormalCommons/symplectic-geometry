@@ -8,9 +8,11 @@ module
 public import TauCeti.AlgebraicTopology.FundamentalGroup.ComplSingleton
 import Mathlib.AlgebraicTopology.FundamentalGroupoid.SimplyConnected
 import Mathlib.Geometry.Manifold.HasGroupoid
+import SymplecticGeometry.Topology.Homeomorph.SubtypeCompl
 import TauCeti.AlgebraicTopology.FundamentalGroup.Basic
-import TauCeti.AlgebraicTopology.FundamentalGroup.Homeomorph
+import TauCeti.AlgebraicTopology.FundamentalGroup.HomotopyEquiv
 import TauCeti.Geometry.Manifold.Connected
+import TauCeti.Topology.Homeomorph.SetCongr
 
 /-!
 # Deleting finitely many points from a manifold of dimension at least three
@@ -22,8 +24,9 @@ one point (`TauCeti.fundamentalGroup_map_subtypeVal_compl_singleton_bijective` a
 
 Both proofs go by induction on `S`. If `S = insert a s` with `a ∉ s`, the set `X \ s` is open,
 so Mathlib charts it on `E` as an open subset, and removing the point `a` from it gives a space
-homeomorphic to `X \ S`. The one-point results for `X \ s`, which is connected by Tau Ceti's
-`isPathConnected_compl_of_finite_of_one_lt_rank`, then pass from `s` to `S`.
+homeomorphic to `X \ S` (`Homeomorph.Set.subtypeCompl`). The one-point results for `X \ s`,
+which is connected by Tau Ceti's `isPathConnected_compl_of_finite_of_one_lt_rank`, then pass
+from `s` to `S`.
 
 ## Main results
 
@@ -46,25 +49,7 @@ open Set Topology TopologicalSpace
 namespace SymplecticGeometry
 
 variable {X E : Type*} [TopologicalSpace X] [NormedAddCommGroup E] [ChartedSpace E X]
-
-/-- The complement of a finite set, as an open subset of a charted space `X`. -/
-private def complOpens {s : Set X} (hs : s.Finite) : Opens X :=
-  have := ChartedSpace.t1Space E X
-  ⟨sᶜ, hs.isClosed.isOpen_compl⟩
-
-/-- Removing the point `a` from the open set `X \ s` gives `X \ insert a s`. -/
-private noncomputable def complInsertHomeomorph {a : X} {s : Set X} (ha : a ∉ s)
-    (hs : s.Finite) :
-    ({⟨a, ha⟩}ᶜ : Set (complOpens (E := E) hs)) ≃ₜ ((insert a s)ᶜ : Set X) :=
-  (Homeomorph.setCongr (by
-    ext ⟨y, hy⟩
-    -- Membership in `complOpens hs` is membership in `sᶜ` by definition.
-    have hy' : y ∉ s := hy
-    simp [Subtype.ext_iff, hy'])).trans
-    (IsEmbedding.subtypeVal.homeomorphOfSubsetRange (s := (insert a s)ᶜ) fun y hy ↦
-      ⟨⟨y, fun h ↦ hy (mem_insert_of_mem a h)⟩, rfl⟩)
-
-variable [NormedSpace ℝ E]
+  [NormedSpace ℝ E]
 
 /-- **Deleting finitely many points from a manifold of dimension at least three does not change
 its fundamental group.** If `X` is a connected space charted on a real normed space of dimension
@@ -73,36 +58,39 @@ fundamental groups at every point of `X \ S`. -/
 theorem fundamentalGroup_map_subtypeVal_compl_bijective_of_finite [ConnectedSpace X]
     (h : 2 < Module.rank ℝ E) {S : Set X} (hS : S.Finite) (x : (Sᶜ : Set X)) :
     Function.Bijective (FundamentalGroup.map (ContinuousMap.subtypeVal (Sᶜ : Set X)) x) := by
-  -- A homeomorphism induces a bijection of fundamental groups.
-  have key {A B : Type _} [TopologicalSpace A] [TopologicalSpace B] (φ : A ≃ₜ B) (y : A) :
-      Function.Bijective (FundamentalGroup.map (φ : C(A, B)) y) := by
-    convert (FundamentalGroup.homeomorphMulEquiv φ y).bijective using 1
-    ext p
-    simp
   induction S, hS using Set.Finite.induction_on with
   | empty =>
-    exact key ((Homeomorph.setCongr (compl_empty : (∅ : Set X)ᶜ = univ)).trans
-      (Homeomorph.Set.univ X)) x
+    exact ((Homeomorph.setCongr (compl_empty : (∅ : Set X)ᶜ = univ)).trans
+      (Homeomorph.Set.univ X)).toHomotopyEquiv.fundamentalGroup_map_bijective x
   | @insert a s ha hs ih =>
-    let U := complOpens (E := E) hs
-    let e := complInsertHomeomorph (E := E) ha hs
+    -- The open set `U = X \ s` is a connected space charted on `E`, and removing `a` from it
+    -- gives a space homeomorphic to `X \ insert a s`.
+    have := ChartedSpace.t1Space E X
+    let U : Opens X := ⟨sᶜ, hs.isClosed.isOpen_compl⟩
+    let a' : U := ⟨a, Opens.mem_mk.2 ha⟩
     have : ConnectedSpace U := by
-      -- The subspace `U` is `X \ s`, by the definition of `complOpens`.
-      have : PathConnectedSpace U := isPathConnected_iff_pathConnectedSpace.1 <|
-        TauCeti.isPathConnected_compl_of_finite_of_one_lt_rank (Cardinal.one_lt_two.trans h) hs
+      have hU : IsPathConnected (U : Set X) := by
+        simpa [U] using TauCeti.isPathConnected_compl_of_finite_of_one_lt_rank
+          (Cardinal.one_lt_two.trans h) hs
+      have : PathConnectedSpace U := isPathConnected_iff_pathConnectedSpace.1 hU
       infer_instance
+    let e : ({a'}ᶜ : Set U) ≃ₜ ((insert a s)ᶜ : Set X) :=
+      (Homeomorph.Set.subtypeCompl (t := (U : Set X)) {a'}).trans
+        (Homeomorph.setCongr (by ext; simp [U, a', and_comm]))
     -- The inclusion of `X \ insert a s` factors through `e⁻¹`, then the inclusions of
-    -- `U \ {a}` into `U = X \ s` and of `U` into `X`.
+    -- `U \ {a}` into `U` and of `U` into `X`.
     have hfac : ContinuousMap.subtypeVal ((insert a s)ᶜ : Set X) =
-        ContinuousMap.comp (β := U) (ContinuousMap.subtypeVal (U : Set X))
-          ((ContinuousMap.subtypeVal ({⟨a, ha⟩}ᶜ : Set U)).comp (e.symm : C(_, _))) := by
+        (ContinuousMap.subtypeVal (U : Set X)).comp
+          ((ContinuousMap.subtypeVal ({a'}ᶜ : Set U)).comp (e.symm : C(_, _))) := by
       ext y
-      exact (congrArg Subtype.val (e.apply_symm_apply y)).symm
+      simp only [e, ContinuousMap.comp_apply, ContinuousMap.coe_ofClass,
+        Homeomorph.symm_trans_apply, Homeomorph.setCongr_symm_apply, ContinuousMap.subtypeVal_apply]
+      rw [Homeomorph.Set.coe_coe_subtypeCompl_symm_apply (t := (U : Set X))]
     rw [hfac, FundamentalGroup.map_comp, FundamentalGroup.map_comp, MonoidHom.coe_comp,
       MonoidHom.coe_comp]
     exact (ih _).comp
-      ((TauCeti.fundamentalGroup_map_subtypeVal_compl_singleton_bijective h _ _).comp
-        (key e.symm x))
+      ((TauCeti.fundamentalGroup_map_subtypeVal_compl_singleton_bijective (X := U) h a' _).comp
+        (e.symm.toHomotopyEquiv.fundamentalGroup_map_bijective x))
 
 /-- **A manifold of dimension at least three is simply connected if and only if the complement
 of a finite set is.** If `X` is charted on a real normed space of dimension greater than two and
@@ -114,8 +102,16 @@ theorem simplyConnectedSpace_compl_iff_of_finite (h : 2 < Module.rank ℝ E) {S 
     exact ((Homeomorph.setCongr (compl_empty : (∅ : Set X)ᶜ = univ)).trans
       (Homeomorph.Set.univ X)).toHomotopyEquiv.simplyConnectedSpace_iff
   | @insert a s ha hs ih =>
-    rw [← ih, ← (complInsertHomeomorph (E := E) ha hs).toHomotopyEquiv.simplyConnectedSpace_iff]
-    exact TauCeti.simplyConnectedSpace_compl_singleton_iff h _
+    -- Removing `a` from the open set `U = X \ s` gives a space homeomorphic to
+    -- `X \ insert a s`.
+    have := ChartedSpace.t1Space E X
+    let U : Opens X := ⟨sᶜ, hs.isClosed.isOpen_compl⟩
+    let a' : U := ⟨a, Opens.mem_mk.2 ha⟩
+    let e : ({a'}ᶜ : Set U) ≃ₜ ((insert a s)ᶜ : Set X) :=
+      (Homeomorph.Set.subtypeCompl (t := (U : Set X)) {a'}).trans
+        (Homeomorph.setCongr (by ext; simp [U, a', and_comm]))
+    rw [← ih, ← e.toHomotopyEquiv.simplyConnectedSpace_iff]
+    exact TauCeti.simplyConnectedSpace_compl_singleton_iff h a'
 
 end SymplecticGeometry
 
