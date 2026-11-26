@@ -16,6 +16,7 @@ import SymplecticGeometry.Analysis.Calculus.FDeriv.AddSmulSub
 import SymplecticGeometry.Analysis.Calculus.HolonomicApproximation.Direction
 import SymplecticGeometry.Analysis.Calculus.HolonomicApproximation.Transport
 import SymplecticGeometry.Analysis.Calculus.MeanValue
+import SymplecticGeometry.Analysis.Normed.Operator.Pi
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Support
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.CompactSupport
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.FDeriv
@@ -32,15 +33,15 @@ approximation is asked for, the other core coordinates being parameters. This fi
 base case `J = ∅`, where only the transverse derivatives are tested, and the step from `J'` to
 `insert i₀ J'`.
 
-There the diffeotopy is the identity, and the approximation is the transverse Taylor map
-`T (u, v) = f (u, 0) + G (u, 0) (0, v)`, glued to `f` by a cutoff `c (u) κ (v)`: `c` is a smooth
-function of the core point, `0` near the closed set `B` and `1` near the points `u` of the cube
-with `(u, 0)` outside the open set `U` where `(f, G)` is holonomic, and `κ` is a smooth bump of
-the transverse point, `1` on `‖v‖ ≤ ρ`. On `‖v‖ < ρ` the cutoff does not vary in the transverse
-directions, so the transverse error of `f + c κ • (T - f)` is a convex combination of those of
-`f` and of `T`. The first vanishes on `U`, and the cutoff is `1` where it may not; the second is
-at most `‖G (u, 0) - G (u, v)‖`, small for `ρ` small by the uniform Taylor estimate
-`IsCompact.exists_pos_norm_taylor_sub_le`.
+In the base case `J = ∅`, the diffeotopy is the identity, and the approximation is the
+transverse Taylor map `T (u, v) = f (u, 0) + G (u, 0) (0, v)`, glued to `f` by a cutoff
+`c (u) κ (v)`: `c` is a smooth function of the core point, `0` near the closed set `B` and `1`
+near the points `u` of the cube with `(u, 0)` outside the open set `U` where `(f, G)` is
+holonomic, and `κ` is a smooth bump of the transverse point, `1` on `‖v‖ ≤ ρ`. On `‖v‖ < ρ` the
+cutoff does not vary in the transverse directions, so the transverse error of `f + c κ • (T - f)`
+is a convex combination of those of `f` and of `T`. The first vanishes on `U`, and the cutoff is
+`1` where it may not; the second is at most `‖G (u, 0) - G (u, v)‖`, small for `ρ` small by the
+uniform Taylor estimate `IsCompact.exists_pos_norm_taylor_sub_le`.
 
 The cutoff `c` comes from Mathlib's smooth Urysohn lemma
 `exists_contMDiffMap_zero_one_nhds_of_isClosed`, and `κ` is a `ContDiffBump`.
@@ -264,38 +265,6 @@ theorem exists_holonomic_approximation_cube_empty {f : (Fin m → ℝ) × (Fin k
 
 /-! ### The step from the directions `J'` to `insert i₀ J'` -/
 
-/-- The projection of `D` onto the vectors in the directions `J`: it sets the core coordinates
-outside `J` to `0`, and keeps the other core coordinates and the transverse part. -/
-private noncomputable def directionsProj (J : Finset (Fin m)) :
-    ((Fin m → ℝ) × (Fin k → ℝ)) →L[ℝ] ((Fin m → ℝ) × (Fin k → ℝ)) :=
-  (ContinuousLinearMap.pi fun i ↦ if i ∈ J then ContinuousLinearMap.proj i else 0).prodMap
-    (ContinuousLinearMap.id ℝ _)
-
-private theorem directionsProj_apply_fst (J : Finset (Fin m)) (w : (Fin m → ℝ) × (Fin k → ℝ))
-    (i : Fin m) : (directionsProj J w).1 i = if i ∈ J then w.1 i else 0 := by
-  by_cases hi : i ∈ J <;> simp [directionsProj, hi]
-
-private theorem directionsProj_apply_snd (J : Finset (Fin m)) (w : (Fin m → ℝ) × (Fin k → ℝ)) :
-    (directionsProj J w).2 = w.2 := by
-  simp [directionsProj]
-
-private theorem directionsProj_apply_of {J : Finset (Fin m)} {w : (Fin m → ℝ) × (Fin k → ℝ)}
-    (hw : ∀ i ∉ J, w.1 i = 0) : directionsProj J w = w := by
-  refine Prod.ext (funext fun i ↦ ?_) (directionsProj_apply_snd J w)
-  rw [directionsProj_apply_fst]
-  split_ifs with hi
-  · rfl
-  · exact (hw i hi).symm
-
-private theorem norm_directionsProj_apply_le (J : Finset (Fin m))
-    (w : (Fin m → ℝ) × (Fin k → ℝ)) : ‖directionsProj J w‖ ≤ ‖w‖ := by
-  rw [Prod.norm_def, Prod.norm_def, directionsProj_apply_snd]
-  refine max_le_max ((pi_norm_le_iff_of_nonneg (norm_nonneg _)).2 fun i ↦ ?_) le_rfl
-  rw [directionsProj_apply_fst]
-  split_ifs
-  · exact norm_le_pi_norm w.1 i
-  · simp
-
 /-- **The datum of the directions `J`.** Given smooth maps `f₁ : D → F` and `G : D → D →L[ℝ] F`,
 there is a smooth `G₁`, namely `G₁ x := fderiv ℝ f₁ x ∘L P + G x ∘L (1 - P)` for the
 projection `P` of `D` onto the vectors in the directions `J`, that agrees with `fderiv ℝ f₁` on
@@ -309,15 +278,17 @@ private theorem exists_datum_directions {f₁ : (Fin m → ℝ) × (Fin k → �
       (∀ x, fderiv ℝ f₁ x = G x → G₁ x = G x) ∧
       ∀ x w, ∃ v : (Fin m → ℝ) × (Fin k → ℝ), (∀ i ∉ J, v.1 i = 0) ∧ ‖v‖ ≤ ‖w‖ ∧
         (G₁ x - G x) w = (fderiv ℝ f₁ x - G x) v := by
-  set P := directionsProj (k := k) J
+  set P : ((Fin m → ℝ) × (Fin k → ℝ)) →L[ℝ] (Fin m → ℝ) × (Fin k → ℝ) :=
+    (ContinuousLinearMap.coordProj J).prodMap (ContinuousLinearMap.id ℝ _)
   refine ⟨fun x ↦ (fderiv ℝ f₁ x).comp P + (G x).comp (ContinuousLinearMap.id ℝ _ - P),
     ((hf₁.fderiv_right (by simp)).clm_comp contDiff_const).add (hG.clm_comp contDiff_const),
-    fun x w hw ↦ ?_, fun x hx ↦ ?_, fun x w ↦ ⟨P w, fun i hi ↦ ?_, norm_directionsProj_apply_le J w,
-      ?_⟩⟩
-  · simp [P, directionsProj_apply_of hw]
+    fun x w hw ↦ ?_, fun x hx ↦ ?_, fun x w ↦ ⟨P w, fun i hi ↦ ?_,
+      max_le_max (ContinuousLinearMap.norm_coordProj_apply_le J w.1) le_rfl, ?_⟩⟩
+  · have hPw : P w = w := Prod.ext (ContinuousLinearMap.coordProj_apply_eq_self hw) rfl
+    simp [hPw]
   · refine ContinuousLinearMap.ext fun w ↦ ?_
     simp [hx]
-  · simp [P, directionsProj_apply_fst, hi]
+  · simp [P, hi]
   · simp only [sub_apply, add_apply,
       ContinuousLinearMap.comp_apply, ContinuousLinearMap.id_apply, map_sub]
     abel
