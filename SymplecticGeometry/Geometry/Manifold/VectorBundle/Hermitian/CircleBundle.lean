@@ -313,6 +313,16 @@ theorem circleBundleHomeomorph_op_circle_smul (z : Circle) {x : B} (φ : Fiber �
       z • circleBundleHomeomorph ⟨x, φ⟩ := by
   simp [Fiber.op_circle_smul_eq, circleBundleHomeomorph_smul]
 
+/-- **`normalizedFrame` is `Circle`-equivariant**: the normalization of `z • v`, for `z : Circle`
+and a nonzero vector `v`, is the normalization of `v` acted on by `z`. -/
+theorem normalizedFrame_circle_smul (z : Circle) {x : B} {v : E x} (hv : v ≠ 0) :
+    normalizedFrame (F := F) ((z : ℂ) • v) = op z • normalizedFrame (F := F) v := by
+  refine Fiber.ext (LinearIsometryEquiv.ext fun w ↦ ?_)
+  rw [Fiber.frame_op_circle_smul_apply, frame_normalizedFrame_apply hv,
+    frame_normalizedFrame_apply (smul_ne_zero (Circle.coe_ne_zero z) hv), norm_smul,
+    Circle.norm_coe, one_mul, smul_smul]
+  ring_nf
+
 end Equivariance
 
 /-! ### The unitary frame bundle as a principal `Circle`-bundle -/
