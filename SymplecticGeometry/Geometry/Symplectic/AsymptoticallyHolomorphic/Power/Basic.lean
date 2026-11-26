@@ -266,8 +266,7 @@ theorem mk_eq_smul_mk {b : B} (p₀ p : P b) (x : PowerModel k) :
 variable (P k) in
 /-- The fibres of `PowerBundle P k` are complex lines. -/
 theorem finrank_eq_one (b : B) : finrank ℂ (PowerBundle P k b) = 1 := by
-  obtain ⟨p, -, -⟩ := AssociatedBundle.exists_mk (0 : PowerBundle P k b)
-  rw [AssociatedBundle.finrank_eq ℂ Circle p, PowerModel.finrank_eq_one]
+  rw [AssociatedBundle.finrank_eq ℂ Circle _ P b, PowerModel.finrank_eq_one]
 
 /-! The vector bundle and metric structures of Tau Ceti apply. -/
 

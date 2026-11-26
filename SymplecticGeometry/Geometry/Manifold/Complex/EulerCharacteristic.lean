@@ -44,7 +44,7 @@ inverse is the identity of `E`, as the map
   (`TauCeti.HomologicalOrientation.evalFundamentalClass_uliftIntegralCohomologyIso_hom`); by the
   previous item it is the Euler class of the oriented real tangent bundle, whose evaluation on
   the fundamental class is the Euler characteristic
-  (`TauCeti.Manifold.Orientation.evalFundamentalClass_eulerClass_eq_eulerChar`).
+  (`TauCeti.Manifold.Orientation.evalFundamentalClass_eulerClass_eq_eulerChar_of_finiteCWType`).
 
 ## References
 
@@ -143,7 +143,7 @@ theorem evalFundamentalClass_chernClass_eq_eulerChar {r : ℕ} (hE : finrank ℂ
     Bundle.chernClass_finrank_eq_complexEulerClass hE,
     HomologicalOrientation.evalFundamentalClass_uliftIntegralCohomologyIso_hom,
     complexEulerClass_tangentSpace hE,
-    Manifold.Orientation.evalFundamentalClass_eulerClass_eq_eulerChar]
+    Manifold.Orientation.evalFundamentalClass_eulerClass_eq_eulerChar_of_finiteCWType]
 
 end SymplecticGeometry
 

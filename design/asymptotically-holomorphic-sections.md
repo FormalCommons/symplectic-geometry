@@ -525,7 +525,7 @@ and the prerequisites, placed by topic.
   `MeasureTheory/Integral/BallCircleAverage.lean` (step 2,
   `MeasureTheory.setLIntegral_ball_eq_mul_setLIntegral_setLAverage_circleMap`),
   `Analysis/Complex/MvPolynomial/LogAverage.lean` (step 3, in the namespace
-  `MvPolynomial`: `ae_homogeneousComponent_totalDegree_ne_zero`,
+  `MvPolynomial`: `ae_eval_ne_zero`,
   `log_norm_eval_le_setAverage_ball`,
   `log_sup_sub_setAverage_log_norm_eval_le`,
   `integrableOn_log_norm_eval_ball`,
@@ -550,7 +550,7 @@ and the prerequisites, placed by topic.
   Hermitian metric; `powerOneEquiv : L 1 ≃ L`, `powerAddEquiv` with Tau
   Ceti's tensor product; `complexEulerClass_power` (`k •` the class of
   `L`, so $-k\,a$ for the bundle of `LineBundle.lean`).
-- `PowerConnection.lean`: the connection $D_k$ on `L k` as a Mathlib
+- `Power/Connection.lean`: the connection $D_k$ on `L k` as a Mathlib
   `CovariantDerivative`. It is complex linear and metric, has the local
   formula $d+ik\,\sigma^*\alpha$ in a unitary frame
   (`powerConnection_apply_frame`) and curvature $ik\,F_\alpha$. For a section
@@ -663,7 +663,7 @@ statement.
    pull-back lemmas in `Principal/RealChernClass.lean`). Waits for 3.
 5. **The prequantum line bundle** (`LineBundle.lean`). Waits for 1, 3 and 4.
 6. **Powers of a Hermitian line bundle** (`Power/Basic.lean`). Waits for nothing.
-7. **The connection on the powers** (`PowerConnection.lean`). Waits for 6.
+7. **The connection on the powers** (`Power/Connection.lean`). Waits for 6.
 8. **Real-linear forms with dominant complex-linear part**
    (`DominantLinearPart.lean`). Waits for nothing.
 9. **Transverse symplectic zero sets** (`ZeroSet.lean`, without the

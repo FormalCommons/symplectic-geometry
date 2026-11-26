@@ -478,13 +478,21 @@ A smooth vector bundle over `ℝ` is smoothly trivial: for
 `Bundle.exists_diffeomorph_prod_of_real` gives a diffeomorphism
 `TotalSpace F T ≃ₘ^∞⟮𝓘(ℝ).prod 𝓘(ℝ, F), 𝓘(ℝ).prod 𝓘(ℝ, F)⟯ ℝ × F` over `ℝ`,
 linear on each fibre. Tau Ceti has only the continuous statement over
-contractible bases (`Topology/VectorBundle/Contractible.lean`). Route:
-frames on the intervals of a locally finite cover of `ℝ` by intervals over
-which the bundle is trivial, glued outward from `0` in both directions.
-Where the frame `e` built so far and the next frame `e'` overlap, they
-differ by a smooth `A : ℝ → GL`, and `e'` is replaced by `e' · A ∘ φ`, with
-`φ` smooth, equal to the identity on the part of the overlap nearer `0` and
-constant on the other part.
+contractible bases (`Topology/VectorBundle/Contractible.lean`). Route: a
+global smooth frame, built from the frames of the bundle's trivializations.
+Two frames glue along a smooth map into their overlap that is the identity
+on one side (`IsLocalFrameOn.exists_isLocalFrameOn_union`, in
+`VectorBundle/LocalFrame.lean`). Over `ℝ` this joins frames on overlapping
+open intervals, and a supremum argument extends a frame on an open interval
+as far as wanted to the right or the left, unchanged away from the end it
+moves (`IsLocalFrameOn.exists_isLocalFrameOn_Ioo_extend_right`, `_left`).
+That gives frames on `Ioo (-(k + 2)) (k + 2)`, each agreeing with the one
+before on `Ioo (-(k + 1)) (k + 1)`, whose limit
+(`IsLocalFrameOn.exists_isLocalFrameOn_iUnion`, in `LocalFrame.lean`) is a
+global frame (`Bundle.exists_isLocalFrameOn_univ_of_real`). A global frame
+of any smooth vector bundle gives the diffeomorphism with the product
+(`Bundle.exists_diffeomorph_prod_of_isLocalFrameOn_univ`, in
+`LocalFrame.lean`).
 
 #### `Geometry/Manifold/TubularNeighborhood/Ray.lean`
 
@@ -1011,18 +1019,15 @@ Facts about two-forms in the frame topology of a covering frame system
   `ContMDiffSection.continuous_map_frameTopology`. The issue fixes the
   exact form of the pullback here.
 - `Bundle.ContMDiffTwoForm.continuous_tangentEquiv_symm_mpullback_subtypeVal`:
-  for `U : Opens M` and covering frames on `M` and on `U`, restriction,
-  `ω ↦ tangentEquiv.symm (SmoothForm.mpullback Subtype.val
+  for `U : Opens M`, covering frames on `M` and any frames on `U`,
+  restriction, `ω ↦ tangentEquiv.symm (SmoothForm.mpullback Subtype.val
   contMDiff_subtypeVal (tangentEquiv ω))`, is continuous from the two-forms
-  on `M` to those on `U`. By `frameTopology_eq_of_covers` the frames may
-  be taken to be the `trivializationAt` of the bundle of two-forms at the
-  points, with their base sets; the charts of `U` are restrictions of
-  those of `M`, so each frame coordinate of the restriction is one of `ω`
-  composed with an inclusion of open sets, and continuity follows by
-  `ContMDiffMap.continuous_comp_manifoldWeakWhitney`, as in the proof of
-  Tau Ceti's `ContMDiffSection.continuous_restrict_frameTopology`. That
-  lemma itself lands in the pulled-back bundle over `U`, not in the
-  tangent bundle of `U`, which is why the statement here is needed.
+  on `M` to those on `U`. Tau Ceti's
+  `ContMDiffSection.continuous_restrict_frameTopology` lands in the
+  pulled-back bundle over `U`, not in the tangent bundle of `U`, which is
+  why the statement here is needed. It is that lemma followed by the
+  fibrewise map `v ↦ v ∘ dι` into the two-forms on `U`, which is continuous
+  by Tau Ceti's `ContMDiffSection.continuous_map_frameTopology`.
 
 ### `Geometry/Symplectic/HPrinciple/FormSpaces.lean`
 
@@ -1065,20 +1070,21 @@ along `Subtype.val` it uses:
   `TauCeti/Topology/ConnectedComponents.lean`: `mem_opens`, `coe_opens`,
   `coe_opens_mk`, `isClopen_opens`, `pairwise_disjoint_opens` and
   `iSup_opens`.
-- `TauCeti.SmoothForm.ofComponents`: a family of smooth `k`-forms on the
-  open submanifolds `c.opens` glues to one on `M`, equal near each point
-  to the extension by zero of one form of the family, which is smooth
-  there as the component is clopen. With
-  `mpullback_subtypeVal_ofComponents` (its restriction to `c.opens` is
-  the `c`-th form) and `ext_of_mpullback_subtypeVal` (forms with the same
-  restrictions to all components are equal), this gives the linear
-  equivalence `TauCeti.SmoothForm.componentsEquiv` with the product over
-  the components.
-- `TauCeti.SmoothForm.mem_closedForms_iff_forall_mpullback_subtypeVal` and
-  `mem_exactForms_iff_forall_mpullback_subtypeVal`: a form is closed, or
-  exact, exactly when each restriction to a component is. Forward, as
-  restriction commutes with `mextDeriv` (`TauCeti.mpullback_subtype_val_mextDeriv`);
-  back, for exactness, glue chosen primitives by `ofComponents`.
+- `TauCeti.SmoothForm.ofDisjointCover`: for pairwise disjoint open sets
+  `U i` with `IsOpenCover U` (for the components,
+  `pairwise_disjoint_opens` and `IsOpenCover.mk iSup_opens`), a family of
+  smooth `k`-forms on the open submanifolds `U i` glues to one on `M`. With
+  `mpullback_subtype_val_ofDisjointCover` (its restriction to `U i` is
+  the `i`-th form) and `ext_of_mpullback_subtype_val` (forms with the same
+  restrictions to all members of an open cover are equal), this gives the
+  linear equivalence `TauCeti.SmoothForm.disjointCoverEquiv` with the
+  product over the `U i`.
+- `TauCeti.SmoothForm.mem_closedForms_iff_forall_mpullback_subtype_val`
+  and `mem_exactForms_iff_forall_mpullback_subtype_val`: a form is closed,
+  or exact, exactly when each restriction to a `U i` is. Forward, as
+  restriction commutes with `mextDerivₗ` (Tau Ceti's
+  `SmoothForm.mextDerivₗ_mpullback`); back, for exactness, glue chosen
+  primitives by `ofDisjointCover`.
 
 ### `Geometry/Symplectic/HPrinciple/Components.lean`
 
@@ -1091,7 +1097,7 @@ give the same topology.
   sending `ω` to the family of its restrictions to the components, as in
   `continuous_tangentEquiv_symm_mpullback_subtypeVal`, is a homeomorphism
   from the two-forms on `M` onto the product of the two-forms on the
-  components. Its inverse is `tangentEquiv.symm ∘ ofComponents` on the
+  components. Its inverse is `tangentEquiv.symm ∘ ofDisjointCover` on the
   `tangentEquiv` forms. Continuity of the inverse: by
   `frameTopology_eq_of_covers` the frame domains on `M` can be cut down
   to their intersections with the components, and each frame jet of a

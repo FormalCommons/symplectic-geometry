@@ -12,6 +12,7 @@ import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Basic
 import TauCeti.Geometry.Symplectic.Lagrangian.Graph
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.IsManifold.SecondCountable
+import SymplecticGeometry.Topology.MetricSpace.Tube
 
 /-!
 # Symplectic framings and product neighbourhoods
@@ -220,7 +221,7 @@ theorem refl_apply {τ : SmoothTwoForm J Q} (hτ : τ.IsNondegenerate) (q : Q) :
     refl hτ q = .refl ℝ _ :=
   (rfl)
 
-variable {hσ : σ.IsSymplectic} {ι : SmoothEmbedding J I ∞ Q M}
+variable (hσ : σ.IsSymplectic) {ι : SmoothEmbedding J I ∞ Q M}
   {hι : hσ.isNondegenerate.HasSymplecticTangentImages J ι}
   {hP : finrank ℝ ℂ = finrank ℝ E - finrank ℝ EQ}
 
@@ -441,16 +442,14 @@ theorem «exists» [CompactSpace Q] (Φ : SymplecticFraming hι hP) :
     ∃ ε₀ > 0, ∀ ε ≤ ε₀, Nonempty (ProductNeighborhood Φ ε) := by
   -- A compact manifold over a finite-dimensional model is second countable.
   have := J.secondCountableTopology_of_sigmaCompact Q
-  obtain ⟨U₀, U₁, ψ, hψ, hψσ⟩ := Φ.exists_symplectomorphism_opens (hσ := hσ)
+  obtain ⟨U₀, U₁, ψ, hψ, hψσ⟩ := Φ.exists_symplectomorphism_opens hσ
   have hU₀ : (Set.univ : Set Q) ×ˢ {(0 : ℂ)} ⊆ U₀ := by
     rintro ⟨q, z⟩ ⟨-, rfl : z = 0⟩
     simpa using (hψ q).1
-  obtain ⟨u, V, -, hV, hu, h0V, hUV⟩ :=
-    generalized_tube_lemma isCompact_univ isCompact_singleton U₀.isOpen hU₀
-  obtain ⟨ε₀, hε₀, hε₀V⟩ := Metric.isOpen_iff.1 hV 0 (h0V rfl)
+  obtain ⟨ε₀, hε₀, hε₀U⟩ := isCompact_univ.exists_prod_ball_subset U₀.isOpen hU₀
   refine ⟨ε₀, hε₀, fun ε hε ↦
-    ⟨ofSymplectomorphism Φ ψ hψ hψσ (ε := ε) fun p hp ↦ hUV ⟨hu trivial, ?_⟩⟩⟩
-  exact hε₀V (Metric.ball_subset_ball hε (by simpa using hp))
+    ⟨ofSymplectomorphism Φ ψ hψ hψσ (ε := ε) fun p hp ↦ hε₀U ⟨trivial, ?_⟩⟩⟩
+  exact Metric.ball_subset_ball hε (by simpa using hp)
 
 end Exists
 
