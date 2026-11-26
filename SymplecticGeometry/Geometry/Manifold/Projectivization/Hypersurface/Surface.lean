@@ -14,6 +14,7 @@ import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.BettiN
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.EulerCharacteristic
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.ChernClass
 import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.Degree
+import TauCeti.LinearAlgebra.QuadraticForm.Signature
 
 /-!
 # Smooth surfaces in `ℂℙ³`
@@ -210,7 +211,7 @@ theorem sigPos_fermat_zero
     (q : QuadraticForm ℚ
       ((TopCat.of (fermat 2 0)).singularCohomology (𝟙_ (ModuleCat.{0} ℚ)) ℚ (𝟙_ _) 2)) :
     sigPos q = 0 :=
-  Nat.le_zero.1 ((sigPos_le_finrank q).trans_eq finrank_zero_of_subsingleton)
+  QuadraticForm.sigPos_eq_zero_of_finrank_eq_zero q finrank_zero_of_subsingleton
 
 end SmoothProjectiveHypersurface
 
