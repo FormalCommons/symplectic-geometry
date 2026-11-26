@@ -701,6 +701,7 @@ same way on compact manifolds.
 
 ```lean
 theorem TauCeti.IsMorse.exists_bandCore (hg : IsMorse I g) (hp : IsProperMap g)
+    (hbdd : BddBelow (Set.range g))
     {a₀ a v b : ℝ} (ha₀ : a₀ < a) (ha : a < v) (hb : v < b)
     (hcrit : ∀ x ∈ criticalPoints I g, a₀ ≤ g x → g x ≤ b →
       g x = v ∧ manifoldMorseIndex I g x < Module.finrank ℝ E) :
@@ -717,11 +718,13 @@ map of the flow of `ρ • X`, with `ρ` zero near `{g ≤ a}` and one from just
 above `a` up to `b`; time slices of a flow are open embeddings. That
 `{g ≤ b}` is carried into `U` for large `T` is Mathlib's
 `eventually_mapsTo_of_isCompact_absorbing_of_isOpen_of_omegaLimit_subset`
-(`Mathlib/Dynamics/OmegaLimit.lean`) for the compact, forward invariant set
-`{g ≤ b}`, once its ω-limit is in `U`. A point of the ω-limit has its whole
-backward orbit in `{g ≤ b}`, along which `g` increases to a limit; its
-α-limit lies where `ρ • X` vanishes. Either that is the zero set of `ρ`, and
-then the point is no higher than it, so in `U` when that zero set is chosen
+(`Mathlib/Dynamics/OmegaLimit.lean`) for the forward invariant set
+`{g ≤ b}`, compact because `g` is proper and bounded below (`hbdd`; for
+`g = id` on `ℝ` the sublevel is `(-∞, b]`), once its ω-limit is in `U`.
+A point of the ω-limit has its whole backward orbit in `{g ≤ b}`, along
+which `g` increases to a limit; its α-limit lies where `ρ • X` vanishes.
+Either that is the zero set of `ρ`, and then the point is no higher than
+it, so in `U` when that zero set is chosen
 close to `{g ≤ a}` (properness); or it is a critical point of the level `v`,
 and the point lies in its unstable set at level at least `a`, hence in a
 cube. If this ω-limit argument is long, it is a
@@ -744,7 +747,8 @@ theorem TauCeti.exists_isMorse_bandCore_seq (hE : Module.finrank ℝ E ≠ 1)
 supplies `hE` as that theorem's section explains.
 Its critical values form a discrete set, so the levels can be chosen with all
 critical values in the intervals `(e k, d (k + 1))`, at most one in each;
-`exists_bandCore` then applies to `(d k, e k, e (k + 1))`, or
+`exists_bandCore` then applies to `(d k, e k, e (k + 1))`, with `hbdd`
+from `BddBelow (Set.range g)` in that theorem, or
 `BandCore.ofNoCriticalPoint` where the interval holds none.
 
 **What the engine needs beyond the sketch of `Cube.lean`.** The engine

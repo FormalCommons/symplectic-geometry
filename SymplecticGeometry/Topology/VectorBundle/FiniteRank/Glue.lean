@@ -74,9 +74,8 @@ point-indexed core whose transitions are given piecewise, and of
 with Tau Ceti's `VectorBundleCore.CoordinateHom.ofContinuous`, as
 `TauCeti.FiniteRankBundleCore.isoOfContinuousEquiv` is, and inverted with Tau Ceti's
 `VectorBundleCore.CoordinateHom.invOfIsInvertible`. The proof of `nonempty_iso_glue_of_homotopic`
-is that of `TauCeti.FiniteRankBundleCore.nonempty_iso_clutching_of_homotopic`
-(`FiniteRank/Clutching.lean`) for a gluing over any two open sets, with homotopy invariance of
-pullbacks (`TauCeti.FiniteRankBundleCore.nonempty_pullback_iso_of_homotopic`).
+rests on homotopy invariance of pullbacks
+(`TauCeti.FiniteRankBundleCore.nonempty_pullback_iso_of_homotopic`).
 
 ## References
 
