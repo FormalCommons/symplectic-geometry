@@ -568,22 +568,19 @@ theorem isVerticallyClosedOn_singleton_iff_local {x : EB} {y : F}
     τ.IsVerticallyClosedOn 𝓘(ℝ, EB) Prod.fst {(x, y)} ↔
       mextDeriv (τ.fiberComponent x) y = 0 ∧
         ∀ i, τ.fderivFiberComponent x (bs i) y + mextDeriv (τ.mixedComponent bs i x) y = 0 := by
-  have hver (η : TangentSpace (𝓘(ℝ, EB).prod IF) (x, y)) (hη : η.1 = 0) :
-      η ∈ (mfderiv (𝓘(ℝ, EB).prod IF) 𝓘(ℝ, EB) Prod.fst (x, y)).ker := by
-    rwa [LinearMap.mem_ker, ContinuousLinearMap.coe_coe, mfderiv_fst_apply]
   rw [isVerticallyClosedOn_iff]
   refine ⟨fun h ↦ ⟨?_, fun i ↦ ?_⟩, fun hh z hz η₁ hη₁ η₂ hη₂ v ↦ ?_⟩
   · refine ContinuousAlternatingMap.ext fun u ↦ ?_
     have hu : u = ![u 0, u 1, u 2] := by funext k; fin_cases k <;> rfl
     rw [hu, τ.mextDeriv_fiberComponent_apply hτ]
-    exact h (x, y) rfl _ (hver _ rfl) _ (hver _ rfl) _
+    exact h (x, y) rfl _ (mem_ker_mfderiv_fst_iff.2 rfl) _ (mem_ker_mfderiv_fst_iff.2 rfl) _
   · refine ContinuousAlternatingMap.ext_fin_two fun w₁ w₂ ↦ ?_
     rw [ContinuousAlternatingMap.add_apply,
       ← τ.mextDeriv_apply_eq_fderivFiberComponent_add_mextDeriv_mixedComponent bs i hτ]
-    exact h (x, y) rfl _ (hver _ rfl) _ (hver _ rfl) _
+    exact h (x, y) rfl _ (mem_ker_mfderiv_fst_iff.2 rfl) _ (mem_ker_mfderiv_fst_iff.2 rfl) _
   · obtain ⟨h₀, h⟩ := hh
     obtain rfl : z = (x, y) := hz
-    rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe, mfderiv_fst_apply] at hη₁ hη₂
+    rw [mem_ker_mfderiv_fst_iff] at hη₁ hη₂
     have hη₁' : η₁ = ((0 : EB), η₁.2) := Prod.ext hη₁ rfl
     have hη₂' : η₂ = ((0 : EB), η₂.2) := Prod.ext hη₂ rfl
     rw [hη₁', hη₂']
@@ -705,7 +702,7 @@ theorem mk_mixedVectorField_mem_horizontalDistribution [FiniteDimensional ℝ EF
       horizontalDistribution 𝓘(ℝ, EB) Prod.fst τ (x, y) := by
   set e := Manifold.tangentSpaceProdEquiv (I := 𝓘(ℝ, EB)) (J := IF) (x, y)
   refine mem_horizontalDistribution_iff.2 fun η hη ↦ ?_
-  rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe, mfderiv_fst_apply] at hη
+  rw [mem_ker_mfderiv_fst_iff] at hη
   have hη' : η = ((0 : EB), η.2) := Prod.ext hη rfl
   -- The pairs as vectors of the tangent space of `EB × F`, for `h` and `hs` below.
   have he (a : EB) (b : TangentSpace IF y) : e.symm (a, b) = ((a, b) : EB × EF) :=
@@ -745,7 +742,7 @@ theorem isVerticallyNondegenerate_fst_iff :
     IsVerticallyNondegenerate 𝓘(ℝ, EB) Prod.fst τ ↔
       ∀ x, (τ.smoothFiberComponent x).IsNondegenerate := by
   simp only [isVerticallyNondegenerate_iff_forall, isNondegenerate_iff_separatingLeft,
-    mfderiv_fst, LinearMap.mem_ker, Prod.forall,
+    mem_ker_mfderiv_fst_iff, Prod.forall,
     SmoothForm.bilinFormAt_apply, SmoothBundleForm.eval₂_apply, coe_smoothFiberComponent,
     RoughForm.fiberComponent_apply]
   refine ⟨fun h x y v hv ↦ ?_, fun h x y u hu hτ ↦ ?_⟩
