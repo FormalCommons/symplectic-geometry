@@ -15,10 +15,12 @@ public import SymplecticGeometry.Geometry.Manifold.Projectivization.ProdZeroLocu
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.RestrictScalars
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.HolomorphicEmbedding
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Submanifold
+public import SymplecticGeometry.LinearAlgebra.Projectivization.Perp
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Basic
 public import TauCeti.Geometry.Symplectic.Lagrangian.SymplecticTangent
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Prod
+public import TauCeti.LinearAlgebra.Projectivization.Basic
 public import TauCeti.LinearAlgebra.Projectivization.ZeroLocus
 public import TauCeti.RingTheory.MvPolynomial.Jacobian.Basic
 import Mathlib.Algebra.Polynomial.Roots
@@ -144,7 +146,10 @@ coordinates `s, t` of the line. A point of the cone `K³ × K²` is written `Sum
   `SymplecticGeometry.rationalEllipticSurface.mk_mem_iff_eq_pencilMember`: the fibre of the
   projection to `ℂℙ²` is the whole line `ℂℙ¹` over a base point, and the single point
   `pencilMember p _ = [pencilVector v]`, with `pencilVector v = (x y z, -(x³ + y³ + z³))` at a
-  representative `v`, over any other point `p = [v]`.
+  representative `v`, over any other point `p = [v]`. The vector `pencilVector v` is the image
+  under `SymplecticGeometry.perpLinearEquiv ℂ` of the values of the two cubics at `v`, so the
+  equation of the surface says that `q` lies on its line
+  (`SymplecticGeometry.mem_span_singleton_perpLinearEquiv_iff`).
 * `SymplecticGeometry.rationalEllipticSurface.complBaseLocusHomeomorph`: the projection is a
   homeomorphism from the open set `complBaseLocus` of points over the complement of the base
   locus onto that complement; it is a closed map since the surface is compact
@@ -706,9 +711,14 @@ theorem mk_mem_of_mem_baseLocus {p : ℙ ℂ (Fin 3 → ℂ)} (hp : p ∈ baseLo
   simp [hp.1, hp.2]
 
 /-- The vector `(x y z, -(x³ + y³ + z³))` of `ℂ²`, evaluated at `v`: the coordinates `[s : t]` of
-the member `s (x³ + y³ + z³) + t x y z` of the Hesse pencil through `[v]`. -/
+the member `s (x³ + y³ + z³) + t x y z` of the Hesse pencil through `[v]`. It is the image under
+the quarter turn `perpLinearEquiv ℂ` of the values `(x³ + y³ + z³, x y z)` of the two cubics. -/
 noncomputable def pencilVector (v : Fin 3 → ℂ) : Fin 2 → ℂ :=
-  ![eval v (hesseCubics ℂ 1), -eval v (hesseCubics ℂ 0)]
+  perpLinearEquiv ℂ fun i ↦ eval v (hesseCubics ℂ i)
+
+theorem pencilVector_def (v : Fin 3 → ℂ) :
+    pencilVector v = perpLinearEquiv ℂ fun i ↦ eval v (hesseCubics ℂ i) :=
+  (rfl)
 
 @[simp]
 theorem pencilVector_zero (v : Fin 3 → ℂ) : pencilVector v 0 = v 0 * v 1 * v 2 := by
@@ -762,34 +772,15 @@ theorem pencilMember_mk {v : Fin 3 → ℂ} (hv : v ≠ 0)
 `ℂℙ²` is the single point given by the member of the pencil through it. -/
 theorem mk_mem_iff_eq_pencilMember {p : ℙ ℂ (Fin 3 → ℂ)} (hp : p ∉ baseLocus)
     {q : ℙ ℂ (Fin 2 → ℂ)} : (p, q) ∈ rationalEllipticSurface ↔ q = pencilMember p hp := by
-  have hfg' : p.rep 0 ^ 3 + p.rep 1 ^ 3 + p.rep 2 ^ 3 ≠ 0 ∨ p.rep 0 * p.rep 1 * p.rep 2 ≠ 0 := by
-    by_contra! h
-    exact hp (mem_baseLocus_iff.2 h)
-  rw [mem_rationalEllipticSurface_iff, ← q.mk_rep, pencilMember_def,
-    Projectivization.mk_eq_mk_iff', Projectivization.mk_rep]
-  simp only [eval_hessePencil, Sum.elim_inl, Sum.elim_inr]
-  constructor
-  · intro h
-    rcases hfg' with hf | hg
-    · refine ⟨-q.rep 1 / (p.rep 0 ^ 3 + p.rep 1 ^ 3 + p.rep 2 ^ 3), funext fun k ↦ ?_⟩
-      fin_cases k
-      · simp only [Fin.zero_eta, pencilVector_zero, smul_eq_mul, Pi.smul_apply]
-        rw [div_mul_eq_mul_div, div_eq_iff hf]
-        linear_combination -h
-      · simp only [Fin.mk_one, pencilVector_one, smul_eq_mul, Pi.smul_apply]
-        rw [div_mul_eq_mul_div, div_eq_iff hf]
-        ring
-    · refine ⟨q.rep 0 / (p.rep 0 * p.rep 1 * p.rep 2), funext fun k ↦ ?_⟩
-      fin_cases k
-      · simp only [Fin.zero_eta, pencilVector_zero, smul_eq_mul, Pi.smul_apply]
-        rw [div_mul_eq_mul_div, div_eq_iff hg]
-      · simp only [Fin.mk_one, pencilVector_one, smul_eq_mul, Pi.smul_apply]
-        rw [div_mul_eq_mul_div, div_eq_iff hg]
-        linear_combination -h
-  · rintro ⟨a, ha⟩
-    rw [← congrFun ha 0, ← congrFun ha 1]
-    simp only [Pi.smul_apply, pencilVector_zero, pencilVector_one, smul_eq_mul]
-    ring
+  have hw : (fun i ↦ eval p.rep (hesseCubics ℂ i)) ≠ 0 := by
+    rw [← (perpLinearEquiv ℂ).map_ne_zero_iff, ← pencilVector_def]
+    exact pencilVector_ne_zero p.rep_ne_zero (by rwa [p.mk_rep])
+  conv_rhs => rw [← q.mk_rep]
+  rw [mem_rationalEllipticSurface_iff, pencilMember_def, Projectivization.mk_eq_mk_iff_mem_span,
+    pencilVector_def, mem_span_singleton_perpLinearEquiv_iff hw, Matrix.vec2_dotProduct]
+  simp only [eval_hessePencil, Sum.elim_inl, Sum.elim_inr, eval_hesseCubics_zero,
+    eval_hesseCubics_one]
+  simp [mul_comm]
 
 /-- The part of the rational elliptic surface over the complement of the base locus. -/
 noncomputable def complBaseLocus : Set rationalEllipticSurface :=
