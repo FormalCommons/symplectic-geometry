@@ -5,7 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Topology.VectorBundle.Complex.KTheory.Basic
+public import TauCeti.CategoryTheory.GrothendieckGroup.Monoidal.Basic
+public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Biproduct
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Clutching
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.LaurentApproximation
 
@@ -70,8 +71,11 @@ For a complex core, `TauCeti.FiniteRankBundleCore.exists_iso_clutching_laurentHo
 For the lines, `L m ⊕ L n` and `L (m + n) ⊕ L 0` are the clutchings of the sum of two trivial
 lines by `diag (u ^ m, u ^ n)` and `diag (u ^ (m + n), 1)`
 (`TauCeti.FiniteRankBundleCore.clutching_whitneySum`). These are joined in `GL₂(ℂ)` by
-`diag (u ^ m, 1) · R_t · diag (1, u ^ n) · R_t⁻¹`, with `R_t` the rotation by `π t / 2`, which
-swaps the two coordinates at `t = 1`; so the clutchings are isomorphic
+`R_t⁻¹ · diag (1, u ^ n) · R_t · diag (u ^ m, 1)`, with `R_t` the rotation by `π t / 2`, which is
+the quarter turn `(v, w) ↦ (-w, v)` at `t = 1`. The family is assembled from morphisms of cores:
+`R_t` is `TauCeti.FiniteRankBundleCore.whitneyRotation` with the functions `cos (π t / 2)` and
+`sin (π t / 2)`, and the diagonal factors are Whitney sums of pullbacks of `circleZPowIso`. So the
+clutchings are isomorphic
 (`TauCeti.FiniteRankBundleCore.nonempty_iso_clutching_of_homotopic`). Taking `n = 1` and
 `n = -1` gives the class of `L m` by induction on `m`, from `L 0 ≅ 1`
 (`TauCeti.FiniteRankBundleCore.clutching_one`) and `L (-1) ≅ H`
@@ -215,169 +219,91 @@ theorem exists_iso_clutching_laurent (F : FiniteRankBundleCore ℂ (X × ℙ ℂ
 
 end TauCeti.FiniteRankBundleCore
 
-/-! ### Hatcher's rotation in `GL₂(ℂ)` -/
-
-namespace SymplecticGeometry.ProductSphere
-
-open TauCeti
-
-open scoped unitInterval
-
-/-- The plane `ℂ ⊕ ℂ` in the block coordinates of the Whitney sum of two lines. -/
-local notation "V" => (Fin 1 → ℂ) × (Fin 1 → ℂ)
-
-/-- The rotation of `ℂ ⊕ ℂ` by the angle `θ`, as a unit of its operators: `(v, w)` goes to
-`(cos θ • v - sin θ • w, sin θ • v + cos θ • w)`. -/
-private def rotUnit (θ : ℂ) : (V →L[ℂ] V)ˣ where
-  val := Complex.cos θ • 1 + Complex.sin θ •
-    (-(ContinuousLinearMap.snd ℂ (Fin 1 → ℂ) (Fin 1 → ℂ))).prod (ContinuousLinearMap.fst ℂ _ _)
-  inv := Complex.cos θ • 1 - Complex.sin θ •
-    (-(ContinuousLinearMap.snd ℂ (Fin 1 → ℂ) (Fin 1 → ℂ))).prod (ContinuousLinearMap.fst ℂ _ _)
-  val_inv := by
-    ext v i <;>
-      simp only [ContinuousLinearMap.comp_apply, ContinuousLinearMap.inl_apply,
-        ContinuousLinearMap.inr_apply, mul_apply_eq_comp, sub_apply, add_apply, smul_apply,
-        one_apply_eq_self, Prod.smul_mk, smul_zero, ContinuousLinearMap.prod_apply, neg_apply,
-        ContinuousLinearMap.coe_snd', ContinuousLinearMap.coe_fst', neg_zero, Prod.mk_sub_mk,
-        Prod.mk_add_mk, sub_zero, zero_sub, zero_add, smul_neg, neg_neg, sub_neg_eq_add,
-        Pi.add_apply, Pi.neg_apply, Pi.smul_apply, smul_eq_mul, Pi.zero_apply] <;>
-      first | ring1 | linear_combination (v i) * Complex.cos_sq_add_sin_sq θ
-  inv_val := by
-    ext v i <;>
-      simp only [ContinuousLinearMap.comp_apply, ContinuousLinearMap.inl_apply,
-        ContinuousLinearMap.inr_apply, mul_apply_eq_comp, sub_apply, add_apply, smul_apply,
-        one_apply_eq_self, Prod.smul_mk, smul_zero, ContinuousLinearMap.prod_apply, neg_apply,
-        ContinuousLinearMap.coe_snd', ContinuousLinearMap.coe_fst', neg_zero, Prod.mk_sub_mk,
-        Prod.mk_add_mk, zero_add, add_zero, smul_neg, sub_neg_eq_add,
-        Pi.add_apply, Pi.sub_apply, Pi.neg_apply, Pi.smul_apply, smul_eq_mul, Pi.zero_apply] <;>
-      first | ring1 | linear_combination (v i) * Complex.cos_sq_add_sin_sq θ
-
-/-- The diagonal operator `(v, w) ↦ (a • v, b • w)` of `ℂ ⊕ ℂ`, as a unit. -/
-private def diagUnit (a b : ℂˣ) : (V →L[ℂ] V)ˣ where
-  val := ((a : ℂ) • ContinuousLinearMap.id ℂ _).prodMap ((b : ℂ) • ContinuousLinearMap.id ℂ _)
-  inv := (((a⁻¹ : ℂˣ) : ℂ) • ContinuousLinearMap.id ℂ _).prodMap
-    (((b⁻¹ : ℂˣ) : ℂ) • ContinuousLinearMap.id ℂ _)
-  val_inv := by ext v i <;> simp
-  inv_val := by ext v i <;> simp
-
-/-- Hatcher's homotopy from `diag (u ^ m, u ^ n)` to `diag (u ^ (m + n), 1)` in `GL₂(ℂ)`: at time
-`t`, the product `diag (u ^ m, 1) · R · diag (1, u ^ n) · R⁻¹`, with `R` the rotation by
-`π t / 2`. -/
-private def rotationHomotopy (m n : ℤ) (t : I) (u : Circle) : (V →L[ℂ] V)ˣ :=
-  diagUnit (Circle.toUnits (u ^ m)) 1 * rotUnit (Real.pi / 2 * (t : ℝ)) *
-    diagUnit 1 (Circle.toUnits (u ^ n)) * (rotUnit (Real.pi / 2 * (t : ℝ)))⁻¹
-
-private theorem continuous_rotationHomotopy (m n : ℤ) :
-    Continuous fun p : I × Circle ↦ (rotationHomotopy m n p.1 p.2 : V →L[ℂ] V) := by
-  have hθ : Continuous fun p : I × Circle ↦ (Real.pi / 2 * ((p.1 : ℝ) : ℂ)) := by fun_prop
-  have hc : Continuous fun p : I × Circle ↦ Complex.cos (Real.pi / 2 * ((p.1 : ℝ) : ℂ)) :=
-    Complex.continuous_cos.comp hθ
-  have hs : Continuous fun p : I × Circle ↦ Complex.sin (Real.pi / 2 * ((p.1 : ℝ) : ℂ)) :=
-    Complex.continuous_sin.comp hθ
-  have hu (k : ℤ) : Continuous fun p : I × Circle ↦ ((p.2 ^ k : Circle) : ℂ) := by fun_prop
-  have hd₁ : Continuous fun p : I × Circle ↦
-      (diagUnit (Circle.toUnits (p.2 ^ m)) 1 : V →L[ℂ] V) :=
-    ((hu m).smul continuous_const).prod_mapL ℂ continuous_const
-  have hd₂ : Continuous fun p : I × Circle ↦
-      (diagUnit 1 (Circle.toUnits (p.2 ^ n)) : V →L[ℂ] V) :=
-    continuous_const.prod_mapL ℂ ((hu n).smul continuous_const)
-  have hr : Continuous fun p : I × Circle ↦
-      (rotUnit (Real.pi / 2 * ((p.1 : ℝ) : ℂ)) : V →L[ℂ] V) :=
-    (hc.smul continuous_const).add (hs.smul continuous_const)
-  have hr' : Continuous fun p : I × Circle ↦
-      (((rotUnit (Real.pi / 2 * ((p.1 : ℝ) : ℂ)))⁻¹ : (V →L[ℂ] V)ˣ) : V →L[ℂ] V) :=
-    (hc.smul continuous_const).sub (hs.smul continuous_const)
-  simp only [rotationHomotopy, Units.val_mul]
-  exact ((hd₁.mul hr).mul hd₂).mul hr'
-
-private theorem rotationHomotopy_zero (m n : ℤ) (u : Circle) :
-    (rotationHomotopy m n 0 u : V →L[ℂ] V) = ((u : ℂ) ^ m • ContinuousLinearMap.id ℂ _).prodMap
-      ((u : ℂ) ^ n • ContinuousLinearMap.id ℂ _) := by
-  ext v i <;> simp [rotationHomotopy, rotUnit, diagUnit]
-
-private theorem rotationHomotopy_one (m n : ℤ) (u : Circle) :
-    (rotationHomotopy m n 1 u : V →L[ℂ] V) =
-      ((u : ℂ) ^ (m + n) • ContinuousLinearMap.id ℂ _).prodMap
-        ((u : ℂ) ^ (0 : ℤ) • ContinuousLinearMap.id ℂ _) := by
-  ext v i <;> simp [rotationHomotopy, rotUnit, diagUnit, zpow_add₀ (Circle.coe_ne_zero u)]
-  ring
-
-/-- A unit of the operators of `ℂ ⊕ ℂ`, read in the coordinates `Fin (1 + 1) → ℂ` through
-`splitCoords`, is the block map that its operator gives. -/
-private theorem splitCoords_conj_unitsEquiv (u : (V →L[ℂ] V)ˣ)
-    {A B : (Fin 1 → ℂ) →L[ℂ] (Fin 1 → ℂ)} (hu : (u : V →L[ℂ] V) = A.prodMap B) :
-    (((splitCoords 1 1).trans ((ContinuousLinearEquiv.unitsEquiv ℂ V u).trans
-      (splitCoords 1 1).symm) : (Fin (1 + 1) → ℂ) ≃L[ℂ] (Fin (1 + 1) → ℂ)) :
-        (Fin (1 + 1) → ℂ) →L[ℂ] (Fin (1 + 1) → ℂ)) =
-      (splitCoords (𝕜 := ℂ) (M := ℂ) 1 1).symm.toContinuousLinearMap.comp
-        ((A.prodMap B).comp (splitCoords (𝕜 := ℂ) (M := ℂ) 1 1).toContinuousLinearMap) := by
-  ext1 v
-  simp [ContinuousLinearEquiv.unitsEquiv_apply, hu]
-
-end SymplecticGeometry.ProductSphere
-
 /-! ### The clutched lines `L m` -/
 
 namespace TauCeti.FiniteRankBundleCore
-
-open SymplecticGeometry.ProductSphere
 
 open scoped unitInterval
 
 variable {X : Type*} [TopologicalSpace X]
 
-/-- The block coordinates of a point of the Whitney sum of two trivial lines depend continuously
-on the point. -/
-private theorem continuous_splitCoords_snd_whitneySum_trivial {B : Type*} [TopologicalSpace B] :
-    Continuous fun p : (whitneySum (trivial ℂ B 1) (trivial ℂ B 1)).core.TotalSpace ↦
-      splitCoords (𝕜 := ℂ) 1 1 p.snd := by
-  obtain ⟨h₁, h₂⟩ := (continuous_mk_whitneySum_iff (trivial ℂ B 1) (trivial ℂ B 1)
-    (b := fun p : (whitneySum (trivial ℂ B 1) (trivial ℂ B 1)).core.TotalSpace ↦ p.proj)
-    (s := fun p ↦ p.snd)).1 continuous_id
-  exact (continuous_trivial_iff.1 h₁).2.prodMk (continuous_trivial_iff.1 h₂).2
+/-- The trivial line over `(X × I) × Circle`, as the pullback of the trivial line over `X` on which
+the homotopies of `nonempty_iso_clutching_of_homotopic` live. -/
+local notation "T" => (FiniteRankBundleCore.pullback (FiniteRankBundleCore.pullback
+  (trivial ℂ X 1) (ContinuousMap.fst : C(X × I, X)))
+  (ContinuousMap.fst : C((X × I) × Circle, X × I)))
 
-/-- Hatcher's rotation as an automorphism of the pullback of the sum of two trivial lines to
-`(X × I) × Circle`, with fibre map `rotationHomotopy m n t u` at `((x, t), u)`. -/
-private def rotationHomotopyIso (m n : ℤ) :
-    ((whitneySum (trivial ℂ X 1) (trivial ℂ X 1)).pullback
-        (ContinuousMap.fst : C(X × I, X))).pullback
-        (ContinuousMap.fst : C((X × I) × Circle, X × I)) ≅
-      ((whitneySum (trivial ℂ X 1) (trivial ℂ X 1)).pullback
-        (ContinuousMap.fst : C(X × I, X))).pullback
-        (ContinuousMap.fst : C((X × I) × Circle, X × I)) :=
-  -- The pullback of the sum of two trivial lines is the sum of two trivial lines, by unfolding.
-  isoOfContinuousEquiv (A := whitneySum (trivial ℂ ((X × I) × Circle) 1) (trivial ℂ _ 1))
-    (D := whitneySum (trivial ℂ ((X × I) × Circle) 1) (trivial ℂ _ 1))
-    (fun b ↦ (splitCoords 1 1).trans ((ContinuousLinearEquiv.unitsEquiv ℂ _
-      (rotationHomotopy m n b.1.2 b.2)).trans (splitCoords 1 1).symm)) <| by
-    have hb : Continuous fun p : (whitneySum (trivial ℂ ((X × I) × Circle) 1)
-        (trivial ℂ ((X × I) × Circle) 1)).core.TotalSpace ↦ p.proj :=
-      FiberBundle.continuous_proj _ _
-    have hv := ((continuous_rotationHomotopy m n).comp
-      ((continuous_snd.comp (continuous_fst.comp hb)).prodMk (continuous_snd.comp hb))).clm_apply
-        continuous_splitCoords_snd_whitneySum_trivial
-    refine (continuous_mk_whitneySum_iff _ _).2 ⟨continuous_trivial_iff.2 ⟨hb, ?_⟩,
-      continuous_trivial_iff.2 ⟨hb, ?_⟩⟩
-    · exact (continuous_fst.comp hv).congr fun p ↦
-        congrArg Prod.fst ((splitCoords (𝕜 := ℂ) (M := ℂ) 1 1).apply_symm_apply _).symm
-    · exact (continuous_snd.comp hv).congr fun p ↦
-        congrArg Prod.snd ((splitCoords (𝕜 := ℂ) (M := ℂ) 1 1).apply_symm_apply _).symm
+variable (X) in
+/-- The cosine `cos (π t / 2)` of the angle of Hatcher's rotation at `((x, t), u)`. -/
+private def rotationCos : C((X × I) × Circle, ℂ) :=
+  ⟨fun b ↦ Complex.cos (Real.pi / 2 * (b.1.2 : ℝ)), by fun_prop⟩
+
+variable (X) in
+/-- The sine `sin (π t / 2)` of the angle of Hatcher's rotation at `((x, t), u)`. -/
+private def rotationSin : C((X × I) × Circle, ℂ) :=
+  ⟨fun b ↦ Complex.sin (Real.pi / 2 * (b.1.2 : ℝ)), by fun_prop⟩
+
+private theorem rotationCos_sq_add_rotationSin_sq :
+    rotationCos X ^ 2 + rotationSin X ^ 2 = 1 :=
+  ContinuousMap.ext fun _ ↦ by simp [rotationCos, rotationSin]
+
+/-- Multiplication by `u ^ m` on the trivial line over `(X × I) × Circle`: the pullback of
+`circleZPowIso X m` along `((x, t), u) ↦ (x, u)`. The pullback of the trivial line along this map
+is by definition the line `T`, with the same charts; the type ascription records this. -/
+private def circleZPowIsoForgetTime (m : ℤ) : T ≅ T :=
+  (pullbackFunctor (ContinuousMap.fst.prodMap (.id Circle))).mapIso (circleZPowIso X m)
+
+private theorem fiberMap_circleZPowIsoForgetTime_hom (m : ℤ) (b : (X × I) × Circle) :
+    (circleZPowIsoForgetTime (X := X) m).hom.fiberMap b =
+      (b.2 : ℂ) ^ m • ContinuousLinearMap.id ℂ _ :=
+  (fiberMap_pullbackMap _ _ b).trans (fiberMap_circleZPowIso_hom m _)
+
+/-- Hatcher's homotopy from `diag (u ^ m, u ^ n)` to `diag (u ^ (m + n), 1)`, as an automorphism
+of the sum of two trivial lines over `(X × I) × Circle`: at `((x, t), u)`, with `R` the rotation by
+`π t / 2`, it applies `diag (u ^ m, 1)`, then `R`, then `diag (1, u ^ n)`, then `R⁻¹`. -/
+private def rotationHomotopyIso (m n : ℤ) : whitneySum T T ≅ whitneySum T T :=
+  whitneyMapIso (circleZPowIsoForgetTime m) (Iso.refl _) ≪≫
+    whitneyRotation T (rotationCos X) (rotationSin X) rotationCos_sq_add_rotationSin_sq ≪≫
+    whitneyMapIso (Iso.refl _) (circleZPowIsoForgetTime n) ≪≫
+    (whitneyRotation T (rotationCos X) (rotationSin X) rotationCos_sq_add_rotationSin_sq).symm
 
 private theorem fiberMap_rotationHomotopyIso_zero (m n : ℤ) (w : X × Circle) :
-    (rotationHomotopyIso (X := X) m n).hom.fiberMap ((w.1, 0), w.2) =
+    (rotationHomotopyIso m n).hom.fiberMap ((w.1, 0), w.2) =
       (whitneyMapIso (circleZPowIso X m) (circleZPowIso X n)).hom.fiberMap w := by
-  refine (fiberMap_isoOfContinuousEquiv_hom _ _ _).trans ?_
-  rw [whitneyMapIso_hom, fiberMap_whitneyMap, fiberMap_circleZPowIso_hom,
-    fiberMap_circleZPowIso_hom]
-  exact splitCoords_conj_unitsEquiv _ (rotationHomotopy_zero m n w.2)
+  -- At `t = 0` the rotation is the identity.
+  have hc : rotationCos X ((w.1, 0), w.2) = 1 := by simp [rotationCos]
+  have hs : rotationSin X ((w.1, 0), w.2) = 0 := by simp [rotationSin]
+  simp only [rotationHomotopyIso, Iso.trans_hom, Iso.symm_hom, fiberMap_comp,
+    fiberMap_whitneyRotation_hom, fiberMap_whitneyRotation_inv, hc, hs, zero_smul, one_smul,
+    add_zero, sub_zero, ContinuousLinearMap.id_comp, ContinuousLinearMap.comp_id]
+  rw [← fiberMap_comp, whitneyMapIso_hom, whitneyMapIso_hom, ← whitneyMap_comp, Iso.refl_hom,
+    Category.id_comp, Category.comp_id, whitneyMapIso_hom, fiberMap_whitneyMap, fiberMap_whitneyMap,
+    fiberMap_circleZPowIsoForgetTime_hom, fiberMap_circleZPowIsoForgetTime_hom,
+    fiberMap_circleZPowIso_hom, fiberMap_circleZPowIso_hom]
+  -- The two sides differ only in the ranks of `T` and of the trivial line over `X × Circle`,
+  -- which are both `1` by definition of the pullback.
+  rfl
 
 private theorem fiberMap_rotationHomotopyIso_one (m n : ℤ) (w : X × Circle) :
-    (rotationHomotopyIso (X := X) m n).hom.fiberMap ((w.1, 1), w.2) =
+    (rotationHomotopyIso m n).hom.fiberMap ((w.1, 1), w.2) =
       (whitneyMapIso (circleZPowIso X (m + n)) (circleZPowIso X 0)).hom.fiberMap w := by
-  refine (fiberMap_isoOfContinuousEquiv_hom _ _ _).trans ?_
-  rw [whitneyMapIso_hom, fiberMap_whitneyMap, fiberMap_circleZPowIso_hom,
-    fiberMap_circleZPowIso_hom]
-  exact splitCoords_conj_unitsEquiv _ (rotationHomotopy_one m n w.2)
+  -- At `t = 1` the rotation is the quarter turn `J`, which conjugates `diag (1, u ^ n)` to
+  -- `diag (u ^ n, 1)`.
+  have hc : rotationCos X ((w.1, 1), w.2) = 0 := by simp [rotationCos]
+  have hs : rotationSin X ((w.1, 1), w.2) = 1 := by simp [rotationSin]
+  simp only [rotationHomotopyIso, Iso.trans_hom, Iso.symm_hom, fiberMap_comp,
+    fiberMap_whitneyRotation_hom, fiberMap_whitneyRotation_inv, hc, hs, zero_smul, one_smul,
+    zero_add, zero_sub]
+  rw [← fiberMap_neg, ← fiberMap_comp, ← fiberMap_comp, ← fiberMap_comp]
+  simp only [whitneyMapIso_hom, Iso.refl_hom]
+  rw [whitneyQuarterTurn_comp_whitneyMap_comp_neg, ← whitneyMap_comp, Category.comp_id,
+    fiberMap_whitneyMap, fiberMap_whitneyMap, fiberMap_comp,
+    fiberMap_circleZPowIsoForgetTime_hom, fiberMap_circleZPowIsoForgetTime_hom,
+    fiberMap_circleZPowIso_hom, fiberMap_circleZPowIso_hom, fiberMap_id,
+    ContinuousLinearMap.smul_comp, ContinuousLinearMap.id_comp, smul_smul,
+    ← zpow_add₀ (Circle.coe_ne_zero _), add_comm n m, zpow_zero, one_smul]
+  -- As at `t = 0`, the two sides differ only in ranks that agree by definition.
+  rfl
 
 /-- **The lines `L m` add up as their degrees.** Over a paracompact R₁ space `X`, for instance a
 compact Hausdorff one, let `L m` be the line over `X × ℙ ℂ (Fin 2 → ℂ)` clutched from the trivial

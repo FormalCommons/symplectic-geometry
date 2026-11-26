@@ -30,7 +30,6 @@ additive on Whitney sums, so it descends to an additive map `K(X) → H^{2j}(X; 
 
 ## Main results
 
-* `TauCeti.SplitK0.of_whitneySum`: the class of a Whitney sum of cores is the sum of the classes.
 * `TauCeti.FiniteRankBundleCore.newtonClass_eq_of_iso`, `newtonClass_whitneySum` and
   `newtonClass_pullback`: the Newton classes of cores are invariant under isomorphism, additive
   on Whitney sums and natural under pullback; by `newtonClass_trivial`, those of a trivial core
@@ -113,21 +112,6 @@ theorem newtonClass_trivial (n : ℕ) {j : ℕ} (hj : j ≠ 0) :
       ((trivial ℂ X n).core.continuous_proj.prodMk continuous_trivial_snd)) j
 
 end TauCeti.FiniteRankBundleCore
-
-/-! ### The class of a Whitney sum -/
-
-namespace TauCeti.SplitK0
-
-/-- **The class of a Whitney sum is the sum of the classes.** In the split Grothendieck group of
-finite-rank cores over `B`, `[A ⊕ D] = [A] + [D]`. -/
-@[simp]
-theorem of_whitneySum {𝕜 B : Type*} [NontriviallyNormedField 𝕜] [TopologicalSpace B]
-    (A D : FiniteRankBundleCore 𝕜 B) :
-    (of (FiniteRankBundleCore.whitneySum A D) : SplitK0 (FiniteRankBundleCore 𝕜 B)) = of A + of D :=
-  (of_congr (biprod.uniqueUpToIso A D (FiniteRankBundleCore.whitneyBiconeIsBilimit A D))).trans
-    (of_biprod A D)
-
-end TauCeti.SplitK0
 
 /-! ### The Newton classes on `K(X)` -/
 
