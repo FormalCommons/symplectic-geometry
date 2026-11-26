@@ -14,6 +14,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 public import TauCeti.Geometry.Manifold.TwoForm.Basic
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.IsManifold.Basic
@@ -83,6 +84,22 @@ fixes every point outside a closed subset of the range of `g` preserves `σ`
 `g^* Ψ^* σ = Λ^* g^* σ = τ = g^* σ`, by Tau Ceti's
 `TauCeti.SmoothForm.mpullback_mpullback_of_comp_eq`, and the differential of `g` at `w` is onto;
 elsewhere `Ψ` is the identity near the point.
+
+The same two cases carry an exactness identity from a chart to the manifold
+(`TauCeti.SmoothForm.exists_mpullback_sub_eq_mextDerivₗ_of_partialDiffeomorph`). Let `e` be a
+partial diffeomorphism into `M'`, `C ⊆ W ⊆ e.source` with `C` compact and `W` open, and `Φ` a
+diffeomorphism of `M'` that fixes every point off `e '' C`. If `(Φ ∘ e)^* θ - e^* θ = dk` on `W`
+for a function `k` that vanishes on `W` outside `C`, then `k ∘ e⁻¹` on `e '' W`, extended by zero
+(`PartialDiffeomorph.contMDiff_indicator_image_comp_symm`), is a smooth `K` with
+`Φ^* θ - θ = dK`. At a point of `e '' W` both sides pull back along `e` to the hypothesis
+(`IsLocalDiffeomorphAt.mextDeriv_apply_eq_iff`); off `e '' C`, `Φ` is the identity and `K` is `0`
+near the point. Seidel uses this to see that the Dehn twist along an exact Lagrangian sphere is
+an exact symplectomorphism.
+
+## References
+
+* [P. Seidel, *A long exact sequence for symplectic Floer cohomology*][Seidel2003], the paragraph
+  before Proposition 1.11 (arXiv version 2)
 -/
 
 public section
@@ -404,6 +421,60 @@ theorem mem_diffeomorphStabilizer_of_semiconj [IsManifold I 1 M] [IsManifold I' 
     have hid : (Ψ : M' → M') =ᶠ[𝓝 x] id :=
       Filter.eventually_of_mem (hC.isOpen_compl.mem_nhds hx') hΨ
     rw [hid.mpullback_eq, TauCeti.mpullback_id]
+
+/-- **Carrying an exactness identity from a chart.** Let `e` be a smooth partial diffeomorphism
+from `M` to a Hausdorff manifold `M'`, and `C ⊆ W ⊆ e.source` with `C` compact and `W` open. Let
+`Φ` be a diffeomorphism of `M'` that fixes every point outside `e '' C`, `θ` a one-form on `M'`,
+and `k` a function on `M` that is smooth on `W` and vanishes on `W` outside `C`, such that
+`(Φ ∘ e)^* θ - e^* θ = dk` at each point of `W`. Then `Φ^* θ - θ = dK` for a smooth function `K`
+on `M'` that vanishes outside `e '' C` and agrees with `k ∘ e⁻¹` on `e '' W`. -/
+theorem exists_mpullback_sub_eq_mextDerivₗ_of_partialDiffeomorph [IsManifold I ∞ M]
+    [IsManifold I' ∞ M'] [T2Space M'] (e : PartialDiffeomorph I I' M M' ∞) {C W : Set M}
+    (hC : IsCompact C) (hW : IsOpen W) (hCW : C ⊆ W) (hWe : W ⊆ e.source)
+    {Φ : M' ≃ₘ⟮I', I'⟯ M'} (hΦ : ∀ x ∉ e '' C, Φ x = x) {θ : SmoothForm I' M' ℝ 1} {k : M → ℝ}
+    (hk : ContMDiffOn I 𝓘(ℝ) ∞ k W) (hk0 : ∀ z ∈ W, z ∉ C → k z = 0)
+    (hθk : ∀ z ∈ W, TauCeti.mpullback I I' (Φ ∘ e) θ.val z - TauCeti.mpullback I I' e θ.val z =
+      mextDeriv (RoughForm.ofFunction I k) z) :
+    ∃ K : C^∞⟮I', M'; ℝ⟯, (∀ x ∉ e '' C, K x = 0) ∧ (∀ z ∈ W, K (e z) = k z) ∧
+      mpullback Φ Φ.contMDiff θ - θ = mextDerivₗ I' 0 (ofFunction K) := by
+  have hCc : _root_.IsClosed (e '' C) :=
+    (e.isCompact_image_of_subset_source hC (hCW.trans hWe)).isClosed
+  -- `K` is `k ∘ e⁻¹` on `e '' W`, extended by `0`.
+  set K₀ : M' → ℝ := (e '' W).indicator fun y ↦ k (e.symm y) with hK₀
+  have hK₀e : ∀ z ∈ W, K₀ (e z) = k z := fun z hz ↦ by
+    rw [hK₀, indicator_of_mem (mem_image_of_mem _ hz), PartialDiffeomorph.symm_toPartialEquiv,
+      e.left_inv (hWe hz)]
+  have hK₀C : ∀ x ∉ e '' C, K₀ x = 0 := fun x hx ↦ by
+    by_cases hxW : x ∈ e '' W
+    · obtain ⟨z, hz, rfl⟩ := hxW
+      rw [hK₀e z hz, hk0 z hz fun hzC ↦ hx (mem_image_of_mem _ hzC)]
+    · exact indicator_of_notMem hxW _
+  have hK₀s : ContMDiff I' 𝓘(ℝ) ∞ K₀ :=
+    e.contMDiff_indicator_image_comp_symm hk hC hW hCW hWe hk0
+  set K : C^∞⟮I', M'; ℝ⟯ := ⟨K₀, hK₀s⟩
+  have hKK : ⇑K = K₀ := ContMDiffMap.coeFn_mk K₀ hK₀s
+  refine ⟨K, hKK ▸ hK₀C, hKK ▸ hK₀e, Subtype.ext (funext fun x ↦ ?_)⟩
+  simp only [mextDerivₗ_apply, coe_ofFunction, hKK, Submodule.coe_sub, Pi.sub_apply,
+    coe_mpullback]
+  by_cases hx : x ∈ e '' W
+  · -- On `e '' W`, compare the pullbacks along `e`, whose differential is invertible.
+    obtain ⟨z, hz, rfl⟩ := hx
+    refine (((e.isLocalDiffeomorphAt I I' ∞ (hWe hz)).mextDeriv_apply_eq_iff (by simp)
+      (φ := RoughForm.ofFunction I' K₀) (ψ := TauCeti.mpullback I' I' Φ θ.val - θ.val)
+      (contMDiffAt_ofFunction_iff.2 ((hK₀s _).of_le (by simp)))).2 ?_).symm
+    rw [mpullback_ofFunction, mpullback_sub, Pi.sub_apply,
+      ← mpullback_comp_at (e.mdifferentiableAt (by simp) (hWe hz))
+        (Φ.contMDiff.mdifferentiable (by simp) _), hθk z hz]
+    -- Near `z`, `K₀ ∘ e` is `k`.
+    exact mextDeriv_ofFunction_eq_of_eventuallyEq_add_const (c := 0) <|
+      eventually_of_mem (hW.mem_nhds hz) fun y hy ↦ by simp [hK₀e y hy]
+  · -- Off `e '' C`, `Φ` is the identity and `K₀` vanishes near `x`.
+    have hnhds := hCc.isOpen_compl.mem_nhds fun h ↦ hx (image_mono hCW h)
+    have hid : (Φ : M' → M') =ᶠ[𝓝 x] id := eventually_of_mem hnhds hΦ
+    rw [hid.mpullback_eq, TauCeti.mpullback_id, sub_self,
+      mextDeriv_ofFunction_eq_of_eventuallyEq_add_const (g := 0) (c := 0)
+        (eventually_of_mem hnhds fun y hy ↦ by simp [hK₀C y hy]),
+      mextDeriv_ofFunction_zero, Pi.zero_apply]
 
 end TauCeti.SmoothForm
 
