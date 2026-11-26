@@ -207,12 +207,7 @@ def singularCochainComplexRestrictScalarsIso :
     (fun p ↦ (algebraMap ℤ k).restrictScalarsIsoOfAddEquiv
       (Z := (X.singularCochainComplex (ModuleCat.of k k) k (ModuleCat.of k k)).X p)
       (W := (X.singularCochainComplex (ModuleCat.of k k) ℤ (ModuleCat.of k k)).X p)
-      (AddEquiv.refl _) fun a φ ↦ by
-        -- `ℤ` acts on the restricted module through `algebraMap ℤ k`, and both carriers are the
-        -- cochains, on which `AddEquiv.refl` is the identity.
-        change (algebraMap ℤ k a) • φ = a • φ
-        rw [algebraMap_int_eq, eq_intCast]
-        exact Int.cast_smul_eq_zsmul k a φ)
+      (AddEquiv.refl _) fun a φ ↦ algebraMap_smul k a φ)
     fun _ _ _ ↦ by
       ext φ
       -- The cochains of the restricted complex have the type of its objects, which `rw` does not
