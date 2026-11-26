@@ -7,6 +7,8 @@ module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Measure
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.TopForm
+public import TauCeti.Geometry.Manifold.Measure
+import Mathlib.MeasureTheory.Measure.Haar.Unique
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Operations
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Regularity
 import TauCeti.Geometry.Manifold.ExtChartAt
@@ -40,6 +42,14 @@ proof is that of `TauCeti.setIntegral_chartRiemannianVolume`. The sign of a char
 read off as in the proof of `TauCeti.integralTopForm_nonneg`, from the compatibility of the chart
 signs of an orientation lift.
 
+The null sets of `|φ|` can be read off in charts: a subset of a chart source whose chart image is
+null for an additive Haar measure is null for `|φ|`, and on a Lindelöf manifold so is every
+chartwise null set `TauCeti.IsNullSet`. The proofs follow those of
+`TauCeti.riemannianVolume_eq_zero_iff_image_of_subset` and
+`TauCeti.isNullSet_iff_riemannianVolume_eq_zero` (`TauCeti/Geometry/Manifold/Riemannian/
+VolumeDensity/Null.lean`), with the coordinate formula `TauCeti.RoughForm.measure_apply_of_subset`
+in place of the chart density of the metric.
+
 ## Main results
 
 * `TauCeti.RoughForm.setIntegral_measure_of_subset`: the integral against `|φ|` over a
@@ -49,6 +59,8 @@ signs of an orientation lift.
 * `TauCeti.signBasis_orientationAt_mul_nonneg_of_iff`: the sign condition on `φ`, for an
   orientation described by the bases on which `φ` is positive.
 * `TauCeti.integralTopForm_smul_eq_integral_measure`: `∫_M f φ = ∫ f d|φ|`.
+* `TauCeti.RoughForm.measure_eq_zero_of_subset`, `TauCeti.RoughForm.measure_eq_zero_of_isNullSet`:
+  sets that are null in charts are null for `|φ|`.
 
 ## References
 
@@ -257,5 +269,57 @@ theorem integralTopForm_smul_eq_integral_measure (o : Manifold.Orientation I M (
     mul_comm]
 
 end Integral
+
+/-! ### Null sets -/
+
+namespace RoughForm
+
+variable [MeasurableSpace M] [BorelSpace M] [LindelofSpace M] [Fact (finrank ℝ E = k)]
+  [MeasurableSpace E] [BorelSpace E]
+
+/-- **A set that is null in a chart is null for the measure of a top form.** A subset of the
+source of the extended chart at `α` whose image in the chart is null for an additive Haar measure
+on the model is null for `|φ|`. The set need not be measurable. -/
+theorem measure_eq_zero_of_subset (φ : RoughForm I M ℝ k) {α : M} {s : Set M}
+    (hsub : s ⊆ (extChartAt I α).source) (μ : Measure E) [μ.IsAddHaarMeasure]
+    (hs : μ (extChartAt I α '' s) = 0) : φ.measure s = 0 := by
+  obtain rfl : ‹MeasurableSpace E› = extChartAtMeasurableSpaceE := BorelSpace.measurable_eq
+  let : MeasurableSpace E := extChartAtMeasurableSpaceE
+  let e := extChartAt I α
+  -- A measurable set `t` with `s ⊆ t ⊆ e.source` whose image is still null.
+  let A := toMeasurable μ (e '' s)
+  let t := Subtype.val '' (e.source.domRestrict e ⁻¹' A)
+  have hval := MeasurableEmbedding.subtypeVal (isOpen_extChartAt_source (I := I) α).measurableSet
+  have htm : MeasurableSet t := hval.measurableSet_image.2
+    ((measurableSet_toMeasurable _ _).preimage
+      (measurableEmbedding_extChartAt_restrict α).measurable)
+  have hts : t ⊆ e.source := by
+    rintro _ ⟨y, -, rfl⟩
+    exact y.property
+  have hst : s ⊆ t := fun x hx ↦
+    ⟨⟨x, hsub hx⟩, subset_toMeasurable μ (e '' s) (mem_image_of_mem e hx), rfl⟩
+  have hAt : e '' t ⊆ A := by
+    rintro _ ⟨_, ⟨z, hz, rfl⟩, rfl⟩
+    exact hz
+  refine measure_mono_null hst ?_
+  rw [φ.measure_apply_of_subset htm hts]
+  exact setLIntegral_measure_zero _ _ (Measure.absolutelyContinuous_isAddHaarMeasure _ μ
+    (measure_mono_null hAt (by rwa [measure_toMeasurable])))
+
+/-- **A chartwise null set is null for the measure of a top form.** On a Lindelöf manifold, a set
+whose images in all extended charts are null for the additive Haar measures on the model is null
+for `|φ|`. -/
+theorem measure_eq_zero_of_isNullSet (φ : RoughForm I M ℝ k) {s : Set M} (hs : IsNullSet I s) :
+    φ.measure s = 0 := by
+  obtain ⟨t, ht, hcover⟩ := LindelofSpace.elim_nhds_subcover
+    (fun x : M ↦ (extChartAt I x).source) fun x ↦ extChartAt_source_mem_nhds x
+  have hsub : s ⊆ ⋃ α ∈ t, s ∩ (extChartAt I α).source := by
+    intro x hx
+    obtain ⟨α, hα, hxα⟩ := mem_iUnion₂.1 (hcover ▸ mem_univ x)
+    exact mem_iUnion₂.2 ⟨α, hα, hx, hxα⟩
+  refine measure_mono_null hsub ((measure_biUnion_null_iff ht).2 fun α _ ↦ ?_)
+  exact φ.measure_eq_zero_of_subset inter_subset_right (finBasis ℝ E).addHaar (hs.chartwise α _)
+
+end RoughForm
 
 end TauCeti
