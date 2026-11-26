@@ -116,9 +116,13 @@ theorem fiberMap_pullbackForgetTime (f : (Q E) ⟶ (Q E)) (b : (X × I) × Circl
   fiberMap_pullbackMap f _ b
 
 @[simp]
+theorem pullbackForgetTime_id : pullbackForgetTime (𝟙 (Q E)) = 𝟙 (P E) :=
+  (pullbackFunctor (ContinuousMap.fst.prodMap (.id Circle))).map_id _
+
+@[simp]
 theorem pullbackForgetTime_comp (f g : (Q E) ⟶ (Q E)) :
-    pullbackForgetTime f ≫ pullbackForgetTime g = pullbackForgetTime (f ≫ g) :=
-  ((pullbackFunctor (ContinuousMap.fst.prodMap (.id Circle))).map_comp f g).symm
+    pullbackForgetTime (f ≫ g) = pullbackForgetTime f ≫ pullbackForgetTime g :=
+  (pullbackFunctor (ContinuousMap.fst.prodMap (.id Circle))).map_comp f g
 
 /-- An isomorphism of the pullback of `E` to `X × Circle`, pulled back to `(X × I) × Circle`
 along `((x, t), z) ↦ (x, z)`: its morphisms are the pullbacks `pullbackForgetTime` of those of the

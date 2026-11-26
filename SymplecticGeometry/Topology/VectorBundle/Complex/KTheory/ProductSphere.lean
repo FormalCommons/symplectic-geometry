@@ -275,7 +275,7 @@ private theorem fiberMap_rotationHomotopyIso_one (m n : ℤ) (w : X × Circle) :
   rw [← fiberMap_neg, ← fiberMap_comp, ← fiberMap_comp, ← fiberMap_comp]
   simp only [whitneyMapIso_hom, Iso.refl_hom]
   rw [whitneyQuarterTurn_comp_whitneyMap_comp_neg, ← whitneyMap_comp, Category.comp_id,
-    pullbackForgetTimeIso_hom, pullbackForgetTimeIso_hom, pullbackForgetTime_comp,
+    pullbackForgetTimeIso_hom, pullbackForgetTimeIso_hom, ← pullbackForgetTime_comp,
     fiberMap_whitneyMap, fiberMap_whitneyMap, fiberMap_pullbackForgetTime, fiberMap_comp,
     fiberMap_circleZPowIso_hom, fiberMap_circleZPowIso_hom, fiberMap_circleZPowIso_hom,
     fiberMap_circleZPowIso_hom, fiberMap_id,
