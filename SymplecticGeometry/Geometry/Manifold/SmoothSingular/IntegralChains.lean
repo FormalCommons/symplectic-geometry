@@ -78,7 +78,7 @@ omit [FiniteDimensional ℝ E] [T2Space M] [SigmaCompactSpace M] [IsManifold I �
 their coefficients to `ℝ` (`SymplecticGeometry.intCastChainMap`), is integration over the chains
 read with coefficients `ℤ`. -/
 theorem intCastChainMap_f_integrationCochain {p : ℕ} (ψ : RoughForm I M ℝ p) :
-    (SymplecticGeometry.intCastChainMap (k := ℝ) (smoothSingularSubcomplex I M : SSet)).f p ≫
+    (SymplecticGeometry.intCastChainMap ℝ (smoothSingularSubcomplex I M : SSet)).f p ≫
         (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℝ)).map (integrationCochain (R := ℝ) ψ) ≫
           (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := ℝ) ℝ).hom =
       (((SSet.chainComplexFunctor (ModuleCat.{0} ℤ)).map uliftIntIso.hom).app
