@@ -8,13 +8,12 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Immersion.Transverse
 public import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.Riemannian.Injective
 public import TauCeti.Geometry.Contact.Legendrian.Neighborhood
-public import TauCeti.Geometry.Manifold.Flow.Basic
+import TauCeti.Geometry.Contact.Family
 import TauCeti.Geometry.Contact.OneJet.Connection
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
 import SymplecticGeometry.Topology.Sets.Opens.Basic
-import TauCeti.Geometry.Contact.Slice
 
 /-!
 # The Legendrian neighbourhood theorem
@@ -28,8 +27,9 @@ back to `λ_can - dz`
 Neither compactness of `L` nor closedness of `f(L)` is assumed. Nor is `α` assumed to be a
 contact form: a one-form whose kernel has a Legendrian immersion is one
 (`TauCeti.IsLegendrianImmersion.isContactForm`). The file also keeps the hypersurface through
-`f(L)` and the two facts about contact forms of the route through a hypersurface of
-McDuff–Salamon, Exercise 3.5.22(i), which later neighbourhood theorems can use.
+`f(L)` of the route through a hypersurface of McDuff–Salamon, Exercise 3.5.22(i), which later
+neighbourhood theorems can use; the two facts about contact forms of that route are in
+`SymplecticGeometry/Geometry/Contact/Slice.lean`.
 
 ## A slice through `f(L)`
 
@@ -39,12 +39,12 @@ The first step of that route builds a hypersurface through `f(L)`, tangent to `k
 
 The construction:
 
-* At `q ∈ L`, Tau Ceti identifies the normal space `ν_q = T_(f q) M ⧸ df_q(T_q L)` with
-  `T_q^* L × ℝ` by `[w] ↦ (dα(df_q ·, w), α w)`
-  (`TauCeti.SmoothEmbedding.normalSpaceEquivOfIsLegendrianImmersion`), smoothly in `q`
-  (`TauCeti.SmoothEmbedding.contMDiff_normalSpaceEquivOfIsLegendrianImmersion`). Composing its
-  inverse with `p ↦ (p, 0)` gives a smooth fibrewise injection `j : T^* L → ν` whose image lies in
-  `ker α ⧸ df(T L)`.
+* Tau Ceti's diffeomorphism `Φ : ν → T^* L × ℝ` of the normal bundle, over the identity of `L`
+  (`TauCeti.SmoothEmbedding.normalBundleDiffeomorphOfIsLegendrianImmersion`), is on the fibre
+  over `q` the map `[w] ↦ (dα(df_q ·, w), α w)` from `ν_q = T_(f q) M ⧸ df_q(T_q L)`
+  (`TauCeti.SmoothEmbedding.normalSpaceEquivOfIsLegendrianImmersion`). So
+  `j p = Φ⁻¹ (p, 0)` is a smooth injective bundle map `j : T^* L → ν`, linear on each fibre,
+  whose image lies in `ker α ⧸ df(T L)`.
 * A smooth injective map `T : ν → M`, equal to `f` on the zero section, whose differential
   sends the vertical vector `v` at `0_q` to a vector of normal class `c q • v` with `c q > 0`,
   comes from `TauCeti.SmoothEmbedding.exists_contMDiff_injective_normalBundle`.
@@ -54,8 +54,6 @@ The construction:
   the differential of `ι` is injective with the Reeb field outside its range is an open
   neighbourhood of the zero section (`ContMDiffAt.eventually_injective_mfderiv_and_notMem_range`).
 
-The identification of the normal bundle with `T^* L × ℝ` is taken from Tau Ceti's file
-`TauCeti/Geometry/Contact/Legendrian/Normal.lean`.
 The splitting of the differential of `T ∘ j` along the zero section into a horizontal and a
 vertical part follows the proof of Tau Ceti's
 `TauCeti.SmoothEmbedding.mfderiv_normalExp_zeroSection_apply`.
@@ -79,19 +77,6 @@ deduced from it:
   `λ_can - dz`;
 * an empty `L` is handled with the empty open sets (`TopologicalSpace.Opens.isEmpty_bot`).
 
-## Two facts about contact forms
-
-* On a hypersurface `ι : S → M` that is everywhere an immersion transverse to the Reeb field,
-  `-d(ι^* α)` is symplectic
-  (`TauCeti.SmoothForm.IsContactForm.isSymplectic_neg_mextDerivₗ_mpullback`).
-* If `κ^* α = β + dg`, the map `(s, z) ↦ φ^R_{-z - g s} (κ s)`, with `φ^R` the local Reeb flow,
-  pulls `α` back to `-(dz - β)` wherever it is defined
-  (`TauCeti.SmoothForm.IsContactForm.mpullback_flowOf_neg_sub_apply`), since the Reeb flow out of
-  `κ` pulls `α` back to `dt + κ^* α` (`TauCeti.mpullback_flowOf_comp_apply_eq_contactization`).
-  Its proof follows the steps of the private lemma
-  `mpullback_flowOf_comp_contactizationShift_comp_reassoc` of the proof of Tau Ceti's
-  `TauCeti.SmoothForm.IsContactForm.exists_strictDarbouxChart`.
-
 ## Main results
 
 * `TauCeti.IsLegendrianImmersion.finrank_prod_dual_add_one`: the model of `T^* L` has one
@@ -99,10 +84,6 @@ deduced from it:
 * `TauCeti.IsLegendrianEmbedding.exists_contactSlice`: a smooth injective map `ι : T^* L → M`
   with `ι (0_q) = f q`, which is an immersion transverse to the Reeb field on some open set
   containing the zero section, and whose differential at `0_q` has range `ker α_(f q)`.
-* `TauCeti.SmoothForm.IsContactForm.isSymplectic_neg_mextDerivₗ_mpullback`: on a hypersurface
-  that is everywhere an immersion transverse to the Reeb field, `-d(ι^* α)` is symplectic.
-* `TauCeti.SmoothForm.IsContactForm.mpullback_flowOf_neg_sub_apply`: if `κ^* α = β + dg`, the map
-  `(s, z) ↦ φ^R_{-z - g s} (κ s)` pulls `α` back to minus the contactization form of `β`.
 * `TauCeti.IsLegendrianEmbedding.exists_diffeomorph_opens_mpullback_eq_neg_contactization`: the
   Legendrian neighbourhood theorem.
 
@@ -113,8 +94,8 @@ deduced from it:
 * A. Kriegl, P. W. Michor, *The Convenient Setting of Global Analysis*, Mathematical Surveys and
   Monographs 53, AMS (1997), Proposition 43.18 (cited by Tau Ceti's proof of the theorem).
 * H. Geiges, *An Introduction to Contact Topology*, Cambridge Studies in Advanced Mathematics
-  109, Cambridge University Press, 2008, §2.5 (cited by Tau Ceti's proofs that this file uses
-  and adapts).
+  109, Cambridge University Press, 2008, §2.5 (cited by Tau Ceti's proofs that this file
+  uses).
 -/
 
 public section
@@ -146,49 +127,52 @@ theorem _root_.TauCeti.IsLegendrianImmersion.finrank_prod_dual_add_one
   ring
 
 variable {g : SmoothEmbedding J I ∞ L M}
+  {P : Type*} [NormedAddCommGroup P] [NormedSpace ℝ P] [FiniteDimensional ℝ P]
 
-/-- The fibrewise injection `p ↦ e⁻¹ (p, 0)` of `T_q^* L` into the normal space, for `e` the
-identification `TauCeti.SmoothEmbedding.normalSpaceEquivOfIsLegendrianImmersion`. -/
-private def cotangentToNormal (hf : IsLegendrianEmbedding J α.kerDistribution g) (q : L) :
-    (TangentSpace J q →L[ℝ] ℝ) →L[ℝ] g.NormalSpace q infty_ne_zero :=
-  (g.normalSpaceEquivOfIsLegendrianImmersion hf.toIsLegendrianImmersion infty_ne_zero
-    q).symm.toContinuousLinearMap ∘L ContinuousLinearMap.inl ℝ _ ℝ
+/-- The bundle map `j : T^* L → ν`, `p ↦ Φ⁻¹ (p, 0)`, for `Φ` Tau Ceti's diffeomorphism
+`TauCeti.SmoothEmbedding.normalBundleDiffeomorphOfIsLegendrianImmersion` of the normal bundle `ν`
+with `T^* L × ℝ`. -/
+private def cotangentToNormal (hf : IsLegendrianEmbedding J α.kerDistribution g)
+    (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E') :
+    CotangentBundle J L → TotalSpace P (fun q ↦ g.NormalSpace q infty_ne_zero) :=
+  letI := g.normalSpaceFiberBundle infty_ne_zero hdim
+  fun p ↦ (g.normalBundleDiffeomorphOfIsLegendrianImmersion hf.toIsLegendrianImmersion
+    (m := ∞) infty_ne_zero (by simp) (by simp) hdim).symm (p, 0)
 
-omit [FiniteDimensional ℝ E'] in
-private theorem normalSpaceEquivOfIsLegendrianImmersion_cotangentToNormal
-    (hf : IsLegendrianEmbedding J α.kerDistribution g) (q : L) (p : TangentSpace J q →L[ℝ] ℝ) :
-    g.normalSpaceEquivOfIsLegendrianImmersion hf.toIsLegendrianImmersion infty_ne_zero q
-      (cotangentToNormal hf q p) = (p, 0) := by
-  simp [cotangentToNormal]
+private theorem cotangentToNormal_mk (hf : IsLegendrianEmbedding J α.kerDistribution g)
+    (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E') (q : L) (p : TangentSpace J q →L[ℝ] ℝ) :
+    cotangentToNormal hf hdim ⟨q, p⟩ = ⟨q, (g.normalSpaceEquivOfIsLegendrianImmersion
+      hf.toIsLegendrianImmersion infty_ne_zero q).symm (p, 0)⟩ := by
+  let := g.normalSpaceFiberBundle infty_ne_zero hdim
+  unfold cotangentToNormal
+  exact g.normalBundleDiffeomorphOfIsLegendrianImmersion_symm_apply ..
 
-omit [FiniteDimensional ℝ E'] in
-private theorem cotangentToNormal_injective (hf : IsLegendrianEmbedding J α.kerDistribution g)
-    (q : L) : Injective (cotangentToNormal hf q) := fun p p' h ↦ by
-  have := congrArg (fun v ↦ (g.normalSpaceEquivOfIsLegendrianImmersion
-    hf.toIsLegendrianImmersion infty_ne_zero q v).1) h
-  simpa only [normalSpaceEquivOfIsLegendrianImmersion_cotangentToNormal] using this
-
-variable {P : Type*} [NormedAddCommGroup P] [NormedSpace ℝ P] [FiniteDimensional ℝ P]
-
-/-- The bundle map `T^* L → ν` induced by `cotangentToNormal` is smooth. -/
 private theorem contMDiff_cotangentToNormal (hf : IsLegendrianEmbedding J α.kerDistribution g)
     (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E') :
     letI := g.normalSpaceFiberBundle infty_ne_zero hdim
-    ContMDiff (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) (J.prod 𝓘(ℝ, P)) ∞
-      (fun p : CotangentBundle J L ↦ TotalSpace.mk' P
-        (E := fun q ↦ g.NormalSpace q infty_ne_zero) p.proj
-        (cotangentToNormal hf p.proj p.snd)) := by
+    ContMDiff (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) (J.prod 𝓘(ℝ, P)) ∞ (cotangentToNormal hf hdim) := by
   let := g.normalSpaceFiberBundle infty_ne_zero hdim
-  let := g.normalSpaceVectorBundle infty_ne_zero hdim
-  have := g.normalSpaceContMDiffVectorBundle (m := ∞) infty_ne_zero (by simp) hdim
-  exact (contMDiff_bundle_symm _
-    (g.contMDiff_normalSpaceEquivOfIsLegendrianImmersion hf.toIsLegendrianImmersion
-      infty_ne_zero (by simp) (by simp) hdim)).comp
-    (Bundle.Prod.contMDiff_inl (E₂ := Trivial L ℝ))
+  unfold cotangentToNormal
+  exact (Diffeomorph.contMDiff _).comp (contMDiff_id.prodMk contMDiff_const)
+
+private theorem injective_cotangentToNormal (hf : IsLegendrianEmbedding J α.kerDistribution g)
+    (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E') : Injective (cotangentToNormal hf hdim) := by
+  unfold cotangentToNormal
+  exact (EquivLike.injective _).comp fun _ _ h ↦ (Prod.mk.inj h).1
+
+private theorem cotangentToNormal_zeroSection (hf : IsLegendrianEmbedding J α.kerDistribution g)
+    (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E') (q : L) :
+    cotangentToNormal hf hdim
+        (zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q) =
+      zeroSection P _ q := by
+  -- `zeroSection q` is `⟨q, 0⟩` by definition, which Mathlib states by no lemma.
+  exact (cotangentToNormal_mk hf hdim q 0).trans
+    (congrArg (TotalSpace.mk' P q) (by rw [Prod.mk_zero_zero, map_zero]))
 
 /-- The differential of `T ∘ j` along the zero section, for a smooth map `T` of the normal bundle
-which is `g` on its zero section and `j` the bundle map of `cotangentToNormal`: horizontally
-it is `dg`, vertically it is the vertical differential of `T`. -/
+which is `g` on its zero section and `j` the bundle map `cotangentToNormal`: horizontally it is
+`dg`, vertically it is the vertical differential of `T` on `e⁻¹ (p, 0)`, for `e` the
+identification `TauCeti.SmoothEmbedding.normalSpaceEquivOfIsLegendrianImmersion`. -/
 private theorem mfderiv_comp_cotangentToNormal (hf : IsLegendrianEmbedding J α.kerDistribution g)
     (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E') :
     letI := g.normalSpaceFiberBundle infty_ne_zero hdim
@@ -196,37 +180,34 @@ private theorem mfderiv_comp_cotangentToNormal (hf : IsLegendrianEmbedding J α.
     ∀ T : TotalSpace P (fun q ↦ g.NormalSpace q infty_ne_zero) → M,
       ContMDiff (J.prod 𝓘(ℝ, P)) I ∞ T → (∀ q, T (zeroSection P _ q) = g q) →
       ∀ (q : L) (u : TangentSpace J q) (p : TangentSpace J q →L[ℝ] ℝ),
-        mfderiv (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) I
-            (fun p : CotangentBundle J L ↦ T ⟨p.proj, cotangentToNormal hf p.proj p.snd⟩)
+        mfderiv (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) I (T ∘ cotangentToNormal hf hdim)
             (zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q)
             ((Bundle.zeroSectionTangentEquiv (I := J) q).symm (u, 0)) = mfderiv J I g q u ∧
-        mfderiv (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) I
-            (fun p : CotangentBundle J L ↦ T ⟨p.proj, cotangentToNormal hf p.proj p.snd⟩)
+        mfderiv (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) I (T ∘ cotangentToNormal hf hdim)
             (zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q)
             ((Bundle.zeroSectionTangentEquiv (I := J) q).symm (0, p)) =
           mfderiv (J.prod 𝓘(ℝ, P)) I T (zeroSection P _ q)
             ((Bundle.zeroSectionTangentEquiv (I := J) q).symm
-              (0, cotangentToNormal hf q p)) := by
+              (0, (g.normalSpaceEquivOfIsLegendrianImmersion hf.toIsLegendrianImmersion
+                infty_ne_zero q).symm (p, 0))) := by
   let := g.normalSpaceFiberBundle infty_ne_zero hdim
   let := g.normalSpaceVectorBundle infty_ne_zero hdim
   intro T hT hT0 q u p
-  have hι : ContMDiff (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) I ∞
-      (fun p : CotangentBundle J L ↦ T ⟨p.proj, cotangentToNormal hf p.proj p.snd⟩) :=
+  have hι : ContMDiff (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) I ∞ (T ∘ cotangentToNormal hf hdim) :=
     hT.comp (contMDiff_cotangentToNormal hf hdim)
   refine ⟨?_, ?_⟩
   · -- Horizontally: the composite is `g` on the zero section.
     refine Bundle.mfderiv_zeroSectionTangentEquiv_symm_inl ((hι _).mdifferentiableAt (by simp))
       (.of_forall fun q ↦ ?_) u
-    rw [Function.comp_apply, ← hT0 q]
-    exact congrArg T (congrArg (TotalSpace.mk' P q) (map_zero _))
-  · -- Vertically: the composite maps the line `t ↦ t • p` to the line `t ↦ t • j p`.
+    rw [Function.comp_apply, Function.comp_apply, cotangentToNormal_zeroSection, hT0]
+  · -- Vertically: the composite maps the line `t ↦ t • p` to the line `t ↦ t • e⁻¹ (p, 0)`.
     rw [Bundle.mfderiv_zeroSectionTangentEquiv_symm_inr ((hι _).mdifferentiableAt (by simp)),
       Bundle.mfderiv_zeroSectionTangentEquiv_symm_inr ((hT _).mdifferentiableAt (by simp))]
     congr 2 with t
-    exact congrArg T (congrArg (TotalSpace.mk' P q) (map_smul _ t p))
+    rw [Function.comp_apply, cotangentToNormal_mk, ← map_smul, Prod.smul_mk, smul_zero]
 
 /-- The differential at `0_q` of `T ∘ j`, for a map `T` of the normal bundle and `j` the bundle
-map of `cotangentToNormal`, with its values read in the tangent space of `M` at `g q`. When `T` is
+map `cotangentToNormal`, with its values read in the tangent space of `M` at `g q`. When `T` is
 `g` on the zero section, as below, this is the tangent space at the base point of the image. -/
 private def sliceDeriv (hf : IsLegendrianEmbedding J α.kerDistribution g)
     (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E') :
@@ -239,17 +220,16 @@ private def sliceDeriv (hf : IsLegendrianEmbedding J α.kerDistribution g)
   letI := g.normalSpaceFiberBundle infty_ne_zero hdim
   letI := g.normalSpaceVectorBundle infty_ne_zero hdim
   fun T q ↦ mfderiv (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) I
-    (fun p : CotangentBundle J L ↦ T ⟨p.proj, cotangentToNormal hf p.proj p.snd⟩)
+    (T ∘ cotangentToNormal hf hdim)
     (zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q)
 
-omit [FiniteDimensional ℝ E'] [FiniteDimensional ℝ P] in
 private theorem sliceDeriv_apply (hf : IsLegendrianEmbedding J α.kerDistribution g)
     (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E') :
     letI := g.normalSpaceFiberBundle infty_ne_zero hdim
     letI := g.normalSpaceVectorBundle infty_ne_zero hdim
     ∀ (T : TotalSpace P (fun q ↦ g.NormalSpace q infty_ne_zero) → M) (q : L) (X),
       sliceDeriv hf hdim T q X = mfderiv (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) I
-        (fun p : CotangentBundle J L ↦ T ⟨p.proj, cotangentToNormal hf p.proj p.snd⟩)
+        (T ∘ cotangentToNormal hf hdim)
         (zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q) X :=
   fun _ _ _ ↦ rfl
 
@@ -274,11 +254,12 @@ private theorem sliceDeriv_mem_kerDistribution_and_injective
     (F := E' →L[ℝ] ℝ) (V := fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q).symm
   set e' := (Bundle.zeroSectionTangentEquiv (I := J) (F := P)
     (V := fun q ↦ g.NormalSpace q infty_ne_zero) q).symm
+  set en := g.normalSpaceEquivOfIsLegendrianImmersion hf.toIsLegendrianImmersion infty_ne_zero q
   have hd := mfderiv_comp_cotangentToNormal hf hdim T hT hT0 q
   have hhor (u : TangentSpace J q) : D (e (u, 0)) = mfderiv J I g q u :=
     (sliceDeriv_apply hf hdim T q _).trans (hd u 0).1
   have hver (p : TangentSpace J q →L[ℝ] ℝ) : D (e (0, p)) = mfderiv (J.prod 𝓘(ℝ, P)) I T
-      (zeroSection P _ q) (e' (0, cotangentToNormal hf q p)) :=
+      (zeroSection P _ q) (e' (0, en.symm (p, 0))) :=
     (sliceDeriv_apply hf hdim T q _).trans (hd 0 p).2
   -- `D` splits into `dg` horizontally and a vertical part of normal class `c q • j p`.
   have hsplit (u : TangentSpace J q) (p : TangentSpace J q →L[ℝ] ℝ) :
@@ -286,8 +267,8 @@ private theorem sliceDeriv_mem_kerDistribution_and_injective
     rw [← hhor, ← map_add, ← map_add, Prod.mk_add_mk,
       add_zero, zero_add]
   have hvert (p : TangentSpace J q →L[ℝ] ℝ) :
-      g.normalClass q infty_ne_zero (D (e (0, p))) = c q • cotangentToNormal hf q p := by
-    have h := hTd q (cotangentToNormal hf q p)
+      g.normalClass q infty_ne_zero (D (e (0, p))) = c q • en.symm (p, 0) := by
+    have h := hTd q (en.symm (p, 0))
     rw [SmoothEmbedding.normalFiberDeriv_apply] at h
     rw [hver]
     -- `exact`, not `rw`: the vector lies in the tangent space at `T 0_q`, which `rw` does not
@@ -296,7 +277,7 @@ private theorem sliceDeriv_mem_kerDistribution_and_injective
   have hαvert (p : TangentSpace J q →L[ℝ] ℝ) : α.val (g q) ![D (e (0, p))] = 0 := by
     have h := g.normalSpaceEquivOfIsLegendrianImmersion_normalClass hf.toIsLegendrianImmersion
       infty_ne_zero q (D (e (0, p)))
-    rw [hvert, map_smul, normalSpaceEquivOfIsLegendrianImmersion_cotangentToNormal] at h
+    rw [hvert, map_smul, en.apply_symm_apply] at h
     simpa using (congrArg Prod.snd h).symm
   refine ⟨fun X ↦ ?_, (injective_iff_map_eq_zero D).2 fun X hX ↦ ?_⟩
   · obtain ⟨⟨u, p⟩, rfl⟩ := e.surjective X
@@ -309,8 +290,8 @@ private theorem sliceDeriv_mem_kerDistribution_and_injective
     have hcl := congrArg (g.normalClass q infty_ne_zero) hX
     rw [map_add, hvert, SmoothEmbedding.normalClass_mfderiv, zero_add, map_zero,
       smul_eq_zero] at hcl
-    obtain rfl : p = 0 := cotangentToNormal_injective hf q
-      ((hcl.resolve_left (hc q).ne').trans (map_zero _).symm)
+    obtain rfl : p = 0 := congrArg Prod.fst (en.symm.injective
+      ((hcl.resolve_left (hc q).ne').trans (map_zero _).symm))
     rw [Prod.mk_zero_zero, map_zero, map_zero, add_zero] at hX
     obtain rfl : u = 0 := g.isImmersion.mfderiv_injective infty_ne_zero q
       (hX.trans (map_zero _).symm)
@@ -343,18 +324,13 @@ theorem exists_contactSlice [I.Boundaryless] [J.Boundaryless] [T2Space M]
   let := g.normalSpaceFiberBundle infty_ne_zero hdim
   let := g.normalSpaceVectorBundle infty_ne_zero hdim
   obtain ⟨T, hT, hTinj, hT0, c, hc, hTd⟩ := g.exists_contMDiff_injective_normalBundle hdim
-  let ι : CotangentBundle J L → M := fun p ↦ T ⟨p.proj, cotangentToNormal hf' p.proj p.snd⟩
+  let ι : CotangentBundle J L → M := T ∘ cotangentToNormal hf' hdim
   have hι : ContMDiff (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) I ∞ ι :=
     hT.comp (contMDiff_cotangentToNormal hf' hdim)
   set Z0 := zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ)
-  have hιinj : Injective ι := by
-    rintro ⟨q, a⟩ ⟨q', a'⟩ h
-    obtain ⟨rfl, h2⟩ := TotalSpace.mk.inj (hTinj h)
-    cases cotangentToNormal_injective hf' q (eq_of_heq h2)
-    rfl
-  have hι0 (q : L) : ι (Z0 q) = g q := by
-    rw [← hT0 q]
-    exact congrArg T (congrArg (TotalSpace.mk' P q) (map_zero _))
+  have hιinj : Injective ι := hTinj.comp (injective_cotangentToNormal hf' hdim)
+  have hι0 (q : L) : ι (Z0 q) = g q :=
+    (congrArg T (cotangentToNormal_zeroSection hf' hdim q)).trans (hT0 q)
   have hD := sliceDeriv_mem_kerDistribution_and_injective hf' hdim T hT hT0 c hc hTd
   -- The differential of `ι` at `0_q`, with values in the tangent space at `g q = ι 0_q`, so that
   -- its range and `ker α` are subspaces of the same type.
@@ -378,105 +354,6 @@ theorem exists_contactSlice [I.Boundaryless] [J.Boundaryless] [T2Space M]
     (sliceDeriv_apply hf' hdim T q X).trans hX, hι0 q] at h
   exact hα.reebVectorField_notMem_kerDistribution (g q) h
 
-end TauCeti.IsLegendrianEmbedding
-
-namespace TauCeti.SmoothForm.IsContactForm
-
-variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
-  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
-  [IsManifold I ∞ M]
-  {E' H' S : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
-  [TopologicalSpace H'] {J : ModelWithCorners ℝ E' H'} [TopologicalSpace S] [ChartedSpace H' S]
-  [IsManifold J ∞ S]
-  {α : SmoothForm I M ℝ 1}
-
-/-- Let `ι : S → M` be a smooth map from a manifold of one dimension less which is, at every point,
-an immersion whose image does not contain the Reeb vector of a contact form `α`. Then the two-form
-`-d(ι^* α)` on `S` is symplectic. -/
-theorem isSymplectic_neg_mextDerivₗ_mpullback (hα : α.IsContactForm)
-    (hdim : finrank ℝ E' + 1 = finrank ℝ E) {ι : S → M} (hι : ContMDiff J I ∞ ι)
-    (hιs : ∀ s, Injective (mfderiv J I ι s) ∧ α.reebVectorField (ι s) ∉ (mfderiv J I ι s).range) :
-    SmoothTwoForm.IsSymplectic (-mextDerivₗ J 1 (SmoothForm.mpullback ι hι α)) :=
-  ⟨(SmoothForm.isClosed_mextDerivₗ _).neg, SmoothTwoForm.IsNondegenerate.neg <|
-    SmoothTwoForm.isNondegenerate_iff_separatingLeft.2 fun s v hv ↦
-      (hα.nondegenerate_bilinFormAt_mextDerivₗ_mpullback hι hdim (hιs s).1 (hιs s).2).1 v
-        fun w ↦ by rw [SmoothForm.bilinFormAt_apply]; exact hv w⟩
-
-variable {ES HS S : Type*} [NormedAddCommGroup ES] [NormedSpace ℝ ES] [TopologicalSpace HS]
-  {IS : ModelWithCorners ℝ ES HS} [TopologicalSpace S] [ChartedSpace HS S] [IsManifold IS ∞ S]
-
-/-- Let `κ : S → M` be a smooth map and `g` a smooth function on `S` with `κ^* α = β + dg`, for a
-contact form `α` and a one-form `β` on `S`. At each point `(s, z)` of `S × ℝ` where the Reeb flow
-`φ^R` of `α` is defined for the time `-z - g s` from `κ s`, the map `(s, z) ↦ φ^R_{-z - g s} (κ s)`
-pulls `α` back to `-(dz - β)`, minus the contactization form of `β`. -/
-theorem mpullback_flowOf_neg_sub_apply [I.Boundaryless] [T2Space M] (hα : α.IsContactForm)
-    {κ : S → M} (hκ : ContMDiff IS I ∞ κ) {g : S → ℝ} (hg : ContMDiff IS 𝓘(ℝ) ∞ g)
-    {β : SmoothForm IS S ℝ 1}
-    (hκα : SmoothForm.mpullback κ hκ α = β + mextDerivₗ IS 0
-      ⟨RoughForm.ofFunction _ g, (isSmoothForm_ofFunction_iff.2 hg).mem_smoothBundleForms⟩)
-    {p : S × ℝ} (hp : (-p.2 - g p.1, κ p.1) ∈ flowDomain α.reebVectorField) :
-    TauCeti.mpullback (IS.prod 𝓘(ℝ)) I
-        (fun p : S × ℝ ↦ flowOf α.reebVectorField (-p.2 - g p.1) (κ p.1)) α.val p =
-      (-β.contactization).val p := by
-  have hR := hα.contMDiff_reebVectorField
-  have hh : ContMDiff (IS.prod 𝓘(ℝ)) 𝓘(ℝ) ∞ (fun p : S × ℝ ↦ -p.2 - g p.1) :=
-    contMDiff_snd.neg.sub (hg.comp contMDiff_fst)
-  have hχ := (contMDiff_fst (M := S) (N := ℝ)).prodMk hh
-  have hFd : MDifferentiableAt _ I (fun q : S × ℝ ↦ flowOf α.reebVectorField q.2 (κ q.1))
-      (p.1, -p.2 - g p.1) :=
-    (contMDiffAt_flowOf_comp le_top hR contMDiffAt_snd (hκ.contMDiffAt.comp _ contMDiffAt_fst)
-      hp).mdifferentiableAt (by simp)
-  have hflow := mpullback_flowOf_comp_apply_eq_contactization hR hκ hα.apply_reebVectorField
-    hα.interior_mextDeriv_reebVectorField (p := (p.1, -p.2 - g p.1)) hp
-  have h1 : TauCeti.mpullback _ I
-      (fun p : S × ℝ ↦ flowOf α.reebVectorField (-p.2 - g p.1) (κ p.1)) α.val p =
-      (SmoothForm.mpullback (fun p : S × ℝ ↦ (p.1, -p.2 - g p.1)) hχ
-        (-SmoothForm.mpullback κ hκ α).contactization).val p := by
-    rw [show (fun p : S × ℝ ↦ flowOf α.reebVectorField (-p.2 - g p.1) (κ p.1)) =
-        (fun q : S × ℝ ↦ flowOf α.reebVectorField q.2 (κ q.1)) ∘
-          (fun p : S × ℝ ↦ (p.1, -p.2 - g p.1)) from rfl,
-      mpullback_comp_at (hχ.mdifferentiableAt (by simp)) hFd, SmoothForm.coe_mpullback]
-    exact TauCeti.mpullback_apply_congr hflow
-  have hfst : MDifferentiable (IS.prod 𝓘(ℝ)) 𝓘(ℝ) (fun p : S × ℝ ↦ g p.1) :=
-    (hg.comp (contMDiff_fst (n := ∞))).mdifferentiable (by simp)
-  have hsnd : MDifferentiable (IS.prod 𝓘(ℝ)) 𝓘(ℝ) (fun p : S × ℝ ↦ p.2) :=
-    (contMDiff_snd (n := ∞)).mdifferentiable (by simp)
-  -- `d(-z - g) = -dz - dg`.
-  have hdh : mextDeriv (RoughForm.ofFunction (IS.prod 𝓘(ℝ)) (fun p : S × ℝ ↦ -p.2 - g p.1)) =
-      -(mextDeriv (RoughForm.ofFunction _ (fun p : S × ℝ ↦ p.2)) +
-        mextDeriv (RoughForm.ofFunction _ (fun p : S × ℝ ↦ g p.1))) := by
-    rw [← mextDeriv_ofFunction_add hsnd hfst, eq_neg_iff_add_eq_zero,
-      ← mextDeriv_ofFunction_add (hh.mdifferentiable (by simp)) (hsnd.add hfst)]
-    convert mextDeriv_ofFunction_zero using 3
-    ext p
-    simp only [Pi.add_apply, Pi.zero_apply]
-    ring
-  have hfstα : (SmoothForm.mpullback (Prod.fst : S × ℝ → S) (contMDiff_fst (J := 𝓘(ℝ)))
-      (SmoothForm.mpullback κ hκ α)).val =
-      (SmoothForm.mpullback (Prod.fst : S × ℝ → S) contMDiff_fst β).val +
-      mextDeriv (RoughForm.ofFunction _ (fun p : S × ℝ ↦ g p.1)) := by
-    rw [hκα, map_add, Submodule.coe_add, ← SmoothForm.mextDerivₗ_mpullback, mextDerivₗ_apply,
-      SmoothForm.coe_mpullback Prod.fst _ ⟨RoughForm.ofFunction _ g,
-        (isSmoothForm_ofFunction_iff.2 hg).mem_smoothBundleForms⟩]
-    exact congrArg₂ (· + ·) rfl (congrArg mextDeriv (mpullback_ofFunction _ _))
-  rw [h1]
-  refine congrFun ?_ p
-  rw [SmoothForm.mpullback_prodMk_contactization _ contMDiff_fst hh, NegMemClass.coe_neg,
-    SmoothForm.contactization_def, Submodule.coe_sub, SmoothForm.coe_mpullback Prod.snd,
-    SmoothForm.mpullback_realLineCoordForm, map_neg, NegMemClass.coe_neg, hfstα, hdh]
-  abel
-
-end TauCeti.SmoothForm.IsContactForm
-
-namespace TauCeti.IsLegendrianEmbedding
-
-variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
-  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
-  [IsManifold I ∞ M]
-  {E' H' L : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
-  [TopologicalSpace H'] {J : ModelWithCorners ℝ E' H'} [TopologicalSpace L] [ChartedSpace H' L]
-  [IsManifold J ∞ L]
-  {α : SmoothForm I M ℝ 1}
 /-- **The Legendrian neighbourhood theorem.** Let `f : L → M` be a Legendrian embedding for the
 kernel of a one-form `α`, which is then a contact form, between boundaryless manifolds, `M`
 Hausdorff and second countable. Then an open set around the zero section of `T^* L × ℝ` is

@@ -832,7 +832,7 @@ table may fall behind.
   For $n=0$ the group is a point. The two counterexamples for $n=0$, for
   $\mathrm{U}(0)$ and $\mathrm{Sp}(0)$, both apply the general
   `FundamentalGroup.not_surjective_map_circle_of_subsingleton`
-  (`AlgebraicTopology/FundamentalGroup.lean`), which also holds
+  (`AlgebraicTopology/FundamentalGroup/Circle.lean`), which also holds
   `Circle.homotopic_iff_angleChange_map_eq`: for `d : X → S¹` injective on
   $\pi_1$, two paths with the same ends are homotopic iff their images have
   the same angle change. The retraction and the facts about `detCircle`

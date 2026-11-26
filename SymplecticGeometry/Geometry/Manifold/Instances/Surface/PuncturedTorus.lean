@@ -16,7 +16,6 @@ public import TauCeti.GroupTheory.SurfaceGroup.Free
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
 import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Basic
 import SymplecticGeometry.Topology.Instances.AddCircle.Icc
-import TauCeti.Analysis.Normed.Module.Ball.Homeomorph
 import TauCeti.Topology.Homotopy.PuncturedStarConvex
 import TauCeti.Topology.Homotopy.Quotient
 
@@ -658,10 +657,12 @@ private theorem diffeomorph_ball_neckIsometry_circleMap (θ : ℝ) :
       ![((1 / 2 + 1 / (4 * √2) * Real.cos (θ + Real.pi / 4) : ℝ) : AddCircle (1 : ℝ)),
         ((1 / 2 + 1 / (4 * √2) * Real.sin (θ + Real.pi / 4) : ℝ) : AddCircle (1 : ℝ))] := by
   have hn : ‖neckIsometry (circleMap 0 1 θ)‖ = 1 := by simp
-  rw [ball_def, Function.comp_apply, OpenPartialHomeomorph.univBall_apply (by norm_num), hn,
-    show √(1 + (1 : ℝ) ^ 2) = √2 by norm_num, neckIsometry_circleMap]
-  refine funext (Fin.forall_fin_two.2 ⟨?_, ?_⟩)
-  all_goals simp only [diffeomorph_cover]; congr 1; simp; ring
+  refine funext (Fin.forall_fin_two.2 ⟨?_, ?_⟩) <;>
+  · rw [diffeomorph_ball_apply, hn, show √(1 + (1 : ℝ) ^ 2) = √2 by norm_num,
+      neckIsometry_circleMap]
+    congr 1
+    simp only [Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_fin_one]
+    ring
 
 /-- The **neck loop** of the punctured torus: the circle `t ↦ neckIsometry e^{2πit}` of the neck,
 carried into the punctured torus by `TauCeti.ConnectedSum.neckInl`. It goes once around the

@@ -193,6 +193,10 @@ theorem toComplex_smul (g : Circle) (w : PowerModel k) :
     toComplex (g • w) = (g : ℂ) ^ k * toComplex w := by
   rw [smul_def, map_smul, smul_eq_mul]
 
+/-- The real inner product of the model fibre is the real part of its Hermitian inner product. -/
+theorem real_inner_eq_re_inner (u w : PowerModel k) : inner ℝ u w = (inner ℂ u w).re :=
+  _root_.real_inner_eq_re_inner ℂ u w
+
 instance instSMulCommClass : SMulCommClass Circle ℂ (PowerModel k) where
   smul_comm g c w := smul_comm ((g : ℂ) ^ k) c w
 

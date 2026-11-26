@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
+public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralKronecker
 public import TauCeti.AlgebraicTopology.Cohomology.FundamentalClass
 public import TauCeti.AlgebraicTopology.Cohomology.Sphere.Product
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Sphere
@@ -56,15 +56,15 @@ top cohomology of `Sᵃ` and `Sᵇ`, `a, b ≥ 1`, and `γ_a`, `γ_b` the standa
   map `f : Sᵃ × Sᵇ ⟶ Z` and a class `u` of `Hᵃ⁺ᵇ(Z; k)`,
   `f^* u = ⟨u, f_*(γ_a × γ_b)⟩ • (pr₁^* θ_a ⌣ pr₂^* θ_b)`, by the naturality
   `TopCat.singularKronecker_naturality` of the Kronecker pairing.
-* `TopCat.eq_singularKronecker_zsmul_integralCup_sphereGenerator`: in the integral cohomology
+* `TopCat.eq_integralKronecker_zsmul_integralCup_sphereGenerator`: in the integral cohomology
   `TopCat.integralCohomology`, every class `x` of degree `a + b` of `Sᵃ × Sᵇ` is
   `⟨x, γ_a × γ_b⟩ • (pr₁^* θ_a ⌣ pr₂^* θ_b)`, an integer multiple of the integral cup product,
-  the pairing being read through `TopCat.integralCohomologyEquiv`. Hence
+  the pairing being the integral Kronecker pairing `TopCat.integralKronecker`. Hence
   `TopCat.exists_eq_zsmul_integralCup_sphereGenerator`. The passage between the two cohomologies
   is `TopCat.integralCohomologyEquiv_symm_singularCup_sphereGenerator`, stated on `Sᵃ × Y` for
   any space `Y`.
-* `TopCat.singularKronecker_integralCohomologyEquiv_integralCup_sphereGenerator` and
-  `TopCat.singularCohomologyMap_eq_singularKronecker_zsmul_integralCup_sphereGenerator`: the
+* `TopCat.integralKronecker_integralCup_sphereGenerator` and
+  `TopCat.singularCohomologyMap_eq_integralKronecker_zsmul_integralCup_sphereGenerator`: the
   integral forms of the value `1` on `γ_a × γ_b` and of the formula for `f^* u`.
 
 ## References
@@ -337,30 +337,24 @@ end SphereProdSphere
 `x = ⟨x, γ_a × γ_b⟩ • (pr₁^* θ_a ⌣ pr₂^* θ_b)`, an integer multiple of the integral cup product
 of the integral generators `TopCat.integralSphereGenerator`. The integer `⟨x, γ_a × γ_b⟩` is the
 value of `x`, read with coefficients `ℤ` through `TopCat.integralCohomologyEquiv`, on the cross
-product of the standard homology generators. -/
--- The pairing is given the `ℤ`-linear structure `ModuleCat.instLinear`, the one of
--- `TopCat.integralCohomologyEquiv` and of Tau Ceti's lemmas on the Kronecker pairing: instance
--- search would find `CategoryTheory.Linear.preadditiveIntLinear`, which integral cohomology
--- carries. `HSMul.hSMul (α := ℤ)` makes the action that of `ℤ` on an additive group.
-theorem eq_singularKronecker_zsmul_integralCup_sphereGenerator {d e N : ℕ}
+product of the standard homology generators, the integral Kronecker pairing
+`TopCat.integralKronecker`. -/
+theorem eq_integralKronecker_zsmul_integralCup_sphereGenerator {d e N : ℕ}
     (h : d + 1 + (e + 1) = N)
     (x : (sphere.{0} (d + 1) ⊗ sphere.{0} (e + 1)).integralCohomology N) :
-    x = HSMul.hSMul (α := ℤ)
-      (@TopCat.singularKronecker _ _ _ _ (𝟙_ (ModuleCat.{0} ℤ)) (𝟙_ (ModuleCat.{0} ℤ))
-        (sphere.{0} (d + 1) ⊗ sphere.{0} (e + 1)) ℤ _ ModuleCat.instLinear N
-        ((sphere.{0} (d + 1) ⊗ sphere.{0} (e + 1)).integralCohomologyEquiv N x)
+    x = (sphere.{0} (d + 1) ⊗ sphere.{0} (e + 1)).integralKronecker N x
         (((AlgebraicTopology.singularHomologyFunctor (ModuleCat.{0} ℤ) N).map
             (λ_ (𝟙_ (ModuleCat.{0} ℤ))).hom).app (sphere.{0} (d + 1) ⊗ sphere.{0} (e + 1))
           (singularHomologyCross _ _ (𝟙_ (ModuleCat.{0} ℤ)) (𝟙_ (ModuleCat.{0} ℤ))
             (d + 1) (e + 1) N h
             (singularHomologyTopCatSphereGenerator ℤ d ⊗ₜ
-              singularHomologyTopCatSphereGenerator ℤ e))))
-      ((sphere.{0} (d + 1) ⊗ sphere.{0} (e + 1)).integralCup (d + 1) (e + 1) N h
+              singularHomologyTopCatSphereGenerator ℤ e))) •
+      (sphere.{0} (d + 1) ⊗ sphere.{0} (e + 1)).integralCup (d + 1) (e + 1) N h
         (TopCat.singularCohomologyMap (fst _ _) (d + 1) (integralSphereGenerator d))
-        (TopCat.singularCohomologyMap (snd _ _) (e + 1) (integralSphereGenerator e))) := by
+        (TopCat.singularCohomologyMap (snd _ _) (e + 1) (integralSphereGenerator e)) := by
   obtain ⟨v, rfl⟩ :=
     ((sphere.{0} (d + 1) ⊗ sphere.{0} (e + 1)).integralCohomologyEquiv N).symm.surjective x
-  rw [LinearEquiv.apply_symm_apply]
+  rw [integralKronecker_integralCohomologyEquiv_symm]
   conv_lhs => rw [eq_singularKronecker_smul_singularCup_sphereGenerator ℤ h v]
   -- the module action over `ℤ` of `eq_singularKronecker_smul_singularCup_sphereGenerator` is
   -- the action of `ℤ` on an additive group by `Int.cast_smul_eq_zsmul`
@@ -376,23 +370,18 @@ theorem exists_eq_zsmul_integralCup_sphereGenerator {d e N : ℕ} (h : d + 1 + (
     ∃ r : ℤ, x = r • (sphere.{0} (d + 1) ⊗ sphere.{0} (e + 1)).integralCup (d + 1) (e + 1) N h
       (TopCat.singularCohomologyMap (fst _ _) (d + 1) (integralSphereGenerator d))
       (TopCat.singularCohomologyMap (snd _ _) (e + 1) (integralSphereGenerator e)) :=
-  ⟨_, eq_singularKronecker_zsmul_integralCup_sphereGenerator h x⟩
+  ⟨_, eq_integralKronecker_zsmul_integralCup_sphereGenerator h x⟩
 
 /-- The integral cup product `pr₁^* θ_a ⌣ pr₂^* θ_b` of `Sᵃ × Sᵇ`, `a = d + 1`, `b = e + 1`, of
-the integral generators `TopCat.integralSphereGenerator`, read with coefficients `ℤ` through
-`TopCat.integralCohomologyEquiv`, takes the value `1` on the cross product `γ_a × γ_b` of the
-standard homology generators. -/
--- The pairing carries the `ℤ`-linear structure `ModuleCat.instLinear`, as in
--- `eq_singularKronecker_zsmul_integralCup_sphereGenerator`.
+the integral generators `TopCat.integralSphereGenerator`, takes the value `1` under the integral
+Kronecker pairing `TopCat.integralKronecker` on the cross product `γ_a × γ_b` of the standard
+homology generators. -/
 @[simp]
-theorem singularKronecker_integralCohomologyEquiv_integralCup_sphereGenerator {d e N : ℕ}
-    (h : d + 1 + (e + 1) = N) :
-    @TopCat.singularKronecker _ _ _ _ (𝟙_ (ModuleCat.{0} ℤ)) (𝟙_ (ModuleCat.{0} ℤ))
-        (sphere.{0} (d + 1) ⊗ sphere.{0} (e + 1)) ℤ _ ModuleCat.instLinear N
-        ((sphere.{0} (d + 1) ⊗ sphere.{0} (e + 1)).integralCohomologyEquiv N
-          ((sphere.{0} (d + 1) ⊗ sphere.{0} (e + 1)).integralCup (d + 1) (e + 1) N h
-            (TopCat.singularCohomologyMap (fst _ _) (d + 1) (integralSphereGenerator d))
-            (TopCat.singularCohomologyMap (snd _ _) (e + 1) (integralSphereGenerator e))))
+theorem integralKronecker_integralCup_sphereGenerator {d e N : ℕ} (h : d + 1 + (e + 1) = N) :
+    (sphere.{0} (d + 1) ⊗ sphere.{0} (e + 1)).integralKronecker N
+        ((sphere.{0} (d + 1) ⊗ sphere.{0} (e + 1)).integralCup (d + 1) (e + 1) N h
+          (TopCat.singularCohomologyMap (fst _ _) (d + 1) (integralSphereGenerator d))
+          (TopCat.singularCohomologyMap (snd _ _) (e + 1) (integralSphereGenerator e)))
         (((AlgebraicTopology.singularHomologyFunctor (ModuleCat.{0} ℤ) N).map
             (λ_ (𝟙_ (ModuleCat.{0} ℤ))).hom).app (sphere.{0} (d + 1) ⊗ sphere.{0} (e + 1))
           (singularHomologyCross _ _ (𝟙_ (ModuleCat.{0} ℤ)) (𝟙_ (ModuleCat.{0} ℤ))
@@ -400,37 +389,33 @@ theorem singularKronecker_integralCohomologyEquiv_integralCup_sphereGenerator {d
             (singularHomologyTopCatSphereGenerator ℤ d ⊗ₜ
               singularHomologyTopCatSphereGenerator ℤ e))) = 1 := by
   rw [integralSphereGenerator_def e, ← integralCohomologyEquiv_symm_singularCup_sphereGenerator,
-    LinearEquiv.apply_symm_apply]
+    integralKronecker_integralCohomologyEquiv_symm]
   exact singularKronecker_singularCup_sphereGenerator_singularHomologyCross ℤ h
 
 /-- **Integral pull-backs to a product of two spheres.** For a map `f : Sᵃ × Sᵇ ⟶ Z`,
 `a = d + 1`, `b = e + 1`, every class `u` of the integral cohomology `Hᵃ⁺ᵇ(Z; ℤ)` pulls back to
 `f^* u = ⟨u, f_*(γ_a × γ_b)⟩ • (pr₁^* θ_a ⌣ pr₂^* θ_b)`, an integer multiple of the integral cup
 product of the integral generators `TopCat.integralSphereGenerator`. The integer
-`⟨u, f_*(γ_a × γ_b)⟩` is the value of `u`, read with coefficients `ℤ` through
-`TopCat.integralCohomologyEquiv`, on the image under `f` of the cross product of the standard
-homology generators. -/
--- The pairing carries the `ℤ`-linear structure `ModuleCat.instLinear`, as in
--- `eq_singularKronecker_zsmul_integralCup_sphereGenerator`.
-theorem singularCohomologyMap_eq_singularKronecker_zsmul_integralCup_sphereGenerator
+`⟨u, f_*(γ_a × γ_b)⟩` is the integral Kronecker pairing `TopCat.integralKronecker` of `u` with the
+image under `f` of the cross product of the standard homology generators. -/
+theorem singularCohomologyMap_eq_integralKronecker_zsmul_integralCup_sphereGenerator
     {d e N : ℕ} (h : d + 1 + (e + 1) = N) {Z : TopCat.{0}}
     (f : sphere.{0} (d + 1) ⊗ sphere.{0} (e + 1) ⟶ Z) (u : Z.integralCohomology N) :
-    TopCat.singularCohomologyMap f N u = HSMul.hSMul (α := ℤ)
-      (@TopCat.singularKronecker _ _ _ _ (𝟙_ (ModuleCat.{0} ℤ)) (𝟙_ (ModuleCat.{0} ℤ)) Z ℤ _
-        ModuleCat.instLinear N (Z.integralCohomologyEquiv N u)
-        (((AlgebraicTopology.singularHomologyFunctor (ModuleCat.{0} ℤ) N).obj
-            (𝟙_ (ModuleCat.{0} ℤ))).map f
-          (((AlgebraicTopology.singularHomologyFunctor (ModuleCat.{0} ℤ) N).map
-              (λ_ (𝟙_ (ModuleCat.{0} ℤ))).hom).app (sphere.{0} (d + 1) ⊗ sphere.{0} (e + 1))
-            (singularHomologyCross _ _ (𝟙_ (ModuleCat.{0} ℤ)) (𝟙_ (ModuleCat.{0} ℤ))
-              (d + 1) (e + 1) N h
-              (singularHomologyTopCatSphereGenerator ℤ d ⊗ₜ
-                singularHomologyTopCatSphereGenerator ℤ e)))))
-      ((sphere.{0} (d + 1) ⊗ sphere.{0} (e + 1)).integralCup (d + 1) (e + 1) N h
-        (TopCat.singularCohomologyMap (fst _ _) (d + 1) (integralSphereGenerator d))
-        (TopCat.singularCohomologyMap (snd _ _) (e + 1) (integralSphereGenerator e))) := by
-  rw [eq_singularKronecker_zsmul_integralCup_sphereGenerator h (TopCat.singularCohomologyMap f N u),
-    integralCohomologyEquiv_naturality, singularKronecker_naturality, ConcreteCategory.comp_apply]
+    TopCat.singularCohomologyMap f N u =
+      Z.integralKronecker N u
+          (((AlgebraicTopology.singularHomologyFunctor (ModuleCat.{0} ℤ) N).obj
+              (𝟙_ (ModuleCat.{0} ℤ))).map f
+            (((AlgebraicTopology.singularHomologyFunctor (ModuleCat.{0} ℤ) N).map
+                (λ_ (𝟙_ (ModuleCat.{0} ℤ))).hom).app (sphere.{0} (d + 1) ⊗ sphere.{0} (e + 1))
+              (singularHomologyCross _ _ (𝟙_ (ModuleCat.{0} ℤ)) (𝟙_ (ModuleCat.{0} ℤ))
+                (d + 1) (e + 1) N h
+                (singularHomologyTopCatSphereGenerator ℤ d ⊗ₜ
+                  singularHomologyTopCatSphereGenerator ℤ e)))) •
+        (sphere.{0} (d + 1) ⊗ sphere.{0} (e + 1)).integralCup (d + 1) (e + 1) N h
+          (TopCat.singularCohomologyMap (fst _ _) (d + 1) (integralSphereGenerator d))
+          (TopCat.singularCohomologyMap (snd _ _) (e + 1) (integralSphereGenerator e)) := by
+  rw [eq_integralKronecker_zsmul_integralCup_sphereGenerator h (TopCat.singularCohomologyMap f N u),
+    integralKronecker_naturality]
 
 end TopCat
 
