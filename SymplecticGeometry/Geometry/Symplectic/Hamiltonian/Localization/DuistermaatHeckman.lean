@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Localization.Real
 import Mathlib.Analysis.Analytic.IsolatedZeros
 import Mathlib.Analysis.Normed.Module.Connected
+import SymplecticGeometry.Analysis.SpecialFunctions.ExpDeriv
 import SymplecticGeometry.Probability.Moments.ComplexMGF
 import SymplecticGeometry.Topology.Algebra.ConstMulAction
 
@@ -97,8 +98,8 @@ theorem integral_exp_neg_mul_eq_finsum_of_pos (hσ : σ.IsSymplectic)
     (HasCompactSupport.of_compactSpace _)]
   congr 1
   funext x
-  rw [formCalculus_apply_val, SmoothTwoForm.volumeForm_apply, smul_smul, iteratedDeriv_eq_iterate,
-    Real.iter_deriv_exp, ContMDiffMap.coe_smul, Pi.smul_apply, smul_eq_mul, hH,
+  rw [formCalculus_apply_val, SmoothTwoForm.volumeForm_apply, smul_smul, Real.iteratedDeriv_exp,
+    ContMDiffMap.coe_smul, Pi.smul_apply, smul_eq_mul, hH,
     mul_comm ((n.factorial : ℝ)⁻¹)]
 
 /-- **Duistermaat–Heckman localization.** Let the circle act smoothly on a compact boundaryless
