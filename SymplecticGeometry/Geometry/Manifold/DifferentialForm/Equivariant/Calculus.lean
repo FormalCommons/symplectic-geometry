@@ -76,6 +76,9 @@ zero.
   coefficients `F⁽ᵏ⁾(f)`.
 * `SymplecticGeometry.cartanDiff_formCalculus`: `F(f + τ)` is equivariantly closed when `f + τ`
   is.
+* `SymplecticGeometry.cartanDiff_formCalculus_of_isHamiltonianVectorField`: for a closed
+  two-form `σ` and a smooth Hamiltonian vector field `X` of `-h` for `σ`, the form `F(σ - ħh)` is
+  equivariantly closed.
 
 ## References
 
@@ -517,8 +520,7 @@ theorem cartanDiff_formCalculus_of_isHamiltonianVectorField {σ : SmoothTwoForm 
     SmoothTwoForm.isHamiltonianVectorField_iff_interiorₗ_eq.1 (by
       rw [SmoothForm.ofFunction_apply_zero]
       exact hXh)
-  refine cartanDiff_formCalculus _ _ (Subtype.ext (by
-    rw [mextDerivₗ_apply]; exact (SmoothForm.isClosed_def σ).1 hσ)) ?_
+  refine cartanDiff_formCalculus _ _ ((SmoothForm.isClosed_iff_mextDerivₗ_eq_zero σ).1 hσ) ?_
   rw [← SmoothTwoForm.interiorₗ_eq_interiorProduct, hι, ← map_smul, neg_smul, ← smul_neg,
     ← SmoothForm.ofFunctionEquiv_apply, ← SmoothForm.ofFunctionEquiv_apply]
   exact congrArg _ (SmoothForm.ofFunctionEquiv.map_smul ħ (-h)).symm
