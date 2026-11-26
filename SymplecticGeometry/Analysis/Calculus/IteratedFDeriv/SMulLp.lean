@@ -8,8 +8,6 @@ module
 public import Mathlib.Analysis.Calculus.ContDiff.Bounds
 public import Mathlib.MeasureTheory.Function.LpSeminorm.Basic
 import Mathlib.MeasureTheory.Function.LpSeminorm.TriangleInequality
-import Mathlib.MeasureTheory.Integral.IntegrableOn
-import Mathlib.MeasureTheory.Constructions.BorelSpace.Metrizable
 import TauCeti.Analysis.Calculus.ContDiff.Integrable
 
 /-!
