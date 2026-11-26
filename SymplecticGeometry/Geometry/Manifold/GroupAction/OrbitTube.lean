@@ -16,6 +16,7 @@ public import TauCeti.Geometry.Manifold.GroupAction.TransverseSlice
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 public import TauCeti.Geometry.Manifold.Submersion.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
+public import TauCeti.LinearAlgebra.Prod
 
 /-!
 # The tube map of an orbit
@@ -48,11 +49,10 @@ an open subset `U` of `V` inside the target of `e` that is invariant under every
   sends `[1, 0]` to `x`;
 * composed with the differential at `(1, 0)` of the projection `π : G × U → G ×_H U`, a
   submersion, the differential of the tube map at `[1, 0]` is `(ξ, v) ↦ ξ_M(x) + v`, the
-  differential at `(1, 0)` of `(g, v) ↦ g • e.symm v` on `G × V`. By
-  `TauCeti.InfinitesimalAction.surjective_eval_coprod_iff` and
-  `TauCeti.InfinitesimalAction.apply_add_eq_zero_iff`, applied to the inclusion of `V`, it is
-  onto `T_x M` when `V + 𝔤 · x = T_x M`, and it vanishes exactly on `𝔤_x × 0` when
-  `V ∩ 𝔤 · x = 0`.
+  differential at `(1, 0)` of `(g, v) ↦ g • e.symm v` on `G × V`. By Tau Ceti's
+  `LinearMap.surjective_coprod_iff` and `TauCeti.InfinitesimalAction.apply_add_eq_zero_iff`,
+  applied to the inclusion of `V`, it is onto `T_x M` when `V + 𝔤 · x = T_x M`, and it vanishes
+  exactly on `𝔤_x × 0` when `V ∩ 𝔤 · x = 0`.
 
 The equivariance `e.symm (dh_x v) = h • e.symm v` of the slice map
 (`SymplecticGeometry.LinearizingChart.symm_mfderiv_smul`) and the derivative of `e.symm` at `0`
@@ -464,8 +464,8 @@ theorem surjective_mfderiv_tubeMap_mfderiv_quotientMk [CompleteSpace E'] [IsMani
   have hι : LinearMap.range ι = V := Submodule.range_subtype V
   intro (w : TangentSpace I' x)
   obtain ⟨⟨ξ, v⟩, hv⟩ :=
-    ((InfinitesimalAction.fundamental I G I' M).surjective_eval_coprod_iff.2
-      (by rw [hι]; exact hV)) w
+    (LinearMap.surjective_coprod_iff ((InfinitesimalAction.fundamental I G I' M).eval x) ι).2
+      (by rw [← InfinitesimalAction.orbitTangent_eq_range, hι]; exact hV) w
   refine ⟨(ξ, v), (U.mfderiv_tubeMap_mfderiv_quotientMk F hz ξ v).trans ?_⟩
   rwa [LinearMap.coprod_apply, InfinitesimalAction.eval_apply,
     InfinitesimalAction.fundamental_apply] at hv

@@ -44,7 +44,7 @@ target of `Λ`, not only at `x`.
   the transition maps of a gluing must be.
 * `isLocalDiffeomorph_id`: the identity of a manifold is a local diffeomorphism.
 * `isOpen_setOfPred_isLocalDiffeomorphAt`: the points at which a map is a local diffeomorphism
-  form an open set, by Mathlib's `IsLocalDiffeomorphAt.eventually`.
+  form an open set, by Tau Ceti's `IsLocalDiffeomorphAt.eventually`.
 * `isLocalDiffeomorphAt_smul_iff`: a map that commutes with actions of a group by `C^n` maps is a
   local diffeomorphism at `g • x` exactly when it is one at `x`. It composes with Tau Ceti's
   diffeomorphisms `Diffeomorph.constSmul` and applies Tau Ceti's

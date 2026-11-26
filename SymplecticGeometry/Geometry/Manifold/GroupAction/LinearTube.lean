@@ -39,7 +39,7 @@ For the last point, `(ξ, p) ↦ ξ_M(x) + L p` is onto `T_x M` since `𝔤 · x
 (`SymplecticGeometry.LinearizingChart.surjective_mfderiv_linearTubeMap_mfderiv_quotientMk`), and
 vanishes only on `𝔤_x × 0` since the two subspaces meet in `0` and `L` is injective
 (`SymplecticGeometry.LinearizingChart.mfderiv_linearTubeMap_mfderiv_quotientMk_eq_zero_iff`),
-both by the linear algebra of `TauCeti.InfinitesimalAction.surjective_eval_coprod_iff` and
+the first by Tau Ceti's `LinearMap.surjective_coprod_iff` and the second by
 `TauCeti.InfinitesimalAction.apply_add_eq_zero_iff`; and
 the stabilizer fixes `0 ∈ P` since `L` is injective
 (`SymplecticGeometry.LinearizingChart.smul_zero_eq_zero_of_injective`). The rest is shared with
@@ -358,7 +358,8 @@ theorem surjective_mfderiv_linearTubeMap_mfderiv_quotientMk [CompleteSpace E']
   let ι : P →ₗ[ℝ] TangentSpace I' x := (L : P →ₗ[ℝ] E')
   intro (w : TangentSpace I' x)
   obtain ⟨⟨ξ, p⟩, hp⟩ :=
-    ((InfinitesimalAction.fundamental I G I' M).surjective_eval_coprod_iff (L := ι)).2 hV w
+    (LinearMap.surjective_coprod_iff ((InfinitesimalAction.fundamental I G I' M).eval x) ι).2
+      (by rw [← InfinitesimalAction.orbitTangent_eq_range]; exact hV) w
   refine ⟨(ξ, p), (e.mfderiv_linearTubeMap_mfderiv_quotientMk hL F ξ p).trans ?_⟩
   rwa [LinearMap.coprod_apply, InfinitesimalAction.eval_apply,
     InfinitesimalAction.fundamental_apply] at hp

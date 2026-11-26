@@ -27,16 +27,15 @@ Ceti's namespace, beside `TauCeti.orbitTangent_fundamental_smul`, its analogue f
 `y ↦ g • y` (which intertwines the actions only up to conjugation by `g`), so that they can move
 there unchanged.
 
-For any infinitesimal action, a point `x` and a linear map `L : P → T_x M`,
-`TauCeti.InfinitesimalAction.surjective_eval_coprod_iff` says that `(Z, p) ↦ Z_M(x) + L p` is
-onto `T_x M` exactly when `𝔤 · x + range L = T_x M`, and
-`TauCeti.InfinitesimalAction.ker_eval_coprod` and
-`TauCeti.InfinitesimalAction.apply_add_eq_zero_iff` say that for an injective `L` whose range
-meets `𝔤 · x` only in `0` it vanishes exactly on `𝔤_x × 0`. They are the linear algebra of a
-slice through `x`, by Mathlib's `LinearMap.range_coprod` and
-`LinearMap.ker_coprod_of_disjoint_range`, and follow the steps of the proofs of Tau Ceti's
-`TauCeti.surjective_mfderiv_smul_slice` and `TauCeti.mfderiv_smul_slice_eq_zero_iff`, which treat
-the inclusion of a subspace in place of `L`.
+For any infinitesimal action, a point `x` and an injective linear map `L : P → T_x M` whose
+range meets `𝔤 · x` only in `0`, `TauCeti.InfinitesimalAction.ker_eval_coprod` and
+`TauCeti.InfinitesimalAction.apply_add_eq_zero_iff` say that `(Z, p) ↦ Z_M(x) + L p` vanishes
+exactly on `𝔤_x × 0`. This is the kernel half of the linear algebra of a slice through `x`, by
+Mathlib's `LinearMap.ker_coprod_of_disjoint_range`, and follows the steps of the proof of Tau
+Ceti's `TauCeti.mfderiv_smul_slice_eq_zero_iff`, which treats the inclusion of a subspace in place
+of `L`. The other half, that the map is onto `T_x M` exactly when `𝔤 · x + range L = T_x M`, is
+Tau Ceti's `LinearMap.surjective_coprod_iff`, since `𝔤 · x` is the range of
+`TauCeti.InfinitesimalAction.eval`.
 
 The file also has `TauCeti.InfinitesimalAction.coe_fundamental_toSectionLinearMap`: the smooth
 section `(InfinitesimalAction.fundamental I G I' M).toSectionLinearMap ξ` is, as a function, the
@@ -147,12 +146,6 @@ variable {𝔤 : Type*} [LieRing 𝔤] [LieAlgebra ℝ 𝔤]
   {I : ModelWithCorners ℝ E H} {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
   [IsManifold I 1 M] (a : InfinitesimalAction 𝔤 I M) {x : M}
   {P : Type*} [AddCommGroup P] [Module ℝ P] {L : P →ₗ[ℝ] TangentSpace I x}
-
-/-- The map `(Z, p) ↦ Z_M(x) + L p` is onto `T_x M` exactly when the range of `L` spans `T_x M`
-together with the orbit tangent space `𝔤 · x`. -/
-theorem surjective_eval_coprod_iff :
-    Function.Surjective ((a.eval x).coprod L) ↔ a.orbitTangent x ⊔ LinearMap.range L = ⊤ := by
-  rw [← LinearMap.range_eq_top, LinearMap.range_coprod, orbitTangent_eq_range]
 
 /-- For an injective `L` whose range meets the orbit tangent space `𝔤 · x` only in `0`, the
 kernel of `(Z, p) ↦ Z_M(x) + L p` is `𝔤_x × 0`, where `𝔤_x` is the isotropy algebra of `x`. -/
