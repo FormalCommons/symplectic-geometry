@@ -151,18 +151,6 @@ theorem continuous_indicator_comp_symm [TopologicalSpace F] (hχc : Continuous �
 
 end Zero
 
-/-- If `χ` is `C^n` and its support is compact and lies in the source of `ψ`, the function
-`χ ∘ ψ.symm`, extended by `0` off `ψ.target`, is `C^n`. -/
-theorem contMDiff_indicator_comp_symm [T2Space N] {F : Type*} [NormedAddCommGroup F]
-    [NormedSpace 𝕜 F] {χ : M → F} (hχc : ContMDiff I 𝓘(𝕜, F) n χ)
-    (hK : IsCompact (tsupport χ)) (hχ : tsupport χ ⊆ ψ.source) :
-    ContMDiff I' 𝓘(𝕜, F) n (ψ.target.indicator fun y ↦ χ (ψ.symm y)) := by
-  refine contMDiff_of_tsupport fun y hy ↦ ?_
-  have hyt : y ∈ ψ.target := (ψ.mapsTo.mono_left hχ).image_subset
-    (tsupport_indicator_comp_symm_subset hK hχ hy)
-  exact ((hχc.comp_contMDiffOn ψ.symm.contMDiffOn).congr fun y hy ↦ indicator_of_mem hy _)
-    |>.contMDiffAt (ψ.open_target.mem_nhds hyt)
-
 /-- Let `W ⊆ ψ.source` be open and `C ⊆ W` compact. If `χ` is `C^n` on `W` and vanishes on `W`
 outside `C`, the function `χ ∘ ψ.symm` on `ψ '' W`, extended by `0` off `ψ '' W`, is `C^n`. -/
 theorem contMDiff_indicator_image_comp_symm [T2Space N] {F : Type*} [NormedAddCommGroup F]
@@ -184,6 +172,16 @@ theorem contMDiff_indicator_image_comp_symm [T2Space N] {F : Type*} [NormedAddCo
   · obtain ⟨z, hz, rfl⟩ := hxW
     rw [symm_toPartialEquiv, ψ.left_inv (hWs hz)]
     exact hχ0 z hz fun hzC ↦ hx (mem_image_of_mem _ hzC)
+
+/-- If `χ` is `C^n` and its support is compact and lies in the source of `ψ`, the function
+`χ ∘ ψ.symm`, extended by `0` off `ψ.target`, is `C^n`. -/
+theorem contMDiff_indicator_comp_symm [T2Space N] {F : Type*} [NormedAddCommGroup F]
+    [NormedSpace 𝕜 F] {χ : M → F} (hχc : ContMDiff I 𝓘(𝕜, F) n χ)
+    (hK : IsCompact (tsupport χ)) (hχ : tsupport χ ⊆ ψ.source) :
+    ContMDiff I' 𝓘(𝕜, F) n (ψ.target.indicator fun y ↦ χ (ψ.symm y)) := by
+  have h := contMDiff_indicator_image_comp_symm hχc.contMDiffOn hK ψ.open_source hχ
+    subset_rfl fun _ _ hz ↦ image_eq_zero_of_notMem_tsupport hz
+  rwa [ψ.toPartialEquiv.image_source_eq_target] at h
 
 /-- If `χ` is `C^n` and its support is compact and lies in the source of a partial
 diffeomorphism `ψ` onto an open subset of a normed space, the function `χ ∘ ψ.symm`, extended
