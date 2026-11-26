@@ -22,6 +22,8 @@ public section
 
 namespace LinearMap.BilinForm
 
+section CommRing
+
 variable {R M : Type*} [CommRing R] [AddCommGroup M] [Module R M]
 
 /-- The projection onto a subspace `W` along its `B`-orthogonal sends `v` to `w` exactly when `w`
@@ -40,6 +42,12 @@ theorem projection_orthogonal_eq_iff (B : LinearMap.BilinForm R M) {W : Submodul
     rw [hv, map_add, Submodule.projection_apply_of_mem_left h hw,
       (Submodule.projection_apply_eq_zero_iff h).mpr ((hsub v w).mpr hwv), add_zero]
 
+end CommRing
+
+section CommSemiring
+
+variable {R M : Type*} [CommSemiring R] [AddCommMonoid M] [Module R M]
+
 /-- Two bilinear forms that agree on `W × W` have the same orthogonal of `W` exactly when they
 agree on `W × M`, provided `W` and its `B₁`-orthogonal span `M`. -/
 theorem orthogonal_eq_orthogonal_iff {B₁ B₂ : LinearMap.BilinForm R M} {W : Submodule R M}
@@ -53,6 +61,8 @@ theorem orthogonal_eq_orthogonal_iff {B₁ B₂ : LinearMap.BilinForm R M} {W : 
   · ext v
     simp only [mem_orthogonal_iff]
     exact forall₂_congr fun w hw ↦ by rw [h w hw v]
+
+end CommSemiring
 
 end LinearMap.BilinForm
 

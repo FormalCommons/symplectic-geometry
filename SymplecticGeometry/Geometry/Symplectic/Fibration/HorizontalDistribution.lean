@@ -34,14 +34,18 @@ of its three arguments are vertical.
 
 ## Main results
 
-* `TauCeti.SmoothTwoForm.isVerticallyClosed_add_mpullback_iff`: adding the pull-back of a
-  two-form on the base does not change vertical closedness.
+* `TauCeti.SmoothTwoForm.isVerticallyClosed_mpullback`: the pull-back of a two-form on the base
+  is vertically closed, so adding it does not change vertical closedness
+  (`isVerticallyClosed_add_mpullback_iff`).
+* `IsVerticallyNondegenerate.isContMDiffDistribution_horizontalDistribution`:
+  for a smooth submersion, the horizontal spaces of a vertically nondegenerate form are a smooth
+  distribution of the rank of the base.
 * `TauCeti.SmoothTwoForm.IsVerticallyNondegenerate.isEhresmannConnection`: for a smooth
   submersion, the horizontal spaces of a vertically nondegenerate form are a smooth Ehresmann
   connection.
-* `TauCeti.SmoothTwoForm.horizontalDistribution_eq_iff`: two vertically nondegenerate forms that
-  agree on pairs of vertical vectors have the same horizontal spaces exactly when they agree on
-  every pair of a vertical vector and any vector.
+* `TauCeti.SmoothTwoForm.horizontalDistribution_eq_iff`: two forms that agree on pairs of
+  vertical vectors, the first of them vertically nondegenerate, have the same horizontal spaces
+  exactly when they agree on every pair of a vertical vector and any vector.
 
 ## Implementation notes
 
@@ -113,24 +117,35 @@ theorem IsVerticallyClosed.smul (h : IsVerticallyClosed IB proj τ) (c : ℝ) :
   rw [Submodule.coe_smul, mextDeriv_smul, Pi.smul_apply,
     ContinuousAlternatingMap.smul_apply, h x η₁ hη₁ η₂ hη₂ v, smul_zero]
 
+/-- Adding a vertically closed two-form does not change vertical closedness. -/
+theorem IsVerticallyClosed.add_right_iff (h : IsVerticallyClosed IB proj τ₂) :
+    IsVerticallyClosed IB proj (τ₁ + τ₂) ↔ IsVerticallyClosed IB proj τ₁ := by
+  refine ⟨fun h₁₂ ↦ ?_, fun h₁ ↦ h₁.add h⟩
+  have := h₁₂.add (h.smul (-1))
+  rwa [neg_one_smul ℝ τ₂, add_neg_cancel_right] at this
+
+/-- The exterior derivative of the pull-back `proj^* β` of a two-form on the base vanishes on
+`(η₁, η₂, v)` as soon as `η₁` is vertical, since `d(proj^* β) = proj^* dβ`. -/
+theorem mextDeriv_mpullback_apply_eq_zero [IsManifold IB ∞ B]
+    (hproj : ContMDiff IM IB ∞ proj) (β : SmoothTwoForm IB B) {x : M}
+    {η₁ : TangentSpace IM x} (hη₁ : η₁ ∈ (mfderiv IM IB proj x).ker) (η₂ v : TangentSpace IM x) :
+    mextDeriv (SmoothForm.mpullback proj hproj β).val x ![η₁, η₂, v] = 0 := by
+  rw [← mextDerivₗ_apply, SmoothForm.mextDerivₗ_mpullback, SmoothForm.mpullback_apply]
+  refine ContinuousAlternatingMap.map_coord_zero _ 0 ?_
+  simpa using hη₁
+
+/-- The pull-back `proj^* β` of a two-form on the base is vertically closed. -/
+theorem isVerticallyClosed_mpullback [IsManifold IB ∞ B] (hproj : ContMDiff IM IB ∞ proj)
+    (β : SmoothTwoForm IB B) : IsVerticallyClosed IB proj (SmoothForm.mpullback proj hproj β) :=
+  fun _ _ hη₁ η₂ _ v ↦ mextDeriv_mpullback_apply_eq_zero hproj β hη₁ η₂ v
+
 /-- Adding the pull-back `proj^* β` of a two-form on the base does not change vertical
-closedness, since `d(proj^* β) = proj^* dβ` vanishes as soon as one argument is vertical. -/
+closedness. -/
 theorem isVerticallyClosed_add_mpullback_iff [IsManifold IB ∞ B]
     (hproj : ContMDiff IM IB ∞ proj) (β : SmoothTwoForm IB B) :
     IsVerticallyClosed IB proj (τ + SmoothForm.mpullback proj hproj β) ↔
-      IsVerticallyClosed IB proj τ := by
-  have hβ (x : M) (η₁ : TangentSpace IM x) (hη₁ : η₁ ∈ (mfderiv IM IB proj x).ker)
-      (η₂ v : TangentSpace IM x) :
-      mextDeriv (SmoothForm.mpullback proj hproj β).val x ![η₁, η₂, v] = 0 := by
-    rw [← mextDerivₗ_apply, SmoothForm.mextDerivₗ_mpullback,
-      SmoothForm.mpullback_apply]
-    refine ContinuousAlternatingMap.map_coord_zero _ 0 ?_
-    simpa using hη₁
-  refine forall_congr' fun x ↦ forall₂_congr fun η₁ hη₁ ↦ forall₂_congr fun η₂ _ ↦
-    forall_congr' fun v ↦ ?_
-  rw [← mextDerivₗ_apply, map_add, Submodule.coe_add, mextDerivₗ_apply,
-    mextDerivₗ_apply, Pi.add_apply, ContinuousAlternatingMap.add_apply,
-    hβ x η₁ hη₁ η₂ v, add_zero]
+      IsVerticallyClosed IB proj τ :=
+  (isVerticallyClosed_mpullback hproj β).add_right_iff
 
 /-! ### The horizontal spaces of a two-form -/
 
@@ -161,6 +176,32 @@ theorem IsVerticallyNondegenerate.isCompl_horizontalDistribution [FiniteDimensio
   exact (LinearMap.BilinForm.isCompl_orthogonal_of_restrict_nondegenerate
     (SmoothForm.isAlt_bilinFormAt τ x).isRefl (isVerticallyNondegenerate_iff.1 hτ x)).symm
 
+/-- For a smooth submersion `proj` from a manifold modelled on a finite-dimensional space and a
+vertically nondegenerate two-form `τ`, the horizontal spaces of `τ` form a smooth distribution
+whose rank is the dimension of the model space of the base. -/
+theorem IsVerticallyNondegenerate.isContMDiffDistribution_horizontalDistribution
+    [FiniteDimensional ℝ EM] (hτ : IsVerticallyNondegenerate IB proj τ)
+    (hproj : Manifold.IsSubmersion IM IB ∞ proj) :
+    IsContMDiffDistribution IM ∞ (finrank ℝ EB) (horizontalDistribution IB proj τ) := by
+  refine isContMDiffDistribution_iff.2 fun x ↦ ?_
+  have : Nonempty M := ⟨x⟩
+  have : FiniteDimensional ℝ EB := Module.Finite.of_surjective
+    (mfderiv IM IB proj x : TangentSpace IM x →ₗ[ℝ] TangentSpace IB (proj x))
+    (hproj.surjective_mfderiv (by simp) x)
+  -- Mathlib defines `ContinuousLinearMap.toBilinForm` as `toLinearMap₁₂`, the form that
+  -- `HasLocalContMDiffSubbundleFrames.orthogonal` uses.
+  have hflat (y : M) : (τ.flat y).toLinearMap₁₂ = τ.bilinFormAt y := τ.toBilinForm_flat y
+  -- The vertical spaces have smooth local frames, and so do their `τ`-orthogonals.
+  have hV := IsContMDiffDistribution.hasLocalContMDiffSubbundleFrames
+    (hproj.isContMDiffDistribution_ker_mfderiv (m := ∞) (by simp))
+  have hH := hV.orthogonal (β := τ.flat) τ.contMDiff_flat
+    (fun y ↦ hflat y ▸ (SmoothForm.isAlt_bilinFormAt τ y).isRefl)
+    fun y ↦ hflat y ▸ isVerticallyNondegenerate_iff.1 hτ y
+  rw [Nat.sub_sub_self (hproj.finrank_le (by simp))] at hH
+  obtain ⟨U, hU, hx, X, hX, hXs⟩ := hasLocalContMDiffSubbundleFrames_iff.1 hH x
+  refine ⟨U, hU, hx, X, ⟨hXs, hX.linearIndependent, fun hy ↦ ?_⟩⟩
+  rw [hX.span_eq hy, horizontalDistribution_def, hflat]
+
 /-- **The connection of a two-form.** For a smooth submersion `proj` from a manifold modelled on
 a finite-dimensional space and a vertically nondegenerate two-form `τ`, the horizontal spaces of
 `τ` form a smooth Ehresmann connection on `proj`. -/
@@ -170,31 +211,11 @@ theorem IsVerticallyNondegenerate.isEhresmannConnection [FiniteDimensional ℝ E
   mdifferentiable := hproj.contMDiff.mdifferentiable (by simp)
   isCompl_ker := hτ.isCompl_horizontalDistribution
   surjective_mfderiv := hproj.surjective_mfderiv (by simp)
-  isContMDiffDistribution := by
-    refine isContMDiffDistribution_iff.2 fun x ↦ ?_
-    have : FiniteDimensional ℝ (TangentSpace IM x) := inferInstanceAs (FiniteDimensional ℝ EM)
-    have hsurj := hproj.surjective_mfderiv (by simp) x
-    have : FiniteDimensional ℝ EB := Module.Finite.of_surjective
-      (mfderiv IM IB proj x : TangentSpace IM x →ₗ[ℝ] TangentSpace IB (proj x)) hsurj
-    have hle : finrank ℝ EB ≤ finrank ℝ EM := LinearMap.finrank_le_finrank_of_surjective
-      (f := (mfderiv IM IB proj x : TangentSpace IM x →ₗ[ℝ] TangentSpace IB (proj x))) hsurj
-    -- The vertical spaces have smooth local frames, and so do their `τ`-orthogonals.
-    have hV := IsContMDiffDistribution.hasLocalContMDiffSubbundleFrames
-      (hproj.isContMDiffDistribution_ker_mfderiv (m := ∞) (by simp))
-    have hflat (y : M) : (τ.flat y).toLinearMap₁₂ = τ.bilinFormAt y := by
-      ext v w
-      simp
-    have hH := hV.orthogonal (β := τ.flat) τ.contMDiff_flat
-      (fun y ↦ hflat y ▸ (SmoothForm.isAlt_bilinFormAt τ y).isRefl)
-      fun y ↦ hflat y ▸ isVerticallyNondegenerate_iff.1 hτ y
-    rw [Nat.sub_sub_self hle] at hH
-    obtain ⟨U, hU, hx, X, hX, hXs⟩ := hasLocalContMDiffSubbundleFrames_iff.1 hH x
-    refine ⟨U, hU, hx, X, ⟨hXs, hX.linearIndependent, fun hy ↦ ?_⟩⟩
-    rw [hX.span_eq hy, horizontalDistribution_def, hflat]
+  isContMDiffDistribution := hτ.isContMDiffDistribution_horizontalDistribution hproj
 
-/-- **Forms with the same connection.** Let `τ₁` and `τ₂` be vertically nondegenerate two-forms
-that agree on pairs of vertical vectors. They have the same horizontal spaces exactly when they
-agree on `(η, v)` for every vertical vector `η` and every tangent vector `v`. -/
+/-- **Forms with the same connection.** Let `τ₁` and `τ₂` be two-forms that agree on pairs of
+vertical vectors, with `τ₁` vertically nondegenerate. They have the same horizontal spaces
+exactly when they agree on `(η, v)` for every vertical vector `η` and every tangent vector `v`. -/
 theorem horizontalDistribution_eq_iff [FiniteDimensional ℝ EM]
     (hτ₁ : IsVerticallyNondegenerate IB proj τ₁)
     (h : ∀ x, ∀ η₁ ∈ (mfderiv IM IB proj x).ker, ∀ η₂ ∈ (mfderiv IM IB proj x).ker,
