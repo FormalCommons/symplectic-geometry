@@ -168,7 +168,7 @@ fibrewise diffeomorphisms.
   `prodFiberIntegral o (mpullback (Prod.map f id) α) = mpullback f (prodFiberIntegral o α)`.
   With `f` the inclusion of an open subset this is restriction to an open
   subset of the base.
-- `prodFiberIntegral_wedge` (projection formula): for `β : SmoothForm I B ℝ p`
+- `prodFiberIntegral_wedge_mpullback_fst` (projection formula): for `β : SmoothForm I B ℝ p`
   and `α` of degree `q + m`,
   `prodFiberIntegral o (cast (wedge (mpullback Prod.fst β) α)) = wedge β (prodFiberIntegral o α)`,
   the cast along `p + (q + m) = (p + q) + m`. Pointwise: in the shuffle sum of
