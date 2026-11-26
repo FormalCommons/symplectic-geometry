@@ -7,8 +7,8 @@ module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Average
 public import TauCeti.RepresentationTheory.Compact.Haar
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Average
 import SymplecticGeometry.Geometry.Manifold.GroupAction.BoundarylessModel
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.GroupAction.Opens
 
 /-!
@@ -19,9 +19,9 @@ manifold `M`. If a smooth form `α` on `M` is invariant under every element of `
 `α = d β`, then it has an invariant primitive: the average of `β` over `G`. Indeed, averaging
 commutes with `d` (`TauCeti.SmoothForm.mextDerivₗ_measureAverage`), so `d (avg β) = avg α`, and
 for a right-invariant probability measure the average of an invariant form is the form itself
-(`TauCeti.SmoothForm.measureAverage_eq_self_iff`), while every average is invariant
-(`TauCeti.SmoothForm.mpullback_smul_measureAverage`). For a compact topological group the
-normalized Haar measure `TauCeti.haarProb` is such a measure.
+(`TauCeti.SmoothForm.measureAverage_eq_self_iff_forall_mpullback_smul`), while every average is
+invariant (`TauCeti.SmoothForm.mpullback_smul_measureAverage_eq_self`). For a compact topological
+group the normalized Haar measure `TauCeti.haarProb` is such a measure.
 
 Tau Ceti's average of forms asks the model of `M` to have no boundary, so the averaging lemma
 keeps `[I.Boundaryless]`. The existence of an invariant primitive asks only that `M` itself be
@@ -69,8 +69,8 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 /-- **Averaging a primitive of an invariant form.** For a right-invariant probability measure `μ`
 on `G`, if `d β = α` and `α` is invariant under every element of `G`, then the average of `β`
 against `μ` is again a primitive of `α`, `d (avg β) = α`. The average is invariant by
-`TauCeti.SmoothForm.mpullback_smul_measureAverage`. The model `I` has no boundary, since Tau
-Ceti's average `TauCeti.SmoothForm.measureAverage` is defined only for such a model. -/
+`TauCeti.SmoothForm.mpullback_smul_measureAverage_eq_self`. The model `I` has no boundary, since
+Tau Ceti's average `TauCeti.SmoothForm.measureAverage` is defined only for such a model. -/
 theorem mextDerivₗ_measureAverage_of_invariant [I.Boundaryless] [MeasurableSpace G]
     [OpensMeasurableSpace G] [MeasurableMul G] (μ : Measure G) [IsProbabilityMeasure μ]
     [μ.IsMulRightInvariant] {α : SmoothForm I M F (k + 1)} {β : SmoothForm I M F k}
@@ -79,7 +79,7 @@ theorem mextDerivₗ_measureAverage_of_invariant [I.Boundaryless] [MeasurableSpa
       (ContMDiffSMul.contMDiff_const_smul (I := J) (I' := I) a) α = α) :
     mextDerivₗ I k (measureAverage J μ β) = α := by
   rw [mextDerivₗ_measureAverage, hβ,
-    (measureAverage_eq_self_iff J μ α).2 fun a ↦ (mpullback_eq_iff _).1 (hα a)]
+    (measureAverage_eq_self_iff_forall_mpullback_smul J μ α).2 hα]
 
 include J in
 attribute [local instance] BoundarylessModel.interiorChartedSpace in
@@ -117,7 +117,7 @@ theorem exists_invariant_primitive [BoundarylessManifold I M] [IsTopologicalGrou
   · -- The map `Φ` is equivariant, and the average is invariant.
     exact mpullback_smul_mpullback Φ.contMDiff
       (BoundarylessModel.interiorDiffeomorph_smul I ∞ a)
-      ((mpullback_eq_iff _).2 (mpullback_smul_measureAverage J (haarProb G) β' a))
+      (mpullback_smul_measureAverage_eq_self J (haarProb G) β' a)
 
 end TauCeti.SmoothForm
 

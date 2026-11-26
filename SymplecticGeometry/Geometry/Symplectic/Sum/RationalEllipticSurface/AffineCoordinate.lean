@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Sum.RationalEllipticSurface
 public import TauCeti.Geometry.Manifold.RegularValue
+import SymplecticGeometry.Geometry.Manifold.Instances.Projectivization
 import SymplecticGeometry.Geometry.Manifold.RegularValue.CriticalSet
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.LevelTrivialization
 
@@ -57,8 +58,9 @@ whose `t`-component is `1`. The derivative of the pencil in `t` is `x y z`; it v
 base points of the pencil, which lie on the cubic, so it is of no use here. At `t = 0`, though, the
 derivative in a plane coordinate `l` is `3 v_l²`, and `v_l ≠ 0` for some `l ≠ i`, because
 `v_i = 1` while `v_0³ + v_1³ + v_2³ = 0`. Subtracting a multiple of that plane direction from the
-`t`-direction gives the kernel vector. The chain rule through the product chart is set up as in
-`SymplecticGeometry.surjective_mfderiv_prodChartEquations_affineChart_iff`. The differential of
+`t`-direction gives the kernel vector. The chain rule through the product chart is
+`Projectivization.hasMFDerivAt_comp_affineChart_prodMap`, and its differential is bijective by
+`Projectivization.bijective_mfderiv_affineChart_prodMap`. The differential of
 the composite is read off through `TauCeti.isRegularPoint_comp_iff`, and the real statement comes
 from the complex one by `TauCeti.IsRegularPoint.restrictScalars'`.
 
@@ -182,43 +184,26 @@ theorem isRegularPoint_affineCoordinate (x : SmoothProjectiveHypersurface.fermat
     obtain ⟨i, hi⟩ := Function.ne_iff.mp P.1.rep_ne_zero
     exact ⟨i, (mem_affineOpen_iff i _).2 hi⟩
   have hj : P.2 ∈ affineOpen 0 := hq ▸ snd_fibreEmbedding_mem_affineOpen x
-  -- The product of the two affine charts, a chart of `ℂℙ² × ℂℙ¹` at `P`.
-  set e := (affineOpenPartialHomeomorph (K := ℂ) i).prod (affineOpenPartialHomeomorph (K := ℂ) 0)
-  have he : e ∈ atlas (ModelProd (Fin 2 → ℂ) (Fin 1 → ℂ))
-      (ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)) :=
-    mem_image2_of_mem (affineOpenPartialHomeomorph_mem_atlas (𝕜 := ℂ) i)
-      (affineOpenPartialHomeomorph_mem_atlas (𝕜 := ℂ) 0)
-  have hPe : P ∈ e.source := by simpa [e] using ⟨hi, hj⟩
-  have he' := mdifferentiable_of_mem_atlas (I := 𝓘(ℂ, Fin 2 → ℂ).prod 𝓘(ℂ, Fin 1 → ℂ)) he
-  have hePe := (he'.mdifferentiableAt hPe).hasMFDerivAt
   set p : Unit → MvPolynomial (Fin 3 ⊕ Fin 2) ℂ := fun _ ↦ hessePencil ℂ
-  have ha : e P = (affineChart i P.1, affineChart 0 P.2) := by simp [e]
-  -- The chart equation and the affine coordinate, read in the chart `e`.
-  set D := fderiv ℂ (prodChartEquations i 0 p) (e P)
-  have hD : HasMFDerivAt (𝓘(ℂ, Fin 2 → ℂ).prod 𝓘(ℂ, Fin 1 → ℂ)) 𝓘(ℂ, Unit → ℂ)
-      (prodChartEquations i 0 p) (e P) D := by
-    rw [← modelWithCornersSelf_prod]
-    exact (hasStrictFDerivAt_prodChartEquations i 0 p _).hasFDerivAt.hasMFDerivAt
+  -- The chart equation and the affine coordinate, read in the product of the two affine charts.
+  set D := fderiv ℂ (prodChartEquations i 0 p) (affineChart i P.1, affineChart 0 P.2)
+  have hD := hasMFDerivAt_comp_affineChart_prodMap
+    (hasStrictFDerivAt_prodChartEquations i 0 p _).hasFDerivAt hi hj
   set L : (Fin 2 → ℂ) × (Fin 1 → ℂ) →L[ℂ] ℂ :=
     (ContinuousLinearMap.proj 0).comp (ContinuousLinearMap.snd ℂ _ _)
-  have hL : HasMFDerivAt (𝓘(ℂ, Fin 2 → ℂ).prod 𝓘(ℂ, Fin 1 → ℂ)) 𝓘(ℂ, ℂ) L (e P) L := by
-    rw [← modelWithCornersSelf_prod]
-    exact L.hasFDerivAt.hasMFDerivAt
-  have hg : affineCoordinate = (⇑L ∘ e) ∘ ⇑embedding := by
+  have hL := hasMFDerivAt_comp_affineChart_prodMap L.hasFDerivAt hi hj
+  simp only [Function.comp_def, Prod.map_apply'] at hD hL
+  have hg : affineCoordinate =
+      (fun y : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ) ↦ L (affineChart i y.1, affineChart 0 y.2)) ∘
+        ⇑embedding := by
     ext y
-    simp [affineCoordinate_def, L, e, coe_embedding]
-  have hF : (fun y : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ) ↦
-      prodChartEquations i 0 p (affineChart i y.1, affineChart 0 y.2)) =
-      prodChartEquations i 0 p ∘ e := by
-    ext y
-    simp [e]
+    simp [affineCoordinate_def, L, coe_embedding]
   -- A vector of the kernel of `D` whose `t`-component is `1`.
   obtain ⟨w, hwD, hw1⟩ : ∃ w, D w = 0 ∧ L w = 1 := by
     refine exists_fderiv_prodChartEquations_eq_zero (funext fun k ↦ ?_) ?_
-    · rw [Subsingleton.elim k 0, ha, ← hq]
+    · rw [Subsingleton.elim k 0, ← hq]
       exact (affineCoordinate_def _).symm.trans (affineCoordinate_fibreEmbedding x)
-    · rw [ha]
-      exact (mem_complexProjectiveProdZeroLocus_iff_prodChartEquations
+    · exact (mem_complexProjectiveProdZeroLocus_iff_prodChartEquations
         (fun _ ↦ isWeightedHomogeneous_hessePencil_inl)
         (fun _ ↦ isWeightedHomogeneous_hessePencil_inr) hi hj).1
         (by rw [← rationalEllipticSurface_def, ← hq]; exact q.property) ()
@@ -228,21 +213,22 @@ theorem isRegularPoint_affineCoordinate (x : SmoothProjectiveHypersurface.fermat
     isOpen_univ eq_inter_univ (fun x _ ↦ surjective_jacobiMatrixAt x) (r := ω) (by simp) q
     (hq ▸ hi) (hq ▸ hj)
   rw [← embedding_def, hq] at hT
-  -- The affine coordinate is `L ∘ e` on the surface, so it suffices that the differential of
-  -- `L ∘ e` sends the tangent space of the surface onto `ℂ`.
-  rw [hg, isRegularPoint_comp_iff (g := ⇑embedding) (hL.comp P hePe).mdifferentiableAt
+  -- The affine coordinate is `L` read in the product chart on the surface, so it suffices that
+  -- the differential of the latter sends the tangent space of the surface onto `ℂ`.
+  rw [hg, isRegularPoint_comp_iff (g := ⇑embedding) hL.mdifferentiableAt
     ((embedding.contMDiff q).mdifferentiableAt (by simp)), Submodule.eq_top_iff']
   intro (c : ℂ)
-  obtain ⟨v, hv⟩ := (he'.mfderiv_bijective hPe).surjective (c • w)
+  obtain ⟨v, hv⟩ := (bijective_mfderiv_affineChart_prodMap hi hj).surjective (c • w)
   have hvker : v ∈ (mfderiv (𝓘(ℂ, Fin 2 → ℂ).prod 𝓘(ℂ, Fin 1 → ℂ)) 𝓘(ℂ, Unit → ℂ)
       (fun y : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ) ↦
         prodChartEquations i 0 p (affineChart i y.1, affineChart 0 y.2)) P).ker := by
-    rw [LinearMap.mem_ker, hF, (hD.comp P hePe).mfderiv]
+    rw [LinearMap.mem_ker, hD.mfderiv]
     -- `rfl` identifies the zero of `Unit → ℂ` with that of the tangent space it models.
     exact (congrArg D hv).trans (by rw [D.map_smul, hwD, smul_zero]; rfl)
   refine ⟨v, ?_, ?_⟩
-  · exact LinearMap.mem_range.2 ((embedding.mem_tangentRange_iff q (by simp) v).1 (hT ▸ hvker))
-  · rw [(hL.comp P hePe).mfderiv]
+  · exact LinearMap.mem_range.2
+      ((embedding.isImmersion.mem_tangentRange_iff q (by simp) v).1 (hT ▸ hvker))
+  · rw [hL.mfderiv]
     exact (congrArg L hv).trans (by rw [L.map_smul, hw1, smul_eq_mul, mul_one])
 
 /-- The real differential of the affine coordinate is onto at every point of the fibre over

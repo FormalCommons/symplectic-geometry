@@ -82,7 +82,7 @@ orientation of `E` selected by the orientation of `Z` at `z`, if the normal orie
 its negative otherwise. -/
 theorem localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_of_finrank_fiber_eq_zero
     (Φ : letI := f.normalSpaceFiberBundle hn hdim
-      TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W) (z : Z)
+      TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W) (z : Z)
     (hΦ : f.IsNormalizedTube hn hdim Φ) {m : ℕ} (hE : finrank ℝ E = m + 1)
     (hP : finrank ℝ P = 0) (hV : finrank ℝ V = m + 1)
     (oX : Manifold.Orientation J X (Fin (m + 1 + finrank ℝ P)))
@@ -103,8 +103,9 @@ theorem localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_of_finrank
           ⟨f z, mem_normalTubeChart_source Φ z hΦ⟩ (m + 1)).symm
           ((oX.reindex (finCongr (by omega))).toHomologicalOrientation hV (f z))).val =
       if Orientation.reindex ℝ P (finCongr hP)
-          ((trivializationAt P (fun x ↦ f.NormalSpace x hn) z).mapOrientation (Fin (finrank ℝ P))
-            (mem_baseSet_trivializationAt P _ z) (normalOrientation f hn hdim oX oZ z)) =
+          ((trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).mapOrientation
+            (Fin (finrank ℝ P)) (mem_baseSet_trivializationAt P _ z)
+            (normalOrientation f hn hdim oX oZ z)) =
           positiveOrientation then
         (SymplecticGeometry.localHomologyCross (0 : P) (0 : E) 0 (m + 1) (m + 1) (zero_add _)).hom
           ((localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl P)
@@ -130,8 +131,9 @@ theorem localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_of_finrank
   -- The tangent space of `Z` at `z` is `E` only by definition, so `rw` does not match these.
   erw [Orientation.localHomologyCross_localOrientationOfZeroDimChart_tmul_localOrientation hP hE
     (Orientation.reindex ℝ P (finCongr hP)
-      ((trivializationAt P (fun x ↦ f.NormalSpace x hn) z).mapOrientation (Fin (finrank ℝ P))
-        (mem_baseSet_trivializationAt P _ z) (normalOrientation f hn hdim oX oZ z)))
+      ((trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).mapOrientation
+        (Fin (finrank ℝ P)) (mem_baseSet_trivializationAt P _ z)
+        (normalOrientation f hn hdim oX oZ z)))
     (oZ.orientationAt z), hlin]
   split_ifs
   · rfl
@@ -154,7 +156,8 @@ variable {E V P Z X : Type} {H G : Type*}
   {hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E} {W : TopologicalSpace.Opens X}
 
 variable (Φ : letI := f.normalSpaceFiberBundle hn hdim
-  TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W) (z : Z) {S : Set E}
+  TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W) (z : Z)
+  {S : Set E}
 
 open Classical in
 /-- **The local orientation of the ambient manifold through a normalized tube, from the total
@@ -178,15 +181,15 @@ theorem
     (hSc : S ⊆ ((chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))).target)
     (hSe : letI := f.normalSpaceFiberBundle hn hdim
       MapsTo ((chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))).symm S
-        (trivializationAt P (fun x ↦ f.NormalSpace x hn) z).baseSet)
+        (trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).baseSet)
     (h0 : (0 : E) ∈ S) :
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
-    haveI : T1Space (TotalSpace P fun x ↦ f.NormalSpace x hn) :=
+    haveI : T1Space (TotalSpace P fun x ↦ f.isImmersion.NormalSpace x hn) :=
       Φ.toHomeomorph.isEmbedding.t1Space
     localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
         (⟨fun p ↦ (Φ p : X), continuous_subtypeVal.comp Φ.continuous⟩ :
-          C(TotalSpace P (fun x ↦ f.NormalSpace x hn), X))
+          C(TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn), X))
         (S := {zeroSection P _ z}) (T := {f z})
         (by
           rintro p hp
@@ -200,8 +203,9 @@ theorem
               (OpenPartialHomeomorph.mem_refl_source _) hP).val ⊗ₜ
               (Orientation.localOrientation (F := E) (oZ.orientationAt z) hE).val))) =
       if Orientation.reindex ℝ P (finCongr hP)
-          ((trivializationAt P (fun x ↦ f.NormalSpace x hn) z).mapOrientation (Fin (finrank ℝ P))
-            (mem_baseSet_trivializationAt P _ z) (normalOrientation f hn hdim oX oZ z)) =
+          ((trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).mapOrientation
+            (Fin (finrank ℝ P)) (mem_baseSet_trivializationAt P _ z)
+            (normalOrientation f hn hdim oX oZ z)) =
           positiveOrientation then
         ((oX.reindex (finCongr (by omega))).toHomologicalOrientation hV (f z)).val
       else

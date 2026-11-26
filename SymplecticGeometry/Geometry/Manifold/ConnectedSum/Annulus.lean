@@ -12,7 +12,7 @@ public import Mathlib.Analysis.Normed.Module.FiniteDimension
 public import TauCeti.Geometry.Manifold.ConnectedSum.Smooth
 public import SymplecticGeometry.Geometry.Manifold.ConnectedSum.OrientationPreserving
 
-import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
+import TauCeti.Geometry.Manifold.Diffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
@@ -461,18 +461,18 @@ embeddings of `E` that are `C^n` local diffeomorphisms, `Φ` is a linear isometr
 atlas, its structure of `C^n` manifold, and the inclusions `GluedAlong.inl` and `GluedAlong.inr`
 of the two pieces, open embeddings and `C^n` local diffeomorphisms whose ranges cover it. -/
 abbrev AnnulusSum : Type u :=
-  GluedAlong (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε)
+  GluedAlong (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε).toHomeomorph
 
 /-- A point `x` of the first piece and a point `y` of the second have the same image in the
 connected sum exactly when `x = ι₁ ξ` and `y = ι₂ (Φ (inversion 0 ε ξ))` for some `ξ` with
 `ε² < ‖ξ‖ < 1`. -/
 theorem AnnulusSum.inl_eq_inr_iff {x : piece ι₁ ε hι₁.continuous}
     {y : piece ι₂ ε hι₂.continuous} :
-    GluedAlong.inl (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε) x =
-        GluedAlong.inr (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε) y ↔
+    GluedAlong.inl (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε).toHomeomorph x =
+        GluedAlong.inr (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε).toHomeomorph y ↔
       ∃ ξ : E, ξ ∈ annulus E (ε ^ 2) 1 ∧ (x : M₁) = ι₁ ξ ∧
         (y : M₂) = ι₂ (Φ (inversion 0 ε ξ)) := by
-  rw [GluedAlong.inl_eq_inr_iff]
+  rw [GluedAlong.inl_eq_inr_iff, Diffeomorph.coe_toHomeomorph]
   constructor
   · rintro ⟨hx, rfl⟩
     obtain ⟨ξ, hξ⟩ : ∃ ξ, annulusDiffeomorph hι₁ hdι₁ ε ξ = ⟨x, hx⟩ :=
@@ -650,8 +650,8 @@ private theorem inl_eq_inr_of_toConnectedSum_eq {x : piece ι₁ ε hι₁.conti
     {y : piece ι₂ ε hι₂.continuous}
     (h : toConnectedSum hι₁ hdι₁ hι₂ hdι₂ Φ hε (GluedAlong.inl _ x) =
       toConnectedSum hι₁ hdι₁ hι₂ hdι₂ Φ hε (GluedAlong.inr _ y)) :
-    GluedAlong.inl (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε) x =
-      GluedAlong.inr (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε) y := by
+    GluedAlong.inl (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε).toHomeomorph x =
+      GluedAlong.inr (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε).toHomeomorph y := by
   have hε₂ : 0 < ε ^ 2 := by positivity
   rw [toConnectedSum_inl, toConnectedSum_inr,
     connectedSum_inl_eq_inr_iff hι₁.injective hε] at h
@@ -977,7 +977,7 @@ restriction of `o₁` to `AnnulusSum.orientation`. -/
 theorem AnnulusSum.isOrientationPreservingAt_inl (x : piece ι₁ ε hι₁.continuous) :
     IsOrientationPreservingAt (o₁.restrict (piece ι₁ ε hι₁.continuous))
       (AnnulusSum.orientation o₁ o₂ oE hι₁ hdι₁ hι₂ hdι₂ Φ hΦ hε hε₁ ho₁ ho₂)
-      (GluedAlong.inl (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε.ne')) x := by
+      (GluedAlong.inl (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε.ne').toHomeomorph) x := by
   let := TauCeti.ConnectedSum.chartedSpace (H := E) (isOpenEmbedding_rescale hι₁ hε.ne')
     (isOpenEmbedding_rescale (hι₂.comp_linearIsometryEquiv Φ) hε.ne')
   have := TauCeti.ConnectedSum.isManifold (isOpenEmbedding_rescale hι₁ hε.ne')
@@ -985,7 +985,7 @@ theorem AnnulusSum.isOrientationPreservingAt_inl (x : piece ι₁ ε hι₁.cont
     (isLocalDiffeomorph_rescale hdι₁ hε.ne')
     (isLocalDiffeomorph_rescale (hdι₂.comp_linearIsometryEquiv Φ) hε.ne')
   set e := annulusSumDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε.ne' hε₁
-  have h : GluedAlong.inl (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε.ne') =
+  have h : GluedAlong.inl (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε.ne').toHomeomorph =
       e.symm ∘ (TauCeti.ConnectedSum.inl _ _ ∘ Opens.inclusion (piece_le_puncture ε (by simp))) :=
     funext fun x ↦ (e.symm_apply_eq.2
       (annulusSumDiffeomorph_inl hι₁ hdι₁ hι₂ hdι₂ Φ hε.ne' hε₁ x).symm).symm
@@ -1000,7 +1000,7 @@ restriction of `o₂` to `AnnulusSum.orientation`. -/
 theorem AnnulusSum.isOrientationPreservingAt_inr (y : piece ι₂ ε hι₂.continuous) :
     IsOrientationPreservingAt (o₂.restrict (piece ι₂ ε hι₂.continuous))
       (AnnulusSum.orientation o₁ o₂ oE hι₁ hdι₁ hι₂ hdι₂ Φ hΦ hε hε₁ ho₁ ho₂)
-      (GluedAlong.inr (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε.ne')) y := by
+      (GluedAlong.inr (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε.ne').toHomeomorph) y := by
   let := TauCeti.ConnectedSum.chartedSpace (H := E) (isOpenEmbedding_rescale hι₁ hε.ne')
     (isOpenEmbedding_rescale (hι₂.comp_linearIsometryEquiv Φ) hε.ne')
   have := TauCeti.ConnectedSum.isManifold (isOpenEmbedding_rescale hι₁ hε.ne')
@@ -1008,7 +1008,7 @@ theorem AnnulusSum.isOrientationPreservingAt_inr (y : piece ι₂ ε hι₂.cont
     (isLocalDiffeomorph_rescale hdι₁ hε.ne')
     (isLocalDiffeomorph_rescale (hdι₂.comp_linearIsometryEquiv Φ) hε.ne')
   set e := annulusSumDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε.ne' hε₁
-  have h : GluedAlong.inr (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε.ne') =
+  have h : GluedAlong.inr (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε.ne').toHomeomorph =
       e.symm ∘ (TauCeti.ConnectedSum.inr _ _ ∘ Opens.inclusion (piece_le_puncture ε (by simp))) :=
     funext fun y ↦ (e.symm_apply_eq.2
       (annulusSumDiffeomorph_inr hι₁ hdι₁ hι₂ hdι₂ Φ hε.ne' hε₁ y).symm).symm
@@ -1024,9 +1024,9 @@ theorem AnnulusSum.eq_orientation_iff
     {o : TauCeti.Manifold.Orientation 𝓘(ℝ, E) (AnnulusSum hι₁ hdι₁ hι₂ hdι₂ Φ hε.ne') ι} :
     o = AnnulusSum.orientation o₁ o₂ oE hι₁ hdι₁ hι₂ hdι₂ Φ hΦ hε hε₁ ho₁ ho₂ ↔
       (∀ x, IsOrientationPreservingAt (o₁.restrict (piece ι₁ ε hι₁.continuous)) o
-        (GluedAlong.inl (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε.ne')) x) ∧
+        (GluedAlong.inl (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε.ne').toHomeomorph) x) ∧
       ∀ y, IsOrientationPreservingAt (o₂.restrict (piece ι₂ ε hι₂.continuous)) o
-        (GluedAlong.inr (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε.ne')) y := by
+        (GluedAlong.inr (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε.ne').toHomeomorph) y := by
   refine ⟨?_, fun ⟨hl, hr⟩ ↦ ?_⟩
   · rintro rfl
     exact ⟨AnnulusSum.isOrientationPreservingAt_inl o₁ o₂ oE hι₁ hdι₁ hι₂ hdι₂ Φ hΦ hε hε₁ ho₁ ho₂,

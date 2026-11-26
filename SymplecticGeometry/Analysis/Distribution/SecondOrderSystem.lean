@@ -235,7 +235,7 @@ theorem secondOrderSystem_coordOfFun_apply (b : Module.Basis ι ℝ E)
   simp only [hde]
   -- Integrability of the pairings of the coordinates of `w` with test functions.
   have hint (ψ : 𝓓(Ω, ℝ)) (l) : Integrable (fun y ↦ ψ (e y) • (bD.repr (w y) l : ℂ)) μ := by
-    simpa using (e.symm.transportTestFunction hΩ ψ).integrable_smul
+    simpa using (e.symm.transportTestFunction ℝ hΩ ψ).integrable_smul
       (hwV.ofReal_basis_repr bD l)
   -- The left side pairs `φ` with the coordinates of `w` through test functions `Ψ l`.
   let Ψ : κ → 𝓓(Ω, ℝ) := fun l ↦
@@ -375,7 +375,7 @@ private theorem exists_contDiffOn_ae_eq_nhds {U : Set E} (hU : IsOpen U)
     (fun z hz ↦ hσ z hz) (T := coordOfFun e hΩ bD w μ) fun k ↦ by
       convert singularSupport_coordOfFun_eq_empty (μ := μ) e hΩ bD (hh.mono hVU) k using 2
       ext φ
-      set θ : 𝓓(V, ℝ) := e.symm.transportTestFunction hΩ φ
+      set θ : 𝓓(V, ℝ) := e.symm.transportTestFunction ℝ hΩ φ
       have hθ : (fun y ↦ θ y • bF k) = fun y ↦ φ (e y) • bF k := funext fun y ↦ by simp [θ]
       rw [hP hΩ hwV k φ, integral_complex_ofReal,
         hwh _ (hθ ▸ θ.contDiff.smul contDiff_const) (hθ ▸ θ.hasCompactSupport.smul_right)

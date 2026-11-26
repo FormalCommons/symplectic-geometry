@@ -11,6 +11,7 @@ import Mathlib.Analysis.Complex.Polynomial.Basic
 import SymplecticGeometry.Algebra.Module.LinearMap.Polynomial
 import SymplecticGeometry.LinearAlgebra.Projectivization.BinaryForm
 import TauCeti.Algebra.MvPolynomial.PDeriv
+import TauCeti.RingTheory.MvPolynomial.LinearSubst
 
 /-!
 # Lines meeting a smooth projective hypersurface

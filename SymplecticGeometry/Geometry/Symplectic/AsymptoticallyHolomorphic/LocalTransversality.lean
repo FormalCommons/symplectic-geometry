@@ -9,7 +9,7 @@ public import TauCeti.Analysis.Complex.Wirtinger.Basic
 public import Mathlib.Analysis.InnerProductSpace.PiL2
 import SymplecticGeometry.Analysis.Complex.Avoidance
 import Mathlib.Analysis.Calculus.ContDiff.WithLp
-import SymplecticGeometry.Analysis.Normed.Lp.PiLp
+import TauCeti.Analysis.Normed.Lp.PiLp.Basic
 
 /-!
 # Local quantitative transversality

@@ -17,16 +17,15 @@ instance a complex vector space viewed also as a real one, so is each fibre. Thi
 complex associated bundle be used where both its real and its complex structures appear, such as
 Tau Ceti's `complexEulerClass`.
 
-The file also completes Tau Ceti's `TauCeti.AssociatedBundle.mk_add` and
-`TauCeti.AssociatedBundle.mk_zero`: in a fixed frame `p`, the class map `v ↦ [p, v]` sends
-negatives and differences in the model fibre to those in the fibre.
+The file also completes Tau Ceti's `TauCeti.AssociatedBundle.mk_add`,
+`TauCeti.AssociatedBundle.mk_zero`, `TauCeti.AssociatedBundle.mk_neg`: in a fixed frame `p`, the
+class map `v ↦ [p, v]` sends differences in the model fibre to those in the fibre.
 
 ## Main results
 
 * `TauCeti.AssociatedBundle.instIsScalarTower`: the fibres of `P ×_G F` form a scalar tower
   `𝕜 → 𝕜' → AssociatedBundle G P F b` when `F` does.
-* `TauCeti.AssociatedBundle.mk_neg`, `TauCeti.AssociatedBundle.mk_sub`: `[p, -v] = -[p, v]` and
-  `[p, v - w] = [p, v] - [p, w]`.
+* `TauCeti.AssociatedBundle.mk_sub`: `[p, v - w] = [p, v] - [p, w]`.
 
 ## References
 
@@ -60,11 +59,6 @@ variable {B G F : Type*} [TopologicalSpace B] [Group G] [TopologicalSpace G]
   {P : B → Type*} [TopologicalSpace (TotalSpace G P)] [∀ b, TopologicalSpace (P b)]
   [FiberBundle G P] [∀ b, MulAction Gᵐᵒᵖ (P b)] [PrincipalBundle G P]
   [NormedAddCommGroup F] [DistribMulAction G F] [ContinuousSMul G F]
-
-/-- Classes in a fixed principal frame respect negation. -/
-@[simp]
-theorem mk_neg {b : B} (p : P b) (v : F) : mk G p (-v) = -mk G p v :=
-  (AddMonoidHom.mk' (mk G p) (mk_add p)).map_neg v
 
 /-- Classes in a fixed principal frame respect subtraction. -/
 @[simp]
