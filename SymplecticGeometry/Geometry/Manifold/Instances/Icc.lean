@@ -57,7 +57,9 @@ On the unit interval, the derivative of left multiplication `s ↦ T s` sends th
 `t` to `T` times the unit vector at `T t` (`unitInterval.mfderiv_mul_left_one`).
 
 Tau Ceti's stationary-time gluing `ContMDiff.glue_collaredHalves`, of maps on `M × [0, 1]`, also
-holds for maps on `[0, 1] × M` (`ContMDiff.glue_collaredHalves_left`).
+holds for maps on `[0, 1] × M` (`ContMDiff.glue_collaredHalves_left`). The concatenation of two
+families `a b : [0, 1] → α` with these time maps is `SymplecticGeometry.collaredConcat a b`; it
+starts where `a` starts and ends where `b` ends (`collaredConcat_zero`, `collaredConcat_one`).
 -/
 
 public section
@@ -308,6 +310,54 @@ theorem mfderiv_mul_left_one (T t : unitInterval) :
 end unitInterval
 
 section Glue
+
+namespace SymplecticGeometry
+
+open TauCeti
+
+variable {α β : Sort*}
+
+/-- The **stationary-time concatenation** of two families `a b : [0, 1] → α`: it runs through `a`
+reparametrized by `TauCeti.collaredFirstHalf` for `t ≤ 1 / 2`, and through `b` reparametrized by
+`TauCeti.collaredSecondHalf` afterwards. -/
+noncomputable def collaredConcat (a b : unitInterval → α) (t : unitInterval) : α :=
+  if (t : ℝ) ≤ 1 / 2 then a (collaredFirstHalf le_rfl t) else b (collaredSecondHalf le_rfl t)
+
+theorem collaredConcat_def (a b : unitInterval → α) (t : unitInterval) :
+    collaredConcat a b t =
+      if (t : ℝ) ≤ 1 / 2 then a (collaredFirstHalf le_rfl t)
+      else b (collaredSecondHalf le_rfl t) :=
+  (rfl)
+
+variable {a b : unitInterval → α} {t : unitInterval}
+
+/-- On the first half, the concatenation runs through the first family. -/
+theorem collaredConcat_of_le (ht : (t : ℝ) ≤ 1 / 2) :
+    collaredConcat a b t = a (collaredFirstHalf le_rfl t) := by
+  rw [collaredConcat_def, ite_eq_left ht]
+
+/-- On the second half, the concatenation runs through the second family. -/
+theorem collaredConcat_of_lt (ht : 1 / 2 < (t : ℝ)) :
+    collaredConcat a b t = b (collaredSecondHalf le_rfl t) := by
+  rw [collaredConcat_def, ite_eq_right ht.not_ge]
+
+/-- The concatenation starts where the first family starts. -/
+@[simp]
+theorem collaredConcat_zero (a b : unitInterval → α) : collaredConcat a b 0 = a 0 := by
+  rw [collaredConcat_of_le (by norm_num [Set.Icc.coe_zero]), collaredFirstHalf_zero]
+
+/-- The concatenation ends where the second family ends. -/
+@[simp]
+theorem collaredConcat_one (a b : unitInterval → α) : collaredConcat a b 1 = b 1 := by
+  rw [collaredConcat_of_lt (by norm_num [Set.Icc.coe_one]), collaredSecondHalf_one]
+
+/-- A function applied to a concatenation is the concatenation of the function applied to the
+two families. -/
+theorem apply_collaredConcat (g : α → β) (a b : unitInterval → α) (t : unitInterval) :
+    g (collaredConcat a b t) = collaredConcat (fun s ↦ g (a s)) (fun s ↦ g (b s)) t := by
+  simp only [collaredConcat_def, apply_ite g]
+
+end SymplecticGeometry
 
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]

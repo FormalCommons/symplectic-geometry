@@ -42,14 +42,17 @@ relation is reflexive and symmetric, and it is not claimed here to be transitive
   map `[0, 1] → [0, 1]`.
 * `SymplecticGeometry.IsWeinsteinHomotopy.symm`: a Weinstein homotopy run backwards, by
   `unitInterval.symm`.
-* `SymplecticGeometry.IsWeinsteinHomotopy.trans`: the concatenation of two Weinstein homotopies
-  with regular barriers that agree at the seam.
+* `SymplecticGeometry.IsWeinsteinHomotopy.trans`: the concatenation
+  `SymplecticGeometry.collaredConcat` of two Weinstein homotopies with regular barriers that agree
+  at the seam.
 * `SymplecticGeometry.IsWeinsteinHomotopy.pullback`: the pull-back of a Weinstein homotopy along a
   diffeomorphism.
 * `SymplecticGeometry.IsWeinsteinHomotopy.of_isCompact`: on a compact manifold, every smooth
   family of Weinstein structures is a Weinstein homotopy.
 * `SymplecticGeometry.AreWeinsteinHomotopic`: two Weinstein structures joined by a Weinstein
-  homotopy, with `SymplecticGeometry.AreWeinsteinHomotopic.refl` and `.symm`.
+  homotopy, with `SymplecticGeometry.AreWeinsteinHomotopic.refl` and `.symm`, and
+  `SymplecticGeometry.IsWeinsteinHomotopy.areWeinsteinHomotopic_trans`: the start of one Weinstein
+  homotopy and the end of the next are joined by their concatenation.
 
 ## Implementation notes
 
@@ -72,11 +75,13 @@ outside their ranges, so they are regular values (`TauCeti.isRegularValue_of_not
 field pulled back along a diffeomorphism `Φ` is the image of `X t` under the tangent map of `Φ⁻¹`
 (`Diffeomorph.tangentMap_symm_mk`), so it stays jointly smooth.
 
-The concatenation follows Tau Ceti's `TauCeti.Diffeotopy.IsHomotopy.trans`: each piece is
-reparametrized by `TauCeti.collaredFirstHalf` or `TauCeti.collaredSecondHalf`, which are
-stationary near the seam, and the pieces glue smoothly by `ContMDiff.glue_collaredHalves_left`
-(for the fields, the functions and the barriers) and
-`SymplecticGeometry.IsSmoothFamily.glue_collaredHalves` (for the forms).
+The concatenation `SymplecticGeometry.collaredConcat` follows Tau Ceti's
+`TauCeti.Diffeotopy.IsHomotopy.trans`: each piece is reparametrized by `TauCeti.collaredFirstHalf`
+or `TauCeti.collaredSecondHalf`, which are stationary near the seam, and the pieces glue smoothly
+by `ContMDiff.glue_collaredHalves_left` (for the fields, the functions and the barriers) and
+`SymplecticGeometry.IsSmoothFamily.glue_collaredHalves` (for the forms). Its values at `t = 0` and
+`t = 1` are `SymplecticGeometry.collaredConcat_zero` and `collaredConcat_one`, so the glued barrier
+can be glued again at the next seam.
 
 ## References
 
@@ -131,35 +136,34 @@ protected theorem symm (hc : IsRegularBarrier E f c) :
   hc.comp _ unitInterval.contMDiff_symm
 
 /-- **Concatenation of regular barriers.** Regular barriers `c` of `f` and `c'` of `f'` that agree
-at the seam, `c k 1 = c' k 0` for every `k`, concatenate, after the reparametrizations
-`TauCeti.collaredFirstHalf` and `TauCeti.collaredSecondHalf`, to a regular barrier of the
-concatenated family. -/
+at the seam, `c k 1 = c' k 0` for every `k`, concatenate to a regular barrier
+`k ↦ collaredConcat (c k) (c' k)` of the concatenated family `collaredConcat f f'`. -/
 protected theorem trans {f' : unitInterval → M → ℝ} {c' : ℕ → unitInterval → ℝ}
     (hc : IsRegularBarrier E f c) (hc' : IsRegularBarrier E f' c')
     (hcc' : ∀ k, c k 1 = c' k 0) :
-    IsRegularBarrier E
-      (fun t ↦ if (t : ℝ) ≤ 1 / 2 then f (collaredFirstHalf le_rfl t)
-        else f' (collaredSecondHalf le_rfl t))
-      fun k t ↦ if (t : ℝ) ≤ 1 / 2 then c k (collaredFirstHalf le_rfl t)
-        else c' k (collaredSecondHalf le_rfl t) where
+    IsRegularBarrier E (collaredConcat f f') fun k ↦ collaredConcat (c k) (c' k) where
   contMDiff k := by
     -- Glue on `[0, 1] × [0, 1]`, constant along the second factor, and restrict to `t ↦ (t, 0)`.
     have h := ((hc.contMDiff k).comp contMDiff_fst).glue_collaredHalves_left
       (M := unitInterval) (I := 𝓡∂ 1) ((hc'.contMDiff k).comp contMDiff_fst)
       (fun _ ↦ hcc' k) le_rfl
-    exact h.comp (contMDiff_id.prodMk contMDiff_const : ContMDiff (𝓡∂ 1) ((𝓡∂ 1).prod (𝓡∂ 1))
-      (⊤ : ℕ∞) fun t : unitInterval ↦ (t, (0 : unitInterval)))
+    refine (h.comp (contMDiff_id.prodMk contMDiff_const : ContMDiff (𝓡∂ 1)
+      ((𝓡∂ 1).prod (𝓡∂ 1)) (⊤ : ℕ∞) fun t : unitInterval ↦ (t, (0 : unitInterval)))).congr
+      fun t ↦ ?_
+    simp only [collaredConcat_def, Function.comp_apply, id_eq]
   strictMono t := by
+    simp only [collaredConcat_def]
     split_ifs
     exacts [hc.strictMono _, hc'.strictMono _]
   eventually_le C := by
     filter_upwards [hc.eventually_le C, hc'.eventually_le C] with k hk hk' t
+    rw [collaredConcat_def]
     split_ifs
     exacts [hk _, hk' _]
   isRegularValue k t := by
+    simp only [collaredConcat_def]
     split_ifs
     exacts [hc.isRegularValue k _, hc'.isRegularValue k _]
-
 end IsRegularBarrier
 
 variable [FiniteDimensional ℝ E] [IsManifold 𝓘(ℝ, E) (⊤ : ℕ∞) M]
@@ -240,34 +244,30 @@ protected theorem symm (h : IsWeinsteinHomotopy ω X f) :
   h.comp _ unitInterval.contMDiff_symm
 
 /-- **Concatenation of Weinstein homotopies.** Two Weinstein homotopies, the second starting where
-the first ends, concatenate to a Weinstein homotopy, which runs through the first reparametrized
-by `TauCeti.collaredFirstHalf` for `t ≤ 1 / 2`, and through the second reparametrized by
-`TauCeti.collaredSecondHalf` afterwards, provided that the two families have regular barriers
-`c` and `c'` that agree at the seam, `c k 1 = c' k 0` for every `k`. The concatenated barrier is
-`SymplecticGeometry.IsRegularBarrier.trans`. -/
+the first ends, concatenate to a Weinstein homotopy `t ↦ (collaredConcat ω ω' t,
+collaredConcat X X' t, collaredConcat f f' t)`, provided that the two families have regular
+barriers `c` and `c'` that agree at the seam, `c k 1 = c' k 0` for every `k`. The concatenated
+barrier is `SymplecticGeometry.IsRegularBarrier.trans`. -/
 protected theorem trans {ω' : unitInterval → SmoothTwoForm 𝓘(ℝ, E) M}
     {X' : unitInterval → (x : M) → TangentSpace 𝓘(ℝ, E) x} {f' : unitInterval → M → ℝ}
     (h : IsWeinsteinHomotopy ω X f) (h' : IsWeinsteinHomotopy ω' X' f')
     (hω : ω 1 = ω' 0) (hX : X 1 = X' 0) (hf : f 1 = f' 0) {c c' : ℕ → unitInterval → ℝ}
     (hc : IsRegularBarrier E f c) (hc' : IsRegularBarrier E f' c')
     (hcc' : ∀ k, c k 1 = c' k 0) :
-    IsWeinsteinHomotopy
-      (fun t ↦ if (t : ℝ) ≤ 1 / 2 then ω (collaredFirstHalf le_rfl t)
-        else ω' (collaredSecondHalf le_rfl t))
-      (fun t ↦ if (t : ℝ) ≤ 1 / 2 then X (collaredFirstHalf le_rfl t)
-        else X' (collaredSecondHalf le_rfl t))
-      (fun t ↦ if (t : ℝ) ≤ 1 / 2 then f (collaredFirstHalf le_rfl t)
-        else f' (collaredSecondHalf le_rfl t)) where
+    IsWeinsteinHomotopy (collaredConcat ω ω') (collaredConcat X X') (collaredConcat f f') where
   isSmoothFamily := h.isSmoothFamily.glue_collaredHalves h'.isSmoothFamily hω
   contMDiff_field := by
     refine (h.contMDiff_field.glue_collaredHalves_left h'.contMDiff_field
       (fun x ↦ by rw [hX]) le_rfl).congr fun p ↦ ?_
+    rw [collaredConcat_def]
     split_ifs <;> rfl
   contMDiff_function := by
     refine (h.contMDiff_function.glue_collaredHalves_left h'.contMDiff_function
       (fun x ↦ by rw [hf]) le_rfl).congr fun p ↦ ?_
+    rw [collaredConcat_def]
     split_ifs <;> rfl
   isWeinsteinStructure t := by
+    simp only [collaredConcat_def]
     split_ifs
     exacts [h.isWeinsteinStructure _, h'.isWeinsteinStructure _]
   exists_isRegularBarrier := ⟨_, hc.trans hc' hcc'⟩
@@ -361,6 +361,20 @@ protected theorem AreWeinsteinHomotopic.symm (h : AreWeinsteinHomotopic ω₀ X�
     AreWeinsteinHomotopic ω₁ X₁ f₁ ω₀ X₀ f₀ := by
   obtain ⟨ω, X, f, h, rfl, rfl, rfl, rfl, rfl, rfl⟩ := h
   simpa only [unitInterval.symm_zero, unitInterval.symm_one] using h.symm.areWeinsteinHomotopic
+
+/-- Two Weinstein homotopies, the second starting where the first ends, with regular barriers that
+agree at the seam, join the start of the first to the end of the second, by their concatenation
+`SymplecticGeometry.IsWeinsteinHomotopy.trans`. -/
+theorem IsWeinsteinHomotopy.areWeinsteinHomotopic_trans
+    {ω' : unitInterval → SmoothTwoForm 𝓘(ℝ, E) M}
+    {X' : unitInterval → (x : M) → TangentSpace 𝓘(ℝ, E) x} {f' : unitInterval → M → ℝ}
+    (h : IsWeinsteinHomotopy ω X f) (h' : IsWeinsteinHomotopy ω' X' f')
+    (hω : ω 1 = ω' 0) (hX : X 1 = X' 0) (hf : f 1 = f' 0) {c c' : ℕ → unitInterval → ℝ}
+    (hc : IsRegularBarrier E f c) (hc' : IsRegularBarrier E f' c')
+    (hcc' : ∀ k, c k 1 = c' k 0) :
+    AreWeinsteinHomotopic (ω 0) (X 0) (f 0) (ω' 1) (X' 1) (f' 1) := by
+  simpa only [collaredConcat_zero, collaredConcat_one] using
+    (h.trans h' hω hX hf hc hc' hcc').areWeinsteinHomotopic
 
 end AreWeinsteinHomotopic
 

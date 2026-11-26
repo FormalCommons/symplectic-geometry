@@ -479,16 +479,13 @@ protected theorem mextDeriv [IsManifold I 2 M] [IsManifold J 2 N] {α : N → Sm
     rw [← SmoothForm.mextDerivₗ_mpullback, hΩ]⟩
 
 /-- **Concatenation of smooth families.** Two smooth families `α` and `β` over `[0, 1]` with
-`α 1 = β 0` concatenate to a smooth family, which runs through `α` reparametrized by
-`TauCeti.collaredFirstHalf` for `t ≤ 1 / 2`, and through `β` reparametrized by
-`TauCeti.collaredSecondHalf` afterwards. -/
+`α 1 = β 0` concatenate to a smooth family `SymplecticGeometry.collaredConcat α β`. -/
 protected theorem glue_collaredHalves {α β : unitInterval → SmoothForm I M F k}
     (hα : IsSmoothFamily (𝓡∂ 1) α) (hβ : IsSmoothFamily (𝓡∂ 1) β) (hαβ : α 1 = β 0) :
-    IsSmoothFamily (𝓡∂ 1) fun t : unitInterval ↦
-      if (t : ℝ) ≤ 1 / 2 then α (collaredFirstHalf le_rfl t)
-      else β (collaredSecondHalf le_rfl t) := by
+    IsSmoothFamily (𝓡∂ 1) (collaredConcat α β) := by
   rw [isSmoothFamily_iff_contMDiff] at hα hβ ⊢
   refine (hα.glue_collaredHalves_left hβ (fun x ↦ by rw [hαβ]) le_rfl).congr fun p ↦ ?_
+  rw [collaredConcat_def]
   split_ifs <;> rfl
 
 section Maps
