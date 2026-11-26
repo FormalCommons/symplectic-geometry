@@ -10,14 +10,17 @@ public import TauCeti.Geometry.Contact.Symplectization.Basic
 public import TauCeti.Geometry.Symplectic.Liouville.ContactType
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
 public import SymplecticGeometry.Geometry.Manifold.Boundary.Charts
-public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Flow.Basic
-public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
+public import TauCeti.Geometry.Manifold.Boundary.Collar.Smooth
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
+import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Flow.Basic
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Local
 import SymplecticGeometry.Geometry.Manifold.PartitionOfUnity
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Continuity
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Symplectic.Liouville.ContactType
 import SymplecticGeometry.Geometry.Symplectic.Liouville.Scaling
+import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Flow.Local
 
 /-!
 # Strong fillings, their boundary contact form and their Liouville collar

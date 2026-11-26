@@ -7,14 +7,17 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.CircleConnection
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ModelConnection
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.TransAffine
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.Darboux
-public import SymplecticGeometry.LinearAlgebra.Symplectic.UnitaryNormalForm
+public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.TransAffine
+public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Chart
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.TransAffine
+import SymplecticGeometry.Geometry.Symplectic.Manifold.Darboux
+import SymplecticGeometry.LinearAlgebra.Symplectic.UnitaryNormalForm
 import SymplecticGeometry.Analysis.Normed.Module.Ball.Pointwise
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.LocalSection
 import SymplecticGeometry.Geometry.Symplectic.Liouville.RadialPrimitive
 import SymplecticGeometry.Topology.Algebra.Module.Equiv.Basic
+import Mathlib.Algebra.Order.Star.Real
 
 /-!
 # Centred Darboux charts with uniform bounds, their rescalings, and rescaled unitary charts

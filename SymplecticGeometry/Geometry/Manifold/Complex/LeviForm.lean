@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.Complex.LeviForm
-public import SymplecticGeometry.Analysis.Complex.Pseudoconvex
+import SymplecticGeometry.Analysis.Complex.Pseudoconvex
 
 /-!
 # Strong pseudoconvexity on a complex manifold persists near a point

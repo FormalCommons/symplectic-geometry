@@ -5,16 +5,17 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Compatible
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import TauCeti.Analysis.Complex.Euclidean.Matrix
 public import TauCeti.Analysis.Matrix.EuclideanLin
 public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Basic
 public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Sum
+import SymplecticGeometry.LinearAlgebra.Symplectic.Compatible
 import SymplecticGeometry.LinearAlgebra.Matrix.Block
 import SymplecticGeometry.LinearAlgebra.Matrix.PosDef.Block
 import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
 import SymplecticGeometry.LinearAlgebra.Matrix.Symmetric
+import SymplecticGeometry.LinearAlgebra.ComplexStructure.Action
 
 /-!
 # The matrix dictionary for the standard model

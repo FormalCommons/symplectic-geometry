@@ -5,15 +5,16 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.Local.Derivative
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.Local.Restrict
-public import SymplecticGeometry.Topology.Category.TopPair
+public import Mathlib.Analysis.Calculus.FDeriv.Defs
 public import Mathlib.Topology.Homotopy.LocallyContractible
 public import TauCeti.AlgebraicTopology.Cohomology.HomotopyInvariance
 public import TauCeti.Topology.Category.TopPair.ContinuousLinearEquiv
 public import TauCeti.Topology.Homotopy.Contractible
 public import TauCeti.Topology.VectorBundle.EulerClass
 public import TauCeti.Topology.VectorBundle.Trivialization
+import SymplecticGeometry.AlgebraicTopology.Cohomology.Local.Derivative
+import SymplecticGeometry.AlgebraicTopology.Cohomology.Local.Restrict
+import SymplecticGeometry.Topology.Category.TopPair
 
 /-!
 # Maps into a Thom pair over a contractible trivializing set

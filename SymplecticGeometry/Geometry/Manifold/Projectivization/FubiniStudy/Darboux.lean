@@ -7,7 +7,8 @@ module
 
 public import Mathlib.Analysis.Normed.Module.Ball.Homeomorph
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
-public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
+public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Basic
+import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
 import Mathlib.Analysis.InnerProductSpace.Calculus
 import Mathlib.Analysis.SpecialFunctions.Sqrt
 import TauCeti.Analysis.Matrix.OrthogonalRows
@@ -15,6 +16,9 @@ import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.RestrictScalars
 import SymplecticGeometry.Analysis.Complex.Euclidean.Space
+import SymplecticGeometry.LinearAlgebra.Matrix.DotProduct
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
+import SymplecticGeometry.Analysis.InnerProductSpace.PiL2
 
 /-!
 # Darboux charts of the Fubini–Study form

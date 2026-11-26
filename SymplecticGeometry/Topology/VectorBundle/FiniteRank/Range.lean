@@ -8,7 +8,7 @@ module
 public import TauCeti.Topology.VectorBundle.ConstantRank
 public import TauCeti.Topology.VectorBundle.FiniteRank.Basic
 public import TauCeti.Topology.VectorBundle.FiniteRank.Pullback
-public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 
 /-!
 # The range core of a bundle map of constant rank

@@ -5,15 +5,19 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
-public import SymplecticGeometry.Geometry.Manifold.Projectivization.ClassifyingMap
-public import SymplecticGeometry.Geometry.Manifold.Projectivization.TwistCore
-public import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Tensor
-public import SymplecticGeometry.Topology.VectorBundle.Pullback
 public import TauCeti.Geometry.Manifold.Instances.Projectivization
 public import TauCeti.Geometry.Manifold.SmoothApprox.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Hermitian
+public import TauCeti.Geometry.Manifold.Projectivization.LineBundle
+public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
+public import TauCeti.Topology.VectorBundle.Orientation.Complex.EulerClass
+public import TauCeti.Topology.FiberBundle.Pullback
+import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
+import SymplecticGeometry.Geometry.Manifold.Projectivization.ClassifyingMap
+import SymplecticGeometry.Geometry.Manifold.Projectivization.TwistCore
+import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Tensor
+import SymplecticGeometry.Topology.VectorBundle.Pullback
 
 /-!
 # Hermitian line bundles with a prescribed Euler class

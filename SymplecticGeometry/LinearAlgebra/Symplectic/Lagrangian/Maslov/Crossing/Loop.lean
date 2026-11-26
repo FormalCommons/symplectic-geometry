@@ -5,8 +5,13 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Crossing.Path
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Product
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Crossing.Form
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Basic
+public import TauCeti.Analysis.Matrix.SymplecticGroup.Maslov
+public import SymplecticGeometry.LinearAlgebra.QuadraticForm.Signature
+import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Crossing.Path
+import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Product
+import SymplecticGeometry.Analysis.Calculus.Deriv.Matrix
 
 /-!
 # The crossing-form formula for loops

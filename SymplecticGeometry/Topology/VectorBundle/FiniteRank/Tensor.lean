@@ -5,9 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 public import TauCeti.Topology.VectorBundle.FiniteRank.Monoidal
 public import TauCeti.Topology.VectorBundle.TensorProduct.Basic
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 
 /-!
 # Tensor products of finite-rank cores

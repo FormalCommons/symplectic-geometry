@@ -10,7 +10,7 @@ public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Reparam
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Stabilizer
 public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 public import SymplecticGeometry.Geometry.Manifold.Algebra.Monoid
-public import SymplecticGeometry.Geometry.Manifold.Instances.Icc
+import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 
 /-!
 # Truncations of diffeotopies

@@ -7,8 +7,10 @@ module
 
 public import Mathlib.Topology.VectorBundle.ContinuousAlternatingMap
 public import TauCeti.Topology.VectorBundle.Pullback
-public import SymplecticGeometry.Data.Bundle
-public import SymplecticGeometry.Topology.VectorBundle.Coordinates
+public import Mathlib.Topology.VectorBundle.Hom
+public import Mathlib.Topology.Algebra.Module.ModuleTopology
+import SymplecticGeometry.Data.Bundle
+import SymplecticGeometry.Topology.VectorBundle.Coordinates
 import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!

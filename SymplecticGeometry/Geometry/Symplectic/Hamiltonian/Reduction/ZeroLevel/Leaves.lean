@@ -6,10 +6,11 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Reduction.ZeroLevel.Basic
-public import SymplecticGeometry.Geometry.Manifold.Foliation.Orbit
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap.Level
 public import TauCeti.Geometry.Symplectic.Lagrangian.Manifold
 public import TauCeti.Geometry.Symplectic.Lagrangian.Presymplectic
+public import TauCeti.Geometry.Manifold.Foliation.Leaf
+import SymplecticGeometry.Geometry.Manifold.Foliation.Orbit
 import SymplecticGeometry.Geometry.Manifold.Foliation.Constancy
 
 /-!

@@ -7,7 +7,8 @@ module
 
 public import TauCeti.AlgebraicTopology.Cohomology.Point
 public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Basic
-public import SymplecticGeometry.Topology.VectorBundle.ModelEquiv
+import SymplecticGeometry.Topology.VectorBundle.ModelEquiv
+import SymplecticGeometry.AlgebraicTopology.Cohomology.Empty
 
 /-!
 # Naturality of the Chern classes

@@ -6,8 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Weight.Basic
-public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hopf
 public import SymplecticGeometry.Analysis.Normed.Module.Ball.Pointwise
+import SymplecticGeometry.Geometry.Manifold.Projectivization.Hopf
 import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 
 /-!

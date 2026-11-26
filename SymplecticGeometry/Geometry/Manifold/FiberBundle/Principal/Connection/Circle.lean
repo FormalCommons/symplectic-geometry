@@ -5,11 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.MapCoeff
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.CircleConnection
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Curvature
-public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Existence
-public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.MapCoeff
+import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Existence
+import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.CircleBundle
 import SymplecticGeometry.LinearAlgebra.FiniteDimensional.FinrankOne
 

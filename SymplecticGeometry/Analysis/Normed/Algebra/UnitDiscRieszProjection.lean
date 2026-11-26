@@ -9,11 +9,11 @@ public import TauCeti.Analysis.Normed.Algebra.HolomorphicFunctionalCalculus.Ries
 public import TauCeti.Analysis.Normed.Algebra.Spectrum
 public import TauCeti.MeasureTheory.Integral.DominatedConvergence
 public import TauCeti.MeasureTheory.Integral.Circle.Integral
-public import SymplecticGeometry.Analysis.Complex.DiscIndicator
-public import SymplecticGeometry.Analysis.Normed.Algebra.HolomorphicFunctionalCalculus.Riesz
-public import SymplecticGeometry.Analysis.Normed.Algebra.Spectrum
-public import SymplecticGeometry.Analysis.Normed.Group.Compact
-public import SymplecticGeometry.MeasureTheory.Integral.CircleIntegral
+import SymplecticGeometry.Analysis.Complex.DiscIndicator
+import SymplecticGeometry.Analysis.Normed.Algebra.HolomorphicFunctionalCalculus.Riesz
+import SymplecticGeometry.Analysis.Normed.Algebra.Spectrum
+import SymplecticGeometry.Analysis.Normed.Group.Compact
+import SymplecticGeometry.MeasureTheory.Integral.CircleIntegral
 
 /-!
 # The Riesz projection onto the spectrum inside the unit disc

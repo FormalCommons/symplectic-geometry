@@ -10,7 +10,7 @@ public import Mathlib.LinearAlgebra.Eigenspace.Basic
 public import Mathlib.LinearAlgebra.Matrix.Charpoly.Eigs
 public import Mathlib.LinearAlgebra.Matrix.SesquilinearForm
 public import Mathlib.LinearAlgebra.SymplecticGroup
-public import SymplecticGeometry.Algebra.Polynomial.Reverse
+import SymplecticGeometry.Algebra.Polynomial.Reverse
 import TauCeti.Algebra.Polynomial.Reverse
 import TauCeti.LinearAlgebra.Eigenspace.Pairing
 import TauCeti.LinearAlgebra.Matrix.Charpoly.Symplectic

@@ -7,7 +7,7 @@ module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Cross.Basic
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Linear
-public import SymplecticGeometry.LinearAlgebra.Orientation.Prod
+import SymplecticGeometry.LinearAlgebra.Orientation.Prod
 import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.RelativePoint
 import SymplecticGeometry.AlgebraicTopology.Singular.PairChangeOfCoefficients
 import TauCeti.AlgebraicTopology.Singular.Kunneth.Pair

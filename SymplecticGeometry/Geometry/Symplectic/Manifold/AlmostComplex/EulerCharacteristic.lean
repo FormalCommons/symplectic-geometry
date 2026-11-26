@@ -5,11 +5,15 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.FundamentalClass
 public import SymplecticGeometry.Geometry.Manifold.Orientation.ComplexStructure
-public import SymplecticGeometry.Geometry.Manifold.Orientation.EulerCharacteristic
-public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.EulerClass
-public import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Structure
+public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
+public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Basic
+public import TauCeti.AlgebraicTopology.Cellular.EulerCharacteristic.FiniteCWType
+public import TauCeti.AlgebraicTopology.Cohomology.FundamentalClass
+import SymplecticGeometry.AlgebraicTopology.Cohomology.FundamentalClass
+import SymplecticGeometry.Geometry.Manifold.Orientation.EulerCharacteristic
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.EulerClass
+import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Structure
 
 /-!
 # The top Chern class of an almost complex manifold and its Euler characteristic

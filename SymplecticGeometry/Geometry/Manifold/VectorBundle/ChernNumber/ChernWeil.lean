@@ -5,12 +5,17 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.CurvatureIntegral
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.StandardTransition
-public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
+public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.CircleBundle
+public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.CircleConnection
+public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
+import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.CurvatureIntegral
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.StandardTransition
+import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.CoordinateDisc
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.ClutchingConnection
 import TauCeti.Analysis.SpecialFunctions.SmoothTransition
+import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Circle
 
 /-!
 # The Chern–Weil formula for circle bundles over surfaces

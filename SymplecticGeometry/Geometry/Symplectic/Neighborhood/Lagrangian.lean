@@ -5,12 +5,13 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Basic
-import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
-import SymplecticGeometry.Topology.Sets.Opens.Basic
 public import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Liouville
 public import TauCeti.Geometry.Symplectic.Lagrangian.Manifold
 public import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.WeinsteinChart
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
+import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Basic
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
+import SymplecticGeometry.Topology.Sets.Opens.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
 import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
 import TauCeti.Geometry.Manifold.IsManifold.Basic
@@ -21,6 +22,7 @@ import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Graph
 import TauCeti.Topology.FiberBundle.Countable
 import TauCeti.Topology.FiberBundle.Separation
 import SymplecticGeometry.Topology.VectorBundle.Basic
+import SymplecticGeometry.Topology.VectorBundle.Pullback
 
 /-!
 # Neighbourhoods of Lagrangian submanifolds
