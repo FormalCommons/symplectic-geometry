@@ -51,7 +51,8 @@ union form, and `TopCat.lerayHirsch_bijective_of_trivializations` the bundle for
 bundle,
 the restrictions of the classes through two trivializations differ by the coordinate change, a
 homeomorphism of `F`, so the hypothesis at the trivialization of each point gives it through every
-trivialization of the atlas.
+trivialization of the atlas; `Bundle.Trivialization.ofHom_fiberInclusionMap` turns these
+restrictions into restrictions through Tau Ceti's fibre inclusions.
 
 The integral form follows from the case `k = ℤ`, through the inverse of Tau Ceti's linear
 equivalence `TopCat.integralCohomologyEquiv` of integral cohomology with cohomology with

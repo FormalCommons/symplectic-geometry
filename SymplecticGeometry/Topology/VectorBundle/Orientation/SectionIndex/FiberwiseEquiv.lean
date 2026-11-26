@@ -41,9 +41,6 @@ Tau Ceti's proof of
 * `Topology.IsOpenEmbedding.localHomologyMap_restrict_localOrientationEquiv_symm`: the restriction
   `U → V` of an open embedding `j` to open sets carries corresponding local orientations to
   corresponding local orientations.
-* `TauCeti.thomPairMapOfNeZero_comp_thomPairMapOfFiberwise_of_eq`: a map into the Thom pair of
-  `E'`, followed by the map of Thom pairs of `φ`, is the map into the Thom pair of `E` of the
-  composite.
 * `TauCeti.VectorBundleOrientation.sectionIndex_eq_of_fiberwise`: orientation-preserving
   fibrewise isomorphisms preserve local indices of sections.
 * `TauCeti.VectorBundleOrientation.sectionIndex_comap_eq_of_fiberwise`: so do orientation-preserving
@@ -104,33 +101,6 @@ end Topology.IsOpenEmbedding
 
 namespace TauCeti
 
-section ThomPair
-
-variable {B : Type w} [TopologicalSpace B] {F : Type*} {E : B → Type w}
-  [TopologicalSpace (TotalSpace F E)] [∀ b, AddCommMonoid (E b)] [∀ b, Module ℝ (E b)]
-  [∀ b, TopologicalSpace (E b)] {B' : Type w} [TopologicalSpace B'] {F' : Type*}
-  {E' : B' → Type w} [TopologicalSpace (TotalSpace F' E')] [∀ b, AddCommMonoid (E' b)]
-  [∀ b, Module ℝ (E' b)] [∀ b, TopologicalSpace (E' b)] {g : C(B', B)}
-  {φ : ∀ b', E' b' ≃L[ℝ] E (g b')} {X : Type w} [TopologicalSpace X]
-
-/-- A map `f : X → E'` that is nonzero off `S`, as a map of pairs into the Thom pair of `E'`,
-followed by the map of Thom pairs of a fibrewise isomorphism `φ b' : E'_{b'} ≃ E_{g b'}`, is the
-map of pairs into the Thom pair of `E` given by `x ↦ φ (f x)`. -/
-theorem thomPairMapOfNeZero_comp_thomPairMapOfFiberwise_of_eq (f : C(X, TotalSpace F' E'))
-    {S : Set X} (h : ∀ x ∉ S, (f x).snd ≠ 0)
-    (hφ : Continuous fun v : TotalSpace F' E' ↦ TotalSpace.mk' F (g v.proj) (φ v.proj v.snd))
-    {f' : C(X, TotalSpace F E)}
-    (hf' : ∀ x, f' x = TotalSpace.mk' F (g (f x).proj) (φ (f x).proj (f x).snd))
-    (h' : ∀ x ∉ S, (f' x).snd ≠ 0) :
-    thomPairMapOfNeZero f h ≫ thomPairMapOfFiberwise hφ = thomPairMapOfNeZero f' h' := by
-  refine TopPair.hom_ext_of_fst _ (TopCat.ext fun x ↦ ?_)
-  rw [TopPair.Hom.fst_comp, ConcreteCategory.comp_apply]
-  -- The source of the pair is `X` only after unfolding `TopPair.ofSubset`.
-  erw [thomPairMapOfNeZero_fst_apply, thomPairMapOfFiberwise_fst_apply,
-    thomPairMapOfNeZero_fst_apply, hf']
-
-end ThomPair
-
 namespace VectorBundleOrientation
 
 variable {M E' : Type} [TopologicalSpace M] [T2Space M] [NormedAddCommGroup E']
@@ -190,9 +160,10 @@ theorem sectionIndex_comap_eq_of_fiberwise {M₁ : Type} [TopologicalSpace M₁]
     rw [sectionIndex_eq o₁ hF₁ _ hs₁ hU hz hUz, sectionIndex_eq o hF oM hs hV hjz hVz, ← hexc,
       ← singularCohomologyMap_thomPairMapOfFiberwise_thomClass o hF o₁ hF₁ hφ ho,
       ← TopPair.singularCohomologyMap_comp_apply,
-      thomPairMapOfNeZero_comp_thomPairMapOfFiberwise_of_eq _ _ hφ
+      thomPairMapOfNeZero_comp_thomPairMapOfFiberwise_of_comp_eq _ _ hφ
         (f' := ⟨fun x : U ↦ TotalSpace.mk' F (j x.val) (s (j x.val)),
-          (hs.comp j.continuous).comp continuous_subtypeVal⟩) (fun x ↦ by simp [hss])
+          (hs.comp j.continuous).comp continuous_subtypeVal⟩)
+        (ContinuousMap.ext fun x ↦ by simp [hss])
         (fun x hx h0 ↦ hx (Subtype.ext (hUz x.val x.property ((hzero x.val).1 h0)))),
       ← ofSubsetMap_comp_thomPairMapOfNeZero_of_comp_eq
         ⟨fun x : j '' U ↦ TotalSpace.mk' F x.val (s x.val), hs.comp continuous_subtypeVal⟩
