@@ -15,10 +15,10 @@ import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 # Morse–Bott charts along local diffeomorphisms
 
 Let `Φ : M' → M` be a smooth local diffeomorphism at `y`, where `M'` is modelled on `E'` and `M`
-on `E`, and let `A : E' ≃L[ℝ] E` be the derivative of `Φ` at `y`. A Morse–Bott chart `φ` for `f`
-at `Φ y`, with chart `ψ`, pulls back to a Morse–Bott chart for `f ∘ Φ` at `y` whose chart is
-`A⁻¹ ∘ ψ ∘ Φ` near `y`. Its coordinates are those of `φ` after `A`, and its weights those of `φ`,
-both reindexed along `finrank E' = finrank E`.
+on `E`, and let `A : E' ≃L[ℝ] E` be a linear equivalence of the models, such as the derivative of
+`Φ` at `y`. A Morse–Bott chart `φ` for `f` at `Φ y`, with chart `ψ`, pulls back to a Morse–Bott
+chart for `f ∘ Φ` at `y` whose chart is `A⁻¹ ∘ ψ ∘ Φ` near `y`. Its coordinates are those of `φ`
+after `A`, and its weights those of `φ`, both reindexed along `finrank E' = finrank E`.
 
 ## Main declarations
 
@@ -32,12 +32,12 @@ both reindexed along `finrank E' = finrank E`.
 ## Implementation notes
 
 The declarations are in the namespace `TauCeti`, since they concern Tau Ceti's notions. The chart
-`A⁻¹ ∘ ψ ∘ Φ` is built from the chosen local inverse of `Φ`; it lies in the maximal atlas by Tau
-Ceti's `IsManifold.mem_maximalAtlas_iff_forall_isLocalDiffeomorphAt`. Along a diffeomorphism
-between manifolds with the same model, this replaces a pull-back in the style of Tau Ceti's
-`TauCeti.MorseChart.pullback`. A Morse–Bott chart may have weights `0`, as the Morse–Bott chart
-of the quadratic part of a birth–death chart does, so Tau Ceti's results on Morse charts do not
-apply to it.
+`A⁻¹ ∘ ψ ∘ Φ` is built from the chosen local inverse of `Φ`, and lies in the maximal atlas by Tau
+Ceti's `IsManifold.mem_maximalAtlas_iff_forall_isLocalDiffeomorphAt`. The construction is the
+analogue, along a local diffeomorphism between possibly different models, of Tau Ceti's
+`TauCeti.MorseChart.pullback` along a diffeomorphism. A Morse–Bott chart may have weights `0`, as
+the Morse–Bott chart of the quadratic part of a birth–death chart does, so Tau Ceti's results on
+Morse charts do not apply to it.
 -/
 
 public section
