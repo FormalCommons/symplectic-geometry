@@ -5,9 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Topology.VectorBundle.Core.Basic
-public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.CompactCharts
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.NearbyClutching
+public import TauCeti.Analysis.Complex.Basic
 
 /-!
 # Linear clutching functions with an invertible leading coefficient
@@ -20,7 +19,7 @@ by the linear clutching function `u • (a + t b) + (t a + b)`, for a real `t �
 be chosen so that `a + t b` is invertible on every fibre.
 
 The substitution behind this is the Möbius map `m_s(u) = (u + s) / (1 + s u)`, which for a real
-`s ∈ [0, 1)` maps the unit circle to itself (`Circle.norm_coe_add_ofReal`). It gives
+`s ∈ [0, 1)` maps the unit circle to itself (by `Complex.norm_one_sub_conj_mul`). It gives
 `(u + s) a + (s u + 1) b = (1 + s u) (m_s(u) a + b)`, so the family
 `p_s(x, u) = u (a + s b) + (s a + b)` is invertible for every `s ∈ [0, 1)`, and `s ↦ p_{s t}`,
 `s ∈ I`, is a homotopy through automorphisms from `g` to the new clutching function, to which
@@ -33,16 +32,12 @@ to `1`. The estimate is made in finitely many charts: the fibre maps of a morphi
 base are bounded after a change of coordinates at each point
 (`TauCeti.FiniteRankBundleCore.exists_norm_conj_fiberMap_le`), and
 `TauCeti.FiniteRankBundleCore.isIso_of_norm_conj_lt_one` brings the estimate back to the chart at
-each point. A small `t` would not do in general: for the trivial line over the unit disc with
-`a(x) = -x` and `b = 1`, the coefficient `a + t b` vanishes at `x = t`.
+each point. A small `t` would not do in general: for the trivial line over the closed disc of
+radius `1/2`, with `a(x) = -x` and `b = 1`, the map `1 - u x` never vanishes, but the
+coefficient `a + t b = t - x` vanishes at `x = t` for every `t ≤ 1/2`.
 
-## Main results
+## Main result
 
-* `Circle.norm_coe_add_ofReal`: `‖u + s‖ = ‖1 + s u‖` for `u` on the unit circle and real `s`;
-* `TauCeti.FiniteRankBundleCore.exists_norm_conj_fiberMap_le`: over a compact Hausdorff base, the
-  fibre maps of an endomorphism are bounded after a change of coordinates at each point;
-* `TauCeti.FiniteRankBundleCore.exists_isIso_add_smul`: over a compact Hausdorff base, `a + c b` is
-  an isomorphism for an isomorphism `a` and all small enough scalars `c`;
 * `TauCeti.FiniteRankBundleCore.exists_isIso_nonempty_iso_clutching_linear`: a linear clutching
   function `u • a + b` gives the same clutching as `u • (a + t b) + (t a + b)` for some
   `t ∈ [0, 1)` with `a + t b` an isomorphism.
@@ -60,63 +55,9 @@ open CategoryTheory
 
 open scoped unitInterval
 
-/-- For `u` on the unit circle and a real `s`, `‖u + s‖ = ‖1 + s u‖`: the Möbius map
-`u ↦ (u + s) / (1 + s u)` preserves the unit circle where it is defined. -/
-theorem Circle.norm_coe_add_ofReal (u : Circle) (s : ℝ) : ‖(u : ℂ) + s‖ = ‖1 + s * (u : ℂ)‖ := by
-  have h : 1 + s * (u : ℂ) = u * (starRingEnd ℂ (u : ℂ) + s) := by
-    rw [mul_add, Complex.mul_conj, Complex.normSq_eq_norm_sq, Circle.norm_coe]
-    push_cast
-    ring
-  rw [h, norm_mul, Circle.norm_coe, one_mul, ← Complex.norm_conj, map_add,
-    Complex.conj_ofReal]
-
 namespace TauCeti.FiniteRankBundleCore
 
 variable {𝕜 X : Type*} [NontriviallyNormedField 𝕜] [TopologicalSpace X]
-
-/-- Over a compact Hausdorff base, the fibre maps of an endomorphism `n` of a finite-rank core are
-bounded after a change of coordinates: there is a `C` such that at every point `x` some unit `U`
-of the endomorphisms of the model fibre has `‖U⁻¹ ∘ n(x) ∘ U‖ ≤ C`. -/
-theorem exists_norm_conj_fiberMap_le [CompactSpace X] [T2Space X]
-    {A : FiniteRankBundleCore 𝕜 X} (n : A ⟶ A) :
-    ∃ C, ∀ x, ∃ U : ((Fin A.rank → 𝕜) →L[𝕜] (Fin A.rank → 𝕜))ˣ,
-      ‖↑U⁻¹ * n.fiberMap x * ↑U‖ ≤ C := by
-  obtain ⟨t, ρ, -, hρs, -, -⟩ := A.exists_partitionOfUnity_isSubordinate_baseSet
-  obtain ⟨C, hC⟩ := exists_norm_inChartCoordinates_le n (fun k : t ↦ (k : X)) (fun k ↦ k)
-    (K := fun k ↦ tsupport (ρ k)) (fun k ↦ (isClosed_tsupport _).isCompact)
-    fun k _ hx ↦ ⟨hρs k hx, hρs k hx⟩
-  refine ⟨C, fun x ↦ ?_⟩
-  obtain ⟨j, hj⟩ := ρ.exists_pos (Set.mem_univ x)
-  have hxj : x ∈ tsupport (ρ j) := subset_tsupport _ hj.ne'
-  obtain ⟨U, hU⟩ := A.core.exists_units_inv_mul_mul_eq_inChartCoordinates (hρs j hxj)
-  exact ⟨U, (hU _).symm ▸ hC j x hxj⟩
-
-/-- **Invertibility is open over a compact base.** Over a compact Hausdorff base, for an
-isomorphism `a` and any morphism `b` of finite-rank cores, `a + c b` is an isomorphism for every
-scalar `c` small enough. -/
-theorem exists_isIso_add_smul [CompleteSpace 𝕜] [CompactSpace X] [T2Space X]
-    {A D : FiniteRankBundleCore 𝕜 X} (a : A ⟶ D) [IsIso a] (b : A ⟶ D) :
-    ∃ ε > 0, ∀ c : 𝕜, ‖c‖ < ε → IsIso (a + ContinuousMap.const X c • b) := by
-  obtain ⟨C, hC⟩ := exists_norm_conj_fiberMap_le (b ≫ inv a)
-  set C' := max C 1
-  have hC' : 0 < C' := lt_max_of_lt_right one_pos
-  refine ⟨1 / C', by positivity, fun c hc ↦ ?_⟩
-  refine isIso_of_norm_conj_lt_one (asIso a) _ fun x ↦ ?_
-  obtain ⟨U, hU⟩ := hC x
-  refine ⟨U, ?_⟩
-  -- After `a⁻¹`, the morphism `a + c b` is `1 + c (a⁻¹ ∘ b)`, in any coordinates.
-  have he : ↑U⁻¹ * (((asIso a).inv.fiberMap x).comp
-      ((a + ContinuousMap.const X c • b).fiberMap x)) * ↑U - 1 =
-        c • (↑U⁻¹ * (b ≫ inv a).fiberMap x * ↑U) := by
-    rw [asIso_inv, fiberMap_add, fiberMap_smul, ContinuousMap.const_apply,
-      ContinuousLinearMap.comp_add, ContinuousLinearMap.comp_smul, ← fiberMap_comp,
-      ← fiberMap_comp, IsIso.hom_inv_id, fiberMap_id, ← ContinuousLinearMap.one_def, mul_add,
-      add_mul, mul_one, Units.inv_mul, add_sub_cancel_left, mul_smul_comm, smul_mul_assoc]
-  rw [he, norm_smul]
-  calc ‖c‖ * ‖↑U⁻¹ * (b ≫ inv a).fiberMap x * ↑U‖ ≤ ‖c‖ * C' :=
-        mul_le_mul_of_nonneg_left (hU.trans (le_max_left _ _)) (norm_nonneg _)
-    _ < 1 / C' * C' := mul_lt_mul_of_pos_right hc hC'
-    _ = 1 := by field_simp
 
 variable {E : FiniteRankBundleCore ℂ X}
 
@@ -139,7 +80,10 @@ private theorem bijective_moebius {a b : E ⟶ E} {g : (Q E) ≅ (Q E)}
   let m : Circle :=
     { val := ((u : ℂ) + s) / (1 + s * u)
       property := mem_sphere_zero_iff_norm.2 <| by
-        rw [norm_div, Circle.norm_coe_add_ofReal, div_self (norm_ne_zero_iff.2 hd)] }
+        have h := Complex.norm_one_sub_conj_mul (z := -(s : ℂ)) (Circle.norm_coe u)
+        rw [Complex.norm_one_sub_conj_mul_comm] at h
+        rw [norm_div, show ‖(u : ℂ) + s‖ = ‖1 + s * (u : ℂ)‖ by
+          simpa [norm_sub_rev, add_comm] using h.symm, div_self (norm_ne_zero_iff.2 hd)] }
   have he : ((u : ℂ) + s) • a.fiberMap x + ((s : ℂ) * u + 1) • b.fiberMap x =
       (1 + (s : ℂ) * u) • g.hom.fiberMap (x, m) := by
     rw [hg, smul_add, smul_smul, add_comm ((s : ℂ) * u) 1]
