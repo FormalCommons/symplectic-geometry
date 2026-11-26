@@ -18,7 +18,8 @@ Let `V` be a complex normed space with `finrank ℂ V = n + 1` and `n ≥ 1`, an
 `h = Projectivization.hyperplaneClass V ∈ H²(ℙ ℂ V; ℤ)`. This file shows that the Kronecker pairing
 `x ↦ ⟨h, x⟩` with `h` is a bijection from `H₂(ℙ ℂ V; ℤ)` onto `ℤ`, so that `h` takes the value
 `±1` on a generator of `H₂(ℙ ℂ V; ℤ)`. The pairing is the integral Kronecker pairing
-`TopCat.integralKronecker`; the sign is not fixed here.
+`TopCat.integralKronecker`; the sign is not fixed here. It follows that the map of projective
+spaces induced by an injective linear map `V →ₗ[ℂ] W` is a bijection on `H₂(-; ℤ)`.
 
 ## Main results
 
@@ -26,6 +27,9 @@ Let `V` be a complex normed space with `finrank ℂ V = n + 1` and `n ≥ 1`, an
   `H₂(ℙ ℂ V; ℤ) → ℤ`.
 * `Projectivization.integralKronecker_hyperplaneClass_eq_one_or_neg_one`: `⟨h, x⟩ = ±1` for
   every generator `x` of `H₂(ℙ ℂ V; ℤ)`.
+* `Projectivization.bijective_singularHomologyMap_map_two`: for an injective linear map
+  `f : V →ₗ[ℂ] W` of finite-dimensional spaces, the induced map `ℙ ℂ V → ℙ ℂ W` is a bijection
+  on `H₂(-; ℤ)`.
 
 ## Proof
 
@@ -37,6 +41,10 @@ in degree `2` is that of its cellular chain complex, a single copy of `ℤ` from
 class of `H²(ℙ ℂ V; ℤ)` is a multiple `m • h` (`Projectivization.exists_eq_zsmul_hyperplaneClass`).
 So an isomorphism `H₂(ℙ ℂ V; ℤ) ≅ ℤ` is `m` times the pairing with `h`; being onto, it forces
 `m = ±1`, and the pairing with `h` is `±` that isomorphism.
+
+For the map `g : ℙ ℂ V → ℙ ℂ W` induced by `f`, the hyperplane classes satisfy `g^* h_W = h_V`
+(`Projectivization.hyperplaneClass_map`), so by naturality of the Kronecker pairing
+`⟨h_W, g_* x⟩ = ⟨h_V, x⟩`. Both pairings are bijections onto `ℤ`, hence so is `g_*`.
 
 ## References
 
@@ -100,5 +108,32 @@ theorem integralKronecker_hyperplaneClass_eq_one_or_neg_one (hV : finrank ℂ V 
   obtain ⟨k, rfl⟩ := AddSubgroup.mem_zmultiples_iff.1 (hx ▸ AddSubgroup.mem_top y)
   rw [map_zsmul, smul_eq_mul] at hy
   exact Int.eq_one_or_neg_one_of_mul_eq_one' hy |>.elim (fun h => Or.inl h.2) fun h => Or.inr h.2
+
+section map
+
+variable {W : Type} [NormedAddCommGroup W] [NormedSpace ℂ W] [FiniteDimensional ℂ V]
+  [FiniteDimensional ℂ W]
+
+/-- An injective linear map `f : V →ₗ[ℂ] W` with `finrank ℂ V = n + 1` and `n ≠ 0` induces a
+bijection `H₂(ℙ ℂ V; ℤ) → H₂(ℙ ℂ W; ℤ)` on integral second homology. -/
+theorem bijective_singularHomologyMap_map_two (f : V →ₗ[ℂ] W) (hf : Function.Injective f)
+    (hV : finrank ℂ V = n + 1) (hn : n ≠ 0) :
+    Function.Bijective
+      (((singularHomologyFunctor (ModuleCat.{0} ℤ) 2).obj (𝟙_ (ModuleCat.{0} ℤ))).map
+        (TopCat.ofHom
+          ⟨map f hf, continuous_map hf (LinearMap.continuous_of_finiteDimensional f)⟩)) := by
+  have hle := LinearMap.finrank_le_finrank_of_injective hf
+  have hW : finrank ℂ W = (finrank ℂ W - 1) + 1 := by omega
+  have hcomp : ⇑((TopCat.of (ℙ ℂ V)).integralKronecker 2 (hyperplaneClass V)) =
+      (TopCat.of (ℙ ℂ W)).integralKronecker 2 (hyperplaneClass W) ∘
+        ((singularHomologyFunctor (ModuleCat.{0} ℤ) 2).obj (𝟙_ (ModuleCat.{0} ℤ))).map
+          (TopCat.ofHom
+          ⟨map f hf, continuous_map hf (LinearMap.continuous_of_finiteDimensional f)⟩) := by
+    ext x
+    rw [Function.comp_apply, ← TopCat.integralKronecker_naturality, hyperplaneClass_map]
+  rw [← (bijective_integralKronecker_hyperplaneClass hW (by omega)).of_comp_iff', ← hcomp]
+  exact bijective_integralKronecker_hyperplaneClass hV hn
+
+end map
 
 end Projectivization
