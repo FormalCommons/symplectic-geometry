@@ -470,20 +470,23 @@ needed for it.
    `pₗ x := (Function.update x.1 i₀ (c l), 0)`. Their derivative in a
    direction `w` of `insert i₀ J'` is `G (pₗ x) w` up to the holonomy defect
    of `(f, G)` in the directions `J'` at `pₗ x`, which the hypothesis makes
-   `0`, and a term bounded by `‖fderiv ℝ G‖ ‖x - pₗ x‖`, small with `r` and
-   the mesh. The chain is `exists_zigzag_chain`, which already takes `m`
-   and `i₀`, with `S 0 = S (n + 1) = f` near the faces `|u i₀| = 1`. The
+   `0` on the cube, so that it is small near the cube, and a term bounded by
+   `‖fderiv ℝ G‖ ‖x - pₗ x‖`, small with `r` and the mesh. The chain is
+   `exists_zigzag_chain`, which already takes `m` and `i₀`, with `S 0 = S (n + 1) = f` near the faces `|u i₀| = 1`. The
    estimates `zigzag_section_estimate`, `zigzag_neighbour_estimate` and
    `zigzag_curve_estimate` become uniform over the other coordinates by
-   compactness of the cube. Smoothness of `S l` needs smoothness of
-   `u ↦ G (Function.update u i₀ c, 0)` only, which for `m = 1` holds with
-   `G` merely continuous, since that map is constant; so the hypothesis is
-   stated in that form and `exists_holonomic_approximation_segment` keeps
-   `Continuous G`.
+   compactness of the cube. Besides `Continuous G`, the hypothesis on `G` is
+   that each `u ↦ G (Function.update u i₀ c, 0)` is smooth and that
+   `(u, c) ↦ fderiv ℝ (fun u ↦ G (Function.update u i₀ c, 0)) u` is
+   continuous, which bounds that derivative uniformly on the cube; for
+   `m = 1` both hold with `G` merely continuous, since the map is constant,
+   so `exists_holonomic_approximation_segment` keeps `Continuous G`. The
+   holonomy in the directions `J'` is asked on the core vectors only, at
+   the points of `Q`.
 5. *Coordinates kept by the transverse push.* `exists_wiggling_diffeotopy`
    gains the clause `∀ t x, (h (t, x)).1 = x.1`, from a new clause of
    `exists_diffeotopy_apply_eq_add_smul` (`Diffeotopy/Translate.lean`):
-   `∀ t x, ∃ c : ℝ, h (t, x) = x + c • e`. The field is a multiple of `e`
+   `∀ t x, h (t, x) - x ∈ ℝ ∙ e`. The field is a multiple of `e`
    everywhere, so its flow lines stay on lines `x + ℝ • e`: the quotient map
    `E → E ⧸ ℝ ∙ e` kills the field, so it is constant along integral
    curves.
