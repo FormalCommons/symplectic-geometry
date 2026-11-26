@@ -83,7 +83,8 @@ coordinates `s, t` of the line. A point of the cone `K³ × K²` is written `Sum
 * `SymplecticGeometry.hesseCubics R`: the two cubics `x³ + y³ + z³` and `x y z` of the plane
   that span the pencil, both homogeneous of degree three
   (`SymplecticGeometry.isHomogeneous_hesseCubics`). The first is Mathlib's power sum
-  `psum (Fin 3) R 3`, the polynomial of the Fermat cubic (`SymplecticGeometry.hesseCubics_zero`).
+  `psum (Fin 3) R 3`, the polynomial of the Fermat cubic (`SymplecticGeometry.hesseCubics_zero`);
+  `SymplecticGeometry.hesseCubics_zero'` writes it out as `X 0 ^ 3 + X 1 ^ 3 + X 2 ^ 3`.
 * `SymplecticGeometry.hessePencil R`: the polynomial `s (x³ + y³ + z³) + t x y z`, defined as
   the combination with coefficients `s, t` of the two cubics `hesseCubics R`, renamed into the
   plane coordinates `Sum.inl`.
@@ -91,8 +92,9 @@ coordinates `s, t` of the line. A point of the cone `K³ × K²` is written `Sum
   `pderiv_inr_one_hessePencil`: its evaluation and its five partial derivatives.
 * `SymplecticGeometry.isWeightedHomogeneous_hessePencil_inl` and
   `SymplecticGeometry.isWeightedHomogeneous_hessePencil_inr`: it is bihomogeneous of bidegree
-  `(3, 1)`, since the cubics are homogeneous of degree three and renaming variables keeps weighted
-  homogeneity (`MvPolynomial.IsWeightedHomogeneous.rename`).
+  `(3, 1)`. Both are cases of `SymplecticGeometry.isWeightedHomogeneous_hessePencil`, which
+  derives weighted homogeneity of the pencil from that of the cubics, since renaming variables
+  keeps weighted homogeneity (`MvPolynomial.IsWeightedHomogeneous.rename`).
 * `SymplecticGeometry.sum_mul_eval_pderiv_inl_hessePencil` and
   `SymplecticGeometry.sum_mul_eval_pderiv_inr_hessePencil`: the two Euler relations.
 * `SymplecticGeometry.exists_eval_pderiv_hessePencil_ne_zero`: over a field in which `3 ≠ 0`, at
@@ -174,6 +176,10 @@ noncomputable def hesseCubics : Fin 2 → MvPolynomial (Fin 3) R :=
 theorem hesseCubics_zero : hesseCubics R 0 = psum (Fin 3) R 3 :=
   (rfl)
 
+/-- The first cubic of the Hesse pencil written out: `x³ + y³ + z³`. -/
+theorem hesseCubics_zero' : hesseCubics R 0 = X 0 ^ 3 + X 1 ^ 3 + X 2 ^ 3 := by
+  simp [hesseCubics_zero, psum, Fin.sum_univ_three]
+
 theorem hesseCubics_one : hesseCubics R 1 = X 0 * X 1 * X 2 :=
   (rfl)
 
@@ -194,7 +200,7 @@ variable {R}
 @[simp]
 theorem eval_hesseCubics_zero (v : Fin 3 → R) :
     eval v (hesseCubics R 0) = v 0 ^ 3 + v 1 ^ 3 + v 2 ^ 3 := by
-  simp [hesseCubics_zero, psum, Fin.sum_univ_three]
+  simp [hesseCubics_zero']
 
 /-- The value of the second cubic `x y z` at `v`. -/
 @[simp]
@@ -218,58 +224,54 @@ theorem eval_hessePencil (p : Fin 3 ⊕ Fin 2 → R) :
 theorem pderiv_inl_zero_hessePencil :
     pderiv (.inl 0) (hessePencil R) =
       3 * X (.inr 0) * X (.inl 0) ^ 2 + X (.inr 1) * (X (.inl 1) * X (.inl 2)) := by
-  simp [hessePencil_def, hesseCubics_zero, hesseCubics_one, psum, Fin.sum_univ_three, pderiv_X]
+  simp [hessePencil_def, hesseCubics_zero', hesseCubics_one, pderiv_X]
   ring
 
 @[simp]
 theorem pderiv_inl_one_hessePencil :
     pderiv (.inl 1) (hessePencil R) =
       3 * X (.inr 0) * X (.inl 1) ^ 2 + X (.inr 1) * (X (.inl 0) * X (.inl 2)) := by
-  simp [hessePencil_def, hesseCubics_zero, hesseCubics_one, psum, Fin.sum_univ_three, pderiv_X]
+  simp [hessePencil_def, hesseCubics_zero', hesseCubics_one, pderiv_X]
   ring
 
 @[simp]
 theorem pderiv_inl_two_hessePencil :
     pderiv (.inl 2) (hessePencil R) =
       3 * X (.inr 0) * X (.inl 2) ^ 2 + X (.inr 1) * (X (.inl 0) * X (.inl 1)) := by
-  simp [hessePencil_def, hesseCubics_zero, hesseCubics_one, psum, Fin.sum_univ_three, pderiv_X]
+  simp [hessePencil_def, hesseCubics_zero', hesseCubics_one, pderiv_X]
   ring
 
 @[simp]
 theorem pderiv_inr_zero_hessePencil :
     pderiv (.inr 0) (hessePencil R) = X (.inl 0) ^ 3 + X (.inl 1) ^ 3 + X (.inl 2) ^ 3 := by
-  simp [hessePencil_def, hesseCubics_zero, hesseCubics_one, psum, Fin.sum_univ_three, pderiv_X]
+  simp [hessePencil_def, hesseCubics_zero', hesseCubics_one, pderiv_X]
 
 @[simp]
 theorem pderiv_inr_one_hessePencil :
     pderiv (.inr 1) (hessePencil R) = X (.inl 0) * X (.inl 1) * X (.inl 2) := by
-  simp [hessePencil_def, hesseCubics_zero, hesseCubics_one, psum, Fin.sum_univ_three, pderiv_X]
+  simp [hessePencil_def, hesseCubics_zero', hesseCubics_one, pderiv_X]
+
+/-- The Hesse pencil is weighted homogeneous of degree `n + m` for weights `w` that give each
+line coordinate `s, t` the weight `n` and for which both cubics are weighted homogeneous of degree
+`m` in the plane coordinates. -/
+theorem isWeightedHomogeneous_hessePencil {w : Fin 3 ⊕ Fin 2 → ℕ} {m n : ℕ}
+    (hc : ∀ i, (hesseCubics R i).IsWeightedHomogeneous (w ∘ Sum.inl) m)
+    (hw : ∀ i, w (.inr i) = n) : (hessePencil R).IsWeightedHomogeneous w (n + m) := by
+  have h (i : Fin 2) : (X (Sum.inr i) * rename Sum.inl (hesseCubics R i)).IsWeightedHomogeneous
+      w (n + m) := hw i ▸ (isWeightedHomogeneous_X R w (.inr i)).mul (hc i).rename
+  exact hessePencil_def R ▸ (h 0).add (h 1)
 
 /-- The Hesse pencil is homogeneous of degree `3` in the coordinates `x, y, z` of the plane. -/
 theorem isWeightedHomogeneous_hessePencil_inl :
-    (hessePencil R).IsWeightedHomogeneous (Sum.elim (1 : Fin 3 → ℕ) 0) 3 := by
-  have h (i : Fin 2) :
-      (X (Sum.inr i : Fin 3 ⊕ Fin 2) * rename Sum.inl (hesseCubics R i)).IsWeightedHomogeneous
-        (Sum.elim (1 : Fin 3 → ℕ) 0) 3 := by
-    have hc : (rename Sum.inl (hesseCubics R i)).IsWeightedHomogeneous
-        (Sum.elim (1 : Fin 3 → ℕ) 0) 3 :=
-      IsWeightedHomogeneous.rename (w := Sum.elim (1 : Fin 3 → ℕ) (0 : Fin 2 → ℕ)) <| by
-        rw [Sum.elim_comp_inl]; exact isHomogeneous_hesseCubics i
-    simpa using (isWeightedHomogeneous_X R (Sum.elim (1 : Fin 3 → ℕ) 0) (.inr i)).mul hc
-  exact hessePencil_def R ▸ (h 0).add (h 1)
+    (hessePencil R).IsWeightedHomogeneous (Sum.elim (1 : Fin 3 → ℕ) 0) 3 :=
+  isWeightedHomogeneous_hessePencil (n := 0) (m := 3)
+    (fun i ↦ by rw [Sum.elim_comp_inl]; exact isHomogeneous_hesseCubics i) (fun _ ↦ rfl)
 
 /-- The Hesse pencil is homogeneous of degree `1` in the coordinates `s, t` of the line. -/
 theorem isWeightedHomogeneous_hessePencil_inr :
-    (hessePencil R).IsWeightedHomogeneous (Sum.elim 0 (1 : Fin 2 → ℕ)) 1 := by
-  have h (i : Fin 2) :
-      (X (Sum.inr i : Fin 3 ⊕ Fin 2) * rename Sum.inl (hesseCubics R i)).IsWeightedHomogeneous
-        (Sum.elim 0 (1 : Fin 2 → ℕ)) 1 := by
-    have hc : (rename Sum.inl (hesseCubics R i)).IsWeightedHomogeneous
-        (Sum.elim (0 : Fin 3 → ℕ) 1) 0 :=
-      IsWeightedHomogeneous.rename (w := Sum.elim (0 : Fin 3 → ℕ) (1 : Fin 2 → ℕ)) <| by
-        rw [Sum.elim_comp_inl]; exact isWeightedHomogeneous_zero_weight _
-    simpa using (isWeightedHomogeneous_X R (Sum.elim (0 : Fin 3 → ℕ) 1) (.inr i)).mul hc
-  exact hessePencil_def R ▸ (h 0).add (h 1)
+    (hessePencil R).IsWeightedHomogeneous (Sum.elim 0 (1 : Fin 2 → ℕ)) 1 :=
+  isWeightedHomogeneous_hessePencil (n := 1) (m := 0)
+    (fun _ ↦ by rw [Sum.elim_comp_inl]; exact isWeightedHomogeneous_zero_weight _) (fun _ ↦ rfl)
 
 /-- Euler's relation for the plane coordinates: `x ∂ₓP + y ∂ᵧP + z ∂_zP = 3 P`. -/
 theorem sum_mul_eval_pderiv_inl_hessePencil (p : Fin 3 ⊕ Fin 2 → R) :
