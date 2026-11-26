@@ -23,12 +23,14 @@ notion.
 Both are additive on direct sums. For the Chern class this is the Whitney sum formula in degree
 two (`chernClass_one_prod`, in `ChernClass/Whitney.lean`). For `firstChernClass` it is
 `firstChernClass_prod_of_hasFiniteTrivializingCover`: the determinant line of `E₁ ⊕ E₂` is the
-tensor product of the determinant lines (`SymplecticGeometry.Bundle.detCoreProdIso`), and the
-Euler class of a tensor product of complex lines with finite trivializing covers over a normal
-base is the sum of their Euler classes
-(`TauCeti.complexEulerClass_tensorProduct`). On lines both are the Euler class of the bundle
-(`chernClass_one_eq_complexEulerClass`, `firstChernClass_eq_complexEulerClass`), and in rank zero
-both vanish (`chernClass_eq_zero_of_finrank_lt`, `firstChernClass_eq_zero_of_finrank_eq_zero`).
+tensor product of the determinant lines (`SymplecticGeometry.Bundle.detCoreProdIso`), which
+have finite trivializing covers when `E₁` and `E₂` do
+(`SymplecticGeometry.Bundle.HasFiniteTrivializingCover.detCore`), and the Euler class of a tensor
+product of complex lines with finite trivializing covers over a normal base is the sum of their
+Euler classes (`TauCeti.complexEulerClass_tensorProduct`). On lines both are the Euler class
+of the bundle (`chernClass_one_eq_complexEulerClass`, `firstChernClass_eq_complexEulerClass`),
+and in rank zero both vanish (`chernClass_eq_zero_of_finrank_lt`,
+`firstChernClass_eq_zero_of_finrank_eq_zero`).
 The comparison then goes by induction on the rank with the splitting principle: the
 pull-back of `E` to its projective bundle `π : P(E) → B` splits as the tautological line plus a
 bundle of smaller rank (`ProjectiveBundle.pullbackEquivTautologicalProdComplement`), `P(E)` is
@@ -37,7 +39,7 @@ again compact Hausdorff, and `π^*` is injective on cohomology (`injective_proje
 ## Main results
 
 * `firstChernClass_prod_of_hasFiniteTrivializingCover`: `firstChernClass` is additive on direct
-  sums, over a normal base on which both determinant lines have finite trivializing covers;
+  sums of bundles with finite trivializing covers over a normal base;
 * `firstChernClass_prod`: its case over a compact normal base;
   hence `chernNumber_prod`, the additivity of the first Chern number over a compact oriented
   surface.
@@ -78,19 +80,16 @@ variable [NormalSpace B]
   [∀ b, TopologicalSpace (E₂ b)] [TopologicalSpace (TotalSpace G₂ E₂)]
   [FiberBundle G₂ E₂] [VectorBundle ℂ G₂ E₂]
 
-/-- **The first Chern class is additive on direct sums.** Over a normal base on which the
-determinant lines of `E₁` and `E₂` each have a finite trivializing cover, `firstChernClass` of
-`E₁ ⊕ E₂` is the sum of those of `E₁` and `E₂`: the determinant line of the sum is the tensor
-product of the determinant lines, whose Euler class is the sum of their Euler classes. -/
+/-- **The first Chern class is additive on direct sums.** Over a normal base, if `E₁` and `E₂`
+each have a finite trivializing cover, `firstChernClass` of `E₁ ⊕ E₂` is the sum of those of `E₁`
+and `E₂`: the determinant line of the sum is the tensor product of the determinant lines, which
+have finite trivializing covers too, and whose Euler class is the sum of their Euler classes. -/
 theorem firstChernClass_prod_of_hasFiniteTrivializingCover
-    (h₁ : HasFiniteTrivializingCover ℂ (Fin (detCore ℂ G₁ E₁).rank → ℂ)
-      (detCore ℂ G₁ E₁).core.Fiber)
-    (h₂ : HasFiniteTrivializingCover ℂ (Fin (detCore ℂ G₂ E₂).rank → ℂ)
-      (detCore ℂ G₂ E₂).core.Fiber) :
+    (h₁ : HasFiniteTrivializingCover ℂ G₁ E₁) (h₂ : HasFiniteTrivializingCover ℂ G₂ E₂) :
     firstChernClass (G₁ × G₂) (E₁ ×ᵇ E₂) = firstChernClass G₁ E₁ + firstChernClass G₂ E₂ := by
   rw [firstChernClass_def, firstChernClass_def, firstChernClass_def,
     complexEulerClass_eq_of_fiberwise _ _ (continuous_detCoreProdFiberEquiv ℂ E₁ E₂)]
-  exact complexEulerClass_tensorProduct (by simp) (by simp) h₁ h₂
+  exact complexEulerClass_tensorProduct (by simp) (by simp) h₁.detCore h₂.detCore
 
 /-- **The first Chern class of the determinant line is additive.** Over a compact normal base,
 such as a compact Hausdorff one, `firstChernClass` of `E₁ ⊕ E₂` is the sum of those of `E₁` and

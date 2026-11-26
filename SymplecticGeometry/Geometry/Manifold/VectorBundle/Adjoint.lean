@@ -30,7 +30,7 @@ fibre of finite dimension, a nondegenerate form is invertible
 finds them through `TangentSpace.instIsNormableSpace` of
 `SymplecticGeometry/Geometry/Manifold/IsManifold/Basic.lean`, which this file imports.
 
-The proof composes Tau Ceti's `ContMDiffWithinAt.clm_bundle_flip`, `ContMDiffAt.clm_bundle_comp`
+The proof composes Tau Ceti's `ContMDiffAt.clm_bundle_flip`, `ContMDiffAt.clm_bundle_comp`
 and `ContMDiffAt.clm_bundle_inverse`, as Tau Ceti's
 `TauCeti.SmoothTwoForm.IsNondegenerate.skewPart` does for the tangent bundle.
 
@@ -93,14 +93,11 @@ theorem ContMDiffAt.clm_bundle_bilinAdjoint {m : M}
   -- The scalar target is named as the trivial bundle `Trivial B 𝕜`, whose fibres are `𝕜` by
   -- definition, so that Tau Ceti's lemmas find its bundle structure; every bundle argument is
   -- given, since unification cannot see `𝕜` as a fibre of `Trivial B 𝕜`.
-  have hflip := contMDiffWithinAt_univ.1
-    (ContMDiffWithinAt.clm_bundle_flip (V₁ := E₀) (V₂ := E₀) (V₃ := Trivial B 𝕜) (b := b)
-      (A := β₀) (s := Set.univ) hβ₀.contMDiffWithinAt)
+  have hflip := ContMDiffAt.clm_bundle_flip (V₁ := E₀) (V₂ := E₀) (V₃ := Trivial B 𝕜) (b := b)
+    (A := β₀) hβ₀
   have hC := hflip.clm_bundle_comp (V₁ := E₁) (V₂ := E₀)
     (V₃ := fun z ↦ E₀ z →L[𝕜] Trivial B 𝕜 z) hT
-  have hS := contMDiffWithinAt_univ.1
-    (ContMDiffWithinAt.clm_bundle_flip (V₁ := E₁) (V₂ := E₀) (V₃ := Trivial B 𝕜) (b := b)
-      (s := Set.univ) hC.contMDiffWithinAt)
+  have hS := ContMDiffAt.clm_bundle_flip (V₁ := E₁) (V₂ := E₀) (V₃ := Trivial B 𝕜) (b := b) hC
   have hI := ContMDiffAt.clm_bundle_inverse (E₁ := E₁)
     (E₂ := fun z ↦ E₁ z →L[𝕜] Trivial B 𝕜 z) (b := b) (ϕ := β₁) hβ₁ hinv
   simp only [ContinuousLinearMap.bilinAdjoint_def]

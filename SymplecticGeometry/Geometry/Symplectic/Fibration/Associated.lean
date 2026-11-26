@@ -315,9 +315,7 @@ theorem mpullback_smul_momentPairing
     (AssociatedBundle.contMDiff_op_smul_inv_smul (IB := IB) (IG := IG) (IF := IF) (P := P)
       (F := F) g) _ _).trans ?_
   rw [h1, h2]
-  apply Subtype.ext
-  funext p
-  ext w
+  refine SmoothBundleForm.ext fun p w ↦ ?_
   rw [SmoothForm.wedgeWith_flip, SmoothForm.wedgeWith_apply_zero_right,
     SmoothForm.wedgeWith_flip, SmoothForm.wedgeWith_apply_zero_right]
   simp only [Nat.zero_mul, pow_zero, one_smul, ContinuousLinearMap.flip_apply,
