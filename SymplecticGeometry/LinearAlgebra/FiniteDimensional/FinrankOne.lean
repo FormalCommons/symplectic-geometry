@@ -18,12 +18,14 @@ A module `V` whose rank one is recorded as the instance `Fact (Module.finrank K 
 instances here: it is finite-dimensional over a division ring `K`, and its rank is that of `K`
 itself over any ring with the strong rank condition. The second is the hypothesis
 `Fact (finrank K K = finrank K V)` that a frame bundle with model fibre `K` asks of a bundle with
-model fibre `V`.
+model fibre `V`. The ring itself has rank one over itself, so a third instance records
+`Fact (finrank K K = 1)` for it, the hypothesis of the frame bundle of a line bundle with model
+fibre `K`.
 
 Mathlib's `FiniteDimensional.of_fact_finrank_eq_succ` is a lemma and not an instance because its
 `n` cannot be inferred; its rank-two case `FiniteDimensional.of_fact_finrank_eq_two` is a lemma
 that callers enable with a local instance attribute. For rank one there is no `n` to infer, so
-both instances here are global. A search for `FiniteDimensional K V` or for
+the first two instances are global. A search for `FiniteDimensional K V` or for
 `Fact (finrank K K = finrank K V)` then also looks for `Fact (finrank K V = 1)`, an instance
 search that fails at once where no such fact is in context; both conclusions are propositions,
 so the instances create no diamond.
