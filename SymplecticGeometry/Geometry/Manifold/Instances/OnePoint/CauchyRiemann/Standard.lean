@@ -6,13 +6,20 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Basic
+public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Sobolev
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.LineBundle.Sections
+public import Mathlib.Analysis.Normed.Operator.Fredholm.Basic
+public import TauCeti.Topology.Algebra.Module.ContinuousLinearMap.Index
 import Mathlib.Geometry.Manifold.PartitionOfUnity
 import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.Dolbeault
 import TauCeti.Geometry.Manifold.ContMDiff.RestrictScalars
 import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
 import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Constructions
+import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.LocalForm
+import TauCeti.Analysis.Fredholm.Criteria
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.ZeroOneForm
+import TauCeti.Geometry.Manifold.Instances.OnePoint.FubiniStudy
 
 /-!
 # The Cauchy–Riemann operator of the standard structure on `𝒪(1)`
@@ -21,7 +28,9 @@ Let `D_i = SymplecticGeometry.twistOneDelBar 𝒊` be the real Cauchy–Riemann 
 bundle `𝒪(1) = OnePoint.twistCore 1` over the Riemann sphere for its standard complex structure
 `𝒊`. This file identifies the space `twistOneKernel 𝒊` of its smooth zeros with the space
 `OnePoint.holomorphicTwistSections 1` of holomorphic sections of `𝒪(1)`, which has complex
-dimension two, and shows that `D_i` is onto on smooth `(0,1)`-forms.
+dimension two, and shows that `D_i` is onto on smooth `(0,1)`-forms. On Sobolev sections, for
+every order `k`, the operator `SymplecticGeometry.twistOneDelBarSobolev 𝒊 k` from `W^{k+1,2}` to
+`W^{k,2}` is then onto, and Fredholm of real index four.
 
 ## Main results
 
@@ -39,6 +48,12 @@ dimension two, and shows that `D_i` is onto on smooth `(0,1)`-forms.
   holomorphic section `σ` of `𝒪(1)`.
 * `SymplecticGeometry.exists_twistOneDelBar_eq`: every smooth `(0,1)`-form with values in `𝒪(1)`
   is `D_i s` for a smooth section `s`.
+* `SymplecticGeometry.twistOneDelBarSobolev_ofComplexManifold_surjective`: `D_i` is onto from
+  `W^{k+1,2}(𝒪(1))` to the `W^{k,2}` `(0,1)`-forms with values in `𝒪(1)`.
+* `SymplecticGeometry.finrank_ker_twistOneDelBarSobolev_ofComplexManifold`: its kernel there has
+  real dimension four.
+* `SymplecticGeometry.isFredholm_twistOneDelBarSobolev_ofComplexManifold`: it is Fredholm, of real
+  index four.
 
 ## Proof
 
@@ -63,6 +78,18 @@ rule (`TauCeti.IsRealCauchyRiemannOperator.leibniz_complex`) gives
 (`SymplecticGeometry.twistOneDelBar_ofComplexManifold_smul_apply`)
 `D_i (g_z z + g_1 1) = (∂bar g_z) z + (∂bar g_1) 1 = χ_z α + χ_1 α = α`.
 
+On Sobolev sections, the Fubini–Study form tames `𝒊` (Tau Ceti's
+`OnePoint.compatible_fubiniStudyForm`), so the range of `D_i` is closed
+(`SymplecticGeometry.isClosed_range_twistOneDelBarSobolev`). The `(0,1)`-projections of the
+Sobolev forms of smooth one-forms `s` are dense among the `(0,1)`-forms
+(`TauCeti.dense_zeroOnePartSobolevL_ofContMDiffSection`), and each is the Sobolev form of the
+smooth `(0,1)`-form `𝒊.zeroOnePart ∘ s` (`TauCeti.coe_zeroOnePartSobolevL_ofContMDiffSection`),
+hence `D_i` of a smooth section by `exists_twistOneDelBar_eq` (compared through
+`chartValueL_twistOneDelBarSobolev_ofContMDiffSection_ae_coord`). So the range is everything. The
+kernel has the real dimension of `twistOneKernel 𝒊`
+(`SymplecticGeometry.finrank_ker_twistOneDelBarSobolev`), which is `2 · 2 = 4`; with the cokernel
+zero, the index is four.
+
 ## References
 
 * [D. McDuff, D. Salamon, *J-holomorphic Curves and Symplectic Topology*][McDuffSalamon2012],
@@ -71,7 +98,7 @@ rule (`TauCeti.IsRealCauchyRiemannOperator.leibniz_complex`) gives
 
 public section
 
-open Bundle Filter Set TauCeti
+open Bundle Filter MeasureTheory Set TauCeti
 open OnePoint (twistCore twistTransition)
 open scoped Manifold ContDiff Topology TauCeti.ComplexManifold VectorBundle.ComplexToReal
 
@@ -265,6 +292,78 @@ theorem exists_twistOneDelBar_eq
   have hsum := f.sum_eq_one (mem_univ x)
   rw [finsum_eq_sum_of_fintype, Fintype.sum_bool] at hsum
   rw [hcancel, hcancel, ← add_mul, ← Complex.ofReal_add, hsum, Complex.ofReal_one, one_mul]
+
+/-! ### `D_i` on Sobolev sections -/
+
+/-- The `(0,1)`-part for `𝒊` of a smooth `𝒪(1)`-valued one-form `s` on the sphere, as a Sobolev
+form of order `k`, is `D_i` of a Sobolev section of order `k + 1`. -/
+private theorem exists_twistOneDelBarSobolev_eq_zeroOnePartSobolevL (k : ℕ)
+    (s : Cₛ^k⟮𝓘(ℝ, ℂ); ℂ →L[ℝ] ℂ,
+      fun x : OnePoint ℂ ↦ TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] (twistCore (𝕜 := ℂ) 1).Fiber x⟯)
+    (hs : ContMDiff 𝓘(ℝ, ℂ) (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ →L[ℝ] ℂ)) ∞
+      (fun x ↦ TotalSpace.mk' (ℂ →L[ℝ] ℂ)
+        (E := fun x : OnePoint ℂ ↦ TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] (twistCore (𝕜 := ℂ) 1).Fiber x)
+        x (s x))) :
+    ∃ w, twistOneDelBarSobolev 𝒊 k w = zeroOnePartSobolevL (twistCoreAtlas 1) volume 2 k
+      (SobolevSection.ofContMDiffSection (twistCoreAtlas 1).tangentHom volume 2 k s) := by
+  let α : Cₛ^k⟮𝓘(ℝ, ℂ); ℂ →L[ℝ] ℂ,
+      fun x : OnePoint ℂ ↦ TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] (twistCore (𝕜 := ℂ) 1).Fiber x⟯ :=
+    ⟨fun x ↦ 𝒊.zeroOnePart (s x),
+      ((𝒊.contMDiff_totalSpace_zeroOnePart le_rfl).comp hs).of_le (by exact_mod_cast le_top)⟩
+  have hα : ⇑α = fun x ↦ 𝒊.zeroOnePart (s x) := ContMDiffSection.coeFn_mk _ _
+  obtain ⟨t, ht, htα⟩ := exists_twistOneDelBar_eq ⟨_, (𝒊.contMDiff_totalSpace_zeroOnePart
+    le_rfl).comp hs⟩ fun x ↦ 𝒊.isZeroOneForm_zeroOnePart (s x)
+  rw [ContMDiffSection.coeFn_mk] at htα
+  let t' : Cₛ^((k + 1 : ℕ) : WithTop ℕ∞)⟮𝓘(ℝ, ℂ); ℂ, (twistCore (𝕜 := ℂ) 1).Fiber⟯ :=
+    ⟨t, ht.of_le (by exact_mod_cast le_top)⟩
+  have hDt : (fun x ↦ 𝒊.zeroOnePart (twistOneDelBar 𝒊 t' x)) = ⇑α := by
+    rw [show (t' : Π x, (twistCore (𝕜 := ℂ) 1).Fiber x) = t from ContMDiffSection.coeFn_mk _ _,
+      htα, hα]
+    simp only [SmoothAlmostComplexStructure.zeroOnePart_zeroOnePart]
+  refine ⟨SobolevSection.ofContMDiffSection (twistCoreAtlas 1) volume 2 (k + 1) t',
+    Subtype.ext ?_⟩
+  rw [coe_zeroOnePartSobolevL_ofContMDiffSection (congrFun hα)]
+  refine SectionChartData.eq_of_chartValueL_ae_eq fun i ↦
+    (FiniteBundleAtlas.ae_image_tangentHom_iff (twistCoreAtlas 1) volume i).2 ?_
+  have h1 := chartValueL_twistOneDelBarSobolev_ofContMDiffSection_ae_coord 𝒊 k t' i
+  have h2 := (FiniteBundleAtlas.ae_image_tangentHom_iff (twistCoreAtlas 1) volume i).1
+    (SobolevSection.chartValueL_ofContMDiffSection_ae (twistCoreAtlas 1).tangentHom volume 2 k
+      α i)
+  filter_upwards [h1, h2] with y hy1 hy2
+  rw [hy1, hy2, hDt]
+
+/-- **`D_i` is onto on Sobolev sections.** For every order `k`, every `W^{k,2}` `(0,1)`-form with
+values in `𝒪(1)` on the sphere is `D_i w` for a `W^{k+1,2}` section `w` of `𝒪(1)`. -/
+theorem twistOneDelBarSobolev_ofComplexManifold_surjective (k : ℕ) :
+    Function.Surjective (twistOneDelBarSobolev 𝒊 k) := by
+  -- The `(0,1)`-parts of smooth forms are dense, and lie in the range, which is closed.
+  have hdense := dense_zeroOnePartSobolevL_ofContMDiffSection (twistCoreAtlas 1) volume 2 k
+    ENNReal.ofNat_ne_top
+  refine fun v ↦ (isClosed_range_twistOneDelBarSobolev 𝒊 k
+    OnePoint.compatible_fubiniStudyForm.tames OnePoint.compatible_fubiniStudyForm.tames
+    ).closure_subset_iff.2 ?_ (hdense.closure_eq ▸ mem_univ v)
+  rintro _ ⟨s, hs, rfl⟩
+  exact exists_twistOneDelBarSobolev_eq_zeroOnePartSobolevL k s hs
+
+/-- **The Sobolev kernel of `D_i`.** For every order `k`, the kernel of `D_i` on `W^{k+1,2}(𝒪(1))`
+over the sphere has real dimension four. -/
+theorem finrank_ker_twistOneDelBarSobolev_ofComplexManifold (k : ℕ) :
+    Module.finrank ℝ (twistOneDelBarSobolev 𝒊 k).ker = 4 := by
+  rw [finrank_ker_twistOneDelBarSobolev OnePoint.compatible_fubiniStudyForm.tames
+    OnePoint.compatible_fubiniStudyForm.tames k, finrank_real_of_complex,
+    finrank_twistOneKernel_ofComplexManifold]
+
+/-- **`D_i` is Fredholm of index four.** For every order `k`, the operator
+`D_i : W^{k+1,2}(𝒪(1)) → W^{k,2}(Λ^{0,1} ⊗ 𝒪(1))` over the sphere is Fredholm, of real index
+`4`. -/
+theorem isFredholm_twistOneDelBarSobolev_ofComplexManifold (k : ℕ) :
+    (twistOneDelBarSobolev 𝒊 k).IsFredholm ∧ (twistOneDelBarSobolev 𝒊 k).index = 4 := by
+  have hsurj := twistOneDelBarSobolev_ofComplexManifold_surjective k
+  have := finiteDimensional_ker_twistOneDelBarSobolev 𝒊 k
+    OnePoint.compatible_fubiniStudyForm.tames OnePoint.compatible_fubiniStudyForm.tames
+  refine ⟨ContinuousLinearMap.IsFredholm.of_surjective hsurj, ?_⟩
+  rw [ContinuousLinearMap.index_of_surjective _ hsurj,
+    finrank_ker_twistOneDelBarSobolev_ofComplexManifold k, Nat.cast_ofNat]
 
 end SymplecticGeometry
 
