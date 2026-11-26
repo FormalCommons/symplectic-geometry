@@ -469,8 +469,9 @@ and the prerequisites, placed by topic.
 ### Prerequisites
 
 - `Geometry/Manifold/SmoothSingular/DeRham/MayerVietoris/Induction.lean`:
-  `TauCeti.bijective_deRhamHom` (for manifolds that have a finite good cover, or
-  a second-countable one through `mayerVietoris_induction`),
+  `SymplecticGeometry.HasFiniteGoodCover.bijective_deRhamHom` (for manifolds
+  that have a finite good cover), `TauCeti.bijective_deRhamHom` (for a
+  second-countable one through `mayerVietoris_induction`),
   `TauCeti.injective_deRhamHom`. If Tau Ceti's `deRhamHom` lands in smooth
   singular cohomology, the file also compares it with continuous singular
   cohomology, unless `SmoothSingular/Smoothing.lean` already does.
