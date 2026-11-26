@@ -428,9 +428,10 @@ theorem exists_completion_function [CompactSpace W] (hW : IsWeinsteinDomain σ Y
 
 /-! ### The Weinstein structure of the completion -/
 
-/-- Off the image of `(-2δ, ∞) × ∂W` under the end map, a point of the completion is an interior
-point `p` of `W`, near which the function of `exists_completion_function` is `f`, read through the
-inclusion of the interior of `W`. -/
+/-- Let `F` be a function on the completion that is `f` on `W` off the image of `(-δ, 0] × ∂W`
+under the collar map. Off the image of `(-2δ, ∞) × ∂W` under the end map, a point of the
+completion is an interior point `p` of `W`, near which `F`, read through the inclusion of the
+interior of `W`, is `f`. -/
 private theorem exists_eventuallyEq_of_notMem (hδ0 : 0 < δ) (hδ : 2 * δ < h.collarWidth)
     {F : h.Completion → ℝ}
     (hFf : ∀ p ∉ h.collarFlow '' (Ioc (-δ) 0 ×ˢ univ), F (h.toCompletion p) = f p)
