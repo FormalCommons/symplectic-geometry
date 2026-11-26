@@ -176,18 +176,12 @@ theorem IsLagrangianMap.exists_symplectomorphism_cotangent_neg {σ : SmoothTwoFo
   let U' : Opens (CotangentBundle J L) := ⟨N ⁻¹' U, U.isOpen.preimage N.continuous⟩
   let N' : U' ≃ₘ⟮J.prod 𝓘(ℝ, EL →L[ℝ] ℝ), J.prod 𝓘(ℝ, EL →L[ℝ] ℝ)⟯ U :=
     N.subtype fun _ ↦ Iff.rfl
-  refine ⟨U', V, N'.trans ψ, ⟨⟨fun q ↦ ?_⟩, ?_⟩⟩
-  · obtain ⟨h, hq, -⟩ := hψ0 q
-    have h' : zeroSection _ _ q ∈ U' := by
-      rw [Opens.mem_mk, Set.mem_preimage, hN0]
-      exact h
-    refine ⟨h', ?_⟩
-    rw [Diffeomorph.coe_trans, Function.comp_apply, ← hq]
-    congr 2
-    exact Subtype.ext ((Diffeomorph.subtype_apply_coe _ _ _).trans (hN0 q))
-  · exact ((isSymplectomorphism_iff_mpullback_eq.2
-      (CotangentBundle.mpullback_fiberNeg_symplecticForm (I := J) (M := L))).subtype
-      fun _ ↦ Iff.rfl).trans (isSymplectomorphism_iff_mpullback_eq.2 hψσ) (by simp)
+  have hψ : SymplecticGeometry.CotangentBundle.AgreesOnZeroSection f ψ :=
+    ⟨fun q ↦ (hψ0 q).imp fun _ h ↦ h.1⟩
+  refine ⟨U', V, N'.trans ψ, hψ.subtype_trans (a := id) (fun _ ↦ Iff.rfl) hN0, ?_⟩
+  exact ((isSymplectomorphism_iff_mpullback_eq.2
+    (CotangentBundle.mpullback_fiberNeg_symplecticForm (I := J) (M := L))).subtype
+    fun _ ↦ Iff.rfl).trans (isSymplectomorphism_iff_mpullback_eq.2 hψσ) (by simp)
 
 end TauCeti.SmoothTwoForm.IsNondegenerate
 
