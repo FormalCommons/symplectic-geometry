@@ -19,7 +19,8 @@ Tau Ceti's `TauCeti.SmoothForm.bilinFormAt` reads the value at `x` of a real smo
 `σ` on `M` as a bilinear form `σ_x` on the tangent space `T_x M`. This file shows that the map
 `σ ↦ σ_x` is compatible with the module structure of the smooth two-forms: it sends sums,
 real multiples, zero, negatives and differences of two-forms to the same operations on their
-bilinear forms. All these lemmas are `@[simp]`.
+bilinear forms. All these lemmas are `@[simp]`. Before them, `TauCeti.SmoothForm.bilinFormAt_def`
+states the definition of `σ_x`: the bilinear form of the value `σ x`.
 
 The same family exists for the two-forms on a vector bundle of this library, in
 `SymplecticGeometry/Geometry/Manifold/VectorBundle/Symplectic/Basic.lean`
@@ -44,6 +45,7 @@ construction follows that of Tau Ceti's `TauCeti.kerDelBarZeroEquiv`, which iden
 
 ## Main results
 
+* `TauCeti.SmoothForm.bilinFormAt_def`: `σ_x` is the bilinear form of `σ x`.
 * `TauCeti.SmoothForm.bilinFormAt_add`, `TauCeti.SmoothForm.bilinFormAt_smul`,
   `TauCeti.SmoothForm.bilinFormAt_zero`, `TauCeti.SmoothForm.bilinFormAt_neg`,
   `TauCeti.SmoothForm.bilinFormAt_sub`.
@@ -62,6 +64,13 @@ namespace TauCeti.SmoothForm
 
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   [TopologicalSpace M] [ChartedSpace H M] {I : ModelWithCorners ℝ E H} [IsManifold I 1 M]
+
+/-- The bilinear form of a two-form `σ` at `x` is the bilinear form `(v, w) ↦ σ x ![v, w]` of
+its value at `x`. -/
+theorem bilinFormAt_def (σ : SmoothForm I M ℝ 2) (x : M) :
+    σ.bilinFormAt x = MultilinearMap.toBilinMap (σ.val x).toMultilinearMap := by
+  ext v w
+  simp [SmoothBundleForm.eval₂_apply]
 
 /-- The bilinear form of a sum of two-forms is the sum of their bilinear forms. -/
 @[simp]

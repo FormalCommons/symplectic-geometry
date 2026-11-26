@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Smooth
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 public import SymplecticGeometry.LinearAlgebra.Alternating.Conormal
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
 
 /-!
@@ -385,9 +386,7 @@ vector in the kernel of the differential of `f` at `x` lies in the kernel of the
 theorem isSemibasicAt_iff_ker_mfderiv_le {σ : SmoothForm I M ℝ 2} {x : M} :
     RoughForm.IsSemibasicAt IB f σ.val x ↔
       (mfderiv I IB f x).ker ≤ LinearMap.ker (σ.bilinFormAt x) := by
-  have h : σ.bilinFormAt x = (σ.val x).toAlternatingMap.toMultilinearMap.toBilinMap :=
-    LinearMap.ext₂ fun u w ↦ by simp [SmoothBundleForm.eval₂_apply]
-  rw [RoughForm.isSemibasicAt_def, h, Submodule.mem_conormalForms_fin_two_iff_le_ker]
+  rw [RoughForm.isSemibasicAt_def, bilinFormAt_def, Submodule.mem_conormalForms_fin_two_iff_le_ker]
 
 /-- A smooth two-form `σ` is semibasic for `f` exactly when, at every point `x`, every vector in
 the kernel of the differential of `f` at `x` lies in the kernel of the bilinear form `σ_x`. -/
