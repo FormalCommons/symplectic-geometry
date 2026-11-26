@@ -397,7 +397,7 @@ theorem prodFiberIntegrand_degree_zero (α : RoughForm (I.prod J) (B × F) ℝ (
     show Fin.cast (zero_add m) (Fin.natAdd 0 j) = j from Fin.ext (by simp)]
   exact Manifold.tangentSpaceProdEquiv_symm_apply (I := I) (J := J) _ _
 
-section Integral
+section AlternatingMap
 
 variable [FiniteDimensional ℝ E'] [IsManifold I 1 B] [IsManifold J 1 F] [CompactSpace F]
 
@@ -428,7 +428,12 @@ theorem prodFiberIntegralAlternatingMap_apply (o : Manifold.Orientation J F (Fin
     prodFiberIntegralAlternatingMap o α b v = integralTopForm o (prodFiberIntegrand α.val b v) :=
   (rfl)
 
-variable [FiniteDimensional ℝ E]
+end AlternatingMap
+
+section Integral
+
+variable [FiniteDimensional ℝ E] [FiniteDimensional ℝ E'] [IsManifold I ∞ B] [IsManifold J ∞ F]
+  [CompactSpace F]
 
 /-- The rough form underlying the fibre integral: at `b`, the continuous alternating map
 `v ↦ ∫_F prodFiberIntegrand α b v`. -/
@@ -448,8 +453,8 @@ private theorem prodFiberIntegralRoughForm_apply (o : Manifold.Orientation J F (
 `B` boundaryless and `F` compact, Hausdorff and oriented by `o`, the form
 `b ↦ (v ↦ ∫_F prodFiberIntegrand α b v)` on `B` is smooth. Its values on the frame of the
 tangent trivialization at a point are integrals along smooth vector fields on the base set. -/
-private theorem isSmoothForm_prodFiberIntegralRoughForm [I.Boundaryless] [IsManifold I ∞ B]
-    [IsManifold J ∞ F] [T2Space F] (o : Manifold.Orientation J F (Fin m))
+private theorem isSmoothForm_prodFiberIntegralRoughForm [I.Boundaryless] [T2Space F]
+    (o : Manifold.Orientation J F (Fin m))
     (α : SmoothForm (I.prod J) (B × F) ℝ (r + m)) :
     IsSmoothForm I ∞ (prodFiberIntegralRoughForm o α) := by
   refine isSmoothForm_iff_forall_contMDiffAt_trivializationAt_apply.2 fun x v ↦ ?_
@@ -462,11 +467,11 @@ private theorem isSmoothForm_prodFiberIntegralRoughForm [I.Boundaryless] [IsMani
     (contMDiffOn_integralTopForm_prodFiberIntegrand (n := ⊤) o α.isSmoothForm e.open_baseSet
       hX).contMDiffAt (e.open_baseSet.mem_nhds (mem_baseSet_trivializationAt E (TangentSpace I) x))
 
-variable [I.Boundaryless] [IsManifold I ∞ B] [IsManifold J ∞ F] [T2Space F]
+variable [I.Boundaryless] [T2Space F]
 
-/-- **The fibre integral on a product.** For `F` compact, Hausdorff and oriented by `o`, the
-linear map sending a smooth form `α` of degree `r + m` on `B × F` to the smooth `r`-form on `B`
-whose value at `b` on `v₁, …, vᵣ` is the integral over `F` of
+/-- **The fibre integral on a product.** For `B` boundaryless and `F` compact, Hausdorff and
+oriented by `o`, the linear map sending a smooth form `α` of degree `r + m` on `B × F` to the
+smooth `r`-form on `B` whose value at `b` on `v₁, …, vᵣ` is the integral over `F` of
 `y ↦ α (b, y) ((v₁, 0), …, (vᵣ, 0), ·)` restricted to the tangent vectors `(0, w)` of the fibre,
 that is, of `prodFiberIntegrand α b v`. -/
 def prodFiberIntegral (o : Manifold.Orientation J F (Fin m)) :
