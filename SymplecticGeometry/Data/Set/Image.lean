@@ -9,7 +9,7 @@ public import Mathlib.Data.Set.Image
 public import Mathlib.Data.Set.Prod
 
 /-!
-# Ranges and images of composites
+# Ranges and images of composites, and sets preserved by bijections
 
 Supplements to `Mathlib/Data/Set/Image.lean`.
 
@@ -19,6 +19,8 @@ Supplements to `Mathlib/Data/Set/Image.lean`.
   `range (f ∘ c) = range f ∩ t`.
 * `Set.image_inter_image_eq_prod_singleton`: if `e (f s) = (g s, b)` whenever `f s ∈ S`, then
   `e` maps `S ∩ f '' J` onto `(g '' (J ∩ f ⁻¹' S)) ×ˢ {b}`.
+* `Function.Bijective.image_eq_of_eq_self`: a bijection fixing every point outside `S` maps `S`
+  onto `S`.
 -/
 
 public section
@@ -40,5 +42,17 @@ theorem image_inter_image_eq_prod_singleton {X N A B : Type*} {e : X → A × B}
   exact image_congr fun s hs => hg s hs.2
 
 end Set
+
+namespace Function.Bijective
+
+/-- A bijection `f : α → α` that fixes every point outside `S` maps `S` onto `S`.
+For an injective `f`, Tau Ceti's `Function.Injective.mapsTo_of_eq_self` gives `f '' S ⊆ S`. -/
+theorem image_eq_of_eq_self {α : Type*} {f : α → α} (hf : Bijective f) {S : Set α}
+    (h : ∀ x ∉ S, f x = x) : f '' S = S := by
+  have hc : f '' Sᶜ = Sᶜ := by
+    rw [Set.image_congr (g := id) fun x hx ↦ h x hx, Set.image_id]
+  rwa [Set.image_compl_eq hf, compl_inj_iff] at hc
+
+end Function.Bijective
 
 end
