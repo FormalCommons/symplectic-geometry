@@ -90,8 +90,6 @@ connected.
   given kind, the isotopy agrees with one on an open neighbourhood of `Q`.
 * `SymplecticGeometry.isSmoothFamily_velocityForm`: the slices of the velocity forms of a jointly
   smooth family of isotopies form a smooth family over both parameters.
-* `SymplecticGeometry.contMDiff_mpullback_prodMk_velocityForm_apply`: at a fixed point, their
-  values on a model vector are smooth in both parameters and the vector.
 * `SymplecticGeometry.exists_contMDiff_velocityForm_eq_mextDeriv`: jointly smooth primitives of
   the velocity forms of a family of symplectic isotopies of a convex set, zero where the family
   stands still.
@@ -393,23 +391,6 @@ theorem isSmoothFamily_velocityForm (σ : SmoothTwoForm I M)
         (MDifferentiableAt.curry_left (f := fun q y ↦ Ĝ (q, y)) hĜd) _)
   · exact (congrArg (mfderiv _ I Ĝ ((t, s), x)) (mfderiv_prodMk_right_apply w)).trans
       (MDifferentiableAt.mfderiv_uncurry_apply_zero_mk (f := fun q y ↦ Ĝ (q, y)) hĜd _)
-
-/-- **The velocity forms of a family of isotopies at a fixed point.** Let `Ĝ` be a smooth map
-`[0, 1]² × P → M`, and `k_t`, for each `t`, a smooth isotopy with `k_t (s, x) = Ĝ ((t, s), x)`.
-For a fixed `x₀ ∈ P`, the value `α_{t, s}(x₀)(v)` of the slice at time `s` of the velocity form
-of `k_t`, on a vector `v` of the model space of `P`, is a smooth function of `((t, s), v)`. -/
-theorem contMDiff_mpullback_prodMk_velocityForm_apply (σ : SmoothTwoForm I M)
-    {Ĝ : (unitInterval × unitInterval) × P → M}
-    (hĜ : ContMDiff (((𝓡∂ 1).prod (𝓡∂ 1)).prod J) I ∞ Ĝ) {f₀ f₁ : unitInterval → C^∞⟮J, P; I, M⟯}
-    (k : ∀ t, SmoothIsotopy (f₀ t) (f₁ t)) (hk : ∀ t p, k t p = Ĝ ((t, p.1), p.2)) (x₀ : P) :
-    ContMDiff (((𝓡∂ 1).prod (𝓡∂ 1)).prod 𝓘(ℝ, E')) 𝓘(ℝ) ∞
-      fun p : (unitInterval × unitInterval) × E' ↦
-        (SmoothForm.mpullback (Prod.mk p.1.2) (contMDiff_const.prodMk contMDiff_id)
-          ((k p.1.1).velocityForm σ)).val x₀ ![p.2] := by
-  obtain ⟨A, hA⟩ := isSmoothFamily_def.1 (isSmoothFamily_velocityForm σ hĜ k hk)
-  refine (SmoothForm.contMDiff_apply_prodMk_zero_prodMk A x₀).congr fun p ↦ ?_
-  rw [← hA p.1, SmoothForm.coe_mpullback, mpullback_apply_one _ _ x₀ p.2]
-  exact congrArg (fun w ↦ A.val (p.1, x₀) ![w]) (mfderiv_prodMk_right_apply p.2)
 
 end Family
 
