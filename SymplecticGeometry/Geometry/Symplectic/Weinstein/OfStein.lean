@@ -13,6 +13,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.CompatibleMetri
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
 public import TauCeti.Geometry.Symplectic.TameMetric
 public import TauCeti.Geometry.Manifold.Flow.Complete
+import SymplecticGeometry.Analysis.SpecialFunctions.ExpDeriv
 
 /-!
 # The Liouville field of a Stein function
@@ -295,8 +296,7 @@ theorem IsSteinFunction.exists_comp_isCompleteVectorField [T2Space M] {φ : M �
     ∃ h : ℝ → ℝ, ContDiff ℝ ∞ h ∧ (∀ t, 0 < deriv h t) ∧ (∀ t, 0 ≤ iteratedDeriv 2 h t) ∧
       ∃ ψ : C^∞⟮𝓘(ℝ, E), M; ℝ⟯, ⇑ψ = h ∘ φ ∧ IsCompleteVectorField (dCLiouvilleField ψ) :=
   ⟨Real.exp, Real.contDiff_exp,
-    fun t ↦ (Real.deriv_exp_pos_and_iteratedDeriv_two_exp_nonneg t).1,
-    fun t ↦ (Real.deriv_exp_pos_and_iteratedDeriv_two_exp_nonneg t).2,
+    fun t ↦ by simp [Real.exp_pos], fun t ↦ by simp [(Real.exp_pos t).le],
     ⟨Real.exp ∘ φ, Real.contDiff_exp.contMDiff.comp hφ.contMDiff⟩, rfl,
     isCompleteVectorField_dCLiouvilleField_exp_comp hφ rfl⟩
 

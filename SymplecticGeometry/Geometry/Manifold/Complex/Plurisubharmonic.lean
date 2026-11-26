@@ -13,6 +13,7 @@ public import TauCeti.Topology.Maps.Proper.Metric
 public import SymplecticGeometry.Analysis.Convex.Deriv
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Dolbeault.Potential
 public import SymplecticGeometry.Topology.Maps.Proper
+import SymplecticGeometry.Analysis.SpecialFunctions.ExpDeriv
 
 /-!
 # Stein functions and their Kähler forms
@@ -34,8 +35,7 @@ plurisubharmonic at every point. Its form `ω_f` is a Kähler form for `J`, and 
 * `SymplecticGeometry.isKahler_mextDerivₗ_covectorComplexStructure`: `ω_f` is Kähler for `J`
   when `f` is strictly plurisubharmonic at every point.
 * `TauCeti.IsManifoldStrictlyPlurisubharmonicAt.exp_comp`: `exp ∘ f` is strictly
-  plurisubharmonic at `x` when `f` is, using
-  `Real.deriv_exp_pos_and_iteratedDeriv_two_exp_nonneg`.
+  plurisubharmonic at `x` when `f` is.
 * `SymplecticGeometry.IsSteinFunction E φ`: smooth, proper, bounded below and strictly
   plurisubharmonic everywhere.
 * `SymplecticGeometry.IsSteinFunction.comp`: `h ∘ φ` is a Stein function for a smooth
@@ -123,21 +123,13 @@ theorem isKahler_mextDerivₗ_covectorComplexStructure [FiniteDimensional ℂ E]
 
 /-! ### Composition with the exponential -/
 
-/-- The real exponential has `exp' > 0` and `exp'' ≥ 0`, the conditions on a reparametrization in
-`TauCeti.IsManifoldStrictlyPlurisubharmonicAt.scalar_comp` and
-`SymplecticGeometry.IsSteinFunction.comp`. -/
-theorem _root_.Real.deriv_exp_pos_and_iteratedDeriv_two_exp_nonneg (t : ℝ) :
-    0 < deriv Real.exp t ∧ 0 ≤ iteratedDeriv 2 Real.exp t := by
-  simp [iteratedDeriv_eq_iterate, Real.iter_deriv_exp, Real.exp_pos, (Real.exp_pos t).le]
-
 omit [IsManifold 𝓘(ℂ, E) ∞ M] in
 /-- If `f` is strictly plurisubharmonic at `x`, so is `exp ∘ f`. -/
 theorem _root_.TauCeti.IsManifoldStrictlyPlurisubharmonicAt.exp_comp {f : M → ℝ} {x : M}
     (h : IsManifoldStrictlyPlurisubharmonicAt E f x) (hf : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) 2 f x) :
     IsManifoldStrictlyPlurisubharmonicAt E (Real.exp ∘ f) x :=
-  h.scalar_comp Real.contDiff_exp.contDiffAt hf
-    (Real.deriv_exp_pos_and_iteratedDeriv_two_exp_nonneg _).1
-    (Real.deriv_exp_pos_and_iteratedDeriv_two_exp_nonneg _).2
+  h.scalar_comp Real.contDiff_exp.contDiffAt hf (by simp [Real.exp_pos])
+    (by simp [(Real.exp_pos _).le])
 
 /-! ### Stein functions -/
 
