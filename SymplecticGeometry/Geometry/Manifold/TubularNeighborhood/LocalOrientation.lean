@@ -818,9 +818,8 @@ theorem localHomologyMap_localChartLocalHomologyIso_hom_of_normalTubeChart
   let κ : C((univ ×ˢ S : Set (P × E)), ψ.source) :=
     ⟨fun y ↦ ⟨Φ (e.localChart c S y), tube_localChart_mem_normalTubeChart_source Φ z hSc hSe y⟩,
       ((continuous_subtypeVal.comp Φ.continuous).comp hι.continuous).subtype_mk _⟩
-  have hpt : e.localChart c S ⁻¹' {zeroSection P _ z} ⊆
-      {⟨(0, 0), mk_mem_prod (mem_univ _) h0⟩} := fun y hy ↦
-    hι.injective (hy.trans (Trivialization.localChart_zero hSe hb hcb h0).symm)
+  have hpt :=
+    (Trivialization.localChart_preimage_singleton_zeroSection hS hSc hSe hb hcb h0).subset
   -- `ψ`, translated so that `f z` goes to the origin, is an open embedding of its source.
   let x₀ : ψ.source := ⟨f z, hx⟩
   let τ : C(ψ.source, P × E) :=
