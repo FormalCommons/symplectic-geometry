@@ -8,7 +8,6 @@ module
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.ChangeOfValues
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.FundamentalClass
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralChains
-public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.RestrictScalars
 
 /-!
 # The real image of an integral cohomology class
@@ -32,9 +31,6 @@ abelian groups, the real image is `ℤ`-linear, with target `Hⁿ(X; ℝ)` read 
   integral chains, the real image is the change of values along `ℤ → ℝ`.
 * `TopCat.singularCohomologyRealImage_naturality`: the real image commutes with the maps induced
   by continuous maps.
-* `TopCat.chainComplexMap_f_singularCochainComplexIntChainsIso_hom_f`: read through integral
-  chains, a real cochain takes on an integral chain its value on the chain with its coefficients
-  cast to `ℝ`, for chains of any simplicial set over the singular one.
 * `TauCeti.HomologicalOrientation.evalFundamentalClass_singularCohomologyRealImage`: the
   evaluation with values in `ℝ` of the real image of `c` on `f_*[N]`, read through integral
   chains, is the cast of the evaluation of `c`.
@@ -96,43 +92,6 @@ theorem singularCohomologyRealImage_naturality {Y : TopCat.{0}} (f : X ⟶ Y) :
     Iso.comp_inv_eq, Category.assoc, Category.assoc,
     singularCohomologyIntChainsIso_hom_naturality, Iso.inv_hom_id_assoc,
     singularCohomologyValueMap_naturality]
-
-
-variable {X} in
-/-- **Restricting a real cochain to integral chains.** For a map `j : S ⟶ toSSet X` of simplicial
-sets and a real cochain `ψ` of `X`, the cochain `ψ` read through integral chains, on the image
-under `j` of a chain of `S` with coefficients `ULift ℤ`, is `ψ` on the image under `j` of the
-chain with its coefficients cast to `ℝ` (`SSet.restrictScalarsChainMap` along
-`TauCeti.intToRealCoeff`). -/
-theorem chainComplexMap_f_singularCochainComplexIntChainsIso_hom_f {S : SSet.{0}}
-    (j : S ⟶ toSSet.obj X) (p : ℕ)
-    (ψ : ((toSSet.obj X).chainComplex (ModuleCat.of ℝ ℝ)).X p ⟶ ModuleCat.of ℝ ℝ) :
-    (SSet.chainComplexMap j (ModuleCat.of ℤ (ULift.{0} ℤ))).f p ≫
-        (X.singularCochainComplexIntChainsIso ℝ).hom.f p ψ =
-      (SSet.restrictScalarsChainMap (algebraMap ℤ ℝ) (N := ModuleCat.of ℝ ℝ)
-        (intToRealCoeff ≫ (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := ℝ) ℝ).inv)
-          S).f p ≫ (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℝ)).map
-            ((SSet.chainComplexMap j (ModuleCat.of ℝ ℝ)).f p ≫ ψ) ≫
-          (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := ℝ) ℝ).hom := by
-  refine SSet.chainComplex_hom_ext fun σ ↦ ?_
-  ext a
-  refine (ConcreteCategory.congr_hom (SSet.ι_chainComplexMap_f_assoc (f := j) (x := σ)
-    (R := ModuleCat.of ℤ (ULift.{0} ℤ))
-      (h := (X.singularCochainComplexIntChainsIso ℝ).hom.f p ψ)) a).trans ?_
-  refine (X.singularCochainComplexIntChainsIso_hom_f_apply_ιChainComplex ℝ _ ψ a).trans ?_
-  rw [SSet.ιChainComplex_restrictScalarsChainMap_f_assoc, ← Functor.map_comp_assoc,
-    SSet.ι_chainComplexMap_f_assoc, Functor.map_comp, Category.assoc, ← smul_eq_mul, ← map_smul,
-    ← map_smul,
-    smul_eq_mul, mul_one]
-  -- The identifications of `ℝ` with the restricted `ℝ`-module `ℝ`, and restrictions of scalars of
-  -- morphisms, are the identity on elements, but their evaluation lemmas are stated for the
-  -- underlying types, which `rw` does not identify with the carriers here.
-  erw [ConcreteCategory.comp_apply, ConcreteCategory.comp_apply, ConcreteCategory.comp_apply,
-    ConcreteCategory.comp_apply, ModuleCat.restrictScalarsAlgebraMapIso_hom_apply,
-    ModuleCat.restrictScalars.map_apply (algebraMap ℤ ℝ),
-    ModuleCat.restrictScalars.map_apply (algebraMap ℤ ℝ),
-    ModuleCat.restrictScalarsAlgebraMapIso_inv_apply, intToRealCoeff_apply,
-    ModuleCat.restrictScalars.map_apply (algebraMap ℤ ℝ)]
 
 end TopCat
 

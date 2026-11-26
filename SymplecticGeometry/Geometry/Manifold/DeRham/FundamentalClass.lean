@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Simplex
 public import SymplecticGeometry.Geometry.Manifold.SmoothSingular.IntegralChains
+public import TauCeti.AlgebraicTopology.Cohomology.FundamentalClass
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
 public import TauCeti.Geometry.Manifold.Orientation.Euclidean
 public import TauCeti.Geometry.Manifold.SmoothSingular.Period
