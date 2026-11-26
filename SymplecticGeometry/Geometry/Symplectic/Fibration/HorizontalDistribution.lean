@@ -111,13 +111,6 @@ variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] {HB : Type*}
 
 /-! ### Vertically closed two-forms -/
 
-/-- A two-form `τ` on `M` is *vertically closed* for a map `proj : M → B` when its exterior
-derivative vanishes on `(η₁, η₂, v)` at every point `x`, for all vectors `η₁` and `η₂` of the
-kernel of the derivative of `proj` at `x` and every tangent vector `v`. -/
-def IsVerticallyClosed (proj : M → B) (τ : SmoothTwoForm IM M) : Prop :=
-  ∀ x, ∀ η₁ ∈ (mfderiv IM IB proj x).ker, ∀ η₂ ∈ (mfderiv IM IB proj x).ker,
-    ∀ v : TangentSpace IM x, mextDeriv τ.val x ![η₁, η₂, v] = 0
-
 omit [IsManifold IM ∞ M] in
 /-- A two-form `τ` on `M`, of any regularity, is *vertically closed on* a set `s` for a map
 `proj : M → B` when its exterior derivative vanishes on `(η₁, η₂, v)` at every point `x ∈ s`, for
@@ -128,13 +121,14 @@ def _root_.TauCeti.RoughForm.IsVerticallyClosedOn (proj : M → B) (τ : RoughFo
   ∀ x ∈ s, ∀ η₁ ∈ (mfderiv IM IB proj x).ker, ∀ η₂ ∈ (mfderiv IM IB proj x).ker,
     ∀ v : TangentSpace IM x, mextDeriv τ x ![η₁, η₂, v] = 0
 
-variable {IB}
+/-- A two-form `τ` on `M` is *vertically closed* for a map `proj : M → B` when it is vertically
+closed on the whole of `M`: its exterior derivative vanishes on `(η₁, η₂, v)` at every point `x`,
+for all vectors `η₁` and `η₂` of the kernel of the derivative of `proj` at `x` and every tangent
+vector `v` (`isVerticallyClosed_iff`). -/
+def IsVerticallyClosed (proj : M → B) (τ : SmoothTwoForm IM M) : Prop :=
+  RoughForm.IsVerticallyClosedOn IB proj τ.val univ
 
-theorem isVerticallyClosed_iff :
-    IsVerticallyClosed IB proj τ ↔
-      ∀ x, ∀ η₁ ∈ (mfderiv IM IB proj x).ker, ∀ η₂ ∈ (mfderiv IM IB proj x).ker,
-        ∀ v : TangentSpace IM x, mextDeriv τ.val x ![η₁, η₂, v] = 0 :=
-  Iff.rfl
+variable {IB}
 
 omit [IsManifold IM ∞ M] in
 theorem _root_.TauCeti.RoughForm.isVerticallyClosedOn_iff {τ : RoughForm IM M ℝ 2} {s : Set M} :
@@ -143,38 +137,46 @@ theorem _root_.TauCeti.RoughForm.isVerticallyClosedOn_iff {τ : RoughForm IM M �
         ∀ v : TangentSpace IM x, mextDeriv τ x ![η₁, η₂, v] = 0 :=
   Iff.rfl
 
+/-- A smooth two-form is vertically closed exactly when it is vertically closed on the whole
+space. -/
+theorem isVerticallyClosedOn_univ_iff :
+    RoughForm.IsVerticallyClosedOn IB proj τ.val univ ↔ IsVerticallyClosed IB proj τ :=
+  Iff.rfl
+
+theorem isVerticallyClosed_iff :
+    IsVerticallyClosed IB proj τ ↔
+      ∀ x, ∀ η₁ ∈ (mfderiv IM IB proj x).ker, ∀ η₂ ∈ (mfderiv IM IB proj x).ker,
+        ∀ v : TangentSpace IM x, mextDeriv τ.val x ![η₁, η₂, v] = 0 := by
+  simp only [← isVerticallyClosedOn_univ_iff, RoughForm.isVerticallyClosedOn_iff, mem_univ,
+    forall_const]
+
 omit [IsManifold IM ∞ M] in
 theorem _root_.TauCeti.RoughForm.IsVerticallyClosedOn.mono {τ : RoughForm IM M ℝ 2}
     {s t : Set M} (h : τ.IsVerticallyClosedOn IB proj s) (hts : t ⊆ s) :
     τ.IsVerticallyClosedOn IB proj t :=
   fun x hx ↦ h x (hts hx)
 
-/-- A smooth two-form is vertically closed exactly when it is vertically closed on the whole
-space. -/
-theorem isVerticallyClosedOn_univ_iff :
-    RoughForm.IsVerticallyClosedOn IB proj τ.val univ ↔ IsVerticallyClosed IB proj τ :=
-  ⟨fun h x ↦ h x (mem_univ x), fun h x _ ↦ h x⟩
-
 /-- A closed two-form is vertically closed for every map. -/
 theorem _root_.TauCeti.SmoothForm.IsClosed.isVerticallyClosed (h : τ.IsClosed) :
-    IsVerticallyClosed IB proj τ := fun x _ _ _ _ _ ↦ by
+    IsVerticallyClosed IB proj τ := isVerticallyClosed_iff.2 fun x _ _ _ _ _ ↦ by
   rw [(SmoothForm.isClosed_def τ).1 h, Pi.zero_apply,
     ContinuousAlternatingMap.coe_zero, Pi.zero_apply]
 
 /-- The sum of two vertically closed two-forms is vertically closed. -/
 theorem IsVerticallyClosed.add (h₁ : IsVerticallyClosed IB proj τ₁)
     (h₂ : IsVerticallyClosed IB proj τ₂) : IsVerticallyClosed IB proj (τ₁ + τ₂) := by
-  intro x η₁ hη₁ η₂ hη₂ v
+  refine isVerticallyClosed_iff.2 fun x η₁ hη₁ η₂ hη₂ v ↦ ?_
   rw [← mextDerivₗ_apply, map_add, Submodule.coe_add, mextDerivₗ_apply,
     mextDerivₗ_apply, Pi.add_apply, ContinuousAlternatingMap.add_apply,
-    h₁ x η₁ hη₁ η₂ hη₂ v, h₂ x η₁ hη₁ η₂ hη₂ v, add_zero]
+    isVerticallyClosed_iff.1 h₁ x η₁ hη₁ η₂ hη₂ v,
+    isVerticallyClosed_iff.1 h₂ x η₁ hη₁ η₂ hη₂ v, add_zero]
 
 /-- A scalar multiple of a vertically closed two-form is vertically closed. -/
 theorem IsVerticallyClosed.smul (h : IsVerticallyClosed IB proj τ) (c : ℝ) :
     IsVerticallyClosed IB proj (c • τ) := by
-  intro x η₁ hη₁ η₂ hη₂ v
+  refine isVerticallyClosed_iff.2 fun x η₁ hη₁ η₂ hη₂ v ↦ ?_
   rw [Submodule.coe_smul, mextDeriv_smul, Pi.smul_apply,
-    ContinuousAlternatingMap.smul_apply, h x η₁ hη₁ η₂ hη₂ v, smul_zero]
+    ContinuousAlternatingMap.smul_apply, isVerticallyClosed_iff.1 h x η₁ hη₁ η₂ hη₂ v, smul_zero]
 
 /-- Adding a vertically closed two-form does not change vertical closedness. -/
 theorem IsVerticallyClosed.add_right_iff (h : IsVerticallyClosed IB proj τ₂) :
@@ -196,7 +198,7 @@ theorem mextDeriv_mpullback_apply_eq_zero [IsManifold IB ∞ B]
 /-- The pull-back `proj^* β` of a two-form on the base is vertically closed. -/
 theorem isVerticallyClosed_mpullback [IsManifold IB ∞ B] (hproj : ContMDiff IM IB ∞ proj)
     (β : SmoothTwoForm IB B) : IsVerticallyClosed IB proj (SmoothForm.mpullback proj hproj β) :=
-  fun _ _ hη₁ η₂ _ v ↦ mextDeriv_mpullback_apply_eq_zero hproj β hη₁ η₂ v
+  isVerticallyClosed_iff.2 fun _ _ hη₁ η₂ _ v ↦ mextDeriv_mpullback_apply_eq_zero hproj β hη₁ η₂ v
 
 /-- Adding the pull-back `proj^* β` of a two-form on the base does not change vertical
 closedness. -/
@@ -464,7 +466,7 @@ private theorem isVerticallyClosed_connectionForm [IsManifold IB ∞ B]
     {ρ : SmoothPartitionOfUnity B IB B univ}
     (hρ : ρ.IsSubordinate fun i ↦ (A.trivAt i).baseSet) {τ : SmoothTwoForm IM M}
     (hτ : τ.val = connectionForm A σ ρ) : IsVerticallyClosed IB proj τ := by
-  intro x η₁ hη₁ η₂ hη₂ v
+  refine isVerticallyClosed_iff.2 fun x η₁ hη₁ η₂ hη₂ v ↦ ?_
   have hproj : ContMDiff IM IB ∞ proj := hA.contMDiff_proj
   set θ : B → RoughForm IM M ℝ 2 := fun i ↦
     TauCeti.mpullback IM IF (fun y ↦ (A.trivAt i y).2) σ.val
