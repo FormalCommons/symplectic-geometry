@@ -580,8 +580,8 @@ instance instIsManifoldGlueDataU [IsManifold 𝓘(𝕜, Fin (n + 1) → ℂ) r M
   | ⟨false⟩ => inferInstanceAs (IsManifold 𝓘(𝕜, Fin (n + 1) → ℂ) r (puncturedOpens c))
   | ⟨true⟩ => inferInstanceAs (IsManifold 𝓘(𝕜, Fin (n + 1) → ℂ) r (modelOpens c))
 
-/-- The gluing map is `C^r` when `c` is on its source and the inverse of the model's blowdown
-off the divisor is. -/
+/-- The gluing map is `C^r` when `c` is `C^r` on its source and the inverse of the model's
+blowdown off the divisor is `C^r`. -/
 theorem contMDiff_gluingHomeomorph
     (hc : ContMDiffOn 𝓘(𝕜, Fin (n + 1) → ℂ) 𝓘(𝕜, Fin (n + 1) → ℂ) r c c.source)
     (hb : ContMDiff 𝓘(𝕜, Fin (n + 1) → ℂ) 𝓘(𝕜, Fin (n + 1) → ℂ) r (blowdownDiffeomorph n).symm) :
@@ -596,8 +596,8 @@ theorem contMDiff_gluingHomeomorph
   convert contMDiff_subtypeVal.comp (hb.comp hc') using 1
   exact funext (coe_gluingHomeomorph c)
 
-/-- The inverse of the gluing map is `C^r` when `c.symm` is on the target of `c` and the
-model's blowdown is. -/
+/-- The inverse of the gluing map is `C^r` when `c.symm` is `C^r` on the target of `c` and the
+model's blowdown is `C^r`. -/
 theorem contMDiff_gluingHomeomorph_symm
     (hc : ContMDiffOn 𝓘(𝕜, Fin (n + 1) → ℂ) 𝓘(𝕜, Fin (n + 1) → ℂ) r c.symm c.target)
     (hb : ContMDiff 𝓘(𝕜, Fin (n + 1) → ℂ) 𝓘(𝕜, Fin (n + 1) → ℂ) r
@@ -667,6 +667,7 @@ instance instIsManifoldReal [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M]
     [hc : Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M)] :
     IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ (Blowup c) :=
   (isCompatible_real c hc.out).isManifold
+
 /-- The canonical map from the punctured space is a local biholomorphism. -/
 theorem isLocalDiffeomorph_inl [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M]
     [hc : Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)] :
