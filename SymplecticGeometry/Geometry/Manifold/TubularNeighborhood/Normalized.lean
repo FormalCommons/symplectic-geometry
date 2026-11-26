@@ -13,6 +13,7 @@ import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.TubularNeighborhood.Existence
 import Mathlib.Geometry.Manifold.VectorBundle.Pullback
 import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Quotient
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
 
 /-!
@@ -72,6 +73,18 @@ normalized by precomposing it with that inverse
 (`isNormalizedTube_normalFiberDerivDiffeomorph_symm_trans`), and normalized tubes exist inside
 every open set containing the range of `f` (`exists_isNormalizedTube_subset`).
 
+A normalized tube also preserves fibre coordinates to first order: if `g : P → N` has
+derivative `A` at `0` whose normal classes are the vectors of the fibre over `x` with the
+coordinates given by the preferred trivialization `e` at `x`, then a lift `h` of `g`
+through the tube that sends `0` to the zero vector over `x` has fibre coordinate
+`w ↦ (e (h w)).2` with derivative the identity at `0`
+(`IsNormalizedTube.hasFDerivAt_trivializationAt_snd`). The differential `D` of the tube at `0_x`
+sends horizontal vectors to tangent vectors of `f` and vertical vectors `(0, w)` to vectors
+with normal class of coordinate `w`; so the normal class of `D v` has coordinate the second
+component of `v` (`IsNormalizedTube.normalClassL_mfderiv_zeroSection`), and the chain rule
+applied to `h`, which is differentiable since the tube is a local diffeomorphism
+(`MDifferentiableAt.of_comp_isLocalDiffeomorph`), gives the claim.
+
 ## Main definitions
 
 * `TauCeti.SmoothEmbedding.normalFiberDeriv`: the normal derivative of a map out of the normal
@@ -109,6 +122,12 @@ every open set containing the range of `f` (`exists_isNormalizedTube_subset`).
   normalized.
 * `TauCeti.SmoothEmbedding.exists_isNormalizedTube_subset`: every open set containing the range
   of `f` contains the image of a normalized tube.
+* `TauCeti.SmoothEmbedding.IsNormalizedTube.normalClassL_mfderiv_zeroSection`: the normal class
+  of the differential of a normalized tube at `0_x` applied to `v` has coordinate `v.2` in the
+  preferred trivialization at `x`.
+* `TauCeti.SmoothEmbedding.IsNormalizedTube.hasFDerivAt_trivializationAt_snd`: the fibre coordinate,
+  in the preferred trivialization at `x`, of a lift through a normalized tube of a map whose
+  derivative has the fibre coordinates as normal classes has derivative the identity.
 
 ## References
 
@@ -513,6 +532,54 @@ theorem normalFiberDeriv_eq_id_iff (f : SmoothEmbedding I J ∞ M N) (hn : (∞ 
     rwa [h, ContinuousLinearMap.id_apply, e.continuousLinearMapAt_symmL hx, eq_comm] at this
   · rw [hD, h, ContinuousLinearMap.id_apply, e.symmL_continuousLinearMapAt hx]
 
+/-- Let `Φ` be a normalized tube of `f`. The differential of `Φ` at the zero vector over `x`,
+followed by the normal class, sends a tangent vector `v` of the total space to the vector of the
+fibre over `x` with coordinate `v.2` in the preferred trivialization at `x`. -/
+theorem IsNormalizedTube.normalClassL_mfderiv_zeroSection {f : SmoothEmbedding I J ∞ M N}
+    {hn : (∞ : ℕ∞ω) ≠ 0} {hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E}
+    {W : TopologicalSpace.Opens N}
+    {Φ : letI := f.normalSpaceFiberBundle hn hdim
+      TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W}
+    (hΦ : f.IsNormalizedTube hn hdim Φ) (x : M)
+    (v : letI := f.normalSpaceFiberBundle hn hdim
+      TangentSpace (I.prod 𝓘(ℝ, P)) (zeroSection P (fun x ↦ f.NormalSpace x hn) x)) :
+    letI := f.normalSpaceFiberBundle hn hdim
+    haveI := f.normalSpaceVectorBundle hn hdim
+    f.normalClassL x hn (mfderiv (I.prod 𝓘(ℝ, P)) J (fun p ↦ (Φ p : N)) (zeroSection P _ x) v) =
+      (trivializationAt P (fun x ↦ f.NormalSpace x hn) x).symmL ℝ x v.2 := by
+  let := f.normalSpaceFiberBundle hn hdim
+  have := f.normalSpaceVectorBundle hn hdim
+  let e := trivializationAt P (fun x ↦ f.NormalSpace x hn) x
+  let F : TotalSpace P (fun x ↦ f.NormalSpace x hn) → N := fun p ↦ (Φ p : N)
+  let p₀ := zeroSection P (fun x ↦ f.NormalSpace x hn) x
+  let D := mfderiv (I.prod 𝓘(ℝ, P)) J F p₀
+  have hF : MDifferentiableAt (I.prod 𝓘(ℝ, P)) J F p₀ :=
+    ((isLocalDiffeomorph_subtype_val (I := J) (n := ∞) (U := W) _).mdifferentiableAt
+      (by simp)).comp _ (Φ.contMDiff.mdifferentiableAt (by simp))
+  -- Split `v` into its vertical part `a` and its horizontal part `b`. `D` sends `a` to a vector
+  -- with normal class of coordinate `v.2`, and `b` to a tangent vector of `f`.
+  let a : TangentSpace (I.prod 𝓘(ℝ, P)) p₀ := ((0 : E), v.2)
+  let b : TangentSpace (I.prod 𝓘(ℝ, P)) p₀ := (v.1, (0 : P))
+  have hv : D v = D a + D b := by
+    rw [← D.map_add]
+    -- The tangent space at `p₀` is `E × P`, where `v = a + b` holds componentwise.
+    exact congrArg D (Prod.ext (zero_add _).symm (add_zero _).symm)
+  have ha : f.normalClassL x hn (D a) = e.symmL ℝ x v.2 :=
+    (normalFiberDeriv_eq_id_iff f hn hdim F x).1 (hΦ.normalFiberDeriv_eq_id x) v.2
+  have hb := Bundle.mfderiv_zeroSectionTangentEquiv_symm_inl hF
+    (g := f) (Filter.Eventually.of_forall hΦ.apply_zeroSection) v.1
+  rw [Bundle.zeroSectionTangentEquiv_symm_apply, map_zero] at hb
+  have hb' : f.normalClassL x hn (D b) = 0 := by
+    -- `hb` is about `((v.1, 0).1, 0)`, which reduces to `b`.
+    have : D b = mfderiv I J f x v.1 := hb
+    rw [this, normalClassL_apply]
+    exact normalClass_mfderiv f x hn _
+  -- The two sums live in tangent spaces of `N` at `F p₀` and at `f x`, both `V`.
+  calc f.normalClassL x hn (D v) = f.normalClassL x hn (D a + D b) := by rw [hv]
+    _ = f.normalClassL x hn (D a) + f.normalClassL x hn (D b) := map_add _ _ _
+    _ = e.symmL ℝ x v.2 := by
+      rw [ha, hb', add_zero]
+
 /-- Let `Φ` be a diffeomorphism of the total space of the normal bundle of `f` onto an open set
 `W`, equal to `f` on the zero section, and let `Ψ` be a smooth family of continuous linear
 automorphisms of the fibres such that, at each `x`, the normal derivative of `Φ` composed with
@@ -601,6 +668,60 @@ theorem exists_isNormalizedTube_subset [I.Boundaryless] [J.Boundaryless] [T2Spac
     (Φ.isLocalDiffeomorph _).comp (hg := isLocalDiffeomorph_subtype_val (U := W) _)
   exact ⟨W, hWO, _,
     f.isNormalizedTube_normalFiberDerivDiffeomorph_symm_trans hn hdim Φ hl (funext hΦ)⟩
+
+/-- Let `Φ` be a normalized tube of `f`, `x : M`, and `e` the preferred trivialization of the normal
+bundle at `x`. Let `g : P → N` have derivative `A` at `0`, such that the normal class of each
+`A w` is the vector of the fibre over `x` with coordinate `w` in `e`. Let `h : P → ν` be
+continuous at `0`, send `0` to the zero vector over `x`, and lift `g` through `Φ` near `0`. Then
+the fibre coordinate `w ↦ (e (h w)).2` of `h` has derivative the identity at `0`. -/
+theorem IsNormalizedTube.hasFDerivAt_trivializationAt_snd {f : SmoothEmbedding I J ∞ M N}
+    {hn : (∞ : ℕ∞ω) ≠ 0} {hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E}
+    {W : TopologicalSpace.Opens N}
+    {Φ : letI := f.normalSpaceFiberBundle hn hdim
+      TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W}
+    (hΦ : f.IsNormalizedTube hn hdim Φ) {x : M} {g : P → N} {A : P →L[ℝ] V}
+    (hg : HasMFDerivAt 𝓘(ℝ, P) J g 0 A)
+    (hA : letI := f.normalSpaceFiberBundle hn hdim
+      haveI := f.normalSpaceVectorBundle hn hdim
+      ∀ w : P, f.normalClassL x hn (A w) =
+        (trivializationAt P (fun x ↦ f.NormalSpace x hn) x).symmL ℝ x w)
+    {h : P → TotalSpace P (fun x ↦ f.NormalSpace x hn)}
+    (hc : letI := f.normalSpaceFiberBundle hn hdim
+      ContinuousAt h 0)
+    (h0 : h 0 = zeroSection P _ x) (hgh : ∀ᶠ w in 𝓝 0, (Φ (h w) : N) = g w) :
+    letI := f.normalSpaceFiberBundle hn hdim
+    HasFDerivAt (fun w ↦ (trivializationAt P (fun x ↦ f.NormalSpace x hn) x (h w)).2)
+      (ContinuousLinearMap.id ℝ P) 0 := by
+  let := f.normalSpaceFiberBundle hn hdim
+  have := f.normalSpaceVectorBundle hn hdim
+  set e := trivializationAt P (fun x ↦ f.NormalSpace x hn) x
+  have hx : x ∈ e.baseSet := mem_baseSet_trivializationAt P _ x
+  set F : TotalSpace P (fun x ↦ f.NormalSpace x hn) → N := fun p ↦ (Φ p : N)
+  set p₀ := zeroSection P (fun x ↦ f.NormalSpace x hn) x
+  have hl : IsLocalDiffeomorphAt (I.prod 𝓘(ℝ, P)) J ∞ F p₀ :=
+    (Φ.isLocalDiffeomorph _).comp (hg := isLocalDiffeomorph_subtype_val (U := W) _)
+  have hFh : F ∘ h =ᶠ[𝓝 0] g := hgh
+  -- `h` is differentiable at `0`, and its differential `L` followed by the differential `D` of
+  -- `F` at `p₀` is `A`.
+  have hd : MDifferentiableAt 𝓘(ℝ, P) (I.prod 𝓘(ℝ, P)) h 0 :=
+    .of_comp_isLocalDiffeomorph (h0 ▸ hl) (by simp) hc
+      (hg.mdifferentiableAt.congr_of_eventuallyEq hFh)
+  set D := mfderiv (I.prod 𝓘(ℝ, P)) J F p₀
+  set L := mfderiv 𝓘(ℝ, P) (I.prod 𝓘(ℝ, P)) h 0
+  have hDL (w : P) : D (L w) = A w := by
+    have h1 := mfderiv_comp_apply_of_eq 0 (hl.mdifferentiableAt (by simp)) hd h0 w
+    rw [hFh.mfderiv_eq, hg.mfderiv] at h1
+    exact h1.symm
+  have hL (w : P) : (L w).2 = w := by
+    have h1 := congrArg (e.continuousLinearMapAt ℝ x)
+      ((hΦ.normalClassL_mfderiv_zeroSection x (L w)).symm.trans
+        ((congrArg _ (hDL w)).trans (hA w)))
+    rwa [e.continuousLinearMapAt_symmL hx, e.continuousLinearMapAt_symmL hx] at h1
+  -- Read in the preferred chart at `p₀`, the second component of `L` is the derivative of the
+  -- fibre coordinate of `h` in `e`.
+  have hfd := (TauCeti.Manifold.hasMFDerivAt_totalSpace_iff.1 hd.hasMFDerivAt).2
+  rw [h0, zeroSection_proj] at hfd
+  exact (hasMFDerivAt_iff_hasFDerivAt.1 hfd).congr_fderiv (ContinuousLinearMap.ext hL)
 
 end TauCeti.SmoothEmbedding
 
