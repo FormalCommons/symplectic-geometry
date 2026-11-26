@@ -27,6 +27,12 @@ whose value at `(t, y)` is `f (Ψ (t, f⁻¹ y))`:
   product, by the triangle inequality, and are multiplied by at most `L` under conjugation by an
   `L`-Lipschitz diffeomorphism.
 
+The last results are about the product `Ψ.transDiffeomorph f * Φ`, which runs `Φ` and then `Ψ`
+conjugated by `f`. For any `f`, it is the identity outside `C₁ ∪ f '' C₂`, and it moves points
+by less than `δ₁ + L * δ₂` when `f` is `L`-Lipschitz. For `f = Φ.final`, its final map is
+`Φ.final * Ψ.final`, and it fixes at every time each point that both `Φ` and `Ψ` fix at every
+time.
+
 ## Main results
 
 * `TauCeti.Diffeotopy.mul_apply_eq_self`,
@@ -39,6 +45,14 @@ whose value at `(t, y)` is `f (Ψ (t, f⁻¹ y))`:
   displacement of a product.
 * `TauCeti.Diffeotopy.dist_transDiffeomorph_apply_le`,
   `TauCeti.Diffeotopy.dist_transDiffeomorph_apply_le_mul`: the displacement of a conjugate.
+* `TauCeti.Diffeotopy.final_transDiffeomorph_final_mul`,
+  `TauCeti.Diffeotopy.image_transDiffeomorph_final_mul_apply_one_subset`: the final map of
+  `Ψ.transDiffeomorph Φ.final * Φ`.
+* `TauCeti.Diffeotopy.transDiffeomorph_mul_apply_eq_self_of_notMem_union_image`,
+  `TauCeti.Diffeotopy.transDiffeomorph_final_mul_apply_eq_self_of_mem_inter`,
+  `TauCeti.Diffeotopy.exists_mem_nhdsSet_transDiffeomorph_final_mul_apply_eq_self`,
+  `TauCeti.Diffeotopy.dist_transDiffeomorph_mul_apply_lt`: support, fixed sets and displacement
+  of `Ψ.transDiffeomorph f * Φ`.
 
 ## References
 
@@ -49,7 +63,7 @@ whose value at `(t, y)` is `f (Ψ (t, f⁻¹ y))`:
 public section
 
 open Set unitInterval
-open scoped Manifold ContDiff NNReal
+open scoped Manifold ContDiff NNReal Topology
 
 namespace TauCeti.Diffeotopy
 
@@ -102,6 +116,52 @@ theorem transDiffeomorph_apply_eq_self_of_notMem_image {Ψ : Diffeotopy J n M}
     ∀ t, ∀ y ∉ f '' C, Ψ.transDiffeomorph f (t, y) = y := fun t y hy ↦
   transDiffeomorph_apply_eq_self_iff.2 <| hΨ t _ fun h ↦ hy ⟨_, h, f.apply_symm_apply y⟩
 
+/-- If `Φ` fixes every point outside `C₁` and `Ψ` every point outside `C₂`, at every time, then
+the product `Ψ.transDiffeomorph f * Φ` of `Φ` with the conjugate of `Ψ` by a diffeomorphism `f`
+fixes every point outside `C₁ ∪ f '' C₂` at every time. -/
+theorem transDiffeomorph_mul_apply_eq_self_of_notMem_union_image {Φ Ψ : Diffeotopy J n M}
+    (f : M ≃ₘ^n⟮J, J⟯ M) {C₁ C₂ : Set M} (hΦ : ∀ t, ∀ x ∉ C₁, Φ (t, x) = x)
+    (hΨ : ∀ t, ∀ x ∉ C₂, Ψ (t, x) = x) :
+    ∀ t, ∀ x ∉ C₁ ∪ f '' C₂, (Ψ.transDiffeomorph f * Φ) (t, x) = x :=
+  mul_apply_eq_self_of_notMem_union hΦ (transDiffeomorph_apply_eq_self_of_notMem_image f hΨ)
+
+/-- The final map of the product `Ψ.transDiffeomorph Φ.final * Φ`, which runs `Φ` and then `Ψ`
+conjugated by the final map of `Φ`, is `Φ.final * Ψ.final`. -/
+theorem final_transDiffeomorph_final_mul (Φ Ψ : Diffeotopy J n M) :
+    (Ψ.transDiffeomorph Φ.final * Φ).final = Φ.final * Ψ.final := by
+  rw [final_mul, final_transDiffeomorph_eq_mul_mul_inv, inv_mul_cancel_right]
+
+/-- If the final map of `Ψ` sends `S` into `V`, then the final map of the product
+`Ψ.transDiffeomorph Φ.final * Φ` sends `S` into `Φ.final '' V`. -/
+theorem image_transDiffeomorph_final_mul_apply_one_subset {Φ Ψ : Diffeotopy J n M}
+    {S V : Set M} (hΨ : (fun x ↦ Ψ (1, x)) '' S ⊆ V) :
+    (fun x ↦ (Ψ.transDiffeomorph Φ.final * Φ) (1, x)) '' S ⊆ Φ.final '' V := by
+  rintro _ ⟨x, hx, rfl⟩
+  refine ⟨Ψ (1, x), hΨ ⟨x, hx, rfl⟩, ?_⟩
+  have h := DFunLike.congr_fun (final_transDiffeomorph_final_mul Φ Ψ) x
+  rw [final_apply, Diffeomorph.mul_apply, final_apply Ψ] at h
+  exact h.symm
+
+/-- If `Φ` fixes every point of `W₁` and `Ψ` every point of `W₂`, at every time, then the product
+`Ψ.transDiffeomorph Φ.final * Φ` fixes every point of `W₁ ∩ W₂` at every time. -/
+theorem transDiffeomorph_final_mul_apply_eq_self_of_mem_inter {Φ Ψ : Diffeotopy J n M}
+    {W₁ W₂ : Set M} (hΦ : ∀ t, ∀ x ∈ W₁, Φ (t, x) = x) (hΨ : ∀ t, ∀ x ∈ W₂, Ψ (t, x) = x) :
+    ∀ t, ∀ x ∈ W₁ ∩ W₂, (Ψ.transDiffeomorph Φ.final * Φ) (t, x) = x := by
+  refine fun t x hx ↦ mul_apply_eq_self (hΦ t x hx.1)
+    (transDiffeomorph_apply_eq_self_of_mem_image _ hΨ t x ⟨x, hx.2, ?_⟩)
+  rw [final_apply, hΦ 1 x hx.1]
+
+/-- If `Φ` and `Ψ` each fix, at every time, every point of a neighbourhood of `S`, then so does
+the product `Ψ.transDiffeomorph Φ.final * Φ`. -/
+theorem exists_mem_nhdsSet_transDiffeomorph_final_mul_apply_eq_self {Φ Ψ : Diffeotopy J n M}
+    {S : Set M} (hΦ : ∃ W ∈ 𝓝ˢ S, ∀ t, ∀ x ∈ W, Φ (t, x) = x)
+    (hΨ : ∃ W ∈ 𝓝ˢ S, ∀ t, ∀ x ∈ W, Ψ (t, x) = x) :
+    ∃ W ∈ 𝓝ˢ S, ∀ t, ∀ x ∈ W, (Ψ.transDiffeomorph Φ.final * Φ) (t, x) = x := by
+  obtain ⟨W₁, hW₁, hΦ⟩ := hΦ
+  obtain ⟨W₂, hW₂, hΨ⟩ := hΨ
+  exact ⟨W₁ ∩ W₂, Filter.inter_mem hW₁ hW₂,
+    transDiffeomorph_final_mul_apply_eq_self_of_mem_inter hΦ hΨ⟩
+
 end Support
 
 section Displacement
@@ -142,6 +202,18 @@ theorem dist_transDiffeomorph_apply_le_mul {Ψ : Diffeotopy J n M} {f : M ≃ₘ
     (y : P) : dist (Ψ.transDiffeomorph f (t, y)) y ≤ L * δ :=
   (dist_transDiffeomorph_apply_le Ψ hf t y).trans <|
     mul_le_mul_of_nonneg_left (hΨ t _) L.coe_nonneg
+
+/-- If `Φ` moves every point by less than `δ₁` and `Ψ` by less than `δ₂`, at every time, and the
+diffeomorphism `f` is `L`-Lipschitz, then `Ψ.transDiffeomorph f * Φ` moves every point by less
+than `δ₁ + L * δ₂` at every time. -/
+theorem dist_transDiffeomorph_mul_apply_lt {Φ Ψ : Diffeotopy J n M} {f : M ≃ₘ^n⟮J, J⟯ M}
+    {L : ℝ≥0} {δ₁ δ₂ : ℝ} (hf : LipschitzWith L f) (hΦ : ∀ t x, dist (Φ (t, x)) x < δ₁)
+    (hΨ : ∀ t x, dist (Ψ (t, x)) x < δ₂) (t : I) (x : M) :
+    dist ((Ψ.transDiffeomorph f * Φ) (t, x)) x < δ₁ + L * δ₂ := by
+  refine (dist_mul_apply_le Φ _ t x).trans_lt ?_
+  rw [add_comm δ₁]
+  exact add_lt_add_of_le_of_lt
+    (dist_transDiffeomorph_apply_le_mul hf (fun t x ↦ (hΨ t x).le) t _) (hΦ t x)
 
 end Displacement
 
