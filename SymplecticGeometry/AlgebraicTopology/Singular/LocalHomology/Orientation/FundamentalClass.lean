@@ -16,8 +16,8 @@ integral class of `Hₙ(M; ℤ)` that is a fundamental class (`TauCeti.IsFundame
 images `Hₙ(M; ℤ) → Hₙ(M, M ∖ {x}; ℤ)` in the local homology are local orientations
 (`TauCeti.isFundamentalClass_iff_forall_isLocalOrientation`), and they are carried to one another
 by transport along paths, since the images of any global class are
-(`TauCeti.localHomologyTransport_singularHomologyToLocalHomology`). So they form a homological
-orientation, `TauCeti.HomologicalOrientation.ofIsFundamentalClass`. When `M` is compact and
+(`TauCeti.localHomologyTransport_singularHomologyToLocalHomology_of_hom`). So they form a
+homological orientation, `TauCeti.HomologicalOrientation.ofIsFundamentalClass`. When `M` is compact and
 `finrank ℝ E = n`, the fundamental class of that orientation is `μ` again
 (`TauCeti.HomologicalOrientation.fundamentalClass_ofIsFundamentalClass`), by the uniqueness of the
 fundamental class (`TauCeti.HomologicalOrientation.eq_fundamentalClass`). This is the converse of
@@ -75,7 +75,7 @@ def ofIsFundamentalClass
   localOrientationTransport_toFun' f := by
     ext : 1
     rw [coe_localOrientationTransport]
-    exact localHomologyTransport_singularHomologyToLocalHomology _ f μ
+    exact localHomologyTransport_singularHomologyToLocalHomology_of_hom _ f μ
 
 /-- The local orientation at `x` of the orientation of a fundamental class `μ` is the image of `μ`
 in the local homology at `x`. -/
