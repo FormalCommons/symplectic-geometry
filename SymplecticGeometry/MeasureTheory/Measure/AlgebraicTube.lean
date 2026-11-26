@@ -15,6 +15,7 @@ import SymplecticGeometry.MeasureTheory.Measure.Lebesgue.LineSlice
 import SymplecticGeometry.RingTheory.MvPolynomial.LineRestriction
 import SymplecticGeometry.Topology.Algebra.MvPolynomial
 import TauCeti.MeasureTheory.Measure.Haar.Average
+import TauCeti.MeasureTheory.Measure.OpenPos
 import TauCeti.RingTheory.MvPolynomial.Homogeneous
 import TauCeti.RingTheory.MvPolynomial.Rescale
 
@@ -252,7 +253,7 @@ theorem volume_ball_le_mul_volume_setOfPred_exists_root {P : MvPolynomial ι ℂ
   have h2 := (setAverage_log_norm_eval_sub_le P hD c hρ (r₂ := 4 * (K * D * a)) (by linarith)).2
   rw [mul_div_assoc, div_self hρ.ne', mul_one] at h2
   have hB : 0 < volume.real (ball (0 : EuclideanSpace ℂ ι) 1) :=
-    ENNReal.toReal_pos (measure_ball_pos volume 0 one_pos).ne' measure_ball_lt_top.ne
+    measureReal_ball_pos volume 0 one_pos
   have hSfin : volume S ≠ ∞ :=
     ((measure_mono (sep_subset _ _)).trans_lt measure_ball_lt_top).ne
   have hlog : 0 < Real.log 4 := Real.log_pos (by norm_num)
@@ -450,7 +451,7 @@ theorem measureReal_ball_mul_le_of_ball_subset_thickening :
   refine ⟨max C₀ 1, lt_max_of_lt_right one_pos, fun P hP0 D hPd r hr t hsub ↦ ?_⟩
   set m := Fintype.card ι
   set V := volume.real (ball (0 : EuclideanSpace ℂ ι) 1)
-  have hV : 0 < V := ENNReal.toReal_pos (measure_ball_pos _ _ one_pos).ne' measure_ball_lt_top.ne
+  have hV : 0 < V := measureReal_ball_pos _ _ one_pos
   have ht0 : 0 ≤ t := by
     by_contra! ht
     have := hsub (mem_ball_self hr)
