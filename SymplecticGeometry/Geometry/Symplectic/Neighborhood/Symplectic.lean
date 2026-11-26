@@ -191,8 +191,8 @@ representative of each normal vector `v` of `f₀` at `q` to the symplectic repr
 submanifolds may be modelled on different spaces `J₀` and `J₁`, and `Q₀` has no boundary.
 
 Milestone: *Symplectic neighbourhood theorem*. -/
-theorem HasSymplecticTangentImages.exists_symplectomorphism_opens {hσ₀ : σ₀.IsSymplectic}
-    {hσ₁ : σ₁.IsSymplectic} (h₀ : hσ₀.isNondegenerate.HasSymplecticTangentImages J₀ f₀)
+theorem HasSymplecticTangentImages.exists_symplectomorphism_opens (hσ₀ : σ₀.IsSymplectic)
+    (hσ₁ : σ₁.IsSymplectic) (h₀ : hσ₀.isNondegenerate.HasSymplecticTangentImages J₀ f₀)
     (h₁ : hσ₁.isNondegenerate.HasSymplecticTangentImages J₁ f₁) (φ : Q₀ ≃ₘ⟮J₀, J₁⟯ Q₁)
     (hφ : SmoothForm.mpullback φ φ.contMDiff (SmoothForm.mpullback f₁ f₁.contMDiff σ₁) =
       SmoothForm.mpullback f₀ f₀.contMDiff σ₀)

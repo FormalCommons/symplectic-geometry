@@ -20,7 +20,8 @@ homotopic through loops, the base point being allowed to move:
 between based and free homotopy classes of loops; Tau Ceti's
 `Path.exists_trans_homotopic_trans_of_homotopicWith` and `Path.homotopicWith_trans_trans_symm`
 give the rest. In particular a loop that is homotopic with fixed ends to the constant loop is
-null-homotopic as a map from the circle, through Tau Ceti's `Path.toCircle`.
+null-homotopic as a map from the circle, through Tau Ceti's `Path.toCircle`, which sends the
+constant loop to a constant map (`Path.toCircle_refl`).
 
 ## Main results
 
@@ -54,10 +55,7 @@ map from the circle (`Path.toCircle`). -/
 theorem nullhomotopic_toCircle {γ : Path x x} (h : γ.Homotopic (Path.refl x)) :
     γ.toCircle.Nullhomotopic := by
   refine ⟨x, ContinuousMap.homotopic_iff_joined.2 ?_⟩
-  convert h.joined_toCircle
-  ext ζ
-  obtain ⟨t, rfl⟩ := TauCeti.unitToCircle_surjective ζ
-  simp [Path.toCircle_unitToCircle]
+  simpa only [Path.toCircle_refl] using h.joined_toCircle
 
 end Path.Homotopic
 

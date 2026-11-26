@@ -7,7 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.Basic
 import TauCeti.MeasureTheory.Function.LocalRepresentative
-import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.Basic
+import TauCeti.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.Basic
 
 /-!
 # Smooth representatives of Sobolev sections from local ones
@@ -23,8 +23,8 @@ The local representatives in one chart agree on overlaps, since continuous funct
 almost everywhere on an open set agree there, so they glue to one on the chart image
 (`TauCeti.exists_contDiffOn_ae_eq_of_locally`). These glue across charts into a continuous section
 (`TauCeti.FiniteBundleAtlas.exists_continuous_coord_eqOn_of_ae_eq`), which is `Cⁿ` since its chart
-readings are (`TauCeti.FiniteBundleAtlas.contMDiff_of_contDiffOn_coord`). The gluing adapts the
-proof of Tau Ceti's
+readings are (`TauCeti.FiniteBundleAtlas.contMDiff_of_forall_contDiffOn_coord`). The gluing adapts
+the proof of Tau Ceti's
 `TauCeti.SobolevSection.exists_continuous_contDiffOn_coord_ae_eq_of_forall_zeroAtInfty`, which
 glues chartwise representatives of Sobolev data in the same way.
 
@@ -65,7 +65,7 @@ theorem exists_contMDiff_ae_eq_coord_of_locally {w : SobolevSection A μ p k}
   obtain ⟨s, hs⟩ := SobolevSection.exists_section_ae_eq_coord _ _ _ _ w
   obtain ⟨t, -, ht⟩ := FiniteBundleAtlas.exists_continuous_coord_eqOn_of_ae_eq (μ := μ)
     (fun i ↦ (hg i).continuousOn) fun i ↦ (hs i).symm.trans (hgw i)
-  refine ⟨t, A.contMDiff_of_contDiffOn_coord fun i ↦ (hg i).congr (ht i), fun i ↦ ?_⟩
+  refine ⟨t, A.contMDiff_of_forall_contDiffOn_coord fun i ↦ (hg i).congr (ht i), fun i ↦ ?_⟩
   filter_upwards [hgw i, ae_restrict_mem (A.image i).isOpen.measurableSet] with y h2 hy
   rw [h2, ht i hy]
 

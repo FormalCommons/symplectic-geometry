@@ -12,6 +12,7 @@ import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Basic
 import TauCeti.Geometry.Symplectic.Lagrangian.Graph
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.IsManifold.SecondCountable
+import SymplecticGeometry.Topology.MetricSpace.Tube
 
 /-!
 # Symplectic framings and product neighbourhoods
@@ -250,7 +251,7 @@ theorem exists_symplectomorphism_opens [J.Boundaryless] [I.Boundaryless] [T2Spac
       (SymplecticForm.isSymplectic_constSmooth _)
   obtain ⟨U₀, U₁, ψ, hψ, hψσ⟩ :=
     SmoothTwoForm.IsNondegenerate.HasSymplecticTangentImages.exists_symplectomorphism_opens
-      (hσ₀ := hτ) (hσ₁ := hσ) (hasSymplecticTangentImages_zeroSlice hι) hι
+      hτ hσ (hasSymplecticTangentImages_zeroSlice hι) hι
       (Diffeomorph.refl J Q ∞) (by
         rw [mpullback_zeroSlice_prod,
           SmoothForm.mpullback_congr _ contMDiff_id (Diffeomorph.coe_refl _ _ _)]
@@ -445,12 +446,10 @@ theorem «exists» [CompactSpace Q] (Φ : SymplecticFraming hι hP) :
   have hU₀ : (Set.univ : Set Q) ×ˢ {(0 : ℂ)} ⊆ U₀ := by
     rintro ⟨q, z⟩ ⟨-, rfl : z = 0⟩
     simpa using (hψ q).1
-  obtain ⟨u, V, -, hV, hu, h0V, hUV⟩ :=
-    generalized_tube_lemma isCompact_univ isCompact_singleton U₀.isOpen hU₀
-  obtain ⟨ε₀, hε₀, hε₀V⟩ := Metric.isOpen_iff.1 hV 0 (h0V rfl)
+  obtain ⟨ε₀, hε₀, hε₀U⟩ := isCompact_univ.exists_prod_ball_subset U₀.isOpen hU₀
   refine ⟨ε₀, hε₀, fun ε hε ↦
-    ⟨ofSymplectomorphism Φ ψ hψ hψσ (ε := ε) fun p hp ↦ hUV ⟨hu trivial, ?_⟩⟩⟩
-  exact hε₀V (Metric.ball_subset_ball hε (by simpa using hp))
+    ⟨ofSymplectomorphism Φ ψ hψ hψσ (ε := ε) fun p hp ↦ hε₀U ⟨trivial, ?_⟩⟩⟩
+  exact Metric.ball_subset_ball hε (by simpa using hp)
 
 end Exists
 

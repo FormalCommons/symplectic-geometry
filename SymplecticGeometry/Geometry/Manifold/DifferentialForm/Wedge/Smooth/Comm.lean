@@ -61,7 +61,7 @@ symmetric: `φ ∧_μ ψ = ψ ∧_μ φ`. -/
 theorem wedgeWith_one_one_comm_of_anticomm (μ : F₁ →L[ℝ] F₁ →L[ℝ] F₃)
     (hμ : ∀ a b, μ a b = -μ b a) (φ ψ : SmoothForm I M F₁ 1) :
     wedgeWith μ φ ψ = wedgeWith μ ψ φ := by
-  refine Subtype.ext (funext fun x ↦ ContinuousAlternatingMap.ext fun v ↦ ?_)
+  refine SmoothBundleForm.ext fun x v ↦ ?_
   rw [wedgeWith_comm_of_anticomm μ hμ]
   simp
 

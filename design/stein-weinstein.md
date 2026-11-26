@@ -292,8 +292,8 @@ half-space, as a strong filling is in *Liouville structures*:
 `IsWeinsteinDomain σ Y f c` asks `IsStrongFilling σ univ Y`, `f` smooth
 with `f = c` on `∂W` and `f < c` on the interior,
 `0 < mvfderiv f x (Y x)` for every `x ∈ ∂W`, and, on the interior
-as a boundaryless manifold (Tau Ceti's `BoundarylessModel.interiorChartedSpace`,
-as in `Liouville/Domain.lean`), `f` generalized Morse and `Y` gradient-like
+as a boundaryless manifold (Tau Ceti's charted interior `(𝓡∂ (n + 1)).interior W`,
+with `ModelWithCorners.instChartedSpaceInterior`), `f` generalized Morse and `Y` gradient-like
 for it. The boundary condition makes `∂W = f ⁻¹' {c}` a regular level: it
 does not follow from the others, since `δ` may tend to zero at `∂W` (on
 the closed unit disc with the radial field, `f = -(1 - r²)²` and `c = 0`

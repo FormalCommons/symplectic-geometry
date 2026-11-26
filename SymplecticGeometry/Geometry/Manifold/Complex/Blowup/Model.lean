@@ -15,6 +15,8 @@ public import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 public import TauCeti.Geometry.Manifold.AnalyticSubmanifold.Transport
 public import TauCeti.Geometry.Manifold.Immersion.Differential
 public import TauCeti.Geometry.Manifold.Instances.Projectivization
+public import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
+public import TauCeti.Geometry.Manifold.ModelWithCorners.RestrictScalars.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Topology.Algebra.Projectivization
 
@@ -60,15 +62,25 @@ blowdown is a biholomorphism onto the nonzero vectors of `E`.
   manifold for every `r`). The chart at `p` is taken at the index Tau Ceti's atlas of `ℙ ℂ E` uses
   at `p.pr`. Instance search finds `T2Space` and `SecondCountableTopology` from the subspace.
 * `SymplecticGeometry.BlowupModel.contMDiff_iff_forall_contMDiff_comp_blowupModelChart_symm`: a
-  map out of the blowup is `C^r` exactly when it is `C^r` read in each chart.
+  map out of the blowup is `C^r` exactly when it is `C^r` read in each chart, and
+  `SymplecticGeometry.BlowupModel.contMDiffAt_iff_contMDiffAt_comp_blowupModelChart_symm`: the
+  same at one point of the source of a chart.
+* `SymplecticGeometry.BlowupModel.contMDiffAt_iff_contMDiffAt_pr_comp_and_blowdown_comp`: a map
+  into the blowup is `C^r` at a point, for `r ≥ 1`, exactly when its two projections are.
 * `SymplecticGeometry.BlowupModel.contMDiff_pr`, `SymplecticGeometry.BlowupModel.contMDiff_blowdown`
   and `SymplecticGeometry.BlowupModel.contMDiff_blowupModel_val`: the projection to `ℙ ℂ E`, the
   blowdown and the inclusion into `ℙ ℂ E × E` are holomorphic.
+* `SymplecticGeometry.BlowupModel.contMDiff_zeroSection`: the zero section is holomorphic, since
+  composed with the inclusion into `ℙ ℂ E × E` it is `ℓ ↦ (ℓ, 0)`.
 * `SymplecticGeometry.BlowupModel.isSmoothEmbedding_blowupModel_val`: the inclusion into
   `ℙ ℂ E × E` is a holomorphic embedding (`Manifold.IsSmoothEmbedding`), and
   `SymplecticGeometry.BlowupModel.isMAnalyticSubmanifold_blowupModel`: so the incidence set is a
   complex submanifold of `ℙ ℂ E × E` of dimension `n + 1` (Tau Ceti's
   `TauCeti.IsMAnalyticSubmanifold`).
+* `SymplecticGeometry.BlowupModel.mfderiv_pr_eq_zero_and_mfderiv_blowdown_eq_zero_iff`: a real
+  tangent vector of the blowup on which the real differentials of `pr` and of the blowdown both
+  vanish is zero, since the real differential of the inclusion is injective (Tau Ceti's
+  `TauCeti.injective_mfderiv_restrictScalars`).
 * `SymplecticGeometry.BlowupModel.blowdownDiffeomorph n`: off the exceptional divisor, the blowdown
   is a biholomorphism of open subsets onto `{z : E | z ≠ 0}`, with inverse `z ↦ ([z], z)`
   (`coe_blowdownDiffeomorph`, `blowdownDiffeomorph_symm_apply`).
@@ -460,6 +472,19 @@ theorem contMDiff_blowupModelChart_symm (i : Fin (n + 1)) (r : ℕ∞ω) :
   rw [← contMDiffOn_univ]
   simpa using contMDiffOn_symm_of_mem_maximalAtlas (blowupModelChart_mem_maximalAtlas r i)
 
+/-- A map out of the blowup is `C^r` at a point `p` of the source of the chart `i` if and only if
+it is `C^r` read in that chart, at the image of `p`. -/
+theorem contMDiffAt_iff_contMDiffAt_comp_blowupModelChart_symm {F H M : Type*}
+    [NormedAddCommGroup F] [NormedSpace ℂ F] [TopologicalSpace H] {I : ModelWithCorners ℂ F H}
+    [TopologicalSpace M] [ChartedSpace H M] {f : BlowupModel n → M} {r : ℕ∞ω} {p : BlowupModel n}
+    {i : Fin (n + 1)} (hp : p ∈ (blowupModelChart i).source) :
+    ContMDiffAt 𝓘(ℂ, Fin (n + 1) → ℂ) I r f p ↔
+      ContMDiffAt 𝓘(ℂ, Fin (n + 1) → ℂ) I r (f ∘ (blowupModelChart i).symm)
+        (blowupModelChart i p) := by
+  rw [← contMDiffWithinAt_univ, contMDiffWithinAt_iff_source_of_mem_maximalAtlas
+    (blowupModelChart_mem_maximalAtlas r i) hp]
+  simp [contMDiffWithinAt_univ]
+
 /-- A map out of the blowup is `C^r` if and only if it is `C^r` read in each chart
 `blowupModelChart i`, that is, composed with the inverse of each chart, a map defined on all of
 `E`. -/
@@ -470,11 +495,8 @@ theorem contMDiff_iff_forall_contMDiff_comp_blowupModelChart_symm {F H M : Type*
       ∀ i, ContMDiff 𝓘(ℂ, Fin (n + 1) → ℂ) I r (f ∘ (blowupModelChart i).symm) := by
   refine ⟨fun hf i => hf.comp (contMDiff_blowupModelChart_symm i r), fun hf p => ?_⟩
   obtain ⟨i, hi⟩ := exists_mem_affineOpen p.pr
-  have hsrc : (blowupModelChart i).source ∈ 𝓝 p :=
-    (blowupModelChart i).open_source.mem_nhds (by rw [blowupModelChart_source]; exact hi)
-  refine (((hf i).comp_contMDiffOn (contMDiffOn_blowupModelChart i r)).congr fun q hq => ?_)
-    |>.contMDiffAt hsrc
-  rw [comp_apply, comp_apply, (blowupModelChart i).left_inv hq]
+  exact (contMDiffAt_iff_contMDiffAt_comp_blowupModelChart_symm
+    (by rwa [blowupModelChart_source])).2 (hf i _)
 
 /-- The projection of the blowup to `ℙ ℂ E` is `C^r` for every `r`; for `r = ω` it is
 holomorphic. -/
@@ -549,6 +571,44 @@ theorem isSmoothEmbedding_blowupModel_val {r : ℕ∞ω} (hr : 1 ≤ r) :
     (((contMDiff_blowupModelChart_symm i r).contMDiffAt.comp _ hφ).mdifferentiableAt
       (by rintro rfl; simp at hr)) hleft
 
+/-- A real tangent vector of the blowup is zero exactly when the real differentials of the
+projection to `ℙ ℂ E` and of the blowdown both vanish on it: the real differential of the
+inclusion into `ℙ ℂ E × E` is injective, since the inclusion is a holomorphic immersion. -/
+theorem mfderiv_pr_eq_zero_and_mfderiv_blowdown_eq_zero_iff {p : BlowupModel n}
+    {v : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) p} :
+    mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin n → ℂ) pr p v = 0 ∧
+        mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) blowdown p v = 0 ↔ v = 0 := by
+  refine ⟨fun ⟨h₁, h₂⟩ => ?_, fun h => by simp [h]⟩
+  have hinj := TauCeti.injective_mfderiv_restrictScalars ℝ
+    ((TauCeti.isImmersion_iff_forall_isImmersionAt.1
+      (isSmoothEmbedding_blowupModel_val (n := n) (r := ∞) (by simp)).isImmersion
+        p).mfderiv_injective
+      (by simp))
+  rw [ModelWithCorners.restrictScalars_prod, modelWithCornersSelf_restrictScalars,
+    modelWithCornersSelf_restrictScalars] at hinj
+  have hd : MDifferentiableAt 𝓘(ℝ, Fin (n + 1) → ℂ) (𝓘(ℝ, Fin n → ℂ).prod 𝓘(ℝ, Fin (n + 1) → ℂ))
+      (Subtype.val : BlowupModel n → ℙ ℂ (Fin (n + 1) → ℂ) × (Fin (n + 1) → ℂ)) p := by
+    simpa only [ModelWithCorners.restrictScalars_prod, modelWithCornersSelf_restrictScalars] using
+      (((contMDiff_blowupModel_val (n := n) ∞).mdifferentiable (by simp)) p).restrictScalars ℝ
+  -- The two differentials are the components of the differential of the inclusion.
+  refine hinj ((Prod.ext ?_ ?_).trans (map_zero _).symm)
+  · rw [show (pr : BlowupModel n → _) = Prod.fst ∘ Subtype.val from funext pr_def,
+      mfderiv_comp p mdifferentiableAt_fst hd, mfderiv_fst] at h₁
+    exact h₁
+  · rw [show (blowdown : BlowupModel n → _) = Prod.snd ∘ Subtype.val from funext blowdown_def,
+      mfderiv_comp p mdifferentiableAt_snd hd, mfderiv_snd] at h₂
+    exact h₂
+
+/-- The zero section `ℓ ↦ (ℓ, 0)` of the blowup is `C^r` for every `r`; for `r = ω` it is
+holomorphic. -/
+theorem contMDiff_zeroSection (r : ℕ∞ω) :
+    ContMDiff 𝓘(ℂ, Fin n → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) r
+      (zeroSection : ℙ ℂ (Fin (n + 1) → ℂ) → BlowupModel n) := by
+  -- Composed with the inclusion into `ℙ ℂ E × E`, it is `ℓ ↦ (ℓ, 0)`.
+  refine ContMDiff.of_le ?_ le_top
+  exact ((isSmoothEmbedding_blowupModel_val (n := n) (r := ω) le_top).contMDiff_iff_comp).2
+    (contMDiff_id.prodMk contMDiff_const)
+
 /-- The incidence set `blowupModel n` is a complex submanifold of `ℙ ℂ E × E` of dimension
 `n + 1`: Tau Ceti's `TauCeti.IsMAnalyticSubmanifold` for the product model, with any continuous
 linear identification `e` of the model space `(Fin n → ℂ) × E` with some `Fin m → ℂ`. -/
@@ -559,6 +619,18 @@ theorem isMAnalyticSubmanifold_blowupModel {m : ℕ}
   have := (isSmoothEmbedding_blowupModel_val (n := n) (r := ω) le_top).isMAnalyticSubmanifold_range
     (ContinuousLinearEquiv.refl ℂ (Fin (n + 1) → ℂ)) e
   rwa [Subtype.range_coe] at this
+
+/-- A map into the blowup is `C^r` at a point, for `r ≥ 1`, if and only if its composites with the
+projection to `ℙ ℂ E` and with the blowdown are. -/
+theorem contMDiffAt_iff_contMDiffAt_pr_comp_and_blowdown_comp {F H M : Type*}
+    [NormedAddCommGroup F] [NormedSpace ℂ F] [TopologicalSpace H] {I : ModelWithCorners ℂ F H}
+    [TopologicalSpace M] [ChartedSpace H M] {f : M → BlowupModel n} {x : M} {r : ℕ∞ω}
+    (hr : 1 ≤ r) :
+    ContMDiffAt I 𝓘(ℂ, Fin (n + 1) → ℂ) r f x ↔
+      ContMDiffAt I 𝓘(ℂ, Fin n → ℂ) r (fun y => (f y).pr) x ∧
+        ContMDiffAt I 𝓘(ℂ, Fin (n + 1) → ℂ) r (fun y => (f y).blowdown) x := by
+  rw [(isSmoothEmbedding_blowupModel_val hr).contMDiffAt_iff_comp, contMDiffAt_prod_iff]
+  simp only [comp_def, ← pr_def, ← blowdown_def]
 
 -- Instance search finds the subspace instances of `ℙ ℂ E × E`.
 example : T2Space (BlowupModel n) := inferInstance
@@ -587,7 +659,13 @@ theorem mk_blowdown {p : BlowupModel n} (hp : p.blowdown ≠ 0) : mk ℂ p.blowd
 variable (n) in
 /-- The blowdown `π` off the exceptional divisor, as a biholomorphism from the open complement of
 the divisor onto the open set of nonzero vectors of `E`. Its inverse sends `z ≠ 0` to the point
-`(mk z, z)`. -/
+`(mk z, z)`.
+
+Of the milestone below, this states that the blowdown is a biholomorphism off the exceptional
+divisor; `blowupModelTotalSpaceDiffeomorph` (in `Blowup/Tautological.lean`) states that `pr` is
+the tautological line bundle, with the divisor as its zero section.
+
+Milestone: *Tautological line bundle and the exceptional divisor*. -/
 noncomputable def blowdownDiffeomorph :
     (⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ : Opens (BlowupModel n))
       ≃ₘ^ω⟮𝓘(ℂ, Fin (n + 1) → ℂ), 𝓘(ℂ, Fin (n + 1) → ℂ)⟯

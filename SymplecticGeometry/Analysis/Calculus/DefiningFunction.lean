@@ -10,7 +10,7 @@ public import Mathlib.Analysis.Calculus.FDeriv.Defs
 import Mathlib.Analysis.Calculus.ContDiff.Operations
 import SymplecticGeometry.Analysis.Calculus.FiberRescale
 import TauCeti.Analysis.Calculus.FDeriv.Smul
-import TauCeti.Analysis.Calculus.ImplicitFunctionTheorem
+import TauCeti.Analysis.Calculus.ImplicitFunction.Basic
 
 /-!
 # Functions vanishing on a regular zero set are multiples of its defining function

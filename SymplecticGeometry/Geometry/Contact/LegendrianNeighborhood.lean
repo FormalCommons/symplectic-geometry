@@ -25,7 +25,7 @@ import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
 import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Lagrangian
 import SymplecticGeometry.Topology.Sets.Opens.Basic
-import TauCeti.Geometry.Contact.LegendrianNormal
+import TauCeti.Geometry.Contact.Legendrian.Normal
 import TauCeti.Geometry.Contact.Slice
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Prod.Basic
@@ -548,7 +548,7 @@ private theorem exists_mextDerivₗ_eq_of_isSymplectic [I.Boundaryless] [J.Bound
   -- The Lagrangian neighbourhood theorem gives `ψ`; the map sought is `κ ∘ ψ`.
   obtain ⟨U, V, ψ, hψ0, hψσ⟩ :=
     SmoothTwoForm.IsNondegenerate.IsLagrangianMap.exists_symplectomorphism_cotangent
-      (hσ := hσ) hLag
+      hσ hLag
   refine ⟨U, κ ∘ (Subtype.val ∘ ψ), hκ.comp (contMDiff_subtypeVal.comp ψ.contMDiff),
     fun q ↦ ?_, ?_⟩
   · obtain ⟨h, hq, -⟩ := hψ0 q

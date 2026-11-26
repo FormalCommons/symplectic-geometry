@@ -7,7 +7,9 @@ module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Relative.Basic
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.HomotopyOperator
+import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 
 /-!
 # The relative Poincaré operator at the zero section, on fibrewise star-shaped sets, for families
@@ -36,6 +38,16 @@ function of `(t, v)`, since the homotopy operator preserves smooth families
 (`SymplecticGeometry.IsSmoothFamily.homotopyOperator`). This is
 `TauCeti.exists_contMDiff_mextDeriv_ofFunction_eq_of_mpullback_zeroSection`.
 
+A closed one-form `η` given only on an open set `U` of the total space has a primitive on any set
+`W ⊆ U` that contains the zero section, has closure in `U`, and is stable under fibre scaling, as
+soon as its pullback along the zero section is `dh`
+(`TauCeti.exists_contMDiff_mextDeriv_ofFunction_eq_of_mextDerivₗ_eq_zero`). The operator `P`
+is applied to a form `η'` on the whole total space, not to `η`: a smooth function, `1` near the
+closure of `W` and `0` near the complement of `U`, cuts `η` off, and the product is extended by
+zero (`TauCeti.exists_isSmoothForm_eq_on_of_closure_subset`). Then `η' = η` on `W` and `d η' = 0`
+there, so the localized identity gives `d (P η') = η' - ρ^* η'` on `W`. Since
+`ρ^* η' = π^* (dh) = d (h ∘ π)`, the function `P η' + h ∘ π` is the primitive.
+
 ## Main results
 
 * `mextDeriv_vectorBundlePoincareHomotopy_zeroSection_of_mpullback_zeroSection_apply_eq_zero`:
@@ -50,17 +62,22 @@ function of `(t, v)`, since the homotopy operator preserves smooth families
 * `TauCeti.exists_contMDiff_mextDeriv_ofFunction_eq_of_mpullback_zeroSection`: a smooth function
   of `(t, v)` vanishing on the zero section whose slices have differential `η_t` at the zero
   vectors where the restriction of `η_t` to the zero section vanishes.
+* `TauCeti.exists_contMDiff_mextDeriv_ofFunction_eq_of_mextDerivₗ_eq_zero`: a smooth primitive,
+  on a fibrewise star-shaped set around the zero section, of a closed one-form on an open set
+  whose pullback along the zero section is exact.
 
 ## References
 
 * [A. Cannas da Silva, *Lectures on Symplectic Geometry*][CannasdaSilva2001Lectures], §6.2
+* [P. Seidel, *A long exact sequence for symplectic Floer cohomology*][Seidel2003], the paragraph
+  before Proposition 1.11 (arXiv version 2)
 -/
 
 public section
 
 noncomputable section
 
-open Bundle
+open Bundle TopologicalSpace
 open scoped ContDiff Manifold
 
 namespace TauCeti
@@ -187,6 +204,59 @@ theorem exists_contMDiff_mextDeriv_ofFunction_eq_of_mpullback_zeroSection
       ((ηt t).isSmoothForm.of_le (by simp)) ?_
     rw [← SmoothForm.coe_mpullback _ (contMDiff_zeroSection ℝ V)]
     exact hb
+
+/-- **A primitive of a closed one-form near the zero section.** Let `V → B` be a smooth vector
+bundle of finite rank over a finite-dimensional base, with Hausdorff σ-compact total space, and
+let `U` be an open subset of the total space. Let `W` be a set containing the zero section, with
+closure in `U`, that fibre scaling by each `t ∈ [0, 1]` maps into itself. Let `η` be a closed
+smooth one-form on `U` whose pullback along the zero section `B → U` is `dh` for a smooth function
+`h` on `B`. Then there is a smooth function `g` on the total space with `dg = η` on `W`. -/
+theorem exists_contMDiff_mextDeriv_ofFunction_eq_of_mextDerivₗ_eq_zero
+    [FiniteDimensional ℝ EB] [FiniteDimensional ℝ FV] [T2Space (TotalSpace FV V)]
+    [SigmaCompactSpace (TotalSpace FV V)] {U : Opens (TotalSpace FV V)}
+    {W : Set (TotalSpace FV V)} (hW : ∀ z ∈ W, ∀ t, vectorBundleFiberScaling FV V (z, t) ∈ W)
+    (hWU : closure W ⊆ U) (h0 : ∀ b, zeroSection FV V b ∈ W)
+    {η : SmoothForm (IB.prod 𝓘(ℝ, FV)) U ℝ 1} (hη : mextDerivₗ (IB.prod 𝓘(ℝ, FV)) 1 η = 0)
+    {h : B → ℝ} (hh : ContMDiff IB 𝓘(ℝ) ∞ h)
+    (hηh : mpullback IB (IB.prod 𝓘(ℝ, FV))
+      (fun b ↦ (⟨zeroSection FV V b, hWU (subset_closure (h0 b))⟩ : U)) η.val =
+        mextDeriv (RoughForm.ofFunction IB h)) :
+    ∃ g : TotalSpace FV V → ℝ, ContMDiff (IB.prod 𝓘(ℝ, FV)) 𝓘(ℝ) ∞ g ∧
+      ∀ z (hz : z ∈ W), mextDeriv (RoughForm.ofFunction (IB.prod 𝓘(ℝ, FV)) g) z =
+        η.val ⟨z, hWU (subset_closure hz)⟩ := by
+  -- A smooth form on the total space that is `η` on `W` and closed there.
+  obtain ⟨η', hη's, hη'W, hdη'W⟩ := exists_isSmoothForm_eq_on_of_closure_subset hWU hη
+  -- Along the zero section, `η'` pulls back to `dh`, so `ρ^* η' = d (h ∘ π)`.
+  have hzs : mpullback IB (IB.prod 𝓘(ℝ, FV)) (zeroSection FV V) η' =
+      mextDeriv (RoughForm.ofFunction IB h) := by
+    rw [← hηh]
+    funext b
+    ext v
+    rw [mpullback_apply, mpullback_apply, hη'W _ (h0 b)]
+    congr 1
+    funext i
+    exact (Manifold.mfderiv_subtype_val_comp_apply
+      (f := fun b ↦ (⟨zeroSection FV V b, hWU (subset_closure (h0 b))⟩ : U)) (v i))
+  have hρη : mpullback (IB.prod 𝓘(ℝ, FV)) (IB.prod 𝓘(ℝ, FV))
+      (zeroSection FV V ∘ π FV V) η' =
+        mextDeriv (RoughForm.ofFunction (IB.prod 𝓘(ℝ, FV)) (h ∘ π FV V)) := by
+    rw [mpullback_zeroSection_comp_proj, hzs, mpullback_mextDeriv
+      (contMDiff_proj V) ((isSmoothBundleForm_def _ _).mpr
+        ((isSmoothForm_ofFunction_iff.mpr hh).contMDiff.of_le (by simp))), mpullback_ofFunction]
+  -- The primitive is the relative Poincaré operator of `η'` plus `h ∘ π`.
+  set P := vectorBundlePoincareHomotopy η'
+  have hPs : IsSmoothForm (IB.prod 𝓘(ℝ, FV)) ∞ P := hη's.vectorBundlePoincareHomotopy (r := ⊤)
+  have hPf : IsSmoothForm (IB.prod 𝓘(ℝ, FV)) ∞
+      (RoughForm.ofFunction (IB.prod 𝓘(ℝ, FV)) fun z ↦ P z 0) :=
+    RoughForm.eq_ofFunction P ▸ hPs
+  have hhπ : ContMDiff (IB.prod 𝓘(ℝ, FV)) 𝓘(ℝ) ∞ (h ∘ π FV V) :=
+    hh.comp (contMDiff_proj V)
+  have hPg := isSmoothForm_ofFunction_iff.mp hPf
+  refine ⟨(fun z ↦ P z 0) + h ∘ π FV V, hPg.add hhπ, fun z hz ↦ ?_⟩
+  rw [mextDeriv_ofFunction_add (hPg.mdifferentiable (by simp)) (hhπ.mdifferentiable (by simp)),
+    ← RoughForm.eq_ofFunction, Pi.add_apply, ← hρη,
+    mextDeriv_vectorBundlePoincareHomotopy_apply_of_forall_mextDeriv_eq_zero
+      (hη's.of_le (by simp)) hW hdη'W hz, sub_add_cancel, hη'W z hz]
 
 end TauCeti
 
