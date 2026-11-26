@@ -416,8 +416,6 @@ theorem mfderiv_tubeMap_mfderiv_quotientMk (hz : (z : V) = 0) (ξ : GroupLieAlge
           ((stabilizer G x).toRightTranslation 1, z) (ξ, v)) =
       HAdd.hAdd (α := TangentSpace I' x) (β := TangentSpace I' x)
         (fundamentalVectorField I' ξ x) (v : E') := by
-  let _ := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) U I 𝓘(ℝ, V) F
-  have : ContMDiffSMul I I' 1 G M := ContMDiffSMul.of_le (M := M) ENat.LEInfty.out
   have hσ := U.hasMFDerivAt_sliceMap hz
   rw [U.tubeMap_def]
   refine (BalancedProduct.mfderiv_liftRightTranslation_mfderiv_quotientMk hσ.mdifferentiableAt
