@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Manifold.RegularValue.Scalar.Sublevel.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Liouville.Filling
 import TauCeti.Geometry.Manifold.RegularValue.Scalar.Outward
 import TauCeti.Geometry.Symplectic.Lagrangian.SymplecticTangent
+import SymplecticGeometry.Geometry.Manifold.VectorField.Pullback
 import SymplecticGeometry.Geometry.Symplectic.Liouville.VectorField
 
 /-!
@@ -75,24 +76,21 @@ theorem isStrongFilling_scalarRegularSublevel (hn : finrank ℝ E = n + 1)
   have := isManifold_scalarRegularSublevel hc hn (by simp) hf
   have hι := contMDiff_subtypeVal_scalarRegularSublevel hc hn (by simp) hf
   have hinv := isInvertible_mfderiv_subtypeVal_scalarRegularSublevel (hf.of_le (by simp)) hc hn
-  -- The pulled-back field is smooth and `ι`-related to `X`.
+  -- The pulled-back field is smooth, and it is `ι`-related to `X` since `dι` is invertible.
   have hY : ContMDiff (𝓡∂ (n + 1)) (𝓡∂ (n + 1)).tangent ∞
       (T% (VectorField.mpullback (𝓡∂ (n + 1)) I Subtype.val X)) :=
     hX.mpullback_vectorField hι hinv (by simp)
-  have hXY (x : {x | f x ≤ c}) : mfderiv (𝓡∂ (n + 1)) I Subtype.val x
-      (VectorField.mpullback (𝓡∂ (n + 1)) I Subtype.val X x) = X x := by
-    rw [VectorField.mpullback_apply, (hinv x).self_apply_inverse]
   refine ⟨(hσ.isNondegenerate.hasSymplecticTangentImages_of_surjective
       fun x ↦ (hinv x).surjective).isSymplectic_mpullback hσ hι fun x ↦ (hinv x).injective,
     isOpen_univ, subset_univ _, .intro hY fun x hx ↦ ?_, fun x _ ↦ ?_⟩
   · rw [boundary_scalarRegularSublevel hc hn (by simp) hf] at hx
     rw [isOutwardPointing_scalarRegularSublevel_iff (hf.of_le (by simp)) hn hc hx,
-      ← Function.comp_def f Subtype.val,
-      mvfderiv_comp x ((hf x).mdifferentiableAt (by simp)) ((hι x).mdifferentiableAt (by simp)),
-      ContinuousLinearMap.comp_apply, hXY]
+      ← Function.comp_def f Subtype.val, VectorField.mvfderiv_comp_apply_mpullback
+        ((hf x).mdifferentiableAt (by simp)) (hinv x)]
     exact hXf x hx
   · exact congrFun (isLiouvilleVectorField_iff.1 <| IsLiouvilleVectorField.mpullback hι
-      (hX.of_le (by simp)) hXσ (hY.mdifferentiable (by simp)) hXY) x
+      (hX.of_le (by simp)) hXσ (hY.mdifferentiable (by simp))
+      fun x ↦ VectorField.mfderiv_apply_mpullback (hinv x) X) x
 
 end SymplecticGeometry
 
