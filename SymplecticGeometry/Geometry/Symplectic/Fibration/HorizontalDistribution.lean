@@ -31,6 +31,9 @@ of its three arguments are vertical.
 
 * `TauCeti.SmoothTwoForm.IsVerticallyClosed IB proj τ`: the exterior derivative of `τ` vanishes
   on every triple `(η₁, η₂, v)` with `η₁` and `η₂` vertical.
+* `TauCeti.RoughForm.IsVerticallyClosedOn IB proj τ s`: the same condition at the points of a
+  set `s`, for a two-form of any regularity; on the whole space it is vertical closedness
+  (`TauCeti.SmoothTwoForm.isVerticallyClosedOn_univ_iff`).
 * `TauCeti.SmoothTwoForm.horizontalDistribution IB proj τ`: the `τ`-orthogonal of the vertical
   spaces.
 
@@ -115,6 +118,16 @@ def IsVerticallyClosed (proj : M → B) (τ : SmoothTwoForm IM M) : Prop :=
   ∀ x, ∀ η₁ ∈ (mfderiv IM IB proj x).ker, ∀ η₂ ∈ (mfderiv IM IB proj x).ker,
     ∀ v : TangentSpace IM x, mextDeriv τ.val x ![η₁, η₂, v] = 0
 
+omit [IsManifold IM ∞ M] in
+/-- A two-form `τ` on `M`, of any regularity, is *vertically closed on* a set `s` for a map
+`proj : M → B` when its exterior derivative vanishes on `(η₁, η₂, v)` at every point `x ∈ s`, for
+all vectors `η₁` and `η₂` of the kernel of the derivative of `proj` at `x` and every tangent
+vector `v`. -/
+def _root_.TauCeti.RoughForm.IsVerticallyClosedOn (proj : M → B) (τ : RoughForm IM M ℝ 2)
+    (s : Set M) : Prop :=
+  ∀ x ∈ s, ∀ η₁ ∈ (mfderiv IM IB proj x).ker, ∀ η₂ ∈ (mfderiv IM IB proj x).ker,
+    ∀ v : TangentSpace IM x, mextDeriv τ x ![η₁, η₂, v] = 0
+
 variable {IB}
 
 theorem isVerticallyClosed_iff :
@@ -122,6 +135,25 @@ theorem isVerticallyClosed_iff :
       ∀ x, ∀ η₁ ∈ (mfderiv IM IB proj x).ker, ∀ η₂ ∈ (mfderiv IM IB proj x).ker,
         ∀ v : TangentSpace IM x, mextDeriv τ.val x ![η₁, η₂, v] = 0 :=
   Iff.rfl
+
+omit [IsManifold IM ∞ M] in
+theorem _root_.TauCeti.RoughForm.isVerticallyClosedOn_iff {τ : RoughForm IM M ℝ 2} {s : Set M} :
+    τ.IsVerticallyClosedOn IB proj s ↔
+      ∀ x ∈ s, ∀ η₁ ∈ (mfderiv IM IB proj x).ker, ∀ η₂ ∈ (mfderiv IM IB proj x).ker,
+        ∀ v : TangentSpace IM x, mextDeriv τ x ![η₁, η₂, v] = 0 :=
+  Iff.rfl
+
+omit [IsManifold IM ∞ M] in
+theorem _root_.TauCeti.RoughForm.IsVerticallyClosedOn.mono {τ : RoughForm IM M ℝ 2}
+    {s t : Set M} (h : τ.IsVerticallyClosedOn IB proj s) (hts : t ⊆ s) :
+    τ.IsVerticallyClosedOn IB proj t :=
+  fun x hx ↦ h x (hts hx)
+
+/-- A smooth two-form is vertically closed exactly when it is vertically closed on the whole
+space. -/
+theorem isVerticallyClosedOn_univ_iff :
+    RoughForm.IsVerticallyClosedOn IB proj τ.val univ ↔ IsVerticallyClosed IB proj τ :=
+  ⟨fun h x ↦ h x (mem_univ x), fun h x _ ↦ h x⟩
 
 /-- A closed two-form is vertically closed for every map. -/
 theorem _root_.TauCeti.SmoothForm.IsClosed.isVerticallyClosed (h : τ.IsClosed) :
