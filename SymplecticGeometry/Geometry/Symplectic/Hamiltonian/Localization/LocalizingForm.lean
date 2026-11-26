@@ -314,7 +314,7 @@ theorem mextDerivₗ_cutoffWeightOneForm_apply_of_eventuallyEq_one {x : M}
   have hxt : x ∈ Φ.target := hs (subset_tsupport ρ (by simp [hx.self_of_nhds]))
   rw [mpullback_apply_eq_compContinuousLinearMap]
   refine mextDerivₗ_apply_eq_of_eventuallyEq_mpullback
-    ((Φ.symm.contMDiffOn.contMDiffAt (Φ.open_target.mem_nhds hxt)).of_le (by simp)) ?_
+    ((Φ.symm.contMDiffAt hxt).of_le (by simp)) ?_
   filter_upwards [hx] with y hy
   simp only [cutoffWeightOneForm_val, hy, Pi.one_apply, one_smul]
 

@@ -9,6 +9,7 @@ public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import Mathlib.Geometry.Manifold.VectorBundle.Riemannian
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.Riemannian.Pullback.Basic
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 
 /-!
 # Pulling back a metric along a partial diffeomorphism
@@ -63,7 +64,7 @@ theorem contMDiffOn_pullback [IsManifold I 1 M] [IsManifold J 1 N]
         ((ContinuousLinearMap.precomp ℝ (mfderiv I J Ψ x)).comp
           ((g.inner (Ψ x)).comp (mfderiv I J Ψ x)))) Ψ.source := fun _ hx ↦
   (g.contMDiffAt_pullback
-    ((Ψ.contMDiffOn.contMDiffAt (Ψ.open_source.mem_nhds hx)).of_le hm)).contMDiffWithinAt
+    ((Ψ.contMDiffAt hx).of_le hm)).contMDiffWithinAt
 
 /-- The pull-back of a Riemannian metric `g` on `N` along a partial diffeomorphism `Ψ : M → N`
 of class `C^m`, `m ≠ 0`, is positive on nonzero vectors at each point `x` of the source:

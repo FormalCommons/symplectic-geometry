@@ -15,6 +15,7 @@ import SymplecticGeometry.Analysis.Convex.LocalToGlobal
 import SymplecticGeometry.Geometry.Lie.Exponential.CommutativeGroup.Character
 import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 import SymplecticGeometry.Geometry.Lie.Subgroup.IdentityComponent
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Chart
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.WeightModel.ConvexChart
 import SymplecticGeometry.LinearAlgebra.Projection
@@ -398,7 +399,7 @@ theorem contDiffAt_comp_symm_sub_comp_subtype [FiniteDimensional ℝ E]
   refine ContDiffAt.sub ?_ contDiffAt_const
   rw [← contMDiffAt_iff_contDiffAt]
   exact (h.contMDiff (ξ : GroupLieAlgebra I G)).contMDiffAt.comp _
-    ((chart.symm.contMDiffOn _ hxt).contMDiffAt (chart.open_target.mem_nhds hxt))
+    (chart.symm.contMDiffAt hxt)
 
 omit [IsMulCommutative G] in
 /-- The derivative of the transverse part `z ↦ (μ (chart⁻¹ z) - μ x)|_𝔮` of the moment map at
