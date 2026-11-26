@@ -19,7 +19,9 @@ import TauCeti.Geometry.Manifold.MFDeriv.Constancy
 A locally constant map between manifolds has zero differential at every point
 (`IsLocallyConstant.mfderiv_eq_zero`). This is the converse of Tau Ceti's
 `MDifferentiable.isLocallyConstant_of_mfderiv_eq_zero`, which needs real manifolds and a
-differentiable map; the converse holds over any nontrivially normed field.
+differentiable map; the converse holds over any nontrivially normed field. Tau Ceti's
+`IsLocallyConstant.mvfderiv_eq_zero` is the case of a map into a normed space, stated for its
+differential `mvfderiv`; the lemma here allows any manifold as target.
 
 The proof is the step that Tau Ceti's
 `CovariantDerivative.hasParallelCurvature_iff_isLocallyConstant_scalarCurvature_of_finrank_eq_two`
