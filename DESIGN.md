@@ -3001,9 +3001,11 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
   (`TauCeti/AlgebraicTopology/Cohomology/CompactSupport/Duality/Manifold.lean`)
   and Tau Ceti's comparison of de Rham and singular cohomology
   (`TauCeti.deRhamHom` in
-  `Geometry/Manifold/SmoothSingular/SingularCohomology.lean`, the de Rham
-  theorem in `Geometry/Manifold/SmoothSingular/DeRham/Theorem.lean`), or
-  directly from
+  `Geometry/Manifold/SmoothSingular/SingularCohomology.lean`, the base
+  cases of the de Rham theorem in
+  `Geometry/Manifold/SmoothSingular/DeRham/Theorem.lean`; the general
+  theorem is planned in *Asymptotically holomorphic sections*, in
+  `SmoothSingular/DeRham/MayerVietorisInduction.lean`), or directly from
   periods of closed one-forms; and how the hypothesis on
   $[\omega]^{n-1}\smile-$ is stated with Tau Ceti's de Rham classes. The
   page's route through the Poincaré dual of an orbit is replaced by the
