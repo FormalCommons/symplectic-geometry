@@ -119,7 +119,7 @@ theorem interiorProduct_wedge (X : Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯)
       LinearEquiv.cast (R := ℝ) (M := fun q : ℕ ↦ SmoothForm I M ℝ q)
           (show k + (l + 1) = k + 1 + l by omega) (wedge (interiorProduct X φ) ψ) +
         (-1 : ℝ) ^ (k + 1) • wedge φ (interiorProduct X ψ) := by
-  refine Subtype.ext (funext fun x ↦ ContinuousAlternatingMap.ext fun v ↦ ?_)
+  refine SmoothBundleForm.ext fun x v ↦ ?_
   rw [coe_interiorProduct, coe_wedge, RoughForm.interior_wedge_apply, Submodule.coe_add,
     Pi.add_apply, ContinuousAlternatingMap.add_apply, cast_apply, Submodule.coe_smul,
     Pi.smul_apply, ContinuousAlternatingMap.smul_apply, coe_wedge, coe_wedge, coe_interiorProduct,

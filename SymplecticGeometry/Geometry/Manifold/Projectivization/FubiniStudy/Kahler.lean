@@ -323,7 +323,7 @@ theorem fubiniStudyAffinePotential_apply (w : Fin n → ℂ)
 private theorem mpullback_affineLift_fubiniStudyPotential (j : Fin (n + 1)) :
     SmoothForm.mpullback (affineLift ℂ j) (contMDiff_affineLift ℂ j ∞) (fubiniStudyPotential n) =
       fubiniStudyAffinePotential n := by
-  refine Subtype.ext <| funext fun w ↦ ContinuousAlternatingMap.ext fun v ↦ ?_
+  refine SmoothBundleForm.ext fun w v ↦ ?_
   rw [SmoothForm.mpullback_apply, fubiniStudyPotential_apply, fubiniStudyAffinePotential_apply]
   simp [Fin.sum_univ_succAbove _ j]
 

@@ -381,7 +381,7 @@ theorem isSmoothFamily_velocityForm (σ : SmoothTwoForm I M)
         ((k q.1).velocityForm σ) := by
   refine isSmoothFamily_def.2 ⟨SmoothForm.interiorProduct unitIntervalSqSndField
     (SmoothForm.mpullback Ĝ hĜ σ),
-    fun ⟨t, s⟩ ↦ Subtype.ext <| funext fun x ↦ ContinuousAlternatingMap.ext_fin_one fun w ↦ ?_⟩
+    fun ⟨t, s⟩ ↦ SmoothBundleForm.ext_fin_one fun x w ↦ ?_⟩
   have hkt : (k t : unitInterval × P → M) = fun p ↦ Ĝ ((t, p.1), p.2) := funext (hk t)
   have hĜd := hĜ.mdifferentiableAt (x := ((t, s), x)) (by simp)
   rw [SmoothIsotopy.mpullback_prodMk_velocityForm σ (k t) s x w, hkt]
