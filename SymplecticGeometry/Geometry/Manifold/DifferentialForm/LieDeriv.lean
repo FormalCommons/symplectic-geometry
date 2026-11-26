@@ -45,6 +45,12 @@ them vertically, and evaluates the Lie derivative by the bracket formula
 lifts commute (`Manifold.mlieBracket_prodVectorField_horizontal_vertical`), and the remaining
 term differentiates a function of `P` alone along `(X, 0)`. No boundarylessness is needed.
 
+The Lie derivative is natural along related vector fields: if `Φ : M' → M` is smooth and
+`dΦ_x (Y x) = X (Φ x)` for every `x`, then `Φ^* (L_X σ) = L_Y (Φ^* σ)` for every smooth form `σ`,
+with no invertibility of `dΦ` asked. Both sides are expanded by Cartan's formula, and the
+pullback commutes with interior products of related fields (`TauCeti.mpullback_interior`) and with
+the exterior derivative (`TauCeti.mpullback_mextDeriv`).
+
 ## Main declarations
 
 * `TauCeti.mlieDerivFormWithin_zero_left`, `TauCeti.mlieDerivForm_zero_left`: the Lie derivative
@@ -58,6 +64,8 @@ term differentiates a function of `P` alone along `(X, 0)`. No boundarylessness 
   `L_X = ι_X d + d ι_X` for it, and `L_X f = ι_X df` on functions.
 * `TauCeti.mpullback_prodMk_mlieDerivForm_prodVectorField_zero_eq_zero`: the slices of the Lie
   derivative of a form with constant slices along a horizontal field vanish.
+* `TauCeti.mpullback_mlieDerivForm_of_related`: the Lie derivative commutes with pullback along
+  related vector fields.
 
 ## References
 
@@ -174,8 +182,40 @@ theorem mpullback_prodMk_mlieDerivForm_prodVectorField_zero_eq_zero
   rw [hg, mvfderiv_comp_snd_apply, Manifold.prodVectorField_snd, Pi.zero_apply, map_zero,
     ContinuousAlternatingMap.coe_zero, Pi.zero_apply]
 
-
 end Horizontal
+
+/-! ### Naturality along related fields -/
+
+section Related
+
+open scoped ContDiff
+
+variable {E' H' M' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+  {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace M'] [ChartedSpace H' M']
+  [IsManifold I 2 M] [IsManifold I' 2 M']
+
+/-- **Naturality of the Lie derivative along related fields.** Let `Φ : M' → M` be smooth, `X` a
+`C¹` vector field on `M` and `Y` a differentiable vector field on `M'` with
+`dΦ_x (Y x) = X (Φ x)` for every `x`. Then for every smooth form `σ` on `M`,
+`Φ^* (L_X σ) = L_Y (Φ^* σ)`. The differential of `Φ` need not be invertible. -/
+theorem mpullback_mlieDerivForm_of_related {Φ : M' → M} (hΦ : ContMDiff I' I ∞ Φ)
+    {σ : SmoothForm I M F (k + 1)} {X : (x : M) → TangentSpace I x}
+    (hX : ContMDiff I I.tangent 1 (fun y ↦ (X y : TangentBundle I M)))
+    {Y : (x : M') → TangentSpace I' x}
+    (hY : MDifferentiable I' I'.tangent (fun y ↦ (Y y : TangentBundle I' M')))
+    (hXY : ∀ x, mfderiv I' I Φ x (Y x) = X (Φ x)) :
+    mpullback I' I Φ (mlieDerivForm X σ.val) =
+      mlieDerivForm Y (SmoothForm.mpullback Φ hΦ σ).val := by
+  have hσ : IsSmoothForm I 1 σ.val := σ.isSmoothForm.of_le (by simp)
+  rw [SmoothForm.mlieDerivForm_eq_interior_mextDeriv_add (hX.mdifferentiable one_ne_zero),
+    SmoothForm.mlieDerivForm_eq_interior_mextDeriv_add hY, SmoothForm.coe_mpullback,
+    mpullback_add, mpullback_interior Φ Y X _ hXY,
+    mpullback_mextDeriv (hΦ.of_le (by simp))
+      ((isSmoothBundleForm_def 1 _).mpr (hσ.interior hX).contMDiff),
+    mpullback_interior Φ Y X _ hXY,
+    mpullback_mextDeriv (hΦ.of_le (by simp)) ((isSmoothBundleForm_def 1 _).mpr hσ.contMDiff)]
+
+end Related
 
 /-! ### The bundled Lie derivative of smooth forms -/
 
