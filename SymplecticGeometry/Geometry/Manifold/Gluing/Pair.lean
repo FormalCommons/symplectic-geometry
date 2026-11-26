@@ -38,7 +38,10 @@ and its inverse. So the gluing is compatible in the sense of Tau Ceti's
 `TopCat.GlueData.IsCompatible`, and `TopCat.GlueData.chartedSpace` and
 `TopCat.GlueData.IsCompatible.isManifold` make `GluedAlong φ` a charted space over the model of
 `M₁` and `M₂`, and a `C^n` manifold when they are, for which `inl` and `inr` are `C^n` local
-diffeomorphisms.
+diffeomorphisms. The compatibility holds as well for a homeomorphism that is `C^n` with a `C^n`
+inverse (`GluedAlong.isCompatible_glueData_of_contMDiff`), and for any compatible gluing `inl`
+and `inr` are `C^n` local diffeomorphisms and a map out of the glued space is `C^m` exactly
+when its compositions with them are (`GluedAlong.contMDiff_iff_of_isCompatible`).
 
 Over `ℝ`, for a smooth `φ`, smooth forms glue. Let `σ₁` and `σ₂` be smooth forms on `M₁` and
 `M₂` that correspond on the overlap: `φ^*(σ₂|U₂) = σ₁|U₁`, where restricting to an open subset
@@ -70,8 +73,12 @@ are. The form of the completion of a Liouville domain, in the library's
 * `SymplecticGeometry.GluedAlong.isOpenEmbedding_inl`, `isOpenEmbedding_inr`,
   `range_inl_union_range_inr`, `exists_inl_or_exists_inr`, `inl_eq_inr_iff`: the topology of
   the glued space.
+* `SymplecticGeometry.GluedAlong.isCompatible_glueData_of_contMDiff`: the gluing along a
+  homeomorphism that is `C^n` both ways is compatible.
 * `SymplecticGeometry.GluedAlong.isLocalDiffeomorph_inl`, `isLocalDiffeomorph_inr`: the
   canonical maps are `C^n` local diffeomorphisms for the glued atlas.
+* `SymplecticGeometry.GluedAlong.contMDiff_iff_of_isCompatible`: for a compatible gluing, a map
+  out of the glued space is `C^m` exactly when its compositions with `inl` and `inr` are.
 * `SymplecticGeometry.GluedAlong.desc_inl`, `desc_inr`, `continuousMap_ext`: continuous maps on `M₁`
   and `M₂` that agree on the overlap give one on the glued space, and a continuous map on the
   glued space is determined by its restrictions to `M₁` and `M₂`.
@@ -331,27 +338,71 @@ section Smooth
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {E : Type*} [NormedAddCommGroup E]
   [NormedSpace 𝕜 E] {H : Type*} [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H} {n : ℕ∞ω}
   {M₁ M₂ : Type u} [TopologicalSpace M₁] [ChartedSpace H M₁] [TopologicalSpace M₂]
-  [ChartedSpace H M₂] {U₁ : Opens M₁} {U₂ : Opens M₂} (φ : U₁ ≃ₘ^n⟮I, I⟯ U₂)
+  [ChartedSpace H M₂] {U₁ : Opens M₁} {U₂ : Opens M₂}
 
 namespace GluedAlong
 
-/-- Each piece of the gluing of two `C^n` manifolds is a `C^n` manifold. -/
+section Homeomorph
+
+variable {F : Type*} [EquivLike F U₁ U₂] [HomeomorphClass F U₁ U₂] (φ : F)
+
+/-- Each piece of the gluing of two `C^n` manifolds is a `C^n` manifold, whatever the
+homeomorphism they are glued along. -/
 instance instIsManifoldGlueDataU [IsManifold I n M₁] [IsManifold I n M₂] :
     ∀ i : (glueData φ).J, IsManifold I n ((glueData φ).U i)
   | ⟨false⟩ => inferInstanceAs (IsManifold I n M₁)
   | ⟨true⟩ => inferInstanceAs (IsManifold I n M₂)
 
-/-- **The gluing along a diffeomorphism is compatible.** The maps out of an overlap are the
-inclusion of an open subset, and `φ` or its inverse, so they are `C^n` local diffeomorphisms. -/
-theorem isCompatible_glueData : (glueData φ).IsCompatible I n := by
+/-- **The gluing along a `C^n` homeomorphism is compatible.** If `φ` and its inverse are
+`C^n`, the maps out of an overlap are the inclusion of an open subset, and `φ` or its inverse,
+so they are `C^n` local diffeomorphisms. -/
+theorem isCompatible_glueData_of_contMDiff (hφ : ContMDiff I I n φ)
+    (hφ' : ContMDiff I I n (EquivLike.inv φ)) : (glueData φ).IsCompatible I n := by
+  let ψ : U₁ ≃ₘ^n⟮I, I⟯ U₂ :=
+    { (φ : U₁ ≃ₜ U₂).toEquiv with contMDiff_toFun := hφ, contMDiff_invFun := hφ' }
   -- By definition (`TopCat.GlueData.ofHomeomorph_f`), each map `f i j` is the inclusion of an
-  -- open subset, and the transitions are the identity, `φ` and `φ.symm`.
+  -- open subset, and the transitions are the identity, `φ` and its inverse, that is `ψ` and
+  -- `ψ.symm`.
   refine .of_isLocalDiffeomorph_t (fun i j ↦ TauCeti.isLocalDiffeomorph_subtype_val) ?_
   rintro ⟨_ | _⟩ ⟨_ | _⟩
   · exact isLocalDiffeomorph_id
-  · exact φ.isLocalDiffeomorph
-  · exact φ.symm.isLocalDiffeomorph
+  · exact ψ.isLocalDiffeomorph
+  · exact ψ.symm.isLocalDiffeomorph
   · exact isLocalDiffeomorph_id
+
+variable {φ}
+
+/-- For a `C^n` compatible gluing, the canonical map from `M₁` is a `C^n` local
+diffeomorphism for the glued atlas. -/
+theorem isLocalDiffeomorph_inl_of_isCompatible [IsManifold I n M₁] [IsManifold I n M₂]
+    (h : (glueData φ).IsCompatible I n) : IsLocalDiffeomorph I I n (inl φ) :=
+  h.isLocalDiffeomorph_ι ⟨false⟩
+
+/-- For a `C^n` compatible gluing, the canonical map from `M₂` is a `C^n` local
+diffeomorphism for the glued atlas. -/
+theorem isLocalDiffeomorph_inr_of_isCompatible [IsManifold I n M₁] [IsManifold I n M₂]
+    (h : (glueData φ).IsCompatible I n) : IsLocalDiffeomorph I I n (inr φ) :=
+  h.isLocalDiffeomorph_ι ⟨true⟩
+
+/-- For a `C^n` compatible gluing, a map out of the glued space is `C^m`, for `m ≤ n`, exactly
+when its compositions with `inl` and `inr` are. -/
+theorem contMDiff_iff_of_isCompatible [IsManifold I n M₁] [IsManifold I n M₂]
+    (h : (glueData φ).IsCompatible I n) {E' : Type*} [NormedAddCommGroup E'] [NormedSpace 𝕜 E']
+    {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners 𝕜 E' H'} {N : Type*}
+    [TopologicalSpace N] [ChartedSpace H' N] {m : ℕ∞ω} (hm : m ≤ n) {g : GluedAlong φ → N} :
+    ContMDiff I I' m g ↔ ContMDiff I I' m (g ∘ inl φ) ∧ ContMDiff I I' m (g ∘ inr φ) := by
+  -- The canonical maps of the pieces `false` and `true` are `inl φ` and `inr φ` by definition.
+  refine (h.contMDiff_iff hm).trans ⟨fun hg ↦ ⟨hg ⟨false⟩, hg ⟨true⟩⟩, fun hg ↦ ?_⟩
+  rintro ⟨_ | _⟩
+  exacts [hg.1, hg.2]
+
+end Homeomorph
+
+variable (φ : U₁ ≃ₘ^n⟮I, I⟯ U₂)
+
+/-- **The gluing along a diffeomorphism is compatible.** -/
+theorem isCompatible_glueData : (glueData φ).IsCompatible I n :=
+  isCompatible_glueData_of_contMDiff φ φ.contMDiff φ.symm.contMDiff
 
 /-- The space glued from two `C^n` manifolds along a `C^n` diffeomorphism of open subsets is a
 `C^n` manifold. -/
@@ -361,12 +412,12 @@ instance [IsManifold I n M₁] [IsManifold I n M₂] : IsManifold I n (GluedAlon
 /-- The canonical map from `M₁` is a `C^n` local diffeomorphism for the glued atlas. -/
 theorem isLocalDiffeomorph_inl [IsManifold I n M₁] [IsManifold I n M₂] :
     IsLocalDiffeomorph I I n (inl φ) :=
-  (isCompatible_glueData φ).isLocalDiffeomorph_ι ⟨false⟩
+  isLocalDiffeomorph_inl_of_isCompatible (isCompatible_glueData φ)
 
 /-- The canonical map from `M₂` is a `C^n` local diffeomorphism for the glued atlas. -/
 theorem isLocalDiffeomorph_inr [IsManifold I n M₁] [IsManifold I n M₂] :
     IsLocalDiffeomorph I I n (inr φ) :=
-  (isCompatible_glueData φ).isLocalDiffeomorph_ι ⟨true⟩
+  isLocalDiffeomorph_inr_of_isCompatible (isCompatible_glueData φ)
 
 /-- A point of `U₂` and its image under the inverse of the diffeomorphism `φ` have the same
 image in the glued space. -/
