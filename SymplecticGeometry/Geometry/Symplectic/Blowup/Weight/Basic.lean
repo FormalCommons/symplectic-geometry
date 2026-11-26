@@ -108,8 +108,8 @@ The gluing follows the other uses of `GluedAlong` in the library, the capped sur
 `Geometry/Symplectic/Sum/Fibre.lean`, whose form is glued by `GluedAlong.gluedForm` in the same
 way. The diffeomorphism of the complement of the divisor follows `Blowup.blowdownRealDiffeomorph`
 of `Geometry/Manifold/Complex/Blowup/Basic.lean`, through Tau Ceti's
-`IsLocalDiffeomorph.diffeomorphOfInjective`. The divisor is built as `Blowup.divisorRealEmbedding`
-of the same file is, by Tau Ceti's `SmoothEmbedding.codRestrict` and
+`IsLocalDiffeomorph.diffeomorphOfInjective`. The divisor is built like `Blowup.divisorRealEmbedding`
+of the same file, by Tau Ceti's `SmoothEmbedding.codRestrict` and
 `SmoothEmbedding.transLocalDiffeomorph`.
 
 ## References
@@ -579,9 +579,7 @@ open scoped LinearAlgebra.Projectivization
 /-- The zero section of the model blowup lies in the model piece `openNbhd n ε`, for `0 < ε`. -/
 theorem zeroSection_mem_modelPiece (hε : 0 < ε) (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
     zeroSection ℓ ∈ modelPiece n ε :=
-  mem_modelPiece_iff.2 <| exceptionalDivisor_subset_openNbhd hε <| by
-    rw [exceptionalDivisor_eq_range]
-    exact mem_range_self ℓ
+  mem_modelPiece_iff.2 (zeroSection_mem_openNbhd hε ℓ)
 
 /-- The real zero section of the model blowup, as a smooth embedding into the model piece. -/
 private def zeroSectionModelPiece (hε : 0 < ε) :
@@ -617,6 +615,7 @@ def divisor :
 
 /-- The divisor sends a line `ℓ` to the image under `inr` of the point `zeroSection ℓ` of the
 model piece. -/
+@[simp]
 theorem divisor_apply (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
     divisor hψ hl hε ℓ =
       GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm
@@ -646,6 +645,7 @@ theorem range_divisor :
 
 /-- **The divisor carries `l² ω_FS`**: the form `ω̃_ψ` of the blowup pulls back along the divisor
 to `l² • fubiniStudyForm n`. -/
+@[simp]
 theorem mpullback_divisor_form :
     SmoothForm.mpullback (divisor hψ hl hε) (divisor hψ hl hε).contMDiff (form hψ hl hε) =
       l ^ 2 • fubiniStudyForm n := by
@@ -708,6 +708,7 @@ def normalSpaceDivisorEquiv (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
 /-- `normalSpaceDivisorEquiv` sends the normal class of the image under `inr` of a tangent vector
 `w` of the model at `zeroSection ℓ` to the differential of `blowdown` at `zeroSection ℓ` applied
 to `w`, a vector of the line `ℓ`. -/
+@[simp]
 theorem normalSpaceDivisorEquiv_normalClass (ℓ : ℙ ℂ (Fin (n + 1) → ℂ))
     (w : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) (zeroSection ℓ : BlowupModel n)) :
     normalSpaceDivisorEquiv hψ hl hε hn ℓ ((divisor hψ hl hε).normalClass ℓ hn
