@@ -57,9 +57,7 @@ theorem mpullback_eq_zero_of_apply_zeroSection {σ : SmoothTwoForm IM M}
     {f : L → M}
     (hιf : ∀ q, ∃ h : zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace I x →L[ℝ] ℝ) q ∈ U,
       (ι ⟨_, h⟩ : M) = f q) :
-    SmoothForm.mpullback f ((contMDiff_subtypeVal.comp (hι.comp
-      (contMDiff_subtypeMk_zeroSection fun q ↦ (hιf q).1))).congr fun q ↦ (hιf q).2.symm) σ =
-      0 := by
+    SmoothForm.mpullback f (contMDiff_of_apply_zeroSection hι hιf) σ = 0 := by
   have hs := contMDiff_subtypeMk_zeroSection (n := ∞) (IB := I) fun q ↦ (hιf q).1
   have hz := (isSymplectic_symplecticForm (I := I) (M := L)).isNondegenerate
     |>.isIsotropicMap_iff_mpullback_eq_zero (contMDiff_zeroSection _ _) |>.1
