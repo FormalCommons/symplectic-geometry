@@ -27,9 +27,11 @@ the multiplication of morphisms by continuous scalar functions on the base
 (`TauCeti.FiniteRankBundleCore.fiberMap_sum`), so no continuity argument is needed beyond that of
 `(x, u) ↦ u ^ i`.
 
-Multiplying a clutching function `f` by `u ^ m` twists its clutching by a line: the right unitor
+Multiplying a clutching function `f` by `u ^ m` (`TauCeti.FiniteRankBundleCore.circleZPowSMul`)
+twists its clutching by a line: the right unitor
 `ρ_ E` of the tensor product carries `f ⊗ u ^ m` to `u ^ m • f` fibre by fibre, clutchings by
-families that an isomorphism of cores carries to one another are isomorphic, and
+families that an isomorphism of cores carries to one another are isomorphic
+(`TauCeti.FiniteRankBundleCore.nonempty_iso_clutching_of_fiberMap_comp_eq`), and
 `TauCeti.FiniteRankBundleCore.clutchingTensorIso` splits the clutching by `f ⊗ u ^ m`. Since
 `u ^ N` times a Laurent family of degree `N` is a polynomial family of degree `2N`, a Laurent
 clutching is a polynomial clutching tensored with the clutching of the trivial line by
@@ -41,10 +43,6 @@ clutching is a polynomial clutching tensored with the clutching of the trivial l
 * `TauCeti.FiniteRankBundleCore.fiberMap_laurentHom`: its fibre map at `(x, u)`;
 * `TauCeti.FiniteRankBundleCore.zpow_smul_fiberMap_laurentHom`: `u ^ N` times it is the
   polynomial family `∑_{0 ≤ j ≤ 2N} a_{j - N}(x) u^j`;
-* `TauCeti.FiniteRankBundleCore.nonempty_iso_clutching_of_fiberMap_comp_eq`: an isomorphism
-  `E ≅ E'` that carries `f` to `f'` fibre by fibre gives an isomorphism of the clutchings;
-* `TauCeti.FiniteRankBundleCore.circleZPowSMul m f`: the family `u ^ m • f`, which on the trivial
-  line by the identity is `circleZPowIso X m` (`circleZPowSMul_refl`);
 * `TauCeti.FiniteRankBundleCore.clutching_circleZPowSMul`: the clutching by `u ^ m • f` is the
   clutching by `f` tensored with the clutching of the trivial line by `u ^ m`;
 * `TauCeti.FiniteRankBundleCore.exists_clutching_iso_tensor_of_hom_eq_laurentHom`: the
@@ -110,87 +108,11 @@ theorem zpow_smul_fiberMap_laurentHom (N : ℕ) (a : ℤ → (A ⟶ D)) (w : X �
     rw [smul_smul, ← zpow_natCast, hi', ← zpow_add₀ (Circle.coe_ne_zero w.2), add_comm,
       add_sub_cancel_right]
 
-/-! ### Clutchings by conjugate families -/
-
-/-- **Clutchings by conjugate families are isomorphic.** If an isomorphism `Φ : E ≅ E'` carries
-the automorphism `f` of the pullback of `E` to `X × Circle` to the automorphism `f'` of that of
-`E'`, fibre by fibre, then the clutching of `E` by `f` is isomorphic to that of `E'` by `f'`. -/
-theorem nonempty_iso_clutching_of_fiberMap_comp_eq {𝕜 X : Type*} [NontriviallyNormedField 𝕜]
-    [TopologicalSpace X] {E E' : FiniteRankBundleCore 𝕜 X} (Φ : E ≅ E')
-    {f : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
-      E.pullback (ContinuousMap.fst : C(X × Circle, X))}
-    {f' : E'.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
-      E'.pullback (ContinuousMap.fst : C(X × Circle, X))}
-    (h : ∀ w : X × Circle, (Φ.hom.fiberMap w.1).comp (f.hom.fiberMap w) =
-      (f'.hom.fiberMap w).comp (Φ.hom.fiberMap w.1)) :
-    Nonempty (E.clutching f ≅ E'.clutching f') := by
-  rw [clutching_def, clutching_def]
-  refine nonempty_iso_glue_of_fiberMap_comp_eq _ _ _
-    ((pullbackFunctor ContinuousMap.fst).mapIso Φ) fun b ↦ ?_
-  simp only [Functor.mapIso_hom, fiberMap_pullbackMap, fiberMap_clutchingAut_hom,
-    ContinuousMap.fst_apply]
-  have hb := h (SymplecticGeometry.ProjectiveLine.clutchingMap X b)
-  rw [SymplecticGeometry.ProjectiveLine.clutchingMap_apply] at hb ⊢
-  exact hb
-
 /-! ### Twisting a clutching function by a power of the circle coordinate -/
 
 section CircleZPowSMul
 
 variable {E : FiniteRankBundleCore ℂ X}
-
-/-- The family `u ^ m • f` for an automorphism `f` of the pullback of `E` to `X × Circle` and
-`m : ℤ`: the automorphism whose fibre map at `(x, u)` is `u ^ m • f_{(x, u)}`. -/
-def circleZPowSMul (m : ℤ)
-    (f : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
-      E.pullback (ContinuousMap.fst : C(X × Circle, X))) :
-    E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
-      E.pullback (ContinuousMap.fst : C(X × Circle, X)) where
-  hom := (⟨fun w ↦ ((w.2 ^ m : Circle) : ℂ), by fun_prop⟩ : C(X × Circle, ℂ)) • f.hom
-  inv := (⟨fun w ↦ ((w.2 ^ (-m) : Circle) : ℂ), by fun_prop⟩ : C(X × Circle, ℂ)) • f.inv
-  hom_inv_id := hom_ext fun w ↦ by
-    simp only [fiberMap_comp, fiberMap_smul, ContinuousMap.coe_mk, Circle.coe_zpow,
-      ContinuousLinearMap.comp_smul, ContinuousLinearMap.smul_comp, fiberMap_hom_inv_id, smul_smul,
-      fiberMap_id, ← zpow_add₀ (Circle.coe_ne_zero w.2), add_neg_cancel, zpow_zero, one_smul]
-  inv_hom_id := hom_ext fun w ↦ by
-    simp only [fiberMap_comp, fiberMap_smul, ContinuousMap.coe_mk, Circle.coe_zpow,
-      ContinuousLinearMap.comp_smul, ContinuousLinearMap.smul_comp, fiberMap_inv_hom_id, smul_smul,
-      fiberMap_id, ← zpow_add₀ (Circle.coe_ne_zero w.2), neg_add_cancel, zpow_zero, one_smul]
-
-@[simp]
-theorem fiberMap_circleZPowSMul_hom (m : ℤ)
-    (f : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
-      E.pullback (ContinuousMap.fst : C(X × Circle, X))) (w : X × Circle) :
-    (circleZPowSMul m f).hom.fiberMap w = (w.2 : ℂ) ^ m • f.hom.fiberMap w := by
-  simp [circleZPowSMul]
-
-@[simp]
-theorem fiberMap_circleZPowSMul_inv (m : ℤ)
-    (f : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
-      E.pullback (ContinuousMap.fst : C(X × Circle, X))) (w : X × Circle) :
-    (circleZPowSMul m f).inv.fiberMap w = ((w.2 : ℂ) ^ m)⁻¹ • f.inv.fiberMap w := by
-  simp [circleZPowSMul]
-
-@[simp]
-theorem circleZPowSMul_zero
-    (f : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
-      E.pullback (ContinuousMap.fst : C(X × Circle, X))) :
-    circleZPowSMul 0 f = f :=
-  Iso.ext <| hom_ext fun w ↦ by simp
-
-/-- On the trivial line, `u ^ m` times the identity is `circleZPowIso X m`. -/
-@[simp]
-theorem circleZPowSMul_refl (m : ℤ) :
-    circleZPowSMul (E := trivial ℂ X 1) m (Iso.refl _) = circleZPowIso X m :=
-  Iso.ext <| hom_ext fun w ↦ by simp
-
-@[simp]
-theorem circleZPowSMul_circleZPowSMul (m n : ℤ)
-    (f : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
-      E.pullback (ContinuousMap.fst : C(X × Circle, X))) :
-    circleZPowSMul m (circleZPowSMul n f) = circleZPowSMul (m + n) f :=
-  Iso.ext <| hom_ext fun w ↦ by
-    simp [smul_smul, zpow_add₀ (Circle.coe_ne_zero w.2)]
 
 open MonoidalCategory in
 /-- **Twisting a clutching function by `u ^ m`.** The clutching of `E` by `u ^ m • f` is isomorphic

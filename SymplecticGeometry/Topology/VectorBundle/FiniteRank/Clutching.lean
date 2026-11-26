@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Topology.ComplexProjectiveSpace.ProjectiveLine
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Glue
+public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.SMul
 public import SymplecticGeometry.Topology.VectorBundle.ProjectiveBundle.Tautological
 
 /-!
@@ -48,9 +49,13 @@ and the fibres may be over any nontrivially normed field.
   clutchings, for instance the twist of a clutching by a line bundle with its clutching function.
 * `TauCeti.FiniteRankBundleCore.nonempty_iso_clutching_of_homotopic`: over a paracompact R₁
   space, clutchings by automorphisms joined by a family over `X × I` are isomorphic.
+* `TauCeti.FiniteRankBundleCore.nonempty_iso_clutching_of_fiberMap_comp_eq`: an isomorphism
+  `E ≅ E'` that carries `f` to `f'` fibre by fibre gives an isomorphism of the clutchings.
+* `TauCeti.FiniteRankBundleCore.circleZPowSMul m f`: for complex `E`, the family `u ^ m • f`
+  whose fibre map at `(x, u)` is `u ^ m` times that of `f`.
 * `TauCeti.FiniteRankBundleCore.circleZPowIso X n`: the automorphism of the trivial line over
-  `X × Circle` that multiplies the fibre over `(x, u)` by `u ^ n`; for `n = 0` it is the identity
-  (`circleZPowIso_zero`).
+  `X × Circle` that multiplies the fibre over `(x, u)` by `u ^ n`, that is `u ^ n` times the
+  identity (`circleZPowIso_def`); for `n = 0` it is the identity (`circleZPowIso_zero`).
 * `SymplecticGeometry.ProjectiveLine.innerSection` and `outerSection`: the vectors
   `(z, 1) / max 1 |z|` and `(1, w) / max 1 |w|` of the lines `[z : 1]` and `[1 : w]`, multiples
   of `Projectivization.normalizedRep` and nonzero on the affine opens; on the
@@ -478,46 +483,113 @@ theorem nonempty_iso_clutching_of_homotopic [NormedAlgebra ℝ 𝕜] [CompleteSp
   · rw [fiberMap_clutchingAut_hom, clutchingMap_apply, ← h₁]
     exact fiberMap_pullbackMap H.hom m _
 
-/-! ### Clutching by a power of the coordinate -/
+/-! ### Clutchings by conjugate families -/
+
+/-- **Clutchings by conjugate families are isomorphic.** If an isomorphism `Φ : E ≅ E'` carries
+the automorphism `f` of the pullback of `E` to `X × Circle` to the automorphism `f'` of that of
+`E'`, fibre by fibre, then the clutching of `E` by `f` is isomorphic to that of `E'` by `f'`. -/
+theorem nonempty_iso_clutching_of_fiberMap_comp_eq {E E' : FiniteRankBundleCore 𝕜 X}
+    (Φ : E ≅ E') {f : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
+      E.pullback (ContinuousMap.fst : C(X × Circle, X))}
+    {f' : E'.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
+      E'.pullback (ContinuousMap.fst : C(X × Circle, X))}
+    (h : ∀ w : X × Circle, (Φ.hom.fiberMap w.1).comp (f.hom.fiberMap w) =
+      (f'.hom.fiberMap w).comp (Φ.hom.fiberMap w.1)) :
+    Nonempty (E.clutching f ≅ E'.clutching f') := by
+  rw [clutching_def, clutching_def]
+  refine nonempty_iso_glue_of_fiberMap_comp_eq _ _ _
+    ((pullbackFunctor ContinuousMap.fst).mapIso Φ) fun b ↦ ?_
+  simp only [Functor.mapIso_hom, fiberMap_pullbackMap, fiberMap_clutchingAut_hom,
+    ContinuousMap.fst_apply]
+  have hb := h (clutchingMap X b)
+  rw [clutchingMap_apply] at hb ⊢
+  exact hb
+
+end TauCeti.FiniteRankBundleCore
+
+/-! ### Multiplying a clutching function by a power of the coordinate -/
+
+namespace TauCeti.FiniteRankBundleCore
+
+variable {X : Type*} [TopologicalSpace X]
+
+section CircleZPowSMul
+
+variable {E : FiniteRankBundleCore ℂ X}
+
+/-- The family `u ^ m • f` for an automorphism `f` of the pullback of `E` to `X × Circle` and
+`m : ℤ`: the automorphism whose fibre map at `(x, u)` is `u ^ m • f_{(x, u)}`. -/
+def circleZPowSMul (m : ℤ)
+    (f : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
+      E.pullback (ContinuousMap.fst : C(X × Circle, X))) :
+    E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
+      E.pullback (ContinuousMap.fst : C(X × Circle, X)) where
+  hom := (⟨fun w ↦ ((w.2 ^ m : Circle) : ℂ), by fun_prop⟩ : C(X × Circle, ℂ)) • f.hom
+  inv := (⟨fun w ↦ ((w.2 ^ (-m) : Circle) : ℂ), by fun_prop⟩ : C(X × Circle, ℂ)) • f.inv
+  hom_inv_id := hom_ext fun w ↦ by
+    simp only [fiberMap_comp, fiberMap_smul, ContinuousMap.coe_mk, Circle.coe_zpow,
+      ContinuousLinearMap.comp_smul, ContinuousLinearMap.smul_comp, fiberMap_hom_inv_id, smul_smul,
+      fiberMap_id, ← zpow_add₀ (Circle.coe_ne_zero w.2), add_neg_cancel, zpow_zero, one_smul]
+  inv_hom_id := hom_ext fun w ↦ by
+    simp only [fiberMap_comp, fiberMap_smul, ContinuousMap.coe_mk, Circle.coe_zpow,
+      ContinuousLinearMap.comp_smul, ContinuousLinearMap.smul_comp, fiberMap_inv_hom_id, smul_smul,
+      fiberMap_id, ← zpow_add₀ (Circle.coe_ne_zero w.2), neg_add_cancel, zpow_zero, one_smul]
+
+@[simp]
+theorem fiberMap_circleZPowSMul_hom (m : ℤ)
+    (f : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
+      E.pullback (ContinuousMap.fst : C(X × Circle, X))) (w : X × Circle) :
+    (circleZPowSMul m f).hom.fiberMap w = (w.2 : ℂ) ^ m • f.hom.fiberMap w := by
+  simp [circleZPowSMul]
+
+@[simp]
+theorem fiberMap_circleZPowSMul_inv (m : ℤ)
+    (f : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
+      E.pullback (ContinuousMap.fst : C(X × Circle, X))) (w : X × Circle) :
+    (circleZPowSMul m f).inv.fiberMap w = ((w.2 : ℂ) ^ m)⁻¹ • f.inv.fiberMap w := by
+  simp [circleZPowSMul]
+
+@[simp]
+theorem circleZPowSMul_zero
+    (f : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
+      E.pullback (ContinuousMap.fst : C(X × Circle, X))) :
+    circleZPowSMul 0 f = f :=
+  Iso.ext <| hom_ext fun w ↦ by simp
+
+@[simp]
+theorem circleZPowSMul_circleZPowSMul (m n : ℤ)
+    (f : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
+      E.pullback (ContinuousMap.fst : C(X × Circle, X))) :
+    circleZPowSMul m (circleZPowSMul n f) = circleZPowSMul (m + n) f :=
+  Iso.ext <| hom_ext fun w ↦ by
+    simp [smul_smul, zpow_add₀ (Circle.coe_ne_zero w.2)]
+
+end CircleZPowSMul
 
 variable (X) in
 /-- The automorphism of the trivial line over `X × Circle` that multiplies the fibre over `(x, u)`
-by `u ^ n`. -/
+by `u ^ n`: the family `u ^ n` times the identity. -/
 def circleZPowIso (n : ℤ) :
     (trivial ℂ X 1).pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
       (trivial ℂ X 1).pullback (ContinuousMap.fst : C(X × Circle, X)) :=
-  isoOfContinuousEquiv (A := trivial ℂ (X × Circle) 1) (D := trivial ℂ (X × Circle) 1)
-    (fun b ↦ (LinearEquiv.smulOfUnit (Circle.toUnits (b.2 ^ n))).toContinuousLinearEquiv)
-    (continuous_trivial_iff.2 ⟨FiberBundle.continuous_proj _ _, by
-      have hproj : Continuous fun p : (trivial ℂ (X × Circle) 1).core.TotalSpace ↦ p.proj.2 :=
-        continuous_snd.comp (FiberBundle.continuous_proj _ _)
-      have hsnd := continuous_trivial_snd (𝕜 := ℂ) (B := X × Circle) (n := 1)
-      -- Multiplication by a unit is multiplication by its value.
-      exact ((continuous_subtypeVal.comp (hproj.zpow n)).smul hsnd).congr fun _ ↦ (rfl)⟩)
+  circleZPowSMul n (Iso.refl _)
+
+theorem circleZPowIso_def (n : ℤ) : circleZPowIso X n = circleZPowSMul n (Iso.refl _) :=
+  (rfl)
 
 @[simp]
 theorem fiberMap_circleZPowIso_hom (n : ℤ) (b : X × Circle) :
     (circleZPowIso X n).hom.fiberMap b = (b.2 : ℂ) ^ n • ContinuousLinearMap.id ℂ _ := by
-  ext v : 1
-  refine (DFunLike.congr_fun (fiberMap_isoOfContinuousEquiv_hom (A := trivial ℂ (X × Circle) 1)
-    (D := trivial ℂ (X × Circle) 1) _ _ b) v).trans ?_
-  -- Multiplication by a unit is multiplication by its value.
-  rw [← Circle.coe_zpow]
-  rfl
+  rw [circleZPowIso_def, fiberMap_circleZPowSMul_hom, Iso.refl_hom, fiberMap_id]
 
 @[simp]
 theorem fiberMap_circleZPowIso_inv (n : ℤ) (b : X × Circle) :
     (circleZPowIso X n).inv.fiberMap b = ((b.2 : ℂ) ^ n)⁻¹ • ContinuousLinearMap.id ℂ _ := by
-  ext v : 1
-  refine (DFunLike.congr_fun (fiberMap_isoOfContinuousEquiv_inv (A := trivial ℂ (X × Circle) 1)
-    (D := trivial ℂ (X × Circle) 1) _ _ b) v).trans ?_
-  -- Multiplication by a unit is multiplication by its value.
-  rw [← Circle.coe_zpow, ← Circle.coe_inv]
-  rfl
+  rw [circleZPowIso_def, fiberMap_circleZPowSMul_inv, Iso.refl_inv, fiberMap_id]
 
 /-- Multiplication by `u ^ 0` is the identity: `circleZPowIso X 0` is the identity automorphism. -/
 theorem circleZPowIso_zero : circleZPowIso X 0 = Iso.refl _ :=
-  Iso.ext <| hom_ext fun b ↦ by simp
+  circleZPowSMul_zero _
 
 end TauCeti.FiniteRankBundleCore
 
