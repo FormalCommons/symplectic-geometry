@@ -40,7 +40,8 @@ In the namespace `TauCeti.SmoothAlmostComplexStructure`:
 
 * `dC_mapCoeff_ofReal`: `dᶜ f = -df ∘ J`, for every almost complex structure.
 * `potentialForm`: the real two-form `J.potentialForm f = (1/4) d (J.covectorComplexStructure
-  (d f))` of a potential `f`, closed and `ℝ`-linear in `f`.
+  (d f))` of a potential `f`, closed and `ℝ`-linear in `f`; by `four_smul_potentialForm`, four
+  times it is `d (J.covectorComplexStructure (d f))`.
 * `del_delBar_mapCoeff_ofReal_of_mextDerivₗ_eq_del_add_delBar`:
   `(i/2) ∂∂bar f` is the complexification of `J.potentialForm f` wherever `d = ∂ + ∂bar` on
   one-forms.
@@ -52,7 +53,8 @@ In the namespace `TauCeti.SmoothAlmostComplexStructure`:
   `ContMDiffSection.realAlternatingDerivation_funSMulₗ`.
 * `covectorComplexStructure_mextDerivₗ_ofFunction_comp_of_hasDerivAt`,
   `mextDerivₗ_covectorComplexStructure_mextDerivₗ_ofFunction_comp_of_hasDerivAt`: `λ_{g ∘ f}`
-  and `ω_{g ∘ f}`.
+  and `ω_{g ∘ f}`; `potentialForm_ofFunction_comp_of_hasDerivAt`: the form of the potential
+  `g ∘ f`, which is `ω_{g ∘ f} / 4`.
 * `mpullback_covectorComplexStructure`: `a ↦ -a ∘ J` commutes with pull-back along
   pseudoholomorphic maps, so that (`mpullback_potentialForm`) the pull-back of
   `J'.potentialForm f` along a pseudoholomorphic `φ` is `J.potentialForm (f ∘ φ)`.
@@ -115,6 +117,12 @@ theorem potentialForm_def (f : SmoothForm I M ℝ 0) :
     J.potentialForm f =
       (4 : ℝ)⁻¹ • mextDerivₗ I 1 (J.covectorComplexStructure (mextDerivₗ I 0 f)) :=
   (rfl)
+
+/-- Four times the form of a potential `f` is `d (J* d f)`. -/
+theorem four_smul_potentialForm (f : SmoothForm I M ℝ 0) :
+    (4 : ℝ) • J.potentialForm f =
+      mextDerivₗ I 1 (J.covectorComplexStructure (mextDerivₗ I 0 f)) := by
+  rw [potentialForm_def, smul_inv_smul₀ four_ne_zero]
 
 /-- The form of a potential is closed. -/
 theorem isClosed_potentialForm (f : SmoothForm I M ℝ 0) : (J.potentialForm f).IsClosed := by
@@ -196,6 +204,23 @@ theorem mextDerivₗ_covectorComplexStructure_mextDerivₗ_ofFunction_comp_of_ha
     SmoothForm.wedge_funSMulₗ_left]
   ext x v
   simp [SmoothForm.coe_funSMulₗ]
+
+/-- **The form of a composite potential.** Let `h = g ∘ f` for a smooth real function `f` and a
+function `g : ℝ → ℝ` whose derivative at `f x` is `g' (f x)`, and the derivative of `g'` at
+`f x` is `g'' (f x)`, for every `x`. If the smooth functions `a` and `b` are `g' ∘ f` and
+`g'' ∘ f`, then the form of the potential `h` is `a` times that of `f` plus
+`(1/4) b (df ∧ (-df ∘ J))`, the wedge being Tau Ceti's `SmoothForm.extDerivWedgeₗ f`. -/
+theorem potentialForm_ofFunction_comp_of_hasDerivAt
+    {g g' g'' : ℝ → ℝ} {f h a b : C^∞⟮I, M; ℝ⟯} (hh : ∀ x, h x = g (f x))
+    (ha : ∀ x, a x = g' (f x)) (hb : ∀ x, b x = g'' (f x))
+    (hg : ∀ x, HasDerivAt g (g' (f x)) (f x)) (hg' : ∀ x, HasDerivAt g' (g'' (f x)) (f x)) :
+    J.potentialForm (SmoothForm.ofFunction h) =
+      SmoothForm.funSMulₗ a (J.potentialForm (SmoothForm.ofFunction f)) +
+        (4 : ℝ)⁻¹ • SmoothForm.funSMulₗ b (SmoothForm.extDerivWedgeₗ f 1
+          (J.covectorComplexStructure (mextDerivₗ I 0 (SmoothForm.ofFunction f)))) := by
+  rw [potentialForm_def, potentialForm_def,
+    mextDerivₗ_covectorComplexStructure_mextDerivₗ_ofFunction_comp_of_hasDerivAt hh ha hb hg hg',
+    smul_add, map_smul]
 
 section Pullback
 
