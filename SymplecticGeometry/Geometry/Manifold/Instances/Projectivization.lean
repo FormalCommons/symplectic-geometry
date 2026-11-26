@@ -22,7 +22,9 @@ import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
 Tau Ceti's `TauCeti/Geometry/Manifold/Instances/Projectivization.lean` makes
 `ℙ 𝕜 (Fin (n + 1) → 𝕜)` a manifold through the standard affine charts, whose transition maps are
 smooth (`Fin.contDiffOn_insertNth_one_div`). This file computes their derivatives, which are the
-coordinate changes of the tangent bundle of projective space in the standard charts.
+coordinate changes of the tangent bundle of projective space in the standard charts. On a product
+of two projective spaces, it also records the smoothness, the differential and the chain rule of
+the product of two standard affine charts, which is a chart of the product manifold.
 
 ## Main results
 
