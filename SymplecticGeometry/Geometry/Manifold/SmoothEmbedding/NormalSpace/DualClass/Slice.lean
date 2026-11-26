@@ -46,7 +46,7 @@ in `e` (`TauCeti.singularCohomologyMap_eq_singularCohomologyMap_fiberCoordPairMa
 is normalized, that fibre coordinate has derivative the identity at `0`
 (`TauCeti.SmoothEmbedding.IsNormalizedTube.hasFDerivAt_trivializationAt_snd`), so it agrees on
 relative cohomology with the inclusion of `O`
-(`TopPair.singularCohomologyMap_ofSubsetMap_eq_affine_of_hasFDerivAt`). This follows the
+(`TopPair.singularCohomologyMap_ofSubsetMap_eq_inclusion_of_hasFDerivAt_id`). This follows the
 linearization argument of Tau Ceti's
 `TauCeti.VectorBundleOrientation.sectionIndex_eq_sign_det_of_hasFDerivAt`, which
 compares a map with its derivative on a small ball around a zero.
@@ -320,14 +320,8 @@ private theorem singularCohomologyMap_slice_eq_of_isOpen {f : SmoothEmbedding I 
   have hF : HasFDerivAt F (ContinuousLinearMap.id ℝ P) 0 :=
     hΦ.hasFDerivAt_trivializationAt_snd hg hA hΨg hΨ0
       (by filter_upwards [hO.mem_nhds hO0] with w hw using hΦΨ (hOW w hw))
-  have hFx : ∀ w ∈ O, F w = F 0 → w = 0 := fun w hw h ↦ by_contra fun hw0 ↦
-    (e.snd_apply_ne_zero_iff ℝ (hUe (hOU w hw))).2 (hψ0 w hw hw0) (h.trans hF0)
-  have hid : AntilipschitzWith 1 (ContinuousLinearMap.id ℝ P) := by
-    simpa using AntilipschitzWith.id (α := P)
-  have key := TopPair.singularCohomologyMap_ofSubsetMap_eq_affine_of_hasFDerivAt R k M
-    (hO.mem_nhds hO0) hFc hF hid hFx n
-  let j := TopPair.ofSubsetMap (X := TopCat.of P) (𝟙 _) (B := {F 0}ᶜ) (B' := {0}ᶜ)
-    (by rw [hF0]; exact mapsTo_id _)
+  have hFx : ∀ w ∈ O, F w = 0 → w = 0 := fun w hw h ↦ by_contra fun hw0 ↦
+    (e.snd_apply_ne_zero_iff ℝ (hUe (hOU w hw))).2 (hψ0 w hw hw0) h
   have hfc : (TopPair.isoOfSubsetRange _).hom ≫ TopPair.ofSubsetMap
       (TopCat.ofHom ⟨fun q ↦ (e (TopPair.Hom.fst ψ q)).2,
         (e.continuousOn.comp_continuous (TopPair.Hom.fst ψ).hom.continuous
@@ -335,27 +329,16 @@ private theorem singularCohomologyMap_slice_eq_of_isOpen {f : SmoothEmbedding I 
       (fun q hq ↦ (e.snd_apply_ne_zero_iff ℝ (hUe (hψU q))).2 <|
         mem_zeroSectionCompl.1 (TopPair.mapsTo_range_map_of_hom ψ hq)) =
       TopPair.ofSubsetMap (X := TopCat.of O) (Y := TopCat.of P)
-        (TopCat.ofHom ⟨O.domRestrict F, hFc.domRestrict⟩) (B := {⟨0, hO0⟩}ᶜ) (B' := {F 0}ᶜ)
-        (fun y hy h ↦ hy (Subtype.ext (hFx y y.property h))) ≫ j := by
+        (TopCat.ofHom ⟨O.domRestrict F, hFc.domRestrict⟩) (B := {⟨0, hO0⟩}ᶜ) (B' := {0}ᶜ)
+        (fun y hy h ↦ hy (Subtype.ext (hFx y y.property h))) := by
     refine TopPair.hom_ext_of_fst _ (ConcreteCategory.hom_ext _ _ fun w ↦ ?_)
-    rw [TopPair.Hom.fst_comp, TopPair.Hom.fst_comp, ConcreteCategory.comp_apply,
-      ConcreteCategory.comp_apply, TopPair.isoOfSubsetRange_hom_fst_apply]
+    rw [TopPair.Hom.fst_comp, ConcreteCategory.comp_apply,
+      TopPair.isoOfSubsetRange_hom_fst_apply]
     -- The points of the pairs are those of `O` and `P` only up to unfolding `ofSubset`.
-    erw [TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply,
-      TopPair.ofSubsetMap_fst_apply]
+    erw [TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply]
     exact congrArg (fun p ↦ (e p).2) (hψ w)
-  have hRj : TopPair.ofSubsetMap (X := TopCat.of O) (Y := TopCat.of P)
-      (TopCat.ofHom (ContinuousMap.subtypeVal O)) (B := {⟨0, hO0⟩}ᶜ) (B' := {0}ᶜ)
-      (fun _ hw h ↦ hw (Subtype.ext (Set.mem_singleton_iff.1 h))) =
-      TopPair.ofSubsetMap (X := TopCat.of O) (Y := TopCat.of P)
-        (TopCat.ofHom ⟨fun y : O ↦ F 0 + (ContinuousLinearMap.id ℝ P) (y - 0), by fun_prop⟩)
-        (B := {⟨0, hO0⟩}ᶜ) (B' := {F 0}ᶜ)
-        (fun y hy h ↦ hy (Subtype.ext <| sub_eq_zero.1 <| hid.injective <|
-          (add_eq_left.1 h).trans (map_zero _).symm)) ≫ j :=
-    (TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ _
-      (ConcreteCategory.hom_ext _ _ fun w ↦ by simp [hF0])).symm
-  rw [hfc, hRj, TopPair.singularCohomologyMap_comp_apply, TopPair.singularCohomologyMap_comp_apply]
-  exact ConcreteCategory.congr_hom key _
+  rw [hfc, TopPair.singularCohomologyMap_ofSubsetMap_eq_inclusion_of_hasFDerivAt_id R k M
+    (hO.mem_nhds hO0) hFc hF0 hF hFx n]
 
 /-- **The local-degree lemma.** Let `Φ` be a normalized tube of `f`, `x : Z`, and `e` the preferred
 trivialization of the normal bundle at `x`. Let `B ⊆ P` be a neighbourhood of `0` and `g : P → X`

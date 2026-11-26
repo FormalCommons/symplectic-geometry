@@ -12,8 +12,8 @@ public import TauCeti.AlgebraicTopology.Cohomology.Excision
 # Local cohomology only depends on a neighbourhood of the point
 
 Let `Y` be a `T1` space, `B ⊆ Y` and `y ∈ B`. The relative singular cohomology of the pair
-`(B, B ∖ {y})` is determined by any open neighbourhood of `y` in `B`: for an open `O ⊆ B`
-containing `y`, the inclusion `(O, O ∖ {y}) ⟶ (B, B ∖ {y})` is an isomorphism on cohomology, in
+`(B, B ∖ {y})` is determined by any open set of `Y` around `y` inside `B`: for an open `O ⊆ Y`
+with `y ∈ O ⊆ B`, the inclusion `(O, O ∖ {y}) ⟶ (B, B ∖ {y})` is an isomorphism on cohomology, in
 every degree and for all coefficients
 (`TopPair.isIso_singularCohomologyMap_ofSubsetMap_inclusion`). As `{y}` is closed, this is
 excision of `B ∖ O` from `(B, B ∖ {y})`, composed with the homeomorphism between `O` and the
@@ -22,7 +22,7 @@ preimage of `O` in `B`.
 ## Main results
 
 * `TopPair.isIso_singularCohomologyMap_ofSubsetMap_inclusion`: in a `T1` space, restriction
-  from `(B, B ∖ {y})` to `(O, O ∖ {y})`, for an open `O ⊆ B` containing `y`, is an isomorphism
+  from `(B, B ∖ {y})` to `(O, O ∖ {y})`, for `O` open in `Y` with `y ∈ O ⊆ B`, is an isomorphism
   on relative cohomology.
 
 ## References

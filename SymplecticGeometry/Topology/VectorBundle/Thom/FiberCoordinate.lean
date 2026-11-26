@@ -60,6 +60,8 @@ namespace Bundle.Trivialization
 
 open TauCeti
 
+section
+
 variable {B : Type w} [TopologicalSpace B] {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
   {E : B → Type w} [TopologicalSpace (TotalSpace F E)] [∀ b, AddCommMonoid (E b)]
   [∀ b, Module ℝ (E b)] [∀ b, TopologicalSpace (E b)] [FiberBundle F E]
@@ -130,11 +132,9 @@ theorem homotopic_fiberCoordPairMap_comp_fiberThomPairMap {U : Set B} [Contracti
       (e.snd_apply_ne_zero_iff ℝ (hU (hφU x))).2 <|
         mem_zeroSectionCompl.1 (TopPair.mapsTo_range_map_of_hom φ hx)
 
-end Bundle.Trivialization
+end
 
-namespace Bundle.Trivialization
-
-open TauCeti
+section
 
 variable {B : Type w} [TopologicalSpace B] {F : Type w} [NormedAddCommGroup F] [NormedSpace ℝ F]
   {E : B → Type w} [TopologicalSpace (TotalSpace F E)] [∀ b, AddCommMonoid (E b)]
@@ -156,6 +156,8 @@ theorem fiberCoordPairMap_comp_complZeroPairIso_hom :
   rw [fiberCoordPairMap_def, Category.assoc, ContinuousLinearEquiv.complZeroPairIso_hom]
   exact congrArg _ (TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ _
     (ConcreteCategory.hom_ext _ _ fun _ ↦ (e.continuousLinearEquivAt ℝ b hb).apply_symm_apply _))
+
+end
 
 end Bundle.Trivialization
 
