@@ -25,10 +25,9 @@ sets up the neighbourhoods `L(ε)` of `Z`.
 ## Main definitions and results
 
 * `SymplecticGeometry.BlowupModel.ω₀E n`: the standard symplectic form `ω₀` of `E`, as a constant
-  smooth form, and `SymplecticGeometry.BlowupModel.constSmooth_stdComplexPiSymplecticForm_eq`: for
-  any finite `ι`, the constant form `stdComplexPiSymplecticForm ι` is the pull-back of the
-  constant form `stdForm ι` along `complexToRealEuclidean ι`, by
-  `TauCeti.SymplecticForm.IsSymplectomorphism.mpullback_constSmooth`.
+  smooth form; `SymplecticGeometry.constSmooth_stdComplexPiSymplecticForm_eq`
+  (`Geometry/Symplectic/Complex/Radial.lean`) identifies it with the pull-back of the constant
+  form `stdForm` along `complexToRealEuclidean`.
 * `SymplecticGeometry.BlowupModel.closedNbhd n ε` and `SymplecticGeometry.BlowupModel.openNbhd n ε`:
   the points whose blowdown has Euclidean norm `≤ ε`, resp. `< ε`; the first is compact
   (`isCompact_closedNbhd`, since `ℙ ℂ E` is compact and the model is closed in `ℙ ℂ E × E`), the
@@ -66,16 +65,6 @@ noncomputable def ω₀E : SmoothTwoForm 𝓘(ℝ, Fin (n + 1) → ℂ) (Fin (n 
 
 theorem ω₀E_def : ω₀E n = (stdComplexPiSymplecticForm (Fin (n + 1))).constSmooth :=
   (rfl)
-
-/-- For a finite type `ι`, the constant form `stdComplexPiSymplecticForm ι` on `ι → ℂ` is the
-pull-back of the constant form `stdForm ι` of `StdSpace ι` along the real-linear identification
-`complexToRealEuclidean ι`. At `ι = Fin (n + 1)` its left side is `ω₀E n` (`ω₀E_def`). -/
-theorem constSmooth_stdComplexPiSymplecticForm_eq (ι : Type*) [Fintype ι] :
-    (stdComplexPiSymplecticForm ι).constSmooth = SmoothForm.mpullback (complexToRealEuclidean ι)
-      (complexToRealEuclidean ι).contDiff.contMDiff (stdForm ι).constSmooth :=
-  (SymplecticForm.IsSymplectomorphism.mpullback_constSmooth
-    (SymplecticForm.isSymplectomorphism_iff.2
-      stdForm_complexToRealEuclidean)).symm
 
 /-! ### The neighbourhoods `L(ε)` of the exceptional divisor -/
 

@@ -16,7 +16,7 @@ import SymplecticGeometry.Analysis.Calculus.InverseFunctionTheorem.Deriv
 import SymplecticGeometry.Analysis.Complex.QuadraticLeviForm
 import SymplecticGeometry.Analysis.InnerProductSpace.PiL2
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
-import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 import TauCeti.Geometry.Manifold.Complex.DdbarForm.Basic
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
@@ -63,7 +63,12 @@ blowup constructions read the forms they build off `Z` in these terms.
 * `SymplecticGeometry.isKahler_radialPotentialForm`: if both hold on `(0, ∞)`, the form is Kähler
   for `J`, as a positive multiple of the form of a strictly plurisubharmonic function
   (`SymplecticGeometry.isKahler_mextDerivₗ_covectorComplexStructure`).
-* `SymplecticGeometry.radialPotentialForm_id`: for `g = id` the form is `ω₀`, restricted to `Z`.
+* `SymplecticGeometry.radialPotentialForm_id`: for `g = id` the form is `ω₀`, restricted to `Z`;
+  and `SymplecticGeometry.constSmooth_stdComplexPiSymplecticForm_eq`: the constant form `ω₀` on
+  `ι → ℂ` is the pull-back of the constant form `stdForm ι` along `complexToRealEuclidean ι`,
+  since that map is a linear symplectomorphism
+  (`SymplecticGeometry.isSymplectomorphism_complexToRealEuclidean`,
+  `TauCeti.SymplecticForm.IsSymplectomorphism.mpullback_constSmooth`).
 * `SymplecticGeometry.radialPotentialForm_log`: for `ι = Fin (n + 1)` and `g = log` it is the
   Fubini–Study lift `SymplecticGeometry.fubiniStudyLift n`, since its primitive is
   `(1/4) J* d log |z|²` (`SymplecticGeometry.fubiniStudyPrimitive_eq`).
@@ -252,6 +257,15 @@ theorem radialPotentialForm_id (hg : ContDiffOn ℝ ∞ id (Ioi 0)) :
     SymplecticForm.eval₂_constSmooth_mfderiv_eq, mvfderiv_subtype_val_apply,
     mvfderiv_subtype_val_apply]
   simp
+
+variable (ι) in
+/-- The constant form `stdComplexPiSymplecticForm ι` on `ι → ℂ` is the pull-back of the constant
+form `stdForm ι` of `StdSpace ι` along the real-linear identification `complexToRealEuclidean ι`.
+-/
+theorem constSmooth_stdComplexPiSymplecticForm_eq :
+    (stdComplexPiSymplecticForm ι).constSmooth = SmoothForm.mpullback (complexToRealEuclidean ι)
+      (complexToRealEuclidean ι).contDiff.contMDiff (stdForm ι).constSmooth :=
+  (isSymplectomorphism_complexToRealEuclidean ι).mpullback_constSmooth.symm
 
 /-- For `g = log` the radial potential form is the Fubini–Study lift `ρ`, the pull-back of the
 Fubini–Study form to `ℂⁿ⁺¹ ∖ 0`. -/
