@@ -3639,7 +3639,7 @@ For `auxiliary/first-chern-class.md`; it waits for no part.
   `TauCeti.VectorBundleOrientation.canonicalThomClass`, and
   the Thom isomorphism $H^k(Z)\cong H^{k+r}(\nu,\nu\setminus Z)$ by cup
   product, from a Thom isomorphism over second-countable bases in
-  `Topology/VectorBundle/Thom/SecondCountable.lean`) and `DualClass.lean`
+  `Topology/VectorBundle/Thom/SecondCountable.lean`) and `DualClass/Basic.lean`
   (the class $d_Z$ of degree $r$ on $X$: the Thom class carried to
   $H^r(X,X\setminus Z)$ by a tubular neighbourhood, from Tau Ceti's
   `exists_diffeomorph_normalBundle_subset`, and excision, then made absolute;
