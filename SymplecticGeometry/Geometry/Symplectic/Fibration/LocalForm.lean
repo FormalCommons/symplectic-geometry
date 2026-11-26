@@ -13,11 +13,16 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Basic
 public import TauCeti.Geometry.Manifold.VectorField.Prod
 public import SymplecticGeometry.Geometry.Symplectic.Fibration.HorizontalDistribution
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
 import TauCeti.Geometry.Symplectic.Manifold.Family
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
+import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
+import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Family
+import TauCeti.Geometry.Manifold.DifferentialForm.VectorField
+import TauCeti.Geometry.Manifold.VectorField.ModelChart
 
 /-!
 # The local form of a two-form on a product
@@ -41,6 +46,16 @@ for which this formula holds: `αᵢ(x)` evaluates `τ` on a vector `(0, w)` fol
 The identity holds at every point, since it is a statement about the values of `τ` at each point
 of `EB × F`; no regularity of `τ` is needed.
 
+The exterior derivative of `τ` is then read in terms of the components. If `τ` is `C¹` at
+`(x, y)`, then on two vectors `w₁, w₂` tangent to the fibre and the field `∂ᵢ`,
+
+`dτ((0, w₁), (0, w₂), (∂ᵢ, 0)) = ∂ᵢσ(x)(w₁, w₂) + d_F αᵢ(x)(w₁, w₂)`
+
+(`TauCeti.RoughForm.mextDeriv_apply_eq_fderivFiberComponent_add_mextDeriv_mixedComponent`), where
+`∂ᵢσ(x)` is the derivative at `x` along `∂ᵢ` of the slices `x' ↦ σ(x')`, a two-form on `F`
+(`TauCeti.RoughForm.fderivFiberComponent`), and `d_F` is the exterior derivative of `F`. This is
+one of the equations (6.3.5)–(6.3.7) of [McDuffSalamon2017], with the sign of `αᵢ` fixed above.
+
 For a smooth two-form `τ` whose fibre components are all nondegenerate, the first projection
 carries the connection `TauCeti.SmoothTwoForm.horizontalDistribution` of `τ`. The flat maps of
 `σ(x)` are then invertible, which gives vector fields `Xᵢ(x)` on `F` with
@@ -54,6 +69,8 @@ since it inverts the flat maps of the smooth family `σ`.
 * `TauCeti.RoughForm.fiberComponent τ x`: the slice of `τ` over `x`.
 * `TauCeti.RoughForm.mixedComponent τ bs i x`: the one-form `αᵢ(x)` on `F`.
 * `TauCeti.RoughForm.baseComponent τ bs i j x`: the function `f_{ij}(x)` on `F`.
+* `TauCeti.RoughForm.fderivFiberComponent τ x v`: the derivative `∂_v σ(x)` of the slices along
+  `v ∈ EB`, a two-form on `F`.
 * `TauCeti.SmoothTwoForm.smoothFiberComponent τ x`: the slice of a smooth `τ`, as a smooth form.
 * `TauCeti.SmoothTwoForm.mixedVectorField τ bs i x`: the vector field `Xᵢ(x)` on `F`, the inverse
   of the flat map of `σ(x)` applied to `αᵢ(x)`.
@@ -63,6 +80,11 @@ since it inverts the flat maps of the smooth family `σ`.
 * `TauCeti.RoughForm.eq_verticalForm_add_sum`: the local form of `τ`.
 * `TauCeti.RoughForm.mextDeriv_fiberComponent_apply`: on vectors tangent to the fibre over `x`,
   the exterior derivative of `τ` is that of its slice `σ(x)`, for `τ` of class `C¹` at the point.
+* `TauCeti.RoughForm.differentiableAt_fiberComponent`: the slices of a form differentiable at
+  `(x, y)` are differentiable in `x`.
+* `TauCeti.RoughForm.contMDiffAt_mixedComponent`: the mixed components of a `C^n` form are `C^n`.
+* `TauCeti.RoughForm.mextDeriv_apply_eq_fderivFiberComponent_add_mextDeriv_mixedComponent`: `dτ` on
+  two fibre vectors and a base field.
 * `TauCeti.SmoothTwoForm.isVerticallyNondegenerate_fst_iff`: `τ` is vertically nondegenerate for
   the first projection exactly when every `σ(x)` is nondegenerate.
 * `TauCeti.SmoothTwoForm.horizontalLift_local`: the horizontal lift of `∂ᵢ` is `(∂ᵢ, Xᵢ)`.
@@ -92,6 +114,14 @@ which also applies the inverse of a flat map to a covector. The statement of
 The exterior derivative of a slice is read off `dτ` by Tau Ceti's
 `TauCeti.mpullback_mextDeriv_at`, since the slice is the pull-back along `ι_x`, whose
 derivative sends `w` to `(0, w)`.
+
+The formula for `dτ` follows the proof of Tau Ceti's
+`TauCeti.SmoothForm.mextDeriv_apply_eq_fderiv_sub_fderiv_add_mvfderiv`, which evaluates `dτ` on
+the product frame `(a, 0), (b, 0), (0, W)`, whose brackets all vanish. Here the frame is
+`(0, W₁), (0, W₂), (∂ᵢ, 0)` for extensions `Wₖ` of `wₖ` to vector fields on `F`. One of its
+brackets does not vanish, so the proof uses the invariant formula `TauCeti.mextDeriv_apply_two`
+instead. That bracket is `[(0, W₁), (0, W₂)] = (0, [W₁, W₂])`, and the terms
+along `F` make up `d_F αᵢ(x)(w₁, w₂)` by `TauCeti.mextDeriv_apply_one`.
 
 ## References
 
@@ -239,6 +269,239 @@ theorem eq_verticalForm_add_sum [FiniteDimensional ℝ EB] [Fintype ι] [LinearO
       -- `τ (z.1, z.2)` and `τ z` agree by `Prod.mk_eta`, up to the types of the vectors.
       rfl
   · exact Finset.sum_congr rfl fun i _ ↦ Finset.sum_congr rfl fun j _ ↦ mul_comm _ _
+
+/-! ### The derivative of the fibre components along the base -/
+
+section FiberDeriv
+
+open Bundle VectorField
+
+variable [IsManifold IF 1 F]
+
+/-- If `τ` is differentiable at `(x, y)`, then its slices `σ(x') = ι_{x'}^* τ`, read at `y`, are
+differentiable in `x'` at `x`. -/
+theorem differentiableAt_fiberComponent {x : EB} {y : F}
+    (hτ : MDifferentiableAt (𝓘(ℝ, EB).prod IF)
+      ((𝓘(ℝ, EB).prod IF).prod 𝓘(ℝ, (EB × EF) [⋀^Fin 2]→L[ℝ] ℝ))
+      (fun z ↦ TotalSpace.mk' ((EB × EF) [⋀^Fin 2]→L[ℝ] ℝ) z (τ z)) (x, y)) :
+    DifferentiableAt ℝ (fun x' ↦ τ.fiberComponent x' y) x := by
+  have h := τ.differentiableWithinAt_range_inChartAt_of_mdifferentiableAt hτ
+  have he : extChartAt (𝓘(ℝ, EB).prod IF) (x, y) (x, y) = (x, extChartAt IF y y) := by
+    rw [extChartAt_prod]
+    rfl
+  rw [he] at h
+  have hc : DifferentiableAt ℝ (fun x' : EB ↦ τ.inChartAt (x, y) (x', extChartAt IF y y)) x := by
+    rw [← differentiableWithinAt_univ]
+    refine DifferentiableWithinAt.comp (t := Set.range (𝓘(ℝ, EB).prod IF)) x ?_
+      (differentiableAt_id.prodMk (differentiableAt_const _)).differentiableWithinAt ?_
+    · exact h
+    · intro x' _
+      rw [ModelWithCorners.range_prod]
+      exact ⟨by simp, Set.mem_range_self _⟩
+  -- In the product chart at `(x, y)`, the slice over `x'` is read at the centre `e y` of the chart
+  -- `e` of `F` at `y`.
+  have heq (x' : EB) : τ.fiberComponent x' y =
+      (τ.inChartAt (x, y) (x', extChartAt IF y y)).compContinuousLinearMap
+        (ContinuousLinearMap.inr ℝ EB EF) := by
+    rw [← (τ.fiberComponent x').inChartAt_extChartAt_self y, fiberComponent_def,
+      TauCeti.inChartAt_mpullback_prodMk τ (x, y) (by simp) (mem_extChartAt_target y)]
+    -- The chart of `EB` is the identity; the two sides then differ in the type of the slice.
+    simp only [extChartAt_model_space_eq_id, PartialEquiv.refl_coe, id_eq]
+    rfl
+  simp_rw [heq]
+  exact (ContinuousAlternatingMap.compContinuousLinearMapCLM
+    (ContinuousLinearMap.inr ℝ EB EF)).differentiableAt.comp x hc
+
+end FiberDeriv
+
+/-- The **derivative of the fibre components** of a two-form `τ` on `EB × F` at `x` in the
+direction `v ∈ EB`: the two-form on `F` whose value at `y` is the derivative at `x`, along `v`,
+of the slices `x' ↦ σ(x') y`. For `v = bs i` it is the partial derivative `∂ᵢσ(x)`. -/
+def fderivFiberComponent (x v : EB) : RoughForm IF F ℝ 2 :=
+  fun y ↦ fderiv ℝ (fun x' ↦ τ.fiberComponent x' y) x v
+
+theorem fderivFiberComponent_def (x v : EB) :
+    τ.fderivFiberComponent x v = fun y ↦ fderiv ℝ (fun x' ↦ τ.fiberComponent x' y) x v :=
+  (rfl)
+
+/-- If `τ` is differentiable at `(x, y)`, then `∂_v σ(x)` evaluates at `y` to the derivative at
+`x`, along `v`, of the values of `τ` at `(x', y)` on two vectors tangent to the fibre. -/
+theorem fderivFiberComponent_apply [IsManifold IF 1 F] {x : EB} {y : F}
+    (hτ : MDifferentiableAt (𝓘(ℝ, EB).prod IF)
+      ((𝓘(ℝ, EB).prod IF).prod 𝓘(ℝ, (EB × EF) [⋀^Fin 2]→L[ℝ] ℝ))
+      (fun z ↦ Bundle.TotalSpace.mk' ((EB × EF) [⋀^Fin 2]→L[ℝ] ℝ) z (τ z)) (x, y))
+    (v : EB) (w₁ w₂ : TangentSpace IF y) :
+    τ.fderivFiberComponent x v y ![w₁, w₂] =
+      fderiv ℝ (fun x' ↦ τ (x', y) ![((0 : EB), w₁), ((0 : EB), w₂)]) x v := by
+  -- The slices take values in `TangentSpace IF y [⋀^Fin 2]→L[ℝ] ℝ`, which is `EF [⋀^Fin 2]→L[ℝ] ℝ`
+  -- with its norm only by unfolding `TangentSpace`; Mathlib's lemma needs the norm.
+  have h := fderiv_continuousAlternatingMap_apply_const_apply (F := EF) (G := ℝ)
+    (c := fun x' ↦ τ.fiberComponent x' y) (τ.differentiableAt_fiberComponent hτ) ![w₁, w₂] v
+  refine h.symm.trans (congrArg (fderiv ℝ · x v) (funext fun x' ↦ ?_))
+  exact τ.fiberComponent_apply x' y w₁ w₂
+
+/-- If `τ` is `C^n` at `(x, y)`, then its mixed component `αᵢ(x)` is `C^n` at `y`. -/
+theorem contMDiffAt_mixedComponent [IsManifold IF 1 F] {n : WithTop ℕ∞} (i : ι) {x : EB} {y : F}
+    (hτ : ContMDiffAt (𝓘(ℝ, EB).prod IF)
+      ((𝓘(ℝ, EB).prod IF).prod 𝓘(ℝ, (EB × EF) [⋀^Fin 2]→L[ℝ] ℝ)) n
+      (fun z ↦ Bundle.TotalSpace.mk' ((EB × EF) [⋀^Fin 2]→L[ℝ] ℝ) z (τ z)) (x, y)) :
+    ContMDiffAt IF (IF.prod 𝓘(ℝ, EF [⋀^Fin 1]→L[ℝ] ℝ)) n
+      (fun y' ↦ Bundle.TotalSpace.mk' (EF [⋀^Fin 1]→L[ℝ] ℝ) y' (τ.mixedComponent bs i x y')) y := by
+  set X := Manifold.prodVectorField (I := 𝓘(ℝ, EB)) (J := IF)
+    (fun x : EB ↦ (bs i : TangentSpace 𝓘(ℝ, EB) x)) (0 : (y : F) → TangentSpace IF y)
+  have hX : ContMDiffAt (𝓘(ℝ, EB).prod IF) (𝓘(ℝ, EB).prod IF).tangent n
+      (fun z ↦ (X z : TangentBundle (𝓘(ℝ, EB).prod IF) (EB × F))) (x, y) :=
+    Manifold.contMDiffAt_prodVectorField (contMDiff_tangentBundle_mk_const _).contMDiffAt
+      (Bundle.contMDiff_zeroSection ℝ (TangentSpace IF)).contMDiffAt
+  rw [mixedComponent_def]
+  exact (ContMDiffAt.mpullback_form (RoughForm.contMDiffAt_interior hX hτ) (f := Prod.mk x)
+    (n := ⊤) (contMDiffAt_const.prodMk contMDiffAt_id) le_top).neg_section
+
+section Frame
+
+open Bundle VectorField
+
+variable [CompleteSpace EB] [CompleteSpace EF] [IsManifold IF 2 F]
+
+/-- The invariant formula for `dτ` on the frame `(0, W₁)`, `(0, W₂)`, `(bs i, 0)` of `EB × F`,
+for vector fields `W₁`, `W₂` on `F` differentiable at `y`, with its terms read as `∂ᵢσ(x)` and as
+derivatives of `αᵢ(x)` along `F`. -/
+private theorem mextDeriv_apply_prodVectorField (i : ι) {x : EB} {y : F}
+    (hτ : ContMDiffAt (𝓘(ℝ, EB).prod IF)
+      ((𝓘(ℝ, EB).prod IF).prod 𝓘(ℝ, (EB × EF) [⋀^Fin 2]→L[ℝ] ℝ)) 1
+      (fun z ↦ TotalSpace.mk' ((EB × EF) [⋀^Fin 2]→L[ℝ] ℝ) z (τ z)) (x, y))
+    {W₁ W₂ : (y : F) → TangentSpace IF y}
+    (hW₁ : MDifferentiableAt IF IF.tangent (fun y ↦ (W₁ y : TangentBundle IF F)) y)
+    (hW₂ : MDifferentiableAt IF IF.tangent (fun y ↦ (W₂ y : TangentBundle IF F)) y) :
+    mextDeriv τ (x, y) ![((0 : EB), W₁ y), (0, W₂ y), (bs i, 0)] =
+      τ.fderivFiberComponent x (bs i) y ![W₁ y, W₂ y] +
+        (mvfderiv IF (fun y' ↦ τ.mixedComponent bs i x y' ![W₂ y']) y (W₁ y) -
+          mvfderiv IF (fun y' ↦ τ.mixedComponent bs i x y' ![W₁ y']) y (W₂ y) -
+          τ.mixedComponent bs i x y ![mlieBracket IF W₁ W₂ y]) := by
+  have : IsManifold IF (minSmoothness ℝ 2) F := by
+    rw [minSmoothness_of_isRCLikeNormedField]; infer_instance
+  have : IsManifold IF 1 F := .of_le (n := 2) (by norm_num)
+  have hτ' := hτ.mdifferentiableAt one_ne_zero
+  set U := Manifold.prodVectorField (I := 𝓘(ℝ, EB)) (J := IF)
+    (0 : (x : EB) → TangentSpace 𝓘(ℝ, EB) x) W₁
+  set V := Manifold.prodVectorField (I := 𝓘(ℝ, EB)) (J := IF)
+    (0 : (x : EB) → TangentSpace 𝓘(ℝ, EB) x) W₂
+  set X := Manifold.prodVectorField (I := 𝓘(ℝ, EB)) (J := IF)
+    (fun x : EB ↦ (bs i : TangentSpace 𝓘(ℝ, EB) x)) (0 : (y : F) → TangentSpace IF y)
+  have h0B : MDifferentiableAt 𝓘(ℝ, EB) 𝓘(ℝ, EB).tangent
+      (fun x ↦ ((0 : (x : EB) → TangentSpace 𝓘(ℝ, EB) x) x : TangentBundle 𝓘(ℝ, EB) EB)) x :=
+    (contMDiff_zeroSection ℝ (TangentSpace 𝓘(ℝ, EB))).mdifferentiableAt one_ne_zero
+  have hcB : MDifferentiableAt 𝓘(ℝ, EB) 𝓘(ℝ, EB).tangent
+      (fun x : EB ↦ (⟨x, bs i⟩ : TangentBundle 𝓘(ℝ, EB) EB)) x :=
+    (contMDiff_tangentBundle_mk_const (n := 1) _).mdifferentiableAt one_ne_zero
+  have hU : MDifferentiableAt (𝓘(ℝ, EB).prod IF) (𝓘(ℝ, EB).prod IF).tangent
+      (fun z ↦ (U z : TangentBundle (𝓘(ℝ, EB).prod IF) (EB × F))) (x, y) :=
+    Manifold.mdifferentiableAt_prodVectorField h0B hW₁
+  have hV : MDifferentiableAt (𝓘(ℝ, EB).prod IF) (𝓘(ℝ, EB).prod IF).tangent
+      (fun z ↦ (V z : TangentBundle (𝓘(ℝ, EB).prod IF) (EB × F))) (x, y) :=
+    Manifold.mdifferentiableAt_prodVectorField h0B hW₂
+  have hX : MDifferentiableAt (𝓘(ℝ, EB).prod IF) (𝓘(ℝ, EB).prod IF).tangent
+      (fun z ↦ (X z : TangentBundle (𝓘(ℝ, EB).prod IF) (EB × F))) (x, y) :=
+    Manifold.mdifferentiableAt_prodVectorField hcB
+      ((contMDiff_zeroSection ℝ (TangentSpace IF)).mdifferentiableAt one_ne_zero)
+  -- Evaluating `τ` on two fields differentiable at `(x, y)` gives a differentiable function.
+  have happ : ∀ A B : (z : EB × F) → TangentSpace (𝓘(ℝ, EB).prod IF) z,
+      MDifferentiableAt (𝓘(ℝ, EB).prod IF) (𝓘(ℝ, EB).prod IF).tangent
+        (fun z ↦ (A z : TangentBundle (𝓘(ℝ, EB).prod IF) (EB × F))) (x, y) →
+      MDifferentiableAt (𝓘(ℝ, EB).prod IF) (𝓘(ℝ, EB).prod IF).tangent
+        (fun z ↦ (B z : TangentBundle (𝓘(ℝ, EB).prod IF) (EB × F))) (x, y) →
+      MDifferentiableAt (𝓘(ℝ, EB).prod IF) 𝓘(ℝ, ℝ) (fun z ↦ τ z ![A z, B z]) (x, y) := by
+    intro A B hA hB
+    have hev (z : EB × F) : (fun k ↦ ![A, B] k z) = ![A z, B z] := by
+      funext k; fin_cases k <;> rfl
+    simpa [hev] using mdifferentiableAt_apply_vectorField (V := ![A, B]) hτ'
+      (fun k ↦ by fin_cases k; exacts [hA, hB])
+  -- The values of the frame.
+  have hU_apply (z : EB × F) : U z = ((0 : EB), W₁ z.2) := Manifold.prodVectorField_apply _ _ z
+  have hV_apply (z : EB × F) : V z = ((0 : EB), W₂ z.2) := Manifold.prodVectorField_apply _ _ z
+  have hX_apply (z : EB × F) : X z = (bs i, 0) := Manifold.prodVectorField_apply _ _ z
+  -- The brackets of the frame: only `[(0, W₁), (0, W₂)] = (0, [W₁, W₂])` survives.
+  have hUV : mlieBracket (𝓘(ℝ, EB).prod IF) U V (x, y) = ((0 : EB), mlieBracket IF W₁ W₂ y) := by
+    rw [Manifold.mlieBracket_prodVectorField h0B h0B hW₁ hW₂]
+    refine Prod.ext ?_ (Manifold.prodVectorField_snd _ _ _)
+    -- The zero of `TangentSpace 𝓘(ℝ, EB) x` is that of `EB` only by unfolding `TangentSpace`.
+    simp only [Manifold.prodVectorField_fst, mlieBracket_zero_left]
+    rfl
+  have hUX : mlieBracket (𝓘(ℝ, EB).prod IF) U X (x, y) = 0 := by
+    rw [mlieBracket_swap_apply, neg_eq_zero]
+    exact Manifold.mlieBracket_prodVectorField_horizontal_vertical hcB hW₁
+  have hVX : mlieBracket (𝓘(ℝ, EB).prod IF) V X (x, y) = 0 := by
+    rw [mlieBracket_swap_apply, neg_eq_zero]
+    exact Manifold.mlieBracket_prodVectorField_horizontal_vertical hcB hW₂
+  have h0 (v : TangentSpace (𝓘(ℝ, EB).prod IF) (x, y)) : τ (x, y) ![0, v] = 0 :=
+    (τ (x, y)).map_coord_zero 0 rfl
+  -- Each derivative along the frame is a derivative along `EB` or along `F`.
+  have hdU := (happ V X hV hX).mvfderiv_prod_eq_add_apply (U (x, y))
+  have hdV := (happ U X hU hX).mvfderiv_prod_eq_add_apply (V (x, y))
+  have hdX := (happ U V hU hV).mvfderiv_prod_eq_add_apply (X (x, y))
+  have hU1 : (U (x, y)).1 = (0 : TangentSpace 𝓘(ℝ, EB) (x, y).1) :=
+    Manifold.prodVectorField_fst _ _ _
+  have hV1 : (V (x, y)).1 = (0 : TangentSpace 𝓘(ℝ, EB) (x, y).1) :=
+    Manifold.prodVectorField_fst _ _ _
+  have hX2 : (X (x, y)).2 = (0 : TangentSpace IF (x, y).2) := Manifold.prodVectorField_snd _ _ _
+  have hU2 : (U (x, y)).2 = (W₁ y : TangentSpace IF (x, y).2) := Manifold.prodVectorField_snd _ _ _
+  have hV2 : (V (x, y)).2 = (W₂ y : TangentSpace IF (x, y).2) := Manifold.prodVectorField_snd _ _ _
+  rw [hU1, map_zero, zero_add, hU2] at hdU
+  rw [hV1, map_zero, zero_add, hV2] at hdV
+  rw [hX2, map_zero, add_zero] at hdX
+  -- The terms of the invariant formula, read on the slices through `(x, y)`. The `rfl`s close
+  -- goals that differ by `(x, y).1 = x` or `(x, y).2 = y` and in the types of the vectors.
+  have e₁ : (fun y' ↦ τ ((x, y).1, y') ![V ((x, y).1, y'), X ((x, y).1, y')]) =
+      fun y' ↦ τ.mixedComponent bs i x y' ![W₂ y'] :=
+    funext fun y' ↦ by rw [mixedComponent_apply, hV_apply, hX_apply]; rfl
+  have e₂ : (fun y' ↦ τ ((x, y).1, y') ![U ((x, y).1, y'), X ((x, y).1, y')]) =
+      fun y' ↦ τ.mixedComponent bs i x y' ![W₁ y'] :=
+    funext fun y' ↦ by rw [mixedComponent_apply, hU_apply, hX_apply]; rfl
+  have e₃ : (fun x' ↦ τ (x', (x, y).2) ![U (x', (x, y).2), V (x', (x, y).2)]) =
+      fun x' ↦ τ (x', y) ![((0 : EB), W₁ y), ((0 : EB), W₂ y)] :=
+    funext fun x' ↦ by rw [hU_apply, hV_apply]; rfl
+  have e₄ : τ (x, y) ![mlieBracket (𝓘(ℝ, EB).prod IF) U V (x, y), X (x, y)] =
+      τ.mixedComponent bs i x y ![mlieBracket IF W₁ W₂ y] := by
+    rw [mixedComponent_apply, hUV, hX_apply]
+    rfl
+  have e₅ : mvfderiv 𝓘(ℝ, EB) (fun x' ↦ τ (x', y) ![((0 : EB), W₁ y), ((0 : EB), W₂ y)]) (x, y).1
+      (X (x, y)).1 = τ.fderivFiberComponent x (bs i) y ![W₁ y, W₂ y] := by
+    rw [hX_apply]
+    exact (mvfderiv_eq_fderiv_apply _ _ _).trans (fderivFiberComponent_apply τ hτ' _ _ _).symm
+  have hpt : ![U (x, y), V (x, y), X (x, y)] = (![((0 : EB), W₁ y), (0, W₂ y), (bs i, 0)] :
+      Fin 3 → TangentSpace (𝓘(ℝ, EB).prod IF) (x, y)) := by
+    rw [hU_apply, hV_apply, hX_apply]
+    -- The two sides differ only by `(x, y).2 = y` and in the types of the entries.
+    rfl
+  rw [← hpt, mextDeriv_apply_two hτ' hU hV hX, hdU, hdV, hdX, hUX, hVX, h0, h0, e₁, e₂, e₃, e₄,
+    e₅]
+  abel
+
+end Frame
+
+/-- **The exterior derivative of `τ` on fibre vectors and a base field.** For a two-form `τ` on
+`EB × F` that is `C¹` at `(x, y)`, vectors `w₁, w₂` tangent to `F` at `y` and the field `∂ᵢ`
+of the basis `bs`,
+`dτ((0, w₁), (0, w₂), (∂ᵢ, 0)) = ∂ᵢσ(x)(w₁, w₂) + d_F αᵢ(x)(w₁, w₂)`,
+where `∂ᵢσ(x)` differentiates the fibre components along `∂ᵢ` and `d_F αᵢ(x)` is the exterior
+derivative on `F` of the mixed component. -/
+theorem mextDeriv_apply_eq_fderivFiberComponent_add_mextDeriv_mixedComponent [CompleteSpace EB]
+    [CompleteSpace EF] [IsManifold IF 2 F] (i : ι) {x : EB} {y : F}
+    (hτ : ContMDiffAt (𝓘(ℝ, EB).prod IF)
+      ((𝓘(ℝ, EB).prod IF).prod 𝓘(ℝ, (EB × EF) [⋀^Fin 2]→L[ℝ] ℝ)) 1
+      (fun z ↦ Bundle.TotalSpace.mk' ((EB × EF) [⋀^Fin 2]→L[ℝ] ℝ) z (τ z)) (x, y))
+    (w₁ w₂ : TangentSpace IF y) :
+    mextDeriv τ (x, y) ![((0 : EB), w₁), (0, w₂), (bs i, 0)] =
+      τ.fderivFiberComponent x (bs i) y ![w₁, w₂] +
+        mextDeriv (τ.mixedComponent bs i x) y ![w₁, w₂] := by
+  have : IsManifold IF 1 F := .of_le (n := 2) (by norm_num)
+  -- Extend `w₁` and `w₂` to vector fields on `F` and apply the invariant formula on `F`.
+  have hW₁ := FiberBundle.mdifferentiableAt_extend IF EF w₁
+  have hW₂ := FiberBundle.mdifferentiableAt_extend IF EF w₂
+  have h := τ.mextDeriv_apply_prodVectorField bs i hτ hW₁ hW₂
+  rw [← mextDeriv_apply_one ((τ.contMDiffAt_mixedComponent bs i hτ).mdifferentiableAt
+    one_ne_zero) hW₁ hW₂, FiberBundle.extend_apply_self, FiberBundle.extend_apply_self] at h
+  exact h
 
 end TauCeti.RoughForm
 
