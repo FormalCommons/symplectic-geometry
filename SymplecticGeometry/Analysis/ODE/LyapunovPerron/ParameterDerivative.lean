@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Analysis.ODE.LyapunovPerron.VectorField
+import TauCeti.Analysis.ODE.LyapunovPerron.VectorField
 public import TauCeti.Analysis.ODE.LyapunovPerron.Smooth
 import Mathlib.Analysis.Calculus.ContDiff.Operations
 import Mathlib.Analysis.Calculus.ContDiff.RCLike
