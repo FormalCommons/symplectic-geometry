@@ -501,7 +501,8 @@ and the prerequisites, placed by topic.
   `orientation_ker_eq_of_norm_lt`.
 - `Combinatorics/SimpleGraph/GreedyColoring.lean`: a locally finite graph
   of maximal degree at most $\Delta$ is $(\Delta+1)$-colourable
-  (`SimpleGraph.colorable_of_maxDegree_le`). Mathlib has no such bound.
+  (`SimpleGraph.colorable_of_forall_degree_le`), from Tau Ceti's
+  `SimpleGraph.colorable_succ_of_forall_exists_card_le`.
 - `Topology/MetricSpace/SeparatedSum.lean`: for a $1$-separated set $S$ in
   a space with the doubling bound $\#(S\cap B(y,r))\le C(1+r)^{2n}$, sums
   $\sum_{x\in S}P(d(x,y))e^{-c\,d(x,y)^2}$ are bounded uniformly in $y$,
