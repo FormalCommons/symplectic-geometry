@@ -36,6 +36,8 @@ this.
   and `SymplecticGeometry.cartanDiff_mul_of_even`: `d_ħ` is a derivation on products whose left
   factor has only components of even degree, and `SymplecticGeometry.cartanDiff_of_pow_succ`: the
   power rule for a homogeneous form of even degree.
+* `SymplecticGeometry.cartanDiff_ofFunctionRingHom_mul_eq_zero`: multiplying an equivariantly
+  closed form by a function whose derivative vanishes wherever the form does not keeps it closed.
 * `SymplecticGeometry.cartanDiff_cartanDiff`: `d_ħ² = -ħ L_X` on homogeneous forms, from Cartan's
   formula `SymplecticGeometry.mixedExtDeriv_mixedInterior_add`; so
   `SymplecticGeometry.cartanDiff_cartanDiff_of_mlieDerivForm_eq_zero`: `d_ħ² = 0` on forms whose
@@ -146,6 +148,23 @@ theorem cartanDiff_mul_of_even {α : ⨁ k, SmoothForm I M ℝ k} (hα : ∀ k, 
   rcases Nat.even_or_odd k with hk | hk
   · rw [cartanDiff_of_mul, hk.neg_one_pow, one_smul]
   · rw [hα k hk, map_zero, zero_mul, map_zero, zero_mul, zero_mul, add_zero]
+
+/-- Multiplying an equivariantly closed form `β` by a smooth function `g` keeps it equivariantly
+closed if at every point either the derivative of `g` vanishes or all components of `β` do:
+then `d_ħ (g β) = dg ∧ β` vanishes. -/
+theorem cartanDiff_ofFunctionRingHom_mul_eq_zero (g : C^∞⟮I, M; ℝ⟯)
+    {β : ⨁ k, SmoothForm I M ℝ k} (hβ : cartanDiff X hX ħ β = 0)
+    (h : ∀ x, mfderiv I 𝓘(ℝ) g x = 0 ∨ ∀ k, (β k).val x = 0) :
+    cartanDiff X hX ħ (SmoothForm.ofFunctionRingHom g * β) = 0 := by
+  rw [SmoothForm.ofFunctionRingHom_apply, cartanDiff_of_mul, hβ, mul_zero, smul_zero, add_zero,
+    cartanDiff_of_zero]
+  refine SmoothForm.mul_eq_zero_of_forall_or fun x ↦ (h x).imp_left fun hx i ↦ ?_
+  by_cases hi : i = 1
+  · subst hi
+    rw [DirectSum.of_eq_same, mextDerivₗ_apply, SmoothForm.coe_ofFunction,
+      mextDeriv_ofFunction_apply_eq_zero_iff]
+    exact hx
+  · rw [DirectSum.of_eq_of_ne _ _ _ hi, Submodule.coe_zero, Pi.zero_apply]
 
 /-- The power rule for the Cartan differential of a homogeneous form `φ` of even degree:
 `d_ħ φ ^ (n + 1) = (n + 1) φ ^ n d_ħ φ`. -/

@@ -152,8 +152,7 @@ theorem exists_isConnectionForm [FiniteDimensional ℝ EB] [T2Space B] [SigmaCom
       A.val x v = ∑ b ∈ ρ.finsupport (p x), ρ b (p x) • ℓ b x v := by
     simp only [A, ContinuousAlternatingMap.sum_apply, ContinuousAlternatingMap.smul_apply]
   refine ⟨A, fun g ↦ ?_, fun x ξ ↦ ?_⟩
-  · refine Subtype.ext (funext fun x ↦ ?_)
-    ext v
+  · refine SmoothBundleForm.ext fun x v ↦ ?_
     have hpg : p (op g • x) = p x := by simp [hp, ManifoldTotalSpace.homeomorph_symm_smul]
     rw [SmoothForm.coe_mpullback, mpullback_apply, SmoothForm.coe_mapCoeff,
       RoughForm.mapCoeff_apply, hA, hA, map_sum, hpg]

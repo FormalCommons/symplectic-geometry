@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Manifold.RegularValue.Scalar.Sublevel
+public import TauCeti.Geometry.Manifold.RegularValue.Scalar.Sublevel.Basic
 
 /-!
 # Open subsets of the strict sublevel are smooth in the sublevel manifold

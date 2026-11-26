@@ -476,15 +476,15 @@ For a compact Hausdorff complex manifold `M` modelled on `𝓘(ℂ, E)` with
   `(TangentBundle.restrictScalarsHomeomorph ℝ M).symm`
   (`Geometry/Manifold/VectorBundle/Tangent/RestrictScalars.lean`) is the
   identity of total spaces from the real tangent bundle to the complex one,
-  linear on fibres by its `_apply` and `_symm_apply` lemmas. The new
-  statement is that it carries the complex orientation
-  `VectorBundleOrientation.complex` to
-  `(complexManifoldOrientation E M).toVectorBundleOrientation`, pointwise by
-  Tau Ceti's `orientationAt_complexManifoldOrientation_eq_complexOrientation`.
+  linear on fibres by its `_apply` and `_symm_apply` lemmas. With it, Tau
+  Ceti's `TauCeti.complexEulerClass_tangentSpace_eq_eulerClass`
+  (`Geometry/Manifold/Complex/EulerClass.lean`) identifies the complex Euler
+  class of the tangent bundle with the Euler class of the real one, oriented
+  by `complexManifoldOrientation E M`.
 - `SymplecticGeometry.evalFundamentalClass_chernClass_eq_eulerChar`:
   $\langle c_{r+1}(TM),[M]\rangle=\chi(M)$, from
   `chernClass_finrank_eq_complexEulerClass` (#1043), the previous item, and
-  `evalFundamentalClass_eulerClass_eq_eulerChar` (#1045). The evaluation
+  `evalFundamentalClass_eulerClass_eq_eulerChar_of_finiteCWType` (#1045). The evaluation
   must commute with `uliftIntegralCohomologyIso`, as the review of #896
   noted; if #1029 does not prove it, this issue does.
 
@@ -651,7 +651,7 @@ For `X : SmoothProjectiveHypersurface 1 d` with `d ≠ 0`:
   `chernClass_trivial` (#1037); `totalChernClass_prod` (#1038);
   `complexEulerClass_tensorProduct`, `complexEulerClass_twistCore_one`
   (#1040); `chernClass_finrank_eq_complexEulerClass` (#1043);
-  `evalFundamentalClass_eulerClass_eq_eulerChar` and the alternating sum
+  `evalFundamentalClass_eulerClass_eq_eulerChar_of_finiteCWType` and the alternating sum
   (#1045).
 - *First Chern number*'s prerequisites: Poincaré duality (#810), and the
   library's merged `Cap/RationalCoefficients.lean`.

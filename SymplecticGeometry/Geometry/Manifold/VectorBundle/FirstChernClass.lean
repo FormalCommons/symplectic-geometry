@@ -18,7 +18,7 @@ Over a Hausdorff, σ-compact space `B` charted on `H`, with a model with corners
 compactness is assumed, and the model may have corners.
 
 It is a case of `SymplecticGeometry.Bundle.firstChernClass_prod_of_hasFiniteTrivializingCover`:
-the determinant lines have finite trivializing covers by
+the bundles have finite trivializing covers by
 `SymplecticGeometry.Bundle.HasFiniteTrivializingCover.of_chartedSpace`, and the base is normal
 since it is locally compact, σ-compact and Hausdorff, hence paracompact.
 

@@ -99,8 +99,12 @@ this identifies the kernel of the endpoint flux with the Hamiltonian group.
   homotopic with fixed ends, as a `TauCeti.Diffeotopy.Homotopic` homotopy whose intermediate
   maps need not preserve `σ`, to a Hamiltonian one. This is weaker than the book's homotopy
   through symplectic isotopies.
-* `TauCeti.Diffeotopy.final_mem_hamiltonianGroup_of_flux_eq_zero`: its final map is Hamiltonian.
-* `TauCeti.ker_endpointFlux`: the kernel of the endpoint flux is the Hamiltonian group.
+* `TauCeti.Diffeotopy.final_mem_hamiltonianGroup_of_flux_eq_zero'`: its final map is Hamiltonian.
+* `TauCeti.ker_endpointFlux'`: the kernel of the endpoint flux is the Hamiltonian group.
+
+Tau Ceti proves the last two results for a connected manifold, as
+`TauCeti.Diffeotopy.final_mem_hamiltonianGroup_of_flux_eq_zero` and `TauCeti.ker_endpointFlux`; the
+primed versions here do not assume `M` connected.
 
 ## References
 
@@ -342,7 +346,7 @@ theorem exists_isHamiltonian_homotopic_of_flux_eq_zero (hσ : SmoothTwoForm.IsNo
 /-- **Symplectic isotopies with zero flux end at Hamiltonian diffeomorphisms.** Let `σ` be a
 symplectic form on a closed manifold `M`, and let every map of the diffeotopy `φ_t` preserve `σ`.
 If `φ_t` has zero flux, then its final map `φ_1` lies in the Hamiltonian group of `σ`. -/
-theorem final_mem_hamiltonianGroup_of_flux_eq_zero (hσ : SmoothTwoForm.IsNondegenerate σ.val)
+theorem final_mem_hamiltonianGroup_of_flux_eq_zero' (hσ : SmoothTwoForm.IsNondegenerate σ.val)
     (hΦ : ∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ.val)
     (h : Φ.flux σ (SmoothForm.final_mem_diffeomorphStabilizer hΦ) = 0) :
     Φ.final ∈ SmoothForm.hamiltonianGroup σ.val := by
@@ -363,13 +367,13 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSp
 /-- **The kernel of the endpoint flux is the Hamiltonian group.** For a symplectic form `σ` on a
 closed manifold `M`, an element of the isotopy stabilizer of `σ` has trivial endpoint flux exactly
 when it lies in the Hamiltonian group of `σ`. -/
-theorem ker_endpointFlux {σ : closedForms J M 2} (hσ : SmoothTwoForm.IsNondegenerate σ.val) :
+theorem ker_endpointFlux' {σ : closedForms J M 2} (hσ : SmoothTwoForm.IsNondegenerate σ.val) :
     (endpointFlux σ).ker =
       (SmoothForm.hamiltonianGroup σ.val).subgroupOf (SmoothForm.isotopyStabilizer σ.val) := by
   refine le_antisymm (fun φ hφ ↦ ?_) (hamiltonianGroup_subgroupOf_le_ker_endpointFlux σ)
   obtain ⟨Φ, hΦ, hfin, h⟩ := mem_ker_endpointFlux_iff.1 hφ
   rw [Subgroup.mem_subgroupOf, ← hfin]
-  exact Diffeotopy.final_mem_hamiltonianGroup_of_flux_eq_zero hσ hΦ h
+  exact Diffeotopy.final_mem_hamiltonianGroup_of_flux_eq_zero' hσ hΦ h
 
 end TauCeti
 

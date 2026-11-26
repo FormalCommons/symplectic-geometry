@@ -29,16 +29,17 @@ against the versions pinned when this file was written (Tau Ceti
   describe them. In `Geometry/Manifold/FiberBundle/MapFiber.lean`: an
   atlas `A` of `π` with fibre $F$ (`TauCeti.MapFiber.Atlas`), smooth in
   the sense of `A.IsContMDiff`, and for a chart `e` of `A` and
-  `b ∈ e.baseSet` the fibre inclusion `e.fiberInclusion hb`, written
+  `b ∈ e.baseSet` the fibre inclusion `e.fiberInclusionMap hb`, written
   $j_{e,b}:F\to M$, $v\mapsto e^{-1}(b,v)$. In
   `Geometry/Manifold/FiberBundle/StructureGroup.lean`: structure groups,
   so that symplectic atlases for $(F,\sigma)$ are those with structure
   group `TauCeti.SmoothForm.diffeomorphStabilizer σ`, and oriented atlases
   for an orientation of $F$ those with structure group
   `Diffeomorph.orientationPreservingSubgroup`. In
-  `Geometry/Symplectic/Fibration/Basic.lean`: the predicate that a
+  `Geometry/Manifold/FiberBundle/RestrictsTo.lean`: the predicate that a
   two-form $\tau$ on $M$ *restricts to the fibre forms*, $j_{e,b}^*\tau=\sigma$
-  for every chart and base point; compatible symplectic forms; and
+  for every chart and base point. In
+  `Geometry/Symplectic/Fibration/Basic.lean`: compatible symplectic forms; and
   compatibility of a symplectic form with an oriented atlas and an
   orientation of $B$. This file uses these
   notions under the names that *Symplectic fibrations*' design gives them,
@@ -500,8 +501,8 @@ Issues 1, 2, 5 and 9 can start at once.
 
 - *Symplectic fibrations*: `MapFiber.lean` (smooth atlases, fibre
   inclusions), `StructureGroup.lean` (symplectic and oriented atlases),
-  `Basic.lean` (the restriction predicate, compatibility, compatibility
-  with an orientation) and
+  `RestrictsTo.lean` (the restriction predicate), `Basic.lean`
+  (compatibility, compatibility with an orientation) and
   `HorizontalDistribution.lean` (existence of connection two-forms).
 - *Minimal coupling*: `realFirstChernClass` (#2348).
 - Merged files of *First Chern number*: circle connection forms and their

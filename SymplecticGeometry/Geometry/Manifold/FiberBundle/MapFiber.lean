@@ -19,7 +19,7 @@ public import TauCeti.Geometry.Manifold.Submersion.Split
 
 Let `proj : M → B` be a map between manifolds and `e` a trivialization of `proj` with model
 fibre `F`. When `e` and its inverse are smooth, the fibre of `proj` over a point `b` of the base
-set of `e`, read through `e` (`Bundle.Trivialization.fiberInclusion`), is a smooth map
+set of `e`, read through `e` (`Bundle.Trivialization.fiberInclusionMap`), is a smooth map
 `F → M` whose derivative is injective with image the vertical space, the kernel of the derivative
 of `proj`. The coordinate change between two such trivializations over `b` is a diffeomorphism of
 `F`. For Tau Ceti's smooth atlases of a map (`TauCeti.MapFiber.Atlas.IsContMDiff`) this says that
@@ -40,12 +40,12 @@ from the fibre onto `F`, and its underlying homeomorphism is
 
 ## Main results
 
-* `Bundle.Trivialization.contMDiff_fiberInclusion`: the fibre inclusion of a trivialization with
+* `Bundle.Trivialization.contMDiff_fiberInclusionMap`: the fibre inclusion of a trivialization with
   smooth inverse is smooth.
 * `Bundle.Trivialization.isRegularPoint_proj`: `proj` is regular at every point of the source of
   a differentiable trivialization.
-* `Bundle.Trivialization.injective_mfderiv_fiberInclusion` and
-  `Bundle.Trivialization.range_mfderiv_fiberInclusion`: the derivative of a fibre inclusion is
+* `Bundle.Trivialization.injective_mfderiv_fiberInclusionMap` and
+  `Bundle.Trivialization.range_mfderiv_fiberInclusionMap`: the derivative of a fibre inclusion is
   injective, and its range is the kernel of the derivative of `proj`.
 * `TauCeti.MapFiber.Atlas.IsContMDiff.isSubmersion`: the map of a smooth atlas is a submersion.
 * `TauCeti.ManifoldTotalSpace.isContMDiff_mapFiberAtlas` and
@@ -88,11 +88,11 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {n : ℕ∞ω}
 
 /-- The fibre inclusion `v ↦ e⁻¹ (b, v)` of a trivialization whose inverse is `C^n` on its target
 is `C^n`. -/
-theorem contMDiff_fiberInclusion
+theorem contMDiff_fiberInclusionMap
     (he : ContMDiffOn (IB.prod IF) IM n e.toOpenPartialHomeomorph.symm e.target)
-    (hb : b ∈ e.baseSet) : ContMDiff IF IM n (e.fiberInclusion hb) := by
-  rw [show ⇑(e.fiberInclusion hb) = fun v ↦ e.toOpenPartialHomeomorph.symm (b, v) from
-    funext (e.fiberInclusion_apply hb)]
+    (hb : b ∈ e.baseSet) : ContMDiff IF IM n (e.fiberInclusionMap hb) := by
+  rw [show ⇑(e.fiberInclusionMap hb) = fun v ↦ e.toOpenPartialHomeomorph.symm (b, v) from
+    funext (e.fiberInclusionMap_apply hb)]
   exact he.comp_contMDiff (contMDiff_const.prodMk contMDiff_id) fun _ ↦ e.mem_target.2 hb
 
 variable {e}
@@ -111,37 +111,37 @@ theorem isRegularPoint_proj (he : e.toOpenPartialHomeomorph.MDifferentiable IM (
 
 /-- The fibre inclusion of a trivialization that is differentiable with differentiable inverse is
 differentiable. -/
-theorem mdifferentiable_fiberInclusion
+theorem mdifferentiable_fiberInclusionMap
     (he : e.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF)) (hb : b ∈ e.baseSet) :
-    MDifferentiable IF IM (e.fiberInclusion hb) := fun v ↦ by
-  rw [show ⇑(e.fiberInclusion hb) = fun v ↦ e.toOpenPartialHomeomorph.symm (b, v) from
-    funext (e.fiberInclusion_apply hb)]
+    MDifferentiable IF IM (e.fiberInclusionMap hb) := fun v ↦ by
+  rw [show ⇑(e.fiberInclusionMap hb) = fun v ↦ e.toOpenPartialHomeomorph.symm (b, v) from
+    funext (e.fiberInclusionMap_apply hb)]
   exact (he.mdifferentiableAt_symm (e.mem_target.2 hb)).comp v
     (mdifferentiableAt_const.prodMk mdifferentiableAt_id)
 
 /-- The fibre inclusion of a trivialization that is differentiable with differentiable inverse has
 injective derivative: the fibre coordinate of `e` is a left inverse of it. -/
-theorem injective_mfderiv_fiberInclusion
+theorem injective_mfderiv_fiberInclusionMap
     (he : e.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF)) (hb : b ∈ e.baseSet)
-    (v : F) : Injective (mfderiv IF IM (e.fiberInclusion hb) v) := by
-  have hv : e.fiberInclusion hb v ∈ e.source :=
-    e.mem_source.2 ((e.proj_fiberInclusion hb v).symm ▸ hb)
+    (v : F) : Injective (mfderiv IF IM (e.fiberInclusionMap hb) v) := by
+  have hv : e.fiberInclusionMap hb v ∈ e.source :=
+    e.mem_source.2 ((e.proj_fiberInclusionMap hb v).symm ▸ hb)
   refine TauCeti.mfderiv_injective_of_leftInverse (g := fun x ↦ (e x).2)
     (mdifferentiableAt_snd.comp _ (he.mdifferentiableAt hv))
-    (mdifferentiable_fiberInclusion he hb v) fun w ↦ ?_
-  rw [fiberInclusion_apply]
+    (mdifferentiable_fiberInclusionMap he hb v) fun w ↦ ?_
+  rw [fiberInclusionMap_apply]
   exact congrArg Prod.snd (e.apply_symm_apply' hb)
 
 /-- **The tangent spaces of a fibre.** For a trivialization `e` of `proj` that is differentiable
 with differentiable inverse, the derivative of the fibre inclusion over `b` at `v` has as range
 the vertical space at its image, the kernel of the derivative of `proj` there. -/
-theorem range_mfderiv_fiberInclusion [FiniteDimensional 𝕜 EM]
+theorem range_mfderiv_fiberInclusionMap [FiniteDimensional 𝕜 EM]
     (he : e.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF)) (hb : b ∈ e.baseSet)
     (v : F) :
-    (mfderiv IF IM (e.fiberInclusion hb) v).range =
-      (mfderiv IM IB proj (e.fiberInclusion hb v)).ker := by
-  have hv : e.fiberInclusion hb v ∈ e.source :=
-    e.mem_source.2 ((e.proj_fiberInclusion hb v).symm ▸ hb)
+    (mfderiv IF IM (e.fiberInclusionMap hb) v).range =
+      (mfderiv IM IB proj (e.fiberInclusionMap hb v)).ker := by
+  have hv : e.fiberInclusionMap hb v ∈ e.source :=
+    e.mem_source.2 ((e.proj_fiberInclusionMap hb v).symm ▸ hb)
   -- The derivative of `e` identifies `EM` with `EB × EF`, which fixes the dimensions.
   let L : EM ≃ₗ[𝕜] EB × EF := (he.mfderiv hv).toLinearEquiv
   have : FiniteDimensional 𝕜 (EB × EF) := L.finiteDimensional
@@ -150,8 +150,8 @@ theorem range_mfderiv_fiberInclusion [FiniteDimensional 𝕜 EM]
   have : FiniteDimensional 𝕜 EF :=
     Module.Finite.of_surjective (LinearMap.snd 𝕜 EB EF) Prod.snd_surjective
   refine TauCeti.IsRegularPoint.range_mfderiv_eq_ker_mfderiv
-    (.of_forall (e.proj_fiberInclusion hb)) (isRegularPoint_proj he hv)
-    (injective_mfderiv_fiberInclusion he hb v) ?_
+    (.of_forall (e.proj_fiberInclusionMap hb)) (isRegularPoint_proj he hv)
+    (injective_mfderiv_fiberInclusionMap he hb v) ?_
   rw [L.finrank_eq, Module.finrank_prod, add_comm]
 
 /-! ### Coordinate changes -/
@@ -165,10 +165,10 @@ theorem contMDiff_coordChange
     (he' : ContMDiffOn IM (IB.prod IF) n e' e'.source) (hb : b ∈ e.baseSet)
     (hb' : b ∈ e'.baseSet) : ContMDiff IF IF n (e.coordChange e' b) := by
   have h := contMDiff_snd.comp_contMDiffOn he' |>.comp_contMDiff
-    (e.contMDiff_fiberInclusion he hb) fun v ↦
-      e'.mem_source.2 ((e.proj_fiberInclusion hb v).symm ▸ hb')
+    (e.contMDiff_fiberInclusionMap he hb) fun v ↦
+      e'.mem_source.2 ((e.proj_fiberInclusionMap hb v).symm ▸ hb')
   exact h.congr fun v ↦ by
-    rw [comp_apply, fiberInclusion_apply, comp_apply, ← e.mk_coordChange e' hb hb' v]
+    rw [comp_apply, fiberInclusionMap_apply, comp_apply, ← e.mk_coordChange e' hb hb' v]
 
 /-- The coordinate change from `e` to `e'` over a point `b` of both base sets, as a `C^n`
 diffeomorphism of the model fibre, when both trivializations are `C^n` with `C^n` inverses.
