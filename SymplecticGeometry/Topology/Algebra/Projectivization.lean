@@ -8,6 +8,7 @@ module
 public import Mathlib.Topology.Algebra.Field
 public import Mathlib.Topology.Algebra.Projectivization
 public import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
+public import TauCeti.Topology.Algebra.Projectivization
 
 /-!
 # Continuity of the normalized representative
@@ -16,6 +17,10 @@ The representative `Projectivization.normalizedRep φ x` of a point `x` of `ℙ 
 continuous linear form `φ` takes the value `1` depends continuously on `x`, on the open set
 `Projectivization.linearProjectionDomain φ` where `φ` does not vanish
 (`Projectivization.continuousOn_normalizedRep`).
+
+For a continuous semilinear equivalence `e`, the line `e.mapProjectivization ℓ` is the image of
+`ℓ` under `e` (`ContinuousLinearEquiv.submodule_mapProjectivization`), the continuous counterpart
+of Tau Ceti's `LinearEquiv.submodule_mapProjectivization`.
 -/
 
 public section
@@ -43,5 +48,19 @@ theorem continuousOn_normalizedRep {φ : V →ₗ[K] K} (hφ : Continuous φ) :
     continuous_subtypeVal.continuousAt
 
 end Projectivization
+
+namespace ContinuousLinearEquiv
+
+variable {K V : Type*} [DivisionRing K] [AddCommGroup V] [Module K V] [TopologicalSpace V]
+  {L W : Type*} [DivisionRing L] [AddCommGroup W] [Module L W] [TopologicalSpace W]
+  {σ : K →+* L} {σ' : L →+* K} [RingHomInvPair σ σ'] [RingHomInvPair σ' σ]
+
+/-- The line `e.mapProjectivization ℓ` is the image of the line `ℓ` under `e`. -/
+@[simp]
+theorem submodule_mapProjectivization (e : V ≃SL[σ] W) (ℓ : ℙ K V) :
+    (e.mapProjectivization ℓ).submodule = ℓ.submodule.map (e : V →ₛₗ[σ] W) := by
+  rw [coe_mapProjectivization, Projectivization.submodule_map]
+
+end ContinuousLinearEquiv
 
 end

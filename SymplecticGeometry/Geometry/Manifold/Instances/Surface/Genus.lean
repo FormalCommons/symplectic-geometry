@@ -16,6 +16,7 @@ public import TauCeti.Geometry.Manifold.ConnectedSum.Topology
 import SymplecticGeometry.Geometry.Manifold.ConnectedSum.Range
 import SymplecticGeometry.Geometry.Manifold.DisjointCoordinateBalls
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.UnivBall
+import TauCeti.Analysis.Normed.Module.Ball.Homeomorph
 import TauCeti.Geometry.Manifold.Instances.AddCircle.Torus
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Diffeomorph
 import TauCeti.Geometry.Sphere.Connected
@@ -189,11 +190,21 @@ def ball : EuclideanSpace ℝ (Fin 2) → EuclideanTorus :=
 
 theorem ball_def : ball = cover ∘ univBall ballCenter (1 / 4) := (rfl)
 
+/-- The coordinate ball in coordinates: it sends `v` to the point of the torus with coordinates
+`[1 / 2 + v i / (4 √(1 + ‖v‖²))]`. -/
+theorem diffeomorph_ball_apply (v : EuclideanSpace ℝ (Fin 2)) (i : Fin 2) :
+    diffeomorph (ball v) i =
+      ((1 / 2 + 1 / 4 * (√(1 + ‖v‖ ^ 2))⁻¹ * v i : ℝ) : AddCircle (1 : ℝ)) := by
+  rw [ball_def, Function.comp_apply, univBall_apply (by norm_num), diffeomorph_cover]
+  simp only [vadd_eq_add, PiLp.add_apply, PiLp.smul_apply, smul_eq_mul, ballCenter_apply]
+  congr 1
+  ring
+
 /-- The centre of the coordinate ball is the point `([1 / 2], [1 / 2])` of the torus. -/
 @[simp]
 theorem diffeomorph_ball_zero (i : Fin 2) :
     diffeomorph (ball 0) i = ((1 / 2 : ℝ) : AddCircle (1 : ℝ)) := by
-  simp [ball_def, univBall_apply_zero]
+  simp [diffeomorph_ball_apply]
 
 /-- A point at distance at most `1 / 4` from `(1 / 2, 1 / 2)` has coordinates in
 `[1 / 4, 3 / 4]`. -/
