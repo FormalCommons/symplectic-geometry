@@ -133,8 +133,7 @@ theorem IsIntegrable.nijenhuis_eq_zero [FiniteDimensional ℝ E]
   funext x
   obtain ⟨ψ, J₀, hx, hψ⟩ := hJ x
   have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
-  have hψx : ContMDiffAt I 𝓘(ℝ, E) ∞ ψ x :=
-    ψ.contMDiffOn.contMDiffAt (ψ.open_source.mem_nhds hx)
+  have hψx : ContMDiffAt I 𝓘(ℝ, E) ∞ ψ x := ψ.contMDiffAt hx
   -- The pullbacks along `ψ` of the constant vector fields of `E`.
   let X : E → Π y : M, TangentSpace I y := fun u ↦
     VectorField.mpullback I 𝓘(ℝ, E) ψ (constVectorField u)
