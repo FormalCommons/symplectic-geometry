@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Translate
+import SymplecticGeometry.Analysis.Calculus.HolonomicApproximation.Basic
 import SymplecticGeometry.Analysis.Calculus.HolonomicApproximation.ZigZag
 
 /-!
@@ -24,10 +25,10 @@ segment under `h 1`.
 
 The proof assembles two earlier results. `SymplecticGeometry.exists_holonomic_approximation_zigzag`
 gives `f'` near a zig-zag curve `u ↦ (u, r g₀ (u) e₀)` with `r < δ / 2`, and
-`SymplecticGeometry.exists_diffeotopy_apply_eq_add_smul`, applied to the profile `g₀ ∘ Prod.fst`
-and the transverse vector `(0, r e₀)` over the closed `δ / 2`-neighbourhood of the segment, gives
-a diffeotopy that moves the segment onto that curve. Since `g₀` vanishes near `± 1`, the
-diffeotopy fixes a neighbourhood of the end points.
+`SymplecticGeometry.exists_wiggling_diffeotopy`, applied to the profile `g₀` and the transverse
+direction `e₀` over the closed `δ / 2`-neighbourhood of the segment, gives a diffeotopy that moves
+the segment onto that curve. Since `g₀` vanishes near `± 1`, the diffeotopy fixes a neighbourhood
+of the end points.
 
 ## Main results
 
@@ -76,43 +77,29 @@ theorem exists_holonomic_approximation_segment {k : ℕ} (hk : 0 < k)
   have hδ2 : 0 < δ / 2 := by positivity
   obtain ⟨r, g₀, f', V, hr, hrδ, hg₀, hg₀1, ⟨W₀, hW₀, hW₀g⟩, hV, hXV, hf', hf'V, hU''⟩ :=
     exists_holonomic_approximation_zigzag j hf hG hU hUf hU' hε hδ2
-  -- The diffeotopy pushes the closed `δ / 2`-neighbourhood `K` of the segment along `e`.
+  -- The diffeotopy pushes the closed `δ / 2`-neighbourhood `K` of the segment along `eⱼ`.
   set S : Set ((Fin 1 → ℝ) × (Fin k → ℝ)) := closedBall 0 1 ×ˢ {0}
   set K := cthickening (δ / 2) S
   have hK : IsCompact K := ((isCompact_closedBall _ _).prod isCompact_singleton).cthickening
-  set e : (Fin 1 → ℝ) × (Fin k → ℝ) := (0, Pi.single j r)
-  have hne : ‖e‖ = r := by
-    have h2 : ‖e‖ = ‖(Pi.single j r : Fin k → ℝ)‖ := by simp [e]
-    rw [h2, ← coe_nnNorm, Pi.nnNorm_single, coe_nnNorm, Real.norm_of_nonneg hr.le]
-  obtain ⟨h, ⟨C, hC, hCK, hCh⟩, hsmall, hKh⟩ := exists_diffeotopy_apply_eq_add_smul hK
-    (hg₀.comp contDiff_fst) (fun x ↦ hg₀1 x.1) (e := e) (fun x _ s ↦ by simp [e])
-    (hne ▸ hrδ)
-  refine ⟨h, f', V, ⟨C, hC, ?_, hCh⟩, fun t x ↦ ?_, ?_, hV, ?_, hf', hf'V, hU''⟩
+  obtain ⟨h, ⟨C, hC, hCK, hCh⟩, hsmall, hKh⟩ := exists_wiggling_diffeotopy hK j hr.le hrδ hg₀ hg₀1
+  refine ⟨h, f', V, ⟨C, hC, ?_, hCh⟩, fun t x ↦ (hsmall t x).trans (half_lt_self hδ), ?_, hV, ?_,
+    hf', hf'V, hU''⟩
   · calc C ⊆ thickening (δ / 2) K := hCK
       _ ⊆ thickening (δ / 2 + δ / 2) S := thickening_cthickening_subset _ hδ2.le _
       _ = thickening δ S := by rw [add_halves]
-  · rw [dist_eq_norm]
-    calc ‖h (t, x) - x‖ ≤ (t : ℝ) * ‖e‖ := hsmall t x
-      _ ≤ 1 * r := by rw [hne]; gcongr; exact t.property.2
-      _ < δ := by linarith
   · -- Near the end points the profile vanishes, so the diffeotopy is the identity there.
     obtain ⟨O, hO, hsO, hOW⟩ := mem_nhdsSet_iff_exists.1 hW₀
     refine ⟨thickening (δ / 2) S ∩ Prod.fst ⁻¹' O,
       (isOpen_thickening.inter (hO.preimage continuous_fst)).mem_nhdsSet.2 fun x hx ↦
         ⟨self_subset_thickening hδ2 _ ⟨sphere_subset_closedBall hx.1, hx.2⟩, hsO hx.1⟩,
       fun t x hx ↦ ?_⟩
-    rw [hKh t x (thickening_subset_cthickening _ _ hx.1), Function.comp_apply, hW₀g _ (hOW hx.2)]
+    rw [hKh t x (thickening_subset_cthickening _ _ hx.1), hW₀g _ (hOW hx.2)]
     simp
   · rintro _ ⟨⟨u, v⟩, ⟨hu, hv⟩, rfl⟩
     rw [mem_singleton_iff] at hv
     subst hv
     rw [hKh 1 _ (self_subset_cthickening _ ⟨hu, rfl⟩)]
-    convert hXV u hu using 1
-    ext l
-    · simp [e]
-    · rcases eq_or_ne l j with rfl | hl
-      · simp [e, mul_comm]
-      · simp [e, hl]
+    simpa using hXV u hu
 
 end SymplecticGeometry
 
