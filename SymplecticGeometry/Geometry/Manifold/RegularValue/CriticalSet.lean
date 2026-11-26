@@ -22,6 +22,9 @@ Tau Ceti's own `criticalPoints` is the corresponding notion for real-valued func
 
 * `SymplecticGeometry.mem_criticalSet_iff` and `SymplecticGeometry.compl_criticalSet`: the
   critical set is the complement of the regular points.
+* `TauCeti.IsRegularValue.notMem_criticalSet` and
+  `TauCeti.IsRegularValue.apply_ne_of_mem_criticalSet`: no point of the critical set lies over a
+  regular value, one direction of Tau Ceti's `TauCeti.isRegularValue_iff_notMem_image`.
 * `SymplecticGeometry.isClosed_criticalSet`: the critical set of a `C¹` map into a
   finite-dimensional manifold is closed, by Tau Ceti's `TauCeti.isOpen_setOf_isRegularPoint`.
 * `Diffeomorph.comp_isRegularPoint_iff` and `Diffeomorph.criticalSet_comp`: postcomposing with a
@@ -68,6 +71,16 @@ theorem compl_criticalSet (f : M → N) :
     (criticalSet I I' f)ᶜ = {x | IsRegularPoint I I' f x} := by
   ext x
   simp
+
+/-- A point of the fibre of `f` over a regular value is not in the critical set of `f`. -/
+theorem _root_.TauCeti.IsRegularValue.notMem_criticalSet {f : M → N} {x : M} {y : N}
+    (hy : IsRegularValue I I' f y) (hx : f x = y) : x ∉ criticalSet I I' f :=
+  fun hc ↦ mem_criticalSet_iff.1 hc (hy.isRegularPoint hx)
+
+/-- A critical point of `f` is never mapped to a regular value of `f`. -/
+theorem _root_.TauCeti.IsRegularValue.apply_ne_of_mem_criticalSet {f : M → N} {x : M} {y : N}
+    (hy : IsRegularValue I I' f y) (hx : x ∈ criticalSet I I' f) : f x ≠ y :=
+  fun h ↦ hy.notMem_criticalSet h hx
 
 /-- The critical set of a `C¹` map into a finite-dimensional manifold is closed. -/
 theorem isClosed_criticalSet [CompleteSpace 𝕜] [FiniteDimensional 𝕜 E'] [IsManifold I 1 M]

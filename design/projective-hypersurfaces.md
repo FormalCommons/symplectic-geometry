@@ -476,11 +476,11 @@ For a compact Hausdorff complex manifold `M` modelled on `𝓘(ℂ, E)` with
   `(TangentBundle.restrictScalarsHomeomorph ℝ M).symm`
   (`Geometry/Manifold/VectorBundle/Tangent/RestrictScalars.lean`) is the
   identity of total spaces from the real tangent bundle to the complex one,
-  linear on fibres by its `_apply` and `_symm_apply` lemmas. The new
-  statement is that it carries the complex orientation
-  `VectorBundleOrientation.complex` to
-  `(complexManifoldOrientation E M).toVectorBundleOrientation`, pointwise by
-  Tau Ceti's `orientationAt_complexManifoldOrientation_eq_complexOrientation`.
+  linear on fibres by its `_apply` and `_symm_apply` lemmas. With it, Tau
+  Ceti's `TauCeti.complexEulerClass_tangentSpace_eq_eulerClass`
+  (`Geometry/Manifold/Complex/EulerClass.lean`) identifies the complex Euler
+  class of the tangent bundle with the Euler class of the real one, oriented
+  by `complexManifoldOrientation E M`.
 - `SymplecticGeometry.evalFundamentalClass_chernClass_eq_eulerChar`:
   $\langle c_{r+1}(TM),[M]\rangle=\chi(M)$, from
   `chernClass_finrank_eq_complexEulerClass` (#1043), the previous item, and
