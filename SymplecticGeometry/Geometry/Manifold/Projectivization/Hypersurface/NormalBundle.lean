@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.Projectivization.TwistCore
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Topology
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Basic
 import TauCeti.Topology.FiberBundle.Pullback
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 
 /-!
 # The normal bundle of a smooth projective hypersurface
@@ -192,15 +193,13 @@ theorem continuous_normalSpaceEquiv :
       ((isOpen_affineOpen i).mem_nhds hi)
   -- Near `q₀`, the coordinate in the chart `i` is the differential of the equation at `i`,
   -- which is continuous on the tangent bundle.
-  have ht := ContMDiffAt.continuousAt_tangentMap (x₀ := Pullback.lift X.embedding q₀)
-    ((contMDiffOn_eval_affineChart (dehomogenize i X.poly) i 1).contMDiffAt
-      ((isOpen_affineOpen i).mem_nhds hi)) le_rfl
   have hc : ContinuousAt (fun q : TotalSpace (Fin (n + 1) → ℂ)
       ((X.embedding : X → ℙ ℂ (Fin (n + 2) → ℂ)) *ᵖ (TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ))) ↦
         (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ) (fun y ↦ eval (affineChart i y) (dehomogenize i X.poly))
           (X.embedding q.proj) q.snd : ℂ)) q₀ :=
-    (contMDiff_snd_tangentBundle_modelSpace ℂ 𝓘(ℂ) (n := 0)).continuous.continuousAt.comp
-      (ht.comp (Pullback.continuous_lift _ _ _).continuousAt)
+    Pullback.continuousAt_mfderiv_apply _
+      ((contMDiffOn_eval_affineChart (dehomogenize i X.poly) i 1).contMDiffAt
+        ((isOpen_affineOpen i).mem_nhds hi)) le_rfl
   have hr (b : ℙ ℂ (Fin (n + 2) → ℂ)) (a : ℂ) :
       (trivializationAt ℂ (twistCore (𝕜 := ℂ) (n := n + 1) (d : ℤ)).Fiber (X.embedding q₀.proj)
         ⟨b, a⟩).2 = twistTransition (d : ℤ) ((twistCore (d : ℤ)).indexAt b) i b * a :=
