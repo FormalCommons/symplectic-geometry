@@ -161,7 +161,8 @@ Further choices of this design:
 
 - **Isotopy extension at every time.** Every milestone asks that the
   extension agrees with the given family at each time $t\in[0,1]$, not at a
-  reparametrized one. `Extension.lean` below gives this. It first extends
+  reparametrized one. `SmoothIsotopy/Family.lean` gives this, from the steps
+  in `Extension.lean` below. It first extends
   the family past both ends of $[0,1]$, near a compact set, then makes it
   constant beyond them by a reparametrization that is the identity on
   $[0,1]$, then applies Tau Ceti's `exists_ambientVelocityField` and runs the
@@ -210,7 +211,7 @@ Further choices of this design:
 | `Analysis/Matrix/L2OpNorm.lean` | `ContDiff` of matrix-valued maps under the ℓ² operator norm, entrywise and against the entrywise norm (named like Tau Ceti's `Analysis/Matrix/L2OpNorm.lean`) |
 | `Analysis/SpecialFunctions/ContinuousFunctionalCalculus/ExpLog.lean` | smoothness of `t ↦ a ^ t` for strictly positive `a` (named like Tau Ceti's file) |
 | `Geometry/Manifold/SmoothEmbedding/Neighborhood.lean` | embeddings near a compact set, uniformly in a compact parameter |
-| `Geometry/Manifold/SmoothIsotopy/Extension.lean` | time extension of an isotopy past its ends, and isotopy extension at every time (named like Tau Ceti's file) |
+| `Geometry/Manifold/SmoothIsotopy/Extension.lean` | time extension of an isotopy past its ends (named like Tau Ceti's file) |
 | `Geometry/Symplectic/IsotopyExtension/Velocity.lean` | velocity forms (`SmoothIsotopy.IsSymplectic` is in `Geometry/Manifold/SmoothIsotopy/IsSymplectic.lean`), their closedness, the link with `HasHamiltonian` |
 | `Geometry/Symplectic/IsotopyExtension/Flow.lean` | extension of a family of symplectic embeddings by an ambient symplectic or Hamiltonian flow |
 | `Geometry/Symplectic/Moser/Family.lean` | Moser's argument near a compact set along a family, and with a parameter |
@@ -325,7 +326,9 @@ proves it for one map. Expected size: 250 lines.
 
 ### `Geometry/Manifold/SmoothIsotopy/Extension.lean`
 
-The main theorem is isotopy extension at every time:
+The file gives steps 1 and 2 of isotopy extension at every time, which
+`SmoothIsotopy/Family.lean` proves as the case of a point as parameter
+manifold of its parametric version:
 
 ```lean
 theorem TauCeti.SmoothIsotopy.exists_diffeotopy_forall_apply_eq
@@ -676,7 +679,7 @@ The route keeps the times of `e` exactly:
 1. *A smooth family that is right along $B(\lambda)$.* For $\lambda>0$,
    `SmoothEmbedding/Neighborhood.lean` makes `e` a `SmoothIsotopy` of an open
    ball about $B(\lambda)$. For $\lambda=0$ it is the isotopy of a point
-   along the path of centres. `Extension.lean` gives `Ψ` with
+   along the path of centres. `SmoothIsotopy/Family.lean` gives `Ψ` with
    $\Psi_t\circ e_0=e_t$ on $B(\lambda)$. Then $k'_t=\Psi_t\circ j_0\circ P_t$
    is a family of embeddings of a ball $B(\rho_1)$ with $k'_0=j_0$ and
    $k'_t=e_t$ on $B(\lambda)$. Here $P_t$ is a smooth path of linear maps,
@@ -842,7 +845,7 @@ theorem TauCeti.SmoothIsotopy.exists_isSymplectic_extension_of_mpullback_eq
 
 The start `g₀` of `F` is the inclusion of `U`, given by its equation for the
 same reason as in `Cohomological/Basic.lean`.
-The route is the third decision. `Extension.lean`'s
+The route is the third decision. `SmoothIsotopy/Family.lean`'s
 `TauCeti.SmoothIsotopy.exists_contMDiff_diffeomorph_forall_apply_eq` gives a
 jointly smooth family $G_t$ of diffeomorphisms over all real times with
 $G_0=\mathrm{id}$ and $G_t\circ i=e_t$ for $t\in[0,1]$. On the open set $W$
@@ -935,7 +938,7 @@ this design already follows. `Ball/Isotopy.lean` cites
   bridge `Diffeotopy/Real.lean` for `TauCeti.Diffeotopy.ofReal` and
   `Geometry/Manifold/Flow/TimeDependent.lean` for
   `TauCeti.contMDiff_timeDependentFlowOf_param`, a lemma this part adds
-  there. `Extension.lean` imports `Diffeotopy/Real.lean` too, to restrict
+  there. `SmoothIsotopy/Family.lean` imports `Diffeotopy/Real.lean` too, to restrict
   its family over `ℝ` to a `Diffeotopy`.
   `Ball/Interpolation.lean` imports its
   `Geometry/Manifold/DifferentialForm/Pullback/Smooth.lean` for

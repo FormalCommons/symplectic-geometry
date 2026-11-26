@@ -10,6 +10,7 @@ public import Mathlib.Analysis.Convex.Star
 public import Mathlib.LinearAlgebra.FiniteDimensional.Defs
 public import Mathlib.Topology.NhdsSet
 import TauCeti.Analysis.Calculus.BumpFunction.Cutoff
+import TauCeti.Analysis.Calculus.DifferentialForm.Gradient
 import TauCeti.Analysis.Calculus.DifferentialForm.Poincare
 
 /-!
@@ -23,6 +24,13 @@ vanishes on `K` (`StarConvex.exists_contDiff_eqOn_zero_eventually_extDeriv_eq`).
 The primitive is Tau Ceti's Poincaré homotopy operator `TauCeti.poincareHomotopy x₀ ω`, multiplied
 by a smooth cutoff that is `1` near `K` and supported in `s`. It vanishes on `K` because every
 segment from `x₀` to a point of `K` lies in `K`, where `ω` vanishes.
+
+In degree one, a closed `C^r` one-form `w` on `s`, with `1 ≤ r`, is the differential of a
+function `θ` that is `C^(r+1)` on `s`: `fderiv ℝ θ x (v 0) = w x v`
+(`StarConvex.exists_contDiffOn_forall_fderiv_apply_eq_of_extDeriv_eq_zero`). This is Tau Ceti's
+`StarConvex.exists_contDiffOn_forall_hasFDerivAt_of_extDeriv_eq_zero`, stated there for covector
+fields `E → E →L[ℝ] F`, carried to one-forms along `ContinuousAlternatingMap.ofSubsingletonLIE`.
+It needs no finite dimension.
 
 ## References
 
@@ -39,6 +47,25 @@ variable {E F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensi
   [NormedAddCommGroup F] [NormedSpace ℝ F] [CompleteSpace F] {n : ℕ}
 
 namespace StarConvex
+
+omit [FiniteDimensional ℝ E] in
+/-- **Closed one-forms on star-convex sets are exact.** Let `s` be open and star-convex about
+`x₀`. A `C^r` one-form `w` on `s`, with `1 ≤ r`, that is closed on `s` is the differential of
+a function `θ` that is `C^(r+1)` on `s`: `fderiv ℝ θ x (v 0) = w x v` for `x ∈ s`. -/
+theorem exists_contDiffOn_forall_fderiv_apply_eq_of_extDeriv_eq_zero {x₀ : E} {s : Set E}
+    (hs : StarConvex ℝ x₀ s) (hso : IsOpen s) {r : ℕ∞} (hr : 1 ≤ r)
+    {w : E → E [⋀^Fin 1]→L[ℝ] F} (hw : ContDiffOn ℝ r w s)
+    (hdw : ∀ x ∈ s, extDeriv w x = 0) :
+    ∃ θ : E → F, ContDiffOn ℝ (r + 1) θ s ∧ ∀ x ∈ s, ∀ v : Fin 1 → E,
+      fderiv ℝ θ x (v 0) = w x v := by
+  set e := ContinuousAlternatingMap.ofSubsingletonLIE (𝕜 := ℝ) (E := E) (F := F) (0 : Fin 1)
+  have hew : (fun y ↦ e (e.symm (w y))) = w := funext fun y ↦ e.apply_symm_apply _
+  obtain ⟨θ, hθ, hθw⟩ := hs.exists_contDiffOn_forall_hasFDerivAt_of_extDeriv_eq_zero hso hr
+    (e.symm.contDiff.comp_contDiffOn hw) (hew ▸ hdw)
+  refine ⟨θ, hθ, fun x hx v ↦ ?_⟩
+  rw [(hθw x hx).fderiv, ← congrFun hew x]
+  simp only [e, Function.comp_apply, ContinuousAlternatingMap.ofSubsingletonLIE_apply,
+    ContinuousAlternatingMap.ofSubsingleton_apply_apply]
 
 /-- Let `s` be open and star-convex about `x₀`, and `K ⊆ s` compact and star-convex about `x₀`.
 A `C^r` form `ω` of degree `n + 1` on `s`, with `1 ≤ r`, that is closed on `s` and vanishes on

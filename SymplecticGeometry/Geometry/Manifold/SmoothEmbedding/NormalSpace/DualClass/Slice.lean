@@ -10,7 +10,11 @@ public import SymplecticGeometry.AlgebraicTopology.Cohomology.Local.Restrict
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.Local.Derivative
 public import SymplecticGeometry.Topology.VectorBundle.Thom.FiberCoordinate
 public import TauCeti.Geometry.Manifold.LocallyContractible
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Map
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Topology
 public import TauCeti.Topology.VectorBundle.MayerVietoris.DirectedUnion
+public import TauCeti.Topology.VectorBundle.Thom.FiberwiseEquiv
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
 
 /-!
@@ -61,9 +65,22 @@ normalized tube then carries `relDualClassOf f hn hdim hf u` for `u` of degree `
 that `c = relDualClassOf f hn hdim hf u` exactly when the slices of `c` along any normalized tube
 are the fibre restrictions of `u` (`eq_relDualClassOf_iff_forall_slice`).
 
+For a diffeomorphism `φ : X' ≃ X` and the embedding `f' = φ⁻¹ ∘ f`
+(`f.transDiffeomorph φ.symm`), the derivative of `φ` carries the normal spaces of `f'` onto
+those of `f`: Tau Ceti's `normalSpaceEquiv` for the square `φ ∘ f' = f ∘ id`
+(`transDiffeomorphNormalSpaceEquiv`). Its total-space map is continuous by Tau Ceti's
+`continuous_normalBundleMap`, so Tau Ceti's `thomPairMapOfFiberwise` makes it a map of Thom
+pairs `(ν_{f'}, ν_{f'} ∖ 0) ⟶ (ν_f, ν_f ∖ 0)` (`transDiffeomorphThomPairMap`), which on the
+fibre over `x` is the isomorphism of fibre pairs of the equivalence at `x`
+(`fiberThomPairMap_comp_transDiffeomorphThomPairMap`).
+
 ## Main definitions
 
 * `TauCeti.SmoothEmbedding.normalSlice`: the normal slice of a tube at a point, as a map of pairs.
+* `TauCeti.SmoothEmbedding.transDiffeomorphNormalSpaceEquiv`,
+  `TauCeti.SmoothEmbedding.transDiffeomorphThomPairMap`: for a diffeomorphism `φ : X' ≃ X`,
+  the identification of the normal spaces of `φ⁻¹ ∘ f` with those of `f` by the derivative of
+  `φ`, and the map of Thom pairs of normal bundles that it induces.
 
 ## Main results
 
@@ -81,6 +98,9 @@ are the fibre restrictions of `u` (`eq_relDualClassOf_iff_forall_slice`).
 * `TauCeti.SmoothEmbedding.eq_relDualClassOf_iff_forall_slice`: for `u` of degree `r`, a class
   is `relDualClassOf f hn hdim hf u` exactly when its slices along a normalized tube are the
   fibre restrictions of `u`.
+* `TauCeti.SmoothEmbedding.fiberThomPairMap_comp_transDiffeomorphThomPairMap`: on the fibre over
+  `x`, the map of Thom pairs under a diffeomorphism is the fibre-pair isomorphism of the
+  derivative.
 
 ## References
 
@@ -583,6 +603,115 @@ theorem eq_relDualClassOf_iff_forall_slice (f : SmoothEmbedding I J ∞ Z X) (hn
   exact singularCohomologyMap_excisionMap_relDualClassOf f hn hdim hf hΦ u
 
 end Independence
+
+section TransDiffeomorph
+
+variable {X' : Type w} [TopologicalSpace X'] [ChartedSpace G X'] [IsManifold J ∞ X']
+
+/-- **The normal spaces of an embedding moved by an ambient diffeomorphism.** For a
+diffeomorphism `φ : X' ≃ X`, the derivative of `φ` identifies the normal space at `x` of the
+embedding `φ⁻¹ ∘ f` with that of `f`: Tau Ceti's `normalSpaceEquiv` for the square
+`φ ∘ (φ⁻¹ ∘ f) = f ∘ id`. -/
+def transDiffeomorphNormalSpaceEquiv (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
+    (φ : X' ≃ₘ^∞⟮J, J⟯ X) (x : Z) :
+    (f.transDiffeomorph φ.symm).NormalSpace x hn ≃L[ℝ] f.NormalSpace x hn :=
+  (f.transDiffeomorph φ.symm).normalSpaceEquiv f hn hn (u := _root_.id) (v := φ)
+    (φ.isInvertible_mfderiv hn) (by rw [mfderiv_id]; exact Function.surjective_id)
+    (.of_eq (by funext y; simp))
+
+omit [FiniteDimensional ℝ E] [FiniteDimensional ℝ V] [IsManifold I ∞ Z] [IsManifold J ∞ X] in
+/-- `transDiffeomorphNormalSpaceEquiv` is Tau Ceti's normal-space equivalence of the square
+`φ ∘ (φ⁻¹ ∘ f) = f ∘ id`. -/
+theorem transDiffeomorphNormalSpaceEquiv_def (f : SmoothEmbedding I J ∞ Z X)
+    (hn : (∞ : ℕ∞ω) ≠ 0) (φ : X' ≃ₘ^∞⟮J, J⟯ X) (x : Z) :
+    f.transDiffeomorphNormalSpaceEquiv hn φ x =
+      (f.transDiffeomorph φ.symm).normalSpaceEquiv f hn hn (u := _root_.id) (v := φ)
+        (φ.isInvertible_mfderiv hn) (by rw [mfderiv_id]; exact Function.surjective_id)
+        (.of_eq (by funext y; simp)) :=
+  (rfl)
+
+omit [FiniteDimensional ℝ E] [FiniteDimensional ℝ V] [IsManifold I ∞ Z] [IsManifold J ∞ X] in
+/-- On the normal class of a tangent vector `w` of `X'`, `transDiffeomorphNormalSpaceEquiv` is the
+normal class of its image `dφ w`. -/
+@[simp]
+theorem transDiffeomorphNormalSpaceEquiv_normalClass (f : SmoothEmbedding I J ∞ Z X)
+    (hn : (∞ : ℕ∞ω) ≠ 0) (φ : X' ≃ₘ^∞⟮J, J⟯ X) (x : Z)
+    (w : TangentSpace J (f.transDiffeomorph φ.symm x)) :
+    f.transDiffeomorphNormalSpaceEquiv hn φ x ((f.transDiffeomorph φ.symm).normalClass x hn w) =
+      f.normalClass x hn (tangentSpaceCast J (φ (f.transDiffeomorph φ.symm x)) (f x)
+        (mfderiv J J φ (f.transDiffeomorph φ.symm x) w)) :=
+  normalSpaceEquiv_normalClass _ _ _ _ _ _ _ w
+
+omit [FiniteDimensional ℝ E] [FiniteDimensional ℝ V] [NormedAddCommGroup P] [NormedSpace ℝ P]
+  [FiniteDimensional ℝ P] [IsManifold I ∞ Z] in
+/-- The total-space map `v ↦ (v.proj, dφ v)` of `transDiffeomorphNormalSpaceEquiv`, from the
+normal bundle of `φ⁻¹ ∘ f` to that of `f`, is continuous for their quotient topologies. -/
+theorem continuous_transDiffeomorphNormalSpaceEquiv (f : SmoothEmbedding I J ∞ Z X)
+    (hn : (∞ : ℕ∞ω) ≠ 0) (φ : X' ≃ₘ^∞⟮J, J⟯ X) :
+    Continuous fun v : TotalSpace P (fun x ↦ (f.transDiffeomorph φ.symm).NormalSpace x hn) ↦
+      TotalSpace.mk' P (E := fun x ↦ f.NormalSpace x hn) v.proj
+        (f.transDiffeomorphNormalSpaceEquiv hn φ v.proj v.snd) := by
+  convert (f.transDiffeomorph φ.symm).continuous_normalBundleMap (K := P) (K' := P) f hn hn
+    (u := _root_.id) (v := φ) (φ.contMDiff.of_le (ENat.one_le_iff_ne_zero_withTop.mpr hn))
+    (by funext y; simp) using 1
+  funext v
+  rw [normalBundleMap_apply, transDiffeomorphNormalSpaceEquiv_def,
+    ← normalSpaceEquiv_toContinuousLinearMap]
+  -- The base points are `v.proj` and `_root_.id v.proj`, and the coercion of the equivalence to
+  -- a continuous linear map applies it: both sides agree up to unfolding `id` and that coercion.
+  rfl
+
+/-- **The map of Thom pairs of normal bundles under an ambient diffeomorphism.** For a
+diffeomorphism `φ : X' ≃ X`, the map `(ν', ν' ∖ 0) ⟶ (ν, ν ∖ 0)` from the Thom pair of the normal
+bundle of `φ⁻¹ ∘ f` to that of `f`, over the identity of `Z`, which is the derivative of `φ` on
+each fibre (`transDiffeomorphNormalSpaceEquiv`). -/
+def transDiffeomorphThomPairMap (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
+    (φ : X' ≃ₘ^∞⟮J, J⟯ X) :
+    thomPair P (fun x ↦ (f.transDiffeomorph φ.symm).NormalSpace x hn) ⟶
+      thomPair P (fun x ↦ f.NormalSpace x hn) :=
+  thomPairMapOfFiberwise (g := ContinuousMap.id Z)
+    (f.continuous_transDiffeomorphNormalSpaceEquiv hn φ)
+
+omit [FiniteDimensional ℝ E] [FiniteDimensional ℝ V] [NormedAddCommGroup P] [NormedSpace ℝ P]
+  [FiniteDimensional ℝ P] [IsManifold I ∞ Z] in
+/-- `transDiffeomorphThomPairMap` is Tau Ceti's map of Thom pairs of the fibrewise isomorphism
+`transDiffeomorphNormalSpaceEquiv`. -/
+theorem transDiffeomorphThomPairMap_def (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
+    (φ : X' ≃ₘ^∞⟮J, J⟯ X) :
+    f.transDiffeomorphThomPairMap (P := P) hn φ =
+      thomPairMapOfFiberwise (g := ContinuousMap.id Z)
+        (f.continuous_transDiffeomorphNormalSpaceEquiv hn φ) :=
+  (rfl)
+
+omit [FiniteDimensional ℝ E] [FiniteDimensional ℝ V] [NormedAddCommGroup P] [NormedSpace ℝ P]
+  [FiniteDimensional ℝ P] [IsManifold I ∞ Z] in
+/-- On total spaces, `transDiffeomorphThomPairMap` keeps the base point and applies
+`transDiffeomorphNormalSpaceEquiv` in the fibre. -/
+@[simp]
+theorem transDiffeomorphThomPairMap_fst_apply (f : SmoothEmbedding I J ∞ Z X)
+    (hn : (∞ : ℕ∞ω) ≠ 0) (φ : X' ≃ₘ^∞⟮J, J⟯ X)
+    (v : TotalSpace P (fun x ↦ (f.transDiffeomorph φ.symm).NormalSpace x hn)) :
+    TopPair.Hom.fst (f.transDiffeomorphThomPairMap hn φ) v =
+      TotalSpace.mk' P (E := fun x ↦ f.NormalSpace x hn) v.proj
+        (f.transDiffeomorphNormalSpaceEquiv hn φ v.proj v.snd) :=
+  thomPairMapOfFiberwise_fst_apply _ v
+
+/-- On the fibre over `x`, `transDiffeomorphThomPairMap` is the isomorphism of fibre pairs
+induced by `transDiffeomorphNormalSpaceEquiv` at `x`. -/
+theorem fiberThomPairMap_comp_transDiffeomorphThomPairMap (f : SmoothEmbedding I J ∞ Z X)
+    (hn : (∞ : ℕ∞ω) ≠ 0) (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E)
+    (φ : X' ≃ₘ^∞⟮J, J⟯ X) (x : Z) :
+    letI := (f.transDiffeomorph φ.symm).normalSpaceFiberBundle hn hdim
+    letI := f.normalSpaceFiberBundle hn hdim
+    fiberThomPairMap P (fun x ↦ (f.transDiffeomorph φ.symm).NormalSpace x hn) x ≫
+        f.transDiffeomorphThomPairMap hn φ =
+      (f.transDiffeomorphNormalSpaceEquiv hn φ x).complZeroPairIso.hom ≫
+        fiberThomPairMap P (fun x ↦ f.NormalSpace x hn) x :=
+  letI := (f.transDiffeomorph φ.symm).normalSpaceFiberBundle hn hdim
+  letI := f.normalSpaceFiberBundle hn hdim
+  fiberThomPairMap_comp_thomPairMapOfFiberwise (g := ContinuousMap.id Z) _ x
+
+end TransDiffeomorph
 
 end TauCeti.SmoothEmbedding
 
