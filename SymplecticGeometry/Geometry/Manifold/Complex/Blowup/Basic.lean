@@ -5,12 +5,18 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Model
+public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Tautological
 public import SymplecticGeometry.Topology.Category.TopCat.GlueData.Pair
 public import TauCeti.Geometry.Manifold.Gluing.GlueData
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
+import TauCeti.Geometry.Manifold.ContMDiff.Subtype
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 
 /-!
-# The blowup of a manifold at a point: the glued space
+# The blowup of a manifold at a point
 
 Let `M` be a topological space charted on `E = ℂⁿ⁺¹`, let `p₀ : M`, and let `c` be a chart of
 `M` around `p₀` with `c p₀ = 0` (a `SymplecticGeometry.BlowupChart M p₀`). The blowup
@@ -24,11 +30,23 @@ point `x ≠ p₀` of the source of `c` is identified with the unique point of t
 `TopCat.GlueData.ofHomeomorph`.
 
 This file builds the glued space with its topology and the atlas of Tau Ceti's
-`TopCat.GlueData.chartedSpace`, without any smooth structure. The exceptional divisor
+`TopCat.GlueData.chartedSpace`, and then its manifold structures. The exceptional divisor
 `SymplecticGeometry.Blowup.exceptionalDivisor c` is the image of the zero section of the model;
 its point `Blowup.ofDirection c ℓ` corresponds to the line `ℓ` of `E`, which through the
 differential of `c` at `p₀` is a line of the tangent space at `p₀`. Off the divisor the blowup
 is the punctured space (`Blowup.range_inl`), and the divisor is closed with dense complement.
+
+When `c` is a holomorphic chart of a complex manifold `M`, the gluing map is a biholomorphism,
+as `c` and the model's `BlowupModel.blowdownDiffeomorph n` are; so the gluing is compatible in
+the sense of Tau Ceti's `TopCat.GlueData.IsCompatible` (`Blowup.isCompatible_complex`), and
+`Blowup c` is a complex manifold for which `inl c` and `inr c` are local biholomorphisms. The same
+holds for a smooth chart of a real manifold modelled on `E` (`Blowup.isCompatible_real`). The
+chart enters as a `Fact` hypothesis, so that both structures are instances. The blowdown
+`Blowup.blowdown c : Blowup c → M` is the inclusion on `M \ {p₀}` and `c.symm ∘ π` on the
+model; it is holomorphic (resp. smooth), sends exactly the divisor to `p₀`, and restricts to a
+biholomorphism (resp. diffeomorphism) from the complement of the divisor onto `M \ {p₀}`. The
+divisor is the image of the holomorphic (resp. smooth) embedding `Blowup.divisorEmbedding c`
+(resp. `Blowup.divisorRealEmbedding c`) of `ℙ ℂ E`.
 
 ## Main definitions
 
@@ -42,6 +60,15 @@ is the punctured space (`Blowup.range_inl`), and the divisor is closed with dens
   the point of the exceptional divisor over the line `ℓ`, and the divisor.
 * `SymplecticGeometry.Blowup.lift c`: the map `φ̃` to the model blowup, the inverse of `inr c`
   on its range.
+* `SymplecticGeometry.Blowup.blowdown c`: the blowdown `π_M : Blowup c → M`.
+* `SymplecticGeometry.Blowup.offDivisorOpens c`: the complement of the exceptional divisor, as an
+  open set.
+* `SymplecticGeometry.Blowup.blowdownDiffeomorph c`,
+  `SymplecticGeometry.Blowup.blowdownRealDiffeomorph c`: the blowdown off the divisor, as a
+  biholomorphism and as a diffeomorphism onto `M \ {p₀}`.
+* `SymplecticGeometry.Blowup.divisorEmbedding c`,
+  `SymplecticGeometry.Blowup.divisorRealEmbedding c`:
+  the exceptional divisor as the image of a holomorphic, resp. smooth, embedding of `ℙ ℂ E`.
 
 ## Main results
 
@@ -53,12 +80,24 @@ is the punctured space (`Blowup.range_inl`), and the divisor is closed with dens
   complement is dense.
 * The instances `ChartedSpace E (Blowup c)`, `T2Space (Blowup c)` when `M` is Hausdorff, and
   `SecondCountableTopology (Blowup c)` when `M` is second countable.
+* `SymplecticGeometry.Blowup.isCompatible_complex`, `SymplecticGeometry.Blowup.isCompatible_real`:
+  the gluing is holomorphically, resp. smoothly, compatible, and the instances
+  `IsManifold 𝓘(ℂ, E) ω (Blowup c)` and `IsManifold 𝓘(ℝ, E) ∞ (Blowup c)`.
+* `SymplecticGeometry.Blowup.isLocalDiffeomorph_inl`,
+  `SymplecticGeometry.Blowup.isLocalDiffeomorph_inr`
+  and their real forms: the canonical maps are local biholomorphisms, resp. diffeomorphisms.
+* `SymplecticGeometry.Blowup.contMDiff_blowdown`,
+  `SymplecticGeometry.Blowup.blowdown_eq_center_iff`:
+  the blowdown is holomorphic, and the preimage of `p₀` is the exceptional divisor.
 
 The Hausdorff property follows from the criterion `TopCat.GlueData.ofHomeomorph_t2Space_iff`:
 a point `x ≠ p₀` and a point of the divisor are separated by the preimages of disjoint
 neighbourhoods of `x` and of `p₀`, the second taken in the model through `c.symm ∘ π`. The
 construction of the glued space and its canonical maps follows the library's
-`SymplecticGeometry.GluedAlong` (`Geometry/Manifold/Gluing/Pair.lean`).
+`SymplecticGeometry.GluedAlong` (`Geometry/Manifold/Gluing/Pair.lean`). The compatibility
+proof follows its `SymplecticGeometry.GluedAlong.isCompatible_glueData`, and the descent of the
+blowdown to the glued space follows Tau Ceti's
+`TopCat.GlueData.IsCompatible.descContMDiffMap`, through `Multicoequalizer.desc`.
 
 ## References
 
@@ -71,7 +110,7 @@ construction of the glued space and its canonical maps follows the library's
 public section
 
 open Set Function Topology TopologicalSpace CategoryTheory Projectivization
-open scoped LinearAlgebra.Projectivization
+open scoped LinearAlgebra.Projectivization Manifold ContDiff
 
 noncomputable section
 
@@ -422,6 +461,19 @@ theorem inl_notMem_exceptionalDivisor (x : puncturedOpens c) :
   rw [← mem_compl_iff, ← range_inl]
   exact mem_range_self x
 
+/-- The complement of the exceptional divisor, the range of `inl c`, as an open set. -/
+def offDivisorOpens : Opens (Blowup c) := ⟨range (inl c), isOpen_range_inl c⟩
+
+theorem offDivisorOpens_def : offDivisorOpens c = ⟨range (inl c), isOpen_range_inl c⟩ := (rfl)
+
+@[simp]
+theorem coe_offDivisorOpens : (offDivisorOpens c : Set (Blowup c)) = (exceptionalDivisor c)ᶜ := by
+  rw [offDivisorOpens_def, Opens.coe_mk, range_inl]
+
+@[simp]
+theorem mem_offDivisorOpens {z : Blowup c} : z ∈ offDivisorOpens c ↔ z ∉ exceptionalDivisor c := by
+  rw [← SetLike.mem_coe, coe_offDivisorOpens, mem_compl_iff]
+
 /-- The image of the model in the blowup is the exceptional divisor together with the image of
 the punctured source of `c`. -/
 theorem range_inr :
@@ -522,6 +574,380 @@ instance [SecondCountableTopology M] : SecondCountableTopology (Blowup c) :=
     rw [glueData, TopCat.GlueData.ofHomeomorph_J]
     infer_instance
   TopCat.GlueData.secondCountableTopology (glueData c)
+
+/-! ### The manifold structures -/
+
+section Manifold
+
+variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] [NormedSpace 𝕜 (Fin (n + 1) → ℂ)] {r : ℕ∞ω}
+
+/-- Each overlap of the gluing carries its atlas as an open subset of its piece. -/
+instance instChartedSpaceGlueDataV (p : (glueData c).J × (glueData c).J) :
+    ChartedSpace (Fin (n + 1) → ℂ) ((glueData c).V p) :=
+  -- `show` gives the overlap the type `Opens ((glueData c).U p.1)`, so that the atlas
+  -- `instChartedSpaceGlueDataU` of the piece applies.
+  Opens.instChartedSpace (show Opens ((glueData c).U p.1) from
+    TopCat.GlueData.ofHomeomorphOverlap (puncturedSourceOpens c) (modelOffDivisorOpens c) p.1 p.2)
+
+/-- Each piece of the gluing is a manifold when `M` and the model blowup are. -/
+instance instIsManifoldGlueDataU [IsManifold 𝓘(𝕜, Fin (n + 1) → ℂ) r M]
+    [IsManifold 𝓘(𝕜, Fin (n + 1) → ℂ) r (BlowupModel n)] :
+    ∀ i : (glueData c).J, IsManifold 𝓘(𝕜, Fin (n + 1) → ℂ) r ((glueData c).U i)
+  | ⟨false⟩ => inferInstanceAs (IsManifold 𝓘(𝕜, Fin (n + 1) → ℂ) r (puncturedOpens c))
+  | ⟨true⟩ => inferInstanceAs (IsManifold 𝓘(𝕜, Fin (n + 1) → ℂ) r (modelOpens c))
+
+/-- The gluing map is `C^r` when `c` is `C^r` on its source and the inverse of the model's
+blowdown off the divisor is `C^r`. -/
+theorem contMDiff_gluingHomeomorph
+    (hc : ContMDiffOn 𝓘(𝕜, Fin (n + 1) → ℂ) 𝓘(𝕜, Fin (n + 1) → ℂ) r c c.source)
+    (hb : ContMDiff 𝓘(𝕜, Fin (n + 1) → ℂ) 𝓘(𝕜, Fin (n + 1) → ℂ) r (blowdownDiffeomorph n).symm) :
+    ContMDiff 𝓘(𝕜, Fin (n + 1) → ℂ) 𝓘(𝕜, Fin (n + 1) → ℂ) r (gluingHomeomorph c) := by
+  have hc' : ContMDiff 𝓘(𝕜, Fin (n + 1) → ℂ) 𝓘(𝕜, Fin (n + 1) → ℂ) r
+      fun x : puncturedSourceOpens c ↦ (⟨c x, c.apply_ne_zero x.property x.val.property⟩ :
+        (⟨{z | z ≠ 0}, isOpen_ne⟩ : Opens (Fin (n + 1) → ℂ))) :=
+    (TauCeti.ContMDiff.subtypeVal_comp_iff _ _).1 <|
+      hc.comp_contMDiff (contMDiff_subtypeVal.comp contMDiff_subtypeVal) fun x ↦ x.property
+  refine (TauCeti.ContMDiff.subtypeVal_comp_iff _ _).1 ?_
+  refine (TauCeti.ContMDiff.subtypeVal_comp_iff _ (Subtype.val ∘ gluingHomeomorph c)).1 ?_
+  convert contMDiff_subtypeVal.comp (hb.comp hc') using 1
+  exact funext (coe_gluingHomeomorph c)
+
+/-- The inverse of the gluing map is `C^r` when `c.symm` is `C^r` on the target of `c` and the
+model's blowdown is `C^r`. -/
+theorem contMDiff_gluingHomeomorph_symm
+    (hc : ContMDiffOn 𝓘(𝕜, Fin (n + 1) → ℂ) 𝓘(𝕜, Fin (n + 1) → ℂ) r c.symm c.target)
+    (hb : ContMDiff 𝓘(𝕜, Fin (n + 1) → ℂ) 𝓘(𝕜, Fin (n + 1) → ℂ) r
+      (blowdown : BlowupModel n → Fin (n + 1) → ℂ)) :
+    ContMDiff 𝓘(𝕜, Fin (n + 1) → ℂ) 𝓘(𝕜, Fin (n + 1) → ℂ) r (gluingHomeomorph c).symm := by
+  refine (TauCeti.ContMDiff.subtypeVal_comp_iff _ _).1 <|
+    (TauCeti.ContMDiff.subtypeVal_comp_iff _ _).1 ?_
+  exact hc.comp_contMDiff (hb.comp (contMDiff_subtypeVal.comp contMDiff_subtypeVal))
+    fun y ↦ y.val.property
+
+/-- The gluing is compatible as soon as `c`, its inverse, the model's blowdown and its inverse
+off the divisor are `C^r`. -/
+theorem isCompatible_of_contMDiff [IsManifold 𝓘(𝕜, Fin (n + 1) → ℂ) r M]
+    [IsManifold 𝓘(𝕜, Fin (n + 1) → ℂ) r (BlowupModel n)]
+    (hc : ContMDiffOn 𝓘(𝕜, Fin (n + 1) → ℂ) 𝓘(𝕜, Fin (n + 1) → ℂ) r c c.source)
+    (hcs : ContMDiffOn 𝓘(𝕜, Fin (n + 1) → ℂ) 𝓘(𝕜, Fin (n + 1) → ℂ) r c.symm c.target)
+    (hb : ContMDiff 𝓘(𝕜, Fin (n + 1) → ℂ) 𝓘(𝕜, Fin (n + 1) → ℂ) r
+      (blowdown : BlowupModel n → Fin (n + 1) → ℂ))
+    (hbs : ContMDiff 𝓘(𝕜, Fin (n + 1) → ℂ) 𝓘(𝕜, Fin (n + 1) → ℂ) r
+      (blowdownDiffeomorph n).symm) :
+    (glueData c).IsCompatible 𝓘(𝕜, Fin (n + 1) → ℂ) r := by
+  let φ : puncturedSourceOpens c ≃ₘ^r⟮𝓘(𝕜, Fin (n + 1) → ℂ), 𝓘(𝕜, Fin (n + 1) → ℂ)⟯
+      modelOffDivisorOpens c :=
+    { (gluingHomeomorph c).toEquiv with
+      contMDiff_toFun := contMDiff_gluingHomeomorph c hc hbs
+      contMDiff_invFun := contMDiff_gluingHomeomorph_symm c hcs hb }
+  -- Each map `f i j` is the inclusion of an open subset, and the transitions are the identity,
+  -- the gluing map and its inverse (`TopCat.GlueData.ofHomeomorph_f`).
+  refine .of_isLocalDiffeomorph_t (fun i j ↦ TauCeti.isLocalDiffeomorph_subtype_val) ?_
+  rintro ⟨_ | _⟩ ⟨_ | _⟩
+  · exact isLocalDiffeomorph_id
+  · exact φ.isLocalDiffeomorph
+  · exact φ.symm.isLocalDiffeomorph
+  · exact isLocalDiffeomorph_id
+
+/-- **The holomorphic gluing.** For a holomorphic chart `c`, the gluing of the punctured
+manifold and the part of the model blowup over the target of `c` is holomorphically
+compatible. -/
+theorem isCompatible_complex [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M]
+    (hc : c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M) :
+    (glueData c).IsCompatible 𝓘(ℂ, Fin (n + 1) → ℂ) ω :=
+  isCompatible_of_contMDiff c (contMDiffOn_of_mem_maximalAtlas hc)
+    (contMDiffOn_symm_of_mem_maximalAtlas hc) (contMDiff_blowdown ω)
+    (blowdownDiffeomorph n).symm.contMDiff
+
+open scoped TauCeti.ComplexManifold in
+/-- **The smooth gluing.** For a smooth chart `c` of a real manifold modelled on `ℂⁿ⁺¹`, the
+gluing of the punctured manifold and the part of the model blowup over the target of `c` is
+smoothly compatible. -/
+theorem isCompatible_real [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M]
+    (hc : c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M) :
+    (glueData c).IsCompatible 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ :=
+  isCompatible_of_contMDiff c (contMDiffOn_of_mem_maximalAtlas hc)
+    (contMDiffOn_symm_of_mem_maximalAtlas hc)
+    (((contMDiff_blowdown ω).restrictScalars' ℝ).of_le le_top)
+    (((blowdownDiffeomorph n).symm.contMDiff.restrictScalars' ℝ).of_le le_top)
+
+/-- The blowup along a holomorphic chart is a complex manifold. -/
+instance instIsManifoldComplex [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M]
+    [hc : Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)] :
+    IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω (Blowup c) :=
+  (isCompatible_complex c hc.out).isManifold
+
+open scoped TauCeti.ComplexManifold in
+/-- The blowup along a smooth chart is a smooth manifold. -/
+instance instIsManifoldReal [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M]
+    [hc : Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M)] :
+    IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ (Blowup c) :=
+  (isCompatible_real c hc.out).isManifold
+
+/-- The canonical map from the punctured space is a local biholomorphism. -/
+theorem isLocalDiffeomorph_inl [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M]
+    [hc : Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)] :
+    IsLocalDiffeomorph 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω (inl c) :=
+  (isCompatible_complex c hc.out).isLocalDiffeomorph_ι ⟨false⟩
+
+/-- The canonical map from the model is a local biholomorphism. -/
+theorem isLocalDiffeomorph_inr [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M]
+    [hc : Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)] :
+    IsLocalDiffeomorph 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω (inr c) :=
+  (isCompatible_complex c hc.out).isLocalDiffeomorph_ι ⟨true⟩
+
+open scoped TauCeti.ComplexManifold in
+/-- The canonical map from the punctured space is a local diffeomorphism of real manifolds. -/
+theorem isLocalDiffeomorph_inl_real [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M]
+    [hc : Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M)] :
+    IsLocalDiffeomorph 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ (inl c) :=
+  (isCompatible_real c hc.out).isLocalDiffeomorph_ι ⟨false⟩
+
+open scoped TauCeti.ComplexManifold in
+/-- The canonical map from the model is a local diffeomorphism of real manifolds. -/
+theorem isLocalDiffeomorph_inr_real [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M]
+    [hc : Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M)] :
+    IsLocalDiffeomorph 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ (inr c) :=
+  (isCompatible_real c hc.out).isLocalDiffeomorph_ι ⟨true⟩
+
+end Manifold
+
+/-! ### The blowdown -/
+
+/-- The blowdown on each piece: the inclusion of `M \ {p₀}` into `M`, and `c.symm ∘ π` on the
+part of the model over the target of `c`. -/
+private def blowdownPiece : ∀ i : (glueData c).J, C((glueData c).U i, M)
+  | ⟨false⟩ => (⟨Subtype.val, continuous_subtypeVal⟩ : C(puncturedOpens c, M))
+  | ⟨true⟩ => (⟨fun y ↦ c.symm (y : BlowupModel n).blowdown,
+      c.continuousOn_symm.comp_continuous (continuous_blowdown.comp continuous_subtypeVal)
+        fun y ↦ y.property⟩ : C(modelOpens c, M))
+
+/-- The blowdown on the pieces agrees on the overlaps. -/
+private theorem blowdownPiece_compat (i j : (glueData c).J) (x : (glueData c).V (i, j)) :
+    blowdownPiece c i ((glueData c).f i j x) =
+      blowdownPiece c j ((glueData c).f j i ((glueData c).t i j x)) := by
+  -- The maps `f i j` of `TopCat.GlueData.ofHomeomorph` are inclusions and its transitions are
+  -- the identity, the gluing map and its inverse, all by definition; so on the diagonal both
+  -- sides are the same point, and `coe_gluingHomeomorph_symm` gives the case `(true, false)`.
+  rcases i with ⟨_ | _⟩ <;> rcases j with ⟨_ | _⟩
+  · rfl
+  · exact (c.left_inv x.property).symm.trans
+      (congrArg c.symm (blowdown_gluingHomeomorph c x).symm)
+  · exact (coe_gluingHomeomorph_symm c x).symm
+  · rfl
+
+/-- The blowdown `π_M : Blowup c → M`: the identity off the exceptional divisor, through `inl`,
+and `c.symm ∘ π` on the part of the model over the target of `c`, through `inr`. It sends the
+exceptional divisor to `p₀`. -/
+def blowdown : C(Blowup c, M) :=
+  (Limits.Multicoequalizer.desc (glueData c).toGlueData.diagram (TopCat.of M)
+    (fun i ↦ TopCat.ofHom (blowdownPiece c i))
+    (by rintro ⟨i, j⟩; ext x; exact blowdownPiece_compat c i j x)).hom
+
+/-- The blowdown is given on each piece by `blowdownPiece c`. -/
+private theorem blowdown_ι (i : (glueData c).J) (x : (glueData c).U i) :
+    blowdown c ((glueData c).toGlueData.ι i x) = blowdownPiece c i x :=
+  ConcreteCategory.congr_hom
+    (Limits.Multicoequalizer.π_desc (glueData c).toGlueData.diagram (TopCat.of M)
+      (fun i ↦ TopCat.ofHom (blowdownPiece c i))
+      (by rintro ⟨i, j⟩; ext x; exact blowdownPiece_compat c i j x) i) x
+
+/-- Off the exceptional divisor, the blowdown is the identity of `M \ {p₀}`. -/
+@[simp]
+theorem blowdown_inl (x : puncturedOpens c) : blowdown c (inl c x) = x :=
+  blowdown_ι c ⟨false⟩ x
+
+/-- On the part of the model over the target of `c`, the blowdown is `c.symm ∘ π`. -/
+@[simp]
+theorem blowdown_inr (y : modelOpens c) :
+    blowdown c (inr c y) = c.symm (y : BlowupModel n).blowdown :=
+  blowdown_ι c ⟨true⟩ y
+
+/-- The blowdown sends each point of the exceptional divisor to the centre. -/
+@[simp]
+theorem blowdown_ofDirection (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) : blowdown c (ofDirection c ℓ) = p₀ := by
+  rw [ofDirection_def, blowdown_inr, blowdown_zeroSection, c.symm_zero]
+
+section Smooth
+
+variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] [NormedSpace 𝕜 (Fin (n + 1) → ℂ)] {r : ℕ∞ω}
+
+/-- The blowdown is `C^r` on each piece when `c.symm` and the model's blowdown are. -/
+private theorem contMDiff_blowdownPiece
+    (hc : ContMDiffOn 𝓘(𝕜, Fin (n + 1) → ℂ) 𝓘(𝕜, Fin (n + 1) → ℂ) r c.symm c.target)
+    (hb : ContMDiff 𝓘(𝕜, Fin (n + 1) → ℂ) 𝓘(𝕜, Fin (n + 1) → ℂ) r
+      (BlowupModel.blowdown : BlowupModel n → Fin (n + 1) → ℂ)) :
+    ∀ i, ContMDiff 𝓘(𝕜, Fin (n + 1) → ℂ) 𝓘(𝕜, Fin (n + 1) → ℂ) r (blowdownPiece c i)
+  | ⟨false⟩ => contMDiff_subtypeVal (U := puncturedOpens c)
+  | ⟨true⟩ =>
+    -- The piece of index `true` is `modelOpens c`, with its atlas as an open subset.
+    show ContMDiff _ _ r fun y : modelOpens c ↦ c.symm (y : BlowupModel n).blowdown from
+      hc.comp_contMDiff (hb.comp contMDiff_subtypeVal) fun y ↦ y.property
+
+/-- The blowdown is `C^r` for a `C^r` compatible gluing, when `c.symm` and the model's
+blowdown are `C^r`. -/
+theorem contMDiff_blowdown_of_isCompatible [IsManifold 𝓘(𝕜, Fin (n + 1) → ℂ) r M]
+    [IsManifold 𝓘(𝕜, Fin (n + 1) → ℂ) r (BlowupModel n)]
+    (h : (glueData c).IsCompatible 𝓘(𝕜, Fin (n + 1) → ℂ) r)
+    (hc : ContMDiffOn 𝓘(𝕜, Fin (n + 1) → ℂ) 𝓘(𝕜, Fin (n + 1) → ℂ) r c.symm c.target)
+    (hb : ContMDiff 𝓘(𝕜, Fin (n + 1) → ℂ) 𝓘(𝕜, Fin (n + 1) → ℂ) r
+      (BlowupModel.blowdown : BlowupModel n → Fin (n + 1) → ℂ)) :
+    ContMDiff 𝓘(𝕜, Fin (n + 1) → ℂ) 𝓘(𝕜, Fin (n + 1) → ℂ) r (blowdown c) :=
+  (h.contMDiff_iff le_rfl).2 fun i ↦
+    (contMDiff_blowdownPiece c hc hb i).congr fun x ↦ blowdown_ι c i x
+
+end Smooth
+
+/-- The blowdown is holomorphic. -/
+theorem contMDiff_blowdown [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M]
+    [hc : Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)] :
+    ContMDiff 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω (blowdown c) :=
+  contMDiff_blowdown_of_isCompatible c (isCompatible_complex c hc.out)
+    (contMDiffOn_symm_of_mem_maximalAtlas hc.out) (BlowupModel.contMDiff_blowdown ω)
+
+open scoped TauCeti.ComplexManifold in
+/-- The blowdown is smooth for the real structures. -/
+theorem contMDiff_blowdown_real [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M]
+    [hc : Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M)] :
+    ContMDiff 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ (blowdown c) :=
+  contMDiff_blowdown_of_isCompatible c (isCompatible_real c hc.out)
+    (contMDiffOn_symm_of_mem_maximalAtlas hc.out)
+    (((BlowupModel.contMDiff_blowdown ω).restrictScalars' ℝ).of_le le_top)
+/-- The blowdown sends a point to the centre exactly when it is on the exceptional divisor. -/
+theorem blowdown_eq_center_iff {z : Blowup c} : blowdown c z = p₀ ↔ z ∈ exceptionalDivisor c := by
+  rcases (range_inl_union_range_inr c).ge (mem_univ z) with ⟨x, rfl⟩ | ⟨y, rfl⟩
+  · rw [blowdown_inl, iff_false_intro (inl_notMem_exceptionalDivisor c x), iff_false]
+    exact x.property
+  · rw [blowdown_inr, inr_mem_exceptionalDivisor_iff]
+    refine ⟨fun h ↦ of_not_not fun h0 ↦ c.symm_apply_ne y.property h0 h, fun h ↦ ?_⟩
+    rw [h, c.symm_zero]
+
+/-- The blowdown sends the complement of the exceptional divisor into `M \ {p₀}`. -/
+theorem blowdown_mem_puncturedOpens {z : Blowup c} (hz : z ∈ offDivisorOpens c) :
+    blowdown c z ∈ puncturedOpens c := by
+  rw [mem_puncturedOpens, Ne, blowdown_eq_center_iff]
+  exact (mem_offDivisorOpens c).1 hz
+
+/-- **The blowdown off the exceptional divisor.** The blowdown is a biholomorphism from the
+complement of the exceptional divisor onto `M \ {p₀}`, with inverse `inl c`. -/
+def blowdownDiffeomorph [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M]
+    [Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)] :
+    offDivisorOpens c ≃ₘ^ω⟮𝓘(ℂ, Fin (n + 1) → ℂ), 𝓘(ℂ, Fin (n + 1) → ℂ)⟯ puncturedOpens c :=
+  -- `offDivisorOpens c` is by definition the open set `IsLocalDiffeomorph.image` of `inl c`.
+  ((isLocalDiffeomorph_inl c).diffeomorphOfInjective (inl_injective c)).symm
+
+section Complex
+
+variable [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M]
+  [Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)]
+
+/-- The inverse of `blowdownDiffeomorph c` is `inl c`. -/
+@[simp]
+theorem coe_blowdownDiffeomorph_symm_apply (x : puncturedOpens c) :
+    ((blowdownDiffeomorph c).symm x : Blowup c) = inl c x :=
+  IsLocalDiffeomorph.coe_diffeomorphOfInjective_apply _ _ x
+
+/-- The biholomorphism `blowdownDiffeomorph c` is the blowdown. -/
+@[simp]
+theorem coe_blowdownDiffeomorph_apply (z : offDivisorOpens c) :
+    (blowdownDiffeomorph c z : M) = blowdown c z := by
+  conv_rhs => rw [← (blowdownDiffeomorph c).symm_apply_apply z]
+  rw [coe_blowdownDiffeomorph_symm_apply, blowdown_inl]
+
+end Complex
+
+open scoped TauCeti.ComplexManifold in
+/-- **The blowdown off the exceptional divisor, for the real structures.** The blowdown is a
+diffeomorphism from the complement of the exceptional divisor onto `M \ {p₀}`, with inverse
+`inl c`. -/
+def blowdownRealDiffeomorph [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M]
+    [Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M)] :
+    offDivisorOpens c ≃ₘ^∞⟮𝓘(ℝ, Fin (n + 1) → ℂ), 𝓘(ℝ, Fin (n + 1) → ℂ)⟯ puncturedOpens c :=
+  -- `offDivisorOpens c` is by definition the open set `IsLocalDiffeomorph.image` of `inl c`.
+  ((isLocalDiffeomorph_inl_real c).diffeomorphOfInjective (inl_injective c)).symm
+
+section Real
+
+variable [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M]
+  [Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M)]
+
+/-- The inverse of `blowdownRealDiffeomorph c` is `inl c`. -/
+@[simp]
+theorem coe_blowdownRealDiffeomorph_symm_apply (x : puncturedOpens c) :
+    ((blowdownRealDiffeomorph c).symm x : Blowup c) = inl c x :=
+  IsLocalDiffeomorph.coe_diffeomorphOfInjective_apply _ _ x
+
+/-- The diffeomorphism `blowdownRealDiffeomorph c` is the blowdown. -/
+@[simp]
+theorem coe_blowdownRealDiffeomorph_apply (z : offDivisorOpens c) :
+    (blowdownRealDiffeomorph c z : M) = blowdown c z := by
+  conv_rhs => rw [← (blowdownRealDiffeomorph c).symm_apply_apply z]
+  rw [coe_blowdownRealDiffeomorph_symm_apply, blowdown_inl]
+
+end Real
+
+/-! ### The exceptional divisor as a submanifold -/
+
+/-- **The exceptional divisor as a complex submanifold.** The map `ℓ ↦ ofDirection c ℓ` from
+`ℙ ℂ (Fin (n + 1) → ℂ)` to the blowup, as a holomorphic embedding: `inr c` after the model's
+zero section `BlowupModel.zeroSectionEmbedding n`. Its image is the exceptional divisor. -/
+def divisorEmbedding [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M]
+    [Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)] :
+    TauCeti.SmoothEmbedding 𝓘(ℂ, Fin n → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω (ℙ ℂ (Fin (n + 1) → ℂ))
+      (Blowup c) :=
+  ((zeroSectionEmbedding n).codRestrict (modelOpens c) fun ℓ ↦ by
+      simpa using c.zero_mem_target).transLocalDiffeomorph (inr c) (s := univ)
+    (fun y _ ↦ isLocalDiffeomorph_iff.1 (isLocalDiffeomorph_inr c) y)
+    (by rw [domRestrict_def]; exact (isOpenEmbedding_inr c).isEmbedding.comp .subtypeVal)
+    (subset_univ _)
+
+/-- The holomorphic embedding of the exceptional divisor is `ofDirection c`. -/
+@[simp]
+theorem coe_divisorEmbedding [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M]
+    [Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)] :
+    ⇑(divisorEmbedding c) = ofDirection c := by
+  ext ℓ
+  rw [divisorEmbedding, TauCeti.SmoothEmbedding.transLocalDiffeomorph_apply, ofDirection_def]
+  exact congrArg (inr c) (Subtype.ext (by
+    rw [TauCeti.SmoothEmbedding.val_codRestrict_apply, coe_zeroSectionEmbedding]))
+
+/-- The image of the holomorphic embedding of the divisor is the exceptional divisor. -/
+theorem range_divisorEmbedding [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M]
+    [Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)] :
+    range (divisorEmbedding c) = exceptionalDivisor c := by
+  rw [coe_divisorEmbedding, exceptionalDivisor_def]
+
+open scoped TauCeti.ComplexManifold in
+/-- **The exceptional divisor as a real submanifold.** The map `ℓ ↦ ofDirection c ℓ` as a smooth
+embedding of the underlying real manifolds: `inr c` after the model's
+`BlowupModel.zeroSectionRealEmbedding n`. Its image is the exceptional divisor. -/
+def divisorRealEmbedding [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M]
+    [Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M)] :
+    TauCeti.SmoothEmbedding 𝓘(ℝ, Fin n → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ (ℙ ℂ (Fin (n + 1) → ℂ))
+      (Blowup c) :=
+  ((zeroSectionRealEmbedding n).codRestrict (modelOpens c) fun ℓ ↦ by
+      simpa using c.zero_mem_target).transLocalDiffeomorph (inr c) (s := univ)
+    (fun y _ ↦ isLocalDiffeomorph_iff.1 (isLocalDiffeomorph_inr_real c) y)
+    (by rw [domRestrict_def]; exact (isOpenEmbedding_inr c).isEmbedding.comp .subtypeVal)
+    (subset_univ _)
+
+open scoped TauCeti.ComplexManifold in
+/-- The real embedding of the exceptional divisor is `ofDirection c`. -/
+@[simp]
+theorem coe_divisorRealEmbedding [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M]
+    [Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M)] :
+    ⇑(divisorRealEmbedding c) = ofDirection c := by
+  ext ℓ
+  rw [divisorRealEmbedding, TauCeti.SmoothEmbedding.transLocalDiffeomorph_apply, ofDirection_def]
+  exact congrArg (inr c) (Subtype.ext (by
+    rw [TauCeti.SmoothEmbedding.val_codRestrict_apply, coe_zeroSectionRealEmbedding]))
+
+open scoped TauCeti.ComplexManifold in
+/-- The image of the real embedding of the divisor is the exceptional divisor. -/
+theorem range_divisorRealEmbedding [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M]
+    [Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M)] :
+    range (divisorRealEmbedding c) = exceptionalDivisor c := by
+  rw [coe_divisorRealEmbedding, exceptionalDivisor_def]
 
 end Blowup
 
