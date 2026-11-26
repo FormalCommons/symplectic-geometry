@@ -12,10 +12,10 @@ import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Basic
 import TauCeti.Geometry.Symplectic.Lagrangian.Graph
 import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Level
 import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Equiv
-import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 import TauCeti.Geometry.Manifold.VectorBundle.Trivial
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.IsManifold.SecondCountable
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 import SymplecticGeometry.Topology.MetricSpace.Tube
 
 /-!
@@ -227,14 +227,11 @@ def zeroSliceNormalBundleDiffeomorph :
     finrank_complex_eq_finrank_prod_sub (E₂ := Trivial Q ℂ) (W := ℂ)
     (fun _ ↦ ContinuousLinearMap.snd ℝ EQ ℂ) snd_eq_zero_iff_mem_tangentRange_zeroSlice
     finrank_normalSpace_zeroSlice (by
-      -- The `ℂ`-component of an ambient tangent vector is that of the tangent map of `Prod.snd`.
+      -- The `ℂ`-component of an ambient tangent vector is its image by the differential of
+      -- `Prod.snd`.
       refine Trivial.contMDiff_mk_iff.2 ⟨contMDiff_proj _, ?_⟩
-      refine ((contMDiff_snd_tangentBundle_modelSpace ℂ 𝓘(ℝ, ℂ)).comp
-        ((contMDiff_snd.contMDiff_tangentMap le_rfl).comp
-          (Pullback.contMDiff_lift (E := TangentSpace (J.prod 𝓘(ℝ, ℂ))) (F := EQ × ℂ)
-            (zeroSlice J Q) (zeroSlice J Q).contMDiff))).congr fun p ↦ ?_
-      -- `TotalSpace.toProd`, `tangentMap` and `Pullback.lift` leave the vector `p.snd` as it is,
-      -- so the right side is the differential of `Prod.snd` applied to `p.snd`.
+      refine (Pullback.contMDiff_mfderiv_apply (zeroSlice J Q) (zeroSlice J Q).contMDiff
+        contMDiff_snd le_rfl).congr fun p ↦ ?_
       exact (DFunLike.congr_fun mfderiv_snd p.snd).symm)).trans
     (Trivial.diffeomorphProd J Q ℂ ∞)
 
