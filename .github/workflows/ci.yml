@@ -270,7 +270,7 @@ jobs:
           LAKE_CACHE_DIR: ${{ runner.temp }}/lake-cache
         run: |
           git log --oneline -3
-          time lake cache get --service=fc-queue --package=SymplecticGeometry --mappings-only || echo "::warning::no mappings from the bucket"
+          time lake cache get --service=fc-queue --package=SymplecticGeometry || echo "::warning::no mappings from the bucket"
       - name: build
         id: build
         env:
