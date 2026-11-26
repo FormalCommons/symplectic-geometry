@@ -47,7 +47,7 @@ the results on complex submanifolds of almost complex manifolds take it
 embedding over `ℝ` (`TauCeti.SmoothEmbedding.restrictScalarsProd`), whose tangent images are
 invariant under the product of the complex structures of the two factors, as for every
 holomorphic embedding into a product
-(`TauCeti.SmoothEmbedding.prod_ofComplexManifold_mem_tangentRange_restrictScalarsProd`). Its
+(`TauCeti.SmoothEmbedding.mapsTo_prod_ofComplexManifold_tangentRange_restrictScalarsProd`). Its
 real derivative is its complex derivative
 (`TauCeti.SmoothEmbedding.coe_mfderiv_restrictScalarsProd`), so the structure that this product
 restricts to on the surface is the surface's own complex structure
@@ -452,7 +452,7 @@ theorem restrict_prod_ofComplexManifold {hn : (∞ : ℕ∞ω) ≠ 0} :
     ((SmoothAlmostComplexStructure.ofComplexManifold (Fin 2 → ℂ) (ℙ ℂ (Fin 3 → ℂ))).prod
         (SmoothAlmostComplexStructure.ofComplexManifold (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ)))).restrict
           realEmbedding (hn := hn) (realEmbedding_def ▸
-            embedding.prod_ofComplexManifold_mem_tangentRange_restrictScalarsProd le_top
+            embedding.mapsTo_prod_ofComplexManifold_tangentRange_restrictScalarsProd le_top
               (by simp) hn) =
       SmoothAlmostComplexStructure.ofComplexManifold (Fin 2 → ℂ) rationalEllipticSurface := by
   refine ((SmoothAlmostComplexStructure.eq_restrict_iff _).2 fun x v ↦ ?_).symm
@@ -485,7 +485,7 @@ theorem isSymplectic_symplecticForm : symplecticForm.IsSymplectic := by
   exact (SmoothAlmostComplexStructure.tames_prod (compatible_fubiniStudyForm (n := 2)).tames
     (compatible_fubiniStudyForm (n := 1)).tames).isSymplectic_mpullback
       (hn := by simp)
-      (embedding.prod_ofComplexManifold_mem_tangentRange_restrictScalarsProd le_top (by simp) _)
+      (embedding.mapsTo_prod_ofComplexManifold_tangentRange_restrictScalarsProd le_top (by simp) _)
       ((isSymplectic_fubiniStudyForm 2).prod (isSymplectic_fubiniStudyForm 1))
 
 /-! ### The fibre over `[1 : 0]` -/
@@ -558,11 +558,14 @@ theorem isSmoothEmbedding_fibreEmbedding :
 
 /-- The tangent images of the fibre embedding are complex lines in the tangent spaces of the
 surface: they are invariant under its complex structure. -/
-theorem ofComplexManifold_mem_tangentRange_fibreEmbedding {hn : (∞ : ℕ∞ω) ≠ 0}
-    (x : fermat 1 3) (v) (hv : v ∈ fibreEmbedding.tangentRange x hn) :
-    SmoothAlmostComplexStructure.ofComplexManifold (Fin 2 → ℂ) rationalEllipticSurface
-      (fibreEmbedding x) v ∈ fibreEmbedding.tangentRange x hn := by
-  rw [SmoothEmbedding.mem_tangentRange_iff] at hv ⊢
+theorem mapsTo_ofComplexManifold_tangentRange_fibreEmbedding {hn : (∞ : ℕ∞ω) ≠ 0}
+    (x : fermat 1 3) :
+    Set.MapsTo
+      (SmoothAlmostComplexStructure.ofComplexManifold (Fin 2 → ℂ) rationalEllipticSurface
+        (fibreEmbedding x))
+      (fibreEmbedding.tangentRange x hn) (fibreEmbedding.tangentRange x hn) := by
+  intro v hv
+  rw [SetLike.mem_coe, SmoothEmbedding.mem_tangentRange_iff] at hv ⊢
   obtain ⟨u, rfl⟩ := hv
   exact ⟨_, ((isSmoothEmbedding_fibreEmbedding.contMDiff x).mdifferentiableAt
     (by simp)).mfderiv_ofComplexManifold_apply u⟩
@@ -575,9 +578,10 @@ theorem hasSymplecticTangentImages_fibreEmbedding :
   (restrict_prod_ofComplexManifold ▸
     (SmoothAlmostComplexStructure.tames_prod (compatible_fubiniStudyForm (n := 2)).tames
       (compatible_fubiniStudyForm (n := 1)).tames).restrict (f := realEmbedding) (hn := by simp)
-        (realEmbedding_def ▸ embedding.prod_ofComplexManifold_mem_tangentRange_restrictScalarsProd
-          le_top (by simp) _)).isSymplecticSubmanifoldEmbedding
-          (ofComplexManifold_mem_tangentRange_fibreEmbedding (hn := by simp))
+        (realEmbedding_def ▸
+          embedding.mapsTo_prod_ofComplexManifold_tangentRange_restrictScalarsProd le_top
+            (by simp) _)).isSymplecticSubmanifoldEmbedding
+          (mapsTo_ofComplexManifold_tangentRange_fibreEmbedding (hn := by simp))
     |>.hasSymplecticTangentImages
 
 /-- The symplectic form of the rational elliptic surface pulls back along the fibre embedding to a

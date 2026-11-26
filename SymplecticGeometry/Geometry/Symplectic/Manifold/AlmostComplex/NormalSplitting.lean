@@ -125,11 +125,11 @@ variable {f} in
 /-- If the tangent images of `f` are `J`-invariant, they are invariant under the pull-back of
 `J`. -/
 theorem pullbackComplexStructure_mem_tangentRange
-    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn) {x : M}
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn)) {x : M}
     {v : ((f : M → X) *ᵖ (TangentSpace I)) x} (hv : v ∈ f.tangentRange x hn) :
     J.pullbackComplexStructure f f.contMDiff x v ∈ f.tangentRange x hn :=
   (congrArg (· ∈ f.tangentRange x hn) (J.pullbackComplexStructure_apply f f.contMDiff x v)).mpr
-    (hJ x v hv)
+    (hJ x hv)
 
 /-! ### The tangent image and its orthogonal -/
 
@@ -161,7 +161,7 @@ variable [FiniteDimensional ℝ E]
 /-- If the tangent images of `f` are `J`-invariant and `ω` tames the pull-back of `J`, then at
 each point the tangent image and its `ω`-orthogonal are complements. -/
 theorem isCompl_tangentRange_orthogonal
-    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn)
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn))
     (hω : ω.Tames (J.pullbackComplexStructure f f.contMDiff)) (x : M) :
     IsCompl (f.tangentRange x hn) (f.orthogonalTangentRange ω x hn) := by
   have : FiniteDimensional ℝ (((f : M → X) *ᵖ (TangentSpace I)) x) :=
@@ -178,7 +178,7 @@ theorem isCompl_tangentRange_orthogonal
 
 /-- The tangent image and its `ω`-orthogonal are topological complements. -/
 theorem isTopCompl_tangentRange_orthogonal
-    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn)
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn))
     (hω : ω.Tames (J.pullbackComplexStructure f f.contMDiff)) (x : M) :
     (f.tangentRange x hn).IsTopCompl (f.orthogonalTangentRange ω x hn) :=
   have : FiniteDimensional ℝ (((f : M → X) *ᵖ (TangentSpace I)) x) :=
@@ -189,7 +189,7 @@ omit [FiniteDimensional ℝ E] in
 /-- If the tangent images of `f` are `J`-invariant and `ω` is invariant under the pull-back of
 `J`, then the `ω`-orthogonal of each tangent image is invariant under it. -/
 theorem pullbackComplexStructure_mem_orthogonal
-    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn)
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn))
     (hω : ω.Invariant (J.pullbackComplexStructure f f.contMDiff)) {x : M}
     {v : ((f : M → X) *ᵖ (TangentSpace I)) x}
     (hv : v ∈ f.orthogonalTangentRange ω x hn) :
@@ -224,13 +224,13 @@ omit [FiniteDimensional ℝ E] in
 /-- If the tangent images of `f` are `J`-invariant and `ω` tames the pull-back of `J`, the form
 `ω(df ·, df ·)` on the tangent bundle is nondegenerate. -/
 theorem isNondegenerate_compMFDeriv
-    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn)
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn))
     (hω : ω.Tames (J.pullbackComplexStructure f f.contMDiff)) :
     (ω.compMFDeriv f f.contMDiff).IsNondegenerate := by
   rw [ContMDiffTwoForm.isNondegenerate_iff_separatingLeft]
   intro x u hu
   by_contra h0
-  obtain ⟨v, hv⟩ := hJ x _ ⟨u, rfl⟩
+  obtain ⟨v, hv⟩ := hJ x ⟨u, rfl⟩
   have h := compMFDeriv_pos hω h0 hv
   rw [ContMDiffTwoForm.bilinFormAt_apply] at h
   exact h.ne' (hu v)
@@ -242,7 +242,7 @@ that tames the pull-back of `J`. If `o` is the orientation of `M` for which ever
 of `T_c M` with `df v = J (df u)` is positive, then `o` is the symplectic orientation of the
 nondegenerate two-form `ω(df ·, df ·)` on `M`. -/
 theorem volumeOrientation_compMFDeriv (hE' : finrank ℝ E' = 2)
-    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn)
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn))
     (hω : ω.Tames (J.pullbackComplexStructure f f.contMDiff))
     {o : Manifold.Orientation I' M (Fin 2)}
     (ho : ∀ c (b : Basis (Fin 2) ℝ (TangentSpace I' c)),
@@ -254,7 +254,7 @@ theorem volumeOrientation_compMFDeriv (hE' : finrank ℝ E' = 2)
   ext x
   -- A frame `(u, v)` with `df v = J (df u)` is positive for `o`, and `ω(df u, df v) > 0`.
   obtain ⟨u, hu⟩ := exists_ne (0 : TangentSpace I' x)
-  obtain ⟨v, hv⟩ := hJ x _ ⟨u, rfl⟩
+  obtain ⟨v, hv⟩ := hJ x ⟨u, rfl⟩
   have hpos := compMFDeriv_pos hω hu hv
   have hli : LinearIndependent ℝ ![u, v] :=
     ((ω.compMFDeriv f f.contMDiff).isAlt_bilinFormAt x)
@@ -276,7 +276,7 @@ omit [FiniteDimensional ℝ E'] in
 projection of `f *ᵖ TX` onto the tangent images along their `ω`-orthogonals is a smooth map of
 the total space of `f *ᵖ TX` to itself. -/
 theorem contMDiff_projection_orthogonalTangentRange
-    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn)
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn))
     (hω : ω.Tames (J.pullbackComplexStructure f f.contMDiff)) :
     ContMDiff (I'.prod 𝓘(ℝ, E)) (I'.prod 𝓘(ℝ, E)) ((⊤ : ℕ∞) : WithTop ℕ∞)
       (fun p : TotalSpace E ((f : M → X) *ᵖ (TangentSpace I)) ↦
@@ -305,7 +305,7 @@ variable {P : Type*} [NormedAddCommGroup P] [NormedSpace ℝ P] [FiniteDimension
 total space of the normal bundle to that of `f *ᵖ TX`. -/
 theorem contMDiff_complementRepresentative_orthogonalTangentRange
     (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E')
-    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn)
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn))
     (hω : ω.Tames (J.pullbackComplexStructure f f.contMDiff)) :
     letI := f.normalSpaceFiberBundle hn hdim
     ContMDiff (I'.prod 𝓘(ℝ, P)) (I'.prod 𝓘(ℝ, E)) ((⊤ : ℕ∞) : WithTop ℕ∞)
@@ -336,7 +336,7 @@ variable (f) in
 isomorphism `v ↦ ((df)⁻¹ P v, [v])` onto `T_x M × ν_x`, with `P` the projection onto the tangent
 image along its `ω`-orthogonal. It is the inverse of
 `TauCeti.SmoothEmbedding.tangentNormalEquiv` for the representatives in the `ω`-orthogonal. -/
-def normalSplitting (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn)
+def normalSplitting (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn))
     (ω : ContMDiffTwoForm I' ⊤ E ((f : M → X) *ᵖ (TangentSpace I)))
     (hω : ω.Tames (J.pullbackComplexStructure f f.contMDiff)) (x : M) :
     ((f : M → X) *ᵖ (TangentSpace I)) x ≃L[ℝ]
@@ -350,7 +350,7 @@ omit [FiniteDimensional ℝ E'] [IsManifold I' ((⊤ : ℕ∞) : WithTop ℕ∞)
 `a` in the `ω`-orthogonal of the tangent image. -/
 @[simp]
 theorem normalSplitting_symm_apply
-    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn)
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn))
     (hω : ω.Tames (J.pullbackComplexStructure f f.contMDiff)) (x : M)
     (p : (TangentSpace I' ×ᵇ fun x ↦ f.NormalSpace x hn) x) :
     (f.normalSplitting hJ ω hω x).symm p = mfderiv I' I f x p.1 +
@@ -361,7 +361,7 @@ omit [FiniteDimensional ℝ E'] [IsManifold I' ((⊤ : ℕ∞) : WithTop ℕ∞)
 /-- The normal component of the splitting is the normal class. -/
 @[simp]
 theorem snd_normalSplitting_apply
-    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn)
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn))
     (hω : ω.Tames (J.pullbackComplexStructure f f.contMDiff)) (x : M)
     (v : TangentSpace I (f x)) :
     (f.normalSplitting hJ ω hω x v).2 = f.normalClass x hn v := by
@@ -371,7 +371,7 @@ omit [FiniteDimensional ℝ E'] [IsManifold I' ((⊤ : ℕ∞) : WithTop ℕ∞)
 /-- The tangential component of the splitting is carried by `df` to the projection onto the
 tangent image along its `ω`-orthogonal. -/
 theorem mfderiv_fst_normalSplitting_apply
-    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn)
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn))
     (hω : ω.Tames (J.pullbackComplexStructure f f.contMDiff)) (x : M)
     (v : TangentSpace I (f x)) :
     mfderiv I' I f x (f.normalSplitting hJ ω hω x v).1 =
@@ -383,7 +383,7 @@ theorem mfderiv_fst_normalSplitting_apply
 
 /-- The splitting is a smooth map from the total space of `f *ᵖ TX` to that of `TM ×ᵇ ν`. -/
 theorem contMDiff_normalSplitting (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E')
-    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn)
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn))
     (hω : ω.Tames (J.pullbackComplexStructure f f.contMDiff)) :
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
@@ -417,7 +417,7 @@ variable (f) in
 /-- The two-form `ω_ν(a, b) = ω(r a, r b)` on the normal bundle, with `r a` the representative of
 `a` in the `ω`-orthogonal of the tangent image. -/
 def normalForm (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E')
-    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn)
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn))
     (ω : ContMDiffTwoForm I' ⊤ E ((f : M → X) *ᵖ (TangentSpace I)))
     (hω : ω.Tames (J.pullbackComplexStructure f f.contMDiff)) :
     letI := f.normalSpaceFiberBundle hn hdim
@@ -434,7 +434,7 @@ def normalForm (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E')
 
 variable (f) in
 theorem normalForm_def (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E')
-    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn)
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn))
     (ω : ContMDiffTwoForm I' ⊤ E ((f : M → X) *ᵖ (TangentSpace I)))
     (hω : ω.Tames (J.pullbackComplexStructure f f.contMDiff)) :
     letI := f.normalSpaceFiberBundle hn hdim
@@ -453,7 +453,7 @@ theorem normalForm_def (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E')
 the `ω`-orthogonal of the tangent image. -/
 @[simp]
 theorem normalForm_apply (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E')
-    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn)
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn))
     (hω : ω.Tames (J.pullbackComplexStructure f f.contMDiff)) (x : M) :
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
@@ -467,7 +467,7 @@ theorem normalForm_apply (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E')
 /-- The form on the normal bundle takes on `a`, `b` the value of `ω` on their representatives in
 the `ω`-orthogonal of the tangent image. -/
 theorem bilinFormAt_normalForm (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E')
-    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn)
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn))
     (hω : ω.Tames (J.pullbackComplexStructure f f.contMDiff)) (x : M)
     (a b : f.NormalSpace x hn) :
     letI := f.normalSpaceFiberBundle hn hdim
@@ -484,7 +484,7 @@ theorem bilinFormAt_normalForm (hdim : finrank ℝ P = finrank ℝ E - finrank �
 /-- On the normal classes of two vectors of the `ω`-orthogonal of the tangent image, the form on
 the normal bundle is `ω`. -/
 theorem normalForm_normalClass (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E')
-    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn)
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn))
     (hω : ω.Tames (J.pullbackComplexStructure f f.contMDiff)) {x : M}
     {v w : TangentSpace I (f x)}
     (hv : v ∈ f.orthogonalTangentRange ω x hn) (hw : w ∈ f.orthogonalTangentRange ω x hn) :
@@ -499,24 +499,24 @@ omit [FiniteDimensional ℝ E'] [IsManifold I' ((⊤ : ℕ∞) : WithTop ℕ∞)
 /-- The representative in the `ω`-orthogonal of the image of `a` under the complex structure
 induced by `J` on the normal space is the image under `J` of the representative of `a`. -/
 private theorem complementRepresentative_normalComplexStructureAt
-    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn)
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn))
     (hω : ω.Compatible (J.pullbackComplexStructure f f.contMDiff)) (x : M)
     (a : f.NormalSpace x hn) :
     f.complementRepresentative x hn (isTopCompl_tangentRange_orthogonal hJ hω.tames x)
-        (f.normalComplexStructureAt hn J x (fun v hv ↦ hJ x v hv) a) =
+        (f.normalComplexStructureAt hn J x (hJ x) a) =
       J (f x) (f.complementRepresentative x hn (isTopCompl_tangentRange_orthogonal hJ hω.tames x)
         a) := by
   rw [complementRepresentative_eq_iff, ← pullbackComplexStructure_apply J f f.contMDiff]
   refine ⟨pullbackComplexStructure_mem_orthogonal hJ hω.invariant
     (complementRepresentative_mem _ _ _ _ _), ?_⟩
   rw [pullbackComplexStructure_apply,
-    ← normalComplexStructureAt_normalClass (fun v hv ↦ hJ x v hv),
+    ← normalComplexStructureAt_normalClass (hJ x),
     normalClass_complementRepresentative]
 
 /-- If `ω` is compatible with the pull-back of `J`, the form on the normal bundle is compatible
 with the complex structure that `J` induces on the normal bundle. -/
 theorem compatible_normalForm (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E')
-    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn)
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn))
     (hω : ω.Compatible (J.pullbackComplexStructure f f.contMDiff)) :
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
@@ -543,7 +543,7 @@ theorem compatible_normalForm (hdim : finrank ℝ P = finrank ℝ E - finrank �
 /-- The splitting carries `ω` to the direct sum of the form on the tangent bundle and the form on
 the normal bundle: `(f *ᵖ TX, ω)` is the direct sum of `(TM, σ)` and `(ν, ω_ν)`. -/
 theorem pushforward_normalSplitting (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E')
-    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn)
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn))
     (hω : ω.Tames (J.pullbackComplexStructure f f.contMDiff)) :
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
