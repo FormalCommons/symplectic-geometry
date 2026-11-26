@@ -64,11 +64,10 @@ reads the local orientation of `X` through the derivative, and Tau Ceti's
 `TauCeti.Manifold.Orientation.localHomologyMap_sub_toHomologicalOrientation_transHomeomorph`, for
 a chart that is not a preferred one.
 
-Three cases follow. If `Z` and the normal fibre have positive dimension, this class is the cross
-product `TauCeti.LocalOrientation.cross` of the local orientation of the normal fibre and that
-of `Z`, normal factor first, with no sign
-(`localHomologyMap_sub_normalTubeChart_toHomologicalOrientation`), by the library's
-`TauCeti.LocalOrientation.cross_eq_map_prodComm_prod` and Tau Ceti's
+Two cases follow. If `Z` has positive dimension, this class is the cross product
+`TauCeti.LocalOrientation.cross` of the local orientation of the normal fibre and that of `Z`,
+normal factor first, with no sign (`localHomologyMap_sub_normalTubeChart_toHomologicalOrientation`),
+by the library's `TauCeti.LocalOrientation.cross_eq_map_prodComm_prod` and Tau Ceti's
 `TauCeti.LocalOrientation.prod_localOrientation` and `Orientation.localOrientation_map`. If `Z`
 has dimension zero, the orientation of `Z` at `z` is the positive orientation of `E` or its
 negative, and the class is the cross product `SymplecticGeometry.localHomologyCross` of the local
@@ -76,14 +75,9 @@ orientation of the normal fibre with the class of the origin of `E`, taken with 
 (`localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_of_finrank_eq_zero`). Exchanging
 a zero-dimensional factor brings no sign (Tau Ceti's `Orientation.map_prodComm_prod_of_even`), and
 the cross product with the class of the origin is computed by the library's
-`Orientation.localHomologyCross_localOrientation_tmul_ite_localOrientationOfZeroDimChart`. If
-the normal fibre is a point and `Z` has positive dimension, the class is the cross product
-`SymplecticGeometry.localHomologyCross` of the class of the origin of `P` with the local
-orientation of `Z`, with the sign of the normal orientation, an orientation of `P` indexed by
-`Fin 0`
-(`localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_of_finrank_fiber_eq_zero`), by
-the library's
-`Orientation.localHomologyCross_localOrientationOfZeroDimChart_tmul_localOrientation`.
+`Orientation.localHomologyCross_localOrientation_tmul_ite_localOrientationOfZeroDimChart`. The
+case where the normal fibre is a point is treated in
+`SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.PointFiber`.
 
 The same class is then read from the total space of the normal bundle, through the chart
 `Bundle.Trivialization.localChart` built from `e` and the chart `c` of `Z` at `z` translated so
@@ -95,9 +89,8 @@ to the translation by the coordinate of `z`, the chart `normalTubeChart Φ z` un
 that chart of the total space (`tube_localChart_mem_normalTubeChart_source`,
 `normalTubeChart_apply_tube_localChart`); as both maps of local homology are induced by open
 embeddings, the statement follows by functoriality of `TauCeti.localHomologyMap` and excision.
-Applied to the three cases, it gives `localHomologyMap_localChartLocalHomologyIso_hom_cross`,
-`localHomologyMap_localChartLocalHomologyIso_hom_localHomologyCross_of_finrank_eq_zero` and
-`localHomologyMap_localChartLocalHomologyIso_hom_localHomologyCross_of_finrank_fiber_eq_zero`.
+Applied to the two cases, it gives `localHomologyMap_localChartLocalHomologyIso_hom_cross` and
+`localHomologyMap_localChartLocalHomologyIso_hom_localHomologyCross_of_finrank_eq_zero`.
 
 ## Main definitions
 
@@ -125,16 +118,12 @@ Applied to the three cases, it gives `localHomologyMap_localChartLocalHomologyIs
 * `localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_of_finrank_eq_zero`:
   the same when `Z` has dimension zero, with the signed class of the origin of `E` in place of
   the local orientation of `Z`.
-* `localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_of_finrank_fiber_eq_zero`:
-  the same when the normal fibre is a point, with the class of the origin of `P` in place of
-  the local orientation of the normal fibre, and the sign of the normal orientation.
 * `TauCeti.SmoothEmbedding.localHomologyMap_localChartLocalHomologyIso_hom_of_normalTubeChart`:
   a class that the chart gives a local orientation of `X`, read in the total space at `0_z`
   through `Bundle.Trivialization.localChartLocalHomologyIso`, is carried back to it by the tube.
 * `TauCeti.SmoothEmbedding.localHomologyMap_localChartLocalHomologyIso_hom_cross`,
-  `localHomologyMap_localChartLocalHomologyIso_hom_localHomologyCross_of_finrank_eq_zero`,
-  `localHomologyMap_localChartLocalHomologyIso_hom_localHomologyCross_of_finrank_fiber_eq_zero`:
-  the tube carries the cross product of the three cases, read in the total space at `0_z`, to the
+  `localHomologyMap_localChartLocalHomologyIso_hom_localHomologyCross_of_finrank_eq_zero`:
+  the tube carries the cross product of the two cases, read in the total space at `0_z`, to the
   local orientation of `X` at `f z`.
 
 ## References
@@ -681,73 +670,6 @@ theorem localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_of_finrank
     Orientation.prod_reindex_finCongr_left]
   congr 2
 
-open Classical in
-/-- **The local orientation of the ambient manifold through a normalized tube, when the normal
-fibre is a point.** Let `oX` and `oZ` orient `X` and `Z`, where `Z` and `X` have dimension
-`m + 1` and the normal fibre `P` dimension zero, and let `e` be the preferred trivialization of
-the normal bundle at `z`. The chart `normalTubeChart Φ z` of a normalized tube `Φ`, translated so
-that `f z` goes to the origin, carries the local orientation of `X` at `f z` to the cross product
-`SymplecticGeometry.localHomologyCross` of the class of the origin of `P` with the local
-orientation of `E` selected by the orientation of `Z` at `z`, if the normal orientation
-`normalOrientation f hn hdim oX oZ` at `z` read in `e` is the positive orientation of `P`, and to
-its negative otherwise. -/
-theorem localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_of_finrank_fiber_eq_zero
-    (Φ : letI := f.normalSpaceFiberBundle hn hdim
-      TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W) (z : Z)
-    (hΦ : f.IsNormalizedTube hn hdim Φ) {m : ℕ} (hE : finrank ℝ E = m + 1)
-    (hP : finrank ℝ P = 0) (hV : finrank ℝ V = m + 1)
-    (oX : Manifold.Orientation J X (Fin (m + 1 + finrank ℝ P)))
-    (oZ : Manifold.Orientation I Z (Fin (m + 1))) :
-    letI := f.normalSpaceFiberBundle hn hdim
-    letI := f.normalSpaceVectorBundle hn hdim
-    localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
-        (⟨fun x : (normalTubeChart Φ z).source ↦ normalTubeChart Φ z x - normalTubeChart Φ z (f z),
-          (normalTubeChart Φ z).continuousOn.domRestrict.sub continuous_const⟩ :
-          C((normalTubeChart Φ z).source, P × E))
-        (S := {⟨f z, mem_normalTubeChart_source Φ z hΦ⟩}) (T := {0})
-        (by
-          rintro x hx
-          exact Subtype.ext ((normalTubeChart Φ z).injOn x.property
-            (mem_normalTubeChart_source Φ z hΦ) (sub_eq_zero.1 hx)))
-        (m + 1)
-        (((normalTubeChart Φ z).open_source.isOpenEmbedding_subtypeVal.localOrientationEquiv
-          ⟨f z, mem_normalTubeChart_source Φ z hΦ⟩ (m + 1)).symm
-          ((oX.reindex (finCongr (by omega))).toHomologicalOrientation hV (f z))).val =
-      if Orientation.reindex ℝ P (finCongr hP)
-          ((trivializationAt P (fun x ↦ f.NormalSpace x hn) z).mapOrientation (Fin (finrank ℝ P))
-            (mem_baseSet_trivializationAt P _ z) (normalOrientation f hn hdim oX oZ z)) =
-          positiveOrientation then
-        (SymplecticGeometry.localHomologyCross (0 : P) (0 : E) 0 (m + 1) (m + 1) (zero_add _)).hom
-          ((localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl P)
-            (OpenPartialHomeomorph.mem_refl_source _) hP).val ⊗ₜ
-            (Orientation.localOrientation (F := E) (oZ.orientationAt z) hE).val)
-      else
-        -(SymplecticGeometry.localHomologyCross (0 : P) (0 : E) 0 (m + 1) (m + 1) (zero_add _)).hom
-          ((localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl P)
-            (OpenPartialHomeomorph.mem_refl_source _) hP).val ⊗ₜ
-            (Orientation.localOrientation (F := E) (oZ.orientationAt z) hE).val) := by
-  let := f.normalSpaceFiberBundle hn hdim
-  let := f.normalSpaceVectorBundle hn hdim
-  have hdX : m + 1 + finrank ℝ P = m + 1 := by omega
-  -- The linear algebra, for orientations `o` of `E` and `p` of `P`.
-  have hlin (o : Orientation ℝ E (Fin (m + 1))) (p : Orientation ℝ P (Fin (finrank ℝ P))) :
-      Orientation.reindex ℝ (P × E) (finCongr hdX)
-          (Orientation.map _ (LinearEquiv.prodComm ℝ E P) (o.prod p hE rfl)) =
-        (o.prod (Orientation.reindex ℝ P (finCongr hP) p) hE hP).map (Fin (m + 1))
-          (LinearEquiv.prodComm ℝ E P) := by
-    rw [Orientation.prod_reindex_finCongr_right, Orientation.map_reindex]
-  refine (localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_eq_localOrientation Φ z hΦ
-    hE hV hdX oX oZ).trans ?_
-  -- The tangent space of `Z` at `z` is `E` only by definition, so `rw` does not match these.
-  erw [Orientation.localHomologyCross_localOrientationOfZeroDimChart_tmul_localOrientation hP hE
-    (Orientation.reindex ℝ P (finCongr hP)
-      ((trivializationAt P (fun x ↦ f.NormalSpace x hn) z).mapOrientation (Fin (finrank ℝ P))
-        (mem_baseSet_trivializationAt P _ z) (normalOrientation f hn hdim oX oZ z)))
-    (oZ.orientationAt z), hlin]
-  split_ifs
-  · rfl
-  · rw [neg_neg]
-
 end TauCeti.SmoothEmbedding
 
 namespace TauCeti.SmoothEmbedding
@@ -1040,68 +962,6 @@ theorem localHomologyMap_localChartLocalHomologyIso_hom_localHomologyCross_of_fi
     hS hSc hSe h0 _ _
     (localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_of_finrank_eq_zero Φ z hΦ hE hP
       hV oX oZ)
-
-open Classical in
-/-- **The local orientation of the ambient manifold through a normalized tube, from the total
-space, when the normal fibre is a point.** In the setting of
-`localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_of_finrank_fiber_eq_zero`, let
-`c` be the chart of `Z` at `z` read in `E` and translated so that `z` goes to `0`, and `S` an
-open set of its target containing `0` that `c⁻¹` carries into the base set of the preferred
-trivialization `e` of the normal bundle at `z`. The isomorphism
-`Bundle.Trivialization.localChartLocalHomologyIso` of `e` and `c` carries the cross product
-`SymplecticGeometry.localHomologyCross` of the class of the origin of `P` with the local
-orientation of `E` selected by the orientation of `Z` at `z` to a local class of the total space
-at `0_z`. The tube `Φ` carries that class to the local orientation of `X` at `f z` if the normal
-orientation at `z` read in `e` is the positive orientation of `P`, and to its negative
-otherwise. -/
-theorem
-    localHomologyMap_localChartLocalHomologyIso_hom_localHomologyCross_of_finrank_fiber_eq_zero
-    (hΦ : f.IsNormalizedTube hn hdim Φ) {m : ℕ} (hE : finrank ℝ E = m + 1)
-    (hP : finrank ℝ P = 0) (hV : finrank ℝ V = m + 1)
-    (oX : Manifold.Orientation J X (Fin (m + 1 + finrank ℝ P)))
-    (oZ : Manifold.Orientation I Z (Fin (m + 1))) (hS : IsOpen S)
-    (hSc : S ⊆ ((chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))).target)
-    (hSe : letI := f.normalSpaceFiberBundle hn hdim
-      MapsTo ((chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))).symm S
-        (trivializationAt P (fun x ↦ f.NormalSpace x hn) z).baseSet)
-    (h0 : (0 : E) ∈ S) :
-    letI := f.normalSpaceFiberBundle hn hdim
-    letI := f.normalSpaceVectorBundle hn hdim
-    haveI : T1Space (TotalSpace P fun x ↦ f.NormalSpace x hn) :=
-      Φ.toHomeomorph.isEmbedding.t1Space
-    localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
-        (⟨fun p ↦ (Φ p : X), continuous_subtypeVal.comp Φ.continuous⟩ :
-          C(TotalSpace P (fun x ↦ f.NormalSpace x hn), X))
-        (S := {zeroSection P _ z}) (T := {f z})
-        (by
-          rintro p hp
-          exact Φ.injective (Subtype.ext (hp.trans (hΦ.apply_zeroSection z).symm)))
-        (m + 1)
-        ((Trivialization.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe
-          (by simp) (by simp) h0 (m + 1)).hom
-          ((SymplecticGeometry.localHomologyCross (0 : P) (0 : E) 0 (m + 1) (m + 1)
-            (zero_add _)).hom
-            ((localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl P)
-              (OpenPartialHomeomorph.mem_refl_source _) hP).val ⊗ₜ
-              (Orientation.localOrientation (F := E) (oZ.orientationAt z) hE).val))) =
-      if Orientation.reindex ℝ P (finCongr hP)
-          ((trivializationAt P (fun x ↦ f.NormalSpace x hn) z).mapOrientation (Fin (finrank ℝ P))
-            (mem_baseSet_trivializationAt P _ z) (normalOrientation f hn hdim oX oZ z)) =
-          positiveOrientation then
-        ((oX.reindex (finCongr (by omega))).toHomologicalOrientation hV (f z)).val
-      else
-        -((oX.reindex (finCongr (by omega))).toHomologicalOrientation hV (f z)).val := by
-  have h := localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_of_finrank_fiber_eq_zero
-    Φ z hΦ hE hP hV oX oZ
-  split_ifs with hc
-  · rw [ite_eq_left hc] at h
-    exact localHomologyMap_localChartLocalHomologyIso_hom_of_normalTubeChart Φ z hΦ
-      hS hSc hSe h0 _ _ h
-  · rw [ite_eq_right hc] at h
-    have hG := localHomologyMap_localChartLocalHomologyIso_hom_of_normalTubeChart Φ z hΦ
-      hS hSc hSe h0 _ _ h
-    rw [map_neg, map_neg] at hG
-    rw [← hG, neg_neg]
 
 end TauCeti.SmoothEmbedding
 
