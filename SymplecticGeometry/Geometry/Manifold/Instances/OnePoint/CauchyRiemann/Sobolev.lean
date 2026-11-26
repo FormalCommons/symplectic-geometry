@@ -120,8 +120,10 @@ realizes an operator that is Cauchy–Riemann for the complex structure of the c
   chart estimate above. This proves the estimate for the Sobolev sections of smooth sections, and
   their density (`TauCeti.SobolevSection.dense_ofContMDiffSection_contMDiff`) gives it for all.
 * `SymplecticGeometry.exists_compact_estimate_twistOneDelBarSobolev`: the same estimate with a
-  compact error term, a multiple of `SectionChartData.lowerOrderL`, which is compact by Rellich's
-  theorem `TauCeti.SobolevSection.isCompactOperator_lowerOrderL`.
+  compact error term. There are `C` and a compact operator
+  `K : W^{k+1,2}(𝒪(1)) →L[ℝ] W^{k,2}(𝒪(1))` with `‖w‖ ≤ C ‖D_J w‖ + ‖K w‖` for every `w`. It
+  follows from the a priori estimate and Rellich's theorem
+  `TauCeti.SobolevSection.isCompactOperator_lowerOrderL`.
 * `SymplecticGeometry.isClosed_range_twistOneDelBarSobolev` and
   `SymplecticGeometry.finiteDimensional_ker_twistOneDelBarSobolev`: for `J` tamed together with
   `i` by a two-form, `D_J` has closed range and finite-dimensional kernel at every order, by
@@ -809,9 +811,10 @@ theorem exists_norm_le_twistOneDelBarSobolev
         exact (hCc i s hs).trans (by gcongr; exact le_max_left _ _)
     _ = max (Cψ i) 0 * max (Cc i) 0 * X := by ring
 
-/-- The a priori estimate `exists_norm_le_twistOneDelBarSobolev` as an estimate with a compact
-error: the error term is a multiple of Rellich's compact inclusion
-`SectionChartData.lowerOrderL` of `W^{k+1,2}(𝒪(1))` into `W^{k,2}(𝒪(1))`. -/
+/-- An estimate with a compact error for `D_J`. Let a two-form `σ` tame both `J` and the standard
+structure `i` of the sphere. For every order `k` there are a constant `C` and a compact operator
+`K : W^{k+1,2}(𝒪(1)) →L[ℝ] W^{k,2}(𝒪(1))` with `‖w‖ ≤ C ‖D_J w‖ + ‖K w‖` for every
+`w ∈ W^{k+1,2}(𝒪(1))`. -/
 theorem exists_compact_estimate_twistOneDelBarSobolev
     {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)} (hJ : σ.Tames J) (hi : σ.Tames 𝒊) :
     ∃ (C : ℝ) (K : SobolevSection (twistCoreAtlas 1) volume 2 (k + 1) →L[ℝ]
