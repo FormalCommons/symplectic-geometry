@@ -97,10 +97,10 @@ theorem contDiff_one_sub_mul_log_norm_sub_sq {n : WithTop ℕ∞} {a : ℂ} {χ 
     simp [ht]
   · exact (contDiffAt_const.sub hχ.contDiffAt).mul (contDiffAt_log_norm_sub_sq hz)
 
-/-- If `χ` is `C²` and equal to `1` near `a`, then the Laplacian of `χ log ‖· - a‖²` is minus
-that of the `C²` function `(1 - χ) log ‖· - a‖²`, at every point, the pole included. -/
-theorem laplacian_fun_mul_log_norm_sub_sq {a : ℂ} {χ : ℂ → ℝ} (hχ : ContDiff ℝ 2 χ)
-    (hχa : χ =ᶠ[𝓝 a] 1) (z : ℂ) :
+/-- If `χ` is equal to `1` near `a` and `C²` at `z`, then at `z` the Laplacian of
+`χ log ‖· - a‖²` is minus that of `(1 - χ) log ‖· - a‖²`; `z` may be the pole `a`. -/
+theorem laplacian_fun_mul_log_norm_sub_sq {a z : ℂ} {χ : ℂ → ℝ} (hχ : ContDiffAt ℝ 2 χ z)
+    (hχa : χ =ᶠ[𝓝 a] 1) :
     Δ (fun t ↦ χ t * Real.log (‖t - a‖ ^ 2)) z =
       -Δ (fun t ↦ (1 - χ t) * Real.log (‖t - a‖ ^ 2)) z := by
   rcases eq_or_ne z a with rfl | hz
@@ -115,8 +115,8 @@ theorem laplacian_fun_mul_log_norm_sub_sq {a : ℂ} {χ : ℂ → ℝ} (hχ : Co
       laplacian_log_norm_sub_sq, laplacian_const, Pi.zero_apply, neg_zero]
   · have hL : ContDiffAt ℝ 2 (fun t : ℂ ↦ Real.log (‖t - a‖ ^ 2)) z :=
       contDiffAt_log_norm_sub_sq hz
-    have hsum := (hχ.contDiffAt.mul hL).laplacian_add
-      (((contDiffAt_const (c := (1 : ℝ))).sub hχ.contDiffAt).mul hL)
+    have hsum := (hχ.mul hL).laplacian_add
+      (((contDiffAt_const (c := (1 : ℝ))).sub hχ).mul hL)
     have hfun : ((fun t ↦ χ t * Real.log (‖t - a‖ ^ 2)) +
         fun t ↦ (1 - χ t) * Real.log (‖t - a‖ ^ 2)) = fun t ↦ Real.log (‖t - a‖ ^ 2) := by
       funext t
@@ -131,7 +131,8 @@ theorem contDiff_laplacian_fun_mul_log_norm_sub_sq {n m : WithTop ℕ∞} {a : �
     (hχ : ContDiff ℝ n χ) (hm : m + 2 ≤ n) (hχa : χ =ᶠ[𝓝 a] 1) :
     ContDiff ℝ m (Δ fun t ↦ χ t * Real.log (‖t - a‖ ^ 2)) := by
   have h₂ : ContDiff ℝ 2 χ := hχ.of_le (le_add_self.trans hm)
-  rw [funext (laplacian_fun_mul_log_norm_sub_sq h₂ hχa)]
+  have h (z : ℂ) := laplacian_fun_mul_log_norm_sub_sq (z := z) h₂.contDiffAt hχa
+  rw [funext h]
   exact ((contDiff_one_sub_mul_log_norm_sub_sq hχ hχa).laplacian hm).neg
 
 /-- If `χ` is `C²` and equal to `1` near `a`, then the Laplacian of `χ log ‖· - a‖²` is
@@ -179,7 +180,7 @@ theorem integral_laplacian_fun_mul_log_norm_sub_sq {a : ℂ} {χ : ℂ → ℝ} 
   -- `Δψ = -φ • Δ((1 - χ) log ‖· - a‖²)`, as `Δψ` vanishes off the support of `χ`.
   have hcut (t : ℂ) : Δ (fun t ↦ χ t * Real.log (‖t - a‖ ^ 2)) t =
       -((φ : ℂ → ℝ) t • Δ (fun t ↦ (1 - χ t) * Real.log (‖t - a‖ ^ 2)) t) := by
-    have h := laplacian_fun_mul_log_norm_sub_sq hχ hχa t
+    have h := laplacian_fun_mul_log_norm_sub_sq (z := t) hχ.contDiffAt hχa
     by_cases ht : t ∈ ball a r
     · rw [h, hφ₁ ht, one_smul]
     · rw [laplacian_of_notMem_tsupport fun h ↦ ht (hK (tsupport_mul_subset_left h))] at h ⊢
