@@ -20,6 +20,7 @@ public import TauCeti.Topology.VectorBundle.ZeroSection
 import SymplecticGeometry.Topology.FiberBundle.Basic
 import SymplecticGeometry.Topology.Algebra.Projectivization
 import SymplecticGeometry.Topology.VectorBundle.ZeroSet
+import TauCeti.Topology.FiberBundle.Trivialization
 
 /-!
 # The projective bundle of a vector bundle
@@ -407,8 +408,8 @@ theorem isOpenMap_mk' : IsOpenMap (mk' 𝕜 G E) := by
     have h1 : (σ q).val.proj = q.val.1 := e.proj_symm_apply' q.property
     have h2 : e (σ q).val = (q.val.1, q.val.2.val) := e.apply_symm_apply' q.property
     have h3 : (σ q).val.proj ∈ e.baseSet := h1 ▸ q.property
-    refine ⟨σ q, hqU, eP.injOn ((eP.mem_source (x := mk' 𝕜 G E (σ q))).2 h3) hp ?_⟩
-    rw [Trivialization.coe_coe, ← hpq, mk'_eq_mk, trivializationAt_mk _ _ h3]
+    refine ⟨σ q, hqU, eP.eq_of_apply_eq (a := mk' 𝕜 G E (σ q)) h3 (eP.mem_source.1 hp) ?_⟩
+    rw [← hpq, mk'_eq_mk, trivializationAt_mk _ _ h3]
     refine Prod.ext h1 ?_
     simp only [Prod.map_snd, Projectivization.mk'_eq_mk]
     congr 1
