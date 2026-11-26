@@ -743,7 +743,7 @@ table may fall behind.
   even multiplicity at $\pm1$, $\omega_0$-orthogonality of eigenvectors for
   $\lambda\lambda'\neq1$ with the bilinear extension; from Tau Ceti's
   `SymplecticGroup.charpoly_inv`, `SymplecticGroup.reflect_charpolyRev` and
-  `LinearMap.IsAdjointPair.apply_eq_zero_of_mem_genEigenspace`),
+  `LinearMap.apply_eq_zero_of_mem_maxGenEigenspace_of_compl₁₂_eq_smul`),
   `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` (algebraic facts beside
   Mathlib's `SymplecticGroup.transpose_mem`: the `simp` lemmas
   `Matrix.J_inl_inl`, `Matrix.J_inl_inr`, `Matrix.J_inr_inl` and
