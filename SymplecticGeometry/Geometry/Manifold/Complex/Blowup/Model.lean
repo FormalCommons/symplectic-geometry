@@ -85,8 +85,8 @@ blowdown is a biholomorphism onto the nonzero vectors of `E`.
   vanish is zero, since the real differential of the inclusion is injective (Tau Ceti's
   `TauCeti.injective_mfderiv_restrictScalars`).
 * `SymplecticGeometry.BlowupModel.blowdownDiffeomorph n`: off the exceptional divisor, the blowdown
-  is a biholomorphism of open subsets onto `{z : E | z ≠ 0}`, with inverse `z ↦ ([z], z)`, the
-  point `SymplecticGeometry.BlowupModel.ofNeZero`
+  is a biholomorphism of open subsets onto Tau Ceti's `TauCeti.puncturedSpace E`, with inverse
+  `z ↦ ([z], z)`, the point `SymplecticGeometry.BlowupModel.ofNeZero`
   (`coe_blowdownDiffeomorph`, `blowdownDiffeomorph_symm_apply`).
 
 ## Implementation notes
