@@ -56,7 +56,7 @@ Over a chart `χ` that pulls `stdForm ι` back to `σ`, a principal `Circle`-bun
 form `α` of curvature `-2π σ` has, over any open star-convex subset `s` of the target, a section
 in which `α` read in `χ` is the model form `stdConnectionForm ι` of
 `AsymptoticallyHolomorphic/ModelConnection.lean`. Starting from a section `τ₀` smooth on the
-source of `χ`, the reading of `τ₀^* α` in `χ` has exterior derivative `-2π ω₀` on `s`, since the
+image `χ⁻¹ '' s`, the reading of `τ₀^* α` in `χ` has exterior derivative `-2π ω₀` on `s`, since the
 curvature is `d (τ₀^* α)` and the inverse of `χ` pulls `σ` back to `ω₀`
 (`TauCeti.SmoothTwoForm.mpullback_symm_apply_eq_constSmooth`). The gauge lemma
 `SymplecticGeometry.exists_contDiffOn_add_mextDeriv_eq_stdConnectionForm` gives `θ` on `s` with
@@ -458,7 +458,7 @@ variable {P : M → Type*} [TopologicalSpace (TotalSpace Circle P)] [∀ x, Topo
 a principal `Circle`-bundle `P` over a boundaryless manifold `M`, with curvature `-2π σ`, and let
 `χ` be a chart of `M` into `StdSpace ι` that pulls `stdForm ι` back to `σ` on its source. Let `s`
 be an open subset of the target of `χ`, star-convex with respect to some point, such as a ball,
-and `τ₀` a section of `P` that is smooth on the source of `χ`. Then there is a section `τ` of `P`,
+and `τ₀` a section of `P` that is smooth on `χ⁻¹ '' s`. Then there is a section `τ` of `P`,
 smooth on `χ⁻¹ '' s`, such that `χ⁻¹^* (τ^* α)` is the model connection form
 `stdConnectionForm ι` at every point of `s`.
 
@@ -475,7 +475,7 @@ theorem IsCircleConnectionForm.exists_mpullback_symm_mpullback_eq_stdConnectionF
     {s : Set (StdSpace ι)} {z₀ : StdSpace ι} (hs : StarConvex ℝ z₀ s) (hso : IsOpen s)
     (hsχ : s ⊆ χ.target) {τ₀ : ∀ x, P x}
     (hτ₀ : ContMDiffOn I (I.prod (𝓡 1)) ∞
-      (fun x ↦ ManifoldTotalSpace.homeomorph Circle P ⟨x, τ₀ x⟩) χ.source) :
+      (fun x ↦ ManifoldTotalSpace.homeomorph Circle P ⟨x, τ₀ x⟩) (χ.symm '' s)) :
     ∃ τ : ∀ x, P x, ContMDiffOn I (I.prod (𝓡 1)) ∞
         (fun x ↦ ManifoldTotalSpace.homeomorph Circle P ⟨x, τ x⟩) (χ.symm '' s) ∧
       ∀ z ∈ s, mpullback 𝓘(ℝ, StdSpace ι) I χ.symm (mpullback I (I.prod (𝓡 1))
@@ -486,20 +486,22 @@ theorem IsCircleConnectionForm.exists_mpullback_symm_mpullback_eq_stdConnectionF
   set β := mpullback 𝓘(ℝ, StdSpace ι) I χ.symm (mpullback I (I.prod (𝓡 1)) t₀ α.val)
   have hχs {z} (hz : z ∈ χ.target) : ContMDiffAt 𝓘(ℝ, StdSpace ι) I ∞ χ.symm z :=
     χ.symm.contMDiffOn.contMDiffAt (χ.open_target.mem_nhds hz)
-  have ht₀ {z} (hz : z ∈ χ.target) : ContMDiffAt I (I.prod (𝓡 1)) ∞ t₀ (χ.symm z) :=
-    hτ₀.contMDiffAt (χ.open_source.mem_nhds (χ.map_target hz))
-  have hα₀ {z} (hz : z ∈ χ.target) :=
+  have hU : IsOpen (χ.symm '' s) :=
+    χ.toOpenPartialHomeomorph.isOpen_image_symm_of_subset_target hso hsχ
+  have ht₀ {z} (hz : z ∈ s) : ContMDiffAt I (I.prod (𝓡 1)) ∞ t₀ (χ.symm z) :=
+    hτ₀.contMDiffAt (hU.mem_nhds ⟨z, hz, rfl⟩)
+  have hα₀ {z} (hz : z ∈ s) :=
     (α.isSmoothForm.contMDiff _).mpullback_form (ht₀ hz) le_rfl
   have hβ : ContDiffOn ℝ (E := StdSpace ι) (F := StdSpace ι [⋀^Fin 1]→L[ℝ] ℝ) (⊤ : ℕ∞) β s :=
     fun z hz ↦ (RoughForm.contDiffWithinAt_of_contMDiffWithinAt_modelSpace
-      ((hα₀ (hsχ hz)).mpullback_form (hχs (hsχ hz)) le_rfl).contMDiffWithinAt).mono
+      ((hα₀ hz).mpullback_form (hχs (hsχ hz)) le_rfl).contMDiffWithinAt).mono
         (Set.subset_univ s)
   -- `dβ` is the curvature read in `χ`, that is `-2π ω₀`.
   have hdβ : ∀ z ∈ s, mextDeriv β z = (-(2 * Real.pi) • (stdForm ι).constSmooth).val z := by
     intro z hz
     have hz' := hsχ hz
-    rw [← mpullback_mextDeriv_at ((hχs hz').of_le (by simp)) ((hα₀ hz').of_le (by simp)),
-      mpullback_apply_congr (hα.curvature_apply_eq_mextDeriv_mpullback (ht₀ hz')).symm, hασ,
+    rw [← mpullback_mextDeriv_at ((hχs hz').of_le (by simp)) ((hα₀ hz).of_le (by simp)),
+      mpullback_apply_congr (hα.curvature_apply_eq_mextDeriv_mpullback (ht₀ hz)).symm, hασ,
       SetLike.val_smul, mpullback_smul, Pi.smul_apply,
       SmoothTwoForm.mpullback_symm_apply_eq_constSmooth hχ hz', SetLike.val_smul, Pi.smul_apply]
   obtain ⟨θ, hθ, hθβ⟩ :=
@@ -512,7 +514,7 @@ theorem IsCircleConnectionForm.exists_mpullback_symm_mpullback_eq_stdConnectionF
       rintro _ ⟨z, hz, rfl⟩
       simpa [χ.right_inv (hsχ hz)] using hz)
   refine ⟨fun x ↦ op (Circle.exp (θ (χ x))) • τ₀ x,
-    (hτ₀.mono hsrc).totalSpaceMk_smul (contMDiff_circleExp.comp_contMDiffOn hθχ), fun z hz ↦ ?_⟩
+    hτ₀.totalSpaceMk_smul (contMDiff_circleExp.comp_contMDiffOn hθχ), fun z hz ↦ ?_⟩
   have hz' := hsχ hz
   have hθχz : ContMDiffAt I 𝓘(ℝ) ∞ (fun x ↦ θ (χ x)) (χ.symm z) := by
     have hθz : ContMDiffAt 𝓘(ℝ, StdSpace ι) 𝓘(ℝ) ∞ θ (χ (χ.symm z)) := by
@@ -524,7 +526,7 @@ theorem IsCircleConnectionForm.exists_mpullback_symm_mpullback_eq_stdConnectionF
   rw [mpullback_apply_congr (η := mextDeriv (RoughForm.ofFunction I fun x ↦ θ (χ x)) +
       mpullback I (I.prod (𝓡 1)) t₀ α.val)
       (hα.mpullback_apply_op_circleExp_smul_eq_mextDeriv_add (x := χ.symm.toPartialEquiv z)
-        χ.open_source hτ₀ (χ.map_target hz') (hθχz.of_le (by simp))),
+        hU hτ₀ ⟨z, hz, rfl⟩ (hθχz.of_le (by simp))),
     mpullback_add, Pi.add_apply, mpullback_mextDeriv_ofFunction_apply
       ((hχs hz').mdifferentiableAt (by simp)) (hθχz.mdifferentiableAt (by simp)),
     add_comm, ← hθβ z hz]

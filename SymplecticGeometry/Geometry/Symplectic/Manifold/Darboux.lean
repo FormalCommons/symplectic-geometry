@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.TransAffine
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Darboux
 public import TauCeti.Geometry.Symplectic.Manifold.Darboux
+import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Symplectic.Manifold.NeighborhoodGerm
@@ -130,10 +131,7 @@ theorem mpullback_symm_apply_eq_constSmooth {F : Type*} [NormedAddCommGroup F]
     isSymplecticMapOn_iff.2 fun x hx v w ↦ by
       rw [hφ x hx, mvfderiv_apply_eq_mfderiv_apply, mvfderiv_apply_eq_mfderiv_apply]
       exact SymplecticForm.constSmooth_apply form₀ _ _ _
-  refine ContinuousAlternatingMap.ext fun v ↦ ?_
-  rw [show v = ![v 0, v 1] from (FinVec.etaExpand_eq v).symm, mpullback_apply_pair,
-    ← SmoothBundleForm.eval₂_apply, ← SmoothBundleForm.eval₂_apply]
-  exact (φ.isSymplecticMapOn_symm h (by simp)).apply hz (v 0) (v 1)
+  exact (φ.isSymplecticMapOn_symm h (by simp)).mpullback_apply hz
 
 end SmoothTwoForm
 
