@@ -103,7 +103,7 @@ theorem singularCohomologyMap_ofSubsetMap_eq_affine_of_hasFDerivAt {f : E → F}
       excisionMap A Sᶜ ≫ ofSubsetMap g hg =
         ofSubsetMap (X := TopCat.of A) (B := Subtype.val ⁻¹' Sᶜ)
           (TopCat.ofHom (ContinuousMap.subtypeVal A) ≫ g) fun y hy ↦ hg hy := by
-    rw [excisionMap_eq_ofSubsetMap]
+    rw [← interPairMapOfSubset_eq_excisionMap, interPairMapOfSubset_eq_ofSubsetMap]
     exact ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ _ rfl
   refine (congrArg (TopPair.singularCohomologyMap · n) (hcomp _ _)).trans
     (Eq.trans ?_ (congrArg (TopPair.singularCohomologyMap · n) (hcomp _ _)).symm)
