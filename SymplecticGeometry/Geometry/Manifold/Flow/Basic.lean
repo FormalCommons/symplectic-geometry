@@ -61,6 +61,8 @@ Ceti's chain rule for the time maps, `TauCeti.mfderiv_flowOf_add_apply`, and
 * `TauCeti.isIntegralCurve_maximalIntegralCurve_of_isCompact`: on a complete real normed space,
   the maximal integral curve of a compactly supported `C¹` field is a global integral curve, by
   Tau Ceti's `TauCeti.isCompleteVectorField_of_isCompact_of_eq_zero_off`.
+* `maximalIntegralCurve_zero_of_vectorSpace`: Tau Ceti's `maximalIntegralCurve_zero` for a field
+  given as a map `E → E`, as a `simp` lemma.
 -/
 
 public section
@@ -356,5 +358,20 @@ theorem isIntegralCurve_maximalIntegralCurve_of_isCompact {v : E → E} {K : Set
 end CompactSupport
 
 end TauCeti
+
+section VectorSpace
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+
+/-- The maximal integral curve of a vector field `v : E → E` on a real normed space starts at its
+initial point. This is `maximalIntegralCurve_zero`, stated for a field valued in the tangent
+spaces of `E`; `simp` does not find that one for an `E`-valued field, nor does `rw` unless
+`v` is named. -/
+@[simp]
+theorem maximalIntegralCurve_zero_of_vectorSpace (v : E → E) (x : E) :
+    maximalIntegralCurve (I := 𝓘(ℝ, E)) v x 0 = x :=
+  maximalIntegralCurve_zero
+
+end VectorSpace
 
 end
