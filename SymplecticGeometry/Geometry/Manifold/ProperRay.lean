@@ -40,11 +40,13 @@ closed discrete set of a manifold of dimension at least two. Each ray is grown a
 * `exists_grow_rays`: one arc for each of finitely many rays. Rays whose built parts
   `γ k '' Iic (T k)` are disjoint, miss `s`, are closed off `s` and leave a closed set `K` for
   good, each ending outside `K` in a component of `Kᶜ` with noncompact closure, are all extended
-  past a compact set `L`, with new arcs outside `K ∪ s`, keeping these properties. The rays grow
-  one at a time: for the ray `γ k`, `exists_diffeomorph_grow_arc` runs in the component `W` of
-  `Kᶜ` through its endpoint, with the parts in `W` of the rays as the arcs (by
-  `LeavesForGood.image_inter_connectedComponentIn`, only rays that end in `W` meet `W`), and a
-  target outside `L` from `exists_mem_sdiff_union_iUnion_image_notMem`. The diffeomorphism fixes
+  past a compact set `L`, with new arcs outside `K ∪ s`. The new built parts are again disjoint,
+  miss `s`, are closed off `s` and leave `K` for good. The rays grow one at a time: for the ray
+  `γ k`, `exists_diffeomorph_grow_arc` runs in the component `W` of `Kᶜ` through its endpoint,
+  with the parts in `W` of the rays ending in `W` as the arcs, each of the order-connected form
+  that `LeavesForGood.image_inter_connectedComponentIn` gives. A ray ending elsewhere does not
+  meet `W` (`LeavesForGood.apply_mem_connectedComponentIn`). The target outside `L` comes from
+  `exists_mem_sdiff_union_iUnion_image_notMem`. The diffeomorphism fixes
   every built part, so only `γ k` changes.
 
 The set `U` is preconnected by `isPreconnected_sdiff_union_iUnion_image_of_one_lt_rank`, and
@@ -338,8 +340,7 @@ private theorem exists_grow_one_ray [Finite ι] (hE : 1 < Module.rank ℝ E) (hK
     exact ⟨⟨j, (hR j).apply_mem_connectedComponentIn ordConnected_Iic isGreatest_Iic
       (hγc j).continuousOn ht hxW⟩, by
       rw [himage]; exact ⟨mem_image_of_mem _ ht, hxW⟩⟩
-  have hWL : ¬ W ⊆ L := fun h ↦
-    hnc k (hL.of_isClosed_subset isClosed_closure (closure_minimal h hL.isClosed))
+  have hWL : ¬ W ⊆ L := fun h ↦ hnc k (hL.closure_of_subset h)
   obtain ⟨y, hyW, hyL⟩ := exists_mem_sdiff_union_iUnion_image_notMem hE
     hK.isOpen_compl.connectedComponentIn hL.isClosed hWL hd
     (f := fun j : {j // γ j (T j) ∈ W} ↦ γ j)
