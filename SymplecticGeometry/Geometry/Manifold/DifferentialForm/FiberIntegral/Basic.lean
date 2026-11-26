@@ -64,7 +64,7 @@ the integral over `F` of the integrand does not depend on the chart that reads i
 (`TauCeti.MapFiber.Atlas.integralTopForm_fiberIntegrand_trivAt`).
 
 For a smooth atlas whose coordinate changes preserve `o`, with `F` compact and Hausdorff and `B`
-boundaryless, the fibre integral `TauCeti.MapFiber.Atlas.fiberIntegral A o hA ho` sends a smooth
+boundaryless, the fibre integral `TauCeti.MapFiber.Atlas.fiberIntegral A hA ho` sends a smooth
 form `α` of degree `r + m` on `M` to the `r`-form on `B` whose value at `b` on `v` is the integral
 over `F` of `A.fiberIntegrand α b v`. On the base set `U` of a chart `e` of the atlas, the
 integrand over every point is read through `e` without changing its integral, so the restriction
@@ -77,7 +77,7 @@ smooth, smoothness of a form being local (`TauCeti.contMDiffAt_mpullback_subtype
 
 * `Bundle.Trivialization.fiberIntegrand e α b v`: the integrand read through `e`.
 * `TauCeti.MapFiber.Atlas.fiberIntegrand A α b v`: the integrand read through `A.trivAt b`.
-* `TauCeti.MapFiber.Atlas.fiberIntegral A o hA ho`: the fibre integral of an oriented atlas.
+* `TauCeti.MapFiber.Atlas.fiberIntegral A hA ho`: the fibre integral of an oriented atlas.
 
 ## Main results
 
@@ -579,6 +579,7 @@ private theorem isSmoothForm_fiberIntegralRoughForm (hA : A.IsContMDiff ∞ I J 
   rw [← mpullback_subtype_val_fiberIntegralRoughForm o hA ho α b, isSmoothForm_def] at h
   exact (contMDiffAt_mpullback_subtype_val_iff _ ⟨b, A.mem_baseSet_trivAt b⟩).1 (h _)
 
+variable {o} in
 /-- **The fibre integral of a fibration with an oriented atlas.** Let `A` be a smooth atlas of
 `proj : M → B` whose coordinate changes preserve the orientation `o` of the compact Hausdorff
 model fibre `F`, and let `B` be boundaryless. The linear map sending a smooth form `α` of degree
@@ -608,7 +609,7 @@ through the chart `A.trivAt b`. -/
 @[simp]
 theorem fiberIntegral_apply (α : SmoothForm IM M ℝ (r + m)) (b : B)
     (v : Fin r → TangentSpace I b) :
-    (A.fiberIntegral o hA ho α).val b v = integralTopForm o (A.fiberIntegrand α.val b v) :=
+    (A.fiberIntegral hA ho α).val b v = integralTopForm o (A.fiberIntegrand α.val b v) :=
   fiberIntegralRoughForm_apply o hA α b v
 
 /-- **The value in a trivialization.** On the base set `U` of the chart `e = A.trivAt b'`, the
@@ -616,7 +617,7 @@ restriction of the fibre integral of `α` is the fibre integral on the product `
 pull-back of `α` along `(b, y) ↦ e⁻¹ (b, y)`. -/
 theorem mpullback_subtype_val_fiberIntegral (α : SmoothForm IM M ℝ (r + m)) (b' : B) :
     SmoothForm.mpullback (Subtype.val : (⟨(A.trivAt b').baseSet, (A.trivAt b').open_baseSet⟩ :
-        TopologicalSpace.Opens B) → B) contMDiff_subtypeVal (A.fiberIntegral o hA ho α) =
+        TopologicalSpace.Opens B) → B) contMDiff_subtypeVal (A.fiberIntegral hA ho α) =
       prodFiberIntegral o (SmoothForm.mpullback _ ((A.trivAt b').contMDiff_symm_val_prod
         (hA.contMDiffOn_trivAt_symm b') subset_rfl) α) :=
   SmoothBundleForm.ext fun b v ↦ by
@@ -629,7 +630,7 @@ base set contains `b`, the value of the fibre integral at `b` on `v` is the inte
 the integrand read through `A.trivAt b'`. -/
 theorem fiberIntegral_apply_of_mem (α : SmoothForm IM M ℝ (r + m)) {b b' : B}
     (hb : b ∈ (A.trivAt b').baseSet) (v : Fin r → TangentSpace I b) :
-    (A.fiberIntegral o hA ho α).val b v =
+    (A.fiberIntegral hA ho α).val b v =
       integralTopForm o ((A.trivAt b').fiberIntegrand α.val b v) := by
   rw [fiberIntegral_apply, integralTopForm_fiberIntegrand_trivAt o hA ho α.val hb]
 
@@ -643,7 +644,7 @@ theorem fiberIntegral_apply_of_lift (α : SmoothForm IM M ℝ (r + m)) {b b' : B
     {X : Fin r → (y : F) → TangentSpace IM ((A.trivAt b').toOpenPartialHomeomorph.symm (b, y))}
     (hX : ∀ i y,
       mfderiv IM I proj ((A.trivAt b').toOpenPartialHomeomorph.symm (b, y)) (X i y) = v i) :
-    (A.fiberIntegral o hA ho α).val b v = integralTopForm o (fun y ↦
+    (A.fiberIntegral hA ho α).val b v = integralTopForm o (fun y ↦
       ((α.val ((A.trivAt b').toOpenPartialHomeomorph.symm (b, y))).appendLeft
         fun i ↦ X i y).compContinuousLinearMap
           (mfderiv J IM (fun y ↦ (A.trivAt b').toOpenPartialHomeomorph.symm (b, y)) y)) := by
@@ -662,7 +663,7 @@ theorem fiberIntegral_apply_of_lift (α : SmoothForm IM M ℝ (r + m)) {b b' : B
 base set contains `b`. -/
 theorem fiberIntegral_apply_zero (α : SmoothForm IM M ℝ (0 + m)) {b b' : B}
     (hb : b ∈ (A.trivAt b').baseSet) (v : Fin 0 → TangentSpace I b) :
-    (A.fiberIntegral o hA ho α).val b v = integralTopForm o
+    (A.fiberIntegral hA ho α).val b v = integralTopForm o
       (mpullback J IM (fun y ↦ (A.trivAt b').toOpenPartialHomeomorph.symm (b, y))
         (LinearEquiv.cast (R := ℝ) (M := fun k ↦ SmoothForm IM M ℝ k) (zero_add m) α).val) := by
   rw [fiberIntegral_apply_of_mem o hA ho α hb, (A.trivAt b').fiberIntegrand_degree_zero
