@@ -119,7 +119,7 @@ parametrix glued from charts.
   `compactlySupportedForms.denseRange_toL2Form`; its inner product is
   $\int_M\langle\alpha,\beta\rangle\,\mathrm{vol}$ on smooth forms, by
   Tau Ceti's
-  `integralTopForm_inner_smul_riemannianVolumeForm_eq_inner_toL2Form`.
+  `compactlySupportedForms.inner_toL2Form`.
   `H1Form o hkl` is the completion for
   $\langle\alpha,\beta\rangle+\langle\Delta\alpha,\beta\rangle$, which is an
   inner product by Tau Ceti's Green's formulas: Tau Ceti's
