@@ -7,10 +7,9 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.SmoothSingular.DeRham.MayerVietoris.Basic
 import Mathlib.Algebra.FiveLemma
-import SymplecticGeometry.Geometry.Manifold.DeRham.MayerVietoris
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Opens
-import SymplecticGeometry.Geometry.Manifold.SmoothSingular.DeRham.Theorem
 import TauCeti.AlgebraicTopology.Cohomology.HomotopyInvariance
+import TauCeti.Geometry.Manifold.SmoothSingular.DeRham.Theorem
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.Metrizable
 
@@ -26,7 +25,7 @@ step of the proof of the de Rham theorem by induction over open covers.
 The proof is the five lemma
 (`LinearMap.bijective_of_surjective_of_bijective_of_bijective_of_injective`) applied to the ladder
 whose rows are the Mayer–Vietoris sequences in de Rham cohomology
-(`TauCeti.deRhamCohomology.exact_mayerVietoris_prod_coprod` and its two siblings) and in singular
+(`TauCeti.deRhamCohomology.exact_mayerVietorisToProd_fromProd` and its two siblings) and in singular
 cohomology, and whose rungs are de Rham homomorphisms. The squares made of restrictions commute
 by `TauCeti.singularCohomologyMayerVietorisToProd_deRhamHom` and
 `TauCeti.singularCohomologyMayerVietorisFromProd_deRhamHom`, and the square made of the
@@ -100,13 +99,8 @@ private theorem singularCohomologyMayerVietorisFromProd_comp_prodMap (m : ℕ) :
     TopCat.singularCohomologyMayerVietorisFromProd (ModuleCat.of ℝ ℝ) ℝ
       (ModuleCat.of ℝ ℝ) (X := TopCat.of M) U V m ∘ₗ
         (deRhamHom I U m).prodMap (deRhamHom I V m) =
-      deRhamHom I (U ⊓ V : Opens M) m ∘ₗ
-        (deRhamCohomology.map (I := I) (I' := I) (Opens.inclusion (inf_le_left : U ⊓ V ≤ U))
-            (contMDiff_inclusion _) m).coprod
-          (-deRhamCohomology.map (I := I) (I' := I) (Opens.inclusion (inf_le_right : U ⊓ V ≤ V))
-            (contMDiff_inclusion _) m) :=
-  LinearMap.ext fun x ↦ by
-    simpa [← sub_eq_add_neg] using singularCohomologyMayerVietorisFromProd_deRhamHom I U V m x.1 x.2
+      deRhamHom I (U ⊓ V : Opens M) m ∘ₗ deRhamCohomology.mayerVietorisFromProd I U V m :=
+  LinearMap.ext fun x ↦ singularCohomologyMayerVietorisFromProd_deRhamHom I U V m x.1 x.2
 
 /-- The Mayer–Vietoris step of the de Rham theorem for two open sets covering `M`. -/
 private theorem bijective_deRhamHom_of_sup_eq_top (hUV : U ⊔ V = ⊤)
@@ -133,9 +127,9 @@ private theorem bijective_deRhamHom_of_sup_eq_top (hUV : U ⊔ V = ⊤)
     (deRhamHom I (U ⊓ V : Opens M) (n + 1))
     (singularCohomologyMayerVietorisFromProd_comp_prodMap n) ?_ ?_
     (singularCohomologyMayerVietorisFromProd_comp_prodMap (n + 1))
-    (deRhamCohomology.exact_mayerVietoris_coprod_mayerVietorisδ U V n)
-    (deRhamCohomology.exact_mayerVietorisδ_mayerVietoris_prod U V n)
-    (deRhamCohomology.exact_mayerVietoris_prod_coprod U V (n + 1))
+    (deRhamCohomology.exact_mayerVietorisFromProd_δ U V n)
+    (deRhamCohomology.exact_mayerVietorisδ_toProd U V n)
+    (deRhamCohomology.exact_mayerVietorisToProd_fromProd U V (n + 1))
     (TopCat.exact_singularCohomologyMayerVietorisFromProd_δ (ModuleCat.of ℝ ℝ) ℝ
       (ModuleCat.of ℝ ℝ) (X := TopCat.of M) U.isOpen V.isOpen hcov n (n + 1))
     (TopCat.exact_singularCohomologyMayerVietorisδ_toProd (ModuleCat.of ℝ ℝ) ℝ
@@ -163,7 +157,7 @@ private theorem bijective_deRhamHom_of_sup_eq_top (hUV : U ⊔ V = ⊤)
       simp only [hf]
     rw [LinearMap.comp_apply, LinearMap.comp_apply, LinearEquiv.coe_coe,
       singularCohomologyMayerVietorisToProd_deRhamHom, hres U le_sup_left, hres V le_sup_right,
-      LinearMap.comp_apply, LinearMap.prod_apply, Function.prod_apply, LinearMap.prodMap_apply]
+      LinearMap.comp_apply, deRhamCohomology.mayerVietorisToProd_apply, LinearMap.prodMap_apply]
   · rw [LinearMap.coe_prodMap]
     exact (hU n).surjective.prodMap (hV n).surjective
   · rw [LinearMap.coe_prodMap]

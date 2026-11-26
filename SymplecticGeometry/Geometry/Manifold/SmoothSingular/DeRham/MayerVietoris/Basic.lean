@@ -190,16 +190,16 @@ theorem singularCohomologyMayerVietorisToProd_deRhamHom [SigmaCompactSpace M]
 open sets `U` and `V` of `M`, a de Rham class `a` of `U` and a de Rham class `b` of `V`, the
 singular Mayer–Vietoris map `H^n(U) × H^n(V) → H^n(U ⊓ V)`, with real coefficients, sends the
 pair of the de Rham homomorphisms of `a` and `b` to the de Rham homomorphism of the difference of
-the restrictions of `a` and `b` to `U ⊓ V`. -/
+the restrictions of `a` and `b` to `U ⊓ V`, which is the image of `(a, b)` under the de Rham
+Mayer–Vietoris map `TauCeti.deRhamCohomology.mayerVietorisFromProd`. -/
 theorem singularCohomologyMayerVietorisFromProd_deRhamHom [SigmaCompactSpace U]
     [SigmaCompactSpace V] [SigmaCompactSpace (U ⊓ V : Opens M)] (n : ℕ)
     (a : deRhamCohomology I U n) (b : deRhamCohomology I V n) :
     TopCat.singularCohomologyMayerVietorisFromProd (ModuleCat.of ℝ ℝ) ℝ (ModuleCat.of ℝ ℝ)
         (X := TopCat.of M) U V n (deRhamHom I U n a, deRhamHom I V n b) =
-      deRhamHom I (U ⊓ V : Opens M) n
-        (deRhamCohomology.map (Opens.inclusion inf_le_left) (contMDiff_inclusion _) n a -
-          deRhamCohomology.map (Opens.inclusion inf_le_right) (contMDiff_inclusion _) n b) := by
-  rw [TopCat.singularCohomologyMayerVietorisFromProd_apply, map_sub, deRhamHom_map, deRhamHom_map]
+      deRhamHom I (U ⊓ V : Opens M) n (deRhamCohomology.mayerVietorisFromProd I U V n (a, b)) := by
+  rw [TopCat.singularCohomologyMayerVietorisFromProd_apply,
+    deRhamCohomology.mayerVietorisFromProd_apply, map_sub, deRhamHom_map, deRhamHom_map]
   -- The inclusions of `U ⊓ V` in `U` and in `V`, as continuous maps and as smooth maps, agree.
   rfl
 
