@@ -32,10 +32,12 @@ and `T_p L ⊄ T_p Σ`, and their §7.9 says that an embedding of a disc attache
 to `W` when it maps the disc into the complement of the interior of `W`, meets `∂W` exactly in
 the image of the boundary sphere, and is J-orthogonal to `∂W` there. The four fields are these
 conditions for `W = {φ ≤ 0}` and `∂W = {φ = 0}`, with the transversality written as a sign of
-`dφ` on the radial direction: along the sphere `φ ∘ ι` vanishes on tangent vectors of the
-sphere and is positive inside it, so `ι` is transverse to `{φ = 0}` there exactly when this
-radial derivative is negative. Being an embedding and being totally real are not fields: the
-J-convex surrounding (Cieliebak–Eliashberg, Theorem 8.4) asks for them as separate hypotheses.
+`dφ` on the radial direction: `φ ∘ ι` vanishes on the sphere, so at a point `x` of the sphere
+its derivative vanishes on the sphere's tangent space, and it is positive inside the sphere, so
+its derivative on the radial vector `x` is `≤ 0`; hence `ι` is transverse to `{φ = 0}` at `x`
+exactly when this radial derivative is negative. Being an embedding and being totally real are
+not fields: the J-convex surrounding (Cieliebak–Eliashberg, Theorem 8.4) asks for them as
+separate hypotheses.
 
 ## Main results
 
