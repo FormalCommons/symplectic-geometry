@@ -29,6 +29,7 @@ import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 import SymplecticGeometry.MeasureTheory.Integral.IntervalIntegral.Primitive
 import TauCeti.Analysis.Normed.Group.Basic
+import TauCeti.Analysis.Calculus.FDeriv.RestrictScalars
 
 /-!
 # Radial potential forms on `ℂⁿ ∖ 0`
@@ -71,6 +72,9 @@ blowup constructions read the forms they build off `Z` in these terms.
   since that map is a linear symplectomorphism
   (`SymplecticGeometry.isSymplectomorphism_complexToRealEuclidean`,
   `TauCeti.SymplecticForm.IsSymplectomorphism.mpullback_constSmooth`).
+* `SymplecticGeometry.eval₂_constSmooth_stdComplexPiSymplecticForm_mfderiv`: along a curve
+  `u : ℂ → ι → ℂ` complex differentiable at `t`, the value of `ω₀` on the derivatives of `u` along
+  `1` and `i` is `|u'(t)|²`.
 * `SymplecticGeometry.radialPotentialForm_log`: for `ι = Fin (n + 1)` and `g = log` it is the
   Fubini–Study lift `SymplecticGeometry.fubiniStudyLift n`, since its primitive is
   `(1/4) J* d log |z|²` (`SymplecticGeometry.fubiniStudyPrimitive_eq`).
@@ -265,6 +269,19 @@ theorem radialPotentialForm_id (hg : ContDiffOn ℝ ∞ id (Ioi 0)) :
     SymplecticForm.eval₂_constSmooth_mfderiv_eq, mvfderiv_subtype_val_apply,
     mvfderiv_subtype_val_apply]
   simp
+
+/-- Along a curve `u : ℂ → ι → ℂ` complex differentiable at `t`, the value of the standard form
+`ω₀` on the derivatives of `u` along `1` and `i` is `|u'(t)|² = ∑ᵢ ‖u'(t)ᵢ‖²`. -/
+theorem eval₂_constSmooth_stdComplexPiSymplecticForm_mfderiv {u : ℂ → ι → ℂ} {t : ℂ}
+    (hu : DifferentiableAt ℂ u t) :
+    (stdComplexPiSymplecticForm ι).constSmooth.eval₂ (u t)
+        (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, ι → ℂ) u t (1 : ℂ)) (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, ι → ℂ) u t Complex.I) =
+      ∑ i, ‖deriv u t i‖ ^ 2 := by
+  refine (SymplecticForm.eval₂_constSmooth_mfderiv_eq _ u t (1 : ℂ) Complex.I).trans ?_
+  rw [mvfderiv_eq_fderiv_apply u t (1 : ℂ), mvfderiv_eq_fderiv_apply u t Complex.I,
+    hu.fderiv_restrictScalars_eq_smul_deriv ℝ, hu.fderiv_restrictScalars_eq_smul_deriv ℝ,
+    one_smul]
+  simp [Complex.sq_norm, Complex.normSq_apply]
 
 variable (ι) in
 /-- The constant form `stdComplexPiSymplecticForm ι` on `ι → ℂ` is the pull-back of the constant
