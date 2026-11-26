@@ -14,7 +14,7 @@ public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Basic
 public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
 public import TauCeti.Geometry.Symplectic.Manifold.Kahler
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Restriction
-public import TauCeti.Geometry.Symplectic.Manifold.JHolomorphic
+public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Pseudoholomorphic
 public import TauCeti.Geometry.Symplectic.Manifold.Opens
 public import TauCeti.Geometry.Symplectic.Lagrangian.Basic
 import SymplecticGeometry.LinearAlgebra.ComplexStructure.Hom
@@ -36,8 +36,11 @@ almost complex structure on `N` for which every differential of `f` is complex l
 (`mfderiv_restrict_apply`, `eq_restrict_iff`). Its smoothness is
 `ContMDiff.tangentEnd_of_mfderiv`, which tests it after the differential of `f`.
 
-A two-form `σ` on `M` taming `J` pulls back to a form taming the restriction, hence a
-nondegenerate one; invariance and compatibility pass to the pull-back in the same way. So `f` is a
+The embedding is pseudoholomorphic from the restriction to `J`
+(`isPseudoholomorphic_restrict`), and its differentials are injective, so a two-form `σ` on `M`
+taming `J` pulls back to a form taming the restriction, hence a nondegenerate one, and invariance
+and compatibility pass to the pull-back too: these are the lemmas on pull-backs along
+pseudoholomorphic maps of `AlmostComplex/Pseudoholomorphic.lean`. So `f` is a
 symplectic submanifold embedding for `σ` in the sense of Tau Ceti's
 `TauCeti.SmoothTwoForm.IsNondegenerate.IsSymplecticSubmanifoldEmbedding`, and if `σ` is
 symplectic, so is its pull-back. Each of these is checked on `df_x v`, so the linear facts on the
@@ -52,11 +55,12 @@ that is `f`-related near `x` to a field on `M`
 `N_J = 0` gives `N_{J|_N} = 0`, and a Kähler pair in the sense of Tau Ceti's
 `TauCeti.SmoothTwoForm.IsKahler`, which asks for `N_J = 0`, restricts to a Kähler pair.
 
-The API of the restriction and the three form lemmas adapt Tau Ceti's
-`TauCeti.SmoothAlmostComplexStructure.pullback`,
-`TauCeti.ContMDiffAlmostComplexStructure.eq_pullback_iff`, `TauCeti.SmoothTwoForm.Tames.pullback`,
-`TauCeti.SmoothTwoForm.Invariant.pullback` and `TauCeti.SmoothTwoForm.Compatible.pullback`, from
+The API of the restriction adapts Tau Ceti's `TauCeti.SmoothAlmostComplexStructure.pullback`
+and `TauCeti.ContMDiffAlmostComplexStructure.eq_pullback_iff`, from
 `TauCeti/Geometry/Symplectic/Manifold/AlmostComplex/Pullback.lean`, from diffeomorphisms to
+embeddings. The proof of `isPseudoholomorphic_restrict` adapts Tau Ceti's
+`TauCeti.SmoothAlmostComplexStructure.isPseudoholomorphic_descend`, from
+`TauCeti/Geometry/Symplectic/Manifold/AlmostComplex/Descent.lean`, from quotient maps to
 embeddings.
 
 If `J` is integrable and `N` has no boundary, the restriction is integrable
@@ -90,6 +94,8 @@ on it (`TauCeti.SmoothTwoForm.Tames.nondegenerate_restrict_ker_mfderiv`).
   embedding are complex linear, `df_x ∘ (J.restrict f hJ)_x = J_{f x} ∘ df_x`.
 * `TauCeti.SmoothAlmostComplexStructure.eq_restrict_iff`: the restriction is the only structure
   with this property.
+* `TauCeti.SmoothAlmostComplexStructure.isPseudoholomorphic_restrict`: the embedding is
+  pseudoholomorphic from the restriction to `J`.
 * `TauCeti.SmoothTwoForm.Tames.restrict`, `TauCeti.SmoothTwoForm.Invariant.restrict`,
   `TauCeti.SmoothTwoForm.Compatible.restrict`: taming, invariance and compatibility pass to the
   pull-back of the form and the restriction of the structure.
@@ -220,6 +226,11 @@ theorem eq_restrict_iff {K : SmoothAlmostComplexStructure I' N} :
   exact f.isImmersion.mfderiv_injective (by simp) x
     ((h x v).trans (mfderiv_restrict_apply hJ x v).symm)
 
+/-- The embedding is pseudoholomorphic from the restricted structure to `J`. -/
+theorem isPseudoholomorphic_restrict : IsPseudoholomorphic (J.restrict f hJ) J f :=
+  isPseudoholomorphic_iff.2 fun x ↦ isPseudoholomorphicAt_iff_mfderiv.2
+    ⟨(f.contMDiff x).mdifferentiableAt (by simp), mfderiv_restrict_apply hJ x⟩
+
 /-- **Integrability passes to complex submanifolds.** If `J` is integrable, then so is its
 restriction to a boundaryless submanifold with `J`-invariant tangent spaces.
 
@@ -324,27 +335,22 @@ include hJ
 /-- If `σ` tames `J`, then the pull-back of `σ` to a complex submanifold tames the restricted
 structure. In particular the pull-back is nondegenerate (`SmoothTwoForm.Tames.isNondegenerate`). -/
 theorem Tames.restrict (hσ : σ.Tames J) :
-    SmoothTwoForm.Tames (SmoothForm.mpullback f f.contMDiff σ) (J.restrict f hJ) := by
-  rw [tames_iff]
-  intro x v hv
-  rw [SmoothForm.eval₂_mpullback, SmoothAlmostComplexStructure.mfderiv_restrict_apply]
-  exact tames_iff.1 hσ (f x) _
-    ((map_ne_zero_iff _ (f.isImmersion.mfderiv_injective (by simp) x)).2 hv)
+    SmoothTwoForm.Tames (SmoothForm.mpullback f f.contMDiff σ) (J.restrict f hJ) :=
+  hσ.mpullback (SmoothAlmostComplexStructure.isPseudoholomorphic_restrict hJ) f.contMDiff
+    (f.isImmersion.mfderiv_injective (by simp))
 
 /-- If `σ` is invariant under `J`, then the pull-back of `σ` to a complex submanifold is invariant
 under the restricted structure. -/
 theorem Invariant.restrict (hσ : σ.Invariant J) :
-    SmoothTwoForm.Invariant (SmoothForm.mpullback f f.contMDiff σ) (J.restrict f hJ) := by
-  rw [invariant_iff]
-  intro x v w
-  simp only [SmoothForm.eval₂_mpullback, SmoothAlmostComplexStructure.mfderiv_restrict_apply]
-  exact invariant_iff.1 hσ (f x) _ _
+    SmoothTwoForm.Invariant (SmoothForm.mpullback f f.contMDiff σ) (J.restrict f hJ) :=
+  hσ.mpullback (SmoothAlmostComplexStructure.isPseudoholomorphic_restrict hJ) f.contMDiff
 
 /-- If `σ` is compatible with `J`, then the pull-back of `σ` to a complex submanifold is
 compatible with the restricted structure. -/
 theorem Compatible.restrict (hσ : σ.Compatible J) :
     SmoothTwoForm.Compatible (SmoothForm.mpullback f f.contMDiff σ) (J.restrict f hJ) :=
-  ⟨hσ.invariant.restrict hJ, hσ.tames.restrict hJ⟩
+  hσ.mpullback (SmoothAlmostComplexStructure.isPseudoholomorphic_restrict hJ) f.contMDiff
+    (f.isImmersion.mfderiv_injective (by simp))
 
 /-- If `σ` tames `J`, then a smooth embedding with `J`-invariant tangent images is a symplectic
 submanifold embedding for `σ`. -/
