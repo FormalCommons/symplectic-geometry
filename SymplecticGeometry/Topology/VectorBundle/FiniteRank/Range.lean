@@ -338,18 +338,14 @@ theorem pullbackMap_rangeRestrict_pullbackRangeHom :
 /-- The comparison map is bijective on every fibre. -/
 theorem fiberMap_pullbackRangeHom_bijective (x : X) :
     Bijective ((pullbackRangeHom f hr g).fiberMap x) := by
-  refine ⟨fun v w hvw ↦ fiberMap_rangeInclusion_injective f hr (g x) ?_, fun w ↦ ?_⟩
-  · have h := congrArg (fun u ↦ (rangeInclusion (pullbackMap f g) _).fiberMap x u) hvw
-    simpa only [← ContinuousLinearMap.comp_apply, ← fiberMap_comp,
-      pullbackRangeHom_rangeInclusion, fiberMap_pullbackMap] using h
-  · obtain ⟨u, hu⟩ := (mem_range_fiberMap_rangeInclusion_iff _ _ x
-      ((rangeInclusion (pullbackMap f g) _).fiberMap x w)).1 ⟨w, rfl⟩
-    refine ⟨(rangeRestrict f hr).fiberMap (g x) u, fiberMap_rangeInclusion_injective _ _ x ?_⟩
-    have h := congrArg (fun φ ↦ φ.fiberMap x u)
-      (pullbackMap_rangeRestrict_pullbackRangeHom_assoc f hr g (rangeInclusion _ _))
-    simp only [fiberMap_comp, ContinuousLinearMap.comp_apply, rangeRestrict_rangeInclusion,
-      fiberMap_pullbackMap] at h
-    rw [← hu, h, fiberMap_pullbackMap]
+  have hi : Injective ((pullbackRangeHom f hr g).fiberMap x) := fun v w hvw ↦
+    fiberMap_rangeInclusion_injective f hr (g x) <| by
+      have h := congrArg (fun u ↦ (rangeInclusion (pullbackMap f g) _).fiberMap x u) hvw
+      simpa only [← ContinuousLinearMap.comp_apply, ← fiberMap_comp,
+        pullbackRangeHom_rangeInclusion, fiberMap_pullbackMap] using h
+  -- Both fibres are `Fin r → 𝕜`, so their finranks agree by `rfl`.
+  exact ⟨hi, LinearMap.injective_iff_surjective_of_finrank_eq_finrank
+    (f := ((pullbackRangeHom f hr g).fiberMap x).toLinearMap) rfl |>.1 hi⟩
 
 /-- The range core commutes with pull-back: the pull-back along `g` of the range core of `f` is
 isomorphic to the range core of the pull-back of `f`, by the comparison map
