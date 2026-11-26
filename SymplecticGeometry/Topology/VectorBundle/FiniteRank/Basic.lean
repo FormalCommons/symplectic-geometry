@@ -16,7 +16,7 @@ Tau Ceti's `TauCeti.FiniteRankBundleCore.isoOfContinuousEquiv` builds an isomorp
 finite-rank cores from a family of fibrewise continuous linear equivalences that is continuous on
 total spaces. This file gives the converse construction.
 
-It begins with two rules for fibre maps that Tau Ceti's file does not state:
+It begins with three rules for fibre maps that Tau Ceti's file does not state:
 
 * `TauCeti.FiniteRankBundleCore.fiberMap_sub`: the fibre map of a difference of bundle maps is
   the difference of their fibre maps;
