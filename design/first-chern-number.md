@@ -956,16 +956,7 @@ issues, in an order where each issue's blockers come before it.
    `TopCat.isZero_compactSupportCohomology_of_starConvex` and
    `isZero_compactSupportCohomology_of_convex`: `Hᵏ_c(U) = 0` for
    `k ≠ dim F` when `U` embeds openly in `F` with star-convex or convex
-   image. The library's `CompactSupport/Vanishing.lean` runs the
-   Mayer–Vietoris induction for vanishing over any inf-closed family of
-   open sets that covers the space,
-   `TopCat.isZero_compactSupportCohomology_of_infClosed`, through
-   `InfClosed.finset_sup_induction`, in `Order/SupClosed.lean`, Tau Ceti's
-   `TauCeti.finset_sup_of_inf_closed` for a finite set of members of the
-   family. Its case of the empty
-   union uses the instance `TopologicalSpace.Opens.isEmpty_bot` of
-   `Topology/Sets/Opens/Basic.lean`, which `CompactSupport/Vanishing.lean`
-   imports.
+   image.
    Duality for a manifold is Tau Ceti's
    `TauCeti/AlgebraicTopology/Cohomology/CompactSupport/Duality/Manifold.lean`:
    `TauCeti.HomologicalOrientation.bijective_dualityMap`, for every

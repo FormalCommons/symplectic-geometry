@@ -5,8 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 public import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
+public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 
 /-!
@@ -52,23 +53,23 @@ theorem IsSymplecticMapOn.mpullback_apply (h : σ.IsSymplecticMapOn σ' φ s) {x
     rw [TauCeti.mpullback_apply, ← h']
     exact congrArg _ (funext fun i ↦ by fin_cases i <;> simp)
 
-
 /-! ### Restriction to open subsets -/
 
 section Opens
 
 open TopologicalSpace
 
-/-- **Restricting a symplectomorphism to open subsets.** A symplectomorphism `Φ` from `σ` to `σ'`
-restricts to a symplectomorphism `Φ.subtype h` from `σ|U` to `σ'|V`, for open subsets `U` and
-`V` that correspond under `Φ`. -/
-theorem IsSymplectomorphism.subtype {Φ : M ≃ₘ⟮I, I'⟯ M'} (hΦ : σ.IsSymplectomorphism σ' Φ)
-    {U : Opens M} {V : Opens M'} (h : ∀ x, x ∈ U ↔ Φ x ∈ V) :
-    IsSymplectomorphism (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ)
-      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ') (Φ.subtype h) := by
-  rw [isSymplectomorphism_iff_mpullback_eq] at hΦ ⊢
-  rw [SmoothForm.mpullback_mpullback_of_comp_eq _ _ contMDiff_subtypeVal Φ.contMDiff
-    (funext fun x ↦ Diffeomorph.subtype_apply_coe Φ h x), hΦ]
+/-- **Restricting a symplectomorphism to open sets.** If a diffeomorphism `φ : M ≃ M'` is a
+symplectomorphism from `σ` to `σ'` and maps the open set `U` of `M` onto the open set `U'` of
+`M'`, its restriction `U ≃ U'` is a symplectomorphism from the restriction of `σ` to `U` to the
+restriction of `σ'` to `U'`. -/
+theorem IsSymplectomorphism.subtype {φ : M ≃ₘ⟮I, I'⟯ M'} (hφ : σ.IsSymplectomorphism σ' φ)
+    {U : TopologicalSpace.Opens M} {U' : TopologicalSpace.Opens M'} (h : ∀ x, x ∈ U ↔ φ x ∈ U') :
+    SmoothTwoForm.IsSymplectomorphism (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ)
+      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ') (φ.subtype h) := by
+  rw [isSymplectomorphism_iff_mpullback_eq] at hφ ⊢
+  rw [SmoothForm.mpullback_mpullback_of_comp_eq _ _ contMDiff_subtypeVal φ.contMDiff
+    (funext (φ.subtype_apply_coe h)), hφ]
 
 /-- For open subsets `U ≤ D` of `M`, Tau Ceti's `Diffeomorph.nestedOpen`, from the preimage of `U`
 in `D` onto `U`, is a symplectomorphism from the restriction of `σ|D` to `σ|U`. -/

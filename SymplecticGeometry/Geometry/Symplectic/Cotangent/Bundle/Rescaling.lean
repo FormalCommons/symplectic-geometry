@@ -612,12 +612,12 @@ open neighbourhood `U` of the zero section by a smooth isotopy of open embedding
 pull `Ω` back to the restriction of `-ω` to `U` and send `0_x` to `ι₀ 0_x`. -/
 theorem exists_smoothIsotopy_of_apply_zeroSection_eq_neg
     (ι₀ : U₀ ≃ₘ⟮J.prod 𝓘(ℝ, E →L[ℝ] ℝ), I⟯ V₀) (ι₁ : U₁ ≃ₘ⟮J.prod 𝓘(ℝ, E →L[ℝ] ℝ), I⟯ V₁)
-    (h₀ : SmoothForm.mpullback ι₀ ι₀.contMDiff
-        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal Ω) =
-      SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (-symplecticForm J L))
-    (h₁ : SmoothForm.mpullback ι₁ ι₁.contMDiff
-        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal Ω) =
-      SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (-symplecticForm J L))
+    (h₀ : SmoothTwoForm.IsSymplectomorphism
+      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (-symplecticForm J L))
+      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal Ω) ι₀)
+    (h₁ : SmoothTwoForm.IsSymplectomorphism
+      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (-symplecticForm J L))
+      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal Ω) ι₁)
     (hU₀ : range (zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ)) ⊆ U₀)
     (hU₁ : range (zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ)) ⊆ U₁)
     (h : ∀ x, (ι₀ ⟨_, hU₀ (mem_range_self x)⟩ : M) = ι₁ ⟨_, hU₁ (mem_range_self x)⟩) :
@@ -635,8 +635,10 @@ theorem exists_smoothIsotopy_of_apply_zeroSection_eq_neg
       (∀ (t : unitInterval) x,
         G (t, ⟨_, hzero (mem_range_self x)⟩) = ι₀ ⟨_, hU₀ (mem_range_self x)⟩) ∧
       ∀ t : unitInterval, IsOpenEmbedding fun z : U ↦ G (t, z) := by
-  rw [← neg_one_smul ℝ (symplecticForm J L)] at h₀ h₁ ⊢
-  exact exists_smoothIsotopy_of_apply_zeroSection_eq_smul (neg_ne_zero.2 one_ne_zero) ι₀ ι₁ h₀ h₁
+  have h₀' := SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq.1 h₀
+  have h₁' := SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq.1 h₁
+  rw [← neg_one_smul ℝ (symplecticForm J L)] at h₀' h₁' ⊢
+  exact exists_smoothIsotopy_of_apply_zeroSection_eq_smul (neg_ne_zero.2 one_ne_zero) ι₀ ι₁ h₀' h₁'
     hU₀ hU₁ h
 
 end TwoEmbeddings

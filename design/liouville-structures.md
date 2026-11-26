@@ -724,7 +724,10 @@ Expected size: 300 lines.
   `IsProductCollarChart.diffeomorphProd`, `SmoothCollar` with
   `diffeomorphOpensRange`, `EuclideanHalfSpace.normalIioOpens`,
   `BoundarylessModel` with `interiorChartedSpace` and
-  `interiorDiffeomorph`; gluing: `chartedSpaceOfIsOpenEmbedding`,
+  `interiorDiffeomorph`; flows from boundary points:
+  `exists_contDiffOn_localFlow_euclideanHalfSpace`,
+  `exists_contMDiffOn_localFlow_of_isOutwardPointing_neg`,
+  `exists_contMDiffOn_boundaryFlow`; gluing: `chartedSpaceOfIsOpenEmbedding`,
   `TopCat.GlueData.IsCompatible.isManifold`, `TopCat.GlueData.t2Space_iff_forall_nhds`,
   `Diffeomorph.isManifold_chartedSpaceComp`,
   `isCompatible_transContinuousLinearEquiv_iff`.
@@ -736,9 +739,8 @@ Searched at the pinned versions, in Mathlib, Tau Ceti and this library: a
 converse to `IsContactType.isContactForm_mpullback`, a neighbourhood model
 or converse normal form for stable Hamiltonian structures, smoothness of
 `characteristicVectorField`, strong fillings, the existence of smooth
-collars, integral curves starting at boundary points (Mathlib's existence
-theorems need an interior point), a Seeley or Whitney extension, and the
-gluing of an end to a manifold with boundary. None exists; Tau Ceti's
+collars, and the gluing of an end to a manifold with boundary. None
+exists; Tau Ceti's
 `Liouville/Completion.lean` and `CylindricalEnd.lean` start from a completion
 that is already given.
 
@@ -753,7 +755,7 @@ In this order; each is blocked by the ones listed. All are parts of #480,
 | 2 | Liouville collars of hypersurfaces, first milestone | `Liouville/Collar.lean` | 1 | 300 |
 | 3 | Stable Hamiltonian structures: wedge criterion, Reeb field, invariance | `Contact/StableHamiltonian.lean` | — | 300 |
 | 4 | The stable Hamiltonian model and its converse, second milestone | `Contact/StableHamiltonian.lean` | 3 | 500 |
-| 5 | Outward flow near a boundary point | `Boundary/Collar/Flow/Local.lean` | the *Smooth families* issue that adds `Seeley/Extension.lean` | 500 |
+| 5 | Outward flow near a boundary point | `Boundary/Collar/Flow/Local.lean` | — | 500 |
 | 6 | The collar along an outward field | `Boundary/Collar/Flow/Basic.lean` | 5 | 400 |
 | 7 | Strong fillings and their Liouville collar | `Liouville/Filling.lean` | 6 | 400 |
 | 8 | Attaching an end along a smooth collar | `Boundary/Collar/End.lean` | — | 600 |
@@ -761,8 +763,7 @@ In this order; each is blocked by the ones listed. All are parts of #480,
 | 10 | Symplecticity and the third milestone | `Liouville/Completion.lean` | 9 | 350 |
 | 11 | The completion of a Liouville domain is a Tau Ceti completion | `Liouville/Domain.lean` | 10 | 300 |
 
-Issues 1, 3 and 8 can start at once; issue 5 waits for Seeley's extension
-in *Smooth families*.
+Issues 1, 3, 5 and 8 can start at once.
 The milestones are proved in issues 2, 4 and 10. If issue 5 or 8 exceeds the
 size limit, its local chart computations become an issue of their own before
 it.
@@ -777,8 +778,6 @@ found; a building issue that finds one cites them.
   §3.5: Definition 3.5.27, Proposition 3.5.31, Definition 3.5.32,
   Exercise 3.5.37, Definition 3.5.38 and the completion on p. 148.
 * [D. McDuff, D. Salamon, *Errata for Introduction to Symplectic Topology*][McDuffSalamon2019Errata].
-* R. T. Seeley, *Extension of C^∞ functions defined in a half space*,
-  Proc. Amer. Math. Soc. 15 (1964), 625–626.
 * M. Hirsch, *Differential Topology*, Springer GTM 33, 1976, Chapter 4, Theorem 6.1.
 * J. M. Lee, *Introduction to Smooth Manifolds*, 2nd ed., Springer GTM 218,
   2013, Theorem 9.25.

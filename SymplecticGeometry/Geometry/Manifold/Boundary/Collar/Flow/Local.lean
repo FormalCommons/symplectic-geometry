@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Analysis.Calculus.FDeriv.Uncurry
 public import SymplecticGeometry.Geometry.Manifold.Boundary.Charts
 public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 public import SymplecticGeometry.Geometry.Manifold.MFDeriv.Chart
@@ -40,7 +41,8 @@ Written in the boundary chart at `p`, the flow from the boundary is the map
 `G (z, τ) = Ψ (z inserted as a point with zeroth coordinate 0) (τ 0)` between open subsets of
 `ℝⁿ × ℝ¹` and `ℝⁿ⁺¹`. At `(z₀, 0)`, `z₀` the boundary chart reading of `p`, its derivative sends
 `(u, σ)` to `σ 0 • v` plus `u` inserted with zeroth coordinate `0`, where `v = -f (φ p)` is the
-velocity of `t ↦ Ψ (φ p) t` at `0`, since `Ψ x 0 = x`. It is invertible since `v` is transverse
+velocity of `t ↦ Ψ (φ p) t` at `0`, since `Ψ x 0 = x`
+(`DifferentiableAt.hasFDerivAt_uncurry_zero`). It is invertible since `v` is transverse
 to the boundary hyperplane, so by the inverse function theorem in the boundaryless spaces `G` is
 a local diffeomorphism there
 (`TauCeti.isLocalDiffeomorphAt_euclideanHalfSpaceBoundaryParam_of_hasDerivAt`). This adapts the
@@ -133,21 +135,13 @@ theorem isLocalDiffeomorphAt_euclideanHalfSpaceBoundaryParam_of_hasDerivAt
   have hLz₀ : L (z₀, 0) = (ι z₀, 0) := by
     simp [L]
   -- The derivative `D` of `F` at `(ι z₀, 0)` is the identity in space and `v` in time.
-  obtain ⟨D, hD⟩ : DifferentiableAt ℝ F (ι z₀, 0) :=
-    (hΨ.contDiffAt hS).differentiableAt (by simp)
-  have hDx : D.comp (ContinuousLinearMap.inl ℝ _ ℝ) = ContinuousLinearMap.id ℝ _ := by
-    have h := hD.comp (ι z₀) (hasFDerivAt_prodMk_left (𝕜 := ℝ) (ι z₀) (0 : ℝ))
-    have e : F ∘ (fun x ↦ (x, (0 : ℝ))) = id := funext hΨ0
-    rw [e] at h
-    exact h.unique (hasFDerivAt_id _)
-  have hDt : D (0, 1) = v := by
-    have h := (hD.comp (0 : ℝ) (hasFDerivAt_prodMk_right (𝕜 := ℝ) (ι z₀) (0 : ℝ))).unique
-      hv.hasFDerivAt
-    simpa using congrArg (fun l : ℝ →L[ℝ] EuclideanSpace ℝ (Fin (n + 1)) ↦ l 1) h
+  set D : EuclideanSpace ℝ (Fin (n + 1)) × ℝ →L[ℝ] EuclideanSpace ℝ (Fin (n + 1)) :=
+    ContinuousLinearMap.fst ℝ _ ℝ + (ContinuousLinearMap.snd ℝ _ ℝ).smulRight v
+  have hD : HasFDerivAt F D (ι z₀, 0) :=
+    ((hΨ.contDiffAt hS).differentiableAt (by simp)).hasFDerivAt_uncurry_zero
+      (Eventually.of_forall hΨ0) hv
   have hDapply (u : EuclideanSpace ℝ (Fin (n + 1))) (σ : ℝ) : D (u, σ) = u + σ • v := by
-    have h : ((u, σ) : EuclideanSpace ℝ (Fin (n + 1)) × ℝ) = (u, 0) + σ • (0, 1) := by simp
-    rw [h, map_add, map_smul, hDt, ← ContinuousLinearMap.inl_apply (R := ℝ) (M₂ := ℝ),
-      ← ContinuousLinearMap.comp_apply, hDx, ContinuousLinearMap.id_apply]
+    simp [D]
   -- So the derivative of `F ∘ L` at `(z₀, 0)` is injective, since `v` leaves the hyperplane.
   have hinj : Injective (D.comp L) := by
     rw [injective_iff_map_eq_zero]

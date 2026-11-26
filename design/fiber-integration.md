@@ -126,13 +126,16 @@ charts themselves; the building issues use the names that
 
 The fibre integral on `B × F`.
 
-- `AlternatingMap.map_append_add_of_mem`: for a field `K`,
-  `f : W [⋀^Fin (r + m)]→ₗ[K] N`, a finite-dimensional submodule `V` of `W`
-  (`[FiniteDimensional K V]`) with `finrank K V ≤ m`, and `u : Fin r → W`, `w : Fin m → W` with all `u i` and
+- `AlternatingMap.map_append_add_of_mem`, in
+  `LinearAlgebra/Alternating/Basic.lean`: for a ring `K` with
+  `[IsDomain K] [StrongRankCondition K]`, `[Module.IsTorsionFree K N]`,
+  `f : W [⋀^Fin (r + m)]→ₗ[K] N`, a finite submodule `V` of `W`
+  (`[Module.Finite K V]`) with `finrank K V ≤ m`, and `u : Fin r → W`, `w : Fin m → W` with all `u i` and
   `w j` in `V`, `f (Fin.append (v + u) w) = f (Fin.append v w)`. (Each term of
   the multilinear expansion with some `u i` has $m+1$ vectors in `V`, so
   `AlternatingMap.map_linearDependent` applies.) A
-  `ContinuousAlternatingMap` corollary of the same name in its namespace.
+  `ContinuousAlternatingMap` corollary of the same name in its namespace, in
+  `Topology/Algebra/Module/Alternating/Basic.lean`.
 - `prodFiberIntegrand α b v : RoughForm J F ℝ m`, for
   `α : RoughForm (I.prod J) (B × F) ℝ (r + m)`, `b : B`,
   `v : Fin r → TangentSpace I b`: at `y` the alternating map

@@ -126,12 +126,10 @@ def diffeomorph :
 theorem diffeomorph_def : diffeomorph = (remodelDiffeomorph _ _).symm := (rfl)
 
 /-- The diffeomorphism is the identity of the points of the torus. -/
-@[simp]
 theorem coe_diffeomorph : ⇑diffeomorph = (remodelHomeomorph _ _).symm := by
   rw [diffeomorph_def, coe_remodelDiffeomorph_symm]
 
 /-- Its inverse is the identity of the points of the torus. -/
-@[simp]
 theorem coe_diffeomorph_symm : ⇑diffeomorph.symm = remodelHomeomorph _ _ :=
   coe_remodelDiffeomorph (EuclideanSpace.modelPiDiffeomorph ℝ (Fin 2) ∞)
     (Fin 2 → AddCircle (1 : ℝ))
