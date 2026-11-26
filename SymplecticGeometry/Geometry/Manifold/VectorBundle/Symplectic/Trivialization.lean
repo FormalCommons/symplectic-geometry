@@ -143,15 +143,14 @@ private theorem exists_darboux_sections (ω : ContMDiffTwoForm I n F V) {k : ℕ
       ((hv.mono hW₀W).sub_section ((ω.contMDiffOn_bilinFormAt ((ha 0).mono hW₀W)
         (hv.mono hW₀W)).smul_section hβ)).add_section
         ((ω.contMDiffOn_bilinFormAt hβ (hv.mono hW₀W)).smul_section ((ha 0).mono hW₀W))
-    have hPmem (v : ∀ y, V y) (y : M) (hy : y ∈ W₀) (u : V y) (hu : u ∈ ({β y, a 0 y} : Set _)) :
-        ω.bilinFormAt y (P v y) u = 0 :=
-      (ω.isAlt_bilinFormAt y).eq_iff.1 <| LinearMap.BilinForm.mem_orthogonal_iff.1
-        ((ω.isAlt_bilinFormAt y).sub_smul_add_smul_mem_orthogonal_span_pair (haβ y hy) (v y)) u
-        (Submodule.subset_span hu)
+    have hPmem (v : ∀ y, V y) (y : M) (hy : y ∈ W₀) :
+        ω.bilinFormAt y (β y) (P v y) = 0 ∧ ω.bilinFormAt y (a 0 y) (P v y) = 0 :=
+      LinearMap.BilinForm.mem_orthogonal_span_pair_iff.1
+        ((ω.isAlt_bilinFormAt y).sub_smul_add_smul_mem_orthogonal_span_pair (haβ y hy) (v y))
     have hPa (v : ∀ y, V y) (y : M) (hy : y ∈ W₀) : ω.bilinFormAt y (P v y) (a 0 y) = 0 :=
-      hPmem v y hy _ (by simp)
+      (ω.isAlt_bilinFormAt y).eq_iff.1 (hPmem v y hy).2
     have hPβ (v : ∀ y, V y) (y : M) (hy : y ∈ W₀) : ω.bilinFormAt y (P v y) (β y) = 0 :=
-      hPmem v y hy _ (by simp)
+      (ω.isAlt_bilinFormAt y).eq_iff.1 (hPmem v y hy).1
     have hPorth (v : ∀ y, V y) (y : M) (w : V y) (hwa : ω.bilinFormAt y w (a 0 y) = 0)
         (hwb : ω.bilinFormAt y w (b 0 y) = 0) (hwv : ω.bilinFormAt y w (v y) = 0) :
         ω.bilinFormAt y w (P v y) = 0 := by
