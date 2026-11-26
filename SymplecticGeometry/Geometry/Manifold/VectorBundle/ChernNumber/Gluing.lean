@@ -5,10 +5,14 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.Clutching
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.Basic
 public import SymplecticGeometry.Analysis.Complex.Circle
 public import SymplecticGeometry.Topology.VectorBundle.Core.TwoChart
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.Basic
+public import TauCeti.Analysis.Matrix.SymplecticGroup.Maslov
+public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.DiscComplement.Basic
+public import SymplecticGeometry.Topology.VectorBundle.Core.Basic
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.Clutching
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.Basic
 import Mathlib.Analysis.Complex.Isometry
 import TauCeti.Geometry.Manifold.Algebra.LieGroup
 import TauCeti.Topology.VectorBundle.RestrictScalars
@@ -18,6 +22,7 @@ import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.DiscFrame
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Core.TwoChart
 import SymplecticGeometry.Geometry.Manifold.Instances.SymplecticGroup.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.CoordinateDisc
+import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 
 /-!
 # Bundles from clutching data, and isomorphisms from equal Maslov indices

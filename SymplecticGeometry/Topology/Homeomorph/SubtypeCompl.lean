@@ -6,7 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Data.Set.Subset
-public import SymplecticGeometry.Topology.Homeomorph.HomeomorphImage
+public import Mathlib.Topology.Homeomorph.Lemmas
+import SymplecticGeometry.Topology.Homeomorph.HomeomorphImage
 
 /-!
 # The complement of a set inside a subspace

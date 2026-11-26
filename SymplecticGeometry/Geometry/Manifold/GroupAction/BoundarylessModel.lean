@@ -6,8 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Algebra.SMul
-public import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 public import TauCeti.Geometry.Manifold.ModelTransport.Interior
+public import TauCeti.Geometry.Lie.FundamentalVectorField
+import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 
 /-!
 # Group actions on the boundaryless model of a manifold

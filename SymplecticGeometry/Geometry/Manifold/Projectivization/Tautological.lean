@@ -6,8 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.ProjectiveSpace
-public import SymplecticGeometry.Geometry.Manifold.Projectivization.TwistCore
 public import TauCeti.Geometry.Manifold.VectorBundle.Trivialization
+public import TauCeti.Geometry.Manifold.Projectivization.LineBundle
+import SymplecticGeometry.Geometry.Manifold.Projectivization.TwistCore
 
 /-!
 # `𝒪(-1)` is the tautological line

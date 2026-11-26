@@ -5,14 +5,14 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.LinearAlgebra.ComplexStructure.Standard
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Compatible
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
-public import SymplecticGeometry.Topology.Algebra.Matrix.GeneralLinearGroup
 public import TauCeti.Geometry.Symplectic.PolarCompatible
 public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.MaximalCompact
 public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Unitary
 public import TauCeti.Topology.Algebra.Group.Subgroup
+import SymplecticGeometry.LinearAlgebra.ComplexStructure.Standard
+import SymplecticGeometry.LinearAlgebra.Symplectic.Compatible
+import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
+import SymplecticGeometry.Topology.Algebra.Matrix.GeneralLinearGroup
 
 /-!
 # Compact subgroups of the symplectic group

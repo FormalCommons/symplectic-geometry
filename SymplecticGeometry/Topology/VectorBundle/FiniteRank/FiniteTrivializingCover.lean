@@ -5,8 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 public import SymplecticGeometry.Topology.VectorBundle.FiniteTrivializingCover
+public import TauCeti.Topology.VectorBundle.FiniteRank.Basic
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 
 /-!
 # Finite trivializing covers of finite-rank cores

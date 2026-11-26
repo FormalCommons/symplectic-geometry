@@ -6,11 +6,11 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Topology.OpenPartialHomeomorph.Composition
-public import SymplecticGeometry.LinearAlgebra.Matrix.Symmetric
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Transverse
 public import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Quotient
-public import SymplecticGeometry.Topology.Instances.Matrix
 public import TauCeti.Topology.Instances.Matrix
+import SymplecticGeometry.LinearAlgebra.Matrix.Symmetric
+import SymplecticGeometry.Topology.Instances.Matrix
 
 /-!
 # The graph charts of the Lagrangian Grassmannian

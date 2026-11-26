@@ -5,18 +5,22 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.BoundaryDegree
-public import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.Maslov
 public import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.Basic
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.ArgumentPrinciple
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.UnitaryFrame
-public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
-public import SymplecticGeometry.Topology.VectorBundle.DetBundle.Frame
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 public import TauCeti.Analysis.Complex.NormalizedDeterminant
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Topological
 public import TauCeti.Geometry.Manifold.Boundary.Interior
+public import SymplecticGeometry.Geometry.Manifold.RegularValue.LevelCollar
+public import SymplecticGeometry.Topology.Algebra.SymplecticGroup
+public import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.FundamentalGroup
+public import TauCeti.Topology.Algebra.Group.Basic
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.BoundaryDegree
+import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.Maslov
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.ArgumentPrinciple
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.UnitaryFrame
+import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
+import SymplecticGeometry.Topology.VectorBundle.DetBundle.Frame
 
 /-!
 # The first Chern number through a splitting of the surface

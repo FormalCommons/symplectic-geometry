@@ -16,6 +16,7 @@ import SymplecticGeometry.MeasureTheory.Integral.Average
 import SymplecticGeometry.MeasureTheory.Integral.BallCircleAverage
 import SymplecticGeometry.Topology.Algebra.MvPolynomial
 import TauCeti.MeasureTheory.Measure.Haar.Average
+import TauCeti.MeasureTheory.Measure.OpenPos
 import TauCeti.RingTheory.MvPolynomial.LineRestriction
 
 /-!
@@ -478,8 +479,7 @@ theorem setAverage_log_norm_eval_sub_le (P : MvPolynomial ι ℂ) {D : ℕ}
   set S := {v ∈ B | ∃ s : ℂ, ‖s‖ < r₂ ∧ eval (c + s • v).ofLp P = 0}
   set A : EuclideanSpace ℂ ι → ℝ → ℝ := fun v ρ =>
     Real.circleAverage (fun s : ℂ => Real.log ‖eval (c + s • v).ofLp P‖) 0 ρ with hA
-  have hB : 0 < volume.real B :=
-    ENNReal.toReal_pos (measure_ball_pos volume 0 one_pos).ne' measure_ball_lt_top.ne
+  have hB : 0 < volume.real B := measureReal_ball_pos volume 0 one_pos
   have pw (v : EuclideanSpace ℂ ι) := circleAverage_log_norm_eval_line_sub hD c v hr₁ h
   constructor
   · have hle : ∫⁻ v in B, ENNReal.ofReal (Real.log M - A v r₂) ≤
@@ -532,8 +532,7 @@ theorem log_div_le_setAverage_log_norm_eval_sub {P : MvPolynomial ι ℂ} (hP : 
   set B := ball (0 : EuclideanSpace ℂ ι) 1
   set A : EuclideanSpace ℂ ι → ℝ → ℝ := fun v ρ =>
     Real.circleAverage (fun s : ℂ => Real.log ‖eval (y + s • v).ofLp P‖) 0 ρ with hA
-  have hB : 0 < volume.real B :=
-    ENNReal.toReal_pos (measure_ball_pos volume 0 one_pos).ne' measure_ball_lt_top.ne
+  have hB : 0 < volume.real B := measureReal_ball_pos volume 0 one_pos
   have hae : ∀ᵐ v : EuclideanSpace ℂ ι, eval (y + v).ofLp P ≠ 0 :=
     (measurePreserving_add_left volume y).quasiMeasurePreserving.ae (ae_eval_ne_zero hP)
   have hlow : ∫⁻ v in B, (ENNReal.ofReal (Real.log M - A v r₂) +

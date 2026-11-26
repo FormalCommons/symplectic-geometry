@@ -5,8 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Poincare
 public import TauCeti.Geometry.Manifold.DeRham.Basic
+public import SymplecticGeometry.Geometry.Manifold.DeRham.GoodCover.Basic
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Poincare
 import TauCeti.Geometry.Manifold.DifferentialForm.ParametricPrimitive
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 

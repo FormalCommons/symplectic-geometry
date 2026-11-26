@@ -6,7 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.ContMDiffMap
-public import SymplecticGeometry.Analysis.Complex.QuadraticLeviForm
+public import TauCeti.Geometry.Manifold.Instances.Cylinder
+public import TauCeti.Analysis.Complex.Euclidean.Space
+import SymplecticGeometry.Analysis.Complex.QuadraticLeviForm
 import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 
 /-!

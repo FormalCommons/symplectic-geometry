@@ -10,6 +10,8 @@ public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Basi
 public import TauCeti.Analysis.Matrix.UnitaryGroup.Maslov.Localization
 public import TauCeti.Analysis.Matrix.UnitaryGroup.Maslov.Multiplicity
 public import TauCeti.LinearAlgebra.TotallyReal.Maslov.Transverse
+import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Fibration
+import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Graph
 
 /-!
 # The Maslov index of paths of Lagrangian subspaces

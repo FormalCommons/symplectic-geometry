@@ -20,6 +20,7 @@ import TauCeti.Analysis.Normed.Module.Ball.Homeomorph
 import TauCeti.Geometry.Manifold.Instances.AddCircle.Torus
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Diffeomorph
 import TauCeti.Geometry.Sphere.Connected
+import SymplecticGeometry.Analysis.Normed.Module.Ball.Homeomorph
 
 /-!
 # Closed surfaces of genus `g`

@@ -6,8 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Analysis.Distribution.Coordinates
-public import SymplecticGeometry.Analysis.Distribution.EllipticSystem
-public import SymplecticGeometry.Analysis.Distribution.SmulLeft
+public import TauCeti.Analysis.Calculus.CoordinateDeriv
+public import TauCeti.Analysis.Distribution.WaveFrontSet.Sobolev.SingularSupport
+import SymplecticGeometry.Analysis.Distribution.EllipticSystem
+import SymplecticGeometry.Analysis.Distribution.SmulLeft
 import Mathlib.Analysis.InnerProductSpace.Dual
 import SymplecticGeometry.Analysis.Calculus.ContDiff.Basis
 import SymplecticGeometry.Analysis.Distribution.NegativeSobolev

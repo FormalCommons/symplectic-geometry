@@ -7,9 +7,9 @@ module
 
 public import Mathlib.Geometry.Manifold.Algebra.SMul
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.MapFiber
-public import SymplecticGeometry.Topology.FiberBundle.ChangeModelFiber
 public import TauCeti.Geometry.Diffeomorphism.Group
 public import TauCeti.Topology.FiberBundle.Associated.Basic
+import SymplecticGeometry.Topology.FiberBundle.ChangeModelFiber
 
 /-!
 # Structure groups of atlases of a map

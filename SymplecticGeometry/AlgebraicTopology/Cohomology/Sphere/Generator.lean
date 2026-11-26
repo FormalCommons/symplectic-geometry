@@ -9,6 +9,7 @@ public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralKronecker
 public import TauCeti.AlgebraicTopology.Cohomology.FundamentalClass
 public import TauCeti.AlgebraicTopology.Cohomology.Sphere.Product
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Sphere
+import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
 
 /-!
 # Generators of the top cohomology of spheres and of products of two spheres

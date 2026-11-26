@@ -9,15 +9,16 @@ public import Mathlib.Geometry.Manifold.Diffeomorph
 public import Mathlib.Geometry.Manifold.Immersion
 public import Mathlib.Geometry.Manifold.MFDeriv.FDeriv
 public import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
-public import SymplecticGeometry.Analysis.Calculus.FDeriv.Cayley
-public import SymplecticGeometry.LinearAlgebra.Symplectic.CompatibleTangent.Finrank
-public import SymplecticGeometry.Topology.ComplexStructure.Basic
 public import SymplecticGeometry.Topology.ComplexStructure.Compatible.Cayley
 public import TauCeti.Geometry.Manifold.Immersion.Differential
 public import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Symplectic.Cayley.Tangent
+import SymplecticGeometry.Analysis.Calculus.FDeriv.Cayley
+import SymplecticGeometry.LinearAlgebra.Symplectic.CompatibleTangent.Finrank
+import SymplecticGeometry.Topology.ComplexStructure.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
+import SymplecticGeometry.LinearAlgebra.Symplectic.Compatible
 
 /-!
 # The manifold of compatible complex structures

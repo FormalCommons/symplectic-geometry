@@ -6,8 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Symplectic.Liouville.Collar
-public import SymplecticGeometry.Geometry.Symplectic.Liouville.ContactType
 public import SymplecticGeometry.Topology.Sets.Strip
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
+import SymplecticGeometry.Geometry.Symplectic.Liouville.ContactType
 import Mathlib.Geometry.Manifold.Metrizable
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective

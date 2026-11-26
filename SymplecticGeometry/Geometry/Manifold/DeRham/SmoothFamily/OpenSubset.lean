@@ -5,9 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.GoodCover
 public import TauCeti.Geometry.Manifold.DeRham.ExtendByZero
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Cutoff
+public import SymplecticGeometry.Geometry.Manifold.DeRham.GoodCover.Basic
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
+import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.GoodCover
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Cutoff
 
 /-!
 # Smooth families of primitives near a compact subset of an open set

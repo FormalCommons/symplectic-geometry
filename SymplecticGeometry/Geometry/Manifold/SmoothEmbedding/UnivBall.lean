@@ -6,9 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.InnerProductSpace.Calculus
-public import SymplecticGeometry.Analysis.Normed.Module.Ball.Homeomorph
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import Mathlib.Geometry.Manifold.SmoothEmbedding
+import SymplecticGeometry.Analysis.Normed.Module.Ball.Homeomorph
 import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset

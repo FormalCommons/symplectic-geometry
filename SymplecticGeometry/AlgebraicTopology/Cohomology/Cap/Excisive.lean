@@ -5,13 +5,14 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.Relative.Pairing
-public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.Relative.Pairing.FromTauCeti
-public import SymplecticGeometry.AlgebraicTopology.Singular.AlexanderWhitney.RelativeCup
 public import TauCeti.Algebra.Homology.Monoidal.Cap.Kronecker
 public import TauCeti.AlgebraicTopology.Cohomology.Cap.Relative
 public import TauCeti.AlgebraicTopology.Cohomology.Cup.Relative
 public import TauCeti.AlgebraicTopology.Cohomology.Kronecker
+public import TauCeti.AlgebraicTopology.SimplicialSet.Homology.Relative.Pairing
+import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.Relative.Pairing
+import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.Relative.Pairing.FromTauCeti
+import SymplecticGeometry.AlgebraicTopology.Singular.AlexanderWhitney.RelativeCup
 
 /-!
 # The cap product of an excisive couple

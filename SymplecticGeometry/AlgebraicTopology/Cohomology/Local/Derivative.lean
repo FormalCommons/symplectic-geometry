@@ -7,10 +7,10 @@ module
 
 public import Mathlib.Analysis.Calculus.FDeriv.Basic
 public import Mathlib.Topology.Homotopy.Affine
-public import SymplecticGeometry.AlgebraicTopology.Singular.PairMap
 public import TauCeti.AlgebraicTopology.Cohomology.Excision
 public import TauCeti.AlgebraicTopology.Cohomology.HomotopyInvariance
 public import TauCeti.Analysis.Normed.Operator.Basic
+import SymplecticGeometry.AlgebraicTopology.Singular.PairMap
 
 /-!
 # Linearization in relative singular cohomology

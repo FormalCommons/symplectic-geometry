@@ -5,9 +5,13 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.Complex.DbarFunction
-public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Basic
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Sobolev
+public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Smooth
+public import TauCeti.Topology.VectorBundle.Orientation.Complex.Basic
+public import TauCeti.Analysis.Complex.Wirtinger.Weak
+public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.Morrey
+import SymplecticGeometry.Geometry.Manifold.Complex.DbarFunction
+import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Basic
 import SymplecticGeometry.Geometry.Manifold.Complex.Isothermal
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.ZeroOnePart
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Tames
@@ -15,12 +19,9 @@ import SymplecticGeometry.Topology.VectorBundle.Basic
 import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Basic
 import TauCeti.Analysis.Complex.Wirtinger.Similarity.Basic
 import TauCeti.Topology.VectorBundle.Orientation.SectionIndex.Holomorphic
-public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Smooth
 import TauCeti.Geometry.Manifold.VectorBundle.MaximalAtlas
-public import TauCeti.Topology.VectorBundle.Orientation.Complex.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Topology.FiberBundle.Trivialization
-public import TauCeti.Analysis.Complex.Wirtinger.Weak
 import SymplecticGeometry.Analysis.Complex.Wirtinger.Similarity.Weak
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Analysis.Sobolev.W1p.ChangeOfVariables
@@ -29,7 +30,6 @@ import TauCeti.Geometry.Manifold.VectorField.Regularity
 import TauCeti.MeasureTheory.Function.Jacobian
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.ContMDiffRepresentative
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.LowerOrder
-public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.Morrey
 
 /-!
 # Local form of the kernel of `D_J` on `𝒪(1)`, and its zeros
@@ -535,7 +535,7 @@ theorem exists_hasWeakConjWirtingerDerivOn_mul_of_twistOneDelBarSobolev_eq_zero
         J.inChart ((twistCoreAtlas 1).center i) (T z) (fderiv ℝ T z v) := by
     rw [hTcoe]
     exact J.fderiv_extChartAt_comp_apply_eq_inChart ((twistCoreAtlas 1).center i)
-      (ψ.symm.contMDiffOn.continuousOn.continuousAt (ψ.open_target.mem_nhds (hΩ hz).1))
+      (ψ.toOpenPartialHomeomorph.continuousAt_symm (hΩ hz).1)
       (by simpa using (twistCoreAtlas 1).dom_subset_chart_source i (hΩ hz).2)
       -- `ψ⁻¹` is pseudoholomorphic from `i` to `J`.
       ((SmoothAlmostComplexStructure.ofComplexManifold_apply (E := ℂ) z v).symm ▸

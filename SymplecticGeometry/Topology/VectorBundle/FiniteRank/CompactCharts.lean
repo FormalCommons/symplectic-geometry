@@ -10,7 +10,7 @@ public import Mathlib.Topology.PartitionOfUnity
 public import Mathlib.Topology.UrysohnsLemma
 public import TauCeti.Topology.VectorBundle.FiniteRank.Basic
 public import TauCeti.Topology.VectorBundle.Hom
-public import SymplecticGeometry.Topology.VectorBundle.Core.Basic
+import SymplecticGeometry.Topology.VectorBundle.Core.Basic
 
 /-!
 # Charts of finite-rank cores over compact sets

@@ -13,6 +13,7 @@ import TauCeti.Geometry.Manifold.RegularValue
 import TauCeti.Geometry.Manifold.Submersion.Split
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 import SymplecticGeometry.Topology.Algebra.Module.FiniteDimension
+import SymplecticGeometry.Geometry.Manifold.Foliation.Transport
 
 /-!
 # The smooth leaf space of a regular foliation

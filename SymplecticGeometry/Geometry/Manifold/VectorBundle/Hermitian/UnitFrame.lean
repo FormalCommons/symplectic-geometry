@@ -6,7 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.CircleBundle
-public import SymplecticGeometry.Analysis.Complex.NormalizedDeterminant
+public import TauCeti.Analysis.Complex.NormalizedDeterminant
+import SymplecticGeometry.Analysis.Complex.NormalizedDeterminant
 import SymplecticGeometry.GroupTheory.GroupAction.Hom
 
 /-!

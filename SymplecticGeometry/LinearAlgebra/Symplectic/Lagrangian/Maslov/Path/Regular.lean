@@ -5,12 +5,19 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Crossing.Path
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Path.RegularPieces
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Path.Basic
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Crossing.Form
+public import SymplecticGeometry.LinearAlgebra.QuadraticForm.Signature
+import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Crossing.Path
+import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Path.RegularPieces
 import SymplecticGeometry.Analysis.Calculus.ContDiff.Concat
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
 import TauCeti.Analysis.Matrix.ContDiff
 import TauCeti.Geometry.Manifold.Instances.Icc.CollaredSmoothTransition
+import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Path.Naturality
+import SymplecticGeometry.LinearAlgebra.Matrix.Rank
+import SymplecticGeometry.Analysis.Calculus.Deriv.Matrix
+import Mathlib.RingTheory.Flat.TorsionFree
 
 /-!
 # Regular representatives of paths of Lagrangian subspaces
