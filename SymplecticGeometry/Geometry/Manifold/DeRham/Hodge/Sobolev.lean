@@ -479,7 +479,7 @@ theorem L2Form.coeFn_localizeCoord (u : L2Form I M k) :
   rw [Function.comp_apply, h]
   simp
 
-omit [BoundarylessManifold I M] [T2Space M] in
+omit [BoundarylessManifold I M] in
 /-- `L2Form.localizeCoord ψ χ hχ bΛ p e u` vanishes almost everywhere outside the image under `e`
 of the image under `ψ` of the support of `χ`. -/
 theorem L2Form.localizeCoord_ae_eq_zero_of_notMem (u : L2Form I M k) :
