@@ -164,8 +164,7 @@ theorem singularCohomologyMap_normalSlice_thomPairMapOfNeZero
     rintro _ rfl D
     have h := congrArg (· D) (continuousLinearMapAt_comp_sectionLinearization continuousAt_id hx'
       (hc _ rfl).mdifferentiableAt (ofTransverseSection_apply_eq_zero hm hsm hs hE x))
-    simp only [ContinuousLinearMap.comp_apply, mvfderiv, ContinuousLinearEquiv.coe_coe,
-      NormedSpace.fromTangentSpace_apply] at h
+    simp only [ContinuousLinearMap.comp_apply, mvfderiv_apply_eq_mfderiv_apply] at h
     rw [normalSpaceEquivOfTransverseSection_normalClass, ← ContinuousLinearEquiv.coe_coe,
       e'.coe_continuousLinearEquivAt_eq' hx']
     exact h.symm
