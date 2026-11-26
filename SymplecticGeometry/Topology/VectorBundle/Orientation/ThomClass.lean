@@ -9,6 +9,7 @@ public import TauCeti.Topology.VectorBundle.Orientation.ThomClass
 public import TauCeti.Topology.VectorBundle.Orientation.RankZero
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Basic
 public import SymplecticGeometry.Topology.VectorBundle.Thom.ChangeOfCoefficients
+import SymplecticGeometry.Topology.VectorBundle.EulerClass
 import SymplecticGeometry.AlgebraicTopology.Cohomology.Local.PointClass
 import TauCeti.Algebra.Module.Equiv.SpanSingleton
 
@@ -99,8 +100,6 @@ The construction and the proofs of its properties follow those of Tau Ceti's
   integral class is Tau Ceti's `TauCeti.VectorBundleOrientation.rankZeroThomClass`, and
   `uliftIntegralCohomologyEquiv_canonicalThomClass_eq_rankZeroThomClass` states the same in degree
   `0`.
-* `TauCeti.singularCohomologyZeroEval_eulerClass`: the value of a degree-zero Euler class at a
-  point is the value at the zero vector of the restriction to the fibre over it.
 
 ## References
 
@@ -113,7 +112,7 @@ public section
 
 noncomputable section
 
-open Bundle CategoryTheory MonoidalCategory Module TauCeti
+open Bundle CategoryTheory Module TauCeti
 
 universe w
 
@@ -317,36 +316,6 @@ end RankZeroIntegral
 
 end Orientation
 
-namespace TauCeti
-
-/-- **The value of a degree-zero Euler class at a point** `b` of the base is the value at the
-zero vector of the restriction of the class to the fibre pair `(E_b, E_b ∖ {0})`, read in
-`H⁰(E_b; K)`. -/
-theorem singularCohomologyZeroEval_eulerClass {B : Type w} [TopologicalSpace B] {F : Type*}
-    [NormedAddCommGroup F] [NormedSpace ℝ F] {E : B → Type w} [TopologicalSpace (TotalSpace F E)]
-    [∀ b, AddCommMonoid (E b)] [∀ b, Module ℝ (E b)] [∀ b, TopologicalSpace (E b)]
-    [FiberBundle F E] [VectorBundle ℝ F E] {K : Type w} [CommRing K]
-    (u : (thomPair F E).singularCohomology (𝟙_ (ModuleCat.{w} K)) K (𝟙_ (ModuleCat.{w} K)) 0)
-    (b : B) :
-    singularCohomologyZeroEval b
-        (eulerClass (𝟙_ (ModuleCat.{w} K)) K (𝟙_ (ModuleCat.{w} K)) F E 0 u) =
-      singularCohomologyZeroEval
-        (X := (TopPair.ofSubset (X := TopCat.of (E b)) ({0}ᶜ : Set (E b))).fst) (0 : E b)
-        ((TopPair.ofSubset (X := TopCat.of (E b)) ({0}ᶜ : Set (E b))).singularCohomologyπ _ K _ 0
-          (TopPair.singularCohomologyMap (fiberThomPairMap F E b) 0 u)) := by
-  rw [eulerClass_def, ConcreteCategory.comp_apply, singularCohomologyZeroEval_naturality]
-  -- The zero vector `0 : E b` stands for a point of the ambient space of the fibre pair, so the
-  -- goal is not type-correct at the transparency of `rw`; the last steps go through `Eq.trans`.
-  have h := ConcreteCategory.congr_hom (TopPair.singularCohomologyπ_naturality
-    (R := 𝟙_ (ModuleCat.{w} K)) (k := K) (M := 𝟙_ (ModuleCat.{w} K)) (fiberThomPairMap F E b) 0) u
-  rw [ConcreteCategory.comp_apply, ConcreteCategory.comp_apply] at h
-  refine Eq.trans ?_ (congrArg (singularCohomologyZeroEval _) h)
-  refine Eq.trans ?_ (singularCohomologyZeroEval_naturality _ _ _).symm
-  exact congrArg (singularCohomologyZeroEval · _)
-    ((zeroSectionHom_apply F E b).trans (fiberThomPairMap_fst_apply F E b 0).symm)
-
-end TauCeti
-
 namespace TauCeti.VectorBundleOrientation
 
 variable {B : Type w} [TopologicalSpace B] {F : Type w} [NormedAddCommGroup F] [NormedSpace ℝ F]
@@ -523,8 +492,9 @@ theorem uliftIntegralCohomologyEquiv_canonicalThomClass_eq_rankZeroThomClass [Su
     ← TopPair.uliftIntegralCohomologyEquiv_naturality,
     o.singularCohomologyMap_fiberThomPairMap_canonicalThomClass _ _ hb,
     TopPair.uliftIntegralCohomologyEquiv_naturality]
-  -- As in `TauCeti.singularCohomologyZeroEval_eulerClass`, the point is the zero vector of `E b`,
-  -- so the map to absolute cohomology is moved past the trivialization by `Eq.trans`.
+  -- As in `TauCeti.singularCohomologyZeroEval_eulerClass`
+  -- (`SymplecticGeometry/Topology/VectorBundle/EulerClass.lean`), the point is the zero vector of
+  -- `E b`, so the map to absolute cohomology is moved past the trivialization by `Eq.trans`.
   have h := ConcreteCategory.congr_hom (@TopPair.singularCohomologyπ_naturality (ModuleCat.{0} ℤ)
     _ _ _ (ModuleCat.of ℤ ℤ) ℤ _ ModuleCat.instLinear (ModuleCat.of ℤ ℤ) _ _
     ((trivializationAt F E b).continuousLinearEquivAt ℝ b hb).complZeroPairIso.hom 0)
