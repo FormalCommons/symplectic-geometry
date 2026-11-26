@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Geometry.Manifold.MFDeriv.Atlas
+public import SymplecticGeometry.Geometry.Manifold.MFDeriv.Atlas
 public import SymplecticGeometry.Topology.FiberBundle.Basic
 public import SymplecticGeometry.Topology.FiberBundle.ChangeModelFiber
 public import TauCeti.Geometry.Manifold.FiberBundle.MapFiber
@@ -42,6 +42,10 @@ from the fibre onto `F`, and its underlying homeomorphism is
 
 * `Bundle.Trivialization.contMDiff_fiberInclusionMap`: the fibre inclusion of a trivialization with
   smooth inverse is smooth.
+* `Bundle.Trivialization.mfderiv_proj_apply` and
+  `Bundle.Trivialization.mfderiv_fiberInclusionMap_apply`: the derivative of `proj` is the first
+  coordinate of the derivative of `e`, and the derivative of a fibre inclusion is that of the
+  inverse of `e` on the second factor.
 * `Bundle.Trivialization.isRegularPoint_proj`: `proj` is regular at every point of the source of
   a differentiable trivialization.
 * `Bundle.Trivialization.injective_mfderiv_fiberInclusionMap` and
@@ -94,31 +98,51 @@ is `C^n`. -/
 theorem contMDiff_fiberInclusionMap
     (he : ContMDiffOn (IB.prod IF) IM n e.toOpenPartialHomeomorph.symm e.target)
     (hb : b ∈ e.baseSet) : ContMDiff IF IM n (e.fiberInclusionMap hb) := by
-  rw [show ⇑(e.fiberInclusionMap hb) = fun v ↦ e.toOpenPartialHomeomorph.symm (b, v) from
-    funext (e.fiberInclusionMap_apply hb)]
+  rw [e.coe_fiberInclusionMap hb]
   exact he.comp_contMDiff (contMDiff_const.prodMk contMDiff_id) fun _ ↦ e.mem_target.2 hb
 
 variable {e}
+
+/-- At a point of the source of a trivialization `e` that is differentiable there, the derivative
+of `proj` is the first coordinate of the derivative of `e`. -/
+theorem mfderiv_proj_apply {x : M} (hx : x ∈ e.source) (he : MDifferentiableAt IM (IB.prod IF) e x)
+    (u : TangentSpace IM x) : mfderiv IM IB proj x u = (mfderiv IM (IB.prod IF) e x u).1 := by
+  rw [(e.coe_fst_eventuallyEq_proj hx).symm.mfderiv_eq,
+    mfderiv_comp (f := (e : M → B × F)) x mdifferentiableAt_fst he, mfderiv_fst]
+  -- `EventuallyEq.mfderiv_eq` inserts `tangentSpaceCast`, the identity by definition, which Mathlib
+  -- gives no lemma for applying.
+  rfl
+
+/-- The derivative at `v` of the fibre inclusion over `b` sends `w` to the derivative of the
+inverse of `e` at `(b, v)` applied to `(0, w)`, when that inverse is differentiable there. -/
+theorem mfderiv_fiberInclusionMap_apply (hb : b ∈ e.baseSet) (v : F)
+    (he : MDifferentiableAt (IB.prod IF) IM e.toOpenPartialHomeomorph.symm (b, v))
+    (w : TangentSpace IF v) :
+    mfderiv IF IM (e.fiberInclusionMap hb) v w =
+      mfderiv (IB.prod IF) IM e.toOpenPartialHomeomorph.symm (b, v) (0, w) := by
+  rw [e.coe_fiberInclusionMap hb, ← comp_def (e.toOpenPartialHomeomorph.symm),
+    mfderiv_comp v he (mdifferentiableAt_const.prodMk mdifferentiableAt_id),
+    ContinuousLinearMap.comp_apply, mfderiv_prod_right]
+  -- `inr_apply` is stated on `TangentSpace IB b × TangentSpace IF v`, which is the tangent space
+  -- of `B × F` at `(b, v)` by definition.
+  exact congrArg _ (ContinuousLinearMap.inr_apply (R := 𝕜) w)
 
 /-- A trivialization that is differentiable with differentiable inverse makes `proj` regular at
 every point of its source: near such a point, `proj` is the first coordinate of `e`, whose
 derivative is invertible. -/
 theorem isRegularPoint_proj (he : e.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF))
     {x : M} (hx : x ∈ e.source) : TauCeti.IsRegularPoint IM IB proj x := by
-  rw [TauCeti.isRegularPoint_iff, (e.coe_fst_eventuallyEq_proj hx).symm.mfderiv_eq,
-    ContinuousLinearMap.coe_comp,
-    mfderiv_comp (f := (e : M → B × F)) x mdifferentiableAt_fst (he.mdifferentiableAt hx),
-    mfderiv_fst]
-  exact (tangentSpaceCast IB _ _).surjective.comp
-    (Prod.fst_surjective.comp (he.mfderiv_surjective hx))
+  rw [TauCeti.isRegularPoint_iff]
+  intro w
+  obtain ⟨u, hu⟩ := he.mfderiv_surjective hx (w, 0)
+  exact ⟨u, by rw [mfderiv_proj_apply hx (he.mdifferentiableAt hx), ← coe_coe, hu]⟩
 
 /-- The fibre inclusion of a trivialization that is differentiable with differentiable inverse is
 differentiable. -/
 theorem mdifferentiable_fiberInclusionMap
     (he : e.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF)) (hb : b ∈ e.baseSet) :
     MDifferentiable IF IM (e.fiberInclusionMap hb) := fun v ↦ by
-  rw [show ⇑(e.fiberInclusionMap hb) = fun v ↦ e.toOpenPartialHomeomorph.symm (b, v) from
-    funext (e.fiberInclusionMap_apply hb)]
+  rw [e.coe_fiberInclusionMap hb]
   exact (he.mdifferentiableAt_symm (e.mem_target.2 hb)).comp v
     (mdifferentiableAt_const.prodMk mdifferentiableAt_id)
 
@@ -126,14 +150,11 @@ theorem mdifferentiable_fiberInclusionMap
 injective derivative: the fibre coordinate of `e` is a left inverse of it. -/
 theorem injective_mfderiv_fiberInclusionMap
     (he : e.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF)) (hb : b ∈ e.baseSet)
-    (v : F) : Injective (mfderiv IF IM (e.fiberInclusionMap hb) v) := by
-  have hv : e.fiberInclusionMap hb v ∈ e.source :=
-    e.mem_source.2 ((e.proj_fiberInclusionMap hb v).symm ▸ hb)
-  refine TauCeti.mfderiv_injective_of_leftInverse (g := fun x ↦ (e x).2)
-    (mdifferentiableAt_snd.comp _ (he.mdifferentiableAt hv))
-    (mdifferentiable_fiberInclusionMap he hb v) fun w ↦ ?_
-  rw [fiberInclusionMap_apply]
-  exact congrArg Prod.snd (e.apply_symm_apply' hb)
+    (v : F) : Injective (mfderiv IF IM (e.fiberInclusionMap hb) v) :=
+  TauCeti.mfderiv_injective_of_leftInverse (g := fun x ↦ (e x).2)
+    (mdifferentiableAt_snd.comp _ (he.mdifferentiableAt (e.fiberInclusionMap_mem_source hb v)))
+    (mdifferentiable_fiberInclusionMap he hb v) fun w ↦
+      congrArg Prod.snd (e.apply_fiberInclusionMap hb w)
 
 /-- **The tangent spaces of a fibre.** For a trivialization `e` of `proj` that is differentiable
 with differentiable inverse, the derivative of the fibre inclusion over `b` at `v` has as range
@@ -143,35 +164,19 @@ theorem range_mfderiv_fiberInclusionMap
     (v : F) :
     (mfderiv IF IM (e.fiberInclusionMap hb) v).range =
       (mfderiv IM IB proj (e.fiberInclusionMap hb v)).ker := by
-  have hv : e.fiberInclusionMap hb v ∈ e.source :=
-    e.mem_source.2 ((e.proj_fiberInclusionMap hb v).symm ▸ hb)
-  have hev : e (e.fiberInclusionMap hb v) = (b, v) := by
-    rw [fiberInclusionMap_apply]; exact e.apply_symm_apply' hb
+  have hv := e.fiberInclusionMap_mem_source hb v
+  have hev := e.apply_fiberInclusionMap hb v
   -- `L` is the derivative of `e`, an equivalence onto the tangent space of `B × F`.
   let L := he.mfderiv hv
-  -- The derivative of `proj` is the first coordinate of `L`.
-  have hproj : ∀ u, mfderiv IM IB proj (e.fiberInclusionMap hb v) u = (L u).1 := fun u ↦ by
-    rw [(e.coe_fst_eventuallyEq_proj hv).symm.mfderiv_eq,
-      mfderiv_comp (f := (e : M → B × F)) _ mdifferentiableAt_fst (he.mdifferentiableAt hv),
-      mfderiv_fst]
-    -- Mathlib states no lemma for the forward map of `he.mfderiv hv`, which is `mfderiv e`.
-    rfl
-  -- The derivative of the fibre inclusion is the inverse of `L` on the second factor.
-  have hincl : ∀ w, mfderiv IF IM (e.fiberInclusionMap hb) v w = L.symm (0, w) := fun w ↦ by
-    rw [show ⇑(e.fiberInclusionMap hb) = e.toOpenPartialHomeomorph.symm ∘ fun w ↦ (b, w) from
-        funext (e.fiberInclusionMap_apply hb)]
-    refine (congrArg (· w) (mfderiv_comp (f := fun w ↦ (b, w)) v
-      (he.mdifferentiableAt_symm (e.mem_target.2 hb))
-      (mdifferentiableAt_const.prodMk mdifferentiableAt_id))).trans ?_
-    rw [mfderiv_prod_right, ← hev]
-    -- Mathlib states no lemma for the inverse of `he.mfderiv hv`, which is `mfderiv e.symm`.
-    rfl
   refine le_antisymm (TauCeti.range_mfderiv_le_ker_mfderiv_of_eventually_eq
     (.of_forall (e.proj_fiberInclusionMap hb))) fun u hu ↦ ⟨(L u).2, ?_⟩
-  rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe, hproj] at hu
-  refine (hincl _).trans ?_
+  rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe,
+    mfderiv_proj_apply hv (he.mdifferentiableAt hv)] at hu
+  refine (mfderiv_fiberInclusionMap_apply hb v
+    (he.mdifferentiableAt_symm (e.mem_target.2 hb : (b, v) ∈ e.target)) _).trans ?_
   conv_rhs => rw [← L.symm_apply_apply u]
-  exact congrArg L.symm (Prod.ext hu.symm rfl)
+  rw [he.coe_mfderiv_symm, he.coe_mfderiv, coe_coe, hev]
+  exact congrArg _ (Prod.ext hu.symm rfl)
 
 /-! ### Coordinate changes -/
 
