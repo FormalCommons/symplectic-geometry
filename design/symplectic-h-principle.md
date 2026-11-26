@@ -496,14 +496,16 @@ of any smooth vector bundle gives the diffeomorphism with the product
 
 #### `Geometry/Manifold/TubularNeighborhood/Ray.lean`
 
-The tube around a ray, with `V := EuclideanSpace ℝ (Fin (Module.finrank ℝ E - 1))`:
+The tube around a ray, for a fibre `V` with `Module.finrank ℝ V + 1 = Module.finrank ℝ E`, such as
+`EuclideanSpace ℝ (Fin (Module.finrank ℝ E - 1))`:
 
 ```lean
 theorem TauCeti.SmoothEmbedding.exists_rayTube (γ : SmoothEmbedding 𝓘(ℝ) I ∞ ℝ M)
+    (hV : Module.finrank ℝ V + 1 = Module.finrank ℝ E)
     (hγ : Filter.Tendsto γ Filter.atTop (Filter.cocompact M))
     {O O' : Set M} (hO : IsOpen O) (hγO : Set.range γ ⊆ O)
     (hO' : IsOpen O') (hγO' : γ '' Set.Ici (-2) ⊆ O') :
-    ∃ Φ : ℝ × V → M, Manifold.IsSmoothEmbedding 𝓘(ℝ).prod 𝓘(ℝ, V) I ∞ Φ ∧
+    ∃ Φ : SmoothEmbedding (𝓘(ℝ).prod 𝓘(ℝ, V)) I ∞ (ℝ × V) M,
       IsOpen (Set.range Φ) ∧ Set.range Φ ⊆ O ∧ (∀ t, Φ (t, 0) = γ t) ∧
       IsClosed (Φ '' (Set.Ici (-2) ×ˢ Metric.closedBall 0 2)) ∧
       Φ '' (Set.Ici (-2) ×ˢ Metric.closedBall 0 2) ⊆ O'
