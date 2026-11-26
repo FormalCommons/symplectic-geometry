@@ -1043,7 +1043,10 @@ theorem dehnTwist_isSymplectic_and_framing_invariant [NeZero n] [IsManifold I �
     fun hι ↦ fun hR hU θ hθ hθL ↦ ?_⟩
   rcases hθL with hn | hθL
   · exact exists_mpullback_dehnTwist_sub_eq_of_two_le hn hι hR hU θ hθ
-  · exact exists_mpullback_dehnTwist_sub_eq hι hR hU θ hθ hθL
+  · obtain ⟨h, hh⟩ := hθL
+    refine exists_mpullback_dehnTwist_sub_eq hι hR hU θ hθ ?_
+    rw [hh, exactForms_succ]
+    exact LinearMap.mem_range_self _ _
 
 end Twist
 
