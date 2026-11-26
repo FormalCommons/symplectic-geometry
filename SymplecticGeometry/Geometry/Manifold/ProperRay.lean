@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Homogeneity
 public import SymplecticGeometry.Topology.FilledHull
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import SymplecticGeometry.Topology.LeavesForGood
+import SymplecticGeometry.Analysis.Calculus.Deriv.CriticalValue
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Real
 import SymplecticGeometry.Geometry.Manifold.NullSet
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Segment
@@ -30,8 +31,7 @@ closed discrete set of a manifold of dimension at least two. Each ray is grown a
 
 As they grow, the rays keep the invariant `LeavesForGood` of
 `SymplecticGeometry/Topology/LeavesForGood.lean` for every compact set of the exhaustion, and the
-arcs of a stage are cut, at the next level of the exhaustion, by
-`exists_mem_forall_exists_mem_Ioo_leavesForGood_filledSublevel` from that file.
+arcs of a stage are cut by `exists_mem_Ioo_leavesForGood_filledSublevel` from that file.
 
 ## Main results
 
@@ -56,6 +56,12 @@ arcs of a stage are cut, at the next level of the exhaustion, by
   meet `W` (`LeavesForGood.apply_mem_connectedComponentIn`). The target outside `L` comes from
   `exists_mem_sdiff_union_iUnion_image_notMem`. The diffeomorphism fixes
   every built part, so only `γ k` changes.
+* `exists_mem_forall_exists_mem_Ioo_leavesForGood_filledSublevel`: the next level of the
+  exhaustion and the cut of the arcs of a stage. For a continuous `h` and countably many curves
+  `α k` from the interior of `filledSublevel h d` to its outside, with `h ∘ α k` differentiable,
+  some level `c` in a prescribed nonempty open set below `d` is crossed cleanly by every
+  `h ∘ α k` (`exists_mem_Ioo_forall_apply_eq_imp_deriv_ne_zero`), and each `α k` is cut for that
+  level by `exists_mem_Ioo_leavesForGood_filledSublevel`.
 * `IsRayStage` and `exists_isRayStage_succ`: one stage of the construction. `IsRayStage` records
   the rays built after stage `j`, one for each point already used of a closed discrete set `P`,
   together with a closed discrete set of obstacles that holds the unused points of `P` and the
@@ -389,6 +395,36 @@ theorem exists_grow_rays [Finite ι] (hE : 1 < Module.rank ℝ E) (hK : IsClosed
     · simpa [hj] using h' j
 
 end GrowRays
+
+section CutArcs
+
+variable {X : Type*} [TopologicalSpace X] [R0Space X] [LocallyConnectedSpace X] {h : X → ℝ}
+
+/-- **Choosing the next level and cutting the arcs.** Let `h : X → ℝ` be continuous, `d` a level
+and `O` a nonempty open set of levels below `d`, for instance `(c₀ + 1, c₀ + 2)` with `d = c₀ + 2`,
+less finitely many closed intervals. For countably many continuous curves `α k : ℝ → X` such that
+each `h ∘ α k` is differentiable, with `a k < b k`, `α k (a k)` in the interior of
+`filledSublevel h d` and `α k (b k)` outside it, there are a level `c ∈ O` and, for each `k`, a
+parameter `s ∈ (a k, b k)` such that `α k '' [a k, s]` lies in the interior of
+`filledSublevel h d`, `α k s` lies outside `filledSublevel h c`, and `α k` leaves
+`filledSublevel h c` for good along `[a k, s]`. -/
+theorem exists_mem_forall_exists_mem_Ioo_leavesForGood_filledSublevel (hh : Continuous h)
+    {ι : Type*} [Countable ι] {α : ι → ℝ → X} (hα : ∀ k, Continuous (α k))
+    (hdiff : ∀ k, Differentiable ℝ (h ∘ α k)) {a b : ι → ℝ} (hab : ∀ k, a k < b k) {d : ℝ}
+    (ha : ∀ k, α k (a k) ∈ interior (filledSublevel h d))
+    (hb : ∀ k, α k (b k) ∉ filledSublevel h d) {O : Set ℝ} (hO : IsOpen O) (hOn : O.Nonempty)
+    (hOd : O ⊆ Iio d) :
+    ∃ c ∈ O, ∀ k, ∃ s ∈ Ioo (a k) (b k), α k '' Icc (a k) s ⊆ interior (filledSublevel h d) ∧
+      α k s ∉ filledSublevel h c ∧ LeavesForGood (α k) (filledSublevel h c) (Icc (a k) s) := by
+  obtain ⟨x, hx⟩ := hOn
+  obtain ⟨l, u, hxlu, hluO⟩ := (mem_nhds_iff_exists_Ioo_subset.1 (hO.mem_nhds hx))
+  obtain ⟨c, hc, hreg⟩ :=
+    exists_mem_Ioo_forall_apply_eq_imp_deriv_ne_zero (fun k ↦ h ∘ α k) (hxlu.1.trans hxlu.2)
+  refine ⟨c, hluO hc, fun k ↦ exists_mem_Ioo_leavesForGood_filledSublevel hh (hα k) (hab k)
+    (hOd (hluO hc)) (ha k) (hb k) fun t _ htc ↦ ?_⟩
+  exact nhdsWithin_mono t (fun _ hu ↦ ne_of_gt hu) ((hreg k t htc (hdiff k t)).2)
+
+end CutArcs
 
 section Stage
 
