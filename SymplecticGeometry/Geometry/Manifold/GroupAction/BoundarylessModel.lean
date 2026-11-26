@@ -36,7 +36,9 @@ boundary.
   Both are `Diffeomorph.mfderiv_fundamentalVectorField`, for the `C¹` diffeomorphism
   `interiorDiffeomorph I 1` and its inverse, so no hypothesis on the action is needed.
 * `TauCeti.BoundarylessModel.instContMDiffSMulInteriorChartedSpace`: a `C^n` scalar multiplication
-  on `M` is a `C^n` scalar multiplication on the copy with its vector-space atlas.
+  on `M` is a `C^n` scalar multiplication on the copy with its vector-space atlas;
+  `TauCeti.BoundarylessModel.instContMDiffConstSMulInteriorChartedSpace` is the same for actions
+  by `C^n` maps.
 -/
 
 public section
@@ -174,6 +176,22 @@ instance instContMDiffSMulInteriorChartedSpace {EG HG : Type*} [NormedAddCommGro
     rw [h]
     exact Φ.contMDiff.comp ((contMDiff_smul (I := IG) (I' := I)).comp
       (contMDiff_fst.prodMk (Φ.symm.contMDiff.comp contMDiff_snd)))
+
+/-- If every `g • ·` is `C^n` on a boundaryless manifold, then every `g • ·` is `C^n` on its copy
+with the vector-space atlas. -/
+@[to_additive
+  /-- If every `g +ᵥ ·` is `C^n` on a boundaryless manifold, then every `g +ᵥ ·` is `C^n` on its
+  copy with the vector-space atlas. -/]
+instance instContMDiffConstSMulInteriorChartedSpace [SMul G M] {n : ℕ∞ω}
+    [ContMDiffConstSMul I n G M] : ContMDiffConstSMul 𝓘(𝕜, E) n G (BoundarylessModel I M) where
+  contMDiff_const_smul g := by
+    let Φ := interiorDiffeomorph I (M := M) n
+    have h : (fun y : BoundarylessModel I M ↦ g • y) = Φ ∘ (fun x : M ↦ g • x) ∘ Φ.symm := by
+      funext y
+      rw [Function.comp_apply, Function.comp_apply, interiorDiffeomorph_smul,
+        Diffeomorph.apply_symm_apply]
+    rw [h]
+    exact Φ.contMDiff.comp ((contMDiff_const_smul g).comp Φ.symm.contMDiff)
 
 end TauCeti.BoundarylessModel
 
