@@ -23,6 +23,8 @@ import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 import SymplecticGeometry.Topology.Sets.Opens.Basic
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.NestedOpens
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
 /-!
 # The equivariant Moser flow and the equivariant relative Moser theorem
@@ -96,6 +98,9 @@ in `M`: the diffeomorphism it gives between open sets of `W` is carried to their
   relative Moser theorem with prescribed first derivative.
 * `TauCeti.SmoothEmbedding.exists_equivariant_diffeomorph_opens_le_of_eq_along`: the same for
   forms on an open set around `f(Q)`.
+* `TauCeti.SmoothEmbedding.exists_equivariant_isLocalDiffeomorph_mpullback_eq_of_eq_along`: an
+  equivariant local diffeomorphism along `f(Q)` that pulls a closed invariant form back to `σ₀`
+  at the points of `f(Q)`, composed with such a diffeomorphism, pulls it back to `σ₀` near `f(Q)`.
 
 ## References
 
@@ -534,6 +539,86 @@ theorem exists_equivariant_diffeomorph_opens_le_of_eq_along (f : SmoothEmbedding
       (ψ.inclusion_comp_imageValCongr),
       ← SmoothForm.mpullback_mpullback ψ Subtype.val ψ.contMDiff contMDiff_subtypeVal, hψσ]
     simp only [SmoothForm.mpullback_mpullback, e₀, Opens.subtypeVal_comp_diffeomorphImageVal_symm]
+
+include IG in
+/-- **The equivariant Moser correction of a map along an invariant submanifold.** Let a compact
+Hausdorff topological group `G`, which is a smooth manifold, act smoothly on a boundaryless
+Hausdorff second-countable manifold `M` and on a manifold `N`, and let `f : Q → M` be a smooth
+embedding whose image is `G`-invariant. Let `σ₀` be a closed `G`-invariant two-form on `M` and
+`σ` a closed `G`-invariant two-form on `N`. Let `Ψ₀ : M → N` be `G`-equivariant and a local
+diffeomorphism at every point `f q`, with `σ₀` nondegenerate at `f q` and equal there to the
+pullback of `σ` by `Ψ₀`. Then there are a `G`-invariant open set `U` of `M` containing `f(Q)`
+and a smooth `G`-equivariant map `Ψ : U → N`, a local diffeomorphism, with `Ψ (f q) = Ψ₀ (f q)`,
+that pulls `σ` back to the restriction of `σ₀` to `U`.
+
+The map `Ψ` is `Ψ₀ ∘ φ`, where `φ` is the diffeomorphism of
+`TauCeti.SmoothEmbedding.exists_equivariant_diffeomorph_opens_le_of_eq_along` for `σ₀` and
+`Ψ₀^* σ` on the open set of the points at which `Ψ₀` is a local diffeomorphism. -/
+theorem exists_equivariant_isLocalDiffeomorph_mpullback_eq_of_eq_along
+    {EN HN N : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] [TopologicalSpace HN]
+    {IN : ModelWithCorners ℝ EN HN} [TopologicalSpace N] [ChartedSpace HN N] [IsManifold IN ∞ N]
+    [MulAction G N] [ContMDiffSMul IG IN ∞ G N] (f : SmoothEmbedding J I ∞ Q M)
+    (hfG : ∀ (g : G) q, g • f q ∈ range f) {σ₀ : SmoothTwoForm I M} (h₀ : σ₀.IsClosed)
+    (hσ₀ : ∀ g : G, SmoothForm.mpullback (fun x : M ↦ g • x)
+      (ContMDiffSMul.contMDiff_const_smul (I := IG) (I' := I) g) σ₀ = σ₀)
+    {σ : SmoothTwoForm IN N} (hσ : σ.IsClosed)
+    (hσG : ∀ g : G, SmoothForm.mpullback (fun y : N ↦ g • y)
+      (ContMDiffSMul.contMDiff_const_smul (I := IG) (I' := IN) g) σ = σ)
+    {Ψ₀ : M → N} (hΨ₀G : ∀ (g : G) x, Ψ₀ (g • x) = g • Ψ₀ x)
+    (hΨ₀ : ∀ q, IsLocalDiffeomorphAt I IN ∞ Ψ₀ (f q))
+    (hnd : ∀ q, (σ₀.bilinFormAt (f q)).Nondegenerate)
+    (heq : ∀ q, mpullback I IN Ψ₀ σ.val (f q) = σ₀.val (f q)) :
+    ∃ (U : Opens M) (Ψ : U → N) (hΨ : ContMDiff I IN ∞ Ψ),
+      range f ⊆ U ∧ (∀ g : G, ∀ x ∈ U, g • x ∈ U) ∧
+      (∀ (g : G) (x : U) (hx : g • (x : M) ∈ U), Ψ ⟨g • (x : M), hx⟩ = g • Ψ x) ∧
+      (∀ q (h : f q ∈ U), Ψ ⟨f q, h⟩ = Ψ₀ (f q)) ∧ IsLocalDiffeomorph I IN ∞ Ψ ∧
+      SmoothForm.mpullback Ψ hΨ σ =
+        SmoothForm.mpullback (Subtype.val : U → M) contMDiff_subtypeVal σ₀ := by
+  have : ContMDiffConstSMul I ∞ G M := ContMDiffSMul.contMDiffConstSMul IG
+  have : ContMDiffConstSMul IN ∞ G N := ContMDiffSMul.contMDiffConstSMul IG
+  -- The invariant open set `N₀` of the points at which `Ψ₀` is a local diffeomorphism.
+  let N₀ : Opens M := ⟨_, SymplecticGeometry.isOpen_setOfPred_isLocalDiffeomorphAt I IN ∞ Ψ₀⟩
+  have hN₀ (x : M) : x ∈ N₀ ↔ IsLocalDiffeomorphAt I IN ∞ Ψ₀ x := Iff.rfl
+  have hN₀G (g : G) (x : M) (hx : x ∈ N₀) : g • x ∈ N₀ :=
+    (hN₀ _).2 ((SymplecticGeometry.isLocalDiffeomorphAt_smul_iff hΨ₀G g).2 ((hN₀ _).1 hx))
+  let : MulAction G N₀ := Opens.mulActionOfForallSMulMem hN₀G
+  have hcN₀ := Opens.coe_smul_mulActionOfForallSMulMem hN₀G
+  have : ContMDiffSMul IG I ∞ G N₀ := Opens.contMDiffSMul_of_coe_smul hcN₀
+  have : ContMDiffConstSMul I ∞ G N₀ := Opens.contMDiffConstSMul_of_coe_smul hcN₀
+  have hΨ₀N (U : Opens M) (hU : U ≤ N₀) : ContMDiff I IN ∞ (Ψ₀ ∘ (Subtype.val : U → M)) :=
+    fun y ↦ ((hN₀ _).1 (hU y.property)).contMDiffAt.comp y contMDiff_subtypeVal.contMDiffAt
+  have hfW : range f ⊆ N₀ := by
+    rintro _ ⟨q, rfl⟩
+    exact hΨ₀ q
+  -- Moser's theorem for `σ₀` and `Ψ₀^* σ` on `N₀`.
+  obtain ⟨U₀, U₁, hU₀, hU₁, φ, hU₀G, -, hφG, hφf, hφσ⟩ :=
+    exists_equivariant_diffeomorph_opens_le_of_eq_along IG f hfG hfW hcN₀
+      (h₀.mpullback _ contMDiff_subtypeVal) (hσ.mpullback _ (hΨ₀N N₀ le_rfl))
+      (fun g ↦ SmoothForm.mpullback_smul_mpullback contMDiff_subtypeVal (fun y ↦ hcN₀ g y)
+        (hσ₀ g))
+      (fun g ↦ SmoothForm.mpullback_smul_mpullback (hΨ₀N N₀ le_rfl)
+        (fun y ↦ by rw [Function.comp_apply, Function.comp_apply, hcN₀, hΨ₀G]) (hσG g))
+      (fun q ↦ (SmoothTwoForm.nondegenerate_bilinFormAt_mpullback_subtype_val_iff _).2 (hnd q))
+      (fun q ↦ ContinuousAlternatingMap.ext fun w ↦ by
+        rw [SmoothForm.mpullback_comp_subtypeVal_apply,
+          SmoothForm.coe_mpullback_subtype_val_apply]
+        exact (TauCeti.mpullback_apply Ψ₀ σ.val _ w).symm.trans (DFunLike.congr_fun (heq q) w))
+  -- `Ψ = Ψ₀ ∘ φ` on `U₀`.
+  refine ⟨U₀, (Ψ₀ ∘ Subtype.val) ∘ φ, (hΨ₀N U₁ hU₁).comp φ.contMDiff,
+    fun _ ⟨q, hq⟩ ↦ hq ▸ (hφf q).1, hU₀G, fun g x h ↦ ?_, fun q h ↦ ?_, fun x ↦ ?_, ?_⟩
+  · simp only [Function.comp_apply, hφG g x h, hΨ₀G]
+  · obtain ⟨_, hfix, -⟩ := hφf q
+    exact congrArg Ψ₀ hfix
+  · exact IsLocalDiffeomorphAt.comp (hf := φ.isLocalDiffeomorph x)
+      (hg := IsLocalDiffeomorphAt.comp (hf := isLocalDiffeomorph_subtype_val (φ x))
+        (hg := hU₁ (φ x).property))
+  · have h₁ : ((Ψ₀ ∘ Subtype.val) ∘ Opens.inclusion hU₁) ∘ φ = (Ψ₀ ∘ Subtype.val) ∘ φ := by
+      funext y
+      simp
+    have h₂ : (Subtype.val : N₀ → M) ∘ Opens.inclusion hU₀ = Subtype.val := by
+      funext y
+      simp
+    simpa only [SmoothForm.mpullback_mpullback, h₁, h₂] using hφσ
 
 end TauCeti.SmoothEmbedding
 
