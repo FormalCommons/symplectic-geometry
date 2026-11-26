@@ -756,12 +756,8 @@ Expected size: 650 lines, in two issues (L1 and L2).
   for the velocity (in `Gray.lean`); Tau Ceti's
   `Diffeotopy.velocity_timeDependentFlowDiffeotopy` and
   `Diffeotopy.apply_mk_symm_apply` are used there too.
-- *Symplectic neighbourhoods* (#475, #476): the Lagrangian neighbourhood
-  theorem of `Geometry/Symplectic/Neighborhood/Lagrangian.lean`, for a
-  Lagrangian embedding into a symplectic manifold, with model
-  $-d\lambda_{\mathrm{can}}$ on `T*L` and a map fixing the zero section; it
-  is applied on an open submanifold of `T*L`. `LegendrianNeighborhood.lean` also
-  uses `Geometry/Manifold/VectorBundle/ZeroSection.lean`, for the zero section as
+- `LegendrianNeighborhood.lean` uses
+  `Geometry/Manifold/VectorBundle/ZeroSection.lean`, for the zero section as
   a smooth embedding, and `Geometry/Manifold/Diffeomorph/Basic.lean` and
   `Topology/Sets/Opens/Basic.lean`, for an empty `L`.
 - *Moser isotopy*: `SmoothForm.mpullback_prodMk_mpullback_prodMap'` and its variants of
@@ -770,10 +766,7 @@ Expected size: 650 lines, in two issues (L1 and L2).
   `PartialDiffeomorph.exists_diffeomorph_opens_mpullback_eq` of
   `Geometry/Manifold/DifferentialForm/Opens.lean` (for
   `LegendrianNeighborhood.lean`).
-- *Liouville structures*: `mdifferentiableAt_subtypeVal` and
-  `mdifferentiable_subtypeVal` of `Geometry/Manifold/MFDeriv/Opens.lean`,
-  already merged (for `LegendrianNeighborhood.lean`), and
-  `TauCeti.Manifold.prodVectorField_apply` of
+- *Liouville structures*: `TauCeti.Manifold.prodVectorField_apply` of
   `Geometry/Manifold/VectorField/Prod.lean`, which imports only Tau Ceti
   (for `Geometry/Manifold/DifferentialForm/LieDeriv.lean`).
 - *Isotopy extension*: `ContMDiff.contMDiffOn_prod_opens_of_eq` of

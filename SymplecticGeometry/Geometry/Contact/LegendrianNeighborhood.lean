@@ -10,7 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.Riemannia
 public import TauCeti.Geometry.Contact.Legendrian.Neighborhood
 public import TauCeti.Geometry.Manifold.Flow.Basic
 import SymplecticGeometry.Geometry.Contact.Contactization
-import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Fiberwise
+import TauCeti.Geometry.Contact.OneJet.Connection
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
@@ -69,11 +69,11 @@ Tau Ceti proves the theorem as
 `(0_q, 0)`, with `φ (0_q, 0) = f q` and `φ^* α = dz - λ_can` on its source. The theorem here is
 deduced from it:
 
-* the involution `σ (q, p, z) = (q, -p, -z)` of `T^* L × ℝ`, the product of Tau Ceti's fibrewise
-  rescaling `vectorBundleScalarDiffeomorph` by `-1` and of `z ↦ -z`, fixes the points `(0_q, 0)`
-  and pulls `dz - λ_can` back to `λ_can - dz`, by
-  `TauCeti.CotangentBundle.mpullback_vectorBundleScalarDiffeomorph_liouvilleForm` and
-  `TauCeti.SmoothForm.mpullback_prodMap_neg_contactization`;
+* the involution `σ (q, p, z) = (q, -p, -z)` of `T^* L × ℝ` is Tau Ceti's frame change
+  `TauCeti.CotangentBundle.connectionFrameChange` by the constant function `-1`. It fixes the
+  points `(0_q, 0)` and pulls `dz - λ_can` back to `λ_can - dz`, by
+  `TauCeti.CotangentBundle.mpullback_connectionFrameChange_connectionOneJetForm` for the zero
+  connection (`TauCeti.CotangentBundle.connectionOneJetForm_zero`);
 * so `φ` pulls `α` back to `σ^* (λ_can - dz)`, and
   `PartialDiffeomorph.exists_diffeomorph_opens_mpullback_eq`, applied with `e = σ`, gives a
   diffeomorphism `Ψ` between open sets with `Ψ (σ x) = φ x` that pulls `α` back to
@@ -504,31 +504,25 @@ theorem exists_diffeomorph_opens_mpullback_eq_neg_contactization [I.Boundaryless
   have hg : ⇑g = f := SmoothEmbedding.coe_ofIsSmoothEmbedding f _
   obtain ⟨φ, hφs, hφ0, hφα⟩ := g.exists_partialDiffeomorph_mpullback_eq_contactization
     (hg ▸ hf.toIsLegendrianImmersion)
-  -- The involution `(q, p, z) ↦ (q, -p, -z)` of `T^* L × ℝ` pulls `dz - λ` back to `λ - dz`.
-  let ν := vectorBundleScalarDiffeomorph (I := J) (F := E' →L[ℝ] ℝ)
-    (V := fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) (fun _ ↦ (-1 : ℝ)) (contMDiff_const (n := ∞))
+  -- The frame change by `-1`, `(q, p, z) ↦ (q, -p, -z)`, pulls `dz - λ` back to `λ - dz`.
+  let σ := CotangentBundle.connectionFrameChange J (M := L) (contMDiff_const (c := (-1 : ℝ)))
     fun _ ↦ by norm_num
-  -- `SmoothForm` is a submodule, on which `neg_one_smul` is read through the coercion.
-  have hneg : (-1 : ℝ) • CotangentBundle.liouvilleForm J L = -CotangentBundle.liouvilleForm J L :=
-    Subtype.ext (by rw [SetLike.val_smul, NegMemClass.coe_neg, neg_one_smul])
-  have he : IsLocalDiffeomorph ((J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)).prod 𝓘(ℝ))
-      ((J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)).prod 𝓘(ℝ)) ∞ (Prod.map ν (Neg.neg : ℝ → ℝ)) := by
-    have := (ν.prodCongr (ContinuousLinearEquiv.neg ℝ : ℝ ≃L[ℝ] ℝ).toDiffeomorph).isLocalDiffeomorph
-    rwa [Diffeomorph.coe_prodCongr, ContinuousLinearEquiv.coe_toDiffeomorph,
-      show ⇑(ContinuousLinearEquiv.neg ℝ : ℝ ≃L[ℝ] ℝ) = Neg.neg from
-        funext ContinuousLinearEquiv.neg_apply] at this
-  obtain ⟨U, V, Ψ, hΨ, hΨα⟩ := PartialDiffeomorph.exists_diffeomorph_opens_mpullback_eq he
-    (ν.injective.prodMap neg_injective) φ
+  have hd : mextDeriv (RoughForm.ofFunction J (fun _ : L ↦ (-1 : ℝ))) = 0 := by
+    funext x
+    exact mextDeriv_ofFunction_apply_eq_zero_iff.2 (mfderiv_const ..)
+  obtain ⟨U, V, Ψ, hΨ, hΨα⟩ := PartialDiffeomorph.exists_diffeomorph_opens_mpullback_eq
+    σ.isLocalDiffeomorph σ.injective φ
     (τ := -(CotangentBundle.liouvilleForm J L).contactization) fun x hx ↦ by
-      rw [hφα x hx, map_neg, SmoothForm.mpullback_prodMap_neg_contactization _ ν.contMDiff,
-        CotangentBundle.mpullback_vectorBundleScalarDiffeomorph_liouvilleForm,
-        hneg, neg_neg, neg_neg]
+      rw [hφα x hx, map_neg, NegMemClass.coe_neg, Pi.neg_apply,
+        ← CotangentBundle.connectionOneJetForm_zero,
+        CotangentBundle.mpullback_connectionFrameChange_connectionOneJetForm _ _
+          (a := 0) (by simp [hd, Pi.zero_def]), neg_one_smul, neg_neg]
   refine ⟨U, V, Ψ, fun q ↦ ?_, by rw [hΨα, map_neg]⟩
   obtain ⟨h, hq⟩ := hΨ _ (hφs q)
-  have hq0 : Prod.map ν (Neg.neg : ℝ → ℝ)
-      (zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q, (0 : ℝ)) =
+  have hq0 : σ (zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q, (0 : ℝ)) =
       (zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q, (0 : ℝ)) := by
-    rw [Prod.map_apply, neg_zero, vectorBundleScalarDiffeomorph_apply]
+    simp only [σ, CotangentBundle.connectionFrameChange_apply, zeroSection_proj, zeroSection_snd,
+      mul_zero]
     -- `zeroSection q` is `⟨q, 0⟩` by definition, which Mathlib states by no lemma.
     exact congrArg (fun v ↦ (TotalSpace.mk' (E' →L[ℝ] ℝ) q v, (0 : ℝ))) (smul_zero (-1 : ℝ))
   exact ⟨hq0 ▸ h, (congrArg (fun y ↦ (Ψ y : M)) (Subtype.ext hq0.symm)).trans
