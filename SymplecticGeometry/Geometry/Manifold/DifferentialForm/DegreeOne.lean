@@ -6,6 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.DegreeOne
+import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Trivialization
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 
 /-!
@@ -22,6 +24,15 @@ smooth vector field `X` is a smooth `F`-valued function
 `TauCeti.SmoothForm.degreeOneEquiv`, `α` is a smooth section of the bundle of continuous linear
 maps from the tangent bundle to `F`, and applying a smooth section of a bundle of linear maps to a
 smooth section of its source bundle is smooth (`ContMDiffAt.clm_bundle_apply`).
+
+The same argument, applied along the map `(q, v) ↦ (q, y)` from `M × E'` to a product `M × N`
+whose second factor is modelled on `E'`, shows that `(q, v) ↦ α_{(q, y)} (0, v)` is smooth for a
+fixed `y : N` (`TauCeti.SmoothForm.contMDiff_apply_prodMk_zero_prodMk`). Here the vectors
+`(0, v)` at the points `(q, y)` form a smooth map into the tangent bundle of `M × N`: it pairs the
+zero section of `M` with the inclusion of the tangent space at `y`
+(`TangentBundle.contMDiff_totalSpaceMk`), through Mathlib's
+`contMDiff_equivTangentBundleProd_symm`. For each `(q, y)`, the value is linear in `v`, being the
+section `TauCeti.SmoothForm.degreeOneEquiv α` at `(q, y)` applied to `(0, v)`.
 
 Two smooth bundle-valued one-forms are equal once they agree on each single tangent vector
 (`TauCeti.SmoothBundleForm.ext_fin_one`). This is the degree-one analogue of Tau Ceti's
@@ -91,6 +102,30 @@ theorem contMDiff_apply_contMDiffSection (α : SmoothForm I M F 1)
   have h := ((degreeOneEquiv α).contMDiff x).clm_bundle_apply (X.contMDiff x)
   simp only [degreeOneEquiv_apply_apply_vec] at h
   exact (Bundle.contMDiffAt_totalSpace_iff.mp h).2
+
+/-- Let `α` be a smooth `F`-valued one-form on a product `M × N` whose second factor is modelled
+on `E'`, and fix `y : N`. The value of `α` at `(q, y)` on the tangent vector `(0, v)`, with `v`
+in the model space `E'` of the tangent space of `N` at `y`, is a smooth function of
+`(q, v) : M × E'`. -/
+theorem contMDiff_apply_prodMk_zero_prodMk {E' H' N : Type*} [NormedAddCommGroup E']
+    [NormedSpace ℝ E'] [TopologicalSpace H'] {J : ModelWithCorners ℝ E' H'} [TopologicalSpace N]
+    [ChartedSpace H' N] [IsManifold J 1 N] (α : SmoothForm (I.prod J) (M × N) F 1) (y : N) :
+    ContMDiff (I.prod 𝓘(ℝ, E')) 𝓘(ℝ, F) ∞
+      fun p : M × E' ↦ α.val (p.1, y) ![((0 : E), p.2)] := fun p ↦ by
+  have hb : ContMDiff (I.prod 𝓘(ℝ, E')) (I.prod J) ∞ fun p : M × E' ↦ (p.1, y) :=
+    contMDiff_fst.prodMk contMDiff_const
+  -- The vector `(0, v)` at `(q, y)` is the pair of the zero vector at `q` and `v` at `y`.
+  have hv : ContMDiff (I.prod 𝓘(ℝ, E')) (I.prod J).tangent ∞ fun p : M × E' ↦
+      (⟨(p.1, y), ((0 : E), p.2)⟩ : TangentBundle (I.prod J) (M × N)) :=
+    contMDiff_equivTangentBundleProd_symm.comp
+      (((contMDiff_zeroSection ℝ (TangentSpace I)).comp contMDiff_fst).prodMk
+        ((TangentBundle.contMDiff_totalSpaceMk y).comp contMDiff_snd))
+  have h : ContMDiffAt (I.prod 𝓘(ℝ, E')) ((I.prod J).prod 𝓘(ℝ, F)) ∞ (fun p : M × E' ↦
+      TotalSpace.mk' F (E := Trivial (M × N) F) (p.1, y)
+        (degreeOneEquiv α (p.1, y) ((0 : E), p.2))) p :=
+    (((degreeOneEquiv α).contMDiff.comp hb) p).clm_bundle_apply (hv p)
+  refine (contMDiffAt_totalSpace_iff.mp h).2.congr_of_eventuallyEq (.of_forall fun q ↦ ?_)
+  exact (degreeOneEquiv_apply_apply_vec α _ _).symm
 
 end TauCeti.SmoothForm
 

@@ -22,6 +22,10 @@ Two facts on the coordinates of a tangent vector in a trivialization of the tang
   `x₀`, the derivative of the inverse chart at `x₀`, taken at the chart point of `x`, sends the
   coordinate vector of `v` in the trivialization at `x₀` back to `v`. It is Mathlib's
   `TangentBundle.symmL_trivializationAt` applied to a vector.
+
+By the first fact, the inclusion `v ↦ (x, v)` of the tangent space at `x` into the tangent bundle
+reads as the identity of `E` in the trivialization at `x`, so it is smooth
+(`TangentBundle.contMDiff_totalSpaceMk`).
 -/
 
 public section
@@ -54,6 +58,13 @@ theorem mfderivWithin_extChartAt_symm_trivializationAt_snd {x₀ x : M}
   (congrArg (fun L : E →L[𝕜] E ↦ L (trivializationAt E (TangentSpace I) x₀ ⟨x, v⟩).2)
     (symmL_trivializationAt (I := I) hx)).symm.trans ((Trivialization.symmL_apply _ hx _).trans
       (Trivialization.symm_apply_apply_mk (trivializationAt E (TangentSpace I) x₀) hx v))
+
+/-- The inclusion `v ↦ (x, v)` of the tangent space at `x`, which is the model space `E`, into
+the tangent bundle is smooth. -/
+theorem contMDiff_totalSpaceMk {n : WithTop ℕ∞} (x : M) :
+    ContMDiff 𝓘(𝕜, E) I.tangent n fun v : E ↦ (⟨x, v⟩ : TangentBundle I M) := fun _ ↦
+  contMDiffAt_totalSpace_iff.2 ⟨contMDiffAt_const,
+    contMDiffAt_id.congr_of_eventuallyEq (.of_forall (trivializationAt_apply_self_snd (I := I) x))⟩
 
 end TangentBundle
 
