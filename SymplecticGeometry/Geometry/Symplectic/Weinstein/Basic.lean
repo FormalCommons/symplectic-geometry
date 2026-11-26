@@ -17,6 +17,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 import Mathlib.Geometry.Manifold.Riemannian.Basic
 import SymplecticGeometry.Geometry.Manifold.Boundary.Interior
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
+import SymplecticGeometry.Geometry.Manifold.VectorField.Pullback
 import SymplecticGeometry.Topology.Maps.Proper
 import TauCeti.Analysis.Calculus.Gradient
 import TauCeti.Analysis.Calculus.Morse.NormSq
@@ -420,9 +421,6 @@ theorem isWeinsteinDomain_scalarRegularSublevel {n : ℕ} (hn : finrank ℝ E = 
   have := isManifold_scalarRegularSublevel hc hn (by simp) hf
   have hι := contMDiff_subtypeVal_scalarRegularSublevel hc hn (by simp) hf
   have hinv := isInvertible_mfderiv_subtypeVal_scalarRegularSublevel (hf.of_le (by simp)) hc hn
-  have hXY (x : {x | f x ≤ c}) : mfderiv (𝓡∂ (n + 1)) 𝓘(ℝ, E) Subtype.val x
-      (VectorField.mpullback (𝓡∂ (n + 1)) 𝓘(ℝ, E) Subtype.val X x) = X x := by
-    rw [VectorField.mpullback_apply, (hinv x).self_apply_inverse]
   -- On the level `f⁻¹(c)` the differential of `f` is nonzero, so `X` increases `f` there.
   have hpos (x : M) (hx : f x = c) : 0 < mvfderiv 𝓘(ℝ, E) f x (X x) :=
     hW.isGradientLike.mvfderiv_apply_pos
@@ -445,9 +443,8 @@ theorem isWeinsteinDomain_scalarRegularSublevel {n : ℕ} (hn : finrank ℝ E = 
       (isLocalDiffeomorph_of_mfderiv_eq hΦ (by simp) hΦinv), ?_⟩
   · rwa [interior_scalarRegularSublevel hc hn (by simp) hf] at hx
   · rw [hbd] at hx
-    rw [← Function.comp_def f Subtype.val,
-      mvfderiv_comp x ((hf x).mdifferentiableAt (by simp)) ((hι x).mdifferentiableAt (by simp)),
-      ContinuousLinearMap.comp_apply, hXY]
+    rw [← Function.comp_def f Subtype.val, VectorField.mvfderiv_comp_apply_mpullback
+      ((hf x).mdifferentiableAt (by simp)) ((hι x).mdifferentiableAt (by simp)) (hinv x)]
     exact hpos x hx
   · refine (congrArg (IsGradientLike _) (funext fun x ↦ ?_)).mpr
       (hW.isGradientLike.mpullback hΦ hΦinv)
