@@ -7,16 +7,20 @@ module
 
 public import Mathlib.Analysis.InnerProductSpace.PiL2
 public import Mathlib.Geometry.Manifold.MFDeriv.SpecificFunctions
+public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Hypersurface
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Manifold.Complex.LeviForm
+public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.LinearAlgebra.TotallyReal.Euclidean
 
 import SymplecticGeometry.Algebra.Order.Ring.Basic
 import SymplecticGeometry.Analysis.Complex.LeviForm.Prod
 import Mathlib.Analysis.InnerProductSpace.ProdL2
+import TauCeti.Analysis.Calculus.FDeriv.Comp
 import TauCeti.Analysis.Calculus.FDeriv.Prod
 import TauCeti.Analysis.Complex.QuadraticLeviForm
+import TauCeti.Geometry.Manifold.Morse.Examples.Saddle
 
 /-!
 # The model of the J-convex surrounding
@@ -69,6 +73,28 @@ The Levi form of `h ∘ shape` comes from `TauCeti.re_leviForm_comp_prodMk_apply
 forms of `s` and `t`, which Tau Ceti's `TauCeti.leviForm_re_sq_comp_apply` and
 `TauCeti.leviForm_norm_sq_comp_apply` give. The criterion follows from it by the Cauchy–Schwarz
 bounds `|σ|² ≤ s |v₁|²` and `|τ|² ≤ t (|v₁|² + |v₂|²)`.
+
+## The model level and the model handle function
+
+* `SymplecticGeometry.modelLevel k m`: the model level `φ₀ = 1 - s + 2 t`. It is strictly
+  plurisubharmonic everywhere (`SymplecticGeometry.isManifoldStrictlyPlurisubharmonicAt_modelLevel`,
+  by the criterion with `f' + g' = 1` and `g' = 2`), it is positive at its critical points, where
+  `s = 0` (`SymplecticGeometry.modelLevel_pos_of_mem_criticalPoints`), and so its zero level is a
+  J-convex level (`SymplecticGeometry.isJConvexLevel_modelLevel`).
+* `SymplecticGeometry.modelHandle k m a b`: the model handle function `b t - a s`. For `0 < a < b`
+  it is strictly plurisubharmonic everywhere
+  (`SymplecticGeometry.isManifoldStrictlyPlurisubharmonicAt_modelHandle`, by the criterion with
+  `f' + g' = b - a` and `g' = b`). For `0 < a` and `0 < b`, the real splitting
+  `SymplecticGeometry.modelHandleSplitting`, `(x + i y, w) ↦ (√a x, √b (y, w))`, carries it to
+  Tau Ceti's quadratic model `(u, v) ↦ -‖u‖² + ‖v‖²` on `ℝᵏ × (ℝᵏ × ℂᵐ)`
+  (`SymplecticGeometry.modelHandle_eq_comp`). The critical data of that model in Tau Ceti's
+  `TauCeti.Geometry.Manifold.Morse.Examples.Saddle` and `TauCeti.Analysis.Calculus.Morse.NormSq`
+  then give: its only critical point is `0` (`SymplecticGeometry.criticalPoints_modelHandle`), it
+  is a Morse function (`SymplecticGeometry.isMorse_modelHandle`), and its Morse index at `0` is `k`
+  (`SymplecticGeometry.manifoldMorseIndex_modelHandle`). The proofs follow those of Tau Ceti's
+  `TauCeti.criticalPoints_neg_norm_sq_add_norm_sq` and `TauCeti.isMorse_neg_norm_sq_add_norm_sq`,
+  through the change of coordinates `TauCeti.fderiv_comp_eq_zero_iff_of_isInvertible`,
+  `TauCeti.IsNondegenerateCriticalPoint.comp` and `TauCeti.morseIndex_comp`.
 
 ## References
 
@@ -481,8 +507,225 @@ theorem isManifoldStrictlyPlurisubharmonicAt_shape {f g : ℝ → ℝ}
   simpa only [manifoldLeviForm_eq_leviForm, ← isStrictlyPlurisubharmonicAt_iff] using
     isStrictlyPlurisubharmonicAt_shape hf hg h₁ h₂
 
+/-- The differential of an affine function `c + α s + β t` of the shape coordinates. -/
+private theorem fderiv_affine_shape_apply (c α β : ℝ)
+    (p v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    fderiv ℝ (fun q ↦ c + α * (shape q).1 + β * (shape q).2) p v =
+      α * (2 * ∑ j, (p.1 j).re * (v.1 j).re) +
+        β * (2 * (∑ j, (p.1 j).im * (v.1 j).im + (⟪p.2, v.2⟫_ℂ).re)) := by
+  have hs := (contDiff_shape (n := 1)).fst.differentiable one_ne_zero p
+  have ht := (contDiff_shape (n := 1)).snd.differentiable one_ne_zero p
+  rw [(((hs.hasFDerivAt.const_mul α).const_add c).fun_add (ht.hasFDerivAt.const_mul β)).fderiv]
+  simp only [add_apply, smul_apply, smul_eq_mul,
+    fderiv_shape_fst_apply, fderiv_shape_snd_apply]
+
+/-- At a critical point of `c + α s + β t` with `α ≠ 0`, the coordinate `s` vanishes: the
+differential takes the value `2 α s` on the vector `(x, 0)`. -/
+private theorem shape_fst_eq_zero_of_fderiv_affine_eq_zero {c α β : ℝ} (hα : α ≠ 0)
+    {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)}
+    (hp : fderiv ℝ (fun q ↦ c + α * (shape q).1 + β * (shape q).2) p = 0) :
+    (shape p).1 = 0 := by
+  have h := congrArg (fun L ↦ L (WithLp.toLp 2 fun j ↦ ((p.1 j).re : ℂ), 0)) hp
+  simp only [fderiv_affine_shape_apply, zero_apply] at h
+  simp only [ofReal_re, ofReal_im, mul_zero, Finset.sum_const_zero,
+    inner_zero_right, zero_re, add_zero] at h
+  rw [shape_fst]
+  have : α * (2 * ∑ j, (p.1 j).re ^ 2) = 0 := by simpa [sq] using h
+  simpa [hα] using this
 
 end Shape
+
+/-! ### The model level and the model handle function -/
+
+section Model
+
+variable (k m) in
+/-- The **model level** `φ₀ = 1 - s + 2 t` on `ℂᵏ × ℂᵐ`, in the shape coordinates `s = |x|²` and
+`t = |y|² + |w|²` of `p = (x + i y, w)`. -/
+def modelLevel (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) : ℝ :=
+  1 - (shape p).1 + 2 * (shape p).2
+
+theorem modelLevel_def (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    modelLevel k m p = 1 - (shape p).1 + 2 * (shape p).2 :=
+  (rfl)
+
+/-- The model level is strictly plurisubharmonic at every point of `ℂᵏ × ℂᵐ`. -/
+theorem isManifoldStrictlyPlurisubharmonicAt_modelLevel
+    (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    IsManifoldStrictlyPlurisubharmonicAt (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
+      (modelLevel k m) p := by
+  have h := isManifoldStrictlyPlurisubharmonicAt_shape (f := fun s ↦ 1 - s)
+    (g := fun t ↦ 2 * t) (p := p) (by fun_prop) (by fun_prop)
+    (by simp [iteratedDeriv_succ]) (fun _ ↦ by simp [iteratedDeriv_succ])
+  simpa only [funext modelLevel_def] using h
+
+/-- The model level is positive at each of its critical points: there `s = 0`, so its value is
+`1 + 2 t`. -/
+theorem modelLevel_pos_of_mem_criticalPoints
+    {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)}
+    (hp : p ∈ criticalPoints 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
+      (modelLevel k m)) :
+    0 < modelLevel k m p := by
+  have h : modelLevel k m = fun q ↦ 1 + (-1) * (shape q).1 + 2 * (shape q).2 := by
+    funext q
+    rw [modelLevel_def]
+    ring
+  rw [mem_criticalPoints_iff_fderiv_eq_zero, h] at hp
+  rw [modelLevel_def, shape_fst_eq_zero_of_fderiv_affine_eq_zero (by norm_num) hp]
+  linarith [shape_snd_nonneg p]
+
+/-- **The model level is a J-convex level**: `0` is a regular value of `φ₀ = 1 - s + 2 t` on
+`ℂᵏ × ℂᵐ`, and `φ₀` is strictly plurisubharmonic on its zero level. -/
+theorem isJConvexLevel_modelLevel :
+    IsJConvexLevel (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) (modelLevel k m) 0 := by
+  refine ⟨isRegularValue_iff_notMem_image_criticalPoints.2 ?_,
+    fun p _ ↦ isManifoldStrictlyPlurisubharmonicAt_modelLevel p⟩
+  rintro ⟨p, hp, hp0⟩
+  exact (modelLevel_pos_of_mem_criticalPoints hp).ne' hp0
+
+variable (k m) in
+/-- The **model handle function** `b t - a s` on `ℂᵏ × ℂᵐ`, in the shape coordinates
+`s = |x|²` and `t = |y|² + |w|²` of `p = (x + i y, w)`. -/
+def modelHandle (a b : ℝ) (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) : ℝ :=
+  b * (shape p).2 - a * (shape p).1
+
+theorem modelHandle_def (a b : ℝ) (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    modelHandle k m a b p = b * (shape p).2 - a * (shape p).1 :=
+  (rfl)
+
+/-- For `0 < a < b`, the model handle function `b t - a s` is strictly plurisubharmonic at every
+point of `ℂᵏ × ℂᵐ`. -/
+theorem isManifoldStrictlyPlurisubharmonicAt_modelHandle {a b : ℝ} (ha : 0 < a) (hab : a < b)
+    (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    IsManifoldStrictlyPlurisubharmonicAt (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
+      (modelHandle k m a b) p := by
+  have h := isManifoldStrictlyPlurisubharmonicAt_shape (f := fun s ↦ -a * s)
+    (g := fun t ↦ b * t) (p := p) (by fun_prop) (by fun_prop)
+    (by simp [iteratedDeriv_succ]; linarith) (fun _ ↦ by simp [iteratedDeriv_succ]; linarith)
+  have he : modelHandle k m a b = fun q ↦ -a * (shape q).1 + b * (shape q).2 := by
+    funext q
+    rw [modelHandle_def]
+    ring
+  rwa [he]
+
+/-- The real splitting `(x + i y, w) ↦ (√a x, √b (y, w))` of `ℂᵏ × ℂᵐ` as `ℝᵏ × (ℝᵏ × ℂᵐ)`, the
+second factor with its `L²` norm, for `0 < a` and `0 < b`. It carries the model handle function
+`b t - a s` to Tau Ceti's quadratic model `(u, v) ↦ -‖u‖² + ‖v‖²`
+(`SymplecticGeometry.modelHandle_eq_comp`). -/
+def modelHandleSplitting {a b : ℝ} (ha : 0 < a) (hb : 0 < b) :
+    (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) ≃L[ℝ]
+      EuclideanSpace ℝ (Fin k) × WithLp 2 (EuclideanSpace ℝ (Fin k) × EuclideanSpace ℂ (Fin m)) :=
+  have ha' : √a ≠ 0 := (Real.sqrt_pos.2 ha).ne'
+  have hb' : √b ≠ 0 := (Real.sqrt_pos.2 hb).ne'
+  LinearEquiv.toContinuousLinearEquiv
+    { toFun p := (√a • WithLp.toLp 2 fun j ↦ (p.1 j).re,
+        √b • WithLp.toLp 2 (WithLp.toLp 2 fun j ↦ (p.1 j).im, p.2))
+      map_add' p q := by
+        ext j
+        · simp [mul_add]
+        · apply WithLp.ofLp_injective
+          ext j <;> simp [mul_add]
+      map_smul' c p := by
+        ext j
+        · simp [Complex.real_smul]
+          ring
+        · apply WithLp.ofLp_injective
+          ext j
+          · simp [Complex.real_smul]
+            ring
+          · simp [smul_comm c]
+      invFun z := (WithLp.toLp 2 fun j ↦
+          ((z.1 j / √a : ℝ) : ℂ) + ((z.2.fst j / √b : ℝ) : ℂ) * Complex.I,
+        (√b)⁻¹ • z.2.snd)
+      left_inv p := by
+        ext j
+        · apply Complex.ext <;> simp [ha', hb']
+        · simp [hb']
+      right_inv z := by
+        ext j
+        · simp [ha', mul_div_cancel₀]
+        · apply WithLp.ofLp_injective
+          ext j
+          · simp [hb', mul_div_cancel₀]
+          · simp [hb'] }
+
+theorem modelHandleSplitting_apply {a b : ℝ} (ha : 0 < a) (hb : 0 < b)
+    (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    modelHandleSplitting ha hb p = (√a • WithLp.toLp 2 fun j ↦ (p.1 j).re,
+        √b • WithLp.toLp 2 (WithLp.toLp 2 fun j ↦ (p.1 j).im, p.2)) :=
+  (rfl)
+
+/-- For `0 < a` and `0 < b`, the model handle function `b t - a s` is Tau Ceti's quadratic model
+`(u, v) ↦ -‖u‖² + ‖v‖²` read through the splitting `modelHandleSplitting`. -/
+theorem modelHandle_eq_comp {a b : ℝ} (ha : 0 < a) (hb : 0 < b) :
+    modelHandle k m a b = (fun z ↦ -‖z.1‖ ^ 2 + ‖z.2‖ ^ 2) ∘ modelHandleSplitting ha hb := by
+  funext p
+  rw [Function.comp_apply, modelHandleSplitting_apply, norm_smul, norm_smul, mul_pow, mul_pow,
+    Real.norm_of_nonneg (Real.sqrt_nonneg _), Real.norm_of_nonneg (Real.sqrt_nonneg _),
+    Real.sq_sqrt ha.le, Real.sq_sqrt hb.le, WithLp.prod_norm_sq_eq_of_L2, modelHandle_def,
+    shape_fst, shape_snd]
+  simp [EuclideanSpace.real_norm_sq_eq]
+  ring
+
+/-- The differential of the splitting is invertible at every point. -/
+private theorem isInvertible_fderiv_modelHandleSplitting {a b : ℝ} (ha : 0 < a) (hb : 0 < b)
+    (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    (fderiv ℝ (modelHandleSplitting ha hb) p).IsInvertible := by
+  rw [ContinuousLinearEquiv.fderiv]
+  exact ⟨_, rfl⟩
+
+/-- For `0 < a` and `0 < b`, the only critical point of the model handle function `b t - a s` on
+`ℂᵏ × ℂᵐ` is `0`. -/
+theorem criticalPoints_modelHandle {a b : ℝ} (ha : 0 < a) (hb : 0 < b) :
+    criticalPoints 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
+      (modelHandle k m a b) = {0} := by
+  ext p
+  have hd : Differentiable ℝ fun z : EuclideanSpace ℝ (Fin k) ×
+      WithLp 2 (EuclideanSpace ℝ (Fin k) × EuclideanSpace ℂ (Fin m)) ↦ -‖z.1‖ ^ 2 + ‖z.2‖ ^ 2 :=
+    (((contDiff_norm_sq ℝ).comp contDiff_fst).neg.add
+      ((contDiff_norm_sq ℝ).comp contDiff_snd)).differentiable one_ne_zero
+  rw [mem_criticalPoints_iff_fderiv_eq_zero, modelHandle_eq_comp ha hb,
+    fderiv_comp_eq_zero_iff_of_isInvertible (hd _)
+      (isInvertible_fderiv_modelHandleSplitting ha hb p),
+    fderiv_neg_norm_sq_add_norm_sq_eq_zero_iff,
+    map_eq_zero_iff _ (modelHandleSplitting ha hb).injective, Set.mem_singleton_iff]
+
+/-- For `0 < a` and `0 < b`, the model handle function `b t - a s` is a Morse function on
+`ℂᵏ × ℂᵐ`: its only critical point, `0`, is nondegenerate. -/
+theorem isMorse_modelHandle {a b : ℝ} (ha : 0 < a) (hb : 0 < b) :
+    IsMorse 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) (modelHandle k m a b) := by
+  have hq := isMorse_modelSpace_iff.1 (isMorse_neg_norm_sq_add_norm_sq
+    (E := EuclideanSpace ℝ (Fin k))
+    (F := WithLp 2 (EuclideanSpace ℝ (Fin k) × EuclideanSpace ℂ (Fin m))))
+  refine isMorse_modelSpace_iff.2 ⟨?_, hasNondegenerateCriticalPointsOn_iff.2 fun p _ hp ↦ ?_⟩
+  · rw [modelHandle_eq_comp ha hb]
+    exact hq.1.comp (modelHandleSplitting ha hb).contDiff
+  · have hp0 : p = 0 := by
+      simpa [criticalPoints_modelHandle ha hb] using
+        (mem_criticalPoints_iff_fderiv_eq_zero (f := modelHandle k m a b)).2 hp
+    subst hp0
+    rw [modelHandle_eq_comp ha hb]
+    refine IsNondegenerateCriticalPoint.comp ?_ (modelHandleSplitting ha hb).contDiff.contDiffAt
+      (isInvertible_fderiv_modelHandleSplitting ha hb 0)
+    rw [map_zero]
+    exact isNondegenerateCriticalPoint_neg_norm_sq_add_norm_sq
+
+/-- For `0 < a` and `0 < b`, the critical point `0` of the model handle function `b t - a s` on
+`ℂᵏ × ℂᵐ` has Morse index `k`. -/
+theorem manifoldMorseIndex_modelHandle {a b : ℝ} (ha : 0 < a) (hb : 0 < b) :
+    manifoldMorseIndex 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
+      (modelHandle k m a b) 0 = k := by
+  have hq : IsNondegenerateCriticalPoint (fun z : EuclideanSpace ℝ (Fin k) ×
+      WithLp 2 (EuclideanSpace ℝ (Fin k) × EuclideanSpace ℂ (Fin m)) ↦ -‖z.1‖ ^ 2 + ‖z.2‖ ^ 2)
+      (modelHandleSplitting ha hb 0) := by
+    rw [map_zero]
+    exact isNondegenerateCriticalPoint_neg_norm_sq_add_norm_sq
+  rw [manifoldMorseIndex_modelSpace, modelHandle_eq_comp ha hb,
+    morseIndex_comp hq.contDiffAt (modelHandleSplitting ha hb).contDiff.contDiffAt
+      hq.fderiv_eq_zero (isInvertible_fderiv_modelHandleSplitting ha hb 0),
+    morseIndex_neg_norm_sq_add_norm_sq, finrank_euclideanSpace_fin]
+
+end Model
 
 end SymplecticGeometry
 
