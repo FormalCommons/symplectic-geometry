@@ -34,8 +34,8 @@ a point of the divisor. This file defines the collapse map and proves its first 
   the zero section over `[w]` for `|w| = l`, and for `|w| > l` inverts the radial map
   `F_l ∘ π` that the gluing uses.
 * `SymplecticGeometry.WeightBlowup.surjective_collapseMap`: the collapse map is onto, since a point
-  of the blowup is either `inl` of a point of `M ∖ ψ(B(l))`, or on the divisor (`range_divisor`),
-  or glued to a point of `M ∖ ψ(B(l))`.
+  of the blowup is `inl` of a point of `M ∖ ψ(B(l))`, or `inr` of a point of the zero section,
+  the image of a Hopf circle, or `inr` of a point glued to a point of `M ∖ ψ(B(l))`.
 
 ## References
 
