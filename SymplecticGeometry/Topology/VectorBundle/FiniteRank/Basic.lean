@@ -5,6 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Algebra.Category.ModuleCat.EpiMono
+public import Mathlib.CategoryTheory.Functor.ReflectsIso.Jointly
 public import TauCeti.Topology.VectorBundle.FiniteRank.Basic
 
 /-!
@@ -40,8 +42,15 @@ total spaces. This file gives the converse construction.
 * `TauCeti.FiniteRankBundleCore.fiberMap_trans_trans_symm_hom`: being a scalar multiple of the
   identity on a fibre is invariant under conjugation by isomorphisms.
 
-It also gives fibrewise criteria for monomorphisms and epimorphisms of finite-rank cores, which
-follow from `TauCeti.FiniteRankBundleCore.hom_ext`:
+Finally it treats the fibre functors `TauCeti.FiniteRankBundleCore.fiberFunctor x` as a family:
+
+* `TauCeti.FiniteRankBundleCore.jointlyFaithful_fiberFunctor`: they are jointly faithful in the
+  sense of Mathlib's `CategoryTheory.JointlyFaithful`, which is Tau Ceti's
+  `TauCeti.FiniteRankBundleCore.hom_ext_of_fiberFunctor`;
+
+and, since jointly faithful functors jointly reflect monomorphisms and epimorphisms, Mathlib's
+`CategoryTheory.JointlyFaithful.jointlyReflectMonomorphisms` and
+`CategoryTheory.JointlyFaithful.jointlyReflectEpimorphisms` give fibrewise criteria:
 
 * `TauCeti.FiniteRankBundleCore.mono_of_injective_fiberMap`: a bundle map that is injective on
   every fibre is a monomorphism;
@@ -201,20 +210,26 @@ theorem fiberMap_trans_trans_symm_hom {P Q R : FiniteRankBundleCore 𝕜 B} (a :
     ContinuousLinearMap.comp_smul, ContinuousLinearMap.comp_id, ContinuousLinearMap.smul_comp,
     Iso.symm_hom, fiberMap_hom_inv_id]
 
+/-- The fibre functors `fiberFunctor x`, for `x : B`, are jointly faithful: two bundle maps of
+finite-rank cores with the same fibre maps are equal. -/
+theorem jointlyFaithful_fiberFunctor : JointlyFaithful (fiberFunctor (𝕜 := 𝕜) (B := B)) :=
+  ⟨hom_ext_of_fiberFunctor⟩
+
 /-- A bundle map of finite-rank cores whose fibre maps are all injective is a monomorphism. -/
 theorem mono_of_injective_fiberMap (f : A ⟶ D) (hf : ∀ x, Function.Injective (f.fiberMap x)) :
-    Mono f where
-  right_cancellation g h e := hom_ext fun x ↦ ContinuousLinearMap.ext fun v ↦ hf x <| by
-    simpa only [fiberMap_comp, ContinuousLinearMap.comp_apply] using
-      DFunLike.congr_fun (congrArg (fun k ↦ k.fiberMap x) e) v
+    Mono f :=
+  -- The underlying function of `(fiberFunctor x).map f` is `f.fiberMap x` by definition, with
+  -- the carrier of `(fiberFunctor x).obj A` in place of `Fin A.rank → 𝕜`, so that Tau Ceti's
+  -- `fiberFunctor_map_apply` does not rewrite it.
+  have (x : B) : Mono ((fiberFunctor x).map f) := (ModuleCat.mono_iff_injective _).2 (hf x)
+  jointlyFaithful_fiberFunctor.jointlyReflectMonomorphisms.mono f
 
 /-- A bundle map of finite-rank cores whose fibre maps are all surjective is an epimorphism. -/
 theorem epi_of_surjective_fiberMap (f : A ⟶ D) (hf : ∀ x, Function.Surjective (f.fiberMap x)) :
-    Epi f where
-  left_cancellation g h e := hom_ext fun x ↦ ContinuousLinearMap.ext fun w ↦ by
-    obtain ⟨v, rfl⟩ := hf x w
-    simpa only [fiberMap_comp, ContinuousLinearMap.comp_apply] using
-      DFunLike.congr_fun (congrArg (fun k ↦ k.fiberMap x) e) v
+    Epi f :=
+  -- As in `mono_of_injective_fiberMap`, this is `hf x` by definition of `fiberFunctor`.
+  have (x : B) : Epi ((fiberFunctor x).map f) := (ModuleCat.epi_iff_surjective _).2 (hf x)
+  jointlyFaithful_fiberFunctor.jointlyReflectEpimorphisms.epi f
 
 end FiniteRankBundleCore
 
