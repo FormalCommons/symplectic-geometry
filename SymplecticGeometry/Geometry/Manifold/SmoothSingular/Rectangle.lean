@@ -128,9 +128,9 @@ theorem rectangleIntegral_mem_range_closedFormHomologyPeriod_of_periodic (σ : c
   rw [Measure.volume_eq_prod,
     setIntegral_congr_set (Measure.set_prod_ae_eq Ico_ae_eq_Icc Ico_ae_eq_Icc)] at hper
   convert hper using 3
-  simp only [mpullback_apply]
-  refine congrArg _ (funext fun j ↦ ?_)
-  fin_cases j <;> simp
+  -- The frame vectors lie in `ℝ × ℝ` rather than in its tangent spaces, so the evaluation lemma
+  -- is applied by `exact` rather than by `rw`.
+  exact (mpullback_apply_pair _ _ _ (1, 0) (0, 1)).symm
 
 /-- **Rectangle integrals over maps agreeing on opposite edges are periods.** Let `σ` be a closed
 two-form on `M` and `u : ℝ × ℝ → M` a smooth map with `u (1, t) = u (0, t)` and

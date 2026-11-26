@@ -48,8 +48,7 @@ theorem IsSymplecticMapOn.mpullback_apply (h : σ.IsSymplecticMapOn σ' φ s) {x
   ContinuousAlternatingMap.ext_fin_two fun v w ↦ by
     have h' := h.apply hx v w
     rw [SmoothBundleForm.eval₂_apply, SmoothBundleForm.eval₂_apply] at h'
-    rw [TauCeti.mpullback_apply, ← h']
-    exact congrArg _ (funext fun i ↦ by fin_cases i <;> simp)
+    rw [TauCeti.mpullback_apply_pair, ← h']
 
 /-- **Restricting a symplectomorphism to open sets.** If a diffeomorphism `φ : M ≃ M'` is a
 symplectomorphism from `σ` to `σ'` and maps the open set `U` of `M` onto the open set `U'` of

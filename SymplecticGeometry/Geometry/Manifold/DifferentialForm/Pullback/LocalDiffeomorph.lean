@@ -248,10 +248,8 @@ theorem nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv [IsManifold I 1 M]
     rw [LinearMap.BilinForm.congr_apply, ContinuousLinearEquiv.coe_symm_toLinearEquiv,
       ContinuousLinearEquiv.symm_symm, SmoothForm.bilinFormAt_apply,
       SmoothForm.bilinFormAt_apply, SmoothBundleForm.eval₂_apply, SmoothBundleForm.eval₂_apply,
-      ← h, mpullback_apply]
-    congr 1
-    ext i
-    fin_cases i <;> simp [← he]
+      ← h, mpullback_apply_pair]
+    simp [← he]
   rw [hη, LinearMap.BilinForm.nondegenerate_congr_iff]
 
 open scoped ContDiff in
