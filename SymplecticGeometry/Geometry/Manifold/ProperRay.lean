@@ -9,9 +9,10 @@ public import SymplecticGeometry.Geometry.Manifold.Connected
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Homogeneity
 public import SymplecticGeometry.Topology.FilledHull
 import SymplecticGeometry.Analysis.Calculus.Deriv.CriticalValue
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Real
 import SymplecticGeometry.Geometry.Manifold.NullSet
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Segment
-import SymplecticGeometry.Geometry.Manifold.SmoothTransition
+import SymplecticGeometry.Order.Interval.Set.Image
 import SymplecticGeometry.Topology.Closure
 import SymplecticGeometry.Topology.Instances.Real
 import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
@@ -81,7 +82,8 @@ closed discrete set of a manifold of dimension at least two. Each ray is grown a
   `exists_mem_forall_exists_mem_Ioo_leavesForGood_filledSublevel`. The built parts then lie in
   `filledSublevel h (c' + 1)` for the new level `c'`, which is what the next stage needs.
   Last, each ray is reparametrized by an increasing diffeomorphism of `ℝ` that fixes the old
-  part and slows the new arc down (`Real.exists_diffeomorph_strictMono_eqOn_Iic_apply_add_one`),
+  part and slows the new arc down (`IsRayStage.exists_add_one_le_of_lt`, from
+  `Real.exists_diffeomorph_strictMono_eqOn_Iic`),
   which keeps the stage (`IsRayStage.comp_diffeomorph`, by `LeavesForGood.comp_monotone`) and
   makes every old cut parameter grow by at least one. The limit of the rays needs this, since
   cut parameters that only increase may stay bounded.
@@ -683,8 +685,7 @@ theorem IsRayStage.comp_diffeomorph {h : M → ℝ} {P s : Set M} {c : ℕ → �
     {T' : M → ℝ} (hT' : ∀ p ∈ S, e p (T' p) = T p) :
     IsRayStage I h P s c j S (fun p ↦ γ p ∘ e p) T' := by
   have himg (p : M) (hp : p ∈ S) : (γ p ∘ e p) '' Iic (T' p) = γ p '' Iic (T p) := by
-    rw [image_comp, ← hT' p hp]
-    exact congrArg _ (((he p hp).orderIsoOfSurjective _ (e p).surjective).image_Iic (T' p))
+    rw [image_comp, (he p hp).image_Iic_of_surjective (e p).surjective, hT' p hp]
   refine ⟨hst.le_level, hst.isClosed, hst.isDiscrete, hst.subset_P, hst.inter_subset,
     hst.sdiff_subset, fun p hp ↦ TauCeti.isSmoothEmbedding_comp_diffeomorph (e p) (hst.emb p hp),
     fun p hp ↦ ?_, fun p hp ↦ ?_, fun a ha b hb hab ↦ ?_, fun p hp ↦ ?_, fun p hp ↦ ?_,
@@ -701,6 +702,38 @@ theorem IsRayStage.comp_diffeomorph {h : M → ℝ} {P s : Set M} {c : ℕ → �
     exact hpre ▸ (hst.leaves p hp i hi).comp_monotone (he p hp).monotone
   · rw [comp_apply, hT' p hp]; exact hst.notMem p hp
   · rw [himg p hp]; exact hst.subset p hp
+
+omit [FiniteDimensional ℝ E] [I.Boundaryless] [T2Space M] [IsManifold I ∞ M] in
+/-- Slowing down the rays of a stage: if `0 ≤ T₀ p < T p` for every ray, then reparametrizing
+each ray `γ p` on the line gives a stage, with the same levels, points and obstacles, and with
+cut parameters `T' p ≥ T₀ p + 1`. The new ray agrees with `γ p` on `Iic (T₀ p)`, and runs
+through the arc `γ p '' Ioc (T₀ p) (T p)` along `Ioc (T₀ p) (T' p)`, so that its built part is
+that of `γ p`. -/
+theorem IsRayStage.exists_add_one_le_of_lt {h : M → ℝ} {P s : Set M} {c : ℕ → ℝ} {j : ℕ}
+    {S : Finset M} {γ : M → ℝ → M} {T : M → ℝ} (hst : IsRayStage I h P s c j S γ T)
+    {T₀ : M → ℝ} (hT₀ : ∀ p ∈ S, 0 ≤ T₀ p) (hT : ∀ p ∈ S, T₀ p < T p) :
+    ∃ (γ' : M → ℝ → M) (T' : M → ℝ), IsRayStage I h P s c j S γ' T' ∧
+      ∀ p ∈ S, T₀ p + 1 ≤ T' p ∧ EqOn (γ' p) (γ p) (Iic (T₀ p)) ∧
+        γ' p '' Ioc (T₀ p) (T' p) = γ p '' Ioc (T₀ p) (T p) ∧
+        γ' p '' Iic (T' p) = γ p '' Iic (T p) := by
+  classical
+  -- An increasing diffeomorphism `e p` of `ℝ` that fixes `Iic (T₀ p)` and sends `T p + 1`
+  -- to `T p`.
+  have hφ (p : M) : ∃ e : ℝ ≃ₘ⟮𝓘(ℝ), 𝓘(ℝ)⟯ ℝ, p ∈ S →
+      StrictMono e ∧ EqOn e id (Iic (T₀ p)) ∧ e (T p + 1) = T p := by
+    by_cases hp : p ∈ S
+    · obtain ⟨e, he⟩ := Real.exists_diffeomorph_strictMono_eqOn_Iic (hT p hp)
+        (le_add_of_nonneg_right zero_le_one)
+      exact ⟨e, fun _ ↦ he⟩
+    · exact ⟨Diffeomorph.refl _ _ _, fun h ↦ (hp h).elim⟩
+  choose e he using hφ
+  refine ⟨fun p ↦ γ p ∘ e p, fun p ↦ T p + 1,
+    hst.comp_diffeomorph e (fun p hp ↦ (he p hp).1)
+      (fun p hp ↦ (he p hp).2.1 (mem_Iic.2 (hT₀ p hp))) fun p hp ↦ (he p hp).2.2,
+    fun p hp ↦ ⟨by linarith [hT p hp], fun t ht ↦ congrArg (γ p) ((he p hp).2.1 ht), ?_, ?_⟩⟩
+  · rw [image_comp, (he p hp).1.image_Ioc_of_surjective (e p).surjective,
+      (he p hp).2.1 (mem_Iic.2 le_rfl), (he p hp).2.2, id]
+  · rw [image_comp, (he p hp).1.image_Iic_of_surjective (e p).surjective, (he p hp).2.2]
 
 /-- The rays of a stage together with short segments at finitely many new points `N`, before
 they grow: the old rays are kept, and the ray at a new point `p` is a short segment through `p`
@@ -1014,41 +1047,19 @@ theorem exists_isRayStage_succ (hE : 1 < Module.rank ℝ E) {h : M → ℝ}
       · rw [(hold p hp).1, (hold p hp).2]
         exact (hst.subset p hp).trans (filledSublevel_mono (by linarith))
       · exact fun x hx ↦ hFd (hnewV p hp hx).1.2
-  -- Reparametrize each ray by an increasing diffeomorphism of `ℝ` that fixes `Iic (T₁ p)` and
-  -- sends `u p + 1` to `u p`, so that the cut parameter `u p + 1` exceeds `T₁ p` by more than one.
-  have hφ (p : M) : ∃ e : ℝ ≃ₘ⟮𝓘(ℝ), 𝓘(ℝ)⟯ ℝ, p ∈ S ∪ N →
-      StrictMono e ∧ EqOn e id (Iic (T₁ p)) ∧ e (u p + 1) = u p := by
-    by_cases hp : p ∈ S ∪ N
-    · obtain ⟨e, he⟩ := Real.exists_diffeomorph_strictMono_eqOn_Iic_apply_add_one (hTu p hp)
-      exact ⟨e, fun _ ↦ he⟩
-    · exact ⟨Diffeomorph.refl _ _ _, fun h ↦ (hp h).elim⟩
-  choose e he using hφ
-  have hIic (p : M) (hp : p ∈ S ∪ N) : e p '' Iic (u p + 1) = Iic (u p) := by
-    conv_rhs => rw [← (he p hp).2.2]
-    exact ((he p hp).1.orderIsoOfSurjective _ (e p).surjective).image_Iic _
-  have hIoc (p : M) (hp : p ∈ S ∪ N) :
-      e p '' Ioc (T₁ p) (u p + 1) = Ioc (T₁ p) (u p) := by
-    have h₁ : e p (T₁ p) = T₁ p := (he p hp).2.1 (mem_Iic.2 le_rfl)
-    conv_rhs => rw [← (he p hp).2.2]
-    conv_rhs => rw [← h₁]
-    exact ((he p hp).1.orderIsoOfSurjective _ (e p).surjective).image_Ioc _ _
-  refine ⟨c', ⟨by linarith, by linarith⟩, s₁, S ∪ N, fun p ↦ γ' p ∘ e p, fun p ↦ u p + 1,
-    hst'.comp_diffeomorph e (fun p hp ↦ (he p hp).1)
-      (fun p hp ↦ (he p hp).2.1 (mem_Iic.2 (hT₁ p hp))) fun p hp ↦ (he p hp).2.2,
+  -- Slow the rays down, so that every cut parameter exceeds `T₁ p` by at least one.
+  obtain ⟨γ'', T'', hst'', hslow⟩ := hst'.exists_add_one_le_of_lt hT₁ hTu
+  refine ⟨c', ⟨by linarith, by linarith⟩, s₁, S ∪ N, γ'', T'', hst'',
     Finset.subset_union_left, hsP, hPS, fun p hp ↦ ?_, fun p hp hpS ↦ ?_⟩
   · have hp₁ := Finset.mem_union_left N hp
+    obtain ⟨hT'', heq'', hIoc'', -⟩ := hslow p hp₁
     obtain ⟨hγp, hTp⟩ := hold p hp
     rw [← hγp, ← hTp]
-    refine ⟨by linarith [hTu p hp₁], fun t ht ↦ ?_, ?_⟩
-    · beta_reduce
-      rw [comp_apply, (he p hp₁).2.1 ht, id]
-      exact heq p hp₁ ht
-    · beta_reduce
-      rw [image_comp, hIoc p hp₁]
-      exact fun x hx hxK ↦ hout p hp₁ hx (.inl hxK)
+    refine ⟨hT'', heq''.trans (heq p hp₁), ?_⟩
+    rw [hIoc'']
+    exact fun x hx hxK ↦ hout p hp₁ hx (.inl hxK)
   · have hpN := (Finset.mem_union.1 hp).resolve_left hpS
-    beta_reduce
-    rw [image_comp, hIic p hp, ← Iic_union_Ioc_eq_Iic (hTu p hp).le, image_union, himg p hp]
+    rw [(hslow p hp).2.2.2, ← Iic_union_Ioc_eq_Iic (hTu p hp).le, image_union, himg p hp]
     exact union_subset (fun x hx ↦ (hnewV p hpN hx).2) fun x hx hxK ↦ hout p hp hx (.inl hxK)
 
 end Stage
