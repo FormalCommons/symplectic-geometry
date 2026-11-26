@@ -124,8 +124,10 @@ theorem nullhomotopic_iff_singularCohomologyMap_hyperplaneClass_eq_zero
     ← ((TopCat.diskBoundary 3).integralCohomologyEquiv 2).map_eq_zero_iff]
   refine Iff.trans ?_ (singularKronecker_sphere_eq_zero_iff 0 _)
   rw [← TopCat.integralKronecker_apply]
-  -- `TopCat.integralKronecker_naturality`, which `rw` cannot apply here: the two sides write the
-  -- degree of `H₂(S²; ℤ)` as `2` and as `0 + 2`
+  -- `TopCat.integralKronecker_naturality`. The goal and that lemma agree only up to definitional
+  -- unfolding: the degree is `0 + 2` against `2`, the coefficients `ModuleCat.of ℤ ℤ` against
+  -- `𝟙_ (ModuleCat ℤ)`, and the morphism coercion `ModuleCat.Hom.hom` against
+  -- `ConcreteCategory.hom`. `exact` checks the lemma against the goal up to that unfolding.
   exact Iff.of_eq (congrArg (· = 0) (TopCat.integralKronecker_naturality g 2 _ _)).symm
 
 
