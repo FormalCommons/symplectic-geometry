@@ -33,6 +33,8 @@ differential come from Tau Ceti's `Diffeomorph.mfderiv_comp_diffeomorph` and
 * `TauCeti.isImmersion_comp_diffeomorph_of_boundaryless`: precomposing an immersion with a
   diffeomorphism from a manifold on another model gives an immersion.
 * `TauCeti.isSmoothEmbedding_comp_diffeomorph_of_boundaryless`: the same for smooth embeddings.
+* `TauCeti.SmoothEmbedding.comp_transDiffeomorph_symm`: applying a diffeomorphism `φ` after the
+  transport of an embedding by `φ⁻¹` gives back the embedding.
 
 ## Main definitions
 
@@ -152,6 +154,28 @@ theorem compDiffeomorphOfBoundaryless_compDiffeomorphOfBoundaryless
     (f.compDiffeomorphOfBoundaryless e hn).compDiffeomorphOfBoundaryless e' hn =
       f.compDiffeomorphOfBoundaryless (e'.trans e) hn :=
   SmoothEmbedding.ext fun x ↦ by simp
+
+end SmoothEmbedding
+
+namespace SmoothEmbedding
+
+section TransDiffeomorph
+
+variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
+  {E E' H G M N P : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E] [NormedAddCommGroup E']
+  [NormedSpace 𝕜 E'] [TopologicalSpace H] [TopologicalSpace G]
+  {I : ModelWithCorners 𝕜 E H} {J : ModelWithCorners 𝕜 E' G}
+  [TopologicalSpace M] [ChartedSpace H M] [TopologicalSpace N] [ChartedSpace G N]
+  [TopologicalSpace P] [ChartedSpace G P] {n : ℕ∞ω} [IsManifold J n P]
+
+/-- Transporting a smooth embedding `f : M → N` by the inverse of a diffeomorphism
+`φ : P ≃ N` and then applying `φ` gives back `f`: `φ ∘ (φ⁻¹ ∘ f) = f`. -/
+theorem comp_transDiffeomorph_symm (f : SmoothEmbedding I J n M N) (φ : P ≃ₘ^n⟮J, J⟯ N) :
+    φ ∘ f.transDiffeomorph φ.symm = f := by
+  funext y
+  simp
+
+end TransDiffeomorph
 
 end SmoothEmbedding
 
