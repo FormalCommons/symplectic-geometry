@@ -93,7 +93,7 @@ in place of `localCohomologyClass`, so that they hold in rank zero too.
   orientation negates the generator, and it generates.
 * `Orientation.modelThomGenerator_eq_localCohomologyClass`: in positive rank it is Tau Ceti's
   generator, and `Orientation.kronecker_modelThomGenerator_zero` gives its pairing with the point
-  class in rank zero.
+  class in rank zero, which `Orientation.eq_modelThomGenerator_zero_iff` shows determines it.
 * `Orientation.singularCohomologyπ_uliftIntegralCohomologyEquiv_modelThomGenerator_zero` and
   `Orientation.singularCohomologyZeroEval_uliftIntegralCohomologyEquiv_modelThomGenerator_zero`:
   in rank zero, read with chain coefficients and values `ℤ` in `H⁰(P; ℤ)`, the generator is `±1`,
@@ -160,12 +160,6 @@ private theorem span_dualClass {d : ℕ} (hd : finrank ℝ P = d) (z : LocalOrie
   subst hd
   exact LocalOrientation.span_cohomologyClass _ _ _
 
-private theorem kronecker_dualClass {d : ℕ} (hd : finrank ℝ P = d) (z : LocalOrientation P 0 d) :
-    ((TopPair.ofSubset (X := TopCat.of P) ({0}ᶜ : Set P)).singularKronecker ℤ d
-      (dualClass hd z)).hom z.val = 1 := by
-  subst hd
-  exact LocalOrientation.kronecker_cohomologyClass _ _ _
-
 private theorem eq_dualClass_iff {d : ℕ} (hd : finrank ℝ P = d) (z : LocalOrientation P 0 d)
     (α : (TopPair.ofSubset (X := TopCat.of P) ({0}ᶜ : Set P)).singularCohomology
       (ModuleCat.of ℤ (ULift.{w} ℤ)) ℤ (ModuleCat.of ℤ (ULift.{w} ℤ)) d) :
@@ -201,6 +195,24 @@ theorem modelThomGenerator_eq_localCohomologyClass {n : ℕ} (ω : Orientation �
   (rfl)
 
 open Classical in
+/-- **The rank-zero generator by its Kronecker pairing.** In rank zero, a class `α` of
+`H⁰(P, P ∖ {0}; ℤ)` is the generator of the model pair selected by `ω` if and only if it pairs to
+`1` with the point class of `P`, the local orientation of the zero-dimensional chart `P → P`, when
+`ω` is the positive orientation of the empty index type, and to `-1` otherwise. -/
+theorem eq_modelThomGenerator_zero_iff (ω : Orientation ℝ P (Fin 0)) (hP : finrank ℝ P = 0)
+    (α : (TopPair.ofSubset (X := TopCat.of P) ({0}ᶜ : Set P)).singularCohomology
+      (ModuleCat.of ℤ (ULift.{w} ℤ)) ℤ (ModuleCat.of ℤ (ULift.{w} ℤ)) 0) :
+    α = ω.modelThomGenerator hP ↔
+      ((TopPair.ofSubset (X := TopCat.of P) ({0}ᶜ : Set P)).singularKronecker ℤ 0 α).hom
+          (localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl P)
+            (OpenPartialHomeomorph.mem_refl_source _) hP).val =
+        if ω = positiveOrientation then 1 else -1 := by
+  simp only [modelThomGenerator]
+  split_ifs
+  · exact eq_dualClass_iff hP _ α
+  · rw [eq_dualClass_iff, LocalOrientation.coe_neg, map_neg, neg_eq_iff_eq_neg]
+
+open Classical in
 /-- In rank zero, the generator of the model pair selected by `ω` pairs to `1` with the point
 class of `P`, the local orientation of the zero-dimensional chart `P → P`, when `ω` is the
 positive orientation of the empty index type, and to `-1` otherwise. -/
@@ -209,14 +221,8 @@ theorem kronecker_modelThomGenerator_zero (ω : Orientation ℝ P (Fin 0)) (hP :
       (ω.modelThomGenerator hP)).hom
         (localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl P)
           (OpenPartialHomeomorph.mem_refl_source _) hP).val =
-      if ω = positiveOrientation then 1 else -1 := by
-  simp only [modelThomGenerator]
-  split_ifs
-  · exact kronecker_dualClass hP _
-  · have h := kronecker_dualClass hP (-localOrientationOfZeroDimChart
-      (OpenPartialHomeomorph.refl P) (OpenPartialHomeomorph.mem_refl_source _) hP)
-    rw [LocalOrientation.coe_neg, map_neg] at h
-    exact neg_eq_iff_eq_neg.1 h
+      if ω = positiveOrientation then 1 else -1 :=
+  (eq_modelThomGenerator_zero_iff ω hP _).1 rfl
 
 /-- Reversing an orientation negates the generator of the model pair it selects. -/
 @[simp]
@@ -262,15 +268,9 @@ theorem singularCohomologyMap_modelThomGenerator {P' : Type w} [NormedAddCommGro
     rw [LocalOrientation.coe_map] at hpt
     have hpos : ω.map _ h.toLinearEquiv = positiveOrientation ↔ ω = positiveOrientation :=
       (Orientation.map _ _).injective.eq_iff' (Orientation.map_positiveOrientation_of_isEmpty _ _)
-    simp only [modelThomGenerator, hpos]
-    split_ifs
-    · refine (eq_dualClass_iff hP _ _).2 ?_
-      rw [TopPair.singularKronecker_naturality, ModuleCat.hom_comp, LinearMap.comp_apply, hpt]
-      exact kronecker_dualClass hP' _
-    · refine (eq_dualClass_iff hP _ _).2 ?_
-      rw [TopPair.singularKronecker_naturality, ModuleCat.hom_comp, LinearMap.comp_apply,
-        LocalOrientation.coe_neg, map_neg, hpt, ← LocalOrientation.coe_neg]
-      exact kronecker_dualClass hP' _
+    refine (eq_modelThomGenerator_zero_iff ω hP _).2 ?_
+    rw [TopPair.singularKronecker_naturality, ModuleCat.hom_comp, LinearMap.comp_apply, hpt,
+      kronecker_modelThomGenerator_zero, hpos]
   | succ n => exact singularCohomologyMap_localCohomologyClass h ω hP hP'
 
 /-- **The selected generator read through a linear equivalence.** For an orientation `ω` of a

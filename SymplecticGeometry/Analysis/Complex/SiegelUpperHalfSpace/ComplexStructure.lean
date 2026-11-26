@@ -546,7 +546,7 @@ theorem hasFDerivAt_complexStructureMatrix {Z : Matrix ι ι ℂ}
   have hR := (Matrix.hasFDerivAt_inv ((isUnit_iff_isUnit_det P).1 hPu)).comp Z hP
   have h := (hP.mul_const' (J ι ℝ)).mul' hR
   refine (h.congr_of_eventuallyEq ?_).congr_fderiv ?_
-  · filter_upwards [Matrix.isOpen_setOf_isUnit_det_map_im.mem_nhds hZ] with W hW
+  · filter_upwards [Matrix.isOpen_setOfPred_isUnit_det_map_im.mem_nhds hZ] with W hW
     simp only [Pi.mul_apply, Function.comp_apply]
     exact complexStructureMatrix_eq_mul_J_mul hW
   · ext1 dZ
@@ -689,8 +689,8 @@ theorem mulAction_symplecticGroup_and_compatibleEquiv :
     ContDiffOn ℝ ∞ (ofComplexStructureMatrix : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ → Matrix ι ι ℂ)
       {M : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ | IsUnit M.toBlocks₂₁.det} :=
   ⟨inferInstance,
-    fun Ψ ↦ ⟨isOpen_setOf_isUnit_det_denom (Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ),
-      range_coe_subset_setOf_isUnit_det_denom Ψ.property,
+    fun Ψ ↦ ⟨isOpen_setOfPred_isUnit_det_denom (Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ),
+      range_coe_subset_setOfPred_isUnit_det_denom Ψ.property,
       differentiableOn_num_mul_inv_denom (Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)⟩,
     map_stabilizer_I,
     ⟨MulAction.injective_ofQuotientStabilizer _ _, fun Z ↦
@@ -699,10 +699,10 @@ theorem mulAction_symplecticGroup_and_compatibleEquiv :
     eq_compatibleEquiv_iff,
     fun _ ↦ LinearEquiv.symm_apply_apply _ _,
     fun _ ↦ rfl,
-    isOpen_setOf_isUnit_det_map_im,
+    isOpen_setOfPred_isUnit_det_map_im,
     isUnit_det_map_im,
     contDiffOn_complexStructureMatrix,
-    isOpen_setOf_isUnit_det_toBlocks₂₁,
+    isOpen_setOfPred_isUnit_det_toBlocks₂₁,
     fun J ↦ isUnit_det_toBlocks₂₁_of_compatible J.property,
     contDiffOn_ofComplexStructureMatrix⟩
 end Smooth

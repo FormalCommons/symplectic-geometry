@@ -22,7 +22,7 @@ first quadrant on or above the hyperbola `p q = C`, which is the whole closed fi
 
 ## Main results
 
-* `SymplecticGeometry.convex_setOf_le_mul`: this region is convex.
+* `SymplecticGeometry.convex_setOfPred_le_mul`: this region is convex.
 -/
 
 public section
@@ -31,7 +31,7 @@ namespace SymplecticGeometry
 
 /-- In a linearly ordered commutative ring `𝕜`, for every `C : 𝕜`, the set of pairs `(p, q)` with
 `0 ≤ p`, `0 ≤ q` and `C ≤ p * q` is convex. -/
-theorem convex_setOf_le_mul {𝕜 : Type*} [CommRing 𝕜] [LinearOrder 𝕜] [IsStrictOrderedRing 𝕜]
+theorem convex_setOfPred_le_mul {𝕜 : Type*} [CommRing 𝕜] [LinearOrder 𝕜] [IsStrictOrderedRing 𝕜]
     (C : 𝕜) : Convex 𝕜 {z : 𝕜 × 𝕜 | 0 ≤ z.1 ∧ 0 ≤ z.2 ∧ C ≤ z.1 * z.2} := by
   rintro ⟨p₁, q₁⟩ ⟨hp₁, hq₁, h₁⟩ ⟨p₂, q₂⟩ ⟨hp₂, hq₂, h₂⟩ a b ha hb hab
   simp only [Set.mem_ofPred_eq, Prod.fst_add, Prod.snd_add, Prod.smul_fst, Prod.smul_snd,

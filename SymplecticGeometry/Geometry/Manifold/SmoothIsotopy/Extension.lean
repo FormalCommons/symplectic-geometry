@@ -6,10 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Instances.Real
-public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
+public import Mathlib.Geometry.Manifold.SmoothEmbedding
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.TimeExtension
-import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Neighborhood
 import SymplecticGeometry.Topology.Order.NhdsSet
 import TauCeti.Geometry.Manifold.ContMDiffMap.Extension
 import TauCeti.Geometry.Manifold.SmoothEmbedding.Euclidean
@@ -31,10 +30,10 @@ times on `[0, 1]`, and is first extended a little past both ends.
    track into a Euclidean space (Tau Ceti's
    `IsCompact.exists_opens_nonempty_smoothEmbedding_euclidean`), the composite is extended in
    time by Seeley's extension (`SymplecticGeometry.timeExtend`), and a smooth retraction onto the
-   image (Tau Ceti's `TauCeti.SmoothEmbedding.exists_contMDiffOn_retraction`) brings it back. For
-   a smooth isotopy, the slices of the extension stay embeddings near the compact set for times
-   near `[0, 1]` (`TauCeti.SmoothIsotopy.exists_contMDiff_extend`, by
-   `TauCeti.exists_pos_forall_isSmoothEmbedding_of_eventuallyEq`).
+   image (Tau Ceti's `TauCeti.SmoothEmbedding.exists_contMDiffOn_retraction`) brings it back.
+   `SmoothIsotopy/Family.lean` extends a family of isotopies this way; the graph of the extension
+   keeps the parameter fixed, and its slices stay embeddings near the compact set for times near
+   `[0, 1]` (`TauCeti.exists_pos_forall_isSmoothEmbedding_of_eventuallyEq`).
 2. Run at the time `c t`, for a smooth `c : ℝ → (-δ, 1 + δ)` that is the identity on `[0, 1]`
    and constant outside `(-δ / 2, 1 + δ / 2)`
    (`SymplecticGeometry.exists_contDiff_eqOn_id_Icc_mem_Ioo`), such an extension is a motion
@@ -53,8 +52,6 @@ place of `Real.smoothTransition`.
   stationary outside a bounded interval.
 * `ContMDiff.exists_contMDiffOn_extend_unitInterval`: a smooth map on `unitInterval × X` extends
   near a compact subset of `X` to times in an open interval around `[0, 1]`.
-* `TauCeti.SmoothIsotopy.exists_contMDiff_extend`: a smooth isotopy extends near a compact set to
-  times in an open interval around `[0, 1]`, with embedding slices.
 
 ## References
 
@@ -79,10 +76,9 @@ variable {E E' H H' P N : Type*}
   [TopologicalSpace H] [TopologicalSpace H']
   {I : ModelWithCorners ℝ E H} {J : ModelWithCorners ℝ E' H'}
   [TopologicalSpace P] [ChartedSpace H' P] [TopologicalSpace N] [ChartedSpace H N]
-  [I.Boundaryless] [J.Boundaryless] [IsManifold J ∞ P] [IsManifold I ∞ N] [T2Space N]
+  [I.Boundaryless] [IsManifold I ∞ N] [T2Space N]
 
-omit [FiniteDimensional ℝ E] [I.Boundaryless] [J.Boundaryless] [IsManifold J ∞ P] [IsManifold I ∞ N]
-  [T2Space N] in
+omit [FiniteDimensional ℝ E] [I.Boundaryless] [IsManifold I ∞ N] [T2Space N] in
 /-- **A motion over `ℝ` from a motion near `[0, 1]`.** Let `G : ℝ × P → N` be smooth on
 `(-δ, 1 + δ) ×ˢ V`, with smooth embeddings of `V` as slices at times in `(-δ, 1 + δ)`. There is
 a change of time `c : ℝ → ℝ` such that `(t, x) ↦ G (c t, x)` is a smooth motion of `V` over `ℝ`
@@ -163,33 +159,6 @@ theorem _root_.ContMDiff.exists_contMDiffOn_extend_unitInterval {EX HX X : Type*
   exact (contMDiff_subtypeVal.comp_contMDiffOn
     (hr.comp (hk.mono inter_subset_left) fun _ hp ↦ hp.2)).mono
     ((prod_mono hIoo subset_rfl).trans hVS)
-
-namespace SmoothIsotopy
-
-/-- **Time extension of an isotopy near a compact set.** A smooth isotopy `F` of a boundaryless
-manifold into a finite-dimensional, Hausdorff boundaryless manifold extends near a compact
-set `A` past both ends of `[0, 1]`: there are `δ > 0`, an open `V ⊇ A` and a map `G`, smooth on
-`(-δ, 1 + δ) ×ˢ V`, with `G (t, x) = F (t, x)` for `t ∈ [0, 1]` and `x ∈ V`, whose slices at
-times in `(-δ, 1 + δ)` are smooth embeddings of `V`. -/
-theorem exists_contMDiff_extend {f₀ f₁ : C^∞⟮J, P; I, N⟯} (F : SmoothIsotopy f₀ f₁)
-    {A : Set P} (hA : IsCompact A) :
-    ∃ δ > 0, ∃ V : TopologicalSpace.Opens P, A ⊆ V ∧ ∃ G : ℝ × P → N,
-      ContMDiffOn (𝓘(ℝ).prod J) I ∞ G (Ioo (-δ) (1 + δ) ×ˢ (V : Set P)) ∧
-      (∀ t : unitInterval, ∀ x ∈ V, G (t, x) = F (t, x)) ∧
-      ∀ t ∈ Ioo (-δ) (1 + δ), IsSmoothEmbedding J I ∞ (fun x : V ↦ G (t, x)) := by
-  -- Extend `F` in time near `A`; the slices of the extension at times in `[0, 1]` are those of
-  -- `F` near `A`.
-  obtain ⟨δ₀, hδ₀, U, hU, hAU, G, hG, hGF⟩ := F.contMDiff.exists_contMDiffOn_extend_unitInterval hA
-  have hAS : Icc 0 1 ×ˢ A ⊆ Ioo (-δ₀) (1 + δ₀) ×ˢ U :=
-    prod_mono (Icc_subset_Ioo (by linarith) (by linarith)) hAU
-  obtain ⟨δ, hδ, V, hAV, hVS, hV⟩ := exists_pos_forall_isSmoothEmbedding_of_eventuallyEq
-    (isOpen_Ioo.prod hU) hG hA hAS
-    (fun t ↦ by simpa only [toContMDiffMap_apply] using F.isSmoothEmbedding t)
-    fun t ht ↦ Filter.eventually_of_mem (hU.mem_nhdsSet.2 hAU) fun x hx ↦ hGF ⟨t, ht⟩ x hx
-  exact ⟨δ, hδ, V, hAV, G, hG.mono hVS, fun t x hx ↦ hGF t x
-    (hVS (mk_mem_prod (a := (0 : ℝ)) ⟨by linarith, by linarith⟩ hx)).2, hV⟩
-
-end SmoothIsotopy
 
 end TauCeti
 

@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Section.Linearization
 
 import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # Continuity of the linearization of a section along its zeros
@@ -85,8 +86,7 @@ theorem continuous_sectionLinearization_pullback (hn : 1 ≤ n)
   have heq : (fun p : TotalSpace V (g *ᵖ (TangentSpace J)) ↦ (e (TotalSpace.mk' F'
       (g p.proj) (sectionLinearization (F := F') J _root_.id s (g p.proj) p.snd))).2) =ᶠ[𝓝 p₀]
       fun p ↦ (tangentMap J 𝓘(𝕜, F') t (Pullback.lift g p)).snd := by
-    filter_upwards [(e.open_baseSet.preimage hproj).mem_nhds
-      (mem_baseSet_trivializationAt F' E' (g p₀.proj))] with p hp
+    filter_upwards [hproj.continuousAt.eventually_mem_baseSet_trivializationAt F' E'] with p hp
     exact (key p.proj hp p.snd).trans tangentMap_snd.symm
   refine ContinuousAt.congr ?_ heq.symm
   exact (contMDiff_snd_tangentBundle_modelSpace F' 𝓘(𝕜, F') (n := 0)).continuous.continuousAt.comp

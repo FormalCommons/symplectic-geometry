@@ -8,8 +8,10 @@ module
 public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.TransAffine
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Darboux
 public import TauCeti.Geometry.Symplectic.Manifold.Darboux
+import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import TauCeti.Geometry.Symplectic.Manifold.NeighborhoodGerm
 
 /-!
 # Darboux charts with a prescribed derivative
@@ -34,6 +36,9 @@ derivatives preserve that form.
   derivative at every point.
 * `TauCeti.SmoothTwoForm.transAffine_darbouxChart`: so does following a Darboux chart by an affine
   map `z ↦ A (z - p)` whose linear part `A` preserves the constant form.
+* `TauCeti.SmoothTwoForm.mpullback_symm_apply_eq_constSmooth`: the inverse of a Darboux chart
+  pulls `σ` back to the constant form on the target, by Tau Ceti's
+  `PartialDiffeomorph.isSymplecticMapOn_symm`.
 * `TauCeti.SymplecticForm.apply_fderiv_transition_eq`: the derivatives of transition maps between
   two Darboux charts for the same constant form preserve that form.
 * `TauCeti.SmoothTwoForm.exists_darbouxChart_mvfderiv_eq_of_isInteriorPoint`: Darboux charts with
@@ -41,7 +46,8 @@ derivatives preserve that form.
 * `TauCeti.SmoothTwoForm.IsSymplectic.exists_darbouxChart_mvfderiv_eq`: Darboux charts with a
   prescribed derivative on a boundaryless symplectic manifold.
 * `TauCeti.SmoothTwoForm.IsSymplectic.exists_darbouxChart_stdForm`: Darboux charts onto the
-  standard model `StdSpace ι` at every point, in dimension `2 * card ι`.
+  standard model `StdSpace ι` at every point, with source in a given neighbourhood, in
+  dimension `2 * card ι`.
 
 `trans_toDiffeomorph_darbouxChart` and its proof adapt Tau Ceti's private
 `TauCeti.SmoothTwoForm.trans_toDiffeomorph_darboux`.
@@ -54,7 +60,7 @@ derivatives preserve that form.
 
 public section
 
-open scoped ContDiff Manifold
+open scoped ContDiff Manifold Topology
 
 namespace TauCeti
 
@@ -111,6 +117,22 @@ theorem transAffine_darbouxChart {F : Type*} [NormedAddCommGroup F] [NormedSpace
     rw [φ.mvfderiv_transSubRight p y, hφ y (by simpa using hy)]
   rw [PartialDiffeomorph.transAffine_def]
   exact (trans_toDiffeomorph_darbouxChart hτ A hA).2.2.2 x (by simpa using hx) v w
+
+/-- If a chart `φ` into a finite-dimensional space `F` pulls the constant form `form₀` back to `σ`
+on its source, then its inverse pulls `σ` back to the constant form `form₀` at every point of
+its target. -/
+theorem mpullback_symm_apply_eq_constSmooth {F : Type*} [NormedAddCommGroup F]
+    [NormedSpace ℝ F] [FiniteDimensional ℝ F] {σ : SmoothTwoForm I M} {form₀ : SymplecticForm F}
+    {φ : PartialDiffeomorph I 𝓘(ℝ, F) M F ∞}
+    (hφ : ∀ x ∈ φ.source, ∀ v w : TangentSpace I x,
+      σ.eval₂ x v w = form₀ (mvfderiv I φ x v) (mvfderiv I φ x w))
+    {z : F} (hz : z ∈ φ.target) :
+    mpullback 𝓘(ℝ, F) I φ.symm σ.val z = form₀.constSmooth.val z := by
+  have h : σ.IsSymplecticMapOn form₀.constSmooth φ φ.source :=
+    isSymplecticMapOn_iff.2 fun x hx v w ↦ by
+      rw [hφ x hx, mvfderiv_apply_eq_mfderiv_apply, mvfderiv_apply_eq_mfderiv_apply]
+      exact SymplecticForm.constSmooth_apply form₀ _ _ _
+  exact (φ.isSymplecticMapOn_symm h (by simp)).mpullback_apply hz
 
 end SmoothTwoForm
 
@@ -219,24 +241,34 @@ theorem IsSymplectic.exists_darbouxChart_mvfderiv_eq [BoundarylessManifold I M]
     BoundarylessManifold.isInteriorPoint A hA
 
 /-- **Darboux charts onto the standard model.** On a boundaryless symplectic manifold `(M, σ)`
-modelled on a space `E` of dimension `2 * card ι`, every point `p` lies in the source of a smooth
-partial diffeomorphism from `M` to `StdSpace ι` that sends `p` to `0` and pulls `stdForm ι` back
-to `σ` on its source. -/
+modelled on a space `E` of dimension `2 * card ι`, let `s` be a neighbourhood of a point `p`. Then
+`p` lies in the source of a smooth partial diffeomorphism from `M` to `StdSpace ι` whose source
+lies in `s`, which sends `p` to `0` and pulls `stdForm ι` back to `σ` on its source. -/
 theorem IsSymplectic.exists_darbouxChart_stdForm [BoundarylessManifold I M] {ι : Type*}
     [Fintype ι] (hE : Module.finrank ℝ E = 2 * Fintype.card ι) {σ : SmoothTwoForm I M}
-    (hσ : σ.IsSymplectic) (p : M) :
+    (hσ : σ.IsSymplectic) {p : M} {s : Set M} (hs : s ∈ 𝓝 p) :
     ∃ chart : PartialDiffeomorph I 𝓘(ℝ, SymplecticGeometry.StdSpace ι) M
         (SymplecticGeometry.StdSpace ι) ∞,
-      p ∈ chart.source ∧ chart p = 0 ∧ ∀ x ∈ chart.source, ∀ v w : TangentSpace I x,
-        σ.eval₂ x v w = SymplecticGeometry.stdForm ι (mvfderiv I chart x v)
-          (mvfderiv I chart x w) := by
+      p ∈ chart.source ∧ chart.source ⊆ s ∧ chart p = 0 ∧
+        ∀ x ∈ chart.source, ∀ v w : TangentSpace I x,
+          σ.eval₂ x v w = SymplecticGeometry.stdForm ι (mvfderiv I chart x v)
+            (mvfderiv I chart x w) := by
   obtain ⟨e, he⟩ := SymplecticGeometry.exists_isSymplectomorphism_stdForm
     (hσ.isNondegenerate.symplecticFormAt p) hE
   obtain ⟨chart, hp, hp0, -, hchart⟩ := hσ.exists_darbouxChart_mvfderiv_eq
     (SymplecticGeometry.stdForm ι) e.symm.toContinuousLinearEquiv fun v w ↦ by
       rw [← hσ.isNondegenerate.symplecticFormAt_apply, ← he.apply]
       simp
-  exact ⟨chart, hp, hp0, hchart⟩
+  -- Restricting `chart` to the interior of `s` keeps its map and shrinks its source into `s`.
+  refine ⟨chart.restrOpen (interior s) isOpen_interior, ?_, ?_, ?_, fun x hx ↦ ?_⟩
+  · rw [PartialDiffeomorph.restrOpen_source]
+    exact ⟨hp, mem_interior_iff_mem_nhds.2 hs⟩
+  · rw [PartialDiffeomorph.restrOpen_source]
+    exact Set.inter_subset_right.trans interior_subset
+  · rwa [PartialDiffeomorph.coe_restrOpen]
+  · rw [PartialDiffeomorph.restrOpen_source] at hx
+    rw [PartialDiffeomorph.coe_restrOpen]
+    exact hchart x hx.1
 
 end SmoothTwoForm
 

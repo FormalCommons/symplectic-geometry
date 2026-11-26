@@ -81,8 +81,8 @@ locally finite refinement of the given neighbourhoods first yields, by Tau Ceti'
 The inequality with constant `δ y` at `y` is then convex in the metric: with
 `R = df(X) - δ g(X, X)`, the bound `δ ‖grad f‖ ^ 2 ≤ R` amounts, by Cauchy–Schwarz, to
 `δ (df v) ^ 2 ≤ R g(v, v)` for every `v`, and this is convex in `g` by
-`SymplecticGeometry.convex_setOf_le_mul`: for any `C` the pairs `(p, q)` of nonnegative reals with
-`C ≤ p q` form a convex set.
+`SymplecticGeometry.convex_setOfPred_le_mul`: for any `C` the pairs `(p, q)` of nonnegative reals
+with `C ≤ p q` form a convex set.
 
 ## References
 
@@ -300,12 +300,12 @@ private theorem convex_gradientLikeCondition (δ : ℝ) (y : M) :
   refine ⟨fun v ↦ by have := hs₀ v; have := ht₀ v; positivity, ?_, fun v ↦ ?_⟩
   · have hD : D = a * D + b * D := by rw [← add_mul, hab, one_mul]
     nlinarith
-  -- With `pᵢ = D - δ sᵢ (X, X) ≥ 0` and `qᵢ = sᵢ (v, v) ≥ 0`, this is `convex_setOf_le_mul`.
+  -- With `pᵢ = D - δ sᵢ (X, X) ≥ 0` and `qᵢ = sᵢ (v, v) ≥ 0`, this is `convex_setOfPred_le_mul`.
   have hp : D - δ * (a * s (X y) (X y) + b * t (X y) (X y)) =
       a * (D - δ * s (X y) (X y)) + b * (D - δ * t (X y) (X y)) := by
     linear_combination (-D) * hab
   rw [hp]
-  have := convex_setOf_le_mul (δ * mvfderiv 𝓘(ℝ, E) f y v ^ 2)
+  have := convex_setOfPred_le_mul (δ * mvfderiv 𝓘(ℝ, E) f y v ^ 2)
     (x := (D - δ * s (X y) (X y), s v v)) ⟨sub_nonneg.2 hs₁, hs₀ v, hs₂ v⟩
     (y := (D - δ * t (X y) (X y), t v v)) ⟨sub_nonneg.2 ht₁, ht₀ v, ht₂ v⟩ ha hb hab
   simpa only [Set.mem_ofPred_eq, Prod.fst_add, Prod.snd_add, Prod.smul_fst, Prod.smul_snd,

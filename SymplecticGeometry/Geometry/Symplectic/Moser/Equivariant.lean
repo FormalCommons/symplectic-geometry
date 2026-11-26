@@ -346,8 +346,8 @@ private theorem exists_partialDiffeomorph_invariantCore_of_eq_along [ContinuousS
       (g : G) : SmoothForm.mpullback (fun x : W.invariantCore G ↦ g • x) (contMDiff_const_smul g)
         (SmoothForm.mpullback (Subtype.val : W.invariantCore G → M) contMDiff_subtypeVal σ) =
       SmoothForm.mpullback (Subtype.val : W.invariantCore G → M) contMDiff_subtypeVal σ :=
-    Subtype.ext ((SmoothForm.coe_mpullback _ _ _).trans
-      (SmoothForm.mpullback_smul_mpullback_subtypeVal Opens.coe_smul_invariantCore hσ g))
+    SmoothForm.mpullback_smul_mpullback_subtypeVal Opens.coe_smul_invariantCore
+      (Subtype.ext ((SmoothForm.coe_mpullback _ _ _).trans (hσ g)))
   -- The average `γ` of `β` over `G` is an invariant primitive, still vanishing with its first jet
   -- along the invariant set `f(Q)`.
   set γ := SmoothForm.measureAverage IG (haarProb G) β

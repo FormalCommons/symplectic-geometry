@@ -216,7 +216,7 @@ private theorem continuous_height : Continuous h.height := by
   rintro ⟨r, hr, hrp⟩
   exact hz ⟨r, ⟨by simp only [mem_Ioi]; linarith [hr.1.1], trivial⟩, hrp⟩
 
-private theorem range_toCompletion_eq_setOf_height_le :
+private theorem range_toCompletion_eq_setOfPred_height_le :
     range h.toCompletion = {z | h.height z ≤ 0} := by
   have hε := h.collarWidth_pos
   ext z
@@ -285,7 +285,7 @@ theorem isLiouvilleCompletion_completion [CompactSpace W] (h : IsStrongFilling �
   subset_interior := by simp [ModelWithCorners.interior_eq_univ]
   exists_liouville_outward := ⟨h.completionField, h.contMDiff_completionField,
     h.interior_completionField_completionForm, h.height, 0, h.continuous_height,
-    h.range_toCompletion_eq_setOf_height_le, fun _ hz ↦
+    h.range_toCompletion_eq_setOfPred_height_le, fun _ hz ↦
       ⟨(h.contMDiffAt_height_and_mvfderiv hz).1,
         (h.contMDiffAt_height_and_mvfderiv hz).2 ▸ one_pos⟩⟩
   exists_isCompleteVectorField := ⟨h.completionField, h.interior_completionField_completionForm,

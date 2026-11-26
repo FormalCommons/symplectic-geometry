@@ -147,9 +147,8 @@ theorem isRegular_ofConstantRank (hf : ContMDiff I J ∞ f) (hr : ∀ x, mfderiv
   let s : U → M := fun u ↦ φ.symm (L u)
   have hfs (u : U) : ψ (f (s u)) = A (L u) := by
     rw [hA _ (φ.map_target u.property), φ.right_inv u.property]
-  have hs : ContMDiff (𝓡 (finrank ℝ E - (finrank ℝ E - r))) I ∞ s := fun u ↦
-    (hφi.contMDiffAt (φ.open_target.mem_nhds u.property)).comp u
-      (L.contMDiff.contMDiffAt.comp u contMDiff_subtypeVal.contMDiffAt)
+  have hs : ContMDiff (𝓡 (finrank ℝ E - (finrank ℝ E - r))) I ∞ s :=
+    hφi.comp_contMDiff (L.contMDiff.comp contMDiff_subtypeVal) fun u ↦ u.property
   -- In the coordinate `ψ`, the derivative of `f ∘ s` is `A ∘ L`, which is injective.
   have hkey (u : U) : Injective (mfderiv I J f (s u) ∘L
       mfderiv (𝓡 (finrank ℝ E - (finrank ℝ E - r))) I s u) := by

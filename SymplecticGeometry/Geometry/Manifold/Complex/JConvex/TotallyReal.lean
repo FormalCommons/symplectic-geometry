@@ -52,7 +52,7 @@ to a totally real submanifold, whose Hessian degenerates along the submanifold:
   Ceti's `isManifoldStrictlyPlurisubharmonicAt_iff_criticalHessian`, one has to show
   `Hess f(v, v) + Hess f(i v, i v) > 0` for `v ≠ 0`, which is
   `TauCeti.IsTotallyReal.add_pos_of_forall_notMem_pos` for `J`.
-* `SymplecticGeometry.setOf_isManifoldStrictlyPlurisubharmonicAt_mem_nhdsSet_range`: for a map
+* `SymplecticGeometry.setOfPred_isManifoldStrictlyPlurisubharmonicAt_mem_nhdsSet_range`: for a map
   `ι : S → M` with totally real tangent images, and `f` real `C²` along `ι(S)` with Hessian
   positive at each point `ι s` off the tangent image of `ι` at `s`, the function `f` is strictly
   plurisubharmonic on a neighbourhood of `ι(S)`. This combines the criterion with
@@ -81,7 +81,7 @@ the image of `ι` onto `F × {0}` (`TauCeti.IsAdaptedChart`). Fix a linear isomo
   tangent image of `ι`, since `dψ` sends exactly that image into `F × {0}`
   (`TauCeti.IsAdaptedChart.snd_mfderiv_eq_zero_iff`, in
   `SymplecticGeometry.Geometry.Manifold.Complex.TotallyReal.AdaptedChart`);
-* `IsTotallyRealEmbedding.setOf_isManifoldStrictlyPlurisubharmonicAt_norm_sq_snd_mem_nhdsSet`:
+* `IsTotallyRealEmbedding.setOfPred_isManifoldStrictlyPlurisubharmonicAt_norm_sq_snd_mem_nhdsSet`:
   for a complex manifold, with the adapted chart taken for
   `(ofComplexManifold E M).toContMDiff ℓ`, `ℓ ≥ 2`, the function is strictly plurisubharmonic on a
   neighbourhood of the part of the image in the source of `ψ`;
@@ -238,7 +238,7 @@ real tangent images for the complex structure of `M`, and let `f` be real `C²` 
 `ι s`, with critical Hessian `Hess f(v, v) > 0` at `ι s` for every `v` outside the tangent image
 of `ι` at `s`. Then `f` is strictly plurisubharmonic at every point of a neighbourhood of the
 image of `ι`. -/
-theorem setOf_isManifoldStrictlyPlurisubharmonicAt_mem_nhdsSet_range [FiniteDimensional ℂ E]
+theorem setOfPred_isManifoldStrictlyPlurisubharmonicAt_mem_nhdsSet_range [FiniteDimensional ℂ E]
     {ι : S → M} (hf : ∀ s, ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) 2 f (ι s))
     (hι : ∀ s,
       IsTotallyReal ((ofComplexManifold E M).toEndomorphism (ι s)).toLinearMap
@@ -359,7 +359,7 @@ submanifold.** Let `ι` be a `C^k` totally real embedding, `k ≥ 1`, into a com
 a linear isomorphism from the normal coordinate space onto an inner product space. Then
 `x ↦ ‖e (ψ x).2‖²`, a squared distance to the zero section in the chart, is strictly
 plurisubharmonic on a neighbourhood of the part of the image in the source of `ψ`. -/
-theorem setOf_isManifoldStrictlyPlurisubharmonicAt_norm_sq_snd_mem_nhdsSet
+theorem setOfPred_isManifoldStrictlyPlurisubharmonicAt_norm_sq_snd_mem_nhdsSet
     (h : IsTotallyRealEmbedding I' 𝓘(ℝ, E) k (ofComplexManifold E M).almostComplexStructureAt ι)
     (hk : 1 ≤ k) {ℓ : ℕ∞} {ψ : OpenPartialHomeomorph M (F × F)}
     (hψ : IsAdaptedChart ((ofComplexManifold E M).toContMDiff ℓ) (range ι) ψ) (hℓ : 2 ≤ ℓ)
@@ -391,7 +391,7 @@ theorem exists_isAdaptedChart_norm_sq_snd
       ((ofComplexManifold E M).toContMDiff 2).almostComplexStructureAt ι := by
     rwa [almostComplexStructureAt_toContMDiff]
   obtain ⟨ψ, -, -, -, -, hy, -, hψ⟩ := h'.exists_adaptedChart one_le_two hk y
-  exact ⟨ψ, hy, hψ, h.setOf_isManifoldStrictlyPlurisubharmonicAt_norm_sq_snd_mem_nhdsSet
+  exact ⟨ψ, hy, hψ, h.setOfPred_isManifoldStrictlyPlurisubharmonicAt_norm_sq_snd_mem_nhdsSet
     (le_trans (by norm_num) hk) hψ le_rfl e⟩
 
 /-- **A nonnegative function strictly plurisubharmonic near a closed totally real submanifold.**
@@ -494,7 +494,7 @@ theorem exists_contMDiff_isManifoldStrictlyPlurisubharmonicAt_of_isClosed_range
     · obtain ⟨z, rfl, hz⟩ := hsome (hρ i hi)
       simp [g, ((hψ z).norm_sq_snd_eq_zero_iff hz).2 (mem_range_self y)]
     · simp [image_eq_zero_of_notMem_tsupport hi]
-  · exact SymplecticGeometry.setOf_isManifoldStrictlyPlurisubharmonicAt_mem_nhdsSet_range
+  · exact SymplecticGeometry.setOfPred_isManifoldStrictlyPlurisubharmonicAt_mem_nhdsSet_range
       (fun y ↦ (hφ (ι y)).of_le (WithTop.coe_le_coe.2 hℓ)) h.isTotallyReal_range_mfderiv hHess
 
 end TauCeti.IsTotallyRealEmbedding

@@ -45,6 +45,8 @@ to the exceptional divisor `Z`, sets up the neighbourhoods `L(ε)` of `Z`, and i
   intersection (`biInter_gt_closedNbhd`), and since `L(1)` is compact every neighbourhood of
   it contains some `L(ε)` (`exists_closedNbhd_subset`, `exists_openNbhd_subset`, by
   `TauCeti.exists_pos_sublevel_subset_of_isCompact_of_mem_nhdsSet`).
+* `SymplecticGeometry.BlowupModel.openNbhdComplDivisor n ε`: `openNbhd n ε ∖ Z`, as an open subset
+  of the model.
 * `SymplecticGeometry.BlowupModel.blowupForm n l`: the form `π^* ω₀ + l² pr^* ω_FS`, and
   `SymplecticGeometry.BlowupModel.isClosed_blowupForm`: it is closed.
 * `SymplecticGeometry.BlowupModel.isKahler_blowupForm`: for `l ≠ 0`, `ω̃_l` is Kähler for the
@@ -206,6 +208,22 @@ theorem exists_closedNbhd_subset {U : Set (BlowupModel n)}
 theorem exists_openNbhd_subset {U : Set (BlowupModel n)}
     (hU : U ∈ 𝓝ˢ (exceptionalDivisor n)) : ∃ ε, 0 < ε ∧ openNbhd n ε ⊆ U :=
   (exists_closedNbhd_subset hU).imp fun _ h ↦ ⟨h.1, (openNbhd_subset_closedNbhd _).trans h.2⟩
+
+variable (n) in
+/-- `openNbhd n ε ∖ Z`: the points of the model blowup off the exceptional divisor whose
+blowdown has Euclidean norm less than `ε`, as an open subset. -/
+def openNbhdComplDivisor (ε : ℝ) : TopologicalSpace.Opens (BlowupModel n) :=
+  ⟨openNbhd n ε \ exceptionalDivisor n, (isOpen_openNbhd ε).sdiff isClosed_exceptionalDivisor⟩
+
+@[simp]
+theorem coe_openNbhdComplDivisor (ε : ℝ) :
+    (openNbhdComplDivisor n ε : Set (BlowupModel n)) = openNbhd n ε \ exceptionalDivisor n :=
+  (rfl)
+
+@[simp]
+theorem mem_openNbhdComplDivisor_iff {ε : ℝ} {p : BlowupModel n} :
+    p ∈ openNbhdComplDivisor n ε ↔ p ∈ openNbhd n ε ∧ p ∉ exceptionalDivisor n :=
+  Iff.rfl
 
 /-! ### The forms `ω̃_λ` -/
 
@@ -497,13 +515,10 @@ open neighbourhood of radius `ε` minus the exceptional divisor onto the open sh
 `l < |w| < √(l² + ε²)` of `E`. It carries `ω̃_l` to `ω₀`
 (`isSymplectomorphism_shellSymplectomorph`). -/
 noncomputable def shellSymplectomorph (l ε : ℝ) (hl : 0 ≤ l) (hε : 0 ≤ ε) :
-    (⟨openNbhd n ε \ exceptionalDivisor n,
-        (isOpen_openNbhd ε).sdiff isClosed_exceptionalDivisor⟩ : Opens (BlowupModel n))
-      ≃ₘ⟮𝓘(ℝ, Fin (n + 1) → ℂ), 𝓘(ℝ, Fin (n + 1) → ℂ)⟯ openShell n l ε :=
-  (Diffeomorph.nestedOpen (U := ⟨openNbhd n ε \ exceptionalDivisor n,
-      (isOpen_openNbhd ε).sdiff isClosed_exceptionalDivisor⟩)
+    openNbhdComplDivisor n ε ≃ₘ⟮𝓘(ℝ, Fin (n + 1) → ℂ), 𝓘(ℝ, Fin (n + 1) → ℂ)⟯ openShell n l ε :=
+  (Diffeomorph.nestedOpen (U := openNbhdComplDivisor n ε)
       (D := ⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩)
-      fun _ hp ↦ hp.2).symm.trans
+      fun _ hp ↦ (mem_openNbhdComplDivisor_iff.1 hp).2).symm.trans
     (((radialBlowdownDiffeomorph n l).subtype fun p ↦ by
         simp only [Opens.mem_comap]
         exact ⟨fun hp ↦ ⟨lt_norm_radialBlowdownDiffeomorph hl p,
@@ -513,11 +528,11 @@ noncomputable def shellSymplectomorph (l ε : ℝ) (hl : 0 ≤ l) (hε : 0 ≤ �
 
 @[simp]
 theorem coe_shellSymplectomorph_apply {l ε : ℝ} (hl : 0 ≤ l) (hε : 0 ≤ ε)
-    (p : (⟨openNbhd n ε \ exceptionalDivisor n,
-        (isOpen_openNbhd ε).sdiff isClosed_exceptionalDivisor⟩ : Opens (BlowupModel n))) :
+    (p : openNbhdComplDivisor n ε) :
     (shellSymplectomorph n l ε hl hε p : Fin (n + 1) → ℂ) =
       radialMap (fun s ↦ s + l ^ 2) (fun _ hs ↦ add_pos_of_pos_of_nonneg hs (sq_nonneg l))
-        (blowdownPuncturedDiffeomorph n ⟨p.val, p.property.2⟩) := by
+        (blowdownPuncturedDiffeomorph n
+          ⟨p.val, (mem_openNbhdComplDivisor_iff.1 p.property).2⟩) := by
   simp [shellSymplectomorph]
 
 /-- **The shell symplectomorphism.** `shellSymplectomorph` carries `ω̃_l` on the open

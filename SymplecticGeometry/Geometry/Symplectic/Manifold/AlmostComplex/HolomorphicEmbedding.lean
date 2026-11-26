@@ -22,18 +22,19 @@ on every tangent space. The same holds for an embedding into a product `N × N'`
 manifolds and the product of the almost complex structures of `N` and `N'`, which is again
 multiplication by `i` (`TauCeti.SmoothAlmostComplexStructure.prod_ofComplexManifold_apply`).
 
-These are the hypotheses, written `∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn`,
-under which `AlmostComplex/Submanifold.lean` restricts an almost complex structure and pulls back
-taming forms. So a complex submanifold, such as a smooth hypersurface, is a symplectic
+These are the hypotheses, written
+`∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn)`, under which
+`AlmostComplex/Submanifold.lean` restricts an almost complex structure and pulls back taming
+forms. So a complex submanifold, such as a smooth hypersurface, is a symplectic
 submanifold for every form that tames the complex structure of the ambient manifold.
 
 ## Main results
 
-* `TauCeti.SmoothEmbedding.ofComplexManifold_mem_tangentRange_restrictScalars`: the tangent
-  ranges of the real form of a holomorphic embedding are invariant under the almost complex
+* `TauCeti.SmoothEmbedding.mapsTo_ofComplexManifold_tangentRange_restrictScalars`: the
+  tangent ranges of the real form of a holomorphic embedding are invariant under the almost complex
   structure of the target.
-* `TauCeti.SmoothEmbedding.prod_ofComplexManifold_mem_tangentRange_restrictScalarsProd`: the
-  same for a holomorphic embedding into a product and the product almost complex structure.
+* `TauCeti.SmoothEmbedding.mapsTo_prod_ofComplexManifold_tangentRange_restrictScalarsProd`:
+  the same for a holomorphic embedding into a product and the product almost complex structure.
 
 ## References
 
@@ -57,13 +58,14 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E]
 
 /-- The tangent ranges of the real form of a holomorphic embedding are invariant under the
 almost complex structure of the target complex manifold. -/
-theorem ofComplexManifold_mem_tangentRange_restrictScalars
+theorem mapsTo_ofComplexManifold_tangentRange_restrictScalars
     (f : SmoothEmbedding 𝓘(ℂ, E) 𝓘(ℂ, E') m M N) (hnm : n ≤ m) (hn : 1 ≤ n) (hn₀ : n ≠ 0)
-    (x : M) (v) (hv : v ∈ (f.restrictScalars ℝ hnm hn).tangentRange x hn₀) :
-    ofComplexManifold E' N (f.restrictScalars ℝ hnm hn x) v ∈
-      (f.restrictScalars ℝ hnm hn).tangentRange x hn₀ := by
+    (x : M) :
+    Set.MapsTo (ofComplexManifold E' N (f.restrictScalars ℝ hnm hn x))
+      ((f.restrictScalars ℝ hnm hn).tangentRange x hn₀)
+      ((f.restrictScalars ℝ hnm hn).tangentRange x hn₀) := fun v hv ↦
   -- `ofComplexManifold_apply` states `v` in `E'`, so it does not rewrite the goal directly.
-  exact (ofComplexManifold_apply (E := E') (M := N) _ v).symm ▸
+  (ofComplexManifold_apply (E := E') (M := N) _ v).symm ▸
     f.smul_mem_tangentRange_restrictScalars hnm hn x hn₀ Complex.I hv
 
 variable {F' : Type*} [NormedAddCommGroup F'] [NormedSpace ℂ F'] [FiniteDimensional ℂ F']
@@ -73,15 +75,16 @@ variable {F' : Type*} [NormedAddCommGroup F'] [NormedSpace ℂ F'] [FiniteDimens
 /-- The tangent ranges of the real form of a holomorphic embedding into a product `N × N'` of
 complex manifolds are invariant under the product of the almost complex structures of `N` and
 `N'`. -/
-theorem prod_ofComplexManifold_mem_tangentRange_restrictScalarsProd
+theorem mapsTo_prod_ofComplexManifold_tangentRange_restrictScalarsProd
     (f : SmoothEmbedding 𝓘(ℂ, E) (𝓘(ℂ, E').prod 𝓘(ℂ, F')) m M (N × N')) (hnm : n ≤ m)
-    (hn : 1 ≤ n) (hn₀ : n ≠ 0) (x : M) (v)
-    (hv : v ∈ (f.restrictScalarsProd ℝ hnm hn).tangentRange x hn₀) :
-    (ofComplexManifold E' N).prod (ofComplexManifold F' N') (f.restrictScalarsProd ℝ hnm hn x) v ∈
-      (f.restrictScalarsProd ℝ hnm hn).tangentRange x hn₀ := by
+    (hn : 1 ≤ n) (hn₀ : n ≠ 0) (x : M) :
+    Set.MapsTo ((ofComplexManifold E' N).prod (ofComplexManifold F' N')
+        (f.restrictScalarsProd ℝ hnm hn x))
+      ((f.restrictScalarsProd ℝ hnm hn).tangentRange x hn₀)
+      ((f.restrictScalarsProd ℝ hnm hn).tangentRange x hn₀) := fun v hv ↦
   -- `prod_ofComplexManifold_apply` states `v` in `E' × F'`, so it does not rewrite the goal
   -- directly.
-  exact (prod_ofComplexManifold_apply (M := N) (N := N') _ v).symm ▸
+  (prod_ofComplexManifold_apply (M := N) (N := N') _ v).symm ▸
     f.smul_mem_tangentRange_restrictScalarsProd hnm hn x hn₀ Complex.I hv
 
 end TauCeti.SmoothEmbedding

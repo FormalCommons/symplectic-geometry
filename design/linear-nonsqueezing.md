@@ -36,7 +36,7 @@ results of `Ellipsoid/Basic.lean` do.
   Williamson theorem takes as input
   (`TauCeti.SymplecticForm.exists_isDarbouxBasis_eq_sum_smul_elliptic_of_posDef`
   needs `Q.PosDef`), and it determines `Q`
-  (`QuadraticMap.PosDef.eq_of_setOf_le_one_eq` below), so invariants of the
+  (`QuadraticMap.PosDef.eq_of_setOfPred_le_one_eq` below), so invariants of the
   set may be defined through `Q`. The other description, the image of the
   closed unit ball under a linear isomorphism (the form of Tau Ceti's
   `Analysis/InnerProductSpace/JohnEllipsoid.lean`), is related to this one by
@@ -263,13 +263,13 @@ than $r$. Expected size: 150 lines.
 Next to Tau Ceti's `QuadraticMap.PosDef.comp`, for quadratic forms on any
 real module:
 
-- `QuadraticMap.PosDef.eq_of_setOf_le_one_eq`: for `hQ : Q.PosDef` and any
+- `QuadraticMap.PosDef.eq_of_setOfPred_le_one_eq`: for `hQ : Q.PosDef` and any
   `Q'`, `{v | Q v ≤ 1} = {v | Q' v ≤ 1}` implies `Q = Q'`. Only `Q` needs to
   be positive definite: if `Q' v ≤ 0` for some `v ≠ 0`, the whole line
   through `v` lies in `{v | Q' v ≤ 1}`, on which `Q` is bounded, while
   `Q (t • v) = t ^ 2 * Q v` is not. So `Q'` is positive away from `0`, and
   homogeneity concludes.
-- `QuadraticMap.image_setOf_le_one`: for a linear equivalence `e`,
+- `QuadraticMap.image_setOfPred_le_one`: for a linear equivalence `e`,
   `e '' {v | Q v ≤ 1} = {v | Q.comp e.symm v ≤ 1}`; that `Q.comp e.symm` is
   positive definite with `Q` is Tau Ceti's `QuadraticMap.PosDef.comp`.
 
@@ -386,7 +386,7 @@ Expected size of issue 4, both files: 300 lines.
 
 - `exists_perm_eq_of_image_stdEllipsoid_eq`: for positive `r`, `r'` and a symplectomorphism `e`,
   `e '' stdEllipsoid r = stdEllipsoid r'` implies `∃ σ : Equiv.Perm ι,
-  r' = r ∘ σ`. By `eq_of_setOf_le_one_eq`, `stdEllipsoidForm r ∘ e⁻¹ =
+  r' = r ∘ σ`. By `eq_of_setOfPred_le_one_eq`, `stdEllipsoidForm r ∘ e⁻¹ =
   stdEllipsoidForm r'`. With `d = stdDarbouxBasisOf τ` for `τ : Fin n ≃ ι`,
   `stdEllipsoidForm_eq_sum_smul_elliptic` writes the left side as
   `∑ k, (2 / r (τ k) ^ 2) • elliptic (d.map e) k` and the right side as
@@ -406,7 +406,7 @@ Expected size of issue 4, both files: 300 lines.
   `symplecticSpectrum_comp` (invariance under `Q ↦ Q.comp e` for a
   symplectomorphism `e`) and `@[simp] symplecticSpectrum_stdEllipsoidForm`
   (`= Finset.univ.val.map r` for positive `r`).
-- `volume_setOf_le_one`: for `Q.PosDef`,
+- `volume_setOfPred_le_one`: for `Q.PosDef`,
   `volume {z | Q z ≤ 1} = ENNReal.ofReal (π ^ n / n ! *
   ((symplecticSpectrum Q).map (· ^ 2)).prod)`, from
   `IsSymplectomorphism.det_eq_one`, Mathlib's
@@ -489,7 +489,7 @@ Expected size: 300 lines.
 
   ```lean
   /-- Milestone: *Linear symplectic width of an ellipsoid*. -/
-  theorem linearSymplecticWidth_setOf_le_one {Q : QuadraticForm ℝ (StdSpace ι)}
+  theorem linearSymplecticWidth_setOfPred_le_one {Q : QuadraticForm ℝ (StdSpace ι)}
       {s : ℝ} (hs : s ∈ symplecticSpectrum Q)
       (hmin : ∀ t ∈ symplecticSpectrum Q, s ≤ t) :
       let E := {z | Q z ≤ 1}
@@ -594,7 +594,7 @@ Search Mathlib for both first. Expected size: 100 lines.
   ball lies in a proper subspace, which contains no ball of positive radius
   and so has width `0`, while the ball has width `π`; so `Ψ` is an
   equivalence. Its inverse also preserves the widths of ellipsoids, since
-  `Ψ` maps ellipsoids onto ellipsoids (`QuadraticMap.image_setOf_le_one`). A
+  `Ψ` maps ellipsoids onto ellipsoids (`QuadraticMap.image_setOfPred_le_one`). A
   symplectic ball is an ellipsoid
   (`LinearEquiv.exists_posDef_image_closedBall_eq`) of width
   `π r²`, and a symplectic cylinder has width `π R²`

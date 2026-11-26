@@ -81,13 +81,13 @@ segment is nondegenerate at every point of `P × ℝ` over `[a, b]`
 (`SymplecticGeometry.IsCouplingForm.nondegenerate_bilinFormAt_prodIccExtension_add_smul`).
 So every pair `(s, t)` with `t ∈ [a, b]` lies in the set of pairs at which the extended segment
 is nondegenerate along all of `P × {t}`
-(`IsCouplingForm.univ_prod_Icc_subset_setOf_nondegenerate_prodIccExtension_add_smul`);
+(`IsCouplingForm.univ_prod_Icc_subset_setOfPred_nondegenerate_prodIccExtension_add_smul`);
 for compact `B` that set is open
-(`TauCeti.SmoothTwoForm.isOpen_setOf_forall_nondegenerate_bilinFormAt_add_smul`).
+(`TauCeti.SmoothTwoForm.isOpen_setOfPred_forall_nondegenerate_bilinFormAt_add_smul`).
 It contains the compact set `[0, 1] × [a, b]`, so Tau Ceti's smooth cutoff around a compact set
 (`IsCompact.exists_contMDiff_one_nhds_tsupport_subset`) gives a smooth `ρ : ℝ × ℝ → ℝ`, equal to
-`1` near `[0, 1] × [a, b]`, with compact support inside it
-(`IsCouplingForm.exists_contMDiff_tsupport_subset_setOf_nondegenerate_prodIccExtension_add_smul`).
+`1` near `[0, 1] × [a, b]`, with compact support inside it, by
+`IsCouplingForm.exists_contMDiff_tsupport_subset_setOfPred_nondegenerate_prodIccExtension_add_smul`.
 The cutoff of the extended Moser field is `(s, (x, t)) ↦ ρ (s, t)`: it is smooth, invariant
 under the circle action, compactly supported because `P` is compact, equal to `1` near
 `[0, 1] × P × [a, b]`, and the extended segment is nondegenerate on its support
@@ -559,8 +559,8 @@ coupling forms for the same family `τ` of nondegenerate forms. Every pair `(s, 
 `t ∈ [a, b]` lies in the set of pairs such that `ω̃₀ + s • dσ̃` (as in
 `SymplecticGeometry.IsCouplingForm.mpullback_prodMap_subtypeVal_prodIccExtension_add_smul`) is
 nondegenerate at every point of `P × {t}`. For compact `B` and finite-dimensional `EB`, that set
-is open (`TauCeti.SmoothTwoForm.isOpen_setOf_forall_nondegenerate_bilinFormAt_add_smul`). -/
-theorem univ_prod_Icc_subset_setOf_nondegenerate_prodIccExtension_add_smul
+is open (`TauCeti.SmoothTwoForm.isOpen_setOfPred_forall_nondegenerate_bilinFormAt_add_smul`). -/
+theorem univ_prod_Icc_subset_setOfPred_nondegenerate_prodIccExtension_add_smul
     (h₀ : IsCouplingForm ω₀ τ) (h₁ : IsCouplingForm ω₁ τ) (hτ : ∀ t, (τ t).IsNondegenerate) :
     univ ×ˢ Icc a b ⊆ {p : ℝ × ℝ | ∀ x : ManifoldTotalSpace Circle P,
       ((prodIccExtension (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1 ω₀ +
@@ -873,7 +873,7 @@ neighbourhood of `[0, 1] × [a, b]`, whose topological support lies in the set o
 such that `ω̃₀ + s • dσ̃` (as in
 `SymplecticGeometry.IsCouplingForm.mpullback_prodMap_subtypeVal_prodIccExtension_add_smul`) is
 nondegenerate at every point of `P × {t}`. -/
-theorem exists_contMDiff_tsupport_subset_setOf_nondegenerate_prodIccExtension_add_smul
+theorem exists_contMDiff_tsupport_subset_setOfPred_nondegenerate_prodIccExtension_add_smul
     (h₀ : IsCouplingForm ω₀ τ) (h₁ : IsCouplingForm ω₁ τ) (hτ : ∀ t, (τ t).IsNondegenerate) :
     ∃ ρ : ℝ × ℝ → ℝ, ContMDiff (𝓘(ℝ, ℝ).prod 𝓘(ℝ, ℝ)) 𝓘(ℝ) ∞ ρ ∧
       (∀ᶠ q in 𝓝ˢ (Icc 0 1 ×ˢ Icc a b), ρ q = 1) ∧ HasCompactSupport ρ ∧
@@ -885,9 +885,9 @@ theorem exists_contMDiff_tsupport_subset_setOf_nondegenerate_prodIccExtension_ad
       ∀ q, ρ q ∈ Icc 0 1 :=
   (isCompact_Icc.prod isCompact_Icc).exists_contMDiff_one_nhds_tsupport_subset
     (𝓘(ℝ, ℝ).prod 𝓘(ℝ, ℝ))
-    (SmoothTwoForm.isOpen_setOf_forall_nondegenerate_bilinFormAt_add_smul _ _)
+    (SmoothTwoForm.isOpen_setOfPred_forall_nondegenerate_bilinFormAt_add_smul _ _)
     ((prod_mono (subset_univ _) subset_rfl).trans
-      (univ_prod_Icc_subset_setOf_nondegenerate_prodIccExtension_add_smul h₀ h₁ hτ))
+      (univ_prod_Icc_subset_setOfPred_nondegenerate_prodIccExtension_add_smul h₀ h₁ hτ))
 
 /-- **The cutoff of the extended Moser field.** Let `ω₀` and `ω₁` be coupling forms for the same
 family `τ` of nondegenerate forms, over a compact base modelled on a finite-dimensional space.
@@ -915,7 +915,7 @@ theorem exists_cutoff_prodIccExtension_add_smul (h₀ : IsCouplingForm ω₀ τ)
         (ρ ∘ Prod.map id Prod.snd) (s, (op z • x, t)) = (ρ ∘ Prod.map id Prod.snd) (s, (x, t))) ∧
       ∀ q, ρ q ∈ Icc 0 1 := by
   obtain ⟨ρ, hρ, h1, hc, hs, h01⟩ :=
-    exists_contMDiff_tsupport_subset_setOf_nondegenerate_prodIccExtension_add_smul h₀ h₁ hτ
+    exists_contMDiff_tsupport_subset_setOfPred_nondegenerate_prodIccExtension_add_smul h₀ h₁ hτ
   have hΨ : Continuous (Prod.map id (Prod.snd (α := ManifoldTotalSpace Circle P)) :
       ℝ × (ManifoldTotalSpace Circle P × ℝ) → ℝ × ℝ) := by
     fun_prop

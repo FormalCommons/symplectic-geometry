@@ -8,6 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.VectorBundle.Hom
 public import SymplecticGeometry.Topology.VectorBundle.Coordinates
 public import TauCeti.Topology.VectorBundle.Coordinates
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # Natural maps on pairs of bilinear forms, applied in the fibres of a vector bundle
@@ -177,7 +178,7 @@ theorem contMDiffAt_mapBilinPairAt {n : WithTop ℕ∞} (e : ∀ x, V x ≃L[ℝ
   have hP := ContDiffAt.comp_contMDiffAt (f := fun y ↦ (C a y, C b y)) (x := y₀)
     (hΦd.contDiffAt (hU.mem_nhds hP₀)) ((hC a ha).prodMk_space (hC b hb))
   have hbase : ∀ᶠ y in 𝓝 y₀, f y ∈ e₀.baseSet :=
-    hf.continuousAt.preimage_mem_nhds (e₀.open_baseSet.mem_nhds hx₀)
+    hf.continuousAt.eventually_mem_baseSet_trivializationAt F V
   have hU' : ∀ᶠ y in 𝓝 y₀, (C a y, C b y) ∈ U :=
     ((hC a ha).prodMk_space (hC b hb)).continuousAt.preimage_mem_nhds (hU.mem_nhds hP₀)
   refine ((contMDiffAt_const (c := (T.symm : W →L[ℝ] F))).clm_comp (hP.clm_comp

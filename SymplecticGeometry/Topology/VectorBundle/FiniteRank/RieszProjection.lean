@@ -26,7 +26,7 @@ by a continuous linear automorphism of the model fibre
 projection commutes with such a conjugation
 (`SymplecticGeometry.unitDiscRieszProjection_conjContinuousAlgEquiv`); so there it is the Riesz
 projection of the chart expression of `T`, which has the spectrum of `T` (`AlgEquiv.spectrum_eq`)
-and is continuous, hence so is its projection (`Continuous.unitDiscRieszProjection`). The chart
+and is continuous, hence so is its projection (`ContinuousOn.unitDiscRieszProjection`). The chart
 expression in the charts `i`, `j` is the one in `i`, `i` followed by that of the identity, which
 is continuous too.
 
@@ -83,10 +83,9 @@ private theorem continuous_unitDiscRieszProjection_fiberMap (T : E ⟶ E)
   -- since that expression is conjugate to `T`, with the same spectrum.
   have hR : ContinuousOn (fun x ↦ SymplecticGeometry.unitDiscRieszProjection
       (E.core.inChartCoordinates E.core i i x (T.fiberMap x))) (E.core.baseSet i) := by
-    rw [continuousOn_iff_continuous_domRestrict] at hT ⊢
-    refine hT.unitDiscRieszProjection fun x ↦ ?_
-    obtain ⟨e, he⟩ := E.core.exists_conjContinuousAlgEquiv_eq_inChartCoordinates x.property
-    simpa only [Set.domRestrict_apply, ← he, AlgEquiv.spectrum_eq] using h x
+    refine hT.unitDiscRieszProjection fun x hx ↦ ?_
+    obtain ⟨e, he⟩ := E.core.exists_conjContinuousAlgEquiv_eq_inChartCoordinates hx
+    simpa only [← he, AlgEquiv.spectrum_eq] using h x
   -- In the charts `i`, `j`, it is the chart expression in `i`, `i` followed by that of the
   -- identity.
   refine (hid.clm_comp (hR.mono Set.inter_subset_left)).congr fun x hx ↦ ?_

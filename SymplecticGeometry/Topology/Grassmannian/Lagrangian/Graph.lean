@@ -34,8 +34,8 @@ open quotient map, this formula gives the openness and continuity that the chart
   `graphY S` iff `Im U` is invertible and `S = Re U (Im U)⁻¹`.
 * `SymplecticGeometry.LagrangianGrassmannian.isOpenEmbedding_graphY`: `graphY` is an open
   embedding.
-* `SymplecticGeometry.LagrangianGrassmannian.isOpen_setOf_isCompl`: the Lagrangians transverse to
-  a given one form an open set.
+* `SymplecticGeometry.LagrangianGrassmannian.isOpen_setOfPred_isCompl`: the Lagrangians transverse
+  to a given one form an open set.
 * `SymplecticGeometry.LagrangianGrassmannian.graphYChart`: the chart on the Lagrangians
   transverse to `{y = 0}`, with inverse `graphY`. For a Lagrangian spanned by a frame
   `fromRows X Y`, `mem_graphYChart_source_iff_isUnit` says it lies in the source iff `Y` is
@@ -139,10 +139,10 @@ theorem isOpenEmbedding_graphY : IsOpenEmbedding (graphY : selfAdjoint (Matrix �
   rw [he]
   refine continuousOn_chartValue.isOpen_inter_preimage ?_ hs
   simp_rw [isUnit_iff_isUnit_det]
-  exact Matrix.isOpen_setOf_isUnit_det_map_im.preimage continuous_subtypeVal
+  exact Matrix.isOpen_setOfPred_isUnit_det_map_im.preimage continuous_subtypeVal
 
 /-- The Lagrangians transverse to a given Lagrangian `Λ₀` form an open subset of `ℒ ι`. -/
-theorem isOpen_setOf_isCompl (Λ₀ : ℒ ι) :
+theorem isOpen_setOfPred_isCompl (Λ₀ : ℒ ι) :
     IsOpen {Λ : ℒ ι | IsCompl (Λ : Submodule ℝ (StdSpace ι)) Λ₀} := by
   classical
   obtain ⟨g, rfl⟩ := MulAction.exists_smul_eq (GLSymplectic ι ℝ) (horizontal ι) Λ₀

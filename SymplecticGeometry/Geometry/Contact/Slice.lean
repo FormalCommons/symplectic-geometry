@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Contact.Slice
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # Contact forms on a slice transverse to the Reeb field
@@ -105,14 +106,10 @@ theorem mpullback_flowOf_neg_sub_apply [I.Boundaryless] [T2Space M] (hα : α.Is
     (contMDiff_snd (n := ∞)).mdifferentiable (by simp)
   -- `d(-z - g) = -dz - dg`.
   have hdh : mextDeriv (RoughForm.ofFunction (IS.prod 𝓘(ℝ)) (fun p : S × ℝ ↦ -p.2 - g p.1)) =
-      -(mextDeriv (RoughForm.ofFunction _ (fun p : S × ℝ ↦ p.2)) +
-        mextDeriv (RoughForm.ofFunction _ (fun p : S × ℝ ↦ g p.1))) := by
-    rw [← mextDeriv_ofFunction_add hsnd hfst, eq_neg_iff_add_eq_zero,
-      ← mextDeriv_ofFunction_add (hh.mdifferentiable (by simp)) (hsnd.add hfst)]
-    convert mextDeriv_ofFunction_zero using 3
-    ext p
-    simp only [Pi.add_apply, Pi.zero_apply]
-    ring
+      -mextDeriv (RoughForm.ofFunction _ (fun p : S × ℝ ↦ p.2)) -
+        mextDeriv (RoughForm.ofFunction _ (fun p : S × ℝ ↦ g p.1)) := by
+    rw [← mextDeriv_ofFunction_neg, ← mextDeriv_ofFunction_sub hsnd.neg hfst, Pi.sub_def,
+      Pi.neg_def]
   have hfstα : (SmoothForm.mpullback (Prod.fst : S × ℝ → S) (contMDiff_fst (J := 𝓘(ℝ)))
       (SmoothForm.mpullback κ hκ α)).val =
       (SmoothForm.mpullback (Prod.fst : S × ℝ → S) contMDiff_fst β).val +

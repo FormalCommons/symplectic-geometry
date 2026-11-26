@@ -31,7 +31,7 @@ count over the points near the zero set.
 * `MvPolynomial.setAverage_log_norm_eval_sub_ge_of_dist_lt` (change of centre): let `K` be at
   least `2 * (2 * m + (2 * m + 4 ^ m) * 4 ^ m)`, where `m = card ι`. If `P y = 0` and
   `dist c y < a`, then with `ρ₁ = K * D * a`, `log 4 / 2 ≤ V c (4 * ρ₁) - V c ρ₁`.
-* `MvPolynomial.volume_ball_le_mul_volume_setOf_exists_root`: under the same hypotheses, the
+* `MvPolynomial.volume_ball_le_mul_volume_setOfPred_exists_root`: under the same hypotheses, the
   directions `v` in the unit ball for which `P` vanishes at some `c + s • v` with
   `‖s‖ < 4 * ρ₁` have at least `1 / (2 * D)` of the volume of the unit ball.
 * `MvPolynomial.volume_thickening_zeroLocus_le_pow_four_mul_sq`: the part of the `t`-thickening
@@ -61,13 +61,13 @@ Let `T` be the part of the `t`-thickening of the zero set `Z` in the unit ball `
 `ρ = 4 * (K * D * t)`. Each `c ∈ T` is within `t` of a zero, so by the change of centre at least
 `1 / (2 * D)` of the directions `v ∈ B` give a line `s ↦ c + s • v` that meets `Z` within
 `‖s‖ ≤ ρ`. The pairs `(c, v)` with this property form a closed set
-(`IsClosed.setOf_exists_norm_le_fst_add_smul_snd_mem`), so Tonelli's theorem applies to its
+(`IsClosed.setOfPred_exists_norm_le_fst_add_smul_snd_mem`), so Tonelli's theorem applies to its
 indicator on `T × B`, and `volume B * volume T` is at most `2 * D` times the integral over
 `v ∈ B` of the volume of the `c ∈ T` that reach `Z` along `v`. For almost every `v` the top
 homogeneous component of `P` does not vanish at `v` (`MvPolynomial.ae_eval_ne_zero`), so every
 line in the direction `v` meets `Z` in at most `D` points
-(`MvPolynomial.encard_setOf_eval_add_smul_eq_zero_le`), and
-`MeasureTheory.volume_setOf_exists_add_smul_mem_le` bounds that volume by a constant times
+(`MvPolynomial.encard_setOfPred_eval_add_smul_eq_zero_le`), and
+`MeasureTheory.volume_setOfPred_exists_add_smul_mem_le` bounds that volume by a constant times
 `D * ρ ^ 2`. This gives `C * D ^ 4 * t ^ 2`. As the volume is also at most that of `B`, it is at
 most a constant times `D ^ 2 * t`, by cases on whether `D ^ 2 * t ≤ 1`, and `D ^ 2 ≤ D ^ (2 * m)`
 when `Z` is not empty, since then `P` is not constant.
@@ -152,11 +152,8 @@ theorem setAverage_log_norm_eval_sub_ge_of_dist_lt {P : MvPolynomial ι ℂ} (hP
     with hV
   have ha : 0 < a := dist_nonneg.trans_lt hc
   -- `D ≥ 1`, since a polynomial of degree `0` with a zero is `0`.
-  have hD1 : (1 : ℝ) ≤ D := by
-    refine Nat.one_le_cast.2 (Nat.one_le_iff_ne_zero.2 fun h0 => hP ?_)
-    have hC := totalDegree_eq_zero_iff_eq_C.1 (Nat.le_zero.1 (h0 ▸ hD))
-    rw [hC, eval_C] at hy
-    rw [hC, hy, map_zero]
+  have hD1 : (1 : ℝ) ≤ D := Nat.one_le_cast.2
+    ((Nat.one_le_iff_ne_zero.2 (totalDegree_ne_zero_of_eval_eq_zero hP hy)).trans hD)
   have hm : (2 : ℝ) ≤ 2 * (2 * m + (2 * m + 4 ^ m) * 4 ^ m) := by
     have : (1 : ℝ) ≤ 4 ^ m := one_le_pow₀ (by norm_num)
     nlinarith [(Nat.cast_nonneg m : (0 : ℝ) ≤ m)]
@@ -229,8 +226,8 @@ theorem setAverage_log_norm_eval_sub_ge_of_dist_lt {P : MvPolynomial ι ℂ} (hP
 `MvPolynomial.setAverage_log_norm_eval_sub_ge_of_dist_lt`, the volume of the unit ball of
 `EuclideanSpace ℂ ι` is at most `2 * D` times that of the set of `v` in it for which `P` vanishes
 at some `c + s • v` with `‖s‖ < 4 * (K * D * a)`. -/
-theorem volume_ball_le_mul_volume_setOf_exists_root {P : MvPolynomial ι ℂ} (hP : P ≠ 0) {D : ℕ}
-    (hD : P.totalDegree ≤ D) {K : ℝ}
+theorem volume_ball_le_mul_volume_setOfPred_exists_root {P : MvPolynomial ι ℂ}
+    (hP : P ≠ 0) {D : ℕ} (hD : P.totalDegree ≤ D) {K : ℝ}
     (hK : 2 * (2 * Fintype.card ι + (2 * Fintype.card ι + 4 ^ Fintype.card ι) *
       4 ^ Fintype.card ι) ≤ K)
     {y c : EuclideanSpace ℂ ι} (hy : eval y.ofLp P = 0) {a : ℝ} (hc : dist c y < a) :
@@ -288,7 +285,7 @@ theorem volume_thickening_zeroLocus_le_pow_four_mul_sq : ∃ C : ℝ, ∀ P : Mv
     ((Nat.one_le_iff_ne_zero.2 (totalDegree_ne_zero_of_eval_eq_zero hP hy₀)).trans hD)
   have hρ : 0 < ρ := by positivity
   have hZ : IsClosed Z := isClosed_eq (by fun_prop) continuous_const
-  have hF : MeasurableSet F := (hZ.setOf_exists_norm_le_fst_add_smul_snd_mem ρ).measurableSet
+  have hF : MeasurableSet F := (hZ.setOfPred_exists_norm_le_fst_add_smul_snd_mem ρ).measurableSet
   have hTm : MeasurableSet T := isOpen_thickening.measurableSet.inter measurableSet_ball
   have hB0 : volume B ≠ 0 := (measure_ball_pos volume 0 one_pos).ne'
   have hBt : volume B ≠ ∞ := measure_ball_lt_top.ne
@@ -298,7 +295,7 @@ theorem volume_thickening_zeroLocus_le_pow_four_mul_sq : ∃ C : ℝ, ∀ P : Mv
   have h4 : ∀ c ∈ T, volume B ≤ 2 * D * ∫⁻ v in B, F.indicator 1 (c, v) := by
     intro c hc
     obtain ⟨y, hy, hcy⟩ := mem_thickening_iff.1 hc.1
-    refine (volume_ball_le_mul_volume_setOf_exists_root hP hD le_rfl hy hcy).trans ?_
+    refine (volume_ball_le_mul_volume_setOfPred_exists_root hP hD le_rfl hy hcy).trans ?_
     have hm : MeasurableSet (Prod.mk c ⁻¹' F) := measurable_prodMk_left hF
     rw [show (fun v ↦ F.indicator 1 (c, v)) = (Prod.mk c ⁻¹' F).indicator 1 by
         funext v; exact (indicator_comp_right (g := 1) (Prod.mk c)).symm,
@@ -316,12 +313,12 @@ theorem volume_thickening_zeroLocus_le_pow_four_mul_sq : ∃ C : ℝ, ∀ P : Mv
       lintegral_indicator_one hm, Measure.restrict_apply hm]
     have hN : ∀ c : EuclideanSpace ℂ ι, {s : ℂ | c + s • v ∈ Z}.encard ≤ D := fun c ↦ by
       refine le_trans ?_ (Nat.cast_le.2 hD)
-      simpa [Z] using encard_setOf_eval_add_smul_eq_zero_le c.ofLp v.ofLp hv
+      simpa [Z] using encard_setOfPred_eval_add_smul_eq_zero_le c.ofLp v.ofLp hv
     calc volume ((fun c ↦ (c, v)) ⁻¹' F ∩ T)
         ≤ volume {c ∈ B | ∃ s : ℂ, ‖s‖ < 2 * ρ ∧ c + s • v ∈ Z} :=
           measure_mono fun c ⟨⟨s, hs, h⟩, hc⟩ ↦ ⟨hc.2, s, by linarith, h⟩
       _ ≤ ENNReal.ofReal (volume.real (ball (0 : EuclideanSpace ℂ ι) 2) * D * (2 * ρ) ^ 2 *
-          ‖v‖ ^ 2) := volume_setOf_exists_add_smul_mem_le hZ v D hN (2 * ρ)
+          ‖v‖ ^ 2) := volume_setOfPred_exists_add_smul_mem_le hZ v D hN (2 * ρ)
       _ ≤ N := by
         refine ENNReal.ofReal_le_ofReal (mul_le_of_le_one_right (by positivity) ?_)
         have := mem_ball_zero_iff.1 hvB

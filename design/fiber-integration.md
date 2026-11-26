@@ -152,7 +152,7 @@ The fibre integral on `B × F`.
   The value at `b` is a continuous alternating map because integration is
   linear on smooth forms of the compact `F` and `TangentSpace I b` is
   finite-dimensional; smoothness in `b` by the volume-form decision.
-- `prodFiberIntegral_apply_zero` (the integral over each fibre, `r = 0`):
+- `prodFiberIntegral_degree_zero_apply` (the integral over each fibre, `r = 0`):
   `(prodFiberIntegral o α).val b ![] = integralTopForm o (mpullback J (I.prod J) (Prod.mk b) (cast α).val)`.
 
 Uses: Tau Ceti's `integralTopForm` and its linearity, `riemannianVolumeForm`,
@@ -279,7 +279,7 @@ order; each waits only for those it names.
 
 1. **`FiberIntegral/Product/Basic.lean`**: `AlternatingMap.map_append_add_of_mem`,
    `prodFiberIntegrand`, `prodFiberIntegral` with its smoothness and
-   `prodFiberIntegral_apply_zero`. Waits for nothing.
+   `prodFiberIntegral_degree_zero_apply`. Waits for nothing.
 2. **`FiberIntegral/Product/Naturality.lean`**: base pull-back, projection
    formula, invariance under fibrewise orientation-preserving
    diffeomorphisms. Waits for issue 1.

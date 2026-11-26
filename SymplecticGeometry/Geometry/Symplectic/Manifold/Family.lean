@@ -28,21 +28,21 @@ open sets on which the Moser fields of Moser's argument are defined
 
 ## Main results
 
-* `TauCeti.SmoothTwoForm.isOpen_setOf_isInvertible_flat_mpullback_prodMk`: the set of points of
+* `TauCeti.SmoothTwoForm.isOpen_setOfPred_isInvertible_flat_mpullback_prodMk`: the set of points of
   `N × M` at which the slice has an invertible flat map is open.
-* `TauCeti.SmoothTwoForm.isOpen_setOf_forall_isInvertible_flat_mpullback_prodMk`: for compact
+* `TauCeti.SmoothTwoForm.isOpen_setOfPred_forall_isInvertible_flat_mpullback_prodMk`: for compact
   `M`, the set of parameters whose slice has invertible flat maps everywhere is open.
-* `TauCeti.SmoothTwoForm.isOpen_setOf_isInvertible_flat_add_smul_sub`: the same openness for the
+* `TauCeti.SmoothTwoForm.isOpen_setOfPred_isInvertible_flat_add_smul_sub`: the same openness for the
   segment `σ₀ + s (σ₁ - σ₀)`, as a set of points `(s, x)` of `ℝ × M`.
-* `TauCeti.SmoothTwoForm.isOpen_setOf_nondegenerate_bilinFormAt`: in finite dimensions, the set of
-  points at which a two-form is nondegenerate is open.
+* `TauCeti.SmoothTwoForm.isOpen_setOfPred_nondegenerate_bilinFormAt`: in finite dimensions, the set
+  of points at which a two-form is nondegenerate is open.
 * `TauCeti.SmoothTwoForm.isNondegenerate_mpullback_subtype_val_iff`,
   `TauCeti.SmoothForm.IsClosed.isSymplectic_mpullback_subtype_val`: a two-form restricted to an
   open set is nondegenerate exactly when the form is nondegenerate at each point of the set, and
   then symplectic if the form is closed.
-* `TauCeti.SmoothTwoForm.isOpen_setOf_forall_mem_Icc_nondegenerate`: in finite dimensions, the
+* `TauCeti.SmoothTwoForm.isOpen_setOfPred_forall_mem_Icc_nondegenerate`: in finite dimensions, the
   set of points at which the whole segment from `σ₀` to `σ₁` is nondegenerate is open.
-* `TauCeti.SmoothTwoForm.isOpen_setOf_forall_nondegenerate_bilinFormAt_add_smul`: in finite
+* `TauCeti.SmoothTwoForm.isOpen_setOfPred_forall_nondegenerate_bilinFormAt_add_smul`: in finite
   dimensions, for two-forms `σ₀`, `σ` on `M × N` with `M` compact, the set of pairs `(s, y)` of
   `ℝ × N` such that `σ₀ + s σ` is nondegenerate at every point of `M × {y}` is open.
 * `TauCeti.SmoothTwoForm.bilinFormAt_add_smul_sub_of_eq`,
@@ -52,8 +52,8 @@ open sets on which the Moser fields of Moser's argument are defined
   fixed nondegenerate `σ`, the fields `(σ♭)⁻¹ α_t` of a smooth family of one-forms `α_t` depend
   smoothly on `(t, x)`.
 
-The proofs of `isOpen_setOf_isInvertible_flat_mpullback_prodMk` and
-`isOpen_setOf_forall_mem_Icc_nondegenerate` follow Tau Ceti's private
+The proofs of `isOpen_setOfPred_isInvertible_flat_mpullback_prodMk` and
+`isOpen_setOfPred_forall_mem_Icc_nondegenerate` follow Tau Ceti's private
 `exists_isOpen_isInvertible_flat`
 (`TauCeti/Geometry/Symplectic/Manifold/RelativeMoser.lean`): the flat maps form a continuous
 section along a projection, the invertible ones form an open set, and the tube lemma passes to
@@ -80,7 +80,7 @@ namespace SmoothTwoForm
 /-- **Invertibility of the flat maps of a family is an open condition.** For a smooth two-form
 `σ` on `N × M`, the set of points `(t, x)` at which the slice `σ_t = ι_t^* σ` has an invertible
 flat map `T_x M → T_x^* M` is open in `N × M`. The model space of `M` is assumed complete. -/
-theorem isOpen_setOf_isInvertible_flat_mpullback_prodMk [CompleteSpace E] {EN HN N : Type*}
+theorem isOpen_setOfPred_isInvertible_flat_mpullback_prodMk [CompleteSpace E] {EN HN N : Type*}
     [NormedAddCommGroup EN] [NormedSpace ℝ EN] [TopologicalSpace HN]
     {J : ModelWithCorners ℝ EN HN} [TopologicalSpace N] [ChartedSpace HN N] [IsManifold J ∞ N]
     (σ : SmoothForm (J.prod I) (N × M) ℝ 2) :
@@ -100,11 +100,11 @@ theorem isOpen_setOf_isInvertible_flat_mpullback_prodMk [CompleteSpace E] {EN HN
 
 /-- **Nondegeneracy is an open condition.** For a two-form `σ` on a finite-dimensional manifold,
 the set of points at which `σ` is nondegenerate is open. -/
-theorem isOpen_setOf_nondegenerate_bilinFormAt [FiniteDimensional ℝ E] (σ : SmoothTwoForm I M) :
+theorem isOpen_setOfPred_nondegenerate_bilinFormAt [FiniteDimensional ℝ E] (σ : SmoothTwoForm I M) :
     IsOpen {x : M | (σ.bilinFormAt x).Nondegenerate} := by
   simp only [← isInvertible_flat_iff]
   -- The bundles and the base map are given explicitly, as in
-  -- `isOpen_setOf_isInvertible_flat_mpullback_prodMk`.
+  -- `isOpen_setOfPred_isInvertible_flat_mpullback_prodMk`.
   exact Continuous.isOpen_setOf_clm_bundle_isInvertible (𝕜 := ℝ) (F₁ := E) (F₂ := E →L[ℝ] ℝ)
     (E₁ := TangentSpace I) (E₂ := fun x : M ↦ TangentSpace I x →L[ℝ] ℝ) (b := id)
     (ϕ := σ.flat) σ.contMDiff_flat.continuous
@@ -133,8 +133,9 @@ theorem _root_.TauCeti.SmoothForm.IsClosed.isSymplectic_mpullback_subtype_val
 two-form `σ` on `N × M` with `M` compact, the set of parameters `t` at which the slice
 `σ_t = ι_t^* σ` has an invertible flat map at every point of `M` is open in `N`. The model space of
 `M` is assumed complete. -/
-theorem isOpen_setOf_forall_isInvertible_flat_mpullback_prodMk [CompleteSpace E] [CompactSpace M]
-    {EN HN N : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] [TopologicalSpace HN]
+theorem isOpen_setOfPred_forall_isInvertible_flat_mpullback_prodMk [CompleteSpace E]
+    [CompactSpace M] {EN HN N : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN]
+    [TopologicalSpace HN]
     {J : ModelWithCorners ℝ EN HN} [TopologicalSpace N] [ChartedSpace HN N] [IsManifold J ∞ N]
     (σ : SmoothForm (J.prod I) (N × M) ℝ 2) :
     IsOpen {t : N | ∀ x : M,
@@ -152,26 +153,26 @@ theorem isOpen_setOf_forall_isInvertible_flat_mpullback_prodMk [CompleteSpace E]
     simp
   rw [h]
   exact (isClosedMap_fst_of_compactSpace _
-    (isOpen_setOf_isInvertible_flat_mpullback_prodMk σ).isClosed_compl).isOpen_compl
+    (isOpen_setOfPred_isInvertible_flat_mpullback_prodMk σ).isClosed_compl).isOpen_compl
 
 /-- **Invertibility of the flat maps along a segment is an open condition.** For two-forms `σ₀`,
 `σ₁` on `M`, the set of points `(s, x)` of `ℝ × M` at which `σ₀ + s (σ₁ - σ₀)` has an invertible
 flat map `T_x M → T_x^* M` is open. The model space of `M` is assumed complete. -/
-theorem isOpen_setOf_isInvertible_flat_add_smul_sub [CompleteSpace E]
+theorem isOpen_setOfPred_isInvertible_flat_add_smul_sub [CompleteSpace E]
     (σ₀ σ₁ : SmoothTwoForm I M) :
     IsOpen {p : ℝ × M | ((σ₀ + p.1 • (σ₁ - σ₀)).flat p.2).IsInvertible} := by
   simpa only [SmoothForm.mpullback_prodMk_lineMapFamily, id_eq] using
-    isOpen_setOf_isInvertible_flat_mpullback_prodMk
+    isOpen_setOfPred_isInvertible_flat_mpullback_prodMk
       (SmoothForm.lineMapFamily σ₀ σ₁ (contDiff_id (n := ∞)))
 
 /-- **Nondegeneracy of a segment of two-forms is an open condition.** For two-forms `σ₀`, `σ₁`
 on a finite-dimensional manifold, the set of points `x` at which every form
 `σ₀ + s (σ₁ - σ₀)` with `s ∈ [0, 1]` is nondegenerate is open. -/
-theorem isOpen_setOf_forall_mem_Icc_nondegenerate [FiniteDimensional ℝ E]
+theorem isOpen_setOfPred_forall_mem_Icc_nondegenerate [FiniteDimensional ℝ E]
     (σ₀ σ₁ : SmoothTwoForm I M) :
     IsOpen {x : M | ∀ s ∈ Icc (0 : ℝ) 1,
       ((σ₀ + s • (σ₁ - σ₀)).bilinFormAt x).Nondegenerate} := by
-  have hO := isOpen_setOf_isInvertible_flat_add_smul_sub σ₀ σ₁
+  have hO := isOpen_setOfPred_isInvertible_flat_add_smul_sub σ₀ σ₁
   refine isOpen_iff_forall_mem_open.2 fun x hx ↦ ?_
   have hsub : Icc (0 : ℝ) 1 ×ˢ {x} ⊆
       {p : ℝ × M | ((σ₀ + p.1 • (σ₁ - σ₀)).flat p.2).IsInvertible} := by
@@ -186,7 +187,7 @@ theorem isOpen_setOf_forall_mem_Icc_nondegenerate [FiniteDimensional ℝ E]
 two-forms `σ₀`, `σ` on `M × N`, with `M` compact and both model spaces finite-dimensional, the set
 of pairs `(s, y)` of `ℝ × N` such that `σ₀ + s σ` is nondegenerate at every point `(x, y)`,
 `x ∈ M`, is open in `ℝ × N`. -/
-theorem isOpen_setOf_forall_nondegenerate_bilinFormAt_add_smul [FiniteDimensional ℝ E]
+theorem isOpen_setOfPred_forall_nondegenerate_bilinFormAt_add_smul [FiniteDimensional ℝ E]
     [CompactSpace M] {EN HN N : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN]
     [FiniteDimensional ℝ EN] [TopologicalSpace HN] {J : ModelWithCorners ℝ EN HN}
     [TopologicalSpace N] [ChartedSpace HN N] [IsManifold J ∞ N]
@@ -194,7 +195,7 @@ theorem isOpen_setOf_forall_nondegenerate_bilinFormAt_add_smul [FiniteDimensiona
     IsOpen {p : ℝ × N | ∀ x : M, ((σ₀ + p.1 • σ).bilinFormAt (x, p.2)).Nondegenerate} := by
   -- the points `(s, z)` of `ℝ × (M × N)` at which `σ₀ + s σ = σ₀ + s ((σ₀ + σ) - σ₀)` is
   -- nondegenerate form an open set, and the tube lemma passes to the compact factor `M`
-  have hO := isOpen_setOf_isInvertible_flat_add_smul_sub σ₀ (σ₀ + σ)
+  have hO := isOpen_setOfPred_isInvertible_flat_add_smul_sub σ₀ (σ₀ + σ)
   simp only [add_sub_cancel_left, isInvertible_flat_iff] at hO
   exact isOpen_forall_prodMk_mem continuous_id
     (hO.preimage (continuous_fst.fst.prodMk (continuous_snd.prodMk continuous_fst.snd)))

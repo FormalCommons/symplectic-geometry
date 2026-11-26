@@ -52,7 +52,7 @@ plane by Möbius transformations.
 * `SiegelUpperHalfSpace.map_ofReal_im_smul`: the imaginary part of `Ψ • Z` is
   `(CZ + D)⁻ᴴ (Im Z) (CZ + D)⁻¹`.
 * `SiegelUpperHalfSpace.differentiableOn_num_mul_inv_denom`: the formula is holomorphic on the
-  open set (`SiegelUpperHalfSpace.isOpen_setOf_isUnit_det_denom`) where `CZ + D` is invertible,
+  open set (`SiegelUpperHalfSpace.isOpen_setOfPred_isUnit_det_denom`) where `CZ + D` is invertible,
   which contains the Siegel upper half space.
 * `SiegelUpperHalfSpace.fromBlocks_re_smul_I`: every point `X + iY` is the image of `i𝟙` under
   the symplectic matrix `!![G, X G⁻ᵀ; 0, G⁻ᵀ]`, where `G` is invertible with `G Gᵀ = Y`; hence
@@ -309,13 +309,13 @@ section Holomorphy
 open scoped Matrix.Norms.Operator
 
 /-- The complex matrices `Z` at which `CZ + D` is invertible form an open set. -/
-theorem isOpen_setOf_isUnit_det_denom (Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) :
+theorem isOpen_setOfPred_isUnit_det_denom (Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) :
     IsOpen {Z : Matrix ι ι ℂ | IsUnit (denom Ψ Z).det} :=
-  ((continuous_const.matrix_mul continuous_id).add continuous_const).isOpen_setOf_isUnit_det
+  ((continuous_const.matrix_mul continuous_id).add continuous_const).isOpen_setOfPred_isUnit_det
 
 /-- The open set where `CZ + D` is invertible contains the Siegel upper half space, when `Ψ` is
 symplectic. -/
-theorem range_coe_subset_setOf_isUnit_det_denom {Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ}
+theorem range_coe_subset_setOfPred_isUnit_det_denom {Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ}
     (hΨ : Ψ ∈ symplecticGroup ι ℝ) :
     Set.range ((↑) : SiegelUpperHalfSpace ι → Matrix ι ι ℂ) ⊆
       {Z : Matrix ι ι ℂ | IsUnit (denom Ψ Z).det} := by

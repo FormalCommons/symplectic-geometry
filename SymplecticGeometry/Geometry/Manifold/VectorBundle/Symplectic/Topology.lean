@@ -25,7 +25,7 @@ open subset, is continuous.
 
 ## Main results
 
-* `Bundle.ContMDiffTwoForm.isOpen_setOf_forall_mem_nondegenerate`: for a covering frame system,
+* `Bundle.ContMDiffTwoForm.isOpen_setOfPred_forall_mem_nondegenerate`: for a covering frame system,
   a locally compact model of the base, a bundle of finite rank and a compact `K ⊆ M`, the
   two-forms that are nondegenerate on every fibre over `K` form an open set.
 * `Bundle.ContMDiffTwoForm.continuous_tangentEquiv_symm_mpullback_prod`: for a smooth family
@@ -48,7 +48,7 @@ The proof adapts Tau Ceti's
 `IsCompact.isOpen_setOf_forall_mem_forall_bilinear_apply_self_pos`
 (`TauCeti/Topology/VectorBundle/Bilinear.lean`), with nondegeneracy in place of positivity: the
 nondegenerate alternating maps are open in the total space of the bundle of alternating maps
-(`isOpen_setOf_nondegenerate`), evaluation is jointly continuous in the section and the point
+(`isOpen_setOfPred_nondegenerate`), evaluation is jointly continuous in the section and the point
 (`ContMDiffSection.continuous_totalSpace_eval`), and the tube lemma over `K` concludes.
 
 Pull-back along the slices of a family `f : P × M → N` is the library's
@@ -97,12 +97,12 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 /-- For a covering frame system, a locally compact model of the base and a bundle of finite
 rank, the two-forms whose bilinear form is nondegenerate on the fibre over every point of a
 compact set `K` form an open set in the frame topology. -/
-theorem isOpen_setOf_forall_mem_nondegenerate [LocallyCompactSpace EB] [FiniteDimensional ℝ F]
+theorem isOpen_setOfPred_forall_mem_nondegenerate [LocallyCompactSpace EB] [FiniteDimensional ℝ F]
     (hcover : ∀ x, ∃ i, x ∈ U i) {K : Set M} (hK : IsCompact K) :
     let _ := ContMDiffSection.frameTopology (I := I) (n := n) e U hU
     IsOpen {ω : ContMDiffTwoForm I n F V | ∀ x ∈ K, (ω.bilinFormAt x).Nondegenerate} := by
   let _ := ContMDiffSection.frameTopology (I := I) (n := n) e U hU
-  have hS := (isOpen_setOf_nondegenerate (F := F) (V := V)).preimage
+  have hS := (isOpen_setOfPred_nondegenerate (F := F) (V := V)).preimage
     (ContMDiffSection.continuous_totalSpace_eval (I := I) (n := n) e U hU hcover)
   simp_rw [isOpen_iff_mem_nhds, bilinFormAt_def]
   exact fun ω hω ↦ hK.eventually_forall_of_forall_eventually fun x hx ↦ hS.mem_nhds (hω x hx)
