@@ -22,6 +22,10 @@ map on `M` that is `C^n` on both is `C^n`
 shared by the extensions by zero of the library. It applies to sections of a vector bundle too,
 such as differential forms, through their maps to the total space.
 
+The same cover, without a chart: a function that is `C^n` on an open set `U` and vanishes on `U`
+outside a closed subset `K` of `U` is `C^n` once extended by `0` off `U`
+(`ContMDiffOn.contMDiff_indicator`), since `U` and the complement of `K` are open and cover `M`.
+
 The extension by zero to `M` of a function on the model vector space read through an extended
 chart is Tau Ceti's `OpenPartialHomeomorph.contMDiff_indicator_comp_extend`. This file goes the
 other way:
@@ -35,12 +39,37 @@ other way:
   Hausdorff manifold `N`, transported to `χ ∘ ψ.symm` and extended by zero off `ψ.target`, is
   supported in `ψ '' tsupport χ`, so has compact support, and is continuous, or `C^n`, when `χ`
   is. When `N` is a normed space, the last gives `PartialDiffeomorph.contDiff_indicator_comp_symm`.
+* `PartialDiffeomorph.contMDiff_indicator_image_comp_symm`: the same for a function that is only
+  `C^n` on an open `W ⊆ ψ.source` and vanishes on `W` outside a compact subset, transported to
+  `ψ '' W` and extended by zero off it.
 -/
 
 public section
 
 open Set Topology
 open scoped Manifold
+
+section Indicator
+
+variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {E : Type*} [NormedAddCommGroup E]
+  [NormedSpace 𝕜 E] {H : Type*} [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H M] {n : WithTop ℕ∞}
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
+
+/-- A function that is `C^n` on an open set `U` and vanishes on `U` outside a closed set `K ⊆ U`,
+extended by `0` off `U`, is `C^n`. -/
+theorem ContMDiffOn.contMDiff_indicator {f : M → F} {U K : Set M}
+    (hf : ContMDiffOn I 𝓘(𝕜, F) n f U) (hU : IsOpen U) (hK : IsClosed K) (hKU : K ⊆ U)
+    (hf0 : ∀ x ∈ U, x ∉ K → f x = 0) : ContMDiff I 𝓘(𝕜, F) n (U.indicator f) :=
+  contMDiff_of_contMDiffOn_union_of_isOpen (hf.congr fun _ hx ↦ indicator_of_mem hx f)
+    (contMDiffOn_const.congr fun x hx ↦ by
+      by_cases hxU : x ∈ U
+      · rw [indicator_of_mem hxU, hf0 x hxU hx]
+      · exact indicator_of_notMem hxU f)
+    (eq_univ_of_forall fun x ↦ or_iff_not_imp_right.2 fun hx ↦ hKU (not_not.1 hx))
+    hU hK.isOpen_compl
+
+end Indicator
 
 namespace OpenPartialHomeomorph
 
@@ -133,6 +162,28 @@ theorem contMDiff_indicator_comp_symm [T2Space N] {F : Type*} [NormedAddCommGrou
     (tsupport_indicator_comp_symm_subset hK hχ hy)
   exact ((hχc.comp_contMDiffOn ψ.symm.contMDiffOn).congr fun y hy ↦ indicator_of_mem hy _)
     |>.contMDiffAt (ψ.open_target.mem_nhds hyt)
+
+/-- Let `W ⊆ ψ.source` be open and `C ⊆ W` compact. If `χ` is `C^n` on `W` and vanishes on `W`
+outside `C`, the function `χ ∘ ψ.symm` on `ψ '' W`, extended by `0` off `ψ '' W`, is `C^n`. -/
+theorem contMDiff_indicator_image_comp_symm [T2Space N] {F : Type*} [NormedAddCommGroup F]
+    [NormedSpace 𝕜 F] {χ : M → F} {C W : Set M} (hχ : ContMDiffOn I 𝓘(𝕜, F) n χ W)
+    (hC : IsCompact C) (hW : IsOpen W) (hCW : C ⊆ W) (hWs : W ⊆ ψ.source)
+    (hχ0 : ∀ z ∈ W, z ∉ C → χ z = 0) :
+    ContMDiff I' 𝓘(𝕜, F) n ((ψ '' W).indicator fun y ↦ χ (ψ.symm y)) := by
+  have hWo : IsOpen (ψ '' W) := by
+    simpa using ψ.toOpenPartialHomeomorph.isOpen_image_of_subset_source hW (by simpa using hWs)
+  refine ContMDiffOn.contMDiff_indicator ?_ hWo
+    (ψ.isCompact_image_of_subset_source hC (hCW.trans hWs)).isClosed (image_mono hCW)
+    fun x hxW hx ↦ ?_
+  · refine hχ.comp (ψ.symm.contMDiffOn.mono ?_) ?_
+    · rintro _ ⟨z, hz, rfl⟩
+      exact ψ.map_source (hWs hz)
+    · rintro _ ⟨z, hz, rfl⟩
+      rw [mem_preimage, symm_toPartialEquiv, ψ.left_inv (hWs hz)]
+      exact hz
+  · obtain ⟨z, hz, rfl⟩ := hxW
+    rw [symm_toPartialEquiv, ψ.left_inv (hWs hz)]
+    exact hχ0 z hz fun hzC ↦ hx (mem_image_of_mem _ hzC)
 
 /-- If `χ` is `C^n` and its support is compact and lies in the source of a partial
 diffeomorphism `ψ` onto an open subset of a normed space, the function `χ ∘ ψ.symm`, extended
