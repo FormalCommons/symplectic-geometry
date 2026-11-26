@@ -9,26 +9,32 @@ public import Mathlib.Algebra.Group.EvenFunction
 public import Mathlib.Analysis.Calculus.FDeriv.Equiv
 
 /-!
-# The derivative of an even function at the origin
+# The derivative of an even function
 
-Over a field `𝕜` of characteristic zero, an even function `f : E → F` (`f (-x) = f x`) has
-derivative `0` at `0` (`Function.Even.fderiv_zero`): composing with `-id` changes the derivative
-at `0` by a sign (Mathlib's `fderiv_comp_smul` with `c = -1`) and leaves `f` unchanged. If `f` is
-not differentiable at `0`, its `fderiv` there is `0` by convention, so no hypothesis is needed.
+For an even function `f : E → F` (`f (-x) = f x`), the derivative changes sign under `x ↦ -x`:
+`fderiv 𝕜 f (-x) = -fderiv 𝕜 f x` (`Function.Even.fderiv_neg`). This is Mathlib's
+`fderiv_comp_smul` with `c = -1`, and needs no differentiability, since `fderiv` is `0` where `f`
+is not differentiable. It is the `fderiv` counterpart of Tau Ceti's one-variable
+`TauCeti.deriv_neg_eq_neg_of_eventually_even`.
+
+At the origin this gives `fderiv 𝕜 f 0 = 0` over a field where `2 ≠ 0`
+(`Function.Even.fderiv_zero`). In characteristic two every function is even, so that hypothesis
+cannot be dropped.
 -/
 
 public section
 
-variable {𝕜 E F : Type*} [NontriviallyNormedField 𝕜] [CharZero 𝕜] [NormedAddCommGroup E]
+variable {𝕜 E F : Type*} [NontriviallyNormedField 𝕜] [NormedAddCommGroup E]
   [NormedSpace 𝕜 E] [NormedAddCommGroup F] [NormedSpace 𝕜 F]
 
-/-- Over a field of characteristic zero, the derivative of an even function at the origin is
-zero. -/
-theorem Function.Even.fderiv_zero {f : E → F} (hf : f.Even) : fderiv 𝕜 f 0 = 0 := by
-  have h := fderiv_comp_smul (𝕜 := 𝕜) (f := f) (x := 0) (-1)
-  simp only [neg_smul, one_smul, hf _, smul_zero] at h
-  have h2 : (2 : 𝕜) • fderiv 𝕜 f 0 = 0 := by
-    rw [two_smul]
-    nth_rw 1 [h]
-    exact neg_add_cancel _
-  exact (smul_eq_zero.1 h2).resolve_left two_ne_zero
+/-- The derivative of an even function at `-x` is the negative of its derivative at `x`. -/
+theorem Function.Even.fderiv_neg {f : E → F} (hf : f.Even) (x : E) :
+    fderiv 𝕜 f (-x) = -fderiv 𝕜 f x := by
+  simpa [hf _] using fderiv_comp_smul (𝕜 := 𝕜) (f := f) (x := -x) (-1)
+
+/-- Over a field where `2 ≠ 0`, the derivative of an even function at the origin is zero. -/
+theorem Function.Even.fderiv_zero [NeZero (2 : 𝕜)] {f : E → F} (hf : f.Even) :
+    fderiv 𝕜 f 0 = 0 := by
+  have h := hf.fderiv_neg (𝕜 := 𝕜) 0
+  rw [neg_zero, eq_neg_iff_add_eq_zero, ← two_smul 𝕜] at h
+  exact (smul_eq_zero.1 h).resolve_left two_ne_zero
