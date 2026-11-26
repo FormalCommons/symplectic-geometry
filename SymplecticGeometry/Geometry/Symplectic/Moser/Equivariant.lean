@@ -19,6 +19,8 @@ import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import TauCeti.Geometry.Symplectic.Manifold.Opens
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 import SymplecticGeometry.Topology.Sets.Opens.Basic
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.NestedOpens
+import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 
 /-!
 # The equivariant Moser flow and the equivariant relative Moser theorem
@@ -70,6 +72,13 @@ between the relative primitive and Moser's argument.
 
 Since the local flow needs no cutoff, no invariant cutoff is needed, and `Q` need not be compact.
 
+The theorem also holds for forms given only on an open set `W` of `M` containing `f(Q)`, on which
+`G` acts smoothly with equivariant inclusion
+(`TauCeti.SmoothEmbedding.exists_equivariant_diffeomorph_opens_le_of_eq_along`). It is the
+theorem for the manifold `W` and the embedding `TauCeti.SmoothEmbedding.codRestrict f W`, read
+in `M`: the diffeomorphism it gives between open sets of `W` is carried to their images in `M` by
+`Diffeomorph.imageValCongr`, which keeps its values, its differentials and its equivariance.
+
 ## Main results
 
 * `SymplecticGeometry.mfderiv_moserField`: a diffeomorphism preserving the slices of `σ` and `β`
@@ -83,6 +92,8 @@ Since the local flow needs no cutoff, no invariant cutoff is needed, and `Q` nee
   equivariant partial diffeomorphism with invariant source.
 * `TauCeti.SmoothEmbedding.exists_equivariant_diffeomorph_opens_of_eq_along`: the equivariant
   relative Moser theorem with prescribed first derivative.
+* `TauCeti.SmoothEmbedding.exists_equivariant_diffeomorph_opens_le_of_eq_along`: the same for
+  forms on an open set around `f(Q)`.
 
 ## References
 
@@ -361,9 +372,9 @@ private theorem exists_partialDiffeomorph_invariantCore_of_eq_along [ContinuousS
     exact ⟨q', Subtype.ext ((Opens.coe_smul_invariantCore g _).trans hq'.symm)⟩
   have hdγ : mextDeriv γ.val = (τ₁ - τ₀).val := by
     have hβₗ : mextDerivₗ I 1 β = τ₁ - τ₀ := Subtype.ext (by rw [mextDerivₗ_apply, hdβ])
-    have hτG (g : G) : TauCeti.mpullback I I (g • ·) (τ₁ - τ₀).val = (τ₁ - τ₀).val := by
-      rw [← SmoothForm.coe_mpullback _ (contMDiff_const_smul g), map_sub, hτ σ₀ hσ₀ g,
-        hτ σ₁ hσ₁ g]
+    have hτG (g : G) : SmoothForm.mpullback (fun x : W.invariantCore G ↦ g • x)
+        (contMDiff_const_smul g) (τ₁ - τ₀) = τ₁ - τ₀ := by
+      rw [map_sub, hτ σ₀ hσ₀ g, hτ σ₁ hσ₁ g]
     rw [← mextDerivₗ_apply,
       SmoothForm.mextDerivₗ_measureAverage_of_invariant IG (haarProb G) hβₗ hτG]
   have hγG (g : G) : SmoothForm.mpullback (fun x : W.invariantCore G ↦ g • x)
@@ -453,6 +464,74 @@ theorem exists_equivariant_diffeomorph_opens_of_eq_along (f : SmoothEmbedding J 
     exact hΨG g x x.property
   · obtain ⟨_, hq, hfix, hjet⟩ := hΦf q
     exact Φ.exists_toDiffeomorphSourceTarget_liftOpens_eq_and_mfderiv_eq_id hV hq hfix hjet
+
+omit [ContMDiffSMul IG I ∞ G M] in
+include IG in
+/-- **The equivariant relative Moser theorem for forms on an open set.** Let a compact Hausdorff
+topological group `G`, which is a smooth manifold, act on a boundaryless Hausdorff
+second-countable manifold `M`, and let `f : Q → M` be a smooth embedding whose image is
+`G`-invariant. Let `W` be an open set of `M` containing `f(Q)`, on which `G` acts smoothly so
+that the inclusion `W → M` is equivariant, such as an invariant `W` with the restricted action
+(`TopologicalSpace.Opens.mulActionOfForallSMulMem`, smooth by
+`TopologicalSpace.Opens.contMDiffSMul_of_coe_smul` when the action on `M` is). Let `σ₀`, `σ₁`
+be closed two-forms on `W`, invariant under every element of `G`, which agree on the whole
+tangent space at every point `f q`, with `σ₀` nondegenerate there. Then there are
+`G`-invariant open sets `U₀, U₁ ≤ W` of `M` containing `f(Q)` and a `G`-equivariant
+diffeomorphism `φ : U₀ → U₁`, which pulls the restriction of `σ₁` to `U₁` back to the
+restriction of `σ₀` to `U₀`, fixes every point `f q`, and has the identity of `T_{f q} M` as
+its differential there.
+
+This is `TauCeti.SmoothEmbedding.exists_equivariant_diffeomorph_opens_of_eq_along` for the
+manifold `W` and the embedding `f` with codomain restricted to `W`, read in `M`. -/
+theorem exists_equivariant_diffeomorph_opens_le_of_eq_along (f : SmoothEmbedding J I ∞ Q M)
+    (hfG : ∀ (g : G) q, g • f q ∈ range f) {W : Opens M} (hfW : range f ⊆ W)
+    [MulAction G W] [ContMDiffSMul IG I ∞ G W]
+    (hcW : ∀ (g : G) (x : W), ((g • x : W) : M) = g • (x : M))
+    {σ₀ σ₁ : SmoothTwoForm I W} (h₀ : σ₀.IsClosed) (h₁ : σ₁.IsClosed)
+    (hσ₀ : ∀ g : G, SmoothForm.mpullback (fun x : W ↦ g • x)
+      (ContMDiffSMul.contMDiff_const_smul (I := IG) (I' := I) g) σ₀ = σ₀)
+    (hσ₁ : ∀ g : G, SmoothForm.mpullback (fun x : W ↦ g • x)
+      (ContMDiffSMul.contMDiff_const_smul (I := IG) (I' := I) g) σ₁ = σ₁)
+    (hnd : ∀ q, (σ₀.bilinFormAt ⟨f q, hfW (mem_range_self q)⟩).Nondegenerate)
+    (heq : ∀ q, σ₁.val ⟨f q, hfW (mem_range_self q)⟩ = σ₀.val ⟨f q, hfW (mem_range_self q)⟩) :
+    ∃ (U₀ U₁ : Opens M) (hU₀ : U₀ ≤ W) (hU₁ : U₁ ≤ W) (φ : U₀ ≃ₘ⟮I, I⟯ U₁),
+      (∀ g : G, ∀ x ∈ U₀, g • x ∈ U₀) ∧ (∀ g : G, ∀ x ∈ U₁, g • x ∈ U₁) ∧
+      (∀ (g : G) (x : U₀) (hx : g • (x : M) ∈ U₀), (φ ⟨g • (x : M), hx⟩ : M) = g • (φ x : M)) ∧
+      (∀ q, ∃ h : f q ∈ U₀, (φ ⟨f q, h⟩ : M) = f q ∧
+        mfderiv I I φ ⟨f q, h⟩ = ContinuousLinearMap.id ℝ (TangentSpace I (⟨f q, h⟩ : U₀))) ∧
+      SmoothForm.mpullback φ φ.contMDiff
+          (SmoothForm.mpullback (Opens.inclusion hU₁) (contMDiff_inclusion hU₁) σ₁) =
+        SmoothForm.mpullback (Opens.inclusion hU₀) (contMDiff_inclusion hU₀) σ₀ := by
+  have hfW' (q : Q) : f q ∈ W := hfW (mem_range_self q)
+  set f' := f.codRestrict W hfW'
+  have hf' (q : Q) : f' q = ⟨f q, hfW' q⟩ := Subtype.ext (f.val_codRestrict_apply W hfW' q)
+  -- The equivariant relative Moser theorem on the manifold `W`.
+  obtain ⟨V₀, V₁, ψ, hV₀, hV₁, hψG, hψf, hψσ⟩ :=
+    exists_equivariant_diffeomorph_opens_of_eq_along IG f'
+      (fun g q ↦ by
+        obtain ⟨q', hq'⟩ := hfG g q
+        exact ⟨q', Subtype.ext (by
+          rw [hcW, f.val_codRestrict_apply, f.val_codRestrict_apply]; exact hq')⟩)
+      h₀ h₁ hσ₀ hσ₁ (fun q ↦ hf' q ▸ hnd q) (fun q ↦ hf' q ▸ heq q)
+  -- `ψ` read in `M`.
+  set e₀ := Opens.diffeomorphImageVal (I := I) (n := ∞) V₀
+  refine ⟨_, _, Opens.imageVal_le V₀, Opens.imageVal_le V₁, ψ.imageValCongr,
+    fun g _ ↦ Opens.smul_mem_imageVal hcW hV₀ g, fun g _ ↦ Opens.smul_mem_imageVal hcW hV₁ g,
+    ψ.imageValCongr_smul hcW hcW hψG, fun q ↦ ?_, ?_⟩
+  · obtain ⟨hq, hfix, hjet⟩ := hψf q
+    have hx : f q ∈ Opens.imageVal V₀ := Opens.mem_imageVal.2 ⟨hfW' q, hf' q ▸ hq⟩
+    have hex : (⟨f q, hx⟩ : Opens.imageVal V₀) = e₀ ⟨f' q, hq⟩ :=
+      Subtype.ext (by simp [e₀, hf'])
+    refine ⟨hx, ?_, (ψ.mfderiv_imageValCongr_eq_id_iff _).2 ?_⟩
+    · rw [hex, Diffeomorph.imageValCongr_apply_diffeomorphImageVal, hfix]
+      exact f.val_codRestrict_apply W hfW' q
+    · rw [hex, Diffeomorph.symm_apply_apply]
+      exact hjet
+  · rw [SmoothForm.mpullback_mpullback_of_comp_eq ψ.imageValCongr.contMDiff
+      (contMDiff_inclusion _) e₀.symm.contMDiff (contMDiff_subtypeVal.comp ψ.contMDiff)
+      (ψ.inclusion_comp_imageValCongr),
+      ← SmoothForm.mpullback_mpullback ψ Subtype.val ψ.contMDiff contMDiff_subtypeVal, hψσ]
+    simp only [SmoothForm.mpullback_mpullback, e₀, Opens.subtypeVal_comp_diffeomorphImageVal_symm]
 
 end TauCeti.SmoothEmbedding
 

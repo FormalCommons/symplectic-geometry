@@ -155,7 +155,7 @@ merged first, `Weight/Basic.lean` and `Blowdown.lean` use it.
   `Dolbeault/Potential.lean` identifies with $\frac i2\partial\bar\partial\phi$
   (`del_delBar_mapCoeff_ofReal_ofComplexManifold`). Its pull-back along a
   holomorphic map is the form of the pulled-back potential
-  (`mpullback_covectorComplexStructure`). The Fubini–Study lift on
+  (`mpullback_potentialForm`). The Fubini–Study lift on
   $\mathbb C^n\setminus0$ is already of this kind
   (`fubiniStudyLift_eq_del_delBar`, `fubiniStudyPotential`).
 - **Normalization (Definition 7.1.17).** A predicate
@@ -382,7 +382,7 @@ $B(\lambda)$.
 
 ### `Blowup/Weight/Collapse.lean`
 
-- `collapseMap ψ λ ε : ((ψ '' ball 0 λ)ᶜ : Set M) → WeightBlowup hψ hλ hε`:
+- `collapseMap hψ hλ hε : ((ψ '' ball 0 λ)ᶜ : Set M) → WeightBlowup hψ hλ.le hε`, for `0 < λ`:
   `inl` off $\psi(B(\lambda))$, and $\psi(w)\mapsto$ `divisor [w]` for
   $|w|=\lambda$; continuous, surjective, closed (proper, from a closed
   subset of `M`), so a quotient map; its fibres are the points off the
