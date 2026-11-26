@@ -23,7 +23,6 @@ public import TauCeti.Analysis.Complex.Wirtinger.Weak
 import SymplecticGeometry.Analysis.Complex.Wirtinger.Similarity.Weak
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Analysis.Sobolev.W1p.ChangeOfVariables
-import Mathlib.Topology.DiscreteSubset
 import SymplecticGeometry.Topology.Connected.Clopen
 import TauCeti.Geometry.Manifold.VectorField.Regularity
 import TauCeti.MeasureTheory.Function.Jacobian
@@ -104,8 +103,9 @@ From this equation the zeros of a smooth kernel element are understood. Near eac
 Tau Ceti's `TauCeti.eventually_ne_zero_of_conjWirtingerDeriv_apply_one_eq_mul` shows that the
 coordinate either vanishes identically or has an isolated zero, and a section vanishes exactly
 where its coordinate does. Since the sphere is connected, this dichotomy gives unique
-continuation (`PreconnectedSpace.eq_zero_of_eventually_eq_zero`); since it is compact, a nonzero
-kernel element has finitely many zeros.
+continuation (`PreconnectedSpace.eq_zero_of_eventually_eq_zero`). Since the sphere is also
+compact, the dichotomy shows, by Tau Ceti's `TauCeti.finite_setOf_eq_zero_of_forall_eventually`,
+that a nonzero kernel element has finitely many zeros.
 
 ## Sobolev kernel elements in an isothermal chart
 
@@ -156,9 +156,8 @@ operator is the space `twistOneKernel J` of smooth solutions.
   neighbourhood.
 * `SymplecticGeometry.eq_zero_of_eventually_eq_zero_of_mem_twistOneKernel`: unique
   continuation.
-* `SymplecticGeometry.eventually_ne_zero_of_mem_twistOneKernel` and
-  `SymplecticGeometry.finite_setOf_eq_zero_of_mem_twistOneKernel`: the zeros of a nonzero smooth
-  kernel element are isolated, and finitely many.
+* `SymplecticGeometry.eventually_ne_zero_of_mem_twistOneKernel`: the zeros of a nonzero smooth
+  kernel element are isolated.
 * `SymplecticGeometry.exists_hasWeakConjWirtingerDerivOn_mul_of_twistOneDelBarSobolev_eq_zero`:
   the chart data of a Sobolev element of the kernel of `D_J`, read through an isothermal chart,
   satisfy the weak equation `∂v/∂w̄ = a v` with `a` smooth.
@@ -494,14 +493,6 @@ theorem eventually_ne_zero_of_mem_twistOneKernel {s : OnePoint ℂ → ℂ}
     ∀ᶠ y in 𝓝[≠] z, s y ≠ 0 :=
   (eventually_eq_zero_or_eventually_ne_zero_of_mem_twistOneKernel hs z).resolve_left
     fun h ↦ hs₀ (eq_zero_of_eventually_eq_zero_of_mem_twistOneKernel hs h)
-
-/-- **A nonzero smooth kernel element has finitely many zeros.** If `s ≠ 0` is a smooth section
-of `𝒪(1)` with `D_J s = 0`, then the zero set of `s` on the sphere is finite. -/
-theorem finite_setOf_eq_zero_of_mem_twistOneKernel {s : OnePoint ℂ → ℂ}
-    (hs : s ∈ twistOneKernel J) (hs₀ : s ≠ 0) : {y | s y = 0}.Finite := by
-  have hc : {y | s y ≠ 0} ∈ codiscrete (OnePoint ℂ) :=
-    mem_codiscrete_iff_forall_mem_nhdsNE.2 (eventually_ne_zero_of_mem_twistOneKernel hs hs₀)
-  simpa [compl_ofPred] using cofinite_le_codiscrete hc
 
 /-- The coefficient of the weak equation in an isothermal chart is smooth: for a map `T` smooth on
 an open set `Ω` with values in the image of chart `i`, and the zeroth-order term `Γ` of the
