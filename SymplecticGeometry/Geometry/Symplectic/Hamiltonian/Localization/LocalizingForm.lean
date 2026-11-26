@@ -151,7 +151,7 @@ smooth function `ρ` whose support lies in the image of `Φ`: the smooth one-for
 def cutoffWeightOneForm : SmoothForm I M ℝ 1 :=
   ⟨fun x ↦ ρ x • TauCeti.mpullback I 𝓘(ℝ, StdSpace ι) Φ.symm (weightOneForm k).val x,
     (isSmoothForm_fun_smul_mpullback hρ Φ.symm.open_source (by simpa using hs)
-      (fun _ hx ↦ Φ.symm.contMDiffAt hx)
+      (fun _ hx ↦ Φ.symm.contMDiffAt hx) (by simp)
       (weightOneForm k).isSmoothForm).mem_smoothBundleForms⟩
 
 theorem cutoffWeightOneForm_val :
