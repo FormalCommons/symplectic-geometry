@@ -15,6 +15,7 @@ import SymplecticGeometry.Topology.VectorBundle.Thom.ChangeOfCoefficients
 import SymplecticGeometry.Topology.VectorBundle.EulerClass
 import SymplecticGeometry.AlgebraicTopology.Cohomology.Local.PointClass
 import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.ZeroDimChart
+import SymplecticGeometry.LinearAlgebra.Orientation.Basic
 import TauCeti.Algebra.Module.Equiv.SpanSingleton
 
 /-!
@@ -268,7 +269,7 @@ theorem singularCohomologyMap_modelThomGenerator {P' : Type w} [NormedAddCommGro
       h.complZeroPairIso)
     rw [LocalOrientation.coe_map] at hpt
     have hpos : ω.map _ h.toLinearEquiv = positiveOrientation ↔ ω = positiveOrientation :=
-      (Orientation.map _ _).injective.eq_iff' (Orientation.map_positiveOrientation_of_isEmpty _ _)
+      Orientation.map_eq_positiveOrientation_iff _ _
     refine (eq_modelThomGenerator_zero_iff ω hP _).2 ?_
     rw [TopPair.singularKronecker_naturality, ModuleCat.hom_comp, LinearMap.comp_apply, hpt,
       kronecker_modelThomGenerator_zero, hpos]
@@ -632,8 +633,7 @@ theorem uliftIntegralCohomologyEquiv_canonicalThomClass_eq_rankZeroThomClass [Su
   rw [Orientation.singularCohomologyZeroEval_uliftIntegralCohomologyEquiv_modelThomGenerator_zero,
     Trivialization.mapOrientation_apply]
   -- Reading an orientation of `E b` in the trivialization keeps it positive or negative.
-  exact if_congr ((Orientation.map _ _).injective.eq_iff'
-    (Orientation.map_positiveOrientation_of_isEmpty _ _)) rfl rfl
+  exact if_congr (Orientation.map_eq_positiveOrientation_iff _ _) rfl rfl
 
 /-- **The canonical Thom class with integer coefficients in rank zero** is Tau Ceti's
 `TauCeti.VectorBundleOrientation.rankZeroThomClass` with coefficients `ℤ`, moved to the degree
