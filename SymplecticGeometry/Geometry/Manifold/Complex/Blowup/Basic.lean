@@ -167,7 +167,7 @@ private def toModel (x : puncturedSourceOpens c) : BlowupModel n :=
 
 private theorem blowdown_toModel (x : puncturedSourceOpens c) :
     (toModel c x).blowdown = c x := by
-  simp [toModel, blowdown_mk]
+  simp [toModel]
 
 private theorem continuous_toModel : Continuous (toModel c) :=
   continuous_subtypeVal.comp <| (blowdownDiffeomorph n).symm.continuous.comp <|
