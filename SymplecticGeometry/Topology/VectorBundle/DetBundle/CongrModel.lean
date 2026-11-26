@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Topology.VectorBundle.DetBundleFrame
+public import SymplecticGeometry.Topology.VectorBundle.DetBundle.Frame
 public import SymplecticGeometry.Topology.VectorBundle.ModelEquiv
 public import TauCeti.LinearAlgebra.ExteriorPower.Basic
 
@@ -32,7 +32,7 @@ total spaces only for one model (`TauCeti.DetBundle.congrHomeomorph`). This file
 The proof of continuity follows that of Tau Ceti's `TauCeti.DetBundle.congrHomeomorph`
 (through `FiberBundle.continuous_of_forall_trivialization`), with the chart coordinate of the
 transport computed through the determinant sections of frames of
-`SymplecticGeometry/Topology/VectorBundle/DetBundleFrame.lean`.
+`SymplecticGeometry/Topology/VectorBundle/DetBundle/Frame.lean`.
 
 ## References
 
