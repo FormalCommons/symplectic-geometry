@@ -422,8 +422,8 @@ private theorem isCompact_preimage_Iic_completionFunction [CompactSpace W]
 /-! ### The function of the completion -/
 
 /-- **The function of the completion of a Weinstein domain.** Let `(W, σ, Y, f)` be a compact
-Weinstein domain with top level `c`, and `Ŵ` the completion of its Liouville domain, with end
-map `(s, x) ↦ (s, x)` in the Liouville time and Liouville field `Ŷ`. There are `ε > 0` and
+Weinstein domain with top level `c`, and `Ŵ` the completion of its Liouville domain, whose end
+is parametrized by the Liouville time `s`, with Liouville field `Ŷ`. There are `ε > 0` and
 `δ > 0` with `2δ` less than the width of the collar of `Ŵ`, and a smooth function `F : Ŵ → ℝ`,
 proper and bounded below, such that
 
