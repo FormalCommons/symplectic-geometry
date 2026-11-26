@@ -47,7 +47,8 @@ polynomials that express sections of `𝒪(d)` in the standard charts.
   For `𝕜 = ℂ`, it is also a smooth real vector bundle over the underlying real manifold, by
   restriction of scalars (the scoped instance `VectorBundle.ComplexToReal.vectorBundle` and Tau
   Ceti's `ContMDiffVectorBundle.restrictScalars_modelWithCornersSelf`); files using its real
-  structure `open scoped VectorBundle.ComplexToReal`.
+  structure `open scoped VectorBundle.ComplexToReal`. The same holds for `𝒪(k)` itself, whose
+  fibres also get the continuity of multiplication by real scalars.
 * `Projectivization.twistPiCoreOptionEquiv k ι x`: the splitting
   `𝒪(k) ⊗ 𝕜^{Option ι} ≅ 𝒪(k) ⊕ (𝒪(k) ⊗ 𝕜^ι)` into Mathlib's direct sum `×ᵇ` of bundles,
   continuous on total spaces in both directions, so that, by induction on `r`, `𝒪(k)^{⊕ r}` is
@@ -481,6 +482,19 @@ instance :
       𝓘(ℂ, Fin n → ℂ) :=
     ContMDiffVectorBundle.of_le le_top
   ContMDiffVectorBundle.restrictScalars_modelWithCornersSelf ℝ this
+
+/-- `𝒪(k)` on complex projective space is a smooth real vector bundle over the underlying real
+manifold. -/
+instance :
+    ContMDiffVectorBundle ∞ ℂ (twistCore (𝕜 := ℂ) (n := n) k).Fiber 𝓘(ℝ, Fin n → ℂ) :=
+  have : ContMDiffVectorBundle ∞ ℂ (twistCore (𝕜 := ℂ) (n := n) k).Fiber 𝓘(ℂ, Fin n → ℂ) :=
+    ContMDiffVectorBundle.of_le le_top
+  ContMDiffVectorBundle.restrictScalars_modelWithCornersSelf ℝ this
+
+/-- Multiplication by real scalars on a fibre of `𝒪(k)` is continuous. -/
+instance (x : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    ContinuousSMul ℝ ((twistCore (𝕜 := ℂ) (n := n) k).Fiber x) :=
+  IsScalarTower.continuousSMul ℂ
 
 end RestrictScalars
 

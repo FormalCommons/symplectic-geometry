@@ -60,7 +60,8 @@ Since `Bundle.Pullback` is not reducible, instance search also does not find an
 `Bundle.Pullback.instIsNormableSpace` gives it, next to Tau Ceti's instances on these fibres
 such as `Bundle.Pullback.instNormedSpace`. Together with `TangentSpace.instIsNormableSpace` of
 `SymplecticGeometry/Geometry/Manifold/IsManifold/Basic.lean`, it covers the fibres
-`(f *ᵖ TangentSpace I) q`.
+`(f *ᵖ TangentSpace I) q`. `Bundle.Pullback.instContinuousConstSMul` likewise gives the
+continuity of multiplication by a scalar on the fibres, for the action of their module structure.
 
 `Bundle.Pullback.castEquiv f h χ` carries a continuous linear equivalence `χ : F ≃L[R] E a` to
 the fibre `(f *ᵖ E) b` along an equation `h : a = f b`, as for a frame of `E` at a point read
@@ -301,6 +302,13 @@ instance instIsNormableSpace {𝕜 : Type*} [NormedField 𝕜] [∀ b, AddCommGr
     [∀ b, Module 𝕜 (E b)] [∀ b, TopologicalSpace (E b)] [∀ b, IsNormableSpace 𝕜 (E b)] :
     IsNormableSpace 𝕜 ((f *ᵖ E) y) :=
   inferInstanceAs (IsNormableSpace 𝕜 (E (f y)))
+
+/-- Multiplication by each scalar on a fibre of the pull-back `f *ᵖ E` is continuous when it is
+on the fibres of `E`. The action is that of the module structure of the fibre. -/
+instance instContinuousConstSMul {R : Type*} [Semiring R] [∀ b, AddCommMonoid (E b)]
+    [∀ b, Module R (E b)] [∀ b, TopologicalSpace (E b)] [∀ b, ContinuousConstSMul R (E b)] :
+    ContinuousConstSMul R ((f *ᵖ E) y) :=
+  inferInstanceAs (ContinuousConstSMul R (E (f y)))
 
 section CastEquiv
 
