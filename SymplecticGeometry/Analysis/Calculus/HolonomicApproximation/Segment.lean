@@ -81,7 +81,8 @@ theorem exists_holonomic_approximation_segment {k : ℕ} (hk : 0 < k)
   set S : Set ((Fin 1 → ℝ) × (Fin k → ℝ)) := closedBall 0 1 ×ˢ {0}
   set K := cthickening (δ / 2) S
   have hK : IsCompact K := ((isCompact_closedBall _ _).prod isCompact_singleton).cthickening
-  obtain ⟨h, ⟨C, hC, hCK, hCh⟩, hsmall, hKh⟩ := exists_wiggling_diffeotopy hK j hr.le hrδ hg₀ hg₀1
+  obtain ⟨h, ⟨C, hC, hCK, hCh⟩, hsmall, hKh, -, -⟩ :=
+    exists_wiggling_diffeotopy hK j hr.le hrδ hg₀ hg₀1
   refine ⟨h, f', V, ⟨C, hC, ?_, hCh⟩, fun t x ↦ (hsmall t x).trans (half_lt_self hδ), ?_, hV, ?_,
     hf', hf'V, hU''⟩
   · calc C ⊆ thickening (δ / 2) K := hCK

@@ -483,7 +483,7 @@ needed for it.
 5. *Coordinates kept by the transverse push.* `exists_wiggling_diffeotopy`
    gains the clause `∀ t x, (h (t, x)).1 = x.1`, from a new clause of
    `exists_diffeotopy_apply_eq_add_smul` (`Diffeotopy/Translate.lean`):
-   `∀ t x, ∃ c : ℝ, h (t, x) = x + c • e`. The field is a multiple of `e`
+   `∀ t x, h (t, x) - x ∈ ℝ ∙ e`. The field is a multiple of `e`
    everywhere, so its flow lines stay on lines `x + ℝ • e`: the quotient map
    `E → E ⧸ ℝ ∙ e` kills the field, so it is constant along integral
    curves.
