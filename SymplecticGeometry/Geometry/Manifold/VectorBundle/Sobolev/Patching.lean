@@ -23,8 +23,6 @@ the order and of the bundle.
 
 ## Main results
 
-* `TauCeti.SectionChartData.norm_coe_apply_le`: the chart-`i` part of an element of the Sobolev
-  sections of chart data has norm at most that of the element.
 * `TauCeti.SobolevSection.exists_norm_le_of_forall_component_le`: the global bound from the
   chartwise bounds on smooth sections. A smooth partition of unity `χᵢ` subordinate to the chart
   domains writes `w` as `∑ χᵢ w`. A cutoff `ψᵢ` equal to one on the support of `χᵢ` fixes `χᵢ w`,
@@ -52,21 +50,6 @@ open scoped Manifold ContDiff ENNReal
 universe u
 
 namespace TauCeti
-
-namespace SectionChartData
-
-variable {E : Type u} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]
-  [MeasurableSpace E] [BorelSpace E] {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
-  [FiniteDimensional ℝ F] {S : Type*} [AddCommGroup S] [Module ℝ S] {C : SectionChartData E F S}
-  {μ : Measure E} [μ.IsAddHaarMeasure] {p : ℝ≥0∞} [Fact (1 ≤ p)] {k : ℕ}
-
-/-- The chart-`i` part of an element of the Sobolev sections has norm at most the norm of the
-element, the maximum over the charts. -/
-theorem norm_coe_apply_le (w : C.sobolevSections μ p k) (i : Fin C.n) :
-    ‖(w : C.SobolevData μ p k) i‖ ≤ ‖w‖ :=
-  (norm_le_pi_norm (w : C.SobolevData μ p k) i).trans_eq (Submodule.norm_coe w)
-
-end SectionChartData
 
 namespace SobolevSection
 

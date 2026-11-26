@@ -17,6 +17,7 @@ import SymplecticGeometry.Analysis.Complex.Wirtinger.Beurling.Estimate
 import SymplecticGeometry.Analysis.Complex.Wirtinger.Commutator
 import SymplecticGeometry.Analysis.Normed.Operator.ComplexLinearPart
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.ZeroOnePart
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.Chart.IteratedFDeriv
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.Patching
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Tames
