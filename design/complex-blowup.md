@@ -112,7 +112,7 @@ one construction gives the complex blowup and the smooth blowup that
 `IsCompatible.isManifold` the instances, `IsCompatible.partialDiffeomorphι`
 and `IsCompatible.isLocalDiffeomorph_ι` the pieces as open submanifolds,
 `IsCompatible.contMDiff_iff` and `IsCompatible.isLocalDiffeomorph_iff` the
-maps out of the blowup, such as $\pi_M$, `t2Space_iff_forall_nhds` and
+maps out of the blowup, such as $\pi_M$, `ofHomeomorph_t2Space_iff` and
 `secondCountableTopology` the topology, and
 `TauCeti.diffeomorphOfForallIsLocalDiffeomorphEquiv`
 (`Geometry/Manifold/Gluing/Basic.lean`) the uniqueness of the structure.
@@ -322,10 +322,10 @@ Namespace `SymplecticGeometry`, for `M : Type` with `[TopologicalSpace M]
   `isClosed_exceptionalDivisor`, `isOpenEmbedding_inl`, `isOpenEmbedding_inr`
   (Mathlib's `TopCat.GlueData.ι_isOpenEmbedding`). `SecondCountableTopology`
   when `M` has it, by Tau Ceti's `TopCat.GlueData.secondCountableTopology`,
-  and `T2Space` when `M` has it, by `TopCat.GlueData.t2Space_iff_forall_nhds`:
-  a point `x` of the first piece outside `c.source` and a point of $Z$ have
-  neighbourhoods `A` and `blowdown ⁻¹' c '' B` with `B` a neighbourhood of
-  $p_0$ whose closure misses `A`.
+  and `T2Space` when `M` has it, by `TopCat.GlueData.ofHomeomorph_t2Space_iff`:
+  for a point `x ≠ p₀` and a point of $Z$, take disjoint open sets `A ∋ x`
+  and `B ∋ p₀` of `M`; the preimage of `A` in the first piece and that of
+  `B` under `c.symm ∘ blowdown` in the second separate the two points.
 - `Blowup.isCompatible_complex` and `Blowup.isCompatible_real`: with
   `c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, E) ω M`, resp.
   the real atlas at `∞`, the gluing is `TopCat.GlueData.IsCompatible` over

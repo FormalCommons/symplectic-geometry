@@ -204,6 +204,14 @@ theorem blowdown_gluingHomeomorph (x : puncturedSourceOpens c) :
     ((gluingHomeomorph c x : modelOpens c) : BlowupModel n).blowdown = c x :=
   blowdown_toModel c x
 
+/-- The point glued to `x` is `(mk (c x), c x)`, the inverse of the blowdown applied to `c x`. -/
+theorem coe_gluingHomeomorph (x : puncturedSourceOpens c) :
+    ((gluingHomeomorph c x : modelOpens c) : BlowupModel n) =
+      (blowdownDiffeomorph n).symm
+        ⟨c x, c.apply_ne_zero ((mem_puncturedSourceOpens c).1 x.property)
+          ((mem_puncturedOpens c).1 x.val.property)⟩ :=
+  (rfl)
+
 /-- The point glued to `y` is `c.symm (π y)`. -/
 @[simp]
 theorem coe_gluingHomeomorph_symm (y : modelOffDivisorOpens c) :
@@ -288,6 +296,7 @@ theorem range_inl_union_range_inr : range (inl c) ∪ range (inr c) = univ :=
 
 /-- A point `x ≠ p₀` of `M` and a point `y` of the model are identified in the blowup exactly
 when `x` is in the source of `c` and `y` lies over `c x`. -/
+@[simp, grind =]
 theorem inl_eq_inr_iff {x : puncturedOpens c} {y : modelOpens c} :
     inl c x = inr c y ↔ (x : M) ∈ c.source ∧ c x = (y : BlowupModel n).blowdown := by
   refine (TopCat.GlueData.ofHomeomorph_ι_false_eq_ι_true_iff (gluingHomeomorph c)).trans
@@ -298,6 +307,27 @@ theorem inl_eq_inr_iff {x : puncturedOpens c} {y : modelOpens c} :
     refine ⟨hx, Subtype.ext (eq_of_blowdown_eq ?_ ?_)⟩
     · simpa using c.apply_ne_zero hx x.property
     · simpa using hxy
+
+/-- A point `y` of the model and a point `x ≠ p₀` of `M` are identified in the blowup exactly
+when `x` is in the source of `c` and `y` lies over `c x`. -/
+@[simp, grind =]
+theorem inr_eq_inl_iff {y : modelOpens c} {x : puncturedOpens c} :
+    inr c y = inl c x ↔ (x : M) ∈ c.source ∧ c x = (y : BlowupModel n).blowdown :=
+  eq_comm.trans (inl_eq_inr_iff c)
+
+/-- A point of the punctured source of `c` and the point of the model glued to it have the same
+image in the blowup. -/
+@[simp]
+theorem inr_gluingHomeomorph (x : puncturedSourceOpens c) :
+    inr c (gluingHomeomorph c x : modelOpens c) = inl c (x : puncturedOpens c) :=
+  ((inl_eq_inr_iff c).2 ⟨x.property, (blowdown_gluingHomeomorph c x).symm⟩).symm
+
+/-- A point of the model off the divisor and the point of `M` glued to it have the same image in
+the blowup. -/
+@[simp]
+theorem inl_gluingHomeomorph_symm (y : modelOffDivisorOpens c) :
+    inl c ((gluingHomeomorph c).symm y : puncturedOpens c) = inr c (y : modelOpens c) := by
+  rw [← inr_gluingHomeomorph, Homeomorph.apply_symm_apply]
 
 /-- A point of the model lies in the image of the punctured space exactly when it is off the
 exceptional divisor of the model. -/
@@ -318,10 +348,7 @@ theorem inl_mem_range_inr_iff {x : puncturedOpens c} :
   constructor
   · rintro ⟨y, hy⟩
     exact ((inl_eq_inr_iff c).1 hy.symm).1
-  · intro hx
-    let x' : puncturedSourceOpens c := ⟨x, hx⟩
-    exact ⟨(gluingHomeomorph c x' : modelOpens c),
-      ((inl_eq_inr_iff c).2 ⟨hx, (blowdown_gluingHomeomorph c x').symm⟩).symm⟩
+  · exact fun hx ↦ ⟨_, inr_gluingHomeomorph c ⟨x, hx⟩⟩
 
 /-! ### The exceptional divisor -/
 
@@ -344,15 +371,27 @@ theorem ofDirection_injective : Injective (ofDirection c) := fun _ _ h ↦
 of `ℙ ℂ (Fin (n + 1) → ℂ)`. -/
 def exceptionalDivisor : Set (Blowup c) := range (ofDirection c)
 
+/-- The exceptional divisor is the set of the points `ofDirection c ℓ`. -/
+theorem exceptionalDivisor_def : exceptionalDivisor c = range (ofDirection c) := (rfl)
+
+/-- The point over each line `ℓ` is on the exceptional divisor. -/
+@[simp]
+theorem ofDirection_mem_exceptionalDivisor (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    ofDirection c ℓ ∈ exceptionalDivisor c := by
+  rw [exceptionalDivisor_def]
+  exact mem_range_self ℓ
+
 /-- A point of the blowup is on the exceptional divisor exactly when it is the image of a point
 of the model over `0`. -/
 theorem mem_exceptionalDivisor_iff {z : Blowup c} :
     z ∈ exceptionalDivisor c ↔ ∃ y : modelOpens c, (y : BlowupModel n).blowdown = 0 ∧
       inr c y = z := by
   constructor
-  · rintro ⟨ℓ, rfl⟩
+  · rw [exceptionalDivisor_def]
+    rintro ⟨ℓ, rfl⟩
     exact ⟨zeroSectionPiece c ℓ, blowdown_zeroSection ℓ, rfl⟩
   · rintro ⟨y, hy, rfl⟩
+    rw [exceptionalDivisor_def]
     exact ⟨(y : BlowupModel n).pr, congrArg (inr c) (Subtype.ext (eq_zeroSection_pr hy).symm)⟩
 
 /-- A point of the model is on the exceptional divisor exactly when it lies over `0`. -/
@@ -376,6 +415,8 @@ theorem range_inl : range (inl c) = (exceptionalDivisor c)ᶜ := by
       (((inl_eq_inr_iff c).1 hxy.symm).2.trans hy)
   · rw [inr_mem_range_inl_iff, mem_compl_iff, inr_mem_exceptionalDivisor_iff]
 
+/-- No point of the punctured space is on the exceptional divisor. -/
+@[simp]
 theorem inl_notMem_exceptionalDivisor (x : puncturedOpens c) :
     inl c x ∉ exceptionalDivisor c := by
   rw [← mem_compl_iff, ← range_inl]
@@ -418,13 +459,19 @@ theorem dense_exceptionalDivisor_compl : Dense (exceptionalDivisor c)ᶜ := by
 
 instance : Nonempty (modelOpens c) := ⟨zeroSectionPiece c (Classical.arbitrary _)⟩
 
-/-- The map `φ̃` from the blowup to the model blowup: the inverse of `inr c` on its range,
-followed by the inclusion. Off the range of `inr c` its values are not meaningful. -/
-def lift (z : Blowup c) : BlowupModel n := ((invFun (inr c) z : modelOpens c) : BlowupModel n)
+/-- The map `φ̃` from the blowup to the model blowup: the inverse of the open embedding `inr c`
+on its range, followed by the inclusion. Off the range of `inr c` its values are not
+meaningful. -/
+def lift (z : Blowup c) : BlowupModel n :=
+  (((isOpenEmbedding_inr c).toOpenPartialHomeomorph (inr c)).symm z : modelOpens c)
+
+theorem lift_def (z : Blowup c) :
+    lift c z = (((isOpenEmbedding_inr c).toOpenPartialHomeomorph (inr c)).symm z :
+      modelOpens c) := (rfl)
 
 @[simp]
 theorem lift_inr (y : modelOpens c) : lift c (inr c y) = y := by
-  rw [lift, leftInverse_invFun (inr_injective c) y]
+  rw [lift_def, IsOpenEmbedding.toOpenPartialHomeomorph_left_inv]
 
 /-- On the punctured source of `c`, the map to the model is the inverse of the blowdown applied
 to `c x`, which is `(mk (c x), c x)`. -/
@@ -432,11 +479,7 @@ theorem lift_inl {x : puncturedOpens c} (hx : (x : M) ∈ c.source) :
     lift c (inl c x) =
       (blowdownDiffeomorph n).symm
         ⟨c x, c.apply_ne_zero hx ((mem_puncturedOpens c).1 x.property)⟩ := by
-  let x' : puncturedSourceOpens c := ⟨x, hx⟩
-  have h : inl c x = inr c (gluingHomeomorph c x' : modelOpens c) :=
-    (inl_eq_inr_iff c).2 ⟨hx, (blowdown_gluingHomeomorph c x').symm⟩
-  rw [h, lift_inr]
-  rfl
+  rw [← inr_gluingHomeomorph c ⟨x, hx⟩, lift_inr, coe_gluingHomeomorph]
 
 /-- On the range of `inr c`, the map to the model lands over the target of `c`. -/
 theorem lift_mem_modelOpens {z : Blowup c} (hz : z ∈ range (inr c)) :
