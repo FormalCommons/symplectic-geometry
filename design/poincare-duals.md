@@ -394,11 +394,12 @@ $(P,P\setminus0)$ of dimension `r` and a vector space `Q` of dimension
 `TauCeti.LocalOrientation.cross` of the local orientations of `ω` and of an
 orientation `ω'` of `Q`, normal factor first, pushed forward along the
 second projection, is the local orientation of `ω'`; from
-`TopCat.singularCap_singularHomologyCrossRel` (`Cap/CrossRel.lean`). The
-form used below reads the cross product, by
-`TauCeti.LocalOrientation.coe_cross_localOrientation_eq_neg_one_pow_smul`,
-as the local orientation of the linear orientation of $P\times Q$ that
-puts `ω'` first, the order `normalOrientation` produces. This is where the
+`TopCat.singularRelativeCap_singularHomologyCrossRelPair_ulift`
+(`Cap/CrossRelPair.lean`). The form used below reads the cross product, by
+`TauCeti.LocalOrientation.cross_eq_map_prodComm_prod` and Tau Ceti's
+`TauCeti.LocalOrientation.prod_localOrientation`, as the local orientation
+of the linear orientation of $P\times Q$ that puts `ω'` first, the order
+`normalOrientation` produces. This is where the
 order of *Decisions* enters. For `r = 0` or `m = 0` the statement
 degenerates to the unit and needs no product orientation.
 
