@@ -34,8 +34,8 @@ all of `ℝ`, without matching charts where successive arcs meet.
 * `TauCeti.SmoothEmbedding.exists_eqOn_Iic_tendsto_cocompact`: the limit of smooth embeddings of
   `ℝ` that agree on increasing initial half-lines, and whose new arcs leave a compact
   exhaustion, is a smooth embedding tending to infinity.
-* `TauCeti.SmoothEmbedding.exists_tendsto_cocompact_of_add_one_le`: the same from a stage `j₀`
-  on, for parameters that grow by at least one at each stage, so that they tend to `+∞`.
+* `TauCeti.SmoothEmbedding.exists_eqOn_Iic_tendsto_cocompact_of_ge`: the same for a sequence
+  given only from a stage `j₀` on.
 
 ## References
 
@@ -109,19 +109,20 @@ theorem exists_eqOn_Iic_tendsto_cocompact (hT : Monotone T) (hT' : Tendsto T atT
   exact (eventually_ge_atTop (T i)).mono fun t ht hCt ↦ hfK ht (hi hCt)
 
 /-- **A proper smooth ray as a limit, from a later stage on.** Let `g k : ℝ → M` be smooth
-embeddings for `k ≥ j₀` and `τ k` reals with `τ k + 1 ≤ τ (k + 1)`, such that `g (k + 1)` agrees
-with `g k` on `(-∞, τ k]` and maps `[τ k, τ (k + 1)]` outside `K k`, for a compact exhaustion `K`,
-and such that `g j₀ (τ j₀)` lies outside `K j₀`. Then there is a smooth embedding `δ` of `ℝ` in
-`M` tending to infinity as `t → ∞` such that for every `t`, eventually in `k`, `t ≤ τ k` and
-`δ t = g k t`. -/
-theorem exists_tendsto_cocompact_of_add_one_le {g : ℕ → ℝ → M} {τ : ℕ → ℝ} {j₀ : ℕ}
-    (K : CompactExhaustion M) (hg : ∀ k, j₀ ≤ k → Manifold.IsSmoothEmbedding 𝓘(ℝ) I n (g k))
-    (hτ : ∀ k, j₀ ≤ k → τ k + 1 ≤ τ (k + 1))
-    (heq : ∀ k, j₀ ≤ k → EqOn (g (k + 1)) (g k) (Iic (τ k)))
+embeddings for `k ≥ j₀`, and `τ` a sequence of reals tending to `+∞` that is monotone from `j₀`
+on. Let `K` be a compact exhaustion of `M`. Suppose that, for `k ≥ j₀`, `g (k + 1)` agrees with
+`g k` on `(-∞, τ k]` and maps `[τ k, τ (k + 1)]` outside `K k`, and that `g j₀ (τ j₀)` lies
+outside `K j₀`. Then there is a smooth embedding `δ` of `ℝ` in `M` that agrees with each `g k`,
+`k ≥ j₀`, on `(-∞, τ k]`, maps `[τ k, ∞)` outside `K k` for `k ≥ j₀`, and tends to infinity as
+`t → ∞`. -/
+theorem exists_eqOn_Iic_tendsto_cocompact_of_ge {g : ℕ → ℝ → M} {τ : ℕ → ℝ} {j₀ : ℕ}
+    (hg : ∀ k, j₀ ≤ k → Manifold.IsSmoothEmbedding 𝓘(ℝ) I n (g k))
+    (hτ : ∀ k, j₀ ≤ k → τ k ≤ τ (k + 1)) (hτ' : Tendsto τ atTop atTop)
+    (K : CompactExhaustion M) (heq : ∀ k, j₀ ≤ k → EqOn (g (k + 1)) (g k) (Iic (τ k)))
     (hK : ∀ k, j₀ ≤ k → MapsTo (g (k + 1)) (Icc (τ k) (τ (k + 1))) (K k)ᶜ)
     (hK₀ : g j₀ (τ j₀) ∉ K j₀) :
-    ∃ δ : SmoothEmbedding 𝓘(ℝ) I n ℝ M,
-      (∀ t, ∀ᶠ k in atTop, t ≤ τ k ∧ δ t = g k t) ∧ Tendsto δ atTop (cocompact M) := by
+    ∃ δ : SmoothEmbedding 𝓘(ℝ) I n ℝ M, (∀ k, j₀ ≤ k → EqOn δ (g k) (Iic (τ k))) ∧
+      (∀ k, j₀ ≤ k → MapsTo δ (Ici (τ k)) (K k)ᶜ) ∧ Tendsto δ atTop (cocompact M) := by
   -- Before stage `j₀` the sequence stays at stage `j₀`.
   have hm {k : ℕ} (hk : k < j₀) : max (k + 1) j₀ = max k j₀ := by omega
   have hm' {k : ℕ} (hk : j₀ ≤ k) : max (k + 1) j₀ = max k j₀ + 1 := by omega
@@ -132,20 +133,10 @@ theorem exists_tendsto_cocompact_of_add_one_le {g : ℕ → ℝ → M} {τ : ℕ
     rcases lt_or_ge k j₀ with hk | hk
     · rw [hm hk]
     · rw [hm' hk]
-      linarith [hτ _ (le_max_right k j₀)]
-  have hlow (k : ℕ) : (k : ℝ) + (τ j₀ - j₀) ≤ τ (max k j₀) := by
-    rcases lt_or_ge k j₀ with hk | hk
-    · rw [max_eq_right hk.le]
-      linarith [show (k : ℝ) ≤ j₀ from mod_cast hk.le]
-    · rw [max_eq_left hk]
-      induction k, hk using Nat.le_induction with
-      | base => linarith
-      | succ k hk ih =>
-        push_cast
-        linarith [hτ k hk]
+      exact hτ _ (le_max_right k j₀)
   have hT' : Tendsto (fun k ↦ τ (max k j₀)) atTop atTop :=
-    tendsto_atTop_mono hlow (tendsto_atTop_add_const_right _ _ tendsto_natCast_atTop_atTop)
-  obtain ⟨δ, hδ, -, hδt⟩ := exists_eqOn_Iic_tendsto_cocompact (γ := γ) hT hT' K
+    hτ'.comp (tendsto_atTop_mono (le_max_left · j₀) tendsto_id)
+  obtain ⟨δ, hδ, hδK, hδt⟩ := exists_eqOn_Iic_tendsto_cocompact (γ := γ) hT hT' K
     (fun k ↦ by
       rw [hγ, hγ]
       rcases lt_or_ge k j₀ with hk | hk
@@ -158,11 +149,9 @@ theorem exists_tendsto_cocompact_of_add_one_le {g : ℕ → ℝ → M} {τ : ℕ
         rintro t rfl hKk
         exact hK₀ (K.subset hk.le hKk)
       · rw [hm' hk, max_eq_left hk]; exact hK k hk)
-  refine ⟨δ, fun t ↦ ?_, hδt⟩
-  filter_upwards [hT'.eventually_ge_atTop t, eventually_ge_atTop j₀] with k htk hk
-  rw [max_eq_left hk] at htk
-  refine ⟨htk, ?_⟩
-  rw [hδ k (by rwa [max_eq_left hk]), hγ, max_eq_left hk]
+  refine ⟨δ, fun k hk ↦ ?_, fun k hk ↦ ?_, hδt⟩
+  · simpa [hγ, max_eq_left hk] using hδ k
+  · simpa [max_eq_left hk] using hδK k
 
 end TauCeti.SmoothEmbedding
 

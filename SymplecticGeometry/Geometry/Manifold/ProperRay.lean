@@ -19,6 +19,7 @@ import SymplecticGeometry.Topology.Instances.Real
 import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Limit
 import TauCeti.Geometry.Manifold.Exhaustion
+import SymplecticGeometry.Analysis.SpecificLimits.Basic
 
 /-!
 # Proper rays from a closed discrete set
@@ -99,7 +100,7 @@ closed discrete set of a manifold of dimension at least two. Each ray is grown a
   below level `0`, empty, so that the stages start with no rays and with obstacles `P ∪ Q`. Since
   the levels grow by more than one at each step, their filled sublevel sets form a compact
   exhaustion, and the ray of `p` is the limit of its stages from the first stage that uses `p`
-  (`TauCeti.SmoothEmbedding.exists_tendsto_cocompact_of_add_one_le`). A ray meets the set of a
+  (`TauCeti.SmoothEmbedding.exists_eqOn_Iic_tendsto_cocompact_of_ge`). A ray meets the set of a
   stage only if that stage already uses its point, which gives local finiteness.
 
 The set `U` is preconnected by `isPreconnected_sdiff_union_iUnion_image_of_one_lt_rank`, and
@@ -1157,7 +1158,7 @@ theorem exists_seq_isRayStage (hE : 1 < Module.rank ℝ E) {h : M → ℝ}
 
 variable [SigmaCompactSpace M]
 
-/-- On a manifold with no compact connected component there is a smooth function whose filled
+/-- On a manifold with no compact connected component there is a `C¹` function whose filled
 sublevel sets are compact and empty at level `-1`. -/
 private theorem exists_contMDiff_isCompact_filledSublevel
     (hM : ∀ x : M, ¬ IsCompact (connectedComponent x)) :
@@ -1171,12 +1172,7 @@ private theorem exists_contMDiff_isCompact_filledSublevel
   · have : {x | f x ≤ c} = f ⁻¹' Icc 0 c := by ext x; simp [hf0 x]
     rw [this]
     exact hfp.isCompact_preimage isCompact_Icc
-  · -- Below level `0` every component of the complement of the sublevel set is one of `M`.
-    refine eq_empty_of_forall_notMem fun x hx ↦ hM x ?_
-    have : {y | f y ≤ -1}ᶜ = univ := eq_univ_of_forall fun y (hy : f y ≤ -1) ↦ by
-      linarith [hf0 y]
-    rwa [mem_filledSublevel_iff, this, connectedComponentIn_univ,
-      isClosed_connectedComponent.closure_eq] at hx
+  · exact filledSublevel_eq_empty hM fun x ↦ by linarith [hf0 x]
 
 /-- **Rays from a closed discrete set, avoiding another.** Let `M` be a finite-dimensional,
 Hausdorff, σ-compact, boundaryless smooth manifold of dimension at least two with no compact
@@ -1192,8 +1188,7 @@ theorem exists_rays (hE : 2 ≤ Module.finrank ℝ E)
       (∀ p, γ p 0 = p) ∧ (∀ p, Filter.Tendsto (γ p) Filter.atTop (Filter.cocompact M)) ∧
       LocallyFinite (fun p ↦ γ p '' Ici (-2)) ∧
       Pairwise (Disjoint on fun p ↦ range (γ p)) ∧ ∀ p, Disjoint (range (γ p)) Q := by
-  have hE' : 1 < Module.rank ℝ E := by
-    rw [← Module.finrank_eq_rank]; exact_mod_cast hE
+  have hE' : 1 < Module.rank ℝ E := Module.one_lt_rank_of_one_lt_finrank hE
   have : LocallyConnectedSpace H := I.toHomeomorph.locallyConnectedSpace
   have : LocallyConnectedSpace M := ChartedSpace.locallyConnectedSpace H M
   obtain ⟨h, hh, hF, hempty⟩ := exists_contMDiff_isCompact_filledSublevel (I := I) hM
@@ -1205,10 +1200,7 @@ theorem exists_rays (hE : 2 ≤ Module.finrank ℝ E)
   obtain ⟨c, s, S, γ, T, -, hs0, hst⟩ := exists_seq_isRayStage hE' hh hF hP hPd h₀
   choose hstage hlev hSS hss hPS hold hnew using hst
   -- The filled sublevel sets at the levels `c k` form a compact exhaustion.
-  have hcge (k : ℕ) : c 0 + k ≤ c k := by
-    induction k with
-    | zero => simp
-    | succ k ih => push_cast; linarith [hlev k]
+  have hcge := add_natCast_le_of_add_one_le fun k ↦ (hlev k).le
   have hcov (x : M) : ∃ k, x ∈ filledSublevel h (c k) := by
     obtain ⟨k, hk⟩ := exists_nat_ge (h x - c 0)
     exact ⟨k, filledSublevel_mono (by linarith [hcge k])
@@ -1241,12 +1233,16 @@ theorem exists_rays (hE : 2 ≤ Module.finrank ℝ E)
       refine ⟨fun t ht ↦ ?_, mapsTo_iff_image_subset.2 harc⟩
       rw [mem_singleton_iff.1 ht, heq (mem_Iic.2 le_rfl)]
       exact (hstage k).notMem p (hpS hk)
-    obtain ⟨δ, hδ, hδt⟩ := TauCeti.SmoothEmbedding.exists_tendsto_cocompact_of_add_one_le K
-      (fun k hk ↦ (hstage k).emb p (hpS hk)) (fun k hk ↦ (hold k p (hpS hk)).1)
-      (fun k hk ↦ (hold k p (hpS hk)).2.1) harc ((hstage (j + 1)).notMem p (hpS le_rfl))
+    -- From stage `j + 1` on, the cut parameters of `p` grow by at least one at each step.
+    have hTt : Filter.Tendsto (fun k ↦ T k p) Filter.atTop Filter.atTop :=
+      (Filter.tendsto_add_atTop_iff_nat (j + 1)).1 <| tendsto_atTop_of_add_one_le fun k ↦
+        Nat.add_right_comm k 1 (j + 1) ▸ (hold (k + (j + 1)) p (hpS (by omega))).1
+    obtain ⟨δ, hδ, -, hδt⟩ := TauCeti.SmoothEmbedding.exists_eqOn_Iic_tendsto_cocompact_of_ge
+      (fun k hk ↦ (hstage k).emb p (hpS hk)) (fun k hk ↦ by linarith [(hold k p (hpS hk)).1])
+      hTt K (fun k hk ↦ (hold k p (hpS hk)).2.1) harc ((hstage (j + 1)).notMem p (hpS le_rfl))
     refine ⟨δ, fun t ↦ ?_, hδt⟩
-    filter_upwards [hδ t, Filter.eventually_ge_atTop (j + 1)] with k hk hjk
-    exact ⟨hpS hjk, hk⟩
+    filter_upwards [hTt.eventually_ge_atTop t, Filter.eventually_ge_atTop (j + 1)] with k htk hjk
+    exact ⟨hpS hjk, htk, hδ k hjk htk⟩
   choose δ hδ hδt using hray
   -- The built part of a ray at any stage misses the filled sublevel sets of the stages before
   -- the one that uses its point.
