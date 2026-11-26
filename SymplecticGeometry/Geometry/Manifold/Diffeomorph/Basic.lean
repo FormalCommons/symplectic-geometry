@@ -11,8 +11,8 @@ public import Mathlib.Geometry.Manifold.Diffeomorph
 # Basic facts about diffeomorphisms
 
 Facts about Mathlib's diffeomorphisms `M ≃ₘ^n⟮I, I'⟯ M'` that Mathlib does not state: inverting a
-diffeomorphism twice gives it back, and two empty manifolds are diffeomorphic even when their
-models differ.
+diffeomorphism twice gives it back, a `C^n` diffeomorphism is a `C^m` one for `m ≤ n`, and two
+empty manifolds are diffeomorphic even when their models differ.
 
 Two empty manifolds are diffeomorphic, whatever their models: the empty map is smooth in both
 directions. Mathlib's `Diffeomorph.empty` gives this only when both manifolds have the same model
@@ -26,6 +26,7 @@ such an empty manifold, by the instance `TopologicalSpace.Opens.isEmpty_bot` of
 
 ## Main definitions
 
+* `Diffeomorph.ofLE`: a `C^n` diffeomorphism as a `C^m` diffeomorphism, for `m ≤ n`.
 * `Diffeomorph.ofIsEmpty`: the diffeomorphism `M ≃ₘ^n⟮I, I'⟯ M'` between empty manifolds, modelled
   on `I` and `I'`.
 
@@ -62,6 +63,21 @@ theorem symm_symm (h : M ≃ₘ^n⟮I, I'⟯ M') : h.symm.symm = h :=
 theorem symm_bijective :
     Function.Bijective (Diffeomorph.symm : (M ≃ₘ^n⟮I, I'⟯ M') → M' ≃ₘ^n⟮I', I⟯ M) :=
   Function.bijective_iff_has_inverse.2 ⟨_, symm_symm, symm_symm⟩
+
+/-- A `C^n` diffeomorphism, seen as a `C^m` diffeomorphism for `m ≤ n`. -/
+def ofLE {m : WithTop ℕ∞} (Φ : M ≃ₘ^n⟮I, I'⟯ M') (hmn : m ≤ n) : M ≃ₘ^m⟮I, I'⟯ M' where
+  __ := Φ.toEquiv
+  contMDiff_toFun := Φ.contMDiff.of_le hmn
+  contMDiff_invFun := Φ.symm.contMDiff.of_le hmn
+
+@[simp]
+theorem coe_ofLE {m : WithTop ℕ∞} (Φ : M ≃ₘ^n⟮I, I'⟯ M') (hmn : m ≤ n) : ⇑(Φ.ofLE hmn) = Φ :=
+  (rfl)
+
+@[simp]
+theorem ofLE_symm {m : WithTop ℕ∞} (Φ : M ≃ₘ^n⟮I, I'⟯ M') (hmn : m ≤ n) :
+    (Φ.ofLE hmn).symm = Φ.symm.ofLE hmn :=
+  (rfl)
 
 variable [IsEmpty M] [IsEmpty M']
 
