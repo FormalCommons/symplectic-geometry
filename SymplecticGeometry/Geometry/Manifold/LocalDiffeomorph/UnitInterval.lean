@@ -141,7 +141,7 @@ theorem IsLocalDiffeomorphAt.restrict_unitInterval {n : WithTop ℕ∞} {g : ℝ
       contMDiffOn_invFun := contMDiff_fst.contMDiffOn.prodMk <|
         ((contMDiff_snd.contMDiffOn (s := univ)).comp Φ.contMDiffOn_invFun
           (fun _ _ ↦ mem_univ _)).comp hιN.contMDiffOn (fun _ hp ↦ hp) }
-  exact TauCeti.isLocalDiffeomorphAt_of_eqOn (Φ := Ψ) hΦ fun _ _ ↦ rfl
+  exact Ψ.isLocalDiffeomorphAt _ _ _ hΦ
 
 variable [CompleteSpace E] [IsManifold I ∞ M] [IsManifold J ∞ N] [BoundarylessManifold I M]
   [BoundarylessManifold J N]

@@ -126,12 +126,10 @@ def diffeomorph :
 theorem diffeomorph_def : diffeomorph = (remodelDiffeomorph _ _).symm := (rfl)
 
 /-- The diffeomorphism is the identity of the points of the torus. -/
-@[simp]
 theorem coe_diffeomorph : ⇑diffeomorph = (remodelHomeomorph _ _).symm := by
   rw [diffeomorph_def, coe_remodelDiffeomorph_symm]
 
 /-- Its inverse is the identity of the points of the torus. -/
-@[simp]
 theorem coe_diffeomorph_symm : ⇑diffeomorph.symm = remodelHomeomorph _ _ :=
   coe_remodelDiffeomorph (EuclideanSpace.modelPiDiffeomorph ℝ (Fin 2) ∞)
     (Fin 2 → AddCircle (1 : ℝ))
@@ -142,6 +140,11 @@ theorem diffeomorph_zero : diffeomorph 0 = 0 := by
   rw [coe_diffeomorph, remodelHomeomorph_symm_apply]
   -- `rfl`: the zero of `EuclideanTorus` is that of `Fin 2 → AddCircle 1` (`inferInstanceAs`).
   rfl
+
+/-- Its inverse keeps the base point `0`. -/
+@[simp]
+theorem diffeomorph_symm_zero : diffeomorph.symm 0 = 0 :=
+  (congrArg diffeomorph.symm diffeomorph_zero).symm.trans (diffeomorph.symm_apply_apply 0)
 
 /-- The covering map of the torus by the Euclidean plane, `t ↦ ([t 0], [t 1])`. -/
 def cover (t : EuclideanSpace ℝ (Fin 2)) : EuclideanTorus :=

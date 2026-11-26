@@ -15,6 +15,8 @@ public import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 public import TauCeti.Geometry.Manifold.AnalyticSubmanifold.Transport
 public import TauCeti.Geometry.Manifold.Immersion.Differential
 public import TauCeti.Geometry.Manifold.Instances.Projectivization
+public import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
+public import TauCeti.Geometry.Manifold.ModelWithCorners.RestrictScalars.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Topology.Algebra.Projectivization
 
@@ -75,6 +77,10 @@ blowdown is a biholomorphism onto the nonzero vectors of `E`.
   `SymplecticGeometry.BlowupModel.isMAnalyticSubmanifold_blowupModel`: so the incidence set is a
   complex submanifold of `ℙ ℂ E × E` of dimension `n + 1` (Tau Ceti's
   `TauCeti.IsMAnalyticSubmanifold`).
+* `SymplecticGeometry.BlowupModel.mfderiv_pr_eq_zero_and_mfderiv_blowdown_eq_zero_iff`: a real
+  tangent vector of the blowup on which the real differentials of `pr` and of the blowdown both
+  vanish is zero, since the real differential of the inclusion is injective (Tau Ceti's
+  `TauCeti.injective_mfderiv_restrictScalars`).
 * `SymplecticGeometry.BlowupModel.blowdownDiffeomorph n`: off the exceptional divisor, the blowdown
   is a biholomorphism of open subsets onto `{z : E | z ≠ 0}`, with inverse `z ↦ ([z], z)`
   (`coe_blowdownDiffeomorph`, `blowdownDiffeomorph_symm_apply`).
@@ -565,6 +571,34 @@ theorem isSmoothEmbedding_blowupModel_val {r : ℕ∞ω} (hr : 1 ≤ r) :
     (((contMDiff_blowupModelChart_symm i r).contMDiffAt.comp _ hφ).mdifferentiableAt
       (by rintro rfl; simp at hr)) hleft
 
+/-- A real tangent vector of the blowup is zero exactly when the real differentials of the
+projection to `ℙ ℂ E` and of the blowdown both vanish on it: the real differential of the
+inclusion into `ℙ ℂ E × E` is injective, since the inclusion is a holomorphic immersion. -/
+theorem mfderiv_pr_eq_zero_and_mfderiv_blowdown_eq_zero_iff {p : BlowupModel n}
+    {v : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) p} :
+    mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin n → ℂ) pr p v = 0 ∧
+        mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) blowdown p v = 0 ↔ v = 0 := by
+  refine ⟨fun ⟨h₁, h₂⟩ => ?_, fun h => by simp [h]⟩
+  have hinj := TauCeti.injective_mfderiv_restrictScalars ℝ
+    ((TauCeti.isImmersion_iff_forall_isImmersionAt.1
+      (isSmoothEmbedding_blowupModel_val (n := n) (r := ∞) (by simp)).isImmersion
+        p).mfderiv_injective
+      (by simp))
+  rw [ModelWithCorners.restrictScalars_prod, modelWithCornersSelf_restrictScalars,
+    modelWithCornersSelf_restrictScalars] at hinj
+  have hd : MDifferentiableAt 𝓘(ℝ, Fin (n + 1) → ℂ) (𝓘(ℝ, Fin n → ℂ).prod 𝓘(ℝ, Fin (n + 1) → ℂ))
+      (Subtype.val : BlowupModel n → ℙ ℂ (Fin (n + 1) → ℂ) × (Fin (n + 1) → ℂ)) p := by
+    simpa only [ModelWithCorners.restrictScalars_prod, modelWithCornersSelf_restrictScalars] using
+      (((contMDiff_blowupModel_val (n := n) ∞).mdifferentiable (by simp)) p).restrictScalars ℝ
+  -- The two differentials are the components of the differential of the inclusion.
+  refine hinj ((Prod.ext ?_ ?_).trans (map_zero _).symm)
+  · rw [show (pr : BlowupModel n → _) = Prod.fst ∘ Subtype.val from funext pr_def,
+      mfderiv_comp p mdifferentiableAt_fst hd, mfderiv_fst] at h₁
+    exact h₁
+  · rw [show (blowdown : BlowupModel n → _) = Prod.snd ∘ Subtype.val from funext blowdown_def,
+      mfderiv_comp p mdifferentiableAt_snd hd, mfderiv_snd] at h₂
+    exact h₂
+
 /-- The zero section `ℓ ↦ (ℓ, 0)` of the blowup is `C^r` for every `r`; for `r = ω` it is
 holomorphic. -/
 theorem contMDiff_zeroSection (r : ℕ∞ω) :
@@ -621,6 +655,15 @@ theorem mk_self_mem_blowupModel {z : Fin (n + 1) → ℂ} (hz : z ≠ 0) :
 /-- Off the exceptional divisor, the line of a point of the blowup is spanned by its blowdown. -/
 theorem mk_blowdown {p : BlowupModel n} (hp : p.blowdown ≠ 0) : mk ℂ p.blowdown hp = p.pr :=
   mem_submodule_iff.1 p.blowdown_mem_submodule hp
+
+/-- A point of the blowup over `0` is the point of the exceptional divisor on its own line. -/
+theorem eq_zeroSection_pr {p : BlowupModel n} (h : p.blowdown = 0) : p = zeroSection p.pr :=
+  ext (pr_zeroSection _).symm (by rw [h, blowdown_zeroSection])
+
+/-- Off the exceptional divisor, a point of the blowup is determined by its blowdown. -/
+theorem eq_of_blowdown_eq {p q : BlowupModel n} (hp : p.blowdown ≠ 0)
+    (h : p.blowdown = q.blowdown) : p = q :=
+  ext (by rw [← mk_blowdown hp, ← mk_blowdown (h ▸ hp)]; simp only [h]) h
 
 variable (n) in
 /-- The blowdown `π` off the exceptional divisor, as a biholomorphism from the open complement of

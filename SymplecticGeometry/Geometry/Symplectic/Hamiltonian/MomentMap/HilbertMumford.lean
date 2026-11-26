@@ -6,20 +6,12 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Basic
-public import TauCeti.Geometry.Lie.Adjoint.Exponential.Basic
 public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.GradientFlow
 import TauCeti.Geometry.Symplectic.Manifold.Rescale
 
 /-!
-# Periods of the exponential, moment weights and limit points
-
-For a Lie group `G` with Lie algebra `𝔤`, the set `nonzeroPeriods I G` consists of the nonzero
-`ξ ∈ 𝔤` with `exp ξ = 1`: the nonzero generators of one-parameter subgroups `t ↦ exp (t ξ)` that
-have period `1`. It is written `Λ` in [GeorgoulasRobbinSalamon2021]. For a torus, `Λ ∪ {0}` is
-the integer lattice of `𝔤`; for a noncommutative `G`, such as `SU(2)`, `Λ ∪ {0}` need not be
-closed under addition, so it is a set and not a lattice. It is invariant under the adjoint action
-of `G` and under multiplication by positive integers.
+# Moment weights and limit points
 
 For a complexified action of `Gc` on a compact manifold `M`, with `-μ` a moment map for `σ` and
 the metric `g(u, w) = σ(u, J w)`, the function `t ↦ ⟨μ (exp (i t ξ) p), ξ⟩` is antitone
@@ -29,8 +21,8 @@ and [McDuffSalamon2017], §5.7.
 
 For `ξ ∈ 𝔤` the curve `t ↦ exp (i t ξ) p` is the negative gradient trajectory through `p` of
 `x ↦ ⟨μ x, ξ⟩`, which is a Morse–Bott function when `G` is compact. Its limit as `t → ∞` is the
-*limit point* `p⁺_ξ` (`limitPoint`). It exists for every `ξ`, not only for `ξ ∈ Λ`
-(`tendsto_limitPoint`), and it is a critical point of `x ↦ ⟨μ x, ξ⟩`
+*limit point* `p⁺_ξ` (`limitPoint`). It exists for every `ξ`, not only for `ξ` in
+`nonzeroPeriods I G` (`tendsto_limitPoint`), and it is a critical point of `x ↦ ⟨μ x, ξ⟩`
 (`limitPoint_mem_criticalPoints`). The curve is the maximal integral curve of `-grad ⟨μ, ξ⟩`
 (`maximalIntegralCurve_neg_mgradient_moment`), and such trajectories converge to critical points
 (`TauCeti.SmoothTwoForm.IsMomentMap.exists_tendsto_maximalIntegralCurve_neg_mgradient`, which
@@ -39,18 +31,12 @@ stated for manifolds modelled on `𝓘(ℝ, E')`, and so are the results on limi
 
 ## Main definitions
 
-* `SymplecticGeometry.nonzeroPeriods I G`: the nonzero `ξ` in the Lie algebra with
-  `mulInvariantExp ξ = 1`.
 * `SymplecticGeometry.momentWeight C μ p ξ`: the limit of `μ (C.expI (t • ξ) • p) ξ` as
   `t → ∞`.
 * `SymplecticGeometry.limitPoint C p ξ`: the limit of `C.expI (t • ξ) • p` as `t → ∞`.
 
 ## Main results
 
-* `SymplecticGeometry.tangentAd_mem_nonzeroPeriods`: `nonzeroPeriods I G` is invariant under
-  the adjoint action.
-* `SymplecticGeometry.nsmul_mem_nonzeroPeriods`: `nonzeroPeriods I G` is invariant under
-  multiplication by positive integers.
 * `SymplecticGeometry.tendsto_momentWeight`: on a compact manifold the limit defining the moment
   weight exists, for every `ξ`.
 * `SymplecticGeometry.momentWeight_eq_iInf`: the moment weight is the infimum of
@@ -79,51 +65,6 @@ open scoped Manifold ContDiff
 namespace SymplecticGeometry
 
 attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
-
-/-! ### The periods of the exponential -/
-
-section Periods
-
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
-  {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
-  (G : Type*) [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G] [T2Space G]
-  [BoundarylessManifold I G]
-
-/-- The nonzero elements `ξ` of the Lie algebra of `G` with `exp ξ = 1`, that is, the nonzero
-generators of the one-parameter subgroups `t ↦ exp (t • ξ)` of which `1` is a period. It is the set
-`Λ` of the Hilbert–Mumford criterion. -/
-def nonzeroPeriods : Set (GroupLieAlgebra I G) :=
-  {ξ | ξ ≠ 0 ∧ mulInvariantExp ξ = 1}
-
-variable {I G}
-
-theorem mem_nonzeroPeriods {ξ : GroupLieAlgebra I G} :
-    ξ ∈ nonzeroPeriods I G ↔ ξ ≠ 0 ∧ mulInvariantExp ξ = 1 :=
-  Iff.rfl
-
-theorem zero_notMem_nonzeroPeriods : (0 : GroupLieAlgebra I G) ∉ nonzeroPeriods I G :=
-  fun h ↦ h.1 rfl
-
-/-- `nonzeroPeriods I G` is invariant under the adjoint action of `G`. -/
-theorem tangentAd_mem_nonzeroPeriods {ξ : GroupLieAlgebra I G} (hξ : ξ ∈ nonzeroPeriods I G)
-    (u : G) : Lie.tangentAd (I := I) u ξ ∈ nonzeroPeriods I G := by
-  refine ⟨(map_ne_zero_iff _ (Lie.tangentAd (I := I) u).injective).2 hξ.1, ?_⟩
-  rw [← Lie.conj_mulInvariantExp, hξ.2, mul_one, mul_inv_cancel]
-
-/-- An element lies in `nonzeroPeriods I G` exactly when its image under `Ad u` does. -/
-theorem tangentAd_mem_nonzeroPeriods_iff {ξ : GroupLieAlgebra I G} (u : G) :
-    Lie.tangentAd (I := I) u ξ ∈ nonzeroPeriods I G ↔ ξ ∈ nonzeroPeriods I G := by
-  refine ⟨fun h ↦ ?_, fun h ↦ tangentAd_mem_nonzeroPeriods h u⟩
-  have h' := tangentAd_mem_nonzeroPeriods h u⁻¹
-  rwa [Lie.tangentAd_inv, LieEquiv.symm_apply_apply] at h'
-
-/-- `nonzeroPeriods I G` is invariant under multiplication by positive integers. -/
-theorem nsmul_mem_nonzeroPeriods {ξ : GroupLieAlgebra I G} (hξ : ξ ∈ nonzeroPeriods I G)
-    {n : ℕ} (hn : n ≠ 0) : n • ξ ∈ nonzeroPeriods I G :=
-  ⟨by rw [← Nat.cast_smul_eq_nsmul ℝ]; exact smul_ne_zero (Nat.cast_ne_zero.2 hn) hξ.1,
-    by rw [mulInvariantExp_nsmul, hξ.2, one_pow]⟩
-
-end Periods
 
 /-! ### Moment weights -/
 

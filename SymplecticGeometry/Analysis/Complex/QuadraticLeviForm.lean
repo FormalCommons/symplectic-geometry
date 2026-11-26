@@ -18,8 +18,8 @@ For a finite type `ι`, write `s(z) = |z|² = ‖complexToRealEuclidean ι z‖ 
 
 * `TauCeti.contDiff_norm_sq_complexToRealEuclidean`: `s` is `C^n` for every `n`.
 * `TauCeti.leviForm_norm_sq_complexToRealEuclidean`: the Levi form of `s` is the Hermitian
-  product `star v ⬝ᵥ w`. It is `TauCeti.leviForm_norm_sq` for `EuclideanSpace ℂ ι`, carried
-  along `EuclideanSpace.equiv`.
+  product `star v ⬝ᵥ w`. It is `TauCeti.leviForm_norm_sq_comp_apply` for the complex-linear map
+  `(EuclideanSpace.equiv ι ℂ).symm`.
 * `TauCeti.extendRCLike_fderiv_norm_sq_complexToRealEuclidean`: the complex-linear extension of
   the differential of `s` at `z` is `v ↦ 2 (star z ⬝ᵥ v)`, that is `2 ∂s`.
 * `TauCeti.norm_sq_complexToRealEuclidean_pos`: `s` is positive on `puncturedSpace (ι → ℂ)`.
@@ -46,15 +46,12 @@ theorem contDiff_norm_sq_complexToRealEuclidean {n : WithTop ℕ∞} :
 `star v ⬝ᵥ w`. -/
 theorem leviForm_norm_sq_complexToRealEuclidean (z v w : ι → ℂ) :
     leviForm (fun y ↦ ‖complexToRealEuclidean ι y‖ ^ 2) z v w = star v ⬝ᵥ w := by
-  set L := (EuclideanSpace.equiv ι ℂ).symm
-  have hs : (fun y ↦ ‖complexToRealEuclidean ι y‖ ^ 2) =
-      (fun x : EuclideanSpace ℂ ι ↦ ‖x‖ ^ 2) ∘ L := by
+  let L : (ι → ℂ) →L[ℂ] EuclideanSpace ℂ ι := (EuclideanSpace.equiv ι ℂ).symm
+  have hs : (fun y ↦ ‖complexToRealEuclidean ι y‖ ^ 2) = fun y ↦ ‖L y‖ ^ 2 := by
     funext y
-    rw [Function.comp_apply, norm_sq_complexToRealEuclidean,
-      EuclideanSpace.norm_sq_eq]
+    rw [norm_sq_complexToRealEuclidean, EuclideanSpace.norm_sq_eq]
     simp [L]
-  rw [hs, leviForm_comp_apply (contDiff_norm_sq ℝ).contDiffAt L.contDiff.contDiffAt,
-    leviForm_norm_sq, L.fderiv]
+  rw [hs, leviForm_norm_sq_comp_apply]
   simp [L, PiLp.inner_apply, dotProduct, mul_comm]
 
 /-- The complex-linear extension of the differential of `s(z) = |z|²` at `z` is

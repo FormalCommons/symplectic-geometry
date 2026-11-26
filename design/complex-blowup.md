@@ -284,7 +284,7 @@ in coordinates.
 - `liftPartialDiffeomorph ψ`: for $\psi$ an analytic `OpenPartialHomeomorph`
   of `E` with analytic inverse, fixing $0$, the lift is a biholomorphism of
   `blowdown ⁻¹' ψ.source` onto `blowdown ⁻¹' ψ.target`, with inverse the lift
-  of $\psi^{-1}$, by the chain rule at $0$ and uniqueness;
+  of $\psi^{-1}$, by the chain rule at $0$ and a direct check of the two composites;
   `eqOn_liftMap_of_blowdown_comp`: a continuous map with
   $\pi\circ\tilde\psi=\psi\circ\pi$ equals the lift, since both agree on the
   dense complement of $Z$ and the model is Hausdorff.
@@ -292,7 +292,7 @@ in coordinates.
   isolated zero at `t₀` of order $k$ (Mathlib's `analyticOrderAt`, with
   `AnalyticAt.analyticOrderAt_eq_natCast`, so $u(t)=(t-t_0)^kg(t)$ with
   $g(t_0)\ne0$), the lift `(mk (g t), u t)` near `t₀`;
-  `analyticAt_curveLift`, `blowdown_curveLift`, and `curveLift_apply_self`:
+  `contMDiffAt_curveLift`, `blowdown_curveLift`, and `curveLift_apply_self`:
   its value at `t₀` is the line of the first nonvanishing derivative of
   $u$, `iteratedDeriv k u t₀` (`analyticOrderAt_eq_nat_iff_iteratedDeriv_eq_zero`).
 

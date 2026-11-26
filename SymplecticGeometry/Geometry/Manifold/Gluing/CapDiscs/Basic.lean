@@ -79,7 +79,8 @@ annulus `1 < ‖z‖ < 1 + ε`.
 * `SymplecticGeometry.capDiscs.ofReal_one_add_mul_toCircle_gluingCoord`: a point `z` with
   `1 < ‖z‖` is `(1 + t) · toCircle θ` for its collar coordinates `(θ, t)`.
 * `SymplecticGeometry.capDiscs.range_inl_union_iUnion_range_inr`: the interior and the discs cover
-  the capped surface; `disjoint_range_inr`: distinct discs are disjoint;
+  the capped surface, and `exists_inl_or_exists_inr` splits a point accordingly;
+  `disjoint_range_inr`: distinct discs are disjoint;
   `inr_mem_range_inl_iff`: a point of a disc lies in the interior exactly on the annulus.
 * `SymplecticGeometry.capDiscs.instT2Space`: the capped surface is Hausdorff when `S` is.
 
@@ -685,6 +686,12 @@ theorem range_inl_union_iUnion_range_inr :
     rw [inl, Diffeomorph.apply_symm_apply]
   · refine Or.inr (mem_iUnion.2 ⟨i, (remodelDiffeomorph complexDiffeomorph ball).symm w, ?_⟩)
     rw [inr, Diffeomorph.apply_symm_apply]
+
+/-- Every point of the capped surface comes from the interior of `S` or from one of the discs. -/
+theorem exists_inl_or_exists_inr (x : capDiscs c γ hγ hinj) :
+    (∃ y, inl c γ hγ hinj y = x) ∨ ∃ i z, inr c γ hγ hinj i z = x := by
+  simpa only [mem_union, mem_range, mem_iUnion] using
+    (range_inl_union_iUnion_range_inr c γ hγ hinj).ge (mem_univ x)
 
 /-- Distinct discs are disjoint in the capped surface. -/
 theorem disjoint_range_inr {i j : ι} (hij : i ≠ j) :

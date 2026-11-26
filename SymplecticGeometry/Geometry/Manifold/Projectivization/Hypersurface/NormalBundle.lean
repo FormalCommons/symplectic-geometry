@@ -203,9 +203,8 @@ theorem continuous_normalSpaceEquiv :
       (ht.comp (Pullback.continuous_lift _ _ _).continuousAt)
   have hr (b : ℙ ℂ (Fin (n + 2) → ℂ)) (a : ℂ) :
       (trivializationAt ℂ (twistCore (𝕜 := ℂ) (n := n + 1) (d : ℤ)).Fiber (X.embedding q₀.proj)
-        ⟨b, a⟩).2 = twistTransition (d : ℤ) ((twistCore (d : ℤ)).indexAt b) i b * a := by
-    rw [VectorBundleCore.trivializationAt, ← VectorBundleCore.localTrivAt_def,
-      VectorBundleCore.localTriv_apply, twistCore_coordChange_apply]
+        ⟨b, a⟩).2 = twistTransition (d : ℤ) ((twistCore (d : ℤ)).indexAt b) i b * a :=
+    twistCore_trivializationAt_apply_snd _ _ b a
   refine hc.congr ?_
   filter_upwards [hU] with q hq
   have he : X.embedding q.proj = q.proj := congrFun X.coe_embedding q.proj

@@ -268,8 +268,8 @@ is general and sits beside Tau Ceti's `NormalSpace/` files, as *Adjunction*'s
 complex manifold sits beside Tau Ceti's
 `Geometry/Manifold/Complex/Orientation.lean`; Poincaré duality for
 Betti numbers is an addition to the library's file of rational coefficients.
-The pointwise continuity of fibrewise operations that the gluing of the
-splitting uses is general too: `Topology/VectorBundle/Section.lean`
+The pointwise continuity of fibrewise operations is general too:
+`Topology/VectorBundle/Section.lean`
 complements Tau Ceti's file of that path, as the library's `Pullback.lean`
 there does. None of the other names is taken by Tau Ceti at the same place.
 The list is in the order of the paths.
@@ -424,13 +424,10 @@ with `hn : n ≠ 0`, between finite-dimensional manifolds over `𝕜`.
 - `normalRightInverse f hn x : f.NormalSpace x hn →L[𝕜] TangentSpace J (f x)`,
   with `[IsRCLikeNormedField 𝕜]` and `[NormalSpace M] [ParacompactSpace M]` (for
   a partition of unity), with `normalClass_normalRightInverse` (a right inverse
-  of `normalClass`) and the continuity of its map of total spaces; glued from
-  local linear right inverses, built from a fixed complement in a tangent
-  chart (`normalSpaceEquivOfComplement`), by a `PartitionOfUnity`, since a
-  combination with real coefficients summing to one of right inverses is one.
-  The continuity of the glued map uses `ContinuousAt.smul_totalSpace` and
-  `ContinuousAt.sum_totalSpace` from the library's
-  `Topology/VectorBundle/Section.lean`, which it imports.
+  of `normalClass`) and the continuity of its map of total spaces; the right
+  inverse that Tau Ceti's `Continuous.exists_continuous_clm_bundle_rightInverse`
+  gives to `normalClass`, a continuous section of the Hom bundle from
+  `f *ᵖ TangentSpace J` to the normal bundle.
 
 ### `Geometry/Manifold/Projectivization/Hypersurface/NormalBundle.lean`
 
@@ -477,11 +474,11 @@ For a compact Hausdorff complex manifold `M` modelled on `𝓘(ℂ, E)` with
   `(TangentBundle.restrictScalarsHomeomorph ℝ M).symm`
   (`Geometry/Manifold/VectorBundle/Tangent/RestrictScalars.lean`) is the
   identity of total spaces from the real tangent bundle to the complex one,
-  linear on fibres by its `_apply` and `_symm_apply` lemmas. The new
-  statement is that it carries the complex orientation
-  `VectorBundleOrientation.complex` to
-  `(complexManifoldOrientation E M).toVectorBundleOrientation`, pointwise by
-  Tau Ceti's `orientationAt_complexManifoldOrientation_eq_complexOrientation`.
+  linear on fibres by its `_apply` and `_symm_apply` lemmas. With it, Tau
+  Ceti's `TauCeti.complexEulerClass_tangentSpace_eq_eulerClass`
+  (`Geometry/Manifold/Complex/EulerClass.lean`) identifies the complex Euler
+  class of the tangent bundle with the Euler class of the real one, oriented
+  by `complexManifoldOrientation E M`.
 - `SymplecticGeometry.evalFundamentalClass_chernClass_eq_eulerChar`:
   $\langle c_{r+1}(TM),[M]\rangle=\chi(M)$, from
   `chernClass_finrank_eq_complexEulerClass` (#1043), the previous item, and

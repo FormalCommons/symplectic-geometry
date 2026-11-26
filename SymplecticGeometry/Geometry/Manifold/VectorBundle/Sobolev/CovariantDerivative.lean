@@ -51,9 +51,10 @@ The construction adapts Tau Ceti's `TauCeti.IsRealCauchyRiemannOperator.sobolevL
 `TauCeti.IsRealCauchyRiemannOperator.zeroOrderL`
 (`Geometry/Manifold/VectorBundle/Sobolev/CauchyRiemann/Basic.lean`) and
 `TauCeti.IsRealCauchyRiemannOperator.sobolevSuccL`
-(`Geometry/Manifold/VectorBundle/Sobolev/CauchyRiemann/HigherOrder.lean`), the realization of a
-real Cauchy–Riemann operator on a complex curve, from the complex antilinear part of the derivative
-to the whole derivative, and from the model `ℂ` to any finite-dimensional inner product space.
+(`Geometry/Manifold/VectorBundle/Sobolev/CauchyRiemann/HigherOrder/Basic.lean`), the realization
+of a real Cauchy–Riemann operator on a complex curve, from the complex antilinear part of the
+derivative to the whole derivative, and from the model `ℂ` to any finite-dimensional inner product
+space.
 Unlike `sobolevSuccL`, which reduces membership in the Sobolev sections to the order-one
 realization, the cocycle relation is proved here directly at every order, from the order-one
 relation of the section regarded as one of order one

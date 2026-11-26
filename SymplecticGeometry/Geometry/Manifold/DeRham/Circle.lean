@@ -21,7 +21,8 @@ value `1` on the velocity of `Circle.exp` at `0`, the generator of the Lie algeb
 The plane form also transforms simply under the maps that read the angle off a point of the
 plane: at a point of the unit circle its pull-back along `z ↦ z ^ k` is `k (x dy - y dx)`, and
 away from `0` its pull-back along the radial projection `z ↦ z / ‖z‖` is the angular form
-`‖z‖⁻² (x dy - y dx)` of the punctured plane.
+`‖z‖⁻² (x dy - y dx)` of the punctured plane. Read in `ℂ`, a map `u` into the circle has
+derivative `du = u · i u^* dθ`.
 
 ## Main results
 
@@ -33,6 +34,8 @@ away from `0` its pull-back along the radial projection `z ↦ z / ‖z‖` is t
   `TauCeti.mpullback_div_norm_planeAngularForm_apply`,
   `TauCeti.mpullback_div_norm_zpow_planeAngularForm_apply`: the pull-backs of `x dy - y dx` along
   `z ↦ z ^ k` on the unit circle, along `z ↦ z / ‖z‖`, and along `z ↦ (z / ‖z‖) ^ k`.
+* `TauCeti.mlogDeriv_coe_circle_apply`, `TauCeti.mvfderiv_coe_circle_apply`: `dlog u = i u^* dθ`
+  and `du = u · i u^* dθ` for a map `u` into the circle.
 
 ## References
 
@@ -77,11 +80,8 @@ theorem mpullback_mul_planeAngularForm {a : ℂ} (ha : ‖a‖ = 1) :
   rw [← one_smul ℝ (planeAngularForm z)]
   refine mpullback_planeAngularForm_eq_smul_of_hasFDerivAt
     ((hasFDerivAt_id z).const_mul a) fun v ↦ ?_
-  simp only [smul_apply, ContinuousLinearMap.id_apply, id, smul_eq_mul,
-    map_mul, one_mul]
-  rw [show (starRingEnd ℂ) a * (starRingEnd ℂ) z * (a * v) =
-      ((starRingEnd ℂ) a * a) * ((starRingEnd ℂ) z * v) by ring, Complex.conj_mul', ha]
-  simp
+  simp only [smul_apply, ContinuousLinearMap.id_apply, id, smul_eq_mul, one_mul]
+  rw [Circle.conj_coe_mul_mul_coe_mul ⟨a, mem_sphere_zero_iff_norm.2 ha⟩ z v]
 
 /-! ### The plane angular form under powers and radial projection -/
 
@@ -157,6 +157,39 @@ theorem mpullback_div_norm_zpow_planeAngularForm_apply {w : ℂ} (hw : w ≠ 0) 
     mpullback_apply_congr (mpullback_zpow_planeAngularForm_apply hn k)
   rw [hcomp, mpullback_comp_at hdiv hpow, h, mpullback_smul, Pi.smul_apply,
     mpullback_div_norm_planeAngularForm_apply hw, mul_smul]
+
+/-! ### The derivative of a circle-valued map -/
+
+section CircleValued
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+
+/-- For a map `u : M → Circle` differentiable at `x`, the logarithmic derivative of `u` read in
+`ℂ` is `i u^* dθ` at `x`. This is the pointwise form of Tau Ceti's
+`ContMDiffMap.mlogDeriv_coe_apply_eq_circleLogDeriv_mul_I`, which asks `u` to be smooth. -/
+theorem mlogDeriv_coe_circle_apply {u : M → Circle} {x : M}
+    (hu : MDifferentiableAt I (𝓡 1) u x) (v : Fin 1 → TangentSpace I x) :
+    mlogDeriv I (fun y ↦ (u y : ℂ)) x v =
+      Complex.I * (mpullback I (𝓡 1) u circleAngularForm x v : ℝ) := by
+  have huc : MDifferentiableAt I 𝓘(ℝ, ℂ) (fun y ↦ (u y : ℂ)) x :=
+    ((contMDiff_coe_sphere (m := 1)).mdifferentiableAt one_ne_zero).comp x hu
+  -- The logarithmic derivative of a map of modulus one is imaginary, with imaginary part `u^* dθ`.
+  have hre := re_mlogDeriv_apply_eq_zero huc (.of_forall fun y ↦ Circle.norm_coe (u y)) v
+  apply Complex.ext
+  · rw [hre]; simp
+  · rw [mpullback_circleAngularForm_apply_eq_im_mlogDeriv hu]; simp
+
+/-- For a map `u : M → Circle` differentiable at `x`, the derivative of `u` read in `ℂ` is
+`du = u · i u^* dθ` at `x`. -/
+theorem mvfderiv_coe_circle_apply {u : M → Circle} {x : M}
+    (hu : MDifferentiableAt I (𝓡 1) u x) (v : TangentSpace I x) :
+    mvfderiv I (fun y ↦ (u y : ℂ)) x v =
+      (u x : ℂ) * (Complex.I * (mpullback I (𝓡 1) u circleAngularForm x ![v] : ℝ)) := by
+  rw [← mlogDeriv_coe_circle_apply hu, mlogDeriv_apply, Matrix.cons_val_zero, ← mul_assoc,
+    mul_inv_cancel₀ (Circle.coe_ne_zero _), one_mul]
+
+end CircleValued
 
 end TauCeti
 

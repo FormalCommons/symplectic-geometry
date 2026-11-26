@@ -422,10 +422,11 @@ Named like Tau Ceti's file, in `TauCeti.SmoothForm`.
   `RoughForm.ker (TauCeti.mpullback I I (flowOf X t) α.val) x = α.kerDistribution x`,
   that is, the local flow maps the contact hyperplanes to contact hyperplanes.
   Forward: `IsContactHamiltonianVectorField.mpullback_flowOf_apply` for the
-  Hamiltonian `α(X)`, whose multiplier is positive. Backward: the pullback at
-  `x` is $c(t)\,\alpha_x$ with $c(t)$ its value on $R_x$; differentiate at
-  `t = 0` with `TauCeti.hasDerivAt_mpullback_flowOf_zero`, so
-  $(\mathcal L_X\alpha)_x=c'(0)\alpha_x$.
+  Hamiltonian `α(X)`, whose multiplier is positive. Backward: the equality
+  gives `dφ_t (ker α_x) ⊆ ker α_(φ_t x)`, so Tau Ceti's
+  `preservesDistribution_kerDistribution_of_mfderiv_flowOf_mem` and
+  `IsContactForm.preservesDistribution_kerDistribution_iff` make `X` the
+  contact Hamiltonian vector field of `α(X)`.
 - `IsContactForm.contactHamiltonianEquiv (hα) : α.contactVectorFields ≃ₗ[ℝ] C^∞⟮I, M; ℝ⟯`,
   $X\mapsto\alpha(X)$, with inverse $H\mapsto X_H$
   (`contactHamiltonianVectorField`, smooth by
@@ -440,8 +441,9 @@ Named like Tau Ceti's file, in `TauCeti.SmoothForm`.
   for `H` nowhere zero and `C¹` (`ContMDiff I 𝓘(ℝ) 1 H`) and `β` with
   `∀ x, β.val x = (H x)⁻¹ • α.val x`, `β.IsContactForm` and
   `β.reebVectorField = α.contactHamiltonianVectorField H`; from
-  `isContactForm_iff_of_eq_smul`, `contactHamiltonianVectorField_of_eq_smul`
-  with $u=H^{-1}$, $f=H$, and `contactHamiltonianVectorField_one` for `β`.
+  `isContactForm_iff_of_eq_smul`, and Tau Ceti's
+  `IsContactForm.mfderiv_contactHamiltonianVectorField_inv` for `β` with
+  `f = id`, `u = H⁻¹`.
 - `Diffeomorph.preservesCoorientation_refl_iff_pos` for the same `β`, with
   `α` only nowhere zero (`∀ x, α.val x ≠ 0`):
   `(Diffeomorph.refl I M ∞).PreservesCoorientation α β ↔ ∀ x, 0 < H x`, Tau
@@ -577,7 +579,7 @@ Named like Tau Ceti's file, in `SymplecticGeometry`.
   by `ℝ`, with the
   kernels prescribed at all real times near a given time, so it does not
   cover the ends of `[0, 1]`.
-- `IsContactFamily.exists_local_extension (hξ) (p)` (`[BoundarylessManifold I M]`): step 1
+- `IsContactFamily.exists_local_extension (hξ) (p)`: step 1
   of the extension in *Decisions*. For every `p : unitInterval × M` there
   are an open interval `J = Ioo a b ∋ p.1`, an open `U ∋ p.2`, and `α` with
   `IsLocalDefiningFamily ξ U α a b`. Uses `DifferentialForm/TimeExtension.lean` of

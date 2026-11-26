@@ -16,7 +16,7 @@ import SymplecticGeometry.Analysis.Calculus.InverseFunctionTheorem.Deriv
 import SymplecticGeometry.Analysis.Complex.QuadraticLeviForm
 import SymplecticGeometry.Analysis.InnerProductSpace.PiL2
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
-import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 import TauCeti.Geometry.Manifold.Complex.DdbarForm.Basic
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
@@ -27,6 +27,7 @@ import SymplecticGeometry.Geometry.Symplectic.Manifold.Rescale
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 import SymplecticGeometry.MeasureTheory.Integral.IntervalIntegral.Primitive
+import TauCeti.Analysis.Normed.Group.Basic
 
 /-!
 # Radial potential forms on `ℂⁿ ∖ 0`
@@ -49,7 +50,7 @@ blowup constructions read the forms they build off `Z` in these terms.
   twice its imaginary part: Tau Ceti's chain rule `TauCeti.leviForm_scalar_comp_apply` (of which
   `TauCeti.manifoldLeviForm_scalar_comp_apply` is the manifold form) gives the Levi form of
   `g ∘ s`, from that of `s`, the Hermitian product `star v ⬝ᵥ w`
-  (`TauCeti.leviForm_norm_sq_complexToRealEuclidean`, by `TauCeti.leviForm_norm_sq`),
+  (`TauCeti.leviForm_norm_sq_complexToRealEuclidean`, by `TauCeti.leviForm_norm_sq_comp_apply`),
   and from `∂s = star z ⬝ᵥ ·`
   (`TauCeti.extendRCLike_fderiv_norm_sq_complexToRealEuclidean`). Both are in
   `SymplecticGeometry/Analysis/Complex/QuadraticLeviForm.lean`.
@@ -63,7 +64,12 @@ blowup constructions read the forms they build off `Z` in these terms.
 * `SymplecticGeometry.isKahler_radialPotentialForm`: if both hold on `(0, ∞)`, the form is Kähler
   for `J`, as a positive multiple of the form of a strictly plurisubharmonic function
   (`SymplecticGeometry.isKahler_mextDerivₗ_covectorComplexStructure`).
-* `SymplecticGeometry.radialPotentialForm_id`: for `g = id` the form is `ω₀`, restricted to `Z`.
+* `SymplecticGeometry.radialPotentialForm_id`: for `g = id` the form is `ω₀`, restricted to `Z`;
+  and `SymplecticGeometry.constSmooth_stdComplexPiSymplecticForm_eq`: the constant form `ω₀` on
+  `ι → ℂ` is the pull-back of the constant form `stdForm ι` along `complexToRealEuclidean ι`,
+  since that map is a linear symplectomorphism
+  (`SymplecticGeometry.isSymplectomorphism_complexToRealEuclidean`,
+  `TauCeti.SymplecticForm.IsSymplectomorphism.mpullback_constSmooth`).
 * `SymplecticGeometry.radialPotentialForm_log`: for `ι = Fin (n + 1)` and `g = log` it is the
   Fubini–Study lift `SymplecticGeometry.fubiniStudyLift n`, since its primitive is
   `(1/4) J* d log |z|²` (`SymplecticGeometry.fubiniStudyPrimitive_eq`).
@@ -210,10 +216,7 @@ theorem isManifoldStrictlyPlurisubharmonicAt_radialPotential {g : ℝ → ℝ}
   set s := ∑ i, ‖(z : ι → ℂ) i‖ ^ 2
   have hs : 0 < s := by
     simpa only [s, norm_sq_complexToRealEuclidean] using norm_sq_complexToRealEuclidean_pos z
-  have hA : 0 < ∑ i, ‖v i‖ ^ 2 := by
-    obtain ⟨i, hi⟩ := Function.ne_iff.1 hv
-    exact Finset.sum_pos' (fun j _ ↦ by positivity)
-      ⟨i, Finset.mem_univ _, pow_pos (norm_pos_iff.2 hi) 2⟩
+  have hA : 0 < ∑ i, ‖v i‖ ^ 2 := sum_norm_sq_pos hv
   -- Cauchy–Schwarz: `|star z ⬝ᵥ v|² ≤ |z|² |v|²`.
   have hCS : Complex.normSq (star (z : ι → ℂ) ⬝ᵥ v) ≤ s * ∑ i, ‖v i‖ ^ 2 := by
     rw [← Complex.sq_norm]
@@ -252,6 +255,15 @@ theorem radialPotentialForm_id (hg : ContDiffOn ℝ ∞ id (Ioi 0)) :
     SymplecticForm.eval₂_constSmooth_mfderiv_eq, mvfderiv_subtype_val_apply,
     mvfderiv_subtype_val_apply]
   simp
+
+variable (ι) in
+/-- The constant form `stdComplexPiSymplecticForm ι` on `ι → ℂ` is the pull-back of the constant
+form `stdForm ι` of `StdSpace ι` along the real-linear identification `complexToRealEuclidean ι`.
+-/
+theorem constSmooth_stdComplexPiSymplecticForm_eq :
+    (stdComplexPiSymplecticForm ι).constSmooth = SmoothForm.mpullback (complexToRealEuclidean ι)
+      (complexToRealEuclidean ι).contDiff.contMDiff (stdForm ι).constSmooth :=
+  (isSymplectomorphism_complexToRealEuclidean ι).mpullback_constSmooth.symm
 
 /-- For `g = log` the radial potential form is the Fubini–Study lift `ρ`, the pull-back of the
 Fubini–Study form to `ℂⁿ⁺¹ ∖ 0`. -/

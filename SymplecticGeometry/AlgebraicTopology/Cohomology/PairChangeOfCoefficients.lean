@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.ChangeOfValues
+public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.LinearCongr
 public import TauCeti.AlgebraicTopology.Cohomology.Relative
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
@@ -39,7 +40,11 @@ into `TopPair.uliftIntegralCohomologyEquiv`: the `ℤ`-linear equivalence from c
 chain coefficients and values `ULift ℤ`, the convention of Tau Ceti's integral Thom and Euler
 classes, to cohomology with chain coefficients and values `ℤ` and the linear structure
 `ModuleCat.instLinear`, the convention of Tau Ceti's Thom map `TauCeti.thomMap`. The two linear
-structures of `ModuleCat ℤ` agree by `CategoryTheory.Linear.subsingletonInt`. This is the
+structures of `ModuleCat ℤ` agree by `CategoryTheory.Linear.subsingletonInt`. It commutes with
+the maps induced by maps of pairs (`TopPair.uliftIntegralCohomologyEquiv_naturality`), and with
+the map to absolute cohomology, followed on the absolute side by
+`TopCat.uliftIntegralCohomologyIso` and Tau Ceti's `TopCat.integralCohomologyEquiv`
+(`TopPair.singularCohomologyπ_uliftIntegralCohomologyEquiv`). This is the
 conversion that the proof of the library's `TauCeti.bijective_integralCup_eulerClass`
 (`Topology/VectorBundle/Thom/CupEulerClass.lean`) makes for a Thom class.
 
@@ -322,6 +327,39 @@ theorem uliftIntegralCohomologyEquiv_apply (P : TopPair.{0}) (n : ℕ)
         (P.singularCohomologyChainCoefficientMap ℤ _ uliftIntIso.inv n
           (P.singularCohomologyValueMap _ ℤ uliftIntIso.hom n u)) :=
   (rfl)
+
+/-- **Naturality of `TopPair.uliftIntegralCohomologyEquiv`**: it commutes with the maps induced
+by a map of pairs `f : P ⟶ P'`. -/
+theorem uliftIntegralCohomologyEquiv_naturality {P P' : TopPair.{0}} (f : P ⟶ P') (n : ℕ)
+    (u : P'.singularCohomology (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ
+      (ModuleCat.of ℤ (ULift.{0} ℤ)) n) :
+    P.uliftIntegralCohomologyEquiv n (TopPair.singularCohomologyMap f n u) =
+      @TopPair.singularCohomologyMap (ModuleCat.{0} ℤ) _ _ _ (ModuleCat.of ℤ ℤ) ℤ _
+        ModuleCat.instLinear (ModuleCat.of ℤ ℤ) P P' f n (P'.uliftIntegralCohomologyEquiv n u) := by
+  rw [uliftIntegralCohomologyEquiv_apply, uliftIntegralCohomologyEquiv_apply,
+    ← singularCohomologyLinearCongr_naturality,
+    ← singularCohomologyChainCoefficientMap_naturality_apply,
+    ← singularCohomologyValueMap_naturality_apply]
+
+/-- `TopPair.uliftIntegralCohomologyEquiv` commutes with the map from relative to absolute
+cohomology, followed on the absolute side by `TopCat.uliftIntegralCohomologyIso` and Tau Ceti's
+`TopCat.integralCohomologyEquiv`. -/
+theorem singularCohomologyπ_uliftIntegralCohomologyEquiv (P : TopPair.{0}) (n : ℕ)
+    (u : P.singularCohomology (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ
+      (ModuleCat.of ℤ (ULift.{0} ℤ)) n) :
+    @TopPair.singularCohomologyπ (ModuleCat.{0} ℤ) _ _ _ P (ModuleCat.of ℤ ℤ) ℤ _
+        ModuleCat.instLinear (ModuleCat.of ℤ ℤ) n (P.uliftIntegralCohomologyEquiv n u) =
+      P.fst.integralCohomologyEquiv n
+        ((P.fst.uliftIntegralCohomologyIso n).hom (P.singularCohomologyπ _ ℤ _ n u)) := by
+  rw [uliftIntegralCohomologyEquiv_apply, ← singularCohomologyLinearCongr_singularCohomologyπ,
+    ← ConcreteCategory.comp_apply, ← singularCohomologyπ_singularCohomologyChainCoefficientMap,
+    ConcreteCategory.comp_apply, ← ConcreteCategory.comp_apply (singularCohomologyValueMap ..),
+    ← singularCohomologyπ_singularCohomologyValueMap, ConcreteCategory.comp_apply,
+    TopCat.integralCohomologyEquiv_apply, TopCat.uliftIntegralCohomologyIso_hom, Iso.symm_hom,
+    integralCoeffIso_inv_eq_uliftIntIso_inv]
+  -- The two sides differ only in writing the coefficients `ℤ` as `ModuleCat.of ℤ ℤ` or as the
+  -- unit `𝟙_ (ModuleCat ℤ)`, which Mathlib defines to be it.
+  rfl
 
 end ULiftInt
 

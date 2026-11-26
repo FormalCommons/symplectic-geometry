@@ -7,6 +7,9 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Model
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Tautological
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Quotient
+import TauCeti.Geometry.Manifold.SmoothEmbedding.LeftInverse
+import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Equiv
 
 /-!
 # The model blowup as the total space of the tautological line
@@ -35,16 +38,42 @@ Lemma 7.1.1; Griffiths–Harris, Chapter 1, §4).
 * `SymplecticGeometry.BlowupModel.blowupModelTotalSpaceDiffeomorph_symm_apply` and
   `SymplecticGeometry.BlowupModel.blowupModelTotalSpaceDiffeomorph_symm_zeroSection`: the
   inverse, and its value on the exceptional divisor.
+* `SymplecticGeometry.BlowupModel.zeroSectionEmbedding n`: the zero section
+  `BlowupModel.zeroSection` as Tau Ceti's holomorphic embedding `TauCeti.SmoothEmbedding`
+  (`SymplecticGeometry.BlowupModel.coe_zeroSectionEmbedding`), with image the exceptional divisor
+  (`SymplecticGeometry.BlowupModel.range_zeroSectionEmbedding`).
+* `SymplecticGeometry.BlowupModel.ker_mfderiv_blowdown_zeroSection`: the kernel of the differential
+  of `blowdown` at `zeroSection ℓ` is the tangent image of the zero section, and
+  `SymplecticGeometry.BlowupModel.range_mfderiv_blowdown_zeroSection`: its image is the line `ℓ`.
+* `SymplecticGeometry.BlowupModel.normalSpaceZeroSectionEquiv n ℓ`: the complex-linear isomorphism
+  from Tau Ceti's normal space `SmoothEmbedding.NormalSpace` of `zeroSectionEmbedding n` at `ℓ`
+  onto the fibre `Projectivization.Tautological ℂ E ℓ` of the tautological line, induced by that
+  differential (`SymplecticGeometry.BlowupModel.normalSpaceZeroSectionEquiv_normalClass`,
+  `SymplecticGeometry.BlowupModel.normalSpaceZeroSectionEquiv_symm_apply`), and
+  `SymplecticGeometry.BlowupModel.continuous_normalSpaceZeroSectionEquiv`: it is continuous on
+  total spaces, for Tau Ceti's bundle structure `SmoothEmbedding.normalSpaceFiberBundle` on the
+  normal bundle.
 
 ## Implementation notes
 
 The map into the blowup is shown holomorphic through the embedding of the blowup into
-`ℙ ℂ E × E` (`BlowupModel.isSmoothEmbedding_blowupModel_val`): over the affine open `U_i`, the
-vector of the line is the coordinate of `a` in the chart `i` of `𝒪(-1)` times the representative
-`[1 : affineChart i ℓ]` of `ℓ`. For the inverse, in the frame of
-the chart `k` of `𝒪(-1)` the image of `(ℓ, z)` has the coordinate `z k`
+`ℙ ℂ E × E` (`BlowupModel.isSmoothEmbedding_blowupModel_val`), whose second component is
+holomorphic by `Projectivization.contMDiff_coe_tautologicalTwistCoreEquiv_symm`. For the
+inverse, in the frame of the chart `k` of `𝒪(-1)` the image of `(ℓ, z)` has the coordinate `z k`
 (`Projectivization.twistCore_localTriv_tautologicalTwistCoreEquiv`), a coordinate of the
 holomorphic map `BlowupModel.blowdown`.
+
+The zero section is holomorphic as the image under `blowupModelTotalSpaceDiffeomorph` of the zero
+section of `𝒪(-1)`, and an embedding by Tau Ceti's
+`ContMDiff.isSmoothEmbedding_of_leftInverse`, since `BlowupModel.pr` is a holomorphic left
+inverse of it.
+
+The differential of `blowdown` at `zeroSection ℓ` vanishes on the tangent image of the zero
+section, of dimension `n`, since `blowdown` vanishes on the zero section, and its image contains
+`ℓ`, through the curves `t ↦ (ℓ, t • z)`; by rank–nullity in dimension `n + 1`, both inclusions
+are equalities. Tau Ceti's `SmoothEmbedding.normalSpaceEquivOfKer` then gives the isomorphism of
+the normal space with `ℓ`. Its continuity on total spaces follows, by Tau Ceti's
+`SmoothEmbedding.contMDiff_normalSpaceEquivOfKer`, from that of the tangent map of `blowdown`.
 
 ## References
 
@@ -56,7 +85,7 @@ holomorphic map `BlowupModel.blowdown`.
 
 public section
 
-open Bundle Projectivization Filter Topology
+open Bundle Projectivization Filter
 open scoped LinearAlgebra.Projectivization ContDiff Manifold
 
 namespace SymplecticGeometry
@@ -70,32 +99,9 @@ private theorem contMDiff_blowupModelTotalSpaceToFun :
       (fun q : TotalSpace ℂ (twistCore (𝕜 := ℂ) (n := n) (-1)).Fiber =>
         (⟨(q.proj, (tautologicalTwistCoreEquiv q.proj).symm q.snd),
           mem_blowupModel_iff.2 ((tautologicalTwistCoreEquiv q.proj).symm q.snd).property⟩ :
-            BlowupModel n)) := by
-  refine ((isSmoothEmbedding_blowupModel_val (n := n) (r := ω) le_top).contMDiff_iff_comp).2 ?_
-  refine fun q₀ => (contMDiffAt_proj _).prodMk ?_
-  set i := (twistCore (𝕜 := ℂ) (n := n) (-1)).indexAt q₀.proj
-  have hi₀ : q₀.proj ∈ affineOpen i := mem_affineOpen_twistCore_indexAt (-1) q₀.proj
-  have hU : {q : TotalSpace ℂ (twistCore (𝕜 := ℂ) (n := n) (-1)).Fiber |
-      q.proj ∈ affineOpen i} ∈ 𝓝 q₀ :=
-    (FiberBundle.continuous_proj _ _).continuousAt.preimage_mem_nhds
-      ((isOpen_affineOpen i).mem_nhds hi₀)
-  have : MemTrivializationAtlas ((twistCore (𝕜 := ℂ) (n := n) (-1)).localTriv i) := ⟨⟨i, rfl⟩⟩
-  have hsrc : q₀ ∈ ((twistCore (𝕜 := ℂ) (n := n) (-1)).localTriv i).source :=
-    ((twistCore (-1)).mem_localTriv_source (i := i) q₀).2
-      (by simpa [twistCore_baseSet] using hi₀)
-  -- The coordinate of `q` in the chart `i` of `𝒪(-1)`.
-  have h₁ : ContMDiffAt (𝓘(ℂ, Fin n → ℂ).prod 𝓘(ℂ, ℂ)) 𝓘(ℂ, ℂ) ω
-      (fun q => ((twistCore (𝕜 := ℂ) (n := n) (-1)).localTriv i q).2) q₀ :=
-    contMDiffAt_snd.comp _ (((twistCore (-1)).localTriv i).contMDiffAt hsrc)
-  -- The representative `[1 : affineChart i ℓ]` of the line.
-  have h₂ : ContMDiffAt (𝓘(ℂ, Fin n → ℂ).prod 𝓘(ℂ, ℂ)) 𝓘(ℂ, Fin (n + 1) → ℂ) ω
-      (fun q : TotalSpace ℂ (twistCore (𝕜 := ℂ) (n := n) (-1)).Fiber =>
-        Fin.insertNth (α := fun _ => ℂ) i 1 (affineChart i q.proj)) q₀ :=
-    ((contMDiffOn_insertNth_affineChart i ω).contMDiffAt
-      ((isOpen_affineOpen i).mem_nhds hi₀)).comp _ (contMDiffAt_proj _)
-  refine (h₁.smul h₂).congr_of_eventuallyEq (eventually_of_mem hU fun q hq => ?_)
-  rw [Pi.smul_apply', insertNth_one_affineChart_eq_normalizedRep i hq]
-  exact coe_tautologicalTwistCoreEquiv_symm_apply_of_mem hq q.snd
+            BlowupModel n)) :=
+  ((isSmoothEmbedding_blowupModel_val (n := n) (r := ω) le_top).contMDiff_iff_comp).2 <|
+    (contMDiff_proj _).prodMk (contMDiff_coe_tautologicalTwistCoreEquiv_symm ω)
 
 private theorem contMDiff_blowupModelTotalSpaceInvFun :
     ContMDiff 𝓘(ℂ, Fin (n + 1) → ℂ) (𝓘(ℂ, Fin n → ℂ).prod 𝓘(ℂ, ℂ)) ω
@@ -125,7 +131,8 @@ exceptional divisor with the zero section (`blowupModelTotalSpaceDiffeomorph_zer
 
 Of the milestone below, this states that `pr` is the tautological line bundle, with the
 exceptional divisor as its zero section; `blowdownDiffeomorph` states that the blowdown is a
-biholomorphism off the divisor.
+biholomorphism off the divisor, and `normalSpaceZeroSectionEquiv` that the normal bundle of the
+divisor is the tautological line.
 
 Milestone: *Tautological line bundle and the exceptional divisor*. -/
 noncomputable def blowupModelTotalSpaceDiffeomorph :
@@ -198,6 +205,282 @@ theorem blowupModelTotalSpaceDiffeomorph_symm_zeroSection (ℓ : ℙ ℂ (Fin (n
     (blowupModelTotalSpaceDiffeomorph n).symm (zeroSection ℓ) =
       TotalSpace.mk' ℂ (E := (twistCore (-1)).Fiber) ℓ 0 := by
   rw [← blowupModelTotalSpaceDiffeomorph_zero, Diffeomorph.symm_apply_apply]
+
+variable (n) in
+/-- The zero section `zeroSection` of the model blowup `BlowupModel n`, which sends a line `ℓ` to
+the point `(ℓ, 0)`, as a holomorphic embedding of `ℙ ℂ E` into `BlowupModel n`. Its image is the
+exceptional divisor (`range_zeroSectionEmbedding`). -/
+noncomputable def zeroSectionEmbedding :
+    TauCeti.SmoothEmbedding 𝓘(ℂ, Fin n → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω (ℙ ℂ (Fin (n + 1) → ℂ))
+      (BlowupModel n) :=
+  TauCeti.SmoothEmbedding.ofIsSmoothEmbedding zeroSection <| by
+    -- Through `blowupModelTotalSpaceDiffeomorph`, `zeroSection` is the zero section of `𝒪(-1)`,
+    -- and `pr` is a holomorphic left inverse of it.
+    have h : (zeroSection : ℙ ℂ (Fin (n + 1) → ℂ) → BlowupModel n) =
+        blowupModelTotalSpaceDiffeomorph n ∘ Bundle.zeroSection ℂ (twistCore (-1)).Fiber :=
+      funext fun ℓ => (blowupModelTotalSpaceDiffeomorph_zero ℓ).symm
+    refine ContMDiff.isSmoothEmbedding_of_leftInverse ?_ le_top (contMDiff_pr 1) pr_zeroSection
+    rw [h]
+    exact (blowupModelTotalSpaceDiffeomorph n).contMDiff.comp
+      (Bundle.contMDiff_zeroSection ℂ (twistCore (-1)).Fiber)
+
+variable (n) in
+/-- The underlying map of `zeroSectionEmbedding n` is `zeroSection`. -/
+@[simp]
+theorem coe_zeroSectionEmbedding :
+    ⇑(zeroSectionEmbedding n) = (zeroSection : ℙ ℂ (Fin (n + 1) → ℂ) → BlowupModel n) :=
+  TauCeti.SmoothEmbedding.coe_ofIsSmoothEmbedding _ _
+
+variable (n) in
+/-- The image of the zero section embedding `zeroSectionEmbedding n` is the exceptional
+divisor. -/
+theorem range_zeroSectionEmbedding :
+    Set.range (zeroSectionEmbedding n) = exceptionalDivisor n := by
+  rw [coe_zeroSectionEmbedding, exceptionalDivisor_eq_range]
+
+/-- The tangent image of the zero section at `ℓ` lies in the kernel of the differential of
+`blowdown` at `zeroSection ℓ`, since `blowdown` vanishes on the zero section. -/
+theorem mfderiv_blowdown_comp_mfderiv_zeroSection (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown (zeroSection ℓ)).comp
+      (mfderiv 𝓘(ℂ, Fin n → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) zeroSection ℓ) = 0 := by
+  rw [← mfderiv_comp ℓ ((contMDiff_blowdown 1).mdifferentiableAt one_ne_zero)
+    ((contMDiff_zeroSection 1).mdifferentiableAt one_ne_zero)]
+  have h : (blowdown ∘ zeroSection : ℙ ℂ (Fin (n + 1) → ℂ) → Fin (n + 1) → ℂ) = fun _ => 0 :=
+    funext blowdown_zeroSection
+  rw [h, mfderiv_const]
+  -- The two zeros are maps between the tangent spaces and between the model spaces.
+  rfl
+
+/-- Every vector `z` of the line `ℓ` is a value of the differential of `blowdown` at
+`zeroSection ℓ`: it is the image of the velocity at `0` of the curve `t ↦ (ℓ, t • z)`. -/
+theorem exists_mfderiv_blowdown_zeroSection_eq (ℓ : ℙ ℂ (Fin (n + 1) → ℂ))
+    {z : Fin (n + 1) → ℂ} (hz : z ∈ ℓ.submodule) :
+    ∃ v : TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) (zeroSection ℓ),
+      mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown (zeroSection ℓ) v = z := by
+  let γ : ℂ → BlowupModel n := fun t =>
+    ⟨(ℓ, t • z), mem_blowupModel_iff.2 (ℓ.submodule.smul_mem t hz)⟩
+  have hγ : ContMDiff 𝓘(ℂ, ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) 1 γ :=
+    ((isSmoothEmbedding_blowupModel_val (n := n) (r := 1) le_rfl).contMDiff_iff_comp).2 <|
+      contMDiff_const.prodMk (contDiff_id.smul contDiff_const).contMDiff
+  have hγ₀ : γ 0 = zeroSection ℓ := ext (by simp [γ]) (by simp [γ])
+  have hcomp : (blowdown ∘ γ) = fun t : ℂ => t • z := funext fun t => blowdown_mk _ _ _
+  have hz' : HasFDerivAt (fun t : ℂ => t • z) ((ContinuousLinearMap.id ℂ ℂ).smulRight z) 0 :=
+    (hasFDerivAt_id (0 : ℂ)).smul_const z
+  have hd : mfderiv 𝓘(ℂ, ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) (blowdown ∘ γ) 0 (1 : ℂ) = z := by
+    rw [hcomp, (hasMFDerivAt_iff_hasFDerivAt.2 hz').mfderiv]
+    -- `ContinuousLinearMap.smulRight_apply` does not rewrite here, as the argument `1` lives in
+    -- `TangentSpace 𝓘(ℂ, ℂ) 0`.
+    exact one_smul ℂ z
+  rw [mfderiv_comp (0 : ℂ) ((contMDiff_blowdown 1).mdifferentiableAt one_ne_zero)
+    (hγ.mdifferentiableAt one_ne_zero), hγ₀] at hd
+  exact ⟨_, hd⟩
+
+/-- The differential of `blowdown` at `zeroSection ℓ` is not zero: its image has positive
+dimension. -/
+private theorem one_le_finrank_range_mfderiv_blowdown (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    1 ≤ Module.finrank ℂ (LinearMap.range
+      (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown
+        (zeroSection ℓ)).toLinearMap) := by
+  have : Module.Finite ℂ (TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) (zeroSection ℓ)) :=
+    inferInstanceAs (Module.Finite ℂ (Fin (n + 1) → ℂ))
+  obtain ⟨v, hv⟩ := exists_mfderiv_blowdown_zeroSection_eq ℓ (ℓ.submodule_eq ▸
+    Submodule.mem_span_singleton_self ℓ.rep)
+  exact Module.finrank_pos_iff_exists_ne_zero.2
+    ⟨⟨_, v, rfl⟩, fun h => ℓ.rep_ne_zero (hv ▸ congrArg Subtype.val h)⟩
+
+variable (n) in
+/-- The tangent image of the zero section at `ℓ` has dimension `n`. -/
+theorem finrank_range_mfderiv_zeroSection (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    Module.finrank ℂ (LinearMap.range
+      (mfderiv 𝓘(ℂ, Fin n → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) zeroSection ℓ).toLinearMap) = n := by
+  have hi := (zeroSectionEmbedding n).isImmersion.mfderiv_injective WithTop.top_ne_zero ℓ
+  rw [coe_zeroSectionEmbedding] at hi
+  rw [LinearMap.finrank_range_of_inj hi]
+  exact Module.finrank_fin_fun ℂ
+
+/-- The dimensions of the image and of the kernel of the differential of `blowdown` at
+`zeroSection ℓ` add up to `n + 1`. -/
+theorem finrank_range_add_finrank_ker_mfderiv_blowdown (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    Module.finrank ℂ (LinearMap.range
+        (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown
+          (zeroSection ℓ)).toLinearMap) +
+      Module.finrank ℂ (LinearMap.ker
+        (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown
+          (zeroSection ℓ)).toLinearMap) =
+      n + 1 :=
+  (LinearMap.finrank_range_add_finrank_ker
+    (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown
+      (zeroSection ℓ)).toLinearMap).trans (Module.finrank_fin_fun ℂ)
+
+/-- The kernel of the differential of `blowdown` at the point `zeroSection ℓ` of the exceptional
+divisor is the tangent image of the zero section. -/
+theorem ker_mfderiv_blowdown_zeroSection (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    LinearMap.ker
+        (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown
+          (zeroSection ℓ)).toLinearMap =
+      LinearMap.range
+        (mfderiv 𝓘(ℂ, Fin n → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) zeroSection ℓ).toLinearMap := by
+  have hle : LinearMap.range
+        (mfderiv 𝓘(ℂ, Fin n → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) zeroSection ℓ).toLinearMap ≤
+      LinearMap.ker
+        (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown
+          (zeroSection ℓ)).toLinearMap := by
+    rintro _ ⟨v, rfl⟩
+    exact congrArg (· v) (mfderiv_blowdown_comp_mfderiv_zeroSection ℓ)
+  have : FiniteDimensional ℂ (TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) (zeroSection ℓ)) :=
+    inferInstanceAs (FiniteDimensional ℂ (Fin (n + 1) → ℂ))
+  have hrk := finrank_range_add_finrank_ker_mfderiv_blowdown ℓ
+  have h₁ := one_le_finrank_range_mfderiv_blowdown ℓ
+  have h₂ := finrank_range_mfderiv_zeroSection n ℓ
+  exact (Submodule.eq_of_le_of_finrank_le hle (by omega)).symm
+
+/-- The image of the differential of `blowdown` at the point `zeroSection ℓ` of the exceptional
+divisor is the line `ℓ`. -/
+theorem range_mfderiv_blowdown_zeroSection (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    LinearMap.range
+        (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown
+          (zeroSection ℓ)).toLinearMap =
+      ℓ.submodule := by
+  have hle : ℓ.submodule ≤ LinearMap.range
+      (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown
+        (zeroSection ℓ)).toLinearMap := fun z hz =>
+    (exists_mfderiv_blowdown_zeroSection_eq ℓ hz).imp fun _ h => h
+  have : FiniteDimensional ℂ (TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) (zeroSection ℓ)) :=
+    inferInstanceAs (FiniteDimensional ℂ (Fin (n + 1) → ℂ))
+  have hrk := finrank_range_add_finrank_ker_mfderiv_blowdown ℓ
+  rw [ker_mfderiv_blowdown_zeroSection, finrank_range_mfderiv_zeroSection n ℓ] at hrk
+  have h₁ : Module.finrank ℂ (LinearMap.range
+      (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown
+        (zeroSection ℓ)).toLinearMap) = 1 := by
+    omega
+  -- The instance is given by hand: instance search does not see the range, a submodule of a
+  -- tangent space, as a submodule of `Fin (n + 1) → ℂ`.
+  exact (@Submodule.eq_of_le_of_finrank_le _ _ _ _ _ _ _ (LinearMap.finiteDimensional_range _) hle
+    (h₁.trans (Projectivization.finrank_submodule ℓ).symm).le).symm
+
+/-- The differential of `blowdown` at the point `zeroSection ℓ` of the exceptional divisor takes
+its values in the line `ℓ`. -/
+theorem mfderiv_blowdown_zeroSection_mem (ℓ : ℙ ℂ (Fin (n + 1) → ℂ))
+    (v : TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) (zeroSection ℓ)) :
+    mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown (zeroSection ℓ) v ∈
+      ℓ.submodule :=
+  range_mfderiv_blowdown_zeroSection ℓ ▸ LinearMap.mem_range_self _ v
+
+/-- The differential of `blowdown` at `zeroSection ℓ`, as a map into the line `ℓ`. -/
+private noncomputable def mfderivBlowdownZeroSection (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) (zeroSectionEmbedding n ℓ) →L[ℂ]
+      Projectivization.Tautological ℂ (Fin (n + 1) → ℂ) ℓ :=
+  (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown (zeroSection ℓ)).codRestrict
+    ℓ.submodule (mfderiv_blowdown_zeroSection_mem ℓ)
+
+private theorem coe_mfderivBlowdownZeroSection_apply (ℓ : ℙ ℂ (Fin (n + 1) → ℂ))
+    (v : TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) (zeroSectionEmbedding n ℓ)) :
+    (mfderivBlowdownZeroSection ℓ v : Fin (n + 1) → ℂ) =
+      mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown (zeroSection ℓ) v :=
+  (rfl)
+
+private theorem mfderivBlowdownZeroSection_eq_zero_iff (ℓ : ℙ ℂ (Fin (n + 1) → ℂ))
+    (v : TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) (zeroSectionEmbedding n ℓ)) :
+    mfderivBlowdownZeroSection ℓ v = 0 ↔
+      v ∈ (zeroSectionEmbedding n).tangentRange ℓ WithTop.top_ne_zero := by
+  have h := SetLike.ext_iff.1 (ker_mfderiv_blowdown_zeroSection ℓ) v
+  rw [← Subtype.coe_inj, coe_mfderivBlowdownZeroSection_apply, ZeroMemClass.coe_zero,
+    TauCeti.SmoothEmbedding.mem_tangentRange_iff, coe_zeroSectionEmbedding]
+  -- `h` is the goal, with membership in the kernel and the image of a linear map unfolded.
+  exact h
+
+variable (n) in
+/-- The normal space of the zero section `zeroSectionEmbedding n` at `ℓ` is a complex line. -/
+theorem finrank_normalSpace_zeroSectionEmbedding (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    Module.finrank ℂ ((zeroSectionEmbedding n).NormalSpace ℓ WithTop.top_ne_zero) = 1 := by
+  have h₁ : Module.finrank ℂ
+      (TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) (zeroSectionEmbedding n ℓ)) = n + 1 :=
+    Module.finrank_fin_fun ℂ
+  have h₂ : Module.finrank ℂ (TangentSpace 𝓘(ℂ, Fin n → ℂ) ℓ) = n := Module.finrank_fin_fun ℂ
+  rw [TauCeti.SmoothEmbedding.finrank_normalSpace, h₁, h₂]
+  omega
+
+variable (n) in
+/-- **The normal bundle of the exceptional divisor is the tautological line.** The
+complex-linear isomorphism from the normal space at `ℓ` of the zero section
+`zeroSectionEmbedding n` of the model blowup, Tau Ceti's `SmoothEmbedding.NormalSpace`, onto the
+line `ℓ`, the fibre `Projectivization.Tautological ℂ E ℓ` of the tautological line. It sends the
+class of a tangent vector `v` at `zeroSection ℓ` to the differential of `blowdown` at
+`zeroSection ℓ` applied to `v` (`normalSpaceZeroSectionEquiv_normalClass`).
+
+Of the milestone *Tautological line bundle and the exceptional divisor*, this states that the
+normal space of the exceptional divisor at each of its points is the corresponding fibre of the
+tautological line. -/
+noncomputable def normalSpaceZeroSectionEquiv (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    (zeroSectionEmbedding n).NormalSpace ℓ WithTop.top_ne_zero ≃L[ℂ]
+      Projectivization.Tautological ℂ (Fin (n + 1) → ℂ) ℓ :=
+  (zeroSectionEmbedding n).normalSpaceEquivOfKer ℓ WithTop.top_ne_zero
+    (mfderivBlowdownZeroSection ℓ) (mfderivBlowdownZeroSection_eq_zero_iff ℓ)
+    ((finrank_normalSpace_zeroSectionEmbedding n ℓ).trans
+      (Projectivization.finrank_submodule ℓ).symm)
+
+/-- `normalSpaceZeroSectionEquiv n ℓ` sends the normal class of a tangent vector `v` at
+`zeroSection ℓ` to the differential of `blowdown` at `zeroSection ℓ` applied to `v`, as a vector
+of the line `ℓ`. -/
+@[simp]
+theorem normalSpaceZeroSectionEquiv_normalClass (ℓ : ℙ ℂ (Fin (n + 1) → ℂ))
+    (v : TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) (zeroSectionEmbedding n ℓ)) :
+    normalSpaceZeroSectionEquiv n ℓ
+        ((zeroSectionEmbedding n).normalClass ℓ WithTop.top_ne_zero v) =
+      ⟨mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown (zeroSection ℓ) v,
+        mfderiv_blowdown_zeroSection_mem ℓ v⟩ := by
+  rw [normalSpaceZeroSectionEquiv, TauCeti.SmoothEmbedding.normalSpaceEquivOfKer_normalClass]
+  exact Subtype.ext (coe_mfderivBlowdownZeroSection_apply ℓ v)
+
+/-- The inverse of `normalSpaceZeroSectionEquiv n ℓ` sends the differential of `blowdown` at
+`zeroSection ℓ` applied to a tangent vector `v` to the normal class of `v`. -/
+theorem normalSpaceZeroSectionEquiv_symm_apply (ℓ : ℙ ℂ (Fin (n + 1) → ℂ))
+    (v : TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) (zeroSectionEmbedding n ℓ)) :
+    (normalSpaceZeroSectionEquiv n ℓ).symm
+        ⟨mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown (zeroSection ℓ) v,
+          mfderiv_blowdown_zeroSection_mem ℓ v⟩ =
+      (zeroSectionEmbedding n).normalClass ℓ WithTop.top_ne_zero v := by
+  rw [ContinuousLinearEquiv.symm_apply_eq, normalSpaceZeroSectionEquiv_normalClass]
+
+/-- The isomorphisms `normalSpaceZeroSectionEquiv n ℓ` form a continuous map from the total
+space of the normal bundle of the zero section, with Tau Ceti's bundle structure
+`SmoothEmbedding.normalSpaceFiberBundle` of model fibre `ℂ`, to the total space of the
+tautological line `Projectivization.Tautological ℂ E` over `ℙ ℂ E`. -/
+theorem continuous_normalSpaceZeroSectionEquiv :
+    letI := (zeroSectionEmbedding n).normalSpaceFiberBundle (P := ℂ) WithTop.top_ne_zero
+      (by simp)
+    Continuous fun p : TotalSpace ℂ
+        (fun ℓ => (zeroSectionEmbedding n).NormalSpace ℓ WithTop.top_ne_zero) =>
+      (⟨p.proj, normalSpaceZeroSectionEquiv n p.proj p.snd⟩ :
+        TotalSpace ℂ (Projectivization.Tautological ℂ (Fin (n + 1) → ℂ))) := by
+  let := (zeroSectionEmbedding n).normalSpaceFiberBundle (P := ℂ) WithTop.top_ne_zero
+    (by simp)
+  -- On the pulled-back tangent bundle, the family of differentials of `blowdown` is the tangent
+  -- map of `blowdown`, which is continuous.
+  have hgs : ContMDiff (𝓘(ℂ, Fin n → ℂ).prod 𝓘(ℂ, Fin (n + 1) → ℂ)) (𝓘(ℂ, Fin n → ℂ).prod 𝓘(ℂ, ℂ))
+      0 (fun p : TotalSpace (Fin (n + 1) → ℂ)
+          ((zeroSectionEmbedding n : ℙ ℂ (Fin (n + 1) → ℂ) → BlowupModel n) *ᵖ
+            (TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ))) =>
+        TotalSpace.mk' ℂ (E := Projectivization.Tautological ℂ (Fin (n + 1) → ℂ)) p.proj
+          (mfderivBlowdownZeroSection p.proj p.snd)) := by
+    refine contMDiff_zero_iff.2
+      (continuous_totalSpace_tautological_iff.2 ⟨FiberBundle.continuous_proj _ _, ?_⟩)
+    refine (continuous_snd.comp ((tangentBundleModelSpaceHomeomorph _).continuous.comp
+      (((contMDiff_blowdown 1).continuous_tangentMap le_rfl).comp
+        (Pullback.continuous_lift (Fin (n + 1) → ℂ) (TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ))
+          (zeroSectionEmbedding n))))).congr fun p => ?_
+    -- The tangent map is taken at `zeroSectionEmbedding n p.proj`, and the differential in
+    -- `mfderivBlowdownZeroSection` at `zeroSection p.proj`, the same point.
+    exact (congrArg (fun x => mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown x p.snd)
+      (congrFun (coe_zeroSectionEmbedding n) p.proj)).trans
+        (coe_mfderivBlowdownZeroSection_apply p.proj p.snd).symm
+  unfold normalSpaceZeroSectionEquiv
+  exact contMDiff_zero_iff.1 <|
+    (zeroSectionEmbedding n).contMDiff_normalSpaceEquivOfKer (m := 0) (P := ℂ)
+      WithTop.top_ne_zero le_top (by simp) mfderivBlowdownZeroSection
+      mfderivBlowdownZeroSection_eq_zero_iff
+      (fun ℓ => (finrank_normalSpace_zeroSectionEmbedding n ℓ).trans
+        (Projectivization.finrank_submodule ℓ).symm) hgs
 
 end BlowupModel
 

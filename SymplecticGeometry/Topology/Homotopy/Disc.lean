@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Analysis.Complex.Circle
 public import Mathlib.Topology.Homotopy.Contractible
+public import TauCeti.Analysis.Complex.ClosedAnnulus
 import TauCeti.Topology.Homotopy.Extension.Ball
 import TauCeti.Analysis.Normed.Module.Ball.Retraction
 
@@ -46,11 +47,12 @@ is obtained outside the annulus by composing `f` with Tau Ceti's radial retracti
 public section
 
 open Metric Set TauCeti
+open Complex (closedAnnulus isCompact_closedAnnulus mem_closedAnnulus)
 
 /-- Let `0 ≤ r ≤ s` and let `f : ℂ → M` be continuous on the closed annulus `r ≤ ‖z‖ ≤ s`. Then the
 loops `ζ ↦ f (r ζ)` and `ζ ↦ f (s ζ)` of `f` on the circles of radii `r` and `s` are homotopic. -/
 theorem ContinuousOn.homotopic_of_eq_mul {M : Type*} [TopologicalSpace M] {r s : ℝ} {f : ℂ → M}
-    (hf : ContinuousOn f {z | r ≤ ‖z‖ ∧ ‖z‖ ≤ s}) (hr : 0 ≤ r) (hrs : r ≤ s) (γ₀ γ₁ : C(Circle, M))
+    (hf : ContinuousOn f (closedAnnulus r s)) (hr : 0 ≤ r) (hrs : r ≤ s) (γ₀ γ₁ : C(Circle, M))
     (hγ₀ : ∀ ζ : Circle, γ₀ ζ = f (r * ζ)) (hγ₁ : ∀ ζ : Circle, γ₁ ζ = f (s * ζ)) :
     γ₀.Homotopic γ₁ := by
   have hnorm {t : ℝ} (ht : 0 ≤ t) (ζ : Circle) : ‖(t : ℂ) * ζ‖ = t := by
@@ -61,7 +63,7 @@ theorem ContinuousOn.homotopic_of_eq_mul {M : Type*} [TopologicalSpace M] {r s :
             map_one_left := fun ζ ↦ by simp [hγ₁] }⟩
   have h0 := unitInterval.nonneg p.1
   have h1 := unitInterval.le_one p.1
-  refine ⟨?_, ?_⟩ <;> rw [hnorm (by nlinarith)] <;> nlinarith
+  refine mem_closedAnnulus.2 ⟨?_, ?_⟩ <;> rw [hnorm (by nlinarith)] <;> nlinarith
 
 /-- A null-homotopic loop `γ : C(Circle, M)` extends continuously over the closed disc of radius
 `r > 0` in `ℂ`: some `D : ℂ → M`, continuous on `closedBall 0 r`, has `D (r ζ) = γ ζ` for every
@@ -93,7 +95,7 @@ null-homotopic, then some continuous `F : ℂ → M` whose image has compact clo
 on that annulus. -/
 theorem ContinuousOn.exists_continuousMap_eq_of_nullhomotopic {M : Type*} [TopologicalSpace M]
     [T2Space M] {r R : ℝ} (hr : 0 < r) (hr1 : r ≤ 1) (h1R : 1 ≤ R) {f : ℂ → M}
-    (hf : ContinuousOn f {z | r ≤ ‖z‖ ∧ ‖z‖ ≤ R}) (γ : C(Circle, M))
+    (hf : ContinuousOn f (closedAnnulus r R)) (γ : C(Circle, M))
     (hγ : ∀ ζ : Circle, γ ζ = f ζ) (hγ0 : γ.Nullhomotopic) :
     ∃ F : C(ℂ, M), IsCompact (closure (range F)) ∧ ∀ z : ℂ, r ≤ ‖z‖ → ‖z‖ ≤ R → F z = f z := by
   have hR : 0 < R := by linarith
@@ -103,7 +105,8 @@ theorem ContinuousOn.exists_continuousMap_eq_of_nullhomotopic {M : Type*} [Topol
     simpa [abs_of_pos hr] using hr1.trans h1R⟩
   have hγ₀ (ζ : Circle) : γ₀ ζ = f (r * ζ) := rfl
   have hγγ₀ : γ₀.Homotopic γ :=
-    ContinuousOn.homotopic_of_eq_mul (hf.mono fun z hz ↦ ⟨hz.1, hz.2.trans h1R⟩) hr.le hr1 γ₀ γ
+    ContinuousOn.homotopic_of_eq_mul (hf.mono fun z hz ↦ mem_closedAnnulus.2
+      ⟨(mem_closedAnnulus.1 hz).1, (mem_closedAnnulus.1 hz).2.trans h1R⟩) hr.le hr1 γ₀ γ
       hγ₀ fun ζ ↦ by simp [hγ]
   obtain ⟨c, hc⟩ := hγ0
   obtain ⟨D, hDc, hD⟩ := ContinuousMap.Nullhomotopic.exists_extension_closedBall
@@ -114,8 +117,8 @@ theorem ContinuousOn.exists_continuousMap_eq_of_nullhomotopic {M : Type*} [Topol
   have hκ (t : ℝ) (ht : 0 ≤ t) : Continuous fun z : ℂ ↦ TauCeti.radialRetraction t z :=
     continuous_const.radialRetraction (fun _ ↦ Or.inr ht) continuous_id
   have hκ_norm {z : ℂ} (hz : r ≤ ‖z‖) :
-      r ≤ ‖TauCeti.radialRetraction R z‖ ∧ ‖TauCeti.radialRetraction R z‖ ≤ R := by
-    rw [norm_radialRetraction hR.le]
+      TauCeti.radialRetraction R z ∈ closedAnnulus r R := by
+    rw [mem_closedAnnulus, norm_radialRetraction hR.le]
     exact ⟨le_min hz (by linarith), min_le_right _ _⟩
   classical
   let Fc : ℂ → M := fun z ↦
@@ -134,14 +137,10 @@ theorem ContinuousOn.exists_continuousMap_eq_of_nullhomotopic {M : Type*} [Topol
         rw [radialRetraction_of_norm_le hz.le, hagree hz,
           radialRetraction_of_norm_le (hz.le.trans hr1 |>.trans h1R)]
   refine ⟨⟨Fc, hFc⟩, ?_, fun z h₁ h₂ ↦ ?_⟩
-  · -- the image of `F` lies in the compact set `D '' closedBall 0 r ∪ f '' {r ≤ ‖z‖ ≤ R}`
-    have hK : IsCompact (D '' closedBall 0 r ∪ f '' {z | r ≤ ‖z‖ ∧ ‖z‖ ≤ R}) := by
-      refine ((isCompact_closedBall 0 r).image_of_continuousOn hDc).union
-        (IsCompact.image_of_continuousOn ?_ hf)
-      exact (isCompact_closedBall (0 : ℂ) R).of_isClosed_subset
-        ((isClosed_le continuous_const continuous_norm).inter
-          (isClosed_le continuous_norm continuous_const))
-        fun z hz ↦ mem_closedBall_zero_iff.2 hz.2
+  · -- the image of `F` lies in the compact set `D '' closedBall 0 r ∪ f '' closedAnnulus r R`
+    have hK : IsCompact (D '' closedBall 0 r ∪ f '' closedAnnulus r R) :=
+      ((isCompact_closedBall 0 r).image_of_continuousOn hDc).union
+        ((isCompact_closedAnnulus r R).image_of_continuousOn hf)
     refine hK.of_isClosed_subset isClosed_closure (closure_minimal ?_ hK.isClosed)
     rintro _ ⟨z, rfl⟩
     by_cases hz : ‖z‖ ≤ r
