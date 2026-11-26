@@ -787,10 +787,12 @@ private theorem exists_contMDiffAt_comp_inr_eq_blowdown [Nonempty (modelPiece n 
 open _root_.Bundle in
 variable {hn} in
 /-- The isomorphisms `normalSpaceDivisorEquiv hψ hl hε hn ℓ` form a continuous map from the total
-space of the normal bundle of the divisor to the total space of the tautological line
-`Projectivization.Tautological ℂ E` over `ℙ ℂ E`. The normal bundle carries Tau Ceti's topology,
-the quotient topology from the ambient tangent bundle, which is the topology of its bundle
-structure `SmoothEmbedding.normalSpaceFiberBundle` for any model fibre `K`. -/
+space of the normal bundle of the divisor to the total space of the tautological line bundle
+`Projectivization.Tautological ℂ (Fin (n + 1) → ℂ)` over `ℙ ℂ (Fin (n + 1) → ℂ)`. The normal
+bundle carries Tau Ceti's topology, the quotient topology from the ambient tangent bundle. The
+type `K` only labels the total space and does not change its topology, so the theorem holds for
+every `K`. When `K` has real dimension 2, such as `ℂ`, this quotient topology is that of the
+bundle structure `SmoothEmbedding.normalSpaceFiberBundle`. -/
 theorem continuous_normalSpaceDivisorEquiv {K : Type*} :
     Continuous fun p : TotalSpace K (fun ℓ => (divisor hψ hl hε).NormalSpace ℓ hn) =>
       (⟨p.proj, normalSpaceDivisorEquiv hψ hl hε hn p.proj p.snd⟩ :
