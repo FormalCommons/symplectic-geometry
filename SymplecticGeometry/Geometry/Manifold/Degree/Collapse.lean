@@ -6,8 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Instances.Sphere
-public import SymplecticGeometry.Geometry.Manifold.Degree.Global
 public import TauCeti.Geometry.Manifold.Orientation.Sphere
+import SymplecticGeometry.Geometry.Manifold.Degree.Global
 import TauCeti.Analysis.InnerProductSpace.Reflection
 import TauCeti.Geometry.Diffeomorphism.Sphere
 import TauCeti.Geometry.Manifold.Degree.Collapse

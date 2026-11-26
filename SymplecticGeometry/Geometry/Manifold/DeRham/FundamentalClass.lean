@@ -5,13 +5,16 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Simplex
-public import SymplecticGeometry.Geometry.Manifold.SmoothSingular.IntegralChains
 public import TauCeti.AlgebraicTopology.Cohomology.FundamentalClass
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
 public import TauCeti.Geometry.Manifold.Orientation.Euclidean
 public import TauCeti.Geometry.Manifold.SmoothSingular.Period
 public import TauCeti.Geometry.Manifold.SmoothSingular.TopForm
+public import TauCeti.Geometry.Manifold.SmoothSingular.SingularCohomology
+public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
+public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralChains
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Simplex
+import SymplecticGeometry.Geometry.Manifold.SmoothSingular.IntegralChains
 import Mathlib.Geometry.Manifold.PartitionOfUnity
 import SymplecticGeometry.Geometry.Manifold.Orientation.Simplex
 import SymplecticGeometry.Geometry.Manifold.SmoothSingular.Chains

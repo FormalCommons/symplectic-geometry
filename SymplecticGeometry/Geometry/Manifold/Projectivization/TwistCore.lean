@@ -11,15 +11,15 @@ public import TauCeti.Geometry.Manifold.Projectivization.LineBundle
 public import TauCeti.Topology.Algebra.Module.Equiv.Pi
 public import TauCeti.Topology.VectorBundle.Core.Trivial
 public import TauCeti.Geometry.Manifold.VectorBundle.RestrictScalars
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Core.Section
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
-public import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
-public import SymplecticGeometry.Topology.VectorBundle.Core.Basic
 public import SymplecticGeometry.Topology.VectorBundle.Core.ScalarCocycle
 public import TauCeti.Topology.VectorBundle.Hom
 public import TauCeti.Topology.VectorBundle.TensorProduct.Basic
 
 import Mathlib.Analysis.Analytic.Polynomial
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Core.Section
+import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
+import SymplecticGeometry.Topology.VectorBundle.Core.Basic
 
 /-!
 # Sums and tensor products of the line bundles `𝒪(k)`

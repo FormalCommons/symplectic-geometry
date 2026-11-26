@@ -5,10 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Matrix.L2OpNorm
-public import SymplecticGeometry.Analysis.SpecialFunctions.ContinuousFunctionalCalculus.ExpLog
 public import TauCeti.Analysis.Matrix.Polar.Deformation
 public import TauCeti.Analysis.Matrix.Polar.Symplectic
+import SymplecticGeometry.Analysis.Matrix.L2OpNorm
+import SymplecticGeometry.Analysis.SpecialFunctions.ContinuousFunctionalCalculus.ExpLog
 
 /-!
 # Smooth polar decomposition of a family of symplectic matrices

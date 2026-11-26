@@ -5,7 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Flow
+public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
+import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Flow
 import Mathlib.Geometry.Manifold.PartitionOfUnity
 
 /-!

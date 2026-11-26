@@ -7,9 +7,11 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.DeRham.ComplexCoefficients
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.Complex
-public import SymplecticGeometry.Geometry.Manifold.DeRham.Kahler.Identities
 public import TauCeti.Geometry.Hodge.Decomposition
 public import TauCeti.Geometry.Hodge.Dimension
+public import TauCeti.Geometry.Manifold.DifferentialForm.AlmostComplexType
+public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
+import SymplecticGeometry.Geometry.Manifold.DeRham.Kahler.Identities
 import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.AlmostComplexType
 

@@ -5,10 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.ContMDiff.ParametricIntegral
 public import TauCeti.Geometry.Manifold.Riemannian.HodgeStar
 public import TauCeti.Geometry.Manifold.Riemannian.VolumeForm.Measure
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Existence
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.ParametricIntegral
 
 /-!
 # Smooth families of top forms and their integrals

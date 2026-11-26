@@ -9,6 +9,7 @@ public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Bounda
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.CoordinateDisc
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.LocalIndex
 public import TauCeti.Analysis.Complex.Conformal.LocalIndex
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Complex
 
 /-!
 # A map to `ℂ` with one simple holomorphic zero

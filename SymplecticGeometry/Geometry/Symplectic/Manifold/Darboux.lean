@@ -6,8 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.TransAffine
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Darboux
 public import TauCeti.Geometry.Symplectic.Manifold.Darboux
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+import SymplecticGeometry.LinearAlgebra.Symplectic.Darboux
 import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv

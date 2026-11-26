@@ -5,8 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.Contractible
 public import TauCeti.Topology.Homotopy.HomotopyEquiv
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.Basic
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.Contractible
 
 /-!
 # Contractible spaces of tame and compatible almost complex structures on a manifold

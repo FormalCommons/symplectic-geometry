@@ -5,7 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Topology.ComplexProjectiveSpace.SecondHomology
+public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.ProjectiveSpace
+import SymplecticGeometry.Topology.ComplexProjectiveSpace.SecondHomology
 import SymplecticGeometry.AlgebraicTopology.Cohomology.Sphere.Basic
 import SymplecticGeometry.Topology.ComplexProjectiveSpace.SimplyConnected
 import TauCeti.AlgebraicTopology.Homotopy.Hurewicz.DiskBoundary
@@ -13,6 +14,8 @@ import TauCeti.AlgebraicTopology.Sphere.PointedMap
 import TauCeti.Analysis.Normed.Module.Ball.Homeomorph
 import TauCeti.Topology.ComplexProjectiveSpace.Hopf.Exact
 import TauCeti.Topology.Homotopy.HomotopyGroup.LoopSpace
+import SymplecticGeometry.Topology.ComplexProjectiveSpace.Cohomology
+import SymplecticGeometry.Topology.ComplexProjectiveSpace.Homeomorph
 
 /-!
 # Null-homotopic maps from spheres to complex projective space

@@ -5,8 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Compatible
 public import TauCeti.Geometry.Symplectic.AlmostComplex.Topology
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+import SymplecticGeometry.LinearAlgebra.Symplectic.Compatible
 
 /-!
 # Unitary normal forms with uniform bounds

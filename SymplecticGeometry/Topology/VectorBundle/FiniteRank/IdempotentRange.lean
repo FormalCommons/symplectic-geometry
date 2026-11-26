@@ -6,10 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.CategoryTheory.Idempotents.Basic
-public import SymplecticGeometry.Topology.VectorBundle.Core.Basic
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Range
 public import TauCeti.Analysis.Normed.Operator.IdempotentRange
 public import TauCeti.Topology.VectorBundle.FiniteRank.Biproduct
+import SymplecticGeometry.Topology.VectorBundle.Core.Basic
 
 /-!
 # Idempotent bundle endomorphisms: their rank, and the splitting along them

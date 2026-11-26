@@ -8,8 +8,8 @@ module
 public import Mathlib.Geometry.Manifold.Algebra.SmoothFunctions
 public import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
-public import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
+import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.ExtDeriv
 
 /-!

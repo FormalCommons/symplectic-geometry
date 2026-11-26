@@ -5,10 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.Relative.Pairing
 public import SymplecticGeometry.AlgebraicTopology.Singular.PairMap
-public import SymplecticGeometry.Topology.Category.TopCat.CodRestrict
 public import TauCeti.AlgebraicTopology.Singular.MayerVietoris.Relative
+import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.Relative.Pairing
+import SymplecticGeometry.Topology.Category.TopCat.CodRestrict
 
 /-!
 # The quotient map to the small chains

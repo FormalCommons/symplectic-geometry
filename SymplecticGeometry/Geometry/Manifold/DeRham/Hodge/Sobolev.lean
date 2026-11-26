@@ -8,12 +8,14 @@ module
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.L2
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 public import TauCeti.Geometry.Manifold.Riemannian.Codifferential
-public import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.Regularity
 public import TauCeti.Analysis.Distribution.WaveFrontSet.Sobolev.Tempered
 public import TauCeti.Analysis.Sobolev.BesselPotential.Distribution
 public import TauCeti.MeasureTheory.Function.Lp.Precomposition
 public import TauCeti.Geometry.Manifold.Riemannian.Sobolev.H1
 public import TauCeti.Analysis.InnerProductSpace.LinearPMap.Friedrichs.Basic
+public import TauCeti.Analysis.Calculus.CoordinateDeriv
+public import SymplecticGeometry.Analysis.Distribution.Coordinates
+import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.Regularity
 import SymplecticGeometry.Analysis.InnerProductSpace.LinearPMap.Friedrichs
 import SymplecticGeometry.Analysis.Distribution.Support
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
@@ -25,6 +27,7 @@ import TauCeti.Analysis.Sobolev.BesselPotential.Inclusion
 import TauCeti.Analysis.Sobolev.BesselPotential.Rellich
 import TauCeti.MeasureTheory.Function.Lp.FiniteDimensional
 import TauCeti.MeasureTheory.Measure.Haar.Unique
+import SymplecticGeometry.Analysis.Distribution.LinearEquiv
 
 /-!
 # The Hodge `H¹` space of differential forms

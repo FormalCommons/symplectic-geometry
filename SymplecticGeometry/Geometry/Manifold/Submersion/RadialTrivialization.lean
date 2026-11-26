@@ -10,14 +10,16 @@ public import Mathlib.Geometry.Manifold.Algebra.SMul
 public import Mathlib.Geometry.Manifold.ContMDiff.Atlas
 public import Mathlib.Geometry.Manifold.ContMDiff.Constructions
 public import Mathlib.Geometry.Manifold.ContMDiff.NormedSpace
-public import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
-public import SymplecticGeometry.Geometry.Manifold.FiberBundle.ChangeModelFiber
 public import SymplecticGeometry.Geometry.Manifold.RegularValue.Submersion
-public import SymplecticGeometry.Geometry.Manifold.Submersion.ParallelTransport.Smooth
 public import TauCeti.Geometry.Manifold.RegularValue.ManifoldLevel
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Manifold.Submersion.Basic
 public import TauCeti.Topology.FiberBundle.MapFiber
+public import SymplecticGeometry.Geometry.Manifold.Submersion.ParallelTransport.Basic
+public import SymplecticGeometry.Topology.FiberBundle.ChangeModelFiber
+import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
+import SymplecticGeometry.Geometry.Manifold.FiberBundle.ChangeModelFiber
+import SymplecticGeometry.Geometry.Manifold.Submersion.ParallelTransport.Smooth
 
 /-!
 # Local trivializations by parallel transport

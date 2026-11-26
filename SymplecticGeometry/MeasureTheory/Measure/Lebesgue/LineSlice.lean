@@ -7,9 +7,9 @@ module
 
 public import Mathlib.LinearAlgebra.Complex.FiniteDimensional
 public import Mathlib.MeasureTheory.Measure.Lebesgue.EqHaar
-public import SymplecticGeometry.LinearAlgebra.FiniteDimensional.RestrictScalars
-public import SymplecticGeometry.Topology.Algebra.Module.LineReach
 public import TauCeti.MeasureTheory.Measure.Lebesgue.OrthogonalSlices
+import SymplecticGeometry.LinearAlgebra.FiniteDimensional.RestrictScalars
+import SymplecticGeometry.Topology.Algebra.Module.LineReach
 
 /-!
 # Slices of a set along a complex direction

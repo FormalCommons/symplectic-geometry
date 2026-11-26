@@ -10,11 +10,15 @@ public import SymplecticGeometry.Analysis.SpecialFunctions.SmoothedMax
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Model
 import SymplecticGeometry.Analysis.Complex.Euclidean.Space
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Dolbeault.Potential
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Dolbeault.Potential
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 import TauCeti.Analysis.Calculus.IntervalIntegral.ParametricPrimitive
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Submanifold
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Pseudoholomorphic
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
+import SymplecticGeometry.Analysis.Complex.QuadraticLeviForm
 
 /-!
 # The profiles `h_{λ,ε}` of the symplectic blowup

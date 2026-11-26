@@ -5,9 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Classification
 public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
-public import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.Basic
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Classification
+import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
 
 /-!
 # First Chern classes of complex structures on vector bundles

@@ -7,9 +7,9 @@ module
 
 public import TauCeti.Geometry.Lie.Adjoint.Basic
 public import TauCeti.Geometry.Manifold.Riemannian.Invariant
-public import SymplecticGeometry.Geometry.Manifold.GroupAction.BoundarylessModel
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.Circle
-public import SymplecticGeometry.Geometry.Manifold.Riemannian.OneForm.Flat
+import SymplecticGeometry.Geometry.Manifold.GroupAction.BoundarylessModel
+import SymplecticGeometry.Geometry.Manifold.Riemannian.OneForm.Flat
 import SymplecticGeometry.Geometry.Manifold.ModelTransport.Boundaryless
 import SymplecticGeometry.Geometry.Manifold.GroupAction.Opens
 

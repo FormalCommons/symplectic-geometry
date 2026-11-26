@@ -9,7 +9,6 @@ public import Mathlib.Analysis.Complex.Basic
 public import Mathlib.Geometry.Manifold.Diffeomorph
 public import Mathlib.Topology.OpenPartialHomeomorph.Composition
 public import SymplecticGeometry.Algebra.Notation.Pi.Basic
-public import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
 public import TauCeti.Analysis.Calculus.ContDiff.Pi
 public import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 public import TauCeti.Geometry.Manifold.AnalyticSubmanifold.Transport
@@ -19,6 +18,7 @@ public import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
 public import TauCeti.Geometry.Manifold.ModelWithCorners.RestrictScalars.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Topology.Algebra.Projectivization
+import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
 
 /-!
 # The model blowup of `ℂⁿ⁺¹` at the origin

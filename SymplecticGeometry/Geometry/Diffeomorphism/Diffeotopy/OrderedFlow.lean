@@ -7,7 +7,7 @@ module
 
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Homotopy
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.OrderedFlow
-public import SymplecticGeometry.Geometry.Manifold.Flow.Ordered
+import SymplecticGeometry.Geometry.Manifold.Flow.Ordered
 
 /-!
 # Loops of ordered flows are homotopic to the constant diffeotopy

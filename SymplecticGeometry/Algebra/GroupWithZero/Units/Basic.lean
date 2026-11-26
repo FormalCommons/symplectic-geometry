@@ -6,7 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Algebra.GroupWithZero.Units.Basic
-public import SymplecticGeometry.Algebra.Ring.Units
+public import Mathlib.Algebra.Ring.Defs
+import SymplecticGeometry.Algebra.Ring.Units
 
 /-!
 # The inverse of a square root of `-1`

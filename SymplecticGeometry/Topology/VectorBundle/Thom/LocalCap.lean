@@ -5,11 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.ProdLocal
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.ThomClass
 public import SymplecticGeometry.Topology.VectorBundle.Thom.FiberCoordinate
-public import SymplecticGeometry.Topology.VectorBundle.Thom.LocalChart
 public import SymplecticGeometry.Topology.VectorBundle.Thom.LocalChartCap
+public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Cross.Basic
+import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.ProdLocal
+import SymplecticGeometry.Topology.VectorBundle.Thom.LocalChart
 
 /-!
 # The canonical Thom class near a point of the base, and the local cap computation
