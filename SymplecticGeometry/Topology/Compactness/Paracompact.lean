@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Topology.Compactness.Paracompact
 public import Mathlib.Topology.Separation.Regular
+public import SymplecticGeometry.Topology.LocallyFinite
 
 /-!
 # Disjoint locally finite neighbourhoods in paracompact spaces
@@ -16,12 +17,12 @@ disjoint from a closed set `Q`, has open neighbourhoods `O i ⊇ R i` that are p
 miss `Q`, and form a locally finite family
 (`LocallyFinite.exists_isOpen_superset_pairwise_disjoint`).
 
-A locally finite family of pairwise disjoint closed sets is discrete: every point has a
-neighbourhood that meets at most one of them, and, together with `Q`, at most one of the sets
-`Q, R i`. The proof is the classical argument that paracompact spaces are collectionwise normal.
-Choose for each point `x` a closed neighbourhood `C x` with this property; a locally finite open
-refinement `V` of the interiors (Mathlib's `precise_refinement`) has locally finite closures
-`K x ⊆ C x`. Then `O i` is the complement of the union of those `K x` that miss `R i`.
+Every point has a neighbourhood that meets at most one of the sets `Q, R i`; away from `Q` this
+is `LocallyFinite.exists_mem_nhds_subsingleton`. The proof is the classical argument that
+paracompact spaces are collectionwise normal. Choose for each point `x` a closed neighbourhood
+`C x` with this property; a locally finite open refinement `V` of the interiors (Mathlib's
+`precise_refinement`) has locally finite closures `K x ⊆ C x`. Then `O i` is the complement of
+the union of those `K x` that miss `R i`.
 
 ## Main results
 
@@ -60,25 +61,17 @@ theorem LocallyFinite.exists_isOpen_superset_pairwise_disjoint [ParacompactSpace
       fun i hi ↦ (hD.2 i (hi.mono (inter_subset_inter_left _ hCD))).mono_left hCD⟩
   -- Every point has a neighbourhood meeting at most one of the sets `Q, R i`.
   have hnhds (x : X) : ∃ W ∈ 𝓝 x, good W := by
-    let S : ι → Set X := fun i ↦ if x ∈ R i then ∅ else R i
-    have hS : IsClosed (⋃ i, S i) :=
-      (hlf.subset fun i ↦ by dsimp only [S]; split_ifs <;> simp).isClosed_iUnion
-        fun i ↦ by dsimp only [S]; split_ifs; exacts [isClosed_empty, hR i]
-    have hxS : x ∉ ⋃ i, S i := by simp +contextual [S]
-    have hW : (⋃ i, S i)ᶜ ∈ 𝓝 x := hS.isOpen_compl.mem_nhds hxS
-    -- A point of `W` in `R i` with `x ∉ R i` is impossible.
-    have hmem {W : Set X} (hWS : W ⊆ (⋃ i, S i)ᶜ) {i : ι} (hi : (W ∩ R i).Nonempty) : x ∈ R i := by
-      by_contra hx
-      obtain ⟨y, hyW, hyR⟩ := hi
-      exact hWS hyW (mem_iUnion.2 ⟨i, by simpa [S, hx] using hyR⟩)
     by_cases hxQ : x ∈ Q
-    · refine ⟨(⋃ i, S i)ᶜ, hW, fun i _ hi ↦ ?_, fun i hi ↦ ?_⟩ <;>
-        exact ((hRQ i).notMem_of_mem_left (hmem subset_rfl hi) hxQ).elim
-    · refine ⟨(⋃ i, S i)ᶜ ∩ Qᶜ, Filter.inter_mem hW (hQ.isOpen_compl.mem_nhds hxQ),
-        fun i j hi hj ↦ ?_, fun _ _ ↦ disjoint_compl_left.mono_left inter_subset_right⟩
-      by_contra hij
-      exact (hdisj hij).notMem_of_mem_left (hmem inter_subset_left hi)
-        (hmem inter_subset_left hj)
+    · -- `x` lies in no `R i`, so the complement of their (closed) union works.
+      have hx : x ∉ ⋃ i, R i := by simpa using fun i ↦ (hRQ i).notMem_of_mem_right hxQ
+      refine ⟨(⋃ i, R i)ᶜ, (hlf.isClosed_iUnion hR).isOpen_compl.mem_nhds hx,
+        fun i _ ⟨y, hy, hyi⟩ ↦ (hy (mem_iUnion.2 ⟨i, hyi⟩)).elim,
+        fun i ⟨y, hy, hyi⟩ ↦ (hy (mem_iUnion.2 ⟨i, hyi⟩)).elim⟩
+    · obtain ⟨U, hU, hUs⟩ := hlf.exists_mem_nhds_subsingleton hR hdisj x
+      refine ⟨U ∩ Qᶜ, Filter.inter_mem hU (hQ.isOpen_compl.mem_nhds hxQ),
+        fun i j hi hj ↦ hUs (hi.mono (inter_subset_inter_left _ inter_subset_left))
+          (hj.mono (inter_subset_inter_left _ inter_subset_left)),
+        fun _ _ ↦ disjoint_compl_left.mono_left inter_subset_right⟩
   choose W hWx hWgood using hnhds
   -- Closed neighbourhoods inside them, and a locally finite open refinement of their interiors.
   choose C hCx hCc hCW using fun x ↦ exists_mem_nhds_isClosed_subset (hWx x)
