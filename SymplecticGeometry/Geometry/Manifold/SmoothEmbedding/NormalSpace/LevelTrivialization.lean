@@ -94,7 +94,7 @@ theorem ofLevel_normalEquiv (x : M) {y : M} (hy : y ∈ (ofLevel hg hgf hreg).ba
     (ofLevel hg hgf hreg).normalEquiv hn hdim x hy =
       f.normalSpaceEquivOfLevel y hn (hgf y) (hreg y) hdim := by
   ext ν
-  obtain ⟨v, rfl⟩ := f.normalClass_surjective y hn ν
+  obtain ⟨v, rfl⟩ := f.isImmersion.normalClass_surjective y hn ν
   rw [normalEquiv_normalClass, normalSpaceEquivOfLevel_normalClass, ofLevel_apply]
 
 /-- The transitions of the atlas given by a single map are the identity. -/
@@ -128,7 +128,7 @@ theorem contMDiff_normalSpaceEquivOfLevel_symm (hm : m + 1 ≤ n) :
     letI := f.normalSpaceFiberBundle hn (P := P) (Nat.eq_sub_of_add_eq' hdim)
     ContMDiff (I.prod 𝓘(𝕜, P)) (I.prod 𝓘(𝕜, P)) m
       (fun x : M × P ↦ (⟨x.1, (f.normalSpaceEquivOfLevel x.1 hn (hgf x.1) (hreg x.1)
-        hdim).symm x.2⟩ : TotalSpace P (fun x ↦ f.NormalSpace x hn))) := by
+        hdim).symm x.2⟩ : TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn))) := by
   let := f.normalSpaceFiberBundle hn (P := P) (Nat.eq_sub_of_add_eq' hdim)
   set φ := DefiningFunctions.ofLevel hg hgf hreg
   -- With identity transitions, `(x, z) ↦ (x, z)` is smooth into the transition-cocycle model.

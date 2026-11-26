@@ -251,8 +251,8 @@ theorem mapsTo_ofComplexManifold_tangentRange_fibreEmbedding
     (x : SmoothProjectiveHypersurface.fermat 1 3) :
     MapsTo (SmoothAlmostComplexStructure.ofComplexManifold (Fin 2 → ℂ) rationalEllipticSurface
         (fibreEmbedding x))
-      (fibreEmbedding.tangentRange x (WithTop.coe_ne_zero.2 ENat.top_ne_zero))
-      (fibreEmbedding.tangentRange x (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) :=
+      (fibreEmbedding.isImmersion.tangentRange x (WithTop.coe_ne_zero.2 ENat.top_ne_zero))
+      (fibreEmbedding.isImmersion.tangentRange x (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) :=
   fibreEmbedding_def ▸ SmoothEmbedding.mapsTo_ofComplexManifold_tangentRange_restrictScalars
     analyticFibreEmbedding le_top (by simp) _ x
 
@@ -273,7 +273,7 @@ cubic, the inverse of the isomorphism from the normal space of the fibre embeddi
 class of any tangent vector `v` of the surface with `d(affineCoordinate)(v) = z`
 (`fibreNormalEquiv_mfderiv`). -/
 noncomputable def fibreNormalEquiv (x : SmoothProjectiveHypersurface.fermat 1 3) :
-    ℂ ≃L[ℝ] fibreEmbedding.NormalSpace x (WithTop.coe_ne_zero.2 ENat.top_ne_zero) :=
+    ℂ ≃L[ℝ] fibreEmbedding.isImmersion.NormalSpace x (WithTop.coe_ne_zero.2 ENat.top_ne_zero) :=
   (fibreEmbedding.normalSpaceEquivOfLevel x _ (eventually_affineCoordinate_fibreEmbedding x)
     (isRegularPoint_restrictScalars_affineCoordinate x)
     finrank_add_finrank_eq_fibreEmbedding).symm
@@ -291,7 +291,7 @@ the real differential of the affine coordinate applied to `v`. -/
 theorem fibreNormalEquiv_symm_normalClass (x : SmoothProjectiveHypersurface.fermat 1 3)
     (v : TangentSpace 𝓘(ℝ, Fin 2 → ℂ) (fibreEmbedding x)) :
     (fibreNormalEquiv x).symm
-        (fibreEmbedding.normalClass x (WithTop.coe_ne_zero.2 ENat.top_ne_zero) v) =
+        (fibreEmbedding.isImmersion.normalClass x (WithTop.coe_ne_zero.2 ENat.top_ne_zero) v) =
       mfderiv 𝓘(ℝ, Fin 2 → ℂ) 𝓘(ℝ, ℂ) affineCoordinate (fibreEmbedding x) v := by
   rw [fibreNormalEquiv_def, ContinuousLinearEquiv.symm_symm,
     SmoothEmbedding.normalSpaceEquivOfLevel_normalClass]
@@ -302,7 +302,7 @@ tangent vector `v` to the normal class of `v`. -/
 theorem fibreNormalEquiv_mfderiv (x : SmoothProjectiveHypersurface.fermat 1 3)
     (v : TangentSpace 𝓘(ℝ, Fin 2 → ℂ) (fibreEmbedding x)) :
     fibreNormalEquiv x (mfderiv 𝓘(ℝ, Fin 2 → ℂ) 𝓘(ℝ, ℂ) affineCoordinate (fibreEmbedding x) v) =
-      fibreEmbedding.normalClass x (WithTop.coe_ne_zero.2 ENat.top_ne_zero) v := by
+      fibreEmbedding.isImmersion.normalClass x (WithTop.coe_ne_zero.2 ENat.top_ne_zero) v := by
   rw [← fibreNormalEquiv_symm_normalClass, ContinuousLinearEquiv.apply_symm_apply]
 
 /-- The normal trivialization is smooth: `(x, z) ↦ fibreNormalEquiv x z` is a smooth map from
@@ -313,7 +313,8 @@ theorem contMDiff_fibreNormalEquiv :
     ContMDiff (𝓘(ℝ, Fin 1 → ℂ).prod 𝓘(ℝ, ℂ)) (𝓘(ℝ, Fin 1 → ℂ).prod 𝓘(ℝ, ℂ)) ∞
       (fun x : SmoothProjectiveHypersurface.fermat 1 3 × ℂ ↦
         (⟨x.1, fibreNormalEquiv x.1 x.2⟩ : Bundle.TotalSpace ℂ
-          (fun q ↦ fibreEmbedding.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)))) :=
+          (fun q ↦ fibreEmbedding.isImmersion.NormalSpace q
+            (WithTop.coe_ne_zero.2 ENat.top_ne_zero)))) :=
   SmoothEmbedding.contMDiff_normalSpaceEquivOfLevel_symm
     contMDiffAt_affineCoordinate_fibreEmbedding eventually_affineCoordinate_fibreEmbedding
     isRegularPoint_restrictScalars_affineCoordinate _ finrank_add_finrank_eq_fibreEmbedding
@@ -329,7 +330,7 @@ theorem normalComplexStructureAt_fibreNormalEquiv (x : SmoothProjectiveHypersurf
         (mapsTo_ofComplexManifold_tangentRange_fibreEmbedding x) (fibreNormalEquiv x z) =
       fibreNormalEquiv x (Complex.I * z) := by
   obtain ⟨v, rfl⟩ := (fibreNormalEquiv x).symm.surjective z
-  obtain ⟨v, rfl⟩ := fibreEmbedding.normalClass_surjective x _ v
+  obtain ⟨v, rfl⟩ := fibreEmbedding.isImmersion.normalClass_surjective x _ v
   rw [ContinuousLinearEquiv.apply_symm_apply,
     SmoothEmbedding.normalComplexStructureAt_normalClass, fibreNormalEquiv_symm_normalClass,
     ← fibreNormalEquiv_mfderiv,
