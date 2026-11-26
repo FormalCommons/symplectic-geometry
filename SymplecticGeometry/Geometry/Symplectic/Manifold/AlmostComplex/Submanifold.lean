@@ -16,6 +16,8 @@ public import TauCeti.Geometry.Symplectic.Manifold.Kahler
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Restriction
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Pseudoholomorphic
 public import TauCeti.Geometry.Symplectic.Lagrangian.Basic
+public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Normal
+public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.NormalBundle
 import SymplecticGeometry.LinearAlgebra.ComplexStructure.Hom
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import SymplecticGeometry.Geometry.Manifold.VectorField.Immersion
@@ -93,6 +95,15 @@ open subset are those of the manifold. On an open subset of a complex manifold, 
 restriction of the complex structure is the complex structure of the subset
 (`TauCeti.SmoothAlmostComplexStructure.restrictOpen_ofComplexManifold`).
 
+The last section concerns the normal spaces. Let `σ` be nondegenerate and taming `J`, and let `f`
+have symplectic tangent images, so that Tau Ceti gives each normal space the symplectic form
+`σ_ν` (`TauCeti.SmoothEmbedding.symplecticNormalForm`) and, where the tangent image is
+`J`-invariant, the complex structure `J_ν [v] = [J v]`
+(`TauCeti.SmoothEmbedding.normalComplexStructureAt`). Then `σ_ν(ν, J_ν ν) > 0` for `ν ≠ 0`: if
+`w` is the representative of `ν` in the `σ`-orthogonal of the tangent image, then
+`σ_ν(J_ν ν, ν) = σ(J w, w)` by `TauCeti.SmoothEmbedding.symplecticNormalForm_normalClass`, and
+both forms are antisymmetric. Only taming is used: the `σ`-orthogonal need not be `J`-invariant.
+
 ## Main definitions
 
 * `TauCeti.SmoothAlmostComplexStructure.restrict`: the almost complex structure that `J` induces
@@ -129,6 +140,9 @@ restriction of the complex structure is the complex structure of the subset
 * `TauCeti.IsPseudoholomorphicAt.ker_mfderiv_mem_invtSubmodule`,
   `TauCeti.SmoothTwoForm.Tames.nondegenerate_restrict_ker_mfderiv`: the kernel of the derivative
   of a pseudoholomorphic map is invariant, and a taming form is nondegenerate on it.
+* `TauCeti.SmoothEmbedding.symplecticNormalForm_normalComplexStructureAt_pos`: a taming form
+  makes the normal symplectic form positive on each nonzero normal vector and its image under
+  the normal complex structure.
 
 ## References
 
@@ -502,3 +516,32 @@ theorem SmoothAlmostComplexStructure.restrictOpen_ofComplexManifold {F N : Type*
     (ofComplexManifold_apply (E := F) x v).symm
 
 end TauCeti
+
+/-! ### Taming forms on the normal spaces of a submanifold -/
+
+namespace TauCeti.SmoothEmbedding
+
+variable {E H X E' H' Y : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace X] [ChartedSpace H X]
+  [IsManifold I ∞ X] [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+  {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace Y] [ChartedSpace H' Y]
+  {n : ℕ∞ω} {σ : SmoothTwoForm I X} {hσ : σ.IsNondegenerate}
+  {J : SmoothAlmostComplexStructure I X}
+
+/-- If `σ` tames `J`, the normal symplectic form of an embedding with symplectic tangent images is
+positive on every nonzero normal vector `ν` at a point where the tangent image is `J`-invariant,
+paired with its image `J_ν ν` under the complex structure that `J` induces on the normal space. -/
+theorem symplecticNormalForm_normalComplexStructureAt_pos (hτ : σ.Tames J)
+    (f : SmoothEmbedding I' I n Y X) (h : hσ.HasSymplecticTangentImages I' f) {x : Y}
+    (hn : n ≠ 0) (hJ : Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn))
+    {ν : f.NormalSpace x hn} (hν : ν ≠ 0) :
+    0 < f.symplecticNormalForm h x hn ν (f.normalComplexStructureAt hn J x hJ ν) := by
+  let w := f.symplecticNormalRepresentative h x hn ν
+  have hw : f.normalClass x hn w = ν := f.normalClass_symplecticNormalRepresentative h x hn ν
+  have hw0 : w ≠ 0 := fun h0 ↦ hν (by rw [← hw, h0, map_zero])
+  -- The class of `J w` is `J_ν ν`, and `w` represents `ν` in the symplectic complement.
+  rw [← SymplecticForm.neg_eq, ← hw, normalComplexStructureAt_normalClass,
+    symplecticNormalForm_normalClass, hw, SmoothBundleForm.eval₂_swap, neg_neg]
+  exact SmoothTwoForm.tames_iff.1 hτ (f x) w hw0
+
+end TauCeti.SmoothEmbedding
