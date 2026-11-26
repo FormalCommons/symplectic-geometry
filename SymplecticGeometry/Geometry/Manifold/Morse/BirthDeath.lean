@@ -538,6 +538,13 @@ theorem pullback_weight :
     (φ.pullback hΦ A).toMorseBottChart.weight = (φ.toMorseBottChart.pullback hΦ A).weight :=
   MorseBottChart.congr_weight _ _
 
+/-- The quadratic normal form of the Morse–Bott chart of the pull-back of a birth–death chart is
+that of `φ` after `A`. -/
+@[simp]
+theorem pullback_quadratic :
+    (φ.pullback hΦ A).toMorseBottChart.quadratic = φ.toMorseBottChart.quadratic ∘ A :=
+  (MorseBottChart.congr_quadratic _ _).trans (MorseBottChart.pullback_quadratic _ hΦ A)
+
 /-- The cubic coordinate of the pull-back of a birth–death chart is that of `φ`, reindexed along
 `finrank E' = finrank E`. -/
 @[simp]
@@ -560,13 +567,10 @@ theorem index_pullback : (φ.pullback hΦ A).index = φ.index := by
     (finCongr _).injective (by simp)
 
 /-- The normal form of the pull-back of a birth–death chart along `Φ` is that of `φ` after `A`. -/
+@[simp]
 theorem normalForm_pullback : (φ.pullback hΦ A).normalForm = φ.normalForm ∘ A := by
   funext z
-  simp only [normalForm_apply, comp_apply, pullback_weight, pullback_coord, pullback_cubicIndex,
-    MorseBottChart.pullback_weight, MorseBottChart.pullback_coord_apply, Equiv.apply_symm_apply]
-  congr 3
-  exact (finCongr A.toLinearEquiv.finrank_eq).sum_comp fun j ↦
-    φ.toMorseBottChart.weight j * φ.toMorseBottChart.coord (A z) j ^ 2
+  simp [normalForm]
 
 end BirthDeathChart
 

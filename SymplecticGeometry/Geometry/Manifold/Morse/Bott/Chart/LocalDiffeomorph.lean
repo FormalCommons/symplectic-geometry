@@ -23,11 +23,11 @@ after `A`, and its weights those of `φ`, both reindexed along `finrank E' = fin
 ## Main declarations
 
 * `TauCeti.MorseBottChart.congr`: a Morse–Bott chart for `f` is one for any function that agrees
-  with `f` on its source, with the same chart, coordinates and weights.
+  with `f` on its source, with the same chart, coordinates, weights and quadratic normal form.
 * `TauCeti.MorseBottChart.pullback`: the pull-back of a Morse–Bott chart along a local
   diffeomorphism at a point, with `TauCeti.MorseBottChart.mem_pullback_source`,
-  `TauCeti.MorseBottChart.pullback_apply`, `TauCeti.MorseBottChart.pullback_coord_apply` and
-  `TauCeti.MorseBottChart.pullback_weight`.
+  `TauCeti.MorseBottChart.pullback_apply`, `TauCeti.MorseBottChart.pullback_coord_apply`,
+  `TauCeti.MorseBottChart.pullback_weight` and `TauCeti.MorseBottChart.pullback_quadratic`.
 
 ## Implementation notes
 
@@ -85,6 +85,12 @@ theorem congr_coord : (φ.congr h).coord = φ.coord :=
 theorem congr_weight : (φ.congr h).weight = φ.weight :=
   (rfl)
 
+/-- The quadratic normal form of `φ.congr h` is that of `φ`. -/
+@[simp]
+theorem congr_quadratic : (φ.congr h).quadratic = φ.quadratic := by
+  funext z
+  simp [quadratic_apply, h φ.mem_source]
+
 end Congr
 
 /-! ### Pull-back along a local diffeomorphism -/
@@ -117,6 +123,15 @@ private theorem pullbackChart_apply {z : M'}
     A ((pullbackChart φ hΦ A).toOpenPartialHomeomorph z) = φ.toChart (Φ z) := by
   simp [pullbackChart, hΦ.eqOn_localInverse_symm ((mem_pullbackChart_source_iff φ hΦ A).1 hz).1]
 
+omit [TopologicalSpace M'] [ChartedSpace E' M'] [IsManifold 𝓘(ℝ, E') ∞ M'] in
+/-- The diagonal sum of `φ` at `A v` does not change when reindexed along
+`finrank E' = finrank E`. This is the step shared by `pullback` and `pullback_quadratic`. -/
+private theorem sum_weight_mul_coord_sq_finCongr (v : E') :
+    ∑ i, φ.weight (finCongr A.toLinearEquiv.finrank_eq i) *
+        φ.coord (A v) (finCongr A.toLinearEquiv.finrank_eq i) ^ 2 =
+      ∑ j, φ.weight j * φ.coord (A v) j ^ 2 :=
+  (finCongr A.toLinearEquiv.finrank_eq).sum_comp fun j ↦ φ.weight j * φ.coord (A v) j ^ 2
+
 /-- The **pull-back of a Morse–Bott chart along a local diffeomorphism.** If `Φ : M' → M` is a
 smooth local diffeomorphism at `y`, where `M'` is modelled on `E'` and `M` on `E`, and
 `A : E' ≃L[ℝ] E` is a linear equivalence of the models, such as the derivative of `Φ` at `y`, then
@@ -139,13 +154,9 @@ noncomputable def pullback : MorseBottChart E' (f ∘ Φ) y where
   weight_eq_neg_one_or_eq_zero_or_eq_one _ := φ.weight_eq_neg_one_or_eq_zero_or_eq_one _
   eq_quadratic z hz := by
     have hz' := (mem_pullbackChart_source_iff φ hΦ A).1 hz
-    rw [comp_apply, comp_apply, φ.eq_quadratic (Φ z) hz'.2]
-    simp only [comp_apply, LinearEquiv.trans_apply, LinearEquiv.funCongrLeft_apply,
-      LinearMap.funLeft_apply, ContinuousLinearEquiv.coe_toLinearEquiv,
-      pullbackChart_apply φ hΦ A hz]
-    congr 2
-    exact ((finCongr A.toLinearEquiv.finrank_eq).sum_comp fun j ↦
-      φ.weight j * φ.coord (φ.toChart (Φ z)) j ^ 2).symm
+    rw [comp_apply, comp_apply, φ.eq_quadratic (Φ z) hz'.2, ← pullbackChart_apply φ hΦ A hz,
+      ← sum_weight_mul_coord_sq_finCongr]
+    simp
 
 /-- A point lies in the source of the pull-back of a Morse–Bott chart along `Φ` if and only if it
 lies in the target of the chosen local inverse of `Φ` and `Φ` maps it into the source of `φ`. -/
@@ -167,15 +178,25 @@ theorem pullback_apply {z : M'} (hz : z ∈ (φ.pullback hΦ A).toChart.source) 
 
 /-- The coordinates of the pull-back of a Morse–Bott chart along `Φ` are those of `φ` after `A`,
 reindexed along `finrank E' = finrank E`. -/
+@[simp]
 theorem pullback_coord_apply (v : E') (i : Fin (Module.finrank ℝ E')) :
     (φ.pullback hΦ A).coord v i = φ.coord (A v) (finCongr A.toLinearEquiv.finrank_eq i) := by
   simp [pullback]
 
 /-- The weights of the pull-back of a Morse–Bott chart along `Φ` are those of `φ`, reindexed
 along `finrank E' = finrank E`. -/
+@[simp]
 theorem pullback_weight :
     (φ.pullback hΦ A).weight = φ.weight ∘ finCongr A.toLinearEquiv.finrank_eq :=
   (rfl)
+
+/-- The quadratic normal form of the pull-back of a Morse–Bott chart along `Φ` is that of `φ`
+after `A`. -/
+@[simp]
+theorem pullback_quadratic : (φ.pullback hΦ A).quadratic = φ.quadratic ∘ A := by
+  funext z
+  simp only [quadratic_apply, comp_apply, pullback_weight, pullback_coord_apply,
+    sum_weight_mul_coord_sq_finCongr]
 
 end Pullback
 
