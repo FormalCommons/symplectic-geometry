@@ -47,8 +47,8 @@ A `C^n` local diffeomorphism `f` with `2 ≤ n` also pulls a pair with `ι_Y dα
 pair, for the pulled-back field and form
 (`IsLocalDiffeomorph.interior_mextDeriv_mpullback_of_interior_mextDeriv`). The proof combines Tau
 Ceti's `TauCeti.mpullback_mextDeriv_at` and `TauCeti.mpullback_interior`; that the differential of
-`f` sends the pulled-back field to `Y` comes from Mathlib's
-`IsLocalDiffeomorphAt.isInvertible_mfderiv`.
+`f` sends the pulled-back field to `Y` is `IsLocalDiffeomorphAt.mfderiv_apply_mpullback`, from
+`SymplecticGeometry.Geometry.Manifold.VectorField.Pullback`.
 
 At a single point `x` where `f` is a local diffeomorphism, the same tools transfer pointwise
 identities between a form `ω` at `f x` and its pullback at `x`: `dφ = ψ`
