@@ -139,9 +139,8 @@ theorem exists_symplectomorphism_opens_mfderiv_eq [SecondCountableTopology M₀]
   have hχχ' : Subtype.val ∘ ⇑χ = ⇑χ' ∘ Subtype.val :=
     funext fun w ↦ by simp [χ']
   have hΘ' : ⇑Θ' = ⇑ψ' ∘ ⇑χ' := by simp [Θ']
-  have hχ'source (w : V₀) : (w : U₀) ∈ χ'.source := by
-    rw [PartialDiffeomorph.liftOpens_source]
-    exact ⟨w, by simp, rfl⟩
+  have hχ'source (w : V₀) : (w : U₀) ∈ χ'.source :=
+    (χ.toPartialDiffeomorph_liftOpens_source hV₀ hV₁).symm.subset w.property
   have hΘ'source {y : U₀} (hy : y ∈ χ'.source) : y ∈ Θ'.source := by
     simp [Θ', hy]
   -- At the points of `f₀ (Q)`, `χ'` is the identity, with identity derivative.
@@ -185,8 +184,8 @@ theorem exists_symplectomorphism_opens_mfderiv_eq [SecondCountableTopology M₀]
     -- that `y` is.
     refine Θ'.mpullback_toDiffeomorphSourceTarget_liftOpens hU₀ hU₁ fun y hy ↦ ?_
     have hyχ : y ∈ χ'.source := by simpa [Θ'] using hy
-    obtain ⟨w, -, hwy⟩ : y ∈ Subtype.val '' χ.toPartialDiffeomorph.source :=
-      χ.toPartialDiffeomorph.liftOpens_source hV₀ hV₁ ▸ hyχ
+    obtain ⟨w, hwy⟩ : ∃ w : V₀, (w : U₀) = y :=
+      ⟨⟨y, (χ.toPartialDiffeomorph_liftOpens_source hV₀ hV₁).subset hyχ⟩, rfl⟩
     have h := congrFun (congrArg Subtype.val hχ) w
     rw [SmoothForm.coe_mpullback_subtype_val_apply, SmoothForm.coe_mpullback_subtype_val_apply] at h
     rw [hΘ', mpullback_comp_at (χ'.mdifferentiableAt (by simp) hyχ)
