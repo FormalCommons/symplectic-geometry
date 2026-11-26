@@ -92,6 +92,12 @@ theorem quotientNormalClosureMulEquiv_mk (hP : IsPushout f g inl inr)
     hP.quotientNormalClosureMulEquiv hf (QuotientGroup.mk x) = inr x := by
   simp [quotientNormalClosureMulEquiv, QuotientGroup.quotientKerEquivOfSurjective]
 
+@[simp]
+theorem quotientNormalClosureMulEquiv_symm_inr (hP : IsPushout f g inl inr)
+    (hf : Function.Surjective f) (x : G₂) :
+    (hP.quotientNormalClosureMulEquiv hf).symm (inr x) = QuotientGroup.mk x := by
+  rw [MulEquiv.symm_apply_eq, quotientNormalClosureMulEquiv_mk]
+
 /-- In a pushout square of groups with `f` surjective, if `g` kills the kernel of `f`, then
 `inr` is bijective. -/
 theorem bijective_inr_of_ker_le (hP : IsPushout f g inl inr)
@@ -115,6 +121,12 @@ theorem inrMulEquivOfKerLe_apply (hP : IsPushout f g inl inr)
     (hf : Function.Surjective f) (hfg : f.hom.ker ≤ g.hom.ker) (x : G₂) :
     hP.inrMulEquivOfKerLe hf hfg x = inr x := by
   simp [inrMulEquivOfKerLe]
+
+@[simp]
+theorem inrMulEquivOfKerLe_symm_inr (hP : IsPushout f g inl inr)
+    (hf : Function.Surjective f) (hfg : f.hom.ker ≤ g.hom.ker) (x : G₂) :
+    (hP.inrMulEquivOfKerLe hf hfg).symm (inr x) = x := by
+  rw [MulEquiv.symm_apply_eq, inrMulEquivOfKerLe_apply]
 
 end CategoryTheory.IsPushout
 
