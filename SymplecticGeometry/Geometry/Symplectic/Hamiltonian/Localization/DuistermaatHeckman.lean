@@ -58,7 +58,7 @@ open TauCeti
 
 variable {E H' M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   [TopologicalSpace H'] {I : ModelWithCorners ℝ E H'} [TopologicalSpace M] [ChartedSpace H' M]
-  [I.Boundaryless] [IsManifold I ∞ M] [CompactSpace M] [T2Space M]
+  [IsManifold I ∞ M] [BoundarylessManifold I M] [CompactSpace M] [T2Space M]
   [MeasurableSpace M] [BorelSpace M]
   [MulAction Circle M] [ContMDiffSMul (𝓡 1) I ∞ Circle M]
   {n : ℕ} [Fact (Module.finrank ℝ E = 2 * n)] {σ : SmoothTwoForm I M}
