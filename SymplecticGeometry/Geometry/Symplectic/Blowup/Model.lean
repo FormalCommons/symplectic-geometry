@@ -171,6 +171,12 @@ theorem exceptionalDivisor_subset_openNbhd {ε : ℝ} (hε : 0 < ε) :
   rw [mem_exceptionalDivisor_iff] at hp
   simpa [hp] using hε
 
+/-- For `0 < ε`, the point `zeroSection ℓ` of the exceptional divisor lies in the open
+neighbourhood of radius `ε`. -/
+theorem zeroSection_mem_openNbhd {ε : ℝ} (hε : 0 < ε) (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    zeroSection ℓ ∈ openNbhd n ε :=
+  exceptionalDivisor_subset_openNbhd hε (exceptionalDivisor_eq_range ▸ ⟨ℓ, rfl⟩)
+
 /-- For `0 < ε`, the exceptional divisor lies in `L(ε)`. -/
 theorem exceptionalDivisor_subset_closedNbhd {ε : ℝ} (hε : 0 < ε) :
     exceptionalDivisor n ⊆ closedNbhd n ε :=
