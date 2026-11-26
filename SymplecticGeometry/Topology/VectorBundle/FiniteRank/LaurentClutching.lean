@@ -43,7 +43,8 @@ clutching is a polynomial clutching tensored with the clutching of the trivial l
   polynomial family `∑_{0 ≤ j ≤ 2N} a_{j - N}(x) u^j`;
 * `TauCeti.FiniteRankBundleCore.nonempty_iso_clutching_of_fiberMap_comp_eq`: an isomorphism
   `E ≅ E'` that carries `f` to `f'` fibre by fibre gives an isomorphism of the clutchings;
-* `TauCeti.FiniteRankBundleCore.circleZPowSMul m f`: the family `u ^ m • f`;
+* `TauCeti.FiniteRankBundleCore.circleZPowSMul m f`: the family `u ^ m • f`, which on the trivial
+  line by the identity is `circleZPowIso X m` (`circleZPowSMul_refl`);
 * `TauCeti.FiniteRankBundleCore.clutching_circleZPowSMul`: the clutching by `u ^ m • f` is the
   clutching by `f` tensored with the clutching of the trivial line by `u ^ m`;
 * `TauCeti.FiniteRankBundleCore.exists_clutching_iso_tensor_of_hom_eq_laurentHom`: the
@@ -109,16 +110,13 @@ theorem zpow_smul_fiberMap_laurentHom (N : ℕ) (a : ℤ → (A ⟶ D)) (w : X �
     rw [smul_smul, ← zpow_natCast, hi', ← zpow_add₀ (Circle.coe_ne_zero w.2), add_comm,
       add_sub_cancel_right]
 
-/-! ### Twisting a clutching function by a power of the circle coordinate -/
-
-section CircleZPowSMul
-
-variable {E E' : FiniteRankBundleCore ℂ X}
+/-! ### Clutchings by conjugate families -/
 
 /-- **Clutchings by conjugate families are isomorphic.** If an isomorphism `Φ : E ≅ E'` carries
 the automorphism `f` of the pullback of `E` to `X × Circle` to the automorphism `f'` of that of
 `E'`, fibre by fibre, then the clutching of `E` by `f` is isomorphic to that of `E'` by `f'`. -/
-theorem nonempty_iso_clutching_of_fiberMap_comp_eq (Φ : E ≅ E')
+theorem nonempty_iso_clutching_of_fiberMap_comp_eq {𝕜 X : Type*} [NontriviallyNormedField 𝕜]
+    [TopologicalSpace X] {E E' : FiniteRankBundleCore 𝕜 X} (Φ : E ≅ E')
     {f : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
       E.pullback (ContinuousMap.fst : C(X × Circle, X))}
     {f' : E'.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
@@ -134,6 +132,12 @@ theorem nonempty_iso_clutching_of_fiberMap_comp_eq (Φ : E ≅ E')
   have hb := h (SymplecticGeometry.ProjectiveLine.clutchingMap X b)
   rw [SymplecticGeometry.ProjectiveLine.clutchingMap_apply] at hb ⊢
   exact hb
+
+/-! ### Twisting a clutching function by a power of the circle coordinate -/
+
+section CircleZPowSMul
+
+variable {E : FiniteRankBundleCore ℂ X}
 
 /-- The family `u ^ m • f` for an automorphism `f` of the pullback of `E` to `X × Circle` and
 `m : ℤ`: the automorphism whose fibre map at `(x, u)` is `u ^ m • f_{(x, u)}`. -/
@@ -172,6 +176,12 @@ theorem circleZPowSMul_zero
     (f : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
       E.pullback (ContinuousMap.fst : C(X × Circle, X))) :
     circleZPowSMul 0 f = f :=
+  Iso.ext <| hom_ext fun w ↦ by simp
+
+/-- On the trivial line, `u ^ m` times the identity is `circleZPowIso X m`. -/
+@[simp]
+theorem circleZPowSMul_refl (m : ℤ) :
+    circleZPowSMul (E := trivial ℂ X 1) m (Iso.refl _) = circleZPowIso X m :=
   Iso.ext <| hom_ext fun w ↦ by simp
 
 @[simp]
