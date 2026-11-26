@@ -724,7 +724,10 @@ Expected size: 300 lines.
   `IsProductCollarChart.diffeomorphProd`, `SmoothCollar` with
   `diffeomorphOpensRange`, `EuclideanHalfSpace.normalIioOpens`,
   `BoundarylessModel` with `interiorChartedSpace` and
-  `interiorDiffeomorph`; gluing: `chartedSpaceOfIsOpenEmbedding`,
+  `interiorDiffeomorph`; flows from boundary points:
+  `exists_contDiffOn_localFlow_euclideanHalfSpace`,
+  `exists_contMDiffOn_localFlow_of_isOutwardPointing_neg`,
+  `exists_contMDiffOn_boundaryFlow`; gluing: `chartedSpaceOfIsOpenEmbedding`,
   `TopCat.GlueData.IsCompatible.isManifold`, `TopCat.GlueData.t2Space_iff_forall_nhds`,
   `Diffeomorph.isManifold_chartedSpaceComp`,
   `isCompatible_transContinuousLinearEquiv_iff`.
@@ -736,9 +739,8 @@ Searched at the pinned versions, in Mathlib, Tau Ceti and this library: a
 converse to `IsContactType.isContactForm_mpullback`, a neighbourhood model
 or converse normal form for stable Hamiltonian structures, smoothness of
 `characteristicVectorField`, strong fillings, the existence of smooth
-collars, integral curves starting at boundary points (Mathlib's existence
-theorems need an interior point), and the gluing of an end to a manifold
-with boundary. None exists; Tau Ceti's
+collars, and the gluing of an end to a manifold with boundary. None
+exists; Tau Ceti's
 `Liouville/Completion.lean` and `CylindricalEnd.lean` start from a completion
 that is already given.
 
