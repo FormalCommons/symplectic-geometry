@@ -25,7 +25,7 @@ is Tau Ceti's `TauCeti.mextDeriv_ofFunction_apply` together with
 ## References
 
 * J. M. Lee, *Introduction to Smooth Manifolds*, 2nd ed., Graduate Texts in Mathematics 218,
-  Springer, 2013, Chapter 14 (the differential of a function).
+  Springer, 2013, Chapter 11 (the differential of a function).
 -/
 
 public section
