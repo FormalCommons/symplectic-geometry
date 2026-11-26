@@ -8,7 +8,6 @@ module
 public import Mathlib.LinearAlgebra.Projectivization.Action
 public import SymplecticGeometry.Geometry.Manifold.RegularValue.CriticalSet
 public import TauCeti.Geometry.Manifold.Projectivization.ProjectiveLine
-import SymplecticGeometry.Geometry.Manifold.Diffeomorph.RestrictScalars
 import SymplecticGeometry.LinearAlgebra.Projectivization.Action
 import TauCeti.Geometry.Manifold.Algebra.SMul
 import TauCeti.Geometry.Manifold.Projectivization.Map
@@ -17,15 +16,15 @@ import TauCeti.Geometry.Manifold.Projectivization.Map
 # Projective transformations of the projective line and maps into it
 
 A matrix `g : GL (Fin 2) ℂ` acts on `ℂℙ¹ = ℙ ℂ (Fin 2 → ℂ)` by a biholomorphism, Tau Ceti's
-`Diffeomorph.constSmul`; on the underlying real manifold it is a diffeomorphism
-`Projectivization.smulDiffeomorph g`. Postcomposing a map `π : X → ℂℙ¹` with it changes neither
-its critical set nor, up to the move by `g`, its regular values. Since `SL₂(ℂ)` acts
+`Diffeomorph.constSmul`, hence by a diffeomorphism of the underlying real manifold. By
+`Diffeomorph.criticalSet_comp_restrictScalars'` and
+`Diffeomorph.comp_isRegularValue_iff_restrictScalars'`, postcomposing a map `π : X → ℂℙ¹` with it
+changes neither its critical set nor, up to the move by `g`, its regular values. Since `SL₂(ℂ)` acts
 two-transitively on `ℂℙ¹`, a map with finitely many critical points can thus be moved so that a
 given regular value and some second one land on any two prescribed distinct points.
 
 ## Main results
 
-* `Projectivization.smulDiffeomorph`: the diffeomorphism `g • ·` of the real manifold `ℂℙ¹`.
 * `Projectivization.criticalSet_smul`, `Projectivization.isRegularValue_smul_iff`: moving a map
   into `ℂℙ¹` by `g` keeps its critical set and moves its regular values by `g`.
 * `Projectivization.exists_smul_isRegularValue`: for a map into `ℂℙ¹` with finitely many critical
@@ -39,18 +38,6 @@ open Set TauCeti
 open scoped Manifold LinearAlgebra.Projectivization
 
 namespace Projectivization
-
-/-- The diffeomorphism `g • ·` of `ℂℙ¹` for a projective transformation `g`, on the underlying
-real manifold. -/
-noncomputable def smulDiffeomorph (g : GL (Fin 2) ℂ) :
-    ℙ ℂ (Fin 2 → ℂ) ≃ₘ^⊤⟮𝓘(ℝ, Fin 1 → ℂ), 𝓘(ℝ, Fin 1 → ℂ)⟯ ℙ ℂ (Fin 2 → ℂ) :=
-  (Diffeomorph.constSmul 𝓘(ℂ, Fin 1 → ℂ) ⊤ g :
-    ℙ ℂ (Fin 2 → ℂ) ≃ₘ^⊤⟮𝓘(ℂ, Fin 1 → ℂ), 𝓘(ℂ, Fin 1 → ℂ)⟯ ℙ ℂ (Fin 2 → ℂ)).restrictScalars' ℝ
-
-/-- The diffeomorphism `smulDiffeomorph g` is the map `x ↦ g • x`. -/
-@[simp]
-theorem coe_smulDiffeomorph (g : GL (Fin 2) ℂ) : ⇑(smulDiffeomorph g) = (g • ·) := by
-  rw [smulDiffeomorph, Diffeomorph.coe_restrictScalars', Diffeomorph.coe_constSmul]
 
 variable {E H X : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [TopologicalSpace X] [ChartedSpace H X]

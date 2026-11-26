@@ -385,10 +385,9 @@ theorem comp_diffeomorph (h : IsLefschetzFibration ω J π)
     fun x hx ↦ ?_⟩
   · obtain ⟨φ, i, hφ⟩ := h.exists_model p hp
     exact hφ.exists_isLefschetzChart_comp Ψ
-  · rw [← hΦ] at hx ⊢
-    rw [((Ψ.restrictScalars' ℝ).isLocalDiffeomorph _).ker_mfderiv_comp (by simp)
+  · rw [← hΦ, ((Ψ.restrictScalars' ℝ).isLocalDiffeomorph _).ker_mfderiv_comp (by simp)
       ((h.contMDiff x).mdifferentiableAt (by simp))]
-    exact h.isNondegenerate_ker x ((Diffeomorph.comp_isRegularPoint_iff _ (by simp)).1 hx)
+    exact h.isNondegenerate_ker x ((Ψ.comp_isRegularPoint_iff_restrictScalars' (by simp)).1 hx)
 
 /-- **Composing with a projective transformation.** If `π` is a Lefschetz fibration for `ω` and
 `J`, so is `x ↦ g • π x` for every `g : GL (Fin 2) ℂ`, acting on `ℂℙ¹` through its linear action

@@ -32,7 +32,8 @@ Tau Ceti's own `criticalPoints` is the corresponding notion for real-valued func
   `Diffeomorph.criticalSet_comp`: postcomposing with a diffeomorphism changes neither the regular
   points, nor the regular values (moved by the diffeomorphism), nor the critical set. This is the
   counterpart, for the target, of Tau Ceti's `Diffeomorph.isRegularPoint_comp_iff`.
-* `Diffeomorph.comp_isRegularValue_iff_restrictScalars'` and
+* `Diffeomorph.comp_isRegularPoint_iff_restrictScalars'`,
+  `Diffeomorph.comp_isRegularValue_iff_restrictScalars'` and
   `Diffeomorph.criticalSet_comp_restrictScalars'`: the same for a diffeomorphism over a larger
   field, such as a biholomorphism, seen over the smaller field by `Diffeomorph.restrictScalars'`.
 * `SymplecticGeometry.criticalSet_eq_criticalPoints`: for a real-valued function the critical
@@ -131,6 +132,13 @@ variable {𝕜' : Type*} [NontriviallyNormedField 𝕜'] [NormedAlgebra 𝕜 �
   {F' : Type*} [NormedAddCommGroup F'] [NormedSpace 𝕜 F'] [NormedSpace 𝕜' F']
   [IsScalarTower 𝕜 𝕜' F'] {P : Type*} [TopologicalSpace P] [ChartedSpace F P]
   {P' : Type*} [TopologicalSpace P'] [ChartedSpace F' P'] {n : WithTop ℕ∞}
+
+/-- Postcomposing a map with a `C^n` diffeomorphism over a larger field `𝕜'` (`n ≠ 0`), such as a
+biholomorphism, does not change its regular points over `𝕜`. -/
+theorem _root_.Diffeomorph.comp_isRegularPoint_iff_restrictScalars'
+    (Ψ : P ≃ₘ^n⟮𝓘(𝕜', F), 𝓘(𝕜', F')⟯ P') (hn : n ≠ 0) {f : M → P} {x : M} :
+    IsRegularPoint I 𝓘(𝕜, F') (Ψ ∘ f) x ↔ IsRegularPoint I 𝓘(𝕜, F) f x := by
+  rw [← Diffeomorph.coe_restrictScalars' 𝕜 Ψ, Diffeomorph.comp_isRegularPoint_iff _ hn]
 
 /-- Postcomposing a map with a `C^n` diffeomorphism `Ψ` over a larger field `𝕜'` (`n ≠ 0`), such
 as a biholomorphism, moves its regular values over `𝕜` by `Ψ`: `Ψ y` is a regular value of `Ψ ∘ f`
