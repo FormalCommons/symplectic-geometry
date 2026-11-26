@@ -21,9 +21,10 @@ import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
 /-!
 # The zero section of a vector bundle as a smooth embedding
 
-For a smooth vector bundle `V` with finite-dimensional model fibre `F` over a manifold `B`
-without boundary, with finite-dimensional model, the zero section `B → TotalSpace F V` is a smooth
-embedding: the bundle projection is a smooth left inverse of it. This file bundles it as
+For a `C^n` vector bundle `V`, with `1 ≤ n` (`n = ω` included), with finite-dimensional model
+fibre `F` over a manifold `B` without boundary, with finite-dimensional model, the zero section
+`B → TotalSpace F V` is a `C^n` embedding: the bundle projection is a smooth left inverse of it.
+This file bundles it as
 `SymplecticGeometry.Bundle.zeroSectionEmbedding`, so that results about submanifolds, such as the
 neighbourhood theorems, apply to it, and shows that its image is closed. It also reads the zero
 section in the preferred charts of the total space, and computes the differential of a map along
@@ -48,7 +49,8 @@ namespace `TauCeti.Bundle`, `bundleDiffeomorph_zeroSection` and
 
 ## Main definitions
 
-* `SymplecticGeometry.Bundle.zeroSectionEmbedding`: the zero section, as a smooth embedding.
+* `SymplecticGeometry.Bundle.zeroSectionEmbedding`: the zero section, as a `C^n` embedding for
+  every `n` with `1 ≤ n`, `n = ω` included.
 
 ## Main results
 
@@ -108,25 +110,27 @@ open TauCeti
 variable {𝕜 EB HB : Type*} [RCLike 𝕜]
   [NormedAddCommGroup EB] [NormedSpace 𝕜 EB] [FiniteDimensional 𝕜 EB]
   [TopologicalSpace HB] {IB : ModelWithCorners 𝕜 EB HB} [IB.Boundaryless]
-  [ChartedSpace HB B] [IsManifold IB ∞ B]
+  {n : WithTop ℕ∞} [ChartedSpace HB B] [IsManifold IB n B]
   {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F] [FiniteDimensional 𝕜 F]
   {V : B → Type*} [∀ b, AddCommMonoid (V b)] [∀ b, Module 𝕜 (V b)]
   [∀ b, TopologicalSpace (V b)] [TopologicalSpace (TotalSpace F V)]
-  [FiberBundle F V] [VectorBundle 𝕜 F V] [ContMDiffVectorBundle ∞ F V IB]
+  [FiberBundle F V] [VectorBundle 𝕜 F V] [ContMDiffVectorBundle n F V IB]
 
 variable (IB F V) in
-/-- The zero section of a smooth vector bundle with finite-dimensional model fibre over a
-manifold without boundary with finite-dimensional model, as a smooth embedding of the base into
-the total space. -/
-def zeroSectionEmbedding : SmoothEmbedding IB (IB.prod 𝓘(𝕜, F)) ∞ B (TotalSpace F V) :=
+/-- The zero section of a `C^n` vector bundle, `1 ≤ n`, with finite-dimensional model fibre over
+a manifold without boundary with finite-dimensional model, as a `C^n` embedding of the base into
+the total space. For `n = ω` it is an analytic embedding. -/
+def zeroSectionEmbedding (hn : 1 ≤ n) :
+    SmoothEmbedding IB (IB.prod 𝓘(𝕜, F)) n B (TotalSpace F V) :=
   SmoothEmbedding.ofIsSmoothEmbedding (zeroSection F V)
-    ((contMDiff_zeroSection 𝕜 V).isSmoothEmbedding_of_leftInverse (by simp)
+    ((contMDiff_zeroSection 𝕜 V).isSmoothEmbedding_of_leftInverse hn
       (contMDiff_proj V) (zeroSection_proj F V))
 
 variable (IB F V) in
 /-- The underlying map of `zeroSectionEmbedding` is the zero section. -/
 @[simp]
-theorem coe_zeroSectionEmbedding : ⇑(zeroSectionEmbedding IB F V) = zeroSection F V :=
+theorem coe_zeroSectionEmbedding (hn : 1 ≤ n) :
+    ⇑(zeroSectionEmbedding IB F V hn) = zeroSection F V :=
   SmoothEmbedding.coe_ofIsSmoothEmbedding _ _
 
 end SymplecticGeometry.Bundle

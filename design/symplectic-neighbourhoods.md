@@ -556,9 +556,9 @@ $K=0$, the comparison theorem's conclusion is the equality. Milestone:
 
 At Tau Ceti's path, which has `zeroSectionTangentEquiv`. The embedding is the
 library's own definition, so it is in `SymplecticGeometry.Bundle`:
-`SymplecticGeometry.Bundle.zeroSectionEmbedding F V :
-TauCeti.SmoothEmbedding IB (IB.prod 𝓘(ℝ, F)) ∞ B (TotalSpace F V)` for a
-smooth vector bundle with finite-dimensional fibre over a boundaryless base.
+`SymplecticGeometry.Bundle.zeroSectionEmbedding F V hn :
+TauCeti.SmoothEmbedding IB (IB.prod 𝓘(ℝ, F)) n B (TotalSpace F V)` for a
+`C^n` vector bundle (`hn : 1 ≤ n`) with finite-dimensional fibre over a boundaryless base.
 It comes from Tau Ceti's `ContMDiff.isSmoothEmbedding_of_leftInverse` with
 the projection. API: `coe_zeroSectionEmbedding` (it is `zeroSection F V`),
 and `TauCeti.Bundle.isClosed_range_zeroSection`, about Mathlib's zero section.

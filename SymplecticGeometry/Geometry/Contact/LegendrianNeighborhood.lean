@@ -503,7 +503,7 @@ private def zeroSectionOpens [J.Boundaryless] (N : Opens (CotangentBundle J L))
     (hN : ∀ q, zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q ∈ N) :
     SmoothEmbedding J (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) ∞ L N :=
   (SymplecticGeometry.Bundle.zeroSectionEmbedding J (E' →L[ℝ] ℝ)
-    (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ)).codRestrict
+    (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) (by simp)).codRestrict
     N fun q ↦ by rw [SymplecticGeometry.Bundle.coe_zeroSectionEmbedding]; exact hN q
 
 private theorem coe_zeroSectionOpens_apply [J.Boundaryless] (N : Opens (CotangentBundle J L))
