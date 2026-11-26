@@ -76,8 +76,8 @@ pinned versions, as for `DESIGN.md`. Tau Ceti paths are relative to
   `TauCeti.HomologicalOrientation.intersectionForm`, is Tau Ceti's
   cup pairing `TopCat.singularCupPairing ℚ (h : 2 + 2 = 4) μ` on
   $H^2(X;\mathbb Q)$ (`AlgebraicTopology/Cohomology/Cap/Kronecker.lean`),
-  with `μ` the rational fundamental class, the library's
-  `TopCat.singularHomologyIntToRat 4 (oₕ.fundamentalClass _)`
+  with `μ` the rational fundamental class, Tau Ceti's
+  `oₕ.fundamentalClassOver _ ℚ`
   (`AlgebraicTopology/Cohomology/Cap/RationalCoefficients.lean`). The numbers
   $b^\pm$ are the indices of inertia `sigPos` and `sigNeg` of its quadratic
   form `TauCeti.HomologicalOrientation.intersectionQuadraticForm` (Mathlib's
@@ -239,9 +239,8 @@ $3\sigma=\langle c_1^2-2c_2,[X]\rangle$, written with `signature`,
 `integralCup` and `evalFundamentalClass`. From it and the Chern numbers,
 $3\sigma=(4-d^2)d$. The relation $b^++b^-=b_2$ is proved, not assumed: the
 cup pairing is nondegenerate, by Tau Ceti's
-`TopCat.nondegenerate_singularCupPairing_iff` and the library's
-`TauCeti.HomologicalOrientation.bijective_singularCapLinearMap_fundamentalClass`
-(from Poincaré duality, #810), so Tau Ceti's
+`TauCeti.HomologicalOrientation.nondegenerate_singularCupPairing_fundamentalClassOver`,
+so Tau Ceti's
 `QuadraticForm.sigPos_add_sigNeg_of_nondegenerate` applies, and
 $\dim H^2(X;\mathbb Q)=b_2$ by Tau Ceti's
 `TopCat.finrank_singularCohomology`.
@@ -582,13 +581,10 @@ For `d ≠ 0`, with the inclusion `X → ℙ ℂ (Fin (n + 2) → ℂ)`.
 
 In the namespace `TauCeti.HomologicalOrientation`:
 
-- `bijective_singularCapLinearMap_fundamentalClass`: for a compact
-  homologically oriented `m`-manifold and `p + q = m`, capping with the image
-  of the fundamental class is a bijection `Hᵖ(M; ℚ) → H_q(M; ℚ)`, with no
-  hypothesis on the duality map, by #810's bijectivity of the duality map;
 - `bettiNumber_eq_bettiNumber`: for a compact homologically oriented
   `m`-manifold and `p + q = m`, `bettiNumber ℚ M q = bettiNumber ℚ M p`, from
-  #810's bijectivity of the duality map and Tau Ceti's
+  Tau Ceti's
+  `bijective_singularCapLinearMap_fundamentalClassOver` and Tau Ceti's
   `TopCat.finrank_singularHomology_eq_of_bijective_singularCapLinearMap`.
 
 ### `Geometry/Manifold/Projectivization/Hypersurface/BettiNumber.lean`
