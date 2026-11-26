@@ -90,7 +90,7 @@ omit [T2Space M] [SigmaCompactSpace M] in
 /-- Along an isotopy `k` of embeddings between manifolds of the same dimension whose velocity form
 at time `t` is `k_t^* β_t + dh_t`, a field `Y` with `ι_Y σ = β_t + dG_t`, where `σ` is
 nondegenerate and `G_t ∘ k_t = h_t` near `x`, is the velocity of `k` at `k_t x`. -/
-private theorem apply_eq_mfderiv_of_interior_eq (hσ : σ.IsNondegenerate) (k : SmoothIsotopy f₀ f₁)
+theorem apply_eq_mfderiv_of_interior_eq (hσ : σ.IsNondegenerate) (k : SmoothIsotopy f₀ f₁)
     (hd : Module.finrank ℝ E' = Module.finrank ℝ E)
     {β : SmoothForm ((𝓡∂ 1).prod I) (unitInterval × M) ℝ 1} {h : unitInterval × P → ℝ}
     {t : unitInterval}
