@@ -9,7 +9,6 @@ public import SymplecticGeometry.AlgebraicTopology.Cellular.SkeletonPairCohomolo
 public import SymplecticGeometry.AlgebraicTopology.Cellular.SkeletonPairHom
 public import SymplecticGeometry.Topology.CWComplex.Classical.CellExtension
 public import SymplecticGeometry.Topology.ComplexProjectiveSpace.DiskPair
-public import SymplecticGeometry.Topology.ComplexProjectiveSpace.HomotopyGroup
 public import SymplecticGeometry.Topology.ComplexProjectiveSpace.Nullhomotopic
 public import TauCeti.AlgebraicTopology.Cellular.Dimension
 public import TauCeti.AlgebraicTopology.Cohomology.ConnectedMap
