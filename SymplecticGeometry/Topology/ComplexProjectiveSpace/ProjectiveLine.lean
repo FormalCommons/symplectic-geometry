@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Topology.UnitInterval
 public import SymplecticGeometry.Analysis.Complex.RadialProjection
+public import SymplecticGeometry.Topology.Sets.Annulus
 public import TauCeti.Topology.Algebra.Projectivization
 
 /-!
@@ -27,7 +28,7 @@ parts over the discs and the annulus, and `X × Circle` that the clutching const
   line (`innerDisc_union_outerDisc`), and inside the affine opens `1` and `0`
   (`innerDisc_subset_affineOpen`, `outerDisc_subset_affineOpen`).
 * `SymplecticGeometry.ProjectiveLine.affineChart_symm_mem_annulus_iff`: the point `[z : 1]` lies
-  in the annulus `innerDisc ∩ outerDisc` exactly when `1/2 < |z| < 2`.
+  in the annulus `innerDisc ∩ outerDisc` exactly when `z 0 ∈ annulus ℂ 2⁻¹ 2`.
 * `SymplecticGeometry.ProjectiveLine.annulusCoord`: the affine coordinate `z` of the points
   `[z : 1]` of the annulus, as a nonzero complex number.
 * `SymplecticGeometry.ProjectiveLine.annulusToCircle`: the radial retraction of the annulus onto
@@ -165,10 +166,11 @@ theorem coe_annulusToCircle_apply (p : ↥(innerDisc ∩ outerDisc)) :
   simp [annulusToCircle_def]
 
 /-- The point `[z : 1]` of the projective line lies in the annulus `innerDisc ∩ outerDisc` exactly
-when `1/2 < |z| < 2`. -/
+when `z 0` lies in the open annulus `annulus ℂ 2⁻¹ 2`, that is `1/2 < |z 0| < 2`. -/
 theorem affineChart_symm_mem_annulus_iff (z : Fin 1 → ℂ) :
-    (affineChart 1).symm z ∈ innerDisc ∩ outerDisc ↔ 2⁻¹ < ‖z 0‖ ∧ ‖z 0‖ < 2 := by
-  rw [affineChart_symm_apply, mem_inter_iff, mk_mem_innerDisc_iff, mk_mem_outerDisc_iff]
+    (affineChart 1).symm z ∈ innerDisc ∩ outerDisc ↔ z 0 ∈ annulus ℂ 2⁻¹ 2 := by
+  rw [affineChart_symm_apply, mem_inter_iff, mk_mem_innerDisc_iff, mk_mem_outerDisc_iff,
+    mem_annulus]
   have h0 : Fin.insertNth (α := fun _ ↦ ℂ) 1 1 z 0 = z 0 := by
     simp
   rw [Fin.insertNth_apply_same, h0, div_one, one_div, norm_inv]
@@ -238,8 +240,9 @@ theorem radialDeform_def (z : Fin 1 → ℂ) (t : ℝ) :
   (rfl)
 
 /-- The radial deformation keeps the annulus `1/2 < |z| < 2` in itself at each time `t ∈ [0, 1]`. -/
-theorem radialDeform_mem {z : Fin 1 → ℂ} (hz : 2⁻¹ < ‖z 0‖ ∧ ‖z 0‖ < 2) {t : ℝ}
-    (ht : t ∈ I) : 2⁻¹ < ‖radialDeform z t 0‖ ∧ ‖radialDeform z t 0‖ < 2 := by
+theorem radialDeform_mem {z : Fin 1 → ℂ} (hz : z 0 ∈ annulus ℂ 2⁻¹ 2) {t : ℝ}
+    (ht : t ∈ I) : radialDeform z t 0 ∈ annulus ℂ 2⁻¹ 2 := by
+  rw [mem_annulus] at hz ⊢
   have hpos : 0 < ‖z 0‖ := lt_trans (by norm_num) hz.1
   have hc : 0 ≤ (1 - t) + t * ‖z 0‖⁻¹ :=
     add_nonneg (sub_nonneg.2 ht.2) (mul_nonneg ht.1 (inv_nonneg.2 (norm_nonneg _)))
