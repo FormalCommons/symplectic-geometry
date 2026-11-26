@@ -71,7 +71,8 @@ theorem isIso_singularCohomologyMap_ofSubsetMap_inclusion {Y : Type w} [Topologi
       (TopCat.ofHom ⟨Set.inclusion hOB, continuous_inclusion hOB⟩)
       (B := {⟨y, hy⟩}ᶜ) (B' := {⟨y, hOB hy⟩}ᶜ)
       fun _ hw h ↦ hw (Set.inclusion_injective hOB h) := by
-    rw [ofSubsetIso_hom, excisionMap_eq_ofSubsetMap]
+    rw [ofSubsetIso_hom, ← interPairMapOfSubset_eq_excisionMap,
+      interPairMapOfSubset_eq_ofSubsetMap]
     exact ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ _ rfl
   have : IsIso (TopPair.singularCohomologyMap (R := R) (k := k) (M := M) τ.hom n) :=
     singularCohomologyMapIso_hom (R := R) (k := k) (M := M) τ n ▸
