@@ -54,11 +54,13 @@ All of this follows from the identities `rangeRestrict_rangeInclusion` and
   idempotent endomorphism of a finite-rank core is locally constant on the base.
 * `TauCeti.FiniteRankBundleCore.finrank_range_fiberMap_eq`: over a preconnected base it is
   constant.
+* `TauCeti.FiniteRankBundleCore.finrank_range_one_sub_fiberMap`: at each point, the rank of
+  `𝟙 E - P` is that of `E` minus that of `P`.
 * `TauCeti.FiniteRankBundleCore.rangeWhitneySumIso`: the isomorphism of `E` with
   `whitneySum (range P hr) (range (𝟙 E - P) hs)`, and
   `rangeWhitneySumIso_inv_comp_self_comp_hom`: it carries `P` to `whitneyMap (𝟙 _) 0`.
 * `TauCeti.FiniteRankBundleCore.restrictRange`: the restriction of an endomorphism to the range
-  core of `P`, with `restrictRange_rangeInclusion`.
+  core of `P`, with `restrictRange_rangeInclusion`, `restrictRange_id` and `restrictRange_comp`.
 * `TauCeti.FiniteRankBundleCore.rangeWhitneySumIso_inv_comp_comp_hom`: an endomorphism that
   commutes with `P` is block diagonal.
 
@@ -119,6 +121,19 @@ theorem isIdempotentElem_fiberMap (hP : P ≫ P = P) (x : X) :
     IsIdempotentElem (P.fiberMap x) := by
   rw [IsIdempotentElem, ContinuousLinearMap.mul_def, ← fiberMap_comp, hP]
 
+/-- At each point, the rank of `𝟙 E - P` for an idempotent endomorphism `P` of a finite-rank core
+is the rank of the core minus the rank of `P`. -/
+theorem finrank_range_one_sub_fiberMap (hP : P ≫ P = P) (x : X) :
+    Module.finrank 𝕜 ((𝟙 E - P).fiberMap x).range =
+      E.rank - Module.finrank 𝕜 (P.fiberMap x).range := by
+  have hrk := LinearMap.finrank_range_add_finrank_ker (P.fiberMap x).toLinearMap
+  rw [Module.finrank_fin_fun, LinearMap.IsIdempotentElem.ker_eq_range_one_sub
+    (ContinuousLinearMap.IsIdempotentElem.toLinearMap (isIdempotentElem_fiberMap hP x))] at hrk
+  have h1 : ((𝟙 E - P).fiberMap x).toLinearMap = 1 - (P.fiberMap x).toLinearMap := by
+    ext v; simp [sub_eq_add_neg]
+  rw [h1]
+  omega
+
 variable [CompleteSpace 𝕜]
 
 /-- The rank of an idempotent endomorphism `P` of a finite-rank core, that is the dimension of the
@@ -142,7 +157,7 @@ variable [IsRCLikeNormedField 𝕜] {r s : ℕ}
   (hs : ∀ x, Module.finrank 𝕜 ((𝟙 E - P).fiberMap x).range = s)
 
 /-- An idempotent `P` followed by its corestriction to its range core is that corestriction. -/
-@[reassoc]
+@[reassoc (attr := simp)]
 theorem comp_rangeRestrict_of_comp_self (hP : P ≫ P = P) :
     P ≫ rangeRestrict P hr = rangeRestrict P hr := by
   calc P ≫ rangeRestrict P hr
@@ -186,14 +201,10 @@ noncomputable def rangeWhitneySumIso (hP : P ≫ P = P) :
   hom_inv_id := by
     rw [whitneyLift_desc, rangeRestrict_rangeInclusion, rangeRestrict_rangeInclusion,
       add_sub_cancel]
-  inv_hom_id := whitneySum_hom_ext' (by
-      rw [whitneyInl_desc_assoc, comp_whitneyLift, rangeInclusion_rangeRestrict_of_comp_self hr hP,
-        rangeInclusion_rangeRestrict_one_sub hr hs hP, Category.comp_id]
-      exact whitneySum_hom_ext (by simp) (by simp)) (by
-      rw [whitneyInr_desc_assoc, comp_whitneyLift, rangeInclusion_one_sub_rangeRestrict hr hs hP,
-        rangeInclusion_rangeRestrict_of_comp_self hs (Idempotents.idem_of_id_sub_idem P hP),
-        Category.comp_id]
-      exact whitneySum_hom_ext (by simp) (by simp))
+  inv_hom_id := by
+    have hP' := Idempotents.idem_of_id_sub_idem P hP
+    refine whitneySum_hom_ext' ?_ ?_ <;> refine whitneySum_hom_ext ?_ ?_ <;>
+      simp [hP, hP', rangeInclusion_rangeRestrict_of_comp_self]
 
 @[simp]
 theorem rangeWhitneySumIso_hom (hP : P ≫ P = P) :
@@ -229,6 +240,19 @@ theorem rangeRestrict_restrictRange (hP : P ≫ P = P) {T : E ⟶ E} (hT : T ≫
     rangeRestrict P hr ≫ restrictRange hr T = T ≫ rangeRestrict P hr := by
   rw [restrictRange_def, rangeRestrict_rangeInclusion_assoc, ← Category.assoc, ← hT,
     Category.assoc, comp_rangeRestrict_of_comp_self hr hP]
+
+/-- The identity restricts to the identity of the range core of an idempotent. -/
+@[simp]
+theorem restrictRange_id (hP : P ≫ P = P) : restrictRange hr (𝟙 E) = 𝟙 _ := by
+  rw [restrictRange_def, Category.id_comp, rangeInclusion_rangeRestrict_of_comp_self hr hP]
+
+/-- Restriction to the range core of an idempotent `P` takes `T ≫ S` to the composite of the
+restrictions of `T` and `S`, when `T` commutes with `P`. -/
+theorem restrictRange_comp (hP : P ≫ P = P) {T : E ⟶ E} (hT : T ≫ P = P ≫ T) (S : E ⟶ E) :
+    restrictRange hr (T ≫ S) = restrictRange hr T ≫ restrictRange hr S := by
+  rw [restrictRange_def hr (T ≫ S), restrictRange_def hr S,
+    ← Category.assoc (restrictRange hr T), restrictRange_rangeInclusion hr hP hT, Category.assoc,
+    Category.assoc]
 
 /-- An idempotent `P` restricts to the identity of its range core. -/
 @[simp]
