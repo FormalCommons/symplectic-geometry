@@ -492,9 +492,9 @@ homology projective in every degree and finitely generated in degrees
   section): if the restrictions of the classes
   `c p i` to the fibre over every point, read through the trivialization at
   that point, form a basis of `Hᵖ(F; k)`, then it is bijective in degree
-  `n`. Over one trivializing set it is `TopCat.lerayHirsch_fst_bijective_of_fiberwise_basis`
-  through the trivialization; the finite cover is handled by induction with
-  the previous file. The fibre inclusion `Bundle.Trivialization.fiberInclusionMap`
+  `n`. It is Tau Ceti's `TopCat.lerayHirsch_bijective_of_trivializations`
+  (`AlgebraicTopology/Cohomology/LerayHirsch/FiniteCover.lean`) for the
+  trivializations of the atlas. The fibre inclusion `Bundle.Trivialization.fiberInclusionMap`
   comes from `Topology/FiberBundle/Basic.lean` of *Symplectic vector bundles*.
 - `TopCat.lerayHirschEquiv`, the linear equivalence, with its value on
   summands; and `TopCat.singularCohomologyMap_injective_of_lerayHirsch_injective`,
