@@ -38,8 +38,9 @@ cup product of the pull-backs of `u` and `c`, that is the relative cross product
 
 ## Main results
 
-* `TopCat.singularRelativeCap_singularHomologyCrossRelPair_comp_singularKronecker`: the Kronecker
-  pairing `⟨c, pr₂_*((o × x) ⌢ pr₁^* u)⟩ = ⟨u, o⟩ ⟨c, x⟩`, with coefficients in any module.
+* `TopCat.singularHomologyCrossRelPair_comp_singularRelativeCap_comp_singularKronecker`: the
+  Kronecker pairing `⟨c, pr₂_*((o × x) ⌢ pr₁^* u)⟩ = ⟨u, o⟩ ⟨c, x⟩`,
+  with coefficients in any module.
 * `TopCat.singularRelativeCap_singularHomologyCrossRelPair`:
   `pr₂_*((o × x) ⌢ pr₁^* u) = ⟨u, o⟩ • x`.
 
@@ -71,7 +72,8 @@ variable {k : Type w} [CommRing k] {X Y : TopCat.{w}} {A : Set X} {B : Set Y}
 of `u` along the first projection, pushing forward along the second projection to `H_q(Y, B; S)`
 and evaluating `c` is the tensor product of the evaluations of `u` and `c`, followed by the left
 unitor of `I`. -/
-theorem singularRelativeCap_singularHomologyCrossRelPair_comp_singularKronecker
+@[elementwise]
+theorem singularHomologyCrossRelPair_comp_singularRelativeCap_comp_singularKronecker
     (u : (TopPair.ofSubset A).singularCohomology R k (𝟙_ (ModuleCat.{w} k)) p)
     (c : (TopPair.ofSubset B).singularCohomology S k I q) :
     singularHomologyCrossRelPair X Y A B R S p q (p + q) rfl ≫
@@ -115,10 +117,9 @@ theorem singularRelativeCap_singularHomologyCrossRelPair
   apply (ModuleCat.mono_iff_injective ι).1 inferInstance
   obtain ⟨c, hc⟩ := (TopPair.singularKronecker_bijective (TopPair.ofSubset B) k (R := S) q).2 ι
   rw [← hc, map_smul]
-  have h := ConcreteCategory.congr_hom
-    (singularRelativeCap_singularHomologyCrossRelPair_comp_singularKronecker hA hB u c) (o ⊗ₜ x)
-  simp only [ConcreteCategory.comp_apply, ModuleCat.MonoidalCategory.tensorHom_tmul,
-    ModuleCat.MonoidalCategory.leftUnitor_hom_apply] at h
-  exact h
+  simpa only [ModuleCat.MonoidalCategory.tensorHom_tmul,
+    ModuleCat.MonoidalCategory.leftUnitor_hom_apply] using
+    singularHomologyCrossRelPair_comp_singularRelativeCap_comp_singularKronecker_apply
+      hA hB u c (o ⊗ₜ x)
 
 end TopCat
