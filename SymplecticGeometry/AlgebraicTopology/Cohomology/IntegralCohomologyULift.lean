@@ -190,6 +190,7 @@ theorem uliftIntegralCohomologyIso_singularCup (p q n : ℕ) (h : p + q = n)
 
 /-- The Kronecker pairing of the image of a class `a` under `TopCat.uliftIntegralCohomologyIso` is
 the Kronecker pairing of `a` followed by `TauCeti.uliftIntIso : ULift ℤ ≅ ℤ`. -/
+@[reassoc]
 theorem singularKronecker_uliftIntegralCohomologyIso_hom (n : ℕ)
     (a : X.singularCohomology (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ
       (ModuleCat.of ℤ (ULift.{0} ℤ)) n) :
@@ -200,6 +201,7 @@ theorem singularKronecker_uliftIntegralCohomologyIso_hom (n : ℕ)
 
 /-- The Kronecker pairing of the unit class `TopCat.integralCohomologyOne` with zeroth homology is
 the augmentation followed by `ULift ℤ ≃ ℤ`. -/
+@[simp, reassoc]
 theorem singularKronecker_integralCohomologyOne :
     X.singularKronecker ℤ 0 X.integralCohomologyOne =
       X.singularHomology₀ε _ ≫ ModuleCat.ofHom ULift.moduleEquiv.toLinearMap :=

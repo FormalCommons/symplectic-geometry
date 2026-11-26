@@ -8,6 +8,7 @@ module
 public import TauCeti.Topology.VectorBundle.Orientation.ThomClass
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Basic
 public import SymplecticGeometry.Topology.VectorBundle.Thom.ChangeOfCoefficients
+import SymplecticGeometry.AlgebraicTopology.Cohomology.Local.PointClass
 import TauCeti.Algebra.Module.Equiv.SpanSingleton
 
 /-!
@@ -237,37 +238,31 @@ theorem uliftIntegralCohomologyIso_singularCohomologyπ_modelThomGenerator_zero
       (if ω = positiveOrientation then 1 else -1 : ℤ) •
         (TopPair.ofSubset (X := TopCat.of P) ({0}ᶜ : Set P)).fst.integralCohomologyOne := by
   have : Subsingleton P := finrank_zero_iff.1 hP
-  -- On the class of the point, the image of the generator in absolute cohomology pairs as the
-  -- generator does with the local point class.
-  have e : singularHomology₀Section (ModuleCat.of ℤ (ULift.{0} ℤ))
-        (X := (TopPair.ofSubset (X := TopCat.of P) ({0}ᶜ : Set P)).fst) (0 : P) ≫
-      (TopPair.ofSubset (X := TopCat.of P) ({0}ᶜ : Set P)).fst.singularKronecker ℤ 0
-        ((TopPair.ofSubset (X := TopCat.of P) ({0}ᶜ : Set P)).singularCohomologyπ _ ℤ _ 0
-          (ω.modelThomGenerator hP)) =
-      localHomologyPointClass (ModuleCat.of ℤ (ULift.{0} ℤ)) ({0} : Set P) 0 ≫
-        (TopPair.ofSubset (X := TopCat.of P) ({0}ᶜ : Set P)).singularKronecker ℤ 0
-          (ω.modelThomGenerator hP) := by
-    rw [TopPair.singularKronecker_singularCohomologyπ, localHomologyPointClass_def]
-    -- The point class of `P` lands in zeroth homology named through `singularHomologyFunctor`,
-    -- the relative map starts from the homology of the singular simplicial set; the two agree
-    -- only after unfolding, so associativity is applied as a term rather than rewritten.
-    exact (Category.assoc _ _ _).symm
-  have h := ω.kronecker_modelThomGenerator_zero hP
-  rw [localOrientationOfZeroDimChart_coe] at h
-  -- A degree-zero class is determined by its Kronecker pairing with the class of the point.
-  refine ((TopPair.ofSubset (X := TopCat.of P) ({0}ᶜ : Set P)).fst.singularKronecker_bijective_zero
-    ℤ).1 (singularHomology₀_hom_ext _ fun x ↦ ?_)
-  split_ifs at h ⊢ <;>
-  simp only [one_smul, neg_one_zsmul, map_neg, TopCat.singularKronecker_integralCohomologyOne,
-    Preadditive.comp_neg, singularHomology₀Section_singularHomology₀ε_assoc] <;>
-  obtain rfl : x = (0 : P) := Subsingleton.elim (α := P) _ _ <;>
-  rw [TopCat.singularKronecker_uliftIntegralCohomologyIso_hom, ← Category.assoc, e] <;>
-  ext ⟨r⟩ <;>
-  rw [show (⟨r⟩ : ULift ℤ) = r • (1 : ULift ℤ) by ext; simp, map_zsmul, map_zsmul] <;>
-  simp only [ModuleCat.hom_comp, LinearMap.comp_apply, h, ModuleCat.hom_neg, LinearMap.neg_apply,
-    map_neg, ModuleCat.hom_ofHom, LinearEquiv.coe_coe,
-    ULift.moduleEquiv_apply, ULift.one_down] <;>
-  rw [uliftIntIso_hom_apply, ULift.one_down]
+  -- The positive orientation: a degree-zero class is determined by its Kronecker pairing with the
+  -- class of the point, and on it the image of the generator pairs as the generator does with the
+  -- local point class.
+  have hpos : ((TopPair.ofSubset (X := TopCat.of P) ({0}ᶜ : Set P)).fst.uliftIntegralCohomologyIso
+      0).hom ((TopPair.ofSubset (X := TopCat.of P) ({0}ᶜ : Set P)).singularCohomologyπ _ ℤ _ 0
+        ((positiveOrientation : Orientation ℝ P (Fin 0)).modelThomGenerator hP)) =
+      (TopPair.ofSubset (X := TopCat.of P) ({0}ᶜ : Set P)).fst.integralCohomologyOne := by
+    have h := (positiveOrientation : Orientation ℝ P (Fin 0)).kronecker_modelThomGenerator_zero hP
+    rw [ite_eq_left rfl, localOrientationOfZeroDimChart_coe] at h
+    refine ((TopPair.ofSubset (X := TopCat.of P) ({0}ᶜ : Set P)).fst
+      |>.singularKronecker_bijective_zero ℤ).1 (singularHomology₀_hom_ext _ fun x ↦ ?_)
+    rw [TopCat.singularKronecker_integralCohomologyOne,
+      singularHomology₀Section_singularHomology₀ε_assoc]
+    obtain rfl : x = (0 : P) := Subsingleton.elim (α := P) _ _
+    rw [TopCat.singularKronecker_uliftIntegralCohomologyIso_hom, ← Category.assoc,
+      ← localHomologyPointClass_comp_singularKronecker]
+    ext ⟨r⟩
+    rw [show (⟨r⟩ : ULift ℤ) = r • (1 : ULift ℤ) by ext; simp, map_zsmul, map_zsmul]
+    simp only [ModuleCat.hom_comp, LinearMap.comp_apply, h, ModuleCat.hom_ofHom,
+      LinearEquiv.coe_coe, ULift.moduleEquiv_apply, ULift.one_down]
+    rw [uliftIntIso_hom_apply, ULift.one_down]
+  rcases eq_or_eq_neg_of_isEmpty ω with rfl | rfl
+  · rw [ite_eq_left rfl, one_smul, hpos]
+  · rw [modelThomGenerator_neg, map_neg, map_neg, hpos,
+      ite_eq_right (Module.Ray.ne_neg_self _).symm, neg_one_zsmul]
 
 open Classical in
 /-- **The rank-zero generator with coefficients `ℤ`.** In rank zero, the generator of the model
