@@ -71,10 +71,13 @@ theorem integralKronecker_def (X : TopCat.{0}) (n : ℕ) :
           ModuleCat.instLinear n) ∘ₗ (X.integralCohomologyEquiv n).toLinearMap :=
   (rfl)
 
-/- Tau Ceti's lemmas on the Kronecker map, and the target of `TopCat.integralCohomologyEquiv`,
-use the structure `ModuleCat.instLinear`; instance search would otherwise find
-`CategoryTheory.Linear.preadditiveIntLinear`, which integral cohomology and its pull-backs
-carry, and which those name explicitly. -/
+section UnitCoefficients
+
+/- The two statements of this section are about the target of `TopCat.integralCohomologyEquiv`
+and Tau Ceti's Kronecker map on it, which use the structure `ModuleCat.instLinear`; instance
+search would otherwise find `CategoryTheory.Linear.preadditiveIntLinear`. The statements after
+the section are about integral cohomology itself, which carries the latter, so they are stated
+with the default instances. -/
 attribute [local instance high] ModuleCat.instLinear
 
 /-- The pairing `TopCat.integralKronecker` is the Kronecker map `TopCat.singularKronecker` of the
@@ -93,6 +96,8 @@ theorem integralKronecker_integralCohomologyEquiv_symm (X : TopCat.{0}) (n : ℕ
       X.singularKronecker ℤ n a x := by
   rw [integralKronecker_apply, LinearEquiv.apply_symm_apply]
 
+end UnitCoefficients
+
 /-- **The pairing of the class itself**: `⟨a, x⟩` is the Kronecker map of the integral class `a`,
 with chain coefficients `ULift ℤ` and the `ℤ`-linear structure
 `CategoryTheory.Linear.preadditiveIntLinear` of integral cohomology, on the image of `x` under the
@@ -101,8 +106,7 @@ theorem integralKronecker_eq_singularKronecker (X : TopCat.{0}) (n : ℕ)
     (a : X.integralCohomology n)
     (x : ((singularHomologyFunctor (ModuleCat.{0} ℤ) n).obj (𝟙_ (ModuleCat.{0} ℤ))).obj X) :
     X.integralKronecker n a x =
-      @TopCat.singularKronecker _ _ _ _ (ModuleCat.of ℤ (ULift.{0} ℤ)) (ModuleCat.of ℤ ℤ) X ℤ _
-        Linear.preadditiveIntLinear n a
+      X.singularKronecker ℤ n a
         (((singularHomologyFunctor (ModuleCat.{0} ℤ) n).map integralCoeffIso.inv).app X x) := by
   rw [integralKronecker_apply, singularKronecker_integralCohomologyEquiv,
     ConcreteCategory.comp_apply]
@@ -113,9 +117,7 @@ value of the class on the push-forward. -/
 theorem integralKronecker_naturality {X Y : TopCat.{0}} (f : X ⟶ Y) (n : ℕ)
     (a : Y.integralCohomology n)
     (x : ((singularHomologyFunctor (ModuleCat.{0} ℤ) n).obj (𝟙_ (ModuleCat.{0} ℤ))).obj X) :
-    X.integralKronecker n
-        (@TopCat.singularCohomologyMap _ _ _ _ (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ _
-          Linear.preadditiveIntLinear (ModuleCat.of ℤ ℤ) X Y f n a) x =
+    X.integralKronecker n (TopCat.singularCohomologyMap f n a) x =
       Y.integralKronecker n a
         (((singularHomologyFunctor (ModuleCat.{0} ℤ) n).obj (𝟙_ (ModuleCat.{0} ℤ))).map f x) := by
   rw [integralKronecker_apply, integralKronecker_apply, integralCohomologyEquiv_naturality,
@@ -131,10 +133,7 @@ theorem integralKronecker_integralCup_fst_snd_singularHomologyCross (X Y : TopCa
     (x : ((singularHomologyFunctor (ModuleCat.{0} ℤ) p).obj (𝟙_ (ModuleCat.{0} ℤ))).obj X)
     (y : ((singularHomologyFunctor (ModuleCat.{0} ℤ) q).obj (𝟙_ (ModuleCat.{0} ℤ))).obj Y) :
     (X ⊗ Y).integralKronecker n ((X ⊗ Y).integralCup p q n h
-        (@TopCat.singularCohomologyMap _ _ _ _ (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ _
-          Linear.preadditiveIntLinear (ModuleCat.of ℤ ℤ) (X ⊗ Y) X (fst X Y) p a)
-        (@TopCat.singularCohomologyMap _ _ _ _ (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ _
-          Linear.preadditiveIntLinear (ModuleCat.of ℤ ℤ) (X ⊗ Y) Y (snd X Y) q b))
+        (TopCat.singularCohomologyMap (fst X Y) p a) (TopCat.singularCohomologyMap (snd X Y) q b))
       (((singularHomologyFunctor (ModuleCat.{0} ℤ) n).map (λ_ (𝟙_ (ModuleCat.{0} ℤ))).hom).app
         (X ⊗ Y) (singularHomologyCross X Y (𝟙_ (ModuleCat.{0} ℤ)) (𝟙_ (ModuleCat.{0} ℤ)) p q n h
           (x ⊗ₜ y))) =
