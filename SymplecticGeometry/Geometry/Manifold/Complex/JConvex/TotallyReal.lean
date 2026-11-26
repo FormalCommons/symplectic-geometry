@@ -8,10 +8,10 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Hypersurface
 public import SymplecticGeometry.Geometry.Manifold.Complex.LeviForm
 public import SymplecticGeometry.Geometry.Manifold.Complex.TotallyReal.AdaptedChart
+public import SymplecticGeometry.Geometry.Manifold.Immersion.Slice
 public import SymplecticGeometry.Geometry.Manifold.Morse.Hessian
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.ContMDiff
 public import SymplecticGeometry.LinearAlgebra.TotallyReal.Basic
-public import TauCeti.Analysis.InnerProductSpace.Calculus
 public import TauCeti.Geometry.Contact.Pullback
 public import TauCeti.Geometry.Manifold.Complex.TotallyReal.AdaptedChart
 public import TauCeti.Geometry.Symplectic.Lagrangian.TotallyReal
@@ -71,10 +71,12 @@ the image of `ι` onto `F × {0}` (`TauCeti.IsAdaptedChart`). Fix a linear isomo
 
 * `TauCeti.IsAdaptedChart.norm_sq_snd_eq_zero_iff`: on the source of `ψ`, the function
   `x ↦ ‖e (ψ x).2‖²` vanishes exactly on the image, where it has critical points
-  (`TauCeti.IsAdaptedChart.mem_criticalPoints_norm_sq_snd`);
+  (`TauCeti.IsAdaptedChart.mem_criticalPoints_norm_sq_snd`, from the general
+  `TauCeti.mem_criticalPoints_norm_sq_of_eq_zero` for `‖φ‖²` at a zero of `φ`);
 * `TauCeti.IsAdaptedChart.criticalHessian_norm_sq_snd_apply`: its critical Hessian at a point of
-  the image is `2 ⟪e (dψ u).2, e (dψ w).2⟫`, by Tau Ceti's second-order chain rule
-  `TauCeti.criticalHessian_comp_apply`;
+  the image is `2 ⟪e (dψ u).2, e (dψ w).2⟫`, by the general
+  `TauCeti.criticalHessian_norm_sq_apply_of_eq_zero` of
+  `SymplecticGeometry.Geometry.Manifold.Immersion.Slice`;
 * `TauCeti.IsAdaptedChart.criticalHessian_norm_sq_snd_pos`: this Hessian is positive off the
   tangent image of `ι`, since `dψ` sends exactly that image into `F × {0}`
   (`TauCeti.IsAdaptedChart.snd_mfderiv_eq_zero_iff`, in
@@ -259,12 +261,9 @@ theorem norm_sq_snd_eq_zero_iff (hψ : IsAdaptedChart J s ψ) {x : M} (hx : x �
 /-- In a chart adapted to `s`, the points of `s` in the source are critical points of
 `x ↦ ‖e (ψ x).2‖²`, which takes its minimum `0` there. -/
 theorem mem_criticalPoints_norm_sq_snd [I.Boundaryless] (hψ : IsAdaptedChart J s ψ) {x : M}
-    (hx : x ∈ ψ.source ∩ s) : x ∈ criticalPoints I (fun y ↦ ‖e (ψ y).2‖ ^ 2) := by
-  refine IsLocalMin.mem_criticalPoints (Filter.Eventually.of_forall fun y ↦ ?_)
+    (hx : x ∈ ψ.source ∩ s) : x ∈ criticalPoints I (fun y ↦ ‖e (ψ y).2‖ ^ 2) :=
+  mem_criticalPoints_norm_sq_of_eq_zero (by rw [(hψ.isImage hx.1).2 hx.2, map_zero])
     BoundarylessManifold.isInteriorPoint
-  dsimp only
-  rw [(hψ.norm_sq_snd_eq_zero_iff hx.1).2 hx.2]
-  positivity
 
 /-- For a chart adapted with regularity `ℓ`, the function `y ↦ ‖e (ψ y).2‖²` is `C^ℓ` at each
 point of the source. -/
@@ -283,24 +282,17 @@ theorem criticalHessian_norm_sq_snd_apply [I.Boundaryless] (hψ : IsAdaptedChart
   have hψx := (hψ.contMDiffAt hx.1).of_le (WithTop.coe_le_coe.2 hℓ)
   have hφ : ContMDiffAt I 𝓘(ℝ, W) 2 (fun y ↦ e (ψ y).2) x :=
     (e.contDiff.comp contDiff_snd).contMDiff.contMDiffAt.comp x hψx
-  have hcrit : e (ψ x).2 ∈ criticalPoints 𝓘(ℝ, W) (fun z : W ↦ ‖z‖ ^ 2) := by
-    refine IsLocalMin.mem_criticalPoints (Filter.Eventually.of_forall fun z ↦ ?_)
-      BoundarylessManifold.isInteriorPoint
-    rw [show (ψ x).2 = 0 from (hψ.isImage hx.1).2 hx.2]
-    simp only [map_zero, norm_zero, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, zero_pow]
-    positivity
-  -- The second-order chain rule at the critical point `e (ψ x).2 = 0` of `‖·‖²`.
-  have h := criticalHessian_comp_apply (f := fun z : W ↦ ‖z‖ ^ 2) rfl
-    (contDiff_norm_sq ℝ).contMDiff.contMDiffAt hφ hcrit u w
   have hD : mfderiv I 𝓘(ℝ, W) (fun y ↦ e (ψ y).2) x =
       ((e : F →L[ℝ] W).comp (ContinuousLinearMap.snd ℝ F F)).comp
         (mfderiv I 𝓘(ℝ, F × F) ψ x) :=
     ((e.hasFDerivAt.comp _ hasFDerivAt_snd).hasMFDerivAt.comp x
       (hψx.mdifferentiableAt two_ne_zero).hasMFDerivAt).mfderiv
-  rw [hD, criticalHessian_modelSpace] at h
-  -- `(e ∘L snd ∘L dψ) u` is `e (dψ u).2` by definition, read in
-  -- `TangentSpace 𝓘(ℝ, W) (e (ψ x).2) = W`.
-  exact h.trans (TauCeti.fderiv_fderiv_norm_sq_apply (E := W) _ _ _)
+  rw [criticalHessian_norm_sq_apply_of_eq_zero hφ (by rw [(hψ.isImage hx.1).2 hx.2, map_zero]),
+    hD]
+  -- `(e ∘L snd ∘L dψ) u` is `e (dψ u).2` by definition of the composite. `dψ` takes values in
+  -- `TangentSpace 𝓘(ℝ, F × F) _`, which is `F × F` only by definition, so `comp_apply` cannot be
+  -- rewritten with here.
+  rfl
 
 section Embedding
 

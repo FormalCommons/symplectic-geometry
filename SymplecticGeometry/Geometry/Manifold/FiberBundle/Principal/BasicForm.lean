@@ -439,18 +439,16 @@ private theorem mextDeriv_apply_rightFundamentalVectorField_prod_inr (ξ : Group
       exact h.symm
     -- Its right side is the identity, pushed forward along `(s, m) ↦ (γ s, m)`.
     rw [hC, SmoothForm.coe_mpullback, ← mpullback_mextDeriv_at
-      (hφ.contMDiffAt.of_le (by simp)) ((A.contMDiff _).of_le (by simp)), mpullback_apply,
+      (hφ.contMDiffAt.of_le (by simp)) ((A.contMDiff _).of_le (by simp)), mpullback_apply_pair,
       mvfderiv_comp_apply _ (mdifferentiable_apply_rightFundamentalVectorField_prod ξ _)
         (hφ.mdifferentiableAt (by simp)), (hφ' _).mfderiv,
         mfderiv_prodMk_right_apply (I := 𝓘(ℝ)) (x := (0 : ℝ)) v] at hV2
     have hγ0 : γ 0 = x := by simp [hγdef, mulInvariantExp_zero]
     rw [← hγ0, eq_neg_iff_add_eq_zero, ← hV2]
     congr 2
-    · funext i
-      fin_cases i
-      · rw [hW]
-        exact Prod.ext (one_smul ℝ _).symm rfl
-      · exact Prod.ext (zero_smul ℝ _).symm rfl
+    · rw [hW]
+      exact congrArg₂ (fun a b ↦ ![a, b]) (Prod.ext (one_smul ℝ _).symm rfl)
+        (Prod.ext (zero_smul ℝ _).symm rfl)
     · exact Prod.ext (zero_smul ℝ _).symm rfl
   · rw [SmoothForm.mpullback_apply_one, (hφ' q).mfderiv]
     congr 2

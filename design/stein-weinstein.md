@@ -448,9 +448,9 @@ structure with the fields
 
 The last field says that $\partial\Delta$ is tangent to the complex
 tangencies of $\partial W$ and that the radial direction of $\Delta$ is sent
-by $J$ into $T\partial W$. The building issue checks the fields against
-Cieliebak–Eliashberg's definition of a $J$-orthogonally attached disc,
-cites it by number, and corrects this list if they differ.
+by $J$ into $T\partial W$. The fields agree with Cieliebak–Eliashberg's
+attachment of a disc in §7.9, $J$-orthogonal in the sense of their
+Definition 2.22; embedding and total reality are separate hypotheses.
 
 **The statements.** With `φ` smooth, strictly plurisubharmonic at every
 point of `{x | φ x ≤ 0}`, `0` a regular value of `φ`, `ι` a disc as above
