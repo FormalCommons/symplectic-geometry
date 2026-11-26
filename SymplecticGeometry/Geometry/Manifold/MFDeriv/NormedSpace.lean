@@ -9,7 +9,15 @@ public import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 
 /-!
-# The product rule for functions with values in a normed algebra
+# Products with values in a normed algebra
+
+Mathlib's `MDifferentiableAt.smul` needs the scalar factor to take values in the base field. Here
+`MDifferentiableWithinAt.smul_algebra` and its forms at a point, on a set and on the whole
+manifold show that `a • g` is differentiable where `a` and `g` are, for `a` with values in a
+normed `𝕜`-algebra `𝕜'` that acts on the normed space where `g` takes its values; an example is
+`ℂ` acting on a complex normed space regarded as a real one. Read in charts, this is
+`DifferentiableWithinAt.smul`. Tau Ceti proves the same fact at a point inside the proof of
+`TauCeti.mvfderiv_smul_algebra`, and the proof here follows that step.
 
 Mathlib's `mvfderiv_mul` is the product rule for scalar functions on a manifold. This file gives
 the product rule for functions with values in a normed algebra that need not be commutative, such
@@ -24,9 +32,55 @@ left multiplication, evaluated at a tangent vector.
 
 public section
 
-namespace SymplecticGeometry
-
 open scoped Manifold
+
+section SMulAlgebra
+
+variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
+  {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
+  {𝕜' : Type*} [NormedRing 𝕜'] [NormedAlgebra 𝕜 𝕜'] [Module 𝕜' F] [IsBoundedSMul 𝕜' F]
+  [IsScalarTower 𝕜 𝕜' F] {a : M → 𝕜'} {g : M → F} {s : Set M} {x : M}
+
+/-- The product of a function with values in a normed algebra `𝕜'` and a function with values in a
+normed space on which `𝕜'` acts is differentiable within `s` at `x` if both factors are. This
+generalizes `MDifferentiableWithinAt.smul` from scalars in the base field. -/
+@[to_fun]
+theorem MDifferentiableWithinAt.smul_algebra (ha : MDifferentiableWithinAt I 𝓘(𝕜, 𝕜') a s x)
+    (hg : MDifferentiableWithinAt I 𝓘(𝕜, F) g s x) :
+    MDifferentiableWithinAt I 𝓘(𝕜, F) (a • g) s x :=
+  mdifferentiableWithinAt_iff.2 ⟨ha.continuousWithinAt.smul hg.continuousWithinAt,
+    ha.differentiableWithinAt_writtenInExtChartAt.smul
+      hg.differentiableWithinAt_writtenInExtChartAt⟩
+
+/-- The product of a function with values in a normed algebra `𝕜'` and a function with values in a
+normed space on which `𝕜'` acts is differentiable at `x` if both factors are. This generalizes
+`MDifferentiableAt.smul` from scalars in the base field. -/
+@[to_fun]
+theorem MDifferentiableAt.smul_algebra (ha : MDifferentiableAt I 𝓘(𝕜, 𝕜') a x)
+    (hg : MDifferentiableAt I 𝓘(𝕜, F) g x) : MDifferentiableAt I 𝓘(𝕜, F) (a • g) x := by
+  rw [← mdifferentiableWithinAt_univ] at ha hg ⊢
+  exact ha.smul_algebra hg
+
+/-- The product of a function with values in a normed algebra `𝕜'` and a function with values in a
+normed space on which `𝕜'` acts is differentiable on `s` if both factors are. -/
+@[to_fun]
+theorem MDifferentiableOn.smul_algebra (ha : MDifferentiableOn I 𝓘(𝕜, 𝕜') a s)
+    (hg : MDifferentiableOn I 𝓘(𝕜, F) g s) : MDifferentiableOn I 𝓘(𝕜, F) (a • g) s :=
+  fun y hy ↦ (ha y hy).smul_algebra (hg y hy)
+
+/-- The product of a function with values in a normed algebra `𝕜'` and a function with values in a
+normed space on which `𝕜'` acts is differentiable if both factors are. -/
+@[to_fun]
+theorem MDifferentiable.smul_algebra (ha : MDifferentiable I 𝓘(𝕜, 𝕜') a)
+    (hg : MDifferentiable I 𝓘(𝕜, F) g) : MDifferentiable I 𝓘(𝕜, F) (a • g) :=
+  fun y ↦ (ha y).smul_algebra (hg y)
+
+end SMulAlgebra
+
+namespace SymplecticGeometry
 
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
   {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E]
