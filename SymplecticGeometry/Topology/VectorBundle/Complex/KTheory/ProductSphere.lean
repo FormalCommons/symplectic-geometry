@@ -563,8 +563,7 @@ theorem clutching_smul_add [ParacompactSpace X] [R1Space X] {r s : ℕ}
 /-- If an automorphism `g` of the pullback of `E` to `X × Circle` has fibre map `u + T(x)` at
 `(x, u)`, then at no point `x` of `X` does `T(x)` have an eigenvalue of norm `1`. -/
 theorem norm_ne_one_of_mem_spectrum_fiberMap
-    (g : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
-      E.pullback (ContinuousMap.fst : C(X × Circle, X)))
+    (g : E.circlePullback ≅ E.circlePullback)
     (hg : ∀ w : X × Circle,
       g.hom.fiberMap w = (w.2 : ℂ) • ContinuousLinearMap.id ℂ _ + T.fiberMap w.1) :
     ∀ x, ∀ z ∈ spectrum ℂ (T.fiberMap x), ‖z‖ ≠ 1 := by
@@ -572,7 +571,7 @@ theorem norm_ne_one_of_mem_spectrum_fiberMap
   refine (spectrum.mem_iff.1 hz) ?_
   let u : Circle := { val := -z, property := mem_sphere_zero_iff_norm.2 (by rwa [norm_neg]) }
   have hu : IsUnit ((-z) • ContinuousLinearMap.id ℂ (Fin E.rank → ℂ) + T.fiberMap x) := by
-    rw [← show g.hom.fiberMap (x, u) = _ from hg (x, u)]
+    rw [← hg (x, u)]
     exact ⟨(isoFiberEquiv g (x, u)).toUnit, toContinuousLinearMap_isoFiberEquiv g (x, u)⟩
   rw [Algebra.algebraMap_eq_smul_one, ContinuousLinearMap.one_def, sub_eq_add_neg,
     ← neg_neg (z • _), ← neg_smul, ← neg_add]
@@ -586,8 +585,7 @@ Whitney sum of the pullback of `E₁` twisted by the line
 `(trivial ℂ X 1).clutching (circleZPowIso X 1)`, clutched by `u`, and the pullback of `E₂`. -/
 theorem exists_nonempty_clutching_iso_whitneySum_of_linear [CompactSpace X] [T2Space X]
     [PreconnectedSpace X] {a b : E ⟶ E}
-    {g : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
-      E.pullback (ContinuousMap.fst : C(X × Circle, X))}
+    {g : E.circlePullback ≅ E.circlePullback}
     (hg : ∀ w : X × Circle, g.hom.fiberMap w = (w.2 : ℂ) • a.fiberMap w.1 + b.fiberMap w.1) :
     ∃ E₁ E₂ : FiniteRankBundleCore ℂ X, Nonempty (E.clutching g ≅
       whitneySum (E₁.pullback ContinuousMap.fst ⊗ (trivial ℂ X 1).clutching (circleZPowIso X 1))
