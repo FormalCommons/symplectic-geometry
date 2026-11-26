@@ -78,15 +78,15 @@ theorem mfderiv_apply_mpullback {x : M} (hf : (mfderiv I J f x).IsInvertible)
     mfderiv I J f x (VectorField.mpullback I J f V x) = V (f x) :=
   hf.self_apply_inverse _
 
-/-- **Chain rule along a pulled-back field.** If `f` is differentiable at `x` with invertible
-differential and `g` is differentiable at `f x`, then the derivative of `g ∘ f` at `x` along the
+/-- **Chain rule along a pulled-back field.** If the differential of `f` at `x` is invertible
+and `g` is differentiable at `f x`, then the derivative of `g ∘ f` at `x` along the
 pullback of a vector field `V` is the derivative of `g` at `f x` along `V (f x)`. -/
 theorem mvfderiv_comp_apply_mpullback {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
     {g : N → F} {x : M} (hg : MDifferentiableAt J 𝓘(𝕜, F) g (f x))
-    (hf : MDifferentiableAt I J f x) (hinv : (mfderiv I J f x).IsInvertible)
-    (V : Π y : N, TangentSpace J y) :
+    (hf : (mfderiv I J f x).IsInvertible) (V : Π y : N, TangentSpace J y) :
     mvfderiv I (g ∘ f) x (VectorField.mpullback I J f V x) = mvfderiv J g (f x) (V (f x)) := by
-  rw [mvfderiv_comp_apply x hg hf, mfderiv_apply_mpullback hinv]
+  rw [mvfderiv_comp_apply x hg (mdifferentiableAt_of_isInvertible_mfderiv hf),
+    mfderiv_apply_mpullback hf]
 
 end VectorField
 

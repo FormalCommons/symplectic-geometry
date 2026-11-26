@@ -86,7 +86,7 @@ theorem isStrongFilling_scalarRegularSublevel (hn : finrank ℝ E = n + 1)
   · rw [boundary_scalarRegularSublevel hc hn (by simp) hf] at hx
     rw [isOutwardPointing_scalarRegularSublevel_iff (hf.of_le (by simp)) hn hc hx,
       ← Function.comp_def f Subtype.val, VectorField.mvfderiv_comp_apply_mpullback
-        ((hf x).mdifferentiableAt (by simp)) ((hι x).mdifferentiableAt (by simp)) (hinv x)]
+        ((hf x).mdifferentiableAt (by simp)) (hinv x)]
     exact hXf x hx
   · exact congrFun (isLiouvilleVectorField_iff.1 <| IsLiouvilleVectorField.mpullback hι
       (hX.of_le (by simp)) hXσ (hY.mdifferentiable (by simp))

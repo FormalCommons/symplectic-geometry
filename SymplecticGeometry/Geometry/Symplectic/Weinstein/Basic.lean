@@ -444,7 +444,7 @@ theorem isWeinsteinDomain_scalarRegularSublevel {n : ℕ} (hn : finrank ℝ E = 
   · rwa [interior_scalarRegularSublevel hc hn (by simp) hf] at hx
   · rw [hbd] at hx
     rw [← Function.comp_def f Subtype.val, VectorField.mvfderiv_comp_apply_mpullback
-      ((hf x).mdifferentiableAt (by simp)) ((hι x).mdifferentiableAt (by simp)) (hinv x)]
+      ((hf x).mdifferentiableAt (by simp)) (hinv x)]
     exact hpos x hx
   · refine (congrArg (IsGradientLike _) (funext fun x ↦ ?_)).mpr
       (hW.isGradientLike.mpullback hΦ hΦinv)
