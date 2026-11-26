@@ -39,10 +39,9 @@ on a smooth manifold `M` possibly with boundary or corners. Smoothness of `h φ`
   `d (h φ) = ι₁^* φ - ι₀^* φ`.
 * `SmoothForm.mextDerivₗ_homotopyOperator_mpullback_add_homotopyOperator_mpullback_mextDerivₗ`:
   for a smooth `Φ : M × [0, 1] → M` from a smooth map `g` to the identity and any form `z` with
-  values in a Banach space, `d (h (Φ^* z)) + h (Φ^* (d z)) = z - g^* z`; it is the case of Tau
-  Ceti's
-  `TauCeti.mextDeriv_homotopyOperator_mpullback_add_homotopyOperator_mpullback_mextDeriv` for
-  smooth forms and a homotopy ending at the identity.
+  values in a Banach space, `d (h (Φ^* z)) + h (Φ^* (d z)) = z - g^* z`. It is the case of
+  smooth forms and a homotopy ending at the identity of Tau Ceti's
+  `TauCeti.mextDeriv_homotopyOperator_mpullback_add_homotopyOperator_mpullback_mextDeriv`.
 * `TauCeti.SmoothForm.mextDerivₗ_homotopyOperator_mpullback_of_contraction`: for a smooth
   `Φ : M × [0, 1] → M` from a constant map to the identity and a closed form `z` of positive
   degree with values in a Banach space, `h (Φ^* z)` is a primitive of `z`.

@@ -86,11 +86,11 @@ which is meaningful on `ψ.target`.
 * `TauCeti.SmoothForm.contDiffOn_fderiv_mpullback_symm_apply`: the partial derivatives of the
   reading of a smooth form in `ψ` are smooth on `ψ.target`.
 
-`TauCeti.mpullback_symm_eq_inChartAt` is Tau Ceti's
+`TauCeti.mpullback_symm_eq_inChartAt` applies Tau Ceti's
 `TauCeti.RoughForm.mpullback_extChartAt_symm_eq_inChartAt`, which asks for a point of the interior
-of `range I`, on the target of the restricted chart. The statements and docstrings of
-`TauCeti.RoughForm.extendByZeroAlong_zero`, `_add` and `_smul` follow those of Tau Ceti's
-`TauCeti.RoughForm.extendByZero_zero`, `extendByZero_add` and `extendByZero_smul`.
+of `range I`; every point of the target of the restricted chart is one. The statements and
+docstrings of `TauCeti.RoughForm.extendByZeroAlong_zero`, `_add` and `_smul` follow those of Tau
+Ceti's `TauCeti.RoughForm.extendByZero_zero`, `extendByZero_add` and `extendByZero_smul`.
 
 ## References
 
