@@ -29,7 +29,9 @@ public import TauCeti.Topology.VectorBundle.Coordinates
 * `VectorBundleCore.inChartCoordinates_smul` and `VectorBundleCore.inChartCoordinates_sum`: the
   chart expression is linear in the operator.
 * `VectorBundleCore.exists_units_inv_mul_mul_eq_inChartCoordinates`: reading an endomorphism of a
-  fibre in a chart is a conjugation by a unit.
+  fibre in a chart is a conjugation by a unit, and
+  `VectorBundleCore.exists_conjContinuousAlgEquiv_eq_inChartCoordinates` by a continuous linear
+  automorphism of the model fibre.
 -/
 
 public section
@@ -146,5 +148,19 @@ theorem exists_units_inv_mul_mul_eq_inChartCoordinates {i : ι} {x : B} (hx : x 
     h (Z.mem_baseSet_at x) hx, h hx (Z.mem_baseSet_at x)⟩, fun M ↦ ?_⟩
   rw [inChartCoordinates_def, Units.inv_mk, Units.val_mk, ContinuousLinearMap.mul_def,
     ContinuousLinearMap.mul_def, ContinuousLinearMap.comp_assoc]
+
+/-- At a point of the domain of a chart `i`, reading an endomorphism of the fibre in the chart `i`
+is the conjugation by a continuous linear automorphism of the model fibre, an algebra
+isomorphism. -/
+theorem exists_conjContinuousAlgEquiv_eq_inChartCoordinates {i : ι} {x : B}
+    (hx : x ∈ Z.baseSet i) :
+    ∃ e : F ≃L[R] F, ∀ M : F →L[R] F,
+      e.conjContinuousAlgEquiv M = Z.inChartCoordinates Z i i x M := by
+  have hx' : x ∈ (Z.localTriv (Z.indexAt x)).baseSet ∩ (Z.localTriv i).baseSet :=
+    ⟨Z.mem_baseSet_at x, hx⟩
+  refine ⟨(Z.localTriv (Z.indexAt x)).coordChangeL R (Z.localTriv i) x, fun M ↦ ?_⟩
+  rw [ContinuousLinearEquiv.conjContinuousAlgEquiv_apply,
+    Trivialization.symm_coordChangeL _ _ ⟨hx'.2, hx'.1⟩, localTriv_coordChangeL _ hx',
+    localTriv_coordChangeL _ ⟨hx'.2, hx'.1⟩, inChartCoordinates_def]
 
 end VectorBundleCore

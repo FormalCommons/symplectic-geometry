@@ -36,6 +36,8 @@ derivative `du = u · i u^* dθ`.
   `z ↦ z ^ k` on the unit circle, along `z ↦ z / ‖z‖`, and along `z ↦ (z / ‖z‖) ^ k`.
 * `TauCeti.mlogDeriv_coe_circle_apply`, `TauCeti.mvfderiv_coe_circle_apply`: `dlog u = i u^* dθ`
   and `du = u · i u^* dθ` for a map `u` into the circle.
+* `TauCeti.mpullback_circleExp_comp_circleAngularForm_apply`: `y ↦ exp (f y i)` pulls `dθ` back
+  to `df`.
 
 ## References
 
@@ -188,6 +190,19 @@ theorem mvfderiv_coe_circle_apply {u : M → Circle} {x : M}
       (u x : ℂ) * (Complex.I * (mpullback I (𝓡 1) u circleAngularForm x ![v] : ℝ)) := by
   rw [← mlogDeriv_coe_circle_apply hu, mlogDeriv_apply, Matrix.cons_val_zero, ← mul_assoc,
     mul_inv_cancel₀ (Circle.coe_ne_zero _), one_mul]
+
+/-- For a real function `f` differentiable at `x`, the map `y ↦ exp (f y i)` into the circle pulls
+the angular form `dθ` back to `df` at `x`. This is the pointwise form of Tau Ceti's
+`ContMDiffMap.circleLogDeriv_circleExp`, which asks `f` to be smooth, and follows from
+`TauCeti.mpullback_circleExp_circleAngularForm` by the chain rule. -/
+theorem mpullback_circleExp_comp_circleAngularForm_apply {f : M → ℝ} {x : M}
+    (hf : MDifferentiableAt I 𝓘(ℝ) f x) :
+    mpullback I (𝓡 1) (fun y ↦ Circle.exp (f y)) circleAngularForm x =
+      mextDeriv (RoughForm.ofFunction I f) x := by
+  have h := mpullback_comp_at hf (contMDiff_circleExp.mdifferentiableAt (x := f x) one_ne_zero)
+    circleAngularForm
+  rw [Function.comp_def, mpullback_circleExp_circleAngularForm] at h
+  exact h.trans (mpullback_mextDeriv_ofFunction_apply hf mdifferentiableAt_id)
 
 end CircleValued
 
