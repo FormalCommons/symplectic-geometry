@@ -48,6 +48,13 @@ when it is not, neither is `g ↦ g⁻¹ • x`, and both sides are zero.
 the image of `v` under the derivative of `h ↦ g⁻¹ * h`. `TauCeti.mfderiv_inv_smul_comp_apply`
 is its form along a map `γ : N → G`, for `y ↦ (γ y)⁻¹ • x`.
 
+`Diffeomorph.mfderiv_fundamentalVectorField` says that an equivariant `C^n` diffeomorphism
+`Φ : M → N`, with `n ≠ 0`, sends `ξ_M(x)` to `ξ_N(Φ x)`, over any nontrivially normed field and
+with no hypothesis on the actions. Where the orbit map of `x` is differentiable at `1`, this is
+`TauCeti.mfderiv_fundamentalVectorField_of_map_smul`; where it is not, neither is that of `Φ x`,
+which is `Φ` composed with the orbit map of `x` (Tau Ceti's
+`Diffeomorph.mdifferentiableAt_comp_iff`), and both sides are zero.
+
 `TauCeti.mfderiv_rightFundamentalVectorField_of_map_op_smul_eq_smul` is the mixed case of the
 first statement: a map `f : M → N` with `f (x • g) = g • f x`, from a right action to a left one,
 sends the right fundamental vector field of `ξ` at `x` to the fundamental vector field of `ξ` at
@@ -198,6 +205,47 @@ theorem mfderiv_inv_smul_comp_apply [LieGroup I 1 G] [MulAction G M] {x : M} {γ
 end TauCeti
 
 end Inverse
+
+section Diffeomorph
+
+namespace Diffeomorph
+
+open TauCeti
+
+variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
+  {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H}
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G]
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace 𝕜 E']
+  {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners 𝕜 E' H'}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H' M] [MulAction G M]
+  {E'' : Type*} [NormedAddCommGroup E''] [NormedSpace 𝕜 E'']
+  {H'' : Type*} [TopologicalSpace H''] {I'' : ModelWithCorners 𝕜 E'' H''}
+  {N : Type*} [TopologicalSpace N] [ChartedSpace H'' N] [MulAction G N]
+
+/-- **Equivariant diffeomorphisms carry fundamental vector fields.** If a `C^n` diffeomorphism
+`Φ : M → N`, with `n ≠ 0`, satisfies `Φ (g • x) = g • Φ x` for all `g` and `x`, then its
+differential at `x` sends the fundamental vector field of `ξ` at `x` to that at `Φ x`. -/
+theorem mfderiv_fundamentalVectorField {n : ℕ∞ω} (Φ : M ≃ₘ^n⟮I', I''⟯ N) (hn : n ≠ 0)
+    (hΦ : ∀ (g : G) (x : M), Φ (g • x) = g • Φ x) (ξ : GroupLieAlgebra I G) (x : M) :
+    mfderiv I' I'' Φ x (fundamentalVectorField I' ξ x) =
+      fundamentalVectorField I'' ξ (Φ x) := by
+  by_cases h : MDifferentiableAt I I' (fun g : G ↦ g • x) 1
+  · exact mfderiv_fundamentalVectorField_of_map_smul (Φ.mdifferentiable hn x) h
+      (fun g ↦ hΦ g x) ξ
+  -- Otherwise the orbit map of `Φ x` is `Φ` composed with that of `x`, so it is not
+  -- differentiable at `1` either, and both sides vanish.
+  have hc : (fun g : G ↦ g • Φ x) = Φ ∘ fun g : G ↦ g • x := funext fun g ↦ (hΦ g x).symm
+  have h' : ¬MDifferentiableAt I I'' (fun g : G ↦ g • Φ x) 1 :=
+    hc ▸ (Φ.mdifferentiableAt_comp_iff hn).not.mpr h
+  rw [fundamentalVectorField_apply, fundamentalVectorField_apply,
+    mfderiv_zero_of_not_mdifferentiableAt h, mfderiv_zero_of_not_mdifferentiableAt h',
+    zero_apply]
+  exact map_zero _
+
+end Diffeomorph
+
+end Diffeomorph
 
 section RightToLeft
 
