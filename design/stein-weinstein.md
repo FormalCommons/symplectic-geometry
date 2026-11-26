@@ -496,9 +496,7 @@ containing `ι '' closedBall 0 1`:
   sphere),
   `IsJOrthogonallyAttached.comp` (for `h ∘ φ` with `h 0 = 0` and `h' > 0`),
   `IsJOrthogonallyAttached.comp_linearIsometry` (for `ι ∘ e`, `e` a linear
-  isometry),
-  and the example of the model below,
-  `isJOrthogonallyAttached_model`.
+  isometry).
 - `Surround/Shape.lean` (issue 14c): the model. On
   `V = EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)`, write
   `p = (x + i y, w)`, $s=|x|^2$ and $t=|y|^2+|w|^2$, and `ι₀` for the
@@ -513,7 +511,7 @@ containing `ι '' closedBall 0 1`:
   $0<a<b$: both strictly plurisubharmonic by the criterion,
   `IsJConvexLevel` for $\varphi_0$ at `0`, and the handle function with
   one critical point, at `0`, nondegenerate of index `k`. With
-  `isJOrthogonallyAttached_model` of issue 14b, $(\varphi_0,\iota_0)$ satisfies
+  `isJOrthogonallyAttached_model`, $(\varphi_0,\iota_0)$ satisfies
   every hypothesis of the statements above (`ι₀` is a linear embedding with
   totally real image), and is the test case of issue 14d. These are the
   computations of Cieliebak–Eliashberg's chapter on shapes of
