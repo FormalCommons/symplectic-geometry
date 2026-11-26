@@ -31,11 +31,18 @@ by the second projection.
 
 ## Main results
 
-* `Bundle.Trivialization.isOpenEmbedding_localChart`: the chart is an open embedding.
-* `Bundle.Trivialization.localChart_zero`, `Bundle.Trivialization.localChart_snd_eq_zero_iff`,
-  `Bundle.Trivialization.proj_localChart_eq_iff`, `Bundle.Trivialization.proj_comp_localChart`:
-  where the chart sends the origin, the points of the zero section and the fibre over `b`, and
-  how it meets the projection.
+* `Bundle.Trivialization.localChart`: the chart, and
+  `Bundle.Trivialization.isOpenEmbedding_localChart`: it is an open embedding.
+* `Bundle.Trivialization.localChart_zero`,
+  `Bundle.Trivialization.localChart_mem_range_zeroSection_iff`,
+  `Bundle.Trivialization.localChart_preimage_proj_preimage`,
+  `Bundle.Trivialization.proj_comp_localChart`: where the chart sends the origin, which points it
+  sends to the zero section and to the fibre over `b`, and how it meets the projection.
+* `Bundle.Trivialization.localChartLocalHomologyIso` and
+  `Bundle.Trivialization.localChartFiberLocalHomologyIso`: the isomorphisms of local homology at
+  the origin and along `P × {0}`, characterized by
+  `Bundle.Trivialization.localHomologyMap_comp_localChartLocalHomologyIso_hom` and
+  `Bundle.Trivialization.localHomologyMap_comp_localChartFiberLocalHomologyIso_hom`.
 * `Bundle.Trivialization.localChartFiberLocalHomologyIso_hom_comp_localHomologyRestriction`: the
   isomorphism along the fibre restricts to the isomorphism at the point.
 * `Bundle.Trivialization.localChartFiberLocalHomologyIso_hom_comp_localHomologyMap_proj`: the
