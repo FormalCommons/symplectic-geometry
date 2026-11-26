@@ -26,8 +26,16 @@ multiplication by `i` maps the tangent space of the disc into the kernel of `dφ
 sphere. The last condition says that the boundary sphere is tangent to the complex tangencies of
 `∂W`, and that `i` times the radial direction of the disc is tangent to `∂W`.
 
-This is the setting of the J-convex surrounding of a totally real disc, in which the disc is
-moreover a smooth embedding with totally real tangent images.
+This is Cieliebak–Eliashberg's notion: their Definition 2.22 calls a totally real submanifold
+`L` J-orthogonal to a hypersurface `Σ` when, at each point `p` of `L ∩ Σ`, `J (T_p L) ⊆ T_p Σ`
+and `T_p L ⊄ T_p Σ`, and their §7.9 says that an embedding of a disc attaches it J-orthogonally
+to `W` when it maps the disc into the complement of the interior of `W`, meets `∂W` exactly in
+the image of the boundary sphere, and is J-orthogonal to `∂W` there. The four fields are these
+conditions for `W = {φ ≤ 0}` and `∂W = {φ = 0}`, with the transversality written as a sign of
+`dφ` on the radial direction: along the sphere `φ ∘ ι` vanishes on tangent vectors of the
+sphere and is positive inside it, so `ι` is transverse to `{φ = 0}` there exactly when this
+radial derivative is negative. Being an embedding and being totally real are not fields: the
+J-convex surrounding (Cieliebak–Eliashberg, Theorem 8.4) asks for them as separate hypotheses.
 
 ## Main results
 
@@ -48,7 +56,8 @@ moreover a smooth embedding with totally real tangent images.
 ## References
 
 * [K. Cieliebak, Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
-  the J-convex surrounding of totally real discs attached J-orthogonally to a domain.
+  Definition 2.22 (J-orthogonality to a hypersurface), §7.9 (discs attached J-orthogonally) and
+  Theorem 8.4 (the J-convex surrounding of such a disc).
 -/
 
 public section
@@ -69,7 +78,10 @@ variable (E) in
 domain `{φ ≤ 0}` of a complex manifold `M` when the open disc lies in `{φ > 0}`, the boundary
 sphere lies in `{φ = 0}`, the derivative of `φ` along the outward radial direction of the disc
 is negative on the sphere (so the disc meets `{φ = 0}` transversally), and along the sphere,
-multiplication by `i` maps the tangent space of the disc into the kernel of `dφ`. -/
+multiplication by `i` maps the tangent space of the disc into the kernel of `dφ`.
+
+These are the conditions of Cieliebak–Eliashberg, *From Stein to Weinstein and Back*, §7.9, for
+an attachment that is J-orthogonal in the sense of their Definition 2.22. -/
 structure IsJOrthogonallyAttached (φ : M → ℝ) (ι : F → M) : Prop where
   /-- The open disc lies outside the domain. -/
   pos : ∀ x : F, ‖x‖ < 1 → 0 < φ (ι x)
