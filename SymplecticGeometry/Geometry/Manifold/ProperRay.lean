@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Connected
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Homogeneity
 public import SymplecticGeometry.Topology.FilledHull
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 import SymplecticGeometry.Analysis.Calculus.Deriv.CriticalValue
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Real
 import SymplecticGeometry.Geometry.Manifold.NullSet
@@ -16,6 +17,8 @@ import SymplecticGeometry.Order.Interval.Set.Image
 import SymplecticGeometry.Topology.Closure
 import SymplecticGeometry.Topology.Instances.Real
 import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
+import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Limit
+import TauCeti.Geometry.Manifold.Exhaustion
 
 /-!
 # Proper rays from a closed discrete set
@@ -1062,7 +1065,226 @@ theorem exists_isRayStage_succ (hE : 1 < Module.rank ℝ E) {h : M → ℝ}
     rw [(hslow p hp).2.2.2, ← Iic_union_Ioc_eq_Iic (hTu p hp).le, image_union, himg p hp]
     exact union_subset (fun x hx ↦ (hnewV p hpN hx).2) fun x hx hxK ↦ hout p hp hx (.inl hxK)
 
+omit [FiniteDimensional ℝ E] [I.Boundaryless] [T2Space M] [IsManifold I ∞ M] in
+/-- A stage at step `j` depends only on the levels `c 0, …, c j`. -/
+theorem IsRayStage.congr_level {h : M → ℝ} {P s : Set M} {c c' : ℕ → ℝ} {j : ℕ}
+    {S : Finset M} {γ : M → ℝ → M} {T : M → ℝ} (hst : IsRayStage I h P s c j S γ T)
+    (hc : ∀ i ≤ j, c' i = c i) : IsRayStage I h P s c' j S γ T :=
+  { hst with
+    le_level := fun i hi ↦ by rw [hc i hi, hc j le_rfl]; exact hst.le_level i hi
+    inter_subset := by rw [hc j le_rfl]; exact hst.inter_subset
+    leaves := fun p hp i hi ↦ by rw [hc i hi]; exact hst.leaves p hp i hi
+    notMem := fun p hp ↦ by rw [hc j le_rfl]; exact hst.notMem p hp
+    subset := fun p hp ↦ by rw [hc j le_rfl]; exact hst.subset p hp }
+
 end Stage
+
+section Rays
+
+/-- The data of a stage of the construction of rays: the levels, the obstacles, the points
+used, the rays and their cut parameters. -/
+private structure RayData (M : Type*) where
+  c : ℕ → ℝ
+  s : Set M
+  S : Finset M
+  γ : M → ℝ → M
+  T : M → ℝ
+
+/-- **The staged construction of rays.** Let `M` be a finite-dimensional Hausdorff boundaryless
+smooth manifold whose model space has rank greater than one, `h : M → ℝ` a `C¹` function whose
+filled sublevel sets are compact, and `P` closed and discrete. Starting from a stage `0`
+(`IsRayStage`) with obstacles `s₀` and level `c₀ 0`, there are levels `c k` with
+`c k + 1 < c (k + 1)` and stages `k` for all `k`, with obstacles `s k` and points `S k`, such that
+each step is one of `exists_isRayStage_succ`: the points and the obstacles off `P` only increase,
+every point of `P` in `filledSublevel h (c k + 2)` is used at step `k + 1`, every old ray is
+extended past its cut parameter, which grows by at least one, by an arc outside
+`filledSublevel h (c k)`, and a new ray of step `k + 1` lies outside `filledSublevel h (c k)` up
+to its cut parameter. -/
+theorem exists_seq_isRayStage (hE : 1 < Module.rank ℝ E) {h : M → ℝ}
+    (hh : ContMDiff I 𝓘(ℝ) 1 h) (hF : ∀ c, IsCompact (filledSublevel h c))
+    {P s₀ : Set M} (hP : IsClosed P) (hPd : IsDiscrete P) {c₀ : ℕ → ℝ} {S₀ : Finset M}
+    {γ₀ : M → ℝ → M} {T₀ : M → ℝ} (h₀ : IsRayStage I h P s₀ c₀ 0 S₀ γ₀ T₀) :
+    ∃ (c : ℕ → ℝ) (s : ℕ → Set M) (S : ℕ → Finset M) (γ : ℕ → M → ℝ → M) (T : ℕ → M → ℝ),
+      c 0 = c₀ 0 ∧ s 0 = s₀ ∧ ∀ k, IsRayStage I h P (s k) c k (S k) (γ k) (T k) ∧
+        c k + 1 < c (k + 1) ∧ S k ⊆ S (k + 1) ∧ s k \ P ⊆ s (k + 1) ∧
+        P ∩ filledSublevel h (c k + 2) ⊆ S (k + 1) ∧
+        (∀ p ∈ S k, T k p + 1 ≤ T (k + 1) p ∧ EqOn (γ (k + 1) p) (γ k p) (Iic (T k p)) ∧
+          γ (k + 1) p '' Ioc (T k p) (T (k + 1) p) ⊆ (filledSublevel h (c k))ᶜ) ∧
+        ∀ p ∈ S (k + 1), p ∉ S k →
+          γ (k + 1) p '' Iic (T (k + 1) p) ⊆ (filledSublevel h (c k))ᶜ := by
+  have step (k : ℕ) (d : {d : RayData M // IsRayStage I h P d.s d.c k d.S d.γ d.T}) :
+      ∃ d' : {d' : RayData M // IsRayStage I h P d'.s d'.c (k + 1) d'.S d'.γ d'.T},
+        (∀ i ≤ k, d'.val.c i = d.val.c i) ∧
+        d'.val.c (k + 1) ∈ Ioo (d.val.c k + 1) (d.val.c k + 2) ∧
+        d.val.S ⊆ d'.val.S ∧ d.val.s \ P ⊆ d'.val.s ∧
+        P ∩ filledSublevel h (d.val.c k + 2) ⊆ d'.val.S ∧
+        (∀ p ∈ d.val.S, d.val.T p + 1 ≤ d'.val.T p ∧
+          EqOn (d'.val.γ p) (d.val.γ p) (Iic (d.val.T p)) ∧
+          d'.val.γ p '' Ioc (d.val.T p) (d'.val.T p) ⊆ (filledSublevel h (d.val.c k))ᶜ) ∧
+        ∀ p ∈ d'.val.S, p ∉ d.val.S →
+          d'.val.γ p '' Iic (d'.val.T p) ⊆ (filledSublevel h (d.val.c k))ᶜ := by
+    obtain ⟨c', hc', s', S', γ', T', hst, hSS, hss, hPS, hold, hnew⟩ :=
+      exists_isRayStage_succ hE hh hF hP hPd d.property
+    exact ⟨⟨⟨update d.val.c (k + 1) c', s', S', γ', T'⟩, hst⟩,
+      fun i hi ↦ update_of_ne (by omega) _ _, by simpa using hc', hSS, hss, hPS, hold, hnew⟩
+  choose next hnext using step
+  let seq (k : ℕ) : {d : RayData M // IsRayStage I h P d.s d.c k d.S d.γ d.T} :=
+    Nat.rec (motive := fun k ↦ {d : RayData M // IsRayStage I h P d.s d.c k d.S d.γ d.T})
+      ⟨⟨c₀, s₀, S₀, γ₀, T₀⟩, h₀⟩ next k
+  have hseq (k : ℕ) : seq (k + 1) = next k (seq k) := rfl
+  let c (i : ℕ) : ℝ := (seq i).val.c i
+  have hc (k i : ℕ) (hi : i ≤ k) : (seq k).val.c i = c i := by
+    induction k, hi using Nat.le_induction with
+    | base => rfl
+    | succ k hik ih => rw [hseq, (hnext k (seq k)).1 i hik, ih]
+  refine ⟨c, fun k ↦ (seq k).val.s, fun k ↦ (seq k).val.S, fun k ↦ (seq k).val.γ,
+    fun k ↦ (seq k).val.T, rfl, rfl, fun k ↦ ?_⟩
+  obtain ⟨-, hlev, hSS, hss, hPS, hold, hnew⟩ := hnext k (seq k)
+  rw [← hseq] at hlev hSS hss hPS hold hnew
+  exact ⟨(seq k).property.congr_level fun i hi ↦ (hc k i hi).symm, hlev.1, hSS, hss, hPS, hold,
+    hnew⟩
+
+variable [SigmaCompactSpace M]
+
+/-- On a manifold with no compact connected component there is a smooth function whose filled
+sublevel sets are compact and empty at level `-1`. -/
+private theorem exists_contMDiff_isCompact_filledSublevel
+    (hM : ∀ x : M, ¬ IsCompact (connectedComponent x)) :
+    ∃ h : M → ℝ, ContMDiff I 𝓘(ℝ) 1 h ∧ (∀ c, IsCompact (filledSublevel h c)) ∧
+      filledSublevel h (-1) = ∅ := by
+  have : LocallyCompactSpace M := Manifold.locallyCompact_of_finiteDimensional I
+  have : LocallyConnectedSpace H := I.toHomeomorph.locallyConnectedSpace
+  have : LocallyConnectedSpace M := ChartedSpace.locallyConnectedSpace H M
+  obtain ⟨f, hfp, hf0⟩ := TauCeti.exists_contMDiffMap_isProperMap_nonneg (M := M) I
+  refine ⟨f, f.contMDiff.of_le (by simp), fun c ↦ isCompact_filledSublevel hM ?_, ?_⟩
+  · have : {x | f x ≤ c} = f ⁻¹' Icc 0 c := by ext x; simp [hf0 x]
+    rw [this]
+    exact hfp.isCompact_preimage isCompact_Icc
+  · -- Below level `0` every component of the complement of the sublevel set is one of `M`.
+    refine eq_empty_of_forall_notMem fun x hx ↦ hM x ?_
+    have : {y | f y ≤ -1}ᶜ = univ := eq_univ_of_forall fun y (hy : f y ≤ -1) ↦ by
+      linarith [hf0 y]
+    rwa [mem_filledSublevel_iff, this, connectedComponentIn_univ,
+      isClosed_connectedComponent.closure_eq] at hx
+
+/-- **Rays from a closed discrete set, avoiding another.** Let `M` be a finite-dimensional,
+Hausdorff, σ-compact, boundaryless smooth manifold of dimension at least two with no compact
+connected component, and `P`, `Q` disjoint closed discrete subsets of `M`. Then there are smooth
+embeddings `γ p : ℝ → M`, one for each `p ∈ P`, with `γ p 0 = p` and `γ p t → ∞` as `t → ∞`,
+whose ranges are pairwise disjoint and miss `Q`, and such that the sets `γ p '' [-2, ∞)` form a
+locally finite family. -/
+theorem exists_rays (hE : 2 ≤ Module.finrank ℝ E)
+    (hM : ∀ x : M, ¬ IsCompact (connectedComponent x))
+    {P Q : Set M} (hP : IsClosed P) [DiscreteTopology P] (hQ : IsClosed Q)
+    [DiscreteTopology Q] (hPQ : Disjoint P Q) :
+    ∃ γ : P → TauCeti.SmoothEmbedding 𝓘(ℝ) I ∞ ℝ M,
+      (∀ p, γ p 0 = p) ∧ (∀ p, Filter.Tendsto (γ p) Filter.atTop (Filter.cocompact M)) ∧
+      LocallyFinite (fun p ↦ γ p '' Ici (-2)) ∧
+      Pairwise (Disjoint on fun p ↦ range (γ p)) ∧ ∀ p, Disjoint (range (γ p)) Q := by
+  have hE' : 1 < Module.rank ℝ E := by
+    rw [← Module.finrank_eq_rank]; exact_mod_cast hE
+  have : LocallyConnectedSpace H := I.toHomeomorph.locallyConnectedSpace
+  have : LocallyConnectedSpace M := ChartedSpace.locallyConnectedSpace H M
+  obtain ⟨h, hh, hF, hempty⟩ := exists_contMDiff_isCompact_filledSublevel (I := I) hM
+  have hPd : IsDiscrete P := isDiscrete_iff_discreteTopology.2 ‹_›
+  have hQd : IsDiscrete Q := isDiscrete_iff_discreteTopology.2 ‹_›
+  -- The stages, from the stage with no rays at level `-1` and with obstacles `P ∪ Q`.
+  have h₀ := isRayStage_zero (I := I) (c := fun _ ↦ -1) (hP.union hQ) (hPd.union hQd hP hQ)
+    subset_union_left (by rw [hempty]; exact disjoint_empty P) (fun p _ ↦ p) 0
+  obtain ⟨c, s, S, γ, T, -, hs0, hst⟩ := exists_seq_isRayStage hE' hh hF hP hPd h₀
+  choose hstage hlev hSS hss hPS hold hnew using hst
+  -- The filled sublevel sets at the levels `c k` form a compact exhaustion.
+  have hcge (k : ℕ) : c 0 + k ≤ c k := by
+    induction k with
+    | zero => simp
+    | succ k ih => push_cast; linarith [hlev k]
+  have hcov (x : M) : ∃ k, x ∈ filledSublevel h (c k) := by
+    obtain ⟨k, hk⟩ := exists_nat_ge (h x - c 0)
+    exact ⟨k, filledSublevel_mono (by linarith [hcge k])
+      (setOfPred_le_subset_filledSublevel (show h x ≤ h x from le_rfl))⟩
+  let K : CompactExhaustion M :=
+    { toFun k := filledSublevel h (c k)
+      isCompact' k := hF _
+      subset_interior_succ' k :=
+        filledSublevel_subset_interior hh.continuous (by linarith [hlev k])
+      iUnion_eq' := eq_univ_of_forall fun x ↦ mem_iUnion.2 (hcov x) }
+  have hK (k : ℕ) : K k = filledSublevel h (c k) := rfl
+  have hSmono : Monotone S := monotone_nat_of_le_succ hSS
+  have hcmono : Monotone c := monotone_nat_of_le_succ fun k ↦ by linarith [hlev k]
+  have hQs (k : ℕ) : Q ⊆ s k \ P := by
+    induction k with
+    | zero => rw [hs0]; exact fun x hx ↦ ⟨subset_union_right hx, disjoint_right.1 hPQ hx⟩
+    | succ k ih => exact fun x hx ↦ ⟨hss k (ih hx), disjoint_right.1 hPQ hx⟩
+  -- The ray of `p` is the limit of the rays of `p` at the stages from the first that uses `p`,
+  -- which exists since every point of `P` lies in some `filledSublevel h (c k)`.
+  have hray (p : P) : ∃ δ : TauCeti.SmoothEmbedding 𝓘(ℝ) I ∞ ℝ M,
+      (∀ t, ∀ᶠ k in Filter.atTop, (p : M) ∈ S k ∧ t ≤ T k p ∧ δ t = γ k p t) ∧
+        Filter.Tendsto δ Filter.atTop (Filter.cocompact M) := by
+    obtain ⟨j, hj⟩ := hcov p
+    have hpS {k : ℕ} (hk : j + 1 ≤ k) : (p : M) ∈ S k :=
+      hSmono hk (hPS j ⟨p.property, filledSublevel_mono (by linarith) hj⟩)
+    have harc (k : ℕ) (hk : j + 1 ≤ k) :
+        MapsTo (γ (k + 1) p) (Icc (T k p) (T (k + 1) p)) (K k)ᶜ := by
+      obtain ⟨hT, heq, harc⟩ := hold k p (hpS hk)
+      rw [← Icc_union_Ioc_eq_Icc le_rfl (by linarith [hT]), Icc_self, mapsTo_union, hK]
+      refine ⟨fun t ht ↦ ?_, mapsTo_iff_image_subset.2 harc⟩
+      rw [mem_singleton_iff.1 ht, heq (mem_Iic.2 le_rfl)]
+      exact (hstage k).notMem p (hpS hk)
+    obtain ⟨δ, hδ, hδt⟩ := TauCeti.SmoothEmbedding.exists_tendsto_cocompact_of_add_one_le K
+      (fun k hk ↦ (hstage k).emb p (hpS hk)) (fun k hk ↦ (hold k p (hpS hk)).1)
+      (fun k hk ↦ (hold k p (hpS hk)).2.1) harc ((hstage (j + 1)).notMem p (hpS le_rfl))
+    refine ⟨δ, fun t ↦ ?_, hδt⟩
+    filter_upwards [hδ t, Filter.eventually_ge_atTop (j + 1)] with k hk hjk
+    exact ⟨hpS hjk, hk⟩
+  choose δ hδ hδt using hray
+  -- The built part of a ray at any stage misses the filled sublevel sets of the stages before
+  -- the one that uses its point.
+  have hout (p : M) (i : ℕ) (hpi : p ∉ S i) :
+      ∀ k, p ∈ S k → γ k p '' Iic (T k p) ⊆ (filledSublevel h (c i))ᶜ := by
+    intro k
+    induction k with
+    | zero => exact fun hp ↦ (hpi (hSmono (Nat.zero_le i) hp)).elim
+    | succ k ih =>
+      intro hp
+      have hik : i ≤ k := by
+        by_contra hik
+        exact hpi (hSmono (by omega) hp)
+      have hKik : (filledSublevel h (c k))ᶜ ⊆ (filledSublevel h (c i))ᶜ :=
+        compl_subset_compl.2 (filledSublevel_mono (hcmono hik))
+      by_cases hpk : p ∈ S k
+      · obtain ⟨hT, heq, harc⟩ := hold k p hpk
+        rw [← Iic_union_Ioc_eq_Iic (by linarith : T k p ≤ T (k + 1) p), image_union,
+          heq.image_eq]
+        exact union_subset (ih hpk) (harc.trans hKik)
+      · exact (hnew k p hp hpk).trans hKik
+  refine ⟨δ, fun p ↦ ?_, hδt, ?_, fun p q hpq ↦ ?_, fun p ↦ ?_⟩
+  · obtain ⟨k, hkS, -, hk⟩ := (hδ p 0).exists
+    rw [hk]
+    exact (hstage k).apply_zero p hkS
+  · -- A neighbourhood `K i` meets only the rays of the finitely many points of `S i`.
+    refine LocallyFinite.subset (f := fun p ↦ range (δ p)) (fun x ↦ ?_)
+      fun p ↦ image_subset_range _ _
+    obtain ⟨i, hi⟩ := K.exists_mem_nhds x
+    refine ⟨K i, hi, ((S i).finite_toSet.preimage Subtype.val_injective.injOn).subset ?_⟩
+    rintro p ⟨_, ⟨t, rfl⟩, hti⟩
+    by_contra hpi
+    obtain ⟨k, hkS, htk, hk⟩ := (hδ p t).exists
+    rw [hK, hk] at hti
+    exact hout p i hpi k hkS ⟨t, htk, rfl⟩ hti
+  · refine disjoint_left.2 ?_
+    rintro _ ⟨t, rfl⟩ ⟨t', ht'⟩
+    obtain ⟨k, ⟨hp, htk, hk⟩, hq, htk', hk'⟩ := ((hδ p t).and (hδ q t')).exists
+    refine disjoint_left.1 ((hstage k).disj hq hp fun h ↦ hpq (Subtype.ext h).symm)
+      ⟨t', htk', rfl⟩ ?_
+    rw [← hk', ht', hk]
+    exact ⟨t, htk, rfl⟩
+  · refine disjoint_left.2 ?_
+    rintro _ ⟨t, rfl⟩ htQ
+    obtain ⟨k, hkS, htk, hk⟩ := (hδ p t).exists
+    rw [hk] at htQ
+    exact disjoint_left.1 ((hstage k).disj_s p hkS) ⟨t, htk, rfl⟩ (hQs k htQ).1
+
+end Rays
 
 end SymplecticGeometry
 
