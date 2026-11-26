@@ -50,10 +50,7 @@ theorem mfderiv_reebVectorField_of_eventuallyEq_mpullback (hα : α.IsContactFor
     mfderiv I J f x (α.reebVectorField x) = β.reebVectorField (f x) := by
   refine hβ.eq_reebVectorField_iff.2 ⟨?_, fun w ↦ ?_⟩
   · have h := hα.apply_reebVectorField x
-    rw [hpb.self_of_nhds, TauCeti.mpullback_apply] at h
-    convert h using 2
-    -- The outer `Eq.symm` makes Lean read the vector off the goal's right side.
-    exact Eq.symm (FinVec.etaExpand_eq _).symm
+    rwa [hpb.self_of_nhds, TauCeti.mpullback_apply_one] at h
   · obtain ⟨u, rfl⟩ := hsurj w
     have hd := mextDerivₗ_apply_eq_of_eventuallyEq_mpullback hf hpb
     rw [← mpullback_apply_pair, mpullback_apply_eq_compContinuousLinearMap, ← mextDerivₗ_apply,

@@ -177,12 +177,11 @@ theorem mpullback_symm_weightOneForm_apply_weightChart (k' : ι → ℝ)
         (weightGenerator ((2 * π) • k') (EuclideanSpace.sumEquivProd z))) = X (Φ z)) :
     TauCeti.mpullback I 𝓘(ℝ, StdSpace ι) Φ.symm (weightOneForm k).val (Φ z) ![X (Φ z)] =
       2 * π * ∑ j, k j * k' j * (z.x j ^ 2 + z.y j ^ 2) := by
-  rw [TauCeti.mpullback_apply]
-  have hv : (fun i ↦ mfderiv I 𝓘(ℝ, StdSpace ι) Φ.symm (Φ z) (![X (Φ z)] i)) =
-      ![EuclideanSpace.sumEquivProd.symm
-        (weightGenerator ((2 * π) • k') (EuclideanSpace.sumEquivProd z))] := by
-    funext i
-    rw [Fin.fin_one_eq_zero i, Matrix.cons_val_zero, Matrix.cons_val_zero, ← hX]
+  rw [TauCeti.mpullback_apply_one]
+  have hv : mfderiv I 𝓘(ℝ, StdSpace ι) Φ.symm (Φ z) (X (Φ z)) =
+      EuclideanSpace.sumEquivProd.symm
+        (weightGenerator ((2 * π) • k') (EuclideanSpace.sumEquivProd z)) := by
+    rw [← hX]
     exact Φ.mfderiv_symm_apply_mfderiv_apply (by simp) hz _
   rw [hv, Φ.symm_toPartialEquiv, Φ.left_inv hz]
   -- `hv` lists the vectors as points of `StdSpace ι`, the lemmas as tangent vectors at `z`.
