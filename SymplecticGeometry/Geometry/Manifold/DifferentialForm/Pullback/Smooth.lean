@@ -39,9 +39,10 @@ preserves `σ` (`TauCeti.SmoothForm.diffeomorphStabilizer_neg`).
 
 The `0`-form of a difference of differentiable functions has exterior derivative the difference
 of theirs (`TauCeti.mextDeriv_ofFunction_sub`), as Tau Ceti's `TauCeti.mextDeriv_ofFunction_add`
-says for sums. With Tau Ceti's naturality `TauCeti.mpullback_mextDeriv_ofFunction_apply`, if
-`α = β + dg` at `x` and at `f x` for a self-map `f`, then `f^* α - α` and `f^* β - β` differ at
-`x` by the exact form `d(g ∘ f - g)` (`TauCeti.mpullback_apply_sub_eq_of_eq_add_mextDeriv`).
+says for sums. By Tau Ceti's naturality `TauCeti.mpullback_mextDeriv_ofFunction_apply`, if
+`α = β + dg` at `x` and at `f x` for a self-map `f` differentiable at `x`, and `g` is
+differentiable at both points, then `f^* α - α` and `f^* β - β` differ at `x` by the exact form
+`d(g ∘ f - g)` (`TauCeti.mpullback_apply_sub_eq_of_eq_add_mextDeriv`).
 
 Pulling a smooth form of positive degree back along a constant map gives the zero form
 (`TauCeti.SmoothForm.mpullback_const`, the smooth case of Tau Ceti's
@@ -160,17 +161,24 @@ theorem mextDeriv_ofFunction_sub {f g : M → F} (hf : MDifferentiable I 𝓘(�
   rw [sub_eq_add_neg, mextDeriv_ofFunction_add hf hg.neg, ← neg_one_smul ℝ g,
     RoughForm.ofFunction_smul, mextDeriv_smul, neg_one_smul, ← sub_eq_add_neg]
 
-/-- Let `f : M → M` and `g : M → F` be differentiable, and let the one-forms `α` and `β` satisfy
-`α = β + dg` at `x` and at `f x`. Then at `x`, `f^* α - α = (f^* β - β) + d(g ∘ f - g)`. -/
-theorem mpullback_apply_sub_eq_of_eq_add_mextDeriv {f : M → M} (hf : MDifferentiable I I f)
-    {g : M → F} (hg : MDifferentiable I 𝓘(ℝ, F) g) {α β : RoughForm I M F 1} {x : M}
+/-- Let `f : M → M` be differentiable at `x`, and `g : M → F` at `x` and at `f x`, and let the
+one-forms `α` and `β` satisfy `α = β + dg` at `x` and at `f x`. Then at `x`,
+`f^* α - α = (f^* β - β) + d(g ∘ f - g)`. -/
+theorem mpullback_apply_sub_eq_of_eq_add_mextDeriv {f : M → M} {g : M → F} {x : M}
+    (hf : MDifferentiableAt I I f x) (hgx : MDifferentiableAt I 𝓘(ℝ, F) g x)
+    (hgfx : MDifferentiableAt I 𝓘(ℝ, F) g (f x)) {α β : RoughForm I M F 1}
     (hx : α x = β x + mextDeriv (RoughForm.ofFunction I g) x)
     (hfx : α (f x) = β (f x) + mextDeriv (RoughForm.ofFunction I g) (f x)) :
     mpullback I I f α x - α x =
       mpullback I I f β x - β x + mextDeriv (RoughForm.ofFunction I (g ∘ f - g)) x := by
+  have hd : mextDeriv (RoughForm.ofFunction I (g ∘ f - g)) x =
+      mextDeriv (RoughForm.ofFunction I (g ∘ f)) x - mextDeriv (RoughForm.ofFunction I g) x := by
+    rw [mextDeriv_ofFunction, mextDeriv_ofFunction, mextDeriv_ofFunction,
+      mvfderiv_sub (hgfx.comp x hf) hgx]
+    ext v
+    simp
   rw [mpullback_apply_congr (η := β + mextDeriv (RoughForm.ofFunction I g)) hfx, hx,
-    mpullback_add, Pi.add_apply, mpullback_mextDeriv_ofFunction_apply (hf x) (hg _),
-    mextDeriv_ofFunction_sub (hg.comp hf) hg, Pi.sub_apply]
+    mpullback_add, Pi.add_apply, mpullback_mextDeriv_ofFunction_apply hf hgfx, hd]
   abel
 
 /-- Let `f : M × M₂ → M'` be differentiable at `(s, z)`. The pullback of `φ` along the slice

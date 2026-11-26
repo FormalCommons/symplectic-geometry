@@ -781,8 +781,9 @@ theorem exists_mpullback_dehnTwist_sub_eq [IsManifold I ∞ M] {σ : SmoothTwoFo
   set e := ι.toPartialDiffeomorph.liftOpens hUne (hUne.map ι)
   have hes : (U : Set (𝕋 n)) ⊆ e.source :=
     (ι.toPartialDiffeomorph_liftOpens_source hUne (hUne.map ι)).symm.subset
-  have himage := ι.image_toPartialDiffeomorph_liftOpens hUne (hUne.map ι) hU
+  have himage := ι.toPartialDiffeomorph.image_liftOpens hUne (hUne.map ι) hU
   rw [Set.preimage_ofPred_eq] at himage
+  simp only [Diffeomorph.coe_toPartialDiffeomorph] at himage
   -- `e^*θ` is `λ + dg` on `W`.
   have hα (z : 𝕋 n) (hz : z ∈ W) : TauCeti.mpullback (𝓣 n) I e θ.val z =
       (CotangentBundle.liouvilleForm (𝓡 n) (𝕊 n)).val z +
@@ -820,7 +821,8 @@ theorem exists_mpullback_dehnTwist_sub_eq [IsManifold I ∞ M] {σ : SmoothTwoFo
       exact (he ⟨τ w, _⟩).symm
     rw [hloc.mpullback_eq, mpullback_comp_at (hτd z)
         (e.mdifferentiableAt (by simp) (hes (hWU (subset_closure (hτW z hz))))),
-      mpullback_apply_sub_eq_of_eq_add_mextDeriv hτd hgd (hα z hz) (hα _ (hτW z hz)),
+      mpullback_apply_sub_eq_of_eq_add_mextDeriv (hτd z) (hgd z) (hgd _) (hα z hz)
+        (hα _ (hτW z hz)),
       mpullback_modelTwist_liouvilleForm_apply, add_sub_cancel_left, hk_def,
       mextDeriv_ofFunction_add ((contMDiff_twistPrimitive hR).mdifferentiable (by simp))
         ((hgd.comp hτd).sub hgd), Pi.add_apply]

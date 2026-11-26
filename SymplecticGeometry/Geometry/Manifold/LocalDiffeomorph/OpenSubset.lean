@@ -48,11 +48,11 @@ values of `Φ` (Tau Ceti's `PartialDiffeomorph.liftOpens_source`,
 `PartialDiffeomorph.toDiffeomorphSourceTarget_apply_coe`). When `U = V`, it has identity
 differential at a point exactly when `Φ` has, by Tau Ceti's
 `TauCeti.Manifold.mfderiv_eq_id_iff_of_comp_subtype_val`; so a point that `Φ` fixes with identity
-differential is fixed by it, with identity differential. When `Φ` is a diffeomorphism between
-`U` and `V`, the lift has source `U`, takes the values of `Φ` there, and so maps a subset of `U`
-onto its image under `Φ` (`Diffeomorph.toPartialDiffeomorph_liftOpens_source`,
-`Diffeomorph.toPartialDiffeomorph_liftOpens_apply_coe`,
-`Diffeomorph.image_toPartialDiffeomorph_liftOpens`).
+differential is fixed by it, with identity differential. The lift maps a subset `C` of `U` onto
+the image of `C` under `Φ` (`PartialDiffeomorph.image_liftOpens`). When `Φ` is a diffeomorphism
+between `U` and `V`, the lift has source `U` and takes the values of `Φ` there
+(`Diffeomorph.toPartialDiffeomorph_liftOpens_source`,
+`Diffeomorph.toPartialDiffeomorph_liftOpens_apply_coe`).
 
 ## Main results
 
@@ -69,11 +69,13 @@ onto its image under `Φ` (`Diffeomorph.toPartialDiffeomorph_liftOpens_source`,
 * `PartialDiffeomorph.exists_toDiffeomorphSourceTarget_liftOpens_eq_and_mfderiv_eq_id`: a fixed
   point of a partial diffeomorphism of an open subset with identity differential stays one when
   the partial diffeomorphism is read in the ambient manifold.
+* `PartialDiffeomorph.image_liftOpens`: a partial diffeomorphism between open subsets `U` and
+  `V`, read as a partial diffeomorphism of the ambient manifolds, maps each subset of `U` onto its
+  image under it.
 * `Diffeomorph.toPartialDiffeomorph_liftOpens_source`,
-  `Diffeomorph.toPartialDiffeomorph_liftOpens_apply_coe`,
-  `Diffeomorph.image_toPartialDiffeomorph_liftOpens`: a diffeomorphism between open subsets `U`
-  and `V`, read as a partial diffeomorphism of the ambient manifolds, has source `U`, agrees with
-  the diffeomorphism there, and maps each subset of `U` onto its image under it.
+  `Diffeomorph.toPartialDiffeomorph_liftOpens_apply_coe`: a diffeomorphism between open subsets
+  `U` and `V`, read as a partial diffeomorphism of the ambient manifolds, has source `U` and
+  agrees with the diffeomorphism there.
 -/
 
 public section
@@ -210,6 +212,18 @@ theorem exists_toDiffeomorphSourceTarget_liftOpens_eq_and_mfderiv_eq_id
   ⟨by simp [hx], by simp [hfix],
     (Φ.mfderiv_toDiffeomorphSourceTarget_liftOpens_eq_id_iff hU x _).2 hd⟩
 
+/-- A partial diffeomorphism `Ψ` between open subsets `U` of `M` and `V` of `N`, read as a partial
+diffeomorphism from `M` to `N`, maps a subset `C` of `U` onto the image of `C` under `Ψ`. -/
+theorem image_liftOpens {V : Opens N} (Ψ : PartialDiffeomorph I J U V n) (hU : Nonempty U)
+    (hV : Nonempty V) {C : Set M} (hC : C ⊆ U) :
+    Ψ.liftOpens hU hV '' C = (fun x : U ↦ (Ψ x : N)) '' (Subtype.val ⁻¹' C) := by
+  ext y
+  constructor
+  · rintro ⟨x, hx, rfl⟩
+    exact ⟨⟨x, hC hx⟩, hx, (Ψ.liftOpens_apply_coe hU hV _).symm⟩
+  · rintro ⟨x, hx, rfl⟩
+    exact ⟨x, hx, Ψ.liftOpens_apply_coe hU hV x⟩
+
 end LiftOpens
 
 end PartialDiffeomorph
@@ -235,18 +249,6 @@ diffeomorphism from `M` to `N`, takes the values of `Φ` on `U`. -/
 theorem toPartialDiffeomorph_liftOpens_apply_coe (x : U) :
     Φ.toPartialDiffeomorph.liftOpens hU hV x = Φ x := by
   rw [PartialDiffeomorph.liftOpens_apply_coe, coe_toPartialDiffeomorph]
-
-/-- A diffeomorphism `Φ` between open subsets `U` of `M` and `V` of `N`, read as a partial
-diffeomorphism from `M` to `N`, maps a subset `C` of `U` onto the image of `C` under `Φ`. -/
-theorem image_toPartialDiffeomorph_liftOpens {C : Set M} (hC : C ⊆ U) :
-    Φ.toPartialDiffeomorph.liftOpens hU hV '' C =
-      (fun x : U ↦ (Φ x : N)) '' (Subtype.val ⁻¹' C) := by
-  ext y
-  constructor
-  · rintro ⟨x, hx, rfl⟩
-    exact ⟨⟨x, hC hx⟩, hx, (Φ.toPartialDiffeomorph_liftOpens_apply_coe hU hV _).symm⟩
-  · rintro ⟨x, hx, rfl⟩
-    exact ⟨x, hx, Φ.toPartialDiffeomorph_liftOpens_apply_coe hU hV x⟩
 
 end Diffeomorph
 
