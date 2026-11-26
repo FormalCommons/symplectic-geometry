@@ -92,7 +92,7 @@ assumed.
 
 Milestone: *Lagrangian neighbourhood theorem*. -/
 theorem IsLagrangianMap.exists_symplectomorphism_cotangent {σ : SmoothTwoForm I M}
-    {hσ : σ.IsSymplectic} {f : SmoothEmbedding J I ∞ L M}
+    (hσ : σ.IsSymplectic) {f : SmoothEmbedding J I ∞ L M}
     (hf : hσ.isNondegenerate.IsLagrangianMap J f) :
     ∃ (U : Opens (CotangentBundle J L)) (V : Opens M)
       (ψ : U ≃ₘ⟮J.prod 𝓘(ℝ, EL →L[ℝ] ℝ), I⟯ V),
@@ -163,12 +163,12 @@ restriction of `-TauCeti.CotangentBundle.symplecticForm`, which is `dλ` for the
 `λ`, to that of `σ`, and for every `q`, the zero covector at `q` lies in `U` and `ι` maps it to
 `f q`. -/
 theorem IsLagrangianMap.exists_symplectomorphism_cotangent_neg {σ : SmoothTwoForm I M}
-    {hσ : σ.IsSymplectic} {f : SmoothEmbedding J I ∞ L M}
+    (hσ : σ.IsSymplectic) {f : SmoothEmbedding J I ∞ L M}
     (hf : hσ.isNondegenerate.IsLagrangianMap J f) :
     ∃ (U : Opens (CotangentBundle J L)) (V : Opens M)
       (ι : U ≃ₘ⟮J.prod 𝓘(ℝ, EL →L[ℝ] ℝ), I⟯ V),
       SymplecticGeometry.CotangentBundle.IsWeinsteinChart σ f ι := by
-  obtain ⟨U, V, ψ, hψ0, hψσ⟩ := hf.exists_symplectomorphism_cotangent (hσ := hσ)
+  obtain ⟨U, V, ψ, hψ0, hψσ⟩ := hf.exists_symplectomorphism_cotangent hσ
   -- The fibrewise negation `N` of `T^*L`, which fixes the zero section.
   let N := CotangentBundle.fiberNeg J L
   have hN0 (q : L) : N (zeroSection _ _ q) = zeroSection _ _ q := by

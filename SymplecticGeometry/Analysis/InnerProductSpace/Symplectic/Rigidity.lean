@@ -212,9 +212,8 @@ private theorem one_le_abs_stdForm_adjointEquiv {Ψ : StdSpace ι ≃ₗ[ℝ] St
     intro ha0
     rw [A.map_eq_zero_iff] at ha0
     simp [ha0] at hab
-  obtain ⟨w, hw⟩ : ∃ w, stdForm ι (A a) w ≠ 0 := by
-    by_contra! hw
-    exact ha ((stdForm ι).nondegenerate.1 _ hw)
+  obtain ⟨w, hw⟩ : ∃ w, stdForm ι (A a) w ≠ 0 :=
+    (stdForm ι).nondegenerate.exists_apply_ne_zero ha
   set d := (stdForm ι (A a) w)⁻¹ • A.symm w
   have hd : stdForm ι (A a) (A d) = 1 := by
     simp only [d, map_smul, A.apply_symm_apply, smul_eq_mul]

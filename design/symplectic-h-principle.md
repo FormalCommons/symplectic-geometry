@@ -107,14 +107,19 @@ formulation.
    `Telescope.lean` of `DESIGN.md` is dropped, and the milestone's
    existence and path statements go in `OpenManifold.lean`, as corollaries
    (parameter spaces a point and $[0,1]$).
-2. **The handle-core lemma is proved by the book's argument**, as a
-   milestone on its own (`HandleCore.lean`), except for $m=1$, where the
-   cube is compressed towards the core and the contraction along the fibres
-   gives the primitive, in place of the book's patching and zig-zag
-   (`HandleCore/OneDimensional.lean`). Nothing else in the part uses
-   it. It is stated for forms on the whole model space, with its conditions
-   on the cube and near the attaching faces, so that no form on a subset is
-   needed.
+2. **The handle-core lemma is proved by compression**, as a milestone on
+   its own (`HandleCore.lean`), not by the book's induction on $m$, which
+   the source only sketches and whose direct readings fail (the
+   `HandleCore.lean` section says why). For every $m$, holonomic
+   approximation over the cube, relative to the part of the core near the
+   attaching faces, gives an exact form close to the given one near the
+   displaced core, and pulling back along a compression of the cube
+   towards the core, followed by the displacing diffeotopy, ends the
+   homotopy, as in Decision 1 for one cube. The case $m=1$ is also proved
+   without holonomic approximation (`HandleCore/OneDimensional.lean`).
+   Nothing else in the part uses the lemma. It is stated for forms on the
+   whole model space, with its conditions on the cube and near the
+   attaching faces, so that no form on a subset is needed.
 3. **Holonomic approximation in coordinates only.** Every use happens in
    charts around the cubes of a core, so the approximation is proved for
    first jets of maps $\mathbb R^m\times\mathbb R^{d-m}\to F$ near the cube
@@ -313,6 +318,13 @@ in `P` with all space derivatives (and, in the smooth version, smooth on
 depending in the same way on $\lambda$, and with $h_\lambda=\mathrm{id}$,
 $f'_\lambda=f_\lambda$ for $\lambda$ in a closed `P₀` on which
 $(f_\lambda,G_\lambda)$ is holonomic on a neighbourhood of the cube.
+The handle-core lemma (step 4 of `HandleCore.lean`) uses the smooth version
+in this form: parameters in a manifold `L`, the approximation for those in
+a compact `K ⊆ L` and everything smooth over all of `L`; relative to a
+closed part `C` of the cube near which the datum is holonomic for the
+parameters in `K`; and, for every parameter, the diffeotopy the identity
+and $f'_\lambda=f_\lambda$ outside the $\delta$-neighbourhood of the closure
+of the cube minus `C`, the support that subdividing the cube finely gives.
 
 ### `Geometry/Manifold/Morse/OpenManifold.lean`
 
@@ -478,24 +490,34 @@ A smooth vector bundle over `ℝ` is smoothly trivial: for
 `Bundle.exists_diffeomorph_prod_of_real` gives a diffeomorphism
 `TotalSpace F T ≃ₘ^∞⟮𝓘(ℝ).prod 𝓘(ℝ, F), 𝓘(ℝ).prod 𝓘(ℝ, F)⟯ ℝ × F` over `ℝ`,
 linear on each fibre. Tau Ceti has only the continuous statement over
-contractible bases (`Topology/VectorBundle/Contractible.lean`). Route:
-frames on the intervals of a locally finite cover of `ℝ` by intervals over
-which the bundle is trivial, glued outward from `0` in both directions.
-Where the frame `e` built so far and the next frame `e'` overlap, they
-differ by a smooth `A : ℝ → GL`, and `e'` is replaced by `e' · A ∘ φ`, with
-`φ` smooth, equal to the identity on the part of the overlap nearer `0` and
-constant on the other part.
+contractible bases (`Topology/VectorBundle/Contractible.lean`). Route: a
+global smooth frame, built from the frames of the bundle's trivializations.
+Two frames glue along a smooth map into their overlap that is the identity
+on one side (`IsLocalFrameOn.exists_isLocalFrameOn_union`, in
+`VectorBundle/LocalFrame.lean`). Over `ℝ` this joins frames on overlapping
+open intervals, and a supremum argument extends a frame on an open interval
+as far as wanted to the right or the left, unchanged away from the end it
+moves (`IsLocalFrameOn.exists_isLocalFrameOn_Ioo_extend_right`, `_left`).
+That gives frames on `Ioo (-(k + 2)) (k + 2)`, each agreeing with the one
+before on `Ioo (-(k + 1)) (k + 1)`, whose limit
+(`IsLocalFrameOn.exists_isLocalFrameOn_iUnion`, in `LocalFrame.lean`) is a
+global frame (`Bundle.exists_isLocalFrameOn_univ_of_real`). A global frame
+of any smooth vector bundle gives the diffeomorphism with the product
+(`Bundle.exists_diffeomorph_prod_of_isLocalFrameOn_univ`, in
+`LocalFrame.lean`).
 
 #### `Geometry/Manifold/TubularNeighborhood/Ray.lean`
 
-The tube around a ray, with `V := EuclideanSpace ℝ (Fin (Module.finrank ℝ E - 1))`:
+The tube around a ray, for a fibre `V` with `Module.finrank ℝ V + 1 = Module.finrank ℝ E`, such as
+`EuclideanSpace ℝ (Fin (Module.finrank ℝ E - 1))`:
 
 ```lean
 theorem TauCeti.SmoothEmbedding.exists_rayTube (γ : SmoothEmbedding 𝓘(ℝ) I ∞ ℝ M)
+    (hV : Module.finrank ℝ V + 1 = Module.finrank ℝ E)
     (hγ : Filter.Tendsto γ Filter.atTop (Filter.cocompact M))
     {O O' : Set M} (hO : IsOpen O) (hγO : Set.range γ ⊆ O)
     (hO' : IsOpen O') (hγO' : γ '' Set.Ici (-2) ⊆ O') :
-    ∃ Φ : ℝ × V → M, Manifold.IsSmoothEmbedding 𝓘(ℝ).prod 𝓘(ℝ, V) I ∞ Φ ∧
+    ∃ Φ : SmoothEmbedding (𝓘(ℝ).prod 𝓘(ℝ, V)) I ∞ (ℝ × V) M,
       IsOpen (Set.range Φ) ∧ Set.range Φ ⊆ O ∧ (∀ t, Φ (t, 0) = γ t) ∧
       IsClosed (Φ '' (Set.Ici (-2) ×ˢ Metric.closedBall 0 2)) ∧
       Φ '' (Set.Ici (-2) ×ˢ Metric.closedBall 0 2) ⊆ O'
@@ -517,8 +539,7 @@ inner product space `V` of finite dimension and `S := Ici (-1) ×ˢ closedBall 0
 in `ℝ × V`:
 
 ```lean
-theorem exists_nonneg_halfCylinder_hessian_pos {f : ℝ × V → ℝ} (hf : ContDiff ℝ ∞ f)
-    (h0 : TauCeti.IsNondegenerateCriticalPoint f 0)
+theorem exists_nonneg_halfCylinder_hessian_pos {f : ℝ × V → ℝ} (hf : ContDiff ℝ 2 f)
     (hcrit : ∀ x ∈ Set.Ici (-1 : ℝ) ×ˢ Metric.closedBall (0 : V) 1, fderiv ℝ f x = 0 → x = 0) :
     ∃ μ : ℝ × V → ℝ, ContDiff ℝ ∞ μ ∧ 0 ≤ μ ∧
       tsupport μ ⊆ Set.Ici (-1) ×ˢ Metric.closedBall 0 1 ∧
@@ -544,9 +565,9 @@ on that part outside the interior of the box `[-ρ, ρ] × closedBall 0 ρ`
 (positive by `hcrit` and compactness, since `0` is inside the box). With
 `F = f + μ`, at a critical point `x = (t, y)` in `S`:
 
-- *In the box*, `β = 1`, so `∇F = ∇f + Λ' t • e_t` with `‖∇f‖ ≤ 2 C ρ`
-  (as `∇f 0 = 0`); this is not zero once `A > 2 C ρ`. So there are no critical points there,
-  and `0` is not one.
+- *In the box*, `β = 1`, so `∂_t F = ∂_t f + Λ' t`, and `|∂_t f| ≤ C₁` on
+  `[-1, 1] × closedBall 0 1` by compactness; this is not zero once `A > C₁`.
+  So there are no critical points there.
 - *Elsewhere*, `Λ t > 0` or `Λ' t > 0` (else `x` is critical for `f`), and:
   - if `‖∇_y f‖ < ε/2`, then `β Λ' = -∂_t f > ε/2` (from `∂_t F = 0`), and in the direction
     `e_t` the Hessian of `F` is `∂²_t f + β Λ'' ≥ -C + L ε / 2 > 0`;
@@ -692,6 +713,7 @@ same way on compact manifolds.
 
 ```lean
 theorem TauCeti.IsMorse.exists_bandCore (hg : IsMorse I g) (hp : IsProperMap g)
+    (hbdd : BddBelow (Set.range g))
     {a₀ a v b : ℝ} (ha₀ : a₀ < a) (ha : a < v) (hb : v < b)
     (hcrit : ∀ x ∈ criticalPoints I g, a₀ ≤ g x → g x ≤ b →
       g x = v ∧ manifoldMorseIndex I g x < Module.finrank ℝ E) :
@@ -708,11 +730,13 @@ map of the flow of `ρ • X`, with `ρ` zero near `{g ≤ a}` and one from just
 above `a` up to `b`; time slices of a flow are open embeddings. That
 `{g ≤ b}` is carried into `U` for large `T` is Mathlib's
 `eventually_mapsTo_of_isCompact_absorbing_of_isOpen_of_omegaLimit_subset`
-(`Mathlib/Dynamics/OmegaLimit.lean`) for the compact, forward invariant set
-`{g ≤ b}`, once its ω-limit is in `U`. A point of the ω-limit has its whole
-backward orbit in `{g ≤ b}`, along which `g` increases to a limit; its
-α-limit lies where `ρ • X` vanishes. Either that is the zero set of `ρ`, and
-then the point is no higher than it, so in `U` when that zero set is chosen
+(`Mathlib/Dynamics/OmegaLimit.lean`) for the forward invariant set
+`{g ≤ b}`, compact because `g` is proper and bounded below (`hbdd`; for
+`g = id` on `ℝ` the sublevel is `(-∞, b]`), once its ω-limit is in `U`.
+A point of the ω-limit has its whole backward orbit in `{g ≤ b}`, along
+which `g` increases to a limit; its α-limit lies where `ρ • X` vanishes.
+Either that is the zero set of `ρ`, and then the point is no higher than
+it, so in `U` when that zero set is chosen
 close to `{g ≤ a}` (properness); or it is a critical point of the level `v`,
 and the point lies in its unstable set at level at least `a`, hence in a
 cube. If this ω-limit argument is long, it is a
@@ -735,7 +759,8 @@ theorem TauCeti.exists_isMorse_bandCore_seq (hE : Module.finrank ℝ E ≠ 1)
 supplies `hE` as that theorem's section explains.
 Its critical values form a discrete set, so the levels can be chosen with all
 critical values in the intervals `(e k, d (k + 1))`, at most one in each;
-`exists_bandCore` then applies to `(d k, e k, e (k + 1))`, or
+`exists_bandCore` then applies to `(d k, e k, e (k + 1))`, with `hbdd`
+from `BddBelow (Set.range g)` in that theorem, or
 `BandCore.ofNoCriticalPoint` where the interval holds none.
 
 **What the engine needs beyond the sketch of `Cube.lean`.** The engine
@@ -756,21 +781,20 @@ The second milestone. With $m+k=2n$, $1\le m$, $1\le k$ (so $m<2n$),
 normed space `L` with a compact `K ⊆ L`:
 
 ```lean
-theorem exists_homotopy_exact_of_exact_near_attaching
+theorem exists_homotopy_exact_of_exact_near_attaching (hK : IsCompact K)
     {τ : L → SmoothTwoForm 𝓘(ℝ, D) D} (hτ : IsSmoothFamily 𝓘(ℝ, L) τ)
-    (hnd : ∀ λ ∈ K, ∀ x ∈ Q, ((τ λ).bilinFormAt x).Nondegenerate)  -- on the cube
+    (hnd : ∀ l ∈ K, ∀ x ∈ Q, ((τ l).bilinFormAt x).Nondegenerate)  -- on the cube
     {β : L → SmoothForm 𝓘(ℝ, D) D ℝ 1} (hβ : IsSmoothFamily 𝓘(ℝ, L) β)
     {W : Set D} (hW : IsOpen W) (hAW : A ⊆ W)
-    (hτβ : ∀ λ ∈ K, ∀ x ∈ W, mextDerivₗ 1 (β λ) x = τ λ x) :
+    (hτβ : ∀ l ∈ K, ∀ x ∈ W, mextDerivₗ 1 (β l) x = τ l x) :
     ∃ σ : L × unitInterval → SmoothTwoForm 𝓘(ℝ, D) D,
       IsSmoothFamily (𝓘(ℝ, L).prod (𝓡∂ 1)) σ ∧
-      (∀ λ, σ (λ, 0) = τ λ) ∧
-      (∀ λ ∈ K, ∀ t, ∀ x ∈ Q, ((σ (λ, t)).bilinFormAt x).Nondegenerate) ∧
-      (∃ W' ∈ 𝓝ˢ A, ∀ λ ∈ K, ∀ t, ∀ x ∈ W', σ (λ, t) x = τ λ x) ∧
-      (∃ V ∈ 𝓝ˢ Q, ∀ λ ∈ K, ∃ γ : SmoothForm 𝓘(ℝ, D) D ℝ 1,
-        ∀ x ∈ V, mextDerivₗ 1 γ x = σ (λ, 1) x) ∧
-      ∀ λ ∈ K, (∃ V ∈ 𝓝ˢ Q, ∃ γ, ∀ x ∈ V, mextDerivₗ 1 γ x = τ λ x) →
-        ∀ t, ∃ V ∈ 𝓝ˢ Q, ∃ γ, ∀ x ∈ V, mextDerivₗ 1 γ x = σ (λ, t) x
+      (∀ l, σ (l, 0) = τ l) ∧
+      (∀ l ∈ K, ∀ t, ∀ x ∈ Q, ((σ (l, t)).bilinFormAt x).Nondegenerate) ∧
+      (∃ W' ∈ 𝓝ˢ A, ∀ l ∈ K, ∀ t, ∀ x ∈ W', σ (l, t) x = τ l x) ∧
+      (∀ l, ∃ γ : SmoothForm 𝓘(ℝ, D) D ℝ 1, mextDerivₗ 1 γ = σ (l, 1)) ∧
+      ∀ l, (∃ V ∈ 𝓝ˢ Q, ∃ γ, ∀ x ∈ V, mextDerivₗ 1 γ x = τ l x) →
+        ∀ t, ∃ V ∈ 𝓝ˢ Q, ∃ γ, ∀ x ∈ V, mextDerivₗ 1 γ x = σ (l, t) x
 ```
 
 This is the shape of the working lemma, not the final text. Its collar `W`
@@ -779,16 +803,16 @@ is one open set for all of `K`, and its primitives `β` depend smoothly on
 need only be fixed near `A` for each `λ` separately:
 
 ```lean
-theorem exists_homotopy_exact_of_forall_exact_near_attaching
+theorem exists_homotopy_exact_of_forall_exact_near_attaching (hK : IsCompact K)
     {τ : L → SmoothTwoForm 𝓘(ℝ, D) D} (hτ : IsSmoothFamily 𝓘(ℝ, L) τ)
-    (hnd : ∀ λ ∈ K, ∀ x ∈ Q, ((τ λ).bilinFormAt x).Nondegenerate)
-    (hex : ∀ λ ∈ K, ∃ W ∈ 𝓝ˢ A, ∃ β : SmoothForm 𝓘(ℝ, D) D ℝ 1,
-      ∀ x ∈ W, mextDerivₗ 1 β x = τ λ x) :
+    (hnd : ∀ l ∈ K, ∀ x ∈ Q, ((τ l).bilinFormAt x).Nondegenerate)
+    (hex : ∀ l ∈ K, ∃ W ∈ 𝓝ˢ A, ∃ β : SmoothForm 𝓘(ℝ, D) D ℝ 1,
+      ∀ x ∈ W, mextDerivₗ 1 β x = τ l x) :
     ∃ σ : L × unitInterval → SmoothTwoForm 𝓘(ℝ, D) D,
       IsSmoothFamily (𝓘(ℝ, L).prod (𝓡∂ 1)) σ ∧
-      (∀ λ, σ (λ, 0) = τ λ) ∧
-      (∀ λ ∈ K, ∀ t, ∀ x ∈ Q, ((σ (λ, t)).bilinFormAt x).Nondegenerate) ∧
-      (∀ λ ∈ K, ∃ W' ∈ 𝓝ˢ A, ∀ t, ∀ x ∈ W', σ (λ, t) x = τ λ x) ∧
+      (∀ l, σ (l, 0) = τ l) ∧
+      (∀ l ∈ K, ∀ t, ∀ x ∈ Q, ((σ (l, t)).bilinFormAt x).Nondegenerate) ∧
+      (∀ l ∈ K, ∃ W' ∈ 𝓝ˢ A, ∀ t, ∀ x ∈ W', σ (l, t) x = τ l x) ∧
       -- the last two clauses as in the working lemma
       ...
 ```
@@ -838,13 +862,109 @@ three steps:
 Steps 2 and 3 need the splitting's maps to take smooth families over `L` to
 smooth families. `PreservesSmoothFamilies`, which issue 6 below generalizes
 from `unitInterval` to any parameter manifold, gives this.
-For $m=1$ the proof differs from the book's: the cube is compressed
-towards the core, near which the contraction along the fibres gives one
-primitive of a form close to `τ`, so no patching and no zig-zag are needed
-(`HandleCore/OneDimensional.lean`); then induction on $m$, with
-the cutoffs and the nondegeneracy bounds chosen uniformly over `K` by
-compactness, and the attaching collars fixed once in the working lemma
-(the neighbourhoods `W` and `W'`). The docstring of
+
+**Shape of the conclusion.** The hypotheses on the collar are an open `W`
+with `A ⊆ W`, as in the case $m=1$
+(`exists_homotopy_exact_of_closed_near_attaching_fin_one`). The last two
+clauses are those of the case $m=1$ too: for every `l` the end `σ (l, 1)` is
+exact on all of `D`, and for every `l` at which `τ l` is exact on a
+neighbourhood of `Q` every `σ (l, t)` is exact on one. The proof below gives
+a primitive of `σ (l, 1)` that depends smoothly on `l`; the statement does not
+record it, since neither the milestone nor the engine uses it.
+
+**The proof, for every $m\ge1$: approximation and compression.** The source
+proves the case $m=1$ and only sketches an induction on $m$, and two readings
+of it fail. A lower case applied to a splitting
+`D = (Fin (m-1) → ℝ) × (ℝ × (Fin k → ℝ))` of the core gives a homotopy that
+is fixed only near the faces of the smaller core, so it moves the form near
+the other faces of `A`; and the identity
+$\tau=\pi^*\iota^*\tau+d\,h(\Phi^*\tau)+h(\Phi^*d\tau)$ for the contraction
+`Φ` along the fibres, which proves the case $m=1$, keeps the term
+$\pi^*\iota^*\tau$, the restriction of `τ` to the core pulled back by the
+projection, which vanishes for a one-dimensional core but in general is not
+small. So the working lemma is proved for all $m$ at once by Decision 1's
+argument, on one cube instead of a band core. With `u` the core coordinate
+and `v` the transverse one, the choices, each uniform over `K`, are made in
+this order.
+
+1. *A slab inside the collar.* By compactness of `A` there is
+   `0 < ε₀ ≤ 1/4` with every point of `Q` where `1 - 2ε₀ ≤ ‖u‖` in `W`
+   (`IsCompact.exists_thickening_subset_open`).
+2. *A margin.* `r > 0` from `IsSmoothFamily.exists_pos_forall_nondegenerate`
+   over `K × Q`: a two-form within `r` of `τ l` at a point `x ∈ Q`,
+   `l ∈ K`, is nondegenerate at `x`.
+3. *The formal primitive.* The datum is `f l := β l`, as a map
+   `D → D [⋀^Fin 1]→L[ℝ] ℝ`, and
+   `G l x := fderiv ℝ (f l) x + J (τ l x - dβ l x)`, where `J` is a linear
+   right inverse of the alternation of a bilinear map (half the curried
+   form). By `TauCeti.mextDeriv_eq_extDeriv` the alternation of `G l x` is
+   `τ l x`, and `G l = fderiv ℝ (f l)` wherever `dβ l = τ l`, so for
+   `l ∈ K` the datum is holonomic on `W`. If `fderiv ℝ f' x` is within `ε`
+   of `G l x`, then `d f'` is within `2ε` of `τ l` at `x`.
+4. *Holonomic approximation.* Parametric relative holonomic approximation
+   (`HolonomicApproximation/Parametric.lean`, in the form given there for
+   this use) over the cube `closedBall 0 1 ×ˢ {0}`, relative to its closed
+   part `C := {‖u‖ ≥ 1 - 2ε₀}` near which the datum is holonomic for
+   `l ∈ K`, with accuracy `r / 4` and a width `δ < ε₀`. It gives a smooth
+   family of diffeotopies `H l`, smooth in `(l, s, x)`, and a smooth family
+   `β' l` of one-forms, such that for every `l` and `s`, `H l s` is the
+   identity and `β' l = β l` outside the `δ`-neighbourhood of
+   `{‖u‖ ≤ 1 - 2ε₀} ×ˢ {0}`, and an open `V ⊆ L × D` containing
+   `(l, H l 1 y)` for `l ∈ K` and `y` in the core, on which `fderiv` of `β' l` is within `r / 4` of `G l`. That
+   support lies in a compact subset of the interior of `Q` and misses the
+   slab `S := {‖u‖ > 1 - ε₀}`, so every `H l s` maps `Q` onto `Q` and is the
+   identity on `S`, and `β' l = β l` on `S`.
+5. *A thin tube.* By compactness of `K` and of the core, there is `δ' > 0`
+   with `(l, H l 1 x) ∈ V` for `l ∈ K` and `x ∈ Q` with `‖v‖ ≤ δ'`.
+6. *The compression.* `exists_cubeCompression`, for a core `ι → ℝ` instead
+   of `Fin 1 → ℝ`, with `ε₀` and `δ'`, gives fibre scalings `c s`, the
+   identity where `1 - ε₀ / 2 < ‖u‖`, preserving `Q`, with `c 1` mapping `Q`
+   into `{‖v‖ < δ'} ∪ S`. Put `e l s := H l s ∘ c s`: an isotopy of
+   diffeomorphisms from the identity, smooth in `(l, s, x)`, preserving
+   `Q`, the identity where `1 - ε₀ / 2 < ‖u‖`, and with `e l 1` mapping `Q`
+   into the set where `d (β' l)` is within `r / 2` of `τ l`, for `l ∈ K`:
+   on the tube by 5 and 3, and on `S ∩ Q` because there
+   `d (β' l) = dβ l = τ l`, by 1 and 4.
+
+The homotopy, with the smooth steps `a` and `b` of the case $m=1$ (`b`
+starts once `a` has reached `1`), is
+`σ (l, t) := (e l (a t))^* ((1 - b t) • τ l + b t • d (β' l))`, a smooth
+family by `IsSmoothFamily.mpullback_family`. The clauses:
+
+- *Nondegenerate on `Q`* for `l ∈ K`: while `b t = 0` it is a pullback of
+  `τ l` along a diffeomorphism preserving `Q`
+  (`TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv`);
+  once `a t = 1` every point of `e l 1 '' Q` has the segment within the
+  margin `r` of step 2.
+- *Fixed near `A`* for `l ∈ K`: on the open set where `1 - ε₀ / 2 < ‖u‖`
+  and `x ∈ W`, `e l s` is the identity and `d (β' l) = dβ l = τ l`.
+- *Exact at the end*, for every `l`: `σ (l, 1) = d ((e l 1)^* (β' l))`.
+- *Relative clause*, for every `l`: if `τ l` is exact on a neighbourhood of
+  `Q`, so is every `(1 - b) • τ l + b • d (β' l)`, and a pullback along a
+  map that sends `Q` into `Q` stays exact near `Q`
+  (`TauCeti.SmoothForm.exists_mem_nhdsSet_mextDerivₗ_mpullback_eq`).
+
+No cutoff in space is needed, unlike the engine: only `Q` and the
+neighbourhood of `A` are constrained, and `e l 1` sends `Q` into the region
+of approximation. The merged case $m=1$
+(`HandleCore/OneDimensional.lean`) needs neither holonomic approximation
+nor a primitive near `A`; the working lemma does not use it.
+
+**New lemmas and their files.**
+
+- `exists_cubeCompression` generalized from the core `Fin 1 → ℝ` to `ι → ℝ`
+  for a `Fintype ι` (`CubeCompression.lean`); its proof uses only `‖u‖`.
+- The formal primitive of step 3 and its two facts (holonomic where
+  `dβ = τ`, and the bound by `2ε`), with smoothness in the parameter, in
+  `HandleCore/FormalPrimitive.lean`.
+- The working lemma, from steps 1 to 6, in this file.
+
+**Order of the building issues of issue 7.** The generalized compression
+and the formal primitive, blocked by nothing; then the working lemma,
+blocked by both and by issue 3; then the milestone, from the working lemma
+with steps 0 to 3 above, blocked by the working lemma and by issue 6.
+
+The docstring of
 `exists_homotopy_exact_of_forall_exact_near_attaching` ends with "Milestone:
 *Relative extension of exact symplectic forms over a handle core*."
 
@@ -1011,18 +1131,15 @@ Facts about two-forms in the frame topology of a covering frame system
   `ContMDiffSection.continuous_map_frameTopology`. The issue fixes the
   exact form of the pullback here.
 - `Bundle.ContMDiffTwoForm.continuous_tangentEquiv_symm_mpullback_subtypeVal`:
-  for `U : Opens M` and covering frames on `M` and on `U`, restriction,
-  `ω ↦ tangentEquiv.symm (SmoothForm.mpullback Subtype.val
+  for `U : Opens M`, covering frames on `M` and any frames on `U`,
+  restriction, `ω ↦ tangentEquiv.symm (SmoothForm.mpullback Subtype.val
   contMDiff_subtypeVal (tangentEquiv ω))`, is continuous from the two-forms
-  on `M` to those on `U`. By `frameTopology_eq_of_covers` the frames may
-  be taken to be the `trivializationAt` of the bundle of two-forms at the
-  points, with their base sets; the charts of `U` are restrictions of
-  those of `M`, so each frame coordinate of the restriction is one of `ω`
-  composed with an inclusion of open sets, and continuity follows by
-  `ContMDiffMap.continuous_comp_manifoldWeakWhitney`, as in the proof of
-  Tau Ceti's `ContMDiffSection.continuous_restrict_frameTopology`. That
-  lemma itself lands in the pulled-back bundle over `U`, not in the
-  tangent bundle of `U`, which is why the statement here is needed.
+  on `M` to those on `U`. Tau Ceti's
+  `ContMDiffSection.continuous_restrict_frameTopology` lands in the
+  pulled-back bundle over `U`, not in the tangent bundle of `U`, which is
+  why the statement here is needed. It is that lemma followed by the
+  fibrewise map `v ↦ v ∘ dι` into the two-forms on `U`, which is continuous
+  by Tau Ceti's `ContMDiffSection.continuous_map_frameTopology`.
 
 ### `Geometry/Symplectic/HPrinciple/FormSpaces.lean`
 
@@ -1200,9 +1317,10 @@ Each is a few hundred lines; each issue's blockers come before it.
    one issue for both parts. Whichever building issue is split first
    creates it, and the other part uses that issue. Blocked by nothing.
 7. **The handle-core lemma.** `Geometry/Symplectic/HPrinciple/HandleCore.lean`.
-   Blocked by 6, for the family `β` of primitives. It settles step 0, the
-   common collar, first. If it exceeds the size limit, the case $m=1$
-   becomes an issue of its own.
+   Blocked by 6, for the family `β` of primitives, and by 3, for the
+   working lemma; its building issues are in the order that the file's
+   section gives. It settles step 0, the common collar, first. If it
+   exceeds the size limit, the case $m=1$ becomes an issue of its own.
 8. **The engine: one stage.** The approximation near a band core and the
    compressed path of one stage, in
    `Geometry/Symplectic/HPrinciple/Engine.lean`, with the relative form of

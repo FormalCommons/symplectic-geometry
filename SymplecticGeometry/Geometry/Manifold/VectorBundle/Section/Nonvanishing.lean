@@ -14,6 +14,7 @@ import SymplecticGeometry.Geometry.Manifold.IsManifold.SecondCountable
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.Generic
 import TauCeti.Geometry.Manifold.Boundary.Collar.Topological
 import TauCeti.Geometry.Manifold.Boundary.Interior
+import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 import TauCeti.Geometry.Manifold.VectorBundle.Section.Generic
 import TauCeti.Geometry.Manifold.VectorBundle.Section.Module
 import TauCeti.Geometry.Manifold.VectorBundle.Section.Nonvanishing
@@ -80,8 +81,6 @@ private theorem exists_contMDiffSection_isDiscrete_interior [SecondCountableTopo
     ∃ σ : ContMDiffSection I F ∞ V, IsDiscrete {x : I.interior M | σ x = 0} := by
   let N := I.interior M
   let j : C^∞⟮𝓘(ℝ, E), N; I, M⟯ := ⟨Subtype.val, I.contMDiff_subtypeVal_interior⟩
-  have : ContMDiffVectorBundle ∞ F ((j : C(N, M)) *ᵖ V) 𝓘(ℝ, E) :=
-    ContMDiffVectorBundle.pullback F V 𝓘(ℝ, E) j
   obtain ⟨k, s, hspan⟩ :=
     exists_fin_spanning_contMDiffSection (I := I) (F := F) (V := V) (n := ∞)
   let t i := (s i).pullback j

@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Complex.Plurisubharmonic
 public import TauCeti.Geometry.Symplectic.Liouville.ContactType
+import SymplecticGeometry.Geometry.Manifold.RegularValue.DefiningFunction
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Flat
 import TauCeti.Geometry.Manifold.RegularValue.NormSq
 
@@ -37,7 +38,14 @@ contact structure of its complex tangencies:
 On the complex tangencies `ker ∂f` of `{f = 0}` at a point `x` with `f x = 0`, the Levi form of
 `a * f` is `a x` times that of `f`
 (`SymplecticGeometry.manifoldLeviForm_apply_of_eventuallyEq_mul`), by Tau Ceti's pointwise
-product rule `TauCeti.manifoldLeviForm_mul_apply`.
+product rule `TauCeti.manifoldLeviForm_mul_apply`. Hence the Levi form on these tangencies does
+not depend on the defining function, up to a positive factor: if `g` is `C³` and vanishes near
+`x` where `f` does, `f` is `C³` with `df_x ≠ 0`, and `dg_x = c • df_x`, then the Levi form of `g`
+there is `c` times that of `f` (`SymplecticGeometry.manifoldLeviForm_apply_of_mvfderiv_eq_smul`),
+since `g = a * f` near `x` with `a x = c`, by
+`ContMDiffAt.exists_contMDiffAt_eventuallyEq_mul_of_mvfderiv_eq_smul`. For `c > 0`, the Levi form
+of `f` is positive on the complex tangencies of `{f = 0}` at `x` iff that of `g` is positive on
+those of `{g = 0}` (`SymplecticGeometry.forall_re_manifoldLeviForm_pos_iff_of_mvfderiv_eq_smul`).
 
 Examples: the regular levels of a Stein function
 (`SymplecticGeometry.IsSteinFunction.isJConvexLevel`) and the spheres `‖z‖² = c`, `c > 0`, of a
@@ -114,6 +122,45 @@ theorem manifoldLeviForm_apply_of_eventuallyEq_mul {f g a : M → ℝ} {x : M}
   rw [manifoldLeviForm_congr_of_eventuallyEq hg, manifoldLeviForm_mul_apply ha hf v w, hfx,
     hdel hv hIv, hdel hw hIw]
   simp
+
+/-- **The Levi form of a level does not depend on the defining function.** Let `f` and `g` be
+`C³` at `x`, with `f x = 0`, `df_x ≠ 0`, `dg_x = c • df_x`, and `g = 0` near `x` wherever
+`f = 0`. On vectors `v`, `w` in the complex tangent space of `{f = 0}` at `x`, that is with
+`df(v) = df(i v) = df(w) = df(i w) = 0`, the Levi form of `g` at `x` is `c` times that of `f`. -/
+theorem manifoldLeviForm_apply_of_mvfderiv_eq_smul [CompleteSpace E] {f g : M → ℝ} {x : M}
+    (hf : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) 3 f x) (hg : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) 3 g x)
+    (hfx : f x = 0) (hf' : mvfderiv 𝓘(ℝ, E) f x ≠ 0) {c : ℝ}
+    (hgf : mvfderiv 𝓘(ℝ, E) g x = c • mvfderiv 𝓘(ℝ, E) f x)
+    (hfg : ∀ᶠ y in 𝓝 x, f y = 0 → g y = 0) {v w : E}
+    (hv : mvfderiv 𝓘(ℝ, E) f x v = 0) (hIv : mvfderiv 𝓘(ℝ, E) f x (Complex.I • v) = 0)
+    (hw : mvfderiv 𝓘(ℝ, E) f x w = 0) (hIw : mvfderiv 𝓘(ℝ, E) f x (Complex.I • w) = 0) :
+    manifoldLeviForm E g x v w = c * manifoldLeviForm E f x v w := by
+  obtain ⟨a, ha, hga, hax⟩ :=
+    hf.exists_contMDiffAt_eventuallyEq_mul_of_mvfderiv_eq_smul (n := 2) hg hfx hf' hgf hfg
+  rw [manifoldLeviForm_apply_of_eventuallyEq_mul (hf.of_le (by norm_num)) ha hfx hga hv hIv hw
+    hIw, hax]
+
+/-- **Positivity of the Levi form on the complex tangencies of a level does not depend on the
+defining function.** Let `f` and `g` be `C³` at `x`, with `f x = 0`, `df_x ≠ 0`,
+`dg_x = c • df_x` for some `c > 0`, and `g = 0` near `x` wherever `f = 0`. Then the Levi form of
+`g` at `x` has positive real part on the nonzero vectors `v` with `dg(v) = dg(i v) = 0` iff the
+Levi form of `f` has positive real part on the nonzero vectors `v` with `df(v) = df(i v) = 0`. -/
+theorem forall_re_manifoldLeviForm_pos_iff_of_mvfderiv_eq_smul [CompleteSpace E] {f g : M → ℝ}
+    {x : M} (hf : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) 3 f x) (hg : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) 3 g x)
+    (hfx : f x = 0) (hf' : mvfderiv 𝓘(ℝ, E) f x ≠ 0) {c : ℝ} (hc : 0 < c)
+    (hgf : mvfderiv 𝓘(ℝ, E) g x = c • mvfderiv 𝓘(ℝ, E) f x)
+    (hfg : ∀ᶠ y in 𝓝 x, f y = 0 → g y = 0) :
+    (∀ v : E, mvfderiv 𝓘(ℝ, E) g x v = 0 → mvfderiv 𝓘(ℝ, E) g x (Complex.I • v) = 0 →
+        v ≠ 0 → 0 < (manifoldLeviForm E g x v v).re) ↔
+      ∀ v : E, mvfderiv 𝓘(ℝ, E) f x v = 0 → mvfderiv 𝓘(ℝ, E) f x (Complex.I • v) = 0 →
+        v ≠ 0 → 0 < (manifoldLeviForm E f x v v).re := by
+  have hdg (u : TangentSpace 𝓘(ℝ, E) x) :
+      mvfderiv 𝓘(ℝ, E) g x u = 0 ↔ mvfderiv 𝓘(ℝ, E) f x u = 0 := by
+    rw [hgf, smul_apply, smul_eq_zero, or_iff_right hc.ne']
+  refine forall_congr' fun v ↦ ?_
+  refine imp_congr_ctx (hdg v) fun hv ↦ imp_congr_ctx (hdg _) fun hIv ↦ imp_congr_right fun _ ↦ ?_
+  rw [manifoldLeviForm_apply_of_mvfderiv_eq_smul hf hg hfx hf' hgf hfg hv hIv hv hIv,
+    Complex.re_ofReal_mul, mul_pos_iff_of_pos_left hc]
 
 /-! ### The contact structure of a J-convex level -/
 

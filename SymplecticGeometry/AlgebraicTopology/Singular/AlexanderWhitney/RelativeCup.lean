@@ -18,12 +18,19 @@ simplices lying in `U` or in `V`. This file restates the equation that character
 `TopCat.smallSingularSubcomplexπ` and `TopPair.singularChainComplexπOfSubset`, whose sources are
 the chains of `X`, so that it rewrites in composites with chain maps into the chains of `X`.
 
+It also states the compatibility of the relative diagonal with the map from the relative chains of
+`(X, U)` to the chains relative to the small chains.
+
 ## Main results
 
 * `TopCat.smallSingularSubcomplexπ_relativeAlexanderWhitneyDiagonal`: the relative
   Alexander–Whitney diagonal after the quotient map to the chains relative to the small chains is
   the Alexander–Whitney diagonal of `X` followed by the tensor product of the quotient maps to the
   chains of `(X, U)` and of `(X, V)`.
+* `TopCat.chainComplexMap_toSmallSingularSubcomplexPair_relativeAlexanderWhitneyDiagonal`: the
+  relative Alexander–Whitney diagonal after the map from the chains of `(X, U)` to the chains
+  relative to the small chains is the Alexander–Whitney diagonal of `(X, U)` followed by the
+  quotient map onto the chains of `(X, V)` on the second factor.
 
 ## References
 
@@ -55,6 +62,33 @@ theorem smallSingularSubcomplexπ_relativeAlexanderWhitneyDiagonal [MonoidalCate
       X.alexanderWhitneyDiagonal u ≫
         (TopPair.singularChainComplexπOfSubset R U ⊗ₘ TopPair.singularChainComplexπOfSubset S V) :=
   chainComplexπ_relativeAlexanderWhitneyDiagonal U V u
+
+attribute [local instance] hasFiniteCoproducts_of_hasCoproducts in
+attribute [local instance] HasFiniteBiproducts.of_hasFiniteCoproducts in
+/-- The relative Alexander–Whitney diagonal after the map from the relative chains of `(X, U)` to
+the chains relative to the small chains is the Alexander–Whitney diagonal of `(X, U)` followed by
+the quotient map onto the chains of `(X, V)` on the second factor. -/
+@[reassoc]
+theorem chainComplexMap_toSmallSingularSubcomplexPair_relativeAlexanderWhitneyDiagonal
+    {C : Type u} [Category.{v} C] [HasCoproducts.{w} C] [Abelian C] [MonoidalCategory C]
+    [MonoidalPreadditive C] {X : TopCat.{w}} (U V : Set X) {R S T : C} (u : T ⟶ R ⊗ S) :
+    SSetPair.chainComplexMap
+        (toSmallSingularSubcomplexPair ![U, V] (A := U) (i := 0) subset_rfl) T ≫
+        relativeAlexanderWhitneyDiagonal U V u =
+      (TopPair.ofSubset U).alexanderWhitneyDiagonal u ≫
+        HomologicalComplex.tensorHom (𝟙 _) (TopPair.singularChainComplexπOfSubset S V) := by
+  rw [← cancel_epi (TopPair.singularChainComplexπOfSubset T U),
+    singularChainComplexπOfSubset_comp_chainComplexMap_toSmallSingularSubcomplexPair_assoc ![U, V]
+      (A := U) (i := 0) subset_rfl T,
+    smallSingularSubcomplexπ_relativeAlexanderWhitneyDiagonal]
+  refine Eq.trans ?_ (TopPair.singularChainComplexπ_alexanderWhitneyDiagonal_assoc
+    (TopPair.ofSubset U) u _).symm
+  have hπ := HomologicalComplex.mapBifunctorMap_comp (curriedTensor C) (ComplexShape.down ℕ)
+    (TopPair.singularChainComplexπOfSubset R U) (𝟙 _) (𝟙 _)
+    (TopPair.singularChainComplexπOfSubset S V)
+  rw [Category.comp_id, Category.id_comp] at hπ
+  -- The whiskering on the right is `HomologicalComplex.tensorHom f (𝟙 _)` by definition.
+  exact (congrArg (X.alexanderWhitneyDiagonal u ≫ ·) hπ).trans (Category.assoc _ _ _).symm
 
 end TopCat
 

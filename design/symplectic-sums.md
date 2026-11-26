@@ -267,13 +267,14 @@ About 250 lines.
   (Decision 3) and `isClosed_image_closedBall`.
 - `FiberSum f₁ f₂ hδ hδε`, the `GluedAlong` of Decision 2, its `T2Space`, and
   `FiberSum.symplecticForm` with `isSymplectic_symplecticForm`,
-  `inl_mpullback_symplecticForm` and `inr_mpullback_symplecticForm`.
-- `exists_isSymplectic_fibreSum`: the milestone. For $(M_i,\omega_i)$ of
+  `mpullback_inl_symplecticForm` and `mpullback_inr_symplecticForm`.
+- `exists_isSymplectic_fiberSum`: the milestone. For $(M_i,\omega_i)$ of
   dimension $2n$, compact $(Q,\tau)$ of dimension $2n-2$, symplectic
   embeddings $\iota_i$ with $\iota_i^*\omega_i=\tau$ and symplectic framings
   `Φᵢ`, there is $\varepsilon_0>0$ such that for $0<\varepsilon<\varepsilon_0$
   product neighbourhoods $f_i$ exist, and for every such $f_i$ and
-  $0<\delta<\varepsilon$ the fibre sum is a Hausdorff manifold with a
+  $0<\delta<\varepsilon$ the fibre sum is a Hausdorff, second countable
+  manifold with a
   symplectic form restricting to $\omega_i$ on the two complements.
   Milestone: *Symplectic fibre connected sum with trivial normal bundles*.
 
@@ -319,9 +320,9 @@ the gluing circle adds the product of commutators.
 ### `Geometry/Symplectic/Sum/RationalEllipticSurface.lean`
 
 - `rationalEllipticSurface`, the set of Decision 4, a compact complex
-  surface with charts from Tau Ceti's holomorphic submersion normal forms
-  (`Geometry/Manifold/Complex/Submersion.lean`) in the affine product
-  charts; its projections to $\mathbb CP^2$ and $\mathbb CP^1$.
+  surface with charts from the atlas of bihomogeneous zero sets in
+  `Geometry/Manifold/Projectivization/ProdZeroLocus/`; its projections to
+  $\mathbb CP^2$ and $\mathbb CP^1$.
 - `rationalEllipticSurface.symplecticForm` (Decision 5) with
   `isSymplectic_symplecticForm`.
 - `fibreEmbedding`, the Fermat cubic over $[1:0]$, a symplectic embedding

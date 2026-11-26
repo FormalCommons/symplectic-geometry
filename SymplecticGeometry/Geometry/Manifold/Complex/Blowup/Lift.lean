@@ -1,0 +1,336 @@
+/-
+Copyright (c) 2026 The FormalCommons contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: The FormalCommons contributors
+-/
+module
+
+public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Model
+public import Mathlib.Analysis.Analytic.Order
+public import TauCeti.Analysis.Analytic.Hadamard
+import TauCeti.Analysis.Calculus.IteratedDeriv.Leibniz
+
+/-!
+# Lifts of holomorphic maps fixing the origin and of curves through it to the model blowup
+
+Let `E := Fin (n + 1) → ℂ` and let `ψ : E → E` be holomorphic near `0`, with `ψ 0 = 0` and with
+invertible derivative `L` at `0`. Then `ψ` lifts to the model blowup `BlowupModel n`: off the
+exceptional divisor the lift sends the point over `z` to the point `([ψ z], ψ z)` over `ψ z`, and
+on the divisor it acts on lines by the derivative, `(ℓ, 0) ↦ (L ℓ, 0)`. This is McDuff–Salamon,
+Exercise 7.1.2 (ii). The lift is holomorphic near the divisor: in the chart `i` write `z = w i • v`
+with `v = update w i 1`; Hadamard's lemma gives `ψ z = G z z` with `G` analytic and `G 0 = L`, so
+`ψ z = w i • G z v`, and the line of the lift is spanned by `G z v`, which depends analytically on
+`w` and does not vanish near the divisor.
+
+A curve `u : ℂ → E` through `0` lifts as well (Exercise 7.1.2 (iii)). If `u` is analytic at `t₀`
+with a zero of finite order `k` there, then `u t = (t - t₀) ^ k • g t` near `t₀` with `g` analytic
+and `g t₀ ≠ 0`, so `t ↦ ([g t], u t)` is a holomorphic curve in the blowup over `u`. At `t₀` its
+line is that of `g t₀`, which is also the line of `iteratedDeriv k u t₀ = k! • g t₀`. The lift is
+defined by this last description, without choosing `g`.
+
+## Main definitions and results
+
+* `SymplecticGeometry.BlowupModel.liftMap ψ L`: the lift of `ψ`, given the derivative `L` of `ψ`
+  at `0` as a continuous linear equivalence. At a point whose blowdown `z` has `ψ z = 0` (on the
+  divisor, if `ψ 0 = 0`) its value is the point over `0` on the line `L ℓ`, for `ℓ` the line of
+  the point.
+* `SymplecticGeometry.BlowupModel.blowdown_liftMap`: the lift lies over `ψ`, that is,
+  `π ∘ liftMap ψ L = ψ ∘ π` for the blowdown `π`.
+* `SymplecticGeometry.BlowupModel.liftMap_zeroSection`: on the divisor the lift is the action of
+  `L` on lines (Mathlib's `Projectivization.map`).
+* `SymplecticGeometry.BlowupModel.contMDiffAt_liftMap_of_ne_zero` and
+  `SymplecticGeometry.BlowupModel.contMDiffAt_liftMap_zeroSection`: the lift is holomorphic at a
+  point over a `z` where `ψ` is analytic and `ψ z ≠ 0`, and at every point of the divisor when
+  `ψ` is analytic at `0` with derivative `L` there.
+* `SymplecticGeometry.BlowupModel.contMDiffOn_liftMap`: so the lift is holomorphic over a set
+  `V` on which `ψ` is analytic and vanishes only at `0`, and
+  `SymplecticGeometry.BlowupModel.contMDiffOn_liftMap_of_injOn`: over a set `V ∋ 0` on which
+  `ψ` is analytic and injective. Without such a condition the lift may fail to be continuous at a
+  point over another zero of `ψ`. For `n ≥ 1`, take `ψ z = update z 0 (z 0 * (1 - z 0))`: its
+  derivative at `0` is the identity, and it vanishes at `Pi.single 0 1`, where it is a local
+  diffeomorphism, so near that point the line `[ψ z]` depends on the direction of approach. For
+  `n = 0` the lift is always continuous, since `ℙ ℂ E` is then a point.
+* `SymplecticGeometry.BlowupModel.curveLift u`: the lift of a curve `u : ℂ → E`, equal to
+  `([u t], u t)` where `u t ≠ 0` and, at a zero, to the point of the divisor on the line of the
+  first nonvanishing derivative of `u` there (`curveLift_apply_self`).
+* `SymplecticGeometry.BlowupModel.blowdown_curveLift`: the lift lies over `u`.
+* `SymplecticGeometry.BlowupModel.eventually_pr_curveLift_eq_mk`: near a zero `t₀` where
+  `u t = (t - t₀) ^ k • g t`, the line of the lift is `[g t]`.
+* `SymplecticGeometry.BlowupModel.contMDiffAt_curveLift`: the lift is holomorphic at a point where
+  `u` is analytic of finite order, and `contMDiffOn_curveLift` on a set of such points.
+
+## Implementation notes
+
+The factorisation `ψ z = G z z` is Tau Ceti's `AnalyticAt.exists_analyticAt_eventually_sub_eq`
+(Hadamard's lemma). Holomorphy of the lift is checked on its composite with the inclusion of the
+blowup into `ℙ ℂ E × E` (`Manifold.IsSmoothEmbedding.contMDiffAt_iff_comp` for
+`isSmoothEmbedding_blowupModel_val`), whose factor in `ℙ ℂ E` is handled by Tau Ceti's
+`Projectivization.contMDiffAt_of_eventually_eq_mk`.
+
+The value `iteratedDeriv k u t₀ = k! • g t₀` is Tau Ceti's
+`TauCeti.iteratedDeriv_pow_sub_smul_self` (Leibniz's rule).
+
+## References
+
+* [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §7.1,
+  Exercise 7.1.2.
+-/
+
+public section
+
+namespace SymplecticGeometry
+
+namespace BlowupModel
+
+open Function Projectivization Filter Topology
+open scoped ContDiff Manifold LinearAlgebra.Projectivization Nat
+
+variable {n : ℕ}
+
+section Def
+
+variable (ψ : (Fin (n + 1) → ℂ) → Fin (n + 1) → ℂ) (L : (Fin (n + 1) → ℂ) ≃L[ℂ] Fin (n + 1) → ℂ)
+
+/-- The lift to the model blowup of a map `ψ : E → E`, meant for `ψ` with `ψ 0 = 0` whose
+derivative at `0` is the continuous linear equivalence `L`. A point `p` over `z` with `ψ z ≠ 0`
+goes to the point over `ψ z` on the line `[ψ z]`; a point with `ψ z = 0`, such as a point of the
+exceptional divisor, goes to the point over `0` on the line `L ℓ`, where `ℓ` is the line of `p`. -/
+noncomputable def liftMap (p : BlowupModel n) : BlowupModel n :=
+  if h : ψ p.blowdown = 0 then zeroSection (map (L : _ →ₗ[ℂ] _) L.injective p.pr)
+  else ⟨(mk ℂ (ψ p.blowdown) h, ψ p.blowdown), mk_self_mem_blowupModel h⟩
+
+variable {ψ} {p : BlowupModel n}
+
+theorem liftMap_of_eq_zero (h : ψ p.blowdown = 0) :
+    liftMap ψ L p = zeroSection (map (L : _ →ₗ[ℂ] _) L.injective p.pr) :=
+  dite_eq_left h
+
+theorem liftMap_of_ne_zero (h : ψ p.blowdown ≠ 0) :
+    liftMap ψ L p = ⟨(mk ℂ (ψ p.blowdown) h, ψ p.blowdown), mk_self_mem_blowupModel h⟩ :=
+  dite_eq_right h
+
+/-- Where `ψ` does not vanish, the line of the lift is spanned by `ψ z`. -/
+theorem pr_liftMap_of_ne_zero (h : ψ p.blowdown ≠ 0) :
+    (liftMap ψ L p).pr = mk ℂ (ψ p.blowdown) h := by
+  rw [liftMap_of_ne_zero L h, pr_mk]
+
+/-- The lift lies over `ψ`: `π ∘ liftMap ψ L = ψ ∘ π` for the blowdown `π`. -/
+@[simp]
+theorem blowdown_liftMap (p : BlowupModel n) : (liftMap ψ L p).blowdown = ψ p.blowdown := by
+  by_cases h : ψ p.blowdown = 0
+  · rw [liftMap_of_eq_zero L h, blowdown_zeroSection, h]
+  · rw [liftMap_of_ne_zero L h, blowdown_mk]
+
+/-- On the exceptional divisor, the lift of a map fixing `0` acts on lines by its derivative `L`. -/
+@[simp]
+theorem liftMap_zeroSection (h0 : ψ 0 = 0) (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    liftMap ψ L (zeroSection ℓ) = zeroSection (map (L : _ →ₗ[ℂ] _) L.injective ℓ) := by
+  rw [liftMap_of_eq_zero L (by rwa [blowdown_zeroSection]), pr_zeroSection]
+
+end Def
+
+section Holomorphic
+
+variable {ψ : (Fin (n + 1) → ℂ) → Fin (n + 1) → ℂ} (L : (Fin (n + 1) → ℂ) ≃L[ℂ] Fin (n + 1) → ℂ)
+  {r : ℕ∞ω}
+
+/-- The lift of `ψ` is holomorphic at a point `p` over a point `z` where `ψ` is analytic and does
+not vanish: near `p` it is `q ↦ ([ψ z], ψ z)` with `z` the blowdown of `q`. -/
+theorem contMDiffAt_liftMap_of_ne_zero {p : BlowupModel n} (hψ : AnalyticAt ℂ ψ p.blowdown)
+    (hp : ψ p.blowdown ≠ 0) :
+    ContMDiffAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) r (liftMap ψ L) p := by
+  refine ContMDiffAt.of_le ?_ le_top
+  have hF : ContMDiffAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω (ψ ∘ blowdown) p :=
+    hψ.contDiffAt.contMDiffAt.comp p (contMDiff_blowdown ω p)
+  refine (contMDiffAt_iff_contMDiffAt_pr_comp_and_blowdown_comp le_top).2
+    ⟨contMDiffAt_of_eventually_eq_mk hF <| (hF.continuousAt.eventually_ne hp).mono fun q hq =>
+      ⟨hq, pr_liftMap_of_ne_zero L hq⟩, ?_⟩
+  exact hF.congr_of_eventuallyEq (Eventually.of_forall fun q => blowdown_liftMap L q)
+
+/-- The lift of `ψ` is holomorphic at each point of the exceptional divisor, when `ψ` is analytic
+at `0` with `ψ 0 = 0` and derivative `L` there. -/
+theorem contMDiffAt_liftMap_zeroSection (hψ : AnalyticAt ℂ ψ 0) (h0 : ψ 0 = 0)
+    (hL : fderiv ℂ ψ 0 = L) (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    ContMDiffAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) r (liftMap ψ L) (zeroSection ℓ) := by
+  refine ContMDiffAt.of_le ?_ le_top
+  obtain ⟨G, hG, hG0, hGψ⟩ := hψ.exists_analyticAt_eventually_sub_eq
+  rw [hL] at hG0
+  obtain ⟨i, hi⟩ := exists_mem_affineOpen ℓ
+  have hsrc : zeroSection ℓ ∈ (blowupModelChart i).source := by
+    rwa [blowupModelChart_source, Set.mem_preimage, pr_zeroSection]
+  refine (contMDiffAt_iff_contMDiffAt_comp_blowupModelChart_symm hsrc).2 ?_
+  set w₀ := blowupModelChart i (zeroSection ℓ)
+  -- In the chart `i`, the blowdown is `z w = w i • v w` with `v w = update w i 1`.
+  set v : (Fin (n + 1) → ℂ) → Fin (n + 1) → ℂ := fun w => update w i 1 with hv_def
+  set z : (Fin (n + 1) → ℂ) → Fin (n + 1) → ℂ := fun w => w i • v w with hz_def
+  have hv : ContDiff ℂ ω v := ContDiff.update_self i contDiff_const
+  have hz : ContDiff ℂ ω z := (contDiff_apply ℂ (fun _ => ℂ) i).smul hv
+  have hzw : ∀ w, z w = ((blowupModelChart i).symm w).blowdown := fun w =>
+    (blowdown_blowupModelChart_symm_apply i w).symm
+  have hz₀ : z w₀ = 0 := by
+    rw [hzw, (blowupModelChart i).left_inv hsrc, blowdown_zeroSection]
+  have hv0 : ∀ w, v w ≠ 0 := fun w => update_ne_zero w i one_ne_zero
+  -- The line of the lift is spanned by `F w = G (z w) (v w)`.
+  set F : (Fin (n + 1) → ℂ) → Fin (n + 1) → ℂ := fun w => G (z w) (v w) with hF_def
+  have hF : ContDiffAt ℂ ω F w₀ :=
+    ((show AnalyticAt ℂ G (z w₀) by rwa [hz₀]).contDiffAt.comp w₀ hz.contDiffAt).clm_apply
+      hv.contDiffAt
+  have hFw₀ : F w₀ ≠ 0 := by
+    simp only [hF_def, hz₀, hG0]
+    exact L.map_ne_zero_iff.2 (hv0 w₀)
+  have hz_tendsto : Tendsto z (𝓝 w₀) (𝓝 0) := hz₀ ▸ hz.continuous.tendsto w₀
+  refine (contMDiffAt_iff_contMDiffAt_pr_comp_and_blowdown_comp le_top).2
+    ⟨contMDiffAt_of_eventually_eq_mk hF.contMDiffAt ?_, ?_⟩
+  · filter_upwards [hF.continuousAt.eventually_ne hFw₀, hz_tendsto.eventually hGψ] with w hFw hGw
+    refine ⟨hFw, ?_⟩
+    simp only [comp_apply]
+    by_cases hwi : w i = 0
+    · have hzw0 : ((blowupModelChart i).symm w).blowdown = 0 := by
+        rw [← hzw, hz_def]; simp [hwi]
+      rw [liftMap_of_eq_zero L (by rw [hzw0, h0]), pr_zeroSection,
+        pr_blowupModelChart_symm_apply, map_mk]
+      congr 1
+      simp [hF_def, show z w = 0 by rw [hzw, hzw0], hG0, hv_def]
+    · have hψz : ψ (z w) = w i • F w := by
+        simpa [h0, hF_def, hz_def] using hGw
+      have hne : ψ ((blowupModelChart i).symm w).blowdown ≠ 0 := by
+        rw [← hzw, hψz]; exact smul_ne_zero hwi hFw
+      rw [pr_liftMap_of_ne_zero L hne, mk_eq_mk_iff']
+      exact ⟨w i, by rw [← hψz, hzw]⟩
+  · have : ContMDiffAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω (ψ ∘ z) w₀ :=
+      ((show AnalyticAt ℂ ψ (z w₀) by rwa [hz₀]).contDiffAt.comp w₀ hz.contDiffAt).contMDiffAt
+    refine this.congr_of_eventuallyEq (Eventually.of_forall fun w => ?_)
+    simp only [comp_apply, blowdown_liftMap, hzw]
+
+/-- The lift of `ψ` is holomorphic over a set `V` on which `ψ` is analytic and vanishes only
+at `0`, when `ψ 0 = 0` and `L` is the derivative of `ψ` at `0`. -/
+theorem contMDiffOn_liftMap {V : Set (Fin (n + 1) → ℂ)} (hψ : AnalyticOnNhd ℂ ψ V)
+    (h0 : ψ 0 = 0) (hL : fderiv ℂ ψ 0 = L) (hne : ∀ z ∈ V, z ≠ 0 → ψ z ≠ 0) :
+    ContMDiffOn 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) r (liftMap ψ L) (blowdown ⁻¹' V) := by
+  refine fun p hp => ContMDiffAt.contMDiffWithinAt ?_
+  by_cases hp0 : p.blowdown = 0
+  · have hpℓ : p = zeroSection p.pr :=
+      ext (pr_zeroSection _).symm (by rw [hp0, blowdown_zeroSection])
+    rw [Set.mem_preimage, hp0] at hp
+    rw [hpℓ]
+    exact contMDiffAt_liftMap_zeroSection L (hψ 0 hp) h0 hL p.pr
+  · exact contMDiffAt_liftMap_of_ne_zero L (hψ _ hp) (hne _ hp hp0)
+
+/-- The lift of `ψ` is holomorphic over a set `V ∋ 0` on which `ψ` is analytic and injective,
+when `ψ 0 = 0` and `L` is the derivative of `ψ` at `0`. -/
+theorem contMDiffOn_liftMap_of_injOn {V : Set (Fin (n + 1) → ℂ)} (hV0 : 0 ∈ V)
+    (hψ : AnalyticOnNhd ℂ ψ V) (hinj : Set.InjOn ψ V) (h0 : ψ 0 = 0) (hL : fderiv ℂ ψ 0 = L) :
+    ContMDiffOn 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) r (liftMap ψ L) (blowdown ⁻¹' V) :=
+  contMDiffOn_liftMap L hψ h0 hL fun _ hz hz0 hψz => hz0 (hinj hz hV0 (hψz.trans h0.symm))
+
+end Holomorphic
+
+section Curve
+
+/-! ### Lifts of curves -/
+
+variable (u : ℂ → Fin (n + 1) → ℂ)
+
+/-- The lift to the model blowup of a curve `u : ℂ → E`. At `t` with `u t ≠ 0` it is the point
+`([u t], u t)`; at a zero `t` of `u` it is the point over `0` on the line spanned by the first
+nonvanishing derivative of `u` at `t`, that is, by `iteratedDeriv k u t` for `k` the order of the
+zero (`analyticOrderNatAt`). Where that derivative vanishes, which happens only when `u` is not
+analytic at `t` or vanishes near `t`, the line is an arbitrary one. -/
+noncomputable def curveLift (t : ℂ) : BlowupModel n :=
+  if h : u t = 0 then
+    if h' : iteratedDeriv (analyticOrderNatAt u t) u t = 0 then zeroSection (Classical.arbitrary _)
+    else zeroSection (mk ℂ _ h')
+  else ⟨(mk ℂ (u t) h, u t), mk_self_mem_blowupModel h⟩
+
+variable {u} {t t₀ : ℂ}
+
+theorem curveLift_of_ne_zero (h : u t ≠ 0) :
+    curveLift u t = ⟨(mk ℂ (u t) h, u t), mk_self_mem_blowupModel h⟩ :=
+  dite_eq_right h
+
+theorem curveLift_of_eq_zero (h : u t = 0)
+    (h' : iteratedDeriv (analyticOrderNatAt u t) u t ≠ 0) :
+    curveLift u t = zeroSection (mk ℂ _ h') := by
+  rw [curveLift, dite_eq_left h, dite_eq_right h']
+
+/-- Where `u` does not vanish, the line of its lift is spanned by `u t`. -/
+theorem pr_curveLift_of_ne_zero (h : u t ≠ 0) : (curveLift u t).pr = mk ℂ (u t) h := by
+  rw [curveLift_of_ne_zero h, pr_mk]
+
+/-- The lift of `u` lies over `u`. -/
+@[simp]
+theorem blowdown_curveLift (u : ℂ → Fin (n + 1) → ℂ) (t : ℂ) :
+    (curveLift u t).blowdown = u t := by
+  by_cases h : u t = 0
+  · rw [curveLift, dite_eq_left h, h]
+    split_ifs <;> exact blowdown_zeroSection _
+  · rw [curveLift_of_ne_zero h, blowdown_mk]
+
+/-- At a zero `t₀` of order `k` of an analytic curve `u`, the lift is the point of the exceptional
+divisor on the line of the first nonvanishing derivative `iteratedDeriv k u t₀`, which is nonzero
+by Mathlib's `analyticOrderAt_eq_nat_iff_iteratedDeriv_eq_zero`. -/
+theorem curveLift_apply_self {k : ℕ} (hu : AnalyticAt ℂ u t₀) (h0 : u t₀ = 0)
+    (hk : analyticOrderAt u t₀ = k) :
+    curveLift u t₀ = zeroSection (mk ℂ (iteratedDeriv k u t₀)
+      ((analyticOrderAt_eq_nat_iff_iteratedDeriv_eq_zero hu).1 hk).2) := by
+  obtain rfl : analyticOrderNatAt u t₀ = k := by simp [analyticOrderNatAt, hk]
+  exact curveLift_of_eq_zero h0 _
+
+/-- If `u t = (t - t₀) ^ k • g t` near `t₀`, with `g` analytic at `t₀` and `g t₀ ≠ 0`, then near
+`t₀` the line of the lift of `u` is spanned by `g t`: near `t₀` the lift is `t ↦ ([g t], u t)`. -/
+theorem eventually_pr_curveLift_eq_mk {k : ℕ} {g : ℂ → Fin (n + 1) → ℂ}
+    (hg : AnalyticAt ℂ g t₀) (hg0 : g t₀ ≠ 0) (hug : ∀ᶠ t in 𝓝 t₀, u t = (t - t₀) ^ k • g t) :
+    ∀ᶠ t in 𝓝 t₀, ∃ h : g t ≠ 0, (curveLift u t).pr = mk ℂ (g t) h := by
+  have hself : ∃ h : g t₀ ≠ 0, (curveLift u t₀).pr = mk ℂ (g t₀) h := by
+    refine ⟨hg0, ?_⟩
+    rcases Nat.eq_zero_or_pos k with rfl | hk
+    · have hut : u t₀ = g t₀ := by simpa using hug.self_of_nhds
+      have hu0 : u t₀ ≠ 0 := hut ▸ hg0
+      rw [pr_curveLift_of_ne_zero hu0, mk_eq_mk_iff' ℂ _ _ hu0 hg0]
+      exact ⟨1, by simp [hut]⟩
+    · have hu0 : u t₀ = 0 := by simpa [zero_pow hk.ne'] using hug.self_of_nhds
+      have hua : AnalyticAt ℂ u t₀ :=
+        (((analyticAt_id.sub analyticAt_const).pow k).smul hg).congr (hug.mono fun _ h => h.symm)
+      rw [curveLift_apply_self hua hu0 (hua.analyticOrderAt_eq_natCast.2 ⟨g, hg, hg0, hug⟩),
+        pr_zeroSection, mk_eq_mk_iff' ℂ _ _ _ hg0]
+      refine ⟨(k ! : ℂ), ?_⟩
+      rw [EventuallyEq.iteratedDeriv_eq (g := fun t => (t - t₀) ^ k • g t) k hug,
+        TauCeti.iteratedDeriv_pow_sub_smul_self hg.contDiffAt, Nat.cast_smul_eq_nsmul]
+  have hoff : ∀ᶠ t in 𝓝[≠] t₀, ∃ h : g t ≠ 0, (curveLift u t).pr = mk ℂ (g t) h := by
+    filter_upwards [nhdsWithin_le_nhds (hg.continuousAt.eventually_ne hg0),
+      nhdsWithin_le_nhds hug, self_mem_nhdsWithin] with t hgt hut ht
+    have hu0 : u t ≠ 0 := hut ▸ smul_ne_zero (pow_ne_zero _ (sub_ne_zero.2 ht)) hgt
+    refine ⟨hgt, ?_⟩
+    rw [pr_curveLift_of_ne_zero hu0, mk_eq_mk_iff' ℂ _ _ hu0 hgt]
+    exact ⟨(t - t₀) ^ k, hut.symm⟩
+  exact (eventually_nhdsWithin_iff.1 hoff).mono fun t h => by
+    by_cases ht : t = t₀
+    · exact ht ▸ hself
+    · exact h ht
+
+/-- The lift of `u` is holomorphic at a point `t₀` where `u` is analytic and has finite order,
+that is, does not vanish identically near `t₀`. -/
+theorem contMDiffAt_curveLift {r : ℕ∞ω} (hu : AnalyticAt ℂ u t₀)
+    (hfin : analyticOrderAt u t₀ ≠ ⊤) :
+    ContMDiffAt 𝓘(ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) r (curveLift u) t₀ := by
+  refine ContMDiffAt.of_le ?_ le_top
+  obtain ⟨g, hg, hg0, hug⟩ := hu.analyticOrderAt_ne_top.1 hfin
+  refine (contMDiffAt_iff_contMDiffAt_pr_comp_and_blowdown_comp le_top).2
+    ⟨contMDiffAt_of_eventually_eq_mk hg.contDiffAt.contMDiffAt
+      (eventually_pr_curveLift_eq_mk hg hg0 hug), ?_⟩
+  simpa only [blowdown_curveLift] using hu.contDiffAt.contMDiffAt
+
+/-- The lift of `u` is holomorphic on a set `U` on which `u` is analytic and has finite order at
+every point. -/
+theorem contMDiffOn_curveLift {r : ℕ∞ω} {U : Set ℂ} (hu : AnalyticOnNhd ℂ u U)
+    (hfin : ∀ t ∈ U, analyticOrderAt u t ≠ ⊤) :
+    ContMDiffOn 𝓘(ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) r (curveLift u) U := fun t ht =>
+  (contMDiffAt_curveLift (hu t ht) (hfin t ht)).contMDiffWithinAt
+
+end Curve
+
+end BlowupModel
+
+end SymplecticGeometry
+
+end

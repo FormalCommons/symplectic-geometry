@@ -202,8 +202,12 @@ instance : ContinuousSMul (unitaryGroup ι ℂ) (ℒ ι) :=
 
 /-- The rotation `θ ↦ rotate θ Λ` of a Lagrangian depends continuously on the angle. -/
 theorem continuous_rotate (Λ : ℒ ι) : Continuous fun θ : ℝ ↦ rotate θ Λ := by
-  have h : Continuous fun θ : ℝ ↦ circleEquivUnitary (Circle.exp θ) • (1 : unitaryGroup ι ℂ) :=
-    Continuous.subtype_mk (by fun_prop) _
+  have h : Continuous fun θ : ℝ ↦
+      UnitaryGroup.scalarHom ι ℂ (circleEquivUnitary (Circle.exp θ)) :=
+    continuous_induced_rng.2 <| by
+      simp only [Function.comp_def, UnitaryGroup.coe_scalarHom, coe_circleEquivUnitary,
+        scalar_apply]
+      fun_prop
   simp_rw [rotate_def]
   exact h.smul continuous_const
 
