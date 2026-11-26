@@ -39,9 +39,10 @@ has over `ℤ`. These two structures are not definitionally equal, but they are 
 (`CategoryTheory.Linear.subsingletonInt`), and the identification transports classes along that
 equality, by `TopCat.singularCohomologyLinearCongr` (`LinearCongr.lean`). Tau Ceti gives the
 equivalence with its naturality, its Kronecker pairings and its compatibility with cup products
-(`TopCat.integralCohomologyEquiv_integralCup`); this file adds its values, the same facts read
-through its inverse, and its value on the unit class. The values are read off Tau Ceti's
-definition, which is why the file imports all of `TauCeti.AlgebraicTopology.Cohomology.IntegralCup`.
+(`TopCat.integralCohomologyEquiv_integralCup`); this file adds its values, its naturality and
+an external cup product read through its inverse, and its value on the unit class. The values
+are read off Tau Ceti's definition, which is why the file imports all of
+`TauCeti.AlgebraicTopology.Cohomology.IntegralCup`.
 
 ## Main definitions
 
@@ -251,9 +252,9 @@ theorem integralCohomologyEquiv_symm_apply (X : TopCat.{0}) (n : ℕ)
     Linear.preadditiveIntLinear ModuleCat.instLinear (Subsingleton.elim _ _) (ModuleCat.of ℤ ℤ)
     integralCoeffIso.hom n)
   simp only [ConcreteCategory.comp_apply] at h
-  -- Tau Ceti's change of chain coefficients writes the cochain values as `ModuleCat.of ℤ ℤ` and
-  -- its change of linear structure as `𝟙_ (ModuleCat ℤ)`, which Mathlib defines to be the
-  -- former, so `rw` finds the composite of the two `eqToHom`s only with both of them given.
+  -- The `eqToHom` in `h` has cochain values `ModuleCat.of ℤ ℤ`, and the one that
+  -- `singularCohomologyLinearCongr_apply` gives has `𝟙_ (ModuleCat ℤ)`, which Mathlib defines
+  -- to be the former, so `rw` finds the composite of the two `eqToHom`s only with both given.
   rw [singularCohomologyLinearCongr_apply, h,
     ← ConcreteCategory.comp_apply (eqToHom _) (eqToHom _), eqToHom_trans, eqToHom_refl,
     ConcreteCategory.id_apply, ← singularCohomologyChainCoefficientIso_hom,
