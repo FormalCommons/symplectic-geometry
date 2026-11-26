@@ -48,9 +48,10 @@ In the partial diffeomorphisms `Φ`, `Ψ` that the rank theorem
 `ContMDiffOn.exists_partialDiffeomorph_comp_eq_mfderivModel_comp` gives around a point `x`, the map
 reads as the linear map `A = mfderivModel I J f x`. On the source of `Φ`, the kernel of
 `mfderiv f y` is the preimage under `mfderiv Φ y` of the fixed subspace `ker A` (by Tau Ceti's
-`IsLocalDiffeomorphAt.ker_mfderiv_comp` for `Ψ`), so pulling back through `Φ`, by
-`TauCeti.IsDistributionFrameOn.comap_mfderivWithin`, a constant frame of `ker A` from
-`TauCeti.isContMDiffDistribution_const` gives a local frame. This is the argument
+`IsLocalDiffeomorphAt.ker_mfderiv_comp` for `Ψ`), so Tau Ceti's
+`TauCeti.IsContMDiffDistribution.exists_isDistributionFrameOn_of_eventually_eq_comap`, applied to
+the constant distribution `ker A` of `TauCeti.isContMDiffDistribution_const` and the local
+diffeomorphism `Φ`, gives a local frame near `x`. This is the argument
 of Tau Ceti's `Manifold.IsSubmersionAtOfComplement.isDistributionFrameOn_ker_mfderiv`, whose proof
 the proof of `ContMDiff.isContMDiffDistribution_ker_mfderiv` adapts, with the rank theorem's
 coordinates in place of the normal form of a submersion. Involutivity is Tau Ceti's
@@ -117,7 +118,7 @@ theorem isContMDiffDistribution_ker_mfderiv [IsManifold I 1 M] (hf : ContMDiff I
     IsContMDiffDistribution I m (finrank 𝕜 E - r) (fun x ↦ (mfderiv I J f x).ker) := by
   have hn : 1 ≤ n := le_add_self.trans hmn
   have hn0 : n ≠ 0 := ne_of_gt (zero_lt_one.trans_le hn)
-  refine isContMDiffDistribution_iff.2 fun x ↦ ?_
+  refine IsContMDiffDistribution.of_mem_nhds fun x ↦ ?_
   obtain ⟨Φ, Ψ, hxΦ, -, -, -, hmap, hA⟩ :=
     hf.contMDiffOn.exists_partialDiffeomorph_comp_eq_mfderivModel_comp isOpen_univ (mem_univ x)
       hn fun y _ ↦ ((hr y).trans (hr x).symm).le
@@ -146,14 +147,12 @@ theorem isContMDiffDistribution_ker_mfderiv [IsManifold I 1 M] (hf : ContMDiff I
     rw [show K = _ from ker_mfderivModel I J f x, LinearEquiv.finrank_map_eq]
     omega
   have : CompleteSpace E := FiniteDimensional.completeSpace 𝕜 E
-  -- Pull back through `Φ` a constant frame of `K`.
+  -- Pull back through `Φ` the constant distribution `K`.
   have hC := isContMDiffDistribution_const (n := m) K
   rw [hK] at hC
-  obtain ⟨U, hU, hxU, X, hX⟩ := isContMDiffDistribution_iff.1 hC (Φ x)
-  have hY := hX.comap_mfderivWithin Φ hmn
-  refine ⟨Φ.source ∩ Φ ⁻¹' U, Φ.toOpenPartialHomeomorph.isOpen_inter_preimage hU,
-    ⟨hxΦ, hxU⟩, _, ⟨hY.contMDiffOn, hY.linearIndependent, fun {y} hy ↦ ?_⟩⟩
-  rw [hY.span_eq hy, hker hy.1, Φ.mfderivWithin_source hy.1]
+  exact hC.exists_isDistributionFrameOn_of_eventually_eq_comap
+    (Φ.isLocalDiffeomorphAt I 𝓘(𝕜, E) n hxΦ) hmn
+    (Filter.eventually_of_mem (Φ.open_source.mem_nhds hxΦ) fun _ ↦ hker)
 
 end ContMDiff
 
