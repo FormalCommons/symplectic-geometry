@@ -12,10 +12,11 @@ public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Tran
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.Darboux
 public import SymplecticGeometry.LinearAlgebra.Symplectic.UnitaryNormalForm
 import SymplecticGeometry.Analysis.Normed.Module.Ball.Pointwise
+import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.LocalSection
 import SymplecticGeometry.Topology.Algebra.Module.Equiv.Basic
 
 /-!
-# Centred Darboux charts with uniform bounds, their rescalings, and model frames
+# Centred Darboux charts with uniform bounds, their rescalings, and rescaled unitary charts
 
 Let `σ` be a two-form on a boundaryless manifold `M`, `J` a smooth almost complex structure
 compatible with `σ`, and `φ` a smooth chart of `M` into the standard model `StdSpace ι` that pulls
@@ -63,6 +64,18 @@ that reading plus `dθ` equal to the model, and rotating `τ₀` by `exp (i θ �
 to `τ₀^* α`
 (`SymplecticGeometry.IsCircleConnectionForm.mpullback_apply_op_circleExp_smul_eq_mextDeriv_add`).
 
+The structure `RescaledUnitaryCharts P σ J α ι k₀ ρ₀` collects, for every power `k ≥ k₀` and
+every point `x`, a chart centred at `x` whose target contains the ball of radius `ρ₀ * √k`, which
+pulls `stdForm ι` back to `2π k σ`, and a section of `P` over the image of that ball in which `k`
+times the pull-back of `α`, read in the chart, is the form `z, v ↦ -ω₀(z, v) / 2` of exterior
+derivative `-ω₀`; `J` read in these charts is `k^{-1/2}`-close to `stdComplexStructure ι` with all
+its derivatives, with constants that do not depend on `k` or `x`. They exist on a compact
+manifold (`SymplecticGeometry.exists_rescaledUnitaryCharts`): take centred Darboux charts whose
+sources lie in base sets of trivializations of `P`, rescale them by `√(2π k)`, and rotate the
+preferred local sections of `P` into frames with the model connection form over the balls of
+radius `D.radius`. The frames do not depend on `k`, since rescaling the chart by `c` multiplies
+the model form read in it by `c⁻²`.
+
 ## Main definitions
 
 * `SymplecticGeometry.CenteredDarbouxCharts`: centred Darboux charts at every point of `M`, with
@@ -70,6 +83,9 @@ to `τ₀^* α`
   derivatives of `J` read in them.
 * `SymplecticGeometry.CenteredDarbouxCharts.rescaledChart`: the centred chart at a point followed by
   the scaling by a unit `c : ℝˣ`.
+* `SymplecticGeometry.RescaledUnitaryCharts`: for every large power `k` and every point, a chart
+  centred there, rescaled so that it pulls `stdForm ι` back to `2π k σ`, with a frame of `P` in
+  which the connection form read in the chart is the model, and bounds on `J` read in it.
 
 ## Main results
 
@@ -90,6 +106,9 @@ to `τ₀^* α`
 * `SymplecticGeometry.IsCircleConnectionForm.exists_mpullback_symm_mpullback_eq_stdConnectionForm`:
   over an open star-convex subset of the target of a Darboux chart, a section of the circle bundle
   in which the connection form read in the chart is the model.
+* `SymplecticGeometry.exists_rescaledUnitaryCharts`: rescaled unitary charts exist on a compact
+  manifold with a closed two-form, a compatible almost complex structure, and a connection form
+  of curvature `-2π σ`.
 
 ## References
 
@@ -528,6 +547,192 @@ theorem IsCircleConnectionForm.exists_mpullback_symm_mpullback_eq_stdConnectionF
   exact congrArg θ (χ.right_inv hy)
 
 end ModelFrame
+
+/-! ### Rescaled unitary charts -/
+
+section RescaledUnitaryCharts
+
+open Bundle MulOpposite
+
+variable {P : M → Type*} [TopologicalSpace (TotalSpace Circle P)] [∀ x, TopologicalSpace (P x)]
+  [FiberBundle Circle P] [∀ x, MulAction Circleᵐᵒᵖ (P x)] [PrincipalBundle Circle P]
+  [ContMDiffFiberBundle ∞ Circle P I (𝓡 1)]
+
+variable (P) in
+/-- Rescaled unitary charts for a two-form `σ`, an almost complex structure `J` and a one-form
+`α` on the total space of a principal `Circle`-bundle `P`, from the power `k₀` on, with radius
+`ρ₀`. For every `k ≥ k₀` and every point `x`, they give a chart `chart k x` of `M` into
+`StdSpace ι` and a local section `frame k x` of `P`, such that:
+* the chart sends `x` to `0`, and its target contains the ball `B` of radius `ρ₀ * √k`
+  about `0`;
+* it pulls `stdForm ι` back to `2π k σ` on its source;
+* it reads `J` at `0` as `stdComplexStructure ι`;
+* the section is smooth over the image of `B`, and on `B` the form `k α`, pulled back along the
+  section and read in the chart, is the model `z, v ↦ -ω₀(z, v) / 2`, whose exterior derivative
+  is `-ω₀`. For a connection form `α`, `powerConnection α k` reads in the frame `[frame k x, 1]`
+  of `PowerBundle P k` as `d + i k (frame k x)^* α`
+  (`SymplecticGeometry.powerConnection_apply_frame`), so its connection form read in the chart
+  is `i` times this model;
+* on `B`, `J` read in the chart differs from `stdComplexStructure ι` by at most
+  `bound 1 * ‖z‖ / √k` at `z`, and its derivatives of order `r ≥ 1` are at most
+  `bound r / √k`.
+
+The constants `bound r` depend neither on `k` nor on `x`. -/
+@[ext]
+structure RescaledUnitaryCharts (σ : SmoothTwoForm I M) (J : SmoothAlmostComplexStructure I M)
+    (α : SmoothForm (I.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1) (ι : Type*) [Fintype ι]
+    (k₀ : ℕ) (ρ₀ : ℝ) where
+  /-- The chart centred at `x` for the power `k`. -/
+  chart : ℕ → M → PartialDiffeomorph I 𝓘(ℝ, StdSpace ι) M (StdSpace ι) ∞
+  /-- The local section of `P` over the chart centred at `x` for the power `k`. -/
+  frame : ℕ → M → ∀ y, P y
+  /-- The bounds on `J` read in the charts. -/
+  bound : ℕ → ℝ
+  mem_source {k : ℕ} (hk : k₀ ≤ k) (x : M) : x ∈ (chart k x).source
+  apply_self {k : ℕ} (hk : k₀ ≤ k) (x : M) : chart k x x = 0
+  ball_subset_target {k : ℕ} (hk : k₀ ≤ k) (x : M) : ball 0 (ρ₀ * √k) ⊆ (chart k x).target
+  eval₂_eq {k : ℕ} (hk : k₀ ≤ k) (x : M) : ∀ y ∈ (chart k x).source, ∀ v w : TangentSpace I y,
+    2 * Real.pi * k * σ.eval₂ y v w =
+      stdForm ι (mvfderiv I (chart k x) y v) (mvfderiv I (chart k x) y w)
+  chartPushforward_zero {k : ℕ} (hk : k₀ ≤ k) (x : M) (w : StdSpace ι) :
+    J.chartPushforward (chart k x).toOpenPartialHomeomorph 0 w = stdComplexStructure ι w
+  contMDiffOn_frame {k : ℕ} (hk : k₀ ≤ k) (x : M) :
+    ContMDiffOn I (I.prod (𝓡 1)) ∞
+      (fun y ↦ ManifoldTotalSpace.homeomorph Circle P ⟨y, frame k x y⟩)
+      ((chart k x).symm '' ball 0 (ρ₀ * √k))
+  connectionForm_eq_model {k : ℕ} (hk : k₀ ≤ k) (x : M) :
+    ∀ z ∈ ball (0 : StdSpace ι) (ρ₀ * √k), ∀ v : StdSpace ι,
+      k * mpullback 𝓘(ℝ, StdSpace ι) I (chart k x).symm (mpullback I (I.prod (𝓡 1))
+          (fun y ↦ ManifoldTotalSpace.homeomorph Circle P ⟨y, frame k x y⟩) α.val) z ![v] =
+        -(stdForm ι z v / 2)
+  jStruct_sub_le {k : ℕ} (hk : k₀ ≤ k) (x : M) : ∀ z ∈ ball (0 : StdSpace ι) (ρ₀ * √k),
+    ‖J.chartPushforward (chart k x).toOpenPartialHomeomorph z -
+        LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap‖ ≤
+      bound 1 * (√k)⁻¹ * ‖z‖
+  iteratedFDeriv_jStruct_le {k : ℕ} (hk : k₀ ≤ k) {r : ℕ} (hr : r ≠ 0) (x : M) :
+    ∀ z ∈ ball (0 : StdSpace ι) (ρ₀ * √k),
+      ‖iteratedFDeriv ℝ r (J.chartPushforward (chart k x).toOpenPartialHomeomorph) z‖ ≤
+        bound r * (√k)⁻¹
+
+/-- The scale `√(2π k)` as a unit, for `k ≥ 1`. -/
+private theorem exists_unit_eq_sqrt (k : ℕ) : ∃ u : ℝˣ, 1 ≤ k → (u : ℝ) = √(2 * Real.pi * k) := by
+  by_cases hk : 1 ≤ k
+  · refine ⟨Units.mk0 _ (Real.sqrt_ne_zero'.2 (by positivity)), fun _ ↦ rfl⟩
+  · exact ⟨1, fun h ↦ absurd h hk⟩
+
+/-- **Existence of rescaled unitary charts.** On a compact boundaryless manifold `M` of dimension
+`2 * card ι`, with a closed two-form `σ`, a smooth almost complex structure `J` compatible with
+`σ`, and a connection form `α` on a principal `Circle`-bundle `P` with curvature `-2π σ`, there
+are rescaled unitary charts from the power `1` on, for some radius `ρ₀ > 0`.
+
+They are the centred Darboux charts of
+`SymplecticGeometry.exists_centeredDarbouxCharts_source_subset`, with sources inside base sets of
+trivializations of `P`, rescaled by `√(2π k)`; the frames are local sections of `P` rotated so that
+`α` reads as the model connection form
+(`SymplecticGeometry.IsCircleConnectionForm.exists_mpullback_symm_mpullback_eq_stdConnectionForm`).
+-/
+theorem exists_rescaledUnitaryCharts [FiniteDimensional ℝ E] [CompactSpace M]
+    [∀ x, Nonempty (P x)] (hE : Module.finrank ℝ E = 2 * Fintype.card ι)
+    {σ : SmoothTwoForm I M} (hσ : σ.IsClosed) {J : SmoothAlmostComplexStructure I M}
+    (hJ : σ.Compatible J) {α : SmoothForm (I.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1}
+    (hα : IsCircleConnectionForm α) (hασ : hα.curvature = -(2 * Real.pi) • σ) :
+    ∃ ρ₀ > 0, Nonempty (RescaledUnitaryCharts P σ J α ι 1 ρ₀) := by
+  classical
+  -- Centred Darboux charts whose sources lie in base sets of trivializations of `P`.
+  obtain ⟨D, c, hc⟩ := exists_centeredDarbouxCharts_source_subset hE hσ hJ
+    (U := fun p ↦ (trivializationAt Circle P p).baseSet) fun p ↦
+      (trivializationAt Circle P p).open_baseSet.mem_nhds (mem_baseSet_trivializationAt Circle P p)
+  -- The frames over the balls of radius `D.radius` in the charts, rotated from the preferred
+  -- local sections of `P`, which are smooth on the base sets.
+  have hsec (x : M) : ContMDiffOn I (I.prod (𝓡 1)) ∞ (fun y ↦ ManifoldTotalSpace.homeomorph
+      Circle P ⟨y, TauCeti.PrincipalBundle.localSection Circle P (c x) y⟩)
+      ((D.chart x).symm '' ball 0 D.radius) := by
+    rw [← funext (TauCeti.PrincipalBundle.manifoldLocalSection_def Circle P (c x))]
+    exact (TauCeti.PrincipalBundle.contMDiffOn_manifoldLocalSection ∞ I (𝓡 1) (c x)).mono <|
+      Set.image_subset_iff.2 fun z hz ↦ hc x ((D.chart x).map_target (D.ball_subset_target x hz))
+  have hframe (x : M) := hα.exists_mpullback_symm_mpullback_eq_stdConnectionForm hασ (D.chart x)
+    (D.eval₂_eq x) ((convex_ball (0 : StdSpace ι) D.radius).starConvex
+      (mem_ball_self D.radius_pos)) isOpen_ball (D.ball_subset_target x) (hsec x)
+  choose τ hτ hτα using hframe
+  choose u hu using exists_unit_eq_sqrt
+  have hπ : 0 < 2 * Real.pi := by positivity
+  set ρ₀ := √(2 * Real.pi) * D.radius
+  -- The ball of radius `ρ₀ * √k` is the ball of radius `|u k| * D.radius`.
+  have hball {k : ℕ} (hk : 1 ≤ k) : ρ₀ * √k = |(u k : ℝ)| * D.radius := by
+    rw [hu k hk, abs_of_nonneg (Real.sqrt_nonneg _), Real.sqrt_mul hπ.le]
+    ring
+  have hinv {k : ℕ} (hk : 1 ≤ k) : |(u k : ℝ)|⁻¹ = (√(2 * Real.pi))⁻¹ * (√k)⁻¹ := by
+    rw [hu k hk, abs_of_nonneg (Real.sqrt_nonneg _), Real.sqrt_mul hπ.le, mul_inv]
+  have hsq {k : ℕ} (hk : 1 ≤ k) : (u k : ℝ) ^ 2 = 2 * Real.pi * k := by
+    rw [hu k hk, Real.sq_sqrt (by positivity)]
+  have hone {k : ℕ} (hk : 1 ≤ k) : 1 ≤ (u k : ℝ) := by
+    rw [hu k hk, Real.one_le_sqrt]
+    have : (1 : ℝ) ≤ k := by exact_mod_cast hk
+    nlinarith [Real.two_le_pi]
+  -- A point of the rescaled ball comes from the ball of radius `D.radius`.
+  have hmem {k : ℕ} (hk : 1 ≤ k) {z : StdSpace ι} (hz : z ∈ ball (0 : StdSpace ι) (ρ₀ * √k)) :
+      ((u k : ℝ))⁻¹ • z ∈ ball (0 : StdSpace ι) D.radius := by
+    rw [hball hk] at hz
+    exact (inv_smul_mem_ball_zero_iff (u k).ne_zero).2 (by rwa [Real.norm_eq_abs])
+  refine ⟨ρ₀, by have := D.radius_pos; positivity, ⟨{
+    chart k x := D.rescaledChart (u k) x
+    frame _ x := τ x
+    bound r := D.bound r * (√(2 * Real.pi))⁻¹
+    mem_source _ x := D.mem_rescaledChart_source _ x
+    apply_self _ x := D.rescaledChart_apply_self _ x
+    ball_subset_target {k} hk x := by
+      rw [hball hk]
+      exact D.ball_subset_rescaledChart_target _ x
+    eval₂_eq {k} hk x y hy v w := by
+      rw [← D.eval₂_rescaledChart _ x y hy v w, hsq hk]
+    chartPushforward_zero {k} _ x w := by
+      rw [D.chartPushforward_rescaledChart _ x
+        (D.ball_subset_rescaledChart_target _ x (mem_ball_self (by
+          have := D.radius_pos
+          have := abs_pos.2 (u k).ne_zero
+          positivity))), smul_zero]
+      exact D.chartPushforward_zero x w
+    contMDiffOn_frame {k} hk x := (hτ x).mono <| by
+      rintro _ ⟨z, hz, rfl⟩
+      exact ⟨_, hmem hk hz, (D.rescaledChart_symm_apply _ x z).symm⟩
+    connectionForm_eq_model {k} hk x z hz v := by
+      have hz' := hmem hk hz
+      -- The rescaled chart's inverse is `(D.chart x).symm` after multiplication by `(u k)⁻¹`.
+      have hsymm : ⇑(D.rescaledChart (u k) x).symm =
+          ⇑(D.chart x).symm ∘ fun w : StdSpace ι ↦ ((u k : ℝ))⁻¹ • w :=
+        funext fun w ↦ D.rescaledChart_symm_apply _ x w
+      have hL : HasFDerivAt (fun w : StdSpace ι ↦ ((u k : ℝ))⁻¹ • w)
+          (((u k : ℝ))⁻¹ • ContinuousLinearMap.id ℝ (StdSpace ι)) z :=
+        (hasFDerivAt_id z).const_smul ((u k : ℝ))⁻¹
+      have hχ : MDifferentiableAt 𝓘(ℝ, StdSpace ι) I (D.chart x).symm ((u k : ℝ)⁻¹ • z) :=
+        ((D.chart x).symm.contMDiffOn.contMDiffAt ((D.chart x).open_target.mem_nhds
+          (D.ball_subset_target x hz'))).mdifferentiableAt (by simp)
+      rw [hsymm, mpullback_comp_apply_of_hasFDerivAt hL hχ, hτα x _ hz']
+      -- The tangent spaces of `StdSpace ι` are `StdSpace ι` itself, indexed by the point, which
+      -- blocks `rw [ContinuousAlternatingMap.compContinuousLinearMap_apply]`.
+      change (k : ℝ) * (stdConnectionForm ι).val (((u k : ℝ))⁻¹ • z)
+        (fun i ↦ ((u k : ℝ))⁻¹ •
+          (![v] : Fin 1 → TangentSpace 𝓘(ℝ, StdSpace ι) (((u k : ℝ))⁻¹ • z)) i) = _
+      rw [ContinuousAlternatingMap.map_smul_univ, stdConnectionForm_apply (((u k : ℝ))⁻¹ • z)
+        (v : TangentSpace 𝓘(ℝ, StdSpace ι) (((u k : ℝ))⁻¹ • z)), Finset.prod_const,
+        Finset.card_univ, Fintype.card_fin, pow_one, smul_eq_mul]
+      have hω : stdForm ι (((u k : ℝ))⁻¹ • z) v = ((u k : ℝ))⁻¹ * stdForm ι z v := by
+        simp
+      have hk₀ : (k : ℝ) ≠ 0 := by positivity
+      rw [hω, show (k : ℝ) * (((u k : ℝ))⁻¹ * (-Real.pi * (((u k : ℝ))⁻¹ * stdForm ι z v))) =
+        -(Real.pi * k / (u k : ℝ) ^ 2) * stdForm ι z v by ring, hsq hk]
+      field_simp
+    jStruct_sub_le {k} hk x z hz := by
+      have h := D.norm_chartPushforward_rescaledChart_sub_le (u k) x (z := z) (by rwa [← hball hk])
+      rwa [hinv hk, ← mul_assoc] at h
+    iteratedFDeriv_jStruct_le {k} hk r hr x z hz := by
+      have h := D.norm_iteratedFDeriv_chartPushforward_rescaledChart_le_of_one_le (u k) x hr
+        (hone hk) (z := z) (by
+          rw [← abs_of_pos (zero_lt_one.trans_le (hone hk)), ← hball hk]
+          exact hz)
+      rwa [← abs_of_pos (zero_lt_one.trans_le (hone hk)), hinv hk, ← mul_assoc] at h }⟩⟩
+
+end RescaledUnitaryCharts
 
 end SymplecticGeometry
 
