@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Model
-public import Mathlib.Analysis.Calculus.FDeriv.OfCompLeft
+public import SymplecticGeometry.Analysis.Calculus.FDeriv.Equiv
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import TauCeti.Analysis.Analytic.Hadamard
 
@@ -51,10 +51,12 @@ with `v = update w i 1`; Hadamard's lemma gives `ψ z = G z z` with `G` analytic
 * `SymplecticGeometry.BlowupModel.liftPartialDiffeomorph`: for a partial homeomorphism `ψ` of `E`
   with `ψ 0 = 0`, analytic on its source with analytic inverse on its target, the lift is a
   biholomorphism from the part of the model over the source of `ψ` onto the part over its target,
-  with inverse the lift of `ψ.symm` (whose derivative at `0` is `L.symm`, by the chain rule).
+  with inverse the lift of `ψ.symm`. Its derivative `L` at `0` is invertible, with inverse the
+  derivative of `ψ.symm` at `0`, by the chain rule (`OpenPartialHomeomorph.fderivEquiv`).
   The two lifts are inverse to each other (`liftMap_symm_liftMap`, `liftMap_liftMap_symm`): off
   the divisor because `ψ.symm ∘ ψ` is the identity there, on it because the action of `L.symm`
-  on lines undoes that of `L`.
+  on lines undoes that of `L` (Tau Ceti's
+  `ContinuousLinearEquiv.mapProjectivization_symm_apply_apply`).
 
 ## Implementation notes
 
@@ -203,10 +205,8 @@ theorem contMDiffOn_liftMap {V : Set (Fin (n + 1) → ℂ)} (hψ : AnalyticOnNhd
     ContMDiffOn 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) r (liftMap ψ L) (blowdown ⁻¹' V) := by
   refine fun p hp => ContMDiffAt.contMDiffWithinAt ?_
   by_cases hp0 : p.blowdown = 0
-  · have hpℓ : p = zeroSection p.pr :=
-      ext (pr_zeroSection _).symm (by rw [hp0, blowdown_zeroSection])
+  · rw [eq_zeroSection_pr hp0]
     rw [Set.mem_preimage, hp0] at hp
-    rw [hpℓ]
     exact contMDiffAt_liftMap_zeroSection L (hψ 0 hp) h0 hL p.pr
   · exact contMDiffAt_liftMap_of_ne_zero L (hψ _ hp) (hne _ hp hp0)
 
@@ -238,10 +238,7 @@ theorem eqOn_liftMap_of_blowdown_comp {U : Set (Fin (n + 1) → ℂ)} (hU : IsOp
     (dense_exceptionalDivisor_compl.open_subset_closure_inter hW)
   rintro p ⟨hpU, hpZ⟩
   have hψp : ψ p.blowdown ≠ 0 := hne _ hpU fun h => hpZ (mem_exceptionalDivisor_iff.2 h)
-  have hfp : (f p).blowdown ≠ 0 := by rwa [hfψ p hpU]
-  refine ext ?_ (by rw [hfψ p hpU, blowdown_liftMap])
-  rw [pr_liftMap_of_ne_zero L hψp, ← mk_blowdown hfp]
-  simp only [hfψ p hpU]
+  exact eq_of_blowdown_eq (by rwa [hfψ p hpU]) (by rw [hfψ p hpU, blowdown_liftMap])
 
 end Uniqueness
 
@@ -255,21 +252,11 @@ inverse of the lift of `ψ` over the source of `ψ`. -/
 theorem liftMap_symm_liftMap (h0 : 0 ∈ ψ.source) (hψ0 : ψ 0 = 0) {p : BlowupModel n}
     (hp : p.blowdown ∈ ψ.source) : liftMap ψ.symm L.symm (liftMap ψ L p) = p := by
   by_cases hz : p.blowdown = 0
-  · have hpℓ : p = zeroSection p.pr :=
-      ext (pr_zeroSection _).symm (by rw [hz, blowdown_zeroSection])
-    have hsymm0 : ψ.symm 0 = 0 := (congrArg ψ.symm hψ0).symm.trans (ψ.left_inv h0)
-    rw [hpℓ, liftMap_zeroSection L hψ0, liftMap_zeroSection L.symm hsymm0]
-    induction p.pr using ind with
-    | h v hv =>
-      simp only [map_mk]
-      congr 2
-      exact L.symm_apply_apply v
-  · have hzz : ψ.symm (liftMap ψ L p).blowdown = p.blowdown := by
-      rw [blowdown_liftMap, ψ.left_inv hp]
-    have hne : ψ.symm (liftMap ψ L p).blowdown ≠ 0 := by rwa [hzz]
-    refine ext ?_ (by rw [blowdown_liftMap, hzz])
-    rw [pr_liftMap_of_ne_zero L.symm hne, ← mk_blowdown hz]
-    simp only [hzz]
+  · have hsymm0 : ψ.symm 0 = 0 := (congrArg ψ.symm hψ0).symm.trans (ψ.left_inv h0)
+    rw [eq_zeroSection_pr hz, liftMap_zeroSection L hψ0, liftMap_zeroSection L.symm hsymm0]
+    simp only [← ContinuousLinearEquiv.coe_mapProjectivization,
+      ContinuousLinearEquiv.mapProjectivization_symm_apply_apply]
+  · exact (eq_of_blowdown_eq hz (by rw [blowdown_liftMap, blowdown_liftMap, ψ.left_inv hp])).symm
 
 /-- The lift of a partial homeomorphism `ψ` of `E` fixing `0 ∈ ψ.source` is a left inverse of the
 lift of its inverse over the target of `ψ`. -/
@@ -278,61 +265,65 @@ theorem liftMap_liftMap_symm (h0 : 0 ∈ ψ.source) (hψ0 : ψ 0 = 0) {p : Blowu
   simpa using liftMap_symm_liftMap ψ.symm L.symm (hψ0 ▸ ψ.map_source h0)
     ((congrArg ψ.symm hψ0).symm.trans (ψ.left_inv h0)) hp
 
-variable {ψ L}
+variable {ψ}
 
-/-- The lift of a partial biholomorphism `ψ` of `E` with `ψ 0 = 0`, whose derivative at `0` is `L`,
-as a biholomorphism from the part of the model blowup over the source of `ψ` onto the part over
-its target. Its inverse is the lift of `ψ.symm`, whose derivative at `0` is `L.symm`. -/
+/-- The lift of a partial biholomorphism `ψ` of `E` with `ψ 0 = 0`, as a biholomorphism from the
+part of the model blowup over the source of `ψ` onto the part over its target. It is the lift of
+`ψ` by its derivative at `0`, which is invertible with inverse the derivative of `ψ.symm` at `0`
+(`OpenPartialHomeomorph.fderivEquiv`), and its inverse is the lift of `ψ.symm`. -/
 noncomputable def liftPartialDiffeomorph (h0 : 0 ∈ ψ.source) (hψ0 : ψ 0 = 0)
-    (hψ : AnalyticOnNhd ℂ ψ ψ.source) (hψsymm : AnalyticOnNhd ℂ ψ.symm ψ.target)
-    (hL : fderiv ℂ ψ 0 = L) :
+    (hψ : AnalyticOnNhd ℂ ψ ψ.source) (hψsymm : AnalyticOnNhd ℂ ψ.symm ψ.target) :
     PartialDiffeomorph 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) (BlowupModel n)
-      (BlowupModel n) ω where
-  toFun := liftMap ψ L
-  invFun := liftMap ψ.symm L.symm
-  source := blowdown ⁻¹' ψ.source
-  target := blowdown ⁻¹' ψ.target
-  map_source' p hp := by
-    rw [Set.mem_preimage, blowdown_liftMap]
-    exact ψ.map_source hp
-  map_target' p hp := by
-    rw [Set.mem_preimage, blowdown_liftMap]
-    exact ψ.map_target hp
-  left_inv' _ hp := liftMap_symm_liftMap ψ L h0 hψ0 hp
-  right_inv' _ hp := liftMap_liftMap_symm ψ L h0 hψ0 hp
-  open_source := ψ.open_source.preimage continuous_blowdown
-  open_target := ψ.open_target.preimage continuous_blowdown
-  contMDiffOn_toFun := contMDiffOn_liftMap_of_injOn L h0 hψ ψ.injOn hψ0 hL
-  contMDiffOn_invFun := by
-    have ht : (0 : Fin (n + 1) → ℂ) ∈ ψ.target := hψ0 ▸ ψ.map_source h0
-    have hsymm0 : ψ.symm 0 = 0 := (congrArg ψ.symm hψ0).symm.trans (ψ.left_inv h0)
-    have hL' : fderiv ℂ ψ.symm 0 = L.symm := by
-      refine (ψ.hasFDerivAt_symm ht ?_).fderiv
-      rw [hsymm0, ← hL]
-      exact (hψ 0 h0).differentiableAt.hasFDerivAt
-    exact contMDiffOn_liftMap_of_injOn L.symm ht hψsymm ψ.symm.injOn hsymm0 hL'
+      (BlowupModel n) ω :=
+  let L := ψ.fderivEquiv h0 (hψ 0 h0).differentiableAt
+    (hψsymm _ (ψ.map_source h0)).differentiableAt
+  { toFun := liftMap ψ L
+    invFun := liftMap ψ.symm L.symm
+    source := blowdown ⁻¹' ψ.source
+    target := blowdown ⁻¹' ψ.target
+    map_source' p hp := by
+      rw [Set.mem_preimage, blowdown_liftMap]
+      exact ψ.map_source hp
+    map_target' p hp := by
+      rw [Set.mem_preimage, blowdown_liftMap]
+      exact ψ.map_target hp
+    left_inv' _ hp := liftMap_symm_liftMap ψ L h0 hψ0 hp
+    right_inv' _ hp := liftMap_liftMap_symm ψ L h0 hψ0 hp
+    open_source := ψ.open_source.preimage continuous_blowdown
+    open_target := ψ.open_target.preimage continuous_blowdown
+    contMDiffOn_toFun := contMDiffOn_liftMap_of_injOn L h0 hψ ψ.injOn hψ0
+      (ψ.toContinuousLinearMap_fderivEquiv _ _ _).symm
+    contMDiffOn_invFun := by
+      have hL' : fderiv ℂ ψ.symm 0 = L.symm := by
+        rw [ψ.toContinuousLinearMap_fderivEquiv_symm, hψ0]
+      exact contMDiffOn_liftMap_of_injOn L.symm (hψ0 ▸ ψ.map_source h0) hψsymm ψ.symm.injOn
+        ((congrArg ψ.symm hψ0).symm.trans (ψ.left_inv h0)) hL' }
 
 variable (h0 : 0 ∈ ψ.source) (hψ0 : ψ 0 = 0) (hψ : AnalyticOnNhd ℂ ψ ψ.source)
-  (hψsymm : AnalyticOnNhd ℂ ψ.symm ψ.target) (hL : fderiv ℂ ψ 0 = L)
+  (hψsymm : AnalyticOnNhd ℂ ψ.symm ψ.target)
 
 @[simp]
 theorem liftPartialDiffeomorph_apply (p : BlowupModel n) :
-    liftPartialDiffeomorph h0 hψ0 hψ hψsymm hL p = liftMap ψ L p :=
+    liftPartialDiffeomorph h0 hψ0 hψ hψsymm p =
+      liftMap ψ (ψ.fderivEquiv h0 (hψ 0 h0).differentiableAt
+        (hψsymm _ (ψ.map_source h0)).differentiableAt) p :=
   (rfl)
 
 @[simp]
 theorem liftPartialDiffeomorph_symm_apply (p : BlowupModel n) :
-    (liftPartialDiffeomorph h0 hψ0 hψ hψsymm hL).toPartialEquiv.symm p = liftMap ψ.symm L.symm p :=
+    (liftPartialDiffeomorph h0 hψ0 hψ hψsymm).toPartialEquiv.symm p =
+      liftMap ψ.symm (ψ.fderivEquiv h0 (hψ 0 h0).differentiableAt
+        (hψsymm _ (ψ.map_source h0)).differentiableAt).symm p :=
   (rfl)
 
 @[simp]
 theorem liftPartialDiffeomorph_source :
-    (liftPartialDiffeomorph h0 hψ0 hψ hψsymm hL).source = blowdown ⁻¹' ψ.source :=
+    (liftPartialDiffeomorph h0 hψ0 hψ hψsymm).source = blowdown ⁻¹' ψ.source :=
   (rfl)
 
 @[simp]
 theorem liftPartialDiffeomorph_target :
-    (liftPartialDiffeomorph h0 hψ0 hψ hψsymm hL).target = blowdown ⁻¹' ψ.target :=
+    (liftPartialDiffeomorph h0 hψ0 hψ hψsymm).target = blowdown ⁻¹' ψ.target :=
   (rfl)
 
 end PartialDiffeomorph
