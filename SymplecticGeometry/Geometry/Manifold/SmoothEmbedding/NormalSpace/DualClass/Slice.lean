@@ -44,9 +44,11 @@ followed by the quotient onto the normal space, is the inverse of the preferred 
 at `x`. Both pull classes of `(X, X ∖ f(Z))` back in the same way, in every degree, once the
 slice is read on `B` through `e`. On a small enough open `O ⊆ B` (restriction to which is
 injective by excision), `g` lifts through `Φ` to a map into the Thom pair whose base points stay
-in a contractible neighbourhood of `x`; this lift pulls classes back through its fibre coordinate
-in `e` (`TauCeti.singularCohomologyMap_eq_singularCohomologyMap_fiberCoordPairMap`). Since `Φ`
-is normalized, that fibre coordinate has derivative the identity at `0`
+in a contractible neighbourhood of `x`; this lift pulls classes back, through
+`(e.continuousLinearEquivAt ℝ x hx).complZeroPairIso.inv`, along its coordinate in the model
+fibre (`Bundle.Trivialization.coordPairMap`,
+`TauCeti.singularCohomologyMap_eq_singularCohomologyMap_complZeroPairIso_inv`). Since `Φ` is
+normalized, that coordinate has derivative the identity at `0`
 (`TauCeti.SmoothEmbedding.IsNormalizedTube.hasFDerivAt_trivializationAt_snd`), so it agrees on
 relative cohomology with the inclusion of `O`
 (`TopPair.singularCohomologyMap_ofSubsetMap_eq_inclusion_of_hasFDerivAt_id`). This follows the
