@@ -419,12 +419,7 @@ theorem exists_linearEquiv_tangentSpace_ofPoint :
           (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
             ((0 : A), (0 : V))) u v) ∧
       (∀ (k : stabilizer G x) u,
-        T (mfderiv 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
-          𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
-          (fun y : BalancedProduct (stabilizer G x) (stabilizer G x).RightTranslation (A × V) ↦
-            (k : G) • y)
-          (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
-            ((0 : A), (0 : V))) u) =
+        T (D.tangentRepresentationOneZero k u) =
           tangentRepresentation (fun (g : G) _ ↦
             ContMDiffSMul.mdifferentiable_const_smul (I := I) (n := ∞) (by simp) g x) k
             (T u)) ∧
