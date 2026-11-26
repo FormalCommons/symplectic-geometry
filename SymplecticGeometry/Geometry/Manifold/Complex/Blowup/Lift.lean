@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Model
 public import SymplecticGeometry.Analysis.Calculus.FDeriv.Equiv
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import Mathlib.Analysis.Analytic.Order
+public import TauCeti.Topology.Codiscrete
 public import TauCeti.Analysis.Analytic.Hadamard
 import TauCeti.Analysis.Calculus.IteratedDeriv.Leibniz
 
@@ -458,32 +459,30 @@ theorem continuousOn_curveLift {U : Set ℂ} (hu : AnalyticOnNhd ℂ u U)
   (contMDiffOn_curveLift (r := 0) hu hfin).continuousOn
 
 /-- Uniqueness of the lift of a curve: on an open set `U` on which `u` is analytic and has finite
-order at every point, a continuous map `ũ : U → BlowupModel n` lying over `u` is the lift of `u`.
-The two agree where `u` does not vanish, which is dense in `U` since the zeros of `u` are
-isolated, and the model is Hausdorff. -/
-theorem curveLift_eq_of_blowdown_comp {U : Set ℂ} (hU : IsOpen U) (hu : AnalyticOnNhd ℂ u U)
-    (hfin : ∀ t ∈ U, analyticOrderAt u t ≠ ⊤) {ũ : U → BlowupModel n} (hũ : Continuous ũ)
-    (hũu : ∀ t, (ũ t).blowdown = u t) (t : U) : ũ t = curveLift u t := by
-  have hdense : Dense {t : U | u t ≠ 0} := by
-    refine Subtype.dense_iff.2 fun t ht => mem_closure_iff_frequently.2 ?_
-    have hne : ∀ᶠ s in 𝓝[≠] t, u s ≠ 0 :=
-      (hu t ht).eventually_eq_zero_or_eventually_ne_zero.resolve_left
-        (analyticOrderAt_eq_top.not.1 (hfin t ht))
-    refine (Eventually.frequently (f := 𝓝[≠] t) ?_).filter_mono nhdsWithin_le_nhds
-    filter_upwards [hne, nhdsWithin_le_nhds (hU.mem_nhds ht)] with s hs hsU
-    exact ⟨⟨s, hsU⟩, hs, rfl⟩
-  refine congrFun (hũ.ext_on hdense
-    (continuousOn_iff_continuous_domRestrict.1 (continuousOn_curveLift hu hfin)) fun s hs => ?_) t
-  exact eq_of_blowdown_eq (by rwa [hũu]) (by rw [hũu, Set.domRestrict_apply, blowdown_curveLift])
-
-/-- Uniqueness of the lift of a curve: on an open set `U` on which `u` is analytic and has finite
 order at every point, a map `ũ : ℂ → BlowupModel n` that is continuous on `U` and lies over `u`
 there agrees with the lift of `u` on `U`. -/
 theorem eqOn_curveLift_of_blowdown_comp {U : Set ℂ} (hU : IsOpen U) (hu : AnalyticOnNhd ℂ u U)
     (hfin : ∀ t ∈ U, analyticOrderAt u t ≠ ⊤) {ũ : ℂ → BlowupModel n} (hũ : ContinuousOn ũ U)
-    (hũu : ∀ t ∈ U, (ũ t).blowdown = u t) : Set.EqOn ũ (curveLift u) U := fun t ht =>
-  curveLift_eq_of_blowdown_comp hU hu hfin (continuousOn_iff_continuous_domRestrict.1 hũ)
-    (fun s => hũu s s.property) ⟨t, ht⟩
+    (hũu : ∀ t ∈ U, (ũ t).blowdown = u t) : Set.EqOn ũ (curveLift u) U :=
+  hU.eqOn_of_eventuallyEq_codiscreteWithin hũ (continuousOn_curveLift hu hfin) <| by
+    filter_upwards [hu.codiscreteWithin_setOfPred_analyticOrderAt_eq_zero_or_top,
+      self_mem_codiscreteWithin U] with t ht htU
+    have : u t ≠ 0 := (hu t htU).analyticOrderAt_eq_zero.1 (ht.resolve_right (hfin t htU))
+    exact eq_of_blowdown_eq (by rwa [hũu t htU]) (by rw [hũu t htU, blowdown_curveLift])
+
+/-- Uniqueness of the lift of a curve: on an open set `U` on which `u` is analytic and has finite
+order at every point, a continuous map `ũ : U → BlowupModel n` lying over `u` is the lift of
+`u`. -/
+theorem curveLift_eq_of_blowdown_comp {U : Set ℂ} (hU : IsOpen U) (hu : AnalyticOnNhd ℂ u U)
+    (hfin : ∀ t ∈ U, analyticOrderAt u t ≠ ⊤) {ũ : U → BlowupModel n} (hũ : Continuous ũ)
+    (hũu : ∀ t, (ũ t).blowdown = u t) (t : U) : ũ t = curveLift u t := by
+  classical
+  let v : ℂ → BlowupModel n := fun s => if hs : s ∈ U then ũ ⟨s, hs⟩ else curveLift u s
+  have hv : U.domRestrict v = ũ := funext fun s => by simp [v]
+  have h := eqOn_curveLift_of_blowdown_comp hU hu hfin (ũ := v)
+    (continuousOn_iff_continuous_domRestrict.2 (hv.symm ▸ hũ)) (fun s hs => by simp [v, hs, hũu])
+    t.property
+  simpa [v] using h
 
 end Curve
 
