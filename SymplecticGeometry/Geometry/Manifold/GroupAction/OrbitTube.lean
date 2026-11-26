@@ -459,6 +459,7 @@ theorem surjective_mfderiv_tubeMap_mfderiv_quotientMk [CompleteSpace E'] [IsMani
         (mfderiv (I.prod 𝓘(ℝ, V)) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × V))
           (Quotient.mk (orbitRel (stabilizer G x) ((stabilizer G x).RightTranslation × U)))
           ((stabilizer G x).toRightTranslation 1, z) p) := by
+  -- The inclusion of `V`, read as a map into `T_x M`, a type synonym of `E'`.
   let ι : V →ₗ[ℝ] TangentSpace I' x := V.subtype
   have hι : LinearMap.range ι = V := Submodule.range_subtype V
   intro (w : TangentSpace I' x)
@@ -484,6 +485,7 @@ theorem mfderiv_tubeMap_mfderiv_quotientMk_eq_zero_iff [CompleteSpace E'] [IsMan
           ((stabilizer G x).toRightTranslation 1, z) (ξ, v)) = 0 ↔
       ξ ∈ (InfinitesimalAction.fundamental I G I' M).isotropy x ∧ v = 0 := by
   rw [U.mfderiv_tubeMap_mfderiv_quotientMk F hz ξ v, ← InfinitesimalAction.fundamental_apply]
+  -- The inclusion of `V`, read as a map into `T_x M`, a type synonym of `E'`.
   let ι : V →ₗ[ℝ] TangentSpace I' x := V.subtype
   have hι : LinearMap.range ι = V := Submodule.range_subtype V
   exact (InfinitesimalAction.fundamental I G I' M).apply_add_eq_zero_iff (L := ι)
