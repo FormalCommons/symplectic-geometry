@@ -9,6 +9,7 @@ public import Mathlib.Geometry.Manifold.SmoothEmbedding
 public import TauCeti.Geometry.Manifold.ModelWithCorners.RestrictScalars.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Basic
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.RestrictScalars
 import TauCeti.Geometry.Manifold.ContMDiff.RestrictScalars
 import TauCeti.Geometry.Manifold.Immersion.Differential
 import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
@@ -45,7 +46,8 @@ are often only smooth. The derivative of the restricted embedding is the derivat
 (`TauCeti.SmoothEmbedding.coe_mfderiv_restrictScalars`, by Tau Ceti's
 `MDifferentiableAt.mfderiv_modelWithCornersSelf_restrictScalars_apply`; for a product target,
 `TauCeti.SmoothEmbedding.coe_mfderiv_restrictScalarsProd`, by its analogue
-`MDifferentiableAt.mfderiv_modelWithCornersSelf_prod_restrictScalars_apply`), so its tangent
+`MDifferentiableAt.mfderiv_modelWithCornersSelf_prod_restrictScalars_apply` from
+`SymplecticGeometry.Geometry.Manifold.MFDeriv.RestrictScalars`), so its tangent
 ranges are images of `𝕜'`-linear maps and closed under multiplication by scalars of `𝕜'`
 (`TauCeti.SmoothEmbedding.smul_mem_tangentRange_restrictScalars`,
 `TauCeti.SmoothEmbedding.smul_mem_tangentRange_restrictScalarsProd`).
@@ -148,32 +150,6 @@ end Prod
 
 end Manifold
 
-namespace MDifferentiableAt
-
-variable (R : Type*) {A : Type*} [NontriviallyNormedField R] [NontriviallyNormedField A]
-  [Algebra R A] {E : Type*} [NormedAddCommGroup E] [NormedSpace A E] [NormedSpace R E]
-  [IsScalarTower R A E] {M : Type*} [TopologicalSpace M] [ChartedSpace E M]
-  {F : Type*} [NormedAddCommGroup F] [NormedSpace A F] [NormedSpace R F] [IsScalarTower R A F]
-  {N : Type*} [TopologicalSpace N] [ChartedSpace F N]
-  {F' : Type*} [NormedAddCommGroup F'] [NormedSpace A F'] [NormedSpace R F']
-  [IsScalarTower R A F'] {N' : Type*} [TopologicalSpace N'] [ChartedSpace F' N']
-
-/-- At a point where a map `f` into a product `N × N'` is differentiable over the larger field
-`A`, for the trivial model on the source and the product of the trivial models on the target,
-its derivatives for the corresponding models over `R` and over `A` agree on every vector of
-`E`. This is the analogue for a product target of Tau Ceti's
-`MDifferentiableAt.mfderiv_modelWithCornersSelf_restrictScalars_apply`. -/
-theorem mfderiv_modelWithCornersSelf_prod_restrictScalars_apply {f : M → N × N'} {x : M}
-    (hf : MDifferentiableAt 𝓘(A, E) (𝓘(A, F).prod 𝓘(A, F')) f x) (v : E) :
-    mfderiv 𝓘(R, E) (𝓘(R, F).prod 𝓘(R, F')) f x v =
-      mfderiv 𝓘(A, E) (𝓘(A, F).prod 𝓘(A, F')) f x v := by
-  have h := DFunLike.congr_fun (hf.mfderiv_restrictScalars R) v
-  rw [ModelWithCorners.restrictScalars_prod, modelWithCornersSelf_restrictScalars,
-    modelWithCornersSelf_restrictScalars, modelWithCornersSelf_restrictScalars] at h
-  exact h.trans (ContinuousLinearMap.restrictScalarsTangent_apply _ _)
-
-end MDifferentiableAt
-
 namespace TauCeti.SmoothEmbedding
 
 variable (𝕜 : Type*) {𝕜' : Type*} [RCLike 𝕜] [NontriviallyNormedField 𝕜'] [NormedAlgebra 𝕜 𝕜']
@@ -221,6 +197,9 @@ theorem smul_mem_tangentRange_restrictScalars (f : SmoothEmbedding 𝓘(𝕜', E
     c • v ∈ (f.restrictScalars 𝕜 hnm hn).tangentRange x hn₀ := by
   have h := congrFun (f.coe_mfderiv_restrictScalars (𝕜 := 𝕜) hnm hn x)
   obtain ⟨u, rfl⟩ := (mem_tangentRange_iff _ x hn₀ v).1 hv
+  -- The witness lives in `TangentSpace 𝓘(𝕜, E) x`, which carries only the `𝕜`-structure.
+  -- It and `TangentSpace 𝓘(𝕜', E) x` both unfold to `E`, so the `show`s let `c • u` use the
+  -- `𝕜'`-action of `E`; rewriting at type `E'` instead fails on the mismatched instances.
   refine (mem_tangentRange_iff _ x hn₀ _).2 ⟨show E from c • show E from u, ?_⟩
   exact (h _).trans (((mfderiv 𝓘(𝕜', E) 𝓘(𝕜', E') f x).map_smul c u).trans
     (congrArg (c • ·) (h u).symm))
@@ -272,6 +251,9 @@ theorem smul_mem_tangentRange_restrictScalarsProd
     c • v ∈ (f.restrictScalarsProd 𝕜 hnm hn).tangentRange x hn₀ := by
   have h := congrFun (f.coe_mfderiv_restrictScalarsProd (𝕜 := 𝕜) hnm hn x)
   obtain ⟨u, rfl⟩ := (mem_tangentRange_iff _ x hn₀ v).1 hv
+  -- The witness lives in `TangentSpace 𝓘(𝕜, E) x`, which carries only the `𝕜`-structure.
+  -- It and `TangentSpace 𝓘(𝕜', E) x` both unfold to `E`, so the `show`s let `c • u` use the
+  -- `𝕜'`-action of `E`; rewriting at type `E'` instead fails on the mismatched instances.
   refine (mem_tangentRange_iff _ x hn₀ _).2 ⟨show E from c • show E from u, ?_⟩
   exact (h _).trans (((mfderiv 𝓘(𝕜', E) (𝓘(𝕜', E').prod 𝓘(𝕜', F')) f x).map_smul c u).trans
     (congrArg (c • ·) (h u).symm))
