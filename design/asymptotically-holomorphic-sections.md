@@ -221,7 +221,7 @@ prerequisite issues (issues 1–4 below):
    `realFirstChernClass_map`, with `IsCircleConnectionForm.mpullback` and
    `IsCircleConnectionForm.curvature_mpullback` that it rests on, is planned
    by `design/compatible-symplectic-forms.md` (part 49) in the merged
-   `FiberBundle/Principal/RealChernClass.lean`, and is not built yet. The
+   `FiberBundle/Principal/RealChernClass.lean`. The
    Chern–Weil issue proves the three there, under those names and with the
    statements that design gives, unless part 49 has built them by then.
    Part 49 then uses them, and neither part waits for the other.

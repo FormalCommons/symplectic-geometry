@@ -8,13 +8,16 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Morse.BirthDeath
 public import SymplecticGeometry.Geometry.Manifold.Morse.GradientLike
 public import SymplecticGeometry.Geometry.Symplectic.Liouville.Filling
+public import SymplecticGeometry.Geometry.Symplectic.Liouville.Sublevel
 public import TauCeti.Geometry.Manifold.Boundary.Interior
 public import TauCeti.Geometry.Manifold.Flow.Complete
+public import TauCeti.Geometry.Manifold.RegularValue.NormSq
 public import TauCeti.Geometry.Symplectic.Liouville.VectorField
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 import Mathlib.Geometry.Manifold.Riemannian.Basic
 import SymplecticGeometry.Geometry.Manifold.Boundary.Interior
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
+import SymplecticGeometry.Topology.Maps.Proper
 import TauCeti.Analysis.Calculus.Gradient
 import TauCeti.Analysis.Calculus.Morse.NormSq
 import TauCeti.Geometry.Manifold.Flow.Diffeomorph
@@ -63,6 +66,12 @@ results that need it take.
 * `SymplecticGeometry.IsWeinsteinDomain.criticalPoints_subset_interior` and
   `SymplecticGeometry.IsWeinsteinDomain.finite_criticalPoints`: the critical points of `f` are
   interior points, and there are finitely many of them.
+* `SymplecticGeometry.IsWeinsteinStructure.compactSpace_sublevel` and
+  `SymplecticGeometry.IsWeinsteinStructure.isWeinsteinDomain_scalarRegularSublevel`: a sublevel
+  `{f ≤ c}` of a Weinstein structure at a regular value `c` is compact, and with the pulled-back
+  form and field it is a Weinstein domain.
+* `SymplecticGeometry.isWeinsteinDomain_norm_sq_le_one`: the closed unit ball of a symplectic
+  inner product space is a Weinstein domain.
 
 ## Implementation notes
 
@@ -97,6 +106,19 @@ closed, hence compact, subset of `W`. The inclusion of the interior is a local d
 (`ModelWithCorners.isLocalDiffeomorph_subtypeVal_interior`), so they are critical points of the
 restriction of `f`, in a compact subset of the interior, and so finitely many by
 `TauCeti.IsGeneralizedMorse.finite_criticalPoints_inter`.
+
+For a regular sublevel `W = {f ≤ c}` of a Weinstein structure, Tau Ceti's
+`TauCeti.boundary_scalarRegularSublevel` and `TauCeti.interior_scalarRegularSublevel` identify
+`∂W` with the level and the interior with `{f < c}`. The level is regular, so `df ≠ 0` there and
+the gradient-like field increases `f` along it (`TauCeti.IsGradientLike.mvfderiv_apply_pos`);
+this gives the boundary condition and, through
+`SymplecticGeometry.isStrongFilling_scalarRegularSublevel`, the Liouville domain. On the interior,
+the inclusion into `M` is the inclusion into `W` after that of the interior, whose differential is
+the identity (`ModelWithCorners.mfderiv_subtypeVal_interior`). So its differentials are invertible
+(`TauCeti.isInvertible_mfderiv_subtypeVal_scalarRegularSublevel`), it is a local diffeomorphism by
+the inverse function theorem `TauCeti.isLocalDiffeomorph_of_mfderiv_eq`, and the restricted
+function and field stay generalized Morse and gradient-like by
+`TauCeti.IsGeneralizedMorse.comp_isLocalDiffeomorph` and `TauCeti.IsGradientLike.mpullback`.
 
 ## References
 
@@ -362,6 +384,103 @@ theorem finite_criticalPoints [CompactSpace W] (h : IsWeinsteinDomain σ Y f c) 
 end IsWeinsteinDomain
 
 end Domain
+
+/-! ### Regular sublevels of Weinstein structures -/
+
+section Sublevel
+
+open Module
+
+namespace IsWeinsteinStructure
+
+/-- The sublevel `{x | f x ≤ c}` of the function of a Weinstein structure is compact, since the
+function is proper and bounded below. -/
+theorem compactSpace_sublevel (hW : IsWeinsteinStructure ω X f) (c : ℝ) :
+    CompactSpace {x | f x ≤ c} :=
+  isCompact_iff_compactSpace.1 (hW.isProperMap.isCompact_preimage_Iic hW.bddBelow c)
+
+/-- **A regular sublevel of a Weinstein structure is a Weinstein domain.** Let `(ω, X, f)` be a
+Weinstein structure on a manifold `M` of dimension `n + 1` and `c` a regular value of `f`. Then the
+sublevel `W = {x | f x ≤ c}`, a manifold with boundary for Tau Ceti's atlas
+`TauCeti.scalarRegularSublevelChartedSpace`, with the pull-back of `ω` along the inclusion
+`ι : W → M`, the pull-back `x ↦ (dι_x)⁻¹ (X x)` of `X`, the restriction of `f` and the level `c`,
+is a Weinstein domain. It is compact by `IsWeinsteinStructure.compactSpace_sublevel`. -/
+theorem isWeinsteinDomain_scalarRegularSublevel {n : ℕ} (hn : finrank ℝ E = n + 1)
+    (hW : IsWeinsteinStructure ω X f) {c : ℝ} (hc : IsRegularValue 𝓘(ℝ, E) 𝓘(ℝ) f c) :
+    letI := scalarRegularSublevelChartedSpace
+      (hW.isGeneralizedMorse.contMDiff.of_le (by simp)) hc hn
+    haveI := isManifold_scalarRegularSublevel hc hn (by simp) hW.isGeneralizedMorse.contMDiff
+    IsWeinsteinDomain
+      (SmoothForm.mpullback Subtype.val (contMDiff_subtypeVal_scalarRegularSublevel hc hn
+        (by simp) hW.isGeneralizedMorse.contMDiff) ω)
+      (VectorField.mpullback (𝓡∂ (n + 1)) 𝓘(ℝ, E) Subtype.val X)
+      (fun x : {x | f x ≤ c} ↦ f x) c := by
+  have hf := hW.isGeneralizedMorse.contMDiff
+  let := scalarRegularSublevelChartedSpace (hf.of_le (by simp)) hc hn
+  have := isManifold_scalarRegularSublevel hc hn (by simp) hf
+  have hι := contMDiff_subtypeVal_scalarRegularSublevel hc hn (by simp) hf
+  have hinv := isInvertible_mfderiv_subtypeVal_scalarRegularSublevel (hf.of_le (by simp)) hc hn
+  have hXY (x : {x | f x ≤ c}) : mfderiv (𝓡∂ (n + 1)) 𝓘(ℝ, E) Subtype.val x
+      (VectorField.mpullback (𝓡∂ (n + 1)) 𝓘(ℝ, E) Subtype.val X x) = X x := by
+    rw [VectorField.mpullback_apply, (hinv x).self_apply_inverse]
+  -- On the level `f⁻¹(c)` the differential of `f` is nonzero, so `X` increases `f` there.
+  have hpos (x : M) (hx : f x = c) : 0 < mvfderiv 𝓘(ℝ, E) f x (X x) :=
+    hW.isGradientLike.mvfderiv_apply_pos
+      (isRegularPoint_iff_mvfderiv_ne_zero.1 (hc.isRegularPoint hx))
+  have hbd := boundary_scalarRegularSublevel hc hn (by simp) hf
+  -- The inclusion `Φ` of the interior of the sublevel into `M`; its differential is that of `ι`.
+  set Φ : (𝓡∂ (n + 1)).interior {x | f x ≤ c} → M := fun x ↦ ((x : {x | f x ≤ c}) : M)
+  have hΦ : ContMDiff 𝓘(ℝ, EuclideanSpace ℝ (Fin (n + 1))) 𝓘(ℝ, E) (⊤ : ℕ∞) Φ :=
+    hι.comp (𝓡∂ (n + 1)).contMDiff_subtypeVal_interior
+  have hdΦ (x) : mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin (n + 1))) 𝓘(ℝ, E) Φ x =
+      mfderiv (𝓡∂ (n + 1)) 𝓘(ℝ, E) Subtype.val (x : {x | f x ≤ c}) := by
+    exact ModelWithCorners.mfderiv_comp_subtypeVal_interior x ((hι _).mdifferentiableAt (by simp))
+  have hΦinv (x) :
+      (mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin (n + 1))) 𝓘(ℝ, E) Φ x).IsInvertible := by
+    rw [hdΦ]
+    exact hinv _
+  refine ⟨isStrongFilling_scalarRegularSublevel hn hW.isSymplectic hW.contMDiff_field
+      hW.isLiouvilleVectorField hf hc hpos, hf.comp hι, fun x hx ↦ by rwa [hbd] at hx,
+    fun x hx ↦ ?_, fun x hx ↦ ?_, hW.isGeneralizedMorse.comp_isLocalDiffeomorph
+      (isLocalDiffeomorph_of_mfderiv_eq hΦ (by simp) hΦinv), ?_⟩
+  · rwa [interior_scalarRegularSublevel hc hn (by simp) hf] at hx
+  · rw [hbd] at hx
+    rw [← Function.comp_def f Subtype.val,
+      mvfderiv_comp x ((hf x).mdifferentiableAt (by simp)) ((hι x).mdifferentiableAt (by simp)),
+      ContinuousLinearMap.comp_apply, hXY]
+    exact hpos x hx
+  · refine (congrArg (IsGradientLike _) (funext fun x ↦ ?_)).mpr
+      (hW.isGradientLike.mpullback hΦ hΦinv)
+    rw [VectorField.mpullback_apply, VectorField.mpullback_apply, hdΦ]
+    -- The two sides are typed in `TangentSpace 𝓘(ℝ, ℝⁿ⁺¹) x` and `TangentSpace (𝓡∂ (n + 1)) x`,
+    -- which are both `ℝⁿ⁺¹`.
+    rfl
+
+end IsWeinsteinStructure
+
+variable {V : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V] [FiniteDimensional ℝ V]
+
+/-- **The closed unit ball is a Weinstein domain.** Let `V` be a real inner product space of
+dimension `n + 1` with a linear symplectic form `ω`. The closed unit ball `{x | ‖x‖ ^ 2 ≤ 1}`, a
+manifold with boundary for Tau Ceti's atlas `TauCeti.scalarRegularSublevelChartedSpace`, with the
+pull-back of the constant form `ω`, the pull-back of the radial field `x ↦ x / 2`, the function
+`x ↦ ‖x‖ ^ 2` and the level `1`, is a Weinstein domain; for instance the unit ball of `ℂⁿ`. -/
+theorem isWeinsteinDomain_norm_sq_le_one {n : ℕ} (hn : finrank ℝ V = n + 1)
+    (ω : SymplecticForm V) :
+    letI := scalarRegularSublevelChartedSpace (contDiff_norm_sq ℝ).contMDiff
+      (isRegularValue_norm_sq (E := V) one_ne_zero) hn
+    haveI := isManifold_scalarRegularSublevel (isRegularValue_norm_sq (E := V) one_ne_zero) hn
+      (m := (⊤ : ℕ∞)) (by simp) (contDiff_norm_sq ℝ).contMDiff
+    IsWeinsteinDomain
+      (SmoothForm.mpullback Subtype.val (contMDiff_subtypeVal_scalarRegularSublevel
+        (isRegularValue_norm_sq one_ne_zero) hn (m := (⊤ : ℕ∞)) (by simp)
+        (contDiff_norm_sq ℝ).contMDiff) ω.constSmooth)
+      (VectorField.mpullback (𝓡∂ (n + 1)) 𝓘(ℝ, V) Subtype.val fun x : V ↦ (2⁻¹ : ℝ) • x)
+      (fun x : {x : V | ‖x‖ ^ 2 ≤ 1} ↦ ‖(x : V)‖ ^ 2) 1 :=
+  (isWeinsteinStructure_constSmooth_norm_sq ω).isWeinsteinDomain_scalarRegularSublevel hn
+    (isRegularValue_norm_sq one_ne_zero)
+
+end Sublevel
 
 end SymplecticGeometry
 

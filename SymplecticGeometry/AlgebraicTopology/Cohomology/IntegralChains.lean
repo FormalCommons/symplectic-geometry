@@ -1,0 +1,244 @@
+/-
+Copyright (c) 2026 The FormalCommons contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: The FormalCommons contributors
+-/
+module
+
+public import Mathlib.Algebra.Category.ModuleCat.ChangeOfRings
+public import SymplecticGeometry.Algebra.Homology.ShortComplex.PreservesHomology
+public import TauCeti.AlgebraicTopology.Cohomology.IntegralComparison
+public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
+
+/-!
+# Cohomology over a commutative ring from integral chains
+
+For a commutative ring `k` and a space `X`, the `k`-linear singular cochains on chains with
+coefficients in `k`, read as abelian groups through the restriction of scalars `F` along
+`ℤ → k`, are the integral cochains `Hom_ℤ(C(X; ℤ), k)` with values in the abelian group `k`.
+Here integral chains have coefficients `ModuleCat.of ℤ (ULift ℤ)`, as those of Tau Ceti's
+fundamental class.
+
+* `TopCat.singularCochainComplexRestrictScalarsIso`: the restricted `k`-linear cochains are the
+  same morphisms, with the action of `ℤ` of the `ℤ`-linear category `ModuleCat k`.
+* `TopCat.singularCochainComplexIntChainsIso`: the comparison of cochains, the composite of the
+  previous one with Tau Ceti's `TauCeti.singularCochainComplexIntegralIso` and with the change
+  of chain coefficients along `TauCeti.uliftIntIso`. It takes a cochain `φ` to the integral
+  cochain `a σ ↦ a φ(σ)` (`TopCat.singularCochainComplexIntChainsIso_hom_f_apply_ιChainComplex`),
+  and commutes with the maps induced by continuous maps
+  (`TopCat.singularCochainComplexIntChainsIso_hom_naturality`).
+* `TopCat.singularCohomologyIntChainsIso : F (Hᵖ(X; k)) ≅ Hᵖ(X; ℤ, k)`: the induced isomorphism of
+  cohomology, natural under continuous maps
+  (`TopCat.singularCohomologyIntChainsIso_hom_naturality`), and its value on the class of a
+  cocycle (`TopCat.map_homologyπ_singularCohomologyIntChainsIso_hom`).
+
+## References
+
+* A. Hatcher, *Algebraic Topology*, Cambridge University Press, 2002, Section 3.1.
+-/
+
+public section
+
+noncomputable section
+
+open CategoryTheory Simplicial TauCeti
+
+namespace TopCat
+
+variable (k : Type) [CommRing k] (X : TopCat.{0})
+
+/-! ### Cochains -/
+
+/-- The `k`-linear singular cochains, read as abelian groups, are the same morphisms with the
+action of `ℤ` of the `ℤ`-linear category `ModuleCat k`. -/
+def singularCochainComplexRestrictScalarsIso :
+    ((ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).mapHomologicalComplex _).obj
+        (X.singularCochainComplex (ModuleCat.of k k) k (ModuleCat.of k k)) ≅
+      X.singularCochainComplex (ModuleCat.of k k) ℤ (ModuleCat.of k k) :=
+  HomologicalComplex.Hom.isoOfComponents
+    (fun p ↦ LinearEquiv.toModuleIso
+      ({ toFun φ := φ
+         invFun φ := φ
+         map_add' _ _ := rfl
+         map_smul' a φ := by
+           -- `ℤ` acts on the restricted module through `algebraMap ℤ k`.
+           change (algebraMap ℤ k a) • φ = a • φ
+           rw [algebraMap_int_eq, eq_intCast]
+           exact Int.cast_smul_eq_zsmul k a φ
+         left_inv _ := rfl
+         right_inv _ := rfl } :
+        (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).obj
+          ((X.singularCochainComplex (ModuleCat.of k k) k (ModuleCat.of k k)).X p) ≃ₗ[ℤ]
+        (X.singularCochainComplex (ModuleCat.of k k) ℤ (ModuleCat.of k k)).X p))
+    fun _ _ _ ↦ rfl
+
+/-- The identification of restricted `k`-linear cochains with `k`-linear cochains under the
+action of `ℤ` is the identity on cochains. -/
+theorem singularCochainComplexRestrictScalarsIso_hom_f_apply (p : ℕ)
+    (φ : ((toSSet.obj X).chainComplex (ModuleCat.of k k)).X p ⟶ ModuleCat.of k k) :
+    (X.singularCochainComplexRestrictScalarsIso k).hom.f p φ = φ :=
+  (rfl)
+
+/-- The inverse identification of `k`-linear cochains under the action of `ℤ` with restricted
+`k`-linear cochains is the identity on cochains. -/
+theorem singularCochainComplexRestrictScalarsIso_inv_f_apply (p : ℕ)
+    (φ : ((toSSet.obj X).chainComplex (ModuleCat.of k k)).X p ⟶ ModuleCat.of k k) :
+    (X.singularCochainComplexRestrictScalarsIso k).inv.f p φ = φ :=
+  (rfl)
+
+/-- **Cochains over `k` as integral cochains**: the `k`-linear cochains `Hom_k(C(X; k), k)`,
+read as abelian groups, are the integral cochains `Hom_ℤ(C(X; ℤ), k)`. A cochain `φ` goes to
+the integral cochain `a σ ↦ a φ(σ)`
+(`TopCat.singularCochainComplexIntChainsIso_hom_f_apply_ιChainComplex`). -/
+def singularCochainComplexIntChainsIso :
+    ((ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).mapHomologicalComplex _).obj
+        (X.singularCochainComplex (ModuleCat.of k k) k (ModuleCat.of k k)) ≅
+      X.singularCochainComplex (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ (ModuleCat.of ℤ k) :=
+  X.singularCochainComplexRestrictScalarsIso k ≪≫
+    singularCochainComplexIntegralIso k (ModuleCat.of k k) X ≪≫
+      (ChainComplex.linearYonedaFunctor ℤ (ModuleCat.of ℤ k)).mapIso
+        (((SSet.chainComplexFunctor _).mapIso uliftIntIso).app (toSSet.obj X)).op
+
+/-- The comparison of cochains is the identification of restricted cochains with cochains under
+the action of `ℤ`, then Tau Ceti's comparison with integral cochains, then the change of chain
+coefficients along `ULift ℤ ≅ ℤ`. -/
+theorem singularCochainComplexIntChainsIso_def :
+    X.singularCochainComplexIntChainsIso k =
+      X.singularCochainComplexRestrictScalarsIso k ≪≫
+        singularCochainComplexIntegralIso k (ModuleCat.of k k) X ≪≫
+          (ChainComplex.linearYonedaFunctor ℤ (ModuleCat.of ℤ k)).mapIso
+            (((SSet.chainComplexFunctor _).mapIso uliftIntIso).app (toSSet.obj X)).op :=
+  (rfl)
+
+/-- The comparison of cochains takes a cochain `φ` to the integral cochain sending `a σ` to
+`a φ(σ)`. -/
+theorem singularCochainComplexIntChainsIso_hom_f_apply_ιChainComplex {p : ℕ}
+    (σ : (toSSet.obj X) _⦋p⦌)
+    (φ : ((toSSet.obj X).chainComplex (ModuleCat.of k k)).X p ⟶ ModuleCat.of k k)
+    (a : ULift.{0} ℤ) :
+    ConcreteCategory.hom (X := ((toSSet.obj X).chainComplex (ModuleCat.of ℤ (ULift.{0} ℤ))).X p)
+        (Y := ModuleCat.of ℤ k) ((X.singularCochainComplexIntChainsIso k).hom.f p φ)
+        ((toSSet.obj X).ιChainComplex (R := ModuleCat.of ℤ (ULift.{0} ℤ)) σ a) =
+      (a.down : k) * φ ((toSSet.obj X).ιChainComplex (R := ModuleCat.of k k) σ 1) := by
+  -- The comparison is the identity on morphisms, then Tau Ceti's comparison, then precomposition
+  -- with the chain map induced by `ULift ℤ ≅ ℤ`, which takes `a σ` to `a.down σ`.
+  have e : (X.singularCochainComplexIntChainsIso k).hom.f p φ =
+      (((SSet.chainComplexFunctor _).map uliftIntIso.hom).app (toSSet.obj X)).f p ≫
+        (singularCochainComplexIntegralIso k (ModuleCat.of k k) X).hom.f p φ :=
+    rfl
+  have h := SSet.ιChainComplex_chainComplexFunctor_map_app_f_assoc uliftIntIso.hom σ
+    ((singularCochainComplexIntegralIso k (ModuleCat.of k k) X).hom.f p φ)
+  rw [← e] at h
+  refine (ConcreteCategory.congr_hom h a).trans ?_
+  rw [ModuleCat.comp_apply, uliftIntIso_hom_apply]
+  exact (simplicialCochainComplexIntegralIso_hom_f_apply_ιChainComplex k (ModuleCat.of k k)
+    (toSSet.obj X) p φ σ a.down).trans (zsmul_eq_mul _ _)
+
+variable {X} in
+/-- The comparison of cochains commutes with the maps induced by a continuous map. -/
+@[reassoc]
+theorem singularCochainComplexIntChainsIso_hom_naturality {Y : TopCat.{0}} (f : X ⟶ Y) :
+    ((ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).mapHomologicalComplex _).map
+        (singularCochainComplexMap (R := ModuleCat.of k k) (k := k) (M := ModuleCat.of k k) f) ≫
+      (X.singularCochainComplexIntChainsIso k).hom =
+    (Y.singularCochainComplexIntChainsIso k).hom ≫
+      singularCochainComplexMap (R := ModuleCat.of ℤ (ULift.{0} ℤ)) (k := ℤ)
+        (M := ModuleCat.of ℤ k) f := by
+  ext p φ : 3
+  refine SSet.chainComplex_hom_ext fun σ ↦ ?_
+  ext a
+  refine (X.singularCochainComplexIntChainsIso_hom_f_apply_ιChainComplex k σ _ a).trans ?_
+  -- Both sides evaluate `φ` on the image `f ∘ σ` of the simplex; the maps induced by `f` act
+  -- by precomposition with the chain map, and restriction of scalars keeps morphisms.
+  refine congrArg (_ * ·) (ConcreteCategory.congr_hom
+    (SSet.ι_chainComplexMap_f_assoc (f := toSSet.map f) (x := σ) (h := φ)) 1) |>.trans ?_
+  exact ((ConcreteCategory.congr_hom (SSet.ι_chainComplexMap_f_assoc (f := toSSet.map f) (x := σ)
+    (h := (Y.singularCochainComplexIntChainsIso k).hom.f p φ)) a).trans
+    (Y.singularCochainComplexIntChainsIso_hom_f_apply_ιChainComplex k _ φ a)).symm
+
+/-! ### Cohomology -/
+
+/-- **Cohomology over `k` from integral chains**: singular cohomology computed from chains with
+coefficients in `k`, read as an abelian group, is singular cohomology computed from integral
+chains with values in `k`. -/
+def singularCohomologyIntChainsIso (p : ℕ) :
+    (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).obj
+        (X.singularCohomology (ModuleCat.of k k) k (ModuleCat.of k k) p) ≅
+      X.singularCohomology (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ (ModuleCat.of ℤ k) p :=
+  (((X.singularCochainComplex (ModuleCat.of k k) k (ModuleCat.of k k)).sc p).mapHomologyIso
+      (ModuleCat.restrictScalars.{0} (algebraMap ℤ k))).symm ≪≫
+    HomologicalComplex.homologyMapIso (X.singularCochainComplexIntChainsIso k) p
+
+/-- The comparison of cohomologies is the comparison of the homology of the restricted complex
+with the restricted homology, followed by the map induced by the comparison of cochains. -/
+theorem singularCohomologyIntChainsIso_hom (p : ℕ) :
+    (X.singularCohomologyIntChainsIso k p).hom =
+      (((X.singularCochainComplex (ModuleCat.of k k) k (ModuleCat.of k k)).sc p).mapHomologyIso
+          (ModuleCat.restrictScalars.{0} (algebraMap ℤ k))).inv ≫
+      HomologicalComplex.homologyMap (X.singularCochainComplexIntChainsIso k).hom p :=
+  (rfl)
+
+/-- The comparison of cohomologies on the class of a cocycle `φ` is the class of the integral
+cocycle `a σ ↦ a φ(σ)`. -/
+@[reassoc, elementwise]
+theorem map_homologyπ_singularCohomologyIntChainsIso_hom (p : ℕ) :
+    (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).map
+        ((X.singularCochainComplex (ModuleCat.of k k) k (ModuleCat.of k k)).homologyπ p) ≫
+      (X.singularCohomologyIntChainsIso k p).hom =
+    (((X.singularCochainComplex (ModuleCat.of k k) k (ModuleCat.of k k)).sc p).mapCyclesIso
+        (ModuleCat.restrictScalars.{0} (algebraMap ℤ k))).inv ≫
+      HomologicalComplex.cyclesMap (X.singularCochainComplexIntChainsIso k).hom p ≫
+        (X.singularCochainComplex (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ
+          (ModuleCat.of ℤ k)).homologyπ p := by
+  rw [singularCohomologyIntChainsIso_hom]
+  -- The class map of the image short complex is that of the restricted cochain complex only
+  -- after unfolding, so the two squares are pasted as terms.
+  exact ((ShortComplex.map_homologyπ_comp_mapHomologyIso_inv_assoc
+    ((X.singularCochainComplex (ModuleCat.of k k) k (ModuleCat.of k k)).sc p)
+    (ModuleCat.restrictScalars.{0} (algebraMap ℤ k))) _).trans
+    (congrArg (_ ≫ ·)
+      (HomologicalComplex.homologyπ_naturality (X.singularCochainComplexIntChainsIso k).hom p))
+
+/-- On cocycles, the comparison of cohomologies is the comparison of the underlying cochains. -/
+@[reassoc, elementwise nosimp]
+theorem mapCyclesIso_inv_cyclesMap_singularCochainComplexIntChainsIso_hom_iCycles (p : ℕ) :
+    (((X.singularCochainComplex (ModuleCat.of k k) k (ModuleCat.of k k)).sc p).mapCyclesIso
+        (ModuleCat.restrictScalars.{0} (algebraMap ℤ k))).inv ≫
+      HomologicalComplex.cyclesMap (X.singularCochainComplexIntChainsIso k).hom p ≫
+        (X.singularCochainComplex (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ
+          (ModuleCat.of ℤ k)).iCycles p =
+      (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).map
+          ((X.singularCochainComplex (ModuleCat.of k k) k (ModuleCat.of k k)).iCycles p) ≫
+        (X.singularCochainComplexIntChainsIso k).hom.f p := by
+  rw [HomologicalComplex.cyclesMap_i]
+  -- The cycles of the restricted complex are those of the image short complex only after
+  -- unfolding, so the square is pasted as a term.
+  exact (reassoc_of% (((X.singularCochainComplex (ModuleCat.of k k) k
+    (ModuleCat.of k k)).sc p).mapCyclesIso_inv_comp_iCycles
+      (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)))) _
+
+variable {X} in
+/-- The comparison of cohomologies commutes with the maps induced by a continuous map. -/
+@[reassoc]
+theorem singularCohomologyIntChainsIso_hom_naturality {Y : TopCat.{0}} (f : X ⟶ Y) (p : ℕ) :
+    (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).map
+        (TopCat.singularCohomologyMap (R := ModuleCat.of k k) (k := k) (M := ModuleCat.of k k)
+          f p) ≫
+      (X.singularCohomologyIntChainsIso k p).hom =
+    (Y.singularCohomologyIntChainsIso k p).hom ≫
+      TopCat.singularCohomologyMap (R := ModuleCat.of ℤ (ULift.{0} ℤ)) (k := ℤ)
+        (M := ModuleCat.of ℤ k) f p := by
+  rw [singularCohomologyIntChainsIso_hom, singularCohomologyIntChainsIso_hom, Category.assoc,
+    TopCat.singularCohomologyMap, TopCat.singularCohomologyMap,
+    ← HomologicalComplex.homologyMap_comp, ← singularCochainComplexIntChainsIso_hom_naturality,
+    HomologicalComplex.homologyMap_comp]
+  -- The map on cohomology is the map on the homology of the short complexes in degree `p`, and
+  -- the restriction of the map of complexes is the map of the restricted short complexes.
+  exact (ShortComplex.mapHomologyIso_inv_naturality_assoc
+    ((HomologicalComplex.shortComplexFunctor _ _ p).map
+      (singularCochainComplexMap (R := ModuleCat.of k k) (k := k) (M := ModuleCat.of k k) f))
+    (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)) _)
+
+end TopCat
+
+end
