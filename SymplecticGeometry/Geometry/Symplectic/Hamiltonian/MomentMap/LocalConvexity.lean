@@ -102,7 +102,7 @@ And the local convexity itself:
   inside the target of `Θ`, this map has convexity charts by
   `TauCeti.exists_isConvexChart_weightMomentMap_prod`, which rests on Tau Ceti's
   `TauCeti.exists_isConvexChart_inter_preimage_ball`; they are carried back to `M` by
-  `TauCeti.IsConvexChart.image_iff`.
+  `TauCeti.IsConvexChart.source_inter_preimage`.
 
 ## Implementation notes
 
@@ -614,11 +614,10 @@ theorem exists_isConvexChart
     (Metric.isOpen_ball (x := (0 : W)) (ε := δ)) (convex_ball (0 : W) δ).isPreconnected (δ ^ 2) h0P
   set U' := P ∩ f ⁻¹' Metric.ball (f 0) ε
   have hU' : U' ⊆ Θ.target := Set.inter_subset_left.trans hP
-  refine ⟨Θ.symm '' U', ⟨0, ⟨h0P, Metric.mem_ball_self hε⟩, by rw [← h0, Θ.left_inv hx]⟩, ?_⟩
-  rw [IsConvexChart.image_iff Θ.symm (by rwa [Θ.symm_source])]
-  refine ((hU.continuousLinearEquiv_comp L.toContinuousLinearEquiv).const_add (e (μ x))).congr
-    fun q hq ↦ ?_
-  simp only [Function.comp_apply, hL (Θ.map_target (hU' hq)), Θ.right_inv (hU' hq),
-    LinearEquiv.coe_toContinuousLinearEquiv', hf]
+  refine ⟨Θ.source ∩ Θ ⁻¹' U',
+    ⟨hx, by rw [Set.mem_preimage, h0]; exact ⟨h0P, Metric.mem_ball_self hε⟩⟩,
+    ((hU.continuousLinearEquiv_comp L.toContinuousLinearEquiv).const_add (e (μ x))
+      ).source_inter_preimage hU' fun y hy ↦ ?_⟩
+  simp only [Function.comp_apply, hL hy, LinearEquiv.coe_toContinuousLinearEquiv', hf]
 
 end TauCeti.SmoothTwoForm.IsMomentMap
