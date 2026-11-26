@@ -363,7 +363,8 @@ theorem exists_holonomic_approximation_cube {m k : ℕ} (hk : 0 < k)
     (hUf : ∀ x ∈ U, fderiv ℝ f x = G x) (hU' : sphere 0 1 ×ˢ {0} ⊆ U)
     {ε δ : ℝ} (hε : 0 < ε) (hδ : 0 < δ) :
     ∃ (h : TauCeti.Diffeotopy 𝓘(ℝ, D) ∞ D) (f' : D → F) (V : Set D),
-      (∃ C, IsCompact C ∧ C ⊆ thickening δ Q ∧ ∀ t, ∀ x ∉ C, h (t, x) = x) ∧
+      (∃ C, IsCompact C ∧ C ⊆ thickening δ Q ∧
+        (∀ t, ∀ x ∉ C, h (t, x) = x) ∧ ∀ x ∉ C, f' x = f x) ∧
       (∀ t x, dist (h (t, x)) x < δ) ∧
       (∃ W ∈ 𝓝ˢ (sphere 0 1 ×ˢ {0}), ∀ t, ∀ x ∈ W, h (t, x) = x) ∧
       IsOpen V ∧ (fun x ↦ h (1, x)) '' Q ⊆ V ∧
