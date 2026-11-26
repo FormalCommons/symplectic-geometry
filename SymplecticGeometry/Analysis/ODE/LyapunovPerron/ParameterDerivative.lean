@@ -9,6 +9,7 @@ import TauCeti.Analysis.ODE.LyapunovPerron.VectorField
 public import TauCeti.Analysis.ODE.LyapunovPerron.Smooth
 import Mathlib.Analysis.Calculus.ContDiff.Operations
 import Mathlib.Analysis.Calculus.ContDiff.RCLike
+import SymplecticGeometry.Topology.ContinuousMap.Bounded.Normed
 
 /-!
 # A bounded parameter derivative for local stable solutions
@@ -96,8 +97,8 @@ theorem norm_fderiv_lyapunovPerronSolution_apply_le (hn : 1 ≤ n)
     ‖fderiv ℝ (fun ξ ↦ lyapunovPerronSolution A P N hs hu hα hN hsmall ξ t) ξ₀‖ ≤
       ‖fderiv ℝ (lyapunovPerronSolution A P N hs hu hα hN hsmall) ξ₀‖ := by
   rw [(hasFDerivAt_lyapunovPerronSolution_apply hs hu hα hN hsmall hn hNn hδ hξ₀ t).fderiv]
-  exact opNorm_le_bound _ (norm_nonneg _) fun v ↦
-    (BoundedContinuousFunction.norm_coe_le_norm _ t).trans (le_opNorm _ v)
+  exact (opNorm_comp_le _ _).trans <|
+    mul_le_of_le_one_left (norm_nonneg _) (BoundedContinuousFunction.norm_evalCLM_le_one t)
 
 end Solution
 
