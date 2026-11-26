@@ -7,10 +7,8 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Symplectic
 import Mathlib.Analysis.SpecialFunctions.Sqrt
-import Mathlib.Geometry.Manifold.Algebra.LieGroup
 import Mathlib.Geometry.Manifold.VectorBundle.LocalFrame
 import SymplecticGeometry.LinearAlgebra.BilinearMap.Alternating
-import TauCeti.LinearAlgebra.BilinearForm.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
 
 /-!
@@ -29,27 +27,21 @@ applies to them.
 
 ## Proof
 
-Proportionality is `LinearMap.IsAlt.apply_mul_eq_mul_apply_of_basis`, applied to the bases
-of the normal spaces given by a local frame of the normal bundle. Near a point, `c` is the ratio
-of the two forms evaluated on the two sections of such a frame. Each evaluation is smooth, as it
-is the ambient form evaluated on the symplectic representatives
-(`TauCeti.SmoothEmbedding.contMDiffAt_symplecticNormalForm`), the same argument as in the proof
-of Tau Ceti's `TauCeti.SmoothEmbedding.contMDiff_symplecticNormalFlat`. The rescaled map of
-total spaces is smooth by Tau Ceti's `ContMDiff.smul_totalSpace`.
+The linear algebra is in `SymplecticGeometry.LinearAlgebra.BilinearMap.Alternating`:
+`LinearMap.IsAlt.apply_eq_div_mul` gives the proportionality on the bases of the normal spaces
+given by a local frame of the normal bundle, `LinearMap.IsAlt.apply_basis_div_apply_basis_pos`
+its positivity, and `LinearMap.apply_inv_sqrt_smul_inv_sqrt_smul` the rescaling. Near a point,
+`c` is the ratio of the two forms evaluated on the two sections of such a frame, and each
+evaluation is smooth by `TauCeti.SmoothEmbedding.contMDiffAt_symplecticNormalForm`. The rescaled
+map of total spaces is smooth by Tau Ceti's `ContMDiff.smul_totalSpace`.
 
 ## Main results
 
-* `TauCeti.SmoothEmbedding.contMDiffAt_symplecticNormalForm`: the normal symplectic form
-  evaluated on two smooth maps into the normal bundle is smooth.
-* `TauCeti.SmoothEmbedding.contMDiff_totalSpace_smul`: rescaling a smooth map of normal bundles
-  by a smooth function keeps it smooth.
 In the namespace `TauCeti.SmoothTwoForm.IsNondegenerate`:
 
 * `HasSymplecticTangentImages.exists_contMDiff_pos_symplecticNormalForm_eq_mul`: an
   orientation-preserving normal isomorphism multiplies the normal forms by a smooth positive
   function.
-* `HasSymplecticTangentImages.symplecticNormalForm_inv_sqrt_smul`: the rescaled isomorphisms
-  preserve the normal forms.
 * `HasSymplecticTangentImages.exists_symplectomorphism_opens_of_finrank_eq_two`: the symplectic
   neighbourhood theorem in codimension two for orientation-preserving normal isomorphisms.
 
@@ -64,69 +56,6 @@ public section
 
 open Bundle Manifold Module TopologicalSpace
 open scoped ContDiff Manifold Bundle Topology
-
-namespace TauCeti.SmoothEmbedding
-
-variable {EQ HQ Q EN HN N EX HX X P : Type*} [NormedAddCommGroup EQ] [NormedSpace ℝ EQ]
-  [FiniteDimensional ℝ EQ] [TopologicalSpace HQ] {J : ModelWithCorners ℝ EQ HQ}
-  [TopologicalSpace Q] [ChartedSpace HQ Q] [IsManifold J ∞ Q]
-  [NormedAddCommGroup EN] [NormedSpace ℝ EN] [FiniteDimensional ℝ EN]
-  [TopologicalSpace HN] {K : ModelWithCorners ℝ EN HN} [TopologicalSpace N] [ChartedSpace HN N]
-  [IsManifold K ∞ N] [NormedAddCommGroup EX] [NormedSpace ℝ EX] [TopologicalSpace HX]
-  {L : ModelWithCorners ℝ EX HX} [TopologicalSpace X] [ChartedSpace HX X]
-  [NormedAddCommGroup P] [NormedSpace ℝ P] [FiniteDimensional ℝ P]
-  {σ : SmoothTwoForm K N} {hσ : σ.IsNondegenerate}
-
-/-- The normal symplectic form of a symplectic submanifold, evaluated on two maps into its normal
-bundle over the same base map that are smooth at a point, is smooth at that point. -/
-theorem contMDiffAt_symplecticNormalForm {f : SmoothEmbedding J K ∞ Q N}
-    (h : hσ.HasSymplecticTangentImages J f) (hn : (∞ : ℕ∞ω) ≠ 0)
-    (hP : finrank ℝ P = finrank ℝ EN - finrank ℝ EQ) {u : X → Q}
-    {v w : ∀ x, f.NormalSpace (u x) hn} {x₀ : X}
-    (hv : letI := f.normalSpaceFiberBundle hn hP
-      ContMDiffAt L (J.prod 𝓘(ℝ, P)) ∞
-        (fun x ↦ TotalSpace.mk' P (E := fun q ↦ f.NormalSpace q hn) (u x) (v x)) x₀)
-    (hw : letI := f.normalSpaceFiberBundle hn hP
-      ContMDiffAt L (J.prod 𝓘(ℝ, P)) ∞
-        (fun x ↦ TotalSpace.mk' P (E := fun q ↦ f.NormalSpace q hn) (u x) (w x)) x₀) :
-    ContMDiffAt L 𝓘(ℝ) ∞ (fun x ↦ f.symplecticNormalForm h (u x) hn (v x) (w x)) x₀ := by
-  let := f.normalSpaceFiberBundle hn hP
-  have hrep := f.contMDiff_symplecticNormalRepresentative h hn (m := ∞) (by simp) (by simp) hP
-  have hpair := σ.contMDiffAt_eval₂ (b := fun x ↦ f (u x)) ((hrep _).comp x₀ hv)
-    ((hrep _).comp x₀ hw)
-  rw [Bundle.contMDiffAt_totalSpace_iff] at hpair
-  simpa [Trivial.fiberBundle_trivializationAt'] using hpair.2
-
-/-- Multiplying a map of normal bundles, smooth on total spaces, by a smooth function on the base
-keeps it smooth on total spaces. -/
-theorem contMDiff_totalSpace_smul {EQ' HQ' Q' EN' HN' N' P' : Type*}
-    [NormedAddCommGroup EQ'] [NormedSpace ℝ EQ'] [TopologicalSpace HQ']
-    {J' : ModelWithCorners ℝ EQ' HQ'} [TopologicalSpace Q'] [ChartedSpace HQ' Q']
-    [IsManifold J' ∞ Q'] [NormedAddCommGroup EN'] [NormedSpace ℝ EN'] [TopologicalSpace HN']
-    {K' : ModelWithCorners ℝ EN' HN'} [TopologicalSpace N'] [ChartedSpace HN' N']
-    [FiniteDimensional ℝ EQ'] [FiniteDimensional ℝ EN'] [IsManifold K' ∞ N']
-    [NormedAddCommGroup P'] [NormedSpace ℝ P'] [FiniteDimensional ℝ P']
-    {f : SmoothEmbedding J K ∞ Q N} {f' : SmoothEmbedding J' K' ∞ Q' N'} (hn : (∞ : ℕ∞ω) ≠ 0)
-    (hP : finrank ℝ P = finrank ℝ EN - finrank ℝ EQ)
-    (hP' : finrank ℝ P' = finrank ℝ EN' - finrank ℝ EQ') {φ : Q → Q'}
-    (Φ : ∀ q, f.NormalSpace q hn →L[ℝ] f'.NormalSpace (φ q) hn)
-    (hΦ : letI := f.normalSpaceFiberBundle hn hP
-      letI := f'.normalSpaceFiberBundle hn hP'
-      ContMDiff (J.prod 𝓘(ℝ, P)) (J'.prod 𝓘(ℝ, P')) ∞
-        (fun p : TotalSpace P (fun q ↦ f.NormalSpace q hn) ↦
-          (⟨φ p.proj, Φ p.proj p.snd⟩ : TotalSpace P' (fun q ↦ f'.NormalSpace q hn))))
-    {a : Q → ℝ} (ha : ContMDiff J 𝓘(ℝ) ∞ a) :
-    letI := f.normalSpaceFiberBundle hn hP
-    letI := f'.normalSpaceFiberBundle hn hP'
-    ContMDiff (J.prod 𝓘(ℝ, P)) (J'.prod 𝓘(ℝ, P')) ∞
-      (fun p : TotalSpace P (fun q ↦ f.NormalSpace q hn) ↦
-        (⟨φ p.proj, a p.proj • Φ p.proj p.snd⟩ : TotalSpace P' (fun q ↦ f'.NormalSpace q hn))) :=
-  let := f.normalSpaceFiberBundle hn hP
-  let := f'.normalSpaceFiberBundle hn hP'
-  let := f'.normalSpaceVectorBundle hn hP'
-  (ha.comp (contMDiff_proj _)).smul_totalSpace hΦ
-
-end TauCeti.SmoothEmbedding
 
 namespace TauCeti.SmoothTwoForm.IsNondegenerate
 
@@ -146,33 +75,6 @@ variable {EQ₀ EQ₁ E₀ E₁ P₀ P₁ HQ₀ HQ₁ H₀ H₁ Q₀ Q₁ M₀ M
   [TopologicalSpace M₁] [ChartedSpace H₁ M₁] [IsManifold I₁ ∞ M₁]
   {σ₀ : SmoothTwoForm I₀ M₀} {σ₁ : SmoothTwoForm I₁ M₁}
   {f₀ : SmoothEmbedding J₀ I₀ ∞ Q₀ M₀} {f₁ : SmoothEmbedding J₁ I₁ ∞ Q₁ M₁}
-
-omit [FiniteDimensional ℝ EQ₀] [FiniteDimensional ℝ EQ₁] [FiniteDimensional ℝ P₀]
-  [FiniteDimensional ℝ P₁] [IsManifold J₀ ∞ Q₀] [IsManifold J₁ ∞ Q₁] in
-/-- On a two-dimensional normal space, a linear map `Φ` of normal spaces multiplies the normal
-symplectic forms by a constant: if `β` is a basis of the normal space of `f₀` at `q`, then
-`ω₀ (β 0) (β 1) ≠ 0` and `ω₁ (Φ u) (Φ v)` is `ω₁ (Φ (β 0)) (Φ (β 1)) / ω₀ (β 0) (β 1)` times
-`ω₀ u v`. -/
-private theorem symplecticNormalForm_comp_eq_div_mul {hσ₀ : σ₀.IsNondegenerate}
-    {hσ₁ : σ₁.IsNondegenerate} (h₀ : hσ₀.HasSymplecticTangentImages J₀ f₀)
-    (h₁ : hσ₁.HasSymplecticTangentImages J₁ f₁) (hn : (∞ : ℕ∞ω) ≠ 0) {q : Q₀} {q' : Q₁}
-    (Φ : f₀.NormalSpace q hn →L[ℝ] f₁.NormalSpace q' hn)
-    (β : Module.Basis (Fin 2) ℝ (f₀.NormalSpace q hn)) :
-    f₀.symplecticNormalForm h₀ q hn (β 0) (β 1) ≠ 0 ∧ ∀ u v,
-      f₁.symplecticNormalForm h₁ q' hn (Φ u) (Φ v) =
-        f₁.symplecticNormalForm h₁ q' hn (Φ (β 0)) (Φ (β 1)) /
-          f₀.symplecticNormalForm h₀ q hn (β 0) (β 1) * f₀.symplecticNormalForm h₀ q hn u v := by
-  set ω₀ := f₀.symplecticNormalForm h₀ q hn
-  set ω₁ := f₁.symplecticNormalForm h₁ q' hn
-  have hne : ω₀ (β 0) (β 1) ≠ 0 := fun h0 ↦ one_ne_zero <|
-    ω₀.isAlt.eq_zero_of_smul_apply_basis_eq_zero β ω₀.nondegenerate.1 ((one_smul ℝ _).trans h0)
-  refine ⟨hne, fun u v ↦ ?_⟩
-  have hB : (ω₁.toBilinForm.compl₁₂ Φ.toLinearMap Φ.toLinearMap).IsAlt :=
-    fun x ↦ ω₁.isAlt (Φ x)
-  have := hB.apply_mul_eq_mul_apply_of_basis ω₀.isAlt β u v
-  simp only [LinearMap.compl₁₂_apply, ContinuousLinearMap.coe_coe] at this
-  rw [div_mul_eq_mul_div, eq_div_iff hne]
-  exact this.trans (mul_comm _ _)
 
 /-- **An orientation-preserving normal isomorphism rescales the normal forms.** Let `f₀` and `f₁`
 be embeddings with symplectic tangent images, with normal bundles of model fibres `P₀` and `P₁`,
@@ -205,11 +107,21 @@ theorem HasSymplecticTangentImages.exists_contMDiff_pos_symplecticNormalForm_eq_
   -- The basis of the normal space at `q` given by the preferred trivialization at `q`.
   let β (q : Q₀) := (trivializationAt P₀ (fun q ↦ f₀.NormalSpace q hn) q).basisAt b
     (mem_baseSet_trivializationAt P₀ _ q)
-  let c (q : Q₀) := f₁.symplecticNormalForm h₁ (φ q) hn (Φ q (β q 0)) (Φ q (β q 1)) /
-    f₀.symplecticNormalForm h₀ q hn (β q 0) (β q 1)
+  -- The normal form of `f₀` at `q`, and the pullback by `Φ q` of that of `f₁` at `φ q`.
+  let ω₀ (q : Q₀) := f₀.symplecticNormalForm h₀ q hn
+  let B (q : Q₀) := (f₁.symplecticNormalForm h₁ (φ q) hn).toBilinForm.compl₁₂
+    (Φ q).toLinearMap (Φ q).toLinearMap
+  have hB_apply (q : Q₀) (v w) :
+      B q v w = f₁.symplecticNormalForm h₁ (φ q) hn (Φ q v) (Φ q w) := by
+    simp only [B, LinearMap.compl₁₂_apply, ContinuousLinearMap.coe_coe]
+  have hB (q : Q₀) : (B q).IsAlt := fun v ↦ by
+    rw [hB_apply]
+    exact (f₁.symplecticNormalForm h₁ (φ q) hn).self_eq_zero _
+  let c (q : Q₀) := B q (β q 0) (β q 1) / ω₀ q (β q 0) (β q 1)
   have hc (q : Q₀) (v w) : f₁.symplecticNormalForm h₁ (φ q) hn (Φ q v) (Φ q w) =
-      c q * f₀.symplecticNormalForm h₀ q hn v w :=
-    (symplecticNormalForm_comp_eq_div_mul h₀ h₁ hn (Φ q) (β q)).2 v w
+      c q * f₀.symplecticNormalForm h₀ q hn v w := by
+    rw [← hB_apply]
+    exact (hB q).apply_eq_div_mul (ω₀ q).isAlt (ω₀ q).separatingLeft (β q) v w
   refine ⟨c, fun q₀ ↦ ?_, fun q ↦ ?_, hc⟩
   · -- Near `q₀`, `c` is the ratio of the two forms on a local frame.
     let e := trivializationAt P₀ (fun q ↦ f₀.NormalSpace q hn) q₀
@@ -222,41 +134,18 @@ theorem HasSymplecticTangentImages.exists_contMDiff_pos_symplecticNormalForm_eq_
     have hnum := SmoothEmbedding.contMDiffAt_symplecticNormalForm h₁ hn hP₁ (hΦs 0) (hΦs 1)
     have hden := SmoothEmbedding.contMDiffAt_symplecticNormalForm (u := id) h₀ hn hP₀ (hs 0)
       (hs 1)
-    have hne := (symplecticNormalForm_comp_eq_div_mul h₀ h₁ hn (Φ q₀) (e.basisAt b hq₀)).1
+    have hs' {q : Q₀} (hq : q ∈ e.baseSet) (i : Fin 2) : e.localFrame b i q = e.basisAt b hq i :=
+      e.localFrame_apply_of_mem_baseSet b hq
     refine (hnum.div₀ hden ?_).congr_of_eventuallyEq ?_
-    · simpa [s, hq₀, Bundle.Trivialization.basisAt] using hne
+    · simpa only [ω₀, id_eq, hs' hq₀] using
+        (ω₀ q₀).isAlt.apply_basis_ne_zero (ω₀ q₀).separatingLeft (e.basisAt b hq₀)
     · filter_upwards [e.open_baseSet.mem_nhds hq₀] with q hq
-      have h := symplecticNormalForm_comp_eq_div_mul h₀ h₁ hn (Φ q) (e.basisAt b hq)
-      have hs' (i : Fin 2) : s i q = e.basisAt b hq i := e.localFrame_apply_of_mem_baseSet b hq
-      simp only [Pi.div_apply, id_eq, s, hs']
-      exact (eq_div_iff h.1).2 (hc q _ _).symm
-  · -- The basis vectors, in one order or the other, pair positively.
-    obtain ⟨hne, -⟩ := symplecticNormalForm_comp_eq_div_mul h₀ h₁ hn (Φ q) (β q)
-    rcases hne.lt_or_gt with hlt | hgt
-    · have hpos : 0 < f₀.symplecticNormalForm h₀ q hn (β q 1) (β q 0) := by
-        rw [← SymplecticForm.neg_eq]
-        exact neg_pos.2 hlt
-      have h := hc q (β q 1) (β q 0)
-      exact pos_of_mul_pos_left (h ▸ hΦσ q _ _ hpos) hpos.le
-    · exact div_pos (hΦσ q _ _ hgt) hgt
-
-omit [FiniteDimensional ℝ EQ₀] [FiniteDimensional ℝ EQ₁] [FiniteDimensional ℝ P₀]
-  [FiniteDimensional ℝ P₁] [IsManifold J₀ ∞ Q₀] [IsManifold J₁ ∞ Q₁] in
-/-- If a linear map `Φ` of normal spaces multiplies the normal symplectic forms by `c > 0`, then
-`(√c)⁻¹ • Φ` preserves them. -/
-theorem HasSymplecticTangentImages.symplecticNormalForm_inv_sqrt_smul {hσ₀ : σ₀.IsNondegenerate}
-    {hσ₁ : σ₁.IsNondegenerate} (h₀ : hσ₀.HasSymplecticTangentImages J₀ f₀)
-    (h₁ : hσ₁.HasSymplecticTangentImages J₁ f₁) (hn : (∞ : ℕ∞ω) ≠ 0) {q : Q₀} {q' : Q₁}
-    (Φ : f₀.NormalSpace q hn →L[ℝ] f₁.NormalSpace q' hn) {c : ℝ} (hc : 0 < c)
-    (hΦ : ∀ v w, f₁.symplecticNormalForm h₁ q' hn (Φ v) (Φ w) =
-      c * f₀.symplecticNormalForm h₀ q hn v w) (v w : f₀.NormalSpace q hn) :
-    f₁.symplecticNormalForm h₁ q' hn ((√c)⁻¹ • Φ v) ((√c)⁻¹ • Φ w) =
-      f₀.symplecticNormalForm h₀ q hn v w := by
-  have hs : (√c)⁻¹ * (√c)⁻¹ * c = 1 := by
-    rw [← mul_inv, Real.mul_self_sqrt hc.le, inv_mul_cancel₀ hc.ne']
-  have h := hΦ v w
-  simp only [map_smul, LinearMap.smul_apply, smul_eq_mul] at h ⊢
-  rw [h, ← mul_assoc, ← mul_assoc, hs, one_mul]
+      have hne := (ω₀ q).isAlt.apply_basis_ne_zero (ω₀ q).separatingLeft (e.basisAt b hq)
+      simp only [Pi.div_apply, id_eq, s, hs' hq]
+      rw [eq_div_iff hne]
+      exact (hc q _ _).symm
+  · exact (hB q).apply_basis_div_apply_basis_pos (ω₀ q).isAlt (ω₀ q).separatingLeft (β q)
+      fun v w hvw ↦ (hB_apply q v w).symm ▸ hΦσ q v w hvw
 
 variable [J₀.Boundaryless] [I₁.Boundaryless] [I₀.Boundaryless] [T2Space M₀] [T2Space M₁]
   [SecondCountableTopology M₀] [SecondCountableTopology M₁]
@@ -311,13 +200,15 @@ theorem HasSymplecticTangentImages.exists_symplectomorphism_opens_of_finrank_eq_
   have ha : ContMDiff J₀ 𝓘(ℝ) ∞ fun q ↦ (√(c q))⁻¹ := fun q ↦
     (((Real.contDiffAt_sqrt (hc0 q).ne').contMDiffAt.comp q (hcs q)).inv₀
       (Real.sqrt_pos.2 (hc0 q)).ne')
-  have hΦs := SmoothEmbedding.contMDiff_totalSpace_smul hn hP₀ hP₁
-    (fun q ↦ (Φ q : f₀.NormalSpace q hn →L[ℝ] f₁.NormalSpace (φ q) hn)) hΦ ha
+  let := f₀.normalSpaceFiberBundle hn hP₀
+  let := f₁.normalSpaceFiberBundle hn hP₁
+  let := f₁.normalSpaceVectorBundle hn hP₁
+  have hΦs := (ha.comp (contMDiff_proj _)).smul_totalSpace hΦ
   obtain ⟨U₀, U₁, ψ, hψ, hψσ⟩ := exists_symplectomorphism_opens hσ₀ hσ₁ h₀ h₁ φ hφ hn hP₀ hP₁ Φ'
-    (by simpa only [hΦ', ContinuousLinearEquiv.coe_coe] using hΦs)
+    (by simpa only [hΦ', ContinuousLinearEquiv.coe_coe, Function.comp_apply] using hΦs)
     (fun q v w ↦ by
       rw [hΦ', hΦ']
-      exact symplecticNormalForm_inv_sqrt_smul h₀ h₁ hn _ (hc0 q) (hc q) v w)
+      exact LinearMap.apply_inv_sqrt_smul_inv_sqrt_smul _ (hc0 q) (hc q v w))
   refine ⟨c, hcs, hc0, hc, U₀, U₁, ψ, fun q ↦ ?_, hψσ⟩
   obtain ⟨h, hψq, hdψ, hψΦ⟩ := hψ q
   exact ⟨h, hψq, hdψ, fun v ↦ (hψΦ v).trans (by rw [hΦ'])⟩
