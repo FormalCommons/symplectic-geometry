@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegral.Product.Basic
 public import TauCeti.Geometry.Manifold.FiberBundle.MapFiber
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegral.Product.Naturality
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.MapFiber
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
