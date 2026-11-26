@@ -2234,7 +2234,7 @@ complete target and a function on the whole half-space.
   `Geometry/Symplectic/Moser/Family.lean` (Moser's argument near a compact
   set along a family and with a parameter, beside *Moser isotopy*'s files),
   `Geometry/Manifold/SmoothIsotopy/Extension.lean` (named like Tau Ceti's
-  file: isotopy extension at every time, without Tau Ceti's change of time),
+  file: time extension of an isotopy past the ends of $[0,1]$),
   `Geometry/Manifold/SmoothEmbedding/Neighborhood.lean`,
   `AlgebraicTopology/Singular/NDRPair.lean` (singular homology near the
   subset of Tau Ceti's NDR pairs) and
