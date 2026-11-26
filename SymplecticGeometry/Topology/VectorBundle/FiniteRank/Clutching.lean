@@ -53,6 +53,13 @@ and the fibres may be over any nontrivially normed field.
   space, clutchings by automorphisms joined by a family over `X × I` are isomorphic.
 * `TauCeti.FiniteRankBundleCore.nonempty_iso_clutching_of_fiberMap_comp_eq`: an isomorphism
   `E ≅ E'` that carries `f` to `f'` fibre by fibre gives an isomorphism of the clutchings.
+* `TauCeti.FiniteRankBundleCore.nonempty_iso_clutching_pullback_trans` and
+  `nonempty_iso_clutching_trans_pullback`: composing `f`, on either side, with the pullback to
+  `X × Circle` of an automorphism of `E` gives an isomorphic clutching; in particular the
+  clutching by such a pullback is the pullback of `E` along `Prod.fst`
+  (`nonempty_iso_clutching_pullback`). The pullback extends over the whole product, so this is
+  `TauCeti.FiniteRankBundleCore.nonempty_iso_glue_of_fiberMap_comp_eq_comp` with the identity on
+  one side, with no homotopy.
 * `TauCeti.FiniteRankBundleCore.circleZPowSMul m f`: for complex `E`, the family `u ^ m • f`
   whose fibre map at `(x, u)` is `u ^ m` times that of `f`.
 * `TauCeti.FiniteRankBundleCore.circleZPowIso X n`: the automorphism of the trivial line over
@@ -524,6 +531,48 @@ theorem nonempty_iso_clutching_of_fiberMap_comp_eq {E E' : FiniteRankBundleCore 
   have hb := h (clutchingMap X b)
   rw [clutchingMap_apply] at hb ⊢
   exact hb
+
+/-! ### Composing with the pullback of an automorphism of `E` -/
+
+/-- **Composing with the pullback of an automorphism of `E` does not change the clutching.** For
+an automorphism `φ` of `E`, the clutching of `E` by `f` after the pullback of `φ` to `X × Circle`,
+the family `(x, u) ↦ f_{(x, u)} ∘ φ_x`, is isomorphic to the clutching of `E` by `f`. -/
+theorem nonempty_iso_clutching_pullback_trans (φ : E ≅ E) :
+    Nonempty (E.clutching ((pullbackFunctor ContinuousMap.fst).mapIso φ ≪≫ f) ≅
+      E.clutching f) := by
+  rw [clutching_def, clutching_def]
+  refine nonempty_iso_glue_of_fiberMap_comp_eq_comp _ _ _ (Iso.refl _)
+    ((pullbackFunctor (ContinuousMap.subtypeVal _)).mapIso
+      ((pullbackFunctor ContinuousMap.fst).mapIso φ)) fun b ↦ ?_
+  simp only [fiberMap_clutchingAut_hom, Iso.refl_hom, fiberMap_id, Iso.trans_hom, fiberMap_comp,
+    Functor.mapIso_hom, fiberMap_pullbackMap, clutchingMap_apply, ContinuousMap.fst_apply,
+    ContinuousMap.subtypeVal_apply]
+  exact ContinuousLinearMap.id_comp _
+
+/-- **Composing with the pullback of an automorphism of `E` does not change the clutching.** For
+an automorphism `φ` of `E`, the clutching of `E` by the pullback of `φ` to `X × Circle` after `f`,
+the family `(x, u) ↦ φ_x ∘ f_{(x, u)}`, is isomorphic to the clutching of `E` by `f`. -/
+theorem nonempty_iso_clutching_trans_pullback (φ : E ≅ E) :
+    Nonempty (E.clutching (f ≪≫ (pullbackFunctor ContinuousMap.fst).mapIso φ) ≅
+      E.clutching f) := by
+  rw [clutching_def, clutching_def]
+  refine (nonempty_iso_glue_of_fiberMap_comp_eq_comp _ _ _
+    ((pullbackFunctor (ContinuousMap.subtypeVal _)).mapIso
+      ((pullbackFunctor ContinuousMap.fst).mapIso φ)) (Iso.refl _) fun b ↦ ?_).map Iso.symm
+  simp only [fiberMap_clutchingAut_hom, Iso.refl_hom, fiberMap_id, Iso.trans_hom, fiberMap_comp,
+    Functor.mapIso_hom, fiberMap_pullbackMap, clutchingMap_apply, ContinuousMap.fst_apply,
+    ContinuousMap.subtypeVal_apply]
+  exact (ContinuousLinearMap.comp_id _).symm
+
+/-- **Clutching by the pullback of an automorphism of `E`.** For an automorphism `φ` of `E`, the
+clutching of `E` by its pullback to `X × Circle`, the constant family `(x, u) ↦ φ_x`, is
+isomorphic to the pullback of `E` along `Prod.fst`. -/
+theorem nonempty_iso_clutching_pullback (φ : E ≅ E) :
+    Nonempty (E.clutching ((pullbackFunctor ContinuousMap.fst).mapIso φ) ≅
+      E.pullback ContinuousMap.fst) := by
+  obtain ⟨i⟩ := nonempty_iso_clutching_trans_pullback E (Iso.refl _) φ
+  rw [Iso.refl_trans] at i
+  exact ⟨i ≪≫ E.clutchingOneIso⟩
 
 end TauCeti.FiniteRankBundleCore
 
