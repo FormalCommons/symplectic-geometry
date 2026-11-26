@@ -251,7 +251,7 @@ theorem exists_symplectomorphism_opens [J.Boundaryless] [I.Boundaryless] [T2Spac
       (SymplecticForm.isSymplectic_constSmooth _)
   obtain ⟨U₀, U₁, ψ, hψ, hψσ⟩ :=
     SmoothTwoForm.IsNondegenerate.HasSymplecticTangentImages.exists_symplectomorphism_opens
-      (hσ₀ := hτ) (hσ₁ := hσ) (hasSymplecticTangentImages_zeroSlice hι) hι
+      hτ hσ (hasSymplecticTangentImages_zeroSlice hι) hι
       (Diffeomorph.refl J Q ∞) (by
         rw [mpullback_zeroSlice_prod,
           SmoothForm.mpullback_congr _ contMDiff_id (Diffeomorph.coe_refl _ _ _)]
