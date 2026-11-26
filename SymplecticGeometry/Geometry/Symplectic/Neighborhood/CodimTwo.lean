@@ -6,9 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Symplectic
-import Mathlib.Analysis.SpecialFunctions.Sqrt
 import Mathlib.Geometry.Manifold.VectorBundle.LocalFrame
 import SymplecticGeometry.LinearAlgebra.BilinearMap.Alternating
+import TauCeti.Geometry.Manifold.ContMDiff.Sqrt
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
 
 /-!
@@ -197,9 +197,8 @@ theorem HasSymplecticTangentImages.exists_symplectomorphism_opens_of_finrank_eq_
   have hΦ' (q : Q₀) (v : f₀.NormalSpace q hn) : Φ' q v = (√(c q))⁻¹ • Φ q v := by
     simp only [Φ', ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.smulLeft_apply_apply,
       Units.smul_mk0]
-  have ha : ContMDiff J₀ 𝓘(ℝ) ∞ fun q ↦ (√(c q))⁻¹ := fun q ↦
-    (((Real.contDiffAt_sqrt (hc0 q).ne').contMDiffAt.comp q (hcs q)).inv₀
-      (Real.sqrt_pos.2 (hc0 q)).ne')
+  have ha : ContMDiff J₀ 𝓘(ℝ) ∞ fun q ↦ (√(c q))⁻¹ :=
+    (hcs.sqrt fun q ↦ (hc0 q).ne').inv₀ fun q ↦ (Real.sqrt_pos.2 (hc0 q)).ne'
   let := f₀.normalSpaceFiberBundle hn hP₀
   let := f₁.normalSpaceFiberBundle hn hP₁
   let := f₁.normalSpaceVectorBundle hn hP₁
