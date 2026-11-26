@@ -378,17 +378,16 @@ theorem comp_diffeomorph (h : IsLefschetzFibration ω J π)
     IsLefschetzFibration ω J (Ψ ∘ π) := by
   -- `Ψ` as a diffeomorphism of the underlying real manifold, with the same underlying map.
   have hΦ := Diffeomorph.coe_restrictScalars' ℝ Ψ
-  have hcrit : criticalSet I 𝓘(ℝ, Fin 1 → ℂ) (Ψ ∘ π) = criticalSet I 𝓘(ℝ, Fin 1 → ℂ) π := by
-    rw [← hΦ, Diffeomorph.criticalSet_comp _ (by simp)]
+  have hcrit : criticalSet I 𝓘(ℝ, Fin 1 → ℂ) (Ψ ∘ π) = criticalSet I 𝓘(ℝ, Fin 1 → ℂ) π :=
+    Ψ.criticalSet_comp_restrictScalars' (by simp) π
   refine ⟨hΦ ▸ ((Ψ.restrictScalars' ℝ).contMDiff.of_le le_top).comp h.contMDiff, h.tames,
     hcrit ▸ Ψ.injective.comp_injOn h.injOn_criticalPoints, hcrit ▸ fun p hp ↦ ?_,
     fun x hx ↦ ?_⟩
   · obtain ⟨φ, i, hφ⟩ := h.exists_model p hp
     exact hφ.exists_isLefschetzChart_comp Ψ
-  · rw [← hΦ] at hx ⊢
-    rw [((Ψ.restrictScalars' ℝ).isLocalDiffeomorph _).ker_mfderiv_comp (by simp)
+  · rw [← hΦ, ((Ψ.restrictScalars' ℝ).isLocalDiffeomorph _).ker_mfderiv_comp (by simp)
       ((h.contMDiff x).mdifferentiableAt (by simp))]
-    exact h.isNondegenerate_ker x ((Diffeomorph.comp_isRegularPoint_iff _ (by simp)).1 hx)
+    exact h.isNondegenerate_ker x ((Ψ.comp_isRegularPoint_iff_restrictScalars' (by simp)).1 hx)
 
 /-- **Composing with a projective transformation.** If `π` is a Lefschetz fibration for `ω` and
 `J`, so is `x ↦ g • π x` for every `g : GL (Fin 2) ℂ`, acting on `ℂℙ¹` through its linear action

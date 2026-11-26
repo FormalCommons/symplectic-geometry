@@ -91,32 +91,6 @@ namespace MvPolynomial
 
 variable {ι : Type*} [Fintype ι]
 
-/-- On a ball inside a set where `‖P‖ ≤ M`, `log M` minus the average of `log ‖P‖` is nonnegative,
-and its `ofReal` is the lower average of `ofReal (log M - log ‖P‖)`. -/
-private theorem setLAverage_ofReal_sub_log_norm_eval {P : MvPolynomial ι ℂ} (hP : P ≠ 0)
-    {M : ℝ} {s : Set (EuclideanSpace ℂ ι)} (hM : ∀ z ∈ s, ‖eval z.ofLp P‖ ≤ M)
-    {x : EuclideanSpace ℂ ι} {r : ℝ} (hr : 0 < r) (hs : ball x r ⊆ s) :
-    0 ≤ Real.log M - ⨍ z in ball x r, Real.log ‖eval z.ofLp P‖ ∧
-      ⨍⁻ z in ball x r, ENNReal.ofReal (Real.log M - Real.log ‖eval z.ofLp P‖) =
-        ENNReal.ofReal (Real.log M - ⨍ z in ball x r, Real.log ‖eval z.ofLp P‖) := by
-  have h0 : volume (ball x r) ≠ 0 := (measure_ball_pos volume x hr).ne'
-  have hfin : volume (ball x r) ≠ ∞ := measure_ball_lt_top.ne
-  have hu := integrableOn_log_norm_eval_ball hP x r
-  have hnn : 0 ≤ᵐ[volume.restrict (ball x r)]
-      fun z => Real.log M - Real.log ‖eval z.ofLp P‖ :=
-    (ae_restrict_log_norm_eval_le_log hP measurableSet_ball fun z hz => hM z (hs hz)).mono
-      fun _ => sub_nonneg.2
-  have heq : Real.log M - ⨍ z in ball x r, Real.log ‖eval z.ofLp P‖ =
-      ⨍ z in ball x r, (Real.log M - Real.log ‖eval z.ofLp P‖) := by
-    rw [setAverage_const_sub h0 hfin hu]
-  rw [heq]
-  constructor
-  · rw [setAverage_eq, smul_eq_mul]
-    exact mul_nonneg (by positivity) (integral_nonneg_of_ae hnn)
-  · have hi : IntegrableOn (fun z => Real.log M - Real.log ‖eval z.ofLp P‖) (ball x r) :=
-      (integrableOn_const hfin).sub hu
-    rw [ofReal_setAverage hi hnn, setLAverage_eq]
-
 /-- The volume ratios of the change of centre: for `0 < a` with `2 * a ≤ ρ` and `e = a / ρ`,
 `((ρ - a) / ρ) ^ (2 * m)` is at least `1 - 2 * m * e`, and `((4 * ρ + a) / (4 * ρ)) ^ (2 * m)` is
 at most `1 + 4 ^ m * e`. -/
@@ -199,8 +173,16 @@ theorem setAverage_log_norm_eval_sub_ge_of_dist_lt {P : MvPolynomial ι ℂ} (hP
     ((isCompact_closedBall y R).image (by fun_prop)).bddAbove
   have hM : ∀ z ∈ ball y R, ‖eval z.ofLp P‖ ≤ M := fun z hz =>
     le_csSup hbdd (mem_image_of_mem _ (ball_subset_closedBall hz))
-  have k := fun {x : EuclideanSpace ℂ ι} {r : ℝ} (hr : 0 < r) (hs : ball x r ⊆ ball y R) =>
-    setLAverage_ofReal_sub_log_norm_eval hP hM hr hs
+  -- On a ball inside `ball y R`, `log M` bounds the average of `log ‖P‖`, and the lower average
+  -- of `ofReal (log M - log ‖P‖)` is `ofReal` of their difference.
+  have k {x : EuclideanSpace ℂ ι} {r : ℝ} (hr : 0 < r) (hs : ball x r ⊆ ball y R) :
+      0 ≤ Real.log M - ⨍ z in ball x r, Real.log ‖eval z.ofLp P‖ ∧
+        ⨍⁻ z in ball x r, ENNReal.ofReal (Real.log M - Real.log ‖eval z.ofLp P‖) =
+          ENNReal.ofReal (Real.log M - ⨍ z in ball x r, Real.log ‖eval z.ofLp P‖) := by
+    have hae := ae_restrict_log_norm_eval_le_log hP measurableSet_ball fun z hz => hM z (hs hz)
+    exact ⟨sub_nonneg.2 (setAverage_log_norm_eval_le_of_ae_le hP hr hae),
+      setLAverage_ofReal_sub_eq (measure_ball_pos volume x hr).ne' measure_ball_lt_top.ne
+        (integrableOn_log_norm_eval_ball hP x r) hae⟩
   have hs₁ : ball y (ρ₁ - a) ⊆ ball c ρ₁ := ball_subset_ball' (by rw [dist_comm]; linarith)
   have hs₂ : ball c (4 * ρ₁) ⊆ ball y R := ball_subset_ball' (by rw [hR]; linarith)
   have hs₃ : ball c ρ₁ ⊆ ball y R := (ball_subset_ball (by linarith)).trans hs₂

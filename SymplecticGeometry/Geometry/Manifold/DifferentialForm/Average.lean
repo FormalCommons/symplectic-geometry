@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Average
 public import TauCeti.Geometry.Manifold.DeRham.PathIntegral
 import TauCeti.Geometry.Manifold.SmoothApprox.Basic
 import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
+import SymplecticGeometry.Geometry.Manifold.GroupAction.BoundarylessModel
 import SymplecticGeometry.Geometry.Manifold.DeRham.Map
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 
@@ -39,6 +40,14 @@ The argument has three steps.
   average against a probability measure. A closed one-form on a preconnected manifold whose loop
   integrals vanish is exact (`mem_exactForms_one_iff_forall_pathIntegral_eq_zero`).
 
+Tau Ceti's average asks the model of `M` to have no boundary. On a boundaryless manifold whose
+model may have boundary, a closed one-form is carried to the copy `TauCeti.BoundarylessModel I M`
+with charts in the model vector space along the inverse of the identity diffeomorphism
+`TauCeti.BoundarylessModel.interiorDiffeomorph`, averaged there, and pulled back. The
+diffeomorphism is equivariant, so the result is invariant, and pullback keeps closed and exact
+forms, so it lies in the class of the original form. The transport follows
+`TauCeti.mlieDerivForm_fundamentalVectorField_eq_zero_of_boundarylessManifold`.
+
 ## Main results
 
 * `TauCeti.SmoothForm.mpullback_smul_sub_mem_exactForms`: an element of a path-connected group
@@ -47,6 +56,8 @@ The argument has three steps.
   average of the line integrals.
 * `TauCeti.SmoothForm.measureAverage_sub_mem_exactForms_one`: averaging a closed one-form
   changes it by an exact form.
+* `TauCeti.SmoothForm.exists_invariant_sub_mem_exactForms_one`: on a boundaryless manifold, whose
+  model may have boundary, every closed one-form is cohomologous to an invariant closed one-form.
 
 ## References
 
@@ -166,5 +177,38 @@ theorem measureAverage_sub_mem_exactForms_one [FiniteDimensional ℝ E] [FiniteD
     rwa [Submodule.coe_sub, pathIntegral_sub (hint _) (hint _), sub_eq_zero] at this
   rw [Submodule.coe_sub, pathIntegral_sub (hint _) (hint _), pathIntegral_measureAverage J μ γ hc]
   simp only [h, integral_const, probReal_univ, one_smul, sub_self]
+
+attribute [local instance] BoundarylessModel.interiorChartedSpace in
+/-- **Closed one-forms have invariant representatives**, on a boundaryless manifold whose model
+may have boundary. Let a group `G` that is a compact, path-connected smooth manifold act smoothly
+on a Hausdorff, preconnected, boundaryless manifold `M`, and let `μ` be a right-invariant
+probability measure on `G`. Every closed real one-form `γ` on `M` differs by an exact form from a
+closed one-form `γ'` invariant under every `g • ·`. -/
+theorem exists_invariant_sub_mem_exactForms_one [FiniteDimensional ℝ E] [FiniteDimensional ℝ E']
+    [BoundarylessManifold I M] [J.Boundaryless] [T2Space M] [PreconnectedSpace M]
+    [PathConnectedSpace G] [MeasurableMul G] [μ.IsMulRightInvariant] [IsProbabilityMeasure μ]
+    {γ : SmoothForm I M ℝ 1} (hγ : γ ∈ closedForms I M 1) :
+    ∃ γ' ∈ closedForms I M 1, (∀ g : G,
+      mpullback (g • ·) (ContMDiffSMul.contMDiff_const_smul (I := J) (I' := I) g) γ' = γ') ∧
+        γ' - γ ∈ exactForms I M 1 := by
+  -- Carry `γ` to the copy of `M` with charts in `E`, average it there, and carry it back.
+  let Φ := BoundarylessModel.interiorDiffeomorph I (M := M) ∞
+  let β := mpullback Φ.symm Φ.symm.contMDiff γ
+  have hβ : β ∈ closedForms 𝓘(ℝ, E) (BoundarylessModel I M) 1 :=
+    mpullback_mem_closedForms _ _ hγ
+  have hβ' : measureAverage J μ β ∈ closedForms 𝓘(ℝ, E) (BoundarylessModel I M) 1 :=
+    (IsClosed.measureAverage J μ ((isClosed_iff_mem_closedForms β).2 hβ)).mem_closedForms
+  refine ⟨mpullback Φ Φ.contMDiff (measureAverage J μ β), mpullback_mem_closedForms _ _ hβ',
+    fun g ↦ ?_, ?_⟩
+  · -- The map `Φ` is equivariant, and the average is invariant.
+    rw [mpullback_mpullback_of_comp_eq _ _ Φ.contMDiff
+      (ContMDiffSMul.contMDiff_const_smul (I := J) (I' := 𝓘(ℝ, E)) g)
+      (BoundarylessModel.interiorDiffeomorph_comp_smul I ∞ g)]
+    congr 1
+    exact Subtype.ext (by rw [coe_mpullback, mpullback_smul_measureAverage J μ β g])
+  · -- The difference is the pullback of the exact form `avg β - β`.
+    have h := closedForms.mpullback_mem_exactForms Φ Φ.contMDiff 1
+      ⟨_, sub_mem hβ' hβ⟩ (measureAverage_sub_mem_exactForms_one J μ hβ)
+    rwa [closedForms.coe_mpullback, map_sub, mpullback_mpullback_symm] at h
 
 end TauCeti.SmoothForm

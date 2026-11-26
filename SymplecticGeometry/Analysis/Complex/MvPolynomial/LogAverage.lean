@@ -10,6 +10,7 @@ public import Mathlib.MeasureTheory.Measure.Lebesgue.Complex
 public import TauCeti.MeasureTheory.Measure.Haar.InnerProductSpace
 public import TauCeti.MeasureTheory.Measure.MvPolynomialZeroLocus
 import Mathlib.Analysis.Calculus.Deriv.Polynomial
+import Mathlib.Analysis.Convex.Integral
 import SymplecticGeometry.Analysis.Polynomial.CircleAverageLog
 import SymplecticGeometry.MeasureTheory.Integral.Average
 import SymplecticGeometry.MeasureTheory.Integral.BallCircleAverage
@@ -52,6 +53,10 @@ plurisubharmonic. Here it is proved from one complex variable:
 * `MvPolynomial.integrableOn_log_norm_eval_ball`: for `P ≠ 0`, `log ‖P‖` is integrable on every
   ball. It is bounded above on a ball, and the bound above controls it from below on a ball whose
   centre is not a zero of `P`; every ball lies in such a ball.
+* `MvPolynomial.setAverage_log_norm_eval_le_of_ae_le`: for `P ≠ 0` and `r > 0`, a bound
+  `log ‖P‖ ≤ K` at almost every point of `Metric.ball c r` gives the same bound on the average
+  of `log ‖P‖` over the ball, by Mathlib's `Convex.set_average_mem` for the half-line
+  `Set.Iic K`.
 * `MvPolynomial.log_norm_eval_le_setAverage_ball`: if `P c ≠ 0`, then `log ‖P c‖` is at most the
   average of `log ‖P‖` over `Metric.ball c r`, for every `r > 0`.
   The lower-integral bound gives it through
@@ -211,6 +216,15 @@ theorem integrableOn_log_norm_eval_ball {P : MvPolynomial ι ℂ} (hP : P ≠ 0)
   exact (integrableOn_log_norm_eval_ball_of_eval_ne_zero hc'P
     fun z hz => hM z (ball_subset_closedBall hz)).2.mono_set hsub
 
+/-- For a nonzero complex polynomial `P` and `0 < r`, if `log ‖P‖ ≤ K` at almost every point of
+`Metric.ball c r`, then the average of `log ‖P‖` over the ball is at most `K`. -/
+theorem setAverage_log_norm_eval_le_of_ae_le {P : MvPolynomial ι ℂ} (hP : P ≠ 0)
+    {c : EuclideanSpace ℂ ι} {r K : ℝ} (hr : 0 < r)
+    (hK : ∀ᵐ z ∂volume.restrict (ball c r), Real.log ‖eval z.ofLp P‖ ≤ K) :
+    ⨍ z in ball c r, Real.log ‖eval z.ofLp P‖ ≤ K :=
+  (convex_Iic K).set_average_mem isClosed_Iic (measure_ball_pos volume c hr).ne'
+    measure_ball_lt_top.ne hK (integrableOn_log_norm_eval_ball hP c r)
+
 /-- **Sub-mean value inequality for `log ‖P‖` over balls.** If a complex polynomial `P` on
 `EuclideanSpace ℂ ι` does not vanish at `c`, then `log ‖P c‖` is at most the average of
 `log ‖P‖` over `Metric.ball c r`, for every `r > 0`. -/
@@ -362,25 +376,17 @@ private theorem setLIntegral_ofReal_log_sub_circleAverage {P : MvPolynomial ι �
   have hu := integrableOn_log_norm_eval_ball hP c ρ
   have hfin : volume (ball c ρ) ≠ ∞ := measure_ball_lt_top.ne
   have hpos : volume (ball c ρ) ≠ 0 := (measure_ball_pos volume c hρ).ne'
-  have hint : IntegrableOn (fun z => Real.log M - Real.log ‖eval z.ofLp P‖) (ball c ρ) :=
-    (integrableOn_const hfin).sub hu
-  have hnn : ∀ z ∈ ball c ρ, 0 ≤ Real.log M - Real.log ‖eval z.ofLp P‖ :=
-    fun z hz => sub_nonneg.2 (hM z (hsub hz))
-  have havg : ⨍ z in ball c ρ, (Real.log M - Real.log ‖eval z.ofLp P‖) =
-      Real.log M - ⨍ z in ball c ρ, Real.log ‖eval z.ofLp P‖ := by
-    rw [setAverage_const_sub hpos hfin hu]
-  refine ⟨?_, ?_⟩
-  · rw [← havg]
-    exact average_nonneg_of_ae (ae_restrict_of_forall_mem measurableSet_ball hnn)
+  have hae : ∀ᵐ z ∂volume.restrict (ball c ρ), Real.log ‖eval z.ofLp P‖ ≤ Real.log M :=
+    ae_restrict_of_forall_mem measurableSet_ball fun z hz => hM z (hsub hz)
+  refine ⟨sub_nonneg.2 (setAverage_log_norm_eval_le_of_ae_le hP hρ hae), ?_⟩
   have hmeas : Measurable fun z : EuclideanSpace ℂ ι =>
       ENNReal.ofReal (Real.log M - Real.log ‖eval z.ofLp P‖) := by
     fun_prop
   have h2 := setLIntegral_ball_eq_mul_setLIntegral_setLAverage_circleMap volume hmeas c hρ
-  rw [← ofReal_integral_eq_lintegral_ofReal hint (ae_restrict_of_forall_mem measurableSet_ball hnn),
-    ← measure_smul_setAverage _ hfin, havg, measureReal_def,
-    Measure.addHaar_ball_of_pos volume c hρ,
-    ENNReal.toReal_mul, ENNReal.toReal_ofReal (by positivity), smul_eq_mul, mul_assoc,
-    ENNReal.ofReal_mul (by positivity), ← measureReal_def] at h2
+  rw [← measure_mul_setLAverage _ hfin, setLAverage_ofReal_sub_eq hpos hfin hu hae,
+    Measure.addHaar_ball_of_pos volume c hρ, mul_assoc,
+    ← ofReal_measureReal (measure_ball_lt_top (x := (0 : EuclideanSpace ℂ ι)) (r := 1)).ne,
+    ← ENNReal.ofReal_mul measureReal_nonneg] at h2
   rw [(ENNReal.mul_right_inj (ENNReal.ofReal_pos.2 (by positivity)).ne' ENNReal.ofReal_ne_top).1
     h2]
   refine setLIntegral_congr_fun measurableSet_ball fun v hv => ?_
