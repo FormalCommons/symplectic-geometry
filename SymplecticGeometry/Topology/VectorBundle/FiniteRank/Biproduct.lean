@@ -27,10 +27,11 @@ a Whitney sum.
 * `TauCeti.FiniteRankBundleCore.det_coordChange_whitneySum`: the transitions of a Whitney sum
   are block diagonal, so their determinants are the products of the determinants of the
   transitions of the summands;
-* `TauCeti.FiniteRankBundleCore.fiberMap_eqToIso_whitneyMapIso_hom` and
-  `fiberMap_eqToIso_whitneyMapIso_inv`: the direct sum of automorphisms of two pullbacks, read
-  through Tau Ceti's `pullback_whitneySum` as an automorphism of the pullback of the Whitney sum,
-  is block diagonal in each fibre.
+* `TauCeti.FiniteRankBundleCore.fiberMap_eqToHom_whitneyMap_eqToHom`, with its forms
+  `fiberMap_eqToIso_whitneyMapIso_hom` and `fiberMap_eqToIso_whitneyMapIso_inv` for
+  automorphisms: the direct sum of morphisms between two pullbacks, read through Tau Ceti's
+  `pullback_whitneySum` as a morphism between the pullbacks of the Whitney sums, is block
+  diagonal in each fibre.
 
 The proof of `inChartCoordinates_whitneySum_prodMap` follows Tau Ceti's
 `TauCeti.FiniteRankBundleCore.inChartCoordinates_tensor_kronecker`, which computes the chart
@@ -79,8 +80,25 @@ theorem det_coordChange_whitneySum (A D : FiniteRankBundleCore 𝕜 B) (i j x : 
 
 section Pullback
 
-variable {X : Type*} [TopologicalSpace X] {A D : FiniteRankBundleCore 𝕜 B} (p : C(X, B))
-  (e₁ : A.pullback p ≅ A.pullback p) (e₂ : D.pullback p ≅ D.pullback p)
+variable {X : Type*} [TopologicalSpace X] {A A' D D' : FiniteRankBundleCore 𝕜 B} (p : C(X, B))
+
+/-- Read through `pullback_whitneySum`, the direct sum of morphisms `f` and `g` between pullbacks
+along `p` acts on the fibres of the pullbacks of the Whitney sums block-diagonally, with the fibre
+maps of `f` and `g` as blocks. -/
+theorem fiberMap_eqToHom_whitneyMap_eqToHom (f : A.pullback p ⟶ A'.pullback p)
+    (g : D.pullback p ⟶ D'.pullback p) (x : X) :
+    (eqToHom (pullback_whitneySum A D p) ≫ whitneyMap f g ≫
+      eqToHom (pullback_whitneySum A' D' p).symm).fiberMap x =
+      (splitCoords (𝕜 := 𝕜) A'.rank D'.rank).symm.toContinuousLinearMap.comp
+        (((f.fiberMap x).prodMap (g.fiberMap x)).comp
+          (splitCoords (𝕜 := 𝕜) A.rank D.rank).toContinuousLinearMap) := by
+  ext v i
+  simp only [fiberMap_comp, ContinuousLinearMap.comp_apply, fiberMap_eqToHom,
+    Function.comp_apply]
+  -- The casts are along `rank_pullback` and `rank_whitneySum`, which hold by `rfl`.
+  exact congrFun (DFunLike.congr_fun (fiberMap_whitneyMap _ _ _) _) _
+
+variable (e₁ : A.pullback p ≅ A.pullback p) (e₂ : D.pullback p ≅ D.pullback p)
 
 /-- Read through `pullback_whitneySum`, the direct sum of automorphisms `e₁` and `e₂` of the
 pullbacks of `A` and `D` along `p` acts on the fibre of the pullback of `A ⊕ D` block-diagonally,
@@ -91,11 +109,8 @@ theorem fiberMap_eqToIso_whitneyMapIso_hom (x : X) :
       (splitCoords (𝕜 := 𝕜) A.rank D.rank).symm.toContinuousLinearMap.comp
         (((e₁.hom.fiberMap x).prodMap (e₂.hom.fiberMap x)).comp
           (splitCoords (𝕜 := 𝕜) A.rank D.rank).toContinuousLinearMap) := by
-  ext v i
-  simp only [Iso.trans_hom, eqToIso.hom, whitneyMapIso_hom, fiberMap_comp,
-    ContinuousLinearMap.comp_apply, fiberMap_eqToHom, Function.comp_apply]
-  -- The casts are along `rank_pullback` and `rank_whitneySum`, which hold by `rfl`.
-  exact congrFun (DFunLike.congr_fun (fiberMap_whitneyMap _ _ _) _) _
+  simp only [Iso.trans_hom, eqToIso.hom, whitneyMapIso_hom]
+  exact fiberMap_eqToHom_whitneyMap_eqToHom p _ _ x
 
 /-- Read through `pullback_whitneySum`, the inverse of the direct sum of automorphisms `e₁` and
 `e₂` of the pullbacks of `A` and `D` along `p` acts on the fibre of the pullback of `A ⊕ D`
@@ -106,12 +121,8 @@ theorem fiberMap_eqToIso_whitneyMapIso_inv (x : X) :
       (splitCoords (𝕜 := 𝕜) A.rank D.rank).symm.toContinuousLinearMap.comp
         (((e₁.inv.fiberMap x).prodMap (e₂.inv.fiberMap x)).comp
           (splitCoords (𝕜 := 𝕜) A.rank D.rank).toContinuousLinearMap) := by
-  ext v i
-  simp only [Iso.trans_inv, eqToIso.inv, whitneyMapIso_inv, fiberMap_comp,
-    ContinuousLinearMap.comp_apply, fiberMap_eqToHom, Function.comp_apply]
-  -- The casts are along `rank_pullback` and `rank_whitneySum`, which hold by `rfl`.
-  exact congrFun (DFunLike.congr_fun (fiberMap_whitneyMap _ _ _) _) _
-
+  simp only [Iso.trans_inv, eqToIso.inv, whitneyMapIso_inv, Category.assoc]
+  exact fiberMap_eqToHom_whitneyMap_eqToHom p _ _ x
 
 end Pullback
 
