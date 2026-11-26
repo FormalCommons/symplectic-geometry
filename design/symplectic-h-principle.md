@@ -1165,8 +1165,8 @@ The spaces, in the topology of the departure *Spaces of forms*:
   embeddings between manifolds of one dimension; in the class by
   `mpullback_sub_mem_exactForms_of_homotopy`), and the homotopy of
   `continuous_tangentEquiv_symm_mpullback`. Metrizability is
-  `isCompletelyMetrizableSpace_frameTopology`, as `M` is σ-compact, hence
-  Lindelöf.
+  `metrizableSpace_frameTopology`, as `M` is second countable: `j`
+  embeds it into the compact `closure (Set.range j)`.
 - The docstrings say why the hypothesis on `j` is there: without it the
   spaces need not have CW type (Decision 5).
 

@@ -6,15 +6,21 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.IsManifold.Basic
+import Mathlib.Topology.LocalAtTarget
 
 /-!
-# Second countability of σ-compact manifolds
+# Second countability of manifolds
 
 A σ-compact space with charts in `H`, for a model with corners `I : ModelWithCorners 𝕜 E H` on a
 second countable space `E`, is second countable
 (`ModelWithCorners.secondCountableTopology_of_sigmaCompact`). It combines Mathlib's
 `ModelWithCorners.secondCountableTopology` and `ChartedSpace.secondCountable_of_sigmaCompact`.
 It is not an instance, since `SecondCountableTopology M` does not determine `I`.
+
+A space that embeds into a space with charts in a second countable `H`, with image of compact
+closure, is second countable (`Topology.IsEmbedding.secondCountableTopology_of_isCompact_closure`):
+finitely many chart domains cover the closure of the image, and their preimages are second
+countable open sets that cover the source.
 -/
 
 public section
@@ -32,5 +38,23 @@ theorem secondCountableTopology_of_sigmaCompact (I : ModelWithCorners 𝕜 E H) 
   ChartedSpace.secondCountable_of_sigmaCompact H M
 
 end ModelWithCorners
+
+open Set in
+/-- A space that embeds into a space with charts in a second countable `H`, so that the image has
+compact closure, is second countable. -/
+theorem Topology.IsEmbedding.secondCountableTopology_of_isCompact_closure {H M X : Type*}
+    [TopologicalSpace H] [SecondCountableTopology H] [TopologicalSpace M] [ChartedSpace H M]
+    [TopologicalSpace X] {f : X → M} (hf : IsEmbedding f) (hK : IsCompact (closure (range f))) :
+    SecondCountableTopology X := by
+  obtain ⟨t, -, ht⟩ := hK.elim_nhds_subcover (fun x ↦ (chartAt H x).source)
+    fun x _ ↦ chart_source_mem_nhds H x
+  have (x : t) : SecondCountableTopology (f ⁻¹' (chartAt H (x : M)).source) := by
+    have := (chartAt H (x : M)).secondCountableTopology_source
+    exact (hf.restrictPreimage _).secondCountableTopology
+  refine TopologicalSpace.secondCountableTopology_of_countable_cover
+    (fun x : t ↦ (chartAt H (x : M)).open_source.preimage hf.continuous) ?_
+  refine eq_univ_of_forall fun y ↦ ?_
+  obtain ⟨x, hx, hy⟩ := mem_iUnion₂.1 (ht (subset_closure (mem_range_self y)))
+  exact mem_iUnion.2 ⟨⟨x, hx⟩, hy⟩
 
 end
