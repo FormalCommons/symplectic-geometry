@@ -410,8 +410,7 @@ def contMDiffHomMulL
     (A.ofBaseSet h).isCompact_closure_image
     (fun i ↦ (closure_mono fun _ hy ↦
       (image_hom (𝕜 := ℝ) (h := h) i).ge ((image_ofBaseSet (A := A) (h := h) i).le hy)).trans
-      (((A.hom (𝕜 := ℝ) h).closure_image_subset_chart_image_closure_dom i).trans
-        ((A.hom (𝕜 := ℝ) h).chart_image_closure_dom_subset i)))
+      ((A.hom (𝕜 := ℝ) h).closure_image_subset_target_inter_preimage_baseSet i))
     (fun i ↦ contDiffOn_infty.2 fun _ ↦
       (A.hom (𝕜 := ℝ) h).contDiffOn_coord (hΦ.of_le (by exact_mod_cast le_top)) i) fun s ↦
       ⟨fun x ↦ Φ x (s x), fun i y hy ↦ by
@@ -438,8 +437,7 @@ theorem contMDiffHomMulL_apply (w : SobolevSection A μ p k) (i : Fin A.n)
         ((A.ofBaseSet h).isCompact_closure_image i)
         ((closure_mono fun _ hy ↦
           (image_hom (𝕜 := ℝ) (h := h) i).ge ((image_ofBaseSet (A := A) (h := h) i).le hy)).trans
-          (((A.hom (𝕜 := ℝ) h).closure_image_subset_chart_image_closure_dom i).trans
-            ((A.hom (𝕜 := ℝ) h).chart_image_closure_dom_subset i))) k
+          ((A.hom (𝕜 := ℝ) h).closure_image_subset_target_inter_preimage_baseSet i)) k
         (finBasis ℝ F₁) (finBasis ℝ F₂)
         (contDiffOn_infty.2 fun _ ↦
           (A.hom (𝕜 := ℝ) h).contDiffOn_coord (hΦ.of_le (by exact_mod_cast le_top)) i)
