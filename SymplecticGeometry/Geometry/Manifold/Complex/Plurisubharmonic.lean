@@ -33,6 +33,9 @@ plurisubharmonic at every point. Its form `ω_f` is a Kähler form for `J`, and 
   strictly plurisubharmonic at `x` iff `0 < ω_f(v, i v)` at `x` for every `v ≠ 0`.
 * `SymplecticGeometry.isKahler_mextDerivₗ_covectorComplexStructure`: `ω_f` is Kähler for `J`
   when `f` is strictly plurisubharmonic at every point.
+* `TauCeti.IsManifoldStrictlyPlurisubharmonicAt.exp_comp`: `exp ∘ f` is strictly
+  plurisubharmonic at `x` when `f` is, using
+  `Real.deriv_exp_pos_and_iteratedDeriv_two_exp_nonneg`.
 * `SymplecticGeometry.IsSteinFunction E φ`: smooth, proper, bounded below and strictly
   plurisubharmonic everywhere.
 * `SymplecticGeometry.IsSteinFunction.comp`: `h ∘ φ` is a Stein function for a smooth
@@ -117,6 +120,24 @@ theorem isKahler_mextDerivₗ_covectorComplexStructure [FiniteDimensional ℂ E]
   · simp only [SmoothBundleForm.eval₂_apply]
     rw [hJ]
     exact (isManifoldStrictlyPlurisubharmonicAt_iff_forall_pos f x).1 (hf x) v hv
+
+/-! ### Composition with the exponential -/
+
+/-- The real exponential has `exp' > 0` and `exp'' ≥ 0`, the conditions on a reparametrization in
+`TauCeti.IsManifoldStrictlyPlurisubharmonicAt.scalar_comp` and
+`SymplecticGeometry.IsSteinFunction.comp`. -/
+theorem _root_.Real.deriv_exp_pos_and_iteratedDeriv_two_exp_nonneg (t : ℝ) :
+    0 < deriv Real.exp t ∧ 0 ≤ iteratedDeriv 2 Real.exp t := by
+  simp [iteratedDeriv_eq_iterate, Real.iter_deriv_exp, Real.exp_pos, (Real.exp_pos t).le]
+
+omit [IsManifold 𝓘(ℂ, E) ∞ M] in
+/-- If `f` is strictly plurisubharmonic at `x`, so is `exp ∘ f`. -/
+theorem _root_.TauCeti.IsManifoldStrictlyPlurisubharmonicAt.exp_comp {f : M → ℝ} {x : M}
+    (h : IsManifoldStrictlyPlurisubharmonicAt E f x) (hf : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) 2 f x) :
+    IsManifoldStrictlyPlurisubharmonicAt E (Real.exp ∘ f) x :=
+  h.scalar_comp Real.contDiff_exp.contDiffAt hf
+    (Real.deriv_exp_pos_and_iteratedDeriv_two_exp_nonneg _).1
+    (Real.deriv_exp_pos_and_iteratedDeriv_two_exp_nonneg _).2
 
 /-! ### Stein functions -/
 

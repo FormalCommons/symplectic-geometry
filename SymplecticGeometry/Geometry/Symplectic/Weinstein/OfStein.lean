@@ -11,8 +11,8 @@ public import TauCeti.Geometry.Symplectic.Hamiltonian.SymplecticVectorField
 public import TauCeti.Geometry.Symplectic.Liouville.VectorField
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.CompatibleMetric
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
+public import TauCeti.Geometry.Symplectic.TameMetric
 public import TauCeti.Geometry.Manifold.Flow.Complete
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Dolbeault.Potential
 
 /-!
 # The Liouville field of a Stein function
@@ -246,29 +246,25 @@ theorem isGradientLike_dCLiouvilleField (hφ : ∀ x, IsManifoldStrictlyPlurisub
 plurisubharmonic at every point and `ψ = exp ∘ φ`, then
 `0 ≤ dφ(X) ≤ 1` for the Liouville field `X` of `ψ`. -/
 theorem mvfderiv_dCLiouvilleField_exp_comp_mem_Icc {ψ : C^∞⟮𝓘(ℝ, E), M; ℝ⟯}
-    (hφ : ∀ x, IsManifoldStrictlyPlurisubharmonicAt E φ x) (hψ : ∀ x, ψ x = Real.exp (φ x))
+    (hφ : ∀ x, IsManifoldStrictlyPlurisubharmonicAt E φ x) (hψ : ⇑ψ = Real.exp ∘ φ)
     (x : M) : mvfderiv 𝓘(ℝ, E) φ x (dCLiouvilleField ψ x) ∈ Set.Icc 0 1 := by
-  have hψφ : ∀ y, IsManifoldStrictlyPlurisubharmonicAt E ψ y := fun y ↦ by
-    have h := (hφ y).scalar_comp Real.contDiff_exp.contDiffAt
-      (φ.contMDiff.contMDiffAt.of_le (by simp)) (by simp [Real.exp_pos])
-      (by simp [iteratedDeriv_eq_iterate, Real.iter_deriv_exp, (Real.exp_pos _).le])
-    rwa [show Real.exp ∘ φ = ψ from funext fun x ↦ (hψ x).symm] at h
+  have hψφ : ∀ y, IsManifoldStrictlyPlurisubharmonicAt E ψ y := fun y ↦
+    hψ ▸ (hφ y).exp_comp (φ.contMDiff.contMDiffAt.of_le (by simp))
   have hω := (isKahler_mextDerivₗ_covectorComplexStructure hψφ).isSymplectic.isNondegenerate
-  have key := mul_mvfderiv_dCLiouvilleField_comp (a := ψ) (b := ψ) hψ hψ hψ
+  have hψx (y : M) : ψ y = Real.exp (φ y) := congrFun hψ y
+  have key := mul_mvfderiv_dCLiouvilleField_comp (a := ψ) (b := ψ) hψx hψx hψx
     (fun _ ↦ Real.hasDerivAt_exp _) (fun _ ↦ Real.hasDerivAt_exp _) (hω.isInvertible_flat x)
   set X := dCLiouvilleField ψ x
-  have hpos : 0 < ψ x := hψ x ▸ Real.exp_pos _
-  -- `ω_φ(X, J X) ≥ 0`, with equality at `X = 0`.
+  have hpos : 0 < ψ x := hψx x ▸ Real.exp_pos _
+  -- `ω_φ(X, J X) ≥ 0`, since `J` tames `ω_φ`.
   have hωX : 0 ≤ (mextDerivₗ 𝓘(ℝ, E) 1 ((ofComplexManifold E M).covectorComplexStructure
       (mextDerivₗ 𝓘(ℝ, E) 0 (SmoothForm.ofFunction φ)))).val x
         ![X, (ofComplexManifold E M).toEndomorphism x X] := by
-    rcases eq_or_ne X 0 with h0 | h0
-    · rw [h0, map_zero]
-      exact (ContinuousAlternatingMap.map_coord_zero _ 0 rfl).ge
-    -- The tangent space at `x` is `E`, on which `J` is multiplication by `I`.
-    · rw [show (ofComplexManifold E M).toEndomorphism x X = Complex.I • (show E from X) from
-        ofComplexManifold_apply (E := E) x X]
-      exact ((isManifoldStrictlyPlurisubharmonicAt_iff_forall_pos φ x).1 (hφ x) X h0).le
+    have hK := isKahler_mextDerivₗ_covectorComplexStructure hφ
+    simpa only [SmoothTwoForm.IsNondegenerate.symplecticFormAt_apply,
+      SmoothAlmostComplexStructure.almostComplexStructureAt_apply, SmoothBundleForm.eval₂_apply]
+      using SymplecticForm.Tames.symplecticForm_apply_apply_self_nonneg
+        (hK.isNondegenerate.tames_iff.1 hK.compatible.tames x) X
   -- `dφ(X) = ω_φ(X, J X) + dφ(X)² + dφ(J X)²`
   have e := mul_left_cancel₀ hpos.ne' (key.trans (mul_add _ _ _).symm)
   constructor <;>
@@ -276,33 +272,33 @@ theorem mvfderiv_dCLiouvilleField_exp_comp_mem_Icc {ψ : C^∞⟮𝓘(ℝ, E), M
 
 /-- **The Liouville field of `exp ∘ φ` is complete** for a Stein function `φ` on a Hausdorff
 complex manifold: `φ` is proper, and changes at a rate in `[0, 1]` along the field. -/
-theorem isCompleteVectorField_dCLiouvilleField_exp_comp [T2Space M] {ψ : C^∞⟮𝓘(ℝ, E), M; ℝ⟯}
-    (hφ : IsSteinFunction E φ) (hψ : ∀ x, ψ x = Real.exp (φ x)) :
+theorem isCompleteVectorField_dCLiouvilleField_exp_comp [T2Space M] {φ : M → ℝ}
+    {ψ : C^∞⟮𝓘(ℝ, E), M; ℝ⟯} (hφ : IsSteinFunction E φ) (hψ : ⇑ψ = Real.exp ∘ φ) :
     IsCompleteVectorField (dCLiouvilleField ψ) := by
-  have hψS : IsSteinFunction E ψ := by
-    have h := hφ.comp Real.contDiff_exp (fun t ↦ by simp [Real.exp_pos])
-      (fun t ↦ by simp [iteratedDeriv_eq_iterate, Real.iter_deriv_exp, (Real.exp_pos t).le])
-    rwa [show Real.exp ∘ φ = ψ from funext fun x ↦ (hψ x).symm] at h
-  have hω := hψS.isSymplectic.isNondegenerate
+  have hω := (isKahler_mextDerivₗ_covectorComplexStructure fun y ↦
+    hψ ▸ (hφ.isStrictlyPlurisubharmonic y).exp_comp
+      (hφ.contMDiff.contMDiffAt.of_le (by simp))).isSymplectic.isNondegenerate
   refine isCompleteVectorField_of_isProperMap_of_abs_mvfderiv_le
     ((contMDiff_dCLiouvilleField ψ hω).of_le (by simp)) hφ.isProperMap
-    (φ.contMDiff.mdifferentiable (by simp)) (C := 1) fun x ↦ ?_
-  obtain ⟨h0, h1⟩ :=
-    mvfderiv_dCLiouvilleField_exp_comp_mem_Icc hφ.isStrictlyPlurisubharmonic hψ x
+    (hφ.contMDiff.mdifferentiable (by simp)) (C := 1) fun x ↦ ?_
+  obtain ⟨h0, h1⟩ : mvfderiv 𝓘(ℝ, E) φ x (dCLiouvilleField ψ x) ∈ Set.Icc 0 1 :=
+    mvfderiv_dCLiouvilleField_exp_comp_mem_Icc (φ := ⟨φ, hφ.contMDiff⟩)
+      hφ.isStrictlyPlurisubharmonic hψ x
   exact abs_le.2 ⟨by linarith, h1⟩
 
 /-- **A convex reparametrization makes the Liouville field of a Stein function complete.** For a
 Stein function `φ` on a Hausdorff complex manifold there is a smooth `h : ℝ → ℝ` with `h' > 0`
 and `h'' ≥ 0` such that the Liouville field of the Stein function `h ∘ φ`
 (`SymplecticGeometry.IsSteinFunction.comp`) is complete; `h = exp` works. -/
-theorem IsSteinFunction.exists_comp_isCompleteVectorField [T2Space M]
+theorem IsSteinFunction.exists_comp_isCompleteVectorField [T2Space M] {φ : M → ℝ}
     (hφ : IsSteinFunction E φ) :
     ∃ h : ℝ → ℝ, ContDiff ℝ ∞ h ∧ (∀ t, 0 < deriv h t) ∧ (∀ t, 0 ≤ iteratedDeriv 2 h t) ∧
       ∃ ψ : C^∞⟮𝓘(ℝ, E), M; ℝ⟯, ⇑ψ = h ∘ φ ∧ IsCompleteVectorField (dCLiouvilleField ψ) :=
-  ⟨Real.exp, Real.contDiff_exp, fun t ↦ by simp [Real.exp_pos],
-    fun t ↦ by simp [iteratedDeriv_eq_iterate, Real.iter_deriv_exp, (Real.exp_pos t).le],
-    ⟨Real.exp ∘ φ, Real.contDiff_exp.contMDiff.comp φ.contMDiff⟩, rfl,
-    isCompleteVectorField_dCLiouvilleField_exp_comp hφ fun _ ↦ rfl⟩
+  ⟨Real.exp, Real.contDiff_exp,
+    fun t ↦ (Real.deriv_exp_pos_and_iteratedDeriv_two_exp_nonneg t).1,
+    fun t ↦ (Real.deriv_exp_pos_and_iteratedDeriv_two_exp_nonneg t).2,
+    ⟨Real.exp ∘ φ, Real.contDiff_exp.contMDiff.comp hφ.contMDiff⟩, rfl,
+    isCompleteVectorField_dCLiouvilleField_exp_comp hφ rfl⟩
 
 end SymplecticGeometry
 
