@@ -5,8 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.CategoryTheory.Limits.Shapes.BinaryBiproducts
-public import Mathlib.CategoryTheory.Preadditive.Basic
+public import Mathlib.CategoryTheory.Preadditive.Biproducts
 
 /-!
 # The automorphism `𝟙 + n` for an endomorphism of square zero
@@ -32,7 +31,10 @@ matrices on the chosen biproduct `X₁ ⊞ X₂`, but are stated for any bicone.
   `n`;
 * `CategoryTheory.Limits.BinaryBicone.unipotentUpper` and
   `CategoryTheory.Limits.BinaryBicone.unipotentLower`: the block unitriangular automorphisms of the
-  point of a binary bicone.
+  point of a binary bicone;
+* `CategoryTheory.Limits.BinaryBiproduct.bicone_unipotentUpper` and
+  `CategoryTheory.Limits.BinaryBiproduct.bicone_unipotentLower`: on the chosen biproduct, they are
+  Mathlib's `Biprod.unipotentUpper` and `Biprod.unipotentLower`.
 -/
 
 public section
@@ -157,5 +159,27 @@ theorem unipotentLower_trans (r s : X₂ ⟶ X₁) :
   simp [add_assoc]
 
 end CategoryTheory.Limits.BinaryBicone
+
+namespace CategoryTheory.Limits.BinaryBiproduct
+
+variable {C : Type*} [Category C] [Preadditive C] [HasBinaryBiproducts C] {X₁ X₂ : C}
+
+/-- On the chosen biproduct `X₁ ⊞ X₂`, the upper unitriangular automorphism by `r` is Mathlib's
+`Biprod.unipotentUpper r`. -/
+theorem bicone_unipotentUpper (r : X₁ ⟶ X₂) :
+    (bicone X₁ X₂).unipotentUpper r = Biprod.unipotentUpper r := by
+  ext : 1
+  simp [Biprod.ofComponents, ← biprod.total]
+  abel
+
+/-- On the chosen biproduct `X₁ ⊞ X₂`, the lower unitriangular automorphism by `r` is Mathlib's
+`Biprod.unipotentLower r`. -/
+theorem bicone_unipotentLower (r : X₂ ⟶ X₁) :
+    (bicone X₁ X₂).unipotentLower r = Biprod.unipotentLower r := by
+  ext : 1
+  simp [Biprod.ofComponents, ← biprod.total]
+  abel
+
+end CategoryTheory.Limits.BinaryBiproduct
 
 end

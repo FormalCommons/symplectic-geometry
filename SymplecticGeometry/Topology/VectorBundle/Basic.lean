@@ -6,14 +6,15 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Normed.Module.FiniteDimension
+public import Mathlib.Topology.VectorBundle.Basic
 public import TauCeti.Topology.FiberBundle.Trivialization
 public import TauCeti.Topology.VectorBundle.Trivialization
 
 /-!
-# Linear trivializations and scaling in the fibre
+# Linear trivializations, scaling in the fibre and the zero section
 
-Facts about the linear trivializations of a vector bundle, complementing Mathlib's
-`Mathlib/Topology/VectorBundle/Basic.lean` and Tau Ceti's
+Facts about the linear trivializations and the zero section of a vector bundle, complementing
+Mathlib's `Mathlib/Topology/VectorBundle/Basic.lean` and Tau Ceti's
 `TauCeti/Topology/VectorBundle/Trivialization.lean`.
 
 ## Main results
@@ -25,6 +26,8 @@ Facts about the linear trivializations of a vector bundle, complementing Mathlib
 * `Bundle.Trivialization.continuousOn_coordChangeL`: the coordinate change between two linear
   trivializations with finite-dimensional model fibre over a complete field is continuous in the
   operator topology.
+* `Bundle.zeroSection_def`: Mathlib's zero section `Bundle.zeroSection F E` sends `x` to
+  `⟨x, 0⟩`, which Mathlib's `zeroSection_proj` and `zeroSection_snd` state only componentwise.
 * `ContinuousAt.eventually_mem_baseSet_trivializationAt`: a map into the base of a fibre bundle,
   continuous at `x₀`, takes the points near `x₀` into the base set of the preferred trivialization
   at its value at `x₀`; Tau Ceti's `Bundle.TotalSpace.eventually_proj_mem_baseSet_trivializationAt`
@@ -32,6 +35,16 @@ Facts about the linear trivializations of a vector bundle, complementing Mathlib
 -/
 
 public section
+
+namespace Bundle
+
+/-- The zero section of a bundle sends a point `x` of the base to the zero of the fibre over `x`,
+as a point of the total space. -/
+theorem zeroSection_def {B : Type*} (F : Type*) (E : B → Type*) [∀ x, Zero (E x)] (x : B) :
+    zeroSection F E x = ⟨x, 0⟩ :=
+  (rfl)
+
+end Bundle
 
 namespace Bundle.Trivialization
 
