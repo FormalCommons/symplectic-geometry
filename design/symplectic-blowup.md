@@ -318,10 +318,10 @@ Namespace `SymplecticGeometry.BlowupModel`, on `BlowupModel n`.
   continuous with `blowdown ∘ ũ = u`, the integral over `Ω` of $u^*\omega_0$
   is that of $\tilde u^*\tilde\omega_{\lambda,\varepsilon}$ plus
   $m\pi\lambda^2$. The integrals are Lebesgue integrals over `Ω` of the
-  densities $\sigma(\partial_xu,\partial_yu)$. `ũ` is holomorphic by
-  *Complex blowup*'s `eqOn_liftMap_of_blowdown_comp` argument and
-  `curveLift` (`Lift.lean`), which also gives its existence
-  (`exists_lift_of_finite_zeros`).
+  densities $\sigma(\partial_xu,\partial_yu)$. `ũ` is `curveLift u` on `Ω`,
+  so holomorphic, by *Complex blowup*'s `curveLift_eq_of_blowdown_comp`
+  (`Lift.lean`), and `continuousOn_curveLift` with `blowdown_curveLift`
+  gives its existence.
 - Proof, the page's route: off the zeros the difference of the densities is
   $\tfrac14\Delta(\phi\circ u)$ with $\phi(s)=s-g(s)$, constant near
   `frontier Ω`; Stokes on `Ω` minus small discs about the zeros (Tau Ceti's
