@@ -7,13 +7,13 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.DualClass.Basic
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.ThomPairMap
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.Local.Restrict
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.Local.Derivative
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 public import SymplecticGeometry.Topology.VectorBundle.Thom.FiberCoordinate
 public import TauCeti.Geometry.Manifold.LocallyContractible
 public import TauCeti.Topology.VectorBundle.MayerVietoris.DirectedUnion
 public import TauCeti.Topology.VectorBundle.Thom.FiberwiseEquiv
+import SymplecticGeometry.AlgebraicTopology.Cohomology.Local.Restrict
+import SymplecticGeometry.AlgebraicTopology.Cohomology.Local.Derivative
 import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 
 /-!
@@ -43,9 +43,11 @@ followed by the quotient onto the normal space, is the inverse of the preferred 
 at `x`. Both pull classes of `(X, X ∖ f(Z))` back in the same way, in every degree, once the
 slice is read on `B` through `e`. On a small enough open `O ⊆ B` (restriction to which is
 injective by excision), `g` lifts through `Φ` to a map into the Thom pair whose base points stay
-in a contractible neighbourhood of `x`; this lift pulls classes back through its fibre coordinate
-in `e` (`TauCeti.singularCohomologyMap_eq_singularCohomologyMap_fiberCoordPairMap`). Since `Φ`
-is normalized, that fibre coordinate has derivative the identity at `0`
+in a contractible neighbourhood of `x`; this lift pulls classes back, through
+`(e.continuousLinearEquivAt ℝ x hx).complZeroPairIso.inv`, along its coordinate in the model
+fibre (`Bundle.Trivialization.coordPairMap`,
+`TauCeti.singularCohomologyMap_eq_singularCohomologyMap_complZeroPairIso_inv`). Since `Φ` is
+normalized, that coordinate has derivative the identity at `0`
 (`TauCeti.SmoothEmbedding.IsNormalizedTube.hasFDerivAt_trivializationAt_snd`), so it agrees on
 relative cohomology with the inclusion of `O`
 (`TopPair.singularCohomologyMap_ofSubsetMap_eq_inclusion_of_hasFDerivAt_id`). This follows the
@@ -86,6 +88,13 @@ relative class of `f'` and `u'` is the pull-back of that of `f` and `u` along
 `φ : (X', X' ∖ f'(Z)) ⟶ (X, X ∖ f(Z))` (`relDualClassOf_transDiffeomorph`), and the same for the
 absolute classes (`dualClassOf_transDiffeomorph`).
 
+For a normal orientation `o` of `f`, the map of Thom pairs `transDiffeomorphThomPairMap` pulls the
+canonical Thom class of `o` back to that of the orientation `o.comap` transported along the
+derivative of `φ` (`singularCohomologyMap_thomPairMapOfFiberwise_canonicalThomClass_comap`). So
+the oriented dual classes are natural too: the dual class of `f'` with the transported orientation
+is the pull-back along `φ` of the dual class of `f` with `o` (`relDualClass_transDiffeomorph`,
+`dualClass_transDiffeomorph`).
+
 ## Main definitions
 
 * `TauCeti.SmoothEmbedding.normalSlice`: the normal slice of a tube at a point, as a map of pairs.
@@ -119,6 +128,10 @@ absolute classes (`dualClassOf_transDiffeomorph`).
 * `TauCeti.SmoothEmbedding.relDualClassOf_transDiffeomorph`,
   `TauCeti.SmoothEmbedding.dualClassOf_transDiffeomorph`: naturality of the relative and
   absolute classes under a diffeomorphism, for `u` of degree `r`.
+* `TauCeti.SmoothEmbedding.relDualClass_transDiffeomorph`,
+  `TauCeti.SmoothEmbedding.dualClass_transDiffeomorph`: naturality of the relative and absolute
+  dual classes of a normally oriented embedding under a diffeomorphism, with the normal
+  orientation transported by the derivative.
 
 ## References
 
@@ -321,20 +334,11 @@ private theorem singularCohomologyMap_slice_eq_of_isOpen {f : SmoothEmbedding I 
     erw [TopPair.ofSubsetMap_fst_apply, hψ]
     exact (hΦΨ (hOW _ (show O from w).property)).symm
   rw [hLψ, TopPair.singularCohomologyMap_comp_apply,
-    singularCohomologyMap_eq_singularCohomologyMap_fiberCoordPairMap e (U := U) hUe hxU ψ hψU,
-    normalSlice_def]
+    singularCohomologyMap_eq_singularCohomologyMap_complZeroPairIso_inv e (U := U) hUe hxU ψ hψU,
+    normalSlice_def, ContinuousLinearEquiv.complZeroPairIso_symm, Iso.symm_hom]
   simp only [TopPair.singularCohomologyMap_comp_apply]
   generalize TopPair.singularCohomologyMap (R := R) (k := k) (M := M)
-    (fiberThomPairMap P (fun x ↦ f.NormalSpace x hn) x) n _ = d
-  -- Read in `e`, the fibre over `x` is `P`.
-  set ℓ := e.continuousLinearEquivAt ℝ x hx
-  obtain ⟨d, rfl⟩ : ∃ d', d = TopPair.singularCohomologyMap ℓ.complZeroPairIso.hom n d' :=
-    ⟨_, by rw [← TopPair.singularCohomologyMap_comp_apply, Iso.hom_inv_id,
-      TopPair.singularCohomologyMap_id, ConcreteCategory.id_apply]⟩
-  rw [ContinuousLinearEquiv.complZeroPairIso_symm, Iso.symm_hom,
-    ← TopPair.singularCohomologyMap_comp_apply ℓ.complZeroPairIso.inv, Iso.inv_hom_id,
-    TopPair.singularCohomologyMap_id, ConcreteCategory.id_apply,
-    ← TopPair.singularCohomologyMap_comp_apply, e.fiberCoordPairMap_comp_complZeroPairIso_hom]
+    (e.continuousLinearEquivAt ℝ x hx).complZeroPairIso.inv n _ = d
   -- The fibre coordinate of `g` has derivative the identity at `0`.
   set F : P → P := fun w ↦ (e (Ψ (g w))).2
   have hFc : ContinuousOn F O := (e.continuousOn.comp (hΨc.comp hgO hOW)
@@ -345,20 +349,14 @@ private theorem singularCohomologyMap_slice_eq_of_isOpen {f : SmoothEmbedding I 
       (by filter_upwards [hO.mem_nhds hO0] with w hw using hΦΨ (hOW w hw))
   have hFx : ∀ w ∈ O, F w = 0 → w = 0 := fun w hw h ↦ by_contra fun hw0 ↦
     (e.snd_apply_ne_zero_iff ℝ (hUe (hOU w hw))).2 (hψ0 w hw hw0) h
-  have hfc : (TopPair.isoOfSubsetRange _).hom ≫ TopPair.ofSubsetMap
-      (TopCat.ofHom ⟨fun q ↦ (e (TopPair.Hom.fst ψ q)).2,
-        (e.continuousOn.comp_continuous (TopPair.Hom.fst ψ).hom.continuous
-          fun q ↦ e.mem_source.2 (hUe (hψU q))).snd⟩)
-      (fun q hq ↦ (e.snd_apply_ne_zero_iff ℝ (hUe (hψU q))).2 <|
-        mem_zeroSectionCompl.1 (TopPair.mapsTo_range_map_of_hom ψ hq)) =
+  have hfc : e.coordPairMap ψ (fun q ↦ hUe (hψU q)) =
       TopPair.ofSubsetMap (X := TopCat.of O) (Y := TopCat.of P)
         (TopCat.ofHom ⟨O.domRestrict F, hFc.domRestrict⟩) (B := {⟨0, hO0⟩}ᶜ) (B' := {0}ᶜ)
         (fun y hy h ↦ hy (Subtype.ext (hFx y y.property h))) := by
     refine TopPair.hom_ext_of_fst _ (ConcreteCategory.hom_ext _ _ fun w ↦ ?_)
-    rw [TopPair.Hom.fst_comp, ConcreteCategory.comp_apply,
-      TopPair.isoOfSubsetRange_hom_fst_apply]
-    -- The points of the pairs are those of `O` and `P` only up to unfolding `ofSubset`.
-    erw [TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply]
+    rw [Trivialization.coordPairMap_fst_apply]
+    -- The points of the pair are those of `O` only up to unfolding `ofSubset`.
+    erw [TopPair.ofSubsetMap_fst_apply (X := TopCat.of O) (Y := TopCat.of P)]
     exact congrArg (fun p ↦ (e p).2) (hψ w)
   rw [hfc, TopPair.singularCohomologyMap_ofSubsetMap_eq_inclusion_of_hasFDerivAt_id R k M
     (hO.mem_nhds hO0) hFc hF0 hF hFx n]
@@ -822,6 +820,83 @@ theorem dualClassOf_transDiffeomorph (f : SmoothEmbedding I J ∞ Z X) (hn : (�
       TopCat.singularCohomologyMap (TopCat.ofHom ⟨φ, φ.continuous⟩) _
         (f.dualClassOf hn hdim hf u) := by
   rw [dualClassOf_def, dualClassOf_def, relDualClassOf_transDiffeomorph,
+    TopPair.singularCohomologyπ_singularCohomologyMap_ofSubsetMap]
+
+/-- **Naturality of the relative dual class under a diffeomorphism.** Let `φ : X' ≃ X` be a
+diffeomorphism and `o` an orientation of the normal bundle of `f`, of rank `r`. The relative dual
+class of `φ⁻¹ ∘ f`, normally oriented by the pull-back of `o` along the derivative of `φ`
+(`normalSpaceEquivOfComp` for `φ ∘ (φ⁻¹ ∘ f) = f`), is the pull-back along
+`φ : (X', X' ∖ φ⁻¹(f(Z))) ⟶ (X, X ∖ f(Z))` of `relDualClass f hn hdim hf o hr`. -/
+theorem relDualClass_transDiffeomorph (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
+    (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f))
+    (φ : X' ≃ₘ^∞⟮J, J⟯ X) {r : ℕ}
+    (o : letI := f.normalSpaceFiberBundle hn hdim
+      letI := f.normalSpaceVectorBundle hn hdim
+      VectorBundleOrientation P (fun x ↦ f.NormalSpace x hn) (Fin r)) (hr : finrank ℝ P = r) :
+    letI := f.normalSpaceFiberBundle hn hdim
+    letI := f.normalSpaceVectorBundle hn hdim
+    letI := (f.transDiffeomorph φ.symm).normalSpaceFiberBundle hn hdim
+    letI := (f.transDiffeomorph φ.symm).normalSpaceVectorBundle hn hdim
+    (f.transDiffeomorph φ.symm).relDualClass hn hdim (f.isClosed_range_transDiffeomorph hf φ.symm)
+        (o.comap (g := ContinuousMap.id Z) ((Fintype.card_fin r).trans hr.symm)
+          ((f.transDiffeomorph φ.symm).continuous_normalSpaceEquivOfComp f hn hn
+            (φ.contMDiff.of_le (ENat.one_le_iff_ne_zero_withTop.mpr hn))
+            (fun _ ↦ φ.isInvertible_mfderiv hn) (f.comp_transDiffeomorph_symm φ))) hr =
+      TopPair.singularCohomologyMap
+        (TopPair.ofSubsetMap (X := TopCat.of X') (Y := TopCat.of X)
+          (TopCat.ofHom ⟨φ, φ.continuous⟩) (f.mapsTo_compl_range_transDiffeomorph φ)) _
+        (f.relDualClass hn hdim hf o hr) := by
+  let := f.normalSpaceFiberBundle hn hdim
+  let := f.normalSpaceVectorBundle hn hdim
+  let := (f.transDiffeomorph φ.symm).normalSpaceFiberBundle hn hdim
+  let := (f.transDiffeomorph φ.symm).normalSpaceVectorBundle hn hdim
+  subst hr
+  -- `relDualClass` takes integral cohomology with the structure `Linear.preadditiveIntLinear` of
+  -- `ModuleCat ℤ`, `relDualClassOf_transDiffeomorph` the structure `ModuleCat.instLinear`; they
+  -- are equal (`Linear.subsingletonInt`) but not by definition.
+  have key (L : Linear ℤ (ModuleCat.{w} ℤ))
+      (u : (thomPair P fun x ↦ f.NormalSpace x hn).singularCohomology
+        (ModuleCat.of ℤ (ULift.{w} ℤ)) ℤ (ModuleCat.of ℤ (ULift.{w} ℤ)) (finrank ℝ P)) :
+      (f.transDiffeomorph φ.symm).relDualClassOf hn hdim
+          (f.isClosed_range_transDiffeomorph hf φ.symm)
+          (TopPair.singularCohomologyMap (f.transDiffeomorphThomPairMap hn φ) _ u) =
+        TopPair.singularCohomologyMap
+          (TopPair.ofSubsetMap (X := TopCat.of X') (Y := TopCat.of X)
+            (TopCat.ofHom ⟨φ, φ.continuous⟩) (f.mapsTo_compl_range_transDiffeomorph φ)) _
+          (f.relDualClassOf hn hdim hf u) := by
+    obtain rfl : L = ModuleCat.instLinear := Subsingleton.elim _ _
+    exact relDualClassOf_transDiffeomorph f hn hdim hf φ u
+  rw [relDualClass_def, relDualClass_def, ← key, transDiffeomorphThomPairMap_def,
+    thomPairMapOfComp_def]
+  -- The goal agrees with the naturality of the canonical Thom class only up to unfolding
+  -- (`thomPairMapOfFiberwise` over `g = ContinuousMap.id Z`), which `rw` does not see.
+  exact congrArg _ (o.singularCohomologyMap_thomPairMapOfFiberwise_canonicalThomClass_comap rfl rfl
+      _).symm
+
+/-- **Naturality of the dual class under a diffeomorphism.** Let `φ : X' ≃ X` be a diffeomorphism
+and `o` an orientation of the normal bundle of `f`, of rank `r`. The dual class of `φ⁻¹ ∘ f`,
+normally oriented by the pull-back of `o` along the derivative of `φ`
+(`normalSpaceEquivOfComp` for `φ ∘ (φ⁻¹ ∘ f) = f`), is the pull-back along `φ` of
+`dualClass f hn hdim hf o hr`. -/
+theorem dualClass_transDiffeomorph (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
+    (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f))
+    (φ : X' ≃ₘ^∞⟮J, J⟯ X) {r : ℕ}
+    (o : letI := f.normalSpaceFiberBundle hn hdim
+      letI := f.normalSpaceVectorBundle hn hdim
+      VectorBundleOrientation P (fun x ↦ f.NormalSpace x hn) (Fin r)) (hr : finrank ℝ P = r) :
+    letI := f.normalSpaceFiberBundle hn hdim
+    letI := f.normalSpaceVectorBundle hn hdim
+    letI := (f.transDiffeomorph φ.symm).normalSpaceFiberBundle hn hdim
+    letI := (f.transDiffeomorph φ.symm).normalSpaceVectorBundle hn hdim
+    (f.transDiffeomorph φ.symm).dualClass hn hdim (f.isClosed_range_transDiffeomorph hf φ.symm)
+        (o.comap (g := ContinuousMap.id Z) ((Fintype.card_fin r).trans hr.symm)
+          ((f.transDiffeomorph φ.symm).continuous_normalSpaceEquivOfComp f hn hn
+            (φ.contMDiff.of_le (ENat.one_le_iff_ne_zero_withTop.mpr hn))
+            (fun _ ↦ φ.isInvertible_mfderiv hn) (f.comp_transDiffeomorph_symm φ))) hr =
+      TopCat.singularCohomologyMap (TopCat.ofHom ⟨φ, φ.continuous⟩) _
+        (f.dualClass hn hdim hf o hr) := by
+  rw [dualClass_eq_singularCohomologyπ_relDualClass,
+    dualClass_eq_singularCohomologyπ_relDualClass, relDualClass_transDiffeomorph,
     TopPair.singularCohomologyπ_singularCohomologyMap_ofSubsetMap]
 
 end Naturality

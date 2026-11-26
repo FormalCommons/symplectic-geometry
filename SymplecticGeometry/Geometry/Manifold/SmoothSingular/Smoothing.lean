@@ -5,9 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.Basic
 public import TauCeti.AlgebraicTopology.Cohomology.Kronecker
 public import TauCeti.Geometry.Manifold.SmoothSingular.Smoothing
+import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.Basic
 
 /-!
 # The smoothing isomorphism: coefficients and the Kronecker map

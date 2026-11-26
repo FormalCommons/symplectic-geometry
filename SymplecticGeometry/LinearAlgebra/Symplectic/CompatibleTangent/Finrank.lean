@@ -6,10 +6,13 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Matrix.Hermitian
-public import SymplecticGeometry.Algebra.Star.Module
-public import SymplecticGeometry.LinearAlgebra.Matrix.SelfAdjoint
-public import SymplecticGeometry.LinearAlgebra.Symplectic.CompatibleTangent.Basic
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+import SymplecticGeometry.Algebra.Star.Module
+import SymplecticGeometry.LinearAlgebra.Matrix.SelfAdjoint
+import SymplecticGeometry.LinearAlgebra.Symplectic.CompatibleTangent.Basic
+import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
+import SymplecticGeometry.LinearAlgebra.Symplectic.Compatible
+import SymplecticGeometry.LinearAlgebra.ComplexStructure.Action
 
 /-!
 # Dimension of the tangent spaces to the space of compatible complex structures

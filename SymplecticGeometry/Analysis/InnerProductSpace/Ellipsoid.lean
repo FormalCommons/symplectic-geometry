@@ -6,8 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.InnerProductSpace.PiL2
-public import SymplecticGeometry.LinearAlgebra.QuadraticForm.PosDef
 public import TauCeti.LinearAlgebra.QuadraticForm.Real
+import SymplecticGeometry.LinearAlgebra.QuadraticForm.PosDef
 
 /-!
 # Ellipsoids in a real inner product space

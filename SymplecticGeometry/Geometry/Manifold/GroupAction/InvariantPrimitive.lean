@@ -7,7 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Average
 public import TauCeti.RepresentationTheory.Compact.Haar
-public import SymplecticGeometry.Geometry.Manifold.GroupAction.BoundarylessModel
+import SymplecticGeometry.Geometry.Manifold.GroupAction.BoundarylessModel
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.GroupAction.Opens
 
@@ -75,9 +75,11 @@ theorem mextDerivₗ_measureAverage_of_invariant [I.Boundaryless] [MeasurableSpa
     [OpensMeasurableSpace G] [MeasurableMul G] (μ : Measure G) [IsProbabilityMeasure μ]
     [μ.IsMulRightInvariant] {α : SmoothForm I M F (k + 1)} {β : SmoothForm I M F k}
     (hβ : mextDerivₗ I k β = α)
-    (hα : ∀ a : G, TauCeti.mpullback (F := F) I I (a • ·) α.val = α.val) :
+    (hα : ∀ a : G, mpullback (fun x : M ↦ a • x)
+      (ContMDiffSMul.contMDiff_const_smul (I := J) (I' := I) a) α = α) :
     mextDerivₗ I k (measureAverage J μ β) = α := by
-  rw [mextDerivₗ_measureAverage, hβ, (measureAverage_eq_self_iff J μ α).2 hα]
+  rw [mextDerivₗ_measureAverage, hβ,
+    (measureAverage_eq_self_iff J μ α).2 fun a ↦ (mpullback_eq_iff _).1 (hα a)]
 
 include J in
 attribute [local instance] BoundarylessModel.interiorChartedSpace in
@@ -102,9 +104,10 @@ theorem exists_invariant_primitive [BoundarylessManifold I M] [IsTopologicalGrou
   have hβ' : mextDerivₗ 𝓘(ℝ, E) k β' = α' := by
     rw [mextDerivₗ_mpullback, hβ]
   -- The inverse of `Φ` is equivariant, so `α'` is invariant.
-  have hα' (a : G) : TauCeti.mpullback (F := F) 𝓘(ℝ, E) 𝓘(ℝ, E) (a • ·) α'.val = α'.val :=
-    (mpullback_eq_iff _).1 (mpullback_smul_mpullback Φ.symm.contMDiff
-      (BoundarylessModel.interiorDiffeomorph_symm_smul I ∞ a) ((mpullback_eq_iff _).2 (hα a)))
+  have hα' (a : G) : mpullback (fun x : BoundarylessModel I M ↦ a • x)
+      (contMDiff_const_smul a) α' = α' :=
+    mpullback_smul_mpullback Φ.symm.contMDiff
+      (BoundarylessModel.interiorDiffeomorph_symm_smul I ∞ a) ((mpullback_eq_iff _).2 (hα a))
   let γ' := measureAverage J (haarProb G) β'
   refine ⟨mpullback Φ Φ.contMDiff γ', ?_, fun a ↦ ?_⟩
   · rw [mextDerivₗ_mpullback, mextDerivₗ_measureAverage_of_invariant J (haarProb G) hβ' hα',

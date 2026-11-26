@@ -6,11 +6,15 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Topology.UnitInterval
-public import SymplecticGeometry.Analysis.Calculus.Deriv.Matrix
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Transverse
 public import TauCeti.Analysis.Matrix.ContinuousBilinearForm
 public import TauCeti.Analysis.Matrix.HermitianSignature.Matrix
 public import TauCeti.LinearAlgebra.QuadraticForm.Isometry
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Action
+import SymplecticGeometry.Analysis.Calculus.Deriv.Matrix
+import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Transverse
+import SymplecticGeometry.Analysis.Matrix.EuclideanLin
+import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
+import SymplecticGeometry.LinearAlgebra.Symplectic.Subspace
 
 /-!
 # Crossing forms of Lagrangian frames

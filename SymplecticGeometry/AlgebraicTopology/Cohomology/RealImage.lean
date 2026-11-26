@@ -6,8 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.ChangeOfValues
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.FundamentalClass
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralChains
+public import TauCeti.AlgebraicTopology.Cohomology.FundamentalClass
+public import Mathlib.Algebra.Category.ModuleCat.Algebra
+import SymplecticGeometry.AlgebraicTopology.Cohomology.FundamentalClass
 
 /-!
 # The real image of an integral cohomology class

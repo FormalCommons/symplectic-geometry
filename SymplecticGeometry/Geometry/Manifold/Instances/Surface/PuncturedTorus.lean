@@ -10,9 +10,11 @@ public import Mathlib.AlgebraicTopology.FundamentalGroupoid.FundamentalGroup
 public import Mathlib.Analysis.SpecialFunctions.Complex.CircleMap
 public import SymplecticGeometry.Geometry.Manifold.Instances.Surface.Genus
 public import SymplecticGeometry.Geometry.Manifold.Instances.Surface.TorusWedge
-public import SymplecticGeometry.Geometry.Manifold.ConnectedSum.FundamentalGroup
 public import TauCeti.AlgebraicTopology.FundamentalGroup.HomotopyEquiv
 public import TauCeti.GroupTheory.SurfaceGroup.Free
+public import SymplecticGeometry.Geometry.Manifold.ConnectedSum.Neck
+public import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.PuncturedPlane
+import SymplecticGeometry.Geometry.Manifold.ConnectedSum.FundamentalGroup
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
 import Mathlib.Topology.Homotopy.Affine
 import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Basic

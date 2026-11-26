@@ -6,8 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Sum
-public import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Quotient
 public import TauCeti.Analysis.Matrix.UnitaryGroup.Basic
+public import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Basic
+import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Quotient
 
 /-!
 # Continuity of direct sums and reindexing of Lagrangian subspaces

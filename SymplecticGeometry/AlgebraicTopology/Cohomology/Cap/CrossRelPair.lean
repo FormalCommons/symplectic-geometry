@@ -6,9 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.Excisive
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.Cup.RelativeKronecker
 public import TauCeti.Algebra.Category.ModuleCat.Monoidal.Unit
 public import TauCeti.CategoryTheory.Monoidal.Preadditive
+public import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.RelativePair
+import SymplecticGeometry.AlgebraicTopology.Cohomology.Cup.RelativeKronecker
 import Mathlib.Algebra.Category.ModuleCat.EnoughInjectives
 import SymplecticGeometry.Algebra.Category.ModuleCat.ULiftTensor
 import SymplecticGeometry.AlgebraicTopology.Cohomology.PairChangeOfCoefficients

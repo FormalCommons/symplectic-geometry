@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Topology.Algebra.Module.InnerProducts
 public import TauCeti.Geometry.Symplectic.PolarCompatible
+import SymplecticGeometry.Analysis.InnerProductSpace.LinearMap
 
 /-!
 # The complex structure `J_{g,ω}` of an inner product and a symplectic form

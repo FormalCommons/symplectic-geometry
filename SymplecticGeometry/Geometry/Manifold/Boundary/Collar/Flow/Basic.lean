@@ -5,14 +5,15 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Flow.Local
 public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Local
-public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Opens
-public import SymplecticGeometry.Topology.Compactness.SigmaCompact
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Smooth
 public import TauCeti.Geometry.Manifold.Boundary.OutwardExistence
 public import TauCeti.Geometry.Manifold.IntegralCurve.Interval
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
+import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Flow.Local
+import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Opens
+import SymplecticGeometry.Topology.Compactness.SigmaCompact
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 
 /-!
 # The collar of a compact boundary along an outward field

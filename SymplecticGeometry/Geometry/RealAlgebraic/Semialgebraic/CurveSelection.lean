@@ -5,8 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.RealAlgebraic.Semialgebraic.Choice
 public import TauCeti.Geometry.RealAlgebraic.Semialgebraic.Topology
+import SymplecticGeometry.Geometry.RealAlgebraic.Semialgebraic.Choice
+import SymplecticGeometry.Geometry.RealAlgebraic.Semialgebraic.OneVariable
 
 /-!
 # The curve selection lemma

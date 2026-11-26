@@ -8,8 +8,9 @@ module
 public import TauCeti.Topology.VectorBundle.Subbundle
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.OfBundle
 public import SymplecticGeometry.Topology.Algebra.Module.Equiv.Submodule
-public import SymplecticGeometry.Topology.Algebra.Projectivization
 public import SymplecticGeometry.Topology.VectorBundle.ProjectiveBundle.Basic
+public import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
+import SymplecticGeometry.Topology.Algebra.Projectivization
 import SymplecticGeometry.Topology.VectorBundle.Basic
 
 /-!

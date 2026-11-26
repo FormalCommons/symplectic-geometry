@@ -6,11 +6,13 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.HomotopyOperator
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.HomotopyOperator
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.NormedSpace
-public import SymplecticGeometry.Geometry.Symplectic.HPrinciple.CubeClipping
 public import Mathlib.Geometry.Manifold.Instances.Icc
 public import Mathlib.Topology.UnitInterval
+public import SymplecticGeometry.Geometry.Symplectic.HPrinciple.AttachingCollar
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.HomotopyOperator
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.NormedSpace
+import SymplecticGeometry.Geometry.Symplectic.HPrinciple.CubeClipping
 
 /-!
 # The collar correction of a form in the handle-core lemma

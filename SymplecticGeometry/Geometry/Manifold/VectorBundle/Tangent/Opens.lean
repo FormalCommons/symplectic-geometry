@@ -6,9 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
-public import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 public import TauCeti.Topology.VectorBundle.ContinuousAlternatingMap
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 
 /-!
 # Tangent vectors and alternating maps of open subsets, read on the ambient manifold

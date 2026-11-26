@@ -6,10 +6,12 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Topology.Algebra.Module.Alternating.Basic
-public import SymplecticGeometry.LinearAlgebra.Alternating.Basic
-public import SymplecticGeometry.Logic.Equiv.Fin.Basic
 public import Mathlib.LinearAlgebra.Basis.Basic
 public import TauCeti.LinearAlgebra.Alternating.Curry
+public import Mathlib.LinearAlgebra.InvariantBasisNumber
+public import Mathlib.LinearAlgebra.Dimension.Finrank
+import SymplecticGeometry.LinearAlgebra.Alternating.Basic
+import SymplecticGeometry.Logic.Equiv.Fin.Basic
 import TauCeti.Algebra.BigOperators.Finset.Pairs
 import TauCeti.Data.Fin.VecNotation
 import TauCeti.Topology.Algebra.Module.Alternating.Basic

@@ -6,8 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.FrameCover
-public import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Chart.CodRestrict
-public import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Chart.Restriction
+import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Chart.CodRestrict
+import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Chart.Restriction
 import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
 import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.ManifoldFamily
 import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.Prod

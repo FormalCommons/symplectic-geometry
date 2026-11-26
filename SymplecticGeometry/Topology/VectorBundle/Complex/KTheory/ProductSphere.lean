@@ -6,11 +6,16 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.CategoryTheory.GrothendieckGroup.Monoidal.Basic
-public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Biproduct
-public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Clutching
+public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.LaurentClutching
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.IdempotentRange
-public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.LaurentApproximation
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.RieszProjection
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Biproduct
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Clutching
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.LaurentApproximation
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.NearbyClutching
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.HomotopyInvariance
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
+import Mathlib.Topology.Separation.CompletelyRegular
 
 /-!
 # Bundles over `X × ℂP¹` are clutchings; the clutched lines `L m`; linear clutchings

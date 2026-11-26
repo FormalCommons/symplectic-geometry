@@ -6,7 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Topology.Connected.LocallyPathConnected
-public import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Prod.PuncturedDisc
 
 import Mathlib.Analysis.Convex.PathConnected
 import Mathlib.Analysis.Normed.Module.Convex
@@ -15,8 +14,10 @@ import Mathlib.Topology.Homeomorph.Lemmas
 import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.VanKampen
 import SymplecticGeometry.Topology.Connected.Clopen
 import TauCeti.AlgebraicTopology.FundamentalGroup.Basic
-import TauCeti.AlgebraicTopology.FundamentalGroup.Homeomorph
 import TauCeti.Analysis.Normed.Module.Connected
+import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Prod.PuncturedDisc
+public import TauCeti.AlgebraicTopology.FundamentalGroup.Homeomorph
+public import TauCeti.Topology.Homotopy.PuncturedStarConvex
 
 /-!
 # Removing a codimension-two product from a space

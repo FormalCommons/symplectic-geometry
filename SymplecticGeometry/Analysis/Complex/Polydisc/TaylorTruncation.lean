@@ -5,10 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Complex.Polydisc.PowerSeries
-public import SymplecticGeometry.RingTheory.MvPowerSeries.Trunc
 public import TauCeti.Analysis.Analytic.MultiIndex.TaylorCoeff
 public import TauCeti.Analysis.Complex.PowerSeries.TaylorRemainder
+public import Mathlib.RingTheory.MvPowerSeries.Trunc
+import SymplecticGeometry.Analysis.Complex.Polydisc.PowerSeries
+import SymplecticGeometry.RingTheory.MvPowerSeries.Trunc
 
 /-!
 # Taylor truncation on polydiscs
