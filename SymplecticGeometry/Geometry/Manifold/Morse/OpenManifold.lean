@@ -11,10 +11,9 @@ public import TauCeti.Geometry.Manifold.Morse.Hessian
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 import Mathlib.Geometry.Manifold.Algebra.Monoid
 import SymplecticGeometry.Analysis.Calculus.Morse.HalfCylinder
-import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
 import SymplecticGeometry.Geometry.Manifold.Morse.Hessian
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
-import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
+import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Indicator
+import TauCeti.Geometry.Manifold.ContMDiff.Prod
 
 /-!
 # Morse functions on open manifolds: raising a function inside tubes
@@ -33,10 +32,10 @@ critical points is a nondegenerate local maximum.
 ## Construction
 
 For each `i`, `SymplecticGeometry.exists_nonneg_halfCylinder_hessian_pos` applied to `g₀ ∘ Φ i`
-gives `μ i ≥ 0` supported in `S`. Since `Φ i` is a local diffeomorphism between manifolds of the
-same dimension (`TauCeti.SmoothEmbedding.isLocalDiffeomorph`), its inverse is smooth on its open
-range (`IsLocalDiffeomorphOn.contMDiffOn_invFunOn`), so `μ i ∘ (Φ i)⁻¹`, extended by zero off the
-range, is smooth on `M`; and `g₁ := g₀ + ∑ᶠ i, μ i ∘ (Φ i)⁻¹`. Near a point of `Φ i '' S` the
+gives `μ i ≥ 0` supported in `S`. Pushed forward along `Φ i` and extended by zero off its range,
+`μ i` becomes a smooth function on `M` supported in `Φ i '' S`
+(`TauCeti.SmoothEmbedding.contMDiff_indicator_range_comp_invFunOn`), and
+`g₁ := g₀ + ∑ᶠ i, μ i ∘ (Φ i)⁻¹`. Near a point of `Φ i '' S` the
 other half-cylinders are absent, so there `g₁ ∘ Φ i = g₀ ∘ Φ i + μ i`, and critical points and
 positive Hessian directions are read through `Φ i`
 (`TauCeti.SmoothEmbedding.mem_criticalPoints_iff_fderiv_comp_eq_zero_prod`,
@@ -77,34 +76,19 @@ private lemma exists_tube_bump {g₀ : M → ℝ} (hg₀ : ContMDiff I 𝓘(ℝ)
         ∃ v, 0 < fderiv ℝ (fderiv ℝ (g₀ ∘ Φ + μ)) z v v := by
   set S := Ici (-1 : ℝ) ×ˢ Metric.closedBall (0 : V) 1
   -- Read on `ℝ × V`, the product model is the model of the normed space `ℝ × V`.
-  have hcd (f : ℝ × V → ℝ) : ContMDiff (𝓘(ℝ).prod 𝓘(ℝ, V)) 𝓘(ℝ) ∞ f ↔ ContDiff ℝ ∞ f := by
-    rw [← modelWithCornersSelf_prod, chartedSpaceSelf_prod]
-    exact contMDiff_iff_contDiff
+  have hcd (f : ℝ × V → ℝ) : ContMDiff (𝓘(ℝ).prod 𝓘(ℝ, V)) 𝓘(ℝ) ∞ f ↔ ContDiff ℝ ∞ f :=
+    contMDiff_prod_modelWithCornersSelf_iff.trans contMDiff_iff_contDiff
   have hf : ContDiff ℝ ∞ (g₀ ∘ Φ) := (hcd _).1 (hg₀.comp Φ.contMDiff)
   obtain ⟨μ, hμ, hμ0, hμS, hμcrit⟩ := SymplecticGeometry.exists_nonneg_halfCylinder_hessian_pos
     (hf.of_le (WithTop.coe_le_coe.2 le_top)) fun z hz h ↦ hcrit z hz
       (((Φ.mem_criticalPoints_iff_fderiv_comp_eq_zero_prod (by simp) hdim
         (hg₀.mdifferentiableAt (by simp))).2 h))
-  have hμ' : ContMDiff (𝓘(ℝ).prod 𝓘(ℝ, V)) 𝓘(ℝ) ∞ μ := (hcd μ).2 hμ
-  have hloc := Φ.isLocalDiffeomorph hdim (by simp)
-  have hinj : InjOn Φ univ := Φ.isSmoothEmbedding.isEmbedding.injective.injOn
-  have hleft (z : ℝ × V) : invFunOn Φ univ (Φ z) = z := hinj.leftInvOn_invFunOn (mem_univ z)
-  have hinv := (hloc.isLocalDiffeomorphOn univ).contMDiffOn_invFunOn isOpen_univ hinj
-  rw [image_univ] at hinv
+  have hμS' : support μ ⊆ S := (subset_tsupport μ).trans hμS
   refine ⟨(range Φ).indicator (μ ∘ invFunOn Φ univ), μ,
-    (hμ'.comp_contMDiffOn hinv).contMDiff_indicator hloc.isOpen_range hS
-      (image_subset_range _ _) ?_, indicator_nonneg fun _ _ ↦ hμ0 _, fun x hx ↦ ?_,
-    fun z ↦ ?_, hμcrit⟩
-  · rintro _ ⟨z, rfl⟩ hz
-    rw [comp_apply, hleft]
-    exact image_eq_zero_of_notMem_tsupport fun h ↦ hz (mem_image_of_mem _ (hμS h))
-  · have hxr : x ∈ range Φ := by
-      by_contra h
-      exact hx (indicator_of_notMem h _)
-    obtain ⟨z, rfl⟩ := hxr
-    rw [mem_support, indicator_of_mem (mem_range_self z), comp_apply, hleft] at hx
-    exact mem_image_of_mem _ (hμS (subset_tsupport _ hx))
-  · rw [indicator_of_mem (mem_range_self z), comp_apply, hleft]
+    Φ.contMDiff_indicator_range_comp_invFunOn hdim (by simp) ((hcd μ).2 hμ) hS hμS',
+    indicator_nonneg fun _ _ ↦ hμ0 _,
+    (Φ.support_indicator_range_comp_invFunOn_subset μ).trans (image_mono hμS'),
+    Φ.indicator_range_comp_invFunOn_apply_self μ, hμcrit⟩
 
 /-- **Raising a function inside locally finite tubes.** Let `M` be a boundaryless manifold of
 dimension `dim V + 1`, `S = [-1, ∞) × closedBall 0 1 ⊆ ℝ × V`, and `Φ i : ℝ × V → M` smooth
