@@ -343,10 +343,12 @@ The file gives steps 1 and 2 of isotopy extension at every time, which
    (`TauCeti.SmoothEmbedding.exists_contMDiffOn_retraction`). The extension is
    *Smooth families*' `ContMDiff/TimeExtension.lean` applied to the
    composite with the embedding, followed by the retraction, for times close to $[0,1]$.
-2. Compose with a smooth `c : ℝ → (-δ, 1 + δ)` that is the identity on
-   $[0,1]$ and constant near $\pm\infty$. The result is constant beyond two
-   times `a < 0 < 1 < b`, has embedding slices for every real time, and is
-   the original map on $[0,1]$.
+2. `TauCeti.exists_contMDiff_forall_isSmoothEmbedding_comp`. For `G` smooth
+   on `Ioo (-δ) (1 + δ) ×ˢ V` whose slices at those times are smooth
+   embeddings of `V`, compose with a smooth `c : ℝ → (-δ, 1 + δ)` that is the
+   identity on $[0,1]$ and constant near $\pm\infty$. The result is constant
+   beyond two times `a < 0 < 1 < b`, has embedding slices for every real
+   time, and is the original map on $[0,1]$.
 
 ### `Geometry/Manifold/SmoothIsotopy/Family.lean`
 
@@ -363,17 +365,31 @@ theorem TauCeti.SmoothIsotopy.exists_diffeotopy_forall_apply_eq
 ```
 
 Its statement is Tau Ceti's `exists_diffeotopy_apply_eq` without the change of
-time. The proof extends the graph of the family in time by step 1 of
-`Extension.lean`; the graph keeps the parameter fixed, and its slices are
-smooth embeddings near the compact set for times close to $[0,1]$ by
-`SmoothEmbedding/Neighborhood.lean` again. Step 2 of `Extension.lean` then
-makes it a motion over `ℝ`, and:
+time. The file proves it for a smooth family `k : Q × unitInterval × P → N`
+over a boundaryless parameter manifold `Q`, with compact `T ⊆ Q`
+(`ContMDiff.exists_contMDiff_diffeomorph_family_forall_apply_eq`), working
+with the graph `(q, x) ↦ (q, k (q, s, x))` near `T ×ˢ A`:
 
-3. Tau Ceti's `TauCeti.exists_ambientVelocityField` gives a compactly
-   supported smooth field `X` on `ℝ × N` with the velocity of the motion of
-   `A`. Its flow, `TauCeti.timeDependentFlowDiffeotopy` (complete by
-   `TauCeti.isCompleteVectorField_timeDependentSuspensionField`), is `Φ`.
-   Uniqueness of integral curves gives `Φ (t, f₀ x) = F (t, x)`.
+1. The graph slices are smooth embeddings of a neighbourhood of `T ×ˢ A`, by
+   `TauCeti.exists_isOpen_forall_isSmoothEmbedding_of_injOn` of
+   `SmoothEmbedding/Neighborhood.lean`.
+2. Step 1 of `Extension.lean` extends `k` itself in time near `T ×ˢ A`; the
+   graph of the extension keeps the parameter fixed by construction. Its
+   slices stay smooth embeddings for times close to $[0,1]$ by
+   `TauCeti.exists_pos_forall_isSmoothEmbedding_of_eventuallyEq`, and step 2
+   of `Extension.lean` makes it a motion over `ℝ`.
+3. `TauCeti.exists_contMDiff_diffeomorph_family_of_graph` gives the
+   diffeomorphisms for a motion over `ℝ` of a graph. Tau Ceti's
+   `TauCeti.exists_ambientVelocityField` gives a compactly supported field on
+   `Q × N` along the motion; its `N`-components form fields `Y q` on `N`,
+   whose flows `TauCeti.timeDependentFlowDiffeomorph` are jointly smooth in
+   `q` by `TauCeti.contMDiff_timeDependentFlowOf_param`, and carry the motion
+   by `TauCeti.timeDependentFlowOf_eq_of_forall_hasMFDerivAt`.
+
+`TauCeti.SmoothIsotopy.exists_diffeotopy_forall_apply_eq` is then the case
+`Q = EuclideanSpace ℝ (Fin 0)`, a point, and `TauCeti.Diffeotopy.ofReal`
+turns its
+family over `ℝ` into a diffeotopy.
 
 The proof adapts Tau Ceti's
 `TauCeti.SmoothIsotopy.exists_diffeotopy_apply_eq`, which the module
