@@ -172,9 +172,9 @@ theorem normalSlice_fst_apply (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ
   let := f.normalSpaceFiberBundle hn hdim
   rw [normalSlice_def, TopPair.Hom.fst_comp, TopPair.Hom.fst_comp]
   refine (ConcreteCategory.comp_apply (X := TopCat.of (f.NormalSpace x hn)) _ _ v).trans ?_
-  rw [ConcreteCategory.comp_apply, TopPair.excisionMap_fst_apply]
-  exact congrArg Subtype.val ((tubePairIso_hom_fst_apply f hn hdim Φ hΦ _).trans
-    (congrArg Φ (fiberThomPairMap_fst_apply P (fun x ↦ f.NormalSpace x hn) x v)))
+  rw [ConcreteCategory.comp_apply]
+  exact (tubePairIso_hom_fst_comp_excisionMap_fst_apply f hn hdim Φ hΦ _).trans
+    (congrArg (fun v ↦ (Φ v : X)) (fiberThomPairMap_fst_apply P (fun x ↦ f.NormalSpace x hn) x v))
 
 end NormalSlice
 
@@ -299,10 +299,9 @@ private theorem singularCohomologyMap_slice_eq_of_isOpen {f : SmoothEmbedding I 
     refine TopPair.hom_ext_of_fst _ (ConcreteCategory.hom_ext _ _ fun w ↦ ?_)
     rw [TopPair.Hom.fst_comp, TopPair.Hom.fst_comp, ConcreteCategory.comp_apply,
       ConcreteCategory.comp_apply]
-    erw [TopPair.excisionMap_fst_apply, TopPair.ofSubsetMap_fst_apply,
-      TopPair.ofSubsetMap_fst_apply]
-    exact (hΦΨ (hOW _ (show O from w).property)).symm.trans
-      (congrArg Subtype.val (tubePairIso_hom_fst_apply f hn hdim Φ _ _).symm)
+    refine Eq.trans ?_ (tubePairIso_hom_fst_comp_excisionMap_fst_apply f hn hdim Φ _ _).symm
+    erw [TopPair.ofSubsetMap_fst_apply, hψ]
+    exact (hΦΨ (hOW _ (show O from w).property)).symm
   rw [hLψ, TopPair.singularCohomologyMap_comp_apply,
     singularCohomologyMap_eq_singularCohomologyMap_fiberCoordPairMap e (U := U) hUe hxU ψ hψU,
     normalSlice_def]

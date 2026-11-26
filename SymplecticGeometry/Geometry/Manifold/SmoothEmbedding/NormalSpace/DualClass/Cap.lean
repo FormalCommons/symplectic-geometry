@@ -179,11 +179,8 @@ theorem exists_isNormalizedTube_singularCap_dualClassOf_fundamentalClass
       hΦ.apply_zeroSection
   have hg : TopPair.Hom.fst (f.tubePairIso hn hdim Φ hΦ.apply_zeroSection).hom ≫
       TopPair.Hom.fst (TopPair.excisionMap (X := TopCat.of X) (W : Set X) (range f)ᶜ) =
-      TopCat.ofHom g := by
-    refine TopCat.ext fun v ↦ ?_
-    rw [TopCat.comp_app, TopPair.excisionMap_fst_apply]
-    erw [tubePairIso_hom_fst_apply]
-    rfl
+      TopCat.ofHom g :=
+    tubePairIso_hom_fst_comp_excisionMap_fst f hn hdim Φ hΦ.apply_zeroSection
   -- Naturality of the relative cap product along excision and along the tube.
   have hnat₁ := TopPair.singularCap_naturality
     (TopPair.excisionMap (X := TopCat.of X) (W : Set X) (range f)ᶜ) ℤ (ρ_ _).inv (ρ_ L).hom
