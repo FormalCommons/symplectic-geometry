@@ -224,14 +224,16 @@ theorem prodFiberIntegrandAlternatingMap_apply (α : RoughForm (I.prod J) (B × 
     ContinuousLinearEquiv.coe_symm_toLinearEquiv, LinearMap.coe_inl, comp_apply]
 
 /-- The integrand is additive in each base vector `v i`. -/
-theorem prodFiberIntegrand_update_add (α : RoughForm (I.prod J) (B × F) ℝ (r + m)) (b : B)
+theorem prodFiberIntegrand_update_add [DecidableEq (Fin r)]
+    (α : RoughForm (I.prod J) (B × F) ℝ (r + m)) (b : B)
     (v : Fin r → TangentSpace I b) (i : Fin r) (x x' : TangentSpace I b) :
     prodFiberIntegrand α b (update v i (x + x')) =
       prodFiberIntegrand α b (update v i x) + prodFiberIntegrand α b (update v i x') := by
   simp only [← prodFiberIntegrandAlternatingMap_apply, AlternatingMap.map_update_add]
 
 /-- The integrand is homogeneous in each base vector `v i`. -/
-theorem prodFiberIntegrand_update_smul (α : RoughForm (I.prod J) (B × F) ℝ (r + m)) (b : B)
+theorem prodFiberIntegrand_update_smul [DecidableEq (Fin r)]
+    (α : RoughForm (I.prod J) (B × F) ℝ (r + m)) (b : B)
     (v : Fin r → TangentSpace I b) (i : Fin r) (c : ℝ) (x : TangentSpace I b) :
     prodFiberIntegrand α b (update v i (c • x)) = c • prodFiberIntegrand α b (update v i x) := by
   simp only [← prodFiberIntegrandAlternatingMap_apply, AlternatingMap.map_update_smul]
@@ -406,13 +408,11 @@ def prodFiberIntegralAlternatingMap (o : Manifold.Orientation J F (Fin m))
     (α : SmoothForm (I.prod J) (B × F) ℝ (r + m)) (b : B) : TangentSpace I b [⋀^Fin r]→ₗ[ℝ] ℝ where
   toFun v := integralTopForm o (prodFiberIntegrand α.val b v)
   map_update_add' v i x x' := by
-    obtain rfl : ‹DecidableEq (Fin r)› = instDecidableEqFin r := Subsingleton.elim _ _
     rw [prodFiberIntegrand_update_add,
       integralTopForm_add_of_compactSpace o
         ((isSmoothForm_prodFiberIntegrand α.isSmoothForm b _).of_le bot_le)
         ((isSmoothForm_prodFiberIntegrand α.isSmoothForm b _).of_le bot_le)]
   map_update_smul' v i c x := by
-    obtain rfl : ‹DecidableEq (Fin r)› = instDecidableEqFin r := Subsingleton.elim _ _
     rw [prodFiberIntegrand_update_smul,
       integralTopForm_smul, smul_eq_mul, RingHom.id_apply]
   map_eq_zero_of_eq' v i j hv hij := by
