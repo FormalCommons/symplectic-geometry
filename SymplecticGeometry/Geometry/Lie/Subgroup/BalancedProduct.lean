@@ -23,6 +23,12 @@ smoothly. Tau Ceti's `TauCeti.Geometry.Lie.Subgroup.BalancedProduct` makes the b
 (`TauCeti.BalancedProduct.rightTranslationChartedSpace`) for which the projection
 `π : (g, z) ↦ [g, z]` is a submersion. This file describes the kernel of `dπ`.
 
+The balanced product is second countable when `G` and `Z` are, by Mathlib's
+`ContinuousConstSMul.secondCountableTopology`. That it is Hausdorff, when `K` is closed and acts
+continuously on a Hausdorff `Z`, needs nothing here: Mathlib's instance
+`t2Space_quotient_mulAction_of_properSMul` applies, since the diagonal action is proper by Tau
+Ceti's `properSMul_prod`.
+
 The action of `K` on `G` by `h • g = g h⁻¹` has the fundamental vector field
 `ξ_G(g) = -d(L_g)(ξ')`, where `ξ'` is the image of `ξ ∈ Lie(K)` in `Lie(G)`: the orbit map of `g`
 is `h ↦ g h⁻¹`, and inversion has differential `-1` at the identity
@@ -52,6 +58,8 @@ one at `[1, z]`, and the set of such `z` is open and `K`-invariant.
 
 ## Main results
 
+* `TauCeti.BalancedProduct.secondCountableTopology_rightTranslation`: `G ×_K Z` is second
+  countable.
 * `TauCeti.BalancedProduct.ker_mfderiv_quotientMk_rightTranslation`: on
   `K.RightTranslation × Z`, the kernel of `dπ` is the orbit tangent space of the diagonal action.
 * `TauCeti.BalancedProduct.mem_ker_mfderiv_mk_toRightTranslation_iff`: on `G × Z`, a tangent
@@ -135,6 +143,20 @@ theorem surjective_mk_toRightTranslation :
 theorem smul_mk_toRightTranslation_one {z : Z} (hz : ∀ k : K, k • z = z) (k : K) :
     (k : G) • mk K (K.toRightTranslation 1) z = mk K (K.toRightTranslation 1) z := by
   rw [← mk_toRightTranslation_one_smul, hz]
+
+section Topology
+
+variable [TopologicalSpace G] [IsTopologicalGroup G] [TopologicalSpace Z]
+
+/-- **The balanced product `G ×_K Z` is second countable** when `G` and `Z` are and `K` acts on
+`Z` by homeomorphisms: it is the quotient of `G × Z` by an action by homeomorphisms. -/
+instance secondCountableTopology_rightTranslation [SecondCountableTopology G]
+    [SecondCountableTopology Z] [ContinuousConstSMul K Z] :
+    SecondCountableTopology (BalancedProduct K K.RightTranslation Z) :=
+  haveI : SecondCountableTopology K.RightTranslation := inferInstanceAs (SecondCountableTopology G)
+  ContinuousConstSMul.secondCountableTopology
+
+end Topology
 
 attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
 
