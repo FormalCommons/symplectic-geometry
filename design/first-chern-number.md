@@ -936,16 +936,16 @@ issues, in an order where each issue's blockers come before it.
    The move to `c9d170eed5a8` (#2025) deleted all these copies: their
    declarations are Tau Ceti's now, in the files of the same paths under
    `TauCeti/`.
-   The Mayer–Vietoris step of duality is the library's own
-   `AlgebraicTopology/Cohomology/CompactSupport/Duality/Union.lean`, not a
-   file of Tau Ceti's: `TauCeti.HomologicalOrientation.bijective_dualityMap_of_sup_eq_top'`
-   for a cover by two open sets, and `bijective_dualityMap_comap_sup'` for two
-   open sets of `M`. Both assume only duality in every degree for `U`, `V`
-   and `U ∩ V`: the vanishing of `Hⁿ⁺¹_c(U ∩ V; L)`, which injectivity
-   needs in the top degree, holds for every open set of `M`
-   (`TopCat.isZero_compactSupportCohomology_of_chartedSpace_int`, in the
-   library's `AlgebraicTopology/Cohomology/CompactSupport/Manifold.lean`,
-   applied to the open set as a manifold).
+   The Mayer–Vietoris step of duality is Tau Ceti's
+   `TauCeti/AlgebraicTopology/Cohomology/CompactSupport/Duality/MayerVietoris.lean`:
+   `TauCeti.HomologicalOrientation.bijective_dualityMap_of_sup_eq_top`
+   for a cover by two open sets, and `bijective_dualityMap_comap_sup` for two
+   open sets of `M`. Besides duality in every degree for `U`, `V` and
+   `U ∩ V`, they take as a hypothesis the vanishing of `Hⁿ⁺¹_c(U ∩ V; L)`,
+   which injectivity needs in the top degree. It holds for every open set
+   of a Hausdorff manifold: `Hᵐ_c(M) = 0` above the dimension is Tau Ceti's
+   `TopCat.isZero_compactSupportCohomology_of_finrank_lt`, in
+   `TauCeti/AlgebraicTopology/Cohomology/CompactSupport/Manifold.lean`.
    `TopCat.isZero_compactSupportCohomology_sup`, in Tau Ceti's
    `TauCeti/AlgebraicTopology/Cohomology/CompactSupport/Vanishing.lean`,
    passes such a vanishing on to `U ∪ V`, and
@@ -955,37 +955,13 @@ issues, in an order where each issue's blockers come before it.
    `TopCat.isZero_compactSupportCohomology_of_starConvex` and
    `isZero_compactSupportCohomology_of_convex`: `Hᵏ_c(U) = 0` for
    `k ≠ dim F` when `U` embeds openly in `F` with star-convex or convex
-   image. The step uses
-   `Topology/Sets/Opens/Comap.lean`,
-   `TopologicalSpace.Opens.range_val_comp_val_comap`, to read an open set of
-   `M` as one of `U ∪ V`, and `comap_val_sup_comap_val_eq_top`, for the
-   cover of `U ∪ V` by `U` and `V` so read, and
-   `Algebra/Category/ModuleCat/Basic.lean`,
-   `ModuleCat.bijective_zsmul_iff`, for the sign of the connecting square.
-   Duality for every open subset of a finite-dimensional real normed space
-   `F` is the library's
-   `AlgebraicTopology/Cohomology/CompactSupport/Euclidean/Duality.lean`:
-   `TauCeti.HomologicalOrientation.bijective_dualityMap_of_isOpenEmbedding`,
-   for an open embedding `j : U → F` and any orientation of `U`. It uses
-   `TopCat.isZero_compactSupportCohomology_of_isOpenEmbedding`, in
-   `Euclidean/Basic.lean`, `Hᵐ_c(U) = 0` for `m > dim F`, which the step to
-   compact manifolds needs too, for the intersections. Both run
-   Mayer–Vietoris over finite unions of open sets of `U` with convex images,
-   starting from `isZero_compactSupportCohomology_of_convex` and Tau Ceti's
-   `bijective_dualityMap_of_convex`. Those open sets come from
-   `Analysis/Convex/Opens.lean`:
-   `TopologicalSpace.Opens.infClosed_setOf_convex_image` and
-   `Topology.IsOpenEmbedding.sSup_setOf_convex_image_eq_top`. The
-   induction is `InfClosed.finset_sup_induction`, in `Order/SupClosed.lean`,
-   Tau Ceti's `TauCeti.finset_sup_of_inf_closed` for a finite set of members
-   of the family. It is run once for each theory, over any inf-closed
-   family of open sets that covers the space:
-   `TopCat.isZero_compactSupportCohomology_of_infClosed`, in
-   `CompactSupport/Vanishing.lean`, and
-   `TauCeti.HomologicalOrientation.bijective_dualityMap_of_infClosed`, in
-   `CompactSupport/Duality/Union.lean`, which imports
-   `CompactSupport/Manifold.lean` for `Hⁿ⁺¹_c(W; L) = 0` on every open
-   set `W`. Their case of the empty
+   image. The library's `CompactSupport/Vanishing.lean` runs the
+   Mayer–Vietoris induction for vanishing over any inf-closed family of
+   open sets that covers the space,
+   `TopCat.isZero_compactSupportCohomology_of_infClosed`, through
+   `InfClosed.finset_sup_induction`, in `Order/SupClosed.lean`, Tau Ceti's
+   `TauCeti.finset_sup_of_inf_closed` for a finite set of members of the
+   family. Its case of the empty
    union uses the instance `TopologicalSpace.Opens.isEmpty_bot` of
    `Topology/Sets/Opens/Basic.lean`, which `CompactSupport/Vanishing.lean`
    imports.
@@ -994,16 +970,7 @@ issues, in an order where each issue's blockers come before it.
    `TauCeti.HomologicalOrientation.bijective_dualityMap`, for every
    homologically oriented manifold, compact or not, and for compact `M` its
    form for capping with the fundamental class,
-   `bijective_singularCap_fundamentalClass`. The library's
-   `AlgebraicTopology/Cohomology/CompactSupport/Manifold.lean` proves
-   `TopCat.isZero_compactSupportCohomology_of_chartedSpace`, `Hᵐ_c(M) = 0`
-   above the dimension, which the Mayer–Vietoris step of
-   `CompactSupport/Duality/Union.lean` needs for the intersections. It runs
-   the induction above over the open sets lying in one chart instead of
-   those with convex image; that family comes from
-   `Geometry/Manifold/ChartedSpace.lean`:
-   `TopologicalSpace.Opens.infClosed_setOf_subset_chartAt_source` and
-   `TopologicalSpace.Opens.sSup_setOf_subset_chartAt_source_eq_top`.
+   `bijective_singularCap_fundamentalClass`.
 3. **The unit circle bundle of a Hermitian line bundle.**
    `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean`, the file
    of *Symplectic vector bundles* (its section *The circle bundle of a
