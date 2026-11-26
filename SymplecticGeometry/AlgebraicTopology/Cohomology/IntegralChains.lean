@@ -29,6 +29,10 @@ fundamental class.
   `SymplecticGeometry.ιChainComplex_intCastChainMap_f`, on an element it is
   `SymplecticGeometry.intCastChainMap_f_ιChainComplex`, and followed by a cochain it is
   `SymplecticGeometry.intCastChainMap_f_comp_apply`.
+* `SymplecticGeometry.intCastCyclesMap k S n : Z_n(S; ℤ) ⟶ F (Z_n(S; k))`: the map it induces on
+  cycles, the change of coefficients `SSet.restrictScalarsCyclesMap` along the same map, which
+  `SymplecticGeometry.intCastCyclesMap_eq_cyclesMap` writes with `HomologicalComplex.cyclesMap`
+  and `SymplecticGeometry.intCastCyclesMap_iCycles` relates to `intCastChainMap` on chains.
 * `TopCat.singularCochainComplexRestrictScalarsIso`: the restricted `k`-linear cochains are the
   same morphisms, with the action of `ℤ` of the `ℤ`-linear category `ModuleCat k`.
 * `TopCat.singularCochainComplexIntChainsIso`: the comparison of cochains, the composite of the
@@ -139,6 +143,50 @@ theorem intCastChainMap_f_comp_apply (S : SSet.{0}) {n : ℕ}
   -- underlying types, which `rw` does not identify with the carriers here.
   erw [ModuleCat.restrictScalarsAlgebraMapIso_hom_apply, ModuleCat.restrictScalars.map_apply]
   rw [← smul_eq_mul, ← map_smul, ← map_smul, smul_eq_mul, mul_one]
+
+/-- The map `Z_n(S; ℤ) ⟶ F (Z_n(S; k))` that casts the coefficients of the integral `n`-cycles
+of a simplicial set `S` to `k`, the target read as an abelian group through the restriction of
+scalars `F` along `ℤ → k`: the change of coefficients `SSet.restrictScalarsCyclesMap` along
+`SymplecticGeometry.intCastCoeff k`. -/
+def intCastCyclesMap (S : SSet.{0}) (n : ℕ) :
+    (S.chainComplex (ModuleCat.of ℤ (ULift.{0} ℤ))).cycles n ⟶
+      (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).obj
+        ((S.chainComplex (ModuleCat.of k k)).cycles n) :=
+  SSet.restrictScalarsCyclesMap (algebraMap ℤ k) (N := ModuleCat.of k k)
+    (intCastCoeff k ≫ (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := k) k).inv) S n
+
+variable {k} in
+/-- The map casting integral cycles to `k` is the change of coefficients
+`SSet.restrictScalarsCyclesMap` along `SymplecticGeometry.intCastCoeff k`, followed by the
+identification of the abelian group `k` with the restricted `k`-module `k`. -/
+theorem intCastCyclesMap_def (S : SSet.{0}) (n : ℕ) :
+    intCastCyclesMap k S n =
+      SSet.restrictScalarsCyclesMap (algebraMap ℤ k) (N := ModuleCat.of k k)
+        (intCastCoeff k ≫ (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := k) k).inv)
+        S n :=
+  (rfl)
+
+variable {k} in
+/-- The map casting integral cycles to `k` is the map induced on cycles by
+`SymplecticGeometry.intCastChainMap`, followed by the identification of the cycles of the
+restricted complex with the restriction of the cycles. -/
+theorem intCastCyclesMap_eq_cyclesMap (S : SSet.{0}) (n : ℕ) :
+    intCastCyclesMap k S n =
+      HomologicalComplex.cyclesMap (intCastChainMap k S) n ≫
+        (((S.chainComplex (ModuleCat.of k k)).sc n).mapCyclesIso
+          (ModuleCat.restrictScalars.{0} (algebraMap ℤ k))).hom := by
+  rw [intCastCyclesMap_def, SSet.restrictScalarsCyclesMap_def, intCastChainMap_def]
+
+variable {k} in
+/-- The underlying chain of an integral cycle cast to `k` is the underlying chain cast to `k`. -/
+@[reassoc, elementwise nosimp]
+theorem intCastCyclesMap_iCycles (S : SSet.{0}) (n : ℕ) :
+    intCastCyclesMap k S n ≫
+        (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).map
+          ((S.chainComplex (ModuleCat.of k k)).iCycles n) =
+      (S.chainComplex (ModuleCat.of ℤ (ULift.{0} ℤ))).iCycles n ≫
+        (intCastChainMap k S).f n := by
+  rw [intCastCyclesMap_def, SSet.restrictScalarsCyclesMap_iCycles, intCastChainMap_def]
 
 end SymplecticGeometry
 
