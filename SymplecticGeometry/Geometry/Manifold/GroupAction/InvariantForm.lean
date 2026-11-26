@@ -34,7 +34,7 @@ fundamental vector field symplectic, so that `ι_{X_ξ} σ` is closed.
 
 Tau Ceti's `TauCeti.mlieDerivForm_fundamentalVectorField_eq_zero` asks the model of `M` to have
 no boundary. For a boundaryless manifold whose model may have boundary, an invariant form of
-positive degree is carried to the copy `TauCeti.BoundarylessModel I M` with charts in the model
+any degree is carried to the copy `TauCeti.BoundarylessModel I M` with charts in the model
 vector space along the inverse of the identity diffeomorphism
 `TauCeti.BoundarylessModel.interiorDiffeomorph`. It stays invariant there, since that map is
 equivariant, so Tau Ceti's result applies on the copy. Pulling back along the diffeomorphism, the
@@ -47,7 +47,7 @@ follows `SymplecticGeometry.exists_invariant_smoothForm_apply_fundamentalVectorF
 ## Main results
 
 * `TauCeti.mlieDerivForm_fundamentalVectorField_eq_zero_of_boundarylessManifold`: invariant forms
-  of positive degree have zero Lie derivative along fundamental vector fields on a boundaryless
+  of every degree have zero Lie derivative along fundamental vector fields on a boundaryless
   manifold whose model may have boundary.
 * `TauCeti.mvfderiv_apply_fundamentalVectorField_eq_zero`: the pairing of a closed invariant
   one-form with a fundamental vector field has zero differential.
@@ -81,10 +81,10 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E
 
 attribute [local instance] BoundarylessModel.interiorChartedSpace in
 /-- **Invariant forms are infinitesimally invariant**, on a boundaryless manifold whose model may
-have boundary. If a smooth form `α` of positive degree is invariant under every element of `G`,
+have boundary. If a smooth form `α` of any degree is invariant under every element of `G`,
 then its Lie derivative along every fundamental vector field vanishes: `L_{ξ_M} α = 0`. -/
 theorem mlieDerivForm_fundamentalVectorField_eq_zero_of_boundarylessManifold {k : ℕ}
-    {α : SmoothForm I' M F (k + 1)}
+    {α : SmoothForm I' M F k}
     (hα : ∀ g : G, SmoothForm.mpullback (fun x : M ↦ g • x)
       (ContMDiffSMul.contMDiff_const_smul (I := I) (I' := I') g) α = α)
     (ξ : GroupLieAlgebra I G) :
