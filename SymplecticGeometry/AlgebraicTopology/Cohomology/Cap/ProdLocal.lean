@@ -32,8 +32,14 @@ the same construction applied to the local homology cross product
 (`SymplecticGeometry.singularRelativeCap_localHomologyCross`). This is
 `TopCat.singularRelativeCap_singularHomologyCrossRelPair_ulift`, once the local cross product is
 read back as the cross product of the pairs
-(`SymplecticGeometry.localHomologyCross_comp_homologyMap_uliftTensorSelfIso_inv`). The case of
-orientations then follows from `⟨u, o⟩ = 1` (`Orientation.kronecker_localCohomologyClass`).
+(`SymplecticGeometry.localHomologyCross_comp_homologyMap_uliftTensorSelfIso_inv`).
+
+Take for `o` the local orientation of `ω` and for `u` the generator, so that `⟨u, o⟩ = 1`
+(`Orientation.kronecker_localCohomologyClass`). Then the construction gives back any local class
+`z` of `Q`, in any degree and with no hypothesis on `Q`
+(`Orientation.singularRelativeCap_modelThomGenerator_localHomologyCross_localOrientation`). The
+local cap computation is the case where `z` is the local orientation of `ω'`, and the case
+`m = 0` is the case where `Q` is a point and `z` any class of `H₀(Q, Q ∖ 0; ℤ)`.
 
 The cross product is also the local orientation of the orientation of `P × Q` that puts `ω'`
 first: `ω'.prod ω` of `Q × P`, carried to `P × Q` by the exchange of factors. This is
@@ -42,24 +48,24 @@ first: `ω'.prod ω` of `Q × P`, carried to `P × Q` by the exchange of factors
 no sign is counted
 (`Orientation.singularRelativeCap_modelThomGenerator_localOrientation_map_prodComm`).
 
-When `r = 0` or `m = 0` there is no cross product of local orientations, and the computation is
-that of the general formula: for `r = 0` the generator pairs with the point class of `P` to `±1`,
-the sign of `ω` (`Orientation.singularRelativeCap_modelThomGenerator_localHomologyCross_of_zero`),
-and for `m = 0` every class `z` of `H₀(Q, Q ∖ 0; ℤ)` comes back unchanged
-(`Orientation.singularRelativeCap_modelThomGenerator_localHomologyCross_localOrientation`, which
-holds in every degree of `Q`).
+When `r = 0`, `Orientation.localOrientation` does not apply and the point class of `P` takes its
+place. The general formula then shows that the generator pairs with the point class of `P` to
+`±1`, the sign of `ω`
+(`Orientation.singularRelativeCap_modelThomGenerator_localHomologyCross_of_zero`).
 
 ## Main results
 
 * `SymplecticGeometry.singularRelativeCap_localHomologyCross`:
   `pr₂_*((o × z) ⌢ pr₁^* u) = ⟨u, o⟩ • z` for the cross product of local homology classes.
+* `Orientation.singularRelativeCap_modelThomGenerator_localHomologyCross_localOrientation`: the
+  cross product of the local orientation of `ω` with any local class `z` of `Q` gives back `z`;
+  for `Q` a point, this is the case `m = 0`.
 * `Orientation.singularRelativeCap_modelThomGenerator_cross_localOrientation`: the local cap
   computation, for `r = k + 1` and `m = l + 1`, normal factor first.
 * `Orientation.singularRelativeCap_modelThomGenerator_localOrientation_map_prodComm`: the same, with
   the cross product read as the local orientation of the orientation that puts `ω'` first.
-* `Orientation.singularRelativeCap_modelThomGenerator_localHomologyCross_of_zero` and
-  `Orientation.singularRelativeCap_modelThomGenerator_localHomologyCross_localOrientation`: the
-  cases `r = 0` and `m = 0`.
+* `Orientation.singularRelativeCap_modelThomGenerator_localHomologyCross_of_zero`: the case
+  `r = 0`.
 
 ## References
 
@@ -146,6 +152,42 @@ open SymplecticGeometry
 variable {P Q : Type} [NormedAddCommGroup P] [NormedSpace ℝ P] [NormedAddCommGroup Q]
   [NormedSpace ℝ Q] {k l d : ℕ}
 
+omit [NormedSpace ℝ Q] in
+/-- **Capping the cross product of a local orientation with the generator.** For an orientation
+`ω` of `P`, of dimension `k + 1`, and any local class `z ∈ H_q(Q, Q ∖ 0; ℤ)`, in any degree `q`
+and with no hypothesis on `Q`, read the local cross product of the local orientation selected by
+`ω` with `z` relative to `(P ∖ 0) × Q ∪ P × (Q ∖ 0)`, cap it with the pull-back of
+`ω.modelThomGenerator hP` along the first projection, and push forward along the second
+projection: the result is `z`. Taking for `z` the local orientation selected by an orientation of
+`Q` gives the local cap computation
+(`singularRelativeCap_modelThomGenerator_cross_localOrientation`); taking `Q` of dimension zero
+and `q = 0` gives its case `m = 0`, which no cross product of local orientations covers. -/
+theorem singularRelativeCap_modelThomGenerator_localHomologyCross_localOrientation
+    {q n : ℕ} (hP : finrank ℝ P = k + 1) (h : k + 1 + q = n) (ω : Orientation ℝ P (Fin (k + 1)))
+    (z : localHomology (A := ModuleCat.{0} ℤ) (ModuleCat.of ℤ (ULift.{0} ℤ)) ({0} : Set Q) q) :
+    haveI := FiniteDimensional.of_finrank_eq_succ hP
+    TopPair.singularHomologyMap
+        (TopPair.ofSubsetMap (snd (TopCat.of P) (TopCat.of Q)) (Set.mapsTo_preimage _ _))
+        (ModuleCat.of ℤ (ULift.{0} ℤ)) q
+        (TopCat.singularRelativeCap ℤ (ρ_ _).inv (ρ_ _).hom
+          (fst (TopCat.of P) (TopCat.of Q) ⁻¹' ({0}ᶜ : Set (TopCat.of P)))
+          (snd (TopCat.of P) (TopCat.of Q) ⁻¹' ({0}ᶜ : Set (TopCat.of Q)))
+          (TopCat.isOpen_subtypeVal_preimage_preimage_fst_union isOpen_compl_singleton)
+          (TopCat.isOpen_subtypeVal_preimage_preimage_snd_union isOpen_compl_singleton)
+          (k + 1) q n h
+          (TopPair.singularCohomologyMap
+            (TopPair.ofSubsetMap (fst (TopCat.of P) (TopCat.of Q)) (Set.mapsTo_preimage _ _))
+            (k + 1) (ω.modelThomGenerator hP))
+          (TopPair.singularHomologyMap (TopPair.ofSubsetMap _
+              (TopCat.mapsTo_compl_singleton_preimage_fst_compl_union_preimage_snd_compl
+                (0 : P) (0 : Q))) (ModuleCat.of ℤ (ULift.{0} ℤ)) n
+            ((localHomologyCross (0 : P) (0 : Q) (k + 1) q n h).hom
+              ((ω.localOrientation hP).val ⊗ₜ z)))) = z := by
+  have := FiniteDimensional.of_finrank_eq_succ hP
+  rw [modelThomGenerator_eq_localCohomologyClass, singularRelativeCap_localHomologyCross,
+    kronecker_localCohomologyClass]
+  exact one_smul ℤ _
+
 /-- **The local cap computation**, normal factor first. For orientations `ω` of `P` and `ω'` of
 `Q`, of dimensions `k + 1` and `l + 1`, read the cross product of their local orientations at the
 origin, `P` first, relative to `(P ∖ 0) × Q ∪ P × (Q ∖ 0)`, cap it with the pull-back along the
@@ -174,10 +216,8 @@ theorem singularRelativeCap_modelThomGenerator_cross_localOrientation
             (LocalOrientation.cross hP hQ hd (ω.localOrientation hP)
               (ω'.localOrientation hQ)).val)) =
       (ω'.localOrientation hQ).val := by
-  have := FiniteDimensional.of_finrank_eq_succ hP
-  rw [LocalOrientation.coe_cross, modelThomGenerator_eq_localCohomologyClass,
-    singularRelativeCap_localHomologyCross, kronecker_localCohomologyClass]
-  exact one_smul ℤ _
+  rw [LocalOrientation.coe_cross]
+  exact singularRelativeCap_modelThomGenerator_localHomologyCross_localOrientation hP hd ω _
 
 /-- **The local cap computation, with the orientation that puts `ω'` first.** For orientations
 `ω` of `P` and `ω'` of `Q`, of dimensions `k + 1` and `l + 1`, take the local orientation of
@@ -215,39 +255,6 @@ theorem singularRelativeCap_modelThomGenerator_localOrientation_map_prodComm
     ← LocalOrientation.prod_localOrientation,
     ← LocalOrientation.cross_eq_map_prodComm_prod hP hQ hd' hd]
   exact singularRelativeCap_modelThomGenerator_cross_localOrientation hP hQ hd' ω ω'
-
-omit [NormedSpace ℝ Q] in
-/-- **The local cap computation when the second factor is a point.** For an orientation `ω` of
-`P`, of dimension `k + 1`, and any class `z` of `H_q(Q, Q ∖ 0; ℤ)`, read the local cross product
-of the local orientation selected by `ω` with `z` relative to `(P ∖ 0) × Q ∪ P × (Q ∖ 0)`, cap it
-with the pull-back of `ω.modelThomGenerator hP` along the first projection, and push forward along
-the second projection: the result is `z`. For `Q` of dimension zero and `q = 0`, this is the case
-`m = 0` of the local cap computation, which no cross product of local orientations covers. -/
-theorem singularRelativeCap_modelThomGenerator_localHomologyCross_localOrientation
-    {q n : ℕ} (hP : finrank ℝ P = k + 1) (h : k + 1 + q = n) (ω : Orientation ℝ P (Fin (k + 1)))
-    (z : localHomology (A := ModuleCat.{0} ℤ) (ModuleCat.of ℤ (ULift.{0} ℤ)) ({0} : Set Q) q) :
-    haveI := FiniteDimensional.of_finrank_eq_succ hP
-    TopPair.singularHomologyMap
-        (TopPair.ofSubsetMap (snd (TopCat.of P) (TopCat.of Q)) (Set.mapsTo_preimage _ _))
-        (ModuleCat.of ℤ (ULift.{0} ℤ)) q
-        (TopCat.singularRelativeCap ℤ (ρ_ _).inv (ρ_ _).hom
-          (fst (TopCat.of P) (TopCat.of Q) ⁻¹' ({0}ᶜ : Set (TopCat.of P)))
-          (snd (TopCat.of P) (TopCat.of Q) ⁻¹' ({0}ᶜ : Set (TopCat.of Q)))
-          (TopCat.isOpen_subtypeVal_preimage_preimage_fst_union isOpen_compl_singleton)
-          (TopCat.isOpen_subtypeVal_preimage_preimage_snd_union isOpen_compl_singleton)
-          (k + 1) q n h
-          (TopPair.singularCohomologyMap
-            (TopPair.ofSubsetMap (fst (TopCat.of P) (TopCat.of Q)) (Set.mapsTo_preimage _ _))
-            (k + 1) (ω.modelThomGenerator hP))
-          (TopPair.singularHomologyMap (TopPair.ofSubsetMap _
-              (TopCat.mapsTo_compl_singleton_preimage_fst_compl_union_preimage_snd_compl
-                (0 : P) (0 : Q))) (ModuleCat.of ℤ (ULift.{0} ℤ)) n
-            ((localHomologyCross (0 : P) (0 : Q) (k + 1) q n h).hom
-              ((ω.localOrientation hP).val ⊗ₜ z)))) = z := by
-  have := FiniteDimensional.of_finrank_eq_succ hP
-  rw [modelThomGenerator_eq_localCohomologyClass, singularRelativeCap_localHomologyCross,
-    kronecker_localCohomologyClass]
-  exact one_smul ℤ _
 
 omit [NormedSpace ℝ Q] in
 open Classical in
