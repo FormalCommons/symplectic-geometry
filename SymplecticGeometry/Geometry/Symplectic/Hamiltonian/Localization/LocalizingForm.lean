@@ -383,7 +383,7 @@ private theorem exists_smul_invariant_cutoffs_weightCharts {G : Type*} [Group G]
   · exact (ball_subset_ball (by linarith [hc0 i])).trans (hc i)
   · exact h1 i (mem_image_of_mem _ (ball_subset_closedBall hz))
 
-variable [FiniteDimensional ℝ E] [I.Boundaryless] [IsManifold I ∞ M]
+variable [FiniteDimensional ℝ E] [IsManifold I ∞ M] [BoundarylessManifold I M]
   [MulAction Circle M] [ContMDiffSMul (𝓡 1) I ∞ Circle M]
 
 /-- **Gluing model one-forms along weight charts.** Let the circle act smoothly on a σ-compact
