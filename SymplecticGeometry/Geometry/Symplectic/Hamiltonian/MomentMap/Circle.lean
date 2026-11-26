@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.Circle
-public import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.Basic
+public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Commutative
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap.Critical
 import SymplecticGeometry.LinearAlgebra.FiniteDimensional.FinrankOne
 
@@ -28,10 +28,10 @@ nondegenerate a level of `H` without fixed points is a regular value of `H`. For
 has the critical points of `H` (`TauCeti.criticalPoints_neg`).
 
 Since the Lie algebra of `Circle` is spanned by `ξ₁`, the kernel of the differential of a moment
-map `μ` is that of `dH`. A moment map `μ` is invariant under the action, and since the coadjoint
-action of the abelian group `Circle` is trivial (`TauCeti.Lie.coadjointRepresentation_eq_one`),
-it is a group-level moment map in Tau Ceti's sense. The kernel identity and this equivariance are
-what Tau Ceti's equivariant reduction of a level
+map `μ` is that of `dH`. A moment map `μ` is invariant under the action, and so, since `Circle` is
+commutative, it is a group-level moment map in Tau Ceti's sense
+(`TauCeti.SmoothTwoForm.IsMomentMap.isEquivariantMomentMap_of_apply_smul`). The kernel identity
+and this equivariance are what Tau Ceti's equivariant reduction of a level
 (`TauCeti.SmoothTwoForm.IsEquivariantMomentMap.existsUnique_isSymplectic_mpullback_eq_mpullback`)
 needs in the circle case; that theorem derives the vanishing of the cocycle itself.
 
@@ -190,10 +190,8 @@ is a group-level moment map: the coadjoint action of the abelian group `Circle` 
 `μ` is invariant under the action. -/
 theorem isEquivariantMomentMap_circle
     (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) μ) :
-    σ.IsEquivariantMomentMap μ where
-  toIsMomentMap := hμ
-  apply_smul g x := by
-    rw [Lie.coadjointRepresentation_eq_one, one_apply_eq_self, hμ.apply_smul_circle]
+    σ.IsEquivariantMomentMap μ :=
+  hμ.isEquivariantMomentMap_of_apply_smul hμ.apply_smul_circle
 
 end TauCeti.SmoothTwoForm.IsMomentMap
 
