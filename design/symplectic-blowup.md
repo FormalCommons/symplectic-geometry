@@ -352,7 +352,7 @@ $B(\lambda)$.
   (injective, with injective differential by `injective_mfderiv`, in equal
   dimension). It goes in *Isotopy extension*'s `Ball/Basic.lean` if that
   file has no such lemma when the issue starts; the issue searches first.
-- `gluingDiffeomorph hψ hλ hε`, for `hλ : 0 ≤ λ` and `hε : 0 ≤ ε`: two
+- `gluingDiffeomorph hψ hλ hε`, for `hλ : 0 ≤ λ` and `hε : 0 < ε`: two
   pieces, the open set `(ψ '' closedBall 0 λ)ᶜ` of `M`
   and `openNbhd n ε`, glued along `openNbhd n ε \ Z` and
   $\psi(\{\lambda<|w|<\sqrt{\lambda^2+\varepsilon^2}\})$ by
