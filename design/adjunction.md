@@ -31,7 +31,7 @@ pinned versions, as for `DESIGN.md`. Tau Ceti paths are relative to
   general files below allow any source model `I' : ModelWithCorners ℝ E' H'`
   in place of `𝓡 2`.
 - **$J$-invariance.** "$J(T\Sigma)=T\Sigma$" is the hypothesis
-  `hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn`,
+  `hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn)`,
   with Tau Ceti's `TauCeti.SmoothEmbedding.tangentRange` and `hn` the proof
   that `∞ ≠ 0` in `ℕ∞ω`. It is the hypothesis `hp` of Tau Ceti's
   `TauCeti.AlmostComplexStructure.quotient` at each point, and no new
