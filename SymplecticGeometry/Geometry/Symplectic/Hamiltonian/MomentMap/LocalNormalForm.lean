@@ -323,7 +323,9 @@ theorem exists_isLocalDiffeomorph_apply_eq_descendedMomentMap :
   have hcN := Opens.coe_smul_mulActionOfForallSMulMem hNG
   have : ContMDiffSMul I 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))) ∞ G N :=
     Opens.contMDiffSMul_of_coe_smul hcN
-  have h₁ := hμ.mpullback hΨ fun g y ↦ hΨG g y _
+  have hΨG' (g : G) (y : N) : Ψ (g • y) = g • Ψ y :=
+    (congrArg Ψ (Subtype.ext (hcN g y))).trans (hΨG g y (hNG g y y.property))
+  have h₁ := hμ.mpullback hΨ hΨG'
   rw [hΨσ] at h₁
   have h₂ := D.isEquivariantMomentMap_descendedForm.mpullback contMDiff_subtypeVal hcN
   obtain ⟨c, hc⟩ :=
@@ -362,7 +364,7 @@ theorem exists_isLocalDiffeomorph_apply_eq_descendedMomentMap :
   · -- Invariance: both maps are equivariant.
     obtain ⟨z, hz, rfl⟩ := hy
     refine (hmemN' (g • z)).2 ((hagree _).1 ?_)
-    rw [show Ψ (g • z) = g • Ψ z from hΨG g z _, hμ.apply_smul, hcN, descendedMomentMap_smul,
+    rw [hΨG', hμ.apply_smul, hcN, descendedMomentMap_smul,
       (hagree z).2 hz]
   · exact hΨG g (Opens.inclusion hN'N y) (hN'N h)
   · exact hΨ0 g (hN'N h)
