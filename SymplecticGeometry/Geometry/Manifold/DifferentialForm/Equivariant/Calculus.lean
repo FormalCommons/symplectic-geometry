@@ -9,9 +9,12 @@ public import Mathlib.Analysis.Calculus.IteratedDeriv.Defs
 public import Mathlib.Analysis.SpecialFunctions.ExpDeriv
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Equivariant.Basic
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Graded
+public import TauCeti.Geometry.Symplectic.Hamiltonian.Manifold
 import Mathlib.Analysis.Calculus.IteratedDeriv.Lemmas
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Support
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import TauCeti.Geometry.Symplectic.Hamiltonian.SymplecticVectorField
 import TauCeti.Topology.Algebra.Support
 
 /-!
@@ -73,6 +76,9 @@ zero.
   coefficients `F⁽ᵏ⁾(f)`.
 * `SymplecticGeometry.cartanDiff_formCalculus`: `F(f + τ)` is equivariantly closed when `f + τ`
   is.
+* `SymplecticGeometry.cartanDiff_formCalculus_of_isHamiltonianVectorField`: for a closed
+  two-form `σ` and a smooth Hamiltonian vector field `X` of `-h` for `σ`, the form `F(σ - ħh)` is
+  equivariantly closed.
 
 ## References
 
@@ -493,6 +499,33 @@ theorem cartanDiff_formCalculus [FiniteDimensional ℝ E] (F : ℝ → ℝ) (hF 
   rw [hsum, hB, smul_zero]
 
 end CartanDiff
+
+section Hamiltonian
+
+variable [IsManifold I ∞ M] [FiniteDimensional ℝ E]
+
+/-- **`F(σ - ħh)` is equivariantly closed for a Hamiltonian vector field.** Let `σ` be a closed
+two-form and `X` a smooth Hamiltonian vector field of `-h` for `σ`, so that `ι_X σ = -dh`.
+Then for every smooth `F : ℝ → ℝ` and every real `ħ`, the form
+`F(σ - ħh) = formCalculus F hF (-ħ • h) σ`
+satisfies `d_ħ F(σ - ħh) = 0`. -/
+theorem cartanDiff_formCalculus_of_isHamiltonianVectorField {σ : SmoothTwoForm I M}
+    (hσ : SmoothForm.IsClosed σ) {X : (x : M) → TangentSpace I x}
+    (hX : ContMDiff I I.tangent ∞ fun x ↦ (⟨x, X x⟩ : TangentBundle I M))
+    {h : C^∞⟮I, M; ℝ⟯} (hXh : σ.IsHamiltonianVectorField (fun x ↦ -h x) X)
+    (F : ℝ → ℝ) (hF : ContDiff ℝ ∞ F) (ħ : ℝ) :
+    cartanDiff X hX ħ (formCalculus F hF (-ħ • h) σ) = 0 := by
+  -- `ι_X σ = -dh`.
+  have hι : σ.interiorₗ ⟨_, hX⟩ = mextDerivₗ I 0 (SmoothForm.ofFunction (-h)) :=
+    SmoothTwoForm.isHamiltonianVectorField_iff_interiorₗ_eq.1 (by
+      rw [SmoothForm.ofFunction_apply_zero]
+      exact hXh)
+  refine cartanDiff_formCalculus _ _ ((SmoothForm.isClosed_iff_mextDerivₗ_eq_zero σ).1 hσ) ?_
+  rw [← SmoothTwoForm.interiorₗ_eq_interiorProduct, hι, ← map_smul, neg_smul, ← smul_neg,
+    ← SmoothForm.ofFunctionEquiv_apply, ← SmoothForm.ofFunctionEquiv_apply]
+  exact congrArg _ (SmoothForm.ofFunctionEquiv.map_smul ħ (-h)).symm
+
+end Hamiltonian
 
 end SymplecticGeometry
 

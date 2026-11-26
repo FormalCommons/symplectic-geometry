@@ -15,16 +15,22 @@ Let a commutative Lie group `G` act smoothly on a manifold `M` with a two-form `
 (`TauCeti.Lie.coadjointRepresentation_eq_one`). Coadjoint equivariance of a map `μ : M → 𝔤*` thus
 reduces to invariance, `μ (g • x) = μ x`, and a moment map of the fundamental vector fields that is
 invariant under the action is a group-level moment map in Tau Ceti's sense
-(`TauCeti.SmoothTwoForm.IsEquivariantMomentMap`). No invariance of `σ` is needed.
+(`TauCeti.SmoothTwoForm.IsEquivariantMomentMap`), and conversely every group-level moment map is
+invariant. No invariance of `σ` is needed.
 
-Tau Ceti proves this step inside `TauCeti.SmoothTwoForm.hamiltonianTorusData_iff`, for a
-`CommGroup` and together with invariance of `σ`; the lemma here states it alone, for a `Group`
-with `IsMulCommutative`, with the same proof.
+Tau Ceti proves both directions inside `TauCeti.SmoothTwoForm.hamiltonianTorusData_iff` and
+`TauCeti.SmoothTwoForm.HamiltonianTorusData.apply_smul_eq`, for a `CommGroup` and together with
+invariance of `σ`; the lemmas here state them alone, for a `Group` with `IsMulCommutative`, with
+the same proofs.
 
 ## Main results
 
 * `TauCeti.SmoothTwoForm.IsMomentMap.isEquivariantMomentMap_of_apply_smul`: an invariant moment
   map of the action of a commutative Lie group is coadjoint-equivariant.
+* `TauCeti.SmoothTwoForm.IsEquivariantMomentMap.apply_smul_eq_of_isMulCommutative`: conversely,
+  a coadjoint-equivariant moment map of such an action is invariant.
+* `TauCeti.SmoothTwoForm.isEquivariantMomentMap_iff_apply_smul_eq`: for a commutative Lie group,
+  a group-level moment map is exactly an invariant moment map of the fundamental vector fields.
 
 ## References
 
@@ -37,7 +43,7 @@ public section
 open Manifold TauCeti
 open scoped ContDiff Manifold
 
-namespace TauCeti.SmoothTwoForm.IsMomentMap
+namespace TauCeti.SmoothTwoForm
 
 variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
@@ -56,13 +62,31 @@ attribute [local instance] lieGroupOne
 of a commutative Lie group `G` on `M`, a moment map `μ` of the fundamental vector fields for a
 two-form `σ` with `μ (g • x) = μ x` for all `g` and `x` is a coadjoint-equivariant moment map,
 since the coadjoint action of `G` is trivial. -/
-theorem isEquivariantMomentMap_of_apply_smul
+theorem IsMomentMap.isEquivariantMomentMap_of_apply_smul
     (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental I G I' M) μ)
     (hinv : ∀ (g : G) (x : M), μ (g • x) = μ x) : σ.IsEquivariantMomentMap μ where
   toIsMomentMap := hμ
   apply_smul g x := by
     rw [hinv, Lie.coadjointRepresentation_eq_one, one_apply_eq_self]
 
-end TauCeti.SmoothTwoForm.IsMomentMap
+/-- **Equivariant moment maps of commutative group actions are invariant.** For a smooth action
+of a commutative Lie group `G` on `M`, a coadjoint-equivariant moment map `μ` for a two-form `σ`
+satisfies `μ (g • x) = μ x` for all `g` and `x`, since the coadjoint action of `G` is trivial. -/
+theorem IsEquivariantMomentMap.apply_smul_eq_of_isMulCommutative
+    (h : σ.IsEquivariantMomentMap μ) (g : G) (x : M) : μ (g • x) = μ x := by
+  rw [h.apply_smul, Lie.coadjointRepresentation_eq_one, one_apply_eq_self]
+
+/-- **Equivariance is invariance for commutative group actions.** For a smooth action of a
+commutative Lie group `G` on `M` and a two-form `σ`, a map `μ : M → 𝔤*` is a
+coadjoint-equivariant moment map exactly when it is a moment map of the fundamental vector fields
+with `μ (g • x) = μ x` for all `g` and `x`. -/
+theorem isEquivariantMomentMap_iff_apply_smul_eq :
+    σ.IsEquivariantMomentMap μ ↔
+      σ.IsMomentMap (InfinitesimalAction.fundamental I G I' M) μ ∧
+        ∀ (g : G) (x : M), μ (g • x) = μ x :=
+  ⟨fun h ↦ ⟨h.toIsMomentMap, h.apply_smul_eq_of_isMulCommutative⟩,
+    fun h ↦ h.1.isEquivariantMomentMap_of_apply_smul h.2⟩
+
+end TauCeti.SmoothTwoForm
 
 end

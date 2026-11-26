@@ -81,9 +81,11 @@ No statement of this part is one that the authors' errata
   `seeleyExtension`, `contDiff_seeleyExtension`,
   `tsum_seeleyCoeff_smul_compContinuousLinearMap_timeScale` and
   `exists_contDiff_infty_extension_halfSpace`, all for a complete target and
-  for functions on the whole half-space of `ℝ × E`. The library keeps its own
-  operator, since it needs one with no complete target, with parameters in an
-  open set `U`, from both ends of $[0,1]$, and near a single boundary point.
+  for functions on the whole half-space of `ℝ × E`; and
+  `exists_contDiff_eqOn_upperHalfSpace`, the local `C^n` extension near any
+  point, for finite-dimensional `E` and a complete target. The library keeps
+  its own operator, since it needs one with no complete target, with
+  parameters in an open set `U`, and from both ends of $[0,1]$.
   It reuses `timeScale`, `map_timeScale_eq_sum_pow_card_smul` for the
   derivatives of the dilated terms, and glues at $t=0$ as
   `HasFTaylorSeriesUpToOn.union_of_isClosed` does, by `HasFTaylorSeriesUpToOn.union`
@@ -317,11 +319,6 @@ reflection $t\mapsto1-t$.
   $t=0$ is that of $f$ by `tsum_seeleyCoeff_mul_neg_pow`; and
   `HasFTaylorSeriesUpToOn.union` glues the two sides on `univ ×ˢ U`, where
   they are closed only relative to their union.
-- `exists_contDiff_eqOn_of_contDiffOn_halfSpace [HasContDiffBump E]`:
-  a function smooth on `U ∩ {z | 0 ≤ z.1}`, for an open `U` of `ℝ × E`
-  containing `(0, x₀)`, agrees on the part of some open `V ∋ (0, x₀)`
-  where `0 ≤ z.1` with a function smooth on `ℝ × E`; added by issue 5 of
-  *Liouville structures*.
 
 The module docstring cites R. T. Seeley, *Extension of $C^\infty$ functions
 defined in a half space*, Proc. Amer. Math. Soc. 15 (1964), 625–626, which
@@ -331,7 +328,7 @@ one follows with an infinite sum in place of a finite one.
 
 ### `Geometry/Manifold/ContMDiff/TimeExtension.lean`
 
-Maps `unitInterval × M → F` into a normed space, for a boundaryless `M`.
+Maps `unitInterval × M → F` into a normed space, for a manifold `M` that may have boundary.
 
 - `SymplecticGeometry.timeExtend (f : unitInterval × M → F) : ℝ × M → F`,
   `(t, x) ↦ seeleyIccExtend (fun s ↦ f (projIcc 0 1 _ s, x)) t`, with
@@ -347,7 +344,7 @@ Maps `unitInterval × M → F` into a normed space, for a boundaryless `M`.
 - `ContMDiffOn.timeExtend {U : Set M} (hU : IsOpen U)
   (hf : ContMDiffOn ((𝓡∂ 1).prod I) 𝓘(ℝ, F) ∞ f (univ ×ˢ U)) :
   ContMDiffOn (𝓘(ℝ, ℝ).prod I) 𝓘(ℝ, F) ∞ (timeExtend f) (univ ×ˢ U)`, and
-  `ContMDiff.timeExtend`, from `contDiffOn_seeleyIccExtend` in charts of $M$
+  `ContMDiff.timeExtend`, from `contDiffOn_seeleyIccExtend_of_convex` in charts of $M$
   (the time coordinate needs no chart beyond `Subtype.val`).
 
 ### `Geometry/Manifold/DifferentialForm/SmoothFamily/Basic.lean`
@@ -501,7 +498,7 @@ Named like Tau Ceti's file; in `TauCeti`.
 - `TauCeti.SmoothForm.timeExtend : SmoothForm ((𝓡∂ 1).prod I)
   (unitInterval × M) F k →ₗ[ℝ] SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F k`
   (in Tau Ceti's namespace, as it is about Tau Ceti's `SmoothForm`),
-  for a boundaryless `M`: the form `ofSlices` of the slices extended by
+  for a manifold `M` that may have boundary: the form `ofSlices` of the slices extended by
   `seeleyIccExtend` at each point (see *Decisions*), named
   `TauCeti.SmoothForm.timeExtendSlice Ω s`, with `timeExtend_def`.
 - `mpullback_prodMk_timeExtend (t : unitInterval)`: the slice of

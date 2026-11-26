@@ -227,7 +227,7 @@ theorem range_rotationFrame {Λ : ℒ ι} {Z : Matrix (ι ⊕ ι) ι ℝ}
     (hZ : LinearMap.range (toEuclideanLin Z) = Λ) (θ : ℝ) :
     LinearMap.range (toEuclideanLin (rotationFrame Z θ)) = rotate θ Λ := by
   rw [rotate_def, unitary_smul_def, coe_smul_of_coe_eq _ hZ.symm, GLSymplectic.coe_ofUnitary,
-    coe_scalarHom, coe_circleEquivUnitary, scalar_apply, ← smul_one_eq_diagonal, realify_smul_one,
+    coe_scalarHom_eq_smul_one, coe_circleEquivUnitary, realify_smul_one,
     RCLike.re_to_complex, RCLike.im_to_complex,
     Circle.coe_exp, Complex.exp_ofReal_mul_I_re, Complex.exp_ofReal_mul_I_im, rotationFrame_def]
 
@@ -460,8 +460,8 @@ theorem pathMaslovIndex_coordinateHalfTurn (i : ι) (V : ℒ ι) :
   have hdet (t : I) : ((g t : unitaryGroup ι ℂ) : Matrix ι ι ℂ).det =
       Complex.exp ((Real.pi * t + Fintype.card ι * (Real.pi / 2) : ℝ) * Complex.I) := by
     rw [Submonoid.coe_mul, det_mul, ← coe_detCircle, detCircle_detSection]
-    simp only [E, coe_scalarHom, coe_circleEquivUnitary, scalar_apply, ← smul_one_eq_diagonal,
-      det_smul, det_one, mul_one, Circle.coe_exp]
+    simp only [E, coe_scalarHom_eq_smul_one, coe_circleEquivUnitary, det_smul, det_one, mul_one,
+      Circle.coe_exp]
     rw [← Complex.exp_natCast_mul, ← Complex.exp_add]
     congr 1
     push_cast

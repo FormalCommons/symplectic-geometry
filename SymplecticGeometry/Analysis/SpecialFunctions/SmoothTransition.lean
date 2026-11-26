@@ -8,6 +8,7 @@ module
 public import Mathlib.Analysis.Calculus.BumpFunction.InnerProduct
 public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import Mathlib.Analysis.Calculus.Deriv.Inv
+import Mathlib.Analysis.Calculus.LocalExtr.Basic
 public import TauCeti.Geometry.Manifold.Instances.Icc.CollaredSmoothTransition
 import TauCeti.Analysis.Calculus.Deriv.Parity
 import TauCeti.Analysis.SpecialFunctions.SmoothTransition
@@ -67,7 +68,8 @@ For the flat function `f = expNegInvGlue`, whose derivatives at `x > 0` are `x�
 `(|K| + 2) x ≤ 1` (`expNegInvGlue.mul_deriv_le_deriv_deriv`), so for every `K` at all small
 `x > 0` (`expNegInvGlue.eventually_mul_deriv_le_deriv_deriv`). From it the file builds, for
 `a < b`, a smooth antitone cutoff with values in `[0, 1]`, equal to `1` up to `a`, to `0` from `b`
-on and positive before `b`, with `K |β'| ≤ β''` on some interval `[b - s, b)` for each `K`
+on and positive before `b`, with derivative `0` outside `(a, b)` and with `K |β'| ≤ β''` on some
+interval `[b - s, b)` for each `K`
 (`SymplecticGeometry.exists_contDiff_antitone_cutoff_mul_abs_deriv_le_deriv_deriv`). It is
 `χ + (1 - χ) g` for `g r = f (b - r) / f (b - a)` and a cutoff `χ` from Tau Ceti's
 `TauCeti.exists_contDiff_antitone_cutoff` that vanishes from the midpoint of `[a, b]` on, so it
@@ -450,13 +452,14 @@ theorem smoothSign_nonneg_iff {s : ℝ} : 0 ≤ smoothSign s ↔ 0 ≤ s := by
   rw [← not_lt, smoothSign_lt_zero_iff, not_lt]
 
 /-- A smooth antitone cutoff `β : ℝ → [0, 1]` that is `1` on `(-∞, a]`, `0` on `[b, ∞)` and
-positive on `(-∞, b)`, for any `a < b`, whose second derivative dominates any multiple of its
-first derivative near `b`: for every `K` there is `0 < s < (b - a) / 2` with
-`K |β' r| ≤ β'' r` for all `r ∈ [b - s, b)`. Near `b` it is `exp (-1 / (b - r))` up to a constant
-factor. -/
+positive on `(-∞, b)`, for any `a < b`, with derivative `0` on `(-∞, a]` and on `[b, ∞)`, and
+whose second derivative dominates any multiple of its first derivative near `b`: for every `K`
+there is `0 < s < (b - a) / 2` with `K |β' r| ≤ β'' r` for all `r ∈ [b - s, b)`. Near `b` it is
+`exp (-1 / (b - r))` up to a constant factor. -/
 theorem exists_contDiff_antitone_cutoff_mul_abs_deriv_le_deriv_deriv {a b : ℝ} (hab : a < b) :
     ∃ β : ℝ → ℝ, ContDiff ℝ ∞ β ∧ (∀ r, β r ∈ Set.Icc 0 1) ∧ Antitone β ∧
-      Set.EqOn β 1 (Set.Iic a) ∧ Set.EqOn β 0 (Set.Ici b) ∧ (∀ r < b, 0 < β r) ∧
+      Set.EqOn β 1 (Set.Iic a) ∧ Set.EqOn β 0 (Set.Ici b) ∧ Set.EqOn (deriv β) 0 (Set.Iic a) ∧
+      Set.EqOn (deriv β) 0 (Set.Ici b) ∧ (∀ r < b, 0 < β r) ∧
       ∀ K : ℝ, ∃ s, 0 < s ∧ s < (b - a) / 2 ∧
         ∀ r ∈ Set.Ico (b - s) b, K * |deriv β r| ≤ deriv (deriv β) r := by
   set f := expNegInvGlue
@@ -484,14 +487,16 @@ theorem exists_contDiff_antitone_cutoff_mul_abs_deriv_le_deriv_deriv {a b : ℝ}
   have hβa {r : ℝ} (hr : r ≤ a) : β r = 1 := by simp [β, hχ1 r hr]
   have hβm {r : ℝ} (hr : m ≤ r) : β r = g r := by simp [β, hχm r hr]
   have hβ1 (r : ℝ) : 1 - β r = (1 - χ r) * (1 - g r) := by simp only [β]; ring
-  refine ⟨β, ?_, fun r ↦ ⟨?_, ?_⟩, fun r s hrs ↦ ?_, fun r hr ↦ hβa hr, fun r hr ↦ ?_,
-    fun r hr ↦ ?_, fun K ↦ ?_⟩
-  · exact hχ.add ((contDiff_const.sub hχ).mul
-      ((expNegInvGlue.contDiff.comp (contDiff_const.sub contDiff_id)).div_const _))
-  · exact add_nonneg (hχ0 r) (mul_nonneg (sub_nonneg.2 (hχle r)) (hg0 r))
-  · rcases le_total r a with hr | hr
+  have hβnn (r : ℝ) : 0 ≤ β r := add_nonneg (hχ0 r) (mul_nonneg (sub_nonneg.2 (hχle r)) (hg0 r))
+  have hβle (r : ℝ) : β r ≤ 1 := by
+    rcases le_total r a with hr | hr
     · exact (hβa hr).le
     · linarith [hβ1 r, mul_nonneg (sub_nonneg.2 (hχle r)) (sub_nonneg.2 (hg1 hr))]
+  have hβb {r : ℝ} (hr : b ≤ r) : β r = 0 := by rw [hβm (hmb.le.trans hr), hgb hr]
+  refine ⟨β, ?_, fun r ↦ ⟨hβnn r, hβle r⟩, fun r s hrs ↦ ?_, fun r hr ↦ hβa hr,
+    fun r hr ↦ hβb hr, fun r hr ↦ ?_, fun r hr ↦ ?_, fun r hr ↦ ?_, fun K ↦ ?_⟩
+  · exact hχ.add ((contDiff_const.sub hχ).mul
+      ((expNegInvGlue.contDiff.comp (contDiff_const.sub contDiff_id)).div_const _))
   · rcases le_total s a with hs | hs
     · rw [hβa hs, hβa (hrs.trans hs)]
     rcases le_total r a with hr | hr
@@ -499,7 +504,9 @@ theorem exists_contDiff_antitone_cutoff_mul_abs_deriv_le_deriv_deriv {a b : ℝ}
     have := mul_le_mul (sub_le_sub_left (hχa hrs) 1) (sub_le_sub_left (hga hrs) 1)
       (sub_nonneg.2 (hg1 hr)) (sub_nonneg.2 (hχle s))
     linarith [hβ1 r, hβ1 s]
-  · rw [hβm (hmb.le.trans hr), hgb hr, Pi.zero_apply]
+  · -- `β` attains its maximum `1` at `r ≤ a` and its minimum `0` at `r ≥ b`.
+    exact IsLocalMax.deriv_eq_zero (.of_forall fun u ↦ (hβle u).trans_eq (hβa hr).symm)
+  · exact IsLocalMin.deriv_eq_zero (.of_forall fun u ↦ (hβb hr).trans_le (hβnn u))
   · rcases (hχ0 r).lt_or_eq with h | h
     · exact add_pos_of_pos_of_nonneg h (mul_nonneg (sub_nonneg.2 (hχle r)) (hg0 r))
     · simp only [β, ← h, zero_add, sub_zero, one_mul]

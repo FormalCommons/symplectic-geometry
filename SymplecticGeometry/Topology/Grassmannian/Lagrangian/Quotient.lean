@@ -12,6 +12,7 @@ public import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Basic
 public import TauCeti.Topology.Algebra.GroupAction.Transitive
 public import TauCeti.Topology.Algebra.UnitaryGroup
 public import TauCeti.Topology.Homeomorph.Quotient
+import SymplecticGeometry.Topology.Algebra.Matrix.UnitaryGroup
 
 /-!
 # The Lagrangian Grassmannian as the homogeneous space `U(n)/O(n)`
@@ -202,14 +203,9 @@ instance : ContinuousSMul (unitaryGroup ι ℂ) (ℒ ι) :=
 
 /-- The rotation `θ ↦ rotate θ Λ` of a Lagrangian depends continuously on the angle. -/
 theorem continuous_rotate (Λ : ℒ ι) : Continuous fun θ : ℝ ↦ rotate θ Λ := by
-  have h : Continuous fun θ : ℝ ↦
-      UnitaryGroup.scalarHom ι ℂ (circleEquivUnitary (Circle.exp θ)) :=
-    continuous_induced_rng.2 <| by
-      simp only [Function.comp_def, UnitaryGroup.coe_scalarHom, coe_circleEquivUnitary,
-        scalar_apply]
-      fun_prop
   simp_rw [rotate_def]
-  exact h.smul continuous_const
+  exact ((UnitaryGroup.continuous_scalarHom (n := ι)).comp
+    (circleEquivUnitary.continuous.comp Circle.exp.continuous)).smul continuous_const
 
 /-- The **rotation** `s ↦ e^{ε s J₀} Λ`, `s ∈ [0, 1]`, of a Lagrangian `Λ` through the angle `ε`,
 from `Λ` to `rotate ε Λ`. -/

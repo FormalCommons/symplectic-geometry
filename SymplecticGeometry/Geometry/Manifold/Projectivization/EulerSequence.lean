@@ -276,9 +276,7 @@ theorem continuous_eulerSequenceEquiv :
         FiberBundle.mem_trivializationAt_proj_source))
   · set c := (twistCore (𝕜 := ℂ) (n := m) 1).indexAt p.proj
     have hc : p.proj ∈ affineOpen c := mem_affineOpen_twistCore_indexAt 1 p.proj
-    simp only [VectorBundleCore.trivializationAt, ← VectorBundleCore.localTrivAt_def,
-      twistPiCore_indexAt, FiberBundle.prod_trivializationAt']
-    rw [twistPiCore_localTriv_apply]
+    simp only [twistPiCore_trivializationAt_apply_snd, FiberBundle.prod_trivializationAt']
     refine Eq.trans ?_ (smul_eulerModel c c₀ hc hp p.snd).symm
     -- The tangent coordinate change is the derivative of the transition map between the charts
     -- at `p.proj` and at `p₀.proj`.

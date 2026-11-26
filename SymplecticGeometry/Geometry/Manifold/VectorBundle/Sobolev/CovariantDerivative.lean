@@ -51,9 +51,10 @@ The construction adapts Tau Ceti's `TauCeti.IsRealCauchyRiemannOperator.sobolevL
 `TauCeti.IsRealCauchyRiemannOperator.zeroOrderL`
 (`Geometry/Manifold/VectorBundle/Sobolev/CauchyRiemann/Basic.lean`) and
 `TauCeti.IsRealCauchyRiemannOperator.sobolevSuccL`
-(`Geometry/Manifold/VectorBundle/Sobolev/CauchyRiemann/HigherOrder.lean`), the realization of a
-real Cauchy–Riemann operator on a complex curve, from the complex antilinear part of the derivative
-to the whole derivative, and from the model `ℂ` to any finite-dimensional inner product space.
+(`Geometry/Manifold/VectorBundle/Sobolev/CauchyRiemann/HigherOrder/Basic.lean`), the realization
+of a real Cauchy–Riemann operator on a complex curve, from the complex antilinear part of the
+derivative to the whole derivative, and from the model `ℂ` to any finite-dimensional inner product
+space.
 Unlike `sobolevSuccL`, which reduces membership in the Sobolev sections to the order-one
 realization, the cocycle relation is proved here directly at every order, from the order-one
 relation of the section regarded as one of order one
@@ -123,8 +124,8 @@ def zeroOrderL (i : Fin A.n) :
   (Wkp.contDiffOnCLMApplyL (Omega := A.sectionChartData.image i)
     ((A.chart i).isOpen_inter_preimage_symm (A.triv i).open_baseSet).uniqueDiffOn
     (A.isCompact_closure_image i)
-    ((A.closure_image_subset_chart_image_closure_dom i).trans
-      (A.chart_image_closure_dom_subset i)) k (finBasis ℝ F) (finBasis ℝ (E →L[ℝ] F))
+    (A.closure_image_subset_target_inter_preimage_baseSet i) k (finBasis ℝ F)
+    (finBasis ℝ (E →L[ℝ] F))
     (by simpa only [inter_univ] using hcov.contDiffOn_chartZeroOrder A hcovs isOpen_univ i)).comp
     ((ContinuousLinearMap.piMap fun _ : Fin (finrank ℝ F) ↦ Wkp.lowerOrderL k).comp
       (ContinuousLinearMap.proj (R := ℝ) (φ := fun i : Fin A.sectionChartData.n ↦
@@ -155,8 +156,8 @@ theorem zeroOrderL_apply_ae (i : Fin A.n) (w : A.sectionChartData.SobolevData μ
     (p := p) (g := A.chartZeroOrder cov i)
     ((A.chart i).isOpen_inter_preimage_symm (A.triv i).open_baseSet).uniqueDiffOn
     (A.isCompact_closure_image i)
-    ((A.closure_image_subset_chart_image_closure_dom i).trans
-      (A.chart_image_closure_dom_subset i)) k (finBasis ℝ F) (finBasis ℝ (E →L[ℝ] F))
+    (A.closure_image_subset_target_inter_preimage_baseSet i) k (finBasis ℝ F)
+    (finBasis ℝ (E →L[ℝ] F))
     (by simpa only [inter_univ] using hcov.contDiffOn_chartZeroOrder A hcovs isOpen_univ i)
     (fun j ↦ Wkp.lowerOrderL k (w i j)) c
   filter_upwards [hz, A.sectionChartData.chartValueL_apply_ae μ p k i
@@ -347,7 +348,7 @@ theorem chartValueL_sobolevL_ofContMDiffSection_ae
   have hcoord := SobolevSection.chartValueL_ofContMDiffSection_ae A μ p (k + 1) s i
   have hc : ContDiffOn ℝ 1 (A.coord i s) (A.image i) :=
     ((A.contDiffOn_coord s.contMDiff i).of_le (by exact_mod_cast Nat.le_add_left 1 k)).mono
-      ((A.image_subset_chart_image_closure_dom i).trans (A.chart_image_closure_dom_subset i))
+      (A.image_subset_target_inter_preimage_baseSet i)
   filter_upwards [hcov.chartValueL_sobolevL_ae A hcovs μ p k _
       ((hc.hasWeakFDerivOn_fderiv (μ := μ) (Ω := A.image i)).congr_ae hcoord.symm),
     hcoord, ae_restrict_mem (A.image i).isOpen.measurableSet] with y h hc' hy

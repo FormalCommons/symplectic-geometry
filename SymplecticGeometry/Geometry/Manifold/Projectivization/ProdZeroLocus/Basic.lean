@@ -10,8 +10,8 @@ public import Mathlib.Analysis.Complex.Basic
 public import Mathlib.LinearAlgebra.Projectivization.Basic
 public import Mathlib.RingTheory.MvPolynomial.WeightedHomogeneous
 public import TauCeti.Topology.Algebra.Projectivization
-import Mathlib.Topology.Algebra.MvPolynomial
 import SymplecticGeometry.RingTheory.MvPolynomial.WeightedHomogeneous
+import SymplecticGeometry.Topology.Algebra.MvPolynomial
 
 /-!
 # Bihomogeneous zero sets in a product of two complex projective spaces
@@ -156,7 +156,7 @@ theorem isClosed_complexProjectiveProdZeroLocus
           ((continuous_const_smul c).comp (continuous_subtypeVal.comp continuous_fst))
       | .inr j => (continuous_apply j).comp
           ((continuous_const_smul e).comp (continuous_subtypeVal.comp continuous_snd))
-  exact isClosed_eq ((continuous_eval (p k)).comp hc) continuous_const
+  exact isClosed_eq (hc.mvPolynomial_eval (p k)) continuous_const
 
 /-- The zero set of any family of polynomials is compact, since the product of the two projective
 spaces is compact. -/

@@ -25,6 +25,7 @@ import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Analysis.Calculus.BumpFunction.Cutoff
 import TauCeti.Analysis.Calculus.ContDiff.FDerivApply
 import TauCeti.Analysis.Calculus.DifferentialForm.Wedge
+import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Chart
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
 import TauCeti.Topology.Algebra.Support
 
@@ -85,11 +86,11 @@ which is meaningful on `ψ.target`.
 * `TauCeti.SmoothForm.contDiffOn_fderiv_mpullback_symm_apply`: the partial derivatives of the
   reading of a smooth form in `ψ` are smooth on `ψ.target`.
 
-The proof of `TauCeti.mpullback_symm_eq_inChartAt` is the pointwise form of the argument of Tau
-Ceti's `TauCeti.RoughForm.inChartAt_ae_eq_mpullback`, which proves the same equality almost
-everywhere on the target of the extended chart. The statements and docstrings of
-`TauCeti.RoughForm.extendByZeroAlong_zero`, `_add` and `_smul` follow those of Tau Ceti's
-`TauCeti.RoughForm.extendByZero_zero`, `extendByZero_add` and `extendByZero_smul`.
+`TauCeti.mpullback_symm_eq_inChartAt` applies Tau Ceti's
+`TauCeti.RoughForm.mpullback_extChartAt_symm_eq_inChartAt`, which asks for a point of the interior
+of `range I`; every point of the target of the restricted chart is one. The statements and
+docstrings of `TauCeti.RoughForm.extendByZeroAlong_zero`, `_add` and `_smul` follow those of Tau
+Ceti's `TauCeti.RoughForm.extendByZero_zero`, `extendByZero_add` and `extendByZero_smul`.
 
 ## References
 
@@ -121,14 +122,9 @@ theorem mpullback_symm_eq_inChartAt {n : WithTop ℕ∞} [IsManifold I n M] (φ 
   have hsymm : ⇑(extChartPartialDiffeomorph I n x).symm = (extChartAt I x).symm :=
     funext (extChartPartialDiffeomorph_symm_apply I n x)
   rw [extChartPartialDiffeomorph_target] at hy
-  have hI : range I ∈ 𝓝 y := mem_interior_iff_mem_nhds.mp
-    (interior_mono (extChartAt_target_subset_range x) hy)
-  have hd := mfderivWithin_of_mem_nhds (I := 𝓘(ℝ, E)) (I' := I) (f := (extChartAt I x).symm) hI
-  ext v
   rw [hsymm]
-  exact (mpullback_apply _ φ y v).trans ((congrArg (fun L : TangentSpace 𝓘(ℝ, E) y →L[ℝ]
-    TangentSpace I ((extChartAt I x).symm y) ↦ φ _ fun i ↦ L (v i)) hd.symm).trans
-      (RoughForm.inChartAt_apply φ x y v).symm)
+  exact RoughForm.mpullback_extChartAt_symm_eq_inChartAt φ x
+    (interior_mono (extChartAt_target_subset_range x) hy)
 
 /-! ### The exterior derivative -/
 

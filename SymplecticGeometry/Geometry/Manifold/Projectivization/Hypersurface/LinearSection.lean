@@ -312,8 +312,7 @@ theorem trivializationAt_linearSection_snd (ℓ : (Fin (n + 2) → ℂ) →ₗ[�
       ℓ (Fin.insertNth (α := fun _ ↦ ℂ) ((twistCore (𝕜 := ℂ) 1).indexAt (z : ℙ ℂ _)) 1
         (affineChart ((twistCore (𝕜 := ℂ) 1).indexAt (z : ℙ ℂ _)) (y : ℙ ℂ _))) := by
   rw [linearSection_apply, trivializationAt, FiberBundle.pullback_trivializationAt',
-    Trivialization.pullback_apply, Pullback.lift_mk, VectorBundleCore.trivializationAt,
-    ← VectorBundleCore.localTrivAt_def, twistPiCore_localTriv_apply, twistPiCore_indexAt,
+    Trivialization.pullback_apply, Pullback.lift_mk, twistPiCore_trivializationAt_apply_snd,
     coe_embedding]
   funext k
   rw [twistTransition_mul_linearSection, insertNth_one_affineChart_eq_normalizedRep _ hy,

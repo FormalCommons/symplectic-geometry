@@ -5,19 +5,22 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.DeRham.GoodCover.Compact
 public import SymplecticGeometry.Geometry.Manifold.SmoothSingular.DeRham.MayerVietoris.Basic
 import Mathlib.Algebra.FiveLemma
 import SymplecticGeometry.Topology.Sets.Opens.Comap
 import TauCeti.AlgebraicTopology.Cohomology.HomotopyInvariance
 import TauCeti.Geometry.Manifold.SmoothSingular.DeRham.Theorem
+import TauCeti.Geometry.Manifold.Instances.Icc
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.Metrizable
+import TauCeti.Order.SupClosed
 
 /-!
-# The Mayer–Vietoris step of the de Rham theorem
+# The de Rham theorem by Mayer–Vietoris induction
 
 Let `M` be a Hausdorff smooth manifold modelled on a finite-dimensional real model with corners,
-and `U`, `V` open subsets of `M`. This file shows that if the de Rham homomorphism
+and `U`, `V` open subsets of `M`. This file shows first that if the de Rham homomorphism
 `TauCeti.deRhamHom` is bijective in every degree on `U`, on `V` and on `U ⊓ V`, then it is
 bijective in every degree on `U ⊔ V` (`TauCeti.bijective_deRhamHom_sup`). This is the inductive
 step of the proof of the de Rham theorem by induction over open covers.
@@ -40,15 +43,37 @@ on the manifold `U ⊔ V`, whose open subsets with the points of `U` and of `V` 
 `U` and `V` (`Diffeomorph.nestedOpen`). De Rham's theorem holds on a manifold if and only if
 it holds on a diffeomorphic one (`Diffeomorph.bijective_deRhamHom_iff`).
 
+The induction itself runs over the finite joins of the intersections of a finite good cover
+(`SymplecticGeometry.IsFiniteGoodCover`), which form an inf-closed family, by Tau Ceti's
+`TauCeti.finset_sup_of_inf_closed`. Each such intersection is empty, where both cohomologies
+vanish (`TauCeti.bijective_deRhamHom_of_isEmpty`), or smoothly contractible
+(`SymplecticGeometry.IsSmoothlyContractible.bijective_deRhamHom`, from
+`TauCeti.bijective_deRhamHom_of_contraction` after reversing time). This gives the de Rham theorem
+on every manifold with a finite good cover
+(`SymplecticGeometry.HasFiniteGoodCover.bijective_deRhamHom`), in particular on every
+compact boundaryless one, by Weil's good covers
+(`SymplecticGeometry.hasFiniteGoodCover_of_compactSpace`).
+
 ## Main results
 
 * `Diffeomorph.bijective_deRhamHom_iff`: the de Rham theorem is invariant under diffeomorphisms.
 * `TauCeti.bijective_deRhamHom_sup`: the Mayer–Vietoris step of the de Rham theorem.
+* `SymplecticGeometry.IsSmoothlyContractible.bijective_deRhamHom`: the de Rham theorem on a
+  smoothly contractible manifold.
+* `SymplecticGeometry.HasFiniteGoodCover.bijective_deRhamHom`: `deRhamHom` is bijective in every
+  degree if `M` has a finite good cover.
+* `TauCeti.bijective_deRhamHom_of_compactSpace` and `TauCeti.injective_deRhamHom`: the de Rham
+  theorem on a compact boundaryless manifold, and the injectivity of the de Rham homomorphism
+  there.
 
 ## References
 
 * John M. Lee, *Introduction to Smooth Manifolds*, 2nd ed., Graduate Texts in Mathematics 218,
   Springer, 2013, Chapter 18, proof of Theorem 18.14.
+* [R. Bott and L. W. Tu, *Differential Forms in Algebraic Topology*][BottTu1982], §5
+  (Mayer–Vietoris arguments over good covers).
+* [A. Weil, *Sur les théorèmes de de Rham*][Weil1952], §1 (finite good covers of compact
+  manifolds).
 -/
 
 public section
@@ -189,5 +214,76 @@ theorem bijective_deRhamHom_sup (hU : ∀ k, Function.Bijective (deRhamHom I U k
     (fun k ↦ ((Diffeomorph.nestedOpen inf_le_sup).bijective_deRhamHom_iff k).2 (hUV k)) k
 
 end Step
+
+section GoodCover
+
+open SymplecticGeometry
+
+variable [FiniteDimensional ℝ E] [IsManifold I ∞ M] [T2Space M]
+
+/-- **The de Rham theorem on a smoothly contractible manifold.** If `M` is smoothly contractible,
+the de Rham homomorphism of `M` is bijective in every degree. -/
+theorem _root_.SymplecticGeometry.IsSmoothlyContractible.bijective_deRhamHom [SigmaCompactSpace M]
+    (h : IsSmoothlyContractible I M) (k : ℕ) : Function.Bijective (deRhamHom I M k) := by
+  obtain ⟨c, F, hF, h₀, h₁⟩ := isSmoothlyContractible_def.1 h
+  -- Tau Ceti's contraction runs from the identity to the constant map: reverse time.
+  exact bijective_deRhamHom_of_contraction I M (c := c)
+    (hF.comp (contMDiff_fst.prodMk (unitInterval.contMDiff_symm.comp contMDiff_snd)))
+    (fun x ↦ by simpa using h₁ x) (fun x ↦ by simpa using h₀ x) k
+
+/-- **The de Rham theorem for manifolds with a finite good cover.** On a Hausdorff `σ`-compact
+smooth manifold `M`, modelled on a finite-dimensional real model with corners, that has a finite
+good cover, the de Rham homomorphism is bijective in every degree. -/
+theorem _root_.SymplecticGeometry.HasFiniteGoodCover.bijective_deRhamHom [SigmaCompactSpace M]
+    (hM : HasFiniteGoodCover I M) (k : ℕ) :
+    Function.Bijective (deRhamHom I M k) := by
+  classical
+  obtain ⟨n, U, hU⟩ := hasFiniteGoodCover_def.1 hM
+  -- The intersections of the nonempty subfamilies of the cover form an inf-closed family.
+  let B : Set (Opens M) := {W | ∃ s : Finset (Fin n), s.Nonempty ∧ W = ⨅ i ∈ s, U i}
+  have hB : InfClosed B := by
+    rintro _ ⟨s, hs, rfl⟩ _ ⟨t, -, rfl⟩
+    exact ⟨s ∪ t, hs.mono Finset.subset_union_left, Finset.iInf_union.symm⟩
+  have hP := finset_sup_of_inf_closed (fun W : Opens M ↦
+      ∀ (_ : SigmaCompactSpace W) k, Function.Bijective (deRhamHom I W k)) hB ?_ ?_ ?_
+    (Finset.univ.image U) ?_
+  · have htop : (Finset.univ.image U).sup id = ⊤ := by
+      rw [Finset.sup_image, Function.id_comp, Finset.sup_univ_eq_iSup, hU.iSup_eq_top]
+    rw [htop] at hP
+    have := Manifold.sigmaCompactSpace_opens I (⊤ : Opens M)
+    exact ((Diffeomorph.ofTop (I := I) (n := ∞) _ rfl).bijective_deRhamHom_iff k).1 (hP this k)
+  · intro _ k
+    have : IsEmpty (⊥ : Opens M) := ⟨fun x ↦ Opens.mem_bot.1 x.property⟩
+    exact bijective_deRhamHom_of_isEmpty I _ k
+  · rintro _ ⟨s, hs, rfl⟩ _ k
+    rcases ((⨅ i ∈ s, U i : Opens M) : Set M).eq_empty_or_nonempty with h | h
+    · have : IsEmpty (⨅ i ∈ s, U i : Opens M) :=
+        ⟨fun x ↦ Set.eq_empty_iff_forall_notMem.1 h x x.property⟩
+      exact bijective_deRhamHom_of_isEmpty I _ k
+    · exact (hU.isSmoothlyContractible hs h).bijective_deRhamHom k
+  · intro V W hV hW hVW _ k
+    have := Manifold.sigmaCompactSpace_opens I V
+    have := Manifold.sigmaCompactSpace_opens I W
+    have := Manifold.sigmaCompactSpace_opens I (V ⊓ W)
+    exact bijective_deRhamHom_sup (hV ‹_›) (hW ‹_›) (hVW ‹_›) k
+  · intro V hV
+    obtain ⟨i, -, rfl⟩ := Finset.mem_image.1 hV
+    exact ⟨{i}, Finset.singleton_nonempty i, by simp⟩
+
+variable [CompactSpace M] [BoundarylessManifold I M]
+
+/-- **The de Rham theorem for compact manifolds.** On a compact Hausdorff boundaryless smooth
+manifold, modelled on a finite-dimensional real model with corners, the de Rham homomorphism is
+bijective in every degree. -/
+theorem bijective_deRhamHom_of_compactSpace (k : ℕ) : Function.Bijective (deRhamHom I M k) :=
+  hasFiniteGoodCover_of_compactSpace.bijective_deRhamHom k
+
+/-- On a compact Hausdorff boundaryless smooth manifold, modelled on a finite-dimensional real
+model with corners, the de Rham homomorphism is injective in every degree: a de Rham class whose
+image in real singular cohomology vanishes is zero. -/
+theorem injective_deRhamHom (k : ℕ) : Function.Injective (deRhamHom I M k) :=
+  (bijective_deRhamHom_of_compactSpace k).1
+
+end GoodCover
 
 end TauCeti

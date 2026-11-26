@@ -6,11 +6,11 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Analysis.Matrix.EuclideanLin
+public import SymplecticGeometry.LinearAlgebra.Matrix.UnitaryGroup.Projective
 public import SymplecticGeometry.LinearAlgebra.Matrix.UnitaryGroup.Real
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Frame
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 public import TauCeti.Analysis.Complex.Circle.Basic
-public import TauCeti.LinearAlgebra.Matrix.UnitaryGroup.Projective
 public import TauCeti.LinearAlgebra.TotallyReal.Lagrangian
 public import TauCeti.Topology.Algebra.Matrix.Realify
 import SymplecticGeometry.LinearAlgebra.FiniteDimensional.Submodule
@@ -273,8 +273,8 @@ theorem unitary_neg_one_smul (Λ : ℒ ι) : (-1 : unitaryGroup ι ℂ) • Λ =
 theorem rotate_pi (Λ : ℒ ι) : rotate Real.pi Λ = Λ := by
   have h : scalarHom ι ℂ (circleEquivUnitary (Circle.exp Real.pi)) = -1 :=
     Subtype.ext <| by
-      rw [coe_scalarHom, coe_circleEquivUnitary, Circle.coe_exp, Complex.exp_pi_mul_I, map_neg,
-        map_one, Unitary.coe_neg, OneMemClass.coe_one]
+      rw [coe_scalarHom_eq_smul_one, coe_circleEquivUnitary, Circle.coe_exp, Complex.exp_pi_mul_I,
+        neg_one_smul, Unitary.coe_neg, OneMemClass.coe_one]
   rw [rotate_def, h, unitary_neg_one_smul]
 
 /-- Rotating by `θ + π` is rotating by `θ`: rotations have period `π`. -/
@@ -296,8 +296,8 @@ theorem rotate_pi_div_two_horizontal : rotate (Real.pi / 2) (horizontal ι) = ve
   rw [← symJ_smul_horizontal, rotate_def, unitary_smul_def]
   congr 1
   refine Subtype.ext (Units.ext ?_)
-  rw [GLSymplectic.coe_ofUnitary, GLSymplectic.coe_symJ, ← realify_I_smul_one, coe_scalarHom,
-    coe_circleEquivUnitary, scalar_apply, ← smul_one_eq_diagonal]
+  rw [GLSymplectic.coe_ofUnitary, GLSymplectic.coe_symJ, ← realify_I_smul_one,
+    coe_scalarHom_eq_smul_one, coe_circleEquivUnitary]
   simp [Circle.coe_exp, Complex.exp_mul_I]
 
 /-- The unitary matrix of a Lagrangian frame `fromRows X Y`: the real orthonormalization of its

@@ -161,11 +161,9 @@ private theorem isLocalDiffeomorph_pieceMap :
 
 private theorem iUnion_range_pieceMap : ⋃ k, range (pieceMap c γ hγ hinj k) = univ := by
   refine eq_univ_of_forall fun p ↦ ?_
-  rcases (range_inl_union_iUnion_range_inr c γ hγ hinj ▸ mem_univ p :
-    p ∈ range (inl c γ hγ hinj) ∪ ⋃ i, range (inr c γ hγ hinj i)) with ⟨q, rfl⟩ | hp
+  rcases exists_inl_or_exists_inr c γ hγ hinj p with ⟨q, rfl⟩ | ⟨i, z, rfl⟩
   · exact mem_iUnion.2 ⟨none, ((𝓡∂ 2).interiorOpensDiffeomorph S ∞) q, by simp [pieceMap]⟩
-  · obtain ⟨i, z, rfl⟩ := mem_iUnion.1 hp
-    exact mem_iUnion.2 ⟨some i, ballDiffeomorph z, by simp [pieceMap]⟩
+  · exact mem_iUnion.2 ⟨some i, ballDiffeomorph z, by simp [pieceMap]⟩
 
 /-- The standard orientation of `ℝ²` on the ball of radius `2`. -/
 private def discOrientation : Manifold.Orientation (𝓡 2) discOpens (Fin 2) :=

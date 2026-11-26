@@ -5,39 +5,30 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Complex.RadialProjection
+public import SymplecticGeometry.Topology.ComplexProjectiveSpace.ProjectiveLine
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Glue
 public import SymplecticGeometry.Topology.VectorBundle.ProjectiveBundle.Tautological
-public import TauCeti.Topology.Algebra.Projectivization
 
 /-!
 # The clutching construction over `X × ℂP¹`
 
-The projective line `ℙ ℂ (Fin 2 → ℂ)` is covered by two open discs: the inner disc
-`ProjectiveLine.innerDisc`, the points `[z : 1]` with `|z| < 2`, and the outer disc
-`ProjectiveLine.outerDisc`, the points `[1 : w]` with `|w| < 2`, that is `|z| > 1/2` together with
-`∞ = [1 : 0]`. They meet in the annulus `1/2 < |z| < 2`, which `ProjectiveLine.annulusToCircle`
-retracts radially onto the unit circle, `[z : 1] ↦ z / |z|`.
+The projective line `ℙ ℂ (Fin 2 → ℂ)` is covered by two open discs, the inner disc
+`ProjectiveLine.innerDisc` and the outer disc `ProjectiveLine.outerDisc`, which meet in an annulus
+that `ProjectiveLine.annulusToCircle` retracts radially onto the unit circle,
+`[z : 1] ↦ z / |z|` (see `SymplecticGeometry.Topology.ComplexProjectiveSpace.ProjectiveLine`).
 
 For a finite-rank core `E` over `X` and an automorphism `f` of the pullback of `E` to `X × Circle`
 along the projection, `E.clutching f` is the core over `X × ℙ ℂ (Fin 2 → ℂ)` obtained by gluing
 the pullback of `E` along `Prod.fst` to itself over the product of `X` with the annulus by `f`
-composed with the radial retraction (`clutchingMap`): a vector `v` over `(x, [z : 1])` in the
-copy over the outer disc is the vector `f_{(x, z / |z|)} v` in the copy over the inner disc. This
-is the clutching construction of [Hatcher2017, §2.1]. It uses no K-theory, and the fibres may be
-over any nontrivially normed field.
+composed with the radial retraction (`ProjectiveLine.clutchingMap`): a vector `v` over
+`(x, [z : 1])` in the copy over the outer disc is the vector `f_{(x, z / |z|)} v` in the copy over
+the inner disc. This is the clutching construction of [Hatcher2017, §2.1]. It uses no K-theory,
+and the fibres may be over any nontrivially normed field.
 
 ## Main definitions and results
 
-* `SymplecticGeometry.ProjectiveLine.innerDisc`, `SymplecticGeometry.ProjectiveLine.outerDisc`:
-  the two open discs, open (`isOpen_innerDisc`, `isOpen_outerDisc`) and covering the projective
-  line (`innerDisc_union_outerDisc`).
-* `SymplecticGeometry.ProjectiveLine.annulusCoord`: the affine coordinate `z` of the points
-  `[z : 1]` of their intersection, the annulus, as a nonzero complex number.
-* `SymplecticGeometry.ProjectiveLine.annulusToCircle`: the radial retraction of the annulus onto
-  `Circle`, `[z : 1] ↦ z / |z|` (`coe_annulusToCircle_apply`).
-* `TauCeti.FiniteRankBundleCore.clutchingMap`: the map from the product of `X` with the annulus to
-  `X × Circle`, and `TauCeti.FiniteRankBundleCore.clutchingAut E f`, the pullback of `f` along it.
+* `TauCeti.FiniteRankBundleCore.clutchingAut E f`: the pullback of `f` along
+  `SymplecticGeometry.ProjectiveLine.clutchingMap`.
 * `TauCeti.FiniteRankBundleCore.clutching`: the clutched core, of rank `E.rank`
   (`rank_clutching`).
 * `TauCeti.FiniteRankBundleCore.coordChange_clutching`: its transitions, through the gluing cocycle.
@@ -108,106 +99,6 @@ open Set CategoryTheory Projectivization Bundle Module Topology
 
 open scoped LinearAlgebra.Projectivization
 
-namespace SymplecticGeometry.ProjectiveLine
-
-/-! ### The two discs of the projective line and their annulus -/
-
-/-- The inner disc of the projective line: the points `[z : 1]` with `|z| < 2`. -/
-def innerDisc : Set (ℙ ℂ (Fin 2 → ℂ)) :=
-  affineOpen 1 ∩ affineChart 1 ⁻¹' {z | ‖z 0‖ < 2}
-
-/-- The outer disc of the projective line: the points `[1 : w]` with `|w| < 2`, that is the points
-`[z : 1]` with `|z| > 1/2` together with `∞ = [1 : 0]`. -/
-def outerDisc : Set (ℙ ℂ (Fin 2 → ℂ)) :=
-  affineOpen 0 ∩ affineChart 0 ⁻¹' {z | ‖z 0‖ < 2}
-
-theorem innerDisc_def : innerDisc = affineOpen 1 ∩ affineChart 1 ⁻¹' {z | ‖z 0‖ < 2} :=
-  (rfl)
-
-theorem outerDisc_def : outerDisc = affineOpen 0 ∩ affineChart 0 ⁻¹' {z | ‖z 0‖ < 2} :=
-  (rfl)
-
-theorem mem_innerDisc_iff {p : ℙ ℂ (Fin 2 → ℂ)} :
-    p ∈ innerDisc ↔ p ∈ affineOpen 1 ∧ ‖affineChart 1 p 0‖ < 2 :=
-  Iff.rfl
-
-theorem mem_outerDisc_iff {p : ℙ ℂ (Fin 2 → ℂ)} :
-    p ∈ outerDisc ↔ p ∈ affineOpen 0 ∧ ‖affineChart 0 p 0‖ < 2 :=
-  Iff.rfl
-
-@[simp]
-theorem mk_mem_innerDisc_iff (v : Fin 2 → ℂ) (hv : v ≠ 0) :
-    mk ℂ v hv ∈ innerDisc ↔ v 1 ≠ 0 ∧ ‖v 0 / v 1‖ < 2 := by
-  simp [mem_innerDisc_iff]
-
-@[simp]
-theorem mk_mem_outerDisc_iff (v : Fin 2 → ℂ) (hv : v ≠ 0) :
-    mk ℂ v hv ∈ outerDisc ↔ v 0 ≠ 0 ∧ ‖v 1 / v 0‖ < 2 := by
-  simp [mem_outerDisc_iff]
-
-theorem isOpen_innerDisc : IsOpen innerDisc := by
-  rw [innerDisc_def]
-  simpa using (affineOpenPartialHomeomorph (K := ℂ) (n := 1) 1).isOpen_inter_preimage
-    (isOpen_lt (continuous_norm.comp (continuous_apply 0)) continuous_const)
-
-theorem isOpen_outerDisc : IsOpen outerDisc := by
-  rw [outerDisc_def]
-  simpa using (affineOpenPartialHomeomorph (K := ℂ) (n := 1) 0).isOpen_inter_preimage
-    (isOpen_lt (continuous_norm.comp (continuous_apply 0)) continuous_const)
-
-/-- The inner and outer discs cover the projective line. -/
-theorem innerDisc_union_outerDisc : innerDisc ∪ outerDisc = univ := by
-  refine eq_univ_of_forall fun p ↦ ?_
-  induction p using Projectivization.ind with | h v hv =>
-  simp only [mem_union, mk_mem_innerDisc_iff, mk_mem_outerDisc_iff]
-  by_cases h1 : v 1 = 0
-  · have h0 : v 0 ≠ 0 := fun h0 ↦ hv (funext fun i ↦ by fin_cases i <;> assumption)
-    exact Or.inr ⟨h0, by simp [h1]⟩
-  by_cases h : ‖v 0 / v 1‖ < 2
-  · exact Or.inl ⟨h1, h⟩
-  have h0 : v 0 ≠ 0 := fun h0 ↦ h (by simp [h0])
-  refine Or.inr ⟨h0, ?_⟩
-  rw [not_lt] at h
-  have h' : ‖v 0 / v 1‖⁻¹ ≤ 2⁻¹ := inv_anti₀ (by norm_num) h
-  rw [← inv_div, norm_inv]
-  linarith
-
-/-- On the annulus, the affine coordinate `z` of a point `[z : 1]` is nonzero. -/
-theorem affineChart_one_ne_zero_of_mem {p : ℙ ℂ (Fin 2 → ℂ)} (hp : p ∈ innerDisc ∩ outerDisc) :
-    affineChart 1 p 0 ≠ 0 := by
-  induction p using Projectivization.ind with | h v hv =>
-  simp only [mem_inter_iff, mk_mem_innerDisc_iff, mk_mem_outerDisc_iff] at hp
-  simpa using div_ne_zero hp.2.1 hp.1.1
-
-/-- The affine coordinate `z` of the points `[z : 1]` of the annulus `innerDisc ∩ outerDisc`, as a
-nonzero complex number. -/
-def annulusCoord : C(↥(innerDisc ∩ outerDisc), ({0}ᶜ : Set ℂ)) :=
-  ⟨fun p ↦ ⟨affineChart 1 p.val 0, affineChart_one_ne_zero_of_mem p.property⟩,
-    (continuousOn_iff_continuous_domRestrict.1 ((continuous_apply 0).comp_continuousOn
-      ((continuousOn_affineChart (K := ℂ) 1).mono
-        fun _ (hp : _ ∈ innerDisc ∩ outerDisc) ↦ hp.1.1))).subtype_mk _⟩
-
-@[simp]
-theorem coe_annulusCoord_apply (p : ↥(innerDisc ∩ outerDisc)) :
-    (annulusCoord p : ℂ) = affineChart 1 p.val 0 :=
-  (rfl)
-
-/-- The radial retraction of the annulus `innerDisc ∩ outerDisc` onto the unit circle,
-`[z : 1] ↦ z / |z|`. -/
-def annulusToCircle : C(↥(innerDisc ∩ outerDisc), Circle) :=
-  Circle.radialProjection.comp annulusCoord
-
-theorem annulusToCircle_def : annulusToCircle = Circle.radialProjection.comp annulusCoord :=
-  (rfl)
-
-/-- The radial retraction of the annulus sends `[z : 1]` to `z / |z|`. -/
-@[simp]
-theorem coe_annulusToCircle_apply (p : ↥(innerDisc ∩ outerDisc)) :
-    (annulusToCircle p : ℂ) = ‖affineChart 1 p.val 0‖⁻¹ • affineChart 1 p.val 0 := by
-  simp [annulusToCircle_def]
-
-end SymplecticGeometry.ProjectiveLine
-
 /-! ### The clutched core -/
 
 namespace TauCeti.FiniteRankBundleCore
@@ -215,23 +106,6 @@ namespace TauCeti.FiniteRankBundleCore
 open SymplecticGeometry.ProjectiveLine
 
 variable {𝕜 X : Type*} [NontriviallyNormedField 𝕜] [TopologicalSpace X]
-
-variable (X) in
-/-- The map from the product of `X` with the annulus of the projective line to `X × Circle`:
-the identity on `X`, and the radial retraction `annulusToCircle` on the annulus. -/
-def clutchingMap :
-    C(↥(Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc : Set (X × ℙ ℂ (Fin 2 → ℂ))),
-      X × Circle) :=
-  ⟨fun w ↦ (w.val.1, annulusToCircle ⟨w.val.2, w.property⟩),
-    (continuous_fst.comp continuous_subtypeVal).prodMk
-      (annulusToCircle.continuous.comp
-        ((continuous_snd.comp continuous_subtypeVal).subtype_mk _))⟩
-
-@[simp]
-theorem clutchingMap_apply
-    (w : ↥(Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc : Set (X × ℙ ℂ (Fin 2 → ℂ)))) :
-    clutchingMap X w = (w.val.1, annulusToCircle ⟨w.val.2, w.property⟩) :=
-  (rfl)
 
 /-- The automorphism of the pullback of `E` to the product of `X` with the annulus by which the
 clutching by `f` glues: the pullback of `f` along `clutchingMap`. -/
@@ -733,16 +607,16 @@ private theorem discSection_mem_submodule (s : Bool) (p : ℙ ℂ (Fin 2 → ℂ
 private theorem discSection_ne_zero {s : Bool} {p : ℙ ℂ (Fin 2 → ℂ)}
     (hp : p ∈ bif s then innerDisc else outerDisc) : discSection s p ≠ 0 := by
   cases s
-  · exact outerSection_ne_zero hp.1
-  · exact innerSection_ne_zero hp.1
+  · exact outerSection_ne_zero (outerDisc_subset_affineOpen hp)
+  · exact innerSection_ne_zero (innerDisc_subset_affineOpen hp)
 
 private theorem continuousAt_discSection {s : Bool} {p : ℙ ℂ (Fin 2 → ℂ)}
     (hp : p ∈ bif s then innerDisc else outerDisc) : ContinuousAt (discSection s) p := by
   cases s
   · exact continuousOn_outerSection.continuousAt
-      ((isOpen_affineOpen 0).mem_nhds hp.1)
+      ((isOpen_affineOpen 0).mem_nhds (outerDisc_subset_affineOpen hp))
   · exact continuousOn_innerSection.continuousAt
-      ((isOpen_affineOpen 1).mem_nhds hp.1)
+      ((isOpen_affineOpen 1).mem_nhds (innerDisc_subset_affineOpen hp))
 
 variable (X)
 

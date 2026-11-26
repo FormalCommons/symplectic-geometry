@@ -52,6 +52,22 @@ plurisubharmonic. Here it is proved from one complex variable:
 * `MvPolynomial.log_norm_eval_le_setAverage_ball`: if `P c ≠ 0`, then `log ‖P c‖` is at most the
   average of `log ‖P‖` over `Metric.ball c r`, for every `r > 0`.
 
+Last comes the comparison with the maximum:
+
+* `MvPolynomial.norm_eval_le_add_one_pow_totalDegree_mul`: a bound `‖P‖ ≤ M` on
+  `Metric.closedBall c r` gives `‖P‖ ≤ (t + 1) ^ P.totalDegree * M` on
+  `Metric.closedBall c (t * r)`. On each complex line through `c`, `P` is a polynomial in one
+  variable of degree at most `P.totalDegree`, by Tau Ceti's
+  `MvPolynomial.natDegree_eval₂_C_add_C_mul_X_le`, and
+  `Polynomial.exists_norm_eval_le_add_one_pow_mul` bounds its growth.
+* `MvPolynomial.log_sup_sub_setAverage_log_norm_eval_le`: for `P.totalDegree ≤ D` and `R > 0`,
+  the logarithm of the supremum of `‖P‖` on `Metric.closedBall y R` exceeds the average of
+  `log ‖P‖` over `Metric.ball y R` by at most `4 ^ card ι * D * log 4`. Let `‖P‖` be largest on
+  the closed ball at `z₀`; then `P z₀ ≠ 0`, and the sub-mean value inequality at `z₀` on
+  `Metric.ball z₀ (2 * R)`, where the growth bound with `t = 3` gives `‖P‖ ≤ 4 ^ D * ‖P z₀‖`,
+  bounds the lower integral over the smaller ball `Metric.ball y R`. The ratio of the volumes of
+  the two balls is `2 ^ (2 * card ι) = 4 ^ card ι`.
+
 ## References
 
 * [M. Klimek, *Pluripotential Theory*, Oxford University Press, 1991], Chapter 5 (the
@@ -180,6 +196,106 @@ theorem log_norm_eval_le_setAverage_ball {P : MvPolynomial ι ℂ} {c : Euclidea
   rw [mul_comm, ← ENNReal.div_le_iff_le_mul (Or.inl hpos) (Or.inl hfin),
     ← ofReal_setAverage hint hnn, ENNReal.ofReal_le_ofReal_iff hK,
     setAverage_fun_sub (integrableOn_const hfin) hu, setAverage_const hpos hfin] at h
+  linarith
+
+/-- **Growth of `‖P‖` from a ball to a larger ball.** If a complex polynomial `P` on
+`EuclideanSpace ℂ ι` satisfies `‖P‖ ≤ M` on `Metric.closedBall c r` with `r > 0`, then
+`‖P‖ ≤ (t + 1) ^ P.totalDegree * M` on `Metric.closedBall c (t * r)`, for every `t ≥ 0`. -/
+theorem norm_eval_le_add_one_pow_totalDegree_mul (P : MvPolynomial ι ℂ)
+    {c : EuclideanSpace ℂ ι} {r t M : ℝ} (hr : 0 < r) (ht : 0 ≤ t)
+    (hM : ∀ z ∈ closedBall c r, ‖eval z.ofLp P‖ ≤ M) {z : EuclideanSpace ℂ ι}
+    (hz : z ∈ closedBall c (t * r)) :
+    ‖eval z.ofLp P‖ ≤ (t + 1) ^ P.totalDegree * M := by
+  have hM0 : 0 ≤ M := (norm_nonneg _).trans (hM c (mem_closedBall_self hr.le))
+  rcases eq_or_ne z c with rfl | hzc
+  · exact (hM z (mem_closedBall_self hr.le)).trans
+      (le_mul_of_one_le_left hM0 (one_le_pow₀ (by linarith)))
+  set v := z - c with hv_def
+  have hv : 0 < ‖v‖ := norm_pos_iff.2 (sub_ne_zero.2 hzc)
+  set p : Polynomial ℂ :=
+    aeval (fun i => Polynomial.C (c.ofLp i) + Polynomial.C (v.ofLp i) * Polynomial.X) P
+  have hpe (s : ℂ) : p.eval s = eval (c + s • v).ofLp P := by
+    simp [p, eval_aeval_C_add_C_mul_X]
+  have hdeg : p.natDegree ≤ P.totalDegree := by
+    simpa [p, aeval_def, Polynomial.algebraMap_eq] using
+      P.natDegree_eval₂_C_add_C_mul_X_le (RingHom.id ℂ) c.ofLp v.ofLp
+  obtain ⟨s, hs, hle⟩ := p.exists_norm_eval_le_add_one_pow_mul (div_pos hr hv) ht
+  have h1 := hle 1 (by
+    rw [norm_one, mul_div_assoc', le_div_iff₀ hv, one_mul]
+    simpa [mem_closedBall, dist_eq_norm, v] using hz)
+  rw [hpe, one_smul, hv_def, add_sub_cancel] at h1
+  have h2 : ‖p.eval s‖ ≤ M := hpe s ▸ hM _ (by
+    rw [mem_closedBall, dist_eq_norm, add_sub_cancel_left, norm_smul, hs,
+      div_mul_cancel₀ _ hv.ne'])
+  calc ‖eval z.ofLp P‖ ≤ (t + 1) ^ p.natDegree * ‖p.eval s‖ := h1
+    _ ≤ (t + 1) ^ P.totalDegree * M := by
+      gcongr
+      linarith
+
+/-- **The average of `log ‖P‖` over a ball is close to its maximum.** For a complex polynomial
+`P` on `EuclideanSpace ℂ ι` of total degree at most `D`, the logarithm of the supremum of `‖P‖`
+over `Metric.closedBall y R` exceeds the average of `log ‖P‖` over `Metric.ball y R` by at most
+`4 ^ card ι * D * log 4`, for every `R > 0`. This is a form of the Bernstein–Walsh
+inequality. -/
+theorem log_sup_sub_setAverage_log_norm_eval_le (P : MvPolynomial ι ℂ) {D : ℕ}
+    (hD : P.totalDegree ≤ D) (y : EuclideanSpace ℂ ι) {R : ℝ} (hR : 0 < R) :
+    Real.log (sSup ((fun z => ‖eval z.ofLp P‖) '' closedBall y R)) -
+        ⨍ z in ball y R, Real.log ‖eval z.ofLp P‖ ≤
+      4 ^ Fintype.card ι * D * Real.log 4 := by
+  rcases eq_or_ne P 0 with rfl | hP
+  · simp only [map_zero, norm_zero, (nonempty_closedBall.2 hR.le).image_const, csSup_singleton,
+      Real.log_zero, average_zero, sub_zero]
+    positivity
+  obtain ⟨z₀, hz₀, hmax⟩ := (isCompact_closedBall y R).exists_isMaxOn
+    (nonempty_closedBall.2 hR.le)
+    (by fun_prop : Continuous fun z : EuclideanSpace ℂ ι => ‖eval z.ofLp P‖).continuousOn
+  have hmax' : ∀ z ∈ closedBall y R, ‖eval z.ofLp P‖ ≤ ‖eval z₀.ofLp P‖ := fun z hz => hmax hz
+  rw [(show IsGreatest _ _ from ⟨mem_image_of_mem _ hz₀, forall_mem_image.2 hmax'⟩).csSup_eq]
+  have hz₀P : eval z₀.ofLp P ≠ 0 := by
+    intro h
+    obtain ⟨v, hv, hv0⟩ := exists_mem_ball_eval_ne_zero hP y hR
+    have := hmax' v (ball_subset_closedBall hv)
+    rw [h, norm_zero] at this
+    exact hv0 (norm_le_zero_iff.1 this)
+  have hM₁ : 0 < ‖eval z₀.ofLp P‖ := norm_pos_iff.2 hz₀P
+  set M := (4 : ℝ) ^ D * ‖eval z₀.ofLp P‖
+  have hM : ∀ z ∈ ball z₀ (2 * R), ‖eval z.ofLp P‖ ≤ M := fun z hz => by
+    refine (P.norm_eval_le_add_one_pow_totalDegree_mul (t := 3) hR (by norm_num) hmax' ?_).trans
+      ?_
+    · rw [mem_ball] at hz
+      rw [mem_closedBall] at hz₀ ⊢
+      linarith [dist_triangle z z₀ y]
+    · norm_num only
+      exact mul_le_mul_of_nonneg_right (pow_le_pow_right₀ (by norm_num) hD) hM₁.le
+  have hsub : ball y R ⊆ ball z₀ (2 * R) := fun z hz => by
+    rw [mem_ball] at hz ⊢
+    rw [mem_closedBall] at hz₀
+    linarith [dist_triangle z y z₀, dist_comm z₀ y]
+  have hlogM : Real.log M - Real.log ‖eval z₀.ofLp P‖ = D * Real.log 4 := by
+    rw [Real.log_mul (by positivity) hM₁.ne', Real.log_pow]
+    ring
+  have hvol : volume (ball z₀ (2 * R)) =
+      ENNReal.ofReal (4 ^ Fintype.card ι) * volume (ball y R) := by
+    rw [Measure.addHaar_ball_mul_of_pos volume z₀ two_pos, ← Measure.addHaar_ball_center volume y,
+      finrank_real_of_complex, finrank_euclideanSpace, pow_mul]
+    norm_num
+  have h := (lintegral_mono_set hsub).trans
+    (setLIntegral_ofReal_log_sub_log_norm_eval_le hz₀P hM)
+  rw [hvol, hlogM, mul_comm (ENNReal.ofReal _), mul_assoc,
+    ← ENNReal.ofReal_mul (by positivity)] at h
+  have hnn : 0 ≤ᵐ[volume.restrict (ball y R)]
+      fun z => Real.log M - Real.log ‖eval z.ofLp P‖ :=
+    (ae_restrict_log_norm_eval_le_log hP measurableSet_ball fun z hz => hM z (hsub hz)).mono
+      fun _ => sub_nonneg.2
+  have hu := integrableOn_log_norm_eval_ball hP y R
+  have hfin : volume (ball y R) ≠ ∞ := measure_ball_lt_top.ne
+  have hpos : volume (ball y R) ≠ 0 := (measure_ball_pos volume y hR).ne'
+  have hint : IntegrableOn (fun z => Real.log M - Real.log ‖eval z.ofLp P‖) (ball y R) :=
+    (integrableOn_const hfin).sub hu
+  rw [mul_comm, ← ENNReal.div_le_iff_le_mul (Or.inl hpos) (Or.inl hfin),
+    ← ofReal_setAverage hint hnn, ENNReal.ofReal_le_ofReal_iff (by positivity),
+    setAverage_fun_sub (integrableOn_const hfin) hu, setAverage_const hpos hfin] at h
+  have : 0 ≤ (D : ℝ) * Real.log 4 := by positivity
   linarith
 
 end MvPolynomial

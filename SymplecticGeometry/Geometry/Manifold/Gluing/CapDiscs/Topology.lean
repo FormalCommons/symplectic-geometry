@@ -116,10 +116,7 @@ theorem compactSpace [CompactSpace S]
     rw [mem_preimage, mem_closedBall_zero_iff, norm_ofReal_one_add_mul_toCircle]
     linarith
   refine ⟨(eq_univ_of_univ_subset fun x _ ↦ ?_) ▸ hT⟩
-  have hx : x ∈ range (inl c γ hγ hinj) ∪ ⋃ i, range (inr c γ hγ hinj i) :=
-    range_inl_union_iUnion_range_inr c γ hγ hinj ▸ mem_univ x
-  simp only [mem_union, mem_iUnion] at hx
-  rcases hx with ⟨p, rfl⟩ | ⟨i, z, rfl⟩
+  rcases exists_inl_or_exists_inr c γ hγ hinj x with ⟨p, rfl⟩ | ⟨i, z, rfl⟩
   · exact hinlT p
   by_cases hz : ‖(z : ℂ)‖ ≤ 3 / 2
   · exact Or.inr (mem_iUnion.2 ⟨i, z, mem_closedBall_zero_iff.2 hz, rfl⟩)

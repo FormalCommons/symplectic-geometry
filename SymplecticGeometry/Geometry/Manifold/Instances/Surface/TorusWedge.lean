@@ -9,6 +9,7 @@ public import Mathlib.Analysis.SpecialFunctions.Complex.Circle
 public import Mathlib.Topology.Instances.AddCircle.Real
 public import TauCeti.AlgebraicTopology.FundamentalGroup.Homeomorph
 public import TauCeti.AlgebraicTopology.FundamentalGroup.WedgeSum
+import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Basic
 import SymplecticGeometry.Topology.WedgeSum
 
 /-!
@@ -197,8 +198,7 @@ theorem torusCirclesFundamentalGroupMulEquiv_torusCircleLoop (i : Fin 2) :
     MulEquiv.trans_apply]
   congr 1
   rw [MulEquiv.symm_apply_eq, FundamentalGroup.homeomorphMulEquivOfEq_apply,
-    FundamentalGroup.mapOfEq_comp, FundamentalGroup.mapOfEq_apply]
-  rw [← Path.Homotopic.Quotient.mk_map, ← Path.Homotopic.Quotient.mk_cast]
+    FundamentalGroup.mapOfEq_comp, FundamentalGroup.mapOfEq_fromPath_mk]
   refine congrArg CategoryTheory.End.of (congrArg _ ?_)
   ext t
   simp [torusCirclesHomeomorph_apply, wedgeToTorusCircles, circleIncl]

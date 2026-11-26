@@ -16,10 +16,10 @@ import TauCeti.MeasureTheory.Integral.IntervalIntegral.Primitive
 /-!
 # Flat convex profiles with a prescribed lower bound on `Λ'' / Λ'`
 
-This file constructs a smooth function `Λ : ℝ → ℝ` that vanishes on `(-∞, t₀]`, has positive
-derivative after `t₀`, satisfies `max (L t) 0 * Λ' t ≤ Λ'' t` there for a given function `L` that
-is bounded above on bounded intervals, has `Λ' ≥ A` from a given point `b > t₀` on, and is
-controlled by its derivative: `Λ t ≤ (t - t₀) * Λ' t` for `t > t₀`.
+This file constructs a smooth function `Λ : ℝ → ℝ` that vanishes, with its derivative, on
+`(-∞, t₀]`, has positive derivative after `t₀`, satisfies `max (L t) 0 * Λ' t ≤ Λ'' t` there for
+a given function `L` that is bounded above on bounded intervals, has `Λ' ≥ A` from a given
+point `b > t₀` on, and is controlled by its derivative: `Λ t ≤ (t - t₀) * Λ' t` for `t > t₀`.
 
 ## Main results
 
@@ -48,13 +48,14 @@ open scoped Topology Manifold ContDiff
 
 namespace SymplecticGeometry
 
-/-- A smooth profile `Λ` that vanishes up to `t₀`, is increasing after it, satisfies
-`max (L t) 0 * Λ' t ≤ Λ'' t` for `t > t₀` where `L` is any function bounded above on bounded
-intervals, has `Λ' ≥ A` on `[b, ∞)`, is nonnegative, and satisfies `Λ t ≤ (t - t₀) * Λ' t`
-for `t > t₀`. -/
+/-- A smooth profile `Λ` that vanishes together with its derivative up to `t₀`, is increasing
+after it, satisfies `max (L t) 0 * Λ' t ≤ Λ'' t` for `t > t₀` where `L` is any function bounded
+above on bounded intervals, has `Λ' ≥ A` on `[b, ∞)`, is nonnegative with nonnegative
+derivative, and satisfies `Λ t ≤ (t - t₀) * Λ' t` for `t > t₀`. -/
 theorem exists_contDiff_profile {t₀ b A : ℝ} (hb : t₀ < b) {L : ℝ → ℝ}
     (hL : ∀ c d, BddAbove (L '' Icc c d)) :
-    ∃ Λ : ℝ → ℝ, ContDiff ℝ ∞ Λ ∧ EqOn Λ 0 (Iic t₀) ∧ (∀ t, 0 ≤ Λ t) ∧
+    ∃ Λ : ℝ → ℝ, ContDiff ℝ ∞ Λ ∧ EqOn Λ 0 (Iic t₀) ∧ EqOn (deriv Λ) 0 (Iic t₀) ∧
+      (∀ t, 0 ≤ Λ t) ∧ (∀ t, 0 ≤ deriv Λ t) ∧
       (∀ t, t₀ < t → 0 < deriv Λ t) ∧
       (∀ t, t₀ < t → max (L t) 0 * deriv Λ t ≤ deriv (deriv Λ) t) ∧
       (∀ t, b ≤ t → A ≤ deriv Λ t) ∧
@@ -99,7 +100,8 @@ theorem exists_contDiff_profile {t₀ b A : ℝ} (hb : t₀ < b) {L : ℝ → �
     rw [uIcc_of_ge ht] at hu
     exact hu.2
   refine ⟨fun u ↦ ∫ s in t₀..u, D s, (hDs.contDiff_add_one_integral t₀).of_le le_self_add,
-    fun t ht ↦ hΛ0 t ht, fun t ↦ ?_,
+    fun t ht ↦ hΛ0 t ht, fun t ht ↦ (congrFun hderiv t).trans (hD0 t ht), fun t ↦ ?_,
+    fun t ↦ (congrFun hderiv t).trans_ge (hDnn t),
     fun t ht ↦ ?_, fun t ht ↦ ?_, fun t ht ↦ ?_, fun t ht ↦ ?_⟩
   · rcases le_total t₀ t with h | h
     · exact intervalIntegral.integral_nonneg h fun u _ ↦ hDnn u

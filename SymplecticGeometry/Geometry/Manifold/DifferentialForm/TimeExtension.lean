@@ -17,13 +17,13 @@ import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 /-!
 # Time extension of forms
 
-Let `M` be a boundaryless manifold and `Ω` a smooth `k`-form on `unitInterval × M`. Its slices
-`Ω_t = ι_t^* Ω`, with `ι_t : y ↦ (t, y)`, take their values at `x` in the fibre over `x`, which
-does not depend on `t`. Applying Seeley's extension operator from `[0, 1]` to `t ↦ Ω_t(x)` at each
-point `x` gives forms `TauCeti.SmoothForm.timeExtendSlice Ω s` on `M` for every real `s`, equal to
-`Ω_s` for `s ∈ [0, 1]`. They form a smooth family over `ℝ`: read in a tangent trivialization of
-`M`, which does not involve the time, their coordinates are the time extension
-(`SymplecticGeometry.timeExtend`) of those of the slices of `Ω`, which is smooth by
+Let `M` be a manifold, possibly with boundary, and `Ω` a smooth `k`-form on `unitInterval × M`.
+Its slices `Ω_t = ι_t^* Ω`, with `ι_t : y ↦ (t, y)`, take their values at `x` in the fibre over
+`x`, which does not depend on `t`. Applying Seeley's extension operator from `[0, 1]` to
+`t ↦ Ω_t(x)` at each point `x` gives forms `TauCeti.SmoothForm.timeExtendSlice Ω s` on `M` for
+every real `s`, equal to `Ω_s` for `s ∈ [0, 1]`. They form a smooth family over `ℝ`: read in a
+tangent trivialization of `M`, which does not involve the time, their coordinates are the time
+extension (`SymplecticGeometry.timeExtend`) of those of the slices of `Ω`, which is smooth by
 `ContMDiffOn.timeExtend`. The form on `ℝ × M` with these slices
 (`TauCeti.SmoothForm.ofSlices`) is the time extension `TauCeti.SmoothForm.timeExtend Ω`; it is
 linear in `Ω`.
@@ -88,9 +88,9 @@ namespace TauCeti.SmoothForm
 
 variable {E H M F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   [TopologicalSpace M] [ChartedSpace H M] {I : ModelWithCorners ℝ E H} [IsManifold I ∞ M]
-  [BoundarylessManifold I M] [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
+  [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
 
-/-- On a boundaryless manifold `M`, let `Ω_t` be the slice at `t` of a smooth form `Ω` on
+/-- Let `Ω_t` be the slice at `t` of a smooth form `Ω` on
 `unitInterval × M`. The section along the projection `ℝ × M → M` whose value at `(s, x)` is
 Seeley's extension of `t ↦ Ω_t(x)` at `s` is smooth. -/
 private theorem contMDiff_timeExtend_slice (Ω : SmoothForm ((𝓡∂ 1).prod I) (unitInterval × M) F k) :
@@ -195,7 +195,7 @@ theorem contMDiff_timeExtendSlice :
         ((timeExtendSlice Ω p.1).val p.2)) := by
   simpa only [coe_timeExtendSlice] using contMDiff_timeExtend_slice Ω
 
-/-- **The time extension of forms.** On a boundaryless manifold `M`, the linear map that sends a
+/-- **The time extension of forms.** On a manifold `M`, the linear map that sends a
 smooth form `Ω` on `unitInterval × M` to the smooth form on `ℝ × M` whose slices are the
 `TauCeti.SmoothForm.timeExtendSlice Ω s`, obtained by applying Seeley's extension operator to the
 slices of `Ω` at each point of `M`, and which vanishes on the time direction. -/
@@ -254,7 +254,7 @@ section Naturality
 
 variable {E' H' M' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
   [TopologicalSpace M'] [ChartedSpace H' M'] {I' : ModelWithCorners ℝ E' H'} [IsManifold I' ∞ M']
-  [BoundarylessManifold I' M'] {g : M → M'}
+  {g : M → M'}
 
 /-- **Naturality of the slices of the time extension.** For a smooth map `g : M → M'` and a
 smooth form `Ω` on `unitInterval × M'`, the slices of the time extension of the pullback of `Ω`
@@ -319,7 +319,7 @@ section Icc
 
 variable {a b : ℝ} [hab : Fact (a < b)]
 
-/-- **The time extension of forms on `M × [a, b]`.** For a boundaryless manifold `M` and
+/-- **The time extension of forms on `M × [a, b]`.** For a manifold `M` and
 `a < b`, the linear map that sends a smooth form `η` on `M × Icc a b` to a smooth form on
 `M × ℝ` with the same slices at the times of `[a, b]`: `η` is carried to `unitInterval × M` by
 swapping the factors and the affine homeomorphism `iccHomeoI a b`, extended there by
@@ -449,7 +449,7 @@ section Naturality
 
 variable {E' H' M' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
   [TopologicalSpace M'] [ChartedSpace H' M'] {I' : ModelWithCorners ℝ E' H'} [IsManifold I' ∞ M']
-  [BoundarylessManifold I' M'] {g : M → M'}
+  {g : M → M'}
 
 /-- **Naturality of the time extension on `M × [a, b]`.** For a smooth map `g : M → M'` and a
 smooth form `η` on `M' × Icc a b`, the time extension of the pullback of `η` along `g × id` is
@@ -475,7 +475,6 @@ end Naturality
 
 section Contraction
 
-omit [BoundarylessManifold I M] in
 /-- The slice at a time `t ∈ [0, 1]` of the form `η` on `M × Icc a b` carried to
 `unitInterval × M` is the slice of `η` at `(iccHomeoI a b _).symm t`. -/
 private theorem mpullback_prodMk_mpullback_iccHomeoI
@@ -490,7 +489,6 @@ private theorem mpullback_prodMk_mpullback_iccHomeoI
   rw [mpullback_mpullback]
   exact mpullback_congr _ _ h η
 
-omit [BoundarylessManifold I M] in
 /-- If `ζ` is the contraction of `η` with `(V, 0)`, the same holds for their slices at each
 time, carried to `unitInterval × M`. -/
 private theorem mpullback_prodMk_mpullback_iccHomeoI_apply_cons (V : Π x : M, TangentSpace I x)
@@ -574,7 +572,7 @@ open TauCeti
 
 variable {E H M F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   [TopologicalSpace M] [ChartedSpace H M] {I : ModelWithCorners ℝ E H} [IsManifold I ∞ M]
-  [BoundarylessManifold I M] [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
+  [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
 
 /-- The slices of the time extension of a smooth form on `unitInterval × M` form a smooth family
 over `ℝ`. -/
@@ -583,7 +581,7 @@ theorem isSmoothFamily_timeExtendSlice (Ω : SmoothForm ((𝓡∂ 1).prod I) (un
   isSmoothFamily_def.mpr
     ⟨SmoothForm.timeExtend Ω, SmoothForm.mpullback_prodMk_timeExtend_eq_timeExtendSlice Ω⟩
 
-/-- **Extension of smooth families in time.** On a boundaryless manifold, every smooth family of
+/-- **Extension of smooth families in time.** On a manifold, every smooth family of
 forms over `unitInterval` is the restriction of a smooth family over `ℝ`. -/
 theorem IsSmoothFamily.exists_extend {α : unitInterval → SmoothForm I M F k}
     (hα : IsSmoothFamily (𝓡∂ 1) α) :

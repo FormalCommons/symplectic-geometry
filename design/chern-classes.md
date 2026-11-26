@@ -492,9 +492,9 @@ homology projective in every degree and finitely generated in degrees
   section): if the restrictions of the classes
   `c p i` to the fibre over every point, read through the trivialization at
   that point, form a basis of `Hᵖ(F; k)`, then it is bijective in degree
-  `n`. Over one trivializing set it is `TopCat.lerayHirsch_fst_bijective_of_fiberwise_basis`
-  through the trivialization; the finite cover is handled by induction with
-  the previous file. The fibre inclusion `Bundle.Trivialization.fiberInclusionMap`
+  `n`. It is Tau Ceti's `TopCat.lerayHirsch_bijective_of_trivializations`
+  (`AlgebraicTopology/Cohomology/LerayHirsch/FiniteCover.lean`) for the
+  trivializations of the atlas. The fibre inclusion `Bundle.Trivialization.fiberInclusionMap`
   comes from `Topology/FiberBundle/Basic.lean` of *Symplectic vector bundles*.
 - `TopCat.lerayHirschEquiv`, the linear equivalence, with its value on
   summands; and `TopCat.singularCohomologyMap_injective_of_lerayHirsch_injective`,
@@ -641,7 +641,10 @@ their compatibility with `TopPair.singularCohomologyπ`.
 
 The three changes of `PairChangeOfCoefficients.lean` carry Thom classes to
 Thom classes (`TauCeti.IsThomClass.singularCohomologyChainCoefficientMap`,
-`…ValueMap`, `…LinearCongr`) and commute with `TauCeti.eulerClass`. Imports
+`…ValueMap`, `…LinearCongr`, and their combination
+`TauCeti.IsThomClass.uliftIntegralCohomologyEquiv`); that combination
+commutes with `TauCeti.eulerClass`
+(`TauCeti.eulerClass_uliftIntegralCohomologyEquiv`). Imports
 `PairChangeOfCoefficients.lean`.
 
 ### `Topology/VectorBundle/Thom/CupEulerClass.lean`
@@ -780,7 +783,7 @@ The homology cross product of two pairs, for the Whitney file below:
 from Tau Ceti's shuffle map `TopCat.shufflePair`, with `_def`,
 `singularHomologyCrossRelPair_naturality`, and its compatibility with
 `TopCat.singularHomologyCrossRel`
-(`whiskerLeft_singularHomologyπ_comp_singularHomologyCrossRelPair`) and with
+(Tau Ceti's `singularHomologyCrossRel_comp_singularHomologyMap`) and with
 `TopCat.singularHomologyCross`
 (`singularHomologyCross_comp_singularHomologyπ_eq_singularHomologyCrossRelPair`).
 It uses these Tau Ceti files, of which the library had copies until the

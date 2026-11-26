@@ -6,33 +6,17 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Normed.Operator.Mul
-public import TauCeti.Analysis.Complex.Circle.Basic
+public import Mathlib.Analysis.Complex.Circle
 
 /-!
 # The unit circle: nontriviality and actions
 
 The unit circle is a nontrivial group (`Circle.instNontrivial`, from `Circle.exp_pi_ne_one`).
-Two ways in which it acts as the complex numbers it contains:
-
-* `TauCeti.circleEquivUnitary_smul`: on any type with an action of `ℂ`, the unitary
-  `circleEquivUnitary z` of Tau Ceti's isomorphism `TauCeti.circleEquivUnitary : Circle ≃ₜ*
-  unitary ℂ` acts as the complex number `z`.
-* `Circle.lsmul`: the action of the unit circle on `ℂ` by multiplication, as a monoid
-  homomorphism into the real continuous linear endomorphisms of `ℂ`
-  (`Circle.lsmul_apply`: `Circle.lsmul z w = z * w`).
+`Circle.lsmul` is its action on `ℂ` by multiplication, as a monoid homomorphism into the real
+continuous linear endomorphisms of `ℂ` (`Circle.lsmul_apply`: `Circle.lsmul z w = z * w`).
 -/
 
 public section
-
-namespace TauCeti
-
-/-- The unitary `circleEquivUnitary z` acts on any `ℂ`-set as the complex number `z`. -/
-@[simp]
-theorem circleEquivUnitary_smul {M : Type*} [MulAction ℂ M] (z : Circle) (x : M) :
-    circleEquivUnitary z • x = (z : ℂ) • x := by
-  rw [Submonoid.smul_def, coe_circleEquivUnitary]
-
-end TauCeti
 
 namespace Circle
 

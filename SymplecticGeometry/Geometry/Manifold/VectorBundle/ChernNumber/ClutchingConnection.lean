@@ -11,6 +11,7 @@ public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connect
 import SymplecticGeometry.Analysis.Complex.RadialProjection
 import SymplecticGeometry.Geometry.Manifold.DeRham.Circle
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
+import SymplecticGeometry.Topology.Sets.Annulus
 import TauCeti.Geometry.Manifold.Algebra.LieGroup
 import TauCeti.Topology.Separation.Basic
 
@@ -168,14 +169,14 @@ private theorem mpullback_apply_eq_add_of_collar
         (k : ℝ) • mpullback (𝓡 2) 𝓘(ℝ, ℂ) φ.coord (radialAngularForm β) (φ z) := by
   have hrange : IsOpen (range φ) := φ.isOpenEmbedding.isOpen_range
   -- near `φ z`, the transition from `σ` to `σout` is the `k`-th power of the phase
-  set W := φ '' {z : CoordinateDisc.ball | 0 < ‖(z : ℂ)‖ ∧ ‖(z : ℂ)‖ < 1}
+  set W := φ '' ((↑) ⁻¹' (annulus ℂ 0 1 : Set ℂ) : Set CoordinateDisc.ball)
   have hWo : IsOpen W := φ.isOpenEmbedding.isOpenMap _ <|
-    (isOpen_lt continuous_const continuous_subtypeVal.norm).inter
-      (isOpen_lt continuous_subtypeVal.norm continuous_const)
+    (annulus ℂ 0 1).isOpen.preimage continuous_subtypeVal
   have hDk : (fun y ↦ PrincipalBundle.division Circle (σ y) (σout y)) =ᶠ[𝓝 (φ z)]
       fun y ↦ φ.phase y ^ k := by
-    filter_upwards [hWo.mem_nhds ⟨z, ⟨norm_pos_iff.2 hz0, hz1⟩, rfl⟩] with y hy
-    obtain ⟨z', ⟨hz'0, hz'1⟩, rfl⟩ := hy
+    filter_upwards [hWo.mem_nhds ⟨z, mem_annulus.2 ⟨norm_pos_iff.2 hz0, hz1⟩, rfl⟩] with y hy
+    obtain ⟨z', hz', rfl⟩ := hy
+    obtain ⟨hz'0, hz'1⟩ := mem_annulus.1 hz'
     exact PrincipalBundle.division_eq_iff.2 (hrel z' hz'0 hz'1).symm
   rw [hα.mpullback_apply_eq_mpullback_division_add hrange hσ (mem_range_self z)
       (hσout.mdifferentiableAt (by simp)),

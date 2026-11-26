@@ -181,13 +181,9 @@ theorem exists_nonneg_halfCylinder_hessian_pos {f : ℝ × V → ℝ} (hf : Cont
     (isCompact_closedBall (0 : V) 1) |>.exists_bound_of_continuousOn
     (((hf.continuous_fderiv (by norm_num)).clm_apply continuous_const).continuousOn)
   -- The radial cutoff `β`.
-  obtain ⟨β, hβ, hβI, hβanti, hβ1, hβ0, hβpos, hβK⟩ :=
+  obtain ⟨β, hβ, hβI, hβanti, hβ1, hβ0, hβ'1, hβ'0, hβpos, hβK⟩ :=
     exists_contDiff_antitone_cutoff_mul_abs_deriv_le_deriv_deriv (a := 1 / 2) (b := 1)
       (by norm_num)
-  have hβ'zero {r : ℝ} (hr : r ≤ 1 / 2 ∨ 1 ≤ r) : deriv β r = 0 :=
-    hr.elim
-      (fun h ↦ IsLocalMax.deriv_eq_zero (.of_forall fun u ↦ (hβI u).2.trans_eq (hβ1 h).symm))
-      fun h ↦ IsLocalMin.deriv_eq_zero (.of_forall fun u ↦ (hβ0 h).trans_le (hβI u).1)
   obtain ⟨B, hB, hβB⟩ : ∃ B : ℝ, 0 < B ∧ ∀ r ∈ Icc (0 : ℝ) 1, |deriv β r| ≤ B := by
     obtain ⟨B₀, hB₀⟩ := (isCompact_Icc (a := (0 : ℝ)) (b := 1)).exists_bound_of_continuousOn
       (hβ.continuous_deriv (by simp)).continuousOn
@@ -205,14 +201,8 @@ theorem exists_nonneg_halfCylinder_hessian_pos {f : ℝ × V → ℝ} (hf : Cont
     rintro _ ⟨t, ht, rfl⟩
     exact ⟨⌈t⌉₊, Nat.ceil_mono ht.2, (hL t).symm⟩
   -- The profile `Λ`.
-  obtain ⟨Λ, hΛ, hΛ0, hΛnn, hΛ'pos, hΛ'', hΛ'A, hΛle⟩ :=
+  obtain ⟨Λ, hΛ, hΛ0, hΛ'zero, hΛnn, hΛ'nn, -, hΛ'', hΛ'A, hΛle⟩ :=
     exists_contDiff_profile (t₀ := -3 / 4) (b := -1 / 2) (A := |C₁| + 1) (by norm_num) hLbdd
-  have hΛ'zero {t : ℝ} (h : t ≤ -3 / 4) : deriv Λ t = 0 :=
-    IsLocalMin.deriv_eq_zero (.of_forall fun u ↦ (hΛ0 h).trans_le (hΛnn u))
-  have hΛ'nn (t : ℝ) : 0 ≤ deriv Λ t := by
-    rcases le_or_gt t (-3 / 4) with h | h
-    · rw [hΛ'zero h]
-    · exact (hΛ'pos t h).le
   -- The modification `μ`.
   have hβnear : β =ᶠ[𝓝 0] fun _ ↦ β 0 :=
     eventually_of_mem (Iio_mem_nhds (by norm_num : (0 : ℝ) < 1 / 2)) fun r hr ↦
@@ -267,13 +257,7 @@ theorem exists_nonneg_halfCylinder_hessian_pos {f : ℝ × V → ℝ} (hf : Cont
       Real.norm_of_nonneg (hΛnn t), mul_assoc]
     refine mul_le_mul_of_nonneg_left ((ContinuousLinearMap.le_opNorm _ v).trans ?_) (hΛnn t)
     refine mul_le_mul_of_nonneg_right ?_ (norm_nonneg v)
-    rcases eq_or_ne y 0 with rfl | hy0
-    · have hgnear : (fun z : V ↦ β ‖z‖) =ᶠ[𝓝 0] fun _ ↦ β 0 :=
-        (tendsto_norm_zero (E := V)).eventually hβnear
-      rw [hgnear.fderiv_eq]
-      simp
-    · exact (norm_fderiv_comp_norm_le hy0 (hβ.differentiable (by simp) _)).trans_eq
-        (Real.norm_eq_abs _)
+    exact (norm_fderiv_comp_norm_le β y).trans_eq (Real.norm_eq_abs _)
   -- The case analysis on numbers.
   have hLt : L t = max ((C n + 1) / (ε n / 2)) ((C n + 1) / D n) := by rw [hL t, ← hn]
   have hM2 : (C n + 1) / (β (1 - s n) * (ε n / (2 * B * (n + 1)))) ≤ max (L t) 0 := by
@@ -283,9 +267,10 @@ theorem exists_nonneg_halfCylinder_hessian_pos {f : ℝ × V → ℝ} (hf : Cont
     (hC0 n) (hε0 n) hB (hβpos _ (by linarith [hs0 n])) (by positivity)
     (hC n _ hxK (1, 0) (by simp))
     (fun h ↦ hC n _ hxK (0, ‖y‖⁻¹ • y) (by simp [norm_smul, (by linarith : ‖y‖ ≠ 0)]))
-    (hε n _ ⟨hxK, hU⟩) (by rw [hcrv, hμt]) hq (hβI _).1 (hΛnn t) (hΛ'nn t) hβ'zero hy
+    (hε n _ ⟨hxK, hU⟩) (by rw [hcrv, hμt]) hq (hβI _).1 (hΛnn t) (hΛ'nn t)
+    (fun h ↦ h.elim (hβ'1 ·) (hβ'0 ·)) hy
     (hβB _ ⟨norm_nonneg _, hy⟩) (fun h1 h2 ↦ hsK n _ ⟨h1, h2⟩) (fun h ↦ hβanti h.le)
-    (fun h ↦ hΛ0 h) hΛ'zero (hΛ'' t) (hΛle t) (by linarith [hn ▸ Nat.le_ceil t])
+    (fun h ↦ hΛ0 h) (fun h ↦ hΛ'zero h) (hΛ'' t) (hΛle t) (by linarith [hn ▸ Nat.le_ceil t])
     (((le_max_left _ _).trans_eq hLt.symm).trans (le_max_left _ _)) hM2 with h | ⟨hy12, h⟩
   · refine ⟨(1, 0), ?_⟩
     rwa [hHess, fderiv_fderiv_comp_snd_mul_comp_fst_apply_one_zero (g := fun z : V ↦ β ‖z‖)

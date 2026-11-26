@@ -374,10 +374,8 @@ theorem integral_cexp_neg_mul_eq_finsum_fixedPoints [CompactSpace M]
       (fun x ↦ -μ x))
     (hiso : ∀ p ∈ fixedPoints, ∀ᶠ x in 𝓝[≠] p, x ∉ fixedPoints)
     (k : M → Fin n → ℤ)
-    (hk : ∀ p ∈ fixedPoints, ∃ L : TangentSpace I p ≃L[ℝ] (Fin n → ℂ),
-      (∀ v w, σ.eval₂ p v w = stdComplexPiSymplecticForm (Fin n) (L v) (L w)) ∧
-      ∀ (t : ℝ) v, L (mfderiv I I (Circle.exp (2 * π * t) • ·) p v) =
-        fun j ↦ Complex.exp (2 * π * k p j * t * Complex.I) * L v j)
+    (hk : ∀ p ∈ fixedPoints,
+      ∃ L : TangentSpace I p ≃L[ℝ] (Fin n → ℂ), IsTangentWeights σ p (k p) L)
     {ħ : ℂ} (hħ : ħ ≠ 0) :
     ∫ x, Complex.exp (-ħ * H x) ∂σ.liouvilleMeasure n =
       ∑ᶠ p ∈ fixedPoints, Complex.exp (-ħ * H p) / (ħ ^ n * ∏ j, (k p j : ℂ))
