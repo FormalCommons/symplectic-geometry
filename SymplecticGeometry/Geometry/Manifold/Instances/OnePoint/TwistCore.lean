@@ -11,6 +11,7 @@ public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 public import SymplecticGeometry.Topology.VectorBundle.Core.Basic
 public import Mathlib.Geometry.Manifold.VectorBundle.Hom
 public import TauCeti.Geometry.Manifold.Complex.Orientation
+import SymplecticGeometry.Topology.VectorBundle.Basic
 
 /-!
 # The line bundles `𝒪(k)` on the Riemann sphere as real vector bundles
@@ -108,7 +109,7 @@ theorem contMDiff_div_smul_twistCore_hom {k : ℤ} {n : ℕ∞ω}
     refine (contMDiff_zeroSection ℝ
       (fun x : OnePoint ℂ ↦ TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] ℂ) x₀).congr_of_eventuallyEq ?_
     filter_upwards [h0] with p hp
-    simp [hp, zeroSection]
+    simp [hp, zeroSection_def]
   rw [contMDiffAt_hom_bundle]
   refine ⟨contMDiffAt_id, ?_⟩
   have hα := ((contMDiffAt_hom_bundle _).1 (α.contMDiff x₀)).2

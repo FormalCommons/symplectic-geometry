@@ -21,7 +21,7 @@ The argument adapts the closedness step in the proof of Tau Ceti's
 
 ## Main results
 
-* `VectorBundle.isClosed_setOf_eq_zero`: the zero set of a continuous section along a map is
+* `VectorBundle.isClosed_setOfPred_eq_zero`: the zero set of a continuous section along a map is
   closed.
 -/
 
@@ -41,7 +41,7 @@ variable (𝕜) in
 include 𝕜 in
 /-- The zero set of a continuous section of a topological vector bundle along a map
 `b : M → B` is closed in `M`. -/
-theorem isClosed_setOf_eq_zero {b : M → B} {s : ∀ y, E (b y)}
+theorem isClosed_setOfPred_eq_zero {b : M → B} {s : ∀ y, E (b y)}
     (hs : Continuous fun y ↦ (⟨b y, s y⟩ : TotalSpace F E)) : IsClosed {x | s x = 0} := by
   rw [← isOpen_compl_iff, isOpen_iff_mem_nhds]
   intro x hx

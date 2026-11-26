@@ -7,12 +7,14 @@ module
 
 public import Mathlib.Geometry.Manifold.Instances.Real
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
+public import SymplecticGeometry.Geometry.Manifold.ContMDiff.TimeExtension
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 import SymplecticGeometry.Analysis.Calculus.DifferentialForm.Poincare
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Neighborhood
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
+import TauCeti.Geometry.Manifold.ContMDiff.Prod
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
@@ -60,8 +62,13 @@ constant family), which contains a larger closed ball
 * `SymplecticGeometry.IsSymplecticBallEmbedding.exists_contMDiffOn`, `.injOn`, `.mpullback_eq`,
   `SymplecticGeometry.IsSymplecticBallFamily.exists_contMDiffOn`,
   `.isSymplecticBallEmbedding`: the components of the two definitions.
+* `SymplecticGeometry.IsSymplecticBallFamily.exists_contDiffOn_timeExtend`: for a family with
+  values in a normed space, its extension `timeExtend` to all times `t ∈ ℝ` is smooth on
+  `ℝ × U` for an open neighbourhood `U` of `B(r)`.
 * `SymplecticGeometry.IsSymplecticBallEmbedding.mpullback_eq_of_mem_closedBall`: for `0 < r`, a
   symplectic embedding of `B(r)` pulls `σ` back to `ω₀` on all of `B(r)`.
+* `SymplecticGeometry.IsSymplecticBallEmbedding.isCompact_image_closedBall`: it maps each closed
+  ball `B(r')` with `r' ≤ r` onto a compact set.
 * `SymplecticGeometry.IsSymplecticBallEmbedding.injective_mfderiv`: for `0 < r`, it is an
   immersion along `B(r)`.
 * `SymplecticGeometry.IsSymplecticBallEmbedding.isLocalDiffeomorphOn`,
@@ -160,6 +167,14 @@ theorem mpullback_eq (hj : IsSymplecticBallEmbedding σ r j) {z : StdSpace (Fin 
     mpullback 𝓘(ℝ, StdSpace (Fin n)) I j σ.val z = (stdForm (Fin n)).constSmooth.val z :=
   hj.2.2 z hz
 
+/-- A symplectic embedding of `B(r)` maps each closed ball `B(r')` with `r' ≤ r` onto a compact
+set. -/
+theorem isCompact_image_closedBall (hj : IsSymplecticBallEmbedding σ r j) (h : r' ≤ r) :
+    IsCompact (j '' closedBall 0 r') := by
+  obtain ⟨U, -, hU, hjU⟩ := hj.exists_contMDiffOn
+  exact (isCompact_closedBall 0 r').image_of_continuousOn
+    (hjU.continuousOn.mono ((closedBall_subset_closedBall h).trans hU))
+
 /-- A symplectic embedding of `B(r)` restricts to a symplectic embedding of any smaller ball. -/
 theorem mono (hj : IsSymplecticBallEmbedding σ r j) (h : r' ≤ r) :
     IsSymplecticBallEmbedding σ r' j := by
@@ -253,6 +268,17 @@ of `B(r)`. -/
 theorem isSymplecticBallEmbedding (he : IsSymplecticBallFamily σ r e) (t : unitInterval) :
     IsSymplecticBallEmbedding σ r (fun z ↦ e (t, z)) :=
   he.2 t
+
+/-- For a smooth family `e` of symplectic embeddings of `B(r)` into a normed space, the extension
+`timeExtend e` of `e` to all times `t ∈ ℝ` is smooth on `ℝ × U` for an open neighbourhood `U`
+of `B(r)`. -/
+theorem exists_contDiffOn_timeExtend {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+    {σ : SmoothTwoForm 𝓘(ℝ, F) F} {e : unitInterval × StdSpace (Fin n) → F}
+    (he : IsSymplecticBallFamily σ r e) :
+    ∃ U, IsOpen U ∧ closedBall 0 r ⊆ U ∧ ContDiffOn ℝ ∞ (timeExtend e) (univ ×ˢ U) := by
+  obtain ⟨U, hUo, hrU, heU⟩ := he.exists_contMDiffOn
+  exact ⟨U, hUo, hrU,
+    contMDiffOn_iff_contDiffOn.1 (contMDiffOn_prod_modelWithCornersSelf_iff.1 (heU.timeExtend hUo))⟩
 
 end IsSymplecticBallFamily
 

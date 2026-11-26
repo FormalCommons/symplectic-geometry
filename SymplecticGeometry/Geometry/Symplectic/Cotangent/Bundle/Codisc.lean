@@ -16,11 +16,12 @@ Let `M` be a Riemannian manifold and `K ⊆ M` compact. Tau Ceti proves that the
 codisc bundle `D*M = {z | ‖z.2‖ ≤ 1}` over `K` is compact
 (`TauCeti.CotangentBundle.isCompact_codiscBundle_inter_preimage_proj`). This file deduces that
 the covectors over `K` with `‖z.2‖ ≤ r` form a compact set, for every `r`
-(`TauCeti.CotangentBundle.isCompact_setOf_norm_snd_le_inter_preimage_proj`): that set lies in
+(`TauCeti.CotangentBundle.isCompact_setOfPred_norm_snd_le_inter_preimage_proj`): that set lies in
 the image of `D*M ∩ π⁻¹ K` under the fibrewise dilation by `max r 1`
 (`TauCeti.vectorBundleScalarDiffeomorph`), which keeps each covector over its base point, and is
 cut out of that compact image by the closed condition `‖z.2‖ ≤ r`. When `M` is compact, every
-sublevel set `{z | ‖z.2‖ ≤ r}` is compact (`TauCeti.CotangentBundle.isCompact_setOf_norm_snd_le`).
+sublevel set `{z | ‖z.2‖ ≤ r}` is compact
+(`TauCeti.CotangentBundle.isCompact_setOfPred_norm_snd_le`).
 
 Tau Ceti's `TauCeti.isCompact_setOf_norm_le_bundle` and `IsCompact.norm_le_bundle` need fibres
 with an inner product, so they do not apply to covectors, whose norm is an operator norm.
@@ -31,9 +32,9 @@ It also records that fibre scaling by `t ∈ [0, 1]` multiplies the norm of a co
 ## Main results
 
 * `TauCeti.CotangentBundle.norm_snd_vectorBundleFiberScaling`: `‖(t • z).2‖ = t ‖z.2‖`.
-* `TauCeti.CotangentBundle.isCompact_setOf_norm_snd_le_inter_preimage_proj`: the covectors of
+* `TauCeti.CotangentBundle.isCompact_setOfPred_norm_snd_le_inter_preimage_proj`: the covectors of
   norm at most `r` over a compact set form a compact set.
-* `TauCeti.CotangentBundle.isCompact_setOf_norm_snd_le`: on a compact Riemannian manifold, the
+* `TauCeti.CotangentBundle.isCompact_setOfPred_norm_snd_le`: on a compact Riemannian manifold, the
   covectors of norm at most `r` form a compact set.
 -/
 
@@ -72,7 +73,7 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimension
 
 /-- On a Riemannian manifold, the covectors of norm at most `r` lying over a compact set `K` form
 a compact subset of the cotangent bundle. -/
-theorem isCompact_setOf_norm_snd_le_inter_preimage_proj {K : Set M} (hK : IsCompact K) (r : ℝ) :
+theorem isCompact_setOfPred_norm_snd_le_inter_preimage_proj {K : Set M} (hK : IsCompact K) (r : ℝ) :
     IsCompact ({z : CotangentBundle I M | ‖z.snd‖ ≤ r} ∩
       π (E →L[ℝ] ℝ) (fun x : M ↦ TangentSpace I x →L[ℝ] ℝ) ⁻¹' K) := by
   -- The set lies in the image of `D*M ∩ π⁻¹ K` under the dilation by `c = max r 1 > 0`, which
@@ -102,9 +103,10 @@ theorem isCompact_setOf_norm_snd_le_inter_preimage_proj {K : Set M} (hK : IsComp
 
 /-- On a compact Riemannian manifold, the covectors of norm at most `r` form a compact subset of
 the cotangent bundle. -/
-theorem isCompact_setOf_norm_snd_le [CompactSpace M] (r : ℝ) :
+theorem isCompact_setOfPred_norm_snd_le [CompactSpace M] (r : ℝ) :
     IsCompact {z : CotangentBundle I M | ‖z.snd‖ ≤ r} := by
-  simpa using isCompact_setOf_norm_snd_le_inter_preimage_proj (I := I) (isCompact_univ (X := M)) r
+  simpa using
+    isCompact_setOfPred_norm_snd_le_inter_preimage_proj (I := I) (isCompact_univ (X := M)) r
 
 end TauCeti.CotangentBundle
 

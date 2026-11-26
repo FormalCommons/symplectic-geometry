@@ -8,11 +8,10 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.Fibration.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
 public import TauCeti.Geometry.Manifold.Submersion.EhresmannConnection.Basic
-import SymplecticGeometry.Geometry.Manifold.VectorBundle.Orthogonal
+import SymplecticGeometry.Geometry.Manifold.Distribution.Orthogonal
 import SymplecticGeometry.LinearAlgebra.BilinearForm.Orthogonal
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import TauCeti.Geometry.Manifold.Distribution.Submersion
-import TauCeti.Geometry.Manifold.Distribution.VectorBundle
 import TauCeti.Geometry.Symplectic.Manifold.Flat
 
 /-!
@@ -51,10 +50,10 @@ of its three arguments are vertical.
 
 The proof that the horizontal spaces form a smooth distribution has the shape of Tau Ceti's
 `Manifold.IsSubmersion.isContMDiffDistribution_orthogonal_ker_mfderiv`, with the flat map of `τ`
-in place of a Riemannian metric: the vertical spaces have smooth local frames (Tau Ceti's
-`Manifold.IsSubmersion.isContMDiffDistribution_ker_mfderiv`), and the orthogonals of such a family
-for a smooth field of nondegenerate reflexive forms have smooth local frames
-(`TauCeti.HasLocalContMDiffSubbundleFrames.orthogonal`).
+in place of a Riemannian metric: the vertical spaces form a smooth distribution (Tau Ceti's
+`Manifold.IsSubmersion.isContMDiffDistribution_ker_mfderiv`), and the orthogonals of a smooth
+distribution for a smooth field of nondegenerate reflexive forms form one too
+(`TauCeti.IsContMDiffDistribution.bilinFormOrthogonal`).
 
 ## References
 
@@ -183,24 +182,22 @@ theorem IsVerticallyNondegenerate.isContMDiffDistribution_horizontalDistribution
     [FiniteDimensional ℝ EM] (hτ : IsVerticallyNondegenerate IB proj τ)
     (hproj : Manifold.IsSubmersion IM IB ∞ proj) :
     IsContMDiffDistribution IM ∞ (finrank ℝ EB) (horizontalDistribution IB proj τ) := by
-  refine isContMDiffDistribution_iff.2 fun x ↦ ?_
-  have : Nonempty M := ⟨x⟩
+  rcases isEmpty_or_nonempty M with hM | hM
+  · exact isContMDiffDistribution_iff.2 fun x ↦ isEmptyElim x
+  have x : M := Classical.arbitrary M
   have : FiniteDimensional ℝ EB := Module.Finite.of_surjective
     (mfderiv IM IB proj x : TangentSpace IM x →ₗ[ℝ] TangentSpace IB (proj x))
     (hproj.surjective_mfderiv (by simp) x)
   -- Mathlib defines `ContinuousLinearMap.toBilinForm` as `toLinearMap₁₂`, the form that
-  -- `HasLocalContMDiffSubbundleFrames.orthogonal` uses.
+  -- `IsContMDiffDistribution.bilinFormOrthogonal` uses.
   have hflat (y : M) : (τ.flat y).toLinearMap₁₂ = τ.bilinFormAt y := τ.toBilinForm_flat y
-  -- The vertical spaces have smooth local frames, and so do their `τ`-orthogonals.
-  have hV := IsContMDiffDistribution.hasLocalContMDiffSubbundleFrames
-    (hproj.isContMDiffDistribution_ker_mfderiv (m := ∞) (by simp))
-  have hH := hV.orthogonal (β := τ.flat) τ.contMDiff_flat
+  -- The vertical spaces form a smooth distribution, and so do their `τ`-orthogonals.
+  have hH := (hproj.isContMDiffDistribution_ker_mfderiv (m := ∞) (by simp)).bilinFormOrthogonal
+    (β := τ.flat) τ.contMDiff_flat
     (fun y ↦ hflat y ▸ (SmoothForm.isAlt_bilinFormAt τ y).isRefl)
     fun y ↦ hflat y ▸ isVerticallyNondegenerate_iff.1 hτ y
   rw [Nat.sub_sub_self (hproj.finrank_le (by simp))] at hH
-  obtain ⟨U, hU, hx, X, hX, hXs⟩ := hasLocalContMDiffSubbundleFrames_iff.1 hH x
-  refine ⟨U, hU, hx, X, ⟨hXs, hX.linearIndependent, fun hy ↦ ?_⟩⟩
-  rw [hX.span_eq hy, horizontalDistribution_def, hflat]
+  simpa only [hflat, ← horizontalDistribution_def] using hH
 
 /-- **The connection of a two-form.** For a smooth submersion `proj` from a manifold modelled on
 a finite-dimensional space and a vertically nondegenerate two-form `τ`, the horizontal spaces of

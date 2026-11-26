@@ -10,6 +10,7 @@ public import SymplecticGeometry.Analysis.Complex.MvPolynomial.LogAverage
 import Mathlib.Analysis.Convex.Mul
 import Mathlib.LinearAlgebra.Complex.FiniteDimensional
 import SymplecticGeometry.Algebra.MvPolynomial.Degrees
+import SymplecticGeometry.MeasureTheory.Integral.Average
 import SymplecticGeometry.MeasureTheory.Measure.Lebesgue.LineSlice
 import SymplecticGeometry.RingTheory.MvPolynomial.LineRestriction
 import SymplecticGeometry.Topology.Algebra.MvPolynomial
@@ -30,7 +31,7 @@ count over the points near the zero set.
 * `MvPolynomial.setAverage_log_norm_eval_sub_ge_of_dist_lt` (change of centre): let `K` be at
   least `2 * (2 * m + (2 * m + 4 ^ m) * 4 ^ m)`, where `m = card ι`. If `P y = 0` and
   `dist c y < a`, then with `ρ₁ = K * D * a`, `log 4 / 2 ≤ V c (4 * ρ₁) - V c ρ₁`.
-* `MvPolynomial.volume_ball_le_mul_volume_setOf_exists_root`: under the same hypotheses, the
+* `MvPolynomial.volume_ball_le_mul_volume_setOfPred_exists_root`: under the same hypotheses, the
   directions `v` in the unit ball for which `P` vanishes at some `c + s • v` with
   `‖s‖ < 4 * ρ₁` have at least `1 / (2 * D)` of the volume of the unit ball.
 * `MvPolynomial.volume_thickening_zeroLocus_le_pow_four_mul_sq`: the part of the `t`-thickening
@@ -60,13 +61,13 @@ Let `T` be the part of the `t`-thickening of the zero set `Z` in the unit ball `
 `ρ = 4 * (K * D * t)`. Each `c ∈ T` is within `t` of a zero, so by the change of centre at least
 `1 / (2 * D)` of the directions `v ∈ B` give a line `s ↦ c + s • v` that meets `Z` within
 `‖s‖ ≤ ρ`. The pairs `(c, v)` with this property form a closed set
-(`IsClosed.setOf_exists_norm_le_fst_add_smul_snd_mem`), so Tonelli's theorem applies to its
+(`IsClosed.setOfPred_exists_norm_le_fst_add_smul_snd_mem`), so Tonelli's theorem applies to its
 indicator on `T × B`, and `volume B * volume T` is at most `2 * D` times the integral over
 `v ∈ B` of the volume of the `c ∈ T` that reach `Z` along `v`. For almost every `v` the top
 homogeneous component of `P` does not vanish at `v` (`MvPolynomial.ae_eval_ne_zero`), so every
 line in the direction `v` meets `Z` in at most `D` points
-(`MvPolynomial.encard_setOf_eval_add_smul_eq_zero_le`), and
-`MeasureTheory.volume_setOf_exists_add_smul_mem_le` bounds that volume by a constant times
+(`MvPolynomial.encard_setOfPred_eval_add_smul_eq_zero_le`), and
+`MeasureTheory.volume_setOfPred_exists_add_smul_mem_le` bounds that volume by a constant times
 `D * ρ ^ 2`. This gives `C * D ^ 4 * t ^ 2`. As the volume is also at most that of `B`, it is at
 most a constant times `D ^ 2 * t`, by cases on whether `D ^ 2 * t ≤ 1`, and `D ^ 2 ≤ D ^ (2 * m)`
 when `Z` is not empty, since then `P` is not constant.
@@ -89,32 +90,6 @@ open scoped ENNReal Real
 namespace MvPolynomial
 
 variable {ι : Type*} [Fintype ι]
-
-/-- On a ball inside a set where `‖P‖ ≤ M`, `log M` minus the average of `log ‖P‖` is nonnegative,
-and its `ofReal` is the lower average of `ofReal (log M - log ‖P‖)`. -/
-private theorem setLAverage_ofReal_sub_log_norm_eval {P : MvPolynomial ι ℂ} (hP : P ≠ 0)
-    {M : ℝ} {s : Set (EuclideanSpace ℂ ι)} (hM : ∀ z ∈ s, ‖eval z.ofLp P‖ ≤ M)
-    {x : EuclideanSpace ℂ ι} {r : ℝ} (hr : 0 < r) (hs : ball x r ⊆ s) :
-    0 ≤ Real.log M - ⨍ z in ball x r, Real.log ‖eval z.ofLp P‖ ∧
-      ⨍⁻ z in ball x r, ENNReal.ofReal (Real.log M - Real.log ‖eval z.ofLp P‖) =
-        ENNReal.ofReal (Real.log M - ⨍ z in ball x r, Real.log ‖eval z.ofLp P‖) := by
-  have h0 : volume (ball x r) ≠ 0 := (measure_ball_pos volume x hr).ne'
-  have hfin : volume (ball x r) ≠ ∞ := measure_ball_lt_top.ne
-  have hu := integrableOn_log_norm_eval_ball hP x r
-  have hnn : 0 ≤ᵐ[volume.restrict (ball x r)]
-      fun z => Real.log M - Real.log ‖eval z.ofLp P‖ :=
-    (ae_restrict_log_norm_eval_le_log hP measurableSet_ball fun z hz => hM z (hs hz)).mono
-      fun _ => sub_nonneg.2
-  have heq : Real.log M - ⨍ z in ball x r, Real.log ‖eval z.ofLp P‖ =
-      ⨍ z in ball x r, (Real.log M - Real.log ‖eval z.ofLp P‖) := by
-    rw [setAverage_fun_sub (integrableOn_const hfin) hu, setAverage_const h0 hfin]
-  rw [heq]
-  constructor
-  · rw [setAverage_eq, smul_eq_mul]
-    exact mul_nonneg (by positivity) (integral_nonneg_of_ae hnn)
-  · have hi : IntegrableOn (fun z => Real.log M - Real.log ‖eval z.ofLp P‖) (ball x r) :=
-      (integrableOn_const hfin).sub hu
-    rw [ofReal_setAverage hi hnn, setLAverage_eq]
 
 /-- The volume ratios of the change of centre: for `0 < a` with `2 * a ≤ ρ` and `e = a / ρ`,
 `((ρ - a) / ρ) ^ (2 * m)` is at least `1 - 2 * m * e`, and `((4 * ρ + a) / (4 * ρ)) ^ (2 * m)` is
@@ -198,8 +173,16 @@ theorem setAverage_log_norm_eval_sub_ge_of_dist_lt {P : MvPolynomial ι ℂ} (hP
     ((isCompact_closedBall y R).image (by fun_prop)).bddAbove
   have hM : ∀ z ∈ ball y R, ‖eval z.ofLp P‖ ≤ M := fun z hz =>
     le_csSup hbdd (mem_image_of_mem _ (ball_subset_closedBall hz))
-  have k := fun {x : EuclideanSpace ℂ ι} {r : ℝ} (hr : 0 < r) (hs : ball x r ⊆ ball y R) =>
-    setLAverage_ofReal_sub_log_norm_eval hP hM hr hs
+  -- On a ball inside `ball y R`, `log M` bounds the average of `log ‖P‖`, and the lower average
+  -- of `ofReal (log M - log ‖P‖)` is `ofReal` of their difference.
+  have k {x : EuclideanSpace ℂ ι} {r : ℝ} (hr : 0 < r) (hs : ball x r ⊆ ball y R) :
+      0 ≤ Real.log M - ⨍ z in ball x r, Real.log ‖eval z.ofLp P‖ ∧
+        ⨍⁻ z in ball x r, ENNReal.ofReal (Real.log M - Real.log ‖eval z.ofLp P‖) =
+          ENNReal.ofReal (Real.log M - ⨍ z in ball x r, Real.log ‖eval z.ofLp P‖) := by
+    have hae := ae_restrict_log_norm_eval_le_log hP measurableSet_ball fun z hz => hM z (hs hz)
+    exact ⟨sub_nonneg.2 (setAverage_log_norm_eval_le_of_ae_le hP hr hae),
+      setLAverage_ofReal_sub_eq (measure_ball_pos volume x hr).ne' measure_ball_lt_top.ne
+        (integrableOn_log_norm_eval_ball hP x r) hae⟩
   have hs₁ : ball y (ρ₁ - a) ⊆ ball c ρ₁ := ball_subset_ball' (by rw [dist_comm]; linarith)
   have hs₂ : ball c (4 * ρ₁) ⊆ ball y R := ball_subset_ball' (by rw [hR]; linarith)
   have hs₃ : ball c ρ₁ ⊆ ball y R := (ball_subset_ball (by linarith)).trans hs₂
@@ -246,8 +229,8 @@ theorem setAverage_log_norm_eval_sub_ge_of_dist_lt {P : MvPolynomial ι ℂ} (hP
 `MvPolynomial.setAverage_log_norm_eval_sub_ge_of_dist_lt`, the volume of the unit ball of
 `EuclideanSpace ℂ ι` is at most `2 * D` times that of the set of `v` in it for which `P` vanishes
 at some `c + s • v` with `‖s‖ < 4 * (K * D * a)`. -/
-theorem volume_ball_le_mul_volume_setOf_exists_root {P : MvPolynomial ι ℂ} (hP : P ≠ 0) {D : ℕ}
-    (hD : P.totalDegree ≤ D) {K : ℝ}
+theorem volume_ball_le_mul_volume_setOfPred_exists_root {P : MvPolynomial ι ℂ}
+    (hP : P ≠ 0) {D : ℕ} (hD : P.totalDegree ≤ D) {K : ℝ}
     (hK : 2 * (2 * Fintype.card ι + (2 * Fintype.card ι + 4 ^ Fintype.card ι) *
       4 ^ Fintype.card ι) ≤ K)
     {y c : EuclideanSpace ℂ ι} (hy : eval y.ofLp P = 0) {a : ℝ} (hc : dist c y < a) :
@@ -305,7 +288,7 @@ theorem volume_thickening_zeroLocus_le_pow_four_mul_sq : ∃ C : ℝ, ∀ P : Mv
     ((Nat.one_le_iff_ne_zero.2 (totalDegree_ne_zero_of_eval_eq_zero hP hy₀)).trans hD)
   have hρ : 0 < ρ := by positivity
   have hZ : IsClosed Z := isClosed_eq (by fun_prop) continuous_const
-  have hF : MeasurableSet F := (hZ.setOf_exists_norm_le_fst_add_smul_snd_mem ρ).measurableSet
+  have hF : MeasurableSet F := (hZ.setOfPred_exists_norm_le_fst_add_smul_snd_mem ρ).measurableSet
   have hTm : MeasurableSet T := isOpen_thickening.measurableSet.inter measurableSet_ball
   have hB0 : volume B ≠ 0 := (measure_ball_pos volume 0 one_pos).ne'
   have hBt : volume B ≠ ∞ := measure_ball_lt_top.ne
@@ -315,7 +298,7 @@ theorem volume_thickening_zeroLocus_le_pow_four_mul_sq : ∃ C : ℝ, ∀ P : Mv
   have h4 : ∀ c ∈ T, volume B ≤ 2 * D * ∫⁻ v in B, F.indicator 1 (c, v) := by
     intro c hc
     obtain ⟨y, hy, hcy⟩ := mem_thickening_iff.1 hc.1
-    refine (volume_ball_le_mul_volume_setOf_exists_root hP hD le_rfl hy hcy).trans ?_
+    refine (volume_ball_le_mul_volume_setOfPred_exists_root hP hD le_rfl hy hcy).trans ?_
     have hm : MeasurableSet (Prod.mk c ⁻¹' F) := measurable_prodMk_left hF
     rw [show (fun v ↦ F.indicator 1 (c, v)) = (Prod.mk c ⁻¹' F).indicator 1 by
         funext v; exact (indicator_comp_right (g := 1) (Prod.mk c)).symm,
@@ -333,12 +316,12 @@ theorem volume_thickening_zeroLocus_le_pow_four_mul_sq : ∃ C : ℝ, ∀ P : Mv
       lintegral_indicator_one hm, Measure.restrict_apply hm]
     have hN : ∀ c : EuclideanSpace ℂ ι, {s : ℂ | c + s • v ∈ Z}.encard ≤ D := fun c ↦ by
       refine le_trans ?_ (Nat.cast_le.2 hD)
-      simpa [Z] using encard_setOf_eval_add_smul_eq_zero_le c.ofLp v.ofLp hv
+      simpa [Z] using encard_setOfPred_eval_add_smul_eq_zero_le c.ofLp v.ofLp hv
     calc volume ((fun c ↦ (c, v)) ⁻¹' F ∩ T)
         ≤ volume {c ∈ B | ∃ s : ℂ, ‖s‖ < 2 * ρ ∧ c + s • v ∈ Z} :=
           measure_mono fun c ⟨⟨s, hs, h⟩, hc⟩ ↦ ⟨hc.2, s, by linarith, h⟩
       _ ≤ ENNReal.ofReal (volume.real (ball (0 : EuclideanSpace ℂ ι) 2) * D * (2 * ρ) ^ 2 *
-          ‖v‖ ^ 2) := volume_setOf_exists_add_smul_mem_le hZ v D hN (2 * ρ)
+          ‖v‖ ^ 2) := volume_setOfPred_exists_add_smul_mem_le hZ v D hN (2 * ρ)
       _ ≤ N := by
         refine ENNReal.ofReal_le_ofReal (mul_le_of_le_one_right (by positivity) ?_)
         have := mem_ball_zero_iff.1 hvB
