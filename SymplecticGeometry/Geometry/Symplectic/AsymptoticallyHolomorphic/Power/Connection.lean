@@ -14,7 +14,10 @@ public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.LocalFr
 public import TauCeti.Geometry.Manifold.FiberBundle.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Smooth
+public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Basic
+public import Mathlib.Geometry.Manifold.VectorBundle.CovariantDerivative.Metric
 import SymplecticGeometry.Geometry.Manifold.DeRham.Circle
+import TauCeti.Geometry.Manifold.MFDeriv.Inner
 
 /-!
 # The connection on the powers of a principal circle bundle
@@ -50,6 +53,17 @@ change-of-section formula `σ_x^* α = σ^* α + g^* dθ`
 the derivative of `g ^ (-k)`, which is `-i k g ^ (-k) g^* dθ` (`TauCeti.mvfderiv_coe_circle_apply`,
 Tau Ceti's `TauCeti.mpullback_zpow_circleAngularForm_apply`).
 
+Near a point `x`, every section of `PowerBundle P k` reads `[σ_x, f]`, with `f` its coordinate in
+the preferred trivialization at `x`
+(`TauCeti.AssociatedBundle.eventually_eq_mk_localSection_trivializationAt`), so the local formula
+in the preferred frame gives the two properties of `D_k` that the Cauchy–Riemann theory uses. It
+commutes with multiplication by complex constants, as `i ⋅ (i k a) = (i k a) ⋅ i`. It preserves
+the real part of the Hermitian metric, since `[σ_x, f]` and `[σ_x, g]` have inner product
+`⟪f, g⟫` (`TauCeti.AssociatedBundle.inner_mk`) and `i k (σ_x^* α)` is skew-Hermitian. The proof of
+metric compatibility follows Tau Ceti's
+`TauCeti.isMetricCompatible_exactPrequantumConnection`, the same statement for the connection
+`d + i θ / ℏ` on the trivial line bundle, read in the preferred frame.
+
 The statements take `[∀ b, Nonempty (P b)]`, since `localSection`, through Mathlib's
 `Bundle.Trivialization.symm`, asks for it; a caller supplies it with
 `FiberBundle.nonempty_fiber Circle P`, as `Circle` is nonempty.
@@ -71,6 +85,12 @@ The statements take `[∀ b, Nonempty (P b)]`, since `localSection`, through Mat
 * `SymplecticGeometry.powerConnection_apply_frame`: for a connection form `α` and a local section
   `σ` of `P`, smooth on an open set `U`, the derivative of a section reading `[σ, f]` on `U` is
   `[σ x, df_x + i k (σ^* α)_x f(x)]` at a point `x ∈ U` where `f` is differentiable.
+* `SymplecticGeometry.powerConnection_const_smul`,
+  `SymplecticGeometry.isComplexLinearOperator_powerConnection`: `D_k` is complex linear, in the
+  form of Tau Ceti's `TauCeti.IsComplexLinearOperator` and of the hypothesis of
+  `IsCovariantDerivativeOn.isComplexLinearOperator_zeroOnePart`.
+* `SymplecticGeometry.isMetricCompatible_powerConnection`: `D_k` is compatible with the metric of
+  `PowerBundle P k` (Mathlib's `CovariantDerivative.IsMetricCompatible`).
 
 ## References
 
@@ -262,6 +282,75 @@ theorem powerConnection_apply_frame (hα : IsCircleConnectionForm α) {σ : ∀ 
     push_cast
     linear_combination (Complex.I * k * TauCeti.mpullback IB (IB.prod (𝓡 1))
       (fun b ↦ ManifoldTotalSpace.homeomorph Circle P ⟨b, σ b⟩) α.val x ![v]) * hgc x
+
+/-! ### Complex linearity and metric compatibility -/
+
+/-- `D_k` commutes with multiplication by a complex constant `c` on sections differentiable at
+`x`. -/
+theorem powerConnection_const_smul (c : ℂ) {s : Π x, PowerBundle P k x} {x : B}
+    (hs : MDifferentiableAt IB (IB.prod 𝓘(ℝ, PowerModel k))
+      (fun y ↦ TotalSpace.mk' (PowerModel k) y (s y)) x) :
+    powerConnection α k (c • s) x = c • powerConnection α k s x := by
+  set f : B → PowerModel k := fun y ↦ (trivializationAt (PowerModel k) (PowerBundle P k) x
+    ⟨y, s y⟩).2
+  have hf : MDifferentiableAt IB 𝓘(ℝ, PowerModel k) f x := (mdifferentiableAt_section _ _).1 hs
+  have hs' : ∀ᶠ y in 𝓝 x, s y = AssociatedBundle.mk Circle (localSection Circle P x y) (f y) :=
+    AssociatedBundle.eventually_eq_mk_localSection_trivializationAt s x
+  have hcs : ∀ᶠ y in 𝓝 x,
+      (c • s) y = AssociatedBundle.mk Circle (localSection Circle P x y) (c • f y) := by
+    filter_upwards [hs'] with y hy
+    rw [Pi.smul_apply, AssociatedBundle.mk_smul_scalar, ← hy]
+  -- `y ↦ c • f y` is `f` followed by the real linear map `c • ·`.
+  set L := ContinuousLinearMap.lsmul ℝ ℂ (E := PowerModel k) c
+  have hcf : MDifferentiableAt IB 𝓘(ℝ, PowerModel k) (fun y ↦ c • f y) x :=
+    L.mdifferentiableAt.comp x hf
+  have hd (v : TangentSpace IB x) :
+      mvfderiv IB (fun y ↦ c • f y) x v = c • mvfderiv IB f x v :=
+    L.mvfderiv_comp_apply hf v
+  ext v
+  rw [powerConnection_apply_trivializationAt α k hcf hcs v, smul_apply,
+    powerConnection_apply_trivializationAt α k hf hs' v, ← AssociatedBundle.mk_smul_scalar, hd,
+    smul_add, smul_smul, smul_smul, mul_comm]
+
+/-- `D_k` is complex linear: on sections differentiable at a point it is additive and commutes
+with real constants and with multiplication by `i`. -/
+theorem isComplexLinearOperator_powerConnection :
+    IsComplexLinearOperator (PowerModel k) (powerConnection α k) where
+  add hσ hσ' := (powerConnection α k).isCovariantDerivativeOnUniv.add hσ hσ'
+  smul_const a _ _ hσ := (powerConnection α k).isCovariantDerivativeOnUniv.smul_const a hσ
+  complex_I_smul hσ := powerConnection_const_smul α k Complex.I hσ
+
+/-- `D_k` is compatible with the metric of `PowerBundle P k`: for sections `s` and `t`, the
+derivative of `⟪s, t⟫` is `⟪D_k s, t⟫ + ⟪s, D_k t⟫`, for the real inner product of the fibres,
+the real part of their Hermitian one. -/
+theorem isMetricCompatible_powerConnection : (powerConnection α k).IsMetricCompatible := by
+  rw [CovariantDerivative.isMetricCompatible_iff]
+  intro x X s t _ hs ht
+  set f : B → PowerModel k := fun y ↦ (trivializationAt (PowerModel k) (PowerBundle P k) x
+    ⟨y, s y⟩).2
+  set g : B → PowerModel k := fun y ↦ (trivializationAt (PowerModel k) (PowerBundle P k) x
+    ⟨y, t y⟩).2
+  have hf : MDifferentiableAt IB 𝓘(ℝ, PowerModel k) f x := (mdifferentiableAt_section _ _).1 hs
+  have hg : MDifferentiableAt IB 𝓘(ℝ, PowerModel k) g x := (mdifferentiableAt_section _ _).1 ht
+  have hs' : ∀ᶠ y in 𝓝 x, s y = AssociatedBundle.mk Circle (localSection Circle P x y) (f y) :=
+    AssociatedBundle.eventually_eq_mk_localSection_trivializationAt s x
+  have ht' : ∀ᶠ y in 𝓝 x, t y = AssociatedBundle.mk Circle (localSection Circle P x y) (g y) :=
+    AssociatedBundle.eventually_eq_mk_localSection_trivializationAt t x
+  have hin : (fun y ↦ inner ℝ (s y) (t y)) =ᶠ[𝓝 x] fun y ↦ inner ℝ (f y) (g y) := by
+    filter_upwards [hs', ht'] with y hys hyt
+    rw [hys, hyt, AssociatedBundle.inner_mk]
+  beta_reduce
+  rw [hin.mvfderiv_eq, mvfderiv_inner_apply hf hg,
+    powerConnection_apply_trivializationAt α k hf hs',
+    powerConnection_apply_trivializationAt α k hg ht', hs'.self_of_nhds, ht'.self_of_nhds,
+    AssociatedBundle.inner_mk, AssociatedBundle.inner_mk]
+  -- The connection form `i k (σ_x^* α)` is skew-Hermitian, so its terms cancel.
+  generalize TauCeti.mpullback IB (IB.prod (𝓡 1)) (manifoldLocalSection Circle P x) α.val x
+    ![X x] = a
+  rw [inner_add_left, inner_add_right, add_add_add_comm, left_eq_add]
+  simp only [PowerModel.real_inner_eq_re_inner, inner_smul_left, inner_smul_right,
+    ← Complex.add_re, map_mul, Complex.conj_I, Complex.conj_ofReal, map_intCast, neg_mul,
+    neg_add_cancel, Complex.zero_re]
 
 end SymplecticGeometry
 
