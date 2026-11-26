@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.DualClass.Basic
+public import SymplecticGeometry.AlgebraicTopology.Cohomology.Local.Restrict
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.Local.Derivative
 public import SymplecticGeometry.Topology.VectorBundle.Thom.FiberCoordinate
 public import TauCeti.Geometry.Manifold.LocallyContractible
@@ -237,10 +238,9 @@ private theorem singularCohomologyMap_slice_eq_of_isOpen {f : SmoothEmbedding I 
         (trivializationAt P (fun x ↦ f.NormalSpace x hn) x).symmL ℝ x w)
     {Ψ : X → TotalSpace P (fun x ↦ f.NormalSpace x hn)} (hΨc : ContinuousOn Ψ W)
     (hΦΨ : ∀ {y : X}, y ∈ W → (Φ (Ψ y) : X) = y)
-    (hΨ0 : Ψ (g 0) = zeroSection P (fun x ↦ f.NormalSpace x hn) x)
-    (hΨg : ContinuousAt (fun w ↦ Ψ (g w)) 0) {U : Set Z} [ContractibleSpace U]
-    (hUe : letI := f.normalSpaceFiberBundle hn hdim
-      U ⊆ (trivializationAt P (fun x ↦ f.NormalSpace x hn) x).baseSet) (hxU : x ∈ U)
+    (hΨ0 : Ψ (g 0) = zeroSection P (fun x ↦ f.NormalSpace x hn) x) {U : Set Z}
+    [ContractibleSpace U] (hUe : letI := f.normalSpaceFiberBundle hn hdim
+      U ⊆ (trivializationAt P (fun x ↦ f.NormalSpace x hn) x).baseSet)
     (hOW : ∀ w ∈ O, g w ∈ W) (hOU : ∀ w ∈ O, (Ψ (g w)).proj ∈ U)
     {n : ℕ} (c : (TopPair.ofSubset (X := TopCat.of X) (range f)ᶜ).singularCohomology R k M n) :
     letI := f.normalSpaceFiberBundle hn hdim
@@ -251,29 +251,22 @@ private theorem singularCohomologyMap_slice_eq_of_isOpen {f : SmoothEmbedding I 
           (B := {⟨0, hO0⟩}ᶜ) (B' := (range f)ᶜ)
           fun w hw h ↦ hw (Subtype.ext (hgf w w.property h))) n c =
       TopPair.singularCohomologyMap
-        (TopPair.ofSubsetMap (X := TopCat.of O) (Y := TopCat.of (f.NormalSpace x hn))
-          (TopCat.ofHom ⟨fun w ↦ (trivializationAt P (fun x ↦ f.NormalSpace x hn) x).symmL ℝ x w,
-            (ContinuousLinearMap.continuous _).comp continuous_subtypeVal⟩)
-          (B := {⟨0, hO0⟩}ᶜ) (B' := {0}ᶜ)
-          fun _ hw h ↦ hw (Subtype.ext (by_contra fun h' ↦
-            ((trivializationAt P (fun x ↦ f.NormalSpace x hn) x).symm_apply_ne_zero_iff ℝ
-              (mem_baseSet_trivializationAt P _ x)).2 h'
-              ((Trivialization.symmL_apply (R := ℝ) _ (mem_baseSet_trivializationAt P _ x)
-                _).symm.trans (Set.mem_singleton_iff.1 h))))) n
+        (TopPair.ofSubsetMap (X := TopCat.of O) (Y := TopCat.of P)
+          (TopCat.ofHom (ContinuousMap.subtypeVal O)) (B := {⟨0, hO0⟩}ᶜ) (B' := {0}ᶜ)
+          (fun _ hw h ↦ hw (Subtype.ext (Set.mem_singleton_iff.1 h))) ≫
+          ((trivializationAt P (fun x ↦ f.NormalSpace x hn) x).continuousLinearEquivAt ℝ x
+            (mem_baseSet_trivializationAt P _ x)).symm.complZeroPairIso.hom) n
         (TopPair.singularCohomologyMap (f.normalSlice hn hdim Φ hΦ.apply_zeroSection x) n c) := by
   let := f.normalSpaceFiberBundle hn hdim
   have := f.normalSpaceVectorBundle hn hdim
   set e := trivializationAt P (fun x ↦ f.NormalSpace x hn) x
   have hx : x ∈ e.baseSet := mem_baseSet_trivializationAt P _ x
+  have hxU : x ∈ U := by simpa [hΨ0] using hOU 0 hO0
+  have hΨg : ContinuousAt (fun w ↦ Ψ (g w)) 0 :=
+    (hΨc.comp hgO hOW).continuousAt (hO.mem_nhds hO0)
   set LO := TopPair.ofSubsetMap (X := TopCat.of O) (Y := TopCat.of X)
     (TopCat.ofHom ⟨O.domRestrict g, hgO.domRestrict⟩) (B := {⟨0, hO0⟩}ᶜ)
     (B' := (range f)ᶜ) fun w hw h ↦ hw (Subtype.ext (hgf w w.property h))
-  set RO := TopPair.ofSubsetMap (X := TopCat.of O) (Y := TopCat.of (f.NormalSpace x hn))
-    (TopCat.ofHom ⟨fun w ↦ e.symmL ℝ x w,
-      (ContinuousLinearMap.continuous _).comp continuous_subtypeVal⟩) (B := {⟨0, hO0⟩}ᶜ)
-    (B' := {0}ᶜ) fun _ hw h ↦ hw (Subtype.ext (by_contra fun h' ↦
-      (e.symm_apply_ne_zero_iff ℝ hx).2 h'
-        ((Trivialization.symmL_apply (R := ℝ) _ hx _).symm.trans (Set.mem_singleton_iff.1 h))))
   -- Off `0`, the inverse of the tube does not meet the zero section along `g`.
   have hψ0 : ∀ w ∈ O, w ≠ 0 → (Ψ (g w)).snd ≠ 0 := by
     intro w hw hw0 hs
@@ -292,10 +285,9 @@ private theorem singularCohomologyMap_slice_eq_of_isOpen {f : SmoothEmbedding I 
       (TopCat.ofHom ⟨O.domRestrict (Ψ ∘ g), (hΨc.comp hgO hOW).domRestrict⟩)
       (B := {⟨0, hO0⟩}ᶜ) (B' := zeroSectionCompl P _)
       fun w hw ↦ mem_zeroSectionCompl.2 (hψ0 w w.property fun h ↦ hw (Subtype.ext h))
-  have hψU : ∀ w : O, (TopPair.Hom.fst ψ w).proj ∈ U := fun w ↦ by
-    -- The points of the pair are those of `O` only up to unfolding `ofSubset`.
-    erw [TopPair.ofSubsetMap_fst_apply]
-    exact hOU w w.property
+  have hψ (w : O) : TopPair.Hom.fst ψ w = Ψ (g w) :=
+    TopPair.ofSubsetMap_fst_apply (X := TopCat.of O) (B := {⟨0, hO0⟩}ᶜ) _ _ w
+  have hψU (w : O) : (TopPair.Hom.fst ψ w).proj ∈ U := hψ w ▸ hOU w w.property
   have hLψ : LO = ψ ≫ (f.tubePairIso hn hdim Φ hΦ.apply_zeroSection).hom ≫
       TopPair.excisionMap (X := TopCat.of X) (W : Set X) (range f)ᶜ := by
     refine TopPair.hom_ext_of_fst _ (ConcreteCategory.hom_ext _ _ fun w ↦ ?_)
@@ -305,19 +297,21 @@ private theorem singularCohomologyMap_slice_eq_of_isOpen {f : SmoothEmbedding I 
       TopPair.ofSubsetMap_fst_apply]
     exact (hΦΨ (hOW _ (show O from w).property)).symm.trans
       (congrArg Subtype.val (tubePairIso_hom_fst_apply f hn hdim Φ _ _).symm)
-  rw [hLψ, TopPair.singularCohomologyMap_comp_apply, TopPair.singularCohomologyMap_comp_apply,
+  rw [hLψ, TopPair.singularCohomologyMap_comp_apply,
     singularCohomologyMap_eq_singularCohomologyMap_fiberCoordPairMap e (U := U) hUe hxU ψ hψU,
-    normalSlice_def, TopPair.singularCohomologyMap_comp_apply,
-    TopPair.singularCohomologyMap_comp_apply]
+    normalSlice_def]
+  simp only [TopPair.singularCohomologyMap_comp_apply]
   generalize TopPair.singularCohomologyMap (R := R) (k := k) (M := M)
     (fiberThomPairMap P (fun x ↦ f.NormalSpace x hn) x) n _ = d
   -- Read in `e`, the fibre over `x` is `P`.
   set ℓ := e.continuousLinearEquivAt ℝ x hx
-  let τ₂ := TopPair.ofSubsetIso (X := TopCat.of (f.NormalSpace x hn)) (Y := TopCat.of P)
-    (B := {0}ᶜ) (B' := {0}ᶜ) ℓ.toHomeomorph fun v ↦ by simp
-  rw [← (TopPair.singularCohomologyMapIso R k M τ₂ n).inv_hom_id_apply d,
-    TopPair.singularCohomologyMapIso_hom, ← TopPair.singularCohomologyMap_comp_apply,
-    ← TopPair.singularCohomologyMap_comp_apply]
+  obtain ⟨d, rfl⟩ : ∃ d', d = TopPair.singularCohomologyMap ℓ.complZeroPairIso.hom n d' :=
+    ⟨_, by rw [← TopPair.singularCohomologyMap_comp_apply, Iso.hom_inv_id,
+      TopPair.singularCohomologyMap_id, ConcreteCategory.id_apply]⟩
+  rw [ContinuousLinearEquiv.complZeroPairIso_symm, Iso.symm_hom,
+    ← TopPair.singularCohomologyMap_comp_apply ℓ.complZeroPairIso.inv, Iso.inv_hom_id,
+    TopPair.singularCohomologyMap_id, ConcreteCategory.id_apply,
+    ← TopPair.singularCohomologyMap_comp_apply, e.fiberCoordPairMap_comp_complZeroPairIso_hom]
   -- The fibre coordinate of `g` has derivative the identity at `0`.
   set F : P → P := fun w ↦ (e (Ψ (g w))).2
   have hFc : ContinuousOn F O := (e.continuousOn.comp (hΨc.comp hgO hOW)
@@ -334,33 +328,32 @@ private theorem singularCohomologyMap_slice_eq_of_isOpen {f : SmoothEmbedding I 
     (hO.mem_nhds hO0) hFc hF hid hFx n
   let j := TopPair.ofSubsetMap (X := TopCat.of P) (𝟙 _) (B := {F 0}ᶜ) (B' := {0}ᶜ)
     (by rw [hF0]; exact mapsTo_id _)
-  have hfc : e.fiberCoordPairMap (hUe hxU) ψ (fun q ↦ hUe (hψU q)) ≫ τ₂.hom =
+  have hfc : (TopPair.isoOfSubsetRange _).hom ≫ TopPair.ofSubsetMap
+      (TopCat.ofHom ⟨fun q ↦ (e (TopPair.Hom.fst ψ q)).2,
+        (e.continuousOn.comp_continuous (TopPair.Hom.fst ψ).hom.continuous
+          fun q ↦ e.mem_source.2 (hUe (hψU q))).snd⟩)
+      (fun q hq ↦ (e.snd_apply_ne_zero_iff ℝ (hUe (hψU q))).2 <|
+        mem_zeroSectionCompl.1 (TopPair.mapsTo_range_map_of_hom ψ hq)) =
       TopPair.ofSubsetMap (X := TopCat.of O) (Y := TopCat.of P)
         (TopCat.ofHom ⟨O.domRestrict F, hFc.domRestrict⟩) (B := {⟨0, hO0⟩}ᶜ) (B' := {F 0}ᶜ)
         (fun y hy h ↦ hy (Subtype.ext (hFx y y.property h))) ≫ j := by
     refine TopPair.hom_ext_of_fst _ (ConcreteCategory.hom_ext _ _ fun w ↦ ?_)
     rw [TopPair.Hom.fst_comp, TopPair.Hom.fst_comp, ConcreteCategory.comp_apply,
-      ConcreteCategory.comp_apply, Trivialization.fiberCoordPairMap_fst_apply,
-      TopPair.ofSubsetIso_hom]
+      ConcreteCategory.comp_apply, TopPair.isoOfSubsetRange_hom_fst_apply]
+    -- The points of the pairs are those of `O` and `P` only up to unfolding `ofSubset`.
     erw [TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply,
-      TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply]
-    exact ℓ.apply_symm_apply _
-  have hRj : RO ≫ τ₂.hom =
+      TopPair.ofSubsetMap_fst_apply]
+    exact congrArg (fun p ↦ (e p).2) (hψ w)
+  have hRj : TopPair.ofSubsetMap (X := TopCat.of O) (Y := TopCat.of P)
+      (TopCat.ofHom (ContinuousMap.subtypeVal O)) (B := {⟨0, hO0⟩}ᶜ) (B' := {0}ᶜ)
+      (fun _ hw h ↦ hw (Subtype.ext (Set.mem_singleton_iff.1 h))) =
       TopPair.ofSubsetMap (X := TopCat.of O) (Y := TopCat.of P)
         (TopCat.ofHom ⟨fun y : O ↦ F 0 + (ContinuousLinearMap.id ℝ P) (y - 0), by fun_prop⟩)
         (B := {⟨0, hO0⟩}ᶜ) (B' := {F 0}ᶜ)
         (fun y hy h ↦ hy (Subtype.ext <| sub_eq_zero.1 <| hid.injective <|
-          (add_eq_left.1 h).trans (map_zero _).symm)) ≫ j := by
-    refine TopPair.hom_ext_of_fst _ (ConcreteCategory.hom_ext _ _ fun w ↦ ?_)
-    rw [TopPair.Hom.fst_comp, TopPair.Hom.fst_comp, ConcreteCategory.comp_apply,
-      ConcreteCategory.comp_apply, TopPair.ofSubsetIso_hom]
-    erw [TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply,
-      TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply]
-    simp only [hF0, ℓ, Trivialization.symmL_apply (R := ℝ) e hx, ConcreteCategory.hom_ofHom,
-      ContinuousMap.coe_mk, ContinuousLinearEquiv.coe_toHomeomorph,
-      Trivialization.continuousLinearEquivAt_apply, sub_zero, ContinuousLinearMap.id_apply,
-      zero_add]
-    exact congrArg Prod.snd (e.apply_mk_symm hx _)
+          (add_eq_left.1 h).trans (map_zero _).symm)) ≫ j :=
+    (TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ _
+      (ConcreteCategory.hom_ext _ _ fun w ↦ by simp [hF0])).symm
   rw [hfc, hRj, TopPair.singularCohomologyMap_comp_apply, TopPair.singularCohomologyMap_comp_apply]
   exact ConcreteCategory.congr_hom key _
 
@@ -370,7 +363,8 @@ a map continuous on `B`, with `g 0 = f x`, sending no other point of `B` into `f
 differentiable at `0` with a derivative `A` such that the normal class of each `A w` is the vector
 of the fibre over `x` with coordinate `w` in `e`. Then `g`, as a map of pairs
 `(B, B ∖ {0}) ⟶ (X, X ∖ f(Z))`, pulls every class back as the normal slice of `Φ` at `x` does,
-after `w ↦ e.symm x w`, the map of pairs `(B, B ∖ {0}) ⟶ (ν_x, ν_x ∖ {0})`. -/
+after `w ↦ e.symm x w`: the inclusion `(B, B ∖ {0}) ⟶ (P, P ∖ {0})` followed by the pair
+isomorphism `(P, P ∖ {0}) ≅ (ν_x, ν_x ∖ {0})` of the inverse of `e` on the fibre over `x`. -/
 theorem singularCohomologyMap_slice_eq_of_hasFDerivAt {f : SmoothEmbedding I J ∞ Z X}
     {hn : (∞ : ℕ∞ω) ≠ 0} {hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E}
     {W : TopologicalSpace.Opens X}
@@ -392,15 +386,11 @@ theorem singularCohomologyMap_slice_eq_of_hasFDerivAt {f : SmoothEmbedding I J �
           (B := {⟨0, mem_of_mem_nhds hB⟩}ᶜ) (B' := (range f)ᶜ)
           fun w hw h ↦ hw (Subtype.ext (hgf w w.property h))) n c =
       TopPair.singularCohomologyMap
-        (TopPair.ofSubsetMap (X := TopCat.of B) (Y := TopCat.of (f.NormalSpace x hn))
-          (TopCat.ofHom ⟨fun w ↦ (trivializationAt P (fun x ↦ f.NormalSpace x hn) x).symmL ℝ x w,
-            (ContinuousLinearMap.continuous _).comp continuous_subtypeVal⟩)
-          (B := {⟨0, mem_of_mem_nhds hB⟩}ᶜ) (B' := {0}ᶜ)
-          fun _ hw h ↦ hw (Subtype.ext (by_contra fun h' ↦
-            ((trivializationAt P (fun x ↦ f.NormalSpace x hn) x).symm_apply_ne_zero_iff ℝ
-              (mem_baseSet_trivializationAt P _ x)).2 h'
-              ((Trivialization.symmL_apply (R := ℝ) _ (mem_baseSet_trivializationAt P _ x)
-                _).symm.trans (Set.mem_singleton_iff.1 h))))) n
+        (TopPair.ofSubsetMap (X := TopCat.of B) (Y := TopCat.of P)
+          (TopCat.ofHom (ContinuousMap.subtypeVal B)) (B := {⟨0, mem_of_mem_nhds hB⟩}ᶜ)
+          (B' := {0}ᶜ) (fun _ hw h ↦ hw (Subtype.ext (Set.mem_singleton_iff.1 h))) ≫
+          ((trivializationAt P (fun x ↦ f.NormalSpace x hn) x).continuousLinearEquivAt ℝ x
+            (mem_baseSet_trivializationAt P _ x)).symm.complZeroPairIso.hom) n
         (TopPair.singularCohomologyMap (f.normalSlice hn hdim Φ hΦ.apply_zeroSection x) n c) := by
   let := f.normalSpaceFiberBundle hn hdim
   have := f.normalSpaceVectorBundle hn hdim
@@ -448,16 +438,13 @@ theorem singularCohomologyMap_slice_eq_of_hasFDerivAt {f : SmoothEmbedding I J �
         (TopCat.ofHom ⟨Set.inclusion hOB, continuous_inclusion hOB⟩)
         (B := {⟨0, hO0⟩}ᶜ) (B' := {⟨0, hOB hO0⟩}ᶜ)
         fun _ hw h ↦ hw (Set.inclusion_injective hOB h)) n))) ?_
-  rw [← TopPair.singularCohomologyMap_comp_apply, ← TopPair.singularCohomologyMap_comp_apply]
+  rw [← TopPair.singularCohomologyMap_comp_apply, ← TopPair.singularCohomologyMap_comp_apply,
+    ← Category.assoc]
   convert singularCohomologyMap_slice_eq_of_isOpen hΦ x hO hO0 (hgB.mono hOB)
-    (fun w hw ↦ hgf w (hOB hw)) hg hA hΨc hΦΨ hΨ0 hΨg hUe (mem_of_mem_nhds hU) hOW hOU c using 4
-  all_goals
-    refine TopPair.hom_ext_of_fst _ (ConcreteCategory.hom_ext _ _ fun w ↦ ?_)
-    rw [TopPair.Hom.fst_comp, ConcreteCategory.comp_apply]
-    -- The points of the pairs are those of `O` and `B` only up to unfolding `ofSubset`.
-    erw [TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply,
-      TopPair.ofSubsetMap_fst_apply]
-    rfl
+    (fun w hw ↦ hgf w (hOB hw)) hg hA hΨc hΦΨ hΨ0 hUe hOW hOU c using 4
+  · exact TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ _ rfl
+  · congr 1
+    exact TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ _ rfl
 
 end LocalDegree
 

@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Topology.Category.TopPair
 public import TauCeti.AlgebraicTopology.Cohomology.HomotopyInvariance
+public import TauCeti.Topology.Category.TopPair.ContinuousLinearEquiv
 public import TauCeti.Topology.Homotopy.Contractible
 public import TauCeti.Topology.VectorBundle.EulerClass
 public import TauCeti.Topology.VectorBundle.Trivialization
@@ -30,6 +31,8 @@ back through the fibre over `b`.
 
 * `Bundle.Trivialization.fiberCoordPairMap`: the fibre coordinate of a map into the Thom pair,
   read in a linear trivialization and carried into the fibre over `b`.
+* `Bundle.Trivialization.fiberCoordPairMap_comp_complZeroPairIso_hom`: carried back to the model
+  fibre `F`, the fibre coordinate is the map of pairs `q ↦ (e (φ q)).2`.
 * `Bundle.Trivialization.homotopic_fiberCoordPairMap_comp_fiberThomPairMap`: over a
   contractible subset of the base set, `φ` is homotopic, as a map of pairs, to its fibre
   coordinate followed by the inclusion of the fibre.
@@ -126,6 +129,33 @@ theorem homotopic_fiberCoordPairMap_comp_fiberThomPairMap {U : Set B} [Contracti
     exact mem_zeroSectionCompl.2 <| (e.symm_apply_ne_zero_iff ℝ (hG _)).2 <|
       (e.snd_apply_ne_zero_iff ℝ (hU (hφU x))).2 <|
         mem_zeroSectionCompl.1 (TopPair.mapsTo_range_map_of_hom φ hx)
+
+end Bundle.Trivialization
+
+namespace Bundle.Trivialization
+
+open TauCeti
+
+variable {B : Type w} [TopologicalSpace B] {F : Type w} [NormedAddCommGroup F] [NormedSpace ℝ F]
+  {E : B → Type w} [TopologicalSpace (TotalSpace F E)] [∀ b, AddCommMonoid (E b)]
+  [∀ b, Module ℝ (E b)] [∀ b, TopologicalSpace (E b)] [FiberBundle F E]
+  (e : Trivialization F (π F E)) [e.IsLinear ℝ] {b : B} (hb : b ∈ e.baseSet)
+  {Q : TopPair.{w}} (φ : Q ⟶ thomPair F E)
+  (hφ : ∀ q, (TopPair.Hom.fst φ q).proj ∈ e.baseSet)
+
+/-- Read back in `F` through the isomorphism `E_b ≃L[ℝ] F` of `e` at `b`, the fibre coordinate of
+`φ` is the map of pairs `Q ⟶ (F, F ∖ {0})`, `q ↦ (e (φ q)).2`. -/
+theorem fiberCoordPairMap_comp_complZeroPairIso_hom :
+    e.fiberCoordPairMap hb φ hφ ≫ (e.continuousLinearEquivAt ℝ b hb).complZeroPairIso.hom =
+      (TopPair.isoOfSubsetRange Q).hom ≫ TopPair.ofSubsetMap (X := Q.fst) (Y := TopCat.of F)
+        (TopCat.ofHom ⟨fun q ↦ (e (TopPair.Hom.fst φ q)).2,
+          (e.continuousOn.comp_continuous (TopPair.Hom.fst φ).hom.continuous
+            fun q ↦ e.mem_source.2 (hφ q)).snd⟩)
+        (B' := {0}ᶜ) fun q hq ↦ (e.snd_apply_ne_zero_iff ℝ (hφ q)).2 <|
+          mem_zeroSectionCompl.1 (TopPair.mapsTo_range_map_of_hom φ hq) := by
+  rw [fiberCoordPairMap_def, Category.assoc, ContinuousLinearEquiv.complZeroPairIso_hom]
+  exact congrArg _ (TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ _
+    (ConcreteCategory.hom_ext _ _ fun _ ↦ (e.continuousLinearEquivAt ℝ b hb).apply_symm_apply _))
 
 end Bundle.Trivialization
 
