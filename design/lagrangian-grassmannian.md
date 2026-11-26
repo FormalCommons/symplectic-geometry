@@ -799,7 +799,7 @@ is Tau Ceti's `Topology/Grassmannian/Graph.lean`, which does the same for
 - `ℒ.isOpenEmbedding_graphY`: `graphY` is an open embedding. The preimage
   under the open quotient map `unitaryFrame` of the image of an open set is
   open, by the previous item.
-- `ℒ.isOpen_setOf_isCompl (Λ₀ : ℒ ι) : IsOpen {Λ : ℒ ι | IsCompl (Λ : Submodule ℝ _) Λ₀}`.
+- `ℒ.isOpen_setOfPred_isCompl (Λ₀ : ℒ ι) : IsOpen {Λ : ℒ ι | IsCompl (Λ : Submodule ℝ _) Λ₀}`.
   For `Λ₀` horizontal, it is the range of `graphY`. Translate for general
   `Λ₀` by the symplectic action (`isCompl_smul_iff`).
 - `ℒ.graphYChart : OpenPartialHomeomorph (ℒ ι) (selfAdjoint (Matrix ι ι ℝ))`,

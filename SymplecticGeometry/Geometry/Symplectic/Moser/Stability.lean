@@ -37,7 +37,7 @@ primitives of its velocity.
    `τ_s = σ_0 + d B_s`, equal to `σ_s` for `s ∈ [0, 1]`.
 3. Nondegeneracy is open and `M` is compact, so the parameters `s` at which `τ_s` is
    nondegenerate form an open set `P` containing `[0, 1]`
-   (`TauCeti.SmoothTwoForm.isOpen_setOf_forall_isInvertible_flat_mpullback_prodMk`). The
+   (`TauCeti.SmoothTwoForm.isOpen_setOfPred_forall_isInvertible_flat_mpullback_prodMk`). The
    restriction of `τ` to `P × M` has symplectic slices.
 4. The time derivative of a closed form `ρ` on `ℝ × M` is exact
    (`TauCeti.SmoothForm.mextDerivₗ_timeInterior`: `∂_t ρ = d (ι_{∂_t} ρ)`), slice by slice
@@ -145,7 +145,7 @@ theorem exists_diffeotopy_mpullback_eq (σ : SmoothTwoForm ((𝓡∂ 1).prod I) 
   -- restriction `τ'` of `τ` to `P × M` has symplectic slices.
   let P : TopologicalSpace.Opens ℝ := ⟨{s | ∀ x : M, (flat (SmoothForm.mpullback (Prod.mk s)
     (contMDiff_const.prodMk contMDiff_id) τ) x).IsInvertible},
-    isOpen_setOf_forall_isInvertible_flat_mpullback_prodMk τ⟩
+    isOpen_setOfPred_forall_isInvertible_flat_mpullback_prodMk τ⟩
   have hIP : uIcc (0 : ℝ) 1 ⊆ P := fun s hs x ↦ by
     rw [uIcc_of_le zero_le_one] at hs
     have h := hτI ⟨s, hs⟩

@@ -40,9 +40,12 @@ Whitney sum in the split Grothendieck group is the sum of the classes.
   rotation by the angle whose cosine and sine are `c` and `s`;
 * `TauCeti.SplitK0.of_whitneySum`: in the split Grothendieck group of cores, the class of a
   Whitney sum is the sum of the classes;
+* `TauCeti.FiniteRankBundleCore.whitneyMapIsoPullback e₁ e₂`: the direct sum of isomorphisms
+  between two pullbacks, read through Tau Ceti's `pullback_whitneySum` as an isomorphism between
+  the pullbacks of the Whitney sums;
 * `TauCeti.FiniteRankBundleCore.fiberMap_eqToHom_whitneyMap_eqToHom`, with its forms
-  `fiberMap_eqToIso_whitneyMapIso_hom` and `fiberMap_eqToIso_whitneyMapIso_inv` for
-  automorphisms: the direct sum of morphisms between two pullbacks, read through Tau Ceti's
+  `fiberMap_whitneyMapIsoPullback_hom` and `fiberMap_whitneyMapIsoPullback_inv` for
+  isomorphisms: the direct sum of morphisms between two pullbacks, read through Tau Ceti's
   `pullback_whitneySum` as a morphism between the pullbacks of the Whitney sums, is block
   diagonal in each fibre.
 
@@ -184,30 +187,65 @@ theorem fiberMap_eqToHom_whitneyMap_eqToHom (f : A.pullback p ⟶ A'.pullback p)
   -- The casts are along `rank_pullback` and `rank_whitneySum`, which hold by `rfl`.
   exact congrFun (DFunLike.congr_fun (fiberMap_whitneyMap _ _ _) _) _
 
-variable (e₁ : A.pullback p ≅ A.pullback p) (e₂ : D.pullback p ≅ D.pullback p)
+omit p in
+/-- The direct sum of `eqToHom`s is the `eqToHom` of the equality of the Whitney sums. -/
+@[simp]
+theorem whitneyMap_eqToHom (h : A = A') (h' : D = D') :
+    whitneyMap (eqToHom h) (eqToHom h') = eqToHom (congrArg₂ whitneySum h h') := by
+  subst h h'
+  simp only [eqToHom_refl, whitneyMap_id]
 
-/-- Read through `pullback_whitneySum`, the direct sum of automorphisms `e₁` and `e₂` of the
-pullbacks of `A` and `D` along `p` acts on the fibre of the pullback of `A ⊕ D` block-diagonally,
-with the fibre maps of `e₁` and `e₂` as blocks. -/
-theorem fiberMap_eqToIso_whitneyMapIso_hom (x : X) :
-    (eqToIso (pullback_whitneySum A D p) ≪≫ whitneyMapIso e₁ e₂ ≪≫
-      eqToIso (pullback_whitneySum A D p).symm).hom.fiberMap x =
-      (splitCoords (𝕜 := 𝕜) A.rank D.rank).symm.toContinuousLinearMap.comp
+variable {p} in
+/-- The direct sum of isomorphisms `e₁ : A|_p ≅ A'|_p` and `e₂ : D|_p ≅ D'|_p` between pullbacks
+along `p`, read through `pullback_whitneySum` as an isomorphism between the pullbacks of the
+Whitney sums, `(A ⊕ D)|_p ≅ (A' ⊕ D')|_p`. -/
+def whitneyMapIsoPullback (e₁ : A.pullback p ≅ A'.pullback p)
+    (e₂ : D.pullback p ≅ D'.pullback p) :
+    (whitneySum A D).pullback p ≅ (whitneySum A' D').pullback p :=
+  eqToIso (pullback_whitneySum A D p) ≪≫ whitneyMapIso e₁ e₂ ≪≫
+    eqToIso (pullback_whitneySum A' D' p).symm
+
+variable (e₁ : A.pullback p ≅ A'.pullback p) (e₂ : D.pullback p ≅ D'.pullback p)
+
+theorem whitneyMapIsoPullback_def :
+    whitneyMapIsoPullback e₁ e₂ = eqToIso (pullback_whitneySum A D p) ≪≫ whitneyMapIso e₁ e₂ ≪≫
+      eqToIso (pullback_whitneySum A' D' p).symm :=
+  (rfl)
+
+theorem whitneyMapIsoPullback_hom :
+    (whitneyMapIsoPullback e₁ e₂).hom = eqToHom (pullback_whitneySum A D p) ≫
+      whitneyMap e₁.hom e₂.hom ≫ eqToHom (pullback_whitneySum A' D' p).symm := by
+  rw [whitneyMapIsoPullback_def, Iso.trans_hom, Iso.trans_hom, eqToIso.hom, eqToIso.hom,
+    whitneyMapIso_hom]
+
+theorem whitneyMapIsoPullback_inv :
+    (whitneyMapIsoPullback e₁ e₂).inv = eqToHom (pullback_whitneySum A' D' p) ≫
+      whitneyMap e₁.inv e₂.inv ≫ eqToHom (pullback_whitneySum A D p).symm := by
+  rw [whitneyMapIsoPullback_def, Iso.trans_inv, Iso.trans_inv, eqToIso.inv, eqToIso.inv,
+    whitneyMapIso_inv, Category.assoc]
+
+/-- The direct sum of isomorphisms `e₁` and `e₂` between pullbacks along `p`, read through
+`pullback_whitneySum`, acts on the fibres of the pullbacks of the Whitney sums
+block-diagonally, with the fibre maps of `e₁` and `e₂` as blocks. -/
+@[simp]
+theorem fiberMap_whitneyMapIsoPullback_hom (x : X) :
+    (whitneyMapIsoPullback e₁ e₂).hom.fiberMap x =
+      (splitCoords (𝕜 := 𝕜) A'.rank D'.rank).symm.toContinuousLinearMap.comp
         (((e₁.hom.fiberMap x).prodMap (e₂.hom.fiberMap x)).comp
           (splitCoords (𝕜 := 𝕜) A.rank D.rank).toContinuousLinearMap) := by
-  simp only [Iso.trans_hom, eqToIso.hom, whitneyMapIso_hom]
+  rw [whitneyMapIsoPullback_hom]
   exact fiberMap_eqToHom_whitneyMap_eqToHom p _ _ x
 
-/-- Read through `pullback_whitneySum`, the inverse of the direct sum of automorphisms `e₁` and
-`e₂` of the pullbacks of `A` and `D` along `p` acts on the fibre of the pullback of `A ⊕ D`
+/-- The inverse of the direct sum of isomorphisms `e₁` and `e₂` between pullbacks along `p`, read
+through `pullback_whitneySum`, acts on the fibres of the pullbacks of the Whitney sums
 block-diagonally, with the fibre maps of `e₁⁻¹` and `e₂⁻¹` as blocks. -/
-theorem fiberMap_eqToIso_whitneyMapIso_inv (x : X) :
-    (eqToIso (pullback_whitneySum A D p) ≪≫ whitneyMapIso e₁ e₂ ≪≫
-      eqToIso (pullback_whitneySum A D p).symm).inv.fiberMap x =
+@[simp]
+theorem fiberMap_whitneyMapIsoPullback_inv (x : X) :
+    (whitneyMapIsoPullback e₁ e₂).inv.fiberMap x =
       (splitCoords (𝕜 := 𝕜) A.rank D.rank).symm.toContinuousLinearMap.comp
         (((e₁.inv.fiberMap x).prodMap (e₂.inv.fiberMap x)).comp
-          (splitCoords (𝕜 := 𝕜) A.rank D.rank).toContinuousLinearMap) := by
-  simp only [Iso.trans_inv, eqToIso.inv, whitneyMapIso_inv, Category.assoc]
+          (splitCoords (𝕜 := 𝕜) A'.rank D'.rank).toContinuousLinearMap) := by
+  rw [whitneyMapIsoPullback_inv]
   exact fiberMap_eqToHom_whitneyMap_eqToHom p _ _ x
 
 end Pullback

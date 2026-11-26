@@ -127,7 +127,7 @@ theorem exists_diffeotopy_fix_eventually_mpullback_eq_of_timeDeriv
   set O := {p : ℝ × M | (SmoothTwoForm.flat
     (SmoothForm.mpullback (Prod.mk p.1) (contMDiff_const.prodMk contMDiff_id) σ)
       p.2).IsInvertible}
-  have hO : IsOpen O := SmoothTwoForm.isOpen_setOf_isInvertible_flat_mpullback_prodMk σ
+  have hO : IsOpen O := SmoothTwoForm.isOpen_setOfPred_isInvertible_flat_mpullback_prodMk σ
   have hKO : Icc (0 : ℝ) 1 ×ˢ K ⊆ O := fun p hp ↦
     SmoothTwoForm.isInvertible_flat_iff.2 (hnd _ hp.1 _ hp.2)
   obtain ⟨ρ, hρ, hρ1, hρc, hρO, -⟩ :=
@@ -328,7 +328,7 @@ theorem exists_diffeotopy_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub
   set O := {p : (ℝ × ℝ) × N | (SmoothTwoForm.flat
     (SmoothForm.mpullback (Prod.mk p.1) (contMDiff_const.prodMk contMDiff_id) Ω)
       p.2).IsInvertible}
-  have hO : IsOpen O := SmoothTwoForm.isOpen_setOf_isInvertible_flat_mpullback_prodMk Ω
+  have hO : IsOpen O := SmoothTwoForm.isOpen_setOfPred_isInvertible_flat_mpullback_prodMk Ω
   have hKO : (Icc (0 : ℝ) 1 ×ˢ Icc (0 : ℝ) 1) ×ˢ K ⊆ O := by
     rintro ⟨⟨τ, s⟩, x⟩ ⟨⟨hτ, hs⟩, hx⟩
     simp only [O, mem_ofPred_eq, hΩ]
