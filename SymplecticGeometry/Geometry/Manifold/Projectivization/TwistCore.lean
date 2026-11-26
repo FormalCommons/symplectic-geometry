@@ -199,8 +199,8 @@ theorem trivializationAt_homogeneousSection_chartAt_symm {P : MvPolynomial (Fin 
       ⟨(chartAt (Fin n → 𝕜) x₀).symm y,
         homogeneousSection (𝕜 := 𝕜) (n := n) d P ((chartAt (Fin n → 𝕜) x₀).symm y)⟩).2 =
       eval y (dehomogenize ((twistCore (𝕜 := 𝕜) (d : ℤ)).indexAt x₀) P) := by
-  rw [VectorBundleCore.trivializationAt, ← VectorBundleCore.localTrivAt_def,
-    twistCore_localTriv_apply, chartAt_eq_affineOpenPartialHomeomorph_twistCore_indexAt (d : ℤ),
+  rw [twistCore_trivializationAt_apply_snd,
+    chartAt_eq_affineOpenPartialHomeomorph_twistCore_indexAt (d : ℤ),
     coe_affineOpenPartialHomeomorph_symm]
   set i := (twistCore (𝕜 := 𝕜) (d : ℤ)).indexAt x₀
   have ht : y ∈ (affineChart (K := 𝕜) i).target := by simp
