@@ -11,13 +11,10 @@ public import SymplecticGeometry.Analysis.Normed.Module.Alternating.AppendLeft
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Basic
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegral.Product.Coefficient
 import TauCeti.Geometry.Manifold.ContMDiff.ContinuousAlternatingMap
-<<<<<<< HEAD
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Regularity
 import TauCeti.Geometry.Manifold.VectorBundle.Trivialization
 import TauCeti.Topology.Algebra.Module.FiniteDimension
-=======
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
->>>>>>> origin/main
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Trivialization
 
 /-!
