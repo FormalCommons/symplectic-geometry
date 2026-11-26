@@ -9,9 +9,10 @@ public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Char
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.TransAffine
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.Darboux
 public import SymplecticGeometry.LinearAlgebra.Symplectic.UnitaryNormalForm
+import SymplecticGeometry.Topology.Algebra.Module.Equiv.Basic
 
 /-!
-# Centred Darboux charts with uniform bounds
+# Centred Darboux charts with uniform bounds, and their rescalings
 
 Let `σ` be a two-form on a boundaryless manifold `M`, `J` a smooth almost complex structure
 compatible with `σ`, and `φ` a smooth chart of `M` into the standard model `StdSpace ι` that pulls
@@ -36,11 +37,22 @@ bound for each order of derivative. They exist: Darboux charts into `StdSpace ι
 every point on which the recentred charts have uniform bounds, finitely many of these cover `M`,
 and the smallest of their radii and the largest of their bounds work for all centres.
 
+Rescaling a centred chart `D.chart x` by a nonzero real `c`, that is, following it by
+`z ↦ c • z`, gives the chart `D.rescaledChart c x`. It is still centred at `x`, its target contains
+the ball of radius `|c| * D.radius`, and it pulls `stdForm ι` back to `c ^ 2` times `σ`. The
+structure `J` read in it at `z` is `J` read in `D.chart x` at `c⁻¹ • z`, so each derivative of
+order `r` gains a factor `|c|⁻¹ ^ r`. With the mean value inequality and the value
+`stdComplexStructure ι` at `0`, this bounds the distance from `J` read in the rescaled chart to
+`stdComplexStructure ι` by a constant times `|c|⁻¹ * ‖z‖`, the constant not depending on `x` or
+`c`. For `c = √(2π k)` the rescaled chart pulls `stdForm ι` back to `k` times `2π σ`.
+
 ## Main definitions
 
 * `SymplecticGeometry.CenteredDarbouxCharts`: centred Darboux charts at every point of `M`, with
   derivative at the centre complex linear for `J`, one radius, and uniform bounds on the
   derivatives of `J` read in them.
+* `SymplecticGeometry.CenteredDarbouxCharts.rescaledChart`: the centred chart at a point followed by
+  the scaling by a unit `c : ℝˣ`.
 
 ## Main results
 
@@ -49,6 +61,13 @@ and the smallest of their radii and the largest of their bounds work for all cen
   bounds.
 * `SymplecticGeometry.nonempty_centeredDarbouxCharts`: centred Darboux charts with uniform bounds
   exist on a compact manifold.
+* `SymplecticGeometry.CenteredDarbouxCharts.eval₂_rescaledChart`: the rescaled chart pulls
+  `stdForm ι` back to `c ^ 2` times `σ`.
+* `SymplecticGeometry.CenteredDarbouxCharts.chartPushforward_rescaledChart`: `J` read in the
+  rescaled chart, as `J` read in the centred chart at the scaled point.
+* `SymplecticGeometry.CenteredDarbouxCharts.norm_chartPushforward_rescaledChart_sub_le`,
+  `SymplecticGeometry.CenteredDarbouxCharts.norm_iteratedFDeriv_chartPushforward_rescaledChart_le`
+  and its corollary for `c ≥ 1` and `r ≥ 1`: the bounds on `J` read in the rescaled charts.
 
 ## References
 
@@ -216,6 +235,147 @@ theorem nonempty_centeredDarbouxCharts [FiniteDimensional ℝ E] [CompactSpace M
     chartPushforward_zero x := (hA _ x (hcK x)).2.2.2.2.2.2.2
     norm_iteratedFDeriv_le r x z hz := (hC _ r x (hcK x) z (hρ₀le x hz)).trans
       (hB r (Finset.mem_image_of_mem _ (hct x))) }⟩
+
+namespace CenteredDarbouxCharts
+
+omit [I.Boundaryless]
+
+variable {σ : SmoothTwoForm I M} {J : SmoothAlmostComplexStructure I M}
+  (D : CenteredDarbouxCharts σ J ι) (c : ℝˣ) (x : M)
+
+/-- The centred chart at `x` rescaled by `c`: the chart `D.chart x` followed by `z ↦ c • z`. -/
+noncomputable def rescaledChart : PartialDiffeomorph I 𝓘(ℝ, StdSpace ι) M (StdSpace ι) ∞ :=
+  (D.chart x).transAffine 0 (ContinuousLinearEquiv.smulLeft c)
+
+theorem rescaledChart_def :
+    D.rescaledChart c x = (D.chart x).transAffine 0 (ContinuousLinearEquiv.smulLeft c) :=
+  (rfl)
+
+@[simp]
+theorem rescaledChart_source : (D.rescaledChart c x).source = (D.chart x).source := by
+  rw [rescaledChart_def, PartialDiffeomorph.transAffine_source]
+
+theorem mem_rescaledChart_source : x ∈ (D.rescaledChart c x).source := by
+  simpa using D.mem_source x
+
+@[simp]
+theorem rescaledChart_apply (y : M) : D.rescaledChart c x y = (c : ℝ) • D.chart x y := by
+  simp [rescaledChart_def, Units.smul_def]
+
+theorem rescaledChart_apply_self : D.rescaledChart c x x = 0 := by
+  simp [D.apply_self x]
+
+@[simp]
+theorem mem_rescaledChart_target_iff {z : StdSpace ι} :
+    z ∈ (D.rescaledChart c x).target ↔ (c : ℝ)⁻¹ • z ∈ (D.chart x).target := by
+  simp [rescaledChart_def, Units.smul_def]
+
+/-- A point of the ball of radius `|c| * D.radius` about `0`, scaled by `c⁻¹`, lies in the ball of
+radius `D.radius`. -/
+theorem inv_smul_mem_ball {z : StdSpace ι} (hz : z ∈ ball 0 (|(c : ℝ)| * D.radius)) :
+    (c : ℝ)⁻¹ • z ∈ ball (0 : StdSpace ι) D.radius :=
+  (Set.mem_smul_set_iff_inv_smul_mem₀ c.ne_zero _ _).1
+    (by rwa [smul_ball c.ne_zero, smul_zero, Real.norm_eq_abs])
+
+/-- The target of the chart rescaled by `c` contains the ball of radius `|c| * D.radius`
+about `0`. -/
+theorem ball_subset_rescaledChart_target :
+    ball 0 (|(c : ℝ)| * D.radius) ⊆ (D.rescaledChart c x).target := fun _ hz ↦
+  (D.mem_rescaledChart_target_iff c x).2 (D.ball_subset_target x (D.inv_smul_mem_ball c hz))
+
+/-- The chart rescaled by `c` pulls `stdForm ι` back to `c ^ 2 • σ` on its source. -/
+theorem eval₂_rescaledChart (y : M) (hy : y ∈ (D.rescaledChart c x).source)
+    (v w : TangentSpace I y) :
+    (c : ℝ) ^ 2 * σ.eval₂ y v w =
+      stdForm ι (mvfderiv I (D.rescaledChart c x) y v)
+        (mvfderiv I (D.rescaledChart c x) y w) := by
+  rw [rescaledChart_def, PartialDiffeomorph.mvfderiv_transAffine, ContinuousLinearMap.comp_apply,
+    ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
+    ContinuousLinearEquiv.smulLeft_apply_apply, ContinuousLinearEquiv.smulLeft_apply_apply,
+    Units.smul_def, Units.smul_def, D.eval₂_eq x y (by simpa using hy) v w]
+  simp only [map_smul, LinearMap.smul_apply, smul_eq_mul]
+  ring
+
+/-- `J` read in the chart rescaled by `c`, at a point `z` of its target, is `J` read in
+`D.chart x` at `c⁻¹ • z`. -/
+theorem chartPushforward_rescaledChart {z : StdSpace ι}
+    (hz : z ∈ (D.rescaledChart c x).target) :
+    J.chartPushforward (D.rescaledChart c x).toOpenPartialHomeomorph z =
+      J.chartPushforward (D.chart x).toOpenPartialHomeomorph ((c : ℝ)⁻¹ • z) := by
+  rw [rescaledChart_def] at hz ⊢
+  rw [J.chartPushforward_transAffine _ _ _ hz]
+  refine ContinuousLinearMap.ext fun w ↦ ?_
+  simp [Units.smul_def]
+
+/-- On the ball of radius `|c| * D.radius` about `0`, `J` read in the chart rescaled by `c`
+differs from `stdComplexStructure ι` by at most `D.bound 1 * |c|⁻¹ * ‖z‖` at `z`. -/
+theorem norm_chartPushforward_rescaledChart_sub_le [I.Boundaryless] {z : StdSpace ι}
+    (hz : z ∈ ball 0 (|(c : ℝ)| * D.radius)) :
+    ‖J.chartPushforward (D.rescaledChart c x).toOpenPartialHomeomorph z -
+        LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap‖ ≤
+      D.bound 1 * |(c : ℝ)|⁻¹ * ‖z‖ := by
+  set ψ := (D.chart x).toOpenPartialHomeomorph
+  have hz' := D.inv_smul_mem_ball c hz
+  have h0 : J.chartPushforward ψ 0 =
+      LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap := by
+    exact ContinuousLinearMap.ext (D.chartPushforward_zero x)
+  have hdiff : ∀ y ∈ ball (0 : StdSpace ι) D.radius, DifferentiableAt ℝ (J.chartPushforward ψ) y :=
+    fun y hy ↦ ((J.contDiffOn_chartPushforward (ψ := ψ) (D.chart x).contMDiffOn
+      (D.chart x).symm.contMDiffOn).differentiableOn (by simp)).differentiableAt
+        ((D.chart x).open_target.mem_nhds (D.ball_subset_target x hy))
+  rw [D.chartPushforward_rescaledChart c x (D.ball_subset_rescaledChart_target c x hz), ← h0]
+  calc ‖J.chartPushforward ψ ((c : ℝ)⁻¹ • z) - J.chartPushforward ψ 0‖
+      ≤ D.bound 1 * ‖(c : ℝ)⁻¹ • z - 0‖ :=
+        (convex_ball 0 D.radius).norm_image_sub_le_of_norm_fderiv_le hdiff
+          (fun y hy ↦ by
+            simpa only [norm_iteratedFDeriv_one] using D.norm_iteratedFDeriv_le 1 x y hy)
+          (mem_ball_self D.radius_pos) hz'
+    _ = D.bound 1 * |(c : ℝ)|⁻¹ * ‖z‖ := by
+        rw [sub_zero, norm_smul, norm_inv, Real.norm_eq_abs, mul_assoc]
+
+/-- For every `r`, on the ball of radius `|c| * D.radius` about `0`, the `r`-th iterated
+derivative of `J` read in the chart rescaled by `c` has norm at most `D.bound r * |c|⁻¹ ^ r`. -/
+theorem norm_iteratedFDeriv_chartPushforward_rescaledChart_le (r : ℕ) {z : StdSpace ι}
+    (hz : z ∈ ball 0 (|(c : ℝ)| * D.radius)) :
+    ‖iteratedFDeriv ℝ r (J.chartPushforward (D.rescaledChart c x).toOpenPartialHomeomorph) z‖ ≤
+      D.bound r * |(c : ℝ)|⁻¹ ^ r := by
+  have hc : 0 < |(c : ℝ)| := abs_pos.2 c.ne_zero
+  have hz' := D.inv_smul_mem_ball c hz
+  have hA : ‖((ContinuousLinearEquiv.smulLeft c : StdSpace ι ≃L[ℝ] StdSpace ι) :
+      StdSpace ι →L[ℝ] StdSpace ι)‖ ≤ |(c : ℝ)| :=
+    ContinuousLinearMap.opNorm_le_bound _ hc.le fun v ↦ by simp [Units.smul_def, norm_smul]
+  have hA' : ‖((ContinuousLinearEquiv.smulLeft c : StdSpace ι ≃L[ℝ] StdSpace ι).symm :
+      StdSpace ι →L[ℝ] StdSpace ι)‖ ≤ |(c : ℝ)|⁻¹ :=
+    ContinuousLinearMap.opNorm_le_bound _ (inv_nonneg.2 hc.le) fun v ↦ by
+      simp [Units.smul_def, norm_smul]
+  have h := J.norm_iteratedFDeriv_chartPushforward_transAffine_le (D.chart x) 0
+    (ContinuousLinearEquiv.smulLeft c) r (D.ball_subset_rescaledChart_target c x hz)
+  rw [← rescaledChart_def, ContinuousLinearEquiv.smulLeft_symm_apply, add_zero, Units.smul_def,
+    Units.val_inv_eq_inv_val] at h
+  calc _ ≤ _ := h
+    _ ≤ |(c : ℝ)| * |(c : ℝ)|⁻¹ ^ (r + 1) * D.bound r := by
+        gcongr
+        exact D.norm_iteratedFDeriv_le r x _ hz'
+    _ = D.bound r * |(c : ℝ)|⁻¹ ^ r * (|(c : ℝ)| * |(c : ℝ)|⁻¹) := by ring
+    _ = D.bound r * |(c : ℝ)|⁻¹ ^ r := by rw [mul_inv_cancel₀ hc.ne', mul_one]
+
+/-- For a scale `c ≥ 1` and every order `r ≥ 1`, on the ball of radius `c * D.radius` about `0`,
+the `r`-th iterated derivative of `J` read in the chart rescaled by `c` has norm at most
+`D.bound r * c⁻¹`. -/
+theorem norm_iteratedFDeriv_chartPushforward_rescaledChart_le_of_one_le {r : ℕ} (hr : r ≠ 0)
+    (hc : 1 ≤ (c : ℝ)) {z : StdSpace ι} (hz : z ∈ ball 0 ((c : ℝ) * D.radius)) :
+    ‖iteratedFDeriv ℝ r (J.chartPushforward (D.rescaledChart c x).toOpenPartialHomeomorph) z‖ ≤
+      D.bound r * (c : ℝ)⁻¹ := by
+  have hc₀ : 0 < (c : ℝ) := zero_lt_one.trans_le hc
+  rw [← abs_of_pos hc₀] at hz ⊢
+  refine (D.norm_iteratedFDeriv_chartPushforward_rescaledChart_le c x r hz).trans ?_
+  have hB : 0 ≤ D.bound r :=
+    (norm_nonneg _).trans (D.norm_iteratedFDeriv_le r x 0 (mem_ball_self D.radius_pos))
+  gcongr
+  exact pow_le_of_le_one (inv_nonneg.2 (abs_nonneg _))
+    (inv_le_one_of_one_le₀ (by rwa [abs_of_pos hc₀])) hr
+
+end CenteredDarbouxCharts
 
 end SymplecticGeometry
 
