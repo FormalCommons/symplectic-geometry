@@ -9,9 +9,13 @@ public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 public import Mathlib.Geometry.Manifold.Instances.Icc
 import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 public import TauCeti.Geometry.Manifold.Instances.Icc
+public import Mathlib.Geometry.Manifold.Diffeomorph
+import Mathlib.Analysis.Calculus.Deriv.Slope
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Deriv
 
 /-!
-# The smooth transition function as a smooth map to the unit interval
+# The smooth transition function as a smooth map, and diffeomorphisms of the line
 
 Tau Ceti's `unitInterval.smoothTransition` is Mathlib's `Real.smoothTransition` as a map
 `ℝ → unitInterval`, which is `0` on `(-∞, 0]` and `1` on `[1, ∞)`. This file shows that it is
@@ -25,6 +29,14 @@ unit interval, Tau Ceti's `TauCeti.collaredFirstHalf` composed with the clamp `S
 is `t ↦ collaredSmoothTransitionUnit (2 * t)` on all of `ℝ` (`TauCeti.collaredFirstHalf_projIcc`),
 and `collaredFirstHalf` is `0` near time `0` and `1` near time `1`
 (`TauCeti.eventually_collaredFirstHalf_eq_zero`, `TauCeti.eventually_collaredFirstHalf_eq_one`).
+
+It also builds diffeomorphisms of the line from the smooth transition function. For `a < b` the
+map `t ↦ t + smoothTransition ((t - a) / (b - a))` is smooth, increasing, with derivative at least
+`1`, the identity on `(-∞, a]`, and sends `b` to `b + 1`; Tau Ceti's
+`TauCeti.isLocalDiffeomorph_of_deriv_ne_zero` and Mathlib's
+`IsLocalDiffeomorph.diffeomorphOfBijective` make it a diffeomorphism of `ℝ`. Its inverse is an
+increasing diffeomorphism that fixes `(-∞, a]` and sends `b + 1` to `b`
+(`Real.exists_diffeomorph_strictMono_eqOn_Iic_apply_add_one`).
 -/
 
 public noncomputable section
@@ -105,5 +117,49 @@ theorem eventually_collaredFirstHalf_eq_one {n : ℕ∞ω} (hn : n ≤ ∞) :
   exact collaredFirstHalf_eq_one_of_ge hn ht.le
 
 end TauCeti
+
+namespace Real
+
+open Set Filter
+
+/-- For `a < b`, some increasing diffeomorphism of `ℝ` is the identity on `(-∞, a]` and sends
+`b + 1` to `b`. -/
+theorem exists_diffeomorph_strictMono_eqOn_Iic_apply_add_one {a b : ℝ} (hab : a < b) :
+    ∃ e : ℝ ≃ₘ⟮𝓘(ℝ), 𝓘(ℝ)⟯ ℝ, StrictMono e ∧ EqOn e id (Iic a) ∧ e (b + 1) = b := by
+  set g : ℝ → ℝ := fun t ↦ smoothTransition ((t - a) / (b - a))
+  set φ : ℝ → ℝ := fun t ↦ t + g t
+  have hba : 0 < b - a := sub_pos.2 hab
+  have hg : ContDiff ℝ ∞ g := smoothTransition.contDiff.comp (by fun_prop)
+  have hgm : Monotone g := fun s t hst ↦
+    smoothTransition.monotone (div_le_div_of_nonneg_right (by linarith) hba.le)
+  have hφ : ContDiff ℝ ∞ φ := contDiff_id.add hg
+  have hφm : StrictMono φ := strictMono_id.add_monotone hgm
+  have hderiv (t : ℝ) : deriv φ t ≠ 0 := by
+    have : deriv φ t = 1 + deriv g t := by
+      exact ((hasDerivAt_id' t).add ((hg.differentiable (by simp) t).hasDerivAt)).deriv
+    rw [this]
+    linarith [hgm.deriv_nonneg (x := t)]
+  have hsurj : Function.Surjective φ :=
+    hφ.continuous.surjective
+      (tendsto_atTop_mono (fun t ↦ le_add_of_nonneg_right (smoothTransition.nonneg _))
+        tendsto_id)
+      (tendsto_atBot_mono (fun t ↦ add_le_add_right (smoothTransition.le_one _) t)
+        (tendsto_atBot_add_const_right _ 1 tendsto_id))
+  set e := (TauCeti.isLocalDiffeomorph_of_deriv_ne_zero hφ (by simp)
+    hderiv).diffeomorphOfBijective ⟨hφm.injective, hsurj⟩
+  have he : ⇑e = φ := IsLocalDiffeomorph.coe_diffeomorphOfBijective _ _
+  have hfix : EqOn φ id (Iic a) := fun t ht ↦ by
+    simp [φ, g, smoothTransition.zero_of_nonpos
+      (div_nonpos_of_nonpos_of_nonneg (sub_nonpos.2 ht) hba.le)]
+  refine ⟨e.symm, fun s t hst ↦ ?_, fun t ht ↦ ?_, ?_⟩
+  · rw [← hφm.lt_iff_lt, ← he, e.apply_symm_apply, e.apply_symm_apply]; exact hst
+  · have h : φ t = t := hfix ht
+    conv_lhs => rw [← h, ← he]
+    exact e.symm_apply_apply t
+  · have hb : φ b = b + 1 := by simp [φ, g, div_self hba.ne']
+    rw [← hb, ← he]
+    exact e.symm_apply_apply b
+
+end Real
 
 end
