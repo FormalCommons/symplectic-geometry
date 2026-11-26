@@ -271,14 +271,14 @@ include hP
 
 /-- An idempotent endomorphism `P` fixes its range: the inclusion of its range core followed by `P`
 is the inclusion. -/
-@[reassoc]
+@[reassoc (attr := simp)]
 theorem rangeInclusion_comp_of_comp_self : rangeInclusion P hr ≫ P = rangeInclusion P hr :=
   (cancel_epi (rangeRestrict P hr)).1 <| by
     rw [rangeRestrict_rangeInclusion_assoc, hP, rangeRestrict_rangeInclusion]
 
 /-- For an idempotent endomorphism `P`, the corestriction `rangeRestrict P hr` is a projection onto
 the range core: it is a left inverse of the inclusion. -/
-@[reassoc]
+@[reassoc (attr := simp)]
 theorem rangeInclusion_rangeRestrict_of_comp_self :
     rangeInclusion P hr ≫ rangeRestrict P hr = 𝟙 _ :=
   (cancel_mono (rangeInclusion P hr)).1 <| by

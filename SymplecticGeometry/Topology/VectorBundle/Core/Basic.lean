@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Data.Fintype.Order
 public import Mathlib.Topology.VectorBundle.Basic
+public import SymplecticGeometry.Topology.Algebra.Module.Spaces.ContinuousLinearMap
 public import TauCeti.LinearAlgebra.Dimension.Submodule
 public import TauCeti.Topology.VectorBundle.Coordinates
 
@@ -31,7 +32,8 @@ public import TauCeti.Topology.VectorBundle.Coordinates
 * `VectorBundleCore.exists_conjContinuousAlgEquiv_eq_inChartCoordinates`: reading an endomorphism
   of a fibre in a chart is the conjugation by a continuous linear automorphism of the model fibre;
   `VectorBundleCore.exists_units_inv_mul_mul_eq_inChartCoordinates` deduces from it the
-  conjugation by a unit of the endomorphism ring, through `ContinuousLinearEquiv.unitsEquiv`.
+  conjugation by a unit of the endomorphism ring, through
+  `ContinuousLinearEquiv.conjContinuousAlgEquiv_apply_eq_mul`.
 -/
 
 public section
@@ -156,8 +158,7 @@ is a conjugation by a unit of the ring of endomorphisms of the model fibre. -/
 theorem exists_units_inv_mul_mul_eq_inChartCoordinates {i : ι} {x : B} (hx : x ∈ Z.baseSet i) :
     ∃ U : (F →L[R] F)ˣ, ∀ M : F →L[R] F, ↑U⁻¹ * M * ↑U = Z.inChartCoordinates Z i i x M := by
   obtain ⟨e, he⟩ := Z.exists_conjContinuousAlgEquiv_eq_inChartCoordinates hx
-  refine ⟨(ContinuousLinearEquiv.unitsEquiv R F).symm e.symm, fun M ↦ ?_⟩
-  ext v
-  simp [← he, ContinuousLinearEquiv.unitsEquiv, ContinuousLinearEquiv.toUnit]
+  refine ⟨e.toUnit⁻¹, fun M ↦ ?_⟩
+  rw [← he, ContinuousLinearEquiv.conjContinuousAlgEquiv_apply_eq_mul, inv_inv]
 
 end VectorBundleCore

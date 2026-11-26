@@ -294,25 +294,237 @@ space `F`:
 
 ### `Analysis/Calculus/HolonomicApproximation/Cube.lean`
 
-The holonomic approximation theorem over a cube, by induction on `m`, as in
-[EliashbergMishachev2002], Chapter 3:
+The holonomic approximation theorem over a cube, by induction on the set of
+core directions in which the datum has been made holonomic, following the
+method of [EliashbergMishachev2002], Chapter 3 (zig-zags in one direction
+at a time). Throughout, `D := (Fin m → ℝ) × (Fin k → ℝ)` with sup norms,
+`Q := closedBall (0 : Fin m → ℝ) 1 ×ˢ {(0 : Fin k → ℝ)}` is the core cube,
+and `F` is a real normed space.
+
+**Directions and parameters.** For `J : Finset (Fin m)`, a vector `w : D`
+*lies in the directions `J`* when `∀ i ∉ J, w.1 i = 0`: its core components
+outside `J` vanish, its transverse part is free. The core coordinates outside
+`J` play the part of parameters: the diffeotopies of a step at `J` keep them
+fixed, and the approximation is only asked for derivatives in the
+directions `J`. No definition is added for this: statements carry the
+condition on `w`. Proofs use the projection
+`P J := (ContinuousLinearMap.pi fun i ↦ if i ∈ J then .proj i else 0).prodMap (.id ℝ _)`
+of `D` onto these vectors (of norm at most `1`), as a local notation or a
+`private` definition. With `J = Finset.univ` every `w` lies in the
+directions `J`, and the statement is the cube theorem; with `J` a proper
+subset it is the cube theorem for the cube `I^J` with the cube `I^{Jᶜ}` of
+parameters, the diffeotopy being a family of diffeotopies over the
+parameters.
+
+**The inductive statement.**
+
+```lean
+theorem exists_holonomic_approximation_cube_directions {m k : ℕ} (hk : 0 < k)
+    (J : Finset (Fin m)) {f : D → F} {G : D → D →L[ℝ] F}
+    (hf : ContDiff ℝ ∞ f) (hG : ContDiff ℝ ∞ G)
+    {B : Set (Fin m → ℝ)} (hB : IsClosed B)
+    (hJB : ∀ u ∈ closedBall (0 : Fin m → ℝ) 1, (∃ i ∈ J, |u i| = 1) → u ∈ B)
+    {U : Set D} (hU : IsOpen U) (hBU : B ×ˢ {0} ⊆ U)
+    (hUf : ∀ x ∈ U, fderiv ℝ f x = G x) {ε δ : ℝ} (hε : 0 < ε) (hδ : 0 < δ) :
+    ∃ (h : TauCeti.Diffeotopy 𝓘(ℝ, D) ∞ D) (f' : D → F) (V : Set D),
+      (∃ C, IsCompact C ∧ C ⊆ thickening δ Q ∧
+        (∀ t, ∀ x ∉ C, h (t, x) = x) ∧ ∀ x ∉ C, f' x = f x) ∧
+      (∀ t x, dist (h (t, x)) x < δ) ∧
+      (∀ t x, ∀ i ∉ J, (h (t, x)).1 i = x.1 i) ∧
+      (∃ W ∈ 𝓝ˢ (B ×ˢ {0}), ∀ t, ∀ x ∈ W, h (t, x) = x) ∧
+      IsOpen V ∧ (fun x ↦ h (1, x)) '' Q ⊆ V ∧ ContDiff ℝ ∞ f' ∧
+      (∀ x ∈ V, ‖f' x - f x‖ < ε ∧
+        ∀ w : D, (∀ i ∉ J, w.1 i = 0) → ‖(fderiv ℝ f' x - G x) w‖ ≤ ε * ‖w‖) ∧
+      ∃ U' ∈ 𝓝ˢ (B ×ˢ {0}), EqOn f' f U'
+```
+
+Here `B` is a closed set of core points near which the datum is already
+holonomic. It must contain the faces of the cube in the directions `J`
+(`hJB`), and it may contain more: a part of the cube with interior, or the
+points whose parameters lie in a closed set. The clauses are those of the
+merged `exists_holonomic_approximation_segment`, with three additions: `f'`
+equals `f` outside the same compact `C` as the diffeotopy, the diffeotopy
+keeps the parameter coordinates, and the relative clauses are about `B`
+instead of the end points. The `C¹` estimate is stated vector by vector so
+that it can be restricted to the directions `J`. Smoothness of `G` is
+needed from `m = 2` on, since the Taylor maps of a step depend on the
+parameters through `G`.
+
+**The theorem.** `exists_holonomic_approximation_cube` is the case
+`J = Finset.univ`, `B = sphere 0 1` (in the sup norm, a point of the cube
+lies on the sphere exactly when one coordinate has absolute value `1`),
+with `ε / 2` in place of `ε` to turn the vector estimate into
+`‖fderiv ℝ f' x - G x‖ < ε`. Its statement is the inductive one with these
+choices, all clauses written out:
 
 ```lean
 theorem exists_holonomic_approximation_cube {m k : ℕ} (hk : 0 < k)
     {f : D → F} {G : D → D →L[ℝ] F}
     (hf : ContDiff ℝ ∞ f) (hG : ContDiff ℝ ∞ G) {U : Set D} (hU : IsOpen U)
-    (hUf : ∀ x ∈ U, fderiv ℝ f x = G x) (hU' : Metric.sphere 0 1 ×ˢ {0} ⊆ U)
+    (hUf : ∀ x ∈ U, fderiv ℝ f x = G x) (hU' : sphere 0 1 ×ˢ {0} ⊆ U)
     {ε δ : ℝ} (hε : 0 < ε) (hδ : 0 < δ) :
     ∃ (h : TauCeti.Diffeotopy 𝓘(ℝ, D) ∞ D) (f' : D → F) (V : Set D),
-      -- h is δ-small and fixed near Metric.sphere 0 1 ×ˢ {0}
-      IsOpen V ∧ h.timeSlice 1 '' (Metric.closedBall 0 1 ×ˢ {0}) ⊆ V ∧
+      (∃ C, IsCompact C ∧ C ⊆ thickening δ Q ∧ ∀ t, ∀ x ∉ C, h (t, x) = x) ∧
+      (∀ t x, dist (h (t, x)) x < δ) ∧
+      (∃ W ∈ 𝓝ˢ (sphere 0 1 ×ˢ {0}), ∀ t, ∀ x ∈ W, h (t, x) = x) ∧
+      IsOpen V ∧ (fun x ↦ h (1, x)) '' Q ⊆ V ∧
       ContDiff ℝ ∞ f' ∧ (∀ x ∈ V, ‖f' x - f x‖ < ε ∧ ‖fderiv ℝ f' x - G x‖ < ε) ∧
-      ∃ U' ∈ 𝓝ˢ (Metric.sphere 0 1 ×ˢ {0}), EqOn f' f U'
+      ∃ U' ∈ 𝓝ˢ (sphere 0 1 ×ˢ {0}), EqOn f' f U'
 ```
 
-The sketch abbreviates the smallness and support clauses of the
-diffeotopy, which the issue
-writes out. The condition `0 < k` is the positive codimension.
+The condition `0 < k` is the positive codimension. The relative form that
+the engine needs (end of `Morse/Core/`) is the inductive statement with
+`J = Finset.univ` and its larger `B`, so no subdivision of the cube is
+needed for it.
+
+**The induction**, by `Finset.induction_on` on `J`.
+
+1. *Base case `J = ∅`* (`exists_holonomic_approximation_cube_empty`).
+   Every core coordinate is a parameter, so only transverse derivatives are
+   tested. Take `h := 1` and `f' := f + (λ ∘ Prod.fst) • κ' • (T - f)`,
+   where `T (u, v) := f (u, 0) + G (u, 0) (0, v)` is the Taylor map in the
+   transverse directions, `λ` is a smooth function of `u` that is `0` near
+   `B`, `1` on the cube off a neighbourhood of `B` inside `U`, and supported
+   in the `δ / 2`-neighbourhood of the cube
+   (`exists_contDiff_support_eq_eq_one_iff`), and `κ' := κ ∘ Prod.snd` with
+   `κ` a smooth bump equal to `1` for `‖v‖ ≤ ρ` and `0` for `‖v‖ ≥ 2ρ`.
+   On `V := {‖v‖ < ρ}` near the cube, `κ'` is locally `1` and `λ` has no
+   derivative in the tested directions, so the error is that of `T`,
+   which is small for `ρ` small by uniform continuity of `G` on a compact
+   neighbourhood of `Q`. The support `C` is the `2ρ`-neighbourhood of the
+   cube intersected with the support of `λ`.
+2. *Step from `J'` to `insert i₀ J'`, `i₀ ∉ J'`*
+   (`exists_holonomic_approximation_cube_directions_insert`, proved from the
+   statement for `J'` and the lemmas of the next steps).
+   - *2a. The directions `J'`.* The statement for `J'`, with the same `B`
+     (it contains the faces in the directions `J'`), with `ε₁` and `δ₁ ≤
+     δ / 2`, gives `h¹`, `f¹`, `V¹`, `C₁`. The datum
+     `G¹ := fderiv ℝ f¹ ∘L P J' + G ∘L (1 - P J')` (pointwise in `x`) is
+     smooth, holonomic in the directions `J'` everywhere, equal to `G`
+     where `f¹ = f` and `(f, G)` is holonomic, and `ε₁`-close to `G` on
+     `V¹`, since `‖P J'‖ ≤ 1`.
+   - *2b. Straightening the displaced cube.* Let `Φ := h¹.final`. It keeps
+     the coordinates outside `J'`, so `fderiv ℝ Φ x` and
+     `fderiv ℝ Φ.symm y` map vectors in the directions `J'` (or `J`) to
+     vectors in the same directions. The pulled-back datum
+     `f² := f¹ ∘ Φ`, `G² x := G¹ (Φ x) ∘L fderiv ℝ Φ x` is smooth, and by
+     the chain rule holonomic in the directions `J'` everywhere, in
+     particular on the straight cube `Q`; it equals `(f, G)` near
+     `B ×ˢ {0}`, where `Φ` is the identity and `f¹ = f`. This replaces the
+     displaced cube `Φ '' Q` by `Q` itself, so the next step works on a
+     straight cube and no graph or shear is needed: the transport is by
+     the diffeomorphism the first step built.
+   - *2c. The direction `i₀`.* The one-direction lemma (below) applied to
+     `(f², G²)`, with `ε₂` and `δ₂`, gives `h²`, `f²'`, `V²`, `C₂`, with
+     `h²` keeping every core coordinate.
+   - *2d. Assembly.* The diffeotopy is
+     `h := h².transDiffeomorph Φ * h¹` (Tau Ceti's conjugation
+     `TauCeti.Diffeotopy.transDiffeomorph` and the product of
+     `Diffeotopy/Group.lean`, `mul_apply`): first `h¹`, then `Φ h²ₜ Φ⁻¹`.
+     Its final map is `Φ ∘ h².final` (`final_mul`, `final_transDiffeomorph`),
+     so it sends `Q` into `Φ '' V²`. The map is `f' := f²' ∘ Φ.symm`, and
+     `V := Φ '' V² ∩ V¹`. The constants: `‖fderiv ℝ Φ.symm‖ ≤ L` and `Φ`
+     is `L`-Lipschitz, since `Φ - id` is smooth with compact support
+     (`ContDiff.lipschitzWith_of_hasCompactSupport` on `Φ - id`); then
+     `ε₂ ≤ ε / (2 L)`, `ε₁ ≤ ε / 2`, `δ₂ ≤ δ / (2 L)`, and `δ₂` so small
+     that `thickening δ₂ Q ⊆ Φ ⁻¹' V¹`
+     (`IsCompact.exists_thickening_subset_open`), so that the final cube
+     lies in `V¹`. Then: smallness by the triangle inequality and the
+     Lipschitz bound; support in `C₁ ∪ Φ '' C₂ ⊆ thickening δ Q`; the
+     coordinates outside `insert i₀ J'` are kept by `Φ` and `h²`;
+     `h = id` and `f' = f` near `B ×ˢ {0}`; and for `w` in the directions
+     `insert i₀ J'`, `(fderiv ℝ f' y - G¹ y) w` is
+     `(fderiv ℝ f²' z - G² z) (fderiv ℝ Φ.symm y w)` with `y = Φ z`, so
+     the error is at most `ε₂ L ‖w‖ + ε₁ ‖w‖`.
+3. *The one-direction lemma* (`exists_holonomic_approximation_direction`,
+   in `HolonomicApproximation/Direction.lean`). For `i₀ ∉ J'`, a smooth
+   `(f, G)` holonomic near `B ×ˢ {0}` as above (with the faces of
+   `insert i₀ J'` in `B`) and, on `Q`, holonomic in the directions `J'`
+   (`∀ x ∈ Q, ∀ w, (∀ i ∉ J', w.1 i = 0) → fderiv ℝ f x w = G x w`), the
+   conclusion of the inductive statement for `insert i₀ J'`, with the
+   stronger clause `∀ t x, (h (t, x)).1 = x.1`. Proof:
+   - the zig-zag approximation of `ZigZag.lean`, generalized from
+     `Fin 1` to the direction `i₀` of `Fin m` (below), gives a height `r`,
+     a profile `g₀ : ℝ → ℝ` vanishing near `± 1`, and `f₀` approximating
+     `(f, G)` in the directions `insert i₀ J'` near the points
+     `(u, Pi.single j (r * g₀ (u i₀)))`, `u` in the cube;
+   - a smooth `ψ : (Fin m → ℝ) → [0, 1]`, `0` near `B` and `1` off a
+     neighbourhood `N` of `B` with `N ×ˢ ball 0 r ⊆ U` (shrinking `r` first,
+     by compactness), and a smooth `λ` of `u`, `0` where `ψ < 1` and `1` off
+     a slightly larger neighbourhood of `B`, supported near the cube as in
+     the base case;
+   - the diffeotopy is `exists_wiggling_diffeotopy` with the profile
+     `u ↦ ψ u * g₀ (u i₀)`, over `cthickening (δ / 2) Q`: where `ψ = 1`
+     it moves the cube onto the zig-zag, and near `B` it is the identity;
+   - `f' := f + (λ ∘ Prod.fst) • κ' • (f₀ - f)`, with `κ'` a transverse
+     bump as in the base case at height `2r`. Where `λ` varies, both `f₀`
+     and `f` are good approximations and the gluing costs
+     `‖fderiv λ‖ ‖f₀ - f‖`, so the accuracy asked of `f₀` is chosen after
+     `λ`; where `λ = 0` and the cube is displaced by less than `r`, the
+     point lies in `U` and `f' = f` is exact.
+4. *The zig-zag in one direction of a cube.* `exists_holonomic_approximation_zigzag`
+   is generalized in place from `D = (Fin 1 → ℝ) × (Fin k → ℝ)` to
+   `D = (Fin m → ℝ) × (Fin k → ℝ)` and a direction `i₀`. The Taylor maps
+   are taken at the points `(Function.update u i₀ (c l), 0)` of the cube,
+   `S l x := f (pₗ x) + G (pₗ x) (x - pₗ x)` with
+   `pₗ x := (Function.update x.1 i₀ (c l), 0)`. Their derivative in a
+   direction `w` of `insert i₀ J'` is `G (pₗ x) w` up to the holonomy defect
+   of `(f, G)` in the directions `J'` at `pₗ x`, which the hypothesis makes
+   `0` on the cube, so that it is small near the cube, and a term bounded by
+   `‖fderiv ℝ G‖ ‖x - pₗ x‖`, small with `r` and the mesh. The chain is
+   `exists_zigzag_chain`, which already takes `m` and `i₀`, with `S 0 = S (n + 1) = f` near the faces `|u i₀| = 1`. The
+   estimates `zigzag_section_estimate`, `zigzag_neighbour_estimate` and
+   `zigzag_curve_estimate` become uniform over the other coordinates by
+   compactness of the cube. Besides `Continuous G`, the hypothesis on `G` is
+   that each `u ↦ G (Function.update u i₀ c, 0)` is smooth and that
+   `(u, c) ↦ fderiv ℝ (fun u ↦ G (Function.update u i₀ c, 0)) u` is
+   continuous, which bounds that derivative uniformly on the cube; for
+   `m = 1` both hold with `G` merely continuous, since the map is constant,
+   so `exists_holonomic_approximation_segment` keeps `Continuous G`. The
+   holonomy in the directions `J'` is asked on the core vectors only, at
+   the points of `Q`.
+5. *Coordinates kept by the transverse push.* `exists_wiggling_diffeotopy`
+   gains the clause `∀ t x, (h (t, x)).1 = x.1`, from a new clause of
+   `exists_diffeotopy_apply_eq_add_smul` (`Diffeotopy/Translate.lean`):
+   `∀ t x, h (t, x) - x ∈ ℝ ∙ e`. The field is a multiple of `e`
+   everywhere, so its flow lines stay on lines `x + ℝ • e`: the quotient map
+   `E → E ⧸ ℝ ∙ e` kills the field, so it is constant along integral
+   curves.
+
+**The segment.** `exists_holonomic_approximation_segment` is neither the
+base case nor reproved: it stays as it is, with its proof using the
+generalized zig-zag lemma at `m = 1`. The inductive base is `J = ∅`, which
+costs only the transverse Taylor map, so the step from `∅` to a single
+direction is the case `m = 1` with parameters.
+
+**Parameters.** The inductive statement keeps coordinate parameters, the
+core coordinates outside `J`, with the cube `[-1, 1]` as range and the
+closed set `B` for the relative clause. This is what the induction needs,
+and it gives directly the smooth version of `Parametric.lean` for a
+parameter set in a Euclidean space: put the parameters among the core
+coordinates outside `J`, rescale a compact parameter set into the cube, and
+put the parameters already holonomic into `B`. A diffeotopy of `D` keeping
+these coordinates is a family of diffeotopies smooth in the parameter. A
+general compact parameter space, or a parameter manifold `L` that is not an
+open subset of a Euclidean space, is not needed by the induction and stays
+with the design of `Parametric.lean`.
+
+**Building issues of issue 2**, in this order:
+
+- 2a. *The push keeps the other coordinates* (step 5): `Translate.lean`
+  and `Basic.lean`. Blocked by nothing.
+- 2b. *The zig-zag in one direction of a cube* (step 4): `ZigZag.lean`,
+  and the proof of `Segment.lean`. Blocked by nothing.
+- 2c. *The one-direction lemma* (step 3): `Direction.lean`. Blocked by 2a
+  and 2b.
+- 2d. *Transport along a diffeomorphism* (steps 2b and 2d without the
+  induction): the pulled-back datum, its holonomy in the directions kept
+  by the diffeomorphism, the transported estimate and the clauses of the
+  composite diffeotopy, in `HolonomicApproximation/Transport.lean`.
+  Blocked by nothing.
+- 2e. *The induction and the theorem*: the base case, the step, the
+  inductive statement and `exists_holonomic_approximation_cube` in
+  `Cube.lean`. Blocked by 2c and 2d.
 
 ### `Analysis/Calculus/HolonomicApproximation/Parametric.lean`
 
@@ -774,8 +986,8 @@ its form is already good. That set contains the part of the cube below `a`,
 which has interior in the cube, and not only a neighbourhood of the boundary
 sphere, to which the sketch of `exists_holonomic_approximation_cube` is
 relative. Eliashberg–Mishachev's relative form, relative to a closed set near
-which the datum is holonomic, is what the engine uses; it follows from the
-sketched one by subdividing the cube finely.
+which the datum is holonomic, is what the engine uses; it is
+`exists_holonomic_approximation_cube_directions` with `J = Finset.univ`.
 
 ### `Geometry/Symplectic/HPrinciple/HandleCore.lean`
 
@@ -1282,8 +1494,8 @@ Each is a few hundred lines; each issue's blockers come before it.
    `Analysis/Calculus/HolonomicApproximation/Basic.lean`.
 2. **Holonomic approximation over a cube.**
    `Analysis/Calculus/HolonomicApproximation/Cube.lean`. Blocked by 1.
-   If it exceeds the size limit, the case $m=1$ becomes an issue of its own
-   before the induction.
+   The case $m=1$ is merged (`Segment.lean`); the induction is in the five
+   building issues 2a to 2e that the file's section gives, in that order.
 3. **Parametric relative holonomic approximation.**
    `Analysis/Calculus/HolonomicApproximation/Parametric.lean`. Blocked by 2.
 4. **Morse functions without top-index critical points**, in six building

@@ -9,8 +9,10 @@ public import SymplecticGeometry.Geometry.Manifold.Connected
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Homogeneity
 public import SymplecticGeometry.Topology.FilledHull
 import SymplecticGeometry.Analysis.Calculus.Deriv.CriticalValue
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Real
 import SymplecticGeometry.Geometry.Manifold.NullSet
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Segment
+import SymplecticGeometry.Order.Interval.Set.Image
 import SymplecticGeometry.Topology.Closure
 import SymplecticGeometry.Topology.Instances.Real
 import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
@@ -79,6 +81,12 @@ closed discrete set of a manifold of dimension at least two. Each ray is grown a
   `filledSublevel h (c j + 2)`, and the next level and the cuts come from
   `exists_mem_forall_exists_mem_Ioo_leavesForGood_filledSublevel`. The built parts then lie in
   `filledSublevel h (c' + 1)` for the new level `c'`, which is what the next stage needs.
+  Last, each ray is reparametrized by an increasing diffeomorphism of `ℝ` that fixes the old
+  part and slows the new arc down (`IsRayStage.exists_add_one_le_of_lt`, from
+  `Real.exists_diffeomorph_strictMono_eqOn_Iic`),
+  which keeps the stage (`IsRayStage.comp_diffeomorph`, by `LeavesForGood.comp_monotone`) and
+  makes every old cut parameter grow by at least one. The limit of the rays needs this, since
+  cut parameters that only increase may stay bounded.
 
 The set `U` is preconnected by `isPreconnected_sdiff_union_iUnion_image_of_one_lt_rank`, and
 `Ψ` is the final map of a diffeotopy given by Tau Ceti's homogeneity lemma
@@ -226,6 +234,12 @@ theorem LeavesForGood.congr (h : LeavesForGood γ K D) (hγ : EqOn γ' γ D) :
     LeavesForGood γ' K D := fun s hs t ht hst ↦ by
   rw [hγ hs, hγ ht]
   exact h hs ht hst
+
+/-- Reparametrizing by a monotone map `f : ℝ → ℝ` keeps a curve leaving `K` for good, along the
+preimage of the parameters. -/
+theorem LeavesForGood.comp_monotone {f : ℝ → ℝ} (h : LeavesForGood γ K D) (hf : Monotone f) :
+    LeavesForGood (γ ∘ f) K (f ⁻¹' D) :=
+  fun _ hs _ ht hst ↦ h hs ht (hf hst)
 
 /-- If `γ` leaves `K` for good along `D` and maps outside `K` a set `D'` of parameters that all
 come after those of `D`, then `γ` leaves `K` for good along `D ∪ D'`. -/
@@ -661,6 +675,66 @@ theorem isRayStage_zero {h : M → ℝ} {P s : Set M} {c : ℕ → ℝ} (hs : Is
   notMem := by simp
   subset := by simp
 
+omit [FiniteDimensional ℝ E] [I.Boundaryless] [T2Space M] [IsManifold I ∞ M] in
+/-- Reparametrizing the rays of a stage by increasing diffeomorphisms `e p` of `ℝ` that fix `0`
+gives a stage, with the cut parameters `T' p` that `e p` sends to the old ones `T p`: the
+built parts `γ p '' Iic (T p)` stay the same. -/
+theorem IsRayStage.comp_diffeomorph {h : M → ℝ} {P s : Set M} {c : ℕ → ℝ} {j : ℕ}
+    {S : Finset M} {γ : M → ℝ → M} {T : M → ℝ} (hst : IsRayStage I h P s c j S γ T)
+    (e : M → ℝ ≃ₘ⟮𝓘(ℝ), 𝓘(ℝ)⟯ ℝ) (he : ∀ p ∈ S, StrictMono (e p)) (he₀ : ∀ p ∈ S, e p 0 = 0)
+    {T' : M → ℝ} (hT' : ∀ p ∈ S, e p (T' p) = T p) :
+    IsRayStage I h P s c j S (fun p ↦ γ p ∘ e p) T' := by
+  have himg (p : M) (hp : p ∈ S) : (γ p ∘ e p) '' Iic (T' p) = γ p '' Iic (T p) := by
+    rw [image_comp, (he p hp).image_Iic_of_surjective (e p).surjective, hT' p hp]
+  refine ⟨hst.le_level, hst.isClosed, hst.isDiscrete, hst.subset_P, hst.inter_subset,
+    hst.sdiff_subset, fun p hp ↦ TauCeti.isSmoothEmbedding_comp_diffeomorph (e p) (hst.emb p hp),
+    fun p hp ↦ ?_, fun p hp ↦ ?_, fun a ha b hb hab ↦ ?_, fun p hp ↦ ?_, fun p hp ↦ ?_,
+    fun p hp i hi ↦ ?_, fun p hp ↦ ?_, fun p hp ↦ ?_⟩
+  · rw [comp_apply, he₀ p hp, hst.apply_zero p hp]
+  · rw [← (he p hp).le_iff_le, he₀ p hp, hT' p hp]
+    exact hst.nonneg p hp
+  · simp only [onFun, himg a ha, himg b hb]
+    exact hst.disj ha hb hab
+  · rw [himg p hp]; exact hst.disj_s p hp
+  · rw [himg p hp]; exact hst.closure_subset p hp
+  · have hpre : e p ⁻¹' Iic (T p) = Iic (T' p) := by
+      ext t; rw [mem_preimage, mem_Iic, mem_Iic, ← hT' p hp, (he p hp).le_iff_le]
+    exact hpre ▸ (hst.leaves p hp i hi).comp_monotone (he p hp).monotone
+  · rw [comp_apply, hT' p hp]; exact hst.notMem p hp
+  · rw [himg p hp]; exact hst.subset p hp
+
+omit [FiniteDimensional ℝ E] [I.Boundaryless] [T2Space M] [IsManifold I ∞ M] in
+/-- Slowing down the rays of a stage: if `0 ≤ T₀ p < T p` for every ray, then reparametrizing
+each ray `γ p` on the line gives a stage, with the same levels, points and obstacles, and with
+cut parameters `T' p ≥ T₀ p + 1`. The new ray agrees with `γ p` on `Iic (T₀ p)`, and runs
+through the arc `γ p '' Ioc (T₀ p) (T p)` along `Ioc (T₀ p) (T' p)`, so that its built part is
+that of `γ p`. -/
+theorem IsRayStage.exists_add_one_le_of_lt {h : M → ℝ} {P s : Set M} {c : ℕ → ℝ} {j : ℕ}
+    {S : Finset M} {γ : M → ℝ → M} {T : M → ℝ} (hst : IsRayStage I h P s c j S γ T)
+    {T₀ : M → ℝ} (hT₀ : ∀ p ∈ S, 0 ≤ T₀ p) (hT : ∀ p ∈ S, T₀ p < T p) :
+    ∃ (γ' : M → ℝ → M) (T' : M → ℝ), IsRayStage I h P s c j S γ' T' ∧
+      ∀ p ∈ S, T₀ p + 1 ≤ T' p ∧ EqOn (γ' p) (γ p) (Iic (T₀ p)) ∧
+        γ' p '' Ioc (T₀ p) (T' p) = γ p '' Ioc (T₀ p) (T p) ∧
+        γ' p '' Iic (T' p) = γ p '' Iic (T p) := by
+  classical
+  -- An increasing diffeomorphism `e p` of `ℝ` that fixes `Iic (T₀ p)` and sends `T p + 1`
+  -- to `T p`.
+  have hφ (p : M) : ∃ e : ℝ ≃ₘ⟮𝓘(ℝ), 𝓘(ℝ)⟯ ℝ, p ∈ S →
+      StrictMono e ∧ EqOn e id (Iic (T₀ p)) ∧ e (T p + 1) = T p := by
+    by_cases hp : p ∈ S
+    · obtain ⟨e, he⟩ := Real.exists_diffeomorph_strictMono_eqOn_Iic (hT p hp)
+        (le_add_of_nonneg_right zero_le_one)
+      exact ⟨e, fun _ ↦ he⟩
+    · exact ⟨Diffeomorph.refl _ _ _, fun h ↦ (hp h).elim⟩
+  choose e he using hφ
+  refine ⟨fun p ↦ γ p ∘ e p, fun p ↦ T p + 1,
+    hst.comp_diffeomorph e (fun p hp ↦ (he p hp).1)
+      (fun p hp ↦ (he p hp).2.1 (mem_Iic.2 (hT₀ p hp))) fun p hp ↦ (he p hp).2.2,
+    fun p hp ↦ ⟨by linarith [hT p hp], fun t ht ↦ congrArg (γ p) ((he p hp).2.1 ht), ?_, ?_⟩⟩
+  · rw [image_comp, (he p hp).1.image_Ioc_of_surjective (e p).surjective,
+      (he p hp).2.1 (mem_Iic.2 le_rfl), (he p hp).2.2, id]
+  · rw [image_comp, (he p hp).1.image_Iic_of_surjective (e p).surjective, (he p hp).2.2]
+
 /-- The rays of a stage together with short segments at finitely many new points `N`, before
 they grow: the old rays are kept, and the ray at a new point `p` is a short segment through `p`
 inside the neighbourhood `V p` and outside `filledSublevel h (c j)`. The backward limit points
@@ -859,10 +933,10 @@ boundaryless smooth manifold whose model space has rank greater than one, `h : M
 function whose filled sublevel sets are compact, and `P` closed and discrete. From the rays of
 stage `j` (`IsRayStage`), with levels `c 0, …, c j`, this builds stage `j + 1`: a level
 `c' ∈ (c j + 1, c j + 2)` and rays for the levels `update c (j + 1) c'`, with obstacles `s'`
-that contain the old obstacles off `P`. Every old ray is extended past its cut parameter by a
-piece outside `filledSublevel h (c j)`, a new ray starts at every unused point of `P` in
-`filledSublevel h (c j + 2)`, and the built part of a new ray lies outside
-`filledSublevel h (c j)`. -/
+that contain the old obstacles off `P`. Every old ray is extended past its cut parameter `T p`,
+to a new cut parameter `T' p ≥ T p + 1`, by a piece outside `filledSublevel h (c j)`; a new ray
+starts at every unused point of `P` in `filledSublevel h (c j + 2)`, and the built part of a new
+ray lies outside `filledSublevel h (c j)`. -/
 theorem exists_isRayStage_succ (hE : 1 < Module.rank ℝ E) {h : M → ℝ}
     (hh : ContMDiff I 𝓘(ℝ) 1 h) (hF : ∀ c, IsCompact (filledSublevel h c))
     {P s : Set M} (hP : IsClosed P) (hPd : IsDiscrete P) {c : ℕ → ℝ} {j : ℕ} {S : Finset M}
@@ -870,7 +944,7 @@ theorem exists_isRayStage_succ (hE : 1 < Module.rank ℝ E) {h : M → ℝ}
     ∃ c' ∈ Ioo (c j + 1) (c j + 2), ∃ (s' : Set M) (S' : Finset M) (γ' : M → ℝ → M)
       (T' : M → ℝ), IsRayStage I h P s' (update c (j + 1) c') (j + 1) S' γ' T' ∧ S ⊆ S' ∧
       s \ P ⊆ s' ∧ P ∩ filledSublevel h (c j + 2) ⊆ S' ∧
-      (∀ p ∈ S, T p < T' p ∧ EqOn (γ' p) (γ p) (Iic (T p)) ∧
+      (∀ p ∈ S, T p + 1 ≤ T' p ∧ EqOn (γ' p) (γ p) (Iic (T p)) ∧
         γ' p '' Ioc (T p) (T' p) ⊆ (filledSublevel h (c j))ᶜ) ∧
       ∀ p ∈ S', p ∉ S → γ' p '' Iic (T' p) ⊆ (filledSublevel h (c j))ᶜ := by
   classical
@@ -947,38 +1021,45 @@ theorem exists_isRayStage_succ (hE : 1 < Module.rank ℝ E) {h : M → ℝ}
         (.inl (filledSublevel_mono (hst.le_level i hij) hti))
     · rw [le_antisymm hi hi', update_self]
       exact (hseg p hp).elim (hulv p hp).Iic_of_mapsTo_Iic (hulv p hp).Iic_of_mapsTo_compl_Iic
-  refine ⟨c', ⟨by linarith, by linarith⟩, s₁, S ∪ N, γ', u, ⟨fun i hi ↦ ?_, hs₁, hsd₁,
-    fun x hx ↦ ?_, ?_, hPs₁, hemb, fun p hp ↦ ?_, fun p hp ↦ (hT₁ p hp).trans (hTu p hp).le,
-    hdisj, hdisj_s, fun p hp ↦ ?_, hR, fun p hp ↦ ?_, fun p hp ↦ ?_⟩, Finset.subset_union_left,
-    hsP, hPS, fun p hp ↦ ?_, fun p hp hpS ↦ ?_⟩
-  · rw [update_self]
-    rcases Nat.lt_or_ge i (j + 1) with hi' | hi'
-    · rw [update_of_ne hi'.ne]
-      exact (hst.le_level i (Nat.lt_succ_iff.1 hi')).trans (by linarith)
-    · rw [le_antisymm hi hi', update_self]
-  · rcases Finset.mem_union.1 hx with hx | hx
-    · exact hst.subset_P hx
-    · exact (hN x hx).1.1
-  · rw [update_self]
-    exact (inter_subset_inter_right _ (filledSublevel_mono (by linarith))).trans hPS
-  · rw [heq p hp (mem_Iic.2 (hT₁ p hp))]; exact hzero₁ p hp
-  · rw [hsplit p hp, closure_union,
-      (isCompact_Icc.image (hemb p hp).isEmbedding.continuous).isClosed.closure_eq]
-    exact union_subset ((hcl₁ p hp).trans (union_subset_union_left _ subset_union_left))
-      (subset_union_right.trans subset_union_left)
-  · rw [update_self]; exact hunot p hp
-  · rw [update_self, hsplit p hp]
-    refine union_subset ?_ ((hucut p hp).trans hFd)
-    rcases Finset.mem_union.1 hp with hp | hp
-    · rw [(hold p hp).1, (hold p hp).2]
-      exact (hst.subset p hp).trans (filledSublevel_mono (by linarith))
-    · exact fun x hx ↦ hFd (hnewV p hp hx).1.2
+  have hst' : IsRayStage I h P s₁ (update c (j + 1) c') (j + 1) (S ∪ N) γ' u := by
+    refine ⟨fun i hi ↦ ?_, hs₁, hsd₁, fun x hx ↦ ?_, ?_, hPs₁, hemb, fun p hp ↦ ?_,
+      fun p hp ↦ (hT₁ p hp).trans (hTu p hp).le, hdisj, hdisj_s, fun p hp ↦ ?_, hR,
+      fun p hp ↦ ?_, fun p hp ↦ ?_⟩
+    · rw [update_self]
+      rcases Nat.lt_or_ge i (j + 1) with hi' | hi'
+      · rw [update_of_ne hi'.ne]
+        exact (hst.le_level i (Nat.lt_succ_iff.1 hi')).trans (by linarith)
+      · rw [le_antisymm hi hi', update_self]
+    · rcases Finset.mem_union.1 hx with hx | hx
+      · exact hst.subset_P hx
+      · exact (hN x hx).1.1
+    · rw [update_self]
+      exact (inter_subset_inter_right _ (filledSublevel_mono (by linarith))).trans hPS
+    · rw [heq p hp (mem_Iic.2 (hT₁ p hp))]; exact hzero₁ p hp
+    · rw [hsplit p hp, closure_union,
+        (isCompact_Icc.image (hemb p hp).isEmbedding.continuous).isClosed.closure_eq]
+      exact union_subset ((hcl₁ p hp).trans (union_subset_union_left _ subset_union_left))
+        (subset_union_right.trans subset_union_left)
+    · rw [update_self]; exact hunot p hp
+    · rw [update_self, hsplit p hp]
+      refine union_subset ?_ ((hucut p hp).trans hFd)
+      rcases Finset.mem_union.1 hp with hp | hp
+      · rw [(hold p hp).1, (hold p hp).2]
+        exact (hst.subset p hp).trans (filledSublevel_mono (by linarith))
+      · exact fun x hx ↦ hFd (hnewV p hp hx).1.2
+  -- Slow the rays down, so that every cut parameter exceeds `T₁ p` by at least one.
+  obtain ⟨γ'', T'', hst'', hslow⟩ := hst'.exists_add_one_le_of_lt hT₁ hTu
+  refine ⟨c', ⟨by linarith, by linarith⟩, s₁, S ∪ N, γ'', T'', hst'',
+    Finset.subset_union_left, hsP, hPS, fun p hp ↦ ?_, fun p hp hpS ↦ ?_⟩
   · have hp₁ := Finset.mem_union_left N hp
+    obtain ⟨hT'', heq'', hIoc'', -⟩ := hslow p hp₁
     obtain ⟨hγp, hTp⟩ := hold p hp
     rw [← hγp, ← hTp]
-    exact ⟨hTu p hp₁, heq p hp₁, fun x hx hxK ↦ hout p hp₁ hx (.inl hxK)⟩
+    refine ⟨hT'', heq''.trans (heq p hp₁), ?_⟩
+    rw [hIoc'']
+    exact fun x hx hxK ↦ hout p hp₁ hx (.inl hxK)
   · have hpN := (Finset.mem_union.1 hp).resolve_left hpS
-    rw [← Iic_union_Ioc_eq_Iic (hTu p hp).le, image_union, himg p hp]
+    rw [(hslow p hp).2.2.2, ← Iic_union_Ioc_eq_Iic (hTu p hp).le, image_union, himg p hp]
     exact union_subset (fun x hx ↦ (hnewV p hpN hx).2) fun x hx hxK ↦ hout p hp hx (.inl hxK)
 
 end Stage

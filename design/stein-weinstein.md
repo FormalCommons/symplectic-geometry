@@ -133,6 +133,25 @@ fit Tau Ceti's without a change of sign.
   On a compact `M` it holds with the constants $c_k=B+k+1$, where $B$ is an
   upper bound of $f$ on `[0, 1] × M`, so that their levels are empty; the
   building issue proves this as a lemma.
+- **Concatenation and the relation.** Two Weinstein homotopies whose end
+  and start agree need not concatenate to one. A continuous path of
+  regular values cannot cross the time at which a pair of critical points
+  is born or dies at a value between the pair's values, so the barriers of
+  the two halves can be forced into disjoint sets of regular values at the
+  seam (#5352 gives a family on $\mathbb C^2$ with infinitely many births
+  in the first half and deaths in the second). The predicate keeps its
+  barriers as an existential, and the part adds `IsRegularBarrier f c`,
+  the conditions that the predicate asks of `c` for the family `f`, with
+  `IsWeinsteinHomotopy.exists_isRegularBarrier`. `.trans` takes, besides
+  the two homotopies and their agreement at the seam, barriers `c` of the
+  first family and `c'` of the second with `c k 1 = c' k 0` for every `k`;
+  after the reparametrization flat at the ends, the glued `c k` are
+  smooth. Cieliebak–Eliashberg's step-by-step constructions meet in this
+  way, at fixed regular levels. `AreWeinsteinHomotopic` means joined by
+  one Weinstein homotopy, as in their Theorem 1.1 and the milestone; it is
+  reflexive and symmetric, and the part does not claim that it is
+  transitive. A proof that builds the homotopy of issue 21 in steps glues
+  them by `.trans` with matching barriers.
 - **The route to the converse.** Cieliebak–Eliashberg's proof, followed
   chapter by chapter, is the only proof known to this design. The part
   plans it as a sequence of supporting files (*Files*), each an issue or a
@@ -323,12 +342,15 @@ Expected size: 400 lines.
 Issue 7. `IsWeinsteinHomotopy ω X f` for families indexed by
 `t : unitInterval` and smooth on `unitInterval × M`, as in *Decisions*;
 `IsWeinsteinHomotopy.refl`, `.symm`,
-`.trans` (after a reparametrization of time that is flat at the ends;
+`.trans` (for barriers that agree at the seam, as in *Decisions*, after a
+reparametrization of time that is flat at the ends;
 the proof may pass to the model over `ℝ`, which no statement uses),
 `.pullback`, and `IsWeinsteinHomotopy.of_isCompact` (the condition at
-infinity on a compact manifold). Also the relation
-`AreWeinsteinHomotopic` between two Weinstein structures and that it is
-an equivalence relation.
+infinity on a compact manifold). Also `IsRegularBarrier` with
+`IsWeinsteinHomotopy.exists_isRegularBarrier`, and the relation
+`AreWeinsteinHomotopic` between two Weinstein structures, joined by one
+Weinstein homotopy, with `AreWeinsteinHomotopic.refl` and `.symm`; it is
+not claimed to be an equivalence relation (*Decisions*).
 
 Expected size: 450 lines.
 
@@ -353,11 +375,11 @@ Issue 8: the Weinstein structure of a Stein function.
 
 Issue 9: the first half of the milestone.
 `IsSteinFunction.exists_isWeinsteinStructure`: for a Stein function `φ`
-there is a Stein function `ψ`, Morse and of the form `h ∘ φ'` for a Morse
+there is a Stein function `ψ`, Morse and of the form `exp ∘ φ'` for a Morse
 perturbation `φ'` of `φ`, with
 `IsWeinsteinStructure` $(\omega_\psi,$ `dCLiouvilleField ψ`$,\psi)$; and
 `IsSteinFunction.isWeinsteinStructure_comp` for `φ` already generalized
-Morse, with `ψ = h ∘ φ`.
+Morse, with `ψ = exp ∘ φ`, which also says that `ψ` is a Stein function.
 
 Expected size: 400 lines for issue 8, 250 for issue 9.
 
@@ -480,14 +502,16 @@ containing `ι '' closedBall 0 1`:
   sense, there are a `C^n` function `ρ : M → ℝ`, `ρ ≥ 0`, and an open `V ⊇ ι '' K` such
   that on `V` the function `ρ` vanishes exactly on `range ι` and is
   strictly plurisubharmonic, and its critical Hessian at `ι y`, `y ∈ K`, is
-  positive off the tangent image of `ι` at `y`. The proof is that of
-  `exists_contMDiff_isManifoldStrictlyPlurisubharmonicAt_of_isClosed_range`,
-  with the squared normal coordinates of slice charts
-  (`Manifold.IsSmoothEmbedding.exists_contMDiffOn_criticalHessian_pos`)
-  in place of adapted charts, which need half the dimension, and finitely
-  many of them, which compactness of `K` gives, glued by bump functions
-  instead of a partition of unity. A refactor that derives the
-  existing theorem from the new one is an issue of its own.
+  positive off the tangent image of `ι` at `y`. It glues the squared
+  normal coordinates of slice charts
+  (`Manifold.IsSmoothEmbedding.exists_contMDiffOn_criticalHessian_pos`),
+  finitely many of them, which compactness of `K` gives, by bump
+  functions. The closed-range form,
+  `Manifold.IsSmoothEmbedding.exists_contMDiff_isManifoldStrictlyPlurisubharmonicAt_of_isClosed_range`
+  (`M` also σ-compact, `range ι` closed, all tangent images totally real
+  in the weak sense), glues the same local functions by a partition of
+  unity; `TauCeti.IsTotallyRealEmbedding.exists_contMDiff_isManifoldStrictlyPlurisubharmonicAt_of_isClosed_range`
+  is its case of a totally real embedding.
 - `Surround/Attached.lean` (issue 14b): `IsJOrthogonallyAttached` and its
   API: `IsJOrthogonallyAttached.image_closedBall_inter` (the disc meets
   `{φ ≤ 0}` exactly in its boundary sphere),
