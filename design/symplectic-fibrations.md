@@ -215,16 +215,18 @@ Vertically nondegenerate forms and compatible symplectic forms. It imports
   6.1.2 of [McDuffSalamon2017].
 - Compatible forms for an oriented atlas (Definition 6.2.1),
   `TauCeti.MapFiber.Atlas.IsOrientedCompatible hA oB oF ω`, for
-  `oB : Manifold.Orientation IB B (Fin m)`,
-  `oF : Manifold.Orientation IF F (Fin (2 * k))` and `dim M = 2 * n`, a
-  structure with three fields: `ω.IsSymplectic`; on each fibre, the smooth
-  pull-back of `ω` along `fiberInclusionMap` (smooth by `hA`) is nondegenerate
-  and its `IsNondegenerate.volumeOrientation` is `oF`; and each chart
+  `oB : TauCeti.Manifold.Orientation IB B (Fin m)` and
+  `oF : TauCeti.Manifold.Orientation IF F (Fin k)`, a
+  structure with four fields: `ω.IsSymplectic`; on each fibre, the smooth
+  pull-back of `ω` along `fiberInclusionMap` (smooth by `hA`) is nondegenerate,
+  and its `IsNondegenerate.orientation` is `oF`; and each chart
   `A.trivAt b` preserves orientation at every point of its source, Tau
   Ceti's `IsOrientationPreservingAt`, from the symplectic orientation
-  `hω.isNondegenerate.volumeOrientation` of `M` to
-  `oB.prod oF` (Tau Ceti's product orientation, reindexed along
-  `2 * n = m + 2 * k`). The fibre has even dimension, so the order of the
+  `hω.isNondegenerate.orientation hM` of `M` to
+  `oB.prod oF` (Tau Ceti's product orientation), for some
+  `hM : finrank ℝ EM = m + k`. Tau Ceti's `IsNondegenerate.orientation`
+  takes any index `Fin k` of the right size, so no reindexing is needed. The
+  fibre has even dimension, so the order of the
   factors in the product does not matter. It takes `hA` because the
   fibre forms must be smooth forms to have a symplectic orientation. Used
   by `IsOrientedCompatible.isVerticallyNondegenerate` here and by the

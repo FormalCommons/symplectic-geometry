@@ -411,17 +411,7 @@ theorem mpullback_bot_apply_prodVectorField_eq_zero (h : IsCouplingForm η τ)
     rw [hpr, couplingField_def, Manifold.prodVectorField_fst]
     -- `(p.1, ⊥).1` is `p.1`, and the zeros of the tangent spaces of the interval agree
     rfl
-  have hv : (fun i ↦ mfderiv ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) ((IB.prod (𝓡 1)).prod (𝓡∂ 1))
-      (fun x : ManifoldTotalSpace Circle P × ℝ ↦ (x.1, (⊥ : Icc a b))) p
-      (![Manifold.prodVectorField
-        (rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator) 0 p, w] i)) =
-      ![couplingField IB P a b (p.1, ⊥),
-        ((w.1, 0) : TangentSpace ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (p.1, (⊥ : Icc a b)))] := by
-    funext i
-    fin_cases i
-    · exact hX0
-    · exact hpr w
-  rw [SmoothForm.mpullback_apply, hv]
+  rw [SmoothForm.coe_mpullback, TauCeti.mpullback_apply_pair, hX0, hpr w]
   refine (h.apply_couplingField_eq_neg_mfderiv_snd _ _).trans ?_
   -- the second component of `(w.1, 0)` is the zero vector
   exact neg_eq_zero.mpr (map_zero _)

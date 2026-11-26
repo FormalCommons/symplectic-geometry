@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.Relative.Pairing
 public import SymplecticGeometry.AlgebraicTopology.Singular.PairMap
 public import SymplecticGeometry.Topology.Category.TopCat.CodRestrict
 public import TauCeti.AlgebraicTopology.Singular.MayerVietoris.Relative
@@ -88,10 +89,7 @@ lemma smallSingularSubcomplexπ_coefficient_naturality {X : TopCat.{w}} {ι : Ty
     ((SSet.chainComplexFunctor C).map φ).app (toSSet.obj X) ≫ smallSingularSubcomplexπ U N =
       smallSingularSubcomplexπ U M ≫
         ((SSetPair.chainComplexFunctor C).map φ).app (X.smallSingularSubcomplex U).pair :=
-  -- the naturality of `SSetPair.chainComplexFunctorπ`, whose source is the functor of the ambient
-  -- chains of a pair, which are the chains of `X` here up to unfolding
-  congrArg (fun η ↦ η.app (X.smallSingularSubcomplex U).pair)
-    ((SSetPair.chainComplexFunctorπ C).naturality φ)
+  (X.smallSingularSubcomplex U).pair.chainComplexπ_coefficient_naturality φ
 
 /-- The small chains of `X` vanish in its chains relative to them. -/
 @[reassoc]
