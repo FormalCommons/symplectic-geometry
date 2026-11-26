@@ -91,9 +91,9 @@ theorem firstChernClass_prod_of_hasFiniteTrivializingCover
     complexEulerClass_eq_of_fiberwise _ _ (continuous_detCoreProdFiberEquiv ℂ E₁ E₂)]
   exact complexEulerClass_tensorProduct (by simp) (by simp) h₁.detCore h₂.detCore
 
-/-- **The first Chern class of the determinant line is additive.** Over a compact normal base,
-such as a compact Hausdorff one, `firstChernClass` of `E₁ ⊕ E₂` is the sum of those of `E₁` and
-`E₂`. -/
+/-- **The first Chern class is additive on direct sums over a compact base.** Over a compact
+normal base, such as a compact Hausdorff one, `firstChernClass` of `E₁ ⊕ E₂` is the sum of those
+of `E₁` and `E₂`. -/
 theorem firstChernClass_prod [CompactSpace B] :
     firstChernClass (G₁ × G₂) (E₁ ×ᵇ E₂) = firstChernClass G₁ E₁ + firstChernClass G₂ E₂ :=
   firstChernClass_prod_of_hasFiniteTrivializingCover .of_compactSpace .of_compactSpace

@@ -254,7 +254,7 @@ theorem IsTangentWeights.mfderiv_smul_symm_single_of_eq_zero {p : M} {k : Fin n 
 `M` without boundary, modelled on a complete space, and let `p` be a fixed point that is isolated
 among the fixed points. Then every family of weights `k` at `p`, realized by some `L` as in
 `IsTangentWeights`, has `k j ≠ 0` for every `j`. -/
-theorem weights_ne_zero_of_isolated [CompleteSpace E] [I.Boundaryless]
+theorem weights_ne_zero_of_isolated [CompleteSpace E] [BoundarylessManifold I M]
     [ContMDiffSMul (𝓡 1) I ∞ Circle M] {p : M} (hp : p ∈ MulAction.fixedPoints Circle M)
     (hiso : ∀ᶠ x in 𝓝[≠] p, x ∉ MulAction.fixedPoints Circle M)
     {k : Fin n → ℤ} {L : TangentSpace I p ≃L[ℝ] (Fin n → ℂ)} (h : IsTangentWeights σ p k L)

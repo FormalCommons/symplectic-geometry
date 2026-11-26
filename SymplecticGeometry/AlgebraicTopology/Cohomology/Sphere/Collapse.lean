@@ -12,9 +12,10 @@ public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Degree
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Prod
 public import TauCeti.Geometry.Manifold.Instances.TopCatSphere
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.Sphere.Generator
+public import SymplecticGeometry.AlgebraicTopology.Cohomology.ProjectiveLinePow
 
 /-!
-# The collapse map `S^a × S^b → S^{a+b}`
+# The collapse map `S^a × S^b → S^{a+b}` and its iterate on `(ℂP¹)^{m+1}`
 
 For finite-dimensional real inner product spaces `E`, `F`, `G` with
 `finrank ℝ E + finrank ℝ F = finrank ℝ G + 1`, so that their unit spheres have dimensions `a`, `b`
@@ -52,8 +53,19 @@ equivalence `(ℝ ∙ p)ᗮ × (ℝ ∙ q)ᗮ ≃ (ℝ ∙ r)ᗮ`, followed by M
   sign `ε = ±1` such that the collapse map pulls each class `u` back to
   `(ε * ⟨u, γ_{a+b}⟩) • (pr₁^* θ_a ⌣ pr₂^* θ_b)`, with `θ_a`, `θ_b` the dual generators of the
   top cohomology of the spheres.
+* `SymplecticGeometry.exists_singularCohomologyMap_sphereCollapse_eq_smul_integralCup`:
+  the integral formula for the same map with the target sphere written `TopCat.sphere (N + 1)`
+  for any `N` with `d + 1 + e = N`, which the induction below needs.
+* `SymplecticGeometry.projectiveLinePowCollapse m`: the iterated collapse
+  `κ : (ℂP¹)^{m+1} → S^{2(m+1)}`, the homeomorphism `ℂP¹ ≃ₜ S²` for one factor and
+  `x ↦ sphereCollapse (x₀, κ(x₁, …))` for more
+  (`SymplecticGeometry.projectiveLinePowCollapse_succ_apply`).
+* `SymplecticGeometry.exists_singularCohomologyMap_projectiveLinePowCollapse_eq_smul_prod_…`
+  (`…_chernClass`): there is one sign `ε = ±1` such that `κ` pulls each class `u` of integral
+  cohomology of degree `2(m+1)` back to `(ε * ⟨u, γ_{2(m+1)}⟩) • y₀ ⋯ y_m`, where `yᵢ` is the
+  first Chern class of the tautological line pulled back along the `i`-th projection.
 
-The last three results are stated for `SymplecticGeometry.topCatSphereCollapse`. For the
+The three results on `SymplecticGeometry.topCatSphereCollapse` are proved as follows. For the
 first, the cross product is a fundamental class
 (`TauCeti.IsFundamentalClass.singularHomologyTopCatSphereGenerator_singularHomologyCross`), and
 so is `γ_{a+b}`. A point off the wedge has a one-point fibre at which the map is a local
@@ -64,11 +76,21 @@ is `⟨u, κ_*(γ_a × γ_b)⟩ • (pr₁^* θ_a ⌣ pr₂^* θ_b)`
 `⟨u, κ_*(γ_a × γ_b)⟩ = ε * ⟨u, γ_{a+b}⟩` by the first. The third is the second carried into
 integral cohomology by `TopCat.integralCohomologyEquiv`.
 
+The formula for the iterated collapse is proved by induction on the number of factors. The
+collapse formula on `S² × S^{2(m+1)}`, with the degree written as `2(m+2)`, pulls `u` back to
+`±⟨u, γ⟩` times the cup product of the pulled-back generators; on the first factor the
+generator of `H²(S²; ℤ)` pulls back to `±h`
+(`Projectivization.singularCohomologyMap_sphereGenerator_eq_hyperplaneClass_or_eq_neg_…`), which
+is `∓c₁(𝒪(-1))`, and on the second the induction hypothesis applies. The induction follows the
+one of `Projectivization.not_isOfFinAddOrder_prod_singularCohomologyMap`.
+
 ## References
 
 * A. Hatcher, *Algebraic Topology*, Cambridge University Press, 2002, Chapter 0 (the smash
   product of spheres, `S^a ∧ S^b ≅ S^{a+b}`), and Section 3.3 (fundamental classes and the
   local degree).
+* [A. Hatcher, *Vector Bundles and K-Theory*][Hatcher2017], Version 2.2, 2017, Chapter 4 (the
+  reduction of Bott integrality on `S^{2m}` to `(ℂP¹)^m` through the collapse map).
 -/
 
 public section
@@ -436,7 +458,206 @@ theorem exists_singularCohomologyMap_topCatSphereCollapse_eq_smul_integralCup :
     TopCat.integralCohomologyEquiv_symm_naturality, TopCat.integralCohomologyEquiv_symm_naturality,
     TopCat.integralSphereGenerator_def, TopCat.integralSphereGenerator_def]
 
+/-- **The collapse map in integral cohomology, any spelling of the top degree.** The formula of
+`exists_singularCohomologyMap_topCatSphereCollapse_eq_smul_integralCup` for the collapse map
+`κ : S^a × S^b → S^{a+b}`, `a = d + 1`, `b = e + 1`, read on Tau Ceti's spheres through
+`TauCeti.sphereHomeomorphTopCatSphere`, with the target sphere written `TopCat.sphere (N + 1)` for
+any `N` with `d + 1 + e = N`: there is a sign `ε = ±1` such that every class
+`u ∈ H^{N+1}(S^{N+1}; ℤ)` pulls back to `κ^* u = (ε * ⟨u, γ_{N+1}⟩) • (pr₁^* θ_a ⌣ pr₂^* θ_b)`. -/
+theorem exists_singularCohomologyMap_sphereCollapse_eq_smul_integralCup {N : ℕ}
+    (hN : d + 1 + e = N) (hG : finrank ℝ G = N + 1 + 1) :
+    ∃ ε : ℤ, (ε = 1 ∨ ε = -1) ∧
+      ∀ u : (TopCat.sphere.{0} (N + 1)).integralCohomology (N + 1),
+      TopCat.singularCohomologyMap (TopCat.ofHom
+            (X := ↑(TopCat.sphere.{0} (d + 1) ⊗ TopCat.sphere.{0} (e + 1)))
+            (Y := ↑(TopCat.sphere.{0} (N + 1)))
+            (((sphereHomeomorphTopCatSphere hG :
+                  sphere (0 : G) 1 ≃ₜ TopCat.sphere.{0} (N + 1)) :
+                C(sphere (0 : G) 1, TopCat.sphere.{0} (N + 1))).comp
+              ((sphereCollapse h p q r).comp
+                (((sphereHomeomorphTopCatSphere hE).symm.prodCongr
+                  (sphereHomeomorphTopCatSphere hF).symm :
+                    TopCat.sphere.{0} (d + 1) × TopCat.sphere.{0} (e + 1) ≃ₜ _) :
+                  C(TopCat.sphere.{0} (d + 1) × TopCat.sphere.{0} (e + 1),
+                    sphere (0 : E) 1 × sphere (0 : F) 1)))))
+          (N + 1) u =
+        (ε * singularCohomologyTopCatSphereEquiv ℤ (𝟙_ (ModuleCat.{0} ℤ)) N
+            ((TopCat.sphere.{0} (N + 1)).integralCohomologyEquiv (N + 1) u)) •
+          (TopCat.sphere.{0} (d + 1) ⊗ TopCat.sphere.{0} (e + 1)).integralCup (d + 1) (e + 1)
+            (N + 1) (by omega)
+            (TopCat.singularCohomologyMap (CartesianMonoidalCategory.fst _ _) (d + 1)
+              (TopCat.integralSphereGenerator d))
+            (TopCat.singularCohomologyMap (CartesianMonoidalCategory.snd _ _) (e + 1)
+              (TopCat.integralSphereGenerator e)) := by
+  subst hN
+  have := exists_singularCohomologyMap_topCatSphereCollapse_eq_smul_integralCup h p q r hE hF
+  rwa [topCatSphereCollapse_def] at this
+
 end Homology
+
+section ProjectiveLinePow
+
+open CategoryTheory MonoidalCategory CartesianMonoidalCategory Projectivization
+open scoped LinearAlgebra.Projectivization
+
+/-- **The iterated collapse `(ℂP¹)^{m+1} → S^{2(m+1)}`.** For one factor it is the homeomorphism
+`Projectivization.homeomorphTopCatSphere : ℂP¹ ≃ₜ S²`. For `m + 2` factors it sends `x` to the
+collapse `SymplecticGeometry.sphereCollapse : S² × S^{2(m+1)} → S^{2(m+2)}` of the pair
+`(x₀, κ_{m+1}(x₁, …, x_{m+1}))`, the first entry read on `S²` through
+`Projectivization.homeomorphTopCatSphere`, with the spheres of Euclidean spaces read on Tau Ceti's
+spheres `TopCat.sphere` through `TauCeti.sphereHomeomorphTopCatSphere`. -/
+noncomputable def projectiveLinePowCollapse :
+    (m : ℕ) → C(Fin (m + 1) → ℙ ℂ (Fin 2 → ℂ), TopCat.sphere.{0} (2 * m + 1 + 1))
+  | 0 => (homeomorphTopCatSphere.{0} :
+      C(ℙ ℂ (Fin 2 → ℂ), TopCat.sphere.{0} 2)).comp (ContinuousMap.eval 0)
+  | m + 1 =>
+    (((sphereHomeomorphTopCatSphere
+          (F := EuclideanSpace ℝ (Fin (2 * (m + 1) + 1 + 1 + 1))) (by simp) :
+            sphere (0 : EuclideanSpace ℝ (Fin (2 * (m + 1) + 1 + 1 + 1))) 1 ≃ₜ
+              TopCat.sphere.{0} (2 * (m + 1) + 1 + 1)) :
+          C(_, TopCat.sphere.{0} (2 * (m + 1) + 1 + 1))).comp
+        ((sphereCollapse (E := EuclideanSpace ℝ (Fin (1 + 1 + 1)))
+            (F := EuclideanSpace ℝ (Fin (2 * m + 1 + 1 + 1)))
+            (G := EuclideanSpace ℝ (Fin (2 * (m + 1) + 1 + 1 + 1))) (by simp; ring)
+            ⟨EuclideanSpace.single 0 1, by simp⟩ ⟨EuclideanSpace.single 0 1, by simp⟩
+            ⟨EuclideanSpace.single 0 1, by simp⟩).comp
+          (((sphereHomeomorphTopCatSphere
+              (F := EuclideanSpace ℝ (Fin (1 + 1 + 1))) (by simp)).symm.prodCongr
+            (sphereHomeomorphTopCatSphere
+              (F := EuclideanSpace ℝ (Fin (2 * m + 1 + 1 + 1))) (by simp)).symm :
+              TopCat.sphere.{0} (1 + 1) × TopCat.sphere.{0} (2 * m + 1 + 1) ≃ₜ _) :
+            C(TopCat.sphere.{0} (1 + 1) × TopCat.sphere.{0} (2 * m + 1 + 1),
+              sphere (0 : EuclideanSpace ℝ (Fin (1 + 1 + 1))) 1 ×
+                sphere (0 : EuclideanSpace ℝ (Fin (2 * m + 1 + 1 + 1))) 1)))).comp
+      (((homeomorphTopCatSphere.{0} :
+          C(ℙ ℂ (Fin 2 → ℂ), TopCat.sphere.{0} 2)).comp (ContinuousMap.eval 0)).prodMk
+        ((projectiveLinePowCollapse m).comp
+          ⟨Fin.tail, continuous_pi fun _ ↦ continuous_apply _⟩))
+
+theorem projectiveLinePowCollapse_zero :
+    projectiveLinePowCollapse 0 = (homeomorphTopCatSphere.{0} :
+      C(ℙ ℂ (Fin 2 → ℂ), TopCat.sphere.{0} 2)).comp (ContinuousMap.eval 0) :=
+  (rfl)
+
+/-- `κ_{m+2}(x)` is the collapse of `(x₀, κ_{m+1}(x₁, …, x_{m+1}))`, read on `TopCat.sphere`. -/
+theorem projectiveLinePowCollapse_succ_apply (m : ℕ) (x : Fin (m + 1 + 1) → ℙ ℂ (Fin 2 → ℂ)) :
+    projectiveLinePowCollapse (m + 1) x =
+      sphereHomeomorphTopCatSphere (F := EuclideanSpace ℝ (Fin (2 * (m + 1) + 1 + 1 + 1)))
+        (by simp) (sphereCollapse (E := EuclideanSpace ℝ (Fin (1 + 1 + 1)))
+          (F := EuclideanSpace ℝ (Fin (2 * m + 1 + 1 + 1)))
+          (G := EuclideanSpace ℝ (Fin (2 * (m + 1) + 1 + 1 + 1))) (by simp; ring)
+          ⟨EuclideanSpace.single 0 1, by simp⟩ ⟨EuclideanSpace.single 0 1, by simp⟩
+          ⟨EuclideanSpace.single 0 1, by simp⟩
+          ((sphereHomeomorphTopCatSphere (F := EuclideanSpace ℝ (Fin (1 + 1 + 1))) (by simp)).symm
+              (homeomorphTopCatSphere.{0} (x 0)),
+            (sphereHomeomorphTopCatSphere (F := EuclideanSpace ℝ (Fin (2 * m + 1 + 1 + 1)))
+              (by simp)).symm (projectiveLinePowCollapse m (Fin.tail x)))) :=
+  (rfl)
+
+/-- **The iterated collapse in integral cohomology.** Let `κ : (ℂP¹)^{m+1} → S^{2(m+1)}` be
+`SymplecticGeometry.projectiveLinePowCollapse m`, and let `yᵢ ∈ H²((ℂP¹)^{m+1}; ℤ)` be the first
+Chern class of the tautological line of `ℂP¹ = ℙ ℂ (Fin 2 → ℂ)` pulled back along the `i`-th
+projection. There is a sign `ε = ±1` such that every class `u ∈ H^{2(m+1)}(S^{2(m+1)}; ℤ)` of the
+integral cohomology `TopCat.integralCohomology` pulls back to `κ^* u = (ε * ⟨u, γ⟩) • y₀ ⋯ y_m`,
+the product taken in the even integral cohomology ring. Here `⟨u, γ⟩` is the evaluation
+`TauCeti.singularCohomologyTopCatSphereEquiv` of `u` on the standard generator, read through
+`TopCat.integralCohomologyEquiv`. -/
+theorem exists_singularCohomologyMap_projectiveLinePowCollapse_eq_smul_prod_chernClass (m : ℕ) :
+    ∃ ε : ℤ, (ε = 1 ∨ ε = -1) ∧
+      ∀ u : (TopCat.sphere.{0} (2 * m + 1 + 1)).integralCohomology (2 * m + 1 + 1),
+      TopCat.singularCohomologyMap
+          (TopCat.ofHom (X := TopCat.of (Fin (m + 1) → ℙ ℂ (Fin 2 → ℂ)))
+            (projectiveLinePowCollapse m)) (2 * m + 1 + 1) u =
+        (ε * singularCohomologyTopCatSphereEquiv ℤ (𝟙_ (ModuleCat.{0} ℤ)) (2 * m + 1)
+            ((TopCat.sphere.{0} (2 * m + 1 + 1)).integralCohomologyEquiv (2 * m + 1 + 1) u)) •
+          (∏ i : Fin (m + 1), (TopCat.of (Fin (m + 1) → ℙ ℂ (Fin 2 → ℂ))).evenIntegralCohomologyOf 1
+            (Bundle.chernClass ℂ
+              (ContinuousMap.eval (X := fun _ : Fin (m + 1) ↦ ℙ ℂ (Fin 2 → ℂ)) i *ᵖ
+                (Tautological ℂ (Fin 2 → ℂ))) 1)) (m + 1) := by
+  -- the generator `θ` of `H²(S²; ℤ)` pulls back to `σ • c` with `σ = ±1`
+  obtain ⟨σ, hσ, hθ⟩ :=
+    singularCohomologyMap_sphereGenerator_eq_zsmul_chernClass homeomorphTopCatSphere
+  set c := Bundle.chernClass ℂ (Tautological ℂ (Fin 2 → ℂ)) 1
+  simp_rw [Bundle.chernClass_pullback]
+  induction m with
+  | zero =>
+    refine ⟨σ, hσ, fun u ↦ ?_⟩
+    obtain ⟨k, rfl⟩ := TopCat.exists_eq_zsmul_sphereGenerator (d := 1) u
+    have hκ : TopCat.ofHom (X := TopCat.of (Fin (0 + 1) → ℙ ℂ (Fin 2 → ℂ)))
+        (projectiveLinePowCollapse 0) = TopCat.ofHom (ContinuousMap.eval 0) ≫
+          (TopCat.isoOfHomeo (X := TopCat.of (ℙ ℂ (Fin 2 → ℂ)))
+            homeomorphTopCatSphere.{0}).hom := by
+      rw [projectiveLinePowCollapse_zero]
+      rfl
+    rw [map_zsmul, map_zsmul, TopCat.integralCohomologyEquiv_integralSphereGenerator, map_zsmul,
+      singularCohomologyTopCatSphereEquiv_singularCohomologyTopCatSphereGenerator, smul_eq_mul,
+      mul_one, hκ, TopCat.singularCohomologyMap_comp, ConcreteCategory.comp_apply, hθ,
+      Fin.prod_univ_one, DirectSum.of_eq_same, map_zsmul, smul_smul, mul_comm k σ]
+  | succ m ih =>
+    obtain ⟨ε', hε', hκ⟩ := ih
+    obtain ⟨ε, hε, hC⟩ := exists_singularCohomologyMap_sphereCollapse_eq_smul_integralCup
+      (E := EuclideanSpace ℝ (Fin (1 + 1 + 1))) (F := EuclideanSpace ℝ (Fin (2 * m + 1 + 1 + 1)))
+      (G := EuclideanSpace ℝ (Fin (2 * (m + 1) + 1 + 1 + 1))) (by simp; ring)
+      ⟨EuclideanSpace.single 0 1, by simp⟩ ⟨EuclideanSpace.single 0 1, by simp⟩
+      ⟨EuclideanSpace.single 0 1, by simp⟩ (d := 1) (e := 2 * m + 1) (by simp) (by simp)
+      (N := 2 * (m + 1) + 1) (by ring) (by simp)
+    refine ⟨ε * σ * ε', ?_, fun u ↦ ?_⟩
+    · rcases hε with rfl | rfl <;> rcases hσ with rfl | rfl <;> rcases hε' with rfl | rfl <;>
+        norm_num
+    set Y := TopCat.of (Fin (m + 1) → ℙ ℂ (Fin 2 → ℂ))
+    let tail : C(Fin (m + 1 + 1) → ℙ ℂ (Fin 2 → ℂ), Fin (m + 1) → ℙ ℂ (Fin 2 → ℂ)) :=
+      ⟨Fin.tail, continuous_pi fun _ ↦ continuous_apply _⟩
+    -- `κ_{m+2}` is `x ↦ (x₀, κ_{m+1}(tail x))` followed by the collapse
+    let Ψ : TopCat.of (Fin (m + 1 + 1) → ℙ ℂ (Fin 2 → ℂ)) ⟶
+        TopCat.sphere.{0} (1 + 1) ⊗ TopCat.sphere.{0} (2 * m + 1 + 1) :=
+      TopCat.ofHom (((homeomorphTopCatSphere.{0} :
+          C(ℙ ℂ (Fin 2 → ℂ), TopCat.sphere.{0} 2)).comp (ContinuousMap.eval 0)).prodMk
+        ((projectiveLinePowCollapse m).comp tail))
+    have hΨ₀ : Ψ ≫ fst _ _ = TopCat.ofHom (ContinuousMap.eval 0) ≫
+        (TopCat.isoOfHomeo (X := TopCat.of (ℙ ℂ (Fin 2 → ℂ)))
+          homeomorphTopCatSphere.{0}).hom := by
+      ext x
+      rfl
+    have hΨ₁ : Ψ ≫ snd _ _ = TopCat.ofHom (X := TopCat.of (Fin (m + 1 + 1) → ℙ ℂ (Fin 2 → ℂ)))
+        (Y := Y) tail ≫ TopCat.ofHom (projectiveLinePowCollapse m) := by
+      ext x
+      rfl
+    -- the pull-back of the generator of `H^{2(m+1)}(S^{2(m+1)}; ℤ)` along `κ_{m+1}`
+    have hθ' := hκ (TopCat.integralSphereGenerator (2 * m + 1))
+    rw [TopCat.integralCohomologyEquiv_integralSphereGenerator,
+      singularCohomologyTopCatSphereEquiv_singularCohomologyTopCatSphereGenerator, mul_one] at hθ'
+    -- the product over `m + 2` factors is `y₀ ⌣ tail^* (y₀ ⋯ y_m)`
+    have hprod : TopCat.evenIntegralCohomologyMap (TopCat.ofHom (Y := Y) tail)
+        (∏ i : Fin (m + 1), Y.evenIntegralCohomologyOf 1
+          (TopCat.singularCohomologyMap (TopCat.ofHom (ContinuousMap.eval i)) (2 * 1) c)) =
+        ∏ i : Fin (m + 1),
+          (TopCat.of (Fin (m + 1 + 1) → ℙ ℂ (Fin 2 → ℂ))).evenIntegralCohomologyOf 1
+          (TopCat.singularCohomologyMap (TopCat.ofHom (ContinuousMap.eval i.succ)) (2 * 1) c) := by
+      rw [map_prod]
+      refine Finset.prod_congr rfl fun i _ ↦ ?_
+      rw [TopCat.evenIntegralCohomologyMap_of, ← ConcreteCategory.comp_apply,
+        ← TopCat.singularCohomologyMap_comp]
+      rfl
+    have hsplit := congrArg (TopCat.singularCohomologyMap Ψ _) (hC u)
+    rw [← ConcreteCategory.comp_apply, ← TopCat.singularCohomologyMap_comp] at hsplit
+    refine ((congrArg (TopCat.singularCohomologyMap · _ u) ?_).trans hsplit).trans ?_
+    · ext x
+      exact projectiveLinePowCollapse_succ_apply m x
+    rw [map_zsmul,
+      ← TopCat.integralCup_naturality, ← ConcreteCategory.comp_apply,
+      ← TopCat.singularCohomologyMap_comp, ← ConcreteCategory.comp_apply,
+      ← TopCat.singularCohomologyMap_comp, hΨ₀, hΨ₁, TopCat.singularCohomologyMap_comp,
+      ConcreteCategory.comp_apply, hθ, TopCat.singularCohomologyMap_comp,
+      ConcreteCategory.comp_apply, hθ', map_zsmul, TopCat.integralCup_zsmul_left, map_zsmul,
+      map_zsmul, Fin.prod_univ_succ (n := m + 1),
+      ← hprod, TopCat.evenIntegralCohomologyOf_mul_apply_of_add_eq _ (i := 1) (j := m + 1)
+        (k := m + 1 + 1) (by omega),
+      TopCat.evenIntegralCohomologyMap_apply, smul_smul, smul_smul, mul_right_comm _ _ σ,
+      mul_right_comm _ _ ε']
+    -- the two cup products differ only in writing the degrees as `1 + 1` or `2 * 1`, and so on
+    rfl
+
+end ProjectiveLinePow
 
 end SymplecticGeometry
 

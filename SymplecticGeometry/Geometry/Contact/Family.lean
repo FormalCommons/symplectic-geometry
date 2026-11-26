@@ -47,7 +47,7 @@ A local defining family restricts to smaller open sets
 `TauCeti.IsLocalContactFormFamily.mpullback_inclusion`, in the same Tau Ceti file at commit
 034344347f0ca1144bf5ae35c82e3edaf848fca5.
 
-On a manifold without boundary, a family over `[0, 1]` has local defining families over `ℝ` near
+On any manifold, a family over `[0, 1]` has local defining families over `ℝ` near
 every point (`SymplecticGeometry.IsContactFamily.exists_local_extension`). Near a point
 `(t₀, x₀)`, a local defining form on the cylinder is extended in time by Seeley's operator
 (`TauCeti.SmoothForm.timeExtend`). Its slices are contact on an open subset of `ℝ × M`
@@ -348,10 +348,10 @@ end IsLocalDefiningFamily
 
 namespace IsContactFamily
 
-variable [FiniteDimensional ℝ E] [BoundarylessManifold I M]
+variable [FiniteDimensional ℝ E]
 
 /-- **Local defining families over `ℝ`.** Let `ξ` be a smooth family of contact structures over
-`[0, 1]` on a manifold without boundary. Near every point `(t₀, x₀)` of the cylinder there are an
+`[0, 1]` on a manifold. Near every point `(t₀, x₀)` of the cylinder there are an
 open interval `(a, b) ∋ t₀`, an open set `U ∋ x₀` and a local defining family `α` of `ξ` on `U`
 and `(a, b)`: a one-form on `ℝ × U` such that every slice `α_t`, for all real `t`, is a contact
 form on `U`, and for `t ∈ (a, b) ∩ [0, 1]` its kernel at each `x ∈ U` is `ξ t x`, under the
