@@ -731,7 +731,7 @@ theorem exists_smoothIsotopy_of_diffeotopy [IsManifold I ∞ M] [I.Boundaryless]
   · rw [SmoothForm.mpullback_mpullback,
       SmoothForm.mpullback_congr _ (G.timeSlice 1).contMDiff
         (h1.trans (funext fun z ↦ (G.timeSlice_apply 1 z).symm))]
-    exact Subtype.ext ((SmoothForm.coe_mpullback _ _ _).trans (hGσ.mpullback_timeSlice 1))
+    exact (SmoothForm.mpullback_eq_iff _).2 (hGσ.mpullback_timeSlice 1)
 
 /-- **Moving the sphere by a diffeotopy moves the twist.** Let `M` be a Hausdorff, σ-compact
 manifold without boundary, modelled on a finite-dimensional space, with a symplectic form `σ`;
