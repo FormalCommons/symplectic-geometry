@@ -398,7 +398,7 @@ $B(\lambda)$.
   `Blowup/Weight/Volume.lean`. $Z$ is null in the charts of the model,
   `inl` carries the Liouville measure of $M\setminus\psi(B(\lambda))$ onto the
   complement of $Z$, and $\psi$ carries that of $\omega_0$ on $B(\lambda)$ to that of
-  $\omega$ (`IsSymplecticMapOn.map_restrict_liouvilleMeasure`).
+  $\omega$ (`IsSymplecticBallEmbedding.liouvilleMeasure_image`).
 - **Milestone** `WeightBlowup.isSymplectic_form_and_divisor`: the conjunction
   of `isSymplectic_form`, the divisor statements, `collapseHomeomorph` and
   `liouvilleMeasure_form_add`. Its docstring ends with the line Milestone:

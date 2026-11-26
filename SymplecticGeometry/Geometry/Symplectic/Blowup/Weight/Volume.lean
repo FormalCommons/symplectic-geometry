@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Weight.Basic
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.LiouvilleMeasure
+public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Volume
 
 /-!
 # The volume of the blowup of weight `λ`
@@ -23,9 +23,6 @@ in `ℝ≥0∞`, so that `M` need not be compact.
 * `SymplecticGeometry.BlowupModel.liouvilleMeasure_exceptionalDivisor`: the exceptional divisor
   `Z` of the model `BlowupModel n` is null for the Liouville measure of every two-form. In the
   chart `blowupModelChart i`, `Z` lies in the hyperplane `w i = 0`.
-* `SymplecticGeometry.IsSymplecticBallEmbedding.liouvilleMeasure_image_closedBall`: a symplectic
-  embedding of `B(r)` sends `B(l)`, for `l < r`, onto a set of Liouville measure the Lebesgue
-  measure of `B(l)`.
 * `SymplecticGeometry.WeightBlowup.liouvilleMeasure_form_add`: the volume of the blowup of weight
   `l` plus the volume of `B(l)` is the volume of `M`.
 
@@ -33,7 +30,7 @@ The proof cuts the blowup in two: the complement of the divisor, which is the im
 piece `M ∖ ψ(B(l))` under the open embedding `GluedAlong.inl` pulling `ω̃_ψ` back to `σ`, and the
 divisor, the image of `Z` under `GluedAlong.inr`, which is null. It cuts `M` into the outer piece
 and `ψ(B(l))`, and computes the measure of the latter with
-`TauCeti.SmoothTwoForm.IsSymplecticMapOn.map_restrict_liouvilleMeasure`, since `ψ` pulls `σ` back
+`SymplecticGeometry.IsSymplecticBallEmbedding.liouvilleMeasure_image`, since `ψ` pulls `σ` back
 to `ω₀` on the open ball of radius `√(l² + ε²)`. Neither `σ` nor `ω̃_ψ` needs to be closed or
 nondegenerate for this.
 
@@ -110,51 +107,6 @@ theorem liouvilleMeasure_exceptionalDivisor
   exact liouvilleMeasure_exceptionalDivisor_inter_chartAt_source σ p
 
 end BlowupModel
-
-namespace IsSymplecticBallEmbedding
-
-variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
-  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
-  [IsManifold I ∞ M] [T2Space M] [MeasurableSpace M] [BorelSpace M] [LindelofSpace M]
-  {n : ℕ} [Fact (finrank ℝ E = 2 * n)] {σ : SmoothTwoForm I M} {r l : ℝ}
-  {j : StdSpace (Fin n) → M}
-
-/-- **The volume of a symplectic ball.** A symplectic embedding `j` of `B(r)` sends each closed
-ball `B(l)` with `l < r` onto a set whose Liouville measure for `σ` is the Lebesgue measure of
-`B(l)`. -/
-theorem liouvilleMeasure_image_closedBall (hj : IsSymplecticBallEmbedding σ r j) (hl : l < r) :
-    σ.liouvilleMeasure n (j '' closedBall 0 l) = volume (closedBall (0 : StdSpace (Fin n)) l) := by
-  have hdim : finrank ℝ (StdSpace (Fin n)) = finrank ℝ E := by
-    rw [finrank_stdSpace, Fintype.card_fin, Fact.out (p := finrank ℝ E = 2 * n)]
-  have : Fact (finrank ℝ (StdSpace (Fin n)) = 2 * n) := ⟨hdim.trans Fact.out⟩
-  set Φ := hj.toPartialDiffeomorph hdim
-  have hΦ : SmoothTwoForm.IsSymplecticMapOn (stdForm (Fin n)).constSmooth σ Φ Φ.source := by
-    rw [hj.coe_toPartialDiffeomorph, hj.toPartialDiffeomorph_source]
-    exact hj.isSymplecticMapOn
-  have hK : MeasurableSet (j '' closedBall 0 l) :=
-    (hj.isCompact_image_closedBall hl.le).isClosed.measurableSet
-  have hKt : j '' closedBall 0 l ⊆ Φ.target := by
-    rw [hj.toPartialDiffeomorph_target]
-    exact image_mono (closedBall_subset_ball hl)
-  -- `j` is injective on `B(r)`, so the points of the open ball that it sends into `j(B(l))` are
-  -- those of `B(l)`.
-  have hpre : Φ ⁻¹' (j '' closedBall 0 l) ∩ Φ.source = closedBall 0 l := by
-    rw [hj.coe_toPartialDiffeomorph, hj.toPartialDiffeomorph_source]
-    ext z
-    constructor
-    · rintro ⟨⟨w, hw, hwz⟩, hz⟩
-      rw [← hj.injOn (closedBall_subset_closedBall hl.le hw) (ball_subset_closedBall hz) hwz]
-      exact hw
-    · intro hz
-      exact ⟨mem_image_of_mem j hz, closedBall_subset_ball hl hz⟩
-  have hΦm : AEMeasurable Φ (((stdForm (Fin n)).constSmooth.liouvilleMeasure n).restrict
-      Φ.source) :=
-    Φ.contMDiffOn.continuousOn.aemeasurable Φ.open_source.measurableSet
-  rw [← Measure.restrict_eq_self _ hKt, ← hΦ.map_restrict_liouvilleMeasure,
-    Measure.map_apply_of_aemeasurable hΦm hK, Measure.restrict_apply' Φ.open_source.measurableSet,
-    hpre, liouvilleMeasure_constSmooth_stdForm]
-
-end IsSymplecticBallEmbedding
 
 namespace WeightBlowup
 
@@ -234,7 +186,8 @@ theorem liouvilleMeasure_form_add :
   rw [← measure_add_measure_compl (complDivisor hψ hl hε).isOpen.measurableSet,
     ← measure_add_measure_compl (s := (outerPiece hψ : Set M)) (outerPiece hψ).isOpen.measurableSet,
     ← range_divisor, liouvilleMeasure_form_range_divisor, liouvilleMeasure_form_complDivisor,
-    add_zero, hc, hψ.liouvilleMeasure_image_closedBall (Real.lt_sqrt_of_sq_lt (by nlinarith))]
+    add_zero, hc, hψ.liouvilleMeasure_image
+      (closedBall_subset_ball (Real.lt_sqrt_of_sq_lt (by nlinarith)))]
 
 end WeightBlowup
 
