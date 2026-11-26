@@ -734,6 +734,121 @@ theorem normalTubeChart_apply_tube_localChart
   · dsimp only [Function.comp_apply]
     rw [(chartAt H z).right_inv hqt, I.right_inv (I.range_eq_univ ▸ mem_univ _)]
 
+omit [J.Boundaryless] [ChartedSpace V X] in
+/-- **The tube read from the total space undoes the chart of the tube.** Let `c` be the chart of
+`Z` at `z` read in `E` and translated so that `z` goes to `0`, and `S` an open set of its target
+containing `0` that `c⁻¹` carries into the base set of the preferred trivialization `e` of the
+normal bundle at `z`. If the chart `normalTubeChart Φ z`, translated so that `f z` goes to the
+origin, carries a local orientation `u` of `X` at `f z` to a class `a` of `P × E` at the origin,
+then the tube `Φ` carries the class of the total space at `0_z` that
+`Bundle.Trivialization.localChartLocalHomologyIso` of `e` and `c` gives `a` back to `u`. -/
+theorem localHomologyMap_localChartLocalHomologyIso_hom_of_localHomologyMap_sub_normalTubeChart
+    (hΦ : f.IsNormalizedTube hn hdim Φ) (hS : IsOpen S)
+    (hSc : S ⊆ ((chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))).target)
+    (hSe : letI := f.normalSpaceFiberBundle hn hdim
+      MapsTo ((chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))).symm S
+        (trivializationAt P (fun x ↦ f.NormalSpace x hn) z).baseSet)
+    (h0 : (0 : E) ∈ S) {n : ℕ} (u : LocalOrientation X (f z) n)
+    (a : localHomology (A := ModuleCat.{0} ℤ) (ModuleCat.of ℤ (ULift.{0} ℤ))
+      ({0} : Set (P × E)) n)
+    (ha : localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
+        (⟨fun x : (normalTubeChart Φ z).source ↦ normalTubeChart Φ z x - normalTubeChart Φ z (f z),
+          (normalTubeChart Φ z).continuousOn.domRestrict.sub continuous_const⟩ :
+          C((normalTubeChart Φ z).source, P × E))
+        (S := {⟨f z, mem_normalTubeChart_source Φ z hΦ⟩}) (T := {0})
+        (by
+          rintro x hx
+          exact Subtype.ext ((normalTubeChart Φ z).injOn x.property
+            (mem_normalTubeChart_source Φ z hΦ) (sub_eq_zero.1 hx)))
+        n
+        (((normalTubeChart Φ z).open_source.isOpenEmbedding_subtypeVal.localOrientationEquiv
+          ⟨f z, mem_normalTubeChart_source Φ z hΦ⟩ n).symm u).val = a) :
+    letI := f.normalSpaceFiberBundle hn hdim
+    letI := f.normalSpaceVectorBundle hn hdim
+    haveI : T1Space (TotalSpace P fun x ↦ f.NormalSpace x hn) :=
+      Φ.toHomeomorph.isEmbedding.t1Space
+    localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
+        (⟨fun p ↦ (Φ p : X), continuous_subtypeVal.comp Φ.continuous⟩ :
+          C(TotalSpace P (fun x ↦ f.NormalSpace x hn), X))
+        (S := {zeroSection P _ z}) (T := {f z})
+        (by
+          rintro p hp
+          exact Φ.injective (Subtype.ext (hp.trans (hΦ.apply_zeroSection z).symm)))
+        n
+        ((Trivialization.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe
+          (by simp) (by simp) h0 n).hom a) = u.val := by
+  let := f.normalSpaceFiberBundle hn hdim
+  let := f.normalSpaceVectorBundle hn hdim
+  have : T1Space (TotalSpace P fun x ↦ f.NormalSpace x hn) := Φ.toHomeomorph.isEmbedding.t1Space
+  set e := trivializationAt P (fun x ↦ f.NormalSpace x hn) z
+  set c := (chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))
+  set ψ := normalTubeChart Φ z
+  have hb : z ∈ c.source := by simp [c]
+  have hcb : c z = 0 := by simp [c]
+  have hx := mem_normalTubeChart_source Φ z hΦ
+  have hι := Trivialization.isOpenEmbedding_localChart (e := e) hS hSc hSe
+  -- The tube after the chart of the total space at `0_z` is the inverse of `ψ`, translated.
+  have hψ (y : (univ ×ˢ S : Set (P × E))) : ψ (Φ (e.localChart c S y)) - ψ (f z) = y.val := by
+    rw [normalTubeChart_apply_tube_localChart Φ z hSc hSe, normalTubeChart_self Φ z hΦ,
+      Prod.mk_sub_mk, sub_zero, add_sub_cancel_right]
+  let κ : C((univ ×ˢ S : Set (P × E)), ψ.source) :=
+    ⟨fun y ↦ ⟨Φ (e.localChart c S y), tube_localChart_mem_normalTubeChart_source Φ z hSc hSe y⟩,
+      ((continuous_subtypeVal.comp Φ.continuous).comp hι.continuous).subtype_mk _⟩
+  have hpt : e.localChart c S ⁻¹' {zeroSection P _ z} ⊆
+      {⟨(0, 0), mk_mem_prod (mem_univ _) h0⟩} := fun y hy ↦
+    hι.injective (hy.trans (Trivialization.localChart_zero hSe hb hcb h0).symm)
+  -- `ψ`, translated so that `f z` goes to the origin, is an open embedding of its source.
+  let x₀ : ψ.source := ⟨f z, hx⟩
+  let τ : C(ψ.source, P × E) :=
+    ⟨fun x ↦ ψ x - ψ (f z), ψ.continuousOn.domRestrict.sub continuous_const⟩
+  have hτ0 : τ ⁻¹' {0} = {x₀} := by
+    ext x
+    simp only [mem_preimage, mem_singleton_iff]
+    refine ⟨fun h ↦ Subtype.ext (ψ.injOn x.property hx (sub_eq_zero.1 h)), ?_⟩
+    rintro rfl
+    exact sub_self _
+  have hτ : Topology.IsOpenEmbedding τ :=
+    (Homeomorph.subRight (ψ (f z))).isOpenEmbedding.comp ψ.isOpenEmbedding_restrict
+  have : CategoryTheory.IsIso
+      (localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ)) τ hτ0.subset n) :=
+    isIso_localHomologyMap _ τ hτ hτ0 isClosed_singleton
+      (singleton_subset_iff.2 ⟨x₀, sub_self _⟩) n
+  have hinj : Function.Injective
+      (localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ)) τ hτ0.subset n) :=
+    (ModuleCat.mono_iff_injective _).1 inferInstance
+  have hκ0 : κ ⁻¹' {x₀} ⊆ {⟨(0, 0), mk_mem_prod (mem_univ _) h0⟩} := fun y hy ↦ by
+    have h := hψ y
+    rw [show (Φ (e.localChart c S y) : X) = f z from congrArg Subtype.val hy, sub_self] at h
+    exact Subtype.ext h.symm
+  -- `κ`, then `τ`, is the inclusion of `P × S`.
+  have hτκ : τ.comp κ = ⟨Subtype.val, continuous_subtypeVal⟩ :=
+    ContinuousMap.ext fun y ↦ hψ y
+  have hκs : localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ)) κ hκ0 n
+      ((localHomologyIsoOfIsOpenEmbedding (ModuleCat.of ℤ (ULift.{0} ℤ))
+        ((isOpen_univ.prod hS).isOpenEmbedding_subtypeVal (X := P × E))
+        ⟨(0, 0), mk_mem_prod (mem_univ _) h0⟩ n).inv a) =
+      ((ψ.open_source.isOpenEmbedding_subtypeVal.localOrientationEquiv x₀ n).symm u).val := by
+    refine hinj ?_
+    rw [ha, ← CategoryTheory.ConcreteCategory.comp_apply, localHomologyMap_comp,
+      localHomologyMap_congr _ hτκ, ← localHomologyIsoOfIsOpenEmbedding_hom]
+    exact CategoryTheory.Iso.inv_hom_id_apply _ _
+  rw [Trivialization.localChartLocalHomologyIso_hom _ _ _ _ _ _ _ hpt,
+    CategoryTheory.ConcreteCategory.comp_apply,
+    ← CategoryTheory.ConcreteCategory.comp_apply, localHomologyMap_comp]
+  -- The tube after the chart of the total space is `κ` followed by the inclusion of the source.
+  have hval : ((⟨Subtype.val, ψ.open_source.isOpenEmbedding_subtypeVal.continuous⟩ :
+      C(ψ.source, X)) ⁻¹' {f z}) ⊆ {x₀} := fun x hx ↦ Subtype.ext hx
+  have hcomp : (⟨fun p ↦ (Φ p : X), continuous_subtypeVal.comp Φ.continuous⟩ :
+        C(TotalSpace P (fun x ↦ f.NormalSpace x hn), X)).comp
+        ⟨e.localChart c S, hι.continuous⟩ =
+      (⟨Subtype.val, ψ.open_source.isOpenEmbedding_subtypeVal.continuous⟩ :
+        C(ψ.source, X)).comp κ :=
+    ContinuousMap.ext fun _ ↦ rfl
+  rw [localHomologyMap_congr _ hcomp, ← localHomologyMap_comp _ κ _ hκ0 hval,
+    CategoryTheory.ConcreteCategory.comp_apply, hκs]
+  exact ψ.open_source.isOpenEmbedding_subtypeVal.localHomologyMap_localOrientationEquiv_symm x₀ _
+    hval
+
 /-- **The local orientation of the ambient manifold through a normalized tube, from the total
 space.** In the setting of `localHomologyMap_sub_normalTubeChart_toHomologicalOrientation`, let
 `c` be the chart of `Z` at `z` read in `E` and translated so that `z` goes to `0`, and `S` an
@@ -774,86 +889,65 @@ theorem localHomologyMap_localChartLocalHomologyIso_hom_cross
                 (Fin (finrank ℝ P)) (mem_baseSet_trivializationAt P _ z)
                 (normalOrientation f hn hdim oX oZ z))).localOrientation hP)
             (Orientation.localOrientation (F := E) (oZ.orientationAt z) hE)).val) =
-      ((oX.reindex (finCongr (by omega))).toHomologicalOrientation hV (f z)).val := by
-  let := f.normalSpaceFiberBundle hn hdim
-  let := f.normalSpaceVectorBundle hn hdim
-  have : T1Space (TotalSpace P fun x ↦ f.NormalSpace x hn) := Φ.toHomeomorph.isEmbedding.t1Space
-  set e := trivializationAt P (fun x ↦ f.NormalSpace x hn) z
-  set c := (chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))
-  set ψ := normalTubeChart Φ z
-  have hb : z ∈ c.source := by simp [c]
-  have hcb : c z = 0 := by simp [c]
-  have hx := mem_normalTubeChart_source Φ z hΦ
-  have hι := Trivialization.isOpenEmbedding_localChart (e := e) hS hSc hSe
-  -- The tube after the chart of the total space at `0_z` is the inverse of `ψ`, translated.
-  have hψ (y : (univ ×ˢ S : Set (P × E))) : ψ (Φ (e.localChart c S y)) - ψ (f z) = y.val := by
-    rw [normalTubeChart_apply_tube_localChart Φ z hSc hSe, normalTubeChart_self Φ z hΦ,
-      Prod.mk_sub_mk, sub_zero, add_sub_cancel_right]
-  let κ : C((univ ×ˢ S : Set (P × E)), ψ.source) :=
-    ⟨fun y ↦ ⟨Φ (e.localChart c S y), tube_localChart_mem_normalTubeChart_source Φ z hSc hSe y⟩,
-      ((continuous_subtypeVal.comp Φ.continuous).comp hι.continuous).subtype_mk _⟩
-  have hpt : e.localChart c S ⁻¹' {zeroSection P _ z} ⊆
-      {⟨(0, 0), mk_mem_prod (mem_univ _) h0⟩} := fun y hy ↦
-    hι.injective (hy.trans (Trivialization.localChart_zero hSe hb hcb h0).symm)
-  -- `ψ`, translated so that `f z` goes to the origin, is an open embedding of its source.
-  let x₀ : ψ.source := ⟨f z, hx⟩
-  let τ : C(ψ.source, P × E) :=
-    ⟨fun x ↦ ψ x - ψ (f z), ψ.continuousOn.domRestrict.sub continuous_const⟩
-  have hτ0 : τ ⁻¹' {0} = {x₀} := by
-    ext x
-    simp only [mem_preimage, mem_singleton_iff]
-    refine ⟨fun h ↦ Subtype.ext (ψ.injOn x.property hx (sub_eq_zero.1 h)), ?_⟩
-    rintro rfl
-    exact sub_self _
-  have hτ : Topology.IsOpenEmbedding τ :=
-    (Homeomorph.subRight (ψ (f z))).isOpenEmbedding.comp ψ.isOpenEmbedding_restrict
-  have : CategoryTheory.IsIso
-      (localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ)) τ hτ0.subset (d + 1)) :=
-    isIso_localHomologyMap _ τ hτ hτ0 isClosed_singleton
-      (singleton_subset_iff.2 ⟨x₀, sub_self _⟩) (d + 1)
-  have hinj : Function.Injective
-      (localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ)) τ hτ0.subset (d + 1)) :=
-    (ModuleCat.mono_iff_injective _).1 inferInstance
-  have hmain :=
-    localHomologyMap_sub_normalTubeChart_toHomologicalOrientation Φ z hΦ hE hP hV oX oZ
-  have hκ0 : κ ⁻¹' {x₀} ⊆ {⟨(0, 0), mk_mem_prod (mem_univ _) h0⟩} := fun y hy ↦ by
-    have h := hψ y
-    rw [show (Φ (e.localChart c S y) : X) = f z from congrArg Subtype.val hy, sub_self] at h
-    exact Subtype.ext h.symm
-  -- `κ`, then `τ`, is the inclusion of `P × S`.
-  have hτκ : τ.comp κ = ⟨Subtype.val, continuous_subtypeVal⟩ :=
-    ContinuousMap.ext fun y ↦ hψ y
-  have hκs : localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ)) κ hκ0 (d + 1)
-      ((localHomologyIsoOfIsOpenEmbedding (ModuleCat.of ℤ (ULift.{0} ℤ))
-        ((isOpen_univ.prod hS).isOpenEmbedding_subtypeVal (X := P × E))
-        ⟨(0, 0), mk_mem_prod (mem_univ _) h0⟩ (d + 1)).inv
-        (LocalOrientation.cross hP hE (by omega)
-            ((Orientation.reindex ℝ P (finCongr hP)
-              (e.mapOrientation (Fin (finrank ℝ P)) (mem_baseSet_trivializationAt P _ z)
-                (normalOrientation f hn hdim oX oZ z))).localOrientation hP)
-            (Orientation.localOrientation (F := E) (oZ.orientationAt z) hE)).val) =
-      ((ψ.open_source.isOpenEmbedding_subtypeVal.localOrientationEquiv x₀ (d + 1)).symm
-        ((oX.reindex (finCongr (by omega))).toHomologicalOrientation hV (f z))).val := by
-    refine hinj ?_
-    rw [hmain, ← CategoryTheory.ConcreteCategory.comp_apply, localHomologyMap_comp,
-      localHomologyMap_congr _ hτκ, ← localHomologyIsoOfIsOpenEmbedding_hom]
-    exact CategoryTheory.Iso.inv_hom_id_apply _ _
-  rw [Trivialization.localChartLocalHomologyIso_hom _ _ _ _ _ _ _ hpt,
-    CategoryTheory.ConcreteCategory.comp_apply,
-    ← CategoryTheory.ConcreteCategory.comp_apply, localHomologyMap_comp]
-  -- The tube after the chart of the total space is `κ` followed by the inclusion of the source.
-  have hval : ((⟨Subtype.val, ψ.open_source.isOpenEmbedding_subtypeVal.continuous⟩ :
-      C(ψ.source, X)) ⁻¹' {f z}) ⊆ {x₀} := fun x hx ↦ Subtype.ext hx
-  have hcomp : (⟨fun p ↦ (Φ p : X), continuous_subtypeVal.comp Φ.continuous⟩ :
-        C(TotalSpace P (fun x ↦ f.NormalSpace x hn), X)).comp
-        ⟨e.localChart c S, hι.continuous⟩ =
-      (⟨Subtype.val, ψ.open_source.isOpenEmbedding_subtypeVal.continuous⟩ :
-        C(ψ.source, X)).comp κ :=
-    ContinuousMap.ext fun _ ↦ rfl
-  rw [localHomologyMap_congr _ hcomp, ← localHomologyMap_comp _ κ _ hκ0 hval,
-    CategoryTheory.ConcreteCategory.comp_apply, hκs]
-  exact ψ.open_source.isOpenEmbedding_subtypeVal.localHomologyMap_localOrientationEquiv_symm x₀ _
-    hval
+      ((oX.reindex (finCongr (by omega))).toHomologicalOrientation hV (f z)).val :=
+  localHomologyMap_localChartLocalHomologyIso_hom_of_localHomologyMap_sub_normalTubeChart Φ z hΦ
+    hS hSc hSe h0 _ _
+    (localHomologyMap_sub_normalTubeChart_toHomologicalOrientation Φ z hΦ hE hP hV oX oZ)
+
+open Classical in
+/-- **The local orientation of the ambient manifold through a normalized tube, from the total
+space, at a point of a zero-dimensional submanifold.** In the setting of
+`localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_of_finrank_eq_zero`, let `c` be
+the chart of `Z` at `z` read in `E` and translated so that `z` goes to `0`, and `S` an open set
+of its target containing `0` that `c⁻¹` carries into the base set of the preferred
+trivialization `e` of the normal bundle at `z`. The isomorphism
+`Bundle.Trivialization.localChartLocalHomologyIso` of `e` and `c` carries the cross product
+`SymplecticGeometry.localHomologyCross`, normal factor first, of the local orientation of `P`
+selected by the normal orientation at `z` read in `e` with the class of the origin of `E`,
+counted positively if the orientation of `Z` at `z` is the positive orientation and negatively
+otherwise, to a local class of the total space at `0_z`; the tube `Φ` carries that class to the
+local orientation of `X` at `f z`. -/
+theorem localHomologyMap_localChartLocalHomologyIso_hom_localHomologyCross_of_finrank_eq_zero
+    (hΦ : f.IsNormalizedTube hn hdim Φ) {r : ℕ} (hE : finrank ℝ E = 0)
+    (hP : finrank ℝ P = r + 1) (hV : finrank ℝ V = r + 1)
+    (oX : Manifold.Orientation J X (Fin (0 + finrank ℝ P)))
+    (oZ : Manifold.Orientation I Z (Fin 0)) (hS : IsOpen S)
+    (hSc : S ⊆ ((chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))).target)
+    (hSe : letI := f.normalSpaceFiberBundle hn hdim
+      MapsTo ((chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))).symm S
+        (trivializationAt P (fun x ↦ f.NormalSpace x hn) z).baseSet)
+    (h0 : (0 : E) ∈ S) :
+    letI := f.normalSpaceFiberBundle hn hdim
+    letI := f.normalSpaceVectorBundle hn hdim
+    haveI : T1Space (TotalSpace P fun x ↦ f.NormalSpace x hn) :=
+      Φ.toHomeomorph.isEmbedding.t1Space
+    localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
+        (⟨fun p ↦ (Φ p : X), continuous_subtypeVal.comp Φ.continuous⟩ :
+          C(TotalSpace P (fun x ↦ f.NormalSpace x hn), X))
+        (S := {zeroSection P _ z}) (T := {f z})
+        (by
+          rintro p hp
+          exact Φ.injective (Subtype.ext (hp.trans (hΦ.apply_zeroSection z).symm)))
+        (r + 1)
+        ((Trivialization.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe
+          (by simp) (by simp) h0 (r + 1)).hom
+          ((SymplecticGeometry.localHomologyCross (0 : P) (0 : E) (r + 1) 0 (r + 1)
+            (add_zero _)).hom
+            (((Orientation.reindex ℝ P (finCongr hP)
+              ((trivializationAt P (fun x ↦ f.NormalSpace x hn) z).mapOrientation
+                (Fin (finrank ℝ P)) (mem_baseSet_trivializationAt P _ z)
+                (normalOrientation f hn hdim oX oZ z))).localOrientation hP).val ⊗ₜ
+              (if oZ.orientationAt z = positiveOrientation then
+                (localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl E)
+                  (OpenPartialHomeomorph.mem_refl_source _) hE).val
+              else
+                -(localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl E)
+                  (OpenPartialHomeomorph.mem_refl_source _) hE).val)))) =
+      ((oX.reindex (finCongr (by omega))).toHomologicalOrientation hV (f z)).val :=
+  localHomologyMap_localChartLocalHomologyIso_hom_of_localHomologyMap_sub_normalTubeChart Φ z hΦ
+    hS hSc hSe h0 _ _
+    (localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_of_finrank_eq_zero Φ z hΦ hE hP
+      hV oX oZ)
 
 end TauCeti.SmoothEmbedding
 
