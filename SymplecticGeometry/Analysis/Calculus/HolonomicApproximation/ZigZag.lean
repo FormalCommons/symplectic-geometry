@@ -52,11 +52,6 @@ locally the two-term interpolation of `S i` and `S (i + 1)`, which
   curve by these cutoffs, as `S 0 + ∑ φ l • (S (l + 1) - S l)`, with the glued map equal to `S l`
   near the points of the curve between the crossings and estimated against `S i` and `S (i + 1)`
   near the crossing `c i`.
-* `Monotone.exists_forall_add_le_and_forall_le_sub`: a point at distance at least `w` from each
-  of the monotone points `c 0, …, c n` is at least `w` above those of index below some
-  `l ≤ n + 1` and at least `w` below the others.
-* `Fin.add_le_of_lt_of_forall_add_le_succ`: a gap of at least `d ≥ 0` between consecutive terms
-  of a finite sequence gives a gap of at least `d` between any two terms.
 
 ## References
 
@@ -247,35 +242,6 @@ theorem exists_zigzag_cutoffs (i₀ : Fin m) (j : Fin k) {g : ℝ → ℝ} {n : 
     exists_zigzag_cutoff i₀ j (σ := (-1) ^ (i : ℕ)) (by simp) hw hr (hg i)
   exact ⟨φ, hφ, hφ01, hφx⟩
 
-/-- If the points `c 0 ≤ ⋯ ≤ c n` are monotone and `t` lies at distance at least `w` from each of
-them, then `t` splits them: for some `l ≤ n + 1`, the points before `l` lie at least `w` below
-`t` and the others at least `w` above it. -/
-theorem _root_.Monotone.exists_forall_add_le_and_forall_le_sub {n : ℕ} {c : Fin (n + 1) → ℝ}
-    (hc : Monotone c) {w t : ℝ} (ht : ∀ i, w ≤ |t - c i|) :
-    ∃ l ≤ n + 1, (∀ i : Fin (n + 1), (i : ℕ) < l → c i + w ≤ t) ∧
-      ∀ i : Fin (n + 1), l ≤ (i : ℕ) → t ≤ c i - w := by
-  classical
-  have hex : ∃ l : ℕ, ∀ i : Fin (n + 1), l ≤ (i : ℕ) → t ≤ c i - w :=
-    ⟨n + 1, fun i hi ↦ absurd i.isLt (not_lt.2 hi)⟩
-  refine ⟨Nat.find hex, Nat.find_min' hex fun i hi ↦ absurd i.isLt (not_lt.2 hi),
-    fun i hi ↦ ?_, Nat.find_spec hex⟩
-  obtain ⟨i', hii', hi'⟩ := not_forall₂.1 (Nat.find_min hex hi)
-  have hle : c i ≤ c i' := hc (Fin.mk_le_mk.2 hii')
-  rcases le_abs'.1 (ht i') with h | h
-  · exact absurd (by linarith) hi'
-  · linarith
-
-/-- If each term of a sequence `c 0, …, c n` exceeds the previous one by at least `d ≥ 0`, then
-`c i + d ≤ c i'` whenever `i < i'`. -/
-theorem _root_.Fin.add_le_of_lt_of_forall_add_le_succ {α : Type*} [AddCommMonoid α]
-    [PartialOrder α] [IsOrderedAddMonoid α] {n : ℕ} {c : Fin (n + 1) → α} {d : α} (hd : 0 ≤ d)
-    (hc : ∀ i : Fin n, c i.castSucc + d ≤ c i.succ) {i i' : Fin (n + 1)} (h : i < i') :
-    c i + d ≤ c i' := by
-  have hmono : Monotone c :=
-    Fin.monotone_iff_le_succ.2 fun p ↦ (le_add_of_nonneg_right hd).trans (hc p)
-  obtain ⟨p, rfl⟩ := Fin.exists_succ_eq.2 (Fin.ne_zero_of_lt h)
-  exact (add_le_add_left (hmono (Fin.le_castSucc_iff.2 h)) d).trans (hc p)
-
 /-- **Gluing sections along a zig-zag.** Let `g` change sign at the points `c 0, …, c n`, spaced
 at least `4 w` apart, as in `exists_zigzag_cutoffs`, and let `S 0, …, S (n + 1)` be smooth maps
 on `D = (Fin m → ℝ) × (Fin k → ℝ)`. There is a smooth map `f'` such that, at each point
@@ -347,9 +313,11 @@ theorem exists_zigzag_chain (i₀ : Fin m) (j : Fin k) {F : Type*} [NormedAddCom
   · -- In the window of `c i`, the other crossings are at least `3 w` away.
     have hi' := abs_lt.1 hi
     have h4 : (0 : ℝ) ≤ 4 * w := by positivity
-    have hev := hcut i
-      (fun i' h ↦ by linarith [Fin.add_le_of_lt_of_forall_add_le_succ h4 hc (Fin.lt_def.2 h)])
-      (fun i' h ↦ by linarith [Fin.add_le_of_lt_of_forall_add_le_succ h4 hc (Fin.lt_def.2 h)])
+    have : IsTrans ℝ (· + 4 * w ≤ ·) :=
+      ⟨fun _ _ _ h₁ h₂ ↦ h₁.trans ((le_add_of_nonneg_right h4).trans h₂)⟩
+    have hc' := (Fin.liftFun_iff_succ (· + 4 * w ≤ ·)).2 hc
+    have hev := hcut i (fun i' h ↦ by linarith [hc' (Fin.lt_def.2 h)])
+      (fun i' h ↦ by linarith [hc' (Fin.lt_def.2 h)])
     have heq := Filter.eventuallyEq_add_sum_range_smul_sub_of_lt (S := S) i.isLt
       (hev.mono fun y hy ↦ ⟨fun l' hl' ↦ hy.1 l' hl' (by omega), fun l' hl' _ ↦ hy.2 l' hl'⟩)
     have h01 := hφ01 i x
