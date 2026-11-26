@@ -13,13 +13,13 @@ import Mathlib.Topology.Homeomorph.Lemmas
 
 If finitely many closed sets `K i` of a topological space each have covering dimension at most
 `n`, as subspaces, then so does their union. This is Tau Ceti's sum theorem
-`TauCeti.hasCoveringDimensionLE_of_iUnion_eq_univ`, applied in the subspace `⋃ i ∈ s, K i`,
-whose closed pieces `K i` it sees through the homeomorphisms between the preimages of `K i` in
-the union and `K i` itself.
+`TauCeti.hasCoveringDimensionLE_of_iUnion_eq_univ`, applied in the subspace `⋃ i, K i`, whose
+closed pieces `K i` it sees through the homeomorphisms between the preimages of `K i` in the
+union and `K i` itself (Mathlib's `Topology.IsEmbedding.homeomorphOfSubsetRange`).
 
 ## Main declarations
 
-* `TauCeti.hasCoveringDimensionLE_biUnion`: the finite union of closed sets.
+* `TauCeti.hasCoveringDimensionLE_iUnion`: the finite union of closed sets.
 
 ## References
 
@@ -34,25 +34,19 @@ namespace TauCeti
 
 variable {X : Type*} [TopologicalSpace X]
 
-/-- If each closed set `K i`, for `i` in a finite set `s`, has covering dimension at most `n`,
-then so has their union. -/
-theorem hasCoveringDimensionLE_biUnion {ι : Type*} {s : Finset ι} {K : ι → Set X}
-    (hK : ∀ i ∈ s, IsClosed (K i)) {n : ℕ} (h : ∀ i ∈ s, HasCoveringDimensionLE (K i) n) :
-    HasCoveringDimensionLE (⋃ i ∈ s, K i : Set X) n := by
-  set Y := ⋃ i ∈ s, K i
-  refine hasCoveringDimensionLE_of_iUnion_eq_univ (ι := s)
-    (F := fun i => ((↑) : Y → X) ⁻¹' K i)
-    (fun i => (hK i i.property).preimage continuous_subtypeVal)
-    (eq_univ_of_forall fun y => ?_) fun i => ?_
-  · obtain ⟨i, hi, hy⟩ := mem_iUnion₂.1 y.property
-    exact mem_iUnion.2 ⟨⟨i, hi⟩, hy⟩
-  · -- The preimage of `K i` in `Y` is homeomorphic to `K i`.
-    have hf : IsHomeomorph (codRestrict (fun y : ((↑) : Y → X) ⁻¹' K i => (y : Y).val) (K i)
-        fun y => y.property) := by
-      rw [isHomeomorph_iff_isEmbedding_surjective]
-      exact ⟨(IsEmbedding.subtypeVal.comp IsEmbedding.subtypeVal).codRestrict _ _,
-        fun x => ⟨⟨⟨x, mem_iUnion₂.2 ⟨i, i.property, x.property⟩⟩, x.property⟩, rfl⟩⟩
-    exact hf.hasCoveringDimensionLE_iff.2 (h i i.property)
+/-- If each of finitely many closed sets `K i` has covering dimension at most `n`, then so has
+their union. -/
+theorem hasCoveringDimensionLE_iUnion {ι : Type*} [Finite ι] {K : ι → Set X}
+    (hK : ∀ i, IsClosed (K i)) {n : ℕ} (h : ∀ i, HasCoveringDimensionLE (K i) n) :
+    HasCoveringDimensionLE (⋃ i, K i : Set X) n := by
+  refine hasCoveringDimensionLE_of_iUnion_eq_univ
+    (F := fun i => ((↑) : (⋃ i, K i : Set X) → X) ⁻¹' K i)
+    (fun i => (hK i).preimage continuous_subtypeVal)
+    (by rw [← preimage_iUnion, Subtype.coe_preimage_self]) fun i => ?_
+  -- The preimage of `K i` in the union is homeomorphic to `K i`.
+  exact (IsEmbedding.subtypeVal.homeomorphOfSubsetRange (by
+    rw [Subtype.range_coe]; exact subset_iUnion K i)).isHomeomorph.hasCoveringDimensionLE_iff.2
+    (h i)
 
 end TauCeti
 

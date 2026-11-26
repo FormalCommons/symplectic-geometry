@@ -27,6 +27,11 @@ and there are `n` coordinates and `n + 1` colours. Given an open cover of a comp
 traces on `K` of the cubes of a scale below a Lebesgue number refine it, and a point lies in at
 most one cube of each colour.
 
+The proof of `IsCompact.hasCoveringDimensionLE_pi` adapts Tau Ceti's
+`Real.hasCoveringDimensionLE_one_of_isCompact` (`TauCeti/Topology/Dimension/Covering.lean`)
+from intervals to coloured cubes: the same Lebesgue number on the compact subspace, refinement by
+the nonempty traces, and bound on the order.
+
 ## Main declarations
 
 * `SymplecticGeometry.gridCube`: the cube of a colour and an index, with `isOpen_gridCube`,

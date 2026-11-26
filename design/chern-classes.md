@@ -1035,7 +1035,7 @@ In the namespace `TauCeti`, for a topological space `X`:
 
 #### `Topology/CoveringDimension/Union.lean`
 
-`TauCeti.hasCoveringDimensionLE_biUnion`: for a finite family of closed
+`TauCeti.hasCoveringDimensionLE_iUnion`: for a finite family of closed
 sets with the bound for `n`, so has their union. Munkres, Theorem 50.2.
 
 #### `Topology/CoveringDimension/Euclidean.lean`
@@ -1064,7 +1064,7 @@ Mathlib's `CompactExhaustion` and the shells above.
 `[FiniteDimensional ℝ E]`, in a Hausdorff `M`, every compact set satisfies
 `HasCoveringDimensionLE K (finrank ℝ E)`: finitely many compact subsets of chart
 sources cover it, each satisfies the bound through the embedding of the
-source into `E` by `I ∘ chartAt`, and `hasCoveringDimensionLE_biUnion` puts them
+source into `E` by `I ∘ chartAt`, and `hasCoveringDimensionLE_iUnion` puts them
 together.
 
 #### `Topology/VectorBundle/FiniteTrivializingCover.lean`
