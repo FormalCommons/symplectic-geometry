@@ -471,10 +471,18 @@ the outer piece under `inl`, an open set. -/
 def complDivisor : Opens (WeightBlowup hψ hl hε) :=
   (GluedAlong.isLocalDiffeomorph_inl (gluingDiffeomorph hψ hl hε).symm).image
 
+@[simp]
 theorem coe_complDivisor :
     (complDivisor hψ hl hε : Set (WeightBlowup hψ hl hε)) =
       range (GluedAlong.inl (gluingDiffeomorph hψ hl hε).symm) := by
   rw [complDivisor, ← Opens.carrier_eq_coe, IsLocalDiffeomorph.image_coe]
+
+/-- Every point `inl x` of the blowup lies in `complDivisor`. -/
+@[simp]
+theorem inl_mem_complDivisor (x : outerPiece hψ) :
+    GluedAlong.inl (gluingDiffeomorph hψ hl hε).symm x ∈ complDivisor hψ hl hε := by
+  rw [← SetLike.mem_coe, coe_complDivisor]
+  exact mem_range_self x
 
 /-- A point of the blowup lies in `complDivisor` exactly when it is not the image under `inr` of a
 point of the exceptional divisor. -/
@@ -513,6 +521,15 @@ theorem inl_complDivisorSymplectomorph_apply (z : complDivisor hψ hl hε) :
     GluedAlong.inl (gluingDiffeomorph hψ hl hε).symm (complDivisorSymplectomorph hψ hl hε z) =
       z := by
   rw [← coe_complDivisorSymplectomorph_symm_apply, Diffeomorph.symm_apply_apply]
+
+/-- `complDivisorSymplectomorph` sends the point `inl x` to `x`. -/
+@[simp]
+theorem complDivisorSymplectomorph_inl (x : outerPiece hψ) :
+    complDivisorSymplectomorph hψ hl hε
+        ⟨GluedAlong.inl (gluingDiffeomorph hψ hl hε).symm x, inl_mem_complDivisor hψ hl hε x⟩ =
+      x := by
+  apply GluedAlong.inl_injective (gluingDiffeomorph hψ hl hε).symm
+  rw [inl_complDivisorSymplectomorph_apply]
 
 /-- **The complement of the divisor is symplectomorphic to `M ∖ ψ(B(l))`**:
 `complDivisorSymplectomorph` pulls the restriction of `σ` to `M ∖ ψ(B(l))` back to the restriction
