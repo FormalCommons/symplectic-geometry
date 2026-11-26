@@ -15,6 +15,8 @@ import TauCeti.Analysis.Normed.Group.Basic
 import TauCeti.Analysis.Calculus.ContDiff.Differentiable
 import SymplecticGeometry.Analysis.InnerProductSpace.Laplacian.LogarithmicPole
 import TauCeti.Analysis.Calculus.FDeriv.RestrictScalars
+import TauCeti.Analysis.Analytic.Order
+import SymplecticGeometry.LinearAlgebra.Symplectic.Basic
 import Mathlib.Analysis.Complex.CauchyIntegral
 
 /-!
@@ -254,26 +256,29 @@ theorem contDiffAt_areaPotential (hl : 0 < l) (hε : 0 < ε) {z : Fin (n + 1) �
   exact ((contDiffAt_const.mul (hN.contDiffAt.log hN0)).add
     ((contDiff_blowupCorrection hl hε).contDiffAt.comp z hN.contDiffAt)).neg
 
-/-- The density of `u^* ω₀` along a curve that is `C¹` near the compact closure of a bounded open
-set `Ω` and holomorphic on `Ω` is integrable on `Ω`. -/
-theorem integrableOn_eval₂_ω₀E_mfderiv {Ω : Set ℂ} (hΩ : IsOpen Ω)
-    (hb : Bornology.IsBounded Ω) {u : ℂ → Fin (n + 1) → ℂ}
-    (hu : ∀ t ∈ closure Ω, ContDiffAt ℝ 1 u t) (hhol : DifferentiableOn ℂ u Ω) :
+/-- The density of `u^* ω₀` along a curve that is `C¹` near the compact closure of a bounded set
+`Ω` is integrable on `Ω`. -/
+theorem integrableOn_eval₂_ω₀E_mfderiv {Ω : Set ℂ} (hb : Bornology.IsBounded Ω)
+    {u : ℂ → Fin (n + 1) → ℂ} (hu : ∀ t ∈ closure Ω, ContDiffAt ℝ 1 u t) :
     IntegrableOn (fun t ↦ (ω₀E n).eval₂ (u t)
       (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) u t (1 : ℂ))
       (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) u t Complex.I)) Ω := by
-  have hc : ContinuousOn (fun t ↦ ∑ i, ‖fderiv ℝ u t (1 : ℂ) i‖ ^ 2) (closure Ω) := fun t ht ↦ by
-    have h : ContinuousAt (fderiv ℝ u) t :=
-      ((hu t ht).fderiv_right (m := 0) (by simp)).continuousAt
-    have hs : Continuous fun v : Fin (n + 1) → ℂ ↦ ∑ i, ‖v i‖ ^ 2 :=
-      continuous_finsetSum _ fun i _ ↦ by fun_prop
-    exact (hs.continuousAt.comp (h.clm_apply continuousAt_const)).continuousWithinAt
-  refine ((hc.integrableOn_compact hb.isCompact_closure).mono_set subset_closure).congr_fun
-    (fun t ht ↦ ?_) hΩ.measurableSet
-  have hd : DifferentiableAt ℂ u t := hhol.differentiableAt (hΩ.mem_nhds ht)
+  have hc : ContinuousOn (fun t ↦
+      (stdComplexPiSymplecticForm (Fin (n + 1))).toBilinForm.toContinuousBilinearMap
+        (fderiv ℝ u t (1 : ℂ)) (fderiv ℝ u t Complex.I)) (closure Ω) :=
+    fun t ht ↦ by
+      have h : ContinuousAt (fderiv ℝ u) t :=
+        ((hu t ht).fderiv_right (m := 0) (by simp)).continuousAt
+      exact ((stdComplexPiSymplecticForm _).toBilinForm.toContinuousBilinearMap.continuous₂
+        |>.continuousAt.comp ((h.clm_apply continuousAt_const).prodMk
+          (h.clm_apply continuousAt_const))).continuousWithinAt
+  refine ((hc.integrableOn_compact hb.isCompact_closure).mono_set subset_closure).congr_fun_ae
+    (Filter.Eventually.of_forall fun t ↦ ?_)
   beta_reduce
-  rw [ω₀E_def, eval₂_constSmooth_stdComplexPiSymplecticForm_mfderiv hd,
-    hd.fderiv_restrictScalars_eq_smul_deriv ℝ, one_smul]
+  rw [LinearMap.toContinuousBilinearMap_apply, TauCeti.SymplecticForm.toBilinForm_apply, ω₀E_def]
+  refine Eq.symm ((SymplecticForm.eval₂_constSmooth_mfderiv_eq _ u t _ _).trans ?_)
+  exact congrArg₂ (fun v w ↦ (stdComplexPiSymplecticForm _).toBilinForm v w)
+    (mvfderiv_eq_fderiv_apply u t _) (mvfderiv_eq_fderiv_apply u t _)
 
 /-- **The area identity of the symplectic blowup.** Let `0 < l`, `0 < ε`, and let `Ω ⊆ ℂ` be a
 bounded open set. Let `u : ℂ → ℂⁿ⁺¹` be `C¹` near every point of `closure Ω` and holomorphic on
@@ -300,10 +305,8 @@ theorem blowdown_profileForm_area (hl : 0 < l) (hε : 0 < ε) {Ω : Set ℂ} (h�
   have hSΩ : (↑S : Set ℂ) ⊆ Ω := fun s hs ↦ ((hmem s).1 hs).1
   have hua : AnalyticOnNhd ℂ u Ω := hhol.analyticOnNhd hΩ
   -- Finitely many zeros force a finite order at every point of `Ω`.
-  have hfin : ∀ t ∈ Ω, analyticOrderAt u t ≠ ⊤ := fun t ht htop ↦ by
-    have h : {z ∈ Ω | u z = 0} ∈ 𝓝 t := by
-      exact inter_mem (hΩ.mem_nhds ht) (analyticOrderAt_eq_top.1 htop)
-    exact infinite_of_mem_nhds t h (hS ▸ S.finite_toSet)
+  have hfin : ∀ t ∈ Ω, analyticOrderAt u t ≠ ⊤ := fun _ ht ↦
+    TauCeti.analyticOrderAt_ne_top_of_zeros_subset hΩ ht fun w hw h0 ↦ (hmem w).2 ⟨hw, h0⟩
   -- On `Ω` the lift `ũ` is `curveLift u`.
   have hlift : EqOn ũ (curveLift u) Ω := eqOn_curveLift_of_blowdown_comp hΩ hua hfin hũ hũu
   -- The smooth parts of the area potential at the zeros.
@@ -367,7 +370,7 @@ theorem blowdown_profileForm_area (hl : 0 < l) (hε : 0 < ε) {Ω : Set ℂ} (h�
       (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift u) t (1 : ℂ))
       (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift u) t Complex.I)).trans (by ring)
   have h1 := integral_congr_ae hae
-  rw [integral_sub (integrableOn_eval₂_ω₀E_mfderiv hΩ hb hu hhol) (hΔi.div_const 4),
+  rw [integral_sub (integrableOn_eval₂_ω₀E_mfderiv hb hu) (hΔi.div_const 4),
     integral_div, hΔ, hsum] at h1
   linear_combination -h1
 
@@ -391,8 +394,8 @@ variable (n) in
   Kähler for the complex structure of `E ∖ 0`.
 * The radial map `F_l z = √(1 + l² / |z|²) z`, composed with the blowdown `π`, pulls `ω₀` back to
   `ω̃_l` off the exceptional divisor, and for `0 ≤ l`, `0 ≤ ε` the map
-  `shellSymplectomorph n l ε` from the complement of the divisor in `L(ε)` onto the open shell
-  `l < |w| < √(l² + ε²)` carries `ω̃_l` to `ω₀`.
+  `shellSymplectomorph n l ε` from the open neighbourhood `|π p| < ε` minus the divisor onto
+  the open shell `l < |w| < √(l² + ε²)` carries `ω̃_l` to `ω₀`.
 * For `0 < l` and `0 < ε`, the form `ω̃_{l,ε} = profileForm n l ε` is Kähler, equal to `ω̃_l` on
   `L(ε)` and to `π^* ω₀` off `L(l + ε)`, and it depends smoothly on smooth positive parameters.
 * The forms `ω̃_{l,ε}` satisfy the area identity `blowdown_profileForm_area`.
