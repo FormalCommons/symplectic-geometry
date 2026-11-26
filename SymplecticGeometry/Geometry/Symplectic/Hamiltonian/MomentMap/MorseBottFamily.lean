@@ -32,6 +32,12 @@ fixed tangent subspaces of `T_ξ`, and a nondegenerate critical submanifold of `
 components are connected, pairwise disjoint and cover the critical set, so they form a Morse–Bott
 family by `TauCeti.IsMorseBottFamily.of_pairwise_disjoint`.
 
+The proof of the step for a single component adapts the proofs of Tau Ceti's
+`exists_isNondegenerateCriticalSubmanifold_of_subset_fixedPointsOfFinrank_of_compactSpace` (in
+the namespace `TauCeti.SmoothTwoForm.IsMomentMap`) and
+`TauCeti.exists_isSmoothEmbedding_connectedComponentIn_fixedPoints`, with the connected
+components of the critical set as the open subsets of `M^{T_ξ}`.
+
 The family is indexed by the connected components of the critical set rather than by the
 dimension `d` of the sets `M^{T_ξ}_d` that Tau Ceti uses
 (`exists_isNondegenerateCriticalSubmanifold_fixedPointsOfFinrank_of_compactSpace`), since a
