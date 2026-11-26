@@ -90,10 +90,10 @@ namespace HomologicalOrientation
 
 variable {M E : Type} [TopologicalSpace M] [T2Space M]
   [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E] [ChartedSpace E M]
-  [CompactSpace M] [ConnectedSpace M] {d : ℕ} (o : HomologicalOrientation M E (d + 1))
+  [CompactSpace M] {d : ℕ} (o : HomologicalOrientation M E (d + 1))
   (hn : Module.finrank ℝ E = d + 1)
 
-/-- **Fundamental classes of a sphere and the standard generator.** Let `M` be a compact connected
+/-- **Fundamental classes of a sphere and the standard generator.** Let `M` be a compact
 `(d + 1)`-manifold with an orientation `o`, and `e : M ≃ₜ Sᵈ⁺¹` a homeomorphism. There is a sign
 `s = ±1` such that for every class `u ∈ Hᵈ⁺¹(Sᵈ⁺¹; ℤ)` of the integral cohomology
 `TopCat.integralCohomology`, the value of `u` on the standard generator, read through
@@ -107,6 +107,7 @@ theorem exists_singularCohomologyTopCatSphereEquiv_eq_mul_evalFundamentalClass
           ((TopCat.sphere.{0} (d + 1)).integralCohomologyEquiv (d + 1) u) =
         s * o.evalFundamentalClass hn (ModuleCat.of ℤ ℤ)
           (e : C(M, TopCat.sphere.{0} (d + 1))) u := by
+  have : ConnectedSpace M := e.symm.surjective.connectedSpace e.symm.continuous
   -- the standard generator, with the coefficients `ULift ℤ` of `[M]`, is `±e_*[M]`
   have hγ := (isFundamentalClass_singularHomologyFunctor_map_app_iff integralCoeffIso.symm
     (singularHomologyTopCatSphereGenerator ℤ d)).2
@@ -117,7 +118,7 @@ theorem exists_singularCohomologyTopCatSphereEquiv_eq_mul_evalFundamentalClass
     ConcreteCategory.comp_apply]
   rw [Iso.symm_hom] at h
   -- `h` is stated on `TopCat.of` of the carrier of `TopCat.sphere (d + 1)`, so it is applied
-  -- through `congrArg` rather than rewritten with
+  -- through `congrArg` rather than used in a rewrite
   refine (congrArg ((TopCat.sphere.{0} (d + 1)).singularKronecker ℤ (d + 1) u).hom h).trans ?_
   rw [map_zsmul, evalFundamentalClass_apply, smul_eq_mul]
 

@@ -695,11 +695,6 @@ theorem exists_singularCohomologyMap_projectiveLinePowCollapse_eq_evalFundamenta
               (ContinuousMap.eval (X := fun _ : Fin (m + 1) ↦ ℙ ℂ (Fin 2 → ℂ)) i *ᵖ
                 (Tautological ℂ (Fin 2 → ℂ))) 1)) (m + 1) := by
   have hE : finrank ℝ E = 2 * m + 1 + 1 + 1 := Fact.out
-  have : ConnectedSpace (sphere (0 : E) 1) := by
-    refine isConnected_iff_connectedSpace.1 (isConnected_sphere ?_ 0 zero_le_one)
-    rw [← finrank_eq_rank, hE]
-    norm_cast
-    omega
   obtain ⟨ε, hε, hκ⟩ :=
     exists_singularCohomologyMap_projectiveLinePowCollapse_eq_smul_prod_chernClass m
   -- the evaluation on the standard generator is `s` times the evaluation on `[S]_o`
