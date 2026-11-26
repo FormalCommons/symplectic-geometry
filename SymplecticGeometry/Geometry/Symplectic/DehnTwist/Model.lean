@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Symplectic.DehnTwist.Geodesic
 public import SymplecticGeometry.Geometry.Symplectic.Flux.CompactSupport
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.DegreeOne
 import Mathlib.Analysis.Calculus.Deriv.Shift
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv
@@ -821,38 +822,36 @@ theorem mpullback_modelTwist_liouvilleForm {R : ℝ → ℝ} {r₀ : ℝ} (hR : 
         cotangentCoord_geodesicTwist hC hS (by rw [hR.two_pi_mul_deriv_zero, cos_pi])]
   have hK : twistPrimitive (n := n) R = fun z ↦ k (cotangentNorm z ^ 2) :=
     funext fun z ↦ by rw [twistPrimitive_def, hk]
-  apply Subtype.ext
-  funext z
-  ext v
+  refine SmoothBundleForm.ext_fin_one fun z v ↦ ?_
   have hdq : mfderiv ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ, (𝔼 n) × 𝔼 n)
-      (cotangentCoord ∘ modelTwist hR) z (v 0) =
+      (cotangentCoord ∘ modelTwist hR) z v =
       fderiv ℝ (twistCoord C S) (cotangentCoord z)
         (mfderiv ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ, (𝔼 n) × 𝔼 n)
-          cotangentCoord z (v 0)) := by
+          cotangentCoord z v) := by
     rw [hτ, (differentiable_twistCoord hC1 hS1 _).hasFDerivAt.mfderiv_comp_cotangentCoord_apply]
   have hdK : (mextDerivₗ ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 0
-      (SmoothForm.ofFunction ⟨twistPrimitive R, contMDiff_twistPrimitive hR⟩)).val z v =
+      (SmoothForm.ofFunction ⟨twistPrimitive R, contMDiff_twistPrimitive hR⟩)).val z ![v] =
       mvfderiv ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) (twistPrimitive R) z
-        (v 0) := by
-    rw [show v = ![v 0] from funext fun i ↦ by rw [Fin.fin_one_eq_zero i, Matrix.cons_val_zero],
-      mextDerivₗ_zero_apply]
-    exact congrArg (fun g ↦ mvfderiv _ g z (v 0)) (SmoothForm.ofFunction_apply_zero _)
+        v := by
+    rw [mextDerivₗ_zero_apply]
+    exact congrArg (fun g ↦ mvfderiv _ g z v) (SmoothForm.ofFunction_apply_zero _)
   -- The constraints on the coordinates and their differentials.
   have hqq : ⟪(cotangentCoord z).1, (cotangentCoord z).1⟫_ℝ = 1 := by
     rw [real_inner_self_eq_norm_sq, cotangentCoord_fst, norm_eq_of_mem_sphere, one_pow]
   have hqp : ⟪(cotangentCoord z).1, (cotangentCoord z).2⟫_ℝ = 0 := by
     rw [cotangentCoord_fst]
     exact inner_proj_cotangentCoord_snd z
-  have hqdq := inner_fst_mfderiv_cotangentCoord z (v 0)
-  have hd := inner_fst_mfderiv_cotangentCoord_add_inner_snd z (v 0)
+  have hqdq := inner_fst_mfderiv_cotangentCoord z v
+  have hd := inner_fst_mfderiv_cotangentCoord_add_inner_snd z v
   have hτz : cotangentCoord (modelTwist hR z) = twistCoord C S (cotangentCoord z) :=
     congrFun hτ z
   rw [SmoothForm.coe_mpullback, mpullback_liouvilleForm_apply_eq_inner_cotangentCoord
     ((modelTwist hR).contMDiff.mdifferentiableAt (by simp)), AddMemClass.coe_add, Pi.add_apply,
     ContinuousAlternatingMap.add_apply, liouvilleForm_apply_eq_inner_cotangentCoord, hdK, hK,
-    mvfderiv_comp_cotangentNorm_sq (hkd.of_le (by simp)), hdq, hτz, cotangentNorm_def]
+    mvfderiv_comp_cotangentNorm_sq (hkd.of_le (by simp)), Matrix.cons_val_zero, hdq, hτz,
+    cotangentNorm_def]
   generalize (mfderiv ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ, (𝔼 n) × 𝔼 n)
-    cotangentCoord z (v 0) : (𝔼 n) × 𝔼 n) = u at hqdq hd ⊢
+    cotangentCoord z v : (𝔼 n) × 𝔼 n) = u at hqdq hd ⊢
   exact inner_twistCoord_snd_fderiv_twistCoord_fst hC1 hS1 hqq hqp hqdq hd (h1 _ (sq_nonneg _))
     (h2 _ (sq_nonneg _))
 
