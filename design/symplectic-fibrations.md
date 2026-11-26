@@ -359,11 +359,11 @@ form on `M` along `A.trivAt b`'s inverse composed with a chart of `B`. A
 basis `bs : Basis ι ℝ EB` gives coordinates `x i := bs.coord i` and
 constant fields `∂ i := bs i`.
 
-- The components, as families indexed by `x ∈ U` and read through
+- The components, as families indexed by the points `x` of `EB` and read through
   `TauCeti.verticalForm`: the slices $\sigma(x)=\iota_x^*\tau$, the
   one-forms $\alpha_i(x)$ (the slices of $\iota(\partial_i,0)\tau$), and the
   functions $f_{ij}=\tau((\partial_i,0),(\partial_j,0))$. Then
-  `eq_verticalForm_add_sum`: on `U ×ˢ univ`,
+  `eq_verticalForm_add_sum`: at every point of `EB × F`,
   $\tau=\sigma+\sum_i\alpha_i\wedge dx_i+\sum_{i<j}f_{ij}\,dx_i\wedge dx_j$,
   with the forms on `EB` and `F` pulled back along the projections and the
   sign of $\alpha_i$ fixed by this formula, as on the page.
