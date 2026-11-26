@@ -7,6 +7,8 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Morse.GradientLike
 public import TauCeti.Analysis.Calculus.Morse.Index
+public import TauCeti.Analysis.ODE.Linear
+public import TauCeti.Geometry.Manifold.Morse.Index
 public import TauCeti.Geometry.Manifold.Morse.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Linearization
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
@@ -16,6 +18,8 @@ import TauCeti.Geometry.Manifold.VectorField.Chart.Linearization
 import TauCeti.Geometry.Manifold.VectorField.Regularity
 import TauCeti.Topology.VectorBundle.Riemannian.Basic
 import SymplecticGeometry.Analysis.Calculus.FDeriv.SecondOrder
+import SymplecticGeometry.Analysis.ODE.LyapunovBilinForm
+import TauCeti.Analysis.ODE.ExponentialDichotomy
 
 /-!
 # The linearization of a gradient-like field at a nondegenerate critical point
@@ -33,6 +37,15 @@ Morse index.
 
 * `TauCeti.IsGradientLike.exists_pos_mul_norm_sq_le_hessian`: there is `c > 0` with
   `c * ‖v‖ ^ 2 ≤ H v (A v)` for every `v`.
+* `TauCeti.IsGradientLike.exists_projection_exponential_bounds`: the flow of `A` has an
+  exponential dichotomy.
+* `TauCeti.IsGradientLike.finrank_stableSubspace_eq_manifoldMorseIndex` and
+  `TauCeti.IsGradientLike.finrank_range_eq_manifoldMorseIndex`: the stable subspace of `A`, which
+  is the range of the projection of any such dichotomy, has dimension the Morse index of `f` at
+  `p`.
+
+In these statements `A : E →L[ℝ] E` comes with a hypothesis `A = sectionLinearization …`, since
+the linearization itself is a map between tangent spaces, which carry no norm.
 
 ## Implementation notes
 
@@ -43,6 +56,11 @@ Cauchy–Schwarz inequality `(df e) ^ 2 ≤ ‖grad f‖ ^ 2 * g(e, e)` gives ne
 passes to second order by `HasFDerivAt.mul_sq_apply_le_apply_apply_of_eventually`, and the
 invertibility of the Hessian makes the resulting bound uniform in `v`.
 
+The Hessian `H` is then a symmetric bilinear Lyapunov form for `A`, and the dichotomy and the
+index come from `ContinuousLinearMap.exists_projection_exponential_bounds_of_le_apply` and
+`ContinuousLinearMap.sigNeg_toQuadraticMap_eq_finrank_stableSubspace`, which transfer Tau Ceti's
+inertia theorem to bilinear forms on a normed space.
+
 ## References
 
 * [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
@@ -51,8 +69,8 @@ invertibility of the Hessian makes the resulting bound uniform in `v`.
 
 public section
 
-open Bundle Filter Set VectorField TauCeti.Manifold
-open scoped ContDiff Manifold Topology
+open Bundle Filter Module NormedSpace Set VectorField TauCeti.Manifold
+open scoped ContDiff Manifold NNReal Topology
 
 namespace TauCeti
 
@@ -206,5 +224,73 @@ theorem IsGradientLike.exists_pos_mul_norm_sq_le_hessian (hX : IsGradientLike f 
     _ = κ * (‖B v‖ ^ 2 / 4) := by field_simp
     _ ≤ κ * B v e ^ 2 := by gcongr
     _ ≤ _ := key v e he.le
+
+/-- **The gradient-like inequality at second order, for the second derivative.** Under the
+hypotheses of `TauCeti.IsGradientLike.exists_pos_mul_norm_sq_le_hessian`, with `A` the
+linearization of `X` at `p`, there is `c > 0` with `c * ‖v‖ ^ 2 ≤ D²(f ∘ φ⁻¹)(φ p) v (A v)` for
+every `v`, where `φ` is the chart at `p`. -/
+theorem IsGradientLike.exists_pos_mul_norm_sq_le_fderiv_fderiv (hX : IsGradientLike f X) {p : M}
+    (hp : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p)
+    (hXp : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ, E).tangent
+      (fun x ↦ (X x : TangentBundle 𝓘(ℝ, E) M)) p)
+    {A : E →L[ℝ] E} (hA : A = sectionLinearization (F := E) 𝓘(ℝ, E) id X p) :
+    ∃ c > 0, ∀ v : E, c * ‖v‖ ^ 2 ≤
+      fderiv ℝ (fderiv ℝ (f ∘ (extChartAt 𝓘(ℝ, E) p).symm)) (extChartAt 𝓘(ℝ, E) p p) v (A v) := by
+  subst hA
+  obtain ⟨c, hc, h⟩ := hX.exists_pos_mul_norm_sq_le_hessian hp hXp
+  rw [associated_hessianQuadraticForm
+    ((isManifoldNondegenerateCriticalPoint_iff _).1 hp).contDiffAt] at h
+  exact ⟨c, hc, fun v ↦ (h v).trans_eq (ContinuousLinearMap.toBilinForm_apply _ _ _)⟩
+
+/-- **Exponential dichotomy at a nondegenerate critical point.** Let `X` be gradient-like for `f`,
+let `p` be a nondegenerate critical point of `f`, let `X` be differentiable at `p`, and let `A` be
+the linearization of `X` at `p`. Then the flow of `A` has an exponential dichotomy: a projection
+`P` commuting with `A`, and `K, α > 0`, such that `exp (t • A)` contracts the range of `P` at rate
+`α` forward in time, and the kernel of `P` at rate `α` backward in time. -/
+theorem IsGradientLike.exists_projection_exponential_bounds (hX : IsGradientLike f X) {p : M}
+    (hp : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p)
+    (hXp : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ, E).tangent
+      (fun x ↦ (X x : TangentBundle 𝓘(ℝ, E) M)) p)
+    {A : E →L[ℝ] E} (hA : A = sectionLinearization (F := E) 𝓘(ℝ, E) id X p) :
+    ∃ P : E →L[ℝ] E, IsIdempotentElem P ∧ Commute A P ∧ ∃ K α : ℝ≥0, 0 < K ∧ 0 < α ∧
+      (∀ t : ℝ, 0 ≤ t → ∀ v : E, ‖exp (t • A) (P v)‖ ≤ K * Real.exp (-α * t) * ‖v‖) ∧
+      (∀ t : ℝ, t ≤ 0 → ∀ v : E, ‖exp (t • A) (v - P v)‖ ≤ K * Real.exp (α * t) * ‖v‖) := by
+  obtain ⟨c, hc, hcB⟩ := hX.exists_pos_mul_norm_sq_le_fderiv_fderiv hp hXp hA
+  have hB := ((isManifoldNondegenerateCriticalPoint_iff _).1 hp).contDiffAt.isSymmSndFDerivAt
+    (by simp)
+  exact ContinuousLinearMap.exists_projection_exponential_bounds_of_le_apply hB hc hcB
+
+/-- **The stable dimension of the linearization is the Morse index.** Let `X` be gradient-like
+for `f`, let `p` be a nondegenerate critical point of `f`, let `X` be differentiable at `p`, and
+let `A` be the linearization of `X` at `p`. Then the stable subspace of `A` has dimension the Morse
+index of `f` at `p`. -/
+theorem IsGradientLike.finrank_stableSubspace_eq_manifoldMorseIndex (hX : IsGradientLike f X)
+    {p : M} (hp : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p)
+    (hXp : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ, E).tangent
+      (fun x ↦ (X x : TangentBundle 𝓘(ℝ, E) M)) p)
+    {A : E →L[ℝ] E} (hA : A = sectionLinearization (F := E) 𝓘(ℝ, E) id X p) :
+    finrank ℝ A.stableSubspace = manifoldMorseIndex 𝓘(ℝ, E) f p := by
+  obtain ⟨c, hc, hcB⟩ := hX.exists_pos_mul_norm_sq_le_fderiv_fderiv hp hXp hA
+  have hB := ((isManifoldNondegenerateCriticalPoint_iff _).1 hp).contDiffAt.isSymmSndFDerivAt
+    (by simp)
+  rw [manifoldMorseIndex_def, morseIndex_def, hessianQuadraticForm_def,
+    ContinuousLinearMap.sigNeg_toQuadraticMap_eq_finrank_stableSubspace hB hc hcB]
+
+/-- **The Morse index from an exponential dichotomy.** Let `X` be gradient-like for `f`, let `p` be
+a nondegenerate critical point of `f`, let `X` be differentiable at `p`, and let `A` be the
+linearization of `X` at `p`. For every exponential dichotomy `P` of `A`, as in
+`TauCeti.IsGradientLike.exists_projection_exponential_bounds`, the range of `P` has dimension the
+Morse index of `f` at `p`. -/
+theorem IsGradientLike.finrank_range_eq_manifoldMorseIndex (hX : IsGradientLike f X) {p : M}
+    (hp : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p)
+    (hXp : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ, E).tangent
+      (fun x ↦ (X x : TangentBundle 𝓘(ℝ, E) M)) p)
+    {A : E →L[ℝ] E} (hA : A = sectionLinearization (F := E) 𝓘(ℝ, E) id X p)
+    {P : E →L[ℝ] E} (hP : IsIdempotentElem P) (hAP : Commute A P) {K α : ℝ} (hα : 0 < α)
+    (hs : ∀ t : ℝ, 0 ≤ t → ∀ v : E, ‖exp (t • A) (P v)‖ ≤ K * Real.exp (-α * t) * ‖v‖)
+    (hu : ∀ t : ℝ, t ≤ 0 → ∀ v : E, ‖exp (t • A) (v - P v)‖ ≤ K * Real.exp (α * t) * ‖v‖) :
+    finrank ℝ P.range = manifoldMorseIndex 𝓘(ℝ, E) f p := by
+  rw [ContinuousLinearMap.range_eq_stableSubspace_of_exponential_bounds hα hP hAP hs hu,
+    hX.finrank_stableSubspace_eq_manifoldMorseIndex hp hXp hA]
 
 end TauCeti

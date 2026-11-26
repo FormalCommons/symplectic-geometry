@@ -1,0 +1,184 @@
+/-
+Copyright (c) 2026 The FormalCommons contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: The FormalCommons contributors
+-/
+module
+
+public import Mathlib.LinearAlgebra.QuadraticForm.Signature
+public import TauCeti.Analysis.ODE.Linear
+import Mathlib.Analysis.InnerProductSpace.Dual
+import Mathlib.Analysis.InnerProductSpace.PiL2
+import TauCeti.Analysis.InnerProductSpace.LyapunovForm.Inertia
+import TauCeti.Analysis.ODE.ExponentialDichotomy
+import TauCeti.Analysis.ODE.ExponentialDichotomy.Hyperbolic
+import TauCeti.LinearAlgebra.QuadraticForm.Signature
+
+/-!
+# Lyapunov bilinear forms of a linear flow on a normed space
+
+Let `A` be an operator on a finite-dimensional real normed space `X`, and `B` a symmetric
+continuous bilinear form on `X` with `c * ‖v‖ ^ 2 ≤ B v (A v)` for some `c > 0`. Along the flow
+`exp (t • A)` the quadratic form `v ↦ B v v` then increases. This is Tau Ceti's notion of a
+Lyapunov form (`ContinuousLinearMap.HasLyapunovForm`) without a choice of inner product: on an
+inner product space, `B v w = ⟪S v, w⟫` for a symmetric `S`. This file transfers Tau Ceti's
+inertia theorem to this setting.
+
+## Main results
+
+* `ContinuousLinearEquiv.apply_mem_stableSubspace_conjContinuousAlgEquiv_iff`: a continuous
+  linear equivalence `e` maps the stable subspace of `A` to that of `e A e⁻¹`.
+* `ContinuousLinearMap.eq_zero_of_apply_eq_neg_smul_of_apply_eq_smul_of_le_apply`: `A` has no
+  rotating pair, so it is hyperbolic.
+* `ContinuousLinearMap.exists_projection_exponential_bounds_of_le_apply`: the flow of `A` has an
+  exponential dichotomy.
+* `ContinuousLinearMap.apply_self_neg_of_mem_stableSubspace` and
+  `ContinuousLinearMap.apply_self_pos_of_mem_unstableSubspace`: `B` is negative definite on the
+  stable subspace and positive definite on the unstable one.
+* `ContinuousLinearMap.sigNeg_toQuadraticMap_eq_finrank_stableSubspace`: the negative index of
+  inertia of `v ↦ B v v` is the dimension of the stable subspace of `A`.
+
+## Implementation notes
+
+The sign statements are deduced from Tau Ceti's
+`ContinuousLinearMap.inner_apply_self_neg_of_mem_stableSubspace`, after a choice of a continuous
+linear equivalence of `X` with a Euclidean space, in which `B` becomes `⟪S ·, ·⟫` by
+`InnerProductSpace.continuousLinearMapOfBilin`. The absence of rotating pairs follows the proof of
+Tau Ceti's `ContinuousLinearMap.HasLyapunovForm.eq_zero_of_apply_eq_neg_smul_of_apply_eq_smul`,
+and the index is Sylvester's law of inertia for a definite splitting,
+`QuadraticForm.sigNeg_eq_finrank_of_isCompl_of_negDef`.
+
+## References
+
+* A. Ostrowski and H. Schneider, *Some theorems on the inertia of general matrices*, J. Math. Anal.
+  Appl. **4** (1962), 72–84.
+-/
+
+public section
+
+open Filter Module NormedSpace Topology
+open scoped InnerProductSpace NNReal
+
+variable {X Y : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X] [NormedAddCommGroup Y]
+  [NormedSpace ℝ Y]
+
+namespace ContinuousLinearEquiv
+
+/-- A continuous linear equivalence `e` conjugates the flow of `A` to that of `e A e⁻¹`, so it
+maps the stable subspace of `A` onto that of `e A e⁻¹`. -/
+theorem apply_mem_stableSubspace_conjContinuousAlgEquiv_iff [CompleteSpace X] [CompleteSpace Y]
+    (e : X ≃L[ℝ] Y) {A : X →L[ℝ] X} {v : X} :
+    e v ∈ (e.conjContinuousAlgEquiv A).stableSubspace ↔ v ∈ A.stableSubspace := by
+  have hexp (t : ℝ) : exp (t • e.conjContinuousAlgEquiv A) (e v) = e (exp (t • A) v) := by
+    have hA : t • e.conjContinuousAlgEquiv A = e.conjContinuousAlgEquiv (t • A) := by
+      ext x
+      simp
+    rw [hA, ← map_exp_of_mem_ball (𝕂 := ℝ) _ e.conjContinuousAlgEquiv.continuous _
+      ((expSeries_radius_eq_top ℝ (X →L[ℝ] X)).symm ▸ edist_lt_top _ _),
+      conjContinuousAlgEquiv_apply_apply, symm_apply_apply]
+  simp only [ContinuousLinearMap.mem_stableSubspace, hexp]
+  simpa [Function.comp_def] using (e.toHomeomorph.isInducing.tendsto_nhds_iff
+    (f := fun t : ℝ ↦ exp (t • A) v) (l := atTop) (y := 0)).symm
+
+end ContinuousLinearEquiv
+
+namespace ContinuousLinearMap
+
+variable {A : X →L[ℝ] X} {B : X →L[ℝ] X →L[ℝ] ℝ} {c : ℝ}
+
+/-- **No rotating pairs.** If `B` is symmetric and `c * ‖v‖ ^ 2 ≤ B v (A v)` with `c > 0`, then
+`A v = -ω • w` and `A w = ω • v` force `v = 0` and `w = 0`: the operator `A` has no purely
+imaginary eigenvalue. -/
+theorem eq_zero_of_apply_eq_neg_smul_of_apply_eq_smul_of_le_apply (hB : ∀ u v, B u v = B v u)
+    (hc : 0 < c) (hcB : ∀ v, c * ‖v‖ ^ 2 ≤ B v (A v)) {ω : ℝ} {v w : X} (hv : A v = -ω • w)
+    (hw : A w = ω • v) : v = 0 ∧ w = 0 := by
+  have h₁ := hcB v
+  have h₂ := hcB w
+  rw [hv, map_smul, smul_eq_mul] at h₁
+  rw [hw, map_smul, smul_eq_mul, hB] at h₂
+  have hv0 : ‖v‖ ^ 2 = 0 := by nlinarith [sq_nonneg ‖v‖, sq_nonneg ‖w‖]
+  have hw0 : ‖w‖ ^ 2 = 0 := by nlinarith [sq_nonneg ‖v‖, sq_nonneg ‖w‖]
+  simpa using And.intro hv0 hw0
+
+variable [FiniteDimensional ℝ X]
+
+/-- **Exponential dichotomy.** If `B` is symmetric and `c * ‖v‖ ^ 2 ≤ B v (A v)` with `c > 0`,
+then the flow of `A` has an exponential dichotomy, in the form of Tau Ceti's
+`ContinuousLinearMap.exists_projection_exponential_bounds`. -/
+theorem exists_projection_exponential_bounds_of_le_apply (hB : ∀ u v, B u v = B v u)
+    (hc : 0 < c) (hcB : ∀ v, c * ‖v‖ ^ 2 ≤ B v (A v)) :
+    ∃ P : X →L[ℝ] X, IsIdempotentElem P ∧ Commute A P ∧ ∃ K α : ℝ≥0, 0 < K ∧ 0 < α ∧
+      (∀ t : ℝ, 0 ≤ t → ∀ v : X, ‖exp (t • A) (P v)‖ ≤ K * Real.exp (-α * t) * ‖v‖) ∧
+      (∀ t : ℝ, t ≤ 0 → ∀ v : X, ‖exp (t • A) (v - P v)‖ ≤ K * Real.exp (α * t) * ‖v‖) :=
+  A.exists_projection_exponential_bounds fun _ _ _ hv hw ↦
+    eq_zero_of_apply_eq_neg_smul_of_apply_eq_smul_of_le_apply hB hc hcB hv hw
+
+/-- **A Lyapunov bilinear form is negative definite on the stable subspace.** If `B` is symmetric
+and `c * ‖v‖ ^ 2 ≤ B v (A v)` with `c > 0`, then `B v v < 0` for every nonzero stable `v`. -/
+theorem apply_self_neg_of_mem_stableSubspace (hB : ∀ u v, B u v = B v u) (hc : 0 < c)
+    (hcB : ∀ v, c * ‖v‖ ^ 2 ≤ B v (A v)) {v : X} (hv : v ∈ A.stableSubspace) (hv0 : v ≠ 0) :
+    B v v < 0 := by
+  -- Identify `X` with a Euclidean space `F`, where `B` becomes `⟪S ·, ·⟫`.
+  let F := EuclideanSpace ℝ (Fin (finrank ℝ X))
+  let e : X ≃L[ℝ] F :=
+    (LinearEquiv.ofFinrankEq X F (finrank_euclideanSpace_fin (𝕜 := ℝ)).symm).toContinuousLinearEquiv
+  set B' : F →L[ℝ] F →L[ℝ] ℝ := B.bilinearComp (e.symm : F →L[ℝ] X) (e.symm : F →L[ℝ] X)
+  set S : F →L[ℝ] F := InnerProductSpace.continuousLinearMapOfBilin B'
+  have hS (u w : F) : ⟪S u, w⟫_ℝ = B (e.symm u) (e.symm w) :=
+    InnerProductSpace.continuousLinearMapOfBilin_apply B' u w
+  have hSsymm : (S : F →ₗ[ℝ] F).IsSymmetric := fun u w ↦ by
+    simp only [coe_coe]
+    rw [hS, real_inner_comm, hS, hB]
+  set N := ‖(e : X →L[ℝ] F)‖
+  have hN : 0 ≤ N := norm_nonneg _
+  have hcS (u : F) : c / (N + 1) ^ 2 * ‖u‖ ^ 2 ≤
+      ⟪S (e.conjContinuousAlgEquiv A u), u⟫_ℝ := by
+    rw [hS, ContinuousLinearEquiv.conjContinuousAlgEquiv_apply_apply, e.symm_apply_apply, hB]
+    have hu : ‖u‖ ≤ (N + 1) * ‖e.symm u‖ := by
+      calc ‖u‖ = ‖(e : X →L[ℝ] F) (e.symm u)‖ := by simp
+        _ ≤ N * ‖e.symm u‖ := le_opNorm _ _
+        _ ≤ (N + 1) * ‖e.symm u‖ := by gcongr; linarith
+    calc c / (N + 1) ^ 2 * ‖u‖ ^ 2 ≤ c / (N + 1) ^ 2 * ((N + 1) * ‖e.symm u‖) ^ 2 := by
+          gcongr
+      _ = c * ‖e.symm u‖ ^ 2 := by field_simp
+      _ ≤ _ := hcB _
+  have h := inner_apply_self_neg_of_mem_stableSubspace hSsymm (by positivity) hcS
+    (e.apply_mem_stableSubspace_conjContinuousAlgEquiv_iff.2 hv) (e.map_ne_zero_iff.2 hv0)
+  rwa [hS, e.symm_apply_apply] at h
+
+/-- **A Lyapunov bilinear form is positive definite on the unstable subspace.** If `B` is
+symmetric and `c * ‖v‖ ^ 2 ≤ B v (A v)` with `c > 0`, then `0 < B v v` for every nonzero unstable
+`v`. -/
+theorem apply_self_pos_of_mem_unstableSubspace (hB : ∀ u v, B u v = B v u) (hc : 0 < c)
+    (hcB : ∀ v, c * ‖v‖ ^ 2 ≤ B v (A v)) {v : X} (hv : v ∈ A.unstableSubspace) (hv0 : v ≠ 0) :
+    0 < B v v := by
+  rw [← stableSubspace_neg] at hv
+  have h := apply_self_neg_of_mem_stableSubspace (B := -B) (fun u w ↦ by simp [hB u w]) hc
+    (fun w ↦ by simpa using hcB w) hv hv0
+  simpa using h
+
+/-- **The inertia theorem for a Lyapunov bilinear form.** If `B` is symmetric and
+`c * ‖v‖ ^ 2 ≤ B v (A v)` with `c > 0`, then the negative index of inertia of the quadratic form
+`v ↦ B v v` is the dimension of the stable subspace of `A`. -/
+theorem sigNeg_toQuadraticMap_eq_finrank_stableSubspace (hB : ∀ u v, B u v = B v u)
+    (hc : 0 < c) (hcB : ∀ v, c * ‖v‖ ^ 2 ≤ B v (A v)) :
+    sigNeg B.toBilinForm.toQuadraticMap = finrank ℝ A.stableSubspace := by
+  obtain ⟨P, hP, hAP, K, α, -, hα, hs, hu⟩ :=
+    exists_projection_exponential_bounds_of_le_apply hB hc hcB
+  have hα' : (0 : ℝ) < α := hα
+  have hrange := range_eq_stableSubspace_of_exponential_bounds hα' hP hAP hs hu
+  have hrange' := range_id_sub_eq_unstableSubspace_of_exponential_bounds hα' hP hAP hs hu
+  have hcompl : IsCompl A.stableSubspace A.unstableSubspace := by
+    have h := LinearMap.IsIdempotentElem.isCompl (IsIdempotentElem.toLinearMap hP)
+    rw [LinearMap.IsIdempotentElem.ker_eq_range (IsIdempotentElem.toLinearMap hP)] at h
+    rw [← hrange, ← hrange']
+    exact h
+  refine QuadraticForm.sigNeg_eq_finrank_of_isCompl_of_negDef _ hcompl ?_ fun v hv ↦ ?_
+  · intro ⟨v, hv⟩ hv0
+    have hv0' : v ≠ 0 := by simpa using hv0
+    simpa using apply_self_neg_of_mem_stableSubspace hB hc hcB hv hv0'
+  · rcases eq_or_ne v 0 with rfl | hv0
+    · simp
+    simpa using (apply_self_pos_of_mem_unstableSubspace hB hc hcB hv hv0).le
+
+end ContinuousLinearMap
