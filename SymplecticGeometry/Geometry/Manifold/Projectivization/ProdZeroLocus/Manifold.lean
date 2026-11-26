@@ -91,8 +91,8 @@ variable {ι : Type*} {m n k : ℕ} {p : ι → MvPolynomial (Fin (m + 1) ⊕ Fi
 the zero set of a bihomogeneous family exactly when the chart equations vanish at its pair of
 affine coordinates. -/
 theorem mem_complexProjectiveProdZeroLocus_iff_prodChartEquations
-    (hp₁ : ∀ k, (p k).IsWeightedHomogeneous (Sum.elim 1 0) (d₁ k))
-    (hp₂ : ∀ k, (p k).IsWeightedHomogeneous (Sum.elim 0 1) (d₂ k))
+    (hp₁ : ∀ l, (p l).IsWeightedHomogeneous (Sum.elim 1 0) (d₁ l))
+    (hp₂ : ∀ l, (p l).IsWeightedHomogeneous (Sum.elim 0 1) (d₂ l))
     (hi : x.1 ∈ affineOpen i) (hj : x.2 ∈ affineOpen j) :
     x ∈ complexProjectiveProdZeroLocus p ↔
       ∀ k, prodChartEquations i j p (affineChart i x.1, affineChart j x.2) k = 0 := by
@@ -109,8 +109,8 @@ theorem mem_complexProjectiveProdZeroLocus_iff_prodChartEquations
 `affineOpen i` and `affineOpen j`, the derivative of the chart equations at its affine coordinates
 is surjective exactly when the cone Jacobian at the chosen representatives is. -/
 theorem surjective_fderiv_prodChartEquations_affineChart_iff_rep
-    (hp₁ : ∀ k, (p k).IsWeightedHomogeneous (Sum.elim 1 0) (d₁ k))
-    (hp₂ : ∀ k, (p k).IsWeightedHomogeneous (Sum.elim 0 1) (d₂ k))
+    (hp₁ : ∀ l, (p l).IsWeightedHomogeneous (Sum.elim 1 0) (d₁ l))
+    (hp₂ : ∀ l, (p l).IsWeightedHomogeneous (Sum.elim 0 1) (d₂ l))
     (hx : x ∈ complexProjectiveProdZeroLocus p) (hi : x.1 ∈ affineOpen i)
     (hj : x.2 ∈ affineOpen j) :
     Function.Surjective
@@ -125,8 +125,8 @@ namespace ComplexProjectiveProdZeroLocus
 
 /-- At a point of the zero set where the cone Jacobian is surjective, so is the derivative of the
 chart equations. -/
-private theorem range_fderiv (hp₁ : ∀ k, (p k).IsWeightedHomogeneous (Sum.elim 1 0) (d₁ k))
-    (hp₂ : ∀ k, (p k).IsWeightedHomogeneous (Sum.elim 0 1) (d₂ k))
+private theorem range_fderiv (hp₁ : ∀ l, (p l).IsWeightedHomogeneous (Sum.elim 1 0) (d₁ l))
+    (hp₂ : ∀ l, (p l).IsWeightedHomogeneous (Sum.elim 0 1) (d₂ l))
     (hx : x ∈ complexProjectiveProdZeroLocus p) (hi : x.1 ∈ affineOpen i)
     (hj : x.2 ∈ affineOpen j)
     (hrank : Function.Surjective (jacobiMatrixAt p (Sum.elim x.1.rep x.2.rep)).mulVec) :
@@ -138,8 +138,8 @@ variable [Fintype ι]
 
 /-- Rank–nullity for the surjective derivative of the chart equations. -/
 private theorem card_add_finrank_ker
-    (hp₁ : ∀ k, (p k).IsWeightedHomogeneous (Sum.elim 1 0) (d₁ k))
-    (hp₂ : ∀ k, (p k).IsWeightedHomogeneous (Sum.elim 0 1) (d₂ k))
+    (hp₁ : ∀ l, (p l).IsWeightedHomogeneous (Sum.elim 1 0) (d₁ l))
+    (hp₂ : ∀ l, (p l).IsWeightedHomogeneous (Sum.elim 0 1) (d₂ l))
     (hx : x ∈ complexProjectiveProdZeroLocus p) (hi : x.1 ∈ affineOpen i)
     (hj : x.2 ∈ affineOpen j)
     (hrank : Function.Surjective (jacobiMatrixAt p (Sum.elim x.1.rep x.2.rep)).mulVec) :
@@ -154,8 +154,8 @@ private theorem card_add_finrank_ker
 /-- The implicit-function chart `u ↦ (g u, P (u - u_x))` of the chart equations `g` at the affine
 coordinates `u_x` of `x`. -/
 private noncomputable def implicitChart
-    (hp₁ : ∀ k, (p k).IsWeightedHomogeneous (Sum.elim 1 0) (d₁ k))
-    (hp₂ : ∀ k, (p k).IsWeightedHomogeneous (Sum.elim 0 1) (d₂ k))
+    (hp₁ : ∀ l, (p l).IsWeightedHomogeneous (Sum.elim 1 0) (d₁ l))
+    (hp₂ : ∀ l, (p l).IsWeightedHomogeneous (Sum.elim 0 1) (d₂ l))
     (hx : x ∈ complexProjectiveProdZeroLocus p) (hi : x.1 ∈ affineOpen i)
     (hj : x.2 ∈ affineOpen j)
     (hrank : Function.Surjective (jacobiMatrixAt p (Sum.elim x.1.rep x.2.rep)).mulVec) :
@@ -168,8 +168,8 @@ private noncomputable def implicitChart
 /-- The neighbourhood of the affine coordinates of `x` on which the implicit-function chart keeps
 an invertible derivative. -/
 private noncomputable def implicitSource
-    (hp₁ : ∀ k, (p k).IsWeightedHomogeneous (Sum.elim 1 0) (d₁ k))
-    (hp₂ : ∀ k, (p k).IsWeightedHomogeneous (Sum.elim 0 1) (d₂ k))
+    (hp₁ : ∀ l, (p l).IsWeightedHomogeneous (Sum.elim 1 0) (d₁ l))
+    (hp₂ : ∀ l, (p l).IsWeightedHomogeneous (Sum.elim 0 1) (d₂ l))
     (hx : x ∈ complexProjectiveProdZeroLocus p) (hi : x.1 ∈ affineOpen i)
     (hj : x.2 ∈ affineOpen j)
     (hrank : Function.Surjective (jacobiMatrixAt p (Sum.elim x.1.rep x.2.rep)).mulVec) :
@@ -179,8 +179,8 @@ private noncomputable def implicitSource
     (ContinuousLinearMap.ker_closedComplemented_of_finiteDimensional_range _)
 
 private theorem isOpen_implicitSource
-    (hp₁ : ∀ k, (p k).IsWeightedHomogeneous (Sum.elim 1 0) (d₁ k))
-    (hp₂ : ∀ k, (p k).IsWeightedHomogeneous (Sum.elim 0 1) (d₂ k))
+    (hp₁ : ∀ l, (p l).IsWeightedHomogeneous (Sum.elim 1 0) (d₁ l))
+    (hp₂ : ∀ l, (p l).IsWeightedHomogeneous (Sum.elim 0 1) (d₂ l))
     (hx : x ∈ complexProjectiveProdZeroLocus p) (hi : x.1 ∈ affineOpen i)
     (hj : x.2 ∈ affineOpen j)
     (hrank : Function.Surjective (jacobiMatrixAt p (Sum.elim x.1.rep x.2.rep)).mulVec) :
@@ -190,8 +190,8 @@ private theorem isOpen_implicitSource
 /-- Reading the kernel in `Fin k → ℂ`, for `k + |ι| = m + n`, and putting the equations
 last. -/
 private noncomputable def coordEquiv (hk : k + Fintype.card ι = m + n)
-    (hp₁ : ∀ k, (p k).IsWeightedHomogeneous (Sum.elim 1 0) (d₁ k))
-    (hp₂ : ∀ k, (p k).IsWeightedHomogeneous (Sum.elim 0 1) (d₂ k))
+    (hp₁ : ∀ l, (p l).IsWeightedHomogeneous (Sum.elim 1 0) (d₁ l))
+    (hp₂ : ∀ l, (p l).IsWeightedHomogeneous (Sum.elim 0 1) (d₂ l))
     (hx : x ∈ complexProjectiveProdZeroLocus p) (hi : x.1 ∈ affineOpen i)
     (hj : x.2 ∈ affineOpen j)
     (hrank : Function.Surjective (jacobiMatrixAt p (Sum.elim x.1.rep x.2.rep)).mulVec) :
@@ -212,8 +212,8 @@ private noncomputable def modelEquiv (hk : k + Fintype.card ι = m + n) :
     omega)
 
 private theorem coordEquiv_apply_snd (hk : k + Fintype.card ι = m + n)
-    (hp₁ : ∀ k, (p k).IsWeightedHomogeneous (Sum.elim 1 0) (d₁ k))
-    (hp₂ : ∀ k, (p k).IsWeightedHomogeneous (Sum.elim 0 1) (d₂ k))
+    (hp₁ : ∀ l, (p l).IsWeightedHomogeneous (Sum.elim 1 0) (d₁ l))
+    (hp₂ : ∀ l, (p l).IsWeightedHomogeneous (Sum.elim 0 1) (d₂ l))
     (hx : x ∈ complexProjectiveProdZeroLocus p) (hi : x.1 ∈ affineOpen i)
     (hj : x.2 ∈ affineOpen j)
     (hrank : Function.Surjective (jacobiMatrixAt p (Sum.elim x.1.rep x.2.rep)).mulVec)
@@ -238,8 +238,8 @@ equations `prodChartEquations i j p` read in the product of the two affine chart
 flattens the zero set onto the slice where that component vanishes
 (`SymplecticGeometry.isSliceChart_complexProjectiveProdZeroLocusSliceChart`). -/
 noncomputable def complexProjectiveProdZeroLocusSliceChart (hk : k + Fintype.card ι = m + n)
-    (hp₁ : ∀ k, (p k).IsWeightedHomogeneous (Sum.elim 1 0) (d₁ k))
-    (hp₂ : ∀ k, (p k).IsWeightedHomogeneous (Sum.elim 0 1) (d₂ k))
+    (hp₁ : ∀ l, (p l).IsWeightedHomogeneous (Sum.elim 1 0) (d₁ l))
+    (hp₂ : ∀ l, (p l).IsWeightedHomogeneous (Sum.elim 0 1) (d₂ l))
     (hx : x ∈ complexProjectiveProdZeroLocus p) (hi : x.1 ∈ affineOpen i)
     (hj : x.2 ∈ affineOpen j)
     (hrank : Function.Surjective (jacobiMatrixAt p (Sum.elim x.1.rep x.2.rep)).mulVec) :
@@ -253,8 +253,8 @@ noncomputable def complexProjectiveProdZeroLocusSliceChart (hk : k + Fintype.car
 section SliceChart
 
 variable (hk : k + Fintype.card ι = m + n)
-  (hp₁ : ∀ k, (p k).IsWeightedHomogeneous (Sum.elim 1 0) (d₁ k))
-  (hp₂ : ∀ k, (p k).IsWeightedHomogeneous (Sum.elim 0 1) (d₂ k))
+  (hp₁ : ∀ l, (p l).IsWeightedHomogeneous (Sum.elim 1 0) (d₁ l))
+  (hp₂ : ∀ l, (p l).IsWeightedHomogeneous (Sum.elim 0 1) (d₂ l))
   (hx : x ∈ complexProjectiveProdZeroLocus p) (hi : x.1 ∈ affineOpen i)
   (hj : x.2 ∈ affineOpen j)
   (hrank : Function.Surjective (jacobiMatrixAt p (Sum.elim x.1.rep x.2.rep)).mulVec)
@@ -403,8 +403,8 @@ end SliceChart
 section Submanifold
 
 variable (hk : k + Fintype.card ι = m + n)
-  (hp₁ : ∀ k, (p k).IsWeightedHomogeneous (Sum.elim 1 0) (d₁ k))
-  (hp₂ : ∀ k, (p k).IsWeightedHomogeneous (Sum.elim 0 1) (d₂ k))
+  (hp₁ : ∀ l, (p l).IsWeightedHomogeneous (Sum.elim 1 0) (d₁ l))
+  (hp₂ : ∀ l, (p l).IsWeightedHomogeneous (Sum.elim 0 1) (d₂ l))
   {s V : Set (ℙ ℂ (Fin (m + 1) → ℂ) × ℙ ℂ (Fin (n + 1) → ℂ))}
   (hV : IsOpen V) (hs : s = complexProjectiveProdZeroLocus p ∩ V)
   (hrank : ∀ x ∈ s, Function.Surjective (jacobiMatrixAt p (Sum.elim x.1.rep x.2.rep)).mulVec)
