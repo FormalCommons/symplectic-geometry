@@ -8,8 +8,8 @@ module
 public import Mathlib.LinearAlgebra.Projectivization.Action
 public import SymplecticGeometry.Geometry.Manifold.RegularValue.CriticalSet
 public import TauCeti.Geometry.Manifold.Projectivization.ProjectiveLine
+public import TauCeti.Geometry.Manifold.Algebra.SMul
 import SymplecticGeometry.LinearAlgebra.Projectivization.Action
-import TauCeti.Geometry.Manifold.Algebra.SMul
 import TauCeti.Geometry.Manifold.Projectivization.Map
 
 /-!
@@ -82,10 +82,10 @@ theorem exists_smul_isRegularValue
   obtain ⟨g, hg₀, hg₁⟩ := MulAction.is_two_pretransitive_iff.1
     (inferInstance : MulAction.IsMultiplyPretransitive (Matrix.SpecialLinearGroup (Fin 2) ℂ)
       (ℙ ℂ (Fin 2 → ℂ)) 2) (Ne.symm hb.1) hz
-  refine ⟨Matrix.SpecialLinearGroup.toGL g, by rw [Matrix.SpecialLinearGroup.toGL_smul, hg₀],
-    ?_, ?_⟩
-  · rwa [← hg₀, ← Matrix.SpecialLinearGroup.toGL_smul, isRegularValue_smul_iff]
-  · rwa [← hg₁, ← Matrix.SpecialLinearGroup.toGL_smul, isRegularValue_smul_iff]
+  refine ⟨Matrix.SpecialLinearGroup.toGL g,
+    by rw [Matrix.SpecialLinearGroup.toGL_smul_projectivization, hg₀], ?_, ?_⟩
+  · rwa [← hg₀, ← Matrix.SpecialLinearGroup.toGL_smul_projectivization, isRegularValue_smul_iff]
+  · rwa [← hg₁, ← Matrix.SpecialLinearGroup.toGL_smul_projectivization, isRegularValue_smul_iff]
 
 end Projectivization
 

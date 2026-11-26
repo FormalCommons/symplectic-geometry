@@ -5,12 +5,15 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Algebra.Category.ModuleCat.ULiftTensor
-public import SymplecticGeometry.Algebra.Homology.Monoidal.HomologyCrossHomotopy
-public import SymplecticGeometry.Algebra.Homology.Monoidal.SplitMono
-public import SymplecticGeometry.AlgebraicTopology.Singular.PairChangeOfCoefficients
 public import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.RelativePair
 public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.ShuffleAssoc
+public import TauCeti.Algebra.Category.ModuleCat.Monoidal.Unit
+import SymplecticGeometry.Algebra.Category.ModuleCat.ULiftTensor
+import SymplecticGeometry.Algebra.Homology.Monoidal.HomologyCrossHomotopy
+import SymplecticGeometry.Algebra.Homology.Monoidal.SplitMono
+import SymplecticGeometry.AlgebraicTopology.Singular.PairChangeOfCoefficients
+import SymplecticGeometry.Algebra.Homology.Monoidal.Abelian
+import SymplecticGeometry.Algebra.Homology.Homotopy.DescCokernel
 
 /-!
 # Associativity of the homology cross product of pairs

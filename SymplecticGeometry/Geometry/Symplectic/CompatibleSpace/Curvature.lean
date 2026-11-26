@@ -5,16 +5,19 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Symplectic.CompatibleSpace.LeviCivita
 public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.Curvature.Sectional.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.Curvature.Tensor
 public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.LeviCivita.Regularity
+public import SymplecticGeometry.Geometry.Symplectic.CompatibleSpace.Kahler
+public import SymplecticGeometry.Topology.ComplexStructure.Basic
+import SymplecticGeometry.Geometry.Symplectic.CompatibleSpace.LeviCivita
 import Mathlib.Analysis.Matrix.PosDef
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.NormedSpace
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.Regularity
 import TauCeti.Geometry.Manifold.VectorBundle.Section.Extension
 import TauCeti.Geometry.Manifold.VectorField.LieBracket
+import SymplecticGeometry.LinearAlgebra.Symplectic.CompatibleTangent.Basic
 
 /-!
 # The curvature of the space of compatible complex structures

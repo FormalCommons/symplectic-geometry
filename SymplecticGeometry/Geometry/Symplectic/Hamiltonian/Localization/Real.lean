@@ -6,14 +6,14 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Equivariant.Calculus
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Equivariant.Localization
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
-public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Localization.LocalizingForm
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Localization.WeightOneForm
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Localization.Weights
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.LiouvilleMeasure
 public import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
 public import TauCeti.Geometry.Symplectic.Manifold.Volume
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Equivariant.Localization
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Localization.LocalizingForm
+import SymplecticGeometry.Geometry.Symplectic.Manifold.LiouvilleMeasure
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Support
 import SymplecticGeometry.Geometry.Manifold.PartitionOfUnity
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
@@ -430,7 +430,7 @@ theorem formCalculus_apply_weightChart [FiniteDimensional ℝ E] {σ : SmoothTwo
     Filter.eventually_of_mem ((Φ.toOpenPartialHomeomorph.isOpen_image_of_subset_source
       isOpen_ball hs).mem_nhds (mem_image_of_mem _ hz)) hθ
   rw [formCalculus_apply_val, mextDerivₗ_apply_eq_of_eventuallyEq_mpullback
-      ((Φ.symm.contMDiffOn.contMDiffAt (Φ.open_target.mem_nhds hxt)).of_le (by simp)) hθx,
+      ((Φ.symm.contMDiffAt hxt).of_le (by simp)) hθx,
     ← ContinuousAlternatingMap.wedgePow_compContinuousLinearMap, hpow,
     SmoothTwoForm.volumeForm_apply, hσx,
     ← ContinuousAlternatingMap.wedgePow_compContinuousLinearMap, ContMDiffMap.coe_smul,

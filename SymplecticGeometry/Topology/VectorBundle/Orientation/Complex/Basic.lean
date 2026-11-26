@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.Basic
-public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
+import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 
 /-!
 # The canonical orientation of a complex vector bundle in a complex-linear trivialization

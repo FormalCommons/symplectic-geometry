@@ -5,8 +5,13 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.DeRham.FundamentalClass
-public import SymplecticGeometry.Geometry.Symplectic.JHolomorphic.Energy.Surface
+public import TauCeti.Geometry.Symplectic.Manifold.Energy.Surface
+public import SymplecticGeometry.Geometry.Symplectic.JHolomorphic.Energy.Density
+public import TauCeti.Geometry.Manifold.SmoothSingular.Period
+public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
+public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
+import SymplecticGeometry.Geometry.Manifold.DeRham.FundamentalClass
+import SymplecticGeometry.Geometry.Symplectic.JHolomorphic.Energy.Surface
 
 /-!
 # The energy of pseudoholomorphic curves is topological

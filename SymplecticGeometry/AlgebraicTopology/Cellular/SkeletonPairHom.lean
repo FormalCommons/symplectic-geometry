@@ -5,9 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Cellular.SkeletonPairCohomology
 public import TauCeti.AlgebraicTopology.Cellular.Boundary
 public import TauCeti.Topology.CWComplex.Classical.RelativeCWComplex
+public import TauCeti.AlgebraicTopology.Cohomology.Relative
+import SymplecticGeometry.AlgebraicTopology.Cellular.SkeletonPairCohomology
 
 /-!
 # Maps of pairs out of a skeletal pair, cell by cell

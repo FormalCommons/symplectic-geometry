@@ -9,6 +9,8 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Basic
 public import SymplecticGeometry.Geometry.Manifold.Instances.SymplecticGroup.Basic
 public import SymplecticGeometry.Topology.VectorBundle.Core.TwoChart
 public import TauCeti.Analysis.Matrix.EuclideanLin
+public import TauCeti.Geometry.Manifold.Instances.SymplecticGroup
+public import SymplecticGeometry.Topology.VectorBundle.Core.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Core.TwoChart
 import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 

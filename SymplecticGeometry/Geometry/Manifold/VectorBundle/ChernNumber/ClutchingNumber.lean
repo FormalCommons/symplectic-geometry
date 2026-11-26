@@ -7,10 +7,10 @@ module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.CubeToSphere
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.Clutching
-public import SymplecticGeometry.Topology.Circle.Degree.Square
-public import SymplecticGeometry.Topology.Homotopy.Cube.Radius
-public import SymplecticGeometry.Topology.VectorBundle.Complex.Clutching
-public import SymplecticGeometry.Topology.VectorBundle.Pullback
+import SymplecticGeometry.Topology.Circle.Degree.Square
+import SymplecticGeometry.Topology.Homotopy.Cube.Radius
+import SymplecticGeometry.Topology.VectorBundle.Complex.Clutching
+import SymplecticGeometry.Topology.VectorBundle.Pullback
 
 /-!
 # Clutching numbers and first Chern numbers

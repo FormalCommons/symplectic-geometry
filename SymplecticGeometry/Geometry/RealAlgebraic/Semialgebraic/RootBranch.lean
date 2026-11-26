@@ -5,12 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Algebra.MvPolynomial.Polynomial
-public import SymplecticGeometry.Geometry.RealAlgebraic.Semialgebraic.OneVariable
-public import SymplecticGeometry.RingTheory.Polynomial.Irreducible
-public import SymplecticGeometry.RingTheory.UniqueFactorizationDomain
 public import TauCeti.Geometry.RealAlgebraic.Nash.OfSemialgebraic
 public import TauCeti.RingTheory.Polynomial.Resultant.Discriminant
+import SymplecticGeometry.Algebra.MvPolynomial.Polynomial
+import SymplecticGeometry.Geometry.RealAlgebraic.Semialgebraic.OneVariable
+import SymplecticGeometry.RingTheory.Polynomial.Irreducible
+import SymplecticGeometry.RingTheory.UniqueFactorizationDomain
 
 /-!
 # A one-variable semialgebraic function is a root branch near a point

@@ -5,8 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Lie.Subgroup.BalancedProduct
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.OrbitTube
+import SymplecticGeometry.Geometry.Lie.Subgroup.BalancedProduct
+import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 
 /-!
 # The tube map of an orbit along a linear fibre

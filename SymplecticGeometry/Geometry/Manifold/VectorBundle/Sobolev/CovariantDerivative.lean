@@ -5,12 +5,13 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.CovariantDerivative.Chart
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.LowerOrder
 public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.ContMDiffSection
+public import TauCeti.Analysis.Sobolev.Wkp.SmoothCoefficients
+public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Chart
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.CovariantDerivative.Chart
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.LowerOrder
 import TauCeti.Analysis.Calculus.FDeriv.ContinuousLinearMap
-import TauCeti.Analysis.Sobolev.Wkp.SmoothCoefficients
 import TauCeti.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.Transfer
 import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.Transfer
 

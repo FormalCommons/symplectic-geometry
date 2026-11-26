@@ -5,11 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.LerayHirsch.Bundle
-public import SymplecticGeometry.AlgebraicTopology.Singular.Nullhomotopic
-public import SymplecticGeometry.Topology.Category.TopCat.Monoidal
 public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.ProjectiveSpace
+import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
+import SymplecticGeometry.AlgebraicTopology.Cohomology.LerayHirsch.Bundle
+import SymplecticGeometry.AlgebraicTopology.Singular.Nullhomotopic
+import SymplecticGeometry.Topology.Category.TopCat.Monoidal
+import SymplecticGeometry.Topology.ComplexProjectiveSpace.Cohomology
 
 /-!
 # Degree two of the integral cohomology of `X × ℙ ℂ V`

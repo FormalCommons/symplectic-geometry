@@ -5,8 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Support
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Stabilizer
+import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Support
 
 /-!
 # Compactly supported form-preserving isotopies

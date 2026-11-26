@@ -5,10 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Fibration
 public import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Sum
 public import TauCeti.Analysis.Matrix.UnitaryGroup.Maslov.Loop
 public import TauCeti.Analysis.Matrix.UnitaryGroup.Maslov.Multiplicity
+public import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Quotient
+import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Fibration
 
 /-!
 # The Maslov phase and the Maslov index of loops of Lagrangian subspaces

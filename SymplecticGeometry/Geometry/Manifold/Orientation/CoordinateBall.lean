@@ -7,8 +7,8 @@ module
 
 public import TauCeti.Geometry.Manifold.Orientation.CoordinateBall
 public import TauCeti.Geometry.Manifold.Orientation.Preserving
+public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 
 /-!
 # Oriented charts on balls

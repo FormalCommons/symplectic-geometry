@@ -6,7 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Topology.MetricSpace.Thickening
-public import SymplecticGeometry.Analysis.Complex.MvPolynomial.LogAverage
+public import Mathlib.MeasureTheory.Integral.Average
+public import Mathlib.Analysis.Normed.Lp.MeasurableSpace
+public import Mathlib.MeasureTheory.Measure.Haar.OfBasis
+import SymplecticGeometry.Analysis.Complex.MvPolynomial.LogAverage
 import Mathlib.Analysis.Convex.Mul
 import Mathlib.LinearAlgebra.Complex.FiniteDimensional
 import SymplecticGeometry.Algebra.MvPolynomial.Degrees
@@ -18,6 +21,7 @@ import TauCeti.MeasureTheory.Measure.Haar.Average
 import TauCeti.MeasureTheory.Measure.OpenPos
 import TauCeti.RingTheory.MvPolynomial.Homogeneous
 import TauCeti.RingTheory.MvPolynomial.Rescale
+import SymplecticGeometry.Topology.Algebra.Module.LineReach
 
 /-!
 # Volumes of tubes around complex algebraic hypersurfaces

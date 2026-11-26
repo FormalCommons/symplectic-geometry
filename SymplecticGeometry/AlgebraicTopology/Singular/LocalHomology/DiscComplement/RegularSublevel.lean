@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.DiscComplement.Basic
-public import SymplecticGeometry.Geometry.Manifold.RegularValue.ChartBall
+import SymplecticGeometry.Geometry.Manifold.RegularValue.ChartBall
 
 /-!
 # Regular sublevel sets around a coordinate disc and its complement

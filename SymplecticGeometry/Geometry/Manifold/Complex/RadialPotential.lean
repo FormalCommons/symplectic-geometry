@@ -5,8 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Geometry.Manifold.ContMDiffMap
-public import SymplecticGeometry.Analysis.Complex.QuadraticLeviForm
+public import Mathlib.Geometry.Manifold.Algebra.SmoothFunctions
+public import TauCeti.Geometry.Manifold.Instances.Cylinder
+public import TauCeti.Analysis.Complex.Euclidean.Space
+import SymplecticGeometry.Analysis.Complex.QuadraticLeviForm
 import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 
 /-!
@@ -16,7 +18,8 @@ For a finite type `ι` and a function `g : ℝ → ℝ` smooth on `(0, ∞)`, th
 `z ↦ g |z|²` with `|z|² = ∑ᵢ ‖zᵢ‖²` is smooth on `TauCeti.puncturedSpace (ι → ℂ)`.
 
 * `SymplecticGeometry.radialPotential hg`: this function, as a smooth map to `ℝ`, with
-  `coe_radialPotential` and `radialPotential_apply`.
+  `coe_radialPotential` and `radialPotential_apply`. It is linear in `g`
+  (`radialPotential_add`, `radialPotential_const_mul`).
 
 For `g = log` it is the Kähler potential of the Fubini–Study form
 (`SymplecticGeometry.fubiniStudyPotential`), and `Geometry/Symplectic/Complex/Radial.lean`
@@ -53,6 +56,19 @@ theorem radialPotential_apply {g : ℝ → ℝ} (hg : ContDiffOn ℝ ∞ g (Ioi 
     (z : puncturedSpace (ι → ℂ)) :
     radialPotential hg z = g (∑ i, ‖(z : ι → ℂ) i‖ ^ 2) := by
   simp only [coe_radialPotential, norm_sq_complexToRealEuclidean]
+
+/-- The radial potential of `g₁ + g₂` is the sum of those of `g₁` and `g₂`. -/
+theorem radialPotential_add {g₁ g₂ : ℝ → ℝ} (hg₁ : ContDiffOn ℝ ∞ g₁ (Ioi 0))
+    (hg₂ : ContDiffOn ℝ ∞ g₂ (Ioi 0)) :
+    radialPotential (ι := ι) (g := fun s ↦ g₁ s + g₂ s) (hg₁.add hg₂) =
+      radialPotential hg₁ + radialPotential hg₂ :=
+  ContMDiffMap.ext fun z ↦ by simp
+
+/-- The radial potential of `c g` is `c` times that of `g`. -/
+theorem radialPotential_const_mul (c : ℝ) {g : ℝ → ℝ} (hg : ContDiffOn ℝ ∞ g (Ioi 0)) :
+    radialPotential (ι := ι) (g := fun s ↦ c * g s) (contDiffOn_const.mul hg) =
+      c • radialPotential hg :=
+  ContMDiffMap.ext fun z ↦ by simp
 
 end SymplecticGeometry
 

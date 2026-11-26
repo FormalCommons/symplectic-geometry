@@ -5,9 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Sobolev.Wkp.Hilbert
 public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.ZeroOneForm.Basic
+import SymplecticGeometry.Analysis.Sobolev.Wkp.Hilbert
 import TauCeti.Geometry.Manifold.Complex.Analytic
+import SymplecticGeometry.Analysis.InnerProductSpace.ContinuousLinearEquiv
 
 /-!
 # Sobolev sections of exponent two are Hilbert spaces up to isomorphism

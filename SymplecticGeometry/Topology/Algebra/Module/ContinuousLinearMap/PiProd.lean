@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Topology.Algebra.Module.ContinuousLinearMap.PiProd
-public import SymplecticGeometry.LinearAlgebra.Prod
+import SymplecticGeometry.LinearAlgebra.Prod
 
 /-!
 # Injectivity of a continuous linear map with one column added

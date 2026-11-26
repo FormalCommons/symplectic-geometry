@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.Foliation.LeafSpace.Smooth
 public import TauCeti.Geometry.Manifold.Submersion.Descent
 import Mathlib.Geometry.Manifold.Instances.Real
 import SymplecticGeometry.Topology.Algebra.Module.FiniteDimension
+import TauCeti.Geometry.Manifold.ConstantRank.Basic
 
 /-!
 # The kernel foliation of a map of constant rank is regular

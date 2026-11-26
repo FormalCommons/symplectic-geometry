@@ -5,11 +5,13 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.ComplexStructure
-public import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.Maslov
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.Basic
-public import SymplecticGeometry.Topology.Algebra.Matrix.GeneralLinearGroup
-public import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
+public import TauCeti.Analysis.Matrix.SymplecticGroup.Maslov
+public import TauCeti.Analysis.Complex.NormalizedDeterminant
+import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.ComplexStructure
+import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.Maslov
+import SymplecticGeometry.Topology.Algebra.Matrix.GeneralLinearGroup
+import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
 
 /-!
 # Unitary symplectic frames

@@ -10,8 +10,8 @@ public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Cayley
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.Topology
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.Basic
-public import SymplecticGeometry.Topology.Homotopy.Affine
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Map.Topology
+import SymplecticGeometry.Topology.Homotopy.Affine
 
 /-!
 # Tame and compatible structures and forms on a vector bundle: contractibility and the polar map

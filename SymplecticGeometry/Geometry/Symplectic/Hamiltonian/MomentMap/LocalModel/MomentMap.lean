@@ -6,9 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Descent
-public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Manifold
-public import SymplecticGeometry.Geometry.Lie.ProdFstMulAction
 public import TauCeti.Geometry.Symplectic.Hamiltonian.Reduction.MomentMap
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Manifold
+import SymplecticGeometry.Geometry.Lie.ProdFstMulAction
 
 /-!
 # The moment map of the local model, on `G × (A × V)` and on `G ×_K (A × V)`
