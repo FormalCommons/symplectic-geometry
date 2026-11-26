@@ -104,7 +104,7 @@ theorem chernNumber_eq_integral_curvature (o : Manifold.Orientation (𝓡 2) M (
     exists_coordinateDisc_unitSection_eq_phase_zpow_smul g hI o
   obtain rfl : φ = fun i ↦ CoordinateDisc.ofChart (e i) (hr i) (hc i) (he i) := funext hφe
   -- a smooth cut-off `β`, `0` up to `1 / 4` and `1` from `1 / 2` on
-  obtain ⟨β, hβ, hβa, hβb, -⟩ := TauCeti.exists_contDiff_step (by norm_num : (1 / 4 : ℝ) < 1 / 2)
+  obtain ⟨β, hβ, -, hβa, hβb, -⟩ := TauCeti.exists_contDiff_step (by norm_num : (1 / 4 : ℝ) < 1 / 2)
   obtain ⟨α₁, hα₁, hout, hpull⟩ := exists_isCircleConnectionForm_of_collar_eq_zpow_smul
     (fun i ↦ (CoordinateDisc.contMDiff_ofChart (e i) (hr i) (hc i) (he i)
       (hatlas i)).mdifferentiable (by simp))
