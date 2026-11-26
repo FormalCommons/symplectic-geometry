@@ -11,7 +11,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.IsManifold.SecondCountable
-import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Extension
+import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Family
 import SymplecticGeometry.Geometry.Symplectic.Moser.Family
 import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
