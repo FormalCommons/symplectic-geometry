@@ -106,7 +106,7 @@ for which the frames `(u, J u)` are positive. For the opposite orientation it is
 oriented. -/
 def selfIntersectionNumber (f : SmoothEmbedding (𝓡 2) I ∞ M X) (hE : finrank ℝ E = 4)
     (J : SmoothAlmostComplexStructure I X)
-    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn)
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn))
     (o : Manifold.Orientation (𝓡 2) M (Fin 2)) : ℤ :=
   letI := f.normalSpaceFiberBundle hn (finrank_real_complex_eq_sub_of_finrank_eq_four hE)
   letI := f.normalSpaceVectorBundle hn (finrank_real_complex_eq_sub_of_finrank_eq_four hE)
@@ -114,12 +114,12 @@ def selfIntersectionNumber (f : SmoothEmbedding (𝓡 2) I ∞ M X) (hE : finran
       HomologicalOrientation M (EuclideanSpace ℝ (Fin 2)) 2).evalFundamentalClass
     finrank_euclideanSpace_fin (ModuleCat.of ℤ (ULift ℤ)) (ContinuousMap.id M)
     (complexEulerClass (r := 0) ℂ (f.normalComplexStructure hn J
-      (finrank_real_complex_eq_sub_of_finrank_eq_four hE) fun x v hv ↦ hJ x v hv).Fiber
+      (finrank_real_complex_eq_sub_of_finrank_eq_four hE) hJ).Fiber
       (finrank_self ℂ))).down
 
 theorem selfIntersectionNumber_def (f : SmoothEmbedding (𝓡 2) I ∞ M X) (hE : finrank ℝ E = 4)
     (J : SmoothAlmostComplexStructure I X)
-    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn)
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn))
     (o : Manifold.Orientation (𝓡 2) M (Fin 2)) :
     letI := f.normalSpaceFiberBundle hn (finrank_real_complex_eq_sub_of_finrank_eq_four hE)
     letI := f.normalSpaceVectorBundle hn (finrank_real_complex_eq_sub_of_finrank_eq_four hE)
@@ -128,7 +128,7 @@ theorem selfIntersectionNumber_def (f : SmoothEmbedding (𝓡 2) I ∞ M X) (hE 
           HomologicalOrientation M (EuclideanSpace ℝ (Fin 2)) 2).evalFundamentalClass
         finrank_euclideanSpace_fin (ModuleCat.of ℤ (ULift ℤ)) (ContinuousMap.id M)
         (complexEulerClass (r := 0) ℂ (f.normalComplexStructure hn J
-          (finrank_real_complex_eq_sub_of_finrank_eq_four hE) fun x v hv ↦ hJ x v hv).Fiber
+          (finrank_real_complex_eq_sub_of_finrank_eq_four hE) hJ).Fiber
           (finrank_self ℂ))).down :=
   (rfl)
 
@@ -136,7 +136,7 @@ theorem selfIntersectionNumber_def (f : SmoothEmbedding (𝓡 2) I ∞ M X) (hE 
 complex structure that `J` induces on the normal bundle. -/
 theorem selfIntersectionNumber_eq_chernNumber (f : SmoothEmbedding (𝓡 2) I ∞ M X)
     (hE : finrank ℝ E = 4) (J : SmoothAlmostComplexStructure I X)
-    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn)
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn))
     (o : Manifold.Orientation (𝓡 2) M (Fin 2)) :
     letI := f.normalSpaceFiberBundle hn (finrank_real_complex_eq_sub_of_finrank_eq_four hE)
     letI := f.normalSpaceVectorBundle hn (finrank_real_complex_eq_sub_of_finrank_eq_four hE)
@@ -144,14 +144,14 @@ theorem selfIntersectionNumber_eq_chernNumber (f : SmoothEmbedding (𝓡 2) I �
       chernNumber (o.toHomologicalOrientation finrank_euclideanSpace_fin)
         finrank_euclideanSpace_fin ℂ
         (f.normalComplexStructure hn J (finrank_real_complex_eq_sub_of_finrank_eq_four hE)
-          fun x v hv ↦ hJ x v hv).Fiber := by
+          hJ).Fiber := by
   rw [selfIntersectionNumber_def, chernNumber_def, firstChernClass_eq_complexEulerClass]
 
 /-- Reversing the orientation `o` of the surface negates the number. -/
 @[simp]
 theorem selfIntersectionNumber_neg_orientation (f : SmoothEmbedding (𝓡 2) I ∞ M X)
     (hE : finrank ℝ E = 4) (J : SmoothAlmostComplexStructure I X)
-    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn)
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn))
     (o : Manifold.Orientation (𝓡 2) M (Fin 2)) :
     f.selfIntersectionNumber hE J hJ (-o) = -f.selfIntersectionNumber hE J hJ o := by
   rw [selfIntersectionNumber_eq_chernNumber, selfIntersectionNumber_eq_chernNumber,
@@ -177,7 +177,7 @@ where `J' = J.restrict f hJ`, gives `ho` through
 `TauCeti.AlmostComplexStructure.orientation_eq_of_apply_one_eq`. -/
 theorem shortExact_orientationAt_normalSpace {k : ℕ} (hk : finrank ℝ E' = k)
     (f : SmoothEmbedding I' I ∞ N X) (J : SmoothAlmostComplexStructure I X)
-    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn)
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn))
     {o : Manifold.Orientation I' N (Fin k)} {c : N}
     (ho : o.orientationAt c = Orientation.reindex ℝ _
       (finCongr (n := finrank ℝ (TangentSpace I' c)) hk)
