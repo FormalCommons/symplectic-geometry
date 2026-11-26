@@ -208,11 +208,7 @@ theorem singularRelativeCap_singularHomologyCrossRelPair_ulift
       (ρ_ (ModuleCat.of ℤ (ULift.{0} ℤ))).inv ≫ (𝟙 _ ⊗ₘ TauCeti.integralCoeffIso.inv) := by
     rw [Category.comp_id, id_tensorHom, ← cancel_mono (ModuleCat.uliftTensorSelfIso ℤ).hom,
       Iso.inv_hom_id, Category.assoc]
-    have hinv : TauCeti.integralCoeffIso.inv =
-        ModuleCat.ofHom (ULift.moduleEquiv.symm : ℤ ≃ₗ[ℤ] ULift.{0} ℤ).toLinearMap := by
-      ext
-      exact congrArg ULift.down (TauCeti.integralCoeffIso_inv_apply 1)
-    rw [hinv, ← Category.assoc]
+    rw [TauCeti.integralCoeffIso_inv_eq_ofHom, ← Category.assoc]
     exact (ModuleCat.rightUnitor_inv_whiskerLeft_uliftTensorSelfIso_hom ℤ).symm
   have hμ : (TauCeti.integralCoeffIso.inv ▷ 𝟙_ (ModuleCat.{0} ℤ)) ≫ (ρ_ _).hom =
       (𝟙_ (ModuleCat.{0} ℤ) ◁ TauCeti.integralCoeffIso.inv) ≫ (λ_ _).hom ≫ 𝟙 _ := by

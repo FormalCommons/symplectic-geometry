@@ -247,7 +247,10 @@ private def rotationHomotopyIso (m n : ℤ) :=
 
 private theorem fiberMap_rotationHomotopyIso_zero (m n : ℤ) (w : X × Circle) :
     (rotationHomotopyIso m n).hom.fiberMap ((w.1, 0), w.2) =
-      (whitneyMapIso (circleZPowIso X m) (circleZPowIso X n)).hom.fiberMap w := by
+      (eqToIso (pullback_whitneySum _ _ _) ≪≫
+        whitneyMapIso (circleZPowIso X m) (circleZPowIso X n) ≪≫
+        eqToIso (pullback_whitneySum _ _ _).symm).hom.fiberMap w := by
+  rw [fiberMap_eqToIso_whitneyMapIso_hom]
   -- At `t = 0` the rotation is the identity.
   have hc : rotationCos X ((w.1, 0), w.2) = 1 := by simp [rotationCos]
   have hs : rotationSin X ((w.1, 0), w.2) = 0 := by simp [rotationSin]
@@ -255,7 +258,7 @@ private theorem fiberMap_rotationHomotopyIso_zero (m n : ℤ) (w : X × Circle) 
     fiberMap_whitneyRotation_hom, fiberMap_whitneyRotation_inv, hc, hs, zero_smul, one_smul,
     add_zero, sub_zero, ContinuousLinearMap.id_comp, ContinuousLinearMap.comp_id]
   rw [← fiberMap_comp, whitneyMapIso_hom, whitneyMapIso_hom, ← whitneyMap_comp, Iso.refl_hom,
-    Category.id_comp, Category.comp_id, whitneyMapIso_hom, fiberMap_whitneyMap, fiberMap_whitneyMap,
+    Category.id_comp, Category.comp_id, fiberMap_whitneyMap,
     fiberMap_pullbackForgetTimeIso_hom, fiberMap_pullbackForgetTimeIso_hom,
     fiberMap_circleZPowIso_hom, fiberMap_circleZPowIso_hom]
   -- The two sides differ only in the ranks of the pullbacks of the trivial line to
@@ -264,7 +267,10 @@ private theorem fiberMap_rotationHomotopyIso_zero (m n : ℤ) (w : X × Circle) 
 
 private theorem fiberMap_rotationHomotopyIso_one (m n : ℤ) (w : X × Circle) :
     (rotationHomotopyIso m n).hom.fiberMap ((w.1, 1), w.2) =
-      (whitneyMapIso (circleZPowIso X (m + n)) (circleZPowIso X 0)).hom.fiberMap w := by
+      (eqToIso (pullback_whitneySum _ _ _) ≪≫
+        whitneyMapIso (circleZPowIso X (m + n)) (circleZPowIso X 0) ≪≫
+        eqToIso (pullback_whitneySum _ _ _).symm).hom.fiberMap w := by
+  rw [fiberMap_eqToIso_whitneyMapIso_hom]
   -- At `t = 1` the rotation is the quarter turn `J`, which conjugates `diag (1, u ^ n)` to
   -- `diag (u ^ n, 1)`.
   have hc : rotationCos X ((w.1, 1), w.2) = 0 := by simp [rotationCos]
@@ -276,7 +282,7 @@ private theorem fiberMap_rotationHomotopyIso_one (m n : ℤ) (w : X × Circle) :
   simp only [whitneyMapIso_hom, Iso.refl_hom]
   rw [whitneyQuarterTurn_comp_whitneyMap_comp_neg, ← whitneyMap_comp, Category.comp_id,
     pullbackForgetTimeIso_hom, pullbackForgetTimeIso_hom, ← pullbackForgetTime_comp,
-    fiberMap_whitneyMap, fiberMap_whitneyMap, fiberMap_pullbackForgetTime, fiberMap_comp,
+    fiberMap_whitneyMap, fiberMap_pullbackForgetTime, fiberMap_comp,
     fiberMap_circleZPowIso_hom, fiberMap_circleZPowIso_hom, fiberMap_circleZPowIso_hom,
     fiberMap_circleZPowIso_hom, fiberMap_id,
     ContinuousLinearMap.smul_comp, ContinuousLinearMap.id_comp, smul_smul,
@@ -294,8 +300,12 @@ theorem whitneySum_clutching_circleZPowIso [ParacompactSpace X] [R1Space X] (m n
         ((trivial ℂ X 1).clutching (circleZPowIso X 0))) := by
   obtain ⟨e⟩ := nonempty_iso_clutching_of_homotopic
     (E := whitneySum (trivial ℂ X 1) (trivial ℂ X 1))
-    (f₀ := whitneyMapIso (circleZPowIso X m) (circleZPowIso X n))
-    (f₁ := whitneyMapIso (circleZPowIso X (m + n)) (circleZPowIso X 0))
+    (f₀ := eqToIso (pullback_whitneySum _ _ _) ≪≫
+      whitneyMapIso (circleZPowIso X m) (circleZPowIso X n) ≪≫
+      eqToIso (pullback_whitneySum _ _ _).symm)
+    (f₁ := eqToIso (pullback_whitneySum _ _ _) ≪≫
+      whitneyMapIso (circleZPowIso X (m + n)) (circleZPowIso X 0) ≪≫
+      eqToIso (pullback_whitneySum _ _ _).symm)
     (rotationHomotopyIso m n) (fiberMap_rotationHomotopyIso_zero m n)
     (fiberMap_rotationHomotopyIso_one m n)
   exact ⟨(clutchingWhitneySumIso _ _).symm ≪≫ e ≪≫ clutchingWhitneySumIso _ _⟩

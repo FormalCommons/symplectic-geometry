@@ -253,16 +253,14 @@ parallel transport. About 550 lines.
   nondegenerate `τ`, `TauCeti.IsEhresmannConnection IM IB ∞ π
   (τ.horizontalDistribution π)`. The complement condition is Mathlib's
   `LinearMap.BilinForm.isCompl_orthogonal_of_restrict_nondegenerate`
-  (an alternating form is reflexive). For smoothness and rank, take near a
-  point a frame of the vertical spaces (Tau Ceti's
-  `Manifold.IsSubmersion.isContMDiffDistribution_ker_mfderiv`) and smooth
-  lifts of a frame of the base. Subtracting from each lift its projection
-  onto the vertical spaces along the orthogonal (the library's
-  `LinearAlgebra/BilinearForm/Orthogonal.lean`) gives a frame of the
-  horizontal spaces. The coefficients of that projection solve a linear
-  system whose matrix, the values of `τ` on the vertical frame, is
-  invertible and smooth.
-- `horizontalDistribution_eq_iff`: two vertically nondegenerate forms that
+  (an alternating form is reflexive). For smoothness and rank, the vertical
+  spaces have smooth local frames (Tau Ceti's
+  `Manifold.IsSubmersion.isContMDiffDistribution_ker_mfderiv`), and the
+  library's `TauCeti.HasLocalContMDiffSubbundleFrames.orthogonal`
+  (`Geometry/Manifold/VectorBundle/Orthogonal.lean`), applied to Tau Ceti's
+  smooth flat map `SmoothTwoForm.contMDiff_flat`, gives smooth local frames
+  of their `τ`-orthogonals.
+- `horizontalDistribution_eq_iff`: two forms, the first vertically nondegenerate, that
   agree on pairs of vertical vectors define the same connection exactly
   when their difference vanishes on `(η, v)` for every vertical `η`. The
   pointwise statement is a new lemma `LinearMap.BilinForm.orthogonal_eq_orthogonal_iff`
