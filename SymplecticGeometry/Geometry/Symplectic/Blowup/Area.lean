@@ -273,9 +273,9 @@ theorem blowdown_profileForm_area (hl : 0 < l) (hε : 0 < ε) {Ω : Set ℂ} (h�
     {ũ : ℂ → BlowupModel n} (hũ : ContinuousOn ũ Ω) (hũu : ∀ t ∈ Ω, (ũ t).blowdown = u t) :
     ∫ t in Ω, (ω₀E n).eval₂ (u t) (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) u t (1 : ℂ))
         (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) u t Complex.I) =
-      ∫ t in Ω, (profileForm n l ε).eval₂ (ũ t)
+      (∫ t in Ω, (profileForm n l ε).eval₂ (ũ t)
           (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ũ t (1 : ℂ))
-          (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ũ t Complex.I) +
+          (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ũ t Complex.I)) +
         (∑ s ∈ S, analyticOrderNatAt u s) * Real.pi * l ^ 2 := by
   have hmem (t : ℂ) : t ∈ S ↔ t ∈ Ω ∧ u t = 0 := by
     rw [← Finset.mem_coe, ← hS, mem_ofPred_eq]
@@ -328,6 +328,10 @@ theorem blowdown_profileForm_area (hl : 0 < l) (hε : 0 < ε) {Ω : Set ℂ} (h�
         ring
   have hΔ := setIntegral_laplacian_eq_of_log_poles hΩ hb hSΩ hsm hC hpole
   have hΔi := integrableOn_laplacian_of_log_poles hΩ hb hSΩ hsm hC hpole
+  have hsum : ∑ s ∈ S, -(l ^ 2 * (analyticOrderNatAt u s : ℝ)) =
+      -(l ^ 2 * ((∑ s ∈ S, analyticOrderNatAt u s : ℕ) : ℝ)) := by
+    push_cast
+    rw [Finset.mul_sum, Finset.sum_neg_distrib]
   -- Off the zeros, the densities differ by a quarter of `Δ h`.
   have hae : ∀ᵐ t ∂volume.restrict Ω,
       (profileForm n l ε).eval₂ (ũ t)
@@ -343,12 +347,7 @@ theorem blowdown_profileForm_area (hl : 0 < l) (hε : 0 < ε) {Ω : Set ℂ} (h�
       ← eval₂_ω₀E_sub_eval₂_profileForm_curveLift hl hε (hua t htΩ) ht0, hev.mfderiv_eq]
     exact (SmoothForm.eval₂_tangentSpaceCast (profileForm n l ε) (hlift htΩ).symm
       (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift u) t (1 : ℂ))
-      (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift u) t Complex.I)).trans
-      (by ring)
-  have hsum : ∑ s ∈ S, -(l ^ 2 * (analyticOrderNatAt u s : ℝ)) =
-      -(l ^ 2 * ((∑ s ∈ S, analyticOrderNatAt u s : ℕ) : ℝ)) := by
-    push_cast
-    rw [Finset.mul_sum, Finset.sum_neg_distrib]
+      (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift u) t Complex.I)).trans (by ring)
   have h1 := integral_congr_ae hae
   rw [integral_sub (integrableOn_eval₂_ω₀E_mfderiv hΩ hb hu hhol) (hΔi.div_const 4),
     integral_div, hΔ, hsum] at h1
