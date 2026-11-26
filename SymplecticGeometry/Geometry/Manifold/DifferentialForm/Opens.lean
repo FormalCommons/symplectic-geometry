@@ -52,6 +52,9 @@ and the pull-back of restricted forms along a partial diffeomorphism of open sub
   (`TauCeti.SmoothForm.eval₂_mfderiv_eq_of_mpullback_subtype_val_eq`). The same holds for a smooth
   map `ψ : U → M'` that pulls `σ'` itself back to the restriction of `σ`
   (`TauCeti.SmoothForm.eval₂_mfderiv_eq_of_mpullback_eq_mpullback_subtype_val`).
+* Two forms on `M` agree at a point of `U` if their restrictions to `U`, pulled back to `M'`
+  along the inverse of a diffeomorphism `Φ` from `U` onto `M'`, agree at its image
+  (`TauCeti.SmoothForm.apply_eq_of_mpullback_symm_mpullback_subtype_val_apply_eq`).
 * Restriction commutes with the exterior derivative, with no regularity assumption
   (`TauCeti.mpullback_subtype_val_mextDeriv`), since near every point of `U` the coordinate
   expressions of a form and of its restriction agree
@@ -221,6 +224,31 @@ theorem mpullback_subtype_val_mextDeriv {U : Opens M} (γ : RoughForm I M F k) :
   rw [mpullback_subtype_val_apply, mextDeriv_def, mextDeriv_def,
     ← Opens.extChartAt_apply U x x]
   exact (heq.extDerivWithin_eq (heq.self_of_nhdsWithin (mem_range_self _))).symm
+
+section Diffeomorph
+
+variable {E' H' M' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+  {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace M'] [ChartedSpace H' M'] [IsManifold I' 1 M']
+
+/-- Let `Φ` be a diffeomorphism from an open subset `U` of `M` onto `M'`. Two forms `σ` and `τ`
+on `M` agree at a point `x` of `U` if their restrictions to `U`, pulled back to `M'` along `Φ⁻¹`,
+agree at `Φ x`. -/
+theorem SmoothForm.apply_eq_of_mpullback_symm_mpullback_subtype_val_apply_eq {U : Opens M}
+    (Φ : U ≃ₘ⟮I, I'⟯ M') {σ τ : SmoothForm I M F k} (x : U)
+    (h : (SmoothForm.mpullback Φ.symm Φ.symm.contMDiff
+          (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ)).val (Φ x) =
+        (SmoothForm.mpullback Φ.symm Φ.symm.contMDiff
+          (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal τ)).val (Φ x)) :
+    σ.val x = τ.val x := by
+  simp only [SmoothForm.coe_mpullback] at h
+  rw [mpullback_apply_eq_mpullback_apply_iff
+      (Φ.symm.isInvertible_mfderiv (x := Φ x) (by simp)).surjective,
+    Diffeomorph.symm_apply_apply] at h
+  simp only [mpullback_subtype_val_apply] at h
+  -- `h` is stated with the tangent space of `U` at `x`, which is that of `M` by definition.
+  exact h
+
+end Diffeomorph
 
 section TwoForm
 

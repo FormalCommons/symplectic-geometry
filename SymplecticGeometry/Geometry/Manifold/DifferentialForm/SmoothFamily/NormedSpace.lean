@@ -36,7 +36,7 @@ survives every perturbation of the value that is small enough, with one bound fo
   and every two-form `η` with `‖η x‖ < r`.
 
 The second one combines the openness of nondegenerate alternating maps
-(`ContinuousAlternatingMap.isOpen_setOf_nondegenerate_toBilinMap`) with
+(`ContinuousAlternatingMap.isOpen_setOfPred_nondegenerate_toBilinMap`) with
 Mathlib's `IsCompact.exists_thickening_subset_open`, applied to the compact image of `K × S`.
 -/
 
@@ -73,7 +73,7 @@ theorem exists_pos_forall_nondegenerate [FiniteDimensional ℝ E]
       @norm (E [⋀^Fin 2]→L[ℝ] ℝ) _ (σ.val x - (τ t).val x) < r →
         (σ.bilinFormAt x).Nondegenerate := by
   obtain ⟨r, hr, hrU⟩ := ((hK.prod hS).image h.continuous_val).exists_thickening_subset_open
-    ContinuousAlternatingMap.isOpen_setOf_nondegenerate_toBilinMap (by
+    ContinuousAlternatingMap.isOpen_setOfPred_nondegenerate_toBilinMap (by
       rintro _ ⟨p, hp, rfl⟩
       have := hτ p.1 hp.1 p.2 hp.2
       rwa [SmoothForm.bilinFormAt_def] at this)

@@ -83,7 +83,7 @@ and does not redefine any of it:
   `nondegenerate_toBilinForm_skewSymmetrizeBilinear_iff` (nondegenerate
   exactly when $s-s^{\mathrm{flip}}$ is, by Tau Ceti's
   `TauCeti.BilinForm.nondegenerate_smul_iff`), and
-  `isOpen_setOf_nondegenerate_toBilinForm_sub_flip` (in finite dimension,
+  `isOpen_setOfPred_nondegenerate_toBilinForm_sub_flip` (in finite dimension,
   the $s$ with $s-s^{\mathrm{flip}}$ nondegenerate are open). In the same file, carrying a form along a continuous linear
   equivalence `e` in both arguments, `ContinuousLinearEquiv.bilinearCongr`:
   `ContinuousLinearEquiv.toBilinForm_bilinearCongr` (as a bilinear
@@ -389,7 +389,7 @@ request updates it to the files below. Each change, with its reason:
 - **New `Geometry/Symplectic/Cayley/Domain.lean`.** The open set where the
   Cayley path is smooth is used by two files of this part. *Symplectic
   vector bundles* uses this file, for `SymplecticGeometry.cayleyDomain`, the openness
-  lemma `SymplecticGeometry.isOpen_setOf_forall_Icc_mem_cayleyDomain` and
+  lemma `SymplecticGeometry.isOpen_setOfPred_forall_Icc_mem_cayleyDomain` and
   `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`; of the other files
   of this part it uses only the two of `PolarComplexStructure/`.
   It involves only Tau Ceti's `cayleyPathFormula`, so it goes in the folder
@@ -744,7 +744,7 @@ The file uses helpers stated in their own files:
     `nondegenerate_toBilinForm_skewSymmetrizeBilinear_iff`;
   - `isOpen_polarDomain (V) [FiniteDimensional ℝ V] : IsOpen (polarDomain V)`,
     from Tau Ceti's `isOpen_setOf_forall_bilinear_apply_self_pos` and
-    `isOpen_setOf_nondegenerate_toBilinForm_sub_flip`.
+    `isOpen_setOfPred_nondegenerate_toBilinForm_sub_flip`.
 - `SymplecticGeometry.mem_polarDomain [FiniteDimensional ℝ V]
   (g : innerProducts V) (ω : SymplecticForm V) :
   ((g : V →L[ℝ] V →L[ℝ] ℝ), ω.toBilinForm.toContinuousBilinearMap) ∈
@@ -857,7 +857,7 @@ stay in `TauCeti`.
   IsUnit (1 - q.1 • cayleyFormula q.2.1 q.2.2)}`, with `@[simp]`
   `mem_cayleyDomain`, `isOpen_cayleyDomain`
   and `contDiffOn_cayleyPathFormula` (from `contDiffAt_cayleyPathFormula`).
-- `isOpen_setOf_forall_Icc_mem_cayleyDomain`: the pairs $(A,B)$ with
+- `isOpen_setOfPred_forall_Icc_mem_cayleyDomain`: the pairs $(A,B)$ with
   $(b,A,B)$ in the domain for every $b\in[0,1]$ form an open set, by
   compactness of $[0,1]$. Its slice at $A=J_0$ is the set $U_{J_0}$ of
   `DESIGN.md`.
@@ -1218,7 +1218,7 @@ Each is a few hundred lines. External blockers are given by issue number.
 Issues 1, 3 and 6 can start at once. The contractibility issue of
 *Symplectic vector bundles* uses the same open set of Cayley units over
 $[0,1]$ as issue 6 here, through
-`SymplecticGeometry.isOpen_setOf_forall_Icc_mem_cayleyDomain`, and the tame structures
+`SymplecticGeometry.isOpen_setOfPred_forall_Icc_mem_cayleyDomain`, and the tame structures
 lie in it by `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`, so it
 waits for issue 6. That part's existence issue (building issue 6 of
 `design/symplectic-vector-bundles.md`) proves the smoothness of its

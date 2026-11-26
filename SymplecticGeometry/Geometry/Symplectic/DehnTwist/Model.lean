@@ -969,7 +969,7 @@ theorem exists_isCompactlySupportedHamiltonian_modelTwist {R₀ R₁ : ℝ → �
       contMDiff_fst
   -- `g ∘ μ` vanishes off the compact set `{μ ≤ r₀}`.
   obtain ⟨Φ, hgen, hΦ, -⟩ := Diffeotopy.exists_isCompactlySupportedHamiltonian hσ hG
-    (isCompact_setOf_cotangentNorm_le (n := n) r₀) fun p hp ↦ by
+    (isCompact_setOfPred_cotangentNorm_le (n := n) r₀) fun p hp ↦ by
       have hr : r₀ ≤ cotangentNorm p.1 := (not_le.1 hp).le
       simp only [hg, h₀.apply_of_le hr, h₁.apply_of_le hr, sub_zero, mul_zero]
   have key := apply_modelTwist_eq_modelTwist_lineMap h₀ h₁ fun t ↦

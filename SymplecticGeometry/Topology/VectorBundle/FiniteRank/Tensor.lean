@@ -32,8 +32,11 @@ Whitney sum.
   tensor product of the determinant lines, `Λ^top (A ⊕ D) ≅ Λ^top A ⊗ Λ^top D`, by a constant
   coordinate change. It uses `TauCeti.FiniteRankBundleCore.det_coordChange_whitneySum`, from
   `SymplecticGeometry.Topology.VectorBundle.FiniteRank.Biproduct`;
+* `TauCeti.FiniteRankBundleCore.tensorIsoPullback e₁ e₂`: the tensor product of isomorphisms
+  between two pullbacks, read through Tau Ceti's `pullback_tensorObj` as an isomorphism between
+  the pullbacks of the tensor products;
 * `TauCeti.FiniteRankBundleCore.fiberMap_eqToHom_tensorHom_eqToHom`, with its forms
-  `fiberMap_eqToIso_tensorIso_hom` and `fiberMap_eqToIso_tensorIso_inv` for automorphisms: the
+  `fiberMap_tensorIsoPullback_hom` and `fiberMap_tensorIsoPullback_inv` for isomorphisms: the
   tensor product of morphisms between two pullbacks, read through Tau Ceti's `pullback_tensorObj`
   as a morphism between the pullbacks of the tensor products, is the Kronecker product of their
   fibre maps in each fibre.
@@ -207,26 +210,51 @@ theorem fiberMap_eqToHom_tensorHom_eqToHom (f : A.pullback p ⟶ A'.pullback p)
   -- The casts are along `rank_pullback` and `rank_tensorObj`, which hold by `rfl`.
   exact congrFun (DFunLike.congr_fun (fiberMap_tensorHom_monoidal _ _ _) _) _
 
-variable (e₁ : A.pullback p ≅ A.pullback p) (e₂ : D.pullback p ≅ D.pullback p)
+variable {p} in
+/-- The tensor product of isomorphisms `e₁ : A|_p ≅ A'|_p` and `e₂ : D|_p ≅ D'|_p` between
+pullbacks along `p`, read through `pullback_tensorObj` as an isomorphism between the pullbacks of
+the tensor products, `(A ⊗ D)|_p ≅ (A' ⊗ D')|_p`. -/
+def tensorIsoPullback (e₁ : A.pullback p ≅ A'.pullback p) (e₂ : D.pullback p ≅ D'.pullback p) :
+    (A ⊗ D).pullback p ≅ (A' ⊗ D').pullback p :=
+  eqToIso (pullback_tensorObj A D p) ≪≫ (e₁ ⊗ᵢ e₂) ≪≫ eqToIso (pullback_tensorObj A' D' p).symm
 
-/-- Read through `pullback_tensorObj`, the tensor product of automorphisms `e₁` and `e₂` of the
-pullbacks of `A` and `D` along `p` acts on the fibre of the pullback of `A ⊗ D` by the Kronecker
+variable (e₁ : A.pullback p ≅ A'.pullback p) (e₂ : D.pullback p ≅ D'.pullback p)
+
+theorem tensorIsoPullback_def :
+    tensorIsoPullback e₁ e₂ = eqToIso (pullback_tensorObj A D p) ≪≫ (e₁ ⊗ᵢ e₂) ≪≫
+      eqToIso (pullback_tensorObj A' D' p).symm :=
+  (rfl)
+
+theorem tensorIsoPullback_hom :
+    (tensorIsoPullback e₁ e₂).hom = eqToHom (pullback_tensorObj A D p) ≫ (e₁.hom ⊗ₘ e₂.hom) ≫
+      eqToHom (pullback_tensorObj A' D' p).symm := by
+  rw [tensorIsoPullback_def, Iso.trans_hom, Iso.trans_hom, eqToIso.hom, eqToIso.hom,
+    tensorIso_hom]
+
+theorem tensorIsoPullback_inv :
+    (tensorIsoPullback e₁ e₂).inv = eqToHom (pullback_tensorObj A' D' p) ≫ (e₁.inv ⊗ₘ e₂.inv) ≫
+      eqToHom (pullback_tensorObj A D p).symm := by
+  rw [tensorIsoPullback_def, Iso.trans_inv, Iso.trans_inv, eqToIso.inv, eqToIso.inv,
+    tensorIso_inv, Category.assoc]
+
+/-- The tensor product of isomorphisms `e₁` and `e₂` between pullbacks along `p`, read through
+`pullback_tensorObj`, acts on the fibres of the pullbacks of the tensor products by the Kronecker
 product of their fibre maps. -/
-theorem fiberMap_eqToIso_tensorIso_hom (x : X) :
-    (eqToIso (pullback_tensorObj A D p) ≪≫ (e₁ ⊗ᵢ e₂) ≪≫
-      eqToIso (pullback_tensorObj A D p).symm).hom.fiberMap x =
+@[simp]
+theorem fiberMap_tensorIsoPullback_hom (x : X) :
+    (tensorIsoPullback e₁ e₂).hom.fiberMap x =
       (e₁.hom.fiberMap x).kronecker (e₂.hom.fiberMap x) := by
-  simp only [Iso.trans_hom, eqToIso.hom, tensorIso_hom]
+  rw [tensorIsoPullback_hom]
   exact fiberMap_eqToHom_tensorHom_eqToHom p _ _ x
 
-/-- Read through `pullback_tensorObj`, the inverse of the tensor product of automorphisms `e₁`
-and `e₂` of the pullbacks of `A` and `D` along `p` acts on the fibre of the pullback of `A ⊗ D` by
+/-- The inverse of the tensor product of isomorphisms `e₁` and `e₂` between pullbacks along `p`,
+read through `pullback_tensorObj`, acts on the fibres of the pullbacks of the tensor products by
 the Kronecker product of the fibre maps of `e₁⁻¹` and `e₂⁻¹`. -/
-theorem fiberMap_eqToIso_tensorIso_inv (x : X) :
-    (eqToIso (pullback_tensorObj A D p) ≪≫ (e₁ ⊗ᵢ e₂) ≪≫
-      eqToIso (pullback_tensorObj A D p).symm).inv.fiberMap x =
+@[simp]
+theorem fiberMap_tensorIsoPullback_inv (x : X) :
+    (tensorIsoPullback e₁ e₂).inv.fiberMap x =
       (e₁.inv.fiberMap x).kronecker (e₂.inv.fiberMap x) := by
-  simp only [Iso.trans_inv, eqToIso.inv, tensorIso_inv, Category.assoc]
+  rw [tensorIsoPullback_inv]
   exact fiberMap_eqToHom_tensorHom_eqToHom p _ _ x
 
 end Pullback

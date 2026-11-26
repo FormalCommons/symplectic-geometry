@@ -9,7 +9,6 @@ public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Basic
 import SymplecticGeometry.Analysis.Calculus.FiberRescale
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.TimeExtension
 import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
-import TauCeti.Geometry.Manifold.ContMDiff.Prod
 import TauCeti.LinearAlgebra.BilinearForm.Isometry
 
 /-!
@@ -154,10 +153,9 @@ theorem IsSymplecticBallFamily.exists_rescaling_family {ρ : ℝ} (hρ : 0 < ρ)
             (norm_nonneg _) zero_le_one
       _ < ρ := by rw [one_mul]; exact (lt_div_iff₀' hC0).1 hz
   -- The extension of `θ` to all times, and its rescaling.
-  obtain ⟨U, hUo, hρU, hθU⟩ := hθ.exists_contMDiffOn
-  have hf : ContDiffOn ℝ ∞ (timeExtend θ) (univ ×ˢ ball 0 ρ) := by
-    have := (hθU.timeExtend hUo).mono (prod_mono subset_rfl (ball_subset_closedBall.trans hρU))
-    exact contMDiffOn_iff_contDiffOn.1 (contMDiffOn_prod_modelWithCornersSelf_iff.1 this)
+  obtain ⟨U, -, hρU, hθU⟩ := hθ.exists_contDiffOn_timeExtend
+  have hf : ContDiffOn ℝ ∞ (timeExtend θ) (univ ×ˢ ball 0 ρ) :=
+    hθU.mono (prod_mono subset_rfl (ball_subset_closedBall.trans hρU))
   have hR := contDiffOn_fiberRescale_of_starShaped (n := ⊤) (isOpen_univ.prod isOpen_ball)
     (fun p v hv s hs ↦ ⟨trivial, (convex_ball 0 ρ).smul_mem_of_zero_mem (mem_ball_self hρ) hv.2 hs⟩)
     (by simpa using hf) (fun p _ ↦ timeExtend_eq_zero (fun s ↦ hθ0 s) p)
