@@ -20,7 +20,9 @@ map `A : V (f x) [⋀^ι]→L[𝕜] G` is a point of two bundles of alternating 
 wherever `f x` lies in the base set of the trivialization of `V` at `f x₀`
 (`ContinuousAlternatingMap.inCoordinates_pullback_trivial_of_mem`): a trivialization of the
 pull-back is the pull-back of a trivialization of `V`, and the trivial bundle is trivialized by
-the identity over both bases.
+the identity over both bases. Since `f` is continuous, near each point `x₀` every `f x` lies
+in that base set, so the two agree near `x₀` for every alternating map
+(`ContinuousAlternatingMap.eventually_inCoordinates_pullback_trivial`).
 
 This is the counterpart for alternating maps of Tau Ceti's
 `ContinuousLinearMap.inCoordinates_pullback_of_mem`, and its proof follows that one.
@@ -28,7 +30,10 @@ This is the counterpart for alternating maps of Tau Ceti's
 continuous bilinear form on `V (f x)`, read in the bundles of bilinear forms on `f *ᵖ V` and on
 `V`; its proof writes both sides by `ContinuousLinearMap.inCoordinates_eq_bilinearCongr`, as the
 form carried along the fibre equivalences of the two trivializations, which agree by Tau Ceti's
-`Bundle.Trivialization.continuousLinearEquivAt_pullback`.
+`Bundle.Trivialization.continuousLinearEquivAt_pullback`. Its form near a point,
+`ContinuousLinearMap.eventually_inCoordinates_pullback_bilinear`, is that of Tau Ceti's
+`Bundle.Pullback.eventually_inCoordinates_pullback_eq`, a private step of
+`Bundle.Pullback.contMDiff_homEquiv`, for bilinear forms.
 
 `Bundle.Trivialization.linearMapAt_pullback` says that a pulled-back linear trivialization reads
 a vector over `x` as the original one reads it over `f x`: the `linearMapAt` form of Tau Ceti's
@@ -112,6 +117,18 @@ theorem inCoordinates_pullback_trivial_of_mem (f : K) (x₀ x : X)
     Trivialization.continuousLinearEquivAt_pullback]
   rfl
 
+/-- Near each point `x₀`, every alternating map from a fibre of the pull-back `f *ᵖ V` to `G` has
+the same coordinates in the bundle of alternating maps from `f *ᵖ V` to `Bundle.Trivial X G` as in
+the bundle of alternating maps from `V` to `Bundle.Trivial B G`, at the image points. -/
+theorem eventually_inCoordinates_pullback_trivial (f : K) (x₀ : X) :
+    ∀ᶠ x in nhds x₀, ∀ A : V (f x) [⋀^ι]→L[𝕜] G,
+      inCoordinates F G (E₁ := (f : X → B) *ᵖ V) (E₂ := Bundle.Trivial X G) x₀ x x₀ x A =
+        inCoordinates F G (E₁ := V) (E₂ := Bundle.Trivial B G) (f x₀) (f x) (f x₀) (f x) A := by
+  filter_upwards [(map_continuous f).continuousAt.preimage_mem_nhds
+    ((trivializationAt F V (f x₀)).open_baseSet.mem_nhds
+      (FiberBundle.mem_baseSet_trivializationAt F V (f x₀)))] with x hx A
+  exact inCoordinates_pullback_trivial_of_mem f x₀ x A hx
+
 end ContinuousAlternatingMap
 
 namespace ContinuousLinearMap
@@ -135,6 +152,20 @@ theorem inCoordinates_pullback_bilinear_of_mem (f : K) (x₀ x : X)
   simp only [trivializationAt, FiberBundle.pullback_trivializationAt',
     Trivialization.continuousLinearEquivAt_pullback]
   rfl
+
+/-- Near each point `x₀`, every continuous bilinear form on a fibre of the pull-back `f *ᵖ V` has
+the same coordinates in the bundle of bilinear forms on `f *ᵖ V` as in the bundle of bilinear
+forms on `V`, at the image points. -/
+theorem eventually_inCoordinates_pullback_bilinear (f : K) (x₀ : X) :
+    ∀ᶠ x in nhds x₀, ∀ β : V (f x) →L[𝕜] V (f x) →L[𝕜] 𝕜,
+      inCoordinates F ((f : X → B) *ᵖ V) (F →L[𝕜] 𝕜)
+          (fun y ↦ ((f : X → B) *ᵖ V) y →L[𝕜] Trivial X 𝕜 y) x₀ x x₀ x β =
+        inCoordinates F V (F →L[𝕜] 𝕜) (fun b ↦ V b →L[𝕜] Trivial B 𝕜 b)
+          (f x₀) (f x) (f x₀) (f x) β := by
+  filter_upwards [(map_continuous f).continuousAt.preimage_mem_nhds
+    ((trivializationAt F V (f x₀)).open_baseSet.mem_nhds
+      (FiberBundle.mem_baseSet_trivializationAt F V (f x₀)))] with x hx β
+  exact inCoordinates_pullback_bilinear_of_mem f x₀ x β hx
 
 end ContinuousLinearMap
 
