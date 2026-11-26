@@ -10,12 +10,12 @@ public import TauCeti.Topology.Circle.FreeLoop
 import Mathlib.Analysis.Calculus.BumpFunction.InnerProduct
 import Mathlib.Analysis.Convex.Contractible
 import Mathlib.Analysis.SpecialFunctions.Complex.Circle
-import Mathlib.Topology.Homotopy.Lifting
 import SymplecticGeometry.Geometry.Manifold.Instances.Sphere
 import SymplecticGeometry.Topology.Circle.FreeLoop
 import TauCeti.AlgebraicTopology.UniversalCover.Circle.FreeLoop.Basic
 import TauCeti.Geometry.Manifold.Algebra.LieGroup
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
+import TauCeti.Topology.Covering.LiftOn
 
 /-!
 # Smooth real logarithms of circle-valued maps on an annulus
@@ -31,11 +31,12 @@ function `h` that is `C^n` on `A`
 (`Circle.exists_contDiffOn_exp_eq_of_circleDegree_eq_zero`).
 
 The proof pulls `u` back along the universal covering `Complex.exp` of `A` by the vertical strip
-`S = exp⁻¹ A`, which is convex, so simply connected. Mathlib's lifting criterion for covering maps
-(`IsCoveringMap.existsUnique_continuousMap_lifts`) lifts `u ∘ exp` through `Circle.exp` to a
-continuous `G` on `S`. The lifts `G (w + 2πi)` and `G w` of the same map differ by a constant
-multiple of `2π` (Tau Ceti's `Circle.exists_int_forall_eq_add_of_exp_eq`), which on the line
-`Re w = log r` is the degree of the loop on the circle of radius `r`, so `G` is `2πi`-periodic.
+`S = exp⁻¹ A`, which is convex, so simply connected. The lifting criterion for covering maps, in
+Tau Ceti's form for maps continuous on a set (`IsCoveringMap.exists_continuousOn_lift`), lifts
+`u ∘ exp` through `Circle.exp` to a function `G` continuous on `S`. The lifts `G (w + 2πi)`
+and `G w` of the same map differ by a constant multiple of `2π` (Tau Ceti's
+`Circle.exists_int_forall_eq_add_of_exp_eq`), which on the line `Re w = log r` is the degree of
+the loop on the circle of radius `r`, so `G` is `2πi`-periodic.
 Then `h = G ∘ log` is continuous on `A`, as near each point it agrees with `G` composed with a
 continuous branch of the logarithm (`Function.Periodic.continuousOn_comp_log`), and smooth by the
 first result, in the form `Circle.contDiffOn_of_contMDiffOn_exp`.
@@ -150,13 +151,17 @@ theorem exists_contDiffOn_exp_eq_of_circleDegree_eq_zero {n : WithTop ℕ∞} {a
   have hshift (w : ℂ) : w + 2 * π * I ∈ S ↔ w ∈ S := by simp [S, exp_periodic w]
   have : ContractibleSpace S := hSc.contractibleSpace ⟨_, hrS⟩
   have : LocallyPathConnectedSpace S := hSo.locallyPathConnectedSpace
-  -- lift `u ∘ exp` through `Circle.exp`
-  let F : C(S, Circle) := ⟨fun w ↦ u (Complex.exp w),
-    hu.continuousOn.comp_continuous (Complex.continuous_exp.comp continuous_subtypeVal)
-      fun w ↦ w.property⟩
-  obtain ⟨G, ⟨-, hG⟩, -⟩ := isCoveringMap_exp.existsUnique_continuousMap_lifts F ⟨_, hrS⟩
-    (arg (F ⟨_, hrS⟩)) (exp_arg _)
-  have hGF (w : S) : exp (G w) = u (Complex.exp w) := congr_fun hG w
+  -- lift `u ∘ exp` through `Circle.exp` on `S`, and take the lift to be `0` off `S`
+  obtain ⟨G₀, hG₀c, -, hG₀⟩ := isCoveringMap_exp.exists_continuousOn_lift
+    (f := fun w ↦ u (Complex.exp w))
+    (hu.continuousOn.comp Complex.continuous_exp.continuousOn fun _ hw ↦ hw) hrS (exp_arg _)
+  classical
+  let Gx : ℂ → ℝ := fun w ↦ if w ∈ S then G₀ w else 0
+  have hGxc : ContinuousOn Gx S := hG₀c.congr fun w hw ↦ by simp [Gx, hw]
+  let G : C(S, ℝ) := ⟨S.domRestrict Gx, hGxc.domRestrict⟩
+  have hGx (w : S) : Gx w = G w := rfl
+  have hGF (w : S) : exp (G w) = u (Complex.exp w) := by
+    simpa [← hGx, Gx, w.property] using hG₀ w.property
   -- `G` is `2πi`-periodic
   let τ : C(S, S) := ⟨fun w ↦ ⟨w + 2 * π * I, (hshift w).2 w.property⟩, by fun_prop⟩
   obtain ⟨m, hm⟩ := exists_int_forall_eq_add_of_exp_eq (G.continuous.comp τ.continuous)
@@ -177,15 +182,7 @@ theorem exists_contDiffOn_exp_eq_of_circleDegree_eq_zero {n : WithTop ℕ∞} {a
     rw [Function.comp_apply] at hτ
     rw [hdeg, Function.comp_apply, Function.comp_apply, h1, h0, hτ] at h
     simpa [Real.pi_ne_zero] using h
-  -- extend `G` by `0` off the strip; the extension is `2πi`-periodic
-  classical
-  let Gx : ℂ → ℝ := fun w ↦ if hw : w ∈ S then G ⟨w, hw⟩ else 0
-  have hGx (w : S) : Gx w = G w := dite_eq_left w.property
-  have hGxc : ContinuousOn Gx S := by
-    rw [continuousOn_iff_continuous_domRestrict]
-    convert G.continuous using 1
-    ext w
-    exact hGx w
+  -- the extension `Gx` of `G` by `0` off the strip is `2πi`-periodic
   have hper : Function.Periodic Gx (2 * π * I) := fun w ↦ by
     by_cases hw : w ∈ S
     · have h := hm ⟨w, hw⟩
