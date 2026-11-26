@@ -32,6 +32,7 @@ variable {E B F : TopCat.{u}} {p : E ⟶ B}
 
 /-- For a trivialization of a morphism of `TopCat`, the continuous fibre inclusion
 `fiberInclusionMap`, as a morphism of `TopCat`, is Tau Ceti's fibre inclusion. -/
+@[simp]
 theorem ofHom_fiberInclusionMap (t : Bundle.Trivialization F p) {x : B} (hx : x ∈ t.baseSet) :
     ofHom (t.fiberInclusionMap hx) = t.fiberInclusion hx := by
   ext f
