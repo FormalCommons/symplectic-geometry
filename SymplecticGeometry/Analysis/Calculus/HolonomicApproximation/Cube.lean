@@ -20,7 +20,7 @@ import SymplecticGeometry.Analysis.Normed.Operator.Pi
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Support
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.CompactSupport
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.FDeriv
-import SymplecticGeometry.Topology.Algebra.Module.LinearMap
+import SymplecticGeometry.Topology.Algebra.Module.ContinuousLinearMap.Basic
 import SymplecticGeometry.Topology.MetricSpace.Thickening
 
 /-!
@@ -285,9 +285,8 @@ private theorem exists_datum_directions {f₁ : (Fin m → ℝ) × (Fin k → �
     ((hf₁.fderiv_right (by simp)).clm_comp contDiff_const).add (hG.clm_comp contDiff_const),
     fun x w hw ↦ ?_, fun x hx ↦ ?_, fun x w ↦ ⟨P w, fun i hi ↦ ?_,
       max_le_max (ContinuousLinearMap.norm_coordProj_apply_le J w.1) le_rfl, ?_⟩⟩
-  · exact (ContinuousLinearMap.comp_add_comp_id_sub_apply_of_apply_eq _ _
-      (Prod.ext (ContinuousLinearMap.coordProj_apply_eq_self hw) rfl)).symm
-  · simp only [hx, ContinuousLinearMap.comp_add_comp_id_sub_self]
+  · simp [show P w = w from Prod.ext (ContinuousLinearMap.coordProj_apply_eq_self hw) rfl]
+  · simp [hx]
   · simp [P, hi]
   · simp only [ContinuousLinearMap.comp_add_comp_id_sub_sub, ContinuousLinearMap.comp_apply]
 

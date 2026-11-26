@@ -20,11 +20,7 @@ projection onto the vectors in some of the coordinate directions.
 
 ## Main results
 
-* `ContinuousLinearMap.comp_add_comp_id_sub_sub`: the difference with `B` is `(A - B) ∘L P`.
-* `ContinuousLinearMap.comp_add_comp_id_sub_self`: for `A = B` the map is `A`.
-* `ContinuousLinearMap.comp_add_comp_id_sub_apply_of_apply_eq`: it is `A` on the vectors that
-  `P` fixes.
--/
+* `ContinuousLinearMap.comp_add_comp_id_sub_sub`: the difference with `B` is `(A - B) ∘L P`.-/
 
 public section
 
@@ -39,16 +35,6 @@ theorem comp_add_comp_id_sub_sub (A B : M →L[R] M₂) (P : M →L[R] M) :
     A ∘L P + B ∘L (ContinuousLinearMap.id R M - P) - B = (A - B) ∘L P := by
   rw [comp_sub, comp_id, sub_comp]
   abel
-
-/-- The map `A ∘L P + A ∘L (id - P)` is `A`. -/
-theorem comp_add_comp_id_sub_self (A : M →L[R] M₂) (P : M →L[R] M) :
-    A ∘L P + A ∘L (ContinuousLinearMap.id R M - P) = A := by
-  rw [← comp_add, add_sub_cancel, comp_id]
-
-/-- The map `A ∘L P + B ∘L (id - P)` agrees with `A` on a vector that `P` fixes. -/
-theorem comp_add_comp_id_sub_apply_of_apply_eq (A B : M →L[R] M₂) {P : M →L[R] M} {w : M}
-    (hw : P w = w) : (A ∘L P + B ∘L (ContinuousLinearMap.id R M - P)) w = A w := by
-  rw [add_apply, comp_apply, comp_apply, sub_apply, id_apply, hw, sub_self, map_zero, add_zero]
 
 end ContinuousLinearMap
 

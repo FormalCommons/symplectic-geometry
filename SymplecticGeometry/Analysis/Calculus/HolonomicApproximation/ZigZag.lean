@@ -18,7 +18,7 @@ import SymplecticGeometry.Analysis.Calculus.HolonomicApproximation.Basic
 import SymplecticGeometry.Analysis.Calculus.MeanValue
 import SymplecticGeometry.Analysis.Normed.Group.Pi
 import SymplecticGeometry.Analysis.Normed.Operator.Pi
-import SymplecticGeometry.Topology.Algebra.Module.LinearMap
+import SymplecticGeometry.Topology.Algebra.Module.ContinuousLinearMap.Basic
 
 /-!
 # Holonomic approximation along a zig-zag
@@ -777,7 +777,7 @@ theorem exists_holonomic_approximation_zigzag (i₀ : Fin m) (j : Fin k) {J' : F
     (fderiv ℝ f y).comp Q' + (G y).comp (ContinuousLinearMap.id ℝ _ - Q') with hG'_def
   have hG' : Continuous G' := (hfd.clm_comp continuous_const).add (hG.clm_comp continuous_const)
   have hUf' : ∀ x ∈ U, fderiv ℝ f x = G' x := fun x hx ↦ by
-    simp only [hG'_def, hUf x hx, ContinuousLinearMap.comp_add_comp_id_sub_self]
+    simp [hG'_def, hUf x hx]
   -- `G'` and `G` agree in the directions `insert i₀ J'` near the core cube.
   set ε₂ := ε / 2 with hε₂
   have hε₂0 : 0 < ε₂ := by positivity
