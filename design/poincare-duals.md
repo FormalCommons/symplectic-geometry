@@ -320,7 +320,7 @@ in a trivialization since the fibres carry no norm, are
   and the inverse of the fibrewise derivative, a smooth bundle
   automorphism (`isNormalizedTube_comp_bundleEquiv` is the step).
 
-### `Geometry/Manifold/SmoothEmbedding/NormalSpace/DualClass.lean`
+### `Geometry/Manifold/SmoothEmbedding/NormalSpace/DualClass/Basic.lean`
 
 With `hf : IsClosed (range f)` and a normalized tube `Φ` with open image
 `W ⊇ range f`:
@@ -351,11 +351,11 @@ With `hf : IsClosed (range f)` and a normalized tube `Φ` with open image
 
 ### `Geometry/Manifold/SmoothEmbedding/NormalSpace/DualClass/Slice.lean`
 
-- `eq_relDualClassOf_iff_forall_slice`: for a Thom class `u` of the
-  normal bundle in degree `r = finrank ℝ P` (in particular
+- `eq_relDualClassOf_iff_forall_slice`: for a class `u` of the
+  normal bundle in degree `r = finrank ℝ P` (for instance
   `o.canonicalThomClass rfl`), a class of
   $H^r(X,X\setminus Z)$ is `relDualClassOf f hn hdim hf u` exactly when its
-  restriction along each normal slice of a normalized tube is the fibre
+  restriction along each normal slice of the normalized tube that defines it is the fibre
   restriction of `u`; by excision and Tau Ceti's uniqueness by fibre
   restrictions, `TauCeti.singularCohomology_thomPair_ext`. (A class of another degree
   is not determined by its fibre restrictions.)
@@ -505,7 +505,7 @@ be done, each with what it waits for.
    nothing.
 4. **Normal Thom class and the Thom isomorphism of the normal bundle.**
    `NormalSpace/ThomClass.lean`. Waits for 2.
-5. **The dual class.** `NormalSpace/DualClass.lean`: the definitions, the
+5. **The dual class.** `NormalSpace/DualClass/Basic.lean`: the definitions, the
    vanishing off $Z$ and the restriction to $Z$. Waits for 3 and 4.
 6. **Slices, independence and naturality.** `NormalSpace/DualClass/Slice.lean`.
    Waits for 5.
