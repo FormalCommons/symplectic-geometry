@@ -9,6 +9,7 @@ public import Mathlib.Analysis.Polynomial.MahlerMeasure
 public import Mathlib.MeasureTheory.Integral.Average
 import Mathlib.Analysis.Complex.Polynomial.Basic
 import Mathlib.Analysis.SpecialFunctions.Integrability.Log
+import SymplecticGeometry.MeasureTheory.Integral.CircleAverage
 import TauCeti.Analysis.Complex.JensenFormula
 
 /-!
@@ -51,8 +52,6 @@ is circle-integrable, so that lower average is `ofReal` of its Bochner average.
   inequality in the form of a lower average.
 * `Polynomial.setLAverage_ofReal_log_sub_log_norm_eval_circleMap`: when `log ‖p‖ ≤ log M` on the
   whole circle, that lower average is `ofReal` of `log M` minus the circle average.
-* `Real.setAverage_Ioc_circleMap_eq_circleAverage`: a circle average as an average over
-  `Ioc 0 (2 * π)`.
 
 ## References
 
@@ -218,13 +217,18 @@ theorem exists_norm_eval_le_add_one_pow_mul (p : ℂ[X]) {r t : ℝ} (hr : 0 < r
       nlinarith [le_max_left r ‖a‖, le_max_right r ‖a‖, norm_nonneg a]
 
 open MeasureTheory Set in
-/-- The circle average of `f` is its average, against `volume`, over the parameters
-`θ ∈ Ioc 0 (2 * π)` of the circle. -/
-theorem _root_.Real.setAverage_Ioc_circleMap_eq_circleAverage (f : ℂ → ℝ) (c : ℂ) (r : ℝ) :
-    ⨍ θ in Ioc 0 (2 * π), f (circleMap c r θ) = circleAverage f c r := by
-  rw [circleAverage_eq_intervalAverage, interval_average_eq_div, setAverage_eq,
-    intervalIntegral.integral_of_le Real.two_pi_pos.le, Real.volume_real_Ioc_of_le
-    Real.two_pi_pos.le, sub_zero, smul_eq_mul, inv_mul_eq_div]
+open scoped ENNReal in
+/-- If `log ‖p‖ ≤ log M` at every point of the circle of radius `r` about `0`, then the lower
+average of `ofReal (log M - log ‖p‖)` over that circle is `ofReal` of
+`log M - circleAverage (fun z ↦ log ‖p.eval z‖) 0 r`. -/
+theorem setLAverage_ofReal_log_sub_log_norm_eval_circleMap (p : ℂ[X]) {r M : ℝ}
+    (hM : ∀ θ, Real.log ‖p.eval (circleMap 0 r θ)‖ ≤ Real.log M) :
+    ⨍⁻ θ in Ioc 0 (2 * π), ENNReal.ofReal (Real.log M - Real.log ‖p.eval (circleMap 0 r θ)‖) =
+      ENNReal.ofReal (Real.log M - circleAverage (fun z => Real.log ‖p.eval z‖) 0 r) := by
+  have han : AnalyticOnNhd ℂ (fun z => p.eval z) univ := fun z _ =>
+    p.differentiable.analyticAt z
+  exact Real.setLAverage_ofReal_sub_circleMap
+    ((han.mono (subset_univ _)).meromorphicOn.circleIntegrable_log_norm) (ae_of_all _ hM)
 
 open MeasureTheory Set in
 open scoped ENNReal in
@@ -235,59 +239,24 @@ theorem setLAverage_ofReal_log_sub_log_norm_eval_circleMap_le {p : ℂ[X]}
     (hp : p.eval 0 ≠ 0) {r M : ℝ} (hM : ∀ θ, ‖p.eval (circleMap 0 r θ)‖ ≤ M) :
     ⨍⁻ θ in Ioc 0 (2 * π), ENNReal.ofReal (Real.log M - Real.log ‖p.eval (circleMap 0 r θ)‖) ≤
       ENNReal.ofReal (Real.log M - Real.log ‖p.eval 0‖) := by
-  have hIoc : volume (Ioc 0 (2 * π)) ≠ ∞ := measure_Ioc_lt_top.ne
   rcases eq_or_ne r 0 with rfl | hr
   · simp only [circleMap_zero_radius, Function.const_apply]
-    exact (setLAverage_const (by simp [Real.pi_pos]) hIoc _).le
+    exact (setLAverage_const (by simp [Real.pi_pos]) measure_Ioc_lt_top.ne _).le
   have hp0 : p ≠ 0 := fun h => hp (by simp [h])
   have han : AnalyticOnNhd ℂ (fun z => p.eval z) univ := fun z _ =>
     p.differentiable.analyticAt z
-  have hint : IntegrableOn (fun θ => Real.log ‖p.eval (circleMap 0 r θ)‖) (Ioc 0 (2 * π)) :=
-    (intervalIntegrable_iff_integrableOn_Ioc_of_le Real.two_pi_pos.le).1
-      ((han.mono (subset_univ _)).meromorphicOn.circleIntegrable_log_norm)
   have hnull : ∀ᵐ θ ∂(volume.restrict (Ioc 0 (2 * π))), p.eval (circleMap 0 r θ) ≠ 0 := by
     refine ae_restrict_of_ae (measure_mono_null (fun θ hθ => ?_)
       ((p.roots.toFinset.countable_toSet.preimage_circleMap 0 hr).measure_zero _))
     simpa [mem_roots hp0] using hθ
-  have hnn : 0 ≤ᵐ[volume.restrict (Ioc 0 (2 * π))]
-      fun θ => Real.log M - Real.log ‖p.eval (circleMap 0 r θ)‖ := by
+  have hL : ∀ᵐ θ ∂(volume.restrict (Ioc 0 (2 * π))),
+      Real.log ‖p.eval (circleMap 0 r θ)‖ ≤ Real.log M := by
     filter_upwards [hnull] with θ hθ
-    exact sub_nonneg.2 (Real.log_le_log (norm_pos_iff.2 hθ) (hM θ))
-  have hsub : ⨍ θ in Ioc 0 (2 * π), (Real.log M - Real.log ‖p.eval (circleMap 0 r θ)‖) =
-      Real.log M - circleAverage (fun z => Real.log ‖p.eval z‖) 0 r := by
-    rw [setAverage_fun_sub (integrableOn_const hIoc) hint,
-      setAverage_const (by simp [Real.pi_pos]) hIoc,
-    Real.setAverage_Ioc_circleMap_eq_circleAverage (fun z => Real.log ‖p.eval z‖)]
-  have hint' : IntegrableOn (fun θ => Real.log M - Real.log ‖p.eval (circleMap 0 r θ)‖)
-      (Ioc 0 (2 * π)) := (integrableOn_const hIoc).sub hint
-  rw [setLAverage_eq, ← ofReal_setAverage hint' hnn, hsub]
+    exact Real.log_le_log (norm_pos_iff.2 hθ) (hM θ)
+  rw [Real.setLAverage_ofReal_sub_circleMap
+    ((han.mono (subset_univ _)).meromorphicOn.circleIntegrable_log_norm) hL]
   gcongr
   exact (han.mono (subset_univ _)).log_norm_le_circleAverage_log_norm hp
-
-open MeasureTheory Set in
-open scoped ENNReal in
-/-- If `log ‖p‖ ≤ log M` at every point of the circle of radius `r` about `0`, then the lower
-average of `ofReal (log M - log ‖p‖)` over that circle is `ofReal` of
-`log M - circleAverage (fun z ↦ log ‖p.eval z‖) 0 r`. -/
-theorem setLAverage_ofReal_log_sub_log_norm_eval_circleMap (p : ℂ[X]) {r M : ℝ}
-    (hM : ∀ θ, Real.log ‖p.eval (circleMap 0 r θ)‖ ≤ Real.log M) :
-    ⨍⁻ θ in Ioc 0 (2 * π), ENNReal.ofReal (Real.log M - Real.log ‖p.eval (circleMap 0 r θ)‖) =
-      ENNReal.ofReal (Real.log M - circleAverage (fun z => Real.log ‖p.eval z‖) 0 r) := by
-  have hIoc : volume (Ioc 0 (2 * π)) ≠ ∞ := measure_Ioc_lt_top.ne
-  have han : AnalyticOnNhd ℂ (fun z => p.eval z) univ := fun z _ =>
-    p.differentiable.analyticAt z
-  have hint : IntegrableOn (fun θ => Real.log ‖p.eval (circleMap 0 r θ)‖) (Ioc 0 (2 * π)) :=
-    (intervalIntegrable_iff_integrableOn_Ioc_of_le Real.two_pi_pos.le).1
-      ((han.mono (subset_univ _)).meromorphicOn.circleIntegrable_log_norm)
-  have hnn : 0 ≤ᵐ[volume.restrict (Ioc 0 (2 * π))]
-      fun θ => Real.log M - Real.log ‖p.eval (circleMap 0 r θ)‖ :=
-    ae_of_all _ fun θ => sub_nonneg.2 (hM θ)
-  have hint' : IntegrableOn (fun θ => Real.log M - Real.log ‖p.eval (circleMap 0 r θ)‖)
-      (Ioc 0 (2 * π)) := (integrableOn_const hIoc).sub hint
-  rw [setLAverage_eq, ← ofReal_setAverage hint' hnn,
-    setAverage_fun_sub (integrableOn_const hIoc) hint,
-    setAverage_const (by simp [Real.pi_pos]) hIoc,
-    Real.setAverage_Ioc_circleMap_eq_circleAverage (fun z => Real.log ‖p.eval z‖)]
 
 end Polynomial
 

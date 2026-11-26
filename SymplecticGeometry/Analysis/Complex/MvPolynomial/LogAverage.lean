@@ -379,8 +379,8 @@ private theorem setLIntegral_ofReal_log_sub_circleAverage {P : MvPolynomial ι �
       Real.log M - ⨍ z in ball c ρ, Real.log ‖eval z.ofLp P‖ := by
     rw [setAverage_fun_sub (integrableOn_const hfin) hu, setAverage_const hpos hfin]
   refine ⟨?_, ?_⟩
-  · rw [← havg, setAverage_eq]
-    exact smul_nonneg (inv_nonneg.2 measureReal_nonneg) (setIntegral_nonneg measurableSet_ball hnn)
+  · rw [← havg]
+    exact average_nonneg_of_ae (ae_restrict_of_forall_mem measurableSet_ball hnn)
   have hmeas : Measurable fun z : EuclideanSpace ℂ ι =>
       ENNReal.ofReal (Real.log M - Real.log ‖eval z.ofLp P‖) := by
     fun_prop
