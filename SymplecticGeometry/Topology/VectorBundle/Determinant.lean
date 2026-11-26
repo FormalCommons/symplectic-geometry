@@ -107,9 +107,7 @@ theorem fiberMap_mapCoreTrivialIso_trans_eqToIso_inv_apply {n m : ℕ} (h : Φ.r
       fun i ↦ v (Fin.cast h i) := by
   rw [Iso.trans_inv, FiniteRankBundleCore.fiberMap_comp, ContinuousLinearMap.comp_apply,
     fiberMap_mapCoreTrivialIso_inv, eqToIso.inv]
-  funext i
-  exact FiniteRankBundleCore.fiberMap_eqToHom_apply
-    (congrArg (FiniteRankBundleCore.trivial 𝕜' B) h).symm x v i
+  exact FiniteRankBundleCore.fiberMap_eqToHom _ x v
 
 end TauCeti.CoordinateFunctor
 
@@ -236,7 +234,7 @@ theorem fiberMap_detCoreMap_hom_apply (Φ : ∀ x, E x ≃L[𝕜] E₁ x)
     fiberMap_exteriorPower_map, eqToIso.hom, eqToIso.hom, fiberMap_eqToHom_apply]
   exact congrArg (fun w ↦ ((ofBundleOfFinrankEqIso rfl rfl Φ hΦ).hom.fiberMap x).exteriorPowerCoords
     (finrank 𝕜 G) w (Fin.cast (congrArg rank (detCore_eq_exteriorPower 𝕜 G E₁)) i))
-    (funext (fiberMap_eqToHom_apply _ x v))
+    (fiberMap_eqToHom _ x v)
 
 end SameModel
 
@@ -331,9 +329,9 @@ constant, read in the coordinates of the determinant line of `B × G`. -/
 theorem fiberMap_detCoreTrivialIso_inv_const (x : B) (c : 𝕜) :
     (detCoreTrivialIso 𝕜 B G).inv.fiberMap x (fun _ ↦ c) = fun _ ↦ c := by
   rw [detCoreTrivialIso_def]
-  simp only [Iso.trans_inv, fiberMap_comp, eqToIso.inv, ContinuousLinearMap.comp_apply]
+  simp only [Iso.trans_inv, fiberMap_comp, eqToIso.inv, ContinuousLinearMap.comp_apply,
+    fiberMap_eqToHom]
   funext i
-  rw [fiberMap_eqToHom_apply]
   exact congrFun (CoordinateFunctor.fiberMap_mapCoreTrivialIso_trans_eqToIso_inv_apply _
     (Nat.choose_self _) x _) _
 
