@@ -438,6 +438,7 @@ theorem coe_correctionPotential (l ε : ℝ) :
   (rfl)
 
 /-- For `0 < l` and `0 < ε`, the correction potential is `z ↦ q(|z|²)`. -/
+@[simp]
 theorem correctionPotential_apply {l ε : ℝ} (hl : 0 < l) (hε : 0 < ε) (z : Fin (n + 1) → ℂ) :
     correctionPotential n l ε z =
       blowupCorrection l ε (‖complexToRealEuclidean (Fin (n + 1)) z‖ ^ 2) := by
@@ -542,30 +543,6 @@ theorem profileForm_eq_blowupForm_on {l ε : ℝ} :
   simp [profileForm_def,
     correctionForm_apply_eq_zero n (mem_closedNbhd_iff.1 hp)]
 
-/-- Off the exceptional divisor, the pull-back of a two-form on the model blowup along the inclusion
-determines it: if the pull-backs of `X` and `Y` to `E ∖ 0`, through the inverse of the blowdown,
-agree at the image of `p`, then `X` and `Y` agree at `p`. -/
-private theorem val_eq_of_mpullback_blowdownPuncturedDiffeomorph_symm
-    {X Y : SmoothTwoForm 𝓘(ℝ, Fin (n + 1) → ℂ) (BlowupModel n)} {p : BlowupModel n}
-    (hp : p ∈ (⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ :
-      Opens (BlowupModel n)))
-    (h : (SmoothForm.mpullback (blowdownPuncturedDiffeomorph n).symm
-          (blowdownPuncturedDiffeomorph n).symm.contMDiff
-          (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal X)).val
-          (blowdownPuncturedDiffeomorph n ⟨p, hp⟩) =
-        (SmoothForm.mpullback (blowdownPuncturedDiffeomorph n).symm
-          (blowdownPuncturedDiffeomorph n).symm.contMDiff
-          (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal Y)).val
-          (blowdownPuncturedDiffeomorph n ⟨p, hp⟩)) :
-    X.val p = Y.val p := by
-  refine SmoothBundleForm.apply_eq_of_eval₂_eq fun v w ↦ ?_
-  have key := fun W : SmoothTwoForm 𝓘(ℝ, Fin (n + 1) → ℂ) (BlowupModel n) ↦
-    SmoothForm.eval₂_mfderiv_eq_of_mpullback_eq_mpullback_subtype_val (σ := W)
-      (blowdownPuncturedDiffeomorph n).contMDiff
-      (SmoothForm.mpullback_mpullback_symm (blowdownPuncturedDiffeomorph n) _) ⟨p, hp⟩ v w
-  refine (key X).symm.trans (Eq.trans ?_ (key Y))
-  rw [SmoothBundleForm.eval₂_apply, SmoothBundleForm.eval₂_apply, h]
-
 /-- Off `L(l + ε) = closedNbhd n (l + ε)`, the form `ω̃_{l,ε}` is `π^* ω₀`, for `0 < l` and
 `0 < ε`: there `l² log s + q(s)` is constant in `s = |z|²`, so the Fubini–Study term of `ω̃_l`
 and the correction cancel. -/
@@ -586,7 +563,8 @@ theorem profileForm_eq_on_compl {l ε : ℝ} (hl : 0 < l) (hε : 0 < ε) :
     rw [Function.comp_apply, Function.comp_apply, coe_blowdownPuncturedDiffeomorph_symm_apply,
       blowdown_ofNeZero]
   have hq := (contDiff_blowupCorrection (n := ⊤) hl hε).contDiffOn (s := Ioi 0)
-  refine val_eq_of_mpullback_blowdownPuncturedDiffeomorph_symm n hpU ?_
+  refine SmoothForm.apply_eq_of_mpullback_symm_mpullback_subtype_val_apply_eq
+    (blowdownPuncturedDiffeomorph n) ⟨p, hpU⟩ ?_
   rw [profileForm_def, map_add, map_add, mpullback_blowdownDiffeomorph_symm_blowupForm,
     SmoothForm.mpullback_mpullback, SmoothForm.mpullback_mpullback,
     SmoothForm.mpullback_mpullback, SmoothForm.mpullback_mpullback,
