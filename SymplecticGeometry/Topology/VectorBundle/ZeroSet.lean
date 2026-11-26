@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Topology.VectorBundle.Basic
 import TauCeti.Topology.VectorBundle.Trivialization
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # Zero sets of continuous sections
@@ -54,7 +55,7 @@ theorem isClosed_setOfPred_eq_zero {b : M → B} {s : ∀ y, E (b y)}
       hs.continuousAt
   have hb : ContinuousAt b x := ((FiberBundle.continuous_proj F E).comp hs).continuousAt
   filter_upwards [hc.preimage_mem_nhds (isOpen_compl_singleton.mem_nhds (mt (heq x hxe).1 hx)),
-    hb.preimage_mem_nhds (e.open_baseSet.mem_nhds hxe)] with y hy hye
+    hb.eventually_mem_baseSet_trivializationAt F E] with y hy hye
   exact mt (heq y hye).2 hy
 
 end VectorBundle

@@ -19,6 +19,7 @@ import TauCeti.Geometry.Manifold.VectorBundle.TotalSpace.MFDeriv
 import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
 import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
+import SymplecticGeometry.Topology.FiberBundle.Basic
 import SymplecticGeometry.Topology.VectorBundle.Basic
 
 /-!
@@ -349,8 +350,8 @@ theorem contMDiff_mfderiv_smul_curve {Φ : TotalSpace F V → N} {f : C^∞⟮IB
     (by simp)).clm_apply (contMDiffAt_const (c := (1 : 𝕜)))).congr_of_eventuallyEq ?_
   let e := trivializationAt EN (TangentSpace J) (f p₀.proj)
   have hb : ∀ᶠ p in 𝓝 p₀, f p.proj ∈ e.baseSet :=
-    (f.contMDiff.continuous.comp (FiberBundle.continuous_proj F V)).continuousAt.preimage_mem_nhds
-      (e.open_baseSet.mem_nhds (mem_baseSet_trivializationAt EN (TangentSpace J) (f p₀.proj)))
+    (f.contMDiff.continuous.comp (FiberBundle.continuous_proj F V)).continuousAt
+      |>.eventually_mem_baseSet_trivializationAt EN (TangentSpace J)
   filter_upwards [hb] with p hp
   -- The base point of the coordinate change is `Φ 0_b`, which is `f b`.
   have key (b : N) (w : EN) (hb : b = f p.proj) :
