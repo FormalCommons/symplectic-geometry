@@ -10,6 +10,7 @@ public import SymplecticGeometry.AlgebraicTopology.Cohomology.Cup.RelativeKronec
 public import TauCeti.Algebra.Category.ModuleCat.Monoidal.Unit
 public import TauCeti.CategoryTheory.Monoidal.Preadditive
 import Mathlib.Algebra.Category.ModuleCat.EnoughInjectives
+import SymplecticGeometry.Algebra.Category.ModuleCat.ULiftTensor
 import SymplecticGeometry.AlgebraicTopology.Cohomology.PairChangeOfCoefficients
 import TauCeti.AlgebraicTopology.Cohomology.IntegralCup
 
@@ -205,13 +206,14 @@ theorem singularRelativeCap_singularHomologyCrossRelPair_ulift
   -- `TauCeti.integralCoeffIso.inv`.
   have hu : (ModuleCat.uliftTensorSelfIso ℤ).inv ≫ 𝟙 _ =
       (ρ_ (ModuleCat.of ℤ (ULift.{0} ℤ))).inv ≫ (𝟙 _ ⊗ₘ TauCeti.integralCoeffIso.inv) := by
-    ext ⟨n⟩ : 2
-    have hn : (⟨n⟩ : ULift.{0} ℤ) = n • (⟨1⟩ : ULift.{0} ℤ) := by ext; simp
-    rw [ModuleCat.hom_comp, ModuleCat.hom_comp, LinearMap.comp_apply, LinearMap.comp_apply,
-      ModuleCat.hom_id, LinearMap.id_apply, ModuleCat.uliftTensorSelfIso_inv_apply,
-      ModuleCat.MonoidalCategory.rightUnitor_inv_apply, ModuleCat.MonoidalCategory.tensorHom_tmul,
-      TauCeti.integralCoeffIso_inv_apply, hn, TensorProduct.tmul_smul, ModuleCat.id_apply,
-      TensorProduct.smul_tmul']
+    rw [Category.comp_id, id_tensorHom, ← cancel_mono (ModuleCat.uliftTensorSelfIso ℤ).hom,
+      Iso.inv_hom_id, Category.assoc]
+    have hinv : TauCeti.integralCoeffIso.inv =
+        ModuleCat.ofHom (ULift.moduleEquiv.symm : ℤ ≃ₗ[ℤ] ULift.{0} ℤ).toLinearMap := by
+      ext
+      exact congrArg ULift.down (TauCeti.integralCoeffIso_inv_apply 1)
+    rw [hinv, ← Category.assoc]
+    exact (ModuleCat.rightUnitor_inv_whiskerLeft_uliftTensorSelfIso_hom ℤ).symm
   have hμ : (TauCeti.integralCoeffIso.inv ▷ 𝟙_ (ModuleCat.{0} ℤ)) ≫ (ρ_ _).hom =
       (𝟙_ (ModuleCat.{0} ℤ) ◁ TauCeti.integralCoeffIso.inv) ≫ (λ_ _).hom ≫ 𝟙 _ := by
     rw [Category.comp_id, rightUnitor_naturality, leftUnitor_naturality]
