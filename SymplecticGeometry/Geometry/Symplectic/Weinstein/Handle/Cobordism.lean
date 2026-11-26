@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Basic
-import SymplecticGeometry.Geometry.Manifold.Morse.CriticalPoints
+import SymplecticGeometry.Geometry.Manifold.RegularValue.CriticalSet
 import TauCeti.Analysis.Calculus.Morse.NormSq
 import TauCeti.Geometry.Manifold.Morse.ScalarComposition
 
@@ -50,11 +50,17 @@ level `f ⁻¹' {c}` with `a < c < b` (or there are none).
 
 Cieliebak and Eliashberg define a Weinstein cobordism as a compact manifold with boundary
 `W = ∂₋W ⊔ ∂₊W` with a Weinstein structure whose function has `∂₋W` and `∂₊W` as its minimum and
-maximum regular levels. Here, as for `SymplecticGeometry.IsWeinsteinDomain` and
-`SymplecticGeometry.IsWeinsteinStructure.isWeinsteinDomain_scalarRegularSublevel`, the cobordism
-is the region between two regular levels of a Weinstein structure on a boundaryless manifold, so
-that later statements stay on boundaryless manifolds. The predicate is on `(ω, X, f, a, b)`; the
-region is `f ⁻¹' Icc a b`, and the predicate needs no definition of its own for it.
+maximum regular levels. Here the cobordism is instead the region between two regular levels of a
+Weinstein structure on a boundaryless manifold, so that later statements stay on boundaryless
+manifolds. The predicate is on `(ω, X, f, a, b)`; the region is `f ⁻¹' Icc a b`, and the
+predicate needs no definition of its own for it.
+
+This describes only the cobordisms of Cieliebak and Eliashberg that are cut out of a Weinstein
+manifold. Since `f` is proper and bounded below, the lower boundary `f ⁻¹' {a}` then bounds the
+Weinstein domain `{f ≤ a}` when `M` has positive dimension
+(`SymplecticGeometry.IsWeinsteinStructure.isWeinsteinDomain_scalarRegularSublevel`). A cobordism
+whose lower boundary bounds no Weinstein domain, such as `[0, 1] × S³` in the symplectization of
+an overtwisted contact sphere, is not of this form.
 
 Cieliebak and Eliashberg call a cobordism elementary when no trajectory of `X` joins two critical
 points; the condition used here, that all critical points lie on one level, implies it, since `f`
@@ -86,7 +92,11 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimension
 /-- A **Weinstein cobordism** between the levels `a` and `b`: `(ω, X, f)` is a Weinstein
 structure, `a < b`, and `a` and `b` are regular values of `f`. The cobordism is the region
 `f ⁻¹' Icc a b`, whose boundary consists of the lower level `f ⁻¹' {a}` and the upper level
-`f ⁻¹' {b}`. -/
+`f ⁻¹' {b}`.
+
+The predicate describes only cobordisms cut out of a Weinstein manifold, whose lower boundary
+bounds the Weinstein domain `{f ≤ a}`; it does not cover a general Weinstein cobordism, a
+compact manifold with boundary whose lower boundary need bound no Weinstein domain. -/
 structure IsWeinsteinCobordism (ω : SmoothTwoForm 𝓘(ℝ, E) M)
     (X : (x : M) → TangentSpace 𝓘(ℝ, E) x) (f : M → ℝ) (a b : ℝ) : Prop where
   /-- The triple is a Weinstein structure. -/
@@ -128,10 +138,12 @@ theorem finite_criticalPoints (h : IsWeinsteinCobordism ω X f a b) :
 `f ⁻¹' Ioo a b`: none lies on the two boundary levels. -/
 theorem criticalPoints_inter_subset_preimage_Ioo (h : IsWeinsteinCobordism ω X f a b) :
     criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹' Icc a b ⊆ f ⁻¹' Ioo a b := by
-  rintro x ⟨hx, hxa, hxb⟩
-  refine ⟨hxa.lt_of_ne fun hfx ↦ ?_, hxb.lt_of_ne fun hfx ↦ ?_⟩
-  · exact isRegularValue_iff_notMem_image_criticalPoints.1 h.isRegularValue_lower ⟨x, hx, hfx.symm⟩
-  · exact isRegularValue_iff_notMem_image_criticalPoints.1 h.isRegularValue_upper ⟨x, hx, hfx⟩
+  intro x hx
+  have hl : x ∈ criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹' Ioc a b := by
+    rwa [criticalPoints_inter_preimage_Ioc_eq_Icc h.isRegularValue_lower]
+  have hu : x ∈ criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹' Ico a b := by
+    rwa [criticalPoints_inter_preimage_Ico_eq_Icc h.isRegularValue_upper]
+  exact ⟨hl.2.1, hu.2.2⟩
 
 /-- Along the lower level `f ⁻¹' {a}` of a Weinstein cobordism, the field increases `f`: it points
 into the region. -/

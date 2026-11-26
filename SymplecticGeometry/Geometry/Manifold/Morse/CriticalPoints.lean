@@ -6,7 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
-import TauCeti.Geometry.Manifold.Morse.ScalarComposition
 import SymplecticGeometry.Topology.DiscreteSubset
 
 /-!
@@ -18,10 +17,6 @@ points of `f`, then `K` holds only finitely many critical points
 closed (`TauCeti.isClosed_criticalPoints`). No Morse condition is assumed, so this
 serves Morse functions, whose critical points are isolated because they are nondegenerate, as well
 as generalized Morse functions, whose degenerate critical points are of birth–death type.
-
-The file also shows that post-composing with an injective scalar function whose derivative does
-not vanish keeps regular values (`TauCeti.IsRegularValue.scalar_comp`), since it keeps critical
-points (`TauCeti.mem_criticalPoints_scalar_comp_iff`).
 
 ## Implementation notes
 
@@ -51,18 +46,6 @@ theorem finite_criticalPoints_inter_of_forall_eventually_notMem (hf : ContMDiff 
     (h : ∀ x ∈ criticalPoints I f ∩ K, ∀ᶠ y in 𝓝[≠] x, y ∉ criticalPoints I f) :
     (criticalPoints I f ∩ K).Finite :=
   (isClosed_criticalPoints hf).finite_inter_of_forall_eventually_notMem hK h
-
-omit [IsManifold I 1 M] in
-/-- Post-composing with an injective `φ : ℝ → ℝ` whose derivative does not vanish at the values of
-a differentiable `f` keeps regular values: if `c` is a regular value of `f`, then `φ c` is one of
-`φ ∘ f`. -/
-theorem IsRegularValue.scalar_comp {φ : ℝ → ℝ} (hf : MDifferentiable I 𝓘(ℝ) f)
-    (hinj : Function.Injective φ) (hφ : ∀ x, deriv φ (f x) ≠ 0) {c : ℝ}
-    (hc : IsRegularValue I 𝓘(ℝ) f c) : IsRegularValue I 𝓘(ℝ) (φ ∘ f) (φ c) := by
-  rw [isRegularValue_iff_notMem_image_criticalPoints] at hc ⊢
-  rintro ⟨x, hx, hxc⟩
-  rw [mem_criticalPoints_scalar_comp_iff (hf x) (hφ x)] at hx
-  exact hc ⟨x, hx, hinj hxc⟩
 
 end TauCeti
 
