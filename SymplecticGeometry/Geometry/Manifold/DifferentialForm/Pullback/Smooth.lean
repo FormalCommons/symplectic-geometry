@@ -211,10 +211,9 @@ theorem contDiff_apply_mfderiv (η : SmoothForm I' M' F k) {γ : E → M'}
 theorem contDiff_apply_one_mfderiv (η : SmoothForm I' M' F 1) {γ : E → M'}
     (hγ : ContMDiff 𝓘(ℝ, E) I' ∞ γ) (w : E) :
     ContDiff ℝ ∞ fun y ↦ η.val (γ y) ![mfderiv 𝓘(ℝ, E) I' γ y w] := by
-  convert contDiff_apply_mfderiv η hγ ![w] using 3 with y
-  ext i
-  fin_cases i
-  rfl
+  convert contDiff_apply_mfderiv η hγ ![w] using 2 with y
+  -- `w` is a vector of `E` rather than of a tangent space, so the lemmas are applied by `exact`.
+  exact (mpullback_apply_one γ hγ η y w).symm.trans (mpullback_apply γ hγ η y ![w])
 
 /-- Let `γ : E → M'` be a smooth map from a normed space. Evaluating a smooth one-form `η` at
 `γ y` on `dγ_y w`, for a fixed vector `w`, gives a differentiable function of `y`. -/
