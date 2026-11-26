@@ -7,11 +7,12 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.RestrictScalars
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
+public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Submanifold
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Prod
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Prod
 
 /-!
-# Holomorphic embeddings have invariant tangent spaces
+# Real forms of holomorphic embeddings and almost complex structures
 
 Let `f : M → N` be a holomorphic embedding of complex manifolds and `f.restrictScalars ℝ hnm hn`
 its real form, a smooth embedding of the underlying real manifolds
@@ -28,13 +29,24 @@ These are the hypotheses, written
 forms. So a complex submanifold, such as a smooth hypersurface, is a symplectic
 submanifold for every form that tames the complex structure of the ambient manifold.
 
+The structure that the complex structure of `N` restricts to along the real form is the complex
+structure of `M`, and likewise for the product structure on `N × N'`: by
+`TauCeti.SmoothAlmostComplexStructure.eq_restrict_iff`, this asks that the real derivative of `f`
+commute with multiplication by `i`, and it is the complex derivative of `f`
+(`TauCeti.SmoothEmbedding.coe_mfderiv_restrictScalars`,
+`TauCeti.SmoothEmbedding.coe_mfderiv_restrictScalarsProd`).
+
 ## Main results
 
 * `TauCeti.SmoothEmbedding.mapsTo_ofComplexManifold_tangentRange_restrictScalars`: the
   tangent ranges of the real form of a holomorphic embedding are invariant under the almost complex
   structure of the target.
-* `TauCeti.SmoothEmbedding.mapsTo_prod_ofComplexManifold_tangentRange_restrictScalarsProd`:
-  the same for a holomorphic embedding into a product and the product almost complex structure.
+* `TauCeti.SmoothEmbedding.mapsTo_prod_ofComplexManifold_tangentRange_restrictScalarsProd`: the
+  same for a holomorphic embedding into a product and the product almost complex structure.
+* `TauCeti.SmoothEmbedding.restrict_ofComplexManifold`: the almost complex structure of the
+  target restricts along the real form to that of the source.
+* `TauCeti.SmoothEmbedding.restrict_prod_ofComplexManifold`: the same for a holomorphic
+  embedding into a product and the product almost complex structure.
 
 ## References
 
@@ -68,6 +80,22 @@ theorem mapsTo_ofComplexManifold_tangentRange_restrictScalars
   (ofComplexManifold_apply (E := E') (M := N) _ v).symm ▸
     f.smul_mem_tangentRange_restrictScalars hnm hn x hn₀ Complex.I hv
 
+/-- The almost complex structure that the complex structure of `N` restricts to along the real
+form of a holomorphic embedding `f : M → N` is the complex structure of `M`. -/
+theorem restrict_ofComplexManifold [CompleteSpace E] [IsManifold 𝓘(ℂ, E) ∞ M]
+    (f : SmoothEmbedding 𝓘(ℂ, E) 𝓘(ℂ, E') m M N) (hnm : ∞ ≤ m)
+    {hn₀ : (∞ : ℕ∞ω) ≠ 0} :
+    (ofComplexManifold E' N).restrict (f.restrictScalars ℝ hnm (by simp)) (hn := hn₀)
+        (f.mapsTo_ofComplexManifold_tangentRange_restrictScalars hnm (by simp) hn₀) =
+      ofComplexManifold E M := by
+  refine ((eq_restrict_iff _).2 fun x v ↦ ?_).symm
+  -- `ofComplexManifold_apply` states `v` in the model space, so it does not rewrite directly.
+  have hJ := ofComplexManifold_apply (E := E) x v
+  have h := ofComplexManifold_apply (E := E') (f.restrictScalars ℝ hnm (by simp) x)
+    (mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E') (f.restrictScalars ℝ hnm (by simp)) x v)
+  rw [hJ, h, coe_mfderiv_restrictScalars]
+  exact (mfderiv _ _ f x).map_smul Complex.I v
+
 variable {F' : Type*} [NormedAddCommGroup F'] [NormedSpace ℂ F'] [FiniteDimensional ℂ F']
   {N' : Type*} [TopologicalSpace N'] [ChartedSpace F' N'] [IsManifold 𝓘(ℂ, F') ∞ N']
   [IsManifold 𝓘(ℝ, F') n N']
@@ -86,6 +114,26 @@ theorem mapsTo_prod_ofComplexManifold_tangentRange_restrictScalarsProd
   -- directly.
   (prod_ofComplexManifold_apply (M := N) (N := N') _ v).symm ▸
     f.smul_mem_tangentRange_restrictScalarsProd hnm hn x hn₀ Complex.I hv
+
+/-- The almost complex structure that the product of the complex structures of `N` and `N'`
+restricts to along the real form of a holomorphic embedding `f : M → N × N'` is the complex
+structure of `M`. -/
+theorem restrict_prod_ofComplexManifold [CompleteSpace E] [IsManifold 𝓘(ℂ, E) ∞ M]
+    (f : SmoothEmbedding 𝓘(ℂ, E) (𝓘(ℂ, E').prod 𝓘(ℂ, F')) m M (N × N')) (hnm : ∞ ≤ m)
+    {hn₀ : (∞ : ℕ∞ω) ≠ 0} :
+    ((ofComplexManifold E' N).prod (ofComplexManifold F' N')).restrict
+        (f.restrictScalarsProd ℝ hnm (by simp)) (hn := hn₀)
+        (f.mapsTo_prod_ofComplexManifold_tangentRange_restrictScalarsProd hnm (by simp) hn₀) =
+      ofComplexManifold E M := by
+  refine ((eq_restrict_iff _).2 fun x v ↦ ?_).symm
+  -- `ofComplexManifold_apply` and `prod_ofComplexManifold_apply` state `v` in the model space,
+  -- so they do not rewrite directly.
+  have hJ := ofComplexManifold_apply (E := E) x v
+  have h := prod_ofComplexManifold_apply (M := N) (N := N')
+    (f.restrictScalarsProd ℝ hnm (by simp) x)
+    (mfderiv 𝓘(ℝ, E) (𝓘(ℝ, E').prod 𝓘(ℝ, F')) (f.restrictScalarsProd ℝ hnm (by simp)) x v)
+  rw [hJ, h, coe_mfderiv_restrictScalarsProd]
+  exact (mfderiv _ _ f x).map_smul Complex.I v
 
 end TauCeti.SmoothEmbedding
 
