@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.ProjectiveSpace
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.TwistCore
+public import TauCeti.Geometry.Manifold.VectorBundle.Trivialization
 
 /-!
 # `𝒪(-1)` is the tautological line
@@ -39,9 +40,10 @@ of the line `x` is its coordinate `w i`, and these coordinates change from chart
 ## Implementation notes
 
 The continuity on total spaces is checked in the trivializations of `twistCore (-1)` and in the
-subspace topology of the tautological line, as for `Projectivization.twistCoreTensorEquiv`. Both
-directions are proved directly, so that the scalars are any nontrivially normed field, with no
-completeness and no `SeparatingDual` instance.
+subspace topology of the tautological line, as for `Projectivization.twistCoreTensorEquiv`. The
+forward direction is proved directly; the continuity of the inverse is the case `r = 0` of
+`Projectivization.contMDiff_coe_tautologicalTwistCoreEquiv_symm`. Neither needs completeness or a
+`SeparatingDual` instance, so the scalars are any nontrivially normed field.
 
 ## References
 
@@ -146,32 +148,6 @@ theorem continuous_tautologicalTwistCoreEquiv :
     (continuous_snd_tautological 𝕜 _)).continuousAt.congr (.of_forall fun v ↦
       (twistCore_localTriv_tautologicalTwistCoreEquiv _ v.snd).symm)
 
-/-- The inverse of `tautologicalTwistCoreEquiv` is continuous on total spaces. -/
-theorem continuous_tautologicalTwistCoreEquiv_symm :
-    Continuous fun q : TotalSpace 𝕜 (twistCore (𝕜 := 𝕜) (n := n) (-1)).Fiber ↦
-      TotalSpace.mk' 𝕜 (E := Tautological 𝕜 (Fin (n + 1) → 𝕜)) q.proj
-        ((tautologicalTwistCoreEquiv q.proj).symm q.snd) := by
-  refine continuous_totalSpace_tautological_iff.2
-    ⟨FiberBundle.continuous_proj _ _, continuous_iff_continuousAt.2 fun q₀ ↦ ?_⟩
-  set i := (twistCore (𝕜 := 𝕜) (n := n) (-1)).indexAt q₀.proj
-  have hi₀ : q₀.proj ∈ affineOpen i := mem_affineOpen_twistCore_indexAt (-1) q₀.proj
-  have hU : ∀ᶠ q in 𝓝 q₀, q.proj ∈ affineOpen i :=
-    (FiberBundle.continuous_proj _ _).continuousAt.preimage_mem_nhds
-      ((isOpen_affineOpen i).mem_nhds hi₀)
-  refine ContinuousAt.congr ?_
-    (hU.mono fun q hq ↦ (coe_tautologicalTwistCoreEquiv_symm_apply_of_mem hq q.snd).symm)
-  have h₁ : ContinuousAt (fun q ↦ ((twistCore (𝕜 := 𝕜) (n := n) (-1)).localTriv i q).2) q₀ :=
-    continuous_snd.continuousAt.comp (((twistCore (-1)).localTriv i).continuousAt
-      (((twistCore (-1)).mem_localTriv_source (i := i) q₀).2
-        (by simpa [twistCore_baseSet] using hi₀)))
-  have h₂ : ContinuousAt (fun q : TotalSpace 𝕜 (twistCore (𝕜 := 𝕜) (n := n) (-1)).Fiber ↦
-      normalizedRep (LinearMap.proj (R := 𝕜) (φ := fun _ : Fin (n + 1) ↦ 𝕜) i) q.proj) q₀ :=
-    ((continuousOn_normalizedRep (continuous_apply i)).continuousAt
-      (Filter.mem_of_superset ((isOpen_affineOpen i).mem_nhds hi₀)
-        (affineOpen_eq_linearProjectionDomain i).subset)).comp
-      (FiberBundle.continuous_proj _ _).continuousAt
-  exact h₁.smul h₂
-
 /-- The inverse of `tautologicalTwistCoreEquiv`, read as a vector of `𝕜^{n+1}`, is `C^r` on the
 total space of `𝒪(-1)`, for every `r` including the analytic order `ω`. -/
 theorem contMDiff_coe_tautologicalTwistCoreEquiv_symm (r : ℕ∞ω) :
@@ -184,13 +160,10 @@ theorem contMDiff_coe_tautologicalTwistCoreEquiv_symm (r : ℕ∞ω) :
   have hU : ∀ᶠ q in 𝓝 q₀, q.proj ∈ affineOpen i :=
     (FiberBundle.continuous_proj _ _).continuousAt.preimage_mem_nhds
       ((isOpen_affineOpen i).mem_nhds hi₀)
-  have : MemTrivializationAtlas ((twistCore (𝕜 := 𝕜) (n := n) (-1)).localTriv i) := ⟨⟨i, rfl⟩⟩
   -- The coordinate of `q` in the chart `i` of `𝒪(-1)`.
   have h₁ : ContMDiffAt (𝓘(𝕜, Fin n → 𝕜).prod 𝓘(𝕜, 𝕜)) 𝓘(𝕜, 𝕜) r
       (fun q ↦ ((twistCore (𝕜 := 𝕜) (n := n) (-1)).localTriv i q).2) q₀ :=
-    (contMDiffAt_snd.comp _ (((twistCore (-1)).localTriv i).contMDiffAt
-      (((twistCore (-1)).mem_localTriv_source (i := i) q₀).2
-        (by simpa [twistCore_baseSet] using hi₀)))).of_le le_top
+    TotalSpace.contMDiffAt_trivializationAt_snd q₀
   -- The representative `[1 : affineChart i ℓ]` of the line.
   have h₂ : ContMDiffAt (𝓘(𝕜, Fin n → 𝕜).prod 𝓘(𝕜, 𝕜)) 𝓘(𝕜, Fin (n + 1) → 𝕜) r
       (fun q : TotalSpace 𝕜 (twistCore (𝕜 := 𝕜) (n := n) (-1)).Fiber ↦
@@ -200,6 +173,15 @@ theorem contMDiff_coe_tautologicalTwistCoreEquiv_symm (r : ℕ∞ω) :
   refine (h₁.smul h₂).congr_of_eventuallyEq (hU.mono fun q hq ↦ ?_)
   rw [Pi.smul_apply', insertNth_one_affineChart_eq_normalizedRep i hq]
   exact coe_tautologicalTwistCoreEquiv_symm_apply_of_mem hq q.snd
+
+/-- The inverse of `tautologicalTwistCoreEquiv` is continuous on total spaces. -/
+theorem continuous_tautologicalTwistCoreEquiv_symm :
+    Continuous fun q : TotalSpace 𝕜 (twistCore (𝕜 := 𝕜) (n := n) (-1)).Fiber ↦
+      TotalSpace.mk' 𝕜 (E := Tautological 𝕜 (Fin (n + 1) → 𝕜)) q.proj
+        ((tautologicalTwistCoreEquiv q.proj).symm q.snd) :=
+  continuous_totalSpace_tautological_iff.2
+    ⟨FiberBundle.continuous_proj _ _,
+      (contMDiff_coe_tautologicalTwistCoreEquiv_symm 0).continuous⟩
 
 end Equiv
 
