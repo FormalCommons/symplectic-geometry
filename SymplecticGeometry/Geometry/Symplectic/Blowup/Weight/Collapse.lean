@@ -336,21 +336,9 @@ theorem isClosedMap_collapseMap : IsClosedMap (collapseMap hψ hl hε) := by
       refine ⟨x, ⟨hxC, hxR'⟩, ?_⟩
       rw [collapseMap_of_notMem hψ hl hε (hnot hxR')]
       exact congrArg _ (Subtype.ext hxx)
-  rw [hAS, ← isOpen_compl_iff, isOpen_iff_forall_mem_open]
-  intro z hz
-  rcases GluedAlong.exists_inl_or_exists_inr _ z with ⟨x, rfl⟩ | ⟨y, rfl⟩
-  · -- Near `inl x`, for `x ∉ S`: the open set `inl '' Sᶜ`.
-    refine ⟨GluedAlong.inl _ '' Sᶜ, ?_,
-      (GluedAlong.isOpenEmbedding_inl _).isOpenMap _ hS.isOpen_compl,
-      ⟨x, fun hx ↦ hz ⟨x, hx, rfl⟩, rfl⟩⟩
-    rintro _ ⟨x', hx', rfl⟩ ⟨x'', hx'', h⟩
-    exact hx' ((GluedAlong.inl_injective _ h) ▸ hx'')
-  · -- Near `inr y`: the open image of the model piece, which is glued into `ψ(B°(R))`.
-    refine ⟨range (GluedAlong.inr _), ?_, GluedAlong.isOpen_range_inr _, mem_range_self y⟩
-    rintro _ ⟨y', rfl⟩ ⟨x, hx, h⟩
-    obtain ⟨hy', rfl⟩ := (inl_eq_inr_iff hψ hl.le hε).1 h
-    exact hx.2 (coe_gluingDiffeomorph_mem_image_ball hψ hl.le hε hε.le ⟨y', hy'⟩
-      (mem_modelPiece_iff.1 y'.property))
+  rw [hAS]
+  exact GluedAlong.isClosed_image_inl _ hS
+    (disjoint_left.2 fun x hx hxU ↦ hx.2 ((mem_outerOverlap_iff hψ).1 hxU))
 
 /-- **The collapse map is a quotient map**: it is continuous, onto and closed. -/
 theorem isQuotientMap_collapseMap : IsQuotientMap (collapseMap hψ hl hε) :=
