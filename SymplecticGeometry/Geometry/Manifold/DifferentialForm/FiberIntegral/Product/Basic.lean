@@ -176,8 +176,9 @@ variable {E H M V : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topologic
   [ContinuousConstSMul ℝ V]
 
 /-- A rough form cast along an equality of degrees `p = q` takes on `w` the value of the
-original form on `w` reindexed along `Fin.cast h`. -/
-theorem linearEquivCast_apply {p q : ℕ} (h : p = q) (α : RoughForm I M V p) (x : M)
+original form on `w` reindexed along `Fin.cast h`, as `TauCeti.SmoothForm.cast_apply` says for
+smooth forms. -/
+theorem cast_apply {p q : ℕ} (h : p = q) (α : RoughForm I M V p) (x : M)
     (w : Fin q → TangentSpace I x) :
     LinearEquiv.cast (R := ℝ) (M := fun k ↦ RoughForm I M V k) h α x w =
       α x (w ∘ Fin.cast h) := by
@@ -345,7 +346,7 @@ theorem prodFiberIntegrand_degree_zero (α : RoughForm (I.prod J) (B × F) ℝ (
         α) := by
   funext y
   ext w
-  rw [prodFiberIntegrand_apply, mpullback_apply, RoughForm.linearEquivCast_apply]
+  rw [prodFiberIntegrand_apply, mpullback_apply, RoughForm.cast_apply]
   congr 1
   funext p
   obtain ⟨j, rfl⟩ : ∃ j, p = Fin.natAdd 0 j := ⟨Fin.cast (zero_add m) p, Fin.ext (by simp)⟩
