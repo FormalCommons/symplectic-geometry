@@ -429,7 +429,7 @@ theorem exists_weights [Fact (Module.finrank ℝ E = 2 * n)] (hσ : σ.IsNondege
   have hω (g : Circle) (u v : E) :
       hσ.symplecticFormAt p (ρ g u) (ρ g v) = hσ.symplecticFormAt p u v :=
     -- The invariance lemma is stated for actions by individually smooth maps.
-    have : ContMDiffConstSMul I ∞ Circle M := ⟨ContMDiffSMul.contMDiff_const_smul (I := 𝓡 1)⟩
+    have : ContMDiffConstSMul I ∞ Circle M := ContMDiffSMul.contMDiffConstSMul (𝓡 1)
     hσ.symplecticFormAt_tangentRepresentation (fun g _ ↦ hinv g) hd ⟨g, hp g⟩ u v
   -- `σ_p`, as a symplectic form on the model space `E = T_p M`.
   let ωₚ : SymplecticForm E := hσ.symplecticFormAt p
