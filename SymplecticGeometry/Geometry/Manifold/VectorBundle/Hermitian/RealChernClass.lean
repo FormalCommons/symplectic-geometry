@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.CircleBundle
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.RealChernClass
+public import SymplecticGeometry.Topology.VectorBundle.Pullback
 public import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 
 /-!
@@ -175,10 +176,7 @@ theorem realFirstChernClass_circleFiber_pullback {K : Type*} [FunLike K B' B]
     rw [contMDiffOn_univ] at h₁
     exact (_root_.Bundle.Pullback.contMDiff_lift f hf).comp h₁
   · rw [Fiber.frame_op_circle_smul_apply, mul_one]
-    have h₂ := φ.frame.map_smul (z : ℂ) 1
-    rw [smul_eq_mul, mul_one] at h₂
-    -- `(f *ᵖ V) x` is `V (f x)` by definition, with the same scalar action; no lemma states it.
-    exact h₂
+    simpa using φ.frame.map_smul (z : ℂ) 1
 
 end Map
 
