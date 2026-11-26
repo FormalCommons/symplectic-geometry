@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Connected
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Homogeneity
 import SymplecticGeometry.Geometry.Manifold.NullSet
+import SymplecticGeometry.Topology.Closure
 import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 
 /-!
