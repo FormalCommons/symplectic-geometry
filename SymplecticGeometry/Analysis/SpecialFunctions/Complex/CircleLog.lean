@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Geometry.Manifold.Instances.Sphere
 public import TauCeti.Topology.Circle.FreeLoop
+public import SymplecticGeometry.Topology.Sets.Annulus
 import Mathlib.Analysis.Calculus.BumpFunction.InnerProduct
 import Mathlib.Analysis.Convex.Contractible
 import Mathlib.Analysis.SpecialFunctions.Complex.Circle
@@ -72,6 +73,7 @@ public section
 
 open Complex Filter Set Topology
 open scoped Manifold ContDiff Real
+open SymplecticGeometry (annulus mem_annulus ne_zero_of_mem_annulus)
 
 /-- If `G` is `2πi`-periodic and continuous on `exp ⁻¹' U`, for a set `U` not containing `0`,
 then `z ↦ G (log z)` is continuous on `U`. -/
@@ -130,13 +132,12 @@ open annulus `a < ‖z‖ < b`. If the loop `ζ ↦ u (r ζ)` on the circle of r
 then `u = exp (i h)` on the annulus for a real function `h` that is `C^n` there. -/
 theorem exists_contDiffOn_exp_eq_of_circleDegree_eq_zero {n : WithTop ℕ∞} {a b r : ℝ}
     (ha : 0 ≤ a) (har : a < r) (hrb : r < b) {u : ℂ → Circle}
-    (hu : ContMDiffOn 𝓘(ℝ, ℂ) (𝓡 1) n u {z | a < ‖z‖ ∧ ‖z‖ < b}) (f : C(Circle, Circle))
+    (hu : ContMDiffOn 𝓘(ℝ, ℂ) (𝓡 1) n u (annulus ℂ a b)) (f : C(Circle, Circle))
     (hf : ∀ ζ : Circle, f ζ = u (r * ζ)) (hdeg : f.circleDegree = 0) :
-    ∃ h : ℂ → ℝ, ContDiffOn ℝ n h {z | a < ‖z‖ ∧ ‖z‖ < b} ∧
+    ∃ h : ℂ → ℝ, ContDiffOn ℝ n h (annulus ℂ a b) ∧
       ∀ z, a < ‖z‖ → ‖z‖ < b → u z = exp (h z) := by
-  set A : Set ℂ := {z | a < ‖z‖ ∧ ‖z‖ < b}
-  have hA : IsOpen A :=
-    (isOpen_lt continuous_const continuous_norm).inter (isOpen_lt continuous_norm continuous_const)
+  set A : Set ℂ := (annulus ℂ a b : Set ℂ)
+  have hA : IsOpen A := (annulus ℂ a b).isOpen
   -- the strip `S = exp⁻¹ A` covers the annulus
   set S : Set ℂ := Complex.exp ⁻¹' A
   have hSo : IsOpen S := hA.preimage Complex.continuous_exp
@@ -193,11 +194,11 @@ theorem exists_contDiffOn_exp_eq_of_circleDegree_eq_zero {n : WithTop ℕ∞} {a
       rw [← hGx ⟨w, hw⟩, ← hGx (τ ⟨w, hw⟩)] at h
       simpa [τ] using h
     · simp [Gx, hw, hshift]
-  have hA0 : (0 : ℂ) ∉ A := fun h ↦ (ha.trans_lt h.1).ne' norm_zero
+  have hA0 : (0 : ℂ) ∉ A := fun h ↦ ne_zero_of_mem_annulus ha h rfl
   have hexp {z : ℂ} (hz : z ∈ A) : u z = exp (Gx (log z)) := by
     have hz0 : z ≠ 0 := ne_of_mem_of_not_mem hz hA0
     rw [hGx ⟨log z, by simpa [S, exp_log hz0] using hz⟩, hGF, exp_log hz0]
-  refine ⟨fun z ↦ Gx (log z), ?_, fun z h₁ h₂ ↦ hexp ⟨h₁, h₂⟩⟩
+  refine ⟨fun z ↦ Gx (log z), ?_, fun z h₁ h₂ ↦ hexp (mem_annulus.2 ⟨h₁, h₂⟩)⟩
   exact contDiffOn_of_contMDiffOn_exp hA (hper.continuousOn_comp_log hA0 hGxc)
     (hu.congr fun z hz ↦ (hexp hz).symm)
 
@@ -208,22 +209,22 @@ integer `k` and a map `c : ℂ → S¹`, smooth on the punctured disc and equal 
 `0 < ‖z‖ ≤ r₁`. -/
 theorem exists_contMDiffOn_mul_eq_exp_arg_zpow {r₁ r₂ b : ℝ} (h₁ : 0 < r₁) (h₁₂ : r₁ < r₂)
     (h₁b : r₁ < b) {w : ℂ → Circle}
-    (hw : ContMDiffOn 𝓘(ℝ, ℂ) (𝓡 1) ∞ w {z | 0 < ‖z‖ ∧ ‖z‖ < b}) :
-    ∃ (k : ℤ) (c : ℂ → Circle), ContMDiffOn 𝓘(ℝ, ℂ) (𝓡 1) ∞ c {z | 0 < ‖z‖ ∧ ‖z‖ < b} ∧
+    (hw : ContMDiffOn 𝓘(ℝ, ℂ) (𝓡 1) ∞ w (annulus ℂ 0 b)) :
+    ∃ (k : ℤ) (c : ℂ → Circle), ContMDiffOn 𝓘(ℝ, ℂ) (𝓡 1) ∞ c (annulus ℂ 0 b) ∧
       (∀ z, r₂ ≤ ‖z‖ → c z = 1) ∧
       ∀ z, 0 < ‖z‖ → ‖z‖ ≤ r₁ → w z * c z = exp (arg z) ^ k := by
-  have hmem (ζ : Circle) : ((r₁ : ℂ) * ζ) ∈ {z : ℂ | 0 < ‖z‖ ∧ ‖z‖ < b} := by
-    simp [abs_of_pos h₁, h₁.ne', h₁b]
+  have hmem (ζ : Circle) : ((r₁ : ℂ) * ζ) ∈ annulus ℂ 0 b := by
+    simp [abs_of_pos h₁, h₁, h₁b]
   -- the loop of `w` on the circle of radius `r₁`, and its degree `k`
   let f : C(Circle, Circle) := ⟨fun ζ ↦ w (r₁ * ζ), hw.continuousOn.comp_continuous
     (continuous_const.mul continuous_subtypeVal) hmem⟩
   set k := f.circleDegree
   -- `v = w / (z / ‖z‖) ^ k` has degree `0`, so it has a smooth logarithm `h`
   let v : ℂ → Circle := fun z ↦ w z * (exp (arg z) ^ k)⁻¹
-  have hv : ContMDiffOn 𝓘(ℝ, ℂ) (𝓡 1) ∞ v {z | 0 < ‖z‖ ∧ ‖z‖ < b} :=
+  have hv : ContMDiffOn 𝓘(ℝ, ℂ) (𝓡 1) ∞ v (annulus ℂ 0 b) :=
     hw.mul (((TauCeti.contMDiff_zpow k).comp_contMDiffOn
-      (contMDiffOn_exp_arg.mono (t := {z : ℂ | 0 < ‖z‖ ∧ ‖z‖ < b})
-        fun z hz ↦ norm_pos_iff.1 hz.1)).inv)
+      (contMDiffOn_exp_arg.mono (t := annulus ℂ 0 b)
+        fun z hz ↦ ne_zero_of_mem_annulus le_rfl hz)).inv)
   let g : C(Circle, Circle) := f * (⟨(· ^ k), continuous_zpow k⟩ : C(Circle, Circle))⁻¹
   have hg (ζ : Circle) : g ζ = v (r₁ * ζ) := by
     simp [g, v, f, arg_ofReal_mul h₁, exp_arg]
