@@ -423,6 +423,11 @@ and that neither library has. Each file is in
   it (Tau Ceti's `SquaredDistance.lean` has the complex-chart
   computation); isotropic submanifolds of a $J$-convex level, tangent to
   the complex tangencies, are totally real.
+- `Interpolation.lean` (issues 14d16 and 14d17): two strictly
+  plurisubharmonic functions with the same 1-jet along a compact part of
+  a totally real submanifold are joined by one equal to the second near
+  it and to the first farther away (Cieliebak–Eliashberg's Proposition
+  3.26); designed with `Surround/` below.
 - `Surround/` (issue 13 designs it, issues 14a–14e build it): the
   $J$-convex surrounding of a totally real disc attached to a $J$-convex
   level, below.
@@ -963,15 +968,16 @@ containing `ι '' closedBall 0 1`:
     `Φ₀ (modelDisc k m x) = ι x` and `mfderiv _ _ Φ₀ (modelDisc k m x) = A x`
     (so complex linear) for all `x`. It is Tau Ceti's
     `SmoothEmbedding.exists_partialDiffeomorph_mfderiv_eq` with
-    `i = modelDisc k m`, `g = ι` and the frame of 14d9, applied on an
+    `i = modelDisc k m`, `g = ι` and a frame `A` with the properties
+    that 14d9 gives (that of 14d9, or the adapted one of 14d18), applied on an
     open submanifold of `O` around `range ι` that is second countable
     (countably many chart domains, `range ι` being σ-compact), since that
     theorem asks for `SecondCountableTopology` and the statements above
     do not.
   - `exists_modelChart` (14d13; Proposition 5.55 for integrable `J`):
-    for `ι`, `O` as above and `N : ℕ`, there is `Φ` as in 14d10 (source,
-    target, `Φ ∘ modelDisc k m = ι`, differential complex linear along
-    `range (modelDisc k m)`) such that every point `p₀` of
+    for `ι`, `O`, `A` as above and `N : ℕ`, there is `Φ` as in 14d10 (source,
+    target, `Φ ∘ modelDisc k m = ι`, `mfderiv _ _ Φ (modelDisc k m x) = A x`
+    for all `x`) such that every point `p₀` of
     `range (modelDisc k m)` has a neighbourhood `U ⊆ Φ.source`
     and a constant `C` with, for `e = writtenInExtChartAt 𝓘(ℝ, V)
     𝓘(ℝ, E) p₀ Φ` (the chart of `M` at `Φ p₀`, holomorphic) and all
@@ -1025,6 +1031,158 @@ containing `ι '' closedBall 0 1`:
     With `u = g ∘ Ψ` of `exists_modelSurround_margin` this is the step
     of issue 14d that carries the model to `M`; the statement takes the
     margin as a hypothesis, so it does not depend on issue 14d8.
+
+- **Interpolation and the normal form near the sphere (issues
+  14d16–14d19).** Before the model of `Surround/ModelHandle.lean` is
+  placed near the attaching sphere, `φ` is replaced there by the model
+  level read through the chart `Φ` of 14d13. Cieliebak–Eliashberg do this
+  in Steps 2–4 of their proof of Theorem 8.5: a parametrization of the
+  disc (their Corollary 8.1), a comparison of 1-jets along the core, and
+  their Proposition 3.26. Here the comparison holds on less than the
+  core. Along the core, `modelLevel k m` has zero derivative in the
+  directions `Complex.I • v` and `(0, w)` of `V`, while `φ ∘ Φ` has
+  `dφ (J dι v)` and `dφ (A x (0, w))` there; `IsJOrthogonallyAttached`
+  makes the first vanish on the sphere only, and nothing makes the second
+  vanish. So the interpolation runs along the sphere `ι '' sphere 0 1`, a
+  compact totally real submanifold of dimension `k - 1`, once the two
+  1-jets agree on it: the radial derivative of `φ ∘ ι` is fixed by a
+  radial reparametrization of the disc, and `dφ ∘ A x` on the second
+  factor by the choice of the frame (14d18). Away from the sphere issue
+  14d keeps `φ` and the function of issue 14a, as below.
+
+  *Route for Proposition 3.26.* For a cutoff `β` and `D = ψ - φ`, the
+  Levi form of `θ = φ + β D` is `(1 - β) L φ + β L ψ` up to an error at
+  most `|D| ‖D²β‖ + ‖Dβ‖ ‖DD‖` (times `‖v‖²`). If the 1-jets agree along
+  the submanifold, then near it `|D| ≤ A ρ` and `‖DD‖ ≤ A √ρ`, with `ρ`
+  the function of issue 14a, comparable to the squared distance. With
+  `β = 1 - logCutoffProfile ε δ ∘ ρ` (Tau Ceti), whose first and second
+  derivatives are bounded by a constant over `√ρ log (δ / ε)` and over
+  `ρ log (δ / ε)` (using `‖Dρ‖ ≤ A √ρ`), both errors are bounded by a constant
+  over `log (δ / ε)`, below the positivity of `L φ` and `L ψ` near the
+  compact set once `ε` is small. Since `ρ` also vanishes on parts of
+  `range ι` where the 1-jets differ, `β` is in fact this cutoff times a
+  bump function equal to `1` near the compact set and supported where
+  the 1-jets agree; the terms that its derivatives add are at most a
+  constant times `δ` or `√δ` there, so `δ` is chosen small first. This
+  logarithmic cutoff is the whole
+  proof: it needs neither the book's Proposition 5.55 nor coordinates in
+  which `J` is standard, and total reality enters only through `ρ`. The
+  building issues look up the numbers of the book's lemmas in its proof
+  and cite those whose steps they follow.
+
+- `JConvex/Interpolation.lean` (issues 14d16 and 14d17):
+  - `TauCeti.abs_iteratedDeriv_two_logCutoffProfile_le` (14d16): there
+    is an absolute constant `c₁` with
+    `|iteratedDeriv 2 (logCutoffProfile ε δ) u| ≤ c₁ / (u ^ 2 * Real.log (δ / ε))`
+    for `0 < 4 * ε ≤ δ` and `0 < u`, the second-order companion of Tau
+    Ceti's `deriv_logCutoffProfile_le`; in the namespace `TauCeti`,
+    since it concerns Tau Ceti's profile only.
+  - `re_leviForm_add_mul_sub_ge` (14d16): on a complex normed space `V`,
+    for `f g β : V → ℝ` that are `C²` at `p` and every `v`,
+    `(1 - β p) * (leviForm f p v v).re + β p * (leviForm g p v v).re -
+    (|g p - f p| * ‖fderiv ℝ (fderiv ℝ β) p‖ + ‖fderiv ℝ β p‖ * ‖fderiv ℝ (g - f) p‖) * ‖v‖ ^ 2 ≤
+    (leviForm (f + β * (g - f)) p v v).re`, from Tau Ceti's
+    `leviForm_add`, `leviForm_mul_apply` and
+    `ContinuousLinearMap.abs_re_leviForm_toBilinForm_apply_self_le`.
+  - `Manifold.IsSmoothEmbedding.eventually_abs_comp_symm_le` (14d17):
+    the Taylor bounds. Let `ι`, `K` and the total reality be as in issue
+    14a, `ρ` as 14a gives it, and `D : M → ℝ` be `C²` near `ι '' K`
+    with `D (ι y) = 0` and `mvfderiv 𝓘(ℝ, E) D (ι y) = 0` for `y` in a
+    neighbourhood of `K`. For `y ∈ K` and a chart `e` at `ι y` of the
+    holomorphic maximal atlas there is `A` such that, for `z` near
+    `e (ι y)` and `x = e.symm z`, `|D x| ≤ A * ρ x`,
+    `‖fderiv ℝ (D ∘ e.symm) z‖ ≤ A * √(ρ x)`,
+    `‖fderiv ℝ (ρ ∘ e.symm) z‖ ≤ A * √(ρ x)` and
+    `‖fderiv ℝ (fderiv ℝ (ρ ∘ e.symm)) z‖ ≤ A`. The bound of the squared
+    distance to `range ι` by `ρ` comes from the critical Hessian of `ρ`,
+    positive off the tangent images at `ι '' K`; the bounds on `D` are
+    Taylor's formula at the nearest point of `range ι`, in a slice chart.
+  - `Manifold.IsSmoothEmbedding.exists_isManifoldStrictlyPlurisubharmonicAt_interpolate`
+    (14d17; Proposition 3.26): with `[T2Space M]`, `I'` boundaryless,
+    `h : IsSmoothEmbedding I' 𝓘(ℝ, E) ∞ ι`, `K : Set N` compact with the
+    tangent images of `ι` at its points totally real in the weak sense,
+    an open `O ⊇ ι '' K`, `φ ψ : M → ℝ` smooth on `O`, strictly
+    plurisubharmonic at the points of `ι '' K`, with `φ (ι y) = ψ (ι y)`
+    and `mvfderiv 𝓘(ℝ, E) φ (ι y) = mvfderiv 𝓘(ℝ, E) ψ (ι y)` for all `y`
+    in a neighbourhood of `K`, and an open `U ⊇ ι '' K`: there are open
+    `V ⊆ W` with `ι '' K ⊆ V` and `W ⊆ U ∩ O`, and `θ : M → ℝ` smooth on
+    `O`, with `θ = ψ` on `V`, `θ =ᶠ[𝓝 x] φ` for every `x ∉ W`, `θ`
+    strictly plurisubharmonic at every point of `W`,
+    `min (φ x) (ψ x) ≤ θ x ≤ max (φ x) (ψ x)` for all `x`, and no
+    critical point of `θ` in `W` if `mvfderiv 𝓘(ℝ, E) φ x ≠ 0` at the
+    points of `ι '' K`. The proof is *Route* above, with finitely many
+    charts over `ι '' K` for uniform constants; the differential of `θ`
+    differs from a convex combination of those of `φ` and `ψ` by
+    `D • dβ`, which is small in the same way.
+
+- `Surround/NormalForm.lean` (issues 14d18 and 14d19), with `V`,
+  `modelDisc k m` and `finrank ℂ E = k + m` as for issues 14d9–14d15.
+  - `IsJOrthogonallyAttached.exists_comp_radial` (14d18): for `φ`, `ι`
+    smooth, `F` finite-dimensional and `h : IsJOrthogonallyAttached E φ ι`,
+    there is a smooth `τ : F → ℝ`, positive, equal to `1` near `0` and
+    on the sphere, such that `σ x = τ x • x` is a smooth diffeomorphism
+    of `F` (`F ≃ₘ^∞⟮𝓘(ℝ, F), 𝓘(ℝ, F)⟯ F`) with `‖σ x‖ < 1 ↔ ‖x‖ < 1`, and
+    `mvfderiv 𝓘(ℝ, E) φ (ι x) (mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) (ι ∘ σ) x x) = -2`
+    for `‖x‖ = 1`. Then `ι ∘ σ` is again a smooth embedding with the same
+    image of `closedBall 0 1`, its tangent images are those of `ι`, and
+    `IsJOrthogonallyAttached E φ (ι ∘ σ)`. The radial derivative of `τ`
+    on the sphere is fixed by `mvfderiv_mfderiv_self_neg`, and the
+    building issue keeps `‖x‖ τ x` increasing along each ray.
+  - `IsJOrthogonallyAttached.exists_complexFrame_mfderiv_ker` (14d18):
+    for `ι : EuclideanSpace ℝ (Fin k) → M` as in 14d9, `φ` smooth and
+    `IsJOrthogonallyAttached E φ ι`, there is a frame `A` with every
+    property of `exists_complexFrame_mfderiv` and
+    `mvfderiv 𝓘(ℝ, E) φ (ι x) (A x (0, w)) = 0` for `‖x‖ = 1` and all `w`.
+    From the frame `A` of 14d9, put
+    `A' x (z, w) = A x (z - χ ‖x‖ • ℓ x w, w)` with
+    `ℓ x w = (λ x ((modelDisc k m x).1))⁻¹ * μ x w • (modelDisc k m x).1`,
+    where `λ x` and `μ x` are the complex-linear extensions
+    (`StrongDual.extendRCLike`) of `z ↦ dφ (A x (z, 0))` and
+    `w ↦ dφ (A x (0, w))`, and `χ` is a cutoff equal to `1` near `1` and
+    supported where `λ x ((modelDisc k m x).1) ≠ 0`. On the sphere that
+    number is `dφ (dι x x) - i dφ (J dι x x)`, negative and real by
+    `mvfderiv_mfderiv_self_neg` and `mvfderiv_I_smul_mfderiv`. `A' x`
+    agrees with `A x` on the first factor and is `A x` composed with a
+    unipotent complex-linear map, so it stays complex linear and
+    invertible.
+  - `IsJOrthogonallyAttached.exists_normalForm` (14d19): let `φ` be
+    smooth and strictly plurisubharmonic at every point of
+    `{x | φ x ≤ 0}`, `ι` a disc as in 14d9 with
+    `IsJOrthogonallyAttached E φ ι`, `[T2Space M]`, `O ⊇ range ι` and
+    `U ⊇ ι '' sphere 0 1` open, and `2 ≤ N`. There are `σ` as in
+    `exists_comp_radial`; `Φ` from `exists_modelChart` for `ι ∘ σ`,
+    `O`, `N` and the frame of `exists_complexFrame_mfderiv_ker` for
+    `ι ∘ σ`; open `V ⊆ W ⊆ U` with `ι '' sphere 0 1 ⊆ V`; and a smooth
+    `θ : M → ℝ` with `θ = modelLevel k m ∘ Φ.symm` on `V`,
+    `θ =ᶠ[𝓝 x] φ` for every `x ∉ W`, `θ x` between `φ x` and
+    `modelLevel k m (Φ.symm x)` on `W`, `θ` strictly plurisubharmonic at
+    every point of `W ∪ {x | θ x ≤ 0}`, no critical point of `θ` in `W`,
+    and `IsJOrthogonallyAttached E θ (ι ∘ σ)`. The proof:
+    `modelLevel k m` is strictly plurisubharmonic with a margin of the
+    form of 14d15 for `N₀ = 0` on a compact handle, so by 14d15 the
+    function `modelLevel k m ∘ Φ.symm` is strictly plurisubharmonic on
+    `Φ` of a handle, a neighbourhood of the sphere; so is `φ`, since the
+    sphere lies in `{φ = 0}`. The 1-jets agree on the sphere: both
+    values are `0` (`eq_zero`, `modelLevel_modelDisc`), and, as
+    `dΦ = A x` along the core, on `A x (u, 0)` with `u` real both
+    differentials are `-2 ⟪x, u⟫` (tangentially by `eq_zero`, radially by
+    `σ`), on `A x (Complex.I • u, 0)` both vanish
+    (`mvfderiv_I_smul_mfderiv`, `fderiv_modelLevel_apply`), and on
+    `A x (0, w)` both vanish (the frame, `fderiv_modelLevel_apply`).
+    `exists_isManifoldStrictlyPlurisubharmonicAt_interpolate` then
+    applies to `ι ∘ σ ∘ (↑)` on `sphere (0 : EuclideanSpace ℝ (Fin k)) 1`
+    with Mathlib's manifold structure, for `k = j + 1`
+    (`contMDiff_coe_sphere`, `mfderiv_coe_sphere_injective`), with `K`
+    the whole sphere; total reality passes to the smaller tangent
+    images. For `k = 0` the sphere is empty and `θ = φ`. The attachment
+    of `θ` holds because `θ ∘ ι ∘ σ` lies between two functions positive
+    on the open ball, and `θ` is the model level near the sphere, where
+    `isJOrthogonallyAttached_model` carries over through `Φ`.
+
+  `θ` is not below `φ`: near the sphere the two differ at second order,
+  with either sign. Issue 14d, whose `ψ ≤ φ` and
+  `ι '' closedBall 0 1 ⊆ {ψ < 0}` compare `ψ` with `φ`, checks first how
+  the model placed in `{θ ≤ 0}` is kept below `φ` near the sphere.
 
 - `Surround/Basic.lean` (issues 14d and 14e): issue 14d proves
   `IsJOrthogonallyAttached.exists_surround`, following
@@ -1233,6 +1391,10 @@ In this order; each is blocked by the ones listed. All are parts of
 | 14d13 | The chart of order $N$ along a disc (Proposition 5.55) | `JConvex/Surround/Chart.lean` | 14d10, 14d12 | 400 |
 | 14d14 | The Levi form through a chart that is not holomorphic | `JConvex/Surround/ChartLeviForm.lean` | 13 | 300 |
 | 14d15 | Margins carried to the manifold by the chart | `JConvex/Surround/ChartLeviForm.lean` | 14d13, 14d14 | 300 |
+| 14d16 | Logarithmic cutoffs and the Levi form of an interpolation | `JConvex/Interpolation.lean` | 13 | 250 |
+| 14d17 | Interpolation along a totally real submanifold (Proposition 3.26) | `JConvex/Interpolation.lean` | 14a, 14d16 | 400 |
+| 14d18 | Radial reparametrization and frames adapted to the attaching sphere | `JConvex/Surround/NormalForm.lean` | 14b, 14d9 | 300 |
+| 14d19 | The normal form of $\varphi$ near the attaching sphere | `JConvex/Surround/NormalForm.lean` | 14d13, 14d15, 14d17, 14d18 | 300 |
 | 14d | The $J$-convex surrounding of an attached disc | `JConvex/Surround/Basic.lean` | 14a, 14b, 14c | 500 |
 | 14e | The surrounding with one new critical point | `JConvex/Surround/Basic.lean` | 14d | 400 |
 | 15 | Weinstein cobordisms and stable discs | `Handle/Cobordism.lean` | 7 | 450 |
