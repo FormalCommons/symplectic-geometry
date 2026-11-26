@@ -474,9 +474,9 @@ containing `ι '' closedBall 0 1`:
 - `JConvex/TotallyReal.lean` (existing; issue 14a):
   `Manifold.IsSmoothEmbedding.exists_contMDiff_isManifoldStrictlyPlurisubharmonicAt_of_isCompact`.
   For a `C^n` embedding, `2 ≤ n` (`n = ∞` for a smooth one), `ι : N → M`
-  of a boundaryless manifold into a Hausdorff `M`, with
-  totally real tangent images in the weak sense, and a compact `K ⊆ N`,
-  there are a `C^n` function `ρ : M → ℝ`, `ρ ≥ 0`, and an open `V ⊇ ι '' K` such
+  of a boundaryless manifold into a Hausdorff `M`, and a compact `K ⊆ N`
+  at whose points the tangent images of `ι` are totally real in the weak
+  sense, there are a `C^n` function `ρ : M → ℝ`, `ρ ≥ 0`, and an open `V ⊇ ι '' K` such
   that on `V` the function `ρ` vanishes exactly on `range ι` and is
   strictly plurisubharmonic, and its critical Hessian at `ι y`, `y ∈ K`, is
   positive off the tangent image of `ι` at `y`. The proof is that of

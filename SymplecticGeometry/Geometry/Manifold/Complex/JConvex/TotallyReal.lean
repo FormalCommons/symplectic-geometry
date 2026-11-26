@@ -107,11 +107,11 @@ part of the image:
 
 * `Manifold.IsSmoothEmbedding.exists_contMDiff_isManifoldStrictlyPlurisubharmonicAt_of_isCompact`:
   for a `C^n` embedding `ι`, `n ≥ 2`, of a boundaryless manifold into a Hausdorff complex
-  manifold, with totally real tangent images, and a compact `K`, there is a nonnegative `C^n`
-  function `ρ` that, on an open neighbourhood `V` of `ι '' K`, vanishes exactly on the image of
-  `ι` and is strictly plurisubharmonic, with critical Hessian positive off the tangent images of
-  `ι` at the points of `K`. The proof follows that of the previous theorem, with the squared
-  normal coordinates of slice charts of `ι`
+  manifold, and a compact `K` at whose points the tangent images of `ι` are totally real, there
+  is a nonnegative `C^n` function `ρ` that, on an open neighbourhood `V` of `ι '' K`, vanishes
+  exactly on the image of `ι` and is strictly plurisubharmonic, with critical Hessian positive off
+  the tangent images of `ι` at the points of `K`. The proof follows that of the previous theorem,
+  with the squared normal coordinates of slice charts of `ι`
   (`Manifold.IsSmoothEmbedding.exists_contMDiffOn_criticalHessian_pos`) in place of adapted
   charts. Finitely many of them suffice, by compactness of `K`, and they are glued by smooth bump
   functions instead of a partition of unity, so that `M` need not be σ-compact; the critical
@@ -523,20 +523,21 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] [FiniteDimension
 
 /-- **A nonnegative function strictly plurisubharmonic near a compact part of a totally real
 submanifold.** Let `ι : N → M` be a `C^n` embedding, `n ≥ 2`, of a manifold without boundary into
-a Hausdorff complex manifold, whose tangent images are totally real for the complex structure of
-`M`, and let `K ⊆ N` be compact. Then there are a nonnegative `C^n` function `ρ : M → ℝ` and an
-open set `V ⊇ ι '' K` such that on `V` the function `ρ` vanishes exactly on the image of `ι` and
-is strictly plurisubharmonic, and at each point `ι y` with `y ∈ K` the critical Hessian of `ρ` is
-positive on every vector outside the tangent image of `ι` at `y`.
+a Hausdorff complex manifold, let `K ⊆ N` be compact, and let the tangent images of `ι` at the
+points of `K` be totally real for the complex structure of `M`. Then there are a nonnegative
+`C^n` function `ρ : M → ℝ` and an open set `V ⊇ ι '' K` such that on `V` the function `ρ`
+vanishes exactly on the image of `ι` and is strictly plurisubharmonic, and at each point `ι y`
+with `y ∈ K` the critical Hessian of `ρ` is positive on every vector outside the tangent image of
+`ι` at `y`.
 
 No relation between the dimensions of `N` and `M` is assumed. The function constructed is
 `∑ᵢ bᵢ gᵢ` over finitely many points `yᵢ ∈ K`, where `gᵢ` is a squared normal coordinate of `ι`
 near `ι yᵢ` and `bᵢ` a smooth bump function at `ι yᵢ` supported where `gᵢ` is defined. -/
 theorem exists_contMDiff_isManifoldStrictlyPlurisubharmonicAt_of_isCompact [T2Space M]
     [I'.Boundaryless] {n : ℕ∞} (h : IsSmoothEmbedding I' 𝓘(ℝ, E) n ι) (hn : 2 ≤ n)
-    (hι : ∀ y, IsTotallyReal ((ofComplexManifold E M).toEndomorphism (ι y)).toLinearMap
-      (LinearMap.range (mfderiv I' 𝓘(ℝ, E) ι y).toLinearMap))
-    {K : Set N} (hK : IsCompact K) :
+    {K : Set N} (hK : IsCompact K)
+    (hι : ∀ y ∈ K, IsTotallyReal ((ofComplexManifold E M).toEndomorphism (ι y)).toLinearMap
+      (LinearMap.range (mfderiv I' 𝓘(ℝ, E) ι y).toLinearMap)) :
     ∃ ρ : M → ℝ, ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) n ρ ∧ (∀ x, 0 ≤ ρ x) ∧
       ∃ V : Set M, IsOpen V ∧ ι '' K ⊆ V ∧ (∀ x ∈ V, ρ x = 0 ↔ x ∈ range ι) ∧
         (∀ x ∈ V, IsManifoldStrictlyPlurisubharmonicAt E ρ x) ∧
@@ -579,8 +580,8 @@ theorem exists_contMDiff_isManifoldStrictlyPlurisubharmonicAt_of_isCompact [T2Sp
   have hpsh : {x | IsManifoldStrictlyPlurisubharmonicAt E ρ x} ∈ 𝓝ˢ (ι '' K) := by
     rw [mem_nhdsSet_iff_forall]
     rintro _ ⟨z, hz, rfl⟩
-    exact (SymplecticGeometry.isManifoldStrictlyPlurisubharmonicAt_of_criticalHessian_pos (hι z)
-      (hHess z hz)).eventually ((hρs (ι z)).of_le hn')
+    exact (SymplecticGeometry.isManifoldStrictlyPlurisubharmonicAt_of_criticalHessian_pos
+      (hι z hz) (hHess z hz)).eventually ((hρs (ι z)).of_le hn')
   obtain ⟨W, hWo, hKW, hW⟩ := mem_nhdsSet_iff_exists.1 hpsh
   refine ⟨ρ, hρs, hρ0, W ∩ ⋃ y ∈ t, Function.support (b y),
     hWo.inter (isOpen_biUnion fun y _ ↦ (b y).isOpen_support),
