@@ -244,17 +244,9 @@ theorem singularRelativeCap_coefficient_naturality (u : T ⟶ R ⊗ S) (u' : T' 
             (TopPair.toSSetPair.obj (TopPair.ofSubset V))) q := by
   have := isIso_homologyMap_smallSingularSubcomplexPairToUnion U V T' hU hV n
   -- The small-chain isomorphisms commute with the change of chain coefficients along `c`.
-  have hc : SSetPair.homologyMap (smallSingularSubcomplexPairToUnion U V) T' n ≫
-      homologyMap (((SSetPair.chainComplexFunctor C).map c).app
-        (TopPair.toSSetPair.obj (TopPair.ofSubset (U ∪ V)))) n =
-      homologyMap (((SSetPair.chainComplexFunctor C).map c).app
-          (X.smallSingularSubcomplex ![U, V]).pair) n ≫
-        SSetPair.homologyMap (smallSingularSubcomplexPairToUnion U V) T n := by
-    rw [SSetPair.homologyMap, SSetPair.homologyMap, ← homologyMap_comp, ← homologyMap_comp,
-      SSetPair.chainComplexMap, SSetPair.chainComplexMap,
-      ((SSetPair.chainComplexFunctor C).map c).naturality]
   rw [← cancel_epi (SSetPair.homologyMap (smallSingularSubcomplexPairToUnion U V) T' n),
-    homologyMap_smallSingularSubcomplexPairToUnion_singularRelativeCap, reassoc_of% hc,
+    homologyMap_smallSingularSubcomplexPairToUnion_singularRelativeCap,
+    ← SSetPair.homologyMap_coefficient_naturality_assoc,
     homologyMap_smallSingularSubcomplexPairToUnion_singularRelativeCap_assoc]
   -- The action square of the coefficient pairings on the relative chains of `(X, V)`.
   have ha : (NatTrans.mapHomologicalComplex ((tensoringLeft C).map v) _).app
