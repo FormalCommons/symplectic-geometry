@@ -208,7 +208,6 @@ theorem zeroSliceNormalEquiv_normalClass (q : Q)
 
 /-- The inverse of `zeroSliceNormalEquiv` sends `z` to the normal class of the vertical vector
 `(0, z)`. -/
-@[simp]
 theorem zeroSliceNormalEquiv_symm_apply (q : Q) (z : ℂ) :
     (zeroSliceNormalEquiv J Q q).symm z =
       (zeroSlice J Q).normalClass q (WithTop.coe_ne_zero.2 ENat.top_ne_zero) ((0, z) : EQ × ℂ) :=
@@ -230,13 +229,10 @@ def zeroSliceNormalBundleDiffeomorph :
     finrank_normalSpace_zeroSlice (by
       -- The `ℂ`-component of an ambient tangent vector is that of the tangent map of `Prod.snd`.
       refine Trivial.contMDiff_mk_iff.2 ⟨contMDiff_proj _, ?_⟩
-      have h₀ : ContMDiff (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ)) 𝓘(ℝ, ℂ) ∞ (fun x : ModelProd ℂ ℂ ↦ x.2) := by
-        rw [← modelWithCornersSelf_prod]
-        exact contDiff_snd.contMDiff
-      refine (h₀.comp ((contMDiff_tangentBundleModelSpaceHomeomorph (I := 𝓘(ℝ, ℂ))).comp
+      refine ((contMDiff_snd_tangentBundle_modelSpace ℂ 𝓘(ℝ, ℂ)).comp
         ((contMDiff_snd.contMDiff_tangentMap le_rfl).comp
           (Pullback.contMDiff_lift (E := TangentSpace (J.prod 𝓘(ℝ, ℂ))) (F := EQ × ℂ)
-            (zeroSlice J Q) (zeroSlice J Q).contMDiff)))).congr fun p ↦ ?_
+            (zeroSlice J Q) (zeroSlice J Q).contMDiff))).congr fun p ↦ ?_
       -- `TotalSpace.toProd`, `tangentMap` and `Pullback.lift` leave the vector `p.snd` as it is,
       -- so the right side is the differential of `Prod.snd` applied to `p.snd`.
       exact (DFunLike.congr_fun mfderiv_snd p.snd).symm)).trans
