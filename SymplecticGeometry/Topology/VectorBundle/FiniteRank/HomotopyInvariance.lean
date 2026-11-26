@@ -18,6 +18,10 @@ paracompact R₁ space, the pullbacks `A.pullback f₀` and `A.pullback f₁` ar
 bundle of `A`, carried to the pulled-back cores by `TauCeti.FiniteRankBundleCore.pullbackHomeomorph`
 and `TauCeti.FiniteRankBundleCore.isoOfContinuousEquiv`.
 
+As a consequence, a core over `Y × E`, for a real normed space `E`, is the pullback along the
+projection of its restriction to `Y × {c}`, since the segments to `c` contract `E`
+(`TauCeti.FiniteRankBundleCore.nonempty_iso_pullback_fst`).
+
 ## References
 
 * [A. Hatcher, *Vector Bundles and K-Theory*][Hatcher2017], §1.2, Theorem 1.6.
@@ -42,6 +46,22 @@ theorem nonempty_pullback_iso_of_homotopic (A : FiniteRankBundleCore 𝕜 Y) {f�
   simp only [Function.comp_apply, pullbackHomeomorph_symm_apply, Bundle.TotalSpace.mk']
   rw [pullbackHomeomorph_apply]
   rfl
+
+/-- **A core over a product with a real normed space is pulled back from the base.** For a real
+normed space `E` with `Y × E` paracompact and R₁, a finite-rank core `A` over `Y × E` is isomorphic
+to the pullback along the projection `Y × E → Y` of its restriction to `Y × {c}`, for any
+`c : E`. The segments to `c` contract `E`. -/
+theorem nonempty_iso_pullback_fst {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    [ParacompactSpace (Y × E)] [R1Space (Y × E)] (A : FiniteRankBundleCore 𝕜 (Y × E)) (c : E) :
+    Nonempty (A ≅ (A.pullback ((ContinuousMap.id Y).prodMk (.const Y c))).pullback
+      ContinuousMap.fst) := by
+  have h : (ContinuousMap.id (Y × E)).Homotopic
+      (((ContinuousMap.id Y).prodMk (.const Y c)).comp ContinuousMap.fst) :=
+    ⟨⟨⟨fun q ↦ (q.2.1, c + (1 - q.1 : ℝ) • (q.2.2 - c)), by fun_prop⟩,
+      fun q ↦ by simp, fun q ↦ by simp⟩⟩
+  obtain ⟨e⟩ := A.nonempty_pullback_iso_of_homotopic h
+  rw [pullback_id, ← pullback_comp] at e
+  exact ⟨e⟩
 
 end TauCeti.FiniteRankBundleCore
 
