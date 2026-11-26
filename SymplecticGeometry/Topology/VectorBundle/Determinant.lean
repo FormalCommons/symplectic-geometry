@@ -236,7 +236,7 @@ theorem fiberMap_detCoreMap_hom_apply (Φ : ∀ x, E x ≃L[𝕜] E₁ x)
     fiberMap_exteriorPower_map, eqToIso.hom, eqToIso.hom, fiberMap_eqToHom_apply]
   exact congrArg (fun w ↦ ((ofBundleOfFinrankEqIso rfl rfl Φ hΦ).hom.fiberMap x).exteriorPowerCoords
     (finrank 𝕜 G) w (Fin.cast (congrArg rank (detCore_eq_exteriorPower 𝕜 G E₁)) i))
-    (funext (fiberMap_eqToHom_apply _ x v))
+    ((fiberMap_eqToHom _ x v).trans (Function.comp_def _ _))
 
 end SameModel
 

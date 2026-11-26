@@ -136,10 +136,7 @@ theorem fiberMap_clutchingAut_hom (E : FiniteRankBundleCore 𝕜 X)
     (w : ↥(Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc : Set (X × ℙ ℂ (Fin 2 → ℂ)))) :
     (clutchingAut E f).hom.fiberMap w = f.hom.fiberMap (clutchingMap X w) := by
   ext v i
-  have hv :
-      (eqToHom (pullback_fst_pullback_subtypeVal_eq_pullback_clutchingMap E)).fiberMap w v = v :=
-    funext fun j ↦ by simp [Fin.cast_eq_self]
-  simp [clutchingAut, hv, Fin.cast_eq_self]
+  simp [clutchingAut, Fin.cast_eq_self]
 
 @[simp]
 theorem fiberMap_clutchingAut_inv (E : FiniteRankBundleCore 𝕜 X)
@@ -148,10 +145,7 @@ theorem fiberMap_clutchingAut_inv (E : FiniteRankBundleCore 𝕜 X)
     (w : ↥(Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc : Set (X × ℙ ℂ (Fin 2 → ℂ)))) :
     (clutchingAut E f).inv.fiberMap w = f.inv.fiberMap (clutchingMap X w) := by
   ext v i
-  have hv :
-      (eqToHom (pullback_fst_pullback_subtypeVal_eq_pullback_clutchingMap E)).fiberMap w v = v :=
-    funext fun j ↦ by simp [Fin.cast_eq_self]
-  simp [clutchingAut, hv, Fin.cast_eq_self]
+  simp [clutchingAut, Fin.cast_eq_self]
 
 /-- **The clutching construction.** For a core `E` over `X` and an automorphism `f` of its pullback
 to `X × Circle`, the core over `X × ℙ ℂ (Fin 2 → ℂ)` that is the pullback of `E` along `Prod.fst`

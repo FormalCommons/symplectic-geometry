@@ -17,6 +17,9 @@ total spaces. This file gives the converse construction.
 * `TauCeti.FiniteRankBundleCore.fiberMap_hom_inv_id` and
   `TauCeti.FiniteRankBundleCore.fiberMap_inv_hom_id`: the fibre maps of the two halves of an
   isomorphism are inverse to each other;
+* `TauCeti.FiniteRankBundleCore.fiberMap_eqToHom`: the fibre map of a cast `eqToHom h`, as a
+  function of the vector, reindexes coordinates along the equality of ranks. Unlike Tau Ceti's
+  `fiberMap_eqToHom_apply`, it rewrites before a coordinate is applied, under another fibre map;
 * `TauCeti.FiniteRankBundleCore.isoFiberEquiv e x`: the continuous linear equivalence between the
   fibres over `x`, in coordinates, given by an isomorphism `e : A ≅ D` of finite-rank cores, with
   the fibre map of `e.hom` as the map and that of `e.inv` as its inverse;
@@ -63,6 +66,12 @@ cores, is the identity of the fibre of `D`. -/
 @[simp] theorem fiberMap_inv_hom_id (e : A ≅ D) (x : B) :
     (e.hom.fiberMap x).comp (e.inv.fiberMap x) = .id 𝕜 _ := by
   rw [← fiberMap_comp, Iso.inv_hom_id, fiberMap_id]
+
+/-- The fibre map over `x` of the cast `eqToHom h`, for an equality `h : A = D` of finite-rank
+cores, reindexes the coordinates of a vector along the equality of ranks that `h` gives. -/
+@[simp] theorem fiberMap_eqToHom (h : A = D) (x : B) (v : Fin A.rank → 𝕜) :
+    (eqToHom h).fiberMap x v = v ∘ Fin.cast (congrArg rank h).symm :=
+  funext (fiberMap_eqToHom_apply h x v)
 
 /-- The continuous linear equivalence between the fibres over `x` of two finite-rank cores, in
 their coordinates `Fin A.rank → 𝕜` and `Fin D.rank → 𝕜`, given by an isomorphism `e : A ≅ D`: the
