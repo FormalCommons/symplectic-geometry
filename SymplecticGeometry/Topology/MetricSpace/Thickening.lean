@@ -10,8 +10,8 @@ public import Mathlib.Topology.MetricSpace.Thickening
 /-!
 # Thickenings of products
 
-For the sup metric on a product of two pseudometric spaces, the open `r`-thickening of a product
-set is the product of the open `r`-thickenings of its factors.
+For the sup edistance on a product of two pseudo-emetric spaces, the open `r`-thickening of a
+product set is the product of the open `r`-thickenings of its factors.
 
 ## Main results
 
@@ -22,14 +22,14 @@ public section
 
 namespace Metric
 
-variable {X Y : Type*} [PseudoMetricSpace X] [PseudoMetricSpace Y]
+variable {X Y : Type*} [PseudoEMetricSpace X] [PseudoEMetricSpace Y]
 
-/-- The open `r`-thickening of a product set, for the sup metric, is the product of the open
-`r`-thickenings of its factors. -/
+/-- The open `r`-thickening of a product set, for the sup edistance on a product of
+pseudo-emetric spaces, is the product of the open `r`-thickenings of its factors. -/
 theorem thickening_prod (r : ℝ) (s : Set X) (t : Set Y) :
     thickening r (s ×ˢ t) = thickening r s ×ˢ thickening r t := by
   ext x
-  simp [thickening, Set.mem_prod, infEDist_prod]
+  simp [mem_thickening_iff_infEDist_lt, Set.mem_prod, infEDist_prod]
 
 end Metric
 
