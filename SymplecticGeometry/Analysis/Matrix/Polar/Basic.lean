@@ -28,7 +28,8 @@ definite, and writes the unitary factor as `U = A (Aᴴ A) ^ (-1 / 2)`.
 * `Matrix.GeneralLinearGroup.coe_polarUnitary_eq_mul_rpow`: the unitary factor is
   `A (Aᴴ A) ^ (-1 / 2)`.
 * `Matrix.GeneralLinearGroup.coe_polarUnitary_reindex`: the unitary factor commutes with
-  reindexing rows and columns.
+  reindexing rows and columns, as Tau Ceti's `Units.coe_polarUnitary_map` gives for the star
+  algebra equivalence `Matrix.reindexStarAlgEquiv`.
 
 ## References
 
