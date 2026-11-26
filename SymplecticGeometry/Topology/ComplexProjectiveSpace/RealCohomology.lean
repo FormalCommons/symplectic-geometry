@@ -10,29 +10,24 @@ public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralChains
 public import SymplecticGeometry.Topology.ComplexProjectiveSpace.SecondHomology
 
 /-!
-# Linear embeddings of complex projective spaces in degree two
+# Linear embeddings of complex projective spaces on real second cohomology
 
 Let `f : V →ₗ[ℂ] W` be an injective linear map of finite-dimensional complex normed spaces with
 `finrank ℂ V ≥ 2`, and let `g : ℙ ℂ V → ℙ ℂ W` be the induced map. This file shows that `g`
-induces a bijection on integral second homology, and an injection on second cohomology with
-real coefficients. For `finrank ℂ V = 2` this says that restricting to a projective line is
-injective on `H²(ℙ ℂ W; ℝ)`.
+induces an injection on second cohomology with real coefficients. For `finrank ℂ V = 2` this
+says that restricting to a projective line is injective on `H²(ℙ ℂ W; ℝ)`.
 
 ## Main results
 
-* `Projectivization.bijective_singularHomologyMap_map_two`: `g_*` is a bijection
-  `H₂(ℙ ℂ V; ℤ) → H₂(ℙ ℂ W; ℤ)`.
 * `Projectivization.injective_singularCohomologyMap_map_real`: `g^*` is injective on
   `H²(-; ℝ)`, the cohomology of real chains with real values.
 
 ## Proof
 
-The hyperplane classes satisfy `g^* h_W = h_V` (`Projectivization.hyperplaneClass_map`), so by
-naturality of the Kronecker pairing `⟨h_W, g_* x⟩ = ⟨h_V, x⟩`. Both pairings are bijections onto
-`ℤ` (`Projectivization.bijective_integralKronecker_hyperplaneClass`), hence so is `g_*`.
-
-As `ℝ` is a divisible, hence injective, abelian group (`ModuleCat.injective_of_divisible`), a map
-that is onto integral homology in some degree is injective on real cohomology in that degree
+The map `g` is a bijection on integral second homology
+(`Projectivization.bijective_singularHomologyMap_map_two`). As `ℝ` is a divisible, hence
+injective, abelian group (`ModuleCat.injective_of_divisible`), a map that is onto
+integral homology in some degree is injective on real cohomology in that degree
 (`TopCat.injective_singularCohomologyMap_of_surjective`, from the universal coefficient theorem).
 
 ## References
@@ -52,26 +47,6 @@ namespace Projectivization
 
 variable {V W : Type} [NormedAddCommGroup V] [NormedSpace ℂ V] [FiniteDimensional ℂ V]
   [NormedAddCommGroup W] [NormedSpace ℂ W] [FiniteDimensional ℂ W] {n : ℕ}
-
-/-- An injective linear map `f : V →ₗ[ℂ] W` with `finrank ℂ V = n + 1` and `n ≠ 0` induces a
-bijection `H₂(ℙ ℂ V; ℤ) → H₂(ℙ ℂ W; ℤ)` on integral second homology. -/
-theorem bijective_singularHomologyMap_map_two (f : V →ₗ[ℂ] W) (hf : Function.Injective f)
-    (hV : finrank ℂ V = n + 1) (hn : n ≠ 0) :
-    Function.Bijective
-      (((singularHomologyFunctor (ModuleCat.{0} ℤ) 2).obj (𝟙_ (ModuleCat.{0} ℤ))).map
-        (TopCat.ofHom
-          ⟨map f hf, continuous_map hf (LinearMap.continuous_of_finiteDimensional f)⟩)) := by
-  have hle := LinearMap.finrank_le_finrank_of_injective hf
-  have hW : finrank ℂ W = (finrank ℂ W - 1) + 1 := by omega
-  have hcomp : ⇑((TopCat.of (ℙ ℂ V)).integralKronecker 2 (hyperplaneClass V)) =
-      (TopCat.of (ℙ ℂ W)).integralKronecker 2 (hyperplaneClass W) ∘
-        ((singularHomologyFunctor (ModuleCat.{0} ℤ) 2).obj (𝟙_ (ModuleCat.{0} ℤ))).map
-          (TopCat.ofHom
-          ⟨map f hf, continuous_map hf (LinearMap.continuous_of_finiteDimensional f)⟩) := by
-    ext x
-    rw [Function.comp_apply, ← TopCat.integralKronecker_naturality, hyperplaneClass_map]
-  rw [← (bijective_integralKronecker_hyperplaneClass hW (by omega)).of_comp_iff', ← hcomp]
-  exact bijective_integralKronecker_hyperplaneClass hV hn
 
 /-- An injective linear map `f : V →ₗ[ℂ] W` with `finrank ℂ V = n + 1` and `n ≠ 0` induces an
 injective map `H²(ℙ ℂ W; ℝ) → H²(ℙ ℂ V; ℝ)` on second singular cohomology with real
