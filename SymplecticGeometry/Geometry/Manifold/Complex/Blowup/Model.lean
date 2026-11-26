@@ -656,6 +656,15 @@ theorem mk_self_mem_blowupModel {z : Fin (n + 1) → ℂ} (hz : z ≠ 0) :
 theorem mk_blowdown {p : BlowupModel n} (hp : p.blowdown ≠ 0) : mk ℂ p.blowdown hp = p.pr :=
   mem_submodule_iff.1 p.blowdown_mem_submodule hp
 
+/-- A point of the blowup over `0` is the point of the exceptional divisor on its own line. -/
+theorem eq_zeroSection_pr {p : BlowupModel n} (h : p.blowdown = 0) : p = zeroSection p.pr :=
+  ext (pr_zeroSection _).symm (by rw [h, blowdown_zeroSection])
+
+/-- Off the exceptional divisor, a point of the blowup is determined by its blowdown. -/
+theorem eq_of_blowdown_eq {p q : BlowupModel n} (hp : p.blowdown ≠ 0)
+    (h : p.blowdown = q.blowdown) : p = q :=
+  ext (by rw [← mk_blowdown hp, ← mk_blowdown (h ▸ hp)]; simp only [h]) h
+
 variable (n) in
 /-- The blowdown `π` off the exceptional divisor, as a biholomorphism from the open complement of
 the divisor onto the open set of nonzero vectors of `E`. Its inverse sends `z ≠ 0` to the point
