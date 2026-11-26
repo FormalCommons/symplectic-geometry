@@ -19,8 +19,8 @@ with no smoothness asked. Its proof adapts that of Tau Ceti's
 `TauCeti.SmoothForm.apply_eq_smul_of_kerDistribution_le`, which is stated for smooth forms only.
 
 Let `α` be a smooth one-form with values in a real normed space `F`, and `x ↦ (b x, V x)` a
-smooth map from a manifold into the tangent bundle. Then `x ↦ α_{b x}(V x)` is a smooth
-`F`-valued function (`TauCeti.SmoothForm.contMDiff_apply_fin_one`, and
+`C^n` map from a manifold into the tangent bundle, for some `n ≤ ∞`. Then `x ↦ α_{b x}(V x)`
+is a `C^n` `F`-valued function (`TauCeti.SmoothForm.contMDiff_apply_fin_one`, and
 `TauCeti.SmoothForm.contMDiffAt_apply_fin_one` at a point). It extends Tau Ceti's
 `TauCeti.SmoothForm.contMDiffAt_apply_vectorField`, for real forms on vector fields, to any `F`
 and any base map `b`. Through Tau Ceti's `TauCeti.SmoothForm.degreeOneEquiv`, `α` is a smooth
@@ -101,25 +101,27 @@ variable {EX HX X : Type*} [NormedAddCommGroup EX] [NormedSpace ℝ EX] [Topolog
   {IX : ModelWithCorners ℝ EX HX} [TopologicalSpace X] [ChartedSpace HX X]
 
 /-- Let `α` be a smooth `F`-valued one-form on `M`, and `x ↦ (b x, V x)` a map into the tangent
-bundle of `M` that is smooth at `x₀`. Then `x ↦ α_{b x}(V x)` is smooth at `x₀`. -/
-theorem contMDiffAt_apply_fin_one (α : SmoothForm I M F 1) {b : X → M}
-    {V : ∀ x, TangentSpace I (b x)} {x₀ : X}
-    (hV : ContMDiffAt IX I.tangent ∞ (fun x ↦ TotalSpace.mk' E (b x) (V x)) x₀) :
-    ContMDiffAt IX 𝓘(ℝ, F) ∞ (fun x ↦ α.val (b x) ![V x]) x₀ := by
-  have hb : ContMDiffAt IX I ∞ b x₀ :=
+bundle of `M` that is `C^n` at `x₀`, for some `n ≤ ∞`. Then `x ↦ α_{b x}(V x)` is `C^n` at
+`x₀`. -/
+theorem contMDiffAt_apply_fin_one {n : WithTop ℕ∞} [ENat.LEInfty n] (α : SmoothForm I M F 1)
+    {b : X → M} {V : ∀ x, TangentSpace I (b x)} {x₀ : X}
+    (hV : ContMDiffAt IX I.tangent n (fun x ↦ TotalSpace.mk' E (b x) (V x)) x₀) :
+    ContMDiffAt IX 𝓘(ℝ, F) n (fun x ↦ α.val (b x) ![V x]) x₀ := by
+  have hb : ContMDiffAt IX I n b x₀ :=
     (contMDiff_proj (TangentSpace I)).contMDiffAt.comp x₀ hV
-  have h : ContMDiffAt IX (I.prod 𝓘(ℝ, F)) ∞ (fun x ↦
+  have h : ContMDiffAt IX (I.prod 𝓘(ℝ, F)) n (fun x ↦
       TotalSpace.mk' F (E := Trivial M F) (b x) (degreeOneEquiv α (b x) (V x))) x₀ :=
-    (((degreeOneEquiv α).contMDiff (b x₀)).comp x₀ hb).clm_bundle_apply hV
+    ((((degreeOneEquiv α).contMDiff (b x₀)).of_le ENat.LEInfty.out).comp x₀ hb).clm_bundle_apply
+      hV
   exact (contMDiffAt_totalSpace_iff.mp h).2.congr_of_eventuallyEq
     (.of_forall fun x ↦ (degreeOneEquiv_apply_apply_vec α _ _).symm)
 
-/-- Let `α` be a smooth `F`-valued one-form on `M`, and `x ↦ (b x, V x)` a smooth map into the
-tangent bundle of `M`. Then `x ↦ α_{b x}(V x)` is smooth. -/
-theorem contMDiff_apply_fin_one (α : SmoothForm I M F 1) {b : X → M}
-    {V : ∀ x, TangentSpace I (b x)}
-    (hV : ContMDiff IX I.tangent ∞ fun x ↦ TotalSpace.mk' E (b x) (V x)) :
-    ContMDiff IX 𝓘(ℝ, F) ∞ fun x ↦ α.val (b x) ![V x] := fun x ↦
+/-- Let `α` be a smooth `F`-valued one-form on `M`, and `x ↦ (b x, V x)` a `C^n` map into the
+tangent bundle of `M`, for some `n ≤ ∞`. Then `x ↦ α_{b x}(V x)` is `C^n`. -/
+theorem contMDiff_apply_fin_one {n : WithTop ℕ∞} [ENat.LEInfty n] (α : SmoothForm I M F 1)
+    {b : X → M} {V : ∀ x, TangentSpace I (b x)}
+    (hV : ContMDiff IX I.tangent n fun x ↦ TotalSpace.mk' E (b x) (V x)) :
+    ContMDiff IX 𝓘(ℝ, F) n fun x ↦ α.val (b x) ![V x] := fun x ↦
   contMDiffAt_apply_fin_one α (hV x)
 
 end Eval
