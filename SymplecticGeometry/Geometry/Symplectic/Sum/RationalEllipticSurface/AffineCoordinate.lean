@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Sum.RationalEllipticSurface
 public import TauCeti.Geometry.Manifold.RegularValue
+import SymplecticGeometry.Geometry.Manifold.RegularValue.CriticalSet
 
 /-!
 # The affine coordinate of the rational elliptic surface over `ℂℙ¹`
@@ -45,9 +46,9 @@ base points of the pencil, which lie on the cubic, so it is of no use here. At `
 derivative in a plane coordinate `l` is `3 v_l²`, and `v_l ≠ 0` for some `l ≠ i`, because
 `v_i = 1` while `v_0³ + v_1³ + v_2³ = 0`. Subtracting a multiple of that plane direction from the
 `t`-direction gives the kernel vector. The chain rule through the product chart is set up as in
-`SymplecticGeometry.surjective_mfderiv_prodChartEquations_affineChart_iff`. The real statement
-comes from the complex one: a holomorphic map has the same derivative over `ℝ` as over `ℂ`
-(`MDifferentiableAt.mfderiv_modelWithCornersSelf_restrictScalars_apply`).
+`SymplecticGeometry.surjective_mfderiv_prodChartEquations_affineChart_iff`. The differential of
+the composite is read off through `TauCeti.isRegularPoint_comp_iff`, and the real statement comes
+from the complex one by `TauCeti.IsRegularPoint.restrictScalars'`.
 
 ## References
 
@@ -65,7 +66,8 @@ namespace SymplecticGeometry.rationalEllipticSurface
 
 /-- The **affine coordinate** `t / s` of the projection of the rational elliptic surface to
 `ℂℙ¹`: the coordinate of the standard affine chart `s ≠ 0` of `ℂℙ¹` at the image of a point. It
-is `0` on the fibre over `[1 : 0]`; off the affine open `s ≠ 0` its value carries no meaning. -/
+is `0` on the fibre over `[1 : 0]`. Off the affine open `s ≠ 0` it is `0` too, the value of
+`t / 0`, so its zero set also contains the fibre over `[0 : 1]`. -/
 noncomputable def affineCoordinate (p : rationalEllipticSurface) : ℂ :=
   affineChart 0 (p : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)).2 0
 
@@ -145,8 +147,8 @@ private theorem exists_fderiv_prodChartEquations_eq_zero {i : Fin 3}
   · simp [hD₀]
   · simp [w₀]
 
-/-- **The fibre over `[1 : 0]` is a regular level of the affine coordinate.** The complex
-differential of the affine coordinate is onto at every point of the fibre. -/
+/-- The complex differential of the affine coordinate is onto at every point of the fibre over
+`[1 : 0]`. -/
 theorem isRegularPoint_affineCoordinate (x : SmoothProjectiveHypersurface.fermat 1 3) :
     IsRegularPoint 𝓘(ℂ, Fin 2 → ℂ) 𝓘(ℂ, ℂ) affineCoordinate (fibreEmbedding x) := by
   set q := fibreEmbedding x
@@ -178,10 +180,6 @@ theorem isRegularPoint_affineCoordinate (x : SmoothProjectiveHypersurface.fermat
   have hL : HasMFDerivAt (𝓘(ℂ, Fin 2 → ℂ).prod 𝓘(ℂ, Fin 1 → ℂ)) 𝓘(ℂ, ℂ) L (e P) L := by
     rw [← modelWithCornersSelf_prod]
     exact L.hasFDerivAt.hasMFDerivAt
-  have hval : HasMFDerivAt 𝓘(ℂ, Fin 2 → ℂ) (𝓘(ℂ, Fin 2 → ℂ).prod 𝓘(ℂ, Fin 1 → ℂ))
-      (⇑embedding) q
-      (mfderiv 𝓘(ℂ, Fin 2 → ℂ) (𝓘(ℂ, Fin 2 → ℂ).prod 𝓘(ℂ, Fin 1 → ℂ)) (⇑embedding) q) :=
-    ((embedding.contMDiff q).mdifferentiableAt (by simp)).hasMFDerivAt
   have hg : affineCoordinate = (⇑L ∘ e) ∘ ⇑embedding := by
     ext y
     simp [affineCoordinate_def, L, e, coe_embedding]
@@ -200,7 +198,17 @@ theorem isRegularPoint_affineCoordinate (x : SmoothProjectiveHypersurface.fermat
         (fun _ ↦ isWeightedHomogeneous_hessePencil_inl)
         (fun _ ↦ isWeightedHomogeneous_hessePencil_inr) hi hj).1
         (by rw [← rationalEllipticSurface_def, ← hq]; exact q.property) ()
-  refine isRegularPoint_iff.2 fun (c : ℂ) ↦ ?_
+  -- The tangent space of the surface is the kernel of the differential of the chart equation.
+  have hT := tangentRange_complexProjectiveProdZeroLocusEmbedding (k := 2) (by simp)
+    (fun _ ↦ isWeightedHomogeneous_hessePencil_inl) (fun _ ↦ isWeightedHomogeneous_hessePencil_inr)
+    isOpen_univ eq_inter_univ (fun x _ ↦ surjective_jacobiMatrixAt x) (r := ω) (by simp) q
+    (hq ▸ hi) (hq ▸ hj)
+  rw [← embedding_def, hq] at hT
+  -- The affine coordinate is `L ∘ e` on the surface, so it suffices that the differential of
+  -- `L ∘ e` sends the tangent space of the surface onto `ℂ`.
+  rw [hg, isRegularPoint_comp_iff (g := ⇑embedding) (hL.comp P hePe).mdifferentiableAt
+    ((embedding.contMDiff q).mdifferentiableAt (by simp)), Submodule.eq_top_iff']
+  intro (c : ℂ)
   obtain ⟨v, hv⟩ := (he'.mfderiv_bijective hPe).surjective (c • w)
   have hvker : v ∈ (mfderiv (𝓘(ℂ, Fin 2 → ℂ).prod 𝓘(ℂ, Fin 1 → ℂ)) 𝓘(ℂ, Unit → ℂ)
       (fun y : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ) ↦
@@ -208,35 +216,19 @@ theorem isRegularPoint_affineCoordinate (x : SmoothProjectiveHypersurface.fermat
     rw [LinearMap.mem_ker, hF, (hD.comp P hePe).mfderiv]
     -- `rfl` identifies the zero of `Unit → ℂ` with that of the tangent space it models.
     exact (congrArg D hv).trans (by rw [D.map_smul, hwD, smul_zero]; rfl)
-  -- The tangent space of the surface is the kernel of the differential of the chart equation.
-  have hT := tangentRange_complexProjectiveProdZeroLocusEmbedding (k := 2) (by simp)
-    (fun _ ↦ isWeightedHomogeneous_hessePencil_inl) (fun _ ↦ isWeightedHomogeneous_hessePencil_inr)
-    isOpen_univ eq_inter_univ (fun x _ ↦ surjective_jacobiMatrixAt x) (r := ω) (by simp) q
-    (hq ▸ hi) (hq ▸ hj)
-  rw [← embedding_def, hq] at hT
-  have hvT : v ∈ embedding.tangentRange q (by simp) := by
-    rw [hT]
-    exact hvker
-  obtain ⟨u, hu⟩ := hvT
-  refine ⟨u, ?_⟩
-  -- The affine coordinate is `L ∘ e` on the surface, so its differential sends `u` to `L (c • w)`.
-  have hfin := ((hL.comp P hePe).comp q hval).congr_of_eventuallyEq_abuse
-    (f₁ := affineCoordinate) (Filter.Eventually.of_forall fun y ↦ congrFun hg y)
-  rw [hfin.mfderiv]
-  exact (congrArg L ((congrArg _ hu).trans hv)).trans
-    (by rw [L.map_smul, hw1, smul_eq_mul, mul_one])
+  refine ⟨v, ?_, ?_⟩
+  · exact LinearMap.mem_range.2 ((embedding.mem_tangentRange_iff q (by simp) v).1 (hT ▸ hvker))
+  · rw [(hL.comp P hePe).mfderiv]
+    exact (congrArg L hv).trans (by rw [L.map_smul, hw1, smul_eq_mul, mul_one])
 
-/-- **The affine coordinate is a defining function of the fibre over `[1 : 0]`.** Its real
-differential is onto at every point of the fibre. -/
+/-- The real differential of the affine coordinate is onto at every point of the fibre over
+`[1 : 0]`. -/
 theorem isRegularPoint_restrictScalars_affineCoordinate
     (x : SmoothProjectiveHypersurface.fermat 1 3) :
-    IsRegularPoint 𝓘(ℝ, Fin 2 → ℂ) 𝓘(ℝ, ℂ) affineCoordinate (fibreEmbedding x) := by
-  have hd : MDifferentiableAt 𝓘(ℂ, Fin 2 → ℂ) 𝓘(ℂ, ℂ) affineCoordinate (fibreEmbedding x) :=
-    (contMDiffAt_affineCoordinate (snd_fibreEmbedding_mem_affineOpen x) 1).mdifferentiableAt
-      one_ne_zero
-  refine isRegularPoint_iff.2 fun c ↦ ?_
-  obtain ⟨u, hu⟩ := isRegularPoint_iff.1 (isRegularPoint_affineCoordinate x) c
-  exact ⟨u, (hd.mfderiv_modelWithCornersSelf_restrictScalars_apply ℝ u).trans hu⟩
+    IsRegularPoint 𝓘(ℝ, Fin 2 → ℂ) 𝓘(ℝ, ℂ) affineCoordinate (fibreEmbedding x) :=
+  (isRegularPoint_affineCoordinate x).restrictScalars'
+    ((contMDiffAt_affineCoordinate (snd_fibreEmbedding_mem_affineOpen x) 1).mdifferentiableAt
+      one_ne_zero)
 
 end SymplecticGeometry.rationalEllipticSurface
 
