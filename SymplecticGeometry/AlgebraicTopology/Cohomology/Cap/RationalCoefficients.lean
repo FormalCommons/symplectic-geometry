@@ -22,11 +22,13 @@ import TauCeti.LinearAlgebra.QuadraticForm.Signature
 /-!
 # The cap product with integral and with rational chains
 
-Tau Ceti has two settings for the cap product of a space `X`. Its duality map
-`TauCeti.HomologicalOrientation.dualityMap` caps integral chains, with coefficients
+Tau Ceti has two settings for the cap product of a space `X`. The integral cap product
+`TopCat.singularCap ℤ (ρ_ _).inv (ρ_ L).hom` caps integral chains, with coefficients
 `ModuleCat.of ℤ (ULift ℤ)`, against cochains with values in an abelian group `L`, while
 `TopCat.singularCapLinearMap ℚ` caps rational chains, with coefficients `𝟙_ (ModuleCat ℚ)`,
-against `ℚ`-linear cochains. This file compares the two for `L = ℚ`. Throughout, `F` is the
+against `ℚ`-linear cochains. This file compares the two for `L = ℚ`. Tau Ceti's duality map
+`TauCeti.HomologicalOrientation.dualityMap` is the compactly supported form of the integral
+one. Throughout, `F` is the
 restriction of scalars along `ℤ → ℚ`, through which an object of `ModuleCat ℚ` is read as an
 abelian group.
 
@@ -97,7 +99,8 @@ part `CategoryTheory.Functor.singularChainComplexFunctorObjCompMapIso` is not ex
 formula on simplices, which the cap product computation needs; the change of coefficients has
 one (`SSet.map_ιChainComplex_restrictScalarsChainIso_inv_f`).
 As in Tau Ceti's `Duality.lean`, `CategoryTheory.MonoidalPreadditive.monoidalLinearInt` is a
-local instance, so that the integral cap product is the one of the duality map.
+local instance, so that the integral cap product here is built with the same instance as in
+Tau Ceti's `TauCeti.HomologicalOrientation.bijective_singularCap_fundamentalClass`.
 
 Several objects here agree only up to unfolding `ModuleCat.restrictScalars` or Mathlib's
 `singularHomologyFunctor`, for instance the cycles of `F` applied to a complex and the cycles of
