@@ -23,7 +23,6 @@ import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Opens
 public import TauCeti.Geometry.Manifold.Complex.LeviForm
 public import SymplecticGeometry.Geometry.Manifold.Complex.Plurisubharmonic
-import SymplecticGeometry.Geometry.Symplectic.Manifold.Rescale
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 import SymplecticGeometry.MeasureTheory.Integral.IntervalIntegral.Primitive
@@ -286,17 +285,16 @@ theorem radialPotentialForm_add {g₁ g₂ : ℝ → ℝ} (hg₁ : ContDiffOn �
     (hg₂ : ContDiffOn ℝ ∞ g₂ (Ioi 0)) :
     radialPotentialForm ι (fun s ↦ g₁ s + g₂ s) (hg₁.add hg₂) =
       radialPotentialForm ι g₁ hg₁ + radialPotentialForm ι g₂ hg₂ := by
-  rw [radialPotentialForm_def, radialPotentialForm_def, radialPotentialForm_def,
-    radialPotential_add hg₁ hg₂, ← SmoothForm.ofFunctionEquiv_apply, map_add, map_add,
-    SmoothForm.ofFunctionEquiv_apply, SmoothForm.ofFunctionEquiv_apply]
+  simp only [radialPotentialForm_def, radialPotential_add hg₁ hg₂, SmoothForm.ofFunction_add,
+    map_add]
 
 /-- The radial potential form is homogeneous in the potential: the form of `c g` is `c` times
 the form of `g`. -/
 theorem radialPotentialForm_const_mul (c : ℝ) {g : ℝ → ℝ} (hg : ContDiffOn ℝ ∞ g (Ioi 0)) :
     radialPotentialForm ι (fun s ↦ c * g s) (contDiffOn_const.mul hg) =
       c • radialPotentialForm ι g hg := by
-  rw [radialPotentialForm_def, radialPotentialForm_def, radialPotential_const_mul c hg,
-    ← SmoothForm.ofFunctionEquiv_apply, map_smul, map_smul, SmoothForm.ofFunctionEquiv_apply]
+  simp only [radialPotentialForm_def, radialPotential_const_mul c hg,
+    SmoothForm.ofFunction_smul, map_smul]
 
 /-! ### Radial maps -/
 
