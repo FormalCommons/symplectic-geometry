@@ -328,6 +328,7 @@ theorem mpullback_blowdownDiffeomorph_symm_blowupForm (l : ℝ) :
     Real.contDiffOn_log.mono fun _ hs ↦ ne_of_gt hs
   rw [radialPotentialForm_add (g₁ := fun s ↦ s) contDiffOn_id (contDiffOn_const.mul hlog),
     radialPotentialForm_const_mul _ hlog, radialPotentialForm_log n hlog]
+  -- `radialPotentialForm_id` is stated for `id`, which is `fun s ↦ s` only after unfolding `id`.
   erw [radialPotentialForm_id]
   rw [blowupForm_def, map_add, map_smul, map_add, map_smul, SmoothForm.mpullback_mpullback,
     SmoothForm.mpullback_mpullback, SmoothForm.mpullback_mpullback,
