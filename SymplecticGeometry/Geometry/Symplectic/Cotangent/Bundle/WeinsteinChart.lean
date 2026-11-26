@@ -137,8 +137,7 @@ theorem AgreesOnZeroSection.subtypeVal_comp_comp_subtypeMk_zeroSection
 /-- A map that agrees on the zero section with a diffeomorphism `ι` from an open set of `T*L` is
 smooth. -/
 theorem AgreesOnZeroSection.contMDiff (hι : AgreesOnZeroSection f ι) : ContMDiff J I ∞ f :=
-  hι.subtypeVal_comp_comp_subtypeMk_zeroSection ▸ contMDiff_subtypeVal.comp
-    (ι.contMDiff.comp (contMDiff_subtypeMk_zeroSection hι.zeroSection_mem))
+  contMDiff_of_apply_zeroSection ι.contMDiff hι.exists_apply_eq
 
 end ZeroSection
 
