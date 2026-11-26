@@ -8,7 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 public import SymplecticGeometry.Geometry.Symplectic.Flux.CompactSupport
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Velocity
-import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Extension
+import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Transport
 import TauCeti.Geometry.Manifold.DifferentialForm.Squared
 
 /-!
@@ -29,7 +29,7 @@ The construction (`TauCeti.SmoothIsotopy.exists_diffeotopy_interior_velocity_eq_
 
 1. A function `G` on `M × [0, 1]` vanishing off a compact set with `G_t ∘ k_t = h_t` near `K`
    (`TauCeti.SmoothIsotopy.exists_contMDiff_comp_eventuallyEq`, in
-   `SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Extension`).
+   `SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Transport`).
 2. The diffeotopy `φ_t` whose velocity `X_t` satisfies `ι_{X_t} σ = β_t + dG_t`, which preserves
    `σ` and fixes every point off a compact set
    (`TauCeti.Diffeotopy.exists_interior_velocity_eq_add_mextDeriv`, in
