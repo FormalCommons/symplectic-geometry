@@ -8,6 +8,7 @@ module
 public import Mathlib.Analysis.Complex.Circle
 public import Mathlib.Topology.Homotopy.Contractible
 public import TauCeti.Analysis.Complex.ClosedAnnulus
+import SymplecticGeometry.Topology.Sets.Annulus
 import TauCeti.Topology.Homotopy.Extension.Ball
 import TauCeti.Analysis.Normed.Module.Ball.Retraction
 
@@ -47,7 +48,8 @@ is obtained outside the annulus by composing `f` with Tau Ceti's radial retracti
 public section
 
 open Metric Set TauCeti
-open Complex (closedAnnulus isCompact_closedAnnulus mem_closedAnnulus)
+open Complex (closedAnnulus closedAnnulus_subset_closedAnnulus isCompact_closedAnnulus
+  mem_closedAnnulus)
 
 /-- Let `0 ≤ r ≤ s` and let `f : ℂ → M` be continuous on the closed annulus `r ≤ ‖z‖ ≤ s`. Then the
 loops `ζ ↦ f (r ζ)` and `ζ ↦ f (s ζ)` of `f` on the circles of radii `r` and `s` are homotopic. -/
@@ -105,9 +107,8 @@ theorem ContinuousOn.exists_continuousMap_eq_of_nullhomotopic {M : Type*} [Topol
     simpa [abs_of_pos hr] using hr1.trans h1R⟩
   have hγ₀ (ζ : Circle) : γ₀ ζ = f (r * ζ) := rfl
   have hγγ₀ : γ₀.Homotopic γ :=
-    ContinuousOn.homotopic_of_eq_mul (hf.mono fun z hz ↦ mem_closedAnnulus.2
-      ⟨(mem_closedAnnulus.1 hz).1, (mem_closedAnnulus.1 hz).2.trans h1R⟩) hr.le hr1 γ₀ γ
-      hγ₀ fun ζ ↦ by simp [hγ]
+    ContinuousOn.homotopic_of_eq_mul (hf.mono (closedAnnulus_subset_closedAnnulus le_rfl h1R))
+      hr.le hr1 γ₀ γ hγ₀ fun ζ ↦ by simp [hγ]
   obtain ⟨c, hc⟩ := hγ0
   obtain ⟨D, hDc, hD⟩ := ContinuousMap.Nullhomotopic.exists_extension_closedBall
     ⟨c, hγγ₀.trans hc⟩ hr
