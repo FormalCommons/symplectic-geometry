@@ -5,10 +5,6 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Topology.LocalAtTarget
-public import TauCeti.Geometry.Manifold.Submersion.Split
-public import TauCeti.Topology.Maps.Proper.Basic
-public import SymplecticGeometry.Geometry.Manifold.RegularValue.RestrictPreimage
 public import SymplecticGeometry.Geometry.Manifold.Submersion.FiberDiffeomorph
 public import SymplecticGeometry.Geometry.Symplectic.Lefschetz.Basic
 
@@ -17,11 +13,9 @@ public import SymplecticGeometry.Geometry.Symplectic.Lefschetz.Basic
 
 For a Lefschetz fibration `π : X → ℂℙ¹` of a compact manifold, the regular values form an open
 connected set `R` (`SymplecticGeometry.IsLefschetzFibration.isOpen_regularValue`,
-`SymplecticGeometry.IsLefschetzFibration.isConnected_regularValue`). Over `R` the map
-`π⁻¹(R) → R` is a proper smooth submersion, so by Ehresmann's fibration theorem
-(`Manifold.IsSubmersion.nonempty_diffeomorph_mapFiber`) its fibres are pairwise diffeomorphic.
-Its fibres are those of `π` over the points of `R`, with the same regular-fibre atlas
-(`TauCeti.regularFiberRestrictPreimageDiffeomorph`).
+`SymplecticGeometry.IsLefschetzFibration.isConnected_regularValue`), and `π` is proper, since `X`
+is compact. So the fibres of `π` over the points of `R` are pairwise diffeomorphic
+(`ContMDiff.nonempty_diffeomorph_fiber_of_isProperMap`, a form of Ehresmann's fibration theorem).
 
 ## Main results
 
@@ -36,7 +30,7 @@ Its fibres are those of `π` over the points of `R`, with the same regular-fibre
 
 public section
 
-open Set TopologicalSpace TauCeti Module
+open TauCeti Module
 open scoped Manifold LinearAlgebra.Projectivization
 
 namespace SymplecticGeometry
@@ -63,36 +57,10 @@ theorem nonempty_diffeomorph_fiber (h : IsLefschetzFibration ω J π) {y₀ y₁
       BoundarylessManifold.isInteriorPoint h₁
     Nonempty (Diffeomorph 𝓘(ℝ, Fin (finrank ℝ E - finrank ℝ (Fin 1 → ℂ)) → ℝ)
       𝓘(ℝ, Fin (finrank ℝ E - finrank ℝ (Fin 1 → ℂ)) → ℝ) {x // π x = y₀} {x // π x = y₁}
-      (⊤ : ℕ∞)) := by
-  let R : Opens (ℙ ℂ (Fin 2 → ℂ)) := ⟨_, h.isOpen_regularValue⟩
-  have hπ := h.contMDiff
-  -- The restriction of `π` over the regular values.
-  let P : Opens X := ⟨π ⁻¹' R, R.isOpen.preimage hπ.continuous⟩
-  let g : P → R := (R : Set (ℙ ℂ (Fin 2 → ℂ))).restrictPreimage π
-  have hg : Manifold.IsSubmersion I 𝓘(ℝ, Fin 1 → ℂ) (⊤ : ℕ∞) g :=
-    ((hπ.restrictPreimage R).isSubmersionOfComplement_of_surjective_mfderiv (by simp)
-      fun x ↦ isRegularPoint_iff.1 ((isRegularPoint_restrictPreimage_iff hπ.continuous R).2
-        (isRegularValue_iff.1 x.property x rfl))).isSubmersion
-  have hgp : IsProperMap g := hπ.continuous.isProperMap.restrictPreimage _
-  have : PreconnectedSpace R := isPreconnected_iff_preconnectedSpace.1
-    h.isConnected_regularValue.isPreconnected
-  -- `R` is σ-compact, as an open subset of the compact manifold `ℂℙ¹`, and so is `P`.
+      (⊤ : ℕ∞)) :=
   have := ChartedSpace.secondCountable_of_sigmaCompact (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ))
-  have := ChartedSpace.locallyCompactSpace (Fin 1 → ℂ) R
-  have : SigmaCompactSpace P := hgp.sigmaCompactSpace
-  let := regularFiberChartedSpace (m := (⊤ : ℕ∞)) (by simp) hπ
-    BoundarylessManifold.isInteriorPoint h₀
-  let := regularFiberChartedSpace (m := (⊤ : ℕ∞)) (by simp) hπ
-    BoundarylessManifold.isInteriorPoint h₁
-  let := regularFiberChartedSpace (m := (⊤ : ℕ∞)) (by simp) hg.contMDiff
-    BoundarylessManifold.isInteriorPoint (hg.isRegularValue (by simp) ⟨y₀, h₀⟩)
-  let := regularFiberChartedSpace (m := (⊤ : ℕ∞)) (by simp) hg.contMDiff
-    BoundarylessManifold.isInteriorPoint (hg.isRegularValue (by simp) ⟨y₁, h₁⟩)
-  obtain ⟨φ⟩ := hg.nonempty_diffeomorph_mapFiber hgp ⟨y₀, h₀⟩ ⟨y₁, h₁⟩
-  exact ⟨((regularFiberRestrictPreimageDiffeomorph (by simp) hπ
-    BoundarylessManifold.isInteriorPoint h₀ R h₀).symm.trans φ).trans
-    (regularFiberRestrictPreimageDiffeomorph (by simp) hπ BoundarylessManifold.isInteriorPoint
-      h₁ R h₁)⟩
+  h.contMDiff.nonempty_diffeomorph_fiber_of_isProperMap h.contMDiff.continuous.isProperMap
+    ⟨_, h.isOpen_regularValue⟩ h.isConnected_regularValue.isPreconnected (fun _ hy ↦ hy) h₀ h₁
 
 end IsLefschetzFibration
 
