@@ -62,6 +62,8 @@ constant family), which contains a larger closed ball
   `.isSymplecticBallEmbedding`: the components of the two definitions.
 * `SymplecticGeometry.IsSymplecticBallEmbedding.mpullback_eq_of_mem_closedBall`: for `0 < r`, a
   symplectic embedding of `B(r)` pulls `σ` back to `ω₀` on all of `B(r)`.
+* `SymplecticGeometry.IsSymplecticBallEmbedding.isCompact_image_closedBall`: it maps each closed
+  ball `B(r')` with `r' ≤ r` onto a compact set.
 * `SymplecticGeometry.IsSymplecticBallEmbedding.injective_mfderiv`: for `0 < r`, it is an
   immersion along `B(r)`.
 * `SymplecticGeometry.IsSymplecticBallEmbedding.isLocalDiffeomorphOn`,
@@ -159,6 +161,14 @@ theorem mpullback_eq (hj : IsSymplecticBallEmbedding σ r j) {z : StdSpace (Fin 
     (hz : z ∈ ball 0 r) :
     mpullback 𝓘(ℝ, StdSpace (Fin n)) I j σ.val z = (stdForm (Fin n)).constSmooth.val z :=
   hj.2.2 z hz
+
+/-- A symplectic embedding of `B(r)` maps each closed ball `B(r')` with `r' ≤ r` onto a compact
+set. -/
+theorem isCompact_image_closedBall (hj : IsSymplecticBallEmbedding σ r j) (h : r' ≤ r) :
+    IsCompact (j '' closedBall 0 r') := by
+  obtain ⟨U, -, hU, hjU⟩ := hj.exists_contMDiffOn
+  exact (isCompact_closedBall 0 r').image_of_continuousOn
+    (hjU.continuousOn.mono ((closedBall_subset_closedBall h).trans hU))
 
 /-- A symplectic embedding of `B(r)` restricts to a symplectic embedding of any smaller ball. -/
 theorem mono (hj : IsSymplecticBallEmbedding σ r j) (h : r' ≤ r) :

@@ -254,12 +254,12 @@ parallel transport. About 550 lines.
   (τ.horizontalDistribution π)`. The complement condition is Mathlib's
   `LinearMap.BilinForm.isCompl_orthogonal_of_restrict_nondegenerate`
   (an alternating form is reflexive). For smoothness and rank, the vertical
-  spaces have smooth local frames (Tau Ceti's
+  spaces form a smooth distribution (Tau Ceti's
   `Manifold.IsSubmersion.isContMDiffDistribution_ker_mfderiv`), and the
-  library's `TauCeti.HasLocalContMDiffSubbundleFrames.orthogonal`
-  (`Geometry/Manifold/VectorBundle/Orthogonal.lean`), applied to Tau Ceti's
-  smooth flat map `SmoothTwoForm.contMDiff_flat`, gives smooth local frames
-  of their `τ`-orthogonals.
+  library's `TauCeti.IsContMDiffDistribution.bilinFormOrthogonal`
+  (`Geometry/Manifold/Distribution/Orthogonal.lean`), applied to Tau Ceti's
+  smooth flat map `SmoothTwoForm.contMDiff_flat`, shows that so do their
+  `τ`-orthogonals.
 - `horizontalDistribution_eq_iff`: two forms, the first vertically nondegenerate, that
   agree on pairs of vertical vectors define the same connection exactly
   when their difference vanishes on `(η, v)` for every vertical `η`. The

@@ -8,15 +8,19 @@ module
 public import Mathlib.Geometry.Manifold.Diffeomorph
 public import Mathlib.Geometry.Manifold.Instances.Real
 public import Mathlib.Geometry.Manifold.SmoothEmbedding
+public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
+public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
 import Mathlib.Geometry.Manifold.Instances.Icc
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
 import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
 import SymplecticGeometry.Data.Set.Prod
+import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Real
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Neighborhood
 import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Extension
 import TauCeti.Geometry.Manifold.Flow.TimeDependent
 import TauCeti.Geometry.Manifold.MFDeriv.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
+import TauCeti.Geometry.Manifold.SmoothEmbedding.LeftInverse
 import TauCeti.Geometry.Manifold.SmoothIsotopy.Velocity.Basic
 
 /-!
@@ -30,9 +34,10 @@ fixing every point outside a compact set, such that `ψ q s (k (q, 0, x)) = k (q
 `q ∈ T`, `s ∈ [0, 1]` and `x ∈ A`
 (`ContMDiff.exists_contMDiff_diffeomorph_family_forall_apply_eq`).
 
-The proof follows that of `TauCeti.SmoothIsotopy.exists_contMDiff_diffeomorph_forall_apply_eq`,
-applied to the graph isotopy `(q, y) ↦ (q, k (q, s, y))` of an open neighbourhood `V` of
-`T ×ˢ A` into `Q × M`, in three steps; the second and the third keep the parameter fixed.
+The proof works with the graph isotopy `(q, y) ↦ (q, k (q, s, y))` of an open neighbourhood `V`
+of `T ×ˢ A` into `Q × M`, in three steps; the second and the third keep the parameter fixed.
+Steps 2 and 3 adapt the proof of Tau Ceti's `TauCeti.SmoothIsotopy.exists_diffeotopy_apply_eq`,
+with the time extension of `SmoothIsotopy/Extension.lean` in place of Tau Ceti's change of time.
 
 1. The graph slices are smooth embeddings of a neighbourhood `V` of `T ×ˢ A`
    (`TauCeti.exists_isOpen_forall_isSmoothEmbedding_of_injOn`): a graph is injective where its
@@ -60,6 +65,13 @@ and run the extension at a parameter `c q ∈ (-δ, 1 + δ)` with `c` the identi
 `T` need to be embeddings, and there the new family is `k`. The diffeomorphisms for parameters in
 `[0, 1]` are those wanted.
 
+A single smooth isotopy is the case of the point `EuclideanSpace ℝ (Fin 0)` as parameter
+manifold, with `T = univ` (`TauCeti.SmoothIsotopy.exists_contMDiff_diffeomorph_forall_apply_eq`
+and `TauCeti.SmoothIsotopy.exists_diffeotopy_forall_apply_eq`), and a smooth path is in turn a
+smooth isotopy of a point, whose slices are smooth embeddings by Tau Ceti's
+`TauCeti.isSmoothEmbedding_const_of_subsingleton`
+(`ContMDiff.exists_contMDiff_diffeomorph_forall_apply_eq`).
+
 ## Main results
 
 * `ContMDiff.exists_contMDiff_diffeomorph_family_forall_apply_eq`: isotopy extension at every
@@ -72,6 +84,13 @@ and run the extension at a parameter `c q ∈ (-δ, 1 + δ)` with `c` the identi
   `unitInterval` agrees on `[0, 1]` with a smooth family over `ℝ`.
 * `ContMDiff.exists_contMDiff_diffeomorph_unitInterval_family_forall_apply_eq`: isotopy extension
   at every time for a smooth family of isotopies with a parameter in `unitInterval`.
+* `TauCeti.SmoothIsotopy.exists_contMDiff_diffeomorph_forall_apply_eq`: isotopy extension at every
+  time for a single smooth isotopy, by a jointly smooth family of diffeomorphisms over `ℝ`.
+* `TauCeti.SmoothIsotopy.exists_diffeotopy_forall_apply_eq`: isotopy extension at every time, by a
+  compactly supported diffeotopy.
+* `ContMDiff.exists_contMDiff_diffeomorph_forall_apply_eq`: a smooth path is the track of its
+  starting point under a jointly smooth family of diffeomorphisms over `ℝ`, with `ψ 0` the
+  identity, that fixes every point outside a compact set.
 
 ## References
 
@@ -236,6 +255,65 @@ theorem _root_.ContMDiff.exists_contMDiff_diffeomorph_family_forall_apply_eq
     rw [hc_id t t.property, hΓg t pV (hAU hpV)]
   have h := hψG s ⟨pV, hAV₃ hpV⟩ hpV
   rwa [← Set.Icc.coe_zero, hΓk, hΓk] at h
+
+namespace SmoothIsotopy
+
+/-- **Isotopy extension at every time, over `ℝ`.** A smooth isotopy `F` of a boundaryless
+manifold through smooth embeddings into a finite-dimensional, Hausdorff, σ-compact boundaryless
+manifold `M` is on any compact subset `A` of the source the restriction of a jointly smooth
+family `ψ` of diffeomorphisms of `M` over all real times, with `ψ 0 = id`, fixing every point
+outside a compact set: `ψ t (f₀ x) = F (t, x)` for every `t ∈ [0, 1]` and every `x ∈ A`. -/
+theorem exists_contMDiff_diffeomorph_forall_apply_eq {f₀ f₁ : C^∞⟮J, P; I, M⟯}
+    (F : SmoothIsotopy f₀ f₁) {A : Set P} (hA : IsCompact A) :
+    ∃ ψ : ℝ → M ≃ₘ⟮I, I⟯ M, ContMDiff (𝓘(ℝ, ℝ).prod I) I ∞ (fun p : ℝ × M ↦ ψ p.1 p.2) ∧
+      (∀ y, ψ 0 y = y) ∧ ∃ K : Set M, IsCompact K ∧ (∀ t, ∀ y ∉ K, ψ t y = y) ∧
+      ∀ t : unitInterval, ∀ x ∈ A, ψ t (f₀ x) = F (t, x) := by
+  -- The case of the point `EuclideanSpace ℝ (Fin 0)` as parameter manifold.
+  obtain ⟨ψ, hψ, hψ₀, K, hK, hψK, hψF⟩ :=
+    ContMDiff.exists_contMDiff_diffeomorph_family_forall_apply_eq
+      (Q := EuclideanSpace ℝ (Fin 0)) (IQ := 𝓘(ℝ, EuclideanSpace ℝ (Fin 0))) (k := fun p ↦ F p.2)
+      (F.contMDiff.comp contMDiff_snd) isCompact_univ hA fun _ _ s ↦ F.isSmoothEmbedding s
+  refine ⟨ψ 0, hψ.comp (contMDiff_const.prodMk contMDiff_id), hψ₀ 0, K, hK, hψK 0,
+    fun t x hx ↦ ?_⟩
+  have h := hψF 0 (mem_univ _) t x hx
+  rwa [apply_zero] at h
+
+/-- **Isotopy extension at every time.** A smooth isotopy `F` of a boundaryless manifold through
+smooth embeddings into a finite-dimensional, Hausdorff, σ-compact boundaryless manifold `M` is
+on any compact subset `A` of the source the restriction of a smooth diffeotopy `Φ` of `M`
+fixing every point outside a compact set: `Φ (t, f₀ x) = F (t, x)` for every time `t` and every
+`x ∈ A`. The source need not be compact. -/
+theorem exists_diffeotopy_forall_apply_eq {f₀ f₁ : C^∞⟮J, P; I, M⟯}
+    (F : SmoothIsotopy f₀ f₁) {A : Set P} (hA : IsCompact A) :
+    ∃ Φ : Diffeotopy I ∞ M, ∃ K : Set M, IsCompact K ∧ (∀ t, ∀ y ∉ K, Φ (t, y) = y) ∧
+      ∀ t, ∀ x ∈ A, Φ (t, f₀ x) = F (t, x) := by
+  obtain ⟨ψ, hψ, h₀, K, hK, hψK, hψF⟩ := F.exists_contMDiff_diffeomorph_forall_apply_eq hA
+  exact ⟨Diffeotopy.ofReal ψ hψ h₀, K, hK,
+    fun t y hy ↦ by rw [Diffeotopy.ofReal_apply, hψK t y hy],
+    fun t x hx ↦ by rw [Diffeotopy.ofReal_apply, hψF t x hx]⟩
+
+end SmoothIsotopy
+
+/-- **Pushing a point along a path.** A smooth path `c` in a finite-dimensional, Hausdorff,
+σ-compact boundaryless manifold is the track of its starting point under a family `ψ` of
+diffeomorphisms over `ℝ`, jointly smooth in time and space, with `ψ 0` the identity, that fixes
+every point outside a compact set: `ψ t (c 0) = c t` for every `t ∈ [0, 1]`. -/
+theorem _root_.ContMDiff.exists_contMDiff_diffeomorph_forall_apply_eq
+    {c : unitInterval → M} (hc : ContMDiff (𝓡∂ 1) I ∞ c) :
+    ∃ ψ : ℝ → M ≃ₘ⟮I, I⟯ M, ContMDiff (𝓘(ℝ, ℝ).prod I) I ∞ (fun p : ℝ × M ↦ ψ p.1 p.2) ∧
+      (∀ y, ψ 0 y = y) ∧ ∃ K : Set M, IsCompact K ∧ (∀ t, ∀ y ∉ K, ψ t y = y) ∧
+      ∀ t : unitInterval, ψ t (c 0) = c t := by
+  -- `c` is a smooth isotopy of the point `EuclideanSpace ℝ (Fin 0)`.
+  let Q := EuclideanSpace ℝ (Fin 0)
+  let F : SmoothIsotopy (⟨fun _ ↦ c 0, contMDiff_const⟩ : C^∞⟮𝓘(ℝ, Q), Q; I, M⟯)
+      ⟨fun _ ↦ c 1, contMDiff_const⟩ :=
+    { toContMDiffMap := ⟨fun p ↦ c p.1, hc.comp contMDiff_fst⟩
+      map_zero_left := fun _ ↦ rfl
+      map_one_left := fun _ ↦ rfl
+      isSmoothEmbedding := fun t ↦ isSmoothEmbedding_const_of_subsingleton (by simp) (c t) }
+  obtain ⟨ψ, hψ, hψ0, K, hK, hψK, hψc⟩ :=
+    F.exists_contMDiff_diffeomorph_forall_apply_eq (isCompact_singleton (x := 0))
+  exact ⟨ψ, hψ, hψ0, K, hK, hψK, fun t ↦ hψc t 0 rfl⟩
 
 omit [J.Boundaryless] [SigmaCompactSpace M] in
 /-- **A family over `[0, 1]` as a family over `ℝ`.** A smooth map `k : [0, 1] × [0, 1] × P → M`,
