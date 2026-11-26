@@ -5,19 +5,17 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.MeasureTheory.Function.LocallyIntegrable
 public import Mathlib.Probability.Moments.ComplexMGF
+import TauCeti.Probability.Moments.IntegrableExpMul
 
 /-!
-# Moment-generating functions of continuous functions on compact spaces
+# Moment-generating functions of bounded random variables
 
-Let `X` be a continuous real function on a compact space, and `μ` a measure that is finite on
-compact sets.
-
-* `ProbabilityTheory.integrableExpSet_eq_univ_of_continuous`: `e^{t X}` is integrable for every
-  real `t`.
-* `ProbabilityTheory.analyticOnNhd_complexMGF_of_continuous`: the complex moment-generating
-  function `z ↦ ∫ e^{z X} dμ` is entire, by `ProbabilityTheory.analyticOnNhd_complexMGF`.
+* `ProbabilityTheory.analyticOnNhd_complexMGF_of_mem_Icc`: for a real random variable `X` that
+  lies almost surely in a compact interval, under a finite measure, the complex
+  moment-generating function `z ↦ ∫ e^{z X} dμ` is analytic on all of `ℂ`. Its exponential
+  moments are finite at every real rate (`TauCeti.integrableExpSet_eq_univ_of_mem_Icc`), so this
+  is `ProbabilityTheory.analyticOnNhd_complexMGF`.
 -/
 
 public section
@@ -26,21 +24,15 @@ open Set MeasureTheory
 
 namespace ProbabilityTheory
 
-variable {Ω : Type*} [TopologicalSpace Ω] [CompactSpace Ω] [MeasurableSpace Ω]
-  [OpensMeasurableSpace Ω] {μ : Measure Ω} [IsFiniteMeasureOnCompacts μ] {X : Ω → ℝ}
+variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω} [IsFiniteMeasure μ] {X : Ω → ℝ}
 
-/-- A continuous function `X` on a compact space has `e^{t X}` integrable for every real `t`,
-against a measure that is finite on compact sets. -/
-theorem integrableExpSet_eq_univ_of_continuous (hX : Continuous X) :
-    integrableExpSet X μ = univ :=
-  eq_univ_of_forall fun _ ↦ (Real.continuous_exp.comp (continuous_const.mul hX))
-    |>.integrable_of_hasCompactSupport (HasCompactSupport.of_compactSpace _)
-
-/-- The complex moment-generating function `z ↦ ∫ e^{z X} dμ` of a continuous function `X` on a
-compact space, against a measure that is finite on compact sets, is analytic on all of `ℂ`. -/
-theorem analyticOnNhd_complexMGF_of_continuous (hX : Continuous X) :
+/-- The complex moment-generating function `z ↦ ∫ e^{z X} dμ` of a real random variable `X` that
+lies almost surely in a compact interval `[a, b]`, under a finite measure, is analytic on all
+of `ℂ`. -/
+theorem analyticOnNhd_complexMGF_of_mem_Icc {a b : ℝ} (hX : AEMeasurable X μ)
+    (hX_mem : ∀ᵐ ω ∂μ, X ω ∈ Icc a b) :
     AnalyticOnNhd ℂ (complexMGF X μ) univ := by
-  simpa [integrableExpSet_eq_univ_of_continuous hX] using
+  simpa [TauCeti.integrableExpSet_eq_univ_of_mem_Icc hX hX_mem] using
     analyticOnNhd_complexMGF (X := X) (μ := μ)
 
 end ProbabilityTheory

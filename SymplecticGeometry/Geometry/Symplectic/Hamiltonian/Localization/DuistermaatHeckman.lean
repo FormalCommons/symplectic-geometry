@@ -29,8 +29,8 @@ measure, the measure of `σⁿ / n!`.
   `TauCeti.SmoothTwoForm.IsNondegenerate.integralTopForm_smul_volumeForm`.
 * `SymplecticGeometry.integral_cexp_neg_mul_eq_finsum_fixedPoints`: the formula for complex
   `ħ ≠ 0`. The left side is `complexMGF H λ_σ (-ħ)`, an entire function of `ħ`, since `H` is
-  continuous on a compact space and `λ_σ` is finite on compact sets
-  (`ProbabilityTheory.analyticOnNhd_complexMGF_of_continuous`); the right side is a finite sum of
+  continuous, hence bounded, and `λ_σ` is finite on the compact space `M`
+  (`ProbabilityTheory.analyticOnNhd_complexMGF_of_mem_Icc`); the right side is a finite sum of
   functions analytic on `ℂ ∖ {0}`, which is connected. The two agree on the positive reals, so on
   `ℂ ∖ {0}` (`AnalyticOnNhd.eqOn_of_preconnected_of_frequently_eq`).
 * `SymplecticGeometry.tendsto_finsum_fixedPoints_liouvilleMeasure`: as `ħ → 0`, `ħ ≠ 0`, the right
@@ -119,10 +119,8 @@ theorem integral_cexp_neg_mul_eq_finsum_fixedPoints (hσ : σ.IsSymplectic)
     (hiso : ∀ p ∈ MulAction.fixedPoints Circle M,
       ∀ᶠ x in 𝓝[≠] p, x ∉ MulAction.fixedPoints Circle M)
     (k : M → Fin n → ℤ)
-    (hk : ∀ p ∈ MulAction.fixedPoints Circle M, ∃ L : TangentSpace I p ≃L[ℝ] (Fin n → ℂ),
-      (∀ v w, σ.eval₂ p v w = stdComplexPiSymplecticForm (Fin n) (L v) (L w)) ∧
-      ∀ (t : ℝ) v, L (mfderiv I I (Circle.exp (2 * π * t) • ·) p v) =
-        fun j ↦ Complex.exp (2 * π * k p j * t * Complex.I) * L v j)
+    (hk : ∀ p ∈ MulAction.fixedPoints Circle M,
+      ∃ L : TangentSpace I p ≃L[ℝ] (Fin n → ℂ), IsTangentWeights σ p (k p) L)
     {ħ : ℂ} (hħ : ħ ≠ 0) :
     ∫ x, Complex.exp (-ħ * μ x circlePeriodOneGenerator) ∂σ.liouvilleMeasure n =
       ∑ᶠ p ∈ MulAction.fixedPoints Circle M,
@@ -134,12 +132,15 @@ theorem integral_cexp_neg_mul_eq_finsum_fixedPoints (hσ : σ.IsSymplectic)
     ⟨fun g ↦ (ContMDiffSMul.contMDiff_const_smul (I := 𝓡 1) (I' := I) (n := ∞) g).continuous⟩
   have hS := finite_fixedPoints hiso
   -- The left side is `complexMGF H λ_σ (-ħ)`, an entire function of `ħ`.
+  obtain ⟨a, ha⟩ := (isCompact_range hc).bddBelow
+  obtain ⟨b, hb⟩ := (isCompact_range hc).bddAbove
+  have hA := analyticOnNhd_complexMGF_of_mem_Icc (μ := σ.liouvilleMeasure n) hc.aemeasurable
+    (ae_of_all _ fun x ↦ ⟨ha ⟨x, rfl⟩, hb ⟨x, rfl⟩⟩)
   have hL : AnalyticOnNhd ℂ (fun z : ℂ ↦
       ∫ x, Complex.exp (-z * μ x circlePeriodOneGenerator) ∂σ.liouvilleMeasure n) {0}ᶜ :=
     fun z _ ↦ by
       simpa only [complexMGF, Function.comp_def, neg_mul] using
-        (analyticOnNhd_complexMGF_of_continuous (μ := σ.liouvilleMeasure n) hc (-z) trivial).comp
-          analyticAt_id.neg
+        (hA (-z) trivial).comp analyticAt_id.neg
   -- The right side is a finite sum of functions analytic away from `0`.
   have hR : AnalyticOnNhd ℂ (fun z : ℂ ↦ ∑ᶠ p ∈ MulAction.fixedPoints Circle M,
       Complex.exp (-z * μ p circlePeriodOneGenerator) / (z ^ n * ∏ j, (k p j : ℂ))) {0}ᶜ := by
@@ -157,8 +158,7 @@ theorem integral_cexp_neg_mul_eq_finsum_fixedPoints (hσ : σ.IsSymplectic)
       ∫ x, Complex.exp (-(t : ℂ) * μ x circlePeriodOneGenerator) ∂σ.liouvilleMeasure n =
         ∑ᶠ p ∈ MulAction.fixedPoints Circle M, Complex.exp (-(t : ℂ) *
           μ p circlePeriodOneGenerator) / ((t : ℂ) ^ n * ∏ j, (k p j : ℂ)) := by
-    have h := integral_exp_neg_mul_eq_finsum_of_pos hσ hinv hμ hiso k
-      (fun p hp ↦ (hk p hp).imp fun L hL ↦ isTangentWeights_iff.2 hL) ht
+    have h := integral_exp_neg_mul_eq_finsum_of_pos hσ hinv hμ hiso k hk ht
     rw [finsum_mem_eq_finite_toFinset_sum _ hS] at h ⊢
     have h' := congrArg (fun r : ℝ ↦ (r : ℂ)) h
     rw [← integral_complex_ofReal] at h'
@@ -191,21 +191,22 @@ theorem tendsto_finsum_fixedPoints_liouvilleMeasure (hσ : σ.IsSymplectic)
     (hiso : ∀ p ∈ MulAction.fixedPoints Circle M,
       ∀ᶠ x in 𝓝[≠] p, x ∉ MulAction.fixedPoints Circle M)
     (k : M → Fin n → ℤ)
-    (hk : ∀ p ∈ MulAction.fixedPoints Circle M, ∃ L : TangentSpace I p ≃L[ℝ] (Fin n → ℂ),
-      (∀ v w, σ.eval₂ p v w = stdComplexPiSymplecticForm (Fin n) (L v) (L w)) ∧
-      ∀ (t : ℝ) v, L (mfderiv I I (Circle.exp (2 * π * t) • ·) p v) =
-        fun j ↦ Complex.exp (2 * π * k p j * t * Complex.I) * L v j) :
+    (hk : ∀ p ∈ MulAction.fixedPoints Circle M,
+      ∃ L : TangentSpace I p ≃L[ℝ] (Fin n → ℂ), IsTangentWeights σ p (k p) L) :
     Tendsto (fun ħ : ℂ ↦ ∑ᶠ p ∈ MulAction.fixedPoints Circle M,
         Complex.exp (-ħ * μ p circlePeriodOneGenerator) / (ħ ^ n * ∏ j, (k p j : ℂ)))
       (𝓝[≠] 0) (𝓝 ((σ.liouvilleMeasure n univ).toReal : ℂ)) := by
   have hc : Continuous fun x ↦ μ x circlePeriodOneGenerator := by
     simpa using (hμ.contMDiff circlePeriodOneGenerator).continuous.neg
   -- The left side `complexMGF H λ_σ (-ħ)` is continuous at `0`, with value the total measure.
+  obtain ⟨a, ha⟩ := (isCompact_range hc).bddBelow
+  obtain ⟨b, hb⟩ := (isCompact_range hc).bddAbove
+  have hA := analyticOnNhd_complexMGF_of_mem_Icc (μ := σ.liouvilleMeasure n) hc.aemeasurable
+    (ae_of_all _ fun x ↦ ⟨ha ⟨x, rfl⟩, hb ⟨x, rfl⟩⟩)
   have hL : ContinuousAt (fun z : ℂ ↦
       ∫ x, Complex.exp (-z * μ x circlePeriodOneGenerator) ∂σ.liouvilleMeasure n) 0 := by
     simpa only [complexMGF, Function.comp_def, neg_mul] using
-      ((analyticOnNhd_complexMGF_of_continuous (μ := σ.liouvilleMeasure n) hc (-0)
-        trivial).comp analyticAt_id.neg).continuousAt
+      ((hA (-0) trivial).comp analyticAt_id.neg).continuousAt
   have h0 : ∫ x, Complex.exp (-0 * μ x circlePeriodOneGenerator) ∂σ.liouvilleMeasure n =
       ((σ.liouvilleMeasure n univ).toReal : ℂ) := by
     simp [measureReal_def]
