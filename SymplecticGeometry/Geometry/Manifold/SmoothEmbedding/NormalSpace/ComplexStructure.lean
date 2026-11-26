@@ -39,6 +39,8 @@ structure is Tau Ceti's.
   Tau Ceti's `normalComplexStructureAt`.
 * `TauCeti.SmoothEmbedding.isComplexLinearMap_normalClass`: the normal class map is complex
   linear.
+* `TauCeti.SmoothEmbedding.normalAlmostComplexStructureAt_eq_iff`: the induced structure is the
+  only one for which the normal class map is complex linear.
 * `TauCeti.SmoothEmbedding.toContinuousComplexStructure_contMDiffNormalComplexStructure`: the
   underlying continuous complex structure is Tau Ceti's `normalComplexStructure`.
 
@@ -113,6 +115,18 @@ theorem isComplexLinearMap_normalClass (f : SmoothEmbedding I' I n M X)
   -- `f.NormalSpace x hn` is by definition the quotient by `f.tangentRange x hn`.
   exact AlmostComplexStructure.isComplexLinearMap_mkQ _ _ _
 
+/-- The induced structure is the unique almost complex structure on the normal space for which
+the normal class map is complex linear. -/
+theorem normalAlmostComplexStructureAt_eq_iff (f : SmoothEmbedding I' I n M X)
+    (J : SmoothAlmostComplexStructure I X)
+    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn) (x : M)
+    (K : AlmostComplexStructure (f.NormalSpace x hn)) :
+    f.normalAlmostComplexStructureAt J hJ x = K ↔
+      IsComplexLinearMap (J.almostComplexStructureAt (f x)) K (f.normalClass x hn) := by
+  rw [normalAlmostComplexStructureAt_def, normalClass_def]
+  -- `f.NormalSpace x hn` is by definition the quotient by `f.tangentRange x hn`.
+  exact AlmostComplexStructure.quotient_eq_iff _ _ _ K
+
 end Pointwise
 
 section Smooth
@@ -155,6 +169,7 @@ theorem contMDiffNormalComplexStructure_apply (f : SmoothEmbedding I' I ∞ M X)
 
 /-- The underlying continuous complex structure of the complex structure on the normal bundle is
 Tau Ceti's `f.normalComplexStructure`. -/
+@[simp]
 theorem toContinuousComplexStructure_contMDiffNormalComplexStructure
     (f : SmoothEmbedding I' I ∞ M X)
     (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E') (J : SmoothAlmostComplexStructure I X)
