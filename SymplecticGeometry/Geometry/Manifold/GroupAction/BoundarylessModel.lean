@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Geometry.Manifold.Algebra.SMul
 public import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
+public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.ModelTransport.Interior
 
 /-!
@@ -37,6 +38,10 @@ boundary.
   `interiorDiffeomorph I 1` and its inverse, so no hypothesis on the action is needed.
 * `TauCeti.BoundarylessModel.instContMDiffSMulInteriorChartedSpace`: a `C^n` scalar multiplication
   on `M` is a `C^n` scalar multiplication on the copy with its vector-space atlas.
+* `TauCeti.BoundarylessModel.mpullback_smul_mpullback_interiorDiffeomorph_symm` and
+  `mpullback_smul_mpullback_interiorDiffeomorph`: for a smooth action, a smooth form invariant
+  under every `g • ·` on one side pulls back, along the identity diffeomorphism or its inverse, to
+  a form invariant under every `g • ·` on the other side.
 -/
 
 public section
@@ -174,6 +179,46 @@ instance instContMDiffSMulInteriorChartedSpace {EG HG : Type*} [NormedAddCommGro
     rw [h]
     exact Φ.contMDiff.comp ((contMDiff_smul (I := IG) (I' := I)).comp
       (contMDiff_fst.prodMk (Φ.symm.contMDiff.comp contMDiff_snd)))
+
+section SmoothForm
+
+variable {E H M G : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
+  [BoundarylessManifold I M] {EG HG : Type*} [NormedAddCommGroup EG] [NormedSpace ℝ EG]
+  [TopologicalSpace HG] {IG : ModelWithCorners ℝ EG HG} [TopologicalSpace G] [ChartedSpace HG G]
+  [SMul G M] [ContMDiffSMul IG I ∞ G M] {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+  {k : ℕ}
+
+/-- If a smooth form `α` on `M` is invariant under every `g • ·`, then so is its pullback to the
+vector-space model copy along the inverse identity diffeomorphism. -/
+theorem mpullback_smul_mpullback_interiorDiffeomorph_symm {α : SmoothForm I M F k}
+    (hα : ∀ g : G, SmoothForm.mpullback (fun x : M ↦ g • x)
+      (ContMDiffSMul.contMDiff_const_smul (I := IG) (I' := I) g) α = α) (g : G) :
+    SmoothForm.mpullback (fun y : BoundarylessModel I M ↦ g • y)
+        (ContMDiffSMul.contMDiff_const_smul (I := IG) (I' := 𝓘(ℝ, E)) g)
+        (SmoothForm.mpullback (interiorDiffeomorph I ∞).symm
+          (interiorDiffeomorph I ∞).symm.contMDiff α) =
+      SmoothForm.mpullback (interiorDiffeomorph I ∞).symm
+        (interiorDiffeomorph I ∞).symm.contMDiff α := by
+  rw [SmoothForm.mpullback_mpullback_of_comp_eq _ _ (interiorDiffeomorph I ∞).symm.contMDiff
+    (ContMDiffSMul.contMDiff_const_smul (I := IG) (I' := I) g)
+    (interiorDiffeomorph_symm_comp_smul I ∞ g), hα g]
+
+/-- If a smooth form `β` on the vector-space model copy of `M` is invariant under every `g • ·`,
+then so is its pullback to `M` along the identity diffeomorphism. -/
+theorem mpullback_smul_mpullback_interiorDiffeomorph
+    {β : SmoothForm 𝓘(ℝ, E) (BoundarylessModel I M) F k}
+    (hβ : ∀ g : G, SmoothForm.mpullback (fun y : BoundarylessModel I M ↦ g • y)
+      (ContMDiffSMul.contMDiff_const_smul (I := IG) (I' := 𝓘(ℝ, E)) g) β = β) (g : G) :
+    SmoothForm.mpullback (fun x : M ↦ g • x)
+        (ContMDiffSMul.contMDiff_const_smul (I := IG) (I' := I) g)
+        (SmoothForm.mpullback (interiorDiffeomorph I ∞) (interiorDiffeomorph I ∞).contMDiff β) =
+      SmoothForm.mpullback (interiorDiffeomorph I ∞) (interiorDiffeomorph I ∞).contMDiff β := by
+  rw [SmoothForm.mpullback_mpullback_of_comp_eq _ _ (interiorDiffeomorph I ∞).contMDiff
+    (ContMDiffSMul.contMDiff_const_smul (I := IG) (I' := 𝓘(ℝ, E)) g)
+    (interiorDiffeomorph_comp_smul I ∞ g), hβ g]
+
+end SmoothForm
 
 end TauCeti.BoundarylessModel
 

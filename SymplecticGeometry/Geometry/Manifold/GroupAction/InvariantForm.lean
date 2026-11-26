@@ -93,10 +93,8 @@ theorem mlieDerivForm_fundamentalVectorField_eq_zero_of_boundarylessManifold {k 
   -- The form `β = (Φ⁻¹)^* α` on the copy with the vector-space atlas is invariant too.
   let β := SmoothForm.mpullback Φ.symm Φ.symm.contMDiff α
   have hβ (g : G) : SmoothForm.mpullback (fun x : BoundarylessModel I' M ↦ g • x)
-      (ContMDiffSMul.contMDiff_const_smul (I := I) (I' := 𝓘(ℝ, E')) g) β = β := by
-    rw [SmoothForm.mpullback_mpullback_of_comp_eq _ _ Φ.symm.contMDiff
-      (ContMDiffSMul.contMDiff_const_smul (I := I) (I' := I') g)
-      (BoundarylessModel.interiorDiffeomorph_symm_comp_smul I' ∞ g), hα g]
+      (ContMDiffSMul.contMDiff_const_smul (I := I) (I' := 𝓘(ℝ, E')) g) β = β :=
+    BoundarylessModel.mpullback_smul_mpullback_interiorDiffeomorph_symm (IG := I) hα g
   have hαβ : α = SmoothForm.mpullback Φ Φ.contMDiff β :=
     (SmoothForm.mpullback_mpullback_symm Φ α).symm
   rw [hαβ, SmoothForm.coe_mpullback, ← mpullback_mlieDerivForm_of_related

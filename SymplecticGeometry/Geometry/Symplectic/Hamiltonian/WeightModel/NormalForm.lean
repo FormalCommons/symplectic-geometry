@@ -369,10 +369,8 @@ theorem exists_weightChart_fundamentalVectorField [BoundarylessManifold I' M]
     (ψ.isLocalDiffeomorph.isSymplectic_mpullback_iff ψ.surjective).2 hσ
   have hG' (g : G) : SmoothForm.mpullback (fun y : N ↦ g • y)
       (ContMDiffSMul.contMDiff_const_smul (I := I) g) (SmoothForm.mpullback ψ ψ.contMDiff σ) =
-        SmoothForm.mpullback ψ ψ.contMDiff σ := by
-    rw [SmoothForm.mpullback_mpullback_of_comp_eq _ _ ψ.contMDiff
-      (ContMDiffSMul.contMDiff_const_smul (I := I) g)
-      (BoundarylessModel.interiorDiffeomorph_symm_comp_smul I' ∞ g), hG g]
+        SmoothForm.mpullback ψ ψ.contMDiff σ :=
+    BoundarylessModel.mpullback_smul_mpullback_interiorDiffeomorph_symm (IG := I) hG g
   have hp' (g : G) : g • ψ.symm p = ψ.symm p := by
     rw [← ψ.symm_apply_apply (g • ψ.symm p), hψ, Diffeomorph.apply_symm_apply, hp]
   obtain ⟨n, χ, α, Φ, r, h⟩ :=
