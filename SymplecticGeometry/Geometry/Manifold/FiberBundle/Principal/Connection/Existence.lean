@@ -109,13 +109,8 @@ theorem mpullback_trivialization_snd_maurerCartan_apply_rightFundamentalVectorFi
     (TauCeti.mpullback (IB.prod IG) IG e.manifoldSnd (leftMaurerCartanForm IG G).val :
         RoughForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1) x
       ![rightFundamentalVectorField (IB.prod IG) ξ x] = ξ := by
-  have hvec : (fun i ↦ mfderiv (IB.prod IG) IG e.manifoldSnd x
-      (![rightFundamentalVectorField (IB.prod IG) ξ x] i)) =
-      ![mulInvariantVectorField ξ (e.manifoldSnd x)] := by
-    funext i
-    fin_cases i
-    exact e.mfderiv_snd_rightFundamentalVectorField hx (hθ _ hx) ξ
-  rw [mpullback_apply, hvec, leftMaurerCartanForm_apply_mulInvariantVectorField]
+  rw [mpullback_apply_one, e.mfderiv_snd_rightFundamentalVectorField hx (hθ _ hx) ξ,
+    leftMaurerCartanForm_apply_mulInvariantVectorField]
 
 end Local
 

@@ -154,9 +154,7 @@ theorem mextDerivₗ_homotopyOperator_mpullback_add_homotopyOperator_mpullback_m
   have h := mextDeriv_homotopyOperator_mpullback_add_homotopyOperator_mpullback_mextDeriv
     (hΦ.of_le (by simp)) (z.isSmoothForm.of_le (by simp))
   rw [hid, hg', TauCeti.mpullback_id] at h
-  refine Subtype.ext ?_
-  rw [Submodule.coe_add, mextDerivₗ_apply, coe_homotopyOperator, coe_homotopyOperator,
-    coe_mpullback, coe_mpullback, mextDerivₗ_apply, h, Submodule.coe_sub, coe_mpullback]
+  exact Subtype.ext (by simpa using h)
 
 /-- **The homotopy formula for a homotopy to the identity.** Let `Φ : M × [0, 1] → M` be a smooth
 homotopy from a smooth map `g`, `Φ (x, 0) = g x`, to the identity, `Φ (x, 1) = x`. For a closed
