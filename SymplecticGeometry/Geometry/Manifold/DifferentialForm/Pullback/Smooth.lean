@@ -77,6 +77,8 @@ normed spaces with their own models, `𝓘(ℝ, E₁ × E₂)` is not syntactica
 * `TauCeti.isSmoothForm_fun_smul_mpullback`: a smooth function times the pullback of a smooth form
   along a map that is smooth on an open set containing the function's support is a smooth form.
 * `TauCeti.mpullback_neg`: the pullback of `-φ` is minus the pullback of `φ`.
+* `TauCeti.SmoothForm.mpullback_eq_iff`: an equation `f^* φ = ψ` of smooth forms is the same
+  equation of their underlying rough forms.
 * `TauCeti.SmoothForm.diffeomorphStabilizer_neg`: a diffeomorphism preserves `-σ` exactly when
   it preserves `σ`.
 * `TauCeti.mpullback_apply_sub_eq_of_eq_add_mextDeriv`: if `α = β + dg` at `x` and at `f x`,
@@ -215,6 +217,13 @@ theorem mpullback_comp_prodMk_apply_modelSpace {E₁ E₂ : Type*} [NormedAddCom
 namespace SmoothForm
 
 variable [IsManifold I 1 M] [IsManifold I' 1 M']
+
+/-- The smooth pullback of `φ` along `f` is the smooth form `ψ` exactly when the rough pullback
+of the rough form underlying `φ` is the rough form underlying `ψ`. -/
+theorem mpullback_eq_iff {f : M → M'} (hf : ContMDiff I I' ∞ f) {φ : SmoothForm I' M' F k}
+    {ψ : SmoothForm I M F k} :
+    mpullback f hf φ = ψ ↔ TauCeti.mpullback (F := F) I I' f φ.val = ψ.val := by
+  rw [← coe_mpullback _ hf, Subtype.ext_iff]
 
 /-- A diffeomorphism preserves `-σ` exactly when it preserves `σ`. -/
 @[simp]

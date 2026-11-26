@@ -289,8 +289,7 @@ theorem isCompleteVectorField_dCLiouvilleField_exp_comp [T2Space M] {φ : M → 
     {ψ : C^∞⟮𝓘(ℝ, E), M; ℝ⟯} (hφ : IsSteinFunction E φ) (hψ : ⇑ψ = Real.exp ∘ φ) :
     IsCompleteVectorField (dCLiouvilleField ψ) := by
   have hω := (isKahler_mextDerivₗ_covectorComplexStructure fun y ↦
-    hψ ▸ (hφ.isStrictlyPlurisubharmonic y).exp_comp
-      (hφ.contMDiff.contMDiffAt.of_le (by simp))).isSymplectic.isNondegenerate
+    hψ ▸ hφ.exp_comp.isStrictlyPlurisubharmonic y).isSymplectic.isNondegenerate
   refine isCompleteVectorField_of_isProperMap_of_abs_mvfderiv_le
     ((contMDiff_dCLiouvilleField ψ hω).of_le (by simp)) hφ.isProperMap
     (hφ.contMDiff.mdifferentiable (by simp)) (C := 1) fun x ↦ ?_
@@ -309,7 +308,7 @@ theorem IsSteinFunction.exists_comp_isCompleteVectorField [T2Space M] {φ : M �
       ∃ ψ : C^∞⟮𝓘(ℝ, E), M; ℝ⟯, ⇑ψ = h ∘ φ ∧ IsCompleteVectorField (dCLiouvilleField ψ) :=
   ⟨Real.exp, Real.contDiff_exp,
     fun t ↦ by simp [Real.exp_pos], fun t ↦ by simp [(Real.exp_pos t).le],
-    ⟨Real.exp ∘ φ, Real.contDiff_exp.contMDiff.comp hφ.contMDiff⟩, rfl,
+    ⟨Real.exp ∘ φ, hφ.exp_comp.contMDiff⟩, rfl,
     isCompleteVectorField_dCLiouvilleField_exp_comp hφ rfl⟩
 
 /-! ### The Weinstein structure of a Stein function -/
@@ -344,8 +343,7 @@ theorem IsSteinFunction.isWeinsteinStructure_comp [T2Space M] {φ : M → ℝ}
       IsWeinsteinStructure (mextDerivₗ 𝓘(ℝ, E) 1
         ((ofComplexManifold E M).covectorComplexStructure
           (mextDerivₗ 𝓘(ℝ, E) 0 (SmoothForm.ofFunction ψ)))) (dCLiouvilleField ψ) ψ := by
-  have hS : IsSteinFunction E ψ := hψ ▸ hφ.comp Real.contDiff_exp
-    (fun t ↦ by simp [Real.exp_pos]) fun t ↦ by simp [(Real.exp_pos t).le]
+  have hS : IsSteinFunction E ψ := hψ ▸ hφ.exp_comp
   exact ⟨hS, hS.isWeinsteinStructure
     (hψ ▸ hm.comp Real.contDiff_exp fun x ↦ by simp [Real.exp_pos])
     (isCompleteVectorField_dCLiouvilleField_exp_comp hφ hψ)⟩
@@ -366,7 +364,7 @@ theorem IsSteinFunction.exists_isWeinsteinStructure [T2Space M] {φ : M → ℝ}
           ((ofComplexManifold E M).covectorComplexStructure
             (mextDerivₗ 𝓘(ℝ, E) 0 (SmoothForm.ofFunction ψ)))) (dCLiouvilleField ψ) ψ := by
   obtain ⟨φ', hm, hS, hi, hd⟩ := hφ.exists_isMorse
-  let ψ : C^∞⟮𝓘(ℝ, E), M; ℝ⟯ := ⟨Real.exp ∘ φ', Real.contDiff_exp.contMDiff.comp φ'.contMDiff⟩
+  let ψ : C^∞⟮𝓘(ℝ, E), M; ℝ⟯ := ⟨Real.exp ∘ φ', hS.exp_comp.contMDiff⟩
   have hψ : ⇑ψ = Real.exp ∘ φ' := rfl
   obtain ⟨hSψ, hW⟩ := hS.isWeinsteinStructure_comp hm.isGeneralizedMorse hψ
   refine ⟨φ', hm, hS, hi, hd, ψ, hψ, ?_, hSψ, hW⟩

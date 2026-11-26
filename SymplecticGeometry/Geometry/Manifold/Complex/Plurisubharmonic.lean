@@ -40,6 +40,7 @@ plurisubharmonic at every point. Its form `ω_f` is a Kähler form for `J`, and 
   plurisubharmonic everywhere.
 * `SymplecticGeometry.IsSteinFunction.comp`: `h ∘ φ` is a Stein function for a smooth
   `h : ℝ → ℝ` with `h' > 0` and `h'' ≥ 0`.
+* `SymplecticGeometry.IsSteinFunction.exp_comp`: `exp ∘ φ` is a Stein function when `φ` is.
 * `SymplecticGeometry.IsSteinFunction.exists_isMorse`: a Stein function on a Hausdorff manifold
   is `C⁰`-close to a Stein Morse function, by Tau Ceti's
   `exists_isMorse_isProperMap_bddBelow_isManifoldStrictlyPlurisubharmonicAt`.
@@ -181,6 +182,12 @@ theorem comp (hφ : IsSteinFunction E φ) {h : ℝ → ℝ} (hh : ContDiff ℝ �
   isStrictlyPlurisubharmonic x :=
     (hφ.isStrictlyPlurisubharmonic x).scalar_comp (hh.contDiffAt.of_le (by simp))
       (hφ.contMDiff.contMDiffAt.of_le (by simp)) (hh₁ _) (hh₂ _)
+
+omit [IsManifold 𝓘(ℂ, E) ∞ M] in
+/-- If `φ` is a Stein function, so is `exp ∘ φ`. -/
+theorem exp_comp (hφ : IsSteinFunction E φ) : IsSteinFunction E (Real.exp ∘ φ) :=
+  hφ.comp Real.contDiff_exp (fun t ↦ by simp [Real.exp_pos]) fun t ↦ by
+    simp [(Real.exp_pos t).le]
 
 /-- **Morse perturbation of a Stein function.** On a Hausdorff complex manifold, every Stein
 function `φ` is within `C⁰` distance `1` of a Stein Morse function whose critical points have
