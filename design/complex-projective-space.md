@@ -297,7 +297,7 @@ real `0`-form, complexified by `SmoothForm.mapCoeff Complex.ofRealCLM`):
   `delBar_apply_apply`, with no hypothesis on `J`.
 - `del_delBar_mapCoeff_ofReal_of_nijenhuis_eq_zero (hJ : J.nijenhuis = 0)`:
   `(Complex.I / 2) • J.del (J.delBar f)` is the complexification of
-  `(4 : ℝ)⁻¹ • d (J.covectorComplexStructure (d f))`; through
+  `J.potentialForm f = (4 : ℝ)⁻¹ • d (J.covectorComplexStructure (d f))`; through
   `mextDerivₗ_eq_del_add_delBar_of_nijenhuis_eq_zero` and
   `mextDerivₗ_dC_of_mextDerivₗ_eq_del_add_delBar`.
 
@@ -491,7 +491,8 @@ Mathlib's `LinearAlgebra/Matrix/ToLin.lean`, where `Matrix.toLin'` lives.
   `nijenhuis_ofComplexManifold` (part 3, first two sentences).
 - `mpullback_affineChart_symm_fubiniStudyForm (j : Fin (n + 1))`: along the
   inverse affine chart $w\mapsto[\texttt{Fin.insertNth } j\ 1\ w]$, the
-  pull-back is `(4 : ℝ)⁻¹ • d (J.covectorComplexStructure (d f_j))` with
+  pull-back is `J.potentialForm f_j`, that is,
+  `(4 : ℝ)⁻¹ • d (J.covectorComplexStructure (d f_j))`, with
   $f_j(w)=\log(1+\sum_k\lVert w_k\rVert^2)$ (`fubiniStudyAffinePotential n`,
   the same for every $j$), which is
   $\log(\lvert z\rvert^2/\lvert z_j\rvert^2)$ in homogeneous coordinates;
