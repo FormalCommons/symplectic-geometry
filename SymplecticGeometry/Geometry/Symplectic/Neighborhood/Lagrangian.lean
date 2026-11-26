@@ -111,10 +111,11 @@ theorem IsLagrangianMap.exists_symplectomorphism_cotangent {σ : SmoothTwoForm I
   have := f.isEmbedding.isInducing.secondCountableTopology
   rcases isEmpty_or_nonempty L with hL | ⟨⟨q₀⟩⟩
   · exact ⟨⊥, ⊥, Diffeomorph.ofIsEmpty, fun q ↦ (hL.false q).elim, Subsingleton.elim _ _⟩
+  have hn : (1 : WithTop ℕ∞) ≤ ∞ := by simp
   have hcoe := SymplecticGeometry.Bundle.coe_zeroSectionEmbedding J (EL →L[ℝ] ℝ)
-    (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ)
+    (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ) hn
   generalize SymplecticGeometry.Bundle.zeroSectionEmbedding J (EL →L[ℝ] ℝ)
-    (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ) = f₀ at hcoe
+    (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ) hn = f₀ at hcoe
   have hω₀ := CotangentBundle.isSymplectic_symplecticForm (I := J) (M := L)
   have hf₀ : hω₀.isNondegenerate.IsLagrangianMap J f₀ := by
     rw [hcoe]
