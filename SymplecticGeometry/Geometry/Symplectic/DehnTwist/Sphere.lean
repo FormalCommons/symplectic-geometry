@@ -28,6 +28,7 @@ import TauCeti.Geometry.Manifold.Diffeomorph.Extend
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Lift
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
+import TauCeti.Geometry.Manifold.DifferentialForm.Opens
 
 /-!
 # The Dehn twist along a Lagrangian sphere
@@ -98,6 +99,9 @@ boundary such a `ι` exists, by the Lagrangian neighbourhood theorem for the for
   diffeotopy `Φ` of `Sⁿ`, there is an embedding `ι'` of the same kind for `f ∘ Φ₁` whose twists
   differ from the twist of `ι` by the final map of a compactly supported diffeotopy of `M` that
   preserves `σ` at all times.
+* `SymplecticGeometry.exists_mpullback_dehnTwist_sub_eq`: if `ι` is a Weinstein chart of `f` for
+  `σ = dθ` and `f^*θ` is exact, then `Φ^*θ - θ = dK` for the twist `Φ` and a smooth `K` that
+  vanishes off `ι '' {z | μ z ≤ r₀}`.
 
 ## Implementation notes
 
@@ -154,6 +158,22 @@ That slice is the new embedding `ι'`; to compare twists, the profile of `ι` is
 one that fits the domain of `ι'`, and the twist for that profile is then moved along the
 isotopy (`exists_diffeotopy_dehnTwist_eq_of_diffeotopy`).
 
+For exactness, pick `r₁ > r₀` with `{z | μ z ≤ r₁} ⊆ U` (`exists_gt_setOf_cotangentNorm_le_subset`)
+and let `W = {z | μ z < r₁}`. It contains the zero section, its closure lies in `U`, and it is
+mapped into itself by the fibre scalings and by `τ_R`, which preserves `μ`. The one-form
+`ι^*θ - λ` lives only on `U`, where `ι` is defined; it is closed and restricts to `f^*θ` on
+the zero section, so `CotangentBundle.IsWeinsteinChart.exists_contMDiff_mextDeriv_ofFunction_eq`
+gives a smooth `g` on `T*Sⁿ` with `dg = ι^*θ - λ` on `W`; it needs the closure of `W` in `U` to
+cut the form off. With `mpullback_modelTwist_liouvilleForm_apply` and
+`TauCeti.mpullback_apply_sub_eq_of_eq_add_mextDeriv`, on `W` the form
+`τ_R^*(ι^*θ) - ι^*θ` is `d(K_R + (g ∘ τ_R - g))`, `K_R = twistPrimitive R`, and this function
+vanishes where `μ ≥ r₀`. Reading `ι` as a partial diffeomorphism of `T*Sⁿ` into `M`
+(`PartialDiffeomorph.liftOpens`), with source `U` and the values of `ι` there
+(`Diffeomorph.toPartialDiffeomorph_liftOpens_source`,
+`Diffeomorph.toPartialDiffeomorph_liftOpens_apply_coe`),
+`TauCeti.SmoothForm.exists_mpullback_sub_eq_mextDerivₗ_of_partialDiffeomorph` carries the identity
+to `M`.
+
 ## References
 
 * [P. Seidel, *A long exact sequence for symplectic Floer cohomology*][Seidel2003], the paragraph
@@ -174,7 +194,7 @@ noncomputable section
 namespace SymplecticGeometry
 
 open _root_.Bundle Metric Set TauCeti TopologicalSpace
-open scoped Manifold ContDiff
+open scoped Manifold ContDiff Topology
 
 variable {n : ℕ}
 
@@ -725,6 +745,93 @@ theorem exists_diffeotopy_dehnTwist_eq_of_diffeotopy [IsManifold I ∞ M] [I.Bou
     exists_diffeotopy_dehnTwist_eq_of_smoothIsotopy ι ι' hW le_rfl (fun z ↦ by simp)
       (fun z ↦ by simp) G hGd hGσ hR' hU'
   simpa only [mul_assoc, inv_mul_cancel_left] using mul_mem hB hA
+
+/-- **The twist along an exact Lagrangian sphere is exact.** Let `ι` be a Weinstein chart of
+`f : Sⁿ → M` for `σ`, and let `θ` be a one-form on `M` with `dθ = σ` such that `f^*θ = dh` for a
+smooth function `h` on `Sⁿ`. Then the Dehn twist `Φ` of `ι` and a profile `R` of radius `r₀`
+satisfies `Φ^*θ - θ = dK` for a smooth function `K` on `M` that vanishes off
+`ι '' {z | μ z ≤ r₀}`. -/
+theorem exists_mpullback_dehnTwist_sub_eq [IsManifold I ∞ M] {σ : SmoothTwoForm I M}
+    {f : (𝕊 n) → M} {ι : U ≃ₘ⟮𝓣 n, I⟯ V} (hι : CotangentBundle.IsWeinsteinChart σ f ι)
+    (hR : IsTwistProfile R r₀) (hU : {z : 𝕋 n | cotangentNorm z ≤ r₀} ⊆ (U : Set (𝕋 n)))
+    (θ : SmoothForm I M ℝ 1) (hθ : mextDerivₗ I 1 θ = σ)
+    (hθL : ∃ h : C^∞⟮𝓡 n, 𝕊 n; ℝ⟯, SmoothForm.mpullback f hι.contMDiff θ =
+      mextDerivₗ (𝓡 n) 0 (SmoothForm.ofFunction h)) :
+    ∃ K : C^∞⟮I, M; ℝ⟯,
+      (∀ x ∉ (fun z : U ↦ (ι z : M)) '' {z | cotangentNorm (z : 𝕋 n) ≤ r₀}, K x = 0) ∧
+      SmoothForm.mpullback (dehnTwist ι hR hU) (dehnTwist ι hR hU).contMDiff θ - θ =
+        mextDerivₗ I 0 (SmoothForm.ofFunction K) := by
+  obtain ⟨h, hh⟩ := hθL
+  have hθh : TauCeti.mpullback (𝓡 n) I f θ.val = mextDeriv (RoughForm.ofFunction (𝓡 n) h) := by
+    simpa using congrArg Subtype.val hh
+  -- Step 1: a primitive `g` of `ι^*θ - λ` on `W = {μ < r₁}`, for some `r₁ > r₀`.
+  obtain ⟨r₁, hr₁, hr₁U⟩ := exists_gt_setOf_cotangentNorm_le_subset (U.isOpen.mem_nhdsSet.2 hU)
+  set W : Set (𝕋 n) := {z | cotangentNorm z < r₁} with hW
+  have hWo : IsOpen W := isOpen_lt continuous_cotangentNorm continuous_const
+  have hWU : closure W ⊆ U :=
+    (closure_lt_subset_le continuous_cotangentNorm continuous_const).trans hr₁U
+  obtain ⟨g, hg, hdg⟩ := hι.exists_contMDiff_mextDeriv_ofFunction_eq hθ h.contMDiff hθh
+    (fun z hz t ↦ vectorBundleFiberScaling_mem_setOf_cotangentNorm_lt hz t) hWU
+    fun q ↦ by
+      rw [mem_ofPred_eq, cotangentNorm_zeroSection]
+      exact hR.pos.trans hr₁
+  -- The chart `ι`, read as a partial diffeomorphism `e` of the ambient manifolds.
+  have hUne : Nonempty U :=
+    ⟨⟨_, hι.zeroSection_mem ⟨EuclideanSpace.single 0 1, by simp⟩⟩⟩
+  set e := ι.toPartialDiffeomorph.liftOpens hUne (hUne.map ι)
+  have hes : (U : Set (𝕋 n)) ⊆ e.source :=
+    (ι.toPartialDiffeomorph_liftOpens_source hUne (hUne.map ι)).symm.subset
+  have himage := ι.toPartialDiffeomorph.image_liftOpens hUne (hUne.map ι) hU
+  rw [Set.preimage_ofPred_eq] at himage
+  simp only [Diffeomorph.coe_toPartialDiffeomorph] at himage
+  -- `e^*θ` is `λ + dg` on `W`.
+  have hα (z : 𝕋 n) (hz : z ∈ W) : TauCeti.mpullback (𝓣 n) I e θ.val z =
+      (CotangentBundle.liouvilleForm (𝓡 n) (𝕊 n)).val z +
+        mextDeriv (RoughForm.ofFunction (𝓣 n) g) z := by
+    have h1 := mpullback_liftOpens_apply_coe ι.toPartialDiffeomorph (by simp) hUne (hUne.map ι)
+      θ.val (x := ⟨z, hWU (subset_closure hz)⟩) (by simp)
+    refine eq_add_of_sub_eq' ?_
+    rw [hdg z hz, Submodule.coe_sub, Pi.sub_apply, SmoothForm.coe_mpullback_subtype_val_apply,
+      SmoothForm.coe_mpullback, SmoothForm.coe_mpullback]
+    congr 1
+    simpa only [Diffeomorph.coe_toPartialDiffeomorph] using h1
+  -- Step 2: on `W`, `(Φ ∘ e)^*θ - e^*θ = d(K_R + (g ∘ τ - g))`, a function that vanishes where
+  -- `μ ≥ r₀`.
+  set τ := modelTwist (n := n) hR
+  set k : (𝕋 n) → ℝ := twistPrimitive R + (g ∘ τ - g) with hk_def
+  have hgd := hg.mdifferentiable (by simp)
+  have hτd := τ.contMDiff.mdifferentiable (by simp)
+  have hk : ContMDiff (𝓣 n) 𝓘(ℝ) ∞ k :=
+    (contMDiff_twistPrimitive (n := n) hR).add ((hg.comp τ.contMDiff).sub hg)
+  have hk0 (z : 𝕋 n) (hz : z ∉ {z | cotangentNorm z ≤ r₀}) : k z = 0 := by
+    have hz' : r₀ ≤ cotangentNorm z := (lt_of_not_ge hz).le
+    simp only [hk_def, τ, Pi.add_apply, Pi.sub_apply, Function.comp_apply,
+      twistPrimitive_of_le hR hz', modelTwist_apply_of_le hR hz', zero_add, sub_self]
+  have hτW (z : 𝕋 n) (hz : z ∈ W) : τ z ∈ W := by
+    rw [hW, mem_ofPred_eq, cotangentNorm_modelTwist]
+    exact hz
+  have hθk (z : 𝕋 n) (hz : z ∈ W) :
+      TauCeti.mpullback (𝓣 n) I (dehnTwist ι hR hU ∘ e) θ.val z -
+          TauCeti.mpullback (𝓣 n) I e θ.val z = mextDeriv (RoughForm.ofFunction (𝓣 n) k) z := by
+    have hzU : z ∈ U := hWU (subset_closure hz)
+    have he (w : U) : e w = ι w := ι.toPartialDiffeomorph_liftOpens_apply_coe _ _ w
+    have hloc : dehnTwist ι hR hU ∘ e =ᶠ[𝓝 z] e ∘ τ := by
+      filter_upwards [U.isOpen.mem_nhds hzU] with w hw
+      rw [Function.comp_apply, Function.comp_apply, he ⟨w, hw⟩, dehnTwist_apply_val]
+      exact (he ⟨τ w, _⟩).symm
+    rw [hloc.mpullback_eq, mpullback_comp_at (hτd z)
+        (e.mdifferentiableAt (by simp) (hes (hWU (subset_closure (hτW z hz))))),
+      mpullback_apply_sub_eq_of_eq_add_mextDeriv (hτd z) (hgd z) (hgd _) (hα z hz)
+        (hα _ (hτW z hz)),
+      mpullback_modelTwist_liouvilleForm_apply, add_sub_cancel_left, hk_def,
+      mextDeriv_ofFunction_add ((contMDiff_twistPrimitive hR).mdifferentiable (by simp))
+        ((hgd.comp hτd).sub hgd), Pi.add_apply]
+  obtain ⟨K, hK0, -, hK⟩ := SmoothForm.exists_mpullback_sub_eq_mextDerivₗ_of_partialDiffeomorph e
+    (isCompact_setOf_cotangentNorm_le r₀) hWo (fun z hz ↦ lt_of_le_of_lt hz hr₁)
+    (fun z hz ↦ hes (hWU (subset_closure hz)))
+    (fun x hx ↦ dehnTwist_apply_of_notMem ι hR hU (by rwa [← himage])) hk.contMDiffOn
+    (fun z _ hz ↦ hk0 z hz) hθk
+  exact ⟨K, fun x hx ↦ hK0 x (by rwa [himage]), hK⟩
 
 end Twist
 
