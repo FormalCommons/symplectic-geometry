@@ -14,6 +14,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Vertical
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Prod.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Semibasic
+public import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Vertical
 public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
@@ -39,8 +40,8 @@ smooth exactly when its slice section is (`SymplecticGeometry.isSmoothFamily_iff
 This makes smoothness of a family a local property in `M`, and gives the closure properties of
 smooth families: under the linear operations, multiplication by smooth functions of the parameter
 or of the point, pullback along smooth maps, the exterior derivative, cut-off and extension by
-zero from an open subset, and reparametrization; and smoothness on `U ⊔ V` is smoothness on `U`
-and on `V`.
+zero from an open subset, reparametrization, and concatenation over `[0, 1]`; and smoothness on
+`U ⊔ V` is smoothness on `U` and on `V`.
 
 Families live on `N × M`, the parameter first. A form on `M × N` is turned around by Mathlib's
 `Diffeomorph.prodComm`, and its slices are then its pullbacks along `x ↦ (x, t)`
@@ -73,7 +74,8 @@ Families live on `N × M`, the parameter first. A form on `M × N` is turned aro
   smooth family.
 * `SymplecticGeometry.isSmoothFamily_const` and the closure lemmas `IsSmoothFamily.add`, `.neg`,
   `.sub`, `.smul`, `.fun_smul`, `.funSMul`, `.sum`, `.mpullback`, `.mpullback_family`,
-  `.mextDeriv`, `.extendByZero_smul` and `.comp`.
+  `.mextDeriv`, `.extendByZero_smul`, `.comp` and `.glue_collaredHalves` (concatenation of two
+  families over `[0, 1]` that agree at the seam, by Tau Ceti's `ContMDiff.glue_collaredHalves`).
 * `SymplecticGeometry.IsSmoothFamily.of_mpullback`: a family is smooth when its pullbacks along a
   smooth map with smooth local sections over an open cover of its target form a smooth family.
 * `SymplecticGeometry.IsSmoothFamily.of_mpullback_prodMk_eq`: in particular, a family is smooth
@@ -475,6 +477,19 @@ protected theorem mextDeriv [IsManifold I 2 M] [IsManifold J 2 N] {α : N → Sm
   exact ⟨mextDerivₗ (J.prod I) k Ω, fun t ↦ by
     dsimp only
     rw [← SmoothForm.mextDerivₗ_mpullback, hΩ]⟩
+
+/-- **Concatenation of smooth families.** Two smooth families `α` and `β` over `[0, 1]` with
+`α 1 = β 0` concatenate to a smooth family, which runs through `α` reparametrized by
+`TauCeti.collaredFirstHalf` for `t ≤ 1 / 2`, and through `β` reparametrized by
+`TauCeti.collaredSecondHalf` afterwards. -/
+protected theorem glue_collaredHalves {α β : unitInterval → SmoothForm I M F k}
+    (hα : IsSmoothFamily (𝓡∂ 1) α) (hβ : IsSmoothFamily (𝓡∂ 1) β) (hαβ : α 1 = β 0) :
+    IsSmoothFamily (𝓡∂ 1) fun t : unitInterval ↦
+      if (t : ℝ) ≤ 1 / 2 then α (collaredFirstHalf le_rfl t)
+      else β (collaredSecondHalf le_rfl t) := by
+  rw [isSmoothFamily_iff_contMDiff] at hα hβ ⊢
+  refine (hα.glue_collaredHalves_left hβ (fun x ↦ by rw [hαβ]) le_rfl).congr fun p ↦ ?_
+  split_ifs <;> rfl
 
 section Maps
 

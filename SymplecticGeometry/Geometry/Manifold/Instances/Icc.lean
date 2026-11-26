@@ -8,9 +8,9 @@ module
 public import Mathlib.Geometry.Manifold.Instances.Icc
 public import Mathlib.Geometry.Manifold.VectorBundle.ContMDiffSection
 public import TauCeti.Geometry.Manifold.VectorField.Prod
+public import TauCeti.Geometry.Manifold.Instances.Icc
 import Mathlib.Analysis.Calculus.Deriv.AffineMap
 import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
-import TauCeti.Geometry.Manifold.Instances.Icc
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
 
 /-!
@@ -55,6 +55,9 @@ the inclusions into `ℝ` are affine.
 
 On the unit interval, the derivative of left multiplication `s ↦ T s` sends the unit vector at
 `t` to `T` times the unit vector at `T t` (`unitInterval.mfderiv_mul_left_one`).
+
+Tau Ceti's stationary-time gluing `ContMDiff.glue_collaredHalves`, of maps on `M × [0, 1]`, also
+holds for maps on `[0, 1] × M` (`ContMDiff.glue_collaredHalves_left`).
 -/
 
 public section
@@ -303,5 +306,32 @@ theorem mfderiv_mul_left_one (T t : unitInterval) :
     (SymplecticGeometry.mfderiv_subtypeVal_Icc_smul_one t T)
 
 end unitInterval
+
+section Glue
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+  {F G N : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [TopologicalSpace G]
+  {J : ModelWithCorners ℝ F G} [TopologicalSpace N] [ChartedSpace G N]
+
+open TauCeti in
+/-- **Stationary-time gluing, with time as the first factor.** Two `C^n` maps
+`f g : [0, 1] × M → N` with `f (1, x) = g (0, x)` glue to a `C^n` map that runs through `f`
+reparametrized by `TauCeti.collaredFirstHalf` for `t ≤ 1 / 2`, and through `g` reparametrized by
+`TauCeti.collaredSecondHalf` afterwards. This is Tau Ceti's `ContMDiff.glue_collaredHalves` with
+the two factors swapped. -/
+theorem ContMDiff.glue_collaredHalves_left {f g : unitInterval × M → N}
+    (hf : ContMDiff ((𝓡∂ 1).prod I) J n f) (hg : ContMDiff ((𝓡∂ 1).prod I) J n g)
+    (hfg : ∀ x, f (1, x) = g (0, x)) (hn : n ≤ ∞) :
+    ContMDiff ((𝓡∂ 1).prod I) J n fun q : unitInterval × M ↦
+      if (q.1 : ℝ) ≤ 1 / 2 then f (collaredFirstHalf hn q.1, q.2)
+      else g (collaredSecondHalf hn q.1, q.2) :=
+  have hswap : ContMDiff ((𝓡∂ 1).prod I) (I.prod (𝓡∂ 1)) n Prod.swap :=
+    contMDiff_snd.prodMk contMDiff_fst
+  have hswap' : ContMDiff (I.prod (𝓡∂ 1)) ((𝓡∂ 1).prod I) n Prod.swap :=
+    contMDiff_snd.prodMk contMDiff_fst
+  ((hf.comp hswap').glue_collaredHalves (hg.comp hswap') hfg hn).comp hswap
+
+end Glue
 
 end

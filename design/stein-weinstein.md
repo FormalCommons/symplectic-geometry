@@ -140,7 +140,7 @@ fit Tau Ceti's without a change of sign.
   the two halves can be forced into disjoint sets of regular values at the
   seam (#5352 gives a family on $\mathbb C^2$ with infinitely many births
   in the first half and deaths in the second). The predicate keeps its
-  barriers as an existential, and the part adds `IsRegularBarrier f c`,
+  barriers as an existential, and the part adds `IsRegularBarrier E f c`,
   the conditions that the predicate asks of `c` for the family `f`, with
   `IsWeinsteinHomotopy.exists_isRegularBarrier`. `.trans` takes, besides
   the two homotopies and their agreement at the seam, barriers `c` of the
