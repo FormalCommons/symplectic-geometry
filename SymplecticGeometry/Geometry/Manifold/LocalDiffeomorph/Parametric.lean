@@ -13,6 +13,7 @@ import SymplecticGeometry.Geometry.Manifold.ContMDiff.TimeExtension
 import SymplecticGeometry.Topology.MetricSpace.Tube
 import TauCeti.Analysis.Calculus.InverseFunctionTheorem
 import TauCeti.Analysis.Calculus.InverseFunctionTheorem.Parametric
+import TauCeti.Geometry.Manifold.ContMDiff.Prod
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
 import TauCeti.Topology.Algebra.Module.FiniteDimension
@@ -112,9 +113,9 @@ theorem exists_contMDiffOn_apply_eq_apply_zero {e : unitInterval × F → M} {U 
   have hgraph {q : ℝ × F} (hq : q ∈ univ ×ˢ B) :
       Injective (mfderiv 𝓘(ℝ, ℝ × F) 𝓘(ℝ, ℝ × E) Φ q) ↔
         Injective (mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) (fun x ↦ G (q.1, x)) q.2) := by
-    have hGd : MDifferentiableAt (𝓘(ℝ, ℝ).prod 𝓘(ℝ, F)) 𝓘(ℝ, E) G q := by
-      rw [← modelWithCornersSelf_prod, chartedSpaceSelf_prod]
-      exact ((hG.contDiffAt (hO.mem_nhds hq)).differentiableAt (by simp)).mdifferentiableAt
+    have hGd : MDifferentiableAt (𝓘(ℝ, ℝ).prod 𝓘(ℝ, F)) 𝓘(ℝ, E) G q :=
+      (contMDiffAt_prod_modelWithCornersSelf_iff.2
+        (hG.contDiffAt (hO.mem_nhds hq)).contMDiffAt).mdifferentiableAt (by simp)
     have := hGd.injective_mfderiv_fst_prod_iff
     rwa [← modelWithCornersSelf_prod, ← modelWithCornersSelf_prod, chartedSpaceSelf_prod,
       chartedSpaceSelf_prod] at this
