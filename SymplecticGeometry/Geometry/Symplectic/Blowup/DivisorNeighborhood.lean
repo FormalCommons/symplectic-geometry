@@ -5,8 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Symplectic.Blowup.Model
-public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Tautological
+public import SymplecticGeometry.Geometry.Symplectic.Blowup.ZeroSection
 public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Normal
 import SymplecticGeometry.Geometry.Symplectic.Neighborhood.CodimTwo
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
@@ -30,13 +29,6 @@ for a ball around that point, with `l` free.
 
 ## Main results
 
-* `SymplecticGeometry.hasSymplecticTangentImages_of_mpullback_eq_smul_fubiniStudyForm`:
-  a smooth map from `ℙ ℂ (Fin (n + 1) → ℂ)` pulling a nondegenerate form back to `l² ω_FS`,
-  `l ≠ 0`, has symplectic tangent images.
-* `SymplecticGeometry.BlowupModel.mpullback_zeroSectionRealEmbedding_blowupForm` and
-  `SymplecticGeometry.BlowupModel.hasSymplecticTangentImages_zeroSectionRealEmbedding`: the
-  real zero section of the model pulls `ω̃_l` back to `l² ω_FS`, so it has symplectic tangent
-  images for `ω̃_l`.
 * `SymplecticGeometry.BlowupModel.exists_symplectomorphism_blowupModel`: the neighbourhood
   theorem above, as a partial diffeomorphism from `M` to the model with target `openNbhd n ε`,
   whose source contains the image of `f`, sending `f q` to `zeroSection q` and symplectic from
@@ -48,7 +40,8 @@ The codimension-two symplectic neighbourhood theorem
 `HasSymplecticTangentImages.exists_symplectomorphism_opens_of_finrank_eq_two`
 (`Geometry/Symplectic/Neighborhood/CodimTwo.lean`), which rescales `Φ` to preserve the normal
 forms, applies to `f` and the real zero section `zeroSectionRealEmbedding n`, with the identity
-of `ℙ ℂ (Fin (n + 1) → ℂ)`: both pull their forms back to `l² ω_FS`. It gives a
+of `ℙ ℂ (Fin (n + 1) → ℂ)`: both pull their forms back to `l² ω_FS` (for the zero section by
+`mpullback_zeroSectionRealEmbedding_blowupForm`, `Blowup/ZeroSection.lean`). It gives a
 symplectomorphism between open sets `U₀ ⊆ M` and `U₁ ⊆ BlowupModel n` with `U₁` containing the
 exceptional divisor. By compactness of the divisor, `U₁` contains some `openNbhd n ε`
 (`exists_openNbhd_subset`), and the symplectomorphism is restricted to its preimage.
@@ -72,33 +65,7 @@ variable {n : ℕ} {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
   [IsManifold I ∞ M]
 
-/-- A smooth map `g` from `ℙ ℂ (Fin (n + 1) → ℂ)` pulling a nondegenerate two-form `σ` back to
-`l² ω_FS`, for `l ≠ 0`, has symplectic tangent images for `σ`. -/
-theorem hasSymplecticTangentImages_of_mpullback_eq_smul_fubiniStudyForm {σ : SmoothTwoForm I M}
-    (hσ : σ.IsNondegenerate) {g : ℙ ℂ (Fin (n + 1) → ℂ) → M}
-    (hg : ContMDiff 𝓘(ℝ, Fin n → ℂ) I ∞ g) {l : ℝ} (hl : l ≠ 0)
-    (h : SmoothForm.mpullback g hg σ = l ^ 2 • fubiniStudyForm n) :
-    hσ.HasSymplecticTangentImages 𝓘(ℝ, Fin n → ℂ) g :=
-  ((SmoothTwoForm.IsNondegenerate.isNondegenerate_mpullback_iff hg).1
-    (h ▸ (isSymplectic_fubiniStudyForm n).isNondegenerate.smul _ (pow_ne_zero 2 hl))).1
-
 namespace BlowupModel
-
-/-- The real zero section of the model blowup pulls `ω̃_l = blowupForm n l` back to `l² ω_FS`. -/
-theorem mpullback_zeroSectionRealEmbedding_blowupForm (l : ℝ) :
-    SmoothForm.mpullback (zeroSectionRealEmbedding n) (zeroSectionRealEmbedding n).contMDiff
-        (blowupForm n l) =
-      l ^ 2 • fubiniStudyForm n :=
-  (SmoothForm.mpullback_congr _ _ (coe_zeroSectionRealEmbedding n) _).trans
-    (mpullback_zeroSection_blowupForm l)
-
-/-- For `l ≠ 0`, the zero section of the model blowup has symplectic tangent images for the
-symplectic form `ω̃_l = blowupForm n l`. -/
-theorem hasSymplecticTangentImages_zeroSectionRealEmbedding {l : ℝ} (hl : l ≠ 0) :
-    (isSymplectic_blowupForm (n := n) hl).isNondegenerate.HasSymplecticTangentImages
-      𝓘(ℝ, Fin n → ℂ) (zeroSectionRealEmbedding n) :=
-  hasSymplecticTangentImages_of_mpullback_eq_smul_fubiniStudyForm _ _ hl
-    (mpullback_zeroSectionRealEmbedding_blowupForm l)
 
 variable [I.Boundaryless] [T2Space M] [SecondCountableTopology M]
   {P₀ P₁ : Type*} [NormedAddCommGroup P₀] [NormedSpace ℝ P₀] [FiniteDimensional ℝ P₀]
@@ -178,7 +145,7 @@ theorem exists_symplectomorphism_blowupModel [FiniteDimensional ℝ E] {σ : Smo
     rw [PartialDiffeomorph.restrOpen_source, PartialDiffeomorph.coe_restrOpen]
     refine ⟨⟨hsrc, hsrc, ?_⟩, hΦ₀⟩
     rw [mem_preimage, hΦ₀]
-    exact exceptionalDivisor_subset_openNbhd hε (exceptionalDivisor_eq_range ▸ ⟨q, rfl⟩)
+    exact zeroSection_mem_openNbhd hε q
   · rw [PartialDiffeomorph.restrOpen_source, PartialDiffeomorph.coe_restrOpen]
     exact (ψ.isSymplecticMapOn_toPartialDiffeomorph_liftOpens hU₀ hU₁ hψσ).mono
       inter_subset_left
