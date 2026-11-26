@@ -651,10 +651,28 @@ theorem congr_weight : (φ.congr h).toMorseBottChart.weight = φ.toMorseBottChar
 theorem congr_cubicIndex : (φ.congr h).cubicIndex = φ.cubicIndex :=
   (rfl)
 
+/-- The quadratic normal form of the Morse–Bott chart of `φ.congr h` is that of `φ`. -/
+@[simp]
+theorem congr_quadratic :
+    (φ.congr h).toMorseBottChart.quadratic = φ.toMorseBottChart.quadratic :=
+  MorseBottChart.congr_quadratic _ _
+
+/-- On the source of the chart, the quadratic part of `φ.congr h` is that of `φ`. -/
+theorem eqOn_congr_quadraticPart :
+    EqOn (φ.congr h).quadraticPart φ.quadraticPart
+      (φ.congr h).toMorseBottChart.toChart.source :=
+  congr_toChart φ h ▸ eqOn_congrQuadraticPart φ h
+
 /-- Changing the function off the source of a birth–death chart keeps its index. -/
 @[simp]
 theorem index_congr : (φ.congr h).index = φ.index := by
   rw [index_def, index_def, congr_weight]
+
+/-- Changing the function off the source of a birth–death chart keeps its normal form. -/
+@[simp]
+theorem normalForm_congr : (φ.congr h).normalForm = φ.normalForm := by
+  funext z
+  simp [normalForm]
 
 end Congr
 
