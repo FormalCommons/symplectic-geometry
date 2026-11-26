@@ -8,6 +8,7 @@ module
 public import Mathlib.MeasureTheory.Integral.CircleIntegral
 public import TauCeti.Analysis.Complex.Wirtinger.Basic
 import Mathlib.Analysis.Complex.CauchyIntegral
+import SymplecticGeometry.Analysis.Calculus.ContDiff.Pi
 import SymplecticGeometry.Analysis.Complex.Wirtinger.Pi
 import SymplecticGeometry.MeasureTheory.Constructions.UnitInterval
 import TauCeti.Analysis.Calculus.ContDiff.IsOpen
@@ -158,16 +159,6 @@ private def goodSet (i : ι) (c : ι → ℂ) (ρ : ℝ) (f : (ι → ℂ) → F
   {p | circleMap (c i) ρ p.2 - p.1 i ≠ 0} ∩
     {p | ContDiffAt ℝ 1 f (update p.1 i (circleMap (c i) ρ p.2))}
 
-private theorem contDiff_update_circleMap :
-    ContDiff ℝ 1 fun p : (ι → ℂ) × ℝ ↦ update p.1 i (circleMap (c i) ρ p.2) := by
-  refine contDiff_pi.2 fun k ↦ ?_
-  by_cases hk : k = i
-  · subst hk
-    simp only [update_self]
-    exact (contDiff_circleMap (c k) ρ).comp contDiff_snd
-  · simp only [update_of_ne hk]
-    exact (contDiff_apply ℝ (fun _ : ι ↦ ℂ) k).comp contDiff_fst
-
 private theorem isOpen_goodSet : IsOpen (goodSet i c ρ f) := by
   refine IsOpen.inter (isOpen_ne_fun ?_ continuous_const) ?_
   · exact ((continuous_circleMap _ _).comp continuous_snd).sub
@@ -185,7 +176,8 @@ private theorem contDiffOn_integrand : ContDiffOn ℝ 1 (integrand i c ρ f) (go
         ContDiff ℝ 1 fun p : (ι → ℂ) × ℝ ↦ p.1 i)).contDiffOn.inv fun p hp ↦ hp.1
   have h₃ : ContDiffOn ℝ 1 (fun p : (ι → ℂ) × ℝ ↦ f (update p.1 i (circleMap (c i) ρ p.2)))
       (goodSet i c ρ f) := fun p hp ↦
-    (hp.2.comp p contDiff_update_circleMap.contDiffAt).contDiffWithinAt
+    (hp.2.comp p (contDiff_fst.update
+      ((contDiff_circleMap (c i) ρ).comp contDiff_snd)).contDiffAt).contDiffWithinAt
   exact h₁.contDiffOn.smul (h₂.smul h₃)
 
 
