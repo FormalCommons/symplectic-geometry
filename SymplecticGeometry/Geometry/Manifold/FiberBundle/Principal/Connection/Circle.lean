@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.CircleConnection
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Curvature
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.GaugeCurvature
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.MapCoeff
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Existence
 import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
@@ -102,7 +103,8 @@ theorem IsCircleConnectionForm.gaugeCurvature_mapCoeff [IB.Boundaryless]
       SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ circleLieGenerator)
         (SmoothForm.mpullback (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1))
           (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)).contMDiff hα.curvature) := by
-  rw [gaugeCurvature_mapCoeff_toSpanSingleton, hα.mpullback_curvature]
+  rw [gaugeCurvature_mapCoeff_toSpanSingleton _ ((lieL_apply _ _).trans (lie_self _)),
+    hα.mpullback_curvature]
 
 /-! ### Existence -/
 

@@ -158,7 +158,7 @@ diffeomorphism $\Phi$ above).
 | `Geometry/Lie/MaurerCartan.lean` | the left Maurer–Cartan form of a Lie group as a smooth $\mathfrak g$-valued one-form |
 | `Geometry/Manifold/FiberBundle/Principal/Connection/Basic.lean` | `IsConnectionForm`, `IsTensorialForm`, horizontal spaces, the affine structure |
 | `Geometry/Manifold/FiberBundle/Principal/Connection/Existence.lean` | existence over a paracompact base |
-| `Geometry/Manifold/FiberBundle/Principal/Connection/Curvature.lean` | the properties of `gaugeCurvature (lieL ℝ 𝔤 𝔤)` |
+| `Geometry/Manifold/FiberBundle/Principal/Connection/Curvature.lean` | the properties of the curvature of a connection form |
 | `Geometry/Manifold/FiberBundle/Associated/PullbackPrincipal.lean` | $P\times F$ as the pull-back of $P$ to $P\times_GF$; descent along $q$ |
 | `Geometry/Manifold/FiberBundle/Associated/Connection.lean` | the connection induced on $P\times_GF$ |
 | `Geometry/Symplectic/Fibration/Associated.lean` | Weinstein's form and the milestone |
@@ -252,7 +252,8 @@ This file names it as a form.
   formula with $A(\xi^\sharp)=\xi$ constant gives
   $\iota_{\xi^\sharp}dA=-[\xi,A]$, which the bracket term cancels.
   Together with equivariance, `IsConnectionForm.isTensorialForm_gaugeCurvature`.
-- `gaugeCurvature_apply_horizontal`: for vector
+- `TauCeti.gaugeCurvature_apply_horizontal`, stated for any skew bracket in
+  `Geometry/Manifold/DifferentialForm/GaugeCurvature.lean`: for vector
   fields $X,Y$ horizontal near $x$,
   $F_A(X,Y)(x)=-A_x([X,Y](x))$ with `VectorField.mlieBracket`, from
   `SmoothForm.mextDeriv_apply_one`.

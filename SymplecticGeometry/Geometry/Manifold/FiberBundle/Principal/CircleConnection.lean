@@ -13,6 +13,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Submersion
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal.FundamentalVectorField
 public import TauCeti.Geometry.Manifold.FiberBundle.Submersion
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.GaugeCurvature
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.MapCoeff
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Curvature
@@ -80,7 +81,7 @@ connection form is `θ^* dθ + π^* (σ^* α)`. The existence of connection form
 That `d α` vanishes on vertical vectors is the case `G = Circle` of
 `SymplecticGeometry.IsConnectionForm.isSemibasic_gaugeCurvature`, applied to
 `α ξ₀` through `SymplecticGeometry.isConnectionForm_mapCoeff_iff` and
-`SymplecticGeometry.gaugeCurvature_mapCoeff_toSpanSingleton`.
+`TauCeti.gaugeCurvature_mapCoeff_toSpanSingleton`.
 
 The two local lemmas over a trivialization are short rewrites with
 `Bundle.Trivialization.mpullback_op_smul_mpullback_snd` and
@@ -206,7 +207,8 @@ theorem IsCircleConnectionForm.isBasic_mextDerivₗ (hα : IsCircleConnectionFor
     (SmoothForm.isSemibasic_iff.mpr fun x v j hv ↦ by
       have h := SmoothForm.isSemibasic_iff.mp
         (isConnectionForm_mapCoeff_iff.mpr hα).isSemibasic_gaugeCurvature x v j hv
-      rw [gaugeCurvature_mapCoeff_toSpanSingleton, SmoothForm.coe_mapCoeff,
+      rw [gaugeCurvature_mapCoeff_toSpanSingleton _ ((lieL_apply _ _).trans (lie_self _)),
+        SmoothForm.coe_mapCoeff,
         RoughForm.mapCoeff_apply, ContinuousLinearMap.toSpanSingleton_apply, smul_eq_zero] at h
       exact h.resolve_right circleLieGenerator_ne_zero)
 

@@ -8,11 +8,11 @@ module
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Basic
 public import TauCeti.Geometry.Lie.Adjoint.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.MapCoeff
-public import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 public import TauCeti.Geometry.Manifold.DifferentialForm.VectorField
 public import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 public import TauCeti.Topology.Algebra.Lie.Bracket
 public import TauCeti.Geometry.Manifold.DifferentialForm.GaugeCurvature
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.GaugeCurvature
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.BasicForm
 import SymplecticGeometry.LinearAlgebra.Alternating.Conormal
 
@@ -24,18 +24,13 @@ For a Lie group `G`, write `𝔤 = GroupLieAlgebra IG G`. The **curvature** of a
 `F_A = d A + ½ [A ∧ A]`, where `[A ∧ A]` is the wedge of `A` with itself paired by the bracket
 of `𝔤` (`TauCeti.lieL`). This is Tau Ceti's `TauCeti.gaugeCurvature` for the bracket
 `lieL ℝ 𝔤 𝔤`, and on a pair of tangent vectors it is `F_A(v, w) = d A(v, w) + [A v, A w]`
-(`TauCeti.gaugeCurvature_val`). The definition needs no principal bundle; on the total space of a
-principal bundle, `A` is usually a connection form. This file proves the properties of this
-curvature that involve the Lie group `G` or a principal bundle.
+(`TauCeti.gaugeCurvature_val`). The definition needs no principal bundle, and its naturality
+and the structure equation hold for any bracket
+(`SymplecticGeometry/Geometry/Manifold/DifferentialForm/GaugeCurvature.lean`). This file proves
+the properties of the curvature of a connection form on the total space of a principal bundle.
 
 ## Main results
 
-* `SymplecticGeometry.mpullback_gaugeCurvature`: the curvature commutes with pull-back by
-  smooth maps.
-* `SymplecticGeometry.gaugeCurvature_mapCoeff`: the curvature commutes with linear maps of
-  `𝔤` that preserve the bracket.
-* `SymplecticGeometry.gaugeCurvature_mapCoeff_toSpanSingleton`: for a real one-form `α` and
-  `ξ ∈ 𝔤`, the curvature of `α ξ` is `(d α) ξ`.
 * `SymplecticGeometry.IsConnectionForm.mpullback_op_smul_gaugeCurvature`: the curvature of a
   connection form is equivariant, `R_g^* F_A = Ad(g⁻¹) ∘ F_A`.
 * `SymplecticGeometry.IsConnectionForm.isSemibasic_gaugeCurvature`,
@@ -45,12 +40,6 @@ curvature that involve the Lie group `G` or a principal bundle.
   `L_{ξ^♯} A = -[ξ, A]` of `Principal/BasicForm.lean`
   (`TauCeti.PrincipalBundle.mlieDerivForm_rightFundamentalVectorField_apply_eq_neg_lie`) give
   `ι_{ξ^♯} d A = -[ξ, A]`, which the bracket term cancels.
-* `SymplecticGeometry.gaugeCurvature_apply_horizontal`: the structure equation
-  `F_A(X, Y) = -A([X, Y])` at a point near which the vector fields `X` and `Y` are horizontal,
-  that is, near which `A` vanishes on them. The bracket `[X, Y]` is the usual one, Mathlib's
-  `VectorField.mlieBracket`, as in Guillemin–Lerman–Sternberg. McDuff–Salamon's bracket of
-  vector fields is its negative, so their structure equation has no minus sign; the formula
-  `F_A = d A + ½ [A ∧ A]` is the same in both conventions.
 
 ## Implementation notes
 
@@ -62,73 +51,24 @@ statements of this file need `open scoped GroupLieAlgebra` and that instance.
 
 * [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §6.3
   (connection forms on principal bundles and their curvature).
-* [V. Guillemin, E. Lerman, S. Sternberg, *Symplectic Fibrations and Multiplicity
-  Diagrams*][GuilleminLermanSternberg1996], §1.3 (the sign of the bracket of vector fields).
 * S. Kobayashi and K. Nomizu, *Foundations of Differential Geometry*, Vol. I, Interscience, 1963,
-  Chapter II, §5 (the curvature form and the structure equation).
+  Chapter II, §5 (the curvature form).
 -/
 
 public section
 
 noncomputable section
 
-open Bundle Manifold MulOpposite TauCeti TauCeti.Lie VectorField Filter
-open scoped Manifold ContDiff GroupLieAlgebra Topology
+open Bundle Manifold MulOpposite TauCeti TauCeti.Lie VectorField
+open scoped Manifold ContDiff GroupLieAlgebra
 
 attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
 
 namespace SymplecticGeometry
 
-variable {EM HM M : Type*} [NormedAddCommGroup EM] [NormedSpace ℝ EM] [TopologicalSpace HM]
-  {IM : ModelWithCorners ℝ EM HM} [TopologicalSpace M] [ChartedSpace HM M] [IsManifold IM ∞ M]
-  {EG HG G : Type*} [NormedAddCommGroup EG] [NormedSpace ℝ EG] [FiniteDimensional ℝ EG]
+variable {EG HG G : Type*} [NormedAddCommGroup EG] [NormedSpace ℝ EG] [FiniteDimensional ℝ EG]
   [TopologicalSpace HG] {IG : ModelWithCorners ℝ EG HG} [TopologicalSpace G] [ChartedSpace HG G]
   [Group G] [LieGroup IG ∞ G]
-
-/-! ### The curvature of a Lie-algebra-valued one-form -/
-
-/-- The curvature commutes with pull-back by smooth maps: `f^* F_A = F_{f^* A}`. -/
-theorem mpullback_gaugeCurvature {EM' HM' M' : Type*} [NormedAddCommGroup EM']
-    [NormedSpace ℝ EM'] [TopologicalSpace HM'] {IM' : ModelWithCorners ℝ EM' HM'}
-    [TopologicalSpace M'] [ChartedSpace HM' M'] [IsManifold IM' ∞ M'] (f : M → M')
-    (hf : ContMDiff IM IM' ∞ f) (A : SmoothForm IM' M' (GroupLieAlgebra IG G) 1) :
-    SmoothForm.mpullback f hf
-        (gaugeCurvature (lieL ℝ (GroupLieAlgebra IG G) (GroupLieAlgebra IG G)) A) =
-      gaugeCurvature (lieL ℝ (GroupLieAlgebra IG G) (GroupLieAlgebra IG G))
-        (SmoothForm.mpullback f hf A) := by
-  rw [gaugeCurvature_def, gaugeCurvature_def, map_add, map_smul,
-    ← SmoothForm.mextDerivₗ_mpullback]
-  congr 2
-  exact SmoothForm.mpullback_wedgeWith _ f hf A A
-
-/-- The curvature commutes with every linear map `L` of the Lie algebra that preserves the
-bracket: `F_{L ∘ A} = L ∘ F_A`. -/
-theorem gaugeCurvature_mapCoeff (L : GroupLieAlgebra IG G →L[ℝ] GroupLieAlgebra IG G)
-    (hL : ∀ a b, L ⁅a, b⁆ = ⁅L a, L b⁆) (A : SmoothForm IM M (GroupLieAlgebra IG G) 1) :
-    gaugeCurvature (lieL ℝ (GroupLieAlgebra IG G) (GroupLieAlgebra IG G))
-        (SmoothForm.mapCoeff L A) =
-      SmoothForm.mapCoeff L
-        (gaugeCurvature (lieL ℝ (GroupLieAlgebra IG G) (GroupLieAlgebra IG G)) A) := by
-  rw [gaugeCurvature_def, gaugeCurvature_def, map_add, map_smul,
-    SmoothForm.mextDerivₗ_mapCoeff]
-  congr 2
-  exact (SmoothForm.mapCoeff_wedgeWith _ _ L L L (fun a b ↦ by simp [hL]) A A).symm
-
-/-- The curvature of the `𝔤`-valued form `α ξ`, for a real one-form `α` and `ξ ∈ 𝔤`, is
-`(d α) ξ`: the bracket term `½ [A ∧ A]` vanishes, since `⁅a • ξ, b • ξ⁆ = 0`. -/
-theorem gaugeCurvature_mapCoeff_toSpanSingleton (ξ : GroupLieAlgebra IG G)
-    (α : SmoothForm IM M ℝ 1) :
-    gaugeCurvature (lieL ℝ (GroupLieAlgebra IG G) (GroupLieAlgebra IG G))
-        (SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ ξ) α) =
-      SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ ξ) (mextDerivₗ IM 1 α) := by
-  have hwedge : SmoothForm.wedgeWith (lieL ℝ (GroupLieAlgebra IG G) (GroupLieAlgebra IG G))
-      (SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ ξ) α)
-      (SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ ξ) α) = 0 := by
-    rw [← SmoothForm.mapCoeff_wedgeWith (ContinuousLinearMap.mul ℝ ℝ) _ _ _ 0
-      fun a b ↦ by simp]
-    ext x v
-    simp [SmoothForm.coe_mapCoeff, RoughForm.mapCoeff_apply]
-  rw [gaugeCurvature_def, hwedge, smul_zero, add_zero, SmoothForm.mextDerivₗ_mapCoeff]
 
 /-- **The curvature of a connection form is equivariant**: its pull-back by the action of `g` is
 its image under `Ad(g⁻¹)`. -/
@@ -147,7 +87,8 @@ theorem IsConnectionForm.mpullback_op_smul_gaugeCurvature {EB HB B : Type*}
       SmoothForm.mapCoeff (adjointContinuousLinearMap g⁻¹)
         (gaugeCurvature (lieL ℝ (GroupLieAlgebra IG G) (GroupLieAlgebra IG G)) A) := by
   rw [mpullback_gaugeCurvature, hA.mpullback_op_smul,
-    gaugeCurvature_mapCoeff _ (adjointContinuousLinearMap_lie g⁻¹)]
+    gaugeCurvature_mapCoeff _ _ _ fun a b ↦ by
+      rw [lieL_apply, lieL_apply, adjointContinuousLinearMap_lie]]
 
 section Tensorial
 
@@ -198,25 +139,6 @@ theorem IsConnectionForm.isTensorialForm_gaugeCurvature (hA : IsConnectionForm A
   isSemibasic := hA.isSemibasic_gaugeCurvature
 
 end Tensorial
-
-/-- **The structure equation.** If the vector fields `X` and `Y` are differentiable at `x` and
-horizontal for `A` near `x`, that is, `A` vanishes on them near `x`, then the curvature of `A` on
-them at `x` is `-A([X, Y](x))`. Here `[X, Y]` is the usual bracket, Mathlib's `mlieBracket`, as in
-Guillemin–Lerman–Sternberg; McDuff–Salamon's bracket is its negative, so their structure equation
-has no minus sign. -/
-theorem gaugeCurvature_apply_horizontal (A : SmoothForm IM M (GroupLieAlgebra IG G) 1)
-    {X Y : (y : M) → TangentSpace IM y} {x : M}
-    (hX : MDifferentiableAt IM IM.tangent (fun y ↦ (X y : TangentBundle IM M)) x)
-    (hY : MDifferentiableAt IM IM.tangent (fun y ↦ (Y y : TangentBundle IM M)) x)
-    (hXh : ∀ᶠ y in 𝓝 x, A.val y ![X y] = 0) (hYh : ∀ᶠ y in 𝓝 x, A.val y ![Y y] = 0) :
-    (gaugeCurvature (lieL ℝ (GroupLieAlgebra IG G) (GroupLieAlgebra IG G)) A).val x ![X x, Y x] =
-      -A.val x ![mlieBracket IM X Y x] := by
-  rw [gaugeCurvature_val _ (fun a b ↦ by rw [lieL_apply, lieL_apply, lie_skew]), lieL_apply,
-    SmoothForm.mextDeriv_apply_one hX hY, hXh.self_of_nhds, hYh.self_of_nhds, lie_self, add_zero,
-    Filter.EventuallyEq.mvfderiv_eq (f := fun _ ↦ (0 : GroupLieAlgebra IG G)) hYh,
-    Filter.EventuallyEq.mvfderiv_eq (f := fun _ ↦ (0 : GroupLieAlgebra IG G)) hXh,
-    mvfderiv_const]
-  simp
 
 end SymplecticGeometry
 
