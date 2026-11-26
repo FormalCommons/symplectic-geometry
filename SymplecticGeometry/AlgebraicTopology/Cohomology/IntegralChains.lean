@@ -11,7 +11,7 @@ public import TauCeti.AlgebraicTopology.Cohomology.IntegralComparison
 public import TauCeti.AlgebraicTopology.Cohomology.IntegralCup
 public import TauCeti.AlgebraicTopology.Cohomology.Kronecker
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
-import TauCeti.Algebra.Homology.ShortComplex.PreservesHomology
+import TauCeti.Algebra.Homology.HomologicalComplex.Basic
 
 /-!
 # Cohomology over a commutative ring from integral chains
@@ -377,14 +377,10 @@ theorem map_homologyπ_singularCohomologyIntChainsIso_hom (p : ℕ) :
       HomologicalComplex.cyclesMap (X.singularCochainComplexIntChainsIso k).hom p ≫
         (X.singularCochainComplex (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ
           (ModuleCat.of ℤ k)).homologyπ p := by
-  rw [singularCohomologyIntChainsIso_hom]
-  -- The class map of the image short complex is that of the restricted cochain complex only
-  -- after unfolding, so the two squares are pasted as terms.
-  exact ((ShortComplex.map_homologyπ_comp_mapHomologyIso_inv_assoc
-    ((X.singularCochainComplex (ModuleCat.of k k) k (ModuleCat.of k k)).sc p)
-    (ModuleCat.restrictScalars.{0} (algebraMap ℤ k))) _).trans
-    (congrArg (_ ≫ ·)
-      (HomologicalComplex.homologyπ_naturality (X.singularCochainComplexIntChainsIso k).hom p))
+  rw [singularCohomologyIntChainsIso_hom,
+    ← Functor.mapHomologicalComplexCompHomologyFunctorIso_inv_app,
+    Functor.map_homologyπ_comp_mapHomologicalComplexCompHomologyFunctorIso_inv_app_assoc,
+    HomologicalComplex.homologyπ_naturality]
 
 /-- On cocycles, the comparison of cohomologies is the comparison of the underlying cochains. -/
 @[reassoc, elementwise nosimp]
@@ -397,12 +393,7 @@ theorem mapCyclesIso_inv_cyclesMap_singularCochainComplexIntChainsIso_hom_iCycle
       (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).map
           ((X.singularCochainComplex (ModuleCat.of k k) k (ModuleCat.of k k)).iCycles p) ≫
         (X.singularCochainComplexIntChainsIso k).hom.f p := by
-  rw [HomologicalComplex.cyclesMap_i]
-  -- The cycles of the restricted complex are those of the image short complex only after
-  -- unfolding, so the square is pasted as a term.
-  exact (reassoc_of% (((X.singularCochainComplex (ModuleCat.of k k) k
-    (ModuleCat.of k k)).sc p).mapCyclesIso_inv_comp_iCycles
-      (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)))) _
+  rw [HomologicalComplex.cyclesMap_i, Functor.mapCyclesIso_inv_comp_iCycles_assoc]
 
 variable {X} in
 /-- The comparison of cohomologies commutes with the maps induced by a continuous map. -/
