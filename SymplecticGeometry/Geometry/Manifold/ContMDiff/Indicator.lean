@@ -22,6 +22,10 @@ map on `M` that is `C^n` on both is `C^n`
 shared by the extensions by zero of the library. It applies to sections of a vector bundle too,
 such as differential forms, through their maps to the total space.
 
+The same cover, without a chart: a function that is `C^n` on an open set `U` and vanishes on `U`
+outside a closed subset `K` of `U` is `C^n` once extended by `0` off `U`
+(`ContMDiffOn.contMDiff_indicator`), since `U` and the complement of `K` are open and cover `M`.
+
 The extension by zero to `M` of a function on the model vector space read through an extended
 chart is Tau Ceti's `OpenPartialHomeomorph.contMDiff_indicator_comp_extend`. This file goes the
 other way:
@@ -41,6 +45,28 @@ public section
 
 open Set Topology
 open scoped Manifold
+
+section Indicator
+
+variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {E : Type*} [NormedAddCommGroup E]
+  [NormedSpace 𝕜 E] {H : Type*} [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H M] {n : WithTop ℕ∞}
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
+
+/-- A function that is `C^n` on an open set `U` and vanishes on `U` outside a closed set `K ⊆ U`,
+extended by `0` off `U`, is `C^n`. -/
+theorem ContMDiffOn.contMDiff_indicator {f : M → F} {U K : Set M}
+    (hf : ContMDiffOn I 𝓘(𝕜, F) n f U) (hU : IsOpen U) (hK : IsClosed K) (hKU : K ⊆ U)
+    (hf0 : ∀ x ∈ U, x ∉ K → f x = 0) : ContMDiff I 𝓘(𝕜, F) n (U.indicator f) :=
+  contMDiff_of_contMDiffOn_union_of_isOpen (hf.congr fun _ hx ↦ indicator_of_mem hx f)
+    (contMDiffOn_const.congr fun x hx ↦ by
+      by_cases hxU : x ∈ U
+      · rw [indicator_of_mem hxU, hf0 x hxU hx]
+      · exact indicator_of_notMem hxU f)
+    (eq_univ_of_forall fun x ↦ or_iff_not_imp_right.2 fun hx ↦ hKU (not_not.1 hx))
+    hU hK.isOpen_compl
+
+end Indicator
 
 namespace OpenPartialHomeomorph
 
