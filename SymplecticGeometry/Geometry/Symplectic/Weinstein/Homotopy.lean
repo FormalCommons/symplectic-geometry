@@ -16,7 +16,7 @@ import TauCeti.Geometry.Manifold.Instances.Icc
 A *Weinstein homotopy* on a boundaryless manifold `M` is a family `t ↦ (ω t, X t, f t)` of
 Weinstein structures (`SymplecticGeometry.IsWeinsteinStructure`) indexed by `t : unitInterval`,
 smooth in `(t, x)` on `unitInterval × M`, whose functions satisfy a condition at infinity: there
-are continuous functions `c₀ < c₁ < c₂ < ⋯` on `[0, 1]`, tending to infinity uniformly, such that
+are smooth functions `c₀ < c₁ < c₂ < ⋯` on `[0, 1]`, tending to infinity uniformly, such that
 `c k t` is a regular value of `f t` for all `k` and `t`. The condition keeps critical points of
 `f t` from escaping to infinity as `t` moves; on a compact manifold it always holds.
 
@@ -42,10 +42,10 @@ bundle along the projection `unitInterval × M → M`, in the form of the hypoth
 `SymplecticGeometry.isSmoothFamily_interiorₗ`. The functions are jointly smooth on
 `unitInterval × M`.
 
-Cieliebak and Eliashberg ask for smooth functions `c k` and for `c k t → ∞`; here the `c k` are
-only continuous, so each of their Weinstein homotopies is one here. For continuous `c k`,
-increasing in `k`, the convergence to infinity is uniform on the compact `[0, 1]` as soon as it
-holds at each point, and the predicate asks for the uniform form.
+The functions `c k` are smooth on `[0, 1]`, with the model `𝓡∂ 1`, as Cieliebak and Eliashberg
+ask, so that a statement that a Weinstein homotopy exists says as much as theirs. They ask for
+`c k t → ∞` at each `t`; for continuous `c k`, increasing in `k`, the convergence is then uniform,
+since `[0, 1]` is compact, and the predicate asks for the uniform form.
 
 For a single Weinstein structure, the regular values `c k ∈ (k, k + 1)` exist because a proper
 generalized Morse function has finitely many critical values in each compact interval
@@ -72,7 +72,7 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimension
   {M : Type*} [TopologicalSpace M] [ChartedSpace E M] [IsManifold 𝓘(ℝ, E) (⊤ : ℕ∞) M]
 
 /-- A **Weinstein homotopy** on `M` is a family `t ↦ (ω t, X t, f t)`, `t ∈ [0, 1]`, of Weinstein
-structures that depends smoothly on `(t, x) ∈ [0, 1] × M`, together with continuous functions
+structures that depends smoothly on `(t, x) ∈ [0, 1] × M`, together with smooth functions
 `c₀ < c₁ < ⋯` on `[0, 1]`, tending to infinity uniformly, with `c k t` a regular value of `f t`
 for all `k` and `t`. -/
 structure IsWeinsteinHomotopy (ω : unitInterval → SmoothTwoForm 𝓘(ℝ, E) M)
@@ -88,9 +88,10 @@ structure IsWeinsteinHomotopy (ω : unitInterval → SmoothTwoForm 𝓘(ℝ, E) 
     fun p : unitInterval × M ↦ f p.1 p.2
   /-- Each member of the family is a Weinstein structure. -/
   isWeinsteinStructure (t : unitInterval) : IsWeinsteinStructure (ω t) (X t) (f t)
-  /-- The condition at infinity: continuous functions `c k`, strictly increasing in `k` and
+  /-- The condition at infinity: smooth functions `c k`, strictly increasing in `k` and
   tending to infinity uniformly in `t`, with `c k t` a regular value of `f t`. -/
-  exists_isRegularValue : ∃ c : ℕ → unitInterval → ℝ, (∀ k, Continuous (c k)) ∧
+  exists_isRegularValue : ∃ c : ℕ → unitInterval → ℝ,
+    (∀ k, ContMDiff (𝓡∂ 1) 𝓘(ℝ) (⊤ : ℕ∞) (c k)) ∧
     (∀ t, StrictMono fun k ↦ c k t) ∧ (∀ C : ℝ, ∀ᶠ k in atTop, ∀ t, C ≤ c k t) ∧
     ∀ k t, IsRegularValue 𝓘(ℝ, E) 𝓘(ℝ) (f t) (c k t)
 
@@ -105,7 +106,7 @@ theorem isWeinsteinHomotopy_iff :
         (fun p : unitInterval × M ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle 𝓘(ℝ, E) M)) ∧
       ContMDiff ((𝓡∂ 1).prod 𝓘(ℝ, E)) 𝓘(ℝ) (⊤ : ℕ∞) (fun p : unitInterval × M ↦ f p.1 p.2) ∧
       (∀ t, IsWeinsteinStructure (ω t) (X t) (f t)) ∧
-      ∃ c : ℕ → unitInterval → ℝ, (∀ k, Continuous (c k)) ∧
+      ∃ c : ℕ → unitInterval → ℝ, (∀ k, ContMDiff (𝓡∂ 1) 𝓘(ℝ) (⊤ : ℕ∞) (c k)) ∧
         (∀ t, StrictMono fun k ↦ c k t) ∧ (∀ C : ℝ, ∀ᶠ k in atTop, ∀ t, C ≤ c k t) ∧
         ∀ k t, IsRegularValue 𝓘(ℝ, E) 𝓘(ℝ) (f t) (c k t) :=
   ⟨fun h ↦ ⟨h.isSmoothFamily, h.contMDiff_field, h.contMDiff_function, h.isWeinsteinStructure,
@@ -126,7 +127,7 @@ protected theorem refl {ω : SmoothTwoForm 𝓘(ℝ, E) M} {X : (x : M) → Tang
   choose c hc hreg using hex
   refine ⟨isSmoothFamily_const ω, hW.contMDiff_field.comp contMDiff_snd,
     hW.isGeneralizedMorse.contMDiff.comp contMDiff_snd, fun _ ↦ hW,
-    ⟨fun k _ ↦ c k, fun _ ↦ continuous_const, fun _ ↦ ?_, fun C ↦ ?_, fun k _ ↦ hreg k⟩⟩
+    ⟨fun k _ ↦ c k, fun _ ↦ contMDiff_const, fun _ ↦ ?_, fun C ↦ ?_, fun k _ ↦ hreg k⟩⟩
   · exact strictMono_nat_of_lt_succ fun k ↦ (hc k).2.trans (by simpa using (hc (k + 1)).1)
   · filter_upwards [eventually_ge_atTop ⌈C⌉₊] with k hk _
     exact (Nat.ceil_le.1 hk).trans (hc k).1.le
@@ -142,7 +143,7 @@ protected theorem comp (h : IsWeinsteinHomotopy ω X f) (φ : unitInterval → u
     (hφ.comp contMDiff_fst).prodMk contMDiff_snd
   refine ⟨h.isSmoothFamily.comp φ hφ, h.contMDiff_field.comp hσ,
     h.contMDiff_function.comp hσ, fun t ↦ h.isWeinsteinStructure _,
-    ⟨fun k t ↦ c k (φ t), fun k ↦ (hcont k).comp hφ.continuous,
+    ⟨fun k t ↦ c k (φ t), fun k ↦ (hcont k).comp hφ,
       fun t ↦ hmono _, fun C ↦ ?_, fun k t ↦ hreg k _⟩⟩
   filter_upwards [htend C] with k hk t using hk _
 
@@ -193,7 +194,7 @@ theorem of_isCompact [CompactSpace M] (hω : IsSmoothFamily (𝓡∂ 1) ω)
     have : (0 : ℝ) ≤ k := k.cast_nonneg
     dsimp only at *
     linarith
-  refine ⟨hω, hX, hf, hW, ⟨fun k _ ↦ B + k + 1, fun _ ↦ continuous_const,
+  refine ⟨hω, hX, hf, hW, ⟨fun k _ ↦ B + k + 1, fun _ ↦ contMDiff_const,
     fun _ ↦ strictMono_nat_of_lt_succ fun k ↦ by push_cast; linarith, fun C ↦ ?_,
     fun k t ↦ isRegularValue_of_notMem_range fun ⟨x, hx⟩ ↦ (hlt k t x).ne hx⟩⟩
   filter_upwards [eventually_ge_atTop ⌈C - B⌉₊] with k hk _
