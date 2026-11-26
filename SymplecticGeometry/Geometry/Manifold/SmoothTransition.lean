@@ -9,6 +9,7 @@ public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 public import Mathlib.Geometry.Manifold.Instances.Icc
 import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 public import TauCeti.Geometry.Manifold.Instances.Icc
+import TauCeti.Analysis.SpecialFunctions.SmoothTransition
 
 /-!
 # The smooth transition function as a smooth map to the unit interval
@@ -35,9 +36,7 @@ namespace unitInterval
 
 /-- The map `unitInterval.smoothTransition : ℝ → unitInterval` is surjective. -/
 theorem smoothTransition_surjective : Function.Surjective smoothTransition := fun t ↦ by
-  obtain ⟨u, -, hu⟩ := intermediate_value_Icc zero_le_one
-    Real.smoothTransition.continuous.continuousOn
-    (by simpa only [Real.smoothTransition.zero, Real.smoothTransition.one] using t.property)
+  obtain ⟨u, -, hu⟩ := Real.smoothTransition.surjOn_Icc t.property
   exact ⟨u, Subtype.ext ((coe_smoothTransition u).trans hu)⟩
 
 /-- The map `unitInterval.smoothTransition : ℝ → unitInterval` sends `(0, 1)` onto the open
