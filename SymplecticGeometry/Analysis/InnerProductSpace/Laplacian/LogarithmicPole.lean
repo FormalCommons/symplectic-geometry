@@ -223,7 +223,7 @@ section Domain
 variable {Ω : Set ℂ} {S : Finset ℂ} {h c : ℂ → ℝ} {C : ℝ}
 
 /-- Removing cut-off poles: if `χ s` is `C²` and equal to `1` near `s` for each `s ∈ S`, and `h` is
-`C²` at `z ∉ S` or has a logarithmic pole of residue `c z` at `z ∈ S`, then
+`C²` at `z ∉ S` and has a logarithmic pole with coefficient `c s` at each `s ∈ S`, then
 `h - ∑ s ∈ S, c s * χ s · log ‖· - s‖²` is `C²` at `z`. -/
 private theorem contDiffAt_sub_sum_mul_log_of_log_poles {z : ℂ} {χ : ℂ → ℂ → ℝ}
     (hχ : ∀ s ∈ S, ContDiff ℝ 2 (χ s)) (hχ₁ : ∀ s ∈ S, χ s =ᶠ[𝓝 s] 1)
