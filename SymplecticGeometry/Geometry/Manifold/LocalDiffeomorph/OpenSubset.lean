@@ -61,6 +61,8 @@ between `U` and `V`, the lift has source `U` and takes the values of `Φ` there
   diffeomorphism exactly when its composite with the inclusion of that subset is.
 * `TauCeti.isLocalDiffeomorph_inclusion`: the inclusion `U → W` of open subsets `U ≤ W` is a
   `C^n` local diffeomorphism.
+* `PartialDiffeomorph.restrOpen_target_eq_of_subset`: restricting a partial diffeomorphism to the
+  preimage of a subset of its target gives one with that subset as target.
 * `PartialDiffeomorph.exists_diffeomorph_of_subset_target`: a partial diffeomorphism restricts to
   a diffeomorphism onto any open subset of its target.
 * `PartialDiffeomorph.exists_diffeomorph_ball_prod_ball`: a partial diffeomorphism into `F₁ × F₂`
@@ -138,6 +140,16 @@ theorem mfderiv_toDiffeomorphSourceTarget_apply (Φ : PartialDiffeomorph I J M N
     mfderiv I J Φ.toDiffeomorphSourceTarget x v = mfderiv I J Φ x v :=
   TauCeti.Manifold.mfderiv_apply_of_subtype_val_comp_eq
     Φ.subtypeVal_comp_toDiffeomorphSourceTarget v
+
+/-- Restricting a partial diffeomorphism `Φ` to the open set `Φ.source ∩ Φ ⁻¹' t`, for a subset `t`
+of its target, gives a partial diffeomorphism with target `t`. -/
+theorem restrOpen_target_eq_of_subset (Φ : PartialDiffeomorph I J M N n) {t : Set N}
+    (ht : t ⊆ Φ.target) (hs : IsOpen (Φ.source ∩ Φ ⁻¹' t)) :
+    (Φ.restrOpen _ hs).target = t := by
+  ext y
+  rw [Φ.restrOpen_target]
+  exact ⟨fun hy ↦ Φ.right_inv hy.1 ▸ hy.2.2,
+    fun hy ↦ ⟨ht hy, Φ.map_target (ht hy), by simpa [Φ.right_inv (ht hy)] using hy⟩⟩
 
 /-- A partial diffeomorphism `Φ : M → N` restricts to a `C^n` diffeomorphism `Ψ` from the open set
 `U = Φ.source ∩ Φ ⁻¹' V` onto any open subset `V` of its target, with `Ψ u = Φ u` for `u ∈ U`;

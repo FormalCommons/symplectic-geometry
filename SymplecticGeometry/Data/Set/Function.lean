@@ -11,10 +11,13 @@ public import Mathlib.Order.Interval.Set.Defs
 /-!
 # Sequences of maps that agree with their successors
 
-Supplements to `Mathlib/Data/Set/Function.lean` about a sequence of maps `f : ℕ → α → β` in which
-each `f (j + 1)` agrees with `f j` on a set `S j`.
+Supplements to `Mathlib/Data/Set/Function.lean`, mostly about a sequence of maps `f : ℕ → α → β`
+in which each `f (j + 1)` agrees with `f j` on a set `S j`.
 
 ## Main results
+
+* `Set.val_comp_codRestrict`: the inclusion of `s` after the corestriction of a map to `s` is the
+  map.
 
 * `Set.eqOn_of_eqOn_succ`: if the sets `S j` increase, every later map agrees with `f j` on `S j`.
 * `Set.mapsTo_Icc_compl_of_eqOn_succ`: if `f (j + 1)` agrees with `f j` on `(-∞, T j]` and maps
@@ -25,6 +28,11 @@ each `f (j + 1)` agrees with `f j` on a set `S j`.
 public section
 
 namespace Set
+
+/-- The inclusion of `s` after the corestriction of `f` to `s` is `f`. -/
+theorem val_comp_codRestrict {α β : Type*} (f : α → β) (s : Set β) (h : ∀ x, f x ∈ s) :
+    Subtype.val ∘ codRestrict f s h = f :=
+  rfl
 
 variable {α β : Type*} {f : ℕ → α → β}
 
