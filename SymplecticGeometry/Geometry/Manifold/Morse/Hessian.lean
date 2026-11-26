@@ -5,7 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Geometry.Manifold.Algebra.Monoid
+public import Mathlib.Geometry.Manifold.Algebra.Structures
+public import Mathlib.Geometry.Manifold.PartitionOfUnity
 public import TauCeti.Geometry.Manifold.Morse.Hessian
 
 /-!
@@ -23,7 +24,16 @@ functions are `C²`: it is additive (`TauCeti.criticalHessian_add`,
 `TauCeti.criticalHessian_sum`), and at a point where `g` and its differential vanish, the
 critical Hessian of `f * g` is `f x` times that of `g`
 (`TauCeti.criticalHessian_mul_of_mem_criticalPoints`), by the Leibniz rule for the second
-derivative of the coordinate expressions.
+derivative of the coordinate expressions (Tau Ceti's `TauCeti.fderiv_fderiv_add` and
+`TauCeti.fderiv_fderiv_mul_apply`).
+
+For a smooth partition of unity `φ` subordinate to `U`, and functions `g i` that are `C²`, vanish
+and are critical at an interior point `q` whenever `q ∈ U i`, the critical Hessian of
+`∑ᶠ i, φ i • g i` at `q` is `∑ φ i q • criticalHessian I (g i) q`
+(`SmoothPartitionOfUnity.criticalHessian_finsum_smul`), so it is positive on a vector on which all
+these Hessians are (`SmoothPartitionOfUnity.criticalHessian_finsum_smul_pos`). This adapts Tau
+Ceti's first-order `SmoothPartitionOfUnity.mvfderiv_finsum_smul_pos` to second derivatives, with
+the same steps.
 
 ## References
 
@@ -57,15 +67,9 @@ of their critical Hessians. -/
 theorem criticalHessian_add (hf : ContMDiffAt I 𝓘(ℝ) 2 f x) (hg : ContMDiffAt I 𝓘(ℝ) 2 g x)
     (hx : I.IsInteriorPoint x) :
     criticalHessian I (f + g) x = criticalHessian I f x + criticalHessian I g x := by
-  have hF := hf.contDiffAt_comp_extChartAt_symm_of_isInteriorPoint hx
-  have hG := hg.contDiffAt_comp_extChartAt_symm_of_isInteriorPoint hx
-  have hsum : fderiv ℝ ((f + g) ∘ (extChartAt I x).symm) =ᶠ[𝓝 (extChartAt I x x)]
-      fderiv ℝ (f ∘ (extChartAt I x).symm) + fderiv ℝ (g ∘ (extChartAt I x).symm) := by
-    filter_upwards [hF.eventually (by simp), hG.eventually (by simp)] with p hp hq
-    exact fderiv_add (hp.differentiableAt two_ne_zero) (hq.differentiableAt two_ne_zero)
-  rw [criticalHessian_def, criticalHessian_def, criticalHessian_def, hsum.fderiv_eq]
-  exact fderiv_add ((hF.fderiv_right (m := 1) le_rfl).differentiableAt one_ne_zero)
-    ((hG.fderiv_right (m := 1) le_rfl).differentiableAt one_ne_zero)
+  rw [criticalHessian_def, criticalHessian_def, criticalHessian_def]
+  exact fderiv_fderiv_add (hf.contDiffAt_comp_extChartAt_symm_of_isInteriorPoint hx)
+    (hg.contDiffAt_comp_extChartAt_symm_of_isInteriorPoint hx)
 
 /-- At an interior point where the functions `f i`, `i ∈ s`, are `C²`, the critical Hessian of
 their sum is the sum of their critical Hessians. -/
@@ -88,29 +92,14 @@ theorem criticalHessian_mul_of_mem_criticalPoints (hf : ContMDiffAt I 𝓘(ℝ) 
     (hg : ContMDiffAt I 𝓘(ℝ) 2 g x) (hx : I.IsInteriorPoint x) (hg0 : g x = 0)
     (hgc : x ∈ criticalPoints I g) :
     criticalHessian I (f * g) x = f x • criticalHessian I g x := by
-  set F := f ∘ (extChartAt I x).symm
-  set G := g ∘ (extChartAt I x).symm
-  set p := extChartAt I x x
-  have hF : ContDiffAt ℝ 2 F p := hf.contDiffAt_comp_extChartAt_symm_of_isInteriorPoint hx
-  have hG : ContDiffAt ℝ 2 G p := hg.contDiffAt_comp_extChartAt_symm_of_isInteriorPoint hx
-  have hFp : F p = f x := by simp [F, p]
-  have hGp : G p = 0 := by simp [G, p, hg0]
-  have hdG : fderiv ℝ G p = 0 := fderiv_comp_extChartAt_symm_eq_zero_of_mem_criticalPoints hgc
-  -- The Leibniz rule for the first derivative, near `p`.
-  have hmul : fderiv ℝ ((f * g) ∘ (extChartAt I x).symm) =ᶠ[𝓝 p]
-      F • fderiv ℝ G + G • fderiv ℝ F := by
-    filter_upwards [hF.eventually (by simp), hG.eventually (by simp)] with q hq hq'
-    exact fderiv_mul (hq.differentiableAt two_ne_zero) (hq'.differentiableAt two_ne_zero)
-  -- Its derivative at `p`, where `G` and `dG` vanish.
-  have hd := ((hF.differentiableAt two_ne_zero).hasFDerivAt.smul
-      ((hG.fderiv_right (m := 1) le_rfl).differentiableAt one_ne_zero).hasFDerivAt).add
-    ((hG.differentiableAt two_ne_zero).hasFDerivAt.smul
-      ((hF.fderiv_right (m := 1) le_rfl).differentiableAt one_ne_zero).hasFDerivAt)
-  rw [criticalHessian_def, criticalHessian_def, hmul.fderiv_eq, hd.fderiv, hFp, hGp, hdG]
-  simp only [ContinuousLinearMap.smulRight_zero, ContinuousLinearMap.zero_smulRight, zero_smul,
-    add_zero]
-  -- The two sides differ only in reading `E` as the tangent space at `x`.
-  rfl
+  ext v w
+  rw [criticalHessian_apply_eq_fderiv_fderiv, Pi.mul_comp,
+    fderiv_fderiv_mul_apply (hf.contDiffAt_comp_extChartAt_symm_of_isInteriorPoint hx)
+      (hg.contDiffAt_comp_extChartAt_symm_of_isInteriorPoint hx),
+    fderiv_comp_extChartAt_symm_eq_zero_of_mem_criticalPoints hgc,
+    smul_apply, smul_apply,
+    criticalHessian_apply_eq_fderiv_fderiv]
+  simp [hg0]
 
 end Algebra
 
@@ -134,5 +123,59 @@ theorem exists_criticalHessian_pos_iff_of_mem_maximalAtlas {f : M → ℝ} {x : 
   rwa [← hD, ContinuousLinearEquiv.coe_coe, ContinuousLinearEquiv.apply_symm_apply]
 
 end TauCeti
+
+namespace SmoothPartitionOfUnity
+
+open TauCeti
+
+variable {ι E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] {s : Set M}
+  {φ : SmoothPartitionOfUnity ι I M s} {U : ι → Set M} {q : M} {g : ι → M → ℝ}
+
+/-- **The critical Hessian of a partition-of-unity sum at a common critical zero.** Let `φ` be a
+smooth partition of unity subordinate to `U`, and `q` an interior point at which, for every `i`
+with `q ∈ U i`, the function `g i` is `C²`, vanishes, and is critical. Then the critical Hessian
+of `∑ᶠ i, φ i • g i` at `q` is the sum of the `φ i q • criticalHessian I (g i) q` over the
+indices `i` with `q` in the topological support of `φ i`. -/
+theorem criticalHessian_finsum_smul (hφ : φ.IsSubordinate U) (hqI : I.IsInteriorPoint q)
+    (hg : ∀ i, q ∈ U i → ContMDiffAt I 𝓘(ℝ) 2 (g i) q) (h0 : ∀ i, q ∈ U i → g i q = 0)
+    (hc : ∀ i, q ∈ U i → q ∈ criticalPoints I (g i)) :
+    criticalHessian I (fun x ↦ ∑ᶠ i, φ i x • g i x) q =
+      ∑ i ∈ φ.fintsupport q, φ i q • criticalHessian I (g i) q := by
+  have hU {i : ι} (hi : i ∈ φ.fintsupport q) : q ∈ U i :=
+    hφ i ((φ.mem_fintsupport_iff q i).mp hi)
+  have hφ2 (i : ι) : ContMDiffAt I 𝓘(ℝ) 2 (φ i) q :=
+    ((φ i).contMDiff.of_le (by simp)).contMDiffAt
+  -- Near `q` the sum runs over the finite set of `i` with `q` in the topological support of `φ i`.
+  have heq : (fun x ↦ ∑ᶠ i, φ i x • g i x) =ᶠ[𝓝 q] ∑ i ∈ φ.fintsupport q, ⇑(φ i) * g i := by
+    filter_upwards [φ.eventually_fintsupport_subset q] with y hy
+    simp only [Finset.sum_apply, ← smul_eq_mul]
+    refine finsum_eq_sum_of_support_subset _ fun i hi ↦ hy ?_
+    exact (φ.mem_fintsupport_iff y i).mpr (subset_tsupport _ (left_ne_zero_of_smul hi))
+  rw [criticalHessian_congr_of_eventuallyEq heq,
+    criticalHessian_sum _ (fun i hi ↦ (hφ2 i).mul (hg i (hU hi))) hqI]
+  exact Finset.sum_congr rfl fun i hi ↦ criticalHessian_mul_of_mem_criticalPoints (hφ2 i)
+    (hg i (hU hi)) hqI (h0 i (hU hi)) (hc i (hU hi))
+
+/-- **The glued critical Hessian at a common critical zero.** Let `φ` be a smooth partition of
+unity on a set `s` subordinate to `U`, and `q ∈ s` an interior point at which, for every `i` with
+`q ∈ U i`, the function `g i` is `C²`, vanishes, and is critical. If the critical Hessian of every
+such `g i` at `q` is positive on `v`, then so is that of `∑ᶠ i, φ i • g i`. -/
+theorem criticalHessian_finsum_smul_pos (hφ : φ.IsSubordinate U) (hq : q ∈ s)
+    (hqI : I.IsInteriorPoint q) (hg : ∀ i, q ∈ U i → ContMDiffAt I 𝓘(ℝ) 2 (g i) q)
+    (h0 : ∀ i, q ∈ U i → g i q = 0) (hc : ∀ i, q ∈ U i → q ∈ criticalPoints I (g i))
+    {v : TangentSpace I q} (hpos : ∀ i, q ∈ U i → 0 < criticalHessian I (g i) q v v) :
+    0 < criticalHessian I (fun x ↦ ∑ᶠ i, φ i x • g i x) q v v := by
+  have hU {i : ι} (hi : i ∈ φ.fintsupport q) : q ∈ U i :=
+    hφ i ((φ.mem_fintsupport_iff q i).mp hi)
+  rw [criticalHessian_finsum_smul hφ hqI hg h0 hc]
+  simp only [FunLike.coe_sum, Finset.sum_apply, smul_apply,
+    smul_eq_mul]
+  obtain ⟨j, hj⟩ := φ.exists_pos_of_mem hq
+  have hjF : j ∈ φ.fintsupport q := (φ.mem_fintsupport_iff q j).mpr (subset_tsupport _ hj.ne')
+  exact Finset.sum_pos' (fun i hi ↦ mul_nonneg (φ.nonneg i q) (hpos i (hU hi)).le)
+    ⟨j, hjF, mul_pos hj (hpos j (hU hjF))⟩
+
+end SmoothPartitionOfUnity
 
 end

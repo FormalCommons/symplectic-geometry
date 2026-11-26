@@ -94,11 +94,12 @@ Gluing these local functions with a partition of unity gives the global statemen
   for a `C^k` totally real embedding `ι` with closed image into a Hausdorff σ-compact complex
   manifold, and `2 ≤ ℓ` with `ℓ + 1 ≤ k`, there is a nonnegative `C^ℓ` function `φ` vanishing
   exactly on the image of `ι`, with critical Hessian positive off the tangent images of `ι`, and
-  strictly plurisubharmonic on a neighbourhood of the image. It is `∑ᵢ ρᵢ φᵢ` for the squared
-  distances `φᵢ` in adapted charts covering the image and a partition of unity `ρᵢ`; at a point
-  of the image each `φᵢ` and its differential vanish, so the critical Hessian of the sum is
-  `∑ᵢ ρᵢ Hess φᵢ` (`TauCeti.criticalHessian_sum`,
-  `TauCeti.criticalHessian_mul_of_mem_criticalPoints`), and the criterion above applies.
+  strictly plurisubharmonic on a neighbourhood of the image. It is `∑ᵢ ρᵢ gᵢ` for a partition
+  of unity `ρᵢ` subordinate to the sources of adapted charts covering the image and to the
+  complement of the image, where `gᵢ` is the squared distance `φᵢ` in a chart and the constant
+  `1` on the complement. At a point of the image only the chart terms contribute, and each `φᵢ`
+  and its differential vanish there, so the critical Hessian of the sum is `∑ᵢ ρᵢ Hess φᵢ`
+  (`SmoothPartitionOfUnity.criticalHessian_finsum_smul_pos`), and the criterion above applies.
 
 ## References
 
@@ -394,10 +395,10 @@ nonnegative and vanishing exactly on the image of `ι`,
 whose critical Hessian at each point `ι y` is positive on every vector outside the tangent image
 of `ι` at `y`, and which is strictly plurisubharmonic on a neighbourhood of the image of `ι`.
 
-The function constructed is `∑ᵢ ρᵢ φᵢ`, for the squared distances `φᵢ` to the zero section in
-adapted charts that cover the image, with `φ = 1` on the complement of the image, and for a
-smooth partition of unity `ρᵢ` subordinate to these open sets. It plays the role of the squared
-distance to the image for a suitable metric. -/
+The function constructed is `∑ᵢ ρᵢ gᵢ` for a smooth partition of unity `ρᵢ` subordinate to
+the sources of adapted charts that cover the image and to the complement of the image. The term
+`gᵢ` for a chart is the squared distance to the zero section in that chart, and the term for the
+complement is the constant `1`. -/
 theorem exists_contMDiff_isManifoldStrictlyPlurisubharmonicAt_of_isClosed_range
     [T2Space M] [SigmaCompactSpace M]
     [I'.Boundaryless] [IsManifold I' k N]
@@ -442,57 +443,27 @@ theorem exists_contMDiff_isManifoldStrictlyPlurisubharmonicAt_of_isClosed_range
     cases i with
     | none => exact zero_le_one
     | some y => exact sq_nonneg _
-  -- The points of the image lie in no `tsupport ρ none`.
-  have hsome {i : Option N} {y : N} (hi : ι y ∈ tsupport (ρ i)) :
+  -- The points of the image lie in no `U none`.
+  have hsome {i : Option N} {y : N} (hi : ι y ∈ U i) :
       ∃ z, i = some z ∧ ι y ∈ (ψ z).source := by
     cases i with
-    | none => exact absurd (hρ none hi) (by simp [U])
-    | some z => exact ⟨z, rfl, hρ (some z) hi⟩
+    | none => exact absurd hi (by simp [U])
+    | some z => exact ⟨z, rfl, hi⟩
   set φ : M → ℝ := fun x ↦ ∑ᶠ i, ρ i x • g i x
   have hφ : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) ℓ φ :=
     ρ.contMDiff_finsum_smul fun i x hx ↦ hg i (hρ i hx)
   have hφ0 (x : M) : 0 ≤ φ x := finsum_nonneg fun i ↦ smul_nonneg (ρ.nonneg i x) (hg0 i x)
-  -- Near `ι y`, `φ` is the finite sum of the `ρ i • g i` over the `tsupport`s containing `ι y`.
-  have hloc (y : N) : φ =ᶠ[𝓝 (ι y)] ∑ i ∈ ρ.fintsupport (ι y), ⇑(ρ i) * g i := by
-    filter_upwards [ρ.eventually_finsupport_subset (ι y)] with x hx
-    rw [Finset.sum_apply, show φ x = ∑ᶠ i, ρ i x • g i x from rfl,
-      ← ρ.sum_finsupport_smul_eq_finsum]
-    refine Finset.sum_subset hx fun i _ hi ↦ ?_
-    rw [ρ.mem_finsupport, Function.mem_support, not_not] at hi
-    simp [hi]
+  -- At `ι y`, every local term with `ι y ∈ U i` vanishes to second order and has a Hessian
+  -- positive on `v`.
   have hHess (y : N) (v : TangentSpace 𝓘(ℝ, E) (ι y))
       (hv : v ∉ LinearMap.range (mfderiv I' 𝓘(ℝ, E) ι y).toLinearMap) :
       0 < criticalHessian 𝓘(ℝ, E) φ (ι y) v v := by
-    have hint : 𝓘(ℝ, E).IsInteriorPoint (ι y) := BoundarylessManifold.isInteriorPoint
-    have hρg (i : Option N) (hi : i ∈ ρ.fintsupport (ι y)) :
-        ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) 2 (g i) (ι y) :=
-      (hg i (hρ i ((ρ.mem_fintsupport_iff _ i).1 hi))).of_le (WithTop.coe_le_coe.2 hℓ)
-    have hρs (i : Option N) : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) 2 (ρ i) (ι y) :=
-      ((ρ i).contMDiff.of_le (by simp)).contMDiffAt
-    -- Each term is `ρ i (ι y)` times the Hessian of `g i`, which is positive on `v`.
-    have hterm (i : Option N) (hi : i ∈ ρ.fintsupport (ι y)) :
-        criticalHessian 𝓘(ℝ, E) (⇑(ρ i) * g i) (ι y) v v =
-          ρ i (ι y) * criticalHessian 𝓘(ℝ, E) (g i) (ι y) v v ∧
-        0 < criticalHessian 𝓘(ℝ, E) (g i) (ι y) v v := by
-      obtain ⟨z, rfl, hz⟩ := hsome ((ρ.mem_fintsupport_iff _ _).1 hi)
-      refine ⟨?_, (hψ z).criticalHessian_norm_sq_snd_pos h' (le_trans (by norm_num) hk) hℓ hz hv⟩
-      rw [criticalHessian_mul_of_mem_criticalPoints (hρs _) (hρg _ hi) hint
-        (((hψ z).norm_sq_snd_eq_zero_iff hz).2 (mem_range_self y))
-        ((hψ z).mem_criticalPoints_norm_sq_snd ⟨hz, mem_range_self y⟩),
-        _root_.smul_apply, _root_.smul_apply, smul_eq_mul]
-    rw [criticalHessian_congr_of_eventuallyEq (hloc y),
-      criticalHessian_sum _ (fun i hi ↦ (hρs i).mul (hρg i hi)) hint,
-      FunLike.coe_sum, Finset.sum_apply, FunLike.coe_sum,
-      Finset.sum_apply]
-    obtain ⟨i, hi⟩ : (ρ.finsupport (ι y)).Nonempty :=
-      Finset.nonempty_of_sum_ne_zero ((ρ.sum_finsupport _ (mem_univ _)).symm ▸ one_ne_zero)
-    have hi' := ρ.finsupport_subset_fintsupport _ hi
-    refine Finset.sum_pos' (fun j hj ↦ ?_) ⟨i, hi', ?_⟩
-    · rw [(hterm j hj).1]
-      exact mul_nonneg (ρ.nonneg j _) (hterm j hj).2.le
-    · rw [(hterm i hi').1]
-      refine mul_pos (lt_of_le_of_ne (ρ.nonneg i _) ?_) (hterm i hi').2
-      exact (Ne.symm ((ρ.mem_finsupport _).1 hi))
+    refine ρ.criticalHessian_finsum_smul_pos hρ (mem_univ _) BoundarylessManifold.isInteriorPoint
+      (fun i hi ↦ (hg i hi).of_le (WithTop.coe_le_coe.2 hℓ)) (fun i hi ↦ ?_) (fun i hi ↦ ?_)
+      fun i hi ↦ ?_ <;> obtain ⟨z, rfl, hz⟩ := hsome hi
+    · exact ((hψ z).norm_sq_snd_eq_zero_iff hz).2 (mem_range_self y)
+    · exact (hψ z).mem_criticalPoints_norm_sq_snd ⟨hz, mem_range_self y⟩
+    · exact (hψ z).criticalHessian_norm_sq_snd_pos h' (le_trans (by norm_num) hk) hℓ hz hv
   refine ⟨φ, hφ, hφ0, fun x ↦ ⟨fun hx ↦ ?_, ?_⟩, hHess, ?_⟩
   · -- Off the image, some `ρ i • g i` is positive at `x`.
     by_contra hxι
@@ -513,7 +484,7 @@ theorem exists_contMDiff_isManifoldStrictlyPlurisubharmonicAt_of_isClosed_range
   · rintro ⟨y, rfl⟩
     refine finsum_eq_zero_of_forall_eq_zero fun i ↦ ?_
     by_cases hi : ι y ∈ tsupport (ρ i)
-    · obtain ⟨z, rfl, hz⟩ := hsome hi
+    · obtain ⟨z, rfl, hz⟩ := hsome (hρ i hi)
       simp [g, ((hψ z).norm_sq_snd_eq_zero_iff hz).2 (mem_range_self y)]
     · simp [image_eq_zero_of_notMem_tsupport hi]
   · exact SymplecticGeometry.setOf_isManifoldStrictlyPlurisubharmonicAt_mem_nhdsSet_range
