@@ -57,6 +57,8 @@ open scoped Manifold ContDiff
 
 namespace TauCeti.SmoothEmbedding
 
+open SymplecticGeometry
+
 section ChartForm
 
 variable {E V P X : Type} {H G Z : Type*}
@@ -90,14 +92,8 @@ theorem localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_of_finrank
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
     localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
-        (⟨fun x : (normalTubeChart Φ z).source ↦ normalTubeChart Φ z x - normalTubeChart Φ z (f z),
-          (normalTubeChart Φ z).continuousOn.domRestrict.sub continuous_const⟩ :
-          C((normalTubeChart Φ z).source, P × E))
-        (S := {⟨f z, mem_normalTubeChart_source Φ z hΦ⟩}) (T := {0})
-        (by
-          rintro x hx
-          exact Subtype.ext ((normalTubeChart Φ z).injOn x.property
-            (mem_normalTubeChart_source Φ z hΦ) (sub_eq_zero.1 hx)))
+        (centeredNormalTubeChart Φ z) (S := {⟨f z, mem_normalTubeChart_source Φ z hΦ⟩}) (T := {0})
+        (centeredNormalTubeChart_preimage_zero Φ z hΦ).subset
         (m + 1)
         (((normalTubeChart Φ z).open_source.isOpenEmbedding_subtypeVal.localOrientationEquiv
           ⟨f z, mem_normalTubeChart_source Φ z hΦ⟩ (m + 1)).symm
@@ -175,9 +171,9 @@ theorem
     (hP : finrank ℝ P = 0) (hV : finrank ℝ V = m + 1)
     (oX : Manifold.Orientation J X (Fin (m + 1 + finrank ℝ P)))
     (oZ : Manifold.Orientation I Z (Fin (m + 1))) (hS : IsOpen S)
-    (hSc : S ⊆ ((chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))).target)
+    (hSc : S ⊆ (centeredExtChartAt I z).target)
     (hSe : letI := f.normalSpaceFiberBundle hn hdim
-      MapsTo ((chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))).symm S
+      MapsTo (centeredExtChartAt I z).symm S
         (trivializationAt P (fun x ↦ f.NormalSpace x hn) z).baseSet)
     (h0 : (0 : E) ∈ S) :
     letI := f.normalSpaceFiberBundle hn hdim
@@ -193,7 +189,7 @@ theorem
           exact Φ.injective (Subtype.ext (hp.trans (hΦ.apply_zeroSection z).symm)))
         (m + 1)
         ((Trivialization.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe
-          (by simp) (by simp) h0 (m + 1)).hom
+          (mem_centeredExtChartAt_source I z) (centeredExtChartAt_self I z) h0 (m + 1)).hom
           ((SymplecticGeometry.localHomologyCross (0 : P) (0 : E) 0 (m + 1) (m + 1)
             (zero_add _)).hom
             ((localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl P)

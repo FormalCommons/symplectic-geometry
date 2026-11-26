@@ -57,6 +57,8 @@ open scoped Manifold ContDiff
 
 namespace TauCeti.SmoothEmbedding
 
+open SymplecticGeometry
+
 variable {E V P Z X : Type} {H G : Type*}
   [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]
@@ -113,9 +115,9 @@ theorem localHomologyMap_localChartLocalHomologyIso_hom_cross_of_finrank_eq_zero
     (hΦ : f.IsNormalizedTube hn hdim Φ) (hE : finrank ℝ E = 0) (hP : finrank ℝ P = 0)
     (oX : Manifold.Orientation J X (Fin (0 + finrank ℝ P)))
     (oZ : Manifold.Orientation I Z (Fin 0)) (hS : IsOpen S)
-    (hSc : S ⊆ ((chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))).target)
+    (hSc : S ⊆ (centeredExtChartAt I z).target)
     (hSe : letI := f.normalSpaceFiberBundle hn hdim
-      MapsTo ((chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))).symm S
+      MapsTo (centeredExtChartAt I z).symm S
         (trivializationAt P (fun x ↦ f.NormalSpace x hn) z).baseSet)
     (h0 : (0 : E) ∈ S) :
     letI := f.normalSpaceFiberBundle hn hdim
@@ -131,7 +133,7 @@ theorem localHomologyMap_localChartLocalHomologyIso_hom_cross_of_finrank_eq_zero
           exact Φ.injective (Subtype.ext (hp.trans (hΦ.apply_zeroSection z).symm)))
         0
         ((Trivialization.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe
-          (by simp) (by simp) h0 0).hom
+          (mem_centeredExtChartAt_source I z) (centeredExtChartAt_self I z) h0 0).hom
           ((SymplecticGeometry.localHomologyCross (0 : P) (0 : E) 0 0 0 rfl).hom
             ((if Orientation.reindex ℝ P (finCongr hP)
                   ((trivializationAt P (fun x ↦ f.NormalSpace x hn) z).mapOrientation
@@ -152,9 +154,9 @@ theorem localHomologyMap_localChartLocalHomologyIso_hom_cross_of_finrank_eq_zero
   let := f.normalSpaceVectorBundle hn hdim
   have : T1Space (TotalSpace P fun x ↦ f.NormalSpace x hn) := Φ.toHomeomorph.isEmbedding.t1Space
   set e := trivializationAt P (fun x ↦ f.NormalSpace x hn) z
-  set c := (chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))
-  have hb : z ∈ c.source := by simp [c]
-  have hcb : c z = 0 := by simp [c]
+  set c := centeredExtChartAt I z
+  have hb : z ∈ c.source := mem_centeredExtChartAt_source I z
+  have hcb : c z = 0 := centeredExtChartAt_self I z
   -- The cross product of the two point classes is carried to the point class of `f z`.
   have key : localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
         (⟨fun p ↦ (Φ p : X), continuous_subtypeVal.comp Φ.continuous⟩ :
