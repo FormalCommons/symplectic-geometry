@@ -19,7 +19,7 @@ import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import TauCeti.Geometry.Symplectic.Manifold.Opens
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 import SymplecticGeometry.Topology.Sets.Opens.Basic
-import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Injective
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.NestedOpens
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 
 /-!
@@ -75,11 +75,9 @@ Since the local flow needs no cutoff, no invariant cutoff is needed, and `Q` nee
 The theorem also holds for forms given only on an open set `W` of `M` containing `f(Q)`, on which
 `G` acts smoothly with equivariant inclusion
 (`TauCeti.SmoothEmbedding.exists_equivariant_diffeomorph_opens_le_of_eq_along`). It is the
-theorem for the manifold `W` and the embedding `TauCeti.SmoothEmbedding.codRestrict f W`, whose
-open sets `V` of `W` are carried to open sets of `M` by Tau Ceti's
-`IsLocalDiffeomorph.diffeomorphOfInjective`, applied to the composite of the inclusions
-`V → W → M`; this diffeomorphism has identity differential, as both inclusions have
-(`IsLocalDiffeomorph.mfderiv_diffeomorphOfInjective_apply`).
+theorem for the manifold `W` and the embedding `TauCeti.SmoothEmbedding.codRestrict f W`, read
+in `M`: the diffeomorphism it gives between open sets of `W` is carried to their images in `M` by
+`Diffeomorph.imageValCongr`, which keeps its values, its differentials and its equivariance.
 
 ## Main results
 
@@ -515,85 +513,25 @@ theorem exists_equivariant_diffeomorph_opens_le_of_eq_along (f : SmoothEmbedding
         exact ⟨q', Subtype.ext (by
           rw [hcW, f.val_codRestrict_apply, f.val_codRestrict_apply]; exact hq')⟩)
       h₀ h₁ hσ₀ hσ₁ (fun q ↦ hf' q ▸ hnd q) (fun q ↦ hf' q ▸ heq q)
-  -- An open set `V` of `W` is diffeomorphic to its image in `M`, by a map with identity
-  -- differential.
-  have hl (V : Opens W) :
-      IsLocalDiffeomorph I I ∞ ((Subtype.val : W → M) ∘ (Subtype.val : V → W)) :=
-    isLocalDiffeomorph_subtypeVal_comp_iff.2 isLocalDiffeomorph_subtype_val
-  have hi (V : Opens W) : Function.Injective ((Subtype.val : W → M) ∘ (Subtype.val : V → W)) :=
-    Subtype.val_injective.comp Subtype.val_injective
-  have hmem {V : Opens W} {x : M} :
-      x ∈ (hl V).image ↔ x ∈ range ((Subtype.val : W → M) ∘ (Subtype.val : V → W)) :=
-    Set.ext_iff.1 (hl V).image_coe x
-  have hle (V : Opens W) : (hl V).image ≤ W := fun x hx ↦ by
-    obtain ⟨y, rfl⟩ := hmem.1 hx
-    exact (y : W).property
-  have hsmul {V : Opens W} (hV : ∀ g : G, ∀ x ∈ V, g • x ∈ V) (g : G) (x : M)
-      (hx : x ∈ (hl V).image) : g • x ∈ (hl V).image := by
-    obtain ⟨y, rfl⟩ := hmem.1 hx
-    exact hmem.2 ⟨⟨g • (y : W), hV g _ y.property⟩, hcW g _⟩
-  have hincl (V : Opens W) : Opens.inclusion (hle V) ∘ (hl V).diffeomorphOfInjective (hi V) =
-      Subtype.val :=
-    funext fun y ↦ Subtype.ext ((hl V).coe_diffeomorphOfInjective_apply (hi V) y)
-  have hincl' (V : Opens W) : Subtype.val ∘ ((hl V).diffeomorphOfInjective (hi V)).symm =
-      Opens.inclusion (hle V) :=
-    funext fun x ↦ Subtype.ext ((hl V).apply_diffeomorphOfInjective_symm (hi V) x)
-  have hde (V : Opens W) (y : V) (v : TangentSpace I y) :
-      mfderiv I I ((hl V).diffeomorphOfInjective (hi V)) y v = v := by
-    rw [(hl V).mfderiv_diffeomorphOfInjective_apply,
-      TauCeti.Manifold.mfderiv_subtype_val_comp_apply]
-    exact TauCeti.Manifold.mfderiv_subtype_val_apply _ _
-  have hde' (V : Opens W) (x : (hl V).image) (v : TangentSpace I x) :
-      mfderiv I I ((hl V).diffeomorphOfInjective (hi V)).symm x v = v := by
-    rw [← TauCeti.Manifold.mfderiv_subtype_val_comp_apply, hincl',
-      TauCeti.Manifold.mfderiv_inclusion_apply]
-  set e₀ := (hl V₀).diffeomorphOfInjective (hi V₀)
-  set e₁ := (hl V₁).diffeomorphOfInjective (hi V₁)
-  -- The diffeomorphism `ψ` read in `M`.
-  set φ := e₀.symm.trans (ψ.trans e₁) with hφdef
-  have hincl₀ : Subtype.val ∘ e₀.symm = Opens.inclusion (hle V₀) := hincl' V₀
-  have hde₁ (y : V₁) (v : TangentSpace I y) : mfderiv I I e₁ y v = v := hde V₁ y v
-  have hde₀' (x : (hl V₀).image) (v : TangentSpace I x) : mfderiv I I e₀.symm x v = v :=
-    hde' V₀ x v
-  have hφ (y : V₀) : (φ (e₀ y) : M) = ((ψ y : W) : M) := by
-    rw [hφdef, Diffeomorph.coe_trans, Diffeomorph.coe_trans, Function.comp_apply,
-      Function.comp_apply, Diffeomorph.symm_apply_apply]
-    exact (hl V₁).coe_diffeomorphOfInjective_apply (hi V₁) (ψ y)
-  refine ⟨_, _, hle V₀, hle V₁, φ, hsmul hV₀, hsmul hV₁, fun g x hx ↦ ?_, fun q ↦ ?_, ?_⟩
-  · obtain ⟨y, rfl⟩ : ∃ y, e₀ y = x := ⟨e₀.symm x, e₀.apply_symm_apply x⟩
-    have hy : g • (y : W) ∈ V₀ := hV₀ g _ y.property
-    have hgy : (⟨g • ((e₀ y : (hl V₀).image) : M), hx⟩ : (hl V₀).image) =
-        e₀ ⟨g • (y : W), hy⟩ :=
-      Subtype.ext (by simp [e₀, hcW])
-    rw [hgy, hφ, hφ, hψG g y hy, hcW]
+  -- `ψ` read in `M`.
+  set e₀ := Opens.diffeomorphImageVal (I := I) (n := ∞) V₀
+  refine ⟨_, _, Opens.imageVal_le V₀, Opens.imageVal_le V₁, ψ.imageValCongr,
+    fun g _ ↦ Opens.smul_mem_imageVal hcW hV₀ g, fun g _ ↦ Opens.smul_mem_imageVal hcW hV₁ g,
+    ψ.imageValCongr_smul hcW hcW hV₀ hψG, fun q ↦ ?_, ?_⟩
   · obtain ⟨hq, hfix, hjet⟩ := hψf q
-    have hx : f q ∈ (hl V₀).image := hmem.2 ⟨⟨f' q, hq⟩, f.val_codRestrict_apply W hfW' q⟩
-    have hex : (⟨f q, hx⟩ : (hl V₀).image) = e₀ ⟨f' q, hq⟩ :=
-      Subtype.ext ((f.val_codRestrict_apply W hfW' q).symm.trans
-        ((hl V₀).coe_diffeomorphOfInjective_apply (hi V₀) ⟨f' q, hq⟩).symm)
-    refine ⟨hx, by rw [hex, hφ, hfix]; exact f.val_codRestrict_apply W hfW' q, ?_⟩
-    have hd (x : (hl V₀).image)
-        (hψd : mfderiv I I ψ (e₀.symm x) = ContinuousLinearMap.id ℝ (TangentSpace I (e₀.symm x))) :
-        mfderiv I I φ x = ContinuousLinearMap.id ℝ (TangentSpace I x) := by
-      ext v
-      rw [hφdef, Diffeomorph.coe_trans, Diffeomorph.coe_trans,
-        mfderiv_comp_apply x
-          (((e₁.mdifferentiable (by simp)) _).comp _ ((ψ.mdifferentiable (by simp)) _))
-          ((e₀.symm.mdifferentiable (by simp)) x),
-        mfderiv_comp_apply (e₀.symm x) ((e₁.mdifferentiable (by simp)) _)
-          ((ψ.mdifferentiable (by simp)) _),
-        hde₁, hde₀']
-      exact DFunLike.congr_fun hψd v
-    refine hd _ ?_
-    rw [hex, Diffeomorph.symm_apply_apply]
-    exact hjet
-  · have hcomp : Opens.inclusion (hle V₁) ∘ φ = (Subtype.val ∘ ψ) ∘ e₀.symm := by
-      rw [hφdef, Diffeomorph.coe_trans, Diffeomorph.coe_trans]
-      exact funext fun x ↦ congrFun (hincl V₁) (ψ (e₀.symm x))
-    rw [SmoothForm.mpullback_mpullback_of_comp_eq φ.contMDiff (contMDiff_inclusion (hle V₁))
-      e₀.symm.contMDiff (contMDiff_subtypeVal.comp ψ.contMDiff) hcomp,
+    have hx : f q ∈ Opens.imageVal V₀ := Opens.mem_imageVal.2 ⟨hfW' q, hf' q ▸ hq⟩
+    have hex : (⟨f q, hx⟩ : Opens.imageVal V₀) = e₀ ⟨f' q, hq⟩ :=
+      Subtype.ext (by simp [e₀, hf'])
+    refine ⟨hx, ?_, (ψ.mfderiv_imageValCongr_eq_id_iff (by simp) _).2 ?_⟩
+    · rw [hex, Diffeomorph.imageValCongr_apply_diffeomorphImageVal, hfix]
+      exact f.val_codRestrict_apply W hfW' q
+    · rw [hex, Diffeomorph.symm_apply_apply]
+      exact hjet
+  · rw [SmoothForm.mpullback_mpullback_of_comp_eq ψ.imageValCongr.contMDiff
+      (contMDiff_inclusion _) e₀.symm.contMDiff (contMDiff_subtypeVal.comp ψ.contMDiff)
+      (ψ.inclusion_comp_imageValCongr),
       ← SmoothForm.mpullback_mpullback ψ Subtype.val ψ.contMDiff contMDiff_subtypeVal, hψσ]
-    simp only [SmoothForm.mpullback_mpullback, hincl₀]
+    simp only [SmoothForm.mpullback_mpullback, e₀, Opens.subtypeVal_comp_diffeomorphImageVal_symm]
 
 end TauCeti.SmoothEmbedding
 
