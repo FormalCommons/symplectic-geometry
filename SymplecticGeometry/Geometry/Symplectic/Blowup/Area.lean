@@ -11,10 +11,8 @@ import SymplecticGeometry.Analysis.Complex.QuadraticLeviForm
 import Mathlib.Analysis.SpecialFunctions.Log.Deriv
 public import Mathlib.Analysis.InnerProductSpace.Laplacian
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Lift
-import SymplecticGeometry.Analysis.InnerProductSpace.PiL2
-import TauCeti.Analysis.Calculus.FDeriv.RestrictScalars
-import TauCeti.Analysis.Complex.LeviForm.Laplacian
-import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
+import TauCeti.Analysis.Normed.Group.Basic
+import TauCeti.Analysis.Calculus.ContDiff.Differentiable
 
 /-!
 # The area potential of the symplectic blowup
@@ -41,25 +39,19 @@ uses, before any form enters:
 It then proves the pointwise identity between the two densities at a point `t` with `u t ≠ 0`,
 each density being the value of the form on the derivatives of the curve along `1` and `i`:
 
-* `SymplecticGeometry.BlowupModel.laplacian_comp_sum_norm_sq_div_four`: for `u` complex `C²`
-  at `t` and `ψ` of class `C²` at `s = |u t|²`, `Δ (ψ |u|²) (t) / 4` is
-  `ψ'(s) |v|² + ψ''(s) |star (u t) ⬝ᵥ v|²`, with `v = u'(t)`. The orthonormal basis `{1}` of `ℂ`
-  turns the Laplacian into four times the Levi form on `1` (Tau Ceti's
-  `TauCeti.sum_re_leviForm_apply_self`), which the chain rules `TauCeti.leviForm_comp_apply`
-  (along the holomorphic `u`) and `TauCeti.leviForm_scalar_comp_apply` (after `ψ`) compute from
-  the Levi form and the differential of `|·|²` (`leviForm_norm_sq_complexToRealEuclidean`,
-  `extendRCLike_fderiv_norm_sq_complexToRealEuclidean`).
-* `SymplecticGeometry.BlowupModel.eval₂_ω₀E_mfderiv`: the density of `u^* ω₀` is `|v|²`.
-* `SymplecticGeometry.BlowupModel.eval₂_profileForm_mfderiv_curveLift`: the density of the
-  pull-back of `ω̃_{l,ε}` along `curveLift u` is `g'(s) |v|² + g''(s) |star (u t) ⬝ᵥ v|²`. Near
-  `t` the lift is `u`, read in `E ∖ 0`, followed by the inverse of the blowdown off the divisor,
-  along which `ω̃_{l,ε}` pulls back to the radial potential form of `g`
-  (`mpullback_blowdownDiffeomorph_symm_profileForm`); its value on `(v, i v)` is
+* `SymplecticGeometry.BlowupModel.eval₂_profileForm_mfderiv_curveLift`: for `u` complex
+  differentiable at `t` with `u t ≠ 0`, the density of the pull-back of `ω̃_{l,ε}` along
+  `curveLift u` is `g'(s) |v|² + g''(s) |star (u t) ⬝ᵥ v|²`, with `s = |u t|²` and `v = u'(t)`.
+  By `mfderiv_curveLift_of_ne_zero` the derivative of the lift at `t` is that of the inverse of
+  the blowdown off the divisor, along which `ω̃_{l,ε}` pulls back to the radial potential form
+  of `g` (`mpullback_blowdownDiffeomorph_symm_profileForm`); its value on `(v, i v)` is
   `radialPotentialForm_apply_I_smul`. Only the derivative of the lift at `t` enters, so no form
   is pulled back along the lift itself, which is smooth only near `t`.
 * `SymplecticGeometry.BlowupModel.eval₂_ω₀E_sub_eval₂_profileForm_curveLift`: for `u` analytic
-  at `t`, the density of `u^* ω₀` minus that of the lift is `Δ (φ ∘ u) (t) / 4`, by the three
-  results above for `ψ(s) = s - g(s)`.
+  at `t`, the density of `u^* ω₀` minus that of the lift is `Δ (φ ∘ u) (t) / 4`. The density of
+  `u^* ω₀` is `|v|²` (`eval₂_constSmooth_stdComplexPiSymplecticForm_mfderiv`), and
+  `TauCeti.laplacian_comp_sum_norm_sq_div_four` computes `Δ (ψ |u|²) (t) / 4` as
+  `ψ'(s) |v|² + ψ''(s) |star (u t) ⬝ᵥ v|²`, here for `ψ(s) = s - g(s)`.
 
 ## References
 
@@ -152,52 +144,7 @@ theorem exists_areaPotential_comp_eq_log_add {u g : ℂ → Fin (n + 1) → ℂ}
 
 section Density
 
-open scoped Laplacian ComplexConjugate Manifold TauCeti.ComplexManifold
-open TauCeti.Manifold
-
-/-- The Laplacian of a radial function along a holomorphic curve. For `u : ℂ → ℂⁿ⁺¹` complex `C²`
-at `t` and `ψ : ℝ → ℝ` of class `C²` at `s = |u t|²`, a quarter of the Laplacian of
-`t ↦ ψ |u t|²` at `t` is `ψ'(s) |v|² + ψ''(s) |star (u t) ⬝ᵥ v|²`, for `v = u'(t)`. -/
-theorem laplacian_comp_sum_norm_sq_div_four {ψ : ℝ → ℝ} {u : ℂ → Fin (n + 1) → ℂ} {t : ℂ}
-    (hψ : ContDiffAt ℝ 2 ψ (∑ i, ‖u t i‖ ^ 2)) (hu : ContDiffAt ℂ 2 u t) :
-    Δ (fun s ↦ ψ (∑ i, ‖u s i‖ ^ 2)) t / 4 =
-      deriv ψ (∑ i, ‖u t i‖ ^ 2) * ∑ i, ‖deriv u t i‖ ^ 2 +
-        deriv (deriv ψ) (∑ i, ‖u t i‖ ^ 2) * Complex.normSq (star (u t) ⬝ᵥ deriv u t) := by
-  set N : (Fin (n + 1) → ℂ) → ℝ := fun y ↦ ‖complexToRealEuclidean (Fin (n + 1)) y‖ ^ 2
-  have hN : ContDiffAt ℝ 2 N (u t) := contDiff_norm_sq_complexToRealEuclidean.contDiffAt
-  have hs : N (u t) = ∑ i, ‖u t i‖ ^ 2 := norm_sq_complexToRealEuclidean _
-  have hcomp : (fun s ↦ ψ (∑ i, ‖u s i‖ ^ 2)) = (ψ ∘ N) ∘ u :=
-    funext fun s ↦ by simp only [Function.comp_apply, N, norm_sq_complexToRealEuclidean]
-  have h2 : iteratedDeriv 2 ψ = deriv (deriv ψ) := by
-    rw [iteratedDeriv_succ, iteratedDeriv_one]
-  rw [← hs] at hψ
-  -- `{1}` is an orthonormal basis of `ℂ`, so the Laplacian is four times the Levi form on `1`.
-  rw [← sum_re_leviForm_apply_self (OrthonormalBasis.singleton (Fin 1) ℂ), hcomp]
-  simp only [Finset.univ_unique, Finset.sum_singleton, OrthonormalBasis.singleton_apply]
-  rw [leviForm_comp_apply (hψ.comp _ hN) hu, leviForm_scalar_comp_apply hψ hN,
-    leviForm_norm_sq_complexToRealEuclidean, extendRCLike_fderiv_norm_sq_complexToRealEuclidean,
-    h2, hs]
-  simp only [fderiv_apply_one_eq_deriv]
-  have h4 : conj (2 * star (u t) ⬝ᵥ deriv u t) * (2 * star (u t) ⬝ᵥ deriv u t) =
-      4 * (Complex.normSq (star (u t) ⬝ᵥ deriv u t) : ℂ) := by
-    rw [map_mul, Complex.conj_ofNat, Complex.normSq_eq_conj_mul_self]
-    ring
-  rw [h4, inv_mul_cancel_left₀ (by norm_num), Complex.add_re, Complex.re_ofReal_mul,
-    Complex.re_ofReal_mul, Matrix.re_star_dotProduct_self, Complex.ofReal_re]
-
-/-- The density of `u^* ω₀` at `t` for a curve `u : ℂ → ℂⁿ⁺¹` complex differentiable at `t`: the
-value of `ω₀` on the derivatives of `u` along `1` and `i` is `|u'(t)|²`. -/
-theorem eval₂_ω₀E_mfderiv {u : ℂ → Fin (n + 1) → ℂ} {t : ℂ} (hu : DifferentiableAt ℂ u t) :
-    (ω₀E n).eval₂ (u t) (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) u t (1 : ℂ))
-        (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) u t Complex.I) = ∑ i, ‖deriv u t i‖ ^ 2 := by
-  have hm (c : TangentSpace 𝓘(ℝ, ℂ) t) : mvfderiv 𝓘(ℝ, ℂ) u t c = fderiv ℝ u t c := by
-    rw [mvfderiv_apply_eq_mfderiv_apply]
-    exact DFunLike.congr_fun (hu.restrictScalars ℝ).hasFDerivAt.hasMFDerivAt.mfderiv c
-  rw [ω₀E_def]
-  refine (SymplecticForm.eval₂_constSmooth_mfderiv_eq _ u t (1 : ℂ) Complex.I).trans ?_
-  rw [hm (1 : ℂ), hm Complex.I, hu.fderiv_restrictScalars_eq_smul_deriv ℝ,
-    hu.fderiv_restrictScalars_eq_smul_deriv ℝ, one_smul]
-  simp [Complex.sq_norm, Complex.normSq_apply]
+open scoped Laplacian Manifold TauCeti.ComplexManifold
 
 /-- The density of `(curveLift u)^* ω̃_{l,ε}` at a point `t` off the zeros of `u`, for `0 < l`,
 `0 < ε` and `u : ℂ → ℂⁿ⁺¹` complex differentiable at `t` with `u t ≠ 0`: the value of
@@ -213,46 +160,17 @@ theorem eval₂_profileForm_mfderiv_curveLift (hl : 0 < l) (hε : 0 < ε)
           ∑ i, ‖deriv u t i‖ ^ 2 +
         deriv (deriv fun s ↦ s + l ^ 2 * Real.log s + blowupCorrection l ε s)
             (∑ i, ‖u t i‖ ^ 2) * Complex.normSq (star (u t) ⬝ᵥ deriv u t) := by
-  -- Near `t`, the curve `u` as a curve `ũ` in `E ∖ 0`.
-  set ũ : ℂ → puncturedSpace (Fin (n + 1) → ℂ) := fun s ↦
-    if h : u s = 0 then ⟨u t, mem_puncturedSpace.2 h0⟩ else ⟨u s, mem_puncturedSpace.2 h⟩
-  have hne : ∀ᶠ s in 𝓝 t, u s ≠ 0 := hu.continuousAt.eventually_ne h0
-  have hev : Subtype.val ∘ ũ =ᶠ[𝓝 t] u := by
-    filter_upwards [hne] with s hs
-    simp [ũ, hs]
-  have hũt : (ũ t : Fin (n + 1) → ℂ) = u t := hev.self_of_nhds
-  have hũd : MDifferentiableAt 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ũ t :=
-    mdifferentiableAt_subtype_val_comp_iff.1
-      ((hu.restrictScalars ℝ).mdifferentiableAt.congr_of_eventuallyEq hev)
-  -- Near `t`, the lift is `ũ` followed by the inverse of the blowdown off the divisor.
-  set Ψ : puncturedSpace (Fin (n + 1) → ℂ) → BlowupModel n :=
-    Subtype.val ∘ (blowdownPuncturedDiffeomorph n).symm
-  have hΨ : ContMDiff 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ Ψ :=
-    contMDiff_subtypeVal.comp (blowdownPuncturedDiffeomorph n).symm.contMDiff
-  have hlift : curveLift u =ᶠ[𝓝 t] Ψ ∘ ũ := by
-    filter_upwards [hne] with s hs
-    simp [Ψ, ũ, hs, curveLift_of_ne_zero hs]
-  have hd (c : ℂ) :
-      mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift u) t c =
-        mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) Ψ (ũ t) (c • deriv u t) := by
-    have h₁ := (((hΨ.mdifferentiableAt (by simp)).hasMFDerivAt.comp t
-      hũd.hasMFDerivAt).congr_of_eventuallyEq_abuse hlift).mfderiv
-    have h₂ : mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ũ t c = c • deriv u t :=
-      ((mfderiv_subtype_val_comp_apply c).symm.trans (DFunLike.congr_fun
-        ((hu.restrictScalars ℝ).hasFDerivAt.hasMFDerivAt
-          |>.congr_of_eventuallyEq_abuse hev).mfderiv c)).trans
-        (hu.fderiv_restrictScalars_eq_smul_deriv ℝ c)
-    -- The tangent spaces at `curveLift u t` and at `Ψ (ũ t)` are both `E`.
-    exact (DFunLike.congr_fun h₁ c).trans ((ContinuousLinearMap.comp_apply
-      (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) Ψ (ũ t))
-      (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ũ t) c).trans (congrArg _ h₂))
   -- Off the divisor, read `ω̃_{l,ε}` through the blowdown as a radial potential form.
-  have key := SmoothForm.eval₂_mpullback Ψ hΨ (profileForm n l ε) (ũ t)
+  have key := SmoothForm.eval₂_mpullback _
+    (contMDiff_subtypeVal.comp (blowdownPuncturedDiffeomorph n).symm.contMDiff)
+    (profileForm n l ε) ⟨u t, mem_puncturedSpace.2 h0⟩
     (deriv u t : Fin (n + 1) → ℂ) (Complex.I • deriv u t : Fin (n + 1) → ℂ)
   rw [← SmoothForm.mpullback_mpullback _ _ (blowdownPuncturedDiffeomorph n).symm.contMDiff
     contMDiff_subtypeVal, mpullback_blowdownDiffeomorph_symm_profileForm n hl hε,
-    radialPotentialForm_apply_I_smul, hũt] at key
-  rw [hd (1 : ℂ), hd Complex.I, one_smul, hlift.self_of_nhds]
+    radialPotentialForm_apply_I_smul, Function.comp_apply,
+    coe_blowdownPuncturedDiffeomorph_symm_apply] at key
+  rw [mfderiv_curveLift_of_ne_zero hu h0, mfderiv_curveLift_of_ne_zero hu h0, one_smul,
+    curveLift_of_ne_zero h0]
   exact key.symm
 
 /-- **The two area densities along a curve differ by a quarter Laplacian.** For `0 < l`, `0 < ε`
@@ -269,28 +187,25 @@ theorem eval₂_ω₀E_sub_eval₂_profileForm_curveLift (hl : 0 < l) (hε : 0 <
       Δ (areaPotential l ε ∘ u) t / 4 := by
   set g : ℝ → ℝ := fun s ↦ s + l ^ 2 * Real.log s + blowupCorrection l ε s
   set x := ∑ i, ‖u t i‖ ^ 2
-  have hx : 0 < x := by
-    simpa only [x, norm_sq_complexToRealEuclidean] using
-      norm_sq_complexToRealEuclidean_pos (⟨u t, mem_puncturedSpace.2 h0⟩ :
-        puncturedSpace (Fin (n + 1) → ℂ))
+  have hx : 0 < x := sum_norm_sq_pos h0
   -- In the variable `s = |z|²` the area potential is `s - g(s)`.
   have hφ : areaPotential l ε ∘ u = fun s ↦ (fun r ↦ r - g r) (∑ i, ‖u s i‖ ^ 2) :=
     funext fun s ↦ by
       simp only [Function.comp_apply, areaPotential_def, norm_sq_complexToRealEuclidean, g]
       ring
   have hg : ContDiffOn ℝ ∞ g (Set.Ioi 0) := contDiffOn_add_mul_log_add_blowupCorrection hl hε
-  have hgd : ∀ r ∈ Set.Ioi (0 : ℝ), DifferentiableAt ℝ g r ∧ DifferentiableAt ℝ (deriv g) r :=
-    fun r hr ↦ ⟨(hg.contDiffAt (Ioi_mem_nhds hr)).differentiableAt (by simp),
-      ((hg.deriv_of_isOpen isOpen_Ioi (m := 1) (by simp)).contDiffAt
-        (Ioi_mem_nhds hr)).differentiableAt (by simp)⟩
+  have hg2 : ∀ r ∈ Set.Ioi (0 : ℝ), ContDiffAt ℝ 2 g r :=
+    fun r hr ↦ (hg.contDiffAt (Ioi_mem_nhds hr)).of_le (by simp)
   have h1 : deriv (fun r ↦ r - g r) =ᶠ[𝓝 x] fun r ↦ 1 - deriv g r :=
     Filter.eventuallyEq_of_mem (Ioi_mem_nhds hx) fun r hr ↦ by
-      rw [deriv_fun_sub differentiableAt_fun_id (hgd r hr).1, deriv_id'']
-  rw [eval₂_ω₀E_mfderiv hu.differentiableAt,
+      rw [deriv_fun_sub differentiableAt_fun_id ((hg2 r hr).differentiableAt (by simp)),
+        deriv_id'']
+  rw [ω₀E_def, eval₂_constSmooth_stdComplexPiSymplecticForm_mfderiv hu.differentiableAt,
     eval₂_profileForm_mfderiv_curveLift hl hε hu.differentiableAt h0, hφ,
     laplacian_comp_sum_norm_sq_div_four (ψ := fun r ↦ r - g r)
-      (contDiffAt_id.sub ((hg.contDiffAt (Ioi_mem_nhds hx)).of_le (by simp))) hu.contDiffAt,
-    h1.deriv_eq, h1.eq_of_nhds, deriv_fun_sub (differentiableAt_const _) (hgd x hx).2,
+      (contDiffAt_id.sub (hg2 x hx)) hu.contDiffAt,
+    h1.deriv_eq, h1.eq_of_nhds,
+    deriv_fun_sub (differentiableAt_const _) (hg2 x hx).differentiableAt_deriv_two,
     deriv_const]
   ring
 
