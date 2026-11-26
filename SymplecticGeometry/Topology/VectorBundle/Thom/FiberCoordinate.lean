@@ -25,7 +25,8 @@ When the base points of `φ` lie in a contractible subset `U` of the base set wh
 a contraction of `U` onto `b` moves the base point of `φ q` to `b` while keeping its coordinate
 in `e` fixed. This is a homotopy of maps of pairs from `φ` to the fibre coordinate followed by the
 inclusion `TauCeti.fiberThomPairMap F E b` of the fibre, so `φ` pulls classes of the Thom pair
-back through the fibre over `b`.
+back through the fibre over `b`. Carrying that fibre to the model pair `(F, F ∖ {0})` along `e`
+at `b`, the pullback along `φ` becomes the pullback along the map of pairs `q ↦ (e (φ q)).2`.
 
 ## Main results
 
@@ -39,6 +40,9 @@ back through the fibre over `b`.
 * `TauCeti.singularCohomologyMap_eq_singularCohomologyMap_fiberCoordPairMap`: hence `φ` pulls
   every class of the Thom pair back as its restriction to the fibre over `b`, pulled back along
   the fibre coordinate.
+* `TauCeti.singularCohomologyMap_eq_singularCohomologyMap_complZeroPairIso_inv`: carried to the
+  model pair `(F, F ∖ {0})` along `e` at `b`, that pullback is the pullback along the map of pairs
+  `q ↦ (e (φ q)).2`.
 
 ## References
 
