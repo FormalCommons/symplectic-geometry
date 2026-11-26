@@ -101,7 +101,7 @@ These settle the points that `DESIGN.md` leaves to this file.
    (`IsSymplecticTrivializationAlong.normalize`).
 3. **Hamiltonian connections are characterized by their flux.** The kernel
    of `endpointFlux` is $\mathrm{Ham}$ (*Flux homomorphism*,
-   `TauCeti.ker_endpointFlux`). So for a closed connection 2-form, $\Gamma_\tau$
+   `TauCeti.ker_endpointFlux'`). So for a closed connection 2-form, $\Gamma_\tau$
    is Hamiltonian exactly when $f_\tau=0$. Loops at other base points are
    conjugate to loops at `b₀` by transport along a path, and
    `hamiltonianGroup` is normal among the symplectomorphisms. The criterion
@@ -317,7 +317,7 @@ Flat families of fibre classes and one-forms that represent them (Decision
   change), `isLocallyConstant_fiberClass` on the base set, and
   `fiberClass_e₀_b₀` (it is `c` at `b₀` in `e₀`).
 - `IsSymplectic.exists_oneForm_fiberClass`: a smooth one-form `α` on `M`
-  whose pull-back along `e.fiberInclusion hb` is closed and in the class
+  whose pull-back along `e.fiberInclusionMap hb` is closed and in the class
   `fiberClass … e b hb` for every chart and point. As a consequence
   (`IsSymplecticTrivializationAlong.mk_mpullback_eq`), its pull-back along
   each slice of a normalized trivialization along a loop at `b₀` is closed
@@ -334,7 +334,7 @@ The homomorphism $f_\tau$ (Decision 2), and the Hamiltonian criterion. About
   `isotopyStabilizer`, so that it needs no proof as an argument, with
   `holonomyFlux_eq` (the class of the flux of `holonomyDiffeotopy` for a
   normalized trivialization) and `holonomyFlux_eq_zero_iff` (the holonomy
-  is in `hamiltonianGroup`, from `TauCeti.ker_endpointFlux`).
+  is in `hamiltonianGroup`, from `TauCeti.ker_endpointFlux'`).
 - `holonomyFlux_concat` and `holonomyFlux_reparam`: concatenation adds,
   and reparametrization does nothing (from `parallelTransport_comp` and
   `parallelTransport_parallelTransport`).
@@ -383,7 +383,7 @@ lines.
      `g : H₁(B; ℤ) →+ H¹(F)` with
      `(QuotientAddGroup.mk' (fluxGroup σ)).comp g = A.fluxHomomorphism … b₀`;
   4. there is `a : deRhamCohomology IM M 2` that pulls back to `[σ]` along
-     every `(A.trivAt b).fiberInclusion hb'`, such that for every smooth
+     every `(A.trivAt b).fiberInclusionMap hb'`, such that for every smooth
      1-periodic loop `γ` whose class in `H₁(B; ℤ)` is torsion and every
      symplectic trivialization `hΦ` along `γ`,
      `hΦ.loopTransgression a ∈ fluxGroup σ`.
@@ -434,14 +434,14 @@ The page's form of statement 4. About 400 lines. Waits for the other files.
   `parallelTransportIn_coordChange`, `parallelTransport_eq_timeDependentFlowOf`
   and `exists_trivialization_parallelTransport`.
 - *Symplectic fibrations*: `TauCeti.MapFiber.Atlas.IsContMDiff`,
-  `HasStructureGroup`, `CoordChangeMem`, `RestrictsTo`, `fiberInclusion`,
+  `HasStructureGroup`, `CoordChangeMem`, `RestrictsTo`, `fiberInclusionMap`,
   `horizontalDistribution`, `IsVerticallyClosed`,
   `IsEhresmannConnection.IsSymplectic` and its milestone, and the
   partition-of-unity connection form.
 - *Coupling forms*: existence of the closed coupling form for a connection
   with Hamiltonian holonomy around contractible loops, and Hamiltonian
   holonomy around contractible loops for a closed connection 2-form.
-- *Flux homomorphism*: `TauCeti.ker_endpointFlux` (`Kernel.lean`) and
+- *Flux homomorphism*: `TauCeti.ker_endpointFlux'` (`Kernel.lean`) and
   `isHamiltonian_of_forall_timeSlice_mem_hamiltonianGroup` (`Family.lean`,
   which waits for `Countable.lean`). The route does not use
   Proposition 10.2.19 (`Loop.lean`).

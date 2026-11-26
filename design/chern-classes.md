@@ -494,7 +494,7 @@ homology projective in every degree and finitely generated in degrees
   that point, form a basis of `Hᵖ(F; k)`, then it is bijective in degree
   `n`. Over one trivializing set it is `TopCat.lerayHirsch_fst_bijective_of_fiberwise_basis`
   through the trivialization; the finite cover is handled by induction with
-  the previous file. The fibre inclusion `Bundle.Trivialization.fiberInclusion`
+  the previous file. The fibre inclusion `Bundle.Trivialization.fiberInclusionMap`
   comes from `Topology/FiberBundle/Basic.lean` of *Symplectic vector bundles*.
 - `TopCat.lerayHirschEquiv`, the linear equivalence, with its value on
   summands; and `TopCat.singularCohomologyMap_injective_of_lerayHirsch_injective`,
@@ -1009,8 +1009,8 @@ Beside Tau Ceti's `FiniteRank/Tensor.lean`, in Tau Ceti's terms only;
 For a compact Hausdorff boundaryless smooth manifold `M` modelled on `E`
 with `finrank ℝ E = m + 1` and `o : TauCeti.Manifold.Orientation I M (Fin (m + 1))`:
 
-- `TauCeti.Manifold.Orientation.sectionIndex_eq_sign_det_vectorFieldChartDerivative`:
-  for a continuous vector field `X`, differentiable at a zero `z` at which
+- `TauCeti.Manifold.Orientation.sectionIndex_eq_sign_det_vectorFieldChartDerivative'`:
+  for a continuous vector field `X` and a zero `z` at which
   `vectorFieldChartDerivative I X z` is invertible, the local index of `X`
   for `o.toVectorBundleOrientation` and `o.toHomologicalOrientation` is the
   sign of its determinant;
@@ -1018,7 +1018,7 @@ with `finrank ℝ E = m + 1` and `o : TauCeti.Manifold.Orientation I M (Fin (m +
   the Euler class of `o.toVectorBundleOrientation` evaluated on the
   fundamental class of `o.toHomologicalOrientation` is
   $\sum_{i\le m+1}(-1)^i\dim_k H_i(M;k)$ for any division ring `k`; and
-  `TauCeti.Manifold.Orientation.evalFundamentalClass_eulerClass_eq_eulerChar`,
+  `TauCeti.Manifold.Orientation.evalFundamentalClass_eulerClass_eq_eulerChar_of_finiteCWType`,
   the same with `TauCeti.eulerChar M` under a finite CW type instance
   argument, which `TauCeti.FiniteCWType.of_isManifold` supplies. Both come
   from a Morse function, a Riemannian metric and the three Tau Ceti results
@@ -1170,7 +1170,7 @@ then imports `ChernClass/FirstChernClass.lean`.
   `AlgebraicTopology/Singular/LocalHomology/OrientedChart.lean`, only in
   `Geometry/Manifold/Orientation/EulerCharacteristic.lean`, for
   `TauCeti.Manifold.Orientation.localHomologyMap_sub_toHomologicalOrientation`.
-- From *Symplectic vector bundles*: `Bundle.Trivialization.fiberInclusion`
+- From *Symplectic vector bundles*: `Bundle.Trivialization.fiberInclusionMap`
   (`Topology/FiberBundle/Basic.lean`), only in `LerayHirsch/Bundle.lean`.
 - From Tau Ceti: integral cohomology and cup products
   (`AlgebraicTopology/Cohomology/IntegralCup.lean`, `Cup/Relative.lean`),
@@ -1201,7 +1201,7 @@ then imports `ChernClass/FirstChernClass.lean`.
 `totalChernClass_prod`, `totalChernClass_pullback` and `chernClass_congr`,
 and gets $\chi(M)=\langle c_n(TM),[M]\rangle$ from
 `chernClass_finrank_eq_complexEulerClass` and
-`evalFundamentalClass_eulerClass_eq_eulerChar`. Comparing the complex orientation
+`evalFundamentalClass_eulerClass_eq_eulerChar_of_finiteCWType`. Comparing the complex orientation
 of $TM$ (`TauCeti.VectorBundleOrientation.complex`) with the manifold
 orientation `TauCeti.complexManifoldOrientation` belongs to that part's
 design.

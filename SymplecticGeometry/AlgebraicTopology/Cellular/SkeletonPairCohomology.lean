@@ -8,7 +8,6 @@ module
 public import TauCeti.AlgebraicTopology.Cellular.Boundary
 public import TauCeti.AlgebraicTopology.Cohomology.Additivity.Relative
 public import TauCeti.AlgebraicTopology.Cohomology.WeakHomotopyEquivalence
-import all TauCeti.AlgebraicTopology.Cellular.Boundary
 
 /-!
 # Relative cohomology of consecutive skeleta
@@ -31,8 +30,6 @@ identity map in place of the fibration.
 
 ## Main results
 
-* `TauCeti.characteristicCellPairMap_def`: the characteristic map of one cell is the inclusion of
-  its summand followed by `TauCeti.characteristicPairMap`.
 * `TauCeti.isIso_singularCohomologyMap_characteristicPairMap`: the characteristic maps of the
   `n`-cells induce isomorphisms on relative cohomology, for projective chain coefficients.
 * `TauCeti.isLimitFanSingularCohomologySkeletonPair`: the maps induced by the characteristic
@@ -57,15 +54,6 @@ universe u v
 namespace TauCeti
 
 variable {X : Type u} [TopologicalSpace X] [T2Space X] {D : Set X} (C : Set X) [RelCWComplex C D]
-
-/-- The characteristic map of one `n`-cell, as a map of pairs `(Dⁿ, Sⁿ⁻¹) ⟶ (Xⁿ, Xⁿ⁻¹)`, is the
-inclusion of its summand into `∐ⱼ (Dⁿ, Sⁿ⁻¹)`, followed by the characteristic maps of all the
-`n`-cells. -/
-lemma characteristicCellPairMap_def {n : ℕ} (j : cell C n) :
-    characteristicCellPairMap C j =
-      TopPair.sigmaι (fun _ : cell C n ↦ diskBoundaryPair.{u} n) j ≫
-        (sigmaDiskBoundaryPairIso (cell C n) n).hom ≫ characteristicPairMap C n :=
-  (rfl)
 
 variable {A : Type v} [Ring A] (R : ModuleCat.{u} A) [Projective R]
   (k : Type*) [Ring k] [Linear k (ModuleCat.{u} A)] (M : ModuleCat.{u} A)
