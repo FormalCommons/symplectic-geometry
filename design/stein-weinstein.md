@@ -816,8 +816,8 @@ containing `ι '' closedBall 0 1`:
     `1 + Ψ` agrees with `modelLevel k m` where `Ψ = Ψst`.
 
 - `Surround/ModelMargin.lean` (issue 14d8): the margin of §4.7 that the
-  move onto a manifold (#5489) needs. With the normalized modulus of the
-  book's (3.10), the statement is
+  move onto a manifold (issue 14d15) needs. With the normalized modulus
+  of the book's (3.10), the statement is
   `exists_modelSurround_margin`: there are `c > 0` and `N : ℕ`,
   depending on `a`, `k`, `m` only, such that for every `γ ∈ Ioo 0 1`
   the `Ψ` and `g` of `exists_modelSurround` can be chosen with
@@ -831,8 +831,200 @@ containing `ι '' closedBall 0 1`:
   function of a convex shape with a margin). The book reaches
   `‖J - i‖_{C²} ≤ c γ ^ 12` in (4.1), from a margin `c γ ^ 6` on each
   shape (proof of Proposition 4.33); the statement keeps `N`
-  existential, since #5489 needs only a fixed power of `γ` and chooses
-  the order of its chart after it.
+  existential, since issue 14d needs only a fixed power of `γ` and
+  chooses the order of the chart of issue 14d13 after it.
+
+- **The model handle on the manifold (issues 14d9–14d15).** Issue 14d
+  places the model of `Surround/ModelHandle.lean` along the disc through
+  one map `Φ` from a neighbourhood of the core of `V` into `M`, and reads
+  `g ∘ Ψ ∘ Φ⁻¹` there. Here `V`, `s`, `t` and `modelDisc k m` are those of
+  `Surround/Shape.lean`, `ι : EuclideanSpace ℝ (Fin k) → M` is a disc as
+  above (issue 14d composes with a linear isometry onto `F`, which
+  `IsJOrthogonallyAttached.comp_linearIsometry` allows), and
+  `finrank ℂ E = k + m`. For `G : V → W` between complex normed spaces
+  write `∂̄G x = (fderiv ℝ G x).comp (Complex.I • ContinuousLinearMap.id ℝ V)
+  - Complex.I • fderiv ℝ G x`, the defect of complex linearity of its
+  differential; the statements write this expression out and define no
+  new operator. `F^* J - i` of the book and `∂̄` of `Φ` read in holomorphic
+  charts of `M` control each other, with constants that depend on `dΦ` and
+  `dΦ⁻¹`.
+
+  *Route.* The book's Proposition 5.55 gives, for a totally real disc in
+  an almost complex manifold, an extension `Φ` of a parametrization with
+  `Φ^* J - i` vanishing to a prescribed order along the core, and the
+  proof of its Theorem 8.5 combines it with the margin of §4.7 through
+  the estimate (8.1) and the hypothesis (4.1) of Theorems 4.1 (iv) and
+  4.2 (iv). Here `J` is integrable, and the design follows that
+  proposition in this case, in two steps. (1) A first-order chart `Φ₀`
+  with `Φ₀ ∘ modelDisc k m = ι` and complex-linear differential along the
+  core, by Tau Ceti's extension with a prescribed differential. (2) The
+  correction to order `N` by almost holomorphic Taylor extension:
+  in the coordinates of `Φ₀` the core lies in the real points
+  `Re V = {Im z = 0, Im w = 0}`, a real subspace of dimension
+  `n = k + m`, totally real for `Φ₀^* J` near the core since
+  `Φ₀^* J = i` along the core; in a holomorphic chart `κ` of `M` the map
+  `h = κ ∘ Φ₀` restricted to `Re V` has the Taylor extension of order `N`,
+  whose `∂̄` vanishes to order `N` along `Re V`; pulled back by `h`, these
+  local extensions agree with each other to order `N + 1`, so a partition
+  of unity glues them in `V` into one map `G` with `G = id` on `Re V`,
+  and `Φ = Φ₀ ∘ G`. The disc is not moved: `Φ ∘ modelDisc k m = ι`
+  exactly, so every field of `IsJOrthogonallyAttached` holds for the
+  disc that the model is read along, and no approximation of `φ` or `ι`
+  is needed. The route of the proof of Proposition 8.12 (real analytic
+  approximation by Theorem 5.53 and complexification, Lemma 5.40) is not
+  taken: it moves the disc, so the equalities `eq_zero` and
+  `mvfderiv_I_smul_mfderiv` would have to be restored afterwards, and it
+  needs approximation results that neither library has.
+
+  *Comparison.* The Levi form of `u ∘ Φ⁻¹` is read in Tau Ceti's sense,
+  in charts of `M`, so it is the Euclidean Levi form of `u ∘ e⁻¹` for
+  `e = κ ∘ Φ`. With `ξ = de_p v`, `Re leviForm (u ∘ e⁻¹) (e p) ξ ξ` is
+  `(D²u(v, v) + D²u(Jv, Jv)) / 4` plus `Du` applied to
+  `(D²e⁻¹(ξ, ξ) + D²e⁻¹(iξ, iξ)) / 4`, where `J = de_p⁻¹ ∘ i ∘ de_p`.
+  The first part differs from `Re leviForm u p v v` by at most a constant
+  times `‖∂̄e p‖ ‖D²u p‖ ‖v‖²`; the vector in the second is
+  `i (D ∂̄e⁻¹)(ξ) ξ + (D ∂̄e⁻¹)(iξ) ξ`, which vanishes for holomorphic `e`
+  (Tau Ceti's `manifoldLeviForm_comp_apply`) and is bounded by
+  `‖∂̄e p‖ + ‖D (∂̄e) p‖` in general. So the error is first order in `∂̄e`
+  against `D²u` and `Du`; this is the role that the bound (4.1) on
+  `J - i` plays in the book. If `∂̄e` vanishes to order `N` along
+  `Re V`, the error is at most
+  `C * √(t p) ^ (N - 1) * max ‖D²u p‖ ‖Du p‖ * ‖v‖ ^ 2` on the handle, and
+  the margin `c * γ ^ N₀` of `exists_modelSurround_margin` absorbs it for
+  small `γ` as soon as `N₀ + 2 ≤ N`. Issue 14d chooses `N = N₀ + 2` after
+  issue 14d8 has fixed `N₀`.
+
+- `Surround/ComplexFrame.lean` (issue 14d9): complex frames along a
+  disc. `exists_complexFrame_mfderiv`: for `ι` a smooth embedding of
+  `EuclideanSpace ℝ (Fin k)` whose tangent images are totally real in the
+  weak sense, there is `A : ∀ x, V →L[ℝ] TangentSpace 𝓘(ℝ, E) (ι x)`,
+  smooth in tangent coordinates (`inTangentCoordinates`, as Tau Ceti's
+  `exists_partialDiffeomorph_mfderiv_eq` asks), with each `A x`
+  invertible, complex linear (`A x (Complex.I • v) = Complex.I • A x v`)
+  and `(A x).comp (mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin k)) 𝓘(ℝ, V)
+  (modelDisc k m) x) = mfderiv _ _ ι x`. On the first factor `A x` is the
+  complex-linear extension of `dι x`, injective by weak total reality;
+  the second factor needs a frame of a complex complement, which exists
+  because the base is contractible: Tau Ceti's
+  `ContMDiffAlmostComplexStructure.exists_continuous_frame` and
+  `exists_trivialization_baseSet_eq_univ_of_contractibleSpace` give it
+  continuously, and Mathlib's smoothing with values in convex sets
+  (`exists_contMDiffSection_forall_mem_convex_of_local`,
+  `Geometry/Manifold/PartitionOfUnity.lean`) makes it smooth, since
+  complex-linear maps with the prescribed restriction to the first
+  factor and close to a given one form a convex set, and invertibility
+  is open. The building issue checks this step first; if the complement
+  as a vector bundle costs more than the row allows, the row splits.
+
+- `Surround/AlmostHolomorphic.lean` (issues 14d11 and 14d12): almost
+  holomorphic extension, in Euclidean spaces. For a finite type `ι'`,
+  write `re z` and `im z` for the real and imaginary parts of
+  `z : EuclideanSpace ℂ ι'`, as points of `EuclideanSpace ℝ ι'`, and call
+  `z` real when `im z = 0`. Issue 14d13 applies these results to `V`
+  through the complex linear isometry of `V` with
+  `EuclideanSpace ℂ (Fin k ⊕ Fin m)`, under which the real points are
+  `{Im z = 0, Im w = 0}` and `‖im p‖ ≤ √(t p)`.
+  - `taylorExtension N f z = ∑ j ∈ Finset.range (N + 1),
+    (Complex.I ^ j / j.factorial) • iteratedFDeriv ℝ j f (re z) (fun _ ↦ im z)`
+    for `f : EuclideanSpace ℝ ι' → W`, `W` a complex normed space
+    (14d11), with `taylorExtension_def`, `taylorExtension_ofReal`
+    (it restricts to `f` on real points), `contDiff_taylorExtension`
+    (`C^r` for `f` of class `C^(r + N)`), and the formula of its defect:
+    for real directions `u`,
+    `∂̄ (taylorExtension N f) z u = -(Complex.I ^ (N + 1) / N.factorial) •
+    iteratedFDeriv ℝ (N + 1) f (re z) (Fin.cons u (fun _ ↦ im z))`,
+    the terms of lower order cancelling in pairs, and `∂̄` is
+    conjugate linear. Hence `norm_dbar_taylorExtension_le`: on
+    `{z | re z ∈ K}`, `K` compact, `‖∂̄ (taylorExtension N f) z‖ ≤
+    C * ‖im z‖ ^ N` and, for `1 ≤ N`, the same for its derivative with
+    `‖im z‖ ^ (N - 1)`. This is the almost analytic extension of a
+    smooth function, truncated at order `N`.
+  - (14d12) `norm_iteratedFDeriv_le_of_norm_dbar_le`: if
+    `D : EuclideanSpace ℂ ι' → W`
+    is `C^(N + 1)` on a neighbourhood `U` of a compact set of real points,
+    vanishes on the real points of `U`, and
+    `‖∂̄ D z‖ ≤ C * ‖im z‖ ^ N` on `U`, then
+    `iteratedFDeriv ℝ j D x = 0` for `j ≤ N` at those real points (the
+    derivatives in the imaginary directions are those in the real ones
+    turned by `i`, up to `∂̄ D`, so they vanish by induction on `j`), and
+    so, by Taylor's formula,
+    `‖iteratedFDeriv ℝ j D z‖ ≤ C' * ‖im z‖ ^ (N + 1 - j)` for
+    `j ≤ N + 1` near them. Applied to a difference, it says that two
+    maps with the same values on real points and `∂̄ = O(‖im z‖ ^ N)`
+    agree to order `N + 1`; by the chain rule, composing such a map with
+    a holomorphic one keeps `∂̄ = O(‖im z‖ ^ N)`.
+
+- `Surround/Chart.lean` (issues 14d10 and 14d13): the chart along the
+  disc.
+  - `exists_partialDiffeomorph_modelDisc` (14d10): for `ι` as in 14d9
+    and an open `O ⊇ range ι`, there is
+    `Φ₀ : PartialDiffeomorph 𝓘(ℝ, V) 𝓘(ℝ, E) V M ∞` with
+    `range (modelDisc k m) ⊆ Φ₀.source`, `Φ₀.target ⊆ O`,
+    `Φ₀ (modelDisc k m x) = ι x` and `mfderiv _ _ Φ₀ (modelDisc k m x) = A x`
+    (so complex linear) for all `x`. It is Tau Ceti's
+    `SmoothEmbedding.exists_partialDiffeomorph_mfderiv_eq` with
+    `i = modelDisc k m`, `g = ι` and the frame of 14d9, applied on an
+    open submanifold of `O` around `range ι` that is second countable
+    (countably many chart domains, `range ι` being σ-compact), since that
+    theorem asks for `SecondCountableTopology` and the statements above
+    do not.
+  - `exists_modelChart` (14d13; Proposition 5.55 for integrable `J`):
+    for `ι`, `O` as above and `N : ℕ`, there is `Φ` as in 14d10 (source,
+    target, `Φ ∘ modelDisc k m = ι`, differential complex linear along
+    `range (modelDisc k m)`) such that every point `p₀` of
+    `range (modelDisc k m)` has a neighbourhood `U ⊆ Φ.source`
+    and a constant `C` with, for `e = writtenInExtChartAt 𝓘(ℝ, V)
+    𝓘(ℝ, E) p₀ Φ` (the chart of `M` at `Φ p₀`, holomorphic) and all
+    `p ∈ U`, `‖∂̄e p‖ ≤ C * √(t p) ^ N` and
+    `‖fderiv ℝ (fun q ↦ ∂̄e q) p‖ ≤ C * √(t p) ^ (N - 1)`. The bound is
+    stated near each point of the core in one fixed chart because
+    `chartAt` need not vary continuously. Proof as in *Route* above:
+    the local maps `G = h⁻¹ ∘ taylorExtension N (h ∘ ofReal)`,
+    `h = κ ∘ Φ₀`, agree pairwise to order `N + 1` by
+    `norm_iteratedFDeriv_le_of_norm_dbar_le`, a smooth partition of
+    unity on `V` glues them to a `G` with `G = id` on real points and
+    differential the identity on the core, Tau Ceti's
+    `exists_partialDiffeomorph_near_section_of_isLocalDiffeomorphAt`
+    (or the inverse function theorem with injectivity near a compact
+    set) makes it a diffeomorphism near the core, and `Φ = Φ₀ ∘ G`.
+    `√(t p)` bounds `‖im p‖`, the distance to the real points.
+
+- `Surround/ChartLeviForm.lean` (issues 14d14 and 14d15): the
+  comparison.
+  - `re_leviForm_comp_symm_ge` (14d14): for complex normed spaces `V`,
+    `W` of finite dimension and every `K` there is `C` such that for
+    every `e : OpenPartialHomeomorph V W`, `p ∈ e.source` with `e` `C²` at `p`
+    and `e.symm` `C²` at `e p`, `‖fderiv ℝ e p‖ ≤ K`,
+    `‖fderiv ℝ e.symm (e p)‖ ≤ K`, `‖fderiv ℝ (fderiv ℝ e) p‖ ≤ K`,
+    every `u` `C²` at `p` and every `v`,
+    `(leviForm u p v v).re - C * (‖∂̄e p‖ * ‖fderiv ℝ (fderiv ℝ u) p‖ +
+    (‖∂̄e p‖ + ‖fderiv ℝ (fun q ↦ ∂̄e q) p‖) * ‖fderiv ℝ u p‖) * ‖v‖ ^ 2 ≤
+    (leviForm (u ∘ e.symm) (e p) (fderiv ℝ e p v) (fderiv ℝ e p v)).re`,
+    with Tau Ceti's `leviForm` (`Analysis/Complex/LeviForm/Basic.lean`).
+    The proof is the computation of *Comparison*; it is the
+    counterpart, for `e` not holomorphic, of Tau Ceti's
+    `leviForm_comp_symm_apply_of_mem_maximalAtlas`.
+  - `isManifoldStrictlyPlurisubharmonicAt_comp_modelChart_symm` (14d15;
+    the book's (8.1) with Theorem 4.2 (iv)): let `Φ` be as in
+    `exists_modelChart` for some `N`, and `c > 0`, `N₀ : ℕ` with
+    `N₀ + 2 ≤ N`. There is `γ₀ ∈ Ioc 0 1` such that for every
+    `γ ∈ Ioo 0 γ₀` the handle `{p | t p ≤ γ ^ 2 ∧ s p ≤ (1 + γ) ^ 2}` lies in
+    `Φ.source`, and for every `u : V → ℝ` that is `C²` and, at each
+    point `p` of the handle, `IsStrictlyPlurisubharmonicAt u p` with
+    `c * γ ^ N₀ * max ‖fderiv ℝ (fderiv ℝ u) p‖ ‖fderiv ℝ u p‖ * ‖v‖ ^ 2 ≤
+    (leviForm u p v v).re` for all `v`, the function `u ∘ Φ.symm` is
+    `IsManifoldStrictlyPlurisubharmonicAt E (u ∘ Φ.symm) (Φ p)` at each
+    point `p` of the handle. Strict plurisubharmonicity of `u` makes
+    `D²u p ≠ 0`, so the margin is positive. The handles shrink to the
+    compact `modelDisc k m '' closedBall 0 1` as `γ → 0`, so for small
+    `γ` finitely many of the neighbourhoods of `exists_modelChart` cover
+    them, which gives one `C` and one `K`; the error of 14d14 is then
+    at most `C * γ ^ (N - 1)` times the maximum, below the margin for
+    small `γ`. Read in `M`'s charts with
+    `isManifoldStrictlyPlurisubharmonicAt_iff_of_mem_maximalAtlas`.
+    With `u = g ∘ Ψ` of `exists_modelSurround_margin` this is the step
+    of issue 14d that carries the model to `M`; the statement takes the
+    margin as a hypothesis, so it does not depend on issue 14d8.
 
 - `Surround/Basic.lean` (issues 14d and 14e): issue 14d proves
   `IsJOrthogonallyAttached.exists_surround`, following
@@ -849,8 +1041,8 @@ containing `ι '' closedBall 0 1`:
   issue 14d does not fit in 500 lines, it begins by extending this section
   with its lemma list. Issue 14d cites the theorem it follows by number.
 
-Expected sizes: 300 lines for each of issues 14a and 14b, 400 for 14c
-and for each of issues 14d1–14d8,
+Expected sizes: 300 lines for each of issues 14a and 14b, 400 for 14c,
+the sizes of the table below for the numbered parts of 14d,
 500 for 14d and 400 for 14e.
 
 ### `Geometry/Symplectic/Weinstein/Handle/`
@@ -1034,6 +1226,13 @@ In this order; each is blocked by the ones listed. All are parts of
 | 14d6 | Foliations by shapes and their level functions | `JConvex/Surround/ShapeFoliation.lean`, `JConvex/Hypersurface.lean` | 14d2 | 400 |
 | 14d7 | The model handle: Theorem 4.2 (i)–(iii), Corollaries 4.3 and 4.4 | `JConvex/Surround/ModelHandle.lean` | 14d5, 14d6 | 400 |
 | 14d8 | The margin of the model handle (§4.7) | `JConvex/Surround/ModelMargin.lean` | 14d7 | 400 |
+| 14d9 | Complex frames along a totally real disc | `JConvex/Surround/ComplexFrame.lean` | 14c | 300 |
+| 14d10 | The first-order chart along a disc | `JConvex/Surround/Chart.lean` | 14d9 | 250 |
+| 14d11 | Almost holomorphic Taylor extensions | `JConvex/Surround/AlmostHolomorphic.lean` | 13 | 350 |
+| 14d12 | Maps with small $\bar\partial$ that vanish on the real points | `JConvex/Surround/AlmostHolomorphic.lean` | 14d11 | 350 |
+| 14d13 | The chart of order $N$ along a disc (Proposition 5.55) | `JConvex/Surround/Chart.lean` | 14d10, 14d12 | 400 |
+| 14d14 | The Levi form through a chart that is not holomorphic | `JConvex/Surround/ChartLeviForm.lean` | 13 | 300 |
+| 14d15 | Margins carried to the manifold by the chart | `JConvex/Surround/ChartLeviForm.lean` | 14d13, 14d14 | 300 |
 | 14d | The $J$-convex surrounding of an attached disc | `JConvex/Surround/Basic.lean` | 14a, 14b, 14c | 500 |
 | 14e | The surrounding with one new critical point | `JConvex/Surround/Basic.lean` | 14d | 400 |
 | 15 | Weinstein cobordisms and stable discs | `Handle/Cobordism.lean` | 7 | 450 |
