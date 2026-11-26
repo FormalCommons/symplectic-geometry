@@ -62,30 +62,6 @@ private theorem blowupModelChart_image_exceptionalDivisor_subset (i : Fin (n + 1
   rintro _ ⟨p, hp, rfl⟩
   simp [(mem_exceptionalDivisor_iff).1 hp]
 
-/-- The part of the exceptional divisor in the source of the chart at a point is null for the
-Liouville measure of every two-form. -/
-private theorem liouvilleMeasure_exceptionalDivisor_inter_chartAt_source
-    [Fact (finrank ℝ (Fin (n + 1) → ℂ) = 2 * m)] [MeasurableSpace (BlowupModel n)]
-    [BorelSpace (BlowupModel n)] (σ : SmoothTwoForm 𝓘(ℝ, Fin (n + 1) → ℂ) (BlowupModel n))
-    (p : BlowupModel n) :
-    σ.liouvilleMeasure m (exceptionalDivisor n ∩ (chartAt (Fin (n + 1) → ℂ) p).source) = 0 := by
-  let : MeasurableSpace (Fin (n + 1) → ℂ) := borel _
-  have : BorelSpace (Fin (n + 1) → ℂ) := ⟨rfl⟩
-  rw [SmoothTwoForm.liouvilleMeasure_apply_of_subset (α := p)
-    (isClosed_exceptionalDivisor.measurableSet.inter
-      (chartAt (Fin (n + 1) → ℂ) p).open_source.measurableSet)
-    (by rw [extChartAt_source]; exact inter_subset_right)]
-  refine setLIntegral_measure_zero _ _ (measure_mono_null ?_
-    (Measure.addHaar_submodule _ (LinearMap.ker (LinearMap.proj (R := ℝ)
-      (φ := fun _ : Fin (n + 1) ↦ ℂ) (exists_mem_affineOpen p.pr).choose)) ?_))
-  · rw [extChartAt_coe, modelWithCornersSelf_coe, Function.id_comp, chartAt_eq]
-    exact (image_mono inter_subset_left).trans (blowupModelChart_image_exceptionalDivisor_subset _)
-  · intro h
-    have : Pi.single (exists_mem_affineOpen p.pr).choose (1 : ℂ) ∈
-        LinearMap.ker (LinearMap.proj (R := ℝ) (φ := fun _ : Fin (n + 1) ↦ ℂ)
-          (exists_mem_affineOpen p.pr).choose) := h ▸ Submodule.mem_top
-    simp at this
-
 variable [Fact (finrank ℝ (Fin (n + 1) → ℂ) = 2 * m)]
   [MeasurableSpace (BlowupModel n)] [BorelSpace (BlowupModel n)]
 
@@ -94,17 +70,19 @@ exceptional divisor `Z` has Liouville measure zero. -/
 theorem liouvilleMeasure_exceptionalDivisor
     (σ : SmoothTwoForm 𝓘(ℝ, Fin (n + 1) → ℂ) (BlowupModel n)) :
     σ.liouvilleMeasure m (exceptionalDivisor n) = 0 := by
-  -- The charts at the points of `Z` are among the finitely many charts `blowupModelChart i`.
-  have hcover : exceptionalDivisor n ⊆ ⋃ (i : Fin (n + 1))
-      (_ : ∃ p ∈ exceptionalDivisor n, chartAt (Fin (n + 1) → ℂ) p = blowupModelChart i),
-      exceptionalDivisor n ∩ (blowupModelChart i).source := by
-    intro p hp
-    simp only [mem_iUnion]
-    exact ⟨_, ⟨p, hp, chartAt_eq p⟩, hp, chartAt_eq p ▸ mem_chart_source _ p⟩
-  refine measure_mono_null hcover (measure_iUnion_null fun i ↦ measure_iUnion_null ?_)
-  rintro ⟨p, -, hp⟩
-  rw [← hp]
-  exact liouvilleMeasure_exceptionalDivisor_inter_chartAt_source σ p
+  let : MeasurableSpace (Fin (n + 1) → ℂ) := borel _
+  have : BorelSpace (Fin (n + 1) → ℂ) := ⟨rfl⟩
+  -- In every chart, `Z` lies in a hyperplane, which is null for every Haar measure.
+  refine IsNullSet.liouvilleMeasure_eq_zero ((isNullSet_iff _ _).2 fun p μ _ ↦ ?_) σ
+  refine measure_mono_null ?_ (Measure.addHaar_submodule μ (LinearMap.ker (LinearMap.proj (R := ℝ)
+    (φ := fun _ : Fin (n + 1) ↦ ℂ) (exists_mem_affineOpen p.pr).choose)) ?_)
+  · rw [extChartAt_coe, modelWithCornersSelf_coe, Function.id_comp, chartAt_eq]
+    exact (image_mono inter_subset_left).trans (blowupModelChart_image_exceptionalDivisor_subset _)
+  · intro h
+    have : Pi.single (exists_mem_affineOpen p.pr).choose (1 : ℂ) ∈
+        LinearMap.ker (LinearMap.proj (R := ℝ) (φ := fun _ : Fin (n + 1) ↦ ℂ)
+          (exists_mem_affineOpen p.pr).choose) := h ▸ Submodule.mem_top
+    simp at this
 
 end BlowupModel
 
