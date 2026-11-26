@@ -7,9 +7,11 @@ module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Basic
-public import SymplecticGeometry.Analysis.Normed.Module.Alternating.AppendLeft
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Basic
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegral.Product.Coefficient
+public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
+public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.TopForm
+import SymplecticGeometry.Analysis.Normed.Module.Alternating.AppendLeft
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegral.Product.Coefficient
 import TauCeti.Geometry.Manifold.ContMDiff.ContinuousAlternatingMap
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Regularity
 import TauCeti.Geometry.Manifold.VectorBundle.Trivialization

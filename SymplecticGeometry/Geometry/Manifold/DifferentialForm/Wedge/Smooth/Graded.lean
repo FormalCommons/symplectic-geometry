@@ -6,9 +6,11 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Algebra.DirectSum.Algebra
-public import SymplecticGeometry.Algebra.GradedMonoid
 public import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Pow
+public import Mathlib.Geometry.Manifold.Algebra.SmoothFunctions
+public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Pow
+import SymplecticGeometry.Algebra.GradedMonoid
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Pow
 import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Assoc
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth

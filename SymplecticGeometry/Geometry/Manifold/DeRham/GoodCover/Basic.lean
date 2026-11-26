@@ -8,8 +8,8 @@ module
 public import Mathlib.Analysis.Convex.Star
 public import Mathlib.Geometry.Manifold.Diffeomorph
 public import Mathlib.Geometry.Manifold.Instances.Icc
-public import SymplecticGeometry.Geometry.Manifold.ContMDiff.LineMap
-public import SymplecticGeometry.Topology.Sets.Opens.Comap
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.LineMap
+import SymplecticGeometry.Topology.Sets.Opens.Comap
 
 /-!
 # Smoothly contractible manifolds and finite good covers

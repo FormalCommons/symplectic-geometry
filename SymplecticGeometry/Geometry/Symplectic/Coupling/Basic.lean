@@ -6,7 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Instances.Icc
-public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Circle
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.RealChernClass
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.Circle
@@ -14,6 +13,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
 public import TauCeti.Geometry.Manifold.DifferentialForm.Interior
 public import TauCeti.Geometry.Manifold.TwoForm.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
+import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Circle
 import Mathlib.Tactic.Module
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.HomotopyOperator
 import SymplecticGeometry.Geometry.Manifold.Instances.Icc

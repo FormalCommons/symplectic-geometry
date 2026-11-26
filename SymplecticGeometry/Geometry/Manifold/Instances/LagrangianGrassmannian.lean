@@ -7,9 +7,9 @@ module
 
 public import Mathlib.Analysis.CStarAlgebra.Matrix
 public import Mathlib.Geometry.Manifold.IsManifold.Basic
-public import SymplecticGeometry.LinearAlgebra.Matrix.SelfAdjoint
 public import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Graph
 public import TauCeti.Analysis.Calculus.ContDiff.Star
+import SymplecticGeometry.LinearAlgebra.Matrix.SelfAdjoint
 import TauCeti.Analysis.Calculus.ContinuousLinearMapInverse
 
 /-!

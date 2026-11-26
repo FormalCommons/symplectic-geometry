@@ -6,21 +6,22 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.CircleConnection
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.CovariantDerivative.OfLocal
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.Power.Basic
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.LocalSection
-public import SymplecticGeometry.Topology.FiberBundle.Associated.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.LocalFrame
 public import TauCeti.Geometry.Manifold.FiberBundle.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Smooth
 public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Basic
 public import Mathlib.Geometry.Manifold.VectorBundle.CovariantDerivative.Metric
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.Curvature.Basic
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.CovariantDerivative.OfLocal
+import SymplecticGeometry.Topology.FiberBundle.Associated.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Basic
 import SymplecticGeometry.Geometry.Manifold.DeRham.Circle
 import TauCeti.Geometry.Manifold.MFDeriv.Inner
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.NormedSpace
+import TauCeti.Geometry.Manifold.DifferentialForm.VectorField
 
 /-!
 # The connection on the powers of a principal circle bundle

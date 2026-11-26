@@ -5,8 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.LocalFrame
+public import Mathlib.Geometry.Manifold.VectorBundle.LocalFrame
+public import Mathlib.Analysis.InnerProductSpace.Basic
+import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.LocalFrame
 
 /-!
 # Smooth vector bundles over the line are trivial

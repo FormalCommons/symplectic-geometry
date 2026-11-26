@@ -5,8 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.FirstJet.Linearization
 public import TauCeti.Geometry.Manifold.VectorBundle.FirstJet.Connection
+public import TauCeti.Geometry.Manifold.VectorBundle.Section.Linearization
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.FirstJet.Linearization
 
 /-!
 # Covariant derivatives at a zero of a section

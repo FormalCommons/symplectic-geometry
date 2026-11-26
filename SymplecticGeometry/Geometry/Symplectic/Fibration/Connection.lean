@@ -5,13 +5,13 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.FiberBundle.StructureGroup
 public import SymplecticGeometry.Geometry.Symplectic.Fibration.HorizontalDistribution
 public import SymplecticGeometry.Geometry.Manifold.Submersion.ParallelTransport.Smooth
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 public import TauCeti.Geometry.Manifold.TwoForm.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Flow.TimeDependent
+import SymplecticGeometry.Geometry.Manifold.FiberBundle.StructureGroup
 
 /-!
 # Symplectic connections

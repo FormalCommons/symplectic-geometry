@@ -7,8 +7,8 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.Circle
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.WeightModel.NormalForm
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import TauCeti.Geometry.Symplectic.Hamiltonian.WeightModel.NormalForm
+import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 import Mathlib.Analysis.Calculus.Deriv.Prod
 import Mathlib.LinearAlgebra.QuadraticForm.Signature
 import SymplecticGeometry.Geometry.Manifold.GroupAction.FixedPoints

@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Calculus.ContDiff.Operations
-public import SymplecticGeometry.Algebra.BigOperators.Module
+import SymplecticGeometry.Algebra.BigOperators.Module
 
 /-!
 # Gluing a finite chain of maps by scalar cutoffs

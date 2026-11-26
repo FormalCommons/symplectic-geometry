@@ -5,17 +5,17 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Complex.Circle
-public import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
-public import SymplecticGeometry.Geometry.Manifold.Flow.Basic
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.RegularLevel
-public import SymplecticGeometry.Geometry.Manifold.GroupAction.TranslatingField
 public import SymplecticGeometry.Geometry.Symplectic.Coupling.Basic
-public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Circle
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
-public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Reduction.Circle
-public import SymplecticGeometry.GroupTheory.GroupAction.FixedPoints
+import SymplecticGeometry.Analysis.Complex.Circle
+import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
+import SymplecticGeometry.Geometry.Manifold.Flow.Basic
+import SymplecticGeometry.Geometry.Manifold.GroupAction.TranslatingField
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Circle
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Reduction.Circle
+import SymplecticGeometry.GroupTheory.GroupAction.FixedPoints
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 
 /-!

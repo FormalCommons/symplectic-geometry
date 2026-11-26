@@ -5,11 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.CStarAlgebra.Matrix
 public import SymplecticGeometry.LinearAlgebra.ComplexStructure.Action
-public import SymplecticGeometry.LinearAlgebra.Matrix.NonsingularInverse
 public import TauCeti.Geometry.Symplectic.AlmostComplex.Topology
 public import TauCeti.Topology.Algebra.Star.Unitary
+import SymplecticGeometry.Analysis.CStarAlgebra.Matrix
+import SymplecticGeometry.LinearAlgebra.Matrix.NonsingularInverse
+import SymplecticGeometry.Algebra.Ring.Units
 
 /-!
 # The space of linear complex structures

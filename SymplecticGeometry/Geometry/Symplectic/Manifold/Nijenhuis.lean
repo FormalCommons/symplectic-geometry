@@ -7,10 +7,10 @@ module
 
 public import Mathlib.Geometry.Manifold.VectorBundle.CovariantDerivative.Torsion
 public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Covariant
 public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.ComplexStructure
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Eigenbundle.Involutive
 public import TauCeti.Geometry.Symplectic.Manifold.Surface
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Covariant
 import TauCeti.Geometry.Manifold.VectorField.Related
 
 /-!

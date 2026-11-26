@@ -5,11 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Data.Bundle
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hom
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Prod
 public import TauCeti.Topology.Algebra.Module.ComplexSmulI
-public import SymplecticGeometry.Topology.VectorBundle.Pullback
 public import TauCeti.Geometry.Manifold.VectorBundle.Complexification
 public import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.FrameCover
@@ -18,6 +14,10 @@ public import TauCeti.Geometry.Symplectic.Prod.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.ComplexTangentBundle
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Topology
 public import TauCeti.Topology.VectorBundle.Complex.Structure
+import SymplecticGeometry.Data.Bundle
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hom
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Prod
+import SymplecticGeometry.Topology.VectorBundle.Pullback
 import TauCeti.Geometry.Symplectic.Finrank
 import TauCeti.Topology.FiberBundle.Pullback
 

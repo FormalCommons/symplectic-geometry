@@ -10,6 +10,8 @@ public import SymplecticGeometry.Topology.FiberBundle.Basic
 import Mathlib.Topology.Connected.Clopen
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.MapFiber
+import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
+import SymplecticGeometry.Algebra.Order.Monoid.NatCast
 
 /-!
 # Parallel transport as a flow, as a diffeomorphism, in families of curves and in trivializations

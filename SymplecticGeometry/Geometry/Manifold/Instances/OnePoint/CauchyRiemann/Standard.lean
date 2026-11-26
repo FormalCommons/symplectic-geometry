@@ -5,11 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Basic
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Sobolev
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.LineBundle.Sections
 public import Mathlib.Analysis.Normed.Operator.Fredholm.Basic
 public import TauCeti.Topology.Algebra.Module.ContinuousLinearMap.Index
+import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Basic
 import Mathlib.Geometry.Manifold.PartitionOfUnity
 import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.Dolbeault
 import TauCeti.Geometry.Manifold.ContMDiff.RestrictScalars

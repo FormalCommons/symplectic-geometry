@@ -17,6 +17,7 @@ import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens.PartialDiffeomorph
 import TauCeti.Geometry.Symplectic.Manifold.NeighborhoodGerm
 import TauCeti.Geometry.Symplectic.Manifold.Opens
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 
 /-!
 # The blowup of weight `λ` along a symplectic ball
