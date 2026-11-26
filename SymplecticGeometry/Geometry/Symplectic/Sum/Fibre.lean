@@ -343,8 +343,7 @@ private theorem isClosed_range_collarMap_prod :
   have hK : IsCompact (univ ×ˢ Complex.closedAnnulus δ ε) :=
     (isCompact_univ (X := Q)).prod (Complex.isCompact_closedAnnulus δ ε)
   obtain ⟨⟨q, z⟩, ⟨-, hz⟩, hc⟩ := hK (f := map ν F) (le_principal_iff.2 <| mem_map.2 <|
-    univ_mem' fun p ↦ ⟨mem_univ _, Complex.mem_closedAnnulus.2
-      ⟨(mem_annulus.1 p.2.property).1.le, (mem_annulus.1 p.2.property).2.le⟩⟩)
+    univ_mem' fun p ↦ ⟨mem_univ _, Complex.annulus_subset_closedAnnulus p.2.property⟩)
   obtain ⟨hz₁, hz₂⟩ := Complex.mem_closedAnnulus.1 hz
   rcases hz₁.eq_or_lt with hz₁ | hz₁
   · -- At radius `δ`, the first component would lie in the tube removed from `M₁`.

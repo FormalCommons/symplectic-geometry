@@ -20,6 +20,7 @@ import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.ChartCover
 import SymplecticGeometry.Geometry.Manifold.PartitionOfUnity
 import SymplecticGeometry.Geometry.Manifold.Riemannian.PartialDiffeomorph
 import TauCeti.Analysis.Calculus.BumpFunction.Cutoff
+import TauCeti.Analysis.Calculus.FDeriv.Const
 import TauCeti.MeasureTheory.Function.LocallyIntegrable
 
 /-!
@@ -210,14 +211,11 @@ private theorem localize_hodgeLaplacian_extendByZeroAlong (o : Manifold.Orientat
   -- Off the support of `a`, the operator vanishes.
   have hP : Function.support P ⊆ tsupport a := fun y hPy ↦ by
     by_contra hy
-    have h0 : a =ᶠ[𝓝 y] 0 := notMem_tsupport_iff_eventuallyEq.1 hy
-    have h1 : ∀ᶠ z in 𝓝 y, fderiv ℝ a z = 0 := h0.eventually_nhds.mono fun z (hz : a =ᶠ[𝓝 z] 0) ↦ by
-      rw [hz.fderiv_eq, fderiv_zero, Pi.zero_apply]
-    have h2 (i : Fin m) : fderiv ℝ (fun z ↦ fderiv ℝ a z (b i)) y = 0 := by
-      have h3 : (fun z ↦ fderiv ℝ a z (b i)) =ᶠ[𝓝 y] fun _ ↦ 0 :=
-        Filter.Eventually.mono h1 fun z hz ↦ by simp [hz]
-      rw [Filter.EventuallyEq.fderiv_eq h3, fderiv_const_apply]
-    exact hPy (by simp [P, h2, h1.self_of_nhds, h0.self_of_nhds])
+    have hU : IsOpen (tsupport a)ᶜ := (isClosed_tsupport a).isOpen_compl
+    have h0 : Set.EqOn a (fun _ ↦ 0) (tsupport a)ᶜ := fun _ hz ↦
+      image_eq_zero_of_notMem_tsupport hz
+    exact hPy (by simp [P, TauCeti.fderiv_fderiv_apply_eq_zero_of_eqOn_const ℝ hU h0 hy,
+      TauCeti.fderiv_eq_zero_of_eqOn_const ℝ hU h0 hy, image_eq_zero_of_notMem_tsupport hy])
   -- On the target, the reading of `φ` agrees with `a` near every point.
   have hφa (y : E) (hy : y ∈ ψ.target) :
       (mpullback 𝓘(ℝ, E) I ψ.symm φ.val : E → E [⋀^Fin k]→L[ℝ] ℝ) =ᶠ[𝓝 y] a :=

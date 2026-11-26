@@ -13,7 +13,8 @@ public import Mathlib.Analysis.Normed.Group.Constructions
 Mathlib bounds the sup norm of a finite product from above by its coordinates
 (`pi_norm_le_iff_of_nonneg`). This file adds a lower bound in the same spirit: if each coordinate
 of `b` has norm at least `min ‖a i‖ c`, then `‖b‖ ≥ min ‖a‖ c`
-(`min_norm_le_pi_norm_of_forall`).
+(`min_norm_le_pi_norm_of_forall`). It also computes the sup norm over an index type with one
+element (`Pi.norm_eq_norm_default`).
 -/
 
 public section
@@ -33,5 +34,11 @@ theorem min_norm_le_pi_norm_of_forall {ι : Type*} [Fintype ι] {E F : ι → Ty
     · exact h'.trans (norm_le_pi_norm b i)
     · exact absurd hi h'.not_gt
   exact this.not_gt (hb.trans_le (min_le_left _ _))
+
+/-- Over an index type with a single element, the sup norm of `x` is the norm of its one
+coordinate. -/
+theorem Pi.norm_eq_norm_default {ι : Type*} [Fintype ι] [Unique ι] {E : ι → Type*}
+    [∀ i, SeminormedAddGroup (E i)] (x : ∀ i, E i) : ‖x‖ = ‖x default‖ := by
+  simp [Pi.norm_def, Finset.univ_unique]
 
 end

@@ -689,23 +689,22 @@ private theorem mpullback_prodMk_zero_timeInterior_apply (hε : 0 < ε)
       (mpullback (stripChart hε) (contMDiff_stripChart hε) σ).timeInterior).val y ![w] =
       2 * ε / Real.pi * σ.bilinFormAt (symmStripMk (abs_zero.trans_lt hε) y)
         ((1 : ℝ), (0 : E)) ((0 : ℝ), w) := by
-  rw [mpullback_apply, coe_timeInterior]
+  rw [mpullback_apply_one, coe_timeInterior]
   refine (RoughForm.interior_apply _ _ _ _).trans ?_
-  rw [mpullback_apply]
-  have hv : (fun i ↦ mfderiv (𝓘(ℝ).prod I) (𝓘(ℝ).prod I) (stripChart hε) ((0 : ℝ), y)
-      (Matrix.vecCons ((1 : ℝ), (0 : E))
-        (fun i ↦ mfderiv I (𝓘(ℝ).prod I) (Prod.mk (0 : ℝ)) y (![w] i)) i)) =
-      ![(2 * ε / Real.pi) • ((1 : ℝ), (0 : E)), ((0 : ℝ), w)] := by
-    -- The closing `rfl`s identify the tangent vectors of the strip with elements of `ℝ × E`.
-    funext i
-    fin_cases i
-    · simp only [Fin.zero_eta, Fin.isValue, Matrix.cons_val_zero, Prod.smul_mk, smul_eq_mul,
-        smul_zero]
-      exact (mfderiv_stripChart_apply hε y 1 0).trans (by rw [mul_one]; rfl)
-    · simp only [Fin.mk_one, Fin.isValue, Matrix.cons_val_one, Matrix.cons_val_fin_one,
-        mfderiv_prodMk_right_apply]
-      exact (mfderiv_stripChart_apply hε y 0 w).trans (by rw [mul_zero]; rfl)
-  rw [hv, stripChart_zero]
+  have h₁ : mfderiv (𝓘(ℝ).prod I) (𝓘(ℝ).prod I) (stripChart hε) ((0 : ℝ), y)
+      ((1 : ℝ), (0 : E)) = (2 * ε / Real.pi) • ((1 : ℝ), (0 : E)) := by
+    rw [Prod.smul_mk, smul_eq_mul, smul_zero]
+    -- The closing `rfl` identifies a tangent vector of the strip with an element of `ℝ × E`.
+    exact (mfderiv_stripChart_apply hε y 1 0).trans (by rw [mul_one]; rfl)
+  have h₂ : mfderiv (𝓘(ℝ).prod I) (𝓘(ℝ).prod I) (stripChart hε) ((0 : ℝ), y)
+      (mfderiv I (𝓘(ℝ).prod I) (Prod.mk (0 : ℝ)) y w) = ((0 : ℝ), w) := by
+    rw [mfderiv_prodMk_right_apply]
+    exact (mfderiv_stripChart_apply hε y 0 w).trans (by rw [mul_zero])
+  -- `(1, 0)` is a vector of `ℝ × E` rather than of a tangent space, so the evaluation lemma is
+  -- applied by unification rather than by `rw`.
+  rw [coe_mpullback]
+  refine (TauCeti.mpullback_apply_pair _ _ _ ((1 : ℝ), (0 : E)) _).trans ?_
+  rw [h₁, h₂, stripChart_zero]
   have h := (σ.bilinFormAt_apply (symmStripMk (abs_zero.trans_lt hε) y)
     ((2 * ε / Real.pi) • ((1 : ℝ), (0 : E))) ((0 : ℝ), w)).trans
     (SmoothBundleForm.eval₂_apply _ _ _ _)
@@ -738,15 +737,13 @@ theorem coe_zeroSliceOneForm (hε : 0 < ε) (σ : SmoothTwoForm (𝓘(ℝ).prod 
   funext x
   refine ContinuousAlternatingMap.ext_fin_one fun w ↦ ?_
   rw [zeroSliceOneForm_apply, Pi.neg_apply, ContinuousAlternatingMap.neg_apply,
-    TauCeti.mpullback_apply]
+    TauCeti.mpullback_apply_one]
   refine congrArg Neg.neg (((σ.bilinFormAt_apply _ _ _).trans
     (SmoothBundleForm.eval₂_apply _ _ _ _)).trans
       (Eq.trans ?_ (RoughForm.interior_apply _ _ _ _).symm))
-  congr 1
-  funext i
-  fin_cases i
-  · rfl
-  · exact (mfderiv_symmStripMk_apply _ _ _).symm
+  rw [mfderiv_symmStripMk_apply]
+  -- The two sides list the same vectors, once as elements of `ℝ × E` and once as tangent vectors.
+  rfl
 
 /-- **Along the zero slice, a two-form on the strip agrees with the stable Hamiltonian model** of
 its zero slice `Ω₀` and of `λ₀ = -ι₀^*(ι_{∂_r} σ)`: at every point `(0, x)`, on the whole tangent

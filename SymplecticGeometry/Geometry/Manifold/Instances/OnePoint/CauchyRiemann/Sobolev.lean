@@ -19,10 +19,12 @@ import SymplecticGeometry.Analysis.Normed.Operator.ComplexLinearPart
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.ZeroOnePart
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Tames
 import TauCeti.Analysis.Calculus.BumpFunction.Cutoff
+import TauCeti.Analysis.Normed.Operator.Compact.Estimate
 import TauCeti.Analysis.Sobolev.Local.Norm.ContDiff
 import TauCeti.Geometry.Manifold.ContMDiffMap.Extension
 import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.ContMDiffSection
 import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.Density
+import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.Rellich
 import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.SMul
 
 /-!
@@ -122,6 +124,16 @@ does not apply to `D_J`, and the estimate is proved here.
   (`TauCeti.eLpNormWkp_eq_sum_eLpNorm_iteratedFDeriv`). In between stands the chart estimate
   above. This proves the estimate for the Sobolev sections of smooth sections, and
   their density (`TauCeti.SobolevSection.dense_ofContMDiffSection_contMDiff`) gives it for all.
+* `SymplecticGeometry.exists_compact_estimate_twistOneDelBarSobolev`: the same estimate with a
+  compact error term. There are `C` and a compact operator
+  `K : W^{k+1,2}(𝒪(1)) →L[ℝ] W^{k,2}(𝒪(1))` with `‖w‖ ≤ C ‖D_J w‖ + ‖K w‖` for every `w`. It
+  follows from the a priori estimate and Rellich's theorem
+  `TauCeti.SobolevSection.isCompactOperator_lowerOrderL`.
+* `SymplecticGeometry.isClosed_range_twistOneDelBarSobolev` and
+  `SymplecticGeometry.finiteDimensional_ker_twistOneDelBarSobolev`: for `J` tamed together with
+  `i` by a two-form, `D_J` has closed range and finite-dimensional kernel at every order, by
+  Peetre's lemma `ContinuousLinearMap.isClosed_range_of_compact_estimate` and
+  `ContinuousLinearMap.finiteDimensional_ker_of_compact_estimate`.
 
 The proof of `exists_coord_zeroOnePart_twistOneDelBar_apply` adapts those of Tau Ceti's
 `TauCeti.FiniteBundleAtlas.coord_tangentHom_eq_complexAntilinearPartL_fderiv_add_chartZeroOrder`
@@ -139,7 +151,14 @@ its steps `exists_norm_contMDiffSMulL_component_le` and
 `norm_contMDiffSMulL_le_of_component_le`
 (`TauCeti/Geometry/Manifold/VectorBundle/Sobolev/CauchyRiemann/HigherOrder/Estimate.lean`), to
 `D_J`, and follows its steps: the partition of unity, the cutoffs equal to one on its supports,
-the comparison of chart components with `W^{k,p}` norms of readings, and density.
+the comparison of chart components with `W^{k,p}` norms of readings, and density. The proofs of
+`exists_compact_estimate_twistOneDelBarSobolev`,
+`isClosed_range_twistOneDelBarSobolev` and `finiteDimensional_ker_twistOneDelBarSobolev` adapt
+those of Tau Ceti's `TauCeti.IsRealCauchyRiemannOperator.exists_compact_estimate_sobolevL`,
+`TauCeti.IsRealCauchyRiemannOperator.isClosed_range_sobolevL` and
+`TauCeti.IsRealCauchyRiemannOperator.finiteDimensional_ker_sobolevL`
+(`TauCeti/Geometry/Manifold/VectorBundle/Sobolev/CauchyRiemann/SemiFredholm.lean`) to `D_J` at
+every order.
 
 ## References
 
@@ -356,7 +375,7 @@ theorem exists_coord_zeroOnePart_twistOneDelBar_apply
     simp only [hμ, div_eq_mul_inv]
     exact (hK1s.sub contDiffOn_const).mul (((hconj hK1s).sub contDiffOn_const).inv hden)
   have hcl : closure (A.image i : Set ℂ) ⊆ U :=
-    (A.closure_image_subset_chart_image_closure_dom i).trans (A.chart_image_closure_dom_subset i)
+    A.closure_image_subset_target_inter_preimage_baseSet i
   refine ⟨U, (A.chart i).isOpen_inter_preimage_symm (A.triv i).open_baseSet, hcl, c₂, μ, Z, hc₂s,
     hμs, hc₂s.mul ((hGs.complexAntilinearPart_apply 1).add (hμs.mul
       (hGs.complexLinearPart_apply 1))), fun z hz ↦ mul_ne_zero (inv_ne_zero two_ne_zero)
@@ -591,7 +610,7 @@ theorem exists_sum_eLpNorm_iteratedFDeriv_coord_smul_le
   have hu : ContDiffOn ℝ ∞ (A.coord i s) (A.image i) :=
     ((contDiffOn_trivialization_comp_chart_symm_of_contMDiff hs
       (IsManifold.chart_mem_maximalAtlas _) (A.triv i)).congr fun y _ ↦ A.coord_def i s y).mono
-        ((A.image_subset_chart_image_closure_dom i).trans (A.chart_image_closure_dom_subset i))
+        (A.image_subset_target_inter_preimage_baseSet i)
   have hcw : EqOn (A.coord i fun x ↦ χ x • s x) (fun z ↦ χ' z • A.coord i s z) (A.image i) :=
     fun z hz ↦ (A.coord_fun_smul i χ s hz).trans (Complex.coe_smul _ _).symm
   refine le_of_eq_of_le (Finset.sum_congr rfl fun j _ ↦
@@ -638,8 +657,7 @@ private theorem exists_norm_contMDiffSMulL_component_le
   set g := (twistCoreAtlas 1).coord i fun x ↦ χ x • s x
   set u := (twistCoreAtlas 1).coord i s
   set θ := (twistCoreAtlas 1).tangentHom.coord i fun x ↦ 𝒊.zeroOnePart (twistOneDelBar J s x)
-  have hsub := ((twistCoreAtlas 1).image_subset_chart_image_closure_dom i).trans
-    ((twistCoreAtlas 1).chart_image_closure_dom_subset i)
+  have hsub := (twistCoreAtlas 1).image_subset_target_inter_preimage_baseSet i
   have hk : ((k + 1 : ℕ) : WithTop ℕ∞) ≤ ((⊤ : ℕ∞) : WithTop ℕ∞) := by exact_mod_cast le_top
   have hu : ContDiffOn ℝ (k + 1 : ℕ) u ((twistCoreAtlas 1).image i) :=
     ((twistCoreAtlas 1).contDiffOn_coord (hs.of_le hk) i).mono hsub
@@ -787,5 +805,42 @@ theorem exists_norm_le_twistOneDelBarSobolev
         gcongr
         exact (hCc i s hs).trans (by gcongr; exact le_max_left _ _)
     _ = max (Cψ i) 0 * max (Cc i) 0 * X := by ring
+
+/-- An estimate with a compact error for `D_J`. Let a two-form `σ` tame both `J` and the standard
+structure `i` of the sphere. For every order `k` there are a constant `C` and a compact operator
+`K : W^{k+1,2}(𝒪(1)) →L[ℝ] W^{k,2}(𝒪(1))` with `‖w‖ ≤ C ‖D_J w‖ + ‖K w‖` for every
+`w ∈ W^{k+1,2}(𝒪(1))`. -/
+theorem exists_compact_estimate_twistOneDelBarSobolev
+    {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)} (hJ : σ.Tames J) (hi : σ.Tames 𝒊) :
+    ∃ (C : ℝ) (K : SobolevSection (twistCoreAtlas 1) volume 2 (k + 1) →L[ℝ]
+        SobolevSection (twistCoreAtlas 1) volume 2 k),
+      IsCompactOperator K ∧ ∀ w, ‖w‖ ≤ C * ‖twistOneDelBarSobolev J k w‖ + ‖K w‖ := by
+  have := (twistCoreAtlas 1).compactSpace
+  obtain ⟨C, hC⟩ := exists_norm_le_twistOneDelBarSobolev J k hJ hi
+  refine ⟨max C 0, max C 0 • (twistCoreAtlas 1).sectionChartData.lowerOrderL volume 2 k,
+    ?_, fun w ↦ ?_⟩
+  · rw [FunLike.coe_smul]
+    exact (SobolevSection.isCompactOperator_lowerOrderL _ _ _ k).smul _
+  rw [smul_apply, norm_smul, Real.norm_of_nonneg (le_max_right _ _), ← mul_add]
+  exact (hC w).trans (mul_le_mul_of_nonneg_right (le_max_left _ _) (by positivity))
+
+/-- **Closed range of `D_J`.** Let a two-form `σ` tame both `J` and the standard structure `i` of
+the sphere. For every order `k`, the range of `twistOneDelBarSobolev J k` is closed in the space
+of `W^{k,2}` `(0,1)`-forms with values in `𝒪(1)`. -/
+theorem isClosed_range_twistOneDelBarSobolev
+    {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)} (hJ : σ.Tames J) (hi : σ.Tames 𝒊) :
+    IsClosed ((twistOneDelBarSobolev J k).range :
+      Set (zeroOneSobolevSections (twistCoreAtlas 1) volume 2 k)) := by
+  obtain ⟨_, _, hK, hC⟩ := exists_compact_estimate_twistOneDelBarSobolev J k hJ hi
+  exact (twistOneDelBarSobolev J k).isClosed_range_of_compact_estimate hK hC
+
+/-- **Finite kernel of `D_J`.** Let a two-form `σ` tame both `J` and the standard structure `i` of
+the sphere. For every order `k`, the kernel of `twistOneDelBarSobolev J k` is finite-dimensional
+over `ℝ`. -/
+theorem finiteDimensional_ker_twistOneDelBarSobolev
+    {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)} (hJ : σ.Tames J) (hi : σ.Tames 𝒊) :
+    FiniteDimensional ℝ (twistOneDelBarSobolev J k).ker := by
+  obtain ⟨_, _, hK, hC⟩ := exists_compact_estimate_twistOneDelBarSobolev J k hJ hi
+  exact (twistOneDelBarSobolev J k).finiteDimensional_ker_of_compact_estimate hK hC
 
 end SymplecticGeometry

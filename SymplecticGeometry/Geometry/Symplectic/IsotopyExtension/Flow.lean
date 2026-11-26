@@ -121,11 +121,8 @@ private theorem apply_eq_mfderiv_of_interior_eq (hσ : σ.IsNondegenerate) (k : 
     -- The cast between the tangent spaces `TangentSpace 𝓘(ℝ) _` is the identity of `ℝ`.
     rfl
   rw [← RoughForm.interior_apply, hY, hα, Pi.add_apply, Pi.add_apply,
-    ContinuousAlternatingMap.add_apply, ContinuousAlternatingMap.add_apply, mpullback_apply,
+    ContinuousAlternatingMap.add_apply, ContinuousAlternatingMap.add_apply, mpullback_apply_one,
     mextDeriv_ofFunction_apply, mextDeriv_ofFunction_apply, ← hcomp, hmf]
-  congr 2
-  -- The outer `Eq.symm` makes Lean read the vector off the goal's right side.
-  exact Eq.symm (FinVec.etaExpand_eq _).symm
 
 /-- **Extension by a symplectic flow.** Let `σ` be a symplectic form on `M`, `k` a smooth isotopy
 of embeddings of `P` into `M` of the same dimension, and `K ⊆ P` compact. Suppose that the

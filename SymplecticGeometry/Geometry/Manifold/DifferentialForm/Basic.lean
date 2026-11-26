@@ -10,18 +10,24 @@ public import Mathlib.Geometry.Manifold.VectorBundle.Tangent
 public import TauCeti.Geometry.Manifold.DifferentialForm.Basic
 
 /-!
-# Rough forms evaluated on vector fields
+# Rough differential forms
 
-A rough `k`-form `φ` on `M` with values in `F` (Tau Ceti's `TauCeti.RoughForm`) is a section of
-the bundle of continuous alternating maps on the tangent spaces. If that section is
-differentiable at `x`, then evaluating `φ` on `k` vector fields that are differentiable at `x`
-gives an `F`-valued function differentiable at `x`
-(`TauCeti.RoughForm.mdifferentiableAt_apply_vectorField`). This is the rough-form version of
-Tau Ceti's `TauCeti.SmoothForm.mdifferentiableAt_apply_vectorField`, and its proof is the same,
-through Mathlib's `MDifferentiableAt.continuousAlternatingMap_bundle_apply`.
+Facts about Tau Ceti's rough forms `TauCeti.RoughForm` that Tau Ceti does not state.
+
+A rough form cast along an equality of degrees `p = q` by `LinearEquiv.cast` evaluates as the
+original form on the reindexed vectors (`TauCeti.RoughForm.cast_apply`), as Tau Ceti's
+`TauCeti.SmoothForm.cast_apply` says for smooth forms.
+
+A rough `k`-form `φ` on `M` with values in `F` is a section of the bundle of continuous
+alternating maps on the tangent spaces. If that section is differentiable at `x`, then
+evaluating `φ` on `k` vector fields that are differentiable at `x` gives an `F`-valued function
+differentiable at `x` (`TauCeti.RoughForm.mdifferentiableAt_apply_vectorField`). This is the
+rough-form version of Tau Ceti's `TauCeti.SmoothForm.mdifferentiableAt_apply_vectorField`, and
+its proof is the same, through Mathlib's `MDifferentiableAt.continuousAlternatingMap_bundle_apply`.
 
 ## Main results
 
+* `TauCeti.RoughForm.cast_apply`: evaluation of a rough form cast along an equality of degrees.
 * `TauCeti.RoughForm.mdifferentiableAt_apply_vectorField`: a rough form differentiable at `x`,
   evaluated on vector fields differentiable at `x`, is differentiable at `x`.
 -/
@@ -32,6 +38,27 @@ open Bundle
 open scoped Manifold
 
 namespace TauCeti.RoughForm
+
+section Cast
+
+variable {E H M V : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+  [AddCommGroup V] [Module ℝ V] [TopologicalSpace V] [IsTopologicalAddGroup V]
+  [ContinuousConstSMul ℝ V]
+
+/-- A rough form cast along an equality of degrees `p = q` takes on `w` the value of the
+original form on `w` reindexed along `Fin.cast h`, as `TauCeti.SmoothForm.cast_apply` says for
+smooth forms. -/
+theorem cast_apply {p q : ℕ} (h : p = q) (α : RoughForm I M V p) (x : M)
+    (w : Fin q → TangentSpace I x) :
+    LinearEquiv.cast (R := ℝ) (M := fun k ↦ RoughForm I M V k) h α x w =
+      α x (w ∘ Fin.cast h) := by
+  subst h
+  simp only [LinearEquiv.cast_apply, cast_eq, Function.comp_def, Fin.cast_eq_self]
+
+end Cast
+
+section VectorField
 
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I 1 M]
@@ -50,6 +77,8 @@ theorem mdifferentiableAt_apply_vectorField {φ : RoughForm I M F k}
     MDifferentiableAt I 𝓘(ℝ, F) (fun y ↦ φ y (V · y)) x := by
   have h := hφ.continuousAlternatingMap_bundle_apply (b := id) hV
   simpa using ((mdifferentiableAt_totalSpace _ _).1 h).2
+
+end VectorField
 
 end TauCeti.RoughForm
 
