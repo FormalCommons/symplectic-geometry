@@ -28,7 +28,8 @@ of the line `x` is its coordinate `w i`, and these coordinates change from chart
   changes, `twistCore_coordChange_indexAt_tautologicalTwistCoreEquiv`.
 * `Projectivization.continuous_tautologicalTwistCoreEquiv` and
   `Projectivization.continuous_tautologicalTwistCoreEquiv_symm`: it is continuous on total spaces
-  in both directions.
+  in both directions; `Projectivization.contMDiff_coe_tautologicalTwistCoreEquiv_symm`: the
+  inverse, read as a vector of `𝕜^{n+1}`, is `C^r` on the total space of `𝒪(-1)`.
 * `Projectivization.complexEulerClass_twistCore_neg_one`: over `ℂ`, the Euler class of `𝒪(-1)`,
   read in integral cohomology, is minus the hyperplane class.
 * `Projectivization.complexEulerClass_twistCore_zero`: over `ℂ`, the Euler class of the trivial
@@ -55,7 +56,7 @@ public section
 noncomputable section
 
 open Bundle Module Set Topology TauCeti
-open scoped LinearAlgebra.Projectivization
+open scoped LinearAlgebra.Projectivization ContDiff Manifold
 
 namespace Projectivization
 
@@ -170,6 +171,35 @@ theorem continuous_tautologicalTwistCoreEquiv_symm :
         (affineOpen_eq_linearProjectionDomain i).subset)).comp
       (FiberBundle.continuous_proj _ _).continuousAt
   exact h₁.smul h₂
+
+/-- The inverse of `tautologicalTwistCoreEquiv`, read as a vector of `𝕜^{n+1}`, is `C^r` on the
+total space of `𝒪(-1)`, for every `r` including the analytic order `ω`. -/
+theorem contMDiff_coe_tautologicalTwistCoreEquiv_symm (r : ℕ∞ω) :
+    ContMDiff (𝓘(𝕜, Fin n → 𝕜).prod 𝓘(𝕜, 𝕜)) 𝓘(𝕜, Fin (n + 1) → 𝕜) r
+      fun q : TotalSpace 𝕜 (twistCore (𝕜 := 𝕜) (n := n) (-1)).Fiber ↦
+        ((tautologicalTwistCoreEquiv q.proj).symm q.snd : Fin (n + 1) → 𝕜) := by
+  intro q₀
+  set i := (twistCore (𝕜 := 𝕜) (n := n) (-1)).indexAt q₀.proj
+  have hi₀ : q₀.proj ∈ affineOpen i := mem_affineOpen_twistCore_indexAt (-1) q₀.proj
+  have hU : ∀ᶠ q in 𝓝 q₀, q.proj ∈ affineOpen i :=
+    (FiberBundle.continuous_proj _ _).continuousAt.preimage_mem_nhds
+      ((isOpen_affineOpen i).mem_nhds hi₀)
+  have : MemTrivializationAtlas ((twistCore (𝕜 := 𝕜) (n := n) (-1)).localTriv i) := ⟨⟨i, rfl⟩⟩
+  -- The coordinate of `q` in the chart `i` of `𝒪(-1)`.
+  have h₁ : ContMDiffAt (𝓘(𝕜, Fin n → 𝕜).prod 𝓘(𝕜, 𝕜)) 𝓘(𝕜, 𝕜) r
+      (fun q ↦ ((twistCore (𝕜 := 𝕜) (n := n) (-1)).localTriv i q).2) q₀ :=
+    (contMDiffAt_snd.comp _ (((twistCore (-1)).localTriv i).contMDiffAt
+      (((twistCore (-1)).mem_localTriv_source (i := i) q₀).2
+        (by simpa [twistCore_baseSet] using hi₀)))).of_le le_top
+  -- The representative `[1 : affineChart i ℓ]` of the line.
+  have h₂ : ContMDiffAt (𝓘(𝕜, Fin n → 𝕜).prod 𝓘(𝕜, 𝕜)) 𝓘(𝕜, Fin (n + 1) → 𝕜) r
+      (fun q : TotalSpace 𝕜 (twistCore (𝕜 := 𝕜) (n := n) (-1)).Fiber ↦
+        Fin.insertNth (α := fun _ ↦ 𝕜) i 1 (affineChart i q.proj)) q₀ :=
+    ((contMDiffOn_insertNth_affineChart i r).contMDiffAt
+      ((isOpen_affineOpen i).mem_nhds hi₀)).comp _ (contMDiffAt_proj _)
+  refine (h₁.smul h₂).congr_of_eventuallyEq (hU.mono fun q hq ↦ ?_)
+  rw [Pi.smul_apply', insertNth_one_affineChart_eq_normalizedRep i hq]
+  exact coe_tautologicalTwistCoreEquiv_symm_apply_of_mem hq q.snd
 
 end Equiv
 
