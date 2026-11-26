@@ -76,7 +76,7 @@ under linear isomorphisms (`SymplecticGeometry.metricPolarFormula_conj`) and smo
 `contMDiffOn_polarFormulaAt` is `SymplecticGeometry.Bundle.contMDiffAt_mapBilinPairAt`, with the
 form a coordinate of the total space. The domain is open by
 `FiberBundle.isOpen_of_forall_mem_iff_snd_mem`, since each trivialization reads it as the open
-set `ContinuousLinearMap.isOpen_setOf_nondegenerate_toBilinForm_sub_flip` of the model fibre.
+set `ContinuousLinearMap.isOpen_setOfPred_nondegenerate_toBilinForm_sub_flip` of the model fibre.
 
 The form `compatibleBilinAt g x B` is built from `(g x).comp B` and Mathlib's
 `ContinuousLinearMap.precomp`, so that the fibres need no norm. In a trivialization it reads as
@@ -127,7 +127,7 @@ variable [TopologicalSpace M] [ChartedSpace HB M]
 theorem isOpen_polarFormulaDomain [FiniteDimensional ℝ F] :
     IsOpen (polarFormulaDomain F V) := by
   refine FiberBundle.isOpen_of_forall_mem_iff_snd_mem
-    ContinuousLinearMap.isOpen_setOf_nondegenerate_toBilinForm_sub_flip fun b q hq ↦ ?_
+    ContinuousLinearMap.isOpen_setOfPred_nondegenerate_toBilinForm_sub_flip fun b q hq ↦ ?_
   -- In the fibre coordinates of the trivialization, a form becomes its carrying along a linear
   -- equivalence.
   have hy : q.proj ∈ (trivializationAt F V b).baseSet := by
@@ -326,8 +326,8 @@ theorem contMDiff_compatibleBilinAt [∀ x, IsTopologicalAddGroup (V x)]
     (contDiff_fst.sub contDiff_snd).const_smul _
   refine (hd.comp_contMDiffAt ((hgC.clm_comp hbC).prodMk_space
     (hbC.clm_precomp.clm_comp hgC))).congr_of_eventuallyEq ?_
-  filter_upwards [(FiberBundle.continuous_proj _ _).continuousAt.preimage_mem_nhds
-    (e₀.open_baseSet.mem_nhds (FiberBundle.mem_baseSet_trivializationAt' x₀))] with q hq
+  filter_upwards [(FiberBundle.continuous_proj _ _).continuousAt
+    |>.eventually_mem_baseSet_trivializationAt F V] with q (hq : q.proj ∈ e₀.baseSet)
   ext u v
   simp [gC, bC, e₀, ContinuousLinearMap.inCoordinates_eq_bilinearCongr hq,
     ContinuousLinearMap.inCoordinates_eq_conjContinuousAlgEquiv hq,

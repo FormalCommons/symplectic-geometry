@@ -11,11 +11,14 @@ public import SymplecticGeometry.Analysis.Normed.Module.Alternating.AppendLeft
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Basic
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegral.Product.Coefficient
 import TauCeti.Geometry.Manifold.ContMDiff.ContinuousAlternatingMap
+import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Regularity
+import TauCeti.Geometry.Manifold.VectorBundle.Trivialization
+import TauCeti.Topology.Algebra.Module.FiniteDimension
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Trivialization
 
 /-!
-# The integrand of the fibre integral on a product
+# The fibre integral on a product
 
 Let `B` and `F` be manifolds and `α` a form of degree `r + m` on `B × F`. For `b : B` and tangent
 vectors `v₁, …, vᵣ` at `b`, the form `SymplecticGeometry.prodFiberIntegrand α b v` of degree `m`
@@ -48,11 +51,26 @@ For vector fields `X` on an open set `U` of `B`, taking `U` itself as the parame
 applying `TauCeti.contMDiff_integralTopForm` shows that the integrals over `F` of the integrands
 along `X` are smooth on `U` (`SymplecticGeometry.contMDiffOn_integralTopForm_prodFiberIntegrand`).
 
+For `F` compact, Hausdorff and oriented by `o`, the fibre integral
+`SymplecticGeometry.prodFiberIntegral o α` is the `r`-form on `B` whose value at `b` on `v` is
+`∫_F prodFiberIntegrand α b v`. It is alternating in `v` because the integrand is and integration
+of continuous top forms over the compact `F` is additive and homogeneous
+(`TauCeti.integralTopForm_add_of_compactSpace`, `TauCeti.integralTopForm_smul`); it is continuous in
+`v` because the tangent spaces of `B` are finite-dimensional. It is smooth in `b`: by
+`TauCeti.isSmoothForm_iff_forall_contMDiffAt_trivializationAt_apply` it is enough to evaluate it
+on the frame of the tangent trivialization at each point, a family of vector fields that are smooth
+on its base set (`Bundle.Trivialization.contMDiffOn_section_symm`), and the integrals along them
+are smooth there by the previous result.
+
 ## Main definitions
 
 * `SymplecticGeometry.prodFiberIntegrand α b v`: the integrand on `F`.
 * `SymplecticGeometry.prodFiberIntegrandAlternatingMap α b`: the same, as an alternating map
   of `v`.
+* `SymplecticGeometry.prodFiberIntegralAlternatingMap o α b`: the alternating map
+  `v ↦ ∫_F prodFiberIntegrand α b v`.
+* `SymplecticGeometry.prodFiberIntegral o`: the fibre integral, a linear map from smooth
+  `(r + m)`-forms on `B × F` to smooth `r`-forms on `B`.
 
 ## Main results
 
@@ -73,6 +91,10 @@ along `X` are smooth on `U` (`SymplecticGeometry.contMDiffOn_integralTopForm_pro
   on an open set `U` of `B` are smooth on `U`.
 * `SymplecticGeometry.prodFiberIntegrand_degree_zero`: for `r = 0` it is the slice of `α` over
   `b`, its pull-back along `y ↦ (b, y)`.
+* `SymplecticGeometry.prodFiberIntegral_apply`: the value of the fibre integral at `b` on `v` is
+  `∫_F prodFiberIntegrand α b v`.
+* `SymplecticGeometry.prodFiberIntegral_degree_zero_apply`: for `r = 0` its value at `b` is the
+  integral of the slice of `α` over `b`.
 
 ## References
 
@@ -202,14 +224,16 @@ theorem prodFiberIntegrandAlternatingMap_apply (α : RoughForm (I.prod J) (B × 
     ContinuousLinearEquiv.coe_symm_toLinearEquiv, LinearMap.coe_inl, comp_apply]
 
 /-- The integrand is additive in each base vector `v i`. -/
-theorem prodFiberIntegrand_update_add (α : RoughForm (I.prod J) (B × F) ℝ (r + m)) (b : B)
+theorem prodFiberIntegrand_update_add [DecidableEq (Fin r)]
+    (α : RoughForm (I.prod J) (B × F) ℝ (r + m)) (b : B)
     (v : Fin r → TangentSpace I b) (i : Fin r) (x x' : TangentSpace I b) :
     prodFiberIntegrand α b (update v i (x + x')) =
       prodFiberIntegrand α b (update v i x) + prodFiberIntegrand α b (update v i x') := by
   simp only [← prodFiberIntegrandAlternatingMap_apply, AlternatingMap.map_update_add]
 
 /-- The integrand is homogeneous in each base vector `v i`. -/
-theorem prodFiberIntegrand_update_smul (α : RoughForm (I.prod J) (B × F) ℝ (r + m)) (b : B)
+theorem prodFiberIntegrand_update_smul [DecidableEq (Fin r)]
+    (α : RoughForm (I.prod J) (B × F) ℝ (r + m)) (b : B)
     (v : Fin r → TangentSpace I b) (i : Fin r) (c : ℝ) (x : TangentSpace I b) :
     prodFiberIntegrand α b (update v i (c • x)) = c • prodFiberIntegrand α b (update v i x) := by
   simp only [← prodFiberIntegrandAlternatingMap_apply, AlternatingMap.map_update_smul]
@@ -371,5 +395,119 @@ theorem prodFiberIntegrand_degree_zero (α : RoughForm (I.prod J) (B × F) ℝ (
   rw [Fin.append_right, mfderiv_prod_right, comp_apply,
     show Fin.cast (zero_add m) (Fin.natAdd 0 j) = j from Fin.ext (by simp)]
   exact Manifold.tangentSpaceProdEquiv_symm_apply (I := I) (J := J) _ _
+
+section AlternatingMap
+
+variable [FiniteDimensional ℝ E'] [IsManifold I 1 B] [IsManifold J 1 F] [CompactSpace F]
+
+/-- For a smooth form `α` of degree `r + m` on `B × F`, with `F` compact and oriented by `o`, the
+alternating map `v ↦ ∫_F prodFiberIntegrand α b v` of the base vectors at `b`. It is
+multilinear and alternating because the integrand is, and integration of continuous top forms
+over the compact `F` is linear. -/
+def prodFiberIntegralAlternatingMap (o : Manifold.Orientation J F (Fin m))
+    (α : SmoothForm (I.prod J) (B × F) ℝ (r + m)) (b : B) : TangentSpace I b [⋀^Fin r]→ₗ[ℝ] ℝ where
+  toFun v := integralTopForm o (prodFiberIntegrand α.val b v)
+  map_update_add' v i x x' := by
+    rw [prodFiberIntegrand_update_add,
+      integralTopForm_add_of_compactSpace o
+        ((isSmoothForm_prodFiberIntegrand α.isSmoothForm b _).of_le bot_le)
+        ((isSmoothForm_prodFiberIntegrand α.isSmoothForm b _).of_le bot_le)]
+  map_update_smul' v i c x := by
+    rw [prodFiberIntegrand_update_smul,
+      integralTopForm_smul, smul_eq_mul, RingHom.id_apply]
+  map_eq_zero_of_eq' v i j hv hij := by
+    rw [prodFiberIntegrand_eq_zero_of_eq α.val b hv hij, integralTopForm_zero]
+
+/-- `prodFiberIntegralAlternatingMap o α b` sends `v` to `∫_F prodFiberIntegrand α b v`. -/
+@[simp]
+theorem prodFiberIntegralAlternatingMap_apply (o : Manifold.Orientation J F (Fin m))
+    (α : SmoothForm (I.prod J) (B × F) ℝ (r + m)) (b : B) (v : Fin r → TangentSpace I b) :
+    prodFiberIntegralAlternatingMap o α b v = integralTopForm o (prodFiberIntegrand α.val b v) :=
+  (rfl)
+
+end AlternatingMap
+
+section Integral
+
+variable [FiniteDimensional ℝ E] [FiniteDimensional ℝ E'] [IsManifold I ∞ B] [IsManifold J ∞ F]
+  [CompactSpace F]
+
+/-- The rough form underlying the fibre integral: at `b`, the continuous alternating map
+`v ↦ ∫_F prodFiberIntegrand α b v`. -/
+private def prodFiberIntegralRoughForm (o : Manifold.Orientation J F (Fin m))
+    (α : SmoothForm (I.prod J) (B × F) ℝ (r + m)) : RoughForm I B ℝ r := fun b ↦
+  AlternatingMap.toContinuousAlternatingMap (prodFiberIntegralAlternatingMap o α b)
+
+/-- The value of `prodFiberIntegralRoughForm o α` at `b` on `v` is
+`∫_F prodFiberIntegrand α b v`. -/
+private theorem prodFiberIntegralRoughForm_apply (o : Manifold.Orientation J F (Fin m))
+    (α : SmoothForm (I.prod J) (B × F) ℝ (r + m)) (b : B) (v : Fin r → TangentSpace I b) :
+    prodFiberIntegralRoughForm o α b v = integralTopForm o (prodFiberIntegrand α.val b v) := by
+  rw [prodFiberIntegralRoughForm, AlternatingMap.coe_toContinuousAlternatingMap,
+    prodFiberIntegralAlternatingMap_apply]
+
+/-- **The fibre integral is smooth.** For a smooth form `α` of degree `r + m` on `B × F`, with
+`B` boundaryless and `F` compact, Hausdorff and oriented by `o`, the form
+`b ↦ (v ↦ ∫_F prodFiberIntegrand α b v)` on `B` is smooth. Its values on the frame of the
+tangent trivialization at a point are integrals along smooth vector fields on the base set. -/
+private theorem isSmoothForm_prodFiberIntegralRoughForm [I.Boundaryless] [T2Space F]
+    (o : Manifold.Orientation J F (Fin m))
+    (α : SmoothForm (I.prod J) (B × F) ℝ (r + m)) :
+    IsSmoothForm I ∞ (prodFiberIntegralRoughForm o α) := by
+  refine isSmoothForm_iff_forall_contMDiffAt_trivializationAt_apply.2 fun x v ↦ ?_
+  let e := trivializationAt E (TangentSpace I) x
+  have hX (i : Fin r) : ContMDiffOn I I.tangent ∞
+      (fun y ↦ (⟨y, e.symmL ℝ y (v i)⟩ : TangentBundle I B)) e.baseSet :=
+    (e.contMDiffOn_section_symm e.open_baseSet subset_rfl contMDiffOn_const).congr
+      fun y hy ↦ by rw [e.symmL_apply hy]
+  simpa only [prodFiberIntegralRoughForm_apply, comp_def] using
+    (contMDiffOn_integralTopForm_prodFiberIntegrand (n := ⊤) o α.isSmoothForm e.open_baseSet
+      hX).contMDiffAt (e.open_baseSet.mem_nhds (mem_baseSet_trivializationAt E (TangentSpace I) x))
+
+variable [I.Boundaryless] [T2Space F]
+
+/-- **The fibre integral on a product.** For `B` boundaryless and `F` compact, Hausdorff and
+oriented by `o`, the linear map sending a smooth form `α` of degree `r + m` on `B × F` to the
+smooth `r`-form on `B` whose value at `b` on `v₁, …, vᵣ` is the integral over `F` of
+`y ↦ α (b, y) ((v₁, 0), …, (vᵣ, 0), ·)` restricted to the tangent vectors `(0, w)` of the fibre,
+that is, of `prodFiberIntegrand α b v`. -/
+def prodFiberIntegral (o : Manifold.Orientation J F (Fin m)) :
+    SmoothForm (I.prod J) (B × F) ℝ (r + m) →ₗ[ℝ] SmoothForm I B ℝ r where
+  toFun α := ⟨prodFiberIntegralRoughForm o α,
+    (isSmoothForm_prodFiberIntegralRoughForm o α).mem_smoothBundleForms⟩
+  map_add' α β := SmoothBundleForm.ext fun b v ↦ by
+    simp only [Submodule.coe_add, Pi.add_apply, ContinuousAlternatingMap.add_apply,
+      prodFiberIntegralRoughForm_apply, prodFiberIntegrand_add]
+    exact integralTopForm_add_of_compactSpace o
+      ((isSmoothForm_prodFiberIntegrand α.isSmoothForm b v).of_le bot_le)
+      ((isSmoothForm_prodFiberIntegrand β.isSmoothForm b v).of_le bot_le)
+  map_smul' c α := SmoothBundleForm.ext fun b v ↦ by
+    simp only [Submodule.coe_smul, Pi.smul_apply, ContinuousAlternatingMap.smul_apply,
+      prodFiberIntegralRoughForm_apply, prodFiberIntegrand_smul, integralTopForm_smul,
+      RingHom.id_apply, smul_eq_mul]
+
+/-- The value of the fibre integral at `b` on `v` is the integral over `F` of the integrand
+`prodFiberIntegrand α b v`. -/
+@[simp]
+theorem prodFiberIntegral_apply (o : Manifold.Orientation J F (Fin m))
+    (α : SmoothForm (I.prod J) (B × F) ℝ (r + m)) (b : B) (v : Fin r → TangentSpace I b) :
+    (prodFiberIntegral o α).val b v = integralTopForm o (prodFiberIntegrand α.val b v) :=
+  prodFiberIntegralRoughForm_apply o α b v
+
+/-- **The fibre integral in degree zero.** For a form `α` of degree `0 + m` on `B × F`, the value
+of the `0`-form `prodFiberIntegral o α` at `b` is the integral over `F` of the slice of `α` over
+`b`, its pull-back along `y ↦ (b, y)`, after the degree cast `0 + m = m`. -/
+theorem prodFiberIntegral_degree_zero_apply (o : Manifold.Orientation J F (Fin m))
+    (α : SmoothForm (I.prod J) (B × F) ℝ (0 + m)) (b : B) :
+    (prodFiberIntegral o α).val b ![] = integralTopForm o (mpullback J (I.prod J) (Prod.mk b)
+      (LinearEquiv.cast (R := ℝ) (M := fun k ↦ SmoothForm (I.prod J) (B × F) ℝ k) (zero_add m)
+        α).val) := by
+  rw [prodFiberIntegral_apply, prodFiberIntegrand_degree_zero]
+  congr 2
+  funext x
+  ext w
+  rw [RoughForm.cast_apply, SmoothForm.cast_apply]
+
+end Integral
 
 end SymplecticGeometry

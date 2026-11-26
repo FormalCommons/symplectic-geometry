@@ -196,7 +196,7 @@ symplectic.
   `π ∘ fiberInclusionMap` is constant), `restrictsTo_add_iff` (if `τ`
   restricts to `σ`, then `τ + β` does exactly when `β` pulls back to zero
   on every fibre), `RestrictsTo.add_mpullback` (Thurston's $\tau+K\pi^*\beta$,
-  for part 49), and `convex_setOf_restrictsTo`.
+  for part 49), and `convex_setOfPred_restrictsTo`.
 
 ### `Geometry/Symplectic/Fibration/Basic.lean`
 
@@ -298,7 +298,7 @@ parallel transport. About 550 lines.
   vertical pair, the value of the fibre form, and
   `Σ_i d(ρ i ∘ π) = d(Σ_i ρ i ∘ π) = d 1 = 0`, so the sum vanishes. This is
   where the structure-group hypothesis is used. Also
-  `convex_setOf_restrictsTo_isVerticallyClosed`.
+  `convex_setOfPred_restrictsTo_isVerticallyClosed`.
 
 ### `Geometry/Symplectic/Fibration/Connection.lean`
 
@@ -359,11 +359,11 @@ form on `M` along `A.trivAt b`'s inverse composed with a chart of `B`. A
 basis `bs : Basis ι ℝ EB` gives coordinates `x i := bs.coord i` and
 constant fields `∂ i := bs i`.
 
-- The components, as families indexed by `x ∈ U` and read through
+- The components, as families indexed by the points `x` of `EB` and read through
   `TauCeti.verticalForm`: the slices $\sigma(x)=\iota_x^*\tau$, the
   one-forms $\alpha_i(x)$ (the slices of $\iota(\partial_i,0)\tau$), and the
   functions $f_{ij}=\tau((\partial_i,0),(\partial_j,0))$. Then
-  `eq_verticalForm_add_sum`: on `U ×ˢ univ`,
+  `eq_verticalForm_add_sum`: at every point of `EB × F`,
   $\tau=\sigma+\sum_i\alpha_i\wedge dx_i+\sum_{i<j}f_{ij}\,dx_i\wedge dx_j$,
   with the forms on `EB` and `F` pulled back along the projections and the
   sign of $\alpha_i$ fixed by this formula, as on the page.

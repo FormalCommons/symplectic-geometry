@@ -14,6 +14,7 @@ import SymplecticGeometry.Geometry.Manifold.Distribution.Horizontal
 public import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
 import TauCeti.Geometry.Manifold.IntegralCurve.Interval
 import TauCeti.Geometry.Manifold.IsManifold.Basic
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # Horizontal lifts of curves and parallel transport
@@ -210,7 +211,7 @@ private theorem eventuallyEq_of_isHorizontalMap
   have hW := contMDiffAt_timeDependentSuspensionField hX
   -- Near `t`, `γ` stays in the base set of `eB`.
   obtain ⟨ε, hε, hball⟩ := Metric.mem_nhds_iff.1
-    (hγ.continuous.continuousAt.preimage_mem_nhds (eB.open_baseSet.mem_nhds hbt))
+    (hγ.continuous.continuousAt.eventually_mem_baseSet_trivializationAt F (TangentSpace J))
   have hS : IsPreconnected (Icc a b ∩ Metric.ball t ε) :=
     ((convex_Icc a b).inter (convex_ball t ε)).isPreconnected
   have htS : t ∈ Icc a b ∩ Metric.ball t ε := ⟨ht, Metric.mem_ball_self hε⟩
@@ -479,8 +480,7 @@ private theorem exists_isHorizontalMap_lift_uIcc (hn : 1 ≤ n)
   have hstep (t : ℝ) : ∃ ε > 0, ∀ t' ∈ S, dist t' t < ε → Metric.ball t ε ⊆ S := by
     let e := trivializationAt F (TangentSpace J) (γ t)
     obtain ⟨ε₀, hε₀, hball⟩ := Metric.mem_nhds_iff.1
-      (hγ.continuous.continuousAt.preimage_mem_nhds
-        (e.open_baseSet.mem_nhds (FiberBundle.mem_baseSet_trivializationAt' (γ t))))
+      (hγ.continuous.continuousAt.eventually_mem_baseSet_trivializationAt F (TangentSpace J))
     obtain ⟨ε, hε, hεε⟩ : ∃ ε, 0 < ε ∧ ε < ε₀ := ⟨ε₀ / 2, by positivity, by linarith⟩
     refine ⟨ε, hε, fun t' ⟨c₁, hc₁, hh₁, hγ₁, hs₁⟩ ht' t'' ht'' ↦ ?_⟩
     have hmaps : MapsTo γ (Icc (t - ε) (t + ε)) e.baseSet := fun u hu ↦ hball (by

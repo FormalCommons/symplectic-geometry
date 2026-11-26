@@ -17,9 +17,9 @@ computes its image under a linear equivalence.
 
 ## Main results
 
-* `QuadraticMap.PosDef.eq_of_setOf_le_one_eq`: if `Q` is positive definite and
+* `QuadraticMap.PosDef.eq_of_setOfPred_le_one_eq`: if `Q` is positive definite and
   `{v | Q v ≤ 1} = {v | Q' v ≤ 1}`, then `Q = Q'`.
-* `QuadraticMap.image_setOf_le_one`: `e '' {v | Q v ≤ 1} = {w | Q (e.symm w) ≤ 1}`.
+* `QuadraticMap.image_setOfPred_le_one`: `e '' {v | Q v ≤ 1} = {w | Q (e.symm w) ≤ 1}`.
 
 ## References
 
@@ -35,7 +35,7 @@ variable {M : Type*} [AddCommGroup M] [Module ℝ M]
 /-- A positive definite quadratic form is determined by its sublevel set `{v | Q v ≤ 1}`: any
 quadratic form `Q'` with the same sublevel set equals `Q`. Only `Q` is assumed positive
 definite. -/
-theorem PosDef.eq_of_setOf_le_one_eq {Q Q' : QuadraticForm ℝ M} (hQ : Q.PosDef)
+theorem PosDef.eq_of_setOfPred_le_one_eq {Q Q' : QuadraticForm ℝ M} (hQ : Q.PosDef)
     (h : {v | Q v ≤ 1} = {v | Q' v ≤ 1}) : Q = Q' := by
   -- On the ray through `v`, the condition `Q (√u • v) ≤ 1` reads `u * Q v ≤ 1`.
   have key (v : M) (u : ℝ) (hu : 0 ≤ u) : u * Q v ≤ 1 ↔ u * Q' v ≤ 1 := by
@@ -66,7 +66,7 @@ variable {R M N P : Type*} [CommSemiring R] [AddCommMonoid M] [Module R M]
 
 /-- The image of the sublevel set `{v | Q v ≤ 1}` under a linear equivalence `e` is the sublevel
 set of the transported form `Q.comp e.symm`. -/
-theorem image_setOf_le_one (Q : QuadraticMap R M N) (e : M ≃ₗ[R] P) :
+theorem image_setOfPred_le_one (Q : QuadraticMap R M N) (e : M ≃ₗ[R] P) :
     e '' {v | Q v ≤ 1} = {w | Q.comp (e.symm : P →ₗ[R] M) w ≤ 1} := by
   rw [e.image_eq_preimage_symm]
   rfl

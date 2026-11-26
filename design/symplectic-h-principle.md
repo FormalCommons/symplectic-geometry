@@ -444,27 +444,27 @@ another. For a ray with endpoint `x`, let `W` be the component of
 around `x`. Take a short straight segment `σ` from `x` inside one chart `φ`
 at `x`, continuing the ray, and the final diffeomorphism `Ψ` of a
 compactly supported diffeotopy inside `U` that sends the far end of `σ` to
-a point of `U` outside `F (c j + 2)`
+a point of `U` outside `F (c j + 2 + ε)`, for a small `ε > 0`
 (`TauCeti.exists_diffeotopy_final_comp_eq_of_isPreconnected`). The arc
 `α := Ψ '' σ` is straight in the chart `φ ∘ Ψ⁻¹` along its whole length,
 and joins the ray smoothly at `x`.
 
 When the stage's arcs are built, choose `c (j + 1)` in
-`(c j + 1, c j + 2)` that is a regular value of `h` and of `h ∘ α` for each
+`(c j + 1 + ε, c j + 2)` that is a regular value of `h` and of `h ∘ α` for each
 arc `α` of the stage (Sard for `h`, and for the finitely many functions
 `h ∘ α` of one variable `addHaar_image_eq_zero_of_det_fderivWithin_eq_zero`).
 Then each `α` meets `{h = c (j + 1)}` at finitely many parameters, crossing
 it, so the parameters where `α` lies outside `K (j + 1)` form finitely many
 intervals, the last one ending at the far end, which lies outside
-`F (c j + 2) ⊇ K (j + 1)`. Cut `α` at a parameter just after the start of
+`F (c j + 2 + ε) ⊇ K (j + 1)`. Cut `α` at a parameter just after the start of
 the first such interval (at once, for a new ray that starts outside
 `K (j + 1)`), close enough that the cut arc stays in
-`interior (F (c j + 2))`. The cut end is still straight in `φ ∘ Ψ⁻¹`, so
+`interior (F (c j + 2 + ε))`. The cut end is still straight in `φ ∘ Ψ⁻¹`, so
 the next arc continues it smoothly.
 
 Why (R) holds after the stage: an arc of stage `j` lies outside `K j`,
 leaves `K (j + 1)` only in its final piece, and lies in
-`interior (K (j + 2))`, since `F (c j + 2) ⊆ interior (K (j + 2))`. So
+`interior (K (j + 2))`, since `F (c j + 2 + ε) ⊆ interior (K (j + 2))`. So
 outside `K i` a ray consists of its arcs of stages `≥ i`, which lie outside
 `K i`, and the final piece of its arc of stage `i - 1`; arcs of stages
 `≤ i - 2` lie inside `K i`.
@@ -1121,7 +1121,7 @@ gives the theorem.
 Facts about two-forms in the frame topology of a covering frame system
 (`letI := frameTopology …`, `hcover`), on a finite-dimensional base:
 
-- `Bundle.ContMDiffTwoForm.isOpen_setOf_forall_mem_nondegenerate`: for a
+- `Bundle.ContMDiffTwoForm.isOpen_setOfPred_forall_mem_nondegenerate`: for a
   compact `K ⊆ M`, the forms `ω` with `(ω.bilinFormAt x).Nondegenerate` for
   all `x ∈ K` are an open set. Nondegeneracy is open in each fibre, and
   evaluation is jointly continuous in the form and the point
@@ -1165,7 +1165,7 @@ The spaces, in the topology of the departure *Spaces of forms*:
   Proof as in Decision 5: `Convex.cwType_inter` for the convex set (all
   forms, or the preimage under `tangentEquiv` of the coset
   `α + exactForms I M 2`) and the open set of
-  `isOpen_setOf_forall_mem_nondegenerate` for `closure (Set.range j)`; then
+  `isOpen_setOfPred_forall_mem_nondegenerate` for `closure (Set.range j)`; then
   `TauCeti.CWType.of_comp_homotopic_id` with the inclusion,
   $\omega\mapsto j^*\omega$ (nondegenerate since the slices of `h` are
   embeddings between manifolds of one dimension; in the class by

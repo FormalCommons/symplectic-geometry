@@ -37,9 +37,14 @@ Pulling a form back commutes with negation (`TauCeti.mpullback_neg`), as Tau Cet
 `TauCeti.mpullback_sub` says for subtraction. So a diffeomorphism preserves `-σ` exactly when it
 preserves `σ` (`TauCeti.SmoothForm.diffeomorphStabilizer_neg`).
 
-The `0`-form of a difference of differentiable functions has exterior derivative the difference
-of theirs (`TauCeti.mextDeriv_ofFunction_sub`), as Tau Ceti's `TauCeti.mextDeriv_ofFunction_add`
-says for sums. By Tau Ceti's naturality `TauCeti.mpullback_mextDeriv_ofFunction_apply`, if
+The exterior derivative of `0`-forms is additive at each point where the functions are
+differentiable (`TauCeti.mextDeriv_ofFunction_add_apply`,
+`TauCeti.mextDeriv_ofFunction_sub_apply`). So the `0`-form of a difference of differentiable
+functions has exterior derivative the difference of theirs (`TauCeti.mextDeriv_ofFunction_sub`),
+as Tau Ceti's `TauCeti.mextDeriv_ofFunction_add` says for sums, and negating a function negates
+its exterior derivative (`TauCeti.mextDeriv_ofFunction_neg`, Tau Ceti's `TauCeti.mextDeriv_neg`
+for `0`-forms). By Tau Ceti's naturality
+`TauCeti.mpullback_mextDeriv_ofFunction_apply`, if
 `α = β + dg` at `x` and at `f x` for a self-map `f` differentiable at `x`, and `g` is
 differentiable at both points, then `f^* α - α` and `f^* β - β` differ at `x` by the exact form
 `d(g ∘ f - g)` (`TauCeti.mpullback_apply_sub_eq_of_eq_add_mextDeriv`).
@@ -73,7 +78,10 @@ normed spaces with their own models, `𝓘(ℝ, E₁ × E₂)` is not syntactica
 * `TauCeti.mpullback_neg`: the pullback of `-φ` is minus the pullback of `φ`.
 * `TauCeti.SmoothForm.diffeomorphStabilizer_neg`: a diffeomorphism preserves `-σ` exactly when
   it preserves `σ`.
+* `TauCeti.mextDeriv_ofFunction_add_apply`, `TauCeti.mextDeriv_ofFunction_sub_apply`:
+  `d(f + g) = df + dg` and `d(f - g) = df - dg` at a point where `f` and `g` are differentiable.
 * `TauCeti.mextDeriv_ofFunction_sub`: `d(f - g) = df - dg` for differentiable functions.
+* `TauCeti.mextDeriv_ofFunction_neg`, `TauCeti.mextDeriv_ofFunction_fun_neg`: `d(-f) = -df`.
 * `TauCeti.mpullback_apply_sub_eq_of_eq_add_mextDeriv`: if `α = β + dg` at `x` and at `f x`,
   then `(f^* α - α) x = (f^* β - β) x + d(g ∘ f - g) x`.
 * `TauCeti.SmoothForm.mpullback_const`: the pullback of a smooth `(k + 1)`-form along a constant
@@ -152,14 +160,42 @@ theorem mpullback_neg (f : M → M') (φ : RoughForm I' M' F k) :
   ext v
   simp [mpullback_apply]
 
+/-- At a point where two functions are differentiable, the exterior derivative of the `0`-form
+of their sum is the sum of their exterior derivatives. -/
+theorem mextDeriv_ofFunction_add_apply {f g : M → F} {x : M}
+    (hf : MDifferentiableAt I 𝓘(ℝ, F) f x) (hg : MDifferentiableAt I 𝓘(ℝ, F) g x) :
+    mextDeriv (RoughForm.ofFunction I (f + g)) x =
+      mextDeriv (RoughForm.ofFunction I f) x + mextDeriv (RoughForm.ofFunction I g) x := by
+  ext v
+  simp [mextDeriv_ofFunction, mvfderiv_add hf hg]
+
+/-- At a point where two functions are differentiable, the exterior derivative of the `0`-form
+of their difference is the difference of their exterior derivatives. -/
+theorem mextDeriv_ofFunction_sub_apply {f g : M → F} {x : M}
+    (hf : MDifferentiableAt I 𝓘(ℝ, F) f x) (hg : MDifferentiableAt I 𝓘(ℝ, F) g x) :
+    mextDeriv (RoughForm.ofFunction I (f - g)) x =
+      mextDeriv (RoughForm.ofFunction I f) x - mextDeriv (RoughForm.ofFunction I g) x := by
+  ext v
+  simp [mextDeriv_ofFunction, mvfderiv_sub hf hg]
+
 /-- The exterior derivative of the `0`-form of a difference of differentiable functions is the
 difference of their exterior derivatives. -/
 theorem mextDeriv_ofFunction_sub {f g : M → F} (hf : MDifferentiable I 𝓘(ℝ, F) f)
     (hg : MDifferentiable I 𝓘(ℝ, F) g) :
     mextDeriv (RoughForm.ofFunction I (f - g)) =
-      mextDeriv (RoughForm.ofFunction I f) - mextDeriv (RoughForm.ofFunction I g) := by
-  rw [sub_eq_add_neg, mextDeriv_ofFunction_add hf hg.neg, ← neg_one_smul ℝ g,
-    RoughForm.ofFunction_smul, mextDeriv_smul, neg_one_smul, ← sub_eq_add_neg]
+      mextDeriv (RoughForm.ofFunction I f) - mextDeriv (RoughForm.ofFunction I g) :=
+  funext fun x ↦ mextDeriv_ofFunction_sub_apply (hf x) (hg x)
+
+/-- The exterior derivative of the `0`-form of `-f` is minus that of `f`. -/
+theorem mextDeriv_ofFunction_neg (f : M → F) :
+    mextDeriv (RoughForm.ofFunction I (-f)) = -mextDeriv (RoughForm.ofFunction I f) := by
+  rw [← neg_one_smul ℝ f, RoughForm.ofFunction_smul, neg_one_smul, mextDeriv_neg]
+
+/-- The exterior derivative of the `0`-form of `fun x ↦ -f x` is minus that of `f`. -/
+@[simp]
+theorem mextDeriv_ofFunction_fun_neg (f : M → F) :
+    mextDeriv (RoughForm.ofFunction I fun x ↦ -f x) = -mextDeriv (RoughForm.ofFunction I f) :=
+  mextDeriv_ofFunction_neg f
 
 /-- Let `f : M → M` be differentiable at `x`, and `g : M → F` at `x` and at `f x`, and let the
 one-forms `α` and `β` satisfy `α = β + dg` at `x` and at `f x`. Then at `x`,
@@ -171,14 +207,9 @@ theorem mpullback_apply_sub_eq_of_eq_add_mextDeriv {f : M → M} {g : M → F} {
     (hfx : α (f x) = β (f x) + mextDeriv (RoughForm.ofFunction I g) (f x)) :
     mpullback I I f α x - α x =
       mpullback I I f β x - β x + mextDeriv (RoughForm.ofFunction I (g ∘ f - g)) x := by
-  have hd : mextDeriv (RoughForm.ofFunction I (g ∘ f - g)) x =
-      mextDeriv (RoughForm.ofFunction I (g ∘ f)) x - mextDeriv (RoughForm.ofFunction I g) x := by
-    rw [mextDeriv_ofFunction, mextDeriv_ofFunction, mextDeriv_ofFunction,
-      mvfderiv_sub (hgfx.comp x hf) hgx]
-    ext v
-    simp
   rw [mpullback_apply_congr (η := β + mextDeriv (RoughForm.ofFunction I g)) hfx, hx,
-    mpullback_add, Pi.add_apply, mpullback_mextDeriv_ofFunction_apply hf hgfx, hd]
+    mpullback_add, Pi.add_apply, mpullback_mextDeriv_ofFunction_apply hf hgfx,
+    mextDeriv_ofFunction_sub_apply (hgfx.comp x hf) hgx]
   abel
 
 /-- Let `f : M × M₂ → M'` be differentiable at `(s, z)`. The pullback of `φ` along the slice

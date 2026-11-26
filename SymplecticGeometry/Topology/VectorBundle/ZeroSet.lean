@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Topology.VectorBundle.Basic
 import TauCeti.Topology.VectorBundle.Trivialization
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # Zero sets of continuous sections
@@ -21,7 +22,7 @@ The argument adapts the closedness step in the proof of Tau Ceti's
 
 ## Main results
 
-* `VectorBundle.isClosed_setOf_eq_zero`: the zero set of a continuous section along a map is
+* `VectorBundle.isClosed_setOfPred_eq_zero`: the zero set of a continuous section along a map is
   closed.
 -/
 
@@ -41,7 +42,7 @@ variable (𝕜) in
 include 𝕜 in
 /-- The zero set of a continuous section of a topological vector bundle along a map
 `b : M → B` is closed in `M`. -/
-theorem isClosed_setOf_eq_zero {b : M → B} {s : ∀ y, E (b y)}
+theorem isClosed_setOfPred_eq_zero {b : M → B} {s : ∀ y, E (b y)}
     (hs : Continuous fun y ↦ (⟨b y, s y⟩ : TotalSpace F E)) : IsClosed {x | s x = 0} := by
   rw [← isOpen_compl_iff, isOpen_iff_mem_nhds]
   intro x hx
@@ -54,7 +55,7 @@ theorem isClosed_setOf_eq_zero {b : M → B} {s : ∀ y, E (b y)}
       hs.continuousAt
   have hb : ContinuousAt b x := ((FiberBundle.continuous_proj F E).comp hs).continuousAt
   filter_upwards [hc.preimage_mem_nhds (isOpen_compl_singleton.mem_nhds (mt (heq x hxe).1 hx)),
-    hb.preimage_mem_nhds (e.open_baseSet.mem_nhds hxe)] with y hy hye
+    hb.eventually_mem_baseSet_trivializationAt F E] with y hy hye
   exact mt (heq y hye).2 hy
 
 end VectorBundle
