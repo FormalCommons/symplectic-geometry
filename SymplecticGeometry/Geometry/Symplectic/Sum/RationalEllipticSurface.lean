@@ -13,6 +13,7 @@ public import SymplecticGeometry.Geometry.Manifold.Projectivization.ProdZeroLocu
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Prod
+public import TauCeti.LinearAlgebra.Projectivization.ZeroLocus
 public import TauCeti.RingTheory.MvPolynomial.Jacobian.Basic
 import Mathlib.Algebra.Polynomial.Roots
 import Mathlib.Topology.LocalAtTarget
@@ -23,7 +24,6 @@ import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Prod
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Submanifold
 import SymplecticGeometry.RingTheory.MvPolynomial.WeightedHomogeneous
 import SymplecticGeometry.Topology.ComplexProjectiveSpace.SimplyConnected
-import TauCeti.AlgebraicTopology.FundamentalGroup.HomotopyEquiv
 import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
 
 /-!
@@ -104,13 +104,18 @@ coordinates `s, t` of the line. A point of the cone `K³ × K²` is written `Sum
 * `SymplecticGeometry.rationalEllipticSurface.symplecticForm`: the pull-back of the product of
   the Fubini–Study forms, and
   `SymplecticGeometry.rationalEllipticSurface.isSymplectic_symplecticForm`: it is symplectic.
+* `SymplecticGeometry.hesseCubics R`: the two cubics `x³ + y³ + z³` and `x y z` of the plane
+  that span the pencil, both homogeneous of degree three
+  (`SymplecticGeometry.isHomogeneous_hesseCubics`).
 * `SymplecticGeometry.rationalEllipticSurface.baseLocus`: the common zeros in `ℂℙ²` of
-  `x³ + y³ + z³` and `x y z`, through which every curve of the pencil passes, and
+  `x³ + y³ + z³` and `x y z`, through which every curve of the pencil passes, as Tau Ceti's
+  zero locus `TauCeti.complexProjectiveZeroLocus (hesseCubics ℂ)`, and
   `SymplecticGeometry.rationalEllipticSurface.finite_baseLocus`: there are finitely many.
 * `SymplecticGeometry.rationalEllipticSurface.mk_mem_of_mem_baseLocus` and
   `SymplecticGeometry.rationalEllipticSurface.mk_mem_iff_eq_pencilMember`: the fibre of the
   projection to `ℂℙ²` is the whole line `ℂℙ¹` over a base point, and the single point
-  `pencilMember p _ = [x y z : -(x³ + y³ + z³)]` over any other point `p`.
+  `pencilMember p _ = [pencilVector v]`, with `pencilVector v = (x y z, -(x³ + y³ + z³))` at a
+  representative `v`, over any other point `p = [v]`.
 * `SymplecticGeometry.rationalEllipticSurface.complBaseLocusHomeomorph`: the projection is a
   homeomorphism from the open set `complBaseLocus` of points over the complement of the base
   locus onto that complement; it is a closed map since the surface is compact
@@ -147,7 +152,28 @@ theorem hessePencil_def : hessePencil R =
       X (.inr 1) * (X (.inl 0) * X (.inl 1) * X (.inl 2)) :=
   (rfl)
 
+/-- The two plane cubics `x³ + y³ + z³` and `x y z` that span the Hesse pencil, in the variables
+`x, y, z = 0, 1, 2`. -/
+noncomputable def hesseCubics : Fin 2 → MvPolynomial (Fin 3) R :=
+  ![X 0 ^ 3 + X 1 ^ 3 + X 2 ^ 3, X 0 * X 1 * X 2]
+
+@[simp]
+theorem hesseCubics_zero : hesseCubics R 0 = X 0 ^ 3 + X 1 ^ 3 + X 2 ^ 3 :=
+  (rfl)
+
+@[simp]
+theorem hesseCubics_one : hesseCubics R 1 = X 0 * X 1 * X 2 :=
+  (rfl)
+
 variable {R}
+
+/-- Both cubics spanning the Hesse pencil are homogeneous of degree three. -/
+theorem isHomogeneous_hesseCubics (i : Fin 2) : (hesseCubics R i).IsHomogeneous 3 := by
+  fin_cases i
+  · simp only [Fin.zero_eta, hesseCubics_zero]
+    exact (((isHomogeneous_X_pow _ _).add (isHomogeneous_X_pow _ _)).add (isHomogeneous_X_pow _ _))
+  · simp only [Fin.mk_one, hesseCubics_one]
+    exact ((isHomogeneous_X _ _).mul (isHomogeneous_X _ _)).mul (isHomogeneous_X _ _)
 
 @[simp]
 theorem eval_hessePencil (p : Fin 3 ⊕ Fin 2 → R) :
@@ -455,16 +481,14 @@ theorem isSymplectic_symplecticForm : symplecticForm.IsSymplectic := by
 
 /-! ### The base locus of the pencil and its complement -/
 
-/-- The **base locus** of the Hesse pencil: the points `[v]` of `ℂℙ²` at which both
-`x³ + y³ + z³` and `x y z` vanish, so that every member `s (x³ + y³ + z³) + t x y z` of the
-pencil passes through them. -/
-def baseLocus : Set (ℙ ℂ (Fin 3 → ℂ)) :=
-  {p | p.rep 0 ^ 3 + p.rep 1 ^ 3 + p.rep 2 ^ 3 = 0 ∧ p.rep 0 * p.rep 1 * p.rep 2 = 0}
+/-- The **base locus** of the Hesse pencil: the points of `ℂℙ²` at which both cubics
+`hesseCubics ℂ`, that is `x³ + y³ + z³` and `x y z`, vanish, so that every member
+`s (x³ + y³ + z³) + t x y z` of the pencil passes through them. -/
+noncomputable def baseLocus : Set (ℙ ℂ (Fin 3 → ℂ)) :=
+  complexProjectiveZeroLocus (hesseCubics ℂ)
 
-theorem mem_baseLocus_iff {p : ℙ ℂ (Fin 3 → ℂ)} :
-    p ∈ baseLocus ↔
-      p.rep 0 ^ 3 + p.rep 1 ^ 3 + p.rep 2 ^ 3 = 0 ∧ p.rep 0 * p.rep 1 * p.rep 2 = 0 :=
-  Iff.rfl
+theorem baseLocus_def : baseLocus = complexProjectiveZeroLocus (hesseCubics ℂ) :=
+  (rfl)
 
 /-- The point spanned by a nonzero vector `v` lies in the base locus of the Hesse pencil exactly
 when `x³ + y³ + z³` and `x y z` both vanish at `v`. -/
@@ -472,14 +496,15 @@ when `x³ + y³ + z³` and `x y z` both vanish at `v`. -/
 theorem mk_mem_baseLocus_iff {v : Fin 3 → ℂ} (hv : v ≠ 0) :
     Projectivization.mk ℂ v hv ∈ baseLocus ↔
       v 0 ^ 3 + v 1 ^ 3 + v 2 ^ 3 = 0 ∧ v 0 * v 1 * v 2 = 0 := by
-  obtain ⟨a, ha⟩ := Projectivization.exists_smul_eq_mk_rep ℂ v hv
-  have h0 : (a : ℂ) ^ 3 ≠ 0 := pow_ne_zero _ a.ne_zero
-  rw [mem_baseLocus_iff, ← ha]
-  simp only [Units.smul_def, Pi.smul_apply, smul_eq_mul]
-  rw [show (a : ℂ) * v 0 * (a * v 1) * (a * v 2) = a ^ 3 * (v 0 * v 1 * v 2) by ring,
-    show (a * v 0) ^ 3 + (a * v 1) ^ 3 + (a * v 2) ^ 3 = (a : ℂ) ^ 3 * (v 0 ^ 3 + v 1 ^ 3 + v 2 ^ 3)
-      by ring, mul_eq_zero, mul_eq_zero]
-  simp [h0]
+  rw [baseLocus_def, complexProjectiveZeroLocus_mk_iff isHomogeneous_hesseCubics,
+    Fin.forall_fin_two]
+  simp
+
+theorem mem_baseLocus_iff {p : ℙ ℂ (Fin 3 → ℂ)} :
+    p ∈ baseLocus ↔
+      p.rep 0 ^ 3 + p.rep 1 ^ 3 + p.rep 2 ^ 3 = 0 ∧ p.rep 0 * p.rep 1 * p.rep 2 = 0 := by
+  conv_lhs => rw [← p.mk_rep]
+  exact mk_mem_baseLocus_iff _
 
 /-- The base locus of the Hesse pencil is finite. At a point of it one coordinate vanishes and
 the other two `a`, `b` satisfy `a³ = -b³`, so they are both nonzero and the point is
@@ -533,42 +558,66 @@ theorem mk_mem_of_mem_baseLocus {p : ℙ ℂ (Fin 3 → ℂ)} (hp : p ∈ baseLo
   rw [mem_rationalEllipticSurface_iff]
   simp [hp.1, hp.2]
 
-/-- Away from the base locus, `x y z` and `-(x³ + y³ + z³)` do not both vanish. -/
-theorem pencilVector_ne_zero {p : ℙ ℂ (Fin 3 → ℂ)} (hp : p ∉ baseLocus) :
-    ![p.rep 0 * p.rep 1 * p.rep 2, -(p.rep 0 ^ 3 + p.rep 1 ^ 3 + p.rep 2 ^ 3)] ≠ 0 := by
-  intro h
-  exact hp ⟨neg_eq_zero.1 (congrFun h 1), congrFun h 0⟩
+/-- The vector `(x y z, -(x³ + y³ + z³))` of `ℂ²`, evaluated at `v`: the coordinates `[s : t]` of
+the member `s (x³ + y³ + z³) + t x y z` of the Hesse pencil through `[v]`. -/
+noncomputable def pencilVector (v : Fin 3 → ℂ) : Fin 2 → ℂ :=
+  ![eval v (hesseCubics ℂ 1), -eval v (hesseCubics ℂ 0)]
 
-/-- The member of the Hesse pencil through a point `[v]` of `ℂℙ²` off the base locus: the point
-`[x y z : -(x³ + y³ + z³)]` of `ℂℙ¹`, evaluated at `v`. Both entries are homogeneous of degree
-three in `v`, so any representative gives the same point (`pencilMember_mk`). -/
+@[simp]
+theorem pencilVector_zero (v : Fin 3 → ℂ) : pencilVector v 0 = v 0 * v 1 * v 2 := by
+  simp [pencilVector]
+
+@[simp]
+theorem pencilVector_one (v : Fin 3 → ℂ) :
+    pencilVector v 1 = -(v 0 ^ 3 + v 1 ^ 3 + v 2 ^ 3) := by
+  simp [pencilVector]
+
+/-- Both entries of `pencilVector` are homogeneous of degree three. -/
+theorem pencilVector_smul (c : ℂ) (v : Fin 3 → ℂ) :
+    pencilVector (c • v) = c ^ 3 • pencilVector v := by
+  ext k
+  fin_cases k <;>
+    simp [pencilVector, (isHomogeneous_hesseCubics _).eval_smul, -hesseCubics_zero,
+      -hesseCubics_one]
+
+/-- Off the base locus, `x y z` and `x³ + y³ + z³` do not both vanish, so `pencilVector` is
+nonzero. -/
+theorem pencilVector_ne_zero {v : Fin 3 → ℂ} (hv : v ≠ 0)
+    (hp : Projectivization.mk ℂ v hv ∉ baseLocus) : pencilVector v ≠ 0 := by
+  intro h
+  refine hp ((mk_mem_baseLocus_iff hv).2 ⟨?_, ?_⟩)
+  · rw [← neg_eq_zero, ← pencilVector_one]; exact congrFun h 1
+  · rw [← pencilVector_zero]; exact congrFun h 0
+
+/-- The member of the Hesse pencil through a point `p` of `ℂℙ²` off the base locus: the point
+`[x y z : -(x³ + y³ + z³)]` of `ℂℙ¹`, evaluated at the chosen representative of `p`. By
+`pencilVector_smul`, any representative gives the same point (`pencilMember_mk`). -/
 noncomputable def pencilMember (p : ℙ ℂ (Fin 3 → ℂ)) (hp : p ∉ baseLocus) : ℙ ℂ (Fin 2 → ℂ) :=
-  Projectivization.mk ℂ _ (pencilVector_ne_zero hp)
+  Projectivization.mk ℂ (pencilVector p.rep)
+    (pencilVector_ne_zero p.rep_ne_zero (by rwa [p.mk_rep]))
 
 theorem pencilMember_def (p : ℙ ℂ (Fin 3 → ℂ)) (hp : p ∉ baseLocus) :
-    pencilMember p hp = Projectivization.mk ℂ _ (pencilVector_ne_zero hp) :=
+    pencilMember p hp = Projectivization.mk ℂ (pencilVector p.rep)
+      (pencilVector_ne_zero p.rep_ne_zero (by rwa [p.mk_rep])) :=
   (rfl)
 
 /-- The member of the Hesse pencil through `[v]` is `[x y z : -(x³ + y³ + z³)]` evaluated at any
 nonzero representative `v`. -/
 theorem pencilMember_mk {v : Fin 3 → ℂ} (hv : v ≠ 0)
     (hp : Projectivization.mk ℂ v hv ∉ baseLocus) :
-    pencilMember _ hp = Projectivization.mk ℂ ![v 0 * v 1 * v 2, -(v 0 ^ 3 + v 1 ^ 3 + v 2 ^ 3)]
-      (fun h ↦ hp ((mk_mem_baseLocus_iff hv).2 ⟨neg_eq_zero.1 (congrFun h 1), congrFun h 0⟩)) := by
+    pencilMember _ hp = Projectivization.mk ℂ (pencilVector v) (pencilVector_ne_zero hv hp) := by
   obtain ⟨a, ha⟩ := Projectivization.exists_smul_eq_mk_rep ℂ v hv
   rw [pencilMember_def]
-  refine (Projectivization.mk_eq_mk_iff' ℂ _ _ _ _).2 ⟨(a : ℂ) ^ 3, funext fun k ↦ ?_⟩
-  simp only [← ha, Units.smul_def, Pi.smul_apply, smul_eq_mul]
-  fin_cases k <;> simp <;> ring
+  refine (Projectivization.mk_eq_mk_iff' ℂ _ _ _ _).2 ⟨(a : ℂ) ^ 3, ?_⟩
+  rw [← ha, Units.smul_def, pencilVector_smul]
 
 /-- Away from the base locus, the fibre of the projection of the rational elliptic surface to
 `ℂℙ²` is the single point given by the member of the pencil through it. -/
 theorem mk_mem_iff_eq_pencilMember {p : ℙ ℂ (Fin 3 → ℂ)} (hp : p ∉ baseLocus)
     {q : ℙ ℂ (Fin 2 → ℂ)} : (p, q) ∈ rationalEllipticSurface ↔ q = pencilMember p hp := by
-  have hfg := pencilVector_ne_zero hp
   have hfg' : p.rep 0 ^ 3 + p.rep 1 ^ 3 + p.rep 2 ^ 3 ≠ 0 ∨ p.rep 0 * p.rep 1 * p.rep 2 ≠ 0 := by
     by_contra! h
-    exact hfg (funext fun k ↦ by fin_cases k <;> simp [h.1, h.2])
+    exact hp (mem_baseLocus_iff.2 h)
   rw [mem_rationalEllipticSurface_iff, ← q.mk_rep, pencilMember_def,
     Projectivization.mk_eq_mk_iff', Projectivization.mk_rep]
   simp only [eval_hessePencil, Sum.elim_inl, Sum.elim_inr]
@@ -577,29 +626,26 @@ theorem mk_mem_iff_eq_pencilMember {p : ℙ ℂ (Fin 3 → ℂ)} (hp : p ∉ bas
     rcases hfg' with hf | hg
     · refine ⟨-q.rep 1 / (p.rep 0 ^ 3 + p.rep 1 ^ 3 + p.rep 2 ^ 3), funext fun k ↦ ?_⟩
       fin_cases k
-      · simp only [Fin.zero_eta, Matrix.cons_val_zero, smul_eq_mul, Pi.smul_apply]
+      · simp only [Fin.zero_eta, pencilVector_zero, smul_eq_mul, Pi.smul_apply]
         rw [div_mul_eq_mul_div, div_eq_iff hf]
         linear_combination -h
-      · simp only [Fin.mk_one, Matrix.cons_val_one, Matrix.cons_val_fin_one, smul_eq_mul,
-          Pi.smul_apply]
+      · simp only [Fin.mk_one, pencilVector_one, smul_eq_mul, Pi.smul_apply]
         rw [div_mul_eq_mul_div, div_eq_iff hf]
         ring
     · refine ⟨q.rep 0 / (p.rep 0 * p.rep 1 * p.rep 2), funext fun k ↦ ?_⟩
       fin_cases k
-      · simp only [Fin.zero_eta, Matrix.cons_val_zero, smul_eq_mul, Pi.smul_apply]
+      · simp only [Fin.zero_eta, pencilVector_zero, smul_eq_mul, Pi.smul_apply]
         rw [div_mul_eq_mul_div, div_eq_iff hg]
-      · simp only [Fin.mk_one, Matrix.cons_val_one, Matrix.cons_val_fin_one, smul_eq_mul,
-          Pi.smul_apply]
+      · simp only [Fin.mk_one, pencilVector_one, smul_eq_mul, Pi.smul_apply]
         rw [div_mul_eq_mul_div, div_eq_iff hg]
         linear_combination -h
   · rintro ⟨a, ha⟩
     rw [← congrFun ha 0, ← congrFun ha 1]
-    simp only [Fin.isValue, Pi.smul_apply, Matrix.cons_val_zero, Matrix.cons_val_one,
-      Matrix.cons_val_fin_one, smul_eq_mul]
+    simp only [Pi.smul_apply, pencilVector_zero, pencilVector_one, smul_eq_mul]
     ring
 
 /-- The part of the rational elliptic surface over the complement of the base locus. -/
-def complBaseLocus : Set rationalEllipticSurface :=
+noncomputable def complBaseLocus : Set rationalEllipticSurface :=
   (fun x : rationalEllipticSurface ↦ (x : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)).1) ⁻¹' baseLocusᶜ
 
 theorem mem_complBaseLocus_iff {x : rationalEllipticSurface} :
