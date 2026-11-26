@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.D
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
 public import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.PointFiber
 public import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.ZeroDim
+public import SymplecticGeometry.Topology.VectorBundle.Thom.LocalHomologyRestriction
 
 /-!
 # The local classes of the fundamental class of a tube
@@ -23,7 +24,7 @@ the class `μ_Φ` of
 `tubeFundamentalClass_def` unfolds to that form.
 
 This file computes its local classes at the points `0_z` of the zero section, its images in
-`Hₙ(ν, ν ∖ 0_z; ℤ)`, for every tube.
+`Hₙ(ν, ν ∖ 0_z; ℤ)` under `TauCeti.thomPairLocalHomologyRestriction`, for every tube.
 
 * The tube carries the local class at `0_z` to the local orientation `oX (f z)`
   (`localHomologyMap_tubeFundamentalClass`). The composite of the pair maps involved is the
@@ -152,13 +153,8 @@ theorem localHomologyMap_tubeFundamentalClass (f : SmoothEmbedding I J ∞ Z X)
           rintro p hp
           exact Φ.injective (Subtype.ext (hp.trans (hΦ z).symm)))
         n
-        ((TopPair.singularHomologyMap
-          (TopPair.ofSubsetMap (X := TopCat.of (TotalSpace P (fun x ↦ f.NormalSpace x hn)))
-            (B := zeroSectionCompl P (fun x ↦ f.NormalSpace x hn))
-            (B' := ({zeroSection P _ z}ᶜ : Set (TotalSpace P (fun x ↦ f.NormalSpace x hn))))
-            (𝟙 _) fun v hv h ↦ mem_zeroSectionCompl.1 hv
-              (by rw [show v = zeroSection P _ z from h]; exact zeroSection_snd ..))
-          (ModuleCat.of ℤ (ULift.{0} ℤ)) n).hom
+        ((thomPairLocalHomologyRestriction (ModuleCat.of ℤ (ULift.{0} ℤ)) P
+          (fun x ↦ f.NormalSpace x hn) z n).hom
           (f.tubeFundamentalClass hn hdim Φ hΦ oX hnX hK)) = (oX (f z)).val := by
   let := f.normalSpaceFiberBundle hn hdim
   have hfz : f z ∈ (W : Set X) := by rw [← hΦ z]; exact (Φ _).property
@@ -166,13 +162,16 @@ theorem localHomologyMap_tubeFundamentalClass (f : SmoothEmbedding I J ∞ Z X)
     W.isOpenEmbedding' (j := ⟨Subtype.val, continuous_subtypeVal⟩) hK subset_rfl
     (x := ⟨f z, hfz⟩) (mem_range_self z)
   refine Eq.trans ?_ h
-  rw [tubeFundamentalClass_def, localHomologyRestriction_def, localHomologyMap_def,
-    localHomologyMap_def, ← ConcreteCategory.comp_apply, ← ConcreteCategory.comp_apply,
+  rw [thomPairLocalHomologyRestriction_def, tubeFundamentalClass_def,
+    localHomologyRestriction_def, localHomologyMap_def, localHomologyMap_def,
+    ← ConcreteCategory.comp_apply, ← ConcreteCategory.comp_apply,
     ← ConcreteCategory.comp_apply, ← TopPair.singularHomologyMap_comp,
     ← TopPair.singularHomologyMap_comp, ← TopPair.singularHomologyMap_comp]
   refine congrArg (fun g ↦ TopPair.singularHomologyMap g (ModuleCat.of ℤ (ULift.{0} ℤ)) n _)
     (TopPair.hom_ext_of_fst _ (ConcreteCategory.hom_ext _ _ fun w ↦ ?_))
   simp only [TopPair.Hom.fst_comp, ConcreteCategory.comp_apply]
+  -- `erw`: the goal matches the left sides of these lemmas only up to unfolding the spaces of
+  -- the pairs `TopPair.ofSubset`, so `rw` does not find them.
   erw [TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply,
     TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply, tubePairIso_inv_fst_apply]
   simp only [TopCat.hom_ofHom, TopCat.hom_id, ContinuousMap.coe_mk, Diffeomorph.apply_symm_apply]
@@ -221,13 +220,8 @@ theorem localChartLocalHomologyIso_inv_tubeFundamentalClass_of_localHomologyMap
       Φ.toHomeomorph.isEmbedding.t1Space
     (Trivialization.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe
         (by simp) (by simp) h0 n).inv
-      ((TopPair.singularHomologyMap
-        (TopPair.ofSubsetMap (X := TopCat.of (TotalSpace P (fun x ↦ f.NormalSpace x hn)))
-          (B := zeroSectionCompl P (fun x ↦ f.NormalSpace x hn))
-          (B' := ({zeroSection P _ z}ᶜ : Set (TotalSpace P (fun x ↦ f.NormalSpace x hn))))
-          (𝟙 _) fun v hv h ↦ mem_zeroSectionCompl.1 hv
-            (by rw [show v = zeroSection P _ z from h]; exact zeroSection_snd ..))
-        (ModuleCat.of ℤ (ULift.{0} ℤ)) n).hom
+      ((thomPairLocalHomologyRestriction (ModuleCat.of ℤ (ULift.{0} ℤ)) P
+        (fun x ↦ f.NormalSpace x hn) z n).hom
         (f.tubeFundamentalClass hn hdim Φ hΦ oX hnX hK)) = a := by
   let := f.normalSpaceFiberBundle hn hdim
   let := f.normalSpaceVectorBundle hn hdim
@@ -289,13 +283,8 @@ theorem localChartLocalHomologyIso_inv_tubeFundamentalClass
       Φ.toHomeomorph.isEmbedding.t1Space
     (Trivialization.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe
         (by simp) (by simp) h0 (d + 1)).inv
-      ((TopPair.singularHomologyMap
-        (TopPair.ofSubsetMap (X := TopCat.of (TotalSpace P (fun x ↦ f.NormalSpace x hn)))
-          (B := zeroSectionCompl P (fun x ↦ f.NormalSpace x hn))
-          (B' := ({zeroSection P _ z}ᶜ : Set (TotalSpace P (fun x ↦ f.NormalSpace x hn))))
-          (𝟙 _) fun v hv h ↦ mem_zeroSectionCompl.1 hv
-            (by rw [show v = zeroSection P _ z from h]; exact zeroSection_snd ..))
-        (ModuleCat.of ℤ (ULift.{0} ℤ)) (d + 1)).hom
+      ((thomPairLocalHomologyRestriction (ModuleCat.of ℤ (ULift.{0} ℤ)) P
+        (fun x ↦ f.NormalSpace x hn) z (d + 1)).hom
         (f.tubeFundamentalClass hn hdim Φ hΦ.apply_zeroSection
           ((oX.reindex (finCongr (by omega))).toHomologicalOrientation hV) hV hK)) =
       (SymplecticGeometry.localHomologyCross (0 : P) (0 : E) (r + 1) (m + 1) (d + 1)
@@ -334,13 +323,8 @@ theorem localChartLocalHomologyIso_inv_tubeFundamentalClass_of_finrank_eq_zero
       Φ.toHomeomorph.isEmbedding.t1Space
     (Trivialization.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe
         (by simp) (by simp) h0 (r + 1)).inv
-      ((TopPair.singularHomologyMap
-        (TopPair.ofSubsetMap (X := TopCat.of (TotalSpace P (fun x ↦ f.NormalSpace x hn)))
-          (B := zeroSectionCompl P (fun x ↦ f.NormalSpace x hn))
-          (B' := ({zeroSection P _ z}ᶜ : Set (TotalSpace P (fun x ↦ f.NormalSpace x hn))))
-          (𝟙 _) fun v hv h ↦ mem_zeroSectionCompl.1 hv
-            (by rw [show v = zeroSection P _ z from h]; exact zeroSection_snd ..))
-        (ModuleCat.of ℤ (ULift.{0} ℤ)) (r + 1)).hom
+      ((thomPairLocalHomologyRestriction (ModuleCat.of ℤ (ULift.{0} ℤ)) P
+        (fun x ↦ f.NormalSpace x hn) z (r + 1)).hom
         (f.tubeFundamentalClass hn hdim Φ hΦ.apply_zeroSection
           ((oX.reindex (finCongr (by omega))).toHomologicalOrientation hV) hV hK)) =
       (SymplecticGeometry.localHomologyCross (0 : P) (0 : E) (r + 1) 0 (r + 1)
@@ -384,13 +368,8 @@ theorem localChartLocalHomologyIso_inv_tubeFundamentalClass_of_finrank_fiber_eq_
       Φ.toHomeomorph.isEmbedding.t1Space
     (Trivialization.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe
         (by simp) (by simp) h0 (m + 1)).inv
-      ((TopPair.singularHomologyMap
-        (TopPair.ofSubsetMap (X := TopCat.of (TotalSpace P (fun x ↦ f.NormalSpace x hn)))
-          (B := zeroSectionCompl P (fun x ↦ f.NormalSpace x hn))
-          (B' := ({zeroSection P _ z}ᶜ : Set (TotalSpace P (fun x ↦ f.NormalSpace x hn))))
-          (𝟙 _) fun v hv h ↦ mem_zeroSectionCompl.1 hv
-            (by rw [show v = zeroSection P _ z from h]; exact zeroSection_snd ..))
-        (ModuleCat.of ℤ (ULift.{0} ℤ)) (m + 1)).hom
+      ((thomPairLocalHomologyRestriction (ModuleCat.of ℤ (ULift.{0} ℤ)) P
+        (fun x ↦ f.NormalSpace x hn) z (m + 1)).hom
         (f.tubeFundamentalClass hn hdim Φ hΦ.apply_zeroSection
           ((oX.reindex (finCongr (by omega))).toHomologicalOrientation hV) hV hK)) =
       (SymplecticGeometry.localHomologyCross (0 : P) (0 : E) 0 (m + 1) (m + 1)
@@ -440,13 +419,8 @@ theorem
       Φ.toHomeomorph.isEmbedding.t1Space
     (Trivialization.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe
         (by simp) (by simp) h0 0).inv
-      ((TopPair.singularHomologyMap
-        (TopPair.ofSubsetMap (X := TopCat.of (TotalSpace P (fun x ↦ f.NormalSpace x hn)))
-          (B := zeroSectionCompl P (fun x ↦ f.NormalSpace x hn))
-          (B' := ({zeroSection P _ z}ᶜ : Set (TotalSpace P (fun x ↦ f.NormalSpace x hn))))
-          (𝟙 _) fun v hv h ↦ mem_zeroSectionCompl.1 hv
-            (by rw [show v = zeroSection P _ z from h]; exact zeroSection_snd ..))
-        (ModuleCat.of ℤ (ULift.{0} ℤ)) 0).hom
+      ((thomPairLocalHomologyRestriction (ModuleCat.of ℤ (ULift.{0} ℤ)) P
+        (fun x ↦ f.NormalSpace x hn) z 0).hom
         (f.tubeFundamentalClass hn hdim Φ hΦ.apply_zeroSection
           ((oX.reindex (finCongr ((zero_add _).trans hP))).toHomologicalOrientationOfZeroDim)
           (by omega) hK)) =
