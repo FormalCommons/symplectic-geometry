@@ -64,10 +64,11 @@ reads the local orientation of `X` through the derivative, and Tau Ceti's
 `TauCeti.Manifold.Orientation.localHomologyMap_sub_toHomologicalOrientation_transHomeomorph`, for
 a chart that is not a preferred one.
 
-Two cases follow. If `Z` has positive dimension, this class is the cross product
-`TauCeti.LocalOrientation.cross` of the local orientation of the normal fibre and that of `Z`,
-normal factor first, with no sign (`localHomologyMap_sub_normalTubeChart_toHomologicalOrientation`),
-by the library's `TauCeti.LocalOrientation.cross_eq_map_prodComm_prod` and Tau Ceti's
+Three cases follow. If `Z` and the normal fibre have positive dimension, this class is the
+cross product `TauCeti.LocalOrientation.cross` of the local orientation of the normal fibre and
+that of `Z`, normal factor first, with no sign
+(`localHomologyMap_sub_normalTubeChart_toHomologicalOrientation`), by the library's
+`TauCeti.LocalOrientation.cross_eq_map_prodComm_prod` and Tau Ceti's
 `TauCeti.LocalOrientation.prod_localOrientation` and `Orientation.localOrientation_map`. If `Z`
 has dimension zero, the orientation of `Z` at `z` is the positive orientation of `E` or its
 negative, and the class is the cross product `SymplecticGeometry.localHomologyCross` of the local
@@ -76,7 +77,7 @@ orientation of the normal fibre with the class of the origin of `E`, taken with 
 a zero-dimensional factor brings no sign (Tau Ceti's `Orientation.map_prodComm_prod_of_even`), and
 the cross product with the class of the origin is computed by the library's
 `Orientation.localHomologyCross_localOrientation_tmul_ite_localOrientationOfZeroDimChart`. The
-case where the normal fibre is a point is treated in
+third case, where the normal fibre is a point and `Z` has positive dimension, is treated in
 `SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.PointFiber`.
 
 The same class is then read from the total space of the normal bundle, through the chart

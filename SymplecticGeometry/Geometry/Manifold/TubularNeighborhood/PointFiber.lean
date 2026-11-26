@@ -57,7 +57,9 @@ open scoped Manifold ContDiff
 
 namespace TauCeti.SmoothEmbedding
 
-variable {E V P Z X : Type} {H G : Type*}
+section ChartForm
+
+variable {E V P X : Type} {H G Z : Type*}
   [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]
   [NormedAddCommGroup P] [NormedSpace ℝ P] [FiniteDimensional ℝ P]
@@ -67,9 +69,6 @@ variable {E V P Z X : Type} {H G : Type*}
   [TopologicalSpace X] [T2Space X] [ChartedSpace G X] [ChartedSpace V X] [IsManifold J ∞ X]
   {f : SmoothEmbedding I J ∞ Z X} {hn : (∞ : ℕ∞ω) ≠ 0}
   {hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E} {W : TopologicalSpace.Opens X}
-
-variable (Φ : letI := f.normalSpaceFiberBundle hn hdim
-  TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W) (z : Z) {S : Set E}
 
 open Classical in
 /-- **The local orientation of the ambient manifold through a normalized tube, when the normal
@@ -138,6 +137,24 @@ theorem localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_of_finrank
   · rfl
   · rw [neg_neg]
 
+end ChartForm
+
+section TotalSpaceForm
+
+/- `localHomologyMap_localChartLocalHomologyIso_hom_of_normalTubeChart` takes `Z : Type`. -/
+variable {E V P Z X : Type} {H G : Type*}
+  [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]
+  [NormedAddCommGroup P] [NormedSpace ℝ P] [FiniteDimensional ℝ P]
+  [TopologicalSpace H] [TopologicalSpace G]
+  {I : ModelWithCorners ℝ E H} {J : ModelWithCorners ℝ V G} [I.Boundaryless] [J.Boundaryless]
+  [TopologicalSpace Z] [ChartedSpace H Z] [IsManifold I ∞ Z]
+  [TopologicalSpace X] [T2Space X] [ChartedSpace G X] [ChartedSpace V X] [IsManifold J ∞ X]
+  {f : SmoothEmbedding I J ∞ Z X} {hn : (∞ : ℕ∞ω) ≠ 0}
+  {hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E} {W : TopologicalSpace.Opens X}
+
+variable (Φ : letI := f.normalSpaceFiberBundle hn hdim
+  TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W) (z : Z) {S : Set E}
 
 open Classical in
 /-- **The local orientation of the ambient manifold through a normalized tube, from the total
@@ -201,6 +218,7 @@ theorem
     rw [map_neg, map_neg] at hG
     rw [← hG, neg_neg]
 
+end TotalSpaceForm
 
 end TauCeti.SmoothEmbedding
 
