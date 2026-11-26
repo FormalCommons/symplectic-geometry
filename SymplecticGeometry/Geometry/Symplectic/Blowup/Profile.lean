@@ -616,7 +616,7 @@ theorem isSmoothFamily_profileForm {l ε : unitInterval → ℝ} (hl : ContMDiff
       mextDerivₗ 𝓘(ℝ, Fin (n + 1) → ℂ) 1 (SmoothForm.funSMulₗ (a t)
         ((ofComplexManifold (Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ)).covectorComplexStructure
           (mextDerivₗ 𝓘(ℝ, Fin (n + 1) → ℂ) 0 (SmoothForm.ofFunction s)))) := by
-    rw [correctionForm_def,
+    rw [correctionForm_def, potentialForm_def,
       covectorComplexStructure_mextDerivₗ_ofFunction_comp_of_hasDerivAt (f := s) (g' := a t)
         (fun x ↦ correctionPotential_apply n (hl0 t) (hε0 t) x)
         (fun x ↦ hasDerivAt_blowupCorrection (hl0 t) (hε0 t) (s x))]
