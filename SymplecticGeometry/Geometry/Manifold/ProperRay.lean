@@ -64,15 +64,16 @@ closed discrete set of a manifold of dimension at least two. Each ray is grown a
 * `IsRayStage` and `exists_isRayStage_succ`: one stage of the construction. `IsRayStage` records
   the rays built after stage `j`, one for each point already used of a closed discrete set `P`,
   together with a closed discrete set of obstacles that holds the unused points of `P` and the
-  backward limit points of the rays. `exists_isRayStage_succ` passes from stage `j` to stage
-  `j + 1`. A new ray starts with a short segment through its point
-  (`exists_isSmoothEmbedding_real_of_mem_nhds`), chosen so that `h` stays close to its value at
-  the point; the next level is taken in a window of levels that these values avoid, so that each
-  segment, being connected, lies inside the next filled sublevel set or outside it
-  (`subset_filledSublevel_or_disjoint_of_isPreconnected`). The backward limit point of the
-  segment joins the obstacles, so that the built part is closed off them. Then every ray grows
-  past a filled sublevel set slightly above level `c j + 2` (`exists_grow_rays`), and the next
-  level and the cuts come from
+  backward limit points of the rays; `isRayStage_zero` is the start, with no rays.
+  `exists_isRayStage_succ` passes from stage `j` to stage `j + 1`. New rays start with short
+  segments through their points (`exists_isSmoothEmbedding_real_pairwiseDisjoint_of_mem_nhds`),
+  chosen so that `h` stays close to its value at the point; the next level is taken in a window
+  of levels that these values avoid, so that each segment, being connected, lies inside the next
+  filled sublevel set or outside it (`subset_filledSublevel_or_disjoint_of_isPreconnected`). The
+  backward limit point of a segment joins the obstacles, so that the built part is closed off
+  them. Then every ray grows past a filled sublevel set slightly above level `c j + 2`
+  (`exists_grow_rays`), since a new point may lie on the frontier of
+  `filledSublevel h (c j + 2)`, and the next level and the cuts come from
   `exists_mem_forall_exists_mem_Ioo_leavesForGood_filledSublevel`. The built parts then lie in
   `filledSublevel h (c' + 1)` for the new level `c'`, which is what the next stage needs.
 
@@ -603,12 +604,13 @@ section Stage
 
 variable (I) in
 /-- The invariants of the construction of rays from the points of `P` after stage `j`, with
-levels `c 0, …, c j`: the rays `γ p`, for `p` in the finite set `S ⊆ P` of points already used,
-start at `p`, have pairwise disjoint built parts `γ p '' Iic (T p)` that miss the closed discrete
-set `s` of obstacles, contain the unused points of `P`, and whose closures add only points of
-`s` outside `P`. Every ray leaves each `filledSublevel h (c i)` for good, ends outside
-`filledSublevel h (c j)` and is built inside `filledSublevel h (c j + 1)`; every point of `P` in
-`filledSublevel h (c j)` is used. -/
+levels `c 0, …, c j` that are at most `c j`. The closed discrete set `s` of obstacles contains
+the points of `P` outside the finite set `S ⊆ P` of points already used, and every point of `P`
+in `filledSublevel h (c j)` is used. For `p ∈ S` the ray `γ p` is a smooth embedding with
+`γ p 0 = p` and a cut parameter `T p ≥ 0`; the built parts `γ p '' Iic (T p)` are pairwise
+disjoint and miss `s`, and the closure of each adds to it only points of `s` outside `P`. Each
+ray leaves every `filledSublevel h (c i)`, `i ≤ j`, for good along `Iic (T p)`, ends outside
+`filledSublevel h (c j)` and has its built part in `filledSublevel h (c j + 1)`. -/
 structure IsRayStage (h : M → ℝ) (P s : Set M) (c : ℕ → ℝ) (j : ℕ) (S : Finset M)
     (γ : M → ℝ → M) (T : M → ℝ) : Prop where
   le_level : ∀ i ≤ j, c i ≤ c j
@@ -627,25 +629,27 @@ structure IsRayStage (h : M → ℝ) (P s : Set M) (c : ℕ → ℝ) (j : ℕ) (
   notMem : ∀ p ∈ S, γ p (T p) ∉ filledSublevel h (c j)
   subset : ∀ p ∈ S, γ p '' Iic (T p) ⊆ filledSublevel h (c j + 1)
 
-/-- Short smooth segments through the points of a finite set `N`, each inside a prescribed
-neighbourhood of its point, with pairwise disjoint closures. -/
-private theorem exists_segments [Nontrivial E] (N : Finset M) {G : M → Set M}
-    (hG : ∀ p ∈ N, G p ∈ 𝓝 p) :
-    ∃ (σ : M → ℝ → M) (q : M → M), (∀ p ∈ N, IsSmoothEmbedding 𝓘(ℝ) I ∞ (σ p) ∧ σ p 0 = p ∧
-      closure (range (σ p)) ⊆ G p ∧ q p ∈ closure (range (σ p)) ∧ q p ∉ range (σ p) ∧
-      ∀ T, closure (σ p '' Iic T) = insert (q p) (σ p '' Iic T)) ∧
-      (N : Set M).PairwiseDisjoint fun p ↦ closure (range (σ p)) := by
-  classical
-  obtain ⟨U, hU, hUd⟩ := N.finite_toSet.t2_separation
-  have hGU (p : M) (hp : p ∈ N) : G p ∩ U p ∈ 𝓝 p :=
-    Filter.inter_mem (hG p hp) ((hU p).2.mem_nhds (hU p).1)
-  choose! σ q hσ hσ0 hσV hσq hqσ hσcl using fun p (hp : p ∈ N) ↦
-    exists_isSmoothEmbedding_real_of_mem_nhds (I := I) (hGU p hp)
-  refine ⟨σ, q, fun p hp ↦ ⟨hσ p hp, hσ0 p hp, (hσV p hp).trans inter_subset_left,
-    mem_closure_of_tendsto (hσq p hp) (Filter.Eventually.of_forall mem_range_self), hqσ p hp,
-    hσcl p hp⟩, fun a ha b hb hab ↦ ?_⟩
-  exact (hUd ha hb hab).mono ((hσV a ha).trans inter_subset_right)
-    ((hσV b hb).trans inter_subset_right)
+omit [FiniteDimensional ℝ E] [I.Boundaryless] [T2Space M] [IsManifold I ∞ M] in
+/-- The stage with no rays yet: it holds at level `c 0` when no point of `P` lies in
+`filledSublevel h (c 0)` and the closed discrete set of obstacles `s` contains `P`. -/
+theorem isRayStage_zero {h : M → ℝ} {P s : Set M} {c : ℕ → ℝ} (hs : IsClosed s)
+    (hsd : IsDiscrete s) (hPs : P ⊆ s) (hP : Disjoint P (filledSublevel h (c 0)))
+    (γ : M → ℝ → M) (T : M → ℝ) : IsRayStage I h P s c 0 ∅ γ T where
+  le_level i hi := by rw [Nat.le_zero.1 hi]
+  isClosed := hs
+  isDiscrete := hsd
+  subset_P := by simp
+  inter_subset x hx := (disjoint_left.1 hP hx.1 hx.2).elim
+  sdiff_subset := sdiff_subset.trans hPs
+  emb := by simp
+  apply_zero := by simp
+  nonneg := by simp
+  disj := by simp
+  disj_s := by simp
+  closure_subset := by simp
+  leaves := by simp
+  notMem := by simp
+  subset := by simp
 
 /-- **One stage of the construction of rays.** Let `M` be a finite-dimensional Hausdorff
 boundaryless smooth manifold whose model space has rank greater than one, `h : M → ℝ` a `C¹`
@@ -662,7 +666,8 @@ theorem exists_isRayStage_succ (hE : 1 < Module.rank ℝ E) {h : M → ℝ}
     {γ : M → ℝ → M} {T : M → ℝ} (hst : IsRayStage I h P s c j S γ T) :
     ∃ c' ∈ Ioo (c j + 1) (c j + 2), ∃ (s' : Set M) (S' : Finset M) (γ' : M → ℝ → M)
       (T' : M → ℝ), IsRayStage I h P s' (update c (j + 1) c') (j + 1) S' γ' T' ∧ S ⊆ S' ∧
-      s \ P ⊆ s' ∧ (∀ p ∈ S, T p < T' p ∧ EqOn (γ' p) (γ p) (Iic (T p)) ∧
+      s \ P ⊆ s' ∧ P ∩ filledSublevel h (c j + 2) ⊆ S' ∧
+      (∀ p ∈ S, T p < T' p ∧ EqOn (γ' p) (γ p) (Iic (T p)) ∧
         γ' p '' Ioc (T p) (T' p) ⊆ (filledSublevel h (c j))ᶜ) ∧
       ∀ p ∈ S', p ∉ S → γ' p '' Iic (T' p) ⊆ (filledSublevel h (c j))ᶜ := by
   classical
@@ -733,7 +738,7 @@ theorem exists_isRayStage_succ (hE : 1 < Module.rank ℝ E) {h : M → ℝ}
     exact ((((hKc.isOpen_compl.inter hC.isOpen_compl).inter
       (hsub_s _ sdiff_subset).isOpen_compl).inter (Metric.isOpen_ball.preimage hhc))).inter
       isOpen_interior
-  obtain ⟨σ, q, hσ, hσd⟩ := exists_segments (I := I) N hG
+  obtain ⟨σ, q, hσ, hσd⟩ := exists_isSmoothEmbedding_real_pairwiseDisjoint_of_mem_nhds (I := I) N hG
   have hqG (p : M) (hp : p ∈ N) : q p ∈ G p := (hσ p hp).2.2.1 (hσ p hp).2.2.2.1
   have hqs (p : M) (hp : p ∈ N) : q p ∉ s := fun hqs ↦ (hqG p hp).1.1.2
     ⟨hqs, fun hqp ↦ (hσ p hp).2.2.2.2.1 ⟨0, (hσ p hp).2.1.trans hqp.symm⟩⟩
@@ -895,6 +900,11 @@ theorem exists_isRayStage_succ (hE : 1 < Module.rank ℝ E) {h : M → ℝ}
     · rw [(hold _ hk).1, (hold _ hk).2]
       exact (hst.subset _ hk).trans (filledSublevel_mono (by linarith))
     · exact (hnewG _ hk).trans (inter_subset_right.trans hFd)
+  have hPS1 : P ∩ filledSublevel h (c j + 2) ⊆ S1 := by
+    rintro x ⟨hxP, hxF⟩
+    by_cases hxS : x ∈ S
+    · exact Finset.mem_union_left _ hxS
+    · exact Finset.mem_union_right _ (hNfin.mem_toFinset.2 ⟨⟨hxP, hxF⟩, hxS⟩)
   -- The rays of the next stage.
   set γ' : M → ℝ → M := fun p ↦ if hp : p ∈ S1 then γ2 ⟨p, hp⟩ else γ p
   set T' : M → ℝ := fun p ↦ if hp : p ∈ S1 then u ⟨p, hp⟩ else T p
@@ -902,7 +912,7 @@ theorem exists_isRayStage_succ (hE : 1 < Module.rank ℝ E) {h : M → ℝ}
     ⟨by simp [γ', hp], by simp [T', hp]⟩
   refine ⟨c', hc'I, s1, S1, γ', T', ⟨fun i hi ↦ ?_, hs1, hd1, ?_, ?_, ?_, fun p hp ↦ ?_,
     fun p hp ↦ ?_, fun p hp ↦ ?_, fun a ha b hb hab ↦ ?_, fun p hp ↦ ?_, fun p hp ↦ ?_,
-    fun p hp i hi ↦ ?_, fun p hp ↦ ?_, fun p hp ↦ ?_⟩, Finset.subset_union_left, hsN,
+    fun p hp i hi ↦ ?_, fun p hp ↦ ?_, fun p hp ↦ ?_⟩, Finset.subset_union_left, hsN, hPS1,
     fun p hp ↦ ?_, fun p hp hpS ↦ ?_⟩
   · rw [update_self]
     rcases Nat.lt_or_ge i (j + 1) with hi' | hi'
@@ -914,11 +924,7 @@ theorem exists_isRayStage_succ (hE : 1 < Module.rank ℝ E) {h : M → ℝ}
     · exact hst.subset_P hx
     · exact (hN x hx).1
   · rw [update_self]
-    rintro x ⟨hxP, hxF⟩
-    by_cases hxS : x ∈ S
-    · exact Finset.mem_union_left _ hxS
-    · exact Finset.mem_union_right _
-        (hNfin.mem_toFinset.2 ⟨⟨hxP, filledSublevel_mono hc'I.2.le hxF⟩, hxS⟩)
+    exact (inter_subset_inter_right _ (filledSublevel_mono hc'I.2.le)).trans hPS1
   · rintro x ⟨hxP, hxS1⟩
     exact .inl ⟨hst.sdiff_subset ⟨hxP, fun h ↦ hxS1 (Finset.mem_union_left _ h)⟩,
       fun h ↦ hxS1 (Finset.mem_union_right _ h)⟩
