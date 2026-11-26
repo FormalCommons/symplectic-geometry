@@ -210,7 +210,7 @@ theorem exists_isRegularValue_image_closedBall [IsManifold 𝓘(ℝ, E) ∞ M]
   -- Near `x`, `f` is `‖e · - c‖ ^ 2 - ρ ^ 2`, which is regular at `x` since `e` is a local
   -- diffeomorphism and `e x ≠ c`.
   have hev : f =ᶠ[𝓝 x] (fun y ↦ ‖y - c‖ ^ 2 - ρ ^ 2) ∘ e := by
-    filter_upwards [(e.continuousOn.isOpen_inter_preimage e.open_source isOpen_ball).mem_nhds
+    filter_upwards [(e.isOpen_inter_preimage isOpen_ball).mem_nhds
       (show x ∈ e.source ∩ e ⁻¹' ball c ρ' by
         rw [mem_inter_iff, mem_preimage, mem_ball, dist_eq_norm, hxc]
         exact ⟨hx'.1, hρ'⟩)] with z hz
