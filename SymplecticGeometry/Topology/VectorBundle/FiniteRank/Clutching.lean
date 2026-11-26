@@ -107,6 +107,15 @@ open SymplecticGeometry.ProjectiveLine
 
 variable {𝕜 X : Type*} [NontriviallyNormedField 𝕜] [TopologicalSpace X]
 
+/-- The pullback of `E` to the product of `X` with the annulus is its pullback to `X × Circle`
+pulled back along `clutchingMap`: both are the pullback of `E` along `w ↦ w.val.1`. -/
+theorem pullback_fst_pullback_subtypeVal_eq_pullback_clutchingMap
+    (E : FiniteRankBundleCore 𝕜 X) :
+    (E.pullback (ContinuousMap.fst : C(X × ℙ ℂ (Fin 2 → ℂ), X))).pullback
+        (ContinuousMap.subtypeVal (Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc)) =
+      (E.pullback (ContinuousMap.fst : C(X × Circle, X))).pullback (clutchingMap X) := by
+  rw [pullback_comp, pullback_comp, fst_comp_clutchingMap]
+
 /-- The automorphism of the pullback of `E` to the product of `X` with the annulus by which the
 clutching by `f` glues: the pullback of `f` along `clutchingMap`. -/
 def clutchingAut (E : FiniteRankBundleCore 𝕜 X)
@@ -116,24 +125,33 @@ def clutchingAut (E : FiniteRankBundleCore 𝕜 X)
         (ContinuousMap.subtypeVal (Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc)) ≅
       (E.pullback (ContinuousMap.fst : C(X × ℙ ℂ (Fin 2 → ℂ), X))).pullback
         (ContinuousMap.subtypeVal (Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc)) :=
-  -- Both iterated pullbacks are the pullback of `E` along `w ↦ w.val.1`.
-  (pullbackFunctor (clutchingMap X)).mapIso f
+  eqToIso (pullback_fst_pullback_subtypeVal_eq_pullback_clutchingMap E) ≪≫
+    (pullbackFunctor (clutchingMap X)).mapIso f ≪≫
+    eqToIso (pullback_fst_pullback_subtypeVal_eq_pullback_clutchingMap E).symm
 
 @[simp]
 theorem fiberMap_clutchingAut_hom (E : FiniteRankBundleCore 𝕜 X)
     (f : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
       E.pullback (ContinuousMap.fst : C(X × Circle, X)))
     (w : ↥(Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc : Set (X × ℙ ℂ (Fin 2 → ℂ)))) :
-    (clutchingAut E f).hom.fiberMap w = f.hom.fiberMap (clutchingMap X w) :=
-  fiberMap_pullbackMap f.hom (clutchingMap X) w
+    (clutchingAut E f).hom.fiberMap w = f.hom.fiberMap (clutchingMap X w) := by
+  ext v i
+  have hv :
+      (eqToHom (pullback_fst_pullback_subtypeVal_eq_pullback_clutchingMap E)).fiberMap w v = v :=
+    funext fun j ↦ by simp [Fin.cast_eq_self]
+  simp [clutchingAut, hv, Fin.cast_eq_self]
 
 @[simp]
 theorem fiberMap_clutchingAut_inv (E : FiniteRankBundleCore 𝕜 X)
     (f : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
       E.pullback (ContinuousMap.fst : C(X × Circle, X)))
     (w : ↥(Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc : Set (X × ℙ ℂ (Fin 2 → ℂ)))) :
-    (clutchingAut E f).inv.fiberMap w = f.inv.fiberMap (clutchingMap X w) :=
-  fiberMap_pullbackMap f.inv (clutchingMap X) w
+    (clutchingAut E f).inv.fiberMap w = f.inv.fiberMap (clutchingMap X w) := by
+  ext v i
+  have hv :
+      (eqToHom (pullback_fst_pullback_subtypeVal_eq_pullback_clutchingMap E)).fiberMap w v = v :=
+    funext fun j ↦ by simp [Fin.cast_eq_self]
+  simp [clutchingAut, hv, Fin.cast_eq_self]
 
 /-- **The clutching construction.** For a core `E` over `X` and an automorphism `f` of its pullback
 to `X × Circle`, the core over `X × ℙ ℂ (Fin 2 → ℂ)` that is the pullback of `E` along `Prod.fst`
@@ -268,7 +286,10 @@ theorem coordChange_clutching_of_mem_of_notMem {x y : X × ℙ ℂ (Fin 2 → �
 /-- The clutching by the identity glues by the identity. -/
 @[simp]
 theorem clutchingAut_refl : clutchingAut E (Iso.refl _) = Iso.refl _ :=
-  Functor.mapIso_refl _ _
+  Iso.ext <| hom_ext fun w ↦ (fiberMap_clutchingAut_hom _ _ w).trans <| by
+    -- Both sides are the identity of the fibre of `E`, at two forms of its rank.
+    simp only [Iso.refl_hom, fiberMap_id]
+    rfl
 
 /-- The clutching by the identity is the gluing by the identity. -/
 theorem clutching_refl : E.clutching (Iso.refl _) =
@@ -316,17 +337,30 @@ by which the clutchings by the two families glue. -/
 theorem clutchingAut_whitneyMapIso :
     clutchingAut (whitneySum E₁ E₂) (whitneyMapIso f₁ f₂) =
       whitneyMapIso (clutchingAut E₁ f₁) (clutchingAut E₂ f₂) :=
-  Iso.ext <| by
-    rw [whitneyMapIso_hom]
-    -- The gluing automorphism `clutchingAut` is by definition the pullback along `clutchingMap`.
-    exact (congrArg (pullbackMap · (clutchingMap X)) (whitneyMapIso_hom f₁ f₂)).trans
-      (pullbackMap_whitneyMap f₁.hom f₂.hom (clutchingMap X))
+  -- The pullback of a Whitney sum is the Whitney sum of the pullbacks only up to unfolding, so
+  -- the fibre maps are chained with `Eq.trans`, whose elaboration compares types up to unfolding.
+  Iso.ext <| hom_ext fun w ↦ by
+    refine (fiberMap_clutchingAut_hom _ _ w).trans <|
+      (congrArg (fun a ↦ a.fiberMap (clutchingMap X w)) (whitneyMapIso_hom f₁ f₂)).trans <|
+        (fiberMap_whitneyMap f₁.hom f₂.hom _).trans <| Eq.trans ?_ <|
+          (congrArg (fun a ↦ a.fiberMap w)
+            (whitneyMapIso_hom (clutchingAut E₁ f₁) (clutchingAut E₂ f₂))).trans
+            (fiberMap_whitneyMap (clutchingAut E₁ f₁).hom (clutchingAut E₂ f₂).hom w) |>.symm
+    rw [fiberMap_clutchingAut_hom, fiberMap_clutchingAut_hom]
+    -- The two sides differ only in how the ranks of the pullbacks are written.
+    rfl
 
 /-- The clutching by the tensor product of two families glues by the tensor product of the
 automorphisms by which the clutchings by the two families glue. -/
 theorem clutchingAut_tensorIso :
     clutchingAut (tensor E₁ E₂) (f₁ ⊗ᵢ f₂) = clutchingAut E₁ f₁ ⊗ᵢ clutchingAut E₂ f₂ :=
-  Iso.ext (pullbackMap_tensorHom f₁.hom f₂.hom (clutchingMap X))
+  -- As above, the pullback of a tensor product is the tensor product of the pullbacks only up to
+  -- unfolding.
+  Iso.ext <| hom_ext fun w ↦ by
+    refine (fiberMap_clutchingAut_hom _ _ w).trans <|
+      (fiberMap_tensorHom f₁.hom f₂.hom _).trans <| Eq.trans ?_ <|
+        (fiberMap_tensorHom (clutchingAut E₁ f₁).hom (clutchingAut E₂ f₂).hom w).symm
+    rw [fiberMap_clutchingAut_hom, fiberMap_clutchingAut_hom]
 
 /-- The transitions of the clutching of `E₁ ⊕ E₂` by the block-diagonal family of `f₁` and `f₂`
 are those of the Whitney sum of the clutching of `E₁` by `f₁` and that of `E₂` by `f₂`. -/
@@ -447,9 +481,9 @@ theorem nonempty_iso_clutching_of_homotopic [NormedAlgebra ℝ 𝕜] [CompleteSp
     ⟨fun w ↦ ((w.val.1.1, w.val.2), annulusToCircle ⟨w.val.1.2, w.property⟩), by fun_prop⟩
   refine nonempty_iso_glue_of_homotopic (E.pullback ContinuousMap.fst) _ _ _
     ((pullbackFunctor m).mapIso H) (fun w ↦ ?_) (fun w ↦ ?_)
-  · rw [fiberMap_clutchingAut_hom, ← h₀]
+  · rw [fiberMap_clutchingAut_hom, clutchingMap_apply, ← h₀]
     exact fiberMap_pullbackMap H.hom m _
-  · rw [fiberMap_clutchingAut_hom, ← h₁]
+  · rw [fiberMap_clutchingAut_hom, clutchingMap_apply, ← h₁]
     exact fiberMap_pullbackMap H.hom m _
 
 /-! ### Clutching by a power of the coordinate -/

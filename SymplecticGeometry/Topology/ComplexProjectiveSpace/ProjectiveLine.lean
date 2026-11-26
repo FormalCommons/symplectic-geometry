@@ -182,18 +182,12 @@ theorem affineChart_symm_mem_annulus_iff (z : Fin 1 → ℂ) :
     refine ⟨⟨one_ne_zero, h2⟩, norm_pos_iff.1 hpos, ?_⟩
     rwa [inv_lt_comm₀ hpos (by norm_num)]
 
-/-! ### Maps on products with the projective line
-
-The bodies of `clutchingMap`, `circleToAnnulus` and `annulusDeformation` are exposed: pullbacks
-of cores along them are compared with pullbacks along the projections by definitional unfolding,
-as in `TauCeti.FiniteRankBundleCore.clutchingAut`.
--/
+/-! ### Maps on products with the projective line -/
 
 variable (X : Type*) [TopologicalSpace X]
 
 /-- The map from the product of `X` with the annulus of the projective line to `X × Circle`:
 the identity on `X`, and the radial retraction `annulusToCircle` on the annulus. -/
-@[expose]
 def clutchingMap :
     C(↥(Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc : Set (X × ℙ ℂ (Fin 2 → ℂ))),
       X × Circle) :=
@@ -207,6 +201,12 @@ theorem clutchingMap_apply
     (w : ↥(Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc : Set (X × ℙ ℂ (Fin 2 → ℂ)))) :
     clutchingMap X w = (w.val.1, annulusToCircle ⟨w.val.2, w.property⟩) :=
   (rfl)
+
+/-- `clutchingMap` is the identity on the factor `X`. -/
+theorem fst_comp_clutchingMap :
+    ContinuousMap.fst.comp (clutchingMap X) =
+      ContinuousMap.fst.comp (ContinuousMap.subtypeVal _) :=
+  ContinuousMap.ext fun w ↦ by simp
 
 /-- The inverse of the affine chart `i` of the projective line, in the second factor of
 `X × (Fin 1 → ℂ)`. -/
@@ -253,7 +253,6 @@ theorem radialDeform_mem {z : Fin 1 → ℂ} (hz : 2⁻¹ < ‖z 0‖ ∧ ‖z 0
 
 /-- The map `(x, u) ↦ (x, [u : 1])` from `X × Circle` to the product of `X` with the annulus
 `innerDisc ∩ outerDisc`. -/
-@[expose]
 def circleToAnnulus :
     C(X × Circle, ↥(Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc :
       Set (X × ℙ ℂ (Fin 2 → ℂ)))) :=
@@ -268,10 +267,15 @@ theorem coe_circleToAnnulus_apply (q : X × Circle) :
       (q.1, (affineChart 1).symm fun _ ↦ (q.2 : ℂ)) :=
   (rfl)
 
+/-- `circleToAnnulus` is the identity on the factor `X`. -/
+theorem fst_comp_subtypeVal_comp_circleToAnnulus :
+    ContinuousMap.fst.comp ((ContinuousMap.subtypeVal _).comp (circleToAnnulus X)) =
+      ContinuousMap.fst :=
+  ContinuousMap.ext fun q ↦ by simp
+
 /-- The radial deformation of the product of `X` with the annulus onto the product with the unit
 circle, `((x, [z : 1]), t) ↦ (x, [((1 - t) + t / |z|) z : 1])`, on the part over the annulus of
 `(X × ℙ ℂ (Fin 2 → ℂ)) × I`. -/
-@[expose]
 def annulusDeformation :
     C(↥(Prod.fst ⁻¹' (Prod.snd ⁻¹' innerDisc) ∩ Prod.fst ⁻¹' (Prod.snd ⁻¹' outerDisc) :
         Set ((X × ℙ ℂ (Fin 2 → ℂ)) × I)),
@@ -314,6 +318,12 @@ theorem coe_annulusDeformation_apply
         (((1 - w.val.2) + w.val.2 * ‖affineChart 1 w.val.1.2 0‖⁻¹ : ℝ) •
           affineChart 1 w.val.1.2)) :=
   (rfl)
+
+/-- `annulusDeformation` is the identity on the factor `X`. -/
+theorem fst_comp_subtypeVal_comp_annulusDeformation :
+    ContinuousMap.fst.comp ((ContinuousMap.subtypeVal _).comp (annulusDeformation X)) =
+      ContinuousMap.fst.comp (ContinuousMap.fst.comp (ContinuousMap.subtypeVal _)) :=
+  ContinuousMap.ext fun w ↦ by simp [coe_annulusDeformation_apply]
 
 /-- At time `0`, the radial deformation of the annulus is the identity. -/
 theorem annulusDeformation_zero
