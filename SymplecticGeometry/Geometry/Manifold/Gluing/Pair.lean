@@ -38,7 +38,14 @@ the model of `M₁` and `M₂`, and a `C^n` manifold when they are, for which `i
 `C^n` local diffeomorphisms. The compatibility holds as well for a homeomorphism that is `C^n`
 with a `C^n` inverse (`GluedAlong.isCompatible_glueData_of_contMDiff`), and for any compatible
 gluing `inl` and `inr` are `C^n` local diffeomorphisms and a map out of the glued space is `C^m`
-exactly when its compositions with them are (`GluedAlong.contMDiff_iff_of_isCompatible`).
+exactly when its compositions with them are (`GluedAlong.contMDiff_iff_of_isCompatible`), and a
+local diffeomorphism exactly when they are (`GluedAlong.isLocalDiffeomorph_iff_of_isCompatible`).
+So `C^m` maps on `M₁` and `M₂` that agree on the overlap give a `C^m` map on the glued manifold
+(`GluedAlong.descContMDiffMap`), whose continuous map is `desc`. When the two maps are injective
+local diffeomorphisms into a manifold `X` whose ranges cover it, and their values meet only at
+points coming from the overlap, this map is a bijective local diffeomorphism, so by Mathlib's
+`IsLocalDiffeomorph.diffeomorphOfBijective` a diffeomorphism onto `X`
+(`GluedAlong.descDiffeomorph`): a manifold covered by two open subsets is their gluing.
 
 Over `ℝ`, for a smooth `φ`, smooth forms glue. Let `σ₁` and `σ₂` be smooth forms on `M₁` and
 `M₂` that correspond on the overlap: `φ^*(σ₂|U₂) = σ₁|U₁`, where restricting to an open subset
@@ -53,7 +60,9 @@ the differential of `inr`: the library's two-piece gluing `TauCeti.RoughForm.glu
 `inr` cover the glued space and the differentials are invertible, a form on it is determined by
 its two pull-backs, and it is closed, nondegenerate or symplectic exactly when both pull-backs
 are. The form of the completion of a Liouville domain, in the library's
-`Geometry/Symplectic/Liouville/Completion.lean`, is glued by the same construction.
+`Geometry/Symplectic/Liouville/Completion.lean`, is glued by the same construction. Pulling a
+form on `X` back by `descContMDiffMap` or `descDiffeomorph` gives the form glued from its
+pull-backs by the two maps (`mpullback_descContMDiffMap`, `mpullback_descDiffeomorph`).
 
 ## Main definitions
 
@@ -62,6 +71,10 @@ are. The form of the completion of a Liouville domain, in the library's
   from `M₁` and `M₂`.
 * `SymplecticGeometry.GluedAlong.desc`: the continuous map on the glued space given by continuous
   maps on `M₁` and `M₂` that agree on the overlap.
+* `SymplecticGeometry.GluedAlong.descContMDiffMap`: its smooth version, for a gluing along a
+  diffeomorphism.
+* `SymplecticGeometry.GluedAlong.descDiffeomorph`: the diffeomorphism onto a manifold that two
+  injective local diffeomorphisms from `M₁` and `M₂` cover, meeting only along the overlap.
 * `SymplecticGeometry.GluedAlong.gluedForm`: the form glued from forms on `M₁` and `M₂` that
   agree on the overlap.
 
@@ -75,7 +88,11 @@ are. The form of the completion of a Liouville domain, in the library's
 * `SymplecticGeometry.GluedAlong.isLocalDiffeomorph_inl`, `isLocalDiffeomorph_inr`: the
   canonical maps are `C^n` local diffeomorphisms for the glued atlas.
 * `SymplecticGeometry.GluedAlong.contMDiff_iff_of_isCompatible`: for a compatible gluing, a map
-  out of the glued space is `C^m` exactly when its compositions with `inl` and `inr` are.
+  out of the glued space is `C^m` exactly when its compositions with `inl` and `inr` are;
+  `isLocalDiffeomorph_iff_of_isCompatible`, the same for local diffeomorphisms.
+* `SymplecticGeometry.GluedAlong.descContMDiffMap_inl`, `descContMDiffMap_inr`,
+  `descDiffeomorph_inl`, `descDiffeomorph_inr`, `descDiffeomorph_symm_apply_left`,
+  `descDiffeomorph_symm_apply_right`: the values of the smooth maps out of the glued manifold.
 * `SymplecticGeometry.GluedAlong.desc_inl`, `desc_inr`, `continuousMap_ext`: continuous maps on `M₁`
   and `M₂` that agree on the overlap give one on the glued space, and a continuous map on the
   glued space is determined by its restrictions to `M₁` and `M₂`.
@@ -89,14 +106,19 @@ are. The form of the completion of a Liouville domain, in the library's
 * `SymplecticGeometry.GluedAlong.isClosed_gluedForm_iff`, `isNondegenerate_gluedForm_iff`,
   `isSymplectic_gluedForm_iff`: the glued form is closed, nondegenerate or symplectic exactly
   when both forms are.
+* `SymplecticGeometry.GluedAlong.mpullback_descContMDiffMap`, `mpullback_descDiffeomorph`: the
+  pull-back of a form on `X` is the form glued from its pull-backs to `M₁` and `M₂`.
 
 The compatibility proof follows Tau Ceti's `TauCeti.isCompatible_doubleGlueData`, which treats
-the gluing of two copies of one space along an open subset by the identity.
+the gluing of two copies of one space along an open subset by the identity. The proof that
+`descDiffeomorph` is a local diffeomorphism and bijective follows the steps of Tau Ceti's
+`TopCat.GlueData.IsCompatible.gluedDiffeomorph`, for a target that is not itself a gluing.
 
 ## References
 
 * John M. Lee, *Introduction to Smooth Manifolds*, second edition, Graduate Texts in
-  Mathematics 218, Springer, 2013, Chapter 1 (the smooth manifold chart lemma).
+  Mathematics 218, Springer, 2013, Chapter 1 (the smooth manifold chart lemma) and
+  Chapter 2, Corollary 2.8 (the gluing lemma for smooth maps).
 -/
 
 public section
@@ -404,6 +426,19 @@ theorem contMDiff_iff_of_isCompatible [IsManifold I n M₁] [IsManifold I n M₂
   rintro ⟨_ | _⟩
   exacts [hg.1, hg.2]
 
+/-- For a `C^n` compatible gluing, a map out of the glued space is a `C^n` local diffeomorphism
+exactly when its compositions with `inl` and `inr` are. -/
+theorem isLocalDiffeomorph_iff_of_isCompatible [IsManifold I n M₁] [IsManifold I n M₂]
+    (h : (glueData φ).IsCompatible I n) {E' : Type*} [NormedAddCommGroup E'] [NormedSpace 𝕜 E']
+    {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners 𝕜 E' H'} {N : Type*}
+    [TopologicalSpace N] [ChartedSpace H' N] {g : GluedAlong φ → N} :
+    IsLocalDiffeomorph I I' n g ↔
+      IsLocalDiffeomorph I I' n (g ∘ inl φ) ∧ IsLocalDiffeomorph I I' n (g ∘ inr φ) := by
+  -- The canonical maps of the pieces `false` and `true` are `inl φ` and `inr φ` by definition.
+  refine h.isLocalDiffeomorph_iff.trans ⟨fun hg ↦ ⟨hg ⟨false⟩, hg ⟨true⟩⟩, fun hg ↦ ?_⟩
+  rintro ⟨_ | _⟩
+  exacts [hg.1, hg.2]
+
 end Homeomorph
 
 variable (φ : U₁ ≃ₘ^n⟮I, I⟯ U₂)
@@ -441,6 +476,127 @@ image in the glued space. -/
 theorem inl_diffeomorph_symm_apply (y : U₂) :
     inl φ.toHomeomorph (φ.symm y : M₁) = inr φ.toHomeomorph (y : M₂) := by
   rw [← Diffeomorph.coe_toHomeomorph_symm, inl_symm_apply]
+
+section Desc
+
+variable [IsManifold I n M₁] [IsManifold I n M₂] {E' : Type*} [NormedAddCommGroup E']
+  [NormedSpace 𝕜 E'] {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners 𝕜 E' H'}
+  {X : Type*} [TopologicalSpace X] [ChartedSpace H' X] {m : ℕ∞ω}
+
+/-- **Smooth maps out of the glued manifold.** For `m ≤ n`, `C^m` maps `g₁ : M₁ → X` and
+`g₂ : M₂ → X` that agree on the overlap, `g₂ (φ x) = g₁ x` for `x ∈ U₁`, define the `C^m` map on
+`GluedAlong φ.toHomeomorph` that is `g₁` on `M₁` and `g₂` on `M₂` (`descContMDiffMap_inl`,
+`descContMDiffMap_inr`). Its underlying continuous map is `desc`. -/
+def descContMDiffMap (hm : m ≤ n) (g₁ : C^m⟮I, M₁; I', X⟯) (g₂ : C^m⟮I, M₂; I', X⟯)
+    (h : ∀ x : U₁, g₂ (φ x) = g₁ x) : C^m⟮I, GluedAlong φ.toHomeomorph; I', X⟯ :=
+  ⟨desc φ.toHomeomorph ⟨g₁, g₁.contMDiff.continuous⟩ ⟨g₂, g₂.contMDiff.continuous⟩ h,
+    (contMDiff_iff_of_isCompatible (isCompatible_glueData φ) hm).2
+      ⟨by
+        convert g₁.contMDiff using 1
+        exact funext (desc_inl φ.toHomeomorph h), by
+        convert g₂.contMDiff using 1
+        exact funext (desc_inr φ.toHomeomorph h)⟩⟩
+
+variable {φ}
+
+/-- The smooth map out of the glued manifold is `g₁` on `M₁`. -/
+@[simp]
+theorem descContMDiffMap_inl (hm : m ≤ n) {g₁ : C^m⟮I, M₁; I', X⟯} {g₂ : C^m⟮I, M₂; I', X⟯}
+    (h : ∀ x : U₁, g₂ (φ x) = g₁ x) (x : M₁) :
+    descContMDiffMap φ hm g₁ g₂ h (inl φ.toHomeomorph x) = g₁ x :=
+  desc_inl φ.toHomeomorph h x
+
+/-- The smooth map out of the glued manifold is `g₂` on `M₂`. -/
+@[simp]
+theorem descContMDiffMap_inr (hm : m ≤ n) {g₁ : C^m⟮I, M₁; I', X⟯} {g₂ : C^m⟮I, M₂; I', X⟯}
+    (h : ∀ x : U₁, g₂ (φ x) = g₁ x) (y : M₂) :
+    descContMDiffMap φ hm g₁ g₂ h (inr φ.toHomeomorph y) = g₂ y :=
+  desc_inr φ.toHomeomorph h y
+
+variable {g₁ : M₁ → X} {g₂ : M₂ → X} (hg₁ : IsLocalDiffeomorph I I' n g₁)
+  (hg₂ : IsLocalDiffeomorph I I' n g₂) (h : ∀ x : U₁, g₂ (φ x) = g₁ x)
+  (hinj₁ : Function.Injective g₁) (hinj₂ : Function.Injective g₂)
+  (hcover : range g₁ ∪ range g₂ = univ) (hU₁ : ∀ x y, g₁ x = g₂ y → x ∈ U₁)
+
+/-- The smooth map out of the glued manifold given by two `C^n` local diffeomorphisms is a `C^n`
+local diffeomorphism. -/
+theorem isLocalDiffeomorph_descContMDiffMap :
+    IsLocalDiffeomorph I I' n
+      (descContMDiffMap φ le_rfl ⟨g₁, hg₁.contMDiff⟩ ⟨g₂, hg₂.contMDiff⟩ h) := by
+  refine (isLocalDiffeomorph_iff_of_isCompatible (isCompatible_glueData φ)).2 ⟨?_, ?_⟩
+  · convert hg₁ using 1
+    exact funext (descContMDiffMap_inl le_rfl h)
+  · convert hg₂ using 1
+    exact funext (descContMDiffMap_inr le_rfl h)
+
+include hinj₁ hinj₂ hcover hU₁ in
+/-- The smooth map out of the glued manifold given by injective maps `g₁` and `g₂` whose ranges
+cover `X`, and such that `g₁ x = g₂ y` only for `x ∈ U₁`, is bijective. -/
+theorem bijective_descContMDiffMap :
+    Function.Bijective
+      (descContMDiffMap φ le_rfl ⟨g₁, hg₁.contMDiff⟩ ⟨g₂, hg₂.contMDiff⟩ h) := by
+  set f := descContMDiffMap φ le_rfl ⟨g₁, hg₁.contMDiff⟩ ⟨g₂, hg₂.contMDiff⟩ h
+  have hf₁ (x : M₁) : f (inl φ.toHomeomorph x) = g₁ x := descContMDiffMap_inl le_rfl h x
+  have hf₂ (y : M₂) : f (inr φ.toHomeomorph y) = g₂ y := descContMDiffMap_inr le_rfl h y
+  -- If `g₁ x = g₂ y`, then `x ∈ U₁`, and `g₂ (φ x) = g₁ x = g₂ y` gives `φ x = y`.
+  have key (x : M₁) (y : M₂) (hxy : g₁ x = g₂ y) :
+      inl φ.toHomeomorph x = inr φ.toHomeomorph y := by
+    have hx := hU₁ x y hxy
+    have hy : (φ ⟨x, hx⟩ : M₂) = y := hinj₂ ((h ⟨x, hx⟩).trans hxy)
+    rw [← hy, inr_diffeomorph_apply]
+  refine ⟨fun z w hzw ↦ ?_, fun p ↦ ?_⟩
+  · rcases exists_inl_or_exists_inr φ.toHomeomorph z with ⟨x, rfl⟩ | ⟨y, rfl⟩ <;>
+      rcases exists_inl_or_exists_inr φ.toHomeomorph w with ⟨x', rfl⟩ | ⟨y', rfl⟩
+    · rw [hinj₁ ((hf₁ x).symm.trans (hzw.trans (hf₁ x')))]
+    · exact key x y' ((hf₁ x).symm.trans (hzw.trans (hf₂ y')))
+    · exact (key x' y ((hf₁ x').symm.trans (hzw.symm.trans (hf₂ y)))).symm
+    · rw [hinj₂ ((hf₂ y).symm.trans (hzw.trans (hf₂ y')))]
+  · rcases (mem_union _ _ _).1 (hcover ▸ mem_univ p) with ⟨x, rfl⟩ | ⟨y, rfl⟩
+    exacts [⟨_, hf₁ x⟩, ⟨_, hf₂ y⟩]
+
+/-- **Two open pieces covering a manifold.** Let `g₁ : M₁ → X` and `g₂ : M₂ → X` be injective
+`C^n` local diffeomorphisms, that is `C^n` diffeomorphisms onto open subsets of `X`, whose ranges
+cover `X`, that agree on the overlap, `g₂ (φ x) = g₁ x` for `x ∈ U₁`, and such that `g₁ x = g₂ y`
+only for `x ∈ U₁`. Then the map that is `g₁` on `M₁` and `g₂` on `M₂` is a `C^n` diffeomorphism
+from `GluedAlong φ.toHomeomorph` onto `X` (`descDiffeomorph_inl`, `descDiffeomorph_inr`). -/
+def descDiffeomorph : GluedAlong φ.toHomeomorph ≃ₘ^n⟮I, I'⟯ X :=
+  (isLocalDiffeomorph_descContMDiffMap hg₁ hg₂ h).diffeomorphOfBijective
+    (bijective_descContMDiffMap hg₁ hg₂ h hinj₁ hinj₂ hcover hU₁)
+
+/-- The diffeomorphism onto `X` is the smooth map out of the glued manifold given by `g₁` and
+`g₂`. -/
+theorem coe_descDiffeomorph :
+    ⇑(descDiffeomorph hg₁ hg₂ h hinj₁ hinj₂ hcover hU₁) =
+      descContMDiffMap φ le_rfl ⟨g₁, hg₁.contMDiff⟩ ⟨g₂, hg₂.contMDiff⟩ h :=
+  IsLocalDiffeomorph.coe_diffeomorphOfBijective _ _
+
+/-- The diffeomorphism onto `X` is `g₁` on `M₁`. -/
+@[simp]
+theorem descDiffeomorph_inl (x : M₁) :
+    descDiffeomorph hg₁ hg₂ h hinj₁ hinj₂ hcover hU₁ (inl φ.toHomeomorph x) = g₁ x :=
+  (congrFun (coe_descDiffeomorph hg₁ hg₂ h hinj₁ hinj₂ hcover hU₁) _).trans
+    (descContMDiffMap_inl le_rfl h x)
+
+/-- The diffeomorphism onto `X` is `g₂` on `M₂`. -/
+@[simp]
+theorem descDiffeomorph_inr (y : M₂) :
+    descDiffeomorph hg₁ hg₂ h hinj₁ hinj₂ hcover hU₁ (inr φ.toHomeomorph y) = g₂ y :=
+  (congrFun (coe_descDiffeomorph hg₁ hg₂ h hinj₁ hinj₂ hcover hU₁) _).trans
+    (descContMDiffMap_inr le_rfl h y)
+
+/-- The inverse of the diffeomorphism onto `X` sends `g₁ x` to `inl x`. -/
+@[simp]
+theorem descDiffeomorph_symm_apply_left (x : M₁) :
+    (descDiffeomorph hg₁ hg₂ h hinj₁ hinj₂ hcover hU₁).symm (g₁ x) = inl φ.toHomeomorph x := by
+  rw [← descDiffeomorph_inl hg₁ hg₂ h hinj₁ hinj₂ hcover hU₁ x, Diffeomorph.symm_apply_apply]
+
+/-- The inverse of the diffeomorphism onto `X` sends `g₂ y` to `inr y`. -/
+@[simp]
+theorem descDiffeomorph_symm_apply_right (y : M₂) :
+    (descDiffeomorph hg₁ hg₂ h hinj₁ hinj₂ hcover hU₁).symm (g₂ y) = inr φ.toHomeomorph y := by
+  rw [← descDiffeomorph_inr hg₁ hg₂ h hinj₁ hinj₂ hcover hU₁ y, Diffeomorph.symm_apply_apply]
+
+end Desc
 
 end GluedAlong
 
@@ -669,6 +825,55 @@ theorem isSymplectic_gluedForm_iff :
     mpullback_inr_gluedForm]
 
 end TwoForm
+
+section Desc
+
+variable {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] {H' : Type*}
+  [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'} {X : Type*} [TopologicalSpace X]
+  [ChartedSpace H' X] [IsManifold I' ∞ X]
+
+variable (φ) in
+/-- The pull-backs of a form `σ` on `X` by smooth maps `g₁ : M₁ → X` and `g₂ : M₂ → X` that agree
+on the overlap, `g₂ (φ x) = g₁ x` for `x ∈ U₁`, correspond on the overlap:
+`φ^*((g₂^* σ)|U₂) = (g₁^* σ)|U₁`. So they glue (`gluedForm`). -/
+theorem mpullback_overlap_mpullback {g₁ : M₁ → X} {g₂ : M₂ → X} (hg₁ : ContMDiff I I' ∞ g₁)
+    (hg₂ : ContMDiff I I' ∞ g₂) (h : ∀ x : U₁, g₂ (φ x) = g₁ x) (σ : SmoothForm I' X F k) :
+    SmoothForm.mpullback φ φ.contMDiff
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (SmoothForm.mpullback g₂ hg₂ σ)) =
+      SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (SmoothForm.mpullback g₁ hg₁ σ) := by
+  simp only [SmoothForm.mpullback_mpullback]
+  exact SmoothForm.mpullback_congr _ _ (funext h) σ
+
+/-- The pull-back of a form `σ` on `X` by the smooth map out of the glued manifold given by `g₁`
+and `g₂` is the form glued from `g₁^* σ` and `g₂^* σ`. -/
+theorem mpullback_descContMDiffMap {g₁ : C^∞⟮I, M₁; I', X⟯} {g₂ : C^∞⟮I, M₂; I', X⟯}
+    (h : ∀ x : U₁, g₂ (φ x) = g₁ x) (σ : SmoothForm I' X F k) :
+    SmoothForm.mpullback (descContMDiffMap φ le_rfl g₁ g₂ h)
+        (descContMDiffMap φ le_rfl g₁ g₂ h).contMDiff σ =
+      gluedForm φ (SmoothForm.mpullback g₁ g₁.contMDiff σ)
+        (SmoothForm.mpullback g₂ g₂.contMDiff σ)
+        (mpullback_overlap_mpullback φ g₁.contMDiff g₂.contMDiff h σ) := by
+  rw [eq_gluedForm_iff, SmoothForm.mpullback_mpullback, SmoothForm.mpullback_mpullback]
+  exact ⟨SmoothForm.mpullback_congr _ _ (funext (descContMDiffMap_inl le_rfl h)) σ,
+    SmoothForm.mpullback_congr _ _ (funext (descContMDiffMap_inr le_rfl h)) σ⟩
+
+/-- The pull-back of a form `σ` on `X` by the diffeomorphism `descDiffeomorph` onto `X` is the
+form glued from `g₁^* σ` and `g₂^* σ`. In particular, it carries a symplectic form on `X` to a
+glued symplectic form (`isSymplectic_gluedForm_iff`). -/
+theorem mpullback_descDiffeomorph {g₁ : M₁ → X} {g₂ : M₂ → X}
+    (hg₁ : IsLocalDiffeomorph I I' ∞ g₁) (hg₂ : IsLocalDiffeomorph I I' ∞ g₂)
+    (h : ∀ x : U₁, g₂ (φ x) = g₁ x) (hinj₁ : Function.Injective g₁)
+    (hinj₂ : Function.Injective g₂) (hcover : range g₁ ∪ range g₂ = univ)
+    (hU₁ : ∀ x y, g₁ x = g₂ y → x ∈ U₁) (σ : SmoothForm I' X F k) :
+    SmoothForm.mpullback (descDiffeomorph hg₁ hg₂ h hinj₁ hinj₂ hcover hU₁)
+        (descDiffeomorph hg₁ hg₂ h hinj₁ hinj₂ hcover hU₁).contMDiff σ =
+      gluedForm φ (SmoothForm.mpullback g₁ hg₁.contMDiff σ)
+        (SmoothForm.mpullback g₂ hg₂.contMDiff σ)
+        (mpullback_overlap_mpullback φ hg₁.contMDiff hg₂.contMDiff h σ) :=
+  (SmoothForm.mpullback_congr _ _ (coe_descDiffeomorph hg₁ hg₂ h hinj₁ hinj₂ hcover hU₁) σ).trans
+    (mpullback_descContMDiffMap (g₁ := ⟨g₁, hg₁.contMDiff⟩) (g₂ := ⟨g₂, hg₂.contMDiff⟩) h σ)
+
+end Desc
 
 end GluedAlong
 
