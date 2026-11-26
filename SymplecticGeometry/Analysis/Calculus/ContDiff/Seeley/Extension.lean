@@ -6,9 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
-public import SymplecticGeometry.Analysis.Calculus.ContDiff.FTaylorSeries
-public import SymplecticGeometry.Analysis.Normed.Group.FunctionSeries
-public import SymplecticGeometry.Analysis.Sobolev.Trace.Reflection.Seeley
+public import TauCeti.Analysis.Sobolev.Trace.Reflection.Seeley
+import SymplecticGeometry.Analysis.Calculus.ContDiff.FTaylorSeries
+import SymplecticGeometry.Analysis.Normed.Group.FunctionSeries
+import SymplecticGeometry.Analysis.Sobolev.Trace.Reflection.Seeley
 import SymplecticGeometry.Topology.MetricSpace.Tube
 
 /-!

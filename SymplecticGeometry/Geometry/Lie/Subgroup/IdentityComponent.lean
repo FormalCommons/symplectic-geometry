@@ -8,7 +8,7 @@ module
 public import TauCeti.Geometry.Lie.Subgroup.Differential
 public import TauCeti.Geometry.Lie.Subgroup.Stabilizer
 public import TauCeti.Geometry.Lie.Subgroup.Torus
-public import SymplecticGeometry.Geometry.Lie.GroupLieAlgebraLieHom
+import SymplecticGeometry.Geometry.Lie.GroupLieAlgebraLieHom
 
 /-!
 # The identity component of a subgroup of a Lie group

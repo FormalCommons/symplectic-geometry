@@ -8,12 +8,13 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Morse.BirthDeath
 public import SymplecticGeometry.Geometry.Manifold.Morse.GradientLike
 public import SymplecticGeometry.Geometry.Symplectic.Liouville.Filling
-public import SymplecticGeometry.Geometry.Symplectic.Liouville.Sublevel
 public import TauCeti.Geometry.Manifold.Boundary.Interior
 public import TauCeti.Geometry.Manifold.Flow.Complete
 public import TauCeti.Geometry.Manifold.RegularValue.NormSq
 public import TauCeti.Geometry.Symplectic.Liouville.VectorField
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
+public import TauCeti.Geometry.Manifold.RegularValue.Scalar.Sublevel.Basic
+import SymplecticGeometry.Geometry.Symplectic.Liouville.Sublevel
 import Mathlib.Geometry.Manifold.Riemannian.Basic
 import SymplecticGeometry.Geometry.Manifold.Boundary.Interior
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph

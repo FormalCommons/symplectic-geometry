@@ -5,11 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.EvenIntegralCohomology
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.Sphere.Generator
-public import SymplecticGeometry.Topology.ComplexProjectiveSpace.Sphere
-public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Naturality
-public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.ProjectiveSpace
+public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Basic
+import SymplecticGeometry.AlgebraicTopology.Cohomology.EvenIntegralCohomology
+import SymplecticGeometry.Topology.ComplexProjectiveSpace.Sphere
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Naturality
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.ProjectiveSpace
 
 /-!
 # The top product of first Chern classes on `(ℂP¹)ᵐ`

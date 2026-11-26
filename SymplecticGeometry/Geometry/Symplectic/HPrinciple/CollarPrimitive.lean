@@ -5,8 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.OpenSubset
 public import SymplecticGeometry.Geometry.Symplectic.HPrinciple.AttachingCollar
+public import SymplecticGeometry.Geometry.Manifold.DeRham.GoodCover.Basic
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
+public import TauCeti.Geometry.Manifold.DeRham.Basic
+import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.OpenSubset
 
 /-!
 # Smooth families of primitives near the attaching faces of a handle core

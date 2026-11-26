@@ -5,9 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.Foliation.Transport
 public import Mathlib.Analysis.InnerProductSpace.PiL2
 public import Mathlib.Topology.Bases
+public import TauCeti.Geometry.Manifold.Foliation.Leaf
+public import TauCeti.Geometry.Manifold.IsManifold.Basic
+import SymplecticGeometry.Geometry.Manifold.Foliation.Transport
 import SymplecticGeometry.LinearAlgebra.FiniteDimensional.IsCompl
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 

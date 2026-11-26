@@ -5,9 +5,17 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Adjoint
-public import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Frames
 public import SymplecticGeometry.LinearAlgebra.Range
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Extension
+public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
+public import TauCeti.Topology.VectorBundle.Pullback
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Adjoint
+import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Frames
+import SymplecticGeometry.Geometry.Symplectic.Manifold.Flat
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
+import SymplecticGeometry.Topology.VectorBundle.Pullback
+import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 
 /-!
 # The linear symplectic extension along a submanifold

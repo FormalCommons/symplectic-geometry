@@ -5,14 +5,15 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Matrix.Polar.Deformation
-public import SymplecticGeometry.Analysis.Matrix.Polar.Symplectic
 public import SymplecticGeometry.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Reindex
 public import TauCeti.Analysis.Matrix.Polar.GLSymplectic
 public import TauCeti.Analysis.Matrix.SymplecticGroup.Connected
 public import TauCeti.Topology.Algebra.Matrix.Realify
 public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.MaximalCompact
 public import TauCeti.Topology.Homotopy.DeformationRetract
+import SymplecticGeometry.Analysis.Matrix.Polar.Deformation
+import SymplecticGeometry.Analysis.Matrix.Polar.Symplectic
+import SymplecticGeometry.Analysis.Matrix.Polar.Basic
 
 /-!
 # The unitary group is a deformation retract of the real symplectic group

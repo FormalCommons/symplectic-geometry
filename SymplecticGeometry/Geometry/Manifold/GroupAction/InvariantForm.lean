@@ -8,7 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.GroupAction.InvariantForm
 public import TauCeti.Geometry.Manifold.MFDeriv.Constancy
 public import TauCeti.Geometry.Symplectic.Hamiltonian.SymplecticVectorField
-public import SymplecticGeometry.Geometry.Manifold.GroupAction.BoundarylessModel
+import SymplecticGeometry.Geometry.Manifold.GroupAction.BoundarylessModel
 import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.DegreeOne
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv

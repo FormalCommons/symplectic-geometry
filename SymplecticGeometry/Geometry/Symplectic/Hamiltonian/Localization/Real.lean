@@ -6,14 +6,14 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Equivariant.Calculus
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Equivariant.Localization
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
-public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Localization.LocalizingForm
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Localization.WeightOneForm
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Localization.Weights
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.LiouvilleMeasure
 public import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
 public import TauCeti.Geometry.Symplectic.Manifold.Volume
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Equivariant.Localization
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Localization.LocalizingForm
+import SymplecticGeometry.Geometry.Symplectic.Manifold.LiouvilleMeasure
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Support
 import SymplecticGeometry.Geometry.Manifold.PartitionOfUnity
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator

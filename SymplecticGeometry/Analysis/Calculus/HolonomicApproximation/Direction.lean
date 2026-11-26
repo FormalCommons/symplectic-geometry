@@ -5,7 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Translate
+public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
+import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Translate
 import Mathlib.Analysis.Calculus.ContDiff.Comp
 import Mathlib.Analysis.Normed.Group.Bounded
 import Mathlib.Geometry.Manifold.PartitionOfUnity

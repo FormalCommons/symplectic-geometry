@@ -5,16 +5,18 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Cellular.SkeletonPairCohomology
-public import SymplecticGeometry.AlgebraicTopology.Cellular.SkeletonPairHom
-public import SymplecticGeometry.Topology.ComplexProjectiveSpace.DiskPair
-public import SymplecticGeometry.Topology.ComplexProjectiveSpace.Nullhomotopic
 public import TauCeti.AlgebraicTopology.Cellular.Dimension
 public import TauCeti.AlgebraicTopology.Cohomology.ConnectedMap
 public import TauCeti.AlgebraicTopology.Homotopy.Relative.Skeleton
 public import TauCeti.Topology.CWComplex.Abstract.CellAttachment
 public import TauCeti.Topology.CWComplex.Classical.Extension
 public import TauCeti.Topology.CWComplex.Classical.RelativeCWComplex
+public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.ProjectiveSpace
+import SymplecticGeometry.AlgebraicTopology.Cellular.SkeletonPairCohomology
+import SymplecticGeometry.AlgebraicTopology.Cellular.SkeletonPairHom
+import SymplecticGeometry.Topology.ComplexProjectiveSpace.DiskPair
+import SymplecticGeometry.Topology.ComplexProjectiveSpace.Nullhomotopic
+import SymplecticGeometry.AlgebraicTopology.Cohomology.SubsetSingleton
 
 /-!
 # Maps into complex projective space that realize a class of degree two

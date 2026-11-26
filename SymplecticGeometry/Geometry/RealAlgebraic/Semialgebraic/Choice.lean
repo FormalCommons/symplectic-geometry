@@ -5,9 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.RealAlgebraic.Semialgebraic.Function
-public import SymplecticGeometry.Geometry.RealAlgebraic.Semialgebraic.OneVariable
-public import SymplecticGeometry.Order.Interval.Set.IsoIoo
+public import TauCeti.Geometry.RealAlgebraic.Semialgebraic.Function
+import SymplecticGeometry.Geometry.RealAlgebraic.Semialgebraic.Function
+import SymplecticGeometry.Geometry.RealAlgebraic.Semialgebraic.OneVariable
+import SymplecticGeometry.Order.Interval.Set.IsoIoo
 
 /-!
 # Semialgebraic choice

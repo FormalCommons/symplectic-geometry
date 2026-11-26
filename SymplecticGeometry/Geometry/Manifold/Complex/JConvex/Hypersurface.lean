@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Symplectic.Liouville.ContactType
 import SymplecticGeometry.Geometry.Manifold.RegularValue.DefiningFunction
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Flat
 import TauCeti.Geometry.Manifold.RegularValue.NormSq
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Dolbeault.Potential
 
 /-!
 # J-convex hypersurfaces and their contact structure

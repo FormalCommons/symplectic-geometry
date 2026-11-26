@@ -5,10 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.ConstantRank.Basic
 public import TauCeti.Geometry.Manifold.Distribution.Kernel
 public import TauCeti.Geometry.Manifold.Foliation.Leaf
 public import TauCeti.Geometry.Manifold.Submersion.Basic
+public import TauCeti.Geometry.Manifold.RegularValue.Rank
+import SymplecticGeometry.Geometry.Manifold.ConstantRank.Basic
 import TauCeti.Geometry.Manifold.Distribution.Diffeomorph
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
 import TauCeti.Geometry.Manifold.RegularValue

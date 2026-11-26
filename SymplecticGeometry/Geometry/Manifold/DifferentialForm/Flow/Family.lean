@@ -7,8 +7,8 @@ module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Family
 public import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Family
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype.Cutoff
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Product
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic

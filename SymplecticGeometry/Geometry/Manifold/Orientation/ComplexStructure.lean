@@ -5,10 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.ContMDiff
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.ComplexTangentBundle
 public import TauCeti.Geometry.Symplectic.Manifold.Orientation
 public import TauCeti.Topology.VectorBundle.Complex.Orientation
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.ContMDiff
 
 /-!
 # The orientation of a manifold given by a complex structure on its tangent bundle

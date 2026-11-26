@@ -5,13 +5,14 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Classification
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.FirstChernClass
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Pullback
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Prod
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
-public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.FirstChernClass
 public import TauCeti.Geometry.Manifold.Degree.Homological
+public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Classification
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.FirstChernClass
+import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.FirstChernClass
 
 /-!
 # First Chern numbers of symplectic bundles on surfaces

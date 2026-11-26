@@ -5,13 +5,14 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Basic
-import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
-import SymplecticGeometry.Topology.Sets.Opens.Basic
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 public import TauCeti.Geometry.Symplectic.Lagrangian.Manifold
 public import TauCeti.Geometry.Symplectic.LinearReduction
+public import TauCeti.Topology.VectorBundle.Pullback
+import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Basic
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
+import SymplecticGeometry.Topology.Sets.Opens.Basic
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 
 /-!
 # The isotropic neighbourhood theorem

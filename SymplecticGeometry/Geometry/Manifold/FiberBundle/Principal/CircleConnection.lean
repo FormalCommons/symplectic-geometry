@@ -7,15 +7,16 @@ module
 
 public import Mathlib.Geometry.Manifold.Instances.Sphere
 public import SymplecticGeometry.Geometry.Lie.Exponential.Circle
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.MapCoeff
-public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
-public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Curvature
 public import TauCeti.Geometry.Manifold.DeRham.Circle
 public import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Submersion
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal.FundamentalVectorField
 public import TauCeti.Geometry.Manifold.FiberBundle.Submersion
-public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
+public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.MapCoeff
+import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
+import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Curvature
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Geometry.Manifold.DeRham.Circle
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.BasicForm
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Trivialization

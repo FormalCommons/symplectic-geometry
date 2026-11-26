@@ -6,13 +6,18 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.RealImage
-public import SymplecticGeometry.Geometry.Manifold.DeRham.FundamentalClass
-public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.RealChernClass
-public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Normalization
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.ChernWeil
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.RealChernClass
-public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
+public import TauCeti.Geometry.Manifold.Projectivization.Atlas
+public import TauCeti.Geometry.Manifold.SmoothSingular.SingularCohomology
+public import TauCeti.Topology.VectorBundle.Orientation.Complex.EulerClass
+import SymplecticGeometry.Geometry.Manifold.DeRham.FundamentalClass
+import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.RealChernClass
+import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Normalization
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.ChernWeil
+import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
+import SymplecticGeometry.AlgebraicTopology.Cohomology.FundamentalClass
 import TauCeti.Geometry.Sphere.Connected
+import SymplecticGeometry.Topology.VectorBundle.Pullback
 
 /-!
 # Chern–Weil in degree two

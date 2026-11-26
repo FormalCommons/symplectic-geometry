@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Contact.Darboux.Strict
-public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Geometry.Contact.Pullback
 import SymplecticGeometry.Geometry.Contact.Standard
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv

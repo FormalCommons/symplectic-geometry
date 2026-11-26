@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
-public import SymplecticGeometry.Algebra.GroupWithZero.Units.Basic
+import SymplecticGeometry.Algebra.GroupWithZero.Units.Basic
 
 /-!
 # The inverse of a matrix of square `-1`

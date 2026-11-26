@@ -6,7 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.CategoryTheory.Preadditive.IdAdd
-public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.NearbyClutching
+public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Clutching
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.NearbyClutching
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 
 /-!
 # Elementary operations do not change a clutching

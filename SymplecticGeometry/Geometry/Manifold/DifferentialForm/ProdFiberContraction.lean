@@ -6,8 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.HomotopyOperator
-public import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 public import TauCeti.Analysis.Calculus.DifferentialForm.Relative.Basic
+public import Mathlib.Geometry.Manifold.VectorField.Pullback
+import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 import TauCeti.Topology.UnitInterval
 
 /-!

@@ -5,11 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.Riemannian.Basic
-public import SymplecticGeometry.Geometry.Manifold.Riemannian.VolumeDensity.ChangeOfVariables
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.ChartGram
+public import TauCeti.Geometry.Manifold.Riemannian.VolumeDensity.ChangeOfVariables
+import SymplecticGeometry.Geometry.Manifold.Riemannian.Basic
+import SymplecticGeometry.Geometry.Manifold.Riemannian.VolumeDensity.ChangeOfVariables
 import SymplecticGeometry.Analysis.Calculus.ContDiff.Matrix
 import Mathlib.Analysis.Calculus.ContDiff.FiniteDimension
 import Mathlib.Analysis.InnerProductSpace.GramMatrix

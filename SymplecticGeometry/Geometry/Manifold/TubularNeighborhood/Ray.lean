@@ -9,8 +9,8 @@ public import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 public import TauCeti.Geometry.Manifold.TubularNeighborhood.Existence
 public import TauCeti.Geometry.Manifold.VectorBundle.Scalar
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Real
 public import TauCeti.Geometry.Manifold.ContMDiffMap.Radius
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Real
 
 /-!
 # Tubes around proper rays

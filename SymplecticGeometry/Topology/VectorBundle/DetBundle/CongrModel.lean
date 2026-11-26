@@ -6,8 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Topology.VectorBundle.DetBundle.Frame
-public import SymplecticGeometry.Topology.VectorBundle.ModelEquiv
 public import TauCeti.LinearAlgebra.ExteriorPower.Basic
+import SymplecticGeometry.Topology.VectorBundle.ModelEquiv
 
 /-!
 # Continuity of the determinant transport between different models

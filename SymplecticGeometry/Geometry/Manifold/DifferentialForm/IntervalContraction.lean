@@ -7,7 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.HomotopyOperator
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.TimeExtension
-public import SymplecticGeometry.Geometry.Manifold.Instances.Icc
+import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 import TauCeti.Geometry.Manifold.Instances.Icc
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic

@@ -7,9 +7,11 @@ module
 
 public import Mathlib.Geometry.Manifold.VectorBundle.Tangent
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.TwistCore
-public import SymplecticGeometry.LinearAlgebra.Projectivization.HermitianProjector
 
 import SymplecticGeometry.Geometry.Manifold.Instances.Projectivization
+import SymplecticGeometry.LinearAlgebra.Projectivization.HermitianProjector
+public import TauCeti.LinearAlgebra.Projectivization.HermitianProjector
+import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
 
 /-!
 # The Euler sequence on complex projective space
