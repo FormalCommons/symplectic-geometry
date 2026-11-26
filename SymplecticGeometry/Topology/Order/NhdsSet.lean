@@ -5,15 +5,16 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Topology.MetricSpace.Pseudo.Lemmas
+public import TauCeti.Topology.Order.Interval
 
 /-!
-# Open neighbourhoods of closed intervals of the real line
+# Open neighbourhoods of closed intervals in an ordered field
 
-An open set `U ⊆ ℝ` containing the closed interval `[a, b]` contains an open interval
-`(a - δ, b + δ)` for some `δ > 0` (`IsOpen.exists_pos_Ioo_subset_of_Icc_subset`): it contains a
-half-open interval `(l, a]` to the left of `a` and `[b, u)` to the right of `b`
-(`exists_Ioc_subset_of_mem_nhds`, `exists_Ico_subset_of_mem_nhds`). When `b < a` the interval
+In a linearly ordered field with the order topology, an open set `U` containing the closed
+interval `[a, b]` contains an open interval `(a - δ, b + δ)` for some `δ > 0`
+(`IsOpen.exists_pos_Ioo_subset_of_Icc_subset`). This is the symmetric form of Tau Ceti's
+`IsOpen.exists_Ioo_subset_of_uIcc_subset`, which gives some open interval `(c, d)` around
+`[a, b]` inside `U`; `δ` is the smaller of `a - c` and `d - b`. When `b < a` the interval
 `[a, b]` is empty, and `δ = (a - b) / 2` makes `(a - δ, b + δ)` empty too.
 -/
 
@@ -21,24 +22,18 @@ public section
 
 open Set
 
-/-- An open subset of `ℝ` that contains the closed interval `[a, b]` contains the open interval
-`(a - δ, b + δ)` for some `δ > 0`. -/
-theorem IsOpen.exists_pos_Ioo_subset_of_Icc_subset {a b : ℝ} {U : Set ℝ} (hU : IsOpen U)
-    (h : Icc a b ⊆ U) : ∃ δ > 0, Ioo (a - δ) (b + δ) ⊆ U := by
+/-- In a linearly ordered field with the order topology, an open set that contains the closed
+interval `[a, b]` contains the open interval `(a - δ, b + δ)` for some `δ > 0`. -/
+theorem IsOpen.exists_pos_Ioo_subset_of_Icc_subset {𝕜 : Type*} [Field 𝕜] [LinearOrder 𝕜]
+    [IsStrictOrderedRing 𝕜] [TopologicalSpace 𝕜] [OrderTopology 𝕜] {a b : 𝕜} {U : Set 𝕜}
+    (hU : IsOpen U) (h : Icc a b ⊆ U) : ∃ δ > 0, Ioo (a - δ) (b + δ) ⊆ U := by
   rcases lt_or_ge b a with hba | hab
-  · refine ⟨(a - b) / 2, by linarith, fun t ht ↦ ?_⟩
-    linarith [ht.1, ht.2]
-  obtain ⟨l, hl, hlU⟩ := exists_Ioc_subset_of_mem_nhds (hU.mem_nhds (h ⟨le_rfl, hab⟩))
-    ⟨a - 1, by linarith⟩
-  obtain ⟨u, hu, huU⟩ := exists_Ico_subset_of_mem_nhds (hU.mem_nhds (h ⟨hab, le_rfl⟩))
-    ⟨b + 1, by linarith⟩
-  refine ⟨min (a - l) (u - b), lt_min (by linarith) (by linarith), fun t ht ↦ ?_⟩
-  have := min_le_left (a - l) (u - b)
-  have := min_le_right (a - l) (u - b)
-  rcases lt_or_ge t a with hta | hat
-  · exact hlU ⟨by linarith [ht.1], hta.le⟩
-  rcases le_or_gt t b with htb | hbt
-  · exact h ⟨hat, htb⟩
-  · exact huU ⟨hbt.le, by linarith [ht.2]⟩
+  · exact ⟨(a - b) / 2, by linarith, fun t ht ↦ by linarith [ht.1, ht.2]⟩
+  obtain ⟨c, d, hcd, hs⟩ := hU.exists_Ioo_subset_of_uIcc_subset (uIcc_of_le hab ▸ h)
+  have hc := (hcd left_mem_uIcc).1
+  have hd := (hcd right_mem_uIcc).2
+  refine ⟨min (a - c) (d - b), lt_min (by linarith) (by linarith), fun t ht ↦ hs ⟨?_, ?_⟩⟩
+  · linarith [ht.1, min_le_left (a - c) (d - b)]
+  · linarith [ht.2, min_le_right (a - c) (d - b)]
 
 end
