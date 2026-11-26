@@ -36,7 +36,7 @@ This construction is adapted from Tau Ceti's proof of `TauCeti.exists_contMDiff_
 (`TauCeti/Geometry/Manifold/SmoothApprox/PeriodicLoop.lean`): there too the loop is precomposed
 near an edge with a ramped interpolation between the identity and a collared step, the continuous
 homotopy is precomposed with `TauCeti.collaredSmoothTransitionUnit` in the loop direction, the
-pieces are glued into a map that is `C^n` on an open set where it is a smooth piece or constant,
+pieces are glued into a map which, on some open set, agrees with a smooth piece or is constant,
 and that map is smoothed relative to this set.
 
 ## Main results
