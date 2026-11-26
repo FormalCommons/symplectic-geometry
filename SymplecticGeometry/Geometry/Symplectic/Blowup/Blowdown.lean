@@ -33,7 +33,7 @@ these pieces in a later step.
 * `SymplecticGeometry.DivisorBlowdown.ballPiece n l ε`: the open ball `|w| < √(l² + ε²)` of `E`.
 * `SymplecticGeometry.DivisorBlowdown.sourceComplRange hf`: the open subset `Ψ.source ∖ Z` of
   `M`, and `SymplecticGeometry.DivisorBlowdown.sourceComplRangeDiffeomorph hΨ hf`, the
-  diffeomorphism `Ψ` from it onto `openNbhd n ε ∖ Z`.
+  diffeomorphism `Ψ` from it onto `openNbhdComplDivisor n ε`.
 * `SymplecticGeometry.DivisorBlowdown.gluingDiffeomorph hΨ hf hl hε`: the diffeomorphism
   `x ↦ F_l(π (Ψ x))` from `Ψ.source ∖ Z`, as an open subset of the outer piece, onto the open
   shell, as an open subset of the ball piece.
@@ -157,7 +157,7 @@ theorem sourceComplRange_le_outerPiece (hf : ∀ q, f q ∈ Ψ.source ∧ Ψ (f 
     sourceComplRange hf ≤ outerPiece hf :=
   fun _ hx ↦ hx.2
 
-/-- `Ψ` maps a point of its source off the image of `f` into `openNbhd n ε ∖ Z`. -/
+/-- `Ψ` maps a point of its source off the image of `f` into `openNbhdComplDivisor n ε`. -/
 theorem apply_mem_openNbhdComplDivisor (hΨ : Ψ.target = openNbhd n ε)
     (hf : ∀ q, f q ∈ Ψ.source ∧ Ψ (f q) = zeroSection q) {x : M}
     (hx : x ∈ sourceComplRange hf) : Ψ x ∈ openNbhdComplDivisor n ε := by
@@ -166,7 +166,7 @@ theorem apply_mem_openNbhdComplDivisor (hΨ : Ψ.target = openNbhd n ε)
     (apply_mem_exceptionalDivisor_iff hf hx.1).not.2 hx.2⟩
 
 /-- **`Ψ` off the divisor**: the restriction of `Ψ` to a diffeomorphism from `Ψ.source ∖ Z` onto
-`openNbhd n ε ∖ Z`. -/
+`openNbhdComplDivisor n ε`. -/
 def sourceComplRangeDiffeomorph (hΨ : Ψ.target = openNbhd n ε)
     (hf : ∀ q, f q ∈ Ψ.source ∧ Ψ (f q) = zeroSection q) :
     sourceComplRange hf ≃ₘ⟮𝓘(ℝ, Fin (n + 1) → ℂ), 𝓘(ℝ, Fin (n + 1) → ℂ)⟯
@@ -179,9 +179,9 @@ def sourceComplRangeDiffeomorph (hΨ : Ψ.target = openNbhd n ε)
         refine ⟨fun hx ↦ apply_mem_openNbhdComplDivisor hΨ hf hx, fun hx ↦ ⟨x.property, ?_⟩⟩
         exact (apply_mem_exceptionalDivisor_iff hf x.property).not.1
           (mem_openNbhdComplDivisor_iff.1 hx).2).trans
-      (Diffeomorph.nestedOpen fun _ hp ↦ by
-        change _ ∈ Ψ.target
-        exact hΨ ▸ (mem_openNbhdComplDivisor_iff.1 hp).1))
+      (Diffeomorph.nestedOpen (D := ⟨Ψ.target, Ψ.open_target⟩) fun _ hp ↦ by
+        rw [Opens.mem_mk, hΨ]
+        exact (mem_openNbhdComplDivisor_iff.1 hp).1))
 
 @[simp]
 theorem coe_sourceComplRangeDiffeomorph_apply (hΨ : Ψ.target = openNbhd n ε)
