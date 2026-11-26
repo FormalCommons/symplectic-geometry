@@ -561,8 +561,7 @@ theorem profileForm_eq_on_compl {l ε : ℝ} (hl : 0 < l) (hε : 0 < ε) :
   have hlε : 0 < l + ε := add_pos hl hε
   have hp' : l + ε < ‖complexToRealEuclidean (Fin (n + 1)) p.blowdown‖ :=
     not_le.1 (mt mem_closedNbhd_iff.2 hp)
-  have hpU : p ∈ (⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ :
-      Opens (BlowupModel n)) := fun h0 ↦ by
+  have hpU : p ∈ offDivisorOpens n := mem_offDivisorOpens.2 fun h0 ↦ by
     rw [mem_exceptionalDivisor_iff.1 h0, map_zero, norm_zero] at hp'
     exact hlε.not_gt hp'
   have hcomp : (blowdown : BlowupModel n → _) ∘ Subtype.val ∘

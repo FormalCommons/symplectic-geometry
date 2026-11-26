@@ -15,7 +15,7 @@ public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Map
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Topology
 public import TauCeti.Topology.VectorBundle.MayerVietoris.DirectedUnion
 public import TauCeti.Topology.VectorBundle.Thom.FiberwiseEquiv
-import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
+import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 
 /-!
 # The dual class is determined by its normal slices
@@ -57,8 +57,9 @@ compares a map with its derivative on a small ball around a zero.
 For `u` in the degree `r` of the rank, with coefficients `R, M : ModuleCat k` and `R` projective
 over `k`, the class does not depend on the normalized tube. For two normalized tubes `Φ`
 and `Φ'` and a point `x`, the map `w ↦ Φ'(x, e⁻¹ w)` on `P` has, by normalization of `Φ'`, the
-derivative that the local-degree lemma asks for, so the lemma applied to `Φ` and to `Φ'` shows
-that their normal slices at `x` pull classes back alike
+derivative that the local-degree lemma asks for (`IsNormalizedTube.exists_hasMFDerivAt_apply_mk`,
+which reads a normal slice of a normalized tube through any linear isomorphism `P ≃ ν_x`), so the
+lemma applied to `Φ` and to `Φ'` shows that their normal slices at `x` pull classes back alike
 (`singularCohomologyMap_normalSlice_eq_of_isNormalizedTube`). By the slice criterion, every
 normalized tube then carries `relDualClassOf f hn hdim hf u` for `u` of degree `r`
 (`singularCohomologyMap_excisionMap_relDualClassOf`, `relDualClassOf_eq_of_isNormalizedTube`), so
@@ -73,6 +74,18 @@ those of `f`: Tau Ceti's `normalSpaceEquiv` for the square `φ ∘ f' = f ∘ id
 pairs `(ν_{f'}, ν_{f'} ∖ 0) ⟶ (ν_f, ν_f ∖ 0)` (`transDiffeomorphThomPairMap`), which on the
 fibre over `x` is the isomorphism of fibre pairs of the equivalence at `x`
 (`fiberThomPairMap_comp_transDiffeomorphThomPairMap`).
+
+The dual classes are natural under `φ`. Write `u'` for the pull-back of a class `u` of degree `r`
+along `transDiffeomorphThomPairMap`, and `ℓ` for the isomorphism `ν_{f'} x ≃ ν_f x` at `x`. For
+normalized tubes `Φ` of `f` and `Φ'` of `f'`, the map `w ↦ φ (Φ'(x, ℓ⁻¹ (e⁻¹ w)))` on `P`, with
+`e` the preferred trivialization of `ν_f` at `x`, has by the chain rule, normalization of `Φ'`
+and `transDiffeomorphNormalSpaceEquiv_normalClass` the derivative at `0` that the local-degree
+lemma asks for. So the normal slice of `Φ'` followed by `φ` pulls classes back as `ℓ` followed
+by the normal slice of `Φ` (`singularCohomologyMap_normalSlice_transDiffeomorph`). With the
+fibre restrictions of `transDiffeomorphThomPairMap`, the slice criterion then gives that the
+relative class of `f'` and `u'` is the pull-back of that of `f` and `u` along
+`φ : (X', X' ∖ f'(Z)) ⟶ (X, X ∖ f(Z))` (`relDualClassOf_transDiffeomorph`), and the same for the
+absolute classes (`dualClassOf_transDiffeomorph`).
 
 ## Main definitions
 
@@ -101,6 +114,12 @@ fibre over `x` is the isomorphism of fibre pairs of the equivalence at `x`
 * `TauCeti.SmoothEmbedding.fiberThomPairMap_comp_transDiffeomorphThomPairMap`: on the fibre over
   `x`, the map of Thom pairs under a diffeomorphism is the fibre-pair isomorphism of the
   derivative.
+* `TauCeti.SmoothEmbedding.singularCohomologyMap_normalSlice_transDiffeomorph`: under a
+  diffeomorphism `φ`, the normal slice of a normalized tube of `φ⁻¹ ∘ f` followed by `φ` pulls
+  classes back as the derivative of `φ` followed by the normal slice of a normalized tube of `f`.
+* `TauCeti.SmoothEmbedding.relDualClassOf_transDiffeomorph`,
+  `TauCeti.SmoothEmbedding.dualClassOf_transDiffeomorph`: naturality of the relative and
+  absolute classes under a diffeomorphism, for `u` of degree `r`.
 
 ## References
 
@@ -453,69 +472,17 @@ theorem singularCohomologyMap_normalSlice_eq_of_isNormalizedTube {f : SmoothEmbe
   set e := trivializationAt P (fun x ↦ f.NormalSpace x hn) x
   have hx : x ∈ e.baseSet := mem_baseSet_trivializationAt P _ x
   set ℓ := e.continuousLinearEquivAt ℝ x hx
-  -- The vector of the fibre over `x` with coordinate `w` in `e`, and its image `g w` under `Φ'`.
-  set h : P → TotalSpace P (fun x ↦ f.NormalSpace x hn) := fun w ↦ TotalSpace.mk' P x (ℓ.symm w)
-  have hhc : Continuous h := (FiberBundle.continuous_totalSpaceMk P _ x).comp ℓ.symm.continuous
-  have hh0 : h 0 = zeroSection P _ x := by
-    simp only [h, map_zero, zeroSection]
-  set g : P → X := fun w ↦ (Φ' (h w) : X)
-  have hgc : ContinuousOn g univ :=
-    (continuous_subtypeVal.comp (Φ'.continuous.comp hhc)).continuousOn
-  have hg0 : g 0 = f x := by
-    simp only [g, hh0]
-    exact hΦ'.apply_zeroSection x
-  have hgf : ∀ w ∈ univ, g w ∈ range f → w = 0 := by
-    rintro w - ⟨z, hz⟩
-    by_contra hw
-    have hs : h w ∈ zeroSectionCompl P (fun x ↦ f.NormalSpace x hn) :=
-      mem_zeroSectionCompl.2 (ℓ.symm.map_ne_zero_iff.2 hw)
-    rw [zeroSectionCompl_eq_compl_range] at hs
-    exact hs ((apply_mem_range_iff_of_apply_zeroSection f hn hdim Φ' hΦ'.apply_zeroSection _).1
-      ⟨z, hz⟩)
-  -- `h` has derivative `w ↦ (0, w)` at `0`.
-  let L : P →L[ℝ] TangentSpace (I.prod 𝓘(ℝ, P)) (zeroSection P (fun x ↦ f.NormalSpace x hn) x) :=
-    ContinuousLinearMap.inr ℝ E P
-  have hhd : HasMFDerivAt 𝓘(ℝ, P) (I.prod 𝓘(ℝ, P)) h 0 L := by
-    have hh : h = fun w ↦ TotalSpace.mk' P x (e.symm x w) :=
-      funext fun w ↦ by simp [h, ℓ]
-    rw [hh]
-    exact Bundle.hasMFDerivAt_totalSpaceMk_trivializationAt_symm x 0
-  -- So the derivative of `g` at `0`, followed by the normal class, is the inverse of `e`.
-  set F' : TotalSpace P (fun x ↦ f.NormalSpace x hn) → X := fun p ↦ (Φ' p : X)
-  have hF' : MDifferentiableAt (I.prod 𝓘(ℝ, P)) J F' (zeroSection P _ x) :=
-    (contMDiff_subtypeVal.comp Φ'.contMDiff).mdifferentiableAt (by simp)
-  have hg : HasMFDerivAt 𝓘(ℝ, P) J g 0
-      ((mfderiv (I.prod 𝓘(ℝ, P)) J F' (zeroSection P _ x)).comp L) :=
-    have hF'' : HasMFDerivAt (I.prod 𝓘(ℝ, P)) J F' (h 0)
-        (mfderiv (I.prod 𝓘(ℝ, P)) J F' (zeroSection P _ x)) := by
-      rw [hh0]
-      exact hF'.hasMFDerivAt
-    hF''.comp 0 hhd
-  have hA (w : P) : f.normalClassL x hn
-      (((mfderiv (I.prod 𝓘(ℝ, P)) J F' (zeroSection P _ x)).comp L) w) = e.symmL ℝ x w :=
-    hΦ'.normalClassL_mfderiv_zeroSection x (L w)
-  have h1 := singularCohomologyMap_slice_eq_of_hasFDerivAt hΦ x Filter.univ_mem hgc hg0 hgf hg
-    hA c
-  have h2 := singularCohomologyMap_slice_eq_of_hasFDerivAt hΦ' x Filter.univ_mem hgc hg0 hgf hg
-    hA c
+  -- The map `w ↦ Φ'(x, ℓ⁻¹ w)` has the derivative that the local-degree lemma asks for.
+  obtain ⟨hgc, hg0, hgf, A, hg, hA⟩ := hΦ'.exists_hasMFDerivAt_apply_mk x ℓ.symm
+  have hA' (w : P) : f.normalClassL x hn (A w) = e.symmL ℝ x w := by
+    rw [hA, ← e.symm_continuousLinearEquivAt_eq' hx, ContinuousLinearEquiv.coe_coe]
+  have h1 := singularCohomologyMap_slice_eq_of_hasFDerivAt hΦ x Filter.univ_mem hgc.continuousOn
+    hg0 (fun w _ ↦ hgf w) hg hA' c
+  have h2 := singularCohomologyMap_slice_eq_of_hasFDerivAt hΦ' x Filter.univ_mem hgc.continuousOn
+    hg0 (fun w _ ↦ hgf w) hg hA' c
   -- Both sides are read through the same isomorphism `(univ, univ ∖ {0}) ≅ (ν_x, ν_x ∖ 0)`.
-  let i := TopPair.ofSubsetIso (X := TopCat.of (univ : Set P)) (Y := TopCat.of P)
-    (Homeomorph.Set.univ P) (B := {⟨0, mem_univ 0⟩}ᶜ) (B' := {0}ᶜ)
-    (fun w ↦ by simp [Subtype.ext_iff]) ≪≫ ℓ.symm.complZeroPairIso
-  have hi : i.hom = TopPair.ofSubsetMap (X := TopCat.of (univ : Set P)) (Y := TopCat.of P)
-      (TopCat.ofHom (ContinuousMap.subtypeVal univ)) (B := {⟨0, mem_univ 0⟩}ᶜ)
-      (B' := {0}ᶜ) (fun _ hw h ↦ hw (Subtype.ext (Set.mem_singleton_iff.1 h))) ≫
-      ℓ.symm.complZeroPairIso.hom := by
-    rw [Iso.trans_hom]
-    congr 1
-    refine TopPair.hom_ext_of_fst _ (ConcreteCategory.hom_ext _ _ fun w ↦ ?_)
-    rw [TopPair.ofSubsetIso_hom]
-    -- The points of the pairs are those of `univ` and `P` only up to unfolding `ofSubset`.
-    erw [TopPair.ofSubsetMap_fst_apply]
-  have hinj := ConcreteCategory.injective_of_mono_of_preservesPullback
-    (TopPair.singularCohomologyMapIso R k M i n).hom
-  rw [TopPair.singularCohomologyMapIso_hom, hi] at hinj
-  exact hinj (h2.symm.trans h1)
+  exact TopPair.injective_singularCohomologyMap_ofSubsetMap_subtypeVal_univ_comp R k M (0 : P)
+    ℓ.symm.complZeroPairIso n (h2.symm.trans h1)
 
 end LocalDegree
 
@@ -709,6 +676,187 @@ theorem fiberThomPairMap_comp_transDiffeomorphThomPairMap (f : SmoothEmbedding I
   letI := (f.transDiffeomorph φ.symm).normalSpaceFiberBundle hn hdim
   letI := f.normalSpaceFiberBundle hn hdim
   fiberThomPairMap_comp_thomPairMapOfFiberwise (g := ContinuousMap.id Z) _ x
+
+omit [FiniteDimensional ℝ E] [FiniteDimensional ℝ V] [IsManifold I ∞ Z] [IsManifold J ∞ X] in
+/-- A diffeomorphism `φ : X' ≃ X` sends the complement of the range of `φ⁻¹ ∘ f` into the
+complement of the range of `f`. -/
+theorem mapsTo_compl_range_transDiffeomorph (f : SmoothEmbedding I J ∞ Z X)
+    (φ : X' ≃ₘ^∞⟮J, J⟯ X) :
+    MapsTo φ (range (f.transDiffeomorph φ.symm))ᶜ (range f)ᶜ := by
+  rintro y hy ⟨z, hz⟩
+  exact hy ⟨z, by rw [transDiffeomorph_apply, hz, Diffeomorph.symm_apply_apply]⟩
+
+omit [FiniteDimensional ℝ E] [FiniteDimensional ℝ V] [IsManifold I ∞ Z] [IsManifold J ∞ X] in
+/-- Moving an embedding with closed range by a diffeomorphism `φ : X ≃ X'` gives an embedding
+with closed range. -/
+theorem isClosed_range_transDiffeomorph {f : SmoothEmbedding I J ∞ Z X} (hf : IsClosed (range f))
+    (φ : X ≃ₘ^∞⟮J, J⟯ X') : IsClosed (range (f.transDiffeomorph φ)) := by
+  rw [range_transDiffeomorph]
+  exact φ.toHomeomorph.isClosedMap _ hf
+
+section LocalDegree
+
+variable {C : Type*} [Category C] [Limits.HasCoproducts.{w} C] [Abelian C] {R : C}
+  {k : Type*} [Ring k] [Linear k C] {M : C}
+
+/-- **Normal slices under an ambient diffeomorphism.** Let `φ : X' ≃ X` be a diffeomorphism,
+`Φ` a normalized tube of `f` and `Φ'` one of `φ⁻¹ ∘ f`. At every `x : Z`, the normal slice of
+`Φ'` followed by `φ`, as a map of pairs `(ν'_x, ν'_x ∖ 0) ⟶ (X, X ∖ f(Z))`, pulls every class
+back as the normal slice of `Φ` does after the isomorphism `ν'_x ≃ ν_x` given by the derivative
+of `φ` (`transDiffeomorphNormalSpaceEquiv`), in every degree. -/
+theorem singularCohomologyMap_normalSlice_transDiffeomorph {f : SmoothEmbedding I J ∞ Z X}
+    {hn : (∞ : ℕ∞ω) ≠ 0} {hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E}
+    (φ : X' ≃ₘ^∞⟮J, J⟯ X) {W : TopologicalSpace.Opens X} {W' : TopologicalSpace.Opens X'}
+    {Φ : letI := f.normalSpaceFiberBundle hn hdim
+      TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W}
+    {Φ' : letI := (f.transDiffeomorph φ.symm).normalSpaceFiberBundle hn hdim
+      TotalSpace P (fun x ↦ (f.transDiffeomorph φ.symm).NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯
+        W'}
+    (hΦ : f.IsNormalizedTube hn hdim Φ)
+    (hΦ' : (f.transDiffeomorph φ.symm).IsNormalizedTube hn hdim Φ') (x : Z) {n : ℕ}
+    (c : (TopPair.ofSubset (X := TopCat.of X) (range f)ᶜ).singularCohomology R k M n) :
+    TopPair.singularCohomologyMap
+        ((f.transDiffeomorph φ.symm).normalSlice hn hdim Φ' hΦ'.apply_zeroSection x ≫
+          TopPair.ofSubsetMap (X := TopCat.of X') (Y := TopCat.of X)
+            (TopCat.ofHom ⟨φ, φ.continuous⟩) (f.mapsTo_compl_range_transDiffeomorph φ)) n c =
+      TopPair.singularCohomologyMap
+        ((f.transDiffeomorphNormalSpaceEquiv hn φ x).complZeroPairIso.hom ≫
+          f.normalSlice hn hdim Φ hΦ.apply_zeroSection x) n c := by
+  let := f.normalSpaceFiberBundle hn hdim
+  have := f.normalSpaceVectorBundle hn hdim
+  let := (f.transDiffeomorph φ.symm).normalSpaceFiberBundle hn hdim
+  have := (f.transDiffeomorph φ.symm).normalSpaceVectorBundle hn hdim
+  set e := trivializationAt P (fun x ↦ f.NormalSpace x hn) x
+  have hx : x ∈ e.baseSet := mem_baseSet_trivializationAt P _ x
+  set m := (e.continuousLinearEquivAt ℝ x hx).symm
+  set ℓ := f.transDiffeomorphNormalSpaceEquiv hn φ x
+  set ψ := m.trans ℓ.symm
+  -- The map `g' : w ↦ Φ'(x, ℓ⁻¹ (m w))` into `X'`, and its image `g = φ ∘ g'` in `X`.
+  obtain ⟨hgc', hg0', hgf', A', hg', hA'⟩ := hΦ'.exists_hasMFDerivAt_apply_mk x ψ
+  set g' : P → X' := fun w ↦ (Φ' (TotalSpace.mk' P x (ψ w)) : X')
+  set g : P → X := fun w ↦ φ (g' w)
+  have hgc : ContinuousOn g univ := (φ.continuous.comp hgc').continuousOn
+  have hg0 : g 0 = f x := by
+    simp only [g, g', hg0', transDiffeomorph_apply, Diffeomorph.apply_symm_apply]
+  have hgf : ∀ w ∈ univ, g w ∈ range f → w = 0 := by
+    rintro w - ⟨z, hz⟩
+    exact hgf' w ⟨z, (transDiffeomorph_apply _ _ _).trans (φ.symm_apply_eq.2 hz)⟩
+  have hφ : HasMFDerivAt J J φ (g' 0) (mfderiv J J φ (g' 0)) :=
+    (φ.contMDiff.mdifferentiableAt (by simp)).hasMFDerivAt
+  -- On normal classes, `dφ` at the point `f' x` is `ℓ`.
+  have hdφ : ∀ (y : X') (_ : y = f.transDiffeomorph φ.symm x) (D : TangentSpace J y),
+      f.normalClassL x hn (mfderiv J J φ y D) =
+        ℓ ((f.transDiffeomorph φ.symm).normalClassL x hn D) := by
+    rintro _ rfl D
+    have h := f.transDiffeomorphNormalSpaceEquiv_normalClass hn φ x D
+    rw [tangentSpaceCast_apply] at h
+    rw [normalClassL_apply (f := f.transDiffeomorph φ.symm)]
+    exact (normalClassL_apply _ _ _ _).trans h.symm
+  set A := (mfderiv J J φ (g' 0)).comp (A' : P →L[ℝ] TangentSpace J (g' 0))
+  have hA (w : P) : f.normalClassL x hn (A w) = e.symmL ℝ x w := by
+    refine (hdφ _ hg0' (A' w)).trans ?_
+    rw [hA', ← e.symm_continuousLinearEquivAt_eq' hx, ContinuousLinearEquiv.coe_coe]
+    simp [ψ, m]
+  have h1 := singularCohomologyMap_slice_eq_of_hasFDerivAt hΦ x Filter.univ_mem hgc hg0 hgf
+    (hφ.comp 0 hg') hA c
+  -- Read on `(univ, univ ∖ {0})` through `m`, the map `g` is `ℓ⁻¹`, then the normal slice of
+  -- `Φ'`, then `φ`.
+  have hgi : TopPair.ofSubsetMap (X := TopCat.of (univ : Set P)) (Y := TopCat.of X)
+      (TopCat.ofHom ⟨univ.domRestrict g, hgc.domRestrict⟩) (B := {⟨0, mem_univ 0⟩}ᶜ)
+      (B' := (range f)ᶜ) (fun w hw h ↦ hw (Subtype.ext (hgf w w.property h))) =
+      (TopPair.ofSubsetMap (X := TopCat.of (univ : Set P)) (Y := TopCat.of P)
+        (TopCat.ofHom (ContinuousMap.subtypeVal univ)) (B := {⟨0, mem_univ 0⟩}ᶜ)
+        (B' := {0}ᶜ) (fun _ hw h ↦ hw (Subtype.ext (Set.mem_singleton_iff.1 h))) ≫
+        m.complZeroPairIso.hom) ≫ ℓ.complZeroPairIso.inv ≫
+        (f.transDiffeomorph φ.symm).normalSlice hn hdim Φ' hΦ'.apply_zeroSection x ≫
+          TopPair.ofSubsetMap (X := TopCat.of X') (Y := TopCat.of X)
+            (TopCat.ofHom ⟨φ, φ.continuous⟩) (f.mapsTo_compl_range_transDiffeomorph φ) := by
+    refine TopPair.hom_ext_of_fst _ (ConcreteCategory.hom_ext _ _ fun w ↦ ?_)
+    simp only [TopPair.Hom.fst_comp, ConcreteCategory.comp_apply]
+    -- The points of the pairs are those of `univ`, `P` and `X` only up to unfolding `ofSubset`.
+    erw [TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply,
+      TopPair.ofSubsetMap_fst_apply]
+    rw [ContinuousLinearEquiv.complZeroPairIso_hom_fst_apply,
+      ContinuousLinearEquiv.complZeroPairIso_inv_fst_apply, normalSlice_fst_apply]
+    -- Both sides are `φ (Φ' (x, ℓ⁻¹ (m w)))`, with `w` a point of `univ` only up to unfolding
+    -- `ofSubset`, so `Set.domRestrict_apply` does not apply syntactically.
+    rfl
+  have h3 : TopPair.singularCohomologyMap (ℓ.complZeroPairIso.inv ≫
+      (f.transDiffeomorph φ.symm).normalSlice hn hdim Φ' hΦ'.apply_zeroSection x ≫
+        TopPair.ofSubsetMap (X := TopCat.of X') (Y := TopCat.of X)
+          (TopCat.ofHom ⟨φ, φ.continuous⟩) (f.mapsTo_compl_range_transDiffeomorph φ)) n c =
+      TopPair.singularCohomologyMap (f.normalSlice hn hdim Φ hΦ.apply_zeroSection x) n c := by
+    refine TopPair.injective_singularCohomologyMap_ofSubsetMap_subtypeVal_univ_comp R k M (0 : P)
+      m.complZeroPairIso n ?_
+    rw [← TopPair.singularCohomologyMap_comp_apply, ← hgi, h1]
+  rw [TopPair.singularCohomologyMap_comp_apply ℓ.complZeroPairIso.hom, ← h3,
+    ← TopPair.singularCohomologyMap_comp_apply, Iso.hom_inv_id_assoc]
+
+end LocalDegree
+
+section Naturality
+
+variable {k : Type*} [CommRing k] {R M : ModuleCat.{w} k} [Module.Projective k R]
+  [I.Boundaryless] [J.Boundaryless] [T2Space X] [SecondCountableTopology X] [T2Space X']
+  [SecondCountableTopology X']
+
+/-- **Naturality of the relative class under a diffeomorphism.** Let `φ : X' ≃ X` be a
+diffeomorphism and `u` a class of the Thom pair of the normal bundle of `f` in the degree
+`r = finrank ℝ P` of its rank, with coefficients `R, M : ModuleCat k` and `R` projective over `k`.
+The relative class of `φ⁻¹ ∘ f` given by the pull-back of `u` along the map of Thom pairs
+`transDiffeomorphThomPairMap` is the pull-back along `φ : (X', X' ∖ φ⁻¹(f(Z))) ⟶ (X, X ∖ f(Z))`
+of `relDualClassOf f hn hdim hf u`. -/
+theorem relDualClassOf_transDiffeomorph (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
+    (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f))
+    (φ : X' ≃ₘ^∞⟮J, J⟯ X)
+    (u : letI := f.normalSpaceFiberBundle hn hdim
+      (thomPair P (fun x ↦ f.NormalSpace x hn)).singularCohomology R k M (finrank ℝ P)) :
+    (f.transDiffeomorph φ.symm).relDualClassOf hn hdim
+        (f.isClosed_range_transDiffeomorph hf φ.symm)
+        (TopPair.singularCohomologyMap (f.transDiffeomorphThomPairMap hn φ) _ u) =
+      TopPair.singularCohomologyMap
+        (TopPair.ofSubsetMap (X := TopCat.of X') (Y := TopCat.of X)
+          (TopCat.ofHom ⟨φ, φ.continuous⟩) (f.mapsTo_compl_range_transDiffeomorph φ)) _
+        (f.relDualClassOf hn hdim hf u) := by
+  let := f.normalSpaceFiberBundle hn hdim
+  let := (f.transDiffeomorph φ.symm).normalSpaceFiberBundle hn hdim
+  obtain ⟨W, Φ, hΦ, -⟩ :=
+    exists_isNormalizedTube_singularCohomologyMap_excisionMap_relDualClassOf (R := R) (k := k)
+      (M := M) f hn hdim hf
+  obtain ⟨W', Φ', hΦ', -⟩ :=
+    exists_isNormalizedTube_singularCohomologyMap_excisionMap_relDualClassOf (R := R) (k := k)
+      (M := M) (f.transDiffeomorph φ.symm) hn hdim (f.isClosed_range_transDiffeomorph hf φ.symm)
+  refine relDualClassOf_eq_of_isNormalizedTube _ hn hdim _ hΦ' ?_
+  rw [singularCohomologyMap_excisionMap_eq_iff_forall_normalSlice]
+  intro x
+  rw [← TopPair.singularCohomologyMap_comp_apply,
+    singularCohomologyMap_normalSlice_transDiffeomorph φ hΦ hΦ' x,
+    ← TopPair.singularCohomologyMap_comp_apply,
+    fiberThomPairMap_comp_transDiffeomorphThomPairMap f hn hdim φ x,
+    TopPair.singularCohomologyMap_comp_apply, TopPair.singularCohomologyMap_comp_apply,
+    (singularCohomologyMap_excisionMap_eq_iff_forall_normalSlice f hn hdim Φ
+      hΦ.apply_zeroSection u _).1 (singularCohomologyMap_excisionMap_relDualClassOf f hn hdim hf
+        hΦ u) x]
+
+/-- **Naturality of the absolute class under a diffeomorphism.** Let `φ : X' ≃ X` be a
+diffeomorphism and `u` a class of the Thom pair of the normal bundle of `f` in the degree
+`r = finrank ℝ P` of its rank, with coefficients `R, M : ModuleCat k` and `R` projective over `k`.
+The absolute class of `φ⁻¹ ∘ f` given by the pull-back of `u` along the map of Thom pairs
+`transDiffeomorphThomPairMap` is the pull-back along `φ` of `dualClassOf f hn hdim hf u`. -/
+theorem dualClassOf_transDiffeomorph (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
+    (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f))
+    (φ : X' ≃ₘ^∞⟮J, J⟯ X)
+    (u : letI := f.normalSpaceFiberBundle hn hdim
+      (thomPair P (fun x ↦ f.NormalSpace x hn)).singularCohomology R k M (finrank ℝ P)) :
+    (f.transDiffeomorph φ.symm).dualClassOf hn hdim
+        (f.isClosed_range_transDiffeomorph hf φ.symm)
+        (TopPair.singularCohomologyMap (f.transDiffeomorphThomPairMap hn φ) _ u) =
+      TopCat.singularCohomologyMap (TopCat.ofHom ⟨φ, φ.continuous⟩) _
+        (f.dualClassOf hn hdim hf u) := by
+  rw [dualClassOf_def, dualClassOf_def, relDualClassOf_transDiffeomorph,
+    TopPair.singularCohomologyπ_singularCohomologyMap_ofSubsetMap]
+
+end Naturality
 
 end TransDiffeomorph
 

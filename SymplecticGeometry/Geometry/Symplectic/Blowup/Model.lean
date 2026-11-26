@@ -329,15 +329,14 @@ variable (n) in
 manifolds onto the punctured space `E ∖ 0 = puncturedSpace E`, on which the radial forms and maps
 of `Geometry/Symplectic/Complex/Radial.lean` live. -/
 noncomputable def blowdownPuncturedDiffeomorph :
-    (⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ : Opens (BlowupModel n))
+    offDivisorOpens n
       ≃ₘ⟮𝓘(ℝ, Fin (n + 1) → ℂ), 𝓘(ℝ, Fin (n + 1) → ℂ)⟯ puncturedSpace (Fin (n + 1) → ℂ) :=
   (((blowdownDiffeomorph n).restrictScalars' ℝ).ofLE le_top).trans
     ((Diffeomorph.refl _ _ _).subtype fun _ ↦ by simp)
 
 @[simp]
 theorem coe_blowdownPuncturedDiffeomorph_apply
-    (p : (⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ :
-      Opens (BlowupModel n))) :
+    (p : offDivisorOpens n) :
     (blowdownPuncturedDiffeomorph n p : Fin (n + 1) → ℂ) = p.val.blowdown := by
   simp [blowdownPuncturedDiffeomorph]
 
@@ -408,7 +407,7 @@ from the complement of the exceptional divisor onto the shell `{w | l² < |w|²}
 of the profile `s ↦ s + l²` (`radialShell`). It carries `ω̃_l` to `ω₀`
 (`isSymplectomorphism_radialBlowdownDiffeomorph`). -/
 noncomputable def radialBlowdownDiffeomorph (l : ℝ) :
-    (⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ : Opens (BlowupModel n))
+    offDivisorOpens n
       ≃ₘ⟮𝓘(ℝ, Fin (n + 1) → ℂ), 𝓘(ℝ, Fin (n + 1) → ℂ)⟯
       radialShell (Fin (n + 1)) (fun s ↦ s + l ^ 2) (contDiffOn_id.add contDiffOn_const)
         (fun _ _ ↦ by simp) :=
@@ -417,8 +416,7 @@ noncomputable def radialBlowdownDiffeomorph (l : ℝ) :
 
 @[simp]
 theorem coe_radialBlowdownDiffeomorph_apply (l : ℝ)
-    (p : (⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ :
-      Opens (BlowupModel n))) :
+    (p : offDivisorOpens n) :
     (radialBlowdownDiffeomorph n l p : Fin (n + 1) → ℂ) =
       radialMap (fun s ↦ s + l ^ 2) (fun _ hs ↦ add_pos_of_pos_of_nonneg hs (sq_nonneg l))
         (blowdownPuncturedDiffeomorph n p) := by
@@ -427,8 +425,7 @@ theorem coe_radialBlowdownDiffeomorph_apply (l : ℝ)
 
 /-- The map `F_l ∘ π` adds `l²` to the squared Euclidean norm of the blowdown. -/
 theorem norm_sq_radialBlowdownDiffeomorph (l : ℝ)
-    (p : (⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ :
-      Opens (BlowupModel n))) :
+    (p : offDivisorOpens n) :
     ‖complexToRealEuclidean (Fin (n + 1)) (radialBlowdownDiffeomorph n l p)‖ ^ 2 =
       ‖complexToRealEuclidean (Fin (n + 1)) p.val.blowdown‖ ^ 2 + l ^ 2 := by
   rw [coe_radialBlowdownDiffeomorph_apply, norm_radialMap, coe_blowdownPuncturedDiffeomorph_apply]
@@ -446,8 +443,7 @@ theorem isSymplectomorphism_radialBlowdownDiffeomorph (l : ℝ) :
 
 /-- `F_l ∘ π` maps the complement of the divisor into `{w | l < |w|}`, for `0 ≤ l`. -/
 theorem lt_norm_radialBlowdownDiffeomorph {l : ℝ} (hl : 0 ≤ l)
-    (p : (⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ :
-      Opens (BlowupModel n))) :
+    (p : offDivisorOpens n) :
     l < ‖complexToRealEuclidean (Fin (n + 1)) (radialBlowdownDiffeomorph n l p)‖ := by
   refine (pow_lt_pow_iff_left₀ hl (norm_nonneg _) two_ne_zero).1 ?_
   rw [norm_sq_radialBlowdownDiffeomorph, lt_add_iff_pos_left]
@@ -457,8 +453,7 @@ theorem lt_norm_radialBlowdownDiffeomorph {l : ℝ} (hl : 0 ≤ l)
 /-- For `0 ≤ ε`, a point off the divisor lies in the open neighbourhood of radius `ε` exactly when
 its image under `F_l ∘ π` has Euclidean norm less than `√(l² + ε²)`. -/
 theorem mem_openNbhd_iff_radialBlowdownDiffeomorph (l : ℝ) {ε : ℝ} (hε : 0 ≤ ε)
-    (p : (⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ :
-      Opens (BlowupModel n))) :
+    (p : offDivisorOpens n) :
     p.val ∈ openNbhd n ε ↔
       ‖complexToRealEuclidean (Fin (n + 1)) (radialBlowdownDiffeomorph n l p)‖ <
         √(l ^ 2 + ε ^ 2) := by
@@ -469,8 +464,7 @@ theorem mem_openNbhd_iff_radialBlowdownDiffeomorph (l : ℝ) {ε : ℝ} (hε : 0
 /-- For `0 ≤ ε`, a point off the divisor lies in `L(ε)` exactly when its image under `F_l ∘ π`
 has Euclidean norm at most `√(l² + ε²)`. -/
 theorem mem_closedNbhd_iff_radialBlowdownDiffeomorph (l : ℝ) {ε : ℝ} (hε : 0 ≤ ε)
-    (p : (⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ :
-      Opens (BlowupModel n))) :
+    (p : offDivisorOpens n) :
     p.val ∈ closedNbhd n ε ↔
       ‖complexToRealEuclidean (Fin (n + 1)) (radialBlowdownDiffeomorph n l p)‖ ≤
         √(l ^ 2 + ε ^ 2) := by
@@ -517,13 +511,14 @@ open neighbourhood of radius `ε` minus the exceptional divisor onto the open sh
 noncomputable def shellSymplectomorph (l ε : ℝ) (hl : 0 ≤ l) (hε : 0 ≤ ε) :
     openNbhdComplDivisor n ε ≃ₘ⟮𝓘(ℝ, Fin (n + 1) → ℂ), 𝓘(ℝ, Fin (n + 1) → ℂ)⟯ openShell n l ε :=
   (Diffeomorph.nestedOpen (U := openNbhdComplDivisor n ε)
-      (D := ⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩)
-      fun _ hp ↦ (mem_openNbhdComplDivisor_iff.1 hp).2).symm.trans
+      (D := offDivisorOpens n)
+      fun _ hp ↦ mem_offDivisorOpens.2 (mem_openNbhdComplDivisor_iff.1 hp).2).symm.trans
     (((radialBlowdownDiffeomorph n l).subtype fun p ↦ by
         simp only [Opens.mem_comap]
         exact ⟨fun hp ↦ ⟨lt_norm_radialBlowdownDiffeomorph hl p,
             (mem_openNbhd_iff_radialBlowdownDiffeomorph l hε p).1 hp.1⟩,
-          fun hw ↦ ⟨(mem_openNbhd_iff_radialBlowdownDiffeomorph l hε p).2 hw.2, p.property⟩⟩).trans
+          fun hw ↦ ⟨(mem_openNbhd_iff_radialBlowdownDiffeomorph l hε p).2 hw.2,
+            mem_offDivisorOpens.1 p.property⟩⟩).trans
       (Diffeomorph.nestedOpen fun _ hw ↦ (mem_radialShell_add_sq hl).2 hw.1))
 
 @[simp]
@@ -532,7 +527,7 @@ theorem coe_shellSymplectomorph_apply {l ε : ℝ} (hl : 0 ≤ l) (hε : 0 ≤ �
     (shellSymplectomorph n l ε hl hε p : Fin (n + 1) → ℂ) =
       radialMap (fun s ↦ s + l ^ 2) (fun _ hs ↦ add_pos_of_pos_of_nonneg hs (sq_nonneg l))
         (blowdownPuncturedDiffeomorph n
-          ⟨p.val, (mem_openNbhdComplDivisor_iff.1 p.property).2⟩) := by
+          ⟨p.val, mem_offDivisorOpens.2 (mem_openNbhdComplDivisor_iff.1 p.property).2⟩) := by
   simp [shellSymplectomorph]
 
 /-- **The shell symplectomorphism.** `shellSymplectomorph` carries `ω̃_l` on the open
