@@ -104,7 +104,9 @@ the segment from `0` to `z` has `g_J`-speed at most `√(3 / 2) * ‖z‖ / √(
 For the lower half, let `d_k = √(2π k) · d_{g_J}`. On the same ball, the differential of each chart
 stretches `g_J`-norms by at most `√2 * √(2π k)`, so `‖z‖ / √2 ≤ d_k(x, (D.chart k x).symm z)`
 (`SymplecticGeometry.RescaledUnitaryCharts.exists_forall_ofReal_mul_norm_le_mul_riemannianEDist`,
-from `PartialDiffeomorph.ofReal_norm_sub_le_mul_riemannianEDist`).
+from `PartialDiffeomorph.ofReal_norm_sub_le_mul_riemannianEDist`). Taking the smaller of the two
+radii gives both bounds at once
+(`SymplecticGeometry.RescaledUnitaryCharts.exists_forall_ofReal_mul_riemannianEDist_symm_mem_Icc`).
 
 ## Main definitions
 
@@ -149,6 +151,9 @@ from `PartialDiffeomorph.ofReal_norm_sub_le_mul_riemannianEDist`).
 * `SymplecticGeometry.RescaledUnitaryCharts.exists_forall_ofReal_mul_norm_le_mul_riemannianEDist`:
   on a ball of radius `ρ₁ * √k`, `‖z‖ / √2` is at most the rescaled distance `d_k` from `x` to
   the point with image `z`.
+* `SymplecticGeometry.RescaledUnitaryCharts.exists_forall_ofReal_mul_riemannianEDist_symm_mem_Icc`:
+  the two bounds together, on one ball of radius `ρ₁ * √k`: `d_k` from `x` to the point with
+  image `z` lies between `‖z‖ / √2` and `2 * ‖z‖`.
 
 ## References
 
@@ -958,6 +963,26 @@ theorem exists_forall_ofReal_mul_norm_le_mul_riemannianEDist [T2Space M] (hρ₀
         rw [ENNReal.ofReal_mul (by positivity), ENNReal.ofReal_coe_nnreal, mul_assoc]
     _ = _ := by
         rw [hCdef, ← mul_assoc, inv_mul_cancel₀ (by positivity), one_mul]
+
+/-- **Rescaled distances compared with chart distances.** Let `M` be Hausdorff, with a Riemannian
+metric whose inner product is `⟪u, w⟫ = σ(u, J w)`, such as the metric `g_J` of a compatible pair
+(`TauCeti.SmoothTwoForm.Compatible.inner_eq_eval₂`). For rescaled unitary charts with radius
+`ρ₀ > 0`, there is a radius `ρ₁` with `0 < ρ₁ ≤ ρ₀` such that, for every `k ≥ k₀`, every point
+`x` and every `z` in the ball of radius `ρ₁ * √k`, the rescaled distance
+`d_k = √(2π k) · d_{g_J}` from `x` to the point `(D.chart k x).symm z` lies between `‖z‖ / √2`
+and `2 * ‖z‖`. -/
+theorem exists_forall_ofReal_mul_riemannianEDist_symm_mem_Icc [T2Space M] (hρ₀ : 0 < ρ₀)
+    (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w)) :
+    ∃ ρ₁, 0 < ρ₁ ∧ ρ₁ ≤ ρ₀ ∧ ∀ {k : ℕ}, k₀ ≤ k → ∀ (x : M),
+      ∀ z ∈ ball (0 : StdSpace ι) (ρ₁ * √k),
+        ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I x ((D.chart k x).symm z) ∈
+          Set.Icc (ENNReal.ofReal ((√2)⁻¹ * ‖z‖)) (ENNReal.ofReal (2 * ‖z‖)) := by
+  obtain ⟨ρ₁, hρ₁, hρ₁₀, hup⟩ := D.exists_forall_ofReal_mul_riemannianEDist_symm_le hρ₀ hg
+  obtain ⟨ρ₂, hρ₂, -, hlow⟩ := D.exists_forall_ofReal_mul_norm_le_mul_riemannianEDist hρ₀ hg
+  refine ⟨min ρ₁ ρ₂, lt_min hρ₁ hρ₂, (min_le_left _ _).trans hρ₁₀, fun {k} hk x z hz ↦ ?_⟩
+  have hsub : ∀ ρ, min ρ₁ ρ₂ ≤ ρ → ball (0 : StdSpace ι) (min ρ₁ ρ₂ * √k) ⊆ ball 0 (ρ * √k) :=
+    fun ρ h ↦ ball_subset_ball (by gcongr)
+  exact ⟨hlow hk x z (hsub ρ₂ (min_le_right _ _) hz), hup hk x z (hsub ρ₁ (min_le_left _ _) hz)⟩
 
 end RiemannianEDist
 
