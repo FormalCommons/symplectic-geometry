@@ -108,7 +108,10 @@ formulation.
    existence and path statements go in `OpenManifold.lean`, as corollaries
    (parameter spaces a point and $[0,1]$).
 2. **The handle-core lemma is proved by the book's argument**, as a
-   milestone on its own (`HandleCore.lean`). Nothing else in the part uses
+   milestone on its own (`HandleCore.lean`), except for $m=1$, where the
+   cube is compressed towards the core and the contraction along the fibres
+   gives the primitive, in place of the book's patching and zig-zag
+   (`HandleCore/OneDimensional.lean`). Nothing else in the part uses
    it. It is stated for forms on the whole model space, with its conditions
    on the cube and near the attaching faces, so that no form on a subset is
    needed.
@@ -396,8 +399,9 @@ Only the half `t ≥ 0` goes to infinity; for `t ≤ 0` the ray is a short
 straight segment through `p` in a chart, so that it is an embedding of all
 of `ℝ`, which the tubular neighbourhood theorem needs.
 
-Route. Fix a proper smooth `h : M → ℝ` (Tau Ceti's
-`Geometry/Manifold/Exhaustion.lean`). For a level `c` let `F c` be
+Route. Fix a proper smooth `h : M → ℝ` that is bounded below, so that
+each `{h ≤ c}` is compact (Tau Ceti's `Geometry/Manifold/Exhaustion.lean`
+gives a nonnegative one). For a level `c` let `F c` be
 `{h ≤ c}` together with the components of `{h > c}` whose closure is
 compact. `F c` is compact, every component of `M \ F c` is noncompact, and
 `F c ⊆ F c'` for `c ≤ c'` (a component of `M \ F c'` is connected and
@@ -834,10 +838,10 @@ three steps:
 Steps 2 and 3 need the splitting's maps to take smooth families over `L` to
 smooth families. `PreservesSmoothFamilies`, which issue 6 below generalizes
 from `unitInterval` to any parameter manifold, gives this.
-The proof is the book's: for $m=1$, the primitives
-given near the two ends of the core are patched across a narrow band around
-it with cutoff functions, the zig-zag immersion giving the band enough
-length to keep the error small; then induction on $m$, with
+For $m=1$ the proof differs from the book's: the cube is compressed
+towards the core, near which the contraction along the fibres gives one
+primitive of a form close to `τ`, so no patching and no zig-zag are needed
+(`HandleCore/OneDimensional.lean`); then induction on $m$, with
 the cutoffs and the nondegeneracy bounds chosen uniformly over `K` by
 compactness, and the attaching collars fixed once in the working lemma
 (the neighbourhoods `W` and `W'`). The docstring of
@@ -1061,20 +1065,21 @@ along `Subtype.val` it uses:
   `TauCeti/Topology/ConnectedComponents.lean`: `mem_opens`, `coe_opens`,
   `coe_opens_mk`, `isClopen_opens`, `pairwise_disjoint_opens` and
   `iSup_opens`.
-- `TauCeti.SmoothForm.ofComponents`: a family of smooth `k`-forms on the
-  open submanifolds `c.opens` glues to one on `M`, equal near each point
-  to the extension by zero of one form of the family, which is smooth
-  there as the component is clopen. With
-  `mpullback_subtypeVal_ofComponents` (its restriction to `c.opens` is
-  the `c`-th form) and `ext_of_mpullback_subtypeVal` (forms with the same
-  restrictions to all components are equal), this gives the linear
-  equivalence `TauCeti.SmoothForm.componentsEquiv` with the product over
-  the components.
-- `TauCeti.SmoothForm.mem_closedForms_iff_forall_mpullback_subtypeVal` and
-  `mem_exactForms_iff_forall_mpullback_subtypeVal`: a form is closed, or
-  exact, exactly when each restriction to a component is. Forward, as
-  restriction commutes with `mextDeriv` (`TauCeti.mpullback_subtype_val_mextDeriv`);
-  back, for exactness, glue chosen primitives by `ofComponents`.
+- `TauCeti.SmoothForm.ofDisjointCover`: for pairwise disjoint open sets
+  `U i` with `IsOpenCover U` (for the components,
+  `pairwise_disjoint_opens` and `IsOpenCover.mk iSup_opens`), a family of
+  smooth `k`-forms on the open submanifolds `U i` glues to one on `M`. With
+  `mpullback_subtype_val_ofDisjointCover` (its restriction to `U i` is
+  the `i`-th form) and `ext_of_mpullback_subtype_val` (forms with the same
+  restrictions to all members of an open cover are equal), this gives the
+  linear equivalence `TauCeti.SmoothForm.disjointCoverEquiv` with the
+  product over the `U i`.
+- `TauCeti.SmoothForm.mem_closedForms_iff_forall_mpullback_subtype_val`
+  and `mem_exactForms_iff_forall_mpullback_subtype_val`: a form is closed,
+  or exact, exactly when each restriction to a `U i` is. Forward, as
+  restriction commutes with `mextDerivₗ` (Tau Ceti's
+  `SmoothForm.mextDerivₗ_mpullback`); back, for exactness, glue chosen
+  primitives by `ofDisjointCover`.
 
 ### `Geometry/Symplectic/HPrinciple/Components.lean`
 
@@ -1087,7 +1092,7 @@ give the same topology.
   sending `ω` to the family of its restrictions to the components, as in
   `continuous_tangentEquiv_symm_mpullback_subtypeVal`, is a homeomorphism
   from the two-forms on `M` onto the product of the two-forms on the
-  components. Its inverse is `tangentEquiv.symm ∘ ofComponents` on the
+  components. Its inverse is `tangentEquiv.symm ∘ ofDisjointCover` on the
   `tangentEquiv` forms. Continuity of the inverse: by
   `frameTopology_eq_of_covers` the frame domains on `M` can be cut down
   to their intersections with the components, and each frame jet of a

@@ -15,6 +15,7 @@ import Mathlib.Analysis.Calculus.Deriv.Inv
 import TauCeti.Analysis.Calculus.ContDiff.FinInsertNth
 import TauCeti.Analysis.InnerProductSpace.RadialRescale
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
+import SymplecticGeometry.LinearAlgebra.FiniteDimensional.RestrictScalars
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 import TauCeti.Geometry.Manifold.Instances.Sphere
 import TauCeti.Geometry.Manifold.MFDeriv.Basic
@@ -244,8 +245,7 @@ theorem ker_mfderiv_mkNonzero [FiniteDimensional ℝ 𝕜]
       ((isSubmersion_mkNonzero 𝕜 n).surjective_mfderiv
       (by simp) v), finrank_top] at h
     have h₁ : finrank ℝ ((𝕜 ∙ (v : Fin (n + 1) → 𝕜)).restrictScalars ℝ) = finrank ℝ 𝕜 := by
-      rw [((Submodule.restrictScalarsEquiv ℝ 𝕜 _ (𝕜 ∙ (v : Fin (n + 1) → 𝕜))).restrictScalars
-        ℝ).finrank_eq, ← Module.finrank_mul_finrank ℝ 𝕜, finrank_span_singleton hv, mul_one]
+      rw [Submodule.finrank_restrictScalars, finrank_span_singleton hv, mul_one]
     simp only [Module.finrank_pi_fintype, Finset.sum_const, Finset.card_univ, Fintype.card_fin,
       smul_eq_mul] at h
     rw [h₁]

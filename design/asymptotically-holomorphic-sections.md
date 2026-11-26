@@ -525,7 +525,7 @@ and the prerequisites, placed by topic.
   `MeasureTheory/Integral/BallCircleAverage.lean` (step 2,
   `MeasureTheory.setLIntegral_ball_eq_mul_setLIntegral_setLAverage_circleMap`),
   `Analysis/Complex/MvPolynomial/LogAverage.lean` (step 3, in the namespace
-  `MvPolynomial`: `ae_homogeneousComponent_totalDegree_ne_zero`,
+  `MvPolynomial`: `ae_eval_ne_zero`,
   `log_norm_eval_le_setAverage_ball`,
   `log_sup_sub_setAverage_log_norm_eval_le`,
   `integrableOn_log_norm_eval_ball`,

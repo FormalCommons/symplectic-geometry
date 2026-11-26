@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Geometry.Manifold.ContMDiff.Constructions
 public import SymplecticGeometry.Topology.FiberBundle.ChangeModelFiber
+import SymplecticGeometry.Geometry.Manifold.FiberBundle.MapFiber
 /-!
 # Smoothness after a change of the model fibre
 
@@ -87,8 +88,9 @@ theorem contMDiffOn_transFiberHomeomorph_mapFiberHomeomorph_symm {g : B × P →
   -- The inverse is `(b, v) ↦ g (b, e.symm (b₀, v))`.
   have hin : ContMDiffOn (J.prod IZ) (J.prod I) n
       (fun p : B × Z ↦ (p.1, e.toOpenPartialHomeomorph.symm (b₀, p.2))) (T.baseSet ×ˢ univ) :=
-    contMDiffOn_fst.prodMk (he.comp (contMDiffOn_const.prodMk contMDiffOn_snd)
-      fun _ _ ↦ e.mem_target.2 hb₀)
+    contMDiffOn_fst.prodMk <|
+      ((e.contMDiff_fiberInclusionMap he hb₀).comp contMDiff_snd).contMDiffOn
+      |>.congr fun p _ ↦ (e.fiberInclusionMap_apply hb₀ p.2).symm
   refine ((hg.comp hin fun p hp ↦ ⟨hp.1, e.proj_symm_apply' hb₀⟩).congr fun p hp ↦ ?_).mono
     fun p hp ↦ ⟨(mem_target _).1 hp, mem_univ _⟩
   simpa using hTg p.1 hp.1 ⟨_, e.proj_symm_apply' hb₀⟩

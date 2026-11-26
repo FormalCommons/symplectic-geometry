@@ -101,9 +101,9 @@ the neighbouring Tau Ceti lemmas.
   `TopCat.singularCap` with Hatcher's convention (the cochain is evaluated on
   the front face, `Cap/Basic.lean`), its naturality, relative caps
   (`Cap/Relative.lean`, `Cap/AbsoluteRelative.lean`) and the cross product
-  with caps (`Cap/CrossRel.lean`). The library has Poincaré duality for
+  with caps (`Cap/CrossRel.lean`). Tau Ceti has Poincaré duality for
   closed manifolds, `HomologicalOrientation.bijective_singularCap_fundamentalClass`
-  (`AlgebraicTopology/Cohomology/CompactSupport/Duality/Manifold.lean`).
+  (`TauCeti/AlgebraicTopology/Cohomology/CompactSupport/Duality/Manifold.lean`).
 - **Orientations of exact sequences**: `Orientation.cokerOfExact`
   (`LinearAlgebra/Orientation/Exact/Basic.lean`) and `Orientation.ofExact`,
   both with the subspace first.

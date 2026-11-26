@@ -27,6 +27,9 @@ import Mathlib.Topology.DiscreteSubset
 import SymplecticGeometry.Topology.Connected.Clopen
 import TauCeti.Geometry.Manifold.VectorField.Regularity
 import TauCeti.MeasureTheory.Function.Jacobian
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.ContMDiffRepresentative
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.LowerOrder
+public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.Morrey
 
 /-!
 # Local form of the kernel of `D_J` on `𝒪(1)`, and its zeros
@@ -35,7 +38,8 @@ This file reads the Cauchy–Riemann equation on `𝒪(1)` over the sphere `OneP
 first for Sobolev sections in the charts of `twistCoreAtlas 1`, then for smooth sections in an
 isothermal chart, and last for Sobolev sections in an isothermal chart. From the smooth
 equation it also derives unique continuation and the finiteness of the zeros of a smooth
-kernel element.
+kernel element, and from the last reading the regularity of the kernel of `D_J` on Sobolev
+sections of every order.
 
 ## The Sobolev equation in the charts of `twistCoreAtlas 1`
 
@@ -118,6 +122,19 @@ principle `TauCeti.HasWeakConjWirtingerDerivOn.exists_contDiffOn_differentiableO
 then writes `v` as `exp (-g) h`. Pulling this back along `T⁻¹` gives smooth representatives of the
 chart data near every point.
 
+## Regularity of the kernel
+
+Let `w` be a `W^{k+1,2}` section of `𝒪(1)` with `D_J w = 0`. Whether `D_J w = 0` holds depends only
+on the chart data of `w`, through a weak derivative of them, so forgetting the higher derivatives
+of `w` (`TauCeti.SectionChartData.toOrderOne`) gives a `W^{1,2}` section in the kernel of `D_J` at
+order zero. Its chart data have smooth representatives near every point, so `w` is represented by
+a smooth section (`TauCeti.SobolevSection.exists_contMDiff_ae_eq_coord_of_locally`), which is the
+continuous representative `TauCeti.SobolevSection.toSection w`. On a smooth section the chart
+data of the Sobolev operator are the readings of the `(0,1)`-part for `i` of `D_J s`, and taming
+makes that projection injective on the `(0,1)`-forms for `J`
+(`TauCeti.SmoothAlmostComplexStructure.injOn_zeroOnePart_of_tames`). So the kernel of the Sobolev
+operator is the space `twistOneKernel J` of smooth solutions.
+
 ## Main results
 
 * `SymplecticGeometry.twistOneDelBarSobolev_eq_zero_iff`: for `J` tamed together with `i` by a
@@ -150,6 +167,15 @@ chart data near every point.
   `exp (-g) h` with `g` smooth and `h` holomorphic.
 * `SymplecticGeometry.exists_contDiffOn_ae_eq_chartValueL_of_twistOneDelBarSobolev_eq_zero`: the
   chart data of such an element agree almost everywhere near each point with a smooth function.
+* `SymplecticGeometry.twistOneDelBarSobolev_eq_zero_iff_of_chartValueL_ae_eq`: the kernel equation
+  of `D_J` on Sobolev sections depends only on the chart data, at any order.
+* `SymplecticGeometry.twistOneDelBarSobolev_ofContMDiffSection_eq_zero_iff`: on a `C^{k+1}` section
+  `s`, the Sobolev equation `D_J s = 0` is the equation `twistOneDelBar J s = 0`.
+* `SymplecticGeometry.exists_contMDiff_ae_eq_coord_of_twistOneDelBarSobolev_eq_zero` and
+  `SymplecticGeometry.contMDiff_of_twistOneDelBarSobolev_eq_zero`: a Sobolev element of the kernel
+  of `D_J`, at any order, is represented by a smooth section, its continuous representative.
+* `SymplecticGeometry.ker_twistOneDelBarSobolev_eq`: the kernel of `D_J` on `W^{k+1,2}` sections is
+  the image of `twistOneKernel J`.
 
 ## References
 
@@ -293,8 +319,8 @@ real differentiable on an open set `U ∋ ψ x` and satisfies `∂v/∂w̄ = a v
 `a` smooth on `U`. -/
 theorem exists_conjWirtingerDeriv_apply_one_eq_mul_of_mem_twistOneKernel
     {ψ : PartialDiffeomorph 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (OnePoint ℂ) ℂ ∞}
-    (hψ : ∀ p ∈ ψ.source, ∀ v : TangentSpace 𝓘(ℝ, ℂ) p,
-      mvfderiv 𝓘(ℝ, ℂ) ψ p (J p v) = Complex.I * mvfderiv 𝓘(ℝ, ℂ) ψ p v)
+    (hψ : ∀ p ∈ ψ.source,
+      IsPseudoholomorphicAt J (SmoothAlmostComplexStructure.ofComplexManifold ℂ ℂ) ψ p)
     {x y : OnePoint ℂ} (hx : x ∈ ψ.source) (hxy : x ∈ (chartAt ℂ y).source)
     {s : OnePoint ℂ → ℂ} (hs : s ∈ twistOneKernel J) :
     ∃ U : Set ℂ, IsOpen U ∧ ψ x ∈ U ∧ ∃ a : ℂ → ℂ, ContDiffOn ℝ ∞ a U ∧
@@ -362,8 +388,8 @@ theorem exists_trivialization_analyticAt_of_mem_twistOneKernel {s : OnePoint ℂ
     (hs : s ∈ twistOneKernel J) (z : OnePoint ℂ) :
     ∃ (e : Trivialization ℂ (π ℂ (twistCore (𝕜 := ℂ) 1).Fiber)) (_ : e.IsLinear ℝ)
       (ψ : PartialDiffeomorph 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (OnePoint ℂ) ℂ ∞), z ∈ e.baseSet ∧ z ∈ ψ.source ∧
-      (∀ p ∈ ψ.source, ∀ v : TangentSpace 𝓘(ℝ, ℂ) p,
-        mvfderiv 𝓘(ℝ, ℂ) ψ p (J p v) = Complex.I * mvfderiv 𝓘(ℝ, ℂ) ψ p v) ∧
+      (∀ p ∈ ψ.source,
+        IsPseudoholomorphicAt J (SmoothAlmostComplexStructure.ofComplexManifold ℂ ℂ) ψ p) ∧
       AnalyticAt ℂ (fun w ↦ (e (TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) 1).Fiber)
         (ψ.toOpenPartialHomeomorph.symm w) (s (ψ.toOpenPartialHomeomorph.symm w)))).2)
         (ψ.toOpenPartialHomeomorph z) ∧
@@ -506,8 +532,8 @@ theorem exists_hasWeakConjWirtingerDerivOn_mul_of_twistOneDelBarSobolev_eq_zero
     {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)} (hJ : σ.Tames J) (hi : σ.Tames 𝒊)
     {w : SobolevSection (twistCoreAtlas 1) volume 2 1} (hw : twistOneDelBarSobolev J 0 w = 0)
     {ψ : PartialDiffeomorph 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (OnePoint ℂ) ℂ ∞}
-    (hψ : ∀ p ∈ ψ.source, ∀ v : TangentSpace 𝓘(ℝ, ℂ) p,
-      mvfderiv 𝓘(ℝ, ℂ) ψ p (J p v) = Complex.I * mvfderiv 𝓘(ℝ, ℂ) ψ p v)
+    (hψ : ∀ p ∈ ψ.source,
+      IsPseudoholomorphicAt J (SmoothAlmostComplexStructure.ofComplexManifold ℂ ℂ) ψ p)
     (i : Fin (twistCoreAtlas 1).n) {Ω : TopologicalSpace.Opens ℂ}
     (hΩ : (Ω : Set ℂ) ⊆ ψ.target ∩ ψ.symm ⁻¹' (twistCoreAtlas 1).dom i) :
     ∃ a : ℂ → ℂ, ContDiffOn ℝ ∞ a Ω ∧
@@ -540,7 +566,10 @@ theorem exists_hasWeakConjWirtingerDerivOn_mul_of_twistOneDelBarSobolev_eq_zero
     exact J.fderiv_extChartAt_comp_apply_eq_inChart ((twistCoreAtlas 1).center i)
       (ψ.symm.contMDiffOn.continuousOn.continuousAt (ψ.open_target.mem_nhds (hΩ hz).1))
       (by simpa using (twistCoreAtlas 1).dom_subset_chart_source i (hΩ hz).2)
-      (J.mfderiv_symm_apply_I_smul hψ (hΩ hz).1 v)
+      -- `ψ⁻¹` is pseudoholomorphic from `i` to `J`.
+      ((SmoothAlmostComplexStructure.ofComplexManifold_apply (E := ℂ) z v).symm ▸
+        ((ψ.toOpenPartialHomeomorph_mdifferentiable hn).isPseudoholomorphicAt_symm (hΩ hz).1
+          (hψ _ (ψ.map_target (hΩ hz).1))).mfderiv_apply_commute v :)
   -- The kernel equation in chart `i`, pulled back along `T`, and the weak derivative of `u ∘ T`.
   have hDu :=
     (twistCoreAtlas 1).sectionChartData.hasWeakFDerivOn_chartValueL_chartDerivDataL volume 2 0 i w
@@ -576,8 +605,8 @@ theorem exists_ae_eq_exp_neg_mul_of_twistOneDelBarSobolev_eq_zero
     {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)} (hJ : σ.Tames J) (hi : σ.Tames 𝒊)
     {w : SobolevSection (twistCoreAtlas 1) volume 2 1} (hw : twistOneDelBarSobolev J 0 w = 0)
     {ψ : PartialDiffeomorph 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (OnePoint ℂ) ℂ ∞}
-    (hψ : ∀ p ∈ ψ.source, ∀ v : TangentSpace 𝓘(ℝ, ℂ) p,
-      mvfderiv 𝓘(ℝ, ℂ) ψ p (J p v) = Complex.I * mvfderiv 𝓘(ℝ, ℂ) ψ p v)
+    (hψ : ∀ p ∈ ψ.source,
+      IsPseudoholomorphicAt J (SmoothAlmostComplexStructure.ofComplexManifold ℂ ℂ) ψ p)
     (i : Fin (twistCoreAtlas 1).n) :
     ∃ g : ℂ → ℂ, ContDiffOn ℝ ∞ g (ψ.target ∩ ψ.symm ⁻¹' (twistCoreAtlas 1).dom i) ∧
       ∃ h : ℂ → ℂ, DifferentiableOn ℂ h (ψ.target ∩ ψ.symm ⁻¹' (twistCoreAtlas 1).dom i) ∧
@@ -643,6 +672,168 @@ theorem exists_contDiffOn_ae_eq_chartValueL_of_twistOneDelBarSobolev_eq_zero
   have hφz : φ (ψ.symm (S z)) = z := by
     simp [S, ψ.left_inv hzU.2.1, φ.right_inv hzU.1]
   rwa [hφz] at hz
+
+/-! ### Regularity of the kernel on Sobolev sections -/
+
+/-- **The kernel equation depends only on the chart data.** If a section `w` in `W^{k+1,2}` and
+a section `w'` in `W^{k'+1,2}` of `𝒪(1)` have the same chart data almost everywhere in every chart
+of `twistCoreAtlas 1`, then `D_J w = 0` at order `k` exactly when `D_J w' = 0` at order `k'`. -/
+theorem twistOneDelBarSobolev_eq_zero_iff_of_chartValueL_ae_eq {k k' : ℕ}
+    {w : SobolevSection (twistCoreAtlas 1) volume 2 (k + 1)}
+    {w' : SobolevSection (twistCoreAtlas 1) volume 2 (k' + 1)}
+    (h : ∀ i, (twistCoreAtlas 1).sectionChartData.chartValueL volume 2 (k + 1) i w
+      =ᵐ[volume.restrict ((twistCoreAtlas 1).image i)]
+        (twistCoreAtlas 1).sectionChartData.chartValueL volume 2 (k' + 1) i w') :
+    twistOneDelBarSobolev J k w = 0 ↔ twistOneDelBarSobolev J k' w' = 0 := by
+  -- In every chart, the chart data of `Φ_J ∇w` and of `Φ_J ∇w'` are both the reading of
+  -- `Φ_J` applied to `Du + Γ u`, for the chart data `u` of `w` and a weak derivative `Du` of them.
+  have hΦ {l : ℕ} (v : SobolevSection (twistCoreAtlas 1) volume 2 (l + 1))
+      (i : Fin (twistCoreAtlas 1).n) := by
+    have := SobolevSection.chartValueL_contMDiffHomMulL_ae_self
+      (A := (twistCoreAtlas 1).tangentHom) (J.contMDiff_zeroOnePartL le_rfl)
+      (isCovariantDerivativeOn_twistOneConnection.sobolevL (twistCoreAtlas 1)
+        (contMDiffCovariantDerivativeOn_twistOneConnection ⊤) volume 2 l v) i
+    rwa [FiniteBundleAtlas.image_tangentHom] at this
+  rw [twistOneDelBarSobolev_apply, twistOneDelBarSobolev_apply]
+  refine zeroOnePartSobolevL_eq_zero_iff.trans
+    (Iff.trans (forall_congr' fun i ↦ ?_) zeroOnePartSobolevL_eq_zero_iff.symm)
+  have hDu := (twistCoreAtlas 1).sectionChartData.hasWeakFDerivOn_chartValueL_chartDerivDataL
+    volume 2 k i w
+  have hcov := isCovariantDerivativeOn_twistOneConnection.chartValueL_sobolevL_ae
+    (twistCoreAtlas 1) (contMDiffCovariantDerivativeOn_twistOneConnection ⊤) volume 2 k w hDu
+  have hcov' := isCovariantDerivativeOn_twistOneConnection.chartValueL_sobolevL_ae
+    (twistCoreAtlas 1) (contMDiffCovariantDerivativeOn_twistOneConnection ⊤) volume 2 k' w'
+    (hDu.congr_ae (h i))
+  have hA {P : ℂ → Prop} :=
+    FiniteBundleAtlas.ae_image_tangentHom_iff (twistCoreAtlas 1) volume i (P := P)
+  constructor <;> intro hi <;> refine hA.2 ?_ <;>
+    filter_upwards [hA.1 hi, hΦ w i, hΦ w' i, hcov, hcov', h i] with y hy h1 h2 h3 h4 h5
+  · rwa [h1, h3, h5, ← h4, ← h2] at hy
+  · rwa [h2, h4, ← h5, ← h3, ← h1] at hy
+
+/-- **The kernel equation on smooth sections.** Let a two-form `σ` tame both `J` and the standard
+structure `i` of the sphere. A `C^{k+1}` section `s` of `𝒪(1)`, as a Sobolev section, lies in the
+kernel of `twistOneDelBarSobolev J k` exactly when `twistOneDelBar J s = 0`. -/
+theorem twistOneDelBarSobolev_ofContMDiffSection_eq_zero_iff
+    {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)} (hJ : σ.Tames J) (hi : σ.Tames 𝒊) {k : ℕ}
+    (s : Cₛ^((k + 1 : ℕ) : WithTop ℕ∞)⟮𝓘(ℝ, ℂ); ℂ, (twistCore (𝕜 := ℂ) 1).Fiber⟯) :
+    twistOneDelBarSobolev J k
+        (SobolevSection.ofContMDiffSection (twistCoreAtlas 1) volume 2 (k + 1) s) = 0 ↔
+      twistOneDelBar J s = 0 := by
+  have hae := chartValueL_twistOneDelBarSobolev_ofContMDiffSection_ae_coord J k s
+  constructor
+  · intro h
+    -- The `(0,1)`-part for `i` of `D_J s` is a continuous one-form with chart readings zero
+    -- almost everywhere, hence zero.
+    have hcont : Continuous fun x ↦ TotalSpace.mk' (ℂ →L[ℝ] ℂ)
+        (E := fun x ↦ TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] (twistCore (𝕜 := ℂ) 1).Fiber x) x
+        (𝒊.zeroOnePart (twistOneDelBar J s x)) := by
+      have := (𝒊.contMDiff_totalSpace_zeroOnePart (n := ((k : ℕ∞) : WithTop ℕ∞))
+        (by exact_mod_cast le_top)).comp_contMDiffOn
+        ((contMDiffCovariantDerivativeOn_twistOneDelBar J k).contMDiff
+          (s.contMDiff.contMDiffOn (s := univ)))
+      exact contMDiff_zero_iff.1 (contMDiffOn_univ.1 (this.of_le (by simp)))
+    have h0 := (twistCoreAtlas 1).tangentHom.eq_of_continuous_of_coord_ae_eq (μ := volume) hcont
+      (t := 0) (contMDiff_zeroSection ℝ (fun x : OnePoint ℂ ↦
+        TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] (twistCore (𝕜 := ℂ) 1).Fiber x) (IB := 𝓘(ℝ, ℂ))
+        (n := 0)).continuous fun i ↦ ?_
+    · funext x
+      refine SmoothAlmostComplexStructure.injOn_zeroOnePart_of_tames hJ hi x ?_ ?_
+        ((congrFun h0 x).trans
+          (by rw [Pi.zero_apply, SmoothAlmostComplexStructure.zeroOnePart_zero]))
+      · rw [twistOneDelBar_def]
+        exact J.isZeroOneForm_zeroOnePart _
+      · have := J.isZeroOneForm_zeroOnePart
+          (0 : TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] (twistCore (𝕜 := ℂ) 1).Fiber x)
+        rwa [SmoothAlmostComplexStructure.zeroOnePart_zero] at this
+    · simp only [h, ZeroMemClass.coe_zero, map_zero] at hae
+      have hI : ((twistCoreAtlas 1).tangentHom.image i : Set ℂ) = (twistCoreAtlas 1).image i :=
+        congrArg SetLike.coe (FiniteBundleAtlas.image_tangentHom (twistCoreAtlas 1) i)
+      rw [hI]
+      filter_upwards [hae i,
+        (FiniteBundleAtlas.ae_image_tangentHom_iff (twistCoreAtlas 1) volume i).1
+          (AEEqFun.coeFn_zero (β := ℂ →L[ℝ] ℂ)),
+        ae_restrict_mem ((twistCoreAtlas 1).image i).isOpen.measurableSet] with y hy h0 hyU
+      exact hy.symm.trans (h0.trans ((twistCoreAtlas 1).tangentHom.coord_zero i
+        (by rw [← SetLike.mem_coe, hI]; exact hyU)).symm)
+  · intro h
+    refine Subtype.ext (SectionChartData.eq_of_chartValueL_ae_eq fun i ↦
+      (FiniteBundleAtlas.ae_image_tangentHom_iff (twistCoreAtlas 1) volume i).2 ?_)
+    simp only [ZeroMemClass.coe_zero, map_zero]
+    filter_upwards [hae i,
+      (FiniteBundleAtlas.ae_image_tangentHom_iff (twistCoreAtlas 1) volume i).1
+        (AEEqFun.coeFn_zero (β := ℂ →L[ℝ] ℂ)),
+      ae_restrict_mem ((twistCoreAtlas 1).image i).isOpen.measurableSet] with y hy h0 hyU
+    rw [hy]
+    refine Eq.trans ?_ h0.symm
+    rw [Pi.zero_apply, h]
+    simp only [Pi.zero_apply, SmoothAlmostComplexStructure.zeroOnePart_zero]
+    exact (twistCoreAtlas 1).tangentHom.coord_zero i
+      (by rwa [FiniteBundleAtlas.image_tangentHom (twistCoreAtlas 1) i])
+
+/-- **Sobolev kernel elements have smooth representatives.** Let a two-form `σ` tame both `J` and
+the standard structure `i` of the sphere, and let `w` be a `W^{k+1,2}` section of `𝒪(1)` with
+`D_J w = 0`. Then there is a smooth section `t` of `𝒪(1)` whose chart readings agree almost
+everywhere with the chart data of `w` on every chart image of `twistCoreAtlas 1`. -/
+theorem exists_contMDiff_ae_eq_coord_of_twistOneDelBarSobolev_eq_zero
+    {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)} (hJ : σ.Tames J) (hi : σ.Tames 𝒊) {k : ℕ}
+    {w : SobolevSection (twistCoreAtlas 1) volume 2 (k + 1)}
+    (hw : twistOneDelBarSobolev J k w = 0) :
+    ∃ t : Π x, (twistCore (𝕜 := ℂ) 1).Fiber x,
+      ContMDiff 𝓘(ℝ, ℂ) (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ)) ∞ (fun x ↦ TotalSpace.mk' ℂ x (t x)) ∧
+        ∀ i, (twistCoreAtlas 1).sectionChartData.chartValueL volume 2 (k + 1) i w
+          =ᵐ[volume.restrict ((twistCoreAtlas 1).image i)] (twistCoreAtlas 1).coord i t := by
+  -- Forgetting the higher derivatives gives an element of order one, in the kernel at order zero.
+  have hw0 : twistOneDelBarSobolev J 0
+      ((twistCoreAtlas 1).sectionChartData.toOrderOne volume 2 k w) = 0 :=
+    (twistOneDelBarSobolev_eq_zero_iff_of_chartValueL_ae_eq fun i ↦ by
+      rw [SectionChartData.chartValueL_toOrderOne]).1 hw
+  refine SobolevSection.exists_contMDiff_ae_eq_coord_of_locally fun i y hy ↦ ?_
+  obtain ⟨U, hU, hyU, -, f, hf, hae⟩ :=
+    exists_contDiffOn_ae_eq_chartValueL_of_twistOneDelBarSobolev_eq_zero hJ hi hw0 i hy
+  exact ⟨U, hU.mem_nhds hyU, f, hf,
+    by rwa [SectionChartData.chartValueL_toOrderOne _ volume 2 k w i] at hae⟩
+
+/-- **Regularity of the kernel of `D_J`.** Let a two-form `σ` tame both `J` and the standard
+structure `i` of the sphere. For every order `k`, the continuous representative
+`SobolevSection.toSection w` of a `W^{k+1,2}` section `w` of `𝒪(1)` with `D_J w = 0` is a smooth
+section. -/
+theorem contMDiff_of_twistOneDelBarSobolev_eq_zero
+    {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)} (hJ : σ.Tames J) (hi : σ.Tames 𝒊) {k : ℕ}
+    {w : SobolevSection (twistCoreAtlas 1) volume 2 (k + 1)}
+    (hw : twistOneDelBarSobolev J k w = 0) :
+    ContMDiff 𝓘(ℝ, ℂ) (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ)) ∞
+      fun x ↦ TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) 1).Fiber) x
+        (SobolevSection.toSection w x) := by
+  obtain ⟨t, ht, htw⟩ := exists_contMDiff_ae_eq_coord_of_twistOneDelBarSobolev_eq_zero hJ hi hw
+  rw [← SobolevSection.eq_toSection ht.continuous htw]
+  exact ht
+
+/-- **The kernel of `D_J` on Sobolev sections.** Let a two-form `σ` tame both `J` and the standard
+structure `i` of the sphere. For every order `k`, the kernel of `twistOneDelBarSobolev J k` is the
+image under `SobolevSection.ofContMDiffSection` of the `C^{k+1}` sections of `𝒪(1)` that lie in
+`twistOneKernel J`, the smooth sections `s` with `D_J s = 0`. -/
+theorem ker_twistOneDelBarSobolev_eq
+    {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)} (hJ : σ.Tames J) (hi : σ.Tames 𝒊) (k : ℕ) :
+    SetLike.coe (twistOneDelBarSobolev J k).ker =
+      SobolevSection.ofContMDiffSection (twistCoreAtlas 1) volume 2 (k + 1) ''
+        {s | ⇑s ∈ twistOneKernel J} := by
+  ext w
+  simp only [SetLike.mem_coe, LinearMap.mem_ker, mem_image, mem_ofPred_eq]
+  constructor
+  · intro hw
+    obtain ⟨t, ht, htw⟩ := exists_contMDiff_ae_eq_coord_of_twistOneDelBarSobolev_eq_zero hJ hi hw
+    let s : Cₛ^((k + 1 : ℕ) : WithTop ℕ∞)⟮𝓘(ℝ, ℂ); ℂ, (twistCore (𝕜 := ℂ) 1).Fiber⟯ :=
+      ⟨t, ht.of_le (by exact_mod_cast le_top)⟩
+    have hsw : SobolevSection.ofContMDiffSection (twistCoreAtlas 1) volume 2 (k + 1) s = w :=
+      SectionChartData.eq_of_chartValueL_ae_eq fun i ↦
+        (SobolevSection.chartValueL_ofContMDiffSection_ae _ _ _ _ s i).trans (htw i).symm
+    refine ⟨s, (mem_twistOneKernel_iff J).2 ⟨ht, ?_⟩, hsw⟩
+    rw [← twistOneDelBarSobolev_ofContMDiffSection_eq_zero_iff hJ hi, hsw]
+    exact hw
+  · rintro ⟨s, hs, rfl⟩
+    exact (twistOneDelBarSobolev_ofContMDiffSection_eq_zero_iff hJ hi s).2
+      ((mem_twistOneKernel_iff J).1 hs).2
 
 end SymplecticGeometry
 

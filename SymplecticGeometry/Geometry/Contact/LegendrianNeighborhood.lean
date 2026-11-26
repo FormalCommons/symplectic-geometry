@@ -25,7 +25,7 @@ import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
 import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Lagrangian
 import SymplecticGeometry.Topology.Sets.Opens.Basic
-import TauCeti.Geometry.Contact.LegendrianNormal
+import TauCeti.Geometry.Contact.Legendrian.Normal
 import TauCeti.Geometry.Contact.Slice
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Prod.Basic
