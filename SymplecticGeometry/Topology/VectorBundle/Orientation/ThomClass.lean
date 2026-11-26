@@ -160,12 +160,6 @@ private theorem span_dualClass {d : ℕ} (hd : finrank ℝ P = d) (z : LocalOrie
   subst hd
   exact LocalOrientation.span_cohomologyClass _ _ _
 
-private theorem kronecker_dualClass {d : ℕ} (hd : finrank ℝ P = d) (z : LocalOrientation P 0 d) :
-    ((TopPair.ofSubset (X := TopCat.of P) ({0}ᶜ : Set P)).singularKronecker ℤ d
-      (dualClass hd z)).hom z.val = 1 := by
-  subst hd
-  exact LocalOrientation.kronecker_cohomologyClass _ _ _
-
 private theorem eq_dualClass_iff {d : ℕ} (hd : finrank ℝ P = d) (z : LocalOrientation P 0 d)
     (α : (TopPair.ofSubset (X := TopCat.of P) ({0}ᶜ : Set P)).singularCohomology
       (ModuleCat.of ℤ (ULift.{w} ℤ)) ℤ (ModuleCat.of ℤ (ULift.{w} ℤ)) d) :
