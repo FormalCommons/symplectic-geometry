@@ -364,7 +364,8 @@ instance instIsManifold : IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ (WeightB
 theorem inl_gluingDiffeomorph (p : modelOverlap n ε) :
     GluedAlong.inl (gluingDiffeomorphSymm hψ hl hε).toHomeomorph (gluingDiffeomorph hψ hl hε p) =
       GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph p := by
-  rw [← GluedAlong.inr_diffeomorph_apply, gluingDiffeomorphSymm_gluingDiffeomorph_apply]
+  rw [gluingDiffeomorphSymm_def, Diffeomorph.symm_toHomeomorph,
+    GluedAlong.inl_symm_diffeomorph_apply]
 
 /-- A point `x` of the outer piece and a point `y` of the model piece have the same image in the
 blowup exactly when `y` is off the divisor and `x` is its image under the gluing map. -/

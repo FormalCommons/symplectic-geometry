@@ -315,8 +315,7 @@ theorem inl_eq_inr_iff {x : f₁.complTube hδε} {y : f₂.complTube hδε} :
   swap
   · rw [← hx, ← hy]
     exact inl_collarMap f₁ f₂ hδ hδε p
-  obtain ⟨hx, hxy⟩ := (GluedAlong.inl_eq_inr_iff _).1 h
-  rw [Diffeomorph.coe_toHomeomorph] at hxy
+  obtain ⟨hx, hxy⟩ := (GluedAlong.inl_eq_inr_diffeomorph_iff _).1 h
   subst hxy
   obtain ⟨p, hp⟩ : ∃ p, f₁.collarDiffeomorph hδε p = ⟨x, hx⟩ :=
     (f₁.collarDiffeomorph hδε).surjective _

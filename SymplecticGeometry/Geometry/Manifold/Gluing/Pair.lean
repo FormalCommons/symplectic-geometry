@@ -74,6 +74,8 @@ are. The form of the completion of a Liouville domain, in the library's
   homeomorphism that is `C^n` both ways is compatible.
 * `SymplecticGeometry.GluedAlong.isLocalDiffeomorph_inl`, `isLocalDiffeomorph_inr`: the
   canonical maps are `C^n` local diffeomorphisms for the glued atlas.
+* `SymplecticGeometry.GluedAlong.inl_eq_inr_diffeomorph_iff`, `inl_symm_diffeomorph_apply`: the
+  points identified by the gluing along a diffeomorphism, and along the inverse of one.
 * `SymplecticGeometry.GluedAlong.contMDiff_iff_of_isCompatible`: for a compatible gluing, a map
   out of the glued space is `C^m` exactly when its compositions with `inl` and `inr` are.
 * `SymplecticGeometry.GluedAlong.desc_inl`, `desc_inr`, `continuousMap_ext`: continuous maps on `M₁`
@@ -442,6 +444,25 @@ theorem inl_diffeomorph_symm_apply (y : U₂) :
     inl φ.toHomeomorph (φ.symm y : M₁) = inr φ.toHomeomorph (y : M₂) := by
   rw [← Diffeomorph.coe_toHomeomorph_symm, inl_symm_apply]
 
+/-- A point `x` of `M₁` and a point `y` of `M₂` have the same image in the space glued along the
+diffeomorphism `φ` exactly when `x ∈ U₁` and `φ x = y`. -/
+theorem inl_eq_inr_diffeomorph_iff {x : M₁} {y : M₂} :
+    inl φ.toHomeomorph x = inr φ.toHomeomorph y ↔ ∃ h : x ∈ U₁, (φ ⟨x, h⟩ : M₂) = y := by
+  rw [inl_eq_inr_iff, Diffeomorph.coe_toHomeomorph]
+
+/-- A point `y` of `M₂` and a point `x` of `M₁` have the same image in the space glued along the
+diffeomorphism `φ` exactly when `x ∈ U₁` and `φ x = y`. -/
+theorem inr_eq_inl_diffeomorph_iff {y : M₂} {x : M₁} :
+    inr φ.toHomeomorph y = inl φ.toHomeomorph x ↔ ∃ h : x ∈ U₁, (φ ⟨x, h⟩ : M₂) = y :=
+  eq_comm.trans (inl_eq_inr_diffeomorph_iff φ)
+
+/-- In the space glued along the inverse of a diffeomorphism `ψ : U₂ ≃ U₁`, a point `p` of `U₂`
+and its image `ψ p` have the same image. -/
+@[simp]
+theorem inl_symm_diffeomorph_apply (ψ : U₂ ≃ₘ^n⟮I, I⟯ U₁) (p : U₂) :
+    inl ψ.toHomeomorph.symm (ψ p : M₁) = inr ψ.toHomeomorph.symm (p : M₂) := by
+  rw [← inl_symm_apply ψ.toHomeomorph.symm p, Homeomorph.symm_symm, Diffeomorph.coe_toHomeomorph]
+
 end GluedAlong
 
 end Smooth
@@ -500,8 +521,7 @@ theorem mpullback_inr_glue {σ₁ : RoughForm I M₁ F k} {σ₂ : RoughForm I M
   funext y
   by_cases hz : ∃ x, inl φ.toHomeomorph x = inr φ.toHomeomorph y
   · obtain ⟨x, hx⟩ := hz
-    obtain ⟨hxU, hy⟩ := (inl_eq_inr_iff φ.toHomeomorph).1 hx
-    rw [Diffeomorph.coe_toHomeomorph] at hy
+    obtain ⟨hxU, hy⟩ := (inl_eq_inr_diffeomorph_iff φ).1 hx
     subst hy
     set u : U₁ := ⟨x, hxU⟩
     have hd₁ : MDifferentiable I I (Subtype.val : U₂ → M₂) :=

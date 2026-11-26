@@ -323,8 +323,9 @@ instance [T2Space W] : T2Space c.WithEnd := by
 private theorem endIncl_collarToEnd_eq {p : ↥((𝓡∂ (n + 1)).boundary W) × normalIioOpens 1}
     (hint : c p ∈ (𝓡∂ (n + 1)).interior W) :
     c.endIncl (collarToEnd p) = c.interiorIncl ⟨c p, hint⟩ := by
-  refine (GluedAlong.inr_eq_inl_iff _).2 ⟨c.mem_interiorRange.2 (mem_range_self p), ?_⟩
-  rw [Diffeomorph.coe_toHomeomorph, interiorEndDiffeomorph_apply, interiorToEnd_val,
+  refine (GluedAlong.inr_eq_inl_diffeomorph_iff _).2
+    ⟨c.mem_interiorRange.2 (mem_range_self p), ?_⟩
+  rw [interiorEndDiffeomorph_apply, interiorToEnd_val,
     interiorToEndPt_def, c.interiorCoord_eq_iff.2 rfl]
 
 omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in

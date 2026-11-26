@@ -672,9 +672,9 @@ theorem inr_ofReal_mul_toCircle_eq_inl {i : ι} {θ : AddCircle (1 : ℝ)} {t : 
       simp only [q, ModelWithCorners.coe_interiorOpensDiffeomorph_apply])
   have hz : toBall hγ q = ⟨_, ofReal_one_add_mul_toCircle_mem_ball t θ⟩ :=
     Subtype.ext (by rw [coe_toBall, polarPoint, hq, angle_apply hinj])
-  refine ((GluedAlong.inl_eq_inr_iff _).2
+  refine ((GluedAlong.inl_eq_inr_diffeomorph_iff _).2
     ⟨interiorOverlap_le_interiorOverlaps hγ i q.property, ?_⟩).symm
-  rw [Diffeomorph.coe_toHomeomorph, annuliDiffeomorph_apply, toAnnuli_eq hγ hinj q.property]
+  rw [annuliDiffeomorph_apply, toAnnuli_eq hγ hinj q.property]
   have h' : (annulusDiffeomorph hγ hinj i q : DiscPiece) =
       remodelDiffeomorph complexDiffeomorph ball ⟨_, ofReal_one_add_mul_toCircle_mem_ball t θ⟩ := by
     rw [coe_annulusDiffeomorph, val_toAnnulus, hz]
@@ -708,7 +708,7 @@ theorem disjoint_range_inr {i j : ι} (hij : i ≠ j) :
 theorem inr_mem_range_inl_iff {i : ι} {z : ball} :
     inr c γ hγ hinj i z ∈ range (inl c γ hγ hinj) ↔ 1 < ‖(z : ℂ)‖ := by
   refine ⟨fun ⟨p, hp⟩ ↦ ?_, fun hz ↦ ⟨_, (inr_eq_inl c γ hγ hinj hz).symm⟩⟩
-  obtain ⟨hx, he⟩ := (GluedAlong.inl_eq_inr_iff _).1 hp
+  obtain ⟨hx, he⟩ := (GluedAlong.inl_eq_inr_diffeomorph_iff _).1 hp
   have h : (⟨i, remodelDiffeomorph complexDiffeomorph ball z⟩ : DiscsPiece ι) ∈ annuli ι :=
     he ▸ (annuliDiffeomorph hγ hinj ⟨_, hx⟩).property
   rwa [mem_annuli, mem_annulus, DiscPiece.val_remodelDiffeomorph] at h

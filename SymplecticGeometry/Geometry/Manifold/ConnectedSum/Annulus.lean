@@ -472,7 +472,7 @@ theorem AnnulusSum.inl_eq_inr_iff {x : piece ι₁ ε hι₁.continuous}
         GluedAlong.inr (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε).toHomeomorph y ↔
       ∃ ξ : E, ξ ∈ annulus E (ε ^ 2) 1 ∧ (x : M₁) = ι₁ ξ ∧
         (y : M₂) = ι₂ (Φ (inversion 0 ε ξ)) := by
-  rw [GluedAlong.inl_eq_inr_iff, Diffeomorph.coe_toHomeomorph]
+  rw [GluedAlong.inl_eq_inr_diffeomorph_iff]
   constructor
   · rintro ⟨hx, rfl⟩
     obtain ⟨ξ, hξ⟩ : ∃ ξ, annulusDiffeomorph hι₁ hdι₁ ε ξ = ⟨x, hx⟩ :=
@@ -514,7 +514,7 @@ instance AnnulusSum.instT2Space : T2Space (AnnulusSum hι₁ hdι₁ hι₂ hdι
   -- The graph, which `AnnulusSum.inl_eq_inr_iff` describes, is that preimage.
   ext ⟨x, y⟩
   have hgraph := AnnulusSum.inl_eq_inr_iff hι₁ hdι₁ hι₂ hdι₂ Φ hε (x := x) (y := y)
-  rw [GluedAlong.inl_eq_inr_iff] at hgraph
+  rw [GluedAlong.inl_eq_inr_diffeomorph_iff] at hgraph
   simp only [Set.mem_preimage, Prod.map_apply, Set.mem_image, Prod.mk.injEq, Set.mem_ofPred_eq]
   refine ⟨fun ⟨u, hu, hφ⟩ ↦ ?_, fun ⟨ξ, hξ, hx, hy⟩ ↦ ?_⟩
   · subst hu
