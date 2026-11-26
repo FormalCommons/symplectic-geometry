@@ -61,7 +61,9 @@ set. -/
 theorem criticalSet_smul :
     SymplecticGeometry.criticalSet I 𝓘(ℝ, Fin 1 → ℂ) (fun x ↦ g • π x) =
       SymplecticGeometry.criticalSet I 𝓘(ℝ, Fin 1 → ℂ) π := by
-  simpa [Function.comp_def] using (smulDiffeomorph g).criticalSet_comp (I := I) (by simp) π
+  simpa [Function.comp_def] using
+    (Diffeomorph.constSmul 𝓘(ℂ, Fin 1 → ℂ) ⊤ g).criticalSet_comp_restrictScalars'
+      (I := I) (by simp) π
 
 /-- Moving a map `π` into `ℂℙ¹` by a projective transformation `g` moves its regular values:
 `g • y` is a regular value of `x ↦ g • π x` exactly when `y` is one of `π`. -/
@@ -69,7 +71,8 @@ theorem isRegularValue_smul_iff {y : ℙ ℂ (Fin 2 → ℂ)} :
     IsRegularValue I 𝓘(ℝ, Fin 1 → ℂ) (fun x ↦ g • π x) (g • y) ↔
       IsRegularValue I 𝓘(ℝ, Fin 1 → ℂ) π y := by
   simpa [Function.comp_def] using
-    (smulDiffeomorph g).comp_isRegularValue_iff (I := I) (f := π) (y := y) (by simp)
+    (Diffeomorph.constSmul 𝓘(ℂ, Fin 1 → ℂ) ⊤ g).comp_isRegularValue_iff_restrictScalars'
+      (I := I) (f := π) (y := y) (by simp)
 
 variable {g π}
 

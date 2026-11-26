@@ -378,8 +378,8 @@ theorem comp_diffeomorph (h : IsLefschetzFibration ω J π)
     IsLefschetzFibration ω J (Ψ ∘ π) := by
   -- `Ψ` as a diffeomorphism of the underlying real manifold, with the same underlying map.
   have hΦ := Diffeomorph.coe_restrictScalars' ℝ Ψ
-  have hcrit : criticalSet I 𝓘(ℝ, Fin 1 → ℂ) (Ψ ∘ π) = criticalSet I 𝓘(ℝ, Fin 1 → ℂ) π := by
-    rw [← hΦ, Diffeomorph.criticalSet_comp _ (by simp)]
+  have hcrit : criticalSet I 𝓘(ℝ, Fin 1 → ℂ) (Ψ ∘ π) = criticalSet I 𝓘(ℝ, Fin 1 → ℂ) π :=
+    Ψ.criticalSet_comp_restrictScalars' (by simp) π
   refine ⟨hΦ ▸ ((Ψ.restrictScalars' ℝ).contMDiff.of_le le_top).comp h.contMDiff, h.tames,
     hcrit ▸ Ψ.injective.comp_injOn h.injOn_criticalPoints, hcrit ▸ fun p hp ↦ ?_,
     fun x hx ↦ ?_⟩
