@@ -152,8 +152,7 @@ theorem fiberMap_whitneyRotation_inv (A : FiniteRankBundleCore 𝕜 B) (c s : C(
     (h : c ^ 2 + s ^ 2 = 1) (x : B) :
     (whitneyRotation A c s h).inv.fiberMap x =
       c x • .id 𝕜 _ - s x • (whitneyQuarterTurn A).fiberMap x := by
-  rw [whitneyRotation_inv, sub_eq_add_neg, ← neg_smul, fiberMap_add, fiberMap_smul, fiberMap_smul,
-    fiberMap_id, ContinuousMap.neg_apply, neg_smul, ← sub_eq_add_neg]
+  rw [whitneyRotation_inv, fiberMap_sub, fiberMap_smul, fiberMap_smul, fiberMap_id]
 
 /-! ### Iterated Whitney sums -/
 
