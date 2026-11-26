@@ -289,25 +289,25 @@ theorem fiberSumGluing_collarDiffeomorph (p : Q × annulus ℂ δ ε) :
 of radius `ε`, for `0 ≤ δ < ε`: the complements of the closed tubes `Q × B̄²(δ)`, glued along
 their collars `Q × A(δ, ε)` by `fiberSumGluing`. -/
 abbrev FiberSum : Type u :=
-  GluedAlong (fiberSumGluing f₁ f₂ hδ hδε)
+  GluedAlong (fiberSumGluing f₁ f₂ hδ hδε).toHomeomorph
 
 namespace FiberSum
 
 /-- The point `f₁ (q, z)` of the collar of `M₁` is glued to the point `f₂ (q, a z)` of the collar
 of `M₂`, where `a` is the annulus map. -/
 theorem inl_collarMap (p : Q × annulus ℂ δ ε) :
-    GluedAlong.inl (fiberSumGluing f₁ f₂ hδ hδε) (f₁.collarMap hδε p) =
-      GluedAlong.inr (fiberSumGluing f₁ f₂ hδ hδε)
+    GluedAlong.inl (fiberSumGluing f₁ f₂ hδ hδε).toHomeomorph (f₁.collarMap hδε p) =
+      GluedAlong.inr (fiberSumGluing f₁ f₂ hδ hδε).toHomeomorph
         (f₂.collarMap hδε (prodAnnulusDiffeomorph (I := J) Q δ ε hδ p)) := by
   rw [← f₁.coe_collarDiffeomorph_apply, ← f₂.coe_collarDiffeomorph_apply,
-    ← fiberSumGluing_collarDiffeomorph f₁ f₂ hδ hδε, GluedAlong.inr_apply]
+    ← fiberSumGluing_collarDiffeomorph f₁ f₂ hδ hδε, GluedAlong.inr_diffeomorph_apply]
 
 /-- A point `x` of the complement of the tube in `M₁` and a point `y` of that in `M₂` have the
 same image in the fiber sum exactly when they are `f₁ (q, z)` and `f₂ (q, a z)` for a point
 `(q, z)` of `Q × A(δ, ε)`, where `a` is the annulus map. -/
 theorem inl_eq_inr_iff {x : f₁.complTube hδε} {y : f₂.complTube hδε} :
-    GluedAlong.inl (fiberSumGluing f₁ f₂ hδ hδε) x =
-        GluedAlong.inr (fiberSumGluing f₁ f₂ hδ hδε) y ↔
+    GluedAlong.inl (fiberSumGluing f₁ f₂ hδ hδε).toHomeomorph x =
+        GluedAlong.inr (fiberSumGluing f₁ f₂ hδ hδε).toHomeomorph y ↔
       ∃ p : Q × annulus ℂ δ ε,
         f₁.collarMap hδε p = x ∧
           f₂.collarMap hδε (prodAnnulusDiffeomorph (I := J) Q δ ε hδ p) = y := by
@@ -315,7 +315,9 @@ theorem inl_eq_inr_iff {x : f₁.complTube hδε} {y : f₂.complTube hδε} :
   swap
   · rw [← hx, ← hy]
     exact inl_collarMap f₁ f₂ hδ hδε p
-  obtain ⟨hx, rfl⟩ := (GluedAlong.inl_eq_inr_iff _).1 h
+  obtain ⟨hx, hxy⟩ := (GluedAlong.inl_eq_inr_iff _).1 h
+  rw [Diffeomorph.coe_toHomeomorph] at hxy
+  subst hxy
   obtain ⟨p, hp⟩ : ∃ p, f₁.collarDiffeomorph hδε p = ⟨x, hx⟩ :=
     (f₁.collarDiffeomorph hδε).surjective _
   refine ⟨p, ?_, ?_⟩
@@ -437,7 +439,7 @@ theorem symplecticForm_def :
 complement of the tube in `M₁`. -/
 @[simp]
 theorem mpullback_inl_symplecticForm :
-    SmoothForm.mpullback (GluedAlong.inl (fiberSumGluing f₁ f₂ hδ hδε))
+    SmoothForm.mpullback (GluedAlong.inl (fiberSumGluing f₁ f₂ hδ hδε).toHomeomorph)
         (GluedAlong.isLocalDiffeomorph_inl _).contMDiff (symplecticForm f₁ f₂ hδ hδε h) =
       SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ₁ :=
   GluedAlong.mpullback_inl_gluedForm
@@ -446,7 +448,7 @@ theorem mpullback_inl_symplecticForm :
 complement of the tube in `M₂`. -/
 @[simp]
 theorem mpullback_inr_symplecticForm :
-    SmoothForm.mpullback (GluedAlong.inr (fiberSumGluing f₁ f₂ hδ hδε))
+    SmoothForm.mpullback (GluedAlong.inr (fiberSumGluing f₁ f₂ hδ hδε).toHomeomorph)
         (GluedAlong.isLocalDiffeomorph_inr _).contMDiff (symplecticForm f₁ f₂ hδ hδε h) =
       SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ₂ :=
   GluedAlong.mpullback_inr_gluedForm
@@ -455,10 +457,10 @@ theorem mpullback_inr_symplecticForm :
 `inr` to the restrictions of `σ₁` and `σ₂` to the complements of the tubes. -/
 theorem eq_symplecticForm_iff {α : SmoothTwoForm I (FiberSum f₁ f₂ hδ hδε)} :
     α = symplecticForm f₁ f₂ hδ hδε h ↔
-      SmoothForm.mpullback (GluedAlong.inl (fiberSumGluing f₁ f₂ hδ hδε))
+      SmoothForm.mpullback (GluedAlong.inl (fiberSumGluing f₁ f₂ hδ hδε).toHomeomorph)
           (GluedAlong.isLocalDiffeomorph_inl _).contMDiff α =
         SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ₁ ∧
-      SmoothForm.mpullback (GluedAlong.inr (fiberSumGluing f₁ f₂ hδ hδε))
+      SmoothForm.mpullback (GluedAlong.inr (fiberSumGluing f₁ f₂ hδ hδε).toHomeomorph)
           (GluedAlong.isLocalDiffeomorph_inr _).contMDiff α =
         SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ₂ :=
   GluedAlong.eq_gluedForm_iff
@@ -504,10 +506,10 @@ theorem exists_isSymplectic_fiberSum [J.Boundaryless] [I.Boundaryless] [T2Space 
         T2Space (FiberSum f₁ f₂ hδ.le hδε) ∧ SecondCountableTopology (FiberSum f₁ f₂ hδ.le hδε) ∧
         IsManifold I ∞ (FiberSum f₁ f₂ hδ.le hδε) ∧
         ∃ α : SmoothTwoForm I (FiberSum f₁ f₂ hδ.le hδε), α.IsSymplectic ∧
-          SmoothForm.mpullback (GluedAlong.inl (fiberSumGluing f₁ f₂ hδ.le hδε))
+          SmoothForm.mpullback (GluedAlong.inl (fiberSumGluing f₁ f₂ hδ.le hδε).toHomeomorph)
               (GluedAlong.isLocalDiffeomorph_inl _).contMDiff α =
             SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ₁ ∧
-          SmoothForm.mpullback (GluedAlong.inr (fiberSumGluing f₁ f₂ hδ.le hδε))
+          SmoothForm.mpullback (GluedAlong.inr (fiberSumGluing f₁ f₂ hδ.le hδε).toHomeomorph)
               (GluedAlong.isLocalDiffeomorph_inr _).contMDiff α =
             SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ₂ := by
   obtain ⟨ε₁, hε₁, hf₁⟩ := ProductNeighborhood.exists hσ₁ Φ₁
