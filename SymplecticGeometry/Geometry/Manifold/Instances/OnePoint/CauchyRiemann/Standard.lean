@@ -319,8 +319,8 @@ private theorem exists_twistOneDelBarSobolev_eq_zeroOnePartSobolevL (k : ℕ)
         s i))
   have hα : (fun x ↦ 𝒊.zeroOnePart (twistOneDelBar 𝒊 t' x)) = fun x ↦ 𝒊.zeroOnePart (s x) :=
     funext fun x ↦ by
-      rw [show (t' : Π x, (twistCore (𝕜 := ℂ) 1).Fiber x) = t from rfl, htα,
-        ContMDiffSection.coeFn_mk, SmoothAlmostComplexStructure.zeroOnePart_zeroOnePart]
+      rw [show (t' : Π x, (twistCore (𝕜 := ℂ) 1).Fiber x) = t from ContMDiffSection.coeFn_mk _ _,
+        htα, ContMDiffSection.coeFn_mk, SmoothAlmostComplexStructure.zeroOnePart_zeroOnePart]
   filter_upwards [h1, h2] with y hy1 hy2
   rw [hy1, hy2, hα]
 
