@@ -9,8 +9,9 @@ public import Mathlib.LinearAlgebra.QuadraticForm.Signature
 public import TauCeti.Analysis.ODE.Linear
 import Mathlib.Analysis.InnerProductSpace.Dual
 import Mathlib.Analysis.InnerProductSpace.PiL2
+import SymplecticGeometry.Analysis.ODE.ExponentialDichotomy
+import SymplecticGeometry.Analysis.ODE.Linear
 import TauCeti.Analysis.InnerProductSpace.LyapunovForm.Inertia
-import TauCeti.Analysis.ODE.ExponentialDichotomy
 import TauCeti.Analysis.ODE.ExponentialDichotomy.Hyperbolic
 import TauCeti.LinearAlgebra.QuadraticForm.Signature
 
@@ -26,8 +27,6 @@ inertia theorem to this setting.
 
 ## Main results
 
-* `ContinuousLinearEquiv.apply_mem_stableSubspace_conjContinuousAlgEquiv_iff`: a continuous
-  linear equivalence `e` maps the stable subspace of `A` to that of `e A e⁻¹`.
 * `ContinuousLinearMap.eq_zero_of_apply_eq_neg_smul_of_apply_eq_smul_of_le_apply`: `A` has no
   rotating pair, so it is hyperbolic.
 * `ContinuousLinearMap.exists_projection_exponential_bounds_of_le_apply`: the flow of `A` has an
@@ -56,31 +55,10 @@ and the index is Sylvester's law of inertia for a definite splitting,
 
 public section
 
-open Filter Module NormedSpace Topology
+open Module NormedSpace
 open scoped InnerProductSpace NNReal
 
-variable {X Y : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X] [NormedAddCommGroup Y]
-  [NormedSpace ℝ Y]
-
-namespace ContinuousLinearEquiv
-
-/-- A continuous linear equivalence `e` conjugates the flow of `A` to that of `e A e⁻¹`, so it
-maps the stable subspace of `A` onto that of `e A e⁻¹`. -/
-theorem apply_mem_stableSubspace_conjContinuousAlgEquiv_iff [CompleteSpace X] [CompleteSpace Y]
-    (e : X ≃L[ℝ] Y) {A : X →L[ℝ] X} {v : X} :
-    e v ∈ (e.conjContinuousAlgEquiv A).stableSubspace ↔ v ∈ A.stableSubspace := by
-  have hexp (t : ℝ) : exp (t • e.conjContinuousAlgEquiv A) (e v) = e (exp (t • A) v) := by
-    have hA : t • e.conjContinuousAlgEquiv A = e.conjContinuousAlgEquiv (t • A) := by
-      ext x
-      simp
-    rw [hA, ← map_exp_of_mem_ball (𝕂 := ℝ) _ e.conjContinuousAlgEquiv.continuous _
-      ((expSeries_radius_eq_top ℝ (X →L[ℝ] X)).symm ▸ edist_lt_top _ _),
-      conjContinuousAlgEquiv_apply_apply, symm_apply_apply]
-  simp only [ContinuousLinearMap.mem_stableSubspace, hexp]
-  simpa [Function.comp_def] using (e.toHomeomorph.isInducing.tendsto_nhds_iff
-    (f := fun t : ℝ ↦ exp (t • A) v) (l := atTop) (y := 0)).symm
-
-end ContinuousLinearEquiv
+variable {X : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X]
 
 namespace ContinuousLinearMap
 
@@ -120,8 +98,7 @@ theorem apply_self_neg_of_mem_stableSubspace (hB : ∀ u v, B u v = B v u) (hc :
     B v v < 0 := by
   -- Identify `X` with a Euclidean space `F`, where `B` becomes `⟪S ·, ·⟫`.
   let F := EuclideanSpace ℝ (Fin (finrank ℝ X))
-  let e : X ≃L[ℝ] F :=
-    (LinearEquiv.ofFinrankEq X F (finrank_euclideanSpace_fin (𝕜 := ℝ)).symm).toContinuousLinearEquiv
+  let e : X ≃L[ℝ] F := .ofFinrankEq (finrank_euclideanSpace_fin (𝕜 := ℝ)).symm
   set B' : F →L[ℝ] F →L[ℝ] ℝ := B.bilinearComp (e.symm : F →L[ℝ] X) (e.symm : F →L[ℝ] X)
   set S : F →L[ℝ] F := InnerProductSpace.continuousLinearMapOfBilin B'
   have hS (u w : F) : ⟪S u, w⟫_ℝ = B (e.symm u) (e.symm w) :=
@@ -165,14 +142,8 @@ theorem sigNeg_toQuadraticMap_eq_finrank_stableSubspace (hB : ∀ u v, B u v = B
     sigNeg B.toBilinForm.toQuadraticMap = finrank ℝ A.stableSubspace := by
   obtain ⟨P, hP, hAP, K, α, -, hα, hs, hu⟩ :=
     exists_projection_exponential_bounds_of_le_apply hB hc hcB
-  have hα' : (0 : ℝ) < α := hα
-  have hrange := range_eq_stableSubspace_of_exponential_bounds hα' hP hAP hs hu
-  have hrange' := range_id_sub_eq_unstableSubspace_of_exponential_bounds hα' hP hAP hs hu
-  have hcompl : IsCompl A.stableSubspace A.unstableSubspace := by
-    have h := LinearMap.IsIdempotentElem.isCompl (IsIdempotentElem.toLinearMap hP)
-    rw [LinearMap.IsIdempotentElem.ker_eq_range (IsIdempotentElem.toLinearMap hP)] at h
-    rw [← hrange, ← hrange']
-    exact h
+  have hcompl := isCompl_stableSubspace_unstableSubspace_of_exponential_bounds (K := K)
+    (α := α) hα hP hAP hs hu
   refine QuadraticForm.sigNeg_eq_finrank_of_isCompl_of_negDef _ hcompl ?_ fun v hv ↦ ?_
   · intro ⟨v, hv⟩ hv0
     have hv0' : v ≠ 0 := by simpa using hv0
