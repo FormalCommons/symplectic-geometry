@@ -13,7 +13,7 @@ public import Mathlib.Topology.Algebra.Ring.Basic
 /-!
 # The quarter turn `(s, t) ↦ (t, -s)` of a plane and the line map it induces
 
-On the plane `Fin 2 → R` over a commutative ring `R`, the map `(s, t) ↦ (t, -s)` is a linear
+On the plane `Fin 2 → R` over a ring `R`, the map `(s, t) ↦ (t, -s)` is a linear
 automorphism. Over a field `K`, a nonzero vector `w` and its image span the two lines that pair
 under the dot product: the vectors `z` with `w ⬝ᵥ z = 0` are exactly the multiples of
 `(w₁, -w₀)`. On the projective line this gives the involution `[s : t] ↦ [t : -s]`, which sends
@@ -28,8 +28,10 @@ the point `ℓ` to the line of the vectors orthogonal to `ℓ` for the dot produ
 
 ## Main results
 
+* `SymplecticGeometry.dotProduct_perpLinearEquiv_self`: over a commutative ring, `w` is
+  orthogonal to `(w₁, -w₀)` for the dot product.
 * `SymplecticGeometry.perpLine_perpLine`, `SymplecticGeometry.continuous_perpLine`: `perpLine`
-  is an involution, and it is continuous over a topological field.
+  is an involution, and it is continuous when negation on `K` is.
 * `SymplecticGeometry.mem_span_singleton_perpLinearEquiv_iff`: for `w ≠ 0`, a vector `z` is a
   multiple of `(w₁, -w₀)` exactly when `w ⬝ᵥ z = 0`.
 * `SymplecticGeometry.mem_submodule_perpLine_mk_iff`,
@@ -45,9 +47,9 @@ namespace SymplecticGeometry
 
 /-! ### The linear automorphism `(s, t) ↦ (t, -s)` -/
 
-section CommRing
+section Ring
 
-variable (R : Type*) [CommRing R]
+variable (R : Type*) [Ring R]
 
 /-- The linear automorphism `(s, t) ↦ (t, -s)` of the plane `Fin 2 → R`; its inverse is
 `(s, t) ↦ (-t, s)`. -/
@@ -82,12 +84,17 @@ theorem perpLinearEquiv_perpLinearEquiv (w : Fin 2 → R) :
   ext i; fin_cases i <;> simp
 
 @[fun_prop, continuity]
-theorem continuous_perpLinearEquiv [TopologicalSpace R] [IsTopologicalRing R] :
+theorem continuous_perpLinearEquiv [TopologicalSpace R] [ContinuousNeg R] :
     Continuous (perpLinearEquiv R) := by
   rw [show ⇑(perpLinearEquiv R) = fun w ↦ ![w 1, -w 0] from funext perpLinearEquiv_apply]
   fun_prop
 
-end CommRing
+end Ring
+
+/-- A vector `w` of the plane is orthogonal to its image `(w₁, -w₀)` for the dot product. -/
+theorem dotProduct_perpLinearEquiv_self {R : Type*} [CommRing R] (w : Fin 2 → R) :
+    w ⬝ᵥ perpLinearEquiv R w = 0 := by
+  simp [Matrix.vec2_dotProduct]; ring
 
 /-! ### The orthogonal line -/
 
@@ -103,7 +110,7 @@ theorem mem_span_singleton_perpLinearEquiv_iff {w : Fin 2 → K} (hw : w ≠ 0) 
   have hk : LinearMap.ker f = K ∙ perpLinearEquiv K w :=
     eq_span_singleton_of_mem_of_finrank_eq_one
       (by have := f.finrank_ker_add_one_of_ne_zero hf; simp at this; omega)
-      (by simp [f, Matrix.vec2_dotProduct]; ring) (by simpa using hw)
+      (by simpa [f] using dotProduct_perpLinearEquiv_self w) (by simpa using hw)
   simp [← hk, f]
 
 /-- The line map `[s : t] ↦ [t : -s]` of `ℙ K (Fin 2 → K)`, induced by `perpLinearEquiv K`. -/
@@ -127,7 +134,7 @@ theorem perpLine_involutive : Function.Involutive (perpLine (K := K)) :=
   perpLine_perpLine
 
 @[fun_prop, continuity]
-theorem continuous_perpLine [TopologicalSpace K] [IsTopologicalRing K] :
+theorem continuous_perpLine [TopologicalSpace K] [ContinuousNeg K] :
     Continuous (perpLine (K := K)) :=
   continuous_map (perpLinearEquiv K).injective continuous_perpLinearEquiv
 
