@@ -21,7 +21,7 @@ on the image of the point under `f` and on the images of the arguments under the
   one of its arguments lies in the kernel of the derivative of `f`. In other words
   (`TauCeti.RoughForm.IsBasic.isSemibasic`), it is semibasic for `f`
   (`TauCeti.RoughForm.IsSemibasic`).
-*`TauCeti.RoughForm.IsBasic.mpullback_eq`: for a differentiable `f`, a basic form is invariant
+* `TauCeti.RoughForm.IsBasic.mpullback_eq`: for a differentiable `f`, a basic form is invariant
   under every differentiable self-map `σ` with `f ∘ σ = f`.
 
 These are the two conditions of Tau Ceti's `TauCeti.RoughForm.isBasic_of_mpullback_eq`, which
