@@ -20,6 +20,8 @@ total spaces. This file gives the converse construction.
 * `TauCeti.FiniteRankBundleCore.fiberMap_eqToHom`: the fibre map of a cast `eqToHom h`, as a
   function of the vector, reindexes coordinates along the equality of ranks. Unlike Tau Ceti's
   `fiberMap_eqToHom_apply`, it rewrites before a coordinate is applied, under another fibre map;
+* `TauCeti.FiniteRankBundleCore.coordChange_apply_of_eq`: equal cores have the same transitions,
+  up to reindexing coordinates along the equality of ranks;
 * `TauCeti.FiniteRankBundleCore.isoFiberEquiv e x`: the continuous linear equivalence between the
   fibres over `x`, in coordinates, given by an isomorphism `e : A ≅ D` of finite-rank cores, with
   the fibre map of `e.hom` as the map and that of `e.inv` as its inverse;
@@ -37,6 +39,14 @@ total spaces. This file gives the converse construction.
   point by a scalar have fibrewise equivalences that differ by that scalar there.
 * `TauCeti.FiniteRankBundleCore.fiberMap_trans_trans_symm_hom`: being a scalar multiple of the
   identity on a fibre is invariant under conjugation by isomorphisms.
+
+It also gives fibrewise criteria for monomorphisms and epimorphisms of finite-rank cores, which
+follow from `TauCeti.FiniteRankBundleCore.hom_ext`:
+
+* `TauCeti.FiniteRankBundleCore.mono_of_injective_fiberMap`: a bundle map that is injective on
+  every fibre is a monomorphism;
+* `TauCeti.FiniteRankBundleCore.epi_of_surjective_fiberMap`: a bundle map that is surjective on
+  every fibre is an epimorphism.
 
 ## References
 
@@ -72,6 +82,15 @@ cores, reindexes the coordinates of a vector along the equality of ranks that `h
 @[simp] theorem fiberMap_eqToHom (h : A = D) (x : B) (v : Fin A.rank → 𝕜) :
     (eqToHom h).fiberMap x v = v ∘ Fin.cast (congrArg rank h).symm :=
   funext (fiberMap_eqToHom_apply h x v)
+
+/-- The transitions of equal finite-rank cores agree, once the coordinates of the second are
+reindexed along the equality of ranks that `h : A = D` gives. -/
+theorem coordChange_apply_of_eq (h : A = D) (i j x : B) (v : Fin A.rank → 𝕜) :
+    A.core.coordChange i j x v =
+      D.core.coordChange i j x (v ∘ Fin.cast (congrArg rank h).symm) ∘
+        Fin.cast (congrArg rank h) := by
+  subst h
+  rfl
 
 /-- The continuous linear equivalence between the fibres over `x` of two finite-rank cores, in
 their coordinates `Fin A.rank → 𝕜` and `Fin D.rank → 𝕜`, given by an isomorphism `e : A ≅ D`: the
@@ -181,6 +200,21 @@ theorem fiberMap_trans_trans_symm_hom {P Q R : FiniteRankBundleCore 𝕜 B} (a :
   rw [he, Iso.trans_hom, Iso.trans_hom, fiberMap_comp, fiberMap_comp, h,
     ContinuousLinearMap.comp_smul, ContinuousLinearMap.comp_id, ContinuousLinearMap.smul_comp,
     Iso.symm_hom, fiberMap_hom_inv_id]
+
+/-- A bundle map of finite-rank cores whose fibre maps are all injective is a monomorphism. -/
+theorem mono_of_injective_fiberMap (f : A ⟶ D) (hf : ∀ x, Function.Injective (f.fiberMap x)) :
+    Mono f where
+  right_cancellation g h e := hom_ext fun x ↦ ContinuousLinearMap.ext fun v ↦ hf x <| by
+    simpa only [fiberMap_comp, ContinuousLinearMap.comp_apply] using
+      DFunLike.congr_fun (congrArg (fun k ↦ k.fiberMap x) e) v
+
+/-- A bundle map of finite-rank cores whose fibre maps are all surjective is an epimorphism. -/
+theorem epi_of_surjective_fiberMap (f : A ⟶ D) (hf : ∀ x, Function.Surjective (f.fiberMap x)) :
+    Epi f where
+  left_cancellation g h e := hom_ext fun x ↦ ContinuousLinearMap.ext fun w ↦ by
+    obtain ⟨v, rfl⟩ := hf x w
+    simpa only [fiberMap_comp, ContinuousLinearMap.comp_apply] using
+      DFunLike.congr_fun (congrArg (fun k ↦ k.fiberMap x) e) v
 
 end FiniteRankBundleCore
 
