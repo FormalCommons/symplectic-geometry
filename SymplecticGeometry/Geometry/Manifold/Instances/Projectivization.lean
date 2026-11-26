@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Geometry.Manifold.MFDeriv.FDeriv
 public import TauCeti.Geometry.Manifold.Instances.Projectivization
 
 import Mathlib.Analysis.Calculus.Deriv.Add
@@ -12,10 +13,11 @@ import Mathlib.Analysis.Calculus.Deriv.Comp
 import Mathlib.Analysis.Calculus.Deriv.Inv
 import Mathlib.Analysis.Calculus.Deriv.Mul
 import Mathlib.Analysis.Calculus.Deriv.Prod
+import Mathlib.Geometry.Manifold.MFDeriv.Atlas
 import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
 
 /-!
-# The derivatives of the transition maps of projective space
+# The derivatives of the charts and transition maps of projective space
 
 Tau Ceti's `TauCeti/Geometry/Manifold/Instances/Projectivization.lean` makes
 `ℙ 𝕜 (Fin (n + 1) → 𝕜)` a manifold through the standard affine charts, whose transition maps are
@@ -28,6 +30,11 @@ coordinate changes of the tangent bundle of projective space in the standard cha
   transition map from the chart `i` to the chart `j`, in affine coordinates.
 * `Projectivization.insertNth_fderiv_affineChart_comp_affineChart_symm`: the same derivative at a
   point `x` of `U_i ∩ U_j`, in homogeneous coordinates.
+* `Projectivization.contMDiffAt_affineChart_prodMap`,
+  `Projectivization.bijective_mfderiv_affineChart_prodMap` and
+  `Projectivization.hasMFDerivAt_comp_affineChart_prodMap`: on a product of two projective
+  spaces, the product of two standard affine charts is `C^r` with bijective differential on the
+  product of the affine opens, and the chain rule for a function read in it.
 
 ## References
 
@@ -37,7 +44,7 @@ coordinate changes of the tangent bundle of projective space in the standard cha
 
 public section
 
-open scoped LinearAlgebra.Projectivization
+open scoped ContDiff LinearAlgebra.Projectivization Manifold
 
 namespace Projectivization
 
@@ -113,6 +120,61 @@ theorem insertNth_fderiv_affineChart_comp_affineChart_symm (i j : Fin (n + 1))
   | p k =>
     simp only [Fin.insertNth_apply_succAbove, Pi.smul_apply, smul_eq_mul, Pi.sub_apply]
     field_simp
+
+section Prod
+
+variable {m : ℕ} {i : Fin (m + 1)} {j : Fin (n + 1)}
+  {x : ℙ 𝕜 (Fin (m + 1) → 𝕜) × ℙ 𝕜 (Fin (n + 1) → 𝕜)}
+
+/-- The product of the standard affine charts `i` and `j` is `C^r` at every point of the product
+of the affine opens `affineOpen i` and `affineOpen j`. -/
+theorem contMDiffAt_affineChart_prodMap (hi : x.1 ∈ affineOpen i) (hj : x.2 ∈ affineOpen j)
+    (r : ℕ∞ω) :
+    ContMDiffAt (𝓘(𝕜, Fin m → 𝕜).prod 𝓘(𝕜, Fin n → 𝕜)) 𝓘(𝕜, (Fin m → 𝕜) × (Fin n → 𝕜)) r
+      (Prod.map (affineChart i) (affineChart j)) x := by
+  rw [Prod.map_def]
+  exact (((contMDiffOn_affineChart i r).contMDiffAt ((isOpen_affineOpen i).mem_nhds hi)).comp x
+    contMDiffAt_fst).prodMk_space
+    (((contMDiffOn_affineChart j r).contMDiffAt ((isOpen_affineOpen j).mem_nhds hj)).comp x
+      contMDiffAt_snd)
+
+/-- The product of the standard affine charts `i` and `j` has a bijective differential at every
+point of the product of the affine opens `affineOpen i` and `affineOpen j`. -/
+theorem bijective_mfderiv_affineChart_prodMap (hi : x.1 ∈ affineOpen i)
+    (hj : x.2 ∈ affineOpen j) :
+    Function.Bijective (mfderiv (𝓘(𝕜, Fin m → 𝕜).prod 𝓘(𝕜, Fin n → 𝕜))
+      𝓘(𝕜, (Fin m → 𝕜) × (Fin n → 𝕜)) (Prod.map (affineChart i) (affineChart j)) x) := by
+  -- The product of the two affine charts is a chart of the product, whose differential at a
+  -- point of its source is bijective.
+  set e := (affineOpenPartialHomeomorph (K := 𝕜) i).prod (affineOpenPartialHomeomorph (K := 𝕜) j)
+  have he : e ∈ atlas (ModelProd (Fin m → 𝕜) (Fin n → 𝕜))
+      (ℙ 𝕜 (Fin (m + 1) → 𝕜) × ℙ 𝕜 (Fin (n + 1) → 𝕜)) :=
+    Set.mem_image2_of_mem (affineOpenPartialHomeomorph_mem_atlas (𝕜 := 𝕜) i)
+      (affineOpenPartialHomeomorph_mem_atlas (𝕜 := 𝕜) j)
+  have hxe : x ∈ e.source := by simpa [e] using ⟨hi, hj⟩
+  have hfun : ⇑e = Prod.map (affineChart i) (affineChart j) := by
+    ext y <;> simp [e]
+  have h := (mdifferentiable_of_mem_atlas (I := 𝓘(𝕜, Fin m → 𝕜).prod 𝓘(𝕜, Fin n → 𝕜)) he
+    ).mfderiv_bijective hxe
+  rwa [hfun, ← modelWithCornersSelf_prod] at h
+
+/-- **The chain rule through the product of two affine charts.** If `G` has derivative `G'` at
+the affine coordinates of a point `x` of the product of the affine opens `affineOpen i` and
+`affineOpen j`, then `G` read in the product of the two affine charts has derivative `G'` composed
+with the differential of that product of charts at `x`. -/
+theorem hasMFDerivAt_comp_affineChart_prodMap {F : Type*} [NormedAddCommGroup F]
+    [NormedSpace 𝕜 F] {G : (Fin m → 𝕜) × (Fin n → 𝕜) → F}
+    {G' : (Fin m → 𝕜) × (Fin n → 𝕜) →L[𝕜] F}
+    (hG : HasFDerivAt G G' (affineChart i x.1, affineChart j x.2)) (hi : x.1 ∈ affineOpen i)
+    (hj : x.2 ∈ affineOpen j) :
+    HasMFDerivAt (𝓘(𝕜, Fin m → 𝕜).prod 𝓘(𝕜, Fin n → 𝕜)) 𝓘(𝕜, F)
+      (G ∘ Prod.map (affineChart i) (affineChart j)) x
+      (G'.comp (mfderiv (𝓘(𝕜, Fin m → 𝕜).prod 𝓘(𝕜, Fin n → 𝕜))
+        𝓘(𝕜, (Fin m → 𝕜) × (Fin n → 𝕜)) (Prod.map (affineChart i) (affineChart j)) x)) :=
+  hG.hasMFDerivAt.comp x
+    ((contMDiffAt_affineChart_prodMap hi hj 1).mdifferentiableAt one_ne_zero).hasMFDerivAt
+
+end Prod
 
 end Projectivization
 

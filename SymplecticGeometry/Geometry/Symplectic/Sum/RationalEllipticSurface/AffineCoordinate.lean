@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Sum.RationalEllipticSurface
 public import TauCeti.Geometry.Manifold.RegularValue
+import SymplecticGeometry.Geometry.Manifold.Instances.Projectivization
 import SymplecticGeometry.Geometry.Manifold.RegularValue.CriticalSet
 
 /-!
@@ -46,8 +47,8 @@ base points of the pencil, which lie on the cubic, so it is of no use here. At `
 derivative in a plane coordinate `l` is `3 v_l²`, and `v_l ≠ 0` for some `l ≠ i`, because
 `v_i = 1` while `v_0³ + v_1³ + v_2³ = 0`. Subtracting a multiple of that plane direction from the
 `t`-direction gives the kernel vector. The chain rule through the product chart is
-`SymplecticGeometry.hasMFDerivAt_comp_affineChart_prodMap`, and its differential is bijective by
-`SymplecticGeometry.bijective_mfderiv_affineChart_prodMap`. The differential of
+`Projectivization.hasMFDerivAt_comp_affineChart_prodMap`, and its differential is bijective by
+`Projectivization.bijective_mfderiv_affineChart_prodMap`. The differential of
 the composite is read off through `TauCeti.isRegularPoint_comp_iff`, and the real statement comes
 from the complex one by `TauCeti.IsRegularPoint.restrictScalars'`.
 
@@ -167,6 +168,7 @@ theorem isRegularPoint_affineCoordinate (x : SmoothProjectiveHypersurface.fermat
   set L : (Fin 2 → ℂ) × (Fin 1 → ℂ) →L[ℂ] ℂ :=
     (ContinuousLinearMap.proj 0).comp (ContinuousLinearMap.snd ℂ _ _)
   have hL := hasMFDerivAt_comp_affineChart_prodMap L.hasFDerivAt hi hj
+  simp only [Function.comp_def, Prod.map_apply'] at hD hL
   have hg : affineCoordinate =
       (fun y : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ) ↦ L (affineChart i y.1, affineChart 0 y.2)) ∘
         ⇑embedding := by

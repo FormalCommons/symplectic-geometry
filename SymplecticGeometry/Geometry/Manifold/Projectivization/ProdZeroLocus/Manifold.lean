@@ -13,6 +13,8 @@ public import TauCeti.Geometry.Manifold.LinearSlice
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Level
 
+import SymplecticGeometry.Geometry.Manifold.Instances.Projectivization
+
 /-!
 # Regular bihomogeneous zero sets in a product of two projective spaces are complex manifolds
 
@@ -59,11 +61,6 @@ vanishes. The atlas of `s` is the one that these charts, restricted to `V`, indu
 * `SymplecticGeometry.isImmersionOfComplement_subtypeVal_complexProjectiveProdZeroLocus` and
   `SymplecticGeometry.isSmoothEmbedding_subtypeVal_complexProjectiveProdZeroLocus`: its inclusion
   is an analytic immersion with complement `ι → ℂ` and an analytic embedding.
-* `SymplecticGeometry.contMDiffAt_affineChart_prodMap`,
-  `SymplecticGeometry.bijective_mfderiv_affineChart_prodMap` and
-  `SymplecticGeometry.hasMFDerivAt_comp_affineChart_prodMap`: the product of two affine charts is
-  analytic with bijective differential on the product of the affine opens, and the chain rule
-  for a function read in it.
 * `SymplecticGeometry.surjective_mfderiv_prodChartEquations_affineChart_iff`: the manifold
   derivative of the chart equations, read in the product of two affine charts, is surjective at a
   point of the zero set exactly when the cone Jacobian is.
@@ -140,53 +137,6 @@ theorem surjective_fderiv_prodChartEquations_affineChart_iff_rep
     ((mem_complexProjectiveProdZeroLocus_iff_eval_rep hp₁ hp₂ x).1 hx)
   rwa [mk_rep, mk_rep] at h
 
-/-- The product of the standard affine charts `i` and `j` is `C^r` at every point of the product
-of the affine opens `affineOpen i` and `affineOpen j`. -/
-theorem contMDiffAt_affineChart_prodMap (hi : x.1 ∈ affineOpen i) (hj : x.2 ∈ affineOpen j)
-    (r : ℕ∞ω) :
-    ContMDiffAt (𝓘(ℂ, Fin m → ℂ).prod 𝓘(ℂ, Fin n → ℂ)) 𝓘(ℂ, (Fin m → ℂ) × (Fin n → ℂ)) r
-      (fun y ↦ (affineChart i y.1, affineChart j y.2)) x :=
-  (((contMDiffOn_affineChart i r).contMDiffAt ((isOpen_affineOpen i).mem_nhds hi)).comp x
-    contMDiffAt_fst).prodMk_space
-    (((contMDiffOn_affineChart j r).contMDiffAt ((isOpen_affineOpen j).mem_nhds hj)).comp x
-      contMDiffAt_snd)
-
-/-- The product of the standard affine charts `i` and `j` has a bijective differential at every
-point of the product of the affine opens `affineOpen i` and `affineOpen j`. -/
-theorem bijective_mfderiv_affineChart_prodMap (hi : x.1 ∈ affineOpen i)
-    (hj : x.2 ∈ affineOpen j) :
-    Function.Bijective (mfderiv (𝓘(ℂ, Fin m → ℂ).prod 𝓘(ℂ, Fin n → ℂ))
-      𝓘(ℂ, (Fin m → ℂ) × (Fin n → ℂ)) (fun y ↦ (affineChart i y.1, affineChart j y.2)) x) := by
-  -- The product of the two affine charts is a chart of the product, whose differential at a
-  -- point of its source is bijective.
-  set e := (affineOpenPartialHomeomorph (K := ℂ) i).prod (affineOpenPartialHomeomorph (K := ℂ) j)
-  have he : e ∈ atlas (ModelProd (Fin m → ℂ) (Fin n → ℂ))
-      (ℙ ℂ (Fin (m + 1) → ℂ) × ℙ ℂ (Fin (n + 1) → ℂ)) :=
-    mem_image2_of_mem (affineOpenPartialHomeomorph_mem_atlas (𝕜 := ℂ) i)
-      (affineOpenPartialHomeomorph_mem_atlas (𝕜 := ℂ) j)
-  have hxe : x ∈ e.source := by simpa [e] using ⟨hi, hj⟩
-  have hfun : ⇑e = fun y ↦ (affineChart i y.1, affineChart j y.2) := by
-    ext y <;> simp [e]
-  have h := (mdifferentiable_of_mem_atlas (I := 𝓘(ℂ, Fin m → ℂ).prod 𝓘(ℂ, Fin n → ℂ)) he
-    ).mfderiv_bijective hxe
-  rwa [hfun, ← modelWithCornersSelf_prod] at h
-
-/-- **The chain rule through the product of two affine charts.** If `G` has derivative `G'` at
-the affine coordinates of a point `x` of the product of the affine opens `affineOpen i` and
-`affineOpen j`, then `G` read in the product of the two affine charts has derivative `G'` composed
-with the differential of that product of charts at `x`. -/
-theorem hasMFDerivAt_comp_affineChart_prodMap {F : Type*} [NormedAddCommGroup F]
-    [NormedSpace ℂ F] {G : (Fin m → ℂ) × (Fin n → ℂ) → F}
-    {G' : (Fin m → ℂ) × (Fin n → ℂ) →L[ℂ] F}
-    (hG : HasFDerivAt G G' (affineChart i x.1, affineChart j x.2)) (hi : x.1 ∈ affineOpen i)
-    (hj : x.2 ∈ affineOpen j) :
-    HasMFDerivAt (𝓘(ℂ, Fin m → ℂ).prod 𝓘(ℂ, Fin n → ℂ)) 𝓘(ℂ, F)
-      (fun y ↦ G (affineChart i y.1, affineChart j y.2)) x
-      (G'.comp (mfderiv (𝓘(ℂ, Fin m → ℂ).prod 𝓘(ℂ, Fin n → ℂ))
-        𝓘(ℂ, (Fin m → ℂ) × (Fin n → ℂ)) (fun y ↦ (affineChart i y.1, affineChart j y.2)) x)) :=
-  hG.hasMFDerivAt.comp x
-    ((contMDiffAt_affineChart_prodMap hi hj 1).mdifferentiableAt one_ne_zero).hasMFDerivAt
-
 /-- At a point of the zero set of a bihomogeneous family in the product of the affine opens
 `affineOpen i` and `affineOpen j`, the manifold derivative of the chart equations read in the
 product of the two affine charts is surjective exactly when the cone Jacobian at the chosen
@@ -202,12 +152,15 @@ theorem surjective_mfderiv_prodChartEquations_affineChart_iff [Fintype ι]
       Function.Surjective (jacobiMatrixAt p (Sum.elim x.1.rep x.2.rep)).mulVec := by
   -- The differential of the product of the two affine charts is bijective, so the chain rule
   -- reduces the claim to the Fréchet derivative.
-  rw [(hasMFDerivAt_comp_affineChart_prodMap
-    (hasStrictFDerivAt_prodChartEquations i j p _).hasFDerivAt hi hj).mfderiv]
-  -- The coercion of a composite of continuous linear maps is the composite of their coercions.
-  exact (Function.Surjective.of_comp_iff _
-    (bijective_mfderiv_affineChart_prodMap hi hj).surjective).trans
-    (surjective_fderiv_prodChartEquations_affineChart_iff_rep hp₁ hp₂ hx hi hj)
+  have h := (hasMFDerivAt_comp_affineChart_prodMap
+    (hasStrictFDerivAt_prodChartEquations i j p _).hasFDerivAt hi hj).mfderiv
+  simp only [Function.comp_def, Prod.map_apply'] at h
+  rw [h]
+  exact (congrArg Function.Surjective (ContinuousLinearMap.coe_comp
+    (fderiv ℂ (prodChartEquations i j p) (affineChart i x.1, affineChart j x.2)) _)).to_iff.trans <|
+    (Function.Surjective.of_comp_iff _
+      (bijective_mfderiv_affineChart_prodMap hi hj).surjective).trans
+      (surjective_fderiv_prodChartEquations_affineChart_iff_rep hp₁ hp₂ hx hi hj)
 
 namespace ComplexProjectiveProdZeroLocus
 
@@ -444,6 +397,7 @@ theorem contMDiffOn_complexProjectiveProdZeroLocusSliceChart (r : ℕ∞ω) :
   intro y hy
   have hy' := complexProjectiveProdZeroLocusSliceChart_source_subset hk hp₁ hp₂ hx hi hj hrank hy
   have hchart := contMDiffAt_affineChart_prodMap (r := r) hy'.1 hy'.2
+  rw [Prod.map_def] at hchart
   have himplicit : ContDiffAt ℂ r
       (coordEquiv hk hp₁ hp₂ hx hi hj hrank ∘ implicitChart hp₁ hp₂ hx hi hj hrank)
       (affineChart i y.1, affineChart j y.2) :=
