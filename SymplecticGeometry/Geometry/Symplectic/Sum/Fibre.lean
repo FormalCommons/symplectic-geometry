@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Sum.Collar
 public import SymplecticGeometry.Geometry.Symplectic.Sum.ProductNeighborhood
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import TauCeti.Analysis.Complex.ClosedAnnulus
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Prod.Basic
 import TauCeti.Geometry.Symplectic.Manifold.Opens
 
@@ -339,14 +340,12 @@ private theorem isClosed_range_collarMap_prod :
   have htend : Tendsto Ψ F (𝓝 xy) := tendsto_comap
   -- The collar coordinates of `F` cluster at a point `(q, z)` with `δ ≤ |z| ≤ ε`.
   set ν : Q × annulus ℂ δ ε → Q × ℂ := fun p ↦ (p.1, (p.2 : ℂ))
-  have hK : IsCompact (univ ×ˢ {w : ℂ | δ ≤ ‖w‖ ∧ ‖w‖ ≤ ε}) :=
-    (isCompact_univ (X := Q)).prod ((isCompact_closedBall (0 : ℂ) ε).of_isClosed_subset
-      ((isClosed_le continuous_const continuous_norm).inter
-        (isClosed_le continuous_norm continuous_const))
-      fun w hw ↦ mem_closedBall_zero_iff.2 hw.2)
-  obtain ⟨⟨q, z⟩, ⟨-, hz₁, hz₂⟩, hc⟩ := hK (f := map ν F) (le_principal_iff.2 <| mem_map.2 <|
-    univ_mem' fun p ↦
-      ⟨mem_univ _, (mem_annulus.1 p.2.property).1.le, (mem_annulus.1 p.2.property).2.le⟩)
+  have hK : IsCompact (univ ×ˢ Complex.closedAnnulus δ ε) :=
+    (isCompact_univ (X := Q)).prod (Complex.isCompact_closedAnnulus δ ε)
+  obtain ⟨⟨q, z⟩, ⟨-, hz⟩, hc⟩ := hK (f := map ν F) (le_principal_iff.2 <| mem_map.2 <|
+    univ_mem' fun p ↦ ⟨mem_univ _, Complex.mem_closedAnnulus.2
+      ⟨(mem_annulus.1 p.2.property).1.le, (mem_annulus.1 p.2.property).2.le⟩⟩)
+  obtain ⟨hz₁, hz₂⟩ := Complex.mem_closedAnnulus.1 hz
   rcases hz₁.eq_or_lt with hz₁ | hz₁
   · -- At radius `δ`, the first component would lie in the tube removed from `M₁`.
     exact absurd hc (f₁.not_mapClusterPt_of_tendsto hδε (g := Prod.fst ∘ Ψ)
