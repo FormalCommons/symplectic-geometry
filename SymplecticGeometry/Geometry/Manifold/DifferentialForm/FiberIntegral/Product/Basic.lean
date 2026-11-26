@@ -10,7 +10,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Basic
 public import SymplecticGeometry.Analysis.Normed.Module.Alternating.AppendLeft
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Basic
 import TauCeti.Geometry.Manifold.ContMDiff.ContinuousAlternatingMap
-import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Trivialization
 
 /-!
 # The integrand of the fibre integral on a product
@@ -227,13 +227,6 @@ theorem inChartAt_prodFiberIntegrand [IsManifold I 1 B] [IsManifold J 1 F]
           (ContinuousLinearMap.inr ℝ E E') := by
   have hb' : b ∈ (chartAt H b₀).source := by rwa [extChartAt_source] at hb
   have hbt : extChartAt I b₀ b ∈ (extChartAt I b₀).target := (extChartAt I b₀).map_source hb
-  -- The inverse chart derivative undoes the tangent trivialization at `b₀`.
-  have hv (u : TangentSpace I b) : (mfderivWithin 𝓘(ℝ, E) I (extChartAt I b₀).symm (range I)
-      (extChartAt I b₀ b) (trivializationAt E (TangentSpace I) b₀ ⟨b, u⟩).2 : E) = u := by
-    have h := congrArg (fun L : E →L[ℝ] E ↦ L (trivializationAt E (TangentSpace I) b₀ ⟨b, u⟩).2)
-      (TangentBundle.symmL_trivializationAt (I := I) hb')
-    exact h.symm.trans ((Trivialization.symmL_apply _ hb' _).trans
-      (Trivialization.symm_apply_apply_mk (trivializationAt E (TangentSpace I) b₀) hb' u))
   ext w
   rw [ContinuousAlternatingMap.compContinuousLinearMap_apply,
     ContinuousAlternatingMap.appendLeft_apply, RoughForm.inChartAt_apply, prodFiberIntegrand_apply]
@@ -245,7 +238,8 @@ theorem inChartAt_prodFiberIntegrand [IsManifold I 1 B] [IsManifold J 1 F]
     refine (Manifold.tangentSpaceProdEquiv_symm_apply (I := I) (J := J) _ _).trans (Eq.trans ?_
       (Manifold.tangentSpaceProdEquiv_symm_apply (I := I) (J := J)
         ((extChartAt I b₀).symm (extChartAt I b₀ b), (extChartAt J y₀).symm z) _).symm)
-    exact Prod.ext (hv (v i)).symm rfl
+    exact Prod.ext
+      (TangentBundle.mfderivWithin_extChartAt_symm_trivializationAt_snd hb' (v i)).symm rfl
   · simp only [Fin.cast_eq_self, Fin.append_right]
     exact (Manifold.tangentSpaceProdEquiv_symm_apply (I := I) (J := J) _ _).trans
       (Manifold.tangentSpaceProdEquiv_symm_apply (I := I) (J := J) _ _).symm
@@ -268,16 +262,12 @@ theorem isSmoothForm_prodFiberIntegrand [IsManifold I 1 B] [IsManifold J 1 F]
       (contDiffWithinAt_const.prodMk contDiffWithinAt_id) (fun z hz ↦ ?_) (by simp)
     rw [ModelWithCorners.range_prod]
     exact ⟨extChartAt_target_subset_range b (mem_extChartAt_target b), hz⟩
-  -- Read in the tangent trivialization at `b` itself, each `v i` is its own coordinate vector.
-  have hv (i : Fin r) : (trivializationAt E (TangentSpace I) b ⟨b, v i⟩).2 = v i :=
-    ((trivializationAt E (TangentSpace I) b).continuousLinearMapAt_apply_of_mem (R := ℝ)
-      (FiberBundle.mem_baseSet_trivializationAt' b) (v i)).symm.trans
-      (Manifold.continuousLinearMapAt_trivializationAt_self b (v i))
   have heq : ∀ z ∈ (extChartAt J y₀).target,
       (prodFiberIntegrand α b v).inChartAt y₀ z =
         (L ∘ fun z ↦ α.inChartAt (b, y₀) (extChartAt I b b, z)) z := by
     intro z hz
-    simp only [inChartAt_prodFiberIntegrand α (mem_extChartAt_source b) v y₀ hz, hv, comp_apply,
+    simp only [inChartAt_prodFiberIntegrand α (mem_extChartAt_source b) v y₀ hz,
+      TangentBundle.trivializationAt_apply_self_snd, comp_apply,
       L, ContinuousLinearMap.comp_apply, ContinuousAlternatingMap.compContinuousLinearMapCLM_apply,
       ContinuousAlternatingMap.appendLeftCLM_apply]
   exact (L.contDiff.comp_contDiffWithinAt hslice).congr_of_eventuallyEq
@@ -293,7 +283,7 @@ family in `TauCeti.contMDiff_integralTopForm`. -/
 theorem contMDiff_prodFiberIntegrand {EP HP P : Type*} [NormedAddCommGroup EP] [NormedSpace ℝ EP]
     [TopologicalSpace HP] {K : ModelWithCorners ℝ EP HP} [TopologicalSpace P] [ChartedSpace HP P]
     [FiniteDimensional ℝ E'] {n : WithTop ℕ∞}
-    [IsManifold I 1 B] [IsManifold J 1 F] [IsManifold I n B] [IsManifold J n F]
+    [IsManifold I 1 B] [IsManifold J 1 F]
     {α : RoughForm (I.prod J) (B × F) ℝ (r + m)} (hα : IsSmoothForm (I.prod J) n α)
     {g : P → B} (hg : ContMDiff K I n g) {X : Fin r → (p : P) → TangentSpace I (g p)}
     (hX : ∀ i, ContMDiff K I.tangent n fun p ↦ (⟨g p, X i p⟩ : TangentBundle I B)) :
