@@ -15,7 +15,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 
 A two-form `τ` on `M` is *vertically nondegenerate* for a map `proj : M → B` when it is
 nondegenerate on the kernel of the derivative of `proj` at every point. For a trivialization that
-is differentiable with differentiable inverse, with `M` finite-dimensional, that kernel is the
+is differentiable with differentiable inverse, that kernel is the
 image of the tangent space of the fibre, so a form that restricts to a nondegenerate `σ` along a
 smooth atlas is vertically nondegenerate, and a vertically nondegenerate form pulls back to a
 nondegenerate form along every fibre inclusion of a smooth trivialization.
@@ -51,8 +51,8 @@ to the product orientation `oB × oF`.
 ## Implementation notes
 
 The results identify the kernel of the derivative of `proj` with the image of the derivative of a
-fibre inclusion by `Bundle.Trivialization.range_mfderiv_fiberInclusionMap`, and so assume that
-`M` is finite-dimensional.
+fibre inclusion by `Bundle.Trivialization.range_mfderiv_fiberInclusionMap`, which holds in
+any dimension.
 
 The symplectic orientations in `IsOrientedCompatible` are Tau Ceti's
 `TauCeti.SmoothTwoForm.IsNondegenerate.orientation`, which may be indexed by `Fin k` for any `k`
@@ -84,11 +84,11 @@ variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] {HB : Type*}
   {proj : M → B}
 
 /-- **Two-forms on the tangent spaces of a fibre.** Let `e` be a trivialization of `proj` that is
-differentiable with differentiable inverse, `M` being finite-dimensional. A two-form `τ` on `M` is
+differentiable with differentiable inverse. A two-form `τ` on `M` is
 nondegenerate on the kernel of the derivative of `proj` at the point `e.fiberInclusionMap hb v`
 exactly when its pull-back along the fibre inclusion of `e` over `b` is nondegenerate at `v`. -/
 theorem nondegenerate_restrict_ker_mfderiv_iff_separatingLeft [IsManifold IF ∞ F]
-    [IsManifold IM ∞ M] [FiniteDimensional ℝ EM] {e : Trivialization F proj}
+    [IsManifold IM ∞ M] {e : Trivialization F proj}
     (he : e.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF)) {b : B}
     (hb : b ∈ e.baseSet) (hι : ContMDiff IF IM ∞ (e.fiberInclusionMap hb))
     (τ : TauCeti.SmoothTwoForm IM M) (v : F) :
@@ -133,7 +133,7 @@ variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] {HB : Type*}
 
 /-- A two-form `τ` on `M` is *vertically nondegenerate* for a map `proj : M → B` when, at every
 point `x`, its restriction to the vertical space, the kernel of the derivative of `proj` at `x`,
-is nondegenerate. For a map with a smooth atlas and a finite-dimensional `M`, it implies
+is nondegenerate. For a map with a smooth atlas, it implies
 that `τ` pulls back to a nondegenerate form on every fibre. -/
 def IsVerticallyNondegenerate (proj : M → B) (τ : SmoothTwoForm IM M) : Prop :=
   ∀ x, ((τ.bilinFormAt x).restrict (mfderiv IM IB proj x).ker).Nondegenerate
@@ -154,11 +154,11 @@ theorem isVerticallyNondegenerate_iff_forall :
   forall_congr' fun x ↦ (SmoothForm.isAlt_bilinFormAt τ x).isRefl.nondegenerate_restrict_iff
 
 /-- **The fibres of a vertically nondegenerate form.** Let `e` be a trivialization of `proj`
-that is smooth with smooth inverse, `M` being finite-dimensional. If `τ` is vertically
+that is smooth with smooth inverse. If `τ` is vertically
 nondegenerate, then its pull-back along each fibre inclusion of `e` is a nondegenerate form on the
 model fibre. -/
 theorem IsVerticallyNondegenerate.isNondegenerate_mpullback_fiberInclusionMap
-    [FiniteDimensional ℝ EM] (hτ : IsVerticallyNondegenerate IB proj τ)
+    (hτ : IsVerticallyNondegenerate IB proj τ)
     {e : Trivialization F proj} (he : ContMDiffOn IM (IB.prod IF) ∞ e e.source)
     (he_symm : ContMDiffOn (IB.prod IF) IM ∞ e.toOpenPartialHomeomorph.symm e.target) {b : B}
     (hb : b ∈ e.baseSet) :
@@ -211,10 +211,10 @@ theorem isVerticallyNondegenerate_of_isNondegenerate_mpullback [FiniteDimensiona
       fun w ↦ by rw [← SmoothForm.bilinFormAt_apply]; exact hu w
 
 /-- **Restricting forms are vertically nondegenerate.** If a two-form `τ` restricts to a
-nondegenerate form `σ` along a smooth atlas of `proj`, with `M` finite-dimensional, then
+nondegenerate form `σ` along a smooth atlas of `proj`, then
 `τ` is vertically nondegenerate: the vertical space at each point is the image of the tangent
 space of the fibre. -/
-theorem RestrictsTo.isVerticallyNondegenerate [FiniteDimensional ℝ EM]
+theorem RestrictsTo.isVerticallyNondegenerate
     (hA : A.IsContMDiff ∞ IB IF IM) (hσ : σ.IsNondegenerate) (hτ : A.RestrictsTo σ τ) :
     SmoothTwoForm.IsVerticallyNondegenerate IB proj τ := by
   refine isVerticallyNondegenerate_of_isNondegenerate_mpullback hA fun b ↦ ?_
