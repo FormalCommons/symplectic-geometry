@@ -34,6 +34,10 @@ the chart, the criteria also take the estimate after a change of coordinates `U`
 * `TauCeti.FiniteRankBundleCore.isIso_of_norm_conj_lt_one`: a morphism `f₁` of finite-rank cores
   is an isomorphism if, for an isomorphism `f₀`, some conjugate of `f₀⁻¹ f₁` is within `1` of the
   identity at every point;
+* `TauCeti.FiniteRankBundleCore.pullbackForgetTime` and
+  `TauCeti.FiniteRankBundleCore.pullbackForgetTimeIso`: a morphism or an isomorphism of the
+  pullback of `E` to `X × Circle`, pulled back to `(X × I) × Circle` along `((x, t), z) ↦ (x, z)`,
+  as a homotopy that does not depend on the time;
 * `TauCeti.FiniteRankBundleCore.segmentHom f₀ f₁`: the morphism of the pullback of `E` to
   `(X × I) × Circle` with fibre map `(1 - t) f₀(x, z) + t f₁(x, z)` at `((x, t), z)`, built with
   the multiplication of morphisms by continuous scalar functions
@@ -96,24 +100,45 @@ local notation "P" E => (FiniteRankBundleCore.pullback (FiniteRankBundleCore.pul
 local notation "Q" E => (FiniteRankBundleCore.pullback E (ContinuousMap.fst : C(X × Circle, X)))
 
 /-- A morphism of the pullback of `E` to `X × Circle`, pulled back to `(X × I) × Circle` along
-`((x, t), z) ↦ (x, z)`. The pullback of `E` to `(X × I) × Circle` through `X × I` is by definition
-its pullback along this map, with the same charts and transitions; the type ascription records
-this. -/
-private def pullbackForgetTime (f : (Q E) ⟶ (Q E)) : (P E) ⟶ (P E) :=
+`((x, t), z) ↦ (x, z)`, where the homotopies of `nonempty_iso_clutching_of_homotopic` live. The
+pullback of `E` to `(X × I) × Circle` through `X × I` is by definition its pullback along this map,
+with the same charts and transitions; the type ascription records this. -/
+def pullbackForgetTime (f : (Q E) ⟶ (Q E)) : (P E) ⟶ (P E) :=
   pullbackMap f (ContinuousMap.fst.prodMap (.id Circle))
 
-private theorem fiberMap_pullbackForgetTime (f : (Q E) ⟶ (Q E)) (b : (X × I) × Circle) :
+theorem pullbackForgetTime_def (f : (Q E) ⟶ (Q E)) :
+    pullbackForgetTime f = pullbackMap f (ContinuousMap.fst.prodMap (.id Circle)) :=
+  (rfl)
+
+@[simp]
+theorem fiberMap_pullbackForgetTime (f : (Q E) ⟶ (Q E)) (b : (X × I) × Circle) :
     (pullbackForgetTime f).fiberMap b = f.fiberMap (b.1.1, b.2) :=
   fiberMap_pullbackMap f _ b
 
+@[simp]
+theorem pullbackForgetTime_comp (f g : (Q E) ⟶ (Q E)) :
+    pullbackForgetTime f ≫ pullbackForgetTime g = pullbackForgetTime (f ≫ g) :=
+  ((pullbackFunctor (ContinuousMap.fst.prodMap (.id Circle))).map_comp f g).symm
+
 /-- An isomorphism of the pullback of `E` to `X × Circle`, pulled back to `(X × I) × Circle`
-along `((x, t), z) ↦ (x, z)`. -/
-private def pullbackForgetTimeIso (f : (Q E) ≅ (Q E)) : (P E) ≅ (P E) :=
+along `((x, t), z) ↦ (x, z)`: its morphisms are the pullbacks `pullbackForgetTime` of those of the
+isomorphism. -/
+def pullbackForgetTimeIso (f : (Q E) ≅ (Q E)) : (P E) ≅ (P E) :=
   (pullbackFunctor (ContinuousMap.fst.prodMap (.id Circle))).mapIso f
 
-private theorem pullbackForgetTimeIso_inv (f : (Q E) ≅ (Q E)) :
+@[simp]
+theorem pullbackForgetTimeIso_hom (f : (Q E) ≅ (Q E)) :
+    (pullbackForgetTimeIso f).hom = pullbackForgetTime f.hom :=
+  (rfl)
+
+@[simp]
+theorem pullbackForgetTimeIso_inv (f : (Q E) ≅ (Q E)) :
     (pullbackForgetTimeIso f).inv = pullbackForgetTime f.inv :=
   (rfl)
+
+theorem fiberMap_pullbackForgetTimeIso_hom (f : (Q E) ≅ (Q E)) (b : (X × I) × Circle) :
+    (pullbackForgetTimeIso f).hom.fiberMap b = f.hom.fiberMap (b.1.1, b.2) := by
+  rw [pullbackForgetTimeIso_hom, fiberMap_pullbackForgetTime]
 
 variable [NormedAlgebra ℝ 𝕜]
 
