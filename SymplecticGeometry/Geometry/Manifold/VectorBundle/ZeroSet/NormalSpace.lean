@@ -100,7 +100,7 @@ theorem tangentRange_ofTransverseSection (z : ↥{x : X | s x = 0}) :
     rintro g rfl
     exact range_mfderiv_coe_transverseZeroSet hm hsm hs hE z
   ext v
-  rw [mem_tangentRange_iff, ← key _ (coe_ofTransverseSection hm hsm hs hE), LinearMap.mem_range]
+  rw [Manifold.IsImmersion.mem_tangentRange_iff, ← key _ (coe_ofTransverseSection hm hsm hs hE), LinearMap.mem_range]
   simp only [ContinuousLinearMap.coe_coe]
 
 end TauCeti.SmoothEmbedding
@@ -144,7 +144,7 @@ theorem normalSpaceEquivOfTransverseSection_normalClass (z : ↥{x : X | s x = 0
       sectionLinearization (F := F') J _root_.id s (ofTransverseSection hm hsm hs hE z) v := by
   let := transverseZeroSetChartedSpace hm hsm hs hE
   rw [normalSpaceEquivOfTransverseSection, ContinuousLinearEquiv.trans_apply,
-    normalSpaceEquivOfKer_normalClass, ContinuousLinearMap.comp_apply,
+    Manifold.IsImmersion.normalSpaceEquivOfKer_normalClass, ContinuousLinearMap.comp_apply,
     ContinuousLinearEquiv.coe_coe, ContinuousLinearEquiv.symm_apply_apply]
 
 /-- The inverse of the normal-space equivalence of a transverse section sends the linearization

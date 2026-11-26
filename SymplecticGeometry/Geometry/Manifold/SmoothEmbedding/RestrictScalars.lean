@@ -196,11 +196,11 @@ theorem smul_mem_tangentRange_restrictScalars (f : SmoothEmbedding 𝓘(𝕜', E
     (hv : v ∈ (f.restrictScalars 𝕜 hnm hn).isImmersion.tangentRange x hn₀) :
     c • v ∈ (f.restrictScalars 𝕜 hnm hn).isImmersion.tangentRange x hn₀ := by
   have h := congrFun (f.coe_mfderiv_restrictScalars (𝕜 := 𝕜) hnm hn x)
-  obtain ⟨u, rfl⟩ := (mem_tangentRange_iff _ x hn₀ v).1 hv
+  obtain ⟨u, rfl⟩ := (Manifold.IsImmersion.mem_tangentRange_iff _ x hn₀ v).1 hv
   -- The witness lives in `TangentSpace 𝓘(𝕜, E) x`, which carries only the `𝕜`-structure.
   -- It and `TangentSpace 𝓘(𝕜', E) x` both unfold to `E`, so the `show`s let `c • u` use the
   -- `𝕜'`-action of `E`; rewriting at type `E'` instead fails on the mismatched instances.
-  refine (mem_tangentRange_iff _ x hn₀ _).2 ⟨show E from c • show E from u, ?_⟩
+  refine (Manifold.IsImmersion.mem_tangentRange_iff _ x hn₀ _).2 ⟨show E from c • show E from u, ?_⟩
   exact (h _).trans (((mfderiv 𝓘(𝕜', E) 𝓘(𝕜', E') f x).map_smul c u).trans
     (congrArg (c • ·) (h u).symm))
 
@@ -250,11 +250,11 @@ theorem smul_mem_tangentRange_restrictScalarsProd
     (hv : v ∈ (f.restrictScalarsProd 𝕜 hnm hn).isImmersion.tangentRange x hn₀) :
     c • v ∈ (f.restrictScalarsProd 𝕜 hnm hn).isImmersion.tangentRange x hn₀ := by
   have h := congrFun (f.coe_mfderiv_restrictScalarsProd (𝕜 := 𝕜) hnm hn x)
-  obtain ⟨u, rfl⟩ := (mem_tangentRange_iff _ x hn₀ v).1 hv
+  obtain ⟨u, rfl⟩ := (Manifold.IsImmersion.mem_tangentRange_iff _ x hn₀ v).1 hv
   -- The witness lives in `TangentSpace 𝓘(𝕜, E) x`, which carries only the `𝕜`-structure.
   -- It and `TangentSpace 𝓘(𝕜', E) x` both unfold to `E`, so the `show`s let `c • u` use the
   -- `𝕜'`-action of `E`; rewriting at type `E'` instead fails on the mismatched instances.
-  refine (mem_tangentRange_iff _ x hn₀ _).2 ⟨show E from c • show E from u, ?_⟩
+  refine (Manifold.IsImmersion.mem_tangentRange_iff _ x hn₀ _).2 ⟨show E from c • show E from u, ?_⟩
   exact (h _).trans (((mfderiv 𝓘(𝕜', E) (𝓘(𝕜', E').prod 𝓘(𝕜', F')) f x).map_smul c u).trans
     (congrArg (c • ·) (h u).symm))
 

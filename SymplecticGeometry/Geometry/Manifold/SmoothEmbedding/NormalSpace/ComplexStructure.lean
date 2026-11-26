@@ -111,7 +111,7 @@ theorem isComplexLinearMap_normalClass (f : SmoothEmbedding I' I n M X)
     (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn) (f.isImmersion.tangentRange x hn)) (x : M) :
     IsComplexLinearMap (J.almostComplexStructureAt (f x))
       (f.normalAlmostComplexStructureAt J hJ x) (f.isImmersion.normalClass x hn) := by
-  rw [normalAlmostComplexStructureAt_def, normalClass_def]
+  rw [normalAlmostComplexStructureAt_def, Manifold.IsImmersion.normalClass_def]
   -- `f.isImmersion.NormalSpace x hn` is by definition the quotient by `f.isImmersion.tangentRange x hn`.
   exact AlmostComplexStructure.isComplexLinearMap_mkQ _ _ _
 
@@ -123,7 +123,7 @@ theorem normalAlmostComplexStructureAt_eq_iff (f : SmoothEmbedding I' I n M X)
     (K : AlmostComplexStructure (f.isImmersion.NormalSpace x hn)) :
     f.normalAlmostComplexStructureAt J hJ x = K ↔
       IsComplexLinearMap (J.almostComplexStructureAt (f x)) K (f.isImmersion.normalClass x hn) := by
-  rw [normalAlmostComplexStructureAt_def, normalClass_def]
+  rw [normalAlmostComplexStructureAt_def, Manifold.IsImmersion.normalClass_def]
   -- `f.isImmersion.NormalSpace x hn` is by definition the quotient by `f.isImmersion.tangentRange x hn`.
   exact AlmostComplexStructure.quotient_eq_iff _ _ _ K
 
