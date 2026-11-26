@@ -21,10 +21,11 @@ of `Φ` on its range, and extending by `0` off the range, gives the function
 vanishes off the image of the support of `χ`.
 
 When `N` is boundaryless and has the same finite dimension as `M`, `Φ` is a local
-diffeomorphism (`TauCeti.SmoothEmbedding.isLocalDiffeomorph`), so its range is open and its
-inverse is smooth there (`IsLocalDiffeomorphOn.contMDiffOn_invFunOn`). If moreover `χ` is
-supported in a set `K` whose image `Φ '' K` is closed in `M`, the extension by zero is smooth
-(`ContMDiffOn.contMDiff_indicator`). Unlike
+diffeomorphism (`TauCeti.SmoothEmbedding.isLocalDiffeomorph`). Being injective, it is then a
+partial diffeomorphism from `univ` onto its range whose inverse is `invFunOn Φ univ`
+(`IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn`). If moreover `χ` is supported in a set `K`
+whose image `Φ '' K` is closed in `M`, the extension by zero is smooth, by
+`PartialDiffeomorph.contMDiff_indicator_image_comp_symm` for that partial diffeomorphism. Unlike
 `PartialDiffeomorph.contMDiff_indicator_comp_symm`, no compactness of the support is needed.
 
 ## Main results
@@ -76,15 +77,18 @@ theorem contMDiff_indicator_range_comp_invFunOn [FiniteDimensional 𝕜 E] [IsMa
     (hχ : ContMDiff J 𝓘(𝕜, F) n χ) {K : Set N} (hK : IsClosed (Φ '' K))
     (hχK : support χ ⊆ K) :
     ContMDiff I 𝓘(𝕜, F) n ((range Φ).indicator (χ ∘ invFunOn Φ univ)) := by
-  have hloc := Φ.isLocalDiffeomorph hd hn
-  have hinj : InjOn Φ univ := Φ.isSmoothEmbedding.isEmbedding.injective.injOn
-  have hinv := (hloc.isLocalDiffeomorphOn univ).contMDiffOn_invFunOn isOpen_univ hinj
-  rw [image_univ] at hinv
-  refine (hχ.comp_contMDiffOn hinv).contMDiff_indicator hloc.isOpen_range hK
-    (image_subset_range _ _) ?_
-  rintro _ ⟨z, rfl⟩ hz
-  rw [comp_apply, hinj.leftInvOn_invFunOn (mem_univ z)]
-  exact notMem_support.1 fun h ↦ hz (mem_image_of_mem _ (hχK h))
+  -- `Φ` as a partial diffeomorphism from `univ` onto its range, with inverse `invFunOn Φ univ`.
+  set ψ := ((Φ.isLocalDiffeomorph hd hn).isLocalDiffeomorphOn univ).partialDiffeomorphOfInjOn
+    isOpen_univ Φ.isSmoothEmbedding.isEmbedding.injective.injOn
+  have hψ : ⇑ψ = Φ := IsLocalDiffeomorphOn.coe_partialDiffeomorphOfInjOn ..
+  have h := ψ.contMDiff_indicator_image_comp_symm hχ.contMDiffOn (hψ ▸ hK) isOpen_univ
+    (subset_univ K) (IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn_source ..).ge
+    fun z _ hz ↦ notMem_support.1 fun h ↦ hz (hχK h)
+  simp only [ψ, IsLocalDiffeomorphOn.coe_partialDiffeomorphOfInjOn,
+    PartialDiffeomorph.symm_toPartialEquiv,
+    IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn_symm_apply,
+    image_univ] at h
+  exact h
 
 end TauCeti.SmoothEmbedding
 

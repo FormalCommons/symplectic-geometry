@@ -40,8 +40,9 @@ other way:
   supported in `ψ '' tsupport χ`, so has compact support, and is continuous, or `C^n`, when `χ`
   is. When `N` is a normed space, the last gives `PartialDiffeomorph.contDiff_indicator_comp_symm`.
 * `PartialDiffeomorph.contMDiff_indicator_image_comp_symm`: the same for a function that is only
-  `C^n` on an open `W ⊆ ψ.source` and vanishes on `W` outside a compact subset, transported to
-  `ψ '' W` and extended by zero off it.
+  `C^n` on an open `W ⊆ ψ.source` and vanishes on `W` outside a subset `C` whose image `ψ '' C`
+  is closed, transported to `ψ '' W` and extended by zero off it. Here `N` need not be
+  Hausdorff.
 -/
 
 public section
@@ -151,18 +152,17 @@ theorem continuous_indicator_comp_symm [TopologicalSpace F] (hχc : Continuous �
 
 end Zero
 
-/-- Let `W ⊆ ψ.source` be open and `C ⊆ W` compact. If `χ` is `C^n` on `W` and vanishes on `W`
-outside `C`, the function `χ ∘ ψ.symm` on `ψ '' W`, extended by `0` off `ψ '' W`, is `C^n`. -/
-theorem contMDiff_indicator_image_comp_symm [T2Space N] {F : Type*} [NormedAddCommGroup F]
+/-- Let `W ⊆ ψ.source` be open and `C ⊆ W` a set whose image `ψ '' C` is closed. If `χ` is `C^n`
+on `W` and vanishes on `W` outside `C`, the function `χ ∘ ψ.symm` on `ψ '' W`, extended by `0`
+off `ψ '' W`, is `C^n`. -/
+theorem contMDiff_indicator_image_comp_symm {F : Type*} [NormedAddCommGroup F]
     [NormedSpace 𝕜 F] {χ : M → F} {C W : Set M} (hχ : ContMDiffOn I 𝓘(𝕜, F) n χ W)
-    (hC : IsCompact C) (hW : IsOpen W) (hCW : C ⊆ W) (hWs : W ⊆ ψ.source)
+    (hC : IsClosed (ψ '' C)) (hW : IsOpen W) (hCW : C ⊆ W) (hWs : W ⊆ ψ.source)
     (hχ0 : ∀ z ∈ W, z ∉ C → χ z = 0) :
     ContMDiff I' 𝓘(𝕜, F) n ((ψ '' W).indicator fun y ↦ χ (ψ.symm y)) := by
   have hWo : IsOpen (ψ '' W) := by
     simpa using ψ.toOpenPartialHomeomorph.isOpen_image_of_subset_source hW (by simpa using hWs)
-  refine ContMDiffOn.contMDiff_indicator ?_ hWo
-    (ψ.isCompact_image_of_subset_source hC (hCW.trans hWs)).isClosed (image_mono hCW)
-    fun x hxW hx ↦ ?_
+  refine ContMDiffOn.contMDiff_indicator ?_ hWo hC (image_mono hCW) fun x hxW hx ↦ ?_
   · refine hχ.comp (ψ.symm.contMDiffOn.mono ?_) ?_
     · rintro _ ⟨z, hz, rfl⟩
       exact ψ.map_source (hWs hz)
@@ -179,8 +179,9 @@ theorem contMDiff_indicator_comp_symm [T2Space N] {F : Type*} [NormedAddCommGrou
     [NormedSpace 𝕜 F] {χ : M → F} (hχc : ContMDiff I 𝓘(𝕜, F) n χ)
     (hK : IsCompact (tsupport χ)) (hχ : tsupport χ ⊆ ψ.source) :
     ContMDiff I' 𝓘(𝕜, F) n (ψ.target.indicator fun y ↦ χ (ψ.symm y)) := by
-  have h := contMDiff_indicator_image_comp_symm hχc.contMDiffOn hK ψ.open_source hχ
-    subset_rfl fun _ _ hz ↦ image_eq_zero_of_notMem_tsupport hz
+  have h := contMDiff_indicator_image_comp_symm hχc.contMDiffOn
+    (ψ.isCompact_image_of_subset_source hK hχ).isClosed ψ.open_source hχ subset_rfl
+    fun _ _ hz ↦ image_eq_zero_of_notMem_tsupport hz
   rwa [ψ.toPartialEquiv.image_source_eq_target] at h
 
 /-- If `χ` is `C^n` and its support is compact and lies in the source of a partial
