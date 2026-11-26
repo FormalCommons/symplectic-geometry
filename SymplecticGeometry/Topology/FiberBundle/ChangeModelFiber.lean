@@ -27,11 +27,6 @@ or of its total space. Tau Ceti's change of model fibre of a fibre bundle
   the map, base set, source, target and inverse of Mathlib's
   `Bundle.Trivialization.compHomeomorph`, which precomposes a trivialization with a homeomorphism
   of the total space.
-
-## References
-
-* D. Husemoller, *Fibre Bundles*, 3rd ed., Graduate Texts in Mathematics 20, Springer, 1994,
-  Chapter 4 (principal bundles and morphisms between them).
 -/
 
 public section
