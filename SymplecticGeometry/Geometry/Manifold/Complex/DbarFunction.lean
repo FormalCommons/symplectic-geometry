@@ -8,7 +8,7 @@ module
 public import TauCeti.Analysis.Complex.Wirtinger.Basic
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
-public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Trivial
+public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Trivial.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 
 /-!

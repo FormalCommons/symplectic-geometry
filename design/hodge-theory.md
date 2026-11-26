@@ -603,14 +603,14 @@ Linear algebra for `V` a real inner product space of finite dimension, with
 on the fibres `V [⋀^Fin k]→L[ℝ] ℝ` of the form bundle, beside Tau Ceti's
 `Kahler/Basic.lean`:
 
-- `TauCeti.AlmostComplexStructure.lefschetz J : (V [⋀^Fin k]→L[ℝ] ℝ)
+- `TauCeti.AlmostComplexStructure.formLefschetz J : (V [⋀^Fin k]→L[ℝ] ℝ)
   →L[ℝ] (V [⋀^Fin (k + 2)]→L[ℝ] ℝ)`, wedge with $\omega$, with
-  `lefschetz_apply`. Its use is the theorem below; the smooth version is in
+  `formLefschetz_apply`. Its use is the theorem below; the smooth version is in
   `Kahler/Identities.lean`.
 - `Orientation.formHodgeStar_fderivCompContinuousLinearMap`: the star commutes
   with the derivation of a skew-adjoint `A`, such as `J`, from
   Tau Ceti's `Orientation.hodgeStar_lieMap` through `alternatingFormEquiv`.
-- `TauCeti.AlmostComplexStructure.lefschetz_curryLeft_sub`: for every
+- `TauCeti.AlmostComplexStructure.formLefschetz_curryLeft_sub`: for every
   vector $u$, with $\varepsilon_u$ the wedge with $\langle u,\cdot\rangle$
   (`alternatizeUncurryFin` of `(innerSL ℝ u).smulRight`) and $\iota_u$ the
   interior product `curryLeft`,

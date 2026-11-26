@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Convex.Combination
-public import SymplecticGeometry.AlgebraicTopology.SimplicialComplex.Realization.LinearExtension
+public import TauCeti.AlgebraicTopology.SimplicialComplex.Realization.LinearExtension
 
 /-!
 # Linear extensions over a realization and convex sets

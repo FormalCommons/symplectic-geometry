@@ -7,7 +7,7 @@ module
 
 public import Mathlib.Analysis.Calculus.ContDiff.Defs
 import Mathlib.Analysis.Calculus.ContDiff.Operations
-import TauCeti.Analysis.Calculus.Hadamard
+import TauCeti.Analysis.Calculus.Hadamard.Basic
 
 /-!
 # Hadamard's lemma in one variable
