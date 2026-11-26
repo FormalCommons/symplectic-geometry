@@ -8,6 +8,8 @@ module
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
 import Mathlib.Geometry.Manifold.PartitionOfUnity
 import SymplecticGeometry.Analysis.ODE.Basic
+import SymplecticGeometry.Geometry.Manifold.Flow.Basic
+import TauCeti.Geometry.Manifold.IntegralCurve.Monotone
 
 /-!
 # Diffeotopies that push a compact set along a direction
@@ -30,8 +32,6 @@ its flow lines; and the field vanishes wherever `g` does.
 * `SymplecticGeometry.maximalIntegralCurve_eqOn_add_smul`: if a `C¹` vector field equals the
   constant `c` along the line `s ↦ x + s • c` for `s` in an open interval around `0`, then its
   maximal integral curve through `x` is that line on the interval.
-* `SymplecticGeometry.isIntegralCurve_maximalIntegralCurve_of_isCompact`: the maximal integral
-  curve of a compactly supported `C¹` field on a finite-dimensional space is global.
 * `SymplecticGeometry.norm_compactlySupportedFlowDiffeotopy_sub_le`: the compactly supported flow
   diffeotopy of a field of norm at most `M`, run for a duration `a ≥ 0`, moves each point by at
   most `a * t * M` at time `t`.
@@ -72,18 +72,6 @@ theorem maximalIntegralCurve_eqOn_add_smul {v : E → E}
       simpa [hvc s hs] using (((hasDerivAt_id s).smul_const c).const_add x).hasDerivWithinAt
   exact hline.eqOn_maximalIntegralCurve hv h0 (by simp)
 
-/-- The maximal integral curve of a compactly supported `C¹` vector field on a
-finite-dimensional real normed space is a global integral curve. -/
-theorem isIntegralCurve_maximalIntegralCurve_of_isCompact [FiniteDimensional ℝ E] {v : E → E}
-    {K : Set E} (hv : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ, E).tangent 1
-      (fun y ↦ (⟨y, v y⟩ : TangentBundle 𝓘(ℝ, E) E)))
-    (hK : IsCompact K) (hzero : ∀ y ∉ K, v y = 0) (x : E) :
-    IsIntegralCurve (maximalIntegralCurve (I := 𝓘(ℝ, E)) v x) (fun _ ↦ v) :=
-  isIntegralCurveOn_univ.1 <| TauCeti.isMIntegralCurveOn_iff_isIntegralCurveOn.1 <|
-    (TauCeti.isMIntegralCurve_maximalIntegralCurve_of_eq_univ hv
-      ((TauCeti.isCompleteVectorField_of_isCompact_of_eq_zero_off hv hK hzero)
-        |>.maximalIntegralCurveInterval_eq_univ x)).isMIntegralCurveOn univ
-
 /-- **Displacement of a compactly supported flow.** If a compactly supported `C^n` vector field
 `v` on a finite-dimensional real normed space has norm at most `M` everywhere, then its flow
 diffeotopy run for a duration `a ≥ 0` moves each point by at most `a * t * M` at time `t`. -/
@@ -94,7 +82,7 @@ theorem norm_compactlySupportedFlowDiffeotopy_sub_le [FiniteDimensional ℝ E] {
     (hK : IsCompact K) (hzero : ∀ y ∉ K, v y = 0) {a M : ℝ} (ha : 0 ≤ a)
     (hM : ∀ y, ‖v y‖ ≤ M) (t : unitInterval) (x : E) :
     ‖TauCeti.compactlySupportedFlowDiffeotopy hn hv hK hzero a (t, x) - x‖ ≤ a * t * M := by
-  have := ((isIntegralCurve_maximalIntegralCurve_of_isCompact
+  have := ((TauCeti.isIntegralCurve_maximalIntegralCurve_of_isCompact
     (hv.of_le (m := 1) (by exact_mod_cast hn)) hK hzero x).isIntegralCurveOn _).norm_sub_le_mul
     (fun s _ ↦ hM _) (mul_nonneg ha t.property.1)
   -- `maximalIntegralCurve_zero` is stated for fields valued in tangent spaces, and `rw` does
@@ -106,22 +94,25 @@ theorem norm_compactlySupportedFlowDiffeotopy_sub_le [FiniteDimensional ℝ E] {
 
 /-- **Quantities kept by a compactly supported flow.** If a continuous linear map `L` kills a
 compactly supported `C^n` vector field `v` on a finite-dimensional real normed space, then the
-flow diffeotopy of `v`, run for a duration `a ≥ 0`, keeps the value of `L`. -/
+flow diffeotopy of `v`, run for any duration `a`, keeps the value of `L`. -/
 theorem map_compactlySupportedFlowDiffeotopy [FiniteDimensional ℝ E] {F : Type*}
     [NormedAddCommGroup F] [NormedSpace ℝ F] {v : E → E} {K : Set E} {n : ℕ∞} (hn : 1 ≤ n)
     (hv : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ, E).tangent (n : WithTop ℕ∞)
       (fun y ↦ (⟨y, v y⟩ : TangentBundle 𝓘(ℝ, E) E)))
-    (hK : IsCompact K) (hzero : ∀ y ∉ K, v y = 0) {a : ℝ} (ha : 0 ≤ a) (L : E →L[ℝ] F)
+    (hK : IsCompact K) (hzero : ∀ y ∉ K, v y = 0) (a : ℝ) (L : E →L[ℝ] F)
     (hL : ∀ y, L (v y) = 0) (t : unitInterval) (x : E) :
     L (TauCeti.compactlySupportedFlowDiffeotopy hn hv hK hzero a (t, x)) = L x := by
-  have := IsIntegralCurveOn.map_eq_of_map_eq_zero
-    ((isIntegralCurve_maximalIntegralCurve_of_isCompact (hv.of_le (m := 1)
-      (by exact_mod_cast hn)) hK hzero x).isIntegralCurveOn (Icc 0 (a * t)))
-    L (fun s _ ↦ hL _) (mul_nonneg ha t.property.1)
+  have := (TauCeti.isMIntegralCurveOn_iff_isIntegralCurveOn.2
+    ((TauCeti.isIntegralCurve_maximalIntegralCurve_of_isCompact (hv.of_le (m := 1)
+      (by exact_mod_cast hn)) hK hzero x).isIntegralCurveOn univ)
+    ).apply_eq_add_smul_of_mvfderiv_apply_eq (g := L) (c := 0) isPreconnected_univ
+      (fun _ _ ↦ L.mdifferentiableAt)
+      (fun s _ ↦ by simp only [mvfderiv_eq_fderiv, L.fderiv]; exact hL _) (mem_univ 0)
+      (mem_univ (a * t))
   -- `maximalIntegralCurve_zero` is stated for fields valued in tangent spaces, and `rw` does
   -- not find it for the `E`-valued `v`.
   have h0 : maximalIntegralCurve (I := 𝓘(ℝ, E)) v x 0 = x := maximalIntegralCurve_zero
-  rw [h0] at this
+  rw [h0, smul_zero, add_zero] at this
   rw [TauCeti.compactlySupportedFlowDiffeotopy_apply hn hv hK hzero a (t, x)]
   exact this
 
@@ -199,9 +190,10 @@ theorem exists_diffeotopy_apply_eq_add_smul {K : Set E} (hK : IsCompact K) {g : 
     rw [maximalIntegralCurve_eqOn_add_smul hv1 ⟨by linarith, by linarith⟩ hvc
       ⟨by linarith [t.property.1], by linarith [t.property.2]⟩, mul_smul]
   · -- The field is a multiple of `e`, so the quotient map onto `E ⧸ ℝ ∙ e` is constant along
-    -- its flow lines.
+    -- its flow lines. The closedness of `ℝ ∙ e` is the instance that makes the quotient a normed
+    -- space, which `map_compactlySupportedFlowDiffeotopy` asks of its target.
     have : IsClosed ((ℝ ∙ e : Submodule ℝ E) : Set E) := Submodule.isClosed_of_finiteDimensional _
-    have := map_compactlySupportedFlowDiffeotopy hn hv hC hzero zero_le_one (ℝ ∙ e).mkQL
+    have := map_compactlySupportedFlowDiffeotopy hn hv hC hzero 1 (ℝ ∙ e).mkQL
       (fun y ↦ by simp [v]) t x
     simpa [Submodule.Quotient.eq] using this
   · -- The zeros of `g` are zeros of the field, so they stay put. The `show` states the equation
