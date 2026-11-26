@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.MeasureTheory.Integral.Average
+import TauCeti.MeasureTheory.Integral.Bochner.Basic
 
 /-!
 # Set averages bounded through lower averages
@@ -34,15 +35,11 @@ theorem sub_setAverage_le_of_setLAverage_ofReal_sub_le
     (h0 : μ s ≠ 0) (hfin : μ s ≠ ∞) (hu : IntegrableOn u s μ) (hL : 0 ≤ L)
     (h : ⨍⁻ x in s, ENNReal.ofReal (K - u x) ∂μ ≤ ENNReal.ofReal L) :
     K - ⨍ x in s, u x ∂μ ≤ L := by
-  have hint : IntegrableOn (fun x => K - u x) s μ := (integrableOn_const hfin).sub hu
-  have hmax : IntegrableOn (fun x => max (K - u x) 0) s μ := hint.sup integrableOn_zero
-  rw [← setAverage_const h0 hfin K, ← setAverage_fun_sub (integrableOn_const hfin) hu]
-  refine le_trans ?_ <| (ENNReal.ofReal_le_ofReal_iff hL).1 <|
-    (ofReal_setAverage hmax (.of_forall fun _ => le_max_right _ _)).trans_le ?_
-  · rw [setAverage_eq, setAverage_eq]
-    exact smul_le_smul_of_nonneg_left (integral_mono hint hmax fun x => le_max_left _ _)
-      (by positivity)
-  · simpa [ENNReal.ofReal_max, setLAverage_eq] using h
+  rw [← setAverage_const h0 hfin K, ← setAverage_fun_sub (integrableOn_const hfin) hu,
+    setAverage_eq']
+  rw [setLAverage_eq'] at h
+  exact (ENNReal.ofReal_le_ofReal_iff hL).1
+    (TauCeti.MeasureTheory.ofReal_integral_le_lintegral_ofReal.trans h)
 
 end MeasureTheory
 
