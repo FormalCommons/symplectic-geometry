@@ -187,7 +187,7 @@ theorem coe_shellDiffeomorph_apply (hψ : IsSymplecticBallEmbedding σ (√(l ^ 
 
 variable (n ε) in
 /-- `openNbhd n ε ∖ Z` lies in the model piece. -/
-theorem sdiff_le_modelPiece :
+theorem openNbhdComplDivisor_le_modelPiece :
     openNbhdComplDivisor n ε ≤ modelPiece n ε :=
   fun _ hp ↦ (mem_openNbhdComplDivisor_iff.1 hp).1
 
@@ -223,7 +223,7 @@ piece onto `shellImage hψ` in the outer piece. -/
 def gluingDiffeomorph (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) (hl : 0 ≤ l)
     (hε : 0 < ε) :
     modelOverlap n ε ≃ₘ⟮𝓘(ℝ, Fin (n + 1) → ℂ), 𝓘(ℝ, Fin (n + 1) → ℂ)⟯ outerOverlap hψ :=
-  (Diffeomorph.nestedOpen (sdiff_le_modelPiece n ε)).trans
+  (Diffeomorph.nestedOpen (openNbhdComplDivisor_le_modelPiece n ε)).trans
     ((shellSymplectomorph n l ε hl hε.le).trans
       ((shellDiffeomorph hψ).trans (Diffeomorph.nestedOpen (shellImage_le_outerPiece hψ)).symm))
 
