@@ -96,6 +96,8 @@ coordinates `s, t` of the line. A point of the cone `K³ × K²` is written `Sum
   keeps weighted homogeneity (`MvPolynomial.IsWeightedHomogeneous.rename`).
 * `SymplecticGeometry.sum_mul_eval_pderiv_inl_hessePencil` and
   `SymplecticGeometry.sum_mul_eval_pderiv_inr_hessePencil`: the two Euler relations.
+* `SymplecticGeometry.eval_pderiv_inl_hessePencil`: a partial derivative of the pencil in a
+  plane coordinate is `s ∂f + t ∂g` for the two cubics `f`, `g` that span it.
 * `SymplecticGeometry.exists_eval_pderiv_hessePencil_ne_zero`: over a field in which `3 ≠ 0`, at
   every point `(v, w)` with `v ≠ 0` and `w ≠ 0` some partial derivative is nonzero; in particular
   the hypersurface is smooth.
@@ -151,6 +153,18 @@ coordinates `s, t` of the line. A point of the cone `K³ × K²` is written `Sum
   is simply connected, since `ℂℙ²` is and deleting finitely many points from a manifold of real
   dimension four does not change this
   (`SymplecticGeometry.simplyConnectedSpace_compl_iff_of_finite`).
+* `SymplecticGeometry.rationalEllipticSurface.exists_openPartialHomeomorph_of_mem_baseLocus`:
+  coordinates at a base point `p`. Inside any neighbourhood of `p` there is an open partial
+  homeomorphism `φ` of `ℂℙ²` onto a round ball of `ℂ²` with `φ p = 0`, whose source contains no
+  other base point, and over whose source the surface is the incidence set
+  `{(x, [w]) | w₀ φ(x)₀ + w₁ φ(x)₁ = 0}`. In the standard affine chart `i` at `p`, `φ` reads `z ↦`
+  the two cubics dehomogenized at coordinate `i` (Tau Ceti's `TauCeti.dehomogenize`) and
+  evaluated at `z`. Their Jacobian matrix there is the cone Jacobian with column `i` deleted
+  (`TauCeti.jacobiMatrixAt_dehomogenize`), whose determinant is nonzero at `p` by
+  `exists_eval_pderiv_hessePencil_ne_zero_of_ne_zero`. So the cone Jacobian is surjective at `p`,
+  and Tau Ceti's slice chart `TauCeti.complexProjectiveZeroLocusSliceChart` of the base locus,
+  whose slice factor `Fin 0 → ℂ` is trivial, gives `φ` near `p`; cutting its target down to a
+  small ball gives the rest.
 
 ## References
 
@@ -161,7 +175,7 @@ coordinates `s, t` of the line. A point of the cone `K³ × K²` is written `Sum
 
 public section
 
-open MvPolynomial Set TauCeti
+open MvPolynomial Set TauCeti Topology
 open scoped ContDiff Manifold LinearAlgebra.Projectivization
 
 namespace SymplecticGeometry
@@ -251,6 +265,14 @@ theorem pderiv_inr_zero_hessePencil :
 theorem pderiv_inr_one_hessePencil :
     pderiv (.inr 1) (hessePencil R) = X (.inl 0) * X (.inl 1) * X (.inl 2) := by
   simp [hessePencil_def, hesseCubics_zero', hesseCubics_one, pderiv_X]
+
+/-- A partial derivative of the Hesse pencil in a plane coordinate is the same combination of the
+partial derivatives of the two cubics `hesseCubics R` as the pencil is of the cubics:
+`∂ₗ(s f + t g) = s ∂ₗf + t ∂ₗg`. -/
+theorem eval_pderiv_inl_hessePencil (v : Fin 3 → R) (w : Fin 2 → R) (l : Fin 3) :
+    eval (Sum.elim v w) (pderiv (.inl l) (hessePencil R)) =
+      w 0 * eval v (pderiv l (hesseCubics R 0)) + w 1 * eval v (pderiv l (hesseCubics R 1)) := by
+  fin_cases l <;> simp [hesseCubics_zero', hesseCubics_one, pderiv_X] <;> ring
 
 /-- The Hesse pencil is weighted homogeneous of degree `n + m` for weights `w` that give each
 line coordinate `s, t` the weight `n` and for which both cubics are weighted homogeneous of degree
@@ -827,6 +849,124 @@ instance simplyConnectedSpace_complBaseLocus : SimplyConnectedSpace complBaseLoc
   have := (simplyConnectedSpace_compl_iff_of_finite (X := ℙ ℂ (Fin 3 → ℂ)) h
     finite_baseLocus).2 inferInstance
   exact complBaseLocusHomeomorph.toHomotopyEquiv.simplyConnectedSpace_iff.2 this
+
+/-! ### Coordinates at a base point of the pencil -/
+
+/-- At a base point, the two cubics have independent differentials in the coordinates of the
+standard chart `i`: the Jacobian matrix of `hesseCubics ℂ` with column `i` deleted is invertible.
+A vanishing combination `s ∂f + t ∂g` of its rows would make every partial derivative of the
+member `s f + t g` of the pencil vanish in the chart, against
+`exists_eval_pderiv_hessePencil_ne_zero_of_ne_zero`. -/
+private theorem det_jacobiMatrixAt_hesseCubics_submatrix_ne_zero {i : Fin 3} {z : Fin 2 → ℂ}
+    (hz : (Projectivization.affineChart (K := ℂ) i).symm z ∈ baseLocus) :
+    ((jacobiMatrixAt (hesseCubics ℂ) (i.insertNth 1 z)).submatrix id i.succAbove).det ≠ 0 := by
+  classical
+  rw [Projectivization.affineChart_symm_apply, mk_mem_baseLocus_iff] at hz
+  set V := Fin.insertNth (α := fun _ ↦ ℂ) i 1 z
+  rw [Ne, ← Matrix.exists_vecMul_eq_zero_iff]
+  rintro ⟨w, hw, hM⟩
+  obtain ⟨j, hj⟩ := Function.ne_iff.1 hw
+  have hV : V i ≠ 0 := by simp [V]
+  obtain ⟨k, hki, hkj, hk⟩ := exists_eval_pderiv_hessePencil_ne_zero_of_ne_zero (three_ne_zero)
+    hV hj (by simp [hz.1, hz.2])
+  rcases k with l | l
+  · obtain ⟨m, rfl⟩ := Fin.exists_succAbove_eq (x := l) (y := i) (by simpa using hki)
+    refine hk ?_
+    have := congrFun hM m
+    simp only [Matrix.vecMul, dotProduct, Fin.sum_univ_two, Matrix.submatrix_apply, id,
+      jacobiMatrixAt_apply, Pi.zero_apply] at this
+    rw [eval_pderiv_inl_hessePencil]
+    linear_combination this
+  · fin_cases l <;> simp at hk <;> simp_all
+
+/-- Near a base point `p`, the two cubics dehomogenized in a standard chart at `p` form an open
+partial homeomorphism to `ℂ²`: Tau Ceti's slice chart
+`TauCeti.complexProjectiveZeroLocusSliceChart` of the base locus, whose slice factor is trivial.
+It sends `p` to `0`, its zeros are the base points, and over its source the rational elliptic
+surface is the incidence set `s u + t v = 0`. -/
+private theorem exists_chart_of_mem_baseLocus {p : ℙ ℂ (Fin 3 → ℂ)} (hp : p ∈ baseLocus) :
+    ∃ Φ : OpenPartialHomeomorph (ℙ ℂ (Fin 3 → ℂ)) (Fin 2 → ℂ), p ∈ Φ.source ∧ Φ p = 0 ∧
+      (∀ x ∈ Φ.source, x ∈ baseLocus ↔ Φ x = 0) ∧
+      ∀ x ∈ Φ.source, ∀ (w : Fin 2 → ℂ) (hw : w ≠ 0),
+        (x, Projectivization.mk ℂ w hw) ∈ rationalEllipticSurface ↔
+          w 0 * Φ x 0 + w 1 * Φ x 1 = 0 := by
+  obtain ⟨i, hi⟩ := Projectivization.exists_mem_affineOpen p
+  have hsymm {x : ℙ ℂ (Fin 3 → ℂ)} (hx : x ∈ Projectivization.affineOpen i) :
+      (Projectivization.affineChart (K := ℂ) i).symm (Projectivization.affineChart i x) = x :=
+    (Projectivization.affineChart i).left_inv (by simpa using hx)
+  have hL : p ∈ complexProjectiveZeroLocus (hesseCubics ℂ) := baseLocus_def ▸ hp
+  have hrank : Function.Surjective (jacobiMatrixAt (hesseCubics ℂ) p.rep).mulVec := by
+    rw [← surjective_fderiv_eval_dehomogenize_affineChart_iff i isHomogeneous_hesseCubics hL hi,
+      ← ContinuousLinearMap.coe_coe, fderiv_eval_dehomogenize, Matrix.coe_mulVecLin,
+      Matrix.mulVec_surjective_iff_isUnit, Matrix.isUnit_iff_isUnit_det, isUnit_iff_ne_zero]
+    exact det_jacobiMatrixAt_hesseCubics_submatrix_ne_zero (by rwa [hsymm hi])
+  have : IsEmpty (Fin (2 - Fintype.card (Fin 2))) := by
+    rw [Fintype.card_fin]
+    exact Fin.isEmpty'
+  set Φ := (complexProjectiveZeroLocusSliceChart isHomogeneous_hesseCubics hL hi
+    hrank).transHomeomorph (Homeomorph.uniqueProd _ _)
+  have hΦ (x : ℙ ℂ (Fin 3 → ℂ)) :
+      Φ x = fun k ↦ eval (Projectivization.affineChart i x) (dehomogenize i (hesseCubics ℂ k)) := by
+    simp [Φ, Homeomorph.uniqueProd]
+  have hsrc {x : ℙ ℂ (Fin 3 → ℂ)} (hx : x ∈ Φ.source) : x ∈ Projectivization.affineOpen i :=
+    complexProjectiveZeroLocusSliceChart_source_subset _ _ _ _ hx
+  have hzero {x : ℙ ℂ (Fin 3 → ℂ)} (hx : x ∈ Projectivization.affineOpen i) :
+      x ∈ baseLocus ↔ Φ x = 0 := by
+    rw [baseLocus_def, mem_complexProjectiveZeroLocus_iff_eval_affineChart isHomogeneous_hesseCubics
+      hx, hΦ, _root_.funext_iff]
+    simp only [Pi.zero_apply]
+  refine ⟨Φ, mem_complexProjectiveZeroLocusSliceChart_source _ _ _ _, (hzero hi).1 hp,
+    fun x hx ↦ hzero (hsrc hx), fun x hx w hw ↦ ?_⟩
+  conv_lhs => rw [← hsymm (hsrc hx), Projectivization.affineChart_symm_apply,
+    mk_mem_rationalEllipticSurface_iff]
+  simp only [hΦ, eval_dehomogenize]
+  simp
+
+/-- **Coordinates of `E(1)` at a base point of the Hesse pencil.** For a base point `p` and a
+neighbourhood `U` of `p` in `ℂℙ²`, there is an open partial homeomorphism `φ` from `ℂℙ²` to `ℂ²`
+whose source contains `p` and lies in `U`, whose target is the ball of some radius `r > 0` for the
+norm of `ℂ² ≅ ℝ⁴` (`complexToRealEuclidean`), and with `φ p = 0`, such that over its source the
+rational elliptic surface is the incidence set `{(x, [w]) | w₀ φ(x)₀ + w₁ φ(x)₁ = 0}` and `p` is
+the only base point in its source. Its source is homeomorphic to the ball by
+`φ.toHomeomorphSourceTarget`. -/
+theorem exists_openPartialHomeomorph_of_mem_baseLocus {p : ℙ ℂ (Fin 3 → ℂ)}
+    (hp : p ∈ baseLocus) {U : Set (ℙ ℂ (Fin 3 → ℂ))} (hU : U ∈ 𝓝 p) :
+    ∃ (φ : OpenPartialHomeomorph (ℙ ℂ (Fin 3 → ℂ)) (Fin 2 → ℂ)) (r : ℝ), 0 < r ∧
+      p ∈ φ.source ∧ φ.source ⊆ U ∧
+      φ.target = {z | ‖complexToRealEuclidean (Fin 2) z‖ < r} ∧ φ p = 0 ∧
+      (∀ x ∈ φ.source, ∀ (w : Fin 2 → ℂ) (hw : w ≠ 0),
+        (x, Projectivization.mk ℂ w hw) ∈ rationalEllipticSurface ↔
+          w 0 * φ x 0 + w 1 * φ x 1 = 0) ∧
+      φ.source ∩ baseLocus = {p} := by
+  obtain ⟨Φ, hpΦ, h0, hzero, hmem⟩ := exists_chart_of_mem_baseLocus hp
+  -- A ball `B` around `0 = Φ p` inside the target of `Φ` whose points come from `U`.
+  have hN : (complexToRealEuclidean (Fin 2)).symm ⁻¹' (Φ.target ∩ Φ.symm ⁻¹' U) ∈ 𝓝 0 := by
+    refine (complexToRealEuclidean (Fin 2)).symm.continuous.continuousAt.preimage_mem_nhds ?_
+    rw [map_zero, ← h0]
+    refine Filter.inter_mem (Φ.open_target.mem_nhds (Φ.map_source hpΦ)) ?_
+    exact (Φ.continuousAt_symm (Φ.map_source hpΦ)).preimage_mem_nhds (by rwa [Φ.left_inv hpΦ])
+  obtain ⟨r, hr, hball⟩ := Metric.mem_nhds_iff.1 hN
+  set B := {z : Fin 2 → ℂ | ‖complexToRealEuclidean (Fin 2) z‖ < r}
+  have hB : B ⊆ Φ.target ∩ Φ.symm ⁻¹' U := fun z hz ↦ by
+    simpa using hball
+      (show complexToRealEuclidean (Fin 2) z ∈ Metric.ball 0 r by simpa [B] using hz)
+  have hBo : IsOpen B :=
+    isOpen_lt (continuous_norm.comp (complexToRealEuclidean (Fin 2)).continuous) continuous_const
+  -- `φ` is `Φ` with its target cut down to `B`.
+  set φ := (Φ.symm.restrOpen B hBo).symm
+  have hφ : ⇑φ = ⇑Φ := by simp [φ]
+  have hsrc : φ.source = Φ.source ∩ Φ ⁻¹' B := by simp [φ]
+  have hpφ : p ∈ φ.source := by
+    rw [hsrc]
+    exact ⟨hpΦ, by simp [B, h0, hr]⟩
+  refine ⟨φ, r, hr, hpφ, fun x hx ↦ ?_, ?_, hφ ▸ h0, fun x hx ↦ hφ ▸ hmem x (hsrc ▸ hx).1, ?_⟩
+  · rw [hsrc] at hx
+    simpa [Φ.left_inv hx.1] using (hB hx.2).2
+  · rw [OpenPartialHomeomorph.symm_target, OpenPartialHomeomorph.restrOpen_source,
+      OpenPartialHomeomorph.symm_source]
+    exact inter_eq_right.2 (hB.trans inter_subset_left)
+  · refine Subset.antisymm (fun x ⟨hx, hxb⟩ ↦ φ.injOn hx hpφ ?_) (singleton_subset_iff.2 ⟨hpφ, hp⟩)
+    rw [hφ, ((hzero x (hsrc ▸ hx).1).1 hxb), h0]
 
 end rationalEllipticSurface
 
