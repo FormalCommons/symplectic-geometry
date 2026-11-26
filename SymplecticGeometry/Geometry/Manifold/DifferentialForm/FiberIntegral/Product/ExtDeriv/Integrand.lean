@@ -67,27 +67,27 @@ variable {E E' H' F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 
 /-- The product chart of `U × F` at `(b, y)` sends `(b, y)` to `(b, φ y)`, where `φ` is the
 extended chart of `F` at `y`: the chart of an open subset of `E` is the identity. -/
-theorem extChartAt_opens_prod_self (b : U) (y : F) :
+theorem _root_.TopologicalSpace.Opens.extChartAt_opens_prod_self (b : U) (y : F) :
     extChartAt (𝓘(ℝ, E).prod J) (b, y) (b, y) = ((b : E), extChartAt J y y) := by
   simp only [extChartAt_prod, PartialEquiv.prod_coe, Opens.extChartAt_opens_apply]
 
 /-- The chart point `(b, φ y)` of `(b, y)` lies in the range of the model of `U × F`. -/
-theorem extChartAt_opens_prod_self_mem_range (b : U) (y : F) :
+theorem _root_.TopologicalSpace.Opens.extChartAt_opens_prod_self_mem_range (b : U) (y : F) :
     ((b : E), extChartAt J y y) ∈ range (𝓘(ℝ, E).prod J) :=
-  extChartAt_opens_prod_self (J := J) b y ▸ extChartAt_target_subset_range (b, y)
+  Opens.extChartAt_opens_prod_self (J := J) b y ▸ extChartAt_target_subset_range (b, y)
     (mem_extChartAt_target (b, y))
 
 variable [IsManifold J 1 F]
 
 /-- The coordinate expression of a smooth form on `U × F` in the product chart at `(b, y)` is
 differentiable within the model range at the chart point of `(b, y)`. -/
-theorem differentiableWithinAt_inChartAt_opens_prod {k : ℕ}
+theorem _root_.TauCeti.SmoothForm.differentiableWithinAt_inChartAt_opens_prod {k : ℕ}
     (α : SmoothForm (𝓘(ℝ, E).prod J) (U × F) ℝ k) (b : U) (y : F) :
     DifferentiableWithinAt ℝ (RoughForm.inChartAt α.val (b, y)) (range (𝓘(ℝ, E).prod J))
       ((b : E), extChartAt J y y) := by
   have h := (α.isSmoothForm.contDiffWithinAt_inChartAt_self (b, y)).differentiableWithinAt
     (by simp)
-  rwa [extChartAt_opens_prod_self] at h
+  rwa [Opens.extChartAt_opens_prod_self] at h
 
 /-- **The integrand in the product chart.** For `b, b' ∈ U`, vectors `u₁, …, uᵣ ∈ E` and `z` in
 the target of the chart of `F` at `y`, the coordinate expression at `z` of
@@ -113,8 +113,7 @@ theorem prodFiberIntegrand_apply_eq_inChartAt
   rw [inChartAt_prodFiberIntegrand α hb' u y hz,
     Opens.extChartAt_opens_apply, ContinuousAlternatingMap.compContinuousLinearMap_apply,
     ContinuousAlternatingMap.appendLeft_apply]
-  simp only [ht]
-  rfl
+  simp only [ht, Function.comp_def, ContinuousLinearMap.inr_apply]
 
 /-- At the centre of the chart of `F`, the value of `prodFiberIntegrand α b' u` at `y` on `w` is
 the coordinate expression of `α` in the product chart at `(b, y)`, at `(b', φ y)`, on
@@ -146,7 +145,7 @@ theorem mfderiv_prodFiberIntegrand_apply (α : RoughForm (𝓘(ℝ, E).prod J) (
   set s := range (𝓘(ℝ, E).prod J)
   set x₀ : E × E' := ((b : E), extChartAt J y y)
   have hs : UniqueDiffWithinAt ℝ s x₀ :=
-    (𝓘(ℝ, E).prod J).uniqueDiffOn _ (extChartAt_opens_prod_self_mem_range b y)
+    (𝓘(ℝ, E).prod J).uniqueDiffOn _ (Opens.extChartAt_opens_prod_self_mem_range b y)
   -- The integrand at `y` is read off the coordinate expression of `α` by a fixed linear map.
   let L : (E × E') [⋀^Fin (r + m)]→L[ℝ] ℝ →L[ℝ] E' [⋀^Fin m]→L[ℝ] ℝ :=
     (ContinuousAlternatingMap.compContinuousLinearMapCLM (ContinuousLinearMap.inr ℝ E E')).comp
@@ -231,8 +230,7 @@ theorem fderivWithin_inChartAt_prodFiberIntegrand_apply
     filter_upwards [extChartAt_target_mem_nhdsWithin y] with z hz
     exact prodFiberIntegrand_apply_eq_inChartAt α b b u hz X
   rw [(h.congr_of_eventuallyEq heq (heq.self_of_nhdsWithin hz₀)).fderivWithin
-    (J.uniqueDiffOn _ hz₀)]
-  rfl
+    (J.uniqueDiffOn _ hz₀), ContinuousLinearMap.comp_apply, ContinuousLinearMap.inr_apply]
 
 omit [IsManifold J 1 F] in
 /-- **The exterior derivative on `U × F` in the product chart.** If the coordinate expression of
@@ -246,9 +244,9 @@ theorem mextDeriv_apply_eq_sum_fderivWithin {k : ℕ}
     mextDeriv α (b, y) V = ∑ p, (-1) ^ p.val •
       fderivWithin ℝ (fun x ↦ α.inChartAt (b, y) x (p.removeNth V))
         (range (𝓘(ℝ, E).prod J)) ((b : E), extChartAt J y y) (V p) := by
-  rw [mextDeriv_def, extChartAt_opens_prod_self]
+  rw [mextDeriv_def, Opens.extChartAt_opens_prod_self]
   exact extDerivWithin_apply hα
-    ((𝓘(ℝ, E).prod J).uniqueDiffOn _ (extChartAt_opens_prod_self_mem_range b y)) V
+    ((𝓘(ℝ, E).prod J).uniqueDiffOn _ (Opens.extChartAt_opens_prod_self_mem_range b y)) V
 
 /-- **The integrand of `dα` on a product with flat base, fibre of positive degree.** Let `α` be
 a smooth form of degree `r + (n + 1)` on `U × F`, `U` open in `E`. For `b ∈ U`, `v₀, …, vᵣ ∈ E`
@@ -292,7 +290,7 @@ theorem prodFiberIntegrand_cast_mextDerivₗ_apply_succ [IsManifold J ∞ F] {n 
     rw [mextDeriv_def]
     refine (extDerivWithin_apply hγ (J.uniqueDiffOn _ hz₀) w).trans ?_
     refine Finset.sum_congr rfl fun j _ ↦ congrArg _ ?_
-    have hα' := (differentiableWithinAt_inChartAt_opens_prod α' b y
+    have hα' := (α'.differentiableWithinAt_inChartAt_opens_prod b y
       ).continuousAlternatingMap_apply_const
         (Fin.append (fun i ↦ (v i, (0 : E'))) fun k ↦ ((0 : E), Fin.removeNth j w k))
     rw [fderivWithin_inChartAt_prodFiberIntegrand_apply α'.val v _ hα' (w j), hδ]
@@ -304,7 +302,7 @@ theorem prodFiberIntegrand_cast_mextDerivₗ_apply_succ [IsManifold J ∞ F] {n 
   refine (congrArg (mextDeriv α.val (b, y)) (funext fun p ↦
     Manifold.tangentSpaceProdEquiv_symm_apply (I := 𝓘(ℝ, E)) (J := J) (b, y)
       (Fin.append (fun i ↦ (v i, (0 : E'))) (fun j ↦ ((0 : E), w j)) (Fin.cast h₁ p)))).trans ?_
-  refine (mextDeriv_apply_eq_sum_fderivWithin _ (differentiableWithinAt_inChartAt_opens_prod α b y)
+  refine (mextDeriv_apply_eq_sum_fderivWithin _ (α.differentiableWithinAt_inChartAt_opens_prod b y)
     _).trans ?_
   refine (Fin.sum_neg_one_pow_smul_removeNth_append δ
     (fun i ↦ (v i, (0 : E'))) (fun j ↦ ((0 : E), w j)) h₁ h₂).trans ?_
@@ -314,7 +312,7 @@ theorem prodFiberIntegrand_cast_mextDerivₗ_apply_succ [IsManifold J ∞ F] {n 
   have hr : Fin.removeNth i (fun i ↦ (v i, (0 : E'))) = fun k ↦ (Fin.removeNth i v k, (0 : E')) :=
     funext fun k ↦ by simp only [Fin.removeNth_apply]
   rw [hr]
-  rw [mfderiv_prodFiberIntegrand_apply α.val (differentiableWithinAt_inChartAt_opens_prod α b y)]
+  rw [mfderiv_prodFiberIntegrand_apply α.val (α.differentiableWithinAt_inChartAt_opens_prod b y)]
 
 /-- **The integrand of `dα` on a product with flat base, fibre of degree zero.** Let `α` be a
 smooth form of degree `r + 0` on `U × F`, `U` open in `E`. For `b ∈ U`, `v₀, …, vᵣ ∈ E` and
@@ -342,7 +340,7 @@ theorem prodFiberIntegrand_cast_mextDerivₗ_apply_zero [IsManifold J ∞ F]
   refine (congrArg (mextDeriv α.val (b, y)) (funext fun p ↦
     Manifold.tangentSpaceProdEquiv_symm_apply (I := 𝓘(ℝ, E)) (J := J) (b, y)
       (Fin.append (fun i ↦ (v i, (0 : E'))) (fun j ↦ ((0 : E), w j)) (Fin.cast h₁ p)))).trans ?_
-  refine (mextDeriv_apply_eq_sum_fderivWithin _ (differentiableWithinAt_inChartAt_opens_prod α b y)
+  refine (mextDeriv_apply_eq_sum_fderivWithin _ (α.differentiableWithinAt_inChartAt_opens_prod b y)
     _).trans ?_
   refine (Fin.sum_neg_one_pow_smul_removeNth_append_zero δ
     (fun i ↦ (v i, (0 : E'))) (fun j ↦ ((0 : E), w j)) h₁).trans ?_
@@ -350,7 +348,7 @@ theorem prodFiberIntegrand_cast_mextDerivₗ_apply_zero [IsManifold J ∞ F]
   have hr : Fin.removeNth i (fun i ↦ (v i, (0 : E'))) = fun k ↦ (Fin.removeNth i v k, (0 : E')) :=
     funext fun k ↦ by simp only [Fin.removeNth_apply]
   rw [hr]
-  rw [mfderiv_prodFiberIntegrand_apply α.val (differentiableWithinAt_inChartAt_opens_prod α b y)]
+  rw [mfderiv_prodFiberIntegrand_apply α.val (α.differentiableWithinAt_inChartAt_opens_prod b y)]
 
 end SymplecticGeometry
 
