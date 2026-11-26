@@ -277,55 +277,6 @@ variable {E H N : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimen
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]
   [TopologicalSpace N] [ChartedSpace H N] [IsManifold I ∞ N] [T2Space N]
 
-/-- A step of `exists_diffeotopy_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub`: Moser's
-argument at one point for the segment `ω₀ + s (α - ω₀)` from a closed form `ω₀`, with a primitive
-`γ` of `α - ω₀` constant in `s`. If, up to time `1`, the trajectory of `x` under the cut-off Moser
-field stays at points near which the cutoff is `1` and the segment is nondegenerate, the time-one
-map pulls `α` back to `ω₀` at `x`. -/
-private theorem mpullback_timeDependentFlowOf_moserField_lineMapFamily_apply
-    {ω₀ α : SmoothTwoForm I N} (hω₀ : ω₀.IsClosed) {γ : SmoothForm I N ℝ 1}
-    (hγ : α - ω₀ = mextDerivₗ I 1 γ) {ρ : ℝ × N → ℝ}
-    (hX : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent ∞ (fun p : ℝ × N ↦
-      (⟨p.2, moserField (SmoothForm.lineMapFamily ω₀ α contDiff_id)
-        (SmoothForm.mpullback Prod.snd contMDiff_snd γ) ρ p.1 p.2⟩ : TangentBundle I N)))
-    (hc : IsCompleteVectorField (timeDependentSuspensionField
-      (moserField (SmoothForm.lineMapFamily ω₀ α contDiff_id)
-        (SmoothForm.mpullback Prod.snd contMDiff_snd γ) ρ)))
-    {x : N} (hx : ∀ s ∈ Icc (0 : ℝ) 1, ∀ᶠ z in 𝓝 (timeDependentFlowOf
-      (moserField (SmoothForm.lineMapFamily ω₀ α contDiff_id)
-        (SmoothForm.mpullback Prod.snd contMDiff_snd γ) ρ) 0 s x),
-      ρ (s, z) = 1 ∧ (SmoothTwoForm.flat (ω₀ + s • (α - ω₀)) z).IsInvertible) :
-    TauCeti.mpullback I I (timeDependentFlowOf
-      (moserField (SmoothForm.lineMapFamily ω₀ α contDiff_id)
-        (SmoothForm.mpullback Prod.snd contMDiff_snd γ) ρ) 0 1) α.val x = ω₀.val x := by
-  set Λ := SmoothForm.lineMapFamily ω₀ α contDiff_id
-  -- Moser's equation holds along the trajectory of `x` up to time `1`.
-  have hrate (s : ℝ) (hs : s ∈ uIcc (0 : ℝ) 1) :
-      (TauCeti.mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk s)
-          (mlieDerivForm (fun _ ↦ ((1 : ℝ), (0 : E))) Λ.val) +
-        mlieDerivForm (moserField Λ (SmoothForm.mpullback Prod.snd contMDiff_snd γ) ρ s)
-          (TauCeti.mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk s) Λ.val))
-        (timeDependentFlowOf
-          (moserField Λ (SmoothForm.mpullback Prod.snd contMDiff_snd γ) ρ) 0 s x) = 0 := by
-    have hcl : (SmoothForm.mpullback (Prod.mk s) (contMDiff_const.prodMk contMDiff_id)
-        Λ).IsClosed := by
-      rw [SmoothForm.mpullback_prodMk_lineMapFamily, hγ]
-      exact hω₀.add ((SmoothForm.isClosed_mextDerivₗ _).smul _)
-    refine moserField_rate_eq_zero (congrFun ((SmoothForm.isClosed_def _).1 hcl) _)
-      (by simpa only [Λ, SmoothForm.mpullback_prodMk_lineMapFamily, id] using
-        hx s (uIcc_of_le (zero_le_one (α := ℝ)) ▸ hs)) ?_
-    rw [SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily, deriv_id, one_smul,
-      SmoothForm.mpullback_prodMk_mpullback_snd, hγ, mextDerivₗ_apply]
-  have h := mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_forall_mem_uIcc
-    (hX.of_le (by simp)) hc (fun _ _ ↦ (Λ.contMDiff.of_le (by simp)).contMDiffAt)
-    (s := 0) (t := 1) (x := x) hrate
-  have h1 : SmoothForm.mpullback (Prod.mk 1) (contMDiff_const.prodMk contMDiff_id) Λ = α := by
-    rw [SmoothForm.mpullback_prodMk_lineMapFamily, id, one_smul, add_sub_cancel]
-  have h0 : SmoothForm.mpullback (Prod.mk 0) (contMDiff_const.prodMk contMDiff_id) Λ = ω₀ := by
-    rw [SmoothForm.mpullback_prodMk_lineMapFamily, id, zero_smul, add_zero]
-  rw [← h1, SmoothForm.coe_mpullback, ← h0, SmoothForm.coe_mpullback]
-  exact h
-
 /-- **Moser's argument with a parameter, relative to a compact set.** Let `N` be a boundaryless
 Hausdorff manifold, `ω₀` a closed two-form on `N`, and `σ` a two-form and `β` a one-form on
 `[0, 1] × N`, with slices `σ_t` and `β_t`, such that `dβ_t = σ_t - ω₀` for every `t` and
@@ -456,7 +407,8 @@ theorem exists_diffeotopy_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub
   rw [SmoothForm.coe_mpullback, Diffeotopy.timeSlice_ofReal, funext (hψ t), ← hσ' t.property,
     hYt]
   refine mpullback_timeDependentFlowOf_moserField_lineMapFamily_apply hω₀
-    (Subtype.ext (by rw [mextDerivₗ_apply, hσ' t.property, hβ' t.property, hβ t])) hYt' hct
+    (Subtype.ext (by rw [mextDerivₗ_apply, hσ' t.property, hβ' t.property, hβ t]))
+    (hYt'.of_le (by simp)) hct
     fun s hs ↦ ?_
   -- The trajectory stays in `S`, where `ρ = 1` and the forms of `Ω` are nondegenerate.
   have hS : (((t : ℝ), s), timeDependentFlowOf (Y t) 0 s x) ∈ S :=
