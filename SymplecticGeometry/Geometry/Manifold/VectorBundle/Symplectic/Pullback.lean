@@ -67,6 +67,9 @@ that it is compatible with the rest of the structure that `Symplectic/Basic.lean
   `compMFDeriv_neg`, `compMFDeriv_sub`: for a `C^∞` map `f : N → M` and a two-form `ω` on
   `f *ᵖ TM`, the two-form `σ(u, v) = ω(df u, df v)` on `TN`. It uses only the smoothness of `f`,
   not that `f` is an immersion.
+* `tangentEquiv_compMFDeriv_pullback`: for a two-form `ω` on `TM`, the form
+  `(ω.pullback f hf).compMFDeriv f hf` on `TN` is Tau Ceti's pull-back
+  `TauCeti.SmoothForm.mpullback f hf` of `ω`, once both sides are read through `tangentEquiv`.
 
 ## Implementation notes
 
@@ -824,6 +827,18 @@ theorem compMFDeriv_sub (f : K) (hf : ContMDiff I' I ((⊤ : ℕ∞) : WithTop �
     (ω - ω').compMFDeriv f hf = ω.compMFDeriv f hf - ω'.compMFDeriv f hf := by
   simp only [compMFDeriv_def]
   exact map_sub _ ω ω'
+
+/-- On the tangent bundle, the form induced along a `C^∞` map `f` by the pull-back of a two-form
+`ω` on `TM` is, as a Tau Ceti smooth two-form, the pull-back `f^* ω` of differential forms. -/
+theorem tangentEquiv_compMFDeriv_pullback (f : K) (hf : ContMDiff I' I ((⊤ : ℕ∞) : WithTop ℕ∞) f)
+    (ω : ContMDiffTwoForm I ⊤ EB (TangentSpace I (M := M))) :
+    tangentEquiv ((ω.pullback f hf).compMFDeriv f hf) =
+      TauCeti.SmoothForm.mpullback f hf (tangentEquiv ω) := by
+  refine Subtype.ext (funext fun y ↦ ?_)
+  rw [tangentEquiv_apply, TauCeti.SmoothForm.coe_mpullback, compMFDeriv_apply, pullback_apply]
+  ext v
+  rw [TauCeti.mpullback_apply, tangentEquiv_apply]
+  exact ContinuousAlternatingMap.compContinuousLinearMap_apply _ _ _
 
 end CompMFDeriv
 
