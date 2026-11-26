@@ -70,10 +70,11 @@ whose forward map is smooth: pull `V` back to the surface, give the pull-back a 
 
 Over `ℂPᴺ = ℙ ℂ (Fin (N + 1) → ℂ)` with `N ≥ 1`, the map induced by a linear embedding
 `ℂ² → ℂᴺ⁺¹` is injective on `H²(-; ℝ)`
-(`Projectivization.injective_singularCohomologyMap_map_real`), so the identity for
-`𝒪(1) = Projectivization.twistCore 1` descends from the projective line; for `N = 0` the base is
-a point and both sides vanish. Pulling back along a smooth map `f : B' → ℂPᴺ` then gives the
-identity for `f^* 𝒪(1)`, with any smooth Hermitian metric.
+(`Projectivization.injective_singularCohomologyMap_map_real`), so the identity for every smooth
+complex line bundle over `ℂPᴺ` descends from the projective line; for `N = 0` the base is a point
+and both sides vanish. Applied to `𝒪(1) = Projectivization.twistCore 1` and pulled back along a
+smooth map `f : B' → ℂPᴺ`, it gives the identity for `f^* 𝒪(1)`, with any smooth Hermitian
+metric.
 
 ## Main results
 
@@ -91,8 +92,8 @@ identity for `f^* 𝒪(1)`, with any smooth Hermitian metric.
   closed connected orientable surface.
 * `SymplecticGeometry.Bundle.deRhamHom_realFirstChernClass_eq_neg_projectiveLine`: the identity
   over `ℂP¹ = ℙ ℂ (Fin 2 → ℂ)`.
-* `SymplecticGeometry.Bundle.deRhamHom_realFirstChernClass_twistCore_one_eq_neg`: the identity
-  for `𝒪(1) = Projectivization.twistCore 1` over `ℙ ℂ (Fin (N + 1) → ℂ)`.
+* `SymplecticGeometry.Bundle.deRhamHom_realFirstChernClass_eq_neg_projectiveSpace`: the identity
+  over `ℂPᴺ = ℙ ℂ (Fin (N + 1) → ℂ)`.
 * `SymplecticGeometry.Bundle.deRhamHom_realFirstChernClass_eq_neg`: the identity for the
   pull-back of `𝒪(1)` along any smooth map `B' → ℙ ℂ (Fin (N + 1) → ℂ)`, with any Hermitian
   metric. On a compact manifold these bundles realize every integral class of degree two
@@ -318,23 +319,25 @@ end ProjectiveLine
 section ProjectiveSpace
 
 open scoped LinearAlgebra.Projectivization
-open Projectivization (twistCore)
 
-/-- The line `ℂ` has dimension one over itself, as the frame bundles of complex line bundles with
-model fibre `ℂ` ask. -/
-local instance factFinrankComplexSelf : Fact (finrank ℂ ℂ = 1) := ⟨finrank_self ℂ⟩
+variable {N : ℕ} {F : Type} [NormedAddCommGroup F] [NormedSpace ℝ F] [NormedSpace ℂ F]
+  [IsScalarTower ℝ ℂ F] [Fact (finrank ℂ F = 1)]
+  {V : ℙ ℂ (Fin (N + 1) → ℂ) → Type} [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)]
+  [∀ x, Module ℂ (V x)] [∀ x, IsScalarTower ℝ ℂ (V x)] [∀ x, TopologicalSpace (V x)]
+  [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)]
+  [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle ℂ F V]
+  [ContMDiffVectorBundle ∞ F V 𝓘(ℝ, Fin N → ℂ)]
+  (g : ContMDiffRiemannianMetric 𝓘(ℝ, Fin N → ℂ) ∞ F V)
+  (hI : ∀ x (v w : V x), g.inner x (Complex.I • v) (Complex.I • w) = g.inner x v w)
 
-/-- **Chern–Weil in degree two for `𝒪(1)` on complex projective space.** For every smooth
-Hermitian metric `g` on Tau Ceti's line bundle `Projectivization.twistCore 1` over
-`ℙ ℂ (Fin (N + 1) → ℂ)`, the de Rham homomorphism sends the real first Chern class of the circle
-bundle of unitary frames to minus the real image of the Euler class. -/
-theorem deRhamHom_realFirstChernClass_twistCore_one_eq_neg {N : ℕ}
-    (g : ContMDiffRiemannianMetric 𝓘(ℝ, Fin N → ℂ) ∞ ℂ (twistCore (𝕜 := ℂ) (n := N) 1).Fiber)
-    (hI : ∀ x v w, g.inner x (Complex.I • v) (Complex.I • w) = g.inner x v w) :
+/-- **Chern–Weil in degree two, over complex projective space.** For every smooth complex line
+bundle `V` over `ℙ ℂ (Fin (N + 1) → ℂ)` with a smooth Hermitian metric `g`, the de Rham
+homomorphism sends the real first Chern class of the circle bundle of unitary frames of `V` to
+minus the real image of the Euler class of `V`. -/
+theorem deRhamHom_realFirstChernClass_eq_neg_projectiveSpace :
     deRhamHom 𝓘(ℝ, Fin N → ℂ) (ℙ ℂ (Fin (N + 1) → ℂ)) 2 (g.realFirstChernClass hI) =
       -(TopCat.of (ℙ ℂ (Fin (N + 1) → ℂ))).singularCohomologyRealImageAddMonoidHom 2
-        (complexEulerClass (r := 0) ℂ (twistCore (𝕜 := ℂ) (n := N) 1).Fiber
-          (finrank_self ℂ)) := by
+        (complexEulerClass (r := 0) F V Fact.out) := by
   rcases N with _ | n
   · -- `ℙ ℂ (Fin 1 → ℂ)` is a point, so its second cohomology vanishes.
     have : Subsingleton (ℙ ℂ (Fin (0 + 1) → ℂ)) :=
@@ -344,6 +347,7 @@ theorem deRhamHom_realFirstChernClass_twistCore_one_eq_neg {N : ℕ}
         (M := ModuleCat.of ℝ ℝ) (TopCat.of (ℙ ℂ (Fin (0 + 1) → ℂ))) two_ne_zero)
     exact Subsingleton.elim _ _
   · -- Restrict to a projective line, where the identity holds and `H²(-; ℝ)` injects.
+    have : ∀ b, ContinuousSMul ℂ (V b) := VectorBundle.continuousSMul ℂ F V
     let ι : (Fin 2 → ℂ) →ₗ[ℂ] Fin (n + 1 + 1) → ℂ :=
       LinearMap.funLeft ℂ ℂ fun i ↦ if i = 0 then 0 else 1
     have hι : Function.Injective ι := LinearMap.funLeft_injective_of_surjective _ _ _
@@ -353,15 +357,20 @@ theorem deRhamHom_realFirstChernClass_twistCore_one_eq_neg {N : ℕ}
         (LinearMap.continuous_of_finiteDimensional ι)⟩
     have hf : ContMDiff 𝓘(ℝ, Fin 1 → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ f :=
       Projectivization.contMDiff_map_restrictScalars ι hι ∞
-    have := _root_.Bundle.Pullback.contMDiffVectorBundle (F := ℂ)
-      (E := (twistCore (𝕜 := ℂ) (n := n + 1) 1).Fiber) hf
+    have := _root_.Bundle.Pullback.contMDiffVectorBundle (F := F) (E := V) hf
     obtain ⟨g'', hI''⟩ := exists_contMDiffRiemannianMetric_inner_smul_I
-      (IB := 𝓘(ℝ, Fin 1 → ℂ)) (n := ⊤) (F := ℂ)
-      (V := (⇑f) *ᵖ (twistCore (𝕜 := ℂ) (n := n + 1) 1).Fiber)
+      (IB := 𝓘(ℝ, Fin 1 → ℂ)) (n := ⊤) (F := F) (V := (⇑f) *ᵖ V)
     exact deRhamHom_realFirstChernClass_eq_neg_of_pullback g hI f hf g'' hI''
       (Projectivization.injective_singularCohomologyMap_map_real ι hι (n := 1) (by simp)
         one_ne_zero)
       (deRhamHom_realFirstChernClass_eq_neg_projectiveLine g'' hI'')
+
+end ProjectiveSpace
+
+section TwistCore
+
+open scoped LinearAlgebra.Projectivization
+open Projectivization (twistCore)
 
 variable {EB' HB' B' : Type} [NormedAddCommGroup EB'] [NormedSpace ℝ EB'] [TopologicalSpace HB']
   {IB' : ModelWithCorners ℝ EB' HB'} [TopologicalSpace B'] [ChartedSpace HB' B']
@@ -386,9 +395,9 @@ theorem deRhamHom_realFirstChernClass_eq_neg {N : ℕ} (f : C(B', ℙ ℂ (Fin (
   obtain ⟨g₀, hI₀⟩ := exists_contMDiffRiemannianMetric_inner_smul_I
     (IB := 𝓘(ℝ, Fin N → ℂ)) (n := ⊤) (F := ℂ) (V := (twistCore (𝕜 := ℂ) (n := N) 1).Fiber)
   exact deRhamHom_realFirstChernClass_pullback_eq_neg g₀ hI₀ f hf g hI
-    (deRhamHom_realFirstChernClass_twistCore_one_eq_neg g₀ hI₀)
+    (deRhamHom_realFirstChernClass_eq_neg_projectiveSpace g₀ hI₀)
 
-end ProjectiveSpace
+end TwistCore
 
 end Bundle
 

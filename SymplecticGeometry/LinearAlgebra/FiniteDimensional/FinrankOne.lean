@@ -33,6 +33,8 @@ so the instances create no diamond.
 * `FiniteDimensional.of_fact_finrank_eq_one`: a module of rank one is finite-dimensional.
 * `Module.fact_finrank_self_eq_of_fact_finrank_eq_one`: a module of rank one has the rank of the
   ring.
+* `Module.fact_finrank_self_eq_one`: a ring with the strong rank condition has rank one over
+  itself.
 
 ## Main results
 
@@ -54,6 +56,11 @@ instance Module.fact_finrank_self_eq_of_fact_finrank_eq_one {K V : Type*} [Semir
     [StrongRankCondition K] [AddCommMonoid V] [Module K V] [Fact (finrank K V = 1)] :
     Fact (finrank K K = finrank K V) :=
   ⟨by rw [finrank_self, Fact.out (p := finrank K V = 1)]⟩
+
+/-- A ring with the strong rank condition has rank one over itself. -/
+instance Module.fact_finrank_self_eq_one {K : Type*} [Semiring K] [StrongRankCondition K] :
+    Fact (finrank K K = 1) :=
+  ⟨finrank_self K⟩
 
 namespace LinearMap
 
