@@ -176,7 +176,8 @@ theorem exists_homotopy_exact_of_closed_near_attaching_fin_one {K : Set L} (hK :
   have hC₁ : 0 < |C| + 1 := by positivity
   set δ := r / (|C| + 1) with hδdef
   have hδ : 0 < δ := div_pos hr hC₁
-  obtain ⟨ψ, hψ, hψpos, hψ0, hψA, hψQ, hψ1⟩ := exists_cubeCompression (F := F) hε hε₁ hδ
+  obtain ⟨ψ, hψ, hψpos, hψ0, hψA, hψQ, hψ1⟩ :=
+    exists_cubeCompression (ι := Fin 1) (F := F) hε hε₁ hδ
   -- The smooth steps in time.
   set a : unitInterval → ℝ := fun t ↦ Real.smoothTransition (2 * (t : ℝ))
   set b : unitInterval → ℝ := fun t ↦ Real.smoothTransition (2 * (t : ℝ) - 1)
