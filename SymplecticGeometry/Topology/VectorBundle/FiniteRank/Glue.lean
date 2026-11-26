@@ -9,6 +9,7 @@ public import SymplecticGeometry.Topology.VectorBundle.Core.Basic
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Biproduct
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.HomotopyInvariance
+public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Tensor
 public import TauCeti.Topology.VectorBundle.FiniteRank.Monoidal
 
 /-!
@@ -891,14 +892,9 @@ theorem glueCocycle_whitneyMapIso (s t : Bool) (b : B) :
       (((ContinuousLinearMap.id 𝕜 (Fin A.rank → 𝕜)).prodMap (.id 𝕜 (Fin D.rank → 𝕜))).comp
         (splitCoords (𝕜 := 𝕜) A.rank D.rank).toContinuousLinearMap) = .id 𝕜 _ :=
     ContinuousLinearMap.ext (splitCoords (𝕜 := 𝕜) A.rank D.rank).symm_apply_apply
-  cases s <;> cases t <;> simp only [glueCocycle, Iso.trans_hom, Iso.trans_inv, eqToIso.hom,
-    eqToIso.inv, whitneyMapIso_hom, whitneyMapIso_inv, fiberMap_comp] <;> (try split_ifs) <;>
-    first
-    | exact hid.symm
-    | ext v i
-      simp only [ContinuousLinearMap.comp_apply, fiberMap_eqToHom, Function.comp_apply]
-      -- The casts are along `rank_pullback` and `rank_whitneySum`, which hold by `rfl`.
-      exact congrFun (DFunLike.congr_fun (fiberMap_whitneyMap _ _ _) _) _
+  cases s <;> cases t <;> simp only [glueCocycle, fiberMap_eqToIso_whitneyMapIso_hom,
+    fiberMap_eqToIso_whitneyMapIso_inv] <;> by_cases h : b ∈ U ∩ V <;>
+    (try simp only [h, ↓reduceDIte]) <;> first | exact hid.symm | rfl
 
 /-- The gluing cocycle of the tensor product of two automorphisms, as an automorphism of the
 restriction of `A ⊗ D` through `pullback_tensorObj`, is the Kronecker product of their gluing
@@ -907,14 +903,10 @@ theorem glueCocycle_tensorIso (s t : Bool) (b : B) :
     glueCocycle (A := A ⊗ D) (eqToIso (pullback_tensorObj A D _) ≪≫ (g₁ ⊗ᵢ g₂) ≪≫
       eqToIso (pullback_tensorObj A D _).symm) s t b =
       (glueCocycle g₁ s t b).kronecker (glueCocycle g₂ s t b) := by
-  cases s <;> cases t <;> simp only [glueCocycle, Iso.trans_hom, Iso.trans_inv, eqToIso.hom,
-    eqToIso.inv, tensorIso_hom, tensorIso_inv, fiberMap_comp] <;> (try split_ifs) <;>
-    first
-    | exact ContinuousLinearMap.id_kronecker_id.symm
-    | ext v i
-      simp only [ContinuousLinearMap.comp_apply, fiberMap_eqToHom, Function.comp_apply]
-      -- The casts are along `rank_pullback` and `rank_tensorObj`, which hold by `rfl`.
-      exact congrFun (DFunLike.congr_fun (fiberMap_tensorHom_monoidal _ _ _) _) _
+  cases s <;> cases t <;> simp only [glueCocycle, fiberMap_eqToIso_tensorIso_hom,
+    fiberMap_eqToIso_tensorIso_inv] <;> by_cases h : b ∈ U ∩ V <;>
+    (try simp only [h, ↓reduceDIte]) <;>
+    first | exact ContinuousLinearMap.id_kronecker_id.symm | rfl
 
 /-- The transitions of the gluing of `A ⊕ D` by the direct sum of `g₁` and `g₂` are those of the
 Whitney sum of the gluing of `A` by `g₁` and that of `D` by `g₂`. -/
