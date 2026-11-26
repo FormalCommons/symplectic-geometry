@@ -11,10 +11,12 @@ public import Mathlib.Basic.Sign.Basic
 import Mathlib.Analysis.Normed.Operator.Prod
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import TauCeti.Analysis.SpecialFunctions.SmoothTransition
+import SymplecticGeometry.Analysis.Calculus.ContDiff.AddSumRangeSmulSub
+import SymplecticGeometry.Analysis.Calculus.FDeriv.AddSmulSub
 import SymplecticGeometry.Analysis.Normed.Operator.Pi
 
 /-!
-# Holonomic approximation along a zig-zag: cutoffs at the crossings
+# Holonomic approximation along a zig-zag: cutoffs at the crossings and gluing
 
 In the coordinates of `SymplecticGeometry.Analysis.Calculus.HolonomicApproximation.Basic`, on
 `D = (Fin m → ℝ) × (Fin k → ℝ)` with sup norms, fix a core coordinate `i₀` and a transverse
@@ -37,9 +39,24 @@ from `1` to `0` on `[-1/4, 1/4]` with derivative at most `3`
 (`TauCeti.exists_contDiff_antitone_cutoff_abs_deriv_le`). This explicit formula is the
 library's own.
 
+When consecutive crossings are at least `4 w` apart, near the curve within `w` of the crossing
+`c i` every cutoff but the `i`-th is locally `0` or `1`. The chain glued by the cutoffs is then
+locally the two-term interpolation of `S i` and `S (i + 1)`, which
+`SymplecticGeometry.norm_add_smul_sub_sub_le_max` and
+`SymplecticGeometry.norm_fderiv_add_smul_sub_sub_le` estimate.
+
 ## Main results
 
 * `SymplecticGeometry.exists_zigzag_cutoffs`: the cutoffs at the crossings of a zig-zag profile.
+* `SymplecticGeometry.exists_zigzag_chain`: smooth maps `S 0, …, S (n + 1)` glued along the
+  curve by these cutoffs, as `S 0 + ∑ φ l • (S (l + 1) - S l)`, with the glued map equal to `S l`
+  near the points of the curve between the crossings and estimated against `S i` and `S (i + 1)`
+  near the crossing `c i`.
+* `Monotone.exists_forall_add_le_and_forall_le_sub`: a point at distance at least `w` from each
+  of the monotone points `c 0, …, c n` is at least `w` above those of index below some
+  `l ≤ n + 1` and at least `w` below the others.
+* `Fin.add_le_of_lt_of_forall_add_le_succ`: a gap of at least `d ≥ 0` between consecutive terms
+  of a finite sequence gives a gap of at least `d` between any two terms.
 
 ## References
 
@@ -229,6 +246,122 @@ theorem exists_zigzag_cutoffs (i₀ : Fin m) (j : Fin k) {g : ℝ → ℝ} {n : 
   choose φ hφ hφ01 hφx using fun i : Fin (n + 1) ↦
     exists_zigzag_cutoff i₀ j (σ := (-1) ^ (i : ℕ)) (by simp) hw hr (hg i)
   exact ⟨φ, hφ, hφ01, hφx⟩
+
+/-- If the points `c 0 ≤ ⋯ ≤ c n` are monotone and `t` lies at distance at least `w` from each of
+them, then `t` splits them: for some `l ≤ n + 1`, the points before `l` lie at least `w` below
+`t` and the others at least `w` above it. -/
+theorem _root_.Monotone.exists_forall_add_le_and_forall_le_sub {n : ℕ} {c : Fin (n + 1) → ℝ}
+    (hc : Monotone c) {w t : ℝ} (ht : ∀ i, w ≤ |t - c i|) :
+    ∃ l ≤ n + 1, (∀ i : Fin (n + 1), (i : ℕ) < l → c i + w ≤ t) ∧
+      ∀ i : Fin (n + 1), l ≤ (i : ℕ) → t ≤ c i - w := by
+  classical
+  have hex : ∃ l : ℕ, ∀ i : Fin (n + 1), l ≤ (i : ℕ) → t ≤ c i - w :=
+    ⟨n + 1, fun i hi ↦ absurd i.isLt (not_lt.2 hi)⟩
+  refine ⟨Nat.find hex, Nat.find_min' hex fun i hi ↦ absurd i.isLt (not_lt.2 hi),
+    fun i hi ↦ ?_, Nat.find_spec hex⟩
+  obtain ⟨i', hii', hi'⟩ := not_forall₂.1 (Nat.find_min hex hi)
+  have hle : c i ≤ c i' := hc (Fin.mk_le_mk.2 hii')
+  rcases le_abs'.1 (ht i') with h | h
+  · exact absurd (by linarith) hi'
+  · linarith
+
+/-- If each term of a sequence `c 0, …, c n` exceeds the previous one by at least `d ≥ 0`, then
+`c i + d ≤ c i'` whenever `i < i'`. -/
+theorem _root_.Fin.add_le_of_lt_of_forall_add_le_succ {α : Type*} [AddCommMonoid α]
+    [PartialOrder α] [IsOrderedAddMonoid α] {n : ℕ} {c : Fin (n + 1) → α} {d : α} (hd : 0 ≤ d)
+    (hc : ∀ i : Fin n, c i.castSucc + d ≤ c i.succ) {i i' : Fin (n + 1)} (h : i < i') :
+    c i + d ≤ c i' := by
+  have hmono : Monotone c :=
+    Fin.monotone_iff_le_succ.2 fun p ↦ (le_add_of_nonneg_right hd).trans (hc p)
+  obtain ⟨p, rfl⟩ := Fin.exists_succ_eq.2 (Fin.ne_zero_of_lt h)
+  exact (add_le_add_left (hmono (Fin.le_castSucc_iff.2 h)) d).trans (hc p)
+
+/-- **Gluing sections along a zig-zag.** Let `g` change sign at the points `c 0, …, c n`, spaced
+at least `4 w` apart, as in `exists_zigzag_cutoffs`, and let `S 0, …, S (n + 1)` be smooth maps
+on `D = (Fin m → ℝ) × (Fin k → ℝ)`. There is a smooth map `f'` such that, at each point
+`x = (u, r g (u i₀) eⱼ)` of the curve:
+
+* if `u i₀` is at least `w` above the crossings before `l` and at least `w` below the others,
+  then `f'` equals `S l` near `x`;
+* if `u i₀` is within `w` of the crossing `c i`, then `f' x` is at most as far from any `A` as the
+  farther of `S i x` and `S (i + 1) x`, and `D f' (x)` is at most as far from any `B` as the
+  farther of `D (S i) (x)` and `D (S (i + 1)) (x)`, plus `(3 / r) ‖S (i + 1) x - S i x‖`. -/
+theorem exists_zigzag_chain (i₀ : Fin m) (j : Fin k) {F : Type*} [NormedAddCommGroup F]
+    [NormedSpace ℝ F] {g : ℝ → ℝ} {n : ℕ} {c : Fin (n + 1) → ℝ} {w r : ℝ}
+    (hw : 0 < w) (hr : 0 < r) (hc : ∀ i : Fin n, c i.castSucc + 4 * w ≤ c i.succ)
+    (hg : ∀ i : Fin (n + 1), ∀ t, w ≤ |t - c i| → |t - c i| ≤ 2 * w →
+      1 / 2 ≤ (-1) ^ (i : ℕ) * SignType.sign (t - c i) * g t)
+    {S : ℕ → (Fin m → ℝ) × (Fin k → ℝ) → F} (hS : ∀ l ≤ n + 1, ContDiff ℝ ∞ (S l)) :
+    ∃ f' : (Fin m → ℝ) × (Fin k → ℝ) → F, ContDiff ℝ ∞ f' ∧
+      ∀ u : Fin m → ℝ,
+        (∀ l ≤ n + 1, (∀ i : Fin (n + 1), (i : ℕ) < l → c i + w ≤ u i₀) →
+          (∀ i : Fin (n + 1), l ≤ (i : ℕ) → u i₀ ≤ c i - w) →
+          f' =ᶠ[𝓝 (u, Pi.single j (r * g (u i₀)))] S l) ∧
+        ∀ i : Fin (n + 1), |u i₀ - c i| < w → ∀ (A : F) (B : _ →L[ℝ] F),
+          let x := (u, Pi.single j (r * g (u i₀)))
+          ‖f' x - A‖ ≤ max ‖S i x - A‖ ‖S ((i : ℕ) + 1) x - A‖ ∧
+          ‖fderiv ℝ f' x - B‖ ≤ max ‖fderiv ℝ (S i) x - B‖ ‖fderiv ℝ (S ((i : ℕ) + 1)) x - B‖ +
+            3 / r * ‖S ((i : ℕ) + 1) x - S i x‖ := by
+  obtain ⟨φ, hφ, hφ01, hφx⟩ := exists_zigzag_cutoffs i₀ j hw hr hg
+  -- The cutoffs, extended by `0` past `n`.
+  obtain ⟨ψ, hψφ, hψ0⟩ : ∃ ψ : ℕ → (Fin m → ℝ) × (Fin k → ℝ) → ℝ,
+      (∀ i : Fin (n + 1), ψ i = φ i) ∧ ∀ l, n + 1 ≤ l → ψ l = 0 :=
+    ⟨fun l ↦ if h : l < n + 1 then φ ⟨l, h⟩ else 0, fun i ↦ dite_eq_left i.isLt,
+      fun l hl ↦ dite_eq_right (by omega)⟩
+  refine ⟨fun y ↦ S 0 y + ∑ l ∈ Finset.range (n + 1), ψ l y • (S (l + 1) y - S l y),
+    .add_sum_range_smul_sub hS fun l hl ↦ ?_, fun u ↦ ?_⟩
+  · simpa only [hψφ ⟨l, hl⟩] using hφ ⟨l, hl⟩
+  set x : (Fin m → ℝ) × (Fin k → ℝ) := (u, Pi.single j (r * g (u i₀)))
+  -- Near `x`, the cutoffs before `l` are `1` and those after it are `0`.
+  have hcut : ∀ l : ℕ, (∀ i : Fin (n + 1), (i : ℕ) < l → c i + w ≤ u i₀) →
+      (∀ i : Fin (n + 1), l < (i : ℕ) → u i₀ ≤ c i - w) →
+      ∀ᶠ y in 𝓝 x, (∀ l' < l, l' < n + 1 → ψ l' y = 1) ∧ ∀ l', l < l' → ψ l' y = 0 := by
+    intro l h₁ h₀
+    have e : ∀ᶠ y in 𝓝 x, ∀ i : Fin (n + 1),
+        ((i : ℕ) < l → ψ i y = 1) ∧ (l < (i : ℕ) → ψ i y = 0) := by
+      refine eventually_all.2 fun i ↦ ?_
+      rcases lt_trichotomy (i : ℕ) l with hi | hi | hi
+      · filter_upwards [(hφx i u).2.2 (h₁ i hi)] with y hy
+        exact ⟨fun _ ↦ by rw [hψφ, hy, Pi.one_apply], fun h ↦ absurd hi (by omega)⟩
+      · exact .of_forall fun y ↦ ⟨fun h ↦ absurd h (by omega), fun h ↦ absurd h (by omega)⟩
+      · filter_upwards [(hφx i u).2.1 (h₀ i hi)] with y hy
+        exact ⟨fun h ↦ absurd hi (by omega), fun _ ↦ by rw [hψφ, hy, Pi.zero_apply]⟩
+    filter_upwards [e] with y hy
+    refine ⟨fun l' hl' hn ↦ (hy ⟨l', hn⟩).1 hl', fun l' hl' ↦ ?_⟩
+    by_cases hn : l' < n + 1
+    · exact (hy ⟨l', hn⟩).2 hl'
+    · rw [hψ0 l' (by omega), Pi.zero_apply]
+  refine ⟨fun l hl h₁ h₀ ↦ ?_, fun i hi A B ↦ ?_⟩
+  · -- Away from the windows.
+    have hev := hcut l h₁ fun i hi ↦ h₀ i hi.le
+    rcases hl.lt_or_eq with hl | rfl
+    · have hl0 : ∀ᶠ y in 𝓝 x, ψ l y = 0 := by
+        filter_upwards [(hφx ⟨l, hl⟩ u).2.1 (h₀ ⟨l, hl⟩ le_rfl)] with y hy
+        rw [hψφ ⟨l, hl⟩, hy, Pi.zero_apply]
+      filter_upwards [Filter.eventuallyEq_add_sum_range_smul_sub_of_lt (S := S) hl
+        (hev.mono fun y hy ↦ ⟨fun l' hl' ↦ hy.1 l' hl' (by omega), fun l' hl' _ ↦ hy.2 l' hl'⟩),
+        hl0] with y hy hy0
+      rw [hy, hy0, zero_smul, add_zero]
+    · exact Filter.eventuallyEq_add_sum_range_smul_sub_right
+        (hev.mono fun y hy l' hl' ↦ hy.1 l' hl' hl')
+  · -- In the window of `c i`, the other crossings are at least `3 w` away.
+    have hi' := abs_lt.1 hi
+    have h4 : (0 : ℝ) ≤ 4 * w := by positivity
+    have hev := hcut i
+      (fun i' h ↦ by linarith [Fin.add_le_of_lt_of_forall_add_le_succ h4 hc (Fin.lt_def.2 h)])
+      (fun i' h ↦ by linarith [Fin.add_le_of_lt_of_forall_add_le_succ h4 hc (Fin.lt_def.2 h)])
+    have heq := Filter.eventuallyEq_add_sum_range_smul_sub_of_lt (S := S) i.isLt
+      (hev.mono fun y hy ↦ ⟨fun l' hl' ↦ hy.1 l' hl' (by omega), fun l' hl' _ ↦ hy.2 l' hl'⟩)
+    have h01 := hφ01 i x
+    have hdi : ∀ l ≤ n + 1, DifferentiableAt ℝ (S l) x := fun l hl ↦
+      ((hS l hl).differentiable (by simp)).differentiableAt
+    refine ⟨?_, ?_⟩
+    · refine (congrArg (‖· - A‖) heq.eq_of_nhds).trans_le ?_
+      rw [hψφ]
+      exact norm_add_smul_sub_sub_le_max _ _ _ h01.1 h01.2
+    · rw [heq.fderiv_eq, hψφ]
+      exact norm_fderiv_add_smul_sub_sub_le B (hdi i (by omega)) (hdi (i + 1) (by omega))
+        (((hφ i).differentiable (by simp)).differentiableAt) h01.1 h01.2 (hφx i u).1
 
 end SymplecticGeometry
 
