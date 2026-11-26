@@ -14,6 +14,7 @@ import Mathlib.Analysis.Complex.ExponentialBounds
 import Mathlib.LinearAlgebra.Complex.FiniteDimensional
 import SymplecticGeometry.MeasureTheory.Measure.AlgebraicTube
 import SymplecticGeometry.RingTheory.MvPolynomial.ImageHypersurface
+import TauCeti.MeasureTheory.Measure.OpenPos
 
 /-!
 # Auroux's avoidance estimate
@@ -346,7 +347,7 @@ theorem exists_infDist_image_ge (hι : Fintype.card ι = Fintype.card σ + 1) {R
   set K : ℝ := m * 4 * 2 ^ s
   set A : ℝ := T.card * (s + 1).factorial
   set V := volume.real (ball (0 : EuclideanSpace ℂ ι) 1)
-  have hV : 0 < V := ENNReal.toReal_pos (measure_ball_pos _ _ one_pos).ne' measure_ball_lt_top.ne
+  have hV : 0 < V := measureReal_ball_pos _ _ one_pos
   set B := C * A ^ (2 * m)
   have hB : 0 < B := by
     have := hT0.card_pos

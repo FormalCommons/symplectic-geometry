@@ -361,9 +361,9 @@ private theorem exists_partialDiffeomorph_invariantCore_of_eq_along [ContinuousS
     exact ⟨q', Subtype.ext ((Opens.coe_smul_invariantCore g _).trans hq'.symm)⟩
   have hdγ : mextDeriv γ.val = (τ₁ - τ₀).val := by
     have hβₗ : mextDerivₗ I 1 β = τ₁ - τ₀ := Subtype.ext (by rw [mextDerivₗ_apply, hdβ])
-    have hτG (g : G) : TauCeti.mpullback I I (g • ·) (τ₁ - τ₀).val = (τ₁ - τ₀).val := by
-      rw [← SmoothForm.coe_mpullback _ (contMDiff_const_smul g), map_sub, hτ σ₀ hσ₀ g,
-        hτ σ₁ hσ₁ g]
+    have hτG (g : G) : SmoothForm.mpullback (fun x : W.invariantCore G ↦ g • x)
+        (contMDiff_const_smul g) (τ₁ - τ₀) = τ₁ - τ₀ := by
+      rw [map_sub, hτ σ₀ hσ₀ g, hτ σ₁ hσ₁ g]
     rw [← mextDerivₗ_apply,
       SmoothForm.mextDerivₗ_measureAverage_of_invariant IG (haarProb G) hβₗ hτG]
   have hγG (g : G) : SmoothForm.mpullback (fun x : W.invariantCore G ↦ g • x)

@@ -10,7 +10,7 @@ public import SymplecticGeometry.Analysis.SpecialFunctions.SmoothedMax
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Model
 import SymplecticGeometry.Analysis.Complex.Euclidean.Space
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Dolbeault.Potential
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Dolbeault.Potential
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
@@ -62,12 +62,12 @@ with blowdown `π : L → E = ℂⁿ⁺¹`, the exceptional divisor `Z` and the 
 * `SymplecticGeometry.BlowupModel.correctionPotential n l ε`: the smooth function `z ↦ q(|z|²)`
   on `E`, for the Euclidean norm `|z|` (`correctionPotential_apply`; it is `0` unless `0 < l`
   and `0 < ε`), and `SymplecticGeometry.BlowupModel.correctionForm n l ε`: its form
-  `ω_q = (1/4) d (J* d (q(|z|²)))` on all of `E`, built as `radialPotentialForm` is. It vanishes
+  `ω_q = (1/4) d (J* d (q(|z|²)))` on all of `E`, the `potentialForm` of that function. It vanishes
   on the closed ball of radius `ε` (`correctionForm_apply_eq_zero`), since there the form of a
   composite, `mextDerivₗ_covectorComplexStructure_mextDerivₗ_ofFunction_comp_of_hasDerivAt`, only
   involves `q'(|z|²)` and `q''(|z|²)` (`deriv_blowupCorrection_of_le`,
   `deriv_deriv_blowupCorrection_of_le`); on `E ∖ 0` it is `radialPotentialForm` of `q`
-  (`mpullback_subtypeVal_correctionForm`, by `mpullback_covectorComplexStructure` along the
+  (`mpullback_subtypeVal_correctionForm`, by `mpullback_potentialForm` along the
   holomorphic inclusion).
 * `SymplecticGeometry.BlowupModel.profileForm n l ε`: the form `ω̃_{l,ε} = ω̃_l + π^* ω_q`, defined
   on all of `L` at once, so that no form is glued across `Z`.
@@ -474,15 +474,13 @@ theorem correctionPotential_of_not {l ε : ℝ} (h : ¬(0 < l ∧ 0 < ε)) :
 complex structure `J` of `E`; by `Dolbeault/Potential.lean` it is `(i/2) ∂∂bar φ`. -/
 noncomputable def correctionForm (l ε : ℝ) :
     SmoothTwoForm 𝓘(ℝ, Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ) :=
-  (4 : ℝ)⁻¹ • mextDerivₗ 𝓘(ℝ, Fin (n + 1) → ℂ) 1
-    ((ofComplexManifold (Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ)).covectorComplexStructure
-      (mextDerivₗ 𝓘(ℝ, Fin (n + 1) → ℂ) 0 (SmoothForm.ofFunction (correctionPotential n l ε))))
+  (ofComplexManifold (Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ)).potentialForm
+    (SmoothForm.ofFunction (correctionPotential n l ε))
 
 theorem correctionForm_def (l ε : ℝ) :
-    correctionForm n l ε = (4 : ℝ)⁻¹ • mextDerivₗ 𝓘(ℝ, Fin (n + 1) → ℂ) 1
-      ((ofComplexManifold (Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ)).covectorComplexStructure
-        (mextDerivₗ 𝓘(ℝ, Fin (n + 1) → ℂ) 0
-          (SmoothForm.ofFunction (correctionPotential n l ε)))) :=
+    correctionForm n l ε =
+      (ofComplexManifold (Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ)).potentialForm
+        (SmoothForm.ofFunction (correctionPotential n l ε)) :=
   (rfl)
 
 /-- The form of the correction potential vanishes at the points of the closed ball of radius `ε`:
@@ -496,7 +494,7 @@ theorem correctionForm_apply_eq_zero {l ε : ℝ} {z : Fin (n + 1) → ℂ}
       rw [correctionPotential_of_not n h]
       exact SmoothBundleForm.ext fun x v ↦ by
         simp [SmoothForm.coe_ofFunction, RoughForm.ofFunction_apply]
-    rw [correctionForm_def, h0]
+    rw [correctionForm_def, h0, map_zero]
     simp
   obtain ⟨hl, hε⟩ := h
   have hq := contDiff_blowupCorrection (n := ⊤) hl hε
@@ -508,7 +506,7 @@ theorem correctionForm_apply_eq_zero {l ε : ℝ} {z : Fin (n + 1) → ℂ}
   let b : C^∞⟮𝓘(ℝ, Fin (n + 1) → ℂ), Fin (n + 1) → ℂ; ℝ⟯ := ⟨_, (hq''.comp hs).contMDiff⟩
   have hz2 : ‖complexToRealEuclidean (Fin (n + 1)) z‖ ^ 2 ≤ ε ^ 2 :=
     pow_le_pow_left₀ (norm_nonneg _) hz 2
-  rw [correctionForm_def,
+  rw [correctionForm_def, potentialForm_def,
     mextDerivₗ_covectorComplexStructure_mextDerivₗ_ofFunction_comp_of_hasDerivAt (f := s)
       (a := a) (b := b) (fun x ↦ by simp [s, correctionPotential_apply n hl hε x])
       (fun _ ↦ by simp [a, s]) (fun _ ↦ by simp [b, s])
@@ -524,17 +522,15 @@ theorem correctionForm_apply_eq_zero {l ε : ℝ} {z : Fin (n + 1) → ℂ}
 
 /-- On `E ∖ 0`, the form of the correction potential is the radial potential form of
 `q = blowupCorrection l ε`, for `0 < l` and `0 < ε`: the inclusion is holomorphic, so pulling back
-commutes with `d` and with `J*` (`mpullback_covectorComplexStructure`). -/
+commutes with forms of potentials (`mpullback_potentialForm`). -/
 theorem mpullback_subtypeVal_correctionForm {l ε : ℝ} (hl : 0 < l) (hε : 0 < ε) :
     SmoothForm.mpullback (Subtype.val : puncturedSpace (Fin (n + 1) → ℂ) → _) contMDiff_subtypeVal
         (correctionForm n l ε) =
       radialPotentialForm (Fin (n + 1)) (blowupCorrection l ε)
         (contDiff_blowupCorrection hl hε).contDiffOn := by
-  rw [correctionForm_def, radialPotentialForm_def, SmoothForm.mpullback_smul,
-    ← SmoothForm.mextDerivₗ_mpullback,
-    mpullback_covectorComplexStructure _ (isPseudoholomorphic_ofComplexManifold_subtype_val _),
-    ← SmoothForm.mextDerivₗ_mpullback]
-  congr 4
+  rw [correctionForm_def, radialPotentialForm_def,
+    mpullback_potentialForm _ (isPseudoholomorphic_ofComplexManifold_subtype_val _)]
+  congr 1
   refine SmoothBundleForm.ext fun z v ↦ ?_
   rw [SmoothForm.mpullback_apply, SmoothForm.coe_ofFunction, RoughForm.ofFunction_apply,
     SmoothForm.coe_ofFunction, RoughForm.ofFunction_apply, correctionPotential_apply n hl hε,
@@ -567,7 +563,7 @@ theorem profileForm_eq_blowupForm_on {l ε : ℝ} :
 derivative. -/
 theorem isClosed_correctionForm (l ε : ℝ) : (correctionForm n l ε).IsClosed := by
   rw [correctionForm_def]
-  exact (SmoothForm.isClosed_mextDerivₗ _).smul _
+  exact isClosed_potentialForm _ _
 
 /-- The form `ω̃_{l,ε}` is closed, as the sum of `ω̃_l` and the pull-back of a closed form. -/
 theorem isClosed_profileForm (l ε : ℝ) : (profileForm n l ε).IsClosed := by
@@ -735,7 +731,7 @@ theorem isSmoothFamily_profileForm {l ε : unitInterval → ℝ} (hl : ContMDiff
       mextDerivₗ 𝓘(ℝ, Fin (n + 1) → ℂ) 1 (SmoothForm.funSMulₗ (a t)
         ((ofComplexManifold (Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ)).covectorComplexStructure
           (mextDerivₗ 𝓘(ℝ, Fin (n + 1) → ℂ) 0 (SmoothForm.ofFunction s)))) := by
-    rw [correctionForm_def,
+    rw [correctionForm_def, potentialForm_def,
       covectorComplexStructure_mextDerivₗ_ofFunction_comp_of_hasDerivAt (f := s) (g' := a t)
         (fun x ↦ correctionPotential_apply n (hl0 t) (hε0 t) x)
         (fun x ↦ hasDerivAt_blowupCorrection (hl0 t) (hε0 t) (s x))]

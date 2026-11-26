@@ -436,10 +436,11 @@ needed for it.
      `(fderiv ℝ f²' z - G² z) (fderiv ℝ Φ.symm y w)` with `y = Φ z`, so
      the error is at most `ε₂ L ‖w‖ + ε₁ ‖w‖`.
 3. *The one-direction lemma* (`exists_holonomic_approximation_direction`,
-   in `HolonomicApproximation/Direction.lean`). For `i₀ ∉ J'`, a smooth
-   `(f, G)` holonomic near `B ×ˢ {0}` as above (with the faces of
-   `insert i₀ J'` in `B`) and, on `Q`, holonomic in the directions `J'`
-   (`∀ x ∈ Q, ∀ w, (∀ i ∉ J', w.1 i = 0) → fderiv ℝ f x w = G x w`), the
+   in `HolonomicApproximation/Direction.lean`). For a core direction `i₀`, a
+   smooth `(f, G)` holonomic near `B ×ˢ {0}` as above (with the faces of
+   `insert i₀ J'` in `B`) and, on `Q`, holonomic on the core vectors in the
+   directions `J'` (`∀ u ∈ closedBall 0 1, ∀ v, (∀ i ∉ J', v i = 0) →
+   fderiv ℝ f (u, 0) (v, 0) = G (u, 0) (v, 0)`), the
    conclusion of the inductive statement for `insert i₀ J'`, with the
    stronger clause `∀ t x, (h (t, x)).1 = x.1`. Proof:
    - the zig-zag approximation of `ZigZag.lean`, generalized from
@@ -449,14 +450,14 @@ needed for it.
      `(u, Pi.single j (r * g₀ (u i₀)))`, `u` in the cube;
    - a smooth `ψ : (Fin m → ℝ) → [0, 1]`, `0` near `B` and `1` off a
      neighbourhood `N` of `B` with `N ×ˢ ball 0 r ⊆ U` (shrinking `r` first,
-     by compactness), and a smooth `λ` of `u`, `0` where `ψ < 1` and `1` off
-     a slightly larger neighbourhood of `B`, supported near the cube as in
-     the base case;
+     by compactness), and a smooth `λ` on `D`, `0` over a neighbourhood of
+     `B` where `ψ < 1` and off a compact neighbourhood of `Q` of height
+     `2 r₀`, and `1` over the cube off a slightly larger neighbourhood of
+     `B` up to the height `r₀`, which is fixed before `λ`, with `r < r₀`;
    - the diffeotopy is `exists_wiggling_diffeotopy` with the profile
      `u ↦ ψ u * g₀ (u i₀)`, over `cthickening (δ / 2) Q`: where `ψ = 1`
      it moves the cube onto the zig-zag, and near `B` it is the identity;
-   - `f' := f + (λ ∘ Prod.fst) • κ' • (f₀ - f)`, with `κ'` a transverse
-     bump as in the base case at height `2r`. Where `λ` varies, both `f₀`
+   - `f' := f + λ • (f₀ - f)`. Where `λ` varies, both `f₀`
      and `f` are good approximations and the gluing costs
      `‖fderiv λ‖ ‖f₀ - f‖`, so the accuracy asked of `f₀` is chosen after
      `λ`; where `λ = 0` and the cube is displaced by less than `r`, the

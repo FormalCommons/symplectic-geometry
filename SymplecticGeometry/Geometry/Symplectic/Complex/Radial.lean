@@ -41,9 +41,9 @@ blowup constructions read the forms they build off `Z` in these terms.
 * `SymplecticGeometry.radialPotentialForm ι g hg` is the form `(1/4) d (J* d (g ∘ s))` of the
   potential `SymplecticGeometry.radialPotential hg = g ∘ s`
   (`Geometry/Manifold/Complex/RadialPotential.lean`), where `J*` is `covectorComplexStructure`,
-  the real form of `dᶜ`. By `Dolbeault/Potential.lean` it is `(i/2) ∂∂bar (g ∘ s)`, and half of
-  Tau Ceti's real (1,1)-form `TauCeti.ddbarForm` of `g ∘ s`
-  (`TauCeti.coe_mextDerivₗ_covectorComplexStructure_eq_two_smul_ddbarForm`).
+  the real form of `dᶜ`: it is `potentialForm` of that potential. By `Dolbeault/Potential.lean`
+  it is `(i/2) ∂∂bar (g ∘ s)`, and half of Tau Ceti's real (1,1)-form `TauCeti.ddbarForm` of
+  `g ∘ s` (`TauCeti.SmoothAlmostComplexStructure.coe_potentialForm_eq_inv_two_smul_ddbarForm`).
 * `SymplecticGeometry.radialPotentialForm_apply`: at `z`, with `s = |z|²`,
   `ω_g(v, w) = g'(s) ω₀(v, w) + g''(s) (⟨z, v⟩ ω₀(z, w) - ⟨z, w⟩ ω₀(z, v))`, the second term
   being the value of `(i/2) ∂s ∧ ∂bar s`. It is read off from the Levi form, since `ddbarForm` is
@@ -128,16 +128,13 @@ variable (ι) in
 dual to the complex structure `J` of `(ι → ℂ) ∖ 0`. Its value is `radialPotentialForm_apply`. -/
 noncomputable def radialPotentialForm (g : ℝ → ℝ) (hg : ContDiffOn ℝ ∞ g (Ioi 0)) :
     SmoothTwoForm 𝓘(ℝ, ι → ℂ) (puncturedSpace (ι → ℂ)) :=
-  (4 : ℝ)⁻¹ • mextDerivₗ 𝓘(ℝ, ι → ℂ) 1
-    ((ofComplexManifold (ι → ℂ)
-      (puncturedSpace (ι → ℂ))).covectorComplexStructure
-        (mextDerivₗ 𝓘(ℝ, ι → ℂ) 0 (SmoothForm.ofFunction (radialPotential hg))))
+  (ofComplexManifold (ι → ℂ) (puncturedSpace (ι → ℂ))).potentialForm
+    (SmoothForm.ofFunction (radialPotential hg))
 
 theorem radialPotentialForm_def (g : ℝ → ℝ) (hg : ContDiffOn ℝ ∞ g (Ioi 0)) :
-    radialPotentialForm ι g hg = (4 : ℝ)⁻¹ • mextDerivₗ 𝓘(ℝ, ι → ℂ) 1
-      ((ofComplexManifold (ι → ℂ)
-        (puncturedSpace (ι → ℂ))).covectorComplexStructure
-          (mextDerivₗ 𝓘(ℝ, ι → ℂ) 0 (SmoothForm.ofFunction (radialPotential hg)))) :=
+    radialPotentialForm ι g hg =
+      (ofComplexManifold (ι → ℂ) (puncturedSpace (ι → ℂ))).potentialForm
+        (SmoothForm.ofFunction (radialPotential hg)) :=
   (rfl)
 
 /-- **The form of a radial potential.** With `s = |z|²`, `⟨z, v⟩ = Re (star z ⬝ᵥ v)` and
@@ -162,12 +159,11 @@ theorem radialPotentialForm_apply (g : ℝ → ℝ) (hg : ContDiffOn ℝ ∞ g (
     (contDiffAt_comp_norm_sq_complexToRealEuclidean (hg.of_le (by simp)) z).contMDiffAt
   have hval : ContMDiffAt 𝓘(ℂ, ι → ℂ) 𝓘(ℂ, ι → ℂ) 2
       (Subtype.val : puncturedSpace (ι → ℂ) → _) z := contMDiff_subtypeVal z
-  have key := congrFun (coe_mextDerivₗ_covectorComplexStructure_eq_two_smul_ddbarForm
+  have key := congrFun (coe_potentialForm_eq_inv_two_smul_ddbarForm
     (u := (g ∘ s) ∘ Subtype.val) (SmoothForm.ofFunction (radialPotential hg)) (fun y ↦ by
       rw [SmoothForm.coe_ofFunction, RoughForm.ofFunction_apply, coe_radialPotential]
       rfl)) z
-  rw [SmoothBundleForm.eval₂_apply, radialPotentialForm_def, SmoothForm.smul_toRoughForm,
-    Pi.smul_apply, ContinuousAlternatingMap.smul_apply, key, Pi.smul_apply,
+  rw [SmoothBundleForm.eval₂_apply, radialPotentialForm_def, key, Pi.smul_apply,
     ContinuousAlternatingMap.smul_apply]
   -- Read `v` and `w` as vectors of `ι → ℂ`, where the Levi form takes them.
   revert v w
@@ -214,7 +210,7 @@ theorem isManifoldStrictlyPlurisubharmonicAt_radialPotential {g : ℝ → ℝ}
       ((ofComplexManifold (ι → ℂ) (puncturedSpace (ι → ℂ))).covectorComplexStructure
         (mextDerivₗ 𝓘(ℝ, ι → ℂ) 0 (SmoothForm.ofFunction (radialPotential hg)))) =
       (4 : ℝ) • radialPotentialForm ι g hg := by
-    rw [radialPotentialForm_def, smul_inv_smul₀ four_ne_zero]
+    rw [radialPotentialForm_def, potentialForm_def, smul_inv_smul₀ four_ne_zero]
   rw [(SmoothBundleForm.eval₂_apply _ z v (Complex.I • v)).symm.trans (by rw [h4]),
     SmoothForm.eval₂_smul 4 (radialPotentialForm ι g hg) z v (Complex.I • v), smul_eq_mul,
     radialPotentialForm_apply_I_smul g hg z v]
@@ -244,7 +240,7 @@ theorem isKahler_radialPotentialForm {g : ℝ → ℝ} (hg : ContDiffOn ℝ ∞ 
     (hg₂ : ∀ s ∈ Ioi (0 : ℝ), 0 < deriv (fun t ↦ t * deriv g t) s) :
     (radialPotentialForm ι g hg).IsKahler
       (ofComplexManifold (ι → ℂ) (puncturedSpace (ι → ℂ))) := by
-  rw [radialPotentialForm_def]
+  rw [radialPotentialForm_def, potentialForm_def]
   refine (isKahler_mextDerivₗ_covectorComplexStructure fun z ↦ ?_).smul _ (by norm_num)
   have hz : ∑ i, ‖(z : ι → ℂ) i‖ ^ 2 ∈ Ioi 0 := by
     simpa only [mem_Ioi, norm_sq_complexToRealEuclidean] using norm_sq_complexToRealEuclidean_pos z
@@ -285,8 +281,7 @@ theorem constSmooth_stdComplexPiSymplecticForm_eq :
 Fubini–Study form to `ℂⁿ⁺¹ ∖ 0`. -/
 theorem radialPotentialForm_log (n : ℕ) (hg : ContDiffOn ℝ ∞ Real.log (Ioi 0)) :
     radialPotentialForm (Fin (n + 1)) Real.log hg = fubiniStudyLift n := by
-  rw [radialPotentialForm_def, fubiniStudyLift_def, fubiniStudyPrimitive_eq, map_smul,
-    fubiniStudyPotential_def]
+  rw [radialPotentialForm_def, fubiniStudyLift_eq_potentialForm, fubiniStudyPotential_def]
 
 /-- The radial potential form is additive in the potential: the form of `g₁ + g₂` is the sum of
 the forms of `g₁` and `g₂`. -/
