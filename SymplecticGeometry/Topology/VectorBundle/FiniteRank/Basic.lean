@@ -8,6 +8,7 @@ module
 public import Mathlib.Algebra.Category.ModuleCat.EpiMono
 public import Mathlib.CategoryTheory.Functor.ReflectsIso.Jointly
 public import TauCeti.Topology.VectorBundle.FiniteRank.Basic
+public import TauCeti.Topology.VectorBundle.FiniteRank.Pullback
 
 /-!
 # The fibrewise equivalences of an isomorphism of finite-rank cores
@@ -16,12 +17,15 @@ Tau Ceti's `TauCeti.FiniteRankBundleCore.isoOfContinuousEquiv` builds an isomorp
 finite-rank cores from a family of fibrewise continuous linear equivalences that is continuous on
 total spaces. This file gives the converse construction.
 
-It begins with two rules for fibre maps that Tau Ceti's file does not state:
+It begins with three rules for fibre maps that Tau Ceti's files do not state:
 
 * `TauCeti.FiniteRankBundleCore.fiberMap_sub`: the fibre map of a difference of bundle maps is
   the difference of their fibre maps;
 * `TauCeti.FiniteRankBundleCore.fiberMap_comp_apply`: the fibre map of a composite, applied to a
-  vector.
+  vector;
+* `TauCeti.FiniteRankBundleCore.id_apply_pullback`: the identity of the coordinates of `A`, read
+  as a map of the coordinates of a pullback `A.pullback f`, fixes each vector. It is a `simp`
+  lemma, since `ContinuousLinearMap.id_apply` does not see through the rank of the pullback.
 
 Then:
 
@@ -96,6 +100,19 @@ the image under the fibre map of `g` of its image under the fibre map of `f`. -/
 theorem fiberMap_comp_apply {C : FiniteRankBundleCore 𝕜 B} (f : A ⟶ D) (g : D ⟶ C) (x : B)
     (v : Fin A.rank → 𝕜) : (f ≫ g).fiberMap x v = g.fiberMap x (f.fiberMap x v) := by
   rw [fiberMap_comp, ContinuousLinearMap.comp_apply]
+
+/-- The identity of the coordinates `Fin A.rank → 𝕜` of `A` fixes each vector of the coordinates
+of the pullback `A.pullback f`. These are the same space, since the pullback has the rank of `A`
+(`rank_pullback`), but only up to unfolding `pullback`: `ContinuousLinearMap.id_apply` does not
+apply to the term that the fibre map of a pulled-back map (`fiberMap_pullbackMap`) leaves, whose
+coercion to functions is on the coordinates of the pullback. -/
+@[simp] theorem id_apply_pullback {Z : Type*} [TopologicalSpace Z] (A : FiniteRankBundleCore 𝕜 B)
+    (f : C(Z, B)) (v : Fin (A.pullback f).rank → 𝕜) :
+    (ContinuousLinearMap.id 𝕜 (Fin A.rank → 𝕜) :
+      (Fin (A.pullback f).rank → 𝕜) →L[𝕜] (Fin (A.pullback f).rank → 𝕜)) v = v :=
+  -- `rfl` rather than `(rfl)`, so that `simp` may use the lemma as a definitional rewrite,
+  -- which a goal whose vector lives over an iterated pullback needs.
+  rfl
 
 /-- The fibre map of `e.inv` after that of `e.hom`, for an isomorphism `e : A ≅ D` of finite-rank
 cores, is the identity of the fibre of `A`. -/

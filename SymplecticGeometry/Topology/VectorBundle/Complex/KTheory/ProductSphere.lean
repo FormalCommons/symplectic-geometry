@@ -414,19 +414,11 @@ noncomputable def smulIdempotentAddIso {P : E ⟶ E} (hP : P ≫ P = P) :
       pullbackMap P (ContinuousMap.fst : C(X × Circle, X)) +
     pullbackMap (𝟙 E - P) (ContinuousMap.fst : C(X × Circle, X))
   hom_inv_id := hom_ext fun w ↦ ContinuousLinearMap.ext fun y ↦ by
-    -- As in `clutching_smulIdempotentAddIso`, `ContinuousLinearMap.id_apply` does not fire by
-    -- itself on the coordinates of the pullback.
-    have hid (y : Fin E.rank → ℂ) : ContinuousLinearMap.id ℂ (Fin E.rank → ℂ) y = y :=
-      ContinuousLinearMap.id_apply y
     simp [fiberMap_comp, fiberMap_add, fiberMap_smul, fiberMap_pullbackMap,
-      fiberMap_fiberMap_of_comp_self hP, hid, smul_smul, Circle.coe_ne_zero]
+      fiberMap_fiberMap_of_comp_self hP, smul_smul, Circle.coe_ne_zero]
   inv_hom_id := hom_ext fun w ↦ ContinuousLinearMap.ext fun y ↦ by
-    -- As in `clutching_smulIdempotentAddIso`, `ContinuousLinearMap.id_apply` does not fire by
-    -- itself on the coordinates of the pullback.
-    have hid (y : Fin E.rank → ℂ) : ContinuousLinearMap.id ℂ (Fin E.rank → ℂ) y = y :=
-      ContinuousLinearMap.id_apply y
     simp [fiberMap_comp, fiberMap_add, fiberMap_smul, fiberMap_pullbackMap,
-      fiberMap_fiberMap_of_comp_self hP, hid, smul_smul, Circle.coe_ne_zero]
+      fiberMap_fiberMap_of_comp_self hP, smul_smul, Circle.coe_ne_zero]
 
 @[simp]
 theorem fiberMap_smulIdempotentAddIso_hom {P : E ⟶ E} (hP : P ≫ P = P) (w : X × Circle) :
@@ -452,10 +444,6 @@ theorem clutching_smulIdempotentAddIso {P : E ⟶ E} (hP : P ≫ P = P) {r s : �
       whitneySum ((range P hr).pullback ContinuousMap.fst ⊗
           (trivial ℂ X 1).clutching (circleZPowIso X 1))
         ((range (𝟙 E - P) hs).pullback ContinuousMap.fst)) := by
-  -- The fibre maps of the pullbacks below act on `Fin (E.pullback _).rank → ℂ`, on which
-  -- `ContinuousLinearMap.id_apply` for `Fin E.rank → ℂ` does not fire by itself.
-  have hid (y : Fin E.rank → ℂ) : ContinuousLinearMap.id ℂ (Fin E.rank → ℂ) y = y :=
-    ContinuousLinearMap.id_apply y
   -- Through the splitting of `E` along `P`, `u P + (𝟙 E - P)` is `u ⊕ 1`.
   obtain ⟨i₁⟩ := nonempty_iso_clutching_of_fiberMap_comp_eq (rangeWhitneySumIso hr hs hP)
     (rangeWhitneySumIso hr hs hP)
@@ -470,7 +458,7 @@ theorem clutching_smulIdempotentAddIso {P : E ⟶ E} (hP : P ≫ P = P) {r s : �
             (rangeRestrict (𝟙 E - P) hs).fiberMap w.1 y := by
         have := fiberMap_comp_apply (𝟙 E - P) (rangeRestrict (𝟙 E - P) hs) w.1 y
         rwa [comp_rangeRestrict_of_comp_self hs (Idempotents.idem_of_id_sub_idem P hP),
-          fiberMap_sub, fiberMap_id, sub_apply, hid, eq_comm] at this
+          fiberMap_sub, fiberMap_id, sub_apply, ContinuousLinearMap.id_apply, eq_comm] at this
       have hb' (y : Fin E.rank → ℂ) :
           (rangeRestrict (𝟙 E - P) hs).fiberMap w.1 (P.fiberMap w.1 y) = 0 := by
         have := hb (P.fiberMap w.1 y)
@@ -492,10 +480,10 @@ theorem clutching_smulIdempotentAddIso {P : E ⟶ E} (hP : P ≫ P = P) {r s : �
         fiberMap_whitneyMapIsoPullback_hom, fiberMap_sub, fiberMap_circleZPowSMul_hom,
         Iso.refl_hom, fiberMap_id, zpow_one]
       refine key _ _ _ _ (fun v ↦ ?_) (fun v ↦ ?_)
-      · simp only [add_apply, smul_apply, sub_apply, hid, map_add, map_smul, map_sub, ha,
-          sub_self, add_zero]
-      · simp only [add_apply, smul_apply, sub_apply, hid, map_add, map_smul, hb, hb', smul_zero,
-          zero_add]
+      · simp only [add_apply, smul_apply, sub_apply, ContinuousLinearMap.id_apply, map_add,
+          map_smul, map_sub, ha, sub_self, add_zero]
+      · simp only [add_apply, smul_apply, sub_apply, ContinuousLinearMap.id_apply, map_add,
+          map_smul, hb, hb', smul_zero, zero_add]
   obtain ⟨i₂⟩ := clutching_whitneySum (circleZPowSMul 1 (Iso.refl (range P hr).circlePullback))
     (Iso.refl (range (𝟙 E - P) hs).circlePullback)
   obtain ⟨i₃⟩ := clutching_circleZPowSMul 1 (Iso.refl (range P hr).circlePullback)
@@ -525,17 +513,13 @@ theorem clutching_smul_add [ParacompactSpace X] [R1Space X] {r s : ℕ}
   have hpq (x : X) (y : Fin E.rank → ℂ) :
       P.fiberMap x (T.fiberMap x y) = T.fiberMap x (P.fiberMap x y) := by
     rw [← fiberMap_comp_apply, ← fiberMap_comp_apply, unitDiscRieszProjection_comp_comm]
-  -- The fibre maps of the pullbacks below act on `Fin (E.pullback _).rank → ℂ`, on which
-  -- `ContinuousLinearMap.id_apply` for `Fin E.rank → ℂ` does not fire by itself.
-  have hid (y : Fin E.rank → ℂ) : ContinuousLinearMap.id ℂ (Fin E.rank → ℂ) y = y :=
-    ContinuousLinearMap.id_apply y
   -- `S = P + T (1 - P)` is an automorphism of `E`.
   have hS : IsIso (P + (𝟙 E - P) ≫ T) := by
     refine isIso_of_injective_fiberMap _ fun x ↦ (injective_iff_map_eq_zero _).2 fun v hv ↦ ?_
     refine eq_zero_of_unitDiscRieszProjection_homotopy T h x (u := 1) (by simp) le_rfl
       zero_le_one v ?_
     simp only [fiberMap_add, fiberMap_comp_apply, fiberMap_sub, fiberMap_id, add_apply, sub_apply,
-      hid] at hv
+      ContinuousLinearMap.id_apply] at hv
     simpa only [one_smul, Complex.ofReal_zero, zero_smul, zero_mul, add_zero, zero_add]
       using hv
   let S : E ≅ E := asIso (P + (𝟙 E - P) ≫ T)
@@ -551,7 +535,8 @@ theorem clutching_smul_add [ParacompactSpace X] [R1Space X] {r s : ℕ}
     simp only [g₀, S, D, Iso.trans_hom, Functor.mapIso_hom, asIso_hom, fiberMap_comp,
       fiberMap_smulIdempotentAddIso_hom, fiberMap_add, fiberMap_pullbackMap, fiberMap_sub,
       fiberMap_id, ContinuousMap.fst_apply, add_apply, sub_apply, smul_apply,
-      ContinuousLinearMap.comp_apply, map_add, map_sub, fiberMap_fiberMap_of_comp_self hP, hpq, hid]
+      ContinuousLinearMap.comp_apply, map_add, map_sub, fiberMap_fiberMap_of_comp_self hP, hpq,
+      id_apply_pullback]
     module
   obtain ⟨i₁⟩ := E.nonempty_iso_clutching_of_homotopic (asIso (segmentHom g₀.hom g.hom))
     (fiberMap_segmentHom_zero _ _) (fiberMap_segmentHom_one _ _)
@@ -605,17 +590,13 @@ theorem exists_nonempty_clutching_iso_whitneySum_of_linear [CompactSpace X] [T2S
   let T : E ⟶ E := B ≫ inv A
   have hAA (x : X) (v : Fin E.rank → ℂ) : (inv A).fiberMap x (A.fiberMap x v) = v :=
     congrArg (· v) (fiberMap_hom_inv_id φ x)
-  -- The fibre maps of the pullbacks act on `Fin (E.pullback _).rank → ℂ`, on which
-  -- `ContinuousLinearMap.id_apply` for `Fin E.rank → ℂ` does not fire by itself.
-  have hid (y : Fin E.rank → ℂ) : ContinuousLinearMap.id ℂ (Fin E.rank → ℂ) y = y :=
-    ContinuousLinearMap.id_apply y
   have hkT (w : X × Circle) :
       k.hom.fiberMap w = (w.2 : ℂ) • ContinuousLinearMap.id ℂ _ + T.fiberMap w.1 := by
     ext1 v
     simp only [k, φ, T, Iso.trans_hom, Functor.mapIso_hom, Iso.symm_hom, asIso_inv,
       fiberMap_comp, fiberMap_pullbackMap, ContinuousMap.fst_apply, hg',
       ContinuousLinearMap.comp_apply, add_apply, smul_apply, map_add, map_smul, hAA]
-    rw [hid]
+    rw [id_apply_pullback]
   -- `u + T` is invertible on the circle, so `T` has no eigenvalue of norm `1`.
   have h := norm_ne_one_of_mem_spectrum_fiberMap T k hkT
   -- The Riesz projection of `T` and its complement have constant rank.
