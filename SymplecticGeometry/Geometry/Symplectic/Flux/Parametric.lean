@@ -20,7 +20,8 @@ Let `σ` be a symplectic form on a finite-dimensional Hausdorff manifold `M` wit
 `F_a = F (a, ·, ·)` generates a compactly supported Hamiltonian diffeotopy `φ^a_t`
 (`TauCeti.Diffeotopy.exists_isCompactlySupportedHamiltonian`). This file chooses these
 diffeotopies so that `(a, t, y) ↦ φ^a_t y` is jointly smooth, every `φ^a_t` fixes the points off
-`C`, and `φ^a_t` is the identity whenever `F_a = 0`.
+`C`, and `φ^a_t` is the identity whenever `F_a = 0`. It also does so for the parameter interval
+`N = [0, 1]`, which has boundary.
 
 ## Main results
 
@@ -28,6 +29,8 @@ diffeotopies so that `(a, t, y) ↦ φ^a_t y` is jointly smooth, every `φ^a_t` 
   of Hamiltonians vanishing off a compact set, over a boundaryless parameter manifold, can be
   chosen jointly smooth in the parameter, fixing the points off the compact set, and constant
   for the parameters where the Hamiltonian vanishes.
+* `TauCeti.Diffeotopy.exists_isGeneratedBy_param_unitInterval`: the same, for parameters in
+  `[0, 1]`.
 
 ## Implementation notes
 
@@ -43,6 +46,11 @@ parameter space `N × ℝ`). They vanish off `C`, so their suspensions are compl
 (`TauCeti.isCompleteVectorField_timeDependentSuspensionField`), and `φ^a` is
 `TauCeti.timeDependentFlowDiffeotopy` of `X_a`. The flows are smooth in the parameter by
 `TauCeti.contMDiff_timeDependentFlowOf_param`.
+
+For parameters in `[0, 1]`, `F` is first extended in the parameter to `ℝ × M × [0, 1]`, again by
+`SymplecticGeometry.timeExtend`, with space factor `M × [0, 1]`; the extension agrees with `F`
+for parameters in `[0, 1]` and still vanishes off `C`, so the boundaryless case applies to it with
+`N = ℝ`, and its family is restricted to `[0, 1]`.
 
 ## References
 
@@ -126,6 +134,36 @@ theorem exists_isGeneratedBy_param {σ : SmoothTwoForm J M} (hσ : σ.IsSymplect
         (contMDiff_subtypeVal_Icc.comp contMDiff_fst.snd))).prodMk contMDiff_snd)).congr
       fun p ↦ ?_
     simp only [Function.comp_apply, timeDependentFlowDiffeotopy_apply]
+
+/-- **The flow of a family of compactly supported Hamiltonians, with parameter in `[0, 1]`.**
+Let `σ` be a symplectic form on a finite-dimensional Hausdorff manifold `M` without boundary. A
+smooth function `F` on `[0, 1] × M × [0, 1]` with `F (a, y, t) = 0` whenever `y` lies outside a
+compact set `C` gives a family of diffeotopies `φ^a_t`, `a ∈ [0, 1]`, such that
+
+* `F (a, ·, ·)` generates `φ^a` for every `a`;
+* `(a, t, y) ↦ φ^a_t y` is smooth;
+* `φ^a_t y = y` for every `a` and `t` and every `y ∉ C`;
+* `φ^a_t` is the identity for every `t` whenever `F (a, ·, ·) = 0`. -/
+theorem exists_isGeneratedBy_param_unitInterval {σ : SmoothTwoForm J M} (hσ : σ.IsSymplectic)
+    {F : unitInterval × M × unitInterval → ℝ}
+    (hF : ContMDiff ((𝓡∂ 1).prod (J.prod (𝓡∂ 1))) 𝓘(ℝ) ∞ F)
+    {C : Set M} (hC : IsCompact C) (hFC : ∀ a y t, y ∉ C → F (a, y, t) = 0) :
+    ∃ Φ : unitInterval → Diffeotopy J ∞ M,
+      (∀ a, (Φ a).IsGeneratedBy σ fun p ↦ F (a, p.1, p.2)) ∧
+      ContMDiff (((𝓡∂ 1).prod (𝓡∂ 1)).prod J) J ∞
+        (fun p : (unitInterval × unitInterval) × M ↦ Φ p.1.1 (p.1.2, p.2)) ∧
+      (∀ a t, ∀ y ∉ C, Φ a (t, y) = y) ∧
+      ∀ a, (∀ y t, F (a, y, t) = 0) → ∀ t y, Φ a (t, y) = y := by
+  -- Extend `F` in the parameter to `ℝ × M × [0, 1]`: the extension agrees with `F` on
+  -- `[0, 1] × M × [0, 1]` and still vanishes off `C`, so the boundaryless case applies.
+  obtain ⟨Ψ, hgen, hsmooth, hfix, hid⟩ := exists_isGeneratedBy_param (I := 𝓘(ℝ, ℝ)) hσ
+    hF.timeExtend hC fun a y t hy ↦
+      SymplecticGeometry.timeExtend_eq_zero (fun s ↦ hFC s y t hy) a
+  refine ⟨fun a ↦ Ψ a, fun a ↦ ?_, ?_, fun a ↦ hfix a, fun a ha ↦ hid a fun y t ↦ ?_⟩
+  · simpa only [SymplecticGeometry.timeExtend_apply_coe] using hgen a
+  · exact hsmooth.comp (((contMDiff_subtypeVal_Icc.comp contMDiff_fst.fst).prodMk
+      contMDiff_fst.snd).prodMk contMDiff_snd)
+  · rw [SymplecticGeometry.timeExtend_apply_coe F a (y, t), ha]
 
 end TauCeti.Diffeotopy
 
