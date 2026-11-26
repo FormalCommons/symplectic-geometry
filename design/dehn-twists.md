@@ -514,7 +514,7 @@ theorem mpullback_dehnTwist (hι : SmoothTwoForm.IsSymplectomorphism ((-symplect
     (dehnTwist ι hR hU)^* ω = ω
 theorem dehnTwist_apply_embedding (hιf : CotangentBundle.AgreesOnZeroSection f ι) (q : Sⁿ) :
     dehnTwist ι hR hU (f q) = f (-q)
-theorem exists_diffeotopy_dehnTwist_eq (hf₁ : IsLagrangianMap f₁) (hf : FramingRel f₁ f₂)
+theorem exists_diffeotopy_dehnTwist_eq (hσ : ω.IsSymplectic) (hf : FramingRel f₁ f₂)
     (hι₁ : CotangentBundle.IsWeinsteinChart ω f₁ ι₁) (hR₁ : IsTwistProfile R₁ r₁) (hU₁)
     (hι₂ : CotangentBundle.IsWeinsteinChart ω f₂ ι₂) (hR₂ : IsTwistProfile R₂ r₂) (hU₂) :
     ∃ (Φ : Diffeotopy I ∞ M) (K : Set M), IsCompact K ∧
