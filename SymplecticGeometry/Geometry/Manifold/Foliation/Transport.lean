@@ -262,7 +262,7 @@ private theorem transportable_of_snd_eq {Φ : PartialDiffeomorph I 𝓘(ℝ, F�
   have hW : IsOpen W :=
     Metric.isOpen_ball.inter (Metric.isOpen_ball.preimage (continuous_id.add continuous_const))
   have hV : IsOpen (Φ.source ∩ Φ ⁻¹' W) :=
-    Φ.contMDiffOn.continuousOn.isOpen_inter_preimage Φ.open_source hW
+    Φ.toOpenPartialHomeomorph.isOpen_inter_preimage hW
   refine ⟨Φ.source ∩ Φ ⁻¹' W, hV.mem_nhds ⟨ha, ha', by simpa [d] using hb'⟩,
     fun z ↦ Φ.symm (Φ z + d), ?_, by simp [d, Φ.left_inv hb], fun z hz ↦ ?_⟩
   · exact Φ.symm.contMDiffOn.comp ((contDiff_id.add contDiff_const).contMDiff.comp_contMDiffOn
@@ -283,7 +283,7 @@ private theorem eventually_transportable_curve (h₁ : finrank ℝ F₁ = k)
   obtain ⟨Φ, hx, h0, hball, hflat⟩ :=
     𝓕.isInvolutiveDistribution.exists_flatPartialDiffeomorph 𝓕.isContMDiffDistribution h₁ h₂ (γ t)
   have hO : IsOpen (Φ.source ∩ Φ ⁻¹' Metric.ball 0 1) :=
-    Φ.contMDiffOn.continuousOn.isOpen_inter_preimage Φ.open_source Metric.isOpen_ball
+    Φ.toOpenPartialHomeomorph.isOpen_inter_preimage Metric.isOpen_ball
   have hγO : γ ⁻¹' (Φ.source ∩ Φ ⁻¹' Metric.ball 0 1) ∈ 𝓝[Icc 0 1] t :=
     (hγ t ht).continuousWithinAt.preimage_mem_nhdsWithin (hO.mem_nhds ⟨hx, by simp [h0]⟩)
   obtain ⟨δ, hδ, hδO⟩ := Metric.mem_nhdsWithin_iff.mp hγO

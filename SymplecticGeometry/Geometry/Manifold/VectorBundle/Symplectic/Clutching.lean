@@ -137,8 +137,7 @@ def symplecticClutchingForm (n : ℕ∞) :
     rw [Trivialization.symmL_apply _ hx, Trivialization.symmL_apply _ hx,
       VectorBundleCore.fiberEquiv_trivializationAt_symm _ hx,
       VectorBundleCore.fiberEquiv_trivializationAt_symm _ hx, coordChange_symplecticClutchingCore]
-    rw [toEuclideanCLM_apply, toEuclideanCLM_apply]
-    exact mem_symplecticGroup_iff_forall_stdForm.1 (Subtype.prop _) (v 0) (v 1)
+    exact mem_symplecticGroup_iff_forall_stdForm_toEuclideanCLM.1 (Subtype.prop _) (v 0) (v 1)
 
 theorem symplecticClutchingForm_def (n : ℕ∞) (x : M) :
     symplecticClutchingForm (IM := IM) U₁ U₂ T hU₁ hU₂ hU hT n x =
@@ -242,8 +241,7 @@ theorem isSymplecticFrameOn_symplecticClutchingFrame (n : ℕ∞) (b : Bool) :
     exact Trivialization.mk_symm _ (by rw [← VectorBundleCore.baseSet_at]; exact hp.1) p.2
   · rw [bilinFormAt_symplecticClutchingForm, fiberEquiv_symplecticClutchingFrame,
       fiberEquiv_symplecticClutchingFrame]
-    rw [toEuclideanCLM_apply, toEuclideanCLM_apply]
-    exact mem_symplecticGroup_iff_forall_stdForm.1 (Subtype.prop _) v w
+    exact mem_symplecticGroup_iff_forall_stdForm_toEuclideanCLM.1 (Subtype.prop _) v w
 
 /-- **The form of the clutched bundle is nondegenerate.** -/
 theorem isNondegenerate_symplecticClutchingForm (n : ℕ∞) :
