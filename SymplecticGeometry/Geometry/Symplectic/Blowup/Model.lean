@@ -348,6 +348,15 @@ theorem coe_blowdownPuncturedDiffeomorph_symm_apply (z : puncturedSpace (Fin (n 
       ofNeZero (mem_puncturedSpace.1 z.property) := by
   simp [blowdownPuncturedDiffeomorph, blowdownDiffeomorph_symm_apply]
 
+/-- Read through the inclusions of the complement of the divisor and of `E ∖ 0`, the blowdown
+inverts `(blowdownPuncturedDiffeomorph n).symm`. -/
+theorem blowdown_comp_subtypeVal_comp_blowdownPuncturedDiffeomorph_symm :
+    (blowdown : BlowupModel n → _) ∘ Subtype.val ∘ (blowdownPuncturedDiffeomorph n).symm =
+      Subtype.val :=
+  funext fun z ↦ by
+    rw [Function.comp_apply, Function.comp_apply, coe_blowdownPuncturedDiffeomorph_symm_apply,
+      blowdown_ofNeZero]
+
 open SmoothAlmostComplexStructure in
 /-- The blowdown, from the complement of the exceptional divisor onto `E ∖ 0`, is holomorphic. -/
 theorem isPseudoholomorphic_blowdownPuncturedDiffeomorph :
@@ -393,9 +402,8 @@ theorem mpullback_blowdownDiffeomorph_symm_blowupForm (l : ℝ) :
     SmoothForm.mpullback_mpullback, SmoothForm.mpullback_mpullback,
     SmoothForm.mpullback_mpullback, ← mpullback_mkNonzero_fubiniStudyForm, ω₀E_def]
   congr 1
-  · refine SmoothForm.mpullback_congr _ _ (funext fun z ↦ ?_) _
-    rw [Function.comp_apply, Function.comp_apply, coe_blowdownPuncturedDiffeomorph_symm_apply,
-      blowdown_ofNeZero]
+  · exact SmoothForm.mpullback_congr _ _
+      blowdown_comp_subtypeVal_comp_blowdownPuncturedDiffeomorph_symm _
   · refine congrArg _ (SmoothForm.mpullback_congr _ _ (funext fun z ↦ ?_) _)
     rw [Function.comp_apply, Function.comp_apply, coe_blowdownPuncturedDiffeomorph_symm_apply,
       pr_ofNeZero, mkNonzero_apply]
