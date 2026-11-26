@@ -53,8 +53,7 @@ All of this follows from the identities `rangeRestrict_rangeInclusion` and
 * `TauCeti.FiniteRankBundleCore.isLocallyConstant_finrank_range_fiberMap`: the rank of an
   idempotent endomorphism of a finite-rank core is locally constant on the base.
 * `TauCeti.FiniteRankBundleCore.finrank_range_fiberMap_eq`: over a preconnected base it is
-  constant, and `TauCeti.FiniteRankBundleCore.exists_finrank_range_fiberMap_eq` gives the
-  constant value, in the form the range core takes.
+  constant.
 * `TauCeti.FiniteRankBundleCore.finrank_range_one_sub_fiberMap`: at each point, the rank of
   `𝟙 E - P` is that of `E` minus that of `P`.
 * `TauCeti.FiniteRankBundleCore.rangeWhitneySumIso`: the isomorphism of `E` with
@@ -150,14 +149,6 @@ identity over one component and zero over another. -/
 theorem finrank_range_fiberMap_eq [PreconnectedSpace X] (hP : P ≫ P = P) (x y : X) :
     Module.finrank 𝕜 (P.fiberMap x).range = Module.finrank 𝕜 (P.fiberMap y).range :=
   (isLocallyConstant_finrank_range_fiberMap hP).apply_eq_of_preconnectedSpace x y
-
-/-- Over a preconnected base, an idempotent endomorphism `P` of a finite-rank core has constant
-rank: there is an `r` that is the dimension of the range of `P.fiberMap x` for every `x`. -/
-theorem exists_finrank_range_fiberMap_eq [PreconnectedSpace X] (hP : P ≫ P = P) :
-    ∃ r : ℕ, ∀ x, Module.finrank 𝕜 (P.fiberMap x).range = r := by
-  rcases isEmpty_or_nonempty X with hX | ⟨⟨x₀⟩⟩
-  · exact ⟨0, isEmptyElim⟩
-  · exact ⟨_, fun x ↦ finrank_range_fiberMap_eq hP x x₀⟩
 
 section Splitting
 

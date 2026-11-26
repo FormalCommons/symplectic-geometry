@@ -123,8 +123,9 @@ For a general linear family `u a + b`, whose leading coefficient need not be inv
 `TauCeti.FiniteRankBundleCore.exists_isIso_nonempty_iso_clutching_linear` first replaces it by
 `u A + B` with `A` invertible. Composing with the pullback of `A⁻¹` does not change the clutching
 (`TauCeti.FiniteRankBundleCore.nonempty_iso_clutching_trans_pullback`) and gives `u + A⁻¹ B`.
-Since this is invertible at every point of the circle, `A⁻¹ B` has no eigenvalue of norm `1`, and
-the case above applies, the ranks being constant over a preconnected base.
+Since this is invertible at every point of the circle, `A⁻¹ B` has no eigenvalue of norm `1`
+(`TauCeti.FiniteRankBundleCore.norm_ne_one_of_mem_spectrum_fiberMap`), and the case
+above applies, the ranks being constant over a preconnected base.
 
 ## References
 
@@ -586,6 +587,24 @@ theorem clutching_smul_add [ParacompactSpace X] [R1Space X] {r s : ℕ}
   obtain ⟨i₃⟩ := clutching_smulIdempotentAddIso hP hr hs
   exact ⟨i₁.symm ≪≫ i₂ ≪≫ i₃⟩
 
+/-- If an automorphism `g` of the pullback of `E` to `X × Circle` has fibre map `u + T(x)` at
+`(x, u)`, then at no point `x` of `X` does `T(x)` have an eigenvalue of norm `1`. -/
+theorem norm_ne_one_of_mem_spectrum_fiberMap
+    (g : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
+      E.pullback (ContinuousMap.fst : C(X × Circle, X)))
+    (hg : ∀ w : X × Circle,
+      g.hom.fiberMap w = (w.2 : ℂ) • ContinuousLinearMap.id ℂ _ + T.fiberMap w.1) :
+    ∀ x, ∀ z ∈ spectrum ℂ (T.fiberMap x), ‖z‖ ≠ 1 := by
+  intro x z hz hz1
+  refine (spectrum.mem_iff.1 hz) ?_
+  let u : Circle := { val := -z, property := mem_sphere_zero_iff_norm.2 (by rwa [norm_neg]) }
+  have hu : IsUnit ((-z) • ContinuousLinearMap.id ℂ (Fin E.rank → ℂ) + T.fiberMap x) := by
+    rw [← show g.hom.fiberMap (x, u) = _ from hg (x, u)]
+    exact ⟨(isoFiberEquiv g (x, u)).toUnit, toContinuousLinearMap_isoFiberEquiv g (x, u)⟩
+  rw [Algebra.algebraMap_eq_smul_one, ContinuousLinearMap.one_def, sub_eq_add_neg,
+    ← neg_neg (z • _), ← neg_smul, ← neg_add]
+  exact hu.neg
+
 /-- **Splitting a linear clutching function with any leading coefficient.** Let `X` be compact,
 Hausdorff and preconnected, `E` a complex core over `X`, `a b : E ⟶ E`, and `g` an automorphism of
 the pullback of `E` to `X × Circle` with fibre map `u • a(x) + b(x)` at `(x, u)`. Then there are
@@ -613,10 +632,8 @@ theorem exists_nonempty_clutching_iso_whitneySum_of_linear [CompactSpace X] [T2S
   obtain ⟨i₂⟩ := E.nonempty_iso_clutching_trans_pullback k φ
   rw [hk] at i₂
   let T : E ⟶ E := B ≫ inv A
-  have hAA (x : X) (v : Fin E.rank → ℂ) : (inv A).fiberMap x (A.fiberMap x v) = v := by
-    have := congrArg (fun f : E ⟶ E ↦ f.fiberMap x v) (IsIso.hom_inv_id A)
-    simpa only [fiberMap_comp, fiberMap_id, ContinuousLinearMap.comp_apply,
-      ContinuousLinearMap.id_apply] using this
+  have hAA (x : X) (v : Fin E.rank → ℂ) : (inv A).fiberMap x (A.fiberMap x v) = v :=
+    congrArg (· v) (fiberMap_hom_inv_id φ x)
   -- The fibre maps of the pullbacks act on `Fin (E.pullback _).rank → ℂ`, on which
   -- `ContinuousLinearMap.id_apply` for `Fin E.rank → ℂ` does not fire by itself.
   have hid (y : Fin E.rank → ℂ) : ContinuousLinearMap.id ℂ (Fin E.rank → ℂ) y = y :=
@@ -629,26 +646,15 @@ theorem exists_nonempty_clutching_iso_whitneySum_of_linear [CompactSpace X] [T2S
       ContinuousLinearMap.comp_apply, add_apply, smul_apply, map_add, map_smul, hAA]
     rw [hid]
   -- `u + T` is invertible on the circle, so `T` has no eigenvalue of norm `1`.
-  have h : ∀ x, ∀ z ∈ spectrum ℂ (T.fiberMap x), ‖z‖ ≠ 1 := by
-    intro x z hz hz1
-    refine (spectrum.mem_iff.1 hz) ?_
-    let u : Circle := { val := -z, property := mem_sphere_zero_iff_norm.2 (by rwa [norm_neg]) }
-    have hu : IsUnit (k.hom.fiberMap (x, u)) :=
-      isUnit_iff_exists.2 ⟨k.inv.fiberMap (x, u), by
-        rw [ContinuousLinearMap.mul_def, fiberMap_inv_hom_id, ContinuousLinearMap.one_def], by
-        rw [ContinuousLinearMap.mul_def, fiberMap_hom_inv_id, ContinuousLinearMap.one_def]⟩
-    have hu' : IsUnit ((-z) • ContinuousLinearMap.id ℂ (Fin E.rank → ℂ) + T.fiberMap x) := by
-      rw [hkT] at hu
-      exact hu
-    rw [Algebra.algebraMap_eq_smul_one, ContinuousLinearMap.one_def, sub_eq_add_neg,
-      ← neg_neg (z • _), ← neg_smul, ← neg_add]
-    exact hu'.neg
+  have h := norm_ne_one_of_mem_spectrum_fiberMap T k hkT
   -- The Riesz projection of `T` and its complement have constant rank.
   set P := unitDiscRieszProjection T h
   have hP : P ≫ P = P := unitDiscRieszProjection_comp_self T h
-  obtain ⟨r, hr⟩ := exists_finrank_range_fiberMap_eq hP
-  obtain ⟨s, hs⟩ := exists_finrank_range_fiberMap_eq (Idempotents.idem_of_id_sub_idem P hP)
-  obtain ⟨i₃⟩ := clutching_smul_add T h hr hs k hkT
+  obtain ⟨r, hr⟩ := (isLocallyConstant_finrank_range_fiberMap hP).exists_eq_const
+  obtain ⟨s, hs⟩ :=
+    (isLocallyConstant_finrank_range_fiberMap
+      (Idempotents.idem_of_id_sub_idem P hP)).exists_eq_const
+  obtain ⟨i₃⟩ := clutching_smul_add T h (congrFun hr) (congrFun hs) k hkT
   exact ⟨_, _, ⟨i₁ ≪≫ i₂ ≪≫ i₃⟩⟩
 
 end TauCeti.FiniteRankBundleCore
