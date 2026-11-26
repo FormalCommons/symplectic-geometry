@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSet.NormalSp
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.ThomClass
 
 import SymplecticGeometry.AlgebraicTopology.Cohomology.Local.Restrict
+import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 
 /-!
 # The dual class of the zero set of a transverse section
@@ -30,7 +31,7 @@ The proof is the slice criterion `TauCeti.SmoothEmbedding.eq_relDualClassOf_iff_
 At a point `x` of `Z`, read the normal slice of a normalized tube `Φ` through the preferred
 trivialization of the normal bundle, `w ↦ Φ(x, m w)`. Since `Φ` is normalized
 (`TauCeti.SmoothEmbedding.IsNormalizedTube.exists_hasMFDerivAt_apply_mk`), the chain rule, with
-`TauCeti.sectionLinearization_def` and
+`TauCeti.continuousLinearMapAt_comp_sectionLinearization` and
 `SymplecticGeometry.normalSpaceEquivOfTransverseSection_normalClass`, gives the derivative at `0`
 of the coordinate of `s` along the slice, in the preferred trivialization of `E'` at `x`: the
 isomorphism `m`, followed by the normal-space equivalence and the trivialization. The local-degree
@@ -76,7 +77,7 @@ universe w
 
 namespace TauCeti.SmoothEmbedding
 
-variable {V G X F' E : Type w}
+variable {G E : Type*} {V X F' : Type w}
   [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]
   [TopologicalSpace G] {J : ModelWithCorners ℝ V G} [J.Boundaryless]
   [TopologicalSpace X] [ChartedSpace G X] [IsManifold J ∞ X]
@@ -89,14 +90,6 @@ variable {V G X F' E : Type w}
   (hsm : ContMDiff J (J.prod 𝓘(ℝ, F')) ∞ fun x ↦ TotalSpace.mk' F' x (s x))
   (hs : ∀ x, s x = 0 → Surjective (sectionLinearization (F := F') J _root_.id s x))
   (hE : finrank ℝ E + finrank ℝ F' = finrank ℝ V)
-
-/-- Off the zero set of a transverse section, the section does not vanish. -/
-theorem snd_ne_zero_of_notMem_range_ofTransverseSection (x : X)
-    (hx : letI := transverseZeroSetChartedSpace hm hsm hs hE
-      x ∉ range (ofTransverseSection hm hsm hs hE)) :
-    (TotalSpace.mk' F' x (s x)).snd ≠ 0 := fun h ↦ hx <| by
-  rw [range_ofTransverseSection]
-  exact h
 
 section LocalDegree
 
@@ -169,11 +162,13 @@ theorem singularCohomologyMap_normalSlice_thomPairMapOfNeZero
       mfderiv J 𝓘(ℝ, F') c y D =
         ℓ (ψ ((ofTransverseSection hm hsm hs hE).normalClass x hm D)) := by
     rintro _ rfl D
-    rw [normalSpaceEquivOfTransverseSection_normalClass, sectionLinearization_def]
-    have key (v : F') : ℓ (e'.symmL ℝ _ v) = v := by
-      rw [← e'.symm_continuousLinearEquivAt_eq' hx']
-      exact ℓ.apply_symm_apply v
-    exact (key _).symm
+    have h := congrArg (· D) (continuousLinearMapAt_comp_sectionLinearization continuousAt_id hx'
+      (hc _ rfl).mdifferentiableAt (ofTransverseSection_apply_eq_zero hm hsm hs hE x))
+    simp only [ContinuousLinearMap.comp_apply, mvfderiv, ContinuousLinearEquiv.coe_coe,
+      NormedSpace.fromTangentSpace_apply] at h
+    rw [normalSpaceEquivOfTransverseSection_normalClass, ← ContinuousLinearEquiv.coe_coe,
+      e'.coe_continuousLinearEquivAt_eq' hx']
+    exact h.symm
   have hA : HasFDerivAt (fun w ↦ (e' (g w)).2) (L : F' →L[ℝ] F') 0 := by
     have h := (hc _ hg0').comp 0 hg'
     rw [hasMFDerivAt_iff_hasFDerivAt] at h
@@ -197,9 +192,13 @@ theorem singularCohomologyMap_normalSlice_thomPairMapOfNeZero
         fun w hw ↦ mem_zeroSectionCompl.2 (hgS0 w w.property fun h ↦ hw (Subtype.ext h)) := by
     refine TopPair.hom_ext_of_fst _ (ConcreteCategory.hom_ext _ _ fun w ↦ ?_)
     simp only [TopPair.Hom.fst_comp, ConcreteCategory.comp_apply]
+    -- The points of the pairs are those of `univ`, `F'` and `TotalSpace F' E'` only up to
+    -- unfolding `ofSubset`.
     erw [TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply]
     rw [ContinuousLinearEquiv.complZeroPairIso_hom_fst_apply, normalSlice_fst_apply,
       thomPairMapOfNeZero_fst_apply]
+    -- Both sides are `g w`, with `w` a point of `univ` only up to unfolding `ofSubset`, so
+    -- `Set.domRestrict_apply` does not apply syntactically.
     rfl
   -- Read in the same way, the fibre inclusion after `ψ` is `L` followed by `ℓ⁻¹`.
   have hLi : (TopPair.ofSubsetMap (X := TopCat.of (univ : Set F')) (Y := TopCat.of F')
@@ -223,11 +222,8 @@ theorem singularCohomologyMap_normalSlice_thomPairMapOfNeZero
             (L : F' →L[ℝ] F').continuous.comp continuous_subtypeVal⟩)
           (B := {⟨0, mem_univ 0⟩}ᶜ) (B' := {0}ᶜ)
           (fun w hw h ↦ hw (Subtype.ext (L.map_eq_zero_iff.1 (Set.mem_singleton_iff.1 h)))) := by
-      refine TopPair.hom_ext_of_fst _ (ConcreteCategory.hom_ext _ _ fun w ↦ ?_)
-      simp only [TopPair.Hom.fst_comp, ConcreteCategory.comp_apply]
-      erw [TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply]
-      rw [ContinuousLinearEquiv.complZeroPairIso_hom_fst_apply]
-      rfl
+      rw [ContinuousLinearEquiv.complZeroPairIso_hom]
+      exact TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ _ rfl
     rw [← hL, ContinuousLinearEquiv.complZeroPairIso_trans,
       ContinuousLinearEquiv.complZeroPairIso_trans]
     simp only [Iso.trans_hom, Category.assoc, Iso.hom_inv_id_assoc]
@@ -255,7 +251,6 @@ theorem relDualClassOf_ofTransverseSection {k : Type*} [CommRing k] {R M : Modul
     (u : (thomPair F' E').singularCohomology R k M (finrank ℝ F')) :
     letI := transverseZeroSetChartedSpace hm hsm hs hE
     haveI := isManifold_transverseZeroSet hm hsm hs hE
-    haveI : IsManifold J 1 X := .of_le (ENat.one_le_iff_ne_zero_withTop.mpr hm)
     letI := (ofTransverseSection hm hsm hs hE).normalSpaceFiberBundle (P := F') hm
       (Nat.eq_sub_of_add_eq' hE)
     TopPair.singularCohomologyMap (thomPairMapOfNeZero ⟨_, hsm.continuous⟩
@@ -298,7 +293,6 @@ theorem relDualClass_ofTransverseSection {r : ℕ} (o' : VectorBundleOrientation
         (normalOrientationOfSection hm hsm hs hE ((Fintype.card_fin r).trans hr.symm) o') hr := by
   let := transverseZeroSetChartedSpace hm hsm hs hE
   have := isManifold_transverseZeroSet hm hsm hs hE
-  have : IsManifold J 1 X := .of_le (ENat.one_le_iff_ne_zero_withTop.mpr hm)
   let := (ofTransverseSection hm hsm hs hE).normalSpaceFiberBundle (P := F') hm
     (Nat.eq_sub_of_add_eq' hE)
   let := (ofTransverseSection hm hsm hs hE).normalSpaceVectorBundle (P := F') hm
