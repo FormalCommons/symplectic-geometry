@@ -9,7 +9,6 @@ public import SymplecticGeometry.Geometry.Manifold.Immersion.Transverse
 public import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.Riemannian.Injective
 public import TauCeti.Geometry.Contact.Legendrian.Neighborhood
 public import TauCeti.Geometry.Manifold.Flow.Basic
-import SymplecticGeometry.Geometry.Contact.Contactization
 import TauCeti.Geometry.Contact.OneJet.Connection
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
