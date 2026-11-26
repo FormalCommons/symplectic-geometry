@@ -216,8 +216,9 @@ the fixed radius (Decision 2); `Pointwise.lean` works with nondegenerate
 forms rather than tame structures (the two are equivalent by Tau Ceti's
 `exists_compatible`); `E(1)` is shown symplectic rather than Kähler
 (Decision 5); and the realization theorem does not perturb the product
-form (Decision 9). The two files this design adds outside
-`Geometry/Symplectic/Sum/` are planned here only. The building issue #3287
+form (Decision 9). The files this design adds outside
+`Geometry/Symplectic/Sum/` are planned here only, and `DESIGN.md` does not
+name them. The building issue #3287
 is blocked only by #3286, so no blocker of an open issue changes.
 
 ## Files
