@@ -1193,7 +1193,7 @@ In this order; each is blocked by the ones listed. All are parts of
 | 15c | The linearization at a nondegenerate critical point; the index bound | `Handle/Linearization.lean` | 15a | 400 |
 | 15d | Stable discs are isotropic | `Handle/StableDisc.lean` | 15b, 15c | 450 |
 | 15e | The attaching sphere in the lower level | `Handle/AttachingSphere.lean` | 15d | 500 |
-| 16 | Standard Weinstein handles and their attachment | `Handle/Model.lean` | 15 | 450 |
+| 16 | Standard Weinstein handles and their attachment | `Handle/Model.lean` | 15, 15e | 450 |
 | 17 | Design: normal forms of Weinstein homotopies | this file | 16 | — |
 | 18 | Normal forms of Weinstein homotopies | `Handle/Homotopy.lean` | 17 | by 17 |
 | 19 | A Stein structure across one critical level | `SteinHandle.lean` | 9, 14e, 18 | 500 |
