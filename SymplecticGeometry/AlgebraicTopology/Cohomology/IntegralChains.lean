@@ -11,7 +11,7 @@ public import TauCeti.AlgebraicTopology.Cohomology.IntegralComparison
 public import TauCeti.AlgebraicTopology.Cohomology.IntegralCup
 public import TauCeti.AlgebraicTopology.Cohomology.Kronecker
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
-import SymplecticGeometry.Algebra.Homology.ShortComplex.PreservesHomology
+import TauCeti.Algebra.Homology.ShortComplex.PreservesHomology
 
 /-!
 # Cohomology over a commutative ring from integral chains

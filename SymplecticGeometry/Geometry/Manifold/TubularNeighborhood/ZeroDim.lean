@@ -71,7 +71,8 @@ variable {E V P Z X : Type} {H G : Type*}
   {hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E} {W : TopologicalSpace.Opens X}
 
 variable (Φ : letI := f.normalSpaceFiberBundle hn hdim
-  TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W) (z : Z) {S : Set E}
+  TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W) (z : Z)
+  {S : Set E}
 
 omit [T2Space X] [I.Boundaryless] [J.Boundaryless] [ChartedSpace V X] in
 /-- In dimension zero, the orientation of `X` at `f z` is positive exactly when the normal
@@ -85,7 +86,8 @@ private theorem orientationAt_reindex_eq_positiveOrientation_iff
     letI := f.normalSpaceVectorBundle hn hdim
     (oX.reindex (finCongr ((zero_add _).trans hP))).orientationAt (f z) = positiveOrientation ↔
       (Orientation.reindex ℝ P (finCongr hP)
-          ((trivializationAt P (fun x ↦ f.NormalSpace x hn) z).mapOrientation (Fin (finrank ℝ P))
+          ((trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).mapOrientation
+              (Fin (finrank ℝ P))
             (mem_baseSet_trivializationAt P _ z) (normalOrientation f hn hdim oX oZ z)) =
           positiveOrientation ↔ oZ.orientationAt z = positiveOrientation) := by
   let := f.normalSpaceFiberBundle hn hdim
@@ -118,15 +120,15 @@ theorem localHomologyMap_localChartLocalHomologyIso_hom_cross_of_finrank_eq_zero
     (hSc : S ⊆ (centeredExtChartAt I z).target)
     (hSe : letI := f.normalSpaceFiberBundle hn hdim
       MapsTo (centeredExtChartAt I z).symm S
-        (trivializationAt P (fun x ↦ f.NormalSpace x hn) z).baseSet)
+        (trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).baseSet)
     (h0 : (0 : E) ∈ S) :
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
-    haveI : T1Space (TotalSpace P fun x ↦ f.NormalSpace x hn) :=
+    haveI : T1Space (TotalSpace P fun x ↦ f.isImmersion.NormalSpace x hn) :=
       Φ.toHomeomorph.isEmbedding.t1Space
     localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
         (⟨fun p ↦ (Φ p : X), continuous_subtypeVal.comp Φ.continuous⟩ :
-          C(TotalSpace P (fun x ↦ f.NormalSpace x hn), X))
+          C(TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn), X))
         (S := {zeroSection P _ z}) (T := {f z})
         (by
           rintro p hp
@@ -136,7 +138,7 @@ theorem localHomologyMap_localChartLocalHomologyIso_hom_cross_of_finrank_eq_zero
           (mem_centeredExtChartAt_source I z) (centeredExtChartAt_self I z) h0 0).hom
           ((SymplecticGeometry.localHomologyCross (0 : P) (0 : E) 0 0 0 rfl).hom
             ((if Orientation.reindex ℝ P (finCongr hP)
-                  ((trivializationAt P (fun x ↦ f.NormalSpace x hn) z).mapOrientation
+                  ((trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).mapOrientation
                     (Fin (finrank ℝ P)) (mem_baseSet_trivializationAt P _ z)
                     (normalOrientation f hn hdim oX oZ z)) = positiveOrientation then
                 (localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl P)
@@ -152,15 +154,16 @@ theorem localHomologyMap_localChartLocalHomologyIso_hom_cross_of_finrank_eq_zero
         (f z)).val := by
   let := f.normalSpaceFiberBundle hn hdim
   let := f.normalSpaceVectorBundle hn hdim
-  have : T1Space (TotalSpace P fun x ↦ f.NormalSpace x hn) := Φ.toHomeomorph.isEmbedding.t1Space
-  set e := trivializationAt P (fun x ↦ f.NormalSpace x hn) z
+  have : T1Space (TotalSpace P fun x ↦ f.isImmersion.NormalSpace x hn) :=
+      Φ.toHomeomorph.isEmbedding.t1Space
+  set e := trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z
   set c := centeredExtChartAt I z
   have hb : z ∈ c.source := mem_centeredExtChartAt_source I z
   have hcb : c z = 0 := centeredExtChartAt_self I z
   -- The cross product of the two point classes is carried to the point class of `f z`.
   have key : localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
         (⟨fun p ↦ (Φ p : X), continuous_subtypeVal.comp Φ.continuous⟩ :
-          C(TotalSpace P (fun x ↦ f.NormalSpace x hn), X))
+          C(TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn), X))
         (S := {zeroSection P _ z}) (T := {f z})
         (by
           rintro p hp

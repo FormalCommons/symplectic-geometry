@@ -47,7 +47,7 @@ theorems about a neighbourhood of a whole submanifold.
   `RoughForm.IsBasic`. Tau Ceti's only criterion for `IsBasic`,
   `isBasic_of_mpullback_eq`, needs fibre-preserving self-maps that act
   transitively on the fibres. It has no criterion from connected fibres.
-- **Normal bundles.** `TauCeti.SmoothEmbedding.NormalSpace` with its bundle
+- **Normal bundles.** `Manifold.IsImmersion.NormalSpace` with its bundle
   structure `normalSpaceFiberBundle`; the symplectic normal form
   `TauCeti.SmoothEmbedding.symplecticNormalForm` with
   `symplecticNormalRepresentative` and `contMDiff_symplecticNormalRepresentative`
@@ -141,7 +141,7 @@ following choices.
   bundle itself can build it and its comparison with this form. The
   symplectic theorem is stated with Tau Ceti's normal bundle, as `DESIGN.md`
   says: $\Phi$ is a family
-  `∀ q, f₀.NormalSpace q hn ≃L[ℝ] f₁.NormalSpace (φ q) hn`, smooth on total
+  `∀ q, f₀.isImmersion.NormalSpace q hn ≃L[ℝ] f₁.isImmersion.NormalSpace (φ q) hn`, smooth on total
   spaces, that preserves `symplecticNormalForm`.
 - **The linear extension comes from compatible complex structures.**
   Smoothly in $q$, the comparison theorem needs a linear symplectomorphism
@@ -537,8 +537,8 @@ The comparison theorem. Namespace `TauCeti.SmoothEmbedding`.
 the milestone. Two symplectic manifolds with symplectic submanifolds
 `f₀ : SmoothEmbedding J₀ I₀ ∞ Q₀ M₀` and
 `f₁ : SmoothEmbedding J₁ I₁ ∞ Q₁ M₁`, a diffeomorphism `φ : Q₀ ≃ₘ⟮J₀, J₁⟯ Q₁`
-pulling `f₁^*ω₁` back to `f₀^*ω₀`, and `Φ : ∀ q, f₀.NormalSpace q hn ≃L[ℝ]
-f₁.NormalSpace (φ q) hn`, smooth on total spaces under the bundle
+pulling `f₁^*ω₁` back to `f₀^*ω₀`, and `Φ : ∀ q, f₀.isImmersion.NormalSpace q hn ≃L[ℝ]
+f₁.isImmersion.NormalSpace (φ q) hn`, smooth on total spaces under the bundle
 structures `normalSpaceFiberBundle`, that preserves `symplecticNormalForm`.
 Conclusion: `U₀`, `U₁` and a symplectomorphism `ψ` with
 `ψ ⟨f₀ q, _⟩ = ⟨f₁ (φ q), _⟩` and

@@ -36,7 +36,7 @@ the Mayer–Vietoris proof of the Thom isomorphism follows Milnor–Stasheff,
   with `hf : IsClosed (Set.range f)`. Tau Ceti has no subset-based notion of
   submanifold, and its normal bundles and tubes are stated for embeddings.
 - The normal bundle is Tau Ceti's intrinsic quotient
-  `f.NormalSpace x hn` (`Geometry/Manifold/SmoothEmbedding/NormalSpace/Basic.lean`),
+  `f.isImmersion.NormalSpace x hn` (`Geometry/Manifold/Immersion/NormalSpace/Basic.lean`),
   with model fibre a space `P` of dimension
   `hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E`, and its bundle structure
   installed by `letI` from `instTopologicalSpaceNormalBundle`,
@@ -46,7 +46,7 @@ the Mayer–Vietoris proof of the Thom isomorphism follows Milnor–Stasheff,
   `r = 0` is allowed throughout (then $Z$ is open and closed, $\nu$ is the
   zero bundle and $d_Z$ is the indicator class of $Z$ in degree $0$).
 - A normal orientation is
-  `o : TauCeti.VectorBundleOrientation P (f.NormalSpace · hn) (Fin r)`.
+  `o : TauCeti.VectorBundleOrientation P (f.isImmersion.NormalSpace · hn) (Fin r)`.
 
 Declarations about `TauCeti.SmoothEmbedding` are in the namespace
 `TauCeti.SmoothEmbedding`, as `AGENTS.md` asks for declarations that dot
@@ -102,7 +102,7 @@ the neighbouring Tau Ceti lemmas.
   the front face, `Cap/Basic.lean`), its naturality, relative caps
   (`Cap/Relative.lean`, `Cap/AbsoluteRelative.lean`) and the cross product
   with caps (`Cap/CrossRel.lean`). Tau Ceti has Poincaré duality for
-  closed manifolds, `HomologicalOrientation.bijective_singularCap_fundamentalClass`
+  closed manifolds, `HomologicalOrientation.bijective_singularCapAddHom_fundamentalClass`
   (`TauCeti/AlgebraicTopology/Cohomology/CompactSupport/Duality/Manifold.lean`).
 - **Orientations of exact sequences**: `Orientation.cokerOfExact`
   (`LinearAlgebra/Orientation/Exact/Basic.lean`) and `Orientation.ofExact`,
@@ -313,8 +313,8 @@ in a trivialization since the fibres carry no norm, are
   of the total space of the normal bundle onto an open set of `X`, equal to
   `f` on the zero section, which is normalized: for each `x`, read in the
   trivialization at `x`, the derivative of `Φ` at the zero of the fibre on
-  vertical vectors `(0, w)`, `w : P`, followed by `f.normalClassL x`, is the
-  trivialization's identification of `P` with `f.NormalSpace x hn` (the
+  vertical vectors `(0, w)`, `w : P`, followed by `f.isImmersion.normalClassL x`, is the
+  trivialization's identification of `P` with `f.isImmersion.NormalSpace x hn` (the
   fibres carry no norm, so the condition is read through the
   trivialization; it does not depend on which linear trivialization).
 - `TauCeti.SmoothEmbedding.exists_isNormalizedTube_subset`: inside every
@@ -436,7 +436,7 @@ For closed `X` and `Z` (`[CompactSpace X]`), `hf`, and
   Poincaré dual of a submanifold*. The plan's identity
   $d_Z=\mathrm{PD}(i_*[Z])$ is this cap identity, as `DESIGN.md`'s
   convention *Poincaré duals* says; by
-  `bijective_singularCap_fundamentalClass` it determines $d_Z$.
+  `bijective_singularCapAddHom_fundamentalClass` it determines $d_Z$.
 
 ### `Geometry/Manifold/VectorBundle/ZeroSet/Embedding.lean`
 
@@ -488,7 +488,7 @@ derivative $D s(x):T_xX\to E'_x$, read in any trivialization, is onto):
 None. The part uses Tau Ceti as listed above, and from the library the
 merged change-of-coefficient lemmas of
 `Topology/VectorBundle/Thom/ChangeOfCoefficients.lean` and
-`bijective_singularCap_fundamentalClass`, for the remark that the cap
+`bijective_singularCapAddHom_fundamentalClass`, for the remark that the cap
 identity determines $d_Z$.
 
 ## Issues

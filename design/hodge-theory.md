@@ -575,17 +575,12 @@ complexification:
 
 - `ContinuousAlternatingMap.alternatizeUncurryFin_eq_sum_coord_smulRight`:
   for a basis `b`, `alternatizeUncurryFin f` is the sum of the
-  alternatizations of `b.coord i • f (b i)`.
+  alternatizations of `b.coord i • f (b i)`, by Tau Ceti's
+  `Module.Basis.sum_coord_smulRight`.
 - `ContinuousAlternatingMap.curryLeft_alternatizeUncurryFin_smulRight_add`
   and `curryLeft_alternatizeUncurryFin_smulRight_zero`: for a covector
   $\xi$, $\iota_v\varepsilon_\xi+\varepsilon_\xi\iota_v=\xi(v)$ in positive
   degree, and $\iota_v\varepsilon_\xi=\xi(v)$ in degree $0$.
-
-### `Topology/Algebra/Module/FiniteDimension.lean`
-
-- `Module.Basis.sum_coord_smulRight`: for a basis `b` of a
-  finite-dimensional space, a continuous linear map `f` is
-  `∑ i, (b.coord i).smulRight (f (b i))`. The file above uses it.
 
 ### `Analysis/InnerProductSpace/HodgeStar/AlternatingForm.lean`
 

@@ -45,7 +45,7 @@ design file once it exists.
   embedding $\iota:Q\to M$, `SymplecticFraming` in
   `Geometry/Symplectic/Sum/ProductNeighborhood.lean`, is a family of
   continuous linear isomorphisms from the normal spaces of
-  $q\mapsto(q,0)$ in $Q\times\mathbb C$ (`zeroSlice`) to `ι.NormalSpace q`
+  $q\mapsto(q,0)$ in $Q\times\mathbb C$ (`zeroSlice`) to `ι.isImmersion.NormalSpace q`
   that is smooth as a map of total spaces and carries the
   `TauCeti.SmoothEmbedding.symplecticNormalForm` of `zeroSlice` (that is,
   $\omega_0$) to that of $\iota$. These are the hypotheses
