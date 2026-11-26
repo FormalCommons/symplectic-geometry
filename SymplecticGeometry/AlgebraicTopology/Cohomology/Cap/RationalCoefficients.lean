@@ -46,7 +46,7 @@ abelian group.
   `SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralChains`: the `ℚ`-linear cochains on
   rational chains, read as abelian groups, are the integral cochains with values in `ℚ`. Here
   it restricts a cochain `φ` to integral chains, `φ ↦ φ ∘ ι`
-  (`TopCat.singularCochainComplexIntChainsIso_hom_f_eq`). The induced isomorphism
+  (`TopCat.singularCochainComplexIntChainsIso_hom_f_apply`). The induced isomorphism
   `TopCat.singularCohomologyIntChainsIso ℚ : F (Hᵖ(X; ℚ)) ≅ Hᵖ(X; ℤ, ℚ)` compares cohomology
   computed from rational chains with cohomology computed from integral chains with values in `ℚ`.
 * `TopCat.singularHomologyRatIso : F (H_q(X; ℚ)) ≅ H_q(X; ℤ, ℚ)`: homology with rational chains,
@@ -209,7 +209,7 @@ theorem capChain_singularCochainComplexIntChainsIso_hom_f {p q n : ℕ} (h : p +
           (ChainComplex.capChain ℚ (X.alexanderWhitneyDiagonal (λ_ _).inv)
             ((toSSet.obj X).chainComplexPairing (λ_ (𝟙_ (ModuleCat.{0} ℚ))).hom) p q n h φ) ≫
         X.singularChainComplexRestrictScalarsRatIso.hom.f q := by
-  rw [singularCochainComplexIntChainsIso_hom_f_eq, ← singularChainComplexIntToRat_def]
+  rw [singularCochainComplexIntChainsIso_hom_f_apply, ← singularChainComplexIntToRat_def]
   refine SSet.chainComplex_hom_ext fun σ ↦ ?_
   have hc := congrArg (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ)).map
     (X.ιChainComplex_capChain_leftUnitor_unit (k := ℚ) h φ σ)
