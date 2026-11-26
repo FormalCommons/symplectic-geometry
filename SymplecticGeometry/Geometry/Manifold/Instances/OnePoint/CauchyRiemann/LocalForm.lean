@@ -547,7 +547,7 @@ theorem exists_hasWeakConjWirtingerDerivOn_mul_of_twistOneDelBarSobolev_eq_zero
   have hk := MeasureTheory.ae_restrict_comp_of_differentiableOn (μ := volume) Ω.isOpen
     (hT.differentiableOn hn) hinj hdet hmaps
     ((twistOneDelBarSobolev_eq_zero_iff hJ hi).1 hw i hDu)
-  have hv := (hDu.comp_contDiffOn_diffeo (U := Ω) (hT.of_le (by simp)) hinj hdet
+  have hv := (hDu.comp_contDiffOn_diffeo (U := Ω) (hT.of_le (by simp)) hdet
     hmaps).hasWeakConjWirtingerDerivOn
   -- Since `Γ c = c • Γ 1`, the kernel equation reads `∂̄(u ∘ T) = a (u ∘ T)`.
   refine ⟨_, contDiffOn_chartZeroOrder_comp_fderiv i Ω.isOpen hT hmaps, hv.congr_ae_deriv ?_⟩

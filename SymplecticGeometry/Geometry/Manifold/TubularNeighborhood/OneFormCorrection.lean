@@ -102,7 +102,7 @@ theorem exists_contMDiff_mextDeriv_eq_mpullback_prodMk [CompactSpace Q]
   let := f.normalSpaceFiberBundle hn hdim
   let := f.normalSpaceVectorBundle hn hdim
   have := f.normalSpaceContMDiffVectorBundle (m := ∞) hn (by simp) hdim
-  let N := fun q ↦ f.NormalSpace q hn
+  let N := fun q ↦ f.isImmersion.NormalSpace q hn
   have hfW : range f ⊆ W := range_subset_of_apply_zeroSection f hn hdim Φ hΦ
   -- The tube as a map into `M`, and its inverse `ψ`, smooth on `W`.
   let Φ' : TotalSpace P N → M := fun v ↦ (Φ v : M)

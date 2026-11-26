@@ -54,8 +54,9 @@ construction follows that of Tau Ceti's `TauCeti.kerDelBarZeroEquiv`, which iden
 * `TauCeti.SmoothForm.mextDerivₗ_ofFunction_comp_of_hasDerivAt`: `d (g ∘ f) = (g' ∘ f) df`.
 * `TauCeti.SmoothForm.ofFunctionEquiv`, with `ofFunctionEquiv_apply`,
   `coe_ofFunctionEquiv_symm` and `ofFunctionEquiv_symm_apply`.
-* `TauCeti.SmoothForm.ofFunction_add`, `TauCeti.SmoothForm.ofFunction_smul`: the `0`-form of a
-  sum and of a real multiple of smooth functions.
+* `TauCeti.SmoothForm.ofFunction_zero`, `TauCeti.SmoothForm.ofFunction_add`,
+  `TauCeti.SmoothForm.ofFunction_smul`: the `0`-form of the zero function, of a sum and of a real
+  multiple of smooth functions.
 -/
 
 public section
@@ -196,6 +197,11 @@ noncomputable def ofFunctionEquiv : C^∞⟮I, M; 𝓘(ℝ, F), F⟯ ≃ₗ[ℝ]
 @[simp]
 theorem ofFunctionEquiv_apply (f : C^∞⟮I, M; 𝓘(ℝ, F), F⟯) : ofFunctionEquiv f = ofFunction f :=
   (rfl)
+
+/-- The `0`-form of the zero function is the zero form. -/
+@[simp]
+theorem ofFunction_zero : ofFunction (0 : C^∞⟮I, M; 𝓘(ℝ, F), F⟯) = 0 :=
+  map_zero ofFunctionEquiv
 
 /-- The `0`-form of a sum of smooth functions is the sum of their `0`-forms. -/
 @[simp]

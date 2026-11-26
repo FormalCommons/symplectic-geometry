@@ -5,7 +5,6 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Analysis.Normed.Module.FiniteDimension
 public import Mathlib.Topology.VectorBundle.Basic
 public import TauCeti.Topology.FiberBundle.Trivialization
 public import TauCeti.Topology.VectorBundle.Trivialization
@@ -23,9 +22,6 @@ Mathlib's `Mathlib/Topology/VectorBundle/Basic.lean` and Tau Ceti's
   base set, `e.symm y.proj (c • (e y).2) = c • y.snd`.
 * `Bundle.Trivialization.isLinear_restrOpen`: the restriction of a linear trivialization to an
   open set (Mathlib's `Bundle.Trivialization.restrOpen`) is linear.
-* `Bundle.Trivialization.continuousOn_coordChangeL`: the coordinate change between two linear
-  trivializations with finite-dimensional model fibre over a complete field is continuous in the
-  operator topology.
 * `Bundle.zeroSection_def`: Mathlib's zero section `Bundle.zeroSection F E` sends `x` to
   `⟨x, 0⟩`, which Mathlib's `zeroSection_proj` and `zeroSection_snd` state only componentwise.
 -/
@@ -62,20 +58,6 @@ instance isLinear_restrOpen (e : Trivialization F (π F E)) [e.IsLinear R] (s : 
   linear _ hb := e.linear R hb.1
 
 end Semiring
-
-/-- The coordinate change between two linear trivializations of a bundle whose model fibre is
-finite-dimensional over a complete field is continuous, in the operator topology, on the overlap
-of their base sets. -/
-theorem continuousOn_coordChangeL {𝕜 B F : Type*} [NontriviallyNormedField 𝕜] [CompleteSpace 𝕜]
-    [TopologicalSpace B] [NormedAddCommGroup F] [NormedSpace 𝕜 F] [FiniteDimensional 𝕜 F]
-    {E : B → Type*} [TopologicalSpace (TotalSpace F E)] [∀ x, AddCommMonoid (E x)]
-    [∀ x, Module 𝕜 (E x)]
-    (e e' : Trivialization F (π F E)) [e.IsLinear 𝕜] [e'.IsLinear 𝕜] :
-    ContinuousOn (fun b ↦ (e.coordChangeL 𝕜 e' b : F →L[𝕜] F)) (e.baseSet ∩ e'.baseSet) := by
-  refine continuousOn_clm_apply.2 fun v ↦ ((e.continuousOn_coordChange e').comp
-    (continuous_id.prodMk continuous_const).continuousOn fun b hb ↦ ⟨hb, Set.mem_univ v⟩).congr
-    fun b hb ↦ ?_
-  simp [coordChangeL_apply' _ _ hb, coordChange]
 
 end Bundle.Trivialization
 

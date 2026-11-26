@@ -118,13 +118,14 @@ theorem exists_symplectomorphism_blowupModel [FiniteDimensional ℝ E] {σ : Smo
     {l : ℝ} (hl : l ≠ 0) (hf : SmoothForm.mpullback f f.contMDiff σ = l ^ 2 • fubiniStudyForm n)
     (hn : (∞ : ℕ∞ω) ≠ 0) (hP₀ : finrank ℝ P₀ = finrank ℝ E - finrank ℝ (Fin n → ℂ))
     (hP₁ : finrank ℝ P₁ = finrank ℝ (Fin (n + 1) → ℂ) - finrank ℝ (Fin n → ℂ))
-    (Φ : ∀ q, f.NormalSpace q hn ≃L[ℝ] (zeroSectionRealEmbedding n).NormalSpace q hn)
+    (Φ : ∀ q, f.isImmersion.NormalSpace q hn ≃L[ℝ]
+        (zeroSectionRealEmbedding n).isImmersion.NormalSpace q hn)
     (hΦ : letI := f.normalSpaceFiberBundle hn hP₀
       letI := (zeroSectionRealEmbedding n).normalSpaceFiberBundle hn hP₁
       ContMDiff (𝓘(ℝ, Fin n → ℂ).prod 𝓘(ℝ, P₀)) (𝓘(ℝ, Fin n → ℂ).prod 𝓘(ℝ, P₁)) ∞
-        (fun p : TotalSpace P₀ (fun q ↦ f.NormalSpace q hn) ↦
+        (fun p : TotalSpace P₀ (fun q ↦ f.isImmersion.NormalSpace q hn) ↦
           (⟨p.proj, Φ p.proj p.snd⟩ :
-            TotalSpace P₁ (fun q ↦ (zeroSectionRealEmbedding n).NormalSpace q hn))))
+            TotalSpace P₁ (fun q ↦ (zeroSectionRealEmbedding n).isImmersion.NormalSpace q hn))))
     (hΦσ : ∀ q v w,
       0 < f.symplecticNormalForm (hasSymplecticTangentImages_of_mpullback_eq_smul_fubiniStudyForm
         hσ.isNondegenerate f.contMDiff hl hf) q hn v w →
@@ -141,7 +142,7 @@ theorem exists_symplectomorphism_blowupModel [FiniteDimensional ℝ E] {σ : Smo
     obtain ⟨q⟩ := (inferInstance : Nonempty (ℙ ℂ (Fin (n + 1) → ℂ)))
     -- The tangent spaces of `M` are the model space `E`, which `rfl` unfolds.
     rw [← finrank_normalSpace_zeroSectionRealEmbedding n hn q, ← (Φ q).toLinearEquiv.finrank_eq,
-      SmoothEmbedding.finrank_normalSpace, hP₀]
+      Manifold.IsImmersion.finrank_normalSpace, hP₀]
     rfl
   obtain ⟨c, -, -, -, U₀, U₁, ψ, hψ, hψσ⟩ :=
     h₀.exists_symplectomorphism_opens_of_finrank_eq_two hσ (isSymplectic_blowupForm hl) h₁
