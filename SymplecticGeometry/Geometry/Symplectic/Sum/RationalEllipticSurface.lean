@@ -8,15 +8,17 @@ module
 public import Mathlib.Algebra.MvPolynomial.PDeriv
 public import Mathlib.RingTheory.MvPolynomial.WeightedHomogeneous
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Basic
+public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.Basic
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.ProdZeroLocus.Manifold
+public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Submanifold
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Basic
+public import TauCeti.Geometry.Symplectic.Lagrangian.SymplecticTangent
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Prod
 public import TauCeti.RingTheory.MvPolynomial.Jacobian.Basic
 import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.RestrictScalars
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Prod
-import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Submanifold
 import SymplecticGeometry.RingTheory.MvPolynomial.WeightedHomogeneous
 import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
 
@@ -50,6 +52,17 @@ Fubini–Study form is compatible with the complex structure of its factor
 (`SymplecticGeometry.compatible_fubiniStudyForm`). A symplectic form that tames an almost complex
 structure pulls back to a symplectic form on a submanifold with invariant tangent spaces
 (`TauCeti.SmoothTwoForm.Tames.isSymplectic_mpullback`). No Kähler condition is used.
+
+Over the point `[1 : 0]` of `ℂℙ¹` the Hesse pencil is `x³ + y³ + z³`, so the fibre there is the
+Fermat cubic `SymplecticGeometry.SmoothProjectiveHypersurface.fermat 1 3`, and `x ↦ (x, [1 : 0])`
+embeds it in the surface. It is an analytic embedding, since its composite with the inclusion of
+the surface is the product of the inclusion of the cubic with a constant
+(`Manifold.IsSmoothEmbedding.isImmersion_of_isImmersion_comp`), hence a smooth embedding over
+`ℝ`. Its real derivatives are complex linear, so its tangent images are invariant under the
+almost complex structure that the product structure restricts to on the surface
+(`TauCeti.SmoothAlmostComplexStructure.restrict`). The symplectic form of the surface tames that
+structure (`TauCeti.SmoothTwoForm.Tames.restrict`), so the cubic is a symplectic submanifold
+(`TauCeti.SmoothTwoForm.Tames.isSymplecticSubmanifoldEmbedding`).
 
 The variables are indexed by `Fin 3 ⊕ Fin 2`: `Sum.inl 0`, `Sum.inl 1`, `Sum.inl 2` are the
 homogeneous coordinates `x, y, z` of the plane, and `Sum.inr 0`, `Sum.inr 1` are the homogeneous
@@ -98,6 +111,14 @@ coordinates `s, t` of the line. A point of the cone `K³ × K²` is written `Sum
 * `SymplecticGeometry.rationalEllipticSurface.symplecticForm`: the pull-back of the product of
   the Fubini–Study forms, and
   `SymplecticGeometry.rationalEllipticSurface.isSymplectic_symplecticForm`: it is symplectic.
+* `SymplecticGeometry.rationalEllipticSurface.fibreEmbedding`: the Fermat cubic as the fibre over
+  `[1 : 0]`, a smooth embedding over `ℝ` for the models `𝓘(ℝ, Fin 1 → ℂ)` and `𝓘(ℝ, Fin 2 → ℂ)`,
+  with `coe_fibreEmbedding_apply`, `range_fibreEmbedding` (its image is the fibre of the
+  projection to `ℂℙ¹`) and `isSmoothEmbedding_fibreEmbedding` (it is analytic).
+* `SymplecticGeometry.rationalEllipticSurface.hasSymplecticTangentImages_fibreEmbedding`: its
+  tangent images are symplectic, and
+  `SymplecticGeometry.rationalEllipticSurface.isSymplectic_mpullback_fibreEmbedding`: the form
+  pulls back to a symplectic form on the cubic.
 
 ## References
 
@@ -431,6 +452,125 @@ theorem isSymplectic_symplecticForm : symplecticForm.IsSymplectic := by
     (compatible_fubiniStudyForm (n := 1)).tames).isSymplectic_mpullback
       (hn := by simp) prod_ofComplexManifold_mem_tangentRange
       ((isSymplectic_fubiniStudyForm 2).prod (isSymplectic_fubiniStudyForm 1))
+
+/-! ### The fibre over `[1 : 0]` -/
+
+open SmoothProjectiveHypersurface
+
+/-- A point `L` of `ℂℙ²`, paired with the point `[1 : 0]` of `ℂℙ¹`, lies on the rational
+elliptic surface exactly when it lies on the Fermat cubic `x³ + y³ + z³ = 0`: over `[1 : 0]` the
+Hesse pencil is `x³ + y³ + z³`. -/
+theorem mk_mem_iff_mem_fermat {L : ℙ ℂ (Fin 3 → ℂ)} :
+    (L, Projectivization.mk ℂ ![(1 : ℂ), 0] (by simp)) ∈ rationalEllipticSurface ↔
+      L ∈ (fermat 1 3).carrier := by
+  conv_lhs => rw [← L.mk_rep]
+  rw [mk_mem_rationalEllipticSurface_iff, mem_carrier_iff, fermat_poly]
+  simp [Fin.sum_univ_three]
+
+/-- The inclusion of the Fermat cubic as the fibre over `[1 : 0]` is an analytic embedding. -/
+private theorem isSmoothEmbedding_fibre :
+    Manifold.IsSmoothEmbedding 𝓘(ℂ, Fin 1 → ℂ) 𝓘(ℂ, Fin 2 → ℂ) ω
+      (fun x : fermat 1 3 ↦ (⟨(x, Projectivization.mk ℂ ![(1 : ℂ), 0] (by simp)),
+        mk_mem_iff_mem_fermat.2 x.property⟩ : rationalEllipticSurface)) := by
+  have hc : Manifold.IsImmersion 𝓘(ℂ, Fin 1 → ℂ) (𝓘(ℂ, Fin 2 → ℂ).prod 𝓘(ℂ, Fin 1 → ℂ)) ω
+      (fun x : fermat 1 3 ↦ ((x : ℙ ℂ (Fin 3 → ℂ)),
+        Projectivization.mk ℂ ![(1 : ℂ), 0] (by simp))) := by
+    simpa using (fermat 1 3).embedding.isImmersion.prodMk contMDiff_const (by simp)
+  have hi := embedding.isSmoothEmbedding.isImmersion_of_isImmersion_comp (by simp)
+    (f := fun x : fermat 1 3 ↦ (⟨(x, Projectivization.mk ℂ ![(1 : ℂ), 0] (by simp)),
+      mk_mem_iff_mem_fermat.2 x.property⟩ : rationalEllipticSurface)) (by simpa [Function.comp_def])
+  refine ⟨hi, (hi.contMDiff.continuous.isClosedEmbedding fun x y h ↦ ?_).isEmbedding⟩
+  exact Subtype.ext congr(($h : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)).1)
+
+/-- The Fermat cubic `SmoothProjectiveHypersurface.fermat 1 3` as the fibre of the rational
+elliptic surface over `[1 : 0] ∈ ℂℙ¹`: the inclusion `x ↦ (x, [1 : 0])`, as a smooth embedding
+of the underlying real manifolds. -/
+noncomputable def fibreEmbedding :
+    SmoothEmbedding 𝓘(ℝ, Fin 1 → ℂ) 𝓘(ℝ, Fin 2 → ℂ) ∞ (fermat 1 3) rationalEllipticSurface :=
+  .ofIsSmoothEmbedding _ <| (isSmoothEmbedding_fibre.of_le le_top).restrictScalars ℝ (by simp)
+
+/-- The fibre embedding is the map `x ↦ (x, [1 : 0])` into the rational elliptic surface. -/
+theorem coe_fibreEmbedding :
+    ⇑fibreEmbedding = fun x : fermat 1 3 ↦
+      (⟨(x, Projectivization.mk ℂ ![(1 : ℂ), 0] (by simp)), mk_mem_iff_mem_fermat.2 x.property⟩ :
+        rationalEllipticSurface) :=
+  SmoothEmbedding.coe_ofIsSmoothEmbedding _ _
+
+/-- The fibre embedding sends a point `x` of the Fermat cubic to `(x, [1 : 0])`. -/
+@[simp]
+theorem coe_fibreEmbedding_apply (x : fermat 1 3) :
+    (fibreEmbedding x : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)) =
+      ((x : ℙ ℂ (Fin 3 → ℂ)), Projectivization.mk ℂ ![(1 : ℂ), 0] (by simp)) :=
+  congrArg Subtype.val (congrFun coe_fibreEmbedding x)
+
+/-- The image of the fibre embedding is the fibre of the projection to `ℂℙ¹` over `[1 : 0]`. -/
+theorem range_fibreEmbedding :
+    range fibreEmbedding = {p : rationalEllipticSurface |
+      (p : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)).2 =
+        Projectivization.mk ℂ ![(1 : ℂ), 0] (by simp)} := by
+  refine Set.ext fun ⟨⟨L, w⟩, hp⟩ ↦ ⟨?_, fun hw ↦ ?_⟩
+  · rintro ⟨x, hx⟩
+    rw [← hx, mem_ofPred_eq, coe_fibreEmbedding_apply]
+  · simp only [mem_ofPred_eq] at hw
+    subst hw
+    exact ⟨⟨L, mk_mem_iff_mem_fermat.1 hp⟩, Subtype.ext (coe_fibreEmbedding_apply _)⟩
+
+/-- The fibre embedding is an analytic embedding of complex manifolds. -/
+theorem isSmoothEmbedding_fibreEmbedding :
+    Manifold.IsSmoothEmbedding 𝓘(ℂ, Fin 1 → ℂ) 𝓘(ℂ, Fin 2 → ℂ) ω fibreEmbedding := by
+  convert isSmoothEmbedding_fibre using 1
+  exact funext fun x ↦ Subtype.ext (coe_fibreEmbedding_apply x)
+
+/-- The real derivative of the fibre embedding is its complex derivative, as a map of tangent
+vectors. -/
+theorem coe_mfderiv_fibreEmbedding (x : fermat 1 3) :
+    ⇑(mfderiv 𝓘(ℝ, Fin 1 → ℂ) 𝓘(ℝ, Fin 2 → ℂ) fibreEmbedding x) =
+      mfderiv 𝓘(ℂ, Fin 1 → ℂ) 𝓘(ℂ, Fin 2 → ℂ) fibreEmbedding x :=
+  funext <| ((isSmoothEmbedding_fibreEmbedding.contMDiff x).mdifferentiableAt
+    (by simp)).mfderiv_modelWithCornersSelf_restrictScalars_apply ℝ
+
+/-- The tangent images of the fibre embedding are complex lines in the tangent spaces of the
+surface: they are invariant under the almost complex structure that the product of the complex
+structures of `ℂℙ²` and `ℂℙ¹` induces on the surface. -/
+theorem restrict_mem_tangentRange_fibreEmbedding {hn : (∞ : ℕ∞ω) ≠ 0}
+    (x : fermat 1 3) (v) (hv : v ∈ fibreEmbedding.tangentRange x hn) :
+    ((SmoothAlmostComplexStructure.ofComplexManifold (Fin 2 → ℂ) (ℙ ℂ (Fin 3 → ℂ))).prod
+        (SmoothAlmostComplexStructure.ofComplexManifold (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ)))).restrict
+          realEmbedding (hn := hn) prod_ofComplexManifold_mem_tangentRange (fibreEmbedding x) v ∈
+      fibreEmbedding.tangentRange x hn := by
+  rw [SmoothEmbedding.mem_tangentRange_iff] at hv ⊢
+  -- The tangent spaces of the cubic are its model space `Fin 1 → ℂ`, a complex vector space.
+  obtain ⟨u : Fin 1 → ℂ, rfl⟩ := hv
+  refine ⟨Complex.I • u, realEmbedding.isImmersion.mfderiv_injective (by simp) _ ?_⟩
+  rw [SmoothAlmostComplexStructure.mfderiv_restrict_apply]
+  -- `prod_ofComplexManifold_apply` states `v` in `E × F`, so it does not rewrite directly.
+  have h := SmoothAlmostComplexStructure.prod_ofComplexManifold_apply
+    (realEmbedding (fibreEmbedding x))
+    (mfderiv _ (𝓘(ℝ, Fin 2 → ℂ).prod 𝓘(ℝ, Fin 1 → ℂ)) realEmbedding (fibreEmbedding x)
+      (mfderiv 𝓘(ℝ, Fin 1 → ℂ) 𝓘(ℝ, Fin 2 → ℂ) fibreEmbedding x u))
+  rw [h, coe_mfderiv_realEmbedding]
+  simp only [coe_mfderiv_fibreEmbedding]
+  exact (congrArg (mfderiv 𝓘(ℂ, Fin 2 → ℂ) (𝓘(ℂ, Fin 2 → ℂ).prod 𝓘(ℂ, Fin 1 → ℂ)) embedding _)
+    ((mfderiv 𝓘(ℂ, Fin 1 → ℂ) 𝓘(ℂ, Fin 2 → ℂ) fibreEmbedding x).map_smul Complex.I u)).trans
+      ((mfderiv _ _ embedding _).map_smul Complex.I _)
+
+/-- The fibre embedding has symplectic tangent images for the symplectic form of the rational
+elliptic surface: the Fermat cubic over `[1 : 0]` is a symplectic submanifold. -/
+theorem hasSymplecticTangentImages_fibreEmbedding :
+    isSymplectic_symplecticForm.isNondegenerate.HasSymplecticTangentImages 𝓘(ℝ, Fin 1 → ℂ)
+      fibreEmbedding :=
+  ((SmoothAlmostComplexStructure.tames_prod (compatible_fubiniStudyForm (n := 2)).tames
+    (compatible_fubiniStudyForm (n := 1)).tames).restrict (hn := by simp)
+      prod_ofComplexManifold_mem_tangentRange).isSymplecticSubmanifoldEmbedding
+        restrict_mem_tangentRange_fibreEmbedding |>.hasSymplecticTangentImages
+
+/-- The symplectic form of the rational elliptic surface pulls back along the fibre embedding to a
+symplectic form on the Fermat cubic. -/
+theorem isSymplectic_mpullback_fibreEmbedding :
+    SmoothTwoForm.IsSymplectic
+      (SmoothForm.mpullback fibreEmbedding fibreEmbedding.contMDiff symplecticForm) :=
+  hasSymplecticTangentImages_fibreEmbedding.isSymplectic_mpullback isSymplectic_symplecticForm _
+    (fibreEmbedding.isImmersion.mfderiv_injective (by simp))
 
 end rationalEllipticSurface
 
