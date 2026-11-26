@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Topology.VectorBundle.ContinuousAlternatingMap
+public import Mathlib.Topology.VectorBundle.Hom
 public import TauCeti.Topology.VectorBundle.Pullback
 public import SymplecticGeometry.Data.Bundle
 
@@ -23,6 +24,9 @@ the identity over both bases.
 
 This is the counterpart for alternating maps of Tau Ceti's
 `ContinuousLinearMap.inCoordinates_pullback_of_mem`, and its proof follows that one.
+`ContinuousLinearMap.inCoordinates_pullback_bilinear_of_mem` is the same comparison for a
+continuous bilinear form on `V (f x)`, read in the bundles of bilinear forms on `f *ᵖ V` and on
+`V`; its proof evaluates both sides at two vectors by Mathlib's `inCoordinates_apply_eq₂`.
 
 `Bundle.Trivialization.linearMapAt_pullback` says that a pulled-back linear trivialization reads
 a vector over `x` as the original one reads it over `f x`: the `linearMapAt` form of Tau Ceti's
@@ -107,6 +111,33 @@ theorem inCoordinates_pullback_trivial_of_mem (f : K) (x₀ x : X)
   rfl
 
 end ContinuousAlternatingMap
+
+namespace ContinuousLinearMap
+
+/-- The coordinates of a continuous bilinear form on a fibre of the pull-back `f *ᵖ V`, as a
+point of the bundle of bilinear forms on `f *ᵖ V`, are its coordinates in the bundle of bilinear
+forms on `V`, at the image points, wherever `f x` lies in the base set of the trivialization of
+`V` at `f x₀`. -/
+theorem inCoordinates_pullback_bilinear_of_mem (f : K) (x₀ x : X)
+    (β : V (f x) →L[𝕜] V (f x) →L[𝕜] 𝕜) (hV : f x ∈ (trivializationAt F V (f x₀)).baseSet) :
+    inCoordinates F ((f : X → B) *ᵖ V) (F →L[𝕜] 𝕜)
+        (fun y ↦ ((f : X → B) *ᵖ V) y →L[𝕜] Trivial X 𝕜 y) x₀ x x₀ x β =
+      inCoordinates F V (F →L[𝕜] 𝕜) (fun b ↦ V b →L[𝕜] Trivial B 𝕜 b)
+        (f x₀) (f x) (f x₀) (f x) β := by
+  have hV' : x ∈ (trivializationAt F ((f : X → B) *ᵖ V) x₀).baseSet := hV
+  have hs (u : F) : (trivializationAt F ((f : X → B) *ᵖ V) x₀).symm x u =
+      (trivializationAt F V (f x₀)).symm (f x) u :=
+    (trivializationAt F V (f x₀)).symm_pullback f hV u
+  ext v w
+  -- The fibres of the pull-back carry the module instances of `V` under other names; `erw`
+  -- sees through them.
+  erw [inCoordinates_apply_eq₂ (E₃ := Trivial X 𝕜) hV' hV' (Set.mem_univ _),
+    inCoordinates_apply_eq₂ (E₃ := Trivial B 𝕜) hV hV (Set.mem_univ _)]
+  simp only [Trivial.fiberBundle_trivializationAt', Trivial.linearMapAt_trivialization, hs]
+  -- Both sides are now the same expression, up to those instances.
+  rfl
+
+end ContinuousLinearMap
 
 end Coordinates
 
