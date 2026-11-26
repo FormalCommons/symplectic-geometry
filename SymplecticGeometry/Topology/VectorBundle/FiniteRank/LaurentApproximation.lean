@@ -178,7 +178,116 @@ theorem exists_norm_conj_laurentHom_lt_one (f : (Q E) ≅ (Q E)) :
       ((ρ k).continuous.smul ((continuous_apply k).comp (c i).continuous))
       ((tsupport_smul_subset_left _ _).trans fun x hx ↦ ⟨hρs k hx, hρs k hx⟩) : E ⟶ E)
   refine ⟨N, a, fun w ↦ ?_⟩
-  sorry
+  -- A chart of the cover at the base point of `w`, in which the estimate is made.
+  obtain ⟨j, hj⟩ : ∃ j : t, ρ j w.1 ≠ 0 := by
+    by_contra! h
+    have := hρ1 w.1
+    simp [h] at this
+  have hxj : w.1 ∈ tsupport (ρ j) := subset_tsupport _ hj
+  have hwj : w ∈ (Q E).core.baseSet (j, 1) := hρs j hxj
+  have hww : w ∈ (Q E).core.baseSet w := (Q E).mem_baseSet_self w
+  set T := (Q E).core.coordChange with hT
+  have hTT {i k : X × Circle} (hi : w ∈ (Q E).core.baseSet i) (hk : w ∈ (Q E).core.baseSet k) :
+      T i k w * T k i w = 1 :=
+    (ContinuousLinearMap.mul_def _ _).trans
+      (((Q E).core.coordChange_comp_coordChange_eq_id hk hi).trans
+        ContinuousLinearMap.one_def.symm)
+  have hTc {i k l : X × Circle} (hi : w ∈ (Q E).core.baseSet i)
+      (hk : w ∈ (Q E).core.baseSet k) (hl : w ∈ (Q E).core.baseSet l) :
+      T k l w * T i k w = T i l w :=
+    (ContinuousLinearMap.mul_def _ _).trans
+      ((Q E).core.coordChange_linear_comp i k l w ⟨⟨hi, hk⟩, hl⟩)
+  let U : ((Fin (Q E).rank → ℂ) →L[ℂ] (Fin (Q E).rank → ℂ))ˣ :=
+    ⟨T (j, 1) w w, T w (j, 1) w, hTT hwj hww, hTT hww hwj⟩
+  refine ⟨U, ?_⟩
+  have hinv : f.inv.fiberMap w * f.hom.fiberMap w = 1 := by
+    rw [ContinuousLinearMap.mul_def, ← fiberMap_comp, f.hom_inv_id, fiberMap_id,
+      ContinuousLinearMap.one_def]
+  rw [← ContinuousLinearMap.mul_def, conj_mul_sub_one U.mul_inv U.inv_mul hinv]
+  have hU : (↑U : (Fin (Q E).rank → ℂ) →L[ℂ] (Fin (Q E).rank → ℂ)) = T (j, 1) w w := rfl
+  have hU' : (↑U⁻¹ : (Fin (Q E).rank → ℂ) →L[ℂ] (Fin (Q E).rank → ℂ)) = T w (j, 1) w := rfl
+  rw [hU, hU']
+  -- The Laurent family, at `w`, is the sum over the charts of its local pieces.
+  set L : t → (Fin (Q E).rank → ℂ) →L[ℂ] (Fin (Q E).rank → ℂ) :=
+    fun k ↦ ∑ i ∈ Icc (-(N : ℤ)) N, (w.2 : ℂ) ^ i • c i w.1 k with hL
+  have hb0 : (laurentHom N a).fiberMap w =
+      ∑ k : t, ρ k w.1 • (T (k, 1) w w * (L k * T w (k, 1) w)) := by
+    ext v
+    simp only [fiberMap_laurentHom, a, fiberMap_sum, fiberMap_ofChart, hL, hT,
+      coordChange_pullback, FunLike.coe_sum, FunLike.coe_smul,
+      ContinuousLinearMap.comp_apply, ContinuousLinearMap.mul_def, map_sum, map_smul,
+      Finset.sum_apply, Pi.smul_apply]
+    simp only [ContinuousMap.fst_apply, ContinuousLinearMap.map_smul_of_tower, Finset.smul_sum,
+      Pi.smul_apply]
+    rw [Finset.sum_comm]
+    refine Finset.sum_congr rfl fun k _ ↦ Finset.sum_congr rfl fun i _ ↦ ?_
+    exact smul_comm _ _ _
+  have hwk {k : t} (hk : ρ k w.1 ≠ 0) : w ∈ (Q E).core.baseSet (k, 1) :=
+    hρs k (subset_tsupport _ hk)
+  -- In the chart `j`, the Laurent family and `f` are sums of their pieces in the charts `k`.
+  have hb : T w (j, 1) w * (laurentHom N a).fiberMap w * T (j, 1) w w =
+      ∑ k : t, ρ k w.1 • (T (k, 1) (j, 1) w * (L k * T (j, 1) (k, 1) w)) := by
+    rw [hb0, Finset.mul_sum, Finset.sum_mul]
+    refine Finset.sum_congr rfl fun k _ ↦ ?_
+    by_cases hk : ρ k w.1 = 0
+    · simp [hk]
+    rw [mul_smul_comm, smul_mul_assoc]
+    congr 1
+    calc T w (j, 1) w * (T (k, 1) w w * (L k * T w (k, 1) w)) * T (j, 1) w w
+        = (T w (j, 1) w * T (k, 1) w w) * (L k * (T w (k, 1) w * T (j, 1) w w)) := by
+          simp only [mul_assoc]
+      _ = _ := by rw [hTc (hwk hk) hww hwj, hTc hwj hww (hwk hk)]
+  have hf : T w (j, 1) w * f.hom.fiberMap w * T (j, 1) w w =
+      ∑ k : t, ρ k w.1 • (T (k, 1) (j, 1) w *
+        ((σ k w.1 • chartFiber f.hom k w) * T (j, 1) (k, 1) w)) := by
+    rw [← one_smul ℝ (T w (j, 1) w * f.hom.fiberMap w * T (j, 1) w w), ← hρ1 w.1,
+      Finset.sum_smul]
+    refine Finset.sum_congr rfl fun k _ ↦ ?_
+    by_cases hk : ρ k w.1 = 0
+    · simp [hk]
+    congr 1
+    rw [hσ1 k w.1 (subset_tsupport _ hk), one_smul, chartFiber]
+    calc T w (j, 1) w * f.hom.fiberMap w * T (j, 1) w w
+        = (T (k, 1) (j, 1) w * T w (k, 1) w) * (f.hom.fiberMap w *
+            (T (k, 1) w w * T (j, 1) (k, 1) w)) := by
+          rw [hTc hww (hwk hk) hwj, hTc hwj (hwk hk) hww, mul_assoc]
+      _ = _ := by simp only [mul_assoc, hT]
+  have hdiff : ‖T w (j, 1) w * (laurentHom N a).fiberMap w * T (j, 1) w w -
+      T w (j, 1) w * f.hom.fiberMap w * T (j, 1) w w‖ ≤ C₁ ^ 2 * ε := by
+    rw [hb, hf, ← Finset.sum_sub_distrib]
+    refine (norm_sum_le _ _).trans ?_
+    calc ∑ k : t, ‖ρ k w.1 • (T (k, 1) (j, 1) w * (L k * T (j, 1) (k, 1) w)) -
+          ρ k w.1 • (T (k, 1) (j, 1) w *
+            ((σ k w.1 • chartFiber f.hom k w) * T (j, 1) (k, 1) w))‖
+        ≤ ∑ k : t, ρ k w.1 * (C₁ ^ 2 * ε) := Finset.sum_le_sum fun k _ ↦ ?_
+      _ = C₁ ^ 2 * ε := by rw [← Finset.sum_mul, hρ1, one_mul]
+    rw [← smul_sub, norm_smul, Real.norm_of_nonneg (hρ0 k w.1)]
+    by_cases hk : ρ k w.1 = 0
+    · simp [hk]
+    refine mul_le_mul_of_nonneg_left ?_ (hρ0 k w.1)
+    have hxk : w.1 ∈ tsupport (ρ k) := subset_tsupport _ hk
+    rw [← mul_sub, ← sub_mul]
+    calc ‖T (k, 1) (j, 1) w * ((L k - σ k w.1 • chartFiber f.hom k w) * T (j, 1) (k, 1) w)‖
+        ≤ ‖T (k, 1) (j, 1) w‖ * (‖L k - σ k w.1 • chartFiber f.hom k w‖ *
+            ‖T (j, 1) (k, 1) w‖) :=
+          (norm_mul_le _ _).trans (mul_le_mul_of_nonneg_left (norm_mul_le _ _) (norm_nonneg _))
+      _ ≤ C₁ * (ε * C₁) :=
+          mul_le_mul (hC₁b j k w hxj hxk)
+            (mul_le_mul (by rw [norm_sub_rev]; exact (hck w k).le) (hC₁b k j w hxk hxj)
+              (norm_nonneg _) hε.le) (by positivity) hC₁.le
+      _ = C₁ ^ 2 * ε := by ring
+  have hfinv : T w (j, 1) w * f.inv.fiberMap w * T (j, 1) w w = chartFiber f.inv j w := by
+    rw [chartFiber, mul_assoc]
+  have hlt : C₂ * (C₁ ^ 2 * ε) < 1 := by
+    have : C₂ * (C₁ ^ 2 * ε) = 1 / 2 := by
+      rw [hε_def]
+      field_simp
+    rw [this]
+    norm_num
+  calc _ ≤ _ := norm_mul_le _ _
+    _ ≤ C₂ * (C₁ ^ 2 * ε) :=
+        mul_le_mul (hfinv ▸ hC₂b j w hxj) hdiff (norm_nonneg _) hC₂.le
+    _ < 1 := hlt
 
 end TauCeti.FiniteRankBundleCore
 
