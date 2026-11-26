@@ -902,8 +902,7 @@ theorem exists_mpullback_eq_stableHamiltonianModel [FiniteDimensional ℝ E] [Co
     TauCeti.isLocalDiffeomorph_subtypeVal_comp_iff.1
       (TauCeti.isLocalDiffeomorph_inclusion (symmStrip_mono hle))
   have hΦ : IsLocalDiffeomorph (𝓘(ℝ).prod I) (𝓘(ℝ).prod I) ∞ ((Subtype.val ∘ φ) ∘ j) := fun p ↦
-    (hjd p).comp (hg := (φ.isLocalDiffeomorph (j p)).comp
-      (hg := TauCeti.isLocalDiffeomorph_subtype_val _))
+    (hjd p).comp (hg := φ.isLocalDiffeomorph_subtypeVal_comp (j p))
   refine ⟨min δ ε, lt_min hδ hε, hle, (Subtype.val ∘ φ) ∘ j, hΦ, ?_, fun x ↦ ?_, ?_⟩
   · exact Subtype.val_injective.comp (φ.injective.comp fun p q h ↦
       Subtype.ext (congrArg (fun u : U₀ ↦ (u.val : ℝ × M)) h))
