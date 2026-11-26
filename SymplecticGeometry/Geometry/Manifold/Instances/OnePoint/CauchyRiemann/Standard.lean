@@ -5,14 +5,14 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Geometry.Manifold.VectorBundle.Hom
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Basic
-public import SymplecticGeometry.Topology.VectorBundle.Core.Basic
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.LineBundle.Sections
 import Mathlib.Geometry.Manifold.PartitionOfUnity
 import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.Dolbeault
 import TauCeti.Geometry.Manifold.ContMDiff.RestrictScalars
+import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
+import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Constructions
 
 /-!
 # The Cauchy–Riemann operator of the standard structure on `𝒪(1)`
@@ -31,9 +31,10 @@ dimension two, and shows that `D_i` is onto on smooth `(0,1)`-forms.
   holomorphic sections of `𝒪(1)`.
 * `SymplecticGeometry.finrank_twistOneKernel_ofComplexManifold`: they form a complex vector space
   of dimension two.
-* `OnePoint.contMDiff_div_smul_twistCore_hom`: multiplying a smooth `𝒪(k)`-valued one-form by
-  `χ / σ`, for a smooth real function `χ` and a smooth section `σ` of `𝒪(k)` that does not vanish
-  on the closed support of `χ`, gives a smooth complex valued one-form.
+* `OnePoint.monomialSection_zero_eq_zero_iff`: the section `1` of `𝒪(k)`, for `k ≠ 0`, vanishes
+  only at `∞`.
+* `OnePoint.identitySection_ne_zero_or_monomialSection_ne_zero`: the sections `z` and `1` of
+  `𝒪(1)` have no common zero.
 * `SymplecticGeometry.twistOneDelBar_ofComplexManifold_smul_apply`: `D_i (g σ) = (∂bar g) σ` for a
   holomorphic section `σ` of `𝒪(1)`.
 * `SymplecticGeometry.exists_twistOneDelBar_eq`: every smooth `(0,1)`-form with values in `𝒪(1)`
@@ -52,9 +53,11 @@ structure; and Tau Ceti's `OnePoint.finrank_holomorphicTwistSections` gives the 
 
 For surjectivity, take a smooth partition of unity `χ_z + χ_1 = 1` on the sphere with `χ_z` zero
 near `0` and `χ_1` zero near `∞`. The holomorphic sections `z` (`OnePoint.identitySection`) and
-`1` (`OnePoint.monomialSection 1 0`) of `𝒪(1)` vanish only at `0` and only at `∞`, so
-`β_z = (χ_z / z) α` and `β_1 = (χ_1 / 1) α` are smooth complex valued `(0,1)`-forms. The scalar
-case `OnePoint.exists_contMDiff_dbarFunction_eq` gives smooth functions `g_z`, `g_1` with
+`1` (`OnePoint.monomialSection 1 0`) of `𝒪(1)` vanish only at `0` and only at `∞`
+(`OnePoint.monomialSection_zero_eq_zero_iff`), so `β_z = (χ_z / z) α` and `β_1 = (χ_1 / 1) α` are
+smooth (`OnePoint.contMDiff_div_smul_twistCore_hom`) complex valued `(0,1)`-forms
+(`TauCeti.SmoothAlmostComplexStructure.IsZeroOneForm.restrictScalars_comp`). The scalar case
+`OnePoint.exists_contMDiff_dbarFunction_eq` gives smooth functions `g_z`, `g_1` with
 `∂bar g_z = β_z` and `∂bar g_1 = β_1`. Since `D_i` kills holomorphic sections, the complex Leibniz
 rule (`TauCeti.IsRealCauchyRiemannOperator.leibniz_complex`) gives
 (`SymplecticGeometry.twistOneDelBar_ofComplexManifold_smul_apply`)
@@ -74,75 +77,21 @@ open scoped Manifold ContDiff Topology TauCeti.ComplexManifold VectorBundle.Comp
 
 namespace OnePoint
 
-/-- Let `α` be a smooth one-form on the Riemann sphere with values in `𝒪(k)`, `σ` a smooth section
-of `𝒪(k)` and `χ` a smooth real function such that `σ` does not vanish on the closed support of
-`χ`. Then the complex valued one-form `(χ / σ) α`, which reads `α x` in `ℂ` through the
-identification `VectorBundleCore.fiberEquiv` of the fibre with `ℂ` and is zero off the support
-of `χ`, is smooth. -/
--- Inside `namespace OnePoint` the notation `∞` also names the point at infinity, so the
--- smoothness exponent `∞` is written as the cast of `⊤ : ℕ∞`.
-theorem contMDiff_div_smul_twistCore_hom {k : ℤ}
-    (α : ContMDiffSection 𝓘(ℝ, ℂ) (ℂ →L[ℝ] ℂ) ((⊤ : ℕ∞) : ℕ∞ω)
-      (fun x : OnePoint ℂ ↦ TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] (twistCore (𝕜 := ℂ) k).Fiber x))
-    {σ : OnePoint ℂ → ℂ}
-    (hσ : ContMDiff 𝓘(ℝ, ℂ) (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ)) ((⊤ : ℕ∞) : ℕ∞ω)
-      (fun p ↦ TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) k).Fiber) p (σ p)))
-    {χ : OnePoint ℂ → ℝ} (hχ : ContMDiff 𝓘(ℝ, ℂ) 𝓘(ℝ) ((⊤ : ℕ∞) : ℕ∞ω) χ)
-    (hχσ : ∀ x ∈ tsupport χ, σ x ≠ 0) :
-    ContMDiff 𝓘(ℝ, ℂ) (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ →L[ℝ] ℂ)) ((⊤ : ℕ∞) : ℕ∞ω)
-      (fun x ↦ TotalSpace.mk' (ℂ →L[ℝ] ℂ)
-        (E := fun x : OnePoint ℂ ↦ TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] ℂ) x
-        (((χ x : ℂ) / σ x) • (((twistCore (𝕜 := ℂ) k).fiberEquiv x :
-          (twistCore (𝕜 := ℂ) k).Fiber x →L[ℂ] ℂ).restrictScalars ℝ).comp (α x))) := by
-  intro x₀
-  by_cases hx₀ : x₀ ∈ tsupport χ
-  swap
-  · have h0 : χ =ᶠ[𝓝 x₀] 0 := notMem_tsupport_iff_eventuallyEq.1 hx₀
-    refine (contMDiff_zeroSection ℝ
-      (fun x : OnePoint ℂ ↦ TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] ℂ) x₀).congr_of_eventuallyEq ?_
-    filter_upwards [h0] with p hp
-    simp [hp, zeroSection]
-  rw [contMDiffAt_hom_bundle]
-  refine ⟨contMDiffAt_id, ?_⟩
-  have hα := ((contMDiffAt_hom_bundle _).1 (α.contMDiff x₀)).2
-  have hσ' := (contMDiffAt_section_iff x₀).1 (hσ x₀)
-  set e := trivializationAt ℂ (twistCore (𝕜 := ℂ) k).Fiber x₀ with he
-  have he' : e = (twistCore (𝕜 := ℂ) k).localTriv x₀ := by
-    rw [he, VectorBundleCore.trivializationAt, ← VectorBundleCore.localTrivAt_def,
-      OnePoint.twistCore_indexAt]
-  have hr : ContMDiffAt 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) ((⊤ : ℕ∞) : ℕ∞ω) (fun p ↦ χ p • ((e ⟨p, σ p⟩).2)⁻¹) x₀ := by
-    have hne : (e ⟨x₀, σ x₀⟩).2 ≠ 0 := by
-      rw [he', twistCore_localTriv_apply, twistTransition_self, one_mul]
-      exact hχσ x₀ hx₀
-    exact (hχ x₀).smul (((contDiffAt_inv ℂ hne).restrict_scalars ℝ).contMDiffAt.comp x₀ hσ')
-  refine ((contDiff_smul (𝕜 := ℝ) (𝕜' := ℂ) (F := ℂ →L[ℝ] ℂ)).contMDiff.contMDiffAt.comp x₀
-    (hr.prodMk_space hα)).congr_of_eventuallyEq ?_
-  have hU : ∀ᶠ p in 𝓝 x₀, p ∈ (chartAt ℂ x₀).source :=
-    (chartAt ℂ x₀).open_source.mem_nhds (mem_chart_source ℂ x₀)
-  filter_upwards [hU] with p hp
-  have hb : p ∈ (trivializationAt ℂ (twistCore (𝕜 := ℂ) k).Fiber x₀).baseSet := by
-    rw [← he, he', twistCore_localTriv_baseSet]; exact hp
-  -- The transition function does not vanish on the chart; `field_simp` uses this below.
-  have ht : twistTransition k p x₀ p ≠ 0 := fun h ↦ by
-    have := twistTransition_mul_twistTransition k (mem_chart_source ℂ p) hp
-      (mem_chart_source ℂ p) (x := p) (y := x₀) (z := p)
-    simp [h] at this
-  ext v
-  simp only [ContinuousLinearMap.inCoordinates, Function.comp_apply, ContinuousLinearMap.comp_apply,
-    smul_apply, ContinuousLinearMap.coe_restrictScalars', ContinuousLinearEquiv.coe_coe]
-  generalize Trivialization.symmL ℝ (trivializationAt ℂ (TangentSpace 𝓘(ℝ, ℂ)) x₀) p v = w
-  rw [Trivialization.continuousLinearMapAt_apply_of_mem (R := ℝ) (hb := hb),
-    Trivialization.continuousLinearMapAt_apply_of_mem (R := ℝ) (hb := mem_univ p), ← he, he',
-    twistCore_localTriv_apply k x₀ (fun _ ↦ α p w) p,
-    twistCore_localTriv_apply k x₀ σ p, VectorBundleCore.fiberEquiv_def]
-  -- The fibres of `𝒪(k)` are `ℂ`; `id` reads the values of `α` in `ℂ`.
-  change ((χ p : ℂ) / σ p) * (@id ℂ (α p w)) = (χ p • (twistTransition k p x₀ p * σ p)⁻¹) •
-    (twistTransition k p x₀ p * (@id ℂ (α p w)))
-  generalize @id ℂ (α p w) = a
-  rw [Complex.real_smul, smul_eq_mul]
-  rcases eq_or_ne (σ p) 0 with h | h
-  · simp [h]
-  · field_simp
+variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
+
+/-- For `k ≠ 0`, the section `1 = z⁰` of `𝒪(k)` vanishes exactly at `∞`. -/
+theorem monomialSection_zero_eq_zero_iff {k : ℕ} (hk : k ≠ 0) {p : OnePoint 𝕜} :
+    monomialSection k 0 p = 0 ↔ p = (∞ : OnePoint 𝕜) := by
+  induction p using OnePoint.rec with
+  | infty => simp [hk.symm]
+  | coe z => simp
+
+/-- The sections `z` and `1` of `𝒪(1)` have no common zero: at every point of the projective line
+one of them does not vanish. -/
+theorem identitySection_ne_zero_or_monomialSection_ne_zero (p : OnePoint 𝕜) :
+    identitySection p ≠ 0 ∨ monomialSection 1 0 p ≠ 0 := by
+  rw [Ne, Ne, identitySection_eq_zero_iff, monomialSection_zero_eq_zero_iff one_ne_zero]
+  induction p using OnePoint.rec <;> simp
 
 end OnePoint
 
@@ -198,24 +147,56 @@ theorem finrank_twistOneKernel_ofComplexManifold : Module.finrank ℂ (twistOneK
   exact OnePoint.finrank_holomorphicTwistSections 1
 
 
-/-- **Leibniz rule for `D_i` against a holomorphic section.** If a section `σ` of `𝒪(1)` is real
-differentiable and holomorphic at `x`, and `g : OnePoint ℂ → ℂ` is differentiable at `x`, then
+/-- **Leibniz rule for `D_i` against a holomorphic section.** If a section `σ` of `𝒪(1)` is
+holomorphic at `x`, and `g : OnePoint ℂ → ℂ` is differentiable at `x`, then
 `D_i (g σ) = (∂bar g) σ` at `x`. -/
 theorem twistOneDelBar_ofComplexManifold_smul_apply {g : OnePoint ℂ → ℂ}
     {σ : Π x, (twistCore (𝕜 := ℂ) 1).Fiber x} {x : OnePoint ℂ}
     (hg : MDifferentiableAt 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) g x)
-    (hσ : MDifferentiableAt 𝓘(ℝ, ℂ) (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ))
-      (fun p ↦ TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) 1).Fiber) p (σ p)) x)
     (hσℂ : MDifferentiableAt 𝓘(ℂ, ℂ) (𝓘(ℂ, ℂ).prod 𝓘(ℂ, ℂ))
       (fun p ↦ TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) 1).Fiber) p (σ p)) x)
     (v : TangentSpace 𝓘(ℝ, ℂ) x) :
     twistOneDelBar 𝒊 (g • σ) x v = 𝒊.dbarFunction g x v • σ x := by
+  have hσ : MDifferentiableAt 𝓘(ℝ, ℂ) (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ))
+      (fun p ↦ TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) 1).Fiber) p (σ p)) x := by
+    simpa only [ModelWithCorners.restrictScalars_prod, modelWithCornersSelf_restrictScalars] using
+      hσℂ.restrictScalars ℝ
   rw [(isRealCauchyRiemannOperator_twistOneDelBar 𝒊).leibniz_complex
       (isComplexLinearOperator_twistOneDelBar 𝒊) hσ hg,
     (twistOneDelBar_ofComplexManifold_eq_zero_iff hσ).2 hσℂ, smul_zero, zero_add,
     SmoothAlmostComplexStructure.zeroOnePart_apply,
     SmoothAlmostComplexStructure.dbarFunction_apply, ContinuousLinearMap.smulRight_apply,
     ContinuousLinearMap.smulRight_apply, smul_assoc, add_smul, smul_assoc]
+
+/-- Let `α` be a smooth `(0,1)`-form with values in `𝒪(k)`, `σ` a smooth section of `𝒪(k)` and `χ`
+a smooth real function such that `σ` does not vanish on the closed support of `χ`. Then the
+complex valued form `(χ / σ) α` is `∂bar g` for a smooth function `g`. -/
+private theorem exists_dbarFunction_eq_div_smul {k : ℤ}
+    (α : ContMDiffSection 𝓘(ℝ, ℂ) (ℂ →L[ℝ] ℂ) ∞
+      (fun x : OnePoint ℂ ↦ TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] (twistCore (𝕜 := ℂ) k).Fiber x))
+    (hα : ∀ x, 𝒊.IsZeroOneForm (α x)) {σ : OnePoint ℂ → ℂ}
+    (hσ : ContMDiff 𝓘(ℝ, ℂ) (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ)) ∞
+      (fun p ↦ TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) k).Fiber) p (σ p)))
+    {χ : OnePoint ℂ → ℝ} (hχ : ContMDiff 𝓘(ℝ, ℂ) 𝓘(ℝ) ∞ χ)
+    (hχσ : ∀ x ∈ tsupport χ, σ x ≠ 0) :
+    ∃ g : OnePoint ℂ → ℂ, ContMDiff 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) ∞ g ∧
+      ∀ x v, 𝒊.dbarFunction g x v =
+        ((χ x : ℂ) / σ x) • (twistCore (𝕜 := ℂ) k).fiberEquiv x (α x v) := by
+  let β : ContMDiffSection 𝓘(ℝ, ℂ) (ℂ →L[ℝ] ℂ) ∞
+      (fun x : OnePoint ℂ ↦ TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] ℂ) :=
+    ⟨fun x ↦ ((χ x : ℂ) / σ x) • (((twistCore (𝕜 := ℂ) k).fiberEquiv x :
+      (twistCore (𝕜 := ℂ) k).Fiber x →L[ℂ] ℂ).restrictScalars ℝ).comp (α x),
+      OnePoint.contMDiff_div_smul_twistCore_hom α hσ hχ hχσ⟩
+  have hβ (x : OnePoint ℂ) : 𝒊.IsZeroOneForm (V := Bundle.Trivial (OnePoint ℂ) ℂ) (β x) := by
+    rw [ContMDiffSection.coeFn_mk]
+    simpa only [ContinuousLinearMap.restrictScalars_smul, ContinuousLinearMap.smul_comp] using
+      (hα x).restrictScalars_comp (W := Bundle.Trivial (OnePoint ℂ) ℂ)
+        (((χ x : ℂ) / σ x) • ((twistCore (𝕜 := ℂ) k).fiberEquiv x :
+          (twistCore (𝕜 := ℂ) k).Fiber x →L[ℂ] ℂ))
+  obtain ⟨g, hg, hdbar⟩ := OnePoint.exists_contMDiff_dbarFunction_eq β hβ
+  refine ⟨g, hg, fun x v ↦ ?_⟩
+  rw [hdbar, ContMDiffSection.coeFn_mk, smul_apply, ContinuousLinearMap.comp_apply,
+    ContinuousLinearMap.coe_restrictScalars', ContinuousLinearEquiv.coe_coe]
 
 /-- **`D_i` is onto on smooth `(0,1)`-forms.** Every smooth one-form `α` on the Riemann sphere with
 values in `𝒪(1)` that is a `(0,1)`-form for the standard complex structure `𝒊` at every point is
@@ -243,41 +224,19 @@ theorem exists_twistOneDelBar_eq
   set U : Bool → Set (OnePoint ℂ) := fun b ↦ {p | σ b p ≠ 0}
   have hUo (b : Bool) : IsOpen (U b) := by
     cases b
-    · convert (isClosed_singleton (x := (OnePoint.infty : OnePoint ℂ))).isOpen_compl using 1
+    · convert isOpen_compl_singleton (x := (OnePoint.infty : OnePoint ℂ)) using 1
       ext p
-      induction p using OnePoint.rec <;> simp [U, σ]
-    · convert (isClosed_singleton (x := ((0 : ℂ) : OnePoint ℂ))).isOpen_compl using 1
+      simp [U, σ, OnePoint.monomialSection_zero_eq_zero_iff]
+    · convert isOpen_compl_singleton (x := ((0 : ℂ) : OnePoint ℂ)) using 1
       ext p
       simp [U, σ, OnePoint.identitySection_eq_zero_iff]
-  have hUcov : (univ : Set (OnePoint ℂ)) ⊆ ⋃ b, U b := by
-    intro p _
-    rw [mem_iUnion]
-    by_cases hp : p = ((0 : ℂ) : OnePoint ℂ)
-    · exact ⟨false, by simp [U, σ, hp]⟩
-    · exact ⟨true, by simpa [U, σ, OnePoint.identitySection_eq_zero_iff] using hp⟩
+  have hUcov : (univ : Set (OnePoint ℂ)) ⊆ ⋃ b, U b := fun p _ ↦ mem_iUnion.2 <|
+    (OnePoint.identitySection_ne_zero_or_monomialSection_ne_zero p).elim
+      (fun h ↦ ⟨true, h⟩) (fun h ↦ ⟨false, h⟩)
   obtain ⟨f, hf⟩ := SmoothPartitionOfUnity.exists_isSubordinate 𝓘(ℝ, ℂ) isClosed_univ U hUo hUcov
   have hfσ (b : Bool) : ∀ x ∈ tsupport (f b), σ b x ≠ 0 := fun x hx ↦ hf b hx
-  -- The two complex valued `(0,1)`-forms `f b • α / σ b`.
-  let β (b : Bool) : ContMDiffSection 𝓘(ℝ, ℂ) (ℂ →L[ℝ] ℂ) ∞
-      (fun x : OnePoint ℂ ↦ TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] ℂ) :=
-    ⟨fun x ↦ ((f b x : ℂ) / σ b x) • (((twistCore (𝕜 := ℂ) 1).fiberEquiv x :
-      (twistCore (𝕜 := ℂ) 1).Fiber x →L[ℂ] ℂ).restrictScalars ℝ).comp (α x),
-      OnePoint.contMDiff_div_smul_twistCore_hom α (hσr b) (f b).contMDiff (hfσ b)⟩
-  -- The fibres of `𝒪(1)` are `ℂ`; `id` reads the value of `α` in `ℂ`.
-  have hβ (b : Bool) (x : OnePoint ℂ) (v : TangentSpace 𝓘(ℝ, ℂ) x) :
-      β b x v = (f b x : ℂ) / σ b x * (@id ℂ (α x v)) := by
-    rw [ContMDiffSection.coeFn_mk, smul_apply, ContinuousLinearMap.comp_apply,
-      ContinuousLinearMap.coe_restrictScalars', ContinuousLinearEquiv.coe_coe,
-      VectorBundleCore.fiberEquiv_def, smul_eq_mul]
-    rfl
-  have hβ01 (b : Bool) (x : OnePoint ℂ) :
-      𝒊.IsZeroOneForm (V := Bundle.Trivial (OnePoint ℂ) ℂ) (β b x) :=
-    SmoothAlmostComplexStructure.isZeroOneForm_iff.2 fun v ↦ by
-      change β b x (𝒊 x v) = -(Complex.I * β b x v)
-      rw [hβ, hβ, SmoothAlmostComplexStructure.isZeroOneForm_iff.1 (hα x) v]
-      change _ * (-(Complex.I * @id ℂ (α x v))) = _
-      ring
-  choose g hg hdbar using fun b ↦ OnePoint.exists_contMDiff_dbarFunction_eq (β b) (hβ01 b)
+  choose g hg hdbar using fun b ↦
+    exists_dbarFunction_eq_div_smul α hα (hσr b) (f b).contMDiff (hfσ b)
   -- The section `g true • z + g false • 1`.
   let σ' (b : Bool) : Π x, (twistCore (𝕜 := ℂ) 1).Fiber x := σ b
   have ht (b : Bool) : ContMDiff 𝓘(ℝ, ℂ) (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ)) ∞
@@ -287,11 +246,12 @@ theorem exists_twistOneDelBar_eq
     funext fun x ↦ ?_⟩
   ext v
   have hsmul (b : Bool) := twistOneDelBar_ofComplexManifold_smul_apply
-    ((hg b).mdifferentiableAt (by simp) (x := x)) ((hσr b).mdifferentiableAt (by simp))
-    ((hσω b).mdifferentiableAt (by simp)) v
+    ((hg b).mdifferentiableAt (by simp) (x := x)) ((hσω b).mdifferentiableAt (by simp)) v
   rw [(isRealCauchyRiemannOperator_twistOneDelBar 𝒊).add ((ht true).mdifferentiableAt (by simp))
-    ((ht false).mdifferentiableAt (by simp)), add_apply, hsmul, hsmul, hdbar, hdbar, hβ, hβ]
-  -- The fibres of `𝒪(1)` are `ℂ`, on which `ℂ` acts by multiplication.
+    ((ht false).mdifferentiableAt (by simp)), add_apply, hsmul, hsmul, hdbar, hdbar,
+    VectorBundleCore.fiberEquiv_def]
+  -- The fibres of `𝒪(1)` are `ℂ`, on which `ℂ` acts by multiplication, and `fiberEquiv` is the
+  -- identity of `ℂ`.
   change (f true x : ℂ) / σ true x * @id ℂ (α x v) * σ true x +
     (f false x : ℂ) / σ false x * @id ℂ (α x v) * σ false x = @id ℂ (α x v)
   have hcancel (b : Bool) :
