@@ -143,7 +143,8 @@ theorem adjunction_formula [T2Space M] [CompactSpace M] [ConnectedSpace M]
   have h₄ : symplecticChernNumber oₕ finrank_euclideanSpace_fin ℂ
       (f.normalForm hdim hJ ω hω.tames) = f.selfIntersectionNumber hE J hJ o := by
     rw [symplecticChernNumber_eq_chernNumber _ _ _ (compatible_normalForm hdim hJ hω).tames,
-      selfIntersectionNumber_eq_chernNumber]
+      selfIntersectionNumber_eq_chernNumber,
+      toContinuousComplexStructure_contMDiffNormalComplexStructure]
   rw [h₁, h₂, h₃, h₄]
   ring
 
