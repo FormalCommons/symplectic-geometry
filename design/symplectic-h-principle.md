@@ -916,8 +916,8 @@ this order.
    identity on `S`, and `β' l = β l` on `S`.
 5. *A thin tube.* By compactness of `K` and of the core, there is `δ' > 0`
    with `(l, H l 1 x) ∈ V` for `l ∈ K` and `x ∈ Q` with `‖v‖ ≤ δ'`.
-6. *The compression.* `exists_cubeCompression`, for a core `ι → ℝ` instead
-   of `Fin 1 → ℝ`, with `ε₀` and `δ'`, gives fibre scalings `c s`, the
+6. *The compression.* `exists_cubeCompression`, for the core `E := ι → ℝ`
+   instead of `Fin 1 → ℝ`, with `ε₀` and `δ'`, gives fibre scalings `c s`, the
    identity where `1 - ε₀ / 2 < ‖u‖`, preserving `Q`, with `c 1` mapping `Q`
    into `{‖v‖ < δ'} ∪ S`. Put `e l s := H l s ∘ c s`: an isotopy of
    diffeomorphisms from the identity, smooth in `(l, s, x)`, preserving
@@ -952,8 +952,9 @@ nor a primitive near `A`; the working lemma does not use it.
 
 **New lemmas and their files.**
 
-- `exists_cubeCompression` generalized from the core `Fin 1 → ℝ` to `ι → ℝ`
-  for a `Fintype ι` (`CubeCompression.lean`); its proof uses only `‖u‖`.
+- `exists_cubeCompression` generalized from the core `Fin 1 → ℝ` to a core
+  `E` with `[HasContDiffBump E]`, used with `E := ι → ℝ` for a `Fintype ι`
+  (`CubeCompression.lean`); its proof uses only `‖u‖`.
 - The formal primitive of step 3 and its two facts (holonomic where
   `dβ = τ`, and the bound by `2ε`), with smoothness in the parameter, in
   `HandleCore/FormalPrimitive.lean`.

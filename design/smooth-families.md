@@ -81,9 +81,11 @@ No statement of this part is one that the authors' errata
   `seeleyExtension`, `contDiff_seeleyExtension`,
   `tsum_seeleyCoeff_smul_compContinuousLinearMap_timeScale` and
   `exists_contDiff_infty_extension_halfSpace`, all for a complete target and
-  for functions on the whole half-space of `ℝ × E`. The library keeps its own
-  operator, since it needs one with no complete target, with parameters in an
-  open set `U`, from both ends of $[0,1]$, and near a single boundary point.
+  for functions on the whole half-space of `ℝ × E`; and
+  `exists_contDiff_eqOn_upperHalfSpace`, the local `C^n` extension near any
+  point, for finite-dimensional `E` and a complete target. The library keeps
+  its own operator, since it needs one with no complete target, with
+  parameters in an open set `U`, and from both ends of $[0,1]$.
   It reuses `timeScale`, `map_timeScale_eq_sum_pow_card_smul` for the
   derivatives of the dilated terms, and glues at $t=0$ as
   `HasFTaylorSeriesUpToOn.union_of_isClosed` does, by `HasFTaylorSeriesUpToOn.union`
@@ -317,11 +319,6 @@ reflection $t\mapsto1-t$.
   $t=0$ is that of $f$ by `tsum_seeleyCoeff_mul_neg_pow`; and
   `HasFTaylorSeriesUpToOn.union` glues the two sides on `univ ×ˢ U`, where
   they are closed only relative to their union.
-- `exists_contDiff_eqOn_of_contDiffOn_halfSpace [HasContDiffBump E]`:
-  a function smooth on `U ∩ {z | 0 ≤ z.1}`, for an open `U` of `ℝ × E`
-  containing `(0, x₀)`, agrees on the part of some open `V ∋ (0, x₀)`
-  where `0 ≤ z.1` with a function smooth on `ℝ × E`; added by issue 5 of
-  *Liouville structures*.
 
 The module docstring cites R. T. Seeley, *Extension of $C^\infty$ functions
 defined in a half space*, Proc. Amer. Math. Soc. 15 (1964), 625–626, which
