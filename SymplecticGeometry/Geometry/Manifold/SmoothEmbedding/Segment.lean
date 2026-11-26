@@ -43,6 +43,9 @@ with `univBall 0 1` (`ContinuousOn.tendsto_comp_univBall_atBot`,
   `σ : ℝ → M` through `p` with closure of its range in a given neighbourhood `V` of `p`,
   converging at `-∞` to a point `q` outside its range, with
   `closure (σ '' Iic T) = insert q (σ '' Iic T)` for every `T`.
+* `SymplecticGeometry.exists_isSmoothEmbedding_real_pairwiseDisjoint_of_mem_nhds`: such
+  segments through the points of a finite set at once, with pairwise disjoint closures of their
+  ranges, by separating the points with disjoint open sets (`Set.Finite.t2_separation`).
 
 ## References
 
@@ -117,6 +120,30 @@ theorem exists_isSmoothEmbedding_real_of_mem_nhds {p : M} {V : Set M} (hV : V �
   refine (hfK.closure_range_comp_univBall_subset one_pos).trans ?_
   rintro _ ⟨s, hs, rfl⟩
   exact (hLK s (by simpa [K] using hs)).2
+
+/-- **Disjoint short segments through finitely many points.** For a finite set `N` of points of
+`M` and a neighbourhood `G p` of each `p ∈ N`, there are smooth embeddings `σ p : ℝ → M` and
+points `q p` such that, for each `p ∈ N`, `σ p 0 = p`, the closure of the range of `σ p` lies in
+`G p`, `σ p t → q p` as `t → -∞`, `q p` is not in the range of `σ p`, and for every `T` the
+closure of `σ p '' Iic T` is `σ p '' Iic T` together with `q p`; moreover, the closures of the
+ranges of the `σ p` are pairwise disjoint. -/
+theorem exists_isSmoothEmbedding_real_pairwiseDisjoint_of_mem_nhds (N : Finset M) {G : M → Set M}
+    (hG : ∀ p ∈ N, G p ∈ 𝓝 p) :
+    ∃ (σ : M → ℝ → M) (q : M → M), (∀ p ∈ N, IsSmoothEmbedding 𝓘(ℝ) I ∞ (σ p)) ∧
+      (∀ p ∈ N, σ p 0 = p) ∧ (∀ p ∈ N, closure (range (σ p)) ⊆ G p) ∧
+      (∀ p ∈ N, Tendsto (σ p) atBot (𝓝 (q p))) ∧ (∀ p ∈ N, q p ∉ range (σ p)) ∧
+      (∀ p ∈ N, ∀ T, closure (σ p '' Iic T) = insert (q p) (σ p '' Iic T)) ∧
+      (N : Set M).PairwiseDisjoint fun p ↦ closure (range (σ p)) := by
+  classical
+  obtain ⟨U, hU, hUd⟩ := N.finite_toSet.t2_separation
+  have hGU (p : M) (hp : p ∈ N) : G p ∩ U p ∈ 𝓝 p :=
+    Filter.inter_mem (hG p hp) ((hU p).2.mem_nhds (hU p).1)
+  choose! σ q hσ hσ0 hσV hσq hqσ hσcl using fun p (hp : p ∈ N) ↦
+    exists_isSmoothEmbedding_real_of_mem_nhds (I := I) (hGU p hp)
+  refine ⟨σ, q, hσ, hσ0, fun p hp ↦ (hσV p hp).trans inter_subset_left, hσq, hqσ, hσcl,
+    fun a ha b hb hab ↦ ?_⟩
+  exact (hUd ha hb hab).mono ((hσV a ha).trans inter_subset_right)
+    ((hσV b hb).trans inter_subset_right)
 
 end SymplecticGeometry
 
