@@ -7,6 +7,8 @@ module
 
 public import TauCeti.Geometry.Lie.FundamentalVectorField
 public import TauCeti.Geometry.Lie.Subgroup.BalancedProduct
+public import TauCeti.Geometry.Manifold.GroupAction.TransverseSlice
+public import TauCeti.Geometry.Manifold.Submersion.Basic
 
 /-!
 # The vertical directions of the projection `G × Z → G ×_K Z`
@@ -28,6 +30,14 @@ diagonal action; this is Tau Ceti's
 proof of Tau Ceti's `ProperSMul.ker_mfderiv_quotientMk`. So the kernel of `dπ` at `(g, z)`
 consists of the vectors `(-d(L_g)(ξ'), ξ_Z(z))` for `ξ ∈ Lie(K)`.
 
+For a `K`-equivariant map `ι : Z → M` to a `G`-manifold, the lift `[g, z] ↦ g • ι z`
+(`TauCeti.BalancedProduct.liftRightTranslation`) is smooth at `[g, z]` when `ι` is smooth at `z`:
+this is the pointwise form of Tau Ceti's `TauCeti.BalancedProduct.contMDiff_liftRightTranslation`,
+whose proof it follows; likewise it is differentiable at `[g, z]` when `ι` is differentiable at
+`z`, by Tau Ceti's `TauCeti.mdifferentiableAt_smul_slice`. Composed with `dπ` at `(1, z)`, its
+differential at `[1, z]` sends `(ξ, v)` to `ξ_M(ι z) + dι v`, by Tau Ceti's
+`TauCeti.mfderiv_smul_slice_apply`.
+
 ## Main results
 
 * `TauCeti.BalancedProduct.ker_mfderiv_quotientMk_rightTranslation`: on
@@ -37,6 +47,12 @@ consists of the vectors `(-d(L_g)(ξ'), ξ_Z(z))` for `ξ ∈ Lie(K)`.
 * `TauCeti.BalancedProduct.surjective_mk_toRightTranslation`,
   `TauCeti.BalancedProduct.isSubmersion_mk_toRightTranslation`: on `G × Z`, the projection is a
   surjective smooth submersion.
+* `TauCeti.BalancedProduct.contMDiffAt_liftRightTranslation`: the lift of an equivariant map is
+  smooth at `[g, z]` when the map is smooth at `z`.
+* `TauCeti.BalancedProduct.mdifferentiableAt_liftRightTranslation`: the lift is differentiable
+  at `[g, z]` when the map is differentiable at `z`.
+* `TauCeti.BalancedProduct.mfderiv_liftRightTranslation_mfderiv_quotientMk`: the differential of
+  the lift at `[1, z]`, composed with `dπ`, is `(ξ, v) ↦ ξ_M(ι z) + dι v`.
 
 ## References
 
@@ -165,6 +181,67 @@ theorem isSubmersion_mk_toRightTranslation :
   -- `K.RightTranslation` is `G` with the same charts and `K.toRightTranslation` is the identity,
   -- so the map is Tau Ceti's quotient map of `K.RightTranslation × Z`.
   isSubmersion_quotientMk_rightTranslation
+
+section Lift
+
+variable {EM HM : Type*} [NormedAddCommGroup EM] [NormedSpace ℝ EM] [TopologicalSpace HM]
+  {IM : ModelWithCorners ℝ EM HM} {M : Type*} [TopologicalSpace M] [ChartedSpace HM M]
+  [MulAction G M] {ι : Z →ₑ[((↑) : K → G)] M} {z : Z}
+
+/-- **The action map to a `G`-manifold is smooth at `[g, z]`** when the `K`-equivariant map `ι`
+is smooth at `z`. -/
+theorem contMDiffAt_liftRightTranslation [ContMDiffSMul I IM ∞ G M]
+    (hι : ContMDiffAt IZ IM ∞ ι z) (g : G) :
+    letI := rightTranslationChartedSpace K Z I IZ F
+    ContMDiffAt 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × EZ)) IM ∞ (liftRightTranslation ι)
+      (mk K (K.toRightTranslation g) z) := by
+  let _ := rightTranslationChartedSpace K Z I IZ F
+  have hπ := (isSubmersion_quotientMk_rightTranslation (K := K) (Z := Z) (I := I) (IZ := IZ)
+    (F := F)).isSubmersionAt (K.toRightTranslation g, z)
+  refine (hπ.contMDiffAt_comp_iff le_rfl).1 ?_
+  rw [liftRightTranslation_comp_quotientMk]
+  exact ((Subgroup.RightTranslation.contMDiff_toRightTranslation_symm (I := I) ∞).comp
+    (contMDiff_fst (J := IZ) (N := Z))).contMDiffAt.smul (hι.comp _ contMDiffAt_snd)
+
+/-- **The action map to a `G`-manifold is differentiable at `[g, z]`** when the `K`-equivariant
+map `ι` is differentiable at `z`. -/
+theorem mdifferentiableAt_liftRightTranslation [ContMDiffSMul I IM 1 G M]
+    (hι : MDifferentiableAt IZ IM ι z) (g : G) :
+    letI := rightTranslationChartedSpace K Z I IZ F
+    MDifferentiableAt 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × EZ)) IM (liftRightTranslation ι)
+      (mk K (K.toRightTranslation g) z) := by
+  let _ := rightTranslationChartedSpace K Z I IZ F
+  have hπ := (isSubmersion_quotientMk_rightTranslation (K := K) (Z := Z) (I := I) (IZ := IZ)
+    (F := F)).isSubmersionAt (K.toRightTranslation g, z)
+  refine (hπ.mdifferentiableAt_comp_iff (by simp)).1 ?_
+  rw [liftRightTranslation_comp_quotientMk]
+  exact mdifferentiableAt_smul_slice (G := G) (I := I) (σ := ι) hι g
+
+/-- **The differential of the action map at `[1, z]`.** Composed with the differential at
+`(1, z)` of the projection `π : G × Z → G ×_K Z`, the differential at `[1, z]` of the map
+`[g, z] ↦ g • ι z` sends `(ξ, v)` to `ξ_M(ι z) + dι v`, when `ι` is differentiable at `z`. -/
+theorem mfderiv_liftRightTranslation_mfderiv_quotientMk [ContMDiffSMul I IM 1 G M]
+    (hι : MDifferentiableAt IZ IM ι z) (ξ : GroupLieAlgebra I G) (v : TangentSpace IZ z) :
+    letI := rightTranslationChartedSpace K Z I IZ F
+    mfderiv 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × EZ)) IM (liftRightTranslation ι)
+        (Quotient.mk _ (K.toRightTranslation 1, z))
+        (mfderiv (I.prod IZ) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × EZ))
+          (Quotient.mk (MulAction.orbitRel K (K.RightTranslation × Z)))
+          (K.toRightTranslation 1, z) (ξ, v)) =
+      fundamentalVectorField IM ξ (ι z) + mfderiv IZ IM ι z v := by
+  let _ := rightTranslationChartedSpace K Z I IZ F
+  have hπ := (isSubmersion_quotientMk_rightTranslation (K := K) (Z := Z) (I := I) (IZ := IZ)
+    (F := F)).contMDiff.mdifferentiableAt (x := (K.toRightTranslation 1, z)) (by simp)
+  have hΦ : MDifferentiableAt 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × EZ)) IM
+      (liftRightTranslation ι) (Quotient.mk _ (K.toRightTranslation 1, z)) :=
+    mdifferentiableAt_liftRightTranslation hι 1
+  refine (mfderiv_comp_apply _ hΦ hπ _).symm.trans ?_
+  rw [liftRightTranslation_comp_quotientMk]
+  -- `K.RightTranslation` is `G` with the same charts, and `toRightTranslation` is the identity,
+  -- so this is the differential of `(g, z) ↦ g • ι z` on `G × Z` at `(1, z)`.
+  exact mfderiv_smul_slice_apply (σ := ι) hι ξ v
+
+end Lift
 
 end TauCeti.BalancedProduct
 
