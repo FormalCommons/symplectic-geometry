@@ -122,16 +122,13 @@ theorem exists_isIso_add_smul [CompleteSpace 𝕜] [CompactSpace X] [T2Space X]
     _ < 1 / C' * C' := mul_lt_mul_of_pos_right hc hC'
     _ = 1 := by field_simp
 
-/-- The pullback of `E` to `(X × I) × Circle`, through `X × I`, on which the segment between two
-clutching functions lives. -/
-local notation "P" E => (FiniteRankBundleCore.pullback (FiniteRankBundleCore.pullback E
-  (ContinuousMap.fst : C(X × I, X))) (ContinuousMap.fst : C((X × I) × Circle, X × I)))
-
 /-- A morphism of the pullback of `E` to `X × Circle`, pulled back to `(X × I) × Circle` along
 `((x, t), z) ↦ (x, z)`, where the homotopies of `nonempty_iso_clutching_of_homotopic` live. The
 pullback of `E` to `(X × I) × Circle` through `X × I` is by definition its pullback along this map,
 with the same charts and transitions; the type ascription records this. -/
-def pullbackForgetTime (f : E.circlePullback ⟶ E.circlePullback) : (P E) ⟶ (P E) :=
+def pullbackForgetTime (f : E.circlePullback ⟶ E.circlePullback) :
+    (E.pullback (ContinuousMap.fst : C(X × I, X))).circlePullback ⟶
+      (E.pullback (ContinuousMap.fst : C(X × I, X))).circlePullback :=
   pullbackMap f (ContinuousMap.fst.prodMap (.id Circle))
 
 theorem pullbackForgetTime_def (f : E.circlePullback ⟶ E.circlePullback) :
@@ -145,7 +142,9 @@ theorem fiberMap_pullbackForgetTime (f : E.circlePullback ⟶ E.circlePullback)
   fiberMap_pullbackMap f _ b
 
 @[simp]
-theorem pullbackForgetTime_id : pullbackForgetTime (𝟙 E.circlePullback) = 𝟙 (P E) :=
+theorem pullbackForgetTime_id :
+    pullbackForgetTime (𝟙 E.circlePullback) =
+      𝟙 (E.pullback (ContinuousMap.fst : C(X × I, X))).circlePullback :=
   (pullbackFunctor (ContinuousMap.fst.prodMap (.id Circle))).map_id _
 
 @[simp]
@@ -156,7 +155,9 @@ theorem pullbackForgetTime_comp (f g : E.circlePullback ⟶ E.circlePullback) :
 /-- An isomorphism of the pullback of `E` to `X × Circle`, pulled back to `(X × I) × Circle`
 along `((x, t), z) ↦ (x, z)`: its morphisms are the pullbacks `pullbackForgetTime` of those of the
 isomorphism. -/
-def pullbackForgetTimeIso (f : E.circlePullback ≅ E.circlePullback) : (P E) ≅ (P E) :=
+def pullbackForgetTimeIso (f : E.circlePullback ≅ E.circlePullback) :
+    (E.pullback (ContinuousMap.fst : C(X × I, X))).circlePullback ≅
+      (E.pullback (ContinuousMap.fst : C(X × I, X))).circlePullback :=
   (pullbackFunctor (ContinuousMap.fst.prodMap (.id Circle))).mapIso f
 
 @[simp]
@@ -184,7 +185,9 @@ private def time : C((X × I) × Circle, 𝕜) :=
 /-- The segment between two morphisms `f₀` and `f₁` of the pullback of `E` to `X × Circle`: the
 morphism of its pullback to `(X × I) × Circle` with fibre map `(1 - t) f₀(x, z) + t f₁(x, z)` at
 `((x, t), z)` (`fiberMap_segmentHom`). -/
-def segmentHom (f₀ f₁ : E.circlePullback ⟶ E.circlePullback) : (P E) ⟶ (P E) :=
+def segmentHom (f₀ f₁ : E.circlePullback ⟶ E.circlePullback) :
+    (E.pullback (ContinuousMap.fst : C(X × I, X))).circlePullback ⟶
+      (E.pullback (ContinuousMap.fst : C(X × I, X))).circlePullback :=
   (1 - time 𝕜 X) • pullbackForgetTime f₀ + time 𝕜 X • pullbackForgetTime f₁
 
 @[simp]
@@ -224,8 +227,9 @@ theorem isIso_segmentHom_of_norm_conj_lt_one (f₀ : E.circlePullback ≅ E.circ
   rw [pullbackForgetTimeIso_inv, fiberMap_pullbackForgetTime, fiberMap_segmentHom,
     ContinuousLinearMap.comp_add, ContinuousLinearMap.comp_smul, ContinuousLinearMap.comp_smul,
     fiberMap_hom_inv_id, ← ContinuousLinearMap.one_def]
-  -- The goal is stated in the endomorphisms of `Fin (P E).rank → 𝕜`; state it in those of
-  -- `Fin E.circlePullback.rank → 𝕜`, the same ring since both ranks are that of `E` by definition.
+  -- The goal is stated in the endomorphisms of `Fin r → 𝕜`, `r` the rank of the pullback of `E`
+  -- to `(X × I) × Circle`; state it in those of `Fin E.circlePullback.rank → 𝕜`, the same ring
+  -- since both ranks are that of `E` by definition.
   change ‖(↑U⁻¹ : (Fin E.circlePullback.rank → 𝕜) →L[𝕜] (Fin E.circlePullback.rank → 𝕜)) *
     ((1 - s) • 1 + s • (f₀.inv.fiberMap (b.1.1, b.2)).comp (f₁.fiberMap (b.1.1, b.2))) * ↑U -
       1‖ < 1

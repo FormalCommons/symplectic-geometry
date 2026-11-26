@@ -59,6 +59,8 @@ open scoped unitInterval
 
 namespace TauCeti.FiniteRankBundleCore
 
+open SymplecticGeometry
+
 variable {𝕜 X : Type*} [NontriviallyNormedField 𝕜] [TopologicalSpace X]
 
 variable {E : FiniteRankBundleCore ℂ X}

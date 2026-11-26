@@ -56,7 +56,7 @@ of `M`, and take the fundamental class of the homological orientation of `-o`.
 
 The identity moves along a smooth map `f : B' → B` between manifolds of any dimension. The sum
 `deRhamHom c₁ + e_ℝ` is natural: the real first Chern class pulls back by
-`SymplecticGeometry.Bundle.realFirstChernClass_circleFiber_pullback`, `deRhamHom` commutes with
+`Bundle.ContMDiffRiemannianMetric.realFirstChernClass_pullback`, `deRhamHom` commutes with
 pull-backs by `TauCeti.deRhamHom_map`, the Euler class by `TauCeti.complexEulerClass_pullback`,
 and the real image by `TopCat.singularCohomologyRealImageAddMonoidHom_naturality`. So the
 identity for `V` gives it for `f *ᵖ V`, and conversely when `f^*` is injective on `H²(B; ℝ)`.
@@ -216,7 +216,7 @@ theorem deRhamHom_realFirstChernClass_add_realImage_pullback :
         (deRhamHom IB B 2 (g.realFirstChernClass hI) +
           (TopCat.of B).singularCohomologyRealImageAddMonoidHom 2
             (complexEulerClass (r := 0) F V Fact.out)) := by
-  rw [realFirstChernClass_circleFiber_pullback g hI f hf g'' hI'', deRhamHom_map,
+  rw [g.realFirstChernClass_pullback hI f hf g'' hI'', deRhamHom_map,
     complexEulerClass_pullback, TopCat.singularCohomologyRealImageAddMonoidHom_naturality]
   exact (map_add _ _ _).symm
 
