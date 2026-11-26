@@ -9,6 +9,7 @@ public import Mathlib.Algebra.MvPolynomial.PDeriv
 public import Mathlib.RingTheory.MvPolynomial.WeightedHomogeneous
 public import TauCeti.RingTheory.MvPolynomial.Jacobian.Basic
 import Mathlib.RingTheory.MvPolynomial.EulerIdentity
+import TauCeti.Data.Finsupp.MapDomain
 import TauCeti.RingTheory.MvPolynomial.WeightedHomogeneous
 import SymplecticGeometry.Data.Matrix.Mul
 
@@ -54,6 +55,11 @@ separately (`TauCeti.jacobiMatrixAt_sumElim_smul_mul`,
 `TauCeti.mulVec_surjective_jacobiMatrixAt_sumElim_smul_iff`), so surjectivity depends only on
 the pair of projective points (`TauCeti.mulVec_surjective_jacobiMatrixAt_sumElim_iff_of_mk_eq_mk`).
 These follow the proof of Tau Ceti's `TauCeti.mulVec_surjective_jacobiMatrixAt_iff_of_mk_eq_mk`.
+
+Renaming the variables along `f` keeps weighted homogeneity, for the weights pulled back along
+`f` (`MvPolynomial.IsWeightedHomogeneous.rename`, by Tau Ceti's `Finsupp.weight_mapDomain`), and
+every polynomial is weighted homogeneous of degree `0` for the zero weights
+(`MvPolynomial.isWeightedHomogeneous_zero_weight`).
 -/
 
 public section
@@ -113,6 +119,28 @@ theorem IsWeightedHomogeneous.eval_pderiv_eq_zero_of_eval_eq_zero {w : σ → �
   simpa [hwi, hi] using e
 
 end PDeriv
+
+section Rename
+
+variable {σ τ R M : Type*} [CommSemiring R] [AddCommMonoid M]
+
+/-- Renaming the variables along `f` turns a polynomial that is weighted homogeneous of degree
+`m` for the weights `w ∘ f` into one that is weighted homogeneous of degree `m` for `w`. -/
+theorem IsWeightedHomogeneous.rename {f : σ → τ} {w : τ → M} {m : M} {φ : MvPolynomial σ R}
+    (h : φ.IsWeightedHomogeneous (w ∘ f) m) : (rename f φ).IsWeightedHomogeneous w m := by
+  induction h using IsWeightedHomogeneous.induction_on with
+  | zero => simpa using isWeightedHomogeneous_zero R w m
+  | add p q _ _ ihp ihq => simpa using ihp.add ihq
+  | monomial d r hd =>
+    rw [rename_monomial]
+    exact isWeightedHomogeneous_monomial _ _ _ (by rw [Finsupp.weight_mapDomain, hd])
+
+/-- Every polynomial is weighted homogeneous of degree `0` for the weights `0`. -/
+theorem isWeightedHomogeneous_zero_weight (φ : MvPolynomial σ R) :
+    φ.IsWeightedHomogeneous (0 : σ → M) 0 :=
+  fun d _ ↦ by simp [Finsupp.weight_apply]
+
+end Rename
 
 section SumElim
 
