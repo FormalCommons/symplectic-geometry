@@ -150,7 +150,7 @@ theorem isContMDiffDistribution_ker_mfderiv [IsManifold I 1 M] (hf : ContMDiff I
   rw [hK] at hC
   obtain ⟨U, hU, hxU, X, hX⟩ := isContMDiffDistribution_iff.1 hC (Φ x)
   have hY := hX.comap_mfderivWithin Φ hmn
-  refine ⟨Φ.source ∩ Φ ⁻¹' U, Φ.contMDiffOn.continuousOn.isOpen_inter_preimage Φ.open_source hU,
+  refine ⟨Φ.source ∩ Φ ⁻¹' U, Φ.toOpenPartialHomeomorph.isOpen_inter_preimage hU,
     ⟨hxΦ, hxU⟩, _, ⟨hY.contMDiffOn, hY.linearIndependent, fun {y} hy ↦ ?_⟩⟩
   rw [hY.span_eq hy, hker hy.1, Φ.mfderivWithin_source hy.1]
 

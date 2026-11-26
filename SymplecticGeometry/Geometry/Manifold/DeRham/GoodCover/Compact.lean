@@ -150,7 +150,7 @@ on its source by `z ↦ P (e z - e x)`, defined on every `z` with `‖e z - e x�
 ball of radius `r`. If `0 ≤ ρ < r` and `x` is one of the centres `p i`, `i ∈ s`, then `Φ` carries
 the set of points `z` with `‖e z - e (p i)‖ < ρ` for all `i ∈ s` onto the set of points `u` of the
 ball of radius `r` with `‖e (Φ⁻¹ u) - e (p i)‖ ^ 2 < ρ ^ 2` for all `i ∈ s`. -/
-private theorem image_setOf_forall_dist_lt {ι : Type*} {x : M}
+private theorem image_setOfPred_forall_dist_lt {ι : Type*} {x : M}
     {Φ : PartialDiffeomorph I 𝓘(ℝ, (mvfderiv I e x).range) M (mvfderiv I e x).range ∞}
     (hΦ : ∀ z ∈ Φ.source, Φ z = (mvfderiv I e x).range.orthogonalProjectionOnto (e z - e x))
     {r ρ : ℝ} (hsrc : {z | dist (e z) (e x) < r} ⊆ Φ.source) (htgt : ball 0 r ⊆ Φ.target)
@@ -213,7 +213,7 @@ theorem hasFiniteGoodCover_of_compactSpace [CompactSpace M] [T2Space M] :
   -- The chart carries `W` onto an intersection of sublevel sets of convex functions.
   have hconvex : Convex ℝ (Φ x '' W) := by
     rw [show (W : Set M) = {z | ∀ i ∈ s, dist (e z) (e (i : M)) < ρ} from Set.ext hW,
-      image_setOf_forall_dist_lt (hΦ x) (hsrc x) (htgt x) hρ.le (half_lt_self hr) hj rfl]
+      image_setOfPred_forall_dist_lt (hΦ x) (hsrc x) (htgt x) hρ.le (half_lt_self hr) hj rfl]
     exact convex_iInter₂ fun i hi ↦ (hconv x i (hcentre i hi)).convexOn.convex_lt _
   have hWne : (Φ x '' W).Nonempty := ⟨_, mem_image_of_mem _ hz₀⟩
   exact IsSmoothlyContractible.of_starConvex_image ((Φ x).contMDiffOn.mono hWsrc)

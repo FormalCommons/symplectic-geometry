@@ -19,6 +19,8 @@ public import TauCeti.Topology.VectorBundle.ZeroSection
 public import SymplecticGeometry.Topology.Algebra.Projectivization
 public import SymplecticGeometry.Topology.VectorBundle.ZeroSet
 
+import SymplecticGeometry.Topology.FiberBundle.Basic
+
 /-!
 # The projective bundle of a vector bundle
 
@@ -552,9 +554,10 @@ def pullbackHomeomorph :
     refine ⟨(Pullback.continuous_proj _ _ _).continuousAt, ?_⟩
     let e := trivializationAt G E (f z.proj)
     let eP := trivializationAt (ℙ 𝕜 G) (fun b ↦ ℙ 𝕜 (E b)) (f z.proj)
-    have hN : {y : TotalSpace (ℙ 𝕜 G) (f *ᵖ fun b ↦ ℙ 𝕜 (E b)) | f y.proj ∈ e.baseSet} ∈ 𝓝 z :=
-      (e.open_baseSet.preimage (f.continuous.comp (Pullback.continuous_proj _ _ _))).mem_nhds
-        (mem_baseSet_trivializationAt G E _)
+    have hN : ∀ᶠ y : TotalSpace (ℙ 𝕜 G) (f *ᵖ fun b ↦ ℙ 𝕜 (E b)) in 𝓝 z,
+        f y.proj ∈ e.baseSet :=
+      (f.continuous.comp (Pullback.continuous_proj _ _ _)).continuousAt
+        |>.eventually_mem_baseSet_trivializationAt G E
     refine ContinuousAt.congr (f := fun y ↦ (eP (Pullback.lift f y)).2) ?_ ?_
     · exact (eP.continuousAt (eP.mem_source.2 (mem_baseSet_trivializationAt G E _))).snd.comp
         (Pullback.continuous_lift _ _ f).continuousAt
@@ -782,7 +785,7 @@ theorem isOpen_compl_range_inl :
       TotalSpace.mk' G₂ v.val.proj v.val.snd.2 :=
     (continuous_snd.comp (FiberBundle.Prod.isInducing_diag G₁ E₁ G₂ E₂).continuous).comp
       continuous_subtypeVal
-  convert (VectorBundle.isClosed_setOf_eq_zero 𝕜 hs).isOpen_compl using 1
+  convert (VectorBundle.isClosed_setOfPred_eq_zero 𝕜 hs).isOpen_compl using 1
   ext v
   simp only [mem_preimage, mem_compl_iff, mem_ofPred_eq, mk'_eq_mk, mk_mem_range_inl_iff]
 

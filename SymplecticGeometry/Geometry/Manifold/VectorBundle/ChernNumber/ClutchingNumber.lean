@@ -384,7 +384,9 @@ theorem exists_clutchingNumber_eq_degree_clutchingTransition [FiniteDimensional 
 number `TauCeti.clutchingNumber G E p` is the first Chern number of the pull-back of `E` to `S²`
 along the map `GenLoop.toSphere p` induced by `p`, for the orientation `cubeToSphereOrientation`
 of `S²`, for which the collapse of the square preserves orientation on the open square. -/
-theorem clutchingNumber_eq_chernNumber [FiniteDimensional ℂ G]
+theorem clutchingNumber_eq_chernNumber {E : X → Type} [∀ x, AddCommGroup (E x)]
+    [∀ x, Module ℂ (E x)] [∀ x, TopologicalSpace (E x)] [TopologicalSpace (TotalSpace G E)]
+    [FiberBundle G E] [VectorBundle ℂ G E] [FiniteDimensional ℂ G]
     [∀ x, IsTopologicalAddGroup (E x)] [∀ x, ContinuousSMul ℂ (E x)] (p : Ω^ (Fin 2) X x) :
     clutchingNumber G E p = chernNumber cubeToSphereOrientation finrank_euclideanSpace_fin G
       (⇑(GenLoop.toSphere p) *ᵖ E) := by

@@ -28,14 +28,14 @@ counting one half:
 `μ(γ, V) = (sign Γ(0) + sign Γ(1)) / 2 + ∑ᶠ t ∈ (0, 1), sign Γ(t)`.
 
 Away from the crossings `Γ(t)` is zero (`lagrangianCrossingForm_eq_zero_of_inf_eq_bot`), so the
-sum runs over the finitely many crossings (`finite_setOf_inf_ne_bot_of_regular`).
+sum runs over the finitely many crossings (`finite_setOfPred_inf_ne_bot_of_regular`).
 
 ## Main results
 
 * `SymplecticGeometry.LagrangianGrassmannian.pathMaslovIndex_graph_eq_crossing_sum`: the formula
   when each `γ t` is the graph `{(x, A t x)}`, relative to `{y = 0}`, with Tau Ceti's crossing forms
   `Matrix.crossingForm (A t) (A' t)`.
-* `SymplecticGeometry.LagrangianGrassmannian.finite_setOf_inf_ne_bot_of_regular`: a path with
+* `SymplecticGeometry.LagrangianGrassmannian.finite_setOfPred_inf_ne_bot_of_regular`: a path with
   regular crossings has finitely many.
 * `SymplecticGeometry.LagrangianGrassmannian.finite_Icc_inter_support_signature_of_regular`: the
   signatures of the crossing forms of such a path are nonzero at finitely many times.
@@ -307,7 +307,7 @@ private theorem crossing_sum_subpath {Λ Λ' : ℒ ι} (γ : Path Λ Λ') {V W :
 /-- **Regular crossings are finitely many.** Let `Z` be a frame of a path `γ` of Lagrangians,
 differentiable within `[0, 1]` at each crossing with a Lagrangian `V`, with nondegenerate crossing
 forms there. Then `γ` meets `V` at only finitely many times. -/
-theorem finite_setOf_inf_ne_bot_of_regular {Λ Λ' : ℒ ι} (γ : Path Λ Λ') (V : ℒ ι)
+theorem finite_setOfPred_inf_ne_bot_of_regular {Λ Λ' : ℒ ι} (γ : Path Λ Λ') (V : ℒ ι)
     {Z Z' : ℝ → Matrix (ι ⊕ ι) ι ℝ}
     (hZ : ∀ t : I, LinearMap.range (toEuclideanLin (Z t)) = γ t)
     (hd : ∀ t : I, (γ t : Submodule ℝ (StdSpace ι)) ⊓ V ≠ ⊥ →
@@ -322,7 +322,7 @@ theorem finite_setOf_inf_ne_bot_of_regular {Λ Λ' : ℒ ι} (γ : Path Λ Λ') 
       ext t
       rw [mem_preimage, mem_ofPred_eq, mem_ofPred_eq, isCompl_iff_disjoint, disjoint_iff]
     rw [h]
-    exact (isOpen_setOf_isCompl V).preimage γ.continuous
+    exact (isOpen_setOfPred_isCompl V).preimage γ.continuous
   have h : ∀ᶠ t in codiscrete I, (γ t : Submodule ℝ (StdSpace ι)) ⊓ V = ⊥ := by
     rw [eventually_codiscrete_iff_forall_eventually_nhdsNE]
     intro t₀
@@ -333,7 +333,7 @@ theorem finite_setOf_inf_ne_bot_of_regular {Λ Λ' : ℒ ι} (γ : Path Λ Λ') 
   exact Filter.eventually_cofinite.1 h
 
 /-- **Regular crossings have finitely many nonzero signatures.** Under the hypotheses of
-`finite_setOf_inf_ne_bot_of_regular`, the signature of the crossing form
+`finite_setOfPred_inf_ne_bot_of_regular`, the signature of the crossing form
 `lagrangianCrossingForm (Z t) (Z' t) V` is nonzero at only finitely many times `t ∈ [0, 1]`. -/
 theorem finite_Icc_inter_support_signature_of_regular {Λ Λ' : ℒ ι} (γ : Path Λ Λ') (V : ℒ ι)
     {Z Z' : ℝ → Matrix (ι ⊕ ι) ι ℝ}
@@ -344,7 +344,7 @@ theorem finite_Icc_inter_support_signature_of_regular {Λ Λ' : ℒ ι} (γ : Pa
       (lagrangianCrossingForm (Z t) (Z' t) V).Nondegenerate) :
     (Icc (0 : ℝ) 1 ∩
       Function.support fun t ↦ (lagrangianCrossingForm (Z t) (Z' t) V).signature).Finite :=
-  ((finite_setOf_inf_ne_bot_of_regular γ V hZ hd hreg).image ((↑) : I → ℝ)).subset
+  ((finite_setOfPred_inf_ne_bot_of_regular γ V hZ hd hreg).image ((↑) : I → ℝ)).subset
     fun t ⟨ht, hst⟩ ↦ ⟨⟨t, ht⟩, fun h ↦
       hst ((congrArg QuadraticForm.signature
         (lagrangianCrossingForm_eq_zero_of_inf_eq_bot (by rwa [hZ ⟨t, ht⟩]) _)).trans
@@ -403,7 +403,7 @@ theorem pathMaslovIndex_eq_crossing_sum_Ico {Λ Λ' : ℒ ι} (γ : Path Λ Λ')
   choose W hWV hWγ using fun t : I ↦ exists_isCompl_isCompl V (γ t)
   obtain ⟨T, hT0, hTm, ⟨m, hm⟩, hTc⟩ := exists_monotone_Icc_subset_open_cover_unitInterval
     (c := fun t₀ : I ↦ {t : I | IsCompl (γ t : Submodule ℝ (StdSpace ι)) (W t₀)})
-    (fun t₀ ↦ (isOpen_setOf_isCompl (W t₀)).preimage γ.continuous)
+    (fun t₀ ↦ (isOpen_setOfPred_isCompl (W t₀)).preimage γ.continuous)
     (fun t _ ↦ mem_iUnion.2 ⟨t, (hWγ t).symm⟩)
   have hind (n : ℕ) : pathMaslovIndex (γ.subpath 0 (T n)) V = F 0 (T n) := by
     induction n with
@@ -425,7 +425,7 @@ Lagrangian `V`, where `γ t ∩ V ≠ 0`, `Z` has derivative `Z' t` within `[0, 
 form `lagrangianCrossingForm (Z t) (Z' t) V` is nondegenerate. Then the index of `γ` relative to
 `V` is the sum of the signatures of the crossing forms, those at `0` and `1` counting one half.
 Away from the crossings the forms are zero (`lagrangianCrossingForm_eq_zero_of_inf_eq_bot`), and
-the crossings are finitely many (`finite_setOf_inf_ne_bot_of_regular`). -/
+the crossings are finitely many (`finite_setOfPred_inf_ne_bot_of_regular`). -/
 theorem pathMaslovIndex_eq_crossing_sum {Λ Λ' : ℒ ι} (γ : Path Λ Λ') (V : ℒ ι)
     {Z Z' : ℝ → Matrix (ι ⊕ ι) ι ℝ}
     (hZ : ∀ t : I, LinearMap.range (toEuclideanLin (Z t)) = γ t)

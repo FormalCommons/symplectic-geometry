@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Topology
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.Topology
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Opens
 
 /-!
 # Two-forms in the frame topology
@@ -21,11 +22,12 @@ of alternating maps on `V`. This file proves that nondegeneracy over a compact s
 is an open condition in it, that pulling two-forms back along the slices of a smooth family
 of maps, such as the time slices of a smooth isotopy, is jointly continuous in the form and the
 parameter, and that pulling them back along a single smooth map, such as the inclusion of an
-open subset, is continuous.
+open subset, is continuous. Near each point of an open subset, the frame coordinates of a two-form
+and of its restriction agree.
 
 ## Main results
 
-* `Bundle.ContMDiffTwoForm.isOpen_setOf_forall_mem_nondegenerate`: for a covering frame system,
+* `Bundle.ContMDiffTwoForm.isOpen_setOfPred_forall_mem_nondegenerate`: for a covering frame system,
   a locally compact model of the base, a bundle of finite rank and a compact `K ⊆ M`, the
   two-forms that are nondegenerate on every fibre over `K` form an open set.
 * `Bundle.ContMDiffTwoForm.continuous_tangentEquiv_symm_mpullback_prod`: for a smooth family
@@ -41,6 +43,9 @@ open subset, is continuous.
 * `Bundle.ContMDiffTwoForm.continuous_tangentEquiv_symm_mpullback_subtypeVal`: its case of the
   inclusion of an open `U ⊆ M`, that is, the restriction of two-forms on the tangent bundle from
   `M` to `U`.
+* `Bundle.ContMDiffTwoForm.exists_frameCoordinates_eq_frameCoordinates_mpullback_subtypeVal`: near
+  each point `x` of `U`, the frame coordinates of a two-form on `M` in the trivialization at `x`
+  are those of its restriction to `U` in the trivialization of the two-forms on `U` at `x`.
 
 ## Implementation notes
 
@@ -48,7 +53,7 @@ The proof adapts Tau Ceti's
 `IsCompact.isOpen_setOf_forall_mem_forall_bilinear_apply_self_pos`
 (`TauCeti/Topology/VectorBundle/Bilinear.lean`), with nondegeneracy in place of positivity: the
 nondegenerate alternating maps are open in the total space of the bundle of alternating maps
-(`isOpen_setOf_nondegenerate`), evaluation is jointly continuous in the section and the point
+(`isOpen_setOfPred_nondegenerate`), evaluation is jointly continuous in the section and the point
 (`ContMDiffSection.continuous_totalSpace_eval`), and the tube lemma over `K` concludes.
 
 Pull-back along the slices of a family `f : P × M → N` is the library's
@@ -59,6 +64,13 @@ pull-back bundle by
 family is the motion of `h` over `unitInterval`. Pull-back along a smooth map `g : M → N` is the
 slice at `0` of the constant family `(p, x) ↦ g x : ℝ × M → N`, and restriction to an open
 `U ⊆ M` is its case `g = Subtype.val`.
+
+The comparison of frame coordinates on `M` and on `U` is not definitional: it rests on the
+agreement of the charts that `U` inherits with those of `M` near `x`. It takes `D` to be the
+image in `M` of an open neighbourhood of `x` in `U` on which the two trivializations of the
+bundles of alternating maps agree, given by
+`TauCeti.Manifold.eventually_trivializationAt_continuousAlternatingMap_tangentSpace_opens_eq`,
+and on which both are defined.
 
 ## References
 
@@ -97,12 +109,12 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 /-- For a covering frame system, a locally compact model of the base and a bundle of finite
 rank, the two-forms whose bilinear form is nondegenerate on the fibre over every point of a
 compact set `K` form an open set in the frame topology. -/
-theorem isOpen_setOf_forall_mem_nondegenerate [LocallyCompactSpace EB] [FiniteDimensional ℝ F]
+theorem isOpen_setOfPred_forall_mem_nondegenerate [LocallyCompactSpace EB] [FiniteDimensional ℝ F]
     (hcover : ∀ x, ∃ i, x ∈ U i) {K : Set M} (hK : IsCompact K) :
     let _ := ContMDiffSection.frameTopology (I := I) (n := n) e U hU
     IsOpen {ω : ContMDiffTwoForm I n F V | ∀ x ∈ K, (ω.bilinFormAt x).Nondegenerate} := by
   let _ := ContMDiffSection.frameTopology (I := I) (n := n) e U hU
-  have hS := (isOpen_setOf_nondegenerate (F := F) (V := V)).preimage
+  have hS := (isOpen_setOfPred_nondegenerate (F := F) (V := V)).preimage
     (ContMDiffSection.continuous_totalSpace_eval (I := I) (n := n) e U hU hcover)
   simp_rw [isOpen_iff_mem_nhds, bilinFormAt_def]
   exact fun ω hω ↦ hK.eventually_forall_of_forall_eventually fun x hx ↦ hS.mem_nhds (hω x hx)
@@ -229,6 +241,69 @@ theorem continuous_tangentEquiv_symm_mpullback_subtypeVal (hcover : ∀ x, ∃ i
     contMDiff_subtypeVal hcover
 
 end Restriction
+
+section RestrictionCoordinates
+
+variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
+  [TopologicalSpace HB] {I : ModelWithCorners ℝ EB HB}
+  [TopologicalSpace M] [ChartedSpace HB M] [IsManifold I ((⊤ : ℕ∞) : WithTop ℕ∞) M]
+  {U : Opens M}
+
+/-- Near each point `x` of an open `U ⊆ M`, the frame coordinates of a smooth two-form `ω` on the
+tangent bundle of `M` in the trivialization at `x` are those of its restriction to `U` in the
+trivialization of the two-forms on `U` at `x`: there is an open `D ⊆ U` of `M` containing `x`,
+inside the base set of the first trivialization and whose preimage in `U` is inside that of the
+second, such that at every `z ∈ D` the two frame coordinates over `D` and over its preimage agree,
+for every `ω`. -/
+theorem exists_frameCoordinates_eq_frameCoordinates_mpullback_subtypeVal (x : U) :
+    ∃ (D : Opens M) (_ : (x : M) ∈ D) (hDU : (D : Set M) ⊆ U)
+      (hD : (D : Set M) ⊆ (trivializationAt (EB [⋀^Fin 2]→L[ℝ] ℝ)
+        (fun y : M ↦ TangentSpace I y [⋀^Fin 2]→L[ℝ] Trivial M ℝ y) (x : M)).baseSet)
+      (hD' : (D.comap (⟨Subtype.val, continuous_subtypeVal⟩ : C(U, M)) : Set U) ⊆
+        (trivializationAt (EB [⋀^Fin 2]→L[ℝ] ℝ)
+          (fun y : U ↦ TangentSpace I y [⋀^Fin 2]→L[ℝ] Trivial U ℝ y) x).baseSet),
+      ∀ (ω : ContMDiffTwoForm I ⊤ EB (TangentSpace I (M := M))) (z : M) (hz : z ∈ D),
+        (trivializationAt _ _ (x : M)).frameCoordinates hD ω ⟨z, hz⟩ =
+          (trivializationAt _ _ x).frameCoordinates hD'
+            (tangentEquiv.symm (TauCeti.SmoothForm.mpullback (Subtype.val : U → M)
+              contMDiff_subtypeVal (tangentEquiv ω)) :
+                ContMDiffTwoForm I ⊤ EB (TangentSpace I (M := U))) ⟨⟨z, hDU hz⟩, hz⟩ := by
+  obtain ⟨t, ht, hto, hxt⟩ := eventually_nhds_iff.mp
+    (TauCeti.Manifold.eventually_trivializationAt_continuousAlternatingMap_tangentSpace_opens_eq
+      (I := I) (G := ℝ) (ι := Fin 2) x)
+  set eU := trivializationAt (EB [⋀^Fin 2]→L[ℝ] ℝ)
+    (fun y : U ↦ TangentSpace I y [⋀^Fin 2]→L[ℝ] Trivial U ℝ y) x
+  set eM := trivializationAt (EB [⋀^Fin 2]→L[ℝ] ℝ)
+    (fun y : M ↦ TangentSpace I y [⋀^Fin 2]→L[ℝ] Trivial M ℝ y) (x : M)
+  set s := t ∩ eU.baseSet ∩ Subtype.val ⁻¹' eM.baseSet
+  have hs : IsOpen s :=
+    (hto.inter eU.open_baseSet).inter (eM.open_baseSet.preimage continuous_subtypeVal)
+  obtain ⟨D, hDs⟩ : ∃ D : Opens M, (D : Set M) = Subtype.val '' s :=
+    ⟨⟨_, U.isOpen.isOpenMap_subtypeVal s hs⟩, rfl⟩
+  have hDs' (y : U) : (y : M) ∈ D ↔ y ∈ s := by
+    rw [← SetLike.mem_coe, hDs, Subtype.val_injective.mem_set_image]
+  have hsub (y : U) (hy : (y : M) ∈ D) :
+      y ∈ t ∧ y ∈ eU.baseSet ∧ (y : M) ∈ eM.baseSet := by
+    obtain ⟨⟨h₁, h₂⟩, h₃⟩ := (hDs' y).1 hy
+    exact ⟨h₁, h₂, h₃⟩
+  have hD' : (D.comap (⟨Subtype.val, continuous_subtypeVal⟩ : C(U, M)) : Set U) ⊆ eU.baseSet :=
+    fun y hy ↦ (hsub y (Opens.mem_comap.1 (SetLike.mem_coe.1 hy))).2.1
+  have hDU : (D : Set M) ⊆ U := by
+    rw [hDs]
+    rintro _ ⟨y, -, rfl⟩
+    exact y.property
+  have hD : (D : Set M) ⊆ eM.baseSet := by
+    rw [hDs]
+    rintro _ ⟨y, hy, rfl⟩
+    exact hy.2
+  refine ⟨D, (hDs' x).2 ⟨⟨hxt, FiberBundle.mem_baseSet_trivializationAt' x⟩,
+      (FiberBundle.mem_baseSet_trivializationAt' (x : M) : (x : M) ∈ eM.baseSet)⟩, hDU, hD,
+    hD', fun ω z hz ↦ ?_⟩
+  rw [Trivialization.frameCoordinates_apply, Trivialization.frameCoordinates_apply,
+    tangentEquiv_symm_apply, TauCeti.SmoothForm.coe_mpullback_subtype_val_apply, tangentEquiv_apply]
+  exact (ht ⟨z, hDU hz⟩ (hsub ⟨z, hDU hz⟩ hz).1 (ω z)).symm
+
+end RestrictionCoordinates
 
 end Bundle.ContMDiffTwoForm
 

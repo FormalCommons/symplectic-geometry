@@ -6,6 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Analysis.Normed.Algebra.HolomorphicFunctionalCalculus.Riesz
+public import TauCeti.Analysis.Normed.Algebra.Spectrum
+public import TauCeti.MeasureTheory.Integral.DominatedConvergence
 public import TauCeti.MeasureTheory.Integral.Circle.Integral
 public import SymplecticGeometry.Analysis.Complex.DiscIndicator
 public import SymplecticGeometry.Analysis.Normed.Algebra.HolomorphicFunctionalCalculus.Riesz
@@ -50,8 +52,13 @@ The proof of `Commute.unitDiscRieszProjection_right` adapts that of Tau Ceti's
   `SymplecticGeometry.commute_unitDiscRieszProjection`: it is an idempotent commuting with `a`.
 * `SymplecticGeometry.map_unitDiscRieszProjection`,
   `SymplecticGeometry.unitDiscRieszProjection_conjContinuousAlgEquiv`: naturality.
-* `Continuous.unitDiscRieszProjection`: continuity in a family, from the joint continuity of the
-  resolvent (`spectrum.continuousAt_resolvent_prod`).
+* `SymplecticGeometry.continuousAt_unitDiscRieszProjection`: continuity at each element whose
+  spectrum avoids the unit circle, from the joint continuity of the resolvent
+  (`spectrum.continuousAt_resolvent_prod`) and the upper hemicontinuity of the spectrum
+  (`spectrum.eventually_disjoint_of_isClosed`).
+* `ContinuousWithinAt.unitDiscRieszProjection`, `ContinuousAt.unitDiscRieszProjection`,
+  `ContinuousOn.unitDiscRieszProjection`, `Continuous.unitDiscRieszProjection`: continuity in a
+  family, with the spectrum condition only where continuity is asked.
 * `SymplecticGeometry.eq_zero_of_unitDiscRieszProjection_apply_eq_zero`,
   `SymplecticGeometry.eq_zero_of_unitDiscRieszProjection_apply_eq_self`: where the eigenvalues
   of the two pieces lie, from `ContinuousLinearMap.mem_image_of_rieszIdempotent_apply_eq_self`
@@ -260,22 +267,61 @@ theorem commute_unitDiscRieszProjection (a : A) : Commute a (unitDiscRieszProjec
   (Commute.refl a).unitDiscRieszProjection_right
 
 
+/-- The Riesz projection is continuous at every element whose spectrum avoids the unit circle. -/
+theorem continuousAt_unitDiscRieszProjection {a : A} (h : ∀ z ∈ spectrum ℂ a, ‖z‖ ≠ 1) :
+    ContinuousAt unitDiscRieszProjection a := by
+  have hdisj (b : A) :
+      Disjoint (sphere (0 : ℂ) 1) (spectrum ℂ b) ↔ ∀ z ∈ spectrum ℂ b, ‖z‖ ≠ 1 := by
+    simp only [Set.disjoint_right, mem_sphere_zero_iff_norm, ne_eq]
+  -- Near `a` the spectrum still avoids the unit circle, and there the integrand is continuous.
+  have hS : {b : A | Disjoint (sphere (0 : ℂ) 1) (spectrum ℂ b)} ∈ 𝓝 a :=
+    spectrum.eventually_disjoint_of_isClosed isClosed_sphere ((hdisj a).2 h)
+  have hc : ContinuousOn (fun b : A ↦ unitDiscRieszProjection b)
+      {b : A | Disjoint (sphere (0 : ℂ) 1) (spectrum ℂ b)} := by
+    simp only [unitDiscRieszProjection_def, circleIntegral, deriv_circleMap]
+    refine continuousOn_const.smul
+      (continuousOn_parametric_intervalIntegral_of_continuousOn fun p hp ↦ ?_)
+    have hz : circleMap 0 1 p.2 ∈ resolventSet ℂ p.1 :=
+      spectrum.mem_resolventSet_iff.mpr
+        (spectrum.notMem_iff.mp fun hσ ↦ (hdisj p.1).1 hp.1 _ hσ (by simp))
+    refine (ContinuousAt.smul (by fun_prop) ?_).continuousWithinAt
+    exact (spectrum.continuousAt_resolvent_prod hz).comp (f := fun q : A × ℝ ↦
+      (q.1, circleMap 0 1 q.2)) (by fun_prop)
+  exact hc.continuousAt hS
+
+/-- The Riesz projection of a family continuous within `s` at `x`, whose spectrum at `x` avoids
+the unit circle, is continuous within `s` at `x`. -/
+@[fun_prop]
+theorem _root_.ContinuousWithinAt.unitDiscRieszProjection {X : Type*} [TopologicalSpace X]
+    {f : X → A} {s : Set X} {x : X} (hf : ContinuousWithinAt f s x)
+    (h : ∀ z ∈ spectrum ℂ (f x), ‖z‖ ≠ 1) :
+    ContinuousWithinAt (fun y ↦ unitDiscRieszProjection (f y)) s x :=
+  (continuousAt_unitDiscRieszProjection h).comp_continuousWithinAt hf
+
+/-- The Riesz projection of a family continuous at `x`, whose spectrum at `x` avoids the unit
+circle, is continuous at `x`. -/
+@[fun_prop]
+theorem _root_.ContinuousAt.unitDiscRieszProjection {X : Type*} [TopologicalSpace X]
+    {f : X → A} {x : X} (hf : ContinuousAt f x) (h : ∀ z ∈ spectrum ℂ (f x), ‖z‖ ≠ 1) :
+    ContinuousAt (fun y ↦ unitDiscRieszProjection (f y)) x :=
+  (continuousAt_unitDiscRieszProjection h).comp hf
+
+/-- The Riesz projection of a family continuous on `s`, whose spectra on `s` avoid the unit
+circle, is continuous on `s`. -/
+@[fun_prop]
+theorem _root_.ContinuousOn.unitDiscRieszProjection {X : Type*} [TopologicalSpace X]
+    {f : X → A} {s : Set X} (hf : ContinuousOn f s)
+    (h : ∀ x ∈ s, ∀ z ∈ spectrum ℂ (f x), ‖z‖ ≠ 1) :
+    ContinuousOn (fun x ↦ unitDiscRieszProjection (f x)) s :=
+  fun x hx ↦ (hf x hx).unitDiscRieszProjection (h x hx)
+
 /-- The Riesz projection depends continuously on the element, along a continuous family whose
 spectra avoid the unit circle. -/
+@[continuity, fun_prop]
 theorem _root_.Continuous.unitDiscRieszProjection {X : Type*} [TopologicalSpace X] {f : X → A}
     (hf : Continuous f) (h : ∀ x, ∀ z ∈ spectrum ℂ (f x), ‖z‖ ≠ 1) :
-    Continuous fun x ↦ unitDiscRieszProjection (f x) := by
-  simp only [unitDiscRieszProjection_def, circleIntegral, deriv_circleMap]
-  refine continuous_const.smul
-    (intervalIntegral.continuous_parametric_intervalIntegral_of_continuous' ?_ _ _)
-  refine continuous_iff_continuousAt.mpr fun p ↦ ?_
-  have hz : circleMap 0 1 p.2 ∈ resolventSet ℂ (f p.1) := by
-    refine spectrum.mem_resolventSet_iff.mpr
-      (spectrum.notMem_iff.mp fun hσ ↦ h p.1 _ hσ ?_)
-    simp
-  refine ContinuousAt.smul (by fun_prop) ?_
-  exact (spectrum.continuousAt_resolvent_prod hz).comp (f := fun q : X × ℝ ↦
-    (f q.1, circleMap 0 1 q.2)) (by fun_prop)
+    Continuous fun x ↦ unitDiscRieszProjection (f x) :=
+  continuous_iff_continuousAt.mpr fun x ↦ hf.continuousAt.unitDiscRieszProjection (h x)
 
 end SymplecticGeometry
 

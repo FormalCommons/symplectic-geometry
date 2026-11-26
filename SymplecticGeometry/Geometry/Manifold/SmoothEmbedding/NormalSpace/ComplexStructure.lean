@@ -76,19 +76,19 @@ complex structure `J` on `X` for which the tangent images of the embedding `f` a
 the class of `v` is sent to the class of `J v`. -/
 def normalAlmostComplexStructureAt (f : SmoothEmbedding I' I n M X)
     (J : SmoothAlmostComplexStructure I X)
-    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn) (x : M) :
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn)) (x : M) :
     AlmostComplexStructure (f.NormalSpace x hn) :=
   (J.almostComplexStructureAt (f x)).quotient (f.tangentRange x hn) fun v hv ↦ by
     rw [SmoothAlmostComplexStructure.almostComplexStructureAt_apply]
-    exact hJ x v hv
+    exact hJ x hv
 
 theorem normalAlmostComplexStructureAt_def (f : SmoothEmbedding I' I n M X)
     (J : SmoothAlmostComplexStructure I X)
-    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn) (x : M) :
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn)) (x : M) :
     f.normalAlmostComplexStructureAt J hJ x =
       (J.almostComplexStructureAt (f x)).quotient (f.tangentRange x hn) fun v hv ↦ by
         rw [SmoothAlmostComplexStructure.almostComplexStructureAt_apply]
-        exact hJ x v hv :=
+        exact hJ x hv :=
   (rfl)
 
 /-- The induced almost complex structure acts as Tau Ceti's normal complex structure
@@ -96,19 +96,19 @@ theorem normalAlmostComplexStructureAt_def (f : SmoothEmbedding I' I n M X)
 @[simp]
 theorem normalAlmostComplexStructureAt_apply (f : SmoothEmbedding I' I n M X)
     (J : SmoothAlmostComplexStructure I X)
-    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn) (x : M)
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn)) (x : M)
     (ν : f.NormalSpace x hn) :
     f.normalAlmostComplexStructureAt J hJ x ν =
-      f.normalComplexStructureAt hn J x (fun v hv ↦ hJ x v hv) ν := by
+      f.normalComplexStructureAt hn J x (hJ x) ν := by
   rw [normalAlmostComplexStructureAt_def]
-  exact (LinearMap.congr_fun (normalComplexStructureAt_toLinearMap fun v hv ↦ hJ x v hv) ν).symm
+  exact (LinearMap.congr_fun (normalComplexStructureAt_toLinearMap (hJ x)) ν).symm
 
 /-- The normal class map `T_{f x} X → f.NormalSpace x hn` is complex linear for `J` and the
 induced structure. -/
 @[simp]
 theorem isComplexLinearMap_normalClass (f : SmoothEmbedding I' I n M X)
     (J : SmoothAlmostComplexStructure I X)
-    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn) (x : M) :
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn)) (x : M) :
     IsComplexLinearMap (J.almostComplexStructureAt (f x))
       (f.normalAlmostComplexStructureAt J hJ x) (f.normalClass x hn) := by
   rw [normalAlmostComplexStructureAt_def, normalClass_def]
@@ -119,7 +119,7 @@ theorem isComplexLinearMap_normalClass (f : SmoothEmbedding I' I n M X)
 the normal class map is complex linear. -/
 theorem normalAlmostComplexStructureAt_eq_iff (f : SmoothEmbedding I' I n M X)
     (J : SmoothAlmostComplexStructure I X)
-    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn) (x : M)
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn)) (x : M)
     (K : AlmostComplexStructure (f.NormalSpace x hn)) :
     f.normalAlmostComplexStructureAt J hJ x = K ↔
       IsComplexLinearMap (J.almostComplexStructureAt (f x)) K (f.normalClass x hn) := by
@@ -141,7 +141,7 @@ is Tau Ceti's `f.normalComplexStructureAt`. The normal bundle carries Tau Ceti's
 with model fibre `P`, of dimension `hdim`. -/
 def contMDiffNormalComplexStructure (f : SmoothEmbedding I' I ∞ M X)
     (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E') (J : SmoothAlmostComplexStructure I X)
-    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn) :
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn)) :
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
     ContMDiffComplexStructure I' ⊤ P (fun x ↦ f.NormalSpace x hn) :=
@@ -149,9 +149,9 @@ def contMDiffNormalComplexStructure (f : SmoothEmbedding I' I ∞ M X)
   letI := f.normalSpaceVectorBundle hn hdim
   haveI : IsManifold I' (∞ + 1) M := .of_le (n := ∞) (by simp)
   { toEndomorphism :=
-      ⟨fun x ↦ f.normalComplexStructureAt hn J x fun v hv ↦ hJ x v hv,
+      ⟨fun x ↦ f.normalComplexStructureAt hn J x (hJ x),
         f.contMDiff_normalComplexStructureAt_hom_bundle (m := ∞) hn J (by simp) hdim
-          fun x v hv ↦ hJ x v hv⟩
+          hJ⟩
     square_neg := fun x ↦ normalComplexStructureAt_comp_self _ }
 
 /-- The complex structure on the normal bundle acts at `x` as Tau Ceti's
@@ -159,12 +159,12 @@ def contMDiffNormalComplexStructure (f : SmoothEmbedding I' I ∞ M X)
 @[simp]
 theorem contMDiffNormalComplexStructure_apply (f : SmoothEmbedding I' I ∞ M X)
     (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E') (J : SmoothAlmostComplexStructure I X)
-    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn) (x : M)
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn)) (x : M)
     (v : f.NormalSpace x hn) :
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
     f.contMDiffNormalComplexStructure hdim J hJ x v =
-      f.normalComplexStructureAt hn J x (fun v hv ↦ hJ x v hv) v :=
+      f.normalComplexStructureAt hn J x (hJ x) v :=
   (rfl)
 
 /-- The underlying continuous complex structure of the complex structure on the normal bundle is
@@ -173,24 +173,24 @@ Tau Ceti's `f.normalComplexStructure`. -/
 theorem toContinuousComplexStructure_contMDiffNormalComplexStructure
     (f : SmoothEmbedding I' I ∞ M X)
     (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E') (J : SmoothAlmostComplexStructure I X)
-    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn) :
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn)) :
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
     (f.contMDiffNormalComplexStructure hdim J hJ).toContinuousComplexStructure =
-      f.normalComplexStructure hn J hdim fun x v hv ↦ hJ x v hv := by
+      f.normalComplexStructure hn J hdim hJ := by
   let := f.normalSpaceFiberBundle hn hdim
   let := f.normalSpaceVectorBundle hn hdim
   ext x v
   rw [ContMDiffComplexStructure.toContinuousComplexStructure_apply,
     contMDiffNormalComplexStructure_apply]
-  exact (normalComplexStructure_apply f hn J hdim (fun x v hv ↦ hJ x v hv) x v).symm
+  exact (normalComplexStructure_apply f hn J hdim hJ x v).symm
 
 /-- The value of the complex structure on the normal bundle at `x` is
 `f.normalAlmostComplexStructureAt J hJ x`. -/
 @[simp]
 theorem almostComplexStructureAt_contMDiffNormalComplexStructure (f : SmoothEmbedding I' I ∞ M X)
     (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E') (J : SmoothAlmostComplexStructure I X)
-    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn) (x : M) :
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn)) (x : M) :
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
     (f.contMDiffNormalComplexStructure hdim J hJ).almostComplexStructureAt x =

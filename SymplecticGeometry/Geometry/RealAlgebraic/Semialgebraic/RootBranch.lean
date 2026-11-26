@@ -22,7 +22,7 @@ right of `a`, `f` is continuous and `f t` is a root of `P (t, ·)` for one polyn
 and nonzero constant coefficient. This is the input that the growth of a continuous root branch
 of a polynomial takes.
 
-* `TauCeti.IsSemialgebraicOn.isSemialgebraic_inter_setOf_eval_map_eq_zero`: the points of the
+* `TauCeti.IsSemialgebraicOn.isSemialgebraic_inter_setOfPred_eval_map_eq_zero`: the points of the
   domain of a semialgebraic function `f` at which `Q (x, f x) = 0`, for a polynomial `Q` in the
   value with polynomial coefficients, form a semialgebraic set.
 * `TauCeti.IsSemialgebraicOn.exists_polynomial_eventually_isRoot_nhdsGT`: the main result, near
@@ -56,7 +56,7 @@ open MvPolynomial in
 /-- For a function `f` that is semialgebraic on `s` and a polynomial `Q` in one variable with
 coefficients polynomials in the coordinates, the points `x ∈ s` with `Q (x, f x) = 0` form a
 semialgebraic set. -/
-theorem IsSemialgebraicOn.isSemialgebraic_inter_setOf_eval_map_eq_zero {σ R : Type*} [Finite σ]
+theorem IsSemialgebraicOn.isSemialgebraic_inter_setOfPred_eval_map_eq_zero {σ R : Type*} [Finite σ]
     [CommRing R] [LinearOrder R] [HasSemialgebraicProjections R] {f : (σ → R) → R}
     {s : Set (σ → R)} (hf : IsSemialgebraicOn (fun x (_ : Unit) ↦ f x) s)
     (Q : Polynomial (MvPolynomial σ R)) :
@@ -112,7 +112,7 @@ theorem IsSemialgebraicOn.exists_polynomial_eventually_isRoot_nhdsGT {f : (Fin 1
     by_contra h
     have h' : ∀ Q ∈ (UniqueFactorizationMonoid.factors P).toFinset,
         ∀ᶠ t in 𝓝[>] a, ![t] ∉ S Q := fun Q hQ ↦
-      ((hf.isSemialgebraic_inter_setOf_eval_map_eq_zero _).eventually_nhdsGT_mem_or_notMem
+      ((hf.isSemialgebraic_inter_setOfPred_eval_map_eq_zero _).eventually_nhdsGT_mem_or_notMem
         a).resolve_left fun hQ' ↦ h ⟨Q, Multiset.mem_toFinset.1 hQ, hQ'⟩
     obtain ⟨t, ht, hts⟩ := ((eventually_all_finset _).2 h').and hs |>.exists
     -- The point `![t]` is a root of an irreducible factor of `P`.

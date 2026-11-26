@@ -17,6 +17,7 @@ import TauCeti.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Hom
 import TauCeti.Geometry.Manifold.VectorBundle.TotalSpace.Basic
 import TauCeti.Topology.VectorBundle.ContinuousAlternatingMap
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # Sections of the alternating and bilinear bundles of a pull-back
@@ -489,10 +490,8 @@ theorem contMDiff_totalSpace_compContinuousLinearMap_mfderiv (f : K)
   have hc := ((ContinuousAlternatingMap.contDiff_compContinuousLinearMapCLM (𝕜 := ℝ)
     (E := E) (F := E') (G := G) (ι := ι) m).contMDiff.contMDiffAt.comp q₀ hl).clm_apply hp.2
   refine hc.congr_of_eventuallyEq ?_
-  have hmem : (trivializationAt E' (TangentSpace I') (f q₀.proj)).baseSet ∈ nhds (f q₀.proj) :=
-    (trivializationAt E' (TangentSpace I') (f q₀.proj)).open_baseSet.mem_nhds
-      (FiberBundle.mem_baseSet_trivializationAt E' (TangentSpace I') (f q₀.proj))
-  filter_upwards [hp.1.continuousAt.preimage_mem_nhds hmem] with q hq
+  filter_upwards [hp.1.continuousAt.eventually_mem_baseSet_trivializationAt E' (TangentSpace I')]
+    with q hq
   have h := ContinuousAlternatingMap.inCoordinates_compContinuousLinearMap
     (F₁ := E) (F₂ := E') (F₃ := G) (V₁ := TangentSpace I) (V₂ := TangentSpace I')
     (V₃ := Trivial M' G) (x₀ := q₀.proj.2) (y₀ := f q₀.proj) (z₀ := f q₀.proj) (y := f q.proj)

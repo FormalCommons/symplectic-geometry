@@ -724,7 +724,7 @@ writes out; the part adds no signature function.
   `maslovIndex_eq_crossingForm_add_finsum_of_souriau_eq_cayley`. Neither
   continuity of `Z` nor injectivity of `Z t` is assumed: the second follows
   from the image being Lagrangian, and the proof reads continuity off `γ`.
-  Proof: the crossings are finite (`ℒ.finite_setOf_inf_ne_bot_of_regular`,
+  Proof: the crossings are finite (`ℒ.finite_setOfPred_inf_ne_bot_of_regular`,
   from `ℒ.eventually_not_crossing_of_regular` in a compact interval), and the
   signatures vanish elsewhere (`lagrangianCrossingForm_eq_zero_of_inf_eq_bot`).
   Near each time `t₀` choose a Lagrangian `W` transverse to both

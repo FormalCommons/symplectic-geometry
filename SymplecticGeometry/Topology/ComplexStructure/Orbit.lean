@@ -33,7 +33,7 @@ clopen set.
 
 ## Main results
 
-* `SymplecticGeometry.isClopen_setOf_isPositivelyOriented`: the positively oriented structures
+* `SymplecticGeometry.isClopen_setOfPred_isPositivelyOriented`: the positively oriented structures
   form a clopen set.
 
 ## References
@@ -71,7 +71,7 @@ theorem quotientRealifyHomeomorph_mk (g : GL (ι ⊕ ι) ℝ) :
 /-- The positively oriented complex structures on `StdSpace ι` form a clopen set: the orbit
 map `g ↦ g • J₀` is a quotient map, and the preimage of this set is the clopen set `{det > 0}`
 of `GL (ι ⊕ ι) ℝ`. -/
-theorem isClopen_setOf_isPositivelyOriented :
+theorem isClopen_setOfPred_isPositivelyOriented :
     IsClopen {J : AlmostComplexStructure (StdSpace ι) | IsPositivelyOriented J} := by
   have hq : Topology.IsQuotientMap fun g : GL (ι ⊕ ι) ℝ ↦ g • stdComplexStructure ι :=
     (isOpenMap_smul_of_sigmaCompact _).isQuotientMap (continuous_id.smul continuous_const)

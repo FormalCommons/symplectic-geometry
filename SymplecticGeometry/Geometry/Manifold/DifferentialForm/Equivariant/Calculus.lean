@@ -12,6 +12,7 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Wedge.Smooth
 public import TauCeti.Geometry.Symplectic.Hamiltonian.Manifold
 import Mathlib.Analysis.Calculus.IteratedDeriv.Lemmas
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Support
+import SymplecticGeometry.Analysis.SpecialFunctions.ExpDeriv
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import TauCeti.Geometry.Symplectic.Hamiltonian.SymplecticVectorField
@@ -241,7 +242,7 @@ theorem formCalculusCoeff_exp_add_const (c : ℝ) (k : ℕ) :
     formCalculusCoeff Real.exp Real.contDiff_exp (f + ContMDiffMap.const c) k =
       ContMDiffMap.const (Real.exp c) * formCalculusCoeff Real.exp Real.contDiff_exp f k := by
   ext x
-  simp [iteratedDeriv_eq_iterate, Real.iter_deriv_exp, Real.exp_add, mul_comm]
+  simp [Real.exp_add, mul_comm]
 
 omit [FiniteDimensional ℝ E] in
 /-- The exponential takes constants out: `exp(f + c + τ) = e ^ c exp(f + τ)` for a constant

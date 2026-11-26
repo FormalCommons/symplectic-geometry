@@ -50,7 +50,7 @@ theorem LinearEquiv.exists_posDef_image_closedBall_eq (e : E ≃ₗ[ℝ] F) {r :
   · have : e.symm v ≠ 0 := by simpa using hv
     simp only [QuadraticMap.comp_apply, LinearEquiv.coe_coe, hQ₀]
     positivity
-  · rw [← QuadraticMap.image_setOf_le_one]
+  · rw [← QuadraticMap.image_setOfPred_le_one]
     congr 1
     ext v
     simp [hQ₀, div_le_one (by positivity : 0 < r ^ 2), sq_le_sq₀ (norm_nonneg v) hr.le]

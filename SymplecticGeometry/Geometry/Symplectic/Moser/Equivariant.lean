@@ -325,8 +325,10 @@ to `σ₀` at every point of its source. -/
 private theorem exists_partialDiffeomorph_invariantCore_of_eq_along [ContinuousSMul G M]
     (f : SmoothEmbedding J I ∞ Q M) (hfG : ∀ (g : G) q, g • f q ∈ range f)
     {σ₀ σ₁ : SmoothTwoForm I M} (h₀ : σ₀.IsClosed) (h₁ : σ₁.IsClosed)
-    (hσ₀ : ∀ g : G, TauCeti.mpullback I I (g • ·) σ₀.val = σ₀.val)
-    (hσ₁ : ∀ g : G, TauCeti.mpullback I I (g • ·) σ₁.val = σ₁.val)
+    (hσ₀ : ∀ g : G, SmoothForm.mpullback (fun x : M ↦ g • x)
+      (ContMDiffSMul.contMDiff_const_smul (I := IG) (I' := I) g) σ₀ = σ₀)
+    (hσ₁ : ∀ g : G, SmoothForm.mpullback (fun x : M ↦ g • x)
+      (ContMDiffSMul.contMDiff_const_smul (I := IG) (I' := I) g) σ₁ = σ₁)
     (hnd : ∀ q, (σ₀.bilinFormAt (f q)).Nondegenerate)
     (heq : ∀ q, σ₁.val (f q) = σ₀.val (f q)) :
     ∃ (W : Opens M) (Φ : PartialDiffeomorph I I (W.invariantCore G) (W.invariantCore G) ∞),
@@ -342,12 +344,13 @@ private theorem exists_partialDiffeomorph_invariantCore_of_eq_along [ContinuousS
     exists_primitive_invariantCore_of_eq_along (G := G) f hfG h₀ h₁ hnd heq
   set τ₀ := SmoothForm.mpullback (Subtype.val : W.invariantCore G → M) contMDiff_subtypeVal σ₀
   set τ₁ := SmoothForm.mpullback (Subtype.val : W.invariantCore G → M) contMDiff_subtypeVal σ₁
-  have hτ (σ : SmoothTwoForm I M) (hσ : ∀ g : G, TauCeti.mpullback I I (g • ·) σ.val = σ.val)
+  have hτ (σ : SmoothTwoForm I M)
+      (hσ : ∀ g : G, SmoothForm.mpullback (fun x : M ↦ g • x) (contMDiff_const_smul g) σ = σ)
       (g : G) : SmoothForm.mpullback (fun x : W.invariantCore G ↦ g • x) (contMDiff_const_smul g)
         (SmoothForm.mpullback (Subtype.val : W.invariantCore G → M) contMDiff_subtypeVal σ) =
       SmoothForm.mpullback (Subtype.val : W.invariantCore G → M) contMDiff_subtypeVal σ :=
-    Subtype.ext ((SmoothForm.coe_mpullback _ _ _).trans
-      (SmoothForm.mpullback_smul_mpullback_subtypeVal Opens.coe_smul_invariantCore hσ g))
+    SmoothForm.mpullback_smul_mpullback contMDiff_subtypeVal (Opens.coe_smul_invariantCore g)
+      (hσ g)
   -- The average `γ` of `β` over `G` is an invariant primitive, still vanishing with its first jet
   -- along the invariant set `f(Q)`.
   set γ := SmoothForm.measureAverage IG (haarProb G) β
@@ -412,8 +415,10 @@ as there, `Q` need not be compact and `f(Q)` need not be closed. -/
 theorem exists_equivariant_diffeomorph_opens_of_eq_along (f : SmoothEmbedding J I ∞ Q M)
     (hfG : ∀ (g : G) q, g • f q ∈ range f)
     {σ₀ σ₁ : SmoothTwoForm I M} (h₀ : σ₀.IsClosed) (h₁ : σ₁.IsClosed)
-    (hσ₀ : ∀ g : G, TauCeti.mpullback I I (g • ·) σ₀.val = σ₀.val)
-    (hσ₁ : ∀ g : G, TauCeti.mpullback I I (g • ·) σ₁.val = σ₁.val)
+    (hσ₀ : ∀ g : G, SmoothForm.mpullback (fun x : M ↦ g • x)
+      (ContMDiffSMul.contMDiff_const_smul (I := IG) (I' := I) g) σ₀ = σ₀)
+    (hσ₁ : ∀ g : G, SmoothForm.mpullback (fun x : M ↦ g • x)
+      (ContMDiffSMul.contMDiff_const_smul (I := IG) (I' := I) g) σ₁ = σ₁)
     (hnd : ∀ q, (σ₀.bilinFormAt (f q)).Nondegenerate)
     (heq : ∀ q, σ₁.val (f q) = σ₀.val (f q)) :
     ∃ (U₀ U₁ : Opens M) (φ : U₀ ≃ₘ⟮I, I⟯ U₁),

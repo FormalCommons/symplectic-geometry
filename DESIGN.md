@@ -1312,7 +1312,7 @@ it into issues; the overview fixes its folders and its dependencies.
   and $1-b\cdot$`cayleyFormula J₀ A` is invertible for every $b\in[0,1]$: the
   two units that `contDiffAt_cayleyPathFormula`
   (`Geometry/Symplectic/Cayley/Smooth.lean`) asks for. This set is open,
-  since $[0,1]$ is compact (`SymplecticGeometry.isOpen_setOf_forall_Icc_mem_cayleyDomain`
+  since $[0,1]$ is compact (`SymplecticGeometry.isOpen_setOfPred_forall_Icc_mem_cayleyDomain`
   in `Cayley/Domain.lean`, stated for the pairs $(J_0,A)$). It
   does not contain every complex structure ($A=-J_0$ gives $1-J_0A=0$), but
   for an $\omega$-compatible $J_0$ it contains the $\omega$-tame structures,
@@ -1330,7 +1330,7 @@ it into issues; the overview fixes its folders and its dependencies.
   on its endomorphism bundle both come from that one reading. So its
   existence issue waits for the two issues of this part that write
   `PolarComplexStructure/`. It uses the same set $U_{J_0}$ at each point, and
-  takes its openness from `SymplecticGeometry.isOpen_setOf_forall_Icc_mem_cayleyDomain`
+  takes its openness from `SymplecticGeometry.isOpen_setOfPred_forall_Icc_mem_cayleyDomain`
   and the membership of the tame structures from
   `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`, so its
   contractibility issue waits for the issue of this part that writes
@@ -1400,11 +1400,11 @@ it into issues; the overview fixes its folders and its dependencies.
   when $A^{T}B=B^{T}A$),
   `LinearAlgebra/Matrix/Block.lean` (the two identities between the blocks
   of $M$ that the first block column of $M^2=-1$ gives), and
-  `Topology/Instances/Matrix.lean` (`Continuous.isOpen_setOf_isUnit_det`:
+  `Topology/Instances/Matrix.lean` (`Continuous.isOpen_setOfPred_isUnit_det`:
   for a continuous family $f$ of square matrices over a topological field
   with closed points, the parameters $x$ where $f(x)$ is invertible form an
-  open set; and its two consequences `Matrix.isOpen_setOf_isUnit_det_map_im`
-  and `Matrix.isOpen_setOf_isUnit_det_toBlocks₂₁`: the complex matrices
+  open set; and its two consequences `Matrix.isOpen_setOfPred_isUnit_det_map_im`
+  and `Matrix.isOpen_setOfPred_isUnit_det_toBlocks₂₁`: the complex matrices
   with invertible imaginary part, and the block matrices over such a field
   whose square lower left block is invertible, are open). They import only Mathlib, Tau Ceti and each other.
 - **Builds on:** *Standard model*; compatibility is Tau Ceti's `Compatible`.
@@ -1625,7 +1625,7 @@ it into issues; the overview fixes its folders and its dependencies.
   `SymplecticGeometry.cayleyDomain` for every $b\in[0,1]$. Its intersection with an
   open set on which the reference is continuous is open
   (`Bundle.isOpen_cayleyPathDomain`, from part 9's
-  `SymplecticGeometry.isOpen_setOf_forall_Icc_mem_cayleyDomain`), and it contains
+  `SymplecticGeometry.isOpen_setOfPred_forall_Icc_mem_cayleyDomain`), and it contains
   every structure on a fibre that is tame for a form there when the
   reference is compatible with that form
   (`TauCeti.SymplecticForm.Compatible.mem_cayleyPathDomain`, from
@@ -1690,7 +1690,7 @@ it into issues; the overview fixes its folders and its dependencies.
   last milestone; for the constructions, the pieces listed under
   *Constructions*. From *Compatible complex structures* it uses the file
   `Geometry/Symplectic/Cayley/Domain.lean` (`SymplecticGeometry.cayleyDomain`, its
-  openness lemma `SymplecticGeometry.isOpen_setOf_forall_Icc_mem_cayleyDomain` and
+  openness lemma `SymplecticGeometry.isOpen_setOfPred_forall_Icc_mem_cayleyDomain` and
   `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`), and the two files of
   `Analysis/InnerProductSpace/Symplectic/PolarComplexStructure/`
   (`SymplecticGeometry.metricPolarFormula` on `SymplecticGeometry.polarDomain`, with its smoothness
@@ -3948,12 +3948,13 @@ For §7.4 of `atlas/constructing-symplectic-manifolds.md`.
   structures*' collars and Tau Ceti's `TauCeti.IsLiouvilleDomain`),
   `Geometry/Manifold/Complex/Plurisubharmonic.lean` (Stein structures,
   on Tau Ceti's `TauCeti.IsManifoldStrictlyPlurisubharmonicAt`, and the
-  lemma that it means $\omega_f(v,Jv)>0$, as the conventions say), `Stein.lean`
-  (the passage in both directions: the gradient of a strictly
-  plurisubharmonic exhaustion, reparametrized to be complete, and the
-  converse up to homotopy of Weinstein structures, Cieliebak–Eliashberg's
-  theorem) and `Complement/` (Giroux's theorem: a Stein structure on
-  the complement of a suitable Donaldson hypersurface, and a Weinstein
+  lemma that it means $\omega_f(v,Jv)>0$, as the conventions say),
+  `OfStein.lean` (from Stein to Weinstein: the gradient of a strictly
+  plurisubharmonic exhaustion, reparametrized to be complete), `Stein.lean`
+  (the converse up to homotopy of Weinstein structures, Cieliebak–Eliashberg's
+  theorem, and the passage in both directions) and `Complement/` (Giroux's
+  theorem: a Stein structure on the complement of a suitable Donaldson
+  hypersurface, and a Weinstein
   domain whose interior is that complement, with his Remark 3 and
   Corollary 4).
 - **Builds on:** *Asymptotically holomorphic sections* (only for
