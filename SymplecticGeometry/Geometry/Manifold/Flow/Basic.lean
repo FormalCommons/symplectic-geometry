@@ -58,6 +58,9 @@ Ceti's chain rule for the time maps, `TauCeti.mfderiv_flowOf_add_apply`, and
   version of Tau Ceti's `Flow.zeroLevelProductDiffeomorph`, where `f` grows like time along the
   whole flow. Tau Ceti's `Flow.bandHomeomorph`, `Flow.apply_eq_sub_of_mem_Icc` and
   `TauCeti.apply_globalFlow_eq_sub` are close relatives under stronger hypotheses.
+* `TauCeti.isIntegralCurve_maximalIntegralCurve_of_isCompact`: on a complete real normed space,
+  the maximal integral curve of a compactly supported `C¹` field is a global integral curve, by
+  Tau Ceti's `TauCeti.isCompleteVectorField_of_isCompact_of_eq_zero_off`.
 -/
 
 public section
@@ -333,6 +336,24 @@ theorem range_flowOf_sub_level :
 end Band
 
 end Translation
+
+section CompactSupport
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+
+/-- The maximal integral curve of a compactly supported `C¹` vector field on a complete real
+normed space is a global integral curve. -/
+theorem isIntegralCurve_maximalIntegralCurve_of_isCompact {v : E → E} {K : Set E}
+    (hv : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ, E).tangent 1
+      (fun y ↦ (⟨y, v y⟩ : TangentBundle 𝓘(ℝ, E) E)))
+    (hK : IsCompact K) (hzero : ∀ y ∉ K, v y = 0) (x : E) :
+    IsIntegralCurve (maximalIntegralCurve (I := 𝓘(ℝ, E)) v x) (fun _ ↦ v) :=
+  isIntegralCurveOn_univ.1 <| isMIntegralCurveOn_iff_isIntegralCurveOn.1 <|
+    (isMIntegralCurve_maximalIntegralCurve_of_eq_univ hv
+      ((isCompleteVectorField_of_isCompact_of_eq_zero_off hv hK hzero)
+        |>.maximalIntegralCurveInterval_eq_univ x)).isMIntegralCurveOn univ
+
+end CompactSupport
 
 end TauCeti
 
