@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Basic
+public import SymplecticGeometry.Topology.Category.TopPair
 import TauCeti.AlgebraicTopology.Singular.ReducedRelative
 
 /-!
@@ -25,8 +26,6 @@ origin to that of `P'`.
 
 ## Main results
 
-* `TopPair.iso_ofSubset_compl_singleton_hom_fst_apply`: an isomorphism of pairs
-  `(M, M ∖ {x}) ≅ (N, N ∖ {y})` sends `x` to `y`.
 * `TauCeti.localOrientationOfZeroDimChart_map`: the point-class local orientation of a
   zero-dimensional chart is natural under isomorphisms of pairs.
 
@@ -43,21 +42,6 @@ open CategoryTheory Module
 universe w
 
 namespace TauCeti
-
-/-- An isomorphism of pairs `(M, M ∖ {x}) ≅ (N, N ∖ {y})` sends `x` to `y`, since its inverse
-sends `N ∖ {y}` into `M ∖ {x}`. -/
-theorem _root_.TopPair.iso_ofSubset_compl_singleton_hom_fst_apply {M N : Type w}
-    [TopologicalSpace M] [TopologicalSpace N] {x : M} {y : N}
-    (e : TopPair.ofSubset ({x}ᶜ : Set (TopCat.of M)) ≅
-      TopPair.ofSubset ({y}ᶜ : Set (TopCat.of N))) :
-    TopPair.Hom.fst e.hom x = y := by
-  by_contra h
-  have hmaps := TopPair.mapsTo_range_map_of_hom
-    (P := TopPair.ofSubset ({y}ᶜ : Set (TopCat.of N))) e.inv
-  rw [TopPair.range_ofSubset_map] at hmaps
-  have hinv : TopPair.Hom.fst e.inv (TopPair.Hom.fst e.hom x) = x :=
-    ConcreteCategory.congr_hom (congrArg (fun f => TopPair.Hom.fst f) e.hom_inv_id) x
-  exact hmaps h hinv
 
 /-- Let `x ∈ M` and `y ∈ N` have zero-dimensional charts `φ` and `ψ`. An isomorphism of pairs
 `e : (M, M ∖ {x}) ≅ (N, N ∖ {y})` carries the local orientation of `φ` at `x`, the class of
