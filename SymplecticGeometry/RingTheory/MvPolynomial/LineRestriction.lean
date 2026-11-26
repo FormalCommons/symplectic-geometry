@@ -17,7 +17,7 @@ On the line `s ↦ a + s • v`, a multivariate polynomial `P` over an integral 
 polynomial in `s` whose coefficient of degree `P.totalDegree` is the top homogeneous component of
 `P` at `v` (Tau Ceti's `MvPolynomial.coeff_eval₂_C_add_C_mul_X_of_totalDegree_le`). So if that
 component does not vanish at `v`, then `P` has at most `P.totalDegree` zeros on the line
-(`MvPolynomial.encard_setOf_eval_add_smul_eq_zero_le`).
+(`MvPolynomial.encard_setOfPred_eval_add_smul_eq_zero_le`).
 -/
 
 public section
@@ -29,7 +29,7 @@ namespace MvPolynomial
 /-- If the top homogeneous component of `P` does not vanish at `v`, then `P` vanishes at at most
 `P.totalDegree` points of each line `s ↦ a + s • v`: its restriction to the line is a nonzero
 polynomial in `s` of degree at most `P.totalDegree`. -/
-theorem encard_setOf_eval_add_smul_eq_zero_le {σ R : Type*} [CommRing R] [IsDomain R]
+theorem encard_setOfPred_eval_add_smul_eq_zero_le {σ R : Type*} [CommRing R] [IsDomain R]
     {P : MvPolynomial σ R} (a v : σ → R)
     (hv : eval v (homogeneousComponent P.totalDegree P) ≠ 0) :
     {s : R | eval (a + s • v) P = 0}.encard ≤ P.totalDegree := by

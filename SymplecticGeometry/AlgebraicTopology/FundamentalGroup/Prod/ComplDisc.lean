@@ -68,7 +68,7 @@ namespace Function.Injective
 variable {Q X : Type*} {c : ℂ} {R : ℝ} {f : Q × ↥(ball c R) → X}
 
 /-- An injective `f : Q × ball c R → X` sends `Q × (ball c R \ {c})` outside `f '' (Q × {c})`. -/
-theorem apply_notMem_image_setOf_snd_eq (hf : Injective f) (q : Q) (z : ↥(ball c R \ {c})) :
+theorem apply_notMem_image_setOfPred_snd_eq (hf : Injective f) (q : Q) (z : ↥(ball c R \ {c})) :
     f (q, ⟨z, mem_of_mem_sdiff z.property⟩) ∉ f '' {p | (p.2 : ℂ) = c} := fun ⟨_, hp, hpz⟩ ↦
   notMem_of_mem_sdiff z.property
     (mem_singleton_iff.2 ((congrArg (fun p ↦ (p.2 : ℂ)) (hf hpz)).symm.trans hp))
@@ -84,7 +84,7 @@ theorem range_comp_prodMap_inclusion_ball_diff_singleton (hf : Injective f) :
   ext y
   refine ⟨?_, ?_⟩
   · rintro ⟨w, rfl⟩
-    exact ⟨hf.apply_notMem_image_setOf_snd_eq w.1 w.2, mem_range_self _⟩
+    exact ⟨hf.apply_notMem_image_setOfPred_snd_eq w.1 w.2, mem_range_self _⟩
   · rintro ⟨hyZ, p, rfl⟩
     exact ⟨(p.1, ⟨p.2, p.2.property, fun h ↦ hyZ ⟨p, h, rfl⟩⟩), rfl⟩
 
@@ -110,7 +110,7 @@ the complement of `f '' (Q × {c})`. -/
 def restrictPuncturedBall (hf : IsOpenEmbedding f) :
     C(Q × ↥(ball c R \ {c}), ↥(f '' {p | (p.2 : ℂ) = c})ᶜ) where
   toFun w := ⟨f (w.1, ⟨w.2, mem_of_mem_sdiff w.2.property⟩),
-    hf.injective.apply_notMem_image_setOf_snd_eq w.1 w.2⟩
+    hf.injective.apply_notMem_image_setOfPred_snd_eq w.1 w.2⟩
   continuous_toFun := by fun_prop
 
 @[simp]
@@ -255,7 +255,7 @@ theorem map_subtypeVal_compl_image_surjective (hf : IsOpenEmbedding f)
     Function.Surjective (map (ContinuousMap.subtypeVal (f '' {p | (p.2 : ℂ) = c})ᶜ)
       (hf.restrictPuncturedBall (q, z))) :=
   have hR : 0 < R := pos_of_mem_ball (mem_of_mem_sdiff z.property)
-  have hz := hf.injective.apply_notMem_image_setOf_snd_eq q z
+  have hz := hf.injective.apply_notMem_image_setOfPred_snd_eq q z
   map_subtypeVal_surjective_of_map_inclusion_surjective
     (interior_compl_image_union_interior_range hf hZ) (hf.isPathConnected_compl_image hZ hR)
     (isPathConnected_range_of_pos hf.continuous hR)
@@ -273,7 +273,7 @@ theorem ker_map_subtypeVal_compl_image_eq_normalClosure (hf : IsOpenEmbedding f)
     (map (ContinuousMap.subtypeVal (f '' {p | (p.2 : ℂ) = c})ᶜ)
       (hf.restrictPuncturedBall (q, z))).ker = Subgroup.normalClosure {hf.meridian q z} := by
   have hR : 0 < R := pos_of_mem_ball (mem_of_mem_sdiff z.property)
-  have hz := hf.injective.apply_notMem_image_setOf_snd_eq q z
+  have hz := hf.injective.apply_notMem_image_setOfPred_snd_eq q z
   obtain ⟨hsurj, μ, hμ, hμ'⟩ := surjective_and_exists_ker_eq hf q z
     ⟨_, mem_inter hz (mem_range_self _)⟩ rfl
   refine (ker_map_subtypeVal_eq_normalClosure_image

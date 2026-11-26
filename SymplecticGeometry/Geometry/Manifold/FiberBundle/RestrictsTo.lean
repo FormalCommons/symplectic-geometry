@@ -51,7 +51,7 @@ base does. This gives Thurston's forms `τ + K proj^* β`.
 * `Bundle.Trivialization.mpullback_fiberInclusionMap_mpullback_eq_zero`: the pull-back of a form of
   positive degree on the base vanishes on every fibre.
 * `TauCeti.MapFiber.Atlas.restrictsTo_add_iff`, `TauCeti.MapFiber.Atlas.RestrictsTo.add_mpullback`
-  and `TauCeti.MapFiber.Atlas.convex_setOf_restrictsTo`: the affine structure of the forms that
+  and `TauCeti.MapFiber.Atlas.convex_setOfPred_restrictsTo`: the affine structure of the forms that
   restrict to `σ`.
 
 ## Implementation notes
@@ -224,7 +224,7 @@ theorem RestrictsTo.add_mpullback [IsManifold IB 1 B] (hτ : A.RestrictsTo σ τ
     (A.trivAt b).mpullback_fiberInclusionMap_mpullback_eq_zero hb' hk, smul_zero]
 
 /-- **Convexity.** The forms that restrict to `σ` along an atlas form a convex set. -/
-theorem convex_setOf_restrictsTo (A : Atlas F proj) (σ : SmoothForm IF F ℝ k) :
+theorem convex_setOfPred_restrictsTo (A : Atlas F proj) (σ : SmoothForm IF F ℝ k) :
     Convex ℝ {τ : SmoothForm IM M ℝ k | A.RestrictsTo σ τ} := by
   intro τ₁ hτ₁ τ₂ hτ₂ a c _ _ hac b b' hb'
   rw [Submodule.coe_add, Submodule.coe_smul, Submodule.coe_smul, TauCeti.mpullback_add,
