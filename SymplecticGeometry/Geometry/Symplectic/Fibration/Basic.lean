@@ -189,10 +189,10 @@ variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] {HB : Type*}
   {proj : M → B} {A : Atlas F proj} {σ : SmoothTwoForm IF F} {τ : SmoothTwoForm IM M}
 
 /-- **Forms with nondegenerate fibres are vertically nondegenerate.** Along a smooth atlas of
-`proj`, with `M` finite-dimensional, a two-form `τ` whose pull-back to the fibre over each `b`,
-read through the chart `A.trivAt b`, is nondegenerate is vertically nondegenerate. This is the
+`proj`, a two-form `τ` whose pull-back to the fibre over each `b`, read through the chart
+`A.trivAt b`, is nondegenerate is vertically nondegenerate. This is the
 converse of `IsVerticallyNondegenerate.isNondegenerate_mpullback_fiberInclusionMap`. -/
-theorem isVerticallyNondegenerate_of_isNondegenerate_mpullback [FiniteDimensional ℝ EM]
+theorem isVerticallyNondegenerate_of_isNondegenerate_mpullback
     (hA : A.IsContMDiff ∞ IB IF IM)
     (hτ : ∀ b, SmoothTwoForm.IsNondegenerate (SmoothForm.mpullback
       ((A.trivAt b).fiberInclusionMap (A.mem_baseSet_trivAt b))
