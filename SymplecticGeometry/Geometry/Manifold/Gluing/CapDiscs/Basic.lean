@@ -18,6 +18,7 @@ import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Sigma
 import SymplecticGeometry.Geometry.Manifold.ModelTransport.Remodel
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Deriv
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
+import TauCeti.Topology.Compactness.Normed
 
 /-!
 # Capping the boundary circles of a surface with discs
@@ -679,8 +680,7 @@ theorem range_inl_union_iUnion_range_inr :
     range (inl c γ hγ hinj) ∪ ⋃ i, range (inr c γ hγ hinj i) = univ := by
   refine eq_univ_of_forall fun x ↦ ?_
   obtain ⟨y, rfl⟩ | ⟨⟨i, w⟩, rfl⟩ :=
-    (GluedAlong.range_inl_union_range_inr (annuliDiffeomorph (c := c) hγ hinj)).symm.subset
-      (mem_univ x)
+    GluedAlong.exists_inl_or_exists_inr (annuliDiffeomorph (c := c) hγ hinj) x
   · refine Or.inl ⟨((𝓡∂ 2).interiorOpensDiffeomorph S ∞).symm y, ?_⟩
     rw [inl, Diffeomorph.apply_symm_apply]
   · refine Or.inr (mem_iUnion.2 ⟨i, (remodelDiffeomorph complexDiffeomorph ball).symm w, ?_⟩)
@@ -734,21 +734,20 @@ private theorem exists_nhds_inr_ne_inl (i : ι) (p : (𝓡∂ 2).interiorOpens S
   have hF : Continuous F :=
     ((hγ i).isLocalHomeomorph.continuous.comp continuous_snd).prodMk
       (continuous_normalRay.comp continuous_fst)
-  have hev : ∀ᶠ r in 𝓝 (0 : ℝ), ∀ θ ∈ univ, F (r, θ) ∈ V := by
-    refine isCompact_univ.eventually_forall_of_forall_eventually fun θ _ ↦ ?_
-    refine hF.continuousAt.preimage_mem_nhds (hV.mem_nhds ⟨(γ i θ, normalIioOpensZero one_pos),
-      ?_, ?_⟩)
-    · rw [mem_preimage, c.apply_zero]
-      exact hCB' ⟨θ, rfl⟩
-    · simp [F, normalRay_zero]
-  obtain ⟨ε, hε, hεV⟩ := Metric.eventually_nhds_iff.1 hev
+  obtain ⟨ε, hε, hεV⟩ := isCompact_univ.exists_pos_forall_norm_lt
+    (Q := fun (r : ℝ) θ ↦ F (r, θ) ∈ V) fun θ _ ↦ by
+      refine hF.continuousAt.preimage_mem_nhds (hV.mem_nhds ⟨(γ i θ, normalIioOpensZero one_pos),
+        ?_, ?_⟩)
+      · rw [mem_preimage, c.apply_zero]
+        exact hCB' ⟨θ, rfl⟩
+      · simp [F, normalRay_zero]
   refine ⟨ε, hε, Subtype.val ⁻¹' A, continuous_subtypeVal.continuousAt.preimage_mem_nhds hA,
     fun q hq z hzε hzq ↦ ?_⟩
   have hz : 1 < ‖(z : ℂ)‖ := (inr_mem_range_inl_iff c γ hγ hinj).1 ⟨q, hzq.symm⟩
   rw [inr_eq_inl c γ hγ hinj hz] at hzq
   obtain rfl := (isOpenEmbedding_capDiscs_inl c γ hγ hinj).injective hzq
-  obtain ⟨w, hw, hwF⟩ := hεV (y := ‖(z : ℂ)‖ - 1)
-    (by rw [Real.dist_eq, sub_zero, abs_of_pos (by linarith)]; linarith)
+  obtain ⟨w, hw, hwF⟩ := hεV (x := ‖(z : ℂ)‖ - 1)
+    (by rw [Real.norm_eq_abs, abs_of_pos (by linarith)]; linarith)
     ((arg z / (2 * π) : ℝ) : AddCircle (1 : ℝ)) (mem_univ _)
   have hw' : w = gluingCoord γ i z :=
     Prod.ext ((congrArg Prod.fst hwF).trans (gluingCoord_fst i z).symm)

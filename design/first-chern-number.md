@@ -938,20 +938,20 @@ issues, in an order where each issue's blockers come before it.
    `TauCeti/`.
    The Mayer–Vietoris step of duality is the library's own
    `AlgebraicTopology/Cohomology/CompactSupport/Duality/Union.lean`, not a
-   file of Tau Ceti's: `TauCeti.HomologicalOrientation.bijective_dualityMap_of_sup_eq_top`
-   for a cover by two open sets, and `bijective_dualityMap_comap_sup` for two
+   file of Tau Ceti's: `TauCeti.HomologicalOrientation.bijective_dualityMap_of_sup_eq_top'`
+   for a cover by two open sets, and `bijective_dualityMap_comap_sup'` for two
    open sets of `M`. Both assume only duality in every degree for `U`, `V`
    and `U ∩ V`: the vanishing of `Hⁿ⁺¹_c(U ∩ V; L)`, which injectivity
    needs in the top degree, holds for every open set of `M`
    (`TopCat.isZero_compactSupportCohomology_of_chartedSpace_int`, in the
    library's `AlgebraicTopology/Cohomology/CompactSupport/Manifold.lean`,
    applied to the open set as a manifold).
-   `TopCat.isZero_compactSupportCohomology_sup`, in the
-   library's `AlgebraicTopology/Cohomology/CompactSupport/Vanishing.lean`,
+   `TopCat.isZero_compactSupportCohomology_sup`, in Tau Ceti's
+   `TauCeti/AlgebraicTopology/Cohomology/CompactSupport/Vanishing.lean`,
    passes such a vanishing on to `U ∪ V`, and
    `TopCat.isZero_compactSupportCohomology_of_iSup_eq_top`, in the same
-   file, to a directed union of open sets. The vanishing starts from
-   `AlgebraicTopology/Cohomology/CompactSupport/Euclidean/Basic.lean`,
+   file, to a directed union of open sets. The vanishing starts from Tau
+   Ceti's `TauCeti/AlgebraicTopology/Cohomology/CompactSupport/Euclidean/Basic.lean`,
    `TopCat.isZero_compactSupportCohomology_of_starConvex` and
    `isZero_compactSupportCohomology_of_convex`: `Hᵏ_c(U) = 0` for
    `k ≠ dim F` when `U` embeds openly in `F` with star-convex or convex
@@ -989,17 +989,18 @@ issues, in an order where each issue's blockers come before it.
    union uses the instance `TopologicalSpace.Opens.isEmpty_bot` of
    `Topology/Sets/Opens/Basic.lean`, which `CompactSupport/Vanishing.lean`
    imports.
-   Duality for a manifold is the library's
-   `AlgebraicTopology/Cohomology/CompactSupport/Duality/Manifold.lean`:
+   Duality for a manifold is Tau Ceti's
+   `TauCeti/AlgebraicTopology/Cohomology/CompactSupport/Duality/Manifold.lean`:
    `TauCeti.HomologicalOrientation.bijective_dualityMap`, for every
    homologically oriented manifold, compact or not, and for compact `M` its
    form for capping with the fundamental class,
-   `bijective_singularCap_fundamentalClass`. It uses
-   `AlgebraicTopology/Cohomology/CompactSupport/Manifold.lean`, which proves
+   `bijective_singularCap_fundamentalClass`. The library's
+   `AlgebraicTopology/Cohomology/CompactSupport/Manifold.lean` proves
    `TopCat.isZero_compactSupportCohomology_of_chartedSpace`, `Hᵐ_c(M) = 0`
-   above the dimension, which the Mayer–Vietoris step needs for the
-   intersections. Both run the induction above over the open sets lying in
-   one chart instead of those with convex image; that family comes from
+   above the dimension, which the Mayer–Vietoris step of
+   `CompactSupport/Duality/Union.lean` needs for the intersections. It runs
+   the induction above over the open sets lying in one chart instead of
+   those with convex image; that family comes from
    `Geometry/Manifold/ChartedSpace.lean`:
    `TopologicalSpace.Opens.infClosed_setOf_subset_chartAt_source` and
    `TopologicalSpace.Opens.sSup_setOf_subset_chartAt_source_eq_top`.

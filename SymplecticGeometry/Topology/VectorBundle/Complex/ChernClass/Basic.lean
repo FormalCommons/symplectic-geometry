@@ -35,7 +35,7 @@ definition, in the normalization of Bott–Tu, §20: for a line bundle `c₁` is
 
 ## Main results
 
-* `singularCohomologyMap_fiberInclusion_projectiveBundleClass`: `x` restricts on each fibre,
+* `singularCohomologyMap_fiberInclusionMap_projectiveBundleClass`: `x` restricts on each fibre,
   read through the trivialization there, to `Projectivization.hyperplaneClass G`.
 * `bijective_integralLerayHirsch_projectiveBundle`: the Leray–Hirsch theorem for `P(E)` over a
   compact base, for `E` of finite rank.
@@ -101,9 +101,9 @@ theorem projectiveBundleClass_def :
 
 /-- The inclusion of the fibre over `b` of the projective bundle, read through the trivialization
 at `b`, pulls the tautological class back to the hyperplane class of `ℙ ℂ G`. -/
-theorem singularCohomologyMap_fiberInclusion_projectiveBundleClass (b : B) :
+theorem singularCohomologyMap_fiberInclusionMap_projectiveBundleClass (b : B) :
     TopCat.singularCohomologyMap
-        (TopCat.ofHom ((trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).fiberInclusion
+        (TopCat.ofHom ((trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).fiberInclusionMap
           (mem_baseSet_trivializationAt _ _ b)))
         2 (projectiveBundleClass G E) = Projectivization.hyperplaneClass G := by
   set e := trivializationAt G E b
@@ -114,16 +114,16 @@ theorem singularCohomologyMap_fiberInclusion_projectiveBundleClass (b : B) :
   let := FiberBundle.t2Space G E b
   have hcont : Continuous fun ℓ : ℙ ℂ G ↦
       (⟨b, Projectivization.map (L : G →ₗ[ℂ] E b) L.injective ℓ⟩ : ProjectiveBundle ℂ G E) := by
-    refine ((trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).fiberInclusion
+    refine ((trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).fiberInclusionMap
       (mem_baseSet_trivializationAt _ _ b)).continuous.congr fun ℓ ↦ ?_
-    rw [Trivialization.fiberInclusion_apply, ProjectiveBundle.trivializationAt_symm_apply hb,
+    rw [Trivialization.fiberInclusionMap_apply, ProjectiveBundle.trivializationAt_symm_apply hb,
       ContinuousLinearEquiv.coe_mapProjectivization]
   let g : C(ℙ ℂ G, ProjectiveBundle ℂ G E) := ⟨_, hcont⟩
-  have hg : TopCat.ofHom ((trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).fiberInclusion
+  have hg : TopCat.ofHom ((trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).fiberInclusionMap
       (mem_baseSet_trivializationAt _ _ b)) = TopCat.ofHom g := by
     refine TopCat.ext fun ℓ ↦ ?_
-    rw [ConcreteCategory.hom_ofHom, ConcreteCategory.hom_ofHom, Trivialization.fiberInclusion_apply,
-      ProjectiveBundle.trivializationAt_symm_apply hb,
+    rw [ConcreteCategory.hom_ofHom, ConcreteCategory.hom_ofHom,
+      Trivialization.fiberInclusionMap_apply, ProjectiveBundle.trivializationAt_symm_apply hb,
       ContinuousLinearEquiv.coe_mapProjectivization]
     -- The two sides differ only in the coercion of `L` to a linear map.
     rfl
@@ -161,13 +161,13 @@ theorem projectiveBundleClassPow_mk (i : Fin (finrank ℂ G)) :
 
 /-- On the fibre over each point, read through the trivialization there, the powers of the
 tautological class form a basis of the integral cohomology of `ℙ ℂ G` in every degree. -/
-private theorem basis_fiberInclusion_projectiveBundleClassPow {m : ℕ}
+private theorem basis_fiberInclusionMap_projectiveBundleClassPow {m : ℕ}
     (hm : finrank ℂ G = m + 1) (b : B) (d : ℕ) :
     LinearIndependent ℤ (fun i ↦ TopCat.singularCohomologyMap
-        (TopCat.ofHom ((trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).fiberInclusion
+        (TopCat.ofHom ((trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).fiberInclusionMap
           (mem_baseSet_trivializationAt _ _ b))) d (projectiveBundleClassPow G E d i)) ∧
       ⊤ ≤ Submodule.span ℤ (Set.range fun i ↦ TopCat.singularCohomologyMap
-        (TopCat.ofHom ((trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).fiberInclusion
+        (TopCat.ofHom ((trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).fiberInclusionMap
           (mem_baseSet_trivializationAt _ _ b))) d (projectiveBundleClassPow G E d i)) := by
   by_cases hd : ∃ i : Fin (finrank ℂ G), 2 * (i : ℕ) = d
   · obtain ⟨i, rfl⟩ := hd
@@ -177,7 +177,7 @@ private theorem basis_fiberInclusion_projectiveBundleClassPow {m : ℕ}
     set v := ((TopCat.of (ℙ ℂ G)).evenIntegralCohomologyOf 1
       (Projectivization.hyperplaneClass G) ^ (i : ℕ)) i
     have hv (j) : TopCat.singularCohomologyMap
-        (TopCat.ofHom ((trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).fiberInclusion
+        (TopCat.ofHom ((trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).fiberInclusionMap
           (mem_baseSet_trivializationAt _ _ b))) (2 * i) (projectiveBundleClassPow G E _ j) =
         v := by
       rw [Unique.eq_default j]
@@ -185,7 +185,7 @@ private theorem basis_fiberInclusion_projectiveBundleClassPow {m : ℕ}
       change TopCat.singularCohomologyMap _ (2 * i) (projectiveBundleClassPow G E _ ⟨i, rfl⟩) = v
       rw [projectiveBundleClassPow_mk, ← TopCat.evenIntegralCohomologyMap_apply, map_pow,
         TopCat.evenIntegralCohomologyMap_of,
-        singularCohomologyMap_fiberInclusion_projectiveBundleClass]
+        singularCohomologyMap_fiberInclusionMap_projectiveBundleClass]
     have hbij := Projectivization.bijective_zsmul_hyperplaneClass_pow hm (k := i) (by omega)
     have hbij' : Function.Bijective (LinearMap.toSpanSingleton ℤ _ v) := by
       convert hbij using 1
@@ -195,7 +195,7 @@ private theorem basis_fiberInclusion_projectiveBundleClassPow {m : ℕ}
     let e := LinearEquiv.ofBijective (LinearMap.toSpanSingleton ℤ _ v) hbij'
     let c := (Module.Basis.singleton {j : Fin (finrank ℂ G) // 2 * (j : ℕ) = 2 * i} ℤ).map e
     have hc : ⇑c = fun j ↦ TopCat.singularCohomologyMap
-        (TopCat.ofHom ((trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).fiberInclusion
+        (TopCat.ofHom ((trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).fiberInclusionMap
           (mem_baseSet_trivializationAt _ _ b))) (2 * i) (projectiveBundleClassPow G E _ j) := by
       funext j
       rw [hv, Module.Basis.map_apply, Module.Basis.singleton_apply, LinearEquiv.ofBijective_apply,
@@ -235,7 +235,7 @@ theorem bijective_integralLerayHirsch_projectiveBundle [CompactSpace B] [FiniteD
   have := Projectivization.projective_singularHomology (V := G) (𝟙_ (ModuleCat.{0} ℤ)) hm
   exact TopCat.integralLerayHirsch_bijective s (Set.univ_subset_iff.1 hs) n _
     (fun d _ ↦ TauCeti.finite_singularHomology_of_finiteCWType (ℙ ℂ G) _ d)
-    fun y d _ ↦ basis_fiberInclusion_projectiveBundleClassPow G E hm y d
+    fun y d _ ↦ basis_fiberInclusionMap_projectiveBundleClassPow G E hm y d
 
 /-! ### The Chern classes -/
 

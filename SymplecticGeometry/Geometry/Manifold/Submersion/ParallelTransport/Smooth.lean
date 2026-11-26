@@ -350,15 +350,15 @@ theorem parallelTransportIn_self {e : Trivialization Z f} {γ : ℝ → B} {s : 
 `γ` a `C^(n+1)` curve in `B`. If `γ s ∈ e.baseSet` and `γ t ∈ e'.baseSet`, the point of the fibre
 over `γ t` with coordinate `hD.parallelTransportIn e e' γ s t v` in `e'` is the transport from `s`
 to `t` of the point of the fibre over `γ s` with coordinate `v` in `e`. -/
-theorem fiberInclusion_parallelTransportIn (hn : 1 ≤ n) (hf : ContMDiff I J (n + 1) f)
+theorem fiberInclusionMap_parallelTransportIn (hn : 1 ≤ n) (hf : ContMDiff I J (n + 1) f)
     (hfp : IsProperMap f) {γ : ℝ → B} (hγ : ContMDiff 𝓘(ℝ, ℝ) J (n + 1) γ)
     {e e' : Trivialization Z f} {s t : ℝ} (hs : γ s ∈ e.baseSet) (ht : γ t ∈ e'.baseSet)
     (v : Z) :
-    e'.fiberInclusion ht (hD.parallelTransportIn e e' γ s t v) =
-      hD.parallelTransport γ s t (e.fiberInclusion hs v) := by
+    e'.fiberInclusionMap ht (hD.parallelTransportIn e e' γ s t v) =
+      hD.parallelTransport γ s t (e.fiberInclusionMap hs v) := by
   have hy := hD.parallelTransport_mem_preimage hn hf hfp hγ (e.proj_symm_apply' (x := v) hs) t
   rw [mem_preimage, mem_singleton_iff] at hy
-  rw [parallelTransportIn_def, e.fiberInclusion_apply hs, e'.fiberInclusion_apply ht, ← hy,
+  rw [parallelTransportIn_def, e.fiberInclusionMap_apply hs, e'.fiberInclusionMap_apply ht, ← hy,
     e'.symm_apply_mk_proj (e'.mem_source.2 (hy ▸ ht))]
 
 /-- Let `D` be a `C^n` Ehresmann connection, `1 ≤ n`, on a proper `C^(n+1)` map `f : P → B`, and
@@ -371,8 +371,8 @@ theorem parallelTransportIn_parallelTransportIn (hn : 1 ≤ n) (hf : ContMDiff I
     (ht : γ t ∈ e'.baseSet) (u : ℝ) (v : Z) :
     hD.parallelTransportIn e' e'' γ t u (hD.parallelTransportIn e e' γ s t v) =
       hD.parallelTransportIn e e'' γ s u v := by
-  rw [hD.parallelTransportIn_def e', ← e'.fiberInclusion_apply ht,
-    hD.fiberInclusion_parallelTransportIn hn hf hfp hγ hs ht, e.fiberInclusion_apply hs,
+  rw [hD.parallelTransportIn_def e', ← e'.fiberInclusionMap_apply ht,
+    hD.fiberInclusionMap_parallelTransportIn hn hf hfp hγ hs ht, e.fiberInclusionMap_apply hs,
     hD.parallelTransport_parallelTransport hn hf hfp hγ (e.proj_symm_apply' hs),
     parallelTransportIn_def]
 
@@ -392,7 +392,7 @@ theorem contMDiff_parallelTransportIn (hn : 1 ≤ n) (hf : ContMDiff I J (n + 1)
   have hx (v : Z) : e.toOpenPartialHomeomorph.symm (γ s, v) ∈ f ⁻¹' {γ s} :=
     e.proj_symm_apply' hs
   have h₁ : ContMDiff IZ I n fun v : Z ↦ e.toOpenPartialHomeomorph.symm (γ s, v) :=
-    funext (e.fiberInclusion_apply hs) ▸ e.contMDiff_fiberInclusion he hs
+    funext (e.fiberInclusionMap_apply hs) ▸ e.contMDiff_fiberInclusionMap he hs
   have h₂ : ContMDiff IZ (J.prod IZ) n fun v ↦ e' (Ψ (e.toOpenPartialHomeomorph.symm (γ s, v))) :=
     he'.comp_contMDiff (Ψ.contMDiff.comp h₁) fun v ↦ e'.mem_source.2 <| by
       rw [hΨ (hx v), mem_singleton_iff.1 (hD.parallelTransport_mem_preimage hn hf hfp hγ (hx v) t)]
@@ -463,8 +463,8 @@ theorem parallelTransportIn_coordChange (hn : 1 ≤ n) (hf : ContMDiff I J (n + 
     (hs₂ : γ s ∈ e₂.baseSet) (ht : γ t ∈ e'.baseSet) (v : Z) :
     hD.parallelTransportIn e₂ e₂' γ s t v =
       e'.coordChange e₂' (γ t) (hD.parallelTransportIn e e' γ s t (e₂.coordChange e (γ s) v)) := by
-  rw [hD.parallelTransportIn_def e, ← e.fiberInclusion_apply hs,
-    e₂.fiberInclusion_coordChange e hs₂ hs, e₂.fiberInclusion_apply hs₂]
+  rw [hD.parallelTransportIn_def e, ← e.fiberInclusionMap_apply hs,
+    e₂.fiberInclusionMap_coordChange e hs₂ hs, e₂.fiberInclusionMap_apply hs₂]
   have hy := hD.parallelTransport_mem_preimage hn hf hfp hγ (e₂.proj_symm_apply' (x := v) hs₂) t
   rw [mem_preimage, mem_singleton_iff] at hy
   rw [← hy, e'.coordChange_apply_snd e₂' (hy ▸ ht), parallelTransportIn_def]

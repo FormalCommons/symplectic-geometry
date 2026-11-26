@@ -32,7 +32,7 @@ differ.
 - *Symplectic fibrations*: a smooth atlas `A` of `π : M → B` with fibre `F`
   and charts `A.trivAt b`, smooth with smooth inverses (`hA`); symplectic
   atlases, `A.HasStructureGroup (TauCeti.SmoothForm.diffeomorphStabilizer σ)`;
-  fibre inclusions `Bundle.Trivialization.fiberInclusion e hb`,
+  fibre inclusions `Bundle.Trivialization.fiberInclusionMap e hb`,
   $v\mapsto e^{-1}(b,v)$; the predicates `A.RestrictsTo σ τ` ($\iota_b^*\tau=\sigma_b$),
   `τ.IsVerticallyNondegenerate π` and `τ.IsVerticallyClosed π`; the connection
   `τ.horizontalDistribution π` ($\mathrm{Ver}^\tau$), an Ehresmann connection
