@@ -122,7 +122,9 @@ itself (`SymplecticGeometry.map_mem_annulus_iff`).
 * `SymplecticGeometry.ConnectedSum.AnnulusSum.orientation`: the orientation of `AnnulusSum`,
   for which `annulusSumDiffeomorph` preserves orientation
   (`isOrientationPreservingAt_annulusSumDiffeomorph`), and so do the inclusions of the pieces
-  (`AnnulusSum.isOrientationPreservingAt_inl`, `AnnulusSum.isOrientationPreservingAt_inr`).
+  (`AnnulusSum.isOrientationPreservingAt_inl`, `AnnulusSum.isOrientationPreservingAt_inr`);
+  it is the only orientation for which these inclusions preserve orientation
+  (`AnnulusSum.eq_orientation_iff`).
 * `SymplecticGeometry.ConnectedSum.AnnulusSum.exists_diffeomorph_isOrientationPreservingAt`:
   for connected summands, the oriented connected sums for two choices of `ι₁`, `ι₂`, `Φ`, `ε`
   are diffeomorphic by an orientation-preserving diffeomorphism; each is so diffeomorphic to
@@ -762,10 +764,10 @@ section Orientation
 
 open Metric TauCeti.Manifold.Orientation
 
-variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]
-  {ι : Type*} [Fintype ι]
-
 section Rescale
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  {ι : Type*} [Fintype ι]
 
 variable {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H} {M : Type*}
   [TopologicalSpace M] [ChartedSpace H M] [IsManifold I 1 M]
@@ -813,13 +815,10 @@ theorem isOrientationReversingAt_rescale_of_zero (hf : IsLocalDiffeomorph 𝓘(�
   rw [← isOrientationPreservingAt_neg_right] at h0 ⊢
   exact isOrientationPreservingAt_rescale_of_zero hf hε h0 v
 
-end Rescale
-
 variable {M₁ M₂ : Type u} [TopologicalSpace M₁] [ChartedSpace E M₁] [IsManifold 𝓘(ℝ, E) ∞ M₁]
   [TopologicalSpace M₂] [ChartedSpace E M₂] [IsManifold 𝓘(ℝ, E) ∞ M₂] {ι₁ : E → M₁} {ι₂ : E → M₂}
   {o₁ : TauCeti.Manifold.Orientation 𝓘(ℝ, E) M₁ ι}
   {o₂ : TauCeti.Manifold.Orientation 𝓘(ℝ, E) M₂ ι}
-  {oE : TauCeti.Manifold.Orientation 𝓘(ℝ, E) E ι} {ε : ℝ}
 
 /-- For `0 < ε`, if the local diffeomorphism `ι₁` preserves orientation on the unit ball, then
 the rescaled ball `v ↦ ι₁ (ε • v)` preserves orientation everywhere. -/
@@ -839,8 +838,18 @@ theorem isOrientationReversingAt_rescale_comp_of_mem_ball
     IsOrientationReversingAt oE o₂ (rescale (ι₂ ∘ Φ) ε) v :=
   isOrientationReversingAt_rescale_of_zero
     ((hdι₂.comp_linearIsometryEquiv Φ).of_le (by simp)) hε
-    ((ho₂ (Φ.toContinuousLinearEquiv 0) (by simp)).comp_reversing
-      (isOrientationReversingAt_of_det_neg oE Φ.toContinuousLinearEquiv hΦ 0)) v
+    (isOrientationReversingAt_comp_of_det_neg (L := Φ.toContinuousLinearEquiv)
+      (ho₂ _ (by simp)) hΦ) v
+
+end Rescale
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]
+  {ι : Type*} [Fintype ι]
+  {M₁ M₂ : Type u} [TopologicalSpace M₁] [ChartedSpace E M₁] [IsManifold 𝓘(ℝ, E) ∞ M₁]
+  [TopologicalSpace M₂] [ChartedSpace E M₂] [IsManifold 𝓘(ℝ, E) ∞ M₂] {ι₁ : E → M₁} {ι₂ : E → M₂}
+  {o₁ : TauCeti.Manifold.Orientation 𝓘(ℝ, E) M₁ ι}
+  {o₂ : TauCeti.Manifold.Orientation 𝓘(ℝ, E) M₂ ι}
+  {oE : TauCeti.Manifold.Orientation 𝓘(ℝ, E) E ι} {ε : ℝ}
 
 variable [T2Space M₁] [T2Space M₂]
   (hι₁ : IsOpenEmbedding ι₁) (hdι₁ : IsLocalDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) ∞ ι₁)
@@ -856,7 +865,8 @@ of `E`, and a linear isometry `Φ` of negative determinant: Tau Ceti's
 `TauCeti.ConnectedSum.orientation` of the connected sum along `v ↦ ι₁ (ε • v)` and
 `v ↦ ι₂ (Φ (ε • v))`, carried back along `annulusSumDiffeomorph`. It agrees with `o₁` on the
 first piece (`AnnulusSum.isOrientationPreservingAt_inl`) and with `o₂` on the second
-(`AnnulusSum.isOrientationPreservingAt_inr`). -/
+(`AnnulusSum.isOrientationPreservingAt_inr`), and it is the only orientation that does so
+(`AnnulusSum.eq_orientation_iff`). -/
 def AnnulusSum.orientation :
     TauCeti.Manifold.Orientation 𝓘(ℝ, E) (AnnulusSum hι₁ hdι₁ hι₂ hdι₂ Φ hε.ne') ι :=
   letI := TauCeti.ConnectedSum.chartedSpace (H := E) (isOpenEmbedding_rescale hι₁ hε.ne')
@@ -967,6 +977,26 @@ theorem AnnulusSum.isOrientationPreservingAt_inr (y : piece ι₂ ε hι₂.cont
     ((TauCeti.ConnectedSum.isOrientationPreservingAt_inr _ _ _ _ _ _
       (isOrientationPreservingAt_restrict o₂ _ _)).comp
       (isOrientationPreservingAt_restrict_inclusion o₂ _ y))
+
+/-- An orientation of the connected sum `AnnulusSum` is `AnnulusSum.orientation` exactly when
+the inclusions of the two pieces preserve orientation, from the restrictions of `o₁` and `o₂`. -/
+theorem AnnulusSum.eq_orientation_iff
+    {o : TauCeti.Manifold.Orientation 𝓘(ℝ, E) (AnnulusSum hι₁ hdι₁ hι₂ hdι₂ Φ hε.ne') ι} :
+    o = AnnulusSum.orientation o₁ o₂ oE hι₁ hdι₁ hι₂ hdι₂ Φ hΦ hε hε₁ ho₁ ho₂ ↔
+      (∀ x, IsOrientationPreservingAt (o₁.restrict (piece ι₁ ε hι₁.continuous)) o
+        (GluedAlong.inl (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε.ne')) x) ∧
+      ∀ y, IsOrientationPreservingAt (o₂.restrict (piece ι₂ ε hι₂.continuous)) o
+        (GluedAlong.inr (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε.ne')) y := by
+  refine ⟨?_, fun ⟨hl, hr⟩ ↦ ?_⟩
+  · rintro rfl
+    exact ⟨AnnulusSum.isOrientationPreservingAt_inl o₁ o₂ oE hι₁ hdι₁ hι₂ hdι₂ Φ hΦ hε hε₁ ho₁ ho₂,
+      AnnulusSum.isOrientationPreservingAt_inr o₁ o₂ oE hι₁ hdι₁ hι₂ hdι₂ Φ hΦ hε hε₁ ho₁ ho₂⟩
+  ext p
+  rcases GluedAlong.exists_inl_or_exists_inr _ p with ⟨x, rfl⟩ | ⟨y, rfl⟩
+  · exact (hl x).orientationAt_eq
+      (AnnulusSum.isOrientationPreservingAt_inl o₁ o₂ oE hι₁ hdι₁ hι₂ hdι₂ Φ hΦ hε hε₁ ho₁ ho₂ x)
+  · exact (hr y).orientationAt_eq
+      (AnnulusSum.isOrientationPreservingAt_inr o₁ o₂ oE hι₁ hdι₁ hι₂ hdι₂ Φ hΦ hε hε₁ ho₁ ho₂ y)
 
 variable [Nontrivial E] [PreconnectedSpace M₁] [PreconnectedSpace M₂]
 
