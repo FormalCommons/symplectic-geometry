@@ -40,8 +40,8 @@ that `ι_X σ` is closed, and let `M` have dimension `2 n + 2`.
 * For every closed one-form `γ`, the integral of `γ ∧ ι_X σ ∧ σ ^ n` vanishes when the action has
   a fixed point `p`. The integral depends only on the class of `γ`, and averaging `γ` over the
   compact connected group gives a cohomologous invariant form `γ'`
-  (`TauCeti.SmoothForm.exists_invariant_sub_mem_exactForms_one`, which also covers a boundaryless
-  manifold whose model has boundary). By Cartan's formula the function
+  (`TauCeti.SmoothForm.exists_invariant_sub_mem_exactForms_one`, stated for a boundaryless
+  manifold whose model may have boundary). By Cartan's formula the function
   `γ'(X)` is constant (`TauCeti.apply_fundamentalVectorField_eq_of_preconnectedSpace`), and it
   vanishes at `p`, where `X` does. A top-degree computation
   (`TauCeti.SmoothForm.wedge_interior_wedge_wedgePow_apply_eq_zero`) then makes the integrand
