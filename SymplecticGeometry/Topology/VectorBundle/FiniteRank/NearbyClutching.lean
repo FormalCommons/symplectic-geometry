@@ -104,10 +104,13 @@ theorem fiberMap_segmentHom_one (f₀ f₁ : (Q E) ⟶ (Q E)) (w : X × Circle) 
 
 variable [CompleteSpace 𝕜]
 
-/-- The segment from an automorphism `f₀` to a morphism `f₁` is invertible if `f₀⁻¹ ∘ f₁` is
-everywhere within distance less than `1` of the identity. -/
-theorem isIso_segmentHom (f₀ : (Q E) ≅ (Q E)) (f₁ : (Q E) ⟶ (Q E))
-    (h : ∀ w, ‖(f₀.inv.fiberMap w).comp (f₁.fiberMap w) - .id 𝕜 _‖ < 1) :
+/-- The segment from an automorphism `f₀` to a morphism `f₁` is invertible if at every point `w`
+some change of coordinates `U` brings `f₀⁻¹ ∘ f₁` within distance less than `1` of the identity:
+`‖U⁻¹ ∘ f₀⁻¹ ∘ f₁ ∘ U - 1‖ < 1`. Invertibility does not depend on the coordinates, so the estimate
+may be checked in any chart. -/
+theorem isIso_segmentHom_of_conj (f₀ : (Q E) ≅ (Q E)) (f₁ : (Q E) ⟶ (Q E))
+    (h : ∀ w, ∃ U : ((Fin (Q E).rank → 𝕜) →L[𝕜] (Fin (Q E).rank → 𝕜))ˣ,
+      ‖↑U⁻¹ * ((f₀.inv.fiberMap w).comp (f₁.fiberMap w)) * ↑U - 1‖ < 1) :
     IsIso (segmentHom f₀.hom f₁) := by
   refine (isIso_iff_bijective _).2 fun b ↦ ?_
   -- The fibre maps of `f₀` at `(x, z)`, as a unit of the ring of endomorphisms of the fibre.
@@ -120,10 +123,32 @@ theorem isIso_segmentHom (f₀ : (Q E) ≅ (Q E)) (f₁ : (Q E) ⟶ (Q E))
   have ht : ‖algebraMap ℝ 𝕜 b.1.2‖ ≤ 1 := by
     rw [norm_algebraMap', Real.norm_eq_abs, abs_of_nonneg b.1.2.property.1]
     exact b.1.2.property.2
-  have hunit := a.isUnit_one_sub_smul_add_smul_of_norm_lt_one (b := f₁.fiberMap (b.1.1, b.2))
-    (h (b.1.1, b.2)) ht
+  obtain ⟨U, hU⟩ := h (b.1.1, b.2)
+  have hunit := a.isUnit_one_sub_smul_add_smul_of_norm_conj_lt_one U
+    (b := f₁.fiberMap (b.1.1, b.2)) hU ht
   rw [← fiberMap_segmentHom] at hunit
   exact (ContinuousLinearEquiv.unitsEquiv 𝕜 _ hunit.unit).bijective
+
+/-- The segment from an automorphism `f₀` to a morphism `f₁` is invertible if `f₀⁻¹ ∘ f₁` is
+everywhere within distance less than `1` of the identity. -/
+theorem isIso_segmentHom (f₀ : (Q E) ≅ (Q E)) (f₁ : (Q E) ⟶ (Q E))
+    (h : ∀ w, ‖(f₀.inv.fiberMap w).comp (f₁.fiberMap w) - .id 𝕜 _‖ < 1) :
+    IsIso (segmentHom f₀.hom f₁) :=
+  isIso_segmentHom_of_conj f₀ f₁ fun w ↦ ⟨1, by
+    rw [inv_one, Units.val_one, one_mul, mul_one, ContinuousLinearMap.one_def]; exact h w⟩
+
+/-- Let `X` be paracompact and R₁, and let `f₀` and `f₁` be automorphisms of the pullback of `E`
+to `X × Circle`. If at every point `w` some change of coordinates `U` brings the fibre map of
+`f₀⁻¹ ∘ f₁` within distance less than `1` of the identity, `‖U⁻¹ ∘ f₀⁻¹ ∘ f₁ ∘ U - 1‖ < 1`, then
+the clutchings of `E` by `f₀` and by `f₁` are isomorphic. -/
+theorem nonempty_iso_clutching_of_norm_conj_lt_one [ParacompactSpace X] [R1Space X]
+    {f₀ f₁ : (Q E) ≅ (Q E)}
+    (h : ∀ w, ∃ U : ((Fin (Q E).rank → 𝕜) →L[𝕜] (Fin (Q E).rank → 𝕜))ˣ,
+      ‖↑U⁻¹ * ((f₀.inv.fiberMap w).comp (f₁.hom.fiberMap w)) * ↑U - 1‖ < 1) :
+    Nonempty (E.clutching f₀ ≅ E.clutching f₁) :=
+  haveI := isIso_segmentHom_of_conj f₀ f₁.hom h
+  E.nonempty_iso_clutching_of_homotopic (asIso (segmentHom f₀.hom f₁.hom))
+    (fiberMap_segmentHom_zero f₀.hom f₁.hom) (fiberMap_segmentHom_one f₀.hom f₁.hom)
 
 /-- **Nearby clutching functions give isomorphic clutchings.** Let `X` be paracompact and R₁, for
 instance compact Hausdorff, and let `f₀` and `f₁` be automorphisms of the pullback of `E` to
@@ -134,9 +159,8 @@ theorem nonempty_iso_clutching_of_norm_lt_one [ParacompactSpace X] [R1Space X]
     {f₀ f₁ : (Q E) ≅ (Q E)}
     (h : ∀ w, ‖(f₀.inv.fiberMap w).comp (f₁.hom.fiberMap w) - .id 𝕜 _‖ < 1) :
     Nonempty (E.clutching f₀ ≅ E.clutching f₁) :=
-  haveI := isIso_segmentHom f₀ f₁.hom h
-  E.nonempty_iso_clutching_of_homotopic (asIso (segmentHom f₀.hom f₁.hom))
-    (fiberMap_segmentHom_zero f₀.hom f₁.hom) (fiberMap_segmentHom_one f₀.hom f₁.hom)
+  nonempty_iso_clutching_of_norm_conj_lt_one fun w ↦ ⟨1, by
+    rw [inv_one, Units.val_one, one_mul, mul_one, ContinuousLinearMap.one_def]; exact h w⟩
 
 end TauCeti.FiniteRankBundleCore
 
