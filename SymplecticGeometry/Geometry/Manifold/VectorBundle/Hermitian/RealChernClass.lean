@@ -48,7 +48,8 @@ for the pull-back by Tau Ceti's `Bundle.Pullback.contMDiff_lift`, so no comparis
 * `Bundle.ContMDiffRiemannianMetric.IsConnectionCurvature`,
   `Bundle.ContMDiffRiemannianMetric.isConnectionCurvature_iff`: a two-form is the curvature of a
   connection form on the unitary frame bundle, which for a closed form `σ` holds exactly when
-  `-(2π)⁻¹ [σ]` is the real first Chern class.
+  `-(2π)⁻¹ [σ]` is the real first Chern class. Such a form is closed
+  (`Bundle.ContMDiffRiemannianMetric.IsConnectionCurvature.mem_closedForms`).
 * `Bundle.ContMDiffRiemannianMetric.realFirstChernClass_eq_of_metric`: the real first Chern
   classes of the unitary frame bundles of two smooth Hermitian metrics on a complex line bundle
   are equal.
@@ -145,6 +146,19 @@ theorem _root_.Bundle.ContMDiffRiemannianMetric.isConnectionCurvature_def
       ∃ (α : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle (Fiber ℂ F V ℂ)) ℝ 1)
         (hα : IsCircleConnectionForm α), hα.curvature = σ :=
   Iff.rfl
+
+omit [FiniteDimensional ℝ EB] [T2Space B] [SigmaCompactSpace B] in
+/-- A two-form that is the curvature of a unitary connection on `(V, g)` is closed. -/
+theorem _root_.Bundle.ContMDiffRiemannianMetric.IsConnectionCurvature.mem_closedForms
+    {σ : SmoothForm IB B ℝ 2} (h : g.IsConnectionCurvature hI σ) : σ ∈ closedForms IB B 2 := by
+  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+  let : IsContinuousRiemannianBundle F V :=
+    instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+  have : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) IB (𝓡 1) :=
+    contMDiffFiberBundle_circleFiber g hI
+  obtain ⟨α, hα, rfl⟩ := (g.isConnectionCurvature_def hI σ).1 h
+  exact hα.curvature_mem_closedForms
 
 /-- A closed two-form `σ` on `B` is the curvature of a unitary connection on `(V, g)` exactly
 when `-(2π)⁻¹ [σ]` is the real first Chern class of `(V, g)`. -/
