@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.ProdFiberCon
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.NormedSpace
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.HomotopyOperator
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
+import Mathlib.Analysis.Calculus.BumpFunction.FiniteDimension
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import Mathlib.Tactic.Module
 import TauCeti.Analysis.Calculus.FDeriv.NormalSegment
@@ -177,7 +178,7 @@ theorem exists_homotopy_exact_of_closed_near_attaching_fin_one {K : Set L} (hK :
   set δ := r / (|C| + 1) with hδdef
   have hδ : 0 < δ := div_pos hr hC₁
   obtain ⟨ψ, hψ, hψpos, hψ0, hψA, hψQ, hψ1⟩ :=
-    exists_cubeCompression (ι := Fin 1) (F := F) hε hε₁ hδ
+    exists_cubeCompression (E := Fin 1 → ℝ) (F := F) hε hε₁ hδ
   -- The smooth steps in time.
   set a : unitInterval → ℝ := fun t ↦ Real.smoothTransition (2 * (t : ℝ))
   set b : unitInterval → ℝ := fun t ↦ Real.smoothTransition (2 * (t : ℝ) - 1)
