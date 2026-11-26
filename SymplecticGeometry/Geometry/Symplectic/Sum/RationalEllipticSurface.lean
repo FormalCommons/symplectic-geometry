@@ -351,7 +351,7 @@ open scoped ComplexManifold
 the underlying real manifolds, for the real model `𝓘(ℝ, Fin 2 → ℂ).prod 𝓘(ℝ, Fin 1 → ℂ)` of the
 product. -/
 noncomputable def realEmbedding :
-    SmoothEmbedding 𝓘(ℝ, Fin (2 + 1 - Fintype.card Unit) → ℂ)
+    SmoothEmbedding 𝓘(ℝ, Fin 2 → ℂ)
       (𝓘(ℝ, Fin 2 → ℂ).prod 𝓘(ℝ, Fin 1 → ℂ)) ∞ rationalEllipticSurface
       (ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)) :=
   .ofIsSmoothEmbedding Subtype.val <|
@@ -366,14 +366,14 @@ theorem coe_realEmbedding : ⇑realEmbedding = Subtype.val :=
 /-- The real derivative of the inclusion of the rational elliptic surface is its complex
 derivative, as a map of tangent vectors. -/
 theorem coe_mfderiv_realEmbedding (x : rationalEllipticSurface) :
-    ⇑(mfderiv 𝓘(ℝ, Fin (2 + 1 - Fintype.card Unit) → ℂ)
+    ⇑(mfderiv 𝓘(ℝ, Fin 2 → ℂ)
         (𝓘(ℝ, Fin 2 → ℂ).prod 𝓘(ℝ, Fin 1 → ℂ)) realEmbedding x) =
-      mfderiv 𝓘(ℂ, Fin (2 + 1 - Fintype.card Unit) → ℂ)
+      mfderiv 𝓘(ℂ, Fin 2 → ℂ)
         (𝓘(ℂ, Fin 2 → ℂ).prod 𝓘(ℂ, Fin 1 → ℂ)) embedding x := by
   have hd := (embedding.contMDiff x).mdifferentiableAt (by simp)
   have h := congrArg DFunLike.coe (hd.mfderiv_restrictScalars ℝ)
   rw [ModelWithCorners.restrictScalars_prod, modelWithCornersSelf_restrictScalars,
-    modelWithCornersSelf_restrictScalars, modelWithCornersSelf_restrictScalars] at h
+    modelWithCornersSelf_restrictScalars] at h
   rw [coe_realEmbedding, ← coe_embedding, h]
   exact funext (ContinuousLinearMap.restrictScalarsTangent_apply _)
 
