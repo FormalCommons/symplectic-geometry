@@ -200,7 +200,8 @@ theorem mem_modelOffDivisorOpens {y : modelOpens c} :
 /-- The point of the model blowup over the image under `c` of a point of the overlap in the
 first piece: `(mk (c x), c x)`, through the inverse of `blowdownDiffeomorph`. -/
 private def toModel (x : puncturedSourceOpens c) : BlowupModel n :=
-  (blowdownDiffeomorph n).symm ⟨c x, c.apply_ne_zero x.property x.val.property⟩
+  (blowdownDiffeomorph n).symm
+    ⟨c x, TauCeti.mem_puncturedSpace.2 (c.apply_ne_zero x.property x.val.property)⟩
 
 private theorem blowdown_toModel (x : puncturedSourceOpens c) :
     (toModel c x).blowdown = c x := by
@@ -245,8 +246,8 @@ theorem blowdown_gluingHomeomorph (x : puncturedSourceOpens c) :
 theorem coe_gluingHomeomorph (x : puncturedSourceOpens c) :
     ((gluingHomeomorph c x : modelOpens c) : BlowupModel n) =
       (blowdownDiffeomorph n).symm
-        ⟨c x, c.apply_ne_zero ((mem_puncturedSourceOpens c).1 x.property)
-          ((mem_puncturedOpens c).1 x.val.property)⟩ :=
+        ⟨c x, TauCeti.mem_puncturedSpace.2 <| c.apply_ne_zero
+          ((mem_puncturedSourceOpens c).1 x.property) ((mem_puncturedOpens c).1 x.val.property)⟩ :=
   (rfl)
 
 /-- The point glued to `y` is `c.symm (π y)`. -/
@@ -470,7 +471,8 @@ to `c x`, which is `(mk (c x), c x)`. -/
 theorem lift_inl {x : puncturedOpens c} (hx : (x : M) ∈ c.source) :
     lift c (inl (gluingHomeomorph c) x) =
       (blowdownDiffeomorph n).symm
-        ⟨c x, c.apply_ne_zero hx ((mem_puncturedOpens c).1 x.property)⟩ := by
+        ⟨c x, TauCeti.mem_puncturedSpace.2 <|
+          c.apply_ne_zero hx ((mem_puncturedOpens c).1 x.property)⟩ := by
   rw [← GluedAlong.inr_apply (gluingHomeomorph c) ⟨x, hx⟩, lift_inr, coe_gluingHomeomorph]
 
 /-- On the range of `inr`, the map to the model lands over the target of `c`. -/
@@ -518,8 +520,8 @@ theorem contMDiff_gluingHomeomorph
     (hb : ContMDiff 𝓘(𝕜, Fin (n + 1) → ℂ) 𝓘(𝕜, Fin (n + 1) → ℂ) r (blowdownDiffeomorph n).symm) :
     ContMDiff 𝓘(𝕜, Fin (n + 1) → ℂ) 𝓘(𝕜, Fin (n + 1) → ℂ) r (gluingHomeomorph c) := by
   have hc' : ContMDiff 𝓘(𝕜, Fin (n + 1) → ℂ) 𝓘(𝕜, Fin (n + 1) → ℂ) r
-      fun x : puncturedSourceOpens c ↦ (⟨c x, c.apply_ne_zero x.property x.val.property⟩ :
-        (⟨{z | z ≠ 0}, isOpen_ne⟩ : Opens (Fin (n + 1) → ℂ))) :=
+      fun x : puncturedSourceOpens c ↦ (⟨c x, TauCeti.mem_puncturedSpace.2 <|
+        c.apply_ne_zero x.property x.val.property⟩ : TauCeti.puncturedSpace (Fin (n + 1) → ℂ)) :=
     (TauCeti.ContMDiff.subtypeVal_comp_iff _ _).1 <|
       hc.comp_contMDiff (contMDiff_subtypeVal.comp contMDiff_subtypeVal) fun x ↦ x.property
   refine (TauCeti.ContMDiff.subtypeVal_comp_iff _ _).1 ?_

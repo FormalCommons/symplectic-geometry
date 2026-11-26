@@ -13,6 +13,7 @@ public import TauCeti.Analysis.Calculus.ContDiff.Pi
 public import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 public import TauCeti.Geometry.Manifold.AnalyticSubmanifold.Transport
 public import TauCeti.Geometry.Manifold.Immersion.Differential
+public import TauCeti.Geometry.Manifold.Instances.Cylinder
 public import TauCeti.Geometry.Manifold.Instances.Projectivization
 public import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
 public import TauCeti.Geometry.Manifold.ModelWithCorners.RestrictScalars.Basic
@@ -723,8 +724,8 @@ theorem ofNeZero_blowdown {p : BlowupModel n} (hp : p.blowdown ≠ 0) : ofNeZero
 
 variable (n) in
 /-- The blowdown `π` off the exceptional divisor, as a biholomorphism from the open complement of
-the divisor onto the open set of nonzero vectors of `E`. Its inverse sends `z ≠ 0` to the point
-`(mk z, z)`.
+the divisor onto the punctured space `TauCeti.puncturedSpace E` of nonzero vectors. Its inverse
+sends `z ≠ 0` to the point `(mk z, z)`.
 
 Of the milestone below, this states that the blowdown is a biholomorphism off the exceptional
 divisor; `blowupModelTotalSpaceDiffeomorph` (in `Blowup/Tautological.lean`) states that `pr` is
@@ -733,12 +734,14 @@ the tautological line bundle, with the divisor as its zero section.
 Milestone: *Tautological line bundle and the exceptional divisor*. -/
 noncomputable def blowdownDiffeomorph :
     offDivisorOpens n ≃ₘ^ω⟮𝓘(ℂ, Fin (n + 1) → ℂ), 𝓘(ℂ, Fin (n + 1) → ℂ)⟯
-      (⟨{z | z ≠ 0}, isOpen_ne⟩ : Opens (Fin (n + 1) → ℂ)) where
-  toFun p := ⟨p.val.blowdown, mt mem_exceptionalDivisor_iff.2 (mem_offDivisorOpens.1 p.property)⟩
-  invFun z :=
-    ⟨ofNeZero z.property, mem_offDivisorOpens.2 (ofNeZero_notMem_exceptionalDivisor z.property)⟩
-  left_inv p := Subtype.ext <| ofNeZero_blowdown p.property
-  right_inv z := Subtype.ext <| blowdown_ofNeZero z.property
+      TauCeti.puncturedSpace (Fin (n + 1) → ℂ) where
+  toFun p := ⟨p.val.blowdown, TauCeti.mem_puncturedSpace.2 <|
+    mt mem_exceptionalDivisor_iff.2 (mem_offDivisorOpens.1 p.property)⟩
+  invFun z := ⟨ofNeZero (TauCeti.mem_puncturedSpace.1 z.property),
+    mem_offDivisorOpens.2 (ofNeZero_notMem_exceptionalDivisor _)⟩
+  left_inv p := Subtype.ext <| ofNeZero_blowdown <|
+    mt mem_exceptionalDivisor_iff.2 (mem_offDivisorOpens.1 p.property)
+  right_inv z := Subtype.ext <| blowdown_ofNeZero (TauCeti.mem_puncturedSpace.1 z.property)
   contMDiff_toFun := (TauCeti.ContMDiff.subtypeVal_comp_iff _ _).1
     ((contMDiff_blowdown ω).comp contMDiff_subtypeVal)
   contMDiff_invFun := by
@@ -746,7 +749,8 @@ noncomputable def blowdownDiffeomorph :
     refine ((isSmoothEmbedding_blowupModel_val (n := n) (r := ω) le_top).contMDiff_iff_comp).2
       fun z => ?_
     exact (contMDiffAt_of_eventually_eq_mk contMDiff_subtypeVal.contMDiffAt
-      (Eventually.of_forall fun y => ⟨y.property, rfl⟩)).prodMk contMDiff_subtypeVal.contMDiffAt
+      (Eventually.of_forall fun y => ⟨TauCeti.mem_puncturedSpace.1 y.property, rfl⟩)).prodMk
+      contMDiff_subtypeVal.contMDiffAt
 
 @[simp]
 theorem coe_blowdownDiffeomorph (p : offDivisorOpens n) :
@@ -754,10 +758,9 @@ theorem coe_blowdownDiffeomorph (p : offDivisorOpens n) :
   (rfl)
 
 @[simp]
-theorem blowdownDiffeomorph_symm_apply
-    (z : (⟨{z | z ≠ 0}, isOpen_ne⟩ : Opens (Fin (n + 1) → ℂ))) :
+theorem blowdownDiffeomorph_symm_apply (z : TauCeti.puncturedSpace (Fin (n + 1) → ℂ)) :
     ((blowdownDiffeomorph n).symm z : BlowupModel n) =
-      ofNeZero z.property :=
+      ofNeZero (TauCeti.mem_puncturedSpace.1 z.property) :=
   (rfl)
 
 end Blowdown
