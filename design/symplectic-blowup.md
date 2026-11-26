@@ -390,8 +390,9 @@ $B(\lambda)$.
   `sphereHopf_eq_sphereHopf_iff` (Hopf circles of the sphere of radius
   $\lambda$, after scaling).
 - `collapseHomeomorph`: the homeomorphism from the quotient of
-  `(ψ '' ball 0 λ)ᶜ` by the relation "equal, or both on the sphere with
-  the same `sphereHopf`" onto `WeightBlowup hψ hλ hε`.
+  `(ψ '' ball 0 λ)ᶜ` by `Setoid.ker (collapseMap hψ hλ hε)`, the relation
+  "equal, or both on the sphere with the same `sphereHopf`",
+  onto `WeightBlowup hψ hλ.le hε`.
 - `liouvilleMeasure_form_add`: the Liouville measure of the blowup plus
   that of $B(\lambda)$ for $\omega_0$ is that of `M`, in `ℝ≥0∞`: $Z$ is
   null, `complDivisorSymplectomorph` preserves the Liouville measure, and

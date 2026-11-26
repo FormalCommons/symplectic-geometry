@@ -61,8 +61,8 @@ are. The form of the completion of a Liouville domain, in the library's
 ## Main results
 
 * `SymplecticGeometry.GluedAlong.isOpenEmbedding_inl`, `isOpenEmbedding_inr`,
-  `range_inl_union_range_inr`, `exists_inl_or_exists_inr`, `inl_eq_inr_iff`: the topology of
-  the glued space.
+  `range_inl_union_range_inr`, `exists_inl_or_exists_inr`, `inl_eq_inr_iff`,
+  `isClosed_image_inl`: the topology of the glued space.
 * `SymplecticGeometry.GluedAlong.isLocalDiffeomorph_inl`, `isLocalDiffeomorph_inr`: the
   canonical maps are `C^n` local diffeomorphisms for the glued atlas.
 * `SymplecticGeometry.GluedAlong.desc_inl`, `desc_inr`, `continuousMap_ext`: continuous maps on `M₁`
@@ -234,6 +234,24 @@ when `x ∈ U₁` and `φ x = y`. -/
 theorem inr_eq_inl_iff {y : M₂} {x : M₁} :
     inr φ y = inl φ x ↔ ∃ h : x ∈ U₁, (φ ⟨x, h⟩ : M₂) = y :=
   eq_comm.trans (inl_eq_inr_iff φ)
+
+/-- The image in the glued space of a closed subset of `M₁` that does not meet the overlap `U₁`
+is closed. -/
+theorem isClosed_image_inl {S : Set M₁} (hS : IsClosed S) (hSU : Disjoint S U₁) :
+    IsClosed (inl φ '' S) := by
+  rw [← isOpen_compl_iff, isOpen_iff_forall_mem_open]
+  intro z hz
+  rcases exists_inl_or_exists_inr φ z with ⟨x, rfl⟩ | ⟨y, rfl⟩
+  · -- Near `inl x`, for `x ∉ S`: the open set `inl '' Sᶜ`.
+    refine ⟨inl φ '' Sᶜ, ?_, (isOpenEmbedding_inl φ).isOpenMap _ hS.isOpen_compl,
+      ⟨x, fun hx ↦ hz ⟨x, hx, rfl⟩, rfl⟩⟩
+    rintro _ ⟨x', hx', rfl⟩ ⟨x'', hx'', h⟩
+    exact hx' (inl_injective φ h ▸ hx'')
+  · -- Near `inr y`: the range of `inr`, which meets `inl '' S` only in the image of `U₁`.
+    refine ⟨range (inr φ), ?_, isOpen_range_inr φ, mem_range_self y⟩
+    rintro _ ⟨y', rfl⟩ ⟨x, hx, h⟩
+    obtain ⟨hxU, -⟩ := (inl_eq_inr_iff φ).1 h
+    exact hSU.notMem_of_mem_left hx hxU
 
 /-- A point of `U₁` and its image under `φ` have the same image in the glued space. -/
 @[simp]
