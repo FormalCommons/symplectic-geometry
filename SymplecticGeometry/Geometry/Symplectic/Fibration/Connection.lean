@@ -263,7 +263,7 @@ theorem IsVerticallyClosed.hasDerivAt_mpullback_comp_zero
     (Filter.Eventually.of_forall fun u ↦ Filter.Eventually.of_forall fun y ↦
       (timeDependentFlowOf_trans hc hX₁ s t u (ι y)).symm) hg
     (Filter.Eventually.of_forall fun u ↦ hφ t u _)
-    (hasDerivAt_mpullback_timeDependentFlowOf_self hX t (g x)
+    (hasDerivAt_mpullback_timeDependentFlowOf_self hX₁ t (g x)
       ((τ.isSmoothForm.contMDiff.mdifferentiable (by simp)) _))).congr_deriv ?_
   ext w
   rw [mpullback_apply]
