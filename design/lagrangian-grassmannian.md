@@ -253,15 +253,6 @@ file of that name, in the namespace `Matrix`, over `RCLike 𝕜`:
   `Matrix.coe_toEuclideanCLE`. `Action.lean` uses it for
   `isLagrangian_map_toEuclideanLin` and `ℒ.coe_smul_eq_map_toEuclideanCLE`.
 
-### `Analysis/Complex/Circle.lean`
-
-A general fact about Tau Ceti's `TauCeti.circleEquivUnitary`, beside Tau
-Ceti's file of that name, in the namespace `TauCeti`; it imports only Tau
-Ceti:
-
-- `TauCeti.circleEquivUnitary_smul` (`@[simp]`): for `[MulAction ℂ M]`,
-  `circleEquivUnitary z • x = (z : ℂ) • x`.
-
 ### `Analysis/Normed/Lp/PiLp.lean`
 
 A general fact about Mathlib's `LinearIsometryEquiv.piLpCongrLeft`, in the

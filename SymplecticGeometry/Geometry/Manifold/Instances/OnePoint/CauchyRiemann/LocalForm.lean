@@ -24,7 +24,6 @@ public import TauCeti.Analysis.Complex.Wirtinger.Weak
 import SymplecticGeometry.Analysis.Complex.Wirtinger.Similarity.Weak
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Analysis.Sobolev.W1p.ChangeOfVariables
-import TauCeti.Topology.DiscreteSubset
 import SymplecticGeometry.Topology.Connected.Clopen
 import TauCeti.Geometry.Manifold.VectorField.Regularity
 import TauCeti.MeasureTheory.Function.Jacobian
@@ -38,7 +37,7 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.Morrey
 This file reads the Cauchy–Riemann equation on `𝒪(1)` over the sphere `OnePoint ℂ` in charts:
 first for Sobolev sections in the charts of `twistCoreAtlas 1`, then for smooth sections in an
 isothermal chart, and last for Sobolev sections in an isothermal chart. From the smooth
-equation it also derives unique continuation and the finiteness of the zeros of a smooth
+equation it also derives unique continuation and the isolation of the zeros of a nonzero smooth
 kernel element, and from the last reading the regularity of the kernel of `D_J` on Sobolev
 sections of every order.
 
@@ -106,8 +105,9 @@ trivialization above, its coordinate is complex analytic, so near each point the
 vanishes identically or has no zero on a punctured neighbourhood, by Tau Ceti's
 `Bundle.Trivialization.eventually_eq_zero_or_eventually_ne_zero_of_eventually_eq_mul` (with the
 constant factor `1`). Since the sphere is connected, this dichotomy gives unique continuation
-(`PreconnectedSpace.eq_zero_of_eventually_eq_zero`); since it is also compact, a nonzero kernel
-element has finitely many zeros (`TauCeti.finite_setOf_eq_zero_of_forall_eventually`).
+(`PreconnectedSpace.eq_zero_of_eventually_eq_zero`); since it is also compact, Tau Ceti's
+`TauCeti.finite_setOf_eq_zero_of_forall_eventually` turns it into the finiteness of the zeros of
+a nonzero kernel element.
 
 ## Sobolev kernel elements in an isothermal chart
 
@@ -158,9 +158,8 @@ operator is the space `twistOneKernel J` of smooth solutions.
   neighbourhood.
 * `SymplecticGeometry.eq_zero_of_eventually_eq_zero_of_mem_twistOneKernel`: unique
   continuation.
-* `SymplecticGeometry.eventually_ne_zero_of_mem_twistOneKernel` and
-  `SymplecticGeometry.finite_setOf_eq_zero_of_mem_twistOneKernel`: the zeros of a nonzero smooth
-  kernel element are isolated, and finitely many.
+* `SymplecticGeometry.eventually_ne_zero_of_mem_twistOneKernel`: the zeros of a nonzero smooth
+  kernel element are isolated.
 * `SymplecticGeometry.exists_hasWeakConjWirtingerDerivOn_mul_of_twistOneDelBarSobolev_eq_zero`:
   the chart data of a Sobolev element of the kernel of `D_J`, read through an isothermal chart,
   satisfy the weak equation `∂v/∂w̄ = a v` with `a` smooth.
@@ -473,13 +472,6 @@ theorem eventually_ne_zero_of_mem_twistOneKernel {s : OnePoint ℂ → ℂ}
     ∀ᶠ y in 𝓝[≠] z, s y ≠ 0 :=
   (eventually_eq_zero_or_eventually_ne_zero_of_mem_twistOneKernel hs z).resolve_left
     fun h ↦ hs₀ (eq_zero_of_eventually_eq_zero_of_mem_twistOneKernel hs h)
-
-/-- **A nonzero smooth kernel element has finitely many zeros.** If `s ≠ 0` is a smooth section
-of `𝒪(1)` with `D_J s = 0`, then the zero set of `s` on the sphere is finite. -/
-theorem finite_setOf_eq_zero_of_mem_twistOneKernel {s : OnePoint ℂ → ℂ}
-    (hs : s ∈ twistOneKernel J) (hs₀ : s ≠ 0) : {y | s y = 0}.Finite :=
-  TauCeti.finite_setOf_eq_zero_of_forall_eventually
-    (eventually_eq_zero_or_eventually_ne_zero_of_mem_twistOneKernel hs) (Function.ne_iff.1 hs₀)
 
 /-- The coefficient of the weak equation in an isothermal chart is smooth: for a map `T` smooth on
 an open set `Ω` with values in the image of chart `i`, and the zeroth-order term `Γ` of the
