@@ -29,9 +29,10 @@ smooth embedding (`Manifold.IsSmoothEmbedding.of_opens`). Tau Ceti's
 `ContRepresentation.contMDiffConstSMul_mulActionOpens` is the case of a linear representation on
 an invariant open subset of its space.
 
-Pulling back along an equivariant smooth map keeps invariance of forms: if `f : N → M` is smooth
-and equivariant and a form on `M` is invariant under every `g • ·`, its pullback to `N` is
-invariant under every `g • ·` on `N`. Restricting to `U` is the case of the inclusion.
+Pulling back along a smooth map keeps invariance of forms, one element at a time: if
+`f : N → M` is smooth with `f (g • x) = g • f x` for some `g`, and a form on `M` is invariant
+under `g • ·`, then its pullback to `N` is invariant under `g • ·` on `N`. Restricting to `U` is
+the case of the inclusion.
 
 Equivariance passes to Tau Ceti's `PartialDiffeomorph.liftOpens`: if `G` acts on open subsets
 `U` and `V` with equivariant inclusions, the lift of a partial diffeomorphism from `U` to `V`
@@ -167,8 +168,8 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
   {G : Type*} [SMul G M] [ContMDiffConstSMul I ∞ G M]
 
-/-- Let `f : N → M` be a smooth map with `f (g • x) = g • f x` for one `g`, where `g • ·` is
-smooth on `M` and on `N`. If a smooth form `α` on `M` is invariant under pullback along `g • ·`,
+/-- Let `f : N → M` be a smooth map with `f (g • x) = g • f x` for one `g`, where every `g • ·`
+is smooth on `M` and on `N`. If a smooth form `α` on `M` is invariant under pullback along `g • ·`,
 then so is its pullback to `N` along `f`. -/
 theorem mpullback_smul_mpullback [SMul G N] [ContMDiffConstSMul I' ∞ G N] {f : N → M}
     (hf : ContMDiff I' I ∞ f) {g : G} (h : ∀ x : N, f (g • x) = g • f x)
