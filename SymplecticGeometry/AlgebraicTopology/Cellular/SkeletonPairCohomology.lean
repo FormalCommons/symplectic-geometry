@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.AlgebraicTopology.Cellular.Boundary
+public import TauCeti.AlgebraicTopology.Cellular.Dimension
 public import TauCeti.AlgebraicTopology.Cohomology.Additivity.Relative
 public import TauCeti.AlgebraicTopology.Cohomology.WeakHomotopyEquivalence
 
@@ -28,6 +29,9 @@ follows the proof of `TauCeti.TopCat.isLimitFanSingularCohomologyPreimageSkeleto
 the analogous statement for the preimages of the skeleta under a Serre fibration, with the
 identity map in place of the fibration.
 
+For an absolute CW complex, the `n`-skeleton has no cohomology above degree `n`, so the map
+`Hᵐ(Xⁿ⁺¹, Xⁿ) → Hᵐ(Xⁿ⁺¹)` from relative to absolute cohomology is onto for `m > n`.
+
 ## Main results
 
 * `TauCeti.isIso_singularCohomologyMap_characteristicPairMap`: the characteristic maps of the
@@ -36,6 +40,10 @@ identity map in place of the fibration.
   maps of the `n`-cells exhibit `Hᵐ(Xⁿ, Xⁿ⁻¹)` as the product of copies of `Hᵐ(Dⁿ, Sⁿ⁻¹)`.
 * `TauCeti.singularCohomology_skeletonPair_ext`: two classes of `Hᵐ(Xⁿ, Xⁿ⁻¹)` with the same
   pull-back along every characteristic map of an `n`-cell are equal.
+* `TauCeti.isZero_singularCohomology_skeletonObj_of_lt`: the `n`-skeleton of a CW complex has no
+  cohomology in degrees above `n`.
+* `TauCeti.surjective_singularCohomologyπ_skeletonPair`: every class of `Hᵐ(Xⁿ⁺¹)` with `m > n`
+  comes from `Hᵐ(Xⁿ⁺¹, Xⁿ)`.
 
 ## References
 
@@ -104,6 +112,32 @@ theorem singularCohomology_skeletonPair_ext {n m : ℕ}
     x = y :=
   Concrete.isLimit_ext _ (isLimitFanSingularCohomologySkeletonPair C R k M n m) x y
     fun ⟨j⟩ ↦ h j
+
+section Absolute
+
+variable {Y : Type u} [TopologicalSpace Y] [T2Space Y] (C : Set Y) [CWComplex C]
+  {k : Type v} [CommRing k] [∀ V : ModuleCat.{u} k, HasProjectiveDimensionLE V 1]
+  (R M : ModuleCat.{u} k) [Module.Projective k R]
+
+/-- The `n`-skeleton `Xⁿ` of a CW complex has no singular cohomology in degrees `m > n`, over a
+hereditary commutative ring `k` and for projective chain coefficients `R`. -/
+theorem isZero_singularCohomology_skeletonObj_of_lt {n m : ℕ} (hm : n < m) :
+    IsZero ((skeletonObj C (n + 1)).singularCohomology R k M m) := by
+  refine isZero_singularCohomology_of_isEmpty_cell_gt (skeletonLT C ((n + 1 : ℕ) : ℕ∞) : Set Y)
+    R M (d := n) (fun j hj ↦ ⟨fun x ↦ ?_⟩) hm
+  have := x.property
+  simp only [RelCWComplex.skeletonLT_I, Set.mem_ofPred_eq] at this
+  exact absurd this (by exact_mod_cast (by omega : ¬ j < n + 1))
+
+/-- For a CW complex with skeleta `Xⁿ` and `m > n`, the map `Hᵐ(Xⁿ⁺¹, Xⁿ) → Hᵐ(Xⁿ⁺¹)` from
+relative to absolute singular cohomology is surjective. -/
+theorem surjective_singularCohomologyπ_skeletonPair {n m : ℕ} (hm : n < m) :
+    Function.Surjective ((skeletonPair C (n + 1)).singularCohomologyπ R k M m) := by
+  rw [← ModuleCat.epi_iff_surjective]
+  exact ((skeletonPair C (n + 1)).singularCohomology_exact_space R k M m).epi_f
+    ((isZero_singularCohomology_skeletonObj_of_lt C R M hm).eq_of_tgt _ _)
+
+end Absolute
 
 end TauCeti
 
