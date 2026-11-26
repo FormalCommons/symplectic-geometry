@@ -13,6 +13,7 @@ public import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 public import SymplecticGeometry.Topology.FiberBundle.Basic
 public import SymplecticGeometry.Topology.VectorBundle.Coordinates
 public import TauCeti.Topology.VectorBundle.Coordinates
+import SymplecticGeometry.Topology.VectorBundle.Basic
 
 /-!
 # The polar formula on the bundles of bilinear forms and of endomorphisms
@@ -326,8 +327,8 @@ theorem contMDiff_compatibleBilinAt [∀ x, IsTopologicalAddGroup (V x)]
     (contDiff_fst.sub contDiff_snd).const_smul _
   refine (hd.comp_contMDiffAt ((hgC.clm_comp hbC).prodMk_space
     (hbC.clm_precomp.clm_comp hgC))).congr_of_eventuallyEq ?_
-  filter_upwards [(FiberBundle.continuous_proj _ _).continuousAt.preimage_mem_nhds
-    (e₀.open_baseSet.mem_nhds (FiberBundle.mem_baseSet_trivializationAt' x₀))] with q hq
+  filter_upwards [(FiberBundle.continuous_proj _ _).continuousAt
+    |>.eventually_mem_baseSet_trivializationAt F V] with q (hq : q.proj ∈ e₀.baseSet)
   ext u v
   simp [gC, bC, e₀, ContinuousLinearMap.inCoordinates_eq_bilinearCongr hq,
     ContinuousLinearMap.inCoordinates_eq_conjContinuousAlgEquiv hq,
