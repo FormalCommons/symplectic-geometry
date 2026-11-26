@@ -14,6 +14,7 @@ import SymplecticGeometry.Analysis.Polynomial.CircleAverageLog
 import SymplecticGeometry.MeasureTheory.Integral.Average
 import SymplecticGeometry.MeasureTheory.Integral.BallCircleAverage
 import SymplecticGeometry.Topology.Algebra.MvPolynomial
+import TauCeti.MeasureTheory.Integral.Average
 import TauCeti.MeasureTheory.Measure.Haar.Average
 import TauCeti.RingTheory.MvPolynomial.LineRestriction
 
@@ -52,6 +53,9 @@ plurisubharmonic. Here it is proved from one complex variable:
 * `MvPolynomial.integrableOn_log_norm_eval_ball`: for `P ≠ 0`, `log ‖P‖` is integrable on every
   ball. It is bounded above on a ball, and the bound above controls it from below on a ball whose
   centre is not a zero of `P`; every ball lies in such a ball.
+* `MvPolynomial.setAverage_log_norm_eval_le_of_ae_le`: for `P ≠ 0` and `r > 0`, a bound
+  `log ‖P‖ ≤ K` at almost every point of `Metric.ball c r` gives the same bound on the average
+  of `log ‖P‖` over the ball, by Tau Ceti's `TauCeti.average_mono_ae`.
 * `MvPolynomial.log_norm_eval_le_setAverage_ball`: if `P c ≠ 0`, then `log ‖P c‖` is at most the
   average of `log ‖P‖` over `Metric.ball c r`, for every `r > 0`.
   The lower-integral bound gives it through
@@ -211,6 +215,18 @@ theorem integrableOn_log_norm_eval_ball {P : MvPolynomial ι ℂ} (hP : P ≠ 0)
   exact (integrableOn_log_norm_eval_ball_of_eval_ne_zero hc'P
     fun z hz => hM z (ball_subset_closedBall hz)).2.mono_set hsub
 
+/-- For a nonzero complex polynomial `P` and `0 < r`, if `log ‖P‖ ≤ K` at almost every point of
+`Metric.ball c r`, then the average of `log ‖P‖` over the ball is at most `K`. -/
+theorem setAverage_log_norm_eval_le_of_ae_le {P : MvPolynomial ι ℂ} (hP : P ≠ 0)
+    {c : EuclideanSpace ℂ ι} {r K : ℝ} (hr : 0 < r)
+    (hK : ∀ᵐ z ∂volume.restrict (ball c r), Real.log ‖eval z.ofLp P‖ ≤ K) :
+    ⨍ z in ball c r, Real.log ‖eval z.ofLp P‖ ≤ K := by
+  have hfin : volume (ball c r) ≠ ∞ := measure_ball_lt_top.ne
+  calc ⨍ z in ball c r, Real.log ‖eval z.ofLp P‖ ≤ ⨍ _ in ball c r, K :=
+        TauCeti.average_mono_ae (integrableOn_log_norm_eval_ball hP c r)
+          (integrableOn_const hfin) hK
+    _ = K := setAverage_const (measure_ball_pos volume c hr).ne' hfin K
+
 /-- **Sub-mean value inequality for `log ‖P‖` over balls.** If a complex polynomial `P` on
 `EuclideanSpace ℂ ι` does not vanish at `c`, then `log ‖P c‖` is at most the average of
 `log ‖P‖` over `Metric.ball c r`, for every `r > 0`. -/
@@ -369,9 +385,8 @@ private theorem setLIntegral_ofReal_log_sub_circleAverage {P : MvPolynomial ι �
   have havg : ⨍ z in ball c ρ, (Real.log M - Real.log ‖eval z.ofLp P‖) =
       Real.log M - ⨍ z in ball c ρ, Real.log ‖eval z.ofLp P‖ := by
     rw [setAverage_fun_sub (integrableOn_const hfin) hu, setAverage_const hpos hfin]
-  refine ⟨?_, ?_⟩
-  · rw [← havg]
-    exact average_nonneg_of_ae (ae_restrict_of_forall_mem measurableSet_ball hnn)
+  refine ⟨sub_nonneg.2 (setAverage_log_norm_eval_le_of_ae_le hP hρ
+    (ae_restrict_of_forall_mem measurableSet_ball fun z hz => hM z (hsub hz))), ?_⟩
   have hmeas : Measurable fun z : EuclideanSpace ℂ ι =>
       ENNReal.ofReal (Real.log M - Real.log ‖eval z.ofLp P‖) := by
     fun_prop
