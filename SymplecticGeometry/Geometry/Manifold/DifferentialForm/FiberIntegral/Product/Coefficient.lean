@@ -47,10 +47,10 @@ for the derivative at `b`, in the direction `a`, of `b' ↦ β b' y`.
 * `TauCeti.isSmoothForm_mfderiv_family_apply`: for a smooth family over an oriented Hausdorff
   σ-compact `F`, `D` is a smooth `m`-form, since the partial derivative of the coefficient is
   smooth in `y` (`ContMDiffAt.fderiv_right`).
-* `TauCeti.mdifferentiableAt_integralTopForm` and `TauCeti.mfderiv_integralTopForm_apply`: for
-  `F` compact and Hausdorff, `b' ↦ ∫_F β b'` is differentiable at `b`, with derivative `∫_F D` in
-  the direction `a`. As in the proof of `TauCeti.contMDiff_integralTopForm`, the integral is that
-  of the coefficient against the Riemannian measure, and
+* `TauCeti.mfderiv_integralTopForm_apply`: for `F` compact and Hausdorff and a `C^n` family with
+  `1 ≤ n`, the derivative of `b' ↦ ∫_F β b'` at `b` in the direction `a` is `∫_F D`; that this
+  map is differentiable is `TauCeti.contMDiff_integralTopForm` with `P := U`. As in the proof
+  of that lemma, the integral is that of the coefficient against the Riemannian measure, and
   `TauCeti.hasFDerivAt_integral_of_contMDiffOn` differentiates it under the integral sign.
 
 These give the smoothness in the base of the fibre integral on a product `B × F`, as in Bott–Tu,
@@ -226,23 +226,22 @@ theorem isSmoothForm_mfderiv_family_apply [T2Space F] [SigmaCompactSpace F]
 
 variable [T2Space F] [CompactSpace F]
 
-/-- **Differentiation of the integrals of a smooth family of forms under the integral sign.** On
-a compact Hausdorff manifold `F` with an orientation `o`, let `β b` be an `m`-form on `F` for each
-`b` in an open subset `U` of a normed space `EB`, such that `(b, y) ↦ β b y` is a smooth section
-of the bundle of `m`-forms along `(b, y) ↦ y`. Then `b' ↦ ∫_F β b'` is differentiable at `b ∈ U`,
-and its derivative at `b` in each direction `a ∈ EB` is the integral over `F` of the `m`-form
-whose value at `y` is the derivative at `b`, in the direction `a`, of `b' ↦ β b' y`. -/
-theorem mdifferentiableAt_integralTopForm_and_mfderiv_integralTopForm_apply
+/-- **The derivative in the parameter passes under the integral.** On a compact Hausdorff
+manifold `F` with an orientation `o`, let `β b` be an `m`-form on `F` for each `b` in an open
+subset `U` of a normed space `EB`, such that `(b, y) ↦ β b y` is a `C^n` section of the bundle
+of `m`-forms along `(b, y) ↦ y`, with `1 ≤ n`. For `b ∈ U` and `a ∈ EB`, the derivative at `b`, in
+the direction `a`, of `b' ↦ ∫_F β b'` is the integral over `F` of the `m`-form whose value at `y`
+is the derivative at `b`, in the direction `a`, of `b' ↦ β b' y`. -/
+theorem mfderiv_integralTopForm_apply {n : WithTop ℕ∞} (hn : 1 ≤ n)
     (o : Manifold.Orientation J F (Fin m)) {β : U → RoughForm J F ℝ m}
-    (hβ : ContMDiff (𝓘(ℝ, EB).prod J) (J.prod 𝓘(ℝ, E [⋀^Fin m]→L[ℝ] ℝ)) ∞
+    (hβ : ContMDiff (𝓘(ℝ, EB).prod J) (J.prod 𝓘(ℝ, E [⋀^Fin m]→L[ℝ] ℝ)) n
       (fun q : U × F ↦ TotalSpace.mk' (E [⋀^Fin m]→L[ℝ] ℝ)
         (E := fun y : F ↦ TangentSpace J y [⋀^Fin m]→L[ℝ] Trivial F ℝ y) q.2 (β q.1 q.2)))
-    (b : U) :
-    MDifferentiableAt 𝓘(ℝ, EB) 𝓘(ℝ) (fun b' ↦ integralTopForm o (β b')) b ∧
-      ∀ a : EB, mfderiv 𝓘(ℝ, EB) 𝓘(ℝ) (fun b' ↦ integralTopForm o (β b')) b a =
-        integralTopForm o (fun y ↦ show E [⋀^Fin m]→L[ℝ] ℝ from
-          mfderiv 𝓘(ℝ, EB) 𝓘(ℝ, E [⋀^Fin m]→L[ℝ] ℝ)
-            (fun b' : U ↦ show E [⋀^Fin m]→L[ℝ] ℝ from β b' y) b a) := by
+    (b : U) (a : EB) :
+    mfderiv 𝓘(ℝ, EB) 𝓘(ℝ) (fun b' ↦ integralTopForm o (β b')) b a =
+      integralTopForm o (fun y ↦ show E [⋀^Fin m]→L[ℝ] ℝ from
+        mfderiv 𝓘(ℝ, EB) 𝓘(ℝ, E [⋀^Fin m]→L[ℝ] ℝ)
+          (fun b' : U ↦ show E [⋀^Fin m]→L[ℝ] ℝ from β b' y) b a) := by
   let : MeasurableSpace F := borel F
   have : BorelSpace F := ⟨rfl⟩
   obtain ⟨g⟩ := nonempty_contMDiffRiemannianMetric (IB := J) (n := ⊤) (F := E)
@@ -250,8 +249,10 @@ theorem mdifferentiableAt_integralTopForm_and_mfderiv_integralTopForm_apply
   let : RiemannianBundle (fun y : F ↦ TangentSpace J y) := ⟨g.toRiemannianMetric⟩
   have : IsContinuousRiemannianBundle E (fun y : F ↦ TangentSpace J y) :=
     IsContMDiffRiemannianBundle.toIsContinuousRiemannianBundle (IB := J) (n := ∞)
-  obtain ⟨c, hc, hβc⟩ := RoughForm.exists_contMDiffOn_opens_eq_smul_riemannianVolumeForm o hβ
-  have hc₁ : ContMDiffOn (𝓘(ℝ, EB).prod J) 𝓘(ℝ) 1 (uncurry c) (U ×ˢ univ) := hc.of_le (by simp)
+  have : IsContMDiffRiemannianBundle J 1 E (fun y : F ↦ TangentSpace J y) :=
+    IsContMDiffRiemannianBundle.of_le (n := ∞) (by exact_mod_cast le_top)
+  obtain ⟨c, hc, hβc⟩ :=
+    RoughForm.exists_contMDiffOn_opens_eq_smul_riemannianVolumeForm o (hβ.of_le hn)
   -- The integral of `β b'` for `b' ∈ U` is that of the coefficient against the volume.
   have hf : (fun b' : U ↦ integralTopForm o (β b')) =
       (fun z ↦ ∫ y, c z y ∂riemannianVolume J F) ∘ Subtype.val := funext fun b' ↦
@@ -260,56 +261,22 @@ theorem mdifferentiableAt_integralTopForm_and_mfderiv_integralTopForm_apply
         (hc.continuousOn.comp_continuous (Continuous.prodMk_right (b' : EB))
           fun y ↦ ⟨b'.property, mem_univ y⟩) (HasCompactSupport.of_compactSpace _)
   have hG := hasFDerivAt_integral_of_contMDiffOn (μ := riemannianVolume J F) U.isOpen
-    b.property hc₁
+    b.property hc
   have hd : Continuous fun y ↦ fderiv ℝ (fun z ↦ c z y) b :=
-    (continuousOn_fderiv_of_contMDiffOn U.isOpen isOpen_univ hc₁).comp_continuous
+    (continuousOn_fderiv_of_contMDiffOn U.isOpen isOpen_univ hc).comp_continuous
       (continuous_const.prodMk continuous_id) fun y ↦ ⟨b.property, mem_univ y⟩
   rw [hf]
-  refine ⟨Manifold.mdifferentiableAt_comp_subtype_val_iff.2
-    hG.differentiableAt.mdifferentiableAt, fun a ↦ ?_⟩
   refine (Manifold.mfderiv_comp_subtype_val_apply (J := 𝓘(ℝ, EB)) (I := 𝓘(ℝ)) (U := U)
     (f := fun z ↦ ∫ y, c z y ∂riemannianVolume J F) (x := b) a).trans ?_
   rw [hG.hasMFDerivAt.mfderiv]
   refine (ContinuousLinearMap.integral_apply
     (hd.integrable_of_hasCompactSupport (HasCompactSupport.of_compactSpace _)) a).trans ?_
   rw [funext fun y ↦ mfderiv_family_apply_eq_fderiv_smul _
-    (((hc₁.contMDiffAt ((U.isOpen.prod isOpen_univ).mem_nhds ⟨b.property, mem_univ y⟩)).comp
+    (((hc.contMDiffAt ((U.isOpen.prod isOpen_univ).mem_nhds ⟨b.property, mem_univ y⟩)).comp
       (b : EB) (contMDiffAt_id.prodMk contMDiffAt_const)).mdifferentiableAt
         one_ne_zero).differentiableAt (fun b' ↦ hβc b' y) a]
   exact (integralTopForm_smul_riemannianVolumeForm o (hd.clm_apply continuous_const)
     (HasCompactSupport.of_compactSpace _)).symm
-
-/-- **The integrals of a smooth family of forms are differentiable in the parameter.** On a
-compact Hausdorff manifold `F` with an orientation `o`, let `β b` be an `m`-form on `F` for each
-`b` in an open subset `U` of a normed space `EB`, such that `(b, y) ↦ β b y` is a smooth section
-of the bundle of `m`-forms along `(b, y) ↦ y`. Then `b' ↦ ∫_F β b'` is differentiable at every
-`b ∈ U`. -/
-theorem mdifferentiableAt_integralTopForm (o : Manifold.Orientation J F (Fin m))
-    {β : U → RoughForm J F ℝ m}
-    (hβ : ContMDiff (𝓘(ℝ, EB).prod J) (J.prod 𝓘(ℝ, E [⋀^Fin m]→L[ℝ] ℝ)) ∞
-      (fun q : U × F ↦ TotalSpace.mk' (E [⋀^Fin m]→L[ℝ] ℝ)
-        (E := fun y : F ↦ TangentSpace J y [⋀^Fin m]→L[ℝ] Trivial F ℝ y) q.2 (β q.1 q.2)))
-    (b : U) :
-    MDifferentiableAt 𝓘(ℝ, EB) 𝓘(ℝ) (fun b' ↦ integralTopForm o (β b')) b :=
-  (mdifferentiableAt_integralTopForm_and_mfderiv_integralTopForm_apply o hβ b).1
-
-/-- **The derivative in the parameter passes under the integral.** On a compact Hausdorff
-manifold `F` with an orientation `o`, let `β b` be an `m`-form on `F` for each `b` in an open
-subset `U` of a normed space `EB`, such that `(b, y) ↦ β b y` is a smooth section of the bundle
-of `m`-forms along `(b, y) ↦ y`. For `b ∈ U` and `a ∈ EB`, the derivative at `b`, in the
-direction `a`, of `b' ↦ ∫_F β b'` is the integral over `F` of the `m`-form whose value at `y` is
-the derivative at `b`, in the direction `a`, of `b' ↦ β b' y`. -/
-theorem mfderiv_integralTopForm_apply (o : Manifold.Orientation J F (Fin m))
-    {β : U → RoughForm J F ℝ m}
-    (hβ : ContMDiff (𝓘(ℝ, EB).prod J) (J.prod 𝓘(ℝ, E [⋀^Fin m]→L[ℝ] ℝ)) ∞
-      (fun q : U × F ↦ TotalSpace.mk' (E [⋀^Fin m]→L[ℝ] ℝ)
-        (E := fun y : F ↦ TangentSpace J y [⋀^Fin m]→L[ℝ] Trivial F ℝ y) q.2 (β q.1 q.2)))
-    (b : U) (a : EB) :
-    mfderiv 𝓘(ℝ, EB) 𝓘(ℝ) (fun b' ↦ integralTopForm o (β b')) b a =
-      integralTopForm o (fun y ↦ show E [⋀^Fin m]→L[ℝ] ℝ from
-        mfderiv 𝓘(ℝ, EB) 𝓘(ℝ, E [⋀^Fin m]→L[ℝ] ℝ)
-          (fun b' : U ↦ show E [⋀^Fin m]→L[ℝ] ℝ from β b' y) b a) :=
-  (mdifferentiableAt_integralTopForm_and_mfderiv_integralTopForm_apply o hβ b).2 a
 
 end Opens
 

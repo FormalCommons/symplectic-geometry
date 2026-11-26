@@ -26,9 +26,10 @@ This file shows that `D` is a smooth `m`-form on `F`
 base passes under the integral over the fibre. This holds for every `r` and `m`.
 
 These are the results of `FiberIntegral/Product/Coefficient.lean` on smooth families of forms
-over `U` (`TauCeti.isSmoothForm_mfderiv_family_apply`, `TauCeti.mdifferentiableAt_integralTopForm`,
-`TauCeti.mfderiv_integralTopForm_apply`), applied to the integrands along the constant vectors
-`u`. Those are jointly smooth by `SymplecticGeometry.contMDiff_prodFiberIntegrand`, since a
+over `U` (`TauCeti.isSmoothForm_mfderiv_family_apply`, `TauCeti.mfderiv_integralTopForm_apply`)
+and `TauCeti.contMDiff_integralTopForm`, applied to the integrands along the constant vectors
+`u`. Those are jointly smooth (`SymplecticGeometry.contMDiff_prodFiberIntegrand_const`) by
+`SymplecticGeometry.contMDiff_prodFiberIntegrand`, since a
 constant vector field on `E` is smooth (`TauCeti.contMDiff_tangentBundle_mk_const`) and so is its
 restriction to `U` (`TauCeti.Manifold.contMDiffAt_tangentBundle_opens_iff`).
 
@@ -55,6 +56,20 @@ variable {E E' H' F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   {J : ModelWithCorners ℝ E' H'} [TopologicalSpace F] [ChartedSpace H' F] [IsManifold J ∞ F]
   {U : Opens E} {r m : ℕ}
 
+/-- **The integrand along constant vectors is jointly smooth.** Let `α` be a `C^n` form of degree
+`r + m` on `U × F`. For `u₁, …, uᵣ ∈ E`, the integrands `prodFiberIntegrand α b u`, as `b` runs
+over `U`, form a `C^n` section of the bundle of `m`-forms on `F` along `(b, y) ↦ y`. -/
+theorem contMDiff_prodFiberIntegrand_const {n : WithTop ℕ∞}
+    {α : RoughForm (𝓘(ℝ, E).prod J) (U × F) ℝ (r + m)} (hα : IsSmoothForm (𝓘(ℝ, E).prod J) n α)
+    (u : Fin r → E) :
+    ContMDiff (𝓘(ℝ, E).prod J) (J.prod 𝓘(ℝ, E' [⋀^Fin m]→L[ℝ] ℝ)) n
+      (fun q : U × F ↦ TotalSpace.mk' (E' [⋀^Fin m]→L[ℝ] ℝ)
+        (E := fun y : F ↦ TangentSpace J y [⋀^Fin m]→L[ℝ] Trivial F ℝ y) q.2
+        (prodFiberIntegrand α q.1 u q.2)) :=
+  contMDiff_prodFiberIntegrand (g := id) hα contMDiff_id fun i b ↦
+    Manifold.contMDiffAt_tangentBundle_opens_iff.2
+      ((contMDiff_tangentBundle_mk_const (u i) (b : E)).comp b contMDiff_subtypeVal.contMDiffAt)
+
 /-- **The base derivative of the integrand is a smooth form.** Let `F` be Hausdorff and
 σ-compact, with an orientation `o`, and let `α` be a smooth form of degree `r + m` on `U × F`.
 For `b ∈ U` and `a, u₁, …, uᵣ ∈ E`, the `m`-form on `F` whose value at `y` is the derivative at
@@ -65,10 +80,7 @@ theorem isSmoothForm_mfderiv_prodFiberIntegrand [T2Space F] [SigmaCompactSpace F
     IsSmoothForm J ∞ (fun y ↦ show E' [⋀^Fin m]→L[ℝ] ℝ from
       mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E' [⋀^Fin m]→L[ℝ] ℝ)
         (fun b' : U ↦ show E' [⋀^Fin m]→L[ℝ] ℝ from prodFiberIntegrand α.val b' u y) b a) :=
-  isSmoothForm_mfderiv_family_apply o (contMDiff_prodFiberIntegrand (g := id) α.isSmoothForm
-    contMDiff_id fun i b ↦ Manifold.contMDiffAt_tangentBundle_opens_iff.2
-      ((contMDiff_tangentBundle_mk_const (u i) (b : E)).comp b contMDiff_subtypeVal.contMDiffAt))
-    b a
+  isSmoothForm_mfderiv_family_apply o (contMDiff_prodFiberIntegrand_const α.isSmoothForm u) b a
 
 section Integral
 
@@ -83,10 +95,8 @@ theorem mdifferentiableAt_integralTopForm_prodFiberIntegrand
     (u : Fin r → E) (b : U) :
     MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ)
       (fun b' : U ↦ integralTopForm o (prodFiberIntegrand α.val b' u)) b :=
-  mdifferentiableAt_integralTopForm o (contMDiff_prodFiberIntegrand (g := id) α.isSmoothForm
-    contMDiff_id fun i b ↦ Manifold.contMDiffAt_tangentBundle_opens_iff.2
-      ((contMDiff_tangentBundle_mk_const (u i) (b : E)).comp b contMDiff_subtypeVal.contMDiffAt))
-    b
+  (contMDiff_integralTopForm o (contMDiff_prodFiberIntegrand_const α.isSmoothForm u)
+    b).mdifferentiableAt (by simp)
 
 /-- **Differentiation of the fibre integral under the integral sign.** Let `F` be compact and
 Hausdorff, with an orientation `o`, and let `α` be a smooth form of degree `r + m` on `U × F`.
@@ -100,9 +110,7 @@ theorem mfderiv_integralTopForm_prodFiberIntegrand_apply
       integralTopForm o (fun y ↦ show E' [⋀^Fin m]→L[ℝ] ℝ from
         mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E' [⋀^Fin m]→L[ℝ] ℝ)
           (fun b' : U ↦ show E' [⋀^Fin m]→L[ℝ] ℝ from prodFiberIntegrand α.val b' u y) b a) :=
-  mfderiv_integralTopForm_apply o (contMDiff_prodFiberIntegrand (g := id) α.isSmoothForm
-    contMDiff_id fun i b ↦ Manifold.contMDiffAt_tangentBundle_opens_iff.2
-      ((contMDiff_tangentBundle_mk_const (u i) (b : E)).comp b contMDiff_subtypeVal.contMDiffAt))
+  mfderiv_integralTopForm_apply (by simp) o (contMDiff_prodFiberIntegrand_const α.isSmoothForm u)
     b a
 
 end Integral
