@@ -7,15 +7,19 @@ module
 
 public import Mathlib.Geometry.Manifold.IsManifold.InteriorBoundary
 public import TauCeti.Geometry.Manifold.GroupAction.CompactLinearization
+public import TauCeti.Geometry.Manifold.Riemannian.Isometry.FixedPoints.Submanifold
 import SymplecticGeometry.Geometry.Manifold.GroupAction.BoundarylessModel
+import TauCeti.Geometry.Manifold.Riemannian.Invariant
 import TauCeti.Topology.OpenPartialHomeomorph.Continuity
 
 /-!
-# Fixed tangent vectors at fixed points of compact group actions
+# Fixed points of compact group actions
 
-Let a compact group `G` act smoothly on a manifold `M` without boundary, and let `x` be a fixed
-point. If the derivatives at `x` of the maps `g • ·` all fix a nonzero tangent vector `v`, then
-`x` is not isolated among the fixed points of `G`.
+This file proves two facts about the fixed set of a compact group acting smoothly on a manifold.
+
+**Nearby fixed points.** Let a compact group `G` act smoothly on a manifold `M` without boundary,
+and let `x` be a fixed point. If the derivatives at `x` of the maps `g • ·` all fix a nonzero
+tangent vector `v`, then `x` is not isolated among the fixed points of `G`.
 
 The proof reads the action in the linearizing chart `e` of Tau Ceti's
 `TauCeti.exists_contMDiff_chart_fixedPoints`, in which the fixed points near `x` are the points
@@ -31,25 +35,40 @@ have boundary, the action is carried to the copy `TauCeti.BoundarylessModel I M`
 to its image under the derivative of the identity diffeomorphism
 `TauCeti.BoundarylessModel.interiorDiffeomorph`, and the fixed points found there back to `M`.
 
+**Fixed components.** Let a compact Lie group `G` act smoothly on a σ-compact manifold `M`
+without boundary, modelled on a finite-dimensional space, and let `K` be any subgroup of `G`.
+Each connected component of the fixed set `M^K` is an embedded submanifold, whose tangent space
+at each point is the fixed tangent subspace `TauCeti.fixedTangentSubspace I K` there. Tau Ceti
+proves this for a group acting by isometries of a Riemannian metric
+(`TauCeti.exists_isSmoothEmbedding_connectedComponentIn_fixedPoints`). Here no metric appears in
+the statement: `G`, and with it `K`, preserves the Haar average of a smooth metric
+(`TauCeti.of_forall_riemannianBundle_inner_mfderiv`).
+
 ## Main results
 
 * `SymplecticGeometry.frequently_mem_fixedPoints_of_mfderiv_smul_eq_self`: a nonzero tangent
   vector at a fixed point `x` fixed by the derivatives of the action gives fixed points other
   than `x` in every neighbourhood of `x`.
+* `SymplecticGeometry.exists_isSmoothEmbedding_connectedComponentIn_fixedPoints_of_compactSpace`:
+  the connected components of the fixed set of a subgroup of a compact Lie group are embedded
+  submanifolds, with tangent spaces the fixed tangent subspaces.
 
 ## References
 
 * S. Bochner, *Compact groups of differentiable transformations*, Ann. of Math. (2) 46 (1945),
   372–381.
+* S. Kobayashi, *Fixed points of isometries*, Nagoya Mathematical Journal 13 (1958), 63–68.
 * J. J. Duistermaat and J. A. C. Kolk, *Lie Groups*, Universitext, Springer, 2000, Section 2.2.
 -/
 
 public section
 
-open Filter Topology MulAction TauCeti
+open Filter Topology MulAction TauCeti Manifold
 open scoped Manifold ContDiff
 
 namespace SymplecticGeometry
+
+section NearbyFixedPoints
 
 variable {E H M EG HG G : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M]
@@ -130,6 +149,42 @@ theorem frequently_mem_fixedPoints_of_mfderiv_smul_eq_self [BoundarylessManifold
   rw [← Φ.coe_toHomeomorph, ← Φ.toHomeomorph.map_punctured_nhds_eq, frequently_map] at h
   exact h.mono fun y hy g ↦
     Φ.injective ((BoundarylessModel.interiorDiffeomorph_smul I n g y).trans (hy g))
+
+end NearbyFixedPoints
+
+section FixedComponents
+
+variable {E H M EG HG G : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless] [TopologicalSpace M]
+  [ChartedSpace H M] [IsManifold I ∞ M] [T2Space M] [SigmaCompactSpace M]
+  [NormedAddCommGroup EG] [NormedSpace ℝ EG] [TopologicalSpace HG]
+  {IG : ModelWithCorners ℝ EG HG} [TopologicalSpace G] [ChartedSpace HG G] [Group G]
+  [IsTopologicalGroup G] [CompactSpace G] [T2Space G] [IsManifold IG ∞ G] [MulAction G M]
+  [ContMDiffSMul IG I ∞ G M]
+
+variable (IG) in
+include IG in
+/-- **The fixed components of a subgroup of a compact Lie group are embedded submanifolds.** Let a
+compact Lie group `G` act smoothly on a σ-compact manifold `M` without boundary, let `K` be a
+subgroup of `G`, and let `x` be a fixed point of `K`. For a subspace `L` of the model whose
+dimension is that of the fixed tangent subspace of `K` at `x`, the connected component of the
+fixed set of `K` through `x` is a smooth manifold modelled on `L`, whose inclusion into `M` is a
+smooth embedding with tangent image the fixed tangent subspace of `K` at every point. -/
+theorem exists_isSmoothEmbedding_connectedComponentIn_fixedPoints_of_compactSpace
+    (K : Subgroup G) {x : M} (hx : x ∈ fixedPoints K M) {L : Submodule ℝ E}
+    (hL : Module.finrank ℝ L = Module.finrank ℝ (fixedTangentSubspace I K x)) :
+    ∃ C : ChartedSpace L (connectedComponentIn (fixedPoints K M) x), letI := C
+      IsManifold 𝓘(ℝ, L) ∞ (connectedComponentIn (fixedPoints K M) x) ∧
+      IsSmoothEmbedding 𝓘(ℝ, L) I ∞
+        (Subtype.val : connectedComponentIn (fixedPoints K M) x → M) ∧
+      ∀ y : connectedComponentIn (fixedPoints K M) x,
+        LinearMap.range (mfderiv 𝓘(ℝ, L) I Subtype.val y).toLinearMap =
+          fixedTangentSubspace I K (y : M) := by
+  have : ContMDiffConstSMul I ∞ G M := ContMDiffSMul.contMDiffConstSMul IG
+  refine of_forall_riemannianBundle_inner_mfderiv (I := I) (M := M) IG G fun hG ↦ ?_
+  exact exists_isSmoothEmbedding_connectedComponentIn_fixedPoints (K := K) (fun k ↦ hG k) hx hL
+
+end FixedComponents
 
 end SymplecticGeometry
 
