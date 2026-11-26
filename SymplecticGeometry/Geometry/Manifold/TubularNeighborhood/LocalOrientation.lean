@@ -21,7 +21,9 @@ bundle `ν` of model fibre `P`, and let `Φ` be a normalized tube of `f`
 open set `W` of `X`. Fix `z : Z` and let `e` be the preferred trivialization of `ν` at `z`.
 Reading the inverse of `Φ` in the preferred chart of the total space at `0_z`, which is `e`
 followed by the chart of `Z` at `z` on the base, and putting the normal coordinate first, gives a
-chart `normalTubeChart Φ z : X → P × E` of `X` around `f z`.
+chart `normalTubeChart Φ z : X → P × E` of `X` around `f z`. Its inverse applies `Φ` to the
+inverse of the chart of the total space at `0_z` (`normalTubeChart_symm_apply`), and its source
+and target are described by `mem_normalTubeChart_source_iff` and `normalTubeChart_target`.
 
 Read in the chart of `X` at `f z`, this chart has derivative `normalTubeChartDeriv Φ z` at `f z`
 (`hasFDerivAt_normalTubeChart`): the inverse of the differential of `Φ` at `0_z`, with the
@@ -112,33 +114,89 @@ def normalTubeChart
 variable (Φ : letI := f.normalSpaceFiberBundle hn hdim
   TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W) (z : Z)
 
-omit [I.Boundaryless] [J.Boundaryless] in
-private theorem tubeOPH_symm_apply (x : W) :
+omit [J.Boundaryless] in
+/-- The chart of the tube at `z` is the inverse of `Φ`, as an open partial homeomorphism onto
+`W`, followed by the chart of the total space at `0_z`, the model embedding of `I.prod 𝓘(ℝ, P)`
+and the exchange of factors. -/
+theorem normalTubeChart_def :
     letI := f.normalSpaceFiberBundle hn hdim
-    (tubeOPH Φ z).symm x = Φ.symm x := by
+    normalTubeChart Φ z =
+      ((Φ.toHomeomorph.toOpenPartialHomeomorph.trans
+        (W.openPartialHomeomorphSubtypeCoe ⟨Φ (zeroSection P _ z)⟩)).symm.trans
+          (chartAt (ModelProd H P) (zeroSection P _ z))).trans
+        (((I.prod 𝓘(ℝ, P)).toHomeomorph.trans
+          (Homeomorph.prodComm E P)).toOpenPartialHomeomorph) :=
+  (rfl)
+
+omit [I.Boundaryless] [J.Boundaryless] in
+private theorem tubeOPH_symm_apply {x : X} (hx : x ∈ W) :
+    letI := f.normalSpaceFiberBundle hn hdim
+    (tubeOPH Φ z).symm x = Φ.symm ⟨x, hx⟩ := by
   let := f.normalSpaceFiberBundle hn hdim
-  have hT : tubeOPH Φ z (Φ.symm x) = x := by simp [tubeOPH]
-  rw [← hT, (tubeOPH Φ z).left_inv (by simp [tubeOPH])]
+  have hT : tubeOPH Φ z (Φ.symm ⟨x, hx⟩) = x := by simp [tubeOPH]
+  nth_rw 1 [← hT]
+  exact (tubeOPH Φ z).left_inv (by simp [tubeOPH])
+
+omit [J.Boundaryless] in
+/-- The inverse of the chart of the tube at `z` reads a point of `P × E`, factors exchanged, in
+the inverse of the extended chart of the total space at `0_z`, and applies `Φ`. -/
+theorem normalTubeChart_symm_apply (y : P × E) :
+    letI := f.normalSpaceFiberBundle hn hdim
+    (normalTubeChart Φ z).symm y =
+      Φ ((extChartAt (I.prod 𝓘(ℝ, P)) (zeroSection P _ z)).symm y.swap) := by
+  let := f.normalSpaceFiberBundle hn hdim
+  simp only [normalTubeChart_def, extChartAt_coe_symm]
+  simp
+
+omit [J.Boundaryless] in
+/-- A point `x` of `X` is in the source of the chart of the tube at `z` if and only if it lies in
+`W` and `Φ⁻¹ x` lies in the source of the extended chart of the total space at `0_z`. -/
+theorem mem_normalTubeChart_source_iff {x : X} :
+    letI := f.normalSpaceFiberBundle hn hdim
+    x ∈ (normalTubeChart Φ z).source ↔
+      ∃ hx : x ∈ W, Φ.symm ⟨x, hx⟩ ∈ (extChartAt (I.prod 𝓘(ℝ, P)) (zeroSection P _ z)).source := by
+  let := f.normalSpaceFiberBundle hn hdim
+  have hT : (tubeOPH Φ z).target = W := by ext; simp [tubeOPH]
+  simp only [normalTubeChart, OpenPartialHomeomorph.trans_source, OpenPartialHomeomorph.symm_source,
+    hT, mem_inter_iff, mem_preimage, Homeomorph.toOpenPartialHomeomorph_source, extChartAt_source,
+    mem_univ, and_true]
+  exact ⟨fun ⟨hx, h⟩ ↦ ⟨hx, tubeOPH_symm_apply Φ z hx ▸ h⟩,
+    fun ⟨hx, h⟩ ↦ ⟨hx, (tubeOPH_symm_apply Φ z hx).symm ▸ h⟩⟩
+
+omit [J.Boundaryless] in
+/-- The target of the chart of the tube at `z` is the target of the extended chart of the total
+space at `0_z`, factors exchanged. -/
+theorem normalTubeChart_target :
+    letI := f.normalSpaceFiberBundle hn hdim
+    (normalTubeChart Φ z).target =
+      Prod.swap ⁻¹'
+        (extChartAt (I.prod 𝓘(ℝ, P)) (zeroSection P (fun x ↦ f.NormalSpace x hn) z)).target := by
+  let := f.normalSpaceFiberBundle hn hdim
+  ext y
+  simp only [normalTubeChart_def, extChartAt_target, ModelWithCorners.range_eq_univ, inter_univ]
+  simp
 
 omit [J.Boundaryless] in
 /-- On `W`, the chart of the tube at `z` reads `Φ⁻¹` in the extended chart of the total space at
 `0_z`, with the two factors exchanged. -/
-theorem normalTubeChart_apply (x : W) :
+theorem normalTubeChart_apply {x : X} (hx : x ∈ W) :
     letI := f.normalSpaceFiberBundle hn hdim
-    normalTubeChart Φ z x = (extChartAt (I.prod 𝓘(ℝ, P)) (zeroSection P _ z) (Φ.symm x)).swap := by
+    normalTubeChart Φ z x =
+      (extChartAt (I.prod 𝓘(ℝ, P)) (zeroSection P _ z) (Φ.symm ⟨x, hx⟩)).swap := by
   let := f.normalSpaceFiberBundle hn hdim
-  refine Prod.ext ?_ ?_ <;> simp [normalTubeChart, tubeOPH_symm_apply]
+  refine Prod.ext ?_ ?_ <;> simp [normalTubeChart, tubeOPH_symm_apply Φ z hx]
 
 omit [J.Boundaryless] in
 /-- On `W`, the chart of the tube at `z` is `Φ⁻¹`, followed by the preferred trivialization `e`
 of the normal bundle at `z` and the chart of `Z` at `z` on the base, the normal coordinate
 first. -/
-theorem normalTubeChart_apply_eq (x : W) :
+theorem normalTubeChart_apply_eq {x : X} (hx : x ∈ W) :
     letI := f.normalSpaceFiberBundle hn hdim
-    normalTubeChart Φ z x = ((trivializationAt P (fun x ↦ f.NormalSpace x hn) z (Φ.symm x)).2,
-      extChartAt I z (trivializationAt P (fun x ↦ f.NormalSpace x hn) z (Φ.symm x)).1) := by
+    normalTubeChart Φ z x =
+      ((trivializationAt P (fun x ↦ f.NormalSpace x hn) z (Φ.symm ⟨x, hx⟩)).2,
+        extChartAt I z (trivializationAt P (fun x ↦ f.NormalSpace x hn) z (Φ.symm ⟨x, hx⟩)).1) := by
   let := f.normalSpaceFiberBundle hn hdim
-  rw [normalTubeChart_apply, FiberBundle.extChartAt]
+  rw [normalTubeChart_apply Φ z hx, FiberBundle.extChartAt]
   simp
 
 omit [I.Boundaryless] [J.Boundaryless] in
@@ -160,11 +218,9 @@ omit [J.Boundaryless] in
 theorem mem_normalTubeChart_source (hΦ : f.IsNormalizedTube hn hdim Φ) :
     f z ∈ (normalTubeChart Φ z).source := by
   let := f.normalSpaceFiberBundle hn hdim
-  have hzW := mem_of_isNormalizedTube Φ z hΦ
-  have h0 : (tubeOPH Φ z).symm (f z) = zeroSection P _ z := by
-    rw [show f z = ((⟨f z, hzW⟩ : W) : X) from rfl, tubeOPH_symm_apply, symm_eq_zeroSection Φ z hΦ]
-  have hT : f z ∈ (tubeOPH Φ z).target := by simpa [tubeOPH] using hzW
-  simp [normalTubeChart, h0, hT]
+  refine (mem_normalTubeChart_source_iff Φ z).2 ⟨mem_of_isNormalizedTube Φ z hΦ, ?_⟩
+  rw [symm_eq_zeroSection Φ z hΦ]
+  exact mem_extChartAt_source _
 
 omit [J.Boundaryless] in
 /-- The chart of a normalized tube at `z` sends `f z` to `(0, u)`, where `u` is the coordinate of
@@ -173,8 +229,7 @@ theorem normalTubeChart_self (hΦ : f.IsNormalizedTube hn hdim Φ) :
     normalTubeChart Φ z (f z) = (0, extChartAt I z z) := by
   let := f.normalSpaceFiberBundle hn hdim
   have := f.normalSpaceVectorBundle hn hdim
-  rw [show f z = ((⟨f z, mem_of_isNormalizedTube Φ z hΦ⟩ : W) : X) from rfl,
-    normalTubeChart_apply_eq, symm_eq_zeroSection Φ z hΦ,
+  rw [normalTubeChart_apply_eq Φ z (mem_of_isNormalizedTube Φ z hΦ), symm_eq_zeroSection Φ z hΦ,
     (trivializationAt P (fun x ↦ f.NormalSpace x hn) z).zeroSection ℝ
       (mem_baseSet_trivializationAt P _ z)]
 
@@ -233,24 +288,6 @@ theorem normalClassL_normalTubeChartDeriv_symm_apply (hΦ : f.IsNormalizedTube h
   rw [normalTubeChartDeriv_symm_apply]
   exact hΦ.normalClassL_mfderiv_zeroSection z (u, w)
 
-omit [J.Boundaryless] in
-/-- The tube undoes its chart: read in the chart of the total space at `0_z`, the inverse of `Φ`
-on the source of `normalTubeChart Φ z` is inverted by `Φ`. -/
-private theorem tube_extChartAt_symm_normalTubeChart {q : X}
-    (hq : q ∈ (normalTubeChart Φ z).source) :
-    letI := f.normalSpaceFiberBundle hn hdim
-    (Φ ((extChartAt (I.prod 𝓘(ℝ, P)) (zeroSection P _ z)).symm
-      (normalTubeChart Φ z q).swap) : X) = q := by
-  let := f.normalSpaceFiberBundle hn hdim
-  simp only [normalTubeChart, OpenPartialHomeomorph.trans_source, OpenPartialHomeomorph.symm_source,
-    mem_inter_iff, mem_preimage] at hq
-  have hqW : q ∈ W := by simpa [tubeOPH] using hq.1.1
-  have h1 := hq.1.2
-  rw [show q = ((⟨q, hqW⟩ : W) : X) from rfl, tubeOPH_symm_apply] at h1
-  rw [show q = ((⟨q, hqW⟩ : W) : X) from rfl, normalTubeChart_apply, Prod.swap_swap,
-    (extChartAt (I.prod 𝓘(ℝ, P)) (zeroSection P _ z)).left_inv (by rwa [extChartAt_source]),
-    Diffeomorph.apply_symm_apply]
-
 /-- **The derivative of a normalized tube in a chart.** Read in the chart of `X` at `f z`, the
 chart `normalTubeChart Φ z` of a normalized tube has derivative `normalTubeChartDeriv Φ z` at
 `f z`. -/
@@ -279,8 +316,7 @@ theorem hasFDerivAt_normalTubeChart (hΦ : f.IsNormalizedTube hn hdim Φ) :
     rfl
   have hψ : ContinuousLinearEquiv.prodComm ℝ P E (ψ (f z)) =
       extChartAt (I.prod 𝓘(ℝ, P)) p₀ p₀ := by
-    rw [show f z = ((⟨f z, mem_of_isNormalizedTube Φ z hΦ⟩ : W) : X) from rfl,
-      normalTubeChart_apply, symm_eq_zeroSection Φ z hΦ]
+    rw [normalTubeChart_apply Φ z (mem_of_isNormalizedTube Φ z hΦ), symm_eq_zeroSection Φ z hΦ]
     simp [p₀]
   rw [← hψ] at h1
   have h2 : HasFDerivAt (writtenInExtChartAt (I.prod 𝓘(ℝ, P)) J p₀ (fun p ↦ (Φ p : X)) ∘
@@ -298,7 +334,7 @@ theorem hasFDerivAt_normalTubeChart (hΦ : f.IsNormalizedTube hn hdim Φ) :
     (continuousAt_extChartAt_symm (I := J) (f z)).preimage_mem_nhds
       (by rw [extChartAt_to_inv]; exact ψ.open_source.mem_nhds hsrc)] with y hy hy'
   simp only [Function.comp_apply, writtenInExtChartAt, ContinuousLinearEquiv.prodComm_apply]
-  rw [tube_extChartAt_symm_normalTubeChart Φ z hy', hz]
+  rw [← normalTubeChart_symm_apply, ψ.left_inv hy', hz]
   exact (extChartAt J (f z)).right_inv hy
 
 omit [I.Boundaryless] [J.Boundaryless] in
