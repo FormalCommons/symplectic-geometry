@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.RestrictsTo
+public import SymplecticGeometry.LinearAlgebra.BilinearForm.Nondegenerate
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 
 /-!
@@ -129,13 +130,8 @@ every vertical vector is zero. One side suffices, since `τ` is alternating. -/
 theorem isVerticallyNondegenerate_iff_forall :
     IsVerticallyNondegenerate IB proj τ ↔
       ∀ x, ∀ u ∈ (mfderiv IM IB proj x).ker,
-        (∀ w ∈ (mfderiv IM IB proj x).ker, τ.bilinFormAt x u w = 0) → u = 0 := by
-  refine forall_congr' fun x ↦ ?_
-  have hrefl : ((τ.bilinFormAt x).restrict (mfderiv IM IB proj x).ker).IsRefl :=
-    (SmoothForm.isAlt_bilinFormAt τ x).isRefl.domRestrict _
-  refine hrefl.nondegenerate_iff_separatingLeft.trans ?_
-  exact ⟨fun h u hu hw ↦ congrArg Subtype.val (h ⟨u, hu⟩ fun w ↦ hw w w.property),
-    fun h u hu ↦ Subtype.ext (h u u.property fun w hw ↦ hu ⟨w, hw⟩)⟩
+        (∀ w ∈ (mfderiv IM IB proj x).ker, τ.bilinFormAt x u w = 0) → u = 0 :=
+  forall_congr' fun x ↦ (SmoothForm.isAlt_bilinFormAt τ x).isRefl.nondegenerate_restrict_iff
 
 /-- **The fibres of a vertically nondegenerate form.** Let `e` be a trivialization of `proj`
 that is smooth with smooth inverse, `M` being finite-dimensional. If `τ` is vertically
