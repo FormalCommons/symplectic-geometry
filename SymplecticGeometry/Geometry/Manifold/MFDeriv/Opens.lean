@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Geometry.Manifold.MFDeriv.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
+import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 import Mathlib.Geometry.Manifold.ContMDiff.Basic
 
 /-!
@@ -62,8 +63,8 @@ theorem mfderiv_apply_of_subtype_val_comp_eventuallyEq {U : Opens M} {V : Opens 
     {A : M → M'} {x : U} (hcomp : Subtype.val ∘ f =ᶠ[𝓝 x] A ∘ Subtype.val)
     (v : TangentSpace I x) :
     mfderiv I I' f x v = mfderiv I I' A x v := by
-  rw [← mfderiv_subtype_val_comp_apply, hcomp.mfderiv_eq]
-  -- `tangentSpaceCast` is the identity of the model space, and Mathlib states no lemma for it.
+  rw [← mfderiv_subtype_val_comp_apply, hcomp.mfderiv_eq, ContinuousLinearMap.comp_apply,
+    ContinuousLinearEquiv.coe_coe, tangentSpaceCast_apply]
   exact mfderiv_comp_subtype_val_apply v
 
 end TauCeti.Manifold
