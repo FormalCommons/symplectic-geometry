@@ -120,14 +120,6 @@ theorem whitneyQuarterTurn_comp_self (A : FiniteRankBundleCore 𝕜 B) :
     whitneyQuarterTurn A ≫ whitneyQuarterTurn A = -𝟙 _ :=
   whitneySum_hom_ext (by simp) (by simp)
 
-theorem fiberMap_whitneyQuarterTurn_fiberMap_whitneyQuarterTurn (A : FiniteRankBundleCore 𝕜 B)
-    (x : B) (v : Fin (whitneySum A A).rank → 𝕜) :
-    (whitneyQuarterTurn A).fiberMap x ((whitneyQuarterTurn A).fiberMap x v) = -v := by
-  have h := DFunLike.congr_fun (congrArg (fun f ↦ VectorBundleCore.CoordinateHom.fiberMap f x)
-    (whitneyQuarterTurn_comp_self A)) v
-  simp only [fiberMap_comp, fiberMap_neg, fiberMap_id] at h
-  exact h
-
 /-- Conjugating a block-diagonal map by the quarter turn swaps its blocks. -/
 theorem whitneyQuarterTurn_comp_whitneyMap_comp_neg {A D : FiniteRankBundleCore 𝕜 B}
     (f g : A ⟶ D) :
@@ -142,21 +134,13 @@ def whitneyRotation (A : FiniteRankBundleCore 𝕜 B) (c s : C(B, 𝕜)) (h : c 
   hom := c • 𝟙 _ + s • whitneyQuarterTurn A
   inv := c • 𝟙 _ - s • whitneyQuarterTurn A
   hom_inv_id := by
-    have hx (x : B) : c x ^ 2 + s x ^ 2 = 1 := by simpa using congr($h x)
-    refine hom_ext fun x ↦ ContinuousLinearMap.ext fun v ↦ ?_
-    simp only [sub_eq_add_neg, ← neg_smul, fiberMap_comp, fiberMap_add, fiberMap_smul,
-      fiberMap_id, ContinuousMap.neg_apply, ContinuousLinearMap.comp_apply, add_apply, smul_apply,
-      ContinuousLinearMap.id_apply, map_add, map_smul,
-      fiberMap_whitneyQuarterTurn_fiberMap_whitneyQuarterTurn]
-    linear_combination (norm := module) hx x • v
+    simp only [Preadditive.add_comp, Preadditive.comp_sub, smul_comp, comp_smul,
+      Category.id_comp, Category.comp_id, whitneyQuarterTurn_comp_self, smul_smul]
+    linear_combination (norm := module) h • 𝟙 (whitneySum A A)
   inv_hom_id := by
-    have hx (x : B) : c x ^ 2 + s x ^ 2 = 1 := by simpa using congr($h x)
-    refine hom_ext fun x ↦ ContinuousLinearMap.ext fun v ↦ ?_
-    simp only [sub_eq_add_neg, ← neg_smul, fiberMap_comp, fiberMap_add, fiberMap_smul,
-      fiberMap_id, ContinuousMap.neg_apply, ContinuousLinearMap.comp_apply, add_apply, smul_apply,
-      ContinuousLinearMap.id_apply, map_add, map_smul,
-      fiberMap_whitneyQuarterTurn_fiberMap_whitneyQuarterTurn]
-    linear_combination (norm := module) hx x • v
+    simp only [Preadditive.sub_comp, Preadditive.comp_add, smul_comp, comp_smul,
+      Category.id_comp, Category.comp_id, whitneyQuarterTurn_comp_self, smul_smul]
+    linear_combination (norm := module) h • 𝟙 (whitneySum A A)
 
 @[simp]
 theorem whitneyRotation_hom (A : FiniteRankBundleCore 𝕜 B) (c s : C(B, 𝕜))

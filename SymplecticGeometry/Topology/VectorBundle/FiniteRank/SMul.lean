@@ -17,7 +17,9 @@ fibre map at `x` is `c x • a x` (`VectorBundleCore.CoordinateHom.fiberMap_smul
 for the morphisms of Tau Ceti's finite-rank cores (`TauCeti.FiniteRankBundleCore.fiberMap_smul`),
 which are coordinate morphisms. With Tau Ceti's addition, both form modules over `C(B, 𝕜)`
 (`VectorBundleCore.CoordinateHom.instModuleContinuousMap`,
-`TauCeti.FiniteRankBundleCore.instModuleContinuousMapHom`).
+`TauCeti.FiniteRankBundleCore.instModuleContinuousMapHom`). The composition of morphisms of
+finite-rank cores is `C(B, 𝕜)`-linear in each argument (`TauCeti.FiniteRankBundleCore.smul_comp`,
+`TauCeti.FiniteRankBundleCore.comp_smul`).
 
 With the addition of morphisms, this gives convex combinations of morphisms with coefficients
 depending on the point of the base, such as the segment between two clutching functions.
@@ -82,21 +84,17 @@ theorem fiberMap_smul (c : C(B, 𝕜)) (a : A ⟶ D) (x : B) :
     (c • a).fiberMap x = c x • a.fiberMap x :=
   VectorBundleCore.CoordinateHom.fiberMap_smul c a x
 
-/-- Multiplying a morphism by a scalar function commutes with composing it with a morphism after
-it. -/
+/-- Composition of morphisms of finite-rank cores is `C(B, 𝕜)`-linear in the first morphism. -/
 @[simp]
-theorem smul_comp {D' : FiniteRankBundleCore 𝕜 B} (c : C(B, 𝕜)) (a : A ⟶ D) (b : D ⟶ D') :
-    (c • a) ≫ b = c • (a ≫ b) :=
-  hom_ext fun x ↦ by
-    simp only [fiberMap_comp, fiberMap_smul, ContinuousLinearMap.comp_smul]
+theorem smul_comp {C : FiniteRankBundleCore 𝕜 B} (c : C(B, 𝕜)) (f : A ⟶ D) (g : D ⟶ C) :
+    (c • f) ≫ g = c • (f ≫ g) :=
+  hom_ext fun x ↦ by simp [fiberMap_comp]
 
-/-- Multiplying a morphism by a scalar function commutes with composing it with a morphism before
-it. -/
+/-- Composition of morphisms of finite-rank cores is `C(B, 𝕜)`-linear in the second morphism. -/
 @[simp]
-theorem comp_smul {D' : FiniteRankBundleCore 𝕜 B} (c : C(B, 𝕜)) (a : D' ⟶ A) (b : A ⟶ D) :
-    a ≫ (c • b) = c • (a ≫ b) :=
-  hom_ext fun x ↦ by
-    simp only [fiberMap_comp, fiberMap_smul, ContinuousLinearMap.smul_comp]
+theorem comp_smul {C : FiniteRankBundleCore 𝕜 B} (c : C(B, 𝕜)) (f : A ⟶ D) (g : D ⟶ C) :
+    f ≫ (c • g) = c • (f ≫ g) :=
+  hom_ext fun x ↦ by simp [fiberMap_comp]
 
 end TauCeti.FiniteRankBundleCore
 

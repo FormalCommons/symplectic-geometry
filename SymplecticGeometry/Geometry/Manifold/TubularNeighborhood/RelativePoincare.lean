@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 public import TauCeti.Geometry.Manifold.TubularNeighborhood.RelativePoincare
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
@@ -167,8 +168,7 @@ theorem exists_mextDeriv_eq_and_mpullback_eq (f : SmoothEmbedding J I ∞ Q M) {
   -- On the open submanifold `T = W`, the map `r` is a smooth retraction.
   let T : TopologicalSpace.Opens M := ⟨W, hW⟩
   have hval : ContMDiff I I ∞ (Subtype.val : T → M) := contMDiff_subtypeVal
-  have hρ : ContMDiff I J ∞ (fun y : T ↦ r y) := fun y ↦
-    ((hr _ y.property).contMDiffAt (hW.mem_nhds y.property)).comp y hval.contMDiffAt
+  have hρ : ContMDiff I J ∞ (fun y : T ↦ r y) := contMDiff_subtype_iff.2 hr
   have hfT : ∀ x, f x ∈ T := fun x ↦ hfW (mem_range_self x)
   let j := f.codRestrict T hfT
   have hvj : Subtype.val ∘ j = f := f.val_comp_codRestrict T hfT
