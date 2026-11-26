@@ -215,17 +215,16 @@ theorem prodFiberIntegrand_mpullback_of_fst_eq [FiniteDimensional ℝ E'] {Φ : 
 variable [FiniteDimensional ℝ E] [FiniteDimensional ℝ E'] [FiniteDimensional ℝ E'']
   [IsManifold I ∞ B] [IsManifold J ∞ F] [IsManifold I' ∞ B'] [CompactSpace F] [T2Space F]
 
-section Boundaryless
-
-variable [I.Boundaryless] [I'.Boundaryless]
+variable [BoundarylessManifold I B]
 
 /-- **The fibre integral commutes with pull-back along maps of the base.** For a smooth map
 `f : B' → B` and a smooth form `α` of degree `r + m` on `B × F`, the fibre integral of the
 pull-back of `α` along `Prod.map f id : B' × F → B × F` is the pull-back along `f` of the fibre
 integral of `α`. For the inclusion of an open subset of `B`, this is the restriction of the fibre
 integral to that subset. -/
-theorem prodFiberIntegral_mpullback_prodMap (o : Manifold.Orientation J F (Fin m)) {f : B' → B}
-    (hf : ContMDiff I' I ∞ f) (α : SmoothForm (I.prod J) (B × F) ℝ (r + m)) :
+theorem prodFiberIntegral_mpullback_prodMap [BoundarylessManifold I' B']
+    (o : Manifold.Orientation J F (Fin m)) {f : B' → B} (hf : ContMDiff I' I ∞ f)
+    (α : SmoothForm (I.prod J) (B × F) ℝ (r + m)) :
     prodFiberIntegral o (SmoothForm.mpullback (Prod.map f id) (hf.prodMap contMDiff_id) α) =
       SmoothForm.mpullback f hf (prodFiberIntegral o α) :=
   SmoothBundleForm.ext fun b v ↦ by
@@ -254,10 +253,6 @@ theorem prodFiberIntegral_wedge_mpullback_fst {p q : ℕ} (o : Manifold.Orientat
     rw [integralTopForm_smul, prodFiberIntegral_apply]
     simp only [Units.smul_def, zsmul_eq_mul, smul_eq_mul]
     ring
-
-end Boundaryless
-
-variable [BoundarylessManifold I B]
 
 /-- **Invariance under fibrewise orientation-preserving diffeomorphisms.** Let
 `Φ : B × F → B × F` be smooth and cover the identity of `B`, `Prod.fst ∘ Φ = Prod.fst`, and let
