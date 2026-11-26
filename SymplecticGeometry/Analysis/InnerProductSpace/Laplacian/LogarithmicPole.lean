@@ -9,10 +9,14 @@ public import TauCeti.Analysis.PDE.FundamentalSolution.Planar.DistributionalLapl
 public import TauCeti.Analysis.InnerProductSpace.Laplacian.Basic
 public import Mathlib.Analysis.Calculus.BumpFunction.InnerProduct
 public import Mathlib.Analysis.SpecialFunctions.Log.Deriv
+import Mathlib.Geometry.Manifold.ContMDiff.NormedSpace
+import TauCeti.Analysis.InnerProductSpace.Laplacian.Integral
 import TauCeti.Analysis.Sobolev.WeakDeriv.Laplacian
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
+import SymplecticGeometry.Topology.Algebra.Support
 
 /-!
-# The Laplacian of a cut-off logarithmic pole
+# Laplacians of functions with logarithmic poles
 
 Let `a : ℂ` and let `χ : ℂ → ℝ` be a compactly supported `C²` function that is equal to `1` on a
 neighbourhood of `a`. The function `ψ t = χ t * log ‖t - a‖²` has a logarithmic pole at `a`, but
@@ -21,6 +25,13 @@ its Laplacian is a continuous compactly supported function (smooth when `χ` is)
 `∫ Δψ = -4π`.
 
 This is the distributional identity `Δ log ‖· - a‖² = 4π δₐ` seen through the cutoff `χ`.
+
+On a bounded open set `Ω ⊆ ℂ` this gives a Green-type identity for a function `h` with finitely
+many logarithmic poles: if `h` is `C²` on `Ω` off a finite set `S ⊆ Ω`, constant near
+`frontier Ω`, and near each `s ∈ S` equal to `c s * log ‖t - s‖²` plus a function `C²` at `s`,
+then `Δh` is integrable on `Ω` and
+
+`∫ t in Ω, Δh t = -4π ∑ s ∈ S, c s`.
 
 ## Main results
 
@@ -33,6 +44,8 @@ This is the distributional identity `Δ log ‖· - a‖² = 4π δₐ` seen thr
   is `C^(m + 2)`, and has compact support; so it is integrable
   (`SymplecticGeometry.integrable_laplacian_fun_mul_log_norm_sub_sq`).
 * `SymplecticGeometry.integral_laplacian_fun_mul_log_norm_sub_sq`: `∫ Δψ = -4π`.
+* `SymplecticGeometry.integrableOn_laplacian_of_log_poles` and
+  `SymplecticGeometry.setIntegral_laplacian_eq_of_log_poles`: the identity on `Ω`.
 
 ## Implementation notes
 
@@ -42,6 +55,13 @@ The integral is computed with a bump function `φ` that is `1` on a neighbourhoo
 `C²` function `(1 - χ) log ‖· - a‖²` onto `φ`; since `Δφ` vanishes where `χ ≠ 0`, what remains is
 `∫ Δφ · log ‖· - a‖²`, which Tau Ceti's `integral_laplacian_mul_planarNewtonianKernel_sub`
 evaluates, as `log ‖t - a‖² = -4π G(t - a)` for the planar Newtonian kernel `G`.
+
+For the identity on `Ω`, each pole `s` is cut off by a bump function `χ s` supported in `Ω`. What
+remains, `g = h - C - ∑ s, c s * χ s * log ‖· - s‖²` on `Ω` (with `C` the value of `h` near
+`frontier Ω`), extended by `0`, is `C²` with compact support
+(`SymplecticGeometry.exists_laplacian_ae_eq_add_sum_of_log_poles`), so Tau Ceti's
+`integral_laplacian_eq_zero_of_hasCompactSupport` gives `∫ Δg = 0`, and the one-pole identity
+gives the rest.
 
 ## References
 
@@ -198,6 +218,189 @@ theorem integral_laplacian_fun_mul_log_norm_sub_sq {a : ℂ} {χ : ℂ → ℝ} 
     integral_laplacian_mul_planarNewtonianKernel_sub φ.contDiff φ.hasCompactSupport a,
     φ.one_of_mem_closedBall (mem_closedBall_self (by positivity))]
   ring
+
+/-! ### Planar domains -/
+
+section Domain
+
+variable {Ω : Set ℂ} {S : Finset ℂ} {h c : ℂ → ℝ} {C : ℝ}
+
+/-- Removing cut-off poles: if `χ s` is `C²` and equal to `1` near `s` for each `s ∈ S`, and `h` is
+`C²` at `z ∉ S` and has a logarithmic pole with coefficient `c s` at each `s ∈ S`, then
+`h - ∑ s ∈ S, c s * χ s · log ‖· - s‖²` is `C²` at `z`. -/
+private theorem contDiffAt_sub_sum_mul_log_of_log_poles {z : ℂ} {χ : ℂ → ℂ → ℝ}
+    (hχ : ∀ s ∈ S, ContDiff ℝ 2 (χ s)) (hχ₁ : ∀ s ∈ S, χ s =ᶠ[𝓝 s] 1)
+    (hh : z ∉ S → ContDiffAt ℝ 2 h z)
+    (hpole : ∀ s ∈ S, ∃ k : ℂ → ℝ, ContDiffAt ℝ 2 k s ∧
+      ∀ᶠ t in 𝓝 s, h t = c s * Real.log (‖t - s‖ ^ 2) + k t) :
+    ContDiffAt ℝ 2
+      (fun t ↦ h t - ∑ s ∈ S, c s * (χ s t * Real.log (‖t - s‖ ^ 2))) z := by
+  have hψ {s : ℂ} (hs : s ∈ S) (hz : z ≠ s) :
+      ContDiffAt ℝ 2 (fun t ↦ c s * (χ s t * Real.log (‖t - s‖ ^ 2))) z :=
+    contDiffAt_const.mul ((hχ s hs).contDiffAt.mul (contDiffAt_log_norm_sub_sq hz))
+  by_cases hzS : z ∈ S
+  · obtain ⟨k, hk, hkh⟩ := hpole z hzS
+    have hsplit : (fun t ↦ h t - ∑ s ∈ S, c s * (χ s t * Real.log (‖t - s‖ ^ 2))) =
+        fun t ↦ (h t - c z * (χ z t * Real.log (‖t - z‖ ^ 2))) -
+          ∑ s ∈ S.erase z, c s * (χ s t * Real.log (‖t - s‖ ^ 2)) := by
+      funext t
+      rw [← Finset.add_sum_erase S _ hzS]
+      ring
+    have hloc : (fun t ↦ h t - c z * (χ z t * Real.log (‖t - z‖ ^ 2))) =ᶠ[𝓝 z]
+        fun t ↦ k t + c z * ((1 - χ z t) * Real.log (‖t - z‖ ^ 2)) := by
+      filter_upwards [hkh] with t ht
+      rw [ht]
+      ring
+    rw [hsplit]
+    exact ((hk.add (contDiffAt_const.mul (contDiff_one_sub_mul_log_norm_sub_sq (hχ z hzS)
+      (hχ₁ z hzS)).contDiffAt)).congr_of_eventuallyEq hloc).sub (ContDiffAt.sum fun s hs ↦
+        hψ (Finset.mem_of_mem_erase hs) (Finset.ne_of_mem_erase hs).symm)
+  · exact (hh hzS).sub (ContDiffAt.sum fun s hs ↦ hψ hs fun h ↦ hzS (h ▸ hs))
+
+/-- Under the hypotheses of `setIntegral_laplacian_eq_of_log_poles`, almost everywhere on `Ω`,
+`Δh = Δg + ∑ s ∈ S, c s * Δ(χ s · log ‖· - s‖²)`, where `g` is `C²` with compact support and
+`Δg` vanishes off `Ω`, and each `χ s` is `C²`, compactly supported in `Ω` and equal to `1` near
+`s`. -/
+theorem exists_laplacian_ae_eq_add_sum_of_log_poles (hΩ : IsOpen Ω) (hb : Bornology.IsBounded Ω)
+    (hS : ↑S ⊆ Ω) (hh : ∀ z ∈ Ω \ ↑S, ContDiffAt ℝ 2 h z)
+    (hC : ∀ᶠ t in 𝓝ˢ (frontier Ω), h t = C)
+    (hpole : ∀ s ∈ S, ∃ k : ℂ → ℝ, ContDiffAt ℝ 2 k s ∧
+      ∀ᶠ t in 𝓝 s, h t = c s * Real.log (‖t - s‖ ^ 2) + k t) :
+    ∃ (g : ℂ → ℝ) (χ : ℂ → ℂ → ℝ), ContDiff ℝ 2 g ∧ HasCompactSupport g ∧
+      (∀ t ∉ Ω, Δ g t = 0) ∧
+      (∀ s ∈ S, ContDiff ℝ 2 (χ s) ∧ HasCompactSupport (χ s) ∧ χ s =ᶠ[𝓝 s] 1 ∧
+        tsupport (χ s) ⊆ Ω) ∧
+      Δ h =ᵐ[volume.restrict Ω]
+        fun t ↦ Δ g t + ∑ s ∈ S, c s * Δ (fun t ↦ χ s t * Real.log (‖t - s‖ ^ 2)) t := by
+  -- A bump function about each pole, supported in `Ω`.
+  have hφ (s : ℂ) : ∃ φ : ContDiffBump s, s ∈ Ω → closedBall s φ.rOut ⊆ Ω := by
+    by_cases hs : s ∈ Ω
+    · obtain ⟨r, hr, hrΩ⟩ := nhds_basis_closedBall.mem_iff.mp (hΩ.mem_nhds hs)
+      exact ⟨⟨r / 2, r, by positivity, by linarith⟩, fun _ ↦ hrΩ⟩
+    · exact ⟨⟨1, 2, one_pos, one_lt_two⟩, fun h ↦ (hs h).elim⟩
+  choose φ hφΩ using hφ
+  set ψ : ℂ → ℂ → ℝ := fun s t ↦ φ s t * Real.log (‖t - s‖ ^ 2) with hψ
+  have hψcd {s z : ℂ} (hz : z ≠ s) : ContDiffAt ℝ 2 (ψ s) z :=
+    (φ s).contDiffAt.mul (contDiffAt_log_norm_sub_sq hz)
+  have hψ0 {s t : ℂ} (ht : t ∉ closedBall s (φ s).rOut) : ψ s t = 0 := by
+    simp only [hψ]
+    rw [(φ s).zero_of_le_dist (not_le.mp ht).le, zero_mul]
+  -- `G = h - C - ∑ c s ψ s`; it vanishes near `frontier Ω` and is `C²` on `Ω`.
+  set G : ℂ → ℝ := fun t ↦ h t - C - ∑ s ∈ S, c s * ψ s t with hG
+  have hGfront : ∀ᶠ t in 𝓝ˢ (frontier Ω), G t = 0 := by
+    have hK : ∀ᶠ t in 𝓝ˢ (frontier Ω), ∀ s ∈ S, t ∉ closedBall s (φ s).rOut := by
+      refine (eventually_all_finset S).mpr fun s hs ↦ ?_
+      refine isClosed_closedBall.isOpen_compl.mem_nhdsSet.mpr fun t ht htB ↦ ?_
+      rw [hΩ.frontier_eq] at ht
+      exact ht.2 (hφΩ s (hS hs) htB)
+    filter_upwards [hC, hK] with t ht htK
+    simp only [hG]
+    rw [ht, sub_self, zero_sub, neg_eq_zero]
+    exact Finset.sum_eq_zero fun s hs ↦ by rw [hψ0 (htK s hs), mul_zero]
+  have hGcd {z : ℂ} (hz : z ∈ Ω) : ContDiffAt ℝ 2 G z :=
+    (contDiffAt_sub_sum_mul_log_of_log_poles (fun s _ ↦ (φ s).contDiff)
+      (fun s _ ↦ (φ s).eventuallyEq_one) (fun hzS ↦ hh z ⟨hz, hzS⟩) hpole).sub
+      contDiffAt_const |>.congr_of_eventuallyEq (Eventually.of_forall fun t ↦ by
+        simp only [hG, hψ]
+        ring)
+  -- `g` is `G` on `Ω`, extended by `0`; it vanishes off a closed set `K ⊆ Ω`.
+  obtain ⟨V, hVo, hfV, hVG⟩ := mem_nhdsSet_iff_exists.mp hGfront
+  set K : Set ℂ := closure Ω \ V
+  have hKc : IsClosed K := isClosed_closure.sdiff hVo
+  have hKΩ : K ⊆ Ω := fun x hx ↦ by
+    by_contra hxΩ
+    exact hx.2 (hfV (by rw [hΩ.frontier_eq]; exact ⟨hx.1, hxΩ⟩))
+  have hG0 : ∀ x ∈ Ω, x ∉ K → G x = 0 := fun x hx hxK ↦
+    hVG (by_contra fun hxV ↦ hxK ⟨subset_closure hx, hxV⟩)
+  set g : ℂ → ℝ := Ω.indicator G
+  have hgΩ {z : ℂ} (hz : z ∈ Ω) : g =ᶠ[𝓝 z] G := by
+    filter_upwards [hΩ.mem_nhds hz] with t ht
+    exact Set.indicator_of_mem ht G
+  have hgcd : ContDiff ℝ 2 g :=
+    contMDiff_iff_contDiff.mp (ContMDiffOn.contMDiff_indicator (I := modelWithCornersSelf ℝ ℂ)
+      (contMDiffOn_iff_contDiffOn.mpr fun z hz ↦ (hGcd hz).contDiffWithinAt) hΩ hKc hKΩ hG0)
+  have hgK : tsupport g ⊆ K :=
+    tsupport_indicator_subset_of_eqOn hKc fun x hx ↦ hG0 x hx.1 hx.2
+  refine ⟨g, fun s ↦ φ s, hgcd, ?_, fun t ht ↦ ?_, fun s hs ↦ ?_, ?_⟩
+  · exact hb.isCompact_closure.of_isClosed_subset (isClosed_tsupport g)
+      (hgK.trans Set.sdiff_subset)
+  · exact laplacian_of_notMem_tsupport fun h ↦ ht (hKΩ (hgK h))
+  · refine ⟨(φ s).contDiff, (φ s).hasCompactSupport, (φ s).eventuallyEq_one, ?_⟩
+    rw [(φ s).tsupport_eq]
+    exact hφΩ s (hS hs)
+  · have hS0 : volume (S : Set ℂ) = 0 := S.finite_toSet.measure_zero _
+    filter_upwards [ae_restrict_mem hΩ.measurableSet,
+      ae_restrict_of_ae (measure_eq_zero_iff_ae_notMem.mp hS0)] with t ht₁ ht₂
+    have ht : t ∈ Ω \ ↑S := ⟨ht₁, ht₂⟩
+    -- On `Ω`, `h = g + C + ∑ c s ψ s`, and every term is `C²` at `t ∉ S`.
+    have hloc : h =ᶠ[𝓝 t] (g + fun _ ↦ C) + ∑ s ∈ S, c s • ψ s := by
+      filter_upwards [hgΩ ht.1] with t' ht'
+      simp only [Pi.add_apply, Finset.sum_apply, Pi.smul_apply, smul_eq_mul, ht', hG]
+      ring
+    have hne : ∀ s ∈ S, t ≠ s := fun s hs hts ↦ ht.2 (Finset.mem_coe.mpr (hts ▸ hs))
+    have hψt : ∀ s ∈ S, ContDiffAt ℝ 2 (c s • ψ s) t := fun s hs ↦ by
+      rw [Pi.smul_def]
+      exact (hψcd (hne s hs)).const_smul (c s)
+    have h₁ : ContDiffAt ℝ 2 (g + fun _ ↦ C) t := by
+      rw [Pi.add_def]
+      exact hgcd.contDiffAt.add contDiffAt_const
+    have h₂ : ContDiffAt ℝ 2 (∑ s ∈ S, c s • ψ s) t := by
+      rw [Finset.sum_fn]
+      exact ContDiffAt.sum hψt
+    rw [(laplacian_congr_nhds hloc).self_of_nhds, h₁.laplacian_add h₂,
+      hgcd.contDiffAt.laplacian_add contDiffAt_const, laplacian_const, Pi.zero_apply, add_zero,
+      laplacian_sum hψt]
+    refine congrArg _ (Finset.sum_congr rfl fun s hs ↦ ?_)
+    rw [laplacian_smul _ (hψcd (hne s hs)), smul_eq_mul]
+
+/-- **The integral of the Laplacian of a function with logarithmic poles**, integrability. Let
+`Ω ⊆ ℂ` be bounded and open, `S ⊆ Ω` finite, and `h : ℂ → ℝ` be `C²` on `Ω \ S`, constant near
+`frontier Ω`, and near each `s ∈ S` of the form `c s * log ‖t - s‖² + k t` with `k` `C²` at `s`.
+Then `Δh` is integrable on `Ω`. -/
+theorem integrableOn_laplacian_of_log_poles (hΩ : IsOpen Ω) (hb : Bornology.IsBounded Ω)
+    (hS : ↑S ⊆ Ω) (hh : ∀ z ∈ Ω \ ↑S, ContDiffAt ℝ 2 h z)
+    (hC : ∀ᶠ t in 𝓝ˢ (frontier Ω), h t = C)
+    (hpole : ∀ s ∈ S, ∃ k : ℂ → ℝ, ContDiffAt ℝ 2 k s ∧
+      ∀ᶠ t in 𝓝 s, h t = c s * Real.log (‖t - s‖ ^ 2) + k t) :
+    IntegrableOn (Δ h) Ω := by
+  obtain ⟨g, χ, hg, hgc, -, hχ, hae⟩ :=
+    exists_laplacian_ae_eq_add_sum_of_log_poles hΩ hb hS hh hC hpole
+  refine Integrable.congr (Integrable.integrableOn ?_) hae.symm
+  exact (hg.continuous_laplacian.integrable_of_hasCompactSupport hgc.laplacian).add
+    (integrable_finsetSum _ fun s hs ↦
+      (integrable_laplacian_fun_mul_log_norm_sub_sq (hχ s hs).1 (hχ s hs).2.1
+        (hχ s hs).2.2.1).const_mul _)
+
+/-- **The integral of the Laplacian of a function with logarithmic poles.** Let `Ω ⊆ ℂ` be
+bounded and open, `S ⊆ Ω` finite, and `h : ℂ → ℝ` be `C²` on `Ω \ S`, constant near
+`frontier Ω`, and near each `s ∈ S` of the form `c s * log ‖t - s‖² + k t` with `k` `C²` at `s`.
+Then `∫ t in Ω, Δh t = -4π ∑ s ∈ S, c s`. -/
+theorem setIntegral_laplacian_eq_of_log_poles (hΩ : IsOpen Ω) (hb : Bornology.IsBounded Ω)
+    (hS : ↑S ⊆ Ω) (hh : ∀ z ∈ Ω \ ↑S, ContDiffAt ℝ 2 h z)
+    (hC : ∀ᶠ t in 𝓝ˢ (frontier Ω), h t = C)
+    (hpole : ∀ s ∈ S, ∃ k : ℂ → ℝ, ContDiffAt ℝ 2 k s ∧
+      ∀ᶠ t in 𝓝 s, h t = c s * Real.log (‖t - s‖ ^ 2) + k t) :
+    ∫ t in Ω, Δ h t = -(4 * Real.pi) * ∑ s ∈ S, c s := by
+  obtain ⟨g, χ, hg, hgc, hgΩ, hχ, hae⟩ :=
+    exists_laplacian_ae_eq_add_sum_of_log_poles hΩ hb hS hh hC hpole
+  have hI (s : ℂ) (hs : s ∈ S) :=
+    integrable_laplacian_fun_mul_log_norm_sub_sq (hχ s hs).1 (hχ s hs).2.1 (hχ s hs).2.2.1
+  have hpole (s : ℂ) (hs : s ∈ S) :
+      ∫ t in Ω, c s * Δ (fun t ↦ χ s t * Real.log (‖t - s‖ ^ 2)) t = c s * -(4 * Real.pi) := by
+    rw [integral_const_mul, setIntegral_eq_integral_of_forall_compl_eq_zero fun t ht ↦
+        laplacian_of_notMem_tsupport fun h ↦ ht ((hχ s hs).2.2.2 (tsupport_mul_subset_left h)),
+      integral_laplacian_fun_mul_log_norm_sub_sq (hχ s hs).1 (hχ s hs).2.1 (hχ s hs).2.2.1]
+  rw [integral_congr_ae hae,
+    integral_add (hg.continuous_laplacian.integrable_of_hasCompactSupport
+      hgc.laplacian).integrableOn
+      (integrable_finsetSum _ fun s hs ↦ (hI s hs).const_mul _).integrableOn,
+    integral_finsetSum _ fun s hs ↦ ((hI s hs).const_mul _).integrableOn,
+    setIntegral_eq_integral_of_forall_compl_eq_zero hgΩ,
+    integral_laplacian_eq_zero_of_hasCompactSupport hg hgc, Finset.sum_congr rfl hpole,
+    ← Finset.sum_mul]
+  ring
+
+end Domain
 
 end SymplecticGeometry
 
