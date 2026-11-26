@@ -30,6 +30,10 @@ end, and is proper and bounded below.
 ## Main results
 
 * `SymplecticGeometry.IsWeinsteinDomain.exists_completion_function`: such an `F` exists.
+* `SymplecticGeometry.IsStrongFilling.hasDerivAt_comp_collarFlow`: along the lines of the collar
+  map, a function on `W` has derivative `dg(Y)`.
+* `SymplecticGeometry.IsStrongFilling.exists_mem_interior_toCompletion_eq`: a point of the
+  completion off the image of `(-r, ∞) × ∂W`, `r > 0`, is the image of an interior point of `W`.
 
 ## Implementation notes
 
@@ -411,7 +415,6 @@ private theorem isCompact_preimage_Iic_completionFunction [CompactSpace W]
   refine Or.inr ⟨q, ⟨⟨hq.1.le, le_of_not_gt fun hqT ↦ ?_⟩, trivial⟩, rfl⟩
   have hq' : q ∈ Ioi (-(2 * δ)) ×ˢ (univ : Set ((𝓡∂ (n + 1)).boundary W)) :=
     ⟨lt_trans (by linarith) hq.1, trivial⟩
-  have hz := hz
   rw [mem_preimage, completionFunction_completionEnd hδ hq', endFunction_of_ge hδ0
     (by linarith [show (0 : ℝ) < q.1 from hq.1]), mem_Iic] at hz
   have hexp := Real.add_one_le_exp q.1
