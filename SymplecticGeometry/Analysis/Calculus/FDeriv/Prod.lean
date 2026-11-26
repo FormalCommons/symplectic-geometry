@@ -8,6 +8,7 @@ module
 public import Mathlib.Analysis.Calculus.FDeriv.Mul
 public import Mathlib.Analysis.Calculus.ContDiff.Defs
 public import Mathlib.Analysis.Calculus.Deriv.Basic
+import Mathlib.Analysis.Calculus.ContDiff.Basic
 import TauCeti.Analysis.Calculus.SecondDerivative
 
 /-!
@@ -30,8 +31,8 @@ The second derivatives restrict to the fibres `x ↦ (x, b)` and `y ↦ (a, y)` 
 the constant factor with `TauCeti.fderiv_fderiv_const_smul`.
 
 For `f : E → F` and `g : E → G`, `fderiv_fderiv_prodMk_apply` computes the second derivative of
-`y ↦ (f y, g y)` componentwise, from `TauCeti.fderiv_fderiv_comp_apply` applied to the projections
-`ContinuousLinearMap.fst` and `ContinuousLinearMap.snd`.
+`y ↦ (f y, g y)` componentwise, in the `fderiv (fderiv ·)` form of Tau Ceti's Levi form API. It
+is the case `i = 2` of Mathlib's `iteratedFDeriv_prodMk`, read through `iteratedFDeriv_two_apply`.
 -/
 
 public section
@@ -121,16 +122,8 @@ theorem fderiv_fderiv_prodMk_apply (hf : ContDiffAt 𝕜 2 f x) (hg : ContDiffAt
     (u w : E) :
     fderiv 𝕜 (fderiv 𝕜 fun y ↦ (f y, g y)) x u w =
       (fderiv 𝕜 (fderiv 𝕜 f) x u w, fderiv 𝕜 (fderiv 𝕜 g) x u w) := by
-  have hF : ContDiffAt 𝕜 2 (fun y ↦ (f y, g y)) x := hf.prodMk hg
-  -- The projections commute with the second derivative: `D²(L ∘ F) = L ∘ D²F` for linear `L`.
-  have h₁ := TauCeti.fderiv_fderiv_comp_apply (f := ContinuousLinearMap.fst 𝕜 F G)
-    (ContinuousLinearMap.fst 𝕜 F G).contDiff.contDiffAt hF u w
-  have h₂ := TauCeti.fderiv_fderiv_comp_apply (f := ContinuousLinearMap.snd 𝕜 F G)
-    (ContinuousLinearMap.snd 𝕜 F G).contDiff.contDiffAt hF u w
-  rw [ContinuousLinearMap.fderiv_fderiv, ContinuousLinearMap.fderiv, Function.comp_def] at h₁ h₂
-  ext
-  · simpa using h₁.symm
-  · simpa using h₂.symm
+  simpa [iteratedFDeriv_two_apply] using
+    congr($(iteratedFDeriv_prodMk hf hg le_rfl) ![u, w])
 
 end ProdMk
 
