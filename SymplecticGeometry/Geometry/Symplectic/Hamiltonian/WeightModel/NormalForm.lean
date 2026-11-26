@@ -14,6 +14,7 @@ import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.WeightModel.Basic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Darboux
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import SymplecticGeometry.Geometry.Manifold.GroupAction.Opens
 
 /-!
 # The weight chart of a Hamiltonian torus action, with period-one weights
@@ -370,7 +371,8 @@ theorem exists_weightChart_fundamentalVectorField [BoundarylessManifold I' M]
   have hG' (g : G) : SmoothForm.mpullback (fun y : N ↦ g • y)
       (ContMDiffSMul.contMDiff_const_smul (I := I) g) (SmoothForm.mpullback ψ ψ.contMDiff σ) =
         SmoothForm.mpullback ψ ψ.contMDiff σ :=
-    BoundarylessModel.mpullback_smul_mpullback_interiorDiffeomorph_symm (IG := I) hG g
+    have : ContMDiffConstSMul I' ∞ G M := ContMDiffSMul.contMDiffConstSMul I
+    SmoothForm.mpullback_smul_mpullback ψ.contMDiff (hψ g) (hG g)
   have hp' (g : G) : g • ψ.symm p = ψ.symm p := by
     rw [← ψ.symm_apply_apply (g • ψ.symm p), hψ, Diffeomorph.apply_symm_apply, hp]
   obtain ⟨n, χ, α, Φ, r, h⟩ :=

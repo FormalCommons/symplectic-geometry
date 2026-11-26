@@ -12,6 +12,7 @@ public import SymplecticGeometry.Geometry.Manifold.GroupAction.BoundarylessModel
 import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.DegreeOne
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv
+import SymplecticGeometry.Geometry.Manifold.GroupAction.Opens
 
 /-!
 # Closed invariant forms on fundamental vector fields
@@ -94,7 +95,9 @@ theorem mlieDerivForm_fundamentalVectorField_eq_zero_of_boundarylessManifold {k 
   let β := SmoothForm.mpullback Φ.symm Φ.symm.contMDiff α
   have hβ (g : G) : SmoothForm.mpullback (fun x : BoundarylessModel I' M ↦ g • x)
       (ContMDiffSMul.contMDiff_const_smul (I := I) (I' := 𝓘(ℝ, E')) g) β = β :=
-    BoundarylessModel.mpullback_smul_mpullback_interiorDiffeomorph_symm (IG := I) hα g
+    have : ContMDiffConstSMul I' ∞ G M := ContMDiffSMul.contMDiffConstSMul I
+    SmoothForm.mpullback_smul_mpullback Φ.symm.contMDiff
+      (BoundarylessModel.interiorDiffeomorph_symm_smul I' ∞ g) (hα g)
   have hαβ : α = SmoothForm.mpullback Φ Φ.contMDiff β :=
     (SmoothForm.mpullback_mpullback_symm Φ α).symm
   rw [hαβ, SmoothForm.coe_mpullback, ← mpullback_mlieDerivForm_of_related
