@@ -24,7 +24,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Family
 Consider a nondegenerate smooth two-form `σ` on a Hausdorff σ-compact manifold `M` modelled on a
 finite-dimensional space. Its first Chern class `c₁(σ) ∈ H²(M; ℤ)`,
 `TauCeti.SmoothTwoForm.IsNondegenerate.firstChernClass`, is the first Chern class
-`SymplecticGeometry.Bundle.firstChernClass` of the complex vector bundle `(TM, J)` for an almost
+`TauCeti.firstChernClass` of the complex vector bundle `(TM, J)` for an almost
 complex structure `J` compatible with `σ`, chosen by Tau Ceti's
 `TauCeti.SmoothTwoForm.IsNondegenerate.exists_compatible`. This file shows that the choice does
 not matter, and that the class does not change along a family of nondegenerate forms:
@@ -72,11 +72,11 @@ structure `J` compatible with `σ`. By `IsNondegenerate.firstChernClass_eq_of_ta
 complex structure tamed by `σ` gives this class. -/
 def IsNondegenerate.firstChernClass {σ : SmoothTwoForm I M} (h : σ.IsNondegenerate) :
     (TopCat.of M).singularCohomology (ModuleCat.of ℤ (ULift ℤ)) ℤ (ModuleCat.of ℤ (ULift ℤ)) 2 :=
-  SymplecticGeometry.Bundle.firstChernClass G
+  TauCeti.firstChernClass G
     (h.exists_compatible.choose.toContMDiff ⊤).toContinuousComplexStructure.Fiber
 
 theorem IsNondegenerate.firstChernClass_def {σ : SmoothTwoForm I M} (h : σ.IsNondegenerate) :
-    h.firstChernClass G = SymplecticGeometry.Bundle.firstChernClass G
+    h.firstChernClass G = TauCeti.firstChernClass G
       (h.exists_compatible.choose.toContMDiff ⊤).toContinuousComplexStructure.Fiber := (rfl)
 
 /-- The first Chern class of a nondegenerate two-form `σ` is that of the complex bundle `(TM, J)`
@@ -87,7 +87,7 @@ theorem IsNondegenerate.firstChernClass_eq_of_tangentEquiv_symm_tames {σ : Smoo
     {J : ContMDiffComplexStructure I m E (TangentSpace I : M → Type _)}
     (hJ : (ContMDiffTwoForm.tangentEquiv.symm σ).Tames J) :
     h.firstChernClass G =
-      SymplecticGeometry.Bundle.firstChernClass G J.toContinuousComplexStructure.Fiber := by
+      TauCeti.firstChernClass G J.toContinuousComplexStructure.Fiber := by
   have hc := ContMDiffTwoForm.compatible_tangentEquiv_symm_iff.2 h.exists_compatible.choose_spec
   rw [firstChernClass_def,
     ← ContMDiffComplexStructure.toContinuousComplexStructure_tangentEquiv_symm]
@@ -98,7 +98,7 @@ structure.** If `σ` tames a smooth almost complex structure `J`, then `c₁(σ)
 class of the complex vector bundle `(TM, J)`. -/
 theorem IsNondegenerate.firstChernClass_eq_of_tames {σ : SmoothTwoForm I M}
     (h : σ.IsNondegenerate) {J : SmoothAlmostComplexStructure I M} (hJ : σ.Tames J) :
-    h.firstChernClass G = SymplecticGeometry.Bundle.firstChernClass G
+    h.firstChernClass G = TauCeti.firstChernClass G
       (J.toContMDiff ⊤).toContinuousComplexStructure.Fiber := by
   have hK : (ContMDiffTwoForm.tangentEquiv.symm σ).Tames
       (ContMDiffComplexStructure.tangentEquiv.symm (J.toContMDiff ⊤)) := by
@@ -111,7 +111,7 @@ theorem IsNondegenerate.firstChernClass_eq_of_tames {σ : SmoothTwoForm I M}
 structure.** -/
 theorem IsNondegenerate.firstChernClass_eq_of_compatible {σ : SmoothTwoForm I M}
     (h : σ.IsNondegenerate) {J : SmoothAlmostComplexStructure I M} (hJ : σ.Compatible J) :
-    h.firstChernClass G = SymplecticGeometry.Bundle.firstChernClass G
+    h.firstChernClass G = TauCeti.firstChernClass G
       (J.toContMDiff ⊤).toContinuousComplexStructure.Fiber :=
   h.firstChernClass_eq_of_tames G hJ.tames
 
@@ -149,7 +149,7 @@ private theorem firstChernClass_mpullback_prodMk_eq_of_forall
     ⟨Prod.mk t, contMDiff_const.prodMk contMDiff_id⟩
   have key (t : ℝ) : (h t).firstChernClass G =
       TopCat.singularCohomologyMap (TopCat.ofHom (ι t : C(M, ℝ × M))) 2
-        (SymplecticGeometry.Bundle.firstChernClass G J.toContinuousComplexStructure.Fiber) := by
+        (TauCeti.firstChernClass G J.toContinuousComplexStructure.Fiber) := by
     -- The pull-back of `TM` along `ι t` and then the projection is `TM`.
     let Φ : ∀ x, ((ι t : M → ℝ × M) *ᵖ (verticalTangentBundle I M 𝓘(ℝ, ℝ) ℝ)) x ≃L[ℝ]
         TangentSpace I x := fun x ↦ ContinuousLinearEquiv.refl ℝ (TangentSpace I x)
@@ -219,10 +219,10 @@ modelled on a finite-dimensional space:
 Milestone: *First Chern class of a nondegenerate two-form*. -/
 theorem firstChernClass_wellDefined :
     (∀ {σ : SmoothTwoForm I M} (h : σ.IsNondegenerate) (J : SmoothAlmostComplexStructure I M),
-      σ.Compatible J → h.firstChernClass G = SymplecticGeometry.Bundle.firstChernClass G
+      σ.Compatible J → h.firstChernClass G = TauCeti.firstChernClass G
         (J.toContMDiff ⊤).toContinuousComplexStructure.Fiber) ∧
     (∀ {σ : SmoothTwoForm I M} (h : σ.IsNondegenerate) (J : SmoothAlmostComplexStructure I M),
-      σ.Tames J → h.firstChernClass G = SymplecticGeometry.Bundle.firstChernClass G
+      σ.Tames J → h.firstChernClass G = TauCeti.firstChernClass G
         (J.toContMDiff ⊤).toContinuousComplexStructure.Fiber) ∧
     (∀ (σ : SmoothTwoForm (𝓘(ℝ, ℝ).prod I) (ℝ × M))
       (h : ∀ t ∈ Icc (0 : ℝ) 1, IsNondegenerate (SmoothForm.mpullback (Prod.mk t)

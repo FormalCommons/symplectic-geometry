@@ -15,7 +15,7 @@ import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
 
 A complex structure `J` on a real vector bundle `V` makes `V` a complex vector bundle
 `J.toContinuousComplexStructure.Fiber`, which has a first Chern class
-`SymplecticGeometry.Bundle.firstChernClass` (the Euler class of its determinant line). This file
+`TauCeti.firstChernClass` (the Euler class of its determinant line). This file
 relates these classes to the operations on complex structures and to tameness:
 
 * `ContMDiffComplexStructure.firstChernClass_pullback`: the class of the pull-back
@@ -39,6 +39,7 @@ relates these classes to the operations on complex structures and to tameness:
 public section
 
 open _root_.Bundle Module TauCeti.Bundle.ContinuousComplexStructure
+open TauCeti (firstChernClass)
 open scoped Manifold
 
 namespace SymplecticGeometry.Bundle
@@ -67,7 +68,7 @@ theorem firstChernClass_pullback {EN HN : Type*} {N : Type} [NormedAddCommGroup 
     firstChernClass G (J.pullback f hf).toContinuousComplexStructure.Fiber =
       TopCat.singularCohomologyMap (TopCat.ofHom (f : C(N, M))) 2
         (firstChernClass G J.toContinuousComplexStructure.Fiber) := by
-  rw [← SymplecticGeometry.Bundle.firstChernClass_pullback]
+  rw [← SymplecticGeometry.Bundle.firstChernClass_pullback_coe]
   exact firstChernClass_congr (J.pullbackFiberEquiv f hf)
     (continuous_pullbackFiberEquiv G J f hf)
 

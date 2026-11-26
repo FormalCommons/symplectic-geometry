@@ -266,7 +266,7 @@ theorem symplecticChernNumber_pullback [PreconnectedSpace M]
     symplecticChernNumber_eq_chernNumber o hn G hJ.tames,
     ← chernNumber_pullback o hn G J.toContinuousComplexStructure.Fiber o' hn' f,
     chernNumber_def, chernNumber_def, J.firstChernClass_pullback G f hf,
-    SymplecticGeometry.Bundle.firstChernClass_pullback]
+    SymplecticGeometry.Bundle.firstChernClass_pullback_coe]
 
 /-- **Symplectic frames on every fibre.** Over a nonempty base, suppose that every fibre of `V`
 carries a symplectic frame from the standard space: a linear isomorphism

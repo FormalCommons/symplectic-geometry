@@ -466,7 +466,7 @@ theorem chernNumber_eq_boundaryDegree_normalizedDet
   -- The determinants of the two frames are nowhere vanishing sections of the determinant line
   -- over `{g ≤ 0}` and over `{g ≥ 0}`; on the boundary the second is the first times the
   -- determinant of the transition.
-  rw [chernNumber_def, firstChernClass_eq_complexEulerClass_detBundle]
+  rw [chernNumber_def, firstChernClass_def, lineFirstChernClass_def]
   refine VectorBundleOrientation.evalFundamentalClass_complexEulerClass_eq_boundaryDegree
     (finrank_self ℂ) oM hn hg h0
     (σ := fun x ↦ DetBundle.ofFrame (Φ₁ x : G ≃ₗ[ℂ] E x))
