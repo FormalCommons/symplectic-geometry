@@ -31,10 +31,12 @@ pulls back to one that is exact on a neighbourhood of `s`
 If `f : M → M` preserves a function `ρ`, and the pullback of `φ` along `f` agrees with `φ` where
 `ρ` does not vanish, then `f` pulls `ρ • φ` back to itself
 (`TauCeti.mpullback_fun_smul_eq_self`): a form cut off by an invariant function is invariant as
-soon as it is so on the support of the cut-off. Such a cut-off form is smooth when the cut-off is
-a smooth function whose support lies in an open set on which the map is smooth
-(`TauCeti.isSmoothForm_fun_smul_mpullback`, a step of the proof of Tau Ceti's
-`TauCeti.isSmoothForm_sum_finsupport_smul_mpullback` stated on its own).
+soon as it is so on the support of the cut-off.
+
+Let `g : M → M'` be smooth on an open set `u`, and `f : M → ℝ` a smooth function with
+`tsupport f ⊆ u`. Then for a smooth form `φ` on `M'`, the form `f • g^* φ` on `M` is smooth,
+although `g` need not be smooth off `u` (`TauCeti.isSmoothForm_fun_smul_mpullback`, a step of the
+proof of Tau Ceti's `TauCeti.isSmoothForm_sum_finsupport_smul_mpullback` stated on its own).
 
 Pulling a form back commutes with negation (`TauCeti.mpullback_neg`), as Tau Ceti's
 `TauCeti.mpullback_sub` says for subtraction. So a diffeomorphism preserves `-σ` exactly when it
