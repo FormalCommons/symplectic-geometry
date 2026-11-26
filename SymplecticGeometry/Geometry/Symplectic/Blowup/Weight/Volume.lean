@@ -20,9 +20,11 @@ in `ℝ≥0∞`, so that `M` need not be compact.
 
 ## Main results
 
-* `SymplecticGeometry.BlowupModel.liouvilleMeasure_exceptionalDivisor`: the exceptional divisor
-  `Z` of the model `BlowupModel n` is null for the Liouville measure of every two-form. In the
-  chart `blowupModelChart i`, `Z` lies in the hyperplane `w i = 0`.
+* `SymplecticGeometry.BlowupModel.isNullSet_exceptionalDivisor`: the exceptional divisor `Z` of
+  the model `BlowupModel n` is null in every chart, since in the chart `blowupModelChart i` it
+  lies in the hyperplane `w i = 0`.
+* `SymplecticGeometry.BlowupModel.liouvilleMeasure_exceptionalDivisor`: hence `Z` is null for the
+  Liouville measure of every two-form.
 * `SymplecticGeometry.WeightBlowup.liouvilleMeasure_form_add`: the volume of the blowup of weight
   `l` plus the volume of `B(l)` is the volume of `M`.
 
@@ -62,18 +64,12 @@ private theorem blowupModelChart_image_exceptionalDivisor_subset (i : Fin (n + 1
   rintro _ ⟨p, hp, rfl⟩
   simp [(mem_exceptionalDivisor_iff).1 hp]
 
-variable [Fact (finrank ℝ (Fin (n + 1) → ℂ) = 2 * m)]
-  [MeasurableSpace (BlowupModel n)] [BorelSpace (BlowupModel n)]
-
-/-- **The exceptional divisor is null**: for every two-form `σ` on the model `BlowupModel n`, the
-exceptional divisor `Z` has Liouville measure zero. -/
-theorem liouvilleMeasure_exceptionalDivisor
-    (σ : SmoothTwoForm 𝓘(ℝ, Fin (n + 1) → ℂ) (BlowupModel n)) :
-    σ.liouvilleMeasure m (exceptionalDivisor n) = 0 := by
-  let : MeasurableSpace (Fin (n + 1) → ℂ) := borel _
-  have : BorelSpace (Fin (n + 1) → ℂ) := ⟨rfl⟩
+/-- The exceptional divisor `Z` of the model `BlowupModel n` is null in every chart: its image in
+each chart is null for every additive Haar measure on `Fin (n + 1) → ℂ`. -/
+theorem isNullSet_exceptionalDivisor (n : ℕ) :
+    IsNullSet 𝓘(ℝ, Fin (n + 1) → ℂ) (exceptionalDivisor n) := by
   -- In every chart, `Z` lies in a hyperplane, which is null for every Haar measure.
-  refine IsNullSet.liouvilleMeasure_eq_zero ((isNullSet_iff _ _).2 fun p μ _ ↦ ?_) σ
+  refine (isNullSet_iff _ _).2 fun p μ _ ↦ ?_
   refine measure_mono_null ?_ (Measure.addHaar_submodule μ (LinearMap.ker (LinearMap.proj (R := ℝ)
     (φ := fun _ : Fin (n + 1) ↦ ℂ) (exists_mem_affineOpen p.pr).choose)) ?_)
   · rw [extChartAt_coe, modelWithCornersSelf_coe, Function.id_comp, chartAt_eq]
@@ -83,6 +79,16 @@ theorem liouvilleMeasure_exceptionalDivisor
         LinearMap.ker (LinearMap.proj (R := ℝ) (φ := fun _ : Fin (n + 1) ↦ ℂ)
           (exists_mem_affineOpen p.pr).choose) := h ▸ Submodule.mem_top
     simp at this
+
+variable [Fact (finrank ℝ (Fin (n + 1) → ℂ) = 2 * m)]
+  [MeasurableSpace (BlowupModel n)] [BorelSpace (BlowupModel n)]
+
+/-- **The exceptional divisor is null**: for every two-form `σ` on the model `BlowupModel n`, the
+exceptional divisor `Z` has Liouville measure zero. -/
+theorem liouvilleMeasure_exceptionalDivisor
+    (σ : SmoothTwoForm 𝓘(ℝ, Fin (n + 1) → ℂ) (BlowupModel n)) :
+    σ.liouvilleMeasure m (exceptionalDivisor n) = 0 :=
+  (isNullSet_exceptionalDivisor n).liouvilleMeasure_eq_zero σ
 
 end BlowupModel
 
