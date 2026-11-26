@@ -424,7 +424,7 @@ needed for it.
      so it sends `Q` into `Φ '' V²`. The map is `f' := f²' ∘ Φ.symm`, and
      `V := Φ '' V² ∩ V¹`. The constants: `‖fderiv ℝ Φ.symm‖ ≤ L` and `Φ`
      is `L`-Lipschitz, since `Φ - id` is smooth with compact support
-     (`ContDiff.lipschitzWith_of_hasCompactSupport` on `Φ - id`); then
+     (`Diffeomorph.exists_lipschitzWith_and_norm_fderiv_symm_le`); then
      `ε₂ ≤ ε / (2 L)`, `ε₁ ≤ ε / 2`, `δ₂ ≤ δ / (2 L)`, and `δ₂` so small
      that `thickening δ₂ Q ⊆ Φ ⁻¹' V¹`
      (`IsCompact.exists_thickening_subset_open`), so that the final cube
