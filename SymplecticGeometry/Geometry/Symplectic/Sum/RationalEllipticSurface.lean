@@ -9,12 +9,9 @@ public import Mathlib.Algebra.MvPolynomial.PDeriv
 public import Mathlib.AlgebraicTopology.FundamentalGroupoid.SimplyConnected
 public import Mathlib.RingTheory.MvPolynomial.Symmetric.Defs
 public import Mathlib.RingTheory.MvPolynomial.WeightedHomogeneous
-public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Basic
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.Basic
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.ProdZeroLocus.Manifold
-public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.RestrictScalars
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.HolomorphicEmbedding
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Submanifold
 public import SymplecticGeometry.LinearAlgebra.Projectivization.Perp
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Basic
@@ -23,11 +20,17 @@ public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Prod
 public import TauCeti.LinearAlgebra.Projectivization.Basic
 public import TauCeti.LinearAlgebra.Projectivization.ZeroLocus
 public import TauCeti.RingTheory.MvPolynomial.Jacobian.Basic
+public import SymplecticGeometry.Geometry.Symplectic.Blowup.Model
+import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Basic
+import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.RestrictScalars
+import SymplecticGeometry.Geometry.Symplectic.Blowup.PencilIncidence
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Submanifold
 import Mathlib.Algebra.Polynomial.Roots
 import Mathlib.Topology.LocalAtTarget
 import TauCeti.RingTheory.MvPolynomial.Symmetric.PowerSum.Basic
 import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.ComplFinite
 import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
+import SymplecticGeometry.Geometry.Symplectic.Blowup.SimplyConnected
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Prod
 import SymplecticGeometry.RingTheory.MvPolynomial.WeightedHomogeneous
 import SymplecticGeometry.Topology.ComplexProjectiveSpace.SimplyConnected
@@ -170,6 +173,17 @@ coordinates `s, t` of the line. A point of the cone `K³ × K²` is written `Sum
   and Tau Ceti's slice chart `TauCeti.complexProjectiveZeroLocusSliceChart` of the base locus,
   whose slice factor `Fin 0 → ℂ` is trivial, gives `φ` near `p`; cutting its target down to a
   small ball gives the rest.
+* `SymplecticGeometry.rationalEllipticSurface.exists_homeomorph_openNbhd_of_mem_baseLocus`: the
+  neighbourhoods of the exceptional curves. For a base point `p` and a neighbourhood `U` of `p`,
+  the part `N` of the surface over the source of such coordinates is an open set containing
+  `{p} × ℂℙ¹`, lying over `U` and over no other base point, and homeomorphic to the neighbourhood
+  `BlowupModel.openNbhd 1 r` of the exceptional divisor of the model blowup, the curve going onto
+  the divisor. The homeomorphism is `(x, ℓ) ↦ (φ x, ℓ)` onto the incidence set
+  `BlowupModel.pencilNbhd r`, followed by `BlowupModel.pencilNbhdHomeomorph r`.
+* `SymplecticGeometry.rationalEllipticSurface.exists_isSimplyConnected_of_mem_baseLocus`: such an
+  `N` is simply connected and stays path connected once the curve is removed
+  (`BlowupModel.isSimplyConnected_openNbhd`,
+  `BlowupModel.isPathConnected_openNbhd_sdiff_exceptionalDivisor`).
 
 ## References
 
@@ -958,6 +972,113 @@ theorem exists_openPartialHomeomorph_of_mem_baseLocus {p : ℙ ℂ (Fin 3 → �
     exact inter_eq_right.2 (hB.trans inter_subset_left)
   · refine Subset.antisymm (fun x ⟨hx, hxb⟩ ↦ φ.injOn hx hpφ ?_) (singleton_subset_iff.2 ⟨hpφ, hp⟩)
     rw [hφ, ((hzero x (hsrc ▸ hx).1).1 hxb), h0]
+
+/-! ### Neighbourhoods of the exceptional curves -/
+
+/-- For coordinates `φ` at a base point as in `exists_openPartialHomeomorph_of_mem_baseLocus`, the
+part of the surface over the source of `φ` is homeomorphic to the incidence set
+`BlowupModel.pencilNbhd r` of the pencil over the ball of radius `r`, by `(x, ℓ) ↦ (φ x, ℓ)`. -/
+private noncomputable def homeomorphPencilNbhd
+    (φ : OpenPartialHomeomorph (ℙ ℂ (Fin 3 → ℂ)) (Fin 2 → ℂ)) {r : ℝ}
+    (hφt : φ.target = {z | ‖complexToRealEuclidean (Fin 2) z‖ < r})
+    (hφ : ∀ x ∈ φ.source, ∀ (w : Fin 2 → ℂ) (hw : w ≠ 0),
+      (x, Projectivization.mk ℂ w hw) ∈ rationalEllipticSurface ↔
+        w 0 * φ x 0 + w 1 * φ x 1 = 0) :
+    {x : rationalEllipticSurface | x.val.1 ∈ φ.source} ≃ₜ BlowupModel.pencilNbhd r where
+  toFun x := ⟨(φ x.val.val.1, x.val.val.2), BlowupModel.mem_pencilNbhd_iff.2
+    ⟨BlowupModel.mem_pencilIncidence_iff.2 <| (hφ _ x.property _ x.val.val.2.rep_ne_zero).1 <| by
+        rw [Projectivization.mk_rep]
+        exact x.val.property,
+      by simpa [hφt] using φ.map_source x.property⟩⟩
+  invFun y :=
+    have ht : y.val.1 ∈ φ.target := hφt ▸ (BlowupModel.mem_pencilNbhd_iff.1 y.property).2
+    ⟨⟨(φ.symm y.val.1, y.val.2), by
+      have h := (hφ _ (φ.map_target ht) _ y.val.2.rep_ne_zero).2 <| by
+        rw [φ.right_inv ht]
+        exact BlowupModel.mem_pencilIncidence_iff.1 (BlowupModel.mem_pencilNbhd_iff.1 y.property).1
+      rwa [Projectivization.mk_rep] at h⟩, φ.map_target ht⟩
+  left_inv x := Subtype.ext <| Subtype.ext <| Prod.ext (φ.left_inv x.property) rfl
+  right_inv y :=
+    have ht : y.val.1 ∈ φ.target := hφt ▸ (BlowupModel.mem_pencilNbhd_iff.1 y.property).2
+    Subtype.ext <| Prod.ext (φ.right_inv ht) rfl
+  continuous_toFun := by
+    refine Continuous.subtype_mk (Continuous.prodMk ?_ (by fun_prop)) _
+    exact φ.continuousOn.comp_continuous (by fun_prop) fun x ↦ x.property
+  continuous_invFun := by
+    refine Continuous.subtype_mk (Continuous.subtype_mk (Continuous.prodMk ?_ (by fun_prop)) _) _
+    exact φ.continuousOn_symm.comp_continuous (by fun_prop) fun y ↦
+      hφt ▸ (BlowupModel.mem_pencilNbhd_iff.1 y.property).2
+
+private theorem fst_coe_coe_homeomorphPencilNbhd_symm_apply
+    {φ : OpenPartialHomeomorph (ℙ ℂ (Fin 3 → ℂ)) (Fin 2 → ℂ)} {r : ℝ}
+    (hφt : φ.target = {z | ‖complexToRealEuclidean (Fin 2) z‖ < r})
+    (hφ : ∀ x ∈ φ.source, ∀ (w : Fin 2 → ℂ) (hw : w ≠ 0),
+      (x, Projectivization.mk ℂ w hw) ∈ rationalEllipticSurface ↔
+        w 0 * φ x 0 + w 1 * φ x 1 = 0)
+    (y : BlowupModel.pencilNbhd r) :
+    ((homeomorphPencilNbhd φ hφt hφ).symm y).val.val.1 = φ.symm y.val.1 :=
+  (rfl)
+
+/-- **The neighbourhoods of the exceptional curves of `E(1)`.** For a base point `p` of the pencil
+and a neighbourhood `U` of `p` in `ℂℙ²`, there is an open set `N` of the rational elliptic surface
+containing the exceptional curve `{p} × ℂℙ¹`, lying over `U`, over no other base point, and
+homeomorphic to the neighbourhood `BlowupModel.openNbhd 1 r` of the exceptional divisor of the
+model blowup of `ℂ²`, for some `r > 0`, by a homeomorphism that maps the curve onto the divisor.
+-/
+theorem exists_homeomorph_openNbhd_of_mem_baseLocus {p : ℙ ℂ (Fin 3 → ℂ)} (hp : p ∈ baseLocus)
+    {U : Set (ℙ ℂ (Fin 3 → ℂ))} (hU : U ∈ 𝓝 p) :
+    ∃ (N : Set rationalEllipticSurface) (r : ℝ) (e : N ≃ₜ BlowupModel.openNbhd 1 r), 0 < r ∧
+      IsOpen N ∧ {x | x.val.1 = p} ⊆ N ∧ (∀ x ∈ N, x.val.1 ∈ U) ∧
+      (∀ x ∈ N, x.val.1 ∈ baseLocus → x.val.1 = p) ∧
+      e '' {x | x.val.val.1 = p} = Subtype.val ⁻¹' BlowupModel.exceptionalDivisor 1 := by
+  obtain ⟨φ, r, hr, hpφ, hφU, hφt, hφ0, hφ, hbase⟩ :=
+    exists_openPartialHomeomorph_of_mem_baseLocus hp hU
+  set h := homeomorphPencilNbhd φ hφt hφ
+  refine ⟨_, r, h.trans (BlowupModel.pencilNbhdHomeomorph r), hr,
+    φ.open_source.preimage (by fun_prop),
+    fun x hx ↦ by rw [mem_ofPred_eq] at hx ⊢; rw [hx]; exact hpφ, fun x hx ↦ hφU hx,
+    fun x hx hb ↦ ?_, ?_⟩
+  · have hx' : x.val.1 ∈ φ.source ∩ baseLocus := ⟨hx, hb⟩
+    rwa [hbase] at hx'
+  rw [show ⇑(h.trans _) = _ ∘ ⇑h from funext (h.trans_apply _), image_comp,
+    ← BlowupModel.image_pencilNbhdHomeomorph_setOf_fst_eq_zero, h.image_eq_preimage_symm]
+  congr 1
+  ext y
+  have ht : y.val.1 ∈ φ.target := hφt ▸ (BlowupModel.mem_pencilNbhd_iff.1 y.property).2
+  rw [mem_preimage, mem_ofPred_eq, mem_ofPred_eq, fst_coe_coe_homeomorphPencilNbhd_symm_apply]
+  constructor
+  · intro hy
+    rw [← φ.right_inv ht, hy, hφ0]
+  · intro hy
+    rw [hy, ← hφ0, φ.left_inv hpφ]
+
+/-- For a base point `p` of the pencil and a neighbourhood `U` of `p` in `ℂℙ²`, there is a simply
+connected open set `N` of the rational elliptic surface containing the exceptional curve
+`{p} × ℂℙ¹`, lying over `U` and over no other base point, that stays path connected once the
+curve is removed. -/
+theorem exists_isSimplyConnected_of_mem_baseLocus {p : ℙ ℂ (Fin 3 → ℂ)} (hp : p ∈ baseLocus)
+    {U : Set (ℙ ℂ (Fin 3 → ℂ))} (hU : U ∈ 𝓝 p) :
+    ∃ N : Set rationalEllipticSurface, IsOpen N ∧ {x | x.val.1 = p} ⊆ N ∧ (∀ x ∈ N, x.val.1 ∈ U) ∧
+      (∀ x ∈ N, x.val.1 ∈ baseLocus → x.val.1 = p) ∧ IsSimplyConnected N ∧
+      IsPathConnected (N \ {x | x.val.1 = p}) := by
+  obtain ⟨N, r, e, hr, hN, hpN, hNU, hNb, he⟩ := exists_homeomorph_openNbhd_of_mem_baseLocus hp hU
+  refine ⟨N, hN, hpN, hNU, hNb,
+    e.toHomotopyEquiv.simplyConnectedSpace_iff.2 (BlowupModel.isSimplyConnected_openNbhd hr), ?_⟩
+  -- Inside `N`, the complement of the curve is the image under `e.symm` of the complement of the
+  -- divisor in `openNbhd 1 r`.
+  have hD : IsPathConnected ((Subtype.val ⁻¹' BlowupModel.exceptionalDivisor 1)ᶜ :
+      Set (BlowupModel.openNbhd 1 r)) := by
+    rw [Topology.IsInducing.subtypeVal.isPathConnected_iff, ← preimage_compl,
+      Subtype.image_preimage_coe, ← sdiff_eq]
+    exact BlowupModel.isPathConnected_openNbhd_sdiff_exceptionalDivisor hr
+  have hC := hD.image e.symm.continuous
+  rw [← he, ← image_compl_eq e.bijective, e.image_symm, e.preimage_image,
+    Topology.IsInducing.subtypeVal.isPathConnected_iff] at hC
+  convert hC using 1
+  ext x
+  simp only [mem_sdiff, mem_ofPred_eq, mem_image, mem_compl_iff, Subtype.exists,
+    exists_and_right, exists_eq_right]
+  tauto
 
 end rationalEllipticSurface
 

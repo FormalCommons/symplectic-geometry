@@ -8,7 +8,8 @@ module
 public import Mathlib.Data.Fin.Tuple.Sort
 public import Mathlib.MeasureTheory.Measure.Lebesgue.VolumeOfBalls
 public import SymplecticGeometry.Analysis.InnerProductSpace.Symplectic.Ellipsoid.NormalForm
-public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Williamson
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Williamson
+import SymplecticGeometry.LinearAlgebra.QuadraticForm.PosDef
 
 /-!
 # The symplectic spectrum of an ellipsoid

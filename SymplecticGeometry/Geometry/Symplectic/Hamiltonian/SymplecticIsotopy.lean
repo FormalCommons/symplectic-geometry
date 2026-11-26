@@ -6,13 +6,14 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Real
-public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 public import TauCeti.Geometry.Manifold.DifferentialForm.Flow
 public import TauCeti.Geometry.Symplectic.Hamiltonian.SymplecticVectorField
+import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Eulerian
 import TauCeti.Geometry.Symplectic.Hamiltonian.Bracket
+import SymplecticGeometry.Geometry.Manifold.SmoothTransition
 
 /-!
 # Symplectic vector fields and symplectic isotopies

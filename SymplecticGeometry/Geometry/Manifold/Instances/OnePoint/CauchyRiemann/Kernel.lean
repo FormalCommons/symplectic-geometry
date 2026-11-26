@@ -6,9 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Complex.HomologicalOrientation
-public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.TwistCore
 
 import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.ComplexLinear
+import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.TwistCore
+public import TauCeti.Geometry.Manifold.Instances.OnePoint.LineBundle
 
 /-!
 # Kernels of Cauchy–Riemann operators on `𝒪(1)` over the sphere

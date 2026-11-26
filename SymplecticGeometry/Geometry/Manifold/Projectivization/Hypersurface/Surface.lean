@@ -7,10 +7,13 @@ module
 
 public import Mathlib.LinearAlgebra.QuadraticForm.Signature
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.RationalCoefficients
-public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.BettiNumber
 public import TauCeti.AlgebraicTopology.Cohomology.Cap.Kronecker
 
 import SymplecticGeometry.AlgebraicTopology.Cohomology.Empty
+import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.BettiNumber
+public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.EulerCharacteristic
+public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.ChernClass
+import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.Degree
 
 /-!
 # Smooth surfaces in `ℂℙ³`

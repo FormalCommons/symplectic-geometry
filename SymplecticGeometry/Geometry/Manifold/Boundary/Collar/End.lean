@@ -5,17 +5,17 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.Boundary.Charts
-public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Interior
-public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Local
 public import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
-public import SymplecticGeometry.Geometry.Manifold.Boundary.Interior
-public import SymplecticGeometry.Geometry.Manifold.ModelTransport.Remodel
-public import SymplecticGeometry.Geometry.Manifold.Gluing.Pair
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Smooth
 public import TauCeti.Geometry.Manifold.Immersion.Interior
 public import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
 public import TauCeti.Geometry.Manifold.Immersion.ModelChange
+import SymplecticGeometry.Geometry.Manifold.Boundary.Charts
+import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Interior
+import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Local
+import SymplecticGeometry.Geometry.Manifold.Boundary.Interior
+import SymplecticGeometry.Geometry.Manifold.ModelTransport.Remodel
+import SymplecticGeometry.Geometry.Manifold.Gluing.Pair
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 

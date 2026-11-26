@@ -6,11 +6,11 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Topology.Algebra.Module.FiniteDimension
-public import SymplecticGeometry.Topology.VectorBundle.Core.Basic
 public import TauCeti.Topology.FiberBundle.Pullback
 public import TauCeti.Topology.VectorBundle.Core.Congr
 public import TauCeti.Topology.VectorBundle.FiniteRank.Pullback
 public import TauCeti.Topology.VectorBundle.Trivialization
+import SymplecticGeometry.Topology.VectorBundle.Core.Basic
 
 /-!
 # The finite-rank core of a vector bundle with any finite-dimensional model

@@ -10,9 +10,12 @@ public import TauCeti.Analysis.Matrix.Normed
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import SymplecticGeometry.Analysis.Complex.SiegelUpperHalfSpace.ComplexStructure
 public import SymplecticGeometry.Geometry.Manifold.Instances.SiegelUpperHalfSpace
-public import SymplecticGeometry.Geometry.Symplectic.CompatibleSpace.Curvature
 public import SymplecticGeometry.Geometry.Symplectic.CompatibleSpace.Geodesic
+public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.Curvature.Sectional.Basic
+import SymplecticGeometry.Geometry.Symplectic.CompatibleSpace.Curvature
 import SymplecticGeometry.Analysis.CStarAlgebra.Matrix
+import SymplecticGeometry.Geometry.Symplectic.CompatibleSpace.LeviCivita
+import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 
 /-!
 # The Siegel upper half space and the Kähler manifold of compatible complex structures

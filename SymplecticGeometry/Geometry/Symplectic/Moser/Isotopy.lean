@@ -9,12 +9,12 @@ public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
+public import TauCeti.Geometry.Manifold.SmoothIsotopy.Diffeotopy
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.RelativePoincare
 import SymplecticGeometry.Geometry.Symplectic.Moser.Family
 import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Extend
-import TauCeti.Geometry.Manifold.SmoothIsotopy.Diffeotopy
 import TauCeti.Geometry.Symplectic.Manifold.Opens
 
 /-!

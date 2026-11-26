@@ -8,12 +8,15 @@ module
 public import Mathlib.Topology.DiscreteSubset
 public import SymplecticGeometry.LinearAlgebra.QuadraticForm.Signature
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Crossing.Form
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Path.Naturality
-public import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Graph
 public import TauCeti.Analysis.Matrix.UnitaryGroup.Maslov.Crossing
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Path.Basic
+import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Path.Naturality
+import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Graph
 import Mathlib.Analysis.Calculus.Deriv.Comp
 import TauCeti.LinearAlgebra.QuadraticForm.Radical
 import TauCeti.LinearAlgebra.QuadraticForm.Signature
+import SymplecticGeometry.Analysis.Calculus.Deriv.Matrix
+import Mathlib.RingTheory.Flat.TorsionFree
 
 /-!
 # The crossing-form formula for paths of Lagrangian subspaces

@@ -6,15 +6,17 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Complex.Tietze
-public import SymplecticGeometry.Geometry.Manifold.RegularValue.FiniteZeros
 public import SymplecticGeometry.Geometry.Manifold.RegularValue.LevelCollar
-public import SymplecticGeometry.Topology.Algebra.Module.Equiv.Basic
-public import SymplecticGeometry.Topology.VectorBundle.Orientation.ArgumentPrinciple
-public import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.LineBundle
-public import SymplecticGeometry.Topology.VectorBundle.Section
 public import TauCeti.Topology.VectorBundle.Hom
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.EulerClass
-public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
+public import TauCeti.AlgebraicTopology.Cohomology.FundamentalClass
+import SymplecticGeometry.Geometry.Manifold.RegularValue.FiniteZeros
+import SymplecticGeometry.Topology.Algebra.Module.Equiv.Basic
+import SymplecticGeometry.Topology.VectorBundle.Orientation.ArgumentPrinciple
+import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.LineBundle
+import SymplecticGeometry.Topology.VectorBundle.Section
+import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
+import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.FiberwiseEquiv
 
 /-!
 # The argument principle on a split closed surface

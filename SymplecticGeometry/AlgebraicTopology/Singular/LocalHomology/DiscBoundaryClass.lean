@@ -5,9 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Complex
 public import SymplecticGeometry.Analysis.Normed.Module.Ball.Collar
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.RelativeFundamentalClass
+public import TauCeti.Geometry.Manifold.Complex.FundamentalClass
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Complex
 
 /-!
 # The closed unit disc and the local orientation of `ℂ`

@@ -8,10 +8,11 @@ module
 public import Mathlib.Analysis.Calculus.ContDiff.Operations
 public import SymplecticGeometry.Analysis.Complex.SiegelUpperHalfSpace.Action
 public import SymplecticGeometry.LinearAlgebra.ComplexStructure.Action
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 public import TauCeti.Analysis.Matrix.EuclideanLin
 public import TauCeti.Analysis.Matrix.Normed
 public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Basic
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 import TauCeti.Analysis.Calculus.ContinuousLinearMapInverse
 import TauCeti.Analysis.Calculus.FDeriv.Inv
 import TauCeti.Analysis.Matrix.Sqrt
@@ -21,6 +22,11 @@ import SymplecticGeometry.LinearAlgebra.ComplexStructure.Standard
 import SymplecticGeometry.LinearAlgebra.Matrix.Block
 import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
 import SymplecticGeometry.Topology.Instances.Matrix
+import SymplecticGeometry.LinearAlgebra.Matrix.PosDef.Basic
+import Mathlib.RingTheory.PicardGroup
+import TauCeti.Topology.Algebra.Module.FiniteDimension
+import Mathlib.RingTheory.Valuation.ValuationRing
+import SymplecticGeometry.LinearAlgebra.Matrix.OfReal
 
 /-!
 # The Siegel upper half space and the compatible complex structures

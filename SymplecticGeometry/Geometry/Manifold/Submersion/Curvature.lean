@@ -6,9 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Submersion.HorizontalLiftField
-public import SymplecticGeometry.Algebra.Order.Monoid.NatCast
 public import Mathlib.Geometry.Manifold.VectorField.LieBracket
 public import Mathlib.LinearAlgebra.SesquilinearForm.Basic
+import SymplecticGeometry.Algebra.Order.Monoid.NatCast
 import TauCeti.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Section.Extension
 import TauCeti.Geometry.Manifold.VectorBundle.Tensoriality

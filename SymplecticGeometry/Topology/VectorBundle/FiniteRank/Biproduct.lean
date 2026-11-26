@@ -8,8 +8,8 @@ module
 public import TauCeti.CategoryTheory.GrothendieckGroup.Split
 public import TauCeti.Topology.VectorBundle.FiniteRank.Biproduct
 public import TauCeti.Topology.VectorBundle.FiniteRank.Pullback
-public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.SMul
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 
 /-!
 # Whitney sums of finite-rank cores: charts, rotations and classes
@@ -122,12 +122,12 @@ def whitneyRotation (A : FiniteRankBundleCore 𝕜 B) (c s : C(B, 𝕜)) (h : c 
   hom := c • 𝟙 _ + s • whitneyQuarterTurn A
   inv := c • 𝟙 _ - s • whitneyQuarterTurn A
   hom_inv_id := by
-    simp only [Preadditive.add_comp, Preadditive.comp_sub, smul_comp, comp_smul,
-      Category.id_comp, Category.comp_id, whitneyQuarterTurn_comp_self, smul_smul]
+    simp only [Preadditive.add_comp, Preadditive.comp_sub, Linear.smul_comp, Linear.comp_smul,
+      Category.id_comp, Category.comp_id, whitneyQuarterTurn_comp_self]
     linear_combination (norm := module) h • 𝟙 (whitneySum A A)
   inv_hom_id := by
-    simp only [Preadditive.sub_comp, Preadditive.comp_add, smul_comp, comp_smul,
-      Category.id_comp, Category.comp_id, whitneyQuarterTurn_comp_self, smul_smul]
+    simp only [Preadditive.sub_comp, Preadditive.comp_add, Linear.smul_comp, Linear.comp_smul,
+      Category.id_comp, Category.comp_id, whitneyQuarterTurn_comp_self]
     linear_combination (norm := module) h • 𝟙 (whitneySum A A)
 
 @[simp]

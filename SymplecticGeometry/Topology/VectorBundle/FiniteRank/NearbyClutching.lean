@@ -7,8 +7,9 @@ module
 
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Clutching
 public import Mathlib.Analysis.SpecificLimits.Normed
-public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.SMul
-public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.CompactCharts
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.SMul
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.CompactCharts
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 
 /-!
 # Nearby clutching functions give isomorphic clutchings
@@ -126,51 +127,50 @@ clutching functions lives. -/
 local notation "P" E => (FiniteRankBundleCore.pullback (FiniteRankBundleCore.pullback E
   (ContinuousMap.fst : C(X × I, X))) (ContinuousMap.fst : C((X × I) × Circle, X × I)))
 
-/-- The pullback of `E` to `X × Circle`, on which the clutching functions live. -/
-local notation "Q" E => (FiniteRankBundleCore.pullback E (ContinuousMap.fst : C(X × Circle, X)))
-
 /-- A morphism of the pullback of `E` to `X × Circle`, pulled back to `(X × I) × Circle` along
 `((x, t), z) ↦ (x, z)`, where the homotopies of `nonempty_iso_clutching_of_homotopic` live. The
 pullback of `E` to `(X × I) × Circle` through `X × I` is by definition its pullback along this map,
 with the same charts and transitions; the type ascription records this. -/
-def pullbackForgetTime (f : (Q E) ⟶ (Q E)) : (P E) ⟶ (P E) :=
+def pullbackForgetTime (f : E.circlePullback ⟶ E.circlePullback) : (P E) ⟶ (P E) :=
   pullbackMap f (ContinuousMap.fst.prodMap (.id Circle))
 
-theorem pullbackForgetTime_def (f : (Q E) ⟶ (Q E)) :
+theorem pullbackForgetTime_def (f : E.circlePullback ⟶ E.circlePullback) :
     pullbackForgetTime f = pullbackMap f (ContinuousMap.fst.prodMap (.id Circle)) :=
   (rfl)
 
 @[simp]
-theorem fiberMap_pullbackForgetTime (f : (Q E) ⟶ (Q E)) (b : (X × I) × Circle) :
+theorem fiberMap_pullbackForgetTime (f : E.circlePullback ⟶ E.circlePullback)
+    (b : (X × I) × Circle) :
     (pullbackForgetTime f).fiberMap b = f.fiberMap (b.1.1, b.2) :=
   fiberMap_pullbackMap f _ b
 
 @[simp]
-theorem pullbackForgetTime_id : pullbackForgetTime (𝟙 (Q E)) = 𝟙 (P E) :=
+theorem pullbackForgetTime_id : pullbackForgetTime (𝟙 E.circlePullback) = 𝟙 (P E) :=
   (pullbackFunctor (ContinuousMap.fst.prodMap (.id Circle))).map_id _
 
 @[simp]
-theorem pullbackForgetTime_comp (f g : (Q E) ⟶ (Q E)) :
+theorem pullbackForgetTime_comp (f g : E.circlePullback ⟶ E.circlePullback) :
     pullbackForgetTime (f ≫ g) = pullbackForgetTime f ≫ pullbackForgetTime g :=
   (pullbackFunctor (ContinuousMap.fst.prodMap (.id Circle))).map_comp f g
 
 /-- An isomorphism of the pullback of `E` to `X × Circle`, pulled back to `(X × I) × Circle`
 along `((x, t), z) ↦ (x, z)`: its morphisms are the pullbacks `pullbackForgetTime` of those of the
 isomorphism. -/
-def pullbackForgetTimeIso (f : (Q E) ≅ (Q E)) : (P E) ≅ (P E) :=
+def pullbackForgetTimeIso (f : E.circlePullback ≅ E.circlePullback) : (P E) ≅ (P E) :=
   (pullbackFunctor (ContinuousMap.fst.prodMap (.id Circle))).mapIso f
 
 @[simp]
-theorem pullbackForgetTimeIso_hom (f : (Q E) ≅ (Q E)) :
+theorem pullbackForgetTimeIso_hom (f : E.circlePullback ≅ E.circlePullback) :
     (pullbackForgetTimeIso f).hom = pullbackForgetTime f.hom :=
   (rfl)
 
 @[simp]
-theorem pullbackForgetTimeIso_inv (f : (Q E) ≅ (Q E)) :
+theorem pullbackForgetTimeIso_inv (f : E.circlePullback ≅ E.circlePullback) :
     (pullbackForgetTimeIso f).inv = pullbackForgetTime f.inv :=
   (rfl)
 
-theorem fiberMap_pullbackForgetTimeIso_hom (f : (Q E) ≅ (Q E)) (b : (X × I) × Circle) :
+theorem fiberMap_pullbackForgetTimeIso_hom (f : E.circlePullback ≅ E.circlePullback)
+    (b : (X × I) × Circle) :
     (pullbackForgetTimeIso f).hom.fiberMap b = f.hom.fiberMap (b.1.1, b.2) := by
   rw [pullbackForgetTimeIso_hom, fiberMap_pullbackForgetTime]
 
@@ -184,22 +184,22 @@ private def time : C((X × I) × Circle, 𝕜) :=
 /-- The segment between two morphisms `f₀` and `f₁` of the pullback of `E` to `X × Circle`: the
 morphism of its pullback to `(X × I) × Circle` with fibre map `(1 - t) f₀(x, z) + t f₁(x, z)` at
 `((x, t), z)` (`fiberMap_segmentHom`). -/
-def segmentHom (f₀ f₁ : (Q E) ⟶ (Q E)) : (P E) ⟶ (P E) :=
+def segmentHom (f₀ f₁ : E.circlePullback ⟶ E.circlePullback) : (P E) ⟶ (P E) :=
   (1 - time 𝕜 X) • pullbackForgetTime f₀ + time 𝕜 X • pullbackForgetTime f₁
 
 @[simp]
-theorem fiberMap_segmentHom (f₀ f₁ : (Q E) ⟶ (Q E)) (b : (X × I) × Circle) :
+theorem fiberMap_segmentHom (f₀ f₁ : E.circlePullback ⟶ E.circlePullback) (b : (X × I) × Circle) :
     (segmentHom f₀ f₁).fiberMap b = (1 - algebraMap ℝ 𝕜 b.1.2) • f₀.fiberMap (b.1.1, b.2) +
       algebraMap ℝ 𝕜 b.1.2 • f₁.fiberMap (b.1.1, b.2) := by
   rw [segmentHom, fiberMap_add, fiberMap_smul, fiberMap_smul, fiberMap_pullbackForgetTime,
     fiberMap_pullbackForgetTime, ContinuousMap.sub_apply, ContinuousMap.one_apply, time,
     ContinuousMap.coe_mk]
 
-theorem fiberMap_segmentHom_zero (f₀ f₁ : (Q E) ⟶ (Q E)) (w : X × Circle) :
+theorem fiberMap_segmentHom_zero (f₀ f₁ : E.circlePullback ⟶ E.circlePullback) (w : X × Circle) :
     (segmentHom f₀ f₁).fiberMap ((w.1, 0), w.2) = f₀.fiberMap w := by
   simp [fiberMap_segmentHom]
 
-theorem fiberMap_segmentHom_one (f₀ f₁ : (Q E) ⟶ (Q E)) (w : X × Circle) :
+theorem fiberMap_segmentHom_one (f₀ f₁ : E.circlePullback ⟶ E.circlePullback) (w : X × Circle) :
     (segmentHom f₀ f₁).fiberMap ((w.1, 1), w.2) = f₁.fiberMap w := by
   simp [fiberMap_segmentHom]
 
@@ -209,8 +209,9 @@ variable [CompleteSpace 𝕜]
 some change of coordinates `U` brings `f₀⁻¹ ∘ f₁` within distance less than `1` of the identity:
 `‖U⁻¹ ∘ f₀⁻¹ ∘ f₁ ∘ U - 1‖ < 1`. Invertibility does not depend on the coordinates, so the estimate
 may be checked in any chart. -/
-theorem isIso_segmentHom_of_norm_conj_lt_one (f₀ : (Q E) ≅ (Q E)) (f₁ : (Q E) ⟶ (Q E))
-    (h : ∀ w, ∃ U : ((Fin (Q E).rank → 𝕜) →L[𝕜] (Fin (Q E).rank → 𝕜))ˣ,
+theorem isIso_segmentHom_of_norm_conj_lt_one (f₀ : E.circlePullback ≅ E.circlePullback)
+    (f₁ : E.circlePullback ⟶ E.circlePullback)
+    (h : ∀ w, ∃ U : ((Fin E.circlePullback.rank → 𝕜) →L[𝕜] (Fin E.circlePullback.rank → 𝕜))ˣ,
       ‖↑U⁻¹ * ((f₀.inv.fiberMap w).comp (f₁.fiberMap w)) * ↑U - 1‖ < 1) :
     IsIso (segmentHom f₀.hom f₁) := by
   refine isIso_of_norm_conj_lt_one (pullbackForgetTimeIso f₀) _ fun b ↦ ?_
@@ -224,18 +225,18 @@ theorem isIso_segmentHom_of_norm_conj_lt_one (f₀ : (Q E) ≅ (Q E)) (f₁ : (Q
     ContinuousLinearMap.comp_add, ContinuousLinearMap.comp_smul, ContinuousLinearMap.comp_smul,
     fiberMap_hom_inv_id, ← ContinuousLinearMap.one_def]
   -- The goal is stated in the endomorphisms of `Fin (P E).rank → 𝕜`; state it in those of
-  -- `Fin (Q E).rank → 𝕜`, the same ring since both ranks are that of `E` by definition.
-  change ‖(↑U⁻¹ : (Fin (Q E).rank → 𝕜) →L[𝕜] (Fin (Q E).rank → 𝕜)) *
+  -- `Fin E.circlePullback.rank → 𝕜`, the same ring since both ranks are that of `E` by definition.
+  change ‖(↑U⁻¹ : (Fin E.circlePullback.rank → 𝕜) →L[𝕜] (Fin E.circlePullback.rank → 𝕜)) *
     ((1 - s) • 1 + s • (f₀.inv.fiberMap (b.1.1, b.2)).comp (f₁.fiberMap (b.1.1, b.2))) * ↑U -
       1‖ < 1
   -- At time `s`, `f₀⁻¹ ∘ ((1 - s) f₀ + s f₁) - 1 = s (f₀⁻¹ ∘ f₁ - 1)`, in any coordinates.
-  have he : (↑U⁻¹ : (Fin (Q E).rank → 𝕜) →L[𝕜] (Fin (Q E).rank → 𝕜)) *
+  have he : (↑U⁻¹ : (Fin E.circlePullback.rank → 𝕜) →L[𝕜] (Fin E.circlePullback.rank → 𝕜)) *
       ((1 - s) • 1 + s • (f₀.inv.fiberMap (b.1.1, b.2)).comp (f₁.fiberMap (b.1.1, b.2))) * ↑U -
         1 = s • (↑U⁻¹ * ((f₀.inv.fiberMap (b.1.1, b.2)).comp (f₁.fiberMap (b.1.1, b.2))) * ↑U -
           1) := by
     ext v : 1
-    have hU : (↑U⁻¹ : (Fin (Q E).rank → 𝕜) →L[𝕜] (Fin (Q E).rank → 𝕜))
-        ((↑U : (Fin (Q E).rank → 𝕜) →L[𝕜] (Fin (Q E).rank → 𝕜)) v) = v := by
+    have hU : (↑U⁻¹ : (Fin E.circlePullback.rank → 𝕜) →L[𝕜] (Fin E.circlePullback.rank → 𝕜))
+        ((↑U : (Fin E.circlePullback.rank → 𝕜) →L[𝕜] (Fin E.circlePullback.rank → 𝕜)) v) = v := by
       rw [← mul_apply_eq_comp, Units.inv_mul, one_apply_eq_self]
     simp only [sub_apply, mul_apply_eq_comp, add_apply, smul_apply, one_apply_eq_self, map_add,
       map_smul, hU]
@@ -245,7 +246,8 @@ theorem isIso_segmentHom_of_norm_conj_lt_one (f₀ : (Q E) ≅ (Q E)) (f₁ : (Q
 
 /-- The segment from an automorphism `f₀` to a morphism `f₁` is invertible if `f₀⁻¹ ∘ f₁` is
 everywhere within distance less than `1` of the identity. -/
-theorem isIso_segmentHom (f₀ : (Q E) ≅ (Q E)) (f₁ : (Q E) ⟶ (Q E))
+theorem isIso_segmentHom (f₀ : E.circlePullback ≅ E.circlePullback)
+    (f₁ : E.circlePullback ⟶ E.circlePullback)
     (h : ∀ w, ‖(f₀.inv.fiberMap w).comp (f₁.fiberMap w) - .id 𝕜 _‖ < 1) :
     IsIso (segmentHom f₀.hom f₁) :=
   isIso_segmentHom_of_norm_conj_lt_one f₀ f₁ fun w ↦ ⟨1, by
@@ -256,8 +258,8 @@ to `X × Circle`. If at every point `w` some change of coordinates `U` brings th
 `f₀⁻¹ ∘ f₁` within distance less than `1` of the identity, `‖U⁻¹ ∘ f₀⁻¹ ∘ f₁ ∘ U - 1‖ < 1`, then
 the clutchings of `E` by `f₀` and by `f₁` are isomorphic. -/
 theorem nonempty_iso_clutching_of_norm_conj_lt_one [ParacompactSpace X] [R1Space X]
-    {f₀ f₁ : (Q E) ≅ (Q E)}
-    (h : ∀ w, ∃ U : ((Fin (Q E).rank → 𝕜) →L[𝕜] (Fin (Q E).rank → 𝕜))ˣ,
+    {f₀ f₁ : E.circlePullback ≅ E.circlePullback}
+    (h : ∀ w, ∃ U : ((Fin E.circlePullback.rank → 𝕜) →L[𝕜] (Fin E.circlePullback.rank → 𝕜))ˣ,
       ‖↑U⁻¹ * ((f₀.inv.fiberMap w).comp (f₁.hom.fiberMap w)) * ↑U - 1‖ < 1) :
     Nonempty (E.clutching f₀ ≅ E.clutching f₁) :=
   haveI := isIso_segmentHom_of_norm_conj_lt_one f₀ f₁.hom h
@@ -270,7 +272,7 @@ instance compact Hausdorff, and let `f₀` and `f₁` be automorphisms of the pu
 of the identity in operator norm, then the clutchings of `E` by `f₀` and by `f₁` are
 isomorphic. -/
 theorem nonempty_iso_clutching_of_norm_lt_one [ParacompactSpace X] [R1Space X]
-    {f₀ f₁ : (Q E) ≅ (Q E)}
+    {f₀ f₁ : E.circlePullback ≅ E.circlePullback}
     (h : ∀ w, ‖(f₀.inv.fiberMap w).comp (f₁.hom.fiberMap w) - .id 𝕜 _‖ < 1) :
     Nonempty (E.clutching f₀ ≅ E.clutching f₁) :=
   nonempty_iso_clutching_of_norm_conj_lt_one fun w ↦ ⟨1, by

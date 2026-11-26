@@ -15,6 +15,8 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.TimeExtension
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import TauCeti.Geometry.Symplectic.Manifold.Moser.Local
+import SymplecticGeometry.Geometry.Manifold.DeRham.GoodCover.Compact
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Family
 
 /-!
 # Moser stability

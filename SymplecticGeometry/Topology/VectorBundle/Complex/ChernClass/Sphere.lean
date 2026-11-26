@@ -5,8 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.Sphere.Basic
-public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Whitney
+public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Basic
+import SymplecticGeometry.AlgebraicTopology.Cohomology.Sphere.Basic
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Whitney
 
 /-!
 # Chern classes of complex vector bundles over spheres

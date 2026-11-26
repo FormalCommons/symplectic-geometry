@@ -5,8 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Tautological
 public import SymplecticGeometry.Geometry.Manifold.Gluing.Pair
+public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Model
+public import Mathlib.Analysis.CStarAlgebra.Classes
+import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Tautological
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective

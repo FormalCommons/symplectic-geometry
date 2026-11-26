@@ -6,19 +6,23 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Model
-public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Normalization
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
-public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
 public import TauCeti.Geometry.Symplectic.Manifold.Kahler
 public import SymplecticGeometry.Geometry.Symplectic.Complex.Radial
 public import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 public import SymplecticGeometry.Geometry.Manifold.Diffeomorph.RestrictScalars
+public import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
+public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.TopForm
+public import SymplecticGeometry.Geometry.Manifold.Complex.Orientation
+import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Normalization
+import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Pseudoholomorphic
 import SymplecticGeometry.Analysis.Complex.Euclidean.Space
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
+import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import TauCeti.Topology.Order.Sublevel
+import SymplecticGeometry.Analysis.Complex.QuadraticLeviForm
 
 /-!
 # The forms `ω̃_λ` on the model blowup
@@ -63,7 +67,8 @@ to the exceptional divisor `Z`, sets up the neighbourhoods `L(ε)` of `Z`, and i
   `SymplecticGeometry.BlowupModel.integralTopForm_blowupForm_line`: every projective line of the
   divisor has area `π l²`, by `integralTopForm_mpullback_map_fubiniStudyForm`.
 * `SymplecticGeometry.BlowupModel.blowdownPuncturedDiffeomorph n`: `blowdownDiffeomorph n` as a
-  real diffeomorphism from `L ∖ Z` onto `puncturedSpace E`, and
+  real diffeomorphism from `L ∖ Z` onto `puncturedSpace E`, holomorphic
+  (`SymplecticGeometry.BlowupModel.isPseudoholomorphic_blowdownPuncturedDiffeomorph`), and
   `SymplecticGeometry.BlowupModel.mpullback_blowdownDiffeomorph_symm_blowupForm`: along its
   inverse, `ω̃_l` pulls back to `radialPotentialForm` of `s ↦ s + l² log s`, the sum of
   `radialPotentialForm_id` (`ω₀`) and `l²` times `radialPotentialForm_log` (the pull-back of
@@ -76,6 +81,10 @@ to the exceptional divisor `Z`, sets up the neighbourhoods `L(ε)` of `Z`, and i
   `ω̃_l` to `ω₀` (`isSymplectomorphism_radialBlowdownDiffeomorph`). For `0 ≤ l` and `0 ≤ ε` it
   maps `L(ε) ∖ Z` onto the shell `l < |w| ≤ √(l² + ε²)`
   (`image_closedNbhd_radialBlowdownDiffeomorph`).
+* `SymplecticGeometry.BlowupModel.shellPoint l z`: the point `([z], √(|z|² - l²) / |z| • z)` of
+  the model, for `z ≠ 0`; it is continuous in `z` (`continuous_shellPoint`). For `0 ≤ l < |z|`
+  it is the preimage of `z` under `F_l ∘ π` (`coe_radialBlowdownDiffeomorph_symm_apply`), and
+  for `|z| = l` the point of the zero section over `[z]` (`shellPoint_of_norm_eq`).
 * `SymplecticGeometry.BlowupModel.shellSymplectomorph n l ε hl hε`: its restriction to a
   diffeomorphism from `openNbhd n ε ∖ Z` onto the open shell `openShell n l ε`,
   `l < |w| < √(l² + ε²)`, carrying `ω̃_l` to `ω₀` (`isSymplectomorphism_shellSymplectomorph`).
@@ -352,6 +361,32 @@ theorem coe_blowdownPuncturedDiffeomorph_symm_apply (z : puncturedSpace (Fin (n 
       ofNeZero (mem_puncturedSpace.1 z.property) := by
   simp [blowdownPuncturedDiffeomorph, blowdownDiffeomorph_symm_apply]
 
+/-- Read through the inclusions of the complement of the divisor and of `E ∖ 0`, the blowdown
+inverts `(blowdownPuncturedDiffeomorph n).symm`. -/
+theorem blowdown_comp_subtypeVal_comp_blowdownPuncturedDiffeomorph_symm :
+    (blowdown : BlowupModel n → _) ∘ Subtype.val ∘ (blowdownPuncturedDiffeomorph n).symm =
+      Subtype.val :=
+  funext fun z ↦ by
+    rw [Function.comp_apply, Function.comp_apply, coe_blowdownPuncturedDiffeomorph_symm_apply,
+      blowdown_ofNeZero]
+
+open SmoothAlmostComplexStructure in
+/-- The blowdown, from the complement of the exceptional divisor onto `E ∖ 0`, is holomorphic. -/
+theorem isPseudoholomorphic_blowdownPuncturedDiffeomorph :
+    IsPseudoholomorphic
+      (ofComplexManifold (Fin (n + 1) → ℂ) (offDivisorOpens n))
+      (ofComplexManifold (Fin (n + 1) → ℂ) (puncturedSpace (Fin (n + 1) → ℂ)))
+      (blowdownPuncturedDiffeomorph n) := by
+  have h : (Subtype.val ∘ blowdownPuncturedDiffeomorph n : offDivisorOpens n → _) =
+      blowdown ∘ Subtype.val :=
+    funext fun p ↦ coe_blowdownPuncturedDiffeomorph_apply p
+  have hc : ContMDiff 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ∞
+      (Subtype.val ∘ blowdownPuncturedDiffeomorph n) := by
+    rw [h]
+    exact (contMDiff_blowdown ∞).comp contMDiff_subtypeVal
+  exact isPseudoholomorphic_ofComplexManifold_iff.2
+    (((ContMDiff.subtypeVal_comp_iff _ _).1 hc).mdifferentiable (by simp))
+
 /-- The radial potential `s ↦ s + l² log s` is smooth on `(0, ∞)`. -/
 theorem contDiffOn_add_mul_log (l : ℝ) :
     ContDiffOn ℝ ∞ (fun s ↦ s + l ^ 2 * Real.log s) (Ioi 0) :=
@@ -377,9 +412,8 @@ theorem mpullback_blowdownDiffeomorph_symm_blowupForm (l : ℝ) :
     SmoothForm.mpullback_mpullback, SmoothForm.mpullback_mpullback,
     SmoothForm.mpullback_mpullback, ← mpullback_mkNonzero_fubiniStudyForm, ω₀E_def]
   congr 1
-  · refine SmoothForm.mpullback_congr _ _ (funext fun z ↦ ?_) _
-    rw [Function.comp_apply, Function.comp_apply, coe_blowdownPuncturedDiffeomorph_symm_apply,
-      blowdown_ofNeZero]
+  · exact SmoothForm.mpullback_congr _ _
+      blowdown_comp_subtypeVal_comp_blowdownPuncturedDiffeomorph_symm _
   · refine congrArg _ (SmoothForm.mpullback_congr _ _ (funext fun z ↦ ?_) _)
     rw [Function.comp_apply, Function.comp_apply, coe_blowdownPuncturedDiffeomorph_symm_apply,
       pr_ofNeZero, mkNonzero_apply]
@@ -546,6 +580,110 @@ theorem isSymplectomorphism_shellSymplectomorph {l ε : ℝ} (hl : 0 ≤ l) (hε
       (shellSymplectomorph n l ε hl hε) := by
   rw [shellSymplectomorph]
   exact (isSymplectomorphism_radialBlowdownDiffeomorph l).subtype_nestedOpen _ _ _
+
+/-! ### The inverse of `F_l ∘ π`, extended by the zero section -/
+
+/-- The point `([z], √(|z|² - l²) / |z| • z)` of the model blowup, for `z ≠ 0`. For `|z| > l` it
+is the preimage of `z` under `F_l ∘ π` (`coe_radialBlowdownDiffeomorph_symm_apply`), and for
+`|z| = l` it is the point of the zero section over `[z]` (`shellPoint_of_norm_eq`). -/
+noncomputable def shellPoint (l : ℝ) (z : puncturedSpace (Fin (n + 1) → ℂ)) : BlowupModel n :=
+  ⟨(mk ℂ (z : Fin (n + 1) → ℂ) (mem_puncturedSpace.1 z.property),
+    (√(‖complexToRealEuclidean (Fin (n + 1)) z‖ ^ 2 - l ^ 2) /
+      ‖complexToRealEuclidean (Fin (n + 1)) z‖) • (z : Fin (n + 1) → ℂ)),
+    mem_blowupModel_iff.2 (Submodule.smul_of_tower_mem _ _
+      (mem_blowupModel_iff.1 (mk_self_mem_blowupModel _)))⟩
+
+/-- The line of `shellPoint l z` is the line `[z]` through `z`. -/
+@[simp]
+theorem pr_shellPoint (l : ℝ) (z : puncturedSpace (Fin (n + 1) → ℂ)) :
+    (shellPoint l z).pr = mk ℂ (z : Fin (n + 1) → ℂ) (mem_puncturedSpace.1 z.property) :=
+  pr_mk ..
+
+/-- The blowdown of `shellPoint l z` is `√(|z|² - l²) / |z| • z`. -/
+@[simp]
+theorem blowdown_shellPoint (l : ℝ) (z : puncturedSpace (Fin (n + 1) → ℂ)) :
+    (shellPoint l z).blowdown =
+      (√(‖complexToRealEuclidean (Fin (n + 1)) z‖ ^ 2 - l ^ 2) /
+        ‖complexToRealEuclidean (Fin (n + 1)) z‖) • (z : Fin (n + 1) → ℂ) :=
+  blowdown_mk ..
+
+/-- The point `shellPoint l z` depends continuously on `z ≠ 0`. -/
+theorem continuous_shellPoint (l : ℝ) : Continuous (shellPoint (n := n) l) := by
+  have hmk : (fun z : puncturedSpace (Fin (n + 1) → ℂ) ↦
+      mk ℂ (z : Fin (n + 1) → ℂ) (mem_puncturedSpace.1 z.property)) = mkNonzero ℂ n :=
+    funext fun z ↦ (mkNonzero_apply z).symm
+  have hnorm : Continuous fun z : puncturedSpace (Fin (n + 1) → ℂ) ↦
+      ‖complexToRealEuclidean (Fin (n + 1)) z‖ :=
+    ((complexToRealEuclidean (Fin (n + 1))).continuous.comp continuous_subtypeVal).norm
+  refine Continuous.subtype_mk (Continuous.prodMk ?_ ?_) _
+  · rw [hmk]
+    exact (contMDiff_mkNonzero ℂ n 0).continuous
+  · exact (((Real.continuous_sqrt.comp ((hnorm.pow 2).sub continuous_const)).div hnorm
+      fun z ↦ (pow_ne_zero_iff two_ne_zero).1 (norm_sq_complexToRealEuclidean_pos z).ne').smul
+        continuous_subtypeVal)
+
+/-- The blowdown of `shellPoint l z` has Euclidean norm `√(|z|² - l²)`. -/
+theorem norm_blowdown_shellPoint (l : ℝ) (z : puncturedSpace (Fin (n + 1) → ℂ)) :
+    ‖complexToRealEuclidean (Fin (n + 1)) (shellPoint l z).blowdown‖ =
+      √(‖complexToRealEuclidean (Fin (n + 1)) z‖ ^ 2 - l ^ 2) := by
+  rw [blowdown_shellPoint, map_smul, norm_smul, Real.norm_eq_abs,
+    abs_of_nonneg (div_nonneg (Real.sqrt_nonneg _) (norm_nonneg _)),
+    div_mul_cancel₀ _ ((pow_ne_zero_iff two_ne_zero).1 (norm_sq_complexToRealEuclidean_pos z).ne')]
+
+/-- For `|z| = l`, `shellPoint l z` is the point of the zero section over `[z]`. -/
+theorem shellPoint_of_norm_eq {l : ℝ} {z : puncturedSpace (Fin (n + 1) → ℂ)}
+    (hz : ‖complexToRealEuclidean (Fin (n + 1)) z‖ = l) :
+    shellPoint l z = zeroSection (mk ℂ (z : Fin (n + 1) → ℂ) (mem_puncturedSpace.1 z.property)) :=
+  BlowupModel.ext ((pr_shellPoint l z).trans (pr_zeroSection _).symm) (by
+    rw [blowdown_shellPoint, blowdown_zeroSection, hz, sub_self, Real.sqrt_zero, zero_div,
+      zero_smul])
+
+/-- For `0 < ε` and `|z| < √(l² + ε²)`, `shellPoint l z` lies in the open neighbourhood of radius
+`ε`. -/
+theorem shellPoint_mem_openNbhd {l ε : ℝ} (hε : 0 < ε) {z : puncturedSpace (Fin (n + 1) → ℂ)}
+    (hz : ‖complexToRealEuclidean (Fin (n + 1)) z‖ < √(l ^ 2 + ε ^ 2)) :
+    shellPoint l z ∈ openNbhd n ε := by
+  rw [mem_openNbhd_iff, norm_blowdown_shellPoint, Real.sqrt_lt' hε]
+  have := (Real.lt_sqrt (norm_nonneg _)).1 hz
+  linarith
+
+/-- For `0 ≤ l < |z|`, `shellPoint l z` is off the exceptional divisor. -/
+theorem shellPoint_notMem_exceptionalDivisor {l : ℝ} {z : puncturedSpace (Fin (n + 1) → ℂ)}
+    (hl : 0 ≤ l) (hz : l < ‖complexToRealEuclidean (Fin (n + 1)) z‖) :
+    shellPoint l z ∉ exceptionalDivisor n := by
+  rw [mem_exceptionalDivisor_iff, ← ne_eq,
+    ← map_ne_zero_iff _ (complexToRealEuclidean (Fin (n + 1))).injective,
+    ← norm_ne_zero_iff, norm_blowdown_shellPoint, Real.sqrt_ne_zero', sub_pos]
+  exact pow_lt_pow_left₀ hz hl two_ne_zero
+
+/-- For `0 ≤ l < |z|`, `F_l ∘ π` sends `shellPoint l z` to `z`. -/
+theorem coe_radialBlowdownDiffeomorph_shellPoint {l : ℝ} {z : puncturedSpace (Fin (n + 1) → ℂ)}
+    (hl : 0 ≤ l) (hz : l < ‖complexToRealEuclidean (Fin (n + 1)) z‖) :
+    (radialBlowdownDiffeomorph n l
+        ⟨shellPoint l z, mem_offDivisorOpens.2 (shellPoint_notMem_exceptionalDivisor hl hz)⟩ :
+      Fin (n + 1) → ℂ) = z := by
+  have hd : 0 < ‖complexToRealEuclidean (Fin (n + 1)) z‖ ^ 2 - l ^ 2 :=
+    sub_pos.2 (pow_lt_pow_left₀ hz hl two_ne_zero)
+  have hn := (pow_ne_zero_iff two_ne_zero).1 (norm_sq_complexToRealEuclidean_pos z).ne'
+  have hb : ∑ i, ‖(shellPoint l z).blowdown i‖ ^ 2 =
+      ‖complexToRealEuclidean (Fin (n + 1)) z‖ ^ 2 - l ^ 2 := by
+    rw [← norm_sq_complexToRealEuclidean, norm_blowdown_shellPoint, Real.sq_sqrt hd.le]
+  rw [coe_radialBlowdownDiffeomorph_apply, radialMap_apply,
+    coe_blowdownPuncturedDiffeomorph_apply, hb, blowdown_shellPoint, smul_smul, sub_add_cancel,
+    Real.sqrt_div' _ hd.le, Real.sqrt_sq (norm_nonneg _), div_mul_div_comm, mul_comm,
+    div_self (mul_ne_zero (Real.sqrt_pos.2 hd).ne' hn), one_smul]
+
+/-- **The inverse of `F_l ∘ π`.** For `0 ≤ l < |z|`, the inverse of `radialBlowdownDiffeomorph n l`
+sends `z` to `shellPoint l z`. -/
+theorem coe_radialBlowdownDiffeomorph_symm_apply {l : ℝ} (hl : 0 ≤ l)
+    {z : puncturedSpace (Fin (n + 1) → ℂ)} (hz : l < ‖complexToRealEuclidean (Fin (n + 1)) z‖) :
+    ((radialBlowdownDiffeomorph n l).symm ⟨z, (mem_radialShell_add_sq hl).2 hz⟩ : BlowupModel n) =
+      shellPoint l z := by
+  have he : radialBlowdownDiffeomorph n l
+      ⟨shellPoint l z, mem_offDivisorOpens.2 (shellPoint_notMem_exceptionalDivisor hl hz)⟩ =
+        ⟨z, (mem_radialShell_add_sq hl).2 hz⟩ :=
+    Subtype.ext (coe_radialBlowdownDiffeomorph_shellPoint hl hz)
+  rw [← he, Diffeomorph.symm_apply_apply]
 
 end Shell
 

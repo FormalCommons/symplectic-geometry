@@ -6,10 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.End
-import TauCeti.Geometry.Contact.Symplectization.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Liouville.Filling
 public import TauCeti.Geometry.Manifold.VectorField.ModelChart
 public import TauCeti.Geometry.Manifold.VectorField.Prod
+import TauCeti.Geometry.Contact.Symplectization.Basic
 import TauCeti.Geometry.Manifold.IsManifold.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
@@ -17,6 +17,10 @@ import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Manifold.VectorField.Pullback
 import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
 import TauCeti.Topology.FiberBundle.Separation
+import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Flow.Basic
+import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Flow.Local
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 
 /-!
 # The completion of a strong filling: its symplectic form, primitive and Liouville field

@@ -6,14 +6,21 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Instances.Sphere
-public import SymplecticGeometry.Analysis.Normed.Module.Conjugate
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Sphere
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.EulerCharacteristic
-public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Sphere
-public import SymplecticGeometry.Topology.VectorBundle.Complexification.Basic
-public import SymplecticGeometry.Topology.VectorBundle.Complexification.ComplexStructure
 public import TauCeti.AlgebraicTopology.Cellular.EulerCharacteristic.Sphere
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.Conjugate
+public import SymplecticGeometry.Geometry.Manifold.Orientation.ComplexStructure
+public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
+public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Basic
+public import TauCeti.AlgebraicTopology.Cohomology.FundamentalClass
+import SymplecticGeometry.Analysis.Normed.Module.Conjugate
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Sphere
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.EulerCharacteristic
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Sphere
+import SymplecticGeometry.Topology.VectorBundle.Complexification.Basic
+import SymplecticGeometry.Topology.VectorBundle.Complexification.ComplexStructure
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.EulerClass
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Naturality
+import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 
 /-!
 # Complex structures on the tangent bundles of spheres

@@ -6,7 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Basic
-public import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Tensor
+public import TauCeti.Topology.VectorBundle.TensorProduct.Basic
+import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Tensor
+import SymplecticGeometry.Analysis.Normed.Module.TensorProduct.ProjectiveSeminorm
 
 /-!
 # The first Chern class of a tensor product of complex line bundles

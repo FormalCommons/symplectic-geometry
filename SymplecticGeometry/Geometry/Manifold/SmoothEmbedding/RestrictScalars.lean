@@ -48,7 +48,9 @@ are often only smooth. The derivative of the restricted embedding is the derivat
 `TauCeti.SmoothEmbedding.coe_mfderiv_restrictScalarsProd`, by its analogue
 `MDifferentiableAt.mfderiv_modelWithCornersSelf_prod_restrictScalars_apply` from
 `SymplecticGeometry.Geometry.Manifold.MFDeriv.RestrictScalars`), so its tangent
-ranges are images of `𝕜'`-linear maps and closed under multiplication by scalars of `𝕜'`
+ranges are those of `f` (`TauCeti.SmoothEmbedding.coe_tangentRange_restrictScalars`,
+`TauCeti.SmoothEmbedding.coe_tangentRange_restrictScalarsProd`): images
+of `𝕜'`-linear maps, closed under multiplication by scalars of `𝕜'`
 (`TauCeti.SmoothEmbedding.smul_mem_tangentRange_restrictScalars`,
 `TauCeti.SmoothEmbedding.smul_mem_tangentRange_restrictScalarsProd`).
 -/
@@ -189,20 +191,27 @@ theorem coe_mfderiv_restrictScalars (f : SmoothEmbedding 𝓘(𝕜', E) 𝓘(�
   rw [coe_restrictScalars]
   exact funext (hd.mfderiv_modelWithCornersSelf_restrictScalars_apply 𝕜)
 
+/-- As sets of vectors of `E'`, the tangent ranges of `f.restrictScalars 𝕜 hnm hn` are those of
+`f`. -/
+theorem coe_tangentRange_restrictScalars (f : SmoothEmbedding 𝓘(𝕜', E) 𝓘(𝕜', E') m M N)
+    (hnm : n ≤ m) (hn : 1 ≤ n) (x : M) (hn₀ : n ≠ 0) (hm₀ : m ≠ 0) :
+    ((f.restrictScalars 𝕜 hnm hn).tangentRange x hn₀ :
+        Set (TangentSpace 𝓘(𝕜, E') (f.restrictScalars 𝕜 hnm hn x))) =
+      (f.tangentRange x hm₀ : Set (TangentSpace 𝓘(𝕜', E') (f x))) := by
+  have h := congrFun (f.coe_mfderiv_restrictScalars (𝕜 := 𝕜) hnm hn x)
+  ext v
+  simp only [SetLike.mem_coe, mem_tangentRange_iff]
+  exact exists_congr fun u ↦ iff_of_eq (congrArg (· = v) (h u))
+
 /-- The tangent ranges of `f.restrictScalars 𝕜 hnm hn` are closed under multiplication by scalars
 of the larger field `𝕜'`. -/
 theorem smul_mem_tangentRange_restrictScalars (f : SmoothEmbedding 𝓘(𝕜', E) 𝓘(𝕜', E') m M N)
     (hnm : n ≤ m) (hn : 1 ≤ n) (x : M) (hn₀ : n ≠ 0) (c : 𝕜') {v : E'}
     (hv : v ∈ (f.restrictScalars 𝕜 hnm hn).tangentRange x hn₀) :
     c • v ∈ (f.restrictScalars 𝕜 hnm hn).tangentRange x hn₀ := by
-  have h := congrFun (f.coe_mfderiv_restrictScalars (𝕜 := 𝕜) hnm hn x)
-  obtain ⟨u, rfl⟩ := (mem_tangentRange_iff _ x hn₀ v).1 hv
-  -- The witness lives in `TangentSpace 𝓘(𝕜, E) x`, which carries only the `𝕜`-structure.
-  -- It and `TangentSpace 𝓘(𝕜', E) x` both unfold to `E`, so the `show`s let `c • u` use the
-  -- `𝕜'`-action of `E`; rewriting at type `E'` instead fails on the mismatched instances.
-  refine (mem_tangentRange_iff _ x hn₀ _).2 ⟨show E from c • show E from u, ?_⟩
-  exact (h _).trans (((mfderiv 𝓘(𝕜', E) 𝓘(𝕜', E') f x).map_smul c u).trans
-    (congrArg (c • ·) (h u).symm))
+  have hm₀ : m ≠ 0 := ne_bot_of_le_ne_bot hn₀ hnm
+  have h := Set.ext_iff.1 (f.coe_tangentRange_restrictScalars (𝕜 := 𝕜) hnm hn x hn₀ hm₀)
+  exact (h (c • v)).2 ((f.tangentRange x hm₀).smul_mem c ((h v).1 hv))
 
 section Prod
 
@@ -242,6 +251,19 @@ theorem coe_mfderiv_restrictScalarsProd
   rw [coe_restrictScalarsProd]
   exact funext (hd.mfderiv_modelWithCornersSelf_prod_restrictScalars_apply 𝕜)
 
+/-- As sets of vectors of `E' × F'`, the tangent ranges of `f.restrictScalarsProd 𝕜 hnm hn` are
+those of `f`. -/
+theorem coe_tangentRange_restrictScalarsProd
+    (f : SmoothEmbedding 𝓘(𝕜', E) (𝓘(𝕜', E').prod 𝓘(𝕜', F')) m M (N × N')) (hnm : n ≤ m)
+    (hn : 1 ≤ n) (x : M) (hn₀ : n ≠ 0) (hm₀ : m ≠ 0) :
+    ((f.restrictScalarsProd 𝕜 hnm hn).tangentRange x hn₀ :
+        Set (TangentSpace (𝓘(𝕜, E').prod 𝓘(𝕜, F')) (f.restrictScalarsProd 𝕜 hnm hn x))) =
+      (f.tangentRange x hm₀ : Set (TangentSpace (𝓘(𝕜', E').prod 𝓘(𝕜', F')) (f x))) := by
+  have h := congrFun (f.coe_mfderiv_restrictScalarsProd (𝕜 := 𝕜) hnm hn x)
+  ext v
+  simp only [SetLike.mem_coe, mem_tangentRange_iff]
+  exact exists_congr fun u ↦ iff_of_eq (congrArg (· = v) (h u))
+
 /-- The tangent ranges of `f.restrictScalarsProd 𝕜 hnm hn` are closed under multiplication by
 scalars of the larger field `𝕜'`. -/
 theorem smul_mem_tangentRange_restrictScalarsProd
@@ -249,14 +271,9 @@ theorem smul_mem_tangentRange_restrictScalarsProd
     (hn : 1 ≤ n) (x : M) (hn₀ : n ≠ 0) (c : 𝕜') {v : E' × F'}
     (hv : v ∈ (f.restrictScalarsProd 𝕜 hnm hn).tangentRange x hn₀) :
     c • v ∈ (f.restrictScalarsProd 𝕜 hnm hn).tangentRange x hn₀ := by
-  have h := congrFun (f.coe_mfderiv_restrictScalarsProd (𝕜 := 𝕜) hnm hn x)
-  obtain ⟨u, rfl⟩ := (mem_tangentRange_iff _ x hn₀ v).1 hv
-  -- The witness lives in `TangentSpace 𝓘(𝕜, E) x`, which carries only the `𝕜`-structure.
-  -- It and `TangentSpace 𝓘(𝕜', E) x` both unfold to `E`, so the `show`s let `c • u` use the
-  -- `𝕜'`-action of `E`; rewriting at type `E'` instead fails on the mismatched instances.
-  refine (mem_tangentRange_iff _ x hn₀ _).2 ⟨show E from c • show E from u, ?_⟩
-  exact (h _).trans (((mfderiv 𝓘(𝕜', E) (𝓘(𝕜', E').prod 𝓘(𝕜', F')) f x).map_smul c u).trans
-    (congrArg (c • ·) (h u).symm))
+  have hm₀ : m ≠ 0 := ne_bot_of_le_ne_bot hn₀ hnm
+  have h := Set.ext_iff.1 (f.coe_tangentRange_restrictScalarsProd (𝕜 := 𝕜) hnm hn x hn₀ hm₀)
+  exact (h (c • v)).2 ((f.tangentRange x hm₀).smul_mem c ((h v).1 hv))
 
 end Prod
 

@@ -10,6 +10,7 @@ public import SymplecticGeometry.Topology.Algebra.Module.SymplecticForms
 public import TauCeti.Analysis.InnerProductSpace.Positive.MetricChange.Smooth
 public import TauCeti.Geometry.Symplectic.AlmostComplex.Topology
 import TauCeti.Analysis.Calculus.ContinuousLinearMapInverse
+import SymplecticGeometry.Analysis.InnerProductSpace.LinearMap
 
 /-!
 # Smoothness of `J_{g,ω}`

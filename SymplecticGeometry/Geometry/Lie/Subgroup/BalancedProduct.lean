@@ -5,12 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Lie.Exponential.Derivative.Basic
 public import TauCeti.Geometry.Lie.FundamentalVectorField
 public import TauCeti.Geometry.Lie.Subgroup.BalancedProduct
 public import TauCeti.Geometry.Manifold.GroupAction.TransverseSlice
 public import TauCeti.Geometry.Manifold.Submersion.Basic
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Slice
 
 /-!
@@ -129,6 +129,12 @@ surjective. -/
 theorem surjective_mk_toRightTranslation :
     Surjective fun p : G × Z ↦ mk K (K.toRightTranslation p.1) p.2 :=
   fun y ↦ induction_on_toRightTranslation y fun g z ↦ ⟨(g, z), rfl⟩
+
+/-- At a point `z` fixed by `K`, each `k ∈ K` fixes the class `[1, z]` of `G ×_K Z`:
+`k • [1, z] = [1, k • z] = [1, z]`. -/
+theorem smul_mk_toRightTranslation_one {z : Z} (hz : ∀ k : K, k • z = z) (k : K) :
+    (k : G) • mk K (K.toRightTranslation 1) z = mk K (K.toRightTranslation 1) z := by
+  rw [← mk_toRightTranslation_one_smul, hz]
 
 attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
 

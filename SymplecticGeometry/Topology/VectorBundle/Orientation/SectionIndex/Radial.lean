@@ -14,6 +14,8 @@ public import TauCeti.Analysis.Complex.Circle.Basic
 public import TauCeti.Topology.Circle.Normalize
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.Basic
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
+public import TauCeti.Analysis.Normed.Module.Ball.Radial.Cone
+public import TauCeti.Topology.VectorBundle.Orientation.SectionIndex
 
 /-!
 # The local index of a section extended radially into a coordinate disc

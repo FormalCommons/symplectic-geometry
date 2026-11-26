@@ -5,12 +5,13 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.CrossRelPair
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Cross.Basic
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.ThomClass
 public import TauCeti.AlgebraicTopology.Cohomology.Local.Orientation
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Linear
 public import TauCeti.LinearAlgebra.Orientation.Prod
+public import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.Excisive
+import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.CrossRelPair
 import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Cross.Sign
 
 /-!

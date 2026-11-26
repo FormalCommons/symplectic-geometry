@@ -18,7 +18,7 @@ public import TauCeti.Geometry.Manifold.Riemannian.Codifferential
 public import TauCeti.Geometry.Manifold.Riemannian.VolumeDensity.ChangeOfVariables
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartialDiffeomorph
 public import SymplecticGeometry.Geometry.Manifold.Riemannian.PartialDiffeomorph
-public import SymplecticGeometry.LinearAlgebra.BilinearForm.Gram
+import SymplecticGeometry.LinearAlgebra.BilinearForm.Gram
 import SymplecticGeometry.Analysis.Calculus.ContDiff.Basis
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import Mathlib.Analysis.Calculus.BumpFunction.FiniteDimension

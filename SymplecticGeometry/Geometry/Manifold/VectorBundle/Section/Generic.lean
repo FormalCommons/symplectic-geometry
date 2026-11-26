@@ -8,7 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Generic
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Module
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.SmoothZero
-public import SymplecticGeometry.Topology.VectorBundle.ZeroSet
+import SymplecticGeometry.Topology.VectorBundle.ZeroSet
 
 /-!
 # Sections with closed discrete zero sets

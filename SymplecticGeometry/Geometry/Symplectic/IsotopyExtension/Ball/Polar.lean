@@ -5,8 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.ContMDiff.TimeExtension
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Basic
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.TimeExtension
 import SymplecticGeometry.Analysis.CStarAlgebra.Matrix
 import SymplecticGeometry.Analysis.Matrix.EuclideanLin
 import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.Polar

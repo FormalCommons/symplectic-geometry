@@ -5,9 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.RelativePoincare
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
 public import SymplecticGeometry.Geometry.Symplectic.Moser.Field
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
+public import Mathlib.Geometry.Manifold.Algebra.Structures
+public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
+import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.RelativePoincare
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens
 import TauCeti.Geometry.Manifold.Flow.TimeDependent.RestPoint
 import TauCeti.Geometry.Symplectic.Hamiltonian.SymplecticVectorField

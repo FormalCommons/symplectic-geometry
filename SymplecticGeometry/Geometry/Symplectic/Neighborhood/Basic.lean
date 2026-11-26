@@ -5,8 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Extension
-public import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Tubular
+public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
+public import TauCeti.Geometry.Symplectic.Lagrangian.Basic
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
+public import TauCeti.Topology.VectorBundle.Pullback
+import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Extension
+import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Tubular
 import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Polar
 
 /-!

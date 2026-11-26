@@ -5,9 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Double.Topology
 public import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
 public import TauCeti.Geometry.Manifold.RegularValue
+public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Double.Basic
+import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Double.Topology
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
 
 /-!

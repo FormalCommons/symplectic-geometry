@@ -5,8 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.NearbyClutching
 public import TauCeti.Analysis.Complex.Basic
+public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Clutching
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.NearbyClutching
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 
 /-!
 # Linear clutching functions with an invertible leading coefficient
@@ -61,13 +63,10 @@ variable {𝕜 X : Type*} [NontriviallyNormedField 𝕜] [TopologicalSpace X]
 
 variable {E : FiniteRankBundleCore ℂ X}
 
-/-- The pullback of `E` to `X × Circle`, on which the clutching functions live. -/
-local notation "Q" E => (FiniteRankBundleCore.pullback E (ContinuousMap.fst : C(X × Circle, X)))
-
 /-- The Möbius substitution: if `u • a + b` is invertible on every fibre over `X × Circle`, then so
 is `(u + s) a + (s u + 1) b`, for every real `s ∈ [0, 1)`, as `(1 + s u)` times its value at the
 point `(u + s) / (1 + s u)` of the circle. -/
-private theorem bijective_moebius {a b : E ⟶ E} {g : (Q E) ≅ (Q E)}
+private theorem bijective_moebius {a b : E ⟶ E} {g : E.circlePullback ≅ E.circlePullback}
     (hg : ∀ w : X × Circle, g.hom.fiberMap w = (w.2 : ℂ) • a.fiberMap w.1 + b.fiberMap w.1)
     {s : ℝ} (hs₀ : 0 ≤ s) (hs₁ : s < 1) (x : X) (u : Circle) :
     Function.Bijective (((u : ℂ) + s) • a.fiberMap x + ((s : ℂ) * u + 1) • b.fiberMap x) := by
@@ -100,10 +99,10 @@ pullback of `E` to `X × Circle` with fibre map `u • a(x) + b(x)` at `(x, u)`.
 pullback with fibre map `u • (a + t b)(x) + (t a + b)(x)` at `(x, u)` whose clutching is
 isomorphic to that of `g`. -/
 theorem exists_isIso_nonempty_iso_clutching_linear [CompactSpace X] [T2Space X] {a b : E ⟶ E}
-    {g : (Q E) ≅ (Q E)}
+    {g : E.circlePullback ≅ E.circlePullback}
     (hg : ∀ w : X × Circle, g.hom.fiberMap w = (w.2 : ℂ) • a.fiberMap w.1 + b.fiberMap w.1) :
     ∃ t : ℝ, 0 ≤ t ∧ t < 1 ∧ IsIso (a + ContinuousMap.const X (t : ℂ) • b) ∧
-      ∃ g' : (Q E) ≅ (Q E),
+      ∃ g' : E.circlePullback ≅ E.circlePullback,
         (∀ w : X × Circle, g'.hom.fiberMap w = (w.2 : ℂ) •
           (a + ContinuousMap.const X (t : ℂ) • b).fiberMap w.1 +
             (ContinuousMap.const X (t : ℂ) • a + b).fiberMap w.1) ∧
@@ -129,14 +128,14 @@ theorem exists_isIso_nonempty_iso_clutching_linear [CompactSpace X] [T2Space X] 
     push_cast
     module
   -- The linear clutching function `u • (a + t b) + (t a + b)`.
-  let G : (Q E) ⟶ (Q E) :=
-    (⟨fun w ↦ (w.2 : ℂ), by fun_prop⟩ : C(X × Circle, ℂ)) •
+  let G : E.circlePullback ⟶ E.circlePullback :=
+    circleCoord X •
         pullbackMap (a + ContinuousMap.const X (t : ℂ) • b) ContinuousMap.fst +
       pullbackMap (ContinuousMap.const X (t : ℂ) • a + b) ContinuousMap.fst
   have hG (w : X × Circle) : G.fiberMap w = (w.2 : ℂ) •
       (a + ContinuousMap.const X (t : ℂ) • b).fiberMap w.1 +
         (ContinuousMap.const X (t : ℂ) • a + b).fiberMap w.1 := by
-    simp only [G, fiberMap_add, fiberMap_smul, fiberMap_pullbackMap, ContinuousMap.coe_mk,
+    simp only [G, fiberMap_add, fiberMap_smul, fiberMap_pullbackMap, circleCoord_apply,
       ContinuousMap.fst_apply]
   have hGm (w : X × Circle) : G.fiberMap w =
       ((w.2 : ℂ) + t) • a.fiberMap w.1 + ((t : ℂ) * w.2 + 1) • b.fiberMap w.1 := by

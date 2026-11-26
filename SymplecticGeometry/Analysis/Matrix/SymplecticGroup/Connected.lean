@@ -6,14 +6,14 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Matrix.Normed
-public import SymplecticGeometry.Analysis.CStarAlgebra.Exponential
-public import SymplecticGeometry.Analysis.Matrix.L2OpNorm
-public import SymplecticGeometry.Analysis.SpecialFunctions.ContinuousFunctionalCalculus.ExpLog
-public import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
-public import SymplecticGeometry.Topology.Algebra.Matrix.Realify
 public import TauCeti.Analysis.Matrix.Polar.Symplectic
 public import TauCeti.Analysis.Matrix.UnitaryGroup.Connected
 public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Unitary
+import SymplecticGeometry.Analysis.CStarAlgebra.Exponential
+import SymplecticGeometry.Analysis.Matrix.L2OpNorm
+import SymplecticGeometry.Analysis.SpecialFunctions.ContinuousFunctionalCalculus.ExpLog
+import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
+import SymplecticGeometry.Topology.Algebra.Matrix.Realify
 
 /-!
 # Smooth paths in the real symplectic group

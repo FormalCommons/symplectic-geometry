@@ -5,14 +5,17 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Contact.Symplectization.Basic
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 public import TauCeti.Geometry.Contact.Flat
 public import TauCeti.Geometry.Contact.StableHamiltonian
 public import TauCeti.Geometry.Contact.Volume
 public import TauCeti.Geometry.Manifold.DifferentialForm.Flow
 public import SymplecticGeometry.Geometry.Manifold.Strip
-public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
+public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+public import TauCeti.Geometry.Contact.Symplectization.Basic
+public import Mathlib.Geometry.Manifold.Algebra.SmoothFunctions
+import SymplecticGeometry.Geometry.Contact.Symplectization.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
 import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Leibniz
@@ -30,8 +33,9 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Opens
-public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Symplectic.Manifold.RelativeMoser
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Basic
 
 /-!
 # Stable Hamiltonian structures: wedge criterion, invariance and the model
@@ -902,8 +906,7 @@ theorem exists_mpullback_eq_stableHamiltonianModel [FiniteDimensional ℝ E] [Co
     TauCeti.isLocalDiffeomorph_subtypeVal_comp_iff.1
       (TauCeti.isLocalDiffeomorph_inclusion (symmStrip_mono hle))
   have hΦ : IsLocalDiffeomorph (𝓘(ℝ).prod I) (𝓘(ℝ).prod I) ∞ ((Subtype.val ∘ φ) ∘ j) := fun p ↦
-    (hjd p).comp (hg := (φ.isLocalDiffeomorph (j p)).comp
-      (hg := TauCeti.isLocalDiffeomorph_subtype_val _))
+    (hjd p).comp (hg := φ.isLocalDiffeomorph_subtypeVal_comp (j p))
   refine ⟨min δ ε, lt_min hδ hε, hle, (Subtype.val ∘ φ) ∘ j, hΦ, ?_, fun x ↦ ?_, ?_⟩
   · exact Subtype.val_injective.comp (φ.injective.comp fun p q h ↦
       Subtype.ext (congrArg (fun u : U₀ ↦ (u.val : ℝ × M)) h))

@@ -5,9 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.Projectivization.ChernClass
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.NormalBundle
-public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Splitting
+public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Basic
+import SymplecticGeometry.Geometry.Manifold.Projectivization.ChernClass
+import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Splitting
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Whitney
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Naturality
 
 /-!
 # Chern classes of a smooth projective hypersurface
