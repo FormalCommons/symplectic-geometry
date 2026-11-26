@@ -14,20 +14,33 @@ import SymplecticGeometry.Analysis.Calculus.Morse.HalfCylinder
 import SymplecticGeometry.Geometry.Manifold.Morse.Hessian
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Indicator
 import TauCeti.Geometry.Manifold.ContMDiff.Prod
+import TauCeti.Geometry.Manifold.Morse.Generic.Strong
+import SymplecticGeometry.Geometry.Manifold.ProperRay
+import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.Ray
+import SymplecticGeometry.Geometry.Manifold.Morse.PositiveDirection
+import SymplecticGeometry.Topology.Compactness.Paracompact
+import SymplecticGeometry.Topology.Maps.Proper
+import SymplecticGeometry.Geometry.Manifold.IsManifold.SecondCountable
 
 /-!
-# Morse functions on open manifolds: raising a function inside tubes
+# Morse functions on open manifolds without critical points of top index
 
-Let `M` be a boundaryless manifold of dimension `dim V + 1`, and let `Φ i : ℝ × V → M` be smooth
-embeddings whose half-cylinders `Φ i '' S`, `S = [-1, ∞) × closedBall 0 1`, are closed, pairwise
-disjoint and locally finite. If a smooth `g₀ : M → ℝ` has, in each half-cylinder, no critical
-point other than `Φ i 0`, then `g₀` can be raised inside the half-cylinders to a smooth `g₁` at
-whose critical points in them the critical Hessian is positive on some vector, so none of these
-critical points is a nondegenerate local maximum.
+On a manifold of dimension `n ≠ 1` with no compact connected component, there is a proper Morse
+function, bounded below, with no critical point of index `n`
+(`TauCeti.exists_isMorse_isProperMap_manifoldMorseIndex_lt`). The main step raises a function
+inside tubes. Let `M` be a boundaryless manifold of dimension `dim V + 1`, and let
+`Φ i : ℝ × V → M` be smooth embeddings whose half-cylinders `Φ i '' S`,
+`S = [-1, ∞) × closedBall 0 1`, are closed, pairwise disjoint and locally finite.
+If a smooth `g₀ : M → ℝ` has, in each half-cylinder, no critical point other than `Φ i 0`, then
+`g₀` can be raised inside the half-cylinders to a smooth `g₁` at whose critical points in them the
+critical Hessian is positive on some vector, so none of these critical points is a nondegenerate
+local maximum.
 
 ## Main results
 
 * `TauCeti.exists_le_criticalHessian_pos_of_tubes`: the function `g₁`.
+* `TauCeti.exists_isMorse_isProperMap_manifoldMorseIndex_lt`: proper Morse functions without
+  critical points of top index.
 
 ## Construction
 
@@ -40,6 +53,20 @@ other half-cylinders are absent, so there `g₁ ∘ Φ i = g₀ ∘ Φ i + μ i`
 positive Hessian directions are read through `Φ i`
 (`TauCeti.SmoothEmbedding.mem_criticalPoints_iff_fderiv_comp_eq_zero_prod`,
 `TauCeti.SmoothEmbedding.exists_criticalHessian_pos_iff_fderiv_fderiv_comp_prod`).
+
+For the theorem, start from a proper Morse function `g₀` bounded below
+(`TauCeti.exists_isMorse_isProperMap_bddBelow`), and let `P` be its critical points of index `n`
+and `Q` the others; both are closed and discrete. Rays from `P` avoiding `Q`
+(`SymplecticGeometry.exists_rays`) get pairwise disjoint, locally finite open neighbourhoods
+`O p` missing `Q` (`LocallyFinite.exists_isOpen_superset_pairwise_disjoint`), and tubes `Φ p`
+around them whose closed parts `Φ p '' ([-2, ∞) × closedBall 0 2)` lie in `O p`
+(`TauCeti.SmoothEmbedding.exists_rayTube`). In such a closed part the only critical point of
+`g₀` is `p`. Raising `g₀` inside the tubes gives `g₁`, with a positive Hessian direction at its
+critical points in the union `A` of these closed parts. A strong `C²` control keeps this
+property (`TauCeti.exists_strongCkControl_criticalHessian_pos`), and a Morse approximation `g`
+of `g₁` in it that equals `g₁` near the complement of the interior of `A`
+(`ContMDiffMap.exists_isMorse_isProperMap_mem_ball`) has, outside `A`, only the critical points
+of `g₀` in `Q`.
 
 ## References
 
@@ -149,6 +176,157 @@ theorem exists_le_criticalHessian_pos_of_tubes (g₀ : C^∞⟮I, M; 𝓘(ℝ), 
       (WithTop.coe_le_coe.2 le_top) hdim
       (g₁.contMDiff.of_le (WithTop.coe_le_coe.2 le_top)).contMDiffAt hx₁).2 ⟨v, ?_⟩
     rwa [hloc.fderiv.fderiv_eq]
+
+omit [FiniteDimensional ℝ E] [I.Boundaryless] [IsManifold I ∞ M] [FiniteDimensional ℝ V] in
+/-- The critical points of `g₀` in a tube of the family lie only at its centre. -/
+private lemma eq_zero_of_mem_tube {g₀ : M → ℝ} {P Q : Set M}
+    (hP : ∀ x ∈ criticalPoints I g₀, x ∉ Q → x ∈ P) {O : P → Set M}
+    (hOdisj : Pairwise (Disjoint on O)) (hOQ : ∀ p, Disjoint (O p) Q) (hPO : ∀ p : P, ↑p ∈ O p)
+    (Φ : SmoothEmbedding (𝓘(ℝ).prod 𝓘(ℝ, V)) I ∞ (ℝ × V) M) (p : P) (hΦ0 : Φ 0 = p)
+    {s : Set (ℝ × V)} (hΦO : Φ '' s ⊆ O p) {z : ℝ × V} (hz : z ∈ s)
+    (hc : Φ z ∈ criticalPoints I g₀) : z = 0 := by
+  have hzO : Φ z ∈ O p := hΦO (mem_image_of_mem _ hz)
+  have hzP := hP _ hc (disjoint_left.1 (hOQ p) hzO)
+  have hq : (⟨Φ z, hzP⟩ : P) = p := by
+    by_contra hne
+    exact disjoint_left.1 (hOdisj hne) (hPO _) hzO
+  refine Φ.isEmbedding.injective ?_
+  rw [hΦ0, ← hq]
+
+section Assembly
+
+variable [T2Space M] [SigmaCompactSpace M]
+
+/-- **Morse functions without critical points of top index.** On a boundaryless Hausdorff
+σ-compact manifold of finite dimension `n ≠ 1` none of whose connected components is compact,
+there is a proper Morse function, bounded below, all of whose critical points have Morse index
+less than `n`. -/
+theorem exists_isMorse_isProperMap_manifoldMorseIndex_lt
+    (hE : Module.finrank ℝ E ≠ 1) (hM : ∀ x : M, ¬ IsCompact (connectedComponent x)) :
+    ∃ g : C^∞⟮I, M; 𝓘(ℝ), ℝ⟯, IsMorse I g ∧ IsProperMap g ∧ BddBelow (Set.range g) ∧
+      ∀ x ∈ criticalPoints I g, manifoldMorseIndex I g x < Module.finrank ℝ E := by
+  obtain ⟨g₀, hg₀m, hg₀p, hg₀b⟩ := exists_isMorse_isProperMap_bddBelow (I := I) (M := M)
+  rcases Nat.lt_or_ge (Module.finrank ℝ E) 2 with h2 | h2
+  · -- In dimension zero `M` is discrete, so it is empty.
+    have : Subsingleton E := (Module.finrank_zero_iff (R := ℝ)).1 (by omega)
+    have : DiscreteTopology M := I.discreteTopology M
+    refine ⟨g₀, hg₀m, hg₀p, hg₀b, fun x _ ↦ absurd ?_ (hM x)⟩
+    rw [connectedComponent_eq_singleton]
+    exact isCompact_singleton
+  have : LocallyCompactSpace M := Manifold.locallyCompact_of_finiteDimensional I
+  have : SecondCountableTopology M := I.secondCountableTopology_of_sigmaCompact M
+  set n := Module.finrank ℝ E
+  -- Step 1: the critical points of `g₀`, split by whether they have the top index.
+  set crit := criticalPoints I g₀
+  have hcc : IsClosed crit := isClosed_criticalPoints (g₀.contMDiff.of_le (by simp))
+  have hcd : IsDiscrete crit := IsDiscrete.of_nhdsWithin fun x _ t ht ↦
+    mem_nhdsWithin_iff_eventually.2 <| (eventually_eq_of_mem_criticalPoints
+      (g₀.contMDiff.contMDiffAt.of_le (by simp))
+      hg₀m.isManifoldNondegenerateCriticalPoint_of_mem_criticalPoints).mono
+        fun y hy hyc ↦ (hy hyc) ▸ ht
+  set P := {x | x ∈ crit ∧ manifoldMorseIndex I g₀ x = n}
+  set Q := {x | x ∈ crit ∧ manifoldMorseIndex I g₀ x ≠ n}
+  have hPc : P ⊆ crit := fun _ h ↦ h.1
+  have hQc : Q ⊆ crit := fun _ h ↦ h.1
+  have hPQ : Disjoint P Q := disjoint_left.2 fun _ hP hQ ↦ hQ.2 hP.2
+  have : DiscreteTopology P := isDiscrete_iff_discreteTopology.1 (hcd.mono hPc)
+  have : DiscreteTopology Q := isDiscrete_iff_discreteTopology.1 (hcd.mono hQc)
+  have hQcl : IsClosed Q := isClosed_of_subset_discrete_closed hQc hcd hcc
+  -- Step 2: rays from `P` avoiding `Q`, and disjoint neighbourhoods of them.
+  obtain ⟨γ, hγ0, hγt, hγlf, hγdisj, hγQ⟩ := SymplecticGeometry.exists_rays (I := I) h2 hM
+    (isClosed_of_subset_discrete_closed hPc hcd hcc) hQcl hPQ
+  obtain ⟨O, hOo, hRO, hOdisj, hOQ, hOlf⟩ :=
+    hγlf.exists_isOpen_superset_pairwise_disjoint
+      (fun p ↦ (hγt p).isClosed_image_Ici (γ p).contMDiff.continuous (-2))
+      (fun i j hij ↦ (hγdisj hij).mono (image_subset_range _ _) (image_subset_range _ _))
+      hQcl fun p ↦ (hγQ p).mono_left (image_subset_range _ _)
+  have hPO (p : P) : ↑p ∈ O p := hRO p ⟨0, by norm_num, hγ0 p⟩
+  have hPcrit : ∀ x ∈ crit, x ∉ Q → x ∈ P := fun x hx hxQ ↦ ⟨hx, not_not.1 fun h ↦ hxQ ⟨hx, h⟩⟩
+  -- Step 3: tubes around the rays inside these neighbourhoods.
+  let V := EuclideanSpace ℝ (Fin (n - 1))
+  have hV : Module.finrank ℝ V + 1 = n := by simp [V, finrank_euclideanSpace]; omega
+  choose Φ hΦo _ hΦγ hΦB hΦO using fun p ↦
+    (γ p).exists_rayTube (V := V) hV (hγt p) isOpen_univ (subset_univ _) (hOo p) (hRO p)
+  set S := Ici (-1 : ℝ) ×ˢ Metric.closedBall (0 : V) 1
+  set B := Ici (-2 : ℝ) ×ˢ Metric.closedBall (0 : V) 2
+  have hSB : S ⊆ B := Set.prod_mono (Ici_subset_Ici.2 (by norm_num))
+    (Metric.closedBall_subset_closedBall (by norm_num))
+  have h0S : (0 : ℝ × V) ∈ S := by simp [S]
+  have hΦ0 (p : P) : Φ p 0 = p := (hΦγ p 0).trans (hγ0 p)
+  have hSc (p : P) : IsClosed (Φ p '' S) := by
+    refine closure_subset_iff_isClosed.1 fun x hx ↦ ?_
+    obtain ⟨z, -, rfl⟩ := (hΦB p).closure_subset_iff.2 (image_mono hSB) hx
+    refine mem_image_of_mem _ ?_
+    rw [← (show IsClosed S from isClosed_Ici.prod Metric.isClosed_closedBall).closure_eq,
+      (Φ p).isEmbedding.isInducing.closure_eq_preimage_closure_image]
+    exact hx
+  have hlfB : LocallyFinite fun p ↦ Φ p '' B := hOlf.subset hΦO
+  have hdisjB : Pairwise (Disjoint on fun p ↦ Φ p '' B) :=
+    fun i j hij ↦ (hOdisj hij).mono (hΦO i) (hΦO j)
+  have hcritB (p : P) {z : ℝ × V} (hz : z ∈ B) (hc : Φ p z ∈ crit) : z = 0 :=
+    eq_zero_of_mem_tube hPcrit hOdisj hOQ hPO (Φ p) p (hΦ0 p) (hΦO p) hz hc
+  -- Step 4: raise `g₀` inside the tubes.
+  obtain ⟨g₁, hg₀₁, hg₁s, hg₁pos⟩ := exists_le_criticalHessian_pos_of_tubes g₀ Φ hV hSc
+    (hlfB.subset fun p ↦ image_mono hSB)
+    (fun i j hij ↦ (hdisjB hij).mono (image_mono hSB) (image_mono hSB))
+    fun p z hz hc ↦ hcritB p (hSB hz) hc
+  set A := ⋃ p, Φ p '' S
+  set A' := ⋃ p, Φ p '' B
+  have hAA' : A ⊆ interior A' := by
+    refine iUnion_subset fun p ↦ ?_
+    have hopen : IsOpen (Φ p '' Ioi (-2 : ℝ) ×ˢ Metric.ball (0 : V) 2) :=
+      (Topology.IsOpenEmbedding.mk (Φ p).isEmbedding (hΦo p)).isOpenMap _
+        (isOpen_Ioi.prod Metric.isOpen_ball)
+    refine (image_mono (Set.prod_mono (Ici_subset_Ioi.2 (by norm_num))
+      (Metric.closedBall_subset_ball (by norm_num)))).trans (interior_maximal ?_ hopen)
+    exact (image_mono (Set.prod_mono Ioi_subset_Ici_self Metric.ball_subset_closedBall)).trans
+      (subset_iUnion (fun p ↦ Φ p '' B) p)
+  have hg₁₀ {x : M} (hx : x ∉ A) : ⇑g₁ =ᶠ[𝓝 x] ⇑g₀ := by
+    filter_upwards [notMem_tsupport_iff_eventuallyEq.1 fun h ↦ hx (hg₁s h)] with y hy
+    exact sub_eq_zero.1 hy
+  have hA'pos : ∀ x ∈ A', x ∈ criticalPoints I g₁ → ∃ v, 0 < criticalHessian I g₁ x v v := by
+    intro x hx hxc
+    by_cases hxA : x ∈ A
+    · exact hg₁pos x hxA hxc
+    obtain ⟨p, z, hz, rfl⟩ := mem_iUnion.1 hx
+    have hz0 := hcritB p hz ((hg₁₀ hxA).mem_criticalPoints_iff.1 hxc)
+    exact (hxA (mem_iUnion.2 ⟨p, mem_image_of_mem _ (by rw [hz0]; exact h0S)⟩)).elim
+  -- Step 5: a Morse approximation keeping positive directions on `A'` and `g₁` off it.
+  obtain ⟨c, -, hc⟩ := exists_strongCkControl_criticalHessian_pos (by simp) g₁
+    (hlfB.isClosed_iUnion hΦB) hA'pos
+  set C := (interior A')ᶜ
+  have hCA : C ⊆ (tsupport fun x ↦ g₁ x - g₀ x)ᶜ :=
+    compl_subset_compl.2 (hg₁s.trans hAA')
+  have hg₁C : IsMorseOn I g₁ C :=
+    (((isMorseOn_univ.2 hg₀m).mono (subset_univ _)).congr (isClosed_tsupport _).isOpen_compl
+      fun x hx ↦ sub_eq_zero.1
+        (image_eq_zero_of_notMem_tsupport (f := fun x ↦ g₁ x - g₀ x) hx)).mono hCA
+  have hg₁p : IsProperMap g₁ := hg₀p.of_le hg₀b g₁.contMDiff.continuous hg₀₁
+  obtain ⟨g, hgc, hgm, hgp, hg1, hgs⟩ :=
+    g₁.exists_isMorse_isProperMap_mem_ball c hg₁p isOpen_interior.isClosed_compl hg₁C
+  obtain ⟨m, hm⟩ := hg₀b
+  refine ⟨g, hgm, hgp, ⟨m - 1, forall_mem_range.2 fun x ↦ ?_⟩, fun x hxc ↦ ?_⟩
+  · have := (abs_lt.1 (hg1 x)).1
+    linarith [hm (mem_range_self x), hg₀₁ x]
+  refine manifoldMorseIndex_le_finrank.lt_of_ne fun hn ↦ ?_
+  rw [manifoldMorseIndex_eq_finrank_iff] at hn
+  by_cases hxA' : x ∈ A'
+  · obtain ⟨v, hv⟩ := hc g hgc x hxA' hxc
+    have hv0 : v ≠ 0 := by rintro rfl; simp at hv
+    exact (hn v hv0).not_gt hv
+  -- Off `A'`, `g` agrees with `g₀` near `x`, so `x` is a critical point of `g₀` not in `P`.
+  have hxC : x ∈ C := fun h ↦ hxA' (interior_subset h)
+  have hgg₀ : ⇑g =ᶠ[𝓝 x] ⇑g₀ := by
+    have h₁ : ⇑g =ᶠ[𝓝 x] ⇑g₁ := by
+      filter_upwards [notMem_tsupport_iff_eventuallyEq.1 fun h ↦ hgs h hxC] with y hy
+      exact sub_eq_zero.1 hy
+    exact h₁.trans (hg₁₀ fun h ↦ hxA' (interior_subset (hAA' h)))
+  have hx₀ : x ∈ crit := hgg₀.mem_criticalPoints_iff.1 hxc
+  have hxP : x ∉ P := fun h ↦ hxA' (mem_iUnion.2 ⟨⟨x, h⟩, 0, hSB h0S, hΦ0 _⟩)
+  refine hxP ⟨hx₀, manifoldMorseIndex_eq_finrank_iff.2 ?_⟩
+  rwa [← criticalHessian_congr_of_eventuallyEq hgg₀]
+
+end Assembly
 
 end TauCeti
 
