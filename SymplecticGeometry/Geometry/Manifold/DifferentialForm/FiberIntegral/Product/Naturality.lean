@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegral.Product.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Basic
+import TauCeti.Geometry.Manifold.MFDeriv.Prod
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Regularity
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Wedge.Basic
 
@@ -41,8 +42,8 @@ over `F` term by term gives the projection formula
   integral of `α`.
 * `SymplecticGeometry.prodFiberIntegrand_wedge_mpullback_fst`: the integrand of
   `Prod.fst^* β ∧ α` at `b` on `v` as a shuffle sum of integrands of `α`.
-* `SymplecticGeometry.prodFiberIntegral_wedge`: the projection formula, the fibre integral of
-  `Prod.fst^* β ∧ α` is `β ∧ prodFiberIntegral o α`.
+* `SymplecticGeometry.prodFiberIntegral_wedge_mpullback_fst`: the projection formula, the fibre
+  integral of `Prod.fst^* β ∧ α` is `β ∧ prodFiberIntegral o α`.
 
 ## References
 
@@ -112,10 +113,7 @@ theorem prodFiberIntegrand_wedge_mpullback_fst [IsManifold I 1 B] [IsManifold J 
     refine Fin.addCases (fun i ↦ ?_) (fun j ↦ ?_) s <;> simp
   have hfst (x : TangentSpace I b × TangentSpace J y) :
       mfderiv (I.prod J) I Prod.fst (b, y) (e.symm x) = x.1 := by
-    rw [mfderiv_fst, Manifold.tangentSpaceProdEquiv_symm_apply]
-    -- `ContinuousLinearMap.coe_fst'` does not rewrite here: its domain is the product of the
-    -- tangent spaces, which is the tangent space of `B × F` only up to unfolding.
-    rfl
+    rw [TauCeti.mfderiv_fst_apply, Manifold.tangentSpaceProdEquiv_symm_apply]
   have hφ (z : Fin p → TangentSpace (I.prod J) (b, y)) (i : Fin p) (j : Fin m)
       (hz : z i = e.symm (0, w j)) :
       (SmoothForm.mpullback Prod.fst contMDiff_fst β).val (b, y) z = 0 := by
@@ -151,7 +149,7 @@ theorem prodFiberIntegral_mpullback_prodMap (o : Manifold.Orientation J F (Fin m
 /-- **The projection formula on a product.** For a smooth form `β` of degree `p` on `B` and a
 smooth form `α` of degree `q + m` on `B × F`, the fibre integral of `Prod.fst^* β ∧ α`, read in
 degree `(p + q) + m`, is `β ∧ prodFiberIntegral o α`. -/
-theorem prodFiberIntegral_wedge {p q : ℕ} (o : Manifold.Orientation J F (Fin m))
+theorem prodFiberIntegral_wedge_mpullback_fst {p q : ℕ} (o : Manifold.Orientation J F (Fin m))
     (β : SmoothForm I B ℝ p) (α : SmoothForm (I.prod J) (B × F) ℝ (q + m)) :
     prodFiberIntegral o (LinearEquiv.cast (R := ℝ)
       (M := fun k ↦ SmoothForm (I.prod J) (B × F) ℝ k) (Nat.add_assoc p q m).symm

@@ -7,8 +7,6 @@ module
 
 public import TauCeti.Topology.Algebra.Module.Alternating.Wedge.Basic
 public import TauCeti.Topology.Algebra.Module.Alternating.Curry
-import TauCeti.Data.Fin.Basic
-import TauCeti.GroupTheory.Perm.Basic
 
 /-!
 # Paired wedges: degree transport, vanishing on a subspace, and vectors the left factor kills
@@ -28,11 +26,10 @@ on every vector of the tuple, and its proof extends that one.
 
 If a `k`-form `φ` vanishes on every tuple having one of the vectors `b₁, …, b_m` as an entry,
 then `φ ∧ ψ` on `(a₁, …, a_{k+l}, b₁, …, b_m)` is the shuffle sum over the `a` alone, with the
-`b` fixed in the last arguments of `ψ`: a summand that hands some `b j` to `φ` vanishes. One
-vector `u` is moved to the front by a cycle, the signed permutation sum is expanded along the slot
-that receives it (Tau Ceti's `TauCeti.sum_sign_smul_cons_comp_eq_sum_insertNth`, as in the proof
-of `ContinuousAlternatingMap.curryLeftTopological_pairedWedge`), and the `l + 1` slots of `ψ`
-contribute equally; induction on `m` gives the general case. This is the right-hand,
+`b` fixed in the last arguments of `ψ`: a summand that hands some `b j` to `φ` vanishes. For
+one vector `u`, moving it to the front makes the wedge its contraction with `u`, which Tau Ceti's
+`ContinuousAlternatingMap.curryLeftTopological_pairedWedge` splits into a term with `ι_u φ = 0`
+and a term with `ι_u ψ`; induction on `m` gives the general case. This is the right-hand,
 partial counterpart of Tau Ceti's `ContinuousAlternatingMap.pairedWedge_apply_append_of_forall`,
 where `ψ` kills every vector handed to `φ`. It evaluates the wedge of a form pulled back from the
 base of a product with any form, on a tuple of lifted base vectors followed by vertical vectors.
@@ -107,70 +104,45 @@ theorem pairedWedge_apply_eq_zero_of_mem (μ : F₁ →L[ℝ] F₂ →L[ℝ] F�
 `k`-form vanishing on every tuple that has `u` as an entry, and `ψ` an `(l + 1)`-form. Then
 `(φ ∧ ψ)(a₁, …, a_{k+l}, u) = (-1) ^ l • (φ ∧ ι_u ψ)(a₁, …, a_{k+l})`, where
 `ι_u ψ = ContinuousAlternatingMap.curryLeftTopological ψ u` puts `u` first. -/
-theorem pairedWedge_apply_snoc_of_forall [ContinuousAdd F₂] [ContinuousConstSMul ℝ F₂]
+theorem pairedWedge_apply_snoc_of_forall [ContinuousAdd F₁] [ContinuousConstSMul ℝ F₁]
+    [ContinuousAdd F₂] [ContinuousConstSMul ℝ F₂]
     {k l : ℕ} (μ : F₁ →L[ℝ] F₂ →L[ℝ] F₃)
     (hμ : Continuous (Function.uncurry fun x y ↦ μ x y)) (φ : E [⋀^Fin k]→L[ℝ] F₁)
     (ψ : E [⋀^Fin (l + 1)]→L[ℝ] F₂) (a : Fin (k + l) → E) (u : E)
     (hφ : ∀ (z : Fin k → E) (i : Fin k), z i = u → φ z = 0) :
     pairedWedge μ hμ φ ψ (Fin.snoc a u) =
       (-1 : ℝ) ^ l • pairedWedge μ hμ φ (curryLeftTopological ψ u) a := by
-  let g : (Fin (k + l + 1) → E) → F₃ := fun y ↦
-    μ (φ fun i ↦ y (Fin.castAdd (l + 1) i)) (ψ fun j ↦ y (Fin.natAdd k j))
-  -- Move `u` to the front: `Fin.snoc a u = Fin.cons u a ∘ (Fin.last _).cycleRange`.
-  have hsnoc : (Fin.snoc a u : Fin (k + l + 1) → E) =
-      Fin.cons u a ∘ (Fin.last (k + l)).cycleRange := by
-    rw [Fin.cons_comp_cycleRange, Fin.insertNth_last']
-  have hcyc : ∑ σ : Perm (Fin (k + l + 1)), Perm.sign σ • g (Fin.snoc a u ∘ σ) =
-      (-1 : ℤˣ) ^ (k + l) • ∑ σ : Perm (Fin (k + l + 1)), Perm.sign σ • g (Fin.cons u a ∘ σ) := by
-    have hc := Fin.sign_cycleRange (Fin.last (k + l))
-    rw [Fin.val_last] at hc
-    rw [hsnoc, ← hc, Finset.smul_sum]
-    refine Fintype.sum_equiv (Equiv.mulLeft (Fin.last (k + l)).cycleRange) _ _ fun σ ↦ ?_
-    simp only [Equiv.coe_mulLeft, Perm.sign_mul, Perm.coe_mul, ← Function.comp_assoc, smul_smul,
-      ← mul_assoc, Int.units_mul_self, one_mul]
-  have hexp := TauCeti.sum_sign_smul_cons_comp_eq_sum_insertNth g u a
-  have hsplit (f : Fin (k + l + 1) → F₃) :
-      ∑ j, f j = ∑ i : Fin k, f (Fin.castAdd (l + 1) i) +
-        ∑ i : Fin (l + 1), f (Fin.natAdd k i) :=
-    Fin.sum_univ_add (a := k) (b := l + 1) f
-  have hleft (i : Fin k) (τ : Perm (Fin (k + l))) :
-      g ((Fin.castAdd (l + 1) i : Fin (k + l + 1)).insertNth u (a ∘ τ)) = 0 := by
-    simp only [g]
-    rw [hφ _ i (Fin.insertNth_apply_same _ _ _)]
+  cases k with
+  | zero =>
+    have h : (Fin.snoc a u ∘ Fin.cast (Nat.zero_add (l + 1)).symm : Fin (l + 1) → E) =
+        Fin.insertNth (Fin.last l) u (a ∘ Fin.cast (Nat.zero_add l).symm) := by
+      rw [Fin.insertNth_last']
+      funext i
+      refine Fin.lastCases ?_ (fun j ↦ ?_) i <;> simp [Fin.snoc]
+    rw [pairedWedge_apply_zero_left, pairedWedge_apply_zero_left, h, map_insertNth',
+      curryLeftTopological_apply_apply, Fin.val_last, ← Int.cast_smul_eq_zsmul ℝ, map_smul]
     simp
-  have hright (i : Fin (l + 1)) (τ : Perm (Fin (k + l))) :
-      g ((Fin.natAdd k i : Fin (k + l + 1)).insertNth u (a ∘ τ)) =
-        (-1 : ℤ) ^ (i : ℕ) • μ (φ fun j ↦ a (τ (Fin.castAdd l j)))
-          (curryLeftTopological ψ u fun j ↦ a (τ (Fin.natAdd k j))) := by
-    simp only [g, Fin.insertNth_natAdd_apply_castAdd, Fin.insertNth_natAdd_comp_natAdd,
-      map_insertNth', curryLeftTopological_apply_apply, map_zsmul, Function.comp_apply]
-  rw [pairedWedge_apply, pairedWedge_apply]
-  -- Name the summand `g`.
-  change _ • ∑ σ : Perm (Fin (k + l + 1)), Perm.sign σ • g (Fin.snoc a u ∘ σ) = _
-  rw [hcyc, hexp, hsplit]
-  simp only [hleft, hright, smul_zero, Finset.sum_const_zero, zero_add, Fin.val_natAdd,
-    smul_comm (Perm.sign _) ((-1 : ℤ) ^ _), ← Finset.smul_sum, smul_smul, ← pow_add]
-  have hpow (i : ℕ) : (-1 : ℤ) ^ (k + i + i) = (-1) ^ k := by
-    rw [add_assoc, pow_add, ← two_mul, pow_mul]
+  | succ k =>
+    -- The contraction of `φ` with `u` vanishes.
+    have hφu : curryLeftTopological φ u = 0 := by
+      ext z
+      simpa [curryLeftTopological_apply_apply] using hφ (Matrix.vecCons u z) 0 rfl
+    rw [← Fin.insertNth_last', map_insertNth', ← curryLeftTopological_apply_apply,
+      curryLeftTopological_pairedWedge, hφu, pairedWedge_zero_left, coe_zero, Pi.zero_apply,
+      zero_add, Fin.val_last, ← Int.cast_smul_eq_zsmul ℝ, smul_smul]
+    congr 1
+    push_cast
+    rw [← pow_add, Nat.add_eq, show k + 1 + l + (k + 1) = l + 2 * (k + 1) by omega, pow_add,
+      pow_mul]
     simp
-  simp only [hpow, Finset.sum_const, Finset.card_univ, Fintype.card_fin, Units.smul_def,
-    Units.val_pow_eq_pow_val, Units.val_neg, Units.val_one]
-  rw [← Nat.cast_smul_eq_nsmul ℝ, ← Int.cast_smul_eq_zsmul ℝ, ← Int.cast_smul_eq_zsmul ℝ,
-    smul_smul, smul_smul, smul_smul]
-  congr 1
-  rw [Nat.factorial_succ, pow_add]
-  push_cast
-  field_simp
-  ring_nf
-  rw [mul_comm, pow_mul]
-  simp
 
 /-- **A paired wedge on a tuple ending in vectors that the first factor kills.** Let `φ` be a
 `k`-form vanishing on every tuple that has one of the vectors `b₁, …, b_m` as an entry, and `ψ`
 an `(l + m)`-form. On the tuple `(a₁, …, a_{k+l}, b₁, …, b_m)`, the wedge `φ ∧ ψ` is the shuffle
 sum over the `a` alone, with `b` fixed in the last arguments of `ψ`:
 `(k! l!)⁻¹ • ∑ σ, sign σ • μ (φ (a_{σ 1}, …, a_{σ k})) (ψ (a_{σ (k+1)}, …, a_{σ (k+l)}, b))`. -/
-theorem pairedWedge_apply_append_eq_sum_of_forall [ContinuousAdd F₂] [ContinuousConstSMul ℝ F₂]
+theorem pairedWedge_apply_append_eq_sum_of_forall [ContinuousAdd F₁] [ContinuousConstSMul ℝ F₁]
+    [ContinuousAdd F₂] [ContinuousConstSMul ℝ F₂]
     {k l m : ℕ} (μ : F₁ →L[ℝ] F₂ →L[ℝ] F₃)
     (hμ : Continuous (Function.uncurry fun x y ↦ μ x y)) (φ : E [⋀^Fin k]→L[ℝ] F₁)
     (ψ : E [⋀^Fin (l + m)]→L[ℝ] F₂) (a : Fin (k + l) → E) (b : Fin m → E)
