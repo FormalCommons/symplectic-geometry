@@ -159,8 +159,11 @@ milestone states it.
 
 ### The class of the line bundle: the prerequisites
 
-Three facts are missing from both libraries, and the part plans them as
-prerequisite issues (issues 1–4 below):
+Three facts that neither Tau Ceti nor Mathlib had are prerequisites of the
+part. Issues 1–4 below planned them, and all are merged:
+`TauCeti.injective_deRhamHom`, `exists_hermitianLineBundle_complexEulerClass_eq`
+and `Bundle.deRhamHom_realFirstChernClass_eq_neg`, in the files listed under
+*Prerequisites*.
 
 1. **The de Rham theorem in degree two.** `TauCeti.deRhamHom` is injective
    on a compact manifold. Without it, an integral lift of $[\omega]$ says
@@ -470,11 +473,11 @@ and the prerequisites, placed by topic.
 
 - `Geometry/Manifold/SmoothSingular/DeRham/MayerVietoris/Induction.lean`:
   `SymplecticGeometry.HasFiniteGoodCover.bijective_deRhamHom` (for manifolds
-  that have a finite good cover), `TauCeti.bijective_deRhamHom` (for a
-  second-countable one through `mayerVietoris_induction`),
-  `TauCeti.injective_deRhamHom`. If Tau Ceti's `deRhamHom` lands in smooth
-  singular cohomology, the file also compares it with continuous singular
-  cohomology, unless `SmoothSingular/Smoothing.lean` already does.
+  that have a finite good cover), `TauCeti.bijective_deRhamHom_of_compactSpace`
+  (for a compact one), `TauCeti.injective_deRhamHom`. If Tau Ceti's
+  `deRhamHom` lands in smooth singular cohomology, the file also compares it
+  with continuous singular cohomology, unless `SmoothSingular/Smoothing.lean`
+  already does.
 - `AlgebraicTopology/Cohomology/ProjectiveSpaceClassifying.lean`: for a
   finite CW complex $X$ of dimension at most $2N$, every class of
   $H^2(X;\mathbb Z)$ is $f^*h$ for some $f:X\to\mathbb CP^N$
@@ -650,9 +653,9 @@ and the prerequisites, placed by topic.
 ## Issues
 
 Each issue is a few hundred lines, in an order where each comes after the
-ones it waits for. An issue that adds an existing name of Tau Ceti or
-Mathlib uses it instead; each prerequisite issue first searches both for its
-statement.
+ones it waits for. Issues 1–4 are done. An issue that adds an existing name
+of Tau Ceti or Mathlib uses it instead; each prerequisite issue first
+searches both for its statement.
 
 1. **The de Rham theorem**
    (`SmoothSingular/DeRham/MayerVietoris/Induction.lean`). Waits for
