@@ -55,8 +55,8 @@ theorem exists_isDarbouxBasis_orthogonal (ω : SymplecticForm V) :
     ∃ (m : ℕ) (b : Basis (Fin m × Fin 2) ℝ V), ω.IsDarbouxBasis b ∧
       (Pairwise fun k l ↦ ⟪b k, b l⟫ = 0) ∧ ∀ k, ‖b (k, 0)‖ = ‖b (k, 1)‖ := by
   set Q : QuadraticForm ℝ V := LinearMap.BilinMap.toQuadraticMap (innerₗ V) with hQdef
-  obtain ⟨m, b, ν, hb, -, hQe⟩ :=
-    ω.exists_isDarbouxBasis_eq_sum_smul_elliptic_of_posDef TauCeti.posDef_toQuadraticMap_innerₗ
+  have hQ : Q.PosDef := TauCeti.posDef_toQuadraticMap_innerₗ
+  obtain ⟨m, b, ν, hb, -, hQe⟩ := ω.exists_isDarbouxBasis_eq_sum_smul_elliptic_of_posDef hQ
   refine ⟨m, b, hb, fun i j hij ↦ ?_, fun k ↦ ?_⟩
   · have h := ω.apply_hamiltonianEnd Q (b i) (b j)
     rw [hQdef, LinearMap.BilinMap.polar_toQuadraticMap, ← hQdef, hQe] at h

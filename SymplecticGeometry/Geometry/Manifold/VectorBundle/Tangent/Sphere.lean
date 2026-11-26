@@ -80,8 +80,8 @@ def sphereTangentProdEquiv (x : sphere (0 : E) 1) :
       refine Prod.ext ?_ ht
       simp only [Submodule.orthogonalProjectionOnto_add_smul, LinearIsometryEquiv.symm_apply_apply]
     right_inv w := by
-      rw [LinearIsometryEquiv.apply_symm_apply,
-        Submodule.coe_orthogonalProjectionOnto_orthogonal_singleton (norm_eq_of_mem_sphere x),
+      simp only [LinearIsometryEquiv.apply_symm_apply]
+      rw [Submodule.coe_orthogonalProjectionOnto_orthogonal_singleton (norm_eq_of_mem_sphere x),
         sub_add_cancel]
     continuous_toFun := by fun_prop
     continuous_invFun := by fun_prop }
