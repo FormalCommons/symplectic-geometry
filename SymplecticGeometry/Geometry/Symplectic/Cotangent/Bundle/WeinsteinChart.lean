@@ -33,9 +33,11 @@ restriction of `σ` to `V`; theorems that need only it take that hypothesis.
 
 ## Main results
 
-* `SymplecticGeometry.CotangentBundle.AgreesOnZeroSection.cotangent_subtype_trans`: precomposing
-  `ι` with the restriction of the cotangent lift of a diffeomorphism `a` of `L` gives a map that
-  agrees with `f ∘ a` on the zero section.
+* `SymplecticGeometry.CotangentBundle.AgreesOnZeroSection.subtype_trans`: precomposing `ι` with
+  the restriction of a diffeomorphism `c` of `T*L` that sends each zero covector `0_q` to
+  `0_{a q}` gives a map that agrees with `f ∘ a` on the zero section.
+* `SymplecticGeometry.CotangentBundle.AgreesOnZeroSection.cotangent_subtype_trans`: the case where
+  `c` is the cotangent lift of a diffeomorphism `a` of `L`.
 * `SymplecticGeometry.CotangentBundle.IsWeinsteinChart.cotangent_subtype_trans`: the same
   precomposition gives a Weinstein chart of `f ∘ a`, as cotangent lifts preserve `ω` (Tau Ceti's
   `Diffeomorph.mpullback_cotangent_symplecticForm`).
@@ -76,18 +78,31 @@ theorem AgreesOnZeroSection.range_zeroSection_subset (hι : AgreesOnZeroSection 
     range (zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ)) ⊆ U :=
   range_subset_iff.2 fun q ↦ (hι.exists_apply_eq q).1
 
+/-- **Precomposing with a diffeomorphism of `T*L` that preserves the zero section.** If
+`ι : U ≃ V` agrees with `f` on the zero section, `c` is a diffeomorphism of `T*L` that maps `U'`
+onto `U`, and `a : L → L` is such that `c` sends the zero covector at each `q` to the zero
+covector at `a q`, then `ι` precomposed with the restriction of `c` to `U'` agrees with `f ∘ a`
+on the zero section. -/
+theorem AgreesOnZeroSection.subtype_trans (hι : AgreesOnZeroSection f ι)
+    {c : CotangentBundle J L ≃ₘ⟮J.prod 𝓘(ℝ, E →L[ℝ] ℝ), J.prod 𝓘(ℝ, E →L[ℝ] ℝ)⟯
+      CotangentBundle J L}
+    (hUU' : ∀ z, z ∈ U' ↔ c z ∈ U) {a : L → L}
+    (hc : ∀ q, c (zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ) q) =
+      zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ) (a q)) :
+    AgreesOnZeroSection (f ∘ a) ((c.subtype hUU').trans ι) := by
+  refine ⟨fun q ↦ ?_⟩
+  obtain ⟨h, hq⟩ := hι.exists_apply_eq (a q)
+  refine ⟨(hUU' _).2 (by rwa [hc]), ?_⟩
+  rw [Diffeomorph.coe_trans, Function.comp_apply, Function.comp_apply, ← hq]
+  exact congrArg (fun w ↦ (ι w : M)) (Subtype.ext ((c.subtype_apply_coe hUU' _).trans (hc q)))
+
 /-- **Precomposing with a cotangent lift.** If `ι : U ≃ V` agrees with `f` on the zero section,
 `a` is a diffeomorphism of `L` and the cotangent lift of `a` maps `U'` onto `U`, then `ι`
 precomposed with the restriction of that lift to `U'` agrees with `f ∘ a` on the zero section. -/
 theorem AgreesOnZeroSection.cotangent_subtype_trans (hι : AgreesOnZeroSection f ι)
     {a : L ≃ₘ⟮J, J⟯ L} (hUU' : ∀ z, z ∈ U' ↔ a.cotangent z ∈ U) :
-    AgreesOnZeroSection (f ∘ a) ((a.cotangent.subtype hUU').trans ι) := by
-  refine ⟨fun q ↦ ?_⟩
-  obtain ⟨h, hq⟩ := hι.exists_apply_eq (a q)
-  have hc := Diffeomorph.cotangent_zeroSection a q
-  refine ⟨(hUU' _).2 (by rwa [hc]), ?_⟩
-  rw [Diffeomorph.coe_trans, Function.comp_apply, Function.comp_apply, ← hq]
-  exact congrArg (fun w ↦ (ι w : M)) (Subtype.ext ((a.cotangent.subtype_apply_coe hUU' _).trans hc))
+    AgreesOnZeroSection (f ∘ a) ((a.cotangent.subtype hUU').trans ι) :=
+  hι.subtype_trans hUU' (Diffeomorph.cotangent_zeroSection a)
 
 end ZeroSection
 
