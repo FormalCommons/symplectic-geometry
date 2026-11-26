@@ -130,14 +130,16 @@ theorem baseComponent_def (i j : ι) (x : EB) (y : F) :
   (rfl)
 
 /-- The value of `τ` on two copies of the vector `(bs i, 0)` vanishes. Its left side is what
-`baseComponent_def` turns `f_{ii}(x)` at a point into, so `simp` proves that `f_{ii}` vanishes. -/
+`baseComponent_def` turns `f_{ii}(x)` at a point into, so `simp` proves that `f_{ii}(x)` vanishes
+at each point. -/
 @[simp]
 theorem apply_basis_inl_self (i : ι) (x : EB) (y : F) : τ (x, y) ![(bs i, 0), (bs i, 0)] = 0 :=
   ContinuousAlternatingMap.map_eq_zero_of_eq _ _ (i := 0) (j := 1) rfl Fin.zero_ne_one
 
 /-- The base components vanish on the diagonal: `f_{ii}(x)` is the zero function on `F`. -/
+@[simp]
 theorem baseComponent_self (i : ι) (x : EB) : τ.baseComponent bs i i x = 0 :=
-  funext (τ.apply_basis_inl_self bs i x)
+  funext fun y ↦ by rw [baseComponent_def, apply_basis_inl_self, Pi.zero_apply]
 
 /-- The base components are antisymmetric in the two indices. -/
 theorem baseComponent_swap (i j : ι) (x : EB) (y : F) :
