@@ -273,6 +273,7 @@ theorem mfderiv_blowdown_comp_mfderiv_zeroSection (ℓ : ℙ ℂ (Fin (n + 1) �
   have h : (blowdown ∘ zeroSection : ℙ ℂ (Fin (n + 1) → ℂ) → Fin (n + 1) → ℂ) = fun _ => 0 :=
     funext blowdown_zeroSection
   rw [h, mfderiv_const]
+  -- The two zeros are maps between the tangent spaces and between the model spaces.
   rfl
 
 /-- Every vector `z` of the line `ℓ` is a value of the differential of `blowdown` at
@@ -402,6 +403,7 @@ private theorem mfderivBlowdownZeroSection_eq_zero_iff (ℓ : ℙ ℂ (Fin (n + 
   have h := SetLike.ext_iff.1 (ker_mfderiv_blowdown_zeroSection ℓ) v
   rw [← Subtype.coe_inj, coe_mfderivBlowdownZeroSection_apply, ZeroMemClass.coe_zero,
     TauCeti.SmoothEmbedding.mem_tangentRange_iff, coe_zeroSectionEmbedding]
+  -- `h` is the goal, with membership in the kernel and the image of a linear map unfolded.
   exact h
 
 variable (n) in
@@ -474,6 +476,7 @@ theorem continuous_normalSpaceZeroSectionEquiv :
             mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown y v := by
         rintro _ _ rfl _
         rfl
+      -- The tangent map of `blowdown` at `⟨x, v⟩` has second component `mfderiv blowdown x v`.
       exact (coe_normalSpaceZeroSectionEquiv_normalClass p.proj p.snd).trans
         (key _ _ (congrFun (coe_zeroSectionEmbedding n) p.proj).symm p.snd)
   have hc : ContMDiff (𝓘(ℂ, Fin n → ℂ).prod 𝓘(ℂ, ℂ)) 𝓘(ℂ, Fin (n + 1) → ℂ) 0
