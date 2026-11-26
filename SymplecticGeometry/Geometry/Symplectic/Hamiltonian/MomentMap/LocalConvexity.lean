@@ -311,8 +311,6 @@ theorem fderiv_comp_symm_apply_eq_zero
     (ξ : GroupLieAlgebra I G) {w : EuclideanSpace ℝ ι × EuclideanSpace ℝ ι}
     (hw : ∀ k, χ k = 1 → w.1 k = 0 ∧ w.2 k = 0) :
     fderiv ℝ (fun z ↦ μ (chart.symm z) ξ) (chart x) w = 0 := by
-  have : LieGroup I 1 G := LieGroup.of_le ENat.LEInfty.out
-  have : ContMDiffSMul I I' 1 G M := ContMDiffSMul.of_le (M := M) ENat.LEInfty.out
   rw [h.fderiv_comp_symm_apply chart hx hform, InfinitesimalAction.fundamental_apply]
   refine stdSymplecticForm_eq_zero_of_forall fun k ↦ ?_
   by_cases hk : χ k = 1
@@ -338,8 +336,6 @@ theorem exists_fderiv_comp_symm_apply_eq [FiniteDimensional ℝ E]
     (φ : Module.Dual ℝ 𝔮) :
     ∃ w : EuclideanSpace ℝ ι × EuclideanSpace ℝ ι, (∀ k, χ k ≠ 1 → w.1 k = 0 ∧ w.2 k = 0) ∧
       ∀ ξ : 𝔮, fderiv ℝ (fun z ↦ μ (chart.symm z) ξ) (chart x) w = φ ξ := by
-  have : LieGroup I 1 G := LieGroup.of_le ENat.LEInfty.out
-  have : ContMDiffSMul I I' 1 G M := ContMDiffSMul.of_le (M := M) ENat.LEInfty.out
   set D := mfderiv I' 𝓘(ℝ, EuclideanSpace ℝ ι × EuclideanSpace ℝ ι) chart x
   -- The vectors with zero coordinates at the nontrivial weights, and `ξ ↦ D (ξ_M x)`.
   let W : Submodule ℝ (EuclideanSpace ℝ ι × EuclideanSpace ℝ ι) :=
