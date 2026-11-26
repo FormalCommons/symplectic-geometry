@@ -20,10 +20,13 @@ Let `f : M → N` be a smooth map that is pseudoholomorphic for almost complex s
 * If `σ` tames `K`, then `f^* σ (v, J v) = σ (df v, K df v)` is nonnegative for every tangent
   vector `v`, and positive when `df v ≠ 0` (`TauCeti.SmoothTwoForm.Tames.eval₂_mpullback_nonneg`,
   `TauCeti.SmoothTwoForm.Tames.eval₂_mpullback_pos`).
+* So if `σ` tames `K`, or is compatible with `K`, and every differential of `f` is injective,
+  then `f^* σ` tames `J`, or is compatible with `J` (`TauCeti.SmoothTwoForm.Tames.mpullback`,
+  `TauCeti.SmoothTwoForm.Compatible.mpullback`).
 
-So `f^* σ` tames `J` where `df` is injective; for a sum of such pull-backs, it is enough that the
-differentials of the maps have no common nonzero kernel vector. These adapt Tau Ceti's
-`TauCeti.SmoothTwoForm.Invariant.pullback` and `TauCeti.SmoothTwoForm.Tames.pullback`, from
+For a sum of such pull-backs, it is enough that the differentials of the maps have no common
+nonzero kernel vector. These adapt Tau Ceti's `TauCeti.SmoothTwoForm.Invariant.pullback`,
+`TauCeti.SmoothTwoForm.Tames.pullback` and `TauCeti.SmoothTwoForm.Compatible.pullback`, from
 pull-backs of almost complex structures along diffeomorphisms to pseudoholomorphic maps.
 
 ## References
@@ -73,6 +76,21 @@ theorem Tames.eval₂_mpullback_nonneg (hσ : σ.Tames K) (hf : IsPseudoholomorp
   · rw [SmoothForm.eval₂_mpullback, hf.mfderiv_apply_commute, hv]
     simp
   · exact (hσ.eval₂_mpullback_pos hf hf' hv).le
+
+/-- If `σ` tames `K` and `f` is a `(J, K)`-pseudoholomorphic map whose differentials are
+injective, then `f^* σ` tames `J`. -/
+theorem Tames.mpullback (hσ : σ.Tames K) (hf : IsPseudoholomorphic J K f)
+    (hf' : ContMDiff I I' ∞ f) (hinj : ∀ x, Function.Injective (mfderiv I I' f x)) :
+    SmoothTwoForm.Tames (SmoothForm.mpullback f hf' σ) J :=
+  tames_iff.2 fun x _ hv ↦
+    hσ.eval₂_mpullback_pos (hf.isPseudoholomorphicAt x) hf' ((map_ne_zero_iff _ (hinj x)).2 hv)
+
+/-- If `σ` is compatible with `K` and `f` is a `(J, K)`-pseudoholomorphic map whose differentials
+are injective, then `f^* σ` is compatible with `J`. -/
+theorem Compatible.mpullback (hσ : σ.Compatible K) (hf : IsPseudoholomorphic J K f)
+    (hf' : ContMDiff I I' ∞ f) (hinj : ∀ x, Function.Injective (mfderiv I I' f x)) :
+    SmoothTwoForm.Compatible (SmoothForm.mpullback f hf' σ) J :=
+  ⟨hσ.invariant.mpullback hf hf', hσ.tames.mpullback hf hf' hinj⟩
 
 end TauCeti.SmoothTwoForm
 
