@@ -12,10 +12,7 @@ structures and their neighbourhood model* and *Completion of a strong
 filling*. The source is McDuff–Salamon [McDuffSalamon2017], §3.5: Definition
 3.5.27, Proposition 3.5.31 and Definition 3.5.32 (pp. 141–143), Exercise
 3.5.37 (p. 146), Definition 3.5.38 (p. 147) and the completion on p. 148.
-The extension across the boundary used for the collar of a filling is
-Seeley's [R. T. Seeley, *Extension of C^∞ functions defined in a half
-space*, Proc. Amer. Math. Soc. 15 (1964), 625–626]; the collar theorem it
-replaces is Hirsch, *Differential Topology*, Chapter 4, Theorem 6.1, and Lee,
+The collar theorem that the collar of a filling rests on is Hirsch, *Differential Topology*, Chapter 4, Theorem 6.1, and Lee,
 *Introduction to Smooth Manifolds*, 2nd ed., Theorem 9.25.
 
 Paths of Tau Ceti files are relative to `.lake/packages/TauCeti/TauCeti/`,
@@ -111,8 +108,8 @@ by `coe_interiorₗ`. For a strong filling `h`, `hY` is
   chart at a boundary point, where the negative of the field has a local flow
   on the half-space (Tau Ceti's
   `TauCeti.exists_contDiffOn_localFlow_euclideanHalfSpace`),
-  whose backward lines from the boundary enter the interior and are there the integral curves of
-  `Y`, so the local collars agree and patch. For a strong filling the
+  whose forward lines from the boundary enter the interior and, run backward, are there the
+  integral curves of `Y`, so the local collars agree and patch. For a strong filling the
   collar formulas $\Phi^*\lambda=e^s\alpha$ and $\Phi^*\omega=-d(e^s\alpha)$
   then follow from Tau Ceti's on the interior (see `Filling.lean`).
 - **The completion of a Liouville domain against `TauCeti.IsLiouvilleCompletion`.**
@@ -175,7 +172,7 @@ Further choices:
 | `Geometry/Manifold/Strip.lean` | the slice maps of the strip as smooth maps, their differential, and slices of two-forms | 4 |
 | `Geometry/Manifold/SmoothEmbedding/Basic.lean` | the right slice `x ↦ (c, x)` of a product as a smooth embedding, beside Tau Ceti's file of that path | 4 |
 | `Geometry/Manifold/Boundary/Charts.lean` | boundary points in the extended charts of the half-space model; outward vectors are not tangent to the boundary | 5 |
-| `Geometry/Manifold/Boundary/Collar/Flow/Local.lean` | near one boundary point: the extended field and its flow from the boundary | 5 |
+| `Geometry/Manifold/Boundary/Collar/Flow/Local.lean` | near one boundary point: the local flow of the negative field (Tau Ceti's half-space flow) and its flow-out from the boundary | 5 |
 | `Geometry/Manifold/Boundary/Collar/Flow/Basic.lean` | the collar of a compact boundary along an outward field | 6 |
 | `Topology/Compactness/SigmaCompact.lean` | σ-compact open neighbourhoods of a compact set in a locally compact space (`IsCompact.exists_isOpen_isSigmaCompact_subset`); used in `Flow/Basic.lean` | — |
 | `Geometry/Manifold/Boundary/Collar/Opens.lean` | the diffeomorphism `∂V ≃ ∂W` for an open `V ⊇ ∂W` (`SymplecticGeometry.diffeomorphBoundaryOpens`), and a collar of `∂V` as one of `∂W` (`TauCeti.SmoothCollar.ofOpens`); used in `Flow/Basic.lean` | — |
@@ -642,9 +639,7 @@ Expected size: 300 lines.
 
 ## What the part uses
 
-- *Smooth families*: Seeley's extension,
-  `Analysis/Calculus/ContDiff/Seeley/Extension.lean` and
-  `Geometry/Manifold/MFDeriv/Chart.lean`, only in
+- *Smooth families*: `Geometry/Manifold/MFDeriv/Chart.lean`, only in
   `Collar/Flow/Local.lean`;
   `Geometry/Manifold/LocalDiffeomorph/Basic.lean`, in
   `Collar/Flow/Local.lean` and `Collar/Flow/Basic.lean`
@@ -655,10 +650,7 @@ Expected size: 300 lines.
   `TauCeti.isLocalDiffeomorph_inclusion`), merged, in `Boundary/Collar/End.lean`
   and `StableHamiltonian.lean`.
 - *Cotangent bundles*: `Geometry/Manifold/Flow/Basic.lean`, merged, which this
-  part extends by the flow of a vector field on a normed space
-  (`TauCeti.contDiffOn_flowOf_uncurry`,
-  `TauCeti.hasFDerivAt_flowOf_uncurry_zero`), in `Collar/Flow/Local.lean`, and by integral
-  curves as trajectories of the flow (`IsMIntegralCurveOn.sub_mem_flowDomain`,
+  part extends by integral curves as trajectories of the flow (`IsMIntegralCurveOn.sub_mem_flowDomain`,
   `IsMIntegralCurveOn.flowOf_sub_eq`, `TauCeti.eventuallyEq_flowOf_sub_of_isMIntegralCurveOn`,
   `TauCeti.contMDiffAt_of_isMIntegralCurveOn`), in `Liouville/Scaling.lean`.
 - *Symplectic neighbourhoods*:
