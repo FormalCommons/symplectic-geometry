@@ -8,6 +8,8 @@ module
 public import Mathlib.Geometry.Manifold.Algebra.SMul
 public import TauCeti.Geometry.Manifold.ContMDiff.ParametricIntegral.Basic
 public import TauCeti.RepresentationTheory.Compact.Haar
+public import TauCeti.MeasureTheory.Integral.ContinuousMap
+public import SymplecticGeometry.Geometry.Manifold.GroupAction.BoundarylessModel
 
 /-!
 # Averaging a function over the orbits of a compact group
@@ -28,9 +30,17 @@ orbit of `x` for the normalized Haar measure `TauCeti.haarProb G`.
   that `f` takes on a `G`-invariant set.
 * `SymplecticGeometry.orbitAverage_mem_Icc`: the orbit average of a function with values in
   `[0, 1]` has values in `[0, 1]`.
-* `ContMDiff.orbitAverage`: for a Lie group acting in a `C^n` way on a manifold, the orbit average
-  of a `C^n` function is `C^n`. This is differentiation under the integral over the compact group
-  (Tau Ceti's `ContMDiff.parametric_integral`).
+* `ContMDiff.orbitAverage`: for a Lie group acting in a `C^n` way on a boundaryless manifold, the
+  orbit average of a `C^n` function is `C^n`. This is differentiation under the integral over the
+  compact group (Tau Ceti's `ContMDiff.parametric_integral`).
+
+Tau Ceti's differentiation under the integral asks the model of `M` to have no boundary. For a
+boundaryless manifold whose model may have boundary, and `n ≠ 0`, the function is carried to the
+copy `TauCeti.BoundarylessModel I M` with charts in the model vector space along the identity
+diffeomorphism `TauCeti.BoundarylessModel.interiorDiffeomorph`, which is equivariant
+(`SymplecticGeometry/Geometry/Manifold/GroupAction/BoundarylessModel.lean`), and averaged there.
+For `n = 0` the claim is continuity, which holds on any manifold: integration over the compact
+group is continuous for the uniform norm (`TauCeti.continuous_integral_continuousMap`).
 
 Tau Ceti averages functions on the group itself (`TauCeti.haarAverage`), Riemannian metrics and
 differential forms; this file does the same for functions on a `G`-space.
@@ -117,7 +127,7 @@ theorem orbitAverage_mem_Icc {f : M → ℝ} (hf : ∀ x, f x ∈ Icc 0 1) (x : 
 end SymplecticGeometry
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
   {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
   {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
   {H' : Type*} [TopologicalSpace H'] (J : ModelWithCorners ℝ E' H')
@@ -127,14 +137,41 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   [IsManifold I n M] [IsManifold J n G] [ContMDiffSMul J I (n : ℕ∞ω) G M]
 
 include J in
-/-- **Smoothness of the orbit average.** If a compact Lie group `G` acts on a boundaryless
-manifold `M` by a `C^n` map `G × M → M`, then the orbit average of a `C^n` function `f : M → F`
-is `C^n`. -/
-theorem ContMDiff.orbitAverage {f : M → F} (hf : ContMDiff I 𝓘(ℝ, F) n f) :
+/-- The case of a boundaryless model, which is Tau Ceti's differentiation under the integral. -/
+private theorem ContMDiff.orbitAverage_of_boundaryless [I.Boundaryless] {f : M → F}
+    (hf : ContMDiff I 𝓘(ℝ, F) n f) :
     ContMDiff I 𝓘(ℝ, F) n (SymplecticGeometry.orbitAverage G f) := by
   rw [show SymplecticGeometry.orbitAverage G f = _ from
     funext (SymplecticGeometry.orbitAverage_def G f)]
   exact ContMDiff.parametric_integral (J := J)
     (hf.comp ((contMDiff_smul (I := J) (I' := I)).comp (contMDiff_snd.prodMk contMDiff_fst)))
+
+include J in
+attribute [local instance] BoundarylessModel.interiorChartedSpace in
+/-- **Smoothness of the orbit average.** If a compact Lie group `G` acts on a boundaryless
+manifold `M` by a `C^n` map `G × M → M`, then the orbit average of a `C^n` function `f : M → F`
+is `C^n`. -/
+theorem ContMDiff.orbitAverage [BoundarylessManifold I M] {f : M → F}
+    (hf : ContMDiff I 𝓘(ℝ, F) n f) :
+    ContMDiff I 𝓘(ℝ, F) n (SymplecticGeometry.orbitAverage G f) := by
+  rcases eq_or_ne n 0 with rfl | hn
+  · -- A continuous function on the compact group `G` depends continuously on `x`, for the
+    -- uniform norm, and integration is continuous for that norm.
+    have hsmul := (contMDiff_smul (I := J) (I' := I) (G := G) (M := M)
+      (n := ((0 : ℕ∞) : ℕ∞ω))).continuous
+    rw [WithTop.coe_zero, contMDiff_zero_iff] at hf ⊢
+    let φ : C(M × G, F) := ⟨fun p ↦ f (p.2 • p.1), hf.comp (hsmul.comp continuous_swap)⟩
+    exact continuous_integral_continuousMap.comp φ.curry.continuous
+  -- Otherwise `M` is a `C¹` manifold: carry `f` to the copy of `M` with charts in `E`.
+  have : IsManifold I 1 M := .of_le (n := n) (by exact_mod_cast Order.one_le_iff_ne_zero.2 hn)
+  let Φ := BoundarylessModel.interiorDiffeomorph I (M := M) n
+  have h : SymplecticGeometry.orbitAverage G f =
+      SymplecticGeometry.orbitAverage G (f ∘ Φ.symm) ∘ Φ := by
+    ext x
+    simp only [Function.comp_apply, SymplecticGeometry.orbitAverage_def]
+    congr 1 with a
+    rw [BoundarylessModel.interiorDiffeomorph_symm_smul, Diffeomorph.symm_apply_apply]
+  rw [h]
+  exact (ContMDiff.orbitAverage_of_boundaryless J (hf.comp Φ.symm.contMDiff)).comp Φ.contMDiff
 
 end
