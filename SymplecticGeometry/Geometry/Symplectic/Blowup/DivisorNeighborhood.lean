@@ -8,15 +8,15 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Model
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Tautological
 public import SymplecticGeometry.Geometry.Symplectic.Neighborhood.CodimTwo
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Symplectic.Manifold.NeighborhoodGerm
 import TauCeti.Geometry.Symplectic.Manifold.Rescale
 
 /-!
 # A neighbourhood of a divisor modelled on `L(ε)`
 
-Let `(M, σ)` be a symplectic manifold without boundary and `f : ℙ ℂ E → M`, for
-`E := Fin (n + 1) → ℂ`, a smooth embedding with `f^* σ = l² ω_FS`, `l ≠ 0`. Suppose that the
+Let `(M, σ)` be a symplectic manifold without boundary and
+`f : ℙ ℂ (Fin (n + 1) → ℂ) → M` a smooth embedding with `f^* σ = l² ω_FS`, `l ≠ 0`. Suppose that the
 normal bundle of `f` is isomorphic to the normal bundle of the zero section of the model blowup
 `BlowupModel n`, which is the tautological line (`Blowup/Tautological.lean`), by a smooth
 fibrewise isomorphism `Φ` preserving the orientations that the normal symplectic forms give, for
@@ -30,8 +30,8 @@ for a ball around that point, with `l` free.
 ## Main results
 
 * `SymplecticGeometry.hasSymplecticTangentImages_of_mpullback_eq_smul_fubiniStudyForm`:
-  a smooth map from `ℙ ℂ E` pulling a nondegenerate form back to `l² ω_FS`, `l ≠ 0`, has
-  symplectic tangent images.
+  a smooth map from `ℙ ℂ (Fin (n + 1) → ℂ)` pulling a nondegenerate form back to `l² ω_FS`,
+  `l ≠ 0`, has symplectic tangent images.
 * `SymplecticGeometry.BlowupModel.mpullback_zeroSectionRealEmbedding_blowupForm` and
   `SymplecticGeometry.BlowupModel.hasSymplecticTangentImages_zeroSectionRealEmbedding`: the
   real zero section of the model pulls `ω̃_l` back to `l² ω_FS`, so it has symplectic tangent
@@ -47,10 +47,10 @@ The codimension-two symplectic neighbourhood theorem
 `HasSymplecticTangentImages.exists_symplectomorphism_opens_of_finrank_eq_two`
 (`Geometry/Symplectic/Neighborhood/CodimTwo.lean`), which rescales `Φ` to preserve the normal
 forms, applies to `f` and the real zero section `zeroSectionRealEmbedding n`, with the identity
-of `ℙ ℂ E`: both pull their forms back to `l² ω_FS`. It gives a symplectomorphism between open
-sets `U₀ ⊆ M` and `U₁ ⊆ BlowupModel n` with `U₁` containing the exceptional divisor. By
-compactness of the divisor, `U₁` contains some `openNbhd n ε` (`exists_openNbhd_subset`), and
-the symplectomorphism is restricted to its preimage.
+of `ℙ ℂ (Fin (n + 1) → ℂ)`: both pull their forms back to `l² ω_FS`. It gives a
+symplectomorphism between open sets `U₀ ⊆ M` and `U₁ ⊆ BlowupModel n` with `U₁` containing the
+exceptional divisor. By compactness of the divisor, `U₁` contains some `openNbhd n ε`
+(`exists_openNbhd_subset`), and the symplectomorphism is restricted to its preimage.
 
 ## References
 
@@ -163,14 +163,9 @@ theorem exists_symplectomorphism_blowupModel [FiniteDimensional ℝ E] {σ : Smo
   have hs : IsOpen (Φ₀.source ∩ Φ₀ ⁻¹' openNbhd n ε) :=
     Φ₀.contMDiffOn.continuousOn.isOpen_inter_preimage Φ₀.open_source (isOpen_openNbhd ε)
   refine ⟨ε, hε, Φ₀.restrOpen _ hs, ?_, fun q ↦ ?_, ?_⟩
-  · ext y
-    rw [PartialDiffeomorph.restrOpen_target]
-    refine ⟨fun ⟨hy, _, hy'⟩ ↦ ?_, fun hy ↦ ?_⟩
-    · simpa [Φ₀.right_inv hy] using hy'
-    · have hyt : y ∈ Φ₀.target := by
-        rw [PartialDiffeomorph.liftOpens_target]
-        exact ⟨⟨y, hεU hy⟩, by simp, rfl⟩
-      exact ⟨hyt, Φ₀.map_target hyt, by simpa [Φ₀.right_inv hyt] using hy⟩
+  · refine Φ₀.restrOpen_target_eq_of_subset (fun y hy ↦ ?_) hs
+    rw [PartialDiffeomorph.liftOpens_target]
+    exact ⟨⟨y, hεU hy⟩, by simp, rfl⟩
   · obtain ⟨h, hq, -⟩ := hψ q
     have hΦ₀ : Φ₀ (f q) = zeroSection q := by
       have := PartialDiffeomorph.liftOpens_apply_coe ψ.toPartialDiffeomorph hU₀ hU₁ ⟨f q, h⟩
