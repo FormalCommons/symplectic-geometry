@@ -14,6 +14,8 @@ import SymplecticGeometry.MeasureTheory.Integral.Average
 import SymplecticGeometry.MeasureTheory.Measure.Lebesgue.LineSlice
 import SymplecticGeometry.RingTheory.MvPolynomial.LineRestriction
 import SymplecticGeometry.Topology.Algebra.MvPolynomial
+import Mathlib.Algebra.MvPolynomial.Funext
+import TauCeti.Algebra.MvPolynomial.Degrees
 import TauCeti.MeasureTheory.Measure.Haar.Average
 import TauCeti.RingTheory.MvPolynomial.Homogeneous
 
@@ -39,6 +41,8 @@ count over the points near the zero set.
   depending on `ι` only, not on `P`, `D` or `t`.
 * `MvPolynomial.volume_thickening_zeroLocus_le`: the same volume is at most
   `C * D ^ (2 * card ι) * t`.
+* `MvPolynomial.volume_thickening_zeroLocus_inter_ball_le`: on the ball of radius `r` about `0`,
+  the same volume is at most `C * D ^ (2 * card ι) * r ^ (2 * card ι) * (t / r)`.
 
 ## The change of centre
 
@@ -85,7 +89,7 @@ on `L - V y R` is a form of the Bernstein–Walsh inequality.
 public section
 
 open MeasureTheory Metric Set
-open scoped ENNReal Real
+open scoped ENNReal Pointwise Real
 
 namespace MvPolynomial
 
@@ -391,6 +395,58 @@ theorem volume_thickening_zeroLocus_le : ∃ C : ℝ, ∀ P : MvPolynomial ι �
   · refine hA.trans (ENNReal.ofReal_le_ofReal (le_trans ?_ hgoal))
     nlinarith [mul_le_mul_of_nonneg_left h.le hA0, mul_nonneg hC0 (by positivity :
       (0 : ℝ) ≤ D ^ 2 * t)]
+
+/-- **Volumes of tubes around complex algebraic hypersurfaces, on a ball of any radius.** Write
+`m = card ι`. There is a constant `C`, depending only on `ι` and not on `P`, `D`, `r` or `t`, such
+that for every nonzero complex polynomial `P` on `EuclideanSpace ℂ ι` of total degree at most `D`,
+every `0 < r` and every `t`, the part of the `t`-thickening of the zero set of `P` inside the ball
+of radius `r` about `0` has volume at most `C * D ^ (2 * m) * r ^ (2 * m) * (t / r)`. -/
+theorem volume_thickening_zeroLocus_inter_ball_le : ∃ C : ℝ, ∀ P : MvPolynomial ι ℂ, P ≠ 0 →
+    ∀ D : ℕ, P.totalDegree ≤ D → ∀ r : ℝ, 0 < r → ∀ t : ℝ,
+      volume (thickening t {z : EuclideanSpace ℂ ι | eval z.ofLp P = 0} ∩
+        ball (0 : EuclideanSpace ℂ ι) r) ≤
+        ENNReal.ofReal (C * D ^ (2 * Fintype.card ι) * r ^ (2 * Fintype.card ι) * (t / r)) := by
+  obtain ⟨C₀, hC₀⟩ := volume_thickening_zeroLocus_le (ι := ι)
+  refine ⟨C₀, fun P hP D hD r hr t ↦ ?_⟩
+  -- The polynomial `z ↦ P (r • z)`.
+  set Q : MvPolynomial ι ℂ := aeval (fun i ↦ C (r : ℂ) * X i) P
+  have hQ : ∀ z : ι → ℂ, eval z Q = eval (fun i ↦ (r : ℂ) * z i) P := fun z ↦ by
+    simp only [Q, aeval_def, algebraMap_eq, eval₂_comp_left]
+    rw [show (eval z).comp C = RingHom.id ℂ from RingHom.ext eval_C, eval₂_id]
+    congr 2
+    funext i
+    simp
+  have hQ0 : Q ≠ 0 := by
+    refine fun h ↦ hP (MvPolynomial.funext fun w ↦ ?_)
+    have := hQ fun i ↦ (r : ℂ)⁻¹ * w i
+    rw [h] at this
+    simpa [← mul_assoc, mul_inv_cancel₀ (Complex.ofReal_ne_zero.2 hr.ne')] using this.symm
+  have hQD : Q.totalDegree ≤ D := by
+    refine (totalDegree_aeval_le (D := 1) P fun i _ ↦ ?_).trans (by simpa using hD)
+    exact (totalDegree_mul _ _).trans (by simp)
+  set Z := {z : EuclideanSpace ℂ ι | eval z.ofLp P = 0}
+  set Z' := {z : EuclideanSpace ℂ ι | eval z.ofLp Q = 0}
+  have hsub : thickening t Z ∩ ball 0 r ⊆ r • (thickening (t / r) Z' ∩ ball 0 1) := by
+    rintro x ⟨hx, hxr⟩
+    obtain ⟨y, hy, hxy⟩ := mem_thickening_iff.1 hx
+    rw [mem_smul_set_iff_inv_smul_mem₀ hr.ne']
+    refine ⟨mem_thickening_iff.2 ⟨r⁻¹ • y, ?_, ?_⟩, ?_⟩
+    · simpa [Z, Z', hQ, ← mul_assoc, mul_inv_cancel₀ (Complex.ofReal_ne_zero.2 hr.ne')] using hy
+    · rw [dist_smul₀, Real.norm_eq_abs, abs_inv, abs_of_pos hr, inv_mul_eq_div]
+      exact div_lt_div_of_pos_right hxy hr
+    · rw [mem_ball_zero_iff, norm_smul, Real.norm_eq_abs, abs_inv, abs_of_pos hr,
+        inv_mul_lt_iff₀ hr, mul_one]
+      exact mem_ball_zero_iff.1 hxr
+  refine (measure_mono hsub).trans ?_
+  rw [Measure.addHaar_smul, finrank_real_of_complex, finrank_euclideanSpace,
+    abs_of_pos (pow_pos hr _)]
+  refine (?_ : _ ≤ ENNReal.ofReal (r ^ (2 * Fintype.card ι)) *
+    ENNReal.ofReal (C₀ * D ^ (2 * Fintype.card ι) * (t / r))).trans_eq ?_
+  · gcongr
+    exact hC₀ Q hQ0 D hQD (t / r)
+  rw [← ENNReal.ofReal_mul (by positivity)]
+  congr 1
+  ring
 
 end MvPolynomial
 
