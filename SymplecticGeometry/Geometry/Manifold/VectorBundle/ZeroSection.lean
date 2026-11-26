@@ -11,6 +11,7 @@ public import Mathlib.Geometry.Manifold.VectorBundle.Tangent
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Hom
 public import TauCeti.Geometry.Manifold.VectorBundle.ZeroSection
+import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 import TauCeti.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LeftInverse
 import TauCeti.Geometry.Manifold.VectorBundle.Submersion
@@ -43,7 +44,9 @@ namespace `TauCeti.Bundle`, `bundleDiffeomorph_zeroSection` and
 `bundleDiffeomorph_symm_zeroSection`, about Tau Ceti's `bundleDiffeomorph`, are in its namespace
 `TauCeti`, and
 `extChartAt_symm_apply_zero_of_mem_baseSet`, about the charts of the total space,
-`contMDiff_totalSpaceMk_comp`, about linear maps into one fibre, and
+`contMDiff_totalSpaceMk_comp`, about linear maps into one fibre,
+`contMDiff_subtypeMk_zeroSection` and `subtypeVal_comp_subtypeMk_zeroSection`, about the zero
+section as a map into a set that contains it, and
 `contMDiff_mfderiv_smul_curve`, about maps on the total space, in Mathlib's namespace `Bundle`.
 
 ## Main definitions
@@ -64,6 +67,8 @@ namespace `TauCeti.Bundle`, `bundleDiffeomorph_zeroSection` and
   fibre, followed by the inclusion of that fibre into the total space, is `C^n` for every `n`.
   Its proof follows that of Tau Ceti's `TauCeti.Manifold.contMDiff_totalSpaceMk`, the case of
   the identity of a normed fibre.
+* `Bundle.contMDiff_subtypeMk_zeroSection`: the zero section, as a map into an open set of the
+  total space that contains it, is `C^n` for every `n`.
 * `TauCeti.Bundle.zeroSectionTangentEquiv_symm_inl`: the inverse of Tau Ceti's splitting sends
   the horizontal vector `(u, 0)` at `b` to the image of `u` under the differential of the zero
   section.
@@ -192,6 +197,22 @@ theorem contMDiff_totalSpaceMk_comp {Q : Type*} [NormedAddCommGroup Q] [NormedSp
   exact ((trivializationAt F V b).continuousLinearMapAt 𝕜 b ∘L L).contMDiff.contMDiffAt
     |>.congr_of_eventuallyEq (Filter.Eventually.of_forall fun w' ↦
       ((trivializationAt F V b).continuousLinearMapAt_apply_of_mem 𝕜 hb (L w')).symm)
+
+/-- The zero section, as a map into an open set `U` of the total space that contains it, is
+`C^n`. -/
+theorem contMDiff_subtypeMk_zeroSection {n : WithTop ℕ∞}
+    {U : TopologicalSpace.Opens (TotalSpace F V)} (hU : ∀ b, zeroSection F V b ∈ U) :
+    ContMDiff IB (IB.prod 𝓘(𝕜, F)) n (fun b ↦ (⟨zeroSection F V b, hU b⟩ : U)) :=
+  (TauCeti.ContMDiff.subtypeVal_comp_iff U _).1 (contMDiff_zeroSection 𝕜 V)
+
+omit [TopologicalSpace B] [NormedAddCommGroup F] [TopologicalSpace (TotalSpace F V)]
+  [∀ x, TopologicalSpace (V x)] [FiberBundle F V] in
+/-- The zero section, as a map into a set `U` of the total space that contains it, followed by
+the inclusion of `U`, is the zero section. -/
+theorem subtypeVal_comp_subtypeMk_zeroSection {U : Set (TotalSpace F V)}
+    (hU : ∀ b, zeroSection F V b ∈ U) :
+    Subtype.val ∘ (fun b ↦ (⟨zeroSection F V b, hU b⟩ : U)) = zeroSection F V :=
+  (rfl)
 
 end Bundle
 

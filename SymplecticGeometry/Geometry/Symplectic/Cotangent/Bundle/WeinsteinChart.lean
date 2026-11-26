@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
 public import TauCeti.Geometry.Manifold.VectorBundle.FiberScaling
 import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.VectorBundlePoincare
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Graph
 import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Lift
@@ -87,10 +88,15 @@ structure AgreesOnZeroSection (f : L → M) (ι : U ≃ₘ⟮J.prod 𝓘(ℝ, E 
 
 variable {f : L → M} {ι : U ≃ₘ⟮J.prod 𝓘(ℝ, E →L[ℝ] ℝ), I⟯ V}
 
+/-- Each zero covector lies in the domain of a map that agrees with `f` on the zero section. -/
+theorem AgreesOnZeroSection.zeroSection_mem (hι : AgreesOnZeroSection f ι) (q : L) :
+    zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ) q ∈ U :=
+  (hι.exists_apply_eq q).1
+
 /-- The zero section lies in the domain of a map that agrees with `f` on it. -/
 theorem AgreesOnZeroSection.range_zeroSection_subset (hι : AgreesOnZeroSection f ι) :
     range (zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ)) ⊆ U :=
-  range_subset_iff.2 fun q ↦ (hι.exists_apply_eq q).1
+  range_subset_iff.2 hι.zeroSection_mem
 
 /-- **Precomposing with a cotangent lift.** If `ι : U ≃ V` agrees with `f` on the zero section,
 `a` is a diffeomorphism of `L` and the cotangent lift of `a` maps `U'` onto `U`, then `ι`
@@ -105,23 +111,19 @@ theorem AgreesOnZeroSection.cotangent_subtype_trans (hι : AgreesOnZeroSection f
   rw [Diffeomorph.coe_trans, Function.comp_apply, Function.comp_apply, ← hq]
   exact congrArg (fun w ↦ (ι w : M)) (Subtype.ext ((a.cotangent.subtype_apply_coe hUU' _).trans hc))
 
-/-- The zero section of `T*L`, as a map into the domain `U` of a map that agrees with `f` on it,
-is smooth. -/
-theorem AgreesOnZeroSection.contMDiff_zeroSection (hι : AgreesOnZeroSection f ι) :
-    ContMDiff J (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) ∞
-      (fun q ↦ (⟨_, (hι.exists_apply_eq q).1⟩ : U)) :=
-  (ContMDiff.subtypeVal_comp_iff U _).1 (Bundle.contMDiff_zeroSection ℝ _)
-
-/-- Composing `ι` with the zero section, as a map into `U`, gives `f`. -/
-theorem AgreesOnZeroSection.subtypeVal_comp_comp_eq (hι : AgreesOnZeroSection f ι) :
-    Subtype.val ∘ ι ∘ (fun q ↦ (⟨_, (hι.exists_apply_eq q).1⟩ : U)) = f :=
+/-- If `ι` agrees with `f` on the zero section, then `ι` composed with the zero section, read as a
+map into `U`, is `f`. -/
+theorem AgreesOnZeroSection.subtypeVal_comp_comp_subtypeMk_zeroSection
+    (hι : AgreesOnZeroSection f ι) :
+    Subtype.val ∘ ι ∘ (fun q ↦ (⟨zeroSection (E →L[ℝ] ℝ)
+      (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ) q, hι.zeroSection_mem q⟩ : U)) = f :=
   funext fun q ↦ (hι.exists_apply_eq q).2
 
 /-- A map that agrees on the zero section with a diffeomorphism `ι` from an open set of `T*L` is
 smooth. -/
 theorem AgreesOnZeroSection.contMDiff (hι : AgreesOnZeroSection f ι) : ContMDiff J I ∞ f :=
-  hι.subtypeVal_comp_comp_eq ▸
-    contMDiff_subtypeVal.comp (ι.contMDiff.comp hι.contMDiff_zeroSection)
+  hι.subtypeVal_comp_comp_subtypeMk_zeroSection ▸ contMDiff_subtypeVal.comp
+    (ι.contMDiff.comp (contMDiff_subtypeMk_zeroSection hι.zeroSection_mem))
 
 end ZeroSection
 
@@ -183,16 +185,13 @@ theorem IsWeinsteinChart.exists_contMDiff_mextDeriv_ofFunction_eq [FiniteDimensi
     rw [map_sub, SmoothForm.mextDerivₗ_mpullback, SmoothForm.mextDerivₗ_mpullback,
       SmoothForm.mextDerivₗ_mpullback, hθ, hs, symplecticForm_eq_neg_mextDerivₗ, neg_neg, sub_self]
   · -- Along the zero section, `ι^*θ` pulls back to `f^*θ = dh` and `λ` to `0`.
-    rw [← SmoothForm.coe_mpullback _ hι.contMDiff_zeroSection, map_sub,
-      SmoothForm.mpullback_mpullback, SmoothForm.mpullback_mpullback,
+    rw [← SmoothForm.coe_mpullback _ (contMDiff_subtypeMk_zeroSection hι.zeroSection_mem),
+      map_sub, SmoothForm.mpullback_mpullback, SmoothForm.mpullback_mpullback,
       SmoothForm.mpullback_mpullback, Submodule.coe_sub, SmoothForm.coe_mpullback,
-      SmoothForm.coe_mpullback, hι.subtypeVal_comp_comp_eq, hθh]
-    -- The zero section, as a map into `U`, followed by the inclusion of `U` is the zero section.
-    have hzs : (Subtype.val ∘ fun q ↦ (⟨_, (hι.exists_apply_eq q).1⟩ : U)) =
-        zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ) := rfl
+      SmoothForm.coe_mpullback, hι.subtypeVal_comp_comp_subtypeMk_zeroSection, hθh,
+      subtypeVal_comp_subtypeMk_zeroSection]
     have hzero := (isExactLagrangianMap_zeroSection (I := J) (M := L)).mpullback_eq
     rw [mextDeriv_ofFunction_zero] at hzero
-    rw [hzs]
     exact sub_eq_self.2 hzero
 
 end Weinstein
