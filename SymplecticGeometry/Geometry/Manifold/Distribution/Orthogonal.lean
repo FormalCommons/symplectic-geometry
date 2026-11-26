@@ -22,7 +22,8 @@ A distribution is a family of subspaces of the tangent spaces, so its `C^n` loca
 distribution are its `C^n` local frames as a family of subspaces of the tangent bundle: Tau
 Ceti's `TauCeti.IsContMDiffDistribution.hasLocalContMDiffSubbundleFrames` gives one direction,
 and `TauCeti.HasLocalContMDiffSubbundleFrames.isContMDiffDistribution` the other. The frames of
-the orthogonal then come from `TauCeti.HasLocalContMDiffSubbundleFrames.orthogonal_of_isCompl`.
+the orthogonal then come from `TauCeti.HasLocalContMDiffSubbundleFrames.orthogonal_of_isCompl`
+and `TauCeti.HasLocalContMDiffSubbundleFrames.orthogonal`.
 
 ## Main results
 
@@ -103,9 +104,9 @@ theorem bilinFormOrthogonal [IsManifold I (n + 1) M]
     (hnd : ∀ x, (LinearMap.BilinForm.restrict (β x).toLinearMap₁₂ (D x)).Nondegenerate) :
     IsContMDiffDistribution I n (finrank 𝕜 E - k)
       fun x ↦ LinearMap.BilinForm.orthogonal (β x).toLinearMap₁₂ (D x) :=
-  hD.bilinFormOrthogonal_of_isCompl hβ fun x ↦
-    have : FiniteDimensional 𝕜 (TangentSpace I x) := inferInstanceAs (FiniteDimensional 𝕜 E)
-    LinearMap.BilinForm.isCompl_orthogonal_of_restrict_nondegenerate (hrefl x) (hnd x)
+  let : ContMDiffVectorBundle n E (TangentSpace I : M → Type _) I :=
+    TangentBundle.contMDiffVectorBundle
+  (hD.hasLocalContMDiffSubbundleFrames.orthogonal hβ hrefl hnd).isContMDiffDistribution
 
 end IsContMDiffDistribution
 
