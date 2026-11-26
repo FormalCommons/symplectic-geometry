@@ -42,6 +42,9 @@ count over the points near the zero set.
   `C * D ^ (2 * card ι) * t`.
 * `MvPolynomial.volume_thickening_zeroLocus_inter_ball_le`: on the ball of radius `r` about `0`,
   the same volume is at most `C * D ^ (2 * card ι) * r ^ (2 * card ι) * (t / r)`.
+* `MvPolynomial.measureReal_ball_mul_le_of_ball_subset_thickening`: if the ball of radius `r`
+  about `0` lies in the `t`-thickening of the zero set of `P`, then
+  `vol (ball 0 1) * r ≤ C * D ^ (2 * card ι) * t`.
 
 ## The change of centre
 
@@ -432,6 +435,36 @@ theorem volume_thickening_zeroLocus_inter_ball_le : ∃ C : ℝ, ∀ P : MvPolyn
   rw [← ENNReal.ofReal_mul (by positivity)]
   congr 1
   ring
+
+/-- **A ball does not fit in a thin tube around a complex hypersurface.** Write `m = card ι`.
+There is a constant `C > 0`, depending only on `ι`, such that if the ball of radius `r > 0`
+about `0` lies in the `t`-thickening of the zero set of a nonzero complex polynomial `P` of total
+degree at most `D` on `EuclideanSpace ℂ ι`, then `vol (ball 0 1) * r ≤ C * D ^ (2 * m) * t`. -/
+theorem measureReal_ball_mul_le_of_ball_subset_thickening :
+    ∃ C > 0, ∀ P : MvPolynomial ι ℂ, P ≠ 0 → ∀ D : ℕ, P.totalDegree ≤ D → ∀ r : ℝ, 0 < r →
+      ∀ t : ℝ, ball (0 : EuclideanSpace ℂ ι) r ⊆
+          thickening t {z : EuclideanSpace ℂ ι | eval z.ofLp P = 0} →
+        volume.real (ball (0 : EuclideanSpace ℂ ι) 1) * r ≤
+          C * D ^ (2 * Fintype.card ι) * t := by
+  obtain ⟨C₀, hC₀⟩ := volume_thickening_zeroLocus_inter_ball_le (ι := ι)
+  refine ⟨max C₀ 1, lt_max_of_lt_right one_pos, fun P hP0 D hPd r hr t hsub ↦ ?_⟩
+  set m := Fintype.card ι
+  set V := volume.real (ball (0 : EuclideanSpace ℂ ι) 1)
+  have hV : 0 < V := ENNReal.toReal_pos (measure_ball_pos _ _ one_pos).ne' measure_ball_lt_top.ne
+  have ht0 : 0 ≤ t := by
+    by_contra! ht
+    have := hsub (mem_ball_self hr)
+    rwa [thickening_of_nonpos ht.le] at this
+  have hvol := (measure_mono (subset_inter hsub subset_rfl)).trans (hC₀ P hP0 D hPd r hr t)
+  rw [Measure.addHaar_ball_of_pos _ _ hr, finrank_real_of_complex, finrank_euclideanSpace,
+    ← ofReal_measureReal measure_ball_lt_top.ne, ← ENNReal.ofReal_mul (by positivity),
+    ENNReal.ofReal_le_ofReal_iff'] at hvol
+  have hvol' : r ^ (2 * m) * V ≤ r ^ (2 * m) * (max C₀ 1 * D ^ (2 * m) * t / r) := by
+    calc _ ≤ C₀ * D ^ (2 * m) * r ^ (2 * m) * (t / r) :=
+          hvol.resolve_right (not_le.2 (by positivity))
+      _ ≤ max C₀ 1 * D ^ (2 * m) * r ^ (2 * m) * (t / r) := by gcongr; exact le_max_left _ _
+      _ = _ := by ring
+  exact (le_div_iff₀ hr).1 (le_of_mul_le_mul_left hvol' (by positivity))
 
 end MvPolynomial
 
