@@ -692,6 +692,7 @@ theorem normalSpaceZeroSectionRealEquiv_contMDiffNormalComplexStructure {P : Typ
   exact ((mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown
     (zeroSection ℓ)).map_smul Complex.I w)
 
+variable (hn) in
 /-- The isomorphisms `normalSpaceZeroSectionRealEquiv n hn ℓ` form a continuous map from the total
 space of the normal bundle of the real zero section, with Tau Ceti's bundle structure
 `SmoothEmbedding.normalSpaceFiberBundle` of model fibre `P` (of dimension `2`, by `hdim`), to the
