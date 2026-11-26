@@ -11,9 +11,13 @@ public import SymplecticGeometry.Analysis.Normed.Module.Alternating.AppendLeft
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Basic
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegral.Product.Coefficient
 import TauCeti.Geometry.Manifold.ContMDiff.ContinuousAlternatingMap
+<<<<<<< HEAD
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Regularity
 import TauCeti.Geometry.Manifold.VectorBundle.Trivialization
 import TauCeti.Topology.Algebra.Module.FiniteDimension
+=======
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
+>>>>>>> origin/main
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Trivialization
 
 /-!
@@ -372,13 +376,9 @@ theorem contMDiffOn_integralTopForm_prodFiberIntegrand [FiniteDimensional ℝ E'
       (fun b ↦ integralTopForm o (prodFiberIntegrand α b fun i ↦ X i b)) U := by
   -- The open set `U` is the parameter manifold, mapped to `B` by its inclusion.
   let V : TopologicalSpace.Opens B := ⟨U, hU⟩
-  have hV : ContMDiff I 𝓘(ℝ) n fun p : V ↦
-      integralTopForm o (prodFiberIntegrand α p.val fun i ↦ X i p.val) :=
+  exact (contMDiff_subtype_iff (U := V)).1 <|
     contMDiff_integralTopForm o (contMDiff_prodFiberIntegrand hα contMDiff_subtypeVal
-      fun i p ↦ contMDiffAt_subtype_iff.2 ((hX i).contMDiffAt (hU.mem_nhds p.property)))
-  exact fun b hb ↦ (contMDiffAt_subtype_iff (U := V) (x := ⟨b, hb⟩)
-    (f := fun b ↦ integralTopForm o (prodFiberIntegrand α b fun i ↦ X i b))).1
-    (hV ⟨b, hb⟩) |>.contMDiffWithinAt
+      fun i ↦ (contMDiff_subtype_iff (U := V)).2 (hX i))
 
 /-- **The integrand in degree zero.** For `r = 0`, the integrand at `b` is the slice of `α` over
 `b`, its pull-back along `y ↦ (b, y)`, after the degree cast `0 + m = m`. -/

@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralKronecker
 public import TauCeti.AlgebraicTopology.Cohomology.IntegralCup
 public import TauCeti.AlgebraicTopology.Cohomology.Sphere.Basic
 public import TauCeti.AlgebraicTopology.Disk
@@ -23,7 +24,10 @@ It also shows that, over a commutative ring `k` and with values in a `k`-module 
 `Hⁿ⁺¹(Sⁿ⁺¹; M)` vanishes exactly when its Kronecker pairing with Tau Ceti's generator
 `TauCeti.singularHomologyTopCatSphereGenerator` of `Hₙ₊₁(Sⁿ⁺¹; k)` vanishes
 (`TopCat.singularKronecker_singularHomologyTopCatSphereGenerator_eq_zero_iff`), since that pairing
-is the linear equivalence `TauCeti.singularCohomologyTopCatSphereEquiv`.
+is the linear equivalence `TauCeti.singularCohomologyTopCatSphereEquiv`. For integral cohomology
+`Hᵈ⁺¹(Sᵈ⁺¹; ℤ)` and the integral Kronecker pairing `TopCat.integralKronecker`, this reads
+`⟨c, [Sᵈ⁺¹]⟩ = 0 ↔ c = 0`
+(`TopCat.integralKronecker_singularHomologyTopCatSphereGenerator_eq_zero_iff`).
 
 ## References
 
@@ -63,6 +67,16 @@ theorem singularKronecker_singularHomologyTopCatSphereGenerator_eq_zero_iff
       (TauCeti.singularHomologyTopCatSphereGenerator k n) = 0 ↔ α = 0 := by
   rw [← TauCeti.singularCohomologyTopCatSphereEquiv_apply]
   exact LinearEquiv.map_eq_zero_iff _
+
+/-- A class `c ∈ Hᵈ⁺¹(Sᵈ⁺¹; ℤ)` of integral cohomology is zero if and only if its integral
+Kronecker pairing `TopCat.integralKronecker` with the generator of `H_{d+1}(Sᵈ⁺¹; ℤ)` is zero. -/
+theorem integralKronecker_singularHomologyTopCatSphereGenerator_eq_zero_iff (d : ℕ)
+    (c : (TopCat.sphere.{0} (d + 1)).integralCohomology (d + 1)) :
+    (TopCat.sphere (d + 1)).integralKronecker (d + 1) c
+      (TauCeti.singularHomologyTopCatSphereGenerator ℤ d) = 0 ↔ c = 0 := by
+  rw [integralKronecker_apply,
+    ← ((TopCat.sphere (d + 1)).integralCohomologyEquiv (d + 1)).map_eq_zero_iff]
+  exact singularKronecker_singularHomologyTopCatSphereGenerator_eq_zero_iff _ d _
 
 end TopCat
 

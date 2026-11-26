@@ -14,6 +14,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
 import SymplecticGeometry.Topology.Sets.Opens.Basic
+import SymplecticGeometry.Topology.VectorBundle.Basic
 
 /-!
 # The Legendrian neighbourhood theorem
@@ -165,7 +166,7 @@ private theorem cotangentToNormal_zeroSection (hf : IsLegendrianEmbedding J α.k
     cotangentToNormal hf hdim
         (zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q) =
       zeroSection P _ q := by
-  -- `zeroSection q` is `⟨q, 0⟩` by definition, which Mathlib states by no lemma.
+  rw [zeroSection_def, zeroSection_def]
   exact (cotangentToNormal_mk hf hdim q 0).trans
     (congrArg (TotalSpace.mk' P q) (by rw [Prod.mk_zero_zero, map_zero]))
 
@@ -397,10 +398,8 @@ theorem exists_diffeomorph_opens_mpullback_eq_neg_contactization [I.Boundaryless
   obtain ⟨h, hq⟩ := hΨ _ (hφs q)
   have hq0 : σ (zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q, (0 : ℝ)) =
       (zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q, (0 : ℝ)) := by
-    simp only [σ, CotangentBundle.connectionFrameChange_apply, zeroSection_proj, zeroSection_snd,
-      mul_zero]
-    -- `zeroSection q` is `⟨q, 0⟩` by definition, which Mathlib states by no lemma.
-    exact congrArg (fun v ↦ (TotalSpace.mk' (E' →L[ℝ] ℝ) q v, (0 : ℝ))) (smul_zero (-1 : ℝ))
+    simp only [σ, CotangentBundle.connectionFrameChange_apply, mul_zero, zeroSection_def,
+      smul_zero]
   exact ⟨hq0 ▸ h, (congrArg (fun y ↦ (Ψ y : M)) (Subtype.ext hq0.symm)).trans
     (hq.trans ((hφ0 q).trans (congrFun hg q)))⟩
 
