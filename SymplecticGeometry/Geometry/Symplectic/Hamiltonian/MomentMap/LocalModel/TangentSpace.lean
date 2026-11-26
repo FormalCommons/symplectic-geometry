@@ -35,6 +35,8 @@ model.
 
 * `SymplecticGeometry.LocalModelData.bijective_mfderiv_mk_linearModelMap`:
   `x ↦ dπ_(1, 0, 0) (linearModelMap x)` is bijective.
+* `SymplecticGeometry.LocalModelData.linearModelEquiv_mk_zero_mk_zero`: `linearModelEquiv` sends
+  `((m, 0), (q, 0))` to `dπ_(1, 0, 0) (ξ, 0)` whenever `ξ - (m + q) ∈ 𝔥`.
 * `SymplecticGeometry.LocalModelData.eval₂_descendedForm_linearModelEquiv`: through
   `linearModelEquiv`, the descended form at `[1, 0]` is the form of the linear normal form model.
 * `SymplecticGeometry.LocalModelData.linearModelEquiv_linearModelRepresentation`:
@@ -146,6 +148,32 @@ theorem linearModelEquiv_apply (x : (D.𝔪 × Module.Dual ℝ D.𝔪) × (D.�
         ((1 : G), ((0 : A), (0 : V)))
         ((tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V)))).symm (D.linearModelMap x)) :=
   (rfl)
+
+/-- **Directions of `𝔤` in the image of `linearModelEquiv`.** For `m ∈ 𝔪` and `q ∈ 𝔮`,
+`linearModelEquiv ((m, 0), (q, 0))` is `dπ_(1, 0, 0) (ξ, 0)` for each `ξ ∈ 𝔤` with
+`ξ - (m + q) ∈ 𝔥`, where `π (g, p) = [g, p]`. -/
+theorem linearModelEquiv_mk_zero_mk_zero {ξ : GroupLieAlgebra I G} (m : D.𝔪) (q : D.𝔮)
+    (hξ : ξ - (m + q) ∈ D.𝔥) :
+    letI := D.fiberDistribMulAction
+    haveI := D.contMDiffSMul_fiberDistribMulAction
+    letI := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
+    D.linearModelEquiv ((m, 0), (q, 0)) =
+      mfderiv (I.prod 𝓘(ℝ, A × V)) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
+        (fun p : G × (A × V) ↦ BalancedProduct.mk K (K.toRightTranslation p.1) p.2)
+        ((1 : G), ((0 : A), (0 : V)))
+        ((tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V)))).symm (ξ, 0)) := by
+  let := D.fiberDistribMulAction
+  have := D.contMDiffSMul_fiberDistribMulAction
+  let := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
+  rw [linearModelEquiv_apply]
+  -- The difference of the two directions is `(m + q - ξ, 0)`, in the kernel `𝔥 × 0` of `dπ`.
+  refine sub_eq_zero.1 ((map_sub _ _ _).symm.trans ((D.mem_ker_mfderiv_mk_one_zero_iff _).2 ?_))
+  have hs (y : GroupLieAlgebra I G × (A × V)) :
+      tangentSpaceProdEquiv (I := I) (J := 𝓘(ℝ, A × V)) ((1 : G), ((0 : A), (0 : V)))
+        ((tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V)))).symm y) = y :=
+    ContinuousLinearEquiv.apply_symm_apply _ y
+  rw [map_sub, hs, ContinuousLinearEquiv.apply_symm_apply, linearModelMap_apply, map_zero]
+  exact ⟨(congrArg (· ∈ D.𝔥) (neg_sub ξ _)).mp (neg_mem hξ), sub_eq_zero.2 rfl⟩
 
 /-- **The descended form at `[1, 0]` is the linear normal form.** Through `linearModelEquiv`, the
 descended form `ω` of the local model at `[1, 0]` is the form of the linear normal form model
