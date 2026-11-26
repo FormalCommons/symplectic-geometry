@@ -10,6 +10,7 @@ public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import Mathlib.Geometry.Manifold.VectorField.Pullback
 import TauCeti.Geometry.Manifold.Flow.Covering
 import TauCeti.Geometry.Manifold.ContMDiff.MFDeriv
+import TauCeti.Geometry.Manifold.Diffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
@@ -31,6 +32,9 @@ of an open subset, where the pullback is the restriction of a vector field to `U
   that is, near `x`, the image under the differential of a local diffeomorphism `f` of a field
   that is `C^m` at `x`, is `C^m` at `f x`; near `f x` it is the pullback of that field along a
   local inverse of `f`.
+* `Diffeomorph.mk_mpullback_eq_tangentMap_symm`: along a diffeomorphism `h`, the pulled-back
+  field, as a point of the tangent bundle at `x`, is the image of `V (h x)` under the tangent map
+  of `h⁻¹`.
 * `VectorField.mfderiv_subtypeVal_mpullback_subtypeVal` and
   `VectorField.contMDiff_mpullback_subtypeVal`: for an open subset `U`, the restriction of `V`
   to `U` is related to `V` by the inclusion, and is a `C^m` vector field on `U` when `V` is
@@ -93,6 +97,14 @@ theorem IsLocalDiffeomorphAt.contMDiffAt_of_eventually_mfderiv_apply_eq
   refine (hf.contMDiffAt.mfderiv_apply_sectionAlong (b := id) hX hmn).congr_of_eventuallyEq ?_
   filter_upwards [hXV] with y hy
   simp [hy]
+
+/-- Along a diffeomorphism `h : M → N`, the pullback of a vector field `V` on `N`, read as a point
+of the tangent bundle at `x`, is the image of `V (h x)` under the tangent map of `h⁻¹`. -/
+theorem Diffeomorph.mk_mpullback_eq_tangentMap_symm (h : M ≃ₘ^n⟮I, J⟯ N) (hn : n ≠ 0)
+    (V : Π y : N, TangentSpace J y) (x : M) :
+    (⟨x, VectorField.mpullback I J h V x⟩ : TangentBundle I M) =
+      tangentMap J I h.symm ⟨h x, V (h x)⟩ := by
+  rw [h.tangentMap_symm_mk hn, VectorField.mpullback_apply]
 
 namespace VectorField
 

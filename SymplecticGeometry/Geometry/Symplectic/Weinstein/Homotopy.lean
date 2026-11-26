@@ -7,7 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Basic
-import TauCeti.Geometry.Manifold.Diffeomorph.Basic
+import SymplecticGeometry.Geometry.Manifold.VectorField.Pullback
 import TauCeti.Geometry.Manifold.Instances.Icc
 
 /-!
@@ -25,6 +25,8 @@ are continuous functions `c₀ < c₁ < c₂ < ⋯` on `[0, 1]`, tending to infi
 * `SymplecticGeometry.IsWeinsteinHomotopy`: the predicate on a family `(ω, X, f)`, with
   `SymplecticGeometry.isWeinsteinHomotopy_iff`.
 * `SymplecticGeometry.IsWeinsteinHomotopy.refl`: the constant family of a Weinstein structure.
+* `SymplecticGeometry.IsWeinsteinHomotopy.comp`: a Weinstein homotopy reparametrized by a smooth
+  map `[0, 1] → [0, 1]`.
 * `SymplecticGeometry.IsWeinsteinHomotopy.symm`: a Weinstein homotopy run backwards, by
   `unitInterval.symm`.
 * `SymplecticGeometry.IsWeinsteinHomotopy.pullback`: the pull-back of a Weinstein homotopy along a
@@ -37,8 +39,8 @@ are continuous functions `c₀ < c₁ < c₂ < ⋯` on `[0, 1]`, tending to infi
 The forms are a smooth family in the sense of `SymplecticGeometry.IsSmoothFamily`, over
 `unitInterval` with the model `𝓡∂ 1`. The fields are jointly smooth as sections of the tangent
 bundle along the projection `unitInterval × M → M`, in the form of the hypothesis of
-`SymplecticGeometry.isSmoothFamily_interiorₗ`, so that the primitives `ι_{X t} ω t` form a smooth
-family. The functions are jointly smooth on `unitInterval × M`.
+`SymplecticGeometry.isSmoothFamily_interiorₗ`. The functions are jointly smooth on
+`unitInterval × M`.
 
 Cieliebak and Eliashberg ask for smooth functions `c k` and for `c k t → ∞`; here the `c k` are
 only continuous, so each of their Weinstein homotopies is one here. For continuous `c k`,
@@ -51,7 +53,7 @@ generalized Morse function has finitely many critical values in each compact int
 `f t` are bounded above, uniformly in `t`, by some `B`, and the constants `B + k + 1` are values
 outside their ranges, so they are regular values (`TauCeti.isRegularValue_of_notMem_range`). The
 field pulled back along a diffeomorphism `Φ` is the image of `X t` under the tangent map of `Φ⁻¹`
-(`Diffeomorph.tangentMap_symm_apply`), so it stays jointly smooth.
+(`Diffeomorph.mk_mpullback_eq_tangentMap_symm`), so it stays jointly smooth.
 
 ## References
 
@@ -129,20 +131,27 @@ protected theorem refl {ω : SmoothTwoForm 𝓘(ℝ, E) M} {X : (x : M) → Tang
   · filter_upwards [eventually_ge_atTop ⌈C⌉₊] with k hk _
     exact (Nat.ceil_le.1 hk).trans (hc k).1.le
 
+/-- **Reparametrizing a Weinstein homotopy.** Composing the parameter of a Weinstein homotopy with
+a smooth map `φ : [0, 1] → [0, 1]` gives a Weinstein homotopy. -/
+protected theorem comp (h : IsWeinsteinHomotopy ω X f) (φ : unitInterval → unitInterval)
+    (hφ : ContMDiff (𝓡∂ 1) (𝓡∂ 1) (⊤ : ℕ∞) φ) :
+    IsWeinsteinHomotopy (fun t ↦ ω (φ t)) (fun t ↦ X (φ t)) (fun t ↦ f (φ t)) := by
+  obtain ⟨c, hcont, hmono, htend, hreg⟩ := h.exists_isRegularValue
+  have hσ : ContMDiff ((𝓡∂ 1).prod 𝓘(ℝ, E)) ((𝓡∂ 1).prod 𝓘(ℝ, E)) (⊤ : ℕ∞)
+      fun p : unitInterval × M ↦ (φ p.1, p.2) :=
+    (hφ.comp contMDiff_fst).prodMk contMDiff_snd
+  refine ⟨h.isSmoothFamily.comp φ hφ, h.contMDiff_field.comp hσ,
+    h.contMDiff_function.comp hσ, fun t ↦ h.isWeinsteinStructure _,
+    ⟨fun k t ↦ c k (φ t), fun k ↦ (hcont k).comp hφ.continuous,
+      fun t ↦ hmono _, fun C ↦ ?_, fun k t ↦ hreg k _⟩⟩
+  filter_upwards [htend C] with k hk t using hk _
+
 /-- **A Weinstein homotopy run backwards** is a Weinstein homotopy: reparametrize the family by
 `t ↦ 1 - t`. -/
 protected theorem symm (h : IsWeinsteinHomotopy ω X f) :
     IsWeinsteinHomotopy (fun t ↦ ω (unitInterval.symm t)) (fun t ↦ X (unitInterval.symm t))
-      (fun t ↦ f (unitInterval.symm t)) := by
-  obtain ⟨c, hcont, hmono, htend, hreg⟩ := h.exists_isRegularValue
-  have hσ : ContMDiff ((𝓡∂ 1).prod 𝓘(ℝ, E)) ((𝓡∂ 1).prod 𝓘(ℝ, E)) (⊤ : ℕ∞)
-      fun p : unitInterval × M ↦ (unitInterval.symm p.1, p.2) :=
-    (unitInterval.contMDiff_symm.comp contMDiff_fst).prodMk contMDiff_snd
-  refine ⟨h.isSmoothFamily.comp _ unitInterval.contMDiff_symm, h.contMDiff_field.comp hσ,
-    h.contMDiff_function.comp hσ, fun t ↦ h.isWeinsteinStructure _,
-    ⟨fun k t ↦ c k (unitInterval.symm t), fun k ↦ (hcont k).comp unitInterval.continuous_symm,
-      fun t ↦ hmono _, fun C ↦ ?_, fun k t ↦ hreg k _⟩⟩
-  filter_upwards [htend C] with k hk t using hk _
+      (fun t ↦ f (unitInterval.symm t)) :=
+  h.comp _ unitInterval.contMDiff_symm
 
 /-- **Weinstein homotopies pull back along diffeomorphisms.** If `t ↦ (ω t, X t, f t)` is a
 Weinstein homotopy on `M` and `Φ : M' → M` is a diffeomorphism, then the family of pulled-back
@@ -160,11 +169,8 @@ theorem pullback (h : IsWeinsteinHomotopy ω X f) {M' : Type*} [TopologicalSpace
   have hfield : (fun p : unitInterval × M' ↦ (⟨p.2, VectorField.mpullback 𝓘(ℝ, E) 𝓘(ℝ, E) Φ
       (X p.1) p.2⟩ : TangentBundle 𝓘(ℝ, E) M')) =
       tangentMap 𝓘(ℝ, E) 𝓘(ℝ, E) Φ.symm ∘
-        fun p : unitInterval × M' ↦ (⟨Φ p.2, X p.1 (Φ p.2)⟩ : TangentBundle 𝓘(ℝ, E) M) := by
-    funext p
-    rw [Function.comp_apply, ← Φ.tangentMap_symm_apply (by simp) ⟨p.2, _⟩]
-    congr 1
-    simp only [tangentMap, Φ.mfderiv_apply_mpullback (by simp)]
+        fun p : unitInterval × M' ↦ (⟨Φ p.2, X p.1 (Φ p.2)⟩ : TangentBundle 𝓘(ℝ, E) M) :=
+    funext fun p ↦ Φ.mk_mpullback_eq_tangentMap_symm (by simp) (X p.1) p.2
   refine ⟨h.isSmoothFamily.mpullback Φ Φ.contMDiff, ?_, h.contMDiff_function.comp hΦ,
     fun t ↦ (h.isWeinsteinStructure t).pullback Φ,
     ⟨c, hcont, hmono, htend, fun k t ↦ (Φ.isRegularValue_comp_iff (by simp)).2 (hreg k t)⟩⟩
