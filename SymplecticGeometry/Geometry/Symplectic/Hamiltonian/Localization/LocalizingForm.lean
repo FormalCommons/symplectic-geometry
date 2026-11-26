@@ -12,10 +12,10 @@ public import SymplecticGeometry.Geometry.Manifold.GroupAction.Circle
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Localization.WeightOneForm
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.WeightModel.NormalForm
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.PartitionOfUnity
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.GroupAction.InvariantCutoff
 import SymplecticGeometry.Geometry.Manifold.GroupAction.InvariantOneForm
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Localization.Weights
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.WeightModel.Basic
 import SymplecticGeometry.Topology.Algebra.ConstMulAction
@@ -151,7 +151,7 @@ smooth function `ρ` whose support lies in the image of `Φ`: the smooth one-for
 def cutoffWeightOneForm : SmoothForm I M ℝ 1 :=
   ⟨fun x ↦ ρ x • TauCeti.mpullback I 𝓘(ℝ, StdSpace ι) Φ.symm (weightOneForm k).val x,
     (isSmoothForm_fun_smul_mpullback hρ Φ.symm.open_source (by simpa using hs)
-      (fun _ hx ↦ Φ.symm.contMDiffOn.contMDiffAt (Φ.symm.open_source.mem_nhds hx))
+      (fun _ hx ↦ Φ.symm.contMDiffAt hx)
       (weightOneForm k).isSmoothForm).mem_smoothBundleForms⟩
 
 theorem cutoffWeightOneForm_val :

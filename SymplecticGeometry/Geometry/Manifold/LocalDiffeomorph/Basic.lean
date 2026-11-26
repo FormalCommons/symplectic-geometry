@@ -43,6 +43,8 @@ target of `Λ`, not only at `x`.
   diffeomorphisms into a common manifold do are related, near a point, by a map smooth there, as
   the transition maps of a gluing must be.
 * `isLocalDiffeomorph_id`: the identity of a manifold is a local diffeomorphism.
+* `isOpen_setOfPred_isLocalDiffeomorphAt`: the points at which a map is a local diffeomorphism
+  form an open set, by Tau Ceti's `IsLocalDiffeomorphAt.eventually`.
 * `isLocalDiffeomorphAt_smul_iff`: a map that commutes with actions of a group by `C^n` maps is a
   local diffeomorphism at `g • x` exactly when it is one at `x`. It composes with Tau Ceti's
   diffeomorphisms `Diffeomorph.constSmul` and applies Tau Ceti's
@@ -55,6 +57,8 @@ target of `Λ`, not only at `x`.
   diffeomorphism between their model spaces.
 * `ModelWithCorners.isLocalDiffeomorphAt_coe`: a model with corners is a local diffeomorphism at
   every point that it sends into the interior of its range.
+* `PartialDiffeomorph.contMDiffAt`: a partial diffeomorphism is `C^n` at each point of its
+  source.
 * `PartialDiffeomorph.isCompact_image_of_subset_source`: a partial diffeomorphism sends compact
   subsets of its source to compact sets; it is
   `OpenPartialHomeomorph.isCompact_image_of_subset_source` applied to `Φ.toOpenPartialHomeomorph`.
@@ -130,6 +134,11 @@ namespace SymplecticGeometry
 theorem isLocalDiffeomorph_id : IsLocalDiffeomorph I I n (id : M → M) := by
   rw [← Diffeomorph.coe_refl I M n]
   exact Diffeomorph.isLocalDiffeomorph _
+
+variable (I J n f) in
+/-- The set of points at which a map is a `C^n` local diffeomorphism is open. -/
+theorem isOpen_setOfPred_isLocalDiffeomorphAt : IsOpen {x | IsLocalDiffeomorphAt I J n f x} :=
+  isOpen_iff_mem_nhds.2 fun _ h ↦ h.eventually
 
 /-- **Local diffeomorphy of an equivariant map is invariant under the group.** If `f` commutes
 with actions of a group `G` on `M` and on `N` by `C^n` maps, then `f` is a `C^n` local
@@ -213,6 +222,12 @@ theorem ModelWithCorners.isLocalDiffeomorphAt_coe {x : H} (hx : I x ∈ interior
   have h := TauCeti.isLocalDiffeomorphAt_extChartAt (I := I) (n := n) (mem_extChartAt_source x)
     (by simpa [extChartAt_self_eq] using hx)
   simpa [extChartAt_self_eq] using h
+
+/-- A `C^n` partial diffeomorphism is `C^n` at each point of its source. It is the `C^n`
+counterpart of Mathlib's `PartialDiffeomorph.mdifferentiableAt`. -/
+protected theorem PartialDiffeomorph.contMDiffAt (Φ : PartialDiffeomorph I J M N n) {x : M}
+    (hx : x ∈ Φ.source) : ContMDiffAt I J n Φ x :=
+  Φ.contMDiffOn.contMDiffAt (Φ.open_source.mem_nhds hx)
 
 /-- The image of a compact subset of the source of a partial diffeomorphism is compact. -/
 theorem PartialDiffeomorph.isCompact_image_of_subset_source (Φ : PartialDiffeomorph I J M N n)

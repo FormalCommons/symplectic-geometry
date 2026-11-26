@@ -33,6 +33,11 @@ If `f : M → M` preserves a function `ρ`, and the pullback of `φ` along `f` a
 (`TauCeti.mpullback_fun_smul_eq_self`): a form cut off by an invariant function is invariant as
 soon as it is so on the support of the cut-off.
 
+Let `g : M → M'` be smooth on an open set `u`, and `f : M → ℝ` a smooth function with
+`tsupport f ⊆ u`. Then for a smooth form `φ` on `M'`, the form `f • g^* φ` on `M` is smooth,
+although `g` need not be smooth off `u` (`TauCeti.isSmoothForm_fun_smul_mpullback`, a step of the
+proof of Tau Ceti's `TauCeti.isSmoothForm_sum_finsupport_smul_mpullback` stated on its own).
+
 Pulling a form back commutes with negation (`TauCeti.mpullback_neg`), as Tau Ceti's
 `TauCeti.mpullback_sub` says for subtraction. So a diffeomorphism preserves `-σ` exactly when it
 preserves `σ` (`TauCeti.SmoothForm.diffeomorphStabilizer_neg`).
@@ -69,7 +74,11 @@ normed spaces with their own models, `𝓘(ℝ, E₁ × E₂)` is not syntactica
   back along a map from `s` into `t` to a form exact near `s`.
 * `TauCeti.mpullback_fun_smul_eq_self`: a form multiplied by a function `ρ` is invariant under a
   map that preserves `ρ`, if the form is so where `ρ` does not vanish.
+* `TauCeti.isSmoothForm_fun_smul_mpullback`: a smooth function times the pullback of a smooth form
+  along a map that is smooth on an open set containing the function's support is a smooth form.
 * `TauCeti.mpullback_neg`: the pullback of `-φ` is minus the pullback of `φ`.
+* `TauCeti.SmoothForm.mpullback_eq_iff`: an equation `f^* φ = ψ` of smooth forms is the same
+  equation of their underlying rough forms.
 * `TauCeti.SmoothForm.diffeomorphStabilizer_neg`: a diffeomorphism preserves `-σ` exactly when
   it preserves `σ`.
 * `TauCeti.mpullback_apply_sub_eq_of_eq_add_mextDeriv`: if `α = β + dg` at `x` and at `f x`,
@@ -142,6 +151,18 @@ theorem mpullback_fun_smul_eq_self {f : M → M} {ρ : M → ℝ} {φ : RoughFor
   · simp [hx]
   · rw [hφ x hx]
 
+/-- Let `f` be a smooth function on `M` whose topological support lies in an open set `u`, and
+let `g : M → M'` be smooth at every point of `u`. Then for every smooth form `φ` on `M'`, the form
+`f • g^* φ`, which vanishes off the support of `f`, is a smooth form on `M`. -/
+theorem isSmoothForm_fun_smul_mpullback [IsManifold I 1 M] [IsManifold I' 1 M'] {f : M → ℝ}
+    (hf : ContMDiff I 𝓘(ℝ) ∞ f) {u : Set M} (hu : IsOpen u) (hfu : tsupport f ⊆ u) {g : M → M'}
+    (hg : ∀ x ∈ u, ContMDiffAt I I' ∞ g x) {φ : RoughForm I' M' F k}
+    (hφ : IsSmoothForm I' ∞ φ) :
+    IsSmoothForm I ∞ (fun x ↦ f x • mpullback (F := F) I I' g φ x) := by
+  rw [isSmoothForm_def]
+  exact ContMDiffOn.smul_section_of_tsupport hf.contMDiffOn hu hfu fun x hx ↦
+    ((hφ.contMDiff (g x)).mpullback_form (hg x hx) (by simp)).contMDiffWithinAt
+
 /-- Pullback commutes with negation. -/
 @[simp]
 theorem mpullback_neg (f : M → M') (φ : RoughForm I' M' F k) :
@@ -196,6 +217,13 @@ theorem mpullback_comp_prodMk_apply_modelSpace {E₁ E₂ : Type*} [NormedAddCom
 namespace SmoothForm
 
 variable [IsManifold I 1 M] [IsManifold I' 1 M']
+
+/-- The smooth pullback of `φ` along `f` is the smooth form `ψ` exactly when the rough pullback
+of the rough form underlying `φ` is the rough form underlying `ψ`. -/
+theorem mpullback_eq_iff {f : M → M'} (hf : ContMDiff I I' ∞ f) {φ : SmoothForm I' M' F k}
+    {ψ : SmoothForm I M F k} :
+    mpullback f hf φ = ψ ↔ TauCeti.mpullback (F := F) I I' f φ.val = ψ.val := by
+  rw [← coe_mpullback _ hf, Subtype.ext_iff]
 
 /-- A diffeomorphism preserves `-σ` exactly when it preserves `σ`. -/
 @[simp]

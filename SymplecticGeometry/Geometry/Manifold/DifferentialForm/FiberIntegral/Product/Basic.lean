@@ -366,7 +366,7 @@ manifold of dimension `m` with an orientation `o`, let `B` be boundaryless, and 
 open set `U`, as maps into the tangent bundle, then so is
 `b ↦ ∫_F prodFiberIntegrand α b (X · b)`. -/
 theorem contMDiffOn_integralTopForm_prodFiberIntegrand [FiniteDimensional ℝ E']
-    [I.Boundaryless] {n : ℕ∞} [IsManifold I n B] [IsManifold I 1 B] [IsManifold J ∞ F]
+    [BoundarylessManifold I B] {n : ℕ∞} [IsManifold I n B] [IsManifold I 1 B] [IsManifold J ∞ F]
     [T2Space F] [CompactSpace F] (o : Manifold.Orientation J F (Fin m))
     {α : RoughForm (I.prod J) (B × F) ℝ (r + m)} (hα : IsSmoothForm (I.prod J) n α)
     {U : Set B} (hU : IsOpen U) {X : Fin r → (b : B) → TangentSpace I b}
@@ -450,7 +450,7 @@ private theorem prodFiberIntegralRoughForm_apply (o : Manifold.Orientation J F (
 `B` boundaryless and `F` compact, Hausdorff and oriented by `o`, the form
 `b ↦ (v ↦ ∫_F prodFiberIntegrand α b v)` on `B` is smooth. Its values on the frame of the
 tangent trivialization at a point are integrals along smooth vector fields on the base set. -/
-private theorem isSmoothForm_prodFiberIntegralRoughForm [I.Boundaryless] [T2Space F]
+private theorem isSmoothForm_prodFiberIntegralRoughForm [BoundarylessManifold I B] [T2Space F]
     (o : Manifold.Orientation J F (Fin m))
     (α : SmoothForm (I.prod J) (B × F) ℝ (r + m)) :
     IsSmoothForm I ∞ (prodFiberIntegralRoughForm o α) := by
@@ -464,7 +464,7 @@ private theorem isSmoothForm_prodFiberIntegralRoughForm [I.Boundaryless] [T2Spac
     (contMDiffOn_integralTopForm_prodFiberIntegrand (n := ⊤) o α.isSmoothForm e.open_baseSet
       hX).contMDiffAt (e.open_baseSet.mem_nhds (mem_baseSet_trivializationAt E (TangentSpace I) x))
 
-variable [I.Boundaryless] [T2Space F]
+variable [BoundarylessManifold I B] [T2Space F]
 
 /-- **The fibre integral on a product.** For `B` boundaryless and `F` compact, Hausdorff and
 oriented by `o`, the linear map sending a smooth form `α` of degree `r + m` on `B × F` to the

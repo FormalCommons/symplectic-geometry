@@ -226,7 +226,8 @@ the only `dualClass` is a private helper of local orientations.
   of sections, and building $g^{-1}(Z)$ as an embedded submanifold with
   normal bundle $g^*\nu$ for a general transverse $g$ is a part of its own;
   the zero-set file treats the case that the users need, and naturality is
-  stated under diffeomorphisms and open embeddings.
+  stated under diffeomorphisms only, since no later step uses it under open
+  embeddings.
 - **Zero-dimensional $Z$ and $X$.** Tau Ceti converts smooth orientations
   to homological ones in dimension `n + 1`
   (`toHomologicalOrientation`) and in dimension `0`
@@ -367,8 +368,7 @@ With `hf : IsClosed (range f)` and a normalized tube `Φ` with open image
 - `dualClass_transDiffeomorph`: for a diffeomorphism `φ : X' ≃ X`, the
   class of `φ⁻¹ ∘ f` with the normal orientation carried by `dφ` (Tau
   Ceti's `normalSpaceEquiv` of `NormalSpace/Map.lean` and
-  `VectorBundleOrientation.comap`) is `φ^* dualClass f hn hdim hf o hr`; the same for
-  an open embedding of an open set containing the range.
+  `VectorBundleOrientation.comap`) is `φ^* dualClass f hn hdim hf o hr`.
 
 ### `Geometry/Manifold/Orientation/NormalOrientation.lean`
 

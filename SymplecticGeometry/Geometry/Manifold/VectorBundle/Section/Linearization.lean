@@ -8,8 +8,8 @@ module
 public import Mathlib.Geometry.Manifold.VectorBundle.Tangent
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Linearization
 
-import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
@@ -23,8 +23,9 @@ zero `x` (`SymplecticGeometry.continuous_sectionLinearization_pullback`).
 
 In a trivialization `e` of `E'`, the fibre coordinate of `L_x v` at a zero `x` is the derivative
 at `x` of the fibre coordinate of `s` in `e` (Tau Ceti's
-`TauCeti.continuousLinearMapAt_comp_sectionLinearization`), and the tangent map of a `C^1`
-function is continuous (`ContMDiffAt.continuousAt_tangentMap`).
+`TauCeti.continuousLinearMapAt_comp_sectionLinearization`), and the differentials of a function
+that is `C^1` at a point are continuous there on the pulled-back tangent bundle
+(`Bundle.Pullback.continuousAt_mfderiv_apply`).
 
 ## Main results
 
@@ -85,13 +86,11 @@ theorem continuous_sectionLinearization_pullback (hn : 1 ≤ n)
       NormedSpace.fromTangentSpace_apply] at hL
   have heq : (fun p : TotalSpace V (g *ᵖ (TangentSpace J)) ↦ (e (TotalSpace.mk' F'
       (g p.proj) (sectionLinearization (F := F') J _root_.id s (g p.proj) p.snd))).2) =ᶠ[𝓝 p₀]
-      fun p ↦ (tangentMap J 𝓘(𝕜, F') t (Pullback.lift g p)).snd := by
+      fun p ↦ mfderiv J 𝓘(𝕜, F') t (g p.proj) p.snd := by
     filter_upwards [hproj.continuousAt.eventually_mem_baseSet_trivializationAt F' E'] with p hp
-    exact (key p.proj hp p.snd).trans tangentMap_snd.symm
-  refine ContinuousAt.congr ?_ heq.symm
-  exact (contMDiff_snd_tangentBundle_modelSpace F' 𝓘(𝕜, F') (n := 0)).continuous.continuousAt.comp
-    (((ht _ (mem_baseSet_trivializationAt F' E' _)).continuousAt_tangentMap hn).comp
-      (Pullback.continuous_lift V _ _).continuousAt)
+    exact key p.proj hp p.snd
+  exact (Pullback.continuousAt_mfderiv_apply g
+    (ht _ (mem_baseSet_trivializationAt F' E' _)) hn).congr heq.symm
 
 end SymplecticGeometry
 

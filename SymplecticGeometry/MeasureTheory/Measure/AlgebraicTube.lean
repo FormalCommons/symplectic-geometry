@@ -16,6 +16,7 @@ import SymplecticGeometry.RingTheory.MvPolynomial.LineRestriction
 import SymplecticGeometry.Topology.Algebra.MvPolynomial
 import TauCeti.MeasureTheory.Measure.Haar.Average
 import TauCeti.RingTheory.MvPolynomial.Homogeneous
+import TauCeti.RingTheory.MvPolynomial.Rescale
 
 /-!
 # Volumes of tubes around complex algebraic hypersurfaces
@@ -39,6 +40,11 @@ count over the points near the zero set.
   depending on `ι` only, not on `P`, `D` or `t`.
 * `MvPolynomial.volume_thickening_zeroLocus_le`: the same volume is at most
   `C * D ^ (2 * card ι) * t`.
+* `MvPolynomial.volume_thickening_zeroLocus_inter_ball_le`: on the ball of radius `r` about `0`,
+  the same volume is at most `C * D ^ (2 * card ι) * r ^ (2 * card ι) * (t / r)`.
+* `MvPolynomial.measureReal_ball_mul_le_of_ball_subset_thickening`: if the ball of radius `r`
+  about `0` lies in the `t`-thickening of the zero set of `P`, then
+  `vol (ball 0 1) * r ≤ C * D ^ (2 * card ι) * t`.
 
 ## The change of centre
 
@@ -61,7 +67,7 @@ Let `T` be the part of the `t`-thickening of the zero set `Z` in the unit ball `
 `ρ = 4 * (K * D * t)`. Each `c ∈ T` is within `t` of a zero, so by the change of centre at least
 `1 / (2 * D)` of the directions `v ∈ B` give a line `s ↦ c + s • v` that meets `Z` within
 `‖s‖ ≤ ρ`. The pairs `(c, v)` with this property form a closed set
-(`IsClosed.setOfPred_exists_norm_le_fst_add_smul_snd_mem`), so Tonelli's theorem applies to its
+(`IsClosed.setOfPred_exists_mem_fst_add_smul_snd_mem`), so Tonelli's theorem applies to its
 indicator on `T × B`, and `volume B * volume T` is at most `2 * D` times the integral over
 `v ∈ B` of the volume of the `c ∈ T` that reach `Z` along `v`. For almost every `v` the top
 homogeneous component of `P` does not vanish at `v` (`MvPolynomial.ae_eval_ne_zero`), so every
@@ -85,7 +91,7 @@ on `L - V y R` is a form of the Bernstein–Walsh inequality.
 public section
 
 open MeasureTheory Metric Set
-open scoped ENNReal Real
+open scoped ENNReal Pointwise Real
 
 namespace MvPolynomial
 
@@ -285,7 +291,9 @@ theorem volume_thickening_zeroLocus_le_pow_four_mul_sq : ∃ C : ℝ, ∀ P : Mv
     ((Nat.one_le_iff_ne_zero.2 (totalDegree_ne_zero_of_eval_eq_zero hP hy₀)).trans hD)
   have hρ : 0 < ρ := by positivity
   have hZ : IsClosed Z := isClosed_eq (by fun_prop) continuous_const
-  have hF : MeasurableSet F := (hZ.setOfPred_exists_norm_le_fst_add_smul_snd_mem ρ).measurableSet
+  have hF : MeasurableSet F := by
+    simpa only [mem_closedBall_zero_iff] using
+      (hZ.setOfPred_exists_mem_fst_add_smul_snd_mem (isCompact_closedBall (0 : ℂ) ρ)).measurableSet
   have hTm : MeasurableSet T := isOpen_thickening.measurableSet.inter measurableSet_ball
   have hB0 : volume B ≠ 0 := (measure_ball_pos volume 0 one_pos).ne'
   have hBt : volume B ≠ ∞ := measure_ball_lt_top.ne
@@ -388,6 +396,77 @@ theorem volume_thickening_zeroLocus_le : ∃ C : ℝ, ∀ P : MvPolynomial ι �
   · refine hA.trans (ENNReal.ofReal_le_ofReal (le_trans ?_ hgoal))
     nlinarith [mul_le_mul_of_nonneg_left h.le hA0, mul_nonneg hC0 (by positivity :
       (0 : ℝ) ≤ D ^ 2 * t)]
+
+/-- **Volumes of tubes around complex algebraic hypersurfaces, on a ball of any radius.** Write
+`m = card ι`. There is a constant `C`, depending only on `ι` and not on `P`, `D`, `r` or `t`, such
+that for every nonzero complex polynomial `P` on `EuclideanSpace ℂ ι` of total degree at most `D`,
+every `0 < r` and every `t`, the part of the `t`-thickening of the zero set of `P` inside the ball
+of radius `r` about `0` has volume at most `C * D ^ (2 * m) * r ^ (2 * m) * (t / r)`. -/
+theorem volume_thickening_zeroLocus_inter_ball_le : ∃ C : ℝ, ∀ P : MvPolynomial ι ℂ, P ≠ 0 →
+    ∀ D : ℕ, P.totalDegree ≤ D → ∀ r : ℝ, 0 < r → ∀ t : ℝ,
+      volume (thickening t {z : EuclideanSpace ℂ ι | eval z.ofLp P = 0} ∩
+        ball (0 : EuclideanSpace ℂ ι) r) ≤
+        ENNReal.ofReal (C * D ^ (2 * Fintype.card ι) * r ^ (2 * Fintype.card ι) * (t / r)) := by
+  obtain ⟨C₀, hC₀⟩ := volume_thickening_zeroLocus_le (ι := ι)
+  refine ⟨C₀, fun P hP D hD r hr t ↦ ?_⟩
+  -- The polynomial `z ↦ P (r • z)`.
+  set Q := rescale (fun _ : ι ↦ (r : ℂ)) P
+  have hQ : ∀ z : ι → ℂ, eval z Q = eval (fun i ↦ (r : ℂ) * z i) P := fun z ↦ by
+    simpa using aeval_rescale (fun _ : ι ↦ (r : ℂ)) z P
+  have hQ0 : Q ≠ 0 := fun h ↦ hP <| by
+    rw [← rescale_rescale_of_mul_eq_one (b := fun _ ↦ (r : ℂ)⁻¹)
+      (fun _ ↦ mul_inv_cancel₀ (Complex.ofReal_ne_zero.2 hr.ne')) P]
+    simp [Q] at h; simp [h]
+  have hQD : Q.totalDegree ≤ D :=
+    (totalDegree_le_of_support_subset (support_rescale_subset _ P)).trans hD
+  set Z := {z : EuclideanSpace ℂ ι | eval z.ofLp P = 0}
+  have hZ : (r • ·) ⁻¹' Z = {z : EuclideanSpace ℂ ι | eval z.ofLp Q = 0} := by
+    ext z
+    simp [Z, hQ, Pi.smul_def, Complex.real_smul]
+  have hsub : r • (thickening (t / r) {z : EuclideanSpace ℂ ι | eval z.ofLp Q = 0} ∩ ball 0 1) =
+      thickening t Z ∩ ball 0 r := by
+    rw [← hZ, smul_set_inter₀ hr.ne', smul_unitBall_of_pos hr, ← add_ball_zero, smul_add,
+      smul_ball hr.ne', smul_zero, Real.norm_of_nonneg hr.le, mul_div_cancel₀ _ hr.ne',
+      preimage_smul₀ hr.ne', smul_inv_smul₀ hr.ne', add_ball_zero]
+  rw [← hsub, Measure.addHaar_smul, finrank_real_of_complex, finrank_euclideanSpace,
+    abs_of_pos (pow_pos hr _)]
+  refine (?_ : _ ≤ ENNReal.ofReal (r ^ (2 * Fintype.card ι)) *
+    ENNReal.ofReal (C₀ * D ^ (2 * Fintype.card ι) * (t / r))).trans_eq ?_
+  · gcongr
+    exact hC₀ Q hQ0 D hQD (t / r)
+  rw [← ENNReal.ofReal_mul (by positivity)]
+  congr 1
+  ring
+
+/-- **A ball does not fit in a thin tube around a complex hypersurface.** Write `m = card ι`.
+There is a constant `C > 0`, depending only on `ι`, such that if the ball of radius `r > 0`
+about `0` lies in the `t`-thickening of the zero set of a nonzero complex polynomial `P` of total
+degree at most `D` on `EuclideanSpace ℂ ι`, then `vol (ball 0 1) * r ≤ C * D ^ (2 * m) * t`. -/
+theorem measureReal_ball_mul_le_of_ball_subset_thickening :
+    ∃ C > 0, ∀ P : MvPolynomial ι ℂ, P ≠ 0 → ∀ D : ℕ, P.totalDegree ≤ D → ∀ r : ℝ, 0 < r →
+      ∀ t : ℝ, ball (0 : EuclideanSpace ℂ ι) r ⊆
+          thickening t {z : EuclideanSpace ℂ ι | eval z.ofLp P = 0} →
+        volume.real (ball (0 : EuclideanSpace ℂ ι) 1) * r ≤
+          C * D ^ (2 * Fintype.card ι) * t := by
+  obtain ⟨C₀, hC₀⟩ := volume_thickening_zeroLocus_inter_ball_le (ι := ι)
+  refine ⟨max C₀ 1, lt_max_of_lt_right one_pos, fun P hP0 D hPd r hr t hsub ↦ ?_⟩
+  set m := Fintype.card ι
+  set V := volume.real (ball (0 : EuclideanSpace ℂ ι) 1)
+  have hV : 0 < V := ENNReal.toReal_pos (measure_ball_pos _ _ one_pos).ne' measure_ball_lt_top.ne
+  have ht0 : 0 ≤ t := by
+    by_contra! ht
+    have := hsub (mem_ball_self hr)
+    rwa [thickening_of_nonpos ht.le] at this
+  have hvol := (measure_mono (subset_inter hsub subset_rfl)).trans (hC₀ P hP0 D hPd r hr t)
+  rw [Measure.addHaar_ball_of_pos _ _ hr, finrank_real_of_complex, finrank_euclideanSpace,
+    ← ofReal_measureReal measure_ball_lt_top.ne, ← ENNReal.ofReal_mul (by positivity),
+    ENNReal.ofReal_le_ofReal_iff'] at hvol
+  have hvol' : r ^ (2 * m) * V ≤ r ^ (2 * m) * (max C₀ 1 * D ^ (2 * m) * t / r) := by
+    calc _ ≤ C₀ * D ^ (2 * m) * r ^ (2 * m) * (t / r) :=
+          hvol.resolve_right (not_le.2 (by positivity))
+      _ ≤ max C₀ 1 * D ^ (2 * m) * r ^ (2 * m) * (t / r) := by gcongr; exact le_max_left _ _
+      _ = _ := by ring
+  exact (le_div_iff₀ hr).1 (le_of_mul_le_mul_left hvol' (by positivity))
 
 end MvPolynomial
 
