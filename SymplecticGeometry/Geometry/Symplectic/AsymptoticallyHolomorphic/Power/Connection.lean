@@ -211,26 +211,17 @@ theorem powerConnection_apply_frame (hα : IsCircleConnectionForm α) {σ : ∀ 
             (fun y ↦ ManifoldTotalSpace.homeomorph Circle P ⟨y, σ y⟩) α.val x ![v] : ℝ)) •
             f x) := by
   -- Compare with the preferred section `τ` at `x`, through the transition `g` with `τ = σ · g`.
-  set τ : ∀ y, P y := fun y ↦ (trivializationAt Circle P x).symm y 1 with hτdef
-  set g : B → Circle := fun y ↦ PrincipalBundle.division Circle (σ y) (τ y) with hgdef
+  set τ : ∀ y, P y := fun y ↦ (trivializationAt Circle P x).symm y 1
+  set g : B → Circle := fun y ↦ PrincipalBundle.division Circle (σ y) (τ y)
   -- In the frame `τ`, the section `s` reads `[τ, c • f]`, with `c = g ^ (-k)`.
   set c : B → ℂ := fun y ↦ ((g y ^ (-k) : Circle) : ℂ) with hcdef
-  have hxU : x ∈ (trivializationAt Circle P x).baseSet := mem_baseSet_trivializationAt Circle P x
+  have hτ' := ManifoldTotalSpace.contMDiffAt_totalSpaceMk_trivializationAt_symm (IB := IB)
+    (IF := 𝓡 1) (E := P) (n := ∞) x (1 : Circle)
   have hτ : MDifferentiableAt IB (IB.prod (𝓡 1))
-      (fun y ↦ ManifoldTotalSpace.homeomorph Circle P ⟨y, τ y⟩) x := by
-    refine ((ManifoldTotalSpace.contMDiffAt_trivializationAt_symm (n := 1) (IB := IB)
-      (IF := 𝓡 1) x (1 : Circle)).mdifferentiableAt one_ne_zero).congr_of_eventuallyEq ?_
-    filter_upwards [(trivializationAt Circle P x).open_baseSet.mem_nhds hxU] with y hy
-    rw [hτdef, (trivializationAt Circle P x).mk_symm hy]
-  -- `g` is the fibre coordinate of `τ` in the trivialization defined by `σ`.
-  have hg : MDifferentiableAt IB (𝓡 1) g x := by
-    have hθ := (PrincipalBundle.contMDiffAt_snd_trivializationOfSection
-      (hσ := ManifoldTotalSpace.continuousOn_of_contMDiffOn_homeomorph hσ) (hU := hU) hσ
-      (x := ManifoldTotalSpace.homeomorph Circle P ⟨x, τ x⟩) (by simpa using hx)).mdifferentiableAt
-        (by simp)
-    exact (hθ.comp x hτ).congr_of_eventuallyEq (.of_forall fun y ↦ by
-      simp [Trivialization.manifoldSnd_homeomorph, PrincipalBundle.trivializationOfSection_apply,
-        hgdef])
+      (fun y ↦ ManifoldTotalSpace.homeomorph Circle P ⟨y, τ y⟩) x :=
+    hτ'.mdifferentiableAt (by simp)
+  have hg : MDifferentiableAt IB (𝓡 1) g x :=
+    ((hσ.contMDiffAt (hU.mem_nhds hx)).division hτ').mdifferentiableAt (by simp)
   have hgk : MDifferentiableAt IB (𝓡 1) (fun y ↦ g y ^ (-k)) x :=
     ((contMDiff_zpow (I := 𝓡 1) (G := Circle) (-k)).mdifferentiableAt (n := 1) one_ne_zero).comp
       x hg

@@ -34,7 +34,8 @@ derivative `du = u · i u^* dθ`.
   `TauCeti.mpullback_div_norm_planeAngularForm_apply`,
   `TauCeti.mpullback_div_norm_zpow_planeAngularForm_apply`: the pull-backs of `x dy - y dx` along
   `z ↦ z ^ k` on the unit circle, along `z ↦ z / ‖z‖`, and along `z ↦ (z / ‖z‖) ^ k`.
-* `TauCeti.mvfderiv_coe_circle_apply`: `du = u · i u^* dθ` for a map `u` into the circle.
+* `TauCeti.mlogDeriv_coe_circle_apply`, `TauCeti.mvfderiv_coe_circle_apply`: `dlog u = i u^* dθ`
+  and `du = u · i u^* dθ` for a map `u` into the circle.
 
 ## References
 
@@ -167,22 +168,28 @@ section CircleValued
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
 
+/-- For a map `u : M → Circle` differentiable at `x`, the logarithmic derivative of `u` read in
+`ℂ` is `i u^* dθ` at `x`. This is the pointwise form of Tau Ceti's
+`ContMDiffMap.mlogDeriv_coe_apply_eq_circleLogDeriv_mul_I`, which asks `u` to be smooth. -/
+theorem mlogDeriv_coe_circle_apply {u : M → Circle} {x : M}
+    (hu : MDifferentiableAt I (𝓡 1) u x) (v : Fin 1 → TangentSpace I x) :
+    mlogDeriv I (fun y ↦ (u y : ℂ)) x v =
+      Complex.I * (mpullback I (𝓡 1) u circleAngularForm x v : ℝ) := by
+  have huc : MDifferentiableAt I 𝓘(ℝ, ℂ) (fun y ↦ (u y : ℂ)) x :=
+    ((contMDiff_coe_sphere (m := 1)).mdifferentiableAt one_ne_zero).comp x hu
+  -- The logarithmic derivative of a map of modulus one is imaginary, with imaginary part `u^* dθ`.
+  have hre := re_mlogDeriv_apply_eq_zero huc (.of_forall fun y ↦ Circle.norm_coe (u y)) v
+  apply Complex.ext
+  · rw [hre]; simp
+  · rw [mpullback_circleAngularForm_apply_eq_im_mlogDeriv hu]; simp
+
 /-- For a map `u : M → Circle` differentiable at `x`, the derivative of `u` read in `ℂ` is
 `du = u · i u^* dθ` at `x`. -/
 theorem mvfderiv_coe_circle_apply {u : M → Circle} {x : M}
     (hu : MDifferentiableAt I (𝓡 1) u x) (v : TangentSpace I x) :
     mvfderiv I (fun y ↦ (u y : ℂ)) x v =
       (u x : ℂ) * (Complex.I * (mpullback I (𝓡 1) u circleAngularForm x ![v] : ℝ)) := by
-  have huc : MDifferentiableAt I 𝓘(ℝ, ℂ) (fun y ↦ (u y : ℂ)) x :=
-    ((contMDiff_coe_sphere (m := 1)).mdifferentiableAt one_ne_zero).comp x hu
-  -- The logarithmic derivative of a map of modulus one is imaginary, with imaginary part `u^* dθ`.
-  have hre := re_mlogDeriv_apply_eq_zero huc (.of_forall fun y ↦ Circle.norm_coe (u y)) ![v]
-  have hlog : mlogDeriv I (fun y ↦ (u y : ℂ)) x ![v] =
-      Complex.I * (mpullback I (𝓡 1) u circleAngularForm x ![v] : ℝ) := by
-    apply Complex.ext
-    · rw [hre]; simp
-    · rw [mpullback_circleAngularForm_apply_eq_im_mlogDeriv hu]; simp
-  rw [← hlog, mlogDeriv_apply, Matrix.cons_val_zero, ← mul_assoc,
+  rw [← mlogDeriv_coe_circle_apply hu, mlogDeriv_apply, Matrix.cons_val_zero, ← mul_assoc,
     mul_inv_cancel₀ (Circle.coe_ne_zero _), one_mul]
 
 end CircleValued
