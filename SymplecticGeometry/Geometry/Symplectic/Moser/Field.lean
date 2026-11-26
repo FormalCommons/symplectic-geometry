@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
 public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Flat
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
+import SymplecticGeometry.Topology.VectorBundle.Basic
 
 /-!
 # The cut-off Moser field of a family of two-forms
@@ -206,9 +207,7 @@ theorem contMDiffAt_moserField (σ : SmoothForm (J.prod I) (N × M) ℝ 2)
     refine ((contMDiff_zeroSection ℝ (TangentSpace I)).comp contMDiff_snd).contMDiffAt
       |>.congr_of_eventuallyEq ?_
     filter_upwards [notMem_tsupport_iff_eventuallyEq.1 hp₀] with p hp
-    rw [Function.comp_apply, moserField_def, hp, Pi.zero_apply, zero_smul]
-    -- The zero section at `p.2` is the pair `⟨p.2, 0⟩` by definition.
-    rfl
+    rw [Function.comp_apply, moserField_def, hp, Pi.zero_apply, zero_smul, zeroSection_def]
 
 /-- The cut-off Moser field `(t, x) ↦ X_t(x)` is jointly smooth on `N × M` when `ρ` is smooth and
 the flat map of the slice `σ_t` at `x` is invertible at every point `(t, x)` of the support of
