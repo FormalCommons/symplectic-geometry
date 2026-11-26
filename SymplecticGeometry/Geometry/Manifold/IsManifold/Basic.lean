@@ -52,8 +52,11 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {E : Type*} [NormedAddCom
 
 /-- The identification `tangentSpaceCast I x y` of the tangent spaces of a manifold at `x` and at
 `y` sends each tangent vector at `x` to itself, as a vector of the model space, now read as a
-tangent vector at `y`. -/
-@[simp]
+tangent vector at `y`.
+
+This is not a `simp` lemma: for `x ≠ y` its right-hand side is a vector of `TangentSpace I x` in
+a place that expects one of `TangentSpace I y`, so rewriting with it stops other lemmas, such as
+`map_smul`, from matching. Use it explicitly, with `rw` or `simp only`. -/
 theorem tangentSpaceCast_apply (x y : M) (v : TangentSpace I x) : tangentSpaceCast I x y v = v :=
   (rfl)
 
