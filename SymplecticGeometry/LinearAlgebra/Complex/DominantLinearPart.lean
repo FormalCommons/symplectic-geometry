@@ -16,7 +16,6 @@ public import TauCeti.Geometry.Symplectic.Plane
 public import TauCeti.Geometry.Symplectic.Restrict
 public import TauCeti.LinearAlgebra.Complex.LinearPart
 public import TauCeti.LinearAlgebra.Orientation.Exact.Basic
-import Mathlib.Analysis.Normed.Module.RCLike.Real
 import SymplecticGeometry.LinearAlgebra.Complex.LinearPart
 import TauCeti.Analysis.Normed.Module.FiniteDimension
 import TauCeti.Analysis.Normed.Operator.FiniteDimensional
