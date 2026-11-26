@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 public import TauCeti.Geometry.Manifold.RegularValue
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.RestrictScalars
+import TauCeti.Geometry.Manifold.Morse.ScalarComposition
 import TauCeti.Geometry.Manifold.RegularValue.Open
 
 /-!
@@ -39,6 +40,9 @@ Tau Ceti's own `criticalPoints` is the corresponding notion for real-valued func
 * `SymplecticGeometry.criticalSet_eq_criticalPoints`: for a real-valued function the critical
   set is Tau Ceti's `TauCeti.criticalPoints`, by
   `TauCeti.isRegularPoint_iff_notMem_criticalPoints`.
+* `TauCeti.IsRegularValue.scalar_comp`: postcomposing a real-valued function with an injective
+  `φ : ℝ → ℝ` whose derivative does not vanish at its values moves its regular values by `φ`,
+  since it keeps its critical points (`TauCeti.mem_criticalPoints_scalar_comp_iff`).
 -/
 
 public section
@@ -165,6 +169,19 @@ theorem criticalSet_eq_criticalPoints {E : Type*} [NormedAddCommGroup E] [Normed
     criticalSet I 𝓘(ℝ) f = criticalPoints I f := by
   ext x
   rw [mem_criticalSet_iff, isRegularPoint_iff_notMem_criticalPoints, not_not]
+
+/-- Post-composing with an injective `φ : ℝ → ℝ` whose derivative does not vanish at the values of
+a differentiable `f` keeps regular values: if `c` is a regular value of `f`, then `φ c` is one of
+`φ ∘ f`. -/
+theorem _root_.TauCeti.IsRegularValue.scalar_comp {E : Type*} [NormedAddCommGroup E]
+    [NormedSpace ℝ E] {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H} {M : Type*}
+    [TopologicalSpace M] [ChartedSpace H M] {f : M → ℝ} {φ : ℝ → ℝ}
+    (hf : MDifferentiable I 𝓘(ℝ) f) (hinj : Function.Injective φ) (hφ : ∀ x, deriv φ (f x) ≠ 0)
+    {c : ℝ} (hc : IsRegularValue I 𝓘(ℝ) f c) : IsRegularValue I 𝓘(ℝ) (φ ∘ f) (φ c) := by
+  rw [isRegularValue_iff_notMem_image_criticalPoints] at hc ⊢
+  rintro ⟨x, hx, hxc⟩
+  rw [mem_criticalPoints_scalar_comp_iff (hf x) (hφ x)] at hx
+  exact hc ⟨x, hx, hinj hxc⟩
 
 end SymplecticGeometry
 
