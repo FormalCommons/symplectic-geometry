@@ -165,11 +165,12 @@ variable {E H M EG HG G : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Fin
 variable (IG) in
 include IG in
 /-- **The fixed components of a subgroup of a compact Lie group are embedded submanifolds.** Let a
-compact Lie group `G` act smoothly on a σ-compact manifold `M` without boundary, let `K` be a
-subgroup of `G`, and let `x` be a fixed point of `K`. For a subspace `L` of the model whose
-dimension is that of the fixed tangent subspace of `K` at `x`, the connected component of the
-fixed set of `K` through `x` is a smooth manifold modelled on `L`, whose inclusion into `M` is a
-smooth embedding with tangent image the fixed tangent subspace of `K` at every point. -/
+compact Lie group `G` act smoothly on a σ-compact Hausdorff manifold `M` without boundary, modelled
+on a finite-dimensional space, let `K` be a subgroup of `G`, and let `x` be a fixed point of `K`.
+For a subspace `L` of the model whose dimension is that of the fixed tangent subspace of `K` at
+`x`, the connected component of the fixed set of `K` through `x` is a smooth manifold modelled on
+`L`, whose inclusion into `M` is a smooth embedding with tangent image the fixed tangent subspace
+of `K` at every point. -/
 theorem exists_isSmoothEmbedding_connectedComponentIn_fixedPoints_of_compactSpace
     (K : Subgroup G) {x : M} (hx : x ∈ fixedPoints K M) {L : Submodule ℝ E}
     (hL : Module.finrank ℝ L = Module.finrank ℝ (fixedTangentSubspace I K x)) :
