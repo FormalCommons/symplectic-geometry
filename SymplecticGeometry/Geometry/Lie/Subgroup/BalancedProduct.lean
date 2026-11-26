@@ -71,7 +71,7 @@ one at `[1, z]`, and the set of such `z` is open and `K`-invariant.
   function theorem for the lift at `[1, z]`, in terms of its differential composed with `dπ`.
 * `TauCeti.BalancedProduct.isLocalDiffeomorphAt_liftRightTranslation_mk_iff`,
   `TauCeti.BalancedProduct.isLocalDiffeomorphAt_liftRightTranslation_mk_one_smul_iff`,
-  `TauCeti.BalancedProduct.isOpen_setOf_isLocalDiffeomorphAt_liftRightTranslation_mk_one`: where
+  `TauCeti.BalancedProduct.isOpen_setOfPred_isLocalDiffeomorphAt_liftRightTranslation_mk_one`: where
   the lift is a local diffeomorphism.
 
 ## References
@@ -396,15 +396,14 @@ theorem isLocalDiffeomorphAt_liftRightTranslation_mk_one_smul_iff [ContMDiffSMul
 
 variable (F) in
 /-- The set of points `z` at whose class `[1, z]` the lift is a local diffeomorphism is open. -/
-theorem isOpen_setOf_isLocalDiffeomorphAt_liftRightTranslation_mk_one :
+theorem isOpen_setOfPred_isLocalDiffeomorphAt_liftRightTranslation_mk_one :
     letI := rightTranslationChartedSpace K Z I IZ F
     IsOpen {z : Z | IsLocalDiffeomorphAt 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × EZ)) IM ∞
       (liftRightTranslation ι) (mk K (K.toRightTranslation 1) z)} := by
   let _ := rightTranslationChartedSpace K Z I IZ F
-  refine isOpen_iff_mem_nhds.2 fun z hz ↦ ?_
   have hc : Continuous fun z : Z ↦ mk K (K.toRightTranslation 1) z :=
     continuous_quotient_mk'.comp (continuous_const.prodMk continuous_id)
-  exact hc.continuousAt.preimage_mem_nhds (IsLocalDiffeomorphAt.eventually hz)
+  exact (SymplecticGeometry.isOpen_setOfPred_isLocalDiffeomorphAt _ _ _ _).preimage hc
 
 end Lift
 
