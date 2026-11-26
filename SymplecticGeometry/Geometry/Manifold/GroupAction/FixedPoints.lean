@@ -5,7 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Geometry.Manifold.IsManifold.InteriorBoundary
 public import TauCeti.Geometry.Manifold.GroupAction.CompactLinearization
+import SymplecticGeometry.Geometry.Manifold.GroupAction.BoundarylessModel
 import TauCeti.Topology.OpenPartialHomeomorph.Continuity
 
 /-!
@@ -22,6 +24,12 @@ sent into the invariant vectors of the tangent representation at `x`
 `e⁻¹ (ε • v)`, for small real `ε ≠ 0`, are then fixed points other than `x` that tend to `x`,
 since `e⁻¹` maps punctured neighbourhoods of `e x` into those of `x`
 (`OpenPartialHomeomorph.tendsto_symm_nhdsNE`).
+
+Tau Ceti's chart needs a model without boundary. For a manifold without boundary whose model may
+have boundary, the action is carried to the copy `TauCeti.BoundarylessModel I M` with charts in
+`E` (`SymplecticGeometry/Geometry/Manifold/GroupAction/BoundarylessModel.lean`), the vector `v`
+to its image under the derivative of the identity diffeomorphism
+`TauCeti.BoundarylessModel.interiorDiffeomorph`, and the fixed points found there back to `M`.
 
 ## Main results
 
@@ -44,19 +52,19 @@ open scoped Manifold ContDiff
 namespace SymplecticGeometry
 
 variable {E H M EG HG G : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
-  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless] [TopologicalSpace M]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M]
   [ChartedSpace H M] [NormedAddCommGroup EG] [NormedSpace ℝ EG] [TopologicalSpace HG]
   {IG : ModelWithCorners ℝ EG HG} [IG.Boundaryless] [TopologicalSpace G] [ChartedSpace HG G]
   [Group G] [IsTopologicalGroup G] [CompactSpace G] [MulAction G M] {n : ℕ∞}
   [IsManifold I n M] [IsManifold IG n G]
 
+attribute [local instance] BoundarylessModel.interiorChartedSpace
+
 variable (IG) in
-/-- **A fixed tangent vector at a fixed point gives nearby fixed points.** Let a compact group
-`G`, a manifold without boundary, act on a manifold `M` without boundary by a jointly `C^n` map,
-`1 ≤ n`, and let `x` be a fixed point. If the derivatives at `x` of all the maps `g • ·` fix a
-nonzero tangent vector `v`, then every neighbourhood of `x` contains fixed points other than
-`x`. -/
-theorem frequently_mem_fixedPoints_of_mfderiv_smul_eq_self [ContMDiffSMul IG I n G M]
+/-- The case of `frequently_mem_fixedPoints_of_mfderiv_smul_eq_self` for a model without
+boundary, read in Tau Ceti's linearizing chart. -/
+private theorem frequently_mem_fixedPoints_of_mfderiv_smul_eq_self_of_boundaryless
+    [I.Boundaryless] [ContMDiffSMul IG I n G M]
     (hn : 1 ≤ n) {x : M} (hx : x ∈ fixedPoints G M) {v : TangentSpace I x} (hv : v ≠ 0)
     (hfix : ∀ g : G, mfderiv I I (fun y : M ↦ g • y) x v = v) :
     ∃ᶠ y in 𝓝[≠] x, y ∈ fixedPoints G M := by
@@ -85,6 +93,43 @@ theorem frequently_mem_fixedPoints_of_mfderiv_smul_eq_self [ContMDiffSMul IG I n
     rw [e.right_inv hε]
     exact Submodule.smul_mem _ ε hv'
   exact hc.frequently hmem.frequently
+
+variable (IG) in
+/-- **A fixed tangent vector at a fixed point gives nearby fixed points.** Let a compact group
+`G`, a manifold without boundary, act on a manifold `M` without boundary by a jointly `C^n` map,
+`1 ≤ n`, and let `x` be a fixed point. If the derivatives at `x` of all the maps `g • ·` fix a
+nonzero tangent vector `v`, then every neighbourhood of `x` contains fixed points other than
+`x`. -/
+theorem frequently_mem_fixedPoints_of_mfderiv_smul_eq_self [BoundarylessManifold I M]
+    [ContMDiffSMul IG I n G M]
+    (hn : 1 ≤ n) {x : M} (hx : x ∈ fixedPoints G M) {v : TangentSpace I x} (hv : v ≠ 0)
+    (hfix : ∀ g : G, mfderiv I I (fun y : M ↦ g • y) x v = v) :
+    ∃ᶠ y in 𝓝[≠] x, y ∈ fixedPoints G M := by
+  have : IsManifold I 1 M := IsManifold.of_le (n := n) (by exact_mod_cast hn)
+  let Φ := BoundarylessModel.interiorDiffeomorph I (M := M) n
+  have hn0 : (n : WithTop ℕ∞) ≠ 0 := by
+    exact_mod_cast (lt_of_lt_of_le zero_lt_one hn).ne'
+  have hΦd (y : M) : MDifferentiableAt I 𝓘(ℝ, E) Φ y := Φ.mdifferentiable hn0 y
+  have hx' : Φ x ∈ fixedPoints G (BoundarylessModel I M) := fun g ↦ by
+    rw [← BoundarylessModel.interiorDiffeomorph_smul, hx g]
+  have hv' : mfderiv I 𝓘(ℝ, E) Φ x v ≠ 0 := fun h ↦
+    hv ((Φ.mfderivToContinuousLinearEquiv hn0 x).map_eq_zero_iff.1
+      (by rwa [← ContinuousLinearEquiv.coe_coe, Diffeomorph.mfderivToContinuousLinearEquiv_coe]))
+  have hfix' (g : G) : mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) (fun y : BoundarylessModel I M ↦ g • y) (Φ x)
+      (mfderiv I 𝓘(ℝ, E) Φ x v) = mfderiv I 𝓘(ℝ, E) Φ x v := by
+    -- Differentiate `(g • ·) ∘ Φ = Φ ∘ (g • ·)` at the fixed point `x`.
+    have h := congrArg (fun f ↦ mfderiv I 𝓘(ℝ, E) f x v)
+      (funext fun y ↦ (BoundarylessModel.interiorDiffeomorph_smul I n g y).symm :
+        (fun y : BoundarylessModel I M ↦ g • y) ∘ Φ = Φ ∘ fun y : M ↦ g • y)
+    rw [mfderiv_comp x ((ContMDiffSMul.contMDiff_const_smul (I := IG) (n := n) g).mdifferentiableAt
+        hn0) (hΦd x), mfderiv_comp x (hΦd _)
+        ((ContMDiffSMul.contMDiff_const_smul (I := IG) (n := n) g).mdifferentiableAt hn0)] at h
+    rw [ContinuousLinearMap.comp_apply, ContinuousLinearMap.comp_apply, hfix g] at h
+    exact h.trans (congrArg (fun y : M ↦ (mfderiv I 𝓘(ℝ, E) Φ y v : E)) (hx g))
+  have h := frequently_mem_fixedPoints_of_mfderiv_smul_eq_self_of_boundaryless IG hn hx' hv' hfix'
+  rw [← Φ.coe_toHomeomorph, ← Φ.toHomeomorph.map_punctured_nhds_eq, frequently_map] at h
+  exact h.mono fun y hy g ↦
+    Φ.injective ((BoundarylessModel.interiorDiffeomorph_smul I n g y).trans (hy g))
 
 end SymplecticGeometry
 
