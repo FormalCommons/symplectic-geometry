@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 public import TauCeti.Geometry.Manifold.TubularNeighborhood.RelativePoincare
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.NestedOpens
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
@@ -185,8 +186,10 @@ theorem exists_mextDeriv_eq_and_mpullback_eq (f : SmoothEmbedding J I ∞ Q M) {
         (fun y ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F) y (γ y)) ((w : T) : M) := by
     have h₁ := (contMDiffAt_mpullback_subtype_val_iff γ' w).1 (hγ' ▸ ξ.contMDiff w)
     exact ⟨h₁, (contMDiffAt_mpullback_subtype_val_iff γ (w : T)).1 (hγ ▸ h₁)⟩
-  refine ⟨Subtype.val '' (W' : Set T), hW.isOpenMap_subtypeVal _ W'.isOpen,
-    fun _ ⟨x, hx⟩ ↦ ⟨j x, hjW' x, hx ▸ congrFun hvj x⟩, γ,
+  refine ⟨TopologicalSpace.Opens.imageVal W',
+    (TopologicalSpace.Opens.imageVal W').isOpen, ?_⟩
+  rw [TopologicalSpace.Opens.coe_imageVal]
+  refine ⟨fun _ ⟨x, hx⟩ ↦ ⟨j x, hjW' x, hx ▸ congrFun hvj x⟩, γ,
     fun _ ⟨t, ht, h⟩ ↦ h ▸ (hγs ⟨t, ht⟩).2, ?_, ?_⟩
   · rintro _ ⟨t, ht, rfl⟩
     have e := congrFun (mpullback_subtype_val_mextDeriv (U := W') γ') ⟨t, ht⟩

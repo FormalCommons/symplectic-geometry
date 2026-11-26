@@ -36,6 +36,7 @@ import SymplecticGeometry.Geometry.Symplectic.Manifold.Opens
 import TauCeti.Geometry.Symplectic.Manifold.RelativeMoser
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Basic
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.NestedOpens
 
 /-!
 # Stable Hamiltonian structures: wedge criterion, invariance and the model
@@ -892,14 +893,14 @@ theorem exists_mpullback_eq_stableHamiltonianModel [FiniteDimensional ℝ E] [Co
     (fun x ↦ by rw [hf]; exact val_symmStripMk_zero_eq_stableHamiltonianModel hε σ x)
   -- The tube lemma gives a strip of width `δ ≤ ε` inside `U₀`.
   obtain ⟨δ, hδ, hδU⟩ := exists_symmStrip_le (X := M)
-    (U := ⟨Subtype.val '' (U₀ : Set (symmStrip M ε)),
-      (symmStrip M ε).isOpen.isOpenMap_subtypeVal _ U₀.isOpen⟩)
-    fun x ↦ ⟨f x, (hφf x).1, by rw [hf, coe_symmStripMk]⟩
+    (U := TopologicalSpace.Opens.imageVal U₀) fun x ↦ by
+      simpa only [hf, ι₀, coe_symmStripMk] using
+        TopologicalSpace.Opens.coe_mem_imageVal U₀ ⟨f x, (hφf x).1⟩
   have hle : min δ ε ≤ ε := min_le_right δ ε
   have hU₀ (p : symmStrip M (min δ ε)) :
       (⟨p.val, symmStrip_mono hle p.property⟩ : symmStrip M ε) ∈ U₀ := by
-    obtain ⟨q, hq, hqp⟩ := hδU (symmStrip_mono (min_le_left δ ε) p.property)
-    rwa [show q = ⟨p.val, symmStrip_mono hle p.property⟩ from Subtype.ext hqp] at hq
+    exact (TopologicalSpace.Opens.mem_imageVal.1
+      (hδU (symmStrip_mono (min_le_left δ ε) p.property))).2
   let j (p : symmStrip M (min δ ε)) : U₀ := ⟨⟨p.val, symmStrip_mono hle p.property⟩, hU₀ p⟩
   have hjval : (Subtype.val ∘ Subtype.val) ∘ j = Subtype.val := rfl
   have hjd : IsLocalDiffeomorph (𝓘(ℝ).prod I) (𝓘(ℝ).prod I) ∞ j :=
