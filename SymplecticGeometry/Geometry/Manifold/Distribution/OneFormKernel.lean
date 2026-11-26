@@ -7,7 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.DegreeOne
 public import TauCeti.Geometry.Manifold.Distribution
-import SymplecticGeometry.Geometry.Manifold.Distribution.Orthogonal
+import SymplecticGeometry.Geometry.Manifold.Distribution.VectorBundle
 import TauCeti.Geometry.Manifold.VectorBundle.ConstantRank
 
 /-!
@@ -19,7 +19,8 @@ bundle of linear maps from the tangent bundle to the trivial bundle with fibre `
 onto `F` at every point, then `F` is finite-dimensional and this bundle map has constant rank
 `dim F`, so its kernels have smooth local frames (Tau Ceti's
 `TauCeti.hasLocalContMDiffSubbundleFrames_ker_of_surjective`), and by
-`TauCeti.HasLocalContMDiffSubbundleFrames.isContMDiffDistribution` they form a smooth
+`TauCeti.HasLocalContMDiffSubbundleFrames.isContMDiffDistribution` (in
+`SymplecticGeometry.Geometry.Manifold.Distribution.VectorBundle`) they form a smooth
 distribution of rank `dim M - dim F`
 (`TauCeti.SmoothForm.isContMDiffDistribution_ker_degreeOneEquiv`).
 
