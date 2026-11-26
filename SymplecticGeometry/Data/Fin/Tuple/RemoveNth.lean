@@ -7,7 +7,7 @@ module
 
 public import Mathlib.Algebra.BigOperators.Fin
 import Mathlib.Algebra.BigOperators.GroupWithZero.Action
-public import Mathlib.Data.Fin.VecNotation
+import TauCeti.Data.Fin.Basic
 
 /-!
 # Removing an entry of a concatenated tuple
@@ -24,8 +24,12 @@ lies in:
 The lengths are written so that they match the degrees of differential forms on a product, where
 `Fin.removeNth` acts on `Fin (N + 1)` and the blocks have lengths `k + 1` and `m`, or `k` and
 `n + 1`, with `N + 1` equal to their sum only propositionally; the casts `Fin.cast` carry these
-equalities. Both proofs read the entries off their values, by `Fin.append_apply_eq_dite`, the
-form of Mathlib's `Matrix.vecAppend_eq_ite` for `Fin.append`.
+equalities. Both lemmas undo Tau Ceti's `Fin.insertNth_append_castAdd` and
+`Fin.insertNth_append_natAdd`, which insert an entry into a block of a concatenation, by
+Mathlib's `Fin.removeNth_insertNth` and `Fin.insertNth_self_removeNth`. Splitting an
+alternating sum over the entries of a concatenation into the sums over its two blocks
+(`Fin.sum_neg_one_pow_smul_removeNth_append`, and `Fin.sum_neg_one_pow_smul_removeNth_append_zero`
+when the second block is empty) follows.
 -/
 
 public section
@@ -34,24 +38,15 @@ namespace Fin
 
 variable {α : Type*}
 
-/-- The entry of `Fin.append a c` at `p` is that of `a` at `p` if `p < k`, and otherwise that of
-`c` at `p - k`. -/
-theorem append_apply_eq_dite {k l : ℕ} (a : Fin k → α) (c : Fin l → α) (p : Fin (k + l)) :
-    append a c p = if h : (p : ℕ) < k then a ⟨p, h⟩ else c ⟨p - k, by omega⟩ :=
-  congrFun (Matrix.vecAppend_eq_ite rfl a c) p
-
 /-- Removing the entry `i` of the first block of `Fin.append a c` (an entry of `a`) gives the
 concatenation of `Fin.removeNth i a` with `c`. -/
 theorem removeNth_cast_castAdd_append {k m : ℕ} (a : Fin (k + 1) → α) (c : Fin m → α)
     (i : Fin (k + 1)) (h : k + m + 1 = k + 1 + m) :
     removeNth (Fin.cast h.symm (castAdd m i)) (append a c ∘ Fin.cast h) =
       append (removeNth i a) c := by
-  funext q
-  by_cases h1 : (q : ℕ) < i <;> by_cases h2 : (q : ℕ) < k <;>
-    simp only [removeNth, succAbove, lt_def, val_castSucc, val_cast, val_castAdd, h1, ↓reduceIte,
-      Function.comp_apply, append_apply_eq_dite, val_succ, Nat.add_lt_add_iff_right, h2,
-      ↓reduceDIte, castSucc_mk, succ_mk, Nat.reduceSubDiff] <;>
-    first | omega | (split_ifs <;> first | omega | rfl)
+  have h := insertNth_append_castAdd i (a i) (removeNth i a) c
+  rw [insertNth_self_removeNth] at h
+  rw [← h, removeNth_insertNth]
 
 /-- Removing the entry `j` of the second block of `Fin.append a c` (an entry of `c`) gives the
 concatenation of `a` with `Fin.removeNth j c`. -/
@@ -59,13 +54,11 @@ theorem removeNth_cast_natAdd_append {k n N : ℕ} (a : Fin k → α) (c : Fin (
     (j : Fin (n + 1)) (h₁ : N + 1 = k + (n + 1)) (h₂ : N = k + n) :
     removeNth (Fin.cast h₁.symm (natAdd k j)) (append a c ∘ Fin.cast h₁) =
       append a (removeNth j c) ∘ Fin.cast h₂ := by
-  funext q
-  by_cases h1 : (q : ℕ) < k + j <;> by_cases h2 : (q : ℕ) < k <;>
-    simp only [removeNth, succAbove, lt_def, val_castSucc, val_cast, val_natAdd, h1, ↓reduceIte,
-      Function.comp_apply, cast_castSucc, cast_succ_eq, Nat.add_eq, append_apply_eq_dite, val_succ,
-      h2, ↓reduceDIte, castSucc_mk, succ_mk] <;>
-    first | omega | (split_ifs <;> first | omega | rfl) |
-      (rw [dite_eq_right (by omega), ite_eq_right (by omega)]; congr 3; omega)
+  subst h₂
+  have h := insertNth_append_natAdd j (c j) a (removeNth j c)
+  rw [insertNth_self_removeNth] at h
+  rw [← h]
+  exact removeNth_insertNth _ _ _
 
 /-- **An alternating sum over the entries of a concatenation, split into its blocks.** For
 `a : Fin (k + 1) → α` and `c : Fin (n + 1) → α` with concatenation `V`, the alternating sum over
