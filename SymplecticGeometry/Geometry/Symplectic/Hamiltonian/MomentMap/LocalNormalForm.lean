@@ -192,7 +192,7 @@ theorem exists_mpullback_eq_descendedForm_of_isLocalDiffeomorphAt :
     ((hN₀ _).1 y.property).contMDiffAt.comp y contMDiff_subtypeVal.contMDiffAt
   -- The zero section, a smooth embedding of `G ⧸ H` with invariant image in `N₀`.
   have hz₀ : ((0 : A), (0 : V)) ∈ MulAction.fixedPoints (stabilizer G x) (A × V) :=
-    fun k ↦ smul_zero k
+    MulAction.mem_fixedPoints.2 fun k ↦ smul_zero k
   let := Subgroup.quotientChartedSpaceOfIsClosed I ‹IsClosed (stabilizer G x : Set G)›
   have := Subgroup.isManifold_quotientOfIsClosed (I := I) ‹IsClosed (stabilizer G x : Set G)›
   let f := SmoothEmbedding.ofIsSmoothEmbedding _
