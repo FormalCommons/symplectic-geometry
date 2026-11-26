@@ -66,6 +66,14 @@ images `df_q(T_q Q)` have `C^∞` local frames in `f *ᵖ TM`
 (`Bundle.Pullback.hasLocalContMDiffSubbundleFrames_range_mfderiv`), by Tau Ceti's constant-rank
 criterion `TauCeti.hasLocalContMDiffSubbundleFrames_of_contMDiff_totalSpace_range`.
 
+For a map `f : N → M` and a map `g : M → G` into a normed space, the differentials of `g` along
+`f` give the map `(x, v) ↦ dg_{f x} v` on the total space of `f *ᵖ TM`. It is the second
+component of the tangent map of `g` composed with Tau Ceti's `Bundle.Pullback.lift`, so it is
+`C^m` when `f` is `C^m` and `g` is `C^(m + 1)` (`Bundle.Pullback.contMDiff_mfderiv_apply`), and
+continuous for any `f` when `g` is `C^1` (`Bundle.Pullback.continuous_mfderiv_apply`). Both hold
+at a point, for `f` and `g` that are smooth enough there
+(`Bundle.Pullback.contMDiffAt_mfderiv_apply`, `Bundle.Pullback.continuousAt_mfderiv_apply`).
+
 For a family of maps `f (p, ·) : M → M'` depending on a parameter `p ∈ P`, jointly `C^n` on
 `P × M`, precomposition with the differentials `d(f (p, ·))ₓ` sends alternating maps on the tangent
 space of `M'` at `f (p, x)` to alternating maps on that of `M` at `x`. For `m + 1 ≤ n`, the map
@@ -443,6 +451,68 @@ theorem hasLocalContMDiffSubbundleFrames_range_mfderiv [FiniteDimensional ℝ E]
 end Bundle.Pullback
 
 end MFDeriv
+
+section MFDerivApply
+
+variable {𝕜 E EM EG H HM N M K : Type*} [NontriviallyNormedField 𝕜]
+  [NormedAddCommGroup E] [NormedSpace 𝕜 E] [TopologicalSpace H] {J : ModelWithCorners 𝕜 E H}
+  [NormedAddCommGroup EM] [NormedSpace 𝕜 EM] [TopologicalSpace HM]
+  {I : ModelWithCorners 𝕜 EM HM} [TopologicalSpace M] [ChartedSpace HM M] [IsManifold I 1 M]
+  [NormedAddCommGroup EG] [NormedSpace 𝕜 EG] [TopologicalSpace N] {m n : WithTop ℕ∞}
+
+namespace Bundle.Pullback
+
+/-- For a map `f : N → M` that is `C^m` at the base point of `q` and a map `g` from `M` to a
+normed space `G` that is `C^n` at its image, with `m + 1 ≤ n`, the map `(x, v) ↦ dg_{f x} v`,
+from the total space of the pull-back `f *ᵖ TM` to `G`, is `C^m` at `q`. -/
+theorem contMDiffAt_mfderiv_apply [ChartedSpace H N] [FunLike K N M] [ContinuousMapClass K N M]
+    (f : K) {q : TotalSpace EM ((f : N → M) *ᵖ (TangentSpace I))}
+    (hf : ContMDiffAt J I m f q.proj) {g : M → EG}
+    (hg : ContMDiffAt I 𝓘(𝕜, EG) n g (f q.proj)) (hmn : m + 1 ≤ n) :
+    ContMDiffAt (J.prod 𝓘(𝕜, EM)) 𝓘(𝕜, EG) m
+      (fun p : TotalSpace EM ((f : N → M) *ᵖ (TangentSpace I)) ↦
+        mfderiv I 𝓘(𝕜, EG) g (f p.proj) p.snd) q :=
+  -- The composite is the stated map by definition: a vector of `f *ᵖ TM` at `x` is a tangent
+  -- vector of `M` at `f x`, and a tangent vector of `G` is a vector of `G`.
+  (contMDiff_snd_tangentBundle_modelSpace EG 𝓘(𝕜, EG)).contMDiffAt.comp q
+    ((ContMDiffAt.contMDiffAt_tangentMap (X := Pullback.lift f q) hg hmn).comp q
+      (contMDiffAt_lift f hf))
+
+/-- For a `C^m` map `f : N → M` and a `C^n` map `g` from `M` to a normed space `G`, with
+`m + 1 ≤ n`, the map `(x, v) ↦ dg_{f x} v`, from the total space of the pull-back `f *ᵖ TM` to
+`G`, is `C^m`. -/
+theorem contMDiff_mfderiv_apply [ChartedSpace H N] [FunLike K N M] [ContinuousMapClass K N M]
+    (f : K) (hf : ContMDiff J I m f)
+    {g : M → EG} (hg : ContMDiff I 𝓘(𝕜, EG) n g) (hmn : m + 1 ≤ n) :
+    ContMDiff (J.prod 𝓘(𝕜, EM)) 𝓘(𝕜, EG) m
+      (fun p : TotalSpace EM ((f : N → M) *ᵖ (TangentSpace I)) ↦
+        mfderiv I 𝓘(𝕜, EG) g (f p.proj) p.snd) :=
+  fun q ↦ contMDiffAt_mfderiv_apply f (hf q.proj) (hg (f q.proj)) hmn
+
+/-- For any map `f : N → M` and a map `g` from `M` to a normed space `G` that is `C^n` at the
+image of the base point of `q`, with `1 ≤ n`, the map `(x, v) ↦ dg_{f x} v`, from the total space
+of the pull-back `f *ᵖ TM` to `G`, is continuous at `q`. -/
+theorem continuousAt_mfderiv_apply (f : N → M) {q : TotalSpace EM (f *ᵖ (TangentSpace I))}
+    {g : M → EG} (hg : ContMDiffAt I 𝓘(𝕜, EG) n g (f q.proj)) (hn : 1 ≤ n) :
+    ContinuousAt (fun p : TotalSpace EM (f *ᵖ (TangentSpace I)) ↦
+      mfderiv I 𝓘(𝕜, EG) g (f p.proj) p.snd) q :=
+  -- As in `contMDiffAt_mfderiv_apply`, the composite is the stated map by definition.
+  (contMDiff_snd_tangentBundle_modelSpace EG 𝓘(𝕜, EG) (n := 0)).continuous.continuousAt.comp
+    ((ContMDiffAt.continuousAt_tangentMap (x₀ := Pullback.lift f q) hg hn).comp
+      (Pullback.continuous_lift EM (TangentSpace I) f).continuousAt)
+
+/-- For any map `f : N → M` and a `C^n` map `g` from `M` to a normed space `G`, with `1 ≤ n`,
+the map `(x, v) ↦ dg_{f x} v`, from the total space of the pull-back `f *ᵖ TM` to `G`, is
+continuous. -/
+theorem continuous_mfderiv_apply (f : N → M) {g : M → EG} (hg : ContMDiff I 𝓘(𝕜, EG) n g)
+    (hn : 1 ≤ n) :
+    Continuous (fun p : TotalSpace EM (f *ᵖ (TangentSpace I)) ↦
+      mfderiv I 𝓘(𝕜, EG) g (f p.proj) p.snd) :=
+  continuous_iff_continuousAt.2 fun q ↦ continuousAt_mfderiv_apply f (hg (f q.proj)) hn
+
+end Bundle.Pullback
+
+end MFDerivApply
 
 section MFDerivFamily
 

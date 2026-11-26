@@ -448,7 +448,7 @@ theorem IsSmoothForm.extendByZeroAlong [T2Space M] [IsManifold I ∞ M]
     (fun x hx ↦ ?_) (fun x hx ↦ ?_)
   · refine ContMDiffAt.contMDiffWithinAt <| ContMDiffAt.congr_of_eventuallyEq
       (((isSmoothForm_def _ _).mp ha' (ψ x)).mpullback_form
-        (ψ.contMDiffOn.contMDiffAt (ψ.open_source.mem_nhds hx)) (by simp)) ?_
+        (ψ.contMDiffAt hx) (by simp)) ?_
     filter_upwards [ψ.open_source.mem_nhds hx] with z hz
     rw [RoughForm.extendByZeroAlong_apply_of_mem a hz]
   · refine ((isSmoothForm_def _ _).mp (IsSmoothForm.zero (I := I) (M := M) (F := F) (k := k) ∞)
