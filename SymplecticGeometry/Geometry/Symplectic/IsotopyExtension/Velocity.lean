@@ -261,9 +261,7 @@ theorem mpullback_prodMk_velocityForm_restrict (σ : SmoothTwoForm I M) (G : Smo
     (mfderiv_comp_apply (g := fun y ↦ G (t, y)) x hGt
       ((contMDiff_inclusion (n := ∞) h).mdifferentiableAt (by simp)) w).trans
       (congrArg _ (Manifold.mfderiv_inclusion_apply h x w))
-  have hv : (fun i ↦ mfderiv J J (Opens.inclusion h) x (![w] i)) = ![w] :=
-    funext fun i ↦ Manifold.mfderiv_inclusion_apply h x _
-  conv_rhs => rw [SmoothForm.mpullback_apply, hv]
+  conv_rhs => rw [SmoothForm.mpullback_apply_one, Manifold.mfderiv_inclusion_apply]
   refine (mpullback_prodMk_velocityForm σ (G.restrict h) t x w).trans
     (Eq.trans ?_ (mpullback_prodMk_velocityForm σ G t (Opens.inclusion h x) w).symm)
   have h₁ : (fun s ↦ G.restrict h (s, x)) = fun s ↦ G (s, Opens.inclusion h x) :=
