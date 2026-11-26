@@ -17,13 +17,11 @@ public import TauCeti.Geometry.Symplectic.Manifold.Volume
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Support
 import SymplecticGeometry.Geometry.Manifold.PartitionOfUnity
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
 import SymplecticGeometry.Topology.Algebra.ConstMulAction
 import SymplecticGeometry.Topology.OpenPartialHomeomorph.Separation
-import TauCeti.Geometry.Symplectic.Hamiltonian.SymplecticVectorField
 import TauCeti.Geometry.Symplectic.Manifold.NeighborhoodGerm
 import TauCeti.Topology.Algebra.Support
 
@@ -39,9 +37,6 @@ it.
   isolated fixed points and weights `k p` at each fixed point `p`
   (`SymplecticGeometry.IsTangentWeights`), the top component of `e^{σ - ħH}` has integral
   `∑ᶠ p ∈ fixedPoints, e^{-ħ H(p)} / (ħⁿ ∏ⱼ k p j)` against the symplectic orientation.
-
-* `SymplecticGeometry.cartanDiff_formCalculus_exp_of_isMomentMap`: for a closed two-form `σ`
-  with a moment map, `e^{σ - ħH}` is equivariantly closed for every real `ħ`.
 
 * `SymplecticGeometry.IsWeightChart.integralTopForm_mul_formCalculus_exp`: near a fixed point
   `p`, the form `e^{σ - ħH} = formCalculus Real.exp _ (-ħ • H) σ` contributes only the constant
@@ -127,9 +122,10 @@ In dimension `0` all sums and products are empty and the value is `F(0)`.
 
 `SymplecticGeometry.integralTopForm_exp_neg_mul_eq_finsum_of_pos` puts these together, following
 Berline, Getzler and Vergne, §7.2. Since `ι_X σ = -dH`, the form `e^{σ - ħH}` is equivariantly
-closed for every real `ħ` (`SymplecticGeometry.cartanDiff_formCalculus_exp_of_isMomentMap`, by
-`SymplecticGeometry.cartanDiff_formCalculus`). Take the localizing one-form `θ` and the
-weight charts of `SymplecticGeometry.exists_localizingForm`, a level `δ` and radii from
+closed for every real `ħ`
+(`SymplecticGeometry.cartanDiff_formCalculus_of_isHamiltonianVectorField`). Take the localizing
+one-form `θ` and the weight charts of `SymplecticGeometry.exists_localizingForm`, a level `δ`
+and radii from
 `SymplecticGeometry.exists_cutoffLevel_radii` for `f = θ(X)`, and a bump function `F` with
 `F(0) = 1` and support in `[-δ, δ]`. By `SymplecticGeometry.integralTopForm_formCalculus_mul` the
 integral of the top component of `e^{σ - ħH}` is that of `F(d_ħ θ) e^{σ - ħH}`; cut `F(d_ħ θ)`
@@ -611,36 +607,6 @@ theorem integralTopForm_mul_formCalculus_exp {σ : SmoothTwoForm I M}
   ring
 
 end IsWeightChart
-
-omit [I.Boundaryless] [CompactSpace M] [T2Space M] in
-/-- **`e^{σ - ħH}` is equivariantly closed.** Let the circle act smoothly on `M`, let `σ` be a
-closed two-form with a moment map `μ` in the sign `d⟨μ, ξ⟩ = -ι_{ξ_M} σ`, and let `H` be the
-smooth function `⟨μ, ξ₁⟩` for the period-one generator `ξ₁ = circlePeriodOneGenerator`, whose
-fundamental vector field is `X`. Then for every real `ħ` the form
-`e^{σ - ħH} = formCalculus Real.exp _ (-ħ • H) σ` satisfies `d_ħ e^{σ - ħH} = 0`. -/
-theorem cartanDiff_formCalculus_exp_of_isMomentMap {σ : SmoothTwoForm I M}
-    (hσ : SmoothForm.IsClosed σ) {μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle)}
-    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) fun x ↦ -μ x)
-    {H : C^∞⟮I, M; ℝ⟯} (hH : ∀ x, H x = μ x circlePeriodOneGenerator)
-    (hX : ContMDiff I I.tangent ∞ fun x ↦
-      (⟨x, fundamentalVectorField I circlePeriodOneGenerator x⟩ : TangentBundle I M))
-    (ħ : ℝ) :
-    cartanDiff (fundamentalVectorField I circlePeriodOneGenerator) hX ħ
-      (formCalculus Real.exp Real.contDiff_exp (-ħ • H) σ) = 0 := by
-  -- The moment map gives `ι_X σ = -dH`.
-  have hι : σ.interiorₗ ⟨_, hX⟩ = mextDerivₗ I 0 (SmoothForm.ofFunction (-H)) :=
-    SmoothTwoForm.isHamiltonianVectorField_iff_interiorₗ_eq.1 (by
-      rw [SmoothForm.ofFunction_apply_zero]
-      convert hμ.isHamiltonianVectorField circlePeriodOneGenerator using 1
-      · funext x
-        simp [hH]
-      · rw [ContMDiffSection.coeFn_mk, InfinitesimalAction.fundamental_apply])
-  refine cartanDiff_formCalculus _ _ (Subtype.ext (by
-    rw [mextDerivₗ_apply]; exact (SmoothForm.isClosed_def σ).1 hσ)) ?_
-  rw [← SmoothTwoForm.interiorₗ_eq_interiorProduct, hι, ← map_smul, neg_smul, ← smul_neg,
-    ← SmoothForm.ofFunctionEquiv_apply, ← SmoothForm.ofFunctionEquiv_apply]
-  exact congrArg _ (SmoothForm.ofFunctionEquiv.map_smul ħ (-H)).symm
-
 omit [I.Boundaryless] [ContMDiffSMul (𝓡 1) I ∞ Circle M] in
 /-- The integral of one piece of `F(d_ħ θ)` at a fixed point. Let `Φ` be a weight chart at `p` of
 radius `r` with nonzero weights `αⱼ(ξ₁)`, and `θ` the model one-form `weightOneForm` of these
@@ -719,13 +685,19 @@ theorem integralTopForm_exp_neg_mul_eq_finsum_of_pos {n : ℕ}
   have hX : ContMDiff I I.tangent ∞ fun x ↦ (⟨x, X x⟩ : TangentBundle I M) :=
     contMDiff_fundamentalVectorField (m := ∞) (n := ∞) (by simp) ξ
   set e := formCalculus Real.exp Real.contDiff_exp (-ħ • H) σ
-  have he : cartanDiff X hX ħ e = 0 :=
-    cartanDiff_formCalculus_exp_of_isMomentMap hσ.isClosed hμ hH hX ħ
+  -- The moment map makes `X` a Hamiltonian vector field of `-H`, so `e^{σ - ħH}` is
+  -- equivariantly closed.
+  have he : cartanDiff X hX ħ e = 0 := by
+    refine cartanDiff_formCalculus_of_isHamiltonianVectorField hσ.isClosed hX ?_ _ _ ħ
+    convert hμ.isHamiltonianVectorField ξ using 1
+    · funext x
+      simp [hH, ξ]
+    · funext x
+      rw [InfinitesimalAction.fundamental_apply]
   -- The localizing one-form `θ` and the weight charts at the finitely many fixed points.
   obtain ⟨θ, hθinv, hθ0, hθz, hloc⟩ := exists_localizingForm hμ hσ hinv hiso
   have hθL : mlieDerivForm X θ.val = 0 := mlieDerivForm_fundamentalVectorField_eq_zero hθinv ξ
-  have : ContinuousConstSMul Circle M :=
-    ⟨fun g ↦ (ContMDiffSMul.contMDiff_const_smul (I := 𝓡 1) (I' := I) (n := ∞) g).continuous⟩
+  have : ContinuousSMul Circle M := ContMDiffSMul.continuousSMul (I := 𝓡 1) (I' := I) ∞
   set S := MulAction.fixedPoints Circle M
   have : Fintype S := (finite_fixedPoints hiso).fintype
   choose m χ α Φ r s hW hα hs0 hsr hθΦ using fun p : S ↦ hloc p.val p.property
