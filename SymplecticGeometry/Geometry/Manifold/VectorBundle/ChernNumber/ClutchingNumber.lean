@@ -93,7 +93,7 @@ namespace Bundle
 
 variable {X : Type*} {x : X}
   {G : Type*} [NormedAddCommGroup G] [NormedSpace ℂ G]
-  {E : X → Type*} [∀ x, AddCommGroup (E x)] [∀ x, Module ℂ (E x)] [∀ x, TopologicalSpace (E x)]
+  {E : X → Type} [∀ x, AddCommGroup (E x)] [∀ x, Module ℂ (E x)] [∀ x, TopologicalSpace (E x)]
 
 /-! ### Frames along the square read on the sphere -/
 

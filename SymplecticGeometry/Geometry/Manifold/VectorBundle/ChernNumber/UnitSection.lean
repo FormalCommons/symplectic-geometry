@@ -63,7 +63,7 @@ namespace Bundle
 variable {M : Type} [TopologicalSpace M] [T2Space M] {EM : Type} [NormedAddCommGroup EM]
   [NormedSpace ℝ EM] [FiniteDimensional ℝ EM] [ChartedSpace EM M]
   {o : HomologicalOrientation M EM 2} {ι : Type*} {φ : ι → CoordinateDisc o}
-  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℂ F] {E : M → Type*}
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℂ F] {E : M → Type}
   [∀ x, NormedAddCommGroup (E x)] [∀ x, InnerProductSpace ℂ (E x)]
   [TopologicalSpace (TotalSpace F E)] [FiberBundle F E] [VectorBundle ℂ F E]
   [ContinuousFiberNorm F E] [Fact (finrank ℂ F = 1)]
