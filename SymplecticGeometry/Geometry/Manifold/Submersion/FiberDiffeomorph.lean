@@ -7,7 +7,6 @@ module
 
 public import Mathlib.Topology.Connected.Clopen
 public import Mathlib.Topology.LocalAtTarget
-public import TauCeti.Topology.Maps.Proper.Basic
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.MapFiber
 public import SymplecticGeometry.Geometry.Manifold.RegularValue.RestrictPreimage
 public import SymplecticGeometry.Geometry.Manifold.Submersion.RadialTrivialization
@@ -136,15 +135,15 @@ open TauCeti Module TopologicalSpace
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
   {M : Type*} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M] [I.Boundaryless]
-  [T2Space M]
+  [T2Space M] [SigmaCompactSpace M]
   {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
   {G : Type*} [TopologicalSpace G] {J : ModelWithCorners ℝ F G}
   {N : Type*} [TopologicalSpace N] [ChartedSpace G N] [IsManifold J ∞ N] [J.Boundaryless]
-  [T2Space N] [SecondCountableTopology N] {f : M → N}
+  [T2Space N] {f : M → N}
 
 /-- **The fibres of a proper map over a connected set of regular values are diffeomorphic.**
 Let `f : M → N` be a smooth proper map between Hausdorff boundaryless finite-dimensional
-manifolds, `N` second countable, and let `R` be an open preconnected set of regular values of
+manifolds, `M` σ-compact, and let `R` be an open preconnected set of regular values of
 `f`. Give the fibre `{x // f x = y}` over each `y ∈ R` its regular-fibre atlas
 `TauCeti.regularFiberChartedSpace`. Then the fibres over any two points of `R` are smoothly
 diffeomorphic. -/
@@ -166,10 +165,12 @@ theorem nonempty_diffeomorph_fiber_of_isProperMap (hf : ContMDiff I J ∞ f) (hf
         (isRegularValue_iff.1 (hreg _ x.property) x rfl))).isSubmersion
   have hgp : IsProperMap g := hfp.restrictPreimage _
   have : PreconnectedSpace R := isPreconnected_iff_preconnectedSpace.1 hR
-  -- `R` is σ-compact, as a locally compact second-countable space, and so is `P`.
-  have := J.locallyCompactSpace
-  have := ChartedSpace.locallyCompactSpace G R
-  have : SigmaCompactSpace P := hgp.sigmaCompactSpace
+  -- `M` is second countable, as a σ-compact manifold, so its open subset `P` is σ-compact.
+  have := I.locallyCompactSpace
+  have := I.secondCountableTopology
+  have := ChartedSpace.secondCountable_of_sigmaCompact H M
+  have := ChartedSpace.locallyCompactSpace H P
+  have : SigmaCompactSpace P := inferInstance
   let := regularFiberChartedSpace (m := ∞) (by simp) hf BoundarylessManifold.isInteriorPoint
     (hreg y₀ h₀)
   let := regularFiberChartedSpace (m := ∞) (by simp) hf BoundarylessManifold.isInteriorPoint

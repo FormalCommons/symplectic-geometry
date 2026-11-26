@@ -58,7 +58,6 @@ theorem nonempty_diffeomorph_fiber (h : IsLefschetzFibration ω J π) {y₀ y₁
     Nonempty (Diffeomorph 𝓘(ℝ, Fin (finrank ℝ E - finrank ℝ (Fin 1 → ℂ)) → ℝ)
       𝓘(ℝ, Fin (finrank ℝ E - finrank ℝ (Fin 1 → ℂ)) → ℝ) {x // π x = y₀} {x // π x = y₁}
       (⊤ : ℕ∞)) :=
-  have := ChartedSpace.secondCountable_of_sigmaCompact (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ))
   h.contMDiff.nonempty_diffeomorph_fiber_of_isProperMap h.contMDiff.continuous.isProperMap
     ⟨_, h.isOpen_regularValue⟩ h.isConnected_regularValue.isPreconnected (fun _ hy ↦ hy) h₀ h₁
 
