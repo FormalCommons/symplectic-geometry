@@ -196,10 +196,7 @@ private theorem continuous_height : Continuous h.height := by
   -- Off the compact image `K` of `[-ε / 2, 0] × ∂W`, the image of the interior of `W` is an open
   -- set on which the function is constant.
   set K := h.completionEnd '' (Icc (-h.collarWidth / 2) 0 ×ˢ univ)
-  have hKc : IsClosed K := by
-    refine (IsCompact.image_of_continuousOn (isCompact_Icc.prod isCompact_univ)
-      (h.contMDiffOn_completionEnd.continuousOn.mono ?_)).isClosed
-    exact prod_mono (fun s hs ↦ by simp only [mem_Ioi]; linarith [hs.1]) subset_rfl
+  have hKc : IsClosed K := (h.isCompact_completionEnd_image_Icc (by linarith)).isClosed
   have hO : IsOpen (h.toCompletion '' (𝓡∂ (n + 1)).interior W) := by
     have := (SmoothCollar.WithEnd.interiorPart h.collar).isOpen
     rwa [SmoothCollar.WithEnd.coe_interiorPart, ← toCompletion_def] at this
@@ -224,8 +221,7 @@ private theorem range_toCompletion_eq_setOfPred_height_le :
   · rintro ⟨p, rfl⟩
     by_cases hz : ∃ q ∈ Ioi (-h.collarWidth) ×ˢ univ, h.completionEnd q = h.toCompletion p
     · obtain ⟨q, hq, hqp⟩ := hz
-      have hq0 : q.1 ≤ 0 := le_of_not_gt fun hq0 ↦ disjoint_left.1
-        h.disjoint_range_toCompletion_completionEnd_image ⟨p, rfl⟩ ⟨q, ⟨hq0, trivial⟩, hqp⟩
+      have hq0 := ((h.completionEnd_eq_toCompletion_iff hq.1).1 hqp).1
       rw [mem_ofPred_eq, ← hqp, h.height_completionEnd hq]
       exact max_le hq0 (by linarith)
     · rw [mem_ofPred_eq, height, dite_eq_right hz]
