@@ -9,7 +9,7 @@ public import SymplecticGeometry.Analysis.InnerProductSpace.Symplectic.PolarComp
 public import SymplecticGeometry.Topology.Algebra.Module.SymplecticForms
 public import TauCeti.Analysis.InnerProductSpace.Positive.MetricChange.Smooth
 public import TauCeti.Geometry.Symplectic.AlmostComplex.Topology
-import TauCeti.Analysis.Calculus.ContinuousLinearMapInverse
+import TauCeti.Analysis.SpecialFunctions.ContinuousFunctionalCalculus.Sqrt.Analytic
 import SymplecticGeometry.Analysis.InnerProductSpace.LinearMap
 
 /-!
@@ -61,9 +61,11 @@ products and symplectic forms the formula is `J_{g,ω}`, which does not depend o
 The proof of `SymplecticGeometry.contDiffOn_metricPolarFormula` adapts the argument of Tau Ceti's
 private lemma `contMDiffAt_metricChangeTransport_mul_mul_sqrt`
 (`TauCeti/Geometry/Symplectic/Manifold/AlmostComplex/Polar.lean`) from smoothness at a point of a
-manifold to smoothness on an open set of pairs of forms: the same factors `R` and `A`, the same
-use of `CFC.isUnit_sqrt_iff` for the inverse, and the same final product. Where Tau Ceti applies
-`contDiffAt_ringInverse` to the unit, this proof uses `ContDiffAt.inverse`.
+manifold to smoothness on an open set of pairs of forms: the same factors `R` and `A`, and the
+same final product. Where Tau Ceti inverts the square root of `-A²` with
+`contDiffAt_ringInverse` at the unit that `CFC.isUnit_sqrt_iff` gives, this proof uses Tau Ceti's
+`CFC.analyticOn_ringInverse_sqrt`, the analyticity of the inverse square root on strictly
+positive elements.
 -/
 
 public section
@@ -157,13 +159,9 @@ theorem contDiffOn_metricPolarFormula {n : WithTop ℕ∞} :
   have hs' : ContDiff ℝ n s' := by fun_prop
   have hA : ContDiffOn ℝ n A (polarDomain W) :=
     (hR.mul ((contDiff_continuousLinearMapOfBilin.comp hs').contDiffOn)).mul hR
-  have hsqrt : ContDiffOn ℝ n (fun p ↦ CFC.sqrt (-(A p * A p))) (polarDomain W) :=
-    ContinuousLinearMap.contDiffOn_sqrt.comp (hA.mul hA).neg hApos
   have hinv : ContDiffOn ℝ n (fun p ↦ Ring.inverse (CFC.sqrt (-(A p * A p))))
-      (polarDomain W) := by
-    intro p hp
-    exact (contDiffAt_id.inverse ((CFC.isUnit_sqrt_iff _ (hApos p hp).nonneg).2
-      (hApos p hp).isUnit)).comp_contDiffWithinAt p (hsqrt p hp)
+      (polarDomain W) :=
+    CFC.analyticOn_ringInverse_sqrt.contDiffOn_of_completeSpace.comp (hA.mul hA).neg hApos
   exact (hR.mul (hA.mul hinv)).mul hQ
 
 /-- The formula only sees the symmetric part of its first argument and the skew part of its
