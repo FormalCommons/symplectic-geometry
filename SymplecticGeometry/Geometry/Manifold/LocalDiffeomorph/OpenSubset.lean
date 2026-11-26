@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
+import TauCeti.Geometry.Manifold.Diffeomorph.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 
 /-!
@@ -47,7 +48,11 @@ values of `Φ` (Tau Ceti's `PartialDiffeomorph.liftOpens_source`,
 `PartialDiffeomorph.toDiffeomorphSourceTarget_apply_coe`). When `U = V`, it has identity
 differential at a point exactly when `Φ` has, by Tau Ceti's
 `TauCeti.Manifold.mfderiv_eq_id_iff_of_comp_subtype_val`; so a point that `Φ` fixes with identity
-differential is fixed by it, with identity differential.
+differential is fixed by it, with identity differential. When `Φ` is a diffeomorphism between
+`U` and `V`, the lift has source `U`, takes the values of `Φ` there, and so maps a subset of `U`
+onto its image under `Φ` (`Diffeomorph.toPartialDiffeomorph_liftOpens_source`,
+`Diffeomorph.toPartialDiffeomorph_liftOpens_apply_coe`,
+`Diffeomorph.image_toPartialDiffeomorph_liftOpens`).
 
 ## Main results
 
@@ -64,6 +69,11 @@ differential is fixed by it, with identity differential.
 * `PartialDiffeomorph.exists_toDiffeomorphSourceTarget_liftOpens_eq_and_mfderiv_eq_id`: a fixed
   point of a partial diffeomorphism of an open subset with identity differential stays one when
   the partial diffeomorphism is read in the ambient manifold.
+* `Diffeomorph.toPartialDiffeomorph_liftOpens_source`,
+  `Diffeomorph.toPartialDiffeomorph_liftOpens_apply_coe`,
+  `Diffeomorph.image_toPartialDiffeomorph_liftOpens`: a diffeomorphism between open subsets `U`
+  and `V`, read as a partial diffeomorphism of the ambient manifolds, has source `U`, agrees with
+  the diffeomorphism there, and maps each subset of `U` onto its image under it.
 -/
 
 public section
@@ -203,5 +213,41 @@ theorem exists_toDiffeomorphSourceTarget_liftOpens_eq_and_mfderiv_eq_id
 end LiftOpens
 
 end PartialDiffeomorph
+
+namespace Diffeomorph
+
+variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
+  {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E] {H : Type*} [TopologicalSpace H]
+  {I : ModelWithCorners 𝕜 E H} {n : WithTop ℕ∞}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F] {G : Type*} [TopologicalSpace G]
+  {J : ModelWithCorners 𝕜 F G} {N : Type*} [TopologicalSpace N] [ChartedSpace G N]
+  {U : Opens M} {V : Opens N} (Φ : U ≃ₘ^n⟮I, J⟯ V) (hU : Nonempty U) (hV : Nonempty V)
+
+/-- A diffeomorphism `Φ` between open subsets `U` of `M` and `V` of `N`, read as a partial
+diffeomorphism from `M` to `N`, has source `U`. -/
+theorem toPartialDiffeomorph_liftOpens_source :
+    (Φ.toPartialDiffeomorph.liftOpens hU hV).source = U := by
+  simp
+
+/-- A diffeomorphism `Φ` between open subsets `U` of `M` and `V` of `N`, read as a partial
+diffeomorphism from `M` to `N`, takes the values of `Φ` on `U`. -/
+theorem toPartialDiffeomorph_liftOpens_apply_coe (x : U) :
+    Φ.toPartialDiffeomorph.liftOpens hU hV x = Φ x := by
+  rw [PartialDiffeomorph.liftOpens_apply_coe, coe_toPartialDiffeomorph]
+
+/-- A diffeomorphism `Φ` between open subsets `U` of `M` and `V` of `N`, read as a partial
+diffeomorphism from `M` to `N`, maps a subset `C` of `U` onto the image of `C` under `Φ`. -/
+theorem image_toPartialDiffeomorph_liftOpens {C : Set M} (hC : C ⊆ U) :
+    Φ.toPartialDiffeomorph.liftOpens hU hV '' C =
+      (fun x : U ↦ (Φ x : N)) '' (Subtype.val ⁻¹' C) := by
+  ext y
+  constructor
+  · rintro ⟨x, hx, rfl⟩
+    exact ⟨⟨x, hC hx⟩, hx, (Φ.toPartialDiffeomorph_liftOpens_apply_coe hU hV _).symm⟩
+  · rintro ⟨x, hx, rfl⟩
+    exact ⟨x, hx, Φ.toPartialDiffeomorph_liftOpens_apply_coe hU hV x⟩
+
+end Diffeomorph
 
 end
