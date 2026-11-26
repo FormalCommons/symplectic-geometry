@@ -255,6 +255,7 @@ theorem SmoothForm.apply_eq_of_mpullback_symm_mpullback_subtype_val_apply_eq {U 
 /-- Let `f : M' → M` be an injective local diffeomorphism. Pulling the restriction of a form `σ`
 on `M` to the image of `f` back along the diffeomorphism of `M'` onto that image is pulling `σ`
 back along `f`. -/
+@[simp]
 theorem SmoothForm.mpullback_diffeomorphOfInjective_mpullback_subtype_val {f : M' → M}
     (hf : IsLocalDiffeomorph I' I ∞ f) (hinj : Function.Injective f)
     (σ : SmoothForm I M F k) :
