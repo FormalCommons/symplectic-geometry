@@ -142,7 +142,7 @@ These settle the questions that `DESIGN.md` leaves to this file.
    zero flux, and $\Psi$ is Hamiltonian by Decision 2. Since every
    $A_i(1)=0$, $\theta$ ends at the identity, so $\Psi$ ends where `Φ`
    does. And $\theta$ is homotopic to the constant diffeotopy relative to
-   both ends (`orderedGlobalFlowDiffeotopy_homotopic_refl`),
+   both ends (`isHomotopy_orderedGlobalFlowDiffeotopy_refl`),
    so `Φ` is homotopic to $\Psi$ (`Homotopic.trans_congr`).
    The homotopy is stated with Tau Ceti's `Diffeotopy.Homotopic`, which
    does not ask that the intermediate maps preserve `σ`. The construction

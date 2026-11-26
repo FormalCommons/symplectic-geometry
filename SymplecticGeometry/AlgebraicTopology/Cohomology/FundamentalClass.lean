@@ -26,8 +26,8 @@ On a compact connected oriented manifold `N` itself, evaluation on `[N]` is a bi
 `TauCeti.HomologicalOrientation.evalFundamentalClass_id_bijective`. The evaluation factors as the
 cap product `c ↦ [N] ⌢ c` into `H₀(N; L)` followed by the augmentation `H₀(N; L) → L`
 (`TopCat.singularCap_comp_singularHomology₀ε`). The first map is bijective by Poincaré duality
-(`TauCeti.HomologicalOrientation.bijective_singularCap_fundamentalClass`), and the second because
-a connected manifold is path connected.
+(`TauCeti.HomologicalOrientation.bijective_singularCapAddHom_fundamentalClass`), and the second
+because a connected manifold is path connected.
 
 ## Main results
 
@@ -83,7 +83,7 @@ theorem evalFundamentalClass_uliftIntegralCohomologyIso_hom (f : C(N, X))
     uliftIntIso_hom_apply]
 
 -- The cap product over `ℤ` uses the `ℤ`-linear monoidal structure of a preadditive category, as in
--- `TauCeti.HomologicalOrientation.bijective_singularCap_fundamentalClass`.
+-- `TauCeti.HomologicalOrientation.bijective_singularCapAddHom_fundamentalClass`.
 attribute [local instance] MonoidalPreadditive.monoidalLinearInt
 
 /-- **Evaluation on the fundamental class through the cap product**: for `c ∈ Hⁿ(N; L)`,
@@ -109,9 +109,10 @@ theorem evalFundamentalClass_id_bijective' [ConnectedSpace N] (L : ModuleCat.{0}
   have : LocallyPathConnectedSpace N := ChartedSpace.locallyPathConnectedSpace E N
   have : PathConnectedSpace N := pathConnectedSpace_iff_connectedSpace.2 ‹_›
   have h := (ConcreteCategory.bijective_of_isIso ((TopCat.of N).singularHomology₀ε L)).comp
-    (o.bijective_singularCap_fundamentalClass hn L n 0 (add_zero n))
+    (o.bijective_singularCapAddHom_fundamentalClass hn L n 0 (add_zero n))
   convert h using 1
   funext c
+  rw [Function.comp_apply, TopCat.singularCapAddHom_apply]
   exact o.evalFundamentalClass_id_eq_singularHomology₀ε hn L c
 
 /-- **Classes of top degree are determined by their evaluation on the fundamental class**: on a

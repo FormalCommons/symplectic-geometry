@@ -15,7 +15,7 @@ import TauCeti.Geometry.Symplectic.Flux.Eulerian
 import TauCeti.Geometry.Symplectic.Flux.OrderedFlow
 import TauCeti.Geometry.Symplectic.Flux.Reparam
 import TauCeti.Geometry.Symplectic.Flux.Trans
-import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.OrderedFlow
+import TauCeti.Geometry.Diffeomorphism.Diffeotopy.OrderedFlow
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Reparam
 import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
 import SymplecticGeometry.Geometry.Manifold.DeRham.HomologyPeriod
@@ -73,7 +73,7 @@ complete since `M` is compact. Let `ψ_t` be the ordered flow of the `Y i` along
 `TauCeti.Diffeotopy.flux_orderedGlobalFlowDiffeotopy`), so every truncation of
 `t ↦ ψ_t⁻¹ ∘ φ_t` has zero flux, and this diffeotopy is Hamiltonian by the criterion above. Since
 the flux of `φ` is zero, every `A i 1` vanishes, so `ψ` is a loop, homotopic to the constant
-diffeotopy (`TauCeti.Diffeotopy.orderedGlobalFlowDiffeotopy_homotopic_refl`),
+diffeotopy (`TauCeti.Diffeotopy.isHomotopy_orderedGlobalFlowDiffeotopy_refl`),
 and `φ` is homotopic to `t ↦ ψ_t⁻¹ ∘ φ_t`. This homotopy is a `TauCeti.Diffeotopy.Homotopic`
 one, whose intermediate maps need not preserve `σ`; McDuff–Salamon's homotopy runs through
 symplectic isotopies, so the result here is weaker than theirs. With Tau Ceti's
@@ -338,8 +338,8 @@ theorem exists_isHamiltonian_homotopic_of_flux_eq_zero (hσ : SmoothTwoForm.IsNo
         SmoothForm.timeSlice_truncate_mem_diffeomorphStabilizer]
   · -- `θ` is homotopic to the constant diffeotopy, so `Φ' = (Φ' θ⁻¹) θ` is homotopic to `Φ' θ⁻¹`.
     have key := (Homotopic.refl (Φ'.trans θ.symm)).trans_congr
-      (orderedGlobalFlowDiffeotopy_homotopic_refl le_top (fun i ↦ (Y i).val.contMDiff) hc hA hA₀
-        hA₁)
+      (isHomotopy_orderedGlobalFlowDiffeotopy_refl le_top _ (fun i ↦ (Y i).val.contMDiff) hc _ hA
+        hA₀ hA₁).homotopic
     rw [trans_assoc, symm_trans_self, trans_refl, trans_refl] at key
     exact hhom.trans key le_rfl
 
