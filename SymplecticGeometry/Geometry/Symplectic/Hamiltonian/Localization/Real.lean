@@ -18,6 +18,7 @@ import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Support
 import SymplecticGeometry.Geometry.Manifold.PartitionOfUnity
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.Geometry.Manifold.GroupAction.InvariantForm
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
 import SymplecticGeometry.Topology.Algebra.ConstMulAction
@@ -531,7 +532,7 @@ end WeightChart
 
 variable {E H' M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   [TopologicalSpace H'] {I : ModelWithCorners ℝ E H'} [TopologicalSpace M] [ChartedSpace H' M]
-  [I.Boundaryless] [IsManifold I ∞ M] [CompactSpace M] [T2Space M]
+  [IsManifold I ∞ M] [BoundarylessManifold I M] [CompactSpace M] [T2Space M]
   [MulAction Circle M] [ContMDiffSMul (𝓡 1) I ∞ Circle M]
 
 namespace IsWeightChart
@@ -571,7 +572,7 @@ theorem integralTopForm_mul_formCalculus_exp {σ : SmoothTwoForm I M}
   -- The cut-off model form `θ = ρ (Φ⁻¹)^* θ_{1/2}` is invariant, so `L_X θ = 0`.
   set θ := cutoffWeightOneForm Φ hρ hs fun _ ↦ 1 / 2
   have hθ : mlieDerivForm (fundamentalVectorField I circlePeriodOneGenerator) θ.val = 0 :=
-    mlieDerivForm_fundamentalVectorField_eq_zero (fun g ↦
+    mlieDerivForm_fundamentalVectorField_eq_zero_of_boundarylessManifold (fun g ↦
       mpullback_smul_cutoffWeightOneForm hρ hs _ (fun j g ↦ χ j g) g (hΦ.equivariant g) _
         (hρinv g)) _
   refine integralTopForm_mul_formCalculus_exp_of_forall_or o hθ hγ _ fun x ↦ ?_
@@ -608,7 +609,7 @@ theorem integralTopForm_mul_formCalculus_exp {σ : SmoothTwoForm I M}
 
 end IsWeightChart
 
-omit [I.Boundaryless] [ContMDiffSMul (𝓡 1) I ∞ Circle M] in
+omit [BoundarylessManifold I M] [ContMDiffSMul (𝓡 1) I ∞ Circle M] in
 /-- The integral of one piece of `F(d_ħ θ)` at a fixed point. Let `Φ` be a weight chart at `p` of
 radius `r` with nonzero weights `αⱼ(ξ₁)`, and `θ` the model one-form `weightOneForm` of these
 weights read through `Φ` on `Φ '' ball 0 b`, for `b ≤ r`. Let `F` be smooth with compact support
@@ -697,7 +698,8 @@ theorem integralTopForm_exp_neg_mul_eq_finsum_of_pos {n : ℕ}
       rw [InfinitesimalAction.fundamental_apply]
   -- The localizing one-form `θ` and the weight charts at the finitely many fixed points.
   obtain ⟨θ, hθinv, hθ0, hθz, hloc⟩ := exists_localizingForm hμ hσ hinv hiso
-  have hθL : mlieDerivForm X θ.val = 0 := mlieDerivForm_fundamentalVectorField_eq_zero hθinv ξ
+  have hθL : mlieDerivForm X θ.val = 0 :=
+    mlieDerivForm_fundamentalVectorField_eq_zero_of_boundarylessManifold hθinv ξ
   have : ContinuousSMul Circle M := ContMDiffSMul.continuousSMul (I := 𝓡 1) (I' := I) ∞
   set S := MulAction.fixedPoints Circle M
   have : Fintype S := (finite_fixedPoints hiso).fintype
