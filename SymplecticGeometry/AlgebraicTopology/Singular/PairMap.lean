@@ -16,8 +16,8 @@ homology they induce.
 
 For subsets `A` and `B` of a space `X`, the subspace of the pair `TopPair.interPair A B`, the
 preimage of `B` in `A`, is homeomorphic to `A ∩ B` (`TopPair.interPairSndHomeomorph`,
-`TopPair.interPairSndIso`), and the excision map `(A, A ∩ B) ⟶ (X, B)` is the map of pairs
-`TopPair.ofSubsetMap` induced by the inclusion of `A` (`TopPair.excisionMap_eq_ofSubsetMap`).
+`TopPair.interPairSndIso`), and the ambient map of the excision map `(A, A ∩ B) ⟶ (X, B)` is the
+inclusion of `A` (`TopPair.excisionMap_fst`).
 
 A map into the ambient space of a pair that factors through the subspace vanishes on relative
 chains (`TopPair.chainComplexMap_comp_singularChainComplexπ_of_fac`); so does a map into `X` with
@@ -63,8 +63,7 @@ the relative homology of `(X, A)` as the map induced by `TopPair.singularChainCo
   chains of the ambient space are natural in the coefficient object.
 * `TopPair.homologyMap_comp_singularHomologyπFst`, `TopPair.singularHomologyπFst_naturality`: the
   same on homology.
-* `TopPair.excisionMap_eq_ofSubsetMap`, `TopPair.excisionMap_fst`: the excision map through the
-  inclusion of `A`.
+* `TopPair.excisionMap_fst`: the ambient map of the excision map is the inclusion of `A`.
 * `TopPair.codRestrict_comp_ofSubset_map`: the corestriction of a map to `A`, followed by the
   embedding of the subspace of `(X, A)`, is the map.
 * `TopPair.chainComplexMap_comp_singularChainComplexπ_of_fac`: maps through the subspace vanish on
@@ -144,14 +143,6 @@ lemma interPairSndIso_inv_comp_map :
       TopCat.ofHom (ContinuousMap.inclusion Set.inter_subset_left) := by
   ext y
   exact interPairSndHomeomorph_symm_apply_coe A B y
-
-/-- The excision map `(A, A ∩ B) ⟶ (X, B)` is the map of pairs induced by the inclusion of `A`. -/
-lemma excisionMap_eq_ofSubsetMap :
-    excisionMap A B = ofSubsetMap (TopCat.ofHom (ContinuousMap.subtypeVal A)) (fun _ hx ↦ hx) := by
-  refine Eq.symm ?_
-  ext x : 2
-  · exact Subtype.ext ((ofSubsetMap_snd_apply _ _ x).trans (excisionMap_snd_apply A B x).symm)
-  · exact (ofSubsetMap_fst_apply _ _ x).trans (excisionMap_fst_apply A B x).symm
 
 /-- The ambient map of the excision map `(A, A ∩ B) ⟶ (X, B)` is the inclusion of `A`. -/
 lemma excisionMap_fst : Hom.fst (excisionMap A B) = TopCat.ofHom (ContinuousMap.subtypeVal A) := by
@@ -399,16 +390,13 @@ lemma singularHomologyMap_ofSubsetMap_eq_zero_of_range_subset {X Y : TopCat.{w}}
 `Hₙ(A, A ∩ B) ≅ Hₙ(X, B)`, followed by the maps induced by the inclusions of pairs
 `(A, A ∩ B) ⟶ (X, S) ⟶ (X, B)`, is the identity of `Hₙ(X, B)`. -/
 lemma inv_singularHomologyMap_excisionMap_comp_ofSubsetMap_id {X : TopCat.{w}} {A B S : Set X}
-    (h₁ : Set.MapsTo (TopCat.ofHom (ContinuousMap.subtypeVal A)) (Subtype.val ⁻¹' B) S)
-    (h₂ : Set.MapsTo (𝟙 X) S B) (n : ℕ)
+    (h₁ : A ∩ B ⊆ S) (h₂ : Set.MapsTo (𝟙 X) S B) (n : ℕ)
     [IsIso (TopPair.singularHomologyMap (excisionMap A B) R n)] :
     inv (TopPair.singularHomologyMap (excisionMap A B) R n) ≫
-      TopPair.singularHomologyMap
-        (ofSubsetMap (TopCat.ofHom (ContinuousMap.subtypeVal A)) h₁) R n ≫
+      TopPair.singularHomologyMap (interPairMapOfSubset h₁) R n ≫
         TopPair.singularHomologyMap (ofSubsetMap (𝟙 X) h₂) R n = 𝟙 _ := by
-  rw [← TopPair.singularHomologyMap_comp,
-    ofSubsetMap_comp_ofSubsetMap_of_comp_eq h₁ h₂ (h₂.comp h₁) (Category.comp_id _),
-    ← excisionMap_eq_ofSubsetMap, IsIso.inv_hom_id]
+  rw [← TopPair.singularHomologyMap_comp, interPairMapOfSubset_comp_ofSubsetMap_id,
+    interPairMapOfSubset_eq_excisionMap, IsIso.inv_hom_id]
 
 end Preadditive
 

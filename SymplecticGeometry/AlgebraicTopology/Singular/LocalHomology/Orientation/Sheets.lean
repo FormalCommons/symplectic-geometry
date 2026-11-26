@@ -368,27 +368,35 @@ theorem singularHomologyComplSingletonIsoOfOrientation_inv_singularHomologyδ_si
   have pV := singularHomologyδ_singularHomologyπ_inv_excisionMap_right R p gE gG hsusp
   rw [TopCat.singularHomologyπ_ofSubset_inter_eq_add R (X := TopCat.of ({0}ᶜ : Set E))
     (isOpen_complRay p) (isOpen_complRay (-p)) (complRay_union_complRay_neg p) (m + 1)]
-  -- Each sheet factors through the pair of the member of the cover containing it.
+  -- Each sheet factors through the pair of the member of the cover containing it; Tau Ceti's
+  -- `TopPair.interPairMapOfSubset` is the map of pairs `TopPair.ofSubsetMap` of the inclusion.
   have e₁ : orthogonalSheetPairMap p (neg_ne_zero.2 one_ne_zero) =
       orthogonalSheetInterPairMap p (neg_ne_zero.2 one_ne_zero) _ _
         (orthogonalSheet_mem_complRay_of_neg p (neg_lt_zero.2 zero_lt_one))
         (fun _ hx ↦ (orthogonalSheet_mem_complRay_inter_complRay_neg p _ hx).2) ≫
-        TopPair.ofSubsetMap (B := Subtype.val ⁻¹' complRay (-p))
-          (B' := complRay p ∩ complRay (-p)) (TopCat.ofHom (ContinuousMap.subtypeVal (complRay p)))
-          fun (x : complRay p) (hx : x.val ∈ complRay (-p)) ↦ ⟨x.property, hx⟩ := by
+        TopPair.interPairMapOfSubset (X := TopCat.of ({0}ᶜ : Set E))
+          (subset_refl (complRay p ∩ complRay (-p))) := by
     unfold orthogonalSheetPairMap orthogonalSheetInterPairMap
     -- Both continuous maps send `x` to `x - p`.
-    exact (TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ _ (by ext; rfl)).symm
+    refine (TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq _
+      (show Set.MapsTo (TopCat.ofHom (ContinuousMap.subtypeVal (complRay p)))
+        (Subtype.val ⁻¹' complRay (-p)) (complRay p ∩ complRay (-p)) from
+        fun x hx ↦ ⟨x.property, hx⟩) _
+        (by ext; rfl)).symm.trans (congrArg (_ ≫ ·) (TopPair.hom_ext_of_fst _
+          ((TopPair.ofSubsetMap_fst _ _).trans (TopPair.interPairMapOfSubset_fst _).symm)))
   have e₂ : orthogonalSheetPairMap p one_ne_zero =
       orthogonalSheetInterPairMap p one_ne_zero _ _
         (orthogonalSheet_mem_complRay_neg_of_pos p zero_lt_one)
         (fun _ hx ↦ (orthogonalSheet_mem_complRay_inter_complRay_neg p _ hx).1) ≫
-        TopPair.ofSubsetMap (B := Subtype.val ⁻¹' complRay p)
-          (B' := complRay p ∩ complRay (-p))
-          (TopCat.ofHom (ContinuousMap.subtypeVal (complRay (-p))))
-          fun (x : complRay (-p)) (hx : x.val ∈ complRay p) ↦ ⟨hx, x.property⟩ := by
+        TopPair.interPairMapOfSubset (X := TopCat.of ({0}ᶜ : Set E))
+          (Set.inter_comm (complRay (-p)) (complRay p)).subset := by
     unfold orthogonalSheetPairMap orthogonalSheetInterPairMap
-    exact (TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ _ (by ext; rfl)).symm
+    refine (TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq _
+      (show Set.MapsTo (TopCat.ofHom (ContinuousMap.subtypeVal (complRay (-p))))
+        (Subtype.val ⁻¹' complRay p) (complRay p ∩ complRay (-p)) from
+        fun x hx ↦ ⟨hx, x.property⟩) _
+        (by ext; rfl)).symm.trans (congrArg (_ ≫ ·) (TopPair.hom_ext_of_fst _
+          ((TopPair.ofSubsetMap_fst _ _).trans (TopPair.interPairMapOfSubset_fst _).symm)))
   rw [e₁, e₂, TopPair.singularHomologyMap_comp, TopPair.singularHomologyMap_comp,
     Preadditive.comp_sub, sub_eq_add_neg]
   -- Reassociate by `Eq.trans`, as the homology of `E ∖ {0}` appears under several names.

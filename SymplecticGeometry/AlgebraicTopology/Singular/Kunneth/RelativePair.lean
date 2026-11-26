@@ -26,10 +26,11 @@ the map induced on homology by the shuffle map of the product of the pairs
 (`TopCat.shufflePair`). The coefficients `R` and `S` are objects of any abelian monoidal category
 with the coproducts that the singular chains use, as for Tau Ceti's relative cross product
 `TopCat.singularHomologyCrossRel`, which has a pair in the first factor only.
-Its compatibility with that product, through the map of pairs
-`(X × Y, A × Y) ⟶ (X × Y, A × Y ∪ X × B)`, is Tau Ceti's
-`TopCat.singularHomologyCrossRel_comp_singularHomologyMap`, whose right side is
-`TopCat.singularHomologyCrossRelPair` by `TopCat.singularHomologyCrossRelPair_def`.
+The two products agree: precomposed with `𝟙 ⊗ π`, for the map `π : H_q(Y; S) ⟶ H_q(Y, B; S)`,
+`TopCat.singularHomologyCrossRelPair` is `TopCat.singularHomologyCrossRel` followed by the map of
+pairs `(X × Y, A × Y) ⟶ (X × Y, A × Y ∪ X × B)`. This is Tau Ceti's
+`TopCat.singularHomologyCrossRel_comp_singularHomologyMap`, rewritten with
+`TopCat.singularHomologyCrossRelPair_def` and `id_tensorHom`.
 
 The shuffle map of the pairs factors through the small chains `C(X × Y; A × Y + X × B; R ⊗ S)` of
 `X × Y`, relative to its singular simplices lying in `A × Y` or in `X × B`
