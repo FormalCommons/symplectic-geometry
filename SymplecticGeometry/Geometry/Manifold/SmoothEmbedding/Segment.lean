@@ -122,15 +122,17 @@ theorem exists_isSmoothEmbedding_real_of_mem_nhds {p : M} {V : Set M} (hV : V �
   exact (hLK s (by simpa [K] using hs)).2
 
 /-- **Disjoint short segments through finitely many points.** For a finite set `N` of points of
-`M` and a neighbourhood `G p` of each `p ∈ N`, there are segments `σ p` as in
-`exists_isSmoothEmbedding_real_of_mem_nhds`, with `σ p 0 = p`, the closure of the range of `σ p`
-in `G p`, and backward limit points `q p` in that closure but outside the range, such that the
-closures of the ranges of the `σ p` are pairwise disjoint. -/
+`M` and a neighbourhood `G p` of each `p ∈ N`, there are smooth embeddings `σ p : ℝ → M` and
+points `q p` such that, for each `p ∈ N`, `σ p 0 = p`, the closure of the range of `σ p` lies in
+`G p`, `σ p t → q p` as `t → -∞`, `q p` is not in the range of `σ p`, and for every `T` the
+closure of `σ p '' Iic T` is `σ p '' Iic T` together with `q p`; moreover, the closures of the
+ranges of the `σ p` are pairwise disjoint. -/
 theorem exists_isSmoothEmbedding_real_pairwiseDisjoint_of_mem_nhds (N : Finset M) {G : M → Set M}
     (hG : ∀ p ∈ N, G p ∈ 𝓝 p) :
-    ∃ (σ : M → ℝ → M) (q : M → M), (∀ p ∈ N, IsSmoothEmbedding 𝓘(ℝ) I ∞ (σ p) ∧ σ p 0 = p ∧
-      closure (range (σ p)) ⊆ G p ∧ q p ∈ closure (range (σ p)) ∧ q p ∉ range (σ p) ∧
-      ∀ T, closure (σ p '' Iic T) = insert (q p) (σ p '' Iic T)) ∧
+    ∃ (σ : M → ℝ → M) (q : M → M), (∀ p ∈ N, IsSmoothEmbedding 𝓘(ℝ) I ∞ (σ p)) ∧
+      (∀ p ∈ N, σ p 0 = p) ∧ (∀ p ∈ N, closure (range (σ p)) ⊆ G p) ∧
+      (∀ p ∈ N, Tendsto (σ p) atBot (𝓝 (q p))) ∧ (∀ p ∈ N, q p ∉ range (σ p)) ∧
+      (∀ p ∈ N, ∀ T, closure (σ p '' Iic T) = insert (q p) (σ p '' Iic T)) ∧
       (N : Set M).PairwiseDisjoint fun p ↦ closure (range (σ p)) := by
   classical
   obtain ⟨U, hU, hUd⟩ := N.finite_toSet.t2_separation
@@ -138,9 +140,8 @@ theorem exists_isSmoothEmbedding_real_pairwiseDisjoint_of_mem_nhds (N : Finset M
     Filter.inter_mem (hG p hp) ((hU p).2.mem_nhds (hU p).1)
   choose! σ q hσ hσ0 hσV hσq hqσ hσcl using fun p (hp : p ∈ N) ↦
     exists_isSmoothEmbedding_real_of_mem_nhds (I := I) (hGU p hp)
-  refine ⟨σ, q, fun p hp ↦ ⟨hσ p hp, hσ0 p hp, (hσV p hp).trans inter_subset_left,
-    mem_closure_of_tendsto (hσq p hp) (Filter.Eventually.of_forall mem_range_self), hqσ p hp,
-    hσcl p hp⟩, fun a ha b hb hab ↦ ?_⟩
+  refine ⟨σ, q, hσ, hσ0, fun p hp ↦ (hσV p hp).trans inter_subset_left, hσq, hqσ, hσcl,
+    fun a ha b hb hab ↦ ?_⟩
   exact (hUd ha hb hab).mono ((hσV a ha).trans inter_subset_right)
     ((hσV b hb).trans inter_subset_right)
 
