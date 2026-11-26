@@ -46,6 +46,8 @@ fixing `x`, be read on the isotropy algebra of `G` itself.
   inclusion of an embedded Lie subgroup is injective, with range its Lie algebra.
 * `TauCeti.Lie.EmbeddedLieSubgroupData.range_groupLieAlgebraMap_subtype_stabilizer`: for the
   identity component of `G_x`, that range is `𝔤_x`.
+* `TauCeti.Lie.EmbeddedLieSubgroupData.groupLieAlgebraMap_subtype_mem_isotropy`: for any
+  embedded Lie subgroup structure on `G_x` itself, that differential takes values in `𝔤_x`.
 * `TauCeti.Lie.EmbeddedLieSubgroupData.groupLieAlgebraEquivIsotropy`: that differential, as a
   linear equivalence from the tangent space at `1` of the identity component of `G_x` onto `𝔤_x`.
 
@@ -209,6 +211,27 @@ theorem range_groupLieAlgebraMap_subtype_stabilizer {x : M}
     lieSubalgebraOfSubgroup_map_connectedComponentOfOne_stabilizer (I' := I') h₁ x]
   exact Submodule.map_comap_eq_of_surjective
     (leftInvariantDerivationLieEquivGroupLieAlgebra (I := I) (G := G) h₁).toLinearEquiv.surjective _
+
+omit [IsTopologicalGroup G] in
+/-- For any embedded Lie subgroup structure on the stabilizer `G_x`, the differential at `1` of the
+inclusion `G_x → G` takes values in the isotropy algebra `𝔤_x = {ξ | ξ_M(x) = 0}`. -/
+theorem groupLieAlgebraMap_subtype_mem_isotropy {x : M}
+    (d : EmbeddedLieSubgroupData I (MulAction.stabilizer G x) F) :
+    let _ := d.chartedSpace
+    ∀ ζ, (MulAction.stabilizer G x).subtype.groupLieAlgebraMap 𝓘(ℝ, F) I ζ ∈
+      (InfinitesimalAction.fundamental I G I' M).isotropy x := by
+  let _ := d.chartedSpace
+  dsimp only
+  intro ζ
+  have h₁ : I.IsInteriorPoint (1 : G) := BoundarylessManifold.isInteriorPoint
+  have h : LinearMap.range
+      ((MulAction.stabilizer G x).subtype.groupLieAlgebraMap 𝓘(ℝ, F) I).toLinearMap =
+        ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule := by
+    rw [d.range_groupLieAlgebraMap_subtype h₁, lieSubalgebraOfSubgroup_stabilizer (I' := I') h₁ x]
+    exact Submodule.map_comap_eq_of_surjective
+      (leftInvariantDerivationLieEquivGroupLieAlgebra (I := I) (G := G) h₁).toLinearEquiv.surjective
+        _
+  exact (LieSubalgebra.mem_toSubmodule _).mp (h ▸ LinearMap.mem_range_self _ ζ)
 
 /-- **The tangent space at `1` of the identity component of a stabilizer, as the isotropy
 algebra.** For an embedded Lie subgroup structure on the identity component `K` of `G_x`, the
