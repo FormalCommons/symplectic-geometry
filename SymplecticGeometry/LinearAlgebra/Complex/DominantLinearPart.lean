@@ -17,8 +17,8 @@ public import TauCeti.Geometry.Symplectic.Restrict
 public import TauCeti.LinearAlgebra.Complex.LinearPart
 public import TauCeti.LinearAlgebra.Orientation.Exact.Basic
 import Mathlib.Analysis.Normed.Module.RCLike.Real
-import SymplecticGeometry.Analysis.Normed.Operator.SpanSingleton
 import SymplecticGeometry.LinearAlgebra.Complex.LinearPart
+import TauCeti.Analysis.Normed.Module.FiniteDimension
 import TauCeti.Analysis.Normed.Operator.FiniteDimensional
 
 /-!
@@ -68,8 +68,9 @@ parts of `A` and `B` give `x = -J (a + b)` and `y = a - b`, with `ω x y = ‖a�
 `TauCeti.AlmostComplexStructure.inner_sq_add_inner_sq_le`). The kernel is then the symplectic
 complement of the plane spanned by `x` and `y`, on which `F` is orientation preserving.
 
-For a map to a complex line `W`, a unit vector of `W` gives a complex-linear isometry `W ≃ ℂ`
-(`LinearIsometryEquiv.toSpanSingleton`). Composing with it keeps the norms of both parts
+For a map to a complex line `W`, Tau Ceti's
+`TauCeti.nonempty_linearIsometryEquiv_of_finrank_eq_one` gives a complex-linear isometry
+`W ≃ ℂ`. Composing with it keeps the norms of both parts
 (`TauCeti.IsComplexLinear.complexLinearPart_comp`,
 `TauCeti.IsComplexLinear.complexAntilinearPart_comp`), the kernel and surjectivity, so the case of
 `ℂ` applies.
@@ -344,9 +345,8 @@ private theorem exists_norm_complexAntilinearPart_comp_lt (hW : finrank ℂ W = 
       ‖LinearMap.toContinuousLinearMap (complexLinearPart J.toLinearMap
         (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
         (ψ.toLinearMap ∘ₗ (F : V →ₗ[ℝ] W)))‖ := by
-  have : Nontrivial W := Module.nontrivial_of_finrank_eq_succ hW
-  obtain ⟨u, hu⟩ := exists_norm_eq W zero_le_one
-  set φ := (LinearIsometryEquiv.toSpanSingleton ℂ W hW hu).symm
+  obtain ⟨e⟩ := nonempty_linearIsometryEquiv_of_finrank_eq_one hW
+  set φ := e.symm
   set ψ : W →ₗᵢ[ℝ] ℂ := ⟨(φ : W →ₗ[ℂ] ℂ).restrictScalars ℝ, φ.norm_map⟩
   have hψ : IsComplexLinear (AlmostComplexStructure.ofComplexModule W).toLinearMap
       (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap ψ.toLinearMap :=
