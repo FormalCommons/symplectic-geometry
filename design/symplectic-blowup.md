@@ -382,7 +382,7 @@ $B(\lambda)$.
 
 ### `Blowup/Weight/Collapse.lean`
 
-- `collapseMap ψ λ ε : ((ψ '' ball 0 λ)ᶜ : Set M) → WeightBlowup hψ hλ hε`:
+- `collapseMap hψ hλ hε : ((ψ '' ball 0 λ)ᶜ : Set M) → WeightBlowup hψ hλ.le hε`, for `0 < λ`:
   `inl` off $\psi(B(\lambda))$, and $\psi(w)\mapsto$ `divisor [w]` for
   $|w|=\lambda$; continuous, surjective, closed (proper, from a closed
   subset of `M`), so a quotient map; its fibres are the points off the

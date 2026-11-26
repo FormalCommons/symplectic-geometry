@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.OpenEmbedding
+public import SymplecticGeometry.Topology.OpenPartialHomeomorph.SourceRestrict
 public import TauCeti.Topology.OpenPartialHomeomorph.Basic
 public import TauCeti.Topology.VectorBundle.Trivialization
 public import TauCeti.Topology.VectorBundle.ZeroSection
@@ -233,9 +234,7 @@ theorem localHomologyMap_localChart_comp_localHomologyMap_proj (hS : IsOpen S)
         (localHomologyIsoOfIsOpenEmbedding R c.open_source.isOpenEmbedding_subtypeVal
           (⟨b, hb⟩ : c.source) k).inv ≫
         localHomologyMap R c.sourceRestrict
-          -- The ascription types the singleton in `c.source`, as `localHomologyMap_comp` needs.
-          (show c.sourceRestrict ⁻¹' {0} ⊆ {(⟨b, hb⟩ : c.source)} from
-            fun _ hx ↦ Subtype.ext (c.sourceRestrict_preimage hb (by rwa [hcb]))) k =
+          (hcb ▸ (c.sourceRestrict_preimage_singleton hb).subset) k =
       localHomologyMap R (ContinuousMap.subtypeVal (univ ×ˢ S : Set (P × Q)))
           (T := (Prod.snd ⁻¹' {0} : Set (P × Q))) subset_rfl k ≫
         localHomologyMap R (.mk Prod.snd continuous_snd) (T := {(0 : Q)}) subset_rfl k := by
@@ -269,12 +268,14 @@ at `b` in the chart `c` (excision to the source of `c`, then `c`), is the map
 `Hₖ(P × Q, P × Q ∖ (P × {0})) ⟶ Hₖ(Q, Q ∖ {0})` induced by the second projection. -/
 theorem localChartFiberLocalHomologyIso_hom_comp_localHomologyMap_proj (hS : IsOpen S)
     (hSc : S ⊆ c.target) (hSe : MapsTo c.symm S e.baseSet) (hb : b ∈ c.source) (hcb : c b = 0)
-    (h0 : (0 : Q) ∈ S) (h : c.sourceRestrict ⁻¹' {0} ⊆ {(⟨b, hb⟩ : c.source)}) (k : ℕ) :
+    (h0 : (0 : Q) ∈ S) (k : ℕ) :
     (localChartFiberLocalHomologyIso R hS hSc hSe hb hcb h0 k).hom ≫
         localHomologyMap R (.mk (π P E) (FiberBundle.continuous_proj P E))
           (T := {((⟨b, hb⟩ : c.source) : B)}) subset_rfl k ≫
         (localHomologyIsoOfIsOpenEmbedding R c.open_source.isOpenEmbedding_subtypeVal
-          (⟨b, hb⟩ : c.source) k).inv ≫ localHomologyMap R c.sourceRestrict h k =
+          (⟨b, hb⟩ : c.source) k).inv ≫
+        localHomologyMap R c.sourceRestrict
+          (hcb ▸ (c.sourceRestrict_preimage_singleton hb).subset) k =
       localHomologyMap R (.mk Prod.snd continuous_snd) (T := {(0 : Q)})
         (S := (Prod.snd ⁻¹' {0} : Set (P × Q))) subset_rfl k := by
   rw [localChartFiberLocalHomologyIso_hom _ _ _ _ _ _ _

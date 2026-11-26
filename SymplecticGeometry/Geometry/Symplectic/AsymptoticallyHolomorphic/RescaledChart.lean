@@ -14,6 +14,7 @@ public import SymplecticGeometry.LinearAlgebra.Symplectic.UnitaryNormalForm
 import SymplecticGeometry.Analysis.Normed.Module.Ball.Pointwise
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.LocalSection
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
+import SymplecticGeometry.Geometry.Symplectic.Liouville.RadialPrimitive
 import SymplecticGeometry.Topology.Algebra.Module.Equiv.Basic
 
 /-!
@@ -79,8 +80,9 @@ Darboux charts whose sources lie in base sets of trivializations of `P`, rescale
 form over the balls of radius `D.radius`. The frames do not depend on `k`, since rescaling the
 chart by `c` multiplies the model form read in it by `c⁻²`
 (`SymplecticGeometry.CenteredDarbouxCharts.mpullback_rescaledChart_symm_apply` and
-`TauCeti.SymplecticForm.mpullback_const_smul_radialPrimitive`). The construction follows Auroux's
-local normalization of the charts for `k Ω` [Auroux2002, Lemma 1].
+`TauCeti.SymplecticForm.mpullback_const_smul_radialPrimitive`, in
+`SymplecticGeometry.Geometry.Symplectic.Liouville.RadialPrimitive`). The construction follows
+Auroux's local normalization of the charts for `k Ω` [Auroux2002, Lemma 1].
 
 ## Main definitions
 

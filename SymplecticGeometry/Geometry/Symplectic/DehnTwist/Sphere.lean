@@ -23,7 +23,6 @@ import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Diffeotopy
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Submanifold
 import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.Rescaling
-import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.Isotropic
 import TauCeti.Data.Set.Function
 import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
@@ -159,8 +158,8 @@ subgroup `TauCeti.SmoothForm.compactlySupportedIsotopyStabilizer σ`.
 
 To move `ι` along a diffeotopy `Φ` of `Sⁿ`, the isotopy `t ↦ f ∘ Φ_t`
 (`TauCeti.Diffeotopy.precompSmoothIsotopy`) keeps the pullback of `σ` at `0`
-(`TauCeti.CotangentBundle.mpullback_eq_zero_of_apply_zeroSection`: the zero section is
-Lagrangian), so
+(`SymplecticGeometry.CotangentBundle.IsWeinsteinChart.mpullback_eq_zero`: the zero section
+is Lagrangian), so
 `TauCeti.SmoothIsotopy.exists_isSymplectic_extension_of_mpullback_eq` extends it to a symplectic
 isotopy `F` of an open neighbourhood `U₀` of `f(Sⁿ)`. On the open set `W` of the points of `U`
 that `ι` maps into `U₀`, `ι` is an injective local diffeomorphism into `U₀`, hence a smooth
@@ -602,10 +601,7 @@ private theorem exists_isSymplectic_extension_precompSmoothIsotopy [IsManifold I
   obtain ⟨U₀, hU₀, e₀, e₁, he₀, F, hFσ, hFe⟩ :=
     SmoothIsotopy.exists_isSymplectic_extension_of_mpullback_eq hσ f (Φ.precompSmoothIsotopy f)
       fun t ↦ by
-        have h0 :=
-          CotangentBundle.mpullback_eq_zero_of_apply_zeroSection ι.contMDiff
-            (SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq.1 hι.isSymplectomorphism)
-            hι.exists_apply_eq
+        have h0 := hι.mpullback_eq_zero
         have ht : (fun q ↦ Φ.precompSmoothIsotopy f (t, q)) = f ∘ Φ.timeSlice t :=
           funext fun q ↦ by simp [Diffeotopy.timeSlice_apply]
         rw [ht, ← SmoothForm.coe_mpullback _ (f.contMDiff.comp (Φ.timeSlice t).contMDiff),
@@ -814,30 +810,28 @@ theorem exists_diffeotopy_dehnTwist_eq [IsManifold I ∞ M] [I.Boundaryless]
   simpa only [mul_inv_rev, inv_inv, mul_assoc, inv_mul_cancel_left] using mul_mem (inv_mem hA) hB
 
 /-- **The twist along an exact Lagrangian sphere is exact.** Let `ι` be a Weinstein chart of
-`f : Sⁿ → M` for `σ`, and let `θ` be a one-form on `M` with `dθ = σ` such that `f^*θ = dh` for a
-smooth function `h` on `Sⁿ`. Then the Dehn twist `Φ` of `ι` and a profile `R` of radius `r₀`
-satisfies `Φ^*θ - θ = dK` for a smooth function `K` on `M` that vanishes off
-`ι '' {z | μ z ≤ r₀}`. -/
+`f : Sⁿ → M` for `σ`, and let `θ` be a one-form on `M` with `dθ = σ` such that `f^*θ` is exact.
+Then the Dehn twist `Φ` of `ι` and a profile `R` of radius `r₀` satisfies `Φ^*θ - θ = dK` for a
+smooth function `K` on `M` that vanishes off `ι '' {z | μ z ≤ r₀}`. -/
 theorem exists_mpullback_dehnTwist_sub_eq [IsManifold I ∞ M] {σ : SmoothTwoForm I M}
     {f : (𝕊 n) → M} {ι : U ≃ₘ⟮𝓣 n, I⟯ V} (hι : CotangentBundle.IsWeinsteinChart σ f ι)
     (hR : IsTwistProfile R r₀) (hU : {z : 𝕋 n | cotangentNorm z ≤ r₀} ⊆ (U : Set (𝕋 n)))
     (θ : SmoothForm I M ℝ 1) (hθ : mextDerivₗ I 1 θ = σ)
-    (hθL : ∃ h : C^∞⟮𝓡 n, 𝕊 n; ℝ⟯, SmoothForm.mpullback f hι.contMDiff θ =
-      mextDerivₗ (𝓡 n) 0 (SmoothForm.ofFunction h)) :
+    (hθL : SmoothForm.mpullback f hι.contMDiff θ ∈ exactForms (𝓡 n) (𝕊 n) 1) :
     ∃ K : C^∞⟮I, M; ℝ⟯,
       (∀ x ∉ (fun z : U ↦ (ι z : M)) '' {z | cotangentNorm (z : 𝕋 n) ≤ r₀}, K x = 0) ∧
       SmoothForm.mpullback (dehnTwist ι hR hU) (dehnTwist ι hR hU).contMDiff θ - θ =
         mextDerivₗ I 0 (SmoothForm.ofFunction K) := by
-  obtain ⟨h, hh⟩ := hθL
+  obtain ⟨h, hhs, hdh⟩ := exists_contMDiff_mextDeriv_eq_of_mem_exactForms (𝓡 n) hθL
   have hθh : TauCeti.mpullback (𝓡 n) I f θ.val = mextDeriv (RoughForm.ofFunction (𝓡 n) h) := by
-    simpa using congrArg Subtype.val hh
+    simpa using hdh.symm
   -- Step 1: a primitive `g` of `ι^*θ - λ` on `W = {μ < r₁}`, for some `r₁ > r₀`.
   obtain ⟨r₁, hr₁, hr₁U⟩ := exists_gt_setOfPred_cotangentNorm_le_subset (U.isOpen.mem_nhdsSet.2 hU)
   set W : Set (𝕋 n) := {z | cotangentNorm z < r₁} with hW
   have hWo : IsOpen W := isOpen_lt continuous_cotangentNorm continuous_const
   have hWU : closure W ⊆ U :=
     (closure_lt_subset_le continuous_cotangentNorm continuous_const).trans hr₁U
-  obtain ⟨g, hg, hdg⟩ := hι.exists_contMDiff_mextDeriv_ofFunction_eq hθ h.contMDiff hθh
+  obtain ⟨g, hg, hdg⟩ := hι.exists_contMDiff_mextDeriv_ofFunction_eq hθ hhs hθh
     (fun z hz t ↦ vectorBundleFiberScaling_mem_setOfPred_cotangentNorm_lt hz t) hWU
     fun q ↦ by
       rw [mem_ofPred_eq, cotangentNorm_zeroSection]
@@ -916,15 +910,9 @@ theorem exists_mpullback_dehnTwist_sub_eq_of_two_le [IsManifold I ∞ M] (hn : 2
   refine exists_mpullback_dehnTwist_sub_eq hι hR hU θ hθ ?_
   -- `f^*θ` is closed, as `d (f^*θ) = f^*σ = 0`, and `Sⁿ` is simply connected.
   have := simplyConnectedSpace_sphere_euclideanSpace hn
-  have hclosed : SmoothForm.mpullback f hι.contMDiff θ ∈ closedForms (𝓡 n) (𝕊 n) 1 := by
-    rw [mem_closedForms_iff_mextDerivₗ_eq_zero, SmoothForm.mextDerivₗ_mpullback, hθ]
-    exact CotangentBundle.mpullback_eq_zero_of_apply_zeroSection ι.contMDiff
-      (SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq.1 hι.isSymplectomorphism)
-      hι.exists_apply_eq
-  rw [← exactForms_one_eq_closedForms_of_simplyConnectedSpace, exactForms_succ,
-    LinearMap.mem_range] at hclosed
-  obtain ⟨ψ, hψ⟩ := hclosed
-  exact ⟨SmoothForm.ofFunctionEquiv.symm ψ, by rw [SmoothForm.ofFunction_ofFunctionEquiv_symm, hψ]⟩
+  rw [exactForms_one_eq_closedForms_of_simplyConnectedSpace,
+    mem_closedForms_iff_mextDerivₗ_eq_zero, SmoothForm.mextDerivₗ_mpullback, hθ]
+  exact hι.mpullback_eq_zero
 
 /-- **The Dehn twist along a framed Lagrangian sphere**, for `n ≥ 1`. The statement collects:
 
@@ -1055,7 +1043,10 @@ theorem dehnTwist_isSymplectic_and_framing_invariant [NeZero n] [IsManifold I �
     fun hι ↦ fun hR hU θ hθ hθL ↦ ?_⟩
   rcases hθL with hn | hθL
   · exact exists_mpullback_dehnTwist_sub_eq_of_two_le hn hι hR hU θ hθ
-  · exact exists_mpullback_dehnTwist_sub_eq hι hR hU θ hθ hθL
+  · obtain ⟨h, hh⟩ := hθL
+    refine exists_mpullback_dehnTwist_sub_eq hι hR hU θ hθ ?_
+    rw [hh, exactForms_succ]
+    exact LinearMap.mem_range_self _ _
 
 end Twist
 
