@@ -436,13 +436,6 @@ protected theorem fun_smul (hα : IsSmoothFamily J α) {c : N → ℝ}
   simp only [Submodule.coe_smul, verticalForm_fun_smul_fst]
   exact hα.fun_smul (hc.comp contMDiff_fst)
 
-/-- The product of a smooth family with a fixed smooth function on `M` is smooth. -/
-protected theorem funSMul (hα : IsSmoothFamily J α) (g : C^∞⟮I, M; ℝ⟯) :
-    IsSmoothFamily J (fun t ↦ SmoothForm.funSMulₗ g (α t)) := by
-  rw [isSmoothFamily_iff_isSmoothForm] at hα ⊢
-  simp only [SmoothForm.coe_funSMulₗ, verticalForm_fun_smul]
-  exact hα.fun_smul (g.contMDiff.comp contMDiff_snd)
-
 /-- The product of a smooth family with a family `g` of smooth functions on `M` is smooth when
 `g` is jointly smooth, as a function of the parameter and the point. -/
 protected theorem funSMul_family (hα : IsSmoothFamily J α) (g : N → C^∞⟮I, M; ℝ⟯)
@@ -453,6 +446,11 @@ protected theorem funSMul_family (hα : IsSmoothFamily J α) (g : N → C^∞⟮
   refine ⟨SmoothForm.funSMulₗ G Ω, fun t ↦ ?_⟩
   rw [SmoothForm.mpullback_funSMulₗ, hΩ]
   congr 1
+
+/-- The product of a smooth family with a fixed smooth function on `M` is smooth. -/
+protected theorem funSMul (hα : IsSmoothFamily J α) (g : C^∞⟮I, M; ℝ⟯) :
+    IsSmoothFamily J (fun t ↦ SmoothForm.funSMulₗ g (α t)) :=
+  hα.funSMul_family (fun _ ↦ g) (g.contMDiff.comp contMDiff_snd)
 
 end IsSmoothFamily
 
