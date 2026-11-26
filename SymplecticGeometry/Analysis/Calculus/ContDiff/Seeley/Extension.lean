@@ -24,8 +24,12 @@ reflection `t ↦ 1 - t`, extends functions on `[0, 1]`. Both operators are bund
 maps on `ℝ → F`, `seeleyExtendLinearMap` and `seeleyIccExtendLinearMap`.
 
 The main results say that the extension of a family `f (·, x)` that is smooth on
-`Ici 0 ×ˢ U` (respectively `Icc 0 1 ×ˢ U`), for `U` open in a normed space, is smooth on
-`univ ×ˢ U`. No completeness of the target space is needed, unlike for Tau Ceti's
+`Ici 0 ×ˢ U` (respectively `Icc 0 1 ×ˢ U`) is smooth on `univ ×ˢ U`, where `U` is an open set
+of a normed space or, more generally, the intersection `C ∩ O` of a convex set `C` with unique
+differentials and an open set `O`, such as the range of a model with corners cut by an open set.
+The proof needs only that each point of `U` has convex neighbourhoods in `U`, and that `U` has
+unique differentials, so that Taylor series within `Ici 0 ×ˢ U` are determined. No completeness
+of the target space is needed, unlike for Tau Ceti's
 `TauCeti.HalfSpaceExtension.seeleyExtension` on all of `ℝ × E`, whose cutoff is also different.
 
 The proof follows Tau Ceti's `TauCeti.HalfSpaceExtension.contDiff_halfSpaceReflection`, with
@@ -50,6 +54,8 @@ two series glue across `t = 0` by `HasFTaylorSeriesUpToOn.union`. The uniform co
 
 * `SymplecticGeometry.contDiffOn_seeleyExtend`, `SymplecticGeometry.contDiffOn_seeleyIccExtend`:
   the extensions of smooth families are smooth.
+* `SymplecticGeometry.contDiffOn_seeleyExtend_of_convex`,
+  `SymplecticGeometry.contDiffOn_seeleyIccExtend_of_convex`: the same for parameters in `C ∩ O`.
 * `SymplecticGeometry.contDiff_seeleyExtend`: the extension of a function smooth on `[0, ∞)` is
   smooth.
 * `SymplecticGeometry.exists_contDiffOn_eqOn_Icc_prod`: a family smooth on `Icc a b ×ˢ U` agrees
@@ -289,7 +295,7 @@ theorem _root_.LinearMap.map_seeleyIccExtend (L : F →ₗ[ℝ] G) (f : ℝ → 
 
 section Smooth
 
-variable {U : Set E} {h : ℝ × E → F}
+variable {C O : Set E} {h : ℝ × E → F}
 
 /-- A sequence whose terms at a point of negative time vanish once the dilated time exceeds `1`
 has finite support, so it is summable. -/
@@ -310,58 +316,60 @@ private theorem ftaylorSeriesWithin_eq_zero (h1 : ∀ z : ℝ × E, 1 ≤ z.1 �
   simp only [ftaylorSeriesWithin]
   rw [hev.iteratedFDerivWithin_eq (h1 z hz.le), iteratedFDerivWithin_zero, Pi.zero_apply]
 
-/-- The Taylor coefficients of `h` of each order are bounded on `Ici 0 ×ˢ ball x₀ r` for some
-`r`, when `h` vanishes for times at least `1`. -/
-private theorem exists_bound_ftaylorSeriesWithin (hU : IsOpen U)
-    (hh : ContDiffOn ℝ ∞ h (Ici 0 ×ˢ U)) (h1 : ∀ z : ℝ × E, 1 ≤ z.1 → h z = 0) (m : ℕ)
-    {x₀ : E} (hx₀ : x₀ ∈ U) :
-    ∃ r > 0, ∃ M, 0 ≤ M ∧ Metric.ball x₀ r ⊆ U ∧ ∀ z : ℝ × E, 0 ≤ z.1 →
-      z.2 ∈ Metric.ball x₀ r → ‖ftaylorSeriesWithin ℝ h (Ici 0 ×ˢ U) z m‖ ≤ M := by
-  set p := ftaylorSeriesWithin ℝ h (Ici 0 ×ˢ U) with hp_def
-  have hc : ContinuousOn (fun z ↦ p z m) (Ici 0 ×ˢ U) :=
-    (hh.ftaylorSeriesWithin ((uniqueDiffOn_Ici 0).prod hU.uniqueDiffOn)).cont m
+/-- The Taylor coefficients of `h` of each order are bounded on `Ici 0 ×ˢ (C ∩ ball x₀ r)` for
+some `r` with `ball x₀ r ⊆ O`, when `h` vanishes for times at least `1`. -/
+private theorem exists_bound_ftaylorSeriesWithin (hC : UniqueDiffOn ℝ C) (hO : IsOpen O)
+    (hh : ContDiffOn ℝ ∞ h (Ici 0 ×ˢ (C ∩ O))) (h1 : ∀ z : ℝ × E, 1 ≤ z.1 → h z = 0) (m : ℕ)
+    {x₀ : E} (hx₀ : x₀ ∈ C ∩ O) :
+    ∃ r > 0, ∃ M, 0 ≤ M ∧ Metric.ball x₀ r ⊆ O ∧ ∀ z : ℝ × E, 0 ≤ z.1 → z.2 ∈ C →
+      z.2 ∈ Metric.ball x₀ r → ‖ftaylorSeriesWithin ℝ h (Ici 0 ×ˢ (C ∩ O)) z m‖ ≤ M := by
+  set p := ftaylorSeriesWithin ℝ h (Ici 0 ×ˢ (C ∩ O)) with hp_def
+  have hc : ContinuousOn (fun z ↦ p z m) (Ici 0 ×ˢ (C ∩ O)) :=
+    (hh.ftaylorSeriesWithin ((uniqueDiffOn_Ici 0).prod (hC.inter hO))).cont m
       (by exact_mod_cast le_top)
   have hK : IsCompact (Icc (0 : ℝ) 1 ×ˢ {x₀}) := isCompact_Icc.prod isCompact_singleton
-  have hKs : Icc (0 : ℝ) 1 ×ˢ {x₀} ⊆ Ici 0 ×ˢ U :=
+  have hKs : Icc (0 : ℝ) 1 ×ˢ {x₀} ⊆ Ici 0 ×ˢ (C ∩ O) :=
     prod_mono Icc_subset_Ici_self (singleton_subset_iff.mpr hx₀)
-  obtain ⟨C, hC⟩ := hK.exists_bound_of_continuousOn (hc.mono hKs)
-  obtain ⟨u, hu, hpre⟩ := continuousOn_iff'.1 hc {A | ‖A‖ < C + 1}
+  obtain ⟨K, hKb⟩ := hK.exists_bound_of_continuousOn (hc.mono hKs)
+  obtain ⟨u, hu, hpre⟩ := continuousOn_iff'.1 hc {A | ‖A‖ < K + 1}
     (isOpen_lt continuous_norm continuous_const)
   have hKu : Icc (0 : ℝ) 1 ×ˢ {x₀} ⊆ u := fun z hz ↦ by
-    have hz' : z ∈ (fun z ↦ p z m) ⁻¹' {A | ‖A‖ < C + 1} ∩ Ici 0 ×ˢ U :=
-      ⟨(hC z hz).trans_lt (lt_add_one C), hKs hz⟩
+    have hz' : z ∈ (fun z ↦ p z m) ⁻¹' {A | ‖A‖ < K + 1} ∩ Ici 0 ×ˢ (C ∩ O) :=
+      ⟨(hKb z hz).trans_lt (lt_add_one K), hKs hz⟩
     rw [hpre] at hz'
     exact hz'.1
-  obtain ⟨r, hr, hru⟩ := isCompact_Icc.exists_prod_ball_subset (hu.inter (isOpen_univ.prod hU))
-    fun z hz ↦ ⟨hKu hz, trivial, hKs hz |>.2⟩
-  have hrU : Metric.ball x₀ r ⊆ U := fun x hx ↦
+  obtain ⟨r, hr, hru⟩ := isCompact_Icc.exists_prod_ball_subset (hu.inter (isOpen_univ.prod hO))
+    fun z hz ↦ ⟨hKu hz, trivial, (hKs hz).2.2⟩
+  have hrO : Metric.ball x₀ r ⊆ O := fun x hx ↦
     (hru (mk_mem_prod (left_mem_Icc.2 (zero_le_one' ℝ)) hx)).2.2
-  refine ⟨r, hr, max (C + 1) 0, le_max_right _ _, hrU, fun z hz₀ hz ↦ ?_⟩
+  refine ⟨r, hr, max (K + 1) 0, le_max_right _ _, hrO, fun z hz₀ hzC hz ↦ ?_⟩
   rcases le_or_gt z.1 1 with hz₁ | hz₁
-  · have hzu : z ∈ u ∩ Ici 0 ×ˢ U := ⟨(hru ⟨⟨hz₀, hz₁⟩, hz⟩).1, hz₀, hrU hz⟩
+  · have hzu : z ∈ u ∩ Ici 0 ×ˢ (C ∩ O) := ⟨(hru ⟨⟨hz₀, hz₁⟩, hz⟩).1, hz₀, hzC, hrO hz⟩
     rw [← hpre] at hzu
     exact hzu.1.le.trans (le_max_left _ _)
   · rw [hp_def, ftaylorSeriesWithin_eq_zero h1 hz₁, norm_zero]
     exact le_max_right _ _
 
-/-- Seeley's sum `∑ₖ aₖ h (timeScale (-2 ^ k) z)` has, on the lower half of `univ ×ˢ U`, the
-Taylor series whose coefficients are the corresponding sums of the dilated coefficients of `h`. -/
-private theorem hasFTaylorSeriesUpToOn_seeleySum (hU : IsOpen U)
-    (hh : ContDiffOn ℝ ∞ h (Ici 0 ×ˢ U)) (h1 : ∀ z : ℝ × E, 1 ≤ z.1 → h z = 0) :
+/-- Seeley's sum `∑ₖ aₖ h (timeScale (-2 ^ k) z)` has, on the lower half of `univ ×ˢ (C ∩ O)`,
+the Taylor series whose coefficients are the corresponding sums of the dilated coefficients of
+`h`. -/
+private theorem hasFTaylorSeriesUpToOn_seeleySum (hCc : Convex ℝ C) (hC : UniqueDiffOn ℝ C)
+    (hO : IsOpen O) (hh : ContDiffOn ℝ ∞ h (Ici 0 ×ˢ (C ∩ O)))
+    (h1 : ∀ z : ℝ × E, 1 ≤ z.1 → h z = 0) :
     HasFTaylorSeriesUpToOn ∞ (fun z ↦ ∑' k, seeleyCoeff k • h (timeScale (-2 ^ k) z))
       (fun z m ↦ ∑' k, seeleyCoeff k •
-        (ftaylorSeriesWithin ℝ h (Ici 0 ×ˢ U) (timeScale (-2 ^ k) z) m).compContinuousLinearMap
-          fun _ ↦ timeScale (-2 ^ k))
-      (Iic 0 ×ˢ U) := by
-  set p := ftaylorSeriesWithin ℝ h (Ici 0 ×ˢ U) with hp_def
-  have hp : HasFTaylorSeriesUpToOn ∞ h p (Ici 0 ×ˢ U) :=
-    hh.ftaylorSeriesWithin ((uniqueDiffOn_Ici 0).prod hU.uniqueDiffOn)
-  have hval {z : ℝ × E} (hz : z ∈ Iic 0 ×ˢ U) :
+        (ftaylorSeriesWithin ℝ h (Ici 0 ×ˢ (C ∩ O)) (timeScale (-2 ^ k) z)
+          m).compContinuousLinearMap fun _ ↦ timeScale (-2 ^ k))
+      (Iic 0 ×ˢ (C ∩ O)) := by
+  set p := ftaylorSeriesWithin ℝ h (Ici 0 ×ˢ (C ∩ O)) with hp_def
+  have hp : HasFTaylorSeriesUpToOn ∞ h p (Ici 0 ×ˢ (C ∩ O)) :=
+    hh.ftaylorSeriesWithin ((uniqueDiffOn_Ici 0).prod (hC.inter hO))
+  have hval {z : ℝ × E} (hz : z ∈ Iic 0 ×ˢ (C ∩ O)) :
       Summable fun k ↦ seeleyCoeff k • h (timeScale (-2 ^ k) z) := by
     rcases hz.1.lt_or_eq with hz₀ | hz₀
     · exact summable_of_fst_neg hz₀ fun k hk ↦ by rw [h1 _ hk.le, smul_zero]
     · exact (hasSum_seeleyCoeff_smul_timeScale_of_fst_eq_zero h hz₀).summable
-  have hcoef (m : ℕ) {z : ℝ × E} (hz : z ∈ Iic 0 ×ˢ U) :
+  have hcoef (m : ℕ) {z : ℝ × E} (hz : z ∈ Iic 0 ×ˢ (C ∩ O)) :
       Summable fun k ↦ seeleyCoeff k •
         (p (timeScale (-2 ^ k) z) m).compContinuousLinearMap fun _ ↦ timeScale (-2 ^ k) := by
     rcases hz.1.lt_or_eq with hz₀ | hz₀
@@ -372,25 +380,26 @@ private theorem hasFTaylorSeriesUpToOn_seeleySum (hU : IsOpen U)
     · exact (hasSum_seeleyCoeff_smul_compContinuousLinearMap_timeScale_of_fst_eq_zero p hz₀
         m).summable
   have hnhds {z : ℝ × E} {r : ℝ} (hr : 0 < r) :
-      Iic 0 ×ˢ Metric.ball z.2 r ∈ 𝓝[Iic 0 ×ˢ U] z :=
+      Iic 0 ×ˢ (C ∩ Metric.ball z.2 r) ∈ 𝓝[Iic 0 ×ˢ (C ∩ O)] z :=
     mem_nhdsWithin.2 ⟨univ ×ˢ Metric.ball z.2 r, isOpen_univ.prod Metric.isOpen_ball,
-      ⟨trivial, Metric.mem_ball_self hr⟩, fun y hy ↦ ⟨hy.2.1, hy.1.2⟩⟩
+      ⟨trivial, Metric.mem_ball_self hr⟩, fun y hy ↦ ⟨hy.2.1, hy.2.2.1, hy.1.2⟩⟩
   refine HasFTaylorSeriesUpToOn.of_tendstoLocallyUniformlyOn_of_convex (l := atTop)
     (fᵢ := fun S z ↦ ∑ k ∈ S, seeleyCoeff k • h (timeScale (-2 ^ k) z))
     (qᵢ := fun S z m ↦ ∑ k ∈ S, seeleyCoeff k •
       (p (timeScale (-2 ^ k) z) m).compContinuousLinearMap fun _ ↦ timeScale (-2 ^ k))
     (fun z hz ↦ ?_) (fun S ↦ ?_) (fun m _ ↦ ?_) (fun z hz ↦ (hval hz).hasSum)
-  · obtain ⟨r, hr, hrU⟩ := Metric.isOpen_iff.1 hU z.2 hz.2
-    exact ⟨Iic 0 ×ˢ Metric.ball z.2 r, prod_mono subset_rfl hrU,
-      (convex_Iic 0).prod (convex_ball _ _), hnhds hr⟩
+  · obtain ⟨r, hr, hrO⟩ := Metric.isOpen_iff.1 hO z.2 hz.2.2
+    exact ⟨Iic 0 ×ˢ (C ∩ Metric.ball z.2 r),
+      prod_mono subset_rfl (inter_subset_inter_right _ hrO),
+      (convex_Iic 0).prod (hCc.inter (convex_ball _ _)), hnhds hr⟩
   · exact HasFTaylorSeriesUpToOn.sum fun k _ ↦
       ((hp.compContinuousLinearMap (timeScale (-2 ^ k))).const_smul (seeleyCoeff k)).mono
         fun z hz ↦ ⟨mem_upperHalfSpace.1 (timeScale_neg_two_pow_mem_upperHalfSpace k hz.1),
           by simpa using hz.2⟩
   · refine tendstoLocallyUniformlyOn_of_forall_exists_nhds fun z hz ↦ ?_
-    obtain ⟨r, hr, M, hM₀, hrU, hM⟩ := exists_bound_ftaylorSeriesWithin hU hh h1 m hz.2
+    obtain ⟨r, hr, M, hM₀, hrO, hM⟩ := exists_bound_ftaylorSeriesWithin hC hO hh h1 m hz.2
     refine ⟨_, hnhds hr, tendstoUniformlyOn_finsetSum_of_hasSum
-      (fun y hy ↦ (hcoef m ⟨hy.1, hrU hy.2⟩).hasSum)
+      (fun y hy ↦ (hcoef m ⟨hy.1, hy.2.1, hrO hy.2.2⟩).hasSum)
       ((summable_abs_seeleyCoeff_mul_pow m).mul_right M) fun k y hy ↦ ?_⟩
     have hτ : ‖timeScale (E := E) (-2 ^ k)‖ ≤ 2 ^ k := by
       refine (norm_timeScale_le _).trans_eq ?_
@@ -402,30 +411,30 @@ private theorem hasFTaylorSeriesUpToOn_seeleySum (hU : IsOpen U)
         gcongr
         refine (ContinuousMultilinearMap.norm_compContinuousLinearMap_le _ _).trans ?_
         gcongr with i
-        exact hM _ hy' (by simpa using hy.2)
+        exact hM _ hy' (by simpa using hy.2.1) (by simpa using hy.2.2)
       _ = |seeleyCoeff k| * ((2 : ℝ) ^ k) ^ m * M := by
         rw [Finset.prod_const, Finset.card_univ, Fintype.card_fin]
         ring
 
 /-- The function equal to `h` for nonnegative times and to Seeley's sum of `h` for negative
-times is smooth on `univ ×ˢ U`. -/
-private theorem contDiffOn_seeleyGlue (hU : IsOpen U) (hh : ContDiffOn ℝ ∞ h (Ici 0 ×ˢ U))
-    (h1 : ∀ z : ℝ × E, 1 ≤ z.1 → h z = 0) :
+times is smooth on `univ ×ˢ (C ∩ O)`. -/
+private theorem contDiffOn_seeleyGlue (hCc : Convex ℝ C) (hC : UniqueDiffOn ℝ C) (hO : IsOpen O)
+    (hh : ContDiffOn ℝ ∞ h (Ici 0 ×ˢ (C ∩ O))) (h1 : ∀ z : ℝ × E, 1 ≤ z.1 → h z = 0) :
     ContDiffOn ℝ ∞ (fun z ↦ if 0 ≤ z.1 then h z
-      else ∑' k, seeleyCoeff k • h (timeScale (-2 ^ k) z)) (univ ×ˢ U) := by
-  set p := ftaylorSeriesWithin ℝ h (Ici 0 ×ˢ U)
-  have hp : HasFTaylorSeriesUpToOn ∞ h p (Ici 0 ×ˢ U) :=
-    hh.ftaylorSeriesWithin ((uniqueDiffOn_Ici 0).prod hU.uniqueDiffOn)
-  have hq := hasFTaylorSeriesUpToOn_seeleySum hU hh h1
+      else ∑' k, seeleyCoeff k • h (timeScale (-2 ^ k) z)) (univ ×ˢ (C ∩ O)) := by
+  set p := ftaylorSeriesWithin ℝ h (Ici 0 ×ˢ (C ∩ O))
+  have hp : HasFTaylorSeriesUpToOn ∞ h p (Ici 0 ×ˢ (C ∩ O)) :=
+    hh.ftaylorSeriesWithin ((uniqueDiffOn_Ici 0).prod (hC.inter hO))
+  have hq := hasFTaylorSeriesUpToOn_seeleySum hCc hC hO hh h1
   let r : ℝ × E → FormalMultilinearSeries ℝ (ℝ × E) F := fun z m ↦ if 0 ≤ z.1 then p z m
     else ∑' k, seeleyCoeff k • (p (timeScale (-2 ^ k) z) m).compContinuousLinearMap
       (fun _ ↦ timeScale (-2 ^ k))
   have hs : HasFTaylorSeriesUpToOn ∞ (fun z ↦ if 0 ≤ z.1 then h z
-      else ∑' k, seeleyCoeff k • h (timeScale (-2 ^ k) z)) r (Ici 0 ×ˢ U) :=
+      else ∑' k, seeleyCoeff k • h (timeScale (-2 ^ k) z)) r (Ici 0 ×ˢ (C ∩ O)) :=
     (hp.congr fun z hz ↦ by simp only [mem_Ici.mp hz.1, ↓reduceIte]).congr_series
       fun m _ z hz ↦ by simp only [r, mem_Ici.mp hz.1, ↓reduceIte]
   have ht : HasFTaylorSeriesUpToOn ∞ (fun z ↦ if 0 ≤ z.1 then h z
-      else ∑' k, seeleyCoeff k • h (timeScale (-2 ^ k) z)) r (Iic 0 ×ˢ U) := by
+      else ∑' k, seeleyCoeff k • h (timeScale (-2 ^ k) z)) r (Iic 0 ×ˢ (C ∩ O)) := by
     refine (hq.congr fun z hz ↦ ?_).congr_series fun m _ z hz ↦ ?_
     · split_ifs with h0
       · exact (hasSum_seeleyCoeff_smul_timeScale_of_fst_eq_zero h
@@ -436,8 +445,8 @@ private theorem contDiffOn_seeleyGlue (hU : IsOpen U) (hh : ContDiffOn ℝ ∞ h
       · exact (hasSum_seeleyCoeff_smul_compContinuousLinearMap_timeScale_of_fst_eq_zero p
           (le_antisymm hz.1 h0) m).tsum_eq
       · rfl
-  have hcl {a : Set ℝ} (ha : IsClosed a) : closure (a ×ˢ U) ⊆ a ×ˢ univ :=
-    closure_minimal (prod_mono subset_rfl (subset_univ U)) (ha.prod isClosed_univ)
+  have hcl {a : Set ℝ} (ha : IsClosed a) : closure (a ×ˢ (C ∩ O)) ⊆ a ×ˢ univ :=
+    closure_minimal (prod_mono subset_rfl (subset_univ _)) (ha.prod isClosed_univ)
   have hunion := hs.union ht (fun z hz ↦ ⟨(hcl isClosed_Ici hz.1).1, hz.2.2⟩)
     (fun z hz ↦ ⟨(hcl isClosed_Iic hz.1).1, hz.2.2⟩)
   rw [← union_prod, Ici_union_Iic] at hunion
@@ -445,7 +454,7 @@ private theorem contDiffOn_seeleyGlue (hU : IsOpen U) (hh : ContDiffOn ℝ ∞ h
 
 /-- Multiplying by the cutoff turns a family smooth on `Icc 0 1 ×ˢ U` into one smooth on
 `Ici 0 ×ˢ U` that vanishes for times at least `3/4`. -/
-private theorem contDiffOn_seeleyCutoff_smul {f : ℝ × E → F}
+private theorem contDiffOn_seeleyCutoff_smul {f : ℝ × E → F} {U : Set E}
     (hf : ContDiffOn ℝ ∞ f (Icc 0 1 ×ˢ U)) :
     ContDiffOn ℝ ∞ (fun z ↦ seeleyCutoff z.1 • f z) (Ici 0 ×ˢ U) := by
   intro z hz
@@ -459,25 +468,46 @@ private theorem contDiffOn_seeleyCutoff_smul {f : ℝ × E → F}
       (show (3 / 4 : ℝ) < z.1 by linarith)] with y hy
     rw [seeleyCutoff_eq_zero_of_le (le_of_lt hy), zero_smul]
 
-/-- The extension of a family smooth on `Icc 0 1 ×ˢ U` is smooth on `Iio 1 ×ˢ U`. -/
-private theorem contDiffOn_seeleyExtend_Iio (hU : IsOpen U) {f : ℝ × E → F}
-    (hf : ContDiffOn ℝ ∞ f (Icc 0 1 ×ˢ U)) :
-    ContDiffOn ℝ ∞ (fun z : ℝ × E ↦ seeleyExtend (fun s ↦ f (s, z.2)) z.1) (Iio 1 ×ˢ U) := by
+/-- The extension of a family smooth on `Icc 0 1 ×ˢ (C ∩ O)` is smooth on `Iio 1 ×ˢ (C ∩ O)`. -/
+private theorem contDiffOn_seeleyExtend_Iio (hCc : Convex ℝ C) (hC : UniqueDiffOn ℝ C)
+    (hO : IsOpen O) {f : ℝ × E → F} (hf : ContDiffOn ℝ ∞ f (Icc 0 1 ×ˢ (C ∩ O))) :
+    ContDiffOn ℝ ∞ (fun z : ℝ × E ↦ seeleyExtend (fun s ↦ f (s, z.2)) z.1)
+      (Iio 1 ×ˢ (C ∩ O)) := by
   refine contDiffOn_of_locally_contDiffOn fun z _ ↦ ?_
   rcases lt_or_ge z.1 (1 / 2) with hz | hz
   · refine ⟨Iio (1 / 2) ×ˢ univ, isOpen_Iio.prod isOpen_univ, ⟨hz, trivial⟩, ?_⟩
     have h1 (y : ℝ × E) (hy : 1 ≤ y.1) : seeleyCutoff y.1 • f y = 0 := by
       rw [seeleyCutoff_eq_zero_of_le (by linarith), zero_smul]
-    refine ((contDiffOn_seeleyGlue hU (contDiffOn_seeleyCutoff_smul hf) h1).mono
-      fun y (hy : y ∈ Iio 1 ×ˢ U ∩ Iio (1 / 2) ×ˢ univ) ↦ ⟨trivial, hy.1.2⟩).congr fun y hy ↦ ?_
+    refine ((contDiffOn_seeleyGlue hCc hC hO (contDiffOn_seeleyCutoff_smul hf) h1).mono
+      fun y (hy : y ∈ Iio 1 ×ˢ (C ∩ O) ∩ Iio (1 / 2) ×ˢ univ) ↦ ⟨trivial, hy.1.2⟩).congr
+      fun y hy ↦ ?_
     rw [seeleyExtend_def]
     split_ifs with h0
     · rw [seeleyCutoff_eq_one_of_le hy.2.1.le, one_smul]
     · simp [timeScale_apply]
   · refine ⟨Ioi 0 ×ˢ univ, isOpen_Ioi.prod isOpen_univ,
       ⟨show (0 : ℝ) < z.1 by linarith, trivial⟩, ?_⟩
-    refine (hf.mono fun y (hy : y ∈ Iio 1 ×ˢ U ∩ Ioi 0 ×ˢ univ) ↦
+    refine (hf.mono fun y (hy : y ∈ Iio 1 ×ˢ (C ∩ O) ∩ Ioi 0 ×ˢ univ) ↦
       ⟨⟨le_of_lt hy.2.1, le_of_lt hy.1.1⟩, hy.1.2⟩).congr fun y hy ↦ ?_
+    rw [seeleyExtend_of_nonneg _ (le_of_lt hy.2.1)]
+
+/-- **Seeley's extension theorem**, with parameters in a convex set with unique differentials cut
+by an open set: if `f` is smooth on `Ici 0 ×ˢ (C ∩ O)`, then
+`(t, x) ↦ seeleyExtend (f (·, x)) t` is smooth on `univ ×ˢ (C ∩ O)`. -/
+theorem contDiffOn_seeleyExtend_of_convex {f : ℝ × E → F} {C O : Set E} (hCc : Convex ℝ C)
+    (hC : UniqueDiffOn ℝ C) (hO : IsOpen O) (hf : ContDiffOn ℝ ∞ f (Ici 0 ×ˢ (C ∩ O))) :
+    ContDiffOn ℝ ∞ (fun p : ℝ × E ↦ seeleyExtend (fun s ↦ f (s, p.2)) p.1)
+      (univ ×ˢ (C ∩ O)) := by
+  refine contDiffOn_of_locally_contDiffOn fun z _ ↦ ?_
+  rcases lt_or_ge z.1 1 with hz | hz
+  · refine ⟨Iio 1 ×ˢ univ, isOpen_Iio.prod isOpen_univ, ⟨hz, trivial⟩, ?_⟩
+    exact (contDiffOn_seeleyExtend_Iio hCc hC hO
+      (hf.mono (prod_mono Icc_subset_Ici_self subset_rfl))).mono
+      fun y (hy : y ∈ univ ×ˢ (C ∩ O) ∩ Iio 1 ×ˢ univ) ↦ ⟨hy.2.1, hy.1.2⟩
+  · refine ⟨Ioi 0 ×ˢ univ, isOpen_Ioi.prod isOpen_univ,
+      ⟨show (0 : ℝ) < z.1 by linarith, trivial⟩, ?_⟩
+    refine (hf.mono fun y (hy : y ∈ univ ×ˢ (C ∩ O) ∩ Ioi 0 ×ˢ univ) ↦
+      ⟨le_of_lt hy.2.1, hy.1.2⟩).congr fun y hy ↦ ?_
     rw [seeleyExtend_of_nonneg _ (le_of_lt hy.2.1)]
 
 /-- **Seeley's extension theorem**, with parameters: if `f` is smooth on `Ici 0 ×ˢ U` for an
@@ -485,16 +515,8 @@ open `U`, then `(t, x) ↦ seeleyExtend (f (·, x)) t` is smooth on `univ ×ˢ U
 theorem contDiffOn_seeleyExtend {f : ℝ × E → F} {U : Set E} (hU : IsOpen U)
     (hf : ContDiffOn ℝ ∞ f (Ici 0 ×ˢ U)) :
     ContDiffOn ℝ ∞ (fun p : ℝ × E ↦ seeleyExtend (fun s ↦ f (s, p.2)) p.1) (univ ×ˢ U) := by
-  refine contDiffOn_of_locally_contDiffOn fun z _ ↦ ?_
-  rcases lt_or_ge z.1 1 with hz | hz
-  · refine ⟨Iio 1 ×ˢ univ, isOpen_Iio.prod isOpen_univ, ⟨hz, trivial⟩, ?_⟩
-    exact (contDiffOn_seeleyExtend_Iio hU (hf.mono (prod_mono Icc_subset_Ici_self subset_rfl))).mono
-      fun y (hy : y ∈ univ ×ˢ U ∩ Iio 1 ×ˢ univ) ↦ ⟨hy.2.1, hy.1.2⟩
-  · refine ⟨Ioi 0 ×ˢ univ, isOpen_Ioi.prod isOpen_univ,
-      ⟨show (0 : ℝ) < z.1 by linarith, trivial⟩, ?_⟩
-    refine (hf.mono fun y (hy : y ∈ univ ×ˢ U ∩ Ioi 0 ×ˢ univ) ↦
-      ⟨le_of_lt hy.2.1, hy.1.2⟩).congr fun y hy ↦ ?_
-    rw [seeleyExtend_of_nonneg _ (le_of_lt hy.2.1)]
+  rw [← univ_inter U] at hf ⊢
+  exact contDiffOn_seeleyExtend_of_convex convex_univ uniqueDiffOn_univ hU hf
 
 /-- **Seeley's extension theorem**: if `f : ℝ → F` is smooth on `[0, ∞)`, then
 `seeleyExtend f` is smooth on `ℝ`. -/
@@ -506,28 +528,38 @@ theorem contDiff_seeleyExtend {f : ℝ → F} (hf : ContDiffOn ℝ ∞ f (Ici 0)
   rw [univ_prod_univ, contDiffOn_univ] at hg
   exact hg.comp (contDiff_id.prodMk contDiff_const : ContDiff ℝ ∞ fun t : ℝ ↦ (t, (0 : ℝ)))
 
+/-- **Seeley's extension theorem** on `[0, 1]`, with parameters in a convex set with unique
+differentials cut by an open set: if `f` is smooth on `Icc 0 1 ×ˢ (C ∩ O)`, then
+`(t, x) ↦ seeleyIccExtend (f (·, x)) t` is smooth on `univ ×ˢ (C ∩ O)`. -/
+theorem contDiffOn_seeleyIccExtend_of_convex {f : ℝ × E → F} {C O : Set E} (hCc : Convex ℝ C)
+    (hC : UniqueDiffOn ℝ C) (hO : IsOpen O) (hf : ContDiffOn ℝ ∞ f (Icc 0 1 ×ˢ (C ∩ O))) :
+    ContDiffOn ℝ ∞ (fun p : ℝ × E ↦ seeleyIccExtend (fun s ↦ f (s, p.2)) p.1)
+      (univ ×ˢ (C ∩ O)) := by
+  refine contDiffOn_of_locally_contDiffOn fun z _ ↦ ?_
+  rcases lt_or_ge z.1 1 with hz | hz
+  · refine ⟨Iio 1 ×ˢ univ, isOpen_Iio.prod isOpen_univ, ⟨hz, trivial⟩, ?_⟩
+    refine ((contDiffOn_seeleyExtend_Iio hCc hC hO hf).mono
+      fun y (hy : y ∈ univ ×ˢ (C ∩ O) ∩ Iio 1 ×ˢ univ) ↦ ⟨hy.2.1, hy.1.2⟩).congr
+      fun y hy ↦ seeleyIccExtend_of_lt_one _ hy.2.1
+  · refine ⟨Ioi 0 ×ˢ univ, isOpen_Ioi.prod isOpen_univ,
+      ⟨show (0 : ℝ) < z.1 by linarith, trivial⟩, ?_⟩
+    have hf' : ContDiffOn ℝ ∞ (fun q : ℝ × E ↦ f (1 - q.1, q.2)) (Icc 0 1 ×ˢ (C ∩ O)) :=
+      hf.comp ((contDiff_const.sub contDiff_fst).prodMk contDiff_snd).contDiffOn
+        fun q hq ↦ ⟨⟨by linarith [hq.1.2], by linarith [hq.1.1]⟩, hq.2⟩
+    refine ((contDiffOn_seeleyExtend_Iio hCc hC hO hf').comp
+      ((contDiff_const.sub contDiff_fst).prodMk contDiff_snd).contDiffOn
+      fun y (hy : y ∈ univ ×ˢ (C ∩ O) ∩ Ioi 0 ×ˢ univ) ↦
+        ⟨show 1 - y.1 < 1 by linarith [mem_Ioi.mp hy.2.1], hy.1.2⟩).congr fun y hy ↦ ?_
+    exact seeleyIccExtend_of_pos _ hy.2.1
+
 /-- **Seeley's extension theorem** on `[0, 1]`, with parameters: if `f` is smooth on
 `Icc 0 1 ×ˢ U` for an open `U`, then `(t, x) ↦ seeleyIccExtend (f (·, x)) t` is smooth on
 `univ ×ˢ U`. -/
 theorem contDiffOn_seeleyIccExtend {f : ℝ × E → F} {U : Set E} (hU : IsOpen U)
     (hf : ContDiffOn ℝ ∞ f (Icc 0 1 ×ˢ U)) :
     ContDiffOn ℝ ∞ (fun p : ℝ × E ↦ seeleyIccExtend (fun s ↦ f (s, p.2)) p.1) (univ ×ˢ U) := by
-  refine contDiffOn_of_locally_contDiffOn fun z _ ↦ ?_
-  rcases lt_or_ge z.1 1 with hz | hz
-  · refine ⟨Iio 1 ×ˢ univ, isOpen_Iio.prod isOpen_univ, ⟨hz, trivial⟩, ?_⟩
-    refine ((contDiffOn_seeleyExtend_Iio hU hf).mono
-      fun y (hy : y ∈ univ ×ˢ U ∩ Iio 1 ×ˢ univ) ↦ ⟨hy.2.1, hy.1.2⟩).congr
-      fun y hy ↦ seeleyIccExtend_of_lt_one _ hy.2.1
-  · refine ⟨Ioi 0 ×ˢ univ, isOpen_Ioi.prod isOpen_univ,
-      ⟨show (0 : ℝ) < z.1 by linarith, trivial⟩, ?_⟩
-    have hf' : ContDiffOn ℝ ∞ (fun q : ℝ × E ↦ f (1 - q.1, q.2)) (Icc 0 1 ×ˢ U) :=
-      hf.comp ((contDiff_const.sub contDiff_fst).prodMk contDiff_snd).contDiffOn
-        fun q hq ↦ ⟨⟨by linarith [hq.1.2], by linarith [hq.1.1]⟩, hq.2⟩
-    refine ((contDiffOn_seeleyExtend_Iio hU hf').comp
-      ((contDiff_const.sub contDiff_fst).prodMk contDiff_snd).contDiffOn
-      fun y (hy : y ∈ univ ×ˢ U ∩ Ioi 0 ×ˢ univ) ↦
-        ⟨show 1 - y.1 < 1 by linarith [mem_Ioi.mp hy.2.1], hy.1.2⟩).congr fun y hy ↦ ?_
-    exact seeleyIccExtend_of_pos _ hy.2.1
+  rw [← univ_inter U] at hf ⊢
+  exact contDiffOn_seeleyIccExtend_of_convex convex_univ uniqueDiffOn_univ hU hf
 
 /-- Seeley's extension on an interval `[a, b]`, `a < b`, with parameters: a function smooth on
 `Icc a b ×ˢ U`, for an open `U`, agrees on `Icc a b ×ˢ U` with a function smooth on
