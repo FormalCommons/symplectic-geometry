@@ -7,18 +7,35 @@ module
 
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import Mathlib.Geometry.Manifold.Riemannian.Basic
+import TauCeti.Geometry.Manifold.MFDeriv.Curve
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 import TauCeti.Geometry.Manifold.Riemannian.Distance
 import TauCeti.Geometry.Manifold.Riemannian.MetricBridge
 
 /-!
-# Distances in a chart bounded by the Riemannian distance
+# The Riemannian distance compared with distances in a normed space
 
-Let `M` be a Hausdorff manifold whose tangent spaces carry a Riemannian metric, and
-`φ : PartialDiffeomorph I 𝓘(ℝ, F) M F n`, `n ≥ 1`, a chart into a proper real normed space `F`.
-If the ball `B` of radius `R` about `φ x` lies in the target of `φ`, and the differential of `φ`
-stretches Riemannian norms by at most `C ≠ 0` at every point of the source whose image lies in `B`,
-then for every `z ∈ B`, `‖z - φ x‖ ≤ C · d(x, φ⁻¹ z)`, `d` the Riemannian distance.
+This file bounds Mathlib's `Manifold.riemannianEDist` on a manifold `M` whose tangent spaces
+carry a Riemannian metric, from above and from below, by distances in a real normed space `F`.
+
+## The mean value inequality
+
+For a map `f : F → M`, `C¹` at the points of the segment from `a` to `b`, the Riemannian
+extended distance from `f a` to `f b` is at most any bound `C` on the norms of `df_z (b - a)` for
+`z` on the segment: it is at most the length of the image of the segment under `f`.
+
+The proof adapts Tau Ceti's `IsRiemannianManifold.edist_le_of_norm_mfderiv_le`, which states the
+same bound for the distance of a Riemannian manifold with a given extended metric equal to its
+Riemannian one; here no metric structure on `M` is assumed, and the conclusion is stated for
+Mathlib's `Manifold.riemannianEDist`.
+
+## Distances in a chart
+
+Let `M` be Hausdorff and `φ : PartialDiffeomorph I 𝓘(ℝ, F) M F n`, `n ≥ 1`, a chart into a
+proper space `F`. If the ball `B` of radius `R` about `φ x` lies in the target of `φ`, and the
+differential of `φ` stretches Riemannian norms by at most `C ≠ 0` at every point of the source
+whose image lies in `B`, then for every `z ∈ B`, `‖z - φ x‖ ≤ C · d(x, φ⁻¹ z)`, `d` the
+Riemannian distance.
 
 The proof bounds the length of each `C¹` path `γ` from `x` to `φ⁻¹ z`. As long as `γ` stays in
 the preimage `W` of `B`, Tau Ceti's `TauCeti.Manifold.enorm_sub_le_mul_pathELength` bounds the
@@ -36,6 +53,8 @@ than in an annulus of an asymptotically Euclidean end.
 
 ## Main results
 
+* `Manifold.riemannianEDist_le_of_norm_mfderiv_le`: the mean value inequality for
+  `Manifold.riemannianEDist`.
 * `PartialDiffeomorph.mapsTo_of_mul_pathELength_lt`: a short enough `C¹` path from `x` stays in
   the preimage of the ball.
 * `PartialDiffeomorph.ofReal_norm_sub_le_mul_riemannianEDist`: the lower bound for the
@@ -56,6 +75,43 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
   [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
   {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {n : ℕ∞ω}
+
+namespace Manifold
+
+/-- **The mean value inequality for the Riemannian distance.** Let `f` be a map from a real
+normed space to a manifold with a Riemannian metric, `C¹` at every point of the segment from `a`
+to `b`. If its differential at the points of that segment sends `b - a` to vectors of norm at
+most `C`, then the Riemannian extended distance from `f a` to `f b` is at most `C`. -/
+theorem riemannianEDist_le_of_norm_mfderiv_le {f : F → M} {a b : F} {C : ℝ}
+    (hf : ∀ z ∈ segment ℝ a b, ContMDiffAt 𝓘(ℝ, F) I 1 f z)
+    (hC : ∀ z ∈ segment ℝ a b, ‖mfderiv 𝓘(ℝ, F) I f z (b - a)‖ ≤ C) :
+    riemannianEDist I (f a) (f b) ≤ ENNReal.ofReal C := by
+  let c : ℝ → F := fun τ ↦ a + τ • (b - a)
+  have hcseg : MapsTo c (Icc 0 1) (segment ℝ a b) := fun τ hτ ↦ by
+    rw [segment_eq_image']
+    exact ⟨τ, hτ, rfl⟩
+  have hcderiv : ∀ τ, HasDerivAt c (b - a) τ := fun τ ↦
+    (((hasDerivAt_id' τ).smul_const (b - a)).const_add a).congr_deriv (one_smul ℝ _)
+  have hc : ContMDiff 𝓘(ℝ, ℝ) 𝓘(ℝ, F) 1 c := by
+    rw [contMDiff_iff_contDiff]
+    exact contDiff_const.add (contDiff_id.smul contDiff_const)
+  have hsmooth : CMDiff[Icc 0 1] 1 (f ∘ c) := fun τ hτ ↦
+    (hf _ (hcseg hτ)).comp_contMDiffWithinAt τ hc.contMDiffAt.contMDiffWithinAt
+  calc
+    riemannianEDist I (f a) (f b) ≤ pathELength I (f ∘ c) 0 1 :=
+      riemannianEDist_le_pathELength hsmooth (by simp [c]) (by simp [c]) zero_le_one
+    _ = ∫⁻ τ in Ioo 0 1, ‖mfderiv 𝓘(ℝ, ℝ) I (f ∘ c) τ (1 : ℝ)‖ₑ :=
+      pathELength_eq_lintegral_mfderiv_Ioo
+    _ ≤ ∫⁻ _ in Ioo (0 : ℝ) 1, ENNReal.ofReal C := by
+      refine MeasureTheory.setLIntegral_mono' measurableSet_Ioo fun τ hτ ↦ ?_
+      have hτ' : c τ ∈ segment ℝ a b := hcseg (Ioo_subset_Icc_self hτ)
+      rw [← TauCeti.Manifold.curveVelocity_apply,
+        ((hf _ hτ').mdifferentiableAt one_ne_zero).curveVelocity_comp_mfderiv (hcderiv τ),
+        ← ofReal_norm]
+      exact ENNReal.ofReal_le_ofReal (hC _ hτ')
+    _ = ENNReal.ofReal C := by simp
+
+end Manifold
 
 namespace PartialDiffeomorph
 
@@ -173,3 +229,5 @@ theorem ofReal_norm_sub_le_mul_riemannianEDist [T2Space M] [ProperSpace F]
     _ ≤ C * Manifold.riemannianEDist I x (φ.symm z) := by gcongr
 
 end PartialDiffeomorph
+
+end
