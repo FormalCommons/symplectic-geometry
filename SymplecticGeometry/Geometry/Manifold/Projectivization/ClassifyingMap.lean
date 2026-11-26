@@ -6,10 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.ProjectiveSpaceClassifying
+public import SymplecticGeometry.Geometry.Manifold.Morse.CWModel
 public import TauCeti.AlgebraicTopology.Cohomology.HomotopyInvariance
-public import TauCeti.Geometry.Manifold.Morse.CWModel
-public import TauCeti.Geometry.Manifold.Morse.Generic.Basic
-public import TauCeti.Geometry.Manifold.Morse.Index
 
 /-!
 # Classes of degree two on a compact manifold come from complex projective space
@@ -22,10 +20,8 @@ hyperplane class `h` of `ℙ ℂ (Fin (N + 1) → ℂ)` along a continuous map
 
 ## Proof
 
-A Morse function on `M` gives a finite CW complex `W` homotopy equivalent to `M` whose cells have
-dimension at most `dim M` (`TauCeti.IsMorse.exists_finite_cwComplex_homotopyEquiv`,
-`TauCeti.manifoldMorseIndex_le_finrank`). This is the argument of Tau Ceti's
-`TauCeti.FiniteCWType.of_isManifold`, with control of the dimensions of the cells. The class
+The manifold `M` is homotopy equivalent to a finite CW complex `W` whose cells have dimension at
+most `dim M` (`SymplecticGeometry.exists_finite_cwComplex_homotopyEquiv_of_isManifold`). The class
 `b`, carried to `W`, is the pull-back of `h` along a map `W → ℙ ℂ (Fin (N + 1) → ℂ)`
 (`Projectivization.exists_continuousMap_projectivization_pullback_eq`). Composed with the
 homotopy equivalence `M → W`, this gives a map pulling `h` back to `b`, by homotopy invariance
@@ -46,7 +42,7 @@ open scoped LinearAlgebra.Projectivization Manifold ContDiff
 
 namespace Projectivization
 
-variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   [TopologicalSpace H] (I : ModelWithCorners ℝ E H) [I.Boundaryless]
   {M : Type} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M] [T2Space M]
   [CompactSpace M]
@@ -61,15 +57,10 @@ theorem exists_continuousMap_projectivization_pullback_eq_of_isManifold {N : ℕ
     ∃ F : C(M, ℙ ℂ (Fin (N + 1) → ℂ)),
       TopCat.singularCohomologyMap (TopCat.ofHom F) 2
         (hyperplaneClass (Fin (N + 1) → ℂ)) = b := by
-  obtain ⟨φ, hφ⟩ := exists_isMorse (I := I) (M := M)
-  obtain ⟨W, _, _, _, -, ⟨e⟩, hcell⟩ := hφ.exists_finite_cwComplex_homotopyEquiv
-  -- The `m`-cells of `W` are critical points of index `m ≤ dim M`.
-  have hW : ∀ m, 2 * N < m → IsEmpty (cell (univ : Set W) m) := fun m hm ↦ by
-    obtain ⟨σ⟩ := hcell m
-    refine ⟨fun c ↦ ?_⟩
-    have h := (σ c).property.2
-    have := manifoldMorseIndex_le_finrank (I := I) (f := φ) (x := (σ c : M))
-    omega
+  obtain ⟨W, _, _, _, -, ⟨e⟩, hcell⟩ :=
+    SymplecticGeometry.exists_finite_cwComplex_homotopyEquiv_of_isManifold I (M := M)
+  have hW : ∀ m, 2 * N < m → IsEmpty (cell (univ : Set W) m) := fun m hm ↦
+    hcell m (hN.trans_lt hm)
   -- Carry `b` to the CW complex `univ ⊆ W`, homotopy equivalent to `M`.
   let e' : ContinuousMap.HomotopyEquiv (univ : Set W) M :=
     (Homeomorph.Set.univ W).toHomotopyEquiv.trans e
