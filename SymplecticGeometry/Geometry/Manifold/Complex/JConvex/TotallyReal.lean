@@ -75,8 +75,8 @@ the image of `ι` onto `F × {0}` (`TauCeti.IsAdaptedChart`). Fix a linear isomo
   `TauCeti.mem_criticalPoints_norm_sq_of_eq_zero` for `‖φ‖²` at a zero of `φ`);
 * `TauCeti.IsAdaptedChart.criticalHessian_norm_sq_snd_apply`: its critical Hessian at a point of
   the image is `2 ⟪e (dψ u).2, e (dψ w).2⟫`, by the general
-  `TauCeti.criticalHessian_norm_sq_apply_of_eq_zero` of
-  `SymplecticGeometry.Geometry.Manifold.Immersion.Slice`;
+  `TauCeti.criticalHessian_norm_sq_continuousLinearMap_comp_apply_of_eq_zero` of
+  `SymplecticGeometry.Geometry.Manifold.Morse.Hessian`, for the map `e ∘L snd`;
 * `TauCeti.IsAdaptedChart.criticalHessian_norm_sq_snd_pos`: this Hessian is positive off the
   tangent image of `ι`, since `dψ` sends exactly that image into `F × {0}`
   (`TauCeti.IsAdaptedChart.snd_mfderiv_eq_zero_iff`, in
@@ -294,20 +294,15 @@ theorem criticalHessian_norm_sq_snd_apply [I.Boundaryless] (hψ : IsAdaptedChart
     (hℓ : 2 ≤ ℓ) {x : M} (hx : x ∈ ψ.source ∩ s) (u w : TangentSpace I x) :
     criticalHessian I (fun y ↦ ‖e (ψ y).2‖ ^ 2) x u w =
       2 * inner ℝ (e (mfderiv I 𝓘(ℝ, F × F) ψ x u).2) (e (mfderiv I 𝓘(ℝ, F × F) ψ x w).2) := by
-  have hψx := (hψ.contMDiffAt hx.1).of_le (WithTop.coe_le_coe.2 hℓ)
-  have hφ : ContMDiffAt I 𝓘(ℝ, W) 2 (fun y ↦ e (ψ y).2) x :=
-    (e.contDiff.comp contDiff_snd).contMDiff.contMDiffAt.comp x hψx
-  have hD : mfderiv I 𝓘(ℝ, W) (fun y ↦ e (ψ y).2) x =
-      ((e : F →L[ℝ] W).comp (ContinuousLinearMap.snd ℝ F F)).comp
-        (mfderiv I 𝓘(ℝ, F × F) ψ x) :=
-    ((e.hasFDerivAt.comp _ hasFDerivAt_snd).hasMFDerivAt.comp x
-      (hψx.mdifferentiableAt two_ne_zero).hasMFDerivAt).mfderiv
-  rw [criticalHessian_norm_sq_apply_of_eq_zero hφ (by rw [(hψ.isImage hx.1).2 hx.2, map_zero]),
-    hD]
-  -- `(e ∘L snd ∘L dψ) u` is `e (dψ u).2` by definition of the composite. `dψ` takes values in
-  -- `TangentSpace 𝓘(ℝ, F × F) _`, which is `F × F` only by definition, so `comp_apply` cannot be
-  -- rewritten with here.
-  rfl
+  have := criticalHessian_norm_sq_continuousLinearMap_comp_apply_of_eq_zero
+    (A := (e : F →L[ℝ] W).comp (ContinuousLinearMap.snd ℝ F F))
+    ((hψ.contMDiffAt hx.1).of_le (WithTop.coe_le_coe.2 hℓ))
+    (by
+      simp only [ContinuousLinearMap.coe_comp, Function.comp_apply, ContinuousLinearMap.coe_snd']
+      rw [(hψ.isImage hx.1).2 hx.2, map_zero]) u w
+  simp only [ContinuousLinearMap.coe_comp, Function.comp_apply, ContinuousLinearEquiv.coe_coe,
+    ContinuousLinearMap.coe_snd'] at this
+  exact this
 
 section Embedding
 

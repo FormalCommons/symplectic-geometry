@@ -17,6 +17,7 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Semibasic
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Vertical
 public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 
@@ -72,7 +73,8 @@ Families live on `N × M`, the parameter first. A form on `M × N` is turned aro
 * `SymplecticGeometry.isSmoothFamily_mpullback_prodMk`: the slices of a form on `N × M` are a
   smooth family.
 * `SymplecticGeometry.isSmoothFamily_const` and the closure lemmas `IsSmoothFamily.add`, `.neg`,
-  `.sub`, `.smul`, `.fun_smul`, `.funSMul`, `.sum`, `.mpullback`, `.mpullback_family`,
+  `.sub`, `.smul`, `.fun_smul`, `.funSMul`, `.funSMul_family`, `.sum`, `.mpullback`,
+  `.mpullback_family`,
   `.mextDeriv`, `.extendByZero_smul` and `.comp`.
 * `SymplecticGeometry.IsSmoothFamily.of_mpullback`: a family is smooth when its pullbacks along a
   smooth map with smooth local sections over an open cover of its target form a smooth family.
@@ -440,6 +442,17 @@ protected theorem funSMul (hα : IsSmoothFamily J α) (g : C^∞⟮I, M; ℝ⟯)
   rw [isSmoothFamily_iff_isSmoothForm] at hα ⊢
   simp only [SmoothForm.coe_funSMulₗ, verticalForm_fun_smul]
   exact hα.fun_smul (g.contMDiff.comp contMDiff_snd)
+
+/-- The product of a smooth family with a family `g` of smooth functions on `M` is smooth when
+`g` is jointly smooth, as a function of the parameter and the point. -/
+protected theorem funSMul_family (hα : IsSmoothFamily J α) (g : N → C^∞⟮I, M; ℝ⟯)
+    (hg : ContMDiff (J.prod I) 𝓘(ℝ) ∞ fun p : N × M ↦ g p.1 p.2) :
+    IsSmoothFamily J (fun t ↦ SmoothForm.funSMulₗ (g t) (α t)) := by
+  obtain ⟨Ω, hΩ⟩ := hα
+  let G : C^∞⟮J.prod I, N × M; ℝ⟯ := ⟨_, hg⟩
+  refine ⟨SmoothForm.funSMulₗ G Ω, fun t ↦ ?_⟩
+  rw [SmoothForm.mpullback_funSMulₗ, hΩ]
+  congr 1
 
 end IsSmoothFamily
 

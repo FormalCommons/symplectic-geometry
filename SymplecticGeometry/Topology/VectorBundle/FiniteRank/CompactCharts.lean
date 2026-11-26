@@ -10,6 +10,7 @@ public import Mathlib.Topology.PartitionOfUnity
 public import Mathlib.Topology.UrysohnsLemma
 public import TauCeti.Topology.VectorBundle.FiniteRank.Basic
 public import TauCeti.Topology.VectorBundle.Hom
+public import SymplecticGeometry.Topology.VectorBundle.Core.Basic
 
 /-!
 # Charts of finite-rank cores over compact sets
@@ -25,7 +26,9 @@ holds for any vector-bundle core, and is `VectorBundleCore.exists_norm_coordChan
   subordinate to them, and cutoffs `σ k` supported in the chart `k` and equal to `1` on the
   closed support of `ρ k`;
 * `TauCeti.FiniteRankBundleCore.exists_norm_inChartCoordinates_le`: the fibre maps of a morphism,
-  read in finitely many pairs of charts, are bounded on compact subsets of their domains.
+  read in finitely many pairs of charts, are bounded on compact subsets of their domains;
+* `TauCeti.FiniteRankBundleCore.exists_norm_conj_fiberMap_le`: over a compact Hausdorff base, the
+  fibre maps of an endomorphism are bounded after a change of coordinates at each point.
 
 ## References
 
@@ -77,6 +80,23 @@ theorem exists_norm_inChartCoordinates_le {A D : FiniteRankBundleCore 𝕜 X} (h
   choose C hC using hb
   obtain ⟨M, hM⟩ := Finite.exists_le C
   exact ⟨M, fun k x hx ↦ (hC k x hx).trans (hM k)⟩
+
+/-- Over a compact Hausdorff base, the fibre maps of an endomorphism `n` of a finite-rank core are
+bounded after a change of coordinates: there is a `C` such that at every point `x` some unit `U`
+of the endomorphisms of the model fibre has `‖U⁻¹ ∘ n(x) ∘ U‖ ≤ C`. -/
+theorem exists_norm_conj_fiberMap_le [CompactSpace X] [T2Space X]
+    {A : FiniteRankBundleCore 𝕜 X} (n : A ⟶ A) :
+    ∃ C, ∀ x, ∃ U : ((Fin A.rank → 𝕜) →L[𝕜] (Fin A.rank → 𝕜))ˣ,
+      ‖↑U⁻¹ * n.fiberMap x * ↑U‖ ≤ C := by
+  obtain ⟨t, ρ, -, hρs, -, -⟩ := A.exists_partitionOfUnity_isSubordinate_baseSet
+  obtain ⟨C, hC⟩ := exists_norm_inChartCoordinates_le n (fun k : t ↦ (k : X)) (fun k ↦ k)
+    (K := fun k ↦ tsupport (ρ k)) (fun k ↦ (isClosed_tsupport _).isCompact)
+    fun k _ hx ↦ ⟨hρs k hx, hρs k hx⟩
+  refine ⟨C, fun x ↦ ?_⟩
+  obtain ⟨j, hj⟩ := ρ.exists_pos (Set.mem_univ x)
+  have hxj : x ∈ tsupport (ρ j) := subset_tsupport _ hj.ne'
+  obtain ⟨U, hU⟩ := A.core.exists_units_inv_mul_mul_eq_inChartCoordinates (hρs j hxj)
+  exact ⟨U, (hU _).symm ▸ hC j x hxj⟩
 
 end TauCeti.FiniteRankBundleCore
 
