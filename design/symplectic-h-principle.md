@@ -1030,9 +1030,9 @@ Facts about two-forms in the frame topology of a covering frame system
   on `M` to those on `U`. Tau Ceti's
   `ContMDiffSection.continuous_restrict_frameTopology` lands in the
   pulled-back bundle over `U`, not in the tangent bundle of `U`, which is
-  why the statement here is needed. It is that lemma followed by the
-  fibrewise map `v ↦ v ∘ dι` into the two-forms on `U`, which is continuous
-  by Tau Ceti's `ContMDiffSection.continuous_map_frameTopology`.
+  why the statement here is needed. It is the slice at `0` of the constant
+  family `(p, x) ↦ x : ℝ × U → M` in
+  `Bundle.ContMDiffTwoForm.continuous_tangentEquiv_symm_mpullback_prod`.
 
 ### `Geometry/Symplectic/HPrinciple/FormSpaces.lean`
 
