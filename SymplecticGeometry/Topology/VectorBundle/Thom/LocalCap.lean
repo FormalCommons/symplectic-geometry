@@ -164,40 +164,42 @@ variable {B : Type} [TopologicalSpace B] [T1Space B] {P : Type} [NormedAddCommGr
 /-- **The cap product with the canonical Thom class, read in a local chart of the total space.**
 Let `e` be a linear trivialization of an oriented real vector bundle `E → B` of rank `r` with model
 fibre `P`, `c` a chart of the base with `c b = 0`, and `S` a contractible open subset of the target
-of `c` containing `0` that `c.symm` carries into the base set of `e`. For `r + q = n`, carrying a
-class of `Hₙ(P × Q, P × Q ∖ 0)` to `Hₙ(E, E ∖ 0_b)` by the chart
+of `c` containing `0` that `c.symm` carries into the base set of `e`. Let `u : T ⟶ ℤ ⊗ S'` and
+`μ : ℤ ⊗ S' ⟶ N` be maps of coefficients, which both cap products below use. For `r + q = n`,
+carrying a class of `Hₙ(P × Q, P × Q ∖ 0; T)` to `Hₙ(E, E ∖ 0_b; T)` by the chart
 `Bundle.Trivialization.localChartLocalHomologyIso`, capping it with the canonical Thom class by
 the cap product of the excisive couple `(E ∖ 0, E ∖ E_b)`, pushing forward along the projection to
-`H_q(B, B ∖ b)` and reading the result in `c` is capping the class, by the cap product of the
+`H_q(B, B ∖ b; N)` and reading the result in `c` is capping the class, by the cap product of the
 couple `((P ∖ 0) × Q, P × (Q ∖ 0))`, with the pull-back along the first projection of the
 generator of `Hʳ(P, P ∖ 0; ℤ)` selected by the orientation `o b` read in `e`, and pushing forward
-along the second projection to `H_q(Q, Q ∖ 0)`. -/
+along the second projection to `H_q(Q, Q ∖ 0; N)`. -/
 theorem localChartLocalHomologyIso_hom_comp_singularRelativeCap_canonicalThomClass
     (e : Trivialization P (π P E)) [e.IsLinear ℝ] (hS : IsOpen S) (hSc : S ⊆ c.target)
     (hSe : MapsTo c.symm S e.baseSet) {b : B} (hb : b ∈ c.source) (hcb : c b = 0)
-    (h0 : (0 : Q) ∈ S) {q n : ℕ} (hn : r + q = n) :
-    (e.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe hb hcb h0 n).hom ≫
+    (h0 : (0 : Q) ∈ S) {S' T N : ModuleCat.{0} ℤ}
+    (u : T ⟶ ModuleCat.of ℤ (ULift.{0} ℤ) ⊗ S') (μ : ModuleCat.of ℤ (ULift.{0} ℤ) ⊗ S' ⟶ N)
+    {q n : ℕ} (hn : r + q = n) :
+    (e.localChartLocalHomologyIso T hS hSc hSe hb hcb h0 n).hom ≫
         TopPair.singularHomologyMap (TopPair.ofSubsetMap (𝟙 _) fun _ hv ↦
-          (zeroSectionCompl_union_compl_preimage_singleton b).superset hv)
-          (ModuleCat.of ℤ (ULift.{0} ℤ)) n ≫
-        TopCat.singularRelativeCap ℤ (ρ_ _).inv (ρ_ _).hom _
+          (zeroSectionCompl_union_compl_preimage_singleton b).superset hv) T n ≫
+        TopCat.singularRelativeCap ℤ u μ _
           (TopCat.ofHom ⟨π P E, FiberBundle.continuous_proj P E⟩ ⁻¹' ({b}ᶜ : Set (TopCat.of B)))
           ((isOpen_zeroSectionCompl P E).preimage continuous_subtypeVal)
           ((isOpen_compl_singleton.preimage (FiberBundle.continuous_proj P E)).preimage
             continuous_subtypeVal) r q n hn (o.canonicalThomClass hr) ≫
         TopPair.singularHomologyMap
           (TopPair.ofSubsetMap (TopCat.ofHom ⟨π P E, FiberBundle.continuous_proj P E⟩)
-            (mapsTo_preimage _ ({b}ᶜ : Set (TopCat.of B)))) (ModuleCat.of ℤ (ULift.{0} ℤ)) q ≫
-        ((localHomologyIsoOfIsOpenEmbedding (ModuleCat.of ℤ (ULift.{0} ℤ))
+            (mapsTo_preimage _ ({b}ᶜ : Set (TopCat.of B)))) N q ≫
+        ((localHomologyIsoOfIsOpenEmbedding N
           c.open_source.isOpenEmbedding_subtypeVal ⟨b, hb⟩ q).inv :
-            localHomology (ModuleCat.of ℤ (ULift.{0} ℤ)) {b} q ⟶ _) ≫
-        localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ)) c.sourceRestrict
+            localHomology N {b} q ⟶ _) ≫
+        localHomologyMap N c.sourceRestrict
           (show c.sourceRestrict ⁻¹' {0} ⊆ {(⟨b, hb⟩ : c.source)} from
             fun _ hx ↦ Subtype.ext (c.sourceRestrict_preimage hb (by rwa [hcb]))) q =
       TopPair.singularHomologyMap (TopPair.ofSubsetMap _
           (TopCat.mapsTo_compl_singleton_preimage_fst_compl_union_preimage_snd_compl
-            (0 : P) (0 : Q))) (ModuleCat.of ℤ (ULift.{0} ℤ)) n ≫
-        TopCat.singularRelativeCap ℤ (ρ_ _).inv (ρ_ _).hom
+            (0 : P) (0 : Q))) T n ≫
+        TopCat.singularRelativeCap ℤ u μ
           (fst (TopCat.of P) (TopCat.of Q) ⁻¹' ({0}ᶜ : Set (TopCat.of P)))
           (snd (TopCat.of P) (TopCat.of Q) ⁻¹' ({0}ᶜ : Set (TopCat.of Q)))
           (TopCat.isOpen_subtypeVal_preimage_preimage_fst_union isOpen_compl_singleton)
@@ -208,8 +210,7 @@ theorem localChartLocalHomologyIso_hom_comp_singularRelativeCap_canonicalThomCla
             ((e.mapOrientation (Fin r) (by rw [← c.left_inv hb, hcb]; exact hSe h0)
               (o b)).modelThomGenerator hr)) ≫
         TopPair.singularHomologyMap
-          (TopPair.ofSubsetMap (snd (TopCat.of P) (TopCat.of Q)) (mapsTo_preimage _ _))
-          (ModuleCat.of ℤ (ULift.{0} ℤ)) q := by
+          (TopPair.ofSubsetMap (snd (TopCat.of P) (TopCat.of Q)) (mapsTo_preimage _ _)) N q := by
   refine e.localChartLocalHomologyIso_hom_comp_singularRelativeCap ℤ _ _ hS hSc hSe hb hcb h0 _
     hn _ _ ?_
   rw [singularCohomologyMap_localChart_canonicalThomClass o hr e hS hSc hSe hb hcb h0]
@@ -264,7 +265,7 @@ theorem localHomologyMap_singularRelativeCap_canonicalThomClass_of_localOrientat
                 (ModuleCat.of ℤ (ULift.{0} ℤ)) n μ)))) = ζ := by
   have h := ConcreteCategory.congr_hom
     (localChartLocalHomologyIso_hom_comp_singularRelativeCap_canonicalThomClass o hr e hS hSc hSe
-      hb hcb h0 hn)
+      hb hcb h0 (ρ_ _).inv (ρ_ _).hom hn)
     ((e.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe hb hcb h0 n).inv μ)
   simp only [ConcreteCategory.comp_apply, Iso.inv_hom_id_apply] at h
   rw [h, hμ]
@@ -315,7 +316,7 @@ theorem localHomologyMap_singularRelativeCap_canonicalThomClass_of_finrank_eq_ze
           positiveOrientation then ζ else -ζ := by
   have h := ConcreteCategory.congr_hom
     (localChartLocalHomologyIso_hom_comp_singularRelativeCap_canonicalThomClass o hr e hS hSc hSe
-      hb hcb h0 (zero_add q))
+      hb hcb h0 (ρ_ _).inv (ρ_ _).hom (zero_add q))
     ((e.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe hb hcb h0 q).inv μ)
   simp only [ConcreteCategory.comp_apply, Iso.inv_hom_id_apply] at h
   rw [h, hμ]
