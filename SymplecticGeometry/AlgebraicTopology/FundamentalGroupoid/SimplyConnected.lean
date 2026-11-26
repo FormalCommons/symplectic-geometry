@@ -19,6 +19,8 @@ two sets are open and so cover it by their interiors.
 
 ## Main results
 
+* `IsSimplyConnected.preimage_coe`: a simply connected set contained in `U` is simply connected
+  as a subset of `U`.
 * `IsSimplyConnected.union_of_isOpen`: the union of two open simply connected sets with path
   connected intersection is simply connected.
 
@@ -34,26 +36,26 @@ open Set Topology
 
 variable {X : Type*} [TopologicalSpace X] {A B : Set X}
 
+/-- A simply connected set `W` contained in `U` is simply connected as a subset of `U`: its
+preimage under the inclusion `U → X` is simply connected. -/
+theorem IsSimplyConnected.preimage_coe {U W : Set X} (hW : IsSimplyConnected W) (hWU : W ⊆ U) :
+    IsSimplyConnected (((↑) : U → X) ⁻¹' W) := by
+  rwa [← IsEmbedding.subtypeVal.isSimplyConnected_image, Subtype.image_preimage_val,
+    inter_eq_right.2 hWU]
+
 /-- **Van Kampen for simply connected sets.** The union of two open simply connected sets whose
 intersection is path connected is simply connected. -/
 theorem IsSimplyConnected.union_of_isOpen (hA : IsSimplyConnected A) (hB : IsSimplyConnected B)
     (hAo : IsOpen A) (hBo : IsOpen B) (hAB : IsPathConnected (A ∩ B)) :
     IsSimplyConnected (A ∪ B) := by
-  -- Inside `A ∪ B`, the preimages of `A` and `B` are homeomorphic to `A` and `B`.
-  have hsub {s : Set X} (hs : s ⊆ A ∪ B) (h : IsSimplyConnected s) :
-      SimplyConnectedSpace (Subtype.val ⁻¹' s : Set ↥(A ∪ B)) :=
-    (IsEmbedding.subtypeVal.isSimplyConnected_image.1 (by
-      rwa [Subtype.image_preimage_coe, inter_eq_right.2 hs])).simplyConnectedSpace
-  have := hsub subset_union_left hA
-  have := hsub subset_union_right hB
-  unfold IsSimplyConnected
+  have := (hA.preimage_coe (subset_union_left (t := B))).simplyConnectedSpace
+  have := (hB.preimage_coe (subset_union_right (s := A))).simplyConnectedSpace
   refine TauCeti.simplyConnectedSpace_of_interior_union (A := Subtype.val ⁻¹' A)
     (B := Subtype.val ⁻¹' B) ?_ ?_
   · rw [(hAo.preimage continuous_subtypeVal).interior_eq,
       (hBo.preimage continuous_subtypeVal).interior_eq, ← preimage_union]
     exact preimage_eq_univ_iff.2 Subtype.range_coe.subset
-  · rw [← preimage_inter, IsInducing.subtypeVal.isPathConnected_iff, Subtype.image_preimage_coe,
-      inter_eq_right.2 (inter_subset_left.trans subset_union_left)]
-    exact hAB
+  · rw [← preimage_inter]
+    exact hAB.preimage_coe (inter_subset_left.trans subset_union_left)
 
 end
