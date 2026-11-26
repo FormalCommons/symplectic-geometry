@@ -408,7 +408,7 @@ $g_k$).
   `shortExact_orientationAt_normalSpace`, and with $\Sigma\cdot\Sigma=\langle d_\Sigma\smile
   d_\Sigma,[M]\rangle=k^2m$ and $\langle c_1,i_*[\Sigma]\rangle=k\langle
   c_1\smile a,[M]\rangle$ from *Poincaré duals of submanifolds*
-  (`DualClass.lean`: $d_\Sigma$ restricts to the Euler class of the normal
+  (`DualClass/Basic.lean`: $d_\Sigma$ restricts to the Euler class of the normal
   bundle; `Orientation/DualClass.lean`), and the invariance of $c_1$ along
   the path of compatible structures.
 
@@ -463,7 +463,7 @@ a fibre.
 - *Symplectic blowup*: `Weight/Basic.lean`, and the comparison with the complex
   blowup in `Normalized/Weight.lean`.
 - *Complex blowup*: `Model.lean` (`pr`), `Basic.lean`, `ConnectedSum.lean`.
-- *Poincaré duals of submanifolds*: `DualClass.lean`,
+- *Poincaré duals of submanifolds*: `DualClass/Basic.lean`,
   `Orientation/DualClass.lean`.
 - *Parallel transport*: `RadialTrivialization.lean`.
 - Merged: *Adjunction* (`adjunction_formula`), *First Chern number*
@@ -491,7 +491,7 @@ part Lefschetz pencils*.
 | 5 | Transversality of pairs | `Transversality/Pair.lean` | 1; *Asymptotically holomorphic sections* up to `GlobalTransversality.lean` | 500 |
 | 6 | Transversality of the derivative of the quotient | `Transversality/Derivative.lean` | 5 | 500 |
 | 7 | Holomorphic models near base and critical points | `Perturbation.lean` | 3, 6 | 500 |
-| 8 | The pencil on $M$ | `FiberClosure.lean` | 7; *Asymptotically holomorphic sections* `ZeroSet.lean`, `Connectivity.lean`; *Poincaré duals of submanifolds* `DualClass.lean`, `Orientation/DualClass.lean` | 400 |
+| 8 | The pencil on $M$ | `FiberClosure.lean` | 7; *Asymptotically holomorphic sections* `ZeroSet.lean`, `Connectivity.lean`; *Poincaré duals of submanifolds* `DualClass/Basic.lean`, `Orientation/DualClass.lean` | 400 |
 | 9 | The fibration on the blowup and the milestone | `Lefschetz/Pencil.lean` | 2, 4, 8; *Symplectic blowup* `Weight/Basic.lean`, `Normalized/Weight.lean`; *Complex blowup* `Model.lean`, `ConnectedSum.lean` | 400 |
 
 Issues 1, 2 and 3 can start once this design is merged; the issue that splits #3295 names, for each issue
