@@ -69,6 +69,8 @@ connection form is `θ^* dθ + π^* (σ^* α)`. The existence of connection form
   the trivialization of a local section.
 * `SymplecticGeometry.IsCircleConnectionForm.mpullback_apply_eq_mpullback_division_add`: a change
   of local section `τ = σ • g` adds `g^* dθ` to the pull-back of a connection form.
+* `SymplecticGeometry.IsCircleConnectionForm.mpullback_apply_op_circleExp_smul_eq_mextDeriv_add`:
+  for a real phase, `τ = σ • exp (f i)`, it adds `df`.
 * `SymplecticGeometry.IsCircleConnectionForm.curvature_apply_eq_mextDeriv_mpullback`: near a
   point where a section `σ` is smooth, the curvature is `d (σ^* α)`.
 
@@ -520,6 +522,34 @@ theorem IsCircleConnectionForm.mpullback_apply_eq_mpullback_division_add
     mpullback_apply_congr hloc
   rw [h, mpullback_add, Pi.add_apply, ← mpullback_comp_at hτ hθd, hθt]
   exact congrArg (_ + ·) (ManifoldTotalSpace.mpullback_mpullback_proj_apply (n := ∞) _ hτ)
+
+/-- **Change of local section by a real phase.** Let `σ` be a section of `P` that is smooth on an
+open set `U` of the base, read as a map into the charted total space, and `f : B → ℝ` a function
+that is `C¹` at `x ∈ U`. At `x`, the pull-back of a connection form `α` along the section
+`τ = σ • exp (f i)` is its pull-back along `σ` plus `df`: `τ^* α = df + σ^* α`.
+
+The section `τ` is smooth wherever `σ` and `f` are (`ContMDiffOn.totalSpaceMk_smul`), and the
+transition from `σ` to `τ` is `exp (f i)` (`TauCeti.PrincipalBundle.division_eq_iff`). -/
+theorem IsCircleConnectionForm.mpullback_apply_op_circleExp_smul_eq_mextDeriv_add
+    (hα : IsCircleConnectionForm α) {σ : ∀ b, P b} {U : Set B} (hU : IsOpen U)
+    (hσ : ContMDiffOn IB (IB.prod (𝓡 1)) ∞
+      (fun b ↦ ManifoldTotalSpace.homeomorph Circle P ⟨b, σ b⟩) U)
+    {f : B → ℝ} {x : B} (hx : x ∈ U) (hf : ContMDiffAt IB 𝓘(ℝ) 1 f x) :
+    TauCeti.mpullback IB (IB.prod (𝓡 1))
+        (fun b ↦ ManifoldTotalSpace.homeomorph Circle P ⟨b, op (Circle.exp (f b)) • σ b⟩) α.val
+          x =
+      mextDeriv (RoughForm.ofFunction IB f) x +
+        TauCeti.mpullback IB (IB.prod (𝓡 1))
+          (fun b ↦ ManifoldTotalSpace.homeomorph Circle P ⟨b, σ b⟩) α.val x := by
+  have hτ : ContMDiffAt IB (IB.prod (𝓡 1)) 1
+      (fun b ↦ ManifoldTotalSpace.homeomorph Circle P ⟨b, op (Circle.exp (f b)) • σ b⟩) x :=
+    ((hσ.contMDiffAt (hU.mem_nhds hx)).of_le (by simp)).totalSpaceMk_smul
+      (contMDiff_circleExp.contMDiffAt.comp x hf)
+  have hdiv : (fun b ↦ PrincipalBundle.division Circle (σ b) (op (Circle.exp (f b)) • σ b)) =
+      fun b ↦ Circle.exp (f b) :=
+    funext fun _ ↦ PrincipalBundle.division_eq_iff.mpr rfl
+  rw [hα.mpullback_apply_eq_mpullback_division_add hU hσ hx (hτ.mdifferentiableAt one_ne_zero),
+    hdiv, mpullback_circleExp_comp_circleAngularForm_apply (hf.mdifferentiableAt one_ne_zero)]
 
 /-- **The curvature in a local section.** At a point `x` near which a section `σ` of `P` is
 smooth, read as a map into the charted total space, the curvature of a connection form `α` is the

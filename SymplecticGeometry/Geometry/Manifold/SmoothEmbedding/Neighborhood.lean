@@ -8,6 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.ContMDiff.Constructions
 public import Mathlib.Geometry.Manifold.Instances.Real
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
+import SymplecticGeometry.Data.Set.Prod
 import SymplecticGeometry.Topology.Order.NhdsSet
 import TauCeti.Geometry.Manifold.Immersion.Differential
 import TauCeti.Geometry.Manifold.Immersion.Family
@@ -100,13 +101,8 @@ theorem exists_isOpen_superset_forall_isSmoothEmbedding_of_injOn [FiniteDimensio
   have hGat : ∀ p ∈ W, ContMDiffAt (IQ.prod J) I ∞ G p := fun p hp ↦
     hG.contMDiffAt (hW.mem_nhds hp)
   -- The track `(q, x) ↦ (q, G (q, x))` is injective near `T ×ˢ K`.
-  have htrack : ∀ {s : Set (Q × P)}, (∀ q, InjOn (fun x ↦ G (q, x)) {x | (q, x) ∈ s}) →
-      InjOn (fun p : Q × P ↦ (p.1, G p)) s := by
-    rintro s hs ⟨q, x⟩ hx ⟨q', y⟩ hy hxy
-    obtain ⟨rfl, hxy⟩ := Prod.ext_iff.1 hxy
-    exact congrArg (Prod.mk q) (hs q hx hy hxy)
   obtain ⟨W₁, hW₁o, hTKW₁, hW₁⟩ := Set.InjOn.exists_isOpen_superset
-    (htrack (s := T ×ˢ K) fun q x hx y hy ↦ hinj q hx.1 hx.2 hy.2) (hT.prod hK)
+    (Set.injOn_fst_prod_iff.2 hinj) (hT.prod hK)
     (fun p hp ↦ continuousAt_fst.prodMk (hGat p (hTK hp)).continuousAt) fun p hp ↦ by
       have h := hGat p (hTK hp)
       exact (contMDiffAt_fst.prodMk h).exists_mem_nhds_injOn (by simp)
