@@ -1224,7 +1224,8 @@ give the same topology.
 - `mem_nondegenerateForms_iff_forall_restrict` and
   `mem_symplecticFormsInClass_iff_forall_restrict`: `ω` is in the space on
   `M` (for `α`) exactly when each restriction is in the space on the
-  component (for the restriction of `α`); nondegeneracy is pointwise, and
+  component (for the restriction of `α`), stated for any open cover, pairwise
+  disjoint for the second; nondegeneracy is pointwise, and
   closedness and exactness are the lemmas of
   `DifferentialForm/Components.lean`.
 - `nondegenerateFormsHomeomorphPi` and `symplecticFormsInClassHomeomorphPi`:
