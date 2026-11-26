@@ -206,12 +206,9 @@ theorem linearModelEquiv_mk_zero_mk_zero {ξ : GroupLieAlgebra I G} (m : D.𝔪)
   let := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
   rw [linearModelEquiv_apply]
   -- The difference of the two directions is `(m + q - ξ, 0)`, in the kernel `𝔥 × 0` of `dπ`.
-  refine sub_eq_zero.1 ((map_sub _ _ _).symm.trans ((D.mem_ker_mfderiv_mk_one_zero_iff _).2 ?_))
-  have hs (y : GroupLieAlgebra I G × (A × V)) :
-      tangentSpaceProdEquiv (I := I) (J := 𝓘(ℝ, A × V)) ((1 : G), ((0 : A), (0 : V)))
-        ((tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V)))).symm y) = y :=
-    ContinuousLinearEquiv.apply_symm_apply _ y
-  rw [map_sub, hs, ContinuousLinearEquiv.apply_symm_apply, linearModelMap_apply, map_zero]
+  refine (LinearMap.sub_mem_ker_iff (f := D.mkTangentMap)
+    (x := D.linearModelMap ((m, 0), (q, 0))) (y := (ξ, 0))).1 ?_
+  rw [ker_mkTangentMap, linearModelMap_apply, map_zero]
   exact ⟨(congrArg (· ∈ D.𝔥) (neg_sub ξ _)).mp (neg_mem hξ), sub_eq_zero.2 rfl⟩
 
 /-- **The descended form at `[1, 0]` is the linear normal form.** Through `linearModelEquiv`, the
