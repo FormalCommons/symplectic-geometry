@@ -6,9 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.LocallyConvex.HahnBanach
+public import SymplecticGeometry.Geometry.Lie.Subgroup.BalancedProduct
 public import SymplecticGeometry.Geometry.Manifold.ContMDiff.Submodule
 public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
-public import TauCeti.Geometry.Lie.Subgroup.BalancedProduct
 public import TauCeti.Geometry.Lie.Subgroup.Stabilizer
 public import TauCeti.Geometry.Manifold.GroupAction.EquivariantSlice
 public import TauCeti.Geometry.Manifold.GroupAction.TransverseSlice
@@ -417,18 +417,11 @@ theorem mfderiv_tubeMap_mfderiv_quotientMk (hz : (z : V) = 0) (ξ : GroupLieAlge
       HAdd.hAdd (α := TangentSpace I' x) (β := TangentSpace I' x)
         (fundamentalVectorField I' ξ x) (v : E') := by
   let _ := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) U I 𝓘(ℝ, V) F
-  have hπ := (BalancedProduct.isSubmersion_quotientMk_rightTranslation (K := stabilizer G x)
-    (Z := U) (I := I) (IZ := 𝓘(ℝ, V)) (F := F)).contMDiff.mdifferentiableAt
-      (x := ((stabilizer G x).toRightTranslation 1, z)) (by simp)
-  have hΦ := (U.contMDiff_tubeMap (I := I) (F := F)).mdifferentiableAt
-    (x := Quotient.mk _ ((stabilizer G x).toRightTranslation 1, z)) (by simp)
   have : ContMDiffSMul I I' 1 G M := ContMDiffSMul.of_le (M := M) ENat.LEInfty.out
   have hσ := U.hasMFDerivAt_sliceMap hz
-  refine (mfderiv_comp_apply _ hΦ hπ _).symm.trans ?_
-  rw [U.tubeMap_def, BalancedProduct.liftRightTranslation_comp_quotientMk]
-  -- `(stabilizer G x).RightTranslation` is `G` with the same charts, and `toRightTranslation` is
-  -- the identity, so this is the differential of `(g, v) ↦ g • e.symm v` on `G × U` at `(1, z)`.
-  refine (mfderiv_smul_slice_apply (σ := U.sliceMap) hσ.mdifferentiableAt ξ v).trans ?_
+  rw [U.tubeMap_def]
+  refine (BalancedProduct.mfderiv_liftRightTranslation_mfderiv_quotientMk hσ.mdifferentiableAt
+    ξ v).trans ?_
   rw [hσ.mfderiv, sliceMap_apply, hz, ZeroMemClass.coe_zero, e.symm_zero]
   exact congrArg (fundamentalVectorField I' ξ x + ·) (V.subtypeL_apply v)
 
