@@ -209,12 +209,14 @@ theorem powerConnection_apply_frame (hα : IsCircleConnectionForm α) {σ : ∀ 
             (fun y ↦ ManifoldTotalSpace.homeomorph Circle P ⟨y, σ y⟩) α.val x ![v] : ℝ)) •
             f x) := by
   -- Compare with the preferred section `τ` at `x`, through the transition `g` with `τ = σ · g`.
-  set τ : ∀ y, P y := fun y ↦ (trivializationAt Circle P x).symm y 1
+  set τ : ∀ y, P y := localSection Circle P x
   set g : B → Circle := fun y ↦ PrincipalBundle.division Circle (σ y) (τ y)
   -- In the frame `τ`, the section `s` reads `[τ, c • f]`, with `c = g ^ (-k)`.
   set c : B → ℂ := fun y ↦ ((g y ^ (-k) : Circle) : ℂ) with hcdef
-  have hτ' := ManifoldTotalSpace.contMDiffAt_totalSpaceMk_trivializationAt_symm (IB := IB)
-    (IF := 𝓡 1) (E := P) (n := ∞) x (1 : Circle)
+  have hτ' : ContMDiffAt IB (IB.prod (𝓡 1)) ∞
+      (fun y ↦ ManifoldTotalSpace.homeomorph Circle P ⟨y, τ y⟩) x := by
+    rw [← funext (PrincipalBundle.manifoldLocalSection_def Circle P x)]
+    exact PrincipalBundle.contMDiffAt_manifoldLocalSection (IB := IB) (IG := 𝓡 1) (n := ∞) x
   have hτ : MDifferentiableAt IB (IB.prod (𝓡 1))
       (fun y ↦ ManifoldTotalSpace.homeomorph Circle P ⟨y, τ y⟩) x :=
     hτ'.mdifferentiableAt (by simp)
@@ -250,7 +252,8 @@ theorem powerConnection_apply_frame (hα : IsCircleConnectionForm α) {σ : ∀ 
   rw [mpullback_fun_zpow_circleAngularForm_apply hg (-k)] at hdc
   have hd := congrArg (· v) (mvfderiv_smul_algebra hc hf)
   simp only [add_apply, smul_apply, ContinuousLinearMap.smulRight_apply, hdc] at hd
-  rw [powerConnection_apply_trivializationAt α k hcf hs' v, hd, hmk, hA, Pi.smul_apply']
+  rw [powerConnection_apply_trivializationAt α k hcf hs' v, hd, hmk,
+    funext (PrincipalBundle.manifoldLocalSection_def Circle P x), hA, Pi.smul_apply']
   congr 1
   simp only [smul_add, smul_smul, hgc, one_smul]
   match_scalars
