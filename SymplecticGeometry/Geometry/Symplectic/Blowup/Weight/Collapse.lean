@@ -132,7 +132,7 @@ theorem collapseMap_eq_inr_shellPoint {z : puncturedSpace (Fin (n + 1) → ℂ)}
     (hx : ψ (complexToRealEuclidean (Fin (n + 1)) z) ∈ (ψ '' ball 0 l)ᶜ) :
     collapseMap hψ hl hε ⟨ψ (complexToRealEuclidean (Fin (n + 1)) z), hx⟩ =
       GluedAlong.inr (gluingDiffeomorphSymm hψ hl.le hε).toHomeomorph
-        ⟨shellPoint l z, mem_modelPiece_iff.2 (shellPoint_mem_openNbhd hε hz)⟩ := by
+        ⟨shellPoint l z, mem_openNbhdOpens_iff.2 (shellPoint_mem_openNbhd hε hz)⟩ := by
   have hle : l ≤ √(l ^ 2 + ε ^ 2) := Real.le_sqrt_of_sq_le (by nlinarith)
   rcases hlz.eq_or_lt with hlz | hlz
   · -- On the sphere, both sides are the point of the divisor over the line of `z`.
@@ -150,7 +150,7 @@ theorem collapseMap_eq_inr_shellPoint {z : puncturedSpace (Fin (n + 1) → ℂ)}
       exact (mem_closedBall_zero_iff.1 hu).not_gt (hu' ▸ hlz)
     rw [collapseMap_of_notMem hψ hl hε hx']
     refine (inl_eq_inr_iff hψ hl.le hε).2 ⟨(mem_modelOverlap_iff (p := ⟨shellPoint l z,
-      mem_modelPiece_iff.2 (shellPoint_mem_openNbhd hε hz)⟩)).2
+      mem_openNbhdOpens_iff.2 (shellPoint_mem_openNbhd hε hz)⟩)).2
         (shellPoint_notMem_exceptionalDivisor hl.le hlz), Subtype.ext ?_⟩
     rw [coe_gluingDiffeomorph_apply, coe_shellSymplectomorph_apply,
       ← coe_radialBlowdownDiffeomorph_apply, coe_radialBlowdownDiffeomorph_shellPoint hl.le hlz]
@@ -194,7 +194,7 @@ private theorem continuousOn_collapseMap_image_ball :
   -- On `W`, the collapse map is `inr ∘ shellPoint l ∘ z`.
   refine ((GluedAlong.continuous_inr (gluingDiffeomorphSymm hψ hl.le hε).toHomeomorph).comp
     (((continuous_shellPoint l).comp hz).subtype_mk
-      fun y ↦ mem_modelPiece_iff.2 (shellPoint_mem_openNbhd hε (hlt y)))).congr fun y ↦ ?_
+      fun y ↦ mem_openNbhdOpens_iff.2 (shellPoint_mem_openNbhd hε (hlt y)))).congr fun y ↦ ?_
   have hx : ψ (complexToRealEuclidean (Fin (n + 1)) (z y)) ∈ (ψ '' ball 0 l)ᶜ :=
     (hψz y).symm ▸ (y : ((ψ '' ball 0 l)ᶜ : Set M)).property
   have hy : collapseMap hψ hl hε y = collapseMap hψ hl hε ⟨_, hx⟩ :=

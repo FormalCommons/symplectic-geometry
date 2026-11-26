@@ -142,7 +142,7 @@ theorem liouvilleMeasure_form_range_divisor :
   -- The divisor is the image under `inr` of the exceptional divisor of the model piece.
   have hrange : range (divisor hψ hl hε) =
       GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph ''
-        {y : modelPiece n ε | (y : BlowupModel n) ∈ exceptionalDivisor n} := by
+        {y : openNbhdOpens n ε | (y : BlowupModel n) ∈ exceptionalDivisor n} := by
     ext z
     rw [range_divisor, mem_compl_iff, SetLike.mem_coe, mem_complDivisor_iff, not_not]
   have hsub : range (divisor hψ hl hε) ⊆
@@ -151,8 +151,8 @@ theorem liouvilleMeasure_form_range_divisor :
   rw [← Measure.restrict_eq_self _ hsub, ← hmap, hinr.map_apply, hrange,
     preimage_image_eq _ (GluedAlong.inr_injective _),
     SmoothTwoForm.liouvilleMeasure_mpullback_subtypeVal,
-    MeasurableEmbedding.comap_apply (f := (Subtype.val : modelPiece n ε → BlowupModel n))
-      (MeasurableEmbedding.subtypeVal (modelPiece n ε).isOpen.measurableSet)]
+    MeasurableEmbedding.comap_apply (f := (Subtype.val : openNbhdOpens n ε → BlowupModel n))
+      (MeasurableEmbedding.subtypeVal (openNbhdOpens n ε).isOpen.measurableSet)]
   exact measure_mono_null (by rintro _ ⟨y, hy, rfl⟩; exact hy)
     (liouvilleMeasure_exceptionalDivisor _)
 

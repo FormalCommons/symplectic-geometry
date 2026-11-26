@@ -50,8 +50,9 @@ to the exceptional divisor `Z`, sets up the neighbourhoods `L(ε)` of `Z`, and i
   intersection (`biInter_gt_closedNbhd`), and since `L(1)` is compact every neighbourhood of
   it contains some `L(ε)` (`exists_closedNbhd_subset`, `exists_openNbhd_subset`, by
   `TauCeti.exists_pos_sublevel_subset_of_isCompact_of_mem_nhdsSet`).
-* `SymplecticGeometry.BlowupModel.openNbhdComplDivisor n ε`: `openNbhd n ε ∖ Z`, as an open subset
-  of the model.
+* `SymplecticGeometry.BlowupModel.openNbhdOpens n ε`: `openNbhd n ε`, as an open subset of the
+  model, and `SymplecticGeometry.BlowupModel.openNbhdComplDivisor n ε`: `openNbhd n ε ∖ Z`, as an
+  open subset of the model, which lies in the former (`openNbhdComplDivisor_le_openNbhdOpens`).
 * `SymplecticGeometry.BlowupModel.blowupForm n l`: the form `π^* ω₀ + l² pr^* ω_FS`, and
   `SymplecticGeometry.BlowupModel.isClosed_blowupForm`: it is closed.
 * `SymplecticGeometry.BlowupModel.isKahler_blowupForm`: for `l ≠ 0`, `ω̃_l` is Kähler for the
@@ -228,6 +229,21 @@ theorem exists_openNbhd_subset {U : Set (BlowupModel n)}
   (exists_closedNbhd_subset hU).imp fun _ h ↦ ⟨h.1, (openNbhd_subset_closedNbhd _).trans h.2⟩
 
 variable (n) in
+/-- `openNbhd n ε`: the points of the model blowup whose blowdown has Euclidean norm less than
+`ε`, as an open subset. -/
+def openNbhdOpens (ε : ℝ) : TopologicalSpace.Opens (BlowupModel n) :=
+  ⟨openNbhd n ε, isOpen_openNbhd ε⟩
+
+@[simp]
+theorem coe_openNbhdOpens (ε : ℝ) : (openNbhdOpens n ε : Set (BlowupModel n)) = openNbhd n ε :=
+  (rfl)
+
+@[simp]
+theorem mem_openNbhdOpens_iff {ε : ℝ} {p : BlowupModel n} :
+    p ∈ openNbhdOpens n ε ↔ p ∈ openNbhd n ε :=
+  Iff.rfl
+
+variable (n) in
 /-- `openNbhd n ε ∖ Z`: the points of the model blowup off the exceptional divisor whose
 blowdown has Euclidean norm less than `ε`, as an open subset. -/
 def openNbhdComplDivisor (ε : ℝ) : TopologicalSpace.Opens (BlowupModel n) :=
@@ -242,6 +258,12 @@ theorem coe_openNbhdComplDivisor (ε : ℝ) :
 theorem mem_openNbhdComplDivisor_iff {ε : ℝ} {p : BlowupModel n} :
     p ∈ openNbhdComplDivisor n ε ↔ p ∈ openNbhd n ε ∧ p ∉ exceptionalDivisor n :=
   Iff.rfl
+
+variable (n) in
+/-- `openNbhd n ε ∖ Z` lies in `openNbhd n ε`. -/
+theorem openNbhdComplDivisor_le_openNbhdOpens (ε : ℝ) :
+    openNbhdComplDivisor n ε ≤ openNbhdOpens n ε :=
+  fun _ hp ↦ (mem_openNbhdComplDivisor_iff.1 hp).1
 
 /-! ### The forms `ω̃_λ` -/
 
