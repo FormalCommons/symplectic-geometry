@@ -7,7 +7,7 @@ module
 
 public import Mathlib.Geometry.Manifold.SmoothEmbedding
 public import Mathlib.Order.Filter.AtTopBot.Defs
-import Mathlib.Geometry.Manifold.MFDeriv.Atlas
+import TauCeti.Geometry.Manifold.MFDeriv.IsInvertible
 import Mathlib.Geometry.Manifold.MFDeriv.FDeriv
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Neighborhood
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.UnivBall
@@ -32,7 +32,10 @@ Composed with `e.symm`, the line is injective with injective differential on `[-
 it restricts to a smooth embedding on some open set around `[-1, 1]`
 (`TauCeti.exists_isOpen_isSmoothEmbedding_of_injOn`). Precomposing with Mathlib's
 `OpenPartialHomeomorph.univBall 0 1`, an increasing map of `ℝ` onto `(-1, 1)`, gives a smooth
-embedding of `ℝ` (`Manifold.IsSmoothEmbedding.comp_univBall`).
+embedding of `ℝ` (`Manifold.IsSmoothEmbedding.comp_univBall`). Its behaviour at `-∞`, with
+`q` the image of `-1`, is that of any map continuous and injective on `[-1, 1]` precomposed
+with `univBall 0 1` (`ContinuousOn.tendsto_comp_univBall_atBot`,
+`Set.InjOn.notMem_range_comp_univBall`, `ContinuousOn.closure_image_comp_univBall_Iic`).
 
 ## Main results
 
@@ -90,49 +93,30 @@ theorem exists_isSmoothEmbedding_real_of_mem_nhds {p : M} {V : Set M} (hV : V �
     smul_left_injective ℝ hw0 (add_left_cancel (e.symm.injOn (hLK s hs).1 (hLK s' hs').1 h))
   have himm : ∀ s ∈ K, Injective (mfderiv 𝓘(ℝ) I f s) := by
     intro s hs
-    have hmem := (hLK s hs).1
-    rw [mfderiv_comp s (((contMDiffOn_extChartAt_symm (n := ∞) p).contMDiffAt
-      ((isOpen_extChartAt_target p).mem_nhds hmem)).mdifferentiableAt (by simp))
+    have h1 := TauCeti.isInvertible_mfderiv_extChartAt_symm (I := I) (hLK s hs).1
+    rw [mfderiv_comp s (mdifferentiableAt_of_isInvertible_mfderiv h1)
       (hL.contMDiff.mdifferentiableAt (by simp))]
-    have h1 := isInvertible_mfderivWithin_extChartAt_symm (I := I) hmem
-    rw [I.range_eq_univ, mfderivWithin_univ] at h1
-    refine h1.injective.comp ?_
     have hLd : HasFDerivAt L ((1 : ℝ →L[ℝ] ℝ).smulRight w) s :=
       ((hasFDerivAt_id s).smul_const w).const_add (e p)
     rw [(hasMFDerivAt_iff_hasFDerivAt.2 hLd).mfderiv]
     have hinjL : Injective ((1 : ℝ →L[ℝ] ℝ).smulRight w) := fun a b h ↦
       smul_left_injective ℝ hw0 (by simpa using h)
     -- The tangent spaces of `ℝ` and `E` are `ℝ` and `E` by definition.
-    exact hinjL
+    exact h1.injective.comp hinjL
   obtain ⟨W, hKW, -, hW⟩ := TauCeti.exists_isOpen_isSmoothEmbedding_of_injOn hO hf isCompact_Icc
     (fun s hs ↦ (hLK s hs).1) hinj himm
-  -- Reparametrize `f` on `(-1, 1)` by `u`, an increasing map of `ℝ` onto `(-1, 1)`.
-  set u : ℝ → ℝ := ⇑(univBall (0 : ℝ) 1)
-  have hu (t : ℝ) : u t ∈ Ioo (-1) 1 := by
-    have := range_univBall (E := ℝ) (0 : ℝ) one_pos ▸ mem_range_self (f := u) t
-    simpa [Real.ball_eq_Ioo] using this
-  have hfK : ContinuousOn f K := hf.continuousOn.mono fun s hs ↦ (hLK s hs).1
-  have hm1 : (-1 : ℝ) ∈ K := ⟨le_rfl, by norm_num⟩
-  have htend : Tendsto (f ∘ u) atBot (𝓝 (f (-1))) :=
-    (hf.continuousOn.continuousAt (hO.mem_nhds (hLK (-1) hm1).1)).tendsto.comp
-      (by simpa using tendsto_univBall_real_atBot 0 one_pos)
-  refine ⟨f ∘ u, f (-1), hW.comp_univBall one_pos
+  -- Reparametrize `f` on `(-1, 1)` by Mathlib's map `univBall 0 1` of `ℝ` onto `(-1, 1)`.
+  have hfK : ContinuousOn f (Icc (0 - 1) (0 + 1)) := by
+    simpa using hf.continuousOn.mono fun s hs ↦ (hLK s hs).1
+  have hinj' : InjOn f (Icc (0 - 1) (0 + 1)) := by simpa using hinj
+  refine ⟨f ∘ univBall (0 : ℝ) 1, f (-1), hW.comp_univBall one_pos
     (fun t ht ↦ hKW (Ioo_subset_Icc_self (by simpa [Real.ball_eq_Ioo] using ht))) le_rfl,
-    by simp [u, f, L, e], ?_, htend, ?_, fun T ↦ ?_⟩
-  · refine closure_minimal ?_ ((isCompact_Icc.image_of_continuousOn hfK).isClosed) |>.trans ?_
-    · rintro _ ⟨t, rfl⟩
-      exact mem_image_of_mem f (Ioo_subset_Icc_self (hu t))
-    · rintro _ ⟨s, hs, rfl⟩
-      exact (hLK s hs).2
-  · rintro ⟨t, ht⟩
-    exact (hu t).1.ne' (hinj (Ioo_subset_Icc_self (hu t)) hm1 ht)
-  · refine (closure_minimal (subset_insert _ _) ?_).antisymm
-      (insert_subset (mem_closure_of_tendsto htend ?_) subset_closure)
-    · rw [image_comp, image_univBall_real_Iic 0 one_pos, zero_sub, ← image_insert_eq,
-        insert_left_Ioc (hu T).1.le]
-      exact (isCompact_Icc.image_of_continuousOn
-        (hfK.mono (Icc_subset_Icc le_rfl (hu T).2.le))).isClosed
-    · exact (eventually_le_atBot T).mono fun t ht ↦ mem_image_of_mem _ ht
+    by simp [f, L, e], ?_, by simpa using hfK.tendsto_comp_univBall_atBot one_pos,
+    by simpa using hinj'.notMem_range_comp_univBall one_pos,
+    fun T ↦ by simpa using hfK.closure_image_comp_univBall_Iic one_pos T⟩
+  refine (hfK.closure_range_comp_univBall_subset one_pos).trans ?_
+  rintro _ ⟨s, hs, rfl⟩
+  exact (hLK s (by simpa [K] using hs)).2
 
 end SymplecticGeometry
 

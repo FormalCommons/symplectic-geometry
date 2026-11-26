@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.InnerProductSpace.Calculus
+public import SymplecticGeometry.Analysis.Normed.Module.Ball.Homeomorph
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import Mathlib.Geometry.Manifold.SmoothEmbedding
 import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
@@ -28,10 +29,6 @@ The first proof is that of the local diffeomorphism step inside Tau Ceti's
 
 ## Main results
 
-* `OpenPartialHomeomorph.range_univBall`: the range of `univBall c r` is `ball c r`, for `0 < r`.
-* `OpenPartialHomeomorph.strictMono_univBall_real`, `tendsto_univBall_real_atBot` and
-  `image_univBall_real_Iic`: on the real line, `univBall c r` is increasing, tends to `c - r` at
-  `-∞`, and sends `Iic T` onto `Ioc (c - r) (univBall c r T)`, for `0 < r`.
 * `OpenPartialHomeomorph.isLocalDiffeomorph_univBall`: `univBall c ρ` is a `C^n` local
   diffeomorphism, for `n ≤ ∞`.
 * `Manifold.IsSmoothEmbedding.comp_univBall`: a smooth embedding of an open set containing
@@ -46,68 +43,6 @@ open scoped Manifold ContDiff
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {n : ℕ∞ω} {c : E} {ρ : ℝ}
 
 namespace OpenPartialHomeomorph
-
-section Range
-
-variable {P : Type*} [PseudoMetricSpace P] [NormedAddTorsor E P]
-
-/-- For `0 < r`, Mathlib's map `univBall c r : E → P` has as range the ball `ball c r`. -/
-theorem range_univBall (c : P) {r : ℝ} (hr : 0 < r) :
-    range (univBall (E := E) c r) = ball c r := by
-  rw [← univBall_target c hr, ← image_univ, ← univBall_source c r,
-    (univBall c r).image_source_eq_target]
-
-end Range
-
-section Real
-
-open Filter Topology
-
-variable {r : ℝ}
-
-/-- On the real line, for `0 < r`, Mathlib's map `univBall c r` is
-`x ↦ c + r * (x / √(1 + x ^ 2))`. -/
-theorem univBall_real_apply (c : ℝ) (hr : 0 < r) (x : ℝ) :
-    univBall c r x = c + r * (x / √(1 + x ^ 2)) := by
-  simp [univBall, hr, unitBallBall, univUnitBall_apply]
-  ring
-
-/-- On the real line, for `0 < r`, Mathlib's map `univBall c r` is strictly increasing. -/
-theorem strictMono_univBall_real (c : ℝ) (hr : 0 < r) : StrictMono (univBall c r) := by
-  refine ((continuous_univBall c r).strictMono_of_inj
-    fun x y h ↦ (univBall c r).injOn (by simp) (by simp) h).resolve_right fun h ↦ ?_
-  have h1 := h zero_lt_one
-  rw [univBall_real_apply c hr, univBall_real_apply c hr, zero_div, mul_zero, add_zero] at h1
-  have : 0 < r * (1 / √(1 + 1 ^ 2)) := by positivity
-  linarith
-
-/-- On the real line, for `0 < r`, Mathlib's map `univBall c r` tends to the left end `c - r` of
-its range at `-∞`. -/
-theorem tendsto_univBall_real_atBot (c : ℝ) (hr : 0 < r) :
-    Tendsto (univBall c r) atBot (𝓝 (c - r)) := by
-  have hrange : range (univBall c r) = Ioo (c - r) (c + r) := by
-    rw [range_univBall c hr, Real.ball_eq_Ioo]
-  have := tendsto_atBot_ciInf (strictMono_univBall_real c hr).monotone
-    (hrange ▸ bddBelow_Ioo)
-  rwa [iInf, hrange, csInf_Ioo (by linarith)] at this
-
-/-- On the real line, for `0 < r`, Mathlib's map `univBall c r` sends the half-line `Iic T` onto
-the interval `Ioc (c - r) (univBall c r T)`. -/
-theorem image_univBall_real_Iic (c : ℝ) (hr : 0 < r) (T : ℝ) :
-    univBall c r '' Iic T = Ioc (c - r) (univBall c r T) := by
-  have hmono := strictMono_univBall_real c hr
-  have hrange : range (univBall c r) = Ioo (c - r) (c + r) := by
-    rw [range_univBall c hr, Real.ball_eq_Ioo]
-  refine Subset.antisymm ?_ fun y hy ↦ ?_
-  · rintro _ ⟨t, ht, rfl⟩
-    exact ⟨(hrange.subset (mem_range_self t)).1, hmono.monotone ht⟩
-  · obtain ⟨t₀, ht₀T, ht₀⟩ := ((eventually_le_atBot T).and
-      ((tendsto_univBall_real_atBot c hr).eventually (eventually_lt_nhds hy.1))).exists
-    obtain ⟨t, ht, rfl⟩ := intermediate_value_Icc ht₀T (continuous_univBall c r).continuousOn
-      ⟨ht₀.le, hy.2⟩
-    exact ⟨t, ht.2, rfl⟩
-
-end Real
 
 /-- For `n ≤ ∞`, Mathlib's map `univBall c ρ` is a `C^n` local diffeomorphism of `E`. It maps
 `E` onto the ball `ball c ρ` if `0 < ρ`, and is the translation by `c` otherwise. -/
