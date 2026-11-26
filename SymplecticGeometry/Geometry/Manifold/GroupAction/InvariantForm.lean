@@ -8,8 +8,10 @@ module
 public import TauCeti.Geometry.Manifold.GroupAction.InvariantForm
 public import TauCeti.Geometry.Manifold.MFDeriv.Constancy
 public import TauCeti.Geometry.Symplectic.Hamiltonian.SymplecticVectorField
+public import SymplecticGeometry.Geometry.Manifold.GroupAction.BoundarylessModel
 import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.DegreeOne
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv
 
 /-!
 # Closed invariant forms on fundamental vector fields
@@ -30,6 +32,18 @@ For a closed invariant two-form `σ` the same invariance, through Tau Ceti's
 `TauCeti.SmoothTwoForm.mem_symplecticVectorFields_iff_mlieDerivForm_eq_zero`, makes every
 fundamental vector field symplectic, so that `ι_{X_ξ} σ` is closed.
 
+Tau Ceti's `TauCeti.mlieDerivForm_fundamentalVectorField_eq_zero` asks the model of `M` to have
+no boundary. For a boundaryless manifold whose model may have boundary, an invariant form of
+positive degree is carried to the copy `TauCeti.BoundarylessModel I M` with charts in the model
+vector space along the inverse of the identity diffeomorphism
+`TauCeti.BoundarylessModel.interiorDiffeomorph`. It stays invariant there, since that map is
+equivariant, so Tau Ceti's result applies on the copy. Pulling back along the diffeomorphism, the
+Lie derivative on `M` vanishes by naturality along related fields
+(`TauCeti.mpullback_mlieDerivForm_of_related`), since the differential of an equivariant map
+carries one fundamental vector field to the other
+(`TauCeti.mfderiv_fundamentalVectorField_of_map_smul`). The transport follows
+`SymplecticGeometry.exists_invariant_smoothForm_apply_fundamentalVectorField_nonneg`.
+
 ## Main results
 
 * `TauCeti.mvfderiv_apply_fundamentalVectorField_eq_zero`: the pairing of a closed invariant
@@ -39,6 +53,9 @@ fundamental vector field symplectic, so that `ι_{X_ξ} σ` is closed.
 * `TauCeti.SmoothTwoForm.fundamental_toSectionLinearMap_mem_symplecticVectorFields` and
   `TauCeti.SmoothTwoForm.interiorₗ_fundamental_toSectionLinearMap_mem_closedForms`: for a closed
   invariant two-form `σ`, each fundamental vector field is symplectic and `ι_{X_ξ} σ` is closed.
+* `TauCeti.mlieDerivForm_fundamentalVectorField_eq_zero_of_boundarylessManifold`: invariant forms
+  of positive degree have zero Lie derivative along fundamental vector fields on a boundaryless
+  manifold whose model may have boundary.
 
 ## References
 
@@ -119,6 +136,54 @@ theorem SmoothTwoForm.interiorₗ_fundamental_toSectionLinearMap_mem_closedForms
   rw [mem_closedForms, SmoothTwoForm.coe_interiorₗ]
   exact SmoothTwoForm.mem_symplecticVectorFields_iff.1
     (fundamental_toSectionLinearMap_mem_symplecticVectorFields hσ hinv ξ)
+
+section BoundarylessManifold
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I (minSmoothness ℝ 3) G]
+  [T2Space G] [BoundarylessManifold I G]
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
+  {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H' M] [T2Space M] [IsManifold I' ∞ M]
+  [BoundarylessManifold I' M] [MulAction G M] [ContMDiffSMul I I' ∞ G M]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+
+attribute [local instance] BoundarylessModel.interiorChartedSpace in
+/-- **Invariant forms are infinitesimally invariant**, on a boundaryless manifold whose model may
+have boundary. If a smooth form `α` of positive degree is invariant under every element of `G`,
+then its Lie derivative along every fundamental vector field vanishes: `L_{ξ_M} α = 0`. -/
+theorem mlieDerivForm_fundamentalVectorField_eq_zero_of_boundarylessManifold {k : ℕ}
+    {α : SmoothForm I' M F (k + 1)}
+    (hα : ∀ g : G, SmoothForm.mpullback (fun x : M ↦ g • x)
+      (ContMDiffSMul.contMDiff_const_smul (I := I) (I' := I') g) α = α)
+    (ξ : GroupLieAlgebra I G) :
+    mlieDerivForm (fundamentalVectorField I' ξ) α.val = 0 := by
+  let Φ := BoundarylessModel.interiorDiffeomorph I' (M := M) ∞
+  -- The form `β = (Φ⁻¹)^* α` on the copy with the vector-space atlas is invariant too.
+  let β := SmoothForm.mpullback Φ.symm Φ.symm.contMDiff α
+  have hβ (g : G) : SmoothForm.mpullback (fun x : BoundarylessModel I' M ↦ g • x)
+      (ContMDiffSMul.contMDiff_const_smul (I := I) (I' := 𝓘(ℝ, E')) g) β = β := by
+    rw [SmoothForm.mpullback_mpullback_of_comp_eq _ _ Φ.symm.contMDiff
+      (ContMDiffSMul.contMDiff_const_smul (I := I) (I' := I') g)
+      (funext fun y ↦ BoundarylessModel.interiorDiffeomorph_symm_smul I' ∞ g y), hα g]
+  have hαβ : α = SmoothForm.mpullback Φ Φ.contMDiff β :=
+    (SmoothForm.mpullback_mpullback_symm Φ α).symm
+  -- The differential of the equivariant map `Φ` carries one fundamental vector field to the other.
+  have hXY (x : M) : mfderiv I' 𝓘(ℝ, E') Φ x (fundamentalVectorField I' ξ x) =
+      fundamentalVectorField 𝓘(ℝ, E') ξ (Φ x) :=
+    mfderiv_fundamentalVectorField_of_map_smul (Φ.mdifferentiable (by simp) x)
+      ((ContMDiffSMul.contMDiff_smul_const (I := I) (I' := I') (n := ∞) x).mdifferentiableAt
+        (by simp))
+      (fun g ↦ BoundarylessModel.interiorDiffeomorph_smul I' ∞ g x) ξ
+  rw [hαβ, SmoothForm.coe_mpullback, ← mpullback_mlieDerivForm_of_related
+      (Φ.contMDiff.of_le (by simp)) (β.isSmoothForm.of_le (by simp))
+      (contMDiff_fundamentalVectorField (m := 1) (n := ∞) (by simp) ξ)
+      ((contMDiff_fundamentalVectorField (m := 1) (n := ∞) (by simp) ξ).mdifferentiable
+        one_ne_zero) hXY,
+    mlieDerivForm_fundamentalVectorField_eq_zero hβ ξ, mpullback_zero]
+
+end BoundarylessManifold
 
 end TauCeti
 
