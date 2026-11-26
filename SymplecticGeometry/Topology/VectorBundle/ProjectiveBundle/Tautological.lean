@@ -10,6 +10,7 @@ public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.OfBundle
 public import SymplecticGeometry.Topology.Algebra.Module.Equiv.Submodule
 public import SymplecticGeometry.Topology.Algebra.Projectivization
 public import SymplecticGeometry.Topology.VectorBundle.ProjectiveBundle.Basic
+import SymplecticGeometry.Topology.VectorBundle.Basic
 
 /-!
 # Tautological lines
@@ -772,7 +773,7 @@ theorem continuous_tautologicalInlEquiv :
             ((FiberBundle.continuous_proj G₁ E₁).comp
               (continuous_toTotalSpace_tautological 𝕜 G₁ E₁)))).congr fun v ↦ by
           -- `simp` leaves `HEq` goals whose types agree only by unfolding `inl` or `inr`.
-          ext <;> simp [Pullback.lift, zeroSection] <;> rfl⟩⟩
+          ext <;> simp [Pullback.lift, zeroSection_def] <;> rfl⟩⟩
 
 variable (G₁ E₁) in
 /-- The pull-back of the tautological line of `E₁ ×ᵇ E₂` along `ProjectiveBundle.inr` is the
@@ -804,7 +805,7 @@ theorem continuous_tautologicalInrEquiv :
               (continuous_toTotalSpace_tautological 𝕜 G₂ E₂))).prodMk
           (continuous_toTotalSpace_tautological 𝕜 G₂ E₂)).congr fun v ↦ by
           -- `simp` leaves `HEq` goals whose types agree only by unfolding `inl` or `inr`.
-          ext <;> simp [Pullback.lift, zeroSection] <;> rfl⟩⟩
+          ext <;> simp [Pullback.lift, zeroSection_def] <;> rfl⟩⟩
 
 end Prod
 
