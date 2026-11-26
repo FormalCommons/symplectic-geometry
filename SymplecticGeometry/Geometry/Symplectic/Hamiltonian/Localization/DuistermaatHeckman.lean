@@ -128,8 +128,7 @@ theorem integral_cexp_neg_mul_eq_finsum_fixedPoints (hσ : σ.IsSymplectic)
   classical
   have hc : Continuous fun x ↦ μ x circlePeriodOneGenerator := by
     simpa using (hμ.contMDiff circlePeriodOneGenerator).continuous.neg
-  have : ContinuousConstSMul Circle M :=
-    ⟨fun g ↦ (ContMDiffSMul.contMDiff_const_smul (I := 𝓡 1) (I' := I) (n := ∞) g).continuous⟩
+  have : ContinuousSMul Circle M := ContMDiffSMul.continuousSMul (I := 𝓡 1) (I' := I) ∞
   have hS := finite_fixedPoints hiso
   -- The left side is `complexMGF H λ_σ (-ħ)`, an entire function of `ħ`.
   obtain ⟨a, ha⟩ := (isCompact_range hc).bddBelow

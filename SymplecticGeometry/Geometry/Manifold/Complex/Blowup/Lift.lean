@@ -39,7 +39,7 @@ defined by this last description, without choosing `g`.
 * `SymplecticGeometry.BlowupModel.blowdown_liftMap`: the lift lies over `ψ`, that is,
   `π ∘ liftMap ψ L = ψ ∘ π` for the blowdown `π`.
 * `SymplecticGeometry.BlowupModel.liftMap_zeroSection`: on the divisor the lift is the action of
-  `L` on lines (Mathlib's `Projectivization.map`).
+  `L` on lines (Tau Ceti's `ContinuousLinearEquiv.mapProjectivization`).
 * `SymplecticGeometry.BlowupModel.contMDiffAt_liftMap_of_ne_zero` and
   `SymplecticGeometry.BlowupModel.contMDiffAt_liftMap_zeroSection`: the lift is holomorphic at a
   point over a `z` where `ψ` is analytic and `ψ z ≠ 0`, and at every point of the divisor when
@@ -111,13 +111,13 @@ derivative at `0` is the continuous linear equivalence `L`. A point `p` over `z`
 goes to the point over `ψ z` on the line `[ψ z]`; a point with `ψ z = 0`, such as a point of the
 exceptional divisor, goes to the point over `0` on the line `L ℓ`, where `ℓ` is the line of `p`. -/
 noncomputable def liftMap (p : BlowupModel n) : BlowupModel n :=
-  if h : ψ p.blowdown = 0 then zeroSection (map (L : _ →ₗ[ℂ] _) L.injective p.pr)
+  if h : ψ p.blowdown = 0 then zeroSection (L.mapProjectivization p.pr)
   else ⟨(mk ℂ (ψ p.blowdown) h, ψ p.blowdown), mk_self_mem_blowupModel h⟩
 
 variable {ψ} {p : BlowupModel n}
 
 theorem liftMap_of_eq_zero (h : ψ p.blowdown = 0) :
-    liftMap ψ L p = zeroSection (map (L : _ →ₗ[ℂ] _) L.injective p.pr) :=
+    liftMap ψ L p = zeroSection (L.mapProjectivization p.pr) :=
   dite_eq_left h
 
 theorem liftMap_of_ne_zero (h : ψ p.blowdown ≠ 0) :
@@ -139,7 +139,7 @@ theorem blowdown_liftMap (p : BlowupModel n) : (liftMap ψ L p).blowdown = ψ p.
 /-- On the exceptional divisor, the lift of a map fixing `0` acts on lines by its derivative `L`. -/
 @[simp]
 theorem liftMap_zeroSection (h0 : ψ 0 = 0) (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
-    liftMap ψ L (zeroSection ℓ) = zeroSection (map (L : _ →ₗ[ℂ] _) L.injective ℓ) := by
+    liftMap ψ L (zeroSection ℓ) = zeroSection (L.mapProjectivization ℓ) := by
   rw [liftMap_of_eq_zero L (by rwa [blowdown_zeroSection]), pr_zeroSection]
 
 end Def
@@ -203,7 +203,7 @@ theorem contMDiffAt_liftMap_zeroSection (hψ : AnalyticAt ℂ ψ 0) (h0 : ψ 0 =
     · have hzw0 : ((blowupModelChart i).symm w).blowdown = 0 := by
         rw [← hzw, hz_def]; simp [hwi]
       rw [liftMap_of_eq_zero L (by rw [hzw0, h0]), pr_zeroSection,
-        pr_blowupModelChart_symm_apply, map_mk]
+        pr_blowupModelChart_symm_apply, ContinuousLinearEquiv.mapProjectivization_mk]
       congr 1
       simp [hF_def, show z w = 0 by rw [hzw, hzw0], hG0, hv_def]
     · have hψz : ψ (z w) = w i • F w := by
@@ -273,8 +273,7 @@ theorem liftMap_symm_liftMap (h0 : 0 ∈ ψ.source) (hψ0 : ψ 0 = 0) {p : Blowu
   by_cases hz : p.blowdown = 0
   · have hsymm0 : ψ.symm 0 = 0 := (congrArg ψ.symm hψ0).symm.trans (ψ.left_inv h0)
     rw [eq_zeroSection_pr hz, liftMap_zeroSection L hψ0, liftMap_zeroSection L.symm hsymm0]
-    simp only [← ContinuousLinearEquiv.coe_mapProjectivization,
-      ContinuousLinearEquiv.mapProjectivization_symm_apply_apply]
+    rw [ContinuousLinearEquiv.mapProjectivization_symm_apply_apply]
   · exact (eq_of_blowdown_eq hz (by rw [blowdown_liftMap, blowdown_liftMap, ψ.left_inv hp])).symm
 
 /-- The lift of a partial homeomorphism `ψ` of `E` fixing `0 ∈ ψ.source` is a left inverse of the
