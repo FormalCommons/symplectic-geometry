@@ -236,12 +236,10 @@ of `z` made rational. -/
 theorem homologyπ_singularHomologyIntToRat (n : ℕ) :
     ((toSSet.obj X).chainComplex (ModuleCat.of ℤ (ULift.{0} ℤ))).homologyπ n ≫
         X.singularHomologyIntToRat n =
-      HomologicalComplex.cyclesMap (intCastChainMap ℚ (toSSet.obj X)) n ≫
-        ((((toSSet.obj X).chainComplex (𝟙_ (ModuleCat.{0} ℚ))).sc n).mapCyclesIso
-          (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ))).hom ≫
+      intCastCyclesMap ℚ (toSSet.obj X) n ≫
         (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ)).map
           (((toSSet.obj X).chainComplex (𝟙_ (ModuleCat.{0} ℚ))).homologyπ n) := by
-  rw [singularHomologyIntToRat_def]
+  rw [singularHomologyIntToRat_def, intCastCyclesMap_eq_cyclesMap, Category.assoc]
   refine ((reassoc_of% (HomologicalComplex.homologyπ_naturality
     (intCastChainMap ℚ (toSSet.obj X)) n)) _).trans ?_
   exact congrArg (_ ≫ ·) (ShortComplex.homologyπ_comp_mapHomologyIso_hom
@@ -279,9 +277,7 @@ theorem capCycles_cyclesMap_singularCochainComplexIntChainsIso_hom {p q n : ℕ}
         (HomologicalComplex.cyclesMap (X.singularCochainComplexIntChainsIso ℚ).hom p
           ((((X.singularCochainComplex (ModuleCat.of ℚ ℚ) ℚ (ModuleCat.of ℚ ℚ)).sc
             p).mapCyclesIso (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ))).inv φ)) =
-      HomologicalComplex.cyclesMap (intCastChainMap ℚ (toSSet.obj X)) n ≫
-        ((((toSSet.obj X).chainComplex (𝟙_ (ModuleCat.{0} ℚ))).sc n).mapCyclesIso
-          (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ))).hom ≫
+      intCastCyclesMap ℚ (toSSet.obj X) n ≫
         (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ)).map
           (ChainComplex.capCycles ℚ (X.alexanderWhitneyDiagonal (λ_ _).inv)
             ((toSSet.obj X).chainComplexPairing (λ_ (𝟙_ (ModuleCat.{0} ℚ))).hom) p q n h φ) ≫
@@ -292,8 +288,6 @@ theorem capCycles_cyclesMap_singularCochainComplexIntChainsIso_hom {p q n : ℕ}
     ChainComplex.capCycles_i]
   have e₁ := (((toSSet.obj X).chainComplex (𝟙_ (ModuleCat.{0} ℚ))).sc
     q).mapCyclesIso_inv_comp_iCycles (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ))
-  have e₂ := (((toSSet.obj X).chainComplex (𝟙_ (ModuleCat.{0} ℚ))).sc
-    n).mapCyclesIso_hom_iCycles (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ))
   rw [X.mapCyclesIso_inv_cyclesMap_singularCochainComplexIntChainsIso_hom_iCycles_apply ℚ p φ]
   -- In the next steps, the cochains and cycles of a restricted complex appear both as
   -- those of the complex and as those of the image short complex, which agree only after
@@ -304,9 +298,7 @@ theorem capCycles_cyclesMap_singularCochainComplexIntChainsIso_hom {p q n : ℕ}
   rw [← Functor.map_comp_assoc]
   erw [ChainComplex.capCycles_i]
   rw [Functor.map_comp, Category.assoc]
-  erw [reassoc_of% e₂]
-  exact ((reassoc_of% (HomologicalComplex.cyclesMap_i
-    (intCastChainMap ℚ (toSSet.obj X)) n)) _).symm
+  exact (intCastCyclesMap_iCycles_assoc (toSSet.obj X) n _).symm
 
 /-- **The integral and the rational cap product agree.** For `α ∈ Hᵖ(X; ℚ)` and `μ ∈ Hₙ(X; ℤ)`,
 `p + q = n`, capping `μ` with the class of `α` in the cohomology of integral chains with values in
@@ -328,9 +320,7 @@ theorem singularCap_singularCohomologyIntChainsIso_hom {p q n : ℕ} (h : p + q 
   have hρ : X.singularHomologyIntToRat n
       (((toSSet.obj X).chainComplex (ModuleCat.of ℤ (ULift.{0} ℤ))).homologyπ n z) =
       ((toSSet.obj X).chainComplex (𝟙_ (ModuleCat.{0} ℚ))).homologyπ n
-        (((((toSSet.obj X).chainComplex (𝟙_ (ModuleCat.{0} ℚ))).sc n).mapCyclesIso
-          (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ))).hom
-            (HomologicalComplex.cyclesMap (intCastChainMap ℚ (toSSet.obj X)) n z)) :=
+        (intCastCyclesMap ℚ (toSSet.obj X) n z) :=
     ConcreteCategory.congr_hom (X.homologyπ_singularHomologyIntToRat n) z
   have hcap (w : ((toSSet.obj X).chainComplex (𝟙_ (ModuleCat.{0} ℚ))).cycles n) :
       X.singularCapLinearMap ℚ h

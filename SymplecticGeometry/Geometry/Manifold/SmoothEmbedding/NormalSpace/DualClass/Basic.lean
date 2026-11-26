@@ -90,30 +90,6 @@ variable {E H G : Type*} {V P Z X : Type w} [NormedAddCommGroup E] [NormedSpace 
 
 section TubePair
 
-/-- The image of a tube that equals `f` on the zero section contains the range of `f`. -/
-theorem range_subset_of_apply_zeroSection (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
-    (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) {W : TopologicalSpace.Opens X}
-    (Φ : letI := f.normalSpaceFiberBundle hn hdim
-      TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
-    (hΦ : letI := f.normalSpaceFiberBundle hn hdim
-      ∀ x, (Φ (zeroSection P _ x) : X) = f x) :
-    range f ⊆ W :=
-  range_subset_iff.2 fun x ↦ hΦ x ▸ (Φ _).property
-
-/-- A tube that equals `f` on the zero section sends a vector into the range of `f` exactly when
-the vector lies on the zero section. -/
-theorem apply_mem_range_iff_of_apply_zeroSection (f : SmoothEmbedding I J ∞ Z X)
-    (hn : (∞ : ℕ∞ω) ≠ 0) (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E)
-    {W : TopologicalSpace.Opens X}
-    (Φ : letI := f.normalSpaceFiberBundle hn hdim
-      TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
-    (hΦ : letI := f.normalSpaceFiberBundle hn hdim
-      ∀ x, (Φ (zeroSection P _ x) : X) = f x) (v : TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn)) :
-    (Φ v : X) ∈ range f ↔ v ∈ range (zeroSection P (fun x ↦ f.isImmersion.NormalSpace x hn)) := by
-  refine ⟨fun ⟨x, hx⟩ ↦ ⟨x, Φ.injective (Subtype.ext ((hΦ x).trans hx))⟩, ?_⟩
-  rintro ⟨x, rfl⟩
-  exact ⟨x, (hΦ x).symm⟩
-
 /-- **The pair isomorphism of a tube.** A diffeomorphism `Φ` of the total space of the normal
 bundle `ν` of `f` onto an open set `W` of `X`, equal to `f` on the zero section, is an isomorphism
 of pairs `(ν, ν ∖ 0) ≅ (W, W ∖ f(Z))`: a vector is nonzero exactly when its image is off the range

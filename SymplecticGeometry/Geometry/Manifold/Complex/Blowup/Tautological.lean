@@ -8,11 +8,12 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Model
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Tautological
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.ComplexStructure
+public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.RestrictScalars
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Manifold.Complex.Orientation
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Quotient
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
-import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.RestrictScalars
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.HolomorphicEmbedding
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
 import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
@@ -62,10 +63,10 @@ Lemma 7.1.1; Griffiths–Harris, Chapter 1, §4).
   total spaces, for Tau Ceti's bundle structure `SmoothEmbedding.normalSpaceFiberBundle` on the
   normal bundle.
 * `SymplecticGeometry.BlowupModel.zeroSectionRealEmbedding n`: the zero section as a smooth
-  embedding of the underlying real manifolds, and
-  `SymplecticGeometry.BlowupModel.coe_tangentRange_zeroSectionRealEmbedding`: its real tangent
-  ranges are the complex ones, so that its real normal spaces are the same quotients as the
-  complex ones. They are invariant under the almost complex structure
+  embedding of the underlying real manifolds, the real form
+  `TauCeti.SmoothEmbedding.restrictScalars` of `zeroSectionEmbedding n`
+  (`SymplecticGeometry.BlowupModel.zeroSectionRealEmbedding_def`). Its tangent ranges are
+  invariant under the almost complex structure
   `TauCeti.SmoothAlmostComplexStructure.ofComplexManifold` of the blowup
   (`SymplecticGeometry.BlowupModel.mapsTo_ofComplexManifold_tangentRange_zeroSectionRealEmbedding`).
 * `SymplecticGeometry.BlowupModel.normalSpaceZeroSectionRealEquiv n hn ℓ`: the real form of
@@ -101,15 +102,16 @@ the normal space with `ℓ`. Its continuity on total spaces follows, by Tau Ceti
 `SmoothEmbedding.contMDiff_normalSpaceEquivOfKer`, from that of the tangent map of `blowdown`.
 
 The real embedding is the holomorphic one with scalars restricted
-(`Manifold.IsSmoothEmbedding.restrictScalars`), for Tau Ceti's real manifold structure
-`TauCeti.ComplexManifold.isManifold_real`. Since `zeroSection` and `blowdown` are holomorphic,
-their real differentials are their complex ones
-(`MDifferentiableAt.mfderiv_modelWithCornersSelf_restrictScalars_apply`); so the real form is
-built from the same differential of `blowdown`, by `Manifold.IsImmersion.normalSpaceEquivOfKer` over
-`ℝ`, and it is complex linear because that differential is. As `zeroSection` is holomorphic, it
-is pseudoholomorphic for the almost complex structures of the two complex manifolds
-(`TauCeti.isPseudoholomorphicAt_ofComplexManifold_iff`), so its tangent images are invariant by
-Tau Ceti's `SmoothEmbedding.mapsTo_tangentRange_of_isPseudoholomorphicAt`.
+(`TauCeti.SmoothEmbedding.restrictScalars`), for Tau Ceti's real manifold structure
+`TauCeti.ComplexManifold.isManifold_real`. Its tangent ranges are those of the holomorphic
+embedding (`TauCeti.SmoothEmbedding.coe_tangentRange_restrictScalars`), and they are invariant
+under the complex structure of the blowup, as for the real form of every holomorphic embedding
+(`TauCeti.SmoothEmbedding.mapsTo_ofComplexManifold_tangentRange_restrictScalars`). Since
+`blowdown` is holomorphic, its real differential is its complex one
+(`MDifferentiableAt.mfderiv_modelWithCornersSelf_restrictScalars_apply`); so the real form of
+the normal space isomorphism is built from the same differential of `blowdown`, by
+`Manifold.IsImmersion.normalSpaceEquivOfKer` over `ℝ`, and it is complex linear because that
+differential is.
 
 ## References
 
@@ -531,37 +533,21 @@ real form of the holomorphic embedding `zeroSectionEmbedding n`. -/
 noncomputable def zeroSectionRealEmbedding :
     TauCeti.SmoothEmbedding 𝓘(ℝ, Fin n → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ (ℙ ℂ (Fin (n + 1) → ℂ))
       (BlowupModel n) :=
-  TauCeti.SmoothEmbedding.ofIsSmoothEmbedding zeroSection <| by
-    have h := (zeroSectionEmbedding n).isSmoothEmbedding_toFun
-    rw [TauCeti.SmoothEmbedding.coe_toContMDiffMap, coe_zeroSectionEmbedding] at h
-    exact (h.of_le le_top).restrictScalars ℝ ENat.LEInfty.out
+  (zeroSectionEmbedding n).restrictScalars ℝ le_top ENat.LEInfty.out
+
+variable (n) in
+theorem zeroSectionRealEmbedding_def :
+    zeroSectionRealEmbedding n =
+      (zeroSectionEmbedding n).restrictScalars ℝ le_top ENat.LEInfty.out :=
+  (rfl)
 
 variable (n) in
 /-- The underlying map of `zeroSectionRealEmbedding n` is `zeroSection`. -/
 @[simp]
 theorem coe_zeroSectionRealEmbedding :
-    ⇑(zeroSectionRealEmbedding n) = (zeroSection : ℙ ℂ (Fin (n + 1) → ℂ) → BlowupModel n) :=
-  TauCeti.SmoothEmbedding.coe_ofIsSmoothEmbedding _ _
-
-/-- **The real and complex normal spaces of the zero section are the same quotient.** A tangent
-vector of the blowup at `zeroSection ℓ` is tangent to the zero section for the real structures
-exactly when it is for the complex ones: as sets of vectors of `Fin (n + 1) → ℂ`, the real
-tangent range is the complex one. -/
-theorem coe_tangentRange_zeroSectionRealEmbedding (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
-    ((zeroSectionRealEmbedding n).isImmersion.tangentRange ℓ hn :
-        Set (TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) (zeroSectionRealEmbedding n ℓ))) =
-      ((zeroSectionEmbedding n).isImmersion.tangentRange ℓ WithTop.top_ne_zero :
-        Set (TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) (zeroSectionEmbedding n ℓ))) := by
-  -- The real and complex differentials of `zeroSection` agree, as it is holomorphic.
-  have h (u : Fin n → ℂ) :
-      mfderiv 𝓘(ℝ, Fin n → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (zeroSectionRealEmbedding n) ℓ u =
-        mfderiv 𝓘(ℂ, Fin n → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) (zeroSectionEmbedding n) ℓ u := by
-    rw [coe_zeroSectionRealEmbedding, coe_zeroSectionEmbedding]
-    exact ((contMDiff_zeroSection 1).mdifferentiableAt
-      one_ne_zero).mfderiv_modelWithCornersSelf_restrictScalars_apply ℝ u
-  ext v
-  simp only [SetLike.mem_coe, Manifold.IsImmersion.mem_tangentRange_iff]
-  exact exists_congr fun u => iff_of_eq (congrArg (· = v) (h u))
+    ⇑(zeroSectionRealEmbedding n) = (zeroSection : ℙ ℂ (Fin (n + 1) → ℂ) → BlowupModel n) := by
+  rw [zeroSectionRealEmbedding_def, TauCeti.SmoothEmbedding.coe_restrictScalars,
+    coe_zeroSectionEmbedding]
 
 /-- The tangent images of the real zero section `zeroSectionRealEmbedding n` are invariant under
 the almost complex structure of the complex manifold `BlowupModel n`, which is multiplication by
@@ -573,14 +559,9 @@ theorem mapsTo_ofComplexManifold_tangentRange_zeroSectionRealEmbedding
         (zeroSectionRealEmbedding n ℓ))
       ((zeroSectionRealEmbedding n).isImmersion.tangentRange ℓ hn)
       ((zeroSectionRealEmbedding n).isImmersion.tangentRange ℓ hn) := by
-  -- The zero section is holomorphic, so pseudoholomorphic for the two almost complex structures.
-  have hf : TauCeti.IsPseudoholomorphicAt
-      (TauCeti.SmoothAlmostComplexStructure.ofComplexManifold (Fin n → ℂ) (ℙ ℂ (Fin (n + 1) → ℂ)))
-      (TauCeti.SmoothAlmostComplexStructure.ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n))
-      (zeroSectionRealEmbedding n) ℓ := by
-    rw [coe_zeroSectionRealEmbedding, TauCeti.isPseudoholomorphicAt_ofComplexManifold_iff]
-    exact (contMDiff_zeroSection 1).mdifferentiableAt one_ne_zero
-  exact (zeroSectionRealEmbedding n).mapsTo_tangentRange_of_isPseudoholomorphicAt hn hf
+  rw [zeroSectionRealEmbedding_def]
+  exact (zeroSectionEmbedding n).mapsTo_ofComplexManifold_tangentRange_restrictScalars le_top
+    ENat.LEInfty.out hn ℓ
 
 /-- The differential of `blowdown` at `zeroSection ℓ`, as a real-linear map into the line `ℓ`. -/
 private noncomputable def mfderivBlowdownZeroSectionReal (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
@@ -597,7 +578,8 @@ private theorem mfderivBlowdownZeroSectionReal_eq_zero_iff (ℓ : ℙ ℂ (Fin (
     (v : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) (zeroSectionRealEmbedding n ℓ)) :
     mfderivBlowdownZeroSectionReal ℓ v = 0 ↔
       v ∈ (zeroSectionRealEmbedding n).isImmersion.tangentRange ℓ hn := by
-  rw [← SetLike.mem_coe, coe_tangentRange_zeroSectionRealEmbedding]
+  rw [← SetLike.mem_coe, zeroSectionRealEmbedding_def,
+    TauCeti.SmoothEmbedding.coe_tangentRange_restrictScalars _ _ _ _ _ WithTop.top_ne_zero]
   exact (congrArg (· = 0) (mfderivBlowdownZeroSectionReal_apply ℓ v)).to_iff.trans
     (mfderivBlowdownZeroSection_eq_zero_iff ℓ v)
 

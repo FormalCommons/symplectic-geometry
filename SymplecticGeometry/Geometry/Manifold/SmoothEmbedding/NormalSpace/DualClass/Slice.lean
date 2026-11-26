@@ -403,7 +403,8 @@ theorem singularCohomologyMap_slice_eq_of_hasFDerivAt {f : SmoothEmbedding I J �
   classical
   set e := trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) x
   have hx : x ∈ e.baseSet := mem_baseSet_trivializationAt P _ x
-  have hfxW : f x ∈ W := hΦ.apply_zeroSection x ▸ (Φ (zeroSection P _ x)).property
+  have hfxW : f x ∈ W :=
+    range_subset_of_apply_zeroSection f hn hdim Φ hΦ.apply_zeroSection (mem_range_self x)
   -- The inverse of the tube, extended by the zero vector over `x` off `W`.
   let Ψ : X → TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) := fun y ↦
     if hy : y ∈ W then Φ.symm ⟨y, hy⟩ else zeroSection P _ x
@@ -413,8 +414,8 @@ theorem singularCohomologyMap_slice_eq_of_hasFDerivAt {f : SmoothEmbedding I J �
     exact Φ.symm.continuous.congr fun y ↦ (hΨ y.property).symm
   have hgW : g 0 ∈ W := hg0 ▸ hfxW
   have hΨ0 : Ψ (g 0) = zeroSection P _ x := by
-    rw [hΨ hgW]
-    exact Φ.symm_apply_eq.2 (Subtype.ext (hg0.trans (hΦ.apply_zeroSection x).symm))
+    rw [hg0, hΨ hfxW]
+    exact symm_apply_eq_zeroSection_of_apply_zeroSection f hn hdim Φ hΦ.apply_zeroSection x hfxW
   have hΨg : ContinuousAt (fun w ↦ Ψ (g w)) 0 :=
     (hΨc.continuousAt (W.isOpen.mem_nhds hgW)).comp (hgB.continuousAt hB)
   have hΦΨ {y : X} (hy : y ∈ W) : (Φ (Ψ y) : X) = y := by
