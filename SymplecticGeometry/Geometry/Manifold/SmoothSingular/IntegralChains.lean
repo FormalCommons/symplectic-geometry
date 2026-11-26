@@ -31,7 +31,7 @@ Represent `z` by a smooth integral cycle `z'` (smoothing), and `deRhamHom [φ]` 
 `ψ`. Read through integral chains, `ψ` takes on `z'` its value on the real cycle `z'_ℝ` with the
 same simplices and the coefficients cast to `ℝ`
 (`TopCat.chainComplexMap_f_singularCochainComplexIntChainsIso_hom_f`, with the cycle
-`SSet.restrictScalarsCyclesMap`). On a real smooth cycle, `ψ` gives the integral of `φ`
+`SymplecticGeometry.intCastCyclesMap`). On a real smooth cycle, `ψ` gives the integral of `φ`
 (`TauCeti.iCycles_chainComplexMap_ι_eq_integrationCochain`, from Tau Ceti's
 `TauCeti.singularKronecker_deRhamHom_mk_apply` and
 `TauCeti.homologyπ_smoothSingularHomologyIso_hom_singularKronecker_homologyπ`). The integral of
@@ -190,15 +190,11 @@ theorem singularKronecker_singularCohomologyIntChainsIso_hom_deRhamHom_mk {p : �
   congr 1
   -- The cycle `z` with its coefficients cast to `ℝ`, a real smooth cycle.
   have h := iCycles_chainComplexMap_ι_eq_integrationCochain φ ψ hψ
-    (SSet.restrictScalarsCyclesMap (algebraMap ℤ ℝ) (N := ModuleCat.of ℝ ℝ)
-      (SymplecticGeometry.intCastCoeff ℝ ≫
-        (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := ℝ) ℝ).inv)
-      (smoothSingularSubcomplex I M : SSet) p z)
+    (SymplecticGeometry.intCastCyclesMap ℝ (smoothSingularSubcomplex I M : SSet) p z)
   -- The restricted cycles have the carrier of the real cycles, and the underlying chain of the
   -- cast cycle is read in the restricted complex, whose chains are the real chains only after
   -- unfolding.
-  erw [SSet.restrictScalarsCyclesMap_iCycles_apply] at h
-  rw [← SymplecticGeometry.intCastChainMap_def] at h
+  erw [SymplecticGeometry.intCastCyclesMap_iCycles_apply] at h
   exact h
 
 end TauCeti
