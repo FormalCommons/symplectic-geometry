@@ -13,6 +13,7 @@ public import TauCeti.Topology.Maps.Proper.Metric
 public import SymplecticGeometry.Analysis.Convex.Deriv
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Dolbeault.Potential
 public import SymplecticGeometry.Topology.Maps.Proper
+import SymplecticGeometry.Analysis.SpecialFunctions.ExpDeriv
 
 /-!
 # Stein functions and their Kähler forms
@@ -33,6 +34,8 @@ plurisubharmonic at every point. Its form `ω_f` is a Kähler form for `J`, and 
   strictly plurisubharmonic at `x` iff `0 < ω_f(v, i v)` at `x` for every `v ≠ 0`.
 * `SymplecticGeometry.isKahler_mextDerivₗ_covectorComplexStructure`: `ω_f` is Kähler for `J`
   when `f` is strictly plurisubharmonic at every point.
+* `TauCeti.IsManifoldStrictlyPlurisubharmonicAt.exp_comp`: `exp ∘ f` is strictly
+  plurisubharmonic at `x` when `f` is.
 * `SymplecticGeometry.IsSteinFunction E φ`: smooth, proper, bounded below and strictly
   plurisubharmonic everywhere.
 * `SymplecticGeometry.IsSteinFunction.comp`: `h ∘ φ` is a Stein function for a smooth
@@ -117,6 +120,16 @@ theorem isKahler_mextDerivₗ_covectorComplexStructure [FiniteDimensional ℂ E]
   · simp only [SmoothBundleForm.eval₂_apply]
     rw [hJ]
     exact (isManifoldStrictlyPlurisubharmonicAt_iff_forall_pos f x).1 (hf x) v hv
+
+/-! ### Composition with the exponential -/
+
+omit [IsManifold 𝓘(ℂ, E) ∞ M] in
+/-- If `f` is strictly plurisubharmonic at `x`, so is `exp ∘ f`. -/
+theorem _root_.TauCeti.IsManifoldStrictlyPlurisubharmonicAt.exp_comp {f : M → ℝ} {x : M}
+    (h : IsManifoldStrictlyPlurisubharmonicAt E f x) (hf : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) 2 f x) :
+    IsManifoldStrictlyPlurisubharmonicAt E (Real.exp ∘ f) x :=
+  h.scalar_comp Real.contDiff_exp.contDiffAt hf (by simp [Real.exp_pos])
+    (by simp [(Real.exp_pos _).le])
 
 /-! ### Stein functions -/
 
