@@ -49,8 +49,9 @@ The induction itself runs over the finite joins of the intersections of a finite
 vanish (`TauCeti.bijective_deRhamHom_of_isEmpty`), or smoothly contractible
 (`SymplecticGeometry.IsSmoothlyContractible.bijective_deRhamHom`, from
 `TauCeti.bijective_deRhamHom_of_contraction` after reversing time). This gives the de Rham theorem
-on every manifold with a finite good cover (`TauCeti.bijective_deRhamHom`), in particular on
-every compact boundaryless one, by Weil's good covers
+on every manifold with a finite good cover
+(`SymplecticGeometry.HasFiniteGoodCover.bijective_deRhamHom`), in particular on every
+compact boundaryless one, by Weil's good covers
 (`SymplecticGeometry.hasFiniteGoodCover_of_compactSpace`).
 
 ## Main results
@@ -59,8 +60,8 @@ every compact boundaryless one, by Weil's good covers
 * `TauCeti.bijective_deRhamHom_sup`: the Mayer–Vietoris step of the de Rham theorem.
 * `SymplecticGeometry.IsSmoothlyContractible.bijective_deRhamHom`: the de Rham theorem on a
   smoothly contractible manifold.
-* `TauCeti.bijective_deRhamHom`: `deRhamHom` is bijective in every degree if `M` has a finite good
-  cover.
+* `SymplecticGeometry.HasFiniteGoodCover.bijective_deRhamHom`: `deRhamHom` is bijective in every
+  degree if `M` has a finite good cover.
 * `TauCeti.bijective_deRhamHom_of_compactSpace` and `TauCeti.injective_deRhamHom`: the de Rham
   theorem on a compact boundaryless manifold, and the injectivity of the de Rham homomorphism
   there.
@@ -233,7 +234,8 @@ theorem _root_.SymplecticGeometry.IsSmoothlyContractible.bijective_deRhamHom [Si
 /-- **The de Rham theorem for manifolds with a finite good cover.** On a Hausdorff `σ`-compact
 smooth manifold `M`, modelled on a finite-dimensional real model with corners, that has a finite
 good cover, the de Rham homomorphism is bijective in every degree. -/
-theorem bijective_deRhamHom [SigmaCompactSpace M] (hM : HasFiniteGoodCover I M) (k : ℕ) :
+theorem _root_.SymplecticGeometry.HasFiniteGoodCover.bijective_deRhamHom [SigmaCompactSpace M]
+    (hM : HasFiniteGoodCover I M) (k : ℕ) :
     Function.Bijective (deRhamHom I M k) := by
   classical
   obtain ⟨n, U, hU⟩ := hasFiniteGoodCover_def.1 hM
@@ -274,7 +276,7 @@ variable [CompactSpace M] [BoundarylessManifold I M]
 manifold, modelled on a finite-dimensional real model with corners, the de Rham homomorphism is
 bijective in every degree. -/
 theorem bijective_deRhamHom_of_compactSpace (k : ℕ) : Function.Bijective (deRhamHom I M k) :=
-  bijective_deRhamHom hasFiniteGoodCover_of_compactSpace k
+  hasFiniteGoodCover_of_compactSpace.bijective_deRhamHom k
 
 /-- On a compact Hausdorff boundaryless smooth manifold, modelled on a finite-dimensional real
 model with corners, the de Rham homomorphism is injective in every degree: a de Rham class whose
