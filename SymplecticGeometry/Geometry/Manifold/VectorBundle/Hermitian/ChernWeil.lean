@@ -21,10 +21,10 @@ Let `V` be a smooth complex line bundle with a smooth Hermitian metric `g`, and 
 the de Rham homomorphism `TauCeti.deRhamHom` sends the first to **minus** the real image
 (`TopCat.singularCohomologyRealImage`) of the second.
 
-This file proves this over a closed connected oriented surface `M`. Both classes lie in
+This file proves this over a closed connected orientable surface `M`. Both classes lie in
 `H²(M; ℝ)`, where a class is determined by its value on a fundamental class
-(`TauCeti.HomologicalOrientation.evalFundamentalClass_id_injective`). Take the fundamental class
-of the homological orientation of `-o`, for an orientation `o` of `M`.
+(`TauCeti.HomologicalOrientation.evalFundamentalClass_id_injective`). Choose an orientation `o`
+of `M`, and take the fundamental class of the homological orientation of `-o`.
 
 * The class `deRhamHom [φ]` of a closed two-form takes the value `∫_o φ` there
   (`evalFundamentalClass_singularCohomologyIntChainsIso_hom_deRhamHom_mk`, in the namespace
@@ -36,14 +36,14 @@ of the homological orientation of `-o`, for an orientation `o` of `M`.
 * The real image of the Euler class takes the cast of the value of the Euler class
   (`TauCeti.HomologicalOrientation.evalFundamentalClass_singularCohomologyRealImage`). The Euler
   class is the first Chern class (`SymplecticGeometry.firstChernClass_eq_complexEulerClass`), and
-  reversing the orientation negates the evaluation
-  (`TauCeti.HomologicalOrientation.evalFundamentalClass_neg`), so this value is minus the same
+  reversing the orientation negates the Chern number
+  (`SymplecticGeometry.chernNumber_neg_orientation`), so this value is minus the same
   Chern number.
 
 ## Main results
 
 * `SymplecticGeometry.Bundle.deRhamHom_realFirstChernClass_eq_neg_of_connectedSpace`: over a
-  closed connected oriented surface, `deRhamHom` of the real first Chern class of the unitary
+  closed connected orientable surface, `deRhamHom` of the real first Chern class of the unitary
   frame bundle is minus the real image of the Euler class.
 
 ## References
@@ -87,7 +87,7 @@ surface, and `V` a smooth complex line bundle over `M` with a smooth Hermitian m
 the de Rham homomorphism sends the real first Chern class of the circle bundle of unitary frames
 of `V` to minus the real image of the Euler class of `V` in `H²(M; ℝ)`. -/
 theorem deRhamHom_realFirstChernClass_eq_neg_of_connectedSpace [ConnectedSpace M]
-    (o : Manifold.Orientation (𝓡 2) M (Fin 2)) :
+    [Orientable (𝓡 2) M] :
     letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
     letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
     letI : IsContinuousRiemannianBundle F V :=
@@ -104,6 +104,8 @@ theorem deRhamHom_realFirstChernClass_eq_neg_of_connectedSpace [ConnectedSpace M
   have : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) (𝓡 2) (𝓡 1) :=
     contMDiffFiberBundle_circleFiber g hI
   have hE := finrank_euclideanSpace_fin (𝕜 := ℝ) (n := 2)
+  obtain ⟨o⟩ := Orientable.nonempty_orientation (I := 𝓡 2) (M := M)
+  rw [hE] at o
   let e := (TopCat.of M).singularCohomologyIntChainsIso ℝ 2
   -- Both sides are determined by their value on the fundamental class of `-o`.
   refine (ConcreteCategory.bijective_of_isIso e.hom).1
@@ -120,10 +122,9 @@ theorem deRhamHom_realFirstChernClass_eq_neg_of_connectedSpace [ConnectedSpace M
     ⟨_, hφ⟩).trans ?_
   rw [map_neg, map_neg,
     HomologicalOrientation.evalFundamentalClass_singularCohomologyRealImage,
-    Manifold.Orientation.toHomologicalOrientation_neg,
-    HomologicalOrientation.evalFundamentalClass_neg, LinearMap.neg_apply, ULift.neg_down,
-    ← firstChernClass_eq_complexEulerClass, ← chernNumber_def, Int.cast_neg, neg_neg,
-    chernNumber_eq_integral_curvature g hI o hα]
+    ← firstChernClass_eq_complexEulerClass, ← chernNumber_def,
+    Manifold.Orientation.toHomologicalOrientation_neg, chernNumber_neg_orientation,
+    Int.cast_neg, neg_neg, chernNumber_eq_integral_curvature g hI o hα]
   exact integralTopForm_smul o _ _
 
 end Bundle
