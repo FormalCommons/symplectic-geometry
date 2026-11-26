@@ -274,7 +274,7 @@ in coordinates.
   $A$ analytic into `E →L[ℂ] E` and $A(0)=d\psi(0)$.
 - `liftMap ψ L`: for $\psi$ with $\psi(0)=0$ and $d\psi(0)$ equal to the
   `ContinuousLinearEquiv` `L`, the map on the model that is
-  `(mk (ψ z), ψ z)` where $\psi(z)\ne0$ and `(map L ℓ, 0)` where
+  `(mk (ψ z), ψ z)` where $\psi(z)\ne0$ and `(L.mapProjectivization ℓ, 0)` where
   $\psi(z)=0$, in particular on $Z$. In the chart `i` it is
   $(w)\mapsto([A(z)v],\psi(z))$ with $z=w_iv$, which is analytic at
   $w_i=0$ as well; so `contMDiffOn_liftMap`, over a set on which $\psi$ is
