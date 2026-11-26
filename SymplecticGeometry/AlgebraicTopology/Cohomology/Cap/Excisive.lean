@@ -53,12 +53,28 @@ descent of the Alexander–Whitney diagonal. Here the descent is along the chain
 * `TopCat.singularRelativeCap_comp_singularKronecker`: the Kronecker pairing of the cap product,
   `⟨c, y ⌢ a⟩ = ⟨a ⌣ c, y⟩` for a class `a` with values in the tensor unit, with Tau Ceti's
   relative cup product `TopCat.singularRelativeCup`.
+* `TopCat.singularRelativeCap_coefficient_naturality`: compatible changes of the coefficient objects
+  `R`, `S`, `T`, `M` and `N` commute with the cap product.
+* `SSetPair.chainComplexPairing_comp_chainComplexFunctor_map_app`,
+  `SSetPair.whiskerLeft_chainComplexFunctor_map_app_comp_chainComplexPairing` and
+  `SSetPair.whiskerRight_comp_chainComplexPairing`: the chain map of a coefficient pairing on
+  relative chains is natural in the coefficient objects, with
+  `SSetPair.chainComplexπ_coefficient_naturality` for the quotient map to relative chains.
 
 The proof of the Kronecker pairing adapts that of Tau Ceti's
 `TopPair.singularCap_comp_singularKronecker` (`Cohomology/Cap/Kronecker.lean`): after cancelling
 the small-chain isomorphism, it is `TauCeti.ChainComplex.cap_comp_kronecker` on the chains
 `C(X; U + V)`, with the relative form `SSetPair.chainComplexPairing_leftUnitor_hom_f` of the action
 of the tensor unit on the chains of `(X, V)`.
+
+The proof of the coefficient naturality adapts that of Tau Ceti's
+`TopPair.singularCap_coefficient_naturality` (`Cohomology/Cap/Relative.lean`): it is
+`TauCeti.ChainComplex.cap_coefficient_naturality` on the chains `C(X; U + V)`, after cancelling
+the small-chain isomorphism, which commutes with the change of chain coefficients. Its relative
+pairing lemmas descend Tau Ceti's `SSet.chainComplexPairing_comp_chainComplexFunctor_map_app`,
+`SSet.whiskerLeft_chainComplexFunctor_map_app_comp_chainComplexPairing` and
+`SSet.whiskerRight_comp_chainComplexPairing`
+(`SimplicialSet/Homology/Pairing.lean`) along the quotient maps to relative chains.
 
 ## References
 
@@ -73,6 +89,80 @@ noncomputable section
 open CategoryTheory Limits MonoidalCategory HomologicalComplex
 
 universe w v u
+
+namespace SSetPair
+
+section Coefficients
+
+/-- The quotient map from the chains of the ambient simplicial set of a pair to its relative
+chains commutes with the chain maps induced by a coefficient morphism `g : S ⟶ S'`. -/
+@[reassoc]
+lemma chainComplexπ_coefficient_naturality {C : Type u} [Category.{v} C] [Preadditive C]
+    [HasCoproducts.{w} C] (P : SSetPair.{w}) {S S' : C} (g : S ⟶ S') :
+    ((SSet.chainComplexFunctor C).map g).app P.right ≫ P.chainComplexπ S' =
+      P.chainComplexπ S ≫ ((chainComplexFunctor C).map g).app P :=
+  congrArg (fun η ↦ η.app P) ((chainComplexFunctorπ C).naturality g)
+
+variable {C : Type u} [Category.{v} C] [Abelian C] [HasCoproducts.{w} C] [MonoidalCategory C]
+  [MonoidalPreadditive C] {M S N : C}
+  [∀ J : Type w, PreservesColimitsOfShape (Discrete J) (tensorLeft M)]
+
+/-- Postcomposing the chain map induced on relative chains by a coefficient pairing `μ` with the
+chain map induced by a coefficient morphism `g : N ⟶ N'` is the chain map induced by the pairing
+`μ ≫ g`: the relative form of `SSet.chainComplexPairing_comp_chainComplexFunctor_map_app`. -/
+@[reassoc (attr := simp)]
+lemma chainComplexPairing_comp_chainComplexFunctor_map_app (P : SSetPair.{w}) (μ : M ⊗ S ⟶ N)
+    {N' : C} (g : N ⟶ N') :
+    P.chainComplexPairing μ ≫ ((chainComplexFunctor C).map g).app P =
+      P.chainComplexPairing (μ ≫ g) := by
+  ext n : 1
+  have hg := congrArg (fun φ ↦ φ.f n) (P.chainComplexπ_coefficient_naturality g)
+  have hN := congrArg (fun φ ↦ φ.f n)
+    (P.right.chainComplexPairing_comp_chainComplexFunctor_map_app μ g)
+  dsimp at hg hN ⊢
+  rw [← cancel_epi (M ◁ (P.chainComplexπ S).f n), whiskerLeft_chainComplexπ_f_chainComplexPairing_f,
+    whiskerLeft_chainComplexπ_f_chainComplexPairing_f_assoc, ← hg, ← hN, Category.assoc]
+
+/-- Precomposing the chain map induced on relative chains by a coefficient pairing `μ'` with the
+chain map induced by a coefficient morphism `g : S ⟶ S'` is the chain map induced by the pairing
+`(M ◁ g) ≫ μ'`: the relative form of
+`SSet.whiskerLeft_chainComplexFunctor_map_app_comp_chainComplexPairing`. -/
+@[reassoc (attr := simp)]
+lemma whiskerLeft_chainComplexFunctor_map_app_comp_chainComplexPairing (P : SSetPair.{w})
+    {S' : C} (g : S ⟶ S') (μ' : M ⊗ S' ⟶ N) :
+    ((tensorLeft M).mapHomologicalComplex _).map (((chainComplexFunctor C).map g).app P) ≫
+        P.chainComplexPairing μ' =
+      P.chainComplexPairing ((M ◁ g) ≫ μ') := by
+  ext n : 1
+  have hg := congrArg (fun φ ↦ φ.f n) (P.chainComplexπ_coefficient_naturality g)
+  have hS := congrArg (fun φ ↦ φ.f n)
+    (SSet.whiskerLeft_chainComplexFunctor_map_app_comp_chainComplexPairing P.right g μ')
+  dsimp at hg hS ⊢
+  rw [← cancel_epi (M ◁ (P.chainComplexπ S).f n), whiskerLeft_chainComplexπ_f_chainComplexPairing_f,
+    ← whiskerLeft_comp_assoc, ← hg, whiskerLeft_comp_assoc,
+    whiskerLeft_chainComplexπ_f_chainComplexPairing_f, reassoc_of% hS]
+
+/-- Precomposing the chain map induced on relative chains by a coefficient pairing `μ'` with the
+action of a morphism `g : M ⟶ M'` on the first factor is the chain map induced by the pairing
+`(g ▷ S) ≫ μ'`: the relative form of `SSet.whiskerRight_comp_chainComplexPairing`. -/
+@[reassoc (attr := simp)]
+lemma whiskerRight_comp_chainComplexPairing (P : SSetPair.{w}) {M' : C}
+    [∀ J : Type w, PreservesColimitsOfShape (Discrete J) (tensorLeft M')] (g : M ⟶ M')
+    (μ' : M' ⊗ S ⟶ N) :
+    (NatTrans.mapHomologicalComplex ((tensoringLeft C).map g) _).app (P.chainComplex S) ≫
+        P.chainComplexPairing μ' =
+      P.chainComplexPairing ((g ▷ S) ≫ μ') := by
+  ext n : 1
+  have hS := congrArg (fun φ ↦ φ.f n) (SSet.whiskerRight_comp_chainComplexPairing P.right g μ')
+  simp only [HomologicalComplex.comp_f, NatTrans.mapHomologicalComplex_app_f,
+    curriedTensor_map_app] at hS ⊢
+  rw [← cancel_epi (M ◁ (P.chainComplexπ S).f n), whisker_exchange_assoc,
+    whiskerLeft_chainComplexπ_f_chainComplexPairing_f,
+    whiskerLeft_chainComplexπ_f_chainComplexPairing_f, reassoc_of% hS]
+
+end Coefficients
+
+end SSetPair
 
 namespace TopCat
 
@@ -206,6 +296,65 @@ theorem singularCap_comp_singularHomologyπ_eq_singularRelativeCap (u : T ⟶ R 
   -- `TopPair.singularCap` and `TopPair.singularHomologyπ` are, by definition, the cap product
   -- and the map on homology that `this` states its identity with.
   exact this
+
+section Coefficients
+
+variable {R' S' T' M' N' : C}
+  [∀ J : Type w, PreservesColimitsOfShape (Discrete J) (tensorLeft M')]
+
+/-- **Coefficient naturality of the cap product of an excisive couple**: if
+`c ≫ u = u' ≫ (a ⊗ b)` and `(v ▷ S') ≫ μ' = (M ◁ b) ≫ μ ≫ e`, then capping along `(u', μ')` with
+the class obtained from `α ∈ Hᵖ(X, U; R, M)` by pulling relative cochains back along `a` and
+pushing their values forward along `v` is changing the coefficients of `Hₙ(X, U ∪ V)` along `c`,
+capping with `α` along `(u, μ)`, and changing the coefficients of `H_q(X, V)` along `e`. -/
+theorem singularRelativeCap_coefficient_naturality (u : T ⟶ R ⊗ S) (u' : T' ⟶ R' ⊗ S')
+    (μ : M ⊗ S ⟶ N) (μ' : M' ⊗ S' ⟶ N') (a : R' ⟶ R) (b : S' ⟶ S) (c : T' ⟶ T) (v : M ⟶ M')
+    (e : N ⟶ N') (hu : c ≫ u = u' ≫ (a ⊗ₘ b)) (hμ : (v ▷ S') ≫ μ' = (M ◁ b) ≫ μ ≫ e)
+    (U V : Set X) (hU : IsOpen ((↑) ⁻¹' U : Set ↥(U ∪ V)))
+    (hV : IsOpen ((↑) ⁻¹' V : Set ↥(U ∪ V))) (p q n : ℕ) (h : p + q = n)
+    (α : (TopPair.ofSubset U).singularCohomology R k M p) :
+    singularRelativeCap k u' μ' U V hU hV p q n h
+        (homologyMap ((TauCeti.ChainComplex.linearYonedaFunctor k M).map
+          (((SSetPair.chainComplexFunctor C).map a).app
+            (TopPair.toSSetPair.obj (TopPair.ofSubset U))).op ≫
+            ((TopPair.ofSubset U).singularChainComplex R').linearYonedaObjMap k v) p α) =
+      homologyMap (((SSetPair.chainComplexFunctor C).map c).app
+          (TopPair.toSSetPair.obj (TopPair.ofSubset (U ∪ V)))) n ≫
+        singularRelativeCap k u μ U V hU hV p q n h α ≫
+          homologyMap (((SSetPair.chainComplexFunctor C).map e).app
+            (TopPair.toSSetPair.obj (TopPair.ofSubset V))) q := by
+  have := isIso_homologyMap_smallSingularSubcomplexPairToUnion U V T' hU hV n
+  -- The small-chain isomorphisms commute with the change of chain coefficients along `c`.
+  have hc : SSetPair.homologyMap (smallSingularSubcomplexPairToUnion U V) T' n ≫
+      homologyMap (((SSetPair.chainComplexFunctor C).map c).app
+        (TopPair.toSSetPair.obj (TopPair.ofSubset (U ∪ V)))) n =
+      homologyMap (((SSetPair.chainComplexFunctor C).map c).app
+          (X.smallSingularSubcomplex ![U, V]).pair) n ≫
+        SSetPair.homologyMap (smallSingularSubcomplexPairToUnion U V) T n := by
+    rw [SSetPair.homologyMap, SSetPair.homologyMap, ← homologyMap_comp, ← homologyMap_comp,
+      SSetPair.chainComplexMap, SSetPair.chainComplexMap,
+      ((SSetPair.chainComplexFunctor C).map c).naturality]
+  rw [← cancel_epi (SSetPair.homologyMap (smallSingularSubcomplexPairToUnion U V) T' n),
+    homologyMap_smallSingularSubcomplexPairToUnion_singularRelativeCap, reassoc_of% hc,
+    homologyMap_smallSingularSubcomplexPairToUnion_singularRelativeCap_assoc]
+  -- The action square of the coefficient pairings on the relative chains of `(X, V)`.
+  have ha : (NatTrans.mapHomologicalComplex ((tensoringLeft C).map v) _).app
+        ((TopPair.toSSetPair.obj (TopPair.ofSubset V)).chainComplex S') ≫
+        (TopPair.toSSetPair.obj (TopPair.ofSubset V)).chainComplexPairing μ' =
+      ((tensorLeft M).mapHomologicalComplex _).map
+          (((SSetPair.chainComplexFunctor C).map b).app
+            (TopPair.toSSetPair.obj (TopPair.ofSubset V))) ≫
+        (TopPair.toSSetPair.obj (TopPair.ofSubset V)).chainComplexPairing μ ≫
+          ((SSetPair.chainComplexFunctor C).map e).app
+            (TopPair.toSSetPair.obj (TopPair.ofSubset V)) := by
+    rw [SSetPair.whiskerRight_comp_chainComplexPairing,
+      SSetPair.chainComplexPairing_comp_chainComplexFunctor_map_app,
+      SSetPair.whiskerLeft_chainComplexFunctor_map_app_comp_chainComplexPairing, hμ]
+  exact TauCeti.ChainComplex.cap_coefficient_naturality _ _ _ _ _ _ _ v _
+    (relativeAlexanderWhitneyDiagonal_coefficient_naturality U V u u' a b c hu)
+    (fun j ↦ congrArg (fun f ↦ f.f j) ha) p q n h α
+
+end Coefficients
 
 section Kronecker
 
