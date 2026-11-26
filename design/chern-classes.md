@@ -641,7 +641,10 @@ their compatibility with `TopPair.singularCohomologyπ`.
 
 The three changes of `PairChangeOfCoefficients.lean` carry Thom classes to
 Thom classes (`TauCeti.IsThomClass.singularCohomologyChainCoefficientMap`,
-`…ValueMap`, `…LinearCongr`) and commute with `TauCeti.eulerClass`. Imports
+`…ValueMap`, `…LinearCongr`, and their combination
+`TauCeti.IsThomClass.uliftIntegralCohomologyEquiv`); that combination
+commutes with `TauCeti.eulerClass`
+(`TauCeti.eulerClass_uliftIntegralCohomologyEquiv`). Imports
 `PairChangeOfCoefficients.lean`.
 
 ### `Topology/VectorBundle/Thom/CupEulerClass.lean`
