@@ -13,7 +13,6 @@ public import TauCeti.Geometry.Manifold.LocallyContractible
 public import TauCeti.Topology.VectorBundle.MayerVietoris.DirectedUnion
 public import TauCeti.Topology.VectorBundle.Thom.FiberwiseEquiv
 import SymplecticGeometry.AlgebraicTopology.Cohomology.Local.Restrict
-import SymplecticGeometry.AlgebraicTopology.Cohomology.Local.Derivative
 import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 
 /-!
@@ -42,15 +41,14 @@ into `X` which sends only `0` into `f(Z)`, sends it to `f x`, and whose derivati
 followed by the quotient onto the normal space, is the inverse of the preferred trivialization `e`
 at `x`. Both pull classes of `(X, X ∖ f(Z))` back in the same way, in every degree, once the
 slice is read on `B` through `e`. On a small enough open `O ⊆ B` (restriction to which is
-injective by excision), `g` lifts through `Φ` to a map into the Thom pair whose base points stay
-in a contractible neighbourhood of `x`; this lift pulls classes back, through
-`(e.continuousLinearEquivAt ℝ x hx).complZeroPairIso.inv`, along its coordinate in the model
-fibre (`Bundle.Trivialization.coordPairMap`,
-`TauCeti.singularCohomologyMap_eq_singularCohomologyMap_complZeroPairIso_inv`). Since `Φ` is
-normalized, that coordinate has derivative the identity at `0`
-(`TauCeti.SmoothEmbedding.IsNormalizedTube.hasFDerivAt_trivializationAt_snd`), so it agrees on
-relative cohomology with the inclusion of `O`
-(`TopPair.singularCohomologyMap_ofSubsetMap_eq_inclusion_of_hasFDerivAt_id`). This follows the
+injective by excision, `TopPair.injective_singularCohomologyMap_ofSubsetMap_inclusion`), `g`
+lifts through `Φ` to a map into the Thom pair whose base points stay in a contractible
+neighbourhood of `x`. Since `Φ` is normalized, the coordinate of that lift in `e` has derivative
+the identity at `0` (`TauCeti.SmoothEmbedding.IsNormalizedTube.hasFDerivAt_trivializationAt_snd`),
+so by the local-degree lemma for maps into a Thom pair
+(`TauCeti.singularCohomologyMap_ofSubsetMap_eq_complZeroPairIso_inv_of_hasFDerivAt_of_mapsTo`)
+the lift pulls classes back as the restriction to the fibre over `x`, carried to `(P, P ∖ {0})`
+along `e` and pulled back along the inclusion of `O`. This follows the
 linearization argument of Tau Ceti's
 `TauCeti.VectorBundleOrientation.sectionIndex_eq_sign_det_of_hasFDerivAt`, which
 compares a map with its derivative on a small ball around a zero.
@@ -304,7 +302,6 @@ private theorem singularCohomologyMap_slice_eq_of_isOpen {f : SmoothEmbedding I 
   let := f.normalSpaceFiberBundle hn hdim
   have := f.normalSpaceVectorBundle hn hdim
   set e := trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) x
-  have hx : x ∈ e.baseSet := mem_baseSet_trivializationAt P _ x
   have hxU : x ∈ U := by simpa [hΨ0] using hOU 0 hO0
   have hΨg : ContinuousAt (fun w ↦ Ψ (g w)) 0 :=
     (hΨc.comp hgO hOW).continuousAt (hO.mem_nhds hO0)
@@ -331,7 +328,6 @@ private theorem singularCohomologyMap_slice_eq_of_isOpen {f : SmoothEmbedding I 
       fun w hw ↦ mem_zeroSectionCompl.2 (hψ0 w w.property fun h ↦ hw (Subtype.ext h))
   have hψ (w : O) : TopPair.Hom.fst ψ w = Ψ (g w) :=
     TopPair.ofSubsetMap_fst_apply (X := TopCat.of O) (B := {⟨0, hO0⟩}ᶜ) _ _ w
-  have hψU (w : O) : (TopPair.Hom.fst ψ w).proj ∈ U := hψ w ▸ hOU w w.property
   have hLψ : LO = ψ ≫ (f.tubePairIso hn hdim Φ hΦ.apply_zeroSection).hom ≫
       TopPair.excisionMap (X := TopCat.of X) (W : Set X) (range f)ᶜ := by
     refine TopPair.hom_ext_of_fst _ (ConcreteCategory.hom_ext _ _ fun w ↦ ?_)
@@ -340,33 +336,18 @@ private theorem singularCohomologyMap_slice_eq_of_isOpen {f : SmoothEmbedding I 
     refine Eq.trans ?_ (tubePairIso_hom_fst_comp_excisionMap_fst_apply f hn hdim Φ _ _).symm
     erw [TopPair.ofSubsetMap_fst_apply, hψ]
     exact (hΦΨ (hOW _ (show O from w).property)).symm
-  rw [hLψ, TopPair.singularCohomologyMap_comp_apply,
-    singularCohomologyMap_eq_singularCohomologyMap_complZeroPairIso_inv e (U := U) hUe hxU ψ hψU,
-    normalSlice_def, ContinuousLinearEquiv.complZeroPairIso_symm, Iso.symm_hom]
-  simp only [TopPair.singularCohomologyMap_comp_apply]
-  generalize TopPair.singularCohomologyMap (R := R) (k := k) (M := M)
-    (e.continuousLinearEquivAt ℝ x hx).complZeroPairIso.inv n _ = d
-  -- The fibre coordinate of `g` has derivative the identity at `0`.
-  set F : P → P := fun w ↦ (e (Ψ (g w))).2
-  have hFc : ContinuousOn F O := (e.continuousOn.comp (hΨc.comp hgO hOW)
-    fun w hw ↦ e.mem_source.2 (hUe (hOU w hw))).snd
-  have hF0 : F 0 = 0 := by simp [F, hΨ0, e.zeroSection ℝ hx]
-  have hF : HasFDerivAt F (ContinuousLinearMap.id ℝ P) 0 :=
+  rw [hLψ, TopPair.singularCohomologyMap_comp_apply, normalSlice_def,
+    ContinuousLinearEquiv.complZeroPairIso_symm, Iso.symm_hom]
+  -- Since `Φ` is normalized, the fibre coordinate of `g` has derivative the identity at `0`.
+  have hF : HasFDerivAt (fun w ↦ (e (Ψ (g w))).2) (ContinuousLinearMap.id ℝ P) 0 :=
     hΦ.hasFDerivAt_trivializationAt_snd hg hA hΨg hΨ0
       (by filter_upwards [hO.mem_nhds hO0] with w hw using hΦΨ (hOW w hw))
-  have hFx : ∀ w ∈ O, F w = 0 → w = 0 := fun w hw h ↦ by_contra fun hw0 ↦
-    (e.snd_apply_ne_zero_iff ℝ (hUe (hOU w hw))).2 (hψ0 w hw hw0) h
-  have hfc : e.coordPairMap ψ (fun q ↦ hUe (hψU q)) =
-      TopPair.ofSubsetMap (X := TopCat.of O) (Y := TopCat.of P)
-        (TopCat.ofHom ⟨O.domRestrict F, hFc.domRestrict⟩) (B := {⟨0, hO0⟩}ᶜ) (B' := {0}ᶜ)
-        (fun y hy h ↦ hy (Subtype.ext (hFx y y.property h))) := by
-    refine TopPair.hom_ext_of_fst _ (ConcreteCategory.hom_ext _ _ fun w ↦ ?_)
-    rw [Trivialization.coordPairMap_fst_apply]
-    -- The points of the pair are those of `O` only up to unfolding `ofSubset`.
-    erw [TopPair.ofSubsetMap_fst_apply (X := TopCat.of O) (Y := TopCat.of P)]
-    exact congrArg (fun p ↦ (e p).2) (hψ w)
-  rw [hfc, TopPair.singularCohomologyMap_ofSubsetMap_eq_inclusion_of_hasFDerivAt_id R k M
-    (hO.mem_nhds hO0) hFc hF0 hF hFx n]
+  refine (singularCohomologyMap_ofSubsetMap_eq_complZeroPairIso_inv_of_hasFDerivAt_of_mapsTo e hUe
+    hxU (hO.mem_nhds hO0) (hΨc.comp hgO hOW) hOU hΨ0 hψ0 hF (K := 1) AntilipschitzWith.id
+    _).trans ?_
+  simp only [TopPair.singularCohomologyMap_comp_apply]
+  -- The derivative `ContinuousLinearMap.id ℝ P`, restricted to `O`, is the inclusion of `O`.
+  rfl
 
 /-- **The local-degree lemma.** Let `Φ` be a normalized tube of `f`, `x : Z`, and `e` the preferred
 trivialization of the normal bundle at `x`. Let `B ⊆ P` be a neighbourhood of `0` and `g : P → X`
@@ -444,13 +425,7 @@ theorem singularCohomologyMap_slice_eq_of_hasFDerivAt {f : SmoothEmbedding I J �
   have hOW : ∀ w ∈ O, g w ∈ W := fun w hw ↦ (interior_subset hw).1.2
   have hOU : ∀ w ∈ O, (Ψ (g w)).proj ∈ U := fun w hw ↦ (interior_subset hw).2
   -- Restriction from `B` to `O` is injective on cohomology.
-  have := TopPair.isIso_singularCohomologyMap_ofSubsetMap_inclusion R k M hO hOB hO0 n
-  refine (ConcreteCategory.injective_of_mono_of_preservesPullback _ :
-    Function.Injective (ConcreteCategory.hom (TopPair.singularCohomologyMap (R := R) (k := k)
-      (M := M) (TopPair.ofSubsetMap (X := TopCat.of O) (Y := TopCat.of B)
-        (TopCat.ofHom ⟨Set.inclusion hOB, continuous_inclusion hOB⟩)
-        (B := {⟨0, hO0⟩}ᶜ) (B' := {⟨0, hOB hO0⟩}ᶜ)
-        fun _ hw h ↦ hw (Set.inclusion_injective hOB h)) n))) ?_
+  refine TopPair.injective_singularCohomologyMap_ofSubsetMap_inclusion R k M hO hOB hO0 n ?_
   rw [← TopPair.singularCohomologyMap_comp_apply, ← TopPair.singularCohomologyMap_comp_apply,
     ← Category.assoc]
   convert singularCohomologyMap_slice_eq_of_isOpen hΦ x hO hO0 (hgB.mono hOB)
@@ -543,11 +518,9 @@ theorem relDualClassOf_eq_of_isNormalizedTube (f : SmoothEmbedding I J ∞ Z X)
         (TopPair.excisionMap (X := TopCat.of X) (W : Set X) (range f)ᶜ) _ c =
       TopPair.singularCohomologyMap (f.tubePairIso hn hdim Φ hΦ.apply_zeroSection).inv _ u) :
     f.relDualClassOf hn hdim hf u = c := by
-  have := TopPair.isIso_singularCohomologyMap_excisionMap_of_isClosed_subset R k M
-    (X := TopCat.of X) W.isOpen hf
-    (range_subset_of_apply_zeroSection f hn hdim Φ hΦ.apply_zeroSection) (finrank ℝ P)
-  refine ConcreteCategory.injective_of_mono_of_preservesPullback (TopPair.singularCohomologyMap
-    (TopPair.excisionMap (X := TopCat.of X) (W : Set X) (range f)ᶜ) _) ?_
+  refine TopPair.injective_singularCohomologyMap_excisionMap_of_isClosed_subset (R := R)
+    (k := k) (M := M) (X := TopCat.of X) W.isOpen hf
+    (range_subset_of_apply_zeroSection f hn hdim Φ hΦ.apply_zeroSection) (finrank ℝ P) ?_
   rw [singularCohomologyMap_excisionMap_relDualClassOf f hn hdim hf hΦ, hc]
 
 /-- **The relative class of a submanifold is determined by its normal slices.** Let `Φ` be any
