@@ -16,6 +16,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Extend
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Stabilizer
 import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Basic
@@ -888,8 +889,9 @@ theorem exists_mpullback_dehnTwist_sub_eq [IsManifold I ∞ M] {σ : SmoothTwoFo
       mextDeriv_ofFunction_add ((contMDiff_twistPrimitive hR).mdifferentiable (by simp))
         ((hgd.comp hτd).sub hgd), Pi.add_apply]
   obtain ⟨K, hK0, -, hK⟩ := SmoothForm.exists_mpullback_sub_eq_mextDerivₗ_of_partialDiffeomorph e
-    (isCompact_setOfPred_cotangentNorm_le r₀) hWo (fun z hz ↦ lt_of_le_of_lt hz hr₁)
-    (fun z hz ↦ hes (hWU (subset_closure hz)))
+    (e.isCompact_image_of_subset_source (isCompact_setOfPred_cotangentNorm_le r₀)
+      fun z hz ↦ hes (hU hz)).isClosed
+    hWo (fun z hz ↦ lt_of_le_of_lt hz hr₁) (fun z hz ↦ hes (hWU (subset_closure hz)))
     (fun x hx ↦ dehnTwist_apply_of_notMem ι hR hU (by rwa [← himage])) hk.contMDiffOn
     (fun z _ hz ↦ hk0 z hz) hθk
   exact ⟨K, fun x hx ↦ hK0 x (by rwa [himage]), hK⟩
