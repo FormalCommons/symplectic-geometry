@@ -7,7 +7,7 @@ module
 
 public import SymplecticGeometry.Analysis.Complex.Avoidance
 import Mathlib.Analysis.Calculus.ContDiff.WithLp
-import SymplecticGeometry.Analysis.Complex.Wirtinger.Commutator
+import TauCeti.Analysis.Complex.Wirtinger.Basic
 
 /-!
 # Local quantitative transversality
@@ -27,10 +27,10 @@ small. The size of the perturbation is `δ` and the lower bound is `δ / (log (1
 The estimate is deduced from Auroux's avoidance estimate
 `SymplecticGeometry.exists_infDist_image_ge`, applied to `K⁻¹ G` for the map
 `G = (f - Σ_j z_j ∂_j f, ∂_1 f, …, ∂_n f) : ℂⁿ → ℂⁿ⁺¹`, where `K = 3 n + 1` bounds `|G|` on the
-ball, with the parameter `δ / K`. Since `∂_j f = D_j f - ∂̄f(·) e_j` and, for `f` of class `C²`,
-`∂̄` commutes with the real derivative `D_j`
-(`TauCeti.norm_conjWirtingerDeriv_wirtingerDeriv_apply_le`), the `C¹` bound on `∂̄f` bounds `∂̄G`
-by `(6 n + 1) ε`. For a point `w` far from `G` of the unit ball, the identity
+ball, with the parameter `δ / K`. For `f` of class `C²` the mixed Wirtinger derivatives
+commute (`TauCeti.wirtingerDeriv_conjWirtingerDeriv_comm`), so `∂̄(∂_j f)` is `∂_j` of
+`∂̄f(·) v`, and the `C¹` bound on `∂̄f` bounds `∂̄G` by `(3 n + 1) ε`.
+For a point `w` far from `G` of the unit ball, the identity
 `G - w = (f_w - Σ_j z_j ∂_j f_w, ∂_1 f_w, …, ∂_n f_w)` bounds `|G - w|` by `(n + 2)` times
 `max |f_w| ‖∂f_w‖`. The exponent is `p = p₀ + 1` for the exponent `p₀` of the avoidance
 estimate; the extra power of `log (1 / δ)` absorbs the constants.
@@ -112,7 +112,7 @@ private theorem norm_conjWirtingerDeriv_transversalityMap_le {f : EuclideanSpace
     (hε0 : ‖conjWirtingerDeriv f z‖ ≤ ε)
     (hε1 : ∀ b, ‖fderiv ℝ (fun y ↦ conjWirtingerDeriv f y b) z‖ ≤ ε * ‖b‖) (hz : ‖z‖ ≤ 2)
     (v : EuclideanSpace ℂ σ) :
-    ‖conjWirtingerDeriv (transversalityMap f) z v‖ ≤ (6 * Fintype.card σ + 1) * ε * ‖v‖ := by
+    ‖conjWirtingerDeriv (transversalityMap f) z v‖ ≤ (3 * Fintype.card σ + 1) * ε * ‖v‖ := by
   have hd : DifferentiableAt ℝ (transversalityMap f) z :=
     (contDiffAt_transversalityMap hf).differentiableAt one_ne_zero
   have hcomp (o : Option σ) : conjWirtingerDeriv (transversalityMap f) z v o =
@@ -125,11 +125,13 @@ private theorem norm_conjWirtingerDeriv_transversalityMap_le {f : EuclideanSpace
   have hcj (j : σ) : DifferentiableAt ℂ (fun y : EuclideanSpace ℂ σ ↦ y j) z :=
     (EuclideanSpace.proj (𝕜 := ℂ) j).differentiableAt
   have hsome (j : σ) : ‖conjWirtingerDeriv
-      (fun y ↦ wirtingerDeriv f y (EuclideanSpace.single j 1)) z v‖ ≤ 2 * ε * ‖v‖ := by
-    simpa using norm_conjWirtingerDeriv_wirtingerDeriv_apply_le hf hε1 v
-      (EuclideanSpace.single j (1 : ℂ))
+      (fun y ↦ wirtingerDeriv f y (EuclideanSpace.single j 1)) z v‖ ≤ ε * ‖v‖ := by
+    -- `∂̄` of `∂_j f` is `∂_j` of `∂̄f(·) v`, which the `C¹` bound on `∂̄f` controls.
+    rw [← wirtingerDeriv_conjWirtingerDeriv_comm hf]
+    simpa using (norm_wirtingerDeriv_apply_le _ _ (EuclideanSpace.single j (1 : ℂ))).trans
+      (mul_le_mul_of_nonneg_right (hε1 v) (norm_nonneg _))
   have hnone : ‖conjWirtingerDeriv (fun y ↦ transversalityMap f y none) z v‖ ≤
-      (1 + 4 * Fintype.card σ) * ε * ‖v‖ := by
+      (1 + 2 * Fintype.card σ) * ε * ‖v‖ := by
     have hsum : DifferentiableAt ℝ
         (fun y ↦ ∑ j, y j * wirtingerDeriv f y (EuclideanSpace.single j 1)) z :=
       DifferentiableAt.fun_sum fun j _ ↦ ((hcj j).restrictScalars ℝ).mul (hdj j)
@@ -144,23 +146,23 @@ private theorem norm_conjWirtingerDeriv_transversalityMap_le {f : EuclideanSpace
           (fun y ↦ wirtingerDeriv f y (EuclideanSpace.single j 1)) z v‖ := by
           simp only [sub_apply, sum_apply, smul_apply]
           exact (norm_sub_le _ _).trans (add_le_add le_rfl (norm_sum_le _ _))
-      _ ≤ ε * ‖v‖ + ∑ _j : σ, 2 * (2 * ε * ‖v‖) := by
+      _ ≤ ε * ‖v‖ + ∑ _j : σ, 2 * (ε * ‖v‖) := by
           refine add_le_add ((ContinuousLinearMap.le_opNorm _ v).trans
             (mul_le_mul_of_nonneg_right hε0 (norm_nonneg _)))
             (Finset.sum_le_sum fun j _ ↦ ?_)
           rw [norm_smul]
           exact mul_le_mul ((PiLp.norm_apply_le z j).trans hz) (hsome j) (norm_nonneg _)
             zero_le_two
-      _ = (1 + 4 * Fintype.card σ) * ε * ‖v‖ := by simp; ring
+      _ = (1 + 2 * Fintype.card σ) * ε * ‖v‖ := by simp; ring
   calc _ ≤ ∑ o, ‖conjWirtingerDeriv (transversalityMap f) z v o‖ := PiLp.norm_le_sum_norm _
     _ = ‖conjWirtingerDeriv (fun y ↦ transversalityMap f y none) z v‖ +
           ∑ j, ‖conjWirtingerDeriv
             (fun y ↦ wirtingerDeriv f y (EuclideanSpace.single j 1)) z v‖ := by
         rw [Fintype.sum_option]
         simp only [hcomp, transversalityMap_some]
-    _ ≤ (1 + 4 * Fintype.card σ) * ε * ‖v‖ + ∑ _j : σ, 2 * ε * ‖v‖ :=
+    _ ≤ (1 + 2 * Fintype.card σ) * ε * ‖v‖ + ∑ _j : σ, ε * ‖v‖ :=
         add_le_add hnone (Finset.sum_le_sum fun j _ ↦ hsome j)
-    _ = (6 * Fintype.card σ + 1) * ε * ‖v‖ := by simp; ring
+    _ = (3 * Fintype.card σ + 1) * ε * ‖v‖ := by simp; ring
 
 private theorem norm_transversalityMap_sub_le {f : EuclideanSpace ℂ σ → ℂ}
     {z : EuclideanSpace ℂ σ} (hf : DifferentiableAt ℝ f z) (hz : ‖z‖ ≤ 1)
@@ -281,7 +283,7 @@ theorem exists_norm_le_max_ge_of_dbar_le :
   have hK : 1 ≤ K := by simp only [K]; linarith [n.cast_nonneg (α := ℝ)]
   have hK0 : 0 < K := by linarith
   obtain ⟨δ₀, hδ₀, hsmall⟩ :=
-    exists_pos_forall_mul_div_log_pow_le (C := 6 * n + 2) hc hδ₁ hK p₀
+    exists_pos_forall_mul_div_log_pow_le (C := 3 * n + 2) hc hδ₁ hK p₀
   refine ⟨p₀ + 1, Nat.succ_pos _, δ₀, hδ₀, fun δ hδ hδδ₀ f hf hf01 hdbar ↦ ?_⟩
   obtain ⟨hδK, hL, hε⟩ := hsmall δ hδ hδδ₀
   set ε := δ / Real.log (1 / δ) ^ (p₀ + 1)
@@ -306,7 +308,7 @@ theorem exists_norm_le_max_ge_of_dbar_le :
       have h := norm_conjWirtingerDeriv_transversalityMap_le (hf z hz) (hdbar z hz).1
         (hdbar z hz).2 (hz2 hz) (EuclideanSpace.single j 1)
       simp only [PiLp.norm_single, norm_one, mul_one] at h
-      calc _ ≤ 1 * ((6 * n + 1) * ε) :=
+      calc _ ≤ 1 * ((3 * n + 1) * ε) :=
             mul_le_mul (inv_le_one_of_one_le₀ hK) h (norm_nonneg _) zero_le_one
         _ ≤ η := by nlinarith)
   refine ⟨(K : ℂ) • w', ?_, fun z hz ↦ ?_⟩
@@ -331,6 +333,8 @@ theorem exists_norm_le_max_ge_of_dbar_le :
     ‖wirtingerDeriv (fun y ↦ f y - ((K : ℂ) • w') none -
       ∑ j, ((K : ℂ) • w') (some j) * y j) z‖
   have hm : 0 ≤ m := (norm_nonneg _).trans (le_max_left _ _)
+  -- The chain is `(3 n + 2) ε ≤ η ≤ ‖G z - w'‖ ≤ ‖transversalityMap f z - K w'‖ ≤ (n + 2) m`
+  -- (`hε`, `h1`, `h4`, `h3`), and `(n + 2) ε ≤ (3 n + 2) ε` since `ε ≥ 0`.
   nlinarith [hn, hm, hε0]
 
 end SymplecticGeometry
