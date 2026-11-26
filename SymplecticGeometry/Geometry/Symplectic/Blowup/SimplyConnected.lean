@@ -6,8 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Model
-public import Mathlib.AlgebraicTopology.FundamentalGroupoid.SimplyConnected
-import SymplecticGeometry.Topology.ComplexProjectiveSpace.SimplyConnected
+public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.SimplyConnected
 import TauCeti.Analysis.Normed.Module.Connected
 import TauCeti.Topology.Homotopy.DeformationRetract
 
@@ -21,13 +20,11 @@ removed.
 
 ## Main results
 
-* `SymplecticGeometry.BlowupModel.isSimplyConnected_exceptionalDivisor`: the exceptional divisor
-  is simply connected, since the zero section is an embedding of the simply connected space
-  `ℙ ℂ E` onto it (`Projectivization.instSimplyConnectedSpaceComplex`).
 * `SymplecticGeometry.BlowupModel.isSimplyConnected_openNbhd`: `openNbhd n r` is simply connected.
   The fibrewise scaling `(ℓ, z) ↦ (ℓ, (1 - t) z)`, `t ∈ [0, 1]`, deforms it within itself onto the
   divisor, so the inclusion of the divisor is a homotopy equivalence
-  (Tau Ceti's `ContinuousMap.HomotopyEquiv.ofWeakDeformationRetraction`).
+  (Tau Ceti's `ContinuousMap.HomotopyEquiv.ofWeakDeformationRetraction`), and the divisor is
+  simply connected (`SymplecticGeometry.BlowupModel.isSimplyConnected_exceptionalDivisor`).
 * `SymplecticGeometry.BlowupModel.isPathConnected_openNbhd_sdiff_exceptionalDivisor`: the
   complement of the divisor in `openNbhd n r` is path connected, as the image under the inverse
   of the blowdown (`blowdownDiffeomorph`) of a punctured ball of real dimension `2 (n + 1)`
@@ -42,23 +39,13 @@ removed.
 public section
 
 open Set TopologicalSpace
-open scoped unitInterval LinearAlgebra.Projectivization
+open scoped unitInterval
 
 namespace SymplecticGeometry
 
 namespace BlowupModel
 
 variable {n : ℕ}
-
-variable (n) in
-/-- The exceptional divisor of the model blowup is simply connected: the zero section embeds the
-simply connected space `ℙ ℂ (Fin (n + 1) → ℂ)` onto it. -/
-theorem isSimplyConnected_exceptionalDivisor : IsSimplyConnected (exceptionalDivisor n) := by
-  have he : Topology.IsEmbedding (zeroSection : ℙ ℂ (Fin (n + 1) → ℂ) → BlowupModel n) :=
-    Function.LeftInverse.isEmbedding (f := pr) pr_zeroSection continuous_pr
-      continuous_zeroSection
-  rw [exceptionalDivisor_eq_range]
-  exact he.toHomeomorph.symm.toHomotopyEquiv.simplyConnectedSpace
 
 /-- For `0 < r`, the neighbourhood `openNbhd n r` of the exceptional divisor is simply connected:
 the scaling `(ℓ, z) ↦ (ℓ, (1 - t) z)` deformation retracts it onto the divisor. -/
