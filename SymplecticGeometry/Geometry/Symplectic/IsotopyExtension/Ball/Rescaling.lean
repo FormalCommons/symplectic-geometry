@@ -37,8 +37,8 @@ The smoothness at `s = 0` is that of the library's `fiberRescale`
   `z ↦ s⁻¹ • j (s • Q z)` of a symplectic embedding `j` of a ball, after a linear map `Q`
   preserving `stdForm`, is a symplectic embedding of a smaller ball.
 * `SymplecticGeometry.IsSymplecticBallEmbedding.comp_continuousLinearMap`: its case `s = 1`.
-* `SymplecticGeometry.isSymplecticBallEmbedding_linearIsometry`: a linear isometry preserving
-  `stdForm` is a symplectic embedding of every ball.
+* `ContinuousLinearMap.isSymplecticBallEmbedding`: a continuous linear map preserving `stdForm`
+  is a symplectic embedding of every ball.
 * `SymplecticGeometry.IsSymplecticBallFamily.exists_rescaling_family`: the two-parameter family
   joining the identity to `θ` described above.
 
@@ -122,15 +122,19 @@ theorem IsSymplecticBallEmbedding.comp_continuousLinearMap {ρ ρ' : ℝ}
   simpa only [inv_one, one_smul] using
     hj.inv_smul_comp_smul_comp one_ne_zero hQ fun z hz ↦ by simpa only [one_smul] using hρ' z hz
 
-/-- A linear isometry of `StdSpace (Fin n)` preserving `stdForm` is a symplectic embedding of
-every ball into `StdSpace (Fin n)` with `ω₀`. -/
-theorem isSymplecticBallEmbedding_linearIsometry (r : ℝ)
-    {U : StdSpace (Fin n) →ₗᵢ[ℝ] StdSpace (Fin n)}
-    (hU : ∀ v w, stdForm (Fin n) (U v) (U w) = stdForm (Fin n) v w) :
-    IsSymplecticBallEmbedding (stdForm (Fin n)).constSmooth r fun z ↦ U z :=
-  (isSymplecticBallEmbedding_id (r + 1)).comp_continuousLinearMap
-    (Q := U.toContinuousLinearMap) hU fun z hz ↦ by
-      simpa using (mem_closedBall_zero_iff.1 hz).trans_lt (lt_add_one r)
+/-- A continuous linear map of `StdSpace (Fin n)` preserving `stdForm` is a symplectic embedding
+of every ball into `StdSpace (Fin n)` with `ω₀`. -/
+theorem _root_.ContinuousLinearMap.isSymplecticBallEmbedding
+    (Q : StdSpace (Fin n) →L[ℝ] StdSpace (Fin n))
+    (hQ : ∀ v w, stdForm (Fin n) (Q v) (Q w) = stdForm (Fin n) v w) (r : ℝ) :
+    IsSymplecticBallEmbedding (stdForm (Fin n)).constSmooth r Q :=
+  (isSymplecticBallEmbedding_id (‖Q‖ * |r| + 1)).comp_continuousLinearMap hQ fun z hz ↦ by
+    rw [mem_ball_zero_iff]
+    calc ‖Q z‖ ≤ ‖Q‖ * ‖z‖ := Q.le_opNorm z
+      _ ≤ ‖Q‖ * |r| := by
+        gcongr
+        exact (mem_closedBall_zero_iff.1 hz).trans (le_abs_self r)
+      _ < ‖Q‖ * |r| + 1 := lt_add_one _
 
 /-- **Rescaling a family of symplectic germs to its linearization.** Let `θ` be a smooth family
 over `[0, 1]` of symplectic embeddings of `B(ρ)`, `0 < ρ`, into `StdSpace (Fin n)` with `ω₀`, each

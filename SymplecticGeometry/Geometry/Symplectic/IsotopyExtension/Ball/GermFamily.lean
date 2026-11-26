@@ -55,8 +55,8 @@ public section
 
 noncomputable section
 
-open Set Function Metric Filter
-open scoped ContDiff Manifold Topology
+open Set Function Metric
+open scoped ContDiff Manifold
 
 namespace SymplecticGeometry
 
@@ -149,8 +149,8 @@ theorem IsSymplecticBallFamily.exists_symplectomorphism_family_eq_of_map_zero {�
   refine ⟨ε, hε, χ, ?_, fun t ↦ ?_, fun t ↦ ?_, fun t z hz ↦ ?_, fun t ht z ↦ ?_⟩
   · exact hΦs.comp ((contMDiff_fst.prodMk contMDiff_const).prodMk
       ((hU.contMDiff.comp (contMDiff_subtypeVal_Icc.comp contMDiff_fst)).clm_apply contMDiff_snd))
-  · exact (isSymplecticBallEmbedding_linearIsometry r (U := (U t).toLinearIsometry)
-      (hUs t)).diffeotopy_comp ((Diffeotopy.isCompactlySupportedHamiltonian_iff.1 (hΦH t)).1 1)
+  · exact ((U t : StdSpace (Fin n) →L[ℝ] StdSpace (Fin n)).isSymplecticBallEmbedding (hUs t)
+      r).diffeotopy_comp ((Diffeotopy.isCompactlySupportedHamiltonian_iff.1 (hΦH t)).1 1)
   · have hχ : (fun z ↦ χ (t, z)) = ((Φ t).timeSlice 1).toEquiv ∘ U t := by
       funext z
       simp [χ, Diffeotopy.timeSlice_apply]
