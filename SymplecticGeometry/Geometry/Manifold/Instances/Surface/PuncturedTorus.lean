@@ -1057,6 +1057,7 @@ theorem peripheralLoop_def :
 
 /-- The isomorphism sends the class of the peripheral loop to the boundary generator
 `peripheral 0` of `TauCeti.SurfaceGroup.Orientable 1 1`. -/
+@[simp]
 theorem puncturedFundamentalGroupMulEquiv_peripheralLoop :
     puncturedFundamentalGroupMulEquiv
         (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk peripheralLoop)) =
