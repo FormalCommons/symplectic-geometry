@@ -19,8 +19,6 @@ point, and the quantities it keeps.
 
 ## Main results
 
-* `maximalIntegralCurve_zero_of_vectorSpace`: Tau Ceti's `maximalIntegralCurve_zero` for a field
-  given as a map `E → E`.
 * `SymplecticGeometry.norm_compactlySupportedFlowDiffeotopy_sub_le`: the compactly supported flow
   diffeotopy of a field of norm at most `M`, run for a duration `a ≥ 0`, moves each point by at
   most `a * t * M` at time `t`.
@@ -34,14 +32,6 @@ open Set
 open scoped Manifold ContDiff
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-
-/-- The maximal integral curve of a vector field `v : E → E` on a real normed space starts at its
-initial point. This is `maximalIntegralCurve_zero`, whose statement takes the field valued in the
-tangent spaces of `E`; neither `rw` nor `simp` finds that one for an `E`-valued field. -/
-@[simp]
-theorem maximalIntegralCurve_zero_of_vectorSpace (v : E → E) (x : E) :
-    maximalIntegralCurve (I := 𝓘(ℝ, E)) v x 0 = x :=
-  maximalIntegralCurve_zero
 
 namespace SymplecticGeometry
 
