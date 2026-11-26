@@ -837,7 +837,7 @@ theorem dualClassOf_transDiffeomorph (f : SmoothEmbedding I J ∞ Z X) (hn : (�
 /-- **Naturality of the relative dual class under a diffeomorphism.** Let `φ : X' ≃ X` be a
 diffeomorphism and `o` an orientation of the normal bundle of `f`, of rank `r`. The relative dual
 class of `φ⁻¹ ∘ f`, normally oriented by the pull-back of `o` along the derivative of `φ`
-(`transDiffeomorphNormalSpaceEquiv`), is the pull-back along
+(`normalSpaceEquivOfComp` for `φ ∘ (φ⁻¹ ∘ f) = f`), is the pull-back along
 `φ : (X', X' ∖ φ⁻¹(f(Z))) ⟶ (X, X ∖ f(Z))` of `relDualClass f hn hdim hf o hr`. -/
 theorem relDualClass_transDiffeomorph (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f))
@@ -851,7 +851,9 @@ theorem relDualClass_transDiffeomorph (f : SmoothEmbedding I J ∞ Z X) (hn : (�
     letI := (f.transDiffeomorph φ.symm).normalSpaceVectorBundle hn hdim
     (f.transDiffeomorph φ.symm).relDualClass hn hdim (f.isClosed_range_transDiffeomorph hf φ.symm)
         (o.comap (g := ContinuousMap.id Z) ((Fintype.card_fin r).trans hr.symm)
-          (f.continuous_transDiffeomorphNormalSpaceEquiv hn φ)) hr =
+          ((f.transDiffeomorph φ.symm).continuous_normalSpaceEquivOfComp f hn hn
+            (φ.contMDiff.of_le (ENat.one_le_iff_ne_zero_withTop.mpr hn))
+            (fun _ ↦ φ.isInvertible_mfderiv hn) (f.comp_transDiffeomorph_symm φ))) hr =
       TopPair.singularCohomologyMap
         (TopPair.ofSubsetMap (X := TopCat.of X') (Y := TopCat.of X)
           (TopCat.ofHom ⟨φ, φ.continuous⟩) (f.mapsTo_compl_range_transDiffeomorph φ)) _
@@ -876,16 +878,17 @@ theorem relDualClass_transDiffeomorph (f : SmoothEmbedding I J ∞ Z X) (hn : (�
           (f.relDualClassOf hn hdim hf u) := by
     obtain rfl : L = ModuleCat.instLinear := Subsingleton.elim _ _
     exact relDualClassOf_transDiffeomorph f hn hdim hf φ u
-  rw [relDualClass_def, relDualClass_def, ← key, transDiffeomorphThomPairMap_def]
+  rw [relDualClass_def, relDualClass_def, ← key, transDiffeomorphThomPairMap_def,
+    thomPairMapOfComp_def]
   -- The goal agrees with the naturality of the canonical Thom class only up to unfolding
   -- (`thomPairMapOfFiberwise` over `g = ContinuousMap.id Z`), which `rw` does not see.
   exact congrArg _ (o.singularCohomologyMap_thomPairMapOfFiberwise_canonicalThomClass_comap rfl rfl
-      (f.continuous_transDiffeomorphNormalSpaceEquiv hn φ)).symm
+      _).symm
 
 /-- **Naturality of the dual class under a diffeomorphism.** Let `φ : X' ≃ X` be a diffeomorphism
 and `o` an orientation of the normal bundle of `f`, of rank `r`. The dual class of `φ⁻¹ ∘ f`,
 normally oriented by the pull-back of `o` along the derivative of `φ`
-(`transDiffeomorphNormalSpaceEquiv`), is the pull-back along `φ` of
+(`normalSpaceEquivOfComp` for `φ ∘ (φ⁻¹ ∘ f) = f`), is the pull-back along `φ` of
 `dualClass f hn hdim hf o hr`. -/
 theorem dualClass_transDiffeomorph (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f))
@@ -899,7 +902,9 @@ theorem dualClass_transDiffeomorph (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ 
     letI := (f.transDiffeomorph φ.symm).normalSpaceVectorBundle hn hdim
     (f.transDiffeomorph φ.symm).dualClass hn hdim (f.isClosed_range_transDiffeomorph hf φ.symm)
         (o.comap (g := ContinuousMap.id Z) ((Fintype.card_fin r).trans hr.symm)
-          (f.continuous_transDiffeomorphNormalSpaceEquiv hn φ)) hr =
+          ((f.transDiffeomorph φ.symm).continuous_normalSpaceEquivOfComp f hn hn
+            (φ.contMDiff.of_le (ENat.one_le_iff_ne_zero_withTop.mpr hn))
+            (fun _ ↦ φ.isInvertible_mfderiv hn) (f.comp_transDiffeomorph_symm φ))) hr =
       TopCat.singularCohomologyMap (TopCat.ofHom ⟨φ, φ.continuous⟩) _
         (f.dualClass hn hdim hf o hr) := by
   rw [dualClass_eq_singularCohomologyπ_relDualClass,
