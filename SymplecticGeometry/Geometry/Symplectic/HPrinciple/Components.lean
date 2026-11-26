@@ -12,6 +12,7 @@ import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.Comp
 import TauCeti.Geometry.Manifold.VectorBundle.Section.FrameCover
 import TauCeti.Topology.Homeomorph.Pi
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Topology
 
 /-!
 # The spaces of nondegenerate and of symplectic forms over the components

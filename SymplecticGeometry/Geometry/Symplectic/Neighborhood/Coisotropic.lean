@@ -5,12 +5,13 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Basic
+public import TauCeti.Geometry.Symplectic.Lagrangian.Presymplectic
+import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Basic
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 import SymplecticGeometry.Topology.Sets.Opens.Basic
-public import TauCeti.Geometry.Symplectic.Lagrangian.Presymplectic
 import SymplecticGeometry.LinearAlgebra.Symplectic.Subspace
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Diffeomorph
+import SymplecticGeometry.Topology.VectorBundle.Pullback
 
 /-!
 # The coisotropic neighbourhood theorem

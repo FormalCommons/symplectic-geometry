@@ -5,9 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
-public import SymplecticGeometry.Topology.ComplexStructure.Basic
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+public import TauCeti.Geometry.Symplectic.AlmostComplex.Topology
+import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
+import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
+import SymplecticGeometry.Topology.ComplexStructure.Basic
 
 /-!
 # Compatible complex structures on the standard model as positive symplectic matrices

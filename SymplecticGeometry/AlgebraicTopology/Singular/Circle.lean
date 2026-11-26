@@ -8,15 +8,15 @@ module
 public import Mathlib.Analysis.Convex.Contractible
 public import Mathlib.LinearAlgebra.Complex.Orientation
 public import TauCeti.AlgebraicTopology.SimplicialSet.Homology.MayerVietoris
-public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.One
 public import SymplecticGeometry.AlgebraicTopology.Singular.Path
-public import SymplecticGeometry.Topology.ContinuousMap.Basic
 public import TauCeti.AlgebraicTopology.Homotopy.Hurewicz.One.Comparison
 public import TauCeti.AlgebraicTopology.Singular.Circle
 public import TauCeti.AlgebraicTopology.Singular.Contractible
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Chart
 public import TauCeti.Analysis.Complex.Circle.Basic
 public import TauCeti.Topology.Circle.Degree
+import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.One
+import SymplecticGeometry.Topology.ContinuousMap.Basic
 import TauCeti.Analysis.SpecialFunctions.Trigonometric.UnitInterval
 
 /-!

@@ -12,6 +12,9 @@ import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.GoodCover
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Descent
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.BasicForm
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
+import SymplecticGeometry.Geometry.Manifold.DeRham.GoodCover.Compact
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Vertical
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 
 /-!
 # Existence of coupling forms

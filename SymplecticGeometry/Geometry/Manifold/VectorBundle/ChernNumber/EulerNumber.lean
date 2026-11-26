@@ -14,6 +14,7 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Section.SmoothZero
 public import TauCeti.Topology.VectorBundle.Orientation.SectionIndex.Degree
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.ComplexStructure
+public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 
 /-!
 # The first Chern number as a count of zeros

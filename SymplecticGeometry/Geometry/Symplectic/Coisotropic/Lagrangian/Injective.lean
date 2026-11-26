@@ -6,9 +6,11 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Coisotropic.Lagrangian.Basic
-public import SymplecticGeometry.Geometry.Manifold.Foliation.LeafSpace.ConstantRank
-public import SymplecticGeometry.Geometry.Symplectic.Coisotropic.Lagrangian.Immersion
 public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Isotropic
+public import SymplecticGeometry.Geometry.Symplectic.Lagrangian.ImmersionRange
+public import SymplecticGeometry.Geometry.Manifold.Distribution.ConstantRank
+import SymplecticGeometry.Geometry.Manifold.Foliation.LeafSpace.ConstantRank
+import SymplecticGeometry.Geometry.Symplectic.Coisotropic.Lagrangian.Immersion
 import TauCeti.Geometry.Symplectic.Lagrangian.Submersion
 
 /-!

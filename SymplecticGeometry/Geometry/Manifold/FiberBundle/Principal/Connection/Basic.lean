@@ -6,12 +6,15 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Normed
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Descent
-public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.BasicForm
 public import TauCeti.Geometry.Lie.Adjoint.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.MapCoeff
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal.FundamentalVectorField
 public import TauCeti.Geometry.Manifold.Submersion.EhresmannConnection.Basic
+public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
+public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Descent
+public import TauCeti.Geometry.Manifold.DifferentialForm.DegreeOne
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Descent
+import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.BasicForm
 import SymplecticGeometry.Geometry.Manifold.Distribution.OneFormKernel
 import TauCeti.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.IsManifold.Basic

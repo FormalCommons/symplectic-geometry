@@ -5,11 +5,13 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Symplectic.CompatibleSpace.LeviCivita
 public import TauCeti.Geometry.Manifold.Riemannian.Geodesic.Exponential
 public import TauCeti.Geometry.Manifold.Riemannian.Geodesic.Extension
 public import TauCeti.Geometry.Manifold.Riemannian.Homogeneous
 public import TauCeti.Geometry.Symplectic.AlmostComplex.StructureVariation
+public import SymplecticGeometry.Geometry.Symplectic.CompatibleSpace.Kahler
+public import SymplecticGeometry.Topology.ComplexStructure.Basic
+import SymplecticGeometry.Geometry.Symplectic.CompatibleSpace.LeviCivita
 
 /-!
 # Geodesics of the space of compatible complex structures

@@ -6,15 +6,17 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Basic
-public import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
-import SymplecticGeometry.Geometry.Manifold.DeRham.Map
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
 public import TauCeti.Topology.CWComplex.Classical.CWType
+public import TauCeti.Geometry.Manifold.VectorBundle.Section.Topology
+public import TauCeti.Geometry.Manifold.DeRham.Basic
+import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
+import SymplecticGeometry.Geometry.Manifold.DeRham.Map
 import SymplecticGeometry.AlgebraicTopology.Homotopy.Domination
 import SymplecticGeometry.Analysis.LocallyConvex.CWType
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.IsManifold.SecondCountable
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Topology
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Topology
 import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Section.CompletelyMetrizable
 

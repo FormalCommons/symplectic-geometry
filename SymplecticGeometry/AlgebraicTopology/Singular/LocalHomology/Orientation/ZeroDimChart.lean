@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Basic
-public import SymplecticGeometry.Topology.Category.TopPair
+import SymplecticGeometry.Topology.Category.TopPair
 import TauCeti.AlgebraicTopology.Singular.ReducedRelative
 
 /-!

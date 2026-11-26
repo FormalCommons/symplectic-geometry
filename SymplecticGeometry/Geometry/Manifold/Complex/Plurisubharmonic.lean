@@ -10,10 +10,12 @@ public import TauCeti.Geometry.Manifold.Complex.Pseudoconvex.Morse
 public import TauCeti.Geometry.Manifold.Complex.SquaredDistance
 public import TauCeti.Geometry.Symplectic.Manifold.Kahler
 public import TauCeti.Topology.Maps.Proper.Metric
-public import SymplecticGeometry.Analysis.Convex.Deriv
+public import TauCeti.Geometry.Manifold.DifferentialForm.AlmostComplexType
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Dolbeault.Potential
-public import SymplecticGeometry.Topology.Maps.Proper
+import SymplecticGeometry.Analysis.Convex.Deriv
+import SymplecticGeometry.Topology.Maps.Proper
 import SymplecticGeometry.Analysis.SpecialFunctions.ExpDeriv
+import SymplecticGeometry.Geometry.Symplectic.Manifold.Rescale
 
 /-!
 # Stein functions and their Kähler forms
@@ -33,7 +35,8 @@ plurisubharmonic at every point. Its form `ω_f` is a Kähler form for `J`, and 
 * `SymplecticGeometry.isManifoldStrictlyPlurisubharmonicAt_iff_forall_pos`: a smooth `f` is
   strictly plurisubharmonic at `x` iff `0 < ω_f(v, i v)` at `x` for every `v ≠ 0`.
 * `SymplecticGeometry.isKahler_mextDerivₗ_covectorComplexStructure`: `ω_f` is Kähler for `J`
-  when `f` is strictly plurisubharmonic at every point.
+  when `f` is strictly plurisubharmonic at every point; `SymplecticGeometry.isKahler_potentialForm`:
+  so is its quarter, the form `potentialForm` of the potential `f`.
 * `TauCeti.IsManifoldStrictlyPlurisubharmonicAt.exp_comp`: `exp ∘ f` is strictly
   plurisubharmonic at `x` when `f` is.
 * `SymplecticGeometry.IsSteinFunction E φ`: smooth, proper, bounded below and strictly
@@ -121,6 +124,16 @@ theorem isKahler_mextDerivₗ_covectorComplexStructure [FiniteDimensional ℂ E]
   · simp only [SmoothBundleForm.eval₂_apply]
     rw [hJ]
     exact (isManifoldStrictlyPlurisubharmonicAt_iff_forall_pos f x).1 (hf x) v hv
+
+/-- **The form of a strictly plurisubharmonic potential is Kähler.** If a smooth real function
+`f` on a complex manifold is strictly plurisubharmonic at every point, then its form
+`(1/4) d(-df ∘ J)` is a Kähler form for the complex structure of `M`. -/
+theorem isKahler_potentialForm [FiniteDimensional ℂ E]
+    {f : C^∞⟮𝓘(ℝ, E), M; ℝ⟯} (hf : ∀ x, IsManifoldStrictlyPlurisubharmonicAt E f x) :
+    SmoothTwoForm.IsKahler ((ofComplexManifold E M).potentialForm (SmoothForm.ofFunction f))
+      (ofComplexManifold E M) := by
+  rw [potentialForm_def]
+  exact (isKahler_mextDerivₗ_covectorComplexStructure hf).smul _ (by norm_num)
 
 /-! ### Composition with the exponential -/
 

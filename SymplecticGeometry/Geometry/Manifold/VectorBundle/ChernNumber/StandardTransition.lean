@@ -5,10 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.UnitSection
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.CircleBundle
-public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
-public import SymplecticGeometry.LinearAlgebra.Complex.FiniteDimensional
+public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
+public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.CoordinateDisc
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.UnitSection
+import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
+import SymplecticGeometry.LinearAlgebra.Complex.FiniteDimensional
 import SymplecticGeometry.Analysis.SpecialFunctions.Complex.CircleLog
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.CoordinateDisc
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic

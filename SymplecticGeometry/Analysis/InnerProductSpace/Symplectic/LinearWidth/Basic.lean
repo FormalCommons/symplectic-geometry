@@ -6,7 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Normed.Module.Ball.Pointwise
-public import SymplecticGeometry.Analysis.InnerProductSpace.Symplectic.Nonsqueezing
+public import SymplecticGeometry.Analysis.InnerProductSpace.Symplectic.AffineSymplectic
+import SymplecticGeometry.Analysis.InnerProductSpace.Symplectic.Nonsqueezing
+import SymplecticGeometry.Geometry.Symplectic.SymplecticTransport
+import Mathlib.Algebra.Order.Star.Real
 
 /-!
 # The linear symplectic width

@@ -6,8 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.CleanIntersection
-public import SymplecticGeometry.Geometry.Symplectic.Coisotropic.Reduction
 public import TauCeti.Geometry.Manifold.RegularValue.Rank
+public import TauCeti.Geometry.Symplectic.Lagrangian.Presymplectic
+public import SymplecticGeometry.Geometry.Manifold.Foliation.LeafSpace.Smooth
+import SymplecticGeometry.Geometry.Symplectic.Coisotropic.Reduction
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Reduction.Tangent
 import TauCeti.Geometry.Symplectic.Lagrangian.Constructions
 import SymplecticGeometry.LinearAlgebra.Symplectic.Subspace

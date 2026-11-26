@@ -9,7 +9,7 @@ public import TauCeti.Geometry.Manifold.GroupAction.Restrict
 public import TauCeti.Geometry.Manifold.RegularValue.Level
 public import TauCeti.Topology.Algebra.ProperAction.Basic
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal.Quotient
-public import SymplecticGeometry.GroupTheory.GroupAction.SubMulAction
+import SymplecticGeometry.GroupTheory.GroupAction.SubMulAction
 
 /-!
 # The circle bundle of a regular level

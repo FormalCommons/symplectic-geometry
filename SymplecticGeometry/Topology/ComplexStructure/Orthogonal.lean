@@ -5,11 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Matrix.Polar.Deformation
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import SymplecticGeometry.Topology.ComplexStructure.Basic
 public import TauCeti.Topology.Algebra.UnitaryGroup
 public import TauCeti.Topology.Homotopy.DeformationRetract
+public import TauCeti.Analysis.Matrix.Polar.Deformation
+import SymplecticGeometry.Analysis.Matrix.Polar.Deformation
 
 /-!
 # The orthogonal complex structures

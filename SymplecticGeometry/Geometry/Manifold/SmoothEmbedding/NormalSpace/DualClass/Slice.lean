@@ -7,13 +7,13 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.DualClass.Basic
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.ThomPairMap
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.Local.Restrict
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.Local.Derivative
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 public import SymplecticGeometry.Topology.VectorBundle.Thom.FiberCoordinate
 public import TauCeti.Geometry.Manifold.LocallyContractible
 public import TauCeti.Topology.VectorBundle.MayerVietoris.DirectedUnion
 public import TauCeti.Topology.VectorBundle.Thom.FiberwiseEquiv
+import SymplecticGeometry.AlgebraicTopology.Cohomology.Local.Restrict
+import SymplecticGeometry.AlgebraicTopology.Cohomology.Local.Derivative
 import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 
 /-!

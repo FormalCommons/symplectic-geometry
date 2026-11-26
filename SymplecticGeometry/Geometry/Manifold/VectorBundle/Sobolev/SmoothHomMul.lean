@@ -6,12 +6,13 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.VectorBundle.Hom
-public import SymplecticGeometry.Analysis.Sobolev.Wkp.SmoothMultiplicationBound
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.Basic
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.FrameTopology
 public import TauCeti.Analysis.Sobolev.Wkp.SmoothCoefficients
 public import TauCeti.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.Hom
 public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.ContMDiffSection
+public import TauCeti.Geometry.Manifold.VectorBundle.Section.Topology
+import SymplecticGeometry.Analysis.Sobolev.Wkp.SmoothMultiplicationBound
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.Basic
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.FrameTopology
 import TauCeti.Geometry.Manifold.VectorBundle.Trivialization
 
 /-!

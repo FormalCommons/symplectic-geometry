@@ -5,10 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Calculus.DifferentialForm.LieDeriv
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
 public import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 public import TauCeti.Geometry.Manifold.VectorField.Prod
+import SymplecticGeometry.Analysis.Calculus.DifferentialForm.LieDeriv
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
 import TauCeti.Geometry.Manifold.IsManifold.Basic

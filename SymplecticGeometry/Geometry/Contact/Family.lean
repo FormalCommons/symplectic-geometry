@@ -6,18 +6,19 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Instances.Real
-public import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
-public import SymplecticGeometry.Geometry.Contact.Levi
-public import SymplecticGeometry.Geometry.Contact.Moser
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.TimeExtension
 public import TauCeti.Geometry.Contact.Distribution
 public import TauCeti.Geometry.Contact.Flat
 public import TauCeti.Geometry.Contact.Gray
 public import TauCeti.Geometry.Manifold.IsManifold.Basic
 public import TauCeti.Topology.VectorBundle.Hom
+import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
+import SymplecticGeometry.Geometry.Contact.Levi
+import SymplecticGeometry.Geometry.Contact.Moser
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.TimeExtension
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Family
 
 /-!
 # Smooth families of contact structures

@@ -6,11 +6,12 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.LinearAlgebra.ComplexStructure.Standard
-public import SymplecticGeometry.Topology.Algebra.GroupAction.Transitive
-public import SymplecticGeometry.Topology.ComplexStructure.Basic
 public import TauCeti.Topology.Algebra.Group.Units
 public import TauCeti.Topology.Instances.Matrix
 public import Mathlib.Topology.Baire.LocallyCompactRegular
+public import TauCeti.Geometry.Symplectic.AlmostComplex.Topology
+import SymplecticGeometry.Topology.Algebra.GroupAction.Transitive
+import SymplecticGeometry.Topology.ComplexStructure.Basic
 
 /-!
 # Complex structures as the homogeneous space GL(2n, ℝ)/GL(n, ℂ)

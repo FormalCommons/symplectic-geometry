@@ -7,7 +7,7 @@ module
 
 public import Mathlib.Geometry.Manifold.Instances.Real
 public import Mathlib.Geometry.Manifold.VectorBundle.ContMDiffSection
-public import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
+import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Discrete
 import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Push
 import SymplecticGeometry.Geometry.Manifold.IsManifold.SecondCountable

@@ -5,9 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Topology.Algebra.Module.TensorProduct
 public import TauCeti.Topology.VectorBundle.Hom
 public import TauCeti.Topology.VectorBundle.TensorProduct.Basic
+import SymplecticGeometry.Topology.Algebra.Module.TensorProduct
 
 /-!
 # The line bundles of a scalar cocycle

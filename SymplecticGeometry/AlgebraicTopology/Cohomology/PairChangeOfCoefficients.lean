@@ -5,12 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.ChangeOfValues
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.LinearCongr
 public import TauCeti.AlgebraicTopology.Cohomology.Relative
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
 public import TauCeti.CategoryTheory.Linear.Int
+import SymplecticGeometry.AlgebraicTopology.Cohomology.ChangeOfValues
+import SymplecticGeometry.AlgebraicTopology.Cohomology.LinearCongr
 
 /-!
 # Change of coefficients in the singular cohomology of a pair

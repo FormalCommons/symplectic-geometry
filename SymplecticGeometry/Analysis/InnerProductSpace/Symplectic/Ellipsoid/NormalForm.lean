@@ -6,8 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Analysis.InnerProductSpace.Symplectic.Ellipsoid.Basic
-public import SymplecticGeometry.LinearAlgebra.QuadraticForm.PosDef
 public import TauCeti.Geometry.Symplectic.Hamiltonian.Williamson
+import SymplecticGeometry.LinearAlgebra.QuadraticForm.PosDef
 
 /-!
 # The normal form of an ellipsoid
