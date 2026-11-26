@@ -203,6 +203,7 @@ theorem clutchingMap_apply
   (rfl)
 
 /-- `clutchingMap` is the identity on the factor `X`. -/
+@[simp]
 theorem fst_comp_clutchingMap :
     ContinuousMap.fst.comp (clutchingMap X) =
       ContinuousMap.fst.comp (ContinuousMap.subtypeVal _) :=
@@ -268,6 +269,7 @@ theorem coe_circleToAnnulus_apply (q : X × Circle) :
   (rfl)
 
 /-- `circleToAnnulus` is the identity on the factor `X`. -/
+@[simp]
 theorem fst_comp_subtypeVal_comp_circleToAnnulus :
     ContinuousMap.fst.comp ((ContinuousMap.subtypeVal _).comp (circleToAnnulus X)) =
       ContinuousMap.fst :=
@@ -320,6 +322,7 @@ theorem coe_annulusDeformation_apply
   (rfl)
 
 /-- `annulusDeformation` is the identity on the factor `X`. -/
+@[simp]
 theorem fst_comp_subtypeVal_comp_annulusDeformation :
     ContinuousMap.fst.comp ((ContinuousMap.subtypeVal _).comp (annulusDeformation X)) =
       ContinuousMap.fst.comp (ContinuousMap.fst.comp (ContinuousMap.subtypeVal _)) :=

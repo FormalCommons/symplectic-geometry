@@ -285,11 +285,8 @@ theorem coordChange_clutching_of_mem_of_notMem {x y : X × ℙ ℂ (Fin 2 → �
 
 /-- The clutching by the identity glues by the identity. -/
 @[simp]
-theorem clutchingAut_refl : clutchingAut E (Iso.refl _) = Iso.refl _ :=
-  Iso.ext <| hom_ext fun w ↦ (fiberMap_clutchingAut_hom _ _ w).trans <| by
-    -- Both sides are the identity of the fibre of `E`, at two forms of its rank.
-    simp only [Iso.refl_hom, fiberMap_id]
-    rfl
+theorem clutchingAut_refl : clutchingAut E (Iso.refl _) = Iso.refl _ := by
+  simp [clutchingAut]
 
 /-- The clutching by the identity is the gluing by the identity. -/
 theorem clutching_refl : E.clutching (Iso.refl _) =

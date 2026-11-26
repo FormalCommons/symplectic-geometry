@@ -136,7 +136,7 @@ theorem exists_iso_clutching :
   have hc : (((F.pullback (prodMkOne X)).pullback ContinuousMap.fst).pullback
       (ContinuousMap.subtypeVal (Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc))).pullback
         (circleToAnnulus X) = (F.pullback (prodMkOne X)).pullback ContinuousMap.fst := by
-    rw [pullback_comp, pullback_comp, fst_comp_subtypeVal_comp_circleToAnnulus]
+    simp [pullback_comp]
   have hd : (((F.pullback (prodMkOne X)).pullback ContinuousMap.fst).pullback
       (ContinuousMap.subtypeVal (Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc))).pullback
         (annulusDeformation X) =
@@ -144,8 +144,7 @@ theorem exists_iso_clutching :
         (ContinuousMap.fst : C((X × ℙ ℂ (Fin 2 → ℂ)) × unitInterval, X × ℙ ℂ (Fin 2 → ℂ)))).pullback
         (ContinuousMap.subtypeVal (Prod.fst ⁻¹' (Prod.snd ⁻¹' innerDisc) ∩
           Prod.fst ⁻¹' (Prod.snd ⁻¹' outerDisc))) := by
-    simp only [pullback_comp, ContinuousMap.comp_assoc,
-      fst_comp_subtypeVal_comp_annulusDeformation]
+    simp [pullback_comp]
   -- The casts `eqToHom` have the identity as fibre maps.
   have hc' : ∀ (y : X × Circle) (v : Fin (F.pullback (prodMkOne X)).rank → 𝕜),
       (eqToHom hc.symm).fiberMap y v = v := fun _ _ ↦ funext fun _ ↦ by simp [Fin.cast_eq_self]
