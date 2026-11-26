@@ -19,8 +19,6 @@ moves them to `groupLieAlgebraLieHom`, and states there the naturality of the ad
 
 ## Main results
 
-* `ContMDiffMonoidMorphism.leftInvariantDerivationLieEquivGroupLieAlgebra_lieMap_eq`: the two
-  forms correspond under evaluation at `1`.
 * `ContMDiffMonoidMorphism.map_mulInvariantExp`: a smooth homomorphism `φ` satisfies
   `φ (exp ξ) = exp (φ.groupLieAlgebraLieHom ξ)`.
 * `ContMDiffMonoidMorphism.groupLieAlgebraLieHom_injective`: the Lie algebra map of an injective
@@ -94,18 +92,6 @@ attribute [local instance] ContMDiffMul.boundarylessManifold
 
 namespace ContMDiffMonoidMorphism
 
-/-- Evaluation at `1` carries Tau Ceti's `lieMap φ`, on left-invariant derivations, to
-`φ.groupLieAlgebraLieHom`, on the tangent spaces at `1`. -/
-theorem leftInvariantDerivationLieEquivGroupLieAlgebra_lieMap_eq
-    (φ : ContMDiffMonoidMorphism I I' ∞ G G') (D : LeftInvariantDerivation I G) :
-    leftInvariantDerivationLieEquivGroupLieAlgebra
-        (ContMDiffMul.isInteriorPoint (I := I') (n := ∞) (by simp) (1 : G')) (lieMap φ D) =
-      φ.groupLieAlgebraLieHom
-        (leftInvariantDerivationLieEquivGroupLieAlgebra
-          (ContMDiffMul.isInteriorPoint (I := I) (n := ∞) (by simp) (1 : G)) D) := by
-  rw [leftInvariantDerivationLieEquivGroupLieAlgebra_lieMap, coe_groupLieAlgebraLieHom,
-    MonoidHom.groupLieAlgebraMap_apply, coe_toMonoidHom]
-
 /-- A smooth homomorphism intertwines the exponentials through its Lie algebra map:
 `φ (exp ξ) = exp (φ.groupLieAlgebraLieHom ξ)`. -/
 theorem map_mulInvariantExp [T2Space G] [T2Space G'] (φ : ContMDiffMonoidMorphism I I' ∞ G G')
@@ -117,7 +103,8 @@ theorem map_mulInvariantExp [T2Space G] [T2Space G'] (φ : ContMDiffMonoidMorphi
   simp only [lieExp_eq_mulInvariantExp] at h
   rw [h, ← leftInvariantDerivationLieEquivGroupLieAlgebra_apply,
     ← leftInvariantDerivationLieEquivGroupLieAlgebra_apply,
-    leftInvariantDerivationLieEquivGroupLieAlgebra_lieMap_eq]
+    ← leftInvariantDerivationLieEquivGroupLieAlgebra_symm_groupLieAlgebraMap,
+    LieEquiv.apply_symm_apply, coe_groupLieAlgebraLieHom]
 
 /-- The Lie algebra map of an injective smooth homomorphism is injective. -/
 theorem groupLieAlgebraLieHom_injective (φ : ContMDiffMonoidMorphism I I' ∞ G G')
@@ -132,12 +119,13 @@ theorem groupLieAlgebraLieHom_injective (φ : ContMDiffMonoidMorphism I I' ∞ G
   rw [ContinuousMonoidHom.lieMap_def, hf] at hinj
   let e := leftInvariantDerivationLieEquivGroupLieAlgebra
     (ContMDiffMul.isInteriorPoint (I := I) (n := ∞) (by simp) (1 : G))
-  let e' := leftInvariantDerivationLieEquivGroupLieAlgebra
-    (ContMDiffMul.isInteriorPoint (I := I') (n := ∞) (by simp) (1 : G'))
   intro ξ η h
-  rw [← e.apply_symm_apply ξ, ← e.apply_symm_apply η,
-    ← leftInvariantDerivationLieEquivGroupLieAlgebra_lieMap_eq,
-    ← leftInvariantDerivationLieEquivGroupLieAlgebra_lieMap_eq] at h
-  exact e.symm.injective (hinj (e'.injective h))
+  refine e.symm.injective (hinj ?_)
+  rw [← leftInvariantDerivationLieEquivGroupLieAlgebra_symm_groupLieAlgebraMap,
+    ← leftInvariantDerivationLieEquivGroupLieAlgebra_symm_groupLieAlgebraMap]
+  rw [coe_groupLieAlgebraLieHom] at h
+  refine congrArg _ ?_
+  rwa [LieEquiv.coe_toLieHom, LieEquiv.apply_symm_apply,
+    LieEquiv.apply_symm_apply]
 
 end ContMDiffMonoidMorphism

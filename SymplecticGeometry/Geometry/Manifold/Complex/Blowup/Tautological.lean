@@ -7,6 +7,8 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Model
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Tautological
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
+import TauCeti.Geometry.Manifold.SmoothEmbedding.LeftInverse
 
 /-!
 # The model blowup as the total space of the tautological line
@@ -35,6 +37,10 @@ Lemma 7.1.1; Griffiths–Harris, Chapter 1, §4).
 * `SymplecticGeometry.BlowupModel.blowupModelTotalSpaceDiffeomorph_symm_apply` and
   `SymplecticGeometry.BlowupModel.blowupModelTotalSpaceDiffeomorph_symm_zeroSection`: the
   inverse, and its value on the exceptional divisor.
+* `SymplecticGeometry.BlowupModel.zeroSectionEmbedding n`: the zero section
+  `BlowupModel.zeroSection` as Tau Ceti's holomorphic embedding `TauCeti.SmoothEmbedding`
+  (`SymplecticGeometry.BlowupModel.coe_zeroSectionEmbedding`), with image the exceptional divisor
+  (`SymplecticGeometry.BlowupModel.range_zeroSectionEmbedding`).
 
 ## Implementation notes
 
@@ -45,6 +51,11 @@ vector of the line is the coordinate of `a` in the chart `i` of `𝒪(-1)` times
 the chart `k` of `𝒪(-1)` the image of `(ℓ, z)` has the coordinate `z k`
 (`Projectivization.twistCore_localTriv_tautologicalTwistCoreEquiv`), a coordinate of the
 holomorphic map `BlowupModel.blowdown`.
+
+The zero section is holomorphic as the image under `blowupModelTotalSpaceDiffeomorph` of the zero
+section of `𝒪(-1)`, and an embedding by Tau Ceti's
+`ContMDiff.isSmoothEmbedding_of_leftInverse`, since `BlowupModel.pr` is a holomorphic left
+inverse of it.
 
 ## References
 
@@ -198,6 +209,38 @@ theorem blowupModelTotalSpaceDiffeomorph_symm_zeroSection (ℓ : ℙ ℂ (Fin (n
     (blowupModelTotalSpaceDiffeomorph n).symm (zeroSection ℓ) =
       TotalSpace.mk' ℂ (E := (twistCore (-1)).Fiber) ℓ 0 := by
   rw [← blowupModelTotalSpaceDiffeomorph_zero, Diffeomorph.symm_apply_apply]
+
+variable (n) in
+/-- The zero section `zeroSection` of the model blowup `BlowupModel n`, which sends a line `ℓ` to
+the point `(ℓ, 0)`, as a holomorphic embedding of `ℙ ℂ E` into `BlowupModel n`. Its image is the
+exceptional divisor (`range_zeroSectionEmbedding`). -/
+noncomputable def zeroSectionEmbedding :
+    TauCeti.SmoothEmbedding 𝓘(ℂ, Fin n → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω (ℙ ℂ (Fin (n + 1) → ℂ))
+      (BlowupModel n) :=
+  TauCeti.SmoothEmbedding.ofIsSmoothEmbedding zeroSection <| by
+    -- Through `blowupModelTotalSpaceDiffeomorph`, `zeroSection` is the zero section of `𝒪(-1)`,
+    -- and `pr` is a holomorphic left inverse of it.
+    have h : (zeroSection : ℙ ℂ (Fin (n + 1) → ℂ) → BlowupModel n) =
+        blowupModelTotalSpaceDiffeomorph n ∘ Bundle.zeroSection ℂ (twistCore (-1)).Fiber :=
+      funext fun ℓ => (blowupModelTotalSpaceDiffeomorph_zero ℓ).symm
+    refine ContMDiff.isSmoothEmbedding_of_leftInverse ?_ le_top (contMDiff_pr 1) pr_zeroSection
+    rw [h]
+    exact (blowupModelTotalSpaceDiffeomorph n).contMDiff.comp
+      (Bundle.contMDiff_zeroSection ℂ (twistCore (-1)).Fiber)
+
+variable (n) in
+/-- The underlying map of `zeroSectionEmbedding n` is `zeroSection`. -/
+@[simp]
+theorem coe_zeroSectionEmbedding :
+    ⇑(zeroSectionEmbedding n) = (zeroSection : ℙ ℂ (Fin (n + 1) → ℂ) → BlowupModel n) :=
+  TauCeti.SmoothEmbedding.coe_ofIsSmoothEmbedding _ _
+
+variable (n) in
+/-- The image of the zero section embedding `zeroSectionEmbedding n` is the exceptional
+divisor. -/
+theorem range_zeroSectionEmbedding :
+    Set.range (zeroSectionEmbedding n) = exceptionalDivisor n := by
+  rw [coe_zeroSectionEmbedding, exceptionalDivisor_eq_range]
 
 end BlowupModel
 

@@ -3005,7 +3005,7 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
   cases of the de Rham theorem in
   `Geometry/Manifold/SmoothSingular/DeRham/Theorem.lean`; the general
   theorem is planned in *Asymptotically holomorphic sections*, in
-  `SmoothSingular/DeRham/MayerVietorisInduction.lean`), or directly from
+  `SmoothSingular/DeRham/MayerVietoris/Induction.lean`), or directly from
   periods of closed one-forms; and how the hypothesis on
   $[\omega]^{n-1}\smile-$ is stated with Tau Ceti's de Rham classes. The
   page's route through the Poincaré dual of an orbit is replaced by the

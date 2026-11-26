@@ -654,7 +654,7 @@ Expected size: 300 lines.
   `Collar/Flow/Local.lean`;
   `Geometry/Manifold/LocalDiffeomorph/Basic.lean`, in
   `Collar/Flow/Local.lean` and `Collar/Flow/Basic.lean`
-  (`TauCeti.EuclideanHalfSpace.isLocalDiffeomorph_of_val_eq_smul`).
+  (`SymplecticGeometry.isLocalDiffeomorph_id`).
 - *Smooth families*: `Geometry/Manifold/LocalDiffeomorph/OpenSubset.lean`
   (`TauCeti.isLocalDiffeomorphAt_subtypeVal_comp_iff`,
   `TauCeti.isLocalDiffeomorph_subtypeVal_comp_iff`,
