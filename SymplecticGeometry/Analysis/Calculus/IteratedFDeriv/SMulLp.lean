@@ -28,9 +28,10 @@ constant of the same form, for the `W^{k,p}` norms on planar open sets and Lebes
 `E` is any normed space and `μ` any measure, and the bound on the derivatives of `a` comes from the
 compactness of `K` instead of being a hypothesis. The proof follows that of
 `TauCeti.eLpNormWkp_bilin_le`: it bounds the derivatives of `a` on `K` by Tau Ceti's
-`ContDiffOn.exists_nonneg_bound_iteratedFDeriv_of_isOpen`, and applies Tau Ceti's
-pointwise Leibniz rule `ContinuousLinearMap.norm_iteratedFDeriv_le_of_bilinear_of_forall_le` to
-the bilinear map `ContinuousLinearMap.lsmul` at the points of `s`.
+`ContDiffOn.exists_nonneg_bound_iteratedFDeriv_of_isOpen`, applies Tau Ceti's pointwise Leibniz
+rule `TauCeti.exists_norm_iteratedFDeriv_bilinear_le` to the bilinear map
+`ContinuousLinearMap.lsmul` at the points of `s`, and passes to `Lᵖ` norms by Mathlib's
+`MeasureTheory.eLpNorm_le_mul_eLpNorm_of_ae_le_mul`.
 
 ## Main results
 
@@ -61,41 +62,27 @@ theorem exists_eLpNorm_iteratedFDeriv_smul_le_of_isOpen (μ : Measure E) {p : �
       eLpNorm (iteratedFDeriv ℝ j (fun x ↦ a x • f x)) p (μ.restrict s) ≤
         C * ∑ l ∈ Finset.range (k + 1), eLpNorm (iteratedFDeriv ℝ l f) p (μ.restrict s) := by
   -- A bound `M ≥ 0` on `K` of the derivatives of `a` of order at most `k`.
-  obtain ⟨M, hM0, hM⟩ := ha.exists_nonneg_bound_iteratedFDeriv_of_isOpen ht hK hKt
-  set C : ℝ := (k + 1) * (2 ^ k * M)
-  refine ⟨C.toNNReal, fun f hf j hj ↦ ?_⟩
+  obtain ⟨M, -, hM⟩ := ha.exists_nonneg_bound_iteratedFDeriv_of_isOpen ht hK hKt
+  -- Tau Ceti's pointwise Leibniz rule for the bilinear map `lsmul`, with one constant `B` for
+  -- every order at most `k`.
+  obtain ⟨B, -, hB⟩ := TauCeti.exists_norm_iteratedFDeriv_bilinear_le E
+    (ContinuousLinearMap.lsmul ℝ 𝕜' : 𝕜' →L[ℝ] F →L[ℝ] F) k
+  refine ⟨(B * M).toNNReal, fun f hf j hj ↦ ?_⟩
   set S : E → ℝ := fun x ↦ ∑ l ∈ Finset.range (k + 1), ‖iteratedFDeriv ℝ l f x‖
-  -- The pointwise bound `‖Dʲ(a • f)(x)‖ ≤ C S(x)` on `s`: Tau Ceti's pointwise Leibniz rule for
-  -- the bilinear map `lsmul`, whose norm is at most `1`.
-  have hpt : ∀ᵐ x ∂μ.restrict s, ‖iteratedFDeriv ℝ j (fun x ↦ a x • f x) x‖ ≤ ‖C * S x‖ := by
+  have hpt : ∀ᵐ x ∂μ.restrict s,
+      ‖iteratedFDeriv ℝ j (fun x ↦ a x • f x) x‖ ≤ B * M * ‖S x‖ := by
     filter_upwards [ae_restrict_mem hs.measurableSet] with x hx
-    have hj' : (j : WithTop ℕ∞) ≤ k := by exact_mod_cast hj
-    have hB := (ContinuousLinearMap.lsmul ℝ 𝕜' : 𝕜' →L[ℝ] F →L[ℝ] F)
-      |>.norm_iteratedFDeriv_le_of_bilinear_of_forall_le
-        ((ha.contDiffAt (ht.mem_nhds (hKt (hsK hx)))).of_le hj')
-        ((hf.contDiffAt (hs.mem_nhds hx)).of_le hj') (M₁ := M) (M₂ := S x)
-        (fun i hi ↦ hM i (hi.trans hj) x (hsK hx))
-        (fun i hi ↦ Finset.single_le_sum (f := fun l ↦ ‖iteratedFDeriv ℝ l f x‖)
-          (fun _ _ ↦ norm_nonneg _) (Finset.mem_range_succ_iff.2 (hi.trans hj)))
-    simp only [ContinuousLinearMap.lsmul_apply] at hB
-    rw [Real.norm_of_nonneg (by positivity)]
-    refine hB.trans ?_
-    have h2 : (2 : ℝ) ^ j ≤ 2 ^ k := pow_le_pow_right₀ one_le_two hj
-    have h1 : (1 : ℝ) ≤ k + 1 := by linarith [(k.cast_nonneg : (0 : ℝ) ≤ k)]
-    calc _ ≤ 1 * 2 ^ k * M * S x := by
-          gcongr
-          exact ContinuousLinearMap.opNorm_lsmul_le
-      _ ≤ C * S x := by
-          simp only [C, one_mul]
-          gcongr ?_ * _
-          exact le_mul_of_one_le_left (by positivity) h1
-  have hC : ‖C‖ₑ = C.toNNReal := by
-    rw [Real.eNorm_eq_ofReal (by positivity), ENNReal.ofReal]
-  calc _ ≤ eLpNorm (C • S) p (μ.restrict s) :=
-        eLpNorm_mono_ae
-          (((ha.mono (hsK.trans hKt)).smul hf).aestronglyMeasurable_iteratedFDeriv hs hj) hpt
-    _ = C.toNNReal * eLpNorm S p (μ.restrict s) := by rw [eLpNorm_const_smul, hC]
-    _ ≤ C.toNNReal * ∑ l ∈ Finset.range (k + 1),
+    have h := hB a f s x hs hx (ha.mono (hsK.trans hKt)) hf M (S x)
+      (fun i hi ↦ hM i hi x (hsK hx))
+      (fun i hi ↦ Finset.single_le_sum (f := fun l ↦ ‖iteratedFDeriv ℝ l f x‖)
+        (fun _ _ ↦ norm_nonneg _) (Finset.mem_range_succ_iff.2 hi)) j hj
+    simp only [ContinuousLinearMap.lsmul_apply] at h
+    rw [Real.norm_of_nonneg (by positivity), mul_assoc]
+    exact h
+  calc _ ≤ ENNReal.ofReal (B * M) * eLpNorm S p (μ.restrict s) :=
+        eLpNorm_le_mul_eLpNorm_of_ae_le_mul
+          (((ha.mono (hsK.trans hKt)).smul hf).aestronglyMeasurable_iteratedFDeriv hs hj) hpt p
+    _ ≤ ENNReal.ofReal (B * M) * ∑ l ∈ Finset.range (k + 1),
           eLpNorm (fun x ↦ ‖iteratedFDeriv ℝ l f x‖) p (μ.restrict s) := by
         gcongr
         have : S = ∑ l ∈ Finset.range (k + 1), fun x ↦ ‖iteratedFDeriv ℝ l f x‖ := by
@@ -103,6 +90,7 @@ theorem exists_eLpNorm_iteratedFDeriv_smul_le_of_isOpen (μ : Measure E) {p : �
         rw [this]
         exact eLpNorm_sum_le hp
     _ = _ := by
+        rw [ENNReal.ofReal]
         congr 1
         exact Finset.sum_congr rfl fun l hl ↦
           eLpNorm_norm _
