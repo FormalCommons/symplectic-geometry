@@ -106,9 +106,7 @@ coordinates of a pullback of `A`, iterated ones included: `simp` matches the two
 unfolding `pullback`, which it does not do for `ContinuousLinearMap.id_apply`. -/
 @[simp] theorem id_apply_coords (A : FiniteRankBundleCore 𝕜 B) (v : Fin A.rank → 𝕜) :
     ContinuousLinearMap.id 𝕜 (Fin A.rank → 𝕜) v = v :=
-  -- `rfl` rather than `(rfl)`, so that `simp` may use the lemma as a definitional rewrite,
-  -- which a goal whose vector lives over a pullback needs.
-  rfl
+  (rfl)
 
 /-- The fibre map of `e.inv` after that of `e.hom`, for an isomorphism `e : A ≅ D` of finite-rank
 cores, is the identity of the fibre of `A`. -/
