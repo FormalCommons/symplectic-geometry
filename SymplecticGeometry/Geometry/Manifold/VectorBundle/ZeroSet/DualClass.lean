@@ -106,7 +106,7 @@ theorem singularCohomologyMap_normalSlice_thomPairMapOfNeZero
       haveI := isManifold_transverseZeroSet hm hsm hs hE
       letI := (ofTransverseSection hm hsm hs hE).normalSpaceFiberBundle hm
         (Nat.eq_sub_of_add_eq' hE)
-      TotalSpace F' (fun x ↦ (ofTransverseSection hm hsm hs hE).NormalSpace x hm)
+      TotalSpace F' (fun x ↦ (ofTransverseSection hm hsm hs hE).isImmersion.NormalSpace x hm)
         ≃ₘ^∞⟮𝓘(ℝ, E).prod 𝓘(ℝ, F'), J⟯ W}
     (hΦ : letI := transverseZeroSetChartedSpace hm hsm hs hE
       haveI := isManifold_transverseZeroSet hm hsm hs hE
@@ -128,7 +128,8 @@ theorem singularCohomologyMap_normalSlice_thomPairMapOfNeZero
   have := ChartedSpace.stronglyLocallyContractibleSpace G X
   let := (ofTransverseSection hm hsm hs hE).normalSpaceFiberBundle hm (Nat.eq_sub_of_add_eq' hE)
   have := (ofTransverseSection hm hsm hs hE).normalSpaceVectorBundle hm (Nat.eq_sub_of_add_eq' hE)
-  set e := trivializationAt F' (fun x ↦ (ofTransverseSection hm hsm hs hE).NormalSpace x hm) x
+  set e := trivializationAt F'
+    (fun x ↦ (ofTransverseSection hm hsm hs hE).isImmersion.NormalSpace x hm) x
   have hx : x ∈ e.baseSet := mem_baseSet_trivializationAt F' _ x
   set m := (e.continuousLinearEquivAt ℝ x hx).symm
   set ψ := normalSpaceEquivOfTransverseSection hm hsm hs hE x
@@ -160,7 +161,7 @@ theorem singularCohomologyMap_normalSlice_thomPairMapOfNeZero
     exact ((he.1 (hsm _)).2.mdifferentiableAt hm).hasMFDerivAt
   have hcD : ∀ (y : X) (_ : y = ofTransverseSection hm hsm hs hE x) (D : TangentSpace J y),
       mfderiv J 𝓘(ℝ, F') c y D =
-        ℓ (ψ ((ofTransverseSection hm hsm hs hE).normalClass x hm D)) := by
+        ℓ (ψ ((ofTransverseSection hm hsm hs hE).isImmersion.normalClass x hm D)) := by
     rintro _ rfl D
     have h := congrArg (· D) (continuousLinearMapAt_comp_sectionLinearization continuousAt_id hx'
       (hc _ rfl).mdifferentiableAt (ofTransverseSection_apply_eq_zero hm hsm hs hE x))
@@ -173,7 +174,8 @@ theorem singularCohomologyMap_normalSlice_thomPairMapOfNeZero
     rw [hasMFDerivAt_iff_hasFDerivAt] at h
     refine h.congr_fderiv (ContinuousLinearMap.ext fun w ↦ ?_)
     refine (hcD _ hg0' (A' w)).trans ?_
-    exact congrArg (fun v ↦ ℓ (ψ v)) ((normalClassL_apply _ _ _ _).symm.trans (hA' w))
+    exact congrArg (fun v ↦ ℓ (ψ v))
+      ((Manifold.IsImmersion.normalClassL_apply _ _ _ _).symm.trans (hA' w))
   have h1 := singularCohomologyMap_ofSubsetMap_eq_complZeroPairIso_inv_of_hasFDerivAt e' hx'
     Filter.univ_mem hgS hg0 hgS0 hA L.antilipschitzWith u
   -- Read on `(univ, univ ∖ {0})` through `m`, the normal slice followed by `s` is `g`.
