@@ -49,7 +49,7 @@ Finally, the tangent space of the model `Y = G ×_H (A × V)` at `[1, 0]` is ide
 `(𝔪 × 𝔪*) × (𝔮 × V)`, and Tau Ceti's equivariant linear normal form at `x`, with `V` read as the
 slice through `eV`, identifies that model with `T_x M`. A direction `(ξ, 0)` at `(1, 0, 0)` with
 `ξ = h + m + q`, `h ∈ 𝔤_x`, `m ∈ 𝔪`, `q ∈ 𝔮`, has the same image under `dπ` as `(m + q, 0)`
-(`SymplecticGeometry.LocalModelData.mem_ker_mfderiv_mk_one_zero_iff`), and `h_M(x) = 0`, so the
+(`SymplecticGeometry.LocalModelData.linearModelEquiv_mk_zero_mk_zero`), and `h_M(x) = 0`, so the
 composite sends it to `ξ_M(x)`.
 
 ## Main definitions
@@ -478,22 +478,8 @@ theorem exists_linearEquiv_tangentSpace_ofPoint :
     -- The `𝔥` direction is in the kernel of `dπ`, so `dπ (ξ, 0)` is in the image of the model.
     have hm' : m ∈ D.𝔪 := hm
     have hq' : q ∈ D.𝔮 := hq
-    have hπ : D.linearModelEquiv ((⟨m, hm'⟩, 0), (⟨q, hq'⟩, 0)) =
-        mfderiv (I.prod 𝓘(ℝ, A × V)) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
-          (fun p : G × (A × V) ↦
-            BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation p.1) p.2)
-          ((1 : G), ((0 : A), (0 : V)))
-          ((tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V)))).symm (h + m + q, 0)) := by
-      rw [linearModelEquiv_apply]
-      refine sub_eq_zero.1 ((map_sub _ _ _).symm.trans ((D.mem_ker_mfderiv_mk_one_zero_iff _).2 ?_))
-      have hs (y : GroupLieAlgebra I G × (A × V)) :
-          tangentSpaceProdEquiv (I := I) (J := 𝓘(ℝ, A × V)) ((1 : G), ((0 : A), (0 : V)))
-            ((tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V)))).symm y) = y :=
-        ContinuousLinearEquiv.apply_symm_apply _ y
-      rw [map_sub, hs, ContinuousLinearEquiv.apply_symm_apply, linearModelMap_apply, map_zero]
-      exact ⟨(congrArg (· ∈ D.𝔥) (by abel : m + q - (h + m + q) = -h)).mpr (neg_mem hh),
-        sub_eq_zero.2 rfl⟩
-    rw [← hπ]
+    rw [← D.linearModelEquiv_mk_zero_mk_zero ⟨m, hm'⟩ ⟨q, hq'⟩
+      ((congrArg (· ∈ D.𝔥) (by abel : h + m + q - (m + q) = h)).mpr hh)]
     simp only [LinearEquiv.trans_apply, LinearEquiv.symm_apply_apply, hψ, map_zero]
     -- `e` sends `((m, 0), (q, 0))` to `m_M(x) + q_M(x)`, and `h_M(x) = 0`.
     have he𝔪𝔮 (m' : 𝔪.toSubmodule) (q' : 𝔮.toSubmodule) :
