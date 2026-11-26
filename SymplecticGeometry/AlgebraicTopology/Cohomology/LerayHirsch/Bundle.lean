@@ -7,7 +7,7 @@ module
 
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
 public import TauCeti.AlgebraicTopology.Cohomology.LerayHirsch.FiniteCover
-public import SymplecticGeometry.Topology.FiberBundle.Basic
+public import SymplecticGeometry.Topology.Category.TopCat.Trivialization
 public import SymplecticGeometry.LinearAlgebra.LinearIndependent
 
 /-!
@@ -26,11 +26,9 @@ is bijective (`TopCat.lerayHirsch_bijective`, and `TopCat.lerayHirschEquiv` for 
 equivalence). For a map `p : E ⟶ B` with finitely many trivializations covering the base, this is
 Tau Ceti's `TopCat.lerayHirsch_bijective_of_trivializations`; the file adds the form over a finite
 union of open sets, each inside the base set of some trivialization, for the restriction of `p`
-there (`TopCat.lerayHirschRestrict_biUnion_bijective`), and the comparison
-`Bundle.Trivialization.ofHom_fiberInclusionMap` of the fibre inclusions
-`Bundle.Trivialization.fiberInclusionMap` and Tau Ceti's `Bundle.Trivialization.fiberInclusion`.
-When one of the classes of degree
-zero is the unit, the pull-back `p^*` is injective
+there (`TopCat.lerayHirschRestrict_biUnion_bijective`), with the classes read through Tau Ceti's
+fibre inclusions `Bundle.Trivialization.fiberInclusion`. When one of the classes of degree zero
+is the unit, the pull-back `p^*` is injective
 (`TopCat.singularCohomologyMap_injective_of_lerayHirsch_injective`).
 
 The integral form, for `TopCat.integralCohomology` and the integral cup product
@@ -75,17 +73,6 @@ open scoped DirectSum
 
 universe w
 
-namespace Bundle.Trivialization
-
-/-- Read as a morphism of `TopCat`, the inclusion `fiberInclusionMap` of the model fibre onto the
-fibre over `x` through a trivialization `t` is Tau Ceti's `Bundle.Trivialization.fiberInclusion`. -/
-theorem ofHom_fiberInclusionMap {E B F : TopCat.{w}} {p : E ⟶ B} (t : Trivialization F p) {x : B}
-    (hx : x ∈ t.baseSet) : TopCat.ofHom (t.fiberInclusionMap hx) = t.fiberInclusion hx := by
-  ext f
-  rw [ConcreteCategory.hom_ofHom, fiberInclusionMap_apply, fiberInclusion_apply]
-
-end Bundle.Trivialization
-
 namespace TopCat
 
 variable {k : Type w} [CommRing k]
@@ -111,16 +98,15 @@ theorem lerayHirschRestrict_biUnion_bijective {κ : Type*} (s : Finset κ)
     (hWe : ∀ j ∈ s, ∃ (t : Trivialization F p) (hW : W j ⊆ t.baseSet),
       ∀ x (hx : x ∈ W j), ∀ d ≤ n,
       LinearIndependent k (fun i ↦
-        TopCat.singularCohomologyMap (ofHom (t.fiberInclusionMap (hW hx))) d (c d i)) ∧
+        TopCat.singularCohomologyMap (t.fiberInclusion (hW hx)) d (c d i)) ∧
       ⊤ ≤ Submodule.span k (Set.range fun i ↦
-        TopCat.singularCohomologyMap (ofHom (t.fiberInclusionMap (hW hx))) d (c d i))) :
+        TopCat.singularCohomologyMap (t.fiberInclusion (hW hx)) d (c d i))) :
     Function.Bijective (lerayHirschRestrict p c (⋃ j ∈ s, W j) n) := by
   have h := lerayHirschRestrict_inter_biUnion_bijective p c W n s hWo
     (fun j hj S _ hS m hm ↦
       let ⟨t, ht, hct⟩ := hWe j hj
       lerayHirschRestrict_bijective_of_trivialization c t (hS.trans ht) m
-        (fun d hd ↦ hF d (hd.trans hm)) fun x hx d hd ↦ by
-          simpa only [t.ofHom_fiberInclusionMap] using hct x (hS hx) d (hd.trans hm))
+        (fun d hd ↦ hF d (hd.trans hm)) fun x hx d hd ↦ hct x (hS hx) d (hd.trans hm))
     isOpen_univ n le_rfl
   rwa [univ_inter] at h
 end Cover
