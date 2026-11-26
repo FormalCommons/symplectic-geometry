@@ -15,7 +15,6 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffe
 import SymplecticGeometry.Geometry.Manifold.IsManifold.SecondCountable
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Topology
 import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
-import TauCeti.Geometry.Manifold.MFDeriv.IsInvertible
 import TauCeti.Geometry.Manifold.VectorBundle.Section.CompletelyMetrizable
 
 /-!
