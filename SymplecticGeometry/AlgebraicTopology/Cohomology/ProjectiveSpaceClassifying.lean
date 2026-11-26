@@ -34,6 +34,8 @@ When `C` has no cells of dimension above `2N`, such a map extends to all of `C`
 
 * `Projectivization.exists_continuousMap_skeletonLT_singularCohomologyMap_hyperplaneClass_eq`: the
   statement above on the `2`-skeleton.
+* `Projectivization.nullhomotopic_comp_attachingMap_of_singularCohomologyMap_eq`: such a map on the
+  `2`-skeleton, composed with the attaching map of a `3`-cell, is null-homotopic.
 * `Projectivization.exists_continuousMap_projectivization_pullback_eq`: on a CW complex with no
   cells of dimension above `2N`, every class of `H²(-; ℤ)` is `f^* h` for a map `f` to `ℙ`.
 
@@ -52,10 +54,12 @@ pull-back of `h_p` along a map of pairs `F : (X², X¹) ⟶ (ℙ, {p})`, built c
 `H²(X²)` then give `F^* h = b|X²`.
 
 To extend `f : X² → ℙ` over a `3`-cell, compose it with the attaching map `S² → X²` of the cell.
-The composition pulls `h` back to the pull-back of `b` along `S² → X² ⊆ C`, which is zero since
-that map extends over the closed ball. So the composition is null-homotopic
-(`Projectivization.nullhomotopic_iff_singularCohomologyMap_hyperplaneClass_eq_zero`), and `f`
-extends over the `3`-cells
+The composition pulls `h` back to the pull-back of `b` along `S² → X² ⊆ C`, which is zero
+since that map extends over the closed ball
+(`Topology.RelCWComplex.nullhomotopic_inclusion_comp_attachingMap`). So the composition is
+null-homotopic (`Projectivization.nullhomotopic_iff_singularCohomologyMap_hyperplaneClass_eq_zero`,
+`Projectivization.nullhomotopic_comp_attachingMap_of_singularCohomologyMap_eq`), and `f` extends
+over the `3`-cells
 (`Topology.RelCWComplex.exists_extension_skeletonLT_succ_of_nullhomotopic`). The cells of
 dimension `4` to `2N` attach along spheres of dimension `3` to `2N - 1`, from which every map to
 `ℙ` is null-homotopic (`Projectivization.nullhomotopic_of_three_le_of_le`), so Tau Ceti's
@@ -116,6 +120,42 @@ theorem exists_continuousMap_skeletonLT_singularCohomologyMap_hyperplaneClass_eq
       ← hc, ← hF, ← hhp]
     exact ConcreteCategory.congr_hom (TopPair.singularCohomologyπ_naturality F 2) hp
 
+/-- **Maps that realize a class of degree two on the `2`-skeleton extend over the `3`-cells.**
+Let `C` be a CW complex, `b ∈ H²(C; ℤ)` and `f` a continuous map from the `2`-skeleton
+`skeletonLT C 3` to `ℙ ℂ (Fin (N + 1) → ℂ)` that pulls the hyperplane class back to the
+restriction of `b` to the `2`-skeleton. Then `f` composed with the attaching map of each `3`-cell
+is null-homotopic. -/
+theorem nullhomotopic_comp_attachingMap_of_singularCohomologyMap_eq
+    (b : (TopCat.of C).integralCohomology 2) (f : C(skeletonLT C 3, ℙ ℂ (Fin (N + 1) → ℂ)))
+    (hf : TopCat.singularCohomologyMap (TopCat.ofHom f) 2 (hyperplaneClass (Fin (N + 1) → ℂ)) =
+      TopCat.singularCohomologyMap
+        (TopCat.ofHom (ContinuousMap.inclusion (skeletonLT C 3).subset_complex)) 2 b)
+    (j : cell C 3) : (f.comp (attachingMap j)).Nullhomotopic := by
+  -- The attaching map of `j` followed by `X² ⊆ C` is null-homotopic, so it pulls `b` back to
+  -- zero, and the composition with `f` pulls the hyperplane class back to zero.
+  have hV : finrank ℂ (Fin (N + 1) → ℂ) = N + 1 := by simp
+  let e : TopCat.diskBoundary.{0} 3 ≃ₜ sphere (0 : Fin 3 → ℝ) 1 :=
+    (diskBoundaryHomeomorph 3).trans (sphereHomeomorphOfFinrankEq (by simp))
+  let ec : C(TopCat.diskBoundary.{0} 3, sphere (0 : Fin 3 → ℝ) 1) := e
+  have ha : ((ContinuousMap.inclusion (skeletonLT C 3).subset_complex).comp
+      ((attachingMap j).comp ec)).Nullhomotopic :=
+    (nullhomotopic_inclusion_comp_attachingMap j).comp_left ec
+  let gT : TopCat.diskBoundary.{0} 3 ⟶ TopCat.of (ℙ ℂ (Fin (N + 1) → ℂ)) :=
+    TopCat.ofHom (f.comp ((attachingMap j).comp ec))
+  have hga : gT = TopCat.ofHom ((attachingMap j).comp ec) ≫ TopCat.ofHom f :=
+    TopCat.ofHom_comp _ _
+  have h0 := (nullhomotopic_iff_singularCohomologyMap_hyperplaneClass_eq_zero hV gT).2 (by
+    rw [hga, TopCat.singularCohomologyMap_comp, ConcreteCategory.comp_apply, hf,
+      ← ConcreteCategory.comp_apply, ← TopCat.singularCohomologyMap_comp, ← TopCat.ofHom_comp,
+      TopCat.singularCohomologyMap_eq_zero_of_nullhomotopic ha two_ne_zero]
+    simp)
+  -- `gT.hom` is `f.comp ((attachingMap j).comp ec)` by `TopCat.hom_ofHom`, which `simp` does not
+  -- apply here, since the carrier of `TopCat.diskBoundary 3` is not syntactically that of
+  -- `TopCat.of`.
+  convert h0.comp_left (e.symm : C(sphere (0 : Fin 3 → ℝ) 1, TopCat.diskBoundary.{0} 3))
+  ext y
+  exact congrArg (f.comp (attachingMap j)) (e.apply_symm_apply y).symm
+
 /-- **Classes of degree two come from complex projective space.** Let `C` be a CW complex with no
 cells of dimension above `2N`. Every class `b ∈ H²(C; ℤ)` is the pull-back `f^* h` of the
 hyperplane class `h` of `ℙ ℂ (Fin (N + 1) → ℂ)` along some continuous map
@@ -134,40 +174,9 @@ theorem exists_continuousMap_projectivization_pullback_eq
     exact ⟨ContinuousMap.const _ p, Subsingleton.elim _ _⟩
   obtain ⟨f₂, -, hf₂⟩ :=
     exists_continuousMap_skeletonLT_singularCohomologyMap_hyperplaneClass_eq hN b p
-  -- Each `3`-cell attaches along a map `S² → X²` along which `b` pulls back to zero, since its
-  -- composition with `X² ⊆ C` extends over the closed ball. So `f₂` extends over the `3`-cells.
-  obtain ⟨f₃, hf₃⟩ := exists_extension_skeletonLT_succ_of_nullhomotopic (n := 3) f₂ fun j g hg ↦ by
-    let e : TopCat.diskBoundary.{0} 3 ≃ₜ sphere (0 : Fin 3 → ℝ) 1 :=
-      (diskBoundaryHomeomorph 3).trans (sphereHomeomorphOfFinrankEq (by simp))
-    let ec : C(TopCat.diskBoundary.{0} 3, sphere (0 : Fin 3 → ℝ) 1) := e
-    let a : C(sphere (0 : Fin 3 → ℝ) 1, skeletonLT C 3) :=
-      ⟨fun y ↦ ⟨RelCWComplex.map 3 j y, cellFrontier_subset_skeletonLT 3 j ⟨y, y.property, rfl⟩⟩,
-        (((continuousOn 3 j).comp_continuous continuous_subtypeVal
-          fun y ↦ sphere_subset_closedBall y.property).subtype_mk _)⟩
-    let K : C(closedBall (0 : Fin 3 → ℝ) 1, C) :=
-      ⟨fun y ↦ ⟨RelCWComplex.map 3 j y, closedCell_subset_complex 3 j ⟨y, y.property, rfl⟩⟩,
-        ((continuousOn 3 j).comp_continuous continuous_subtypeVal fun y ↦ y.property).subtype_mk _⟩
-    have ha : ((ContinuousMap.inclusion (skeletonLT C 3).subset_complex).comp
-        (a.comp ec)).Nullhomotopic := by
-      have h1 : ((ContinuousMap.inclusion (skeletonLT C 3).subset_complex).comp a).Nullhomotopic :=
-        (ContinuousMap.nullhomotopic_iff_exists_extension_closedBall _).2 ⟨K, fun _ ↦ rfl⟩
-      exact h1.comp_left ec
-    let gT : TopCat.diskBoundary.{0} 3 ⟶ TopCat.of (ℙ ℂ (Fin (N + 1) → ℂ)) :=
-      TopCat.ofHom (g.comp ec)
-    have hga : gT = TopCat.ofHom (a.comp ec) ≫ TopCat.ofHom f₂ := by
-      ext y
-      exact hg (e y)
-    have h0 := (nullhomotopic_iff_singularCohomologyMap_hyperplaneClass_eq_zero hV
-      gT).2 (by
-        rw [hga, TopCat.singularCohomologyMap_comp, ConcreteCategory.comp_apply,
-          hf₂, ← ConcreteCategory.comp_apply, ← TopCat.singularCohomologyMap_comp,
-          ← TopCat.ofHom_comp, TopCat.singularCohomologyMap_eq_zero_of_nullhomotopic ha two_ne_zero]
-        simp)
-    -- `gT.hom` is `g.comp ec` by `TopCat.hom_ofHom`, which `simp` does not apply here, since the
-    -- carrier of `TopCat.diskBoundary 3` is not syntactically that of `TopCat.of`.
-    convert h0.comp_left (e.symm : C(sphere (0 : Fin 3 → ℝ) 1, TopCat.diskBoundary.{0} 3))
-    ext y
-    exact congrArg g (e.apply_symm_apply y).symm
+  -- `f₂` extends over the `3`-cells, whose attaching maps it sends to null-homotopic maps.
+  obtain ⟨f₃, hf₃⟩ := exists_extension_skeletonLT_succ_of_nullhomotopic (n := 3) f₂
+    (nullhomotopic_comp_attachingMap_of_singularCohomologyMap_eq b f₂ hf₂)
   -- The higher cells attach along spheres of dimension `3` to `2N - 1`, into `ℙ` null-homotopic.
   obtain ⟨F, hF⟩ := TauCeti.exists_extension_skeletonLT_of_nullhomotopic (C := C) 4
     (fun m hm hcell g ↦ by

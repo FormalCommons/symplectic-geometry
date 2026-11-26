@@ -25,8 +25,12 @@ a nontrivial homotopy group in dimension `n - 1`. Its proof adapts the private s
 `TauCeti.exists_extension_skeletonLT_succ` of Tau Ceti's file
 `TauCeti/Topology/CWComplex/Classical/Extension.lean`.
 
-## Main results
+## Main definitions and results
 
+* `Topology.RelCWComplex.attachingMap`: the attaching map of an `n`-cell, from the unit sphere of
+  `Fin n → ℝ` to `skeletonLT C n`.
+* `Topology.RelCWComplex.nullhomotopic_inclusion_comp_attachingMap`: the attaching map followed by
+  the inclusion of the skeleton into the complex is null-homotopic.
 * `Topology.RelCWComplex.exists_extension_skeletonLT_succ_of_nullhomotopic`: the extension over
   the closed `n`-cells.
 
@@ -45,16 +49,42 @@ namespace Topology.RelCWComplex
 variable {X : Type*} [TopologicalSpace X] [T2Space X] {C D : Set X} [RelCWComplex C D]
   {Y : Type*} [TopologicalSpace Y]
 
+/-- The attaching map of an `n`-cell `j`: its characteristic map restricted to the unit sphere of
+`Fin n → ℝ`, as a continuous map into the skeleton `skeletonLT C n`. -/
+def attachingMap {n : ℕ} (j : cell C n) :
+    C(sphere (0 : Fin n → ℝ) 1, skeletonLT C n) :=
+  ⟨fun y ↦ ⟨map n j y, cellFrontier_subset_skeletonLT n j ⟨y, y.property, rfl⟩⟩,
+    ((TauCeti.continuous_map_closedBall j).comp
+      (continuous_inclusion sphere_subset_closedBall)).subtype_mk _⟩
+
+/-- The value of `Topology.RelCWComplex.attachingMap` as a point of the skeleton. -/
+lemma attachingMap_apply {n : ℕ} (j : cell C n) (y : sphere (0 : Fin n → ℝ) 1) :
+    attachingMap j y = ⟨map n j y, cellFrontier_subset_skeletonLT n j ⟨y, y.property, rfl⟩⟩ :=
+  (rfl)
+
+/-- The value of `Topology.RelCWComplex.attachingMap` in the ambient space is the characteristic
+map. -/
+@[simp]
+lemma coe_attachingMap_apply {n : ℕ} (j : cell C n) (y : sphere (0 : Fin n → ℝ) 1) :
+    (attachingMap j y : X) = map n j y :=
+  (rfl)
+
+/-- The attaching map of a cell, followed by the inclusion of the skeleton into the complex, is
+null-homotopic: it extends over the closed ball by the characteristic map
+`TauCeti.cellMap`. -/
+theorem nullhomotopic_inclusion_comp_attachingMap {n : ℕ} (j : cell C n) :
+    ((ContinuousMap.inclusion (skeletonLT C n).subset_complex).comp
+      (attachingMap j)).Nullhomotopic :=
+  (ContinuousMap.nullhomotopic_iff_exists_extension_closedBall _).2
+    ⟨TauCeti.cellMap j, fun _ ↦ Subtype.ext (TauCeti.coe_cellMap_apply j _)⟩
+
 /-- **Extension over the closed `n`-cells.** A continuous map `f` on the skeleton
 `skeletonLT C n` of a relative CW complex extends to a continuous map on `skeletonLT C (n + 1)`
-when, for each `n`-cell `j`, every map from the unit sphere of `Fin n → ℝ` that agrees with `f`
-composed with the characteristic map of `j` is null-homotopic. -/
+when, for each `n`-cell `j`, the composition of `f` with the attaching map of `j` is
+null-homotopic. -/
 theorem exists_extension_skeletonLT_succ_of_nullhomotopic {n : ℕ}
     (f : C((skeletonLT C n : Set X), Y))
-    (h : ∀ (j : cell C n) (g : C(sphere (0 : Fin n → ℝ) 1, Y)),
-      (∀ y : sphere (0 : Fin n → ℝ) 1,
-        g y = f ⟨map n j y, cellFrontier_subset_skeletonLT n j ⟨y, y.property, rfl⟩⟩) →
-      g.Nullhomotopic) :
+    (h : ∀ j : cell C n, (f.comp (attachingMap j)).Nullhomotopic) :
     ∃ F : C((skeletonLT C ((n + 1 : ℕ) : ℕ∞) : Set X), Y),
       ∀ (x : X) (hx : x ∈ (skeletonLT C n : Set X)),
         F ⟨x, skeletonLT_mono (by exact_mod_cast n.le_succ) hx⟩ = f ⟨x, hx⟩ := by
@@ -63,12 +93,7 @@ theorem exists_extension_skeletonLT_succ_of_nullhomotopic {n : ℕ}
       ∀ z (y : closedBall (0 : Fin n → ℝ) 1) (hy : (y : Fin n → ℝ) ∈ sphere 0 1),
         K (z, y) = f' (z, ⟨map n j y, cellFrontier_subset_skeletonLT n j ⟨y, hy, rfl⟩⟩) := by
     -- The attaching map of `j` followed by `f` is null-homotopic, so it extends over the ball.
-    let g : C(sphere (0 : Fin n → ℝ) 1, Y) :=
-      ⟨fun y ↦ f ⟨map n j y, cellFrontier_subset_skeletonLT n j ⟨y, y.property, rfl⟩⟩,
-        f.continuous.comp
-          (((continuousOn n j).comp_continuous continuous_subtypeVal
-            fun y ↦ sphere_subset_closedBall y.property).subtype_mk _)⟩
-    obtain ⟨G, hG⟩ := (g.nullhomotopic_iff_exists_extension_closedBall).1 (h j g fun _ ↦ rfl)
+    obtain ⟨G, hG⟩ := (ContinuousMap.nullhomotopic_iff_exists_extension_closedBall _).1 (h j)
     exact ⟨G.comp ⟨Prod.snd, continuous_snd⟩, fun () y hy ↦ hG ⟨y, hy⟩⟩
   choose K hK using hext
   obtain ⟨F, hF, -⟩ := TauCeti.exists_continuousMap_prod_skeletonLT_succ f' K hK
