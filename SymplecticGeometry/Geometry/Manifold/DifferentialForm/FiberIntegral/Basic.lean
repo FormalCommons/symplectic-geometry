@@ -110,6 +110,7 @@ theorem fiberIntegrand_def (α : RoughForm IM M ℝ (r + m)) (b : B)
 
 /-- The value of the integrand at `y` on `w` is that of `α` at `e⁻¹ (b, y)` on the images of
 `(v₁, 0), …, (vᵣ, 0), (0, w₁), …, (0, wₘ)` under the derivative of `e⁻¹` at `(b, y)`. -/
+@[simp]
 theorem fiberIntegrand_apply (α : RoughForm IM M ℝ (r + m)) (b : B)
     (v : Fin r → TangentSpace I b) (y : F) (w : Fin m → TangentSpace J y) :
     e.fiberIntegrand α b v y w = α (e.toOpenPartialHomeomorph.symm (b, y)) (fun p ↦
@@ -294,6 +295,7 @@ theorem fiberIntegrand_def (α : RoughForm IM M ℝ (r + m)) (b : B)
 /-- The value of the integrand at `y` on `w` is that of `α` at `e⁻¹ (b, y)` on the images of
 `(v₁, 0), …, (vᵣ, 0), (0, w₁), …, (0, wₘ)` under the derivative of `e⁻¹` at `(b, y)`, for the
 chart `e = A.trivAt b`. -/
+@[simp]
 theorem fiberIntegrand_apply (α : RoughForm IM M ℝ (r + m)) (b : B)
     (v : Fin r → TangentSpace I b) (y : F) (w : Fin m → TangentSpace J y) :
     A.fiberIntegrand α b v y w = α ((A.trivAt b).toOpenPartialHomeomorph.symm (b, y)) (fun p ↦
@@ -371,22 +373,24 @@ theorem fiberIntegrand_eq_prodFiberIntegrand (hA : A.IsContMDiff n I J IM) (hn :
     ((hA.contMDiffOn_trivAt_symm b).mdifferentiableOn hn) subset_rfl α ⟨b, A.mem_baseSet_trivAt b⟩ v
 
 /-- **The integrand does not depend on the lifts.** For a `C^n` atlas, `n ≠ 0`, whose model fibre
-has a model space of dimension at most `m`, let `e = A.trivAt b'` be a chart with `b` in its base
-set, and let `Xᵢ y` be tangent vectors of `M` at `e⁻¹ (b, y)` that the derivative of `proj` sends
-to `vᵢ`. The integrand read through `e` sends `w` at `y` to the value of `α` at `e⁻¹ (b, y)` on
-`X₁ y, …, Xᵣ y` followed by the images of `w₁, …, wₘ` under the derivative of the fibre inclusion
-`y ↦ e⁻¹ (b, y)`. -/
+has a model space of dimension at most `m`, let `e = A.trivAt b` be the chart at `b`, and let
+`Xᵢ y` be tangent vectors of `M` at `e⁻¹ (b, y)` that the derivative of `proj` sends to `vᵢ`. The
+integrand at `y` sends `w` to the value of `α` at `e⁻¹ (b, y)` on `X₁ y, …, Xᵣ y` followed by the
+images of `w₁, …, wₘ` under the derivative of the fibre inclusion `y ↦ e⁻¹ (b, y)`. -/
 theorem fiberIntegrand_apply_of_lift [FiniteDimensional ℝ E'] (hA : A.IsContMDiff n I J IM)
-    (hn : n ≠ 0) (hm : Module.finrank ℝ E' ≤ m) {b' b : B} (hb : b ∈ (A.trivAt b').baseSet)
-    (α : RoughForm IM M ℝ (r + m)) (v : Fin r → TangentSpace I b)
-    {X : Fin r → (y : F) → TangentSpace IM ((A.trivAt b').toOpenPartialHomeomorph.symm (b, y))}
+    (hn : n ≠ 0) (hm : Module.finrank ℝ E' ≤ m) (α : RoughForm IM M ℝ (r + m)) {b : B}
+    (v : Fin r → TangentSpace I b)
+    {X : Fin r → (y : F) → TangentSpace IM ((A.trivAt b).toOpenPartialHomeomorph.symm (b, y))}
     (hX : ∀ i y,
-      mfderiv IM I proj ((A.trivAt b').toOpenPartialHomeomorph.symm (b, y)) (X i y) = v i)
+      mfderiv IM I proj ((A.trivAt b).toOpenPartialHomeomorph.symm (b, y)) (X i y) = v i)
     (y : F) (w : Fin m → TangentSpace J y) :
-    (A.trivAt b').fiberIntegrand α b v y w = α ((A.trivAt b').toOpenPartialHomeomorph.symm (b, y))
+    A.fiberIntegrand α b v y w = α ((A.trivAt b).toOpenPartialHomeomorph.symm (b, y))
       (Fin.append (fun i ↦ X i y)
-        fun j ↦ mfderiv J IM (fun y ↦ (A.trivAt b').toOpenPartialHomeomorph.symm (b, y)) y (w j)) :=
-  (A.trivAt b').fiberIntegrand_apply_of_lift (hA.mdifferentiable_trivAt hn b') hb hm α v hX y w
+        fun j ↦ mfderiv J IM (fun y ↦ (A.trivAt b).toOpenPartialHomeomorph.symm (b, y)) y (w j))
+    := by
+  rw [fiberIntegrand_def]
+  exact (A.trivAt b).fiberIntegrand_apply_of_lift (hA.mdifferentiable_trivAt hn b)
+    (A.mem_baseSet_trivAt b) hm α v hX y w
 
 /-- **The integrand in degree `m`.** For a `C^n` atlas, `n ≠ 0`, and `r = 0`, the integrand over
 `b` is the pull-back of `α`, read in degree `m` through the cast `0 + m = m`, along the fibre

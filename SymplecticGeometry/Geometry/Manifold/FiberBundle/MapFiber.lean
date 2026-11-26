@@ -43,8 +43,8 @@ from the fibre onto `F`, and its underlying homeomorphism is
 
 * `Bundle.Trivialization.contMDiff_fiberInclusionMap`: the fibre inclusion of a trivialization with
   smooth inverse is smooth.
-* `Bundle.Trivialization.proj_symm_val_prod` and `Bundle.Trivialization.contMDiff_symm_val_prod`:
-  on an open set `U` of the base set, `(b, v) ↦ e⁻¹ (b, v)` is a smooth map `U × F → M` over `U`.
+* `Bundle.Trivialization.contMDiff_symm_val_prod`: on an open set `U` of the base set,
+  `(b, v) ↦ e⁻¹ (b, v)` is a smooth map `U × F → M`.
 * `Bundle.Trivialization.mfderiv_proj_apply` and
   `Bundle.Trivialization.mfderiv_fiberInclusionMap_apply`: the derivative of `proj` is the first
   coordinate of the derivative of `e`, and the derivative of a fibre inclusion is that of the
@@ -105,12 +105,6 @@ theorem contMDiff_fiberInclusionMap
     (hb : b ∈ e.baseSet) : ContMDiff IF IM n (e.fiberInclusionMap hb) := by
   rw [e.coe_fiberInclusionMap hb]
   exact he.comp_contMDiff (contMDiff_const.prodMk contMDiff_id) fun _ ↦ e.mem_target.2 hb
-
-/-- On an open set `U` of the base set of `e`, the map `(b, v) ↦ e⁻¹ (b, v)` from `U × F` to `M`
-lies over `U`: `proj` sends `e⁻¹ (b, v)` to `b`. -/
-theorem proj_symm_val_prod {U : TopologicalSpace.Opens B} (hU : (U : Set B) ⊆ e.baseSet)
-    (p : U × F) : proj (e.toOpenPartialHomeomorph.symm (p.1, p.2)) = p.1 :=
-  e.proj_symm_apply (e.mem_target.2 (hU p.1.property))
 
 /-- On an open set `U` of the base set of `e`, the map `(b, v) ↦ e⁻¹ (b, v)` from `U × F` to `M`
 is `C^n` when the inverse of `e` is `C^n` on its target. -/
