@@ -25,7 +25,7 @@ base point and the model space of the global Cayley chart on the compatible stru
 
 * `TauCeti.SymplecticForm.compatibleTangentSpaceCLM`: Tau Ceti's compatible tangent space at `J`,
   read in the continuous endomorphisms `V →L[ℝ] V`.
-* `TauCeti.SymplecticForm.isOpen_setOf_strictContraction`: the continuous endomorphisms that
+* `TauCeti.SymplecticForm.isOpen_setOfPred_strictContraction`: the continuous endomorphisms that
   strictly contract `v ↦ ω(v, J₀ v)` form an open set.
 * `TauCeti.SymplecticForm.Compatible.cayleyCoord`: the Cayley coordinates `J ↦ J₀.cayley J`, a map
   from the compatible structures to `ω.compatibleTangentSpaceCLM J₀`, with
@@ -67,7 +67,7 @@ variable (ω J₀) in
 /-- The continuous endomorphisms that strictly contract the quadratic form `v ↦ ω(v, J₀ v)` form
 an open set: they are those for which the bilinear form `ω(v, J₀ w) - ω(C v, J₀ (C w))` is
 positive on the diagonal, an open condition. -/
-theorem isOpen_setOf_strictContraction [FiniteDimensional ℝ V] :
+theorem isOpen_setOfPred_strictContraction [FiniteDimensional ℝ V] :
     IsOpen {C : V →L[ℝ] V | ∀ v, v ≠ 0 → ω (C v) (J₀ (C v)) < ω v (J₀ v)} := by
   let g := (ω.associatedBilinForm J₀).toContinuousBilinearMap
   have hB : Continuous fun C : V →L[ℝ] V =>
@@ -166,7 +166,7 @@ theorem Compatible.range_cayleyCoord (h₀ : ω.Compatible J₀) :
 theorem Compatible.isOpen_range_cayleyCoord (h₀ : ω.Compatible J₀) :
     IsOpen (Set.range h₀.cayleyCoord) := by
   rw [h₀.range_cayleyCoord]
-  exact (isOpen_setOf_strictContraction ω J₀).preimage continuous_subtypeVal
+  exact (isOpen_setOfPred_strictContraction ω J₀).preimage continuous_subtypeVal
 
 /-- The Cayley coordinates are continuous. -/
 theorem Compatible.continuous_cayleyCoord (h₀ : ω.Compatible J₀) :

@@ -162,10 +162,7 @@ theorem exists_diffeomorph_of_subset_target (Φ : PartialDiffeomorph I J M N n) 
     Φ.toOpenPartialHomeomorph.isOpen_inter_preimage V.isOpen
   let Φ' := Φ.restrOpen _ hs
   have htarget (v : N) : v ∈ Φ'.target ↔ v ∈ V := by
-    rw [Φ.restrOpen_target]
-    refine ⟨fun hv ↦ Φ.right_inv hv.1 ▸ hv.2.2, fun hv ↦ ?_⟩
-    have hvt : v ∈ Φ.target := hV hv
-    exact ⟨hvt, Φ.map_target hvt, by simpa [Φ.right_inv hvt] using hv⟩
+    rw [Φ.restrOpen_target_eq_of_subset hV hs, SetLike.mem_coe]
   refine ⟨⟨Φ'.source, Φ'.open_source⟩, Φ'.toDiffeomorphSourceTarget.trans
     (Diffeomorph.subtype (Diffeomorph.refl _ _ n) fun v ↦ htarget v), by simp [Φ'],
     fun u ↦ ?_⟩

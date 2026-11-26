@@ -5,6 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.CircleConnection
+public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ModelConnection
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.TransAffine
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.Darboux
@@ -13,7 +15,7 @@ import SymplecticGeometry.Analysis.Normed.Module.Ball.Pointwise
 import SymplecticGeometry.Topology.Algebra.Module.Equiv.Basic
 
 /-!
-# Centred Darboux charts with uniform bounds, and their rescalings
+# Centred Darboux charts with uniform bounds, their rescalings, and model frames
 
 Let `σ` be a two-form on a boundaryless manifold `M`, `J` a smooth almost complex structure
 compatible with `σ`, and `φ` a smooth chart of `M` into the standard model `StdSpace ι` that pulls
@@ -36,10 +38,9 @@ On a compact manifold of dimension `2 * card ι` with `σ` closed, the structure
 bound for each order of derivative. They exist: Darboux charts into `StdSpace ι` at every point
 (`TauCeti.SmoothTwoForm.IsSymplectic.exists_darbouxChart_stdForm`) give compact neighbourhoods of
 every point on which the recentred charts have uniform bounds, finitely many of these cover `M`,
-and the smallest of their radii and the largest of their bounds work for all centres. Restricting
-each Darboux chart to a given open neighbourhood of its point first
-(`PartialDiffeomorph.restrOpen`) puts the source of every centred chart inside one set of a
-given open cover, indexed by the points of `M`.
+and the smallest of their radii and the largest of their bounds work for all centres. Taking each
+Darboux chart with source inside a given neighbourhood `U p` of its point `p` puts the source of
+every centred chart inside one of the sets `U p`.
 
 Rescaling a centred chart `D.chart x` by a nonzero real `c`, that is, following it by
 `z ↦ c • z`, gives the chart `D.rescaledChart c x`. It is still centred at `x`, its target contains
@@ -49,6 +50,18 @@ order `r` gains a factor `|c|⁻¹ ^ r`. With the mean value inequality and the 
 `stdComplexStructure ι` at `0`, this bounds the distance from `J` read in the rescaled chart to
 `stdComplexStructure ι` by a constant times `|c|⁻¹ * ‖z‖`, the constant not depending on `x` or
 `c`. For `c = √(2π k)` the rescaled chart pulls `stdForm ι` back to `k` times `2π σ`.
+
+Over a chart `χ` that pulls `stdForm ι` back to `σ`, a principal `Circle`-bundle with a connection
+form `α` of curvature `-2π σ` has, over any open star-convex subset `s` of the target, a section
+in which `α` read in `χ` is the model form `stdConnectionForm ι` of
+`AsymptoticallyHolomorphic/ModelConnection.lean`. Starting from a section `τ₀` smooth on the
+image `χ⁻¹ '' s`, the reading of `τ₀^* α` in `χ` has exterior derivative `-2π ω₀` on `s`, since the
+curvature is `d (τ₀^* α)` and the inverse of `χ` pulls `σ` back to `ω₀`
+(`TauCeti.SmoothTwoForm.mpullback_symm_apply_eq_constSmooth`). The gauge lemma
+`SymplecticGeometry.exists_contDiffOn_add_mextDeriv_eq_stdConnectionForm` gives `θ` on `s` with
+that reading plus `dθ` equal to the model, and rotating `τ₀` by `exp (i θ ∘ χ)` adds `d (θ ∘ χ)`
+to `τ₀^* α`
+(`SymplecticGeometry.IsCircleConnectionForm.mpullback_apply_op_circleExp_smul_eq_mextDeriv_add`).
 
 ## Main definitions
 
@@ -64,7 +77,7 @@ order `r` gains a factor `|c|⁻¹ ^ r`. With the mean value inequality and the 
   compact subset of the source of one Darboux chart, with the uniform radius and the uniform
   bounds.
 * `SymplecticGeometry.exists_centeredDarbouxCharts_source_subset`: centred Darboux charts with
-  uniform bounds whose sources lie in the sets of a given open cover.
+  uniform bounds whose sources lie in the sets of a given family of neighbourhoods.
 * `SymplecticGeometry.nonempty_centeredDarbouxCharts`: centred Darboux charts with uniform bounds
   exist on a compact manifold.
 * `SymplecticGeometry.CenteredDarbouxCharts.eval₂_rescaledChart`: the rescaled chart pulls
@@ -74,17 +87,20 @@ order `r` gains a factor `|c|⁻¹ ^ r`. With the mean value inequality and the 
 * `SymplecticGeometry.CenteredDarbouxCharts.norm_chartPushforward_rescaledChart_sub_le`,
   `SymplecticGeometry.CenteredDarbouxCharts.norm_iteratedFDeriv_chartPushforward_rescaledChart_le`
   and its corollary for `c ≥ 1` and `r ≥ 1`: the bounds on `J` read in the rescaled charts.
+* `SymplecticGeometry.IsCircleConnectionForm.exists_mpullback_symm_mpullback_eq_stdConnectionForm`:
+  over an open star-convex subset of the target of a Darboux chart, a section of the circle bundle
+  in which the connection form read in the chart is the model.
 
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017],
-  Sections 2.5 and 3.2.
+  Sections 2.5, 2.7 and 3.2.
 * [S. K. Donaldson, *Symplectic submanifolds and almost-complex geometry*][Donaldson1996].
 -/
 
 public section
 
-open scoped Manifold ContDiff
+open scoped Manifold ContDiff Topology
 open TauCeti TauCeti.SymplecticForm Metric
 
 namespace SymplecticGeometry
@@ -193,32 +209,23 @@ structure CenteredDarbouxCharts (σ : SmoothTwoForm I M) (J : SmoothAlmostComple
   norm_iteratedFDeriv_le (r : ℕ) (x : M) : ∀ z ∈ ball (0 : StdSpace ι) radius,
     ‖iteratedFDeriv ℝ r (J.chartPushforward (chart x).toOpenPartialHomeomorph) z‖ ≤ bound r
 
-/-- **Centred Darboux charts with sources in a given open cover.** On a compact boundaryless
+/-- **Centred Darboux charts with sources in given neighbourhoods.** On a compact boundaryless
 manifold `M` of dimension `2 * card ι`, with a closed two-form `σ` and a smooth almost complex
-structure `J` compatible with `σ`, let `U x` be an open neighbourhood of each point `x`. Then there
+structure `J` compatible with `σ`, let `U x` be a neighbourhood of each point `x`. Then there
 are centred Darboux charts `D` into `StdSpace ι` with one radius and uniform bounds on the
 derivatives of `J` read in them, and a map `c : M → M` such that the source of the chart centred
 at `x` lies in `U (c x)` for every `x`. -/
 theorem exists_centeredDarbouxCharts_source_subset [FiniteDimensional ℝ E] [CompactSpace M]
     (hE : Module.finrank ℝ E = 2 * Fintype.card ι) {σ : SmoothTwoForm I M} (hσ : σ.IsClosed)
     {J : SmoothAlmostComplexStructure I M} (hJ : σ.Compatible J) {U : M → Set M}
-    (hU : ∀ x, IsOpen (U x)) (hxU : ∀ x, x ∈ U x) :
+    (hU : ∀ x, U x ∈ 𝓝 x) :
     ∃ (D : CenteredDarbouxCharts σ J ι) (c : M → M), ∀ x, (D.chart x).source ⊆ U (c x) := by
   classical
   have := Manifold.locallyCompact_of_finiteDimensional (M := M) I
-  -- A Darboux chart `φ p` at every point `p`, restricted to `U p`, and a compact neighbourhood
+  -- A Darboux chart `φ p` at every point `p`, with source in `U p`, and a compact neighbourhood
   -- `K p` of `p` in its source, on which the charts recentred from `φ p` have uniform bounds.
-  choose φ₀ hpφ₀ _ hφ₀ using fun p ↦
-    SmoothTwoForm.IsSymplectic.exists_darbouxChart_stdForm hE ⟨hσ, hJ.isNondegenerate⟩ p
-  let φ p := (φ₀ p).restrOpen (U p) (hU p)
-  have hpφ (p : M) : p ∈ (φ p).source := by
-    rw [PartialDiffeomorph.restrOpen_source]
-    exact ⟨hpφ₀ p, hxU p⟩
-  have hφ (p : M) : ∀ x ∈ (φ p).source, ∀ v w : TangentSpace I x,
-      σ.eval₂ x v w = stdForm ι (mvfderiv I (φ p) x v) (mvfderiv I (φ p) x w) := by
-    intro x hx v w
-    rw [PartialDiffeomorph.restrOpen_source] at hx
-    simpa only [φ, PartialDiffeomorph.coe_restrOpen] using hφ₀ p x hx.1 v w
+  choose φ hpφ hφU _ hφ using fun p ↦
+    SmoothTwoForm.IsSymplectic.exists_darbouxChart_stdForm hE ⟨hσ, hJ.isNondegenerate⟩ (hU p)
   choose K hK hpK hKφ using fun p ↦ exists_compact_subset (φ p).open_source (hpφ p)
   choose A C₀ ρ hρ hA hC using fun p ↦
     exists_transAffine_darbouxCharts_of_isCompact hJ (φ p) (hφ p) (hK p) (hKφ p)
@@ -253,8 +260,8 @@ theorem exists_centeredDarbouxCharts_source_subset [FiniteDimensional ℝ E] [Co
     chartPushforward_zero x := (hA _ x (hcK x)).2.2.2.2.2.2.2
     norm_iteratedFDeriv_le r x z hz := (hC _ r x (hcK x) z (hρ₀le x hz)).trans
       (hB r (Finset.mem_image_of_mem _ (hct x))) }, c, fun x ↦ ?_⟩
-  rw [PartialDiffeomorph.transAffine_source, PartialDiffeomorph.restrOpen_source]
-  exact Set.inter_subset_right
+  rw [PartialDiffeomorph.transAffine_source]
+  exact hφU (c x)
 
 /-- **Centred Darboux charts with uniform bounds.** On a compact boundaryless manifold `M` of
 dimension `2 * card ι`, with a closed two-form `σ` and a smooth almost complex structure `J`
@@ -265,7 +272,7 @@ theorem nonempty_centeredDarbouxCharts [FiniteDimensional ℝ E] [CompactSpace M
     {J : SmoothAlmostComplexStructure I M} (hJ : σ.Compatible J) :
     Nonempty (CenteredDarbouxCharts σ J ι) :=
   let ⟨D, _⟩ := exists_centeredDarbouxCharts_source_subset hE hσ hJ (U := fun _ ↦ Set.univ)
-    (fun _ ↦ isOpen_univ) fun _ ↦ Set.mem_univ _
+    fun _ ↦ Filter.univ_mem
   ⟨D⟩
 
 namespace CenteredDarbouxCharts
@@ -426,6 +433,101 @@ theorem norm_iteratedFDeriv_chartPushforward_rescaledChart_le_of_one_le {r : ℕ
     (inv_le_one_of_one_le₀ (by rwa [abs_of_pos hc₀])) hr
 
 end CenteredDarbouxCharts
+
+/-! ### Frames in which the connection form is the model -/
+
+section ModelFrame
+
+open Bundle MulOpposite
+
+variable {P : M → Type*} [TopologicalSpace (TotalSpace Circle P)] [∀ x, TopologicalSpace (P x)]
+  [FiberBundle Circle P] [∀ x, MulAction Circleᵐᵒᵖ (P x)] [PrincipalBundle Circle P]
+  [ContMDiffFiberBundle ∞ Circle P I (𝓡 1)]
+
+/-- **A frame with the model connection form over a Darboux set.** Let `α` be a connection form on
+a principal `Circle`-bundle `P` over a boundaryless manifold `M`, with curvature `-2π σ`, and let
+`χ` be a chart of `M` into `StdSpace ι` that pulls `stdForm ι` back to `σ` on its source. Let `s`
+be an open subset of the target of `χ`, star-convex with respect to some point, such as a ball,
+and `τ₀` a section of `P` that is smooth on `χ⁻¹ '' s`. Then there is a section `τ` of `P`,
+smooth on `χ⁻¹ '' s`, such that `χ⁻¹^* (τ^* α)` is the model connection form
+`stdConnectionForm ι` at every point of `s`.
+
+The section is `τ₀ · exp (i θ ∘ χ)`, where `θ` is a primitive on `s` of the difference between the
+model and `χ⁻¹^* (τ₀^* α)`, two forms whose exterior derivative on `s` is `-2π` times the
+constant form `stdForm ι`. -/
+theorem IsCircleConnectionForm.exists_mpullback_symm_mpullback_eq_stdConnectionForm
+    {α : SmoothForm (I.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1}
+    (hα : IsCircleConnectionForm α) {σ : SmoothTwoForm I M}
+    (hασ : hα.curvature = -(2 * Real.pi) • σ)
+    (χ : PartialDiffeomorph I 𝓘(ℝ, StdSpace ι) M (StdSpace ι) ∞)
+    (hχ : ∀ x ∈ χ.source, ∀ v w : TangentSpace I x,
+      σ.eval₂ x v w = stdForm ι (mvfderiv I χ x v) (mvfderiv I χ x w))
+    {s : Set (StdSpace ι)} {z₀ : StdSpace ι} (hs : StarConvex ℝ z₀ s) (hso : IsOpen s)
+    (hsχ : s ⊆ χ.target) {τ₀ : ∀ x, P x}
+    (hτ₀ : ContMDiffOn I (I.prod (𝓡 1)) ∞
+      (fun x ↦ ManifoldTotalSpace.homeomorph Circle P ⟨x, τ₀ x⟩) (χ.symm '' s)) :
+    ∃ τ : ∀ x, P x, ContMDiffOn I (I.prod (𝓡 1)) ∞
+        (fun x ↦ ManifoldTotalSpace.homeomorph Circle P ⟨x, τ x⟩) (χ.symm '' s) ∧
+      ∀ z ∈ s, mpullback 𝓘(ℝ, StdSpace ι) I χ.symm (mpullback I (I.prod (𝓡 1))
+          (fun x ↦ ManifoldTotalSpace.homeomorph Circle P ⟨x, τ x⟩) α.val) z =
+        (stdConnectionForm ι).val z := by
+  set t₀ := fun x ↦ ManifoldTotalSpace.homeomorph Circle P ⟨x, τ₀ x⟩
+  -- The connection form read in `χ` through `τ₀`.
+  set β := mpullback 𝓘(ℝ, StdSpace ι) I χ.symm (mpullback I (I.prod (𝓡 1)) t₀ α.val)
+  have hχs {z} (hz : z ∈ χ.target) : ContMDiffAt 𝓘(ℝ, StdSpace ι) I ∞ χ.symm z :=
+    χ.symm.contMDiffOn.contMDiffAt (χ.open_target.mem_nhds hz)
+  have hU : IsOpen (χ.symm '' s) :=
+    χ.toOpenPartialHomeomorph.isOpen_image_symm_of_subset_target hso hsχ
+  have ht₀ {z} (hz : z ∈ s) : ContMDiffAt I (I.prod (𝓡 1)) ∞ t₀ (χ.symm z) :=
+    hτ₀.contMDiffAt (hU.mem_nhds ⟨z, hz, rfl⟩)
+  have hα₀ {z} (hz : z ∈ s) :=
+    (α.isSmoothForm.contMDiff _).mpullback_form (ht₀ hz) le_rfl
+  have hβ : ContDiffOn ℝ (E := StdSpace ι) (F := StdSpace ι [⋀^Fin 1]→L[ℝ] ℝ) (⊤ : ℕ∞) β s :=
+    fun z hz ↦ (RoughForm.contDiffWithinAt_of_contMDiffWithinAt_modelSpace
+      ((hα₀ hz).mpullback_form (hχs (hsχ hz)) le_rfl).contMDiffWithinAt).mono
+        (Set.subset_univ s)
+  -- `dβ` is the curvature read in `χ`, that is `-2π ω₀`.
+  have hdβ : ∀ z ∈ s, mextDeriv β z = (-(2 * Real.pi) • (stdForm ι).constSmooth).val z := by
+    intro z hz
+    have hz' := hsχ hz
+    rw [← mpullback_mextDeriv_at ((hχs hz').of_le (by simp)) ((hα₀ hz).of_le (by simp)),
+      mpullback_apply_congr (hα.curvature_apply_eq_mextDeriv_mpullback (ht₀ hz)).symm, hασ,
+      SetLike.val_smul, mpullback_smul, Pi.smul_apply,
+      SmoothTwoForm.mpullback_symm_apply_eq_constSmooth hχ hz', SetLike.val_smul, Pi.smul_apply]
+  obtain ⟨θ, hθ, hθβ⟩ :=
+    exists_contDiffOn_add_mextDeriv_eq_stdConnectionForm hs hso le_top hβ hdβ
+  have hθ' : ContDiffOn ℝ ∞ θ s := by simpa using hθ
+  have hsrc : χ.symm '' s ⊆ χ.source :=
+    Set.image_subset_iff.2 fun z hz ↦ χ.map_target (hsχ hz)
+  have hθχ : ContMDiffOn I 𝓘(ℝ) ∞ (fun x ↦ θ (χ x)) (χ.symm '' s) :=
+    hθ'.contMDiffOn.comp (χ.contMDiffOn.mono hsrc) (by
+      rintro _ ⟨z, hz, rfl⟩
+      simpa [χ.right_inv (hsχ hz)] using hz)
+  refine ⟨fun x ↦ op (Circle.exp (θ (χ x))) • τ₀ x,
+    hτ₀.totalSpaceMk_smul (contMDiff_circleExp.comp_contMDiffOn hθχ), fun z hz ↦ ?_⟩
+  have hz' := hsχ hz
+  have hθχz : ContMDiffAt I 𝓘(ℝ) ∞ (fun x ↦ θ (χ x)) (χ.symm z) := by
+    have hθz : ContMDiffAt 𝓘(ℝ, StdSpace ι) 𝓘(ℝ) ∞ θ (χ (χ.symm z)) := by
+      rw [show χ (χ.symm z) = z from χ.right_inv hz']
+      exact (hθ'.contDiffAt (hso.mem_nhds hz)).contMDiffAt
+    exact hθz.comp (χ.symm z)
+      (χ.contMDiffOn.contMDiffAt (χ.open_source.mem_nhds (χ.map_target hz')))
+  -- The change of section adds `d (θ ∘ χ)`, which reads as `dθ` in `χ`.
+  rw [mpullback_apply_congr (η := mextDeriv (RoughForm.ofFunction I fun x ↦ θ (χ x)) +
+      mpullback I (I.prod (𝓡 1)) t₀ α.val)
+      (hα.mpullback_apply_op_circleExp_smul_eq_mextDeriv_add (x := χ.symm.toPartialEquiv z)
+        hU hτ₀ ⟨z, hz, rfl⟩ (hθχz.of_le (by simp))),
+    mpullback_add, Pi.add_apply, mpullback_mextDeriv_ofFunction_apply
+      ((hχs hz').mdifferentiableAt (by simp)) (hθχz.mdifferentiableAt (by simp)),
+    add_comm, ← hθβ z hz]
+  congr 1
+  refine mextDeriv_congr_of_eventuallyEq ?_
+  filter_upwards [χ.open_target.mem_nhds hz'] with y hy
+  ext v
+  rw [RoughForm.ofFunction_apply, RoughForm.ofFunction_apply, Function.comp_apply]
+  exact congrArg θ (χ.right_inv hy)
+
+end ModelFrame
 
 end SymplecticGeometry
 

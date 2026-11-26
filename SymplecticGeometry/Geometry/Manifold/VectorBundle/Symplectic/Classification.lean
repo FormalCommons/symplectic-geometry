@@ -201,7 +201,7 @@ theorem Tames.exists_symplectic_bundleEquiv {ω ω' : ContMDiffTwoForm I n F V}
         (fun v : TotalSpace F V ↦ TotalSpace.mk' F v.proj (Ψ v.proj v.snd)) ∧
       ∀ x v w, ω'.bilinFormAt x (Ψ x v) (Ψ x w) = ω.bilinFormAt x v w :=
   exists_symplectic_bundleEquiv_of_forall_isNondegenerate fun s hs ↦
-    (convex_setOf_tames J h h' (sub_nonneg.2 hs.2) hs.1 (sub_add_cancel 1 s)).isNondegenerate
+    (convex_setOfPred_tames J h h' (sub_nonneg.2 hs.2) hs.1 (sub_add_cancel 1 s)).isNondegenerate
 
 end ContMDiffTwoForm
 
