@@ -98,11 +98,15 @@ does not apply to `D_J`, and the estimate is proved here.
 * `SymplecticGeometry.chartZeroOrder_twistOneConnection_apply`: that zeroth-order term in a chart
   is `c ↦ c • Γ 1`, and `Γ 1` is smooth
   (`SymplecticGeometry.contDiffOn_chartZeroOrder_twistOneConnection_apply_one`).
-* `SymplecticGeometry.exists_sum_eLpNorm_iteratedFDeriv_coord_smul_le`: the estimate of order `k`
-  in one chart. For `χ` smooth with support in the domain of chart `i`, the `L²` norms on the
-  chart image of the derivatives of order at most `k + 1` of the reading of `χ s` are bounded,
-  uniformly in the smooth sections `s`, by those of order at most `k` of the reading of the
-  `(0,1)`-part for `i` of `D_J s` and of the reading of `s`. With `u` the reading of `s` and `χ'`
+* `SymplecticGeometry.contDiffOn_coord_zeroOnePart_twistOneDelBar`: for a smooth section `s`, the
+  chart reading of the `(0,1)`-part for `i` of `D_J s` is smooth on the chart image.
+* `SymplecticGeometry.exists_eLpNormWkp_coord_smul_le`: the estimate of order `k` in one chart.
+  For `χ` smooth with support in the domain of chart `i`, the `W^{k+1,2}` norm on the chart image
+  of the reading of `χ s` is bounded, uniformly in the smooth sections `s`, by the `W^{k,2}`
+  norms of the reading of the `(0,1)`-part for `i` of `D_J s` and of the reading of `s`. As
+  all these readings are smooth, the norms are the sums of the `L²` norms of the derivatives
+  (`TauCeti.eLpNormWkp_eq_sum_eLpNorm_iteratedFDeriv`), and the estimate is proved for those
+  sums. With `u` the reading of `s` and `χ'`
   that of `χ`, a cutoff `ψ` equal to one near the support of `χ'` turns `χ' u` into a smooth
   function `v` on the plane. On the chart image,
   `∂bar v + μ ∂v = (χ' / c₂) θ(1) + ((∂bar + μ ∂) χ' - (χ' / c₂) Z) u` for the reading `θ` of
@@ -120,10 +124,8 @@ does not apply to `D_J`, and the estimate is proved here.
   chart reading, and the `W^{k,2}` norms of the chart readings of `D_J s` and of `s` with their
   Sobolev norms, by Tau Ceti's
   `TauCeti.SectionChartData.exists_ofReal_norm_le_eLpNormWkp_of_chartValueL_ae_eq` and
-  `TauCeti.SectionChartData.exists_eLpNormWkp_le_of_chartValueL_ae_eq`; for smooth readings these
-  norms are the sums of the `L²` norms of the derivatives
-  (`TauCeti.eLpNormWkp_eq_sum_eLpNorm_iteratedFDeriv`). In between stands the chart estimate
-  above.
+  `TauCeti.SectionChartData.exists_eLpNormWkp_le_of_chartValueL_ae_eq`. In between stands the
+  chart estimate above.
 * `SymplecticGeometry.exists_compact_estimate_twistOneDelBarSobolev`: the same estimate with a
   compact error term. There are `C` and a compact operator
   `K : W^{k+1,2}(𝒪(1)) →L[ℝ] W^{k,2}(𝒪(1))` with `‖w‖ ≤ C ‖D_J w‖ + ‖K w‖` for every `w`. It
@@ -140,14 +142,17 @@ The proof of `exists_coord_zeroOnePart_twistOneDelBar_apply` adapts those of Tau
 and `TauCeti.FiniteBundleAtlas.exists_norm_chartZeroOrder_apply_le`
 (`TauCeti/Geometry/Manifold/VectorBundle/CauchyRiemann/Chart.lean`), the case `μ = 0`, `c₂ = 1`
 of an operator that is Cauchy–Riemann for `i`, to the operators `D_J`. The proof of
-`exists_sum_eLpNorm_iteratedFDeriv_coord_smul_le` is the order-`k` form, for `D_J`, of that of
+`exists_eLpNormWkp_coord_smul_le` is the order-`k` form, for `D_J`, of that of
 Tau Ceti's `TauCeti.IsRealCauchyRiemannOperator.exists_eLpNorm_coord_smul_add_eLpNorm_fderiv_le`
 (`TauCeti/Geometry/Manifold/VectorBundle/Sobolev/CauchyRiemann/Estimate.lean`), whose steps it
 follows: the compact chart image of the support of `χ`, the smoothness of the reading of `s`, and
-the reading of `χ s` as `χ' u`. The chart step `exists_norm_contMDiffSMulL_component_le` of the
-proof of `exists_norm_le_twistOneDelBarSobolev` adapts the step of the same name in the proof of Tau
-Ceti's `TauCeti.IsRealCauchyRiemannOperator.exists_norm_le_norm_sobolevSuccL_add_norm_lowerOrderL`
-(`TauCeti/Geometry/Manifold/VectorBundle/Sobolev/CauchyRiemann/HigherOrder/Estimate.lean`) to `D_J`.
+the reading of `χ s` as `χ' u`. The chart steps `exists_eLpNormWkp_coord_le` and
+`exists_norm_contMDiffSMulL_component_le` of the proof of `exists_norm_le_twistOneDelBarSobolev`
+adapt the steps of the same names in the proof of Tau Ceti's
+`TauCeti.IsRealCauchyRiemannOperator.exists_norm_le_norm_sobolevSuccL_add_norm_lowerOrderL`
+(`TauCeti/Geometry/Manifold/VectorBundle/Sobolev/CauchyRiemann/HigherOrder/Estimate.lean`) to `D_J`,
+and `contDiffOn_coord_zeroOnePart_twistOneDelBar` is the counterpart for `D_J` of the step
+`contDiffOn_coord_tangentHom` there.
 The proofs of `exists_compact_estimate_twistOneDelBarSobolev`,
 `isClosed_range_twistOneDelBarSobolev` and `finiteDimensional_ker_twistOneDelBarSobolev` adapt
 those of Tau Ceti's `TauCeti.IsRealCauchyRiemannOperator.exists_compact_estimate_sobolevL`,
@@ -401,6 +406,24 @@ theorem exists_coord_zeroOnePart_twistOneDelBar_apply
       ContinuousLinearMap.complexAntilinearPart_complex_smul, smul_apply, smul_eq_mul, c₂, μ, Z]
     ring
 
+/-- For a smooth section `s` of `𝒪(1)`, the chart reading of the `(0,1)`-part for `i` of `D_J s`
+is smooth on the image of each chart of a finite bundle atlas. -/
+theorem contDiffOn_coord_zeroOnePart_twistOneDelBar
+    (A : FiniteBundleAtlas ℂ (OnePoint ℂ) ℂ (twistCore (𝕜 := ℂ) 1).Fiber) (i : Fin A.n)
+    {s : Π x, (twistCore (𝕜 := ℂ) 1).Fiber x}
+    (hs : ContMDiff 𝓘(ℝ, ℂ) (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ)) ∞
+      (fun x ↦ TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) 1).Fiber) x (s x))) :
+    ContDiffOn ℝ ∞ (A.tangentHom.coord i fun x ↦ 𝒊.zeroOnePart (twistOneDelBar J s x))
+      (A.image i) := by
+  refine contDiffOn_infty.2 fun n ↦ ?_
+  have hn : ((n : ℕ∞) : WithTop ℕ∞) ≤ ((⊤ : ℕ∞) : WithTop ℕ∞) := by exact_mod_cast le_top
+  have hD := (𝒊.contMDiff_totalSpace_zeroOnePart hn).comp_contMDiffOn
+    ((contMDiffCovariantDerivativeOn_twistOneDelBar J n).contMDiff
+      ((hs.of_le (by exact_mod_cast le_top)).contMDiffOn (s := univ)))
+  refine (A.tangentHom.contDiffOn_coord (k := n) (contMDiffOn_univ.1 hD) i).mono ?_
+  rw [← A.image_tangentHom i]
+  exact A.tangentHom.image_subset_target_inter_preimage_baseSet i
+
 /-! ### The estimate of order `k` in one chart -/
 
 /-- `∂bar + μ ∂` of `v = χ' u` at a point, when `θ₁` is `c₂ (∂bar u + μ ∂u) + Z u` there: it is
@@ -423,18 +446,18 @@ private theorem conjWirtingerDeriv_add_smul_wirtingerDeriv_eq_of_eventuallyEq_sm
   ring
 
 
-/-- The planar form of `exists_sum_eLpNorm_iteratedFDeriv_coord_smul_le`: on an open set `W` with
-compact closure, for a cutoff `χ'` vanishing on `W` off a compact `K ⊆ W` and every `u` and `θ`
-related on `W` as the readings of `s` and of the `(0,1)`-part of `D_J s` are, the derivatives of
-order at most `k + 1` of `χ' u` are bounded in `L²(W)` by those of order at most `k` of `θ`
-and `u`. -/
+/-- The planar form of `exists_eLpNormWkp_coord_smul_le`: on an open set `W` with compact
+closure, for a cutoff `χ'` vanishing on `W` off a compact `K ⊆ W` and every `u` and `θ` smooth
+on `W` and related there as the readings of `s` and of the `(0,1)`-part of `D_J s` are, the
+derivatives of order at most `k + 1` of `χ' u` are bounded in `L²(W)` by those of order at most
+`k` of `θ` and `u`. -/
 private theorem exists_sum_eLpNorm_iteratedFDeriv_mul_le {W U T K : Set ℂ} (hW : IsOpen W)
     (hWc : IsCompact (closure W)) (hU : IsOpen U) (hWU : closure W ⊆ U) (hT : IsOpen T)
     (hWT : closure W ⊆ T) (hK : IsCompact K) (hKW : K ⊆ W) {χ' c₂ μ Z : ℂ → ℂ}
     (hχ' : ContDiffOn ℝ ∞ χ' T) (hχK : ∀ z ∈ W, z ∉ K → χ' z = 0) (hc₂ : ContDiffOn ℝ ∞ c₂ U)
     (hμ : ContDiffOn ℝ ∞ μ U) (hZ : ContDiffOn ℝ ∞ Z U) (hc₂0 : ∀ z ∈ U, c₂ z ≠ 0) {m : ℝ}
     (hm1 : m < 1) (hmμ : ∀ z ∈ closure W, ‖μ z‖ ≤ m) :
-    ∃ C : ℝ≥0, ∀ (u : ℂ → ℂ) (θ : ℂ → ℂ →L[ℝ] ℂ), ContDiffOn ℝ ∞ u W →
+    ∃ C : ℝ≥0, ∀ (u : ℂ → ℂ) (θ : ℂ → ℂ →L[ℝ] ℂ), ContDiffOn ℝ ∞ u W → ContDiffOn ℝ ∞ θ W →
       (∀ z ∈ W, ∀ v : ℂ, θ z v = conj v * (c₂ z * ((fderiv ℝ u z).complexAntilinearPart 1 +
         μ z * (fderiv ℝ u z).complexLinearPart 1) + Z z * u z)) →
       ∑ j ∈ Finset.range (k + 2), eLpNorm (iteratedFDeriv ℝ j fun z ↦ χ' z • u z) 2
@@ -474,20 +497,10 @@ private theorem exists_sum_eLpNorm_iteratedFDeriv_mul_le {W U T K : Set ℂ} (hW
     one_le_two hW ht hWc subset_closure hWt (ha.of_le hk)
   obtain ⟨Cb, hCb⟩ := exists_eLpNorm_iteratedFDeriv_smul_le_of_isOpen (F := ℂ) volume
     one_le_two hW ht hWc subset_closure hWt (hb.of_le hk)
-  refine ⟨C₁ * (k + 1) * (Ca + Cb + Cχ), fun u θ hu hθ ↦ ?_⟩
+  refine ⟨C₁ * (k + 1) * (Ca + Cb + Cχ), fun u θ hu hθs hθ ↦ ?_⟩
   set ν := volume.restrict W
-  -- `θ` is `v ↦ conj v · g` on `W`.
-  set g : ℂ → ℂ := fun z ↦ c₂ z * P u z + Z z * u z
-  have hg : ContDiffOn ℝ ∞ g W :=
-    ((hc₂.mono hWU').mul (hP hW hWU' hu)).add ((hZ.mono hWU').mul hu)
-  have hθg (z : ℂ) (hz : z ∈ W) : θ z = g z • (Complex.conjCLE : ℂ →L[ℝ] ℂ) := by
-    refine ContinuousLinearMap.ext fun w ↦ ?_
-    rw [hθ z hz w]
-    simp only [smul_apply, ContinuousLinearEquiv.coe_coe, Complex.conjCLE_apply, smul_eq_mul, g,
-      P]
-    ring
-  have hθs : ContDiffOn ℝ ∞ θ W := (hg.smul contDiffOn_const).congr hθg
-  have hθ₁ (z : ℂ) (hz : z ∈ W) : θ z 1 = g z := by simp [hθg z hz]
+  have hθ₁ (z : ℂ) (hz : z ∈ W) : θ z 1 = c₂ z * P u z + Z z * u z := by
+    rw [hθ z hz 1, map_one, one_mul]
   -- Evaluation at `1` does not increase the `W^{k,2}(W)` norm, which for functions smooth on `W`
   -- is the sum of the `L²(W)` norms of their derivatives of order at most `k`.
   have hθ₁le : ∑ l ∈ Finset.range (k + 1), eLpNorm (iteratedFDeriv ℝ l fun z ↦ θ z 1) 2 ν ≤
@@ -566,23 +579,20 @@ private theorem exists_sum_eLpNorm_iteratedFDeriv_mul_le {W U T K : Set ℂ} (hW
 standard structure `i` of the sphere, let `A` be a finite bundle atlas of `𝒪(1)`, such as
 `twistCoreAtlas 1`, and let `χ` be a smooth function whose support has closure in the domain of
 chart `i`. There is a constant `C` such that for every smooth section `s` of `𝒪(1)`, on the image
-of the chart, the `L²` norms of the derivatives of order at most `k + 1` of the reading of `χ s`
-are at most `C` times the sum of the `L²` norms of the derivatives of order at most `k` of the
-reading of the `(0,1)`-part for `i` of `D_J s` and of the reading of `s`. -/
-theorem exists_sum_eLpNorm_iteratedFDeriv_coord_smul_le
+of the chart, the `W^{k+1,2}` norm of the reading of `χ s` is at most `C` times the sum of the
+`W^{k,2}` norms of the reading of the `(0,1)`-part for `i` of `D_J s` and of the reading
+of `s`. -/
+theorem exists_eLpNormWkp_coord_smul_le
     {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)} (hJ : σ.Tames J) (hi : σ.Tames 𝒊)
     (A : FiniteBundleAtlas ℂ (OnePoint ℂ) ℂ (twistCore (𝕜 := ℂ) 1).Fiber) (i : Fin A.n)
     {χ : OnePoint ℂ → ℝ} (hχ : ContMDiff 𝓘(ℝ, ℂ) 𝓘(ℝ) ∞ χ) (hχi : tsupport χ ⊆ A.dom i) :
     ∃ C : ℝ≥0, ∀ s : Π x, (twistCore (𝕜 := ℂ) 1).Fiber x,
       ContMDiff 𝓘(ℝ, ℂ) (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ)) ∞
         (fun x ↦ TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) 1).Fiber) x (s x)) →
-      ∑ m ∈ Finset.range (k + 2), eLpNorm (iteratedFDeriv ℝ m (A.coord i fun x ↦ χ x • s x)) 2
-          (volume.restrict (A.image i)) ≤
-        C * (∑ m ∈ Finset.range (k + 1), eLpNorm (iteratedFDeriv ℝ m
-            (A.tangentHom.coord i fun x ↦ 𝒊.zeroOnePart (twistOneDelBar J s x))) 2
-              (volume.restrict (A.image i)) +
-          ∑ m ∈ Finset.range (k + 1), eLpNorm (iteratedFDeriv ℝ m (A.coord i s)) 2
-            (volume.restrict (A.image i))) := by
+      eLpNormWkp 2 (A.image i) (k + 1) (A.coord i fun x ↦ χ x • s x) ≤
+        C * (eLpNormWkp 2 (A.image i) k
+            (A.tangentHom.coord i fun x ↦ 𝒊.zeroOnePart (twistOneDelBar J s x)) +
+          eLpNormWkp 2 (A.image i) k (A.coord i s)) := by
   have hW : IsOpen (A.image i : Set ℂ) := (A.image i).isOpen
   have hcl := A.closure_image_subset_target i
   -- `χ` read in the chart vanishes on the chart image off the compact set `K`.
@@ -603,21 +613,97 @@ theorem exists_sum_eLpNorm_iteratedFDeriv_coord_smul_le
     (A.isCompact_closure_image i) hUo hWU (A.chart i).open_target hcl hK hKW hχ' hχK hc₂ hμ hZ
     hc₂0 hm1 hmμ
   refine ⟨C, fun s hs ↦ ?_⟩
+  have hk : ((k : ℕ) : WithTop ℕ∞) ≤ ((⊤ : ℕ∞) : WithTop ℕ∞) := by exact_mod_cast le_top
   have hu : ContDiffOn ℝ ∞ (A.coord i s) (A.image i) :=
     ((contDiffOn_trivialization_comp_chart_symm_of_contMDiff hs
       (IsManifold.chart_mem_maximalAtlas _) (A.triv i)).congr fun y _ ↦ A.coord_def i s y).mono
         (A.image_subset_target_inter_preimage_baseSet i)
+  have hk' : ((k + 1 : ℕ) : WithTop ℕ∞) ≤ ((⊤ : ℕ∞) : WithTop ℕ∞) := by exact_mod_cast le_top
+  have hg : ContDiffOn ℝ (k + 1 : ℕ) (A.coord i fun x ↦ χ x • s x) (A.image i) :=
+    (A.contDiffOn_coord ((hχ.smul_section hs).of_le hk') i).mono
+      (A.image_subset_target_inter_preimage_baseSet i)
+  have hθs := contDiffOn_coord_zeroOnePart_twistOneDelBar J A i hs
+  -- For smooth readings, the `W^{k,2}` norms are the sums of the `L²` norms of the derivatives.
+  rw [eLpNormWkp_eq_sum_eLpNorm_iteratedFDeriv hW (k + 1) hg,
+    eLpNormWkp_eq_sum_eLpNorm_iteratedFDeriv hW k (hθs.of_le hk),
+    eLpNormWkp_eq_sum_eLpNorm_iteratedFDeriv hW k (hu.of_le hk)]
   have hcw : EqOn (A.coord i fun x ↦ χ x • s x) (fun z ↦ χ' z • A.coord i s z) (A.image i) :=
     fun z hz ↦ (A.coord_fun_smul i χ s hz).trans (Complex.coe_smul _ _).symm
   refine le_of_eq_of_le (Finset.sum_congr rfl fun j _ ↦
     eLpNorm_iteratedFDeriv_restrict_congr_of_eqOn volume 2 hW hcw j) ?_
-  exact hC _ _ hu fun z hz ↦ hθ s z hz ((hs _).mdifferentiableAt (by simp))
+  exact hC _ _ hu hθs fun z hz ↦ hθ s z hz ((hs _).mdifferentiableAt (by simp))
 
 /-! ### The a priori estimate -/
 
-/-- The chart estimate `exists_sum_eLpNorm_iteratedFDeriv_coord_smul_le` in Sobolev norms, for
-smooth sections: for `χ` smooth with support in the domain of chart `i`, the chart-`i` part of
-`χ w`, for the Sobolev section `w` of a smooth section, is bounded in `W^{k+1,2}` by a multiple of
+/-- For a smooth section `s` with Sobolev section `w`, the `W^{k,2}` norms on the image of chart `i`
+of the readings of the `(0,1)`-part for `i` of `D_J s` and of `s` are bounded by a multiple of
+`‖D_J w‖ + ‖w‖_{W^{k,2}}`. -/
+private theorem exists_eLpNormWkp_coord_le (i : Fin (twistCoreAtlas 1).n) :
+    ∃ c : ℝ≥0, ∀ s : Cₛ^((k + 1 : ℕ) : WithTop ℕ∞)⟮𝓘(ℝ, ℂ); ℂ, (twistCore (𝕜 := ℂ) 1).Fiber⟯,
+      ContMDiff 𝓘(ℝ, ℂ) (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ)) ∞
+        (fun x ↦ TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) 1).Fiber) x (s x)) →
+      eLpNormWkp 2 ((twistCoreAtlas 1).image i) k
+          ((twistCoreAtlas 1).tangentHom.coord i fun x ↦ 𝒊.zeroOnePart (twistOneDelBar J s x)) +
+          eLpNormWkp 2 ((twistCoreAtlas 1).image i) k ((twistCoreAtlas 1).coord i s) ≤
+        c * (ENNReal.ofReal ‖twistOneDelBarSobolev J k
+            (SobolevSection.ofContMDiffSection (twistCoreAtlas 1) volume 2 (k + 1) s)‖ +
+          ENNReal.ofReal ‖(twistCoreAtlas 1).sectionChartData.lowerOrderL volume 2 k
+            (SobolevSection.ofContMDiffSection (twistCoreAtlas 1) volume 2 (k + 1) s)‖) := by
+  obtain ⟨cθ, hcθ⟩ :=
+    (twistCoreAtlas 1).tangentHom.sectionChartData.exists_eLpNormWkp_le_of_chartValueL_ae_eq
+      (p := 2) k
+  obtain ⟨cu, hcu⟩ :=
+    (twistCoreAtlas 1).sectionChartData.exists_eLpNormWkp_le_of_chartValueL_ae_eq (p := 2) k
+  refine ⟨cθ + cu, fun s hs ↦ ?_⟩
+  set w := SobolevSection.ofContMDiffSection (twistCoreAtlas 1) volume 2 (k + 1) s
+  set X := ‖twistOneDelBarSobolev J k w‖
+  set Y := ‖(twistCoreAtlas 1).sectionChartData.lowerOrderL volume 2 k w‖
+  have hk : ((k : ℕ) : WithTop ℕ∞) ≤ ((⊤ : ℕ∞) : WithTop ℕ∞) := by exact_mod_cast le_top
+  have hu₀ : ContDiffOn ℝ k ((twistCoreAtlas 1).coord i s) ((twistCoreAtlas 1).image i) :=
+    ((twistCoreAtlas 1).contDiffOn_coord (hs.of_le hk) i).mono
+      ((twistCoreAtlas 1).image_subset_target_inter_preimage_baseSet i)
+  have hθs := (contDiffOn_coord_zeroOnePart_twistOneDelBar J (twistCoreAtlas 1) i hs).of_le hk
+  -- The chart readings of `D_J w` and of the lower order part of `w`.
+  have huw := SobolevSection.chartValueL_ofContMDiffSection_ae _ volume 2 (k + 1) s i
+  rw [← SectionChartData.chartValueL_coe_lowerOrderL _ volume 2 k w i] at huw
+  set DW : SobolevSection (twistCoreAtlas 1).tangentHom volume 2 k :=
+    (twistOneDelBarSobolev J k w : SobolevSection (twistCoreAtlas 1).tangentHom volume 2 k)
+  have hθw := chartValueL_twistOneDelBarSobolev_ofContMDiffSection_ae_coord J k s i
+  rw [← FiniteBundleAtlas.sectionChartData_image_tangentHom] at hθw
+  have h₂ := hcθ (i := i) (w := (DW : (twistCoreAtlas 1).tangentHom.sectionChartData.SobolevData
+    volume 2 k)) (by rwa [FiniteBundleAtlas.sectionChartData_image_tangentHom]) hθw
+  have h₃ := hcu (i := i) (by rwa [FiniteBundleAtlas.sectionChartData_image]) huw
+  have e₂ : eLpNormWkp 2 ((twistCoreAtlas 1).tangentHom.sectionChartData.image i) k
+      ((twistCoreAtlas 1).tangentHom.coord i fun x ↦ 𝒊.zeroOnePart (twistOneDelBar J s x)) =
+      eLpNormWkp 2 ((twistCoreAtlas 1).image i) k
+        ((twistCoreAtlas 1).tangentHom.coord i fun x ↦ 𝒊.zeroOnePart (twistOneDelBar J s x)) := by
+    rw [FiniteBundleAtlas.sectionChartData_image_tangentHom]
+  have e₃ : eLpNormWkp 2 ((twistCoreAtlas 1).sectionChartData.image i) k
+      ((twistCoreAtlas 1).coord i s) =
+      eLpNormWkp 2 ((twistCoreAtlas 1).image i) k ((twistCoreAtlas 1).coord i s) := by
+    rw [FiniteBundleAtlas.sectionChartData_image]
+  rw [e₂] at h₂
+  rw [e₃] at h₃
+  -- The components of a section are bounded by its norm.
+  have hDW : ‖(DW : (twistCoreAtlas 1).tangentHom.sectionChartData.SobolevData volume 2 k) i‖ ≤
+      X := by
+    refine (SectionChartData.norm_coe_apply_le DW i).trans_eq ?_
+    rw [Submodule.norm_coe]
+  have hLW : ‖((twistCoreAtlas 1).sectionChartData.lowerOrderL volume 2 k w :
+      (twistCoreAtlas 1).sectionChartData.SobolevData volume 2 k) i‖ ≤ Y :=
+    SectionChartData.norm_coe_apply_le
+      ((twistCoreAtlas 1).sectionChartData.lowerOrderL volume 2 k w) i
+  calc _ ≤ cθ * ENNReal.ofReal X + cu * ENNReal.ofReal Y :=
+        add_le_add (h₂.trans (by gcongr)) (h₃.trans (by gcongr))
+    _ ≤ cθ * ENNReal.ofReal X + cu * ENNReal.ofReal Y +
+        (cθ * ENNReal.ofReal Y + cu * ENNReal.ofReal X) := le_self_add
+    _ = _ := by
+        push_cast
+        ring
+
+/-- The chart estimate `exists_eLpNormWkp_coord_smul_le` in Sobolev norms, for smooth sections:
+for `χ` smooth with support in the domain of chart `i`, the chart-`i` part of `χ w`, for the
+Sobolev section `w` of a smooth section, is bounded in `W^{k+1,2}` by a multiple of
 `‖D_J w‖ + ‖w‖_{W^{k,2}}`. -/
 private theorem exists_norm_contMDiffSMulL_component_le
     {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)} (hJ : σ.Tames J) (hi : σ.Tames 𝒊)
@@ -633,108 +719,38 @@ private theorem exists_norm_contMDiffSMulL_component_le
             (SobolevSection.ofContMDiffSection (twistCoreAtlas 1) volume 2 (k + 1) s)‖ +
           ‖(twistCoreAtlas 1).sectionChartData.lowerOrderL volume 2 k
             (SobolevSection.ofContMDiffSection (twistCoreAtlas 1) volume 2 (k + 1) s)‖) := by
-  obtain ⟨Cc, hCc⟩ :=
-    exists_sum_eLpNorm_iteratedFDeriv_coord_smul_le (k := k) J hJ hi (twistCoreAtlas 1) i hχ hχi
-  obtain ⟨U, -, hWU, c₂, μ, Z, hc₂, hμ, hZ, -, -, hθ⟩ :=
-    exists_coord_zeroOnePart_twistOneDelBar_apply J hJ hi (twistCoreAtlas 1) i
+  obtain ⟨Cc, hCc⟩ := exists_eLpNormWkp_coord_smul_le (k := k) J hJ hi (twistCoreAtlas 1) i hχ hχi
   obtain ⟨c₁, hc₁⟩ :=
     (twistCoreAtlas 1).sectionChartData.exists_ofReal_norm_le_eLpNormWkp_of_chartValueL_ae_eq
       (p := 2) (k + 1)
-  obtain ⟨cθ, hcθ⟩ :=
-    (twistCoreAtlas 1).tangentHom.sectionChartData.exists_eLpNormWkp_le_of_chartValueL_ae_eq
-      (p := 2) k
-  obtain ⟨cu, hcu⟩ :=
-    (twistCoreAtlas 1).sectionChartData.exists_eLpNormWkp_le_of_chartValueL_ae_eq (p := 2) k
-  refine ⟨c₁ * Cc * (cθ + cu), fun s hs ↦ ?_⟩
+  obtain ⟨c, hc⟩ := exists_eLpNormWkp_coord_le J k i
+  refine ⟨c₁ * Cc * c, fun s hs ↦ ?_⟩
   set w := SobolevSection.ofContMDiffSection (twistCoreAtlas 1) volume 2 (k + 1) s
-  set v := SobolevSection.contMDiffSMulL (twistCoreAtlas 1) volume 2 (k + 1) hχ w
   set X := ‖twistOneDelBarSobolev J k w‖
   set Y := ‖(twistCoreAtlas 1).sectionChartData.lowerOrderL volume 2 k w‖
   set g := (twistCoreAtlas 1).coord i fun x ↦ χ x • s x
-  set u := (twistCoreAtlas 1).coord i s
-  set θ := (twistCoreAtlas 1).tangentHom.coord i fun x ↦ 𝒊.zeroOnePart (twistOneDelBar J s x)
-  have hsub := (twistCoreAtlas 1).image_subset_target_inter_preimage_baseSet i
   have hk : ((k + 1 : ℕ) : WithTop ℕ∞) ≤ ((⊤ : ℕ∞) : WithTop ℕ∞) := by exact_mod_cast le_top
-  have hu : ContDiffOn ℝ (k + 1 : ℕ) u ((twistCoreAtlas 1).image i) :=
-    ((twistCoreAtlas 1).contDiffOn_coord (hs.of_le hk) i).mono hsub
-  have hu₀ : ContDiffOn ℝ k u ((twistCoreAtlas 1).image i) :=
-    hu.of_le (by exact_mod_cast Nat.le_succ k)
   have hg : ContDiffOn ℝ (k + 1 : ℕ) g ((twistCoreAtlas 1).image i) :=
-    ((twistCoreAtlas 1).contDiffOn_coord ((hχ.smul_section hs).of_le hk) i).mono hsub
-  -- The reading of the `(0,1)`-part of `D_J s` is smooth, by its formula in the chart.
-  have hk' : (k : WithTop ℕ∞) ≤ ((⊤ : ℕ∞) : WithTop ℕ∞) := by exact_mod_cast le_top
-  have hWU' : ((twistCoreAtlas 1).image i : Set ℂ) ⊆ U := subset_closure.trans hWU
-  have hu' := hu.fderiv_of_isOpen ((twistCoreAtlas 1).image i).isOpen (m := k) (by norm_cast)
-  have hG : ContDiffOn ℝ k (fun z ↦ c₂ z * ((fderiv ℝ u z).complexAntilinearPart 1 +
-      μ z * (fderiv ℝ u z).complexLinearPart 1) + Z z * u z) ((twistCoreAtlas 1).image i) :=
-    (((hc₂.mono hWU').of_le hk').mul ((hu'.complexAntilinearPart_apply 1).add
-      (((hμ.mono hWU').of_le hk').mul (hu'.complexLinearPart_apply 1)))).add
-      (((hZ.mono hWU').of_le hk').mul hu₀)
-  have hθs : ContDiffOn ℝ k θ ((twistCoreAtlas 1).image i) := by
-    refine ((((ContinuousLinearMap.mul ℝ ℂ).contDiff.comp_contDiffOn hG).clm_comp
-      (contDiffOn_const (c := (Complex.conjCLE : ℂ →L[ℝ] ℂ)))).congr fun z hz ↦
-        ContinuousLinearMap.ext fun a ↦ ?_)
-    simp [θ, hθ s z hz ((hs _).mdifferentiableAt (by simp)), u]
-    ring
-  -- The chart readings of `χ w`, of `D_J w` and of the lower order part of `w`.
+    ((twistCoreAtlas 1).contDiffOn_coord ((hχ.smul_section hs).of_le hk) i).mono
+      ((twistCoreAtlas 1).image_subset_target_inter_preimage_baseSet i)
   have hgv := SobolevSection.chartValueL_contMDiffSMulL_ae_coord hχ
     (SobolevSection.chartValueL_ofContMDiffSection_ae _ volume 2 (k + 1) s) i
-  have huw := SobolevSection.chartValueL_ofContMDiffSection_ae _ volume 2 (k + 1) s i
-  rw [← SectionChartData.chartValueL_coe_lowerOrderL _ volume 2 k w i] at huw
-  set DW : SobolevSection (twistCoreAtlas 1).tangentHom volume 2 k :=
-    (twistOneDelBarSobolev J k w : SobolevSection (twistCoreAtlas 1).tangentHom volume 2 k)
-  have hθw := chartValueL_twistOneDelBarSobolev_ofContMDiffSection_ae_coord J k s i
-  rw [← FiniteBundleAtlas.sectionChartData_image_tangentHom] at hθw
-  -- Sobolev norms of the components against `W^{k,2}` norms of the readings.
   have h₁ := hc₁ (i := i) (by rwa [FiniteBundleAtlas.sectionChartData_image]) hgv
-  have h₂ := hcθ (i := i) (w := (DW : (twistCoreAtlas 1).tangentHom.sectionChartData.SobolevData
-    volume 2 k)) (by rwa [FiniteBundleAtlas.sectionChartData_image_tangentHom]) hθw
-  have h₃ := hcu (i := i) (by rwa [FiniteBundleAtlas.sectionChartData_image]) huw
   have e₁ : eLpNormWkp 2 ((twistCoreAtlas 1).sectionChartData.image i) (k + 1) g =
       eLpNormWkp 2 ((twistCoreAtlas 1).image i) (k + 1) g := by
     rw [FiniteBundleAtlas.sectionChartData_image]
-  have e₂ : eLpNormWkp 2 ((twistCoreAtlas 1).tangentHom.sectionChartData.image i) k θ =
-      eLpNormWkp 2 ((twistCoreAtlas 1).image i) k θ := by
-    rw [FiniteBundleAtlas.sectionChartData_image_tangentHom]
-  have e₃ : eLpNormWkp 2 ((twistCoreAtlas 1).sectionChartData.image i) k u =
-      eLpNormWkp 2 ((twistCoreAtlas 1).image i) k u := by
-    rw [FiniteBundleAtlas.sectionChartData_image]
   rw [e₁] at h₁
-  rw [e₂] at h₂
-  rw [e₃] at h₃
-  have hC := hCc s hs
-  rw [← eLpNormWkp_eq_sum_eLpNorm_iteratedFDeriv ((twistCoreAtlas 1).image i).isOpen (k + 1) hg,
-    ← eLpNormWkp_eq_sum_eLpNorm_iteratedFDeriv ((twistCoreAtlas 1).image i).isOpen k hθs,
-    ← eLpNormWkp_eq_sum_eLpNorm_iteratedFDeriv ((twistCoreAtlas 1).image i).isOpen k hu₀] at hC
-  -- The components of a section are bounded by its norm.
-  have hDW : ‖(DW : (twistCoreAtlas 1).tangentHom.sectionChartData.SobolevData volume 2 k) i‖ ≤
-      X := by
-    refine (SectionChartData.norm_coe_apply_le DW i).trans_eq ?_
-    rw [Submodule.norm_coe]
-  have hLW : ‖((twistCoreAtlas 1).sectionChartData.lowerOrderL volume 2 k w :
-      (twistCoreAtlas 1).sectionChartData.SobolevData volume 2 k) i‖ ≤ Y :=
-    SectionChartData.norm_coe_apply_le
-      ((twistCoreAtlas 1).sectionChartData.lowerOrderL volume 2 k w) i
   have hX : 0 ≤ X := norm_nonneg _
   have hY : 0 ≤ Y := norm_nonneg _
   refine (ENNReal.ofReal_le_ofReal_iff (by positivity)).1 (h₁.trans ?_)
   calc (c₁ : ℝ≥0∞) * eLpNormWkp 2 ((twistCoreAtlas 1).image i) (k + 1) g
-      ≤ c₁ * (Cc * (cθ * ENNReal.ofReal X + cu * ENNReal.ofReal Y)) := by
+      ≤ c₁ * (Cc * (c * (ENNReal.ofReal X + ENNReal.ofReal Y))) := by
         gcongr
-        exact hC.trans (by gcongr; exacts [h₂.trans (by gcongr), h₃.trans (by gcongr)])
-    _ ≤ c₁ * (Cc * ((cθ + cu) * (ENNReal.ofReal X + ENNReal.ofReal Y))) := by
-        gcongr
-        calc (cθ : ℝ≥0∞) * ENNReal.ofReal X + cu * ENNReal.ofReal Y
-            ≤ cθ * (ENNReal.ofReal X + ENNReal.ofReal Y) +
-                cu * (ENNReal.ofReal X + ENNReal.ofReal Y) := by
-              gcongr
-              exacts [le_self_add, le_add_self]
-          _ = _ := by ring
-    _ = ENNReal.ofReal (c₁ * Cc * (cθ + cu) * (X + Y)) := by
+        exact (hCc s hs).trans (by gcongr; exact hc s hs)
+    _ = ENNReal.ofReal (c₁ * Cc * c * (X + Y)) := by
         rw [← ENNReal.ofReal_add hX hY, ENNReal.ofReal_mul (by positivity),
           ENNReal.ofReal_mul (by positivity), ENNReal.ofReal_mul (by positivity)]
-        simp only [ENNReal.ofReal_coe_nnreal, ENNReal.ofReal_add
-          (NNReal.coe_nonneg cθ) (NNReal.coe_nonneg cu), mul_assoc]
+        simp only [ENNReal.ofReal_coe_nnreal, mul_assoc]
 
 /-- **The a priori estimate for `D_J`.** Let a two-form `σ` tame both `J` and the standard
 structure `i` of the sphere. For every order `k` there is a constant `C` such that every
