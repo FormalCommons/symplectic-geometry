@@ -42,7 +42,8 @@ public section
 
 open Metric Set Topology
 open scoped Manifold ContDiff
-open SymplecticGeometry (annulus mem_annulus)
+open SymplecticGeometry (annulus annulus_mono mem_annulus)
+open Complex (closedAnnulus isCompact_closedAnnulus mem_closedAnnulus)
 
 variable {F G M : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
   [TopologicalSpace G] {J : ModelWithCorners ℝ F G} [J.Boundaryless]
@@ -64,35 +65,34 @@ theorem ContMDiffOn.exists_contMDiffOn_ball_eq_of_nullhomotopic {n : ℕ∞} {a 
   -- image
   obtain ⟨F₀, hF₀K, hF₀f⟩ := ContinuousOn.exists_continuousMap_eq_of_nullhomotopic
     (r := r₀) (R := b') (by linarith) (by linarith) (by linarith)
-    (hf.continuousOn.mono fun z hz ↦ mem_annulus.2 ⟨by linarith [hz.1], by linarith [hz.2]⟩)
+    (hf.continuousOn.mono fun z hz ↦ mem_annulus.2
+      ⟨by linarith [(mem_closedAnnulus.1 hz).1], by linarith [(mem_closedAnnulus.1 hz).2]⟩)
     γ hγ hγ0
-  set S : Set ℂ := {z | a' ≤ ‖z‖ ∧ ‖z‖ ≤ 1}
+  set S : Set ℂ := closedAnnulus a' 1
   set U : Set ℂ := (annulus ℂ r₀ b' : Set ℂ)
-  have hS : IsClosed S :=
-    (isClosed_le continuous_const continuous_norm).inter
-      (isClosed_le continuous_norm continuous_const)
+  have hS : IsClosed S := (isCompact_closedAnnulus a' 1).isClosed
   have hU : IsOpen U := (annulus ℂ r₀ b').isOpen
-  have hSU : S ⊆ U := fun z hz ↦ mem_annulus.2 ⟨by linarith [hz.1], by linarith [hz.2]⟩
+  have hSU : S ⊆ U := fun z hz ↦ mem_annulus.2
+    ⟨by linarith [(mem_closedAnnulus.1 hz).1], by linarith [(mem_closedAnnulus.1 hz).2]⟩
   have hF₀U (z : ℂ) (hz : z ∈ U) : F₀ z = f z :=
     hF₀f z (mem_annulus.1 hz).1.le (mem_annulus.1 hz).2.le
   -- the relative Whitney approximation gives a `C^n` map `g₀` equal to `F₀` on `S`
   obtain ⟨g₀, hg₀, hF₀g₀⟩ :=
     F₀.exists_contMDiff_homotopicRel_of_isCompact_closure_range (I := 𝓘(ℝ, ℂ)) n hF₀K hS
       (hU.mem_nhdsSet.2 hSU)
-      ((hf.mono fun z (hz : z ∈ U) ↦ mem_annulus.2
-        ⟨by linarith [(mem_annulus.1 hz).1], by linarith [(mem_annulus.1 hz).2]⟩).congr hF₀U)
+      ((hf.mono (annulus_mono (by linarith) (by linarith))).congr hF₀U)
   have hg₀f {z : ℂ} (hz : z ∈ S) : g₀ z = f z :=
     (hF₀g₀.fst_eq_snd hz).symm.trans (hF₀U z (hSU hz))
   -- `g₀` inside the circle of radius `a'`, and `f` outside
   let g : ℂ → M := fun z ↦ if ‖z‖ ≤ a' then g₀ z else f z
   have hgf {z : ℂ} (h₁ : a' ≤ ‖z‖) : g z = f z := by
     by_cases h : ‖z‖ ≤ a'
-    · exact (ite_eq_left h).trans (hg₀f ⟨h₁, h.trans ha'1.le⟩)
+    · exact (ite_eq_left h).trans (hg₀f (mem_closedAnnulus.2 ⟨h₁, h.trans ha'1.le⟩))
     · exact ite_eq_right h
   have hgg₀ {z : ℂ} (h₁ : ‖z‖ < 1) : g z = g₀ z := by
     by_cases h : ‖z‖ ≤ a'
     · exact ite_eq_left h
-    · rw [hgf (not_le.1 h).le, hg₀f ⟨(not_le.1 h).le, h₁.le⟩]
+    · rw [hgf (not_le.1 h).le, hg₀f (mem_closedAnnulus.2 ⟨(not_le.1 h).le, h₁.le⟩)]
   refine ⟨g, fun z hz ↦ ContMDiffAt.contMDiffWithinAt ?_, fun z h₁ _ ↦ hgf h₁⟩
   by_cases h : ‖z‖ < 1
   · exact (hg₀ z).congr_of_eventuallyEq <| Filter.eventually_of_mem
@@ -100,7 +100,6 @@ theorem ContMDiffOn.exists_contMDiffOn_ball_eq_of_nullhomotopic {n : ℕ∞} {a 
   · have hzV : (annulus ℂ a' b : Set ℂ) ∈ 𝓝 z :=
       (annulus ℂ a' b).isOpen.mem_nhds
         (mem_annulus.2 ⟨by linarith [not_lt.1 h], mem_ball_zero_iff.1 hz⟩)
-    exact (hf.contMDiffAt (Filter.mem_of_superset hzV fun w hw ↦
-      mem_annulus.2 ⟨by linarith [(mem_annulus.1 hw).1], (mem_annulus.1 hw).2⟩)
+    exact (hf.contMDiffAt (Filter.mem_of_superset hzV (annulus_mono haa'.le le_rfl))
       ).congr_of_eventuallyEq <| Filter.eventually_of_mem hzV fun w hw ↦
         hgf (mem_annulus.1 hw).1.le
