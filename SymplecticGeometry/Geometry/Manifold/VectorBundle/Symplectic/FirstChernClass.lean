@@ -46,7 +46,7 @@ variable {EB HB : Type*} {M : Type} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
   [TopologicalSpace HB] {I : ModelWithCorners ℝ EB HB}
   [TopologicalSpace M] [ChartedSpace HB M]
   {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
-  {V : M → Type*} [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)]
+  {V : M → Type} [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)]
   [∀ x, TopologicalSpace (V x)] [∀ x, IsTopologicalAddGroup (V x)]
   [∀ x, ContinuousSMul ℝ (V x)] [TopologicalSpace (TotalSpace F V)]
   [FiberBundle F V] [VectorBundle ℝ F V]
@@ -75,7 +75,7 @@ structure `J` along an isomorphism `Φ : V ≃ V₂` of vector bundles, whose ma
 `Cⁿ`, gives a complex bundle with the same first Chern class as `J`. -/
 theorem firstChernClass_pushforward
     {F₂ : Type*} [NormedAddCommGroup F₂] [NormedSpace ℝ F₂] [FiniteDimensional ℝ F₂]
-    {V₂ : M → Type*}
+    {V₂ : M → Type}
     [∀ x, AddCommGroup (V₂ x)] [∀ x, Module ℝ (V₂ x)] [∀ x, TopologicalSpace (V₂ x)]
     [∀ x, IsTopologicalAddGroup (V₂ x)] [∀ x, ContinuousSMul ℝ (V₂ x)]
     [TopologicalSpace (TotalSpace F₂ V₂)] [FiberBundle F₂ V₂] [VectorBundle ℝ F₂ V₂]

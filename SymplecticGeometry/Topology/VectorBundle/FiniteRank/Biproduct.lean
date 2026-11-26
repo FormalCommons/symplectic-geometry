@@ -5,23 +5,20 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Topology.Algebra.Module.Determinant
 public import TauCeti.CategoryTheory.GrothendieckGroup.Split
 public import TauCeti.Topology.VectorBundle.FiniteRank.Biproduct
 public import TauCeti.Topology.VectorBundle.FiniteRank.Pullback
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.SMul
-import SymplecticGeometry.Topology.Algebra.Module.Determinant
 
 /-!
 # Whitney sums of finite-rank cores: charts, rotations and classes
 
 Tau Ceti's `TauCeti.FiniteRankBundleCore.whitneySum A D` has the concatenated coordinates
 `Fin (A.rank + D.rank) → 𝕜`, split into the two blocks by `TauCeti.splitCoords`. This file
-computes chart expressions in charts of Whitney sums, and the determinants of the transitions of
-a Whitney sum. It also builds the rotations of a sum `A ⊕ A` of a core with itself, as
-automorphisms whose angle varies continuously along the base, from the quarter turn
-`(v, w) ↦ (-w, v)` and the multiplication of morphisms by scalar functions
+computes chart expressions in charts of Whitney sums. It also builds the rotations of a sum
+`A ⊕ A` of a core with itself, as automorphisms whose angle varies continuously along the base,
+from the quarter turn `(v, w) ↦ (-w, v)` and the multiplication of morphisms by scalar functions
 (`TauCeti.FiniteRankBundleCore.instModuleContinuousMapHom`), and records that the class of a
 Whitney sum in the split Grothendieck group is the sum of the classes.
 
@@ -30,9 +27,6 @@ Whitney sum in the split Grothendieck group is the sum of the classes.
 * `TauCeti.FiniteRankBundleCore.inChartCoordinates_whitneySum_prodMap`: in charts of Whitney
   sums, the chart expression of a block-diagonal map is the block-diagonal map of the chart
   expressions of its blocks;
-* `TauCeti.FiniteRankBundleCore.det_coordChange_whitneySum`: the transitions of a Whitney sum
-  are block diagonal, so their determinants are the products of the determinants of the
-  transitions of the summands;
 * `TauCeti.FiniteRankBundleCore.whitneyQuarterTurn A`: the endomorphism `(v, w) ↦ (-w, v)` of
   `A ⊕ A`, whose square is `-𝟙`;
 * `TauCeti.FiniteRankBundleCore.whitneyRotation A c s h`: for continuous scalar functions `c`, `s`
@@ -84,15 +78,6 @@ theorem inChartCoordinates_whitneySum_prodMap
   dsimp +instances only [whitneySum]
   ext v : 1
   simp
-
-/-- The transition maps of a Whitney sum are block diagonal, so their determinants are the
-products of the determinants of the transition maps of the two summands. -/
-@[simp]
-theorem det_coordChange_whitneySum (A D : FiniteRankBundleCore 𝕜 B) (i j x : B) :
-    ((whitneySum A D).core.coordChange i j x).det =
-      (A.core.coordChange i j x).det * (D.core.coordChange i j x).det :=
-  ContinuousLinearMap.det_eq_det_mul_det_of_splitCoords _ _ _
-    (coordChange_whitneySum_splitCoords_symm A D i j x)
 
 /-! ### Rotations of `A ⊕ A` -/
 
