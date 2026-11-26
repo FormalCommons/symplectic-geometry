@@ -502,14 +502,16 @@ containing `ι '' closedBall 0 1`:
   sense, there are a `C^n` function `ρ : M → ℝ`, `ρ ≥ 0`, and an open `V ⊇ ι '' K` such
   that on `V` the function `ρ` vanishes exactly on `range ι` and is
   strictly plurisubharmonic, and its critical Hessian at `ι y`, `y ∈ K`, is
-  positive off the tangent image of `ι` at `y`. The proof is that of
-  `exists_contMDiff_isManifoldStrictlyPlurisubharmonicAt_of_isClosed_range`,
-  with the squared normal coordinates of slice charts
-  (`Manifold.IsSmoothEmbedding.exists_contMDiffOn_criticalHessian_pos`)
-  in place of adapted charts, which need half the dimension, and finitely
-  many of them, which compactness of `K` gives, glued by bump functions
-  instead of a partition of unity. A refactor that derives the
-  existing theorem from the new one is an issue of its own.
+  positive off the tangent image of `ι` at `y`. It glues the squared
+  normal coordinates of slice charts
+  (`Manifold.IsSmoothEmbedding.exists_contMDiffOn_criticalHessian_pos`),
+  finitely many of them, which compactness of `K` gives, by bump
+  functions. The closed-range form,
+  `Manifold.IsSmoothEmbedding.exists_contMDiff_isManifoldStrictlyPlurisubharmonicAt_of_isClosed_range`
+  (`M` also σ-compact, `range ι` closed, all tangent images totally real
+  in the weak sense), glues the same local functions by a partition of
+  unity; `TauCeti.IsTotallyRealEmbedding.exists_contMDiff_isManifoldStrictlyPlurisubharmonicAt_of_isClosed_range`
+  is its case of a totally real embedding.
 - `Surround/Attached.lean` (issue 14b): `IsJOrthogonallyAttached` and its
   API: `IsJOrthogonallyAttached.image_closedBall_inter` (the disc meets
   `{φ ≤ 0}` exactly in its boundary sphere),

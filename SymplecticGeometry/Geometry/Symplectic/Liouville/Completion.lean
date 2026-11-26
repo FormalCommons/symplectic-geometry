@@ -77,6 +77,9 @@ Ceti's results on the symplectization
 ## Main results
 
 * `completionEnd_zero`, `completionEnd_eq_toCompletion`: the end is attached along `∂W` by `Φ`.
+* `completionEnd_eq_toCompletion_iff`: on `(-ε, ∞) × ∂W`, the end meets `W` exactly in
+  `(-ε, 0] × ∂W`, where it is `Φ`.
+* `isCompact_completionEnd_image_Icc`: the image of `[a, b] × ∂W` is compact for `a > -ε`.
 * `mpullback_toCompletion_completionForm`, `mpullback_completionEnd_completionForm`: `ω̂` is `σ`
   on `W` and `-d(e^s α)` on `(-ε, ∞) × ∂W`.
 * `mpullback_toCompletion_completionPrimitive`, `mpullback_completionEnd_completionPrimitive`:
@@ -200,6 +203,16 @@ theorem collarFlow_mem_interior (h : IsStrongFilling σ U Y) {s : ℝ}
     (fun _ hy ↦ h.isOutwardPointingField.isOutwardPointing hy)
     (nhdsWithin_le_nhds (Filter.mem_of_superset (Ioo_mem_nhds hs.1 hs.2) Ioo_subset_Ioc_self))
 
+/-- The collar map sends `{0} × ∂W` to the boundary of `W`, so a point `q` whose image is an
+interior point of `W` has `q.1 ≠ 0`. -/
+theorem fst_ne_zero_of_collarFlow_mem_interior (h : IsStrongFilling σ U Y)
+    {q : ℝ × (𝓡∂ (n + 1)).boundary W} (hq : h.collarFlow q ∈ (𝓡∂ (n + 1)).interior W) :
+    q.1 ≠ 0 := by
+  obtain ⟨s, x⟩ := q
+  rintro (rfl : s = 0)
+  rw [collarFlow_zero] at hq
+  exact Set.disjoint_left.1 (𝓡∂ (n + 1)).disjoint_interior_boundary hq x.property
+
 /-! ### The completion as a manifold -/
 
 /-- The **completion** `Ŵ` of a strong filling: `W` with the end `[0, ∞) × ∂W` attached along
@@ -308,6 +321,13 @@ theorem contMDiffOn_completionEnd :
       (Ioi (-h.collarWidth) ×ˢ univ) :=
   h.isLocalDiffeomorphOn_completionEnd.contMDiffOn
 
+/-- For `a > -ε`, the image of `[a, b] × ∂W` under the end map is compact. -/
+theorem isCompact_completionEnd_image_Icc {a b : ℝ} (ha : -h.collarWidth < a) :
+    IsCompact (h.completionEnd '' (Icc a b ×ˢ univ)) :=
+  (isCompact_Icc.prod isCompact_univ).image_of_continuousOn
+    (h.contMDiffOn_completionEnd.continuousOn.mono
+      (prod_mono (fun _ hs ↦ ha.trans_le hs.1) subset_rfl))
+
 /-- On `(-ε, ∞) × ∂W`, the end map is injective. -/
 theorem injOn_completionEnd : InjOn h.completionEnd (Ioi (-h.collarWidth) ×ˢ univ) := by
   rintro ⟨s, x⟩ ⟨hs, -⟩ ⟨s', x'⟩ ⟨hs', -⟩ heq
@@ -340,23 +360,16 @@ theorem disjoint_range_toCompletion_completionEnd_image :
   exact ⟨(s / h.collarWidth, x), ⟨div_pos hs h.collarWidth_pos, trivial⟩,
     (h.completionEnd_def (s, x)).symm⟩
 
-/-- A point of the end `(-ε, ∞) × ∂W` that is the image of an interior point `p` of `W` has
-`s ∈ (-ε, 0)`, and `p = Φ (s, x)`. -/
-private theorem mem_Ioo_and_eq_collarFlow {p : W} (hp : p ∈ (𝓡∂ (n + 1)).interior W)
-    {q : ℝ × (𝓡∂ (n + 1)).boundary W} (hq : q ∈ Ioi (-h.collarWidth) ×ˢ univ)
-    (hpq : h.completionEnd q = h.toCompletion p) :
-    q ∈ Ioo (-h.collarWidth) 0 ×ˢ univ ∧ p = h.collarFlow q := by
-  obtain ⟨s, x⟩ := q
-  rcases lt_or_ge 0 s with hs | hs
-  · exact absurd ⟨(s, x), ⟨hs, trivial⟩, hpq⟩
-      (Set.disjoint_left.1 h.disjoint_range_toCompletion_completionEnd_image ⟨p, rfl⟩)
-  have hpΦ := h.injective_toCompletion ((h.completionEnd_eq_toCompletion ⟨hq.1, hs⟩ x).symm.trans
-    hpq)
-  rcases hs.lt_or_eq with hs | rfl
-  · exact ⟨⟨⟨hq.1, hs⟩, trivial⟩, hpΦ.symm⟩
-  · rw [collarFlow_zero] at hpΦ
-    exact absurd (hpΦ ▸ x.property) (Set.disjoint_left.1
-      (𝓡∂ (n + 1)).disjoint_interior_boundary hp)
+/-- For `q.1 > -ε`, the point `q` of the end is the point `p` of `W` exactly when `q.1 ≤ 0`
+and `p = Φ q`. -/
+theorem completionEnd_eq_toCompletion_iff {q : ℝ × (𝓡∂ (n + 1)).boundary W}
+    (hq : -h.collarWidth < q.1) {p : W} :
+    h.completionEnd q = h.toCompletion p ↔ q.1 ≤ 0 ∧ p = h.collarFlow q := by
+  refine ⟨fun hpq ↦ ?_, fun ⟨hq0, hp⟩ ↦ hp ▸ h.completionEnd_eq_toCompletion ⟨hq, hq0⟩ q.2⟩
+  have hq0 : q.1 ≤ 0 := le_of_not_gt fun hq0 ↦ disjoint_left.1
+    h.disjoint_range_toCompletion_completionEnd_image ⟨p, rfl⟩ ⟨q, ⟨hq0, trivial⟩, hpq⟩
+  exact ⟨hq0, h.injective_toCompletion
+    (hpq.symm.trans (h.completionEnd_eq_toCompletion ⟨hq, hq0⟩ q.2))⟩
 
 /-! ### The collar in the completion -/
 
@@ -426,7 +439,9 @@ private theorem mpullback_toCompletion_glue_of_mem_interior
         h.toCompletion αE αW) p = αW p := by
   by_cases hz : h.toCompletion p ∈ h.completionEnd '' (Ioi (-h.collarWidth) ×ˢ univ)
   · obtain ⟨q, hq, hpq⟩ := hz
-    obtain ⟨hq', rfl⟩ := h.mem_Ioo_and_eq_collarFlow hp hq hpq
+    obtain ⟨hq0, rfl⟩ := (h.completionEnd_eq_toCompletion_iff hq.1).1 hpq
+    have hq' : q ∈ Ioo (-h.collarWidth) 0 ×ˢ univ :=
+      ⟨⟨hq.1, hq0.lt_of_ne (h.fst_ne_zero_of_collarFlow_mem_interior hp)⟩, trivial⟩
     refine (mpullback_apply_eq_mpullback_apply_iff (h.surjective_mfderiv_collarFlow hq')).1 ?_
     rw [← mpullback_comp_at (h.mdifferentiableAt_collarFlow hq')
       ((h.contMDiff_toCompletion _).mdifferentiableAt (by simp)),
@@ -605,7 +620,9 @@ private theorem mfderiv_toCompletion_apply_of_mem_interior {p : W}
       h.completionField (h.toCompletion p) := by
   by_cases hz : ∃ q ∈ Ioi (-h.collarWidth) ×ˢ univ, h.completionEnd q = h.toCompletion p
   · obtain ⟨q, hq, hpq⟩ := hz
-    obtain ⟨hq', rfl⟩ := h.mem_Ioo_and_eq_collarFlow hp hq hpq
+    obtain ⟨hq0, rfl⟩ := (h.completionEnd_eq_toCompletion_iff hq.1).1 hpq
+    have hq' : q ∈ Ioo (-h.collarWidth) 0 ×ˢ univ :=
+      ⟨⟨hq.1, hq0.lt_of_ne (h.fst_ne_zero_of_collarFlow_mem_interior hp)⟩, trivial⟩
     have key := h.mfderiv_completionEnd_apply hq
     rw [hpq, h.mfderiv_completionEnd_eq_comp hq', ContinuousLinearMap.comp_apply,
       h.mfderiv_collarFlow_apply hq'] at key
