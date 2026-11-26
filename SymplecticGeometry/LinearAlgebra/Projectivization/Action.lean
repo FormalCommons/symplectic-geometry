@@ -16,8 +16,8 @@ Algebraic facts about projective spaces of coordinate vector spaces that complem
 
 ## Main results
 
-* `Matrix.SpecialLinearGroup.toGL_smul`: `SL_n(K)` acts on `ℙ K (n → K)` through its image in
-  `GL_n(K)`.
+* `Matrix.SpecialLinearGroup.toGL_smul_projectivization`: `SL_n(K)` acts on `ℙ K (n → K)`
+  through its image in `GL_n(K)`.
 * `Projectivization.infinite_projectiveLine`: the projective line `ℙ K (Fin 2 → K)` over an
   infinite division ring is infinite.
 -/
@@ -31,8 +31,8 @@ namespace Matrix.SpecialLinearGroup
 /-- A special linear matrix acts on the projective space `ℙ K (n → K)` as its image in the general
 linear group does. -/
 @[simp]
-theorem toGL_smul {n K : Type*} [Fintype n] [DecidableEq n] [Field K] (g : SpecialLinearGroup n K)
-    (x : ℙ K (n → K)) : toGL g • x = g • x := by
+theorem toGL_smul_projectivization {n K : Type*} [Fintype n] [DecidableEq n] [Field K]
+    (g : SpecialLinearGroup n K) (x : ℙ K (n → K)) : toGL g • x = g • x := by
   induction x using Projectivization.ind with
   | h v hv => simp [Projectivization.smul_mk, SpecialLinearGroup.smul_def, Units.smul_def]
 
