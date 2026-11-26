@@ -98,6 +98,8 @@ theorem mfderiv_prodFiberIntegrand_eq_fderiv_smul
       (contMDiffAt_id.prodMk contMDiffAt_const)
   have hd : DifferentiableAt ℝ (fun z ↦ c z y) b :=
     (h.mdifferentiableAt one_ne_zero).differentiableAt
+  -- `ν y` read as an alternating map of vectors of `E'`, so that it is a fixed vector of one
+  -- normed space as `b'` varies; `dsimp only` below removes the `show` of the statement.
   let η : E' [⋀^Fin m]→L[ℝ] ℝ := ν y
   have heq : (fun b' : U ↦ show E' [⋀^Fin m]→L[ℝ] ℝ from prodFiberIntegrand α b' u y) =
       (fun z ↦ c z y • η) ∘ Subtype.val :=
