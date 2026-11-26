@@ -9,6 +9,7 @@ public import SymplecticGeometry.AlgebraicTopology.Cohomology.RealImage
 public import SymplecticGeometry.Geometry.Manifold.DeRham.FundamentalClass
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.RealChernClass
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.ChernWeil
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.RealChernClass
 public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
 
 /-!
@@ -40,11 +41,24 @@ of `M`, and take the fundamental class of the homological orientation of `-o`.
   orientation negates the Chern number (`SymplecticGeometry.Bundle.chernNumber_neg_orientation`),
   so this value is minus the same Chern number.
 
+The identity moves along a smooth map `f : B' → B` between manifolds of any dimension. The sum
+`deRhamHom c₁ + e_ℝ` is natural: the real first Chern class pulls back by
+`SymplecticGeometry.Bundle.realFirstChernClass_circleFiber_pullback`, `deRhamHom` commutes with
+pull-backs by `TauCeti.deRhamHom_map`, the Euler class by `TauCeti.complexEulerClass_pullback`,
+and the real image by `TopCat.singularCohomologyRealImage_naturality`. So the identity for `V`
+gives it for `f *ᵖ V`, and conversely when `f^*` is injective on `H²(B; ℝ)`.
+
 ## Main results
 
 * `SymplecticGeometry.Bundle.deRhamHom_realFirstChernClass_eq_neg_of_connectedSpace`: over a
   closed connected orientable surface, `deRhamHom` of the real first Chern class of the unitary
   frame bundle is minus the real image of the Euler class.
+* `SymplecticGeometry.Bundle.deRhamHom_realFirstChernClass_add_realImage_pullback`: the sum of the
+  two classes for `f *ᵖ V` is the pull-back along `f` of the sum for `V`.
+* `SymplecticGeometry.Bundle.deRhamHom_realFirstChernClass_pullback_eq_neg`: the identity for `V`
+  implies it for `f *ᵖ V`.
+* `SymplecticGeometry.Bundle.deRhamHom_realFirstChernClass_eq_neg_of_pullback`: if `f^*` is
+  injective in degree two, the identity for `f *ᵖ V` implies it for `V`.
 
 ## References
 
@@ -68,6 +82,10 @@ namespace Bundle
 
 attribute [local instance] finrank_real_complex_fact'
 
+open scoped VectorBundle.ComplexToReal
+
+section Surface
+
 variable {M : Type} [TopologicalSpace M] [ChartedSpace (EuclideanSpace ℝ (Fin 2)) M]
   [IsManifold (𝓡 2) ∞ M] [T2Space M] [CompactSpace M]
   {F : Type} [NormedAddCommGroup F] [NormedSpace ℝ F] [NormedSpace ℂ F] [IsScalarTower ℝ ℂ F]
@@ -76,8 +94,6 @@ variable {M : Type} [TopologicalSpace M] [ChartedSpace (EuclideanSpace ℝ (Fin 
   [∀ x, IsScalarTower ℝ ℂ (V x)] [∀ x, TopologicalSpace (V x)]
   [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)]
   [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle ℂ F V]
-
-open scoped VectorBundle.ComplexToReal
 
 variable [ContMDiffVectorBundle ∞ F V (𝓡 2)] (g : ContMDiffRiemannianMetric (𝓡 2) ∞ F V)
   (hI : ∀ x (v w : V x), g.inner x (Complex.I • v) (Complex.I • w) = g.inner x v w)
@@ -126,6 +142,128 @@ theorem deRhamHom_realFirstChernClass_eq_neg_of_connectedSpace [ConnectedSpace M
     Manifold.Orientation.toHomologicalOrientation_neg, chernNumber_neg_orientation,
     Int.cast_neg, neg_neg, chernNumber_eq_integral_curvature g hI o hα]
   exact integralTopForm_smul o _ _
+
+end Surface
+
+section Pullback
+
+variable {EB HB B : Type} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [TopologicalSpace HB]
+  {IB : ModelWithCorners ℝ EB HB} [TopologicalSpace B] [ChartedSpace HB B] [IsManifold IB ∞ B]
+  [IB.Boundaryless] [FiniteDimensional ℝ EB] [T2Space B] [SigmaCompactSpace B]
+  {EB' HB' B' : Type} [NormedAddCommGroup EB'] [NormedSpace ℝ EB'] [TopologicalSpace HB']
+  {IB' : ModelWithCorners ℝ EB' HB'} [TopologicalSpace B'] [ChartedSpace HB' B']
+  [IsManifold IB' ∞ B'] [IB'.Boundaryless] [FiniteDimensional ℝ EB'] [T2Space B']
+  [SigmaCompactSpace B']
+  {F : Type} [NormedAddCommGroup F] [NormedSpace ℝ F] [NormedSpace ℂ F] [IsScalarTower ℝ ℂ F]
+  [Fact (finrank ℂ F = 1)]
+  {V : B → Type} [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)] [∀ x, Module ℂ (V x)]
+  [∀ x, IsScalarTower ℝ ℂ (V x)] [∀ x, TopologicalSpace (V x)]
+  [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)]
+  [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle ℂ F V]
+  [ContMDiffVectorBundle ∞ F V IB] (g : ContMDiffRiemannianMetric IB ∞ F V)
+  (hI : ∀ x (v w : V x), g.inner x (Complex.I • v) (Complex.I • w) = g.inner x v w)
+  (f : C(B', B)) (hf : ContMDiff IB' IB ∞ f)
+  (g'' : ContMDiffRiemannianMetric IB' ∞ F ((⇑f) *ᵖ V))
+  (hI'' : ∀ x (v w : ((⇑f) *ᵖ V) x),
+    g''.inner x (Complex.I • v) (Complex.I • w) = g''.inner x v w)
+
+/-- **The Chern–Weil identity in degree two is natural under pull-back.** Let `V` be a smooth
+complex line bundle over `B` with a smooth Hermitian metric `g`, let `f : B' → B` be smooth, and
+let `g''` be any smooth Hermitian metric on `f *ᵖ V`. The class in `H²(B'; ℝ)` that is the sum of
+the de Rham image of the real first Chern class of the unitary frame bundle of `f *ᵖ V` and of
+the real image of the Euler class of `f *ᵖ V` is the pull-back along `f` of the same sum for
+`V`. -/
+theorem deRhamHom_realFirstChernClass_add_realImage_pullback :
+    haveI := _root_.Bundle.Pullback.contMDiffVectorBundle (F := F) (E := V) hf
+    (letI : RiemannianBundle ((⇑f) *ᵖ V) := ⟨g''.toRiemannianMetric⟩
+     letI : ∀ x, InnerProductSpace ℂ (((⇑f) *ᵖ V) x) := g''.complexInnerProductSpace hI''
+     letI : IsContinuousRiemannianBundle F ((⇑f) *ᵖ V) :=
+       instIsContinuousRiemannianBundle g''.toContinuousRiemannianMetric
+     haveI : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F ((⇑f) *ᵖ V) ℂ) IB' (𝓡 1) :=
+       contMDiffFiberBundle_circleFiber g'' hI''
+     HAdd.hAdd (α := (TopCat.of B').singularCohomology (ModuleCat.of ℝ ℝ) ℝ (ModuleCat.of ℝ ℝ) 2)
+      (β := (TopCat.of B').singularCohomology (ModuleCat.of ℝ ℝ) ℝ (ModuleCat.of ℝ ℝ) 2)
+      (deRhamHom IB' B' 2 (realFirstChernClass IB' (Fiber ℂ F ((⇑f) *ᵖ V) ℂ)))
+      (((TopCat.of B').singularCohomologyRealImage 2).hom
+        (complexEulerClass (r := 0) F ((⇑f) *ᵖ V) Fact.out))) =
+    TopCat.singularCohomologyMap (TopCat.ofHom f) 2
+    (letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+     letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+     letI : IsContinuousRiemannianBundle F V :=
+       instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+     haveI : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) IB (𝓡 1) :=
+       contMDiffFiberBundle_circleFiber g hI
+     HAdd.hAdd (α := (TopCat.of B).singularCohomology (ModuleCat.of ℝ ℝ) ℝ (ModuleCat.of ℝ ℝ) 2)
+      (β := (TopCat.of B).singularCohomology (ModuleCat.of ℝ ℝ) ℝ (ModuleCat.of ℝ ℝ) 2)
+      (deRhamHom IB B 2 (realFirstChernClass IB (Fiber ℂ F V ℂ)))
+      (((TopCat.of B).singularCohomologyRealImage 2).hom
+        (complexEulerClass (r := 0) F V Fact.out))) := by
+  rw [realFirstChernClass_circleFiber_pullback g hI f hf g'' hI'', deRhamHom_map,
+    complexEulerClass_pullback, TopCat.singularCohomologyRealImage_naturality_apply]
+  exact (map_add _ _ _).symm
+
+
+/-- **The Chern–Weil identity in degree two passes to pull-backs.** If the de Rham image of the
+real first Chern class of the unitary frame bundle of `V` is minus the real image of the Euler
+class of `V`, then the same holds for `f *ᵖ V` along a smooth map `f : B' → B`, with any smooth
+Hermitian metric on `f *ᵖ V`. -/
+theorem deRhamHom_realFirstChernClass_pullback_eq_neg
+    (h : letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+      letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+      letI : IsContinuousRiemannianBundle F V :=
+        instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+      haveI : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) IB (𝓡 1) :=
+        contMDiffFiberBundle_circleFiber g hI
+      deRhamHom IB B 2 (realFirstChernClass IB (Fiber ℂ F V ℂ)) =
+        -((TopCat.of B).singularCohomologyRealImage 2).hom
+          (complexEulerClass (r := 0) F V Fact.out)) :
+    haveI := _root_.Bundle.Pullback.contMDiffVectorBundle (F := F) (E := V) hf
+    letI : RiemannianBundle ((⇑f) *ᵖ V) := ⟨g''.toRiemannianMetric⟩
+    letI : ∀ x, InnerProductSpace ℂ (((⇑f) *ᵖ V) x) := g''.complexInnerProductSpace hI''
+    letI : IsContinuousRiemannianBundle F ((⇑f) *ᵖ V) :=
+      instIsContinuousRiemannianBundle g''.toContinuousRiemannianMetric
+    haveI : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F ((⇑f) *ᵖ V) ℂ) IB' (𝓡 1) :=
+      contMDiffFiberBundle_circleFiber g'' hI''
+    deRhamHom IB' B' 2 (realFirstChernClass IB' (Fiber ℂ F ((⇑f) *ᵖ V) ℂ)) =
+      -((TopCat.of B').singularCohomologyRealImage 2).hom
+        (complexEulerClass (r := 0) F ((⇑f) *ᵖ V) Fact.out) := by
+  refine eq_neg_of_add_eq_zero_left ?_
+  rw [deRhamHom_realFirstChernClass_add_realImage_pullback g hI f hf g'' hI'', h]
+  exact (congrArg _ (neg_add_cancel _)).trans (map_zero _)
+
+/-- **The Chern–Weil identity in degree two descends along an injective pull-back.** Let
+`f : B' → B` be smooth, and suppose that the pull-back `f^* : H²(B; ℝ) → H²(B'; ℝ)` is injective.
+If the de Rham image of the real first Chern class of the unitary frame bundle of `f *ᵖ V` (for
+some smooth Hermitian metric on it) is minus the real image of the Euler class of `f *ᵖ V`, then
+the same holds for `V`. -/
+theorem deRhamHom_realFirstChernClass_eq_neg_of_pullback
+    (hinj : Function.Injective
+      (TopCat.singularCohomologyMap (R := ModuleCat.of ℝ ℝ) (k := ℝ) (M := ModuleCat.of ℝ ℝ)
+        (TopCat.ofHom f) 2))
+    (h : haveI := _root_.Bundle.Pullback.contMDiffVectorBundle (F := F) (E := V) hf
+      letI : RiemannianBundle ((⇑f) *ᵖ V) := ⟨g''.toRiemannianMetric⟩
+      letI : ∀ x, InnerProductSpace ℂ (((⇑f) *ᵖ V) x) := g''.complexInnerProductSpace hI''
+      letI : IsContinuousRiemannianBundle F ((⇑f) *ᵖ V) :=
+        instIsContinuousRiemannianBundle g''.toContinuousRiemannianMetric
+      haveI : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F ((⇑f) *ᵖ V) ℂ) IB' (𝓡 1) :=
+        contMDiffFiberBundle_circleFiber g'' hI''
+      deRhamHom IB' B' 2 (realFirstChernClass IB' (Fiber ℂ F ((⇑f) *ᵖ V) ℂ)) =
+        -((TopCat.of B').singularCohomologyRealImage 2).hom
+          (complexEulerClass (r := 0) F ((⇑f) *ᵖ V) Fact.out)) :
+    letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+    letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+    letI : IsContinuousRiemannianBundle F V :=
+      instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+    haveI : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) IB (𝓡 1) :=
+      contMDiffFiberBundle_circleFiber g hI
+    deRhamHom IB B 2 (realFirstChernClass IB (Fiber ℂ F V ℂ)) =
+      -((TopCat.of B).singularCohomologyRealImage 2).hom
+        (complexEulerClass (r := 0) F V Fact.out) := by
+  refine eq_neg_of_add_eq_zero_left (hinj ?_)
+  rw [← deRhamHom_realFirstChernClass_add_realImage_pullback g hI f hf g'' hI'', map_zero]
+  rw [h]
+  exact neg_add_cancel _
+end Pullback
 
 end Bundle
 
