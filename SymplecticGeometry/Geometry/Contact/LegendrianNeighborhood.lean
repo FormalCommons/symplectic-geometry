@@ -34,8 +34,8 @@ McDuff–Salamon, Exercise 3.5.22(i), which later neighbourhood theorems can use
 
 ## A slice through `f(L)`
 
-The first step builds a hypersurface through `f(L)`, tangent to `ker α` along `f(L)` and
-transverse to the Reeb field near it, parametrized by the cotangent bundle `T^* L`
+The first step of that route builds a hypersurface through `f(L)`, tangent to `ker α` along
+`f(L)` and transverse to the Reeb field near it, parametrized by the cotangent bundle `T^* L`
 (`TauCeti.IsLegendrianEmbedding.exists_contactSlice`).
 
 The construction:
