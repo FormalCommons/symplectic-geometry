@@ -9,6 +9,7 @@ public import Mathlib.Geometry.Manifold.Instances.Real
 public import TauCeti.Geometry.Convex.FullSimplex
 public import TauCeti.Geometry.Manifold.Orientation.Euclidean
 public import TauCeti.Geometry.Manifold.Orientation.Preserving
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.Orientation.Preserving
 import TauCeti.Geometry.Manifold.Orientation.Chart
 import TauCeti.Topology.Algebra.Module.Determinant
@@ -84,7 +85,7 @@ theorem exists_isOpenEmbedding_isOrientationPreservingAt_fullSimplex
     ((Homeomorph.smulOfNeZero ε hε.ne').trans (Homeomorph.addLeft (φ x)))
   refine ⟨⟨Metric.ball p₀ R, Metric.isOpen_ball⟩, φ.symm ∘ A, hsub, fun y hy ↦ ?_, ?_,
     fun y hy ↦ ?_, ⟨p₀, hp₀, by simpa [A] using φ.left_inv hxφ⟩⟩
-  · exact ((φ.symm.contMDiffOn.contMDiffAt (φ.open_target.mem_nhds (hA y hy))).comp y
+  · exact ((φ.symm.contMDiffAt (hA y hy)).comp y
       (contDiff_const.add
         ((contDiff_id.sub contDiff_const).const_smul ε)).contMDiff.contMDiffAt).contMDiffWithinAt
   · -- On the ball, `φ.symm ∘ A` is the inverse of `φ` after the affine homeomorphism `T`.

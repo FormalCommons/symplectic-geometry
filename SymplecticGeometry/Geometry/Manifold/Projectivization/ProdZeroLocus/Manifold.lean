@@ -11,6 +11,7 @@ public import TauCeti.Analysis.Calculus.ImplicitFunction.Basic
 public import TauCeti.Geometry.Manifold.Instances.Projectivization
 public import TauCeti.Geometry.Manifold.LinearSlice
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Level
 
 /-!
 # Regular bihomogeneous zero sets in a product of two projective spaces are complex manifolds
@@ -58,11 +59,24 @@ vanishes. The atlas of `s` is the one that these charts, restricted to `V`, indu
 * `SymplecticGeometry.isImmersionOfComplement_subtypeVal_complexProjectiveProdZeroLocus` and
   `SymplecticGeometry.isSmoothEmbedding_subtypeVal_complexProjectiveProdZeroLocus`: its inclusion
   is an analytic immersion with complement `ι → ℂ` and an analytic embedding.
+* `SymplecticGeometry.surjective_mfderiv_prodChartEquations_affineChart_iff`: the manifold
+  derivative of the chart equations, read in the product of two affine charts, is surjective at a
+  point of the zero set exactly when the cone Jacobian is.
+* `SymplecticGeometry.tangentRange_complexProjectiveProdZeroLocusEmbedding` and
+  `SymplecticGeometry.exact_mfderiv_subtypeVal_complexProjectiveProdZeroLocus`: the tangent space
+  of `s` at a point is the kernel of the differential of the chart equations there, so that the
+  differentials of the inclusion and of the chart equations form an exact sequence. Both follow
+  from `TauCeti.SmoothEmbedding.tangentRange_eq_ker_mfderiv`.
 
 The construction adapts Tau Ceti's `TauCeti.complexProjectiveZeroLocusSliceChart`,
 `TauCeti.complexProjectiveZeroLocusChartedSpace`, `TauCeti.isManifold_complexProjectiveZeroLocus`,
-`TauCeti.isSmoothEmbedding_subtypeVal_complexProjectiveZeroLocus` and
-`TauCeti.complexProjectiveZeroLocusEmbedding` (`Geometry/Manifold/Projectivization/ZeroLocus.lean`),
+`TauCeti.isSmoothEmbedding_subtypeVal_complexProjectiveZeroLocus`,
+`TauCeti.complexProjectiveZeroLocusEmbedding`,
+`TauCeti.tangentRange_complexProjectiveZeroLocusEmbedding` and
+`TauCeti.exact_mfderiv_subtypeVal_complexProjectiveZeroLocus`
+(`Geometry/Manifold/Projectivization/ZeroLocus.lean`), and
+`TauCeti.surjective_mfderiv_eval_dehomogenize_affineChart_iff`
+(`Geometry/Manifold/Projectivization/Polynomial.lean`),
 which treat one projective space, to the product of two, with the product of two standard affine
 charts in place of one. A bihomogeneous equation is not a global function on the product, so
 Tau Ceti's regular-level atlas does not apply directly; the slice charts are built in the affine
@@ -120,6 +134,44 @@ theorem surjective_fderiv_prodChartEquations_affineChart_iff_rep
     x.2.rep_ne_zero ((mem_affineOpen_iff i _).1 hi) ((mem_affineOpen_iff j _).1 hj)
     ((mem_complexProjectiveProdZeroLocus_iff_eval_rep hp₁ hp₂ x).1 hx)
   rwa [mk_rep, mk_rep] at h
+
+/-- At a point of the zero set of a bihomogeneous family in the product of the affine opens
+`affineOpen i` and `affineOpen j`, the manifold derivative of the chart equations read in the
+product of the two affine charts is surjective exactly when the cone Jacobian at the chosen
+representatives is. -/
+theorem surjective_mfderiv_prodChartEquations_affineChart_iff [Fintype ι]
+    (hp₁ : ∀ l, (p l).IsWeightedHomogeneous (Sum.elim 1 0) (d₁ l))
+    (hp₂ : ∀ l, (p l).IsWeightedHomogeneous (Sum.elim 0 1) (d₂ l))
+    (hx : x ∈ complexProjectiveProdZeroLocus p) (hi : x.1 ∈ affineOpen i)
+    (hj : x.2 ∈ affineOpen j) :
+    Function.Surjective (mfderiv (𝓘(ℂ, Fin m → ℂ).prod 𝓘(ℂ, Fin n → ℂ)) 𝓘(ℂ, ι → ℂ)
+      (fun y : ℙ ℂ (Fin (m + 1) → ℂ) × ℙ ℂ (Fin (n + 1) → ℂ) ↦
+        prodChartEquations i j p (affineChart i y.1, affineChart j y.2)) x) ↔
+      Function.Surjective (jacobiMatrixAt p (Sum.elim x.1.rep x.2.rep)).mulVec := by
+  -- The product of the two affine charts is a chart of the product, so its differential at `x`
+  -- is bijective, and the chain rule reduces the claim to the Fréchet derivative.
+  set e := (affineOpenPartialHomeomorph (K := ℂ) i).prod (affineOpenPartialHomeomorph (K := ℂ) j)
+  have he : e ∈ atlas (ModelProd (Fin m → ℂ) (Fin n → ℂ))
+      (ℙ ℂ (Fin (m + 1) → ℂ) × ℙ ℂ (Fin (n + 1) → ℂ)) :=
+    mem_image2_of_mem (affineOpenPartialHomeomorph_mem_atlas (𝕜 := ℂ) i)
+      (affineOpenPartialHomeomorph_mem_atlas (𝕜 := ℂ) j)
+  have hxe : x ∈ e.source := by simpa [e] using ⟨hi, hj⟩
+  have he' := mdifferentiable_of_mem_atlas (I := 𝓘(ℂ, Fin m → ℂ).prod 𝓘(ℂ, Fin n → ℂ)) he
+  have hg : MDifferentiableAt 𝓘(ℂ, (Fin m → ℂ) × (Fin n → ℂ)) 𝓘(ℂ, ι → ℂ)
+      (prodChartEquations i j p) (e x) :=
+    (hasStrictFDerivAt_prodChartEquations i j p _).differentiableAt.mdifferentiableAt
+  rw [modelWithCornersSelf_prod] at hg
+  have hfun : (fun y : ℙ ℂ (Fin (m + 1) → ℂ) × ℙ ℂ (Fin (n + 1) → ℂ) ↦
+      prodChartEquations i j p (affineChart i y.1, affineChart j y.2)) =
+      prodChartEquations i j p ∘ e := by
+    ext y
+    simp [e]
+  rw [hfun, mfderiv_comp x hg (he'.mdifferentiableAt hxe)]
+  refine (Function.Surjective.of_comp_iff _ (he'.mfderiv_bijective hxe).surjective).trans ?_
+  have hex : e x = (affineChart i x.1, affineChart j x.2) := by simp [e]
+  rw [hex, ← modelWithCornersSelf_prod]
+  exact isRegularPoint_iff.symm.trans <| isRegularPoint_iff_surjective_fderiv.trans
+    (surjective_fderiv_prodChartEquations_affineChart_iff_rep hp₁ hp₂ hx hi hj)
 
 namespace ComplexProjectiveProdZeroLocus
 
@@ -570,6 +622,57 @@ theorem coe_complexProjectiveProdZeroLocusEmbedding (r : ℕ∞ω) :
     letI := complexProjectiveProdZeroLocusChartedSpace hk hp₁ hp₂ hV hs hrank
     ⇑(complexProjectiveProdZeroLocusEmbedding hk hp₁ hp₂ hV hs hrank r) = Subtype.val :=
   (rfl)
+
+/-! ### The tangent space -/
+
+variable {r : ℕ∞ω}
+
+/-- **The tangent space of a regular part of a bihomogeneous zero set.** At a point `z` of `s`
+whose components lie in the standard affine opens `affineOpen i` and `affineOpen j`, the image of
+the differential of the inclusion into the product of the two projective spaces is the kernel of
+the differential of the chart equations `prodChartEquations i j p` read in the product of the two
+affine charts. -/
+theorem tangentRange_complexProjectiveProdZeroLocusEmbedding (hr : r ≠ 0) (z : s)
+    (hi : (z : ℙ ℂ (Fin (m + 1) → ℂ) × ℙ ℂ (Fin (n + 1) → ℂ)).1 ∈ affineOpen i)
+    (hj : (z : ℙ ℂ (Fin (m + 1) → ℂ) × ℙ ℂ (Fin (n + 1) → ℂ)).2 ∈ affineOpen j) :
+    letI := complexProjectiveProdZeroLocusChartedSpace hk hp₁ hp₂ hV hs hrank
+    (complexProjectiveProdZeroLocusEmbedding hk hp₁ hp₂ hV hs hrank r).tangentRange z hr =
+      (mfderiv (𝓘(ℂ, Fin m → ℂ).prod 𝓘(ℂ, Fin n → ℂ)) 𝓘(ℂ, ι → ℂ)
+        (fun y : ℙ ℂ (Fin (m + 1) → ℂ) × ℙ ℂ (Fin (n + 1) → ℂ) ↦
+          prodChartEquations i j p (affineChart i y.1, affineChart j y.2)) z).ker := by
+  let := complexProjectiveProdZeroLocusChartedSpace hk hp₁ hp₂ hV hs hrank
+  refine SmoothEmbedding.tangentRange_eq_ker_mfderiv (c := 0) _ z hr ?_
+    (isRegularPoint_iff.2 ((surjective_mfderiv_prodChartEquations_affineChart_iff hp₁ hp₂
+      (hs.subset z.property).1 hi hj).2 (hrank z z.property))) ?_
+  · -- The chart equations vanish on the part of `s` in the product of the two affine opens.
+    filter_upwards [continuous_subtypeVal.continuousAt.preimage_mem_nhds
+      (((isOpen_affineOpen i).prod (isOpen_affineOpen j)).mem_nhds ⟨hi, hj⟩)] with w hw
+    rw [coe_complexProjectiveProdZeroLocusEmbedding]
+    exact funext ((mem_complexProjectiveProdZeroLocus_iff_prodChartEquations hp₁ hp₂ hw.1
+      hw.2).1 (hs.subset w.property).1)
+  · simp only [Module.finrank_prod, Module.finrank_fintype_fun_eq_card, Fintype.card_fin]
+    omega
+
+/-- **The tangent sequence of a regular part of a bihomogeneous zero set is exact.** At a point
+`z` of `s` whose components lie in the standard affine opens `affineOpen i` and `affineOpen j`,
+the differentials of the inclusion into the product of the two projective spaces and of the chart
+equations `prodChartEquations i j p` read in the product of the two affine charts form an exact
+sequence `T_z s → T_z (ℙᵐ × ℙⁿ) → (ι → ℂ)`. -/
+theorem exact_mfderiv_subtypeVal_complexProjectiveProdZeroLocus (z : s)
+    (hi : (z : ℙ ℂ (Fin (m + 1) → ℂ) × ℙ ℂ (Fin (n + 1) → ℂ)).1 ∈ affineOpen i)
+    (hj : (z : ℙ ℂ (Fin (m + 1) → ℂ) × ℙ ℂ (Fin (n + 1) → ℂ)).2 ∈ affineOpen j) :
+    letI := complexProjectiveProdZeroLocusChartedSpace hk hp₁ hp₂ hV hs hrank
+    Function.Exact
+      (mfderiv 𝓘(ℂ, Fin k → ℂ) (𝓘(ℂ, Fin m → ℂ).prod 𝓘(ℂ, Fin n → ℂ))
+        (Subtype.val : s → ℙ ℂ (Fin (m + 1) → ℂ) × ℙ ℂ (Fin (n + 1) → ℂ)) z)
+      (mfderiv (𝓘(ℂ, Fin m → ℂ).prod 𝓘(ℂ, Fin n → ℂ)) 𝓘(ℂ, ι → ℂ)
+        (fun y : ℙ ℂ (Fin (m + 1) → ℂ) × ℙ ℂ (Fin (n + 1) → ℂ) ↦
+          prodChartEquations i j p (affineChart i y.1, affineChart j y.2)) z) :=
+  letI := complexProjectiveProdZeroLocusChartedSpace hk hp₁ hp₂ hV hs hrank
+  -- The tangent range of the bundled embedding is by definition the range of the differential of
+  -- its coercion, which is `Subtype.val`.
+  LinearMap.exact_iff.2 (tangentRange_complexProjectiveProdZeroLocusEmbedding hk hp₁ hp₂ hV hs
+    hrank (r := 1) one_ne_zero z hi hj).symm
 
 end Submanifold
 

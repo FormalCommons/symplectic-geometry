@@ -52,7 +52,10 @@ orientation with the positive one is the image under the inclusion of the other 
   (`Orientation.localHomologyCross_localOrientationOfZeroDimChart_tmul_localOrientation`);
 * the local orientation of `ω` times the class of the origin of `Q` is the local orientation of
   `ω.prod ω'`, when `ω'` is the positive orientation of `Q`, and its negative otherwise
-  (`Orientation.localHomologyCross_localOrientation_tmul_localOrientationOfZeroDimChart`).
+  (`Orientation.localHomologyCross_localOrientation_tmul_localOrientationOfZeroDimChart`); put
+  the other way, the local orientation of `ω` times the class of the origin of `Q`, taken with
+  that sign, is the local orientation of `ω.prod ω'`
+  (`Orientation.localHomologyCross_localOrientation_tmul_ite_localOrientationOfZeroDimChart`).
 
 The sign is that of `ω` (or `ω'`), as in
 `Orientation.singularRelativeCap_modelThomGenerator_localHomologyCross_of_zero`.
@@ -69,6 +72,8 @@ The sign is that of `ω` (or `ω'`), as in
   `Orientation.localHomologyCross_localOrientation_tmul_localOrientationOfZeroDimChart`: the same
   for the local orientations selected by orientations, with the sign of the zero-dimensional
   orientation.
+* `Orientation.localHomologyCross_localOrientation_tmul_ite_localOrientationOfZeroDimChart`: the
+  product orientation from the class of the origin taken with that sign.
 
 ## References
 
@@ -393,5 +398,28 @@ theorem localHomologyCross_localOrientation_tmul_localOrientationOfZeroDimChart
   · rw [ite_eq_left rfl, prod_positiveOrientation_right]
   · rw [ite_eq_right (Module.Ray.ne_neg_self _).symm, prod_neg_right, localOrientation_neg,
       LocalOrientation.coe_neg, neg_neg, prod_positiveOrientation_right]
+
+open Classical in
+/-- **The product orientation from the point class of a zero-dimensional space, with its sign.**
+Let `P` have dimension `m + 1`, with an orientation `ω`, and `Q` dimension zero, with an
+orientation `ω'`. The cross product of the local orientation of `ω` with the class of the origin
+of `Q`, taken with the sign `+` if `ω'` is the positive orientation and `-` otherwise, is the
+local orientation of the product orientation `ω.prod ω'`. -/
+theorem localHomologyCross_localOrientation_tmul_ite_localOrientationOfZeroDimChart
+    [FiniteDimensional ℝ P] [FiniteDimensional ℝ Q] (hP : finrank ℝ P = m + 1)
+    (hQ : finrank ℝ Q = 0) (ω : Orientation ℝ P (Fin (m + 1))) (ω' : Orientation ℝ Q (Fin 0)) :
+    (localHomologyCross (0 : P) (0 : Q) (m + 1) 0 (m + 1) (add_zero _)).hom
+        ((ω.localOrientation hP).val ⊗ₜ
+          (if ω' = positiveOrientation then
+            (localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl Q)
+              (OpenPartialHomeomorph.mem_refl_source _) hQ).val
+          else
+            -(localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl Q)
+              (OpenPartialHomeomorph.mem_refl_source _) hQ).val)) =
+      ((ω.prod ω' hP hQ).localOrientation (by rw [Module.finrank_prod, hP, hQ, add_zero])).val := by
+  have h := localHomologyCross_localOrientation_tmul_localOrientationOfZeroDimChart hP hQ ω ω'
+  split_ifs at h ⊢
+  · exact h
+  · rw [TensorProduct.tmul_neg, map_neg, h, neg_neg]
 
 end Orientation
