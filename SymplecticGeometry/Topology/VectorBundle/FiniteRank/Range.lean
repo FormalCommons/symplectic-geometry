@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Topology.VectorBundle.ConstantRank
 public import TauCeti.Topology.VectorBundle.FiniteRank.Basic
+public import TauCeti.Topology.VectorBundle.FiniteRank.Pullback
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 
 /-!
@@ -19,8 +20,11 @@ finite-rank core of rank `r` presenting it, with fibres identified with these ra
 
 * `rangeInclusion f hr : range f hr ⟶ D`, injective on every fibre, whose fibrewise image is the
   range of `f.fiberMap x` (`range_fiberMap_rangeInclusion`);
-* `rangeRestrict f hr : A ⟶ range f hr`, the corestriction of `f`, surjective on every fibre, with
-  `rangeRestrict f hr ≫ rangeInclusion f hr = f`.
+* `rangeLift f hr h hh : C ⟶ range f hr`, the factorization through the range core of a bundle
+  map `h : C ⟶ D` with values in the ranges of `f`, with
+  `rangeLift f hr h hh ≫ rangeInclusion f hr = h`;
+* `rangeRestrict f hr : A ⟶ range f hr`, the corestriction of `f` (the lift of `f` itself),
+  surjective on every fibre, with `rangeRestrict f hr ≫ rangeInclusion f hr = f`.
 
 By the fibrewise criteria `mono_of_injective_fiberMap` and `epi_of_surjective_fiberMap`, the
 inclusion is a monomorphism and the corestriction an epimorphism, so that Mathlib's `cancel_mono`
@@ -29,6 +33,13 @@ and `cancel_epi` apply to them.
 For an idempotent endomorphism `P : E ⟶ E` (`P ≫ P = P`) of constant rank, `rangeRestrict P hr`
 is the projection onto the range core: `rangeInclusion P hr ≫ rangeRestrict P hr = 𝟙 _`
 (`rangeInclusion_rangeRestrict_of_comp_self`), while `rangeRestrict P hr ≫ rangeInclusion P hr = P`.
+
+The range core commutes with pull-back along `g : C(X, B)`: `pullbackRangeIso f hr g` identifies
+`(range f hr).pullback g` with the range core of `pullbackMap f g`. Its forward map is the lift of
+the pulled-back inclusion, so it is compatible with the inclusions
+(`pullbackRangeHom_rangeInclusion`) and with the corestrictions
+(`pullbackMap_rangeRestrict_pullbackRangeHom`). It is invertible since it is bijective on every
+fibre (Tau Ceti's `TauCeti.FiniteRankBundleCore.isIso_iff_bijective`).
 
 The rank is a hypothesis: in general it is only locally constant, hence constant on a
 preconnected base.
@@ -156,34 +167,64 @@ takes values in the ranges of `f`. -/
       (rangeFiberEquiv f hr x v : D.core.Fiber x) :=
   (rangeFiberEquiv f hr x v).property
 
+section Lift
+
+variable {C : FiniteRankBundleCore 𝕜 B} (h : C ⟶ D)
+  (hh : ∀ x (v : Fin C.rank → 𝕜), h.fiberMap x v ∈ fiberRange f x)
+
+/-- The lift through the range core of `f` of a bundle map `h : C ⟶ D` whose values lie in the
+ranges of `f`. On the fibre at `x` the lift is `h.fiberMap x`, with values in the range of
+`f.fiberMap x`, read through the inverse of `rangeFiberEquiv`. -/
+noncomputable def rangeLift : C ⟶ range f hr :=
+  VectorBundleCore.CoordinateHom.ofContinuous
+    (fun x ↦ (rangeFiberEquiv f hr x).symm.toContinuousLinearMap.comp
+      ((h.fiberMap x).codRestrict (fiberRange f x) (hh x)))
+    ((continuous_hom_bundle_iff (E₁ := C.core.Fiber) (E₂ := (range f hr).core.Fiber) _).2
+      (continuous_rangeFiberEquiv_symm f hr
+        ((continuous_hom_bundle_iff (E₁ := C.core.Fiber) (E₂ := D.core.Fiber) _).1
+          h.continuous_fiberMap) fun p ↦ hh p.proj p.snd))
+
+theorem fiberMap_rangeLift (x : B) :
+    (rangeLift f hr h hh).fiberMap x = (rangeFiberEquiv f hr x).symm.toContinuousLinearMap.comp
+      ((h.fiberMap x).codRestrict (fiberRange f x) (hh x)) :=
+  congrFun (VectorBundleCore.CoordinateHom.fiberMap_ofContinuous _ _) x
+
+@[simp] theorem rangeFiberEquiv_fiberMap_rangeLift_apply (x : B) (v : Fin C.rank → 𝕜) :
+    rangeFiberEquiv f hr x ((rangeLift f hr h hh).fiberMap x v) = ⟨h.fiberMap x v, hh x v⟩ :=
+  (congrArg (rangeFiberEquiv f hr x) (DFunLike.congr_fun (fiberMap_rangeLift f hr h hh x) v)).trans
+    ((rangeFiberEquiv f hr x).apply_symm_apply _)
+
+/-- The lift of `h` through the range core of `f`, followed by the inclusion, is `h`. -/
+@[reassoc (attr := simp)]
+theorem rangeLift_rangeInclusion : rangeLift f hr h hh ≫ rangeInclusion f hr = h :=
+  hom_ext fun x ↦ ContinuousLinearMap.ext fun v ↦ by
+    rw [fiberMap_comp, ContinuousLinearMap.comp_apply, fiberMap_rangeInclusion_apply,
+      rangeFiberEquiv_fiberMap_rangeLift_apply]
+
+end Lift
+
 /-- The corestriction of `f` to its range core. On the fibre at `x` it is `f.fiberMap x`, with
 values in its range, read through the inverse of `rangeFiberEquiv`. -/
 noncomputable def rangeRestrict : A ⟶ range f hr :=
-  VectorBundleCore.CoordinateHom.ofContinuous
-    (fun x ↦ (rangeFiberEquiv f hr x).symm.toContinuousLinearMap.comp
-      ((f.fiberMap x).codRestrict (fiberRange f x) (fiberMap_mem_fiberRange f x)))
-    ((continuous_hom_bundle_iff (E₁ := A.core.Fiber) (E₂ := (range f hr).core.Fiber) _).2
-      (continuous_rangeFiberEquiv_symm f hr
-        ((continuous_hom_bundle_iff (E₁ := A.core.Fiber) (E₂ := D.core.Fiber) _).1
-          f.continuous_fiberMap) fun p ↦ fiberMap_mem_fiberRange f p.proj p.snd))
+  rangeLift f hr f (fiberMap_mem_fiberRange f)
+
+theorem rangeRestrict_def : rangeRestrict f hr = rangeLift f hr f (fiberMap_mem_fiberRange f) :=
+  (rfl)
 
 theorem fiberMap_rangeRestrict (x : B) :
     (rangeRestrict f hr).fiberMap x = (rangeFiberEquiv f hr x).symm.toContinuousLinearMap.comp
-      ((f.fiberMap x).codRestrict (fiberRange f x) (fiberMap_mem_fiberRange f x)) :=
-  congrFun (VectorBundleCore.CoordinateHom.fiberMap_ofContinuous _ _) x
+      ((f.fiberMap x).codRestrict (fiberRange f x) (fiberMap_mem_fiberRange f x)) := by
+  rw [rangeRestrict_def, fiberMap_rangeLift]
 
 @[simp] theorem rangeFiberEquiv_fiberMap_rangeRestrict_apply (x : B) (v : Fin A.rank → 𝕜) :
     rangeFiberEquiv f hr x ((rangeRestrict f hr).fiberMap x v) =
-      ⟨f.fiberMap x v, fiberMap_mem_fiberRange f x v⟩ :=
-  (congrArg (rangeFiberEquiv f hr x) (DFunLike.congr_fun (fiberMap_rangeRestrict f hr x) v)).trans
-    ((rangeFiberEquiv f hr x).apply_symm_apply _)
+      ⟨f.fiberMap x v, fiberMap_mem_fiberRange f x v⟩ := by
+  rw [rangeRestrict_def, rangeFiberEquiv_fiberMap_rangeLift_apply]
 
 /-- `f` factors through its range core: it is its corestriction followed by the inclusion. -/
 @[reassoc (attr := simp)]
 theorem rangeRestrict_rangeInclusion : rangeRestrict f hr ≫ rangeInclusion f hr = f :=
-  hom_ext fun x ↦ ContinuousLinearMap.ext fun v ↦ by
-    rw [fiberMap_comp, ContinuousLinearMap.comp_apply, fiberMap_rangeInclusion_apply,
-      rangeFiberEquiv_fiberMap_rangeRestrict_apply]
+  rangeLift_rangeInclusion f hr f (fiberMap_mem_fiberRange f)
 
 /-- The inclusion of the range core is injective on every fibre. -/
 theorem fiberMap_rangeInclusion_injective (x : B) :
@@ -249,6 +290,96 @@ theorem rangeInclusion_rangeRestrict_of_comp_self :
       Category.id_comp]
 
 end Idempotent
+
+section Pullback
+
+variable {X : Type*} [TopologicalSpace X] (g : C(X, B))
+
+include hr
+
+omit [CompleteSpace 𝕜] [IsRCLikeNormedField 𝕜] in
+/-- The pull-back of a bundle map of constant rank `r` has constant rank `r`. -/
+theorem finrank_range_fiberMap_pullbackMap (x : X) :
+    finrank 𝕜 ((pullbackMap f g).fiberMap x).range = r := by
+  rw [fiberMap_pullbackMap]
+  exact hr (g x)
+
+/-- The pulled-back inclusion of the range core of `f` takes values in the ranges of the
+pulled-back map. -/
+theorem fiberMap_pullbackMap_rangeInclusion_mem_fiberRange (x : X) (v : Fin r → 𝕜) :
+    (pullbackMap (rangeInclusion f hr) g).fiberMap x v ∈ fiberRange (pullbackMap f g) x := by
+  rw [mem_fiberRange_iff, fiberMap_pullbackMap, fiberMap_pullbackMap]
+  exact (mem_range_fiberMap_rangeInclusion_iff f hr (g x) _).1 ⟨v, rfl⟩
+
+/-- The comparison map from the pull-back of the range core of `f` to the range core of the
+pull-back of `f`: the pulled-back inclusion, with values in the ranges of the pulled-back map. -/
+noncomputable def pullbackRangeHom :
+    (range f hr).pullback g ⟶ range (pullbackMap f g) (finrank_range_fiberMap_pullbackMap f hr g) :=
+  rangeLift _ _ (pullbackMap (rangeInclusion f hr) g)
+    (fiberMap_pullbackMap_rangeInclusion_mem_fiberRange f hr g)
+
+theorem pullbackRangeHom_def : pullbackRangeHom f hr g = rangeLift _ _
+    (pullbackMap (rangeInclusion f hr) g)
+    (fiberMap_pullbackMap_rangeInclusion_mem_fiberRange f hr g) := (rfl)
+
+/-- The comparison map, followed by the inclusion of the range core of the pulled-back map, is
+the pull-back of the inclusion of the range core of `f`. -/
+@[reassoc (attr := simp)]
+theorem pullbackRangeHom_rangeInclusion :
+    pullbackRangeHom f hr g ≫ rangeInclusion (pullbackMap f g) _ =
+      pullbackMap (rangeInclusion f hr) g := by
+  rw [pullbackRangeHom_def, rangeLift_rangeInclusion]
+
+/-- The comparison map carries the pulled-back corestriction of `f` to the corestriction of the
+pulled-back map. -/
+@[reassoc (attr := simp)]
+theorem pullbackMap_rangeRestrict_pullbackRangeHom :
+    pullbackMap (rangeRestrict f hr) g ≫ pullbackRangeHom f hr g =
+      rangeRestrict (pullbackMap f g) (finrank_range_fiberMap_pullbackMap f hr g) :=
+  (cancel_mono (rangeInclusion (pullbackMap f g) _)).1 <| by
+    rw [Category.assoc, pullbackRangeHom_rangeInclusion, ← pullbackMap_comp,
+      rangeRestrict_rangeInclusion, rangeRestrict_rangeInclusion]
+
+/-- The comparison map is bijective on every fibre. -/
+theorem fiberMap_pullbackRangeHom_bijective (x : X) :
+    Bijective ((pullbackRangeHom f hr g).fiberMap x) := by
+  have hi : Injective ((pullbackRangeHom f hr g).fiberMap x) := fun v w hvw ↦
+    fiberMap_rangeInclusion_injective f hr (g x) <| by
+      have h := congrArg (fun u ↦ (rangeInclusion (pullbackMap f g) _).fiberMap x u) hvw
+      simpa only [← ContinuousLinearMap.comp_apply, ← fiberMap_comp,
+        pullbackRangeHom_rangeInclusion, fiberMap_pullbackMap] using h
+  -- Both fibres are `Fin r → 𝕜`, so their finranks agree by `rfl`.
+  exact ⟨hi, LinearMap.injective_iff_surjective_of_finrank_eq_finrank
+    (f := ((pullbackRangeHom f hr g).fiberMap x).toLinearMap) rfl |>.1 hi⟩
+
+/-- The range core commutes with pull-back: the pull-back along `g` of the range core of `f` is
+isomorphic to the range core of the pull-back of `f`, by the comparison map
+`pullbackRangeHom`. -/
+noncomputable def pullbackRangeIso :
+    (range f hr).pullback g ≅ range (pullbackMap f g) (finrank_range_fiberMap_pullbackMap f hr g) :=
+  haveI := (isIso_iff_bijective _).2 (fiberMap_pullbackRangeHom_bijective f hr g)
+  asIso (pullbackRangeHom f hr g)
+
+@[simp] theorem pullbackRangeIso_hom : (pullbackRangeIso f hr g).hom = pullbackRangeHom f hr g :=
+  (rfl)
+
+/-- The inverse of `pullbackRangeIso`, followed by the pulled-back inclusion of the range core of
+`f`, is the inclusion of the range core of the pulled-back map. -/
+@[reassoc (attr := simp)]
+theorem pullbackRangeIso_inv_pullbackMap_rangeInclusion :
+    (pullbackRangeIso f hr g).inv ≫ pullbackMap (rangeInclusion f hr) g =
+      rangeInclusion (pullbackMap f g) _ := by
+  rw [Iso.inv_comp_eq, pullbackRangeIso_hom, pullbackRangeHom_rangeInclusion]
+
+/-- The corestriction of the pulled-back map, followed by the inverse of `pullbackRangeIso`, is
+the pull-back of the corestriction of `f`. -/
+@[reassoc (attr := simp)]
+theorem rangeRestrict_pullbackRangeIso_inv :
+    rangeRestrict (pullbackMap f g) (finrank_range_fiberMap_pullbackMap f hr g) ≫
+      (pullbackRangeIso f hr g).inv = pullbackMap (rangeRestrict f hr) g := by
+  rw [Iso.comp_inv_eq, pullbackRangeIso_hom, pullbackMap_rangeRestrict_pullbackRangeHom]
+
+end Pullback
 
 end TauCeti.FiniteRankBundleCore
 
