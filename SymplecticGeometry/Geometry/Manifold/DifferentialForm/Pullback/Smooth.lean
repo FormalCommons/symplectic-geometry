@@ -12,7 +12,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.ExtDeriv
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 
 /-!
-# Pullback of forms: values at a point, cut-offs, smoothness, exactness, constant maps, slices
+# Pullback of forms: values, `d`, cut-offs, smoothness, negation, exactness, constant maps, slices
 
 At a point `x`, the pullback of a form `φ` along `f` is the value of `φ` at `f x` composed with
 the differential of `f` at `x` (`TauCeti.mpullback_apply_eq_compContinuousLinearMap`). The
