@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Analysis.SpecialFunctions.Log.Basic
 public import SymplecticGeometry.Analysis.SpecialFunctions.SmoothedMax
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Model
 import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Dolbeault.Potential
@@ -78,6 +79,12 @@ with blowdown `π : L → E = ℂⁿ⁺¹`, the exceptional divisor `Z` and the 
   `ω̃_{l,ε}` is that of `s + l² log s + q(s)`, whose derivatives are those of `s` for
   `s > (l + ε)²` (`sq_mul_log_add_blowupCorrection_of_ge`); and `π^* ω₀` is that of `s`
   (`radialPotentialForm_id`).
+* `SymplecticGeometry.BlowupModel.isSmoothFamily_profileForm`: for smooth positive `l ε` on
+  `unitInterval`, `t ↦ ω̃_{l t, ε t}` is a smooth family of forms. Here `ω̃_l` is affine in `l²`,
+  and for positive parameters the correction form is `(1/4) d (q'(|z|²) J* d|z|²)`
+  (`covectorComplexStructure_mextDerivₗ_ofFunction_comp_of_hasDerivAt`), with `q'(s)` the
+  integrand of `q`, smooth in `(l, ε, s)`; the coefficient is jointly smooth in the parameter
+  and the point (`IsSmoothFamily.funSMul_family`).
 
 ## References
 
@@ -585,6 +592,42 @@ theorem profileForm_eq_on_compl {l ε : ℝ} (hl : 0 < l) (hε : 0 < ε) :
     ring
   rw [radialPotentialForm_apply, radialPotentialForm_apply, he.deriv_eq, he.deriv.deriv_eq]
   simp
+
+/-- **The forms `ω̃_{l,ε}` in smooth families.** For smooth `l ε : unitInterval → ℝ` with positive
+values, the forms `ω̃_{l t, ε t} = profileForm n (l t) (ε t)` on the model blowup form a smooth
+family. -/
+theorem isSmoothFamily_profileForm {l ε : unitInterval → ℝ} (hl : ContMDiff (𝓡∂ 1) 𝓘(ℝ) ∞ l)
+    (hε : ContMDiff (𝓡∂ 1) 𝓘(ℝ) ∞ ε) (hl0 : ∀ t, 0 < l t) (hε0 : ∀ t, 0 < ε t) :
+    IsSmoothFamily (𝓡∂ 1) fun t ↦ profileForm n (l t) (ε t) := by
+  let s : C^∞⟮𝓘(ℝ, Fin (n + 1) → ℂ), Fin (n + 1) → ℂ; ℝ⟯ :=
+    ⟨fun z ↦ ‖complexToRealEuclidean (Fin (n + 1)) z‖ ^ 2,
+      (contDiff_norm_sq_complexToRealEuclidean (n := ∞)).contMDiff⟩
+  -- The coefficient `q'(|z|²)`, jointly smooth in the parameter and the point.
+  have hU : IsOpen (({l : ℝ | 0 < l} ×ˢ {ε : ℝ | 0 < ε}) ×ˢ (univ : Set ℝ)) :=
+    ((isOpen_lt continuous_const continuous_id).prod
+      (isOpen_lt continuous_const continuous_id)).prod isOpen_univ
+  have ha : ContMDiff ((𝓡∂ 1).prod 𝓘(ℝ, Fin (n + 1) → ℂ)) 𝓘(ℝ) ∞
+      fun p : unitInterval × (Fin (n + 1) → ℂ) ↦
+        (blowupProfile (l p.1) (ε p.1) (s p.2) - s p.2 - l p.1 ^ 2) / s p.2 := fun p ↦
+    ((contDiffOn_blowupProfile_sub_sub_div.contDiffAt
+      (hU.mem_nhds ⟨⟨hl0 p.1, hε0 p.1⟩, mem_univ _⟩)).contMDiffAt).comp p
+      ((((hl.comp contMDiff_fst).prodMk_space (hε.comp contMDiff_fst)).prodMk_space
+        (s.contMDiff.comp contMDiff_snd)) p)
+  have hat (t : unitInterval) : ContMDiff 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ) ∞
+      fun z ↦ (blowupProfile (l t) (ε t) (s z) - s z - l t ^ 2) / s z :=
+    ha.comp (f := fun z ↦ (t, z)) (contMDiff_const.prodMk contMDiff_id)
+  let a : unitInterval → C^∞⟮𝓘(ℝ, Fin (n + 1) → ℂ), Fin (n + 1) → ℂ; ℝ⟯ := fun t ↦ ⟨_, hat t⟩
+  have hq (t : unitInterval) : correctionForm n (l t) (ε t) = (4 : ℝ)⁻¹ •
+      mextDerivₗ 𝓘(ℝ, Fin (n + 1) → ℂ) 1 (SmoothForm.funSMulₗ (a t)
+        ((ofComplexManifold (Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ)).covectorComplexStructure
+          (mextDerivₗ 𝓘(ℝ, Fin (n + 1) → ℂ) 0 (SmoothForm.ofFunction s)))) := by
+    rw [correctionForm_def,
+      covectorComplexStructure_mextDerivₗ_ofFunction_comp_of_hasDerivAt (f := s) (g' := a t)
+        (fun x ↦ correctionPotential_apply n (hl0 t) (hε0 t) x)
+        (fun x ↦ hasDerivAt_blowupCorrection (hl0 t) (hε0 t) (s x))]
+  simp_rw [profileForm_def, blowupForm_def, hq]
+  exact ((isSmoothFamily_const _).add ((isSmoothFamily_const _).fun_smul (hl.pow 2))).add
+    ((((isSmoothFamily_const _).funSMul_family a ha).mextDeriv.smul _).mpullback _ _)
 
 end ProfileForm
 

@@ -12,7 +12,7 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.Basi
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.ArgumentPrinciple
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.UnitaryFrame
 public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
-public import SymplecticGeometry.Topology.VectorBundle.Determinant
+public import SymplecticGeometry.Topology.VectorBundle.DetBundle.Frame
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 public import TauCeti.Analysis.Complex.NormalizedDeterminant
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Topological
@@ -52,15 +52,12 @@ this setting: `X = Σ₁ = {g ≤ 0}`, with interior `{g < 0}`
 with a frame `Φ₁` over `Σ₁` and a frame `Φ₂` over `Σ₂ = {g ≥ 0}`, the first Chern number of `E`
 is the boundary degree on `Σ₁` of the normalized complex determinant of the transition
 `Φ₁⁻¹ ∘ Φ₂` (`SymplecticGeometry.Bundle.chernNumber_eq_boundaryDegree_normalizedDet`). Indeed the
-determinant sections of the two frames (`SymplecticGeometry.Bundle.detCoreFrameSection`) are
-nowhere-zero sections of the determinant line over `Σ₁` and over `Σ₂`, and on `g⁻¹(0)` the second
-is the first times the determinant of the transition
-(`SymplecticGeometry.Bundle.detCoreFrameSection_eq_det_smul`). The first Chern class is the Euler
-class of the determinant line, so the argument principle on a split surface
-(`TauCeti.VectorBundleOrientation.evalFundamentalClass_complexEulerClass_eq_boundaryDegree`)
-gives the formula. The step on `g⁻¹(0)` follows the proof of the private lemma
-`outSection_boundaryCircle` of `ChernNumber/Clutching.lean`, which does the same on the boundary
-circles of coordinate discs.
+determinants of the two frames (`TauCeti.DetBundle.ofFrame`) are nowhere-zero sections of the
+determinant line `TauCeti.DetBundle ℂ G E` over `Σ₁` and over `Σ₂`, and on `g⁻¹(0)` the second is
+the first times the determinant of the transition (`TauCeti.DetBundle.ofFrame_eq_det_smul`). The
+first Chern class is the Euler class of the determinant line, so the argument principle on a split
+surface (`TauCeti.VectorBundleOrientation.evalFundamentalClass_complexEulerClass_eq_boundaryDegree`)
+gives the formula.
 
 For a two-form `σ` on a vector bundle `V`, with symplectic frames `Φ₁` over `Σ₁` and `Φ₂` over
 `Σ₂` and a map `Ψ` from `g⁻¹(0)` to `Sp(2n)` with `Φ₂ = Φ₁ ∘ Ψ`, the first Chern number of
@@ -436,7 +433,7 @@ variable {EM : Type} [NormedAddCommGroup EM] [NormedSpace ℝ EM] [FiniteDimensi
   {M : Type} [TopologicalSpace M] [ChartedSpace EM M] [T2Space M] [CompactSpace M]
   [IsManifold 𝓘(ℝ, EM) ∞ M] {g : M → ℝ}
   {G : Type*} [NormedAddCommGroup G] [NormedSpace ℂ G] [FiniteDimensional ℂ G]
-  {E : M → Type*} [∀ x, AddCommGroup (E x)] [∀ x, Module ℂ (E x)] [∀ x, TopologicalSpace (E x)]
+  {E : M → Type} [∀ x, AddCommGroup (E x)] [∀ x, Module ℂ (E x)] [∀ x, TopologicalSpace (E x)]
   [TopologicalSpace (TotalSpace G E)] [FiberBundle G E] [VectorBundle ℂ G E]
 
 /-- **The splitting formula for the first Chern number.** Let `M` be a closed smooth surface
@@ -459,42 +456,24 @@ theorem chernNumber_eq_boundaryDegree_normalizedDet
       (hz : ((z : g ⁻¹' Iic 0) : M) ∈ g ⁻¹' Ici 0),
       u z = ((Φ₂ ⟨_, hz⟩).trans (Φ₁ z).symm).normalizedDet) :
     chernNumber oM hn G E = oM.sublevelBoundaryDegree hn hg h0 u := by
-  let i₁ : C(g ⁻¹' Iic 0, M) := ⟨Subtype.val, continuous_subtypeVal⟩
-  let i₂ : C(g ⁻¹' Ici 0, M) := ⟨Subtype.val, continuous_subtypeVal⟩
-  let j₁ : C(↥(sublevelBoundary hg.continuous), g ⁻¹' Iic 0) :=
-    ⟨Subtype.val, continuous_subtypeVal⟩
-  let j₂ : C(↥(sublevelBoundary hg.continuous), g ⁻¹' Ici 0) :=
-    ⟨fun z ↦ ⟨_, mem_preimage_Ici_of_mem_sublevelBoundary z.property⟩,
-      (continuous_subtypeVal.comp continuous_subtypeVal).subtype_mk _⟩
-  have hΦ₁j : Continuous fun q : _ × G ↦ TotalSpace.mk' G (i₁ (j₁ q.1)) (Φ₁ (j₁ q.1) q.2) :=
-    hΦ₁.comp ((j₁.continuous.comp continuous_fst).prodMk continuous_snd)
-  have hΦ₂j : Continuous fun q : _ × G ↦ TotalSpace.mk' G (i₂ (j₂ q.1)) (Φ₂ (j₂ q.1) q.2) :=
-    hΦ₂.comp ((j₂.continuous.comp continuous_fst).prodMk continuous_snd)
-  -- On the boundary, the determinant section of `Φ₂` is that of `Φ₁` times the determinant of
-  -- the transition.
-  have hsc : ∀ z : ↥(sublevelBoundary hg.continuous),
-      detCoreFrameSection i₂ Φ₂ hΦ₂ (j₂ z) =
-        LinearMap.det ((Φ₁ (j₁ z)).symm.trans (Φ₂ (j₂ z)) : E (z : M) →ₗ[ℂ] E (z : M)) •
-          detCoreFrameSection i₁ Φ₁ hΦ₁ (j₁ z) := by
-    intro z
-    have h1 := detCoreFrameSection_comp i₁ hΦ₁ j₁ hΦ₁j z
-    have h2 := detCoreFrameSection_comp i₂ hΦ₂ j₂ hΦ₂j z
-    have h3 := detCoreFrameSection_eq_det_smul (i₁.comp j₁) (Φ := fun z ↦ Φ₁ (j₁ z))
-      (Ψ := fun z ↦ Φ₂ (j₂ z)) hΦ₁j hΦ₂j z
-    -- The restrictions of `Φ₁` and `Φ₂` to the boundary are frames along the same map, read
-    -- once through `{g ≤ 0}` and once through `{g ≥ 0}`: `i₂ ∘ j₂` and `i₁ ∘ j₁` agree by
-    -- definition.
-    exact h2.symm.trans (h3.trans (congrArg _ h1))
-  rw [chernNumber_def, firstChernClass_def]
+  let j₁ : ↥(sublevelBoundary hg.continuous) → g ⁻¹' Iic 0 := Subtype.val
+  let j₂ : ↥(sublevelBoundary hg.continuous) → g ⁻¹' Ici 0 :=
+    fun z ↦ ⟨_, mem_preimage_Ici_of_mem_sublevelBoundary z.property⟩
+  -- The determinants of the two frames are nowhere vanishing sections of the determinant line
+  -- over `{g ≤ 0}` and over `{g ≥ 0}`; on the boundary the second is the first times the
+  -- determinant of the transition.
+  rw [chernNumber_def, firstChernClass_eq_complexEulerClass_detBundle]
   refine VectorBundleOrientation.evalFundamentalClass_complexEulerClass_eq_boundaryDegree
-    (finrank_detCore ℂ G E) oM hn hg h0
-    (σ := detCoreFrameSection i₁ Φ₁ hΦ₁) (continuous_totalSpaceMk_detCoreFrameSection i₁ hΦ₁)
-    (detCoreFrameSection_ne_zero i₁ hΦ₁)
-    (s := detCoreFrameSection i₂ Φ₂ hΦ₂) (continuous_totalSpaceMk_detCoreFrameSection i₂ hΦ₂)
-    (detCoreFrameSection_ne_zero i₂ hΦ₂) (fun z _ ↦ hsc z) fun z ↦ ?_
+    (finrank_self ℂ) oM hn hg h0
+    (σ := fun x ↦ DetBundle.ofFrame (Φ₁ x : G ≃ₗ[ℂ] E x))
+    (DetBundle.continuous_totalSpaceMk_ofFrame hΦ₁) (fun x ↦ DetBundle.ofFrame_ne_zero _)
+    (s := fun x ↦ DetBundle.ofFrame (Φ₂ x : G ≃ₗ[ℂ] E x))
+    (DetBundle.continuous_totalSpaceMk_ofFrame hΦ₂) (fun x ↦ DetBundle.ofFrame_ne_zero _)
+    (c := fun z ↦ LinearMap.det
+      (((Φ₂ (j₂ z)).trans (Φ₁ (j₁ z)).symm).toLinearEquiv : G →ₗ[ℂ] G))
+    (fun z _ ↦ DetBundle.ofFrame_eq_det_smul _ _) fun z ↦ ?_
   rw [hu z (mem_preimage_Ici_of_mem_sublevelBoundary z.property),
-    ContinuousLinearEquiv.coe_normalizedDet, ← ContinuousLinearEquiv.det_coe_trans_symm]
-  simp only [j₁, j₂, ContinuousMap.coe_mk]
+    ContinuousLinearEquiv.coe_normalizedDet]
 
 /-! ### The splitting formula for symplectic frames -/
 
@@ -503,7 +482,7 @@ section Symplectic
 open Matrix
 
 variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
-  {V : M → Type*} [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)]
+  {V : M → Type} [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)]
   [∀ x, TopologicalSpace (V x)] [∀ x, IsTopologicalAddGroup (V x)]
   [∀ x, ContinuousSMul ℝ (V x)] [TopologicalSpace (TotalSpace F V)]
   [FiberBundle F V] [VectorBundle ℝ F V] {n : ℕ∞}
