@@ -238,8 +238,7 @@ theorem trans_diffeomorph {E'' : Type*} [NormedAddCommGroup E''] [NormedSpace �
     refine hd.trans ?_
     -- The orbit map `g ↦ g • Φ z` of `N` is differentiable.
     have horbit : MDifferentiableAt I I'' (fun g : G ↦ g • Φ z) 1 :=
-      ((contMDiff_smul (I := I) (I' := I'') (n := ∞)).comp
-        (contMDiff_id.prodMk contMDiff_const)).mdifferentiableAt (by simp)
+      (ContMDiffSMul.contMDiff_smul_const (I := I) (n := ∞) (Φ z)).mdifferentiableAt (by simp)
     exact mfderiv_fundamentalVectorField_of_map_smul (ψ.mdifferentiable (by simp) _) horbit
       (fun g ↦ hψ g _) ξ
   · intro z hz ξ
@@ -369,8 +368,8 @@ theorem exists_weightChart_fundamentalVectorField [BoundarylessManifold I' M]
       mfderiv 𝓘(ℝ, E') I' ψ y (fundamentalVectorField 𝓘(ℝ, E') ξ y) =
         fundamentalVectorField I' ξ (ψ y) :=
     mfderiv_fundamentalVectorField_of_map_smul (ψ.mdifferentiable (by simp) y)
-      (((contMDiff_smul (I := I) (I' := 𝓘(ℝ, E')) (n := ∞)).comp
-        (contMDiff_id.prodMk contMDiff_const)).mdifferentiableAt (by simp)) (fun g ↦ hψ g y) ξ
+      ((ContMDiffSMul.contMDiff_smul_const (I := I) (n := ∞) y).mdifferentiableAt (by simp))
+      (fun g ↦ hψ g y) ξ
   have hμ' := hμ.mpullback (a' := InfinitesimalAction.fundamental I G 𝓘(ℝ, E') N) ψ.contMDiff
     fun ξ y ↦ by simpa only [InfinitesimalAction.fundamental_apply] using hfund ξ y
   have hσ' : SmoothTwoForm.IsSymplectic (SmoothForm.mpullback ψ ψ.contMDiff σ) :=
@@ -378,11 +377,8 @@ theorem exists_weightChart_fundamentalVectorField [BoundarylessManifold I' M]
   have hG' (g : G) : SmoothForm.mpullback (fun y : N ↦ g • y)
       (ContMDiffSMul.contMDiff_const_smul (I := I) g) (SmoothForm.mpullback ψ ψ.contMDiff σ) =
         SmoothForm.mpullback ψ ψ.contMDiff σ := by
-    have hg := ContMDiffSMul.contMDiff_const_smul (I := I) (I' := I') (n := ∞) (M := M) g
-    rw [← LinearMap.comp_apply, ← SmoothForm.mpullback_comp,
-      SmoothForm.mpullback_congr (f := ψ ∘ fun y : N ↦ g • y) _ (hg.comp ψ.contMDiff)
-        (funext fun y ↦ hψ g y),
-      SmoothForm.mpullback_comp ψ (fun x : M ↦ g • x) ψ.contMDiff hg, LinearMap.comp_apply, hG g]
+    rw [SmoothForm.mpullback_mpullback_of_comp_eq _ _ ψ.contMDiff
+      (ContMDiffSMul.contMDiff_const_smul (I := I) g) (funext (hψ g)), hG g]
   have hp' (g : G) : g • ψ.symm p = ψ.symm p := by
     rw [← ψ.symm_apply_apply (g • ψ.symm p), hψ, Diffeomorph.apply_symm_apply, hp]
   obtain ⟨n, χ, α, Φ, r, h⟩ :=
