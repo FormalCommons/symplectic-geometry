@@ -96,13 +96,13 @@ This is the class of `exists_isNormalizedTube_singularCap_dualClassOf_fundamenta
 def tubeFundamentalClass (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) {W : TopologicalSpace.Opens X}
     (Φ : letI := f.normalSpaceFiberBundle hn hdim
-      TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
+      TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
     (hΦ : letI := f.normalSpaceFiberBundle hn hdim
       ∀ x, (Φ (zeroSection P _ x) : X) = f x)
     [ChartedSpace F X] (oX : HomologicalOrientation X F n) (hnX : finrank ℝ F = n)
     (hK : IsCompact (Subtype.val ⁻¹' range f : Set W)) :
     letI := f.normalSpaceFiberBundle hn hdim
-    (thomPair P (fun x ↦ f.NormalSpace x hn)).singularHomology (C := ModuleCat.{0} ℤ)
+    (thomPair P (fun x ↦ f.isImmersion.NormalSpace x hn)).singularHomology (C := ModuleCat.{0} ℤ)
       (ModuleCat.of ℤ (ULift.{0} ℤ)) n :=
   letI := f.normalSpaceFiberBundle hn hdim
   (TopPair.singularHomologyMap
@@ -117,7 +117,7 @@ under the identity of `W` followed by the inverse of the pair isomorphism of the
 theorem tubeFundamentalClass_def (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) {W : TopologicalSpace.Opens X}
     (Φ : letI := f.normalSpaceFiberBundle hn hdim
-      TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
+      TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
     (hΦ : letI := f.normalSpaceFiberBundle hn hdim
       ∀ x, (Φ (zeroSection P _ x) : X) = f x)
     [ChartedSpace F X] (oX : HomologicalOrientation X F n) (hnX : finrank ℝ F = n)
@@ -139,7 +139,7 @@ theorem localHomologyMap_tubeFundamentalClass (f : SmoothEmbedding I J ∞ Z X)
     (hn : (∞ : ℕ∞ω) ≠ 0)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) {W : TopologicalSpace.Opens X}
     (Φ : letI := f.normalSpaceFiberBundle hn hdim
-      TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
+      TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
     (hΦ : letI := f.normalSpaceFiberBundle hn hdim
       ∀ x, (Φ (zeroSection P _ x) : X) = f x)
     [ChartedSpace F X] (oX : HomologicalOrientation X F n) (hnX : finrank ℝ F = n)
@@ -147,14 +147,14 @@ theorem localHomologyMap_tubeFundamentalClass (f : SmoothEmbedding I J ∞ Z X)
     letI := f.normalSpaceFiberBundle hn hdim
     localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
         (⟨fun p ↦ (Φ p : X), continuous_subtypeVal.comp Φ.continuous⟩ :
-          C(TotalSpace P (fun x ↦ f.NormalSpace x hn), X))
+          C(TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn), X))
         (S := {zeroSection P _ z}) (T := {f z})
         (by
           rintro p hp
           exact Φ.injective (Subtype.ext (hp.trans (hΦ z).symm)))
         n
         ((thomPairLocalHomologyRestriction (ModuleCat.of ℤ (ULift.{0} ℤ)) P
-          (fun x ↦ f.NormalSpace x hn) z n).hom
+          (fun x ↦ f.isImmersion.NormalSpace x hn) z n).hom
           (f.tubeFundamentalClass hn hdim Φ hΦ oX hnX hK)) = (oX (f z)).val := by
   let := f.normalSpaceFiberBundle hn hdim
   have hfz : f z ∈ (W : Set X) := by rw [← hΦ z]; exact (Φ _).property
@@ -188,7 +188,7 @@ theorem localChartLocalHomologyIso_inv_tubeFundamentalClass_of_localHomologyMap
     [I.Boundaryless] (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) {W : TopologicalSpace.Opens X}
     (Φ : letI := f.normalSpaceFiberBundle hn hdim
-      TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
+      TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
     (hΦ : letI := f.normalSpaceFiberBundle hn hdim
       ∀ x, (Φ (zeroSection P _ x) : X) = f x)
     [ChartedSpace F X] (oX : HomologicalOrientation X F n) (hnX : finrank ℝ F = n)
@@ -196,17 +196,17 @@ theorem localChartLocalHomologyIso_inv_tubeFundamentalClass_of_localHomologyMap
     (hSc : S ⊆ ((chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))).target)
     (hSe : letI := f.normalSpaceFiberBundle hn hdim
       MapsTo ((chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))).symm S
-        (trivializationAt P (fun x ↦ f.NormalSpace x hn) z).baseSet)
+        (trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).baseSet)
     (h0 : (0 : E) ∈ S)
     (a : localHomology (A := ModuleCat.{0} ℤ) (ModuleCat.of ℤ (ULift.{0} ℤ))
       ({0} : Set (P × E)) n)
     (ha : letI := f.normalSpaceFiberBundle hn hdim
       letI := f.normalSpaceVectorBundle hn hdim
-      haveI : T1Space (TotalSpace P fun x ↦ f.NormalSpace x hn) :=
+      haveI : T1Space (TotalSpace P fun x ↦ f.isImmersion.NormalSpace x hn) :=
         Φ.toHomeomorph.isEmbedding.t1Space
       localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
         (⟨fun p ↦ (Φ p : X), continuous_subtypeVal.comp Φ.continuous⟩ :
-          C(TotalSpace P (fun x ↦ f.NormalSpace x hn), X))
+          C(TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn), X))
         (S := {zeroSection P _ z}) (T := {f z})
         (by
           rintro p hp
@@ -216,17 +216,18 @@ theorem localChartLocalHomologyIso_inv_tubeFundamentalClass_of_localHomologyMap
           (by simp) (by simp) h0 n).hom a) = (oX (f z)).val) :
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
-    haveI : T1Space (TotalSpace P fun x ↦ f.NormalSpace x hn) :=
+    haveI : T1Space (TotalSpace P fun x ↦ f.isImmersion.NormalSpace x hn) :=
       Φ.toHomeomorph.isEmbedding.t1Space
     (Trivialization.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe
         (by simp) (by simp) h0 n).inv
       ((thomPairLocalHomologyRestriction (ModuleCat.of ℤ (ULift.{0} ℤ)) P
-        (fun x ↦ f.NormalSpace x hn) z n).hom
+        (fun x ↦ f.isImmersion.NormalSpace x hn) z n).hom
         (f.tubeFundamentalClass hn hdim Φ hΦ oX hnX hK)) = a := by
   let := f.normalSpaceFiberBundle hn hdim
   let := f.normalSpaceVectorBundle hn hdim
-  have : T1Space (TotalSpace P fun x ↦ f.NormalSpace x hn) := Φ.toHomeomorph.isEmbedding.t1Space
-  let g : C(TotalSpace P (fun x ↦ f.NormalSpace x hn), X) :=
+  have : T1Space (TotalSpace P fun x ↦ f.isImmersion.NormalSpace x hn) :=
+    Φ.toHomeomorph.isEmbedding.t1Space
+  let g : C(TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn), X) :=
     ⟨fun p ↦ (Φ p : X), continuous_subtypeVal.comp Φ.continuous⟩
   -- The tube is an open embedding, so it induces an isomorphism of local homology at `0_z`.
   have hg : Topology.IsOpenEmbedding g :=
@@ -256,7 +257,7 @@ variable [I.Boundaryless] [J.Boundaryless] [ChartedSpace V X] {f : SmoothEmbeddi
   {hn : (∞ : ℕ∞ω) ≠ 0} {hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E}
   {W : TopologicalSpace.Opens X}
   (Φ : letI := f.normalSpaceFiberBundle hn hdim
-    TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
+    TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
   (hK : IsCompact (Subtype.val ⁻¹' range f : Set W)) (z : Z) {S : Set E}
 
 /-- **The local class of the tube's fundamental class, in positive dimension and codimension.**
@@ -275,22 +276,22 @@ theorem localChartLocalHomologyIso_inv_tubeFundamentalClass
     (hSc : S ⊆ ((chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))).target)
     (hSe : letI := f.normalSpaceFiberBundle hn hdim
       MapsTo ((chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))).symm S
-        (trivializationAt P (fun x ↦ f.NormalSpace x hn) z).baseSet)
+        (trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).baseSet)
     (h0 : (0 : E) ∈ S) :
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
-    haveI : T1Space (TotalSpace P fun x ↦ f.NormalSpace x hn) :=
+    haveI : T1Space (TotalSpace P fun x ↦ f.isImmersion.NormalSpace x hn) :=
       Φ.toHomeomorph.isEmbedding.t1Space
     (Trivialization.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe
         (by simp) (by simp) h0 (d + 1)).inv
       ((thomPairLocalHomologyRestriction (ModuleCat.of ℤ (ULift.{0} ℤ)) P
-        (fun x ↦ f.NormalSpace x hn) z (d + 1)).hom
+        (fun x ↦ f.isImmersion.NormalSpace x hn) z (d + 1)).hom
         (f.tubeFundamentalClass hn hdim Φ hΦ.apply_zeroSection
           ((oX.reindex (finCongr (by omega))).toHomologicalOrientation hV) hV hK)) =
       (SymplecticGeometry.localHomologyCross (0 : P) (0 : E) (r + 1) (m + 1) (d + 1)
           (by omega)).hom
         (((Orientation.reindex ℝ P (finCongr hP)
-          ((trivializationAt P (fun x ↦ f.NormalSpace x hn) z).mapOrientation
+          ((trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).mapOrientation
             (Fin (finrank ℝ P)) (mem_baseSet_trivializationAt P _ z)
             (normalOrientation f hn hdim oX oZ z))).localOrientation hP).val ⊗ₜ
           (Orientation.localOrientation (F := E) (oZ.orientationAt z) hE).val) := by
@@ -315,22 +316,22 @@ theorem localChartLocalHomologyIso_inv_tubeFundamentalClass_of_finrank_eq_zero
     (hSc : S ⊆ ((chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))).target)
     (hSe : letI := f.normalSpaceFiberBundle hn hdim
       MapsTo ((chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))).symm S
-        (trivializationAt P (fun x ↦ f.NormalSpace x hn) z).baseSet)
+        (trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).baseSet)
     (h0 : (0 : E) ∈ S) :
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
-    haveI : T1Space (TotalSpace P fun x ↦ f.NormalSpace x hn) :=
+    haveI : T1Space (TotalSpace P fun x ↦ f.isImmersion.NormalSpace x hn) :=
       Φ.toHomeomorph.isEmbedding.t1Space
     (Trivialization.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe
         (by simp) (by simp) h0 (r + 1)).inv
       ((thomPairLocalHomologyRestriction (ModuleCat.of ℤ (ULift.{0} ℤ)) P
-        (fun x ↦ f.NormalSpace x hn) z (r + 1)).hom
+        (fun x ↦ f.isImmersion.NormalSpace x hn) z (r + 1)).hom
         (f.tubeFundamentalClass hn hdim Φ hΦ.apply_zeroSection
           ((oX.reindex (finCongr (by omega))).toHomologicalOrientation hV) hV hK)) =
       (SymplecticGeometry.localHomologyCross (0 : P) (0 : E) (r + 1) 0 (r + 1)
           (add_zero _)).hom
         (((Orientation.reindex ℝ P (finCongr hP)
-          ((trivializationAt P (fun x ↦ f.NormalSpace x hn) z).mapOrientation
+          ((trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).mapOrientation
             (Fin (finrank ℝ P)) (mem_baseSet_trivializationAt P _ z)
             (normalOrientation f hn hdim oX oZ z))).localOrientation hP).val ⊗ₜ
           (if oZ.orientationAt z = positiveOrientation then
@@ -360,16 +361,16 @@ theorem localChartLocalHomologyIso_inv_tubeFundamentalClass_of_finrank_fiber_eq_
     (hSc : S ⊆ ((chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))).target)
     (hSe : letI := f.normalSpaceFiberBundle hn hdim
       MapsTo ((chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))).symm S
-        (trivializationAt P (fun x ↦ f.NormalSpace x hn) z).baseSet)
+        (trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).baseSet)
     (h0 : (0 : E) ∈ S) :
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
-    haveI : T1Space (TotalSpace P fun x ↦ f.NormalSpace x hn) :=
+    haveI : T1Space (TotalSpace P fun x ↦ f.isImmersion.NormalSpace x hn) :=
       Φ.toHomeomorph.isEmbedding.t1Space
     (Trivialization.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe
         (by simp) (by simp) h0 (m + 1)).inv
       ((thomPairLocalHomologyRestriction (ModuleCat.of ℤ (ULift.{0} ℤ)) P
-        (fun x ↦ f.NormalSpace x hn) z (m + 1)).hom
+        (fun x ↦ f.isImmersion.NormalSpace x hn) z (m + 1)).hom
         (f.tubeFundamentalClass hn hdim Φ hΦ.apply_zeroSection
           ((oX.reindex (finCongr (by omega))).toHomologicalOrientation hV) hV hK)) =
       (SymplecticGeometry.localHomologyCross (0 : P) (0 : E) 0 (m + 1) (m + 1)
@@ -377,7 +378,7 @@ theorem localChartLocalHomologyIso_inv_tubeFundamentalClass_of_finrank_fiber_eq_
         ((localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl P)
             (OpenPartialHomeomorph.mem_refl_source _) hP).val ⊗ₜ
           (if Orientation.reindex ℝ P (finCongr hP)
-              ((trivializationAt P (fun x ↦ f.NormalSpace x hn) z).mapOrientation
+              ((trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).mapOrientation
                 (Fin (finrank ℝ P)) (mem_baseSet_trivializationAt P _ z)
                 (normalOrientation f hn hdim oX oZ z)) = positiveOrientation then
             (Orientation.localOrientation (F := E) (oZ.orientationAt z) hE).val
@@ -411,16 +412,16 @@ theorem
     (hSc : S ⊆ ((chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))).target)
     (hSe : letI := f.normalSpaceFiberBundle hn hdim
       MapsTo ((chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))).symm S
-        (trivializationAt P (fun x ↦ f.NormalSpace x hn) z).baseSet)
+        (trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).baseSet)
     (h0 : (0 : E) ∈ S) :
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
-    haveI : T1Space (TotalSpace P fun x ↦ f.NormalSpace x hn) :=
+    haveI : T1Space (TotalSpace P fun x ↦ f.isImmersion.NormalSpace x hn) :=
       Φ.toHomeomorph.isEmbedding.t1Space
     (Trivialization.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe
         (by simp) (by simp) h0 0).inv
       ((thomPairLocalHomologyRestriction (ModuleCat.of ℤ (ULift.{0} ℤ)) P
-        (fun x ↦ f.NormalSpace x hn) z 0).hom
+        (fun x ↦ f.isImmersion.NormalSpace x hn) z 0).hom
         (f.tubeFundamentalClass hn hdim Φ hΦ.apply_zeroSection
           ((oX.reindex (finCongr ((zero_add _).trans hP))).toHomologicalOrientationOfZeroDim)
           (by omega) hK)) =
@@ -428,7 +429,7 @@ theorem
         ((localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl P)
             (OpenPartialHomeomorph.mem_refl_source _) hP).val ⊗ₜ
           (if Orientation.reindex ℝ P (finCongr hP)
-              ((trivializationAt P (fun x ↦ f.NormalSpace x hn) z).mapOrientation
+              ((trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).mapOrientation
                 (Fin (finrank ℝ P)) (mem_baseSet_trivializationAt P _ z)
                 (normalOrientation f hn hdim oX oZ z)) = positiveOrientation then
             (if oZ.orientationAt z = positiveOrientation then
@@ -449,7 +450,7 @@ theorem
   refine localChartLocalHomologyIso_inv_tubeFundamentalClass_of_localHomologyMap f hn hdim Φ
     hΦ.apply_zeroSection _ (by omega) hK z hS hSc hSe h0 _ ?_
   by_cases hc : Orientation.reindex ℝ P (finCongr hP)
-      ((trivializationAt P (fun x ↦ f.NormalSpace x hn) z).mapOrientation
+      ((trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).mapOrientation
         (Fin (finrank ℝ P)) (mem_baseSet_trivializationAt P _ z)
         (normalOrientation f hn hdim oX oZ z)) = positiveOrientation
   · rw [ite_eq_left hc] at h ⊢
