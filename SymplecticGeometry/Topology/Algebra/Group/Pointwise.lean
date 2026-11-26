@@ -14,7 +14,7 @@ public import Mathlib.Topology.MetricSpace.ProperSpace
 
 Let `A` be a closed set in a normed space `E` over a nontrivially normed field `𝕜` whose closed
 balls are compact, and `v : E`. The points `c` with `c + s • v ∈ A` for some `‖s‖ ≤ ρ` form a
-closed set (`IsClosed.setOf_exists_norm_le_add_smul_mem`): it is the sum of `A` and the compact
+closed set (`IsClosed.setOfPred_exists_norm_le_add_smul_mem`): it is the sum of `A` and the compact
 image of a closed ball of `𝕜` under `s ↦ -(s • v)`, which is closed by Mathlib's
 `IsClosed.add_left_of_isCompact`.
 -/
@@ -25,7 +25,7 @@ open Metric Set
 
 /-- The points from which a closed set can be reached by a move `s • v` with `‖s‖ ≤ ρ` form a
 closed set. -/
-theorem IsClosed.setOf_exists_norm_le_add_smul_mem {𝕜 E : Type*} [NontriviallyNormedField 𝕜]
+theorem IsClosed.setOfPred_exists_norm_le_add_smul_mem {𝕜 E : Type*} [NontriviallyNormedField 𝕜]
     [ProperSpace 𝕜] [NormedAddCommGroup E] [NormedSpace 𝕜 E] {A : Set E} (hA : IsClosed A)
     (v : E) (ρ : ℝ) :
     IsClosed {c : E | ∃ s : 𝕜, ‖s‖ ≤ ρ ∧ c + s • v ∈ A} := by

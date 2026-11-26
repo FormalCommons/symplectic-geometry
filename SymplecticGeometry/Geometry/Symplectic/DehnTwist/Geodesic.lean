@@ -69,15 +69,15 @@ direction.
 * `SymplecticGeometry.cotangentNorm_eq_norm`: `‖p‖` is the norm of `z` for the round metric.
 * `SymplecticGeometry.cotangentNorm_eq_zero_iff`: `‖p‖ = 0` exactly on the zero section.
 * `SymplecticGeometry.contMDiffAt_cotangentNorm`: `‖p‖` is smooth off the zero section.
-* `SymplecticGeometry.isCompact_setOf_cotangentNorm_le`: the sets `{z | ‖p‖ ≤ r}` are compact;
-  `SymplecticGeometry.isCompact_setOf_cotangentNorm_coe_le`: so is their trace on an open set
-  that contains them. `SymplecticGeometry.exists_pos_setOf_cotangentNorm_le_subset`: every
+* `SymplecticGeometry.isCompact_setOfPred_cotangentNorm_le`: the sets `{z | ‖p‖ ≤ r}` are compact;
+  `SymplecticGeometry.isCompact_setOfPred_cotangentNorm_coe_le`: so is their trace on an open set
+  that contains them. `SymplecticGeometry.exists_pos_setOfPred_cotangentNorm_le_subset`: every
   neighbourhood of the zero section contains `{z | ‖p‖ ≤ r}` for some `r > 0`.
-  `SymplecticGeometry.exists_gt_setOf_cotangentNorm_le_subset`: every neighbourhood of
+  `SymplecticGeometry.exists_gt_setOfPred_cotangentNorm_le_subset`: every neighbourhood of
   `{z | ‖p‖ ≤ r}` contains `{z | ‖p‖ ≤ r'}` for some `r' > r`.
 * `SymplecticGeometry.cotangentNorm_vectorBundleFiberScaling`: fibre scaling by `t ∈ [0, 1]`
   multiplies `‖p‖` by `t`, so it maps `{z | ‖p‖ < r}` into itself
-  (`SymplecticGeometry.vectorBundleFiberScaling_mem_setOf_cotangentNorm_lt`).
+  (`SymplecticGeometry.vectorBundleFiberScaling_mem_setOfPred_cotangentNorm_lt`).
 * `SymplecticGeometry.cotangentCoord_zeroSection`: the zero covector at `q` has coordinates
   `(q, 0)`; `SymplecticGeometry.antipodal_zeroSection`: `antipodal` sends it to the zero covector
   at `-q`.
@@ -420,32 +420,32 @@ theorem contMDiffAt_cotangentNorm {z : CotangentBundle (𝓡 n) (𝕊 n)} (hz : 
     ).congr_of_eventuallyEq (Filter.Eventually.of_forall cotangentNorm_eq_norm)
 
 /-- The covectors on the unit sphere with `‖p‖ ≤ r` form a compact set. -/
-theorem isCompact_setOf_cotangentNorm_le (r : ℝ) :
+theorem isCompact_setOfPred_cotangentNorm_le (r : ℝ) :
     IsCompact {z : CotangentBundle (𝓡 n) (𝕊 n) | cotangentNorm z ≤ r} := by
-  simpa only [cotangentNorm_eq_norm] using CotangentBundle.isCompact_setOf_norm_snd_le r
+  simpa only [cotangentNorm_eq_norm] using CotangentBundle.isCompact_setOfPred_norm_snd_le r
 
 /-- For an open set `U ⊇ {z | ‖p‖ ≤ r}` of `T*Sⁿ`, the points of `U` with `‖p‖ ≤ r` form a
 compact subset of `U`. -/
-theorem isCompact_setOf_cotangentNorm_coe_le
+theorem isCompact_setOfPred_cotangentNorm_coe_le
     {U : TopologicalSpace.Opens (CotangentBundle (𝓡 n) (𝕊 n))} {r : ℝ}
     (hU : {z : CotangentBundle (𝓡 n) (𝕊 n) | cotangentNorm z ≤ r} ⊆ (U : Set _)) :
     IsCompact {z : U | cotangentNorm (z : CotangentBundle (𝓡 n) (𝕊 n)) ≤ r} :=
-  Topology.IsInducing.subtypeVal.isCompact_preimage' (isCompact_setOf_cotangentNorm_le r)
+  Topology.IsInducing.subtypeVal.isCompact_preimage' (isCompact_setOfPred_cotangentNorm_le r)
     (by rwa [Subtype.range_coe])
 
 /-- Every neighbourhood of the zero section of `T*Sⁿ` contains `{z | ‖p‖ ≤ r}` for some
 `r > 0`. -/
-theorem exists_pos_setOf_cotangentNorm_le_subset {W : Set (CotangentBundle (𝓡 n) (𝕊 n))}
+theorem exists_pos_setOfPred_cotangentNorm_le_subset {W : Set (CotangentBundle (𝓡 n) (𝕊 n))}
     (hW : W ∈ 𝓝ˢ (range (zeroSection (EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)
       (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ)))) :
     ∃ r > 0, {z | cotangentNorm z ≤ r} ⊆ W :=
   exists_pos_sublevel_subset_of_isCompact_of_mem_nhdsSet one_pos
-    (isCompact_setOf_cotangentNorm_le 1) continuous_cotangentNorm.continuousOn
+    (isCompact_setOfPred_cotangentNorm_le 1) continuous_cotangentNorm.continuousOn
     (fun z hz ↦ (cotangentNorm_nonneg z).lt_of_ne' fun h ↦ hz (cotangentNorm_eq_zero_iff.1 h)) hW
 
 /-- Every neighbourhood `U` of `{z | ‖p‖ ≤ r}` in `T*Sⁿ` contains `{z | ‖p‖ ≤ r'}` for some
 `r' > r`. -/
-theorem exists_gt_setOf_cotangentNorm_le_subset {r : ℝ} {U : Set (CotangentBundle (𝓡 n) (𝕊 n))}
+theorem exists_gt_setOfPred_cotangentNorm_le_subset {r : ℝ} {U : Set (CotangentBundle (𝓡 n) (𝕊 n))}
     (hU : U ∈ 𝓝ˢ {z | cotangentNorm z ≤ r}) :
     ∃ r' > r, {z | cotangentNorm z ≤ r'} ⊆ U := by
   have hset (c : ℝ) : {z : CotangentBundle (𝓡 n) (𝕊 n) | cotangentNorm z - r ≤ c} =
@@ -454,7 +454,7 @@ theorem exists_gt_setOf_cotangentNorm_le_subset {r : ℝ} {U : Set (CotangentBun
     exact sub_le_iff_le_add'
   obtain ⟨δ, hδ, hδU⟩ := exists_pos_sublevel_subset_of_isCompact_of_mem_nhdsSet
     (f := fun z ↦ cotangentNorm z - r) one_pos
-    (hset 1 ▸ isCompact_setOf_cotangentNorm_le (r + 1))
+    (hset 1 ▸ isCompact_setOfPred_cotangentNorm_le (r + 1))
     (continuous_cotangentNorm.sub continuous_const).continuousOn
     (fun z hz ↦ sub_pos.2 (not_le.1 hz)) hU
   exact ⟨r + δ, lt_add_of_pos_right r hδ, hset δ ▸ hδU⟩
@@ -468,7 +468,7 @@ theorem cotangentNorm_vectorBundleFiberScaling (z : CotangentBundle (𝓡 n) (�
     CotangentBundle.norm_snd_vectorBundleFiberScaling]
 
 /-- Fibre scaling by each `t ∈ [0, 1]` maps `{z | ‖p‖ < r}` into itself. -/
-theorem vectorBundleFiberScaling_mem_setOf_cotangentNorm_lt {r : ℝ}
+theorem vectorBundleFiberScaling_mem_setOfPred_cotangentNorm_lt {r : ℝ}
     {z : CotangentBundle (𝓡 n) (𝕊 n)} (hz : cotangentNorm z < r) (t : Icc (0 : ℝ) 1) :
     vectorBundleFiberScaling (EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)
       (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ) (z, t) ∈ {z | cotangentNorm z < r} := by

@@ -783,7 +783,7 @@ theorem isOpen_compl_range_inl :
       TotalSpace.mk' G₂ v.val.proj v.val.snd.2 :=
     (continuous_snd.comp (FiberBundle.Prod.isInducing_diag G₁ E₁ G₂ E₂).continuous).comp
       continuous_subtypeVal
-  convert (VectorBundle.isClosed_setOf_eq_zero 𝕜 hs).isOpen_compl using 1
+  convert (VectorBundle.isClosed_setOfPred_eq_zero 𝕜 hs).isOpen_compl using 1
   ext v
   simp only [mem_preimage, mem_compl_iff, mem_ofPred_eq, mk'_eq_mk, mk_mem_range_inl_iff]
 

@@ -196,7 +196,7 @@ symplectic.
   `π ∘ fiberInclusionMap` is constant), `restrictsTo_add_iff` (if `τ`
   restricts to `σ`, then `τ + β` does exactly when `β` pulls back to zero
   on every fibre), `RestrictsTo.add_mpullback` (Thurston's $\tau+K\pi^*\beta$,
-  for part 49), and `convex_setOf_restrictsTo`.
+  for part 49), and `convex_setOfPred_restrictsTo`.
 
 ### `Geometry/Symplectic/Fibration/Basic.lean`
 

@@ -19,7 +19,7 @@ linearization is surjective at each zero has Fredholm index zero there, so its z
 `0`-dimensional manifold (Tau Ceti's `TauCeti.exists_isManifold_sectionZero_of_contMDiff`):
 a discrete subset of `M`. This holds as well over `ℂ`, and for `C^n` sections with `n ≠ 0`. The
 zero set is also closed, as the zero set of any continuous section is
-(`VectorBundle.isClosed_setOf_eq_zero`). No compactness of `M` is needed, unlike in Tau Ceti's
+(`VectorBundle.isClosed_setOfPred_eq_zero`). No compactness of `M` is needed, unlike in Tau Ceti's
 `TauCeti.finite_sectionZero_of_contMDiff`. The proofs of closedness and of discreteness adapt
 the corresponding steps in the proof of that lemma.
 
@@ -30,10 +30,10 @@ discrete.
 
 ## Main results
 
-* `ContMDiffSection.isClosed_setOf_eq_zero`: the zero set of a section is closed.
-* `ContMDiffSection.isDiscrete_setOf_eq_zero_of_surjective`: in rank equal to the dimension,
+* `ContMDiffSection.isClosed_setOfPred_eq_zero`: the zero set of a section is closed.
+* `ContMDiffSection.isDiscrete_setOfPred_eq_zero_of_surjective`: in rank equal to the dimension,
   the zero set of a section with surjective linearization at its zeros is discrete.
-* `ContMDiffSection.mem_residual_setOf_isDiscrete_zero_affineFamily`: for a residual set of
+* `ContMDiffSection.mem_residual_setOfPred_isDiscrete_zero_affineFamily`: for a residual set of
   parameters, the affine perturbation of a section by a spanning family has a discrete zero set.
 * `ContMDiffSection.exists_mem_span_isClosed_isDiscrete_zero`: a spanning family has a linear
   combination whose zero set is closed and discrete.
@@ -64,8 +64,8 @@ variable {𝕜 EM HM M F : Type*} [NontriviallyNormedField 𝕜]
   [FiberBundle F V] [VectorBundle 𝕜 F V] {n : ℕ∞ω}
 
 /-- The zero set of a `C^n` section of a vector bundle is closed. -/
-theorem isClosed_setOf_eq_zero (t : ContMDiffSection IM F n V) : IsClosed {x | t x = 0} :=
-  VectorBundle.isClosed_setOf_eq_zero 𝕜 (b := id) t.contMDiff.continuous
+theorem isClosed_setOfPred_eq_zero (t : ContMDiffSection IM F n V) : IsClosed {x | t x = 0} :=
+  VectorBundle.isClosed_setOfPred_eq_zero 𝕜 (b := id) t.contMDiff.continuous
 
 end Closed
 
@@ -82,7 +82,7 @@ variable {𝕜 X M F : Type*} [RCLike 𝕜] [NormedAddCommGroup X] [NormedSpace 
 /-- Over a boundaryless manifold modelled on `X`, the zero set of a `C^n` section, `n ≠ 0`, of a
 bundle of rank `dim X` is discrete if the intrinsic linearization of the section is surjective at
 each zero. -/
-theorem isDiscrete_setOf_eq_zero_of_surjective (hn : n ≠ 0) (hdim : finrank 𝕜 X = finrank 𝕜 F)
+theorem isDiscrete_setOfPred_eq_zero_of_surjective (hn : n ≠ 0) (hdim : finrank 𝕜 X = finrank 𝕜 F)
     (t : ContMDiffSection 𝓘(𝕜, X) F n V)
     (ht : ∀ x, t x = 0 → Surjective (TauCeti.sectionLinearization (F := F) 𝓘(𝕜, X) id t x)) :
     IsDiscrete {x | t x = 0} := by
@@ -115,13 +115,13 @@ variable {X M F : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X] [FiniteDimen
 /-- Over a second-countable boundaryless manifold modelled on `X`, let `V` be a bundle of rank
 `dim X` and `s` a finite family of smooth sections spanning every fibre. For a residual set of
 parameters `a`, the section `s₀ + ∑ i, a i • s i` has a discrete zero set. -/
-theorem mem_residual_setOf_isDiscrete_zero_affineFamily [Fintype ι]
+theorem mem_residual_setOfPred_isDiscrete_zero_affineFamily [Fintype ι]
     (hdim : finrank ℝ X = finrank ℝ F)
     (s₀ : ContMDiffSection 𝓘(ℝ, X) F ∞ V) (s : ι → ContMDiffSection 𝓘(ℝ, X) F ∞ V)
     (hspan : ∀ x, Submodule.span ℝ (range fun i ↦ s i x) = ⊤) :
     {a | IsDiscrete {x | affineFamily s₀ s a x = 0}} ∈ residual (ι → ℝ) := by
   filter_upwards [mem_residual_setOf_isRegular_affineFamily s₀ s hspan] with a ha
-  exact isDiscrete_setOf_eq_zero_of_surjective (by simp) hdim _
+  exact isDiscrete_setOfPred_eq_zero_of_surjective (by simp) hdim _
     (TauCeti.isRegularSectionParameter_iff.mp ha)
 
 /-- Over a second-countable boundaryless manifold modelled on a finite-dimensional space `X`,
@@ -133,9 +133,9 @@ theorem exists_mem_span_isClosed_isDiscrete_zero [Finite ι] (hdim : finrank ℝ
     ∃ t ∈ Submodule.span ℝ (range s), IsClosed {x | t x = 0} ∧ IsDiscrete {x | t x = 0} := by
   have := Fintype.ofFinite ι
   obtain ⟨a, ha⟩ := (dense_of_mem_residual
-    (mem_residual_setOf_isDiscrete_zero_affineFamily hdim 0 s hspan)).nonempty
+    (mem_residual_setOfPred_isDiscrete_zero_affineFamily hdim 0 s hspan)).nonempty
   refine ⟨affineFamily 0 s a, (Submodule.mem_span_range_iff_exists_fun ℝ).mpr ⟨a, ?_⟩,
-    isClosed_setOf_eq_zero _, ha⟩
+    isClosed_setOfPred_eq_zero _, ha⟩
   ext x
   simp only [coe_sum, Finset.sum_apply, coe_smul, Pi.smul_apply, affineFamily_apply, coe_zero,
     Pi.zero_apply, zero_add]

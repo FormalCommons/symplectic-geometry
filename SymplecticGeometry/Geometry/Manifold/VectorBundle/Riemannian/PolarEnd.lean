@@ -76,7 +76,7 @@ under linear isomorphisms (`SymplecticGeometry.metricPolarFormula_conj`) and smo
 `contMDiffOn_polarFormulaAt` is `SymplecticGeometry.Bundle.contMDiffAt_mapBilinPairAt`, with the
 form a coordinate of the total space. The domain is open by
 `FiberBundle.isOpen_of_forall_mem_iff_snd_mem`, since each trivialization reads it as the open
-set `ContinuousLinearMap.isOpen_setOf_nondegenerate_toBilinForm_sub_flip` of the model fibre.
+set `ContinuousLinearMap.isOpen_setOfPred_nondegenerate_toBilinForm_sub_flip` of the model fibre.
 
 The form `compatibleBilinAt g x B` is built from `(g x).comp B` and Mathlib's
 `ContinuousLinearMap.precomp`, so that the fibres need no norm. In a trivialization it reads as
@@ -127,7 +127,7 @@ variable [TopologicalSpace M] [ChartedSpace HB M]
 theorem isOpen_polarFormulaDomain [FiniteDimensional ℝ F] :
     IsOpen (polarFormulaDomain F V) := by
   refine FiberBundle.isOpen_of_forall_mem_iff_snd_mem
-    ContinuousLinearMap.isOpen_setOf_nondegenerate_toBilinForm_sub_flip fun b q hq ↦ ?_
+    ContinuousLinearMap.isOpen_setOfPred_nondegenerate_toBilinForm_sub_flip fun b q hq ↦ ?_
   -- In the fibre coordinates of the trivialization, a form becomes its carrying along a linear
   -- equivalence.
   have hy : q.proj ∈ (trivializationAt F V b).baseSet := by

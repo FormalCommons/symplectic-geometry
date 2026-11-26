@@ -533,7 +533,7 @@ and the prerequisites, placed by topic.
   `setAverage_log_norm_eval_sub_le` and
   `log_div_le_setAverage_log_norm_eval_sub`),
   `MeasureTheory/Measure/Lebesgue/LineSlice.lean` (step 5,
-  `volume_setOf_exists_add_smul_mem_le`), and in `AlgebraicTube.lean`, before
+  `volume_setOfPred_exists_add_smul_mem_le`), and in `AlgebraicTube.lean`, before
   `volume_thickening_zeroLocus_le`, step 4
   (`MvPolynomial.setAverage_log_norm_eval_sub_ge_of_dist_lt` and
   `MvPolynomial.volume_ball_le_mul_volume_setOf_exists_root`) and the bound

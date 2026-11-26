@@ -1116,7 +1116,7 @@ gives the theorem.
 Facts about two-forms in the frame topology of a covering frame system
 (`letI := frameTopology …`, `hcover`), on a finite-dimensional base:
 
-- `Bundle.ContMDiffTwoForm.isOpen_setOf_forall_mem_nondegenerate`: for a
+- `Bundle.ContMDiffTwoForm.isOpen_setOfPred_forall_mem_nondegenerate`: for a
   compact `K ⊆ M`, the forms `ω` with `(ω.bilinFormAt x).Nondegenerate` for
   all `x ∈ K` are an open set. Nondegeneracy is open in each fibre, and
   evaluation is jointly continuous in the form and the point
@@ -1160,7 +1160,7 @@ The spaces, in the topology of the departure *Spaces of forms*:
   Proof as in Decision 5: `Convex.cwType_inter` for the convex set (all
   forms, or the preimage under `tangentEquiv` of the coset
   `α + exactForms I M 2`) and the open set of
-  `isOpen_setOf_forall_mem_nondegenerate` for `closure (Set.range j)`; then
+  `isOpen_setOfPred_forall_mem_nondegenerate` for `closure (Set.range j)`; then
   `TauCeti.CWType.of_comp_homotopic_id` with the inclusion,
   $\omega\mapsto j^*\omega$ (nondegenerate since the slices of `h` are
   embeddings between manifolds of one dimension; in the class by
