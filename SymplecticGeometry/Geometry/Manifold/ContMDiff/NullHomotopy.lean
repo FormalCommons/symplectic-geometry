@@ -32,6 +32,13 @@ homotopy, rel endpoints, from the loop `c` on `[a, b]` to the constant path (Mat
 `SimplyConnectedSpace.paths_homotopic`), reparametrized like `ρ` in space and by a cutoff in
 time, so that it is constant near the edges of the square other than the bottom one.
 
+This construction is adapted from Tau Ceti's proof of `TauCeti.exists_contMDiff_periodic_homotopic`
+(`TauCeti/Geometry/Manifold/SmoothApprox/PeriodicLoop.lean`): there too the loop is precomposed
+near an edge with a ramped interpolation between the identity and a collared step, the continuous
+homotopy is precomposed with `TauCeti.collaredSmoothTransitionUnit` in the loop direction, the
+pieces are glued into a map that is `C^n` on an open set where it is a smooth piece or constant,
+and that map is smoothed relative to this set.
+
 ## Main results
 
 * `ContMDiff.exists_contMDiff_nullhomotopy`: a `C^n` loop in a simply connected manifold bounds a
@@ -65,14 +72,14 @@ private theorem exists_contMDiff_homotopy_reparam {n : ℕ∞} {c : I → M}
     ∃ G : I × I → M, ContMDiff ((𝓡∂ 1).prod (𝓡∂ 1)) J n G ∧ (∀ t, G (t, 0) = c t) ∧
       (∀ x : I × I, (x.1 : ℝ) ≤ a ∨ (b : ℝ) ≤ x.1 → G x = p₀) ∧
       ∀ x : I × I, 1 / 4 ≤ (x.2 : ℝ) → G x = c (Set.Icc.convexComb a b (θ x.1)) := by
-  let β : I → I := fun s ↦
-    ⟨Real.smoothTransition (4 * s), Real.smoothTransition.nonneg _, Real.smoothTransition.le_one _⟩
-  have hβ : ContMDiff (𝓡∂ 1) (𝓡∂ 1) n β :=
-    ((by fun_prop : ContDiff ℝ n fun r : ℝ ↦ 4 * r).comp_contMDiff
-      contMDiff_subtypeVal_Icc).smoothTransition (WithTop.coe_le_coe.2 le_top)
-  have hβ0 : β 0 = 0 := Subtype.ext (by simp [β])
+  let β : I → I := fun s ↦ unitInterval.smoothTransition (4 * s)
+  have hβ : ContMDiff (𝓡∂ 1) (𝓡∂ 1) n β := by
+    convert ((by fun_prop : ContDiff ℝ n fun r : ℝ ↦ 4 * r).comp_contMDiff
+      contMDiff_subtypeVal_Icc).smoothTransition (WithTop.coe_le_coe.2 le_top) using 2
+    exact Subtype.ext (unitInterval.coe_smoothTransition _)
+  have hβ0 : β 0 = 0 := unitInterval.smoothTransition_of_nonpos (by simp)
   have hβ1 {s : I} (hs : 1 / 4 ≤ (s : ℝ)) : β s = 1 :=
-    Subtype.ext (Real.smoothTransition.one_of_one_le (by linarith))
+    unitInterval.smoothTransition_of_one_le (by linarith)
   refine ⟨fun x ↦ c (Set.Icc.convexComb x.1 (Set.Icc.convexComb a b (θ x.1)) (β x.2)),
     hc.comp (contMDiff_fst.convexComb ((contMDiff_const.convexComb contMDiff_const hθ).comp
       contMDiff_fst) (hβ.comp contMDiff_snd)),
@@ -183,7 +190,7 @@ private theorem exists_continuous_nullhomotopy [SimplyConnectedSpace M] {n : ℕ
     · exact (ite_eq_right h).trans
         (hKp (hx.imp (fun h ↦ by linarith) fun h ↦ Or.inl (by linarith)))
 
-variable [FiniteDimensional ℝ F] [J.Boundaryless] [IsManifold J ∞ M] [T2Space M]
+variable [FiniteDimensional ℝ F] [BoundarylessManifold J M] [IsManifold J ∞ M] [T2Space M]
 
 /-- **Smooth null-homotopy of a smooth loop, constant outside an interval.** Let `M` be a simply
 connected Hausdorff manifold without boundary, modelled on a finite-dimensional real space, let
