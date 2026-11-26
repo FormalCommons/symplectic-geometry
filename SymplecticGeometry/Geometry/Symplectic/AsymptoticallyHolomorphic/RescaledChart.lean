@@ -15,6 +15,7 @@ import SymplecticGeometry.Geometry.Symplectic.Manifold.Darboux
 import SymplecticGeometry.LinearAlgebra.Symplectic.UnitaryNormalForm
 import SymplecticGeometry.Analysis.Normed.Module.Ball.Pointwise
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.LocalSection
+import SymplecticGeometry.Geometry.Symplectic.Liouville.RadialPrimitive
 import SymplecticGeometry.Topology.Algebra.Module.Equiv.Basic
 import Mathlib.Algebra.Order.Star.Real
 
@@ -81,8 +82,15 @@ Darboux charts whose sources lie in base sets of trivializations of `P`, rescale
 form over the balls of radius `D.radius`. The frames do not depend on `k`, since rescaling the
 chart by `c` multiplies the model form read in it by `c⁻²`
 (`SymplecticGeometry.CenteredDarbouxCharts.mpullback_rescaledChart_symm_apply` and
-`TauCeti.SymplecticForm.mpullback_const_smul_radialPrimitive`). The construction follows Auroux's
-local normalization of the charts for `k Ω` [Auroux2002, Lemma 1].
+`TauCeti.SymplecticForm.mpullback_const_smul_radialPrimitive`, in
+`SymplecticGeometry.Geometry.Symplectic.Liouville.RadialPrimitive`). The construction follows
+Auroux's local normalization of the charts for `k Ω` [Auroux2002, Lemma 1].
+
+In these charts the quadratic form `2π k σ(v, J v)`, which for `J` compatible with `σ` is `2π k`
+times the square of the `g_J`-norm of `v`, is close to `‖u‖ ^ 2`, `u` the image of `v` under the
+derivative of the chart: since `ω₀(u, J₀ u) = ‖u‖ ^ 2`, the two differ by at most
+`bound 1 * ‖z‖ / √k * ‖u‖ ^ 2` at a point with image `z`, so on the ball of radius `ρ₁ * √k`, for
+`ρ₁ ≤ ρ₀` with `|bound 1| * ρ₁ ≤ 1 / 2`, the form lies between `‖u‖ ^ 2 / 2` and `3 / 2 * ‖u‖ ^ 2`.
 
 ## Main definitions
 
@@ -117,6 +125,10 @@ local normalization of the charts for `k Ω` [Auroux2002, Lemma 1].
 * `SymplecticGeometry.exists_rescaledUnitaryCharts`: rescaled unitary charts exist on a compact
   manifold with a two-form `σ`, a compatible almost complex structure, and a connection form
   of curvature `-2π σ`.
+* `SymplecticGeometry.RescaledUnitaryCharts.abs_eval₂_apply_sub_norm_sq_le` and
+  `SymplecticGeometry.RescaledUnitaryCharts.exists_forall_eval₂_apply_mem_Icc`: `2π k σ(v, J v)`
+  is `‖u‖ ^ 2` up to `bound 1 * ‖z‖ / √k * ‖u‖ ^ 2`, `u` the image of `v` in the chart, and on a
+  smaller ball it lies between `‖u‖ ^ 2 / 2` and `3 / 2 * ‖u‖ ^ 2`.
 
 ## References
 
@@ -744,6 +756,83 @@ theorem exists_rescaledUnitaryCharts [FiniteDimensional ℝ E] [CompactSpace M]
           rw [← abs_of_pos (zero_lt_one.trans_le (hone hk)), ← hball hk]
           exact hz)
       rwa [← abs_of_pos (zero_lt_one.trans_le (hone hk)), hinv hk, ← mul_assoc] at h }⟩⟩
+
+namespace RescaledUnitaryCharts
+
+omit [I.Boundaryless] [∀ x, MulAction Circleᵐᵒᵖ (P x)] [PrincipalBundle Circle P]
+
+variable {σ : SmoothTwoForm I M} {J : SmoothAlmostComplexStructure I M}
+  {α : SmoothForm (I.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1} {k₀ : ℕ} {ρ₀ : ℝ}
+  (D : RescaledUnitaryCharts P σ J α ι k₀ ρ₀)
+
+/-- At a point `y` whose image `z` under the chart `D.chart k x` lies in the ball of radius
+`ρ₀ * √k`, the quadratic form `2π k σ(v, J v)` of a tangent vector `v` at `y` differs from
+`‖u‖ ^ 2`, for `u` the image of `v` under the derivative of the chart, by at most
+`D.bound 1 * ‖z‖ / √k` times `‖u‖ ^ 2`. -/
+theorem abs_eval₂_apply_sub_norm_sq_le {k : ℕ} (hk : k₀ ≤ k) (x : M) {y : M}
+    (hy : y ∈ (D.chart k x).source) (hyB : D.chart k x y ∈ ball 0 (ρ₀ * √k))
+    (v : TangentSpace I y) :
+    |2 * Real.pi * k * σ.eval₂ y v (J y v) - ‖mvfderiv I (D.chart k x) y v‖ ^ 2| ≤
+      D.bound 1 * (√k)⁻¹ * ‖D.chart k x y‖ * ‖mvfderiv I (D.chart k x) y v‖ ^ 2 := by
+  set A := J.chartPushforward (D.chart k x).toOpenPartialHomeomorph (D.chart k x y) -
+    LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap
+  have hJv : mvfderiv I (D.chart k x) y (J y v) =
+      stdComplexStructure ι (mvfderiv I (D.chart k x) y v) + A (mvfderiv I (D.chart k x) y v) := by
+    rw [mvfderiv_apply_eq_mfderiv_apply, J.mfderiv_apply_eq_chartPushforward_apply _ hy,
+      ← mvfderiv_apply_eq_mfderiv_apply]
+    simp only [A, sub_apply, LinearMap.coe_toContinuousLinearMap', add_sub_cancel]
+  rw [D.eval₂_eq hk x y hy, hJv]
+  set u := mvfderiv I (D.chart k x) y v
+  have hsplit : stdForm ι u (stdComplexStructure ι u + A u) = ‖u‖ ^ 2 + stdForm ι u (A u) := by
+    simp only [map_add, stdForm_apply_stdComplexStructure, real_inner_self_eq_norm_sq]
+  rw [hsplit, add_sub_cancel_left]
+  calc |stdForm ι u (A u)| ≤ ‖u‖ * ‖A u‖ := abs_stdForm_apply_le u (A u)
+    _ ≤ ‖u‖ * ((D.bound 1 * (√k)⁻¹ * ‖D.chart k x y‖) * ‖u‖) := by
+        gcongr
+        exact (A.le_opNorm u).trans (by gcongr; exact D.jStruct_sub_le hk x _ hyB)
+    _ = D.bound 1 * (√k)⁻¹ * ‖D.chart k x y‖ * ‖u‖ ^ 2 := by ring
+
+/-- **The metric `g_J` read in the rescaled unitary charts.** For rescaled unitary charts with
+radius `ρ₀ > 0`, there is a radius `ρ₁` with `0 < ρ₁ ≤ ρ₀` such that, for every `k ≥ k₀`, every
+point `x`, every `y` in the source of `D.chart k x` whose image lies in the ball of radius
+`ρ₁ * √k`, and every tangent vector `v` at `y`, with `u` the image of `v` under the derivative of
+the chart,
+`‖u‖ ^ 2 / 2 ≤ 2π k σ(v, J v) ≤ 3 / 2 * ‖u‖ ^ 2`.
+For `J` compatible with `σ`, `σ(v, J v)` is the square of the norm of `v` for the metric `g_J`. -/
+theorem exists_forall_eval₂_apply_mem_Icc (hρ₀ : 0 < ρ₀) :
+    ∃ ρ₁, 0 < ρ₁ ∧ ρ₁ ≤ ρ₀ ∧ ∀ {k : ℕ}, k₀ ≤ k → ∀ (x y : M), y ∈ (D.chart k x).source →
+      D.chart k x y ∈ ball 0 (ρ₁ * √k) → ∀ v : TangentSpace I y,
+        2 * Real.pi * k * σ.eval₂ y v (J y v) ∈
+          Set.Icc (‖mvfderiv I (D.chart k x) y v‖ ^ 2 / 2)
+            (3 / 2 * ‖mvfderiv I (D.chart k x) y v‖ ^ 2) := by
+  set b := |D.bound 1|
+  refine ⟨min ρ₀ (1 / (2 * (b + 1))), lt_min hρ₀ (by positivity), min_le_left _ _,
+    fun {k} hk x y hy hyB v ↦ ?_⟩
+  set ρ₁ := min ρ₀ (1 / (2 * (b + 1)))
+  have hz : ‖D.chart k x y‖ < ρ₁ * √k := mem_ball_zero_iff.1 hyB
+  have hρ₁ : 0 < ρ₁ := lt_min hρ₀ (by positivity)
+  have hk0 : 0 < √k := pos_of_mul_pos_right ((norm_nonneg _).trans_lt hz) hρ₁.le
+  have h := D.abs_eval₂_apply_sub_norm_sq_le hk x hy
+    (ball_subset_ball (by gcongr; exact min_le_left _ _) hyB) v
+  have ht : (√k)⁻¹ * ‖D.chart k x y‖ ≤ ρ₁ := by
+    rw [inv_mul_le_iff₀ hk0]
+    linarith
+  have hsmall : D.bound 1 * (√k)⁻¹ * ‖D.chart k x y‖ ≤ 1 / 2 := by
+    have hb : b * ρ₁ ≤ 1 / 2 := by
+      calc b * ρ₁ ≤ b * (1 / (2 * (b + 1))) := by gcongr; exact min_le_right _ _
+        _ ≤ 1 / 2 := by
+          rw [mul_one_div, div_le_iff₀ (by positivity)]
+          linarith
+    calc D.bound 1 * (√k)⁻¹ * ‖D.chart k x y‖ = D.bound 1 * ((√k)⁻¹ * ‖D.chart k x y‖) := by
+          ring
+      _ ≤ b * ((√k)⁻¹ * ‖D.chart k x y‖) := by gcongr; exact le_abs_self _
+      _ ≤ b * ρ₁ := by gcongr
+      _ ≤ 1 / 2 := hb
+  have hu := sq_nonneg ‖mvfderiv I (D.chart k x) y v‖
+  have h' := h.trans (mul_le_mul_of_nonneg_right hsmall hu)
+  exact Set.mem_Icc.2 ⟨by nlinarith [abs_le.1 h'], by nlinarith [abs_le.1 h']⟩
+
+end RescaledUnitaryCharts
 
 end RescaledUnitaryCharts
 

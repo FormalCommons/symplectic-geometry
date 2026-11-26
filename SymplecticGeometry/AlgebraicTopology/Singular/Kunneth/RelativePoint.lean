@@ -7,7 +7,10 @@ module
 
 public import TauCeti.AlgebraicTopology.Singular.Kunneth.Relative
 public import TauCeti.AlgebraicTopology.Singular.Reduced
+public import TauCeti.Algebra.Category.ModuleCat.Monoidal.Unit
 import SymplecticGeometry.AlgebraicTopology.Singular.CrossProduct
+import SymplecticGeometry.Algebra.Category.ModuleCat.ULiftTensor
+import SymplecticGeometry.AlgebraicTopology.Singular.PairChangeOfCoefficients
 
 /-!
 # The relative cross product with the class of a point
@@ -17,7 +20,10 @@ computes the relative cross product (`TopCat.singularHomologyCrossRel`) of a cla
 `a ∈ Hₚ(X, B; R)` with the class `t[y] ∈ H₀(Y; S)` of `y` weighted by `t`: it is the image of `a`
 under the coefficient map `R ≅ R ⊗ 𝟙_ C ⟶ R ⊗ S`, `r ↦ r ⊗ t`, followed by the map of pairs
 `(X, B) ⟶ (X × Y, B × Y)`, `x ↦ (x, y)`
-(`TopCat.singularHomology₀Section_singularHomologyCrossRel`).
+(`TopCat.singularHomology₀Section_singularHomologyCrossRel`). With coefficients `ULift ℤ`,
+`t = 1`, and the product `ULift ℤ ⊗ ULift ℤ ≅ ULift ℤ` applied afterwards, the change of
+coefficients cancels and only the map of pairs remains
+(`TopCat.singularHomologyCrossRel_singularHomology₀Section_one_uliftTensorSelfIso`).
 
 On chains, the shuffle product with a singular vertex, followed by the projection to the first
 factor, is a change of coefficients (`TopCat.rightUnitor_inv_whiskerLeft_shuffle_f_fst`, copied
@@ -32,6 +38,8 @@ absolute cross product, to the relative one.
 
 * `TopCat.singularHomology₀Section_singularHomologyCrossRel`: the relative cross product with the
   class of a point.
+* `TopCat.singularHomologyCrossRel_singularHomology₀Section_one_uliftTensorSelfIso`: its form
+  over `ULift ℤ`, with the coefficients multiplied back into `ULift ℤ`.
 
 ## References
 
@@ -200,6 +208,51 @@ theorem singularHomology₀Section_singularHomologyCrossRel (y : Y) (t : 𝟙_ C
   refine Eq.trans ?_ (congrArg (· ≫ _)
     (singularHomology₀Section_singularHomologyCrossRel_map_fst X Y B R S p y t))
   simp only [Category.assoc]
+
+/-- **The relative cross product with the class of a point, over `ℤ`.** With coefficients
+`ULift ℤ`, the relative cross product of a class `a ∈ Hₚ(X, B)` with the class of a point `y`
+of `Y`, carried back to `ULift ℤ` by the product `ULift ℤ ⊗ ULift ℤ ≅ ULift ℤ`, is the image
+of `a` under the map of pairs `(X, B) ⟶ (X × Y, B × Y)`, `x ↦ (x, y)`. -/
+theorem singularHomologyCrossRel_singularHomology₀Section_one_uliftTensorSelfIso
+    (X Y : TopCat.{0}) (B : Set X) (p : ℕ) (y : Y)
+    (a : ((TopPair.ofSubset B).singularHomology (ModuleCat.of ℤ (ULift.{0} ℤ)) p :
+      ModuleCat.{0} ℤ)) :
+    homologyMap (((SSetPair.chainComplexFunctor (ModuleCat.{0} ℤ)).map
+        (ModuleCat.uliftTensorSelfIso ℤ).hom).app
+          (TopPair.toSSetPair.obj (TopPair.ofSubset (fst X Y ⁻¹' B)))) p
+      (singularHomologyCrossRel X Y B (ModuleCat.of ℤ (ULift.{0} ℤ))
+        (ModuleCat.of ℤ (ULift.{0} ℤ)) p 0 p (add_zero p)
+        (a ⊗ₜ TauCeti.singularHomology₀Section (ModuleCat.of ℤ (ULift.{0} ℤ)) y 1)) =
+      TopPair.singularHomologyMap
+        (TopPair.ofSubsetMap (lift (𝟙 X) (ofHom (ContinuousMap.const X y))) (fun _ h ↦ h))
+        (ModuleCat.of ℤ (ULift.{0} ℤ)) p a := by
+  have hpt := singularHomology₀Section_singularHomologyCrossRel_apply X Y B
+    (ModuleCat.of ℤ (ULift.{0} ℤ)) (ModuleCat.of ℤ (ULift.{0} ℤ)) p y
+    (ModuleCat.ofHom (ULift.moduleEquiv.symm : ℤ ≃ₗ[ℤ] ULift.{0} ℤ).toLinearMap) a
+  -- `ρ⁻¹` and the whiskering act on `a ⊗ 1` by definition, and `ULift.up 1 = 1`.
+  have hpt' : singularHomologyCrossRel X Y B (ModuleCat.of ℤ (ULift.{0} ℤ))
+      (ModuleCat.of ℤ (ULift.{0} ℤ)) p 0 p (add_zero p)
+      (a ⊗ₜ TauCeti.singularHomology₀Section (ModuleCat.of ℤ (ULift.{0} ℤ)) y 1) = _ :=
+    (Eq.trans rfl hpt).trans rfl
+  let f : TopPair.ofSubset B ⟶ TopPair.ofSubset (fst X Y ⁻¹' B) :=
+    TopPair.ofSubsetMap (lift (𝟙 X) (ofHom (ContinuousMap.const X y))) (fun _ h ↦ h)
+  have key : homologyMap (((SSetPair.chainComplexFunctor (ModuleCat ℤ)).map
+          (ρ_ (ModuleCat.of ℤ (ULift.{0} ℤ))).inv).app
+          (TopPair.toSSetPair.obj (TopPair.ofSubset B)) ≫
+        ((SSetPair.chainComplexFunctor (ModuleCat ℤ)).map (ModuleCat.of ℤ (ULift.{0} ℤ) ◁
+          ModuleCat.ofHom (ULift.moduleEquiv.symm : ℤ ≃ₗ[ℤ] ULift.{0} ℤ).toLinearMap)).app
+          (TopPair.toSSetPair.obj (TopPair.ofSubset B))) p ≫
+      TopPair.singularHomologyMap f
+        (ModuleCat.of ℤ (ULift.{0} ℤ) ⊗ ModuleCat.of ℤ (ULift.{0} ℤ)) p ≫
+      homologyMap (((SSetPair.chainComplexFunctor (ModuleCat.{0} ℤ)).map
+        (ModuleCat.uliftTensorSelfIso ℤ).hom).app _) p =
+      TopPair.singularHomologyMap f (ModuleCat.of ℤ (ULift.{0} ℤ)) p := by
+    rw [← TopPair.singularHomologyMap_coefficient_naturality, ← Category.assoc, ← homologyMap_comp,
+      ← NatTrans.comp_app, ← NatTrans.comp_app, ← Functor.map_comp, ← Functor.map_comp,
+      ModuleCat.rightUnitor_inv_whiskerLeft_uliftTensorSelfIso_hom,
+      CategoryTheory.Functor.map_id, NatTrans.id_app, homologyMap_id, Category.id_comp]
+  rw [hpt']
+  exact ConcreteCategory.congr_hom key a
 
 end TopCat
 

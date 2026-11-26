@@ -684,7 +684,7 @@ private def ofSymplectomorphism {U₀ : Opens (Q × ℂ)}
     (ψ.toHomeomorph.isOpenEmbedding.comp
       (Topology.IsOpenEmbedding.inclusion hle (prodBall Q ε).isOpen.preimage_val))
   isLocalDiffeomorph' p := (isLocalDiffeomorph_inclusion (n := ∞) hle p).comp (hg :=
-    (ψ.isLocalDiffeomorph _).comp (hg := TauCeti.isLocalDiffeomorph_subtype_val _))
+    ψ.isLocalDiffeomorph_subtypeVal_comp _)
   apply_zeroSlice' q _ := (hψ q).2.1
   mpullback_eq' := by
     refine (SmoothForm.mpullback_mpullback (Opens.inclusion hle) (Subtype.val ∘ ψ)

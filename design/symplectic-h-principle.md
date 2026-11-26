@@ -212,8 +212,7 @@ formulation.
      of the two-forms on each. Restriction is continuous; conversely
      every frame domain can be shrunk into a single component, so each
      frame jet of a form on `M` is a frame jet of one of its
-     restrictions. (This is where a compact set meeting only finitely
-     many components enters.) Nondegeneracy and closedness hold on `M`
+     restrictions. Nondegeneracy and closedness hold on `M`
      when they hold on every component, and so does exactness, since
      primitives chosen on the components glue to a primitive on `M`. So
      both spaces of forms on `M` are the products of the spaces on the
@@ -437,10 +436,11 @@ needed for it.
      `(fderiv ℝ f²' z - G² z) (fderiv ℝ Φ.symm y w)` with `y = Φ z`, so
      the error is at most `ε₂ L ‖w‖ + ε₁ ‖w‖`.
 3. *The one-direction lemma* (`exists_holonomic_approximation_direction`,
-   in `HolonomicApproximation/Direction.lean`). For `i₀ ∉ J'`, a smooth
-   `(f, G)` holonomic near `B ×ˢ {0}` as above (with the faces of
-   `insert i₀ J'` in `B`) and, on `Q`, holonomic in the directions `J'`
-   (`∀ x ∈ Q, ∀ w, (∀ i ∉ J', w.1 i = 0) → fderiv ℝ f x w = G x w`), the
+   in `HolonomicApproximation/Direction.lean`). For a core direction `i₀`, a
+   smooth `(f, G)` holonomic near `B ×ˢ {0}` as above (with the faces of
+   `insert i₀ J'` in `B`) and, on `Q`, holonomic on the core vectors in the
+   directions `J'` (`∀ u ∈ closedBall 0 1, ∀ v, (∀ i ∉ J', v i = 0) →
+   fderiv ℝ f (u, 0) (v, 0) = G (u, 0) (v, 0)`), the
    conclusion of the inductive statement for `insert i₀ J'`, with the
    stronger clause `∀ t x, (h (t, x)).1 = x.1`. Proof:
    - the zig-zag approximation of `ZigZag.lean`, generalized from
@@ -450,14 +450,14 @@ needed for it.
      `(u, Pi.single j (r * g₀ (u i₀)))`, `u` in the cube;
    - a smooth `ψ : (Fin m → ℝ) → [0, 1]`, `0` near `B` and `1` off a
      neighbourhood `N` of `B` with `N ×ˢ ball 0 r ⊆ U` (shrinking `r` first,
-     by compactness), and a smooth `λ` of `u`, `0` where `ψ < 1` and `1` off
-     a slightly larger neighbourhood of `B`, supported near the cube as in
-     the base case;
+     by compactness), and a smooth `λ` on `D`, `0` over a neighbourhood of
+     `B` where `ψ < 1` and off a compact neighbourhood of `Q` of height
+     `2 r₀`, and `1` over the cube off a slightly larger neighbourhood of
+     `B` up to the height `r₀`, which is fixed before `λ`, with `r < r₀`;
    - the diffeotopy is `exists_wiggling_diffeotopy` with the profile
      `u ↦ ψ u * g₀ (u i₀)`, over `cthickening (δ / 2) Q`: where `ψ = 1`
      it moves the cube onto the zig-zag, and near `B` it is the identity;
-   - `f' := f + (λ ∘ Prod.fst) • κ' • (f₀ - f)`, with `κ'` a transverse
-     bump as in the base case at height `2r`. Where `λ` varies, both `f₀`
+   - `f' := f + λ • (f₀ - f)`. Where `λ` varies, both `f₀`
      and `f` are good approximations and the gluing costs
      `‖fderiv λ‖ ‖f₀ - f‖`, so the accuracy asked of `f₀` is chosen after
      `λ`; where `λ = 0` and the cube is displaced by less than `r`, the
@@ -470,16 +470,19 @@ needed for it.
    `pₗ x := (Function.update x.1 i₀ (c l), 0)`. Their derivative in a
    direction `w` of `insert i₀ J'` is `G (pₗ x) w` up to the holonomy defect
    of `(f, G)` in the directions `J'` at `pₗ x`, which the hypothesis makes
-   `0`, and a term bounded by `‖fderiv ℝ G‖ ‖x - pₗ x‖`, small with `r` and
-   the mesh. The chain is `exists_zigzag_chain`, which already takes `m`
-   and `i₀`, with `S 0 = S (n + 1) = f` near the faces `|u i₀| = 1`. The
+   `0` on the cube, so that it is small near the cube, and a term bounded by
+   `‖fderiv ℝ G‖ ‖x - pₗ x‖`, small with `r` and the mesh. The chain is
+   `exists_zigzag_chain`, which already takes `m` and `i₀`, with `S 0 = S (n + 1) = f` near the faces `|u i₀| = 1`. The
    estimates `zigzag_section_estimate`, `zigzag_neighbour_estimate` and
    `zigzag_curve_estimate` become uniform over the other coordinates by
-   compactness of the cube. Smoothness of `S l` needs smoothness of
-   `u ↦ G (Function.update u i₀ c, 0)` only, which for `m = 1` holds with
-   `G` merely continuous, since that map is constant; so the hypothesis is
-   stated in that form and `exists_holonomic_approximation_segment` keeps
-   `Continuous G`.
+   compactness of the cube. Besides `Continuous G`, the hypothesis on `G` is
+   that each `u ↦ G (Function.update u i₀ c, 0)` is smooth and that
+   `(u, c) ↦ fderiv ℝ (fun u ↦ G (Function.update u i₀ c, 0)) u` is
+   continuous, which bounds that derivative uniformly on the cube; for
+   `m = 1` both hold with `G` merely continuous, since the map is constant,
+   so `exists_holonomic_approximation_segment` keeps `Continuous G`. The
+   holonomy in the directions `J'` is asked on the core vectors only, at
+   the points of `Q`.
 5. *Coordinates kept by the transverse push.* `exists_wiggling_diffeotopy`
    gains the clause `∀ t x, (h (t, x)).1 = x.1`, from a new clause of
    `exists_diffeotopy_apply_eq_add_smul` (`Diffeotopy/Translate.lean`):
@@ -1426,9 +1429,9 @@ give the same topology.
   from the two-forms on `M` onto the product of the two-forms on the
   components. Its inverse is `tangentEquiv.symm ∘ ofDisjointCover` on the
   `tangentEquiv` forms. Continuity of the inverse: by
-  `frameTopology_eq_of_covers` the frame domains on `M` can be cut down
-  to their intersections with the components, and each frame jet of a
-  form on `M` on such a domain is a frame jet of its restriction to that
+  `frameTopology_le_of_cover` it can be tested on frames of `M` whose
+  domains each lie in one component, and each frame jet of a form on
+  `M` on such a domain is a frame jet of its restriction to that
   component.
 - `mem_nondegenerateForms_iff_forall_restrict` and
   `mem_symplecticFormsInClass_iff_forall_restrict`: `ω` is in the space on
@@ -1440,7 +1443,7 @@ give the same topology.
 - `nondegenerateFormsHomeomorphPi` and `symplecticFormsInClassHomeomorphPi`:
   the restrictions of `restrictComponentsHomeomorph` to the two spaces,
   onto the products of the spaces on the components (with
-  `Equiv.subtypePiEquivPi`), with the lemma that they carry
+  Tau Ceti's `Homeomorph.Set.univPi`), with the lemma that they carry
   `Set.inclusion` on `M` to the product of the inclusions on the
   components.
 

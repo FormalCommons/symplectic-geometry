@@ -30,6 +30,10 @@ and the fibres may be over any nontrivially normed field.
 
 ## Main definitions and results
 
+* `TauCeti.FiniteRankBundleCore.circlePullback E`: the pullback of `E` to `X × Circle` along
+  `Prod.fst`, on whose automorphisms the clutching functions are.
+* `TauCeti.FiniteRankBundleCore.circleCoord X`: the coordinate `(x, u) ↦ u` of the circle factor,
+  as a continuous complex function on `X × Circle`.
 * `TauCeti.FiniteRankBundleCore.clutchingAut E f`: the pullback of `f` along
   `SymplecticGeometry.ProjectiveLine.clutchingMap`.
 * `TauCeti.FiniteRankBundleCore.clutching`: the clutched core, of rank `E.rank`
@@ -130,6 +134,11 @@ open SymplecticGeometry.ProjectiveLine
 
 variable {𝕜 X : Type*} [NontriviallyNormedField 𝕜] [TopologicalSpace X]
 
+/-- The pullback of `E` to `X × Circle` along the projection `Prod.fst`, whose fibre over
+`(x, u)` is that of `E` over `x`: the core on whose automorphisms clutching functions live. -/
+abbrev circlePullback (E : FiniteRankBundleCore 𝕜 X) : FiniteRankBundleCore 𝕜 (X × Circle) :=
+  E.pullback ContinuousMap.fst
+
 /-- The pullback of `E` to the product of `X` with the annulus is its pullback to `X × Circle`
 pulled back along `clutchingMap`: both are the pullback of `E` along `w ↦ w.val.1`. -/
 theorem pullback_fst_pullback_subtypeVal_eq_pullback_clutchingMap
@@ -142,8 +151,7 @@ theorem pullback_fst_pullback_subtypeVal_eq_pullback_clutchingMap
 /-- The automorphism of the pullback of `E` to the product of `X` with the annulus by which the
 clutching by `f` glues: the pullback of `f` along `clutchingMap`. -/
 def clutchingAut (E : FiniteRankBundleCore 𝕜 X)
-    (f : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
-      E.pullback (ContinuousMap.fst : C(X × Circle, X))) :
+    (f : E.circlePullback ≅ E.circlePullback) :
     (E.pullback (ContinuousMap.fst : C(X × ℙ ℂ (Fin 2 → ℂ), X))).pullback
         (ContinuousMap.subtypeVal (Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc)) ≅
       (E.pullback (ContinuousMap.fst : C(X × ℙ ℂ (Fin 2 → ℂ), X))).pullback
@@ -154,8 +162,7 @@ def clutchingAut (E : FiniteRankBundleCore 𝕜 X)
 
 @[simp]
 theorem fiberMap_clutchingAut_hom (E : FiniteRankBundleCore 𝕜 X)
-    (f : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
-      E.pullback (ContinuousMap.fst : C(X × Circle, X)))
+    (f : E.circlePullback ≅ E.circlePullback)
     (w : ↥(Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc : Set (X × ℙ ℂ (Fin 2 → ℂ)))) :
     (clutchingAut E f).hom.fiberMap w = f.hom.fiberMap (clutchingMap X w) := by
   ext v i
@@ -163,8 +170,7 @@ theorem fiberMap_clutchingAut_hom (E : FiniteRankBundleCore 𝕜 X)
 
 @[simp]
 theorem fiberMap_clutchingAut_inv (E : FiniteRankBundleCore 𝕜 X)
-    (f : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
-      E.pullback (ContinuousMap.fst : C(X × Circle, X)))
+    (f : E.circlePullback ≅ E.circlePullback)
     (w : ↥(Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc : Set (X × ℙ ℂ (Fin 2 → ℂ)))) :
     (clutchingAut E f).inv.fiberMap w = f.inv.fiberMap (clutchingMap X w) := by
   ext v i
@@ -178,16 +184,14 @@ product of `X` with the annulus in the copy over the outer disc being the vector
 -- Expose the rank so that the fibre model of the clutched core reduces to that of `E`.
 @[expose, implicit_reducible]
 def clutching (E : FiniteRankBundleCore 𝕜 X)
-    (f : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
-      E.pullback (ContinuousMap.fst : C(X × Circle, X))) :
+    (f : E.circlePullback ≅ E.circlePullback) :
     FiniteRankBundleCore 𝕜 (X × ℙ ℂ (Fin 2 → ℂ)) :=
   (E.pullback ContinuousMap.fst).glue (isOpen_innerDisc.preimage continuous_snd)
     (isOpen_outerDisc.preimage continuous_snd)
     (by rw [← preimage_union, innerDisc_union_outerDisc, preimage_univ]) (clutchingAut E f)
 
 variable (E : FiniteRankBundleCore 𝕜 X)
-  (f : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
-    E.pullback (ContinuousMap.fst : C(X × Circle, X)))
+  (f : E.circlePullback ≅ E.circlePullback)
 
 theorem clutching_def :
     E.clutching f = (E.pullback ContinuousMap.fst).glue
@@ -341,10 +345,8 @@ section Operations
 open MonoidalCategory
 
 variable {E₁ E₂ : FiniteRankBundleCore 𝕜 X}
-  (f₁ : E₁.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
-    E₁.pullback (ContinuousMap.fst : C(X × Circle, X)))
-  (f₂ : E₂.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
-    E₂.pullback (ContinuousMap.fst : C(X × Circle, X)))
+  (f₁ : E₁.circlePullback ≅ E₁.circlePullback)
+  (f₂ : E₂.circlePullback ≅ E₂.circlePullback)
 
 /-- The clutching by the direct sum of two families, read through `pullback_whitneySum`, glues by
 the direct sum of the automorphisms by which the clutchings by the two families glue, read
@@ -491,8 +493,7 @@ instance compact Hausdorff, and let `f₀` and `f₁` be automorphisms of the pu
 maps of `f₀` at time `0` and those of `f₁` at time `1`, then the clutchings of `E` by `f₀` and by
 `f₁` are isomorphic. -/
 theorem nonempty_iso_clutching_of_homotopic [NormedAlgebra ℝ 𝕜] [CompleteSpace 𝕜]
-    [ParacompactSpace X] [R1Space X] {f₀ f₁ : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
-      E.pullback (ContinuousMap.fst : C(X × Circle, X))}
+    [ParacompactSpace X] [R1Space X] {f₀ f₁ : E.circlePullback ≅ E.circlePullback}
     (H : (E.pullback (ContinuousMap.fst : C(X × I, X))).pullback
         (ContinuousMap.fst : C((X × I) × Circle, X × I)) ≅
       (E.pullback (ContinuousMap.fst : C(X × I, X))).pullback
@@ -519,10 +520,8 @@ the automorphism `f` of the pullback of `E` to `X × Circle` to the automorphism
 `E'` fibre by fibre, `Φ_x ∘ f_{(x, u)} = f'_{(x, u)} ∘ Ψ_x`, then the clutching of `E` by `f` is
 isomorphic to that of `E'` by `f'`. -/
 theorem nonempty_iso_clutching_of_fiberMap_comp_eq {E E' : FiniteRankBundleCore 𝕜 X}
-    (Φ Ψ : E ≅ E') {f : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
-      E.pullback (ContinuousMap.fst : C(X × Circle, X))}
-    {f' : E'.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
-      E'.pullback (ContinuousMap.fst : C(X × Circle, X))}
+    (Φ Ψ : E ≅ E') {f : E.circlePullback ≅ E.circlePullback}
+    {f' : E'.circlePullback ≅ E'.circlePullback}
     (h : ∀ w : X × Circle, (Φ.hom.fiberMap w.1).comp (f.hom.fiberMap w) =
       (f'.hom.fiberMap w).comp (Ψ.hom.fiberMap w.1)) :
     Nonempty (E.clutching f ≅ E'.clutching f') := by
@@ -581,6 +580,15 @@ namespace TauCeti.FiniteRankBundleCore
 
 variable {X : Type*} [TopologicalSpace X]
 
+variable (X) in
+/-- The coordinate `u` of the circle factor, as a scalar function on `X × Circle`. -/
+def circleCoord : C(X × Circle, ℂ) :=
+  ⟨fun w ↦ (w.2 : ℂ), by fun_prop⟩
+
+@[simp]
+theorem circleCoord_apply (w : X × Circle) : circleCoord X w = w.2 :=
+  (rfl)
+
 section CircleZPowSMul
 
 variable {E : FiniteRankBundleCore ℂ X}
@@ -588,10 +596,8 @@ variable {E : FiniteRankBundleCore ℂ X}
 /-- The family `u ^ m • f` for an automorphism `f` of the pullback of `E` to `X × Circle` and
 `m : ℤ`: the automorphism whose fibre map at `(x, u)` is `u ^ m • f_{(x, u)}`. -/
 def circleZPowSMul (m : ℤ)
-    (f : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
-      E.pullback (ContinuousMap.fst : C(X × Circle, X))) :
-    E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
-      E.pullback (ContinuousMap.fst : C(X × Circle, X)) where
+    (f : E.circlePullback ≅ E.circlePullback) :
+    E.circlePullback ≅ E.circlePullback where
   hom := (⟨fun w ↦ ((w.2 ^ m : Circle) : ℂ), by fun_prop⟩ : C(X × Circle, ℂ)) • f.hom
   inv := (⟨fun w ↦ ((w.2 ^ (-m) : Circle) : ℂ), by fun_prop⟩ : C(X × Circle, ℂ)) • f.inv
   hom_inv_id := hom_ext fun w ↦ by
@@ -605,29 +611,25 @@ def circleZPowSMul (m : ℤ)
 
 @[simp]
 theorem fiberMap_circleZPowSMul_hom (m : ℤ)
-    (f : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
-      E.pullback (ContinuousMap.fst : C(X × Circle, X))) (w : X × Circle) :
+    (f : E.circlePullback ≅ E.circlePullback) (w : X × Circle) :
     (circleZPowSMul m f).hom.fiberMap w = (w.2 : ℂ) ^ m • f.hom.fiberMap w := by
   simp [circleZPowSMul]
 
 @[simp]
 theorem fiberMap_circleZPowSMul_inv (m : ℤ)
-    (f : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
-      E.pullback (ContinuousMap.fst : C(X × Circle, X))) (w : X × Circle) :
+    (f : E.circlePullback ≅ E.circlePullback) (w : X × Circle) :
     (circleZPowSMul m f).inv.fiberMap w = ((w.2 : ℂ) ^ m)⁻¹ • f.inv.fiberMap w := by
   simp [circleZPowSMul]
 
 @[simp]
 theorem circleZPowSMul_zero
-    (f : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
-      E.pullback (ContinuousMap.fst : C(X × Circle, X))) :
+    (f : E.circlePullback ≅ E.circlePullback) :
     circleZPowSMul 0 f = f :=
   Iso.ext <| hom_ext fun w ↦ by simp
 
 @[simp]
 theorem circleZPowSMul_circleZPowSMul (m n : ℤ)
-    (f : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
-      E.pullback (ContinuousMap.fst : C(X × Circle, X))) :
+    (f : E.circlePullback ≅ E.circlePullback) :
     circleZPowSMul m (circleZPowSMul n f) = circleZPowSMul (m + n) f :=
   Iso.ext <| hom_ext fun w ↦ by
     simp [smul_smul, zpow_add₀ (Circle.coe_ne_zero w.2)]
@@ -638,8 +640,7 @@ variable (X) in
 /-- The automorphism of the trivial line over `X × Circle` that multiplies the fibre over `(x, u)`
 by `u ^ n`: the family `u ^ n` times the identity. -/
 def circleZPowIso (n : ℤ) :
-    (trivial ℂ X 1).pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
-      (trivial ℂ X 1).pullback (ContinuousMap.fst : C(X × Circle, X)) :=
+    (trivial ℂ X 1).circlePullback ≅ (trivial ℂ X 1).circlePullback :=
   circleZPowSMul n (Iso.refl _)
 
 theorem circleZPowIso_def (n : ℤ) : circleZPowIso X n = circleZPowSMul n (Iso.refl _) :=

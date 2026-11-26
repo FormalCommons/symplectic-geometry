@@ -8,6 +8,8 @@ module
 public import TauCeti.Geometry.Manifold.DifferentialForm.Average
 public import TauCeti.RepresentationTheory.Compact.Haar
 import SymplecticGeometry.Geometry.Manifold.GroupAction.BoundarylessModel
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.Geometry.Manifold.GroupAction.Opens
 
 /-!
 # Invariant primitives of invariant exact forms
@@ -73,9 +75,11 @@ theorem mextDerivₗ_measureAverage_of_invariant [I.Boundaryless] [MeasurableSpa
     [OpensMeasurableSpace G] [MeasurableMul G] (μ : Measure G) [IsProbabilityMeasure μ]
     [μ.IsMulRightInvariant] {α : SmoothForm I M F (k + 1)} {β : SmoothForm I M F k}
     (hβ : mextDerivₗ I k β = α)
-    (hα : ∀ a : G, TauCeti.mpullback (F := F) I I (a • ·) α.val = α.val) :
+    (hα : ∀ a : G, mpullback (fun x : M ↦ a • x)
+      (ContMDiffSMul.contMDiff_const_smul (I := J) (I' := I) a) α = α) :
     mextDerivₗ I k (measureAverage J μ β) = α := by
-  rw [mextDerivₗ_measureAverage, hβ, (measureAverage_eq_self_iff J μ α).2 hα]
+  rw [mextDerivₗ_measureAverage, hβ,
+    (measureAverage_eq_self_iff J μ α).2 fun a ↦ (mpullback_eq_iff _).1 (hα a)]
 
 include J in
 attribute [local instance] BoundarylessModel.interiorChartedSpace in
@@ -92,28 +96,26 @@ theorem exists_invariant_primitive [BoundarylessManifold I M] [IsTopologicalGrou
   -- Carry `α` and `β` to the copy of `M` with charts in `E`, average `β` there, and pull the
   -- average back.
   let Φ := BoundarylessModel.interiorDiffeomorph I (M := M) ∞
-  have hM (a : G) := ContMDiffSMul.contMDiff_const_smul (I := J) (I' := I) (n := ∞) (M := M) a
-  have hC (a : G) := ContMDiffSMul.contMDiff_const_smul (I := J) (I' := 𝓘(ℝ, E)) (n := ∞)
-    (M := BoundarylessModel I M) a
+  have : ContMDiffConstSMul I ∞ G M := ContMDiffSMul.contMDiffConstSMul J
+  have : ContMDiffConstSMul 𝓘(ℝ, E) ∞ G (BoundarylessModel I M) :=
+    ContMDiffSMul.contMDiffConstSMul J
   let α' := mpullback Φ.symm Φ.symm.contMDiff α
   let β' := mpullback Φ.symm Φ.symm.contMDiff β
   have hβ' : mextDerivₗ 𝓘(ℝ, E) k β' = α' := by
     rw [mextDerivₗ_mpullback, hβ]
   -- The inverse of `Φ` is equivariant, so `α'` is invariant.
-  have hα' (a : G) : TauCeti.mpullback (F := F) 𝓘(ℝ, E) 𝓘(ℝ, E) (a • ·) α'.val = α'.val := by
-    rw [← coe_mpullback _ (hC a), mpullback_mpullback_of_comp_eq _ _ Φ.symm.contMDiff (hM a)
-      (BoundarylessModel.interiorDiffeomorph_symm_comp_smul I ∞ a)]
-    congr 2
-    exact Subtype.ext (by rw [coe_mpullback, hα a])
+  have hα' (a : G) : mpullback (fun x : BoundarylessModel I M ↦ a • x)
+      (contMDiff_const_smul a) α' = α' :=
+    mpullback_smul_mpullback Φ.symm.contMDiff
+      (BoundarylessModel.interiorDiffeomorph_symm_smul I ∞ a) ((mpullback_eq_iff _).2 (hα a))
   let γ' := measureAverage J (haarProb G) β'
   refine ⟨mpullback Φ Φ.contMDiff γ', ?_, fun a ↦ ?_⟩
   · rw [mextDerivₗ_mpullback, mextDerivₗ_measureAverage_of_invariant J (haarProb G) hβ' hα',
       mpullback_mpullback_symm]
   · -- The map `Φ` is equivariant, and the average is invariant.
-    rw [← coe_mpullback _ (hM a), mpullback_mpullback_of_comp_eq _ _ Φ.contMDiff (hC a)
-      (BoundarylessModel.interiorDiffeomorph_comp_smul I ∞ a)]
-    congr 2
-    exact Subtype.ext (by rw [coe_mpullback, mpullback_smul_measureAverage J (haarProb G) β' a])
+    exact (mpullback_eq_iff _).1 (mpullback_smul_mpullback Φ.contMDiff
+      (BoundarylessModel.interiorDiffeomorph_smul I ∞ a)
+      ((mpullback_eq_iff _).2 (mpullback_smul_measureAverage J (haarProb G) β' a)))
 
 end TauCeti.SmoothForm
 

@@ -6,8 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Symplectic.Manifold.Kahler
-public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.Hom
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.CompatibleMetric
+public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.Hom
 public import Mathlib.Geometry.Manifold.VectorBundle.CovariantDerivative.LeviCivita
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.LeviCivita
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Nijenhuis

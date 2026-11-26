@@ -7,8 +7,8 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.CircleBundle
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.RealChernClass
-public import SymplecticGeometry.Topology.VectorBundle.Pullback
 public import TauCeti.Geometry.Manifold.VectorBundle.Pullback
+import SymplecticGeometry.Topology.VectorBundle.Pullback
 import SymplecticGeometry.Data.Bundle
 
 /-!
@@ -18,11 +18,12 @@ Let `V` be a smooth complex line bundle over a finite-dimensional, boundaryless,
 σ-compact manifold `B`. A smooth `i`-invariant metric `g` on `V` makes it a Hermitian line bundle,
 whose unitary frames form the smooth principal `Circle`-bundle
 `SymplecticGeometry.Bundle.contMDiffFiberBundle_circleFiber`; it has a real first Chern class
-`SymplecticGeometry.realFirstChernClass`. This file shows that this class does not depend on `g`
-(`SymplecticGeometry.Bundle.realFirstChernClass_circleFiber_eq`), and that it is natural under
-pull-back along a smooth map `f : B' → B`: for any smooth Hermitian metric on Tau Ceti's pull-back
-bundle `f *ᵖ V`, the class of its unitary frame bundle is the pull-back along `f` of that of `V`
-(`SymplecticGeometry.Bundle.realFirstChernClass_circleFiber_pullback`).
+`SymplecticGeometry.realFirstChernClass`, which this file names
+`Bundle.ContMDiffRiemannianMetric.realFirstChernClass g hI`. It shows that this class does not
+depend on `g` (`SymplecticGeometry.Bundle.realFirstChernClass_circleFiber_eq`), and that it is
+natural under pull-back along a smooth map `f : B' → B`: for any smooth Hermitian metric on
+Tau Ceti's pull-back bundle `f *ᵖ V`, the class of its unitary frame bundle is the pull-back
+along `f` of that of `V` (`SymplecticGeometry.Bundle.realFirstChernClass_circleFiber_pullback`).
 
 Both rest on `SymplecticGeometry.Bundle.realFirstChernClass_eq_map_circleFiber`. Given a smooth
 map `σ` from a principal `Circle`-bundle `Q` over `B'` to the nonzero vectors of `V`, covering `f`
@@ -39,6 +40,8 @@ for the pull-back by Tau Ceti's `Bundle.Pullback.contMDiff_lift`, so no comparis
 
 ## Main results
 
+* `Bundle.ContMDiffRiemannianMetric.realFirstChernClass`: the real first Chern class of the
+  unitary frame bundle of a smooth Hermitian metric on a complex line bundle.
 * `SymplecticGeometry.Bundle.realFirstChernClass_eq_map_circleFiber`: the real first Chern class
   of a principal `Circle`-bundle with an equivariant smooth map to the nonzero vectors of `V` over
   `f` is the pull-back along `f` of that of the unitary frame bundle of `V`.
@@ -84,6 +87,31 @@ variable [ContMDiffVectorBundle ∞ F V IB]
 variable (g : ContMDiffRiemannianMetric IB ∞ F V)
   (hI : ∀ x (v w : V x), g.inner x (Complex.I • v) (Complex.I • w) = g.inner x v w)
 
+/-- The real first Chern class of a smooth Hermitian line bundle: for a smooth metric `g` on a
+smooth complex line bundle `V` that is invariant under multiplication by `i`, the real first Chern
+class `SymplecticGeometry.realFirstChernClass` of the smooth principal `Circle`-bundle of
+`g`-unitary frames of `V`. It does not depend on `g`
+(`SymplecticGeometry.Bundle.realFirstChernClass_circleFiber_eq`). -/
+def _root_.Bundle.ContMDiffRiemannianMetric.realFirstChernClass : deRhamCohomology IB B 2 :=
+  letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+  letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+  letI : IsContinuousRiemannianBundle F V :=
+    instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+  haveI : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) IB (𝓡 1) :=
+    contMDiffFiberBundle_circleFiber g hI
+  SymplecticGeometry.realFirstChernClass IB (Fiber ℂ F V ℂ)
+
+theorem _root_.Bundle.ContMDiffRiemannianMetric.realFirstChernClass_def :
+    g.realFirstChernClass hI =
+      letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+      letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+      letI : IsContinuousRiemannianBundle F V :=
+        instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+      haveI : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) IB (𝓡 1) :=
+        contMDiffFiberBundle_circleFiber g hI
+      SymplecticGeometry.realFirstChernClass IB (Fiber ℂ F V ℂ) :=
+  (rfl)
+
 section Map
 
 variable {EB' HB' B' : Type*} [NormedAddCommGroup EB'] [NormedSpace ℝ EB'] [TopologicalSpace HB']
@@ -105,14 +133,8 @@ theorem realFirstChernClass_eq_map_circleFiber {Q : B' → Type*}
       (⟨f ((ManifoldTotalSpace.homeomorph _ _).symm q).proj,
         σ _ ((ManifoldTotalSpace.homeomorph _ _).symm q).snd⟩ : TotalSpace F V))
     (hσ₀ : ∀ x q, σ x q ≠ 0) (hσz : ∀ (z : Circle) x (q : Q x), σ x (op z • q) = (z : ℂ) • σ x q) :
-    letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-    letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-    letI : IsContinuousRiemannianBundle F V :=
-      instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
-    haveI : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) IB (𝓡 1) :=
-      contMDiffFiberBundle_circleFiber g hI
-    realFirstChernClass IB' Q =
-      deRhamCohomology.map f hf 2 (realFirstChernClass IB (Fiber ℂ F V ℂ)) := by
+    realFirstChernClass IB' Q = deRhamCohomology.map f hf 2 (g.realFirstChernClass hI) := by
+  rw [ContMDiffRiemannianMetric.realFirstChernClass_def]
   let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
   let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
   let : IsContinuousRiemannianBundle F V :=
@@ -147,21 +169,7 @@ theorem realFirstChernClass_circleFiber_pullback {K : Type*} [FunLike K B' B]
     (hI'' : ∀ x (v w : ((f : B' → B) *ᵖ V) x),
       g''.inner x (Complex.I • v) (Complex.I • w) = g''.inner x v w) :
     haveI := _root_.Bundle.Pullback.contMDiffVectorBundle (F := F) (E := V) hf
-    (letI : RiemannianBundle ((f : B' → B) *ᵖ V) := ⟨g''.toRiemannianMetric⟩
-     letI : ∀ x, InnerProductSpace ℂ (((f : B' → B) *ᵖ V) x) := g''.complexInnerProductSpace hI''
-     letI : IsContinuousRiemannianBundle F ((f : B' → B) *ᵖ V) :=
-       instIsContinuousRiemannianBundle g''.toContinuousRiemannianMetric
-     haveI : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F ((f : B' → B) *ᵖ V) ℂ) IB' (𝓡 1) :=
-       contMDiffFiberBundle_circleFiber g'' hI''
-     realFirstChernClass IB' (Fiber ℂ F ((f : B' → B) *ᵖ V) ℂ)) =
-    deRhamCohomology.map f hf 2
-    (letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-     letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-     letI : IsContinuousRiemannianBundle F V :=
-       instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
-     haveI : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) IB (𝓡 1) :=
-       contMDiffFiberBundle_circleFiber g hI
-     realFirstChernClass IB (Fiber ℂ F V ℂ)) := by
+    g''.realFirstChernClass hI'' = deRhamCohomology.map f hf 2 (g.realFirstChernClass hI) := by
   have := _root_.Bundle.Pullback.contMDiffVectorBundle (F := F) (E := V) hf
   let : RiemannianBundle ((f : B' → B) *ᵖ V) := ⟨g''.toRiemannianMetric⟩
   let : ∀ x, InnerProductSpace ℂ (((f : B' → B) *ᵖ V) x) := g''.complexInnerProductSpace hI''
@@ -169,6 +177,7 @@ theorem realFirstChernClass_circleFiber_pullback {K : Type*} [FunLike K B' B]
     instIsContinuousRiemannianBundle g''.toContinuousRiemannianMetric
   have : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F ((f : B' → B) *ᵖ V) ℂ) IB' (𝓡 1) :=
     contMDiffFiberBundle_circleFiber g'' hI''
+  rw [ContMDiffRiemannianMetric.realFirstChernClass_def g'' hI'']
   refine realFirstChernClass_eq_map_circleFiber g hI hf (fun _ φ ↦ φ.frame 1) ?_
     (fun _ φ ↦ φ.frame.map_ne_zero_iff.2 one_ne_zero) fun z _ φ ↦ ?_
   · -- The unit vectors of the frames, in `f *ᵖ V`, followed by `Pullback.lift f` into `V`.
@@ -191,13 +200,7 @@ theorem realFirstChernClass_eq_circleFiber {Q : B → Type*}
       (⟨((ManifoldTotalSpace.homeomorph _ _).symm q).proj,
         σ _ ((ManifoldTotalSpace.homeomorph _ _).symm q).snd⟩ : TotalSpace F V))
     (hσ₀ : ∀ x q, σ x q ≠ 0) (hσz : ∀ (z : Circle) x (q : Q x), σ x (op z • q) = (z : ℂ) • σ x q) :
-    letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-    letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-    letI : IsContinuousRiemannianBundle F V :=
-      instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
-    haveI : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) IB (𝓡 1) :=
-      contMDiffFiberBundle_circleFiber g hI
-    realFirstChernClass IB Q = realFirstChernClass IB (Fiber ℂ F V ℂ) := by
+    realFirstChernClass IB Q = g.realFirstChernClass hI := by
   rw [realFirstChernClass_eq_map_circleFiber g hI contMDiff_id σ hσ hσ₀ hσz,
     deRhamCohomology.map_id, LinearMap.id_apply]
 
@@ -207,20 +210,8 @@ Chern classes of the smooth principal `Circle`-bundles of `g`-unitary and of `g'
 of `V` are equal. -/
 theorem realFirstChernClass_circleFiber_eq (g' : ContMDiffRiemannianMetric IB ∞ F V)
     (hI' : ∀ x (v w : V x), g'.inner x (Complex.I • v) (Complex.I • w) = g'.inner x v w) :
-    (letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-     letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-     letI : IsContinuousRiemannianBundle F V :=
-       instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
-     haveI : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) IB (𝓡 1) :=
-       contMDiffFiberBundle_circleFiber g hI
-     realFirstChernClass IB (Fiber ℂ F V ℂ)) =
-    (letI : RiemannianBundle V := ⟨g'.toRiemannianMetric⟩
-     letI : ∀ x, InnerProductSpace ℂ (V x) := g'.complexInnerProductSpace hI'
-     letI : IsContinuousRiemannianBundle F V :=
-       instIsContinuousRiemannianBundle g'.toContinuousRiemannianMetric
-     haveI : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) IB (𝓡 1) :=
-       contMDiffFiberBundle_circleFiber g' hI'
-     realFirstChernClass IB (Fiber ℂ F V ℂ)) := by
+    g.realFirstChernClass hI = g'.realFirstChernClass hI' := by
+  rw [ContMDiffRiemannianMetric.realFirstChernClass_def g hI]
   let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
   let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
   let : IsContinuousRiemannianBundle F V :=

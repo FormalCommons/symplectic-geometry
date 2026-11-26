@@ -68,8 +68,7 @@ variable {X : Type*} [TopologicalSpace X] {A D : FiniteRankBundleCore ℂ X}
 the pullbacks of `A` and `D` to `X × Circle` whose fibre map at `(x, u)` is
 `∑ i ∈ Finset.Icc (-N) N, u ^ i • (a i).fiberMap x`. -/
 def laurentHom (N : ℕ) (a : ℤ → (A ⟶ D)) :
-    A.pullback (ContinuousMap.fst : C(X × Circle, X)) ⟶
-      D.pullback (ContinuousMap.fst : C(X × Circle, X)) :=
+    A.circlePullback ⟶ D.circlePullback :=
   ∑ i ∈ Finset.Icc (-(N : ℤ)) N,
     (⟨fun w ↦ ((w.2 ^ i : Circle) : ℂ), by fun_prop⟩ : C(X × Circle, ℂ)) •
       pullbackMap (a i) ContinuousMap.fst
@@ -119,8 +118,7 @@ open MonoidalCategory in
 to the tensor product of the clutching of `E` by `f` with the clutching of the trivial line by
 `u ^ m`. -/
 theorem clutching_circleZPowSMul (m : ℤ)
-    (f : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
-      E.pullback (ContinuousMap.fst : C(X × Circle, X))) :
+    (f : E.circlePullback ≅ E.circlePullback) :
     Nonempty (E.clutching (circleZPowSMul m f) ≅
       E.clutching f ⊗ (trivial ℂ X 1).clutching (circleZPowIso X m)) := by
   -- The right unitor of `E` carries `f ⊗ u ^ m` to `u ^ m • f`, fibre by fibre.
@@ -147,10 +145,8 @@ clutching of `E` by `g` is isomorphic to the tensor product of the clutching of 
 automorphism `p` with fibre maps `∑_{0 ≤ j ≤ 2N} a_{j - N}(x) u^j` with the clutching of the
 trivial line by `u ^ (-N)`. -/
 theorem exists_clutching_iso_tensor_of_hom_eq_laurentHom {N : ℕ} {a : ℤ → (E ⟶ E)}
-    {g : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
-      E.pullback (ContinuousMap.fst : C(X × Circle, X))} (hg : g.hom = laurentHom N a) :
-    ∃ p : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
-        E.pullback (ContinuousMap.fst : C(X × Circle, X)),
+    {g : E.circlePullback ≅ E.circlePullback} (hg : g.hom = laurentHom N a) :
+    ∃ p : E.circlePullback ≅ E.circlePullback,
       (∀ w : X × Circle, p.hom.fiberMap w =
         ∑ j ∈ Finset.range (2 * N + 1), (w.2 : ℂ) ^ j • (a (j - N)).fiberMap w.1) ∧
       Nonempty (E.clutching g ≅

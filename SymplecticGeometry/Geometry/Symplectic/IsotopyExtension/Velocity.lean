@@ -11,8 +11,8 @@ public import TauCeti.Geometry.Manifold.VectorField.Prod
 public import TauCeti.Geometry.Symplectic.Flux.Hamiltonian
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
-public import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 public import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.IsSymplectic
+import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.DegreeOne
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity

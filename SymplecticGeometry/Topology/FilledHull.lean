@@ -62,7 +62,8 @@ relatively compact sets, as in the proof of
   `IsClosed.frontier_setOfPred_isCompact_closure_connectedComponentIn_compl_subset`.
 * `IsClosed.exists_mem_Ico_image_Icc_subset_mem_frontier`: where a curve first leaves a closed
   set.
-* `SymplecticGeometry.isCompact_filledSublevel`, `SymplecticGeometry.filledSublevel_mono`,
+* `SymplecticGeometry.isCompact_filledSublevel`, `SymplecticGeometry.filledSublevel_eq_empty`,
+  `SymplecticGeometry.filledSublevel_mono`,
   `SymplecticGeometry.filledSublevel_subset_interior`,
   `SymplecticGeometry.iUnion_filledSublevel`,
   `SymplecticGeometry.frontier_filledSublevel_subset`.
@@ -260,6 +261,15 @@ theorem isCompact_filledSublevel [T2Space X] [WeaklyLocallyCompactSpace X]
     (hc : IsCompact {x | h x ≤ c}) : IsCompact (filledSublevel h c) := by
   rw [filledSublevel_def]
   exact hc.isCompact_setOf_isCompact_closure_connectedComponentIn_compl hX
+
+/-- In a space with no compact connected component, the filled sublevel set at a level below
+every value of `h` is empty. -/
+theorem filledSublevel_eq_empty (hX : ∀ x : X, ¬IsCompact (connectedComponent x))
+    (hc : ∀ x, c < h x) : filledSublevel h c = ∅ := by
+  refine eq_empty_of_forall_notMem fun x hx ↦ hX x ?_
+  have : {y | h y ≤ c}ᶜ = univ := eq_univ_of_forall fun y (hy : h y ≤ c) ↦ (hc y).not_ge hy
+  rwa [mem_filledSublevel_iff, this, connectedComponentIn_univ,
+    isClosed_connectedComponent.closure_eq] at hx
 
 variable [R0Space X] [LocallyConnectedSpace X]
 

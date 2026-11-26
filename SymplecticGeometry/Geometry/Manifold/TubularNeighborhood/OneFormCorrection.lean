@@ -12,6 +12,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.VectorBundlePoincar
 import Mathlib.Geometry.Manifold.PartitionOfUnity
 import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
+import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.Normalized
 import TauCeti.Geometry.Manifold.IsManifold.Basic
 
 /-!
@@ -102,7 +103,7 @@ theorem exists_contMDiff_mextDeriv_eq_mpullback_prodMk [CompactSpace Q]
   let := f.normalSpaceVectorBundle hn hdim
   have := f.normalSpaceContMDiffVectorBundle (m := ∞) hn (by simp) hdim
   let N := fun q ↦ f.NormalSpace q hn
-  have hfW (q : Q) : f q ∈ W := hΦ q ▸ (Φ _).property
+  have hfW : range f ⊆ W := range_subset_of_apply_zeroSection f hn hdim Φ hΦ
   -- The tube as a map into `M`, and its inverse `ψ`, smooth on `W`.
   let Φ' : TotalSpace P N → M := fun v ↦ (Φ v : M)
   have hΦ' : ContMDiff (J.prod 𝓘(ℝ, P)) I ∞ Φ' := contMDiff_subtypeVal.comp Φ.contMDiff
@@ -117,8 +118,8 @@ theorem exists_contMDiff_mextDeriv_eq_mpullback_prodMk [CompactSpace Q]
   have hΦψ {x : M} (hx : x ∈ W) : Φ' (ψ x) = x := by
     simp [Φ', ψ, hx]
   have hψf (q : Q) : ψ (f q) = zeroSection P N q := by
-    rw [hψW ⟨f q, hfW q⟩]
-    exact Φ.symm_apply_eq.2 (Subtype.ext (hΦ q).symm)
+    rw [hψW ⟨f q, hfW (mem_range_self q)⟩]
+    exact symm_apply_eq_zeroSection_of_apply_zeroSection f hn hdim Φ hΦ q _
   -- The fibre-scaling primitives of the pullback of `γ` to the tube.
   have hΦ'' : ContMDiff (𝓘(ℝ, ℝ).prod (J.prod 𝓘(ℝ, P))) (𝓘(ℝ, ℝ).prod I) ∞
       (Prod.map _root_.id Φ') :=
@@ -128,7 +129,7 @@ theorem exists_contMDiff_mextDeriv_eq_mpullback_prodMk [CompactSpace Q]
       (SmoothForm.mpullback (Prod.map _root_.id Φ') hΦ'' γ)
   -- A cutoff `χ`, equal to `1` near `f(Q)` and vanishing outside a compact `K ⊆ W`.
   have hfc : IsCompact (range f) := isCompact_range f.contMDiff.continuous
-  obtain ⟨K, hK, hfK, hKW⟩ := exists_compact_between hfc W.isOpen (range_subset_iff.2 hfW)
+  obtain ⟨K, hK, hfK, hKW⟩ := exists_compact_between hfc W.isOpen hfW
   obtain ⟨χ, hχ1, hχ0, -⟩ :=
     exists_contMDiffMap_one_nhds_of_subset_interior I (n := ⊤) hfc.isClosed hfK
   refine ⟨fun p ↦ χ p.2 • G (p.1, ψ p.2), ?_, ⟨K, hK, hKW.trans hWO, fun t x hx ↦ ?_⟩,
@@ -148,13 +149,13 @@ theorem exists_contMDiff_mextDeriv_eq_mpullback_prodMk [CompactSpace Q]
     have hloc : (fun x ↦ χ x • G (t, ψ x)) =ᶠ[𝓝 (f q)] (fun v ↦ G (t, v)) ∘ ψ := by
       filter_upwards [hχ1.filter_mono (nhds_le_nhdsSet (mem_range_self q))] with x hx
       simp [hx]
-    have hψq := (hψ (hfW q)).mdifferentiableAt (by simp)
+    have hψq := (hψ (hfW (mem_range_self q))).mdifferentiableAt (by simp)
     have hGq : MDifferentiableAt (J.prod 𝓘(ℝ, P)) 𝓘(ℝ, F) (fun v ↦ G (t, v)) (ψ (f q)) :=
       ((hG.comp (contMDiff_const.prodMk contMDiff_id)).mdifferentiable (by simp)) _
     have hΦq : MDifferentiableAt (J.prod 𝓘(ℝ, P)) I Φ' (ψ (f q)) :=
       (hΦ'.mdifferentiable (by simp)) _
     have hid : Φ' ∘ ψ =ᶠ[𝓝 (f q)] _root_.id := by
-      filter_upwards [W.isOpen.mem_nhds (hfW q)] with x hx
+      filter_upwards [W.isOpen.mem_nhds (hfW (mem_range_self q))] with x hx
       exact hΦψ hx
     have hd := hdG t q (by
       rw [SmoothForm.mpullback_prodMk_mpullback_prodMap Φ' hΦ' γ t,

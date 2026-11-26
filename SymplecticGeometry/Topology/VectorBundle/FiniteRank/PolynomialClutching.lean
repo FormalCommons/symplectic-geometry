@@ -66,18 +66,6 @@ section Polynomial
 
 variable {X : Type*} [TopologicalSpace X]
 
-/-- The pullback of `E` to `X × Circle`, on which the clutching functions live. -/
-local notation "Q" E => (FiniteRankBundleCore.pullback E (ContinuousMap.fst : C(X × Circle, X)))
-
-variable (X) in
-/-- The coordinate `u` of the circle factor, as a scalar function on `X × Circle`. -/
-def circleCoord : C(X × Circle, ℂ) :=
-  ⟨fun w ↦ (w.2 : ℂ), by fun_prop⟩
-
-@[simp]
-theorem circleCoord_apply (w : X × Circle) : circleCoord X w = w.2 :=
-  (rfl)
-
 /-- The coordinate `u` of the circle, as a scalar function on `X × Circle`. -/
 local notation "𝔲" => circleCoord X
 
@@ -86,7 +74,7 @@ variable {A D : FiniteRankBundleCore ℂ X}
 /-- The polynomial family `∑_{i < n} a_i(x) u^i` of morphisms `a i : A ⟶ D`: the morphism between
 the pullbacks of `A` and `D` to `X × Circle` whose fibre map at `(x, u)` is
 `∑ i ∈ Finset.range n, u ^ i • (a i).fiberMap x`. -/
-def polynomialHom (n : ℕ) (a : ℕ → (A ⟶ D)) : (Q A) ⟶ (Q D) :=
+def polynomialHom (n : ℕ) (a : ℕ → (A ⟶ D)) : A.circlePullback ⟶ D.circlePullback :=
   ∑ i ∈ Finset.range n,
     (⟨fun w ↦ ((w.2 : Circle) : ℂ) ^ i, by fun_prop⟩ : C(X × Circle, ℂ)) •
       pullbackMap (a i) ContinuousMap.fst
@@ -127,9 +115,6 @@ section Hatcher
 
 variable {X : Type*} [TopologicalSpace X] [ParacompactSpace X] [R1Space X]
 
-/-- The pullback of `E` to `X × Circle`, on which the clutching functions live. -/
-local notation "Q" E => (FiniteRankBundleCore.pullback E (ContinuousMap.fst : C(X × Circle, X)))
-
 /-- The coordinate `u` of the circle, as a scalar function on `X × Circle`. -/
 local notation "𝔲" => circleCoord X
 
@@ -140,9 +125,11 @@ variable {E G : FiniteRankBundleCore ℂ X}
 Then the block matrix `[[A, s], [-r, 1]]` on `G ⊕ E` is an automorphism, and its clutching is
 isomorphic to the Whitney sum of the clutching of `G` by `M` with the pullback of `E` to
 `X × ℙ ℂ (Fin 2 → ℂ)`. -/
-theorem exists_iso_clutching_whitneySum_of_hom_eq_add_comp (M : (Q G) ≅ (Q G))
-    (A : (Q G) ⟶ (Q G)) (r : (Q G) ⟶ (Q E)) (s : (Q E) ⟶ (Q G)) (hM : M.hom = A + r ≫ s) :
-    ∃ N : (Q (whitneySum G E)) ≅ (Q (whitneySum G E)),
+theorem exists_iso_clutching_whitneySum_of_hom_eq_add_comp
+    (M : G.circlePullback ≅ G.circlePullback) (A : G.circlePullback ⟶ G.circlePullback)
+    (r : G.circlePullback ⟶ E.circlePullback) (s : E.circlePullback ⟶ G.circlePullback)
+    (hM : M.hom = A + r ≫ s) :
+    ∃ N : (whitneySum G E).circlePullback ≅ (whitneySum G E).circlePullback,
       N.hom = pullbackMap (whitneyFst G E) ContinuousMap.fst ≫ A ≫
             pullbackMap (whitneyInl G E) ContinuousMap.fst +
           pullbackMap (whitneySnd G E) ContinuousMap.fst ≫ s ≫
@@ -154,17 +141,18 @@ theorem exists_iso_clutching_whitneySum_of_hom_eq_add_comp (M : (Q G) ≅ (Q G))
         Nonempty ((whitneySum G E).clutching N ≅
           whitneySum (G.clutching M)
             (E.pullback (ContinuousMap.fst : C(X × ℙ ℂ (Fin 2 → ℂ), X)))) := by
-  have hl : (whitneySnd (Q G) (Q E) ≫ s ≫ whitneyInl (Q G) (Q E)) ≫
-      whitneySnd (Q G) (Q E) ≫ s ≫ whitneyInl (Q G) (Q E) = 0 := by simp
-  have hu : (whitneyFst (Q G) (Q E) ≫ (-r) ≫ whitneyInr (Q G) (Q E)) ≫
-      whitneyFst (Q G) (Q E) ≫ (-r) ≫ whitneyInr (Q G) (Q E) = 0 := by simp
-  let N₁ := whitneyMapIso M (Iso.refl (Q E))
+  have hl : (whitneySnd G.circlePullback _ ≫ s ≫ whitneyInl _ E.circlePullback) ≫
+      whitneySnd G.circlePullback _ ≫ s ≫ whitneyInl _ E.circlePullback = 0 := by simp
+  have hu : (whitneyFst _ E.circlePullback ≫ (-r) ≫ whitneyInr G.circlePullback _) ≫
+      whitneyFst _ E.circlePullback ≫ (-r) ≫ whitneyInr G.circlePullback _ = 0 := by simp
+  let N₁ := whitneyMapIso M (Iso.refl E.circlePullback)
   let N₂ := N₁ ≪≫ idAddIso _ hl
   have key : (idAddIso _ hu ≪≫ N₂).hom =
-      whitneyFst (Q G) (Q E) ≫ A ≫ whitneyInl (Q G) (Q E) +
-        whitneySnd (Q G) (Q E) ≫ s ≫ whitneyInl (Q G) (Q E) -
-        whitneyFst (Q G) (Q E) ≫ r ≫ whitneyInr (Q G) (Q E) +
-        whitneySnd (Q G) (Q E) ≫ whitneyInr (Q G) (Q E) := by
+      whitneyFst _ E.circlePullback ≫ A ≫ whitneyInl _ E.circlePullback +
+        whitneySnd G.circlePullback _ ≫ s ≫ whitneyInl _ E.circlePullback -
+        whitneyFst _ E.circlePullback ≫ r ≫ whitneyInr G.circlePullback _ +
+        whitneySnd G.circlePullback E.circlePullback ≫
+          whitneyInr G.circlePullback E.circlePullback := by
     refine whitneySum_hom_ext ?_ ?_ <;>
       simp [N₁, N₂, hM, whitneyMap_def, whitneyLift_def, add_comp, sub_comp, comp_add] <;>
       abel
@@ -176,10 +164,10 @@ theorem exists_iso_clutching_whitneySum_of_hom_eq_add_comp (M : (Q G) ≅ (Q G))
     obtain ⟨e₂⟩ := nonempty_iso_clutching_trans_idAddIso (E := whitneySum G E) N₁ _ hl
     -- `clutchingWhitneySumIso` takes `N₁` read through `pullback_whitneySum`; both are block
     -- diagonal with blocks `M` and `𝟙` in each fibre.
-    have hN : whitneyMapIsoPullback M (Iso.refl (Q E)) = N₁ :=
+    have hN : whitneyMapIsoPullback M (Iso.refl E.circlePullback) = N₁ :=
       Iso.ext <| hom_ext fun x ↦ by
         rw [fiberMap_whitneyMapIsoPullback_hom, whitneyMapIso_hom]
-        exact (fiberMap_whitneyMap M.hom (Iso.refl (Q E)).hom x).symm
+        exact (fiberMap_whitneyMap M.hom (Iso.refl E.circlePullback).hom x).symm
     exact ⟨e₁ ≪≫ e₂ ≪≫ eqToIso (congrArg _ hN.symm) ≪≫
       clutchingWhitneySumIso M (Iso.refl _) ≪≫ whitneyMapIso (Iso.refl _) E.clutchingOneIso⟩
 
@@ -190,13 +178,13 @@ Whitney sum of the clutching of `G` by `M` with `m` copies of the pullback of `E
 `X × ℙ ℂ (Fin 2 → ℂ)` is isomorphic to the clutching of `G ⊕ E ⊕ ⋯ ⊕ E` (`m` copies of `E`) by
 an automorphism of the form `B + u A`, for constant endomorphisms `A` and `B`. -/
 theorem exists_linear_clutching_iso_of_hom_eq_polynomialHom (m : ℕ) :
-    ∀ {G : FiniteRankBundleCore ℂ X} (M : (Q G) ≅ (Q G)) (A₀ A₁ : G ⟶ G) (π : G ⟶ E)
-      (j : E ⟶ G) (b : ℕ → (E ⟶ E)),
+    ∀ {G : FiniteRankBundleCore ℂ X} (M : G.circlePullback ≅ G.circlePullback) (A₀ A₁ : G ⟶ G)
+      (π : G ⟶ E) (j : E ⟶ G) (b : ℕ → (E ⟶ E)),
       M.hom = pullbackMap A₀ ContinuousMap.fst + 𝔲 • pullbackMap A₁ ContinuousMap.fst +
           𝔲 • (pullbackMap π ContinuousMap.fst ≫ polynomialHom m b ≫
             pullbackMap j ContinuousMap.fst) →
       ∃ (A B : whitneySumIter E m G ⟶ whitneySumIter E m G)
-        (L : (Q (whitneySumIter E m G)) ≅ (Q (whitneySumIter E m G))),
+        (L : (whitneySumIter E m G).circlePullback ≅ (whitneySumIter E m G).circlePullback),
         L.hom = pullbackMap B ContinuousMap.fst + 𝔲 • pullbackMap A ContinuousMap.fst ∧
           Nonempty (whitneySumIter (E.pullback (ContinuousMap.fst : C(X × ℙ ℂ (Fin 2 → ℂ), X)))
             m (G.clutching M) ≅ (whitneySumIter E m G).clutching L) := by
@@ -211,7 +199,7 @@ theorem exists_linear_clutching_iso_of_hom_eq_polynomialHom (m : ℕ) :
     obtain ⟨N, hN, ⟨e⟩⟩ := exists_iso_clutching_whitneySum_of_hom_eq_add_comp (E := E) M
       (pullbackMap A₀ ContinuousMap.fst + 𝔲 • pullbackMap A₁ ContinuousMap.fst)
       (𝔲 • pullbackMap π ContinuousMap.fst)
-      (polynomialHom (m + 1) b ≫ pullbackMap j ContinuousMap.fst) (by rw [hM, smul_comp])
+      (polynomialHom (m + 1) b ≫ pullbackMap j ContinuousMap.fst) (by rw [hM, Linear.smul_comp])
     obtain ⟨A, B, L, hL, ⟨e'⟩⟩ := ih N
       (whitneyFst G E ≫ A₀ ≫ whitneyInl G E + whitneySnd G E ≫ b 0 ≫ j ≫ whitneyInl G E +
         whitneySnd G E ≫ whitneyInr G E)
@@ -219,7 +207,7 @@ theorem exists_linear_clutching_iso_of_hom_eq_polynomialHom (m : ℕ) :
       (whitneySnd G E) (j ≫ whitneyInl G E) (fun i ↦ b (i + 1)) (by
         rw [hN, polynomialHom_succ]
         simp only [pullbackMap_add, pullbackMap_neg, pullbackMap_comp, add_comp,
-          comp_add, smul_comp, comp_smul, Category.assoc, smul_add,
+          comp_add, Linear.smul_comp, Linear.comp_smul, Category.assoc, smul_add,
           neg_comp, comp_neg, smul_neg]
         module)
     exact ⟨A, B, L, hL, ⟨whitneySumIterMapIso _ m e.symm ≪≫ e'⟩⟩
@@ -232,11 +220,11 @@ Whitney sum of the clutching of `E` by `p` with `n` copies of the pullback of `E
 copies of `E` by an automorphism whose fibre map at `(x, u)` is `u • A(x) + B(x)`, for
 endomorphisms `A` and `B` of that sum. -/
 theorem exists_linear_clutching_iso_of_fiberMap_eq_sum (n : ℕ) (a : ℕ → (E ⟶ E))
-    (p : (Q E) ≅ (Q E))
+    (p : E.circlePullback ≅ E.circlePullback)
     (hp : ∀ w : X × Circle,
       p.hom.fiberMap w = ∑ i ∈ Finset.range (n + 1), (w.2 : ℂ) ^ i • (a i).fiberMap w.1) :
     ∃ (A B : whitneySumIter E n E ⟶ whitneySumIter E n E)
-      (L : (Q (whitneySumIter E n E)) ≅ (Q (whitneySumIter E n E))),
+      (L : (whitneySumIter E n E).circlePullback ≅ (whitneySumIter E n E).circlePullback),
       (∀ w : X × Circle, L.hom.fiberMap w = (w.2 : ℂ) • A.fiberMap w.1 + B.fiberMap w.1) ∧
         Nonempty (whitneySumIter (E.pullback (ContinuousMap.fst : C(X × ℙ ℂ (Fin 2 → ℂ), X)))
           n (E.clutching p) ≅ (whitneySumIter E n E).clutching L) := by

@@ -13,6 +13,8 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
 public import TauCeti.Geometry.Symplectic.Manifold.Kahler
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Restriction
 public import TauCeti.Geometry.Symplectic.Lagrangian.Basic
+public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Normal
+public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.NormalBundle
 import SymplecticGeometry.Geometry.Manifold.Immersion.TangentEndomorphism
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Nijenhuis
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Pseudoholomorphic
@@ -85,6 +87,23 @@ The kernel of the derivative of a pseudoholomorphic map is `J`-invariant, so by 
 `TauCeti.SymplecticForm.Tames.isSymplectic_of_mem_invtSubmodule` a taming form is nondegenerate
 on it (`TauCeti.SmoothTwoForm.Tames.nondegenerate_restrict_ker_mfderiv`).
 
+Compatibility passes to open subsets in the same way
+(`TauCeti.SmoothTwoForm.Compatible.restrictOpen`), and, conversely, is local: a form whose
+restrictions to the sets of an open cover are compatible is compatible
+(`TauCeti.SmoothTwoForm.compatible_of_compatible_restrictOpen`), since the tangent spaces of an
+open subset are those of the manifold. On an open subset of a complex manifold, the
+restriction of the complex structure is the complex structure of the subset
+(`TauCeti.SmoothAlmostComplexStructure.restrictOpen_ofComplexManifold`).
+
+The last section concerns the normal spaces. Let `σ` be nondegenerate and taming `J`, and let `f`
+have symplectic tangent images, so that Tau Ceti gives each normal space the symplectic form
+`σ_ν` (`TauCeti.SmoothEmbedding.symplecticNormalForm`) and, where the tangent image is
+`J`-invariant, the complex structure `J_ν [v] = [J v]`
+(`TauCeti.SmoothEmbedding.normalComplexStructureAt`). Then `σ_ν(ν, J_ν ν) > 0` for `ν ≠ 0`: if
+`w` is the representative of `ν` in the `σ`-orthogonal of the tangent image, then
+`σ_ν(J_ν ν, ν) = σ(J w, w)` by `TauCeti.SmoothEmbedding.symplecticNormalForm_normalClass`, and
+both forms are antisymmetric. Only taming is used: the `σ`-orthogonal need not be `J`-invariant.
+
 ## Main definitions
 
 * `TauCeti.SmoothAlmostComplexStructure.restrict`: the almost complex structure that `J` induces
@@ -114,10 +133,16 @@ on it (`TauCeti.SmoothTwoForm.Tames.nondegenerate_restrict_ker_mfderiv`).
 * `TauCeti.SmoothTwoForm.Tames.complex_submanifold`: these statements together.
 * `TauCeti.SmoothAlmostComplexStructure.IsIntegrable.restrict`: integrability passes to the
   restriction on a boundaryless submanifold.
-* `TauCeti.SmoothTwoForm.Tames.restrictOpen`: taming passes to open subsets.
+* `TauCeti.SmoothTwoForm.Tames.restrictOpen`, `TauCeti.SmoothTwoForm.Compatible.restrictOpen`:
+  taming and compatibility pass to open subsets.
+* `TauCeti.SmoothTwoForm.compatible_of_compatible_restrictOpen`: compatibility on the sets of an
+  open cover gives compatibility.
 * `TauCeti.IsPseudoholomorphicAt.ker_mfderiv_mem_invtSubmodule`,
   `TauCeti.SmoothTwoForm.Tames.nondegenerate_restrict_ker_mfderiv`: the kernel of the derivative
   of a pseudoholomorphic map is invariant, and a taming form is nondegenerate on it.
+* `TauCeti.SmoothEmbedding.symplecticNormalForm_normalComplexStructureAt_pos`: a taming form
+  makes the normal symplectic form positive on each nonzero normal vector and its image under
+  the normal complex structure.
 
 ## References
 
@@ -442,6 +467,81 @@ theorem Tames.restrictOpen (hσ : σ.Tames J) (U : TopologicalSpace.Opens X) :
       (J.restrictOpen U) :=
   hσ.mpullback (J.isPseudoholomorphic_subtype_val U) _ Manifold.mfderiv_subtype_val_injective
 
+/-- A two-form compatible with `J` restricts, on an open subset `U`, to a two-form compatible
+with the restriction `J.restrictOpen U` of `J` to `U`. -/
+theorem Compatible.restrictOpen (hσ : σ.Compatible J) (U : TopologicalSpace.Opens X) :
+    SmoothTwoForm.Compatible (SmoothForm.mpullback (Subtype.val : U → X) contMDiff_subtypeVal σ)
+      (J.restrictOpen U) :=
+  hσ.mpullback (J.isPseudoholomorphic_subtype_val U) _ Manifold.mfderiv_subtype_val_injective
+
+/-- Compatibility is local: a two-form whose restrictions to the sets `U i` of an open cover are
+compatible with the restrictions `J.restrictOpen (U i)` of `J` is compatible with `J`. -/
+theorem compatible_of_compatible_restrictOpen {ι : Type*} (U : ι → TopologicalSpace.Opens X)
+    (hU : ∀ x, ∃ i, x ∈ U i)
+    (h : ∀ i, SmoothTwoForm.Compatible
+      (SmoothForm.mpullback (Subtype.val : U i → X) contMDiff_subtypeVal σ)
+      (J.restrictOpen (U i))) :
+    σ.Compatible J := by
+  have he : ∀ i (x : U i) (v w : TangentSpace I x),
+      (SmoothForm.mpullback (Subtype.val : U i → X) contMDiff_subtypeVal σ).eval₂ x v w =
+        σ.eval₂ x (Manifold.tangentSpaceOpenEquiv x v) (Manifold.tangentSpaceOpenEquiv x w) :=
+    fun i x v w ↦ by
+      rw [SmoothForm.eval₂_mpullback, Manifold.mfderiv_subtype_val, ContinuousLinearEquiv.coe_coe]
+  refine ⟨invariant_iff.2 fun x v w ↦ ?_, tames_iff.2 fun x v hv ↦ ?_⟩ <;>
+    obtain ⟨i, hx⟩ := hU x
+  · have := (h i).invariant.apply ⟨x, hx⟩
+      ((Manifold.tangentSpaceOpenEquiv (I := I) ⟨x, hx⟩).symm v)
+      ((Manifold.tangentSpaceOpenEquiv (I := I) ⟨x, hx⟩).symm w)
+    simpa only [he, SmoothAlmostComplexStructure.restrictOpen_apply,
+      ContinuousLinearEquiv.apply_symm_apply] using this
+  · have := tames_iff.1 (h i).tames ⟨x, hx⟩
+      ((Manifold.tangentSpaceOpenEquiv (I := I) ⟨x, hx⟩).symm v)
+      (by simpa using hv)
+    simpa only [he, SmoothAlmostComplexStructure.restrictOpen_apply,
+      ContinuousLinearEquiv.apply_symm_apply] using this
+
 end SmoothTwoForm
 
+/-- On an open subset `U` of a complex manifold `M`, the restriction of the complex structure of
+`M` is the complex structure of `U`. -/
+@[simp]
+theorem SmoothAlmostComplexStructure.restrictOpen_ofComplexManifold {F N : Type*}
+    [NormedAddCommGroup F] [NormedSpace ℂ F] [TopologicalSpace N] [ChartedSpace F N]
+    [IsManifold 𝓘(ℂ, F) ∞ N] [IsManifold 𝓘(ℝ, F) ∞ N] (U : TopologicalSpace.Opens N) :
+    (ofComplexManifold F N).restrictOpen U = ofComplexManifold F U := by
+  ext x v
+  rw [restrictOpen_apply, Manifold.tangentSpaceOpenEquiv_symm_apply,
+    Manifold.tangentSpaceOpenEquiv_apply]
+  exact (ofComplexManifold_apply (E := F) (x : N) v).trans
+    (ofComplexManifold_apply (E := F) x v).symm
+
 end TauCeti
+
+/-! ### Taming forms on the normal spaces of a submanifold -/
+
+namespace TauCeti.SmoothEmbedding
+
+variable {E H X E' H' Y : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace X] [ChartedSpace H X]
+  [IsManifold I ∞ X] [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+  {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace Y] [ChartedSpace H' Y]
+  {n : ℕ∞ω} {σ : SmoothTwoForm I X} {hσ : σ.IsNondegenerate}
+  {J : SmoothAlmostComplexStructure I X}
+
+/-- If `σ` tames `J`, the normal symplectic form of an embedding with symplectic tangent images is
+positive on every nonzero normal vector `ν` at a point where the tangent image is `J`-invariant,
+paired with its image `J_ν ν` under the complex structure that `J` induces on the normal space. -/
+theorem symplecticNormalForm_normalComplexStructureAt_pos (hτ : σ.Tames J)
+    (f : SmoothEmbedding I' I n Y X) (h : hσ.HasSymplecticTangentImages I' f) {x : Y}
+    (hn : n ≠ 0) (hJ : Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn))
+    {ν : f.NormalSpace x hn} (hν : ν ≠ 0) :
+    0 < f.symplecticNormalForm h x hn ν (f.normalComplexStructureAt hn J x hJ ν) := by
+  let w := f.symplecticNormalRepresentative h x hn ν
+  have hw : f.normalClass x hn w = ν := f.normalClass_symplecticNormalRepresentative h x hn ν
+  have hw0 : w ≠ 0 := fun h0 ↦ hν (by rw [← hw, h0, map_zero])
+  -- The class of `J w` is `J_ν ν`, and `w` represents `ν` in the symplectic complement.
+  rw [← SymplecticForm.neg_eq, ← hw, normalComplexStructureAt_normalClass,
+    symplecticNormalForm_normalClass, hw, SmoothBundleForm.eval₂_swap, neg_neg]
+  exact SmoothTwoForm.tames_iff.1 hτ (f x) w hw0
+
+end TauCeti.SmoothEmbedding

@@ -535,7 +535,7 @@ theorem exists_hasWeakConjWirtingerDerivOn_mul_of_twistOneDelBarSobolev_eq_zero
         J.inChart ((twistCoreAtlas 1).center i) (T z) (fderiv ℝ T z v) := by
     rw [hTcoe]
     exact J.fderiv_extChartAt_comp_apply_eq_inChart ((twistCoreAtlas 1).center i)
-      (ψ.symm.contMDiffOn.continuousOn.continuousAt (ψ.open_target.mem_nhds (hΩ hz).1))
+      (ψ.toOpenPartialHomeomorph.continuousAt_symm (hΩ hz).1)
       (by simpa using (twistCoreAtlas 1).dom_subset_chart_source i (hΩ hz).2)
       -- `ψ⁻¹` is pseudoholomorphic from `i` to `J`.
       ((SmoothAlmostComplexStructure.ofComplexManifold_apply (E := ℂ) z v).symm ▸

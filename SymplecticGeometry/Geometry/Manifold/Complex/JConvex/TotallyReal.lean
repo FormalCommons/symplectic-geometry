@@ -86,7 +86,9 @@ the image of `ι` onto `F × {0}` (`TauCeti.IsAdaptedChart`). Fix a linear isomo
 * `IsTotallyRealEmbedding.setOfPred_isManifoldStrictlyPlurisubharmonicAt_norm_sq_snd_mem_nhdsSet`:
   for a complex manifold, with the adapted chart taken for
   `(ofComplexManifold E M).toContMDiff ℓ`, `ℓ ≥ 2`, the function is strictly plurisubharmonic on a
-  neighbourhood of the part of the image in the source of `ψ`;
+  neighbourhood of the part of the image in the source of `ψ`. This is
+  `SymplecticGeometry.setOfPred_isManifoldStrictlyPlurisubharmonicAt_mem_nhdsSet_image` for the
+  set of points of `N` that `ι` sends into the source of `ψ`;
 * `TauCeti.IsTotallyRealEmbedding.exists_isAdaptedChart_norm_sq_snd`: such charts exist near each
   point of the image of a `C³` totally real embedding. Total reality for `ofComplexManifold E M`
   and for its `C^ℓ` version agree, since both have the same pointwise structures
@@ -367,12 +369,12 @@ theorem setOfPred_isManifoldStrictlyPlurisubharmonicAt_norm_sq_snd_mem_nhdsSet
     (e : F ≃L[ℝ] W) :
     {x | IsManifoldStrictlyPlurisubharmonicAt E (fun x ↦ ‖e (ψ x).2‖ ^ 2) x} ∈
       𝓝ˢ (ψ.source ∩ range ι) := by
-  rw [mem_nhdsSet_iff_forall]
-  rintro _ ⟨hy, y, rfl⟩
-  exact (SymplecticGeometry.isManifoldStrictlyPlurisubharmonicAt_of_criticalHessian_pos
-    (h.isTotallyReal_range_mfderiv y)
-    fun v hv ↦ hψ.criticalHessian_norm_sq_snd_pos h hk hℓ hy hv).eventually
-    ((hψ.contMDiffAt_norm_sq_snd hy).of_le (WithTop.coe_le_coe.2 hℓ))
+  rw [← image_preimage_eq_inter_range]
+  exact SymplecticGeometry.setOfPred_isManifoldStrictlyPlurisubharmonicAt_mem_nhdsSet_image
+    (K := ι ⁻¹' ψ.source)
+    (fun _ hy ↦ (hψ.contMDiffAt_norm_sq_snd hy).of_le (WithTop.coe_le_coe.2 hℓ))
+    (fun y _ ↦ h.isTotallyReal_range_mfderiv y)
+    fun _ hy _ hv ↦ hψ.criticalHessian_norm_sq_snd_pos h hk hℓ hy hv
 
 /-- **Adapted charts in which the squared distance is strictly plurisubharmonic.** Let `ι` be a
 `C^k` totally real embedding, `k ≥ 3`, into a complex manifold, and `e` a linear isomorphism
