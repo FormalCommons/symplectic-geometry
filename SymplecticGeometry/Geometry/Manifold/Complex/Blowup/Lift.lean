@@ -112,7 +112,7 @@ goes to the point over `ψ z` on the line `[ψ z]`; a point with `ψ z = 0`, suc
 exceptional divisor, goes to the point over `0` on the line `L ℓ`, where `ℓ` is the line of `p`. -/
 noncomputable def liftMap (p : BlowupModel n) : BlowupModel n :=
   if h : ψ p.blowdown = 0 then zeroSection (map (L : _ →ₗ[ℂ] _) L.injective p.pr)
-  else ⟨(mk ℂ (ψ p.blowdown) h, ψ p.blowdown), mk_self_mem_blowupModel h⟩
+  else ofNeZero h
 
 variable {ψ} {p : BlowupModel n}
 
@@ -120,21 +120,20 @@ theorem liftMap_of_eq_zero (h : ψ p.blowdown = 0) :
     liftMap ψ L p = zeroSection (map (L : _ →ₗ[ℂ] _) L.injective p.pr) :=
   dite_eq_left h
 
-theorem liftMap_of_ne_zero (h : ψ p.blowdown ≠ 0) :
-    liftMap ψ L p = ⟨(mk ℂ (ψ p.blowdown) h, ψ p.blowdown), mk_self_mem_blowupModel h⟩ :=
+theorem liftMap_of_ne_zero (h : ψ p.blowdown ≠ 0) : liftMap ψ L p = ofNeZero h :=
   dite_eq_right h
 
 /-- Where `ψ` does not vanish, the line of the lift is spanned by `ψ z`. -/
 theorem pr_liftMap_of_ne_zero (h : ψ p.blowdown ≠ 0) :
     (liftMap ψ L p).pr = mk ℂ (ψ p.blowdown) h := by
-  rw [liftMap_of_ne_zero L h, pr_mk]
+  rw [liftMap_of_ne_zero L h, pr_ofNeZero]
 
 /-- The lift lies over `ψ`: `π ∘ liftMap ψ L = ψ ∘ π` for the blowdown `π`. -/
 @[simp]
 theorem blowdown_liftMap (p : BlowupModel n) : (liftMap ψ L p).blowdown = ψ p.blowdown := by
   by_cases h : ψ p.blowdown = 0
   · rw [liftMap_of_eq_zero L h, blowdown_zeroSection, h]
-  · rw [liftMap_of_ne_zero L h, blowdown_mk]
+  · rw [liftMap_of_ne_zero L h, blowdown_ofNeZero]
 
 /-- On the exceptional divisor, the lift of a map fixing `0` acts on lines by its derivative `L`. -/
 @[simp]
@@ -362,12 +361,11 @@ noncomputable def curveLift (t : ℂ) : BlowupModel n :=
   if h : u t = 0 then
     if h' : iteratedDeriv (analyticOrderNatAt u t) u t = 0 then zeroSection (Classical.arbitrary _)
     else zeroSection (mk ℂ _ h')
-  else ⟨(mk ℂ (u t) h, u t), mk_self_mem_blowupModel h⟩
+  else ofNeZero h
 
 variable {u} {t t₀ : ℂ}
 
-theorem curveLift_of_ne_zero (h : u t ≠ 0) :
-    curveLift u t = ⟨(mk ℂ (u t) h, u t), mk_self_mem_blowupModel h⟩ :=
+theorem curveLift_of_ne_zero (h : u t ≠ 0) : curveLift u t = ofNeZero h :=
   dite_eq_right h
 
 theorem curveLift_of_eq_zero (h : u t = 0)
@@ -377,7 +375,7 @@ theorem curveLift_of_eq_zero (h : u t = 0)
 
 /-- Where `u` does not vanish, the line of its lift is spanned by `u t`. -/
 theorem pr_curveLift_of_ne_zero (h : u t ≠ 0) : (curveLift u t).pr = mk ℂ (u t) h := by
-  rw [curveLift_of_ne_zero h, pr_mk]
+  rw [curveLift_of_ne_zero h, pr_ofNeZero]
 
 /-- The lift of `u` lies over `u`. -/
 @[simp]
@@ -386,7 +384,7 @@ theorem blowdown_curveLift (u : ℂ → Fin (n + 1) → ℂ) (t : ℂ) :
   by_cases h : u t = 0
   · rw [curveLift, dite_eq_left h, h]
     split_ifs <;> exact blowdown_zeroSection _
-  · rw [curveLift_of_ne_zero h, blowdown_mk]
+  · rw [curveLift_of_ne_zero h, blowdown_ofNeZero]
 
 /-- At a zero `t₀` of order `k` of an analytic curve `u`, the lift is the point of the exceptional
 divisor on the line of the first nonvanishing derivative `iteratedDeriv k u t₀`, which is nonzero

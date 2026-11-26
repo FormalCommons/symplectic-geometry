@@ -82,7 +82,8 @@ blowdown is a biholomorphism onto the nonzero vectors of `E`.
   vanish is zero, since the real differential of the inclusion is injective (Tau Ceti's
   `TauCeti.injective_mfderiv_restrictScalars`).
 * `SymplecticGeometry.BlowupModel.blowdownDiffeomorph n`: off the exceptional divisor, the blowdown
-  is a biholomorphism of open subsets onto `{z : E | z ≠ 0}`, with inverse `z ↦ ([z], z)`
+  is a biholomorphism of open subsets onto `{z : E | z ≠ 0}`, with inverse `z ↦ ([z], z)`, the
+  point `SymplecticGeometry.BlowupModel.ofNeZero`
   (`coe_blowdownDiffeomorph`, `blowdownDiffeomorph_symm_apply`).
 
 ## Implementation notes
@@ -652,6 +653,28 @@ theorem mk_self_mem_blowupModel {z : Fin (n + 1) → ℂ} (hz : z ≠ 0) :
   rw [mem_blowupModel_iff, submodule_mk]
   exact Submodule.mem_span_singleton_self z
 
+/-- The point `([z], z)` of the blowup over a nonzero vector `z`: the line spanned by `z`,
+together with `z`. -/
+noncomputable def ofNeZero {z : Fin (n + 1) → ℂ} (hz : z ≠ 0) : BlowupModel n :=
+  ⟨(mk ℂ z hz, z), mk_self_mem_blowupModel hz⟩
+
+theorem ofNeZero_def {z : Fin (n + 1) → ℂ} (hz : z ≠ 0) :
+    ofNeZero hz = ⟨(mk ℂ z hz, z), mk_self_mem_blowupModel hz⟩ :=
+  (rfl)
+
+@[simp]
+theorem pr_ofNeZero {z : Fin (n + 1) → ℂ} (hz : z ≠ 0) : (ofNeZero hz).pr = mk ℂ z hz := by
+  rw [ofNeZero_def, pr_mk]
+
+@[simp]
+theorem blowdown_ofNeZero {z : Fin (n + 1) → ℂ} (hz : z ≠ 0) : (ofNeZero hz).blowdown = z := by
+  rw [ofNeZero_def, blowdown_mk]
+
+/-- The point `([z], z)` over a nonzero `z` is off the exceptional divisor. -/
+theorem ofNeZero_notMem_exceptionalDivisor {z : Fin (n + 1) → ℂ} (hz : z ≠ 0) :
+    ofNeZero hz ∉ exceptionalDivisor n := by
+  simpa using hz
+
 /-- Off the exceptional divisor, the line of a point of the blowup is spanned by its blowdown. -/
 theorem mk_blowdown {p : BlowupModel n} (hp : p.blowdown ≠ 0) : mk ℂ p.blowdown hp = p.pr :=
   mem_submodule_iff.1 p.blowdown_mem_submodule hp
@@ -664,6 +687,12 @@ theorem eq_zeroSection_pr {p : BlowupModel n} (h : p.blowdown = 0) : p = zeroSec
 theorem eq_of_blowdown_eq {p q : BlowupModel n} (hp : p.blowdown ≠ 0)
     (h : p.blowdown = q.blowdown) : p = q :=
   ext (by rw [← mk_blowdown hp, ← mk_blowdown (h ▸ hp)]; simp only [h]) h
+
+/-- Off the exceptional divisor, a point of the blowup is the point `([z], z)` over its
+blowdown `z`. -/
+@[simp]
+theorem ofNeZero_blowdown {p : BlowupModel n} (hp : p.blowdown ≠ 0) : ofNeZero hp = p :=
+  ext (by rw [pr_ofNeZero, mk_blowdown]) (blowdown_ofNeZero hp)
 
 variable (n) in
 /-- The blowdown `π` off the exceptional divisor, as a biholomorphism from the open complement of
@@ -680,9 +709,9 @@ noncomputable def blowdownDiffeomorph :
       ≃ₘ^ω⟮𝓘(ℂ, Fin (n + 1) → ℂ), 𝓘(ℂ, Fin (n + 1) → ℂ)⟯
       (⟨{z | z ≠ 0}, isOpen_ne⟩ : Opens (Fin (n + 1) → ℂ)) where
   toFun p := ⟨p.val.blowdown, p.property⟩
-  invFun z := ⟨⟨_, mk_self_mem_blowupModel z.property⟩, z.property⟩
-  left_inv p := Subtype.ext <| ext (mk_blowdown p.property) rfl
-  right_inv _ := rfl
+  invFun z := ⟨ofNeZero z.property, ofNeZero_notMem_exceptionalDivisor z.property⟩
+  left_inv p := Subtype.ext <| ofNeZero_blowdown p.property
+  right_inv z := Subtype.ext <| blowdown_ofNeZero z.property
   contMDiff_toFun := (TauCeti.ContMDiff.subtypeVal_comp_iff _ _).1
     ((contMDiff_blowdown ω).comp contMDiff_subtypeVal)
   contMDiff_invFun := by
@@ -701,7 +730,7 @@ theorem coe_blowdownDiffeomorph (p : (⟨(exceptionalDivisor n)ᶜ, _⟩ : Opens
 theorem blowdownDiffeomorph_symm_apply
     (z : (⟨{z | z ≠ 0}, isOpen_ne⟩ : Opens (Fin (n + 1) → ℂ))) :
     ((blowdownDiffeomorph n).symm z : BlowupModel n) =
-      ⟨(mk ℂ z z.property, z), mk_self_mem_blowupModel z.property⟩ :=
+      ofNeZero z.property :=
   (rfl)
 
 end Blowdown
