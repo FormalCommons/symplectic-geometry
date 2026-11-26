@@ -13,6 +13,7 @@ public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Basic
 public import SymplecticGeometry.Topology.VectorBundle.Thom.ChangeOfCoefficients
 import SymplecticGeometry.Topology.VectorBundle.EulerClass
 import SymplecticGeometry.AlgebraicTopology.Cohomology.Local.PointClass
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.ZeroDimChart
 import TauCeti.Algebra.Module.Equiv.SpanSingleton
 
 /-!
@@ -66,7 +67,8 @@ The construction and the proofs of its properties follow those of Tau Ceti's
 `localCohomologyClass`. The naturality of the generator under a linear isomorphism,
 `Orientation.singularCohomologyMap_modelThomGenerator`, is Tau Ceti's
 `Orientation.singularCohomologyMap_localCohomologyClass` in positive rank; in rank zero it says
-that the isomorphism carries the class of the origin to the class of the origin. From it, the
+that the isomorphism carries the class of the origin to the class of the origin
+(`TauCeti.localOrientationOfZeroDimChart_refl_map`). From it, the
 independence of the trivialization, `Orientation.singularCohomologyMap_modelThomGenerator_map_eq`,
 is proved as Tau Ceti's `Orientation.singularCohomologyMap_localCohomologyClass_map_eq` is.
 
@@ -253,17 +255,8 @@ theorem singularCohomologyMap_modelThomGenerator {P' : Type w} [NormedAddCommGro
   | zero =>
     classical
     -- The map of pairs carries the class of the origin of `P` to that of the origin of `P'`.
-    have hpt : (TopPair.singularHomologyMap h.complZeroPairIso.hom
-        (ModuleCat.of ℤ (ULift.{w} ℤ)) 0).hom
-          (localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl P)
-            (OpenPartialHomeomorph.mem_refl_source _) hP).val =
-        (localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl P')
-          (OpenPartialHomeomorph.mem_refl_source _) hP').val := by
-      rw [localOrientationOfZeroDimChart_coe, localOrientationOfZeroDimChart_coe,
-        localHomologyPointClass_def, localHomologyPointClass_def]
-      exact ConcreteCategory.congr_hom (TopPair.singularHomology₀Section_singularHomologyMap _
-        (ModuleCat.of ℤ (ULift.{w} ℤ)) h.complZeroPairIso.hom (0 : P) (0 : P')
-        ((ContinuousLinearEquiv.complZeroPairIso_hom_fst_apply h 0).trans h.map_zero)) 1
+    have hpt := congrArg Subtype.val (localOrientationOfZeroDimChart_refl_map h hP hP')
+    rw [LocalOrientation.coe_map] at hpt
     have hpos : ω.map _ h.toLinearEquiv = positiveOrientation ↔ ω = positiveOrientation :=
       (Orientation.map _ _).injective.eq_iff' (Orientation.map_positiveOrientation_of_isEmpty _ _)
     simp only [modelThomGenerator, hpos]
