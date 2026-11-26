@@ -449,8 +449,8 @@ theorem bijective_singularCapLinearMap_fundamentalClass [CompactSpace M] {p q : 
       ((TopCat.of M).singularHomologyIntToRat n (o.fundamentalClass hn))) := by
   refine (Function.Bijective.of_comp_iff'
     (ConcreteCategory.bijective_of_isIso ((TopCat.of M).singularHomologyRatIso q).hom) _).1 ?_
-  -- Through `singularHomologyRatIso` and `singularCohomologyRatIso`, the rational cap product is
-  -- the integral one with values in `ℚ`, which Tau Ceti shows to be bijective.
+  -- Through `singularHomologyRatIso` and `singularCohomologyIntChainsIso ℚ`, the rational cap
+  -- product is the integral one with values in `ℚ`, which Tau Ceti shows to be bijective.
   have e : ⇑(ConcreteCategory.hom ((TopCat.of M).singularHomologyRatIso q).hom) ∘
       ⇑((TopCat.of M).singularCapLinearMap ℚ h
         ((TopCat.of M).singularHomologyIntToRat n (o.fundamentalClass hn))) =
