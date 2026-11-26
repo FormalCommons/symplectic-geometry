@@ -36,11 +36,13 @@ spectrum avoids the unit circle.
 * `SymplecticGeometry.isIdempotentElem_unitDiscRieszProjection`,
   `SymplecticGeometry.commute_unitDiscRieszProjection`: it is an idempotent commuting with `a`.
 * `SymplecticGeometry.map_unitDiscRieszProjection`,
-  `ContinuousLinearMap.unitDiscRieszProjection_conjContinuousAlgEquiv`: naturality.
-* `Continuous.unitDiscRieszProjection`: continuity in a family.
-* `ContinuousLinearMap.eq_zero_of_unitDiscRieszProjection_apply_eq_zero`,
-  `ContinuousLinearMap.eq_zero_of_unitDiscRieszProjection_apply_eq_self`: where the eigenvalues
-  of the two pieces lie.
+  `SymplecticGeometry.unitDiscRieszProjection_conjContinuousAlgEquiv`: naturality.
+* `Continuous.unitDiscRieszProjection`: continuity in a family, from the joint continuity of the
+  resolvent (`spectrum.continuousAt_resolvent_prod`).
+* `SymplecticGeometry.eq_zero_of_unitDiscRieszProjection_apply_eq_zero`,
+  `SymplecticGeometry.eq_zero_of_unitDiscRieszProjection_apply_eq_self`: where the eigenvalues
+  of the two pieces lie, from `ContinuousLinearMap.mem_image_of_rieszIdempotent_apply_eq_self`
+  (an eigenvalue on the range of a Riesz idempotent lies in its part of the spectrum).
 
 ## References
 
@@ -67,6 +69,36 @@ theorem spectrum.continuousAt_resolvent_prod {A : Type*} [NormedRing A] [NormedA
   simp only [resolvent]
   refine ContinuousAt.comp_of_eq (NormedRing.inverse_continuousAt hu.unit) ?_ hu.unit_spec.symm
   fun_prop
+
+/-- If the spectrum of `a` avoids the unit circle, it has a gap: it avoids an annulus
+`1 ≤ ‖z‖ < m` with `1 < m`. -/
+theorem spectrum.exists_one_lt_forall_norm_lt_one_or_le {A : Type*} [NormedRing A]
+    [NormedAlgebra ℂ A] [CompleteSpace A] (a : A) (h : ∀ z ∈ spectrum ℂ a, ‖z‖ ≠ 1) :
+    ∃ m : ℝ, 1 < m ∧ ∀ z ∈ spectrum ℂ a, ‖z‖ < 1 ∨ m ≤ ‖z‖ := by
+  set S := spectrum ℂ a ∩ {z | 1 ≤ ‖z‖}
+  have hS : IsCompact S :=
+    (spectrum.isCompact (𝕜 := ℂ) a).inter_right (isClosed_le (by fun_prop) (by fun_prop))
+  rcases S.eq_empty_or_nonempty with hS₀ | hS₀
+  · refine ⟨2, one_lt_two, fun z hz ↦ Or.inl (not_le.mp fun hz' ↦ ?_)⟩
+    exact (Set.eq_empty_iff_forall_notMem.mp hS₀) z ⟨hz, hz'⟩
+  · obtain ⟨z₀, ⟨hz₀, hz₀'⟩, hmin⟩ := hS.exists_isMinOn hS₀ continuous_norm.continuousOn
+    refine ⟨‖z₀‖, lt_of_le_of_ne hz₀' (h z₀ hz₀).symm, fun z hz ↦ ?_⟩
+    rcases lt_or_ge ‖z‖ 1 with hz' | hz'
+    · exact Or.inl hz'
+    · exact Or.inr (hmin ⟨hz, hz'⟩)
+
+/-- The function equal to `1` on the open disc `‖z‖ < ρ` and to `0` outside it is holomorphic
+off the circle `‖z‖ = ρ`. -/
+theorem Complex.differentiableOn_ite_norm_lt (ρ : ℝ) :
+    DifferentiableOn ℂ (fun z : ℂ ↦ if ‖z‖ < ρ then (1 : ℂ) else 0) {z | ‖z‖ ≠ ρ} := by
+  intro z hz
+  rcases lt_or_gt_of_ne hz with hz | hz
+  · refine (differentiableAt_const (1 : ℂ)).congr_of_eventuallyEq ?_ |>.differentiableWithinAt
+    filter_upwards [(isOpen_lt continuous_norm continuous_const).mem_nhds hz] with w hw
+    exact ite_eq_left hw
+  · refine (differentiableAt_const (0 : ℂ)).congr_of_eventuallyEq ?_ |>.differentiableWithinAt
+    filter_upwards [(isOpen_lt continuous_const continuous_norm).mem_nhds hz] with w hw
+    exact ite_eq_right (not_lt.mpr hw.le)
 
 namespace SymplecticGeometry
 
@@ -101,28 +133,12 @@ theorem mem_unitDiscClopens {a : A} {h : ∀ z ∈ spectrum ℂ a, ‖z‖ ≠ 1
 
 variable [CompleteSpace A] [CompleteSpace B]
 
-/-- If the spectrum of `a` avoids the unit circle, it has a gap: it avoids an annulus
-`1 ≤ ‖z‖ < m` with `1 < m`. -/
-theorem exists_one_lt_forall_mem_spectrum (a : A) (h : ∀ z ∈ spectrum ℂ a, ‖z‖ ≠ 1) :
-    ∃ m : ℝ, 1 < m ∧ ∀ z ∈ spectrum ℂ a, ‖z‖ < 1 ∨ m ≤ ‖z‖ := by
-  set S := spectrum ℂ a ∩ {z | 1 ≤ ‖z‖}
-  have hS : IsCompact S :=
-    (spectrum.isCompact (𝕜 := ℂ) a).inter_right (isClosed_le (by fun_prop) (by fun_prop))
-  rcases S.eq_empty_or_nonempty with hS₀ | hS₀
-  · refine ⟨2, one_lt_two, fun z hz ↦ Or.inl (not_le.mp fun hz' ↦ ?_)⟩
-    exact (Set.eq_empty_iff_forall_notMem.mp hS₀) z ⟨hz, hz'⟩
-  · obtain ⟨z₀, ⟨hz₀, hz₀'⟩, hmin⟩ := hS.exists_isMinOn hS₀ continuous_norm.continuousOn
-    refine ⟨‖z₀‖, lt_of_le_of_ne hz₀' (h z₀ hz₀).symm, fun z hz ↦ ?_⟩
-    rcases lt_or_ge ‖z‖ 1 with hz' | hz'
-    · exact Or.inl hz'
-    · exact Or.inr (hmin ⟨hz, hz'⟩)
-
 /-- If the spectrum of `a` avoids the unit circle, `unitDiscRieszProjection a` is the Riesz
 idempotent of the part of the spectrum in the open unit disc. -/
 theorem unitDiscRieszProjection_eq_rieszIdempotent (a : A)
     (h : ∀ z ∈ spectrum ℂ a, ‖z‖ ≠ 1) :
     unitDiscRieszProjection a = rieszIdempotent a (unitDiscClopens a h) := by
-  obtain ⟨m, hm, hgap⟩ := exists_one_lt_forall_mem_spectrum a h
+  obtain ⟨m, hm, hgap⟩ := spectrum.exists_one_lt_forall_norm_lt_one_or_le a h
   obtain ⟨R, hR⟩ := (spectrum.isCompact (𝕜 := ℂ) a).isBounded.subset_ball 0
   obtain ⟨ρ₁, ρ₂, s, h1, h12, h2s, hsm⟩ : ∃ ρ₁ ρ₂ s : ℝ, 1 < ρ₁ ∧ ρ₁ < ρ₂ ∧ ρ₂ < s ∧ s < m :=
     ⟨1 + (m - 1) / 4, 1 + (m - 1) / 2, 1 + 3 * (m - 1) / 4, by linarith, by linarith,
@@ -141,15 +157,8 @@ theorem unitDiscRieszProjection_eq_rieszIdempotent (a : A)
   have hχ_in : ∀ z, ‖z‖ < ρ₁ → χ z = 1 := fun z hz ↦ ite_eq_left_iff.mpr fun h' ↦ (h' hz).elim
   have hχ_out : ∀ z, ρ₁ < ‖z‖ → χ z = 0 := fun z hz ↦
     ite_eq_right_iff.mpr fun h' ↦ (lt_asymm h' hz).elim
-  have hχd : DifferentiableOn ℂ χ U := by
-    rintro z (hz | hz)
-    · refine (differentiableAt_const (1 : ℂ)).congr_of_eventuallyEq ?_ |>.differentiableWithinAt
-      filter_upwards [(isOpen_lt (by fun_prop) continuous_const).mem_nhds hz] with w hw
-      exact hχ_in w hw
-    · refine (differentiableAt_const (0 : ℂ)).congr_of_eventuallyEq ?_ |>.differentiableWithinAt
-      have hz' : ρ₁ < ‖z‖ := by simp only [mem_ofPred_eq] at hz; linarith
-      filter_upwards [(isOpen_lt continuous_const continuous_norm).mem_nhds hz'] with w hw
-      exact hχ_out w hw
+  have hχd : DifferentiableOn ℂ χ U := (Complex.differentiableOn_ite_norm_lt ρ₁).mono <| by
+    rintro z (hz | hz) <;> simp only [mem_ofPred_eq] at hz ⊢ <;> [exact hz.ne; linarith]
   have hχi : ∀ z ∈ U, IsIdempotentElem (χ z) := fun z _ ↦ by
     simp only [χ]
     split_ifs
@@ -281,17 +290,7 @@ end SymplecticGeometry
 
 namespace ContinuousLinearMap
 
-open SymplecticGeometry
-
-variable {E F : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] [CompleteSpace E]
-  [NormedAddCommGroup F] [NormedSpace ℂ F] [CompleteSpace F]
-
-/-- The Riesz projection of the conjugate `e ∘ T ∘ e⁻¹` of an operator `T` is the conjugate of
-the Riesz projection of `T`. -/
-theorem unitDiscRieszProjection_conjContinuousAlgEquiv (e : E ≃L[ℂ] F) (T : E →L[ℂ] E) :
-    unitDiscRieszProjection (e.conjContinuousAlgEquiv T) =
-      e.conjContinuousAlgEquiv (unitDiscRieszProjection T) :=
-  (map_unitDiscRieszProjection _ T).symm
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] [CompleteSpace E]
 
 /-- If a vector `v` in the range of the Riesz idempotent of a clopen part `K` of the spectrum of
 `T` is an eigenvector of `T` for the eigenvalue `μ`, then `μ` lies in `K`. -/
@@ -308,6 +307,20 @@ theorem mem_image_of_rieszIdempotent_apply_eq_self {T : E →L[ℂ] E}
   rwa [← mul_apply_eq_comp, Units.inv_mul, one_apply_eq_self,
     map_zero] at h1
 
+end ContinuousLinearMap
+
+namespace SymplecticGeometry
+
+variable {E F : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] [CompleteSpace E]
+  [NormedAddCommGroup F] [NormedSpace ℂ F] [CompleteSpace F]
+
+/-- The Riesz projection of the conjugate `e ∘ T ∘ e⁻¹` of an operator `T` is the conjugate of
+the Riesz projection of `T`. -/
+theorem unitDiscRieszProjection_conjContinuousAlgEquiv (e : E ≃L[ℂ] F) (T : E →L[ℂ] E) :
+    unitDiscRieszProjection (e.conjContinuousAlgEquiv T) =
+      e.conjContinuousAlgEquiv (unitDiscRieszProjection T) :=
+  (map_unitDiscRieszProjection _ T).symm
+
 /-- If the spectrum of `T` avoids the unit circle, no nonzero vector in the kernel of
 `unitDiscRieszProjection T` is an eigenvector of `T` for an eigenvalue `w` with `‖w‖ ≤ 1`. -/
 theorem eq_zero_of_unitDiscRieszProjection_apply_eq_zero {T : E →L[ℂ] E}
@@ -317,8 +330,9 @@ theorem eq_zero_of_unitDiscRieszProjection_apply_eq_zero {T : E →L[ℂ] E}
   have hP' : rieszIdempotent T (unitDiscClopens T h)ᶜ v = v := by
     rw [rieszIdempotent_compl, ← unitDiscRieszProjection_eq_rieszIdempotent T h]
     simp [hP]
-  obtain ⟨z, hz, rfl⟩ := mem_image_of_rieszIdempotent_apply_eq_self _ hv hP' hT
-  have hz' : ¬ ‖(z : ℂ)‖ < 1 := hz
+  obtain ⟨z, hz, rfl⟩ :=
+    ContinuousLinearMap.mem_image_of_rieszIdempotent_apply_eq_self _ hv hP' hT
+  have hz' : ¬ ‖(z : ℂ)‖ < 1 := by simpa using hz
   exact h z z.property (le_antisymm hw (not_lt.mp hz'))
 
 /-- If the spectrum of `T` avoids the unit circle, no nonzero vector `v` in the range of
@@ -331,12 +345,13 @@ theorem eq_zero_of_unitDiscRieszProjection_apply_eq_self {T : E →L[ℂ] E}
   have hw0 : w ≠ 0 := by rintro rfl; simp at hT; exact hv hT.symm
   have hT' : T v = w⁻¹ • v := (eq_inv_smul_iff₀ hw0).mpr hT
   rw [unitDiscRieszProjection_eq_rieszIdempotent T h] at hP
-  obtain ⟨z, hz, hzw⟩ := mem_image_of_rieszIdempotent_apply_eq_self _ hv hP hT'
-  have hz' : ‖(z : ℂ)‖ < 1 := hz
+  obtain ⟨z, hz, hzw⟩ :=
+    ContinuousLinearMap.mem_image_of_rieszIdempotent_apply_eq_self _ hv hP hT'
+  have hz' : ‖(z : ℂ)‖ < 1 := by simpa using hz
   rw [hzw, norm_inv] at hz'
   have := (inv_lt_one₀ (norm_pos_iff.mpr hw0)).mp hz'
   linarith
 
-end ContinuousLinearMap
+end SymplecticGeometry
 
 end
