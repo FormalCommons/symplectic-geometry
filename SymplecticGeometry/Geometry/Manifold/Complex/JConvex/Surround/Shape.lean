@@ -8,6 +8,7 @@ module
 public import Mathlib.Analysis.InnerProductSpace.PiL2
 public import Mathlib.Geometry.Manifold.MFDeriv.SpecificFunctions
 public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Hypersurface
+public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Attached
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Manifold.Complex.LeviForm
 public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
@@ -101,11 +102,16 @@ bounds `|σ|² ≤ s |v₁|²` and `|τ|² ≤ t (|v₁|² + |v₂|²)`.
   (`SymplecticGeometry.criticalPoints_modelLevel`), where it takes the value `1`
   (`SymplecticGeometry.modelLevel_zero`), so its zero level is a J-convex level
   (`SymplecticGeometry.isJConvexLevel_modelLevel`).
+* `SymplecticGeometry.isJOrthogonallyAttached_model`: the model disc is attached J-orthogonally
+  to `{φ₀ ≤ 0}`, the model case of `SymplecticGeometry.IsJOrthogonallyAttached`. Along the disc
+  `φ₀ (ι₀ x) = 1 - |x|²` (`SymplecticGeometry.modelLevel_modelDisc`), and the differential of
+  `φ₀` there (`SymplecticGeometry.fderiv_modelLevel_apply`) only sees the real parts of the
+  first factor, so it vanishes on `i` times the tangent vectors of the disc.
 
 ## References
 
 * [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
-  Chapter 4 (shapes of `i`-convex hypersurfaces).
+  Chapter 4 (shapes of `i`-convex hypersurfaces) and §7.9 (discs attached J-orthogonally).
 -/
 
 public section
@@ -681,6 +687,56 @@ theorem isJConvexLevel_modelLevel :
   subst hp
   rw [modelLevel_zero] at hp0
   exact one_ne_zero hp0
+
+/-- On the model disc, the model level is `φ₀ (ι₀ x) = 1 - |x|²`. -/
+theorem modelLevel_modelDisc (x : EuclideanSpace ℝ (Fin k)) :
+    modelLevel k m (modelDisc k m x) = 1 - ‖x‖ ^ 2 := by
+  simp [modelLevel_def, EuclideanSpace.real_norm_sq_eq]
+
+open scoped InnerProductSpace in
+/-- The differential of the model level `φ₀ = 1 - s + 2 t` at `p = (x + i y, w)` is
+`v ↦ -2 ∑ⱼ xⱼ Re v₁ⱼ + 4 (∑ⱼ yⱼ Im v₁ⱼ + Re ⟪w, v₂⟫)`. -/
+theorem fderiv_modelLevel_apply (p v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    fderiv ℝ (modelLevel k m) p v = -(2 * ∑ j, (p.1 j).re * (v.1 j).re) +
+      2 * (2 * (∑ j, (p.1 j).im * (v.1 j).im + (⟪p.2, v.2⟫_ℂ).re)) := by
+  have h1 : DifferentiableAt ℝ (fun q ↦ (shape q).1) p :=
+    (contDiff_fst.comp (contDiff_shape (n := 1))).differentiable one_ne_zero p
+  have h2 : DifferentiableAt ℝ (fun q ↦ (shape q).2) p :=
+    (contDiff_snd.comp (contDiff_shape (n := 1))).differentiable one_ne_zero p
+  have h : HasFDerivAt (modelLevel k m)
+      (-fderiv ℝ (fun q ↦ (shape q).1) p + (2 : ℝ) • fderiv ℝ (fun q ↦ (shape q).2) p) p := by
+    refine ((((hasFDerivAt_const (1 : ℝ) p).sub h1.hasFDerivAt).add
+      (h2.hasFDerivAt.const_mul (2 : ℝ))).congr_of_eventuallyEq
+        (.of_forall fun q ↦ ?_)).congr_fderiv (by rw [zero_sub])
+    simp only [Pi.add_apply, Pi.sub_apply, modelLevel_def]
+  rw [h.fderiv, add_apply, neg_apply, smul_apply, smul_eq_mul, fderiv_shape_fst_apply,
+    fderiv_shape_snd_apply]
+
+/-- **The model of a J-orthogonally attached disc.** The model disc `ι₀ : x ↦ (x, 0)` of
+`ℂᵏ × ℂᵐ` is attached J-orthogonally to the domain `{φ₀ ≤ 0}` of the model level
+`φ₀ = 1 - |x|² + 2 (|y|² + |w|²)`, at `p = (x + i y, w)`. -/
+theorem isJOrthogonallyAttached_model :
+    IsJOrthogonallyAttached (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
+      (modelLevel k m) (modelDisc k m) := by
+  refine ⟨fun x hx ↦ ?_, fun x hx ↦ ?_, fun x hx ↦ ?_, fun x _ v ↦ ?_⟩
+  · rw [modelLevel_modelDisc]
+    nlinarith [norm_nonneg x]
+  · rw [modelLevel_modelDisc, hx]
+    norm_num
+  · -- The radial derivative is `-2 |x|²`.
+    have key : mvfderiv 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
+        (modelLevel k m) (modelDisc k m x) (modelDisc k m x) = -2 := by
+      refine (mvfderiv_eq_fderiv_apply _ _ _).trans ((fderiv_modelLevel_apply _ _).trans ?_)
+      simp [← sq, ← EuclideanSpace.real_norm_sq_eq, hx]
+    rw [mfderiv_modelDisc]
+    exact key.trans_lt (by norm_num)
+  · -- The differential at `ι₀ x` only sees the real parts of the first factor.
+    have key : mvfderiv 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
+        (modelLevel k m) (modelDisc k m x) (Complex.I • modelDisc k m v) = 0 := by
+      refine (mvfderiv_eq_fderiv_apply _ _ _).trans ((fderiv_modelLevel_apply _ _).trans ?_)
+      simp
+    rw [mfderiv_modelDisc]
+    exact key
 
 end Model
 
