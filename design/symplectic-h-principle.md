@@ -956,7 +956,7 @@ nor a primitive near `A`; the working lemma does not use it.
   for a `Fintype ι` (`CubeCompression.lean`); its proof uses only `‖u‖`.
 - The formal primitive of step 3 and its two facts (holonomic where
   `dβ = τ`, and the bound by `2ε`), with smoothness in the parameter, in
-  `HandleCore/FormalPrimitive.lean`.
+  `FormalPrimitive.lean`.
 - The working lemma, from steps 1 to 6, in this file.
 
 **Order of the building issues of issue 7.** The generalized compression
