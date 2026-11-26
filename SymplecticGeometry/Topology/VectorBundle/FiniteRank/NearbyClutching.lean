@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Clutching
 public import Mathlib.Analysis.SpecificLimits.Normed
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.SMul
+public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.CompactCharts
 
 /-!
 # Nearby clutching functions give isomorphic clutchings
@@ -34,6 +35,8 @@ the chart, the criteria also take the estimate after a change of coordinates `U`
 * `TauCeti.FiniteRankBundleCore.isIso_of_norm_conj_lt_one`: a morphism `f₁` of finite-rank cores
   is an isomorphism if, for an isomorphism `f₀`, some conjugate of `f₀⁻¹ f₁` is within `1` of the
   identity at every point;
+* `TauCeti.FiniteRankBundleCore.exists_isIso_add_smul`: over a compact Hausdorff base, `a + c b` is
+  an isomorphism for an isomorphism `a` and all small enough scalars `c`;
 * `TauCeti.FiniteRankBundleCore.pullbackForgetTime` and
   `TauCeti.FiniteRankBundleCore.pullbackForgetTimeIso`: a morphism or an isomorphism of the
   pullback of `E` to `X × Circle`, pulled back to `(X × I) × Circle` along `((x, t), z) ↦ (x, z)`,
@@ -90,6 +93,33 @@ theorem isIso_of_norm_conj_lt_one [CompleteSpace 𝕜] {B : Type*} [TopologicalS
   rw [hf, ContinuousLinearMap.coe_comp]
   exact (isoFiberEquiv f₀ x).bijective.comp
     (ContinuousLinearEquiv.unitsEquiv 𝕜 _ hc.unit).bijective
+
+/-- **Invertibility is open over a compact base.** Over a compact Hausdorff base, for an
+isomorphism `a` and any morphism `b` of finite-rank cores, `a + c b` is an isomorphism for every
+scalar `c` small enough. -/
+theorem exists_isIso_add_smul [CompleteSpace 𝕜] [CompactSpace X] [T2Space X]
+    {A D : FiniteRankBundleCore 𝕜 X} (a : A ⟶ D) [IsIso a] (b : A ⟶ D) :
+    ∃ ε > 0, ∀ c : 𝕜, ‖c‖ < ε → IsIso (a + ContinuousMap.const X c • b) := by
+  obtain ⟨C, hC⟩ := exists_norm_conj_fiberMap_le (b ≫ inv a)
+  set C' := max C 1
+  have hC' : 0 < C' := lt_max_of_lt_right one_pos
+  refine ⟨1 / C', by positivity, fun c hc ↦ ?_⟩
+  refine isIso_of_norm_conj_lt_one (asIso a) _ fun x ↦ ?_
+  obtain ⟨U, hU⟩ := hC x
+  refine ⟨U, ?_⟩
+  -- After `a⁻¹`, the morphism `a + c b` is `1 + c (a⁻¹ ∘ b)`, in any coordinates.
+  have he : ↑U⁻¹ * (((asIso a).inv.fiberMap x).comp
+      ((a + ContinuousMap.const X c • b).fiberMap x)) * ↑U - 1 =
+        c • (↑U⁻¹ * (b ≫ inv a).fiberMap x * ↑U) := by
+    simp only [asIso_inv, fiberMap_add, fiberMap_smul, ContinuousMap.const_apply,
+      ContinuousLinearMap.comp_add, ContinuousLinearMap.comp_smul, ← fiberMap_comp,
+      IsIso.hom_inv_id, fiberMap_id, ← ContinuousLinearMap.one_def]
+    simp [mul_add, add_mul]
+  rw [he, norm_smul]
+  calc ‖c‖ * ‖↑U⁻¹ * (b ≫ inv a).fiberMap x * ↑U‖ ≤ ‖c‖ * C' :=
+        mul_le_mul_of_nonneg_left (hU.trans (le_max_left _ _)) (norm_nonneg _)
+    _ < 1 / C' * C' := mul_lt_mul_of_pos_right hc hC'
+    _ = 1 := by field_simp
 
 /-- The pullback of `E` to `(X × I) × Circle`, through `X × I`, on which the segment between two
 clutching functions lives. -/
