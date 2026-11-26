@@ -130,7 +130,7 @@ time `1`, for a smooth cutoff with compact support, equal to `1` near `[0, 1] ×
 supported where the extended segment is nondegenerate. The trajectory stays on `P × {t}`, where
 the cutoff is `1` and the segment nondegenerate, and the slices `ω̃₀ + s • dσ̃` are closed with
 derivative `dσ̃` in `s`. So the time-one map pulls `ω̃₀ + dσ̃` back to `ω̃₀` at `(x, t)`
-(`IsCouplingForm.mpullback_timeDependentFlowOf_moserField_lineMapFamily_prodIccExtension_apply`,
+(`IsCouplingForm.mpullback_timeDependentFlowOf_prodIccMoserField_apply`,
 from `TauCeti.SmoothTwoForm.mpullback_timeDependentFlowOf_moserField_lineMapFamily_apply` of
 `Moser/Field.lean`).
 
@@ -819,9 +819,10 @@ forms for the same family. Take the family `s ↦ ω̃₀ + s • dσ̃` on `P �
 `SymplecticGeometry.IsCouplingForm.mpullback_prodMap_subtypeVal_prodIccExtension_add_smul`), the
 one-form `σ̃` and a smooth cutoff `ρ` with compact support, equal to `1` on a neighbourhood of
 `[0, 1] × P × [a, b]`, such that `ω̃₀ + s • dσ̃` is nondegenerate at `p` for every point `(s, p)`
-of the topological support of `ρ`. Then the time-one map of the cut-off Moser field pulls
-`ω̃₀ + dσ̃` back to `ω̃₀` at every point `(x, t)` with `t ∈ [a, b]`. -/
-theorem mpullback_timeDependentFlowOf_moserField_lineMapFamily_prodIccExtension_apply
+of the topological support of `ρ`. Then the time-one map of the cut-off Moser field
+(`SymplecticGeometry.prodIccMoserField`) pulls `ω̃₀ + dσ̃` back to `ω̃₀` at every point `(x, t)`
+with `t ∈ [a, b]`. -/
+theorem mpullback_timeDependentFlowOf_prodIccMoserField_apply
     [FiniteDimensional ℝ EB] [T2Space (ManifoldTotalSpace Circle P)] (h₀ : IsCouplingForm ω₀ τ)
     (h₁ : IsCouplingForm ω₁ τ) {ρ : ℝ × (ManifoldTotalSpace Circle P × ℝ) → ℝ}
     (hρ : ContMDiff (𝓘(ℝ, ℝ).prod ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ))) 𝓘(ℝ) ∞ ρ)
@@ -833,17 +834,7 @@ theorem mpullback_timeDependentFlowOf_moserField_lineMapFamily_prodIccExtension_
             (ω₁ - ω₀)))).bilinFormAt p.2).Nondegenerate)
     (x : ManifoldTotalSpace Circle P) (t : Icc a b) :
     TauCeti.mpullback ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ))
-        (timeDependentFlowOf
-          (moserField
-            (SmoothForm.lineMapFamily
-              (prodIccExtension (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1 ω₀)
-              (prodIccExtension (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1 ω₀ +
-                mextDerivₗ ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) 1 (SmoothForm.timeExtendIcc
-                  (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1
-                    (ω₁ - ω₀)))) (contDiff_id (E := ℝ)))
-            (SmoothForm.mpullback Prod.snd contMDiff_snd (SmoothForm.timeExtendIcc
-              (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1
-                (ω₁ - ω₀)))) ρ) 0 1)
+        (timeDependentFlowOf (prodIccMoserField ω₀ ω₁ ρ) 0 1)
         (prodIccExtension (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1 ω₀ +
           mextDerivₗ ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) 1 (SmoothForm.timeExtendIcc
             (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1
@@ -852,20 +843,18 @@ theorem mpullback_timeDependentFlowOf_moserField_lineMapFamily_prodIccExtension_
   set W := prodIccExtension (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1 ω₀
   set D := mextDerivₗ ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) 1 (SmoothForm.timeExtendIcc
     (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1 (ω₁ - ω₀)))
-  have hX := contMDiff_moserField_lineMapFamily W D
-    (SmoothForm.mpullback Prod.snd contMDiff_snd (SmoothForm.timeExtendIcc
-      (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1
-        (ω₁ - ω₀)))) hρ hnd
+  have hX := contMDiff_prodIccMoserField ω₀ ω₁ hρ hnd
+  -- the trajectory of `(x, t)` stays on the level `P × {t}`, near which `ρ = 1`
+  have hy (s : ℝ) := timeDependentFlowOf_prodIccMoserField_snd h₀ h₁ hρc
+    (hX.of_le (by simp)) 0 s x t
+  rw [prodIccMoserField_def] at hX hy ⊢
   refine SmoothTwoForm.mpullback_timeDependentFlowOf_moserField_lineMapFamily_apply
     (isClosed_prodIccExtension h₀.isClosed) (add_sub_cancel_left W D) (hX.of_le (by simp))
     (isCompleteVectorField_timeDependentSuspensionField_moserField (hX.of_le (by simp)) hρc)
     fun s hs ↦ ?_
-  -- the trajectory of `(x, t)` stays on the level `P × {t}`, near which `ρ = 1`
-  have hy := timeDependentFlowOf_moserField_lineMapFamily_prodIccExtension_snd h₀ h₁ hρc
-    (hX.of_le (by simp)) 0 s x t
   refine ((Continuous.prodMk_right s).continuousAt.eventually
     (hρ1.filter_mono (nhds_le_nhdsSet ?_))).mono fun z hz ↦ ⟨hz, ?_⟩
-  · exact ⟨hs, mem_univ _, by rw [hy]; exact t.property⟩
+  · exact ⟨hs, mem_univ _, by rw [hy s]; exact t.property⟩
   rw [add_sub_cancel_left]
   exact SmoothTwoForm.isInvertible_flat_iff.mpr
     (hnd (s, z) (subset_tsupport ρ (by rw [Function.mem_support, hz]; exact one_ne_zero)))
