@@ -8,6 +8,7 @@ module
 public import Mathlib.Topology.Connected.Clopen
 public import Mathlib.Topology.LocalAtTarget
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.MapFiber
+public import SymplecticGeometry.Geometry.Manifold.IsManifold.SecondCountable
 public import SymplecticGeometry.Geometry.Manifold.RegularValue.RestrictPreimage
 public import SymplecticGeometry.Geometry.Manifold.Submersion.RadialTrivialization
 
@@ -167,10 +168,8 @@ theorem nonempty_diffeomorph_fiber_of_isProperMap (hf : ContMDiff I J ∞ f) (hf
   have : PreconnectedSpace R := isPreconnected_iff_preconnectedSpace.1 hR
   -- `M` is second countable, as a σ-compact manifold, so its open subset `P` is σ-compact.
   have := I.locallyCompactSpace
-  have := I.secondCountableTopology
-  have := ChartedSpace.secondCountable_of_sigmaCompact H M
+  have := I.secondCountableTopology_of_sigmaCompact M
   have := ChartedSpace.locallyCompactSpace H P
-  have : SigmaCompactSpace P := inferInstance
   let := regularFiberChartedSpace (m := ∞) (by simp) hf BoundarylessManifold.isInteriorPoint
     (hreg y₀ h₀)
   let := regularFiberChartedSpace (m := ∞) (by simp) hf BoundarylessManifold.isInteriorPoint
