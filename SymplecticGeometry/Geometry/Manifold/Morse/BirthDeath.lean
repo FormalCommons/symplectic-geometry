@@ -589,7 +589,7 @@ theorem _root_.IsLocalDiffeomorphAt.exists_birthDeathChart_comp
     toMorseBottChart := {
       toChart := χ
       mem_maximalAtlas := (IsManifold.mem_maximalAtlas_iff_forall_isLocalDiffeomorphAt χ).2
-        fun z hz ↦ isLocalDiffeomorphAt_of_eqOn (Φ := X) hz fun _ _ ↦ by simp [χ]
+        fun z hz ↦ X.isLocalDiffeomorphAt _ _ _ hz
       mem_source := hyχ
       apply_self := A.injective (by rw [hχ y hyχ, map_zero]; exact φ.toMorseBottChart.apply_self)
       coord := coord
