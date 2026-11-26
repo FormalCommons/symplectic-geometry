@@ -134,12 +134,11 @@ theorem isPreconnected_sdiff_union_iUnion_image_of_one_lt_rank {ι : Type*} [Fin
       refine Subset.antisymm (fun x hx ↦ ⟨hx.1, fun hxc ↦ hx.2 (hcl j ⟨hxc, ?_⟩)⟩)
         (sdiff_subset_sdiff_right subset_closure)
       exact ⟨hx.1.1, fun hxs ↦ hx.1.2 (Or.inl hxs)⟩
-    obtain ⟨b, hb | hb⟩ := hb j
-    · rw [heq]
-      exact ⟨hcl' ▸ hVo.sdiff isClosed_closure,
-        (hf j).isPreconnected_sdiff_image hE hVo hVc (hJ j) hb.1 (Or.inl hb.2) hjV⟩
-    · rw [heq]
-      exact ⟨hcl' ▸ hVo.sdiff isClosed_closure,
-        (hf j).isPreconnected_sdiff_image hE hVo hVc (hJ j) hb.1 (Or.inr hb.2) hjV⟩
+    obtain ⟨b, hbJ, hbb⟩ : ∃ b ∈ J j, b ∈ upperBounds (J j) ∨ b ∈ lowerBounds (J j) := by
+      obtain ⟨b, hb | hb⟩ := hb j
+      exacts [⟨b, hb.1, .inl hb.2⟩, ⟨b, hb.1, .inr hb.2⟩]
+    rw [heq]
+    exact ⟨hcl' ▸ hVo.sdiff isClosed_closure,
+      (hf j).isPreconnected_sdiff_image hE hVo hVc (hJ j) hbJ hbb hjV⟩
 
 end
