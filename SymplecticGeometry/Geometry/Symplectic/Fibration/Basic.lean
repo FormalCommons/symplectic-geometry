@@ -44,6 +44,8 @@ to the product orientation `oB × oF`.
   `TauCeti.MapFiber.Atlas.isVerticallyNondegenerate_of_isNondegenerate_mpullback`.
 * `TauCeti.MapFiber.Atlas.IsOrientedCompatible.isVerticallyNondegenerate`: a form compatible with
   an oriented atlas is vertically nondegenerate.
+* `TauCeti.MapFiber.Atlas.IsOrientedCompatible.finrank_eq`: if `M` has a point, a form compatible
+  with an oriented atlas forces the dimension of `M` to be `m + k`.
 
 ## Implementation notes
 
@@ -55,7 +57,8 @@ The symplectic orientations in `IsOrientedCompatible` are Tau Ceti's
 `TauCeti.SmoothTwoForm.IsNondegenerate.orientation`, which may be indexed by `Fin k` for any `k`
 equal to the dimension. So the orientation of `M` is indexed by `Fin (m + k)`, as the product
 orientation is, and no reindexing is needed. The dimension of `M` is then `m + k` wherever a chart
-has a point, and the chart condition gives this equation with the orientations.
+has a point (`IsOrientedCompatible.finrank_eq`), and the chart condition gives this equation
+with the orientations.
 
 ## References
 
@@ -263,8 +266,16 @@ namespace IsOrientedCompatible
 variable {hA : A.IsContMDiff ∞ IB IF IM} {oB : TauCeti.Manifold.Orientation IB B (Fin m)}
   {oF : TauCeti.Manifold.Orientation IF F (Fin k)}
 
+/-- If `τ` is compatible with an oriented atlas and `M` has a point, then the dimension of `M` is
+the sum `m + k` of the indices of the orientations of the base and of the fibre. -/
+theorem finrank_eq (h : A.IsOrientedCompatible hA oB oF τ) (x : M) :
+    Module.finrank ℝ EM = m + k :=
+  (h.exists_isOrientationPreservingAt (proj x) x
+    ((A.trivAt (proj x)).mem_source.2 (A.mem_baseSet_trivAt (proj x)))).1
+
 /-- Each chart of an oriented atlas preserves orientation, from the symplectic orientation of a
-compatible form `τ` to the product orientation `oB × oF`, at every point of its source. -/
+compatible form `τ` to the product orientation `oB × oF`, at every point of its source, for any
+proof `hM` of the dimension equation, such as one given by `IsOrientedCompatible.finrank_eq`. -/
 theorem isOrientationPreservingAt (h : A.IsOrientedCompatible hA oB oF τ)
     (hM : Module.finrank ℝ EM = m + k) {b : B} {x : M} (hx : x ∈ (A.trivAt b).source) :
     TauCeti.Manifold.Orientation.IsOrientationPreservingAt
