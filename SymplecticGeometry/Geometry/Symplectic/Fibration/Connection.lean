@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 public import TauCeti.Geometry.Manifold.TwoForm.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Flow.TimeDependent
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.StructureGroup
+import SymplecticGeometry.Topology.Connected.Clopen
 
 /-!
 # Symplectic connections
@@ -61,7 +62,7 @@ symplectomorphism between these fibre forms.
   of `τ` to the later fibre to its pull-back to the earlier one. The times between which this
   holds form a transitive relation (`IsEhresmannConnection.parallelTransportIn_parallelTransportIn`)
   that holds between any two times of an interval that `γ` maps into the base set of one
-  trivialization by the short-interval case, so `Continuous.induction₂_of_mapsTo_baseSet` gives
+  trivialization by the short-interval case, so `Continuous.induction₂_of_mapsTo_nhds` gives
   it for all times, as in
   `TauCeti.IsEhresmannConnection.exists_diffeomorph_eqOn_parallelTransport`.
 
@@ -395,7 +396,9 @@ theorem IsVerticallyClosed.mpullback_parallelTransportIn
       (hD.mdifferentiable_parallelTransportIn le_top hfp hA hγ' hv hw), h₂ _ _ hv hw, h₁ _ _ hu hv]⟩
   -- It holds between two times of an interval that `γ` maps into the base set of one
   -- trivialization.
-  exact hγ.continuous.induction₂_of_mapsTo_baseSet EB (TangentSpace IB) R
+  exact hγ.continuous.induction₂_of_mapsTo_nhds
+    (fun b ↦ (trivializationAt EB (TangentSpace IB) b).open_baseSet.mem_nhds
+      (FiberBundle.mem_baseSet_trivializationAt' b)) R
     (fun _ _ _ hmaps _ hu _ hv _ _ ↦
       h.mpullback_parallelTransportIn_of_mapsTo_baseSet hfp hA hD hf hγ' _ hmaps hu hv)
     s t b₁ b₂ hs₁ ht₂

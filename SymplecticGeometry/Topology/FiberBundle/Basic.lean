@@ -7,8 +7,6 @@ module
 
 public import Mathlib.Topology.FiberBundle.Basic
 public import TauCeti.Topology.FiberBundle.MapFiber
-public import Mathlib.Topology.Order.Basic
-import Mathlib.Topology.Connected.Clopen
 
 /-!
 # Fibre bundles read in their trivializations
@@ -56,10 +54,6 @@ two trivializations, these inclusions differ by the coordinate change.
   continuous at `x₀`, takes the points near `x₀` into the base set of the preferred trivialization
   at its value at `x₀`; Tau Ceti's `Bundle.TotalSpace.eventually_proj_mem_baseSet_trivializationAt`
   is the case of the projection.
-* `Continuous.induction₂_of_mapsTo_baseSet`: for a continuous map `γ` from a preconnected
-  linearly ordered space into the base of a fibre bundle, a transitive relation that holds
-  between any two points of each closed interval that `γ` maps into the base set of a preferred
-  trivialization holds between any two points.
 
 ## Implementation notes
 
@@ -221,26 +215,5 @@ theorem ContinuousAt.eventually_mem_baseSet_trivializationAt {X B : Type*} (F : 
     ∀ᶠ x in 𝓝 x₀, f x ∈ (trivializationAt F E (f x₀)).baseSet :=
   hf.eventually_mem ((trivializationAt F E (f x₀)).open_baseSet.mem_nhds
     (FiberBundle.mem_baseSet_trivializationAt' (f x₀)))
-
-open Bundle Filter Set Topology in
-/-- **Local-to-global along a curve in the base of a fibre bundle.** Let `γ` be a continuous map
-from a preconnected linearly ordered space `X`, such as `ℝ`, into the base of a fibre bundle, and
-`R` a transitive relation on `X`. If `R s t` holds for all `s` and `t` in each closed interval
-`Icc a c` that `γ` maps into the base set of a preferred trivialization `trivializationAt F E b`,
-then `R s t` holds for all `s` and `t`. -/
-theorem Continuous.induction₂_of_mapsTo_baseSet {X B : Type*} (F : Type*) (E : B → Type*)
-    [LinearOrder X] [TopologicalSpace X] [OrderTopology X] [PreconnectedSpace X]
-    [TopologicalSpace B] [TopologicalSpace F] [TopologicalSpace (TotalSpace F E)]
-    [∀ b, TopologicalSpace (E b)] [FiberBundle F E] {γ : X → B} (hγ : Continuous γ)
-    (R : X → X → Prop) [IsTrans X R]
-    (h : ∀ (b : B) (a c : X), MapsTo γ (Icc a c) (trivializationAt F E b).baseSet →
-      ∀ s ∈ Icc a c, ∀ t ∈ Icc a c, R s t)
-    (s t : X) : R s t := by
-  refine PreconnectedSpace.induction₂' R (fun u ↦ ?_) ‹_› s t
-  -- Near `u`, `γ` stays in the base set of the preferred trivialization at `γ u`.
-  obtain ⟨a, c, hu, hac, hmaps⟩ := exists_Icc_mem_subset_of_mem_nhds
-    ((hγ.continuousAt (x := u)).eventually_mem_baseSet_trivializationAt F E)
-  filter_upwards [hac] with v hv
-  exact ⟨h _ a c hmaps u hu v hv, h _ a c hmaps v hv u hu⟩
 
 end

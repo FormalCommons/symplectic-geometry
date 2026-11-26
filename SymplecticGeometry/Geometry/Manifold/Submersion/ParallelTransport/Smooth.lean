@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Submersion.ParallelTransport.Basic
 public import SymplecticGeometry.Topology.FiberBundle.Basic
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
+import SymplecticGeometry.Topology.Connected.Clopen
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.MapFiber
 import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
 import SymplecticGeometry.Algebra.Order.Monoid.NatCast
@@ -35,7 +36,7 @@ trivialization of the tangent bundle of `B`
 between them (`TauCeti.IsEhresmannConnection.parallelTransport_parallelTransport`), so it is the
 restriction to the fibre over `γ s` of a composition of such diffeomorphisms
 (`TauCeti.IsEhresmannConnection.exists_diffeomorph_eqOn_parallelTransport`). Rather than choosing
-the subdivision, the proof applies `Continuous.induction₂_of_mapsTo_baseSet`, a form of Mathlib's
+the subdivision, the proof applies `Continuous.induction₂_of_mapsTo_nhds`, a form of Mathlib's
 `PreconnectedSpace.induction₂'`, to the relation between two times that some diffeomorphism of
 `P` agrees with transport between them on the fibre: it is transitive, and holds between any two
 times of an interval that `γ` maps into the base set of one trivialization.
@@ -49,7 +50,7 @@ into the base set of one trivialization, transport is the flow of the lift of a 
 that depends smoothly on the parameter
 (`Bundle.Trivialization.exists_timeDependentField_param_eq_curveVelocity`), and such flows are
 jointly `C^n` in the parameter and the point (`TauCeti.contMDiff_timeDependentFlowOf_param`). The
-relation to which `Continuous.induction₂_of_mapsTo_baseSet` is applied now also carries a
+relation to which `Continuous.induction₂_of_mapsTo_nhds` is applied now also carries a
 neighbourhood of `a₀`, and its transitivity composes the maps on the intersection of the
 neighbourhoods. The statement is local in the parameter, so no smooth maps need to be glued.
 For a family that is `C^(n+1)` only on `U ×ˢ univ`, for an open set `U` of `N`, the same holds
@@ -251,7 +252,9 @@ theorem exists_diffeomorph_eqOn_parallelTransport (hn : 1 ≤ n) (hf : ContMDiff
       hD.parallelTransport_parallelTransport hn hf hfp hγ hx]⟩⟩
   -- It holds between two times of an interval that `γ` maps into the base set of one
   -- trivialization.
-  obtain ⟨Ψ, hΨ⟩ := hγ.continuous.induction₂_of_mapsTo_baseSet F (TangentSpace J) R
+  obtain ⟨Ψ, hΨ⟩ := hγ.continuous.induction₂_of_mapsTo_nhds
+    (fun b ↦ (trivializationAt F (TangentSpace J) b).open_baseSet.mem_nhds
+      (FiberBundle.mem_baseSet_trivializationAt' b)) R
     (fun _ _ _ hmaps _ hu _ hv ↦
       hD.exists_diffeomorph_eqOn_parallelTransport_of_mapsTo_baseSet hn hf hfp hγ _ hmaps hu hv)
     s t
@@ -306,7 +309,9 @@ theorem exists_contMDiff_parallelTransport_param (hn : 1 ≤ n) (hf : ContMDiff 
           hD.parallelTransport_parallelTransport hn hf hfp (hΓc a) hx]⟩⟩
   -- It holds between two times of an interval that the curve at `a₀` maps into the base set of
   -- one trivialization.
-  refine (hΓc a₀).continuous.induction₂_of_mapsTo_baseSet F (TangentSpace J) R
+  refine (hΓc a₀).continuous.induction₂_of_mapsTo_nhds
+    (fun b ↦ (trivializationAt F (TangentSpace J) b).open_baseSet.mem_nhds
+      (FiberBundle.mem_baseSet_trivializationAt' b)) R
     (fun _ _ _ hmaps u hu v hv ↦ ?_) s t
   obtain ⟨U, hU, hΨ⟩ :=
     hD.exists_contMDiff_parallelTransport_param_of_mapsTo_baseSet hn hf hfp hΓ _ hmaps
