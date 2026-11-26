@@ -210,7 +210,7 @@ theorem exists_linear_clutching_iso_of_hom_eq_polynomialHom (m : ℕ) :
     obtain ⟨N, hN, ⟨e⟩⟩ := exists_iso_clutching_whitneySum_of_hom_eq_add_comp (E := E) M
       (pullbackMap A₀ ContinuousMap.fst + 𝔲 • pullbackMap A₁ ContinuousMap.fst)
       (𝔲 • pullbackMap π ContinuousMap.fst)
-      (polynomialHom (m + 1) b ≫ pullbackMap j ContinuousMap.fst) (by rw [hM, smul_comp])
+      (polynomialHom (m + 1) b ≫ pullbackMap j ContinuousMap.fst) (by rw [hM, Linear.smul_comp])
     obtain ⟨A, B, L, hL, ⟨e'⟩⟩ := ih N
       (whitneyFst G E ≫ A₀ ≫ whitneyInl G E + whitneySnd G E ≫ b 0 ≫ j ≫ whitneyInl G E +
         whitneySnd G E ≫ whitneyInr G E)
@@ -218,7 +218,7 @@ theorem exists_linear_clutching_iso_of_hom_eq_polynomialHom (m : ℕ) :
       (whitneySnd G E) (j ≫ whitneyInl G E) (fun i ↦ b (i + 1)) (by
         rw [hN, polynomialHom_succ]
         simp only [pullbackMap_add, pullbackMap_neg, pullbackMap_comp, add_comp,
-          comp_add, smul_comp, comp_smul, Category.assoc, smul_add,
+          comp_add, Linear.smul_comp, Linear.comp_smul, Category.assoc, smul_add,
           neg_comp, comp_neg, smul_neg]
         module)
     exact ⟨A, B, L, hL, ⟨whitneySumIterMapIso _ m e.symm ≪≫ e'⟩⟩
