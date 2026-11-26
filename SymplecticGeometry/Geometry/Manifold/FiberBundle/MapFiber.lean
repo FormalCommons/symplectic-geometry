@@ -43,10 +43,14 @@ from the fibre onto `F`, and its underlying homeomorphism is
 
 * `Bundle.Trivialization.contMDiff_fiberInclusionMap`: the fibre inclusion of a trivialization with
   smooth inverse is smooth.
+* `Bundle.Trivialization.proj_symm_val_prod` and `Bundle.Trivialization.contMDiff_symm_val_prod`:
+  on an open set `U` of the base set, `(b, v) ↦ e⁻¹ (b, v)` is a smooth map `U × F → M` over `U`.
 * `Bundle.Trivialization.mfderiv_proj_apply` and
   `Bundle.Trivialization.mfderiv_fiberInclusionMap_apply`: the derivative of `proj` is the first
   coordinate of the derivative of `e`, and the derivative of a fibre inclusion is that of the
   inverse of `e` on the second factor.
+* `Bundle.Trivialization.mfderiv_proj_mfderiv_symm_apply`: the derivative of `proj` after that of
+  the inverse of `e` is the projection onto the base component.
 * `Bundle.Trivialization.isRegularPoint_proj`: `proj` is regular at every point of the source of
   a differentiable trivialization.
 * `Bundle.Trivialization.injective_mfderiv_fiberInclusionMap` and
@@ -101,6 +105,21 @@ theorem contMDiff_fiberInclusionMap
     (hb : b ∈ e.baseSet) : ContMDiff IF IM n (e.fiberInclusionMap hb) := by
   rw [e.coe_fiberInclusionMap hb]
   exact he.comp_contMDiff (contMDiff_const.prodMk contMDiff_id) fun _ ↦ e.mem_target.2 hb
+
+/-- On an open set `U` of the base set of `e`, the map `(b, v) ↦ e⁻¹ (b, v)` from `U × F` to `M`
+lies over `U`: `proj` sends `e⁻¹ (b, v)` to `b`. -/
+theorem proj_symm_val_prod {U : TopologicalSpace.Opens B} (hU : (U : Set B) ⊆ e.baseSet)
+    (p : U × F) : proj (e.toOpenPartialHomeomorph.symm (p.1, p.2)) = p.1 :=
+  e.proj_symm_apply (e.mem_target.2 (hU p.1.property))
+
+/-- On an open set `U` of the base set of `e`, the map `(b, v) ↦ e⁻¹ (b, v)` from `U × F` to `M`
+is `C^n` when the inverse of `e` is `C^n` on its target. -/
+theorem contMDiff_symm_val_prod
+    (he : ContMDiffOn (IB.prod IF) IM n e.toOpenPartialHomeomorph.symm e.target)
+    {U : TopologicalSpace.Opens B} (hU : (U : Set B) ⊆ e.baseSet) :
+    ContMDiff (IB.prod IF) IM n fun p : U × F ↦ e.toOpenPartialHomeomorph.symm (p.1, p.2) :=
+  he.comp_contMDiff ((contMDiff_subtypeVal.comp contMDiff_fst).prodMk contMDiff_snd)
+    fun p ↦ e.mem_target.2 (hU p.1.property)
 
 variable {e}
 
@@ -178,6 +197,22 @@ theorem range_mfderiv_fiberInclusionMap
   conv_rhs => rw [← L.symm_apply_apply u]
   rw [he.coe_mfderiv_symm, he.coe_mfderiv, coe_coe, hev]
   exact congrArg _ (Prod.ext hu.symm rfl)
+
+/-- For a trivialization `e` of `proj` that is differentiable with differentiable inverse, the
+derivative of `proj` sends the image of a tangent vector `u` of `B × F` at `(b, v)` under the
+derivative of the inverse of `e` to the base component of `u`. -/
+theorem mfderiv_proj_mfderiv_symm_apply
+    (he : e.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF)) (hb : b ∈ e.baseSet)
+    (v : F) (u : TangentSpace (IB.prod IF) (b, v)) :
+    mfderiv IM IB proj (e.toOpenPartialHomeomorph.symm (b, v))
+      (mfderiv (IB.prod IF) IM e.toOpenPartialHomeomorph.symm (b, v) u) = u.1 := by
+  have hv := e.fiberInclusionMap_mem_source hb v
+  have hev := e.apply_fiberInclusionMap hb v
+  let L := he.mfderiv hv
+  have h := L.apply_symm_apply u
+  rw [he.coe_mfderiv_symm, he.coe_mfderiv, coe_coe, hev] at h
+  rw [← e.fiberInclusionMap_apply hb, mfderiv_proj_apply hv (he.mdifferentiableAt hv)]
+  exact congrArg Prod.fst h
 
 /-! ### Coordinate changes -/
 
