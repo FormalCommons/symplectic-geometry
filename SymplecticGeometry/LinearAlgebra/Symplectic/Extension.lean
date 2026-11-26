@@ -9,11 +9,11 @@ public import Mathlib.LinearAlgebra.BilinearForm.Properties
 public import Mathlib.LinearAlgebra.Projection
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Compatible
 public import TauCeti.LinearAlgebra.BilinearForm.Orthogonal
-public import TauCeti.LinearAlgebra.Submodule.Compl
 public import TauCeti.Geometry.Symplectic.LinearReduction
 import SymplecticGeometry.LinearAlgebra.Symplectic.Basic
 import SymplecticGeometry.LinearAlgebra.Symplectic.Reduction
 import SymplecticGeometry.LinearAlgebra.Symplectic.Subspace
+import TauCeti.LinearAlgebra.Dimension.Submodule
 
 /-!
 # An explicit linear symplectic extension
@@ -47,7 +47,8 @@ submanifold needs.
 
 * `TauCeti.SymplecticForm.radicalComplement ω J W`: `H = W ∩ K^{⊥g}`.
 * `TauCeti.SymplecticForm.normalComplement ω J W`: `E = (W ⊕ J K)^ω`.
-* `TauCeti.SymplecticForm.Compatible.normalComplementEquiv`: `E ≃ W^ω ⧸ K`.
+* `TauCeti.SymplecticForm.Compatible.normalComplementEquiv`: `E ≃ W^ω ⧸ K`, Tau Ceti's
+  `TauCeti.SymplecticForm.reducedSpaceEquivOfSlice` for the inclusion of `E` into `W^ω`.
 * `TauCeti.SymplecticForm.Compatible.extendAlong`: the extension `A`.
 
 ## Main results
@@ -59,6 +60,8 @@ submanifold needs.
   `TauCeti.SymplecticForm.Compatible.isSymplectic_sup_map`,
   `TauCeti.SymplecticForm.Compatible.isSymplectic_normalComplement`: `H`, `W ⊕ J K` and `E`
   are symplectic.
+* `TauCeti.SymplecticForm.Compatible.finrank_normalComplement`: `E` has the dimension of
+  `W^ω ⧸ K`.
 * `TauCeti.SymplecticForm.Compatible.isSymplectomorphism_normalComplementEquiv`: the map
   `E ≃ W^ω ⧸ K` carries the restriction of `ω` to `E` to the reduced form.
 * `TauCeti.SymplecticForm.Compatible.isSymplectomorphism_extendAlong`,
@@ -260,19 +263,34 @@ theorem Compatible.inf_sup_normalComplement [FiniteDimensional ℝ V] :
   exact h.symm
 
 variable (W) in
+/-- The normal complement `E` of `W` has the dimension of the reduced space `W^ω ⧸ K`,
+`K = W ∩ W^ω`, since `W^ω = K ⊕ E`. -/
+theorem Compatible.finrank_normalComplement [FiniteDimensional ℝ V] :
+    finrank ℝ (ω.normalComplement J W) = finrank ℝ (ω.ReducedSpace (ω.orthogonal W)) := by
+  have h₁ : finrank ℝ (ω.ReducedSpace (ω.orthogonal W)) +
+      finrank ℝ (LinearMap.ker (ω.toBilinForm.restrict (ω.orthogonal W))) =
+        finrank ℝ (ω.orthogonal W) :=
+    Submodule.finrank_quotient_add_finrank _
+  have hK : finrank ℝ (LinearMap.ker (ω.toBilinForm.restrict (ω.orthogonal W))) =
+      finrank ℝ ↥(W ⊓ ω.orthogonal W) := by
+    rw [ker_restrict_orthogonal, Submodule.finrank_comap_subtype, inf_eq_left.2 inf_le_right]
+  have h₂ := Submodule.finrank_sup_add_finrank_inf_eq (W ⊓ ω.orthogonal W)
+    (ω.normalComplement J W)
+  rw [hJ.inf_sup_normalComplement, hJ.disjoint_inf_normalComplement.eq_bot, finrank_bot] at h₂
+  omega
+
+variable (W) in
 /-- The normal complement `E` of `W` maps isomorphically onto the reduced space `W^ω ⧸ K`,
-`K = W ∩ W^ω`, by `e ↦ [e]` (`TauCeti.SymplecticForm.Compatible.normalComplementEquiv_apply`).
-Its inverse is the projection of `W^ω` onto `E` along `K`. It is a symplectomorphism
+`K = W ∩ W^ω`, by `e ↦ [e]` (`TauCeti.SymplecticForm.Compatible.normalComplementEquiv_apply`):
+it is Tau Ceti's `TauCeti.SymplecticForm.reducedSpaceEquivOfSlice` for the inclusion of `E`
+into `W^ω`, which pulls `ω` back to its restriction to `E`. It is a symplectomorphism
 (`TauCeti.SymplecticForm.Compatible.isSymplectomorphism_normalComplementEquiv`). -/
 noncomputable def Compatible.normalComplementEquiv [FiniteDimensional ℝ V] :
     ω.normalComplement J W ≃ₗ[ℝ] ω.ReducedSpace (ω.orthogonal W) :=
-  (Submodule.comapSubtypeEquivOfLe normalComplement_le_orthogonal).symm ≪≫ₗ
-    (Submodule.quotientEquivOfIsCompl _ _ <| ker_restrict_orthogonal ω W ▸
-      Submodule.isCompl_comap_subtype_iff.2
-        ⟨by rw [inf_eq_right.2 inf_le_right, inf_eq_right.2 normalComplement_le_orthogonal]
-            exact hJ.disjoint_inf_normalComplement,
-          by rw [inf_eq_right.2 inf_le_right, inf_eq_right.2 normalComplement_le_orthogonal,
-            hJ.inf_sup_normalComplement]⟩).symm
+  reducedSpaceEquivOfSlice ω (ω.orthogonal W)
+    (ω.restrict _ hJ.isSymplectic_normalComplement.nondegenerate_restrict)
+    (ω.normalComplement J W).subtype (fun x ↦ normalComplement_le_orthogonal x.property)
+    (fun _ _ ↦ (restrict_apply ..).symm) (hJ.finrank_normalComplement W)
 
 /-- The identification of the normal complement with the reduced space sends `e` to its class
 `[e]`. -/
@@ -281,17 +299,14 @@ theorem Compatible.normalComplementEquiv_apply [FiniteDimensional ℝ V]
     (x : ω.normalComplement J W) :
     hJ.normalComplementEquiv W x =
       Submodule.Quotient.mk ⟨x, normalComplement_le_orthogonal x.property⟩ :=
-  (rfl)
+  reducedSpaceEquivOfSlice_apply ..
 
 /-- The identification of the normal complement with the reduced space `W^ω ⧸ K` is a
 symplectomorphism for the restriction of `ω` and the reduced form. -/
 theorem Compatible.isSymplectomorphism_normalComplementEquiv [FiniteDimensional ℝ V] :
     IsSymplectomorphism (ω.restrict _ hJ.isSymplectic_normalComplement.nondegenerate_restrict)
-      (ω.reduction (ω.orthogonal W)) (hJ.normalComplementEquiv W) := by
-  rw [isSymplectomorphism_iff]
-  intro x y
-  rw [hJ.normalComplementEquiv_apply, hJ.normalComplementEquiv_apply, reduction_mk,
-    restrict_apply]
+      (ω.reduction (ω.orthogonal W)) (hJ.normalComplementEquiv W) :=
+  isSymplectomorphism_reducedSpaceEquivOfSlice ..
 
 end Pieces
 
