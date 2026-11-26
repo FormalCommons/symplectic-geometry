@@ -39,6 +39,8 @@ is stated in that generality first. Relative closedness keeps the set left open 
 
 ## Main results
 
+* `IsOpen.sdiff_iUnion_of_closure_inter_subset`: removing from an open set `V` finitely many sets,
+  each closed in `V`, leaves an open set.
 * `TauCeti.IsLocallyFlat.isPreconnected_sdiff_image`: removing one arc with a free end, the image
   of a locally flat embedding, from a preconnected open set that contains it leaves a
   preconnected set.
@@ -56,6 +58,19 @@ is stated in that generality first. Relative closedness keeps the set left open 
 public section
 
 open Function Set Topology Manifold
+
+/-- Removing from an open set `V` finitely many sets `A i`, each closed in `V` in the sense that
+`closure (A i) ∩ V ⊆ A i`, leaves an open set. -/
+theorem IsOpen.sdiff_iUnion_of_closure_inter_subset {X ι : Type*} [TopologicalSpace X]
+    [Finite ι] {V : Set X} (hV : IsOpen V) {A : ι → Set X}
+    (hA : ∀ i, closure (A i) ∩ V ⊆ A i) : IsOpen (V \ ⋃ i, A i) := by
+  have heq : V \ ⋃ i, A i = V \ ⋃ i, closure (A i) := by
+    refine Subset.antisymm (fun x hx ↦ ⟨hx.1, fun h ↦ ?_⟩)
+      (sdiff_subset_sdiff_right (iUnion_mono fun _ ↦ subset_closure))
+    obtain ⟨i, hi⟩ := mem_iUnion.1 h
+    exact hx.2 (mem_iUnion.2 ⟨i, hA i ⟨hi, hx.1⟩⟩)
+  rw [heq]
+  exact hV.sdiff (isClosed_iUnion_of_finite fun _ ↦ isClosed_closure)
 
 namespace TauCeti.IsLocallyFlat
 
@@ -118,18 +133,23 @@ theorem isPreconnected_sdiff_union_iUnion_image_of_one_lt_rank {ι : Type*} [Fin
     IsPreconnected (U \ (s ∪ ⋃ i, f i '' J i)) := by
   classical
   have := Fintype.ofFinite ι
-  -- Remove the arcs indexed by a finset one at a time; the set left stays open.
-  suffices key : ∀ T : Finset ι, IsOpen (U \ (s ∪ ⋃ i ∈ T, f i '' J i)) ∧
-      IsPreconnected (U \ (s ∪ ⋃ i ∈ T, f i '' J i)) by
-    simpa using (key Finset.univ).2
+  -- The set left after removing the arcs indexed by a finset is open, since each arc is
+  -- closed in `U \ s`.
+  have hopen : ∀ T : Finset ι, IsOpen (U \ (s ∪ ⋃ i ∈ T, f i '' J i)) := fun T ↦ by
+    have := (hU.sdiff hs).sdiff_iUnion_of_closure_inter_subset
+      (A := fun i : T ↦ f i '' J i) fun i ↦ hcl i
+    rwa [sdiff_sdiff, iUnion_subtype] at this
+  -- Remove the arcs indexed by a finset one at a time.
+  suffices key : ∀ T : Finset ι, IsPreconnected (U \ (s ∪ ⋃ i ∈ T, f i '' J i)) by
+    simpa using key Finset.univ
   intro T
   induction T using Finset.induction_on with
   | empty =>
-    simpa using ⟨hU.sdiff hs,
+    have h0 : IsPreconnected (U \ s) :=
       TauCeti.isPreconnected_sdiff_of_isOpen_of_isDiscrete_of_one_lt_rank
-        (X := TauCeti.BoundarylessModel I M) hE hU hUc hs hd⟩
+        (X := TauCeti.BoundarylessModel I M) hE hU hUc hs hd
+    simpa using h0
   | @insert j T hjT ih =>
-    obtain ⟨hVo, hVc⟩ := ih
     have heq : U \ (s ∪ ⋃ i ∈ insert j T, f i '' J i) =
         (U \ (s ∪ ⋃ i ∈ T, f i '' J i)) \ f j '' J j := by
       ext x
@@ -139,17 +159,10 @@ theorem isPreconnected_sdiff_union_iUnion_image_of_one_lt_rank {ι : Type*} [Fin
       ⟨(hJU j hx).1, fun h ↦ h.elim (hJU j hx).2 fun h ↦ by
         obtain ⟨i, hi, hxi⟩ := mem_iUnion₂.1 h
         exact disjoint_left.1 (hdisj (i := i) (j := j) fun hij ↦ hjT (hij ▸ hi)) hxi hx⟩
-    -- The arc is closed in the set left, so removing it leaves an open set.
-    have hcl' : (U \ (s ∪ ⋃ i ∈ T, f i '' J i)) \ f j '' J j =
-        (U \ (s ∪ ⋃ i ∈ T, f i '' J i)) \ closure (f j '' J j) := by
-      refine Subset.antisymm (fun x hx ↦ ⟨hx.1, fun hxc ↦ hx.2 (hcl j ⟨hxc, ?_⟩)⟩)
-        (sdiff_subset_sdiff_right subset_closure)
-      exact ⟨hx.1.1, fun hxs ↦ hx.1.2 (Or.inl hxs)⟩
     obtain ⟨b, hbJ, hbb⟩ : ∃ b ∈ J j, b ∈ upperBounds (J j) ∨ b ∈ lowerBounds (J j) := by
       obtain ⟨b, hb | hb⟩ := hb j
       exacts [⟨b, hb.1, .inl hb.2⟩, ⟨b, hb.1, .inr hb.2⟩]
     rw [heq]
-    exact ⟨hcl' ▸ hVo.sdiff isClosed_closure,
-      (hf j).isPreconnected_sdiff_image hE hVo hVc (hJ j) hbJ hbb hjV⟩
+    exact (hf j).isPreconnected_sdiff_image hE (hopen T) ih (hJ j) hbJ hbb hjV
 
 end

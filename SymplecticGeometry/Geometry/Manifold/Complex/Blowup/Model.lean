@@ -218,6 +218,12 @@ theorem continuous_zeroSection :
     Continuous (zeroSection : ℙ ℂ (Fin (n + 1) → ℂ) → BlowupModel n) :=
   (continuous_id.prodMk continuous_const).subtype_mk _
 
+/-- The zero section is a topological embedding of `ℙ ℂ (Fin (n + 1) → ℂ)` into the blowup, since
+`pr` is a continuous left inverse of it. -/
+theorem isEmbedding_zeroSection :
+    Topology.IsEmbedding (zeroSection : ℙ ℂ (Fin (n + 1) → ℂ) → BlowupModel n) :=
+  Function.LeftInverse.isEmbedding (f := pr) pr_zeroSection continuous_pr continuous_zeroSection
+
 /-- The exceptional divisor is the image of the zero section. -/
 theorem exceptionalDivisor_eq_range : exceptionalDivisor n = Set.range zeroSection := by
   ext p

@@ -5,12 +5,18 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Analysis.Complex.Isometry
 public import Mathlib.AlgebraicTopology.FundamentalGroupoid.FundamentalGroup
+public import Mathlib.Analysis.SpecialFunctions.Complex.CircleMap
 public import SymplecticGeometry.Geometry.Manifold.Instances.Surface.Genus
 public import SymplecticGeometry.Geometry.Manifold.Instances.Surface.TorusWedge
+public import SymplecticGeometry.Geometry.Manifold.ConnectedSum.FundamentalGroup
 public import TauCeti.AlgebraicTopology.FundamentalGroup.HomotopyEquiv
 public import TauCeti.GroupTheory.SurfaceGroup.Free
+import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
+import Mathlib.Topology.Homotopy.Affine
 import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Basic
+import SymplecticGeometry.Topology.Homotopy.Path
 import SymplecticGeometry.Topology.Instances.AddCircle.Icc
 import TauCeti.Topology.Homotopy.PuncturedStarConvex
 import TauCeti.Topology.Homotopy.Quotient
@@ -50,6 +56,17 @@ map: the retraction by Mathlib's `Topology.IsQuotientMap.lift`, and the homotopy
 deformation of the punctured square itself is used, so that the homotopy stays in the punctured
 torus.
 
+The loop around the puncture is compared with the boundary of the square by a straight-line
+homotopy in the punctured square, from the neck circle to the boundary (Mathlib's
+`ContinuousMap.Homotopy.affine`). At each time it stays in an open half-plane: the one bounded
+by the line through the centre parallel to the side being run, on the side of that line where
+that side lies. Its track at the base point is the reversed diagonal path, so
+`Path.trans_homotopic_trans_of_homotopy` (`Topology/Homotopy/Path.lean`) shows that the neck loop
+conjugated by the diagonal path is homotopic to the boundary. In
+Mathlib's `FundamentalGroup` the product `g * h` is the class of `h` followed by `g`, so the
+boundary `a⁻¹ b⁻¹ a b` has class `b a b⁻¹ a⁻¹`, a conjugate of Tau Ceti's boundary generator
+`peripheral 0 = (a⁻¹ b⁻¹ a b)⁻¹` rather than that generator or its inverse.
+
 ## Main definitions
 
 * `SymplecticGeometry.EuclideanTorus.circles`: the two circles of the torus through `0`.
@@ -68,6 +85,13 @@ torus.
   punctured torus.
 * `SymplecticGeometry.EuclideanTorus.puncturedFundamentalGroupMulEquiv`: the fundamental group of
   the punctured torus at `0` is `TauCeti.SurfaceGroup.Orientable 1 1`.
+* `SymplecticGeometry.EuclideanTorus.neckIsometry`: the identification of `ℂ` with the plane, the
+  rotation by `π / 4` followed by `x + iy ↦ (x, y)`, along which the neck is read.
+* `SymplecticGeometry.EuclideanTorus.neckLoop`: the circle of the neck, a loop around the puncture.
+* `SymplecticGeometry.EuclideanTorus.diagonalPath`: the segment of the diagonal of the square from
+  `0` to the start of the neck loop.
+* `SymplecticGeometry.EuclideanTorus.punctureLoop`: the neck loop conjugated by the diagonal path,
+  a loop around the puncture based at `0`.
 
 ## Main results
 
@@ -79,6 +103,18 @@ torus.
 * `SymplecticGeometry.EuclideanTorus.puncturedFundamentalGroupMulEquiv_circleLoop_zero`,
   `SymplecticGeometry.EuclideanTorus.puncturedFundamentalGroupMulEquiv_circleLoop_one`: it sends
   the two circle loops to the generators `a 0` and `b 0`.
+* `SymplecticGeometry.EuclideanTorus.diffeomorph_neckLoop_apply`,
+  `SymplecticGeometry.EuclideanTorus.diffeomorph_diagonalPath_apply`: the neck loop and the
+  diagonal path in the coordinates of the square.
+* `SymplecticGeometry.EuclideanTorus.circlesRetraction_diagonalPath`: the retraction onto the two
+  circles sends the diagonal path to `0`.
+* `SymplecticGeometry.EuclideanTorus.punctureLoop_homotopic`: the loop around the puncture is
+  homotopic to `(circleLoop 0)⁻¹ · (circleLoop 1)⁻¹ · circleLoop 0 · circleLoop 1`, the boundary
+  of the square run counterclockwise from the corner `(1, 1)`.
+* `SymplecticGeometry.EuclideanTorus.puncturedFundamentalGroupMulEquiv_punctureLoop`,
+  `SymplecticGeometry.EuclideanTorus.puncturedFundamentalGroupMulEquiv_punctureLoop_eq_conj`: the
+  isomorphism sends its class to `b a b⁻¹ a⁻¹`, the conjugate of the boundary generator
+  `peripheral 0` by `b a`, where `a = a 0` and `b = b 0`.
 
 ## References
 
@@ -164,6 +200,10 @@ private theorem diffeomorph_squareMap_zero (z : ℝ × ℝ) :
 private theorem diffeomorph_squareMap_one (z : ℝ × ℝ) :
     diffeomorph (squareMap z) 1 = z.2 := by
   simp [squareMap]
+
+private theorem diffeomorph_squareMap (z : ℝ × ℝ) :
+    diffeomorph (squareMap z) = ![(z.1 : AddCircle (1 : ℝ)), (z.2 : AddCircle (1 : ℝ))] :=
+  funext (Fin.forall_fin_two.2 ⟨diffeomorph_squareMap_zero z, diffeomorph_squareMap_one z⟩)
 
 private theorem continuous_squareMap : Continuous squareMap :=
   isLocalHomeomorph_cover.continuous.comp ((PiLp.continuous_toLp _ _).comp (by fun_prop))
@@ -600,6 +640,392 @@ theorem puncturedFundamentalGroupMulEquiv_circleLoop_one :
       SurfaceGroup.Orientable.b 1 1 0 := by
   rw [puncturedFundamentalGroupMulEquiv_circleLoop, generatorEquiv_one,
     SurfaceGroup.Orientable.equivFreeGroup_symm_of_inr_inl]
+
+/-! ### The loop around the puncture
+
+The neck of the connected sum along `SymplecticGeometry.EuclideanTorus.ball` is the punctured
+plane, identified with `ℂ ∖ {0}` by `SymplecticGeometry.EuclideanTorus.neckIsometry`, and its
+circle `LinearIsometryEquiv.circleLoop` of radius `1` lies in the punctured torus as a loop
+around the puncture. The ball has radius `1 / 4` about `(1 / 2, 1 / 2)`, and Mathlib's
+`OpenPartialHomeomorph.univBall` sends the circle of radius `1` to that of radius
+`(1 / 4) / √(1 + 1²) = 1 / (4 √2)`. The rotation by `π / 4` in `neckIsometry` makes the loop start
+at `(1 / 2 + 1 / 8, 1 / 2 + 1 / 8)`, on the diagonal of the square, where a segment of the diagonal
+joins it to the corner `(1, 1)`, that is to `0`; the retraction onto the two circles sends that
+segment to `0`. -/
+
+/-- The identification of `ℂ` with the Euclidean plane along which the loop around the puncture is
+read: the rotation `z ↦ e^{iπ/4} z`, followed by the standard identification
+`Complex.orthonormalBasisOneI.repr`, `x + iy ↦ (x, y)`. It sends `1` to `(1, 1) / √2`. -/
+def neckIsometry : ℂ ≃ₗᵢ[ℝ] EuclideanSpace ℝ (Fin 2) :=
+  (rotation (Circle.exp (Real.pi / 4))).trans Complex.orthonormalBasisOneI.repr
+
+theorem neckIsometry_apply (z : ℂ) :
+    neckIsometry z = Complex.orthonormalBasisOneI.repr (Circle.exp (Real.pi / 4) * z) :=
+  (rfl)
+
+/-- The identification sends the point `r e^{iθ}` to `(r cos (θ + π / 4), r sin (θ + π / 4))`. -/
+theorem neckIsometry_circleMap (r θ : ℝ) :
+    neckIsometry (circleMap 0 r θ) =
+      WithLp.toLp 2 ![r * Real.cos (θ + Real.pi / 4), r * Real.sin (θ + Real.pi / 4)] := by
+  have h : (Circle.exp (Real.pi / 4) : ℂ) * circleMap 0 r θ = circleMap 0 r (θ + Real.pi / 4) := by
+    rw [show (Circle.exp (Real.pi / 4) : ℂ) = circleMap 0 1 (Real.pi / 4) by
+        simp [circleMap_zero, Circle.coe_exp], circleMap_zero_mul, one_mul, add_comm]
+  rw [neckIsometry_apply, h]
+  ext i
+  fin_cases i <;> simp [circleMap_zero_re, circleMap_zero_im]
+
+/-- The coordinate ball sends the point `e^{iθ}` of the unit circle, read by `neckIsometry`, to
+`([1 / 2 + ρ cos (θ + π / 4)], [1 / 2 + ρ sin (θ + π / 4)])`, with `ρ = 1 / (4 √2)`. -/
+private theorem diffeomorph_ball_neckIsometry_circleMap (θ : ℝ) :
+    diffeomorph (ball (neckIsometry (circleMap 0 1 θ))) =
+      ![((1 / 2 + 1 / (4 * √2) * Real.cos (θ + Real.pi / 4) : ℝ) : AddCircle (1 : ℝ)),
+        ((1 / 2 + 1 / (4 * √2) * Real.sin (θ + Real.pi / 4) : ℝ) : AddCircle (1 : ℝ))] := by
+  have hn : ‖neckIsometry (circleMap 0 1 θ)‖ = 1 := by simp
+  refine funext (Fin.forall_fin_two.2 ⟨?_, ?_⟩) <;>
+  · rw [diffeomorph_ball_apply, hn, show √(1 + (1 : ℝ) ^ 2) = √2 by norm_num,
+      neckIsometry_circleMap]
+    congr 1
+    simp only [Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_fin_one]
+    ring
+
+/-- The **neck loop** of the punctured torus: the circle `t ↦ neckIsometry e^{2πit}` of the neck,
+carried into the punctured torus by `TauCeti.ConnectedSum.neckInl`. It goes once around the
+puncture, counterclockwise in the coordinates of the square
+(`SymplecticGeometry.EuclideanTorus.diffeomorph_neckLoop_apply`). -/
+def neckLoop :
+    Path (ConnectedSum.neckInl isOpenEmbedding_ball (neckIsometry.circleBasepoint one_pos))
+      (ConnectedSum.neckInl isOpenEmbedding_ball (neckIsometry.circleBasepoint one_pos)) :=
+  (neckIsometry.circleLoop one_pos).map (ConnectedSum.neckInl isOpenEmbedding_ball).continuous
+
+theorem neckLoop_def :
+    neckLoop =
+      (neckIsometry.circleLoop one_pos).map
+        (ConnectedSum.neckInl isOpenEmbedding_ball).continuous :=
+  (rfl)
+
+/-- The neck loop in coordinates: at time `t` it is the point
+`([1 / 2 + ρ cos (2πt + π / 4)], [1 / 2 + ρ sin (2πt + π / 4)])`, with `ρ = 1 / (4 √2)`, of the
+circle of radius `ρ` about the puncture `([1 / 2], [1 / 2])`. -/
+@[simp]
+theorem diffeomorph_neckLoop_apply (t : I) :
+    diffeomorph (neckLoop t : EuclideanTorus) =
+      ![((1 / 2 + 1 / (4 * √2) * Real.cos (2 * Real.pi * t + Real.pi / 4) : ℝ) :
+          AddCircle (1 : ℝ)),
+        ((1 / 2 + 1 / (4 * √2) * Real.sin (2 * Real.pi * t + Real.pi / 4) : ℝ) :
+          AddCircle (1 : ℝ))] := by
+  rw [neckLoop_def, ConnectedSum.coe_map_neckInl_circleLoop_apply,
+    diffeomorph_ball_neckIsometry_circleMap]
+
+private theorem one_sub_mem_Ioc (t : I) : 1 - 3 / 8 * (t : ℝ) ∈ Ioc (1 / 2 : ℝ) 1 :=
+  ⟨by linarith [t.property.2], by linarith [t.property.1]⟩
+
+/-- The point `(1 - 3t / 8, 1 - 3t / 8)` of the punctured square, on the diagonal between the
+centre and the corner `(1, 1)`. -/
+private def diagonalPoint (t : I) : PuncturedSquare :=
+  ⟨(1 - 3 / 8 * (t : ℝ), 1 - 3 / 8 * (t : ℝ)),
+    ⟨⟨by linarith [(one_sub_mem_Ioc t).1], (one_sub_mem_Ioc t).2⟩,
+      ⟨by linarith [(one_sub_mem_Ioc t).1], (one_sub_mem_Ioc t).2⟩⟩,
+    fun h ↦ (one_sub_mem_Ioc t).1.ne' (congrArg Prod.fst (mem_singleton_iff.1 h))⟩
+
+private theorem coe_diagonalPoint (t : I) :
+    (diagonalPoint t : ℝ × ℝ) = (1 - 3 / 8 * (t : ℝ), 1 - 3 / 8 * (t : ℝ)) :=
+  (rfl)
+
+private theorem continuous_diagonalPoint : Continuous diagonalPoint :=
+  Continuous.subtype_mk (by fun_prop) _
+
+/-- The **diagonal path** of the punctured torus, `t ↦ ([1 - 3t / 8], [1 - 3t / 8])`: the
+segment of the diagonal of the square from the corner `(1, 1)`, which is `0` in the torus,
+towards the centre, up to the start `(5 / 8, 5 / 8)` of the neck loop. -/
+def diagonalPath : Path (⟨0, zero_mem_puncture⟩ : ConnectedSum.puncture ball)
+    (ConnectedSum.neckInl isOpenEmbedding_ball (neckIsometry.circleBasepoint one_pos)) where
+  toContinuousMap := puncturedSquareMap.comp ⟨diagonalPoint, continuous_diagonalPoint⟩
+  source' := by
+    refine Subtype.ext (EquivLike.injective diffeomorph
+      (funext (Fin.forall_fin_two.2 ⟨?_, ?_⟩))) <;>
+    simp [coe_puncturedSquareMap, diffeomorph_squareMap_zero, diffeomorph_squareMap_one,
+      coe_diagonalPoint, diffeomorph_zero]
+  target' := by
+    have h₁ : ((1 : ℝ) : ℂ) = circleMap 0 1 0 := by simp [circleMap]
+    have h₂ : (1 - 3 / 8 * ((1 : I) : ℝ)) = 1 / 2 + 1 / (4 * √2) * (√2 / 2) := by
+      have := Real.sq_sqrt (show (0 : ℝ) ≤ 2 by norm_num)
+      field_simp
+      norm_num [this]
+    refine Subtype.ext (EquivLike.injective diffeomorph ?_)
+    rw [ConnectedSum.coe_neckInl_apply, LinearIsometryEquiv.coe_circleBasepoint, h₁,
+      diffeomorph_ball_neckIsometry_circleMap, zero_add, Real.cos_pi_div_four,
+      Real.sin_pi_div_four, ← h₂, ContinuousMap.toFun_eq_coe,
+      ContinuousMap.comp_apply, coe_puncturedSquareMap, ContinuousMap.coe_mk,
+      coe_diagonalPoint]
+    exact diffeomorph_squareMap _
+
+/-- The diagonal path in coordinates: at time `t` it is `([1 - 3t / 8], [1 - 3t / 8])`. -/
+@[simp]
+theorem diffeomorph_diagonalPath_apply (t : I) :
+    diffeomorph (diagonalPath t : EuclideanTorus) =
+      ![((1 - 3 / 8 * t : ℝ) : AddCircle (1 : ℝ)), ((1 - 3 / 8 * t : ℝ) : AddCircle (1 : ℝ))] := by
+  rw [diagonalPath, Path.coe_mk_mk, ContinuousMap.toFun_eq_coe, ContinuousMap.comp_apply,
+    coe_puncturedSquareMap, ContinuousMap.coe_mk, coe_diagonalPoint]
+  exact diffeomorph_squareMap _
+
+/-- The retraction onto the two circles sends every point of the diagonal path to `0`: the ray
+from the centre of the square through a point of the diagonal between the centre and the corner
+`(1, 1)` meets the boundary at that corner. -/
+@[simp]
+theorem circlesRetraction_diagonalPath (t : I) :
+    circlesRetraction (diagonalPath t) = ⟨0, zero_mem_circles⟩ := by
+  have hs := one_sub_mem_Ioc t
+  have hs' : 1 - 3 / 8 * (t : ℝ) ∈ Icc (0 : ℝ) 1 := ⟨by linarith [hs.1], hs.2⟩
+  refine Subtype.ext (EquivLike.injective diffeomorph ?_)
+  rw [diffeomorph_circlesRetraction_apply _ hs' hs' (diffeomorph_diagonalPath_apply t),
+    max_self, abs_of_pos (by linarith [hs.1]), div_mul_cancel₀ _ (by linarith [hs.1]),
+    show (1 / 2 + 1 / 2 : ℝ) = 1 by norm_num, AddCircle.coe_period]
+  funext i
+  fin_cases i <;> simp
+
+/-- The **loop around the puncture** of the punctured torus, based at `0`: the neck loop,
+conjugated by the diagonal path, which runs from `0` to the start of the neck loop. -/
+def punctureLoop :
+    Path (⟨0, zero_mem_puncture⟩ : ConnectedSum.puncture ball) ⟨0, zero_mem_puncture⟩ :=
+  (diagonalPath.trans neckLoop).trans diagonalPath.symm
+
+theorem punctureLoop_def :
+    punctureLoop = (diagonalPath.trans neckLoop).trans diagonalPath.symm :=
+  (rfl)
+
+/-! ### The loop around the puncture as a commutator
+
+The neck loop, lifted to the punctured square, is the circle of radius `1 / (4 √2)` about the
+centre, starting on the diagonal towards the corner `(1, 1)`; the boundary of the square, run
+counterclockwise from that corner, is the lift of the product
+`(circleLoop 0)⁻¹ · (circleLoop 1)⁻¹ · circleLoop 0 · circleLoop 1`. Bracketed as
+`((a⁻¹ · b⁻¹) · (a · b))`, the four sides are run in the four quarters of `[0, 1]`, in which the
+neck loop runs through the same sides, seen from the centre. So in each quarter the segment from a
+point of the neck loop to the point of the boundary at the same time lies in an open half-plane
+that misses the centre, and the straight-line homotopy between the two lifts stays in the punctured
+square. Its track at time `0`, as at time `1`, is the reversed diagonal path, so the loop around
+the puncture, the neck loop conjugated by the diagonal path, is homotopic to the product of the
+four sides. -/
+
+/-- The neck loop lifted to the square: the point `1 / 2 + ρ (cos θ, sin θ)` with
+`θ = 2πt + π / 4` and `ρ = 1 / (4 √2)`. -/
+private def neckPoint (t : I) : ℝ × ℝ :=
+  (1 / 2 + 1 / (4 * √2) * Real.cos (2 * Real.pi * t + Real.pi / 4),
+    1 / 2 + 1 / (4 * √2) * Real.sin (2 * Real.pi * t + Real.pi / 4))
+
+private theorem continuous_neckPoint : Continuous neckPoint := by
+  unfold neckPoint
+  fun_prop
+
+private theorem neckRadius_pos : 0 < 1 / (4 * √2) := by positivity
+
+private theorem neckRadius_le : 1 / (4 * √2) ≤ 1 / 4 :=
+  one_div_le_one_div_of_le (by norm_num) (by nlinarith [Real.one_le_sqrt.2 one_le_two])
+
+private theorem neckPoint_mem_square (t : I) : neckPoint t ∈ square := by
+  have hc := Real.neg_one_le_cos (2 * Real.pi * t + Real.pi / 4)
+  have hc' := Real.cos_le_one (2 * Real.pi * t + Real.pi / 4)
+  have hs := Real.neg_one_le_sin (2 * Real.pi * t + Real.pi / 4)
+  have hs' := Real.sin_le_one (2 * Real.pi * t + Real.pi / 4)
+  have := neckRadius_pos
+  have := neckRadius_le
+  refine ⟨⟨?_, ?_⟩, ⟨?_, ?_⟩⟩ <;> simp only [neckPoint] <;> nlinarith
+
+/-- The boundary of the square, run counterclockwise from the corner `(1, 1)`, one side in each
+quarter of `[0, 1]`. -/
+private def squareLoop : Path ((1, 1) : ℝ × ℝ) (1, 1) :=
+  ((Path.segment (1, 1) (0, 1)).trans (Path.segment (0, 1) (0, 0))).trans
+    ((Path.segment (0, 0) (1, 0)).trans (Path.segment (1, 0) (1, 1)))
+
+private theorem convex_square : Convex ℝ square :=
+  (convex_Icc 0 1).prod (convex_Icc 0 1)
+
+private theorem squareLoop_mem_square (t : I) : squareLoop t ∈ square := by
+  have h : range squareLoop ⊆ square := by
+    simp only [squareLoop, Path.trans_range, Path.range_segment, union_subset_iff]
+    refine ⟨⟨?_, ?_⟩, ?_, ?_⟩ <;>
+      exact convex_square.segment_subset (by norm_num [square]) (by norm_num [square])
+  exact h ⟨t, rfl⟩
+
+/-- At each time, the neck loop and the boundary of the square lie in a convex set that misses
+the centre: the open half-plane bounded by the line through the centre parallel to the side that
+the boundary runs through, on the side of that line where that side lies. -/
+private theorem exists_convex_neckPoint_squareLoop_mem (t : I) :
+    ∃ C : Set (ℝ × ℝ), Convex ℝ C ∧ centre ∉ C ∧ neckPoint t ∈ C ∧ squareLoop t ∈ C := by
+  have hρ := neckRadius_pos
+  obtain ⟨ht₀, ht₁⟩ := t.property
+  have hπ := Real.pi_pos
+  have h₀ := mul_nonneg hπ.le ht₀
+  simp only [squareLoop, Path.trans_apply]
+  split_ifs with h₁ h₂ h₂
+  · -- The first quarter: the side `y = 1`.
+    have h₂' := mul_le_mul_of_nonneg_left h₂ hπ.le
+    refine ⟨_, convex_halfSpace_gt (LinearMap.snd ℝ ℝ ℝ).isLinear (1 / 2), by simp [centre], ?_, ?_⟩
+    · have := Real.sin_pos_of_pos_of_lt_pi (x := 2 * Real.pi * t + Real.pi / 4)
+        (by nlinarith) (by nlinarith)
+      simp only [neckPoint, mem_ofPred_eq, LinearMap.snd_apply]
+      linarith [mul_pos hρ this]
+    · simp only [mem_ofPred_eq, LinearMap.snd_apply, Path.segment_apply,
+        AffineMap.lineMap_apply_module, Prod.smul_mk, Prod.mk_add_mk, smul_eq_mul]
+      linarith
+  · -- The second quarter: the side `x = 0`.
+    have h₁' := mul_le_mul_of_nonneg_left h₁ hπ.le
+    have h₂' := mul_lt_mul_of_pos_left (not_le.1 h₂) hπ
+    refine ⟨_, convex_halfSpace_lt (LinearMap.fst ℝ ℝ ℝ).isLinear (1 / 2), by simp [centre], ?_, ?_⟩
+    · have := Real.cos_neg_of_pi_div_two_lt_of_lt (x := 2 * Real.pi * t + Real.pi / 4)
+        (by nlinarith) (by nlinarith)
+      simp only [neckPoint, mem_ofPred_eq, LinearMap.fst_apply]
+      linarith [mul_neg_of_pos_of_neg hρ this]
+    · simp only [mem_ofPred_eq, LinearMap.fst_apply, Path.segment_apply,
+        AffineMap.lineMap_apply_module, Prod.smul_mk, Prod.mk_add_mk, smul_eq_mul]
+      linarith
+  · -- The third quarter: the side `y = 0`.
+    have h₁' := mul_lt_mul_of_pos_left (not_le.1 h₁) hπ
+    have h₂' := mul_le_mul_of_nonneg_left h₂ hπ.le
+    refine ⟨_, convex_halfSpace_lt (LinearMap.snd ℝ ℝ ℝ).isLinear (1 / 2), by simp [centre], ?_, ?_⟩
+    · have := Real.sin_neg_of_neg_of_neg_pi_lt (x := 2 * Real.pi * t + Real.pi / 4 - 2 * Real.pi)
+        (by nlinarith) (by nlinarith)
+      rw [Real.sin_sub_two_pi] at this
+      simp only [neckPoint, mem_ofPred_eq, LinearMap.snd_apply]
+      linarith [mul_neg_of_pos_of_neg hρ this]
+    · simp only [mem_ofPred_eq, LinearMap.snd_apply, Path.segment_apply,
+        AffineMap.lineMap_apply_module, Prod.smul_mk, Prod.mk_add_mk, smul_eq_mul]
+      linarith
+  · -- The fourth quarter: the side `x = 1`.
+    have h₁' := mul_le_mul_of_nonneg_left ht₁ hπ.le
+    have h₂' := mul_lt_mul_of_pos_left (not_le.1 h₂) hπ
+    refine ⟨_, convex_halfSpace_gt (LinearMap.fst ℝ ℝ ℝ).isLinear (1 / 2), by simp [centre], ?_, ?_⟩
+    · have := Real.cos_pos_of_mem_Ioo (x := 2 * Real.pi * t + Real.pi / 4 - 2 * Real.pi)
+        ⟨by nlinarith, by nlinarith⟩
+      rw [Real.cos_sub_two_pi] at this
+      simp only [neckPoint, mem_ofPred_eq, LinearMap.fst_apply]
+      linarith [mul_pos hρ this]
+    · simp only [mem_ofPred_eq, LinearMap.fst_apply, Path.segment_apply,
+        AffineMap.lineMap_apply_module, Prod.smul_mk, Prod.mk_add_mk, smul_eq_mul]
+      linarith
+
+/-- The straight segment from the neck loop to the boundary of the square stays in the punctured
+square. -/
+private theorem segment_neckPoint_squareLoop_mem (s t : I) :
+    Path.segment (neckPoint t) (squareLoop t) s ∈ square \ {centre} := by
+  obtain ⟨C, hC, hc, hn, hq⟩ := exists_convex_neckPoint_squareLoop_mem t
+  exact ⟨convex_square.lineMap_mem (neckPoint_mem_square t) (squareLoop_mem_square t)
+      s.property,
+    fun h ↦ hc (mem_singleton_iff.1 h ▸ hC.lineMap_mem hn hq s.property)⟩
+
+/-- The straight-line homotopy, in the punctured square, from the neck loop to the product of the
+four sides, read in the punctured torus. -/
+private def neckHomotopy :
+    ContinuousMap.Homotopy (neckLoop : C(I, ConnectedSum.puncture ball))
+      (((circleLoop 0).symm.trans (circleLoop 1).symm).trans
+        ((circleLoop 0).trans (circleLoop 1)) : C(I, ConnectedSum.puncture ball)) where
+  toFun p := puncturedSquareMap
+    ⟨Path.segment (neckPoint p.2) (squareLoop p.2) p.1, segment_neckPoint_squareLoop_mem p.1 p.2⟩
+  continuous_toFun := puncturedSquareMap.continuous.comp
+    ((ContinuousMap.Homotopy.affine ⟨neckPoint, continuous_neckPoint⟩ squareLoop).continuous
+      |>.subtype_mk _)
+  map_zero_left t := by
+    refine Subtype.ext (EquivLike.injective diffeomorph ?_)
+    rw [coe_puncturedSquareMap, diffeomorph_squareMap, ContinuousMap.coe_ofClass,
+      diffeomorph_neckLoop_apply]
+    rw [Subtype.coe_mk, Path.source]
+    simp [neckPoint]
+  map_one_left t := by
+    refine Subtype.ext (EquivLike.injective diffeomorph ?_)
+    rw [coe_puncturedSquareMap, diffeomorph_squareMap, Subtype.coe_mk, Path.target]
+    simp only [squareLoop, Path.trans_apply, ContinuousMap.coe_ofClass]
+    split_ifs
+    all_goals
+      funext i
+      fin_cases i <;> simp [AffineMap.lineMap_apply_module]
+
+private theorem neckHomotopy_apply (s t : I) :
+    neckHomotopy (s, t) = puncturedSquareMap
+      ⟨Path.segment (neckPoint t) (squareLoop t) s, segment_neckPoint_squareLoop_mem s t⟩ :=
+  (rfl)
+
+private theorem diagonalPath_apply (t : I) :
+    diagonalPath t = puncturedSquareMap (diagonalPoint t) :=
+  (rfl)
+
+private theorem neckPoint_zero : neckPoint 0 = (5 / 8, 5 / 8) := by
+  have h : 1 / 2 + 1 / (4 * √2) * (√2 / 2) = (5 / 8 : ℝ) := by
+    field_simp
+    norm_num
+  rw [neckPoint, Set.Icc.coe_zero, mul_zero, zero_add, Real.cos_pi_div_four,
+    Real.sin_pi_div_four, h]
+
+private theorem neckPoint_one : neckPoint 1 = (5 / 8, 5 / 8) := by
+  rw [← neckPoint_zero, neckPoint, neckPoint, Set.Icc.coe_one, Set.Icc.coe_zero, mul_one, mul_zero,
+    add_comm (2 * Real.pi), Real.cos_add_two_pi, Real.sin_add_two_pi, zero_add]
+
+private theorem neckHomotopy_apply_zero_right (s : I) :
+    neckHomotopy (s, 0) = diagonalPath.symm s := by
+  rw [neckHomotopy_apply, Path.symm_apply, Function.comp_apply, diagonalPath_apply]
+  congr 1
+  refine Subtype.ext ?_
+  rw [Subtype.coe_mk, coe_diagonalPoint, neckPoint_zero, squareLoop.source, Path.segment_apply,
+    AffineMap.lineMap_apply_module, unitInterval.coe_symm_eq]
+  ext <;> simp <;> ring
+
+private theorem neckHomotopy_apply_one_right (s : I) :
+    neckHomotopy (s, 1) = diagonalPath.symm s := by
+  rw [neckHomotopy_apply, Path.symm_apply, Function.comp_apply, diagonalPath_apply]
+  congr 1
+  refine Subtype.ext ?_
+  rw [Subtype.coe_mk, coe_diagonalPoint, neckPoint_one, squareLoop.target, Path.segment_apply,
+    AffineMap.lineMap_apply_module, unitInterval.coe_symm_eq]
+  ext <;> simp <;> ring
+
+/-- The **loop around the puncture** of the punctured torus is homotopic to the product
+`(circleLoop 0)⁻¹ · (circleLoop 1)⁻¹ · circleLoop 0 · circleLoop 1` of the two circle loops and
+their inverses, the boundary of the square run counterclockwise from the corner `(1, 1)`. -/
+theorem punctureLoop_homotopic :
+    punctureLoop.Homotopic
+      (((circleLoop 0).symm.trans (circleLoop 1).symm).trans
+        ((circleLoop 0).trans (circleLoop 1))) := by
+  set Q := ((circleLoop 0).symm.trans (circleLoop 1).symm).trans
+    ((circleLoop 0).trans (circleLoop 1))
+  have h' : (neckLoop.trans diagonalPath.symm).Homotopic (diagonalPath.symm.trans Q) :=
+    Path.trans_homotopic_trans_of_homotopy neckHomotopy diagonalPath.symm
+      neckHomotopy_apply_zero_right neckHomotopy_apply_one_right
+  rw [← Path.Homotopic.Quotient.eq, Path.Homotopic.Quotient.mk_trans (P₁ := Q),
+    Path.Homotopic.Quotient.mk_trans neckLoop] at h'
+  rw [punctureLoop_def, ← Path.Homotopic.Quotient.eq, Path.Homotopic.Quotient.mk_trans,
+    Path.Homotopic.Quotient.mk_trans, Path.Homotopic.Quotient.trans_assoc, h',
+    ← Path.Homotopic.Quotient.trans_assoc, Path.Homotopic.Quotient.mk_symm,
+    Path.Homotopic.Quotient.trans_symm, Path.Homotopic.Quotient.refl_trans]
+
+/-- The isomorphism sends the class of the loop around the puncture to `b a b⁻¹ a⁻¹`, for the
+generators `a = a 0` and `b = b 0`. The loop runs through `a⁻¹ b⁻¹ a b`, and in Mathlib's
+`FundamentalGroup` a product `g * h` is the class of `h` followed by `g`. -/
+theorem puncturedFundamentalGroupMulEquiv_punctureLoop :
+    puncturedFundamentalGroupMulEquiv
+        (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk punctureLoop)) =
+      SurfaceGroup.Orientable.b 1 1 0 * SurfaceGroup.Orientable.a 1 1 0 *
+        (SurfaceGroup.Orientable.b 1 1 0)⁻¹ * (SurfaceGroup.Orientable.a 1 1 0)⁻¹ := by
+  rw [Path.Homotopic.Quotient.eq.2 punctureLoop_homotopic]
+  simp only [Path.Homotopic.Quotient.mk_trans, Path.Homotopic.Quotient.mk_symm,
+    FundamentalGroup.fromPath_trans, FundamentalGroup.fromPath_symm, map_mul, map_inv,
+    puncturedFundamentalGroupMulEquiv_circleLoop_zero,
+    puncturedFundamentalGroupMulEquiv_circleLoop_one, mul_assoc]
+
+/-- The isomorphism sends the class of the loop around the puncture to a conjugate of the
+boundary generator `peripheral 0` of `TauCeti.SurfaceGroup.Orientable 1 1`, by `b a`, for the
+generators `a = a 0` and `b = b 0`; Tau Ceti's relation `a⁻¹ b⁻¹ a b · peripheral 0 = 1` makes
+`peripheral 0 = b⁻¹ a⁻¹ b a`. -/
+theorem puncturedFundamentalGroupMulEquiv_punctureLoop_eq_conj :
+    puncturedFundamentalGroupMulEquiv
+        (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk punctureLoop)) =
+      SurfaceGroup.Orientable.b 1 1 0 * SurfaceGroup.Orientable.a 1 1 0 *
+        SurfaceGroup.Orientable.peripheral 1 1 0 *
+          (SurfaceGroup.Orientable.b 1 1 0 * SurfaceGroup.Orientable.a 1 1 0)⁻¹ := by
+  have h : SurfaceGroup.Orientable.peripheral 1 1 0 =
+      ((SurfaceGroup.Orientable.a 1 1 0)⁻¹ * (SurfaceGroup.Orientable.b 1 1 0)⁻¹ *
+        SurfaceGroup.Orientable.a 1 1 0 * SurfaceGroup.Orientable.b 1 1 0)⁻¹ := by
+    simpa using SurfaceGroup.Orientable.peripheral_last 1 0
+  rw [puncturedFundamentalGroupMulEquiv_punctureLoop, h]
+  group
 
 end EuclideanTorus
 

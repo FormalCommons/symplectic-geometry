@@ -79,9 +79,9 @@ coordinates `s, t` of the line. A point of the cone `K³ × K²` is written `Sum
   `ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)`, with the membership tests
   `SymplecticGeometry.mem_rationalEllipticSurface_iff` (on the chosen representatives) and
   `SymplecticGeometry.mk_mem_rationalEllipticSurface_iff` (on any nonzero ones).
-* The instances `ChartedSpace`, `IsManifold 𝓘(ℂ, _) ω` and `CompactSpace` on it. The
-  model is `Fin (2 + 1 - Fintype.card Unit) → ℂ`, as the general atlas gives it; its dimension is
-  `2` (`SymplecticGeometry.rationalEllipticSurface.finrank_model`).
+* The instances `ChartedSpace`, `IsManifold 𝓘(ℂ, _) ω` and `CompactSpace` on it, on the
+  model `Fin 2 → ℂ`: the general atlas is taken with `k := 2`, and its dimension hypothesis
+  `2 + Fintype.card Unit = 2 + 1` holds by `simp`.
 * `SymplecticGeometry.rationalEllipticSurface.embedding`: the inclusion into the product as an
   analytic embedding, for the model `𝓘(ℂ, Fin 2 → ℂ).prod 𝓘(ℂ, Fin 1 → ℂ)`.
 * `SymplecticGeometry.rationalEllipticSurface.contMDiff_fst` and
@@ -303,16 +303,16 @@ theorem surjective_jacobiMatrixAt (x : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2
 
 /-- The atlas of the rational elliptic surface, induced by the slice charts of bihomogeneous zero
 sets in `ℂℙ² × ℂℙ¹`. -/
-noncomputable instance instChartedSpace :
-    ChartedSpace (Fin (2 + 1 - Fintype.card Unit) → ℂ) rationalEllipticSurface :=
-  complexProjectiveProdZeroLocusChartedSpace (fun _ ↦ isWeightedHomogeneous_hessePencil_inl)
+noncomputable instance instChartedSpace : ChartedSpace (Fin 2 → ℂ) rationalEllipticSurface :=
+  complexProjectiveProdZeroLocusChartedSpace (k := 2) (by simp)
+    (fun _ ↦ isWeightedHomogeneous_hessePencil_inl)
     (fun _ ↦ isWeightedHomogeneous_hessePencil_inr) isOpen_univ eq_inter_univ
     fun x _ ↦ surjective_jacobiMatrixAt x
 
 /-- The rational elliptic surface is a complex analytic manifold. -/
-instance instIsManifold :
-    IsManifold 𝓘(ℂ, Fin (2 + 1 - Fintype.card Unit) → ℂ) ω rationalEllipticSurface :=
-  isManifold_complexProjectiveProdZeroLocus (fun _ ↦ isWeightedHomogeneous_hessePencil_inl)
+instance instIsManifold : IsManifold 𝓘(ℂ, Fin 2 → ℂ) ω rationalEllipticSurface :=
+  isManifold_complexProjectiveProdZeroLocus (k := 2) (by simp)
+    (fun _ ↦ isWeightedHomogeneous_hessePencil_inl)
     (fun _ ↦ isWeightedHomogeneous_hessePencil_inr) isOpen_univ eq_inter_univ
     (fun x _ ↦ surjective_jacobiMatrixAt x) ω
 
@@ -320,24 +320,21 @@ instance instIsManifold :
 instance instCompactSpace : CompactSpace rationalEllipticSurface :=
   inferInstanceAs (CompactSpace (complexProjectiveProdZeroLocus _))
 
-/-- The model of the rational elliptic surface has complex dimension `2`: it is a surface. -/
-theorem finrank_model : Module.finrank ℂ (Fin (2 + 1 - Fintype.card Unit) → ℂ) = 2 := by
-  rw [Fintype.card_unit, Module.finrank_fin_fun]
-
 /-- The inclusion of the rational elliptic surface into `ℂℙ² × ℂℙ¹`, as an analytic embedding:
 `SymplecticGeometry.complexProjectiveProdZeroLocusEmbedding`. -/
 noncomputable def embedding :
-    SmoothEmbedding 𝓘(ℂ, Fin (2 + 1 - Fintype.card Unit) → ℂ)
+    SmoothEmbedding 𝓘(ℂ, Fin 2 → ℂ)
       (𝓘(ℂ, Fin 2 → ℂ).prod 𝓘(ℂ, Fin 1 → ℂ)) ω rationalEllipticSurface
       (ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)) :=
-  complexProjectiveProdZeroLocusEmbedding (fun _ ↦ isWeightedHomogeneous_hessePencil_inl)
+  complexProjectiveProdZeroLocusEmbedding (k := 2) (by simp)
+    (fun _ ↦ isWeightedHomogeneous_hessePencil_inl)
     (fun _ ↦ isWeightedHomogeneous_hessePencil_inr) isOpen_univ eq_inter_univ
     (fun x _ ↦ surjective_jacobiMatrixAt x) ω
 
 /-- The embedding of the rational elliptic surface is the embedding of a bihomogeneous zero set,
 specialized to the Hesse pencil. -/
 theorem embedding_def :
-    embedding = complexProjectiveProdZeroLocusEmbedding
+    embedding = complexProjectiveProdZeroLocusEmbedding (k := 2) (by simp)
       (fun _ ↦ isWeightedHomogeneous_hessePencil_inl)
       (fun _ ↦ isWeightedHomogeneous_hessePencil_inr) isOpen_univ eq_inter_univ
       (fun x _ ↦ surjective_jacobiMatrixAt x) ω :=
@@ -350,13 +347,13 @@ theorem coe_embedding : ⇑embedding = Subtype.val := by
 
 /-- The projection of the rational elliptic surface to `ℂℙ²` is analytic. -/
 theorem contMDiff_fst :
-    ContMDiff 𝓘(ℂ, Fin (2 + 1 - Fintype.card Unit) → ℂ) 𝓘(ℂ, Fin 2 → ℂ) ω
+    ContMDiff 𝓘(ℂ, Fin 2 → ℂ) 𝓘(ℂ, Fin 2 → ℂ) ω
       (fun x : rationalEllipticSurface ↦ (x : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)).1) :=
   _root_.contMDiff_fst.comp (coe_embedding ▸ embedding.contMDiff)
 
 /-- The projection of the rational elliptic surface to `ℂℙ¹` is analytic. -/
 theorem contMDiff_snd :
-    ContMDiff 𝓘(ℂ, Fin (2 + 1 - Fintype.card Unit) → ℂ) 𝓘(ℂ, Fin 1 → ℂ) ω
+    ContMDiff 𝓘(ℂ, Fin 2 → ℂ) 𝓘(ℂ, Fin 1 → ℂ) ω
       (fun x : rationalEllipticSurface ↦ (x : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)).2) :=
   _root_.contMDiff_snd.comp (coe_embedding ▸ embedding.contMDiff)
 
@@ -368,7 +365,7 @@ open scoped ComplexManifold
 the underlying real manifolds, for the real model `𝓘(ℝ, Fin 2 → ℂ).prod 𝓘(ℝ, Fin 1 → ℂ)` of the
 product. -/
 noncomputable def realEmbedding :
-    SmoothEmbedding 𝓘(ℝ, Fin (2 + 1 - Fintype.card Unit) → ℂ)
+    SmoothEmbedding 𝓘(ℝ, Fin 2 → ℂ)
       (𝓘(ℝ, Fin 2 → ℂ).prod 𝓘(ℝ, Fin 1 → ℂ)) ∞ rationalEllipticSurface
       (ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)) :=
   .ofIsSmoothEmbedding Subtype.val <|
@@ -383,14 +380,14 @@ theorem coe_realEmbedding : ⇑realEmbedding = Subtype.val :=
 /-- The real derivative of the inclusion of the rational elliptic surface is its complex
 derivative, as a map of tangent vectors. -/
 theorem coe_mfderiv_realEmbedding (x : rationalEllipticSurface) :
-    ⇑(mfderiv 𝓘(ℝ, Fin (2 + 1 - Fintype.card Unit) → ℂ)
+    ⇑(mfderiv 𝓘(ℝ, Fin 2 → ℂ)
         (𝓘(ℝ, Fin 2 → ℂ).prod 𝓘(ℝ, Fin 1 → ℂ)) realEmbedding x) =
-      mfderiv 𝓘(ℂ, Fin (2 + 1 - Fintype.card Unit) → ℂ)
+      mfderiv 𝓘(ℂ, Fin 2 → ℂ)
         (𝓘(ℂ, Fin 2 → ℂ).prod 𝓘(ℂ, Fin 1 → ℂ)) embedding x := by
   have hd := (embedding.contMDiff x).mdifferentiableAt (by simp)
   have h := congrArg DFunLike.coe (hd.mfderiv_restrictScalars ℝ)
   rw [ModelWithCorners.restrictScalars_prod, modelWithCornersSelf_restrictScalars,
-    modelWithCornersSelf_restrictScalars, modelWithCornersSelf_restrictScalars] at h
+    modelWithCornersSelf_restrictScalars] at h
   rw [coe_realEmbedding, ← coe_embedding, h]
   exact funext (ContinuousLinearMap.restrictScalarsTangent_apply _)
 
@@ -416,7 +413,7 @@ theorem prod_ofComplexManifold_mem_tangentRange {hn : (∞ : ℕ∞ω) ≠ 0}
 /-- The symplectic form of the rational elliptic surface: the pull-back along the inclusion of
 the product `pr₁^* ω_FS + pr₂^* ω_FS` of the Fubini–Study forms of `ℂℙ²` and `ℂℙ¹`. -/
 noncomputable def symplecticForm :
-    SmoothTwoForm 𝓘(ℝ, Fin (2 + 1 - Fintype.card Unit) → ℂ) rationalEllipticSurface :=
+    SmoothTwoForm 𝓘(ℝ, Fin 2 → ℂ) rationalEllipticSurface :=
   SmoothForm.mpullback realEmbedding realEmbedding.contMDiff
     ((fubiniStudyForm 2).prod (fubiniStudyForm 1))
 

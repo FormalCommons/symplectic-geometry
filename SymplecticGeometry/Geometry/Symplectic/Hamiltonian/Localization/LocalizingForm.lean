@@ -177,15 +177,14 @@ theorem mpullback_symm_weightOneForm_apply_weightChart (k' : ι → ℝ)
         (weightGenerator ((2 * π) • k') (EuclideanSpace.sumEquivProd z))) = X (Φ z)) :
     TauCeti.mpullback I 𝓘(ℝ, StdSpace ι) Φ.symm (weightOneForm k).val (Φ z) ![X (Φ z)] =
       2 * π * ∑ j, k j * k' j * (z.x j ^ 2 + z.y j ^ 2) := by
-  rw [TauCeti.mpullback_apply]
-  have hv : (fun i ↦ mfderiv I 𝓘(ℝ, StdSpace ι) Φ.symm (Φ z) (![X (Φ z)] i)) =
-      ![EuclideanSpace.sumEquivProd.symm
-        (weightGenerator ((2 * π) • k') (EuclideanSpace.sumEquivProd z))] := by
-    funext i
-    rw [Fin.fin_one_eq_zero i, Matrix.cons_val_zero, Matrix.cons_val_zero, ← hX]
+  rw [TauCeti.mpullback_apply_one]
+  have hv : mfderiv I 𝓘(ℝ, StdSpace ι) Φ.symm (Φ z) (X (Φ z)) =
+      EuclideanSpace.sumEquivProd.symm
+        (weightGenerator ((2 * π) • k') (EuclideanSpace.sumEquivProd z)) := by
+    rw [← hX]
     exact Φ.mfderiv_symm_apply_mfderiv_apply (by simp) hz _
   rw [hv, Φ.symm_toPartialEquiv, Φ.left_inv hz]
-  -- `hv` lists the vectors as points of `StdSpace ι`, the lemmas as tangent vectors at `z`.
+  -- `hv` gives the vector as a point of `StdSpace ι`, the lemmas as a tangent vector at `z`.
   exact (weightOneForm_apply_weightGenerator_smul k k' (2 * π) z).trans
     (congrArg _ (weightOneForm_apply_weightGenerator k k' z))
 
@@ -383,7 +382,7 @@ private theorem exists_smul_invariant_cutoffs_weightCharts {G : Type*} [Group G]
   · exact (ball_subset_ball (by linarith [hc0 i])).trans (hc i)
   · exact h1 i (mem_image_of_mem _ (ball_subset_closedBall hz))
 
-variable [FiniteDimensional ℝ E] [I.Boundaryless] [IsManifold I ∞ M]
+variable [FiniteDimensional ℝ E] [IsManifold I ∞ M] [BoundarylessManifold I M]
   [MulAction Circle M] [ContMDiffSMul (𝓡 1) I ∞ Circle M]
 
 /-- **Gluing model one-forms along weight charts.** Let the circle act smoothly on a σ-compact

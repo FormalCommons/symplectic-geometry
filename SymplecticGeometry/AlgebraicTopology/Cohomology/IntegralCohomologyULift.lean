@@ -68,7 +68,8 @@ is why the file imports all of `TauCeti.AlgebraicTopology.Cohomology.IntegralCup
 * `TopCat.integralCohomologyEquiv_symm_naturality` and
   `TopCat.integralCohomologyEquiv_symm_singularCup`: the inverse of
   `TopCat.integralCohomologyEquiv` commutes with pull-backs and carries cup products to
-  `TopCat.integralCup`.
+  `TopCat.integralCup`; `TopCat.integralCohomologyEquiv_symm_singularCup_fst_snd` is the case of
+  an external cup product `pr₁^* a ⌣ pr₂^* c` on `X × Y`.
 * `TopCat.bijective_integralCup_integralCohomologyEquiv_symm_iff`: cup product with a class is
   bijective in integral cohomology exactly when it is with coefficients `ℤ`.
 * `TopCat.integralCohomologyEquiv_symm_singularCohomologyZeroOne`: the equivalence sends the
@@ -290,6 +291,28 @@ theorem integralCohomologyEquiv_symm_singularCup (X : TopCat.{0}) (p q n : ℕ) 
   -- The two sides differ only in writing the cochain values as the unit `𝟙_ (ModuleCat ℤ)` or as
   -- `ModuleCat.of ℤ ℤ`, which Mathlib defines it to be.
   rfl
+
+/-- **External cup products in integral cohomology.** On a product `X × Y`, the inverse of
+`TopCat.integralCohomologyEquiv` carries the cup product `pr₁^* a ⌣ pr₂^* c` with coefficients
+`ℤ` to the integral cup product `pr₁^* a' ⌣ pr₂^* c'`, where `a'` and `c'` are the images of `a`
+and `c` in integral cohomology. -/
+theorem integralCohomologyEquiv_symm_singularCup_fst_snd (X Y : TopCat.{0}) {p n N : ℕ}
+    (h : p + n = N)
+    (a : X.singularCohomology (𝟙_ (ModuleCat.{0} ℤ)) ℤ (𝟙_ (ModuleCat.{0} ℤ)) p)
+    (c : Y.singularCohomology (𝟙_ (ModuleCat.{0} ℤ)) ℤ (𝟙_ (ModuleCat.{0} ℤ)) n) :
+    ((X ⊗ Y).integralCohomologyEquiv N).symm
+      ((X ⊗ Y).singularCup ℤ (λ_ _).inv (λ_ _).hom p n N h
+        (TopCat.singularCohomologyMap (CartesianMonoidalCategory.fst X Y) p a)
+        (TopCat.singularCohomologyMap (CartesianMonoidalCategory.snd X Y) n c)) =
+      (X ⊗ Y).integralCup p n N h
+        (@TopCat.singularCohomologyMap _ _ _ _ (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ _
+          Linear.preadditiveIntLinear (ModuleCat.of ℤ ℤ) _ _
+          (CartesianMonoidalCategory.fst X Y) p ((X.integralCohomologyEquiv p).symm a))
+        (@TopCat.singularCohomologyMap _ _ _ _ (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ _
+          Linear.preadditiveIntLinear (ModuleCat.of ℤ ℤ) _ _
+          (CartesianMonoidalCategory.snd X Y) n ((Y.integralCohomologyEquiv n).symm c)) := by
+  rw [integralCohomologyEquiv_symm_singularCup, integralCohomologyEquiv_symm_naturality,
+    integralCohomologyEquiv_symm_naturality]
 
 /-- Cup product with a class is bijective in integral cohomology exactly when it is in cohomology
 with chain coefficients and values `ℤ`: for `b` of degree `q`, `a ↦ a ⌣ b` is a bijection
