@@ -766,21 +766,16 @@ theorem exists_mpullback_dehnTwist_sub_eq [IsManifold I ∞ M] {σ : SmoothTwoFo
       (∀ x ∉ (fun z : U ↦ (ι z : M)) '' {z | cotangentNorm (z : 𝕋 n) ≤ r₀}, K x = 0) ∧
       SmoothForm.mpullback (dehnTwist ι hR hU) (dehnTwist ι hR hU).contMDiff θ - θ =
         mextDerivₗ I 0 (SmoothForm.ofFunction K) := by
-  rw [exactForms_succ, LinearMap.mem_range] at hθL
-  obtain ⟨ψ, hψ⟩ := hθL
-  set h : C^∞⟮𝓡 n, 𝕊 n; ℝ⟯ := SmoothForm.ofFunctionEquiv.symm ψ
-  have hh : SmoothForm.mpullback f hι.contMDiff θ =
-      mextDerivₗ (𝓡 n) 0 (SmoothForm.ofFunction h) := by
-    rw [SmoothForm.ofFunction_ofFunctionEquiv_symm, hψ]
+  obtain ⟨h, hhs, hdh⟩ := exists_contMDiff_mextDeriv_eq_of_mem_exactForms (𝓡 n) hθL
   have hθh : TauCeti.mpullback (𝓡 n) I f θ.val = mextDeriv (RoughForm.ofFunction (𝓡 n) h) := by
-    simpa using congrArg Subtype.val hh
+    simpa using hdh.symm
   -- Step 1: a primitive `g` of `ι^*θ - λ` on `W = {μ < r₁}`, for some `r₁ > r₀`.
   obtain ⟨r₁, hr₁, hr₁U⟩ := exists_gt_setOfPred_cotangentNorm_le_subset (U.isOpen.mem_nhdsSet.2 hU)
   set W : Set (𝕋 n) := {z | cotangentNorm z < r₁} with hW
   have hWo : IsOpen W := isOpen_lt continuous_cotangentNorm continuous_const
   have hWU : closure W ⊆ U :=
     (closure_lt_subset_le continuous_cotangentNorm continuous_const).trans hr₁U
-  obtain ⟨g, hg, hdg⟩ := hι.exists_contMDiff_mextDeriv_ofFunction_eq hθ h.contMDiff hθh
+  obtain ⟨g, hg, hdg⟩ := hι.exists_contMDiff_mextDeriv_ofFunction_eq hθ hhs hθh
     (fun z hz t ↦ vectorBundleFiberScaling_mem_setOfPred_cotangentNorm_lt hz t) hWU
     fun q ↦ by
       rw [mem_ofPred_eq, cotangentNorm_zeroSection]
