@@ -99,6 +99,16 @@ theorem isMIntegralCurveOn_completionEnd (x : (𝓡∂ (n + 1)).boundary W) :
   exact (MDifferentiableAt.mfderiv_uncurry_apply_mk_zero (f := fun s x ↦ h.completionEnd (s, x))
     hd 1).symm.trans (key.trans (one_smul ℝ _).symm)
 
+/-- Along the lines `t ↦ Φ (t, x)` of the collar map, which are integral curves of `Y` on
+`(-ε, 0]`, a function `g` on `W` differentiable at `Φ (s, x)` has derivative `dg(Y)` at `s`. -/
+theorem hasDerivAt_comp_collarFlow {g : W → ℝ} {s : ℝ} (hs : s ∈ Ioo (-h.collarWidth) 0)
+    (x : (𝓡∂ (n + 1)).boundary W)
+    (hg : MDifferentiableAt (𝓡∂ (n + 1)) 𝓘(ℝ) g (h.collarFlow (s, x))) :
+    HasDerivAt (fun t ↦ g (h.collarFlow (t, x)))
+      (mvfderiv (𝓡∂ (n + 1)) g (h.collarFlow (s, x)) (Y (h.collarFlow (s, x)))) s :=
+  Manifold.hasDerivAt_comp_curve hg
+    ((h.isMIntegralCurveOn_collarFlow x s ⟨hs.1, hs.2.le⟩).hasMFDerivAt (Ioc_mem_nhds hs.1 hs.2))
+
 /-- Every point of the completion is carried into `W` by the flow of its Liouville field: the
 point `(s, x)` of the end, `s > 0`, in time `-s`, and the points of `W` in time `0`. -/
 theorem exists_flowOf_completionField_mem_range (z : h.Completion) :

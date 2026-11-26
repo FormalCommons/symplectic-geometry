@@ -520,9 +520,9 @@ theorem exists_diffeotopy_dehnTwist_eq (hf₁ : IsLagrangianMap f₁) (hf : Fram
     ∃ (Φ : Diffeotopy I ∞ M) (K : Set M), IsCompact K ∧
       (∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer ω) ∧ (∀ t x, x ∉ K → Φ (t, x) = x) ∧
       ∀ x, Φ.final (dehnTwist ι₁ hR₁ hU₁ x) = dehnTwist ι₂ hR₂ hU₂ x
-theorem exists_mpullback_dehnTwist_sub_eq (θ : SmoothForm I M ℝ 1) (hθ : mextDeriv θ = ω)
-    (hθL : ∃ h : C^∞⟮𝓡 n, Sⁿ; ℝ⟯, mpullback f θ = mextDerivₗ h)
-    (hι : CotangentBundle.IsWeinsteinChart ω f ι) :
+theorem exists_mpullback_dehnTwist_sub_eq (hι : CotangentBundle.IsWeinsteinChart ω f ι)
+    (θ : SmoothForm I M ℝ 1) (hθ : mextDeriv θ = ω)
+    (hθL : ∃ h : C^∞⟮𝓡 n, Sⁿ; ℝ⟯, mpullback f θ = mextDerivₗ h) :
     ∃ K : C^∞⟮I, M; ℝ⟯, (∀ x ∉ ι '' {z | cotangentNorm z ≤ r₀}, K x = 0) ∧
       mpullback (dehnTwist ι hR hU) θ - θ = mextDerivₗ K
 theorem exists_mpullback_dehnTwist_sub_eq_of_two_le (hn : 2 ≤ n) … -- without hθL

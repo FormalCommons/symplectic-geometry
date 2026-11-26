@@ -57,6 +57,7 @@ Weinstein homotopy.
   `TauCeti.IsMorse.isGeneralizedMorse`, `TauCeti.IsGeneralizedMorse.isClosed_criticalPoints`,
   `TauCeti.IsGeneralizedMorse.isDiscrete_criticalPoints`,
   `TauCeti.IsGeneralizedMorse.finite_criticalPoints_inter_preimage_Iic`,
+  `TauCeti.IsGeneralizedMorse.exists_isRegularValue_mem_Ioo`,
   `TauCeti.IsGeneralizedMorse.comp`, `TauCeti.IsGeneralizedMorse.comp_isLocalDiffeomorph` and its
   special case `TauCeti.IsGeneralizedMorse.comp_diffeomorph`.
 * `TauCeti.isGeneralizedMorse_birthDeathPotential` and `TauCeti.not_isMorse_birthDeathPotential`:
@@ -72,6 +73,10 @@ theorem. In the chart, `h ∘ f - h (f x)` is the normal form of `f` times a smo
 function `a` (Hadamard's lemma, `ContDiff.exists_contDiff_sub_eq_smul`), and the local
 diffeomorphism rescales the coordinates of weight `±1` by `√a` and the cubic one by `∛a`
 (`SymplecticGeometry.exists_openPartialHomeomorph_pi_mul_rpow`).
+
+`TauCeti.IsGeneralizedMorse.exists_isRegularValue_mem_Ioo` follows Tau Ceti's
+`TauCeti.IsMorse.exists_isRegularValue_mem_Ioo`, with the finiteness of critical points of a
+generalized Morse function in compact sets in place of that of a Morse function.
 
 The chart `TauCeti.BirthDeathChart.pullback` is built on the pull-back of the Morse–Bott chart of
 the quadratic part (`TauCeti.MorseBottChart.pullback`), whose chart is `A⁻¹ ∘ ψ ∘ Φ` near `y` for
@@ -645,6 +650,17 @@ theorem finite_criticalPoints_inter_preimage_Iic [IsManifold 𝓘(ℝ, E) 1 M]
     (hf : IsGeneralizedMorse E f) (hp : IsProperMap f) (hbdd : BddBelow (range f)) (b : ℝ) :
     (criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹' Iic b).Finite :=
   hf.finite_criticalPoints_inter (hp.isCompact_preimage_Iic hbdd b)
+
+/-- A compact band `f ⁻¹' [a, b]` of a generalized Morse function contains only finitely many
+critical values, so there is a regular value strictly between `a` and `b` whenever `a < b`. -/
+theorem exists_isRegularValue_mem_Ioo [IsManifold 𝓘(ℝ, E) 1 M] (hf : IsGeneralizedMorse E f)
+    {a b : ℝ} (hab : a < b) (hcompact : IsCompact (f ⁻¹' Icc a b)) :
+    ∃ c ∈ Ioo a b, IsRegularValue 𝓘(ℝ, E) 𝓘(ℝ) f c := by
+  obtain ⟨c, hc, hnot⟩ :=
+    ((Ioo_infinite hab).sdiff ((hf.finite_criticalPoints_inter hcompact).image f)).nonempty
+  refine ⟨c, hc, isRegularValue_iff_notMem_image_criticalPoints.2 ?_⟩
+  rintro ⟨x, hx, rfl⟩
+  exact hnot ⟨x, ⟨hx, hc.1.le, hc.2.le⟩, rfl⟩
 
 /-- Composing a generalized Morse function with a smooth `h : ℝ → ℝ` with `h' > 0` on the values
 of `f` gives a generalized Morse function. -/
