@@ -60,6 +60,13 @@ instance instHomeomorphClass : HomeomorphClass (M ≃ₘ^n⟮I, I'⟯ M') M M' w
   map_continuous h := h.continuous
   inv_continuous h := h.symm.continuous
 
+/-- The homeomorphism that a diffeomorphism gives as a `HomeomorphClass` is
+`Diffeomorph.toHomeomorph`. -/
+@[simp]
+theorem coe_homeomorph_eq_toHomeomorph (h : M ≃ₘ^n⟮I, I'⟯ M') :
+    (h : M ≃ₜ M') = h.toHomeomorph :=
+  (rfl)
+
 /-- Inverting a diffeomorphism twice gives it back. -/
 @[simp]
 theorem symm_symm (h : M ≃ₘ^n⟮I, I'⟯ M') : h.symm.symm = h :=

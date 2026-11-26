@@ -216,6 +216,17 @@ theorem coe_gluingHomeomorph_symm (y : modelOffDivisorOpens c) :
     ((gluingHomeomorph c).symm y : M) = c.symm (y : BlowupModel n).blowdown :=
   (rfl)
 
+/-- A point `x` of the overlap in the first piece is glued to the point `y` of the model exactly
+when `y` lies over `c x`. -/
+@[simp]
+theorem coe_gluingHomeomorph_eq_iff {x : puncturedSourceOpens c} {y : modelOpens c} :
+    (gluingHomeomorph c x : modelOpens c) = y ↔ c x = (y : BlowupModel n).blowdown := by
+  refine ⟨?_, fun hxy ↦ Subtype.ext (eq_of_blowdown_eq ?_ ?_)⟩
+  · rintro rfl
+    exact (blowdown_gluingHomeomorph c x).symm
+  · simpa using c.apply_ne_zero x.property x.val.property
+  · simpa using hxy
+
 end Blowup
 
 /-- The blowup of `M` at `p₀` along the chart `c`: the space glued from `M \ {p₀}` and the part
@@ -238,13 +249,7 @@ when `x` is in the source of `c` and `y` lies over `c x`. -/
 theorem inl_eq_inr_iff {x : puncturedOpens c} {y : modelOpens c} :
     inl (gluingHomeomorph c) x = inr (gluingHomeomorph c) y ↔
       (x : M) ∈ c.source ∧ c x = (y : BlowupModel n).blowdown := by
-  refine (GluedAlong.inl_eq_inr_iff (gluingHomeomorph c)).trans ⟨?_, ?_⟩
-  · rintro ⟨hx, rfl⟩
-    exact ⟨hx, (blowdown_gluingHomeomorph c ⟨x, hx⟩).symm⟩
-  · rintro ⟨hx, hxy⟩
-    refine ⟨hx, Subtype.ext (eq_of_blowdown_eq ?_ ?_)⟩
-    · simpa using c.apply_ne_zero hx x.property
-    · simpa using hxy
+  simp
 
 /-- A point `y` of the model and a point `x ≠ p₀` of `M` are identified in the blowup exactly
 when `x` is in the source of `c` and `y` lies over `c x`. -/

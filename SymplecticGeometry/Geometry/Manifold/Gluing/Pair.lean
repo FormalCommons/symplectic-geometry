@@ -26,8 +26,10 @@ homeomorphisms (`HomeomorphClass F U₁ U₂`), such as a `C^n` diffeomorphism
 canonical open embeddings `GluedAlong.inl : M₁ → GluedAlong φ` and
 `GluedAlong.inr : M₂ → GluedAlong φ`, whose ranges
 cover it. A point `x` of `M₁` and a point `y` of `M₂` have the same image exactly when `x ∈ U₁`
-and `φ x = y` (`GluedAlong.inl_eq_inr_iff`). This topological layer uses only the homeomorphism
-underlying `φ`; when `M₁` and `M₂` are charted spaces over one model, so is the glued space.
+and `φ x = y` (`GluedAlong.inl_eq_inr_iff`). The glued space need not be Hausdorff even when
+`M₁` and `M₂` are; it is when, moreover, the graph of `φ` is closed in `M₁ × M₂`. This
+topological layer uses only the homeomorphism underlying `φ`; when `M₁` and `M₂` are charted
+spaces over one model, so is the glued space.
 
 Let now `M₁` and `M₂` be charted spaces over one model `I`, and `φ : U₁ ≃ₘ^n⟮I, I⟯ U₂` a `C^n`
 diffeomorphism, a homeomorphism through the instance `Diffeomorph.instHomeomorphClass`. Both
@@ -36,8 +38,7 @@ and its inverse. So the gluing is compatible in the sense of Tau Ceti's
 `TopCat.GlueData.IsCompatible`, and `TopCat.GlueData.chartedSpace` and
 `TopCat.GlueData.IsCompatible.isManifold` make `GluedAlong φ` a charted space over the model of
 `M₁` and `M₂`, and a `C^n` manifold when they are, for which `inl` and `inr` are `C^n` local
-diffeomorphisms. The glued space need not be Hausdorff even when `M₁` and `M₂` are; it is when,
-moreover, the graph of `φ` is closed in `M₁ × M₂`.
+diffeomorphisms.
 
 Over `ℝ`, for a smooth `φ`, smooth forms glue. Let `σ₁` and `σ₂` be smooth forms on `M₁` and
 `M₂` that correspond on the overlap: `φ^*(σ₂|U₂) = σ₁|U₁`, where restricting to an open subset
@@ -228,8 +229,14 @@ theorem inr_apply (x : U₁) : inr φ (φ x : M₂) = inl φ (x : M₁) :=
 /-- A point of `U₂` and its image under the inverse of `φ` have the same image in the glued
 space. -/
 @[simp]
-theorem inl_symm_apply (y : U₂) : inl φ (EquivLike.inv φ y : M₁) = inr φ (y : M₂) := by
+theorem inl_inv_apply (y : U₂) : inl φ (EquivLike.inv φ y : M₁) = inr φ (y : M₂) := by
   rw [← inr_apply, EquivLike.apply_inv_apply]
+
+/-- A point of `U₂` and its image under the inverse of the homeomorphism `φ` have the same image
+in the glued space. -/
+@[simp]
+theorem inl_symm_apply (φ : U₁ ≃ₜ U₂) (y : U₂) : inl φ (φ.symm y : M₁) = inr φ (y : M₂) :=
+  inl_inv_apply φ y
 
 section Desc
 
@@ -360,6 +367,12 @@ theorem isLocalDiffeomorph_inl [IsManifold I n M₁] [IsManifold I n M₂] :
 theorem isLocalDiffeomorph_inr [IsManifold I n M₁] [IsManifold I n M₂] :
     IsLocalDiffeomorph I I n (inr φ) :=
   (isCompatible_glueData φ).isLocalDiffeomorph_ι ⟨true⟩
+
+/-- A point of `U₂` and its image under the inverse of the diffeomorphism `φ` have the same
+image in the glued space. -/
+@[simp]
+theorem inl_diffeomorph_symm_apply (y : U₂) : inl φ (φ.symm y : M₁) = inr φ (y : M₂) :=
+  inl_inv_apply φ y
 
 end GluedAlong
 
