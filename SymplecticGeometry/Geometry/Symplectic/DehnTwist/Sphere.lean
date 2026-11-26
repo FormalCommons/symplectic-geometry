@@ -261,7 +261,7 @@ private theorem exists_dehnTwist (ι : U ≃ₘ⟮𝓣 n, I⟯ V) (hR : IsTwistP
     ∃ Φ : M ≃ₘ⟮I, I⟯ M, (∀ z : U, Φ (ι z) = ι (modelTwistOn hR hU z)) ∧
       ∀ x ∉ (fun z : U ↦ (ι z : M)) '' {z | cotangentNorm (z : 𝕋 n) ≤ r₀}, Φ x = x :=
   IsLocalDiffeomorph.exists_diffeomorph_extend_of_isCompact
-    (isLocalDiffeomorph_subtypeVal_comp_iff.2 ι.isLocalDiffeomorph)
+    ι.isLocalDiffeomorph_subtypeVal_comp
     (V.isOpen.isOpenEmbedding_subtypeVal.comp ι.toHomeomorph.isOpenEmbedding) _
     (isCompact_setOfPred_cotangentNorm_coe_le hU) fun _ ↦ modelTwistOn_apply_of_notMem hR hU
 
@@ -326,8 +326,8 @@ theorem mem_diffeomorphStabilizer_of_semiconj_cotangent [IsManifold I ∞ M]
     (hΦ : ∀ z, Φ (ι z) = ι (f' z))
     (hΦr : ∀ x ∉ (fun z : U ↦ (ι z : M)) '' {z | cotangentNorm (z : 𝕋 n) ≤ r₀}, Φ x = x) :
     Φ ∈ SmoothForm.diffeomorphStabilizer σ := by
-  exact SmoothForm.mem_diffeomorphStabilizer_of_semiconj
-    (isLocalDiffeomorph_subtypeVal_comp_iff.2 ι.isLocalDiffeomorph)
+  exact SmoothForm.mem_diffeomorphStabilizer_of_semiconj (g := Subtype.val ∘ ι)
+    ι.isLocalDiffeomorph_subtypeVal_comp
     (by rw [← SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq.1 hι,
       SmoothForm.mpullback_mpullback])
     (SmoothForm.mem_diffeomorphStabilizer_mpullback_of_semiconj contMDiff_subtypeVal hf'
@@ -455,7 +455,7 @@ theorem exists_diffeotopy_dehnTwist_eq_of_isTwistProfile [IsManifold I ∞ M]
     exact ((Φ₀.timeSlice t).injective.apply_mem_iff_of_eq_self (hΦ₀K t) hU z).symm
   let Ψ := Φ₀.subtype U hΦ₀U
   obtain ⟨Φ, hΦι, hΦK⟩ := Ψ.exists_extend_of_isCompact (χ := fun z : U ↦ (ι z : M))
-    (isLocalDiffeomorph_subtypeVal_comp_iff.2 ι.isLocalDiffeomorph)
+    ι.isLocalDiffeomorph_subtypeVal_comp
     (V.isOpen.isOpenEmbedding_subtypeVal.comp ι.toHomeomorph.isOpenEmbedding)
     (isCompact_setOfPred_cotangentNorm_coe_le hU) fun t z hz ↦ Subtype.ext <| by
       rw [Diffeotopy.subtype_apply_coe, ← Diffeotopy.timeSlice_apply]; exact hΦ₀K t z hz
@@ -643,7 +643,7 @@ private theorem exists_restrict_of_mpullback_eq [IsManifold I ∞ M] {σ : Smoot
   have hχd : IsLocalDiffeomorph (𝓣 n) I ∞ χ := by
     have h : IsLocalDiffeomorph (𝓣 n) I ∞ (Subtype.val ∘ ι ∘ Opens.inclusion hW) := fun z ↦
       (isLocalDiffeomorph_inclusion hW z).comp I M
-        (isLocalDiffeomorph_subtypeVal_comp_iff.2 ι.isLocalDiffeomorph _)
+        (ι.isLocalDiffeomorph_subtypeVal_comp _)
     exact isLocalDiffeomorph_subtypeVal_comp_iff.1 h
   have hχinj : Function.Injective χ := fun a b h ↦ by
     have h' : ((χ a : U₀) : M) = χ b := congrArg Subtype.val h
