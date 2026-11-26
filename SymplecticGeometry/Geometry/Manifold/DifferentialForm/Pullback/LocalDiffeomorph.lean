@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Algebra.SMul
+public import Mathlib.Geometry.Manifold.Immersion
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Interior
@@ -17,6 +18,7 @@ public import TauCeti.Geometry.Manifold.TwoForm.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.IsManifold.Basic
+import TauCeti.Geometry.Manifold.MFDeriv.IsInvertible
 
 /-!
 # Pulling forms back along local diffeomorphisms
@@ -51,7 +53,10 @@ identities between a form `ω` at `f x` and its pullback at `x`: `dφ = ψ`
 (`IsLocalDiffeomorphAt.mextDeriv_apply_eq_iff`), `ι_Z ω = ψ` for fields related by the
 differential (`IsLocalDiffeomorphAt.interior_apply_eq_iff`), nondegeneracy of a two-form
 (`TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv`, which needs only
-an invertible differential at `x`; for the action of an element of a group acting smoothly, on a
+an invertible differential at `x`; for an immersion at `x` between manifolds of one finite
+dimension, which has one, the direction from `f x` to `x` is
+`TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_mpullback_of_isImmersionAt`; for the action of an
+element of a group acting smoothly, on a
 two-form invariant under it, this is `TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_smul_iff`),
 and, for a two-form closed at `f x`, the
 identity `L_Z ω = ψ` (`IsLocalDiffeomorphAt.mlieDerivForm_apply_eq_iff`, through the
@@ -253,6 +258,20 @@ theorem nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv [IsManifold I 1 M]
     ext i
     fin_cases i <;> simp [← he]
   rw [hη, LinearMap.BilinForm.nondegenerate_congr_iff]
+
+open scoped ContDiff in
+/-- Let `f : M → M'` be smooth and a `C^n` immersion at `x`, with `n ≠ 0`, where the models of
+`M` and `M'` have the same finite dimension. If the two-form `σ` on `M'` is nondegenerate at
+`f x`, then its pull-back along `f` is nondegenerate at `x`. -/
+theorem nondegenerate_bilinFormAt_mpullback_of_isImmersionAt [FiniteDimensional ℝ E']
+    [IsManifold I 1 M] [IsManifold I' 1 M'] (hf : ContMDiff I I' ∞ f)
+    (hfx : Manifold.IsImmersionAt I I' n f x) (hn : n ≠ 0)
+    (hdim : Module.finrank ℝ E = Module.finrank ℝ E') {σ : SmoothForm I' M' ℝ 2}
+    (hσ : (σ.bilinFormAt (f x)).Nondegenerate) :
+    ((SmoothForm.mpullback f hf σ).bilinFormAt x).Nondegenerate :=
+  (nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv
+    ((isInvertible_mfderiv_iff_injective hdim).2 (hfx.mfderiv_injective hn))
+    (by rw [SmoothForm.coe_mpullback])).1 hσ
 
 open scoped ContDiff in
 /-- Let a group `G` act smoothly on `M`, and let the two-form `σ` on `M` be invariant under

@@ -39,6 +39,10 @@ through the linear equivalence `Bundle.ContMDiffTwoForm.tangentEquiv` with Tau C
 * `symplecticFormsInClass_subset_nondegenerateForms`: the second space lies in the first.
 * `symplecticFormsInClass_congr`: the space depends on `α` only through its class modulo exact
   forms; `symplecticFormsInClass_eq_of_mk_eq` states this for de Rham classes of closed forms.
+* `ContMDiffTwoForm.nondegenerate_bilinFormAt_tangentEquiv_symm_mpullback_timeSlice` and
+  `ContMDiffTwoForm.tangentEquiv_symm_mpullback_timeSlice_zero`: the pull-back along a slice of a
+  smooth isotopy of `M` into itself keeps nondegeneracy, and at time `0` of an isotopy from the
+  identity it is the identity.
 * `cwType_nondegenerateForms`: when a smooth isotopy from the identity of `M` ends at a map
   `j` whose image has compact closure, the space of nondegenerate forms has CW type.
 
@@ -57,7 +61,7 @@ so its differential is invertible and it pulls a form nondegenerate at `h (t, x)
 nondegenerate at `x`. The set `O` is open in the frame topology, which is metrizable and locally
 convex, so `O` has CW type by `Convex.cwType_inter`, and `TauCeti.CWType.of_comp_homotopic_id`
 concludes. Metrizability uses that `M` is second countable, as `j` embeds it into the compact
-set `K` (`Topology.IsEmbedding.secondCountableTopology_of_isCompact_closure`).
+set `K` (`Topology.IsInducing.secondCountableTopology_of_isCompact_closure`).
 
 ## References
 
@@ -142,14 +146,41 @@ variable [FiniteDimensional ℝ E] {ι : Type*}
   [∀ i, MemTrivializationAtlas (e i)]
   (U : ι → Opens M) (hU : ∀ i, (U i : Set M) ⊆ (e i).baseSet)
 
+/-- The pull-back along the slice at time `t` of a smooth isotopy `h` of `M` into itself takes a
+two-form on the tangent bundle that is nondegenerate at `h (t, x)` to one that is nondegenerate
+at `x`, since the slice is an immersion between manifolds of one dimension. -/
+theorem Bundle.ContMDiffTwoForm.nondegenerate_bilinFormAt_tangentEquiv_symm_mpullback_timeSlice
+    {f₀ f₁ : C^∞⟮I, M; I, M⟯} (h : TauCeti.SmoothIsotopy f₀ f₁)
+    {σ : ContMDiffTwoForm I ⊤ E (TangentSpace I (M := M))} {t : unitInterval} {x : M}
+    (hσ : (σ.bilinFormAt (h (t, x))).Nondegenerate) :
+    ((ContMDiffTwoForm.tangentEquiv.symm (TauCeti.SmoothForm.mpullback (h.timeSlice t)
+      (h.timeSlice t).contMDiff (ContMDiffTwoForm.tangentEquiv σ))).bilinFormAt
+        x).Nondegenerate := by
+  rw [ContMDiffTwoForm.bilinFormAt_tangentEquiv_symm]
+  refine TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_mpullback_of_isImmersionAt _
+    (((h.timeSlice t).isSmoothEmbedding).isImmersion.isImmersionAt x) (by simp) rfl ?_
+  rwa [ContMDiffTwoForm.bilinFormAt_tangentEquiv, TauCeti.SmoothIsotopy.timeSlice_apply]
+
+omit [FiniteDimensional ℝ E] in
+/-- The pull-back along the slice at time `0` of a smooth isotopy from the identity of `M` is the
+identity on two-forms on the tangent bundle. -/
+theorem Bundle.ContMDiffTwoForm.tangentEquiv_symm_mpullback_timeSlice_zero
+    {j : C^∞⟮I, M; I, M⟯} (h : TauCeti.SmoothIsotopy (ContMDiffMap.id) j)
+    (σ : ContMDiffTwoForm I ⊤ E (TangentSpace I (M := M))) :
+    ContMDiffTwoForm.tangentEquiv.symm (TauCeti.SmoothForm.mpullback (h.timeSlice 0)
+      (h.timeSlice 0).contMDiff (ContMDiffTwoForm.tangentEquiv σ)) = σ := by
+  have h0 : (h.timeSlice 0 : M → M) = id := funext fun x ↦ by simp
+  rw [TauCeti.SmoothForm.mpullback_congr _ contMDiff_id h0, TauCeti.SmoothForm.mpullback_id,
+    LinearMap.id_apply, LinearEquiv.symm_apply_apply]
+
 /-- Let `M` compress into a compact set: some smooth isotopy `h` from the identity of `M` ends
 at a map `j` whose image has compact closure. Then the space of nondegenerate two-forms on the
 tangent bundle of `M`, in the frame topology of a covering frame system, has CW type.
 
 Some hypothesis of this kind is needed. For `M` a disjoint union of countably many copies of
-`ℝ²ⁿ`, the signs of `ωⁿ` at the origins of the copies retract the space continuously onto the
-Cantor set `{±1}^ℕ`. A space of CW type cannot do this: a map from the Cantor set into a CW
-complex has compact image, which meets only finitely many path components, so it cannot be
+`ℝ²ⁿ` with `n ≥ 1`, the signs of `ωⁿ` at the origins of the copies retract the space continuously
+onto the Cantor set `{±1}^ℕ`. A space of CW type cannot do this: a map from the Cantor set into a
+CW complex has compact image, which meets only finitely many path components, so it cannot be
 injective on the uncountably many path components of the Cantor set. -/
 theorem cwType_nondegenerateForms (hcover : ∀ x, ∃ i, x ∈ U i) {j : C^∞⟮I, M; I, M⟯}
     (h : TauCeti.SmoothIsotopy (ContMDiffMap.id) j) (hj : IsCompact (closure (Set.range j))) :
@@ -164,7 +195,8 @@ theorem cwType_nondegenerateForms (hcover : ∀ x, ∃ i, x ∈ U i) {j : C^∞�
     (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e U hU
   have : SecondCountableTopology H := I.secondCountableTopology
   have : SecondCountableTopology M :=
-    h.isSmoothEmbedding_right.isEmbedding.secondCountableTopology_of_isCompact_closure (H := H) hj
+    h.isSmoothEmbedding_right.isEmbedding.isInducing.secondCountableTopology_of_isCompact_closure
+      (H := H) hj
   have := ContMDiffSection.metrizableSpace_frameTopology (I := I)
     (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e U hU hcover
   -- The pull-back along the slice of `h` at time `t`.
@@ -174,24 +206,9 @@ theorem cwType_nondegenerateForms (hcover : ∀ x, ∃ i, x ∈ U i) {j : C^∞�
       (h.timeSlice q.2).contMDiff (ContMDiffTwoForm.tangentEquiv q.1))
   have hP : Continuous P :=
     ContMDiffTwoForm.continuous_tangentEquiv_symm_mpullback e U hU e U hU h hcover
-  -- Each slice is an immersion between manifolds of one dimension, so it pulls a form that is
-  -- nondegenerate at `h (t, x)` back to one nondegenerate at `x`.
-  have hnd (σ : ContMDiffTwoForm I ⊤ E (TangentSpace I (M := M))) (t : unitInterval) (x : M)
-      (hσ : (σ.bilinFormAt (h (t, x))).Nondegenerate) :
-      ((P (σ, t)).bilinFormAt x).Nondegenerate := by
-    have hdf : (mfderiv I I (h.timeSlice t) x).IsInvertible :=
-      (TauCeti.isInvertible_mfderiv_iff_injective rfl).2
-        (((h.timeSlice t).isSmoothEmbedding).isImmersion.mfderiv_injective (by simp) x)
-    have := TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv hdf
-      («ω» := ContMDiffTwoForm.tangentEquiv σ) (η := TauCeti.SmoothForm.mpullback (h.timeSlice t)
-        (h.timeSlice t).contMDiff (ContMDiffTwoForm.tangentEquiv σ))
-      (by rw [TauCeti.SmoothForm.coe_mpullback])
-    simpa [P] using this.1 (by
-      rwa [ContMDiffTwoForm.bilinFormAt_tangentEquiv, TauCeti.SmoothIsotopy.timeSlice_apply])
-  have hP0 (σ : ContMDiffTwoForm I ⊤ E (TangentSpace I (M := M))) : P (σ, 0) = σ := by
-    have h0 : (h.timeSlice 0 : M → M) = id := funext fun x ↦ by simp
-    simp only [P, TauCeti.SmoothForm.mpullback_congr _ contMDiff_id h0,
-      TauCeti.SmoothForm.mpullback_id, LinearMap.id_apply, LinearEquiv.symm_apply_apply]
+  have hnd {σ : ContMDiffTwoForm I ⊤ E (TangentSpace I (M := M))} {t : unitInterval} {x : M}
+      (hσ : (σ.bilinFormAt (h (t, x))).Nondegenerate) : ((P (σ, t)).bilinFormAt x).Nondegenerate :=
+    ContMDiffTwoForm.nondegenerate_bilinFormAt_tangentEquiv_symm_mpullback_timeSlice h hσ
   let K := closure (Set.range j)
   let O := Set.univ ∩
     {σ : ContMDiffTwoForm I ⊤ E (TangentSpace I (M := M)) |
@@ -202,15 +219,16 @@ theorem cwType_nondegenerateForms (hcover : ∀ x, ∃ i, x ∈ U i) {j : C^∞�
     ⟨fun σ ↦ ⟨σ, trivial, fun x _ ↦ σ.property.nondegenerate_bilinFormAt x⟩, by fun_prop⟩
   let r : C(O, nondegenerateForms I M) :=
     ⟨fun σ ↦ ⟨P (σ, 1), ContMDiffTwoForm.isNondegenerate_def.2 fun x ↦
-      hnd _ 1 x (σ.property.2 _ (subset_closure ⟨x, by simp⟩))⟩,
+      hnd (σ.property.2 _ (subset_closure ⟨x, by simp⟩))⟩,
       (hP.comp (continuous_subtypeVal.prodMk continuous_const)).subtype_mk _⟩
   refine TauCeti.CWType.of_comp_homotopic_id (i := i) (r := r) ⟨{
     toFun := fun q ↦ ⟨P (q.2, unitInterval.symm q.1), ContMDiffTwoForm.isNondegenerate_def.2
-      fun x ↦ hnd _ _ x (q.2.property.nondegenerate_bilinFormAt _)⟩
+      fun _ ↦ hnd (q.2.property.nondegenerate_bilinFormAt _)⟩
     continuous_toFun := (hP.comp ((continuous_subtypeVal.comp continuous_snd).prodMk
       (unitInterval.continuous_symm.comp continuous_fst))).subtype_mk _
     map_zero_left := fun σ ↦ by simp [i, r]
-    map_one_left := fun σ ↦ Subtype.ext (by simpa using hP0 σ) }⟩
+    map_one_left := fun σ ↦ Subtype.ext (by
+      simpa [P] using ContMDiffTwoForm.tangentEquiv_symm_mpullback_timeSlice_zero h σ) }⟩
 
 end CWType
 

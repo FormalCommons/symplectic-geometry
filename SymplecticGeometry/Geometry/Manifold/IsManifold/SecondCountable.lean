@@ -17,10 +17,10 @@ second countable space `E`, is second countable
 `ModelWithCorners.secondCountableTopology` and `ChartedSpace.secondCountable_of_sigmaCompact`.
 It is not an instance, since `SecondCountableTopology M` does not determine `I`.
 
-A space that embeds into a space with charts in a second countable `H`, with image of compact
-closure, is second countable (`Topology.IsEmbedding.secondCountableTopology_of_isCompact_closure`):
-finitely many chart domains cover the closure of the image, and their preimages are second
-countable open sets that cover the source.
+A space `X` with an inducing map `f` into a space with charts in a second countable `H`, where
+the image of `f` has compact closure, is second countable
+(`Topology.IsInducing.secondCountableTopology_of_isCompact_closure`): finitely many chart domains
+cover the closure of the image, and their preimages are second countable open sets that cover `X`.
 -/
 
 public section
@@ -40,11 +40,11 @@ theorem secondCountableTopology_of_sigmaCompact (I : ModelWithCorners 𝕜 E H) 
 end ModelWithCorners
 
 open Set in
-/-- A space that embeds into a space with charts in a second countable `H`, so that the image has
-compact closure, is second countable. -/
-theorem Topology.IsEmbedding.secondCountableTopology_of_isCompact_closure {H M X : Type*}
+/-- A space with an inducing map into a space with charts in a second countable `H`, whose image
+has compact closure, is second countable. -/
+theorem Topology.IsInducing.secondCountableTopology_of_isCompact_closure {H M X : Type*}
     [TopologicalSpace H] [SecondCountableTopology H] [TopologicalSpace M] [ChartedSpace H M]
-    [TopologicalSpace X] {f : X → M} (hf : IsEmbedding f) (hK : IsCompact (closure (range f))) :
+    [TopologicalSpace X] {f : X → M} (hf : IsInducing f) (hK : IsCompact (closure (range f))) :
     SecondCountableTopology X := by
   obtain ⟨t, -, ht⟩ := hK.elim_nhds_subcover (fun x ↦ (chartAt H x).source)
     fun x _ ↦ chart_source_mem_nhds H x
