@@ -52,8 +52,8 @@ tangent bundle, and for a nondegenerate form they are, on each fibre, Tau Ceti's
 * `tames_tangentEquiv_iff`, `invariant_tangentEquiv_iff`, `compatible_tangentEquiv_iff`: on the
   tangent bundle, the predicates are Tau Ceti's; `compatible_tangentEquiv_symm_iff` reads
   compatibility the other way.
-* `convex_setOf_tames`, `convex_setOf_invariant`, `convex_setOf_compatible`: the two-forms
-  taming, invariant under, or compatible with a fixed complex structure form a convex set.
+* `convex_setOfPred_tames`, `convex_setOfPred_invariant`, `convex_setOfPred_compatible`: the
+  two-forms taming, invariant under, or compatible with a fixed complex structure form a convex set.
 * `ContMDiffComplexStructure.compatible_compatibleForm`: `ω_{g,J}` is compatible with `J`.
 * `ContMDiffComplexStructure.compatibleForm_apply_of_invariant`: for a metric `g` invariant under
   `J`, `ω_{g,J}(u, v) = g(J u, v)`.
@@ -234,7 +234,7 @@ theorem Compatible.compatibleAt (h : ω.Compatible J) (x : M) :
 /-! ### Convexity -/
 
 /-- The two-forms that tame a fixed complex structure form a convex set. -/
-theorem convex_setOf_tames (J : ContMDiffComplexStructure I m F V) :
+theorem convex_setOfPred_tames (J : ContMDiffComplexStructure I m F V) :
     Convex ℝ {ω : ContMDiffTwoForm I n F V | ω.Tames J} := by
   intro ω hω ω' hω' a b ha hb hab x v hv
   have h₁ := hω x v hv
@@ -248,21 +248,21 @@ theorem convex_setOf_tames (J : ContMDiffComplexStructure I m F V) :
     simpa using h₂
 
 /-- The two-forms invariant under a fixed complex structure form a convex set. -/
-theorem convex_setOf_invariant (J : ContMDiffComplexStructure I m F V) :
+theorem convex_setOfPred_invariant (J : ContMDiffComplexStructure I m F V) :
     Convex ℝ {ω : ContMDiffTwoForm I n F V | ω.Invariant J} := by
   intro ω hω ω' hω' a b _ _ _ x v w
   simp only [bilinFormAt_add, bilinFormAt_smul, LinearMap.add_apply, LinearMap.smul_apply,
     hω x v w, hω' x v w]
 
 /-- The two-forms compatible with a fixed complex structure form a convex set. -/
-theorem convex_setOf_compatible (J : ContMDiffComplexStructure I m F V) :
+theorem convex_setOfPred_compatible (J : ContMDiffComplexStructure I m F V) :
     Convex ℝ {ω : ContMDiffTwoForm I n F V | ω.Compatible J} := by
   have h : {ω : ContMDiffTwoForm I n F V | ω.Compatible J} =
       {ω | ω.Invariant J} ∩ {ω | ω.Tames J} := by
     ext ω
     exact compatible_iff
   rw [h]
-  exact (convex_setOf_invariant J).inter (convex_setOf_tames J)
+  exact (convex_setOfPred_invariant J).inter (convex_setOfPred_tames J)
 
 end Predicates
 
@@ -685,7 +685,7 @@ theorem IsNondegenerate.tames_lineMap_compatibleForm {t : ℝ} (ht : t ∈ Icc (
     (AffineMap.lineMap ω
       (ContMDiffComplexStructure.compatibleForm g (hω.polarComplexStructure g)) t).Tames
       (hω.polarComplexStructure g) :=
-  (convex_setOf_tames (hω.polarComplexStructure g)).lineMap_mem
+  (convex_setOfPred_tames (hω.polarComplexStructure g)).lineMap_mem
     (hω.compatible_polarComplexStructure g).tames
     (ContMDiffComplexStructure.compatible_compatibleForm g _).tames ht
 

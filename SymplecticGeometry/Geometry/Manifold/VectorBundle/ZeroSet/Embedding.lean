@@ -276,7 +276,7 @@ theorem isClosed_range_ofTransverseSection :
     letI := transverseZeroSetChartedSpace hm hsm hs hE
     IsClosed (range (ofTransverseSection hm hsm hs hE)) := by
   rw [range_ofTransverseSection]
-  exact VectorBundle.isClosed_setOf_eq_zero 𝕜 (b := _root_.id) hsm.continuous
+  exact VectorBundle.isClosed_setOfPred_eq_zero 𝕜 (b := _root_.id) hsm.continuous
 
 end TauCeti.SmoothEmbedding
 

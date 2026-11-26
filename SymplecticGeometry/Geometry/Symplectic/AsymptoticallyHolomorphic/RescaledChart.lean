@@ -36,10 +36,9 @@ On a compact manifold of dimension `2 * card ι` with `σ` closed, the structure
 bound for each order of derivative. They exist: Darboux charts into `StdSpace ι` at every point
 (`TauCeti.SmoothTwoForm.IsSymplectic.exists_darbouxChart_stdForm`) give compact neighbourhoods of
 every point on which the recentred charts have uniform bounds, finitely many of these cover `M`,
-and the smallest of their radii and the largest of their bounds work for all centres. Restricting
-each Darboux chart to a given open neighbourhood of its point first
-(`PartialDiffeomorph.restrOpen`) puts the source of every centred chart inside one set of a
-given open cover, indexed by the points of `M`.
+and the smallest of their radii and the largest of their bounds work for all centres. Taking each
+Darboux chart with source inside a given neighbourhood `U p` of its point `p` puts the source of
+every centred chart inside one of the sets `U p`.
 
 Rescaling a centred chart `D.chart x` by a nonzero real `c`, that is, following it by
 `z ↦ c • z`, gives the chart `D.rescaledChart c x`. It is still centred at `x`, its target contains
@@ -64,7 +63,7 @@ order `r` gains a factor `|c|⁻¹ ^ r`. With the mean value inequality and the 
   compact subset of the source of one Darboux chart, with the uniform radius and the uniform
   bounds.
 * `SymplecticGeometry.exists_centeredDarbouxCharts_source_subset`: centred Darboux charts with
-  uniform bounds whose sources lie in the sets of a given open cover.
+  uniform bounds whose sources lie in the sets of a given family of neighbourhoods.
 * `SymplecticGeometry.nonempty_centeredDarbouxCharts`: centred Darboux charts with uniform bounds
   exist on a compact manifold.
 * `SymplecticGeometry.CenteredDarbouxCharts.eval₂_rescaledChart`: the rescaled chart pulls
@@ -84,7 +83,7 @@ order `r` gains a factor `|c|⁻¹ ^ r`. With the mean value inequality and the 
 
 public section
 
-open scoped Manifold ContDiff
+open scoped Manifold ContDiff Topology
 open TauCeti TauCeti.SymplecticForm Metric
 
 namespace SymplecticGeometry
@@ -193,32 +192,23 @@ structure CenteredDarbouxCharts (σ : SmoothTwoForm I M) (J : SmoothAlmostComple
   norm_iteratedFDeriv_le (r : ℕ) (x : M) : ∀ z ∈ ball (0 : StdSpace ι) radius,
     ‖iteratedFDeriv ℝ r (J.chartPushforward (chart x).toOpenPartialHomeomorph) z‖ ≤ bound r
 
-/-- **Centred Darboux charts with sources in a given open cover.** On a compact boundaryless
+/-- **Centred Darboux charts with sources in given neighbourhoods.** On a compact boundaryless
 manifold `M` of dimension `2 * card ι`, with a closed two-form `σ` and a smooth almost complex
-structure `J` compatible with `σ`, let `U x` be an open neighbourhood of each point `x`. Then there
+structure `J` compatible with `σ`, let `U x` be a neighbourhood of each point `x`. Then there
 are centred Darboux charts `D` into `StdSpace ι` with one radius and uniform bounds on the
 derivatives of `J` read in them, and a map `c : M → M` such that the source of the chart centred
 at `x` lies in `U (c x)` for every `x`. -/
 theorem exists_centeredDarbouxCharts_source_subset [FiniteDimensional ℝ E] [CompactSpace M]
     (hE : Module.finrank ℝ E = 2 * Fintype.card ι) {σ : SmoothTwoForm I M} (hσ : σ.IsClosed)
     {J : SmoothAlmostComplexStructure I M} (hJ : σ.Compatible J) {U : M → Set M}
-    (hU : ∀ x, IsOpen (U x)) (hxU : ∀ x, x ∈ U x) :
+    (hU : ∀ x, U x ∈ 𝓝 x) :
     ∃ (D : CenteredDarbouxCharts σ J ι) (c : M → M), ∀ x, (D.chart x).source ⊆ U (c x) := by
   classical
   have := Manifold.locallyCompact_of_finiteDimensional (M := M) I
-  -- A Darboux chart `φ p` at every point `p`, restricted to `U p`, and a compact neighbourhood
+  -- A Darboux chart `φ p` at every point `p`, with source in `U p`, and a compact neighbourhood
   -- `K p` of `p` in its source, on which the charts recentred from `φ p` have uniform bounds.
-  choose φ₀ hpφ₀ _ hφ₀ using fun p ↦
-    SmoothTwoForm.IsSymplectic.exists_darbouxChart_stdForm hE ⟨hσ, hJ.isNondegenerate⟩ p
-  let φ p := (φ₀ p).restrOpen (U p) (hU p)
-  have hpφ (p : M) : p ∈ (φ p).source := by
-    rw [PartialDiffeomorph.restrOpen_source]
-    exact ⟨hpφ₀ p, hxU p⟩
-  have hφ (p : M) : ∀ x ∈ (φ p).source, ∀ v w : TangentSpace I x,
-      σ.eval₂ x v w = stdForm ι (mvfderiv I (φ p) x v) (mvfderiv I (φ p) x w) := by
-    intro x hx v w
-    rw [PartialDiffeomorph.restrOpen_source] at hx
-    simpa only [φ, PartialDiffeomorph.coe_restrOpen] using hφ₀ p x hx.1 v w
+  choose φ hpφ hφU _ hφ using fun p ↦
+    SmoothTwoForm.IsSymplectic.exists_darbouxChart_stdForm hE ⟨hσ, hJ.isNondegenerate⟩ (hU p)
   choose K hK hpK hKφ using fun p ↦ exists_compact_subset (φ p).open_source (hpφ p)
   choose A C₀ ρ hρ hA hC using fun p ↦
     exists_transAffine_darbouxCharts_of_isCompact hJ (φ p) (hφ p) (hK p) (hKφ p)
@@ -253,8 +243,8 @@ theorem exists_centeredDarbouxCharts_source_subset [FiniteDimensional ℝ E] [Co
     chartPushforward_zero x := (hA _ x (hcK x)).2.2.2.2.2.2.2
     norm_iteratedFDeriv_le r x z hz := (hC _ r x (hcK x) z (hρ₀le x hz)).trans
       (hB r (Finset.mem_image_of_mem _ (hct x))) }, c, fun x ↦ ?_⟩
-  rw [PartialDiffeomorph.transAffine_source, PartialDiffeomorph.restrOpen_source]
-  exact Set.inter_subset_right
+  rw [PartialDiffeomorph.transAffine_source]
+  exact hφU (c x)
 
 /-- **Centred Darboux charts with uniform bounds.** On a compact boundaryless manifold `M` of
 dimension `2 * card ι`, with a closed two-form `σ` and a smooth almost complex structure `J`
@@ -265,7 +255,7 @@ theorem nonempty_centeredDarbouxCharts [FiniteDimensional ℝ E] [CompactSpace M
     {J : SmoothAlmostComplexStructure I M} (hJ : σ.Compatible J) :
     Nonempty (CenteredDarbouxCharts σ J ι) :=
   let ⟨D, _⟩ := exists_centeredDarbouxCharts_source_subset hE hσ hJ (U := fun _ ↦ Set.univ)
-    (fun _ ↦ isOpen_univ) fun _ ↦ Set.mem_univ _
+    fun _ ↦ Filter.univ_mem
   ⟨D⟩
 
 namespace CenteredDarbouxCharts
