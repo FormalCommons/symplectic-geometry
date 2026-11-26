@@ -204,7 +204,7 @@ noncomputable def rangeWhitneySumIso (hP : P ≫ P = P) :
   inv_hom_id := by
     have hP' := Idempotents.idem_of_id_sub_idem P hP
     refine whitneySum_hom_ext' ?_ ?_ <;> refine whitneySum_hom_ext ?_ ?_ <;>
-      simp [hP, hP', rangeInclusion_rangeRestrict_of_comp_self]
+      simp [hP, hP']
 
 @[simp]
 theorem rangeWhitneySumIso_hom (hP : P ≫ P = P) :
