@@ -46,6 +46,8 @@ the divisor `Z`, the blowup is the image of `inl`, and so symplectomorphic to `M
 ## Main definitions
 
 * `SymplecticGeometry.WeightBlowup.outerPiece hψ`: the open subset `M ∖ ψ(B(l))` of `M`.
+* `SymplecticGeometry.BlowupModel.openNbhdOpens n ε`, the model piece: the neighbourhood
+  `openNbhd n ε` of the exceptional divisor of the model blowup, as an open subset of it.
 * `SymplecticGeometry.WeightBlowup.shellImage hψ`: the image under `ψ` of the open shell
   `l < |w| < √(l² + ε²)`, an open subset of `M`.
 * `SymplecticGeometry.WeightBlowup.gluingDiffeomorph hψ hl hε`: the diffeomorphism
@@ -595,21 +597,17 @@ section Divisor
 
 open scoped LinearAlgebra.Projectivization
 
-/-- The zero section of the model blowup lies in the model piece `openNbhd n ε`, for `0 < ε`. -/
-theorem zeroSection_mem_openNbhdOpens (hε : 0 < ε) (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
-    zeroSection ℓ ∈ openNbhdOpens n ε :=
-  mem_openNbhdOpens_iff.2 (zeroSection_mem_openNbhd hε ℓ)
-
 /-- The real zero section of the model blowup, as a smooth embedding into the model piece. -/
 private def zeroSectionOpenNbhd (hε : 0 < ε) :
     SmoothEmbedding 𝓘(ℝ, Fin n → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ (ℙ ℂ (Fin (n + 1) → ℂ))
       (openNbhdOpens n ε) :=
   (zeroSectionRealEmbedding n).codRestrict (openNbhdOpens n ε) fun ℓ ↦ by
     rw [coe_zeroSectionRealEmbedding]
-    exact zeroSection_mem_openNbhdOpens hε ℓ
+    exact mem_openNbhdOpens_iff.2 (zeroSection_mem_openNbhd hε ℓ)
 
 private theorem zeroSectionOpenNbhd_apply (hε : 0 < ε) (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
-    zeroSectionOpenNbhd hε ℓ = ⟨zeroSection ℓ, zeroSection_mem_openNbhdOpens hε ℓ⟩ :=
+    zeroSectionOpenNbhd hε ℓ =
+      ⟨zeroSection ℓ, mem_openNbhdOpens_iff.2 (zeroSection_mem_openNbhd hε ℓ)⟩ :=
   Subtype.ext <| by
     rw [zeroSectionOpenNbhd, SmoothEmbedding.val_codRestrict_apply,
       coe_zeroSectionRealEmbedding]
@@ -638,7 +636,7 @@ model piece. -/
 theorem divisor_apply (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
     divisor hψ hl hε ℓ =
       GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph
-        ⟨zeroSection ℓ, zeroSection_mem_openNbhdOpens hε ℓ⟩ := by
+        ⟨zeroSection ℓ, mem_openNbhdOpens_iff.2 (zeroSection_mem_openNbhd hε ℓ)⟩ := by
   rw [divisor, SmoothEmbedding.transLocalDiffeomorph_apply, zeroSectionOpenNbhd_apply]
 
 private theorem coe_divisor :
@@ -733,7 +731,7 @@ theorem normalSpaceDivisorEquiv_normalClass (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)
     normalSpaceDivisorEquiv hψ hl hε hn ℓ ((divisor hψ hl hε).isImmersion.normalClass ℓ hn
         (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
           (GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph)
-          ⟨zeroSection ℓ, zeroSection_mem_openNbhdOpens hε ℓ⟩ w)) =
+          ⟨zeroSection ℓ, mem_openNbhdOpens_iff.2 (zeroSection_mem_openNbhd hε ℓ)⟩ w)) =
       ⟨mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown (zeroSection ℓ) w,
         mfderiv_blowdown_zeroSection_mem ℓ w⟩ := by
   -- The tangent vectors at `zeroSectionOpenNbhd hε ℓ` and at the point
@@ -772,7 +770,7 @@ theorem normalSpaceDivisorEquiv_symm_apply (ℓ : ℙ ℂ (Fin (n + 1) → ℂ))
       (divisor hψ hl hε).isImmersion.normalClass ℓ hn
         (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
           (GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph)
-          ⟨zeroSection ℓ, zeroSection_mem_openNbhdOpens hε ℓ⟩ w) := by
+          ⟨zeroSection ℓ, mem_openNbhdOpens_iff.2 (zeroSection_mem_openNbhd hε ℓ)⟩ w) := by
   rw [ContinuousLinearEquiv.symm_apply_eq, normalSpaceDivisorEquiv_normalClass]
 
 end Divisor
