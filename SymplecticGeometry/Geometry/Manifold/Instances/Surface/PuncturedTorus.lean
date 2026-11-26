@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.Instances.Surface.Genus
 public import SymplecticGeometry.Geometry.Manifold.Instances.Surface.TorusWedge
 public import TauCeti.AlgebraicTopology.FundamentalGroup.HomotopyEquiv
 public import TauCeti.GroupTheory.SurfaceGroup.Free
+import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Basic
 import SymplecticGeometry.Topology.Instances.AddCircle.Icc
 import TauCeti.Topology.Homotopy.PuncturedStarConvex
 import TauCeti.Topology.Homotopy.Quotient
@@ -567,8 +568,7 @@ private theorem homeomorphMulEquivOfEq_symm_circleLoop (i : Fin 2) :
       FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk (torusCircleLoop i)) := by
   rw [← MulEquiv.eq_symm_apply, MulEquiv.symm_apply_eq, circlesFundamentalGroupMulEquiv_apply,
     FundamentalGroup.homeomorphMulEquivOfEq_symm_apply, ← FundamentalGroup.mapOfEq_rfl,
-    FundamentalGroup.mapOfEq_comp, FundamentalGroup.mapOfEq_apply, ← Path.Homotopic.Quotient.mk_map,
-    ← Path.Homotopic.Quotient.mk_cast, circleLoop]
+    FundamentalGroup.mapOfEq_comp, FundamentalGroup.mapOfEq_fromPath_mk, circleLoop]
   -- `FundamentalGroup.fromPath` is the abbreviation `CategoryTheory.End.of`.
   rfl
 
