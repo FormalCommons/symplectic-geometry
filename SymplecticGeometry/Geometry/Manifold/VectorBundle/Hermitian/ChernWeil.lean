@@ -247,13 +247,7 @@ theorem deRhamHom_realFirstChernClass_eq_neg_of_homotopyEquiv {M : Type} [Topolo
     [ChartedSpace (EuclideanSpace ℝ (Fin 2)) M] [IsManifold (𝓡 2) ∞ M] [T2Space M]
     [CompactSpace M] [ConnectedSpace M] [Orientable (𝓡 2) M]
     (φ : ContinuousMap.HomotopyEquiv M B) (hφ : ContMDiff (𝓡 2) IB ∞ φ.toFun) :
-    letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-    letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-    letI : IsContinuousRiemannianBundle F V :=
-      instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
-    haveI : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) IB (𝓡 1) :=
-      contMDiffFiberBundle_circleFiber g hI
-    deRhamHom IB B 2 (realFirstChernClass IB (Fiber ℂ F V ℂ)) =
+    deRhamHom IB B 2 (g.realFirstChernClass hI) =
       -((TopCat.of B).singularCohomologyRealImage 2).hom
         (complexEulerClass (r := 0) F V Fact.out) := by
   have : ∀ b, ContinuousSMul ℂ (V b) := VectorBundle.continuousSMul ℂ F V
@@ -288,14 +282,7 @@ variable {F : Type} [NormedAddCommGroup F] [NormedSpace ℝ F] [NormedSpace ℂ 
 sends the real first Chern class of the circle bundle of unitary frames of `V` to minus the real
 image of the Euler class of `V` in `H²(ℂP¹; ℝ)`. -/
 theorem deRhamHom_realFirstChernClass_eq_neg_projectiveLine :
-    letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-    letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-    letI : IsContinuousRiemannianBundle F V :=
-      instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
-    haveI : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) 𝓘(ℝ, Fin 1 → ℂ) (𝓡 1) :=
-      contMDiffFiberBundle_circleFiber g hI
-    deRhamHom 𝓘(ℝ, Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ)) 2
-        (realFirstChernClass 𝓘(ℝ, Fin 1 → ℂ) (Fiber ℂ F V ℂ)) =
+    deRhamHom 𝓘(ℝ, Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ)) 2 (g.realFirstChernClass hI) =
       -((TopCat.of (ℙ ℂ (Fin 2 → ℂ))).singularCohomologyRealImage 2).hom
         (complexEulerClass (r := 0) F V Fact.out) := by
   have : Fact (finrank ℝ (EuclideanSpace ℝ (Fin 3)) = 2 + 1) := ⟨by simp⟩
