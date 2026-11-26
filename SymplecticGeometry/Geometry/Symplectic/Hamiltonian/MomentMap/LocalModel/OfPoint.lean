@@ -75,11 +75,11 @@ composite sends it to `ξ_M(x)`.
   isomorphism from the tangent space of the model at `[1, 0]` to `T_x M` that takes the
   descended form to `σ_x`, intertwines the actions of the stabilizer, and sends `dπ (ξ, 0)` to
   `ξ_M(x)`.
-* `SymplecticGeometry.LocalModelData.linearEquiv_fiberTangentMap_smul`,
-  `SymplecticGeometry.LocalModelData.isCompl_orbitTangent_range_linearEquiv_comp_fiberTangentMap`:
-  for such an isomorphism `T`, the fibre directions `p ↦ T (dπ_(1, 0, 0) (0, p))` are equivariant
-  and span a complement of the orbit tangent space `𝔤 · x`; they are injective since `T` and
-  `SymplecticGeometry.LocalModelData.fiberTangentMap` are.
+* `SymplecticGeometry.LocalModelData.isCompl_orbitTangent_range_linearEquiv_comp_fiberTangentMap`:
+  for such an isomorphism `T`, the fibre directions `p ↦ T (dπ_(1, 0, 0) (0, p))` span a
+  complement of the orbit tangent space `𝔤 · x`. They are injective since `T` and
+  `SymplecticGeometry.LocalModelData.fiberTangentMap` are, and equivariant by
+  `SymplecticGeometry.LocalModelData.map_fiberTangentMap_smul` applied to `T`.
 
 ## References
 
@@ -499,43 +499,6 @@ theorem exists_linearEquiv_tangentSpace_ofPoint :
     rw [← InfinitesimalAction.eval_apply, ← InfinitesimalAction.eval_apply, map_add, map_add,
       map_add, h0, zero_add]
 
-/-- **The fibre directions in `T_x M` are equivariant.** Let `T` be a linear isomorphism from the
-tangent space of the local model `Y = G ×_{G_x} (A × V)` at `[1, 0]` to `T_x M` that intertwines
-the differential at `[1, 0]` of `y ↦ k • y` with `dk_x`, for each `k ∈ G_x`. Then
-`p ↦ T (dπ_(1, 0, 0) (0, p))` takes the action of `G_x` on `A × V` to `dk_x`. -/
-theorem linearEquiv_fiberTangentMap_smul :
-    let _ := d.chartedSpace
-    let _ := d.lieGroup
-    let _ := d.contMDiffSMul (I'' := I) (M := G)
-    let D := ofPoint hσ hσG hμ d h𝔪 h𝔪' h𝔮 eV eA
-    letI := D.fiberDistribMulAction
-    haveI := D.contMDiffSMul_fiberDistribMulAction
-    letI := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) (A × V) I
-      𝓘(ℝ, A × V) F
-    ∀ T : TangentSpace 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
-        (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
-          ((0 : A), (0 : V))) ≃ₗ[ℝ] TangentSpace I' x,
-      (∀ (k : stabilizer G x) u,
-        T (mfderiv 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
-          𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
-          (fun y : BalancedProduct (stabilizer G x) (stabilizer G x).RightTranslation (A × V) ↦
-            (k : G) • y)
-          (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
-            ((0 : A), (0 : V))) u) =
-          tangentRepresentation (fun (g : G) _ ↦
-            ContMDiffSMul.mdifferentiable_const_smul (I := I) (n := ∞) (by simp) g x) k
-            (T u)) →
-      ∀ (k : stabilizer G x) (p : A × V),
-        T (D.fiberTangentMap (k • p)) =
-          tangentRepresentation (fun (g : G) _ ↦
-            ContMDiffSMul.mdifferentiable_const_smul (I := I) (n := ∞) (by simp) g x) k
-            (T (D.fiberTangentMap p)) := by
-  intro _ _ _ D T hT k p
-  let := D.fiberDistribMulAction
-  have := D.contMDiffSMul_fiberDistribMulAction
-  let := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) (A × V) I 𝓘(ℝ, A × V) F
-  rw [fiberTangentMap_smul, hT]
-
 /-- **The fibre directions in `T_x M` are a complement of the orbit.** Let `T` be a linear
 isomorphism from the tangent space of the local model `Y = G ×_{G_x} (A × V)` at `[1, 0]` to
 `T_x M` that sends `dπ_(1, 0, 0) (ξ, 0)` to the fundamental vector `ξ_M(x)`, for each `ξ ∈ 𝔤`.
@@ -558,17 +521,9 @@ theorem isCompl_orbitTangent_range_linearEquiv_comp_fiberTangentMap :
       IsCompl ((InfinitesimalAction.fundamental I G I' M).orbitTangent x)
         (LinearMap.range (T.toLinearMap ∘ₗ D.fiberTangentMap)) := by
   intro _ _ _ D T hT
-  let := D.fiberDistribMulAction
-  have := D.contMDiffSMul_fiberDistribMulAction
-  let := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) (A × V) I 𝓘(ℝ, A × V) F
-  -- `T` sends the orbit directions of `Y` at `[1, 0]` onto `𝔤 · x`.
-  have h : (LinearMap.range D.orbitTangentMap).map T.toLinearMap =
-      (InfinitesimalAction.fundamental I G I' M).orbitTangent x := by
-    rw [← LinearMap.range_comp, InfinitesimalAction.orbitTangent_eq_range]
-    congr 1
-    exact LinearMap.ext fun ξ ↦ (hT ξ).trans (InfinitesimalAction.eval_apply _ x ξ).symm
-  rw [← h, LinearMap.range_comp]
-  exact Submodule.isCompl_map T D.isCompl_range_orbitTangentMap_range_fiberTangentMap
+  rw [InfinitesimalAction.orbitTangent_eq_range]
+  exact D.isCompl_range_range_comp_fiberTangentMap T _
+    (LinearMap.ext fun ξ ↦ (hT ξ).trans (InfinitesimalAction.eval_apply _ x ξ).symm)
 
 end LocalModelData
 

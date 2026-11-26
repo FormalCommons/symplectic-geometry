@@ -55,6 +55,10 @@ because `dc_k` sends `(0, p)` to `(0, k • p)`.
   `SymplecticGeometry.LocalModelData.injective_fiberTangentMap`,
   `SymplecticGeometry.LocalModelData.isCompl_range_orbitTangentMap_range_fiberTangentMap`: the
   fibre directions are `K`-equivariant, injective, and complementary to the orbit directions.
+* `SymplecticGeometry.LocalModelData.map_fiberTangentMap_smul`,
+  `SymplecticGeometry.LocalModelData.isCompl_range_range_comp_fiberTangentMap`: the same after a
+  linear map `T` to a module `W`: equivariance when `T` takes the action of `K` to given
+  endomorphisms of `W`, and the complement when `T` is an isomorphism.
 
 ## References
 
@@ -396,31 +400,75 @@ theorem isCompl_range_orbitTangentMap_range_fiberTangentMap :
   let := D.fiberDistribMulAction
   have := D.contMDiffSMul_fiberDistribMulAction
   let := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
-  let e : TangentSpace (I.prod 𝓘(ℝ, A × V)) ((1 : G), ((0 : A), (0 : V))) ≃L[ℝ]
-      GroupLieAlgebra I G × (A × V) := tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V)))
-  set dπ := mfderiv (I.prod 𝓘(ℝ, A × V)) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
-      (fun p : G × (A × V) ↦ BalancedProduct.mk K (K.toRightTranslation p.1) p.2)
-      ((1 : G), ((0 : A), (0 : V)))
-  have hsplit (ξ : GroupLieAlgebra I G) (p : A × V) :
-      dπ (e.symm (ξ, p)) = D.orbitTangentMap ξ + D.fiberTangentMap p := by
-    rw [orbitTangentMap_apply, fiberTangentMap_apply, ← map_add, ← map_add]
-    congr 2
-    exact Prod.ext (add_zero ξ).symm (zero_add p).symm
-  constructor
-  · -- If `dπ (ξ, 0) = dπ (0, p)`, then `(ξ, -p)` is in the kernel `𝔥 × 0` of `dπ`, so `p = 0`.
-    refine Submodule.disjoint_def.2 ?_
-    rintro _ ⟨ξ, rfl⟩ ⟨p, hp⟩
-    have h : dπ (e.symm (ξ, -p)) = 0 := by rw [hsplit, map_neg, hp, add_neg_cancel]
-    have h' : (ξ, -p) ∈ D.𝔥.prod ⊥ :=
-      e.apply_symm_apply (ξ, -p) ▸ (D.mem_ker_mfderiv_mk_one_zero_iff _).1 h
-    rw [← hp, neg_eq_zero.1 ((Submodule.mem_bot ℝ).1 h'.2), map_zero]
-  · -- `dπ` is onto, and `dπ (ξ, p) = dπ (ξ, 0) + dπ (0, p)`.
-    refine codisjoint_iff.2 (eq_top_iff.2 fun w _ ↦ ?_)
-    obtain ⟨u, rfl⟩ := (BalancedProduct.isSubmersion_mk_toRightTranslation (K := K)
-      (Z := A × V) (I := I) (IZ := 𝓘(ℝ, A × V)) (F := F)).surjective_mfderiv
-      (x := ((1 : G), ((0 : A), (0 : V)))) (by simp) w
-    rw [← e.symm_apply_apply u, hsplit]
-    exact Submodule.add_mem_sup ⟨_, rfl⟩ ⟨_, rfl⟩
+  -- Both maps are `f = dπ ∘ e⁻¹` after `inl` and `inr`, where `e` reads the tangent space of
+  -- `G × (A × V)` at `(1, 0, 0)` as `𝔤 × (A × V)`; the kernel `𝔥 × 0` of `f` lies in `𝔤 × 0`, and
+  -- `f` is onto.
+  let f : (GroupLieAlgebra I G × (A × V)) →ₗ[ℝ]
+      TangentSpace 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
+        (BalancedProduct.mk K (K.toRightTranslation (1 : G)) ((0 : A), (0 : V))) :=
+    (mfderiv (I.prod 𝓘(ℝ, A × V)) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
+        (fun p : G × (A × V) ↦ BalancedProduct.mk K (K.toRightTranslation p.1) p.2)
+        ((1 : G), ((0 : A), (0 : V)))).toLinearMap ∘ₗ
+      (tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V)))).symm.toLinearMap
+  have hker :
+      LinearMap.ker f ≤ LinearMap.range (LinearMap.inl ℝ (GroupLieAlgebra I G) (A × V)) := by
+    intro y hy
+    have h := (D.mem_ker_mfderiv_mk_one_zero_iff
+      ((tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V)))).symm y)).1 hy
+    rw [(tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V)))).apply_symm_apply y] at h
+    exact ⟨y.1, Prod.ext rfl ((Submodule.mem_bot ℝ).1 h.2).symm⟩
+  have hf : Function.Surjective f :=
+    ((BalancedProduct.isSubmersion_mk_toRightTranslation (K := K) (Z := A × V) (I := I)
+      (IZ := 𝓘(ℝ, A × V)) (F := F)).surjective_mfderiv
+      (x := ((1 : G), ((0 : A), (0 : V)))) (by simp)).comp
+      (tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V)))).symm.surjective
+  have hc := LinearMap.isCompl_range_inl_inr (R := ℝ) (M := GroupLieAlgebra I G) (M₂ := A × V)
+  have ho : D.orbitTangentMap = f ∘ₗ LinearMap.inl ℝ _ _ :=
+    LinearMap.ext fun ξ ↦ D.orbitTangentMap_apply ξ
+  have hp : D.fiberTangentMap = f ∘ₗ LinearMap.inr ℝ _ _ :=
+    LinearMap.ext fun p ↦ D.fiberTangentMap_apply p
+  rw [ho, hp, LinearMap.range_comp, LinearMap.range_comp]
+  exact ⟨Submodule.disjoint_map_of_ker_le_left hc.disjoint hker,
+    Submodule.codisjoint_map hf hc.codisjoint⟩
+
+/-- **Equivariance of the fibre directions, after a linear map.** Let `T` be a linear map from the
+tangent space of `G ×_K (A × V)` at `[1, 0]` to a real module `W`, and for each `k ∈ K` let `R k`
+be a linear endomorphism of `W`, such that `T` takes the differential at `[1, 0]` of `y ↦ k • y`
+to `R k`. Then `T (dπ_(1, 0, 0) (0, k • p)) = R k (T (dπ_(1, 0, 0) (0, p)))`. -/
+theorem map_fiberTangentMap_smul {W : Type*} [AddCommGroup W] [Module ℝ W] :
+    letI := D.fiberDistribMulAction
+    haveI := D.contMDiffSMul_fiberDistribMulAction
+    letI := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
+    ∀ (T : TangentSpace 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
+        (BalancedProduct.mk K (K.toRightTranslation (1 : G)) ((0 : A), (0 : V))) →ₗ[ℝ] W)
+      (R : K → W →ₗ[ℝ] W),
+      (∀ (k : K) u,
+        T (mfderiv 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
+          𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
+          (fun y : BalancedProduct K K.RightTranslation (A × V) ↦ (k : G) • y)
+          (BalancedProduct.mk K (K.toRightTranslation (1 : G)) ((0 : A), (0 : V))) u) =
+          R k (T u)) →
+      ∀ (k : K) (p : A × V), T (D.fiberTangentMap (k • p)) = R k (T (D.fiberTangentMap p)) := by
+  intro T R hT k p
+  rw [fiberTangentMap_smul, hT]
+
+/-- **The fibre directions are a complement of the orbit directions, after a linear
+isomorphism.** Let `T` be a linear isomorphism from the tangent space of `G ×_K (A × V)` at
+`[1, 0]` to a real module `W`, and let `f : 𝔤 →ₗ[ℝ] W` be the composite of
+`ξ ↦ dπ_(1, 0, 0) (ξ, 0)` with `T`. Then the range of `f` and the range of
+`p ↦ T (dπ_(1, 0, 0) (0, p))` are complements in `W`. -/
+theorem isCompl_range_range_comp_fiberTangentMap {W : Type*} [AddCommGroup W] [Module ℝ W] :
+    letI := D.fiberDistribMulAction
+    haveI := D.contMDiffSMul_fiberDistribMulAction
+    letI := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
+    ∀ (T : TangentSpace 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
+        (BalancedProduct.mk K (K.toRightTranslation (1 : G)) ((0 : A), (0 : V))) ≃ₗ[ℝ] W)
+      (f : GroupLieAlgebra I G →ₗ[ℝ] W),
+      T.toLinearMap ∘ₗ D.orbitTangentMap = f →
+      IsCompl (LinearMap.range f) (LinearMap.range (T.toLinearMap ∘ₗ D.fiberTangentMap)) := by
+  intro T f hT
+  rw [← hT, LinearMap.range_comp, LinearMap.range_comp]
+  exact Submodule.isCompl_map T D.isCompl_range_orbitTangentMap_range_fiberTangentMap
 
 end LocalModelData
 
