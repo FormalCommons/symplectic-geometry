@@ -406,7 +406,7 @@ private theorem setLIntegral_ofReal_log_sub_circleAverage {P : MvPolynomial ι �
 omit [Fintype ι] in
 /-- Step 1 on the complex line through `c` in the direction `v`: the difference of the circle
 averages of `log ‖P‖` at radii `0 < r₁ ≤ r₂` is nonnegative, at most `D * log (r₂ / r₁)`, and
-zero if `P` has no zero on the line within `r₂` of `c` (in the parameter). -/
+zero if `P` vanishes at no `c + s • v` with `‖s‖ < r₂`. -/
 private theorem circleAverage_log_norm_eval_line_sub {P : MvPolynomial ι ℂ} {D : ℕ}
     (hD : P.totalDegree ≤ D) (c v : EuclideanSpace ℂ ι) {r₁ r₂ : ℝ} (hr₁ : 0 < r₁)
     (h : r₁ ≤ r₂) :
