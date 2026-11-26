@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.ContMDiff.TimeExtension
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Basic
 import SymplecticGeometry.Analysis.CStarAlgebra.Matrix
+import SymplecticGeometry.Analysis.Matrix.EuclideanLin
 import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.Polar
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
 import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
@@ -104,18 +105,15 @@ theorem IsSymplecticBallFamily.exists_polar_fderiv_zero {δ : ℝ} (hδ : 0 < δ
     fun t ↦ (toEuclideanCLM (n := Fin n ⊕ Fin n) (𝕜 := ℝ)).symm
       (fderiv ℝ (fun z ↦ timeExtend κ (t, z)) 0)
   have hΨ₀ : ContDiff ℝ ∞ Ψ₀ := by
-    have hΨ₀e : Ψ₀ = (toEuclideanCLMContinuousLinearEquiv (n := Fin n ⊕ Fin n) (𝕜 := ℝ)).symm ∘
-        fun t ↦ fderiv ℝ (fun z ↦ timeExtend κ (t, z)) 0 := by
-      simp [Ψ₀, Function.comp_def]
-    rw [hΨ₀e]
-    exact (toEuclideanCLMContinuousLinearEquiv (n := Fin n ⊕ Fin n) (𝕜 := ℝ)).symm.contDiff.comp
+    simp only [Ψ₀, ← coe_toEuclideanCLMContinuousLinearEquiv_symm]
+    exact toEuclideanCLMContinuousLinearEquiv.symm.contDiff.comp
       (hκ.contDiff_fderiv_timeExtend (mem_closedBall_self hδ.le))
   have hΨ₀t (t : unitInterval) :
       toEuclideanCLM (n := Fin n ⊕ Fin n) (𝕜 := ℝ) (Ψ₀ t) = fderiv ℝ (fun z ↦ κ (t, z)) 0 := by
     simp only [Ψ₀, StarAlgEquiv.apply_symm_apply, timeExtend_apply_coe]
   have hΨ₀sp (t : unitInterval) : Ψ₀ t ∈ symplecticGroup (Fin n) ℝ := by
-    refine mem_symplecticGroup_iff_forall_stdForm.2 fun v w ↦ ?_
-    rw [← coe_toEuclideanCLM_eq_toEuclideanLin, ContinuousLinearMap.coe_coe, hΨ₀t t]
+    refine mem_symplecticGroup_iff_forall_stdForm_toEuclideanCLM.2 fun v w ↦ ?_
+    rw [hΨ₀t t]
     exact (SymplecticForm.mpullback_constSmooth_apply_eq_iff _ _).1
       ((hκ.isSymplecticBallEmbedding t).mpullback_eq (mem_ball_self hδ)) v w
   -- A smooth change of time `φ`, the identity on `[0, 1]`, along which `Ψ₀` stays invertible.
@@ -131,41 +129,23 @@ theorem IsSymplecticBallFamily.exists_polar_fderiv_zero {δ : ℝ} (hδ : 0 < δ
   have hspt (t : unitInterval) := hsp t (by rw [Function.comp_apply, hΨ t]; exact hΨ₀sp t)
   set U : ℝ → (StdSpace (Fin n) ≃ₗᵢ[ℝ] StdSpace (Fin n)) :=
     fun t ↦ UnitaryGroup.toLinearIsometryEquiv ⟨U' t, hU'o t⟩
-  have hU (t : ℝ) : (U t : StdSpace (Fin n) →L[ℝ] StdSpace (Fin n)) =
-      toEuclideanCLM (n := Fin n ⊕ Fin n) (𝕜 := ℝ) (U' t) := by
-    refine ContinuousLinearMap.ext fun x ↦ ?_
-    simp [U, toLpLin_apply]
-  have hUsymm (t : ℝ) : ((U t).symm : StdSpace (Fin n) →L[ℝ] StdSpace (Fin n)) =
-      toEuclideanCLM (n := Fin n ⊕ Fin n) (𝕜 := ℝ) (star (U' t)) := by
-    refine ContinuousLinearMap.ext fun x ↦ ?_
-    have := UnitaryGroup.toLinearIsometryEquiv_inv_apply ⟨U' t, hU'o t⟩ x
-    simp only [U, ContinuousLinearEquiv.coe_coe, LinearIsometryEquiv.coe_toContinuousLinearEquiv]
-    rw [← this, UnitaryGroup.toLinearIsometryEquiv_apply, UnitaryGroup.inv_val,
-      ← ofLp_toEuclideanCLM, WithLp.toLp_ofLp]
   set Q : ℝ × ℝ → StdSpace (Fin n) →L[ℝ] StdSpace (Fin n) :=
     fun p ↦ toEuclideanCLM (n := Fin n ⊕ Fin n) (𝕜 := ℝ) (Q' (p.1, p.2 - 1))
-  have hQ : ContDiff ℝ ∞ Q := by
-    have hQe : Q = toEuclideanCLMContinuousLinearEquiv ∘ fun p ↦ Q' (p.1, p.2 - 1) := by
-      simp [Q, Function.comp_def]
-    rw [hQe]
+  refine ⟨U, Q, ?_, ?_, fun t v w ↦ ?_, fun t s v w ↦ ?_, fun t ↦ by simp [Q, hQ'0], fun t ↦ ?_,
+    fun t ht ↦ ?_⟩
+  · simp only [U, UnitaryGroup.coe_toLinearIsometryEquiv, ← coe_toEuclideanCLMContinuousLinearEquiv]
+    exact toEuclideanCLMContinuousLinearEquiv.contDiff.comp hU'
+  · simp only [Q, ← coe_toEuclideanCLMContinuousLinearEquiv]
     exact toEuclideanCLMContinuousLinearEquiv.contDiff.comp
       (hQ'.comp (contDiff_fst.prodMk (contDiff_snd.sub contDiff_const)))
-  refine ⟨U, Q, ?_, hQ, fun t v w ↦ ?_, fun t s v w ↦ ?_, fun t ↦ by simp [Q, hQ'0], fun t ↦ ?_,
-    fun t ht ↦ ?_⟩
-  · have hUe : (fun t ↦ (U t : StdSpace (Fin n) →L[ℝ] StdSpace (Fin n))) =
-        toEuclideanCLMContinuousLinearEquiv ∘ U' := by
-      simp [hU, Function.comp_def]
-    rw [hUe]
-    exact toEuclideanCLMContinuousLinearEquiv.contDiff.comp hU'
-  · have := mem_symplecticGroup_iff_forall_stdForm.1 (hspt t).1 v w
-    rwa [← coe_toEuclideanCLM_eq_toEuclideanLin, ContinuousLinearMap.coe_coe, ← hU] at this
-  · have := mem_symplecticGroup_iff_forall_stdForm.1 ((hspt t).2 (s - 1)) v w
-    rwa [← coe_toEuclideanCLM_eq_toEuclideanLin, ContinuousLinearMap.coe_coe] at this
+  · simpa [U] using mem_symplecticGroup_iff_forall_stdForm_toEuclideanCLM.1 (hspt t).1 v w
+  · exact mem_symplecticGroup_iff_forall_stdForm_toEuclideanCLM.1 ((hspt t).2 (s - 1)) v w
   · have hm : Q' (t, 1) * U' t * star (U' t) * Q' (t, 0 - 1) = 1 := by
       rw [mul_assoc (Q' _), mem_unitaryGroup_iff.1 (hU'o t), mul_one, ← hQ'add]
       norm_num [hQ'0]
-    rw [← hΨ₀t t, ← hΨ t, ← Function.comp_apply (f := Ψ₀), hΨQU, hUsymm]
-    simp only [Q, ← ContinuousLinearMap.mul_def, ← map_mul, hm, map_one]
+    rw [← hΨ₀t t, ← hΨ t, ← Function.comp_apply (f := Ψ₀), hΨQU]
+    simp only [U, UnitaryGroup.coe_toLinearIsometryEquiv_symm, Q, ← ContinuousLinearMap.mul_def,
+      ← map_mul, hm, map_one]
   · have hΨ1 : Ψ₀ (φ t) = 1 := by
       rw [hΨ t]
       simp only [Ψ₀, timeExtend_apply_coe, ht, map_one]
