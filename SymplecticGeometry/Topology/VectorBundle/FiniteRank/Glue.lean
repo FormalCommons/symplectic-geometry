@@ -57,6 +57,10 @@ cocycle condition from `g.hom ≫ g.inv = 𝟙` and `g.inv ≫ g.hom = 𝟙` (`g
   (`pullbackFunctor_mapIso_isoGlue_trans_glueRestrictIso`).
 * `TauCeti.FiniteRankBundleCore.nonempty_iso_glue_of_fiberMap_comp_eq`: an isomorphism `A ≅ A'`
   that carries `g` to `g'` fibre by fibre gives an isomorphism of the gluings, by `isoGlue`.
+* `TauCeti.FiniteRankBundleCore.nonempty_iso_glue_of_fiberMap_eq_comp_left` and
+  `nonempty_iso_glue_of_fiberMap_eq_comp_right`: composing `g` with an automorphism of the
+  restriction of `A` to `U`, after `g`, or to `V`, before `g`, gives an isomorphic gluing, by
+  `isoGlue` applied to the isomorphisms of `glueRestrictIso` changed by that automorphism.
 * `TauCeti.FiniteRankBundleCore.glue_eqToIso_trans_trans_eqToIso`: a gluing by an automorphism
   `k` of a core `P`, read through an equality between `P` and the restriction of the glued core,
   depends only on `k` and on the glued core, not on that equality.
@@ -848,6 +852,70 @@ theorem nonempty_iso_glue_of_fiberMap_comp_eq (Φ : A ≅ A')
   exact ⟨isoGlue φ ψ hU hV hUV⟩
 
 end Conj
+
+/-! ### Changing the gluing by a factor that extends over one side -/
+
+section ExtendSide
+
+variable {A : FiniteRankBundleCore 𝕜 B} {U V : Set B} (hU : IsOpen U) (hV : IsOpen V)
+  (hUV : U ∪ V = univ)
+
+/-- **A factor that extends over `U` does not change the gluing.** If `k` is an automorphism of
+the restriction of `A` to `U`, and the automorphisms `g` and `g'` of the restriction to `U ∩ V`
+satisfy `g'_b = k_b ∘ g_b` on `U ∩ V`, then the gluings of `A` by `g` and by `g'` are
+isomorphic. -/
+theorem nonempty_iso_glue_of_fiberMap_eq_comp_left
+    (k : A.pullback (ContinuousMap.subtypeVal U) ≅ A.pullback (ContinuousMap.subtypeVal U))
+    {g g' : A.pullback (ContinuousMap.subtypeVal (U ∩ V)) ≅
+      A.pullback (ContinuousMap.subtypeVal (U ∩ V))}
+    (h : ∀ b : ↥(U ∩ V), g'.hom.fiberMap b = (k.hom.fiberMap ⟨b, b.property.1⟩).comp
+      (g.hom.fiberMap b)) :
+    Nonempty (A.glue hU hV hUV g ≅ A.glue hU hV hUV g') := by
+  let φ := A.glueRestrictIso hU hV hUV g true ≪≫ k
+  let ψ := A.glueRestrictIso hU hV hUV g false
+  have ht : glueTransition φ ψ = g' := by
+    refine Iso.ext (hom_ext fun b ↦ ?_)
+    have hb : glueIndex U (b : B) = true := glueIndex_of_mem b.property.1
+    have hφ : φ.hom.fiberMap ⟨b, b.property.1⟩ = k.hom.fiberMap ⟨b, b.property.1⟩ := by
+      simp only [φ, Iso.trans_hom, fiberMap_comp, fiberMap_glueRestrictIso_hom, hb,
+        glueCocycle_self]
+      exact ContinuousLinearMap.comp_id _
+    have hψ : ψ.inv.fiberMap ⟨b, b.property.2⟩ = g.hom.fiberMap b := by
+      simp only [ψ, fiberMap_glueRestrictIso_inv, hb, glueCocycle_false_true _ b.property]
+    rw [fiberMap_glueTransition_hom, hφ, hψ, h]
+  rw [← ht]
+  exact ⟨isoGlue φ ψ hU hV hUV⟩
+
+/-- **A factor that extends over `V` does not change the gluing.** If `k` is an automorphism of
+the restriction of `A` to `V`, and the automorphisms `g` and `g'` of the restriction to `U ∩ V`
+satisfy `g'_b = g_b ∘ k_b` on `U ∩ V`, then the gluings of `A` by `g` and by `g'` are
+isomorphic. -/
+theorem nonempty_iso_glue_of_fiberMap_eq_comp_right
+    (k : A.pullback (ContinuousMap.subtypeVal V) ≅ A.pullback (ContinuousMap.subtypeVal V))
+    {g g' : A.pullback (ContinuousMap.subtypeVal (U ∩ V)) ≅
+      A.pullback (ContinuousMap.subtypeVal (U ∩ V))}
+    (h : ∀ b : ↥(U ∩ V), g'.hom.fiberMap b = (g.hom.fiberMap b).comp
+      (k.hom.fiberMap ⟨b, b.property.2⟩)) :
+    Nonempty (A.glue hU hV hUV g ≅ A.glue hU hV hUV g') := by
+  let φ := A.glueRestrictIso hU hV hUV g true
+  let ψ := A.glueRestrictIso hU hV hUV g false ≪≫ k.symm
+  have ht : glueTransition φ ψ = g' := by
+    refine Iso.ext (hom_ext fun b ↦ ?_)
+    have hb : glueIndex U (b : B) = true := glueIndex_of_mem b.property.1
+    have hφ : φ.hom.fiberMap ⟨b, b.property.1⟩ = .id 𝕜 _ := by
+      simp only [φ, fiberMap_glueRestrictIso_hom, hb, glueCocycle_self]
+      -- The identity, once the ranks of the fibre models are unfolded.
+      rfl
+    have hψ : ψ.inv.fiberMap ⟨b, b.property.2⟩ =
+        (g.hom.fiberMap b).comp (k.hom.fiberMap ⟨b, b.property.2⟩) := by
+      simp only [ψ, Iso.trans_inv, Iso.symm_inv, fiberMap_comp, fiberMap_glueRestrictIso_inv, hb,
+        glueCocycle_false_true _ b.property]
+    rw [fiberMap_glueTransition_hom, hφ, hψ, h]
+    exact ContinuousLinearMap.id_comp _
+  rw [← ht]
+  exact ⟨isoGlue φ ψ hU hV hUV⟩
+
+end ExtendSide
 
 /-! ### Gluing by automorphisms read through an equality of cores -/
 
