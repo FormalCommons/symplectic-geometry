@@ -164,10 +164,10 @@ theorem exists_iso_clutching :
       eqToIso hd)
     (fun w ↦ by
       ext v i
-      simp [annulusDeformation_zero, Fin.cast_eq_self])
+      simp [annulusDeformation_zero])
     (fun w ↦ by
       ext v i
-      simp [f, annulusDeformation_one, Fin.cast_eq_self])
+      simp [f, annulusDeformation_one])
   exact ⟨isoGlue φ ψ hU hV hUV ≪≫ e⟩
 
 /-- **Every bundle over `X × ℂP¹` is a clutching by a Laurent clutching function.** Let `X` be
