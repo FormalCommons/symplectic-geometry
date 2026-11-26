@@ -67,11 +67,12 @@ theorem manifoldLocalSection_def (b y : B) :
     manifoldLocalSection G P b y = ManifoldTotalSpace.homeomorph G P ⟨y, localSection G P b y⟩ :=
   (rfl)
 
-/-- The preferred local section in the charted total space lies over the point it is taken
-at. -/
+/-- Reading the preferred local section at `b` back in the total space gives the point
+`⟨y, localSection G P b y⟩`. -/
 @[simp]
-theorem proj_homeomorph_symm_manifoldLocalSection (b y : B) :
-    ((ManifoldTotalSpace.homeomorph G P).symm (manifoldLocalSection G P b y)).proj = y := by
+theorem homeomorph_symm_manifoldLocalSection (b y : B) :
+    (ManifoldTotalSpace.homeomorph G P).symm (manifoldLocalSection G P b y) =
+      ⟨y, localSection G P b y⟩ := by
   rw [manifoldLocalSection_def, Homeomorph.symm_apply_apply]
 
 variable {G P} (IB IG n)
