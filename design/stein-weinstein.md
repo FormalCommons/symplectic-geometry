@@ -492,7 +492,8 @@ containing `ι '' closedBall 0 1`:
   `φ (ι x) < 0` for `1 < ‖x‖ < r`, by transversality and compactness of the
   sphere),
   `IsJOrthogonallyAttached.comp` (for `h ∘ φ` with `h 0 = 0` and `h' > 0`),
-  `IsJOrthogonallyAttached.comp_linearIsometryEquiv` (for `ι ∘ e`),
+  `IsJOrthogonallyAttached.comp_linearIsometry` (for `ι ∘ e`, `e` a linear
+  isometry),
   and the example of the model below,
   `isJOrthogonallyAttached_model`.
 - `Surround/Shape.lean` (issue 14c): the model. On
