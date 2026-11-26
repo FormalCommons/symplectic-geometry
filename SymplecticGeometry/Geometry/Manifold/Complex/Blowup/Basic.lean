@@ -297,28 +297,6 @@ theorem inr_eq_inl_iff {y : modelOpens c} {x : puncturedOpens c} :
       (x : M) ∈ c.source ∧ c x = (y : BlowupModel n).blowdown :=
   eq_comm.trans (inl_eq_inr_iff c)
 
-/-- A point of the model lies in the image of the punctured space exactly when it is off the
-exceptional divisor of the model. -/
-theorem inr_mem_range_inl_iff {y : modelOpens c} :
-    inr (gluingHomeomorph c) y ∈ range (inl (gluingHomeomorph c)) ↔
-      (y : BlowupModel n).blowdown ≠ 0 := by
-  constructor
-  · rintro ⟨x, hx⟩
-    obtain ⟨hxs, hxy⟩ := (inl_eq_inr_iff c).1 hx
-    exact hxy ▸ c.apply_ne_zero hxs x.property
-  · intro hy
-    refine ⟨⟨c.symm (y : BlowupModel n).blowdown, c.symm_apply_ne y.property hy⟩,
-      (inl_eq_inr_iff c).2 ⟨c.map_target y.property, c.right_inv y.property⟩⟩
-
-/-- A point of the punctured space lies in the image of the model exactly when it is in the
-source of `c`. -/
-theorem inl_mem_range_inr_iff {x : puncturedOpens c} :
-    inl (gluingHomeomorph c) x ∈ range (inr (gluingHomeomorph c)) ↔ (x : M) ∈ c.source := by
-  constructor
-  · rintro ⟨y, hy⟩
-    exact ((inl_eq_inr_iff c).1 hy.symm).1
-  · exact fun hx ↦ ⟨_, GluedAlong.inr_apply (gluingHomeomorph c) ⟨x, hx⟩⟩
-
 /-! ### The exceptional divisor -/
 
 /-- The point of the model's zero section over the line `ℓ`, as a point of the second piece. -/
@@ -385,7 +363,8 @@ theorem range_inl : range (inl (gluingHomeomorph c)) = (exceptionalDivisor c)ᶜ
     intro y hy hxy
     exact c.apply_ne_zero ((inl_eq_inr_iff c).1 hxy.symm).1 x.property
       (((inl_eq_inr_iff c).1 hxy.symm).2.trans hy)
-  · rw [inr_mem_range_inl_iff, mem_compl_iff, inr_mem_exceptionalDivisor_iff]
+  · rw [GluedAlong.inr_mem_range_inl_iff, mem_modelOffDivisorOpens, mem_compl_iff,
+      inr_mem_exceptionalDivisor_iff]
 
 /-- No point of the punctured space is on the exceptional divisor. -/
 @[simp]
@@ -418,15 +397,18 @@ theorem range_inr :
       exceptionalDivisor c ∪ inl (gluingHomeomorph c) '' {x | (x : M) ∈ c.source} := by
   ext z
   rcases GluedAlong.exists_inl_or_exists_inr _ z with ⟨x, rfl⟩ | ⟨y, rfl⟩
-  · refine (inl_mem_range_inr_iff c).trans ⟨fun hx ↦ .inr ⟨x, hx, rfl⟩, ?_⟩
+  · rw [GluedAlong.inl_mem_range_inr_iff, mem_puncturedSourceOpens]
+    refine ⟨fun hx ↦ .inr ⟨x, hx, rfl⟩, ?_⟩
     rintro (h | ⟨x', hx', h⟩)
     · exact (inl_notMem_exceptionalDivisor c x h).elim
     · rwa [← GluedAlong.inl_injective (gluingHomeomorph c) h]
   · simp only [mem_range_self, true_iff, mem_union, inr_mem_exceptionalDivisor_iff]
     by_cases hy : (y : BlowupModel n).blowdown = 0
     · exact .inl hy
-    · obtain ⟨x, hx⟩ := (inr_mem_range_inl_iff c).2 hy
-      exact .inr ⟨x, (inl_mem_range_inr_iff c).1 ⟨y, hx.symm⟩, hx⟩
+    · have hy' : y ∈ modelOffDivisorOpens c := (mem_modelOffDivisorOpens c).2 hy
+      obtain ⟨x, hx⟩ := (GluedAlong.inr_mem_range_inl_iff (gluingHomeomorph c)).2 hy'
+      exact .inr ⟨x, (mem_puncturedSourceOpens c).1 ((GluedAlong.inl_mem_range_inr_iff _).1
+        ⟨y, hx.symm⟩), hx⟩
 
 theorem isClosed_exceptionalDivisor : IsClosed (exceptionalDivisor c) := by
   rw [← isOpen_compl_iff, ← range_inl]
@@ -443,7 +425,7 @@ theorem dense_exceptionalDivisor_compl : Dense (exceptionalDivisor c)ᶜ := by
     BlowupModel.dense_exceptionalDivisor_compl.preimage (modelOpens c).isOpen.isOpenMap_subtypeVal
   refine closure_mono ?_ (mem_closure_image (GluedAlong.continuous_inr _).continuousAt (hD y))
   rintro _ ⟨y', hy', rfl⟩
-  exact (inr_mem_range_inl_iff c).2 (by simpa using hy')
+  exact (GluedAlong.inr_mem_range_inl_iff (gluingHomeomorph c)).2 (by simpa using hy')
 
 /-! ### The map to the model -/
 
