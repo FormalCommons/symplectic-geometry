@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Analysis.InnerProductSpace.PiL2
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.RationalCoefficients
+public import TauCeti.AlgebraicTopology.Cellular.EulerCharacteristic.Surface.Basic
 public import TauCeti.AlgebraicTopology.Cohomology.UniversalCoefficient.CapDuality
 public import TauCeti.AlgebraicTopology.Singular.Sphere
 public import TauCeti.AlgebraicTopology.Singular.SurfaceGenus
@@ -35,6 +36,10 @@ two can merge.
   homologically oriented surface has even first rational Betti number. Together with Tau Ceti's
   `TauCeti.HomologicalOrientation.eulerChar_eq_two_sub_two_mul_genus_iff_even_finrank`, it gives
   `χ(M) = 2 - 2 · genus M` for such a surface that is connected and of finite CW type.
+* `TauCeti.HomologicalOrientation.eulerChar_eq_two_sub_two_mul_surfaceGenus`: such a surface has
+  `χ(M) = 2 - 2g` for `g = TauCeti.surfaceGenus M`, from Tau Ceti's `χ(M) = 2 - b₁`
+  (`TauCeti.HomologicalOrientation.eulerChar_eq_two_sub_finrank_singularHomology_one`) and the
+  evenness of `b₁`.
 
 ## References
 
@@ -86,6 +91,19 @@ theorem HomologicalOrientation.even_finrank_singularHomology_one {M E : Type}
     Even (Module.finrank ℚ (((AlgebraicTopology.singularHomologyFunctor (ModuleCat.{0} ℚ) 1).obj
       (ModuleCat.of ℚ ℚ)).obj (TopCat.of M))) :=
   o.even_finrank_singularHomology_of_odd hn odd_one rfl
+
+/-- **The Euler characteristic of a closed oriented surface is `2 - 2g`.** If `M` is a compact
+connected Hausdorff space of finite CW type with charts in a real normed space of dimension `2`
+and a homological orientation, then `χ(M) = 2 - 2g`, where `g = TauCeti.surfaceGenus M` is half
+the first rational Betti number. -/
+theorem HomologicalOrientation.eulerChar_eq_two_sub_two_mul_surfaceGenus {M E : Type}
+    [TopologicalSpace M] [T2Space M] [CompactSpace M] [ConnectedSpace M] [NormedAddCommGroup E]
+    [NormedSpace ℝ E] [FiniteDimensional ℝ E] [ChartedSpace E M] [FiniteCWType M]
+    (o : HomologicalOrientation M E 2) (hn : Module.finrank ℝ E = 2) :
+    eulerChar M = 2 - 2 * surfaceGenus M := by
+  obtain ⟨m, hm⟩ := o.even_finrank_singularHomology_one hn
+  rw [o.eulerChar_eq_two_sub_finrank_singularHomology_one hn, surfaceGenus_def, hm]
+  omega
 
 end TauCeti
 
