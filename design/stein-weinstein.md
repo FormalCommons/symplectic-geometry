@@ -128,10 +128,11 @@ fit Tau Ceti's without a change of sign.
   on `unitInterval × M` in the sense of *Smooth families* (`DESIGN.md`,
   *Manifolds, families and signs*; the forms by `IsSmoothFamily`), each
   member a Weinstein structure, and with Cieliebak–Eliashberg's
-  condition at infinity: continuous functions $c_1<c_2<\dots$ on `[0, 1]`, tending to infinity
+  condition at infinity: smooth functions $c_1<c_2<\dots$ on `[0, 1]`, tending to infinity
   uniformly, with $c_k(t)$ a regular value of `f t` for all `k` and `t`.
-  On a compact `M` it holds with $c_k(t)=\max f_t+k$, whose levels are
-  empty; the building issue proves this as a lemma.
+  On a compact `M` it holds with the constants $c_k=B+k+1$, where $B$ is an
+  upper bound of $f$ on `[0, 1] × M`, so that their levels are empty; the
+  building issue proves this as a lemma.
 - **The route to the converse.** Cieliebak–Eliashberg's proof, followed
   chapter by chapter, is the only proof known to this design. The part
   plans it as a sequence of supporting files (*Files*), each an issue or a
