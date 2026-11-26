@@ -206,7 +206,7 @@ the action on `(M, σ)` with moment map `μ`, with the same characters, weights 
 theorem trans_diffeomorph {E'' : Type*} [NormedAddCommGroup E''] [NormedSpace ℝ E'']
     {H'' : Type*} [TopologicalSpace H''] {I'' : ModelWithCorners ℝ E'' H''}
     {N : Type*} [TopologicalSpace N] [ChartedSpace H'' N] [IsManifold I'' ∞ N] [MulAction G N]
-    [ContMDiffSMul I I'' ∞ G N] {q : N}
+    {q : N}
     {Φ : PartialDiffeomorph 𝓘(ℝ, StdSpace (Fin n)) I'' (StdSpace (Fin n)) N ∞}
     (ψ : N ≃ₘ⟮I'', I'⟯ M) (hψ : ∀ (g : G) (y : N), ψ (g • y) = g • ψ y)
     (h : IsWeightChart (SmoothForm.mpullback ψ ψ.contMDiff σ) (μ ∘ ψ) q χ α Φ r) :
@@ -235,12 +235,7 @@ theorem trans_diffeomorph {E'' : Type*} [NormedAddCommGroup E''] [NormedSpace �
         (weightGenerator (fun k ↦ 2 * π * α k ξ) (EuclideanSpace.sumEquivProd z)))
     rw [h.mfderiv_weightGenerator z hz ξ] at hd
     rw [hcoe]
-    refine hd.trans ?_
-    -- The orbit map `g ↦ g • Φ z` of `N` is differentiable.
-    have horbit : MDifferentiableAt I I'' (fun g : G ↦ g • Φ z) 1 :=
-      (ContMDiffSMul.contMDiff_smul_const (I := I) (n := ∞) (Φ z)).mdifferentiableAt (by simp)
-    exact mfderiv_fundamentalVectorField_of_map_smul (ψ.mdifferentiable (by simp) _) horbit
-      (fun g ↦ hψ g _) ξ
+    exact hd.trans (ψ.mfderiv_fundamentalVectorField (by simp) hψ ξ _)
   · intro z hz ξ
     rw [hcoe, Function.comp_apply]
     exact h.momentMap_apply z (hsrc ▸ hz) ξ
@@ -367,9 +362,7 @@ theorem exists_weightChart_fundamentalVectorField [BoundarylessManifold I' M]
   have hfund (ξ : GroupLieAlgebra I G) (y : N) :
       mfderiv 𝓘(ℝ, E') I' ψ y (fundamentalVectorField 𝓘(ℝ, E') ξ y) =
         fundamentalVectorField I' ξ (ψ y) :=
-    mfderiv_fundamentalVectorField_of_map_smul (ψ.mdifferentiable (by simp) y)
-      ((ContMDiffSMul.contMDiff_smul_const (I := I) (n := ∞) y).mdifferentiableAt (by simp))
-      (fun g ↦ hψ g y) ξ
+    BoundarylessModel.mfderiv_interiorDiffeomorph_symm_fundamentalVectorField I' ∞ ξ y
   have hμ' := hμ.mpullback (a' := InfinitesimalAction.fundamental I G 𝓘(ℝ, E') N) ψ.contMDiff
     fun ξ y ↦ by simpa only [InfinitesimalAction.fundamental_apply] using hfund ξ y
   have hσ' : SmoothTwoForm.IsSymplectic (SmoothForm.mpullback ψ ψ.contMDiff σ) :=
@@ -378,7 +371,8 @@ theorem exists_weightChart_fundamentalVectorField [BoundarylessManifold I' M]
       (ContMDiffSMul.contMDiff_const_smul (I := I) g) (SmoothForm.mpullback ψ ψ.contMDiff σ) =
         SmoothForm.mpullback ψ ψ.contMDiff σ := by
     rw [SmoothForm.mpullback_mpullback_of_comp_eq _ _ ψ.contMDiff
-      (ContMDiffSMul.contMDiff_const_smul (I := I) g) (funext (hψ g)), hG g]
+      (ContMDiffSMul.contMDiff_const_smul (I := I) g)
+      (BoundarylessModel.interiorDiffeomorph_symm_comp_smul I' ∞ g), hG g]
   have hp' (g : G) : g • ψ.symm p = ψ.symm p := by
     rw [← ψ.symm_apply_apply (g • ψ.symm p), hψ, Diffeomorph.apply_symm_apply, hp]
   obtain ⟨n, χ, α, Φ, r, h⟩ :=

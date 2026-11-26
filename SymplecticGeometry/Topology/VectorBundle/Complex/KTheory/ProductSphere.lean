@@ -154,11 +154,6 @@ theorem exists_iso_clutching :
         (ContinuousMap.subtypeVal (Prod.fst ⁻¹' (Prod.snd ⁻¹' innerDisc) ∩
           Prod.fst ⁻¹' (Prod.snd ⁻¹' outerDisc))) := by
     simp [pullback_comp]
-  -- The casts `eqToHom` have the identity as fibre maps.
-  have hc' : ∀ (y : X × Circle) (v : Fin (F.pullback (prodMkOne X)).rank → 𝕜),
-      (eqToHom hc.symm).fiberMap y v = v := fun _ _ ↦ funext fun _ ↦ by simp [Fin.cast_eq_self]
-  have hd' : ∀ y (v : Fin (F.pullback (prodMkOne X)).rank → 𝕜),
-      (eqToHom hd.symm).fiberMap y v = v := fun _ _ ↦ funext fun _ ↦ by simp [Fin.cast_eq_self]
   -- The clutching function: the transition of `φ` and `ψ` on `X × Circle`.
   let f := eqToIso hc.symm ≪≫ (pullbackFunctor (circleToAnnulus X)).mapIso (glueTransition φ ψ) ≪≫
     eqToIso hc
@@ -169,10 +164,10 @@ theorem exists_iso_clutching :
       eqToIso hd)
     (fun w ↦ by
       ext v i
-      simp [hd', annulusDeformation_zero, Fin.cast_eq_self])
+      simp [annulusDeformation_zero])
     (fun w ↦ by
       ext v i
-      simp [f, hc', hd', annulusDeformation_one, Fin.cast_eq_self])
+      simp [f, annulusDeformation_one])
   exact ⟨isoGlue φ ψ hU hV hUV ≪≫ e⟩
 
 /-- **Every bundle over `X × ℂP¹` is a clutching by a Laurent clutching function.** Let `X` be
