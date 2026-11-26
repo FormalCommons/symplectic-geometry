@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Lie.Subgroup.BalancedProduct
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.OrbitTube
 
 /-!
@@ -25,16 +26,15 @@ structure `TauCeti.BalancedProduct.rightTranslationChartedSpace` on `G ×_H P`:
 
 * it is `G`-equivariant and sends `[g, 0]` to `g • x`;
 * it is smooth on the open `G`-invariant set `N` of classes `[g, p]` with `L p` in the target of
-  `e` (`SymplecticGeometry.LinearizingChart.linearTubeDomain`), since its composite with the
-  projection `π : G × P → G ×_H P`, a submersion, is `(g, p) ↦ g • e.symm (L p)` near each point
-  over `N` (Tau Ceti's `IsSubmersionAt.contMDiffAt_comp_iff`);
-* composed with `dπ` at `(1, 0)`, its differential at `[1, 0]` is `(ξ, p) ↦ ξ_M(x) + L p`.
+  `e` (`SymplecticGeometry.LinearizingChart.linearTubeDomain`), since the slice map is smooth
+  at each `p` with `L p` in the target of `e`;
+* composed with the differential at `(1, 0)` of the projection `π : G × P → G ×_H P`, its
+  differential at `[1, 0]` is `(ξ, p) ↦ ξ_M(x) + L p`.
 
-This generalizes `SymplecticGeometry.LinearizingChart.SliceDomain.tubeMap`, the case of the
-inclusion of a slice domain. Smoothness on the domain adapts the proof of Tau Ceti's
-`TauCeti.BalancedProduct.contMDiff_liftRightTranslation` to an open set, and the differential
-follows the proof of
-`SymplecticGeometry.LinearizingChart.SliceDomain.mfderiv_tubeMap_mfderiv_quotientMk`.
+The construction parallels `SymplecticGeometry.LinearizingChart.SliceDomain.tubeMap`, with the
+linear fibre `P` in place of a slice domain. Both results follow from the corresponding facts
+about any lift of an equivariant map, `TauCeti.BalancedProduct.contMDiffAt_liftRightTranslation`
+and `TauCeti.BalancedProduct.mfderiv_liftRightTranslation_mfderiv_quotientMk`.
 
 ## Main definitions
 
@@ -267,15 +267,9 @@ theorem contMDiffOn_linearTubeMap :
       (e.linearTubeDomain L) := by
   let _ := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) P I 𝓘(ℝ, P) F
   rintro _ ⟨⟨g, p⟩, ⟨-, hp⟩, rfl⟩
-  refine ContMDiffAt.contMDiffWithinAt ?_
-  have hπ := (BalancedProduct.isSubmersion_quotientMk_rightTranslation (K := stabilizer G x)
-    (Z := P) (I := I) (IZ := 𝓘(ℝ, P)) (F := F)).isSubmersionAt
-      ((stabilizer G x).toRightTranslation g, p)
-  refine (hπ.contMDiffAt_comp_iff le_rfl).1 ?_
-  rw [linearTubeMap_def, BalancedProduct.liftRightTranslation_comp_quotientMk]
-  exact ((Subgroup.RightTranslation.contMDiff_toRightTranslation_symm (I := I) ∞).comp
-    (contMDiff_fst (J := 𝓘(ℝ, P)) (N := P))).contMDiffAt.smul
-      ((e.contMDiffAt_linearSliceMap hL hp).comp _ contMDiffAt_snd)
+  rw [linearTubeMap_def]
+  exact (BalancedProduct.contMDiffAt_liftRightTranslation
+    (e.contMDiffAt_linearSliceMap hL hp) g).contMDiffWithinAt
 
 variable (F) in
 /-- **The differential of the tube map along a linear fibre at `[1, 0]`.** Composed with the
@@ -293,25 +287,14 @@ theorem mfderiv_linearTubeMap_mfderiv_quotientMk (ξ : GroupLieAlgebra I G) (p :
       HAdd.hAdd (α := TangentSpace I' x) (β := TangentSpace I' x)
         (fundamentalVectorField I' ξ x) (L p) := by
   let _ := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) P I 𝓘(ℝ, P) F
-  -- The class `[1, 0]`, written as the image of `(1, 0)` under the projection.
-  have h0 : Quotient.mk (orbitRel (stabilizer G x) ((stabilizer G x).RightTranslation × P))
-      ((stabilizer G x).toRightTranslation 1, 0) ∈ e.linearTubeDomain L :=
-    (e.mk_mem_linearTubeDomain_iff hL).2 ((map_zero L).symm ▸ e.zero_mem_target)
-  have hπ := (BalancedProduct.isSubmersion_quotientMk_rightTranslation (K := stabilizer G x)
-    (Z := P) (I := I) (IZ := 𝓘(ℝ, P)) (F := F)).contMDiff.mdifferentiableAt
-      (x := ((stabilizer G x).toRightTranslation 1, (0 : P))) (by simp)
-  have := topologicalGroup_of_lieGroup I ∞ (G := G)
-  have : ContinuousSMul (stabilizer G x) P :=
-    ContMDiffSMul.continuousSMul (I := 𝓘(ℝ, F)) (I' := 𝓘(ℝ, P)) ∞
-  have hΦ := ((e.contMDiffOn_linearTubeMap hL (I := I) (F := F)).contMDiffAt
-    ((e.isOpen_linearTubeDomain (L := L)).mem_nhds h0)).mdifferentiableAt (by simp)
+  rw [linearTubeMap_def]
+  have h0 : L 0 ∈ e.chart.target := (map_zero L).symm ▸ e.zero_mem_target
+  have hΦ := (BalancedProduct.contMDiffAt_liftRightTranslation (I := I) (F := F)
+    (e.contMDiffAt_linearSliceMap hL h0) 1).mdifferentiableAt (by simp)
   have : ContMDiffSMul I I' 1 G M := ContMDiffSMul.of_le (M := M) ENat.LEInfty.out
   have hσ := e.hasMFDerivAt_linearSliceMap hL
-  refine (mfderiv_comp_apply _ hΦ hπ _).symm.trans ?_
-  rw [linearTubeMap_def, BalancedProduct.liftRightTranslation_comp_quotientMk]
-  -- `(stabilizer G x).RightTranslation` is `G` with the same charts, and `toRightTranslation` is
-  -- the identity, so this is the differential of `(g, p) ↦ g • σ p` on `G × P` at `(1, 0)`.
-  refine (mfderiv_smul_slice_apply (σ := e.linearSliceMap hL) hσ.mdifferentiableAt ξ p).trans ?_
+  refine (BalancedProduct.mfderiv_liftRightTranslation_mfderiv_quotientMk hσ.mdifferentiableAt
+    hΦ ξ p).trans ?_
   rw [hσ.mfderiv, linearSliceMap_zero]
   -- The sides differ only in how `L p` is typed: as a map between the tangent spaces at `0` and
   -- at `x`, or between `P` and `E'`, of which those tangent spaces are type synonyms.
