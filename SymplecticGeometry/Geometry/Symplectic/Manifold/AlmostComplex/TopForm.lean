@@ -5,9 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.LinearAlgebra.Complex.TopForm
 public import TauCeti.Geometry.Manifold.IsManifold.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Basic
+import SymplecticGeometry.LinearAlgebra.Complex.TopForm
 
 /-!
 # Top forms on the tangent planes of an almost complex surface

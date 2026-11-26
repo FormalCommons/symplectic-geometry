@@ -5,17 +5,19 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Symplectic.HPrinciple.CubeCompression
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.ProdFiberContraction
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.NormedSpace
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.HomotopyOperator
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
+import SymplecticGeometry.Geometry.Symplectic.HPrinciple.CubeCompression
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.ProdFiberContraction
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.NormedSpace
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.HomotopyOperator
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import Mathlib.Analysis.Calculus.BumpFunction.FiniteDimension
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import Mathlib.Tactic.Module
 import TauCeti.Analysis.Calculus.FDeriv.NormalSegment
 import TauCeti.Topology.Order.Sublevel
 import TauCeti.Topology.UnitInterval
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # The handle-core lemma for a one-dimensional core

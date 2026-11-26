@@ -5,9 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Topology.ComplexProjectiveSpace.Homeomorph
 public import TauCeti.AlgebraicTopology.Cellular.ComplexProjective.Cohomology
 public import TauCeti.AlgebraicTopology.Cohomology.IntegralCup
+import SymplecticGeometry.Topology.ComplexProjectiveSpace.Homeomorph
 
 /-!
 # Vanishing of the integral cohomology of complex projective spaces, and their homology

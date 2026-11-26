@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.AlgebraicTopology.Cohomology.Additivity.Basic
-public import SymplecticGeometry.Topology.Homeomorph.Sigma
+import SymplecticGeometry.Topology.Homeomorph.Sigma
 
 /-!
 # Singular cohomology of a union of disjoint open sets

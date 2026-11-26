@@ -5,18 +5,22 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.CoordinateDisc
-public import SymplecticGeometry.Geometry.Manifold.Gluing.CapDiscs.Topology
-public import SymplecticGeometry.Geometry.Manifold.Orientation.Glue
 public import TauCeti.Geometry.Manifold.Orientation.Glue
 public import TauCeti.Geometry.Manifold.Boundary.InducedOrientation
 public import TauCeti.Geometry.Manifold.Orientation.AddCircle
 public import TauCeti.Geometry.Manifold.Orientation.OpenSubset
+public import SymplecticGeometry.Geometry.Manifold.Gluing.CapDiscs.Basic
+public import SymplecticGeometry.Geometry.Manifold.Boundary.Charts
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.CoordinateDisc
+import SymplecticGeometry.Geometry.Manifold.Gluing.CapDiscs.Topology
+import SymplecticGeometry.Geometry.Manifold.Orientation.Glue
 import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Orientation
 import SymplecticGeometry.Geometry.Manifold.Orientation.AddCircle
 import SymplecticGeometry.Geometry.Manifold.Orientation.OpenSubset
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
+import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Interior
+import SymplecticGeometry.Geometry.Manifold.Boundary.Interior
 
 /-!
 # The orientation of a surface capped with discs

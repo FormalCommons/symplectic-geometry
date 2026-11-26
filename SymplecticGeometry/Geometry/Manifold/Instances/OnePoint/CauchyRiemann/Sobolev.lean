@@ -5,13 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Complex.Beltrami.ZeroOnePart
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Basic
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.CauchyRiemann.ZeroOneForm
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.Hilbert
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.CovariantDerivative
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.SmoothHomMul
 public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.ZeroOneForm.Basic
+import SymplecticGeometry.Analysis.Complex.Beltrami.ZeroOnePart
 import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.SMulLp
 import SymplecticGeometry.Analysis.Complex.Wirtinger.Beurling.Estimate
 import SymplecticGeometry.Analysis.Complex.Wirtinger.Commutator
@@ -26,6 +25,7 @@ import TauCeti.Analysis.Sobolev.Local.Norm.ContDiff
 import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.ContMDiffSection
 import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.Rellich
 import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.SMul
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.CovariantDerivative.Chart
 
 /-!
 # The Cauchy–Riemann operators `D_J` of `𝒪(1)` on Sobolev sections

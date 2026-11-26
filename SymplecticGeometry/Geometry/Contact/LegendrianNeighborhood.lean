@@ -5,9 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.Immersion.Transverse
-public import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.Riemannian.Injective
 public import TauCeti.Geometry.Contact.Legendrian.Neighborhood
+import SymplecticGeometry.Geometry.Manifold.Immersion.Transverse
+import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.Riemannian.Injective
 import TauCeti.Geometry.Contact.Family
 import TauCeti.Geometry.Contact.OneJet.Connection
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens

@@ -5,7 +5,6 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Topology.ComplexStructure.Orbit
 public import SymplecticGeometry.Topology.ComplexStructure.Orthogonal
 public import TauCeti.Analysis.Matrix.EuclideanLin
 public import TauCeti.Topology.Algebra.GroupAction.Transitive
@@ -17,9 +16,13 @@ public import SymplecticGeometry.Analysis.Quaternion
 public import SymplecticGeometry.Analysis.InnerProductSpace.PiL2
 public import Mathlib.Topology.Homeomorph.Lemmas
 public import TauCeti.Data.Fin.Sum
+public import SymplecticGeometry.LinearAlgebra.ComplexStructure.Standard
+import SymplecticGeometry.Topology.ComplexStructure.Orbit
 import TauCeti.Geometry.Sphere.Connected
 import TauCeti.Geometry.Symplectic.Complex.InnerProductSpace
 import TauCeti.Geometry.Symplectic.Complex.OrthonormalBasis
+import Mathlib.RingTheory.PicardGroup
+import Mathlib.RingTheory.Flat.TorsionFree
 
 /-!
 # The components of the space of complex structures, SO(2n)/U(n), and the case of ℝ⁴

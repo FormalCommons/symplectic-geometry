@@ -9,7 +9,6 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.RescaledFamily
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.IsSymplectic
 public import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.Restriction
-public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Opens
 public import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Liouville
 public import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
 public import TauCeti.Topology.VectorBundle.Radial
@@ -26,6 +25,7 @@ import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 import TauCeti.Topology.Compactness.Compact
 import SymplecticGeometry.Topology.VectorBundle.Basic
+import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Opens
 
 /-!
 # Rescaling symplectic maps of a cotangent bundle towards the zero section

@@ -7,7 +7,7 @@ module
 
 public import Mathlib.Topology.Compactness.Compact
 public import TauCeti.Topology.Algebra.ConstMulAction
-public import SymplecticGeometry.Topology.DiscreteSubset
+import SymplecticGeometry.Topology.DiscreteSubset
 
 /-!
 # Fixed points of continuous actions on compact spaces

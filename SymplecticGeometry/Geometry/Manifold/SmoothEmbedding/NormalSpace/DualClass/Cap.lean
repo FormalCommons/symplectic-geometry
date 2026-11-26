@@ -6,13 +6,13 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Algebra.Category.ModuleCat.Monoidal.Basic
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.OpenEmbedding
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.DualClass.Basic
 public import TauCeti.AlgebraicTopology.Cohomology.Cap.Relative
 public import TauCeti.AlgebraicTopology.Singular.Homotopy.Invariance
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
-public import SymplecticGeometry.Topology.VectorBundle.TotalSpaceHomotopy
 public import TauCeti.CategoryTheory.Monoidal.Preadditive
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.OpenEmbedding
+import SymplecticGeometry.Topology.VectorBundle.TotalSpaceHomotopy
 
 /-!
 # The cap product of a dual class with the fundamental class

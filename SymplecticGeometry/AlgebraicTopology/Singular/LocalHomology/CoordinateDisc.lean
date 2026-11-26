@@ -14,10 +14,11 @@ public import Mathlib.Geometry.Manifold.Instances.Sphere
 public import TauCeti.Geometry.Manifold.Orientation.Euclidean
 public import TauCeti.Geometry.Manifold.Orientation.Preserving
 public import TauCeti.Topology.Circle.Loop
-public import SymplecticGeometry.Geometry.Manifold.Complex.FundamentalClass
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.ChangeOfModel
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
-public import SymplecticGeometry.LinearAlgebra.Complex.Orientation
+public import TauCeti.Geometry.Manifold.Orientation.OpenSubset
+import SymplecticGeometry.Geometry.Manifold.Complex.FundamentalClass
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.ChangeOfModel
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
+import SymplecticGeometry.LinearAlgebra.Complex.Orientation
 import SymplecticGeometry.Geometry.Manifold.Instances.Sphere
 import SymplecticGeometry.Geometry.Manifold.Orientation.CoordinateBall
 import TauCeti.Analysis.SpecialFunctions.Complex.Arg

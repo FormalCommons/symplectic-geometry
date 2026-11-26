@@ -7,7 +7,8 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Model
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Tautological
-public import SymplecticGeometry.Geometry.Symplectic.Neighborhood.CodimTwo
+public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Normal
+import SymplecticGeometry.Geometry.Symplectic.Neighborhood.CodimTwo
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Symplectic.Manifold.NeighborhoodGerm
 import TauCeti.Geometry.Symplectic.Manifold.Rescale

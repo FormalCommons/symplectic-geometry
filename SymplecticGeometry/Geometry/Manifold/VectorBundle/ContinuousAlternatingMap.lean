@@ -12,7 +12,7 @@ public import TauCeti.Analysis.Normed.Module.Alternating.Curry
 public import TauCeti.Geometry.Manifold.ContMDiff.ContinuousAlternatingMap
 public import TauCeti.LinearAlgebra.BilinearMap.Multilinear
 public import TauCeti.Topology.Algebra.Module.FiniteDimension
-public import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
+import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Topology.FiberBundle.Basic
 

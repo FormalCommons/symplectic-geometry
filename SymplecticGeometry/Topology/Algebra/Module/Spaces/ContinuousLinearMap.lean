@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Topology.Algebra.Module.Spaces.ContinuousLinearMap
-public import SymplecticGeometry.Topology.Algebra.Module.Equiv.Basic
+import SymplecticGeometry.Topology.Algebra.Module.Equiv.Basic
 
 /-!
 # Conjugation of continuous endomorphisms by an automorphism

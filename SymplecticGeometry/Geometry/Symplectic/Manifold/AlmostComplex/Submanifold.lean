@@ -6,18 +6,18 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.ImmersionDiff
-public import SymplecticGeometry.Geometry.Manifold.Immersion.TangentEndomorphism
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.Nijenhuis
 public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Basic
 public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Basic
 public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
 public import TauCeti.Geometry.Symplectic.Manifold.Kahler
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Restriction
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Pseudoholomorphic
 public import TauCeti.Geometry.Symplectic.Lagrangian.Basic
 public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Normal
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.NormalBundle
+import SymplecticGeometry.Geometry.Manifold.Immersion.TangentEndomorphism
+import SymplecticGeometry.Geometry.Symplectic.Manifold.Nijenhuis
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Pseudoholomorphic
 import SymplecticGeometry.LinearAlgebra.ComplexStructure.Hom
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import SymplecticGeometry.Geometry.Manifold.VectorField.Immersion

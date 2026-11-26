@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Analysis.Matrix.Realify
-public import SymplecticGeometry.LinearAlgebra.Matrix.PosDef.Block
+import SymplecticGeometry.LinearAlgebra.Matrix.PosDef.Block
 
 /-!
 # Real positive definite matrices over an `RCLike` field

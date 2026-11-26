@@ -6,9 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Truncate
-public import SymplecticGeometry.Geometry.Symplectic.Flux.Hamiltonian
 public import TauCeti.Geometry.Manifold.DeRham.FiniteDimensional
 public import TauCeti.Geometry.Manifold.DeRham.HomologyPeriod
+public import TauCeti.Geometry.Symplectic.Flux.Hamiltonian
+import SymplecticGeometry.Geometry.Symplectic.Flux.Hamiltonian
 import TauCeti.Analysis.Calculus.IntervalIntegral.ParametricPrimitive
 import TauCeti.Geometry.Manifold.Flow.Complete
 import TauCeti.Geometry.Symplectic.Flux.Eulerian

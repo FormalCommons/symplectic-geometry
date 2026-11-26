@@ -6,9 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.RestrictsTo
-public import SymplecticGeometry.LinearAlgebra.BilinearForm.Nondegenerate
 public import TauCeti.Geometry.Symplectic.Manifold.Orientation
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
+import SymplecticGeometry.LinearAlgebra.BilinearForm.Nondegenerate
 
 /-!
 # Vertically nondegenerate two-forms and forms compatible with an oriented atlas

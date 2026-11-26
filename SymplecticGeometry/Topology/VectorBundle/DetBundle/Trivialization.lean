@@ -5,9 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Topology.VectorBundle.Trivialization
 public import SymplecticGeometry.Topology.VectorBundle.FiniteTrivializingCover
 public import TauCeti.Topology.VectorBundle.Determinant
+import TauCeti.Topology.VectorBundle.Trivialization
 
 /-!
 # Trivializations of the determinant line from arbitrary linear trivializations

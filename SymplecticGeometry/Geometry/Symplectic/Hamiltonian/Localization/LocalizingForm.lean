@@ -11,7 +11,7 @@ public import TauCeti.Analysis.Complex.Euclidean.Space
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.Circle
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Localization.WeightOneForm
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.WeightModel.NormalForm
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.GroupAction.InvariantCutoff
 import SymplecticGeometry.Geometry.Manifold.GroupAction.InvariantOneForm

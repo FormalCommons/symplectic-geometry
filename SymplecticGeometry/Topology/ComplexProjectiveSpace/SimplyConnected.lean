@@ -6,7 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.AlgebraicTopology.FundamentalGroupoid.SimplyConnected
-public import SymplecticGeometry.Topology.ComplexProjectiveSpace.Homeomorph
+public import Mathlib.Topology.Algebra.Projectivization
+public import Mathlib.Analysis.Complex.Basic
+import SymplecticGeometry.Topology.ComplexProjectiveSpace.Homeomorph
 import TauCeti.Topology.ComplexProjectiveSpace.Hopf.Exact
 
 /-!

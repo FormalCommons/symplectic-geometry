@@ -5,8 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Algebra.Homology.Monoidal.CupChangeOfValues
 public import TauCeti.AlgebraicTopology.Cohomology.Cup.Basic
+import SymplecticGeometry.Algebra.Homology.Monoidal.CupChangeOfValues
 
 /-!
 # Change of cochain values in singular cohomology

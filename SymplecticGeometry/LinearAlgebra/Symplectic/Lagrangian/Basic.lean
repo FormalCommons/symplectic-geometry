@@ -6,7 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.LinearAlgebra.FiniteDimensional.Lemmas
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Subspace
+public import TauCeti.Geometry.Symplectic.Lagrangian.Basic
+import SymplecticGeometry.LinearAlgebra.Symplectic.Subspace
 
 /-!
 # The Lagrangian Grassmannian

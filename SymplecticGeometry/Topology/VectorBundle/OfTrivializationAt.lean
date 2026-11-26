@@ -5,8 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Topology.FiberBundle.Basic
-public import TauCeti.Topology.VectorBundle.Trivialization
+public import TauCeti.Topology.FiberBundle.MapFiber
+public import Mathlib.Topology.VectorBundle.Basic
+public import Mathlib.LinearAlgebra.FiniteDimensional.Defs
+import SymplecticGeometry.Topology.FiberBundle.Basic
+import TauCeti.Topology.VectorBundle.Trivialization
 
 /-!
 # Choosing the preferred trivializations of a vector bundle

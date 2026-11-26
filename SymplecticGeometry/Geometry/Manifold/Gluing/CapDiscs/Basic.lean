@@ -6,19 +6,22 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.CoordinateDisc
-public import SymplecticGeometry.Geometry.Manifold.Boundary.Charts
-public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Interior
-public import SymplecticGeometry.Geometry.Manifold.Gluing.Pair
 public import TauCeti.Geometry.Manifold.Instances.AddCircle
+public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
+public import TauCeti.Geometry.Manifold.Boundary.Collar.Smooth
+public import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
+import SymplecticGeometry.Geometry.Manifold.Boundary.Charts
+import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Interior
+import SymplecticGeometry.Geometry.Manifold.Gluing.Pair
 import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Local
 import SymplecticGeometry.Geometry.Manifold.Instances.AddCircle
 import SymplecticGeometry.Geometry.Manifold.Instances.HalfLine.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.ModelTransport.Remodel
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Deriv
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Sigma
 import TauCeti.Topology.Compactness.Normed
+import SymplecticGeometry.Geometry.Manifold.Boundary.Interior
 
 /-!
 # Capping the boundary circles of a surface with discs

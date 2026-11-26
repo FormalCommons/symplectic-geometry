@@ -5,9 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.UniversalCover.Circle.FreeLoop.Basic
 public import TauCeti.Topology.Circle.Degree.Square
 public import TauCeti.Topology.Homotopy.Cube.Radius
+public import TauCeti.Topology.Circle.FreeLoop
+import SymplecticGeometry.AlgebraicTopology.UniversalCover.Circle.FreeLoop.Basic
 
 /-!
 # The degree around the boundary of the square and around an inner circle

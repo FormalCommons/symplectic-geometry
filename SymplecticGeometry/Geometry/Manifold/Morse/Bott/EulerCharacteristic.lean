@@ -6,8 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Algebra.Field.ZMod
-public import SymplecticGeometry.Geometry.Manifold.Morse.BettiNumber
 public import TauCeti.Geometry.Manifold.Morse.Bott.Inequalities
+public import TauCeti.AlgebraicTopology.Cellular.EulerCharacteristic.FiniteCWType
+import SymplecticGeometry.Geometry.Manifold.Morse.BettiNumber
 
 /-!
 # The Euler characteristic of a manifold from a Morse–Bott function

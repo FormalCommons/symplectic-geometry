@@ -8,8 +8,8 @@ module
 public import Mathlib.Analysis.Calculus.IteratedDeriv.Defs
 public import Mathlib.Analysis.SpecialFunctions.ExpDeriv
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Equivariant.Basic
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Graded
 public import TauCeti.Geometry.Symplectic.Hamiltonian.Manifold
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Graded
 import Mathlib.Analysis.Calculus.IteratedDeriv.Lemmas
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Support
 import SymplecticGeometry.Analysis.SpecialFunctions.ExpDeriv
@@ -17,6 +17,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import TauCeti.Geometry.Symplectic.Hamiltonian.SymplecticVectorField
 import TauCeti.Topology.Algebra.Support
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Pow
 
 /-!
 # The functional calculus of an even form

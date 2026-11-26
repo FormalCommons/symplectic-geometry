@@ -6,16 +6,17 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.LinearAlgebra.UnitaryGroup
-public import SymplecticGeometry.Data.Matrix.Mul
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Basic
-public import SymplecticGeometry.LinearAlgebra.Matrix.DotProduct
 public import SymplecticGeometry.LinearAlgebra.Matrix.ToLin
 public import TauCeti.Geometry.Manifold.Projectivization.Map
 public import TauCeti.Geometry.Symplectic.Manifold.Kahler
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Submanifold
+import SymplecticGeometry.Data.Matrix.Mul
+import SymplecticGeometry.LinearAlgebra.Matrix.DotProduct
 import Mathlib.Analysis.InnerProductSpace.Calculus
 import Mathlib.Analysis.SpecialFunctions.Log.Deriv
 import SymplecticGeometry.Analysis.Complex.Euclidean.Space
+import SymplecticGeometry.Analysis.InnerProductSpace.PiL2
 
 /-!
 # The Fubini–Study form is Kähler

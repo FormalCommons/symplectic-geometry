@@ -6,8 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.ThomClass
-public import SymplecticGeometry.Topology.VectorBundle.Thom.SecondCountable
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Basic
+import SymplecticGeometry.Topology.VectorBundle.Thom.SecondCountable
 
 /-!
 # The Thom isomorphism of the normal bundle of an embedding

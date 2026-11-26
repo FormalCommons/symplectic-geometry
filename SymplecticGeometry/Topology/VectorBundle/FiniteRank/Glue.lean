@@ -5,12 +5,13 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Topology.VectorBundle.Core.Basic
-public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Biproduct
-public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.HomotopyInvariance
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Tensor
 public import TauCeti.Topology.VectorBundle.FiniteRank.Monoidal
+public import Mathlib.Topology.Compactness.Paracompact
+import SymplecticGeometry.Topology.VectorBundle.Core.Basic
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.HomotopyInvariance
 
 /-!
 # Gluing a finite-rank core over two open sets by an automorphism

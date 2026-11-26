@@ -15,6 +15,7 @@ import SymplecticGeometry.Geometry.Symplectic.Manifold.Darboux
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import SymplecticGeometry.Geometry.Manifold.GroupAction.Opens
+import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 
 /-!
 # The weight chart of a Hamiltonian torus action, with period-one weights

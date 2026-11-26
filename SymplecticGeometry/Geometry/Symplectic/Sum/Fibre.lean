@@ -13,6 +13,7 @@ import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Analysis.Complex.ClosedAnnulus
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Prod.Basic
 import TauCeti.Geometry.Symplectic.Manifold.Opens
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 
 /-!
 # The symplectic fiber sum

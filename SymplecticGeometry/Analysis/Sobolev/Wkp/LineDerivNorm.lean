@@ -6,8 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Analysis.Sobolev.Wkp.LineDeriv
-public import TauCeti.Analysis.Normed.Operator.Bilinear
-public import SymplecticGeometry.MeasureTheory.Function.LpSpace.Basic
+import TauCeti.Analysis.Normed.Operator.Bilinear
+import SymplecticGeometry.MeasureTheory.Function.LpSpace.Basic
 
 /-!
 # Directional weak derivatives and the norm of `W^{k+1,p}(Ω)`

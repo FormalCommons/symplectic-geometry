@@ -6,8 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Lie.Complexification
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric
-public import SymplecticGeometry.Topology.Algebra.GroupAction.Stabilizer
 public import TauCeti.Geometry.Lie.FundamentalVectorField
 public import TauCeti.Geometry.Manifold.Algebra.ComplexSmoothFunctions
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
@@ -17,6 +15,9 @@ public import TauCeti.Geometry.Manifold.Riemannian.Gradient.Basic
 public import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.Basic
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Metric
+public import Mathlib.Analysis.CStarAlgebra.Classes
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric
+import SymplecticGeometry.Topology.Algebra.GroupAction.Stabilizer
 import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 import SymplecticGeometry.Geometry.Lie.MaurerCartan
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual

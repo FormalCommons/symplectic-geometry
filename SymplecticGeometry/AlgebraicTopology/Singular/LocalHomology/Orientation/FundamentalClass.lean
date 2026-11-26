@@ -5,8 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Transport
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.IsFundamentalClass
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Transport
 
 /-!
 # The orientation of an integral fundamental class

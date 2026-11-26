@@ -7,9 +7,9 @@ module
 
 public import SymplecticGeometry.Analysis.Distribution.Coordinates
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.L2
-public import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.LocalLaplacian
 public import TauCeti.Analysis.Calculus.CoordinateDeriv
 public import TauCeti.Analysis.Distribution.WaveFrontSet.Sobolev.SingularSupport
+import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.LocalLaplacian
 import SymplecticGeometry.Analysis.Calculus.ContDiff.Matrix
 import SymplecticGeometry.Analysis.Calculus.LineDeriv.Transpose
 import SymplecticGeometry.Analysis.Distribution.SecondOrderSystem

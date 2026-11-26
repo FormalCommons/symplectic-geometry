@@ -6,11 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.LinearAlgebra.QuadraticForm.Signature
-public import TauCeti.Algebra.Homology.ShortComplex.PreservesHomology
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.Basic
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralChains
 public import TauCeti.AlgebraicTopology.Cohomology.CompactSupport.Duality.Manifold
-public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.RestrictScalars
 public import SymplecticGeometry.LinearAlgebra.QuadraticForm.Signature
 public import TauCeti.Algebra.Category.ModuleCat.RestrictScalars
 public import TauCeti.AlgebraicTopology.Cohomology.UniversalCoefficient.CapDuality
@@ -18,6 +15,9 @@ public import TauCeti.AlgebraicTopology.Singular.BettiNumber
 
 import TauCeti.LinearAlgebra.QuadraticForm.Radical
 import TauCeti.LinearAlgebra.QuadraticForm.Signature
+import TauCeti.Algebra.Homology.ShortComplex.PreservesHomology
+import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.Basic
+import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.RestrictScalars
 
 /-!
 # The cap product with integral and with rational chains

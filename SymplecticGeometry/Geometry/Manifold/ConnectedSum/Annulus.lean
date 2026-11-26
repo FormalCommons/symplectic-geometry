@@ -5,7 +5,6 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Euclidean.Inversion
 public import SymplecticGeometry.Topology.Sets.Annulus
 public import SymplecticGeometry.Geometry.Manifold.Gluing.Pair
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
@@ -15,9 +14,11 @@ public import SymplecticGeometry.Geometry.Manifold.ConnectedSum.OrientationPrese
 
 import TauCeti.Geometry.Manifold.Diffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
-import TauCeti.Geometry.Manifold.Diffeomorph.NormedSpace
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
+import SymplecticGeometry.Geometry.Euclidean.Inversion
+public import TauCeti.Geometry.Manifold.Diffeomorph.NormedSpace
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Diffeomorph
 
 /-!
 # The connected sum by annuli

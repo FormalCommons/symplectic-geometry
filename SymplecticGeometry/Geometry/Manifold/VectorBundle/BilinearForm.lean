@@ -6,8 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.VectorBundle.Hom
-public import SymplecticGeometry.Topology.VectorBundle.Coordinates
 public import TauCeti.Topology.VectorBundle.Coordinates
+public import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
+import SymplecticGeometry.Topology.VectorBundle.Coordinates
 import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!

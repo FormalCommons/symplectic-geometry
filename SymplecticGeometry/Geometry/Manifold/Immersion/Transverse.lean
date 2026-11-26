@@ -7,7 +7,7 @@ module
 
 public import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
 public import Mathlib.Analysis.Normed.Module.FiniteDimension
-public import SymplecticGeometry.Topology.Algebra.Module.ContinuousLinearMap.PiProd
+import SymplecticGeometry.Topology.Algebra.Module.ContinuousLinearMap.PiProd
 import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
