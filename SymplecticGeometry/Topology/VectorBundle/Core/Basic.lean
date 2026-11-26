@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Data.Fintype.Order
 public import Mathlib.Topology.VectorBundle.Basic
 public import TauCeti.Topology.VectorBundle.Coordinates
 
@@ -18,6 +19,8 @@ public import TauCeti.Topology.VectorBundle.Coordinates
   (`VectorBundleCore.fiberEquiv_localTriv_symm`).
 * `VectorBundleCore.inChartCoordinates_id`: the chart expression of the identity, between two
   charts at a point of both, is their coordinate change.
+* `VectorBundleCore.exists_norm_coordChange_le`: over a Hausdorff base, the transitions between
+  finitely many charts are bounded on the overlaps of compact subsets of their domains.
 * `VectorBundleCore.inChartCoordinates_eq_coordChange_comp`: chart expressions of one operator in
   two pairs of charts differ by the transitions between them.
 * `VectorBundleCore.inChartCoordinates_smul` and `VectorBundleCore.inChartCoordinates_sum`: the
@@ -75,6 +78,19 @@ theorem inChartCoordinates_id {i j : ι} {x : B} (hi : x ∈ Z.baseSet i) (hj : 
   ext v : 1
   rw [inChartCoordinates_apply, ContinuousLinearMap.id_apply,
     Z.coordChange_comp _ _ _ x ⟨⟨hi, Z.mem_baseSet_at x⟩, hj⟩]
+
+/-- Let `K k`, for `k` in a finite type, be compact subsets of the domains of charts `p k` of a
+core over a Hausdorff base. Then the transitions from the chart `p k` to the chart `p j` are
+bounded, uniformly in `j` and `k`, on `K j ∩ K k`. -/
+theorem exists_norm_coordChange_le [T2Space B] {κ : Type*} [Finite κ] (p : κ → ι)
+    {K : κ → Set B} (hK : ∀ k, IsCompact (K k)) (hKs : ∀ k, K k ⊆ Z.baseSet (p k)) :
+    ∃ C, ∀ j k, ∀ x ∈ K j ∩ K k, ‖Z.coordChange (p k) (p j) x‖ ≤ C := by
+  have h (j k : κ) : ∃ C, ∀ x ∈ K j ∩ K k, ‖Z.coordChange (p k) (p j) x‖ ≤ C :=
+    ((hK j).inter_right (hK k).isClosed).exists_bound_of_continuousOn
+      ((Z.continuousOn_coordChange (p k) (p j)).mono fun x hx ↦ ⟨hKs k hx.2, hKs j hx.1⟩)
+  choose C hC using h
+  obtain ⟨M, hM⟩ := Finite.exists_le fun q : κ × κ ↦ C q.1 q.2
+  exact ⟨M, fun j k x hx ↦ (hC j k x hx).trans (hM (j, k))⟩
 
 variable {G κ : Type*} [NormedAddCommGroup G] [NormedSpace R G] {W : VectorBundleCore R B G κ}
 

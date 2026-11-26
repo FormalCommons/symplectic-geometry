@@ -108,20 +108,8 @@ private theorem fiberMap_pullbackForgetTime (f : (Q E) ⟶ (Q E)) (b : (X × I) 
 
 /-- An isomorphism of the pullback of `E` to `X × Circle`, pulled back to `(X × I) × Circle`
 along `((x, t), z) ↦ (x, z)`. -/
-private def pullbackForgetTimeIso (f : (Q E) ≅ (Q E)) : (P E) ≅ (P E) where
-  hom := pullbackForgetTime f.hom
-  inv := pullbackForgetTime f.inv
-  hom_inv_id := hom_ext fun b ↦ by
-    rw [fiberMap_comp, fiberMap_pullbackForgetTime, fiberMap_pullbackForgetTime,
-      fiberMap_hom_inv_id, fiberMap_id]
-    -- The two identities are those of `Fin (Q E).rank → 𝕜` and `Fin (P E).rank → 𝕜`: both
-    -- ranks are that of `E` by definition.
-    rfl
-  inv_hom_id := hom_ext fun b ↦ by
-    rw [fiberMap_comp, fiberMap_pullbackForgetTime, fiberMap_pullbackForgetTime,
-      fiberMap_inv_hom_id, fiberMap_id]
-    -- As above, the ranks of the two pullbacks are that of `E` by definition.
-    rfl
+private def pullbackForgetTimeIso (f : (Q E) ≅ (Q E)) : (P E) ≅ (P E) :=
+  (pullbackFunctor (ContinuousMap.fst.prodMap (.id Circle))).mapIso f
 
 private theorem pullbackForgetTimeIso_inv (f : (Q E) ≅ (Q E)) :
     (pullbackForgetTimeIso f).inv = pullbackForgetTime f.inv :=

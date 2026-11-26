@@ -72,34 +72,45 @@ private theorem mem_baseSet_pullback_fst {k : X} {w : X × Circle}
     ← VectorBundleCore.baseSet_at]
   simpa only [ContinuousMap.fst_apply] using h
 
-/-- Let `a i = ∑ k, ofChart k k (ρ k • c i · k)` be patched from the coefficient fields `c i` in
-the charts `k`, which `ρ k` cuts off. Read in a chart `j` of `E` at a point `(x, u)` with `x` in
-its domain, the Laurent family `laurentHom N a` is `∑ k, ρ k x • T(k → j) ∘ L k ∘ T(j → k)`, for
-the Laurent polynomials `L k = ∑_{|i| ≤ N} u ^ i • c i x k`. -/
-private theorem inChartCoordinates_laurentHom_ofChart {t : Finset X} (ρ : t → C(X, ℝ))
+/-- The endomorphism `∑ k, ofChart k k (ρ k • c i · k)` of `E`, patched from the coefficient
+fields `c i · k` in the charts `k` of `E`, which `ρ k` cuts off. -/
+private def patchedCoeff {t : Finset X} (ρ : t → C(X, ℝ))
+    (hρ : ∀ k, tsupport (ρ k) ⊆ E.core.baseSet k)
+    (c : ℤ → C(X, t → (Fin E.rank → ℂ) →L[ℂ] (Fin E.rank → ℂ))) (i : ℤ) : E ⟶ E :=
+  ∑ k : t, VectorBundleCore.CoordinateHom.ofChart (k : X) (k : X) (fun x ↦ ρ k x • c i x k)
+    ((ρ k).continuous.smul ((continuous_apply k).comp (c i).continuous))
+    ((tsupport_smul_subset_left _ _).trans fun _ hx ↦ ⟨hρ k hx, hρ k hx⟩)
+
+/-- Read in a chart `j` of `E` at a point `x` of its domain, the patched coefficient
+`patchedCoeff ρ hρ c i` is `∑ k, T(k → j) ∘ (ρ k x • c i x k) ∘ T(j → k)`. -/
+private theorem inChartCoordinates_fiberMap_patchedCoeff {t : Finset X} (ρ : t → C(X, ℝ))
+    (hρ : ∀ k, tsupport (ρ k) ⊆ E.core.baseSet k)
+    (c : ℤ → C(X, t → (Fin E.rank → ℂ) →L[ℂ] (Fin E.rank → ℂ))) (i : ℤ) {j x : X}
+    (hx : x ∈ E.core.baseSet j) :
+    E.core.inChartCoordinates E.core j j x ((patchedCoeff ρ hρ c i).fiberMap x) =
+      ∑ k : t, (E.core.coordChange k j x).comp
+        ((ρ k x • c i x k).comp (E.core.coordChange j k x)) := by
+  rw [patchedCoeff, fiberMap_sum, VectorBundleCore.inChartCoordinates_sum]
+  refine sum_congr rfl fun k _ ↦ ?_
+  rw [← VectorBundleCore.CoordinateHom.operator_eq _ j j ⟨x, hx, hx⟩,
+    VectorBundleCore.CoordinateHom.operator_ofChart]
+
+/-- Read in a chart `j` of `E` at a point `(x, u)` with `x` in its domain, the Laurent family
+`laurentHom N (patchedCoeff ρ hρ c)` is `∑ k, ρ k x • T(k → j) ∘ L k ∘ T(j → k)`, for the Laurent
+polynomials `L k = ∑_{|i| ≤ N} u ^ i • c i x k`. -/
+private theorem inChartCoordinates_laurentHom_patchedCoeff {t : Finset X} (ρ : t → C(X, ℝ))
     (hρ : ∀ k, tsupport (ρ k) ⊆ E.core.baseSet k) (N : ℕ)
     (c : ℤ → C(X, t → (Fin E.rank → ℂ) →L[ℂ] (Fin E.rank → ℂ))) {j : X} {w : X × Circle}
     (hw : w.1 ∈ E.core.baseSet j) :
     (Q E).core.inChartCoordinates (Q E).core (j, 1) (j, 1) w
-        ((laurentHom N fun i ↦ ∑ k : t,
-          (VectorBundleCore.CoordinateHom.ofChart (k : X) (k : X) (fun x ↦ ρ k x • c i x k)
-            ((ρ k).continuous.smul ((continuous_apply k).comp (c i).continuous))
-            ((tsupport_smul_subset_left _ _).trans fun _ hx ↦ ⟨hρ k hx, hρ k hx⟩) :
-              E ⟶ E)).fiberMap w) =
+        ((laurentHom N (patchedCoeff ρ hρ c)).fiberMap w) =
       ∑ k : t, ρ k w.1 • (E.core.coordChange k j w.1).comp
         ((∑ i ∈ Icc (-(N : ℤ)) N, (w.2 : ℂ) ^ i • c i w.1 k).comp
           (E.core.coordChange j k w.1)) := by
   rw [inChartCoordinates_pullback,
     fiberMap_laurentHom, VectorBundleCore.inChartCoordinates_sum]
-  simp_rw [VectorBundleCore.inChartCoordinates_smul, fiberMap_sum,
-    VectorBundleCore.inChartCoordinates_sum, ContinuousMap.fst_apply]
-  have hk (i : ℤ) (k : t) := (VectorBundleCore.CoordinateHom.operator_eq _ j j
-    ⟨w.1, hw, hw⟩).symm.trans (VectorBundleCore.CoordinateHom.operator_ofChart
-      (g := fun x ↦ ρ k x • c i x k) (hg := (ρ k).continuous.smul
-        ((continuous_apply k).comp (c i).continuous))
-      (hgs := (tsupport_smul_subset_left _ _).trans fun _ hx ↦ ⟨hρ k hx, hρ k hx⟩) j j
-      ⟨w.1, hw, hw⟩)
-  simp only [hk]
+  simp_rw [VectorBundleCore.inChartCoordinates_smul, ContinuousMap.fst_apply,
+    inChartCoordinates_fiberMap_patchedCoeff ρ hρ c _ hw]
   ext v : 1
   simp only [sum_apply, smul_apply, ContinuousLinearMap.comp_apply, map_sum, map_smul,
     smul_sum]
@@ -134,7 +145,7 @@ private theorem continuous_smul_inChartCoordinates_fiberMap (h : (Q E) ⟶ (Q E)
 `w = (x, u)`, with `x` in the support of `ρ j`. If the transitions between the chart `j` and the
 charts `k` with `x` in the support of `ρ k` are bounded by `D` at `x`, then the Laurent family
 patched from the `c i` and `h` differ, read in the chart `j`, by at most `D ^ 2 * ε` at `w`. -/
-private theorem norm_inChartCoordinates_laurentHom_ofChart_sub_le {t : Finset X}
+private theorem norm_inChartCoordinates_laurentHom_patchedCoeff_sub_le {t : Finset X}
     (ρ : PartitionOfUnity t X) (hρ : ∀ k, tsupport (ρ k) ⊆ E.core.baseSet k)
     {σ : t → C(X, ℝ)} (hσ : ∀ k, Set.EqOn (σ k) 1 (tsupport (ρ k))) (N : ℕ)
     (c : ℤ → C(X, t → (Fin E.rank → ℂ) →L[ℂ] (Fin E.rank → ℂ))) (h : (Q E) ⟶ (Q E)) {D ε : ℝ}
@@ -144,11 +155,7 @@ private theorem norm_inChartCoordinates_laurentHom_ofChart_sub_le {t : Finset X}
     (hc : ∀ k, ‖σ k w.1 • E.core.inChartCoordinates E.core k k w.1 (h.fiberMap w) -
       ∑ i ∈ Icc (-(N : ℤ)) N, (w.2 : ℂ) ^ i • c i w.1 k‖ < ε) :
     ‖(Q E).core.inChartCoordinates (Q E).core ((j : X), 1) ((j : X), 1) w
-        ((laurentHom N fun i ↦ ∑ k : t,
-          (VectorBundleCore.CoordinateHom.ofChart (k : X) (k : X) (fun x ↦ ρ k x • c i x k)
-            ((ρ k).continuous.smul ((continuous_apply k).comp (c i).continuous))
-            ((tsupport_smul_subset_left _ _).trans fun _ hx ↦ ⟨hρ k hx, hρ k hx⟩) :
-              E ⟶ E)).fiberMap w) -
+        ((laurentHom N (patchedCoeff ρ hρ c)).fiberMap w) -
       (Q E).core.inChartCoordinates (Q E).core ((j : X), 1) ((j : X), 1) w (h.fiberMap w)‖ ≤
         D ^ 2 * ε := by
   have hρ1 : ∑ k, ρ k w.1 = 1 := by
@@ -159,7 +166,7 @@ private theorem norm_inChartCoordinates_laurentHom_ofChart_sub_le {t : Finset X}
   -- Split `h` along the partition of unity, and compare it with the Laurent family term by term.
   have hsplit (M : (Fin (Q E).rank → ℂ) →L[ℂ] (Fin (Q E).rank → ℂ)) : M = ∑ k, ρ k w.1 • M := by
     rw [← sum_smul, hρ1, one_smul]
-  rw [inChartCoordinates_laurentHom_ofChart ρ hρ N c (hρ j hj),
+  rw [inChartCoordinates_laurentHom_patchedCoeff ρ hρ N c (hρ j hj),
     hsplit ((Q E).core.inChartCoordinates _ _ _ w (h.fiberMap w)), ← sum_sub_distrib]
   refine (norm_sum_le _ _).trans ?_
   calc _ ≤ ∑ k : t, ρ k w.1 * (D ^ 2 * ε) := sum_le_sum fun k _ ↦ ?_
@@ -223,11 +230,7 @@ theorem exists_norm_conj_laurentHom_lt_one (f : (Q E) ≅ (Q E)) :
         ∑ i ∈ Icc (-(N : ℤ)) N, (w.2 : ℂ) ^ i • c i w.1 k‖ < ε := by
     simpa [ψ, Finset.sum_apply] using (norm_le_pi_norm _ k).trans_lt (hc w)
   -- The Laurent coefficients, patched from the charts.
-  obtain ⟨a, ha⟩ : ∃ a : ℤ → (E ⟶ E), a = fun i ↦ ∑ k : t,
-    (VectorBundleCore.CoordinateHom.ofChart (k : X) (k : X) (fun x ↦ ρ k x • c i x k)
-      ((ρ k).continuous.smul ((continuous_apply k).comp (c i).continuous))
-      ((tsupport_smul_subset_left _ _).trans fun _ hx ↦ ⟨hρs k hx, hρs k hx⟩) : E ⟶ E) :=
-    ⟨_, rfl⟩
+  set a := patchedCoeff ρ hρs c
   refine ⟨N, a, fun w ↦ ?_⟩
   -- The estimate is made in a chart `j` of the cover at the base point of `w`.
   obtain ⟨j, hj⟩ := ρ.exists_pos (Set.mem_univ w.1)
@@ -246,8 +249,7 @@ theorem exists_norm_conj_laurentHom_lt_one (f : (Q E) ≅ (Q E)) :
     rw [← hU, ← hU, ← hU, ← ContinuousLinearMap.mul_def]
     simp only [mul_sub, mul_assoc, Units.mul_inv_cancel_left, hinv, Units.inv_mul]
   have hdiff : ‖Φ ((laurentHom N a).fiberMap w) - Φ (f.hom.fiberMap w)‖ ≤ D₁ ^ 2 * ε := by
-    rw [ha]
-    exact norm_inChartCoordinates_laurentHom_ofChart_sub_le ρ hρs hσ1 N c f.hom hxj
+    exact norm_inChartCoordinates_laurentHom_patchedCoeff_sub_le ρ hρs hσ1 N c f.hom hxj
       (fun k hk ↦ ⟨(hC₁ j k w.1 ⟨hxj, hk⟩).trans (le_max_left _ _),
         (hC₁ k j w.1 ⟨hk, hxj⟩).trans (le_max_left _ _)⟩) (hck w)
   have hfi : ‖Φ (f.inv.fiberMap w)‖ ≤ D₂ :=

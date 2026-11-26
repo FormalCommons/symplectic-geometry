@@ -14,8 +14,9 @@ public import TauCeti.Topology.VectorBundle.Hom
 /-!
 # Charts of finite-rank cores over compact sets
 
-Estimates in finitely many charts of a vector-bundle core, of the kind used to patch local
-constructions together over a compact base.
+Finitely many charts of a finite-rank core over a compact base, and estimates in them, of the
+kind used to patch local constructions together. The bound on the transitions between such charts
+holds for any vector-bundle core, and is `VectorBundleCore.exists_norm_coordChange_le`.
 
 ## Main results
 
@@ -23,8 +24,6 @@ constructions together over a compact base.
   Hausdorff base, a finite-rank core has finitely many charts with a partition of unity `ρ`
   subordinate to them, and cutoffs `σ k` supported in the chart `k` and equal to `1` on the
   closed support of `ρ k`;
-* `VectorBundleCore.exists_norm_coordChange_le`: over a Hausdorff base, the transitions between
-  finitely many charts are bounded on the overlaps of compact subsets of their domains;
 * `TauCeti.FiniteRankBundleCore.exists_norm_inChartCoordinates_le`: the fibre maps of a morphism,
   read in finitely many pairs of charts, are bounded on compact subsets of their domains.
 
@@ -37,26 +36,6 @@ constructions together over a compact base.
 public section
 
 open Set
-
-namespace VectorBundleCore
-
-variable {𝕜 B F ι κ : Type*} [NontriviallyNormedField 𝕜] [TopologicalSpace B]
-  [NormedAddCommGroup F] [NormedSpace 𝕜 F] (Z : VectorBundleCore 𝕜 B F ι)
-
-/-- Let `K k`, for `k` in a finite type, be compact subsets of the domains of charts `p k` of a
-core over a Hausdorff base. Then the transitions from the chart `p k` to the chart `p j` are
-bounded, uniformly in `j` and `k`, on `K j ∩ K k`. -/
-theorem exists_norm_coordChange_le [T2Space B] [Finite κ] (p : κ → ι) {K : κ → Set B}
-    (hK : ∀ k, IsCompact (K k)) (hKs : ∀ k, K k ⊆ Z.baseSet (p k)) :
-    ∃ C, ∀ j k, ∀ x ∈ K j ∩ K k, ‖Z.coordChange (p k) (p j) x‖ ≤ C := by
-  have h (j k : κ) : ∃ C, ∀ x ∈ K j ∩ K k, ‖Z.coordChange (p k) (p j) x‖ ≤ C :=
-    ((hK j).inter_right (hK k).isClosed).exists_bound_of_continuousOn
-      ((Z.continuousOn_coordChange (p k) (p j)).mono fun x hx ↦ ⟨hKs k hx.2, hKs j hx.1⟩)
-  choose C hC using h
-  obtain ⟨M, hM⟩ := Finite.exists_le fun q : κ × κ ↦ C q.1 q.2
-  exact ⟨M, fun j k x hx ↦ (hC j k x hx).trans (hM (j, k))⟩
-
-end VectorBundleCore
 
 namespace TauCeti.FiniteRankBundleCore
 
