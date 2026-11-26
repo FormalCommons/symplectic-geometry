@@ -196,41 +196,50 @@ variable (k : Type) [CommRing k] (X : TopCat.{0})
 /-! ### Cochains -/
 
 /-- The `k`-linear singular cochains, read as abelian groups, are the same morphisms with the
-action of `ℤ` of the `ℤ`-linear category `ModuleCat k`. -/
+action of `ℤ` of the `ℤ`-linear category `ModuleCat k`: in each degree, Tau Ceti's
+`RingHom.restrictScalarsIsoOfAddEquiv` for the identity of cochains. -/
 def singularCochainComplexRestrictScalarsIso :
     ((ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).mapHomologicalComplex _).obj
         (X.singularCochainComplex (ModuleCat.of k k) k (ModuleCat.of k k)) ≅
       X.singularCochainComplex (ModuleCat.of k k) ℤ (ModuleCat.of k k) :=
   HomologicalComplex.Hom.isoOfComponents
-    (fun p ↦ LinearEquiv.toModuleIso
-      ({ toFun φ := φ
-         invFun φ := φ
-         map_add' _ _ := rfl
-         map_smul' a φ := by
-           -- `ℤ` acts on the restricted module through `algebraMap ℤ k`.
-           change (algebraMap ℤ k a) • φ = a • φ
-           rw [algebraMap_int_eq, eq_intCast]
-           exact Int.cast_smul_eq_zsmul k a φ
-         left_inv _ := rfl
-         right_inv _ := rfl } :
-        (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).obj
-          ((X.singularCochainComplex (ModuleCat.of k k) k (ModuleCat.of k k)).X p) ≃ₗ[ℤ]
-        (X.singularCochainComplex (ModuleCat.of k k) ℤ (ModuleCat.of k k)).X p))
-    fun _ _ _ ↦ rfl
+    (fun p ↦ (algebraMap ℤ k).restrictScalarsIsoOfAddEquiv
+      (Z := (X.singularCochainComplex (ModuleCat.of k k) k (ModuleCat.of k k)).X p)
+      (W := (X.singularCochainComplex (ModuleCat.of k k) ℤ (ModuleCat.of k k)).X p)
+      (AddEquiv.refl _) fun a φ ↦ by
+        -- `ℤ` acts on the restricted module through `algebraMap ℤ k`, and both carriers are the
+        -- cochains, on which `AddEquiv.refl` is the identity.
+        change (algebraMap ℤ k a) • φ = a • φ
+        rw [algebraMap_int_eq, eq_intCast]
+        exact Int.cast_smul_eq_zsmul k a φ)
+    fun _ _ _ ↦ by
+      ext φ
+      -- The cochains of the restricted complex have the type of its objects, which `rw` does not
+      -- identify with the carrier in the evaluation lemmas.
+      erw [ModuleCat.comp_apply, ModuleCat.comp_apply,
+        RingHom.restrictScalarsIsoOfAddEquiv_hom_apply,
+        RingHom.restrictScalarsIsoOfAddEquiv_hom_apply]
+      rfl
 
 /-- The identification of restricted `k`-linear cochains with `k`-linear cochains under the
 action of `ℤ` is the identity on cochains. -/
 theorem singularCochainComplexRestrictScalarsIso_hom_f_apply (p : ℕ)
     (φ : ((toSSet.obj X).chainComplex (ModuleCat.of k k)).X p ⟶ ModuleCat.of k k) :
     (X.singularCochainComplexRestrictScalarsIso k).hom.f p φ = φ :=
-  (rfl)
+  RingHom.restrictScalarsIsoOfAddEquiv_hom_apply (algebraMap ℤ k)
+    (Z := (X.singularCochainComplex (ModuleCat.of k k) k (ModuleCat.of k k)).X p)
+    (W := (X.singularCochainComplex (ModuleCat.of k k) ℤ (ModuleCat.of k k)).X p)
+    (AddEquiv.refl _) _ φ
 
 /-- The inverse identification of `k`-linear cochains under the action of `ℤ` with restricted
 `k`-linear cochains is the identity on cochains. -/
 theorem singularCochainComplexRestrictScalarsIso_inv_f_apply (p : ℕ)
     (φ : ((toSSet.obj X).chainComplex (ModuleCat.of k k)).X p ⟶ ModuleCat.of k k) :
     (X.singularCochainComplexRestrictScalarsIso k).inv.f p φ = φ :=
-  (rfl)
+  RingHom.restrictScalarsIsoOfAddEquiv_inv_apply (algebraMap ℤ k)
+    (Z := (X.singularCochainComplex (ModuleCat.of k k) k (ModuleCat.of k k)).X p)
+    (W := (X.singularCochainComplex (ModuleCat.of k k) ℤ (ModuleCat.of k k)).X p)
+    (AddEquiv.refl _) _ φ
 
 /-- **Cochains over `k` as integral cochains**: the `k`-linear cochains `Hom_k(C(X; k), k)`,
 read as abelian groups, are the integral cochains `Hom_ℤ(C(X; ℤ), k)`. A cochain `φ` goes to
@@ -270,7 +279,11 @@ theorem singularCochainComplexIntChainsIso_hom_f_apply_ιChainComplex {p : ℕ}
   -- with the chain map induced by `ULift ℤ ≅ ℤ`, which takes `a σ` to `a.down σ`.
   have e : (X.singularCochainComplexIntChainsIso k).hom.f p φ =
       (((SSet.chainComplexFunctor _).map uliftIntIso.hom).app (toSSet.obj X)).f p ≫
-        (singularCochainComplexIntegralIso k (ModuleCat.of k k) X).hom.f p φ :=
+        (singularCochainComplexIntegralIso k (ModuleCat.of k k) X).hom.f p φ := by
+    -- The cochains of the restricted complex and their image under the first isomorphism have
+    -- different types, which `rw` does not identify.
+    rw [singularCochainComplexIntChainsIso_def, Iso.trans_hom, HomologicalComplex.comp_f]
+    erw [ConcreteCategory.comp_apply, singularCochainComplexRestrictScalarsIso_hom_f_apply]
     rfl
   have h := SSet.ιChainComplex_chainComplexFunctor_map_app_f_assoc uliftIntIso.hom σ
     ((singularCochainComplexIntegralIso k (ModuleCat.of k k) X).hom.f p φ)
