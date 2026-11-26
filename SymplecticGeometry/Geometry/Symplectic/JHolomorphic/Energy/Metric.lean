@@ -6,7 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.JHolomorphic.Energy.Density
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric
+public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.CompatibleMetric
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric
 
 /-!
 # The squared norm of a tangent map in the metric of a compatible pair

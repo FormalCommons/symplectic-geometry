@@ -7,12 +7,13 @@ module
 
 public import Mathlib.Analysis.InnerProductSpace.Adjoint
 public import Mathlib.LinearAlgebra.AffineSpace.AffineEquiv
-public import SymplecticGeometry.Analysis.InnerProductSpace.Adjoint
-public import SymplecticGeometry.Geometry.Symplectic.SymplecticTransport
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 public import TauCeti.Analysis.InnerProductSpace.Adjoint
 public import TauCeti.Geometry.Symplectic.Darboux.Basis
 public import TauCeti.LinearAlgebra.SesquilinearForm.IsometryGroup
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+import SymplecticGeometry.Analysis.InnerProductSpace.Adjoint
+import SymplecticGeometry.Geometry.Symplectic.SymplecticTransport
+import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 
 /-!
 # Affine symplectic maps, cylinders and the reflection of the standard model

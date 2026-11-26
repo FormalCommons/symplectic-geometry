@@ -5,8 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Sobolev.Trace.Reflection.HalfSpace
 public import TauCeti.Analysis.Sobolev.Trace.Reflection.Seeley
+import SymplecticGeometry.Analysis.Sobolev.Trace.Reflection.HalfSpace
 
 /-!
 # Seeley's moment identities as sums

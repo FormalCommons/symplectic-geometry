@@ -5,9 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.ConstantRank.Factorization
 public import TauCeti.Geometry.Manifold.Immersion.Differential
 public import TauCeti.Geometry.Manifold.Instances.Sigma
+public import TauCeti.Geometry.Manifold.RegularValue.Rank
+import SymplecticGeometry.Geometry.Manifold.ConstantRank.Factorization
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.Geometry.Manifold.Immersion.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Sigma

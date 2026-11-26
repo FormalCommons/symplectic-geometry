@@ -13,6 +13,7 @@ import SymplecticGeometry.Geometry.Manifold.VectorBundle.CovariantDerivative.Lev
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 import TauCeti.Geometry.Manifold.MFDeriv.Curve
 import TauCeti.Geometry.Manifold.VectorField.Regularity
+import SymplecticGeometry.LinearAlgebra.Symplectic.CompatibleTangent.Basic
 
 /-!
 # The Levi-Civita connection of the space of compatible complex structures

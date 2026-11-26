@@ -5,15 +5,17 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Matrix.EuclideanLin
-public import SymplecticGeometry.LinearAlgebra.Matrix.UnitaryGroup.Projective
 public import SymplecticGeometry.LinearAlgebra.Matrix.UnitaryGroup.Real
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Frame
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 public import TauCeti.Analysis.Complex.Circle.Basic
 public import TauCeti.LinearAlgebra.TotallyReal.Lagrangian
 public import TauCeti.Topology.Algebra.Matrix.Realify
+public import TauCeti.LinearAlgebra.Matrix.UnitaryGroup.Projective
+import SymplecticGeometry.Analysis.Matrix.EuclideanLin
+import SymplecticGeometry.LinearAlgebra.Matrix.UnitaryGroup.Projective
+import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 import SymplecticGeometry.LinearAlgebra.FiniteDimensional.Submodule
+import SymplecticGeometry.LinearAlgebra.Matrix.OfReal
 
 /-!
 # The symplectic and unitary actions on the Lagrangian Grassmannian

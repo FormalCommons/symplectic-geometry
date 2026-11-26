@@ -10,8 +10,9 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Smooth
 public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
-public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Wedge.Basic
-public import SymplecticGeometry.LinearAlgebra.Alternating.Conormal
+public import TauCeti.LinearAlgebra.Alternating.Conormal
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Wedge.Basic
+import SymplecticGeometry.LinearAlgebra.Alternating.Conormal
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
 

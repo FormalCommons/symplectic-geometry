@@ -6,9 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.LinearAlgebra.Complex.EnergyDensity
-public import SymplecticGeometry.LinearAlgebra.Complex.StdComplexLine
 public import TauCeti.Geometry.Symplectic.Manifold.Energy
 public import TauCeti.Topology.Algebra.Module.FiniteDimension
+import SymplecticGeometry.LinearAlgebra.Complex.StdComplexLine
 
 /-!
 # Energy densities of maps from almost complex surfaces

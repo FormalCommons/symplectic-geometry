@@ -5,9 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.UnivBall
 public import TauCeti.Geometry.Manifold.ConnectedSum.Sphere
+import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.UnivBall
 import TauCeti.Analysis.Normed.Module.Ball
+import SymplecticGeometry.Analysis.Normed.Module.Ball.Homeomorph
 
 /-!
 # Pairwise disjoint coordinate balls inside a coordinate ball

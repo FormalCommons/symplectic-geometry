@@ -5,11 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.SubsetSingleton
-public import SymplecticGeometry.Topology.ComplexProjectiveSpace.SecondHomology
-public import SymplecticGeometry.Topology.ComplexProjectiveSpace.SimplyConnected
 public import TauCeti.AlgebraicTopology.Homotopy.Hurewicz.Absolute
 public import TauCeti.AlgebraicTopology.Singular.DiskSphere
+public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.ProjectiveSpace
+import SymplecticGeometry.AlgebraicTopology.Cohomology.SubsetSingleton
+import SymplecticGeometry.Topology.ComplexProjectiveSpace.SecondHomology
+import SymplecticGeometry.Topology.ComplexProjectiveSpace.SimplyConnected
 
 /-!
 # Maps of the disk pair into complex projective space

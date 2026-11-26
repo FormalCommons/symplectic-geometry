@@ -7,7 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Average
 public import TauCeti.RepresentationTheory.Compact.Haar
-public import SymplecticGeometry.Geometry.Manifold.GroupAction.BoundarylessModel
+import SymplecticGeometry.Geometry.Manifold.GroupAction.BoundarylessModel
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.GroupAction.Opens
 

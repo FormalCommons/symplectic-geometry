@@ -7,7 +7,11 @@ module
 
 public import TauCeti.RingTheory.PowerSeries.ChernCharacter
 public import TauCeti.RingTheory.PowerSeries.Derivative
-public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Whitney
+public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Basic
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Whitney
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Naturality
+import SymplecticGeometry.Topology.VectorBundle.ModelEquiv
+import SymplecticGeometry.AlgebraicTopology.Cohomology.Empty
 
 /-!
 # Newton classes of complex vector bundles

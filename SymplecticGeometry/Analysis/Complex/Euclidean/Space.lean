@@ -5,8 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.InnerProductSpace.PiL2
 public import TauCeti.Analysis.Complex.Euclidean.Space
+import SymplecticGeometry.Analysis.InnerProductSpace.PiL2
 
 /-!
 # Norms of the real coordinates of complex vectors

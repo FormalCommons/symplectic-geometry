@@ -7,8 +7,8 @@ module
 
 public import Mathlib.Geometry.Manifold.IsManifold.InteriorBoundary
 public import Mathlib.Analysis.Convex.Topology
-public import SymplecticGeometry.Topology.Connected.Clopen
 public import TauCeti.Geometry.Manifold.Boundary.Invariance
+import SymplecticGeometry.Topology.Connected.Clopen
 import TauCeti.Geometry.Manifold.Boundary.Basic
 
 /-!

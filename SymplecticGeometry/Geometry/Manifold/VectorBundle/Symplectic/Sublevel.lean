@@ -5,8 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Surface
 public import TauCeti.Geometry.Manifold.RegularValue.Scalar.Sublevel.Basic
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Basic
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Surface
 import SymplecticGeometry.Geometry.Manifold.RegularValue.StrictSublevel
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Pullback
 

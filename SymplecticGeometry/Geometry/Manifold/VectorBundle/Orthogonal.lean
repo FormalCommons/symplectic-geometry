@@ -5,8 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.LinearAlgebra.BilinearForm.Orthogonal
 public import TauCeti.Geometry.Manifold.VectorBundle.ComplementarySubbundle
+public import Mathlib.LinearAlgebra.BilinearForm.Orthogonal
+import SymplecticGeometry.LinearAlgebra.BilinearForm.Orthogonal
 import TauCeti.Geometry.Manifold.VectorBundle.Bilinear.Section
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
 import TauCeti.Geometry.Manifold.VectorBundle.SectionAlongMap.Regularity

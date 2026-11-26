@@ -5,12 +5,15 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Whitney
 public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
-public import SymplecticGeometry.Topology.VectorBundle.DetBundle.Trivialization
 public import TauCeti.Topology.VectorBundle.Determinant.Prod
-public import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Tensor
-public import SymplecticGeometry.Topology.VectorBundle.ProjectiveBundle.Splitting
+public import SymplecticGeometry.Topology.VectorBundle.FiniteTrivializingCover
+public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Basic
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Whitney
+import SymplecticGeometry.Topology.VectorBundle.DetBundle.Trivialization
+import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Tensor
+import SymplecticGeometry.Topology.VectorBundle.ProjectiveBundle.Splitting
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Naturality
 
 /-!
 # The first Chern class `c₁` is the class of the determinant line

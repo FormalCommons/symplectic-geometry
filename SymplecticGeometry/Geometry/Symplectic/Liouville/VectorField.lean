@@ -5,8 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv
 public import TauCeti.Geometry.Symplectic.Liouville.VectorField
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv
 
 /-!
 # Pulling Liouville vector fields back along related fields

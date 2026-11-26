@@ -6,8 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.Orientation.Preserving
+public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 
 /-!
 # Orientation-preserving maps between a manifold and its model space

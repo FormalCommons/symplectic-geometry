@@ -5,10 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
 public import TauCeti.AlgebraicTopology.Cohomology.LerayHirsch.FiniteCover
-public import SymplecticGeometry.Topology.Category.TopCat.Trivialization
-public import SymplecticGeometry.LinearAlgebra.LinearIndependent
+public import SymplecticGeometry.Topology.FiberBundle.Basic
+public import TauCeti.AlgebraicTopology.Cohomology.IntegralCup
+import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
+import SymplecticGeometry.Topology.Category.TopCat.Trivialization
+import SymplecticGeometry.LinearAlgebra.LinearIndependent
 
 /-!
 # The Leray–Hirsch theorem for bundles with a finite trivializing cover

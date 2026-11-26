@@ -7,7 +7,6 @@ module
 
 public import Mathlib.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
 public import Mathlib.Geometry.Manifold.VectorBundle.ContMDiffSection
-public import SymplecticGeometry.Topology.FiberBundle.Basic
 public import SymplecticGeometry.Topology.VectorBundle.Frame
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hom
@@ -21,8 +20,9 @@ public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 public import TauCeti.LinearAlgebra.BilinearForm.SymplecticBasis
 public import TauCeti.LinearAlgebra.BilinearMap.Multilinear
 public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Basic
-public import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 public import TauCeti.Topology.Algebra.Module.FiniteDimension
+import SymplecticGeometry.Topology.FiberBundle.Basic
+import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 import SymplecticGeometry.LinearAlgebra.Symplectic.Darboux
 import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
