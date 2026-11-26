@@ -8,13 +8,11 @@ module
 public import Mathlib.Analysis.InnerProductSpace.Basic
 public import Mathlib.Geometry.Manifold.Algebra.SMul
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
-import TauCeti.Geometry.Manifold.PartitionOfUnity.Compact
+import TauCeti.Geometry.Manifold.GroupAction.InvariantCutoff
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
-import TauCeti.Topology.Algebra.ConstMulAction
 import TauCeti.Topology.Algebra.Support
 import SymplecticGeometry.Analysis.Calculus.BumpFunction.Radial
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
-import SymplecticGeometry.Geometry.Manifold.GroupAction.Average
 
 /-!
 # Invariant cut-offs
@@ -41,15 +39,15 @@ Let a compact Lie group `G` act smoothly on a boundaryless Hausdorff manifold `M
 finite-dimensional model. A compact set `K` inside a `G`-invariant open set `U` has a smooth
 `G`-invariant cut-off with values in `[0, 1]`, equal to `1` on a `G`-invariant open neighbourhood
 of `K` and with compact topological support inside `U`
-(`SymplecticGeometry.exists_invariant_contMDiff_eq_one_of_isCompact`). It is the orbit average
-(`SymplecticGeometry.orbitAverage`) of a cut-off around the compact saturation `G • K` given by
-Tau Ceti's `IsCompact.exists_contMDiff_one_nhds_tsupport_subset`.
+(`SymplecticGeometry.exists_invariant_contMDiff_eq_one_of_isCompact`). It is Tau Ceti's invariant
+cut-off `IsCompact.exists_contMDiff_one_nhds_tsupport_subset_of_smul_mem` around the compact
+saturation `G • K`, and the neighbourhood is the interior of the set where it equals `1`. Unlike
+Tau Ceti's statement, this one does not ask `K` itself to be invariant, and it names an invariant
+open neighbourhood of `K` on which the cut-off is `1`.
 
 ## References
 
 * [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §5.6
-* G. E. Bredon, *Introduction to Compact Transformation Groups*, Academic Press (1972),
-  Chapter VI (averaging over a compact group).
 -/
 
 public section
@@ -140,40 +138,29 @@ theorem exists_invariant_contMDiff_eq_one_of_isCompact {K U : Set M} (hK : IsCom
       (∀ (g : G) (x : M), x ∈ W → g • x ∈ W) ∧ (∀ x ∈ W, ρ x = 1) ∧
       HasCompactSupport ρ ∧ tsupport ρ ⊆ U := by
   have : ContinuousSMul G M := ContMDiffSMul.continuousSMul (I := J) (I' := I) ∞
-  -- The saturation `G • K` is compact and lies in `U`.
+  -- Tau Ceti's invariant cut-off around the saturation `G • K`, which is compact, invariant and
+  -- lies in `U`.
+  have hKC : K ⊆ (univ : Set G) • K := fun y hy ↦ ⟨1, mem_univ _, y, hy, one_smul G y⟩
   have hC : IsCompact ((univ : Set G) • K) := isCompact_univ.smul_set hK
   have hCU : (univ : Set G) • K ⊆ U := by
     rintro _ ⟨a, -, y, hy, rfl⟩
     exact hUinv a y (hKU hy)
-  obtain ⟨σ, hσ, hσ1, hσc, hσU, hσ01⟩ := hC.exists_contMDiff_one_nhds_tsupport_subset I hU hCU
-  -- The open set where `σ = 1` contains `G • K`; `W` is the set of points whose orbit lies in it.
-  set V := interior {x | σ x = 1}
-  have hCV : (univ : Set G) • K ⊆ V := subset_interior_iff_mem_nhdsSet.2 hσ1
-  set W := {x : M | ∀ a : G, a • x ∈ V}
-  have hW : IsOpen W := isOpen_setOf_forall_smul_mem isOpen_interior
-  have hKW : K ⊆ W := fun y hy a ↦ hCV (smul_mem_smul (mem_univ a) hy)
-  have hWinv (g : G) (x : M) (hx : x ∈ W) : g • x ∈ W := fun a ↦ by
-    rw [smul_smul]
-    exact hx (a * g)
-  -- The saturation `D` of `tsupport σ` is compact, invariant, and lies in `U`.
-  set D := (univ : Set G) • tsupport σ
-  have hD : IsCompact D := isCompact_univ.smul_set hσc
-  have hDU : D ⊆ U := by
-    rintro _ ⟨a, -, y, hy, rfl⟩
-    exact hUinv a y (hσU hy)
-  have hDinv (g : G) (x : M) (hx : x ∈ D) : g • x ∈ D := by
+  have hCinv (g : G) (x : M) (hx : x ∈ (univ : Set G) • K) : g • x ∈ (univ : Set G) • K := by
     obtain ⟨a, -, y, hy, rfl⟩ := hx
     exact ⟨g * a, mem_univ _, y, hy, mul_smul g a y⟩
-  -- `ρ` is the orbit average of `σ`.
-  borelize G
-  have hρD (x : M) (hx : x ∉ D) : orbitAverage G σ x = 0 :=
-    orbitAverage_eq_zero_of_notMem hDinv (fun y hy ↦ image_eq_zero_of_notMem_tsupport
-      fun h ↦ hy ⟨1, mem_univ _, y, h, one_smul G y⟩) hx
-  refine ⟨orbitAverage G σ, W, hσ.orbitAverage J, orbitAverage_mem_Icc hσ01, orbitAverage_smul σ,
-    hW, hKW, hWinv, fun x hx ↦ orbitAverage_eq_of_eqOn hWinv (fun y hy ↦ ?_) hx,
-    HasCompactSupport.intro hD hρD,
-    (TauCeti.tsupport_subset_of_forall_notMem_eq_zero hρD hD.isClosed).trans hDU⟩
-  simpa using interior_subset (hy 1)
+  obtain ⟨ρ, hρ, hρ1, hρc, hρU, hρ01, hρinv⟩ :=
+    hC.exists_contMDiff_one_nhds_tsupport_subset_of_smul_mem I J hU hCU hCinv
+  -- `W` is the interior of the level set `ρ = 1`, which is invariant since `ρ` is.
+  have hWinv (g : G) (x : M) (hx : x ∈ interior {x | ρ x = 1}) :
+      g • x ∈ interior {x | ρ x = 1} := by
+    have hsub : g • interior {x | ρ x = 1} ⊆ interior {x | ρ x = 1} := by
+      refine interior_maximal ?_ (isOpen_interior.smul g)
+      rintro _ ⟨y, hy, rfl⟩
+      simpa [hρinv] using interior_subset hy
+    exact hsub (smul_mem_smul_set hx)
+  exact ⟨ρ, interior {x | ρ x = 1}, hρ, hρ01, hρinv, isOpen_interior,
+    hKC.trans (subset_interior_iff_mem_nhdsSet.2 hρ1), hWinv, fun x hx ↦ interior_subset hx,
+    hρc, hρU⟩
 
 end SymplecticGeometry
 
