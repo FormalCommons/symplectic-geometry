@@ -90,6 +90,17 @@ closed discrete set of a manifold of dimension at least two. Each ray is grown a
   which keeps the stage (`IsRayStage.comp_diffeomorph`, by `LeavesForGood.comp_monotone`) and
   makes every old cut parameter grow by at least one. The limit of the rays needs this, since
   cut parameters that only increase may stay bounded.
+* `exists_seq_isRayStage`: the stages for all `k`, by iterating `exists_isRayStage_succ` from a
+  stage `0`, with one sequence of levels (`IsRayStage.congr_level`).
+* `exists_rays`: rays from a closed discrete set `P` avoiding a closed discrete set `Q` disjoint
+  from it, on a σ-compact manifold of dimension at least two with no compact component. The
+  function `h` is a nonnegative proper smooth function (Tau Ceti's
+  `TauCeti.exists_contMDiffMap_isProperMap_nonneg`), whose filled sublevel sets are compact and,
+  below level `0`, empty, so that the stages start with no rays and with obstacles `P ∪ Q`. Since
+  the levels grow by more than one at each step, their filled sublevel sets form a compact
+  exhaustion, and the ray of `p` is the limit of its stages from the first stage that uses `p`
+  (`TauCeti.SmoothEmbedding.exists_tendsto_cocompact_of_add_one_le`). A ray meets the set of a
+  stage only if that stage already uses its point, which gives local finiteness.
 
 The set `U` is preconnected by `isPreconnected_sdiff_union_iUnion_image_of_one_lt_rank`, and
 `Ψ` is the final map of a diffeotopy given by Tau Ceti's homogeneity lemma
