@@ -203,7 +203,7 @@ theorem mpullback_collarMap (hδε : δ < ε) :
     SmoothForm.mpullback (f.collarMap hδε) (f.isLocalDiffeomorph_collarMap hδε).contMDiff
         (SmoothForm.mpullback (Subtype.val : f.complTube hδε → M) contMDiff_subtypeVal σ) =
       SmoothTwoForm.prod (SmoothForm.mpullback ι ι.contMDiff σ)
-        (SmoothForm.mpullback (Subtype.val : annulus δ ε → ℂ) contMDiff_subtypeVal
+        (SmoothForm.mpullback (Subtype.val : annulus ℂ δ ε → ℂ) contMDiff_subtypeVal
           stdComplexSymplecticForm.constSmooth) := by
   have hA := isLocalDiffeomorph_annulusToProdBall (Q := Q) (J := J) (δ := δ) (ε := ε)
   rw [SmoothForm.mpullback_mpullback,
@@ -223,7 +223,7 @@ theorem mpullback_collarDiffeomorph (hδε : δ < ε) :
         (SmoothForm.mpullback (Subtype.val : f.collar hδε → f.complTube hδε) contMDiff_subtypeVal
           (SmoothForm.mpullback (Subtype.val : f.complTube hδε → M) contMDiff_subtypeVal σ)) =
       SmoothTwoForm.prod (SmoothForm.mpullback ι ι.contMDiff σ)
-        (SmoothForm.mpullback (Subtype.val : annulus δ ε → ℂ) contMDiff_subtypeVal
+        (SmoothForm.mpullback (Subtype.val : annulus ℂ δ ε → ℂ) contMDiff_subtypeVal
           stdComplexSymplecticForm.constSmooth) := by
   rw [SmoothForm.mpullback_mpullback,
     SmoothForm.mpullback_congr (f := Subtype.val ∘ f.collarDiffeomorph hδε) _
