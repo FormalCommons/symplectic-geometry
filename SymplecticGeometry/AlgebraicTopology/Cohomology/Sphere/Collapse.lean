@@ -11,6 +11,7 @@ public import SymplecticGeometry.Topology.Compactification.OnePoint.Sphere
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Degree
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Prod
 public import TauCeti.Geometry.Manifold.Instances.TopCatSphere
+public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.Sphere.Generator
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.ProjectiveLinePow
 
@@ -64,6 +65,12 @@ equivalence `(ℝ ∙ p)ᗮ × (ℝ ∙ q)ᗮ ≃ (ℝ ∙ r)ᗮ`, followed by M
   (`…_chernClass`): there is one sign `ε = ±1` such that `κ` pulls each class `u` of integral
   cohomology of degree `2(m+1)` back to `(ε * ⟨u, γ_{2(m+1)}⟩) • y₀ ⋯ y_m`, where `yᵢ` is the
   first Chern class of the tautological line pulled back along the `i`-th projection.
+* `SymplecticGeometry.exists_singularCohomologyMap_projectiveLinePowCollapse_eq_…_smul`
+  (`…_evalFundamentalClass_smul`): the same with `κ` followed by a homeomorphism onto the unit
+  sphere `S` of a real inner product space of dimension `2(m+1) + 1`, and `⟨u, γ⟩` replaced by
+  the evaluation of `u` on the fundamental class of any orientation `o` of the manifold `S`; the
+  sign may depend on `o`. The two evaluations differ by one sign
+  (`TauCeti.HomologicalOrientation.exists_singularCohomologyTopCatSphereEquiv_eq_mul_…`).
 
 The three results on `SymplecticGeometry.topCatSphereCollapse` are proved as follows. For the
 first, the cross product is a fundamental class
@@ -454,9 +461,8 @@ theorem exists_singularCohomologyMap_topCatSphereCollapse_eq_smul_integralCup :
   obtain ⟨v, rfl⟩ := ((TopCat.sphere.{0} (d + 1 + e + 1)).integralCohomologyEquiv
     (d + 1 + e + 1)).symm.surjective u
   rw [LinearEquiv.apply_symm_apply, ← TopCat.integralCohomologyEquiv_symm_naturality, hu,
-    map_zsmul, TopCat.integralCohomologyEquiv_symm_singularCup,
-    TopCat.integralCohomologyEquiv_symm_naturality, TopCat.integralCohomologyEquiv_symm_naturality,
-    TopCat.integralSphereGenerator_def, TopCat.integralSphereGenerator_def]
+    map_zsmul, TopCat.integralCohomologyEquiv_symm_singularCup_sphereGenerator,
+    ← TopCat.integralSphereGenerator_def]
 
 /-- **The collapse map in integral cohomology, any spelling of the top degree.** The formula of
 `exists_singularCohomologyMap_topCatSphereCollapse_eq_smul_integralCup` for the collapse map
@@ -656,6 +662,49 @@ theorem exists_singularCohomologyMap_projectiveLinePowCollapse_eq_smul_prod_cher
       mul_right_comm _ _ ε']
     -- the two cup products differ only in writing the degrees as `1 + 1` or `2 * 1`, and so on
     rfl
+
+variable {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]
+
+open scoped Manifold in
+/-- **The iterated collapse and the fundamental class of an orientation.** Let `S` be the unit
+sphere of a real inner product space `E` of dimension `2(m+1) + 1`, a smooth manifold of
+dimension `2(m+1)`, with an orientation `o`. Let `κ : (ℂP¹)^{m+1} → S` be the iterated collapse
+`SymplecticGeometry.projectiveLinePowCollapse m` followed by the homeomorphism
+`TauCeti.sphereHomeomorphTopCatSphere` of `TopCat.sphere (2(m+1))` with `S`, and let
+`yᵢ ∈ H²((ℂP¹)^{m+1}; ℤ)` be the first Chern class of the tautological line of
+`ℂP¹ = ℙ ℂ (Fin 2 → ℂ)` pulled back along the `i`-th projection. There is a sign `ε = ±1` such
+that every class `u ∈ H^{2(m+1)}(S; ℤ)` of the integral cohomology `TopCat.integralCohomology`
+pulls back to `κ^* u = (ε * ⟨u, [S]_o⟩) • y₀ ⋯ y_m`, the product taken in the even integral
+cohomology ring, where `⟨u, [S]_o⟩` is the evaluation
+`TauCeti.HomologicalOrientation.evalFundamentalClass` of `u` on the fundamental class of `o`. -/
+theorem exists_singularCohomologyMap_projectiveLinePowCollapse_eq_evalFundamentalClass_smul
+    (m : ℕ) [Fact (finrank ℝ E = 2 * m + 1 + 1 + 1)]
+    (o : Manifold.Orientation (𝓡 (2 * m + 1 + 1)) (sphere (0 : E) 1) (Fin (2 * m + 1 + 1))) :
+    ∃ ε : ℤ, (ε = 1 ∨ ε = -1) ∧
+      ∀ u : (TopCat.of (sphere (0 : E) 1)).integralCohomology (2 * m + 1 + 1),
+      TopCat.singularCohomologyMap
+          (TopCat.ofHom (X := TopCat.of (Fin (m + 1) → ℙ ℂ (Fin 2 → ℂ)))
+            (((sphereHomeomorphTopCatSphere.{0} (F := E) (n := 2 * m + 1 + 1) Fact.out).symm :
+                C(TopCat.sphere.{0} (2 * m + 1 + 1), sphere (0 : E) 1)).comp
+              (projectiveLinePowCollapse m))) (2 * m + 1 + 1) u =
+        (ε * (o.toHomologicalOrientation finrank_euclideanSpace_fin).evalFundamentalClass
+            finrank_euclideanSpace_fin (ModuleCat.of ℤ ℤ) (ContinuousMap.id _) u) •
+          (∏ i : Fin (m + 1), (TopCat.of (Fin (m + 1) → ℙ ℂ (Fin 2 → ℂ))).evenIntegralCohomologyOf 1
+            (Bundle.chernClass ℂ
+              (ContinuousMap.eval (X := fun _ : Fin (m + 1) ↦ ℙ ℂ (Fin 2 → ℂ)) i *ᵖ
+                (Tautological ℂ (Fin 2 → ℂ))) 1)) (m + 1) := by
+  have hE : finrank ℝ E = 2 * m + 1 + 1 + 1 := Fact.out
+  obtain ⟨ε, hε, hκ⟩ :=
+    exists_singularCohomologyMap_projectiveLinePowCollapse_eq_smul_prod_chernClass m
+  -- the evaluation on the standard generator is `s` times the evaluation on `[S]_o`
+  obtain ⟨s, hs, he⟩ := (o.toHomologicalOrientation finrank_euclideanSpace_fin
+    ).exists_singularCohomologyTopCatSphereEquiv_eq_mul_evalFundamentalClass
+      finrank_euclideanSpace_fin (sphereHomeomorphTopCatSphere.{0} hE)
+  refine ⟨ε * s, ?_, fun u ↦ ?_⟩
+  · rcases hε with rfl | rfl <;> rcases hs with rfl | rfl <;> norm_num
+  rw [TopCat.ofHom_comp, TopCat.singularCohomologyMap_comp, ConcreteCategory.comp_apply, hκ, he,
+    ← HomologicalOrientation.evalFundamentalClass_comp, Homeomorph.symm_comp_toContinuousMap,
+    mul_assoc]
 
 end ProjectiveLinePow
 
