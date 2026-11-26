@@ -524,8 +524,7 @@ theorem cartanDiff_formCalculus_of_isHamiltonianVectorField {σ : SmoothTwoForm 
       exact hXh)
   refine cartanDiff_formCalculus _ _ ((SmoothForm.isClosed_iff_mextDerivₗ_eq_zero σ).1 hσ) ?_
   rw [← SmoothTwoForm.interiorₗ_eq_interiorProduct, hι, ← map_smul, neg_smul, ← smul_neg,
-    ← SmoothForm.ofFunctionEquiv_apply, ← SmoothForm.ofFunctionEquiv_apply]
-  exact congrArg _ (SmoothForm.ofFunctionEquiv.map_smul ħ (-h)).symm
+    SmoothForm.ofFunction_smul]
 
 end Hamiltonian
 

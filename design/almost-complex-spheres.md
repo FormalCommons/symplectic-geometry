@@ -302,7 +302,8 @@ The surjective half of the product theorem [Hatcher2017, §2.1]:
   in `Topology/VectorBundle/FiniteRank/PolynomialClutching.lean`: a
   polynomial clutching function of degree
   $\le N$ becomes linear on $(N+1)E$ (Hatcher's matrix), and
-  `of_clutching_linear`: for a linear one $a(x)z+b(x)$, $E$ splits as
+  `TauCeti.FiniteRankBundleCore.exists_nonempty_clutching_iso_whitneySum_of_linear`:
+  for a linear one $a(x)z+b(x)$, $E$ splits as
   $E_+\oplus E_-$ by the spectral projection
   $\frac1{2\pi i}\oint(w-T)^{-1}dw$ (Mathlib's `circleIntegral`), giving
   $[E_+\otimes H^{\pm1}]+[E_-]$ in $K$;
