@@ -536,10 +536,7 @@ private theorem eventually_comap_mfderiv_timeDependentFlowOf (hξ : IsContactFam
         v ∈ (mpullback (Prod.mk (t₀ : ℝ)) (contMDiff_const.prodMk contMDiff_id) α).kerDistribution
           y₀' := by
     have hk := congrArg (fun A ↦ A ![v]) key
-    have hv : (fun i ↦ mfderiv I I (timeDependentFlowOf XU t₀ t) y₀' (![v] i)) =
-        ![mfderiv I I (timeDependentFlowOf XU t₀ t) y₀' v] :=
-      (FinVec.etaExpand_eq _).symm
-    simp only [TauCeti.mpullback_apply (f := timeDependentFlowOf XU t₀ t), hv,
+    simp only [TauCeti.mpullback_apply_one (f := timeDependentFlowOf XU t₀ t),
       ContinuousAlternatingMap.smul_apply, smul_eq_mul] at hk
     rw [mem_kerDistribution, mem_kerDistribution, coe_mpullback, coe_mpullback, hk,
       mul_eq_zero_iff_left (Real.exp_pos _).ne']
@@ -593,10 +590,7 @@ private theorem eventuallyEq_mpullback_timeDependentFlowOf_eulerianField_restric
         mfderiv I I (timeDependentFlowOf Z u u') _ (Manifold.tangentSpaceOpenEquiv _ w) := by
     rw [Manifold.tangentSpaceOpenEquiv_apply, Manifold.tangentSpaceOpenEquiv_apply]
     exact (mfderiv_timeDependentFlowOf_restrict_opens_apply hZ₁ hdom' w).symm
-  have hvec : (fun i ↦ mfderiv I I (timeDependentFlowOf ZU u u') ⟨_, hxU⟩ (![w] i)) =
-      ![mfderiv I I (timeDependentFlowOf ZU u u') ⟨_, hxU⟩ w] :=
-    (FinVec.etaExpand_eq _).symm
-  rw [TauCeti.mpullback_apply, hvec,
+  rw [TauCeti.mpullback_apply_one,
     ← coe_mpullback (Prod.mk u') (contMDiff_const.prodMk contMDiff_id),
     mpullback_prodMk_mpullback_prodMap_id_right Real.smoothTransition.contDiff.contMDiff,
     ← mem_kerDistribution,
