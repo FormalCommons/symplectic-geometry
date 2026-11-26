@@ -14,10 +14,9 @@ import SymplecticGeometry.MeasureTheory.Integral.Average
 import SymplecticGeometry.MeasureTheory.Measure.Lebesgue.LineSlice
 import SymplecticGeometry.RingTheory.MvPolynomial.LineRestriction
 import SymplecticGeometry.Topology.Algebra.MvPolynomial
-import Mathlib.Algebra.MvPolynomial.Funext
-import TauCeti.Algebra.MvPolynomial.Degrees
 import TauCeti.MeasureTheory.Measure.Haar.Average
 import TauCeti.RingTheory.MvPolynomial.Homogeneous
+import TauCeti.RingTheory.MvPolynomial.Rescale
 
 /-!
 # Volumes of tubes around complex algebraic hypersurfaces
@@ -409,36 +408,25 @@ theorem volume_thickening_zeroLocus_inter_ball_le : ∃ C : ℝ, ∀ P : MvPolyn
   obtain ⟨C₀, hC₀⟩ := volume_thickening_zeroLocus_le (ι := ι)
   refine ⟨C₀, fun P hP D hD r hr t ↦ ?_⟩
   -- The polynomial `z ↦ P (r • z)`.
-  set Q : MvPolynomial ι ℂ := aeval (fun i ↦ C (r : ℂ) * X i) P
+  set Q := rescale (fun _ : ι ↦ (r : ℂ)) P
   have hQ : ∀ z : ι → ℂ, eval z Q = eval (fun i ↦ (r : ℂ) * z i) P := fun z ↦ by
-    simp only [Q, aeval_def, algebraMap_eq, eval₂_comp_left]
-    rw [show (eval z).comp C = RingHom.id ℂ from RingHom.ext eval_C, eval₂_id]
-    congr 2
-    funext i
-    simp
-  have hQ0 : Q ≠ 0 := by
-    refine fun h ↦ hP (MvPolynomial.funext fun w ↦ ?_)
-    have := hQ fun i ↦ (r : ℂ)⁻¹ * w i
-    rw [h] at this
-    simpa [← mul_assoc, mul_inv_cancel₀ (Complex.ofReal_ne_zero.2 hr.ne')] using this.symm
-  have hQD : Q.totalDegree ≤ D := by
-    refine (totalDegree_aeval_le (D := 1) P fun i _ ↦ ?_).trans (by simpa using hD)
-    exact (totalDegree_mul _ _).trans (by simp)
+    simpa using aeval_rescale (fun _ : ι ↦ (r : ℂ)) z P
+  have hQ0 : Q ≠ 0 := fun h ↦ hP <| by
+    rw [← rescale_rescale_of_mul_eq_one (b := fun _ ↦ (r : ℂ)⁻¹)
+      (fun _ ↦ mul_inv_cancel₀ (Complex.ofReal_ne_zero.2 hr.ne')) P]
+    simp [Q] at h; simp [h]
+  have hQD : Q.totalDegree ≤ D :=
+    (totalDegree_le_of_support_subset (support_rescale_subset _ P)).trans hD
   set Z := {z : EuclideanSpace ℂ ι | eval z.ofLp P = 0}
-  set Z' := {z : EuclideanSpace ℂ ι | eval z.ofLp Q = 0}
-  have hsub : thickening t Z ∩ ball 0 r ⊆ r • (thickening (t / r) Z' ∩ ball 0 1) := by
-    rintro x ⟨hx, hxr⟩
-    obtain ⟨y, hy, hxy⟩ := mem_thickening_iff.1 hx
-    rw [mem_smul_set_iff_inv_smul_mem₀ hr.ne']
-    refine ⟨mem_thickening_iff.2 ⟨r⁻¹ • y, ?_, ?_⟩, ?_⟩
-    · simpa [Z, Z', hQ, ← mul_assoc, mul_inv_cancel₀ (Complex.ofReal_ne_zero.2 hr.ne')] using hy
-    · rw [dist_smul₀, Real.norm_eq_abs, abs_inv, abs_of_pos hr, inv_mul_eq_div]
-      exact div_lt_div_of_pos_right hxy hr
-    · rw [mem_ball_zero_iff, norm_smul, Real.norm_eq_abs, abs_inv, abs_of_pos hr,
-        inv_mul_lt_iff₀ hr, mul_one]
-      exact mem_ball_zero_iff.1 hxr
-  refine (measure_mono hsub).trans ?_
-  rw [Measure.addHaar_smul, finrank_real_of_complex, finrank_euclideanSpace,
+  have hZ : (r • ·) ⁻¹' Z = {z : EuclideanSpace ℂ ι | eval z.ofLp Q = 0} := by
+    ext z
+    simp [Z, hQ, Pi.smul_def, Complex.real_smul]
+  have hsub : r • (thickening (t / r) {z : EuclideanSpace ℂ ι | eval z.ofLp Q = 0} ∩ ball 0 1) =
+      thickening t Z ∩ ball 0 r := by
+    rw [← hZ, smul_set_inter₀ hr.ne', smul_unitBall_of_pos hr, ← add_ball_zero, smul_add,
+      smul_ball hr.ne', smul_zero, Real.norm_of_nonneg hr.le, mul_div_cancel₀ _ hr.ne',
+      preimage_smul₀ hr.ne', smul_inv_smul₀ hr.ne', add_ball_zero]
+  rw [← hsub, Measure.addHaar_smul, finrank_real_of_complex, finrank_euclideanSpace,
     abs_of_pos (pow_pos hr _)]
   refine (?_ : _ ≤ ENNReal.ofReal (r ^ (2 * Fintype.card ι)) *
     ENNReal.ofReal (C₀ * D ^ (2 * Fintype.card ι) * (t / r))).trans_eq ?_
