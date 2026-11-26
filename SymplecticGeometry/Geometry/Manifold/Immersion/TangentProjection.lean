@@ -240,8 +240,7 @@ private theorem exists_partialDiffeomorph_of_uniformInverse (he : ContMDiff I �
   set c := extChartAt I x₀
   set w' := c x
   set s := c.source ∩ c ⁻¹' ball (c x₀) ε
-  have hs : IsOpen s :=
-    (continuousOn_extChartAt x₀).isOpen_inter_preimage (isOpen_extChartAt_source x₀) isOpen_ball
+  have hs : IsOpen s := isOpen_extChartAt_preimage' x₀ isOpen_ball
   have hgd : ∀ z ∈ s, DifferentiableAt ℝ (e ∘ c.symm) (c z) := fun z hz ↦
     (((he.contDiffOn_comp_extChartAt_symm x₀).mono interior_subset).contDiffAt
       (isOpen_interior.mem_nhds (hεU hz.2))).differentiableAt (by simp)
@@ -380,10 +379,8 @@ private theorem exists_uniform_tangentProjectionChart_nhds [CompactSpace M]
     rwa [c.right_inv hw'] at h
   obtain ⟨S, ε, hε, η, hη, C, h, hηε, hεU, hmain⟩ :=
     hg.exists_uniform_inverse_starProjection isOpen_interior hw₀ hinjg
-  have hcont : ContinuousOn c c.source := continuousOn_extChartAt x₀
-  have hsrc : IsOpen c.source := isOpen_extChartAt_source x₀
   set s := c.source ∩ c ⁻¹' ball (c x₀) ε
-  have hs : IsOpen s := hcont.isOpen_inter_preimage hsrc isOpen_ball
+  have hs : IsOpen s := isOpen_extChartAt_preimage' x₀ isOpen_ball
   have hx₀s : x₀ ∈ s := ⟨mem_extChartAt_source x₀, mem_ball_self hε⟩
   -- Points whose images are close to that of a point near `x₀` lie in `s`.
   obtain ⟨W, hW, r, hr, hWr⟩ :
@@ -398,7 +395,7 @@ private theorem exists_uniform_tangentProjectionChart_nhds [CompactSpace M]
     linarith [dist_triangle (e z) (e x) (e x₀)]
   have hρ : 0 < η / (‖S‖ + 1) := div_pos hη (by positivity)
   refine ⟨W ∩ (c.source ∩ c ⁻¹' ball (c x₀) η),
-    inter_mem hW ((hcont.isOpen_inter_preimage hsrc isOpen_ball).mem_nhds
+    inter_mem hW ((isOpen_extChartAt_preimage' x₀ isOpen_ball).mem_nhds
       ⟨mem_extChartAt_source x₀, mem_ball_self hη⟩),
     min r (η / (‖S‖ + 1)), lt_min hr hρ, fun j ↦ (‖S‖ + 1) ^ j * max (C j) 0,
     fun x ⟨hxW, hxc, hxη⟩ ↦ ?_⟩

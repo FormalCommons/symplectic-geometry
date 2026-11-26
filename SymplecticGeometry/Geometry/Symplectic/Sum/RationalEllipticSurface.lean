@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Algebra.MvPolynomial.PDeriv
 public import Mathlib.AlgebraicTopology.FundamentalGroupoid.SimplyConnected
+public import Mathlib.RingTheory.MvPolynomial.Symmetric.Defs
 public import Mathlib.RingTheory.MvPolynomial.WeightedHomogeneous
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Basic
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.Basic
@@ -22,6 +23,7 @@ public import TauCeti.LinearAlgebra.Projectivization.ZeroLocus
 public import TauCeti.RingTheory.MvPolynomial.Jacobian.Basic
 import Mathlib.Algebra.Polynomial.Roots
 import Mathlib.Topology.LocalAtTarget
+import TauCeti.RingTheory.MvPolynomial.Symmetric.PowerSum.Basic
 import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.ComplFinite
 import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Prod
@@ -40,18 +42,16 @@ equation of bidegree `(3, 1)` in `ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → 
 `SymplecticGeometry.exists_eval_pderiv_hessePencil_ne_zero`, read as surjectivity of the Jacobian
 through Tau Ceti's `TauCeti.mulVec_surjective_jacobiMatrixAt_iff_exists_eval_pderiv_ne_zero`.
 
-The last section regards the surface as a real submanifold of `ℂℙ² × ℂℙ¹`, the form in which
-the results on complex submanifolds of almost complex manifolds take it
-(`TauCeti.SmoothAlmostComplexStructure.restrict`,
+The section on the underlying real submanifold regards the surface as a real submanifold of
+`ℂℙ² × ℂℙ¹`, the form in which the results on complex submanifolds of almost complex manifolds
+take it (`TauCeti.SmoothAlmostComplexStructure.restrict`,
 `TauCeti.SmoothTwoForm.Tames.isSymplectic_mpullback`). The analytic embedding is a smooth
 embedding over `ℝ` (`TauCeti.SmoothEmbedding.restrictScalarsProd`), whose tangent images are
-invariant under the product of the complex structures of the two factors, as for every
+invariant under the product of the complex structures of the two factors, and the structure that
+this product restricts to on the surface is the surface's own complex structure, as for every
 holomorphic embedding into a product
-(`TauCeti.SmoothEmbedding.mapsTo_prod_ofComplexManifold_tangentRange_restrictScalarsProd`). Its
-real derivative is its complex derivative
-(`TauCeti.SmoothEmbedding.coe_mfderiv_restrictScalarsProd`), so the structure that this product
-restricts to on the surface is the surface's own complex structure
-(`TauCeti.SmoothAlmostComplexStructure.eq_restrict_iff`).
+(`TauCeti.SmoothEmbedding.mapsTo_prod_ofComplexManifold_tangentRange_restrictScalarsProd`,
+`TauCeti.SmoothEmbedding.restrict_prod_ofComplexManifold`).
 
 The symplectic form of the surface is the pull-back along this real embedding of the product
 `ω_FS ⊕ ω_FS` of the Fubini–Study forms of `ℂℙ²` and `ℂℙ¹` (`TauCeti.SmoothTwoForm.prod`). The
@@ -66,11 +66,12 @@ Over the point `[1 : 0]` of `ℂℙ¹` the Hesse pencil is `x³ + y³ + z³`, so
 Fermat cubic `SymplecticGeometry.SmoothProjectiveHypersurface.fermat 1 3`, and `x ↦ (x, [1 : 0])`
 embeds it in the surface. It is an analytic embedding, since its composite with the inclusion of
 the surface is the product of the inclusion of the cubic with a constant
-(`Manifold.IsSmoothEmbedding.isImmersion_of_isImmersion_comp`), hence a smooth embedding over
-`ℝ`. Being holomorphic, it has tangent images invariant under the complex structure of the
-surface (`MDifferentiableAt.mfderiv_ofComplexManifold_apply`). The symplectic form of the
-surface tames that structure (`TauCeti.SmoothTwoForm.Tames.restrict`), so the cubic is a
-symplectic submanifold (`TauCeti.SmoothTwoForm.Tames.isSymplecticSubmanifoldEmbedding`).
+(`Manifold.IsSmoothEmbedding.isImmersion_of_isImmersion_comp`). Its real form
+(`TauCeti.SmoothEmbedding.restrictScalars`) is a smooth embedding over `ℝ` whose tangent images
+are invariant under the complex structure of the surface
+(`TauCeti.SmoothEmbedding.mapsTo_ofComplexManifold_tangentRange_restrictScalars`). The symplectic
+form of the surface tames that structure (`TauCeti.SmoothTwoForm.Tames.restrict`), so the cubic
+is a symplectic submanifold (`TauCeti.SmoothTwoForm.Tames.isSymplecticSubmanifoldEmbedding`).
 
 The variables are indexed by `Fin 3 ⊕ Fin 2`: `Sum.inl 0`, `Sum.inl 1`, `Sum.inl 2` are the
 homogeneous coordinates `x, y, z` of the plane, and `Sum.inr 0`, `Sum.inr 1` are the homogeneous
@@ -78,16 +79,25 @@ coordinates `s, t` of the line. A point of the cone `K³ × K²` is written `Sum
 
 ## Main declarations
 
-* `SymplecticGeometry.hessePencil R`: the polynomial `s (x³ + y³ + z³) + t x y z`.
+* `SymplecticGeometry.hesseCubics R`: the two cubics `x³ + y³ + z³` and `x y z` of the plane
+  that span the pencil, both homogeneous of degree three
+  (`SymplecticGeometry.isHomogeneous_hesseCubics`). The first is Mathlib's power sum
+  `psum (Fin 3) R 3`, the polynomial of the Fermat cubic (`SymplecticGeometry.hesseCubics_zero`);
+  `SymplecticGeometry.hesseCubics_zero'` writes it out as `X 0 ^ 3 + X 1 ^ 3 + X 2 ^ 3`.
+* `SymplecticGeometry.hessePencil R`: the polynomial `s (x³ + y³ + z³) + t x y z`, defined as
+  the combination with coefficients `s, t` of the two cubics `hesseCubics R`, renamed into the
+  plane coordinates `Sum.inl`.
 * `SymplecticGeometry.eval_hessePencil` and the lemmas `pderiv_inl_zero_hessePencil`, …,
   `pderiv_inr_one_hessePencil`: its evaluation and its five partial derivatives.
-* `SymplecticGeometry.isWeightedHomogeneous_hessePencil`: it is weighted homogeneous of degree
-  `3 a + b` for the weights `a` on `x, y, z` and `b` on `s, t`; the special cases
-  `SymplecticGeometry.isWeightedHomogeneous_hessePencil_inl` and
-  `SymplecticGeometry.isWeightedHomogeneous_hessePencil_inr` say that it is bihomogeneous of
-  bidegree `(3, 1)`.
+* `SymplecticGeometry.isWeightedHomogeneous_hessePencil_inl` and
+  `SymplecticGeometry.isWeightedHomogeneous_hessePencil_inr`: it is bihomogeneous of bidegree
+  `(3, 1)`. Both are cases of `SymplecticGeometry.isWeightedHomogeneous_hessePencil`, which
+  derives weighted homogeneity of the pencil from that of the cubics, since renaming variables
+  keeps weighted homogeneity (`MvPolynomial.IsWeightedHomogeneous.rename`).
 * `SymplecticGeometry.sum_mul_eval_pderiv_inl_hessePencil` and
   `SymplecticGeometry.sum_mul_eval_pderiv_inr_hessePencil`: the two Euler relations.
+* `SymplecticGeometry.eval_pderiv_inl_hessePencil`: a partial derivative of the pencil in a
+  plane coordinate is `s ∂f + t ∂g` for the two cubics `f`, `g` that span it.
 * `SymplecticGeometry.exists_eval_pderiv_hessePencil_ne_zero`: over a field in which `3 ≠ 0`, at
   every point `(v, w)` with `v ≠ 0` and `w ≠ 0` some partial derivative is nonzero; in particular
   the hypersurface is smooth.
@@ -116,17 +126,16 @@ coordinates `s, t` of the line. A point of the cone `K³ × K²` is written `Sum
 * `SymplecticGeometry.rationalEllipticSurface.symplecticForm`: the pull-back of the product of
   the Fubini–Study forms, and
   `SymplecticGeometry.rationalEllipticSurface.isSymplectic_symplecticForm`: it is symplectic.
-* `SymplecticGeometry.rationalEllipticSurface.fibreEmbedding`: the Fermat cubic as the fibre over
-  `[1 : 0]`, a smooth embedding over `ℝ` for the models `𝓘(ℝ, Fin 1 → ℂ)` and `𝓘(ℝ, Fin 2 → ℂ)`,
-  with `coe_fibreEmbedding_apply`, `range_fibreEmbedding` (its image is the fibre of the
-  projection to `ℂℙ¹`) and `isSmoothEmbedding_fibreEmbedding` (it is analytic).
+* `SymplecticGeometry.rationalEllipticSurface.analyticFibreEmbedding`: the Fermat cubic as the
+  fibre over `[1 : 0]`, an analytic embedding for the models `𝓘(ℂ, Fin 1 → ℂ)` and
+  `𝓘(ℂ, Fin 2 → ℂ)`, and `SymplecticGeometry.rationalEllipticSurface.fibreEmbedding`: its real
+  form, a smooth embedding over `ℝ` for the models `𝓘(ℝ, Fin 1 → ℂ)` and `𝓘(ℝ, Fin 2 → ℂ)`,
+  with `coe_fibreEmbedding_apply` and `range_fibreEmbedding` (its image is the fibre of the
+  projection to `ℂℙ¹`).
 * `SymplecticGeometry.rationalEllipticSurface.hasSymplecticTangentImages_fibreEmbedding`: its
   tangent images are symplectic, and
   `SymplecticGeometry.rationalEllipticSurface.isSymplectic_mpullback_fibreEmbedding`: the form
   pulls back to a symplectic form on the cubic.
-* `SymplecticGeometry.hesseCubics R`: the two cubics `x³ + y³ + z³` and `x y z` of the plane
-  that span the pencil, both homogeneous of degree three
-  (`SymplecticGeometry.isHomogeneous_hesseCubics`).
 * `SymplecticGeometry.rationalEllipticSurface.baseLocus`: the common zeros in `ℂℙ²` of
   `x³ + y³ + z³` and `x y z`, through which every curve of the pencil passes, as Tau Ceti's
   zero locus `TauCeti.complexProjectiveZeroLocus (hesseCubics ℂ)`, and
@@ -144,6 +153,18 @@ coordinates `s, t` of the line. A point of the cone `K³ × K²` is written `Sum
   is simply connected, since `ℂℙ²` is and deleting finitely many points from a manifold of real
   dimension four does not change this
   (`SymplecticGeometry.simplyConnectedSpace_compl_iff_of_finite`).
+* `SymplecticGeometry.rationalEllipticSurface.exists_openPartialHomeomorph_of_mem_baseLocus`:
+  coordinates at a base point `p`. Inside any neighbourhood of `p` there is an open partial
+  homeomorphism `φ` of `ℂℙ²` onto a round ball of `ℂ²` with `φ p = 0`, whose source contains no
+  other base point, and over whose source the surface is the incidence set
+  `{(x, [w]) | w₀ φ(x)₀ + w₁ φ(x)₁ = 0}`. In the standard affine chart `i` at `p`, `φ` reads `z ↦`
+  the two cubics dehomogenized at coordinate `i` (Tau Ceti's `TauCeti.dehomogenize`) and
+  evaluated at `z`. Their Jacobian matrix there is the cone Jacobian with column `i` deleted
+  (`TauCeti.jacobiMatrixAt_dehomogenize`), whose determinant is nonzero at `p` by
+  `exists_eval_pderiv_hessePencil_ne_zero_of_ne_zero`. So the cone Jacobian is surjective at `p`,
+  and Tau Ceti's slice chart `TauCeti.complexProjectiveZeroLocusSliceChart` of the base locus,
+  whose slice factor `Fin 0 → ℂ` is trivial, gives `φ` near `p`; cutting its target down to a
+  small ball gives the rest.
 
 ## References
 
@@ -154,44 +175,57 @@ coordinates `s, t` of the line. A point of the cone `K³ × K²` is written `Sum
 
 public section
 
-open MvPolynomial Set TauCeti
+open MvPolynomial Set TauCeti Topology
 open scoped ContDiff Manifold LinearAlgebra.Projectivization
 
 namespace SymplecticGeometry
 
 variable (R : Type*) [CommSemiring R]
 
+/-- The two plane cubics `x³ + y³ + z³` and `x y z` that span the Hesse pencil, in the variables
+`x, y, z = 0, 1, 2`. The first is Mathlib's power sum `psum (Fin 3) R 3`, the polynomial of the
+Fermat cubic `SmoothProjectiveHypersurface.fermat 1 3`. -/
+noncomputable def hesseCubics : Fin 2 → MvPolynomial (Fin 3) R :=
+  ![psum (Fin 3) R 3, X 0 * X 1 * X 2]
+
+theorem hesseCubics_zero : hesseCubics R 0 = psum (Fin 3) R 3 :=
+  (rfl)
+
+/-- The first cubic of the Hesse pencil written out: `x³ + y³ + z³`. -/
+theorem hesseCubics_zero' : hesseCubics R 0 = X 0 ^ 3 + X 1 ^ 3 + X 2 ^ 3 := by
+  simp [hesseCubics_zero, psum, Fin.sum_univ_three]
+
+theorem hesseCubics_one : hesseCubics R 1 = X 0 * X 1 * X 2 :=
+  (rfl)
+
 /-- The equation of the Hesse pencil, `s (x³ + y³ + z³) + t x y z`, in the variables
-`x, y, z = Sum.inl 0, Sum.inl 1, Sum.inl 2` and `s, t = Sum.inr 0, Sum.inr 1`. -/
+`x, y, z = Sum.inl 0, Sum.inl 1, Sum.inl 2` and `s, t = Sum.inr 0, Sum.inr 1`: the combination
+with coefficients `s, t` of the two cubics `hesseCubics R`. -/
 noncomputable def hessePencil : MvPolynomial (Fin 3 ⊕ Fin 2) R :=
-  X (.inr 0) * (X (.inl 0) ^ 3 + X (.inl 1) ^ 3 + X (.inl 2) ^ 3) +
-    X (.inr 1) * (X (.inl 0) * X (.inl 1) * X (.inl 2))
+  X (.inr 0) * rename Sum.inl (hesseCubics R 0) + X (.inr 1) * rename Sum.inl (hesseCubics R 1)
 
 theorem hessePencil_def : hessePencil R =
-    X (.inr 0) * (X (.inl 0) ^ 3 + X (.inl 1) ^ 3 + X (.inl 2) ^ 3) +
-      X (.inr 1) * (X (.inl 0) * X (.inl 1) * X (.inl 2)) :=
-  (rfl)
-
-/-- The two plane cubics `x³ + y³ + z³` and `x y z` that span the Hesse pencil, in the variables
-`x, y, z = 0, 1, 2`. -/
-noncomputable def hesseCubics : Fin 2 → MvPolynomial (Fin 3) R :=
-  ![X 0 ^ 3 + X 1 ^ 3 + X 2 ^ 3, X 0 * X 1 * X 2]
-
-@[simp]
-theorem hesseCubics_zero : hesseCubics R 0 = X 0 ^ 3 + X 1 ^ 3 + X 2 ^ 3 :=
-  (rfl)
-
-@[simp]
-theorem hesseCubics_one : hesseCubics R 1 = X 0 * X 1 * X 2 :=
+    X (.inr 0) * rename Sum.inl (hesseCubics R 0) +
+      X (.inr 1) * rename Sum.inl (hesseCubics R 1) :=
   (rfl)
 
 variable {R}
 
+/-- The value of the first cubic `x³ + y³ + z³` at `v`. -/
+@[simp]
+theorem eval_hesseCubics_zero (v : Fin 3 → R) :
+    eval v (hesseCubics R 0) = v 0 ^ 3 + v 1 ^ 3 + v 2 ^ 3 := by
+  simp [hesseCubics_zero']
+
+/-- The value of the second cubic `x y z` at `v`. -/
+@[simp]
+theorem eval_hesseCubics_one (v : Fin 3 → R) : eval v (hesseCubics R 1) = v 0 * v 1 * v 2 := by
+  simp [hesseCubics_one]
+
 /-- Both cubics spanning the Hesse pencil are homogeneous of degree three. -/
 theorem isHomogeneous_hesseCubics (i : Fin 2) : (hesseCubics R i).IsHomogeneous 3 := by
   fin_cases i
-  · simp only [Fin.zero_eta, hesseCubics_zero]
-    exact (((isHomogeneous_X_pow _ _).add (isHomogeneous_X_pow _ _)).add (isHomogeneous_X_pow _ _))
+  · exact TauCeti.isHomogeneous_psum R 3
   · simp only [Fin.mk_one, hesseCubics_one]
     exact ((isHomogeneous_X _ _).mul (isHomogeneous_X _ _)).mul (isHomogeneous_X _ _)
 
@@ -199,64 +233,68 @@ theorem isHomogeneous_hesseCubics (i : Fin 2) : (hesseCubics R i).IsHomogeneous 
 theorem eval_hessePencil (p : Fin 3 ⊕ Fin 2 → R) :
     eval p (hessePencil R) = p (.inr 0) * (p (.inl 0) ^ 3 + p (.inl 1) ^ 3 + p (.inl 2) ^ 3) +
       p (.inr 1) * (p (.inl 0) * p (.inl 1) * p (.inl 2)) := by
-  simp [hessePencil_def]
+  simp [hessePencil_def, eval_rename, Function.comp_def]
 
 @[simp]
 theorem pderiv_inl_zero_hessePencil :
     pderiv (.inl 0) (hessePencil R) =
       3 * X (.inr 0) * X (.inl 0) ^ 2 + X (.inr 1) * (X (.inl 1) * X (.inl 2)) := by
-  simp [hessePencil_def, pderiv_X]
+  simp [hessePencil_def, hesseCubics_zero', hesseCubics_one, pderiv_X]
   ring
 
 @[simp]
 theorem pderiv_inl_one_hessePencil :
     pderiv (.inl 1) (hessePencil R) =
       3 * X (.inr 0) * X (.inl 1) ^ 2 + X (.inr 1) * (X (.inl 0) * X (.inl 2)) := by
-  simp [hessePencil_def, pderiv_X]
+  simp [hessePencil_def, hesseCubics_zero', hesseCubics_one, pderiv_X]
   ring
 
 @[simp]
 theorem pderiv_inl_two_hessePencil :
     pderiv (.inl 2) (hessePencil R) =
       3 * X (.inr 0) * X (.inl 2) ^ 2 + X (.inr 1) * (X (.inl 0) * X (.inl 1)) := by
-  simp [hessePencil_def, pderiv_X]
+  simp [hessePencil_def, hesseCubics_zero', hesseCubics_one, pderiv_X]
   ring
 
 @[simp]
 theorem pderiv_inr_zero_hessePencil :
     pderiv (.inr 0) (hessePencil R) = X (.inl 0) ^ 3 + X (.inl 1) ^ 3 + X (.inl 2) ^ 3 := by
-  simp [hessePencil_def, pderiv_X]
+  simp [hessePencil_def, hesseCubics_zero', hesseCubics_one, pderiv_X]
 
 @[simp]
 theorem pderiv_inr_one_hessePencil :
     pderiv (.inr 1) (hessePencil R) = X (.inl 0) * X (.inl 1) * X (.inl 2) := by
-  simp [hessePencil_def, pderiv_X]
+  simp [hessePencil_def, hesseCubics_zero', hesseCubics_one, pderiv_X]
 
-/-- The Hesse pencil is weighted homogeneous of degree `3 a + b` when `x, y, z` have weight `a`
-and `s, t` have weight `b`. -/
-theorem isWeightedHomogeneous_hessePencil (a b : ℕ) :
-    (hessePencil R).IsWeightedHomogeneous (Sum.elim (fun _ ↦ a) (fun _ ↦ b)) (3 * a + b) := by
-  have hX (i : Fin 3) :=
-    isWeightedHomogeneous_X R (Sum.elim (fun _ : Fin 3 ↦ a) (fun _ : Fin 2 ↦ b)) (.inl i)
-  have hY (j : Fin 2) :=
-    isWeightedHomogeneous_X R (Sum.elim (fun _ : Fin 3 ↦ a) (fun _ : Fin 2 ↦ b)) (.inr j)
-  simp only [Sum.elim_inl, Sum.elim_inr] at hX hY
-  have hxyz := ((hX 0).mul (hX 1)).mul (hX 2)
-  rw [show a + a + a = 3 • a by rw [smul_eq_mul]; ring] at hxyz
-  rw [hessePencil_def]
-  convert ((hY 0).mul (((hX 0).pow 3).add ((hX 1).pow 3) |>.add ((hX 2).pow 3))).add
-    ((hY 1).mul hxyz) using 1
-  rw [smul_eq_mul, add_comm]
+/-- A partial derivative of the Hesse pencil in a plane coordinate is the same combination of the
+partial derivatives of the two cubics `hesseCubics R` as the pencil is of the cubics:
+`∂ₗ(s f + t g) = s ∂ₗf + t ∂ₗg`. -/
+theorem eval_pderiv_inl_hessePencil (v : Fin 3 → R) (w : Fin 2 → R) (l : Fin 3) :
+    eval (Sum.elim v w) (pderiv (.inl l) (hessePencil R)) =
+      w 0 * eval v (pderiv l (hesseCubics R 0)) + w 1 * eval v (pderiv l (hesseCubics R 1)) := by
+  fin_cases l <;> simp [hesseCubics_zero', hesseCubics_one, pderiv_X] <;> ring
+
+/-- The Hesse pencil is weighted homogeneous of degree `n + m` for weights `w` that give each
+line coordinate `s, t` the weight `n` and for which both cubics are weighted homogeneous of degree
+`m` in the plane coordinates. -/
+theorem isWeightedHomogeneous_hessePencil {w : Fin 3 ⊕ Fin 2 → ℕ} {m n : ℕ}
+    (hc : ∀ i, (hesseCubics R i).IsWeightedHomogeneous (w ∘ Sum.inl) m)
+    (hw : ∀ i, w (.inr i) = n) : (hessePencil R).IsWeightedHomogeneous w (n + m) := by
+  have h (i : Fin 2) : (X (Sum.inr i) * rename Sum.inl (hesseCubics R i)).IsWeightedHomogeneous
+      w (n + m) := hw i ▸ (isWeightedHomogeneous_X R w (.inr i)).mul (hc i).rename
+  exact hessePencil_def R ▸ (h 0).add (h 1)
 
 /-- The Hesse pencil is homogeneous of degree `3` in the coordinates `x, y, z` of the plane. -/
 theorem isWeightedHomogeneous_hessePencil_inl :
     (hessePencil R).IsWeightedHomogeneous (Sum.elim (1 : Fin 3 → ℕ) 0) 3 :=
-  isWeightedHomogeneous_hessePencil 1 0
+  isWeightedHomogeneous_hessePencil (n := 0) (m := 3)
+    (fun i ↦ by rw [Sum.elim_comp_inl]; exact isHomogeneous_hesseCubics i) (fun _ ↦ rfl)
 
 /-- The Hesse pencil is homogeneous of degree `1` in the coordinates `s, t` of the line. -/
 theorem isWeightedHomogeneous_hessePencil_inr :
     (hessePencil R).IsWeightedHomogeneous (Sum.elim 0 (1 : Fin 2 → ℕ)) 1 :=
-  isWeightedHomogeneous_hessePencil 0 1
+  isWeightedHomogeneous_hessePencil (n := 1) (m := 0)
+    (fun _ ↦ by rw [Sum.elim_comp_inl]; exact isWeightedHomogeneous_zero_weight _) (fun _ ↦ rfl)
 
 /-- Euler's relation for the plane coordinates: `x ∂ₓP + y ∂ᵧP + z ∂_zP = 3 P`. -/
 theorem sum_mul_eval_pderiv_inl_hessePencil (p : Fin 3 ⊕ Fin 2 → R) :
@@ -455,14 +493,8 @@ theorem restrict_prod_ofComplexManifold {hn : (∞ : ℕ∞ω) ≠ 0} :
             embedding.mapsTo_prod_ofComplexManifold_tangentRange_restrictScalarsProd le_top
               (by simp) hn) =
       SmoothAlmostComplexStructure.ofComplexManifold (Fin 2 → ℂ) rationalEllipticSurface := by
-  refine ((SmoothAlmostComplexStructure.eq_restrict_iff _).2 fun x v ↦ ?_).symm
-  -- `ofComplexManifold_apply` and `prod_ofComplexManifold_apply` state `v` in the model space,
-  -- so they do not rewrite directly.
-  have hJ := SmoothAlmostComplexStructure.ofComplexManifold_apply (E := Fin 2 → ℂ) x v
-  have h := SmoothAlmostComplexStructure.prod_ofComplexManifold_apply (realEmbedding x)
-    (mfderiv _ (𝓘(ℝ, Fin 2 → ℂ).prod 𝓘(ℝ, Fin 1 → ℂ)) realEmbedding x v)
-  rw [hJ, h, realEmbedding_def, SmoothEmbedding.coe_mfderiv_restrictScalarsProd]
-  exact (mfderiv _ _ embedding x).map_smul Complex.I v
+  simp only [realEmbedding_def]
+  exact embedding.restrict_prod_ofComplexManifold le_top
 
 /-! ### The symplectic form -/
 
@@ -517,19 +549,38 @@ private theorem isSmoothEmbedding_fibre :
   refine ⟨hi, (hi.contMDiff.continuous.isClosedEmbedding fun x y h ↦ ?_).isEmbedding⟩
   exact Subtype.ext congr(($h : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)).1)
 
+/-- The inclusion `x ↦ (x, [1 : 0])` of the Fermat cubic `SmoothProjectiveHypersurface.fermat 1 3`
+into the rational elliptic surface, as the fibre over `[1 : 0] ∈ ℂℙ¹`, as an analytic embedding
+of complex manifolds. -/
+noncomputable def analyticFibreEmbedding :
+    SmoothEmbedding 𝓘(ℂ, Fin 1 → ℂ) 𝓘(ℂ, Fin 2 → ℂ) ω (fermat 1 3) rationalEllipticSurface :=
+  .ofIsSmoothEmbedding _ isSmoothEmbedding_fibre
+
+/-- The analytic fibre embedding is the map `x ↦ (x, [1 : 0])` into the rational elliptic
+surface. -/
+theorem coe_analyticFibreEmbedding :
+    ⇑analyticFibreEmbedding = fun x : fermat 1 3 ↦
+      (⟨(x, Projectivization.mk ℂ ![(1 : ℂ), 0] (by simp)), mk_mem_iff_mem_fermat.2 x.property⟩ :
+        rationalEllipticSurface) :=
+  SmoothEmbedding.coe_ofIsSmoothEmbedding _ _
+
 /-- The Fermat cubic `SmoothProjectiveHypersurface.fermat 1 3` as the fibre of the rational
 elliptic surface over `[1 : 0] ∈ ℂℙ¹`: the inclusion `x ↦ (x, [1 : 0])`, as a smooth embedding
-of the underlying real manifolds. -/
+of the underlying real manifolds, the real form of `analyticFibreEmbedding`. -/
 noncomputable def fibreEmbedding :
     SmoothEmbedding 𝓘(ℝ, Fin 1 → ℂ) 𝓘(ℝ, Fin 2 → ℂ) ∞ (fermat 1 3) rationalEllipticSurface :=
-  .ofIsSmoothEmbedding _ <| (isSmoothEmbedding_fibre.of_le le_top).restrictScalars ℝ (by simp)
+  analyticFibreEmbedding.restrictScalars ℝ le_top (by simp)
+
+theorem fibreEmbedding_def :
+    fibreEmbedding = analyticFibreEmbedding.restrictScalars ℝ le_top (by simp) :=
+  (rfl)
 
 /-- The fibre embedding is the map `x ↦ (x, [1 : 0])` into the rational elliptic surface. -/
 theorem coe_fibreEmbedding :
     ⇑fibreEmbedding = fun x : fermat 1 3 ↦
       (⟨(x, Projectivization.mk ℂ ![(1 : ℂ), 0] (by simp)), mk_mem_iff_mem_fermat.2 x.property⟩ :
-        rationalEllipticSurface) :=
-  SmoothEmbedding.coe_ofIsSmoothEmbedding _ _
+        rationalEllipticSurface) := by
+  rw [fibreEmbedding_def, SmoothEmbedding.coe_restrictScalars, coe_analyticFibreEmbedding]
 
 /-- The fibre embedding sends a point `x` of the Fermat cubic to `(x, [1 : 0])`. -/
 @[simp]
@@ -550,26 +601,6 @@ theorem range_fibreEmbedding :
     subst hw
     exact ⟨⟨L, mk_mem_iff_mem_fermat.1 hp⟩, Subtype.ext (coe_fibreEmbedding_apply _)⟩
 
-/-- The fibre embedding is an analytic embedding of complex manifolds. -/
-theorem isSmoothEmbedding_fibreEmbedding :
-    Manifold.IsSmoothEmbedding 𝓘(ℂ, Fin 1 → ℂ) 𝓘(ℂ, Fin 2 → ℂ) ω fibreEmbedding := by
-  convert isSmoothEmbedding_fibre using 1
-  exact funext fun x ↦ Subtype.ext (coe_fibreEmbedding_apply x)
-
-/-- The tangent images of the fibre embedding are complex lines in the tangent spaces of the
-surface: they are invariant under its complex structure. -/
-theorem mapsTo_ofComplexManifold_tangentRange_fibreEmbedding {hn : (∞ : ℕ∞ω) ≠ 0}
-    (x : fermat 1 3) :
-    Set.MapsTo
-      (SmoothAlmostComplexStructure.ofComplexManifold (Fin 2 → ℂ) rationalEllipticSurface
-        (fibreEmbedding x))
-      (fibreEmbedding.tangentRange x hn) (fibreEmbedding.tangentRange x hn) := by
-  intro v hv
-  rw [SetLike.mem_coe, SmoothEmbedding.mem_tangentRange_iff] at hv ⊢
-  obtain ⟨u, rfl⟩ := hv
-  exact ⟨_, ((isSmoothEmbedding_fibreEmbedding.contMDiff x).mdifferentiableAt
-    (by simp)).mfderiv_ofComplexManifold_apply u⟩
-
 /-- The fibre embedding has symplectic tangent images for the symplectic form of the rational
 elliptic surface: the Fermat cubic over `[1 : 0]` is a symplectic submanifold. -/
 theorem hasSymplecticTangentImages_fibreEmbedding :
@@ -581,7 +612,9 @@ theorem hasSymplecticTangentImages_fibreEmbedding :
         (realEmbedding_def ▸
           embedding.mapsTo_prod_ofComplexManifold_tangentRange_restrictScalarsProd le_top
             (by simp) _)).isSymplecticSubmanifoldEmbedding
-          (mapsTo_ofComplexManifold_tangentRange_fibreEmbedding (hn := by simp))
+          (fibreEmbedding_def ▸
+            SmoothEmbedding.mapsTo_ofComplexManifold_tangentRange_restrictScalars
+              analyticFibreEmbedding le_top (by simp) (by simp))
     |>.hasSymplecticTangentImages
 
 /-- The symplectic form of the rational elliptic surface pulls back along the fibre embedding to a
@@ -691,8 +724,8 @@ theorem pencilVector_smul (c : ℂ) (v : Fin 3 → ℂ) :
     pencilVector (c • v) = c ^ 3 • pencilVector v := by
   ext k
   fin_cases k <;>
-    simp [pencilVector, (isHomogeneous_hesseCubics _).eval_smul, -hesseCubics_zero,
-      -hesseCubics_one]
+    simp [pencilVector, (isHomogeneous_hesseCubics _).eval_smul, -eval_hesseCubics_zero,
+      -eval_hesseCubics_one]
 
 /-- Off the base locus, `x y z` and `x³ + y³ + z³` do not both vanish, so `pencilVector` is
 nonzero. -/
@@ -816,6 +849,124 @@ instance simplyConnectedSpace_complBaseLocus : SimplyConnectedSpace complBaseLoc
   have := (simplyConnectedSpace_compl_iff_of_finite (X := ℙ ℂ (Fin 3 → ℂ)) h
     finite_baseLocus).2 inferInstance
   exact complBaseLocusHomeomorph.toHomotopyEquiv.simplyConnectedSpace_iff.2 this
+
+/-! ### Coordinates at a base point of the pencil -/
+
+/-- At a base point, the two cubics have independent differentials in the coordinates of the
+standard chart `i`: the Jacobian matrix of `hesseCubics ℂ` with column `i` deleted is invertible.
+A vanishing combination `s ∂f + t ∂g` of its rows would make every partial derivative of the
+member `s f + t g` of the pencil vanish in the chart, against
+`exists_eval_pderiv_hessePencil_ne_zero_of_ne_zero`. -/
+private theorem det_jacobiMatrixAt_hesseCubics_submatrix_ne_zero {i : Fin 3} {z : Fin 2 → ℂ}
+    (hz : (Projectivization.affineChart (K := ℂ) i).symm z ∈ baseLocus) :
+    ((jacobiMatrixAt (hesseCubics ℂ) (i.insertNth 1 z)).submatrix id i.succAbove).det ≠ 0 := by
+  classical
+  rw [Projectivization.affineChart_symm_apply, mk_mem_baseLocus_iff] at hz
+  set V := Fin.insertNth (α := fun _ ↦ ℂ) i 1 z
+  rw [Ne, ← Matrix.exists_vecMul_eq_zero_iff]
+  rintro ⟨w, hw, hM⟩
+  obtain ⟨j, hj⟩ := Function.ne_iff.1 hw
+  have hV : V i ≠ 0 := by simp [V]
+  obtain ⟨k, hki, hkj, hk⟩ := exists_eval_pderiv_hessePencil_ne_zero_of_ne_zero (three_ne_zero)
+    hV hj (by simp [hz.1, hz.2])
+  rcases k with l | l
+  · obtain ⟨m, rfl⟩ := Fin.exists_succAbove_eq (x := l) (y := i) (by simpa using hki)
+    refine hk ?_
+    have := congrFun hM m
+    simp only [Matrix.vecMul, dotProduct, Fin.sum_univ_two, Matrix.submatrix_apply, id,
+      jacobiMatrixAt_apply, Pi.zero_apply] at this
+    rw [eval_pderiv_inl_hessePencil]
+    linear_combination this
+  · fin_cases l <;> simp at hk <;> simp_all
+
+/-- Near a base point `p`, the two cubics dehomogenized in a standard chart at `p` form an open
+partial homeomorphism to `ℂ²`: Tau Ceti's slice chart
+`TauCeti.complexProjectiveZeroLocusSliceChart` of the base locus, whose slice factor is trivial.
+It sends `p` to `0`, its zeros are the base points, and over its source the rational elliptic
+surface is the incidence set `s u + t v = 0`. -/
+private theorem exists_chart_of_mem_baseLocus {p : ℙ ℂ (Fin 3 → ℂ)} (hp : p ∈ baseLocus) :
+    ∃ Φ : OpenPartialHomeomorph (ℙ ℂ (Fin 3 → ℂ)) (Fin 2 → ℂ), p ∈ Φ.source ∧ Φ p = 0 ∧
+      (∀ x ∈ Φ.source, x ∈ baseLocus ↔ Φ x = 0) ∧
+      ∀ x ∈ Φ.source, ∀ (w : Fin 2 → ℂ) (hw : w ≠ 0),
+        (x, Projectivization.mk ℂ w hw) ∈ rationalEllipticSurface ↔
+          w 0 * Φ x 0 + w 1 * Φ x 1 = 0 := by
+  obtain ⟨i, hi⟩ := Projectivization.exists_mem_affineOpen p
+  have hsymm {x : ℙ ℂ (Fin 3 → ℂ)} (hx : x ∈ Projectivization.affineOpen i) :
+      (Projectivization.affineChart (K := ℂ) i).symm (Projectivization.affineChart i x) = x :=
+    (Projectivization.affineChart i).left_inv (by simpa using hx)
+  have hL : p ∈ complexProjectiveZeroLocus (hesseCubics ℂ) := baseLocus_def ▸ hp
+  have hrank : Function.Surjective (jacobiMatrixAt (hesseCubics ℂ) p.rep).mulVec := by
+    rw [← surjective_fderiv_eval_dehomogenize_affineChart_iff i isHomogeneous_hesseCubics hL hi,
+      ← ContinuousLinearMap.coe_coe, fderiv_eval_dehomogenize, Matrix.coe_mulVecLin,
+      Matrix.mulVec_surjective_iff_isUnit, Matrix.isUnit_iff_isUnit_det, isUnit_iff_ne_zero]
+    exact det_jacobiMatrixAt_hesseCubics_submatrix_ne_zero (by rwa [hsymm hi])
+  have : IsEmpty (Fin (2 - Fintype.card (Fin 2))) := by
+    rw [Fintype.card_fin]
+    exact Fin.isEmpty'
+  set Φ := (complexProjectiveZeroLocusSliceChart isHomogeneous_hesseCubics hL hi
+    hrank).transHomeomorph (Homeomorph.uniqueProd _ _)
+  have hΦ (x : ℙ ℂ (Fin 3 → ℂ)) :
+      Φ x = fun k ↦ eval (Projectivization.affineChart i x) (dehomogenize i (hesseCubics ℂ k)) := by
+    simp [Φ, Homeomorph.uniqueProd]
+  have hsrc {x : ℙ ℂ (Fin 3 → ℂ)} (hx : x ∈ Φ.source) : x ∈ Projectivization.affineOpen i :=
+    complexProjectiveZeroLocusSliceChart_source_subset _ _ _ _ hx
+  have hzero {x : ℙ ℂ (Fin 3 → ℂ)} (hx : x ∈ Projectivization.affineOpen i) :
+      x ∈ baseLocus ↔ Φ x = 0 := by
+    rw [baseLocus_def, mem_complexProjectiveZeroLocus_iff_eval_affineChart isHomogeneous_hesseCubics
+      hx, hΦ, _root_.funext_iff]
+    simp only [Pi.zero_apply]
+  refine ⟨Φ, mem_complexProjectiveZeroLocusSliceChart_source _ _ _ _, (hzero hi).1 hp,
+    fun x hx ↦ hzero (hsrc hx), fun x hx w hw ↦ ?_⟩
+  conv_lhs => rw [← hsymm (hsrc hx), Projectivization.affineChart_symm_apply,
+    mk_mem_rationalEllipticSurface_iff]
+  simp only [hΦ, eval_dehomogenize]
+  simp
+
+/-- **Coordinates of `E(1)` at a base point of the Hesse pencil.** For a base point `p` and a
+neighbourhood `U` of `p` in `ℂℙ²`, there is an open partial homeomorphism `φ` from `ℂℙ²` to `ℂ²`
+whose source contains `p` and lies in `U`, whose target is the ball of some radius `r > 0` for the
+norm of `ℂ² ≅ ℝ⁴` (`complexToRealEuclidean`), and with `φ p = 0`, such that over its source the
+rational elliptic surface is the incidence set `{(x, [w]) | w₀ φ(x)₀ + w₁ φ(x)₁ = 0}` and `p` is
+the only base point in its source. Its source is homeomorphic to the ball by
+`φ.toHomeomorphSourceTarget`. -/
+theorem exists_openPartialHomeomorph_of_mem_baseLocus {p : ℙ ℂ (Fin 3 → ℂ)}
+    (hp : p ∈ baseLocus) {U : Set (ℙ ℂ (Fin 3 → ℂ))} (hU : U ∈ 𝓝 p) :
+    ∃ (φ : OpenPartialHomeomorph (ℙ ℂ (Fin 3 → ℂ)) (Fin 2 → ℂ)) (r : ℝ), 0 < r ∧
+      p ∈ φ.source ∧ φ.source ⊆ U ∧
+      φ.target = {z | ‖complexToRealEuclidean (Fin 2) z‖ < r} ∧ φ p = 0 ∧
+      (∀ x ∈ φ.source, ∀ (w : Fin 2 → ℂ) (hw : w ≠ 0),
+        (x, Projectivization.mk ℂ w hw) ∈ rationalEllipticSurface ↔
+          w 0 * φ x 0 + w 1 * φ x 1 = 0) ∧
+      φ.source ∩ baseLocus = {p} := by
+  obtain ⟨Φ, hpΦ, h0, hzero, hmem⟩ := exists_chart_of_mem_baseLocus hp
+  -- A ball `B` around `0 = Φ p` inside the target of `Φ` whose points come from `U`.
+  have hN : (complexToRealEuclidean (Fin 2)).symm ⁻¹' (Φ.target ∩ Φ.symm ⁻¹' U) ∈ 𝓝 0 := by
+    refine (complexToRealEuclidean (Fin 2)).symm.continuous.continuousAt.preimage_mem_nhds ?_
+    rw [map_zero, ← h0]
+    refine Filter.inter_mem (Φ.open_target.mem_nhds (Φ.map_source hpΦ)) ?_
+    exact (Φ.continuousAt_symm (Φ.map_source hpΦ)).preimage_mem_nhds (by rwa [Φ.left_inv hpΦ])
+  obtain ⟨r, hr, hball⟩ := Metric.mem_nhds_iff.1 hN
+  set B := {z : Fin 2 → ℂ | ‖complexToRealEuclidean (Fin 2) z‖ < r}
+  have hB : B ⊆ Φ.target ∩ Φ.symm ⁻¹' U := fun z hz ↦ by
+    simpa using hball
+      (show complexToRealEuclidean (Fin 2) z ∈ Metric.ball 0 r by simpa [B] using hz)
+  have hBo : IsOpen B :=
+    isOpen_lt (continuous_norm.comp (complexToRealEuclidean (Fin 2)).continuous) continuous_const
+  -- `φ` is `Φ` with its target cut down to `B`.
+  set φ := (Φ.symm.restrOpen B hBo).symm
+  have hφ : ⇑φ = ⇑Φ := by simp [φ]
+  have hsrc : φ.source = Φ.source ∩ Φ ⁻¹' B := by simp [φ]
+  have hpφ : p ∈ φ.source := by
+    rw [hsrc]
+    exact ⟨hpΦ, by simp [B, h0, hr]⟩
+  refine ⟨φ, r, hr, hpφ, fun x hx ↦ ?_, ?_, hφ ▸ h0, fun x hx ↦ hφ ▸ hmem x (hsrc ▸ hx).1, ?_⟩
+  · rw [hsrc] at hx
+    simpa [Φ.left_inv hx.1] using (hB hx.2).2
+  · rw [OpenPartialHomeomorph.symm_target, OpenPartialHomeomorph.restrOpen_source,
+      OpenPartialHomeomorph.symm_source]
+    exact inter_eq_right.2 (hB.trans inter_subset_left)
+  · refine Subset.antisymm (fun x ⟨hx, hxb⟩ ↦ φ.injOn hx hpφ ?_) (singleton_subset_iff.2 ⟨hpφ, hp⟩)
+    rw [hφ, ((hzero x (hsrc ▸ hx).1).1 hxb), h0]
 
 end rationalEllipticSurface
 

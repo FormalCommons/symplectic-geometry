@@ -21,6 +21,10 @@ kept in its namespace so that they can move upstream unchanged.
   of scalar multiplication by a group element `g` is scalar multiplication by `g⁻¹`.
 * `ContinuousLinearEquiv.coe_smulLeft`: as a continuous linear map, scalar multiplication by a
   unit `c` is `c` times the identity.
+* `ContinuousLinearEquiv.coe_toUnit`, `ContinuousLinearEquiv.coe_toUnit_inv`,
+  `ContinuousLinearEquiv.unitsEquiv_symm_apply`: the unit of the ring of continuous endomorphisms
+  given by an automorphism `e` is `e`, with inverse `e.symm`, and it is the image of `e` under the
+  inverse of `ContinuousLinearEquiv.unitsEquiv`.
 -/
 
 public section
@@ -74,6 +78,29 @@ theorem coe_smulLeft (c : Rˣ) :
       ContinuousLinearMap.id_apply, Units.smul_def]
 
 end Units
+
+section Aut
+
+variable {R : Type*} [Semiring R] {M : Type*} [TopologicalSpace M] [AddCommMonoid M] [Module R M]
+
+/-- The unit of the ring of continuous endomorphisms given by an automorphism `e` is `e`. -/
+@[simp]
+theorem coe_toUnit (e : M ≃L[R] M) : (e.toUnit : M →L[R] M) = e :=
+  rfl
+
+/-- The inverse of the unit given by an automorphism `e` is `e.symm`. -/
+@[simp]
+theorem coe_toUnit_inv (e : M ≃L[R] M) : ((e.toUnit⁻¹ : (M →L[R] M)ˣ) : M →L[R] M) = e.symm :=
+  rfl
+
+variable (R M) in
+/-- The inverse of `ContinuousLinearEquiv.unitsEquiv` sends an automorphism to the unit of the
+ring of continuous endomorphisms that it gives. -/
+@[simp]
+theorem unitsEquiv_symm_apply (e : M ≃L[R] M) : (unitsEquiv R M).symm e = e.toUnit :=
+  rfl
+
+end Aut
 
 end ContinuousLinearEquiv
 

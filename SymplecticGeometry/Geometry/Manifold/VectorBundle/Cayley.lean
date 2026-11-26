@@ -9,6 +9,7 @@ public import Mathlib.Geometry.Manifold.VectorBundle.Hom
 public import TauCeti.Geometry.Symplectic.Cayley.Smooth
 public import TauCeti.Topology.VectorBundle.Coordinates
 public import SymplecticGeometry.Geometry.Symplectic.Cayley.Domain
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # The Cayley path in the endomorphism bundle of a vector bundle
@@ -106,7 +107,7 @@ theorem ContMDiffAt.cayleyPathFormula_hom_bundle_of_vectorBundle {n : WithTop �
   refine ((contDiffAt_cayleyPathFormula hu₁' hu₂').comp_contMDiffAt
     (f := fun q ↦ (b q, coord (f q) (A q), coord (f q) (B q)))
     hinner).congr_of_eventuallyEq ?_
-  filter_upwards [hf.continuousAt.preimage_mem_nhds (e.open_baseSet.mem_nhds hx₀)] with q hq
+  filter_upwards [hf.continuousAt.eventually_mem_baseSet_trivializationAt F V] with q hq
   rw [Function.comp_apply, hconj hq, hconj hq]
   exact (hconj hq _).trans (map_cayleyPathFormula _ _ _ _)
 
@@ -189,8 +190,7 @@ theorem isOpen_cayleyPathDomain [CompleteSpace F]
     ((continuousAt_hom_bundle _ (fun q ↦ q)).1 continuousAt_id).2
   have hbase : {q : TotalSpace (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x) | q.proj ∈ e.baseSet} ∈
       𝓝 q₀ :=
-    (FiberBundle.continuous_proj _ _).continuousAt.preimage_mem_nhds
-      (e.open_baseSet.mem_nhds (mem_baseSet_trivializationAt F V x₀))
+    (FiberBundle.continuous_proj _ _).continuousAt.eventually_mem_baseSet_trivializationAt F V
   -- In this trivialization, membership is an open condition on the pair of readings.
   have hmem {q : TotalSpace (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x)} (hq : q.proj ∈ e.baseSet) :
       q ∈ cayleyPathDomain F V A ↔

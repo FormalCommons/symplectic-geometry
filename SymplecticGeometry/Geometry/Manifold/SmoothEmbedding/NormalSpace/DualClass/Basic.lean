@@ -160,6 +160,35 @@ theorem tubePairIso_inv_fst_apply (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ :
   exact TopPair.ofSubsetMap_fst_apply (X := TopCat.of W)
     (B := Subtype.val ⁻¹' (range f)ᶜ) _ _ y
 
+/-- The pair isomorphism of a tube, followed by excision, sends a vector `v` to `Φ v` in `X`. -/
+theorem tubePairIso_hom_fst_comp_excisionMap_fst_apply (f : SmoothEmbedding I J ∞ Z X)
+    (hn : (∞ : ℕ∞ω) ≠ 0) (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E)
+    {W : TopologicalSpace.Opens X}
+    (Φ : letI := f.normalSpaceFiberBundle hn hdim
+      TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
+    (hΦ : letI := f.normalSpaceFiberBundle hn hdim
+      ∀ x, (Φ (zeroSection P _ x) : X) = f x) (v : TotalSpace P (fun x ↦ f.NormalSpace x hn)) :
+    letI := f.normalSpaceFiberBundle hn hdim
+    TopPair.Hom.fst (TopPair.excisionMap (X := TopCat.of X) (W : Set X) (range f)ᶜ)
+      (TopPair.Hom.fst (f.tubePairIso hn hdim Φ hΦ).hom v) = (Φ v : X) :=
+  (TopPair.excisionMap_fst_apply _ _ _).trans
+    (congrArg Subtype.val (tubePairIso_hom_fst_apply f hn hdim Φ hΦ v))
+
+/-- On total spaces, the pair isomorphism of a tube followed by excision is the tube, read as a
+map to `X`. -/
+theorem tubePairIso_hom_fst_comp_excisionMap_fst (f : SmoothEmbedding I J ∞ Z X)
+    (hn : (∞ : ℕ∞ω) ≠ 0) (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E)
+    {W : TopologicalSpace.Opens X}
+    (Φ : letI := f.normalSpaceFiberBundle hn hdim
+      TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
+    (hΦ : letI := f.normalSpaceFiberBundle hn hdim
+      ∀ x, (Φ (zeroSection P _ x) : X) = f x) :
+    letI := f.normalSpaceFiberBundle hn hdim
+    TopPair.Hom.fst (f.tubePairIso hn hdim Φ hΦ).hom ≫
+        TopPair.Hom.fst (TopPair.excisionMap (X := TopCat.of X) (W : Set X) (range f)ᶜ) =
+      TopCat.ofHom ⟨fun v ↦ (Φ v : X), continuous_subtypeVal.comp Φ.continuous⟩ :=
+  TopCat.ext fun v ↦ tubePairIso_hom_fst_comp_excisionMap_fst_apply f hn hdim Φ hΦ v
+
 end TubePair
 
 section DualClassOf
@@ -335,8 +364,8 @@ theorem dualClassOf_restrict (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ�
     rw [← TopCat.singularCohomologyMap_comp, ← TopCat.singularCohomologyMap_comp]
     have hpt (x : Z) : TopPair.Hom.fst (TopPair.excisionMap (X := TopCat.of X) (W : Set X)
         (range f)ᶜ) (TopPair.Hom.fst t.hom (zeroSectionHom P _ x)) = f x := by
-      rw [zeroSectionHom_apply, tubePairIso_hom_fst_apply]
-      exact (TopPair.excisionMap_fst_apply _ _ _).trans (hΦ.apply_zeroSection x)
+      rw [zeroSectionHom_apply, tubePairIso_hom_fst_comp_excisionMap_fst_apply]
+      exact hΦ.apply_zeroSection x
     exact congrArg (TopCat.singularCohomologyMap · n) (TopCat.ext fun x ↦ (hpt x).symm)
   have key : relDualClassHom R k M f hn hdim hf n ≫
       (TopPair.ofSubset (X := TopCat.of X) (range f)ᶜ).singularCohomologyπ R k M n ≫
