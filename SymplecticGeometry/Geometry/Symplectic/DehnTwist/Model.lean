@@ -73,7 +73,9 @@ time `π` is the antipodal map; and since `R' = 0` on `[r₀, ∞)`, the twist i
 * `SymplecticGeometry.contMDiff_twistPrimitive`, `SymplecticGeometry.twistPrimitive_of_le`: the
   primitive of the model twist of a twist profile is smooth, and vanishes where `μ ≥ r₀`.
 * `SymplecticGeometry.mpullback_modelTwist_liouvilleForm`: the model twist pulls the Liouville
-  form `λ` back to `λ + dK` with `K = twistPrimitive R`, so it is exact;
+  form `λ` back to `λ + dK` with `K = twistPrimitive R`, so it is exact, and
+  `SymplecticGeometry.mpullback_modelTwist_liouvilleForm_apply` says the same at each point, on
+  rough forms;
   `SymplecticGeometry.mpullback_modelTwist_symplecticForm`: it preserves `ω = -dλ`.
 * `Function.Even.mvfderiv_comp_cotangentNorm_eq_zero`: for an even `g` differentiable at `0`, the
   differential of `g ∘ μ` vanishes on the zero section.
@@ -854,6 +856,22 @@ theorem mpullback_modelTwist_liouvilleForm {R : ℝ → ℝ} {r₀ : ℝ} (hR : 
     cotangentCoord z v : (𝔼 n) × 𝔼 n) = u at hqdq hd ⊢
   exact inner_twistCoord_snd_fderiv_twistCoord_fst hC1 hS1 hqq hqp hqdq hd (h1 _ (sq_nonneg _))
     (h2 _ (sq_nonneg _))
+
+/-- At each point `z` of `T*Sⁿ`, the model twist of a twist profile `R` pulls the Liouville form
+`λ` back to `λ + dK` with `K = twistPrimitive R`, as rough forms. -/
+theorem mpullback_modelTwist_liouvilleForm_apply {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsTwistProfile R r₀)
+    (z : CotangentBundle (𝓡 n) (𝕊 n)) :
+    mpullback ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ))
+        ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) (modelTwist hR)
+        (CotangentBundle.liouvilleForm (𝓡 n) (𝕊 n)).val z =
+      (CotangentBundle.liouvilleForm (𝓡 n) (𝕊 n)).val z +
+        mextDeriv (RoughForm.ofFunction ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ))
+          (twistPrimitive R)) z := by
+  have h := congrArg Subtype.val (mpullback_modelTwist_liouvilleForm (n := n) hR)
+  simp only [SmoothForm.coe_mpullback, Submodule.coe_add, mextDerivₗ_apply] at h
+  rw [h, Pi.add_apply,
+    SmoothForm.coe_ofFunction (I := (𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ))
+      ⟨twistPrimitive R, contMDiff_twistPrimitive hR⟩, ContMDiffMap.coeFn_mk]
 
 /-- The model twist of a twist profile preserves the canonical symplectic form `ω = -dλ` of
 `T*Sⁿ`. -/
