@@ -77,7 +77,19 @@ with blowdown `π : L → E = ℂⁿ⁺¹`, the exceptional divisor `Z` and the 
   `radialPotentialForm` of `s + l² log s` (`mpullback_blowdownDiffeomorph_symm_blowupForm`), so
   `ω̃_{l,ε}` is that of `s + l² log s + q(s)`, whose derivatives are those of `s` for
   `s > (l + ε)²` (`sq_mul_log_add_blowupCorrection_of_ge`); and `π^* ω₀` is that of `s`
-  (`radialPotentialForm_id`).
+  (`radialPotentialForm_id`). That reading of `ω̃_{l,ε}` off `Z` is
+  `mpullback_blowdownDiffeomorph_symm_profileForm`.
+* `SymplecticGeometry.BlowupModel.mpullback_radialMap_profileForm`: for `0 < l` and `0 < ε`,
+  off `Z` the form `ω̃_{l,ε}` is the pull-back of `ω₀` along `F_{l,ε} ∘ π`, where `F_{l,ε}` is
+  `radialMap` of the profile `h = blowupProfile l ε`: by `mpullback_radialMap_stdForm`, since
+  `s + l² log s + q(s)` has derivative `h(s) / s` (`deriv_add_mul_log_add_blowupCorrection`).
+  This follows `mpullback_radialMap_blowdown` of `Model.lean`, the case `h(s) = s + l²`.
+* `SymplecticGeometry.BlowupModel.isKahler_profileForm`: for `0 < l` and `0 < ε`, `ω̃_{l,ε}` is
+  Kähler for the complex structure of `L`. It is closed (`isClosed_profileForm`); on
+  `openNbhd n ε` it is `ω̃_l`, compatible by `isKahler_blowupForm`, and off `Z` it is the
+  pull-back along the holomorphic blowdown (`isPseudoholomorphic_blowdownPuncturedDiffeomorph`) of
+  a radial potential form that `isKahler_radialPotentialForm` makes Kähler, as `h > 0` and
+  `h' > 0` (`compatible_mpullback_subtypeVal_profileForm`). The two open sets cover `L`.
 
 ## References
 
@@ -543,6 +555,57 @@ theorem profileForm_eq_blowupForm_on {l ε : ℝ} :
   simp [profileForm_def,
     correctionForm_apply_eq_zero n (mem_closedNbhd_iff.1 hp)]
 
+/-- The form `ω_q` of the correction potential is closed: it is a multiple of an exterior
+derivative. -/
+theorem isClosed_correctionForm (l ε : ℝ) : (correctionForm n l ε).IsClosed := by
+  rw [correctionForm_def]
+  exact (SmoothForm.isClosed_mextDerivₗ _).smul _
+
+/-- The form `ω̃_{l,ε}` is closed, as the sum of `ω̃_l` and the pull-back of a closed form. -/
+theorem isClosed_profileForm (l ε : ℝ) : (profileForm n l ε).IsClosed := by
+  rw [profileForm_def]
+  exact (isClosed_blowupForm l).add ((isClosed_correctionForm n l ε).mpullback _ _)
+
+/-- The radial potential `s ↦ s + l² log s + q(s)` of `ω̃_{l,ε}` off the divisor, for
+`q = blowupCorrection l ε`, is smooth on `(0, ∞)`. -/
+theorem contDiffOn_add_mul_log_add_blowupCorrection {l ε : ℝ} (hl : 0 < l) (hε : 0 < ε) :
+    ContDiffOn ℝ ∞ (fun s ↦ s + l ^ 2 * Real.log s + blowupCorrection l ε s) (Ioi 0) :=
+  (contDiffOn_add_mul_log l).add (contDiff_blowupCorrection hl hε).contDiffOn
+
+/-- On `(0, ∞)`, the radial potential `g(s) = s + l² log s + q(s)` of `ω̃_{l,ε}` has derivative
+`h(s) / s`, for the profile `h = blowupProfile l ε` and `q = blowupCorrection l ε`. -/
+theorem deriv_add_mul_log_add_blowupCorrection {l ε : ℝ} (hl : 0 < l) (hε : 0 < ε) {s : ℝ}
+    (hs : 0 < s) :
+    deriv (fun s ↦ s + l ^ 2 * Real.log s + blowupCorrection l ε s) s =
+      blowupProfile l ε s / s := by
+  have hd : HasDerivAt (fun s ↦ s + l ^ 2 * Real.log s + blowupCorrection l ε s)
+      (1 + l ^ 2 * s⁻¹ + (blowupProfile l ε s - s - l ^ 2) / s) s :=
+    ((hasDerivAt_id s).add ((Real.hasDerivAt_log hs.ne').const_mul _)).add
+      (hasDerivAt_blowupCorrection hl hε s)
+  rw [hd.deriv]
+  field_simp
+  ring
+
+/-- Off the exceptional divisor, `ω̃_{l,ε}` is the form of the radial potential
+`|z|² + l² log |z|² + q(|z|²)`, for `0 < l` and `0 < ε`: its pull-back along the inverse of the
+blowdown, from `E ∖ 0` to the complement of the divisor, is `radialPotentialForm` of
+`s ↦ s + l² log s + q(s)`. -/
+theorem mpullback_blowdownDiffeomorph_symm_profileForm {l ε : ℝ} (hl : 0 < l) (hε : 0 < ε) :
+    SmoothForm.mpullback (blowdownPuncturedDiffeomorph n).symm
+        (blowdownPuncturedDiffeomorph n).symm.contMDiff
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (profileForm n l ε)) =
+      radialPotentialForm (Fin (n + 1)) (fun s ↦ s + l ^ 2 * Real.log s + blowupCorrection l ε s)
+        (contDiffOn_add_mul_log_add_blowupCorrection hl hε) := by
+  have hcomp : (blowdown : BlowupModel n → _) ∘ Subtype.val ∘
+      (blowdownPuncturedDiffeomorph n).symm = Subtype.val := funext fun z ↦ by
+    rw [Function.comp_apply, Function.comp_apply, coe_blowdownPuncturedDiffeomorph_symm_apply,
+      blowdown_ofNeZero]
+  rw [profileForm_def, map_add, map_add, mpullback_blowdownDiffeomorph_symm_blowupForm,
+    SmoothForm.mpullback_mpullback, SmoothForm.mpullback_mpullback,
+    SmoothForm.mpullback_congr _ contMDiff_subtypeVal hcomp,
+    mpullback_subtypeVal_correctionForm n hl hε,
+    ← radialPotentialForm_add _ (contDiff_blowupCorrection hl hε).contDiffOn]
+
 /-- Off `L(l + ε) = closedNbhd n (l + ε)`, the form `ω̃_{l,ε}` is `π^* ω₀`, for `0 < l` and
 `0 < ε`: there `l² log s + q(s)` is constant in `s = |z|²`, so the Fubini–Study term of `ω̃_l`
 and the correction cancel. -/
@@ -562,16 +625,11 @@ theorem profileForm_eq_on_compl {l ε : ℝ} (hl : 0 < l) (hε : 0 < ε) :
       (blowdownPuncturedDiffeomorph n).symm = Subtype.val := funext fun z ↦ by
     rw [Function.comp_apply, Function.comp_apply, coe_blowdownPuncturedDiffeomorph_symm_apply,
       blowdown_ofNeZero]
-  have hq := (contDiff_blowupCorrection (n := ⊤) hl hε).contDiffOn (s := Ioi 0)
   refine SmoothForm.apply_eq_of_mpullback_symm_mpullback_subtype_val_apply_eq
     (blowdownPuncturedDiffeomorph n) ⟨p, hpU⟩ ?_
-  rw [profileForm_def, map_add, map_add, mpullback_blowdownDiffeomorph_symm_blowupForm,
-    SmoothForm.mpullback_mpullback, SmoothForm.mpullback_mpullback,
-    SmoothForm.mpullback_mpullback, SmoothForm.mpullback_mpullback,
-    SmoothForm.mpullback_congr _ contMDiff_subtypeVal hcomp,
-    SmoothForm.mpullback_congr _ contMDiff_subtypeVal hcomp,
-    mpullback_subtypeVal_correctionForm n hl hε, ← radialPotentialForm_add _ hq, ω₀E_def,
-    ← radialPotentialForm_id contDiffOn_id]
+  rw [mpullback_blowdownDiffeomorph_symm_profileForm n hl hε, SmoothForm.mpullback_mpullback,
+    SmoothForm.mpullback_mpullback, SmoothForm.mpullback_congr _ contMDiff_subtypeVal hcomp,
+    ω₀E_def, ← radialPotentialForm_id contDiffOn_id]
   refine SmoothBundleForm.apply_eq_of_eval₂_eq fun v w ↦ ?_
   set x := ∑ i, ‖((blowdownPuncturedDiffeomorph n ⟨p, hpU⟩ : puncturedSpace _) :
     Fin (n + 1) → ℂ) i‖ ^ 2
@@ -585,6 +643,131 @@ theorem profileForm_eq_on_compl {l ε : ℝ} (hl : 0 < l) (hε : 0 < ε) :
     ring
   rw [radialPotentialForm_apply, radialPotentialForm_apply, he.deriv_eq, he.deriv.deriv_eq]
   simp
+
+/-- The radial map `F_{l,ε} z = √(h(|z|²) / |z|²) z` of the profile `h = blowupProfile l ε`,
+composed with the blowdown, pulls `ω₀` back to `ω̃_{l,ε}` off the exceptional divisor, for
+`0 < l` and `0 < ε`. -/
+theorem mpullback_radialMap_profileForm {l ε : ℝ} (hl : 0 < l) (hε : 0 < ε) :
+    SmoothForm.mpullback
+        (radialMap (blowupProfile l ε) (fun _ hs ↦ blowupProfile_pos hl hε (le_of_lt hs)) ∘
+          blowdownPuncturedDiffeomorph n)
+        ((contMDiff_radialMap (contDiff_blowupProfile (n := ⊤) hl hε).contDiffOn _).comp
+          (blowdownPuncturedDiffeomorph n).contMDiff)
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (ω₀E n)) =
+      SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (profileForm n l ε) := by
+  have hs : ContDiffOn ℝ ∞ (blowupProfile l ε) (Ioi 0) :=
+    (contDiff_blowupProfile (n := ⊤) hl hε).contDiffOn
+  rw [← SmoothForm.mpullback_mpullback _ _ (blowdownPuncturedDiffeomorph n).contMDiff
+      (contMDiff_radialMap hs _), ω₀E_def,
+    mpullback_radialMap_stdForm (ι := Fin (n + 1)) hs _
+      (contDiffOn_add_mul_log_add_blowupCorrection hl hε)
+      fun s hs ↦ deriv_add_mul_log_add_blowupCorrection hl hε hs,
+    ← mpullback_blowdownDiffeomorph_symm_profileForm n hl hε, SmoothForm.mpullback_mpullback_symm]
+
+/-- The blowdown, from the complement of the exceptional divisor onto `E ∖ 0`, is holomorphic. -/
+theorem isPseudoholomorphic_blowdownPuncturedDiffeomorph :
+    IsPseudoholomorphic
+      (ofComplexManifold (Fin (n + 1) → ℂ)
+        (⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ :
+          Opens (BlowupModel n)))
+      (ofComplexManifold (Fin (n + 1) → ℂ) (puncturedSpace (Fin (n + 1) → ℂ)))
+      (blowdownPuncturedDiffeomorph n) := by
+  have h : (Subtype.val ∘ blowdownPuncturedDiffeomorph n :
+      (⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ :
+        Opens (BlowupModel n)) → _) = blowdown ∘ Subtype.val :=
+    funext fun p ↦ coe_blowdownPuncturedDiffeomorph_apply p
+  have hc : ContMDiff 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ∞
+      (Subtype.val ∘ blowdownPuncturedDiffeomorph n) := by
+    rw [h]
+    exact (contMDiff_blowdown ∞).comp contMDiff_subtypeVal
+  exact isPseudoholomorphic_ofComplexManifold_iff.2
+    (((ContMDiff.subtypeVal_comp_iff _ _).1 hc).mdifferentiable (by simp))
+
+/-- Off the exceptional divisor, `ω̃_{l,ε}` is compatible with the complex structure, for `0 < l`
+and `0 < ε`: its restriction there is the pull-back along the holomorphic blowdown of the radial
+potential form of `g(s) = s + l² log s + q(s)`, which is Kähler since `g'(s) = h(s) / s > 0` and
+`(s g')' = h' > 0`. -/
+theorem compatible_mpullback_subtypeVal_profileForm {l ε : ℝ} (hl : 0 < l) (hε : 0 < ε) :
+    SmoothTwoForm.Compatible
+      (SmoothForm.mpullback (Subtype.val : (⟨(exceptionalDivisor n)ᶜ,
+        isClosed_exceptionalDivisor.isOpen_compl⟩ : Opens (BlowupModel n)) → BlowupModel n)
+        contMDiff_subtypeVal (profileForm n l ε))
+      (ofComplexManifold (Fin (n + 1) → ℂ)
+        (⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ :
+          Opens (BlowupModel n))) := by
+  have hg₁ : ∀ s ∈ Ioi (0 : ℝ),
+      0 < deriv (fun s ↦ s + l ^ 2 * Real.log s + blowupCorrection l ε s) s := fun s hs ↦ by
+    rw [deriv_add_mul_log_add_blowupCorrection hl hε hs]
+    exact div_pos (blowupProfile_pos hl hε (le_of_lt hs)) hs
+  have hg₂ : ∀ s ∈ Ioi (0 : ℝ), 0 < deriv (fun t ↦ t *
+      deriv (fun s ↦ s + l ^ 2 * Real.log s + blowupCorrection l ε s) t) s := fun s hs ↦ by
+    have he : (fun t ↦ t *
+        deriv (fun s ↦ s + l ^ 2 * Real.log s + blowupCorrection l ε s) t) =ᶠ[nhds s]
+          blowupProfile l ε := by
+      filter_upwards [Ioi_mem_nhds hs] with t ht
+      rw [deriv_add_mul_log_add_blowupCorrection hl hε ht, mul_div_cancel₀ _ (ne_of_gt ht)]
+    rw [he.deriv_eq]
+    exact deriv_blowupProfile_pos hl hε s
+  have h := congrArg (SmoothForm.mpullback _ (blowdownPuncturedDiffeomorph n).contMDiff)
+    (mpullback_blowdownDiffeomorph_symm_profileForm n hl hε)
+  rw [SmoothForm.mpullback_mpullback_symm] at h
+  rw [h]
+  exact (isKahler_radialPotentialForm _ hg₁ hg₂).compatible.mpullback
+    (isPseudoholomorphic_blowdownPuncturedDiffeomorph n) _
+    fun x ↦ ((blowdownPuncturedDiffeomorph n).isInvertible_mfderiv (x := x) (by simp)).injective
+
+/-- For `0 < l` and `0 < ε`, the form `ω̃_{l,ε}` is Kähler for the complex structure of the model
+blowup: on `openNbhd n ε` it is `ω̃_l`, which is Kähler (`isKahler_blowupForm`), and off the
+exceptional divisor it is the pull-back of `ω₀` along `F_{l,ε} ∘ π`
+(`mpullback_radialMap_profileForm`), the form of a strictly plurisubharmonic radial potential;
+these two open sets cover the model. -/
+theorem isKahler_profileForm {l ε : ℝ} (hl : 0 < l) (hε : 0 < ε) :
+    (profileForm n l ε).IsKahler (ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n)) := by
+  set U : Opens (BlowupModel n) :=
+    ⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩
+  have hB := (isKahler_blowupForm (n := n) hl.ne').compatible
+  have hU : SmoothTwoForm.Compatible
+      (SmoothForm.mpullback (Subtype.val : U → BlowupModel n) contMDiff_subtypeVal
+        (profileForm n l ε)) (ofComplexManifold (Fin (n + 1) → ℂ) U) :=
+    compatible_mpullback_subtypeVal_profileForm n hl hε
+  have hval := isPseudoholomorphic_ofComplexManifold_subtype_val (E := Fin (n + 1) → ℂ) U
+  -- At a point of `U`, the complex structure and the restricted form are those of the model.
+  have hJ : ∀ (p : U) (v : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) p),
+      ofComplexManifold (Fin (n + 1) → ℂ) U p v =
+        ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n) p v := fun p v ↦ by
+    have h := (hval.isPseudoholomorphicAt p).mfderiv_apply_commute v
+    rw [Manifold.mfderiv_subtype_val_apply, Manifold.mfderiv_subtype_val_apply] at h
+    exact h
+  have hσ : ∀ (p : U) (v w : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) p),
+      (SmoothForm.mpullback (Subtype.val : U → BlowupModel n) contMDiff_subtypeVal
+        (profileForm n l ε)).eval₂ p v w =
+        (profileForm n l ε).eval₂ p v w := fun p v w ↦ by
+    rw [SmoothForm.eval₂_mpullback, Manifold.mfderiv_subtype_val_apply,
+      Manifold.mfderiv_subtype_val_apply]
+  -- On `openNbhd n ε`, the form is `ω̃_l`.
+  have hε' : ∀ p ∈ openNbhd n ε, ∀ v w : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) p,
+      (profileForm n l ε).eval₂ p v w = (blowupForm n l).eval₂ p v w := fun p hp v w ↦ by
+    rw [SmoothBundleForm.eval₂_apply, SmoothBundleForm.eval₂_apply,
+      profileForm_eq_blowupForm_on n p (openNbhd_subset_closedNbhd ε hp)]
+  refine SmoothTwoForm.isKahler_ofComplexManifold_iff.2
+    ⟨isClosed_profileForm n l ε, SmoothTwoForm.invariant_iff.2 fun p v w ↦ ?_,
+      SmoothTwoForm.tames_iff.2 fun p v hv ↦ ?_⟩
+  · by_cases hp : p ∈ openNbhd n ε
+    · rw [hε' p hp, hε' p hp, hB.invariant.apply]
+    · have hpU : p ∈ U := fun h ↦ hp (exceptionalDivisor_subset_openNbhd hε h)
+      have h := hU.invariant.apply ⟨p, hpU⟩ v w
+      -- `erw`: the tangent space of `U` at `⟨p, hpU⟩` is that of the model at `p` only up to
+      -- unfolding, so `rw` does not see the vectors of `h` as those of `hσ` and `hJ`.
+      erw [hJ ⟨p, hpU⟩ v, hJ ⟨p, hpU⟩ w, hσ, hσ] at h
+      exact h
+  · by_cases hp : p ∈ openNbhd n ε
+    · rw [hε' p hp]
+      exact SmoothTwoForm.tames_iff.1 hB.tames p v hv
+    · have hpU : p ∈ U := fun h ↦ hp (exceptionalDivisor_subset_openNbhd hε h)
+      have h := SmoothTwoForm.tames_iff.1 hU.tames ⟨p, hpU⟩ v hv
+      -- `erw`, as in the first case.
+      erw [hJ ⟨p, hpU⟩ v, hσ] at h
+      exact h
 
 end ProfileForm
 
