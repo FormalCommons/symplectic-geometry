@@ -38,8 +38,8 @@ whose value at `(t, y)` is `f (Ψ (t, f⁻¹ y))`:
 
 ## References
 
-* Dusa McDuff and Dietmar Salamon, *Introduction to Symplectic Topology*, 3rd ed., Oxford
-  University Press, 2017, Section 10.2 (the pointwise product of isotopies).
+* [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], third
+  edition, §10.2 (the pointwise product of isotopies).
 -/
 
 public section
