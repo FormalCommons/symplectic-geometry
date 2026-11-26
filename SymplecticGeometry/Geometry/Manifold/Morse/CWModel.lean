@@ -40,8 +40,8 @@ universe u
 namespace SymplecticGeometry
 
 variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
-  (I : ModelWithCorners ℝ E H) [I.Boundaryless]
-  {M : Type u} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M] [T2Space M]
+  (M : Type u) (I : ModelWithCorners ℝ E H) [I.Boundaryless]
+  [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M] [T2Space M]
   [CompactSpace M]
 
 include I in

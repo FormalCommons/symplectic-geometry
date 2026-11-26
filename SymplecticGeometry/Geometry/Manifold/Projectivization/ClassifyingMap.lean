@@ -37,7 +37,7 @@ homotopy equivalence `M → W`, this gives a map pulling `h` back to `b`, by hom
 
 public section
 
-open CategoryTheory Module Set TauCeti Topology.RelCWComplex
+open CategoryTheory Module Set Topology.RelCWComplex
 open scoped LinearAlgebra.Projectivization Manifold ContDiff
 
 namespace Projectivization
@@ -58,7 +58,7 @@ theorem exists_continuousMap_projectivization_pullback_eq_of_isManifold {N : ℕ
       TopCat.singularCohomologyMap (TopCat.ofHom F) 2
         (hyperplaneClass (Fin (N + 1) → ℂ)) = b := by
   obtain ⟨W, _, _, _, -, ⟨e⟩, hcell⟩ :=
-    SymplecticGeometry.exists_finite_cwComplex_homotopyEquiv_of_isManifold I (M := M)
+    SymplecticGeometry.exists_finite_cwComplex_homotopyEquiv_of_isManifold M I
   have hW : ∀ m, 2 * N < m → IsEmpty (cell (univ : Set W) m) := fun m hm ↦
     hcell m (hN.trans_lt hm)
   -- Carry `b` to the CW complex `univ ⊆ W`, homotopy equivalent to `M`.
