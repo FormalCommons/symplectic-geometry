@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.LiouvilleMeasure
 public import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.MeasureTheory.Measure.Haar.InnerProductSpace
 import SymplecticGeometry.MeasureTheory.Measure.Lebesgue.HalfSqRadius
 
@@ -118,9 +119,7 @@ theorem IsSymplecticMapOn.map_comap_subtypeVal_liouvilleMeasure
   set g : U → M := U.carrier.domRestrict Φ
   have hg : MeasurableEmbedding g :=
     Φ.toOpenPartialHomeomorph.isOpenEmbedding_restrict.measurableEmbedding
-  have hgs : ContMDiff J I ∞ g := fun x ↦
-    (Φ.contMDiffOn.contMDiffAt (Φ.open_source.mem_nhds x.property)).comp x
-      contMDiff_subtypeVal.contMDiffAt
+  have hgs : ContMDiff J I ∞ g := contMDiff_subtype_iff.2 Φ.contMDiffOn
   -- `g` pulls `σ` back to the restriction of `τ` to the source.
   have hpull : SmoothForm.mpullback g hgs σ =
       SmoothForm.mpullback (Subtype.val : U → N) contMDiff_subtypeVal τ :=
