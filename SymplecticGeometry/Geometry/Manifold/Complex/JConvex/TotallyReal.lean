@@ -75,7 +75,7 @@ the image of `ι` onto `F × {0}` (`TauCeti.IsAdaptedChart`). Fix a linear isomo
   `TauCeti.mem_criticalPoints_norm_sq_of_eq_zero` for `‖φ‖²` at a zero of `φ`);
 * `TauCeti.IsAdaptedChart.criticalHessian_norm_sq_snd_apply`: its critical Hessian at a point of
   the image is `2 ⟪e (dψ u).2, e (dψ w).2⟫`, by the general
-  `TauCeti.criticalHessian_norm_sq_clm_apply_of_eq_zero` of
+  `TauCeti.criticalHessian_norm_sq_continuousLinearMap_comp_apply_of_eq_zero` of
   `SymplecticGeometry.Geometry.Manifold.Morse.Hessian`, for the map `e ∘L snd`;
 * `TauCeti.IsAdaptedChart.criticalHessian_norm_sq_snd_pos`: this Hessian is positive off the
   tangent image of `ι`, since `dψ` sends exactly that image into `F × {0}`
@@ -294,7 +294,7 @@ theorem criticalHessian_norm_sq_snd_apply [I.Boundaryless] (hψ : IsAdaptedChart
     (hℓ : 2 ≤ ℓ) {x : M} (hx : x ∈ ψ.source ∩ s) (u w : TangentSpace I x) :
     criticalHessian I (fun y ↦ ‖e (ψ y).2‖ ^ 2) x u w =
       2 * inner ℝ (e (mfderiv I 𝓘(ℝ, F × F) ψ x u).2) (e (mfderiv I 𝓘(ℝ, F × F) ψ x w).2) := by
-  have := criticalHessian_norm_sq_clm_apply_of_eq_zero
+  have := criticalHessian_norm_sq_continuousLinearMap_comp_apply_of_eq_zero
     (A := (e : F →L[ℝ] W).comp (ContinuousLinearMap.snd ℝ F F))
     ((hψ.contMDiffAt hx.1).of_le (WithTop.coe_le_coe.2 hℓ))
     (by

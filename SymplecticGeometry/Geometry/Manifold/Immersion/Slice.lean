@@ -45,7 +45,8 @@ the maximal atlas. The statements on `g` follow `TauCeti.IsAdaptedChart.norm_sq_
 `Geometry/Manifold/Complex/JConvex/TotallyReal.lean`, with a slice chart of an embedding in place
 of a chart adapted to a totally real submanifold; the steps of the last proofs that do not depend
 on the chart are `TauCeti.mem_criticalPoints_norm_sq_of_eq_zero` and
-`TauCeti.criticalHessian_norm_sq_clm_apply_of_eq_zero` of `Geometry/Manifold/Morse/Hessian.lean`.
+`TauCeti.criticalHessian_norm_sq_continuousLinearMap_comp_apply_of_eq_zero` of
+`Geometry/Manifold/Morse/Hessian.lean`.
 
 ## Main results
 
@@ -185,7 +186,7 @@ theorem criticalHessian_norm_sq_snd_apply [J.Boundaryless] (hn : 2 ≤ n) {y : M
     criticalHessian J (fun p ↦ ‖e (h.equiv.symm (h.codChart.extend J p)).2‖ ^ 2) (f y) u w =
       2 * inner ℝ (e (h.equiv.symm (mfderiv J 𝓘(ℝ, E'') (h.codChart.extend J) (f y) u)).2)
         (e (h.equiv.symm (mfderiv J 𝓘(ℝ, E'') (h.codChart.extend J) (f y) w)).2) := by
-  have := criticalHessian_norm_sq_clm_apply_of_eq_zero
+  have := criticalHessian_norm_sq_continuousLinearMap_comp_apply_of_eq_zero
     (A := (e : F →L[ℝ] W).comp
       ((ContinuousLinearMap.snd ℝ E F).comp (h.equiv.symm : E'' →L[ℝ] E × F)))
     ((h.codChart.contMDiffAt_extend h.codChart_mem_maximalAtlas

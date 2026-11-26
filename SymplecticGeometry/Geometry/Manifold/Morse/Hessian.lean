@@ -36,7 +36,7 @@ function `p ↦ ‖φ p‖²` has a minimum, hence a critical point, at `x`
 (`TauCeti.criticalHessian_norm_sq_apply_of_eq_zero`), by the second-order chain rule and Tau
 Ceti's `TauCeti.fderiv_fderiv_norm_sq_apply`. For `φ = A ∘ ψ`, with `A` a continuous linear map
 and `ψ` `C²` at a zero `x` of `A ∘ ψ`, this reads `2 ⟪A (dψ u), A (dψ w)⟫`
-(`TauCeti.criticalHessian_norm_sq_clm_apply_of_eq_zero`).
+(`TauCeti.criticalHessian_norm_sq_continuousLinearMap_comp_apply_of_eq_zero`).
 
 Let the functions `g i` be `C²`, vanish and be critical at an interior point `x` whenever
 `x ∈ U i`, with critical Hessians there positive on a vector `v`. Then a finite sum
@@ -191,7 +191,7 @@ variable [InnerProductSpace ℝ W] {F : Type*} [NormedAddCommGroup F] [NormedSpa
 real normed space that is `C²` at `x`, and `A` a continuous linear map into a real inner product
 space with `A (ψ x) = 0`. Then the critical Hessian of `p ↦ ‖A (ψ p)‖²` at `x` is
 `2 ⟪A (dψ u), A (dψ w)⟫`. -/
-theorem criticalHessian_norm_sq_clm_apply_of_eq_zero [I.Boundaryless]
+theorem criticalHessian_norm_sq_continuousLinearMap_comp_apply_of_eq_zero [I.Boundaryless]
     (hψ : ContMDiffAt I 𝓘(ℝ, F) 2 ψ x) (hψx : A (ψ x) = 0) (u w : TangentSpace I x) :
     criticalHessian I (fun p ↦ ‖A (ψ p)‖ ^ 2) x u w =
       2 * inner ℝ (A (mfderiv I 𝓘(ℝ, F) ψ x u)) (A (mfderiv I 𝓘(ℝ, F) ψ x w)) := by
