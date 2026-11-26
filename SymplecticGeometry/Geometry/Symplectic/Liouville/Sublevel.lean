@@ -39,7 +39,7 @@ turns `df(X) > 0` into this condition.
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017],
   Definition 3.5.38 (strong fillings)
 * [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
-  Chapter 11 (Liouville domains as sublevels)
+  Chapter 11 (Liouville and Weinstein structures)
 -/
 
 public section
