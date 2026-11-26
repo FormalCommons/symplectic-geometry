@@ -215,7 +215,7 @@ For a closed one-form `γ` invariant under every `g • ·`, and every `ξ`,
 the function `fun x ↦ γ.val x ![fundamentalVectorField I ξ x]` has zero
 differential, and on a preconnected `M` it is constant. Proved by
 Cartan's formula `mlieDerivForm_apply_eq_mextDeriv_add` with
-`mlieDerivForm_fundamentalVectorField_eq_zero`, as in the proof of Tau
+`mlieDerivForm_fundamentalVectorField_eq_zero_of_boundarylessManifold`, as in the proof of Tau
 Ceti's `mextDerivₗ_apply_fundamentalVectorField_eq_zero`, which it credits.
 Names in Tau Ceti's style:
 `TauCeti.mvfderiv_apply_fundamentalVectorField_eq_zero` and
