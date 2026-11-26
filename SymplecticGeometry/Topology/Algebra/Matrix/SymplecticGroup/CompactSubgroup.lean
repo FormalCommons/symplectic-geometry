@@ -71,9 +71,8 @@ theorem exists_conj_smul_le_unitarySubgroup {K : Subgroup (GLSymplectic ι ℝ)}
     (continuous_subtypeVal.comp continuous_subtypeVal)
   obtain ⟨J, hJ, hKJ⟩ := (stdForm ι).exists_compatible_forall_isComplexLinearMap ρ hρ
     fun k u v ↦ by
-      simp only [ρ, ContRepresentation.restrict_apply_apply, contRep_apply,
-        toEuclideanCLM_apply]
-      exact mem_symplecticGroup_iff_forall_stdForm.1
+      simp only [ρ, ContRepresentation.restrict_apply_apply, contRep_apply]
+      exact mem_symplecticGroup_iff_forall_stdForm_toEuclideanCLM.1
         (mem_iff_mem_symplecticGroup.1 (k : GLSymplectic ι ℝ).property) u v
   have hfix (k : K) : ((k : GLSymplectic ι ℝ) : GL (ι ⊕ ι) ℝ) • J = J := by
     rw [AlmostComplexStructure.generalLinearGroup_smul_def,
