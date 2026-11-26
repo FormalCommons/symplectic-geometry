@@ -222,12 +222,10 @@ and `Bundle.deRhamHom_realFirstChernClass_eq_neg`, in the files listed under
    and on $\mathbb CP^1$ the two theorems above give it.
 
    `realFirstChernClass_map`, with `IsCircleConnectionForm.mpullback` and
-   `IsCircleConnectionForm.curvature_mpullback` that it rests on, is planned
-   by `design/compatible-symplectic-forms.md` (part 49) in the merged
-   `FiberBundle/Principal/RealChernClass.lean`. The
-   Chern–Weil issue proves the three there, under those names and with the
-   statements that design gives, unless part 49 has built them by then.
-   Part 49 then uses them, and neither part waits for the other.
+   `IsCircleConnectionForm.curvature_mpullback` that it rests on, is merged
+   in `FiberBundle/Principal/RealChernClass.lean`, with the statements that
+   `design/compatible-symplectic-forms.md` (part 49) gives them. Part 49
+   uses them, and neither part waits for the other.
 
 `LineBundle.lean` then builds the bundle and corrects the curvature. Take
 $L$ from 2 with $b=-a$, and any connection form
@@ -490,7 +488,7 @@ and the prerequisites, placed by topic.
 - `Geometry/Manifold/VectorBundle/Hermitian/ChernWeil.lean`: for line
   bundles pulled back from `twistCore 1` along smooth maps,
   `deRhamHom (realFirstChernClass IB P)` is minus the real image of the
-  Euler class (`deRhamHom_realFirstChernClass_eq_neg`). The same issue adds
+  Euler class (`deRhamHom_realFirstChernClass_eq_neg`). The same issue added
   `IsCircleConnectionForm.mpullback`, `IsCircleConnectionForm.curvature_mpullback`
   and `realFirstChernClass_map` to `FiberBundle/Principal/RealChernClass.lean`,
   as `design/compatible-symplectic-forms.md` states them.
@@ -725,16 +723,17 @@ searches both for its statement.
 26. **Donaldson's hypersurface theorem** (`Hypersurface.lean`). Waits for
     5, 10, 23 and 25.
 
-Issues 1, 2, 6, 8, 11, 14, 15, 16, 17a, 17b, 17f and 21 can start at once.
+Issues 6, 8, 11, 14, 15, 16, 17a, 17b, 17f and 21 can start at once.
 
 ## Uses
 
 - *Poincaré duals of submanifolds*: `ZeroSet/DualClass.lean` and
   `Orientation/DualClass.lean`, only in issues 10 and 26.
-- *Compatible symplectic forms* (part 49, not built): the statements of
+- *Compatible symplectic forms* (part 49, not built):
   `IsCircleConnectionForm.mpullback`, `IsCircleConnectionForm.curvature_mpullback`
-  and `realFirstChernClass_map` that its design gives, which issue 4 proves
-  unless part 49 has by then; no issue here waits for part 49.
+  and `realFirstChernClass_map`, with the statements its design gives them,
+  merged in `FiberBundle/Principal/RealChernClass.lean`; no issue here waits
+  for part 49.
 - Merged files of *Principal connections*, *First Chern number* and
   *Minimal coupling*: `IsCircleConnectionForm`, `exists_isCircleConnectionForm`,
   `curvature_add_mpullback`, `realFirstChernClass`,
