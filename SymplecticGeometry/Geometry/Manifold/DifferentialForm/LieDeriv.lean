@@ -15,7 +15,7 @@ import TauCeti.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
 
 /-!
-# Lie derivatives of forms on a manifold: linearity in the field, horizontal fields
+# Lie derivatives of forms on a manifold: linearity, horizontal fields, naturality
 
 Tau Ceti's `TauCeti.mlieDerivFormWithin` and `TauCeti.mlieDerivForm` are additive in the vector
 field (`TauCeti.mlieDerivFormWithin_add_left`, `TauCeti.mlieDerivForm_add_left`). This file adds
@@ -45,8 +45,8 @@ them vertically, and evaluates the Lie derivative by the bracket formula
 lifts commute (`Manifold.mlieBracket_prodVectorField_horizontal_vertical`), and the remaining
 term differentiates a function of `P` alone along `(X, 0)`. No boundarylessness is needed.
 
-The Lie derivative is natural along related vector fields: if `Φ : M' → M` is smooth and
-`dΦ_x (Y x) = X (Φ x)` for every `x`, then `Φ^* (L_X σ) = L_Y (Φ^* σ)` for every smooth form `σ`,
+The Lie derivative is natural along related vector fields: if `Φ : M' → M` is `C²` and
+`dΦ_x (Y x) = X (Φ x)` for every `x`, then `Φ^* (L_X σ) = L_Y (Φ^* σ)` for every `C¹` form `σ`,
 with no invertibility of `dΦ` asked. Both sides are expanded by Cartan's formula, and the
 pullback commutes with interior products of related fields (`TauCeti.mpullback_interior`) and with
 the exterior derivative (`TauCeti.mpullback_mextDeriv`).
@@ -188,32 +188,29 @@ end Horizontal
 
 section Related
 
-open scoped ContDiff
-
 variable {E' H' M' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
   {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace M'] [ChartedSpace H' M']
   [IsManifold I 2 M] [IsManifold I' 2 M']
 
-/-- **Naturality of the Lie derivative along related fields.** Let `Φ : M' → M` be smooth, `X` a
-`C¹` vector field on `M` and `Y` a differentiable vector field on `M'` with
-`dΦ_x (Y x) = X (Φ x)` for every `x`. Then for every smooth form `σ` on `M`,
+/-- **Naturality of the Lie derivative along related fields.** Let `Φ : M' → M` be a `C²` map,
+`X` a `C¹` vector field on `M` and `Y` a differentiable vector field on `M'` with
+`dΦ_x (Y x) = X (Φ x)` for every `x`. Then for every `C¹` form `σ` on `M`,
 `Φ^* (L_X σ) = L_Y (Φ^* σ)`. The differential of `Φ` need not be invertible. -/
-theorem mpullback_mlieDerivForm_of_related {Φ : M' → M} (hΦ : ContMDiff I' I ∞ Φ)
-    {σ : SmoothForm I M F (k + 1)} {X : (x : M) → TangentSpace I x}
+theorem mpullback_mlieDerivForm_of_related {Φ : M' → M} (hΦ : ContMDiff I' I 2 Φ)
+    {σ : RoughForm I M F (k + 1)} (hσ : IsSmoothForm I 1 σ) {X : (x : M) → TangentSpace I x}
     (hX : ContMDiff I I.tangent 1 (fun y ↦ (X y : TangentBundle I M)))
     {Y : (x : M') → TangentSpace I' x}
     (hY : MDifferentiable I' I'.tangent (fun y ↦ (Y y : TangentBundle I' M')))
     (hXY : ∀ x, mfderiv I' I Φ x (Y x) = X (Φ x)) :
-    mpullback I' I Φ (mlieDerivForm X σ.val) =
-      mlieDerivForm Y (SmoothForm.mpullback Φ hΦ σ).val := by
-  have hσ : IsSmoothForm I 1 σ.val := σ.isSmoothForm.of_le (by simp)
-  rw [SmoothForm.mlieDerivForm_eq_interior_mextDeriv_add (hX.mdifferentiable one_ne_zero),
-    SmoothForm.mlieDerivForm_eq_interior_mextDeriv_add hY, SmoothForm.coe_mpullback,
+    mpullback I' I Φ (mlieDerivForm X σ) = mlieDerivForm Y (mpullback I' I Φ σ) := by
+  rw [mlieDerivForm_eq_interior_mextDeriv_add (hσ.contMDiff.mdifferentiable one_ne_zero)
+      (hX.mdifferentiable one_ne_zero),
+    mlieDerivForm_eq_interior_mextDeriv_add
+      ((hσ.mpullback hΦ).contMDiff.mdifferentiable one_ne_zero) hY,
     mpullback_add, mpullback_interior Φ Y X _ hXY,
-    mpullback_mextDeriv (hΦ.of_le (by simp))
-      ((isSmoothBundleForm_def 1 _).mpr (hσ.interior hX).contMDiff),
+    mpullback_mextDeriv hΦ ((isSmoothBundleForm_def 1 _).mpr (hσ.interior hX).contMDiff),
     mpullback_interior Φ Y X _ hXY,
-    mpullback_mextDeriv (hΦ.of_le (by simp)) ((isSmoothBundleForm_def 1 _).mpr hσ.contMDiff)]
+    mpullback_mextDeriv hΦ ((isSmoothBundleForm_def 1 _).mpr hσ.contMDiff)]
 
 end Related
 
