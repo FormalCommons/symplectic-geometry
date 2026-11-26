@@ -204,10 +204,8 @@ private theorem continuous_height : Continuous h.height := by
       h.height w = -h.collarWidth / 2 := by
     rintro w ⟨⟨p', -, rfl⟩, hwK⟩
     refine h.height_of_notMem fun ⟨r, hr, hrw⟩ ↦ ?_
-    rcases le_or_gt r.1 0 with hr0 | hr0
-    · exact hwK ⟨r, ⟨⟨hr.1, hr0⟩, trivial⟩, hrw⟩
-    · exact disjoint_left.1 h.disjoint_range_toCompletion_completionEnd_image ⟨p', rfl⟩
-        ⟨r, ⟨hr0, trivial⟩, hrw⟩
+    exact hwK ⟨r, ⟨⟨hr.1, ((h.completionEnd_eq_toCompletion_iff
+      (by linarith [mem_Ici.1 hr.1])).1 hrw).1⟩, trivial⟩, hrw⟩
   refine continuousAt_const.congr (Filter.eventually_of_mem
     ((hO.sdiff hKc).mem_nhds ⟨⟨p, hp, rfl⟩, ?_⟩) fun w hw ↦ (hconst w hw).symm)
   rintro ⟨r, hr, hrp⟩
