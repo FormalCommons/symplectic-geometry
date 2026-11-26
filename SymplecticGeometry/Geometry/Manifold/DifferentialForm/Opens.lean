@@ -51,8 +51,8 @@ and the pull-back of restricted forms along a partial diffeomorphism of open sub
   restriction of a two-form `σ` preserves the forms on tangent vectors at each point
   (`TauCeti.SmoothForm.eval₂_mfderiv_eq_of_mpullback_subtype_val_eq`). The same holds for a smooth
   map `ψ : U → M'` that pulls `σ'` itself back to the restriction of `σ`
-  (`TauCeti.SmoothForm.eval₂_mfderiv_eq_of_mpullback_eq_mpullback_subtype_val`). Hence two
-  two-forms on `M` agree at a point of `U` if their restrictions to `U`, pulled back to `M'`
+  (`TauCeti.SmoothForm.eval₂_mfderiv_eq_of_mpullback_eq_mpullback_subtype_val`).
+* Two forms on `M` agree at a point of `U` if their restrictions to `U`, pulled back to `M'`
   along the inverse of a diffeomorphism `Φ` from `U` onto `M'`, agree at its image
   (`TauCeti.SmoothForm.apply_eq_of_mpullback_symm_mpullback_subtype_val_apply_eq`).
 * Restriction commutes with the exterior derivative, with no regularity assumption
@@ -225,6 +225,31 @@ theorem mpullback_subtype_val_mextDeriv {U : Opens M} (γ : RoughForm I M F k) :
     ← Opens.extChartAt_apply U x x]
   exact (heq.extDerivWithin_eq (heq.self_of_nhdsWithin (mem_range_self _))).symm
 
+section Diffeomorph
+
+variable {E' H' M' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+  {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace M'] [ChartedSpace H' M'] [IsManifold I' 1 M']
+
+/-- Let `Φ` be a diffeomorphism from an open subset `U` of `M` onto `M'`. Two forms `σ` and `τ`
+on `M` agree at a point `x` of `U` if their restrictions to `U`, pulled back to `M'` along `Φ⁻¹`,
+agree at `Φ x`. -/
+theorem SmoothForm.apply_eq_of_mpullback_symm_mpullback_subtype_val_apply_eq {U : Opens M}
+    (Φ : U ≃ₘ⟮I, I'⟯ M') {σ τ : SmoothForm I M F k} (x : U)
+    (h : (SmoothForm.mpullback Φ.symm Φ.symm.contMDiff
+          (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ)).val (Φ x) =
+        (SmoothForm.mpullback Φ.symm Φ.symm.contMDiff
+          (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal τ)).val (Φ x)) :
+    σ.val x = τ.val x := by
+  simp only [SmoothForm.coe_mpullback] at h
+  rw [mpullback_apply_eq_mpullback_apply_iff
+      (Φ.symm.isInvertible_mfderiv (x := Φ x) (by simp)).surjective,
+    Diffeomorph.symm_apply_apply] at h
+  simp only [mpullback_subtype_val_apply] at h
+  -- `h` is stated with the tangent space of `U` at `x`, which is that of `M` by definition.
+  exact h
+
+end Diffeomorph
+
 section TwoForm
 
 variable {E' H' M' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
@@ -256,23 +281,6 @@ theorem SmoothForm.eval₂_mfderiv_eq_of_mpullback_subtype_val_eq {U : Opens M} 
   refine SmoothForm.eval₂_mfderiv_eq_of_mpullback_eq_mpullback_subtype_val
     (contMDiff_subtypeVal.comp hψ) ?_ x a b
   rw [SmoothForm.mpullback_comp ψ Subtype.val hψ contMDiff_subtypeVal, LinearMap.comp_apply, h]
-
-/-- Let `Φ` be a diffeomorphism from an open subset `U` of `M` onto `M'`. Two two-forms `σ` and
-`τ` on `M` agree at a point `x` of `U` if their restrictions to `U`, pulled back to `M'` along
-`Φ⁻¹`, agree at `Φ x`. -/
-theorem SmoothForm.apply_eq_of_mpullback_symm_mpullback_subtype_val_apply_eq {U : Opens M}
-    (Φ : U ≃ₘ⟮I, I'⟯ M') {σ τ : SmoothForm I M F 2} (x : U)
-    (h : (SmoothForm.mpullback Φ.symm Φ.symm.contMDiff
-          (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ)).val (Φ x) =
-        (SmoothForm.mpullback Φ.symm Φ.symm.contMDiff
-          (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal τ)).val (Φ x)) :
-    σ.val x = τ.val x := by
-  refine SmoothBundleForm.apply_eq_of_eval₂_eq fun v w ↦ ?_
-  have key := fun W : SmoothForm I M F 2 ↦
-    SmoothForm.eval₂_mfderiv_eq_of_mpullback_eq_mpullback_subtype_val (σ := W) Φ.contMDiff
-      (SmoothForm.mpullback_mpullback_symm Φ _) x v w
-  refine (key σ).symm.trans (Eq.trans ?_ (key τ))
-  rw [SmoothBundleForm.eval₂_apply, SmoothBundleForm.eval₂_apply, h]
 
 end TwoForm
 
