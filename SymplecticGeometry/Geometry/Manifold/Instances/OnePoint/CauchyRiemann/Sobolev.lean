@@ -7,7 +7,6 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Basic
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.CauchyRiemann.ZeroOneForm
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.Hilbert
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.CovariantDerivative
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.SmoothHomMul
 public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.ZeroOneForm.Basic

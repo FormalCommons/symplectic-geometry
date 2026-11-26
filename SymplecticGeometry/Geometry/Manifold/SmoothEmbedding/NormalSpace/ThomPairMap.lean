@@ -67,7 +67,7 @@ variable {E H G G' : Type*} {V V' Z : Type w} {X X' : Type*} [NormedAddCommGroup
 derivative of `v`: Tau Ceti's `normalSpaceEquiv` for the square `v ∘ f' = f ∘ id`. -/
 def normalSpaceEquivOfComp (f' : SmoothEmbedding I J' n Z X') (f : SmoothEmbedding I J m Z X)
     (hn : n ≠ 0) (hm : m ≠ 0) (hv : ∀ x, (mfderiv J' J v (f' x)).IsInvertible) (h : v ∘ f' = f)
-    (x : Z) : f'.NormalSpace x hn ≃L[ℝ] f.NormalSpace x hm :=
+    (x : Z) : f'.isImmersion.NormalSpace x hn ≃L[ℝ] f.isImmersion.NormalSpace x hm :=
   f'.normalSpaceEquiv f hn hm (u := _root_.id) (hv x)
     (by rw [mfderiv_id]; exact Function.surjective_id) (.of_eq h)
 
@@ -88,8 +88,9 @@ theorem normalSpaceEquivOfComp_normalClass (f' : SmoothEmbedding I J' n Z X')
     (f : SmoothEmbedding I J m Z X) (hn : n ≠ 0) (hm : m ≠ 0)
     (hv : ∀ x, (mfderiv J' J v (f' x)).IsInvertible) (h : v ∘ f' = f) (x : Z)
     (w : TangentSpace J' (f' x)) :
-    f'.normalSpaceEquivOfComp f hn hm hv h x (f'.normalClass x hn w) =
-      f.normalClass x hm (tangentSpaceCast J (v (f' x)) (f x) (mfderiv J' J v (f' x) w)) :=
+    f'.normalSpaceEquivOfComp f hn hm hv h x (f'.isImmersion.normalClass x hn w) =
+      f.isImmersion.normalClass x hm (tangentSpaceCast J (v (f' x)) (f x)
+          (mfderiv J' J v (f' x) w)) :=
   normalSpaceEquiv_normalClass _ _ _ _ _ _ _ w
 
 variable [IsManifold J' 1 X'] [IsManifold J 1 X] {K K' : Type*}
@@ -99,8 +100,8 @@ from the normal bundle of `f'` to that of `f`, is continuous for their quotient 
 theorem continuous_normalSpaceEquivOfComp (f' : SmoothEmbedding I J' n Z X')
     (f : SmoothEmbedding I J m Z X) (hn : n ≠ 0) (hm : m ≠ 0) (hv₁ : ContMDiff J' J 1 v)
     (hv : ∀ x, (mfderiv J' J v (f' x)).IsInvertible) (h : v ∘ f' = f) :
-    Continuous fun w : TotalSpace K (fun x ↦ f'.NormalSpace x hn) ↦
-      TotalSpace.mk' K' (E := fun x ↦ f.NormalSpace x hm) w.proj
+    Continuous fun w : TotalSpace K (fun x ↦ f'.isImmersion.NormalSpace x hn) ↦
+      TotalSpace.mk' K' (E := fun x ↦ f.isImmersion.NormalSpace x hm) w.proj
         (f'.normalSpaceEquivOfComp f hn hm hv h w.proj w.snd) := by
   convert f'.continuous_normalBundleMap (K := K) (K' := K') f hn hm (u := _root_.id) hv₁ h
     using 1
@@ -118,7 +119,8 @@ the identity of `Z`, which is the derivative of `v` on each fibre (`normalSpaceE
 def thomPairMapOfComp (f' : SmoothEmbedding I J' n Z X') (f : SmoothEmbedding I J m Z X)
     (hn : n ≠ 0) (hm : m ≠ 0) (hv₁ : ContMDiff J' J 1 v)
     (hv : ∀ x, (mfderiv J' J v (f' x)).IsInvertible) (h : v ∘ f' = f) :
-    thomPair K (fun x ↦ f'.NormalSpace x hn) ⟶ thomPair K' (fun x ↦ f.NormalSpace x hm) :=
+    thomPair K (fun x ↦ f'.isImmersion.NormalSpace x hn) ⟶ thomPair K'
+        (fun x ↦ f.isImmersion.NormalSpace x hm) :=
   thomPairMapOfFiberwise (g := ContinuousMap.id Z)
     (f'.continuous_normalSpaceEquivOfComp f hn hm hv₁ hv h)
 
@@ -138,9 +140,9 @@ theorem thomPairMapOfComp_def (f' : SmoothEmbedding I J' n Z X') (f : SmoothEmbe
 theorem thomPairMapOfComp_fst_apply (f' : SmoothEmbedding I J' n Z X')
     (f : SmoothEmbedding I J m Z X) (hn : n ≠ 0) (hm : m ≠ 0) (hv₁ : ContMDiff J' J 1 v)
     (hv : ∀ x, (mfderiv J' J v (f' x)).IsInvertible) (h : v ∘ f' = f)
-    (w : TotalSpace K (fun x ↦ f'.NormalSpace x hn)) :
+    (w : TotalSpace K (fun x ↦ f'.isImmersion.NormalSpace x hn)) :
     TopPair.Hom.fst (f'.thomPairMapOfComp (K' := K') f hn hm hv₁ hv h) w =
-      TotalSpace.mk' K' (E := fun x ↦ f.NormalSpace x hm) w.proj
+      TotalSpace.mk' K' (E := fun x ↦ f.isImmersion.NormalSpace x hm) w.proj
         (f'.normalSpaceEquivOfComp f hn hm hv h w.proj w.snd) :=
   thomPairMapOfFiberwise_fst_apply _ w
 
@@ -148,12 +150,14 @@ theorem thomPairMapOfComp_fst_apply (f' : SmoothEmbedding I J' n Z X')
 `normalSpaceEquivOfComp` at `x`. -/
 theorem fiberThomPairMap_comp_thomPairMapOfComp [TopologicalSpace K] [TopologicalSpace K']
     (f' : SmoothEmbedding I J' n Z X') (f : SmoothEmbedding I J m Z X) (hn : n ≠ 0) (hm : m ≠ 0)
-    [FiberBundle K (fun x ↦ f'.NormalSpace x hn)] [FiberBundle K' (fun x ↦ f.NormalSpace x hm)]
+    [FiberBundle K (fun x ↦ f'.isImmersion.NormalSpace x hn)]
+        [FiberBundle K' (fun x ↦ f.isImmersion.NormalSpace x hm)]
     (hv₁ : ContMDiff J' J 1 v) (hv : ∀ x, (mfderiv J' J v (f' x)).IsInvertible)
     (h : v ∘ f' = f) (x : Z) :
-    fiberThomPairMap K (fun x ↦ f'.NormalSpace x hn) x ≫ f'.thomPairMapOfComp f hn hm hv₁ hv h =
+    fiberThomPairMap K (fun x ↦ f'.isImmersion.NormalSpace x hn) x ≫ f'.thomPairMapOfComp f hn hm
+        hv₁ hv h =
       (f'.normalSpaceEquivOfComp f hn hm hv h x).complZeroPairIso.hom ≫
-        fiberThomPairMap K' (fun x ↦ f.NormalSpace x hm) x :=
+        fiberThomPairMap K' (fun x ↦ f.isImmersion.NormalSpace x hm) x :=
   fiberThomPairMap_comp_thomPairMapOfFiberwise (g := ContinuousMap.id Z) _ x
 
 end TauCeti.SmoothEmbedding

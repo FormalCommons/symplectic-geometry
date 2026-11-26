@@ -107,7 +107,8 @@ for which the frames `(u, J u)` are positive. For the opposite orientation it is
 oriented. -/
 def selfIntersectionNumber (f : SmoothEmbedding (𝓡 2) I ∞ M X) (hE : finrank ℝ E = 4)
     (J : SmoothAlmostComplexStructure I X)
-    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn))
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn)
+        (f.isImmersion.tangentRange x hn))
     (o : Manifold.Orientation (𝓡 2) M (Fin 2)) : ℤ :=
   letI := f.normalSpaceFiberBundle hn (finrank_real_complex_eq_sub_of_finrank_eq_four hE)
   letI := f.normalSpaceVectorBundle hn (finrank_real_complex_eq_sub_of_finrank_eq_four hE)
@@ -120,7 +121,8 @@ def selfIntersectionNumber (f : SmoothEmbedding (𝓡 2) I ∞ M X) (hE : finran
 
 theorem selfIntersectionNumber_def (f : SmoothEmbedding (𝓡 2) I ∞ M X) (hE : finrank ℝ E = 4)
     (J : SmoothAlmostComplexStructure I X)
-    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn))
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn)
+        (f.isImmersion.tangentRange x hn))
     (o : Manifold.Orientation (𝓡 2) M (Fin 2)) :
     letI := f.normalSpaceFiberBundle hn (finrank_real_complex_eq_sub_of_finrank_eq_four hE)
     letI := f.normalSpaceVectorBundle hn (finrank_real_complex_eq_sub_of_finrank_eq_four hE)
@@ -137,7 +139,8 @@ theorem selfIntersectionNumber_def (f : SmoothEmbedding (𝓡 2) I ∞ M X) (hE 
 complex structure that `J` induces on the normal bundle. -/
 theorem selfIntersectionNumber_eq_chernNumber (f : SmoothEmbedding (𝓡 2) I ∞ M X)
     (hE : finrank ℝ E = 4) (J : SmoothAlmostComplexStructure I X)
-    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn))
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn)
+        (f.isImmersion.tangentRange x hn))
     (o : Manifold.Orientation (𝓡 2) M (Fin 2)) :
     letI := f.normalSpaceFiberBundle hn (finrank_real_complex_eq_sub_of_finrank_eq_four hE)
     letI := f.normalSpaceVectorBundle hn (finrank_real_complex_eq_sub_of_finrank_eq_four hE)
@@ -152,7 +155,8 @@ theorem selfIntersectionNumber_eq_chernNumber (f : SmoothEmbedding (𝓡 2) I �
 @[simp]
 theorem selfIntersectionNumber_neg_orientation (f : SmoothEmbedding (𝓡 2) I ∞ M X)
     (hE : finrank ℝ E = 4) (J : SmoothAlmostComplexStructure I X)
-    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn))
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn)
+        (f.isImmersion.tangentRange x hn))
     (o : Manifold.Orientation (𝓡 2) M (Fin 2)) :
     f.selfIntersectionNumber hE J hJ (-o) = -f.selfIntersectionNumber hE J hJ o := by
   rw [selfIntersectionNumber_eq_chernNumber, selfIntersectionNumber_eq_chernNumber,
@@ -178,17 +182,19 @@ where `J' = J.restrict f hJ`, gives `ho` through
 `TauCeti.AlmostComplexStructure.orientation_eq_of_apply_one_eq`. -/
 theorem shortExact_orientationAt_normalSpace {k : ℕ} (hk : finrank ℝ E' = k)
     (f : SmoothEmbedding I' I ∞ N X) (J : SmoothAlmostComplexStructure I X)
-    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn))
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn)
+        (f.isImmersion.tangentRange x hn))
     {o : Manifold.Orientation I' N (Fin k)} {c : N}
     (ho : o.orientationAt c = Orientation.reindex ℝ _
       (finCongr (n := finrank ℝ (TangentSpace I' c)) hk)
       (((J.restrict f hJ).almostComplexStructureAt c).orientation rfl)) :
     Orientation.shortExact (f.isSmoothEmbedding_toFun.isImmersion.mfderiv_injective hn c)
-        (f.exact_mfderiv_normalClass c hn) (f.normalClass_surjective c hn) (o.orientationAt c)
+        (f.exact_mfderiv_normalClass c hn) (f.isImmersion.normalClass_surjective c hn)
+            (o.orientationAt c)
         ((f.normalAlmostComplexStructureAt J hJ c).orientation rfl) hk rfl =
       Orientation.reindex ℝ _ (finCongr (by
         have h : finrank ℝ (TangentSpace I' c) = k := hk
-        have := f.finrank_normalSpace_add_finrank c hn
+        have := f.isImmersion.finrank_normalSpace_add_finrank c hn
         omega))
         ((J.almostComplexStructureAt (f c)).orientation rfl) := by
   rw [ho]

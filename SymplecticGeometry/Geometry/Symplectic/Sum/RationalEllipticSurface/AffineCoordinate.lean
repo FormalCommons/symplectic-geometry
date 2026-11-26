@@ -202,7 +202,8 @@ theorem isRegularPoint_affineCoordinate (x : SmoothProjectiveHypersurface.fermat
     -- `rfl` identifies the zero of `Unit → ℂ` with that of the tangent space it models.
     exact (congrArg D hv).trans (by rw [D.map_smul, hwD, smul_zero]; rfl)
   refine ⟨v, ?_, ?_⟩
-  · exact LinearMap.mem_range.2 ((embedding.mem_tangentRange_iff q (by simp) v).1 (hT ▸ hvker))
+  · exact LinearMap.mem_range.2
+      ((embedding.isImmersion.mem_tangentRange_iff q (by simp) v).1 (hT ▸ hvker))
   · rw [hL.mfderiv]
     exact (congrArg L hv).trans (by rw [L.map_smul, hw1, smul_eq_mul, mul_one])
 

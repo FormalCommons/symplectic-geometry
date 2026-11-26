@@ -621,7 +621,8 @@ theorem tangentRange_complexProjectiveProdZeroLocusEmbedding (hr : r ≠ 0) (z :
     (hi : (z : ℙ ℂ (Fin (m + 1) → ℂ) × ℙ ℂ (Fin (n + 1) → ℂ)).1 ∈ affineOpen i)
     (hj : (z : ℙ ℂ (Fin (m + 1) → ℂ) × ℙ ℂ (Fin (n + 1) → ℂ)).2 ∈ affineOpen j) :
     letI := complexProjectiveProdZeroLocusChartedSpace hk hp₁ hp₂ hV hs hrank
-    (complexProjectiveProdZeroLocusEmbedding hk hp₁ hp₂ hV hs hrank r).tangentRange z hr =
+    (complexProjectiveProdZeroLocusEmbedding hk hp₁ hp₂ hV hs hrank r).isImmersion.tangentRange
+        z hr =
       (mfderiv (𝓘(ℂ, Fin m → ℂ).prod 𝓘(ℂ, Fin n → ℂ)) 𝓘(ℂ, ι → ℂ)
         (fun y : ℙ ℂ (Fin (m + 1) → ℂ) × ℙ ℂ (Fin (n + 1) → ℂ) ↦
           prodChartEquations i j p (affineChart i y.1, affineChart j y.2)) z).ker := by

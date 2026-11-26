@@ -7,7 +7,6 @@ module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Measure
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.TopForm
-public import TauCeti.Geometry.Manifold.Measure
 import Mathlib.MeasureTheory.Measure.Haar.Unique
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Operations
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Regularity
@@ -42,13 +41,10 @@ proof is that of `TauCeti.setIntegral_chartRiemannianVolume`. The sign of a char
 read off as in the proof of `TauCeti.integralTopForm_nonneg`, from the compatibility of the chart
 signs of an orientation lift.
 
-The null sets of `|φ|` can be read off in charts: a subset of a chart source whose chart image is
-null for an additive Haar measure is null for `|φ|`, and on a Lindelöf manifold so is every
-chartwise null set `TauCeti.IsNullSet`. The proofs follow those of
-`TauCeti.riemannianVolume_eq_zero_iff_image_of_subset` and
-`TauCeti.isNullSet_iff_riemannianVolume_eq_zero` (`TauCeti/Geometry/Manifold/Riemannian/
-VolumeDensity/Null.lean`), with the coordinate formula `TauCeti.RoughForm.measure_apply_of_subset`
-in place of the chart density of the metric.
+A subset of a chart source whose chart image is null for an additive Haar measure is null for
+`|φ|`. The proof follows that of `TauCeti.riemannianVolume_eq_zero_iff_image_of_subset`
+(`TauCeti/Geometry/Manifold/Riemannian/VolumeDensity/Null.lean`), with the coordinate formula
+`TauCeti.RoughForm.measure_apply_of_subset` in place of the chart density of the metric.
 
 ## Main results
 
@@ -59,8 +55,8 @@ in place of the chart density of the metric.
 * `TauCeti.signBasis_orientationAt_mul_nonneg_of_iff`: the sign condition on `φ`, for an
   orientation described by the bases on which `φ` is positive.
 * `TauCeti.integralTopForm_smul_eq_integral_measure`: `∫_M f φ = ∫ f d|φ|`.
-* `TauCeti.RoughForm.measure_eq_zero_of_subset`, `TauCeti.RoughForm.measure_eq_zero_of_isNullSet`:
-  sets that are null in charts are null for `|φ|`.
+* `TauCeti.RoughForm.measure_eq_zero_of_subset`: a subset of a chart source that is null in the
+  chart is null for `|φ|`.
 
 ## References
 
@@ -305,20 +301,6 @@ theorem measure_eq_zero_of_subset (φ : RoughForm I M ℝ k) {α : M} {s : Set M
   rw [φ.measure_apply_of_subset htm hts]
   exact setLIntegral_measure_zero _ _ (Measure.absolutelyContinuous_isAddHaarMeasure _ μ
     (measure_mono_null hAt (by rwa [measure_toMeasurable])))
-
-/-- **A chartwise null set is null for the measure of a top form.** On a Lindelöf manifold, a set
-whose images in all extended charts are null for the additive Haar measures on the model is null
-for `|φ|`. -/
-theorem measure_eq_zero_of_isNullSet (φ : RoughForm I M ℝ k) {s : Set M} (hs : IsNullSet I s) :
-    φ.measure s = 0 := by
-  obtain ⟨t, ht, hcover⟩ := LindelofSpace.elim_nhds_subcover
-    (fun x : M ↦ (extChartAt I x).source) fun x ↦ extChartAt_source_mem_nhds x
-  have hsub : s ⊆ ⋃ α ∈ t, s ∩ (extChartAt I α).source := by
-    intro x hx
-    obtain ⟨α, hα, hxα⟩ := mem_iUnion₂.1 (hcover ▸ mem_univ x)
-    exact mem_iUnion₂.2 ⟨α, hα, hx, hxα⟩
-  refine measure_mono_null hsub ((measure_biUnion_null_iff ht).2 fun α _ ↦ ?_)
-  exact φ.measure_eq_zero_of_subset inter_subset_right (finBasis ℝ E).addHaar (hs.chartwise α _)
 
 end RoughForm
 
