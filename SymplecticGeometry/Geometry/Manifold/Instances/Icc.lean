@@ -59,7 +59,8 @@ On the unit interval, the derivative of left multiplication `s ↦ T s` sends th
 Tau Ceti's stationary-time gluing `ContMDiff.glue_collaredHalves`, of maps on `M × [0, 1]`, also
 holds for maps on `[0, 1] × M` (`ContMDiff.glue_collaredHalves_left`). The concatenation of two
 families `a b : [0, 1] → α` with these time maps is `SymplecticGeometry.collaredConcat a b`; it
-starts where `a` starts and ends where `b` ends (`collaredConcat_zero`, `collaredConcat_one`).
+starts where `a` starts and ends where `b` ends (`collaredConcat_zero`, `collaredConcat_one`), and
+it is `C^n` when `a` and `b` are and meet at the seam (`ContMDiff.collaredConcat`).
 -/
 
 public section
@@ -364,23 +365,36 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topological
   {F G N : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [TopologicalSpace G]
   {J : ModelWithCorners ℝ F G} [TopologicalSpace N] [ChartedSpace G N]
 
-open TauCeti in
+open SymplecticGeometry TauCeti in
 /-- **Stationary-time gluing, with time as the first factor.** Two `C^n` maps
-`f g : [0, 1] × M → N` with `f (1, x) = g (0, x)` glue to a `C^n` map that runs through `f`
-reparametrized by `TauCeti.collaredFirstHalf` for `t ≤ 1 / 2`, and through `g` reparametrized by
-`TauCeti.collaredSecondHalf` afterwards. This is Tau Ceti's `ContMDiff.glue_collaredHalves` with
-the two factors swapped. -/
+`f g : [0, 1] × M → N` with `f (1, x) = g (0, x)` glue to a `C^n` map whose value at `(t, x)` is
+the concatenation `SymplecticGeometry.collaredConcat` of the curves `f (·, x)` and `g (·, x)` at
+`t`. This is Tau Ceti's `ContMDiff.glue_collaredHalves` with the two factors swapped. -/
 theorem ContMDiff.glue_collaredHalves_left {f g : unitInterval × M → N}
     (hf : ContMDiff ((𝓡∂ 1).prod I) J n f) (hg : ContMDiff ((𝓡∂ 1).prod I) J n g)
     (hfg : ∀ x, f (1, x) = g (0, x)) (hn : n ≤ ∞) :
     ContMDiff ((𝓡∂ 1).prod I) J n fun q : unitInterval × M ↦
-      if (q.1 : ℝ) ≤ 1 / 2 then f (collaredFirstHalf hn q.1, q.2)
-      else g (collaredSecondHalf hn q.1, q.2) :=
+      collaredConcat (fun t ↦ f (t, q.2)) (fun t ↦ g (t, q.2)) q.1 :=
   have hswap : ContMDiff ((𝓡∂ 1).prod I) (I.prod (𝓡∂ 1)) n Prod.swap :=
     contMDiff_snd.prodMk contMDiff_fst
   have hswap' : ContMDiff (I.prod (𝓡∂ 1)) ((𝓡∂ 1).prod I) n Prod.swap :=
     contMDiff_snd.prodMk contMDiff_fst
-  ((hf.comp hswap').glue_collaredHalves (hg.comp hswap') hfg hn).comp hswap
+  (((hf.comp hswap').glue_collaredHalves (hg.comp hswap') hfg hn).comp hswap).congr fun q ↦ by
+    -- The time maps depend on `hn` only through a proof, so both sides unfold to the same map.
+    simp only [collaredConcat_def, collaredFirstHalf_apply, collaredSecondHalf_apply,
+      Function.comp_apply, Prod.swap_prod_mk, Prod.fst_swap, Prod.snd_swap]
+
+open SymplecticGeometry in
+/-- **Concatenation of curves.** Two `C^n` curves `a b : [0, 1] → N` with `a 1 = b 0`
+concatenate to a `C^n` curve `SymplecticGeometry.collaredConcat a b`. -/
+theorem ContMDiff.collaredConcat {a b : unitInterval → N} (ha : ContMDiff (𝓡∂ 1) J n a)
+    (hb : ContMDiff (𝓡∂ 1) J n b) (hab : a 1 = b 0) (hn : n ≤ ∞) :
+    ContMDiff (𝓡∂ 1) J n (collaredConcat a b) :=
+  -- Glue on `[0, 1] × [0, 1]`, constant along the second factor, and restrict to `t ↦ (t, 0)`.
+  ((ha.comp contMDiff_fst).glue_collaredHalves_left (M := unitInterval) (I := 𝓡∂ 1)
+    (hb.comp contMDiff_fst) (fun _ ↦ hab) hn).comp (contMDiff_id.prodMk contMDiff_const :
+      ContMDiff (𝓡∂ 1) ((𝓡∂ 1).prod (𝓡∂ 1)) n
+        fun t : unitInterval ↦ (t, (0 : unitInterval)))
 
 end Glue
 

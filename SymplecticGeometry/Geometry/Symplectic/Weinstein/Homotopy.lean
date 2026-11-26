@@ -78,7 +78,8 @@ field pulled back along a diffeomorphism `Φ` is the image of `X t` under the ta
 The concatenation `SymplecticGeometry.collaredConcat` follows Tau Ceti's
 `TauCeti.Diffeotopy.IsHomotopy.trans`: each piece is reparametrized by `TauCeti.collaredFirstHalf`
 or `TauCeti.collaredSecondHalf`, which are stationary near the seam, and the pieces glue smoothly
-by `ContMDiff.glue_collaredHalves_left` (for the fields, the functions and the barriers) and
+by `ContMDiff.glue_collaredHalves_left` (for the fields and the functions),
+`ContMDiff.collaredConcat` (for the barriers) and
 `SymplecticGeometry.IsSmoothFamily.glue_collaredHalves` (for the forms). Its values at `t = 0` and
 `t = 1` are `SymplecticGeometry.collaredConcat_zero` and `collaredConcat_one`, so the glued barrier
 can be glued again at the next seam.
@@ -142,15 +143,7 @@ protected theorem trans {f' : unitInterval → M → ℝ} {c' : ℕ → unitInte
     (hc : IsRegularBarrier E f c) (hc' : IsRegularBarrier E f' c')
     (hcc' : ∀ k, c k 1 = c' k 0) :
     IsRegularBarrier E (collaredConcat f f') fun k ↦ collaredConcat (c k) (c' k) where
-  contMDiff k := by
-    -- Glue on `[0, 1] × [0, 1]`, constant along the second factor, and restrict to `t ↦ (t, 0)`.
-    have h := ((hc.contMDiff k).comp contMDiff_fst).glue_collaredHalves_left
-      (M := unitInterval) (I := 𝓡∂ 1) ((hc'.contMDiff k).comp contMDiff_fst)
-      (fun _ ↦ hcc' k) le_rfl
-    refine (h.comp (contMDiff_id.prodMk contMDiff_const : ContMDiff (𝓡∂ 1)
-      ((𝓡∂ 1).prod (𝓡∂ 1)) (⊤ : ℕ∞) fun t : unitInterval ↦ (t, (0 : unitInterval)))).congr
-      fun t ↦ ?_
-    simp only [collaredConcat_def, Function.comp_apply, id_eq]
+  contMDiff k := (hc.contMDiff k).collaredConcat (hc'.contMDiff k) (hcc' k) le_rfl
   strictMono t := by
     simp only [collaredConcat_def]
     split_ifs
@@ -259,13 +252,12 @@ protected theorem trans {ω' : unitInterval → SmoothTwoForm 𝓘(ℝ, E) M}
   contMDiff_field := by
     refine (h.contMDiff_field.glue_collaredHalves_left h'.contMDiff_field
       (fun x ↦ by rw [hX]) le_rfl).congr fun p ↦ ?_
-    rw [collaredConcat_def]
-    split_ifs <;> rfl
+    exact apply_collaredConcat (fun Y ↦ (⟨p.2, Y p.2⟩ : TangentBundle 𝓘(ℝ, E) M)) X X'
+      p.1
   contMDiff_function := by
     refine (h.contMDiff_function.glue_collaredHalves_left h'.contMDiff_function
       (fun x ↦ by rw [hf]) le_rfl).congr fun p ↦ ?_
-    rw [collaredConcat_def]
-    split_ifs <;> rfl
+    exact apply_collaredConcat (fun g ↦ g p.2) f f' p.1
   isWeinsteinStructure t := by
     simp only [collaredConcat_def]
     split_ifs

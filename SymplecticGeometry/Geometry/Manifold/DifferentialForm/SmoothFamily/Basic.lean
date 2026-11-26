@@ -498,8 +498,9 @@ protected theorem glue_collaredHalves {α β : unitInterval → SmoothForm I M F
     IsSmoothFamily (𝓡∂ 1) (collaredConcat α β) := by
   rw [isSmoothFamily_iff_contMDiff] at hα hβ ⊢
   refine (hα.glue_collaredHalves_left hβ (fun x ↦ by rw [hαβ]) le_rfl).congr fun p ↦ ?_
-  rw [collaredConcat_def]
-  split_ifs <;> rfl
+  exact apply_collaredConcat (fun γ : SmoothForm I M F k ↦ TotalSpace.mk'
+    (E := fun y : M ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] Trivial M F y) _ p.2 (γ.val p.2))
+    α β p.1
 
 section Maps
 
