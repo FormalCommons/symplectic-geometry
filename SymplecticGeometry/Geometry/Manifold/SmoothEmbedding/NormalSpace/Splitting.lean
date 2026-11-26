@@ -13,7 +13,7 @@ import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Basic
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Exact
 import SymplecticGeometry.Algebra.Exact.Basic
 import TauCeti.Topology.VectorBundle.Splitting
-import SymplecticGeometry.Topology.FiberBundle.Pullback
+import TauCeti.Topology.FiberBundle.Pullback
 
 /-!
 # Splitting the tangent bundle along an embedding
