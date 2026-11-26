@@ -122,16 +122,14 @@ theorem clutching_circleZPowSMul (m : ℤ)
     (f : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
       E.pullback (ContinuousMap.fst : C(X × Circle, X))) :
     Nonempty (E.clutching (circleZPowSMul m f) ≅
-      tensor (E.clutching f) ((trivial ℂ X 1).clutching (circleZPowIso X m))) := by
+      E.clutching f ⊗ (trivial ℂ X 1).clutching (circleZPowIso X m)) := by
   -- The right unitor of `E` carries `f ⊗ u ^ m` to `u ^ m • f`, fibre by fibre.
-  obtain ⟨φ⟩ := nonempty_iso_clutching_of_fiberMap_comp_eq (E := tensor E (trivial ℂ X 1)) (ρ_ E)
-    (f := f ⊗ᵢ circleZPowIso X m) (f' := circleZPowSMul m f) fun w ↦ by
-      -- The fibre map of the tensor product is read at the type of the clutched tensor core,
-      -- which is the tensor product of the pullbacks only up to unfolding.
-      refine (congrArg ((ρ_ E).hom.fiberMap w.1).comp
-        (fiberMap_tensorHom f.hom (circleZPowIso X m).hom w)).trans ?_
-      rw [fiberMap_circleZPowIso_hom, ContinuousLinearMap.kronecker_smul,
-        fiberMap_circleZPowSMul_hom, fiberMap_rightUnitor_hom]
+  obtain ⟨φ⟩ := nonempty_iso_clutching_of_fiberMap_comp_eq (E := E ⊗ trivial ℂ X 1) (ρ_ E)
+    (f := eqToIso (pullback_tensorObj E (trivial ℂ X 1) _) ≪≫ (f ⊗ᵢ circleZPowIso X m) ≪≫
+      eqToIso (pullback_tensorObj E (trivial ℂ X 1) _).symm)
+    (f' := circleZPowSMul m f) fun w ↦ by
+      rw [fiberMap_eqToIso_tensorIso_hom, fiberMap_circleZPowIso_hom,
+        ContinuousLinearMap.kronecker_smul, fiberMap_circleZPowSMul_hom, fiberMap_rightUnitor_hom]
       have key (F : (Fin E.rank → ℂ) →L[ℂ] (Fin E.rank → ℂ)) (c : ℂ) :
           (ContinuousLinearEquiv.kroneckerRid ℂ E.rank : (Fin (E.rank * 1) → ℂ) →L[ℂ] _).comp
               (c • F.kronecker (ContinuousLinearMap.id ℂ (Fin 1 → ℂ))) =
@@ -143,6 +141,7 @@ theorem clutching_circleZPowSMul (m : ℤ)
       exact key _ _
   exact ⟨φ.symm ≪≫ clutchingTensorIso f (circleZPowIso X m)⟩
 
+open MonoidalCategory in
 /-- **Laurent clutchings are shifted polynomial clutchings.** If the automorphism `g` of the
 pullback of `E` to `X × Circle` is the Laurent family `∑_{|i| ≤ N} a_i(x) u^i`, then the
 clutching of `E` by `g` is isomorphic to the tensor product of the clutching of `E` by an
@@ -156,7 +155,7 @@ theorem exists_clutching_iso_tensor_of_hom_eq_laurentHom {N : ℕ} {a : ℤ → 
       (∀ w : X × Circle, p.hom.fiberMap w =
         ∑ j ∈ Finset.range (2 * N + 1), (w.2 : ℂ) ^ j • (a (j - N)).fiberMap w.1) ∧
       Nonempty (E.clutching g ≅
-        tensor (E.clutching p) ((trivial ℂ X 1).clutching (circleZPowIso X (-N)))) := by
+        E.clutching p ⊗ (trivial ℂ X 1).clutching (circleZPowIso X (-N))) := by
   refine ⟨circleZPowSMul N g, fun w ↦ ?_, ?_⟩
   · rw [fiberMap_circleZPowSMul_hom, hg, zpow_smul_fiberMap_laurentHom]
   · have h := clutching_circleZPowSMul (-N) (circleZPowSMul N g)
