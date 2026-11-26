@@ -211,7 +211,8 @@ theorem normalTubeChart_target :
     letI := f.normalSpaceFiberBundle hn hdim
     (normalTubeChart Φ z).target =
       Prod.swap ⁻¹'
-        (extChartAt (I.prod 𝓘(ℝ, P)) (zeroSection P (fun x ↦ f.isImmersion.NormalSpace x hn) z)).target := by
+        (extChartAt (I.prod 𝓘(ℝ, P)) (zeroSection P (fun x ↦ f.isImmersion.NormalSpace x hn)
+            z)).target := by
   let := f.normalSpaceFiberBundle hn hdim
   ext y
   simp only [normalTubeChart_def, extChartAt_target, ModelWithCorners.range_eq_univ, inter_univ]
@@ -235,7 +236,8 @@ theorem normalTubeChart_apply_eq {x : X} (hx : x ∈ W) :
     letI := f.normalSpaceFiberBundle hn hdim
     normalTubeChart Φ z x =
       ((trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z (Φ.symm ⟨x, hx⟩)).2,
-        extChartAt I z (trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z (Φ.symm ⟨x, hx⟩)).1) := by
+        extChartAt I z (trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z
+            (Φ.symm ⟨x, hx⟩)).1) := by
   let := f.normalSpaceFiberBundle hn hdim
   rw [normalTubeChart_apply Φ z hx, FiberBundle.extChartAt]
   simp
@@ -372,7 +374,8 @@ theorem map_orientationAt_normalTubeChartDeriv (hΦ : f.IsNormalizedTube hn hdim
     Orientation.map _ (normalTubeChartDeriv Φ z).toLinearEquiv (oX.orientationAt (f z)) =
       Orientation.map _ (LinearEquiv.prodComm ℝ (TangentSpace I z) P)
         (Orientation.prod (oZ.orientationAt z)
-          ((trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).mapOrientation (Fin (finrank ℝ P))
+          ((trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).mapOrientation
+              (Fin (finrank ℝ P))
             (mem_baseSet_trivializationAt P _ z) (normalOrientation f hn hdim oX oZ z))
           (by simpa using oZ.finrank_tangentSpace_eq z) rfl) := by
   let := f.normalSpaceFiberBundle hn hdim
@@ -463,7 +466,8 @@ theorem localHomologyMap_sub_normalTubeChart_toHomologicalOrientation
           ((oX.reindex (finCongr (by omega))).toHomologicalOrientation hV (f z))).val =
       (LocalOrientation.cross hP hE (by omega)
         ((Orientation.reindex ℝ P (finCongr hP)
-          ((trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).mapOrientation (Fin (finrank ℝ P))
+          ((trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).mapOrientation
+              (Fin (finrank ℝ P))
             (mem_baseSet_trivializationAt P _ z)
             (normalOrientation f hn hdim oX oZ z))).localOrientation hP)
         (Orientation.localOrientation (F := E) (oZ.orientationAt z) hE)).val := by
@@ -551,7 +555,8 @@ variable {E V P Z X : Type} {H G : Type*}
   {hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E} {W : TopologicalSpace.Opens X}
 
 variable (Φ : letI := f.normalSpaceFiberBundle hn hdim
-  TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W) (z : Z) {S : Set E}
+  TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W) (z : Z)
+      {S : Set E}
 
 omit [T2Space X] [J.Boundaryless] [ChartedSpace V X] in
 /-- Let `c` be the chart of `Z` at `z` read in `E` and translated so that `z` goes to `0`, and
@@ -593,7 +598,8 @@ theorem normalTubeChart_apply_tube_localChart
         (trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).baseSet)
     (y : (univ ×ˢ S : Set (P × E))) :
     letI := f.normalSpaceFiberBundle hn hdim
-    normalTubeChart Φ z (Φ ((trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).localChart
+    normalTubeChart Φ z (Φ ((trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn)
+        z).localChart
       ((chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))) S y)) =
         (y.val.1, y.val.2 + extChartAt I z z) := by
   let := f.normalSpaceFiberBundle hn hdim
@@ -655,7 +661,8 @@ theorem localHomologyMap_localChartLocalHomologyIso_hom_cross
       ((oX.reindex (finCongr (by omega))).toHomologicalOrientation hV (f z)).val := by
   let := f.normalSpaceFiberBundle hn hdim
   let := f.normalSpaceVectorBundle hn hdim
-  have : T1Space (TotalSpace P fun x ↦ f.isImmersion.NormalSpace x hn) := Φ.toHomeomorph.isEmbedding.t1Space
+  have : T1Space (TotalSpace P fun x ↦ f.isImmersion.NormalSpace x hn) :=
+      Φ.toHomeomorph.isEmbedding.t1Space
   set e := trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z
   set c := (chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))
   set ψ := normalTubeChart Φ z

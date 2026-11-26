@@ -25,8 +25,8 @@ import SymplecticGeometry.Geometry.Manifold.VectorField.Immersion
 
 Let `J` be a smooth almost complex structure on `M` and `f : N → M` a smooth embedding whose
 tangent images `df_x (T_x N)` are `J`-invariant, the hypothesis being written
-`hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn) (f.isImmersion.tangentRange x hn)` as in
-`SymplecticGeometry/Geometry/Manifold/SmoothEmbedding/NormalSpace/ComplexStructure.lean`.
+`hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn) (f.isImmersion.tangentRange x hn)`
+as in `SymplecticGeometry/Geometry/Manifold/SmoothEmbedding/NormalSpace/ComplexStructure.lean`.
 
 Then `J` restricts to a smooth almost complex structure `J.restrict f hJ` on `N`, given at `x` by
 `(df_x)⁻¹ ∘ J_{f x} ∘ df_x`, where `(df_x)⁻¹` is any left inverse of `df_x`: since `J_{f x}`
@@ -167,7 +167,8 @@ variable {J f}
 /-- If `J` preserves the tangent image at `x`, then for every left inverse `L` of `df_x`, the
 differential `df_x` carries `L ∘ J_{f x} ∘ df_x` to `J_{f x} ∘ df_x`. -/
 private theorem mfderiv_apply_of_leftInverse
-    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn) (f.isImmersion.tangentRange x hn)) {x : N}
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn)
+        (f.isImmersion.tangentRange x hn)) {x : N}
     {L : TangentSpace I (f x) →L[ℝ] TangentSpace I' x} (hL : LeftInverse L (mfderiv I' I f x))
     (v : TangentSpace I' x) :
     mfderiv I' I f x (L (J (f x) (mfderiv I' I f x v))) = J (f x) (mfderiv I' I f x v) := by
@@ -176,7 +177,8 @@ private theorem mfderiv_apply_of_leftInverse
   rw [← hu, hL u]
 
 private theorem mfderiv_restrictEnd_apply
-    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn) (f.isImmersion.tangentRange x hn)) (x : N)
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn)
+        (f.isImmersion.tangentRange x hn)) (x : N)
     (v : TangentSpace I' x) :
     mfderiv I' I f x (restrictEnd J f x v) = J (f x) (mfderiv I' I f x v) :=
   mfderiv_apply_of_leftInverse hJ
@@ -188,7 +190,8 @@ variable [CompleteSpace E'] [IsManifold I' ∞ N] (J f)
 /-- The almost complex structure induced by `J` on the source of a smooth embedding `f` whose
 tangent images are `J`-invariant: at `x` it is `(df_x)⁻¹ ∘ J_{f x} ∘ df_x`, for any left
 inverse `(df_x)⁻¹` of `df_x`. -/
-def restrict (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn) (f.isImmersion.tangentRange x hn)) :
+def restrict (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn)
+    (f.isImmersion.tangentRange x hn)) :
     SmoothAlmostComplexStructure I' N where
   toEndomorphism :=
     ⟨restrictEnd J f, f.contMDiff.tangentEnd_of_mfderiv (by simp)
@@ -201,7 +204,8 @@ def restrict (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn)
     exact J.apply_apply (f x) _
 
 variable {f J}
-variable (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn) (f.isImmersion.tangentRange x hn))
+variable (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn)
+    (f.isImmersion.tangentRange x hn))
 include hJ
 
 /-- The restricted structure at `x` is `L ∘ J_{f x} ∘ df_x` for every left inverse `L` of
@@ -342,7 +346,8 @@ namespace SmoothTwoForm
 variable [CompleteSpace E'] [IsManifold I' ∞ N]
   {σ : SmoothTwoForm I M} {J : SmoothAlmostComplexStructure I M}
   {f : SmoothEmbedding I' I ∞ N M}
-  (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn) (f.isImmersion.tangentRange x hn))
+  (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn)
+      (f.isImmersion.tangentRange x hn))
 include hJ
 
 /-- If `σ` tames `J`, then the pull-back of `σ` to a complex submanifold tames the restricted

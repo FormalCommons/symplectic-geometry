@@ -71,12 +71,13 @@ section Pointwise
 
 variable {n : ℕ∞ω} {hn : n ≠ 0}
 
-/-- The almost complex structure on the normal space `f.isImmersion.NormalSpace x hn` induced by an almost
-complex structure `J` on `X` for which the tangent images of the embedding `f` are invariant:
+/-- The almost complex structure on the normal space `f.isImmersion.NormalSpace x hn` induced by an
+almost complex structure `J` on `X` for which the tangent images of the embedding `f` are invariant:
 the class of `v` is sent to the class of `J v`. -/
 def normalAlmostComplexStructureAt (f : SmoothEmbedding I' I n M X)
     (J : SmoothAlmostComplexStructure I X)
-    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn) (f.isImmersion.tangentRange x hn)) (x : M) :
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn)
+        (f.isImmersion.tangentRange x hn)) (x : M) :
     AlmostComplexStructure (f.isImmersion.NormalSpace x hn) :=
   (J.almostComplexStructureAt (f x)).quotient (f.isImmersion.tangentRange x hn) fun v hv ↦ by
     rw [SmoothAlmostComplexStructure.almostComplexStructureAt_apply]
@@ -84,7 +85,8 @@ def normalAlmostComplexStructureAt (f : SmoothEmbedding I' I n M X)
 
 theorem normalAlmostComplexStructureAt_def (f : SmoothEmbedding I' I n M X)
     (J : SmoothAlmostComplexStructure I X)
-    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn) (f.isImmersion.tangentRange x hn)) (x : M) :
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn)
+        (f.isImmersion.tangentRange x hn)) (x : M) :
     f.normalAlmostComplexStructureAt J hJ x =
       (J.almostComplexStructureAt (f x)).quotient (f.isImmersion.tangentRange x hn) fun v hv ↦ by
         rw [SmoothAlmostComplexStructure.almostComplexStructureAt_apply]
@@ -96,35 +98,40 @@ theorem normalAlmostComplexStructureAt_def (f : SmoothEmbedding I' I n M X)
 @[simp]
 theorem normalAlmostComplexStructureAt_apply (f : SmoothEmbedding I' I n M X)
     (J : SmoothAlmostComplexStructure I X)
-    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn) (f.isImmersion.tangentRange x hn)) (x : M)
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn)
+        (f.isImmersion.tangentRange x hn)) (x : M)
     (ν : f.isImmersion.NormalSpace x hn) :
     f.normalAlmostComplexStructureAt J hJ x ν =
       f.normalComplexStructureAt hn J x (hJ x) ν := by
   rw [normalAlmostComplexStructureAt_def]
   exact (LinearMap.congr_fun (normalComplexStructureAt_toLinearMap (hJ x)) ν).symm
 
-/-- The normal class map `T_{f x} X → f.isImmersion.NormalSpace x hn` is complex linear for `J` and the
-induced structure. -/
+/-- The normal class map `T_{f x} X → f.isImmersion.NormalSpace x hn` is complex linear for `J` and
+the induced structure. -/
 @[simp]
 theorem isComplexLinearMap_normalClass (f : SmoothEmbedding I' I n M X)
     (J : SmoothAlmostComplexStructure I X)
-    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn) (f.isImmersion.tangentRange x hn)) (x : M) :
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn)
+        (f.isImmersion.tangentRange x hn)) (x : M) :
     IsComplexLinearMap (J.almostComplexStructureAt (f x))
       (f.normalAlmostComplexStructureAt J hJ x) (f.isImmersion.normalClass x hn) := by
   rw [normalAlmostComplexStructureAt_def, Manifold.IsImmersion.normalClass_def]
-  -- `f.isImmersion.NormalSpace x hn` is by definition the quotient by `f.isImmersion.tangentRange x hn`.
+  -- `f.isImmersion.NormalSpace x hn` is by definition the quotient by
+  -- `f.isImmersion.tangentRange x hn`.
   exact AlmostComplexStructure.isComplexLinearMap_mkQ _ _ _
 
 /-- The induced structure is the unique almost complex structure on the normal space for which
 the normal class map is complex linear. -/
 theorem normalAlmostComplexStructureAt_eq_iff (f : SmoothEmbedding I' I n M X)
     (J : SmoothAlmostComplexStructure I X)
-    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn) (f.isImmersion.tangentRange x hn)) (x : M)
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn)
+        (f.isImmersion.tangentRange x hn)) (x : M)
     (K : AlmostComplexStructure (f.isImmersion.NormalSpace x hn)) :
     f.normalAlmostComplexStructureAt J hJ x = K ↔
       IsComplexLinearMap (J.almostComplexStructureAt (f x)) K (f.isImmersion.normalClass x hn) := by
   rw [normalAlmostComplexStructureAt_def, Manifold.IsImmersion.normalClass_def]
-  -- `f.isImmersion.NormalSpace x hn` is by definition the quotient by `f.isImmersion.tangentRange x hn`.
+  -- `f.isImmersion.NormalSpace x hn` is by definition the quotient by
+  -- `f.isImmersion.tangentRange x hn`.
   exact AlmostComplexStructure.quotient_eq_iff _ _ _ K
 
 end Pointwise
@@ -141,7 +148,8 @@ is Tau Ceti's `f.normalComplexStructureAt`. The normal bundle carries Tau Ceti's
 with model fibre `P`, of dimension `hdim`. -/
 def contMDiffNormalComplexStructure (f : SmoothEmbedding I' I ∞ M X)
     (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E') (J : SmoothAlmostComplexStructure I X)
-    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn) (f.isImmersion.tangentRange x hn)) :
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn)
+        (f.isImmersion.tangentRange x hn)) :
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
     ContMDiffComplexStructure I' ⊤ P (fun x ↦ f.isImmersion.NormalSpace x hn) :=
@@ -159,7 +167,8 @@ def contMDiffNormalComplexStructure (f : SmoothEmbedding I' I ∞ M X)
 @[simp]
 theorem contMDiffNormalComplexStructure_apply (f : SmoothEmbedding I' I ∞ M X)
     (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E') (J : SmoothAlmostComplexStructure I X)
-    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn) (f.isImmersion.tangentRange x hn)) (x : M)
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn)
+        (f.isImmersion.tangentRange x hn)) (x : M)
     (v : f.isImmersion.NormalSpace x hn) :
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
@@ -173,7 +182,8 @@ Tau Ceti's `f.normalComplexStructure`. -/
 theorem toContinuousComplexStructure_contMDiffNormalComplexStructure
     (f : SmoothEmbedding I' I ∞ M X)
     (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E') (J : SmoothAlmostComplexStructure I X)
-    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn) (f.isImmersion.tangentRange x hn)) :
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn)
+        (f.isImmersion.tangentRange x hn)) :
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
     (f.contMDiffNormalComplexStructure hdim J hJ).toContinuousComplexStructure =
@@ -190,7 +200,8 @@ theorem toContinuousComplexStructure_contMDiffNormalComplexStructure
 @[simp]
 theorem almostComplexStructureAt_contMDiffNormalComplexStructure (f : SmoothEmbedding I' I ∞ M X)
     (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E') (J : SmoothAlmostComplexStructure I X)
-    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn) (f.isImmersion.tangentRange x hn)) (x : M) :
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn)
+        (f.isImmersion.tangentRange x hn)) (x : M) :
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
     (f.contMDiffNormalComplexStructure hdim J hJ).almostComplexStructureAt x =

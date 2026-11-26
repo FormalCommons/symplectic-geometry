@@ -165,7 +165,8 @@ private theorem contMDiff_symplecticNormalRepresentative_comp_normalClassL
   let := f₀.normalSpaceFiberBundle hn hP₀
   let := f₁.normalSpaceFiberBundle hn hP₁
   have hG := f₀.contMDiff_symplecticNormalRepresentative_comp_normalClass f₁ h₁ (f := φ) hn
-    (fun q ↦ (Φ q : f₀.isImmersion.NormalSpace q hn →L[ℝ] f₁.isImmersion.NormalSpace (φ q) hn)) hP₀ hP₁ hΦ
+    (fun q ↦ (Φ q : f₀.isImmersion.NormalSpace q hn →L[ℝ] f₁.isImmersion.NormalSpace (φ q) hn)) hP₀
+        hP₁ hΦ
   refine (contMDiff_hom_bundle_iff (F₁ := E₀) (F₂ := E₁)
     (E₁ := (f₀ : Q₀ → M₀) *ᵖ (TangentSpace I₀))
     (E₂ := (f₁.compDiffeomorphOfBoundaryless φ (by simp) : Q₀ → M₁) *ᵖ (TangentSpace I₁)) _).2 ?_
@@ -192,7 +193,8 @@ private theorem mfderiv_symplecticNormalRepresentative_eq {hσ₀ : σ₀.IsNond
     {q : Q₀} (h : f₀ q ∈ U₀) (hψq : (ψ ⟨f₀ q, h⟩ : M₁) = f₁ (φ q))
     (hdψ : ∀ v, mfderiv I₀ I₁ ψ ⟨f₀ q, h⟩ (mfderiv J₀ I₀ f₀ q v) =
       mfderiv J₁ I₁ f₁ (φ q) (mfderiv J₀ J₁ φ q v))
-    (v : f₀.isImmersion.NormalSpace q hn) (w : f₁.isImmersion.NormalSpace (φ q) hn) (u : TangentSpace J₀ q)
+    (v : f₀.isImmersion.NormalSpace q hn) (w : f₁.isImmersion.NormalSpace (φ q) hn)
+        (u : TangentSpace J₀ q)
     (hu : mfderiv I₀ I₁ ψ ⟨f₀ q, h⟩ (f₀.symplecticNormalRepresentative h₀ q hn v) =
       f₁.symplecticNormalRepresentative h₁ (φ q) hn w +
         mfderiv J₁ I₁ f₁ (φ q) (mfderiv J₀ J₁ φ q u)) :
@@ -284,7 +286,8 @@ theorem HasSymplecticTangentImages.exists_symplectomorphism_opens (hσ₀ : σ�
     (f₁.symplecticNormalRepresentative h₁ (φ q) hn).comp
       ((Φ q : _ →L[ℝ] _).comp (f₀.isImmersion.normalClassL q hn))
   have hLapply (q : Q₀) (v : TangentSpace I₀ (f₀ q)) :
-      L q v = f₁.symplecticNormalRepresentative h₁ (φ q) hn (Φ q (f₀.isImmersion.normalClass q hn v)) := by
+      L q v = f₁.symplecticNormalRepresentative h₁ (φ q) hn
+          (Φ q (f₀.isImmersion.normalClass q hn v)) := by
     simp only [L, ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
       Manifold.IsImmersion.normalClassL_apply]
   have hL (q : Q₀) : ∀ v ∈ (hσ₀.isNondegenerate.symplecticFormAt (f₀ q)).orthogonal

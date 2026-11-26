@@ -117,7 +117,8 @@ theorem exists_symplectomorphism_blowupModel [FiniteDimensional ℝ E] {σ : Smo
     {l : ℝ} (hl : l ≠ 0) (hf : SmoothForm.mpullback f f.contMDiff σ = l ^ 2 • fubiniStudyForm n)
     (hn : (∞ : ℕ∞ω) ≠ 0) (hP₀ : finrank ℝ P₀ = finrank ℝ E - finrank ℝ (Fin n → ℂ))
     (hP₁ : finrank ℝ P₁ = finrank ℝ (Fin (n + 1) → ℂ) - finrank ℝ (Fin n → ℂ))
-    (Φ : ∀ q, f.isImmersion.NormalSpace q hn ≃L[ℝ] (zeroSectionRealEmbedding n).isImmersion.NormalSpace q hn)
+    (Φ : ∀ q, f.isImmersion.NormalSpace q hn ≃L[ℝ]
+        (zeroSectionRealEmbedding n).isImmersion.NormalSpace q hn)
     (hΦ : letI := f.normalSpaceFiberBundle hn hP₀
       letI := (zeroSectionRealEmbedding n).normalSpaceFiberBundle hn hP₁
       ContMDiff (𝓘(ℝ, Fin n → ℂ).prod 𝓘(ℝ, P₀)) (𝓘(ℝ, Fin n → ℂ).prod 𝓘(ℝ, P₁)) ∞

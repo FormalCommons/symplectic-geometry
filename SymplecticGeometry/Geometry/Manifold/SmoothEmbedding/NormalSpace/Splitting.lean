@@ -109,7 +109,8 @@ def tangentNormalEquiv (x : M) :
 
 /-- The isomorphism given by a right inverse `r` sends `(u, a)` to `df u + r a`. -/
 @[simp]
-theorem tangentNormalEquiv_apply (x : M) (p : (TangentSpace I ×ᵇ fun x ↦ f.isImmersion.NormalSpace x hn) x) :
+theorem tangentNormalEquiv_apply (x : M) (p :
+    (TangentSpace I ×ᵇ fun x ↦ f.isImmersion.NormalSpace x hn) x) :
     f.tangentNormalEquiv hn r hr x p = mfderiv I J f x p.1 + r x p.2 :=
   (exact_mfderiv_normalClass f x hn).splitSurjectiveEquiv_symm_apply
     (f.isImmersion.mfderiv_injective hn x) ⟨(r x).toLinearMap, LinearMap.ext (hr x)⟩ p
@@ -138,7 +139,8 @@ isomorphism `TM ×ᵇ ν ≃ f^* TN` it gives. -/
 theorem continuous_tangentNormalEquiv
     (hrc : Continuous fun p : TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ↦
       TotalSpace.mk' V (E := (f : M → N) *ᵖ (TangentSpace J)) p.proj (r p.proj p.snd)) :
-    Continuous fun p : TotalSpace (E × P) (TangentSpace I ×ᵇ fun x ↦ f.isImmersion.NormalSpace x hn) ↦
+    Continuous fun p : TotalSpace (E × P) (TangentSpace I ×ᵇ fun x ↦ f.isImmersion.NormalSpace x
+        hn) ↦
       TotalSpace.mk' V (E := (f : M → N) *ᵖ (TangentSpace J)) p.proj
         (f.tangentNormalEquiv hn r hr p.proj p.snd) := by
   have hd := (FiberBundle.Prod.isInducing_diag E (TangentSpace I) P
@@ -210,11 +212,14 @@ theorem exists_rightInverse_normalClass :
     (continuous_hom_bundle_iff (E₁ := (f : M → N) *ᵖ (TangentSpace J)) _).2 <|
       hquot.congr fun v ↦ by
         rw [normalQuotientMap_apply]
-        exact congrArg (TotalSpace.mk v.proj) (f.isImmersion.normalClassL_apply v.proj hn v.snd).symm
+        exact congrArg (TotalSpace.mk v.proj)
+            (f.isImmersion.normalClassL_apply v.proj hn v.snd).symm
   obtain ⟨r, hr, hqr⟩ := Continuous.exists_continuous_clm_bundle_rightInverse
-    (E₁ := (f : M → N) *ᵖ (TangentSpace J)) (E₂ := fun x ↦ f.isImmersion.NormalSpace x hn) hq fun x ↦
+    (E₁ := (f : M → N) *ᵖ (TangentSpace J)) (E₂ := fun x ↦ f.isImmersion.NormalSpace x hn) hq fun
+        x ↦
       .of_surjective_of_finiteDimensional fun w ↦
-        (f.isImmersion.normalClass_surjective x hn w).imp fun v hv ↦ (f.isImmersion.normalClassL_apply x hn v).trans hv
+        (f.isImmersion.normalClass_surjective x hn w).imp fun v hv ↦
+            (f.isImmersion.normalClassL_apply x hn v).trans hv
   refine ⟨r, fun x a ↦ ?_, ?_⟩
   · exact (f.isImmersion.normalClassL_apply x hn (r x a)).symm.trans (DFunLike.congr_fun (hqr x) a)
   refine ((continuous_hom_bundle_iff r).1 hr).comp hquot |>.congr fun v ↦ ?_

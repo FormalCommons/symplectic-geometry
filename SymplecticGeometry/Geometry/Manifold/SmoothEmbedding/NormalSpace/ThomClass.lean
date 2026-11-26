@@ -14,8 +14,8 @@ public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle
 
 Let `f : Z → X` be a smooth embedding of manifolds over finite-dimensional real models, with `X`
 Hausdorff and second countable, and let `ν` be its intrinsic normal bundle
-`f.isImmersion.NormalSpace · hn`, with model fibre `P` of dimension `r = dim X - dim Z` and the bundle
-structure `f.normalSpaceFiberBundle hn hdim`, `f.normalSpaceVectorBundle hn hdim` installed
+`f.isImmersion.NormalSpace · hn`, with model fibre `P` of dimension `r = dim X - dim Z` and the
+bundle structure `f.normalSpaceFiberBundle hn hdim`, `f.normalSpaceVectorBundle hn hdim` installed
 locally, as in Tau Ceti's `TauCeti.SmoothEmbedding.diagonalNormalOrientation`. A normal orientation
 `o` has a canonical Thom class `o.canonicalThomClass hr` and its integral form
 `o.intCanonicalThomClass hr` (`Topology/VectorBundle/Orientation/ThomClass.lean`); the normal
@@ -70,7 +70,8 @@ theorem bijective_thomMap_intCanonicalThomClass [T2Space X] [SecondCountableTopo
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
     Function.Bijective
-      (thomMap P (f.isImmersion.NormalSpace · hn) M (finrank ℝ P) p m h (o.intCanonicalThomClass hr)) := by
+      (thomMap P (f.isImmersion.NormalSpace · hn) M (finrank ℝ P) p m h
+          (o.intCanonicalThomClass hr)) := by
   let := f.normalSpaceFiberBundle hn hdim
   let := f.normalSpaceVectorBundle hn hdim
   have : T2Space Z := f.isEmbedding.t2Space

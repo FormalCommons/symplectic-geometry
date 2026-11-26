@@ -99,7 +99,8 @@ private def normalOrientationAt (f : SmoothEmbedding I J n Z X) (hn : n ≠ 0)
     (z : Z) : Orientation ℝ (f.isImmersion.NormalSpace z hn) (Fin (finrank ℝ P)) :=
   haveI := f.isImmersion.finiteDimensional_tangentSpace z hn
   Orientation.cokerOfExact (f.isImmersion.mfderiv_injective hn z)
-    (f.exact_mfderiv_normalClass z hn) (f.isImmersion.normalClass_surjective z hn) (oZ.orientationAt z)
+    (f.exact_mfderiv_normalClass z hn) (f.isImmersion.normalClass_surjective z hn)
+        (oZ.orientationAt z)
     (oX.orientationAt (f z)) (by simpa using oZ.finrank_tangentSpace_eq z)
     (f.finrank_normalSpace_eq hn hdim z)
 
@@ -311,7 +312,8 @@ theorem normalOrientation_apply (z : Z) (hm : finrank ℝ (TangentSpace I z) = m
     letI := f.normalSpaceVectorBundle hn hdim
     normalOrientation f hn hdim oX oZ z =
       Orientation.cokerOfExact (f.isImmersion.mfderiv_injective hn z)
-        (f.exact_mfderiv_normalClass z hn) (f.isImmersion.normalClass_surjective z hn) (oZ.orientationAt z)
+        (f.exact_mfderiv_normalClass z hn) (f.isImmersion.normalClass_surjective z hn)
+            (oZ.orientationAt z)
         (oX.orientationAt (f z)) hm hr := by
   simp only [normalOrientation, VectorBundleOrientation.coe_ofEventually, normalOrientationAt]
 
@@ -335,12 +337,14 @@ orientation of `T_{f z} X`: a positive basis of `T_z Z` followed by lifts of a p
 for `p` is a positive basis of `T_{f z} X` (`Orientation.ofExact_orientation`). -/
 theorem normalOrientation_eq_iff (z : Z)
     (p : Orientation ℝ (f.isImmersion.NormalSpace z hn) (Fin (finrank ℝ P)))
-    (hm : finrank ℝ (TangentSpace I z) = m) (hr : finrank ℝ (f.isImmersion.NormalSpace z hn) = finrank ℝ P) :
+    (hm : finrank ℝ (TangentSpace I z) = m) (hr : finrank ℝ (f.isImmersion.NormalSpace z hn) =
+        finrank ℝ P) :
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
     normalOrientation f hn hdim oX oZ z = p ↔
       Orientation.ofExact (f.isImmersion.mfderiv_injective hn z)
-        (f.exact_mfderiv_normalClass z hn) (f.isImmersion.normalClass_surjective z hn) (oZ.orientationAt z) p
+        (f.exact_mfderiv_normalClass z hn) (f.isImmersion.normalClass_surjective z hn)
+            (oZ.orientationAt z) p
         hm hr = oX.orientationAt (f z) := by
   rw [normalOrientation_apply f hn hdim oX oZ z hm hr]
   exact Orientation.cokerOfExact_eq_iff _ _ _ _ _ _ hm hr

@@ -97,8 +97,8 @@ one too, by Tau Ceti's `Diffeomorph.isSmoothEmbedding_comp`.
 The differential of `blowdown` at `zeroSection ℓ` vanishes on the tangent image of the zero
 section, of dimension `n`, since `blowdown` vanishes on the zero section, and its image contains
 `ℓ`, through the curves `t ↦ (ℓ, t • z)`; by rank–nullity in dimension `n + 1`, both inclusions
-are equalities. Tau Ceti's `Manifold.IsImmersion.normalSpaceEquivOfKer` then gives the isomorphism of
-the normal space with `ℓ`. Its continuity on total spaces follows, by Tau Ceti's
+are equalities. Tau Ceti's `Manifold.IsImmersion.normalSpaceEquivOfKer` then gives the isomorphism
+of the normal space with `ℓ`. Its continuity on total spaces follows, by Tau Ceti's
 `SmoothEmbedding.contMDiff_normalSpaceEquivOfKer`, from that of the tangent map of `blowdown`.
 
 The real embedding is the holomorphic one with scalars restricted
@@ -430,7 +430,8 @@ private theorem mfderivBlowdownZeroSection_eq_zero_iff (ℓ : ℙ ℂ (Fin (n + 
 variable (n) in
 /-- The normal space of the zero section `zeroSectionEmbedding n` at `ℓ` is a complex line. -/
 theorem finrank_normalSpace_zeroSectionEmbedding (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
-    Module.finrank ℂ ((zeroSectionEmbedding n).isImmersion.NormalSpace ℓ WithTop.top_ne_zero) = 1 := by
+    Module.finrank ℂ ((zeroSectionEmbedding n).isImmersion.NormalSpace ℓ WithTop.top_ne_zero) =
+        1 := by
   have h₁ : Module.finrank ℂ
       (TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) (zeroSectionEmbedding n ℓ)) = n + 1 :=
     Module.finrank_fin_fun ℂ
@@ -441,8 +442,8 @@ theorem finrank_normalSpace_zeroSectionEmbedding (ℓ : ℙ ℂ (Fin (n + 1) →
 variable (n) in
 /-- **The normal bundle of the exceptional divisor is the tautological line.** The
 complex-linear isomorphism from the normal space at `ℓ` of the zero section
-`zeroSectionEmbedding n` of the model blowup, Tau Ceti's `Manifold.IsImmersion.NormalSpace`, onto the
-line `ℓ`, the fibre `Projectivization.Tautological ℂ E ℓ` of the tautological line. It sends the
+`zeroSectionEmbedding n` of the model blowup, Tau Ceti's `Manifold.IsImmersion.NormalSpace`, onto
+the line `ℓ`, the fibre `Projectivization.Tautological ℂ E ℓ` of the tautological line. It sends the
 class of a tangent vector `v` at `zeroSection ℓ` to the differential of `blowdown` at
 `zeroSection ℓ` applied to `v` (`normalSpaceZeroSectionEquiv_normalClass`).
 
@@ -607,7 +608,8 @@ almost complex structure of the blowup induces on the normal bundle to multiplic
 noncomputable def normalSpaceZeroSectionRealEquiv (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
     (zeroSectionRealEmbedding n).isImmersion.NormalSpace ℓ hn ≃L[ℝ]
       Projectivization.Tautological ℂ (Fin (n + 1) → ℂ) ℓ :=
-  (zeroSectionRealEmbedding n).isImmersion.normalSpaceEquivOfKer ℓ hn (mfderivBlowdownZeroSectionReal ℓ)
+  (zeroSectionRealEmbedding n).isImmersion.normalSpaceEquivOfKer ℓ hn
+      (mfderivBlowdownZeroSectionReal ℓ)
     (mfderivBlowdownZeroSectionReal_eq_zero_iff ℓ)
     ((finrank_normalSpace_zeroSectionRealEmbedding n hn ℓ).trans
       ((Projectivization.finrank_submodule_of_isScalarTower ℓ).trans
@@ -631,7 +633,8 @@ theorem normalSpaceZeroSectionRealEquiv_normalClass (ℓ : ℙ ℂ (Fin (n + 1) 
 classes of a tangent vector `v` at `zeroSection ℓ` in the real and in the complex normal space. -/
 theorem normalSpaceZeroSectionRealEquiv_normalClass_eq (ℓ : ℙ ℂ (Fin (n + 1) → ℂ))
     (v : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) (zeroSectionRealEmbedding n ℓ)) :
-    normalSpaceZeroSectionRealEquiv n hn ℓ ((zeroSectionRealEmbedding n).isImmersion.normalClass ℓ hn v) =
+    normalSpaceZeroSectionRealEquiv n hn ℓ ((zeroSectionRealEmbedding n).isImmersion.normalClass ℓ
+        hn v) =
       normalSpaceZeroSectionEquiv n ℓ
         ((zeroSectionEmbedding n).isImmersion.normalClass ℓ WithTop.top_ne_zero v) :=
   (normalSpaceZeroSectionRealEquiv_normalClass ℓ v).trans

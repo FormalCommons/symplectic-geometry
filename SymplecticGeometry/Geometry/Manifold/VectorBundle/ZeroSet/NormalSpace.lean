@@ -100,7 +100,8 @@ theorem tangentRange_ofTransverseSection (z : ↥{x : X | s x = 0}) :
     rintro g rfl
     exact range_mfderiv_coe_transverseZeroSet hm hsm hs hE z
   ext v
-  rw [Manifold.IsImmersion.mem_tangentRange_iff, ← key _ (coe_ofTransverseSection hm hsm hs hE), LinearMap.mem_range]
+  rw [Manifold.IsImmersion.mem_tangentRange_iff, ← key _ (coe_ofTransverseSection hm hsm hs hE),
+      LinearMap.mem_range]
   simp only [ContinuousLinearMap.coe_coe]
 
 end TauCeti.SmoothEmbedding
@@ -168,7 +169,8 @@ the fibrewise equivalences, this is the input of `TauCeti.thomPairMapOfFiberwise
 theorem continuous_normalSpaceEquivOfTransverseSection :
     letI := transverseZeroSetChartedSpace hm hsm hs hE
     haveI : IsManifold J 1 X := .of_le (ENat.one_le_iff_ne_zero_withTop.mpr hm)
-    Continuous fun v : TotalSpace F' fun z ↦ (ofTransverseSection hm hsm hs hE).isImmersion.NormalSpace z hm ↦
+    Continuous fun v : TotalSpace F' fun z ↦ (ofTransverseSection hm hsm hs
+        hE).isImmersion.NormalSpace z hm ↦
       TotalSpace.mk' F' (ofTransverseSection hm hsm hs hE v.proj)
         (normalSpaceEquivOfTransverseSection hm hsm hs hE v.proj v.snd) := by
   let := transverseZeroSetChartedSpace hm hsm hs hE
@@ -176,7 +178,8 @@ theorem continuous_normalSpaceEquivOfTransverseSection :
   set f := ofTransverseSection hm hsm hs hE
   rw [f.continuous_normalBundle_iff hm]
   -- On an ambient representative `(z, v)` the map is `(z, L_z v)`.
-  have hrep : (fun v : TotalSpace F' fun z ↦ f.isImmersion.NormalSpace z hm ↦ TotalSpace.mk' F' (f v.proj)
+  have hrep : (fun v : TotalSpace F' fun z ↦ f.isImmersion.NormalSpace z hm ↦ TotalSpace.mk' F'
+      (f v.proj)
       (normalSpaceEquivOfTransverseSection hm hsm hs hE v.proj v.snd)) ∘ f.normalQuotientMap hm =
       fun p ↦ TotalSpace.mk' F' (f p.proj)
         (sectionLinearization (F := F') J _root_.id s (f p.proj) p.snd) := by
@@ -228,7 +231,8 @@ noncomputable def normalOrientationOfSection (o' : VectorBundleOrientation F' E'
       (Nat.eq_sub_of_add_eq' hE)
     letI := (ofTransverseSection hm hsm hs hE).normalSpaceVectorBundle (P := F') hm
       (Nat.eq_sub_of_add_eq' hE)
-    VectorBundleOrientation F' (fun z ↦ (ofTransverseSection hm hsm hs hE).isImmersion.NormalSpace z hm) ι :=
+    VectorBundleOrientation F' (fun z ↦ (ofTransverseSection hm hsm hs hE).isImmersion.NormalSpace z
+        hm) ι :=
   letI := transverseZeroSetChartedSpace hm hsm hs hE
   haveI := isManifold_transverseZeroSet hm hsm hs hE
   haveI : IsManifold 𝓘(ℝ, E) 1 ↥{x : X | s x = 0} :=

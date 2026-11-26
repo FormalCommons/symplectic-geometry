@@ -115,7 +115,8 @@ theorem exists_isNormalizedTube_singularCap_dualClassOf_fundamentalClass
           (((singularHomologyFunctor (ModuleCat.{0} ℤ) q).obj L).map
             (TopCat.ofHom ⟨fun v : TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ↦ f v.proj,
               f.isEmbedding.continuous.comp (FiberBundle.continuous_proj P _)⟩)).hom
-            (((thomPair P (fun x ↦ f.isImmersion.NormalSpace x hn)).singularCap ℤ (ρ_ _).inv (ρ_ L).hom
+            (((thomPair P (fun x ↦ f.isImmersion.NormalSpace x hn)).singularCap ℤ (ρ_ _).inv
+                (ρ_ L).hom
               p q n h u).hom
               ((TopPair.singularHomologyMap
                 (TopPair.ofSubsetMap (X := TopCat.of W) (Y := TopCat.of W)

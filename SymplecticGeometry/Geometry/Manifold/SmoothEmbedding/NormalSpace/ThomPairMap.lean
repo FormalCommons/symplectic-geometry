@@ -89,7 +89,8 @@ theorem normalSpaceEquivOfComp_normalClass (f' : SmoothEmbedding I J' n Z X')
     (hv : ∀ x, (mfderiv J' J v (f' x)).IsInvertible) (h : v ∘ f' = f) (x : Z)
     (w : TangentSpace J' (f' x)) :
     f'.normalSpaceEquivOfComp f hn hm hv h x (f'.isImmersion.normalClass x hn w) =
-      f.isImmersion.normalClass x hm (tangentSpaceCast J (v (f' x)) (f x) (mfderiv J' J v (f' x) w)) :=
+      f.isImmersion.normalClass x hm (tangentSpaceCast J (v (f' x)) (f x)
+          (mfderiv J' J v (f' x) w)) :=
   normalSpaceEquiv_normalClass _ _ _ _ _ _ _ w
 
 variable [IsManifold J' 1 X'] [IsManifold J 1 X] {K K' : Type*}
@@ -118,7 +119,8 @@ the identity of `Z`, which is the derivative of `v` on each fibre (`normalSpaceE
 def thomPairMapOfComp (f' : SmoothEmbedding I J' n Z X') (f : SmoothEmbedding I J m Z X)
     (hn : n ≠ 0) (hm : m ≠ 0) (hv₁ : ContMDiff J' J 1 v)
     (hv : ∀ x, (mfderiv J' J v (f' x)).IsInvertible) (h : v ∘ f' = f) :
-    thomPair K (fun x ↦ f'.isImmersion.NormalSpace x hn) ⟶ thomPair K' (fun x ↦ f.isImmersion.NormalSpace x hm) :=
+    thomPair K (fun x ↦ f'.isImmersion.NormalSpace x hn) ⟶ thomPair K'
+        (fun x ↦ f.isImmersion.NormalSpace x hm) :=
   thomPairMapOfFiberwise (g := ContinuousMap.id Z)
     (f'.continuous_normalSpaceEquivOfComp f hn hm hv₁ hv h)
 
@@ -148,10 +150,12 @@ theorem thomPairMapOfComp_fst_apply (f' : SmoothEmbedding I J' n Z X')
 `normalSpaceEquivOfComp` at `x`. -/
 theorem fiberThomPairMap_comp_thomPairMapOfComp [TopologicalSpace K] [TopologicalSpace K']
     (f' : SmoothEmbedding I J' n Z X') (f : SmoothEmbedding I J m Z X) (hn : n ≠ 0) (hm : m ≠ 0)
-    [FiberBundle K (fun x ↦ f'.isImmersion.NormalSpace x hn)] [FiberBundle K' (fun x ↦ f.isImmersion.NormalSpace x hm)]
+    [FiberBundle K (fun x ↦ f'.isImmersion.NormalSpace x hn)]
+        [FiberBundle K' (fun x ↦ f.isImmersion.NormalSpace x hm)]
     (hv₁ : ContMDiff J' J 1 v) (hv : ∀ x, (mfderiv J' J v (f' x)).IsInvertible)
     (h : v ∘ f' = f) (x : Z) :
-    fiberThomPairMap K (fun x ↦ f'.isImmersion.NormalSpace x hn) x ≫ f'.thomPairMapOfComp f hn hm hv₁ hv h =
+    fiberThomPairMap K (fun x ↦ f'.isImmersion.NormalSpace x hn) x ≫ f'.thomPairMapOfComp f hn hm
+        hv₁ hv h =
       (f'.normalSpaceEquivOfComp f hn hm hv h x).complZeroPairIso.hom ≫
         fiberThomPairMap K' (fun x ↦ f.isImmersion.NormalSpace x hm) x :=
   fiberThomPairMap_comp_thomPairMapOfFiberwise (g := ContinuousMap.id Z) _ x

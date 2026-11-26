@@ -129,7 +129,8 @@ theorem HasSymplecticTangentImages.exists_contMDiff_pos_symplecticNormalForm_eq_
     let s := e.localFrame b
     have hs (i : Fin 2) := contMDiffAt_localFrame_of_mem (I := J₀) (n := ∞) e b i hq₀
     have hΦs (i : Fin 2) : ContMDiffAt J₀ (J₁.prod 𝓘(ℝ, P₁)) ∞
-        (fun q ↦ TotalSpace.mk' P₁ (E := fun q ↦ f₁.isImmersion.NormalSpace q hn) (φ q) (Φ q (s i q))) q₀ :=
+        (fun q ↦ TotalSpace.mk' P₁ (E := fun q ↦ f₁.isImmersion.NormalSpace q hn) (φ q)
+            (Φ q (s i q))) q₀ :=
       (hΦ _).comp q₀ (hs i)
     have hnum := SmoothEmbedding.contMDiffAt_symplecticNormalForm h₁ hn hP₁ (hΦs 0) (hΦs 1)
     have hden := SmoothEmbedding.contMDiffAt_symplecticNormalForm (u := id) h₀ hn hP₀ (hs 0)
@@ -189,7 +190,8 @@ theorem HasSymplecticTangentImages.exists_symplectomorphism_opens_of_finrank_eq_
             (SmoothForm.mpullback (Subtype.val : U₁ → M₁) contMDiff_subtypeVal σ₁) =
           SmoothForm.mpullback (Subtype.val : U₀ → M₀) contMDiff_subtypeVal σ₀ := by
   obtain ⟨c, hcs, hc0, hc⟩ := exists_contMDiff_pos_symplecticNormalForm_eq_mul h₀ h₁ hn hP₀ hP₁
-    h2 (fun q ↦ (Φ q : f₀.isImmersion.NormalSpace q hn →L[ℝ] f₁.isImmersion.NormalSpace (φ q) hn)) hΦ hΦσ
+    h2 (fun q ↦ (Φ q : f₀.isImmersion.NormalSpace q hn →L[ℝ] f₁.isImmersion.NormalSpace (φ q) hn))
+        hΦ hΦσ
   have hc0' (q : Q₀) : (√(c q))⁻¹ ≠ 0 := inv_ne_zero (Real.sqrt_pos.2 (hc0 q)).ne'
   -- The rescaled isomorphisms.
   let Φ' (q : Q₀) : f₀.isImmersion.NormalSpace q hn ≃L[ℝ] f₁.isImmersion.NormalSpace (φ q) hn :=

@@ -72,7 +72,8 @@ theorem exists_contMDiff_injective_normalBundle (f : SmoothEmbedding I J ∞ M N
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) :
     letI := f.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hdim
     letI := f.normalSpaceVectorBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hdim
-    ∃ T : TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) → N,
+    ∃ T : TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x
+        (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) → N,
       ContMDiff (I.prod 𝓘(ℝ, P)) J ∞ T ∧ Injective T ∧
       (∀ x, T (zeroSection P _ x) = f x) ∧
       ∃ c : M → ℝ, (∀ x, 0 < c x) ∧

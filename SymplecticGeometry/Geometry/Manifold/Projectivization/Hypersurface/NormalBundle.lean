@@ -94,7 +94,8 @@ noncomputable def normalSpaceEquiv (x : X) :
 
 /-- `normalSpaceEquiv` is Tau Ceti's identification of the normal space with the space
 `Unit → ℂ` of values of the equation, in the preferred chart of `𝒪(d)` at `x`. -/
-theorem normalSpaceEquiv_apply (x : X) (a : X.embedding.isImmersion.NormalSpace x WithTop.top_ne_zero) :
+theorem normalSpaceEquiv_apply (x : X) (a : X.embedding.isImmersion.NormalSpace x
+    WithTop.top_ne_zero) :
     X.normalSpaceEquiv x a = ContinuousLinearEquiv.funUnique Unit ℂ ℂ
       (complexProjectiveZeroLocusNormalSpaceEquiv (fun _ ↦ X.isHomogeneous) isOpen_univ
         X.carrier_eq_inter_univ X.surjective_jacobiMatrixAt (r := ω) WithTop.top_ne_zero x
@@ -165,7 +166,8 @@ theorem twistTransition_smul_normalSpaceEquiv_normalClass (x : X) {i : Fin (n + 
 /-- **The normal bundle of a hypersurface is `ι^* 𝒪(d)`.** `normalSpaceEquiv` is continuous on
 total spaces, from the normal bundle of `X` to the pull-back of `𝒪(d)` by the inclusion. -/
 theorem continuous_normalSpaceEquiv :
-    Continuous fun p : TotalSpace ℂ (fun x : X ↦ X.embedding.isImmersion.NormalSpace x WithTop.top_ne_zero) ↦
+    Continuous fun p : TotalSpace ℂ (fun x : X ↦ X.embedding.isImmersion.NormalSpace x
+        WithTop.top_ne_zero) ↦
       TotalSpace.mk' ℂ (E := (X.embedding : X → ℙ ℂ (Fin (n + 2) → ℂ)) *ᵖ
         (twistCore (𝕜 := ℂ) (n := n + 1) (d : ℤ)).Fiber) p.proj
         (X.normalSpaceEquiv p.proj p.snd) := by
@@ -176,7 +178,8 @@ theorem continuous_normalSpaceEquiv :
       TotalSpace.mk' ℂ
       (E := (X.embedding : X → ℙ ℂ (Fin (n + 2) → ℂ)) *ᵖ
         (twistCore (𝕜 := ℂ) (n := n + 1) (d : ℤ)).Fiber) q.proj
-        (X.normalSpaceEquiv q.proj (X.embedding.isImmersion.normalClass q.proj WithTop.top_ne_zero q.snd)))
+        (X.normalSpaceEquiv q.proj (X.embedding.isImmersion.normalClass q.proj WithTop.top_ne_zero
+            q.snd)))
     ?_ fun q ↦ ?_
   swap
   · rw [Function.comp_apply, SmoothEmbedding.normalQuotientMap_apply]
@@ -216,7 +219,8 @@ by the inclusion to the normal bundle of `X`. -/
 theorem continuous_normalSpaceEquiv_symm :
     Continuous fun q : TotalSpace ℂ ((X.embedding : X → ℙ ℂ (Fin (n + 2) → ℂ)) *ᵖ
         (twistCore (𝕜 := ℂ) (n := n + 1) (d : ℤ)).Fiber) ↦
-      TotalSpace.mk' ℂ (E := fun x : X ↦ X.embedding.isImmersion.NormalSpace x WithTop.top_ne_zero) q.proj
+      TotalSpace.mk' ℂ (E := fun x : X ↦ X.embedding.isImmersion.NormalSpace x WithTop.top_ne_zero)
+          q.proj
         ((X.normalSpaceEquiv q.proj).symm q.snd) := by
   -- The fibres of the pull-back are `ℂ`, so they are groups, as `continuous_bundle_symm` asks.
   let _ : ∀ x : X, AddCommGroup (((X.embedding : X → ℙ ℂ (Fin (n + 2) → ℂ)) *ᵖ

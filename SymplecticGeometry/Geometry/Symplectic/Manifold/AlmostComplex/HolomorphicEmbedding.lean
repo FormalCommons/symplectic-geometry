@@ -24,9 +24,9 @@ manifolds and the product of the almost complex structures of `N` and `N'`, whic
 multiplication by `i` (`TauCeti.SmoothAlmostComplexStructure.prod_ofComplexManifold_apply`).
 
 These are the hypotheses, written
-`∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn) (f.isImmersion.tangentRange x hn)`, under which
-`AlmostComplex/Submanifold.lean` restricts an almost complex structure and pulls back taming
-forms. So a complex submanifold, such as a smooth hypersurface, is a symplectic
+`∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn) (f.isImmersion.tangentRange x hn)`,
+under which `AlmostComplex/Submanifold.lean` restricts an almost complex structure and pulls back
+taming forms. So a complex submanifold, such as a smooth hypersurface, is a symplectic
 submanifold for every form that tames the complex structure of the ambient manifold.
 
 The structure that the complex structure of `N` restricts to along the real form is the complex

@@ -90,7 +90,8 @@ theorem adjunction_formula [T2Space M] [CompactSpace M] [ConnectedSpace M]
     [Fact (finrank ℝ E = 2 * finrank ℂ G)]
     (f : SmoothEmbedding (𝓡 2) I ((⊤ : ℕ∞) : WithTop ℕ∞) M X)
     (J : SmoothAlmostComplexStructure I X)
-    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn) (f.isImmersion.tangentRange x hn))
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn)
+        (f.isImmersion.tangentRange x hn))
     (o : Manifold.Orientation (𝓡 2) M (Fin 2))
     (ho : ∀ c (b : Basis (Fin 2) ℝ (TangentSpace (𝓡 2) c)),
       mfderiv (𝓡 2) I f c (b 1) = J (f c) (mfderiv (𝓡 2) I f c (b 0)) →

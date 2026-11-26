@@ -199,7 +199,8 @@ theorem normalFiberDeriv_def (f : SmoothEmbedding I J ∞ M N) (hn : (∞ : ℕ�
     letI := f.normalSpaceFiberBundle hn hdim
     haveI := f.normalSpaceVectorBundle hn hdim
     f.normalFiberDeriv hn hdim Φ x =
-      (f.isImmersion.normalClassL x hn).comp ((mfderiv (I.prod 𝓘(ℝ, P)) J Φ (zeroSection P _ x)).comp
+      (f.isImmersion.normalClassL x hn).comp ((mfderiv (I.prod 𝓘(ℝ, P)) J Φ
+          (zeroSection P _ x)).comp
         ((Bundle.zeroSectionTangentEquiv (I := I) x).symm.toContinuousLinearMap.comp
           (ContinuousLinearMap.inr ℝ (TangentSpace I x) (f.isImmersion.NormalSpace x hn)))) :=
   (rfl)
@@ -208,7 +209,8 @@ theorem normalFiberDeriv_def (f : SmoothEmbedding I J ∞ M N) (hn : (∞ : ℕ�
 at `0_x` applied to the vertical vector `(0, v)`. -/
 theorem normalFiberDeriv_apply (f : SmoothEmbedding I J ∞ M N) (hn : (∞ : ℕ∞ω) ≠ 0)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E)
-    (Φ : TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) → N) (x : M) (v : f.isImmersion.NormalSpace x hn) :
+    (Φ : TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) → N) (x : M)
+        (v : f.isImmersion.NormalSpace x hn) :
     letI := f.normalSpaceFiberBundle hn hdim
     haveI := f.normalSpaceVectorBundle hn hdim
     f.normalFiberDeriv hn hdim Φ x v =
@@ -239,7 +241,8 @@ theorem normalFiberDeriv_apply_eq_mfderiv_comp (f : SmoothEmbedding I J ∞ M N)
     {Φ : TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) → N} {x : M}
     (hΦ : letI := f.normalSpaceFiberBundle hn hdim
       MDifferentiableAt (I.prod 𝓘(ℝ, P)) J Φ (zeroSection P _ x))
-    {Q : Type*} [NormedAddCommGroup Q] [NormedSpace ℝ Q] (L : Q →L[ℝ] f.isImmersion.NormalSpace x hn)
+    {Q : Type*} [NormedAddCommGroup Q] [NormedSpace ℝ Q]
+        (L : Q →L[ℝ] f.isImmersion.NormalSpace x hn)
     (u : Q) :
     f.normalFiberDeriv hn hdim Φ x (L u) =
       f.isImmersion.normalClassL x hn (mfderiv 𝓘(ℝ, Q) J (fun w : Q ↦ Φ ⟨x, L w⟩) 0 u) := by
@@ -249,7 +252,8 @@ theorem normalFiberDeriv_apply_eq_mfderiv_comp (f : SmoothEmbedding I J ∞ M N)
       (fun w : Q ↦ (⟨x, L w⟩ : TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn))) 0 :=
     (Bundle.contMDiff_totalSpaceMk_comp (V := fun x ↦ f.isImmersion.NormalSpace x hn) (n := 1) x L
       0).mdifferentiableAt one_ne_zero
-  have h0 : (⟨x, L 0⟩ : TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn)) = zeroSection P _ x := by
+  have h0 : (⟨x, L 0⟩ : TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn)) = zeroSection P _
+      x := by
     simp [zeroSection_def]
   have hL : MDifferentiableAt 𝓘(ℝ, Q) J (fun w : Q ↦ Φ ⟨x, L w⟩) (0 + (0 : ℝ) • u) := by
     rw [zero_smul, zero_add]
@@ -286,7 +290,8 @@ theorem bijective_normalFiberDeriv (f : SmoothEmbedding I J ∞ M N) (hn : (∞ 
     refine (injective_iff_map_eq_zero _).2 fun v hv ↦ ?_
     rw [normalFiberDeriv_apply] at hv
     obtain ⟨u, hu⟩ :=
-      (f.isImmersion.normalClass_eq_zero_iff x hn _).1 ((f.isImmersion.normalClassL_apply x hn _).symm.trans hv)
+      (f.isImmersion.normalClass_eq_zero_iff x hn _).1
+          ((f.isImmersion.normalClassL_apply x hn _).symm.trans hv)
     have h := hinj ((Bundle.mfderiv_zeroSectionTangentEquiv_symm_inl hΦ hfΦ u).trans hu)
     exact (congrArg Prod.snd ((Bundle.zeroSectionTangentEquiv (I := I) x).symm.injective h)).symm
   exact ⟨hD, LinearMap.injective_iff_surjective
@@ -317,7 +322,8 @@ theorem normalFiberDerivEquiv_def (f : SmoothEmbedding I J ∞ M N) (hn : (∞ :
     (hfΦ : Φ ∘ zeroSection P _ =ᶠ[𝓝 x] f) :
     letI := f.normalSpaceFiberBundle hn hdim
     f.normalFiberDerivEquiv hn hdim hΦ hfΦ =
-      (LinearEquiv.ofBijective (f.normalFiberDeriv hn hdim Φ x : f.isImmersion.NormalSpace x hn →ₗ[ℝ] _)
+      (LinearEquiv.ofBijective (f.normalFiberDeriv hn hdim Φ x : f.isImmersion.NormalSpace x
+          hn →ₗ[ℝ] _)
         (bijective_normalFiberDeriv f hn hdim (hΦ.mdifferentiableAt hn)
           (hΦ.isInvertible_mfderiv hn).injective hfΦ)).toContinuousLinearEquiv :=
   (rfl)
@@ -342,7 +348,8 @@ theorem coe_normalFiberDerivEquiv (f : SmoothEmbedding I J ∞ M N) (hn : (∞ :
     (hΦ : letI := f.normalSpaceFiberBundle hn hdim
       IsLocalDiffeomorphAt (I.prod 𝓘(ℝ, P)) J ∞ Φ (zeroSection P _ x))
     (hfΦ : Φ ∘ zeroSection P _ =ᶠ[𝓝 x] f) :
-    (f.normalFiberDerivEquiv hn hdim hΦ hfΦ : f.isImmersion.NormalSpace x hn →L[ℝ] f.isImmersion.NormalSpace x hn) =
+    (f.normalFiberDerivEquiv hn hdim hΦ hfΦ : f.isImmersion.NormalSpace x hn →L[ℝ]
+        f.isImmersion.NormalSpace x hn) =
       f.normalFiberDeriv hn hdim Φ x :=
   ContinuousLinearMap.ext (normalFiberDerivEquiv_apply f hn hdim hΦ hfΦ)
 
@@ -358,7 +365,8 @@ theorem contMDiff_normalFiberDeriv (f : SmoothEmbedding I J ∞ M N) (hn : (∞ 
     letI := f.normalSpaceFiberBundle hn hdim
     ContMDiff (I.prod 𝓘(ℝ, P)) (I.prod 𝓘(ℝ, P)) ∞
       (fun p : TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ↦ TotalSpace.mk' P
-        (E := fun x ↦ f.isImmersion.NormalSpace x hn) p.proj (f.normalFiberDeriv hn hdim Φ p.proj p.snd)) := by
+        (E := fun x ↦ f.isImmersion.NormalSpace x hn) p.proj
+            (f.normalFiberDeriv hn hdim Φ p.proj p.snd)) := by
   let := f.normalSpaceFiberBundle hn hdim
   have := f.normalSpaceVectorBundle hn hdim
   have : IsManifold I (∞ + 1) M := by simpa using (inferInstance : IsManifold I ∞ M)
@@ -366,8 +374,10 @@ theorem contMDiff_normalFiberDeriv (f : SmoothEmbedding I J ∞ M N) (hn : (∞ 
   have := f.normalSpaceContMDiffVectorBundle (m := ∞) hn le_rfl hdim
   -- The normal derivative is the normal class of the velocities of the rays.
   have e : (fun p : TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ↦ TotalSpace.mk' P
-      (E := fun x ↦ f.isImmersion.NormalSpace x hn) p.proj (f.normalFiberDeriv hn hdim Φ p.proj p.snd)) =
-      f.normalQuotientMap hn ∘ fun p : TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ↦ (⟨p.proj,
+      (E := fun x ↦ f.isImmersion.NormalSpace x hn) p.proj
+          (f.normalFiberDeriv hn hdim Φ p.proj p.snd)) =
+      f.normalQuotientMap hn ∘ fun p : TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ↦
+          (⟨p.proj,
         mfderiv 𝓘(ℝ) J (fun t : ℝ ↦ Φ ⟨p.proj, t • p.snd⟩) 0 (1 : ℝ)⟩ :
           TotalSpace V ((f : M → N) *ᵖ (TangentSpace J))) := by
     funext p
@@ -530,8 +540,10 @@ theorem range_subset_of_apply_zeroSection
 the vector lies on the zero section. -/
 theorem apply_mem_range_iff_of_apply_zeroSection
     (hΦ : letI := f.normalSpaceFiberBundle hn hdim
-      ∀ x, (Φ (zeroSection P _ x) : N) = f x) (v : TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn)) :
-    (Φ v : N) ∈ Set.range f ↔ v ∈ Set.range (zeroSection P (fun x ↦ f.isImmersion.NormalSpace x hn)) := by
+      ∀ x, (Φ (zeroSection P _ x) : N) = f x)
+          (v : TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn)) :
+    (Φ v : N) ∈ Set.range f ↔ v ∈ Set.range (zeroSection P
+        (fun x ↦ f.isImmersion.NormalSpace x hn)) := by
   refine ⟨fun ⟨x, hx⟩ ↦ ⟨x, Φ.injective (Subtype.ext ((hΦ x).trans hx))⟩, ?_⟩
   rintro ⟨x, rfl⟩
   exact ⟨x, (hΦ x).symm⟩
@@ -590,7 +602,8 @@ theorem normalFiberDeriv_eq_id_iff (f : SmoothEmbedding I J ∞ M N) (hn : (∞ 
     haveI := f.normalSpaceVectorBundle hn hdim
     f.normalFiberDeriv hn hdim Φ x = ContinuousLinearMap.id ℝ _ ↔
       ∀ w : P, f.isImmersion.normalClassL x hn (mfderiv (I.prod 𝓘(ℝ, P)) J Φ (zeroSection P _ x)
-        ((0 : E), w)) = (trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) x).symmL ℝ x w := by
+        ((0 : E), w)) = (trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) x).symmL ℝ x
+            w := by
   let := f.normalSpaceFiberBundle hn hdim
   have := f.normalSpaceVectorBundle hn hdim
   set e := trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) x
@@ -620,7 +633,8 @@ theorem IsNormalizedTube.normalClassL_mfderiv_zeroSection {f : SmoothEmbedding I
       TangentSpace (I.prod 𝓘(ℝ, P)) (zeroSection P (fun x ↦ f.isImmersion.NormalSpace x hn) x)) :
     letI := f.normalSpaceFiberBundle hn hdim
     haveI := f.normalSpaceVectorBundle hn hdim
-    f.isImmersion.normalClassL x hn (mfderiv (I.prod 𝓘(ℝ, P)) J (fun p ↦ (Φ p : N)) (zeroSection P _ x) v) =
+    f.isImmersion.normalClassL x hn (mfderiv (I.prod 𝓘(ℝ, P)) J (fun p ↦ (Φ p : N))
+        (zeroSection P _ x) v) =
       (trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) x).symmL ℝ x v.2 := by
   let := f.normalSpaceFiberBundle hn hdim
   have := f.normalSpaceVectorBundle hn hdim
@@ -645,8 +659,10 @@ theorem IsNormalizedTube.normalClassL_mfderiv_zeroSection {f : SmoothEmbedding I
     rw [this, Manifold.IsImmersion.normalClassL_apply]
     exact Manifold.IsImmersion.normalClass_mfderiv f.isImmersion x hn _
   -- The two sums live in tangent spaces of `N` at `F p₀` and at `f x`, both `V`.
-  calc f.isImmersion.normalClassL x hn (D v) = f.isImmersion.normalClassL x hn (D a + D b) := by rw [hv]
-    _ = f.isImmersion.normalClassL x hn (D a) + f.isImmersion.normalClassL x hn (D b) := map_add _ _ _
+  calc f.isImmersion.normalClassL x hn (D v) = f.isImmersion.normalClassL x hn (D a + D b) := by rw
+      [hv]
+    _ = f.isImmersion.normalClassL x hn (D a) + f.isImmersion.normalClassL x hn (D b) := map_add _ _
+        _
     _ = e.symmL ℝ x v.2 := by
       rw [ha, hb', add_zero]
 
@@ -809,7 +825,8 @@ theorem IsNormalizedTube.exists_hasMFDerivAt_apply_mk {f : SmoothEmbedding I J �
   set e := trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) x
   have hx : x ∈ e.baseSet := mem_baseSet_trivializationAt P _ x
   set ψ' := ψ.trans (e.continuousLinearEquivAt ℝ x hx)
-  set h : P → TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) := fun w ↦ TotalSpace.mk' P x (ψ w)
+  set h : P → TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) := fun w ↦ TotalSpace.mk' P x
+      (ψ w)
   have hh0 : h 0 = zeroSection P _ x := by
     simp only [h, map_zero, zeroSection]
   refine ⟨continuous_subtypeVal.comp (Φ.continuous.comp
@@ -823,14 +840,17 @@ theorem IsNormalizedTube.exists_hasMFDerivAt_apply_mk {f : SmoothEmbedding I J �
     rw [zeroSectionCompl_eq_compl_range] at hs
     exact hs ⟨z, Φ.injective (Subtype.ext ((hΦ.apply_zeroSection z).trans hz))⟩
   -- `h` has derivative `w ↦ (0, ψ' w)` at `0`.
-  let L : P →L[ℝ] TangentSpace (I.prod 𝓘(ℝ, P)) (zeroSection P (fun x ↦ f.isImmersion.NormalSpace x hn) x) :=
+  let L : P →L[ℝ] TangentSpace (I.prod 𝓘(ℝ, P))
+      (zeroSection P (fun x ↦ f.isImmersion.NormalSpace x hn) x) :=
     ContinuousLinearMap.inr ℝ E P
   have hhd : HasMFDerivAt 𝓘(ℝ, P) (I.prod 𝓘(ℝ, P)) h 0 (L.comp (ψ' : P →L[ℝ] P)) := by
-    have hh : h = (fun w ↦ TotalSpace.mk' P (E := fun x ↦ f.isImmersion.NormalSpace x hn) x (e.symm x w)) ∘
+    have hh : h = (fun w ↦ TotalSpace.mk' P (E := fun x ↦ f.isImmersion.NormalSpace x hn) x
+        (e.symm x w)) ∘
         ψ' :=
       funext fun w ↦ by simp [h, ψ', e.symm_apply_apply_mk hx]
     have h₀ : HasMFDerivAt 𝓘(ℝ, P) (I.prod 𝓘(ℝ, P))
-        (fun w ↦ TotalSpace.mk' P (E := fun x ↦ f.isImmersion.NormalSpace x hn) x (e.symm x w)) (ψ' 0) L := by
+        (fun w ↦ TotalSpace.mk' P (E := fun x ↦ f.isImmersion.NormalSpace x hn) x (e.symm x w))
+            (ψ' 0) L := by
       rw [map_zero]
       exact Bundle.hasMFDerivAt_totalSpaceMk_trivializationAt_symm x 0
     rw [hh]
