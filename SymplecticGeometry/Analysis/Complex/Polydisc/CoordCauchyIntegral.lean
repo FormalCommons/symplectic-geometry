@@ -176,7 +176,7 @@ private theorem contDiffOn_integrand : ContDiffOn ℝ 1 (integrand i c ρ f) (go
         ContDiff ℝ 1 fun p : (ι → ℂ) × ℝ ↦ p.1 i)).contDiffOn.inv fun p hp ↦ hp.1
   have h₃ : ContDiffOn ℝ 1 (fun p : (ι → ℂ) × ℝ ↦ f (update p.1 i (circleMap (c i) ρ p.2)))
       (goodSet i c ρ f) := fun p hp ↦
-    (hp.2.comp p (contDiff_fst.update
+    (hp.2.comp p (contDiff_fst.update i
       ((contDiff_circleMap (c i) ρ).comp contDiff_snd)).contDiffAt).contDiffWithinAt
   exact h₁.contDiffOn.smul (h₂.smul h₃)
 

@@ -29,12 +29,12 @@ open Function
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {E : Type*} [NormedAddCommGroup E]
   [NormedSpace 𝕜 E] {ι : Type*} [Fintype ι] [DecidableEq ι] {F' : ι → Type*}
   [∀ i, NormedAddCommGroup (F' i)] [∀ i, NormedSpace 𝕜 (F' i)] {n : WithTop ℕ∞}
-  {f : E → ∀ i, F' i} {i : ι} {g : E → F' i} {s : Set E} {x : E}
+  {f : E → ∀ i, F' i} {s : Set E} {x : E}
 
 /-- Updating a family that is `C^n` within `s` at `x`, at one index, by a value that is `C^n`
 within `s` at `x`, gives a map that is `C^n` within `s` at `x`. -/
 @[fun_prop]
-theorem ContDiffWithinAt.update (hf : ContDiffWithinAt 𝕜 n f s x)
+theorem ContDiffWithinAt.update (hf : ContDiffWithinAt 𝕜 n f s x) (i : ι) {g : E → F' i}
     (hg : ContDiffWithinAt 𝕜 n g s x) :
     ContDiffWithinAt 𝕜 n (fun y ↦ update (f y) i (g y)) s x := by
   refine contDiffWithinAt_pi.2 fun j ↦ ?_
@@ -45,21 +45,23 @@ theorem ContDiffWithinAt.update (hf : ContDiffWithinAt 𝕜 n f s x)
 /-- Updating a family that is `C^n` at `x`, at one index, by a value that is `C^n` at `x`,
 gives a map that is `C^n` at `x`. -/
 @[fun_prop]
-theorem ContDiffAt.update (hf : ContDiffAt 𝕜 n f x) (hg : ContDiffAt 𝕜 n g x) :
+theorem ContDiffAt.update (hf : ContDiffAt 𝕜 n f x) (i : ι) {g : E → F' i}
+    (hg : ContDiffAt 𝕜 n g x) :
     ContDiffAt 𝕜 n (fun y ↦ update (f y) i (g y)) x :=
-  ContDiffWithinAt.update hf hg
+  ContDiffWithinAt.update hf i hg
 
 /-- Updating a family that is `C^n` on `s`, at one index, by a value that is `C^n` on `s`,
 gives a map that is `C^n` on `s`. -/
 @[fun_prop]
-theorem ContDiffOn.update (hf : ContDiffOn 𝕜 n f s) (hg : ContDiffOn 𝕜 n g s) :
+theorem ContDiffOn.update (hf : ContDiffOn 𝕜 n f s) (i : ι) {g : E → F' i}
+    (hg : ContDiffOn 𝕜 n g s) :
     ContDiffOn 𝕜 n (fun y ↦ update (f y) i (g y)) s :=
-  fun y hy ↦ (hf y hy).update (hg y hy)
+  fun y hy ↦ (hf y hy).update i (hg y hy)
 
 /-- Updating a `C^n` family, at one index, by a `C^n` value gives a `C^n` map. -/
 @[fun_prop]
-theorem ContDiff.update (hf : ContDiff 𝕜 n f) (hg : ContDiff 𝕜 n g) :
+theorem ContDiff.update (hf : ContDiff 𝕜 n f) (i : ι) {g : E → F' i} (hg : ContDiff 𝕜 n g) :
     ContDiff 𝕜 n fun y ↦ update (f y) i (g y) :=
-  contDiff_iff_contDiffAt.2 fun _ ↦ hf.contDiffAt.update hg.contDiffAt
+  contDiff_iff_contDiffAt.2 fun _ ↦ hf.contDiffAt.update i hg.contDiffAt
 
 end
