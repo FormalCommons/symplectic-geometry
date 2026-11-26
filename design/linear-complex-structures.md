@@ -408,7 +408,7 @@ The file imports only Tau Ceti; its lemmas belong upstream beside Tau Ceti's
   `MulAction.quotientStabilizerHomeomorphOfSigmaCompact` with the equality of
   subgroups `stabilizer_stdComplexStructure`;
   `@[simp] quotientRealifyHomeomorph_mk : quotientRealifyHomeomorph ι g = g • J₀`.
-- `isClopen_setOf_isPositivelyOriented : IsClopen {J | IsPositivelyOriented J}`:
+- `isClopen_setOfPred_isPositivelyOriented : IsClopen {J | IsPositivelyOriented J}`:
   it and its complement are the images of the open sets `{det > 0}` and
   `{det < 0}` of `GL (ι ⊕ ι) ℝ` under the open orbit map.
 
@@ -558,7 +558,7 @@ it mentions complex structures.
   lemma; the quotient of a compact group is compact, the subtype is
   Hausdorff); `@[simp] coe_quotientUnitaryHomeomorph_mk` (the image of the coset
   of `g`, as a structure, is `g • J₀`).
-- `isPathConnected_setOf_isPositivelyOriented` (each structure is joined by
+- `isPathConnected_setOfPred_isPositivelyOriented` (each structure is joined by
   the polar homotopy, inside the clopen set, to an orthogonal positively
   oriented one, and these form the image of the path-connected group
   $\mathrm{SO}(2n)$); `connectedComponent_stdComplexStructure :
@@ -762,7 +762,7 @@ names, and the first two by the *Standard model* issues (#7, #8).
    `T2Space` and `LocallyCompactSpace`, `homeomorphMatrix` and the continuity
    of the actions in `Topology/ComplexStructure/Basic.lean`;
    `quotientRealifyHomeomorph` and
-   `isClopen_setOf_isPositivelyOriented` in
+   `isClopen_setOfPred_isPositivelyOriented` in
    `Topology/ComplexStructure/Orbit.lean`. About 300 lines. Blocked by 2.
 4. **Complex structures: retraction onto the orthogonal structures.** The
    star-ring lemma of `Algebra/Star/Basic.lean`, the conjugation lemma of
