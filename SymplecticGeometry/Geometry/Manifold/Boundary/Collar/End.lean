@@ -284,12 +284,12 @@ private theorem interiorEndDiffeomorph_apply (q : c.interiorRange) :
 /-- The manifold `W ∪ ([0, ∞) × ∂W)` obtained from `W` by attaching the end `[0, ∞) × ∂W` along
 the smooth collar `c`: the space `SymplecticGeometry.GluedAlong` glued from the interior of `W`
 and `(-1, ∞) × ∂W` along the diffeomorphism `(s, x) ↦ c (x, -s)` for `s ∈ (-1, 0)`. -/
-def WithEnd : Type u := GluedAlong c.interiorEndDiffeomorph
+def WithEnd : Type u := GluedAlong c.interiorEndDiffeomorph.toHomeomorph
 
 /-- The topology of `c.WithEnd`, that of the glued space. -/
 @[instance_reducible]
 def topologicalSpaceWithEnd : TopologicalSpace c.WithEnd :=
-  inferInstanceAs (TopologicalSpace (GluedAlong c.interiorEndDiffeomorph))
+  inferInstanceAs (TopologicalSpace (GluedAlong c.interiorEndDiffeomorph.toHomeomorph))
 
 instance : TopologicalSpace c.WithEnd := c.topologicalSpaceWithEnd
 
@@ -297,23 +297,24 @@ instance : TopologicalSpace c.WithEnd := c.topologicalSpaceWithEnd
 pieces. -/
 @[instance_reducible]
 def chartedSpaceWithEnd : ChartedSpace (EuclideanSpace ℝ (Fin (n + 1))) c.WithEnd :=
-  inferInstanceAs (ChartedSpace _ (GluedAlong c.interiorEndDiffeomorph))
+  inferInstanceAs (ChartedSpace _ (GluedAlong c.interiorEndDiffeomorph.toHomeomorph))
 
 instance : ChartedSpace (EuclideanSpace ℝ (Fin (n + 1))) c.WithEnd := c.chartedSpaceWithEnd
 
 instance : IsManifold (𝓡 (n + 1)) ∞ c.WithEnd :=
-  inferInstanceAs (IsManifold _ ∞ (GluedAlong c.interiorEndDiffeomorph))
+  inferInstanceAs (IsManifold _ ∞ (GluedAlong c.interiorEndDiffeomorph.toHomeomorph))
 
 /-- The canonical map of the interior piece into `c.WithEnd`. -/
 private abbrev interiorIncl : (𝓡∂ (n + 1)).interior W → c.WithEnd :=
-  GluedAlong.inl c.interiorEndDiffeomorph
+  GluedAlong.inl c.interiorEndDiffeomorph.toHomeomorph
 
 /-- The canonical map of the end piece into `c.WithEnd`. -/
-private abbrev endIncl : EndPiece n W → c.WithEnd := GluedAlong.inr c.interiorEndDiffeomorph
+private abbrev endIncl : EndPiece n W → c.WithEnd :=
+  GluedAlong.inr c.interiorEndDiffeomorph.toHomeomorph
 
 /-- `c.WithEnd` is Hausdorff when `W` is. -/
 instance [T2Space W] : T2Space c.WithEnd := by
-  refine (GluedAlong.t2Space_iff c.interiorEndDiffeomorph).2
+  refine (GluedAlong.t2Space_iff c.interiorEndDiffeomorph.toHomeomorph).2
     ⟨inferInstanceAs (T2Space ((𝓡∂ (n + 1)).interior W)),
       inferInstanceAs (T2Space (endInterval × (𝓡∂ (n + 1)).boundary W)), fun x _ y hy ↦ ?_⟩
   obtain ⟨A, hA, B, hB, hAB⟩ := c.exists_separation x hy
@@ -323,8 +324,8 @@ private theorem endIncl_collarToEnd_eq {p : ↥((𝓡∂ (n + 1)).boundary W) ×
     (hint : c p ∈ (𝓡∂ (n + 1)).interior W) :
     c.endIncl (collarToEnd p) = c.interiorIncl ⟨c p, hint⟩ := by
   refine (GluedAlong.inr_eq_inl_iff _).2 ⟨c.mem_interiorRange.2 (mem_range_self p), ?_⟩
-  rw [interiorEndDiffeomorph_apply, interiorToEnd_val, interiorToEndPt_def,
-    c.interiorCoord_eq_iff.2 rfl]
+  rw [Diffeomorph.coe_toHomeomorph, interiorEndDiffeomorph_apply, interiorToEnd_val,
+    interiorToEndPt_def, c.interiorCoord_eq_iff.2 rfl]
 
 omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 /-- A point outside the image of a collar is an interior point. -/
@@ -380,15 +381,15 @@ theorem endMap_zero (x : (𝓡∂ (n + 1)).boundary W) : endMap c (0, x) = inclu
 
 /-- The retraction of `c.WithEnd` onto `W`: the identity on `W`, and `(s, x) ↦ x` for `s ≥ 0`. -/
 def retraction : C(c.WithEnd, W) :=
-  GluedAlong.desc c.interiorEndDiffeomorph ⟨Subtype.val, continuous_subtypeVal⟩
+  GluedAlong.desc c.interiorEndDiffeomorph.toHomeomorph ⟨Subtype.val, continuous_subtypeVal⟩
     ⟨c.endRetract, c.continuous_endRetract⟩ fun q ↦ by
-      rw [ContinuousMap.coe_mk, ContinuousMap.coe_mk, interiorEndDiffeomorph_apply,
-        interiorToEnd_val, endRetract_interiorToEndPt]
+      rw [ContinuousMap.coe_mk, ContinuousMap.coe_mk, Diffeomorph.coe_toHomeomorph,
+        interiorEndDiffeomorph_apply, interiorToEnd_val, endRetract_interiorToEndPt]
 
 private theorem retraction_interiorIncl (p : (𝓡∂ (n + 1)).interior W) :
     retraction c (c.interiorIncl p) = p.val := by
-  -- `c.WithEnd` is `GluedAlong c.interiorEndDiffeomorph` by definition, so the map out of the
-  -- glued space applies.
+  -- `c.WithEnd` is `GluedAlong c.interiorEndDiffeomorph.toHomeomorph` by definition, so the map
+  -- out of the glued space applies.
   exact GluedAlong.desc_inl _ _ p
 
 private theorem retraction_endIncl (q : EndPiece n W) :

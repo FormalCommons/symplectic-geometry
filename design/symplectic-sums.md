@@ -225,7 +225,7 @@ is blocked only by #3286, so no blocker of an open issue changes.
 ### `Geometry/Manifold/Gluing/Pair.lean`
 
 For spaces `M₁`, `M₂`, open sets `U₁`, `U₂` and a homeomorphism
-`φ : F` (`[HomeomorphClass F U₁ U₂]`, such as `U₁ ≃ₜ U₂`):
+`φ : U₁ ≃ₜ U₂`:
 
 - `GluedAlong φ`, the glued space, with `GluedAlong.inl`, `GluedAlong.inr`,
   `isOpenEmbedding_inl`, `isOpenEmbedding_inr`, `range_inl_union_range_inr`
@@ -235,7 +235,7 @@ For spaces `M₁`, `M₂`, open sets `U₁`, `U₂` and a homeomorphism
   and the graph of `φ`, as a subset of `M₁ × M₂`, is closed.
 
 For manifolds `M₁`, `M₂` over one model and a diffeomorphism
-`φ : U₁ ≃ₘ^n⟮I, I⟯ U₂`:
+`φ : U₁ ≃ₘ^n⟮I, I⟯ U₂`, on `GluedAlong φ.toHomeomorph`:
 
 - The `IsManifold` instance, from Tau Ceti's compatible
   gluing; `isLocalDiffeomorph_inl`, `isLocalDiffeomorph_inr`.

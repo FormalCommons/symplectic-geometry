@@ -12,8 +12,7 @@ public import Mathlib.Geometry.Manifold.Diffeomorph
 
 Facts about Mathlib's diffeomorphisms `M ≃ₘ^n⟮I, I'⟯ M'` that Mathlib does not state: inverting a
 diffeomorphism twice gives it back, a `C^n` diffeomorphism is a `C^m` one for `m ≤ n`, and two
-empty manifolds are diffeomorphic even when their models differ. Diffeomorphisms also form a
-`HomeomorphClass`, so that constructions stated for homeomorphisms apply to them.
+empty manifolds are diffeomorphic even when their models differ.
 
 Two empty manifolds are diffeomorphic, whatever their models: the empty map is smooth in both
 directions. Mathlib's `Diffeomorph.empty` gives this only when both manifolds have the same model
@@ -53,19 +52,6 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
   {I : ModelWithCorners 𝕜 E H} {I' : ModelWithCorners 𝕜 E' H'}
   [TopologicalSpace M] [ChartedSpace H M] [TopologicalSpace M'] [ChartedSpace H' M']
   {n : WithTop ℕ∞}
-
-/-- A diffeomorphism is a homeomorphism: diffeomorphisms form a `HomeomorphClass`, so that a
-construction on homeomorphisms applies to them. -/
-instance instHomeomorphClass : HomeomorphClass (M ≃ₘ^n⟮I, I'⟯ M') M M' where
-  map_continuous h := h.continuous
-  inv_continuous h := h.symm.continuous
-
-/-- The homeomorphism that a diffeomorphism gives as a `HomeomorphClass` is
-`Diffeomorph.toHomeomorph`. -/
-@[simp]
-theorem coe_homeomorph_eq_toHomeomorph (h : M ≃ₘ^n⟮I, I'⟯ M') :
-    (h : M ≃ₜ M') = h.toHomeomorph :=
-  (rfl)
 
 /-- Inverting a diffeomorphism twice gives it back. -/
 @[simp]

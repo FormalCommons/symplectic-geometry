@@ -263,7 +263,7 @@ along the inverse of `gluingDiffeomorph`, which identifies `p ∈ openNbhd n ε 
 `ψ(F_l(π p))`. It is a smooth manifold modelled on `Fin (n + 1) → ℂ`. -/
 abbrev _root_.SymplecticGeometry.WeightBlowup
     (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) (hl : 0 ≤ l) (hε : 0 < ε) : Type :=
-  GluedAlong (U₁ := outerOverlap hψ) (U₂ := modelOverlap n ε) (gluingDiffeomorph hψ hl hε).symm
+  GluedAlong (gluingDiffeomorph hψ hl hε).symm.toHomeomorph
 
 variable (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) (hl : 0 ≤ l) (hε : 0 < ε)
 
@@ -275,19 +275,16 @@ instance instIsManifold : IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ (WeightB
 /-- A point `p` of `openNbhd n ε ∖ Z` is glued to `ψ(F_l(π p))`. -/
 @[simp]
 theorem inl_gluingDiffeomorph (p : modelOverlap n ε) :
-    GluedAlong.inl (U₁ := outerOverlap hψ) (U₂ := modelOverlap n ε)
-        (gluingDiffeomorph hψ hl hε).symm (gluingDiffeomorph hψ hl hε p) =
-      GluedAlong.inr (U₁ := outerOverlap hψ) (U₂ := modelOverlap n ε)
-        (gluingDiffeomorph hψ hl hε).symm p :=
-  GluedAlong.inl_diffeomorph_symm_apply (gluingDiffeomorph hψ hl hε).symm p
+    GluedAlong.inl (gluingDiffeomorph hψ hl hε).toHomeomorph.symm (gluingDiffeomorph hψ hl hε p) =
+      GluedAlong.inr (gluingDiffeomorph hψ hl hε).toHomeomorph.symm p := by
+  simpa only [Homeomorph.symm_symm, Diffeomorph.coe_toHomeomorph] using
+    GluedAlong.inl_symm_apply (gluingDiffeomorph hψ hl hε).toHomeomorph.symm p
 
 /-- A point `x` of the outer piece and a point `y` of the model piece have the same image in the
 blowup exactly when `y` is off the divisor and `x` is its image under the gluing map. -/
 theorem inl_eq_inr_iff {x : outerPiece hψ} {y : modelPiece n ε} :
-    GluedAlong.inl (U₁ := outerOverlap hψ) (U₂ := modelOverlap n ε)
-          (gluingDiffeomorph hψ hl hε).symm x =
-        GluedAlong.inr (U₁ := outerOverlap hψ) (U₂ := modelOverlap n ε)
-          (gluingDiffeomorph hψ hl hε).symm y ↔
+    GluedAlong.inl (gluingDiffeomorph hψ hl hε).symm.toHomeomorph x =
+        GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm.toHomeomorph y ↔
       ∃ h : y ∈ modelOverlap n ε, (gluingDiffeomorph hψ hl hε ⟨y, h⟩ : outerPiece hψ) = x := by
   refine ⟨fun h ↦ ?_, fun ⟨hy, hx⟩ ↦ hx ▸ inl_gluingDiffeomorph hψ hl hε ⟨y, hy⟩⟩
   obtain ⟨hx, hxy⟩ := (GluedAlong.inl_eq_inr_iff _).1 h
@@ -315,7 +312,7 @@ instance instT2Space : T2Space (WeightBlowup hψ hl hε) := by
   · exact continuous_subtypeVal.continuousAt.preimage_mem_nhds
       ((isOpen_openNbhd _).mem_nhds (exceptionalDivisor_subset_openNbhd hδ hy))
   · have h := coe_gluingDiffeomorph_mem_image_ball hψ hl hε hδ.le _ hzB
-    rw [Diffeomorph.apply_symm_apply] at h
+    rw [Diffeomorph.coe_toHomeomorph, Diffeomorph.apply_symm_apply] at h
     exact hzA (image_mono ball_subset_closedBall h)
 
 end WeightBlowup
