@@ -21,7 +21,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 public import TauCeti.LinearAlgebra.BilinearForm.SymplecticBasis
 public import TauCeti.LinearAlgebra.BilinearMap.Multilinear
 public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Basic
-public import TauCeti.Topology.Algebra.Module.BilinearForm
+public import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 public import TauCeti.Topology.Algebra.Module.FiniteDimension
 import SymplecticGeometry.LinearAlgebra.Symplectic.Darboux
 import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
@@ -349,11 +349,8 @@ is nondegenerate form an open subset of the total space of the bundle of alterna
 theorem isOpen_setOf_nondegenerate [FiniteDimensional ℝ F] :
     IsOpen {p : TotalSpace (F [⋀^Fin 2]→L[ℝ] ℝ) (fun x ↦ V x [⋀^Fin 2]→L[ℝ] Trivial M ℝ x) |
       LinearMap.BilinForm.Nondegenerate (MultilinearMap.toBilinMap p.snd.toMultilinearMap)} := by
-  have hT : IsOpen {A : F [⋀^Fin 2]→L[ℝ] ℝ |
-      LinearMap.BilinForm.Nondegenerate (MultilinearMap.toBilinMap A.toMultilinearMap)} :=
-    TauCeti.isOpen_setOf_nondegenerate fun v w ↦ by
-      simpa using continuous_eval_const ![v, w]
-  refine FiberBundle.isOpen_of_forall_mem_iff_snd_mem hT fun b q hq ↦ ?_
+  refine FiberBundle.isOpen_of_forall_mem_iff_snd_mem
+    ContinuousAlternatingMap.isOpen_setOf_nondegenerate_toBilinMap fun b q hq ↦ ?_
   -- In the fibre coordinates of the trivialization, a form becomes its pull-back by a linear
   -- equivalence.
   have hy : q.proj ∈ (trivializationAt F V b).baseSet := by
