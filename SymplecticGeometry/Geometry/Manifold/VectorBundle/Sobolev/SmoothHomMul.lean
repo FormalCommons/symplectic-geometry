@@ -626,7 +626,8 @@ theorem exists_norm_contMDiffHomMulL_le :
   have hy' : y ∈ A.image i := (image_ofBaseSet (A := A) (h := h) i).le hy
   rw [iteratedFDerivWithin_of_isOpen j (((A.hom (𝕜 := ℝ) h).chart i).isOpen_inter_preimage_symm
     ((A.hom (𝕜 := ℝ) h).triv i).open_baseSet)
-    ((A.hom (𝕜 := ℝ) h).image_subset_target_inter_preimage_symm i ((image_hom (h := h) i).ge hy'))]
+    ((A.hom (𝕜 := ℝ) h).image_subset_target_inter_preimage_baseSet i
+      ((image_hom (h := h) i).ge hy'))]
   exact hM i j hj y hy'
 
 variable (A h k) in
@@ -654,7 +655,8 @@ theorem exists_norm_contMDiffHomMulL_sub_le :
   have hU := ((A.hom (𝕜 := ℝ) h).chart i).isOpen_inter_preimage_symm
     ((A.hom (𝕜 := ℝ) h).triv i).open_baseSet
   have hyU :=
-    (A.hom (𝕜 := ℝ) h).image_subset_target_inter_preimage_symm i ((image_hom (h := h) i).ge hy)
+    (A.hom (𝕜 := ℝ) h).image_subset_target_inter_preimage_baseSet i
+      ((image_hom (h := h) i).ge hy)
   have hcd {Θ : ∀ x, V₁ x →L[ℝ] V₂ x}
       (hΘ : ContMDiff 𝓘(ℝ, E) (𝓘(ℝ, E).prod 𝓘(ℝ, F₁ →L[ℝ] F₂)) ∞
         fun x ↦ TotalSpace.mk' (F₁ →L[ℝ] F₂) x (Θ x)) :

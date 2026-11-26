@@ -8,7 +8,6 @@ module
 public import TauCeti.Analysis.Analytic.Constructions
 public import TauCeti.Analysis.Analytic.MultiIndex.Coeff
 public import TauCeti.Analysis.Complex.PowerSeries.Polydisc
-import Mathlib.Analysis.Calculus.FDeriv.Pi
 
 /-!
 # Power series of holomorphic functions on polydiscs
@@ -20,17 +19,16 @@ centre on every smaller concentric polydisc.
 ## Main results
 
 * `DifferentiableOn.exists_hasFPowerSeriesOnBall_of_lt`: a function holomorphic on the polydisc
-  `ball c R` has a power series about `c` on `ball c r` for every `0 < r < R`. The power series
-  comes from the multivariate Cauchy expansion of Tau Ceti
-  (`ContinuousOn.hasSum_torusIntegral_cauchyCoeff`, with the coefficient bound
-  `TauCeti.norm_torusIntegral_cauchyCoeff_le`).
+  `ball c R` has a power series about `c` on `ball c r` for every `0 < r < R`.
 
-The proof adapts those of Tau Ceti's `DifferentiableOn.exists_differentiable_norm_sub_lt_of_pi`
-and of the private lemma `TauCeti.exists_differentiable_norm_sub_lt_of_fin` behind it
-(`TauCeti/Analysis/Complex/PowerSeries/Polydisc.lean`): the same Cauchy expansion on a closed
-polydisc of intermediate radius, and the same transport from `Fin n → ℂ` to `ι → ℂ`, here
-feeding `TauCeti.exists_hasFPowerSeriesOnBall_of_hasSum` instead of a uniform limit. The
-transport uses Tau Ceti's `HasFPowerSeriesOnBall.compLinearIsometry`.
+On `Fin n → ℂ` the power series is Tau Ceti's multi-index Taylor series: it converges to the
+function on the polydisc (`DifferentiableOn.hasSum_mvTaylorCoeff`), and Cauchy's inequality
+(`DifferentiableOn.norm_mvTaylorCoeff_le`) on a polydisc of intermediate radius makes it
+summable, so that `TauCeti.exists_hasFPowerSeriesOnBall_of_hasSum` applies. The transport from
+`Fin n → ℂ` to `ι → ℂ` adapts that of Tau Ceti's
+`DifferentiableOn.exists_differentiable_norm_sub_lt_of_pi`
+(`TauCeti/Analysis/Complex/PowerSeries/Polydisc.lean`), and uses Tau Ceti's
+`HasFPowerSeriesOnBall.compLinearIsometry`.
 
 ## References
 
@@ -39,51 +37,37 @@ transport uses Tau Ceti's `HasFPowerSeriesOnBall.compLinearIsometry`.
 
 public section
 
-open Complex Metric Real
+open Metric
 open scoped NNReal
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E]
 
 /-- The case `ι = Fin n` of `DifferentiableOn.exists_hasFPowerSeriesOnBall_of_lt`: the power
-series is the multivariate Cauchy expansion on a closed polydisc of intermediate radius. -/
+series is the multi-index Taylor series of `h` at `c`. -/
 private theorem DifferentiableOn.exists_hasFPowerSeriesOnBall_of_lt_of_fin [CompleteSpace E]
     {n : ℕ} {h : (Fin n → ℂ) → E} {c : Fin n → ℂ} {R : ℝ} (hh : DifferentiableOn ℂ h (ball c R))
     {r : ℝ≥0} (hr : 0 < r) (hrR : (r : ℝ) < R) :
     ∃ p : FormalMultilinearSeries ℂ (Fin n → ℂ) E, HasFPowerSeriesOnBall h p c r := by
-  -- Expand on the closed polydisc of radius `s`, `r < s < R`, which lies in `ball c R`.
+  -- Bound `h` on the closed ball of radius `s`, `r < s < R`, which lies in `ball c R`; Cauchy's
+  -- inequality on `ball c s` then makes the Taylor series summable at radius `r`.
   set s : ℝ := (r + R) / 2
   have hrs : (r : ℝ) < s := by simp only [s]; linarith
   have hs : 0 < s := (NNReal.coe_pos.2 hr).trans hrs
-  have hsub : (Set.univ.pi fun i ↦ closedBall (c i) s) ⊆ ball c R := fun z hz ↦
-    mem_ball.2 <| ((dist_pi_le_iff hs.le).2 fun i ↦ hz i trivial).trans_lt
-      (by simp only [s]; linarith)
-  have hcont : ContinuousOn h (Set.univ.pi fun i ↦ closedBall (c i) s) :=
-    hh.continuousOn.mono hsub
-  obtain ⟨M, hM⟩ :=
-    (isCompact_univ_pi fun i ↦ isCompact_closedBall (c i) s).exists_bound_of_continuousOn hcont
-  have hd : ∀ z ∈ Set.univ.pi (fun i ↦ closedBall (c i) s), ∀ i, z i ∈ ball (c i) s →
-      DifferentiableAt ℂ (fun x ↦ h (Function.update z i x)) (z i) := fun z hz i _ ↦ by
-    refine DifferentiableAt.comp (z i) ?_ (hasFDerivAt_update z (z i)).differentiableAt
-    rw [Function.update_eq_self i z]
-    exact hh.differentiableAt (isOpen_ball.mem_nhds (hsub hz))
+  have hsR : s < R := by simp only [s]; linarith
+  obtain ⟨M, hM⟩ := (isCompact_closedBall c s).exists_bound_of_continuousOn
+    (hh.continuousOn.mono (closedBall_subset_ball hsR))
   have hq : Summable (fun α : Fin n → ℕ ↦ ∏ i, ((r : ℝ) / s) ^ α i) :=
     (TauCeti.hasSum_prod_geometric_of_norm_lt_one (r := fun _ ↦ (r : ℝ) / s) fun _ ↦ by
       rw [Real.norm_eq_abs, abs_of_nonneg (by positivity)]
       exact (div_lt_one hs).2 hrs).summable
-  refine (TauCeti.exists_hasFPowerSeriesOnBall_of_hasSum (f := h) (x := c)
-    (c := fun α ↦ (2 * π * I : ℂ)⁻¹ ^ n •
-      ∯ z in T(c, fun _ ↦ s), (∏ i, (z i - c i) ^ (α i + 1))⁻¹ • h z) hr ?_
-    fun y hy ↦ ?_).imp fun _ hp ↦ hp.1
-  · refine Summable.of_nonneg_of_le (fun _ ↦ by positivity) (fun α ↦ ?_) (hq.mul_left M)
-    have hb := TauCeti.norm_torusIntegral_cauchyCoeff_le (f := h) (c := c) (M := M)
-      (fun _ ↦ hs) (fun z hz ↦ hM z fun i _ ↦ sphere_subset_closedBall (hz i trivial)) α
-    calc _ ≤ (M * ∏ i, s⁻¹ ^ α i) * (r : ℝ) ^ ∑ i, α i := by gcongr
-      _ = M * ∏ i, ((r : ℝ) / s) ^ α i := by
-        rw [mul_assoc, ← Finset.prod_pow_eq_pow_sum, ← Finset.prod_mul_distrib]
-        simp only [← mul_pow, div_eq_mul_inv, mul_comm]
-  · exact hcont.hasSum_torusIntegral_cauchyCoeff hd fun i ↦
-      (norm_le_pi_norm y i).trans_lt (hy.trans hrs)
-
+  refine (TauCeti.exists_hasFPowerSeriesOnBall_of_hasSum (c := TauCeti.mvTaylorCoeff h c) hr ?_
+    fun y hy ↦ hh.hasSum_mvTaylorCoeff (hy.trans hrR)).imp fun _ hp ↦ hp.1
+  refine Summable.of_nonneg_of_le (fun _ ↦ by positivity) (fun α ↦ ?_) (hq.mul_left M)
+  have hb := (hh.mono (ball_subset_ball hsR.le)).norm_mvTaylorCoeff_le hs
+    (fun w hw ↦ hM w (ball_subset_closedBall hw)) α
+  calc _ ≤ M * s⁻¹ ^ (∑ i, α i) * (r : ℝ) ^ ∑ i, α i := by gcongr
+    _ = M * ∏ i, ((r : ℝ) / s) ^ α i := by
+      rw [mul_assoc, ← mul_pow, Finset.prod_pow_eq_pow_sum, inv_mul_eq_div]
 
 /-- A function holomorphic on the polydisc `ball c R` of `ι → ℂ`, a ball for the sup norm, has
 a power series about `c` on the polydisc `ball c r` for every `0 < r < R`. -/
