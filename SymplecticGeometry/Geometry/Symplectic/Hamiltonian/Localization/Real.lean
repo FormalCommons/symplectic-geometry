@@ -124,10 +124,10 @@ In dimension `0` all sums and products are empty and the value is `F(0)`.
 Berline, Getzler and Vergne, §7.2. Since `ι_X σ = -dH`, the form `e^{σ - ħH}` is equivariantly
 closed for every real `ħ`
 (`SymplecticGeometry.cartanDiff_formCalculus_of_isHamiltonianVectorField`). Take the localizing
-one-form `θ` and the weight charts of `SymplecticGeometry.exists_localizingForm`, a level `δ`
-and radii from
-`SymplecticGeometry.exists_cutoffLevel_radii` for `f = θ(X)`, and a bump function `F` with
-`F(0) = 1` and support in `[-δ, δ]`. By `SymplecticGeometry.integralTopForm_formCalculus_mul` the
+one-form `θ` and the weight charts of `SymplecticGeometry.exists_localizingForm`, a level `δ` and
+radii from `SymplecticGeometry.exists_cutoffLevel_radii` for `f = θ(X)`, and a bump function `F`
+with `F(0) = 1` and support in `[-δ, δ]`. By `SymplecticGeometry.integralTopForm_formCalculus_mul`
+the
 integral of the top component of `e^{σ - ħH}` is that of `F(d_ħ θ) e^{σ - ħH}`; cut `F(d_ħ θ)`
 into its pieces at the fixed points (`SymplecticGeometry.exists_formCalculus_eq_sum`). The piece
 at `p` contributes `e^{-ħ H(p)}` times its own integral
@@ -607,6 +607,7 @@ theorem integralTopForm_mul_formCalculus_exp {σ : SmoothTwoForm I M}
   ring
 
 end IsWeightChart
+
 omit [I.Boundaryless] [ContMDiffSMul (𝓡 1) I ∞ Circle M] in
 /-- The integral of one piece of `F(d_ħ θ)` at a fixed point. Let `Φ` be a weight chart at `p` of
 radius `r` with nonzero weights `αⱼ(ξ₁)`, and `θ` the model one-form `weightOneForm` of these
