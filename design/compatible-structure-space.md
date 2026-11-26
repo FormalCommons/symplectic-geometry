@@ -47,6 +47,9 @@ Tau Ceti has the space and its linear algebra, but no manifold:
   (`AlmostComplexStructure.tangentPath`, `hasDerivAt_tangentPath`,
   `Compatible.tangentPath`, in
   `Geometry/Symplectic/AlmostComplex/StructureVariation.lean`);
+- the dimension of the tangent spaces,
+  `TauCeti.SymplecticForm.Invariant.finrank_compatibleTangentSpace`
+  (`Geometry/Symplectic/AlmostComplex/TangentFinrank.lean`);
 - for manifolds: `SmoothAlmostComplexStructure`, `chartPushforward`,
   `SmoothTwoForm`, `IsKahler`, `IsPseudoholomorphic`,
   `SmoothAlmostComplexStructure.ofComplexManifold`; Riemannian geometry with
@@ -66,7 +69,7 @@ matrices, the bijection `SiegelUpperHalfSpace.compatibleEquiv` onto
 It has no manifold structure.
 
 The part adds: the manifold structure on `𝒥 ω` and its embedding in
-`V →L[ℝ] V`; the dimension of the tangent spaces; the complex structure
+`V →L[ℝ] V`; the complex structure
 $\hat J\mapsto-J\hat J$, the form $\Omega$ and the trace metric on the
 manifold; the Levi-Civita connection, the curvature and the geodesics; the
 complex manifold structure on $\mathcal S_n$ and the holomorphic
@@ -687,8 +690,6 @@ is the conjunct on `compatibleTransport`. No entry in `ERRATA.md` is needed.
   `Matrix.isSelfAdjoint_one_iff_isSymm` (`LinearAlgebra/Matrix/Symmetric.lean`);
   and from Mathlib `selfAdjointMatricesSubmodule`,
   `mem_selfAdjointMatricesSubmodule` and `Homeomorph.subtype`.
-- *Lagrangian Grassmannian* (merged): `Matrix.finrank_selfAdjoint`
-  (`LinearAlgebra/Matrix/SelfAdjoint.lean`).
 - *Nijenhuis tensor* (#862, not merged): `IsIntegrable`,
   `IsIntegrable.nijenhuis_eq_zero` (`Geometry/Manifold/Complex/Integrable.lean`);
   `SmoothAlmostComplexStructure.chartPushforward_apply`
@@ -726,8 +727,8 @@ its blockers are merged.
    `LinearAlgebra/BilinearForm/SelfAdjoint.lean`. About 200 lines.
    No blockers.
 2. **Dimension of the tangent spaces.**
-   `LinearAlgebra/Symplectic/CompatibleTangent/Finrank.lean`. About 250 lines.
-   Blocked by 1.
+   `LinearAlgebra/Symplectic/CompatibleTangent/Finrank.lean`, since replaced by
+   Tau Ceti's `Invariant.finrank_compatibleTangentSpace`. Blocked by 1.
 3. **Cayley coordinates.** `Topology/ComplexStructure/Compatible/Cayley.lean`.
    About 250 lines. Blocked by 1.
 4. **The manifold.** `Geometry/Manifold/Instances/CompatibleComplexStructures.lean`.
