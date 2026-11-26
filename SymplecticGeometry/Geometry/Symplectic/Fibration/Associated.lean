@@ -172,6 +172,7 @@ theorem momentPairing_apply (μ : F → Module.Dual ℝ (GroupLieAlgebra IG G))
   simp only [Nat.zero_mul, pow_zero, one_smul, ContinuousLinearMap.flip_apply,
     ContinuousLinearMap.id_apply, Fin.cast_refl, Function.comp_id, SmoothForm.mpullback_apply_one,
     mfderiv_fst]
+  -- In a single call `mpullback_apply` would fire first and leave `mpullback_apply_one` unused.
   simp only [SmoothForm.mpullback_apply, SmoothForm.coe_ofFunction, RoughForm.ofFunction_apply,
     momentMapCLM_apply]
   -- The tangent space of the product is the product of the tangent spaces by definition.

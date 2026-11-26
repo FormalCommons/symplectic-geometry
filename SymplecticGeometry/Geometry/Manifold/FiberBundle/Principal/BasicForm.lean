@@ -364,6 +364,7 @@ private theorem mextDeriv_apply_rightFundamentalVectorField_prod_inl (ξ : Group
     rw [eq_neg_iff_add_eq_zero]
     exact hC.symm
   · rw [Function.comp_apply, SmoothForm.mpullback_apply_one, mfderiv_prodMk_left_apply]
+    dsimp only
     -- The two sides differ only in implicit types and instances, which agree by definition.
     rfl
 

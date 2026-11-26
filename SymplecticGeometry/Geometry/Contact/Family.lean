@@ -156,7 +156,7 @@ theorem isContactFamily_iff : IsContactFamily ξ ↔
   refine forall_congr' fun v ↦ ?_
   -- The slice inclusion `Prod.mk t` sends `v` to the vertical vector `(0, v)`.
   rw [TauCeti.SmoothForm.mem_kerDistribution, TauCeti.SmoothForm.mpullback_apply_one,
-    mfderiv_prodMk_right_apply v]
+    mfderiv_prodMk_right_apply v, Prod.mk.eta]
   -- The two sides differ only in implicit fibre types and instances, such as those of the trivial
   -- bundles over `M` at `q.2` and over the cylinder at `q`, which agree by definition.
   rfl
