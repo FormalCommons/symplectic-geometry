@@ -159,7 +159,6 @@ theorem mlieDerivForm_fundamentalVectorField_eq_zero_of_boundarylessManifold {k 
       (ContMDiffSMul.contMDiff_const_smul (I := I) (I' := I') g) α = α)
     (ξ : GroupLieAlgebra I G) :
     mlieDerivForm (fundamentalVectorField I' ξ) α.val = 0 := by
-  have : T2Space (BoundarylessModel I' M) := inferInstanceAs (T2Space M)
   let Φ := BoundarylessModel.interiorDiffeomorph I' (M := M) ∞
   -- The form `β = (Φ⁻¹)^* α` on the copy with the vector-space atlas is invariant too.
   let β := SmoothForm.mpullback Φ.symm Φ.symm.contMDiff α
@@ -168,10 +167,8 @@ theorem mlieDerivForm_fundamentalVectorField_eq_zero_of_boundarylessManifold {k 
     rw [SmoothForm.mpullback_mpullback_of_comp_eq _ _ Φ.symm.contMDiff
       (ContMDiffSMul.contMDiff_const_smul (I := I) (I' := I') g)
       (funext fun y ↦ BoundarylessModel.interiorDiffeomorph_symm_smul I' ∞ g y), hα g]
-  have hαβ : α = SmoothForm.mpullback Φ Φ.contMDiff β := by
-    rw [SmoothForm.mpullback_mpullback_of_comp_eq Φ.contMDiff Φ.symm.contMDiff contMDiff_id
-      contMDiff_id Φ.symm_comp_self, SmoothForm.mpullback_id, LinearMap.id_apply,
-      LinearMap.id_apply]
+  have hαβ : α = SmoothForm.mpullback Φ Φ.contMDiff β :=
+    (SmoothForm.mpullback_mpullback_symm Φ α).symm
   -- The differential of the equivariant map `Φ` carries one fundamental vector field to the other.
   have hXY (x : M) : mfderiv I' 𝓘(ℝ, E') Φ x (fundamentalVectorField I' ξ x) =
       fundamentalVectorField 𝓘(ℝ, E') ξ (Φ x) :=
