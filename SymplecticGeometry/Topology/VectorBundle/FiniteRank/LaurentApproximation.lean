@@ -74,7 +74,7 @@ private theorem continuousOn_chartFiber (h : (Q E) ⟶ (Q E)) (k : X) :
   rw [continuousOn_iff_continuous_domRestrict]
   have hc := (h.operator (k, 1) (k, 1)).continuous.comp
     (f := fun w : ((Q E).core.baseSet (k, 1)) ↦
-      (⟨w.1, w.2, w.2⟩ : ↥((Q E).core.baseSet (k, 1) ∩ (Q E).core.baseSet (k, 1))))
+      (⟨w.val, w.property, w.property⟩ : ↥((Q E).core.baseSet (k, 1) ∩ (Q E).core.baseSet (k, 1))))
     (by fun_prop)
   refine hc.congr fun w ↦ ?_
   simp only [Function.comp_apply, Set.domRestrict_apply, VectorBundleCore.CoordinateHom.operator_eq,
@@ -108,16 +108,6 @@ private theorem exists_chartPartition [CompactSpace X] [T2Space X] :
   refine ⟨t, fun k ↦ ρ k, σ, fun k x ↦ ρ.nonneg k x, fun x ↦ ?_, hρ, hσs, hσ1⟩
   rw [← finsum_eq_sum_of_fintype]
   exact ρ.sum_eq_one (Set.mem_univ x)
-
-/-- In a ring, if `q` is inverse to `p` and `a c = 1`, then `q (a b) p - 1` factors as
-`(q a p) (q b p - q c p)`. -/
-private theorem conj_mul_sub_one {R : Type*} [Ring R] {p q a b c : R} (hpq : p * q = 1)
-    (hqp : q * p = 1) (hac : a * c = 1) :
-    q * (a * b) * p - 1 = q * a * p * (q * b * p - q * c * p) := by
-  have h (d : R) : q * a * p * (q * d * p) = q * (a * d) * p := by
-    simp only [mul_assoc]
-    rw [← mul_assoc p q, hpq, one_mul]
-  rw [mul_sub, h, h, hac, mul_one, hqp]
 
 variable [CompactSpace X] [T2Space X]
 
@@ -197,16 +187,22 @@ theorem exists_norm_conj_laurentHom_lt_one (f : (Q E) ≅ (Q E)) :
       T k l w * T i k w = T i l w :=
     (ContinuousLinearMap.mul_def _ _).trans
       ((Q E).core.coordChange_linear_comp i k l w ⟨⟨hi, hk⟩, hl⟩)
-  let U : ((Fin (Q E).rank → ℂ) →L[ℂ] (Fin (Q E).rank → ℂ))ˣ :=
-    ⟨T (j, 1) w w, T w (j, 1) w, hTT hwj hww, hTT hww hwj⟩
-  refine ⟨U, ?_⟩
+  refine ⟨⟨T (j, 1) w w, T w (j, 1) w, hTT hwj hww, hTT hww hwj⟩, ?_⟩
   have hinv : f.inv.fiberMap w * f.hom.fiberMap w = 1 := by
     rw [ContinuousLinearMap.mul_def, ← fiberMap_comp, f.hom_inv_id, fiberMap_id,
       ContinuousLinearMap.one_def]
-  rw [← ContinuousLinearMap.mul_def, conj_mul_sub_one U.mul_inv U.inv_mul hinv]
-  have hU : (↑U : (Fin (Q E).rank → ℂ) →L[ℂ] (Fin (Q E).rank → ℂ)) = T (j, 1) w w := rfl
-  have hU' : (↑U⁻¹ : (Fin (Q E).rank → ℂ) →L[ℂ] (Fin (Q E).rank → ℂ)) = T w (j, 1) w := rfl
-  rw [hU, hU']
+  -- Conjugating by the transition to the chart `j` factors `f⁻¹ g - 1` as `f⁻¹ (g - f)`.
+  have hconj (d : (Fin (Q E).rank → ℂ) →L[ℂ] (Fin (Q E).rank → ℂ)) :
+      T w (j, 1) w * f.inv.fiberMap w * T (j, 1) w w * (T w (j, 1) w * d * T (j, 1) w w) =
+        T w (j, 1) w * (f.inv.fiberMap w * d) * T (j, 1) w w := by
+    simp only [mul_assoc]
+    rw [← mul_assoc (T (j, 1) w w), hTT hwj hww, one_mul]
+  rw [Units.inv_mk, Units.val_mk, Units.val_mk, ← ContinuousLinearMap.mul_def,
+    show T w (j, 1) w * (f.inv.fiberMap w * (laurentHom N a).fiberMap w) * T (j, 1) w w - 1 =
+      T w (j, 1) w * f.inv.fiberMap w * T (j, 1) w w *
+        (T w (j, 1) w * (laurentHom N a).fiberMap w * T (j, 1) w w -
+          T w (j, 1) w * f.hom.fiberMap w * T (j, 1) w w) by
+      rw [mul_sub, hconj, hconj, hinv, mul_one, hTT hww hwj]]
   -- The Laurent family, at `w`, is the sum over the charts of its local pieces.
   set L : t → (Fin (Q E).rank → ℂ) →L[ℂ] (Fin (Q E).rank → ℂ) :=
     fun k ↦ ∑ i ∈ Icc (-(N : ℤ)) N, (w.2 : ℂ) ^ i • c i w.1 k with hL
@@ -288,6 +284,35 @@ theorem exists_norm_conj_laurentHom_lt_one (f : (Q E) ≅ (Q E)) :
     _ ≤ C₂ * (C₁ ^ 2 * ε) :=
         mul_le_mul (hfinv ▸ hC₂b j w hxj) hdiff (norm_nonneg _) hC₂.le
     _ < 1 := hlt
+
+/-- **Laurent clutching functions.** For `X` compact Hausdorff, every automorphism `f` of the
+pullback of `E` to `X × Circle` gives the same clutching, up to isomorphism, as an automorphism
+`g` whose underlying morphism is a Laurent family `laurentHom N a`, with fibre map
+`∑_{|i| ≤ N} u ^ i • (a i).fiberMap x` at `(x, u)`. -/
+theorem exists_iso_clutching_laurentHom (f : (Q E) ≅ (Q E)) :
+    ∃ (N : ℕ) (a : ℤ → (E ⟶ E)) (g : (Q E) ≅ (Q E)), g.hom = laurentHom N a ∧
+      Nonempty (E.clutching f ≅ E.clutching g) := by
+  obtain ⟨N, a, h⟩ := exists_norm_conj_laurentHom_lt_one f
+  have : IsIso (laurentHom N a) := by
+    refine (isIso_iff_bijective _).2 fun w ↦ ?_
+    obtain ⟨U, hU⟩ := h w
+    -- The fibre map of `f` at `w`, as a unit of the ring of endomorphisms of the fibre.
+    let b : ((Fin (Q E).rank → ℂ) →L[ℂ] (Fin (Q E).rank → ℂ))ˣ :=
+      ⟨f.hom.fiberMap w, f.inv.fiberMap w,
+        by rw [ContinuousLinearMap.mul_def, ← fiberMap_comp, f.inv_hom_id, fiberMap_id,
+          ContinuousLinearMap.one_def],
+        by rw [ContinuousLinearMap.mul_def, ← fiberMap_comp, f.hom_inv_id, fiberMap_id,
+          ContinuousLinearMap.one_def]⟩
+    rw [← ContinuousLinearMap.mul_def] at hU
+    have hunit := b.isUnit_one_sub_smul_add_smul_of_norm_conj_lt_one U hU (s := (1 : ℂ))
+      (by simp)
+    have hg : (1 - (1 : ℂ)) • (b : (Fin (Q E).rank → ℂ) →L[ℂ] (Fin (Q E).rank → ℂ)) +
+        (1 : ℂ) • (laurentHom N a).fiberMap w = (laurentHom N a).fiberMap w := by
+      ext v
+      simp
+    rw [hg] at hunit
+    exact (ContinuousLinearEquiv.unitsEquiv ℂ _ hunit.unit).bijective
+  exact ⟨N, a, asIso (laurentHom N a), rfl, nonempty_iso_clutching_of_norm_conj_lt_one h⟩
 
 end TauCeti.FiniteRankBundleCore
 

@@ -35,6 +35,12 @@ other are homotopic.
 * `TauCeti.FiniteRankBundleCore.nonempty_iso_clutching_of_norm_lt_one`: nearby clutching
   functions give isomorphic clutchings.
 
+The fibre maps are read in the chart of `E` at each point. Since invertibility does not depend on
+the chart, `TauCeti.FiniteRankBundleCore.isIso_segmentHom_of_conj` and
+`TauCeti.FiniteRankBundleCore.nonempty_iso_clutching_of_norm_conj_lt_one` only ask the estimate
+after a change of coordinates `U` at each point, `‖U⁻¹ f₀⁻¹ f₁ U - 1‖ < 1`; this lets it be
+checked in finitely many charts of a compact base.
+
 ## References
 
 * [A. Hatcher, *Vector Bundles and K-Theory*][Hatcher2017], §2.1 (clutching functions over
