@@ -21,9 +21,12 @@ It agrees with `f` on `unitInterval × M`, is linear in `f`, commutes with linea
 its value at a point of `M` depends only on the values of `f` at that point; in particular it
 vanishes at every time at a point where `f` vanishes at every time.
 
-The main result is that on a boundaryless manifold `M` the extension of a map smooth on
-`univ ×ˢ U`, for `U` open in `M`, is smooth on `univ ×ˢ U`. It is read in a chart of `M`,
-where it is `contDiffOn_seeleyIccExtend`; the time coordinate needs only `projIcc`.
+The main result is that the extension of a map smooth on `univ ×ˢ U`, for `U` open in `M`, is
+smooth on `univ ×ˢ U`, also when `M` has boundary. It is read in a chart of `M`, whose target
+is the range of the model, which is convex, cut by an open set; there it is
+`contDiffOn_seeleyIccExtend_of_convex`. The time coordinate needs only `projIcc`. For
+`M = unitInterval × N` this extends a smooth map on `unitInterval × (unitInterval × N)` in the
+first interval variable to one smooth on `ℝ × (unitInterval × N)`.
 
 ## Main definitions
 
@@ -38,7 +41,8 @@ where it is `contDiffOn_seeleyIccExtend`; the time coordinate needs only `projIc
   `f` at the image under `g` of the point of space.
 * `SymplecticGeometry.timeExtend_eq_zero`: the extension vanishes at a point where `f` vanishes
   at every time.
-* `ContMDiffOn.timeExtend`, `ContMDiff.timeExtend`: the extension of a smooth map is smooth.
+* `ContMDiffOn.timeExtend`, `ContMDiff.timeExtend`: the extension of a smooth map is smooth, on
+  any manifold `M`, with or without boundary.
 * `Continuous.exists_Icc_prod_extChartAt`: for a continuous `f : unitInterval × M → N`, a
   neighbourhood `[a, b] × U` of a point, read in the chart at a point of `M`, that `f` maps into
   the chart at the image point.
@@ -144,40 +148,55 @@ theorem _root_.ContMDiffOn.comp_projIcc_extChartAt_symm {E' H' N : Type*}
         contDiff_snd.contMDiff.contMDiffOn fun q (hq : q ∈ Icc a b ×ˢ V) ↦ (hV _ hq.2).1))
     fun _ hq ↦ ⟨trivial, (hV _ hq.2).2⟩
 
-/-- On a boundaryless manifold, the time extension of a map that is smooth on `univ ×ˢ U`, for
-an open `U`, is smooth on `univ ×ˢ U`. -/
-theorem _root_.ContMDiffOn.timeExtend [IsManifold I ∞ M] [BoundarylessManifold I M]
-    {f : unitInterval × M → F} {U : Set M} (hU : IsOpen U)
-    (hf : ContMDiffOn ((𝓡∂ 1).prod I) 𝓘(ℝ, F) ∞ f (univ ×ˢ U)) :
+/-- The time extension of a map that is smooth on `univ ×ˢ U`, for an open `U`, is smooth on
+`univ ×ˢ U`. The manifold `M` may have boundary. -/
+theorem _root_.ContMDiffOn.timeExtend [IsManifold I ∞ M] {f : unitInterval × M → F} {U : Set M}
+    (hU : IsOpen U) (hf : ContMDiffOn ((𝓡∂ 1).prod I) 𝓘(ℝ, F) ∞ f (univ ×ˢ U)) :
     ContMDiffOn (𝓘(ℝ, ℝ).prod I) 𝓘(ℝ, F) ∞ (timeExtend f) (univ ×ˢ U) := by
   refine contMDiffOn_of_locally_contMDiffOn fun z hz ↦ ?_
   set φ := extChartAt I z.2
-  -- The points of the chart's interior whose preimage lies in `U`, and their preimage.
-  set V : Set E := interior φ.target ∩ φ.symm ⁻¹' U
-  have hV : IsOpen V := ((continuousOn_extChartAt_symm z.2).mono interior_subset)
-    |>.isOpen_inter_preimage isOpen_interior hU
-  set W : Set M := φ.source ∩ φ ⁻¹' V
-  have hW : IsOpen W := isOpen_extChartAt_preimage' z.2 hV
-  have hzW : z.2 ∈ W := ⟨mem_extChartAt_source z.2,
-    (I.isInteriorPoint_iff).1 BoundarylessManifold.isInteriorPoint,
-    by simpa [φ, extChartAt_to_inv] using hz.2⟩
+  -- The chart's target is `range I ∩ T` for an open `T`, and the points of the target whose
+  -- preimage lies in `U` are those of an open `O`.
+  set T : Set E := I.symm ⁻¹' (chartAt H z.2).target
+  have hT : IsOpen T := (chartAt H z.2).open_target.preimage I.continuous_symm
+  have hφT : φ.target = range I ∩ T := by rw [extChartAt_target (I := I), inter_comm]
+  obtain ⟨O, hO, hOU⟩ := continuousOn_iff'.1 (continuousOn_extChartAt_symm (I := I) z.2) U hU
+  set V : Set E := range I ∩ (T ∩ O)
+  have hV : ∀ u ∈ V, u ∈ φ.target ∧ φ.symm u ∈ U := fun u hu ↦ by
+    have hu' : u ∈ φ.target := by rw [hφT]; exact ⟨hu.1, hu.2.1⟩
+    have : u ∈ O ∩ φ.target := ⟨hu.2.2, hu'⟩
+    rw [← hOU] at this
+    exact ⟨hu', this.1⟩
+  set W : Set M := φ.source ∩ φ ⁻¹' O
+  have hW : IsOpen W := isOpen_extChartAt_preimage' z.2 hO
+  have hzW : z.2 ∈ W := by
+    have : φ z.2 ∈ φ.symm ⁻¹' U ∩ φ.target :=
+      ⟨by simpa [φ, extChartAt_to_inv] using hz.2, mem_extChartAt_target z.2⟩
+    rw [hOU] at this
+    exact ⟨mem_extChartAt_source z.2, this.1⟩
   -- `f` read in the chart.
   set g : ℝ × E → F := fun q ↦ f (projIcc 0 1 zero_le_one q.1, φ.symm q.2)
-  have hg : ContDiffOn ℝ ∞ g (Icc 0 1 ×ˢ V) := contMDiffOn_iff_contDiffOn.1 <|
-    hf.comp_projIcc_extChartAt_symm subset_rfl fun _ hu ↦ ⟨interior_subset hu.1, hu.2⟩
-  have hext := (contMDiffOn_iff_contDiffOn.2 (contDiffOn_seeleyIccExtend hV hg))
+  have hg : ContDiffOn ℝ ∞ g (Icc 0 1 ×ˢ V) :=
+    contMDiffOn_iff_contDiffOn.1 <| hf.comp_projIcc_extChartAt_symm subset_rfl hV
+  have hext := contMDiffOn_iff_contDiffOn.2
+    (contDiffOn_seeleyIccExtend_of_convex I.convex_range I.uniqueDiffOn (hT.inter hO) hg)
   have hφ : ContMDiffOn (𝓘(ℝ, ℝ).prod I) 𝓘(ℝ, ℝ × E) ∞ (fun p : ℝ × M ↦ (p.1, φ p.2))
       (univ ×ˢ W) :=
     contMDiffOn_fst.prodMk_space ((contMDiffOn_extChartAt (x := z.2)).comp contMDiffOn_snd
       fun p hp ↦ by simpa [φ] using hp.2.1)
+  have hφV : ∀ p : ℝ × M, p ∈ univ ×ˢ W → (p.1, φ p.2) ∈ univ ×ˢ V := fun p hp ↦ by
+    have ht : φ p.2 ∈ range I ∩ T := by rw [← hφT]; exact φ.map_source hp.2.1
+    exact ⟨trivial, ht.1, ht.2, hp.2.2⟩
   refine ⟨univ ×ˢ W, isOpen_univ.prod hW, ⟨trivial, hzW⟩, ?_⟩
-  refine ((hext.comp hφ fun p hp ↦ ⟨trivial, hp.2.2⟩).mono inter_subset_right).congr ?_
+  refine ((hext.comp hφ hφV).mono inter_subset_right).congr ?_
   intro p hp
   simp only [timeExtend_def, Function.comp_apply, g, φ.left_inv hp.2.2.1]
 
-/-- On a boundaryless manifold, the time extension of a smooth map is smooth. -/
-theorem _root_.ContMDiff.timeExtend [IsManifold I ∞ M] [BoundarylessManifold I M]
-    {f : unitInterval × M → F} (hf : ContMDiff ((𝓡∂ 1).prod I) 𝓘(ℝ, F) ∞ f) :
+/-- The time extension of a smooth map is smooth. The manifold `M` may have boundary; for
+instance, for `M = unitInterval × N`, this extends a smooth map on
+`unitInterval × (unitInterval × N)` to one smooth on `ℝ × (unitInterval × N)`. -/
+theorem _root_.ContMDiff.timeExtend [IsManifold I ∞ M] {f : unitInterval × M → F}
+    (hf : ContMDiff ((𝓡∂ 1).prod I) 𝓘(ℝ, F) ∞ f) :
     ContMDiff (𝓘(ℝ, ℝ).prod I) 𝓘(ℝ, F) ∞ (timeExtend f) := by
   rw [← contMDiffOn_univ, ← univ_prod_univ] at hf ⊢
   exact hf.timeExtend isOpen_univ
