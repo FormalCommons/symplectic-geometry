@@ -824,8 +824,9 @@ of the topological support of `ρ`. Then the time-one map of the cut-off Moser f
 (`SymplecticGeometry.prodIccMoserField`) pulls `ω̃₀ + dσ̃` back to `ω̃₀` at every point `(x, t)`
 with `t ∈ [a, b]`. -/
 theorem mpullback_timeDependentFlowOf_prodIccMoserField_apply
-    [FiniteDimensional ℝ EB] [T2Space (ManifoldTotalSpace Circle P)] (h₀ : IsCouplingForm ω₀ τ)
-    (h₁ : IsCouplingForm ω₁ τ) {ρ : ℝ × (ManifoldTotalSpace Circle P × ℝ) → ℝ}
+    [IB.Boundaryless] [FiniteDimensional ℝ EB] [T2Space (ManifoldTotalSpace Circle P)]
+    (h₀ : IsCouplingForm ω₀ τ) (h₁ : IsCouplingForm ω₁ τ)
+    {ρ : ℝ × (ManifoldTotalSpace Circle P × ℝ) → ℝ}
     (hρ : ContMDiff (𝓘(ℝ, ℝ).prod ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ))) 𝓘(ℝ) ∞ ρ)
     (hρc : HasCompactSupport ρ) (hρ1 : ∀ᶠ p in 𝓝ˢ (Icc 0 1 ×ˢ (univ ×ˢ Icc a b)), ρ p = 1)
     (hnd : ∀ p ∈ tsupport ρ,
