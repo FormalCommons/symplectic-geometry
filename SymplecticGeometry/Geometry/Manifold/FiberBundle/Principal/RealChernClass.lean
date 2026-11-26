@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connect
 public import TauCeti.Geometry.Manifold.DeRham.Basic
 public import TauCeti.Geometry.Manifold.DeRham.Map
 import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
+import SymplecticGeometry.Geometry.Manifold.GroupAction.Opens
 
 /-!
 # The real first Chern class of a principal circle bundle
@@ -154,9 +155,7 @@ theorem IsCircleConnectionForm.mpullback (hα : IsCircleConnectionForm α)
     (hΦ : ContMDiff (IB'.prod (𝓡 1)) (IB.prod (𝓡 1)) ∞ Φ)
     (hΦz : ∀ (z : Circle) (q : ManifoldTotalSpace Circle Q), Φ (op z • q) = op z • Φ q) :
     IsCircleConnectionForm (SmoothForm.mpullback Φ hΦ α) where
-  mpullback_op_smul z := by
-    rw [SmoothForm.mpullback_mpullback_of_comp_eq _ hΦ hΦ (contMDiff_const_smul (op z))
-      (funext fun q ↦ hΦz z q), hα.mpullback_op_smul]
+  mpullback_op_smul z := SmoothForm.mpullback_smul_mpullback hΦ (hΦz z) (hα.mpullback_op_smul z)
   apply_rightFundamentalVectorField q := by
     rw [SmoothForm.mpullback_apply_one,
       mfderiv_rightFundamentalVectorField_of_map_op_smul ((hΦ q).mdifferentiableAt (by simp))

@@ -13,6 +13,7 @@ import SymplecticGeometry.Geometry.Manifold.GroupAction.BoundarylessModel
 import SymplecticGeometry.Geometry.Manifold.DeRham.Map
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 import SymplecticGeometry.Geometry.Manifold.GroupAction.Opens
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # Averaging closed one-forms over a connected group
@@ -204,7 +205,7 @@ theorem exists_invariant_sub_mem_exactForms_one [FiniteDimensional ℝ E] [Finit
   · -- The map `Φ` is equivariant, and the average is invariant.
     have : ContMDiffConstSMul I ∞ G M := ContMDiffSMul.contMDiffConstSMul J
     exact mpullback_smul_mpullback Φ.contMDiff (BoundarylessModel.interiorDiffeomorph_smul I ∞ g)
-      (Subtype.ext (by rw [coe_mpullback, mpullback_smul_measureAverage J μ β g]))
+      ((mpullback_eq_iff _).2 (mpullback_smul_measureAverage J μ β g))
   · -- The difference is the pullback of the exact form `avg β - β`.
     have h := closedForms.mpullback_mem_exactForms Φ Φ.contMDiff 1
       ⟨_, sub_mem hβ' hβ⟩ (measureAverage_sub_mem_exactForms_one J μ hβ)

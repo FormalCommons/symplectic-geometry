@@ -76,6 +76,8 @@ normed spaces with their own models, `𝓘(ℝ, E₁ × E₂)` is not syntactica
 * `TauCeti.mpullback_fun_smul_eq_self`: a form multiplied by a function `ρ` is invariant under a
   map that preserves `ρ`, if the form is so where `ρ` does not vanish.
 * `TauCeti.mpullback_neg`: the pullback of `-φ` is minus the pullback of `φ`.
+* `TauCeti.SmoothForm.mpullback_eq_iff`: an equation `f^* φ = ψ` of smooth forms is the same
+  equation of their underlying rough forms.
 * `TauCeti.SmoothForm.diffeomorphStabilizer_neg`: a diffeomorphism preserves `-σ` exactly when
   it preserves `σ`.
 * `TauCeti.mextDeriv_ofFunction_add_apply`, `TauCeti.mextDeriv_ofFunction_sub_apply`:
@@ -243,6 +245,13 @@ theorem mpullback_comp_prodMk_apply_modelSpace {E₁ E₂ : Type*} [NormedAddCom
 namespace SmoothForm
 
 variable [IsManifold I 1 M] [IsManifold I' 1 M']
+
+/-- The smooth pullback of `φ` along `f` is the smooth form `ψ` exactly when the rough pullback
+of the rough form underlying `φ` is the rough form underlying `ψ`. -/
+theorem mpullback_eq_iff {f : M → M'} (hf : ContMDiff I I' ∞ f) {φ : SmoothForm I' M' F k}
+    {ψ : SmoothForm I M F k} :
+    mpullback f hf φ = ψ ↔ TauCeti.mpullback (F := F) I I' f φ.val = ψ.val := by
+  rw [← coe_mpullback _ hf, Subtype.ext_iff]
 
 /-- A diffeomorphism preserves `-σ` exactly when it preserves `σ`. -/
 @[simp]

@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Manifold.Algebra.SMul
 public import SymplecticGeometry.Geometry.Symplectic.Moser.Relative
 import TauCeti.Geometry.Symplectic.Hamiltonian.CanonicalTransformation
 import SymplecticGeometry.Geometry.Manifold.GroupAction.Opens
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.GroupAction.InvariantPrimitive
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
@@ -347,7 +348,7 @@ private theorem exists_partialDiffeomorph_invariantCore_of_eq_along [ContinuousS
         (SmoothForm.mpullback (Subtype.val : W.invariantCore G → M) contMDiff_subtypeVal σ) =
       SmoothForm.mpullback (Subtype.val : W.invariantCore G → M) contMDiff_subtypeVal σ :=
     SmoothForm.mpullback_smul_mpullback_subtypeVal Opens.coe_smul_invariantCore
-      (Subtype.ext ((SmoothForm.coe_mpullback _ _ _).trans (hσ g)))
+      ((SmoothForm.mpullback_eq_iff _).2 (hσ g))
   -- The average `γ` of `β` over `G` is an invariant primitive, still vanishing with its first jet
   -- along the invariant set `f(Q)`.
   set γ := SmoothForm.measureAverage IG (haarProb G) β
