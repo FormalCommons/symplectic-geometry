@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Basic
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
+import SymplecticGeometry.Geometry.Manifold.DeRham.Map
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
 public import TauCeti.Topology.CWComplex.Classical.CWType
 import SymplecticGeometry.AlgebraicTopology.Homotopy.Domination
@@ -44,6 +45,8 @@ through the linear equivalence `Bundle.ContMDiffTwoForm.tangentEquiv` with Tau C
   identity it is the identity.
 * `cwType_nondegenerateForms`: when a smooth isotopy from the identity of `M` ends at a map
   `j` whose image has compact closure, the space of nondegenerate forms has CW type.
+* `cwType_symplecticFormsInClass`: under the same hypothesis, for a closed two-form `α`, the
+  space of symplectic forms in the class of `α` has CW type.
 
 ## Implementation notes
 
@@ -61,6 +64,13 @@ nondegenerate at `x`. The set `O` is open in the frame topology, which is metriz
 convex, so `O` has CW type by `Convex.cwType_inter`, and `TauCeti.CWType.of_comp_homotopic_id`
 concludes. Metrizability uses that `M` is second countable, as `j` embeds it into the compact
 set `K` (`Topology.IsInducing.secondCountableTopology_of_isCompact_closure`).
+
+`cwType_symplecticFormsInClass` runs the same argument inside the convex set `C` of forms `σ`
+with `tangentEquiv σ - α` exact, a translate of the subspace of exact forms. Its forms are closed,
+as `α` is, so the slices of the isotopy pull them back to closed forms, and to forms in the same
+class, by homotopy invariance along the reparametrised isotopy
+(`TauCeti.SmoothForm.mpullback_sub_mpullback_timeSlice_mem_exactForms`). Hence the retraction and
+the homotopy stay among the symplectic forms in the class of `α`.
 
 ## References
 
@@ -223,6 +233,93 @@ theorem cwType_nondegenerateForms (hcover : ∀ x, ∃ i, x ∈ U i) {j : C^∞�
   refine TauCeti.CWType.of_comp_homotopic_id (i := i) (r := r) ⟨{
     toFun := fun q ↦ ⟨P (q.2, unitInterval.symm q.1), ContMDiffTwoForm.isNondegenerate_def.2
       fun _ ↦ hnd (q.2.property.nondegenerate_bilinFormAt _)⟩
+    continuous_toFun := (hP.comp ((continuous_subtypeVal.comp continuous_snd).prodMk
+      (unitInterval.continuous_symm.comp continuous_fst))).subtype_mk _
+    map_zero_left := fun σ ↦ by simp [i, r]
+    map_one_left := fun σ ↦ Subtype.ext (by
+      simpa [P] using ContMDiffTwoForm.tangentEquiv_symm_mpullback_timeSlice_zero h σ) }⟩
+
+/-- Let `M` compress into a compact set: some smooth isotopy `h` from the identity of `M` ends
+at a map `j` whose image has compact closure. Then, for a closed two-form `α`, the space of
+symplectic forms in the class of `α`, in the frame topology of a covering frame system, has
+CW type.
+
+Some hypothesis of this kind is needed. For `M` a disjoint union of countably many copies of
+`ℝ²ⁿ` with `n ≥ 1`, and `α = 0`, the signs of `ωⁿ` at the origins of the copies retract this
+space continuously onto the Cantor set `{±1}^ℕ`, which no space of CW type does, as for
+`cwType_nondegenerateForms`. -/
+theorem cwType_symplecticFormsInClass (hcover : ∀ x, ∃ i, x ∈ U i)
+    {α : TauCeti.SmoothTwoForm I M} (hα : α ∈ TauCeti.closedForms I M 2) {j : C^∞⟮I, M; I, M⟯}
+    (h : TauCeti.SmoothIsotopy (ContMDiffMap.id) j) (hj : IsCompact (closure (Set.range j))) :
+    let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e U hU
+    TauCeti.CWType (symplecticFormsInClass α) := by
+  let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e U hU
+  have := ContMDiffSection.isTopologicalAddGroup_frameTopology (I := I)
+    (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e U hU
+  have := ContMDiffSection.continuousSMul_frameTopology (𝕜 := ℝ) (I := I)
+    (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e U hU
+  have := ContMDiffSection.locallyConvexSpace_frameTopology (I := I)
+    (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e U hU
+  have : SecondCountableTopology H := I.secondCountableTopology
+  have : SecondCountableTopology M :=
+    h.isSmoothEmbedding_right.isEmbedding.isInducing.secondCountableTopology_of_isCompact_closure
+      (H := H) hj
+  have := ContMDiffSection.metrizableSpace_frameTopology (I := I)
+    (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e U hU hcover
+  -- The pull-back along the slice of `h` at time `t`.
+  let P : ContMDiffTwoForm I ⊤ E (TangentSpace I (M := M)) × unitInterval →
+      ContMDiffTwoForm I ⊤ E (TangentSpace I (M := M)) := fun q ↦
+    ContMDiffTwoForm.tangentEquiv.symm (TauCeti.SmoothForm.mpullback (h.timeSlice q.2)
+      (h.timeSlice q.2).contMDiff (ContMDiffTwoForm.tangentEquiv q.1))
+  have hP : Continuous P :=
+    ContMDiffTwoForm.continuous_tangentEquiv_symm_mpullback e U hU e U hU h hcover
+  -- The forms whose Tau Ceti form lies in the class of `α`.
+  let C := {σ : ContMDiffTwoForm I ⊤ E (TangentSpace I (M := M)) |
+    ContMDiffTwoForm.tangentEquiv σ - α ∈ TauCeti.exactForms I M 2}
+  have hC : Convex ℝ C := by
+    intro σ hσ τ hτ a b _ _ hab
+    have : ContMDiffTwoForm.tangentEquiv (a • σ + b • τ) - α =
+        a • (ContMDiffTwoForm.tangentEquiv σ - α) + b • (ContMDiffTwoForm.tangentEquiv τ - α) := by
+      rw [map_add, map_smul, map_smul, smul_sub, smul_sub, sub_add_sub_comm, ← add_smul, hab,
+        one_smul]
+    simpa only [C, Set.mem_ofPred_eq, this] using
+      add_mem (Submodule.smul_mem _ a hσ) (Submodule.smul_mem _ b hτ)
+  -- The slices of `h` keep `C` and pull forms nondegenerate on their image back to symplectic
+  -- forms.
+  have hmem {σ : ContMDiffTwoForm I ⊤ E (TangentSpace I (M := M))} (hσ : σ ∈ C)
+      {t : unitInterval} (hnd : ∀ x, (σ.bilinFormAt (h (t, x))).Nondegenerate) :
+      P (σ, t) ∈ symplecticFormsInClass α := by
+    have hcl : ContMDiffTwoForm.tangentEquiv σ ∈ TauCeti.closedForms I M 2 := by
+      simpa using add_mem (TauCeti.exactForms_le_closedForms I 2 hσ) hα
+    have hex := TauCeti.SmoothForm.mpullback_sub_mpullback_timeSlice_mem_exactForms h t hcl
+    rw [TauCeti.SmoothForm.mpullback_congr _ contMDiff_id (funext ContMDiffMap.id_apply),
+      TauCeti.SmoothForm.mpullback_id, LinearMap.id_apply] at hex
+    simp only [P, mem_symplecticFormsInClass, LinearEquiv.apply_symm_apply]
+    refine ⟨⟨(TauCeti.SmoothForm.isClosed_iff_mem_closedForms _).2
+      (TauCeti.SmoothForm.mpullback_mem_closedForms _ _ hcl), ?_⟩, ?_⟩
+    · rw [← LinearEquiv.apply_symm_apply ContMDiffTwoForm.tangentEquiv
+        (TauCeti.SmoothForm.mpullback _ _ _), ContMDiffTwoForm.isNondegenerate_tangentEquiv_iff]
+      exact ContMDiffTwoForm.isNondegenerate_def.2 fun x ↦
+        ContMDiffTwoForm.nondegenerate_bilinFormAt_tangentEquiv_symm_mpullback_timeSlice h
+          (hnd x)
+    · simpa using sub_mem hσ hex
+  let K := closure (Set.range j)
+  let O := C ∩
+    {σ : ContMDiffTwoForm I ⊤ E (TangentSpace I (M := M)) |
+      ∀ x ∈ K, (σ.bilinFormAt x).Nondegenerate}
+  have : TauCeti.CWType O := Convex.cwType_inter hC
+    (ContMDiffTwoForm.isOpen_setOf_forall_mem_nondegenerate e U hU hcover hj)
+  let i : C(symplecticFormsInClass α, O) :=
+    ⟨fun σ ↦ ⟨σ, σ.property.2, fun x _ ↦
+      (symplecticFormsInClass_subset_nondegenerateForms α σ.property).nondegenerate_bilinFormAt
+        x⟩, by fun_prop⟩
+  let r : C(O, symplecticFormsInClass α) :=
+    ⟨fun σ ↦ ⟨P (σ, 1), hmem σ.property.1 fun x ↦ σ.property.2 _ (subset_closure ⟨x, by simp⟩)⟩,
+      (hP.comp (continuous_subtypeVal.prodMk continuous_const)).subtype_mk _⟩
+  refine TauCeti.CWType.of_comp_homotopic_id (i := i) (r := r) ⟨{
+    toFun := fun q ↦ ⟨P (q.2, unitInterval.symm q.1), hmem q.2.property.2 fun _ ↦
+      (symplecticFormsInClass_subset_nondegenerateForms α
+        q.2.property).nondegenerate_bilinFormAt _⟩
     continuous_toFun := (hP.comp ((continuous_subtypeVal.comp continuous_snd).prodMk
       (unitInterval.continuous_symm.comp continuous_fst))).subtype_mk _
     map_zero_left := fun σ ↦ by simp [i, r]
