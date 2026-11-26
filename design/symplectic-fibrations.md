@@ -300,7 +300,7 @@ parallel transport. About 550 lines.
   vertical pair, the value of the fibre form, and
   `Σ_i d(ρ i ∘ π) = d(Σ_i ρ i ∘ π) = d 1 = 0`, so the sum vanishes. This is
   where the structure-group hypothesis is used. Also
-  `convex_setOf_restrictsTo_isVerticallyClosed`.
+  `convex_setOfPred_restrictsTo_isVerticallyClosed`.
 
 ### `Geometry/Symplectic/Fibration/Connection.lean`
 

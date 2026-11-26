@@ -213,7 +213,7 @@ theorem cwType_nondegenerateForms (hcover : ∀ x, ∃ i, x ∈ U i) {j : C^∞�
     {σ : ContMDiffTwoForm I ⊤ E (TangentSpace I (M := M)) |
       ∀ x ∈ K, (σ.bilinFormAt x).Nondegenerate}
   have : TauCeti.CWType O := Convex.cwType_inter convex_univ
-    (ContMDiffTwoForm.isOpen_setOf_forall_mem_nondegenerate e U hU hcover hj)
+    (ContMDiffTwoForm.isOpen_setOfPred_forall_mem_nondegenerate e U hU hcover hj)
   let i : C(nondegenerateForms I M, O) :=
     ⟨fun σ ↦ ⟨σ, trivial, fun x _ ↦ σ.property.nondegenerate_bilinFormAt x⟩, by fun_prop⟩
   let r : C(O, nondegenerateForms I M) :=

@@ -24,7 +24,7 @@ zero `y`, the complex lines through `c` that meet the zero set near `c`.
 * `MvPolynomial.setAverage_log_norm_eval_sub_ge_of_dist_lt` (change of centre): let `K` be at
   least `2 * (2 * m + (2 * m + 4 ^ m) * 4 ^ m)`, where `m = card ι`. If `P y = 0` and
   `dist c y < a`, then with `ρ₁ = K * D * a`, `log 4 / 2 ≤ V c (4 * ρ₁) - V c ρ₁`.
-* `MvPolynomial.volume_ball_le_mul_volume_setOf_exists_root`: under the same hypotheses, the
+* `MvPolynomial.volume_ball_le_mul_volume_setOfPred_exists_root`: under the same hypotheses, the
   directions `v` in the unit ball for which `P` vanishes at some `c + s • v` with
   `‖s‖ < 4 * ρ₁` have at least `1 / (2 * D)` of the volume of the unit ball.
 
@@ -218,8 +218,8 @@ theorem setAverage_log_norm_eval_sub_ge_of_dist_lt {P : MvPolynomial ι ℂ} (hP
 `MvPolynomial.setAverage_log_norm_eval_sub_ge_of_dist_lt`, the volume of the unit ball of
 `EuclideanSpace ℂ ι` is at most `2 * D` times that of the set of `v` in it for which `P` vanishes
 at some `c + s • v` with `‖s‖ < 4 * (K * D * a)`. -/
-theorem volume_ball_le_mul_volume_setOf_exists_root {P : MvPolynomial ι ℂ} (hP : P ≠ 0) {D : ℕ}
-    (hD : P.totalDegree ≤ D) {K : ℝ}
+theorem volume_ball_le_mul_volume_setOfPred_exists_root {P : MvPolynomial ι ℂ}
+    (hP : P ≠ 0) {D : ℕ} (hD : P.totalDegree ≤ D) {K : ℝ}
     (hK : 2 * (2 * Fintype.card ι + (2 * Fintype.card ι + 4 ^ Fintype.card ι) *
       4 ^ Fintype.card ι) ≤ K)
     {y c : EuclideanSpace ℂ ι} (hy : eval y.ofLp P = 0) {a : ℝ} (hc : dist c y < a) :

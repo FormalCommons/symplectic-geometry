@@ -536,7 +536,7 @@ and the prerequisites, placed by topic.
   `volume_setOfPred_exists_add_smul_mem_le`), and in `AlgebraicTube.lean`, before
   `volume_thickening_zeroLocus_le`, step 4
   (`MvPolynomial.setAverage_log_norm_eval_sub_ge_of_dist_lt` and
-  `MvPolynomial.volume_ball_le_mul_volume_setOf_exists_root`) and the bound
+  `MvPolynomial.volume_ball_le_mul_volume_setOfPred_exists_root`) and the bound
   `MvPolynomial.volume_thickening_zeroLocus_le_pow_four_mul_sq`
   ($C_mD^4t^2$), from which `volume_thickening_zeroLocus_le` follows.
 
