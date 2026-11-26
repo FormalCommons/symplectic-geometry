@@ -112,8 +112,8 @@ theorem evalFundamentalClass_id_bijective' [ConnectedSpace N] (L : ModuleCat.{0}
     (o.bijective_singularCapAddHom_fundamentalClass hn L n 0 (add_zero n))
   convert h using 1
   funext c
-  rw [Function.comp_apply, TopCat.singularCapAddHom_apply]
-  exact o.evalFundamentalClass_id_eq_singularHomology₀ε hn L c
+  exact (o.evalFundamentalClass_id_eq_singularHomology₀ε hn L c).trans
+    (congrArg _ (TopCat.singularCapAddHom_apply ..).symm)
 
 /-- **Classes of top degree are determined by their evaluation on the fundamental class**: on a
 compact connected oriented `n`-manifold `N`, two classes of `Hⁿ(N; L)`, for any abelian group `L`,
