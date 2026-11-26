@@ -563,7 +563,7 @@ theorem profileForm_eq_blowupForm_on {l ε : ℝ} :
 derivative. -/
 theorem isClosed_correctionForm (l ε : ℝ) : (correctionForm n l ε).IsClosed := by
   rw [correctionForm_def]
-  exact (SmoothForm.isClosed_mextDerivₗ _).smul _
+  exact isClosed_potentialForm _ _
 
 /-- The form `ω̃_{l,ε}` is closed, as the sum of `ω̃_l` and the pull-back of a closed form. -/
 theorem isClosed_profileForm (l ε : ℝ) : (profileForm n l ε).IsClosed := by
