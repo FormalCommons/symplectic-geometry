@@ -35,7 +35,7 @@ its slices map `B(r)` onto itself (`Function.Bijective.image_eq_of_eq_self`).
 
 public section
 
-open Set Function Metric
+open Function Metric
 open scoped ContDiff Manifold
 
 namespace SymplecticGeometry
