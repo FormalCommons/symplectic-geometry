@@ -54,6 +54,9 @@ That `dΦ` carries fundamental vector fields to fundamental vector fields is Tau
   Proposition 5.1.9 (where the real first Chern class of a circle bundle appears).
 * [R. Bott, L. W. Tu, *Differential Forms in Algebraic Topology*][BottTu1982], §6 (the Euler
   class of a circle bundle as the class of the curvature of an angular form).
+* S. Kobayashi and K. Nomizu, *Foundations of Differential Geometry*, Vol. I, Interscience, 1963,
+  Chapter II, §6 (mappings of connections: the pull-back of a connection form along a
+  homomorphism of principal bundles, and of its curvature).
 -/
 
 public section
