@@ -59,8 +59,10 @@ the even integral cohomology ring `TopCat.EvenIntegralCohomology`, where `x` has
 definition of `chernClass` needs no hypothesis on `B`: where the Leray–Hirsch map in degree `2n`
 is not bijective, the classes of positive degree are `0`. The restriction of `x` to a fibre is
 computed by the naturality of the Euler class
-(`TauCeti.complexEulerClass_eq_singularCohomologyMap_of_fiberwise`), with the fibrewise
-isomorphisms `Projectivization.tautologicalMapEquiv`, as in `Projectivization.hyperplaneClass_map`.
+(`TauCeti.complexEulerClass_eq_singularCohomologyMap_of_fiberwise`), as in
+`Projectivization.hyperplaneClass_map`: the fibre inclusion acts on lines by Tau Ceti's
+`ContinuousLinearEquiv.mapProjectivization` of the trivialization, and the fibrewise isomorphisms
+of tautological lines are its restrictions `ContinuousLinearEquiv.ofSubmodules`.
 
 ## References
 
@@ -113,24 +115,23 @@ theorem singularCohomologyMap_fiberInclusionMap_projectiveBundleClass (b : B) :
   let := VectorBundle.continuousSMul ℂ G E b
   let := FiberBundle.t2Space G E b
   have hcont : Continuous fun ℓ : ℙ ℂ G ↦
-      (⟨b, Projectivization.map (L : G →ₗ[ℂ] E b) L.injective ℓ⟩ : ProjectiveBundle ℂ G E) := by
+      (⟨b, L.mapProjectivization ℓ⟩ : ProjectiveBundle ℂ G E) := by
     refine ((trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).fiberInclusionMap
       (mem_baseSet_trivializationAt _ _ b)).continuous.congr fun ℓ ↦ ?_
-    rw [Trivialization.fiberInclusionMap_apply, ProjectiveBundle.trivializationAt_symm_apply hb,
-      ContinuousLinearEquiv.coe_mapProjectivization]
+    rw [Trivialization.fiberInclusionMap_apply, ProjectiveBundle.trivializationAt_symm_apply hb]
   let g : C(ℙ ℂ G, ProjectiveBundle ℂ G E) := ⟨_, hcont⟩
   have hg : TopCat.ofHom ((trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).fiberInclusionMap
       (mem_baseSet_trivializationAt _ _ b)) = TopCat.ofHom g := by
     refine TopCat.ext fun ℓ ↦ ?_
     rw [ConcreteCategory.hom_ofHom, ConcreteCategory.hom_ofHom,
       Trivialization.fiberInclusionMap_apply, ProjectiveBundle.trivializationAt_symm_apply hb,
-      ContinuousLinearEquiv.coe_mapProjectivization]
-    -- The two sides differ only in the coercion of `L` to a linear map.
-    rfl
+      ContinuousMap.coe_mk]
   have h := complexEulerClass_eq_singularCohomologyMap_of_fiberwise (r := 0) (finrank_self ℂ)
     (finrank_self ℂ) (g := g) (E := ProjectiveBundle.Tautological ℂ G E)
     (E' := Projectivization.Tautological ℂ G)
-    (φ := Projectivization.tautologicalMapEquiv (L : G →ₗ[ℂ] E b) L.injective) ?_
+    (φ := fun ℓ ↦ L.ofSubmodules ℓ.submodule (L.mapProjectivization ℓ).submodule
+      (by rw [ContinuousLinearEquiv.coe_mapProjectivization, Projectivization.submodule_map]))
+    ?_
   · rw [hg, projectiveBundleClass_def, Projectivization.hyperplaneClass_def, map_neg, h]
     exact congrArg _ (TopCat.uliftIntegralCohomologyIso_naturality_apply _ 2 _).symm
   · refine ProjectiveBundle.continuous_totalSpace_tautological_iff.2
@@ -141,7 +142,7 @@ theorem singularCohomologyMap_fiberInclusionMap_projectiveBundleClass (b : B) :
     refine hs.congr fun v ↦ ?_
     have hL (w : G) : L w = e.symm b w := congrFun (e.continuousLinearEquivAt_symm_apply ℂ b hb) w
     exact congrArg (TotalSpace.mk' G b) ((hL _).symm.trans
-      (Projectivization.coe_tautologicalMapEquiv_apply _ L.injective v.proj v.snd).symm)
+      (L.ofSubmodules_apply _ v.snd).symm)
 
 /-! ### The Leray–Hirsch classes -/
 
