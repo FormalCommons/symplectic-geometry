@@ -366,12 +366,10 @@ Namespace `SymplecticGeometry`, for `M : Type` with `[TopologicalSpace M]
   `IsCompatible.gluedDiffeomorph` does not apply, since the lift is defined
   only over the source of `c' ∘ c.symm` and not on the whole second piece.
   `chartChange_inl`, `chartChange_inr`, `blowdown_chartChange`.
-- `Blowup.exists_diffeomorph_coe_eq_of_blowdown` (uniqueness): if `X` is a complex
-  manifold and `e : X ≃ Blowup c` is a bijection such that `blowdown ∘ e`
-  is holomorphic and biholomorphic off `e ⁻¹' Z`, and
-  `c.lift ∘ e` is a biholomorphism onto its image near `e ⁻¹' Z`, then `e`
-  is a biholomorphism. The hypotheses say that `e.symm ∘ inl` and
-  `e.symm ∘ inr` are local biholomorphisms, so `e` is Tau Ceti's
+- `Blowup.exists_diffeomorph_coe_eq_of_blowdown` (uniqueness, in
+  `Blowup/Uniqueness.lean`): if `X` is charted on `E` and `e : X ≃ Blowup c`
+  is a bijection such that `e.symm ∘ inl` and `e.symm ∘ inr` are local
+  biholomorphisms, then `e` is a biholomorphism, Tau Ceti's
   `TauCeti.diffeomorphOfForallIsLocalDiffeomorphEquiv`. This is the page's
   uniqueness of the structure, stated on structures carried by another type,
   so that no two instances meet on one type.
