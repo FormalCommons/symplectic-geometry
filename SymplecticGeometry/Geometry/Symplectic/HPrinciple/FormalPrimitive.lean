@@ -8,8 +8,7 @@ module
 public import Mathlib.Analysis.Calculus.DifferentialForm.Basic
 public import Mathlib.Analysis.Normed.Module.Alternating.Uncurry.Fin
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
-import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
-import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
+import TauCeti.Geometry.Manifold.ContMDiff.MFDeriv
 
 /-!
 # The formal primitive of a two-form
@@ -134,28 +133,15 @@ theorem contMDiff_formalPrimitive {τ : N → SmoothForm 𝓘(ℝ, E) E F 2}
     hτ.contMDiff_val
   -- The derivative in the point is smooth in the parameter and the point together.
   have hD : ContMDiff (J.prod 𝓘(ℝ, E)) 𝓘(ℝ, E →L[ℝ] E [⋀^Fin 1]→L[ℝ] F) ∞
-      fun p : N × E ↦ fderiv ℝ (b p.1) p.2 := by
-    intro p
-    have hf : ContMDiff ((J.prod 𝓘(ℝ, E)).prod 𝓘(ℝ, E)) 𝓘(ℝ, E [⋀^Fin 1]→L[ℝ] F) ∞
-        (Function.uncurry fun (q : N × E) (y : E) ↦ b q.1 y) :=
-      hb.comp ((contMDiff_fst.comp contMDiff_fst).prodMk contMDiff_snd)
-    have := ContMDiffAt.mfderiv (m := ∞) (n := ∞) (x₀ := p) _ Prod.snd (hf (p, p.2))
-      contMDiffAt_snd (by simp)
-    -- `inTangentCoordinates_model_space` is stated for maps `E →L[ℝ] E'`, and the derivatives
-    -- here are maps between tangent spaces, which are `E` and `E'` only definitionally.
-    erw [inTangentCoordinates_model_space] at this
-    simp only [mfderiv_eq_fderiv] at this
-    -- On normed spaces, `NormedSpace.fromTangentSpace` is the identity.
-    exact this
+      fun p : N × E ↦ fderiv ℝ (b p.1) p.2 :=
+    fun p ↦ (hb p).fderiv_right le_rfl
   -- The right inverse `a ↦ 2⁻¹ • curryLeft a` of the alternation is continuous linear.
   have hJ : ContMDiff 𝓘(ℝ, E [⋀^Fin 2]→L[ℝ] F) 𝓘(ℝ, E →L[ℝ] E [⋀^Fin 1]→L[ℝ] F) ∞
       fun a ↦ (2 : ℝ)⁻¹ • curryLeft (𝕜 := ℝ) (E := E) (F := F) (n := 1) a :=
     ContinuousLinearMap.contMDiff (𝕜 := ℝ) (E := E [⋀^Fin 2]→L[ℝ] F)
       (F := E →L[ℝ] E [⋀^Fin 1]→L[ℝ] F) (n := ∞)
       ((2 : ℝ)⁻¹ • (curryLeftLI (n := 1)).toContinuousLinearMap)
-  refine (hD.add (hJ.comp (hc.sub ((alternatizeUncurryFinCLM ℝ E F).contMDiff.comp hD)))).congr
-    fun p ↦ ?_
-  exact formalPrimitive_def _ _ _
+  exact hD.add (hJ.comp (hc.sub ((alternatizeUncurryFinCLM ℝ E F).contMDiff.comp hD)))
 
 end SymplecticGeometry
 
