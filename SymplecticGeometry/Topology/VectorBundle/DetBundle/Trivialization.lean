@@ -69,7 +69,7 @@ theorem continuousOn_pretrivialization (e : Trivialization F (π F E)) [e.IsLine
   have hdet : ContinuousOn (fun y : B × 𝕜 ↦ (t.coordChangeL 𝕜 e y.1 : F →L[𝕜] F).det)
       ((e.baseSet ∩ t.baseSet) ×ˢ univ) :=
     ContinuousLinearMap.continuous_det.comp_continuousOn
-      ((t.continuousOn_coordChangeL e).comp continuous_fst.continuousOn
+      ((t.continuousOn_coordChangeL 𝕜 e).comp continuous_fst.continuousOn
         fun y hy ↦ ⟨hy.1.2, hy.1.1⟩)
   refine (continuous_fst.continuousOn.prodMk (hdet.mul continuous_snd.continuousOn)).congr ?_
   rintro ⟨x, c⟩ ⟨⟨hx, hb⟩, -⟩
@@ -91,7 +91,7 @@ theorem continuousOn_pretrivialization_symm (e : Trivialization F (π F E)) [e.I
   have hdet : ContinuousOn (fun y : B × 𝕜 ↦ (e.coordChangeL 𝕜 b y.1 : F →L[𝕜] F).det)
       ((pretrivialization (𝕜 := 𝕜) e).target ∩ b.baseSet ×ˢ univ) :=
     ContinuousLinearMap.continuous_det.comp_continuousOn
-      ((e.continuousOn_coordChangeL b).comp continuous_fst.continuousOn
+      ((e.continuousOn_coordChangeL 𝕜 b).comp continuous_fst.continuousOn
         fun y hy ↦ ⟨pretrivialization_baseSet (𝕜 := 𝕜) e ▸
           (pretrivialization e).mem_target.1 hy.1, hy.2.1⟩)
   refine (t.continuousOn_symm.comp (continuous_fst.continuousOn.prodMk

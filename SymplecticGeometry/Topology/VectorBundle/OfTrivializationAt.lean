@@ -63,6 +63,6 @@ theorem VectorBundle.ofTrivializationAt {𝕜 B F : Type*} [NontriviallyNormedFi
     infer_instance
   · obtain ⟨x, rfl⟩ := mem h
     obtain ⟨y, rfl⟩ := mem h'
-    exact (e x).continuousOn_coordChangeL (e y)
+    exact (e x).continuousOn_coordChangeL 𝕜 (e y)
 
 end
