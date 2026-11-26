@@ -60,6 +60,9 @@ is why the file imports all of `TauCeti.AlgebraicTopology.Cohomology.IntegralCup
   states it on a class.
 * `TopCat.uliftIntegralCohomologyIso_singularCup`: `TopCat.uliftIntegralCohomologyIso` carries the
   cup product with values in `ULift ℤ` to `TopCat.integralCup`.
+* `TopCat.singularKronecker_uliftIntegralCohomologyIso_hom` and
+  `TopCat.singularKronecker_integralCohomologyOne`: Kronecker pairings after
+  `TopCat.uliftIntegralCohomologyIso`, and that of the unit class with zeroth homology.
 * `TopCat.integralCohomologyEquiv_apply` and `TopCat.integralCohomologyEquiv_symm_apply`: the
   values of Tau Ceti's `TopCat.integralCohomologyEquiv` and of its inverse.
 * `TopCat.integralCohomologyEquiv_symm_naturality` and
@@ -184,6 +187,25 @@ theorem uliftIntegralCohomologyIso_singularCup (p q n : ℕ) (h : p + q = n)
     uliftIntegralCohomologyIso_hom, integralCup_def]
   exact (X.singularCup_singularCohomologyValueMap ℤ integralCoeffComul
     uliftTensorSelfIso_hom_comp_uliftIntIso_hom.symm p q n h a b).symm
+
+/-- The Kronecker pairing of the image of a class `a` under `TopCat.uliftIntegralCohomologyIso` is
+the Kronecker pairing of `a` followed by `TauCeti.uliftIntIso : ULift ℤ ≅ ℤ`. -/
+@[reassoc]
+theorem singularKronecker_uliftIntegralCohomologyIso_hom (n : ℕ)
+    (a : X.singularCohomology (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ
+      (ModuleCat.of ℤ (ULift.{0} ℤ)) n) :
+    X.singularKronecker ℤ n ((X.uliftIntegralCohomologyIso n).hom a) =
+      X.singularKronecker ℤ n a ≫ uliftIntIso.hom := by
+  rw [uliftIntegralCohomologyIso_hom]
+  exact singularKronecker_coefficient_naturality X ℤ _ n a
+
+/-- The Kronecker pairing of the unit class `TopCat.integralCohomologyOne` with zeroth homology is
+the augmentation followed by `ULift ℤ ≃ ℤ`. -/
+@[simp, reassoc]
+theorem singularKronecker_integralCohomologyOne :
+    X.singularKronecker ℤ 0 X.integralCohomologyOne =
+      X.singularHomology₀ε _ ≫ ModuleCat.ofHom ULift.moduleEquiv.toLinearMap :=
+  singularKronecker_constSingularCocycle X ℤ _
 
 end ULift
 

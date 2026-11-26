@@ -6,9 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.LinearAlgebra.Alternating.Basic
+public import Mathlib.LinearAlgebra.Dimension.Finite
 
 /-!
-# Alternating maps of few vectors and on multiples of one vector
+# Alternating maps of few vectors, on multiples of one vector, and on small submodules
 
 An alternating map of one vector is determined by its values on the one-element families `![w]`
 (`AlternatingMap.ext_fin_one`), and one of two vectors by its values on the pairs `![v, w]`
@@ -18,6 +19,17 @@ instead of families `Fin 1 → M` or `Fin 2 → M`.
 An alternating map vanishes on a family two of whose members are multiples of the same vector
 (`AlternatingMap.map_eq_zero_of_eq_smul`). This generalizes `AlternatingMap.map_eq_zero_of_eq`,
 the case of two equal members, to which the proof reduces by linearity in those two arguments.
+
+An alternating map vanishes on a family that has more members in a finite submodule `V` than the
+rank of `V` (`AlternatingMap.map_eq_zero_of_finrank_lt`), since those members are linearly
+dependent (`AlternatingMap.map_linearDependent`). This is a relative form of Tau Ceti's
+`ContinuousAlternatingMap.eq_zero_of_finrank_lt`, the case `V = ⊤`.
+
+Adding to the first `r` arguments of an alternating map of degree `r + m` vectors of a submodule
+`V` of rank at most `m` does not change its value, provided that its last `m` arguments lie
+in `V` (`AlternatingMap.map_append_add_of_mem`): each term of the multilinear expansion that
+contains an added vector has `m + 1` arguments in `V`, so it vanishes by
+`AlternatingMap.map_eq_zero_of_finrank_lt`.
 -/
 
 public section
@@ -51,6 +63,52 @@ theorem map_eq_zero_of_eq_smul (f : M [⋀^ι]→ₗ[R] N) {v : ι → M} {i j :
     rw [← hi, ← hj, Function.update_eq_self, Function.update_eq_self]
   rw [hv, f.map_update_smul, ← Function.update_comm hij, f.map_update_smul,
     f.map_eq_zero_of_eq _ (i := i) (j := j) (by simp [hij]) hij, smul_zero, smul_zero]
+
+/-- An alternating map vanishes on a family `x` that has more members in a finite submodule `V`
+than the rank of `V`: if `x (e k)` lies in `V` for an injective `e : κ → ι` and
+`finrank K V < Fintype.card κ`, then `f x = 0`. -/
+theorem map_eq_zero_of_finrank_lt {K M N κ : Type*} [Ring K] [IsDomain K] [StrongRankCondition K]
+    [AddCommGroup M] [Module K M] [AddCommGroup N] [Module K N] [Module.IsTorsionFree K N]
+    [Fintype κ] (f : M [⋀^ι]→ₗ[K] N) {x : ι → M} {V : Submodule K M} [Module.Finite K V]
+    {e : κ → ι} (he : Function.Injective e) (hx : ∀ k, x (e k) ∈ V)
+    (h : Module.finrank K V < Fintype.card κ) : f x = 0 :=
+  f.map_linearDependent x fun hli ↦
+    ((LinearIndependent.of_comp V.subtype (hli.comp e he) :
+      LinearIndependent K fun k ↦ (⟨x (e k), hx k⟩ : V)).fintype_card_le_finrank).not_gt h
+
+/-- Let `V` be a submodule of `W` of rank at most `m`. An alternating map `f` of `r + m`
+vectors takes the same value on `Fin.append (v + u) w` and on `Fin.append v w` when every `u i`
+and every `w j` lies in `V`: adding vectors of `V` to the first `r` arguments does not change `f`
+once its last `m` arguments lie in `V`. -/
+theorem map_append_add_of_mem {K W N : Type*} [Ring K] [IsDomain K] [StrongRankCondition K]
+    [AddCommGroup W] [Module K W] [AddCommGroup N] [Module K N] [Module.IsTorsionFree K N]
+    {r m : ℕ} (f : W [⋀^Fin (r + m)]→ₗ[K] N) {V : Submodule K W} [Module.Finite K V]
+    (hV : Module.finrank K V ≤ m) (v : Fin r → W) {u : Fin r → W}
+    (hu : ∀ i, u i ∈ V) {w : Fin m → W} (hw : ∀ j, w j ∈ V) :
+    f (Fin.append (v + u) w) = f (Fin.append v w) := by
+  classical
+  have hsplit : Fin.append (v + u) w = Fin.append u 0 + Fin.append v w := by
+    ext k
+    refine Fin.addCases (fun i ↦ ?_) (fun j ↦ ?_) k <;> simp [add_comm]
+  rw [hsplit, f.map_add_univ, ← Finset.sum_erase_add _ _ (Finset.mem_univ ∅),
+    Finset.piecewise_empty, Finset.sum_eq_zero, zero_add]
+  intro s hs
+  obtain ⟨k, hk⟩ := Finset.ne_empty_iff_nonempty.1 (Finset.ne_of_mem_erase hs)
+  by_cases h : ∃ j, Fin.natAdd r j ∈ s
+  · obtain ⟨j, hj⟩ := h
+    exact f.map_coord_zero (Fin.natAdd r j) (by simp [hj])
+  · push Not at h
+    induction k using Fin.addCases with
+    | left i =>
+      -- Positions `castAdd m i` and `natAdd r j` carry `u i` and the `w j`: `m + 1` members of `V`.
+      let e : Option (Fin m) → Fin (r + m) := fun o ↦ o.elim (Fin.castAdd m i) (Fin.natAdd r)
+      have he : Function.Injective e := by
+        rintro (_ | a) (_ | b) h <;> simp_all [e, Fin.ext_iff] <;> omega
+      refine f.map_eq_zero_of_finrank_lt he ?_ (by simpa using Nat.lt_succ_of_le hV)
+      rintro (_ | j)
+      · simpa [e, hk] using hu i
+      · simpa [e, h j] using hw j
+    | right j => exact absurd hk (h j)
 
 end AlternatingMap
 
