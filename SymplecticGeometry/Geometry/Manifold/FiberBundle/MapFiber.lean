@@ -57,10 +57,13 @@ from the fibre onto `F`, and its underlying homeomorphism is
 The submersion property follows from `Bundle.Trivialization.isRegularPoint_proj` at every point,
 by Tau Ceti's `ContMDiff.isSubmersionOfComplement_of_surjective_mfderiv`; this is why it assumes
 finite dimensions and a boundaryless total space. The range of the derivative of a fibre
-inclusion is computed with Tau Ceti's
-`TauCeti.IsRegularPoint.range_mfderiv_eq_ker_mfderiv`. The proof that a coordinate change is
-smooth, as the fibre coordinate of one trivialization after the inverse of the other, follows that
-of Tau Ceti's `TauCeti.MapFiber.Atlas.contMDiffFiberBundle`.
+inclusion lies in the kernel by Tau Ceti's `TauCeti.range_mfderiv_le_ker_mfderiv_of_eventually_eq`.
+The reverse inclusion uses the chain rule and assumes nothing about dimensions: near a point of the
+source, `proj` is the first coordinate of `e`, and the fibre inclusion is the inverse of `e`
+restricted to `{b} × F`, so a vector killed by the derivative of `proj` is sent by the invertible
+derivative of `e` into `0 × EF`. The proof that a coordinate change is smooth, as the fibre
+coordinate of one trivialization after the inverse of the other, follows that of Tau Ceti's
+`TauCeti.MapFiber.Atlas.contMDiffFiberBundle`.
 
 ## References
 
@@ -135,24 +138,40 @@ theorem injective_mfderiv_fiberInclusionMap
 /-- **The tangent spaces of a fibre.** For a trivialization `e` of `proj` that is differentiable
 with differentiable inverse, the derivative of the fibre inclusion over `b` at `v` has as range
 the vertical space at its image, the kernel of the derivative of `proj` there. -/
-theorem range_mfderiv_fiberInclusionMap [FiniteDimensional 𝕜 EM]
+theorem range_mfderiv_fiberInclusionMap
     (he : e.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF)) (hb : b ∈ e.baseSet)
     (v : F) :
     (mfderiv IF IM (e.fiberInclusionMap hb) v).range =
       (mfderiv IM IB proj (e.fiberInclusionMap hb v)).ker := by
   have hv : e.fiberInclusionMap hb v ∈ e.source :=
     e.mem_source.2 ((e.proj_fiberInclusionMap hb v).symm ▸ hb)
-  -- The derivative of `e` identifies `EM` with `EB × EF`, which fixes the dimensions.
-  let L : EM ≃ₗ[𝕜] EB × EF := (he.mfderiv hv).toLinearEquiv
-  have : FiniteDimensional 𝕜 (EB × EF) := L.finiteDimensional
-  have : FiniteDimensional 𝕜 EB :=
-    Module.Finite.of_surjective (LinearMap.fst 𝕜 EB EF) Prod.fst_surjective
-  have : FiniteDimensional 𝕜 EF :=
-    Module.Finite.of_surjective (LinearMap.snd 𝕜 EB EF) Prod.snd_surjective
-  refine TauCeti.IsRegularPoint.range_mfderiv_eq_ker_mfderiv
-    (.of_forall (e.proj_fiberInclusionMap hb)) (isRegularPoint_proj he hv)
-    (injective_mfderiv_fiberInclusionMap he hb v) ?_
-  rw [L.finrank_eq, Module.finrank_prod, add_comm]
+  have hev : e (e.fiberInclusionMap hb v) = (b, v) := by
+    rw [fiberInclusionMap_apply]; exact e.apply_symm_apply' hb
+  -- `L` is the derivative of `e`, an equivalence onto the tangent space of `B × F`.
+  let L := he.mfderiv hv
+  -- The derivative of `proj` is the first coordinate of `L`.
+  have hproj : ∀ u, mfderiv IM IB proj (e.fiberInclusionMap hb v) u = (L u).1 := fun u ↦ by
+    rw [(e.coe_fst_eventuallyEq_proj hv).symm.mfderiv_eq,
+      mfderiv_comp (f := (e : M → B × F)) _ mdifferentiableAt_fst (he.mdifferentiableAt hv),
+      mfderiv_fst]
+    -- Mathlib states no lemma for the forward map of `he.mfderiv hv`, which is `mfderiv e`.
+    rfl
+  -- The derivative of the fibre inclusion is the inverse of `L` on the second factor.
+  have hincl : ∀ w, mfderiv IF IM (e.fiberInclusionMap hb) v w = L.symm (0, w) := fun w ↦ by
+    rw [show ⇑(e.fiberInclusionMap hb) = e.toOpenPartialHomeomorph.symm ∘ fun w ↦ (b, w) from
+        funext (e.fiberInclusionMap_apply hb)]
+    refine (congrArg (· w) (mfderiv_comp (f := fun w ↦ (b, w)) v
+      (he.mdifferentiableAt_symm (e.mem_target.2 hb))
+      (mdifferentiableAt_const.prodMk mdifferentiableAt_id))).trans ?_
+    rw [mfderiv_prod_right, ← hev]
+    -- Mathlib states no lemma for the inverse of `he.mfderiv hv`, which is `mfderiv e.symm`.
+    rfl
+  refine le_antisymm (TauCeti.range_mfderiv_le_ker_mfderiv_of_eventually_eq
+    (.of_forall (e.proj_fiberInclusionMap hb))) fun u hu ↦ ⟨(L u).2, ?_⟩
+  rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe, hproj] at hu
+  refine (hincl _).trans ?_
+  conv_rhs => rw [← L.symm_apply_apply u]
+  exact congrArg L.symm (Prod.ext hu.symm rfl)
 
 /-! ### Coordinate changes -/
 
