@@ -75,11 +75,6 @@ composite sends it to `ξ_M(x)`.
   isomorphism from the tangent space of the model at `[1, 0]` to `T_x M` that takes the
   descended form to `σ_x`, intertwines the actions of the stabilizer, and sends `dπ (ξ, 0)` to
   `ξ_M(x)`.
-* `SymplecticGeometry.LocalModelData.isCompl_orbitTangent_range_linearEquiv_comp_fiberTangentMap`:
-  for such an isomorphism `T`, the fibre directions `p ↦ T (dπ_(1, 0, 0) (0, p))` span a
-  complement of the orbit tangent space `𝔤 · x`. They are injective since `T` and
-  `SymplecticGeometry.LocalModelData.fiberTangentMap` are, and equivariant by
-  `SymplecticGeometry.LocalModelData.map_fiberTangentMap_smul` applied to `T`.
 
 ## References
 
@@ -419,22 +414,12 @@ theorem exists_linearEquiv_tangentSpace_ofPoint :
           (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
             ((0 : A), (0 : V))) u v) ∧
       (∀ (k : stabilizer G x) u,
-        T (mfderiv 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
-          𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
-          (fun y : BalancedProduct (stabilizer G x) (stabilizer G x).RightTranslation (A × V) ↦
-            (k : G) • y)
-          (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
-            ((0 : A), (0 : V))) u) =
+        T (D.tangentRepresentationOneZero k u) =
           tangentRepresentation (fun (g : G) _ ↦
             ContMDiffSMul.mdifferentiable_const_smul (I := I) (n := ∞) (by simp) g x) k
             (T u)) ∧
       ∀ ξ : GroupLieAlgebra I G,
-        T (mfderiv (I.prod 𝓘(ℝ, A × V)) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
-          (fun p : G × (A × V) ↦
-            BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation p.1) p.2)
-          ((1 : G), ((0 : A), (0 : V)))
-          ((tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V)))).symm (ξ, 0))) =
-          InfinitesimalAction.fundamental I G I' M ξ x := by
+        T (D.orbitTangentMap ξ) = InfinitesimalAction.fundamental I G I' M ξ x := by
   intro _ _ _ D
   let := D.fiberDistribMulAction
   have := D.contMDiffSMul_fiberDistribMulAction
@@ -498,32 +483,6 @@ theorem exists_linearEquiv_tangentSpace_ofPoint :
       (InfinitesimalAction.eval_apply _ x h).trans ((InfinitesimalAction.mem_isotropy_iff _ x).1 hh)
     rw [← InfinitesimalAction.eval_apply, ← InfinitesimalAction.eval_apply, map_add, map_add,
       map_add, h0, zero_add]
-
-/-- **The fibre directions in `T_x M` are a complement of the orbit.** Let `T` be a linear
-isomorphism from the tangent space of the local model `Y = G ×_{G_x} (A × V)` at `[1, 0]` to
-`T_x M` that sends `dπ_(1, 0, 0) (ξ, 0)` to the fundamental vector `ξ_M(x)`, for each `ξ ∈ 𝔤`.
-Then the image of `p ↦ T (dπ_(1, 0, 0) (0, p))` is a complement in `T_x M` of the tangent space
-`𝔤 · x` of the orbit. -/
-theorem isCompl_orbitTangent_range_linearEquiv_comp_fiberTangentMap :
-    let _ := d.chartedSpace
-    let _ := d.lieGroup
-    let _ := d.contMDiffSMul (I'' := I) (M := G)
-    let D := ofPoint hσ hσG hμ d h𝔪 h𝔪' h𝔮 eV eA
-    letI := D.fiberDistribMulAction
-    haveI := D.contMDiffSMul_fiberDistribMulAction
-    letI := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) (A × V) I
-      𝓘(ℝ, A × V) F
-    ∀ T : TangentSpace 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
-        (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
-          ((0 : A), (0 : V))) ≃ₗ[ℝ] TangentSpace I' x,
-      (∀ ξ : GroupLieAlgebra I G,
-        T (D.orbitTangentMap ξ) = InfinitesimalAction.fundamental I G I' M ξ x) →
-      IsCompl ((InfinitesimalAction.fundamental I G I' M).orbitTangent x)
-        (LinearMap.range (T.toLinearMap ∘ₗ D.fiberTangentMap)) := by
-  intro _ _ _ D T hT
-  rw [InfinitesimalAction.orbitTangent_eq_range]
-  exact D.isCompl_range_range_comp_fiberTangentMap T _
-    (LinearMap.ext fun ξ ↦ (hT ξ).trans (InfinitesimalAction.eval_apply _ x ξ).symm)
 
 end LocalModelData
 

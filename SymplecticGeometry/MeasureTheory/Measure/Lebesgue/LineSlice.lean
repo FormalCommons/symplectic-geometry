@@ -8,7 +8,7 @@ module
 public import Mathlib.LinearAlgebra.Complex.FiniteDimensional
 public import Mathlib.MeasureTheory.Measure.Lebesgue.EqHaar
 public import SymplecticGeometry.LinearAlgebra.FiniteDimensional.RestrictScalars
-public import SymplecticGeometry.Topology.Algebra.Group.Pointwise
+public import SymplecticGeometry.Topology.Algebra.Module.LineReach
 public import TauCeti.MeasureTheory.Measure.Lebesgue.OrthogonalSlices
 
 /-!
@@ -30,8 +30,9 @@ the volume of the ball of radius `2` in `E`
 `Submodule.volume_preimage_measurableEquivProd_prod`).
 
 That `A` is closed makes the set measurable
-(`IsClosed.setOfPred_exists_norm_le_add_smul_mem`); zero sets of polynomials are closed. A complex
-line has real dimension `2` by the tower law `Submodule.finrank_restrictScalars`.
+(`IsClosed.setOfPred_exists_mem_add_smul_mem`, for the compact disc `closedBall 0 ρ`
+of `ℂ`); zero sets of polynomials are closed. A complex line has real dimension `2` by the
+tower law `Submodule.finrank_restrictScalars`.
 
 ## Main results
 
@@ -145,7 +146,9 @@ theorem volume_setOfPred_exists_add_smul_mem_le {A : Set E} (hA : IsClosed A) (v
   set K : Submodule ℝ E := (ℂ ∙ v).restrictScalars ℝ
   set T := ball (0 : E) 1 ∩ {c : E | ∃ s : ℂ, ‖s‖ ≤ ρ ∧ c + s • v ∈ A}
   have hT : MeasurableSet T :=
-    measurableSet_ball.inter (hA.setOfPred_exists_norm_le_add_smul_mem v ρ).measurableSet
+    measurableSet_ball.inter <| by
+      simpa only [mem_closedBall_zero_iff] using
+        (hA.setOfPred_exists_mem_add_smul_mem v (isCompact_closedBall (0 : ℂ) ρ)).measurableSet
   have hball : volume (ball (0 : E) 2) ≠ ∞ := measure_ball_lt_top.ne
   calc volume S ≤ volume T := measure_mono fun c ⟨hc, s, hs, hcs⟩ ↦ ⟨hc, s, hs.le, hcs⟩
     _ = ∫⁻ x, T.indicator 1 x := (lintegral_indicator_one hT).symm

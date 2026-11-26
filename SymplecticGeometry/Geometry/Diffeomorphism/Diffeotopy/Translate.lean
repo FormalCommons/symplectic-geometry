@@ -8,6 +8,8 @@ module
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
 import Mathlib.Geometry.Manifold.PartitionOfUnity
 import SymplecticGeometry.Analysis.ODE.Basic
+import SymplecticGeometry.Geometry.Manifold.Flow.Basic
+import TauCeti.Geometry.Manifold.IntegralCurve.Monotone
 
 /-!
 # Diffeotopies that push a compact set along a direction
@@ -16,11 +18,14 @@ On a finite-dimensional real normed space `E`, take a compact set `K`, a vector 
 function `g` with `|g| ≤ 1` that is constant along `e` at the points of `K`. This file builds a
 compactly supported diffeotopy that, at time `t`, moves each point `x ∈ K` to `x + (t g(x)) • e`,
 moves no point by more than `t ‖e‖`, and is supported in a compact subset of any given
-neighbourhood `thickening δ K` with `‖e‖ < δ`.
+neighbourhood `thickening δ K` with `‖e‖ < δ`. It moves every point along the line through it in
+the direction `e`, and fixes the zeros of `g`.
 
 The diffeotopy is Tau Ceti's `TauCeti.compactlySupportedFlowDiffeotopy` of the field
 `y ↦ (φ y * g y) • e`, where `φ` is a smooth cut-off equal to `1` near `K`. Near `K` the field is
 constant along the lines `s ↦ x + s • (g x • e)`, so these lines are its flow lines there.
+Everywhere the field is a multiple of `e`, so the quotient map `E → E ⧸ ℝ ∙ e` is constant along
+its flow lines; and the field vanishes wherever `g` does.
 
 ## Main results
 
@@ -30,6 +35,8 @@ constant along the lines `s ↦ x + s • (g x • e)`, so these lines are its f
 * `SymplecticGeometry.norm_compactlySupportedFlowDiffeotopy_sub_le`: the compactly supported flow
   diffeotopy of a field of norm at most `M`, run for a duration `a ≥ 0`, moves each point by at
   most `a * t * M` at time `t`.
+* `SymplecticGeometry.map_compactlySupportedFlowDiffeotopy`: a continuous linear map that kills
+  a compactly supported field keeps its value along the flow diffeotopy of the field.
 * `SymplecticGeometry.exists_diffeotopy_apply_eq_add_smul`: the diffeotopy described above.
 
 The proofs adapt two proofs of Tau Ceti to a compact set and a profile `g`:
@@ -75,12 +82,9 @@ theorem norm_compactlySupportedFlowDiffeotopy_sub_le [FiniteDimensional ℝ E] {
     (hK : IsCompact K) (hzero : ∀ y ∉ K, v y = 0) {a M : ℝ} (ha : 0 ≤ a)
     (hM : ∀ y, ‖v y‖ ≤ M) (t : unitInterval) (x : E) :
     ‖TauCeti.compactlySupportedFlowDiffeotopy hn hv hK hzero a (t, x) - x‖ ≤ a * t * M := by
-  have hv1 := hv.of_le (m := 1) (by exact_mod_cast hn)
-  have hγ := (TauCeti.isMIntegralCurve_maximalIntegralCurve_of_eq_univ hv1
-    ((TauCeti.isCompleteVectorField_of_isCompact_of_eq_zero_off hv1 hK hzero)
-      |>.maximalIntegralCurveInterval_eq_univ x)).isMIntegralCurveOn univ
-  have := (TauCeti.isMIntegralCurveOn_iff_isIntegralCurveOn.1 hγ |>.mono (subset_univ _))
-    |>.norm_sub_le_mul (fun s _ ↦ hM _) (mul_nonneg ha t.property.1)
+  have := ((TauCeti.isIntegralCurve_maximalIntegralCurve_of_isCompact
+    (hv.of_le (m := 1) (by exact_mod_cast hn)) hK hzero x).isIntegralCurveOn _).norm_sub_le_mul
+    (fun s _ ↦ hM _) (mul_nonneg ha t.property.1)
   -- `maximalIntegralCurve_zero` is stated for fields valued in tangent spaces, and `rw` does
   -- not find it for the `E`-valued `v`.
   have h0 : maximalIntegralCurve (I := 𝓘(ℝ, E)) v x 0 = x := maximalIntegralCurve_zero
@@ -88,20 +92,47 @@ theorem norm_compactlySupportedFlowDiffeotopy_sub_le [FiniteDimensional ℝ E] {
   rw [TauCeti.compactlySupportedFlowDiffeotopy_apply hn hv hK hzero a (t, x)]
   linarith
 
+/-- **Quantities kept by a compactly supported flow.** If a continuous linear map `L` kills a
+compactly supported `C^n` vector field `v` on a finite-dimensional real normed space, then the
+flow diffeotopy of `v`, run for any duration `a`, keeps the value of `L`. -/
+theorem map_compactlySupportedFlowDiffeotopy [FiniteDimensional ℝ E] {F : Type*}
+    [NormedAddCommGroup F] [NormedSpace ℝ F] {v : E → E} {K : Set E} {n : ℕ∞} (hn : 1 ≤ n)
+    (hv : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ, E).tangent (n : WithTop ℕ∞)
+      (fun y ↦ (⟨y, v y⟩ : TangentBundle 𝓘(ℝ, E) E)))
+    (hK : IsCompact K) (hzero : ∀ y ∉ K, v y = 0) (a : ℝ) (L : E →L[ℝ] F)
+    (hL : ∀ y, L (v y) = 0) (t : unitInterval) (x : E) :
+    L (TauCeti.compactlySupportedFlowDiffeotopy hn hv hK hzero a (t, x)) = L x := by
+  have := (TauCeti.isMIntegralCurveOn_iff_isIntegralCurveOn.2
+    ((TauCeti.isIntegralCurve_maximalIntegralCurve_of_isCompact (hv.of_le (m := 1)
+      (by exact_mod_cast hn)) hK hzero x).isIntegralCurveOn univ)
+    ).apply_eq_add_smul_of_mvfderiv_apply_eq (g := L) (c := 0) isPreconnected_univ
+      (fun _ _ ↦ L.mdifferentiableAt)
+      (fun s _ ↦ by simp only [mvfderiv_eq_fderiv, L.fderiv]; exact hL _) (mem_univ 0)
+      (mem_univ (a * t))
+  -- `maximalIntegralCurve_zero` is stated for fields valued in tangent spaces, and `rw` does
+  -- not find it for the `E`-valued `v`.
+  have h0 : maximalIntegralCurve (I := 𝓘(ℝ, E)) v x 0 = x := maximalIntegralCurve_zero
+  rw [h0, smul_zero, add_zero] at this
+  rw [TauCeti.compactlySupportedFlowDiffeotopy_apply hn hv hK hzero a (t, x)]
+  exact this
+
 variable [FiniteDimensional ℝ E]
 
 /-- **Pushing a compact set along a direction.** On a finite-dimensional real normed space, let
 `K` be compact, `e` a vector with `‖e‖ < δ`, and `g` a smooth function with `|g| ≤ 1` such that
 `g (x + s • e) = g x` for `x ∈ K` and every real `s`. Then there is a smooth diffeotopy `h` that is
 the identity off a compact subset of the `δ`-neighbourhood of `K`, moves every point by at most
-`t ‖e‖` at time `t`, and sends each `x ∈ K` at time `t` to `x + (t * g x) • e`. -/
+`t ‖e‖` at time `t`, and sends each `x ∈ K` at time `t` to `x + (t * g x) • e`. Moreover every
+point moves only along the line through it in the direction `e`, and the zeros of `g` stay put. -/
 theorem exists_diffeotopy_apply_eq_add_smul {K : Set E} (hK : IsCompact K) {g : E → ℝ}
     (hg : ContDiff ℝ ∞ g) (hg1 : ∀ x, |g x| ≤ 1) {e : E}
     (hge : ∀ x ∈ K, ∀ s : ℝ, g (x + s • e) = g x) {δ : ℝ} (he : ‖e‖ < δ) :
     ∃ h : TauCeti.Diffeotopy 𝓘(ℝ, E) ∞ E,
       (∃ C, IsCompact C ∧ C ⊆ thickening δ K ∧ ∀ t, ∀ x ∉ C, h (t, x) = x) ∧
       (∀ t x, ‖h (t, x) - x‖ ≤ (t : ℝ) * ‖e‖) ∧
-      ∀ t, ∀ x ∈ K, h (t, x) = x + ((t : ℝ) * g x) • e := by
+      (∀ t, ∀ x ∈ K, h (t, x) = x + ((t : ℝ) * g x) • e) ∧
+      (∀ t x, h (t, x) - x ∈ ℝ ∙ e) ∧
+      ∀ t x, g x = 0 → h (t, x) = x := by
   -- The cut-off `φ` is `1` on the `ρ`-neighbourhood of `K` and vanishes off the
   -- `ρ'`-neighbourhood, with `‖e‖ < ρ < ρ' < δ`.
   set ρ := (2 * ‖e‖ + δ) / 3
@@ -128,7 +159,7 @@ theorem exists_diffeotopy_apply_eq_add_smul {K : Set E} (hK : IsCompact K) {g : 
   refine ⟨TauCeti.compactlySupportedFlowDiffeotopy hn hv hC hzero 1, ⟨_, hC,
     cthickening_subset_thickening' (hρ0.trans (hρ'.trans hρ'δ)) hρ'δ K, fun t x hx ↦
       TauCeti.compactlySupportedFlowDiffeotopy_apply_of_eq_zero hn hv hC hzero 1 (hzero x hx) t⟩,
-    fun t x ↦ ?_, fun t x hx ↦ ?_⟩
+    fun t x ↦ ?_, fun t x hx ↦ ?_, fun t x ↦ ?_, fun t x hgx ↦ ?_⟩
   · -- The field is bounded by `‖e‖`, so points move at speed at most `‖e‖`.
     have hbound : ∀ y, ‖v y‖ ≤ ‖e‖ := fun y ↦ by
       have h1 : |φ y| ≤ 1 := abs_le.mpr ⟨by linarith [(hφI ⟨y, rfl⟩).1], (hφI ⟨y, rfl⟩).2⟩
@@ -158,6 +189,18 @@ theorem exists_diffeotopy_apply_eq_add_smul {K : Set E} (hK : IsCompact K) {g : 
     simp only [TauCeti.compactlySupportedFlowDiffeotopy_apply hn hv hC hzero 1 (t, x), one_mul]
     rw [maximalIntegralCurve_eqOn_add_smul hv1 ⟨by linarith, by linarith⟩ hvc
       ⟨by linarith [t.property.1], by linarith [t.property.2]⟩, mul_smul]
+  · -- The field is a multiple of `e`, so the quotient map onto `E ⧸ ℝ ∙ e` is constant along
+    -- its flow lines. The closedness of `ℝ ∙ e` is the instance that makes the quotient a normed
+    -- space, which `map_compactlySupportedFlowDiffeotopy` asks of its target.
+    have : IsClosed ((ℝ ∙ e : Submodule ℝ E) : Set E) := Submodule.isClosed_of_finiteDimensional _
+    have := map_compactlySupportedFlowDiffeotopy hn hv hC hzero 1 (ℝ ∙ e).mkQL
+      (fun y ↦ by simp [v]) t x
+    simpa [Submodule.Quotient.eq] using this
+  · -- The zeros of `g` are zeros of the field, so they stay put. The `show` states the equation
+    -- in `E`, where `simp` proves it; the lemma asks for it in the tangent space at `x`, which is
+    -- `E` by definition.
+    exact TauCeti.compactlySupportedFlowDiffeotopy_apply_of_eq_zero hn hv hC hzero 1
+      (show v x = 0 by simp [v, hgx]) t
 
 end SymplecticGeometry
 

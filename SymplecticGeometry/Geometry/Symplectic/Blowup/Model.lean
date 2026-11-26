@@ -63,7 +63,8 @@ to the exceptional divisor `Z`, sets up the neighbourhoods `L(ε)` of `Z`, and i
   `SymplecticGeometry.BlowupModel.integralTopForm_blowupForm_line`: every projective line of the
   divisor has area `π l²`, by `integralTopForm_mpullback_map_fubiniStudyForm`.
 * `SymplecticGeometry.BlowupModel.blowdownPuncturedDiffeomorph n`: `blowdownDiffeomorph n` as a
-  real diffeomorphism from `L ∖ Z` onto `puncturedSpace E`, and
+  real diffeomorphism from `L ∖ Z` onto `puncturedSpace E`, holomorphic
+  (`SymplecticGeometry.BlowupModel.isPseudoholomorphic_blowdownPuncturedDiffeomorph`), and
   `SymplecticGeometry.BlowupModel.mpullback_blowdownDiffeomorph_symm_blowupForm`: along its
   inverse, `ω̃_l` pulls back to `radialPotentialForm` of `s ↦ s + l² log s`, the sum of
   `radialPotentialForm_id` (`ω₀`) and `l²` times `radialPotentialForm_log` (the pull-back of
@@ -170,6 +171,12 @@ theorem exceptionalDivisor_subset_openNbhd {ε : ℝ} (hε : 0 < ε) :
     exceptionalDivisor n ⊆ openNbhd n ε := fun p hp ↦ by
   rw [mem_exceptionalDivisor_iff] at hp
   simpa [hp] using hε
+
+/-- For `0 < ε`, the point `zeroSection ℓ` of the exceptional divisor lies in the open
+neighbourhood of radius `ε`. -/
+theorem zeroSection_mem_openNbhd {ε : ℝ} (hε : 0 < ε) (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    zeroSection ℓ ∈ openNbhd n ε :=
+  exceptionalDivisor_subset_openNbhd hε (exceptionalDivisor_eq_range ▸ ⟨ℓ, rfl⟩)
 
 /-- For `0 < ε`, the exceptional divisor lies in `L(ε)`. -/
 theorem exceptionalDivisor_subset_closedNbhd {ε : ℝ} (hε : 0 < ε) :
@@ -346,6 +353,32 @@ theorem coe_blowdownPuncturedDiffeomorph_symm_apply (z : puncturedSpace (Fin (n 
       ofNeZero (mem_puncturedSpace.1 z.property) := by
   simp [blowdownPuncturedDiffeomorph, blowdownDiffeomorph_symm_apply]
 
+/-- Read through the inclusions of the complement of the divisor and of `E ∖ 0`, the blowdown
+inverts `(blowdownPuncturedDiffeomorph n).symm`. -/
+theorem blowdown_comp_subtypeVal_comp_blowdownPuncturedDiffeomorph_symm :
+    (blowdown : BlowupModel n → _) ∘ Subtype.val ∘ (blowdownPuncturedDiffeomorph n).symm =
+      Subtype.val :=
+  funext fun z ↦ by
+    rw [Function.comp_apply, Function.comp_apply, coe_blowdownPuncturedDiffeomorph_symm_apply,
+      blowdown_ofNeZero]
+
+open SmoothAlmostComplexStructure in
+/-- The blowdown, from the complement of the exceptional divisor onto `E ∖ 0`, is holomorphic. -/
+theorem isPseudoholomorphic_blowdownPuncturedDiffeomorph :
+    IsPseudoholomorphic
+      (ofComplexManifold (Fin (n + 1) → ℂ) (offDivisorOpens n))
+      (ofComplexManifold (Fin (n + 1) → ℂ) (puncturedSpace (Fin (n + 1) → ℂ)))
+      (blowdownPuncturedDiffeomorph n) := by
+  have h : (Subtype.val ∘ blowdownPuncturedDiffeomorph n : offDivisorOpens n → _) =
+      blowdown ∘ Subtype.val :=
+    funext fun p ↦ coe_blowdownPuncturedDiffeomorph_apply p
+  have hc : ContMDiff 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ∞
+      (Subtype.val ∘ blowdownPuncturedDiffeomorph n) := by
+    rw [h]
+    exact (contMDiff_blowdown ∞).comp contMDiff_subtypeVal
+  exact isPseudoholomorphic_ofComplexManifold_iff.2
+    (((ContMDiff.subtypeVal_comp_iff _ _).1 hc).mdifferentiable (by simp))
+
 /-- The radial potential `s ↦ s + l² log s` is smooth on `(0, ∞)`. -/
 theorem contDiffOn_add_mul_log (l : ℝ) :
     ContDiffOn ℝ ∞ (fun s ↦ s + l ^ 2 * Real.log s) (Ioi 0) :=
@@ -371,9 +404,8 @@ theorem mpullback_blowdownDiffeomorph_symm_blowupForm (l : ℝ) :
     SmoothForm.mpullback_mpullback, SmoothForm.mpullback_mpullback,
     SmoothForm.mpullback_mpullback, ← mpullback_mkNonzero_fubiniStudyForm, ω₀E_def]
   congr 1
-  · refine SmoothForm.mpullback_congr _ _ (funext fun z ↦ ?_) _
-    rw [Function.comp_apply, Function.comp_apply, coe_blowdownPuncturedDiffeomorph_symm_apply,
-      blowdown_ofNeZero]
+  · exact SmoothForm.mpullback_congr _ _
+      blowdown_comp_subtypeVal_comp_blowdownPuncturedDiffeomorph_symm _
   · refine congrArg _ (SmoothForm.mpullback_congr _ _ (funext fun z ↦ ?_) _)
     rw [Function.comp_apply, Function.comp_apply, coe_blowdownPuncturedDiffeomorph_symm_apply,
       pr_ofNeZero, mkNonzero_apply]

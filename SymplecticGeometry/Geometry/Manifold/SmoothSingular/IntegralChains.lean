@@ -31,12 +31,12 @@ Represent `z` by a smooth integral cycle `z'` (smoothing), and `deRhamHom [φ]` 
 `ψ`. Read through integral chains, `ψ` takes on `z'` its value on the real cycle `z'_ℝ` with the
 same simplices and the coefficients cast to `ℝ`
 (`TopCat.chainComplexMap_f_singularCochainComplexIntChainsIso_hom_f`, with the cycle
-`SSet.restrictScalarsCyclesMap`). On a real smooth cycle, `ψ` gives the integral of `φ`
+`SymplecticGeometry.intCastCyclesMap`). On a real smooth cycle, `ψ` gives the integral of `φ`
 (`TauCeti.iCycles_chainComplexMap_ι_eq_integrationCochain`, from Tau Ceti's
 `TauCeti.singularKronecker_deRhamHom_mk_apply` and
 `TauCeti.homologyπ_smoothSingularHomologyIso_hom_singularKronecker_homologyπ`). The integral of
 `φ` over `z'_ℝ` is its integral over `z'` read with coefficients `ℤ`
-(`TauCeti.restrictScalarsChainMap_f_integrationCochain`), which is the period of `φ` on `z`
+(`TauCeti.intCastChainMap_f_integrationCochain`), which is the period of `φ` on `z`
 (`TauCeti.closedFormHomologyPeriod_homologyMap_ι_homologyπ`).
 
 ## Main results
@@ -47,7 +47,7 @@ same simplices and the coefficients cast to `ℝ`
 * `TauCeti.closedFormHomologyPeriod_uliftIntHomologyIso_smoothSingularHomologyIso`:
   the period of `φ` on the class of a smooth cycle with coefficients `ULift ℤ` is the integral of
   `φ` over it.
-* `TauCeti.restrictScalarsChainMap_f_integrationCochain`: integration over smooth chains with
+* `TauCeti.intCastChainMap_f_integrationCochain`: integration over smooth chains with
   coefficients `ULift ℤ` cast to `ℝ` is integration over the chains read with coefficients `ℤ`.
 * `TauCeti.iCycles_chainComplexMap_ι_eq_integrationCochain`: a real cocycle whose class is
   `deRhamHom [φ]` takes on each real smooth cycle the integral of `φ` over it.
@@ -75,13 +75,10 @@ variable {E H : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensio
 
 omit [FiniteDimensional ℝ E] [T2Space M] [SigmaCompactSpace M] [IsManifold I ∞ M] in
 /-- Integration of a form `ψ` over smooth chains with coefficients `ULift ℤ` made real, by casting
-their coefficients to `ℝ` (`SymplecticGeometry.intCastCoeff`), is integration over the chains
+their coefficients to `ℝ` (`SymplecticGeometry.intCastChainMap`), is integration over the chains
 read with coefficients `ℤ`. -/
-theorem restrictScalarsChainMap_f_integrationCochain {p : ℕ} (ψ : RoughForm I M ℝ p) :
-    (SSet.restrictScalarsChainMap (algebraMap ℤ ℝ) (N := ModuleCat.of ℝ ℝ)
-        (SymplecticGeometry.intCastCoeff ℝ ≫
-          (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := ℝ) ℝ).inv)
-          (smoothSingularSubcomplex I M : SSet)).f p ≫
+theorem intCastChainMap_f_integrationCochain {p : ℕ} (ψ : RoughForm I M ℝ p) :
+    (SymplecticGeometry.intCastChainMap ℝ (smoothSingularSubcomplex I M : SSet)).f p ≫
         (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℝ)).map (integrationCochain (R := ℝ) ψ) ≫
           (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := ℝ) ℝ).hom =
       (((SSet.chainComplexFunctor (ModuleCat.{0} ℤ)).map uliftIntIso.hom).app
@@ -89,7 +86,7 @@ theorem restrictScalarsChainMap_f_integrationCochain {p : ℕ} (ψ : RoughForm I
   refine SSet.chainComplex_hom_ext fun σ ↦ ?_
   ext a
   refine (ConcreteCategory.comp_apply _ _ a).trans
-    ((SymplecticGeometry.restrictScalarsChainMap_intCastCoeff_f_comp_apply _ σ _ a).trans ?_)
+    ((SymplecticGeometry.intCastChainMap_f_comp_apply _ σ _ a).trans ?_)
   rw [SSet.ιChainComplex_chainComplexFunctor_map_app_f_assoc,
     ConcreteCategory.comp_apply, ConcreteCategory.comp_apply, uliftIntIso_hom_apply]
   erw [integrationCochain_ιChainComplex, integrationCochain_ιChainComplex]
@@ -188,19 +185,16 @@ theorem singularKronecker_singularCohomologyIntChainsIso_hom_deRhamHom_mk {p : �
   rw [ConcreteCategory.comp_apply]
   erw [TopCat.chainComplexMap_f_singularCochainComplexIntChainsIso_hom_f]
   rw [← ConcreteCategory.comp_apply _ (integrationCochain (R := ℤ) _),
-    ← restrictScalarsChainMap_f_integrationCochain]
+    ← intCastChainMap_f_integrationCochain]
   simp only [ConcreteCategory.comp_apply]
   congr 1
   -- The cycle `z` with its coefficients cast to `ℝ`, a real smooth cycle.
   have h := iCycles_chainComplexMap_ι_eq_integrationCochain φ ψ hψ
-    (SSet.restrictScalarsCyclesMap (algebraMap ℤ ℝ) (N := ModuleCat.of ℝ ℝ)
-      (SymplecticGeometry.intCastCoeff ℝ ≫
-        (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := ℝ) ℝ).inv)
-      (smoothSingularSubcomplex I M : SSet) p z)
+    (SymplecticGeometry.intCastCyclesMap ℝ (smoothSingularSubcomplex I M : SSet) p z)
   -- The restricted cycles have the carrier of the real cycles, and the underlying chain of the
   -- cast cycle is read in the restricted complex, whose chains are the real chains only after
   -- unfolding.
-  erw [SSet.restrictScalarsCyclesMap_iCycles_apply] at h
+  erw [SymplecticGeometry.intCastCyclesMap_iCycles_apply] at h
   exact h
 
 end TauCeti
