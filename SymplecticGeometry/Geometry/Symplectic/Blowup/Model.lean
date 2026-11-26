@@ -29,7 +29,8 @@ For `n : ℕ` and `E := Fin (n + 1) → ℂ`, let `π : BlowupModel n → E` be 
 of the complex manifold (the scoped instance `TauCeti.ComplexManifold.isManifold_real`). Following
 McDuff–Salamon, §7.1, this file defines on the model the closed two-forms
 `ω̃_λ = π^* ω₀ + λ² pr^* ω_FS`, shows that they are Kähler for `λ ≠ 0`, computes their restriction
-to the exceptional divisor `Z`, and sets up the neighbourhoods `L(ε)` of `Z`.
+to the exceptional divisor `Z`, sets up the neighbourhoods `L(ε)` of `Z`, and identifies
+`(L(ε) ∖ Z, ω̃_λ)` with a shell of `(E, ω₀)` through the radial map `F_λ`.
 
 ## Main definitions and results
 
@@ -57,6 +58,23 @@ to the exceptional divisor `Z`, and sets up the neighbourhoods `L(ε)` of `Z`.
   it restricts to `l² ω_FS`, since `π` is constant there; hence
   `SymplecticGeometry.BlowupModel.integralTopForm_blowupForm_line`: every projective line of the
   divisor has area `π l²`, by `integralTopForm_mpullback_map_fubiniStudyForm`.
+* `SymplecticGeometry.BlowupModel.blowdownPuncturedDiffeomorph n`: `blowdownDiffeomorph n` as a
+  real diffeomorphism from `L ∖ Z` onto `puncturedSpace E`, and
+  `SymplecticGeometry.BlowupModel.mpullback_blowdownDiffeomorph_symm_blowupForm`: along its
+  inverse, `ω̃_l` pulls back to `radialPotentialForm` of `s ↦ s + l² log s`, the sum of
+  `radialPotentialForm_id` (`ω₀`) and `l²` times `radialPotentialForm_log` (the pull-back of
+  `ω_FS` along `mkNonzero`), by `radialPotentialForm_add` and `radialPotentialForm_const_mul`.
+* `SymplecticGeometry.BlowupModel.mpullback_radialMap_blowdown`: for `h s = s + l²`, the radial
+  map `F_l z = √(1 + l² / |z|²) z` composed with the blowdown pulls `ω₀` back to `ω̃_l` off `Z`,
+  by `mpullback_radialMap_stdForm`, since `s + l² log s` has derivative `h(s) / s`.
+* `SymplecticGeometry.BlowupModel.radialBlowdownDiffeomorph n l`: `F_l ∘ π` as a diffeomorphism
+  of `L ∖ Z` onto the shell `{l² < |w|²}` (`radialMapDiffeomorph`), a symplectomorphism from
+  `ω̃_l` to `ω₀` (`isSymplectomorphism_radialBlowdownDiffeomorph`). For `0 ≤ l` and `0 ≤ ε` it
+  maps `L(ε) ∖ Z` onto the shell `l < |w| ≤ √(l² + ε²)`
+  (`image_closedNbhd_radialBlowdownDiffeomorph`).
+* `SymplecticGeometry.BlowupModel.shellSymplectomorph n l ε hl hε`: its restriction to a
+  diffeomorphism from `openNbhd n ε ∖ Z` onto the open shell `openShell n l ε`,
+  `l < |w| < √(l² + ε²)`, carrying `ω̃_l` to `ω₀` (`isSymplectomorphism_shellSymplectomorph`).
 
 ## References
 
