@@ -60,6 +60,8 @@ open scoped LinearAlgebra.Projectivization
 
 namespace TauCeti.FiniteRankBundleCore
 
+open SymplecticGeometry
+
 /-! ### Polynomial families -/
 
 section Polynomial
@@ -75,22 +77,18 @@ variable {A D : FiniteRankBundleCore ℂ X}
 the pullbacks of `A` and `D` to `X × Circle` whose fibre map at `(x, u)` is
 `∑ i ∈ Finset.range n, u ^ i • (a i).fiberMap x`. -/
 def polynomialHom (n : ℕ) (a : ℕ → (A ⟶ D)) : A.circlePullback ⟶ D.circlePullback :=
-  ∑ i ∈ Finset.range n,
-    (⟨fun w ↦ ((w.2 : Circle) : ℂ) ^ i, by fun_prop⟩ : C(X × Circle, ℂ)) •
-      pullbackMap (a i) ContinuousMap.fst
+  ∑ i ∈ Finset.range n, 𝔲 ^ i • pullbackMap (a i) ContinuousMap.fst
 
 theorem polynomialHom_def (n : ℕ) (a : ℕ → (A ⟶ D)) :
-    polynomialHom n a = ∑ i ∈ Finset.range n,
-      (⟨fun w ↦ ((w.2 : Circle) : ℂ) ^ i, by fun_prop⟩ : C(X × Circle, ℂ)) •
-        pullbackMap (a i) ContinuousMap.fst :=
+    polynomialHom n a = ∑ i ∈ Finset.range n, 𝔲 ^ i • pullbackMap (a i) ContinuousMap.fst :=
   (rfl)
 
 @[simp]
 theorem fiberMap_polynomialHom (n : ℕ) (a : ℕ → (A ⟶ D)) (w : X × Circle) :
     (polynomialHom n a).fiberMap w =
       ∑ i ∈ Finset.range n, (w.2 : ℂ) ^ i • (a i).fiberMap w.1 := by
-  simp only [polynomialHom_def, fiberMap_sum, fiberMap_smul, ContinuousMap.coe_mk,
-    fiberMap_pullbackMap, ContinuousMap.fst_apply]
+  simp only [polynomialHom_def, fiberMap_sum, fiberMap_smul, ContinuousMap.pow_apply,
+    circleCoord_apply, fiberMap_pullbackMap, ContinuousMap.fst_apply]
 
 @[simp]
 theorem polynomialHom_zero (a : ℕ → (A ⟶ D)) : polynomialHom 0 a = 0 := by

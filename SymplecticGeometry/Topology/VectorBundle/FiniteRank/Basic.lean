@@ -16,6 +16,15 @@ Tau Ceti's `TauCeti.FiniteRankBundleCore.isoOfContinuousEquiv` builds an isomorp
 finite-rank cores from a family of fibrewise continuous linear equivalences that is continuous on
 total spaces. This file gives the converse construction.
 
+It begins with two rules for fibre maps that Tau Ceti's file does not state:
+
+* `TauCeti.FiniteRankBundleCore.fiberMap_sub`: the fibre map of a difference of bundle maps is
+  the difference of their fibre maps;
+* `TauCeti.FiniteRankBundleCore.fiberMap_comp_apply`: the fibre map of a composite, applied to a
+  vector.
+
+Then:
+
 * `TauCeti.FiniteRankBundleCore.fiberMap_hom_inv_id` and
   `TauCeti.FiniteRankBundleCore.fiberMap_inv_hom_id`: the fibre maps of the two halves of an
   isomorphism are inverse to each other;
@@ -75,6 +84,18 @@ namespace FiniteRankBundleCore
 
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {B : Type*} [TopologicalSpace B]
   {A D : FiniteRankBundleCore 𝕜 B}
+
+/-- The fibre map of a difference of bundle maps of finite-rank cores is the difference of their
+fibre maps. -/
+@[simp] theorem fiberMap_sub (f g : A ⟶ D) (x : B) :
+    (f - g).fiberMap x = f.fiberMap x - g.fiberMap x := by
+  rw [sub_eq_add_neg, fiberMap_add, fiberMap_neg, ← sub_eq_add_neg]
+
+/-- The fibre map of a composite `f ≫ g` of bundle maps of finite-rank cores sends a vector `v` to
+the image under the fibre map of `g` of its image under the fibre map of `f`. -/
+theorem fiberMap_comp_apply {C : FiniteRankBundleCore 𝕜 B} (f : A ⟶ D) (g : D ⟶ C) (x : B)
+    (v : Fin A.rank → 𝕜) : (f ≫ g).fiberMap x v = g.fiberMap x (f.fiberMap x v) := by
+  rw [fiberMap_comp, ContinuousLinearMap.comp_apply]
 
 /-- The fibre map of `e.inv` after that of `e.hom`, for an isomorphism `e : A ≅ D` of finite-rank
 cores, is the identity of the fibre of `A`. -/
