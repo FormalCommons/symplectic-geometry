@@ -385,13 +385,13 @@ needed for it.
    transverse directions, `λ` is a smooth function of `u` that is `0` near
    `B`, `1` on the cube off a neighbourhood of `B` inside `U`, and supported
    in the `δ / 2`-neighbourhood of the cube
-   (`exists_contDiff_support_eq_eq_one_iff`), and `κ' := κ ∘ Prod.snd` with
+   (`exists_contMDiffMap_zero_one_nhds_of_isClosed`), and `κ' := κ ∘ Prod.snd` with
    `κ` a smooth bump equal to `1` for `‖v‖ ≤ ρ` and `0` for `‖v‖ ≥ 2ρ`.
    On `V := {‖v‖ < ρ}` near the cube, `κ'` is locally `1` and `λ` has no
    derivative in the tested directions, so the error is that of `T`,
    which is small for `ρ` small by uniform continuity of `G` on a compact
-   neighbourhood of `Q`. The support `C` is the `2ρ`-neighbourhood of the
-   cube intersected with the support of `λ`.
+   neighbourhood of `Q`. The compact `C` is the product of the closed
+   `δ / 2`-neighbourhood of the core cube and `closedBall 0 (2ρ)`.
 2. *Step from `J'` to `insert i₀ J'`, `i₀ ∉ J'`*
    (`exists_holonomic_approximation_cube_directions_insert`, proved from the
    statement for `J'` and the lemmas of the next steps).
