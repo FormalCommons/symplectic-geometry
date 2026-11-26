@@ -8,7 +8,16 @@ module
 public import Mathlib.LinearAlgebra.BilinearForm.Properties
 
 /-!
-# Nondegeneracy from a hyperplane with a one-dimensional radical
+# Nondegeneracy of reflexive bilinear forms and of their restrictions
+
+For a reflexive bilinear form `B` and a submodule `W`, the restriction of `B` to `W` is
+nondegenerate exactly when the only vector of `W` that pairs to zero under `B` with all of `W`
+is zero (`LinearMap.BilinForm.IsRefl.nondegenerate_restrict_iff`). This is the vector form of
+Tau Ceti's `LinearMap.BilinForm.restrict_nondegenerate_iff_disjoint_orthogonal`, and holds over
+any commutative semiring. Its proof follows the elementwise step of Tau Ceti's
+`Module.Dual.isContact_iff_of_isRefl`, checking both sides of nondegeneracy directly.
+
+## Nondegeneracy from a hyperplane with a one-dimensional radical
 
 Let `B` be a reflexive bilinear form on a module `M` over a commutative ring without zero
 divisors, and let `W` be a submodule that, together with one vector `e`, spans `M`. Suppose that
@@ -32,6 +41,21 @@ action.
 public section
 
 namespace LinearMap.BilinForm
+
+section Restrict
+
+variable {R M : Type*} [CommSemiring R] [AddCommMonoid M] [Module R M]
+
+/-- For a reflexive bilinear form `B`, the restriction of `B` to a submodule `W` is
+nondegenerate if and only if every `u ∈ W` with `B u w = 0` for all `w ∈ W` is zero. -/
+theorem IsRefl.nondegenerate_restrict_iff {B : LinearMap.BilinForm R M} (hB : B.IsRefl)
+    {W : Submodule R M} :
+    (B.restrict W).Nondegenerate ↔ ∀ u ∈ W, (∀ w ∈ W, B u w = 0) → u = 0 :=
+  ⟨fun h u hu hw ↦ congrArg Subtype.val (h.1 ⟨u, hu⟩ fun w ↦ hw w w.property),
+    fun h ↦ ⟨fun u hu ↦ Subtype.ext (h u u.property fun w hw ↦ hu ⟨w, hw⟩),
+      fun u hu ↦ Subtype.ext (h u u.property fun w hw ↦ hB _ _ (hu ⟨w, hw⟩))⟩⟩
+
+end Restrict
 
 variable {R M : Type*} [CommRing R] [NoZeroDivisors R] [AddCommGroup M] [Module R M]
 
