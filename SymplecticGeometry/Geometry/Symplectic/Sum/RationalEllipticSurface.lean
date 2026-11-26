@@ -502,8 +502,9 @@ theorem mk_mem_baseLocus_iff {v : Fin 3 → ℂ} (hv : v ≠ 0) :
 theorem mem_baseLocus_iff {p : ℙ ℂ (Fin 3 → ℂ)} :
     p ∈ baseLocus ↔
       p.rep 0 ^ 3 + p.rep 1 ^ 3 + p.rep 2 ^ 3 = 0 ∧ p.rep 0 * p.rep 1 * p.rep 2 = 0 := by
-  conv_lhs => rw [← p.mk_rep]
-  exact mk_mem_baseLocus_iff _
+  rw [baseLocus_def, mem_complexProjectiveZeroLocus_iff_eval_rep isHomogeneous_hesseCubics,
+    Fin.forall_fin_two]
+  simp
 
 /-- The base locus of the Hesse pencil is finite. At a point of it one coordinate vanishes and
 the other two `a`, `b` satisfy `a³ = -b³`, so they are both nonzero and the point is
