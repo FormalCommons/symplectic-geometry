@@ -409,13 +409,12 @@ theorem singularCohomologyIntChainsIso_hom_naturality {Y : TopCat.{0}} (f : X �
   rw [singularCohomologyIntChainsIso_hom, singularCohomologyIntChainsIso_hom, Category.assoc,
     TopCat.singularCohomologyMap, TopCat.singularCohomologyMap,
     ← HomologicalComplex.homologyMap_comp, ← singularCochainComplexIntChainsIso_hom_naturality,
-    HomologicalComplex.homologyMap_comp]
-  -- The map on cohomology is the map on the homology of the short complexes in degree `p`, and
-  -- the restriction of the map of complexes is the map of the restricted short complexes.
-  exact (ShortComplex.mapHomologyIso_inv_naturality_assoc
-    ((HomologicalComplex.shortComplexFunctor _ _ p).map
-      (singularCochainComplexMap (R := ModuleCat.of k k) (k := k) (M := ModuleCat.of k k) f))
-    (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)) _)
+    HomologicalComplex.homologyMap_comp,
+    ← Functor.mapHomologicalComplexCompHomologyFunctorIso_inv_app,
+    ← Functor.mapHomologicalComplexCompHomologyFunctorIso_inv_app]
+  exact (Functor.mapHomologicalComplexCompHomologyFunctorIso
+    (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)) _ p).inv.naturality_assoc
+      (singularCochainComplexMap (R := ModuleCat.of k k) (k := k) (M := ModuleCat.of k k) f) _
 
 variable {X} in
 open AlgebraicTopology in
