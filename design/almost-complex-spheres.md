@@ -88,9 +88,8 @@ bundle, of rank $2k$.
 5. But $\langle e(T_J),[S^{4k}]\rangle=\chi(S^{4k})=2$, by
    `evalFundamentalClass_eulerClass_eq_eulerChar_of_finiteCWType` and Tau Ceti's
    `TauCeti.eulerChar_sphere`, after identifying the complex Euler class
-   with the real one of the oriented tangent bundle, as the merged
-   `complexEulerClass_tangentSpace` of
-   `Geometry/Manifold/Complex/EulerCharacteristic.lean` does for complex
+   with the real one of the oriented tangent bundle, as Tau Ceti's
+   `TauCeti.complexEulerClass_tangentSpace_eq_eulerClass` does for complex
    manifolds. So $\langle 2e(T_J),[S^{4k}]\rangle=4\ne0$: a contradiction,
    with no need to know that $H^{4k}(S^{4k};\mathbb Z)$ is torsion free.
 
@@ -364,11 +363,10 @@ $\mathbb CP^1$ with $S^2$, and that $y_1\cdots y_m$ has infinite order.
   `chernClass_one_eq_complexEulerClass`, `chernClass_one_tensorProduct`,
   `Projectivization.hyperplaneClass`.
 - The library's `Geometry/Manifold/Orientation/EulerCharacteristic.lean`
-  (`evalFundamentalClass_eulerClass_eq_eulerChar_of_finiteCWType`),
-  `Geometry/Manifold/Complex/EulerCharacteristic.lean` (the pattern of
-  `complexEulerClass_tangentSpace`) and
+  (`evalFundamentalClass_eulerClass_eq_eulerChar_of_finiteCWType`) and
   `Geometry/Manifold/VectorBundle/ComplexStructure.lean`.
 - Tau Ceti: `TauCeti.eulerChar_sphere`, `TauCeti.sphereTangentEquiv`,
+  `TauCeti.complexEulerClass_tangentSpace_eq_eulerClass` (as a pattern),
   the complexification and conjugate bundles with
   `TauCeti.complexEulerClass_conjugateBundle`,
   `TauCeti.Bundle.ContinuousComplexStructure`, the sphere cohomology of
