@@ -284,7 +284,7 @@ in coordinates.
 - `liftPartialDiffeomorph ψ`: for $\psi$ an analytic `OpenPartialHomeomorph`
   of `E` with analytic inverse, fixing $0$, the lift is a biholomorphism of
   `blowdown ⁻¹' ψ.source` onto `blowdown ⁻¹' ψ.target`, with inverse the lift
-  of $\psi^{-1}$, by the chain rule at $0$ and uniqueness;
+  of $\psi^{-1}$, by the chain rule at $0$ and a direct check of the two composites;
   `eqOn_liftMap_of_blowdown_comp`: a continuous map with
   $\pi\circ\tilde\psi=\psi\circ\pi$ equals the lift, since both agree on the
   dense complement of $Z$ and the model is Hausdorff.
