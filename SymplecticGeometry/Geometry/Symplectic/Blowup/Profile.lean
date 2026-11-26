@@ -7,6 +7,10 @@ module
 
 public import Mathlib.Analysis.SpecialFunctions.Log.Basic
 public import SymplecticGeometry.Analysis.SpecialFunctions.SmoothedMax
+public import SymplecticGeometry.Geometry.Symplectic.Blowup.Model
+import SymplecticGeometry.Analysis.Complex.Euclidean.Space
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Dolbeault.Potential
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 import TauCeti.Analysis.Calculus.IntervalIntegral.ParametricPrimitive
@@ -49,6 +53,31 @@ The smoothness of `q` in the parameters is that of a parametric primitive, Tau C
 `Convex.contDiffOn_parametric_primitive`: the integrand is smooth
 (`contDiffOn_blowupProfile_sub_sub_div`) since it vanishes for
 `u ≤ ε ^ 2`, so near `u = 0`.
+
+The second half of the file defines the forms `ω̃_{l,ε}` on the model blowup `L = BlowupModel n`,
+with blowdown `π : L → E = ℂⁿ⁺¹`, the exceptional divisor `Z` and the neighbourhoods
+`L(ε) = closedNbhd n ε` of `Model.lean`:
+
+* `SymplecticGeometry.BlowupModel.correctionPotential n l ε`: the smooth function `z ↦ q(|z|²)`
+  on `E`, for the Euclidean norm `|z|` (`correctionPotential_apply`; it is `0` unless `0 < l`
+  and `0 < ε`), and `SymplecticGeometry.BlowupModel.correctionForm n l ε`: its form
+  `ω_q = (1/4) d (J* d (q(|z|²)))` on all of `E`, built as `radialPotentialForm` is. It vanishes
+  on the closed ball of radius `ε` (`correctionForm_apply_eq_zero`), since there the form of a
+  composite, `mextDerivₗ_covectorComplexStructure_mextDerivₗ_ofFunction_comp_of_hasDerivAt`, only
+  involves `q'(|z|²)` and `q''(|z|²)` (`deriv_blowupCorrection_of_le`,
+  `deriv_deriv_blowupCorrection_of_le`); on `E ∖ 0` it is `radialPotentialForm` of `q`
+  (`mpullback_subtypeVal_correctionForm`, by `mpullback_covectorComplexStructure` along the
+  holomorphic inclusion).
+* `SymplecticGeometry.BlowupModel.profileForm n l ε`: the form `ω̃_{l,ε} = ω̃_l + π^* ω_q`, defined
+  on all of `L` at once, so that no form is glued across `Z`.
+* `SymplecticGeometry.BlowupModel.profileForm_eq_blowupForm_on`: it is `ω̃_l` at the points of
+  `L(ε)`.
+* `SymplecticGeometry.BlowupModel.profileForm_eq_on_compl`: for `0 < l` and `0 < ε` it is
+  `π^* ω₀` at the points off `L(l + ε)`. Off `Z`, read on `E ∖ 0` through the blowdown, `ω̃_l` is
+  `radialPotentialForm` of `s + l² log s` (`mpullback_blowdownDiffeomorph_symm_blowupForm`), so
+  `ω̃_{l,ε}` is that of `s + l² log s + q(s)`, whose derivatives are those of `s` for
+  `s > (l + ε)²` (`sq_mul_log_add_blowupCorrection_of_ge`); and `π^* ω₀` is that of `s`
+  (`radialPotentialForm_id`).
 
 ## References
 
@@ -364,6 +393,222 @@ theorem sq_mul_log_add_blowupCorrection_of_ge (hl : 0 < l) (hε : 0 < ε) {s : �
   rw [hsplit, hint, intervalIntegral.integral_const_mul, integral_inv_of_pos hc hs0,
     Real.log_div hs0.ne' hc.ne']
   ring
+
+/-- The derivative of the correction `blowupCorrection l ε` vanishes on `Iic (ε ^ 2)`. -/
+theorem deriv_blowupCorrection_of_le (hl : 0 < l) (hε : 0 < ε) {s : ℝ} (hs : s ≤ ε ^ 2) :
+    deriv (blowupCorrection l ε) s = 0 := by
+  rw [(hasDerivAt_blowupCorrection hl hε s).deriv, blowupProfile_of_le hl hε hs]
+  ring
+
+/-- The second derivative of the correction `blowupCorrection l ε` vanishes on `Iic (ε ^ 2)`, its
+end point included. -/
+theorem deriv_deriv_blowupCorrection_of_le (hl : 0 < l) (hε : 0 < ε) {s : ℝ} (hs : s ≤ ε ^ 2) :
+    deriv (deriv (blowupCorrection l ε)) s = 0 := by
+  have hd : Differentiable ℝ (deriv (blowupCorrection l ε)) :=
+    (contDiff_infty_iff_deriv.1 (contDiff_blowupCorrection hl hε)).2.differentiable (by simp)
+  have h₀ : HasDerivWithinAt (deriv (blowupCorrection l ε)) 0 (Iic (ε ^ 2)) s :=
+    (hasDerivWithinAt_const s _ 0).congr (fun t ht ↦ deriv_blowupCorrection_of_le hl hε ht)
+      (deriv_blowupCorrection_of_le hl hε hs)
+  exact (uniqueDiffOn_Iic _ s hs).eq_deriv _ (hd s).hasDerivAt.hasDerivWithinAt h₀
+
+/-! ### The forms `ω̃_{λ,ε}` -/
+
+section ProfileForm
+
+open TauCeti SmoothAlmostComplexStructure TopologicalSpace
+open scoped Manifold ContDiff TauCeti.ComplexManifold
+
+variable (n : ℕ)
+
+/-- The correction potential `z ↦ q(|z|²)` on `E = ℂⁿ⁺¹`, for `q = blowupCorrection l ε` and
+`|z|` the Euclidean norm, as a smooth function when `0 < l` and `0 < ε`
+(`correctionPotential_apply`); it is `0` for other values of the parameters. -/
+noncomputable def correctionPotential (l ε : ℝ) :
+    C^∞⟮𝓘(ℝ, Fin (n + 1) → ℂ), Fin (n + 1) → ℂ; ℝ⟯ :=
+  ⟨fun z ↦ if 0 < l ∧ 0 < ε then
+      blowupCorrection l ε (‖complexToRealEuclidean (Fin (n + 1)) z‖ ^ 2) else 0, by
+    split_ifs with h
+    · exact ((contDiff_blowupCorrection h.1 h.2).comp
+        contDiff_norm_sq_complexToRealEuclidean).contMDiff
+    · exact contMDiff_const⟩
+
+theorem coe_correctionPotential (l ε : ℝ) :
+    ⇑(correctionPotential n l ε) = fun z ↦ if 0 < l ∧ 0 < ε then
+      blowupCorrection l ε (‖complexToRealEuclidean (Fin (n + 1)) z‖ ^ 2) else 0 :=
+  (rfl)
+
+/-- For `0 < l` and `0 < ε`, the correction potential is `z ↦ q(|z|²)`. -/
+theorem correctionPotential_apply {l ε : ℝ} (hl : 0 < l) (hε : 0 < ε) (z : Fin (n + 1) → ℂ) :
+    correctionPotential n l ε z =
+      blowupCorrection l ε (‖complexToRealEuclidean (Fin (n + 1)) z‖ ^ 2) := by
+  simp [coe_correctionPotential, hl, hε]
+
+/-- Unless `0 < l` and `0 < ε`, the correction potential is `0`. -/
+theorem correctionPotential_of_not {l ε : ℝ} (h : ¬(0 < l ∧ 0 < ε)) :
+    correctionPotential n l ε = 0 :=
+  ContMDiffMap.ext fun z ↦ by simp [coe_correctionPotential, h]
+
+/-- The form `ω_q = (1/4) d (J* d φ)` on `E` of the correction potential
+`φ = correctionPotential n l ε`, where `J*` is the structure `a ↦ -a ∘ J` on one-forms of the
+complex structure `J` of `E`; by `Dolbeault/Potential.lean` it is `(i/2) ∂∂bar φ`. -/
+noncomputable def correctionForm (l ε : ℝ) :
+    SmoothTwoForm 𝓘(ℝ, Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ) :=
+  (4 : ℝ)⁻¹ • mextDerivₗ 𝓘(ℝ, Fin (n + 1) → ℂ) 1
+    ((ofComplexManifold (Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ)).covectorComplexStructure
+      (mextDerivₗ 𝓘(ℝ, Fin (n + 1) → ℂ) 0 (SmoothForm.ofFunction (correctionPotential n l ε))))
+
+theorem correctionForm_def (l ε : ℝ) :
+    correctionForm n l ε = (4 : ℝ)⁻¹ • mextDerivₗ 𝓘(ℝ, Fin (n + 1) → ℂ) 1
+      ((ofComplexManifold (Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ)).covectorComplexStructure
+        (mextDerivₗ 𝓘(ℝ, Fin (n + 1) → ℂ) 0
+          (SmoothForm.ofFunction (correctionPotential n l ε)))) :=
+  (rfl)
+
+/-- The form of the correction potential vanishes at the points of the closed ball of radius `ε`:
+by `mextDerivₗ_covectorComplexStructure_mextDerivₗ_ofFunction_comp_of_hasDerivAt` its value at
+`z` is a combination of `q'(|z|²)` and `q''(|z|²)`, which vanish for `|z|² ≤ ε²`. -/
+theorem correctionForm_apply_eq_zero {l ε : ℝ} {z : Fin (n + 1) → ℂ}
+    (hz : ‖complexToRealEuclidean (Fin (n + 1)) z‖ ≤ ε) : (correctionForm n l ε).val z = 0 := by
+  by_cases h : 0 < l ∧ 0 < ε
+  swap
+  · have h0 : SmoothForm.ofFunction (correctionPotential n l ε) = 0 := by
+      rw [correctionPotential_of_not n h]
+      exact SmoothBundleForm.ext fun x v ↦ by
+        simp [SmoothForm.coe_ofFunction, RoughForm.ofFunction_apply]
+    rw [correctionForm_def, h0]
+    simp
+  obtain ⟨hl, hε⟩ := h
+  have hq := contDiff_blowupCorrection (n := ⊤) hl hε
+  have hq' := (contDiff_infty_iff_deriv.1 hq).2
+  have hq'' := (contDiff_infty_iff_deriv.1 hq').2
+  have hs := contDiff_norm_sq_complexToRealEuclidean (ι := Fin (n + 1)) (n := ∞)
+  let s : C^∞⟮𝓘(ℝ, Fin (n + 1) → ℂ), Fin (n + 1) → ℂ; ℝ⟯ := ⟨_, hs.contMDiff⟩
+  let a : C^∞⟮𝓘(ℝ, Fin (n + 1) → ℂ), Fin (n + 1) → ℂ; ℝ⟯ := ⟨_, (hq'.comp hs).contMDiff⟩
+  let b : C^∞⟮𝓘(ℝ, Fin (n + 1) → ℂ), Fin (n + 1) → ℂ; ℝ⟯ := ⟨_, (hq''.comp hs).contMDiff⟩
+  have hz2 : ‖complexToRealEuclidean (Fin (n + 1)) z‖ ^ 2 ≤ ε ^ 2 :=
+    pow_le_pow_left₀ (norm_nonneg _) hz 2
+  rw [correctionForm_def,
+    mextDerivₗ_covectorComplexStructure_mextDerivₗ_ofFunction_comp_of_hasDerivAt (f := s)
+      (a := a) (b := b) (fun x ↦ by simp [s, correctionPotential_apply n hl hε x])
+      (fun _ ↦ by simp [a, s]) (fun _ ↦ by simp [b, s])
+      (fun _ ↦ (hq.differentiable (by simp) _).hasDerivAt)
+      (fun _ ↦ (hq'.differentiable (by simp) _).hasDerivAt)]
+  have ha : a z = 0 := by
+    simp only [a, ContMDiffMap.coeFn_mk, Function.comp_apply]
+    exact deriv_blowupCorrection_of_le hl hε hz2
+  have hb : b z = 0 := by
+    simp only [b, ContMDiffMap.coeFn_mk, Function.comp_apply]
+    exact deriv_deriv_blowupCorrection_of_le hl hε hz2
+  simp [ha, hb]
+
+/-- On `E ∖ 0`, the form of the correction potential is the radial potential form of
+`q = blowupCorrection l ε`, for `0 < l` and `0 < ε`: the inclusion is holomorphic, so pulling back
+commutes with `d` and with `J*` (`mpullback_covectorComplexStructure`). -/
+theorem mpullback_subtypeVal_correctionForm {l ε : ℝ} (hl : 0 < l) (hε : 0 < ε) :
+    SmoothForm.mpullback (Subtype.val : puncturedSpace (Fin (n + 1) → ℂ) → _) contMDiff_subtypeVal
+        (correctionForm n l ε) =
+      radialPotentialForm (Fin (n + 1)) (blowupCorrection l ε)
+        (contDiff_blowupCorrection hl hε).contDiffOn := by
+  rw [correctionForm_def, radialPotentialForm_def, SmoothForm.mpullback_smul,
+    ← SmoothForm.mextDerivₗ_mpullback,
+    mpullback_covectorComplexStructure _ (isPseudoholomorphic_ofComplexManifold_subtype_val _),
+    ← SmoothForm.mextDerivₗ_mpullback]
+  congr 4
+  refine SmoothBundleForm.ext fun z v ↦ ?_
+  rw [SmoothForm.mpullback_apply, SmoothForm.coe_ofFunction, RoughForm.ofFunction_apply,
+    SmoothForm.coe_ofFunction, RoughForm.ofFunction_apply, correctionPotential_apply n hl hε,
+    coe_radialPotential]
+
+/-- The form `ω̃_{l,ε} = ω̃_l + π^* ω_q` on the model blowup, where `ω̃_l = blowupForm n l`, `π` is
+the blowdown and `ω_q = correctionForm n l ε` is the form of the potential `q(|z|²)` on `E`, for
+`q = blowupCorrection l ε`. It is `ω̃_l` on `L(ε)` (`profileForm_eq_blowupForm_on`), and for
+`0 < l` and `0 < ε` it is `π^* ω₀` off `L(l + ε)` (`profileForm_eq_on_compl`). -/
+noncomputable def profileForm (l ε : ℝ) : SmoothTwoForm 𝓘(ℝ, Fin (n + 1) → ℂ) (BlowupModel n) :=
+  blowupForm n l +
+    SmoothForm.mpullback blowdown ((contMDiff_blowdown ∞).restrictScalars' ℝ) (correctionForm n l ε)
+
+theorem profileForm_def (l ε : ℝ) :
+    profileForm n l ε = blowupForm n l +
+      SmoothForm.mpullback blowdown ((contMDiff_blowdown ∞).restrictScalars' ℝ)
+        (correctionForm n l ε) :=
+  (rfl)
+
+/-- On `L(ε) = closedNbhd n ε`, the form `ω̃_{l,ε}` is `ω̃_l`, since the correction potential
+vanishes to second order there. -/
+theorem profileForm_eq_blowupForm_on {l ε : ℝ} :
+    ∀ p ∈ closedNbhd n ε, (profileForm n l ε).val p = (blowupForm n l).val p := by
+  intro p hp
+  ext v
+  simp [profileForm_def,
+    correctionForm_apply_eq_zero n (mem_closedNbhd_iff.1 hp)]
+
+/-- Off the exceptional divisor, the pull-back of a two-form on the model blowup along the inclusion
+determines it: if the pull-backs of `X` and `Y` to `E ∖ 0`, through the inverse of the blowdown,
+agree at the image of `p`, then `X` and `Y` agree at `p`. -/
+private theorem val_eq_of_mpullback_blowdownPuncturedDiffeomorph_symm
+    {X Y : SmoothTwoForm 𝓘(ℝ, Fin (n + 1) → ℂ) (BlowupModel n)} {p : BlowupModel n}
+    (hp : p ∈ (⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ :
+      Opens (BlowupModel n)))
+    (h : (SmoothForm.mpullback (blowdownPuncturedDiffeomorph n).symm
+          (blowdownPuncturedDiffeomorph n).symm.contMDiff
+          (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal X)).val
+          (blowdownPuncturedDiffeomorph n ⟨p, hp⟩) =
+        (SmoothForm.mpullback (blowdownPuncturedDiffeomorph n).symm
+          (blowdownPuncturedDiffeomorph n).symm.contMDiff
+          (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal Y)).val
+          (blowdownPuncturedDiffeomorph n ⟨p, hp⟩)) :
+    X.val p = Y.val p := by
+  refine SmoothBundleForm.apply_eq_of_eval₂_eq fun v w ↦ ?_
+  have key := fun W : SmoothTwoForm 𝓘(ℝ, Fin (n + 1) → ℂ) (BlowupModel n) ↦
+    SmoothForm.eval₂_mfderiv_eq_of_mpullback_eq_mpullback_subtype_val (σ := W)
+      (blowdownPuncturedDiffeomorph n).contMDiff
+      (SmoothForm.mpullback_mpullback_symm (blowdownPuncturedDiffeomorph n) _) ⟨p, hp⟩ v w
+  refine (key X).symm.trans (Eq.trans ?_ (key Y))
+  rw [SmoothBundleForm.eval₂_apply, SmoothBundleForm.eval₂_apply, h]
+
+/-- Off `L(l + ε) = closedNbhd n (l + ε)`, the form `ω̃_{l,ε}` is `π^* ω₀`, for `0 < l` and
+`0 < ε`: there `l² log s + q(s)` is constant in `s = |z|²`, so the Fubini–Study term of `ω̃_l`
+and the correction cancel. -/
+theorem profileForm_eq_on_compl {l ε : ℝ} (hl : 0 < l) (hε : 0 < ε) :
+    ∀ p ∉ closedNbhd n (l + ε), (profileForm n l ε).val p =
+      (SmoothForm.mpullback blowdown ((contMDiff_blowdown ∞).restrictScalars' ℝ)
+        (ω₀E n)).val p := by
+  intro p hp
+  have hlε : 0 < l + ε := add_pos hl hε
+  have hp' : l + ε < ‖complexToRealEuclidean (Fin (n + 1)) p.blowdown‖ :=
+    not_le.1 (mt mem_closedNbhd_iff.2 hp)
+  have hpU : p ∈ (⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ :
+      Opens (BlowupModel n)) := fun h0 ↦ by
+    rw [mem_exceptionalDivisor_iff.1 h0, map_zero, norm_zero] at hp'
+    exact hlε.not_gt hp'
+  have hcomp : (blowdown : BlowupModel n → _) ∘ Subtype.val ∘
+      (blowdownPuncturedDiffeomorph n).symm = Subtype.val := funext fun z ↦ by
+    rw [Function.comp_apply, Function.comp_apply, coe_blowdownPuncturedDiffeomorph_symm_apply,
+      blowdown_ofNeZero]
+  have hq := (contDiff_blowupCorrection (n := ⊤) hl hε).contDiffOn (s := Ioi 0)
+  refine val_eq_of_mpullback_blowdownPuncturedDiffeomorph_symm n hpU ?_
+  rw [profileForm_def, map_add, map_add, mpullback_blowdownDiffeomorph_symm_blowupForm,
+    SmoothForm.mpullback_mpullback, SmoothForm.mpullback_mpullback,
+    SmoothForm.mpullback_mpullback, SmoothForm.mpullback_mpullback,
+    SmoothForm.mpullback_congr _ contMDiff_subtypeVal hcomp,
+    SmoothForm.mpullback_congr _ contMDiff_subtypeVal hcomp,
+    mpullback_subtypeVal_correctionForm n hl hε, ← radialPotentialForm_add _ hq, ω₀E_def,
+    ← radialPotentialForm_id contDiffOn_id]
+  refine SmoothBundleForm.apply_eq_of_eval₂_eq fun v w ↦ ?_
+  set x := ∑ i, ‖((blowdownPuncturedDiffeomorph n ⟨p, hpU⟩ : puncturedSpace _) :
+    Fin (n + 1) → ℂ) i‖ ^ 2
+  have hx : (l + ε) ^ 2 < x := by
+    simp only [x, coe_blowdownPuncturedDiffeomorph_apply, ← norm_sq_complexToRealEuclidean]
+    exact pow_lt_pow_left₀ hp' hlε.le two_ne_zero
+  have he : (fun s ↦ s + l ^ 2 * Real.log s + blowupCorrection l ε s) =ᶠ[nhds x]
+      fun s ↦ s + (l ^ 2 * Real.log ((l + ε) ^ 2) + blowupCorrection l ε ((l + ε) ^ 2)) := by
+    filter_upwards [Ioi_mem_nhds hx] with s hs
+    rw [← sq_mul_log_add_blowupCorrection_of_ge hl hε (le_of_lt hs)]
+    ring
+  rw [radialPotentialForm_apply, radialPotentialForm_apply, he.deriv_eq, he.deriv.deriv_eq]
+  simp
+
+end ProfileForm
 
 end SymplecticGeometry.BlowupModel
 
