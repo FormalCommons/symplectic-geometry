@@ -8,7 +8,6 @@ module
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegral.Product.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.OpensModelSpace
 import TauCeti.Data.Fin.Tuple.Basic
-import SymplecticGeometry.Analysis.Normed.Module.Alternating.AppendLeft
 import SymplecticGeometry.Data.Fin.Tuple.RemoveNth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.ExtDeriv
 
@@ -116,10 +115,9 @@ theorem inChartAt_prodFiberIntegrand_apply_opens
       at h
     · exact h
     · exact Manifold.mem_trivializationAt_opens_model_space_baseSet b b'
-  rw [inChartAt_prodFiberIntegrand α hb' u y hz,
-    Opens.extChartAt_opens_apply, ContinuousAlternatingMap.compContinuousLinearMap_apply,
-    ContinuousAlternatingMap.appendLeft_apply]
-  simp only [ht, Function.comp_def, ContinuousLinearMap.inr_apply]
+  rw [inChartAt_prodFiberIntegrand α hb' u y hz, Opens.extChartAt_opens_apply,
+    prodFiberIntegrandCLM_apply]
+  simp only [ht]
 
 /-- At the centre of the chart of `F`, the value of `prodFiberIntegrand α b' u` at `y` on `w` is
 the coordinate expression of `α` in the product chart at `(b, y)`, at `(b', φ y)`, on
@@ -153,16 +151,7 @@ theorem mfderiv_prodFiberIntegrand_apply (α : RoughForm (𝓘(ℝ, E).prod J) (
   have hs : UniqueDiffWithinAt ℝ s x₀ :=
     (𝓘(ℝ, E).prod J).uniqueDiffOn _ (Opens.extChartAt_opens_prod_self_mem_range b y)
   -- The integrand at `y` is read off the coordinate expression of `α` by a fixed linear map.
-  let L : (E × E') [⋀^Fin (r + m)]→L[ℝ] ℝ →L[ℝ] E' [⋀^Fin m]→L[ℝ] ℝ :=
-    (ContinuousAlternatingMap.compContinuousLinearMapCLM (ContinuousLinearMap.inr ℝ E E')).comp
-      (ContinuousAlternatingMap.appendLeftCLM ℝ ℝ m fun i ↦ (u i, (0 : E')))
-  have hL (φ : (E × E') [⋀^Fin (r + m)]→L[ℝ] ℝ) (w' : Fin m → E') :
-      L φ w' = φ (Fin.append (fun i ↦ (u i, 0)) fun j ↦ (0, w' j)) := by
-    simp only [L, ContinuousLinearMap.comp_apply,
-      ContinuousAlternatingMap.compContinuousLinearMapCLM_apply,
-      ContinuousAlternatingMap.appendLeftCLM_apply,
-      ContinuousAlternatingMap.compContinuousLinearMap_apply,
-      ContinuousAlternatingMap.appendLeft_apply, Function.comp_def, ContinuousLinearMap.inr_apply]
+  let L := prodFiberIntegrandCLM E' m u
   have hmaps : MapsTo (fun e : E ↦ (e, extChartAt J y y)) univ s := fun e _ ↦ by
     simp only [s, ModelWithCorners.range_prod]
     exact ⟨by simp, extChartAt_target_subset_range y (mem_extChartAt_target y)⟩
@@ -179,7 +168,8 @@ theorem mfderiv_prodFiberIntegrand_apply (α : RoughForm (𝓘(ℝ, E).prod J) (
     ext w'
     -- `w'` is a family of vectors of `E'`; read it as tangent vectors of `F` at `y`.
     change prodFiberIntegrand α b' u y w' = _
-    rw [prodFiberIntegrand_apply_eq_inChartAt_self α b b' u y w', Function.comp_apply, hL]
+    rw [prodFiberIntegrand_apply_eq_inChartAt_self α b b' u y w', Function.comp_apply,
+      prodFiberIntegrandCLM_apply]
   dsimp only at heq ⊢
   have hmf := Manifold.mfderiv_comp_subtype_val_apply (J := 𝓘(ℝ, E)) (U := U)
     (I := 𝓘(ℝ, E' [⋀^Fin m]→L[ℝ] ℝ))
@@ -190,7 +180,7 @@ theorem mfderiv_prodFiberIntegrand_apply (α : RoughForm (𝓘(ℝ, E).prod J) (
   -- `hmf` applies the composite derivative as a map of tangent spaces; read it as a map of `E`
   -- into alternating maps of vectors of `E'`, so that it can be evaluated on `w`.
   change L (fderivWithin ℝ (α.inChartAt (b, y)) s x₀ (ContinuousLinearMap.inl ℝ E E' a)) w = _
-  rw [ContinuousLinearMap.inl_apply, hL,
+  rw [ContinuousLinearMap.inl_apply, prodFiberIntegrandCLM_apply,
     fderivWithin_continuousAlternatingMap_apply_const_apply hs hα]
 
 /-- **The fibre derivative of the integrand.** Let `X₁, …, Xₘ ∈ E'`. If the coordinate expression
