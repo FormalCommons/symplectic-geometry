@@ -8,7 +8,11 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Gluing.Pair
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Model
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Basic
+public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Tautological
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Map
+public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Basic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens.PartialDiffeomorph
 import TauCeti.Geometry.Symplectic.Manifold.NeighborhoodGerm
@@ -56,6 +60,11 @@ the divisor `Z`, the blowup is the image of `inl`, and so symplectomorphic to `M
 * `SymplecticGeometry.WeightBlowup.complDivisor hψ hl hε`: the complement of `inr(Z)`, the
   range of `inl`, and `SymplecticGeometry.WeightBlowup.complDivisorSymplectomorph hψ hl hε`,
   its diffeomorphism onto `M ∖ ψ(B(l))`, the inverse of `inl`.
+* `SymplecticGeometry.WeightBlowup.divisor hψ hl hε`: the divisor `ℙ ℂ E → M̃_ψ`, the zero
+  section of the model followed by `inr`, as a smooth embedding of real manifolds.
+* `SymplecticGeometry.WeightBlowup.normalSpaceDivisorEquiv hψ hl hε hn ℓ`: the real-linear
+  isomorphism from the normal space of the divisor at `ℓ` onto the line `ℓ`, the fibre of the
+  tautological line bundle.
 
 ## Main results
 
@@ -81,13 +90,27 @@ the divisor `Z`, the blowup is the image of `inl`, and so symplectomorphic to `M
 * `SymplecticGeometry.WeightBlowup.mem_complDivisor_iff`,
   `isSymplectomorphism_complDivisorSymplectomorph`: the complement of `inr(Z)` with `ω̃_ψ` is
   symplectomorphic to `M ∖ ψ(B(l))` with `σ`.
+* `SymplecticGeometry.WeightBlowup.range_divisor`: the image of the divisor is the complement of
+  `complDivisor`.
+* `SymplecticGeometry.WeightBlowup.mpullback_divisor_form`: `ω̃_ψ` pulls back along the divisor
+  to `l² ω_FS`, by `BlowupModel.mpullback_zeroSection_blowupForm`; so, for `l ≠ 0`, the divisor
+  is a symplectic submanifold
+  (`SymplecticGeometry.WeightBlowup.isSymplecticSubmanifoldEmbedding_divisor`).
+* `SymplecticGeometry.WeightBlowup.normalSpaceDivisorEquiv_normalClass`,
+  `normalSpaceDivisorEquiv_symm_apply`: the isomorphism of normal spaces sends the class of the
+  image under `inr` of a tangent vector `w` of the model at `zeroSection ℓ` to the differential
+  of the blowdown applied to `w`. It is `BlowupModel.normalSpaceZeroSectionRealEquiv` of
+  `Geometry/Manifold/Complex/Blowup/Tautological.lean`, carried through `inr` by Tau Ceti's
+  `SmoothEmbedding.normalSpaceEquiv`, since `inr` is a local diffeomorphism.
 
 The gluing follows the other uses of `GluedAlong` in the library, the capped surface of
 `Geometry/Manifold/Gluing/CapDiscs/Basic.lean` and the fiber sum of
 `Geometry/Symplectic/Sum/Fibre.lean`, whose form is glued by `GluedAlong.gluedForm` in the same
 way. The diffeomorphism of the complement of the divisor follows `Blowup.blowdownRealDiffeomorph`
 of `Geometry/Manifold/Complex/Blowup/Basic.lean`, through Tau Ceti's
-`IsLocalDiffeomorph.diffeomorphOfInjective`.
+`IsLocalDiffeomorph.diffeomorphOfInjective`. The divisor is built like `Blowup.divisorRealEmbedding`
+of the same file, by Tau Ceti's `SmoothEmbedding.codRestrict` and
+`SmoothEmbedding.transLocalDiffeomorph`.
 
 ## References
 
@@ -545,6 +568,194 @@ theorem isSymplectomorphism_complDivisorSymplectomorph :
       (GluedAlong.isLocalDiffeomorph_inl _).contMDiff
       (show Subtype.val ∘ (complDivisorSymplectomorph hψ hl hε).symm = GluedAlong.inl _ from
         funext (coe_complDivisorSymplectomorph_symm_apply hψ hl hε)), mpullback_inl_form]
+
+/-! ### The divisor and its normal bundle -/
+
+section Divisor
+
+open scoped LinearAlgebra.Projectivization
+
+/-- The zero section of the model blowup lies in the model piece `openNbhd n ε`, for `0 < ε`. -/
+theorem zeroSection_mem_modelPiece (hε : 0 < ε) (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    zeroSection ℓ ∈ modelPiece n ε :=
+  mem_modelPiece_iff.2 (zeroSection_mem_openNbhd hε ℓ)
+
+/-- The real zero section of the model blowup, as a smooth embedding into the model piece. -/
+private def zeroSectionModelPiece (hε : 0 < ε) :
+    SmoothEmbedding 𝓘(ℝ, Fin n → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ (ℙ ℂ (Fin (n + 1) → ℂ))
+      (modelPiece n ε) :=
+  (zeroSectionRealEmbedding n).codRestrict (modelPiece n ε) fun ℓ ↦ by
+    rw [coe_zeroSectionRealEmbedding]
+    exact zeroSection_mem_modelPiece hε ℓ
+
+private theorem zeroSectionModelPiece_apply (hε : 0 < ε) (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    zeroSectionModelPiece hε ℓ = ⟨zeroSection ℓ, zeroSection_mem_modelPiece hε ℓ⟩ :=
+  Subtype.ext <| by
+    rw [zeroSectionModelPiece, SmoothEmbedding.val_codRestrict_apply,
+      coe_zeroSectionRealEmbedding]
+
+private theorem val_comp_zeroSectionModelPiece (hε : 0 < ε) :
+    Subtype.val ∘ zeroSectionModelPiece (n := n) hε = zeroSectionRealEmbedding n :=
+  SmoothEmbedding.val_comp_codRestrict _ _ _
+
+/-- **The divisor of the blowup of weight `l`**: the exceptional divisor `ℙ ℂ E` of the model,
+mapped into the blowup by `inr` after the zero section, as a smooth embedding of the underlying
+real manifolds. Its image is the complement of `complDivisor` (`range_divisor`). -/
+def divisor :
+    SmoothEmbedding 𝓘(ℝ, Fin n → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ (ℙ ℂ (Fin (n + 1) → ℂ))
+      (WeightBlowup hψ hl hε) :=
+  (zeroSectionModelPiece hε).transLocalDiffeomorph
+    (GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm) (s := univ)
+    (fun y _ ↦ GluedAlong.isLocalDiffeomorph_inr _ y)
+    (by
+      rw [domRestrict_def]
+      exact (GluedAlong.isOpenEmbedding_inr _).isEmbedding.comp .subtypeVal)
+    (subset_univ _)
+
+/-- The divisor sends a line `ℓ` to the image under `inr` of the point `zeroSection ℓ` of the
+model piece. -/
+@[simp]
+theorem divisor_apply (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    divisor hψ hl hε ℓ =
+      GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm
+        ⟨zeroSection ℓ, zeroSection_mem_modelPiece hε ℓ⟩ := by
+  rw [divisor, SmoothEmbedding.transLocalDiffeomorph_apply, zeroSectionModelPiece_apply]
+
+private theorem coe_divisor :
+    ⇑(divisor hψ hl hε) =
+      GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm ∘ zeroSectionModelPiece hε := by
+  rw [divisor, SmoothEmbedding.coe_transLocalDiffeomorph]
+
+/-- The image of the divisor is the complement of `complDivisor`, the image under `inr` of the
+exceptional divisor of the model. -/
+theorem range_divisor :
+    range (divisor hψ hl hε) = (complDivisor hψ hl hε : Set (WeightBlowup hψ hl hε))ᶜ := by
+  ext z
+  rw [mem_compl_iff, SetLike.mem_coe, mem_complDivisor_iff, not_not]
+  constructor
+  · rintro ⟨ℓ, rfl⟩
+    refine ⟨_, ?_, (divisor_apply hψ hl hε ℓ).symm⟩
+    rw [exceptionalDivisor_eq_range]
+    exact mem_range_self ℓ
+  · rintro ⟨y, hy, rfl⟩
+    rw [exceptionalDivisor_eq_range] at hy
+    obtain ⟨ℓ, hℓ⟩ := hy
+    exact ⟨ℓ, (divisor_apply hψ hl hε ℓ).trans (congrArg _ (Subtype.ext hℓ))⟩
+
+/-- **The divisor carries `l² ω_FS`**: the form `ω̃_ψ` of the blowup pulls back along the divisor
+to `l² • fubiniStudyForm n`. -/
+@[simp]
+theorem mpullback_divisor_form :
+    SmoothForm.mpullback (divisor hψ hl hε) (divisor hψ hl hε).contMDiff (form hψ hl hε) =
+      l ^ 2 • fubiniStudyForm n := by
+  have hr : ContMDiff 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞
+      (GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm) :=
+    (GluedAlong.isLocalDiffeomorph_inr _).contMDiff
+  rw [SmoothForm.mpullback_congr _ (hr.comp (zeroSectionModelPiece hε).contMDiff)
+      (coe_divisor hψ hl hε),
+    ← SmoothForm.mpullback_mpullback _ _ (zeroSectionModelPiece hε).contMDiff hr,
+    mpullback_inr_form, SmoothForm.mpullback_mpullback,
+    SmoothForm.mpullback_congr _ ((contMDiff_zeroSection ∞).restrictScalars' ℝ)
+      ((val_comp_zeroSectionModelPiece hε).trans (coe_zeroSectionRealEmbedding n)),
+    mpullback_zeroSection_blowupForm]
+
+/-- **The divisor is a symplectic submanifold**: for `l ≠ 0` and a nondegenerate form `ω̃_ψ`, as
+for symplectic `σ` (`isSymplectic_form`), the divisor is a symplectic submanifold embedding. -/
+theorem isSymplecticSubmanifoldEmbedding_divisor (hω : (form hψ hl hε).IsNondegenerate)
+    (hl₀ : l ≠ 0) : hω.IsSymplecticSubmanifoldEmbedding 𝓘(ℝ, Fin n → ℂ) (divisor hψ hl hε) := by
+  rw [hω.isSymplecticSubmanifoldEmbedding_iff_isNondegenerate_mpullback
+    (divisor hψ hl hε).isSmoothEmbedding]
+  convert (isSymplectic_fubiniStudyForm n).isNondegenerate.smul _ (pow_ne_zero 2 hl₀)
+  exact mpullback_divisor_form hψ hl hε
+
+variable (hn : (∞ : ℕ∞ω) ≠ 0)
+
+/-- The normal spaces of the zero section in the model piece and in the model are the same,
+through the inclusion of the model piece. -/
+private def normalSpaceZeroSectionModelPieceEquiv (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    (zeroSectionModelPiece (n := n) hε).NormalSpace ℓ hn ≃L[ℝ]
+      (zeroSectionRealEmbedding n).NormalSpace ℓ hn :=
+  (zeroSectionModelPiece hε).normalSpaceEquiv (zeroSectionRealEmbedding n) hn hn
+    (u := _root_.id) (v := Subtype.val)
+    ((isLocalDiffeomorph_subtype_val _).isInvertible_mfderiv hn)
+    (by rw [mfderiv_id]; exact Function.surjective_id)
+    (Filter.EventuallyEq.of_eq (val_comp_zeroSectionModelPiece hε))
+
+/-- The normal spaces of the zero section in the model piece and of the divisor are the same,
+through `inr`. -/
+private def normalSpaceZeroSectionModelPieceDivisorEquiv (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    (zeroSectionModelPiece (n := n) hε).NormalSpace ℓ hn ≃L[ℝ]
+      (divisor hψ hl hε).NormalSpace ℓ hn :=
+  (zeroSectionModelPiece hε).normalSpaceEquiv (divisor hψ hl hε) hn hn
+    (u := _root_.id) (v := GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm)
+    ((GluedAlong.isLocalDiffeomorph_inr _ _).isInvertible_mfderiv hn)
+    (by rw [mfderiv_id]; exact Function.surjective_id)
+    (Filter.EventuallyEq.of_eq (coe_divisor hψ hl hε).symm)
+
+/-- **The normal bundle of the divisor is the tautological line.** The real-linear isomorphism
+from the normal space of the divisor at `ℓ` onto the line `ℓ`: the isomorphism
+`normalSpaceZeroSectionRealEquiv` of the model, transported through `inr`. It sends the normal
+class of the image under `inr` of a tangent vector `w` of the model at `zeroSection ℓ` to the
+differential of `blowdown` applied to `w` (`normalSpaceDivisorEquiv_normalClass`). -/
+def normalSpaceDivisorEquiv (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    (divisor hψ hl hε).NormalSpace ℓ hn ≃L[ℝ]
+      Projectivization.Tautological ℂ (Fin (n + 1) → ℂ) ℓ :=
+  ((normalSpaceZeroSectionModelPieceDivisorEquiv hψ hl hε hn ℓ).symm.trans
+    (normalSpaceZeroSectionModelPieceEquiv hε hn ℓ)).trans
+      (normalSpaceZeroSectionRealEquiv n hn ℓ)
+
+/-- `normalSpaceDivisorEquiv` sends the normal class of the image under `inr` of a tangent vector
+`w` of the model at `zeroSection ℓ` to the differential of `blowdown` at `zeroSection ℓ` applied
+to `w`, a vector of the line `ℓ`. -/
+@[simp]
+theorem normalSpaceDivisorEquiv_normalClass (ℓ : ℙ ℂ (Fin (n + 1) → ℂ))
+    (w : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) (zeroSection ℓ : BlowupModel n)) :
+    normalSpaceDivisorEquiv hψ hl hε hn ℓ ((divisor hψ hl hε).normalClass ℓ hn
+        (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
+          (GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm)
+          ⟨zeroSection ℓ, zeroSection_mem_modelPiece hε ℓ⟩ w)) =
+      ⟨mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown (zeroSection ℓ) w,
+        mfderiv_blowdown_zeroSection_mem ℓ w⟩ := by
+  -- The tangent vectors at `zeroSectionModelPiece hε ℓ` and at the point
+  -- `⟨zeroSection ℓ, _⟩` of the model piece, equal by `zeroSectionModelPiece_apply`, are both
+  -- vectors of `Fin (n + 1) → ℂ`: `h₁` states the first step for every point equal to it.
+  have h₁ : ∀ p, p = zeroSectionModelPiece hε ℓ → ∀ v : Fin (n + 1) → ℂ,
+      (normalSpaceZeroSectionModelPieceDivisorEquiv hψ hl hε hn ℓ).symm
+        ((divisor hψ hl hε).normalClass ℓ hn
+          (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
+            (GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm) p v)) =
+        (zeroSectionModelPiece hε).normalClass ℓ hn v := by
+    rintro _ rfl v
+    rw [ContinuousLinearEquiv.symm_apply_eq, normalSpaceZeroSectionModelPieceDivisorEquiv]
+    exact (SmoothEmbedding.normalSpaceEquiv_normalClass (zeroSectionModelPiece hε)
+      (divisor hψ hl hε) hn hn (u := _root_.id)
+      (v := GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm) _ _ _ v).symm
+  have h₂ : ∀ v : Fin (n + 1) → ℂ, normalSpaceZeroSectionModelPieceEquiv hε hn ℓ
+      ((zeroSectionModelPiece hε).normalClass ℓ hn v) =
+      (zeroSectionRealEmbedding n).normalClass ℓ hn v := by
+    intro v
+    rw [normalSpaceZeroSectionModelPieceEquiv]
+    refine (SmoothEmbedding.normalSpaceEquiv_normalClass _ _ hn hn _ _ _ v).trans ?_
+    exact congrArg _ (Manifold.mfderiv_subtype_val_apply _ v)
+  rw [normalSpaceDivisorEquiv, ContinuousLinearEquiv.trans_apply,
+    ContinuousLinearEquiv.trans_apply, h₁ _ (zeroSectionModelPiece_apply hε ℓ).symm w, h₂ w]
+  exact normalSpaceZeroSectionRealEquiv_normalClass ℓ w
+
+/-- The inverse of `normalSpaceDivisorEquiv` sends the differential of `blowdown` at
+`zeroSection ℓ` applied to a tangent vector `w` of the model to the normal class of the image of
+`w` under `inr`. -/
+theorem normalSpaceDivisorEquiv_symm_apply (ℓ : ℙ ℂ (Fin (n + 1) → ℂ))
+    (w : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) (zeroSection ℓ : BlowupModel n)) :
+    (normalSpaceDivisorEquiv hψ hl hε hn ℓ).symm
+        ⟨mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown (zeroSection ℓ) w,
+          mfderiv_blowdown_zeroSection_mem ℓ w⟩ =
+      (divisor hψ hl hε).normalClass ℓ hn
+        (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
+          (GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm)
+          ⟨zeroSection ℓ, zeroSection_mem_modelPiece hε ℓ⟩ w) := by
+  rw [ContinuousLinearEquiv.symm_apply_eq, normalSpaceDivisorEquiv_normalClass]
+
+end Divisor
 
 end Form
 
