@@ -59,6 +59,13 @@ with compact support, `m` the number of elements of `ι`,
 `EuclideanSpace.sumEquivProd`, which preserves Lebesgue measure
 (`EuclideanSpace.volume_preserving_sumEquivProd`).
 
+Null sets can be read off in charts. A subset of the source of an extended chart whose image is
+null for an additive Haar measure on the model is null for the Liouville measure of every
+two-form (`TauCeti.SmoothTwoForm.liouvilleMeasure_eq_zero_of_subset`), and on a Lindelöf
+manifold so is every chartwise null set in the sense of `TauCeti.IsNullSet`
+(`TauCeti.IsNullSet.liouvilleMeasure_eq_zero`). Both are the cases of the volume form of
+`TauCeti.RoughForm.measure_eq_zero_of_subset` and `TauCeti.RoughForm.measure_eq_zero_of_isNullSet`.
+
 ## References
 
 * D. McDuff and D. Salamon, *Introduction to Symplectic Topology*, 3rd ed., Oxford University
@@ -96,6 +103,24 @@ theorem IsNondegenerate.integralTopForm_smul_volumeForm (h : σ.IsNondegenerate)
     (signBasis_orientationAt_mul_nonneg_of_iff _
       fun _ c ↦ h.orientation_eq_orientationAt_volumeOrientation_iff hn.out c) hf hc
 
+/-! ### Null sets in charts -/
+
+/-- **A set that is null in a chart is null for the Liouville measure.** A subset of the source
+of the extended chart at `α` whose image in the chart is null for an additive Haar measure on the
+model has Liouville measure zero. The set need not be measurable. -/
+theorem liouvilleMeasure_eq_zero_of_subset [MeasurableSpace E] [BorelSpace E] {α : M}
+    {s : Set M} (hsub : s ⊆ (extChartAt I α).source) (μ : Measure E) [μ.IsAddHaarMeasure]
+    (hs : μ (extChartAt I α '' s) = 0) : σ.liouvilleMeasure n s = 0 := by
+  rw [liouvilleMeasure_def]
+  exact RoughForm.measure_eq_zero_of_subset _ hsub μ hs
+
+/-- **A chartwise null set is null for the Liouville measure.** On a Lindelöf manifold, a set
+whose images in all extended charts are null for the additive Haar measures on the model has
+Liouville measure zero for every two-form. -/
+theorem _root_.TauCeti.IsNullSet.liouvilleMeasure_eq_zero [MeasurableSpace E] [BorelSpace E]
+    {s : Set M} (hs : IsNullSet I s) (σ : SmoothTwoForm I M) : σ.liouvilleMeasure n s = 0 := by
+  rw [liouvilleMeasure_def]
+  exact RoughForm.measure_eq_zero_of_isNullSet _ hs
 
 /-! ### Change of variables along a symplectic partial diffeomorphism -/
 
