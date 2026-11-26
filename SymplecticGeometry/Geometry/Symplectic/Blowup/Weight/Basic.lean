@@ -12,7 +12,8 @@ public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Basic
 /-!
 # The blowup of weight `λ` along a symplectic ball: the glued manifold
 
-Let `M` be a smooth manifold modelled on `E := Fin (n + 1) → ℂ`, let `σ` be a two-form on `M`,
+Let `M` be a Hausdorff smooth manifold modelled on `E := Fin (n + 1) → ℂ`, let `σ` be a two-form
+on `M`,
 and let `ψ : StdSpace (Fin (n + 1)) → M` be a symplectic embedding of the closed ball of radius
 `√(l² + ε²)` (`IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ`), for `0 ≤ l` and `0 ≤ ε`. The
 weight `λ` of McDuff–Salamon is called `l` here, as in `Blowup/Model.lean`. Following
@@ -23,12 +24,12 @@ of the model blowup `L = BlowupModel n`: a point `p` of `openNbhd n ε ∖ Z` is
 on `StdSpace` through `complexToRealEuclidean`. The map `p ↦ F_l(π p)` is
 `BlowupModel.shellSymplectomorph`, a diffeomorphism of `openNbhd n ε ∖ Z` onto the open shell
 `l < |w| < √(l² + ε²)` of `E`, which `ψ` maps diffeomorphically onto an open subset of
-`M ∖ ψ(B(l))`.
+`M ∖ ψ(B(l))`. Only the topology and the smooth structure are built here; the form `σ` enters
+through the ball embedding alone, so it need not be closed or nondegenerate.
 
 ## Main definitions
 
-* `SymplecticGeometry.WeightBlowup.outerPiece hψ`: the open subset `M ∖ ψ(B(l))` of `M`, for
-  Hausdorff `M`.
+* `SymplecticGeometry.WeightBlowup.outerPiece hψ`: the open subset `M ∖ ψ(B(l))` of `M`.
 * `SymplecticGeometry.WeightBlowup.modelPiece n ε`: the open subset `openNbhd n ε` of the model.
 * `SymplecticGeometry.WeightBlowup.shellImage hψ`: the image under `ψ` of the open shell
   `l < |w| < √(l² + ε²)`, an open subset of `M`.
@@ -37,8 +38,8 @@ on `StdSpace` through `complexToRealEuclidean`. The map `p ↦ F_l(π p)` is
   `shellImage hψ`, as an open subset of the outer piece.
 * `SymplecticGeometry.WeightBlowup hψ hl hε`: the blowup of weight `l`, the space
   `SymplecticGeometry.GluedAlong` of `Geometry/Manifold/Gluing/Pair.lean` glued from the two
-  pieces along the inverse of `gluingDiffeomorph`. It is a smooth manifold modelled on `E`, and
-  second countable when `M` is, by the instances of `GluedAlong`.
+  pieces along the inverse of `gluingDiffeomorph`. It is second countable when `M` is, by the
+  instance of `GluedAlong`.
 * `SymplecticGeometry.WeightBlowup.inl`, `SymplecticGeometry.WeightBlowup.inr`: the open
   embeddings of the two pieces.
 
@@ -46,7 +47,13 @@ on `StdSpace` through `complexToRealEuclidean`. The map `p ↦ F_l(π p)` is
 
 * `SymplecticGeometry.WeightBlowup.coe_gluingDiffeomorph_apply`: the gluing map is
   `ψ ∘ complexToRealEuclidean ∘ shellSymplectomorph`.
-* `SymplecticGeometry.WeightBlowup.inl_eq_inr_iff`: the identification made by the gluing.
+* `SymplecticGeometry.WeightBlowup.instIsManifold`: the blowup is a smooth manifold modelled on
+  `E`, by the manifold structure of `GluedAlong`.
+* `SymplecticGeometry.WeightBlowup.isOpenEmbedding_inl`, `isOpenEmbedding_inr`,
+  `isLocalDiffeomorph_inl`, `isLocalDiffeomorph_inr`, `range_inl_union_range_inr`: the two
+  pieces are open in the blowup and cover it.
+* `SymplecticGeometry.WeightBlowup.inl_gluingDiffeomorph`, `inl_eq_inr_iff`: the identification
+  made by the gluing.
 * `SymplecticGeometry.WeightBlowup.instT2Space`: the blowup is Hausdorff. A point of `Z` and a
   point `x ∉ ψ(B(l))` that is not glued to the model are separated, for `0 < δ < ε`, by
   `openNbhd n δ` and the complement of the compact set `ψ(B(√(l² + δ²)))`, which does not contain
@@ -80,10 +87,6 @@ variable {n : ℕ} {M : Type} [TopologicalSpace M] [ChartedSpace (Fin (n + 1) �
   [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M]
   {σ : SmoothTwoForm 𝓘(ℝ, Fin (n + 1) → ℂ) M} {ψ : StdSpace (Fin (n + 1)) → M} {l ε : ℝ}
 
-/-- `l ≤ √(l² + ε²)`. -/
-private theorem le_sqrt_sq_add_sq (l ε : ℝ) : l ≤ √(l ^ 2 + ε ^ 2) :=
-  Real.le_sqrt_of_sq_le (le_add_of_nonneg_right (sq_nonneg ε))
-
 /-- `ψ` read on `E` through `complexToRealEuclidean`, as a partial diffeomorphism of `E` into `M`
 on the preimage of the open ball of radius `√(l² + ε²)`. -/
 private def complexPartialDiffeomorph
@@ -108,7 +111,7 @@ variable [T2Space M]
 /-- The first piece of the blowup: the open subset `M ∖ ψ(B(l))` of `M`. -/
 def outerPiece (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) : Opens M :=
   ⟨(ψ '' closedBall 0 l)ᶜ,
-    (hψ.isCompact_image_closedBall (le_sqrt_sq_add_sq l ε)).isClosed.isOpen_compl⟩
+    (hψ.isCompact_image_closedBall (Real.le_sqrt_of_sq_le (by nlinarith))).isClosed.isOpen_compl⟩
 
 @[simp]
 theorem mem_outerPiece_iff (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) {x : M} :
@@ -130,13 +133,14 @@ open ball of radius `√(l² + ε²)` that are not in `ψ(B(l))`. -/
 def shellImage (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) : Opens M :=
   ⟨ψ '' ball 0 √(l ^ 2 + ε ^ 2) \ ψ '' closedBall 0 l,
     (hψ.isOpen_image_ball (complexToRealEuclidean (Fin (n + 1))).toLinearEquiv.finrank_eq.symm
-      ).sdiff (hψ.isCompact_image_closedBall (le_sqrt_sq_add_sq l ε)).isClosed⟩
+      ).sdiff (hψ.isCompact_image_closedBall (Real.le_sqrt_of_sq_le (by nlinarith))).isClosed⟩
 
 @[simp]
 theorem mem_shellImage_iff (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) {x : M} :
     x ∈ shellImage hψ ↔ x ∈ ψ '' ball 0 √(l ^ 2 + ε ^ 2) ∧ x ∉ ψ '' closedBall 0 l :=
   Iff.rfl
 
+/-- The image of the shell lies in the outer piece. -/
 theorem shellImage_le_outerPiece (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) :
     shellImage hψ ≤ outerPiece hψ :=
   fun _ hx ↦ hx.2
@@ -149,7 +153,8 @@ theorem mem_openShell_iff_mem_shellImage (hψ : IsSymplecticBallEmbedding σ (�
   rw [mem_openShell_iff, mem_shellImage_iff]
   refine ⟨fun h ↦ ⟨⟨_, mem_ball_zero_iff.2 hw, rfl⟩, ?_⟩, fun h ↦ ⟨?_, hw⟩⟩
   · rintro ⟨v, hv, hvw⟩
-    have hle := closedBall_subset_closedBall (le_sqrt_sq_add_sq l ε) hv
+    have hle : v ∈ closedBall 0 √(l ^ 2 + ε ^ 2) :=
+      closedBall_subset_closedBall (Real.le_sqrt_of_sq_le (by nlinarith)) hv
     rw [hψ.injOn hle (ball_subset_closedBall (mem_ball_zero_iff.2 hw)) hvw,
       mem_closedBall_zero_iff] at hv
     exact h.1.not_ge hv
@@ -185,6 +190,7 @@ theorem coe_shellDiffeomorph_apply (hψ : IsSymplecticBallEmbedding σ (√(l ^ 
   simp [shellDiffeomorph, coe_complexPartialDiffeomorph]
 
 variable (n ε) in
+/-- `openNbhd n ε ∖ Z` lies in the model piece. -/
 theorem sdiff_le_modelPiece :
     (⟨openNbhd n ε \ exceptionalDivisor n, (isOpen_openNbhd ε).sdiff isClosed_exceptionalDivisor⟩ :
       Opens (BlowupModel n)) ≤ modelPiece n ε :=
@@ -197,17 +203,17 @@ abbrev modelOverlap : Opens (modelPiece n ε) :=
   Opens.comap ⟨Subtype.val, continuous_subtypeVal⟩
     ⟨openNbhd n ε \ exceptionalDivisor n, (isOpen_openNbhd ε).sdiff isClosed_exceptionalDivisor⟩
 
-@[simp]
 theorem mem_modelOverlap_iff {p : modelPiece n ε} :
-    p ∈ modelOverlap n ε ↔ (p : BlowupModel n) ∉ exceptionalDivisor n := by
-  exact ⟨fun h ↦ h.2, fun h ↦ ⟨p.property, h⟩⟩
+    p ∈ modelOverlap n ε ↔ (p : BlowupModel n) ∉ exceptionalDivisor n :=
+  ⟨fun h ↦ h.2, fun h ↦ ⟨p.property, h⟩⟩
 
 /-- The overlap on the side of `M`: `shellImage hψ`, as an open subset of the outer piece. -/
 abbrev outerOverlap (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) :
     Opens (outerPiece hψ) :=
   Opens.comap ⟨Subtype.val, continuous_subtypeVal⟩ (shellImage hψ)
 
-@[simp]
+/-- A point of the outer piece lies in the overlap exactly when it is in the image of the open
+ball of radius `√(l² + ε²)`. -/
 theorem mem_outerOverlap_iff (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ)
     {x : outerPiece hψ} : x ∈ outerOverlap hψ ↔ (x : M) ∈ ψ '' ball 0 √(l ^ 2 + ε ^ 2) := by
   simp only [outerOverlap, Opens.mem_comap, ContinuousMap.coe_mk, mem_shellImage_iff,
@@ -235,6 +241,18 @@ theorem coe_gluingDiffeomorph_apply (hψ : IsSymplecticBallEmbedding σ (√(l ^
   simp only [gluingDiffeomorph, Diffeomorph.coe_trans, Function.comp_apply,
     Diffeomorph.nestedOpen_apply, Diffeomorph.nestedOpen_symm_apply, coe_shellDiffeomorph_apply]
 
+/-- A point `p` of `openNbhd n ε ∖ Z` with `|π p| < δ` is glued to a point of the image of the open
+ball of radius `√(l² + δ²)`. -/
+theorem coe_gluingDiffeomorph_mem_image_ball
+    (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) (hl : 0 ≤ l) (hε : 0 ≤ ε) {δ : ℝ}
+    (hδ : 0 ≤ δ) (p : modelOverlap n ε) (hp : (p.val : BlowupModel n) ∈ openNbhd n δ) :
+    ((gluingDiffeomorph hψ hl hε p : outerPiece hψ) : M) ∈ ψ '' ball 0 √(l ^ 2 + δ ^ 2) := by
+  rw [coe_gluingDiffeomorph_apply]
+  refine ⟨_, ?_, rfl⟩
+  rw [mem_ball_zero_iff, coe_shellSymplectomorph_apply,
+    ← coe_radialBlowdownDiffeomorph_apply]
+  exact (mem_openNbhd_iff_radialBlowdownDiffeomorph l hδ _).1 hp
+
 /-- **The blowup of weight `l`** of `M` along the symplectic ball embedding `ψ`, following
 McDuff–Salamon, §7.1: the outer piece `M ∖ ψ(B(l))` and the model piece `openNbhd n ε` glued
 along the inverse of `gluingDiffeomorph`, which identifies `p ∈ openNbhd n ε ∖ Z` with
@@ -245,9 +263,9 @@ abbrev _root_.SymplecticGeometry.WeightBlowup
 
 variable (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) (hl : 0 ≤ l) (hε : 0 ≤ ε)
 
-example : IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ (WeightBlowup hψ hl hε) := inferInstance
-
-example [SecondCountableTopology M] : SecondCountableTopology (WeightBlowup hψ hl hε) :=
+/-- The blowup of weight `l` is a smooth manifold, the model piece carrying the real structure of
+the complex manifold `BlowupModel n`. -/
+instance instIsManifold : IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ (WeightBlowup hψ hl hε) :=
   inferInstance
 
 /-- The open embedding of the outer piece `M ∖ ψ(B(l))` into the blowup. -/
@@ -295,6 +313,31 @@ theorem inl_eq_inr_iff {x : outerPiece hψ} {y : modelPiece n ε} :
   obtain ⟨hx, hxy⟩ := (GluedAlong.inl_eq_inr_iff _).1 h
   refine ⟨hxy ▸ ((gluingDiffeomorph hψ hl hε).symm ⟨x, hx⟩).property, ?_⟩
   simp [← hxy]
+
+/-- **The blowup of weight `l` is Hausdorff**, for Hausdorff `M`. -/
+instance instT2Space : T2Space (WeightBlowup hψ hl hε) := by
+  -- By `GluedAlong.t2Space_iff`, it suffices to separate a point `y` of the divisor from a point
+  -- `x` of `M ∖ ψ(B(l))` that is not glued, that is, not in the image of the open ball of radius
+  -- `√(l² + ε²)`. For `δ = ε / 2`, the neighbourhood `openNbhd n δ` of `y` is glued into the
+  -- compact set `ψ(B(√(l² + δ²)))`, which misses `x`.
+  refine (GluedAlong.t2Space_iff _).2 ⟨inferInstance, inferInstance, fun x hx y hy ↦ ?_⟩
+  rw [mem_outerOverlap_iff] at hx
+  rw [mem_modelOverlap_iff, not_not] at hy
+  have hδ : 0 < ε / 2 :=
+    half_pos ((norm_nonneg _).trans_lt (mem_openNbhd_iff.1 (mem_modelPiece_iff.1 y.property)))
+  have hR : √(l ^ 2 + (ε / 2) ^ 2) < √(l ^ 2 + ε ^ 2) :=
+    Real.sqrt_lt_sqrt (by positivity) (by nlinarith)
+  refine ⟨Subtype.val ⁻¹' (ψ '' closedBall 0 √(l ^ 2 + (ε / 2) ^ 2))ᶜ, ?_,
+    Subtype.val ⁻¹' openNbhd n (ε / 2), ?_, fun z hzA hzB ↦ ?_⟩
+  · refine continuous_subtypeVal.continuousAt.preimage_mem_nhds
+      ((hψ.isCompact_image_closedBall hR.le).isClosed.isOpen_compl.mem_nhds ?_)
+    rintro ⟨v, hv, hvx⟩
+    exact hx ⟨v, mem_ball_zero_iff.2 ((mem_closedBall_zero_iff.1 hv).trans_lt hR), hvx⟩
+  · exact continuous_subtypeVal.continuousAt.preimage_mem_nhds
+      ((isOpen_openNbhd _).mem_nhds (exceptionalDivisor_subset_openNbhd hδ hy))
+  · have h := coe_gluingDiffeomorph_mem_image_ball hψ hl hε hδ.le _ hzB
+    rw [Diffeomorph.apply_symm_apply] at h
+    exact hzA (image_mono ball_subset_closedBall h)
 
 end WeightBlowup
 

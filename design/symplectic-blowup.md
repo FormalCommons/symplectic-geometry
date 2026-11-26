@@ -352,12 +352,14 @@ $B(\lambda)$.
   (injective, with injective differential by `injective_mfderiv`, in equal
   dimension). It goes in *Isotopy extension*'s `Ball/Basic.lean` if that
   file has no such lemma when the issue starts; the issue searches first.
-- `glueData ψ λ ε`: two pieces, the open set `(ψ '' closedBall 0 λ)ᶜ` of `M`
+- `gluingDiffeomorph hψ hλ hε`, for `hλ : 0 ≤ λ` and `hε : 0 ≤ ε`: two
+  pieces, the open set `(ψ '' closedBall 0 λ)ᶜ` of `M`
   and `openNbhd n ε`, glued along `openNbhd n ε \ Z` and
   $\psi(\{\lambda<|w|<\sqrt{\lambda^2+\varepsilon^2}\})$ by
   $(\ell,z)\mapsto\psi(F_\lambda(z))$, the page's
   $\psi(\sqrt{1+\lambda^2/|z|^2}\,z)$, that is
-  `ψ ∘ shellSymplectomorph`; `WeightBlowup ψ λ ε`, the glued space, with
+  `ψ ∘ shellSymplectomorph`; `WeightBlowup hψ hλ hε`, the `GluedAlong` of
+  its inverse, with
   `inl`, `inr`, `inl_eq_inr_iff`, the charted space and
   `IsManifold 𝓘(ℝ, E) ∞` by Tau Ceti's `IsCompatible.isManifold`;
   `T2Space` (a point of $Z$ and a point $x\notin\psi(B(\lambda))$ are
@@ -383,7 +385,7 @@ $B(\lambda)$.
 
 ### `Blowup/Weight/Collapse.lean`
 
-- `collapseMap ψ λ ε : ((ψ '' ball 0 λ)ᶜ : Set M) → WeightBlowup ψ λ ε`:
+- `collapseMap ψ λ ε : ((ψ '' ball 0 λ)ᶜ : Set M) → WeightBlowup hψ hλ hε`:
   `inl` off $\psi(B(\lambda))$, and $\psi(w)\mapsto$ `divisor [w]` for
   $|w|=\lambda$; continuous, surjective, closed (proper, from a closed
   subset of `M`), so a quotient map; its fibres are the points off the
@@ -392,7 +394,7 @@ $B(\lambda)$.
   $\lambda$, after scaling).
 - `collapseHomeomorph`: the homeomorphism from the quotient of
   `(ψ '' ball 0 λ)ᶜ` by the relation "equal, or both on the sphere with
-  the same `sphereHopf`" onto `WeightBlowup ψ λ ε`.
+  the same `sphereHopf`" onto `WeightBlowup hψ hλ hε`.
 - `liouvilleMeasure_form_add`: the Liouville measure of the blowup plus
   that of $B(\lambda)$ for $\omega_0$ is that of `M`, in `ℝ≥0∞`: $Z$ is
   null, `complDivisorSymplectomorph` preserves the Liouville measure, and
@@ -433,7 +435,7 @@ For `f : SmoothEmbedding (ℙ ℂ E) M` and the normal bundle isomorphism of
 - `weightBlowup_blowdown`: blowing up the blowdown along `blowdownBall`
   with weight $\lambda$ gives a manifold symplectomorphic to `M`, sending
   its divisor to `f`; and `blowdown_weightBlowup`: blowing down the
-  divisor of `WeightBlowup ψ λ ε` gives `M` back, symplectomorphic off
+  divisor of `WeightBlowup hψ hλ hε` gives `M` back, symplectomorphic off
   $\psi(B(\lambda))$ and carrying `blowdownBall` to `ψ` near $B(\lambda)$.
 - **Milestone** `exists_blowdown`: the conjunction of
   `exists_symplectomorphism_blowupModel` and the two statements above. Its
@@ -480,7 +482,7 @@ Namespace `SymplecticGeometry`, for `M` as in *Setting*, `ω`, `J`, `p₀`,
 
 - (ii) `normalizedBlowupSymplectomorph hψ`: a symplectomorphism from
   `(Blowup c, normalizedBlowupForm hψ)` onto
-  `(WeightBlowup ψ λ ε', WeightBlowup.form)`, for `0 < ε' ≤ ε` with
+  `(WeightBlowup hψ' hλ hε', WeightBlowup.form)`, for `0 < ε' ≤ ε` with
   $\sqrt{\lambda^2+\varepsilon'^2}<r$, built as in *Decisions*, with
   `F_{λ,ε} = radialMap (blowupProfile λ ε)`. It is a bijective local
   symplectomorphism, so a diffeomorphism by
