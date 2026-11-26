@@ -96,7 +96,9 @@ theorem firstChernClass_congr
 /-- **Naturality of the first Chern class along a map of any `ContinuousMapClass`**:
 `c₁(f* E) = f* c₁(E)` for `f : K` with `[ContinuousMapClass K X B]`. The pull-back `(⇑f) *ᵖ E`
 carries the instances found through `K`, not those of `⇑(f : C(X, B)) *ᵖ E` in
-`TauCeti.firstChernClass_pullback`. -/
+`TauCeti.firstChernClass_pullback`.
+
+Milestone: *First Chern class of a complex vector bundle*. -/
 theorem firstChernClass_pullback_coe {X : Type} [TopologicalSpace X] {K : Type*} [FunLike K X B]
     [ContinuousMapClass K X B] (f : K) :
     firstChernClass G ((⇑f) *ᵖ E) =

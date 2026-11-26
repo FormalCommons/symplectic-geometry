@@ -306,8 +306,8 @@ page's conventions through them.
   surfaces this loses nothing.
 - **Characteristic classes and Betti numbers.** Chern classes are integral
   singular cohomology classes (`TauCeti` singular cohomology with chain
-  coefficients `ULift ℤ`), $c_1$ being *First Chern number*'s
-  `SymplecticGeometry.Bundle.firstChernClass`, with values in `ULift ℤ`.
+  coefficients `ULift ℤ`), $c_1$ being Tau Ceti's
+  `TauCeti.firstChernClass`, with values in `ULift ℤ`.
   *Chern classes* takes values in `ℤ` (`TopCat.integralCohomology`, whose
   cup product has the ring laws) and compares with classes valued in
   `ULift ℤ` through an isomorphism, as `design/chern-classes.md` says.
@@ -442,7 +442,7 @@ bracket is negated.
   integration map (`Geometry/Manifold/SmoothSingular/DeRham/Basic.lean`). The
   real first Chern class of the vertical bundle is a de Rham class, built
   by Chern–Weil in *Compatible symplectic forms*, and compared with the
-  library's integral `SymplecticGeometry.Bundle.firstChernClass` there
+  integral `TauCeti.firstChernClass` there
   over closed oriented surfaces, through Chern numbers. With the merged
   orientation and integration signs, `deRhamHom` of the real class of a
   Hermitian line bundle is **minus** the real image of Tau Ceti's
@@ -591,7 +591,7 @@ parallel transport, principal connections and fibre integrals of parts
 | Almost complex structure on $M$, $\mathcal J(M,\omega)$, $\mathcal J_\tau(M,\omega)$ | `TauCeti.SmoothAlmostComplexStructure I M` with `frameTopology`; subtypes for `TauCeti.SmoothTwoForm.Compatible`, `Tames` | Tau Ceti |
 | Nijenhuis tensor, Kähler pair | `TauCeti.SmoothAlmostComplexStructure.nijenhuis`, `TauCeti.SmoothTwoForm.IsKahler` | Tau Ceti |
 | Integrable almost complex structure | `TauCeti.SmoothAlmostComplexStructure.IsIntegrable` | *Nijenhuis tensor* |
-| First Chern class of a complex bundle | `SymplecticGeometry.Bundle.firstChernClass` | *First Chern number* |
+| First Chern class of a complex bundle | `TauCeti.firstChernClass` | Tau Ceti |
 | Lie group action, fundamental vector fields $X_\xi$ | `[LieGroup I ∞ G] [ContMDiffSMul I I' ∞ G M]`; `TauCeti.fundamentalVectorField`, `TauCeti.InfinitesimalAction.fundamental` (see *Group actions, moment maps and periods*) | Mathlib, Tau Ceti |
 | Moment map, equivariant moment map, its cocycle | `TauCeti.SmoothTwoForm.IsMomentMap`, `IsEquivariantMomentMap`, `momentCocycle`, applied to $-\mu$ | Tau Ceti |
 | Average of a form over a compact group | `TauCeti.SmoothForm.measureAverage` with `TauCeti.haarProb` (`Geometry/Manifold/DifferentialForm/Average.lean`) | Tau Ceti |
@@ -3373,7 +3373,7 @@ Differential topology and complex analysis only; it waits for no part of
   `Surface.lean` (the surface milestone, with compatibility with the
   orientation). The real first Chern class, built by Chern–Weil for the
   determinant line, natural under pull-back, and compared with the
-  library's `SymplecticGeometry.Bundle.firstChernClass` only over closed
+  `TauCeti.firstChernClass` only over closed
   oriented surfaces, through Chern numbers; the formula
   $c_1(TF)=\chi(F)/\mathrm{area}\cdot[\sigma]$; and the family of area
   forms made symplectic by Moser's argument with a parameter in the base

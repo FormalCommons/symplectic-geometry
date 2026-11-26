@@ -62,8 +62,8 @@ pinned versions, as for `DESIGN.md`. Tau Ceti paths are relative to
   shows that this is the orientation the page means: with $X$ and $\Sigma$
   oriented by $J$, the orientations of $\Sigma$ and $\nu$ induce that of
   $X$ through the short exact sequence of the normal bundle.
-- **Characteristic numbers.** $c_1(TX,J)$ is *First Chern number*'s
-  `SymplecticGeometry.Bundle.firstChernClass G` of the complex tangent bundle
+- **Characteristic numbers.** $c_1(TX,J)$ is Tau Ceti's
+  `TauCeti.firstChernClass G` of the complex tangent bundle
   `(J.toContMDiff ⊤).toContinuousComplexStructure.Fiber` (Tau Ceti's
   `Geometry/Symplectic/Manifold/AlmostComplex/ComplexTangentBundle.lean`),
   for a complex model `G : Type` with `[Fact (finrank ℝ E = 2 * finrank ℂ G)]`.
@@ -361,7 +361,7 @@ Namespace `TauCeti.AlmostComplexStructure`, for an almost complex structure
   2 * (TauCeti.surfaceGenus M : ℤ) - 2 =
     f.selfIntersectionNumber hE J hJ o -
       (o.toHomologicalOrientation.evalFundamentalClass hM _ (f : C(M, X))
-        (SymplecticGeometry.Bundle.firstChernClass G
+        (TauCeti.firstChernClass G
           (J.toContMDiff ⊤).toContinuousComplexStructure.Fiber)).down
   ```
 

@@ -47,8 +47,8 @@ files are under `SymplecticGeometry/`.
   `TauCeti.complexManifoldOrientation`, reindexed by the library's
   `Geometry/Manifold/Complex/Orientation.lean`; $\overline{\mathbb CP}{}^n$
   is `ℙ ℂ (Fin (n + 2) → ℂ)` with its negative, as `DESIGN.md` says.
-- **Classes.** $c_1$ is the library's `SymplecticGeometry.Bundle.firstChernClass`
-  (`Topology/VectorBundle/Complex/FirstChernClass.lean`) of the complex
+- **Classes.** $c_1$ is Tau Ceti's `TauCeti.firstChernClass`
+  (`TauCeti/Topology/VectorBundle/Orientation/Complex/FirstChernClass.lean`) of the complex
   tangent bundle `(J.toContMDiff ⊤).toContinuousComplexStructure.Fiber`, as
   in `design/adjunction.md`; $h$ is `Projectivization.hyperplaneClass`; $e$
   is the class $d_Z$ of *Poincaré duals of submanifolds*, in the coefficient
@@ -597,7 +597,7 @@ For a complex manifold `M` and `c` in the complex atlas.
   the identity theorem, `Bundle.Pullback`.
 - The library: `Projectivization.Tautological` and
   `tautologicalTwistCoreEquiv`, `complexEulerClass_twistCore_neg_one`,
-  `Projectivization.hyperplaneClass`, `firstChernClass` with
+  `Projectivization.hyperplaneClass`, Tau Ceti's `firstChernClass` with
   `firstChernClass_pullback`, *Adjunction*'s `selfIntersectionNumber`,
   `Remodel`, `IsIntegrable`, and the complex orientation of
   `Geometry/Manifold/Complex/Orientation.lean`.

@@ -91,7 +91,7 @@ The paragraph *The design file decides* of part 49 asks for two things.
   the fibre forms; it does not depend on $\tau$.
 
   **Comparison with the integral class.** The class is compared with the
-  library's integral `SymplecticGeometry.Bundle.firstChernClass` over a
+  integral `TauCeti.firstChernClass` over a
   closed oriented surface, where both give numbers: the integral of the de
   Rham class is the Chern number (`chernNumber_eq_integral_curvature`,
   merged). Over a general base the comparison would say that Tau Ceti's

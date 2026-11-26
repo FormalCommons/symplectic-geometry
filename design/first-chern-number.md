@@ -189,27 +189,25 @@ prerequisites have files of their own, listed with their issues.
 In the namespace `SymplecticGeometry.Bundle`, for a complex vector bundle
 `E : B → Type` with model `G` over `B : Type` (Tau Ceti's Euler classes take
 the fibres in the universe of the base), with `D := TauCeti.DetBundle ℂ G E`
-the determinant line of prerequisite 1:
+the determinant line of prerequisite 1.
 
-- `firstChernClass G E`, Tau Ceti's first Chern class of a line bundle
-  `TauCeti.lineFirstChernClass ℂ D (finrank_self ℂ)`; `firstChernClass_def`
-  by `(rfl)`, and `firstChernClass_eq_complexEulerClass_detBundle`, the
-  class as `TauCeti.complexEulerClass (r := 0) ℂ D`.
-- `firstChernClass_pullback (f : K)`, for any `[ContinuousMapClass K B' B]`:
-  the class of `f *ᵖ E` is the pull-back of the class of `E`, from
-  `TauCeti.DetBundle.pullbackHomeomorph`, `TauCeti.complexEulerClass_pullback`
-  and `TauCeti.complexEulerClass_eq_of_fiberwise`, and
-  `firstChernClass_congr` along the identity of each fibre, since the
-  instances on `f *ᵖ E` depend on the type of `f`.
+The class is Tau Ceti's `TauCeti.firstChernClass G E`, that of the line
+`D`, with `TauCeti.firstChernClass_def`, `TauCeti.firstChernClass_pullback`
+along `f : C(B', B)`, `TauCeti.firstChernClass_trivial` and
+`TauCeti.firstChernClass_eq_zero_of_finrank_eq_zero`. The file adds:
+
+- `firstChernClass_pullback_coe (f : K)`, for any
+  `[ContinuousMapClass K B' B]`: the class of `f *ᵖ E` is the pull-back of
+  the class of `E`, from `TauCeti.firstChernClass_pullback` and
+  `TauCeti.firstChernClass_eq_of_fiberwise` along the identity of each
+  fibre, since the instances on `f *ᵖ E` depend on the type of `f`.
 - `firstChernClass_congr`: a complex-linear fibrewise isomorphism, continuous
   on total spaces, preserves the class, even between different models.
   `TauCeti.DetBundle.congrModelHomeomorph` turns it into one of the
   determinant lines, and `TauCeti.complexEulerClass_eq_of_fiberwise` applies.
-- `firstChernClass_trivial`: zero for `Bundle.Trivial B G`, from the nowhere
-  vanishing section `TauCeti.DetBundle.ofFrame` of the constant frame.
 - `firstChernClass_eq_complexEulerClass`: for a line bundle,
   `firstChernClass G E = complexEulerClass G E hG`, through
-  `TauCeti.DetBundle.oneHomeomorph`.
+  `TauCeti.firstChernClass_eq_lineFirstChernClass`.
 - `firstChernClass_conj`: the conjugate bundle (Tau Ceti's
   `Topology/VectorBundle/Conjugate.lean`) has the negated class.
   `TauCeti.DetBundle.conjugateHomeomorph` identifies the determinant line of
@@ -226,7 +224,7 @@ the determinant line of prerequisite 1:
 - `chernNumber_pullback (f : K)`, for any `[ContinuousMapClass K M' M]`, with
   `[PreconnectedSpace M]`:
   `chernNumber o' hn' G (f *ᵖ E) = o'.degree o hn' (f : C(M', M)) * chernNumber o hn G E`, from
-  `firstChernClass_pullback` and
+  `firstChernClass_pullback_coe` and
   `evalFundamentalClass_id_singularCohomologyMap_eq_degree_smul`, which needs
   the target compact and preconnected.
 
@@ -239,11 +237,11 @@ In the namespace `ContinuousMap`, importing only Mathlib:
 
 - `ofClass_eq_self`, `@[simp]`: `ContinuousMap.ofClass f = f` for
   `f : C(X, Y)`, as Mathlib's `OrderHom.coe_eq` for monotone maps. With it,
-  `simp` turns the right side of `firstChernClass_pullback`, used with a
+  `simp` turns the right side of `firstChernClass_pullback_coe`, used with a
   bundled `f : C(X, B)`, into the same term stated with `f`.
 
 `FirstChernClass.lean` imports this file, so the lemma is available to
-`simp` wherever `firstChernClass_pullback` and `chernNumber_pullback` are.
+`simp` wherever `firstChernClass_pullback_coe` and `chernNumber_pullback` are.
 
 ### `Topology/VectorBundle/Complex/Structure.lean`
 

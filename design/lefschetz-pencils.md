@@ -36,7 +36,7 @@ under `SymplecticGeometry/`.
   theorem.
 - **The canonical class.** $K=-c_1(TM,J)$, where $J$ is any structure
   compatible with $\omega$,
-  with $c_1$ *First Chern number*'s `SymplecticGeometry.Bundle.firstChernClass`
+  with $c_1$ Tau Ceti's `TauCeti.firstChernClass`
   of the complex tangent bundle, exactly as in `design/adjunction.md`. Only
   this $J$ enters $K$; the pencil carries its own tame structure.
 - **Euler characteristic and genus.** $\chi(M)$ is Tau Ceti's
