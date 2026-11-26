@@ -672,76 +672,81 @@ def neckLoop :
       (ConnectedSum.neckInl isOpenEmbedding_ball (neckIsometry.circleBasepoint one_pos)) :=
   (neckIsometry.circleLoop one_pos).map (ConnectedSum.neckInl isOpenEmbedding_ball).continuous
 
+theorem neckLoop_def :
+    neckLoop =
+      (neckIsometry.circleLoop one_pos).map
+        (ConnectedSum.neckInl isOpenEmbedding_ball).continuous :=
+  (rfl)
+
 /-- The neck loop in coordinates: at time `t` it is the point
 `([1 / 2 + ρ cos (2πt + π / 4)], [1 / 2 + ρ sin (2πt + π / 4)])`, with `ρ = 1 / (4 √2)`, of the
 circle of radius `ρ` about the puncture `([1 / 2], [1 / 2])`. -/
+@[simp]
 theorem diffeomorph_neckLoop_apply (t : I) :
     diffeomorph (neckLoop t : EuclideanTorus) =
       ![((1 / 2 + 1 / (4 * √2) * Real.cos (2 * Real.pi * t + Real.pi / 4) : ℝ) :
           AddCircle (1 : ℝ)),
         ((1 / 2 + 1 / (4 * √2) * Real.sin (2 * Real.pi * t + Real.pi / 4) : ℝ) :
           AddCircle (1 : ℝ))] := by
-  rw [neckLoop, ConnectedSum.coe_map_neckInl_circleLoop_apply,
+  rw [neckLoop_def, ConnectedSum.coe_map_neckInl_circleLoop_apply,
     diffeomorph_ball_neckIsometry_circleMap]
-
-/-- The point `([s], [s])` of the diagonal of the torus. -/
-private theorem diffeomorph_cover_diag (s : ℝ) :
-    diffeomorph (cover (WithLp.toLp 2 fun _ ↦ s)) = ![(s : AddCircle (1 : ℝ)), s] :=
-  funext (Fin.forall_fin_two.2 ⟨diffeomorph_cover _ 0, diffeomorph_cover _ 1⟩)
-
-/-- A point `([s], [s])` of the diagonal, with `1 / 2 < s ≤ 1`, is not the puncture. -/
-private theorem cover_diag_mem_puncture {s : ℝ} (hs : s ∈ Ioc (1 / 2 : ℝ) 1) :
-    cover (WithLp.toLp 2 fun _ ↦ s) ∈ ConnectedSum.puncture ball := by
-  refine ConnectedSum.mem_puncture.2 fun h ↦ ?_
-  have h₀ := congrFun (congrArg diffeomorph h) 0
-  rw [diffeomorph_cover_diag, diffeomorph_ball_zero, Matrix.cons_val_zero] at h₀
-  have hm : (1 / 2 : ℝ) ∈ Icc (0 : ℝ) (0 + 1) := ⟨by norm_num, by norm_num⟩
-  rcases (AddCircle.coe_eq_coe_iff_of_mem_Icc ⟨by linarith [hs.1], by linarith [hs.2]⟩ hm).1 h₀
-    with h | ⟨-, h⟩ | ⟨-, h⟩ <;> norm_num at h
-  linarith [hs.1]
 
 private theorem one_sub_mem_Ioc (t : I) : 1 - 3 / 8 * (t : ℝ) ∈ Ioc (1 / 2 : ℝ) 1 :=
   ⟨by linarith [t.property.2], by linarith [t.property.1]⟩
+
+/-- The point `(1 - 3t / 8, 1 - 3t / 8)` of the punctured square, on the diagonal between the
+centre and the corner `(1, 1)`. -/
+private def diagonalPoint (t : I) : PuncturedSquare :=
+  ⟨(1 - 3 / 8 * (t : ℝ), 1 - 3 / 8 * (t : ℝ)),
+    ⟨⟨by linarith [(one_sub_mem_Ioc t).1], (one_sub_mem_Ioc t).2⟩,
+      ⟨by linarith [(one_sub_mem_Ioc t).1], (one_sub_mem_Ioc t).2⟩⟩,
+    fun h ↦ (one_sub_mem_Ioc t).1.ne' (congrArg Prod.fst (mem_singleton_iff.1 h))⟩
+
+private theorem coe_diagonalPoint (t : I) :
+    (diagonalPoint t : ℝ × ℝ) = (1 - 3 / 8 * (t : ℝ), 1 - 3 / 8 * (t : ℝ)) :=
+  (rfl)
+
+private theorem continuous_diagonalPoint : Continuous diagonalPoint :=
+  Continuous.subtype_mk (by fun_prop) _
 
 /-- The **diagonal path** of the punctured torus, `t ↦ ([1 - 3t / 8], [1 - 3t / 8])`: the
 segment of the diagonal of the square from the corner `(1, 1)`, which is `0` in the torus,
 towards the centre, up to the start `(5 / 8, 5 / 8)` of the neck loop. -/
 def diagonalPath : Path (⟨0, zero_mem_puncture⟩ : ConnectedSum.puncture ball)
     (ConnectedSum.neckInl isOpenEmbedding_ball (neckIsometry.circleBasepoint one_pos)) where
-  toFun t := ⟨cover (WithLp.toLp 2 fun _ ↦ 1 - 3 / 8 * (t : ℝ)),
-    cover_diag_mem_puncture (one_sub_mem_Ioc t)⟩
-  continuous_toFun := by
-    refine Continuous.subtype_mk (isLocalHomeomorph_cover.continuous.comp ?_) _
-    exact (PiLp.continuous_toLp _ _).comp (continuous_pi fun _ ↦ by fun_prop)
+  toContinuousMap := puncturedSquareMap.comp ⟨diagonalPoint, continuous_diagonalPoint⟩
   source' := by
-    refine Subtype.ext (EquivLike.injective diffeomorph ?_)
-    rw [diffeomorph_cover_diag, diffeomorph_zero]
-    funext i
-    fin_cases i <;> simp
+    refine Subtype.ext (EquivLike.injective diffeomorph
+      (funext (Fin.forall_fin_two.2 ⟨?_, ?_⟩))) <;>
+    simp [coe_puncturedSquareMap, diffeomorph_squareMap_zero, diffeomorph_squareMap_one,
+      coe_diagonalPoint, diffeomorph_zero]
   target' := by
-    refine Subtype.ext (EquivLike.injective diffeomorph ?_)
     have h₁ : ((1 : ℝ) : ℂ) = circleMap 0 1 0 := by simp [circleMap]
     have h₂ : (1 - 3 / 8 * ((1 : I) : ℝ)) = 1 / 2 + 1 / (4 * √2) * (√2 / 2) := by
       have := Real.sq_sqrt (show (0 : ℝ) ≤ 2 by norm_num)
       field_simp
       norm_num [this]
+    refine Subtype.ext (EquivLike.injective diffeomorph ?_)
     rw [ConnectedSum.coe_neckInl_apply, LinearIsometryEquiv.coe_circleBasepoint, h₁,
-      diffeomorph_ball_neckIsometry_circleMap, diffeomorph_cover_diag, zero_add,
-      Real.cos_pi_div_four, Real.sin_pi_div_four, h₂]
-
-private theorem coe_diagonalPath_apply (t : I) :
-    (diagonalPath t : EuclideanTorus) = cover (WithLp.toLp 2 fun _ ↦ 1 - 3 / 8 * (t : ℝ)) :=
-  (rfl)
+      diffeomorph_ball_neckIsometry_circleMap, zero_add, Real.cos_pi_div_four,
+      Real.sin_pi_div_four, ← h₂, ContinuousMap.toFun_eq_coe,
+      ContinuousMap.comp_apply, coe_puncturedSquareMap, ContinuousMap.coe_mk,
+      coe_diagonalPoint]
+    exact funext (Fin.forall_fin_two.2 ⟨diffeomorph_squareMap_zero _, diffeomorph_squareMap_one _⟩)
 
 /-- The diagonal path in coordinates: at time `t` it is `([1 - 3t / 8], [1 - 3t / 8])`. -/
+@[simp]
 theorem diffeomorph_diagonalPath_apply (t : I) :
     diffeomorph (diagonalPath t : EuclideanTorus) =
       ![((1 - 3 / 8 * t : ℝ) : AddCircle (1 : ℝ)), ((1 - 3 / 8 * t : ℝ) : AddCircle (1 : ℝ))] := by
-  rw [coe_diagonalPath_apply, diffeomorph_cover_diag]
+  rw [diagonalPath, Path.coe_mk_mk, ContinuousMap.toFun_eq_coe, ContinuousMap.comp_apply,
+    coe_puncturedSquareMap, ContinuousMap.coe_mk, coe_diagonalPoint]
+  exact funext (Fin.forall_fin_two.2 ⟨diffeomorph_squareMap_zero _, diffeomorph_squareMap_one _⟩)
 
 /-- The retraction onto the two circles sends every point of the diagonal path to `0`: the ray
 from the centre of the square through a point of the diagonal between the centre and the corner
 `(1, 1)` meets the boundary at that corner. -/
+@[simp]
 theorem circlesRetraction_diagonalPath (t : I) :
     circlesRetraction (diagonalPath t) = ⟨0, zero_mem_circles⟩ := by
   have hs := one_sub_mem_Ioc t
