@@ -10,6 +10,7 @@ public import Mathlib.Geometry.Manifold.ContMDiff.NormedSpace
 public import Mathlib.Geometry.Manifold.Instances.Icc
 public import Mathlib.Geometry.Manifold.IsManifold.InteriorBoundary
 public import SymplecticGeometry.Analysis.Calculus.ContDiff.Seeley.Extension
+import TauCeti.Geometry.Manifold.ContMDiff.Prod
 
 /-!
 # Time extension of maps
@@ -43,6 +44,7 @@ first interval variable to one smooth on `ℝ × (unitInterval × N)`.
   at every time.
 * `ContMDiffOn.timeExtend`, `ContMDiff.timeExtend`: the extension of a smooth map is smooth, on
   any manifold `M`, with or without boundary.
+* `ContMDiffOn.contDiffOn_timeExtend`: on a normed space, the same smoothness as `ContDiffOn`.
 * `Continuous.exists_Icc_prod_extChartAt`: for a continuous `f : unitInterval × M → N`, a
   neighbourhood `[a, b] × U` of a point, read in the chart at a point of `M`, that `f` maps into
   the chart at the image point.
@@ -191,6 +193,13 @@ theorem _root_.ContMDiffOn.timeExtend [IsManifold I ∞ M] {f : unitInterval × 
   refine ((hext.comp hφ hφV).mono inter_subset_right).congr ?_
   intro p hp
   simp only [timeExtend_def, Function.comp_apply, g, φ.left_inv hp.2.2.1]
+
+/-- On a real normed space `E`, the time extension of a map that is smooth on `univ ×ˢ U`, for
+an open `U`, is `C^∞` on `univ ×ˢ U ⊆ ℝ × E` in the sense of `ContDiffOn`. -/
+theorem _root_.ContMDiffOn.contDiffOn_timeExtend {f : unitInterval × E → F} {U : Set E}
+    (hU : IsOpen U) (hf : ContMDiffOn ((𝓡∂ 1).prod 𝓘(ℝ, E)) 𝓘(ℝ, F) ∞ f (univ ×ˢ U)) :
+    ContDiffOn ℝ ∞ (timeExtend f) (univ ×ˢ U) :=
+  contMDiffOn_iff_contDiffOn.1 (contMDiffOn_prod_modelWithCornersSelf_iff.1 (hf.timeExtend hU))
 
 /-- The time extension of a smooth map is smooth. The manifold `M` may have boundary; for
 instance, for `M = unitInterval × N`, this extends a smooth map on
