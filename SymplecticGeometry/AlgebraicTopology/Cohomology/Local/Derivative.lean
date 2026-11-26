@@ -39,8 +39,6 @@ restriction to the ball is an isomorphism on relative cohomology by excision
   `(U, U ∖ {x})`.
 * `TopPair.singularCohomologyMap_ofSubsetMap_eq_linear_of_hasFDerivAt`: a map fixing `0` with
   antilipschitz derivative there induces the same map as its derivative.
-* `TopPair.singularCohomologyMap_ofSubsetMap_eq_inclusion_of_hasFDerivAt_id`: a map fixing `x`
-  with derivative the identity there induces the same map as the inclusion of `U`.
 
 ## References
 
@@ -157,40 +155,6 @@ theorem singularCohomologyMap_ofSubsetMap_eq_linear_of_hasFDerivAt {f : E → F}
   · exact congrArg (TopPair.singularCohomologyMap · n)
       (ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ _
         (ConcreteCategory.hom_ext _ _ fun y ↦ by simp [hf0])).symm
-
-/-- **A map fixing a point with derivative the identity there induces the same map on relative
-cohomology as the inclusion.** Let `U ⊆ E` be a neighbourhood of `x` and `f : E → E` a map
-continuous on `U` with `f x = x` and derivative the identity at `x`, such that `x` is the only
-point of `U` sent to `x`. Then `f` and the inclusion of `U`, as maps of pairs
-`(U, U ∖ {x}) ⟶ (E, E ∖ {x})`, induce the same map `Hⁿ(E, E ∖ {x}) ⟶ Hⁿ(U, U ∖ {x})`. -/
-theorem singularCohomologyMap_ofSubsetMap_eq_inclusion_of_hasFDerivAt_id {f : E → E} {x : E}
-    {U : Set E} (hU : U ∈ 𝓝 x) (hfU : ContinuousOn f U) (hfx : f x = x)
-    (hf : HasFDerivAt f (ContinuousLinearMap.id ℝ E) x) (hfx' : ∀ y ∈ U, f y = x → y = x)
-    (n : ℕ) :
-    TopPair.singularCohomologyMap (R := R) (k := k) (M := M)
-        (ofSubsetMap (X := TopCat.of U) (Y := TopCat.of E)
-          (TopCat.ofHom ⟨U.domRestrict f, hfU.domRestrict⟩)
-          (B := {⟨x, mem_of_mem_nhds hU⟩}ᶜ) (B' := {x}ᶜ)
-          fun y hy h ↦ hy (Subtype.ext (hfx' y y.property h))) n =
-      TopPair.singularCohomologyMap
-        (ofSubsetMap (X := TopCat.of U) (Y := TopCat.of E)
-          (TopCat.ofHom (ContinuousMap.subtypeVal U))
-          (B := {⟨x, mem_of_mem_nhds hU⟩}ᶜ) (B' := {x}ᶜ)
-          fun _ hy h ↦ hy (Subtype.ext (mem_singleton_iff.1 h))) n := by
-  have hid : AntilipschitzWith 1 (ContinuousLinearMap.id ℝ E) := by
-    simpa using AntilipschitzWith.id (α := E)
-  have key := singularCohomologyMap_ofSubsetMap_eq_affine_of_hasFDerivAt R k M hU hfU hf hid
-    (fun y hy h ↦ hfx' y hy (h.trans hfx)) n
-  -- Both maps factor through `(E, E ∖ {f x})`, followed by the identity of `E`.
-  let j := ofSubsetMap (X := TopCat.of E) (𝟙 _) (B := {f x}ᶜ) (B' := {x}ᶜ)
-    (by rw [hfx]; exact mapsTo_id _)
-  convert congrArg (TopPair.singularCohomologyMap (R := R) (k := k) (M := M) j n ≫ ·) key
-    using 1 <;> rw [← singularCohomologyMap_comp]
-  · exact congrArg (TopPair.singularCohomologyMap · n)
-      (ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ _ (Category.comp_id _)).symm
-  · exact congrArg (TopPair.singularCohomologyMap · n)
-      (ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ _
-        (ConcreteCategory.hom_ext _ _ fun y ↦ by simp [hfx])).symm
 
 end TopPair
 
