@@ -112,6 +112,13 @@ open Classical in
 theorem glueIndex_def (U : Set B) (x : B) : glueIndex U x = decide (x ∈ U) :=
   (rfl)
 
+/-- The side of the chart at `x` of a gluing over the preimage `f ⁻¹' U` is that of the chart at
+`f x` of a gluing over `U`. -/
+@[simp]
+theorem glueIndex_preimage {X : Type*} (f : X → B) (U : Set B) (x : X) :
+    glueIndex (f ⁻¹' U) x = glueIndex U (f x) :=
+  (rfl)
+
 @[simp]
 theorem glueIndex_eq_true_iff {x : B} : glueIndex U x = true ↔ x ∈ U := by
   classical
@@ -854,12 +861,6 @@ variable {T : Type*} [TopologicalSpace T] (A : FiniteRankBundleCore 𝕜 B) {U V
       (ContinuousMap.subtypeVal (Prod.fst ⁻¹' U ∩ Prod.fst ⁻¹' V)))
   (t : T)
 
-/-- The side of the chart at `(x, t)` of a gluing over `U × T` and `V × T` is that of the chart
-at `x` of a gluing over `U` and `V`. -/
-private theorem glueIndex_prodMk_const (x : B) :
-    glueIndex (Prod.fst ⁻¹' U) (((ContinuousMap.id B).prodMk (.const B t)) x) = glueIndex U x := by
-  simp [glueIndex_def]
-
 /-- The chart at `i` of the pullback of a gluing over `B × T` along `x ↦ (x, t)` lies in the chart
 at `i` of a gluing over `B`. -/
 private theorem baseSet_pullback_glue_subset (i : B) :
@@ -869,7 +870,8 @@ private theorem baseSet_pullback_glue_subset (i : B) :
       (A.glue hU hV hUV g).core.baseSet i := by
   intro b hb
   rw [VectorBundleCore.baseSet_at, localTriv_baseSet_pullback, ← VectorBundleCore.baseSet_at,
-    Set.mem_preimage, baseSet_glue, glueIndex_prodMk_const] at hb
+    Set.mem_preimage, baseSet_glue, glueIndex_preimage, ContinuousMap.prod_eval,
+    ContinuousMap.id_apply] at hb
   rw [baseSet_glue]
   generalize glueIndex U i = s at hb ⊢
   cases s <;> exact ⟨hb.1, hb.2⟩
@@ -903,7 +905,8 @@ private theorem coordChange_pullback_glue
     (baseSet_pullback_glue_subset A hU hV hUV g H t i hi)).2
   have hr := ((baseSet_glue A hU hV hUV g k).le
     (baseSet_pullback_glue_subset A hU hV hUV g H t k hk)).2
-  simp only [coordChange_pullback, coordChange_glue, glueIndex_prodMk_const,
+  simp only [coordChange_pullback, coordChange_glue, glueIndex_preimage,
+    ContinuousMap.prod_eval _ _ i, ContinuousMap.prod_eval _ _ k, ContinuousMap.id_apply,
     inChartCoordinates_pullback]
   congr 1
   generalize glueIndex U i = s at hs ⊢

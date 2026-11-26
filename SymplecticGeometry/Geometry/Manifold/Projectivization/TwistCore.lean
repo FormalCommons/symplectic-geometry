@@ -80,9 +80,10 @@ The proof of `HasMFDerivAt.eval_affineChart_dehomogenize` adapts that of Tau Cet
 
 The core `twistPiCore`, its base sets and its smoothness instance follow Tau Ceti's
 `Projectivization.twistCore` and `Projectivization.isContMDiff_twistCore`, with the scalar
-multiplication `lsmul` replaced by a scalar multiple of the identity of `ι → 𝕜`;
-`contMDiff_section_twistPiCore_iff` is the case of the library's
-`VectorBundleCore.contMDiff_section_iff` for this core.
+multiplication `lsmul` replaced by a scalar multiple of the identity of `ι → 𝕜`, and
+`twistPiCore_trivializationAt_apply_snd` follows Tau Ceti's
+`Projectivization.twistCore_trivializationAt_apply_snd`; `contMDiff_section_twistPiCore_iff` is
+the case of the library's `VectorBundleCore.contMDiff_section_iff` for this core.
 
 The fibres of a vector bundle core are its model fibre under the name `VectorBundleCore.Fiber`,
 and the body of `twistCore` is not visible here. The fibrewise maps are therefore built on the
@@ -273,6 +274,16 @@ theorem twistPiCore_localTriv_apply (j : Fin (n + 1))
       fun a ↦ twistTransition k ((twistCore k).indexAt p.proj) j p.proj * p.snd a :=
   (rfl)
 
+/-- In the trivialization of `𝒪(k) ⊗ 𝕜^ι` at `x₀`, a vector given in the preferred chart at its
+base point `x` has each coordinate multiplied by
+`twistTransition k ((twistCore k).indexAt x) ((twistCore k).indexAt x₀) x`. -/
+theorem twistPiCore_trivializationAt_apply_snd (x₀ : ℙ 𝕜 (Fin (n + 1) → 𝕜))
+    (p : TotalSpace (ι → 𝕜) (twistPiCore (𝕜 := 𝕜) (n := n) k ι).Fiber) :
+    (trivializationAt (ι → 𝕜) (twistPiCore k ι).Fiber x₀ p).2 =
+      fun a ↦ twistTransition k ((twistCore k).indexAt p.proj) ((twistCore k).indexAt x₀) p.proj *
+        p.snd a :=
+  (rfl)
+
 /-- **`𝒪(k) ⊗ 𝕜^ι` is an analytic vector bundle**, as its transition functions are
 analytic. -/
 instance isContMDiff_twistPiCore :
@@ -330,25 +341,19 @@ theorem twistPiCoreOptionEquiv_symm_apply_some (x : ℙ 𝕜 (Fin (n + 1) → �
     (twistPiCoreOptionEquiv k ι x).symm v (some i) = v.2 i :=
   congrFun (ContinuousLinearEquiv.piOptionEquivProd_symm_apply (M := fun _ ↦ 𝕜) 𝕜 v) (some i)
 
-/-- In the chart `i` of all three bundles, `twistPiCoreOptionEquiv` is
+/-- In the trivializations at `x₀` of all three bundles, `twistPiCoreOptionEquiv` is
 `ContinuousLinearEquiv.piOptionEquivProd`. -/
-private theorem prod_localTriv_twistPiCoreOptionEquiv (i : Fin (n + 1))
+private theorem prod_trivializationAt_twistPiCoreOptionEquiv (x₀ : ℙ 𝕜 (Fin (n + 1) → 𝕜))
     (p : TotalSpace (Option ι → 𝕜) (twistPiCore (𝕜 := 𝕜) (n := n) k (Option ι)).Fiber) :
-    ((twistCore k).localTriv i).prod ((twistPiCore k ι).localTriv i)
+    (trivializationAt (𝕜 × (ι → 𝕜)) ((twistCore k).Fiber ×ᵇ (twistPiCore k ι).Fiber) x₀
         (TotalSpace.mk' (𝕜 × (ι → 𝕜)) (E := (twistCore k).Fiber ×ᵇ (twistPiCore k ι).Fiber)
-          p.proj (twistPiCoreOptionEquiv k ι p.proj p.snd)) =
-      (p.proj, ContinuousLinearEquiv.piOptionEquivProd (M := fun _ ↦ 𝕜) 𝕜
-        ((twistPiCore k (Option ι)).localTriv i p).2) := by
-  -- After the coordinates of `twistCore` are computed, both sides are the coordinate changes of
-  -- `twistPiCore`, which are the scalar multiplications by `twistTransition`.
-  ext
-  · rfl
-  · rw [twistPiCore_localTriv_apply]
-    simp [Trivialization.Prod.toFun', twistPiCoreOptionEquiv_apply, twistCore_coordChange_apply,
-      twistPiCore_indexAt]
-  · rw [twistPiCore_localTriv_apply]
-    simp [Trivialization.Prod.toFun', twistPiCoreOptionEquiv_apply, twistCore_coordChange_apply,
-      twistPiCore_indexAt]
+          p.proj (twistPiCoreOptionEquiv k ι p.proj p.snd))).2 =
+      ContinuousLinearEquiv.piOptionEquivProd (M := fun _ ↦ 𝕜) 𝕜
+        (trivializationAt (Option ι → 𝕜) (twistPiCore k (Option ι)).Fiber x₀ p).2 := by
+  -- Both sides multiply every coordinate by the same `twistTransition`.
+  ext <;>
+  simp [FiberBundle.prod_trivializationAt', Trivialization.Prod.toFun',
+    twistCore_trivializationAt_apply_snd, twistPiCore_trivializationAt_apply_snd]
 
 /-- `twistPiCoreOptionEquiv` is continuous on total spaces. -/
 theorem continuous_twistPiCoreOptionEquiv :
@@ -359,40 +364,32 @@ theorem continuous_twistPiCoreOptionEquiv :
   refine continuous_iff_continuousAt.2 fun p₀ ↦ ?_
   rw [FiberBundle.continuousAt_totalSpace]
   refine ⟨(FiberBundle.continuous_proj _ _).continuousAt, ?_⟩
-  set i := (twistCore (𝕜 := 𝕜) (n := n) k).indexAt p₀.proj
-  simp only [FiberBundle.prod_trivializationAt', VectorBundleCore.trivializationAt,
-    ← VectorBundleCore.localTrivAt_def, twistPiCore_indexAt]
-  simp only [prod_localTriv_twistPiCoreOptionEquiv]
+  simp only [prod_trivializationAt_twistPiCoreOptionEquiv]
   exact (ContinuousLinearEquiv.continuous _).continuousAt.comp
     (continuous_snd.continuousAt.comp
-      (((twistPiCore k (Option ι)).localTriv i).continuousAt
-        (((twistPiCore k (Option ι)).mem_localTriv_source (i := i) p₀).2
-          (mem_affineOpen_twistCore_indexAt k p₀.proj))))
+      ((trivializationAt _ _ p₀.proj).continuousAt FiberBundle.mem_trivializationAt_proj_source))
 
-/-- In the chart `i` of all three bundles, the inverse of `twistPiCoreOptionEquiv` is the inverse
-of `ContinuousLinearEquiv.piOptionEquivProd`. -/
-private theorem localTriv_twistPiCoreOptionEquiv_symm (i : Fin (n + 1))
+/-- In the trivializations at `x₀` of all three bundles, the inverse of `twistPiCoreOptionEquiv`
+is the inverse of `ContinuousLinearEquiv.piOptionEquivProd`. -/
+private theorem trivializationAt_twistPiCoreOptionEquiv_symm (x₀ : ℙ 𝕜 (Fin (n + 1) → 𝕜))
     (q : TotalSpace (𝕜 × (ι → 𝕜))
       ((twistCore (𝕜 := 𝕜) (n := n) k).Fiber ×ᵇ (twistPiCore k ι).Fiber)) :
-    (twistPiCore k (Option ι)).localTriv i
+    (trivializationAt (Option ι → 𝕜) (twistPiCore k (Option ι)).Fiber x₀
         (TotalSpace.mk' (Option ι → 𝕜) (E := (twistPiCore k (Option ι)).Fiber) q.proj
-          ((twistPiCoreOptionEquiv k ι q.proj).symm q.snd)) =
-      (q.proj, (ContinuousLinearEquiv.piOptionEquivProd (M := fun _ ↦ 𝕜) 𝕜).symm
-        (((twistCore k).localTriv i).prod ((twistPiCore k ι).localTriv i) q).2) := by
-  -- As in `prod_localTriv_twistPiCoreOptionEquiv`, both sides are scalar multiplications by
-  -- `twistTransition` once the coordinates of `twistCore` are computed.
+          ((twistPiCoreOptionEquiv k ι q.proj).symm q.snd))).2 =
+      (ContinuousLinearEquiv.piOptionEquivProd (M := fun _ ↦ 𝕜) 𝕜).symm
+        (trivializationAt (𝕜 × (ι → 𝕜)) ((twistCore k).Fiber ×ᵇ (twistPiCore k ι).Fiber) x₀
+          q).2 := by
+  -- As in `prod_trivializationAt_twistPiCoreOptionEquiv`, both sides multiply every coordinate
+  -- by the same `twistTransition`.
   ext j
-  · rfl
-  · cases j
-    · simp only [Trivialization.Prod.toFun', Trivialization.prod_apply,
-        VectorBundleCore.localTriv_apply, ContinuousLinearEquiv.piOptionEquivProd_symm_apply]
-      exact (congrArg (twistTransition k ((twistCore k).indexAt q.proj) i q.proj * ·)
-        (twistPiCoreOptionEquiv_symm_apply_none k ι q.proj q.snd)).trans
-          (twistCore_coordChange_apply k _ i q.proj q.snd.1).symm
-    · simp only [Trivialization.Prod.toFun', Trivialization.prod_apply,
-        VectorBundleCore.localTriv_apply, ContinuousLinearEquiv.piOptionEquivProd_symm_apply]
-      exact congrArg (twistTransition k ((twistCore k).indexAt q.proj) i q.proj * ·)
-        (twistPiCoreOptionEquiv_symm_apply_some k ι q.proj q.snd _)
+  cases j
+  · simp only [FiberBundle.prod_trivializationAt', Trivialization.prod_apply,
+      Trivialization.Prod.toFun', twistPiCore_trivializationAt_apply_snd,
+      ContinuousLinearEquiv.piOptionEquivProd_symm_apply, twistPiCoreOptionEquiv_symm_apply_none]
+    exact (twistCore_trivializationAt_apply_snd k x₀ q.proj q.snd.1).symm
+  · simp [FiberBundle.prod_trivializationAt', Trivialization.Prod.toFun',
+      twistPiCore_trivializationAt_apply_snd]
 
 /-- The inverse of `twistPiCoreOptionEquiv` is continuous on total spaces. -/
 theorem continuous_twistPiCoreOptionEquiv_symm :
@@ -403,16 +400,10 @@ theorem continuous_twistPiCoreOptionEquiv_symm :
   refine continuous_iff_continuousAt.2 fun q₀ ↦ ?_
   rw [FiberBundle.continuousAt_totalSpace]
   refine ⟨(FiberBundle.continuous_proj _ _).continuousAt, ?_⟩
-  set i := (twistCore (𝕜 := 𝕜) (n := n) k).indexAt q₀.proj
-  simp only [VectorBundleCore.trivializationAt, ← VectorBundleCore.localTrivAt_def,
-    twistPiCore_indexAt]
-  simp only [localTriv_twistPiCoreOptionEquiv_symm]
-  have hq₀ : q₀ ∈ (((twistCore (𝕜 := 𝕜) (n := n) k).localTriv i).prod
-      ((twistPiCore k ι).localTriv i)).source := by
-    simp [mem_affineOpen_twistCore_indexAt k q₀.proj, i]
+  simp only [trivializationAt_twistPiCoreOptionEquiv_symm]
   exact (ContinuousLinearEquiv.continuous _).continuousAt.comp
     (continuous_snd.continuousAt.comp
-      ((((twistCore k).localTriv i).prod ((twistPiCore k ι).localTriv i)).continuousAt hq₀))
+      ((trivializationAt _ _ q₀.proj).continuousAt FiberBundle.mem_trivializationAt_proj_source))
 
 /-- For empty `ι`, the rank-zero bundle `𝒪(k) ⊗ 𝕜^ι` is trivial: its total space is the product
 of the base with the zero-dimensional space `ι → 𝕜`. -/
@@ -461,22 +452,18 @@ theorem continuous_twistPiCoreCongr {ι' : Type*} [Fintype ι'] (e : ι ≃ ι')
   refine continuous_iff_continuousAt.2 fun p₀ ↦ ?_
   rw [FiberBundle.continuousAt_totalSpace]
   refine ⟨(FiberBundle.continuous_proj _ _).continuousAt, ?_⟩
-  set i := (twistCore (𝕜 := 𝕜) (n := n) k).indexAt p₀.proj
-  simp only [VectorBundleCore.trivializationAt, ← VectorBundleCore.localTrivAt_def,
-    twistPiCore_indexAt]
   have h (p : TotalSpace (ι → 𝕜) (twistPiCore (𝕜 := 𝕜) (n := n) k ι).Fiber) :
-      ((twistPiCore k ι').localTriv i
+      (trivializationAt (ι' → 𝕜) (twistPiCore k ι').Fiber p₀.proj
           (TotalSpace.mk' (ι' → 𝕜) (E := (twistPiCore k ι').Fiber) p.proj
             (twistPiCoreCongr k ι e p.proj p.snd))).2 =
-        ContinuousLinearEquiv.piCongrLeft 𝕜 (fun _ ↦ 𝕜) e ((twistPiCore k ι).localTriv i p).2 := by
-    rw [twistPiCore_localTriv_apply, twistPiCore_localTriv_apply]
+        ContinuousLinearEquiv.piCongrLeft 𝕜 (fun _ ↦ 𝕜) e
+          (trivializationAt (ι → 𝕜) (twistPiCore k ι).Fiber p₀.proj p).2 := by
+    rw [twistPiCore_trivializationAt_apply_snd, twistPiCore_trivializationAt_apply_snd]
     exact (map_smul (ContinuousLinearEquiv.piCongrLeft 𝕜 (fun _ ↦ 𝕜) e) _ p.snd).symm
   refine ContinuousAt.congr ?_ (Filter.Eventually.of_forall fun p ↦ (h p).symm)
   exact (ContinuousLinearEquiv.continuous _).continuousAt.comp
     (continuous_snd.continuousAt.comp
-      (((twistPiCore k ι).localTriv i).continuousAt
-        (((twistPiCore k ι).mem_localTriv_source (i := i) p₀).2
-          (mem_affineOpen_twistCore_indexAt k p₀.proj))))
+      ((trivializationAt _ _ p₀.proj).continuousAt FiberBundle.mem_trivializationAt_proj_source))
 
 end Pi
 
