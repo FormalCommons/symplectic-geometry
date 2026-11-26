@@ -55,8 +55,9 @@ milestone that collects the properties of the blowup.
   under `inl` is closed, as the image of the model piece does not meet it.
 * `SymplecticGeometry.WeightBlowup.isSymplectic_form_and_divisor`: the blowup along a ball,
   collecting for symplectic `σ` the symplectic form of `Blowup/Weight/Basic.lean`, the divisor
-  with its form `l² ω_FS` and its normal bundle, the description of the blowup as a quotient
-  above, and the volume identity `liouvilleMeasure_form_add` of `Blowup/Weight/Volume.lean`.
+  with its form `l² ω_FS` and its normal bundle, the tautological line
+  (`continuous_normalSpaceDivisorEquiv`), the description of the blowup as a quotient above, and
+  the volume identity `liouvilleMeasure_form_add` of `Blowup/Weight/Volume.lean`.
 
 ## References
 
@@ -366,7 +367,7 @@ theorem collapseHomeomorph_mk (x : ((ψ '' ball 0 l)ᶜ : Set M)) :
 
 /-! ### The blowup along a ball -/
 
-open MeasureTheory Module in
+open MeasureTheory Module _root_.Bundle in
 /-- **The symplectic blowup along a ball.** Let `σ` be a symplectic form on a boundaryless
 manifold `M` modelled on `ℂⁿ⁺¹`, Hausdorff and second countable, and let `ψ` be a symplectic
 embedding of the closed ball of radius `√(l² + ε²)`, for `0 < l` and `0 < ε`. Then the blowup
@@ -375,10 +376,11 @@ embedding of the closed ball of radius `√(l² + ε²)`, for `0 < l` and `0 < �
 1. `ω̃_ψ` is symplectic;
 2. it pulls back along the divisor `ℙ(ℂⁿ⁺¹) → M̃_ψ` to `l² ω_FS`, and the divisor is a
    symplectic submanifold;
-3. at each line `ℓ`, the normal space of the divisor is isomorphic to `ℓ`, the fibre of the
-   tautological line bundle, by an isomorphism that sends the normal class of the image under
-   `inr` of a tangent vector `w` of the model at `zeroSection ℓ` to the differential of the
-   blowdown applied to `w`;
+3. the normal bundle of the divisor is isomorphic to the tautological line bundle: there are
+   isomorphisms from the normal space of the divisor at each line `ℓ` onto `ℓ` that form a
+   continuous map of total spaces, the normal bundle with Tau Ceti's topology, and that send the
+   normal class of the image under `inr` of a tangent vector `w` of the model at
+   `zeroSection ℓ` to the differential of the blowdown applied to `w`;
 4. the collapse map induces a homeomorphism onto `M̃_ψ` from the quotient of `M ∖ ψ(B°(l))` by
    its fibres, and these fibres are the points off the sphere `ψ(∂B(l))` and the images under `ψ`
    of the Hopf circles of that sphere;
@@ -398,6 +400,9 @@ theorem isSymplectic_form_and_divisor [SecondCountableTopology M] [MeasurableSpa
       (∀ hn : (∞ : ℕ∞ω) ≠ 0, ∃ e : ∀ ℓ : ℙ ℂ (Fin (n + 1) → ℂ),
           (divisor hψ hl.le hε).NormalSpace ℓ hn ≃L[ℝ]
             Projectivization.Tautological ℂ (Fin (n + 1) → ℂ) ℓ,
+        (Continuous fun p : TotalSpace ℂ (fun ℓ ↦ (divisor hψ hl.le hε).NormalSpace ℓ hn) ↦
+          (⟨p.proj, e p.proj p.snd⟩ :
+            TotalSpace ℂ (Projectivization.Tautological ℂ (Fin (n + 1) → ℂ)))) ∧
         ∀ (ℓ : ℙ ℂ (Fin (n + 1) → ℂ))
           (w : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) (zeroSection ℓ : BlowupModel n)),
           e ℓ ((divisor hψ hl.le hε).normalClass ℓ hn
@@ -420,6 +425,7 @@ theorem isSymplectic_form_and_divisor [SecondCountableTopology M] [MeasurableSpa
   ⟨hω, mpullback_divisor_form hψ hl.le hε,
     isSymplecticSubmanifoldEmbedding_divisor hψ hl.le hε hω.isNondegenerate hl.ne',
     fun hn ↦ ⟨normalSpaceDivisorEquiv hψ hl.le hε hn,
+      continuous_normalSpaceDivisorEquiv hψ hl.le hε,
       normalSpaceDivisorEquiv_normalClass hψ hl.le hε hn⟩,
     ⟨collapseHomeomorph hψ hl hε, collapseHomeomorph_mk hψ hl hε⟩,
     fun _ _ ↦ collapseMap_eq_collapseMap_iff hψ hl hε,
