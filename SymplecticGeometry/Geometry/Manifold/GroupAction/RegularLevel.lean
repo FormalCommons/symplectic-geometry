@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Manifold.GroupAction.Restrict
 public import TauCeti.Geometry.Manifold.RegularValue.Level
 public import TauCeti.Topology.Algebra.ProperAction.Basic
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal.Quotient
+public import SymplecticGeometry.GroupTheory.GroupAction.SubMulAction
 
 /-!
 # The circle bundle of a regular level
@@ -97,16 +98,12 @@ by inverses: `g` moves `x` to `g⁻¹ • x`. Tau Ceti's bundle of orbits `TauCe
 acts on the right by `x · g = g⁻¹ • x`, so for this action its right action is `x · g = g • x`. -/
 @[instance_reducible]
 def levelInvMulAction (hinv : ∀ (g : G) (x : M), f (g • x) = f x) :
-    MulAction G {x : M // f x = c} where
-  smul g x := ⟨g⁻¹ • (x : M), (hinv _ _).trans x.property⟩
-  one_smul x := Subtype.ext <| by
-    -- The goal is stated with the `smul` field being defined; `change` reads it on `M`.
-    change (1 : G)⁻¹ • (x : M) = x
-    rw [inv_one, one_smul]
-  mul_smul g h x := Subtype.ext <| by
-    -- As above, `change` reads the `smul` field on `M`.
-    change (g * h)⁻¹ • (x : M) = g⁻¹ • h⁻¹ • (x : M)
-    rw [mul_inv, mul_smul]
+    MulAction G {x : M // f x = c} :=
+  -- The level is a sub-action of `M`, on which `G` acts through `g ↦ g⁻¹`.
+  MulAction.compHom
+    ({ carrier := {x | f x = c}, smul_mem' := fun g x hx ↦ (hinv g x).trans hx } :
+      SubMulAction G M)
+    (invMonoidHom : G →* G)
 
 variable (hinv : ∀ (g : G) (x : M), f (g • x) = f x) {c : F}
 
@@ -123,10 +120,12 @@ theorem isCancelSMul_levelInvMulAction (hfree : ∀ x, f x = c → stabilizer G 
     letI := levelInvMulAction c hinv
     IsCancelSMul G {x : M // f x = c} :=
   letI := levelInvMulAction c hinv
-  isCancelSMul_iff_stabilizer_eq_bot.2 fun x ↦ (Subgroup.eq_bot_iff_forall _).2 fun g hg ↦ by
-    have hg' : g⁻¹ ∈ stabilizer G (x : M) := by
-      rw [mem_stabilizer_iff, ← coe_levelInvMulAction_smul hinv, (mem_stabilizer_iff).1 hg]
-    rwa [hfree x x.property, Subgroup.mem_bot, inv_eq_one] at hg'
+  -- `G` acts freely on the sub-action `{x | f x = c}`, and acts on the level through the
+  -- injective map `g ↦ g⁻¹`.
+  have hp := SubMulAction.isCancelSMul_of_forall_stabilizer_eq_bot
+    { carrier := {x | f x = c}, smul_mem' := fun g x hx ↦ (hinv g x).trans hx } hfree
+  { left_cancel' g := hp.left_cancel' g⁻¹
+    right_cancel' g h x hgh := inv_injective (hp.right_cancel' g⁻¹ h⁻¹ x hgh) }
 
 end Action
 
