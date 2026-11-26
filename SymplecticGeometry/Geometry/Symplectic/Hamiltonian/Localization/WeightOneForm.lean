@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
 public import TauCeti.Geometry.Symplectic.Hamiltonian.WeightModel.Basic
 public import TauCeti.Geometry.Symplectic.Liouville.Linear
+public import TauCeti.Geometry.Symplectic.Liouville.Radial.Basic
 public import TauCeti.Topology.Algebra.Module.Alternating.Wedge.Pow.Basic
 import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Volume
 
@@ -32,6 +33,8 @@ Its properties are read through `EuclideanSpace.sumEquivProd`, which identifies 
 with Tau Ceti's model `EuclideanSpace ℝ ι × EuclideanSpace ℝ ι` of `ℂ^ι`:
 
 * `weightOneForm_apply`: its value at `z` on `v` is `∑ⱼ kⱼ (xⱼ(z) yⱼ(v) - yⱼ(z) xⱼ(v))`;
+* `weightOneForm_const`: for constant weights `kⱼ = c` it is `2c` times the radial primitive
+  `TauCeti.SymplecticForm.radialPrimitive` of the standard form `ω₀`;
 * `weightOneForm_apply_eq_inner`: it is the Euclidean dual of the generator
   `TauCeti.weightGenerator k`, `θₖ(z)(v) = ⟪Xₖ(z), v⟫`;
 * `mpullback_weightRotation_weightOneForm`: it is invariant under every rotation
@@ -114,6 +117,24 @@ theorem weightOneForm_apply (k : ι → ℝ) (z : StdSpace ι)
         ∑ j, k j * (z.x j * (w 0).y j - z.y j * (w 0).x j) from this v
   intro w
   simp
+
+/-- For constant weights `kⱼ = c`, the form `θₖ` is `2c` times Tau Ceti's radial primitive
+`λ_z(v) = ω₀(z, v) / 2` of the standard form `ω₀`. -/
+theorem weightOneForm_const (c : ℝ) :
+    weightOneForm (fun _ : ι ↦ c) = (2 * c) • (stdForm ι).radialPrimitive := by
+  refine SmoothBundleForm.ext fun z v ↦ ?_
+  have hv : v = ![v 0] := by
+    funext i
+    fin_cases i
+    rfl
+  rw [weightOneForm_apply, SetLike.val_smul, Pi.smul_apply, ContinuousAlternatingMap.smul_apply,
+    hv, SymplecticForm.radialPrimitive_apply]
+  -- Tangent vectors at `z` are points of `StdSpace ι`, where `stdForm_apply` is stated.
+  suffices ∀ w : StdSpace ι, ∑ j, c * (z.x j * w.y j - z.y j * w.x j) =
+      (2 * c) • (2⁻¹ * stdForm ι z w) from this (v 0)
+  intro w
+  rw [stdForm_apply, smul_eq_mul, Finset.mul_sum, Finset.mul_sum]
+  exact Finset.sum_congr rfl fun j _ ↦ by ring
 
 /-- `θₖ` is the Euclidean dual of the generator `weightGenerator k`, read on `StdSpace ι` through
 `EuclideanSpace.sumEquivProd`: `θₖ(z)(v 0) = ⟪Xₖ(z), v 0⟫`. -/

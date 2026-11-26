@@ -25,7 +25,8 @@ When the base points of `φ` lie in a contractible subset `U` of the base set wh
 a contraction of `U` onto `b` moves the base point of `φ q` to `b` while keeping its coordinate
 in `e` fixed. This is a homotopy of maps of pairs from `φ` to the fibre coordinate followed by the
 inclusion `TauCeti.fiberThomPairMap F E b` of the fibre, so `φ` pulls classes of the Thom pair
-back through the fibre over `b`.
+back through the fibre over `b`. Carrying that fibre to the model pair `(F, F ∖ {0})` along `e`
+at `b`, the pullback along `φ` becomes the pullback along the map of pairs `q ↦ (e (φ q)).2`.
 
 ## Main results
 
@@ -39,6 +40,9 @@ back through the fibre over `b`.
 * `TauCeti.singularCohomologyMap_eq_singularCohomologyMap_fiberCoordPairMap`: hence `φ` pulls
   every class of the Thom pair back as its restriction to the fibre over `b`, pulled back along
   the fibre coordinate.
+* `TauCeti.singularCohomologyMap_eq_singularCohomologyMap_complZeroPairIso_inv`: carried to the
+  model pair `(F, F ∖ {0})` along `e` at `b`, that pullback is the pullback along the map of pairs
+  `q ↦ (e (φ q)).2`.
 
 ## References
 
@@ -167,7 +171,10 @@ open Bundle
 
 variable {C : Type*} [Category C] [Limits.HasCoproducts.{w} C] [Abelian C] {R : C}
   {k : Type*} [Ring k] [Linear k C] {M : C}
-  {B : Type w} [TopologicalSpace B] {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+
+section
+
+variable {B : Type w} [TopologicalSpace B] {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
   {E : B → Type w} [TopologicalSpace (TotalSpace F E)] [∀ b, AddCommMonoid (E b)]
   [∀ b, Module ℝ (E b)] [∀ b, TopologicalSpace (E b)] [FiberBundle F E]
 
@@ -186,6 +193,42 @@ theorem singularCohomologyMap_eq_singularCohomologyMap_fiberCoordPairMap
   rw [← TopPair.singularCohomologyMap_comp_apply,
     (e.homotopic_fiberCoordPairMap_comp_fiberThomPairMap φ hU hbU
       hφU).some.congr_singularCohomologyMap]
+
+end
+
+section
+
+variable {B : Type w} [TopologicalSpace B] {F : Type w} [NormedAddCommGroup F] [NormedSpace ℝ F]
+  {E : B → Type w} [TopologicalSpace (TotalSpace F E)] [∀ b, AddCommMonoid (E b)]
+  [∀ b, Module ℝ (E b)] [∀ b, TopologicalSpace (E b)] [FiberBundle F E]
+
+/-- Let `e` be a linear trivialization of a real vector bundle `E → B` with model fibre `F`, `U` a
+contractible subset of its base set and `b ∈ U`, and write `ℓ : E_b ≃L[ℝ] F` for `e` at `b`. A
+map of pairs `φ : Q ⟶ (E, E₀)` whose base points lie in `U` pulls every class `u` of the Thom
+pair back as the restriction of `u` to the fibre over `b`, carried to the model pair
+`(F, F ∖ {0})` along `ℓ`, and pulled back along the map of pairs `q ↦ (e (φ q)).2`. -/
+theorem singularCohomologyMap_eq_singularCohomologyMap_complZeroPairIso_inv
+    (e : Trivialization F (π F E)) [e.IsLinear ℝ] {U : Set B} [ContractibleSpace U]
+    (hU : U ⊆ e.baseSet) {b : B} (hbU : b ∈ U) {Q : TopPair.{w}} (φ : Q ⟶ thomPair F E)
+    (hφU : ∀ q, (TopPair.Hom.fst φ q).proj ∈ U) {n : ℕ}
+    (u : (thomPair F E).singularCohomology R k M n) :
+    TopPair.singularCohomologyMap φ n u =
+      TopPair.singularCohomologyMap ((TopPair.isoOfSubsetRange Q).hom ≫
+        TopPair.ofSubsetMap (X := Q.fst) (Y := TopCat.of F)
+          (TopCat.ofHom ⟨fun q ↦ (e (TopPair.Hom.fst φ q)).2,
+            (e.continuousOn.comp_continuous (TopPair.Hom.fst φ).hom.continuous
+              fun q ↦ e.mem_source.2 (hU (hφU q))).snd⟩)
+          (B' := {0}ᶜ) fun q hq ↦ (e.snd_apply_ne_zero_iff ℝ (hU (hφU q))).2 <|
+            mem_zeroSectionCompl.1 (TopPair.mapsTo_range_map_of_hom φ hq)) n
+        (TopPair.singularCohomologyMap
+          (e.continuousLinearEquivAt ℝ b (hU hbU)).complZeroPairIso.inv n
+          (TopPair.singularCohomologyMap (fiberThomPairMap F E b) n u)) := by
+  rw [singularCohomologyMap_eq_singularCohomologyMap_fiberCoordPairMap e hU hbU φ hφU,
+    ← e.fiberCoordPairMap_comp_complZeroPairIso_hom, TopPair.singularCohomologyMap_comp_apply,
+    ← TopPair.singularCohomologyMap_comp_apply _ (Iso.inv _), Iso.hom_inv_id,
+    TopPair.singularCohomologyMap_id, ConcreteCategory.id_apply]
+
+end
 
 end TauCeti
 
