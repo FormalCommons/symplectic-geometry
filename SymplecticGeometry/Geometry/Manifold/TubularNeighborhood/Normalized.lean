@@ -15,6 +15,7 @@ import Mathlib.Geometry.Manifold.VectorBundle.Pullback
 import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Quotient
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
+import SymplecticGeometry.Topology.VectorBundle.Basic
 
 /-!
 # Normalized tubes
@@ -227,7 +228,7 @@ theorem normalFiberDeriv_apply_eq_mfderiv_comp (f : SmoothEmbedding I J ∞ M N)
     (Bundle.contMDiff_totalSpaceMk_comp (V := fun x ↦ f.NormalSpace x hn) (n := 1) x L
       0).mdifferentiableAt one_ne_zero
   have h0 : (⟨x, L 0⟩ : TotalSpace P (fun x ↦ f.NormalSpace x hn)) = zeroSection P _ x := by
-    simp [zeroSection]
+    simp [zeroSection_def]
   have hL : MDifferentiableAt 𝓘(ℝ, Q) J (fun w : Q ↦ Φ ⟨x, L w⟩) (0 + (0 : ℝ) • u) := by
     rw [zero_smul, zero_add]
     exact MDifferentiableAt.comp_of_eq (0 : Q) hΦ hm h0

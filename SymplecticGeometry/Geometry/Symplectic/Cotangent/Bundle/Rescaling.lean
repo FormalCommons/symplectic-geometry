@@ -25,6 +25,7 @@ import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Fiberwise
 import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 import TauCeti.Topology.Compactness.Compact
+import SymplecticGeometry.Topology.VectorBundle.Basic
 
 /-!
 # Rescaling symplectic maps of a cotangent bundle towards the zero section
@@ -200,7 +201,7 @@ theorem vectorBundleRescaledFamily_zero_comp_subtypeVal
       SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (symplecticForm J L)) :
     (fun z : V ↦ vectorBundleRescaledFamily ψ ((z : CotangentBundle J L), 0)) = Subtype.val :=
   funext fun z ↦ vectorBundleRescaledFamily_zero_eq_self hψ hψ0 hψω (by
-    simpa [zeroSection] using VectorBundle.mem_radialCore.1 (hV z.prop) 0 ⟨le_rfl, zero_le_one⟩)
+    simpa [zeroSection_def] using VectorBundle.mem_radialCore.1 (hV z.prop) 0 ⟨le_rfl, zero_le_one⟩)
 
 /-- **The slices of the rescaled family are symplectic.** Let `L` be a Hausdorff manifold without
 boundary, `U` an open set of `T*L` and `ψ : U → T*L` a smooth map that fixes every point of the

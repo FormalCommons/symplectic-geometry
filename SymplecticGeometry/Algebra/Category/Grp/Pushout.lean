@@ -28,6 +28,8 @@ image under `g` of the kernel of `f`.
 * `CategoryTheory.IsPushout.surjective_inr_of_surjective`: `inr` is surjective.
 * `CategoryTheory.IsPushout.ker_inr_eq_normalClosure`: the kernel of `inr` is the normal closure
   of `g '' ker f`.
+* `CategoryTheory.IsPushout.ker_inr_eq_normalClosure_image_of_ker_eq`: if moreover the kernel of
+  `f` is the normal closure of `S`, the kernel of `inr` is the normal closure of `g '' S`.
 * `CategoryTheory.IsPushout.quotientNormalClosureMulEquiv`: the resulting isomorphism
   `G₂ ⧸ normalClosure (g '' ker f) ≃* P`.
 * `CategoryTheory.IsPushout.bijective_inr_of_ker_le` and
@@ -78,6 +80,18 @@ theorem ker_inr_eq_normalClosure (hP : IsPushout f g inl inr)
     rw [SetLike.mem_coe, MonoidHom.mem_ker, ← ConcreteCategory.comp_apply, ← hP.w,
       ConcreteCategory.comp_apply]
     exact (congrArg inl.hom (MonoidHom.mem_ker.1 hh)).trans (map_one _)
+
+/-- In a pushout square of groups with `f` surjective and the kernel of `f` the normal closure of
+a set `S`, the kernel of `inr` is the normal closure of `g '' S`. -/
+theorem ker_inr_eq_normalClosure_image_of_ker_eq (hP : IsPushout f g inl inr)
+    (hf : Function.Surjective f) {S : Set H} (hS : f.hom.ker = normalClosure S) :
+    inr.hom.ker = normalClosure (g.hom '' S) := by
+  rw [hP.ker_inr_eq_normalClosure hf, hS]
+  -- `normalClosure (g '' normalClosure S) = normalClosure (g '' S)`
+  refine le_antisymm (normalClosure_le_normal ?_)
+    (normalClosure_mono (Set.image_mono subset_normalClosure))
+  rw [Set.image_subset_iff]
+  exact comap_normalClosure_image_ge S _
 
 /-- A pushout of groups along a surjection `f` is the quotient of `G₂` by the normal closure of
 the image under `g` of the kernel of `f`, through the map induced by `inr`. -/
