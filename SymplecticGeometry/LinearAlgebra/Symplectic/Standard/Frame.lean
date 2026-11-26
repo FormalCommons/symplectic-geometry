@@ -74,9 +74,8 @@ theorem exists_contDiff_path_apply_eq_stdForm {n : ℕ∞}
   · ext1 v
     rw [mul_apply_eq_comp, hγ1, Matrix.toEuclideanCLM_apply, LinearEquiv.apply_symm_apply,
       ContinuousLinearMap.coe_coe, hΨL]
-  · rw [mul_apply_eq_comp, mul_apply_eq_comp, hΨω, h₀, Matrix.toEuclideanCLM_apply,
-      Matrix.toEuclideanCLM_apply]
-    exact (mem_symplecticGroup_iff_forall_stdForm.1 (hγs t)) v w
+  · rw [mul_apply_eq_comp, mul_apply_eq_comp, hΨω, h₀]
+    exact mem_symplecticGroup_iff_forall_stdForm_toEuclideanCLM.1 (hγs t) v w
 
 end SymplecticGeometry
 
