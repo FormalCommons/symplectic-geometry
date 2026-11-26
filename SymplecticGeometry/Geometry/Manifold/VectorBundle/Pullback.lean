@@ -26,15 +26,16 @@ read in two ways: as a section of the bundle of alternating maps from `f *ᵖ V`
 bundle `Bundle.Trivial X G` over `X`, or as a map from `X` into the total space of the bundle of
 alternating maps from `V` to `Bundle.Trivial B G`, lying over `f`. This file shows that the two
 are `C^n` together (`Bundle.Pullback.contMDiff_continuousAlternatingMap_section_iff`), the
-analogue for alternating maps of Tau Ceti's `Bundle.Pullback.contMDiff_hom_section_iff`. The
-proof follows Tau Ceti's: near a point, Mathlib's `contMDiffAt_continuousAlternatingMap_bundle`
-reduces both sides to coordinate expressions, which agree on a neighbourhood by
+analogue for alternating maps of Tau Ceti's `Bundle.Pullback.contMDiff_hom_section_iff`. First,
+the identity of each fibre is a `C^n` map from the total space of the pull-back of the bundle of
+alternating maps on `V` to that of the bundle of alternating maps on `f *ᵖ V`
+(`Bundle.Pullback.contMDiff_continuousAlternatingMap_totalSpace`): near a point, Mathlib's
+`contMDiffAt_continuousAlternatingMap_bundle` and Tau Ceti's `Bundle.Pullback.contMDiffAt_lift`
+reduce this to coordinate expressions, which agree on a neighbourhood by
 `ContinuousAlternatingMap.inCoordinates_pullback_trivial_of_mem`
-(`SymplecticGeometry.Topology.VectorBundle.Pullback`). The same comparison of coordinates, with
-Tau Ceti's `Bundle.Pullback.contMDiffAt_lift`, shows that the identity of each fibre is a `C^n`
-map from the total space of the pull-back of the bundle of alternating maps on `V` to that of the
-bundle of alternating maps on `f *ᵖ V`
-(`Bundle.Pullback.contMDiff_continuousAlternatingMap_totalSpace`).
+(`SymplecticGeometry.Topology.VectorBundle.Pullback`). The section of `f *ᵖ V` is then that map
+composed with `x ↦ ⟨x, A x⟩`, which is `C^n` by Tau Ceti's `Bundle.Pullback.contMDiff_iff`.
+The other direction follows Tau Ceti's proof, with the same comparison of coordinates.
 
 In the same way, a family `β x` of continuous bilinear forms on `V (f x)` is a `C^n` section of
 the bundle of bilinear forms on `f *ᵖ V` exactly when `x ↦ ⟨f x, β x⟩` is `C^n` into the bundle
@@ -100,6 +101,29 @@ variable {𝕜 B X F G K ι EB HB EX HX : Type*} [NontriviallyNormedField 𝕜]
 
 namespace Bundle.Pullback
 
+/-- Along a `C^n` map `f`, the identity of each fibre is a `C^n` map from the total space of the
+pull-back along `f` of the bundle of alternating maps from `V` to `Bundle.Trivial B G`, to the
+total space of the bundle of alternating maps from `f *ᵖ V` to `Bundle.Trivial X G`. No rank or
+smooth-bundle assumption is needed. -/
+theorem contMDiff_continuousAlternatingMap_totalSpace [Fintype ι] (f : K)
+    (hf : ContMDiff IX IB n f) :
+    ContMDiff (IX.prod 𝓘(𝕜, F [⋀^ι]→L[𝕜] G)) (IX.prod 𝓘(𝕜, F [⋀^ι]→L[𝕜] G)) n
+      (fun p : TotalSpace (F [⋀^ι]→L[𝕜] G)
+          ((f : X → B) *ᵖ (fun b ↦ V b [⋀^ι]→L[𝕜] Bundle.Trivial B G b)) ↦
+        TotalSpace.mk' (F [⋀^ι]→L[𝕜] G)
+          (E := fun x ↦ ((f : X → B) *ᵖ V) x [⋀^ι]→L[𝕜] Bundle.Trivial X G x) p.proj p.snd) := by
+  intro p₀
+  have hl := (contMDiffAt_continuousAlternatingMap_bundle _).mp
+    (Pullback.contMDiffAt_lift f (hf p₀.proj))
+  have hp₀ : (f ∘ TotalSpace.proj) ⁻¹' (trivializationAt F V (f p₀.proj)).baseSet ∈ nhds p₀ :=
+    (hf.continuous.comp (FiberBundle.continuous_proj _ _)).continuousAt.preimage_mem_nhds
+      ((trivializationAt F V (f p₀.proj)).open_baseSet.mem_nhds
+        (FiberBundle.mem_baseSet_trivializationAt F V (f p₀.proj)))
+  rw [contMDiffAt_continuousAlternatingMap_bundle]
+  refine ⟨(contMDiff_proj _).contMDiffAt, hl.2.congr_of_eventuallyEq ?_⟩
+  filter_upwards [hp₀] with p hp
+  exact ContinuousAlternatingMap.inCoordinates_pullback_trivial_of_mem f p₀.proj p.proj p.snd hp
+
 /-- A family `A x` of alternating maps from `V (f x)` to `G`, along a `C^n` map `f`, is a `C^n`
 section of the bundle of alternating maps from `f *ᵖ V` to the trivial bundle with fibre `G`
 exactly when `x ↦ ⟨f x, A x⟩` is `C^n` into the bundle of alternating maps from `V` to the
@@ -126,33 +150,12 @@ theorem contMDiff_continuousAlternatingMap_section_iff [Fintype ι] (f : K)
     have hx := (contMDiffAt_continuousAlternatingMap_bundle _).mp (h x)
     rw [contMDiffAt_continuousAlternatingMap_bundle]
     exact ⟨hf x, hx.2.congr_of_eventuallyEq (heq x).symm⟩
-  · intro h x
-    have hx := (contMDiffAt_continuousAlternatingMap_bundle _).mp (h x)
-    rw [contMDiffAt_continuousAlternatingMap_bundle]
-    exact ⟨contMDiffAt_id, hx.2.congr_of_eventuallyEq (heq x)⟩
-
-/-- Along a `C^n` map `f`, the identity of each fibre is a `C^n` map from the total space of the
-pull-back along `f` of the bundle of alternating maps from `V` to `Bundle.Trivial B G`, to the
-total space of the bundle of alternating maps from `f *ᵖ V` to `Bundle.Trivial X G`. No rank or
-smooth-bundle assumption is needed. -/
-theorem contMDiff_continuousAlternatingMap_totalSpace [Fintype ι] (f : K)
-    (hf : ContMDiff IX IB n f) :
-    ContMDiff (IX.prod 𝓘(𝕜, F [⋀^ι]→L[𝕜] G)) (IX.prod 𝓘(𝕜, F [⋀^ι]→L[𝕜] G)) n
-      (fun p : TotalSpace (F [⋀^ι]→L[𝕜] G)
-          ((f : X → B) *ᵖ (fun b ↦ V b [⋀^ι]→L[𝕜] Bundle.Trivial B G b)) ↦
-        TotalSpace.mk' (F [⋀^ι]→L[𝕜] G)
-          (E := fun x ↦ ((f : X → B) *ᵖ V) x [⋀^ι]→L[𝕜] Bundle.Trivial X G x) p.proj p.snd) := by
-  intro p₀
-  have hl := (contMDiffAt_continuousAlternatingMap_bundle _).mp
-    (Pullback.contMDiffAt_lift f (hf p₀.proj))
-  have hp₀ : (f ∘ TotalSpace.proj) ⁻¹' (trivializationAt F V (f p₀.proj)).baseSet ∈ nhds p₀ :=
-    (hf.continuous.comp (FiberBundle.continuous_proj _ _)).continuousAt.preimage_mem_nhds
-      ((trivializationAt F V (f p₀.proj)).open_baseSet.mem_nhds
-        (FiberBundle.mem_baseSet_trivializationAt F V (f p₀.proj)))
-  rw [contMDiffAt_continuousAlternatingMap_bundle]
-  refine ⟨(contMDiff_proj _).contMDiffAt, hl.2.congr_of_eventuallyEq ?_⟩
-  filter_upwards [hp₀] with p hp
-  exact ContinuousAlternatingMap.inCoordinates_pullback_trivial_of_mem f p₀.proj p.proj p.snd hp
+  · intro h
+    have hA : ContMDiff IX (IX.prod 𝓘(𝕜, F [⋀^ι]→L[𝕜] G)) n
+        (fun x ↦ TotalSpace.mk' (F [⋀^ι]→L[𝕜] G)
+          (E := (f : X → B) *ᵖ (fun b ↦ V b [⋀^ι]→L[𝕜] Bundle.Trivial B G b)) x (A x)) :=
+      (Pullback.contMDiff_iff f hf).2 ⟨contMDiff_id, by simpa only [Pullback.lift_mk] using h⟩
+    exact (contMDiff_continuousAlternatingMap_totalSpace f hf).comp hA
 
 end Bundle.Pullback
 
