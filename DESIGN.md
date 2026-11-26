@@ -3028,10 +3028,10 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
   form; the band is a manifold with boundary $H^{-1}(a)\cup H^{-1}(b)$);
   `Geometry/Symplectic/Moser/Equivariant.lean` (a Moser isotopy built from
   invariant primitives of a family of invariant forms is equivariant);
-  `Geometry/Manifold/FiberBundle/Principal/RealChernClass.lean` (the real
-  first Chern class $-(2\pi)^{-1}[F_\alpha]$ of a circle bundle); and
-  `Geometry/Manifold/GroupAction/PrincipalBundle.lean` (a free action of a
-  compact Lie group makes a principal bundle over the quotient manifold).
+  and `Geometry/Manifold/FiberBundle/Principal/RealChernClass.lean` (the real
+  first Chern class $-(2\pi)^{-1}[F_\alpha]$ of a circle bundle). The
+  principal bundle of a free action of a compact Lie group over the quotient
+  manifold is Tau Ceti's (`FiberBundle/Principal/Quotient.lean`).
 - **Builds on:** *Lie group actions* (only `Circle.lean`); the merged circle
   connection forms of *First Chern number*
   (`Geometry/Manifold/FiberBundle/Principal/CircleConnection.lean`,
