@@ -500,7 +500,7 @@ theorem exists_mpullback_sub_eq_mextDerivₗ_of_partialDiffeomorph [IsManifold I
       rw [hK₀e z hz, hk0 z hz fun hzC ↦ hx (mem_image_of_mem _ hzC)]
     · exact indicator_of_notMem hxW _
   have hK₀s : ContMDiff I' 𝓘(ℝ) ∞ K₀ :=
-    e.contMDiff_indicator_image_comp_symm hk hC hW hCW hWe hk0
+    e.contMDiff_indicator_image_comp_symm hk hCc hW hCW hWe hk0
   set K : C^∞⟮I', M'; ℝ⟯ := ⟨K₀, hK₀s⟩
   have hKK : ⇑K = K₀ := ContMDiffMap.coeFn_mk K₀ hK₀s
   refine ⟨K, hKK ▸ hK₀C, hKK ▸ hK₀e, Subtype.ext (funext fun x ↦ ?_)⟩
