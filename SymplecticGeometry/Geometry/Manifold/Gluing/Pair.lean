@@ -74,7 +74,7 @@ are. The form of the completion of a Liouville domain, in the library's
   homeomorphism that is `C^n` both ways is compatible.
 * `SymplecticGeometry.GluedAlong.isLocalDiffeomorph_inl`, `isLocalDiffeomorph_inr`: the
   canonical maps are `C^n` local diffeomorphisms for the glued atlas.
-* `SymplecticGeometry.GluedAlong.inl_eq_inr_diffeomorph_iff`, `inl_symm_diffeomorph_apply`: the
+* `SymplecticGeometry.GluedAlong.inl_eq_inr_diffeomorph_iff`, `inl_toHomeomorph_symm_apply`: the
   points identified by the gluing along a diffeomorphism, and along the inverse of one.
 * `SymplecticGeometry.GluedAlong.contMDiff_iff_of_isCompatible`: for a compatible gluing, a map
   out of the glued space is `C^m` exactly when its compositions with `inl` and `inr` are.
@@ -456,10 +456,10 @@ theorem inr_eq_inl_diffeomorph_iff {y : M₂} {x : M₁} :
     inr φ.toHomeomorph y = inl φ.toHomeomorph x ↔ ∃ h : x ∈ U₁, (φ ⟨x, h⟩ : M₂) = y :=
   eq_comm.trans (inl_eq_inr_diffeomorph_iff φ)
 
-/-- In the space glued along the inverse of a diffeomorphism `ψ : U₂ ≃ U₁`, a point `p` of `U₂`
+/-- In the space glued along the inverse of a diffeomorphism `ψ : U₂ ≃ₘ U₁`, a point `p` of `U₂`
 and its image `ψ p` have the same image. -/
 @[simp]
-theorem inl_symm_diffeomorph_apply (ψ : U₂ ≃ₘ^n⟮I, I⟯ U₁) (p : U₂) :
+theorem inl_toHomeomorph_symm_apply (ψ : U₂ ≃ₘ^n⟮I, I⟯ U₁) (p : U₂) :
     inl ψ.toHomeomorph.symm (ψ p : M₁) = inr ψ.toHomeomorph.symm (p : M₂) := by
   rw [← inl_symm_apply ψ.toHomeomorph.symm p, Homeomorph.symm_symm, Diffeomorph.coe_toHomeomorph]
 

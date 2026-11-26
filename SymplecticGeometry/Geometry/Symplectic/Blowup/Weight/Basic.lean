@@ -365,7 +365,7 @@ theorem inl_gluingDiffeomorph (p : modelOverlap n ε) :
     GluedAlong.inl (gluingDiffeomorphSymm hψ hl hε).toHomeomorph (gluingDiffeomorph hψ hl hε p) =
       GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph p := by
   rw [gluingDiffeomorphSymm_def, Diffeomorph.symm_toHomeomorph,
-    GluedAlong.inl_symm_diffeomorph_apply]
+    GluedAlong.inl_toHomeomorph_symm_apply]
 
 /-- A point `x` of the outer piece and a point `y` of the model piece have the same image in the
 blowup exactly when `y` is off the divisor and `x` is its image under the gluing map. -/
@@ -374,9 +374,8 @@ theorem inl_eq_inr_iff {x : outerPiece hψ} {y : modelPiece n ε} :
         GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph y ↔
       ∃ h : y ∈ modelOverlap n ε, (gluingDiffeomorph hψ hl hε ⟨y, h⟩ : outerPiece hψ) = x := by
   refine ⟨fun h ↦ ?_, fun ⟨hy, hx⟩ ↦ hx ▸ inl_gluingDiffeomorph hψ hl hε ⟨y, hy⟩⟩
-  obtain ⟨hx, hxy⟩ := (GluedAlong.inl_eq_inr_iff _).1 h
-  refine ⟨hxy ▸ (gluingDiffeomorphSymm hψ hl hε ⟨x, hx⟩).property, ?_⟩
-  simp [← hxy]
+  obtain ⟨hx, rfl⟩ := (GluedAlong.inl_eq_inr_diffeomorph_iff _).1 h
+  exact ⟨(gluingDiffeomorphSymm hψ hl hε ⟨x, hx⟩).property, by simp⟩
 
 /-- **The blowup of weight `l` is Hausdorff**, for Hausdorff `M`. -/
 instance instT2Space : T2Space (WeightBlowup hψ hl hε) := by
