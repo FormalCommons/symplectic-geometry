@@ -240,7 +240,7 @@ algebra is used, and for `G` a Lie group on a boundaryless model `J`,
 
    ```lean
    theorem integralTopForm_wedge_interior_wedge_wedgePow_eq_zero
-       [I.Boundaryless] [T2Space M] [CompactSpace M] [ConnectedSpace M] {n : ℕ}
+       [BoundarylessManifold I M] [T2Space M] [CompactSpace M] [ConnectedSpace M] {n : ℕ}
        (o : Manifold.Orientation I M (Fin (1 + (1 + 2 * n))))
        {σ : SmoothTwoForm I M} (hσ : σ.IsClosed) (hinv : …)
        {p : M} (hp : p ∈ MulAction.fixedPoints G M) (ξ : GroupLieAlgebra J G)
@@ -264,7 +264,7 @@ algebra is used, and for `G` a Lie group on a boundaryless model `J`,
 
    ```lean
    theorem exists_isMomentMap_of_mem_fixedPoints
-       [I.Boundaryless] [T2Space M] [CompactSpace M] [ConnectedSpace M]
+       [BoundarylessManifold I M] [T2Space M] [CompactSpace M] [ConnectedSpace M]
        {n : ℕ} (hn : 1 ≤ n) (hE : finrank ℝ E = 2 * n)
        {σ : SmoothTwoForm I M} (hσ : σ.IsSymplectic) (hinv : …)
        (hL : Function.Injective (deRhamCohomology.wedge I M (2 * (n - 1)) 1
@@ -289,7 +289,7 @@ algebra is used, and for `G` a Lie group on a boundaryless model `J`,
 
    ```lean
    theorem exists_isMomentMap_iff_exists_mem_fixedPoints
-       [I.Boundaryless] [T2Space M] [CompactSpace M] [ConnectedSpace M]
+       [BoundarylessManifold I M] [T2Space M] [CompactSpace M] [ConnectedSpace M]
        {n : ℕ} (hn : 1 ≤ n) (hE : finrank ℝ E = 2 * n)
        {σ : SmoothTwoForm I M} (hσ : σ.IsSymplectic)
        [MulAction Circle M] [ContMDiffSMul (𝓡 1) I ∞ Circle M]
