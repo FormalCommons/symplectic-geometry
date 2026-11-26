@@ -1443,7 +1443,7 @@ give the same topology.
 - `nondegenerateFormsHomeomorphPi` and `symplecticFormsInClassHomeomorphPi`:
   the restrictions of `restrictComponentsHomeomorph` to the two spaces,
   onto the products of the spaces on the components (with
-  `Equiv.subtypePiEquivPi`), with the lemma that they carry
+  Tau Ceti's `Homeomorph.Set.univPi`), with the lemma that they carry
   `Set.inclusion` on `M` to the product of the inclusions on the
   components.
 
