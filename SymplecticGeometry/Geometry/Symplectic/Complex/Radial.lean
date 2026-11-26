@@ -73,6 +73,9 @@ blowup constructions read the forms they build off `Z` in these terms.
 * `SymplecticGeometry.radialPotentialForm_log`: for `ι = Fin (n + 1)` and `g = log` it is the
   Fubini–Study lift `SymplecticGeometry.fubiniStudyLift n`, since its primitive is
   `(1/4) J* d log |z|²` (`SymplecticGeometry.fubiniStudyPrimitive_eq`).
+* `SymplecticGeometry.radialPotentialForm_add`, `SymplecticGeometry.radialPotentialForm_const_mul`:
+  the form is linear in `g`, as its value is; `SymplecticGeometry.radialPotentialForm_congr`: it
+  depends only on the values of `g` on `(0, ∞)`.
 
 The second half of the file is about radial maps. For `h : ℝ → ℝ` positive on `(0, ∞)`:
 
@@ -80,7 +83,9 @@ The second half of the file is about radial maps. For `h : ℝ → ℝ` positive
   `radialMap_apply`, `norm_radialMap` (`|F z|² = h |z|²`) and `contMDiff_radialMap` (for `h`
   smooth on `(0, ∞)`).
 * `SymplecticGeometry.radialShell ι h hs hd`: for `h` smooth on `(0, ∞)` with `h' > 0` there, the
-  open shell `{w | |w|² ∈ h '' (0, ∞)}` of `ι → ℂ`.
+  open shell `{w | |w|² ∈ h '' (0, ∞)}` of `ι → ℂ`. For `h s = s + c` it is `{w | c < |w|²}`
+  (`SymplecticGeometry.mem_radialShell_add_const`, and `SymplecticGeometry.mem_radialShell_add_sq`
+  for `c = l²`).
 * `SymplecticGeometry.radialMapDiffeomorph ι h hs hh hd`: the radial map as a diffeomorphism
   of `Z` onto that shell. Its differential is injective because the differential of
   `|F|² = h ∘ s` is `h'(s) ds`, so the radial map is a local diffeomorphism
@@ -245,6 +250,17 @@ theorem isKahler_radialPotentialForm {g : ℝ → ℝ} (hg : ContDiffOn ℝ ∞ 
     simpa only [mem_Ioi, norm_sq_complexToRealEuclidean] using norm_sq_complexToRealEuclidean_pos z
   exact isManifoldStrictlyPlurisubharmonicAt_radialPotential hg z (hg₁ _ hz) (hg₂ _ hz)
 
+/-- The radial potential form depends only on the values of the potential on `(0, ∞)`. -/
+theorem radialPotentialForm_congr {g g' : ℝ → ℝ} (hg : ContDiffOn ℝ ∞ g (Ioi 0))
+    (hg' : ContDiffOn ℝ ∞ g' (Ioi 0)) (h : EqOn g g' (Ioi 0)) :
+    radialPotentialForm ι g hg = radialPotentialForm ι g' hg' := by
+  refine SmoothBundleForm.ext_eval₂ fun z v w ↦ ?_
+  have hz : ∑ i, ‖(z : ι → ℂ) i‖ ^ 2 ∈ Ioi 0 := by
+    simpa only [mem_Ioi, norm_sq_complexToRealEuclidean] using norm_sq_complexToRealEuclidean_pos z
+  have he : g =ᶠ[nhds (∑ i, ‖(z : ι → ℂ) i‖ ^ 2)] g' :=
+    Filter.eventuallyEq_of_mem (Ioi_mem_nhds hz) h
+  rw [radialPotentialForm_apply, radialPotentialForm_apply, he.deriv_eq, he.deriv.deriv_eq]
+
 /-- For `g = id` the radial potential form is the standard form `ω₀`, restricted to
 `(ι → ℂ) ∖ 0`. -/
 theorem radialPotentialForm_id (hg : ContDiffOn ℝ ∞ id (Ioi 0)) :
@@ -271,6 +287,39 @@ theorem radialPotentialForm_log (n : ℕ) (hg : ContDiffOn ℝ ∞ Real.log (Ioi
     radialPotentialForm (Fin (n + 1)) Real.log hg = fubiniStudyLift n := by
   rw [radialPotentialForm_def, fubiniStudyLift_def, fubiniStudyPrimitive_eq, map_smul,
     fubiniStudyPotential_def]
+
+/-- The radial potential form is additive in the potential: the form of `g₁ + g₂` is the sum of
+the forms of `g₁` and `g₂`. -/
+theorem radialPotentialForm_add {g₁ g₂ : ℝ → ℝ} (hg₁ : ContDiffOn ℝ ∞ g₁ (Ioi 0))
+    (hg₂ : ContDiffOn ℝ ∞ g₂ (Ioi 0)) :
+    radialPotentialForm ι (fun s ↦ g₁ s + g₂ s) (hg₁.add hg₂) =
+      radialPotentialForm ι g₁ hg₁ + radialPotentialForm ι g₂ hg₂ := by
+  refine SmoothBundleForm.ext_eval₂ fun z v w ↦ ?_
+  rw [SmoothBundleForm.eval₂_add, radialPotentialForm_apply, radialPotentialForm_apply,
+    radialPotentialForm_apply]
+  have hz : ∑ i, ‖(z : ι → ℂ) i‖ ^ 2 ∈ Ioi 0 := by
+    simpa only [mem_Ioi, norm_sq_complexToRealEuclidean] using norm_sq_complexToRealEuclidean_pos z
+  have hd : ∀ {g : ℝ → ℝ}, ContDiffOn ℝ ∞ g (Ioi 0) → ∀ t ∈ Ioi (0 : ℝ),
+      DifferentiableAt ℝ g t ∧ DifferentiableAt ℝ (deriv g) t := fun hg t ht ↦
+    ⟨(hg.contDiffAt (Ioi_mem_nhds ht)).differentiableAt (by simp),
+      ((hg.deriv_of_isOpen isOpen_Ioi (m := 1) (by simp)).contDiffAt
+        (Ioi_mem_nhds ht)).differentiableAt (by simp)⟩
+  have h1 : deriv (fun s ↦ g₁ s + g₂ s) =ᶠ[nhds (∑ i, ‖(z : ι → ℂ) i‖ ^ 2)]
+      fun s ↦ deriv g₁ s + deriv g₂ s :=
+    Filter.eventuallyEq_of_mem (Ioi_mem_nhds hz) fun t ht ↦
+      deriv_add (hd hg₁ t ht).1 (hd hg₂ t ht).1
+  rw [h1.deriv_eq, h1.eq_of_nhds, deriv_fun_add (hd hg₁ _ hz).2 (hd hg₂ _ hz).2]
+  ring
+
+/-- The radial potential form is homogeneous in the potential: the form of `c g` is `c` times
+the form of `g`. -/
+theorem radialPotentialForm_const_mul (c : ℝ) {g : ℝ → ℝ} (hg : ContDiffOn ℝ ∞ g (Ioi 0)) :
+    radialPotentialForm ι (fun s ↦ c * g s) (contDiffOn_const.mul hg) =
+      c • radialPotentialForm ι g hg := by
+  refine SmoothBundleForm.ext_eval₂ fun z v w ↦ ?_
+  rw [SmoothForm.eval₂_smul, radialPotentialForm_apply, radialPotentialForm_apply,
+    deriv_const_mul_field', deriv_const_mul_field', smul_eq_mul]
+  ring
 
 /-! ### Radial maps -/
 
@@ -398,6 +447,22 @@ theorem mem_radialShell (hs : ContDiffOn ℝ ∞ h (Ioi 0))
     w ∈ radialShell ι h hs hd ↔ ∑ i, ‖w i‖ ^ 2 ∈ h '' Ioi 0 := by
   rw [← norm_sq_complexToRealEuclidean]
   rfl
+
+/-- A point is in the shell of `s ↦ s + c` exactly when its squared norm `∑ᵢ ‖wᵢ‖²` is greater
+than `c`. -/
+theorem mem_radialShell_add_const {c : ℝ} {w : ι → ℂ} :
+    w ∈ radialShell ι (fun s ↦ s + c) (contDiffOn_id.add contDiffOn_const) (fun _ _ ↦ by simp) ↔
+      c < ∑ i, ‖w i‖ ^ 2 := by
+  rw [mem_radialShell, image_add_const_Ioi, zero_add, mem_Ioi]
+
+/-- For `0 ≤ l`, a point is in the shell of `s ↦ s + l²` exactly when its Euclidean norm is
+greater than `l`. -/
+theorem mem_radialShell_add_sq {l : ℝ} (hl : 0 ≤ l) {w : ι → ℂ} :
+    w ∈ radialShell ι (fun s ↦ s + l ^ 2) (contDiffOn_id.add contDiffOn_const)
+        (fun _ _ ↦ by simp) ↔
+      l < ‖complexToRealEuclidean ι w‖ := by
+  rw [mem_radialShell_add_const, ← norm_sq_complexToRealEuclidean,
+    pow_lt_pow_iff_left₀ hl (norm_nonneg _) two_ne_zero]
 
 section Diffeomorph
 
