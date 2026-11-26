@@ -43,7 +43,7 @@ theorem complementRepresentative_normalClass (f : SmoothEmbedding I J n M N) (x 
       W.projection (f.isImmersion.tangentRange x hn) hW.isCompl.symm v := by
   rw [complementRepresentative_eq_iff]
   refine ⟨Submodule.projection_apply_mem _ _, ?_⟩
-  rw [normalClass_eq_iff, Submodule.projection_eq_self_sub_projection hW.isCompl,
+  rw [Manifold.IsImmersion.normalClass_eq_iff, Submodule.projection_eq_self_sub_projection hW.isCompl,
     sub_sub_cancel_left]
   exact neg_mem (Submodule.projection_apply_mem _ _)
 

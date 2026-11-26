@@ -176,7 +176,7 @@ hyperplane class.
 Milestone: *First Chern class of a complex vector bundle*. -/
 theorem firstChernClass_tautological (V : Type) [NormedAddCommGroup V] [NormedSpace ℂ V] :
     ((TopCat.of (ℙ ℂ V)).uliftIntegralCohomologyIso 2).hom
-        (firstChernClass ℂ (Tautological ℂ V)) = -hyperplaneClass V := by
+        (SymplecticGeometry.Bundle.firstChernClass ℂ (Tautological ℂ V)) = -hyperplaneClass V := by
   rw [hyperplaneClass_def, neg_neg, firstChernClass_eq_complexEulerClass _ (finrank_self ℂ)]
 
 end Projectivization

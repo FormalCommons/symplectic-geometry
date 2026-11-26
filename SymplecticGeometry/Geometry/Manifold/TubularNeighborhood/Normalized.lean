@@ -577,7 +577,7 @@ theorem IsNormalizedTube.normalClassL_mfderiv_zeroSection {f : SmoothEmbedding I
   have hb' : f.isImmersion.normalClassL x hn (D b) = 0 := by
     -- `hb` is about `((v.1, 0).1, 0)`, which reduces to `b`.
     have : D b = mfderiv I J f x v.1 := hb
-    rw [this, normalClassL_apply]
+    rw [this, Manifold.IsImmersion.normalClassL_apply]
     exact normalClass_mfderiv f x hn _
   -- The two sums live in tangent spaces of `N` at `F p₀` and at `f x`, both `V`.
   calc f.isImmersion.normalClassL x hn (D v) = f.isImmersion.normalClassL x hn (D a + D b) := by rw [hv]

@@ -119,7 +119,7 @@ theorem tangentNormalEquiv_apply (x : M) (p : (TangentSpace I ×ᵇ fun x ↦ f.
 theorem snd_tangentNormalEquiv_symm_apply (x : M) (v : TangentSpace J (f x)) :
     ((f.tangentNormalEquiv hn r hr x).symm v).2 = f.isImmersion.normalClass x hn v := by
   conv_rhs => rw [← (f.tangentNormalEquiv hn r hr x).apply_symm_apply v]
-  rw [tangentNormalEquiv_apply, map_add, normalClass_mfderiv, zero_add, hr]
+  rw [tangentNormalEquiv_apply, map_add, Manifold.IsImmersion.normalClass_mfderiv, zero_add, hr]
 
 /-- The tangential component of the inverse of the isomorphism is carried by `df` to
 `v - r [v]`. -/
@@ -175,7 +175,7 @@ section RightInverse
 
 variable [IsManifold I 1 M] [IsManifold J 1 N] (f : SmoothEmbedding I J n M N) (hn : n ≠ 0)
 
-variable [IsRCLikeNormedField 𝕜] [_root_.isImmersion.NormalSpace M] [ParacompactSpace M]
+variable [IsRCLikeNormedField 𝕜] [_root_.NormalSpace M] [ParacompactSpace M]
 
 /-- Over a normal paracompact manifold, the normal class map of an embedding over `ℝ` or `ℂ`
 has a fibrewise linear right inverse whose composite with the normal class map is continuous on
