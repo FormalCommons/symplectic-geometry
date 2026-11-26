@@ -130,22 +130,40 @@ theorem exists_iso_clutching :
   have hUV : (Prod.snd ⁻¹' innerDisc ∪ Prod.snd ⁻¹' outerDisc : Set (X × ℙ ℂ (Fin 2 → ℂ))) =
       univ := by
     rw [← preimage_union, innerDisc_union_outerDisc, preimage_univ]
+  -- The pullbacks of `E` along the restrictions of the projection to `X × Circle`, through
+  -- `circleToAnnulus`, and to the annulus part of `(X × ℙ ℂ (Fin 2 → ℂ)) × I`, through
+  -- `annulusDeformation`, are its pullbacks along the projections.
+  have hc : (((F.pullback (prodMkOne X)).pullback ContinuousMap.fst).pullback
+      (ContinuousMap.subtypeVal (Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc))).pullback
+        (circleToAnnulus X) = (F.pullback (prodMkOne X)).pullback ContinuousMap.fst := by
+    simp [pullback_comp]
+  have hd : (((F.pullback (prodMkOne X)).pullback ContinuousMap.fst).pullback
+      (ContinuousMap.subtypeVal (Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc))).pullback
+        (annulusDeformation X) =
+      (((F.pullback (prodMkOne X)).pullback ContinuousMap.fst).pullback
+        (ContinuousMap.fst : C((X × ℙ ℂ (Fin 2 → ℂ)) × unitInterval, X × ℙ ℂ (Fin 2 → ℂ)))).pullback
+        (ContinuousMap.subtypeVal (Prod.fst ⁻¹' (Prod.snd ⁻¹' innerDisc) ∩
+          Prod.fst ⁻¹' (Prod.snd ⁻¹' outerDisc))) := by
+    simp [pullback_comp]
+  -- The casts `eqToHom` have the identity as fibre maps.
+  have hc' : ∀ (y : X × Circle) (v : Fin (F.pullback (prodMkOne X)).rank → 𝕜),
+      (eqToHom hc.symm).fiberMap y v = v := fun _ _ ↦ funext fun _ ↦ by simp [Fin.cast_eq_self]
+  have hd' : ∀ y (v : Fin (F.pullback (prodMkOne X)).rank → 𝕜),
+      (eqToHom hd.symm).fiberMap y v = v := fun _ _ ↦ funext fun _ ↦ by simp [Fin.cast_eq_self]
   -- The clutching function: the transition of `φ` and `ψ` on `X × Circle`.
-  refine ⟨(pullbackFunctor (circleToAnnulus X)).mapIso (glueTransition φ ψ), ?_⟩
+  let f := eqToIso hc.symm ≪≫ (pullbackFunctor (circleToAnnulus X)).mapIso (glueTransition φ ψ) ≪≫
+    eqToIso hc
+  refine ⟨f, ?_⟩
   obtain ⟨e⟩ := nonempty_iso_glue_of_homotopic _ hU hV hUV
-    (g₀ := glueTransition φ ψ)
-    (g₁ := clutchingAut (F.pullback (prodMkOne X))
-      ((pullbackFunctor (circleToAnnulus X)).mapIso (glueTransition φ ψ)))
-    ((pullbackFunctor (annulusDeformation X)).mapIso (glueTransition φ ψ))
-    -- The cores of `fiberMap_pullbackMap` are those of the statement by `pullback_comp`: all are
-    -- the pullback of `E` along `w ↦ w.val.1.1`.
-    (fun w ↦ (fiberMap_pullbackMap (glueTransition φ ψ).hom (annulusDeformation X) _).trans
-      (congrArg _ (annulusDeformation_zero X w)))
-    (fun w ↦ (fiberMap_pullbackMap (glueTransition φ ψ).hom (annulusDeformation X) _).trans <|
-      (congrArg _ (annulusDeformation_one X w)).trans <|
-        (fiberMap_pullbackMap (glueTransition φ ψ).hom (circleToAnnulus X) _).symm.trans
-          (fiberMap_clutchingAut_hom (F.pullback (prodMkOne X))
-            ((pullbackFunctor (circleToAnnulus X)).mapIso (glueTransition φ ψ)) w).symm)
+    (g₀ := glueTransition φ ψ) (g₁ := clutchingAut (F.pullback (prodMkOne X)) f)
+    (eqToIso hd.symm ≪≫ (pullbackFunctor (annulusDeformation X)).mapIso (glueTransition φ ψ) ≪≫
+      eqToIso hd)
+    (fun w ↦ by
+      ext v i
+      simp [hd', annulusDeformation_zero, Fin.cast_eq_self])
+    (fun w ↦ by
+      ext v i
+      simp [f, hc', hd', annulusDeformation_one, Fin.cast_eq_self])
   exact ⟨isoGlue φ ψ hU hV hUV ≪≫ e⟩
 
 end TauCeti.FiniteRankBundleCore
