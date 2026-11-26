@@ -727,7 +727,32 @@ theorem exists_pushforward_eq_of_maslovIndex_eq (hea : e ∈ IsManifold.maximalA
   exact exists_pushforward_eq_of_eq_frameTransition_trans hr hc he hε hε2 hU₁' hU₂' hDU₁ hDU₂
     hDU₁' hDU₂' hεO h₁ h₁' h₂ h₂' hP hPσ hPD
 
-omit [DecidableEq κ] in
+end Iso
+
+section ChernNumber
+
+open ContMDiffTwoForm
+open scoped ContDiff
+
+/-! The first Chern number takes the fibres in the universe of the base, so here the fibres of
+`V₁` and `V₂` are in `Type`. -/
+
+variable {M : Type} [TopologicalSpace M] [ChartedSpace (EuclideanSpace ℝ (Fin 2)) M]
+  [IsManifold (𝓡 2) ((⊤ : ℕ∞) : WithTop ℕ∞) M] [T2Space M]
+  {o : Manifold.Orientation (𝓡 2) M (Fin 2)}
+  {κ : Type*} [Fintype κ]
+  {F₁ : Type*} [NormedAddCommGroup F₁] [NormedSpace ℝ F₁] [FiniteDimensional ℝ F₁]
+  {V₁ : M → Type} [∀ x, AddCommGroup (V₁ x)] [∀ x, Module ℝ (V₁ x)]
+  [∀ x, TopologicalSpace (V₁ x)] [∀ x, IsTopologicalAddGroup (V₁ x)]
+  [∀ x, ContinuousSMul ℝ (V₁ x)] [TopologicalSpace (TotalSpace F₁ V₁)]
+  [FiberBundle F₁ V₁] [VectorBundle ℝ F₁ V₁]
+  {F₂ : Type*} [NormedAddCommGroup F₂] [NormedSpace ℝ F₂]
+  {V₂ : M → Type} [∀ x, AddCommGroup (V₂ x)] [∀ x, Module ℝ (V₂ x)]
+  [∀ x, TopologicalSpace (V₂ x)] [∀ x, IsTopologicalAddGroup (V₂ x)]
+  [∀ x, ContinuousSMul ℝ (V₂ x)] [TopologicalSpace (TotalSpace F₂ V₂)]
+  [FiberBundle F₂ V₂] [VectorBundle ℝ F₂ V₂]
+  {ω₁ : ContMDiffTwoForm (𝓡 2) ⊤ F₁ V₁} {ω₂ : ContMDiffTwoForm (𝓡 2) ⊤ F₂ V₂}
+
 /-- **Isomorphic bundles from equal first Chern numbers.** Let `ω₁`, `ω₂` be nondegenerate smooth
 two-forms on smooth vector bundles `V₁`, `V₂` of the same rank `2 |κ|` over a closed connected
 surface `M` with a smooth orientation `o`. If their first Chern numbers `symplecticChernNumber`
@@ -789,7 +814,7 @@ theorem exists_pushforward_eq_of_symplecticChernNumber_eq [CompactSpace M] [Conn
   rw [hc₁, hc₂, Fintype.sum_unique, Fintype.sum_unique] at h
   exact h
 
-end Iso
+end ChernNumber
 
 end Bundle
 
