@@ -469,20 +469,19 @@ theorem AnnulusSum.inl_eq_inr_iff {x : piece ι₁ ε hι₁.continuous}
     {y : piece ι₂ ε hι₂.continuous} :
     GluedAlong.inl (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε) x =
         GluedAlong.inr (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε) y ↔
-      ∃ ξ : E, (ε ^ 2 < ‖ξ‖ ∧ ‖ξ‖ < 1) ∧ (x : M₁) = ι₁ ξ ∧
+      ∃ ξ : E, ξ ∈ annulus E (ε ^ 2) 1 ∧ (x : M₁) = ι₁ ξ ∧
         (y : M₂) = ι₂ (Φ (inversion 0 ε ξ)) := by
   rw [GluedAlong.inl_eq_inr_iff]
   constructor
   · rintro ⟨hx, rfl⟩
     obtain ⟨ξ, hξ⟩ : ∃ ξ, annulusDiffeomorph hι₁ hdι₁ ε ξ = ⟨x, hx⟩ :=
       (annulusDiffeomorph hι₁ hdι₁ ε).surjective _
-    refine ⟨ξ, mem_annulus.1 ξ.property, ?_, ?_⟩
+    refine ⟨ξ, ξ.property, ?_, ?_⟩
     · exact (congrArg (fun z : overlap ι₁ ε hι₁.continuous hι₁.isOpenMap ↦
         ((z : piece ι₁ ε hι₁.continuous) : M₁)) hξ).symm.trans (coe_annulusDiffeomorph_apply ξ)
     · rw [← hξ, overlapDiffeomorph_annulusDiffeomorph, coe_annulusDiffeomorph_apply,
         coe_gluingDiffeomorph_apply]
   · rintro ⟨ξ, hξ, hx, hy⟩
-    rw [← mem_annulus] at hξ
     have hx' : x ∈ overlap ι₁ ε hι₁.continuous hι₁.isOpenMap := ⟨ξ, hξ, hx.symm⟩
     have hξx : annulusDiffeomorph hι₁ hdι₁ ε ⟨ξ, hξ⟩ = ⟨x, hx'⟩ :=
       Subtype.ext <| Subtype.ext <| by rw [coe_annulusDiffeomorph_apply, hx]
@@ -520,8 +519,8 @@ instance AnnulusSum.instT2Space : T2Space (AnnulusSum hι₁ hdι₁ hι₂ hdι
   · subst hu
     obtain ⟨ξ, hξ, hx, hy⟩ := hgraph.1 ⟨u.property, hφ⟩
     refine ⟨ξ, ⟨?_, ?_⟩, hx.symm, hy.symm⟩
-    · simpa using hξ.2.le
-    · simpa using hξ.1.le
+    · simpa using (mem_annulus.1 hξ).2.le
+    · simpa using (mem_annulus.1 hξ).1.le
   · have h₁ : ε ^ 2 < ‖ξ‖ := by
       by_contra h
       exact x.property ⟨ξ, by simpa using h, hx⟩
@@ -530,7 +529,7 @@ instance AnnulusSum.instT2Space : T2Space (AnnulusSum hι₁ hdι₁ hι₂ hdι
       exact y.property ⟨_, by simpa using h, hy⟩
     rw [LinearIsometryEquiv.norm_map, lt_norm_inversion_zero_iff ε hε₂ (hK0 ξ hξ),
       div_self hε₂.ne'] at h₂
-    obtain ⟨hx', hy'⟩ := hgraph.2 ⟨ξ, ⟨h₁, h₂⟩, hx.symm, hy.symm⟩
+    obtain ⟨hx', hy'⟩ := hgraph.2 ⟨ξ, mem_annulus.2 ⟨h₁, h₂⟩, hx.symm, hy.symm⟩
     exact ⟨⟨x, hx'⟩, rfl, hy'⟩
 
 end Diffeomorph
@@ -623,7 +622,7 @@ def toConnectedSum :
       obtain ⟨ξ, hξ, hx, hy⟩ := (AnnulusSum.inl_eq_inr_iff hι₁ hdι₁ hι₂ hdι₂ Φ hε).1
         (GluedAlong.inr_apply _ x).symm
       exact ((connectedSum_inl_eq_inr_iff (ι₂ := ι₂ ∘ Φ) hι₁.injective hε).2
-        ⟨ξ, norm_pos_iff.1 ((sq_nonneg ε).trans_lt hξ.1), hx, hy⟩).symm
+        ⟨ξ, ne_zero_of_mem_annulus (sq_nonneg ε) hξ, hx, hy⟩).symm
 
 /-- The map `toConnectedSum` sends a point of the first piece to the same point of the first
 punctured summand. -/
@@ -661,7 +660,7 @@ private theorem inl_eq_inr_of_toConnectedSum_eq {x : piece ι₁ ε hι₁.conti
   rw [hx, apply_mem_piece_iff hι₁.injective] at h₁
   rw [hy, Function.comp_apply, apply_mem_piece_iff hι₂.injective, LinearIsometryEquiv.norm_map,
     lt_norm_inversion_zero_iff ε hε₂ hξ, div_self hε₂.ne'] at h₂
-  exact (AnnulusSum.inl_eq_inr_iff hι₁ hdι₁ hι₂ hdι₂ Φ hε).2 ⟨ξ, ⟨h₁, h₂⟩, hx, hy⟩
+  exact (AnnulusSum.inl_eq_inr_iff hι₁ hdι₁ hι₂ hdι₂ Φ hε).2 ⟨ξ, mem_annulus.2 ⟨h₁, h₂⟩, hx, hy⟩
 
 /-- The map from `AnnulusSum` to Tau Ceti's connected sum is injective. -/
 theorem injective_toConnectedSum : Function.Injective (toConnectedSum hι₁ hdι₁ hι₂ hdι₂ Φ hε) := by
