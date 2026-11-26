@@ -188,11 +188,9 @@ theorem mono (hj : IsSymplecticBallEmbedding σ r j) (h : r' ≤ r) :
 the image of the open ball of radius `r'`, since it is injective on `B(r)`. -/
 theorem apply_notMem_image_ball (hj : IsSymplecticBallEmbedding σ r j) (h : r' ≤ r)
     {w : StdSpace (Fin n)} (hw : ‖w‖ = r') : j w ∉ j '' ball 0 r' := by
-  rintro ⟨v, hv, hvw⟩
-  rw [hj.injOn (closedBall_subset_closedBall h (ball_subset_closedBall hv))
-    (closedBall_subset_closedBall h (mem_closedBall_zero_iff.2 hw.le)) hvw,
-    mem_ball_zero_iff, hw] at hv
-  exact lt_irrefl r' hv
+  rw [hj.injOn.mem_image_iff (ball_subset_closedBall.trans (closedBall_subset_closedBall h))
+    (mem_closedBall_zero_iff.2 (hw.le.trans h)), mem_ball_zero_iff, hw]
+  exact lt_irrefl r'
 
 /-- For `0 < r`, a symplectic embedding of `B(r)` pulls `σ` back to `ω₀` on all of `B(r)`, by
 continuity. -/
