@@ -9,6 +9,7 @@ public import Mathlib.LinearAlgebra.Projectivization.Action
 public import SymplecticGeometry.Geometry.Manifold.RegularValue.CriticalSet
 public import TauCeti.Geometry.Manifold.Projectivization.ProjectiveLine
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.RestrictScalars
+import SymplecticGeometry.LinearAlgebra.Projectivization.Action
 import TauCeti.Geometry.Manifold.Algebra.SMul
 import TauCeti.Geometry.Manifold.Projectivization.Map
 
@@ -24,7 +25,6 @@ given regular value and some second one land on any two prescribed distinct poin
 
 ## Main results
 
-* `Matrix.SpecialLinearGroup.toGL_smul`: `SL_n(K)` acts on `ℙ K (n → K)` through `GL_n(K)`.
 * `Projectivization.smulDiffeomorph`: the diffeomorphism `g • ·` of the real manifold `ℂℙ¹`.
 * `Projectivization.criticalSet_smul`, `Projectivization.isRegularValue_smul_iff`: moving a map
   into `ℂℙ¹` by `g` keeps its critical set and moves its regular values by `g`.
@@ -38,23 +38,7 @@ public section
 open Set TauCeti
 open scoped Manifold LinearAlgebra.Projectivization
 
-namespace Matrix.SpecialLinearGroup
-
-/-- A special linear matrix acts on the projective space `ℙ K (n → K)` as its image in the general
-linear group does. -/
-theorem toGL_smul {n K : Type*} [Fintype n] [DecidableEq n] [Field K] (g : SpecialLinearGroup n K)
-    (x : ℙ K (n → K)) : toGL g • x = g • x := by
-  induction x using Projectivization.ind with
-  | h v hv => simp [Projectivization.smul_mk, SpecialLinearGroup.smul_def, Units.smul_def]
-
-end Matrix.SpecialLinearGroup
-
 namespace Projectivization
-
-/-- The projective line `ℂℙ¹` is infinite: the affine coordinate `t ↦ [1 : t]` is injective. -/
-instance infinite_projectiveLine : Infinite (ℙ ℂ (Fin 2 → ℂ)) :=
-  Infinite.of_injective (ProjectiveLine.affineParam 0) fun s t hst ↦ by
-    simpa using congrFun (congrArg (affineChart (K := ℂ) (n := 1) 0) hst) 0
 
 /-- The diffeomorphism `g • ·` of `ℂℙ¹` for a projective transformation `g`, on the underlying
 real manifold. -/
