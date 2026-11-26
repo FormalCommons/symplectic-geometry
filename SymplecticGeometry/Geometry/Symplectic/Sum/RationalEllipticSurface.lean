@@ -414,7 +414,7 @@ theorem prod_ofComplexManifold_mem_tangentRange {hn : (∞ : ℕ∞ω) ≠ 0}
 /-- The symplectic form of the rational elliptic surface: the pull-back along the inclusion of
 the product `pr₁^* ω_FS + pr₂^* ω_FS` of the Fubini–Study forms of `ℂℙ²` and `ℂℙ¹`. -/
 noncomputable def symplecticForm :
-    SmoothTwoForm 𝓘(ℝ, Fin (2 + 1 - Fintype.card Unit) → ℂ) rationalEllipticSurface :=
+    SmoothTwoForm 𝓘(ℝ, Fin 2 → ℂ) rationalEllipticSurface :=
   SmoothForm.mpullback realEmbedding realEmbedding.contMDiff
     ((fubiniStudyForm 2).prod (fubiniStudyForm 1))
 
