@@ -11,13 +11,16 @@ import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import Mathlib.Analysis.Calculus.Deriv.Slope
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import Mathlib.Topology.Maps.Proper.CompactlyGenerated
+import SymplecticGeometry.Geometry.Manifold.Boundary.Interior
 import SymplecticGeometry.Geometry.Symplectic.Liouville.Domain
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
 import TauCeti.Geometry.Manifold.MFDeriv.Curve
+import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Existence
 import TauCeti.Geometry.Manifold.VectorField.Regularity
+import TauCeti.Topology.Maps.Proper.Basic
 
 /-!
-# The completion of a Weinstein domain: its function
+# The completion of a Weinstein domain
 
 Let `(W, σ, Y, f)` be a compact Weinstein domain with top level `c`
 (`SymplecticGeometry.IsWeinsteinDomain`), and `Ŵ` the completion of its Liouville domain
@@ -25,11 +28,14 @@ Let `(W, σ, Y, f)` be a compact Weinstein domain with top level `c`
 Liouville time `s`. Following McDuff–Salamon (Remark 7.4.6), this file builds a smooth function
 `F : Ŵ → ℝ` that is `f` on `W` away from a thin collar of `∂W`, is `c + ε (eˢ − 1)` on the end,
 increases strictly along the Liouville field `Ŷ` of the completion on a collar of `∂W` and on the
-end, and is proper and bounded below.
+end, and is proper and bounded below. With the form `completionForm` and the field
+`completionField` of the completion, `F` makes `Ŵ` a Weinstein manifold.
 
 ## Main results
 
 * `SymplecticGeometry.IsWeinsteinDomain.exists_completion_function`: such an `F` exists.
+* `SymplecticGeometry.IsWeinsteinDomain.isWeinsteinStructure_completion`: the completion, with
+  `completionForm`, `completionField` and such an `F`, carries a Weinstein structure.
 
 ## Implementation notes
 
@@ -47,6 +53,17 @@ completion, through the local diffeomorphisms `IsStrongFilling.isLocalDiffeomorp
 and `IsStrongFilling.isLocalDiffeomorphAt_toCompletion` and the integral curves
 `IsStrongFilling.isMIntegralCurveOn_completionEnd` of `Ŷ`, as for the function cutting out `W` in
 `SymplecticGeometry.Geometry.Symplectic.Liouville.Domain`.
+
+For the Weinstein structure, the form, the field and its completeness come from
+`Liouville/Completion.lean` and `Liouville/Domain.lean`. A critical point of `F` lies off the
+end `(-2δ, ∞) × ∂W`, where `dF(Ŷ) > 0`, so it is an interior point of `W` near which `F` is
+`f`, read through the local diffeomorphism from the interior of `W` (Tau Ceti's charted
+interior) to `Ŵ`. There `F` is generalized Morse by
+`TauCeti.isGeneralizedMorse_of_forall_exists_comp_eventuallyEq`. The gradient-like condition is
+local (`TauCeti.isGradientLike_of_forall_exists_nhds`, on `Ŵ`, which is σ-compact as the domain
+of the proper map `F`): near the end it holds for any metric since `dF(Ŷ) > 0`
+(`TauCeti.exists_nhds_mul_le_of_mvfderiv_apply_pos`), and near the other points it is carried
+from the interior of `W` (`TauCeti.IsGradientLike.exists_nhds_mul_le_of_isLocalDiffeomorphAt`).
 
 ## References
 
@@ -408,6 +425,84 @@ theorem exists_completion_function [CompactSpace W] (hW : IsWeinsteinDomain σ Y
     obtain ⟨b, hb⟩ := hK.bddAbove
     exact (hW.isCompact_preimage_Iic_completionFunction (half_pos ha0) hδ0 hδ b).of_isClosed_subset
       (hK.isClosed.preimage hFc.continuous) fun z hz ↦ hb hz
+
+/-! ### The Weinstein structure of the completion -/
+
+/-- Off the image of `(-2δ, ∞) × ∂W` under the end map, a point of the completion is an interior
+point `p` of `W`, near which the function of `exists_completion_function` is `f`, read through the
+inclusion of the interior of `W`. -/
+private theorem exists_eventuallyEq_of_notMem (hδ0 : 0 < δ) (hδ : 2 * δ < h.collarWidth)
+    {F : h.Completion → ℝ}
+    (hFf : ∀ p ∉ h.collarFlow '' (Ioc (-δ) 0 ×ˢ univ), F (h.toCompletion p) = f p)
+    {z : h.Completion} (hz : z ∉ h.completionEnd '' (Ioi (-(2 * δ)) ×ˢ univ)) :
+    ∃ p : (𝓡∂ (n + 1)).interior W, h.toCompletion p.val = z ∧
+      F ∘ (h.toCompletion ∘ Subtype.val) =ᶠ[𝓝 p] fun p' ↦ f p'.val := by
+  obtain ⟨p, hp, rfl⟩ := h.exists_mem_interior_toCompletion_eq (by positivity) hz
+  -- The compact image `K` of `[-δ, 0] × ∂W` does not meet a neighbourhood of `p`.
+  set K := h.completionEnd '' (Icc (-δ) 0 ×ˢ univ)
+  have hKc : IsClosed K := (h.isCompact_completionEnd_image_Icc (by linarith)).isClosed
+  have hpK : h.toCompletion p ∉ K := fun ⟨r, hr, hrp⟩ ↦
+    hz ⟨r, ⟨by simp only [mem_Ioi]; linarith [hr.1.1], trivial⟩, hrp⟩
+  have hcont : Continuous (h.toCompletion ∘ Subtype.val : (𝓡∂ (n + 1)).interior W → _) :=
+    h.contMDiff_toCompletion.continuous.comp continuous_subtypeVal
+  refine ⟨⟨p, hp⟩, rfl, ?_⟩
+  filter_upwards [hcont.continuousAt.preimage_mem_nhds (hKc.isOpen_compl.mem_nhds hpK)]
+    with p' hp'
+  refine hFf _ fun ⟨r, hr, hrp⟩ ↦ hp' ?_
+  rw [Function.comp_apply, ← hrp,
+    ← h.completionEnd_eq_toCompletion ⟨by linarith [hr.1.1], hr.1.2⟩ r.2]
+  exact ⟨r, ⟨⟨hr.1.1.le, hr.1.2⟩, trivial⟩, rfl⟩
+
+/-- **The completion of a Weinstein domain is a Weinstein manifold.** Let `(W, σ, Y, f)` be a
+compact Weinstein domain with top level `c`, and `Ŵ` the completion of its Liouville domain, with
+symplectic form `ω̂` and Liouville field `Ŷ`. There are `ε > 0`, `δ > 0` with `2δ` less than the
+width of the collar of `Ŵ`, and a function `F : Ŵ → ℝ` such that `(ω̂, Ŷ, F)` is a Weinstein
+structure on `Ŵ`, `F` is `f` on `W` away from the image of `(-δ, 0] × ∂W` under the collar map,
+and `F (s, x) = c + ε (eˢ − 1)` on the end `s ≥ 0`. -/
+theorem isWeinsteinStructure_completion [CompactSpace W] (hW : IsWeinsteinDomain σ Y f c) :
+    ∃ ε > 0, ∃ δ > 0, 2 * δ < hW.isStrongFilling.collarWidth ∧
+      ∃ F : hW.isStrongFilling.Completion → ℝ,
+        IsWeinsteinStructure hW.isStrongFilling.completionForm
+          hW.isStrongFilling.completionField F ∧
+        (∀ p ∉ hW.isStrongFilling.collarFlow '' (Ioc (-δ) 0 ×ˢ univ),
+          F (hW.isStrongFilling.toCompletion p) = f p) ∧
+        ∀ s ≥ 0, ∀ x, F (hW.isStrongFilling.completionEnd (s, x)) = c + ε * (Real.exp s - 1) := by
+  set h := hW.isStrongFilling
+  obtain ⟨ε, hε, δ, hδ0, hδ, F, hF, hFf, hFend, hFpos, hFp, hFb⟩ := hW.exists_completion_function
+  have := hFp.sigmaCompactSpace
+  -- The inclusion of the interior of `W` is a local diffeomorphism.
+  have hΦ (p : (𝓡∂ (n + 1)).interior W) : IsLocalDiffeomorphAt (𝓡 (n + 1)) (𝓡 (n + 1)) ∞
+      (h.toCompletion ∘ Subtype.val) p :=
+    ((𝓡∂ (n + 1)).isLocalDiffeomorph_subtypeVal_interior p).comp
+      (hg := h.isLocalDiffeomorphAt_toCompletion p.property)
+  refine ⟨ε, hε, δ, hδ0, hδ, F, ⟨h.isSymplectic_completionForm, h.contMDiff_completionField,
+    h.isLiouvilleVectorField_completionField, h.isCompleteVectorField_completionField, hFp, hFb,
+    ?_, ?_⟩, hFf, hFend⟩
+  · -- The critical points of `F` are those of `f` on the interior of `W`.
+    refine isGeneralizedMorse_of_forall_exists_comp_eventuallyEq (Φ := h.toCompletion ∘ Subtype.val)
+      hF hW.isGeneralizedMorse fun z hz ↦ ?_
+    have hz' : z ∉ h.completionEnd '' (Ioi (-(2 * δ)) ×ˢ univ) := fun hz' ↦ by
+      have := hFpos z hz'
+      rw [mem_criticalPoints.1 hz] at this
+      exact lt_irrefl _ this
+    obtain ⟨p, rfl, hp⟩ := exists_eventuallyEq_of_notMem hδ0 hδ hFf hz'
+    exact ⟨p, rfl, hΦ p, hp⟩
+  · -- Where `dF(Ŷ) > 0` any metric does; elsewhere, the field is that of the interior of `W`.
+    refine isGradientLike_of_forall_exists_nhds fun z ↦ ?_
+    by_cases hz : z ∈ h.completionEnd '' (Ioi (-(2 * δ)) ×ˢ univ)
+    · obtain ⟨g⟩ : Nonempty (ContMDiffRiemannianMetric (𝓡 (n + 1)) ∞
+          (EuclideanSpace ℝ (Fin (n + 1))) fun z : h.Completion ↦ TangentSpace (𝓡 (n + 1)) z) :=
+        nonempty_contMDiffRiemannianMetric
+      obtain ⟨U, hU, a, ha, haU⟩ := exists_nhds_mul_le_of_mvfderiv_apply_pos g
+        (hF.contMDiffAt.of_le (by simp)) (h.contMDiff_completionField.contMDiffAt.of_le (by simp))
+        (hFpos z hz)
+      exact ⟨U, hU, g, a, ha, haU⟩
+    · obtain ⟨p, rfl, hp⟩ := exists_eventuallyEq_of_notMem hδ0 hδ hFf hz
+      refine hW.isGradientLike.exists_nhds_mul_le_of_isLocalDiffeomorphAt (hΦ p) hp
+        (Filter.Eventually.of_forall fun p' ↦ ?_)
+      rw [ModelWithCorners.mfderiv_comp_subtypeVal_interior p'
+        (h.contMDiff_toCompletion.mdifferentiableAt (by simp))]
+      exact h.mfderiv_toCompletion_apply p'.val
 
 end IsWeinsteinDomain
 
