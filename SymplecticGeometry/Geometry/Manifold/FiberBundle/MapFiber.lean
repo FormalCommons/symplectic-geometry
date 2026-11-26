@@ -155,8 +155,7 @@ theorem injective_mfderiv_fiberInclusionMap
     (v : F) : Injective (mfderiv IF IM (e.fiberInclusionMap hb) v) :=
   TauCeti.mfderiv_injective_of_leftInverse (g := fun x ↦ (e x).2)
     (mdifferentiableAt_snd.comp _ (he.mdifferentiableAt (e.fiberInclusionMap_mem_source hb v)))
-    (mdifferentiable_fiberInclusionMap he hb v) fun w ↦
-      congrArg Prod.snd (e.apply_fiberInclusionMap hb w)
+    (mdifferentiable_fiberInclusionMap he hb v) (e.leftInverse_snd_fiberInclusionMap hb)
 
 /-- **The tangent spaces of a fibre.** For a trivialization `e` of `proj` that is differentiable
 with differentiable inverse, the derivative of the fibre inclusion over `b` at `v` has as range

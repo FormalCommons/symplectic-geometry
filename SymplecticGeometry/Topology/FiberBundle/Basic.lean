@@ -30,6 +30,9 @@ two trivializations, these inclusions differ by the coordinate change.
 
 ## Main results
 
+* `Bundle.Trivialization.leftInverse_snd_fiberInclusionMap` and
+  `Bundle.Trivialization.fiberInclusionMap_snd_apply`: the fibre coordinate of a trivialization and
+  its fibre inclusion are inverse to each other.
 * `Bundle.Trivialization.fiberInclusionMap_coordChange`: the inclusions of a fibre through two
   trivializations differ by their coordinate change.
 * `Bundle.Trivialization.coordChange_compHomeomorph`: precomposing two trivializations with a
@@ -104,6 +107,17 @@ lemma apply_fiberInclusionMap (e : Trivialization F proj) {b : B} (hb : b ∈ e.
     e (e.fiberInclusionMap hb f) = (b, f) := by
   rw [fiberInclusionMap_apply]
   exact e.apply_symm_apply' hb
+
+/-- The fibre coordinate of `e` is a left inverse of the fibre inclusion over `b`. -/
+lemma leftInverse_snd_fiberInclusionMap (e : Trivialization F proj) {b : B}
+    (hb : b ∈ e.baseSet) : Function.LeftInverse (fun x ↦ (e x).2) (e.fiberInclusionMap hb) :=
+  fun f ↦ congrArg Prod.snd (e.apply_fiberInclusionMap hb f)
+
+/-- The fibre inclusion over `proj x` sends the fibre coordinate of `x` in `e` back to `x`. -/
+@[simp]
+lemma fiberInclusionMap_snd_apply (e : Trivialization F proj) {x : Z}
+    (hx : proj x ∈ e.baseSet) : e.fiberInclusionMap hx (e x).2 = x := by
+  rw [fiberInclusionMap_apply, e.symm_apply_mk_proj (e.mem_source.2 hx)]
 
 /-- The inclusions of a fibre read through two trivializations differ by the coordinate
 change. -/

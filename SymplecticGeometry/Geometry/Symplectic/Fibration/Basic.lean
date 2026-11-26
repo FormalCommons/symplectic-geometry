@@ -201,14 +201,12 @@ theorem isVerticallyNondegenerate_of_isNondegenerate_mpullback
     SmoothTwoForm.IsVerticallyNondegenerate IB proj τ := by
   refine SmoothTwoForm.isVerticallyNondegenerate_iff.2 fun x ↦ ?_
   have hb := A.mem_baseSet_trivAt (proj x)
-  have hx : (A.trivAt (proj x)).fiberInclusionMap hb (A.trivAt (proj x) x).2 = x := by
-    rw [Trivialization.fiberInclusionMap_apply,
-      (A.trivAt (proj x)).symm_apply_mk_proj ((A.trivAt (proj x)).mem_source.2 hb)]
-  refine hx ▸ ((A.trivAt (proj x)).nondegenerate_restrict_ker_mfderiv_iff_separatingLeft
-    (hA.mdifferentiable_trivAt (by simp) _) hb
-    ((A.trivAt (proj x)).contMDiff_fiberInclusionMap (hA.contMDiffOn_trivAt_symm _) hb) τ _).2
-    fun u hu ↦ SmoothTwoForm.isNondegenerate_iff_separatingLeft.1 (hτ (proj x)) _ u
-      fun w ↦ by rw [← SmoothForm.bilinFormAt_apply]; exact hu w
+  refine (A.trivAt (proj x)).fiberInclusionMap_snd_apply hb ▸
+    ((A.trivAt (proj x)).nondegenerate_restrict_ker_mfderiv_iff_separatingLeft
+      (hA.mdifferentiable_trivAt (by simp) _) hb
+      ((A.trivAt (proj x)).contMDiff_fiberInclusionMap (hA.contMDiffOn_trivAt_symm _) hb) τ _).2
+      fun u hu ↦ SmoothTwoForm.isNondegenerate_iff_separatingLeft.1 (hτ (proj x)) _ u
+        fun w ↦ by rw [← SmoothForm.bilinFormAt_apply]; exact hu w
 
 /-- **Restricting forms are vertically nondegenerate.** If a two-form `τ` restricts to a
 nondegenerate form `σ` along a smooth atlas of `proj`, then
