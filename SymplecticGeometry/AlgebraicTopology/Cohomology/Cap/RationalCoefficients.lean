@@ -12,7 +12,6 @@ public import TauCeti.AlgebraicTopology.Cohomology.CompactSupport.Duality.Manifo
 public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.RestrictScalars
 public import SymplecticGeometry.LinearAlgebra.QuadraticForm.Signature
 public import TauCeti.Algebra.Category.ModuleCat.RestrictScalars
-public import TauCeti.AlgebraicTopology.Cohomology.CompactSupport.Duality.Basic
 public import TauCeti.AlgebraicTopology.Cohomology.IntegralComparison
 public import TauCeti.AlgebraicTopology.Cohomology.UniversalCoefficient.CapDuality
 public import TauCeti.AlgebraicTopology.Singular.BettiNumber
@@ -59,9 +58,10 @@ capping `μ` with the integral class of `α` is the rational cap product of `α`
 keep the back `q`-face (`TopCat.capChain_singularCochainComplexRatIso_hom_f`, using the formulas
 of `SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.Basic`).
 
-As a consequence, for a compact oriented manifold, Poincaré duality
-(`TauCeti.HomologicalOrientation.bijective_dualityMap`) makes the rational cap product with the
-rational fundamental class bijective
+As a consequence, for a compact oriented manifold, Tau Ceti's Poincaré duality for closed
+manifolds with values in `ℚ`
+(`TauCeti.HomologicalOrientation.bijective_singularCap_fundamentalClass`) makes the rational cap
+product with the rational fundamental class bijective
 (`TauCeti.HomologicalOrientation.bijective_singularCapLinearMap_fundamentalClass`). Its
 injectivity is the hypothesis of Tau Ceti's evenness criterion
 `TopCat.even_finrank_singularHomology_of_injective_singularCapLinearMap`. With Tau
@@ -567,21 +567,6 @@ variable {M E : Type} [TopologicalSpace M] [T2Space M]
   [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E] [ChartedSpace E M]
   {n : ℕ} (o : HomologicalOrientation M E n) (hn : Module.finrank ℝ E = n)
 
-/-- For a compact oriented `n`-manifold `M` and `p + q = n`, the rational cap product of
-`α ∈ Hᵖ(M; ℚ)` with the image of the fundamental class in `Hₙ(M; ℚ)`, read in homology with
-coefficients in the abelian group `ℚ`, is the duality map, computed from integral chains, applied
-to the class of `α` in compactly supported cohomology with values in `ℚ`. -/
-theorem singularHomologyRatIso_hom_singularCapLinearMap [CompactSpace M] {p q : ℕ}
-    (h : p + q = n)
-    (α : (TopCat.of M).singularCohomology (𝟙_ (ModuleCat.{0} ℚ)) ℚ (𝟙_ (ModuleCat.{0} ℚ)) p) :
-    ((TopCat.of M).singularHomologyRatIso q).hom ((TopCat.of M).singularCapLinearMap ℚ h
-        ((TopCat.of M).singularHomologyIntToRat n (o.fundamentalClass hn)) α) =
-      o.dualityMap hn (ModuleCat.of ℤ ℚ) p q h
-        ((TopCat.compactSupportCohomologyIsoOfCompactSpace p).inv
-          (((TopCat.of M).singularCohomologyRatIso p).hom α)) := by
-  rw [dualityMap_compactSupportCohomologyIsoOfCompactSpace_inv]
-  exact (TopCat.singularCap_singularCohomologyRatIso_hom _ h α _).symm
-
 /-- **Rational Poincaré duality for a compact manifold.** For a compact homologically oriented
 `n`-manifold `M` without boundary and `p + q = n`, capping with the image of the fundamental
 class in `Hₙ(M; ℚ)` is a bijection `Hᵖ(M; ℚ) → H_q(M; ℚ)`, computed from rational chains. -/
@@ -591,10 +576,19 @@ theorem bijective_singularCapLinearMap_fundamentalClass [CompactSpace M] {p q : 
       ((TopCat.of M).singularHomologyIntToRat n (o.fundamentalClass hn))) := by
   refine (Function.Bijective.of_comp_iff'
     (ConcreteCategory.bijective_of_isIso ((TopCat.of M).singularHomologyRatIso q).hom) _).1 ?_
-  refine (funext (o.singularHomologyRatIso_hom_singularCapLinearMap hn h (p := p)) :
-    _ ∘ _ = _ ∘ _ ∘ _) ▸ ?_
-  exact (o.bijective_dualityMap hn (ModuleCat.of ℤ ℚ) _ _ h).comp
-    ((ConcreteCategory.bijective_of_isIso _).comp (ConcreteCategory.bijective_of_isIso _))
+  -- Through `singularHomologyRatIso` and `singularCohomologyRatIso`, the rational cap product is
+  -- the integral one with values in `ℚ`, which Tau Ceti shows to be bijective.
+  have e : ⇑(ConcreteCategory.hom ((TopCat.of M).singularHomologyRatIso q).hom) ∘
+      ⇑((TopCat.of M).singularCapLinearMap ℚ h
+        ((TopCat.of M).singularHomologyIntToRat n (o.fundamentalClass hn))) =
+      (fun β ↦ ((TopCat.of M).singularCap ℤ (ρ_ _).inv (ρ_ (ModuleCat.of ℤ ℚ)).hom p q n h
+        β).hom (o.fundamentalClass hn)) ∘
+        ⇑(ConcreteCategory.hom ((TopCat.of M).singularCohomologyRatIso p).hom) :=
+    funext fun α ↦
+      (TopCat.singularCap_singularCohomologyRatIso_hom _ h α (o.fundamentalClass hn)).symm
+  rw [e]
+  exact (o.bijective_singularCap_fundamentalClass hn (ModuleCat.of ℤ ℚ) p q h).comp
+    (ConcreteCategory.bijective_of_isIso _)
 
 include o hn in
 /-- **Poincaré duality for rational Betti numbers.** For a compact homologically oriented
