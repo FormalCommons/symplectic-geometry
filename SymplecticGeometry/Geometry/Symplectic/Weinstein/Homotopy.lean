@@ -7,7 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Basic
-import SymplecticGeometry.Geometry.Manifold.VectorField.Pullback
+import TauCeti.Geometry.Manifold.Diffeomorph.Basic
 import TauCeti.Geometry.Manifold.Instances.Icc
 
 /-!
@@ -53,7 +53,7 @@ generalized Morse function has finitely many critical values in each compact int
 `f t` are bounded above, uniformly in `t`, by some `B`, and the constants `B + k + 1` are values
 outside their ranges, so they are regular values (`TauCeti.isRegularValue_of_notMem_range`). The
 field pulled back along a diffeomorphism `Φ` is the image of `X t` under the tangent map of `Φ⁻¹`
-(`Diffeomorph.mk_mpullback_eq_tangentMap_symm`), so it stays jointly smooth.
+(`Diffeomorph.tangentMap_symm_mk`), so it stays jointly smooth.
 
 ## References
 
@@ -170,7 +170,8 @@ theorem pullback (h : IsWeinsteinHomotopy ω X f) {M' : Type*} [TopologicalSpace
       (X p.1) p.2⟩ : TangentBundle 𝓘(ℝ, E) M')) =
       tangentMap 𝓘(ℝ, E) 𝓘(ℝ, E) Φ.symm ∘
         fun p : unitInterval × M' ↦ (⟨Φ p.2, X p.1 (Φ p.2)⟩ : TangentBundle 𝓘(ℝ, E) M) :=
-    funext fun p ↦ Φ.mk_mpullback_eq_tangentMap_symm (by simp) (X p.1) p.2
+    funext fun p ↦ by
+      rw [Function.comp_apply,Φ.tangentMap_symm_mk (by simp), VectorField.mpullback_apply]
   refine ⟨h.isSmoothFamily.mpullback Φ Φ.contMDiff, ?_, h.contMDiff_function.comp hΦ,
     fun t ↦ (h.isWeinsteinStructure t).pullback Φ,
     ⟨c, hcont, hmono, htend, fun k t ↦ (Φ.isRegularValue_comp_iff (by simp)).2 (hreg k t)⟩⟩
