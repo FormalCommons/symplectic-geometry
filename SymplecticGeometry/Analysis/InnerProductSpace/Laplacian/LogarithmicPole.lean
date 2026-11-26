@@ -13,6 +13,7 @@ import Mathlib.Geometry.Manifold.ContMDiff.NormedSpace
 import TauCeti.Analysis.InnerProductSpace.Laplacian.Integral
 import TauCeti.Analysis.Sobolev.WeakDeriv.Laplacian
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
+import SymplecticGeometry.Topology.Algebra.Support
 
 /-!
 # Laplacians of functions with logarithmic poles
@@ -311,18 +312,15 @@ theorem exists_laplacian_ae_eq_add_sum_of_log_poles (hΩ : IsOpen Ω) (hb : Born
     exact hx.2 (hfV (by rw [hΩ.frontier_eq]; exact ⟨hx.1, hxΩ⟩))
   have hG0 : ∀ x ∈ Ω, x ∉ K → G x = 0 := fun x hx hxK ↦
     hVG (by_contra fun hxV ↦ hxK ⟨subset_closure hx, hxV⟩)
-  set g : ℂ → ℝ := Ω.indicator G with hg
+  set g : ℂ → ℝ := Ω.indicator G
   have hgΩ {z : ℂ} (hz : z ∈ Ω) : g =ᶠ[𝓝 z] G := by
     filter_upwards [hΩ.mem_nhds hz] with t ht
     exact Set.indicator_of_mem ht G
   have hgcd : ContDiff ℝ 2 g :=
     contMDiff_iff_contDiff.mp (ContMDiffOn.contMDiff_indicator (I := modelWithCornersSelf ℝ ℂ)
       (contMDiffOn_iff_contDiffOn.mpr fun z hz ↦ (hGcd hz).contDiffWithinAt) hΩ hKc hKΩ hG0)
-  have hgK : tsupport g ⊆ K := closure_minimal (fun x hx ↦ by
-    by_contra hxK
-    by_cases hxΩ : x ∈ Ω
-    · exact hx (by rw [hg, Set.indicator_of_mem hxΩ, hG0 x hxΩ hxK])
-    · exact hx (Set.indicator_of_notMem hxΩ G)) hKc
+  have hgK : tsupport g ⊆ K :=
+    tsupport_indicator_subset_of_eqOn hKc fun x hx ↦ hG0 x hx.1 hx.2
   refine ⟨g, fun s ↦ φ s, hgcd, ?_, fun t ht ↦ ?_, fun s hs ↦ ?_, ?_⟩
   · exact hb.isCompact_closure.of_isClosed_subset (isClosed_tsupport g)
       (hgK.trans Set.sdiff_subset)
