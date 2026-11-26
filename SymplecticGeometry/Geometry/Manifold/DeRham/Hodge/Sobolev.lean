@@ -602,9 +602,7 @@ private def localizeSobolevₗ : H1Form o hkl →ₗ[ℝ] H^{1}(CoordinateSpace 
   toFun u :=
     (memSobolev_localizeCoord_friedrichsInclusion ψ χ hχ bΛ p e u).toBesselPotentialSpace
   map_add' u v := BesselPotentialSpace.ext (by simp [← Lp.toTemperedDistributionCLM_apply])
-  map_smul' r u := BesselPotentialSpace.ext (by
-    rw [RingHom.id_apply, ← Complex.coe_smul, BesselPotentialSpace.toDistr_smul]
-    simp [← Lp.toTemperedDistributionCLM_apply, ← Complex.coe_smul])
+  map_smul' r u := BesselPotentialSpace.ext (by simp [← Lp.toTemperedDistributionCLM_apply])
 
 /-- The graph of the localization is closed: both `H1Form o hkl` and `H^1` map continuously to
 the tempered distributions, and `H^1` injectively. -/

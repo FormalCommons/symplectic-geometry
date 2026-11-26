@@ -371,10 +371,7 @@ private theorem eq_zero_of_unitDiscRieszProjection_homotopy (x : X) {u : ℂ} (h
         T.fiberMap x (v - (unitDiscRieszProjection T h).fiberMap x v)) = 0) :
     v = 0 := by
   have hpp := fiberMap_fiberMap_of_comp_self (unitDiscRieszProjection_comp_self T h) x
-  have hpq (y : Fin E.rank → ℂ) :
-      (unitDiscRieszProjection T h).fiberMap x (T.fiberMap x y) =
-        T.fiberMap x ((unitDiscRieszProjection T h).fiberMap x y) := by
-    rw [← fiberMap_comp_apply, ← fiberMap_comp_apply, unitDiscRieszProjection_comp_comm]
+  have hpq := fiberMap_fiberMap_of_comp_comm (unitDiscRieszProjection_comp_comm T h).symm x
   set p := (unitDiscRieszProjection T h).fiberMap x
   set q := T.fiberMap x
   have hu0 : u ≠ 0 := by rintro rfl; simp at hu
@@ -510,9 +507,6 @@ theorem clutching_smul_add [ParacompactSpace X] [R1Space X] {r s : ℕ}
         ((range (𝟙 E - unitDiscRieszProjection T h) hs).pullback ContinuousMap.fst)) := by
   set P := unitDiscRieszProjection T h
   have hP : P ≫ P = P := unitDiscRieszProjection_comp_self T h
-  have hpq (x : X) (y : Fin E.rank → ℂ) :
-      P.fiberMap x (T.fiberMap x y) = T.fiberMap x (P.fiberMap x y) := by
-    rw [← fiberMap_comp_apply, ← fiberMap_comp_apply, unitDiscRieszProjection_comp_comm]
   -- `S = P + T (1 - P)` is an automorphism of `E`.
   have hS : IsIso (P + (𝟙 E - P) ≫ T) := by
     refine isIso_of_injective_fiberMap _ fun x ↦ (injective_iff_map_eq_zero _).2 fun v hv ↦ ?_
@@ -535,7 +529,8 @@ theorem clutching_smul_add [ParacompactSpace X] [R1Space X] {r s : ℕ}
     simp only [g₀, S, D, Iso.trans_hom, Functor.mapIso_hom, asIso_hom, fiberMap_comp,
       fiberMap_smulIdempotentAddIso_hom, fiberMap_add, fiberMap_pullbackMap, fiberMap_sub,
       fiberMap_id, ContinuousMap.fst_apply, add_apply, sub_apply, smul_apply,
-      ContinuousLinearMap.comp_apply, map_add, map_sub, fiberMap_fiberMap_of_comp_self hP, hpq,
+      ContinuousLinearMap.comp_apply, map_add, map_sub, fiberMap_fiberMap_of_comp_self hP,
+      fiberMap_fiberMap_of_comp_comm (g := P) (unitDiscRieszProjection_comp_comm T h).symm,
       id_apply_coords]
     module
   obtain ⟨i₁⟩ := E.nonempty_iso_clutching_of_homotopic (asIso (segmentHom g₀.hom g.hom))
