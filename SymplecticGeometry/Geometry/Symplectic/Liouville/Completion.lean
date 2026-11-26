@@ -449,6 +449,18 @@ theorem exists_completionEnd_or_toCompletion (z : h.Completion) :
     exact hz ⟨(0, ⟨p, hb⟩), ⟨neg_lt_zero.2 hε, trivial⟩, h.completionEnd_zero _⟩
   · exact absurd ⟨q, ⟨lt_trans (neg_lt_zero.2 hε) hq.1, trivial⟩, rfl⟩ hz
 
+/-- For `r > 0`, a point of the completion outside the image of `(-r, ∞) × ∂W` under the end map
+is the image of an interior point of `W`. -/
+theorem exists_mem_interior_toCompletion_eq {r : ℝ} (hr : 0 < r) {z : h.Completion}
+    (hz : z ∉ h.completionEnd '' (Ioi (-r) ×ˢ univ)) :
+    ∃ p ∈ (𝓡∂ (n + 1)).interior W, h.toCompletion p = z := by
+  rcases h.exists_completionEnd_or_toCompletion z with ⟨q, hq, rfl⟩ | hp
+  · have hqr : q.1 ≤ -r := le_of_not_gt fun hqr ↦ hz ⟨q, ⟨hqr, trivial⟩, rfl⟩
+    have hqI : q.1 ∈ Ioo (-h.collarWidth) 0 := ⟨hq.1, by linarith⟩
+    exact ⟨h.collarFlow q, h.collarFlow_mem_interior hqI q.2,
+      (h.completionEnd_eq_toCompletion ⟨hqI.1, hqI.2.le⟩ q.2).symm⟩
+  · exact hp
+
 private theorem isSmoothForm_glue (hW : IsSmoothForm (𝓡∂ (n + 1)) ∞ αW)
     (hE : IsSmoothForm (𝓘(ℝ).prod (𝓡 n)) ∞ αE)
     (hc : ∀ q ∈ Ioo (-h.collarWidth) 0 ×ˢ univ,
