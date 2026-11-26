@@ -139,7 +139,7 @@ theorem exists_invariant_contMDiff_eq_one_of_isCompact {K U : Set M} (hK : IsCom
       (∀ (g : G) (x : M), ρ (g • x) = ρ x) ∧ IsOpen W ∧ K ⊆ W ∧
       (∀ (g : G) (x : M), x ∈ W → g • x ∈ W) ∧ (∀ x ∈ W, ρ x = 1) ∧
       HasCompactSupport ρ ∧ tsupport ρ ⊆ U := by
-  have : ContinuousSMul G M := ⟨(contMDiff_smul (I := J) (I' := I) (n := ∞)).continuous⟩
+  have : ContinuousSMul G M := ContMDiffSMul.continuousSMul (I := J) (I' := I) ∞
   -- The saturation `G • K` is compact and lies in `U`.
   have hC : IsCompact ((univ : Set G) • K) := isCompact_univ.smul_set hK
   have hCU : (univ : Set G) • K ⊆ U := by
