@@ -100,10 +100,7 @@ theorem IsSymplecticBallFamily.exists_transitionGerm {r : ℝ}
         simp only at h ⊢
         rw [← (hκV t x (hδV hx)).2.1, ← (hκV t y (hδV hy)).2.1, h]
   obtain ⟨δ', hδδ', hκe⟩ := exists_lt_isSymplecticBallFamily_of_injOn hVo hδV hκ hinj hpull
-  obtain ⟨U, hUo, hU, hκU⟩ := hκe.exists_contMDiffOn
-  refine ⟨δ, hδ, hδε, κ, (isSymplecticBallFamily_def _ _ _).2
-    ⟨⟨U, hUo, (closedBall_subset_closedBall hδδ'.le).trans hU, hκU⟩,
-      fun t ↦ (hκe.isSymplecticBallEmbedding t).mono hδδ'.le⟩,
+  refine ⟨δ, hδ, hδε, κ, hκe.mono hδδ'.le,
     fun t ↦ (hκV t 0 (hδV hδ0)).2.2 (hfix t), fun z hz ↦ (hκV 0 z (hδV hz)).2.2 rfl,
     fun t z hz ↦ (hκV t z (hδV hz)).2.1, fun t z hz ↦ (hκV t z (hδV hz)).2.2⟩
 
