@@ -127,13 +127,14 @@ theorem weightOneForm_const (c : ℝ) :
     funext i
     fin_cases i
     rfl
-  rw [weightOneForm_apply, SetLike.val_smul, Pi.smul_apply, ContinuousAlternatingMap.smul_apply]
-  conv_rhs => rw [hv, SymplecticForm.radialPrimitive_apply]
-  -- `stdForm_apply` is stated for `stdForm ι` applied as a function, which the goal shows unfolded.
-  refine Eq.trans ?_ (congrArg (fun t ↦ (2 * c) • (2⁻¹ * t)) (stdForm_apply z (v 0))).symm
-  simp only [smul_eq_mul, Finset.mul_sum]
-  refine Finset.sum_congr rfl fun j _ ↦ ?_
-  ring
+  rw [weightOneForm_apply, SetLike.val_smul, Pi.smul_apply, ContinuousAlternatingMap.smul_apply,
+    hv, SymplecticForm.radialPrimitive_apply]
+  -- Tangent vectors at `z` are points of `StdSpace ι`, where `stdForm_apply` is stated.
+  suffices ∀ w : StdSpace ι, ∑ j, c * (z.x j * w.y j - z.y j * w.x j) =
+      (2 * c) • (2⁻¹ * stdForm ι z w) from this (v 0)
+  intro w
+  rw [stdForm_apply, smul_eq_mul, Finset.mul_sum, Finset.mul_sum]
+  exact Finset.sum_congr rfl fun j _ ↦ by ring
 
 /-- `θₖ` is the Euclidean dual of the generator `weightGenerator k`, read on `StdSpace ι` through
 `EuclideanSpace.sumEquivProd`: `θₖ(z)(v 0) = ⟪Xₖ(z), v 0⟫`. -/
