@@ -8,11 +8,11 @@ module
 public import Mathlib.LinearAlgebra.QuadraticForm.Signature
 public import SymplecticGeometry.Algebra.Homology.ShortComplex.PreservesHomology
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.Basic
+public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralChains
 public import TauCeti.AlgebraicTopology.Cohomology.CompactSupport.Duality.Manifold
 public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.RestrictScalars
 public import SymplecticGeometry.LinearAlgebra.QuadraticForm.Signature
 public import TauCeti.Algebra.Category.ModuleCat.RestrictScalars
-public import TauCeti.AlgebraicTopology.Cohomology.IntegralComparison
 public import TauCeti.AlgebraicTopology.Cohomology.UniversalCoefficient.CapDuality
 public import TauCeti.AlgebraicTopology.Singular.BettiNumber
 
@@ -42,23 +42,22 @@ abelian group.
   manifold, it sends the integral fundamental class to a rational one. For a connected
   manifold Tau Ceti also has `TauCeti.HomologicalOrientation.rationalFundamentalClass`, built
   by extension of scalars; this file does not compare the two.
-* `TopCat.singularCochainComplexRatIso`: the `ℚ`-linear cochains on rational chains, read as
-  abelian groups, are the integral cochains with values in `ℚ`. It is the composite of Tau Ceti's
-  `TauCeti.singularCochainComplexIntegralIso`, which compares cochains over a ring with integral
-  cochains by their values on simplices, with the change of chain coefficients along
-  `TauCeti.uliftIntIso`. It restricts a cochain `φ` to integral chains, `φ ↦ φ ∘ ι`
-  (`TopCat.singularCochainComplexRatIso_hom_f_apply`). Hence an isomorphism
-  `TopCat.singularCohomologyRatIso : F (Hᵖ(X; ℚ)) ≅ Hᵖ(X; ℤ, ℚ)` of cohomology computed from
-  rational chains with cohomology computed from integral chains with values in `ℚ`.
+* `TopCat.singularCochainComplexIntChainsIso ℚ`, from
+  `SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralChains`: the `ℚ`-linear cochains on
+  rational chains, read as abelian groups, are the integral cochains with values in `ℚ`. Here
+  it restricts a cochain `φ` to integral chains, `φ ↦ φ ∘ ι`
+  (`TopCat.singularCochainComplexIntChainsIso_hom_f_apply_rat`). The induced isomorphism
+  `TopCat.singularCohomologyIntChainsIso ℚ : F (Hᵖ(X; ℚ)) ≅ Hᵖ(X; ℤ, ℚ)` compares cohomology
+  computed from rational chains with cohomology computed from integral chains with values in `ℚ`.
 * `TopCat.singularHomologyRatIso : F (H_q(X; ℚ)) ≅ H_q(X; ℤ, ℚ)`: homology with rational chains,
   read as an abelian group, is homology with coefficients in the abelian group `ℚ`.
 
 The main result is that the two cap products agree under these identifications
-(`TopCat.singularCap_singularCohomologyRatIso_hom`): for `α ∈ Hᵖ(X; ℚ)` and `μ ∈ Hₙ(X; ℤ)`,
+(`TopCat.singularCap_singularCohomologyIntChainsIso_hom`): for `α ∈ Hᵖ(X; ℚ)` and `μ ∈ Hₙ(X; ℤ)`,
 capping `μ` with the integral class of `α` is the rational cap product of `α` with the image of
 `μ`. It is checked on simplices, where both sides evaluate the cochain on the front `p`-face and
-keep the back `q`-face (`TopCat.capChain_singularCochainComplexRatIso_hom_f`, using the formulas
-of `SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.Basic`).
+keep the back `q`-face (`TopCat.capChain_singularCochainComplexIntChainsIso_hom_f`, using the
+formulas of `SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.Basic`).
 
 As a consequence, for a compact oriented manifold, Tau Ceti's Poincaré duality for closed
 manifolds with values in `ℚ`
@@ -208,84 +207,16 @@ theorem ιChainComplex_singularChainComplexIntToRat_f {n : ℕ} (σ : (toSSet.ob
 
 /-! ### Cochains -/
 
-/-- The `ℚ`-linear singular cochains, read as abelian groups, are the same morphisms with the
-action of `ℤ` of the `ℤ`-linear category `ModuleCat ℚ`. -/
-def singularCochainComplexRestrictScalarsRatIso :
-    ((ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ)).mapHomologicalComplex _).obj
-        (X.singularCochainComplex (𝟙_ (ModuleCat.{0} ℚ)) ℚ (𝟙_ (ModuleCat.{0} ℚ))) ≅
-      X.singularCochainComplex (ModuleCat.of ℚ ℚ) ℤ (ModuleCat.of ℚ ℚ) :=
-  HomologicalComplex.Hom.isoOfComponents
-    (fun _ ↦ LinearEquiv.toModuleIso
-      { toFun φ := φ
-        invFun φ := φ
-        map_add' _ _ := rfl
-        map_smul' a φ := Int.cast_smul_eq_zsmul ℚ a φ
-        left_inv _ := rfl
-        right_inv _ := rfl })
-    fun _ _ _ ↦ rfl
-
-/-- The identification of restricted `ℚ`-linear cochains with `ℚ`-linear cochains under the
-action of `ℤ` is the identity on cochains. -/
-theorem singularCochainComplexRestrictScalarsRatIso_hom_f_apply (p : ℕ)
-    (φ : ((toSSet.obj X).chainComplex (𝟙_ (ModuleCat.{0} ℚ))).X p ⟶ 𝟙_ (ModuleCat.{0} ℚ)) :
-    X.singularCochainComplexRestrictScalarsRatIso.hom.f p φ = φ :=
-  (rfl)
-
-/-- The inverse identification of `ℚ`-linear cochains under the action of `ℤ` with restricted
-`ℚ`-linear cochains is the identity on cochains. -/
-theorem singularCochainComplexRestrictScalarsRatIso_inv_f_apply (p : ℕ)
-    (φ : ((toSSet.obj X).chainComplex (𝟙_ (ModuleCat.{0} ℚ))).X p ⟶ 𝟙_ (ModuleCat.{0} ℚ)) :
-    X.singularCochainComplexRestrictScalarsRatIso.inv.f p φ = φ :=
-  (rfl)
-
-/-- **Rational cochains as integral cochains**: the `ℚ`-linear cochains `Hom_ℚ(C(X; ℚ), ℚ)`,
-read as abelian groups, are the integral cochains `Hom_ℤ(C(X; ℤ), ℚ)`. A cochain goes to its
-restriction to integral chains (`TopCat.singularCochainComplexRatIso_hom_f_apply`). -/
-def singularCochainComplexRatIso :
-    ((ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ)).mapHomologicalComplex _).obj
-        (X.singularCochainComplex (𝟙_ (ModuleCat.{0} ℚ)) ℚ (𝟙_ (ModuleCat.{0} ℚ))) ≅
-      X.singularCochainComplex (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ (ModuleCat.of ℤ ℚ) :=
-  X.singularCochainComplexRestrictScalarsRatIso ≪≫
-    singularCochainComplexIntegralIso ℚ (ModuleCat.of ℚ ℚ) X ≪≫
-      (ChainComplex.linearYonedaFunctor ℤ (ModuleCat.of ℤ ℚ)).mapIso
-        (((SSet.chainComplexFunctor _).mapIso uliftIntIso).app (toSSet.obj X)).op
-
-/-- The comparison of cochains takes a cochain `φ` to the integral cochain sending `a σ` to
-`a φ(σ)`. -/
-theorem singularCochainComplexRatIso_hom_f_apply_ιChainComplex {p : ℕ}
-    (σ : (toSSet.obj X) _⦋p⦌)
-    (φ : ((toSSet.obj X).chainComplex (𝟙_ (ModuleCat.{0} ℚ))).X p ⟶ 𝟙_ (ModuleCat.{0} ℚ))
-    (a : ULift.{0} ℤ) :
-    ConcreteCategory.hom (X := ((toSSet.obj X).chainComplex (ModuleCat.of ℤ (ULift.{0} ℤ))).X p)
-        (Y := ModuleCat.of ℤ ℚ) (X.singularCochainComplexRatIso.hom.f p φ)
-        ((toSSet.obj X).ιChainComplex (R := ModuleCat.of ℤ (ULift.{0} ℤ)) σ a) =
-      (a.down : ℚ) * φ ((toSSet.obj X).ιChainComplex (R := 𝟙_ (ModuleCat.{0} ℚ)) σ 1) := by
-  -- The comparison is the identity on morphisms, then Tau Ceti's comparison, then precomposition
-  -- with the chain map induced by `ULift ℤ ≅ ℤ`, which takes `a σ` to `a.down σ`. The first step
-  -- is stated by `rfl`: rewriting with the lemmas of the three pieces fails, since `φ` is typed
-  -- as a cochain on chains with coefficients `𝟙_ (ModuleCat ℚ)` and not `ModuleCat.of ℚ ℚ`.
-  have e : X.singularCochainComplexRatIso.hom.f p φ =
-      (((SSet.chainComplexFunctor _).map uliftIntIso.hom).app (toSSet.obj X)).f p ≫
-        (singularCochainComplexIntegralIso ℚ (ModuleCat.of ℚ ℚ) X).hom.f p φ :=
-    rfl
-  have h := SSet.ιChainComplex_chainComplexFunctor_map_app_f_assoc uliftIntIso.hom σ
-    ((singularCochainComplexIntegralIso ℚ (ModuleCat.of ℚ ℚ) X).hom.f p φ)
-  rw [← e] at h
-  refine (ConcreteCategory.congr_hom h a).trans ?_
-  rw [ModuleCat.comp_apply, uliftIntIso_hom_apply]
-  exact (simplicialCochainComplexIntegralIso_hom_f_apply_ιChainComplex ℚ (ModuleCat.of ℚ ℚ)
-    (toSSet.obj X) p φ σ a.down).trans (zsmul_eq_mul _ _)
-
 /-- The comparison of cochains restricts a `ℚ`-linear cochain `φ` on rational chains to integral
 chains: it is `φ` precomposed with the chain map from integral to rational chains. -/
-theorem singularCochainComplexRatIso_hom_f_apply (p : ℕ)
+theorem singularCochainComplexIntChainsIso_hom_f_apply_rat (p : ℕ)
     (φ : ((toSSet.obj X).chainComplex (𝟙_ (ModuleCat.{0} ℚ))).X p ⟶ 𝟙_ (ModuleCat.{0} ℚ)) :
-    X.singularCochainComplexRatIso.hom.f p φ = X.singularChainComplexIntToRat.f p ≫
+    (X.singularCochainComplexIntChainsIso ℚ).hom.f p φ = X.singularChainComplexIntToRat.f p ≫
         (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ)).map φ ≫
           (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := ℚ) ℚ).hom := by
   refine SSet.chainComplex_hom_ext fun σ ↦ ?_
   ext a
-  refine (X.singularCochainComplexRatIso_hom_f_apply_ιChainComplex σ φ a).trans ?_
+  refine (X.singularCochainComplexIntChainsIso_hom_f_apply_ιChainComplex ℚ σ φ a).trans ?_
   symm
   rw [ιChainComplex_singularChainComplexIntToRat_f_assoc, ← smul_eq_mul, ← map_smul, ← map_smul,
     smul_eq_mul, mul_one]
@@ -301,17 +232,17 @@ theorem singularCochainComplexRatIso_hom_f_apply (p : ℕ)
 /-- **Capping with the restriction of a cochain.** Capping an integral chain with the restriction
 of a cochain `φ` to integral chains, along the right unitors as in the duality map, is the
 rational cap product with `φ` of the chain made rational. -/
-theorem capChain_singularCochainComplexRatIso_hom_f {p q n : ℕ} (h : p + q = n)
+theorem capChain_singularCochainComplexIntChainsIso_hom_f {p q n : ℕ} (h : p + q = n)
     (φ : ((toSSet.obj X).chainComplex (𝟙_ (ModuleCat.{0} ℚ))).X p ⟶ 𝟙_ (ModuleCat.{0} ℚ)) :
     ChainComplex.capChain ℤ (X.alexanderWhitneyDiagonal (ρ_ _).inv)
         ((toSSet.obj X).chainComplexPairing (ρ_ (ModuleCat.of ℤ ℚ)).hom) p q n h
-          (X.singularCochainComplexRatIso.hom.f p φ) =
+          ((X.singularCochainComplexIntChainsIso ℚ).hom.f p φ) =
       X.singularChainComplexIntToRat.f n ≫
         (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ)).map
           (ChainComplex.capChain ℚ (X.alexanderWhitneyDiagonal (λ_ _).inv)
             ((toSSet.obj X).chainComplexPairing (λ_ (𝟙_ (ModuleCat.{0} ℚ))).hom) p q n h φ) ≫
         X.singularChainComplexRestrictScalarsRatIso.hom.f q := by
-  rw [singularCochainComplexRatIso_hom_f_apply]
+  rw [singularCochainComplexIntChainsIso_hom_f_apply_rat]
   refine SSet.chainComplex_hom_ext fun σ ↦ ?_
   have hc := congrArg (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ)).map
     (X.ιChainComplex_capChain_leftUnitor_unit (k := ℚ) h φ σ)
@@ -322,28 +253,6 @@ theorem capChain_singularCochainComplexRatIso_hom_f {p q n : ℕ} (h : p + q = n
   simp only [Functor.map_comp, Category.assoc]
 
 /-! ### Cohomology and homology -/
-
-/-- **Rational cohomology from integral chains**: singular cohomology computed from rational
-chains, read as an abelian group, is singular cohomology computed from integral chains with
-values in `ℚ`. -/
-def singularCohomologyRatIso (p : ℕ) :
-    (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ)).obj
-        (X.singularCohomology (𝟙_ (ModuleCat.{0} ℚ)) ℚ (𝟙_ (ModuleCat.{0} ℚ)) p) ≅
-      X.singularCohomology (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ (ModuleCat.of ℤ ℚ) p :=
-  (((X.singularCochainComplex (𝟙_ (ModuleCat.{0} ℚ)) ℚ
-      (𝟙_ (ModuleCat.{0} ℚ))).sc p).mapHomologyIso
-        (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ))).symm ≪≫
-    HomologicalComplex.homologyMapIso (X.singularCochainComplexRatIso) p
-
-/-- The comparison of cohomologies is the comparison of the homology of the restricted complex
-with the restricted homology, followed by the map induced by restricting cochains. -/
-theorem singularCohomologyRatIso_hom (p : ℕ) :
-    (X.singularCohomologyRatIso p).hom =
-      (((X.singularCochainComplex (𝟙_ (ModuleCat.{0} ℚ)) ℚ
-        (𝟙_ (ModuleCat.{0} ℚ))).sc p).mapHomologyIso
-          (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ))).inv ≫
-      HomologicalComplex.homologyMap X.singularCochainComplexRatIso.hom p :=
-  (rfl)
 
 /-- **Rational homology as homology with coefficients in the abelian group `ℚ`**: singular
 homology with rational chains, read as an abelian group, is singular homology with coefficients in
@@ -386,28 +295,6 @@ theorem singularHomologyIntToRat_def (n : ℕ) :
           (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ))).hom :=
   (rfl)
 
-/-- The comparison of cohomologies on the class of a rational cocycle `φ` is the class of the
-restriction of `φ` to integral chains. -/
-@[reassoc, elementwise]
-theorem map_homologyπ_singularCohomologyRatIso_hom (p : ℕ) :
-    (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ)).map
-        ((X.singularCochainComplex (𝟙_ (ModuleCat.{0} ℚ)) ℚ (𝟙_ (ModuleCat.{0} ℚ))).homologyπ p) ≫
-      (X.singularCohomologyRatIso p).hom =
-    (((X.singularCochainComplex (𝟙_ (ModuleCat.{0} ℚ)) ℚ
-      (𝟙_ (ModuleCat.{0} ℚ))).sc p).mapCyclesIso
-        (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ))).inv ≫
-      HomologicalComplex.cyclesMap X.singularCochainComplexRatIso.hom p ≫
-        (X.singularCochainComplex (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ
-          (ModuleCat.of ℤ ℚ)).homologyπ p := by
-  rw [singularCohomologyRatIso_hom]
-  -- The class map of the image short complex is that of the restricted cochain complex only
-  -- after unfolding, so the two squares are pasted as terms.
-  exact ((ShortComplex.map_homologyπ_comp_mapHomologyIso_inv_assoc
-    ((X.singularCochainComplex (𝟙_ (ModuleCat.{0} ℚ)) ℚ (𝟙_ (ModuleCat.{0} ℚ))).sc p)
-    (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ))) _).trans
-    (congrArg (_ ≫ ·)
-      (HomologicalComplex.homologyπ_naturality X.singularCochainComplexRatIso.hom p))
-
 /-- The map from integral to rational homology on the class of an integral cycle `z` is the class
 of `z` made rational. -/
 @[reassoc]
@@ -438,7 +325,7 @@ theorem map_homologyπ_singularHomologyRatIso_hom (q : ℕ) :
       HomologicalComplex.cyclesMap X.singularChainComplexRestrictScalarsRatIso.hom q ≫
         ((toSSet.obj X).chainComplex (ModuleCat.of ℤ ℚ)).homologyπ q := by
   rw [singularHomologyRatIso_hom]
-  -- as in `map_homologyπ_singularCohomologyRatIso_hom`
+  -- as in `TopCat.map_homologyπ_singularCohomologyIntChainsIso_hom`
   exact ((ShortComplex.map_homologyπ_comp_mapHomologyIso_inv_assoc
     (((toSSet.obj X).chainComplex (𝟙_ (ModuleCat.{0} ℚ))).sc q)
     (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ))) _).trans (congrArg (_ ≫ ·)
@@ -446,35 +333,15 @@ theorem map_homologyπ_singularHomologyRatIso_hom (q : ℕ) :
 
 /-! ### The cap product -/
 
-/-- On cocycles, restricting a rational cocycle to integral chains is restricting the underlying
-cochain. -/
-@[reassoc, elementwise nosimp]
-theorem mapCyclesIso_inv_cyclesMap_singularCochainComplexRatIso_hom_iCycles (p : ℕ) :
-    (((X.singularCochainComplex (𝟙_ (ModuleCat.{0} ℚ)) ℚ (𝟙_ (ModuleCat.{0} ℚ))).sc
-        p).mapCyclesIso (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ))).inv ≫
-      HomologicalComplex.cyclesMap X.singularCochainComplexRatIso.hom p ≫
-        (X.singularCochainComplex (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ
-          (ModuleCat.of ℤ ℚ)).iCycles p =
-      (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ)).map
-          ((X.singularCochainComplex (𝟙_ (ModuleCat.{0} ℚ)) ℚ
-            (𝟙_ (ModuleCat.{0} ℚ))).iCycles p) ≫
-        X.singularCochainComplexRatIso.hom.f p := by
-  rw [HomologicalComplex.cyclesMap_i]
-  -- The cycles of the restricted complex are those of the image short complex only after
-  -- unfolding, so the square is pasted as a term.
-  exact (reassoc_of% (((X.singularCochainComplex (𝟙_ (ModuleCat.{0} ℚ)) ℚ
-    (𝟙_ (ModuleCat.{0} ℚ))).sc p).mapCyclesIso_inv_comp_iCycles
-      (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ)))) _
-
 /-- **Capping with the restriction of a cocycle**, on cycles: capping integral cycles with the
 restriction of a rational cocycle `φ` is making them rational, capping with `φ`, and reading the
 result with coefficients in the abelian group `ℚ`. -/
 @[elementwise nosimp]
-theorem capCycles_cyclesMap_singularCochainComplexRatIso_hom {p q n : ℕ} (h : p + q = n)
+theorem capCycles_cyclesMap_singularCochainComplexIntChainsIso_hom {p q n : ℕ} (h : p + q = n)
     (φ : (X.singularCochainComplex (𝟙_ (ModuleCat.{0} ℚ)) ℚ (𝟙_ (ModuleCat.{0} ℚ))).cycles p) :
     ChainComplex.capCycles ℤ (X.alexanderWhitneyDiagonal (ρ_ _).inv)
         ((toSSet.obj X).chainComplexPairing (ρ_ (ModuleCat.of ℤ ℚ)).hom) p q n h
-        (HomologicalComplex.cyclesMap X.singularCochainComplexRatIso.hom p
+        (HomologicalComplex.cyclesMap (X.singularCochainComplexIntChainsIso ℚ).hom p
           ((((X.singularCochainComplex (𝟙_ (ModuleCat.{0} ℚ)) ℚ (𝟙_ (ModuleCat.{0} ℚ))).sc
             p).mapCyclesIso (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ))).inv φ)) =
       HomologicalComplex.cyclesMap X.singularChainComplexIntToRat n ≫
@@ -492,11 +359,13 @@ theorem capCycles_cyclesMap_singularCochainComplexRatIso_hom {p q n : ℕ} (h : 
     q).mapCyclesIso_inv_comp_iCycles (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ))
   have e₂ := (((toSSet.obj X).chainComplex (𝟙_ (ModuleCat.{0} ℚ))).sc
     n).mapCyclesIso_hom_iCycles (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ))
-  rw [X.mapCyclesIso_inv_cyclesMap_singularCochainComplexRatIso_hom_iCycles_apply p φ]
+  -- The general lemma is stated with `ModuleCat.of ℚ ℚ`, which is `𝟙_ (ModuleCat ℚ)` only after
+  -- unfolding the monoidal structure, so `rw` does not find it.
+  erw [X.mapCyclesIso_inv_cyclesMap_singularCochainComplexIntChainsIso_hom_iCycles_apply ℚ p φ]
   -- In the remaining steps, the cochains and cycles of a restricted complex appear both as
   -- those of the complex and as those of the image short complex, which agree only after
   -- unfolding `ModuleCat.restrictScalars`; `erw` sees through this.
-  erw [capChain_singularCochainComplexRatIso_hom_f]
+  erw [capChain_singularCochainComplexIntChainsIso_hom_f]
   simp only [Category.assoc, HomologicalComplex.cyclesMap_i]
   erw [reassoc_of% e₁]
   rw [← Functor.map_comp_assoc]
@@ -510,12 +379,12 @@ theorem capCycles_cyclesMap_singularCochainComplexRatIso_hom {p q n : ℕ} (h : 
 `ℚ`, along the right unitors as in the duality map, is the rational cap product `ρ(μ) ⌢ α` of
 `α` with the image `ρ(μ)` of `μ` in `Hₙ(X; ℚ)`, read in homology with coefficients in the abelian
 group `ℚ`. -/
-theorem singularCap_singularCohomologyRatIso_hom {p q n : ℕ} (h : p + q = n)
+theorem singularCap_singularCohomologyIntChainsIso_hom {p q n : ℕ} (h : p + q = n)
     (α : X.singularCohomology (𝟙_ (ModuleCat.{0} ℚ)) ℚ (𝟙_ (ModuleCat.{0} ℚ)) p)
     (μ : ((singularHomologyFunctor (ModuleCat.{0} ℤ) n).obj
       (ModuleCat.of ℤ (ULift.{0} ℤ))).obj X) :
     (X.singularCap ℤ (ρ_ _).inv (ρ_ (ModuleCat.of ℤ ℚ)).hom p q n h
-        ((X.singularCohomologyRatIso p).hom α)).hom μ =
+        ((X.singularCohomologyIntChainsIso ℚ p).hom α)).hom μ =
       (X.singularHomologyRatIso q).hom
         (X.singularCapLinearMap ℚ h (X.singularHomologyIntToRat n μ) α) := by
   obtain ⟨φ, rfl⟩ := (X.singularCochainComplex (𝟙_ (ModuleCat.{0} ℚ)) ℚ
@@ -548,7 +417,8 @@ theorem singularCap_singularCohomologyRatIso_hom {p q n : ℕ} (h : p + q = n)
           (((((toSSet.obj X).chainComplex (𝟙_ (ModuleCat.{0} ℚ))).sc q).mapCyclesIso
             (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ))).inv w)) :=
     ConcreteCategory.congr_hom (X.map_homologyπ_singularHomologyRatIso_hom q) w
-  rw [X.map_homologyπ_singularCohomologyRatIso_hom_apply p φ]
+  -- as for `mapCyclesIso_inv_cyclesMap_singularCochainComplexIntChainsIso_hom_iCycles_apply`
+  erw [X.map_homologyπ_singularCohomologyIntChainsIso_hom_apply ℚ p φ]
   -- Elements of a restricted module and of the module itself have the same type only after
   -- unfolding, which `rw` does not do, so the two sides are compared through `Eq.trans`.
   refine (ConcreteCategory.congr_hom (X.singularCap_homologyπ ℤ (ρ_ _).inv
@@ -558,7 +428,7 @@ theorem singularCap_singularCohomologyRatIso_hom {p q n : ℕ} (h : p + q = n)
           (𝟙_ (ModuleCat.{0} ℚ))).homologyπ p φ))) hρ).trans
         ((congrArg (X.singularHomologyRatIso q).hom (hcap _)).trans (hr _))).symm)
   exact congrArg (((toSSet.obj X).chainComplex (ModuleCat.of ℤ ℚ)).homologyπ q)
-    (X.capCycles_cyclesMap_singularCochainComplexRatIso_hom_apply h φ z)
+    (X.capCycles_cyclesMap_singularCochainComplexIntChainsIso_hom_apply h φ z)
 
 end TopCat
 
@@ -579,16 +449,16 @@ theorem bijective_singularCapLinearMap_fundamentalClass [CompactSpace M] {p q : 
       ((TopCat.of M).singularHomologyIntToRat n (o.fundamentalClass hn))) := by
   refine (Function.Bijective.of_comp_iff'
     (ConcreteCategory.bijective_of_isIso ((TopCat.of M).singularHomologyRatIso q).hom) _).1 ?_
-  -- Through `singularHomologyRatIso` and `singularCohomologyRatIso`, the rational cap product is
-  -- the integral one with values in `ℚ`, which Tau Ceti shows to be bijective.
+  -- Through `singularHomologyRatIso` and `singularCohomologyIntChainsIso ℚ`, the rational cap
+  -- product is the integral one with values in `ℚ`, which Tau Ceti shows to be bijective.
   have e : ⇑(ConcreteCategory.hom ((TopCat.of M).singularHomologyRatIso q).hom) ∘
       ⇑((TopCat.of M).singularCapLinearMap ℚ h
         ((TopCat.of M).singularHomologyIntToRat n (o.fundamentalClass hn))) =
       (fun β ↦ ((TopCat.of M).singularCap ℤ (ρ_ _).inv (ρ_ (ModuleCat.of ℤ ℚ)).hom p q n h
         β).hom (o.fundamentalClass hn)) ∘
-        ⇑(ConcreteCategory.hom ((TopCat.of M).singularCohomologyRatIso p).hom) :=
+        ⇑(ConcreteCategory.hom ((TopCat.of M).singularCohomologyIntChainsIso ℚ p).hom) :=
     funext fun α ↦
-      (TopCat.singularCap_singularCohomologyRatIso_hom _ h α (o.fundamentalClass hn)).symm
+      (TopCat.singularCap_singularCohomologyIntChainsIso_hom _ h α (o.fundamentalClass hn)).symm
   rw [e]
   exact (o.bijective_singularCap_fundamentalClass hn (ModuleCat.of ℤ ℚ) p q h).comp
     (ConcreteCategory.bijective_of_isIso _)

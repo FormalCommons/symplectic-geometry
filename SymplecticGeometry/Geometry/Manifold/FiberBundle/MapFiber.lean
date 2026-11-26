@@ -13,6 +13,7 @@ public import TauCeti.Geometry.Manifold.MFDeriv.Basic
 public import TauCeti.Geometry.Manifold.RegularValue
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Manifold.Submersion.Split
+import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 
 /-!
 # Smooth atlases of a map, read pointwise
@@ -108,9 +109,10 @@ of `proj` is the first coordinate of the derivative of `e`. -/
 theorem mfderiv_proj_apply {x : M} (hx : x ∈ e.source) (he : MDifferentiableAt IM (IB.prod IF) e x)
     (u : TangentSpace IM x) : mfderiv IM IB proj x u = (mfderiv IM (IB.prod IF) e x u).1 := by
   rw [(e.coe_fst_eventuallyEq_proj hx).symm.mfderiv_eq,
-    mfderiv_comp (f := (e : M → B × F)) x mdifferentiableAt_fst he, mfderiv_fst]
-  -- `EventuallyEq.mfderiv_eq` inserts `tangentSpaceCast`, the identity by definition, which Mathlib
-  -- gives no lemma for applying.
+    mfderiv_comp (f := (e : M → B × F)) x mdifferentiableAt_fst he, mfderiv_fst,
+    ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe, tangentSpaceCast_apply]
+  -- `ContinuousLinearMap.fst` acts on the tangent spaces of `B` and `F`, which make up the tangent
+  -- space of `B × F` only by definition, so `ContinuousLinearMap.comp_apply` does not match.
   rfl
 
 /-- The derivative at `v` of the fibre inclusion over `b` sends `w` to the derivative of the

@@ -132,14 +132,12 @@ theorem frequently_mem_fixedPoints_of_mfderiv_smul_eq_self [BoundarylessManifold
   have hx' : Φ x ∈ fixedPoints G (BoundarylessModel I M) := fun g ↦ by
     rw [← BoundarylessModel.interiorDiffeomorph_smul, hx g]
   have hv' : mfderiv I 𝓘(ℝ, E) Φ x v ≠ 0 := fun h ↦
-    hv ((Φ.mfderivToContinuousLinearEquiv hn0 x).map_eq_zero_iff.1
-      (by rwa [← ContinuousLinearEquiv.coe_coe, Diffeomorph.mfderivToContinuousLinearEquiv_coe]))
+    hv ((map_eq_zero_iff _ (Φ.isInvertible_mfderiv hn0).injective).1 h)
   have hfix' (g : G) : mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) (fun y : BoundarylessModel I M ↦ g • y) (Φ x)
       (mfderiv I 𝓘(ℝ, E) Φ x v) = mfderiv I 𝓘(ℝ, E) Φ x v := by
     -- Differentiate `(g • ·) ∘ Φ = Φ ∘ (g • ·)` at the fixed point `x`.
     have h := congrArg (fun f ↦ mfderiv I 𝓘(ℝ, E) f x v)
-      (funext fun y ↦ (BoundarylessModel.interiorDiffeomorph_smul I n g y).symm :
-        (fun y : BoundarylessModel I M ↦ g • y) ∘ Φ = Φ ∘ fun y : M ↦ g • y)
+      (BoundarylessModel.interiorDiffeomorph_comp_smul I n g).symm
     rw [mfderiv_comp x ((ContMDiffSMul.contMDiff_const_smul (I := IG) (n := n) g).mdifferentiableAt
         hn0) (hΦd x), mfderiv_comp x (hΦd _)
         ((ContMDiffSMul.contMDiff_const_smul (I := IG) (n := n) g).mdifferentiableAt hn0)] at h
