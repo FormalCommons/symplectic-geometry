@@ -78,7 +78,9 @@ pinned versions, as for `DESIGN.md`. Tau Ceti paths are relative to
   $H^2(X;\mathbb Q)$ (`AlgebraicTopology/Cohomology/Cap/Kronecker.lean`),
   with `μ` the rational fundamental class, Tau Ceti's
   `oₕ.fundamentalClassOver _ ℚ`
-  (`AlgebraicTopology/Cohomology/Cap/RationalCoefficients.lean`). The numbers
+  (`AlgebraicTopology/Singular/LocalHomology/FundamentalClass.lean`); the
+  library defines `intersectionForm` in
+  `AlgebraicTopology/Cohomology/Cap/RationalCoefficients.lean`. The numbers
   $b^\pm$ are the indices of inertia `sigPos` and `sigNeg` of its quadratic
   form `TauCeti.HomologicalOrientation.intersectionQuadraticForm` (Mathlib's
   `LinearAlgebra/QuadraticForm/Signature.lean`, at the pin in the root

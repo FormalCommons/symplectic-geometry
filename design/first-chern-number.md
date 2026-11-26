@@ -818,10 +818,6 @@ issues, in an order where each issue's blockers come before it.
    given injectivity of the cap product with the fundamental class in degree
    one, for the fundamental class over `ℚ`: Tau Ceti's
    `TauCeti.HomologicalOrientation.bijective_singularCapLinearMap_fundamentalClassOver`.
-   Its chain map from integral to rational chains is the change of
-   coefficients `SSet.restrictScalarsChainMap` of
-   `AlgebraicTopology/SimplicialSet/Homology/RestrictScalars.lean`
-   (`design/pseudoholomorphic-energy.md`), which it imports.
    That injectivity is the degree-one case of Poincaré duality, which
    Tau Ceti prepares in `AlgebraicTopology/Cohomology/CompactSupport/`
    (`HomologicalOrientation.dualityMap` and its criterion
