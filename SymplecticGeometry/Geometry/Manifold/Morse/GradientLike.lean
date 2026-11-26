@@ -23,6 +23,7 @@ import TauCeti.Topology.VectorBundle.Riemannian.Basic
 import SymplecticGeometry.Algebra.Order.Field.Basic
 import SymplecticGeometry.Analysis.Convex.Mul
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Existence
+import SymplecticGeometry.Geometry.Manifold.VectorField.Pullback
 
 /-!
 # Gradient-like vector fields
@@ -251,8 +252,7 @@ theorem mpullback {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [Fin
   have hiso := g.isLocalRiemannianIsometry_pullback_of_isInvertible hΦ₁ hΦ'
   by_cases hf : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ) f (Φ x)
   · rw [ContMDiffRiemannianMetric.pullback_inner, hiso.mfderiv_apply_mpullback,
-      hiso.norm_mgradient_comp hf, mvfderiv_comp_apply x hf (hiso.mdifferentiableAt x),
-      hiso.mfderiv_apply_mpullback]
+      hiso.norm_mgradient_comp hf, VectorField.mvfderiv_comp_apply_mpullback hf (hΦ' x)]
     exact h (Φ x)
   · -- Where `f` is not differentiable, `X` vanishes, and so does the pulled-back field; and
     -- `df` vanishes along `Φ` too, by the chain rule for the local diffeomorphism `Φ`.
