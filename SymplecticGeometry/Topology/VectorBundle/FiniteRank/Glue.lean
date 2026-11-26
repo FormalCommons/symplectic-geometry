@@ -60,15 +60,18 @@ cocycle condition from `g.hom ≫ g.inv = 𝟙` and `g.inv ≫ g.hom = 𝟙` (`g
 * `TauCeti.FiniteRankBundleCore.glue_eqToIso_trans_trans_eqToIso`: a gluing by an automorphism
   `k` of a core `P`, read through an equality between `P` and the restriction of the glued core,
   depends only on `k` and on the glued core, not on that equality.
-* `TauCeti.FiniteRankBundleCore.coordChange_glue_whitneyMapIso` and
-  `TauCeti.FiniteRankBundleCore.coordChange_glue_tensorIso`: the gluing of `A ⊕ D` by the direct
-  sum of two automorphisms has the transitions of the Whitney sum of the two gluings, and the
-  gluing of `A ⊗ D` by their tensor product those of the tensor product of the two gluings, since
-  the gluing cocycle of a direct sum or tensor product of automorphisms is the block-diagonal or
-  Kronecker product of their cocycles (`glueCocycle_whitneyMapIso`, `glueCocycle_tensorIso`).
+* `TauCeti.FiniteRankBundleCore.coordChange_glue_whitneyMapIsoPullback` and
+  `TauCeti.FiniteRankBundleCore.coordChange_glue_tensorIsoPullback`: the gluing of `A ⊕ D` by
+  the direct sum of two automorphisms has the transitions of the Whitney sum of the two gluings,
+  and the gluing of `A ⊗ D` by their tensor product those of the tensor product of the two
+  gluings, since the gluing cocycle of a direct sum or tensor product of automorphisms is the
+  block-diagonal or Kronecker product of their cocycles (`glueCocycle_whitneyMapIsoPullback`,
+  `glueCocycle_tensorIsoPullback`).
   The direct sum and the tensor product of the automorphisms act on the Whitney sum and the
   tensor product of the restrictions of `A` and `D`, so they are read through Tau Ceti's
-  `pullback_whitneySum` and `pullback_tensorObj` by `eqToIso`.
+  `pullback_whitneySum` and `pullback_tensorObj` by `eqToIso`: they are
+  `TauCeti.FiniteRankBundleCore.whitneyMapIsoPullback` and
+  `TauCeti.FiniteRankBundleCore.tensorIsoPullback`.
 * `TauCeti.FiniteRankBundleCore.nonempty_iso_glue_of_homotopic`: over a paracompact R₁
   base, gluings by two automorphisms joined by an automorphism of the pullback of `A` to the
   part `(U ∩ V) × I` of `B × I` are isomorphic. The gluing over `B × I` by that automorphism
@@ -882,7 +885,7 @@ variable {A D : FiniteRankBundleCore 𝕜 B} {U V : Set B} (hU : IsOpen U) (hV :
 /-- The gluing cocycle of the direct sum of two automorphisms, as an automorphism of the
 restriction of `A ⊕ D` through `pullback_whitneySum`, is block diagonal, with the gluing cocycles
 of the two automorphisms as blocks. -/
-theorem glueCocycle_whitneyMapIso (s t : Bool) (b : B) :
+theorem glueCocycle_whitneyMapIsoPullback (s t : Bool) (b : B) :
     glueCocycle (A := whitneySum A D) (whitneyMapIsoPullback g₁ g₂) s t b =
       (splitCoords (𝕜 := 𝕜) A.rank D.rank).symm.toContinuousLinearMap.comp
         (((glueCocycle g₁ s t b).prodMap (glueCocycle g₂ s t b)).comp
@@ -898,7 +901,7 @@ theorem glueCocycle_whitneyMapIso (s t : Bool) (b : B) :
 /-- The gluing cocycle of the tensor product of two automorphisms, as an automorphism of the
 restriction of `A ⊗ D` through `pullback_tensorObj`, is the Kronecker product of their gluing
 cocycles. -/
-theorem glueCocycle_tensorIso (s t : Bool) (b : B) :
+theorem glueCocycle_tensorIsoPullback (s t : Bool) (b : B) :
     glueCocycle (A := A ⊗ D) (tensorIsoPullback g₁ g₂) s t b =
       (glueCocycle g₁ s t b).kronecker (glueCocycle g₂ s t b) := by
   cases s <;> cases t <;> simp only [glueCocycle, fiberMap_tensorIsoPullback_hom,
@@ -908,18 +911,18 @@ theorem glueCocycle_tensorIso (s t : Bool) (b : B) :
 
 /-- The transitions of the gluing of `A ⊕ D` by the direct sum of `g₁` and `g₂` are those of the
 Whitney sum of the gluing of `A` by `g₁` and that of `D` by `g₂`. -/
-theorem coordChange_glue_whitneyMapIso (i j b : B) :
+theorem coordChange_glue_whitneyMapIsoPullback (i j b : B) :
     ((whitneySum A D).glue hU hV hUV (whitneyMapIsoPullback g₁ g₂)).core.coordChange i j b =
       (whitneySum (A.glue hU hV hUV g₁) (D.glue hU hV hUV g₂)).core.coordChange i j b := by
-  rw [coordChange_glue, glueCocycle_whitneyMapIso]
+  rw [coordChange_glue, glueCocycle_whitneyMapIsoPullback]
   exact inChartCoordinates_whitneySum_prodMap A A D D _ _ i j b
 
 /-- The transitions of the gluing of `A ⊗ D` by the tensor product of `g₁` and `g₂` are those of
 the tensor product of the gluing of `A` by `g₁` and that of `D` by `g₂`. -/
-theorem coordChange_glue_tensorIso (i j b : B) :
+theorem coordChange_glue_tensorIsoPullback (i j b : B) :
     ((A ⊗ D).glue hU hV hUV (tensorIsoPullback g₁ g₂)).core.coordChange i j b =
       (A.glue hU hV hUV g₁ ⊗ D.glue hU hV hUV g₂).core.coordChange i j b := by
-  rw [coordChange_glue, glueCocycle_tensorIso]
+  rw [coordChange_glue, glueCocycle_tensorIsoPullback]
   -- The monoidal product `A ⊗ D` is Tau Ceti's `tensor A D` by the definition of its
   -- `MonoidalCategoryStruct` instance. Tau Ceti states neither that equality nor
   -- `inChartCoordinates_tensor_kronecker` for `⊗`, so this step unfolds the instance.
