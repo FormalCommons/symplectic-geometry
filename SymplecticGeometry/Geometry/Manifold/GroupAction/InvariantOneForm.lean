@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.Riemannian.Invariant
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.BoundarylessModel
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.Circle
 public import SymplecticGeometry.Geometry.Manifold.Riemannian.OneForm.Flat
+import SymplecticGeometry.Geometry.Manifold.ModelTransport.Boundaryless
 
 /-!
 # An invariant one-form dual to a fundamental vector field
@@ -34,7 +35,8 @@ whose model may have boundary, the form is built as above on the copy
 (`SymplecticGeometry/Geometry/Manifold/GroupAction/BoundarylessModel.lean`), and pulled back
 along the identity diffeomorphism `TauCeti.BoundarylessModel.interiorDiffeomorph`. Since that map
 is equivariant, its differential carries the fundamental vector field of `ξ` on `M` to the one on
-the copy (`TauCeti.mfderiv_fundamentalVectorField_of_map_smul`), and is injective.
+the copy (`TauCeti.BoundarylessModel.mfderiv_interiorDiffeomorph_fundamentalVectorField`), and is
+injective.
 
 For a smooth circle action and the period-one generator, the zeros of `X` are the fixed points
 (`SymplecticGeometry.mem_fixedPoints_circle_iff_fundamentalVectorField_eq_zero`), so `β(X)`
@@ -112,24 +114,16 @@ theorem exists_invariant_smoothForm_apply_fundamentalVectorField_nonneg
         (ContMDiffSMul.contMDiff_const_smul (I := J) (I' := I) g) β = β) ∧
       ∀ x : M, 0 ≤ β.val x ![fundamentalVectorField I ξ x] ∧
         (β.val x ![fundamentalVectorField I ξ x] = 0 ↔ fundamentalVectorField I ξ x = 0) := by
-  have : SigmaCompactSpace (BoundarylessModel I M) := inferInstanceAs (SigmaCompactSpace M)
   obtain ⟨β, hinv, hβ⟩ :=
     exists_invariant_smoothForm_apply_fundamentalVectorField_nonneg_of_boundaryless
       (I := 𝓘(ℝ, E)) (M := BoundarylessModel I M) ξ
   let Φ := BoundarylessModel.interiorDiffeomorph I (M := M) ∞
-  have hΦd (x : M) : MDifferentiableAt I 𝓘(ℝ, E) Φ x := Φ.mdifferentiable (by simp) x
-  -- The differential of `Φ` carries the fundamental vector field on `M` to the one on the copy.
-  have hX (x : M) : mfderiv I 𝓘(ℝ, E) Φ x (fundamentalVectorField I ξ x) =
-      fundamentalVectorField 𝓘(ℝ, E) ξ (Φ x) :=
-    mfderiv_fundamentalVectorField_of_map_smul (hΦd x)
-      ((ContMDiffSMul.contMDiff_smul_const (I := J) (I' := I) (n := ∞) x).mdifferentiableAt
-        (by simp))
-      (fun g ↦ BoundarylessModel.interiorDiffeomorph_smul I ∞ g x) ξ
+  have hX := BoundarylessModel.mfderiv_interiorDiffeomorph_fundamentalVectorField I (M := M) ∞ ξ
   refine ⟨SmoothForm.mpullback Φ Φ.contMDiff β, fun g ↦ ?_, fun x ↦ ?_⟩
   · have hg := ContMDiffSMul.contMDiff_const_smul (I := J) (I' := 𝓘(ℝ, E)) (n := ∞)
       (M := BoundarylessModel I M) g
     rw [SmoothForm.mpullback_mpullback_of_comp_eq _ _ Φ.contMDiff hg
-      (funext fun y ↦ BoundarylessModel.interiorDiffeomorph_smul I ∞ g y), hinv g]
+      (BoundarylessModel.interiorDiffeomorph_comp_smul I ∞ g), hinv g]
   · rw [SmoothForm.mpullback_apply_one, hX]
     refine ⟨(hβ (Φ x)).1, (hβ (Φ x)).2.trans ?_⟩
     rw [← hX]
