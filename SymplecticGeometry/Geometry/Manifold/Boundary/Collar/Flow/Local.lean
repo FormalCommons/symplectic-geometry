@@ -16,7 +16,6 @@ public import TauCeti.Geometry.Manifold.VectorField.Regularity
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Boundary
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Uncurry
 import SymplecticGeometry.Geometry.Manifold.Boundary.Charts
-import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Chart
 
 /-!
