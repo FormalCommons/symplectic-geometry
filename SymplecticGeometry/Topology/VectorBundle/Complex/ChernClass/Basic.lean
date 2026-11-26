@@ -49,6 +49,8 @@ definition, in the normalization of Bott–Tu, §20: for a line bundle `c₁` is
   `chernClass_one_eq_complexEulerClass`: `c₀(E) = 1`, `c_k(E) = 0` for `k > n`, and `c₁` of a
   line bundle over a compact base is its Euler class `TauCeti.complexEulerClass`, read in
   integral cohomology through `TopCat.uliftIntegralCohomologyIso`.
+* `Projectivization.chernClass_one_tautological`: on a finite-dimensional complex projective
+  space, `c₁(𝒪(-1)) = -h`, with `h` the hyperplane class.
 
 ## Implementation notes
 
@@ -526,5 +528,17 @@ theorem chernClass_one_eq_complexEulerClass (hG : finrank ℂ G = 1) :
   exact TopCat.uliftIntegralCohomologyIso_naturality_apply _ 2 _
 
 end SymplecticGeometry.Bundle
+
+namespace Projectivization
+
+/-- The first Chern class of the tautological line `𝒪(-1)` of a finite-dimensional complex
+projective space `ℙ ℂ V` is minus the hyperplane class: `c₁(𝒪(-1)) = -h`. -/
+theorem chernClass_one_tautological (V : Type) [NormedAddCommGroup V] [NormedSpace ℂ V]
+    [FiniteDimensional ℂ V] :
+    SymplecticGeometry.Bundle.chernClass ℂ (Tautological ℂ V) 1 = -hyperplaneClass V := by
+  rw [SymplecticGeometry.Bundle.chernClass_one_eq_complexEulerClass _ _ (Module.finrank_self ℂ),
+    hyperplaneClass_def, neg_neg]
+
+end Projectivization
 
 end

@@ -30,6 +30,13 @@ gives the continuous alternating map `f.appendLeft u : w ↦ f (Fin.append u w)`
 Its algebraic part is Tau Ceti's `AlternatingMap.currySum`, reindexed from `Fin r ⊕ Fin m` to
 `Fin (r + m)` by `finSumFinEquiv`; only its continuity is proved here. As a function of `u` it is
 again alternating (`ContinuousAlternatingMap.appendLeftAlternatingMap`).
+
+Adding to the first `r` arguments of a continuous alternating map of degree `r + m` vectors of a
+submodule `V` of rank at most `m` does not change its value once its last `m` arguments lie in
+`V` (`ContinuousAlternatingMap.map_append_add_of_mem`). It follows from
+`AlternatingMap.map_append_add_of_mem`, whose proof rests on
+`AlternatingMap.map_eq_zero_of_finrank_lt`: an alternating map vanishes on a family with more
+members in `V` than the rank of `V`.
 -/
 
 public section
@@ -57,6 +64,16 @@ theorem map_eq_zero_of_eq_smul {ι : Type*} (f : M [⋀^ι]→L[R] N) {v : ι �
     (hij : i ≠ j) {x : M} {a b : R} (hi : v i = a • x) (hj : v j = b • x) : f v = 0 :=
   f.toAlternatingMap.map_eq_zero_of_eq_smul hij hi hj
 
+/-- Let `V` be a submodule of `W` of rank at most `m`. A continuous alternating map `f` of
+`r + m` vectors takes the same value on `Fin.append (v + u) w` and on `Fin.append v w` when every
+`u i` and every `w j` lies in `V`. -/
+theorem map_append_add_of_mem {K W N : Type*} [Ring K] [IsDomain K] [StrongRankCondition K]
+    [AddCommGroup W] [Module K W] [TopologicalSpace W] [AddCommGroup N] [Module K N]
+    [Module.IsTorsionFree K N] [TopologicalSpace N] {r m : ℕ} (f : W [⋀^Fin (r + m)]→L[K] N)
+    {V : Submodule K W} [Module.Finite K V] (hV : Module.finrank K V ≤ m) (v : Fin r → W)
+    {u : Fin r → W} (hu : ∀ i, u i ∈ V) {w : Fin m → W} (hw : ∀ j, w j ∈ V) :
+    f (Fin.append (v + u) w) = f (Fin.append v w) :=
+  f.toAlternatingMap.map_append_add_of_mem hV v hu hw
 
 section AppendLeft
 

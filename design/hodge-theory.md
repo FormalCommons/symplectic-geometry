@@ -112,13 +112,14 @@ parametrix glued from charts.
   order on a manifold, neither of which Tau Ceti has. The route here needs
   neither: the Euclidean statements it needs exist, and the abstract
   Fredholm theory exists.
-- **The Hilbert spaces.** `L2Form I M k` is the closure of the smooth
-  `k`-forms in Tau Ceti's `TauCeti.L2Form I M k`, the square-integrable
-  `k`-forms for the Borel structure of the compact `M`, through
-  `compactlySupportedForms.toL2Form`; its inner product is
+- **The Hilbert spaces.** `L2Form I M k` is Tau Ceti's
+  `TauCeti.L2Form I M k`, the square-integrable `k`-forms for the Borel
+  structure of the compact `M`; smooth forms enter it through
+  `compactlySupportedForms.toL2Form`, densely by Tau Ceti's
+  `compactlySupportedForms.denseRange_toL2Form`; its inner product is
   $\int_M\langle\alpha,\beta\rangle\,\mathrm{vol}$ on smooth forms, by
   Tau Ceti's
-  `integralTopForm_inner_smul_riemannianVolumeForm_eq_inner_toL2Form`.
+  `compactlySupportedForms.inner_toL2Form`.
   `H1Form o hkl` is the completion for
   $\langle\alpha,\beta\rangle+\langle\Delta\alpha,\beta\rangle$, which is an
   inner product by Tau Ceti's Green's formulas: Tau Ceti's
@@ -454,8 +455,8 @@ Named like Tau Ceti's file; used by `L2.lean`.
   in Tau Ceti's `Codifferential.lean`, with `l2Inner_def`, symmetry,
   additivity and `l2Inner_self_eq_zero_iff`, the last two read off the
   inner product of `L2Form I M k` through `inner_ofSmooth`.
-- `L2Form I M k`, the closed subspace of `TauCeti.L2Form I M k` described
-  above, with
+- `L2Form I M k`, Tau Ceti's `TauCeti.L2Form I M k` as described above,
+  with
   `L2Form.ofSmooth : SmoothForm I M ℝ k →ₗ[ℝ] L2Form I M k`,
   `inner_ofSmooth`, `ofSmooth_injective` and `denseRange_ofSmooth`.
 - `L2Form.localize ψ χ hχ : L2Form I M k →L[ℝ] Lp Λ 2 volume`, with
