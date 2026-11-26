@@ -6,8 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Analysis.Complex.MvPolynomial.LogAverage
+import Mathlib.Analysis.Convex.Mul
 import Mathlib.LinearAlgebra.Complex.FiniteDimensional
-import SymplecticGeometry.Algebra.Order.Ring.Pow
 import SymplecticGeometry.Topology.Algebra.MvPolynomial
 import TauCeti.MeasureTheory.Measure.Haar.Average
 
@@ -102,8 +102,13 @@ private theorem ratio_pow_bounds (m : ℕ) {a ρ : ℝ} (ha : 0 < a) (h : 2 * a 
     rw [show (ρ - a) / ρ = 1 + -(a / ρ) by field_simp; ring]
     push_cast at h
     linarith
-  · have h := SymplecticGeometry.one_add_pow_le_one_add_two_pow_sub_one_mul (t := a / ρ / 4)
-      (by positivity) (by linarith) (2 * m)
+  · -- `x ↦ x ^ (2 * m)` is convex, so on `[1, 2]` its graph lies below the chord
+    have h : (1 + a / ρ / 4) ^ (2 * m) ≤ 1 + (2 ^ (2 * m) - 1) * (a / ρ / 4) := by
+      have := (convexOn_pow (2 * m)).2 (Set.mem_Ici.2 zero_le_one) (Set.mem_Ici.2 zero_le_two)
+        (sub_nonneg.2 (by linarith : a / ρ / 4 ≤ 1)) (by positivity : (0 : ℝ) ≤ a / ρ / 4)
+        (sub_add_cancel 1 (a / ρ / 4))
+      simp only [smul_eq_mul, one_pow, mul_one] at this
+      linear_combination this
     rw [show (2 : ℝ) ^ (2 * m) = 4 ^ m by rw [pow_mul]; norm_num] at h
     rw [show (4 * ρ + a) / (4 * ρ) = 1 + a / ρ / 4 by field_simp]
     nlinarith [mul_nonneg (by positivity : (0 : ℝ) ≤ 4 ^ m) he0.le]
