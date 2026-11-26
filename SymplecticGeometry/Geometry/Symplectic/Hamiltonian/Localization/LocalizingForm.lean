@@ -545,8 +545,7 @@ theorem exists_localizingForm [CompactSpace M] {σ : SmoothTwoForm I M}
           (∀ j, α j circlePeriodOneGenerator ≠ 0) ∧ 0 < s ∧ s ≤ r ∧
           ∀ x ∈ Φ '' ball 0 s, θ.val x = TauCeti.mpullback I 𝓘(ℝ, StdSpace (Fin n)) Φ.symm
             (weightOneForm fun j ↦ α j circlePeriodOneGenerator).val x := by
-  have : ContinuousConstSMul Circle M :=
-    ⟨fun g ↦ (ContMDiffSMul.contMDiff_const_smul (I := 𝓡 1) (I' := I) (n := ∞) g).continuous⟩
+  have : ContinuousSMul Circle M := ContMDiffSMul.continuousSMul (I := 𝓡 1) (I' := I) ∞
   have := (finite_fixedPoints hiso).to_subtype
   choose n χ α Φ r hW using fun p : MulAction.fixedPoints Circle M ↦
     exists_weightChart_fundamentalVectorField hμ hσ hG (p := p.val) p.property
