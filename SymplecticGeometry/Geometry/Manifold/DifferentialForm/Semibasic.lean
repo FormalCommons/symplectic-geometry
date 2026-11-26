@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Smooth
 public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
+public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Wedge.Basic
 public import SymplecticGeometry.LinearAlgebra.Alternating.Conormal
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
@@ -48,9 +49,11 @@ pullbacks are reached through `TauCeti.SmoothForm.coe_mpullback`.
   particular (`TauCeti.RoughForm.IsSemibasicAt.mpullback_comp`) it is semibasic for `f ∘ g`.
 * `TauCeti.RoughForm.IsSemibasicAt.wedge_apply_eq_zero`: at `x`, the wedge `φ ∧ ψ` of a one-form
   `φ` semibasic for `f` with a two-form `ψ` that vanishes on pairs of vectors of the kernel of the
-  differential of `f` vanishes on every triple whose first two vectors lie in that kernel.
+  differential of `f` vanishes on every triple whose first two vectors lie in that kernel. It is
+  the case `K = ker (mfderiv f x)` of `ContinuousAlternatingMap.pairedWedge_apply_eq_zero_of_mem`.
 * `TauCeti.RoughForm.isSemibasicAt_mextDeriv_ofFunction_comp`: the differential of `g ∘ f`, a
-  function on `B` pulled back along `f`, is semibasic for `f`.
+  function on `B` pulled back along `f`, is semibasic for `f`; and
+  `TauCeti.RoughForm.isSemibasic_mextDeriv_ofFunction_comp`, the same at every point.
 * `TauCeti.RoughForm.isSemibasicAt_fst_iff`: a form on `M × N` is semibasic for `Prod.fst` at
   `p` exactly when it vanishes at `p` on every tuple one of whose vectors has zero component
   along `M`; and `TauCeti.RoughForm.IsSemibasic.mpullback_prodMap`: pullback along a product of
@@ -310,22 +313,10 @@ theorem IsSemibasicAt.wedge_apply_eq_zero {φ : RoughForm I M ℝ 1} {ψ : Rough
       ψ x ![u, w] = 0)
     {η₁ η₂ : TangentSpace I x} (h₁ : mfderiv I IB f x η₁ = 0) (h₂ : mfderiv I IB f x η₂ = 0)
     (v : TangentSpace I x) : φ.wedge ψ x ![η₁, η₂, v] = 0 := by
-  set w : Fin 3 → TangentSpace I x := ![η₁, η₂, v]
-  -- Every vector of the triple but the last lies in the kernel.
-  have hw (i : Fin 3) (hi : i ≠ 2) : mfderiv I IB f x (w i) = 0 := by
-    fin_cases i
-    exacts [h₁, h₂, absurd rfl hi]
-  rw [wedge_apply]
-  refine smul_eq_zero_of_right _ (Finset.sum_eq_zero fun σ _ ↦ ?_)
-  by_cases h0 : σ 0 = 2
-  · -- `φ` receives `v`, so `ψ` receives the two vectors of the kernel.
-    have hne (i : Fin 3) (hi : i ≠ 0) : σ i ≠ 2 := fun h ↦ hi (σ.injective (h.trans h0.symm))
-    have hψσ : (fun j : Fin 2 ↦ w (σ (Fin.natAdd 1 j))) = ![w (σ 1), w (σ 2)] := by
-      ext j
-      fin_cases j <;> rfl
-    rw [hψσ, hψ _ _ (hw _ (hne 1 (by decide))) (hw _ (hne 2 (by decide))), mul_zero, smul_zero]
-  · -- `φ` receives a vector of the kernel.
-    rw [hφ.apply_eq_zero _ 0 (hw _ h0), zero_mul, smul_zero]
+  rw [wedge_def, wedgeWith_apply']
+  exact ContinuousAlternatingMap.pairedWedge_apply_eq_zero_of_mem _ _
+    (K := (mfderiv I IB f x).ker) (fun u hu ↦ hφ.apply_eq_zero _ 0 hu)
+    (fun u hu w hw ↦ hψ u w hu hw) h₁ h₂ v
 
 end Wedge
 
@@ -347,6 +338,13 @@ theorem isSemibasicAt_mextDeriv_ofFunction_comp {g : B → F} {x : M}
     rfl
   rw [hv', mextDeriv_ofFunction_apply, mfderiv_comp_apply x hg hf, hv]
   exact map_zero _
+
+/-- **Differentials of functions on the base are semibasic.** For differentiable `f : M → B` and
+`g : B → F`, the differential `d (g ∘ f)` is semibasic for `f`. -/
+theorem isSemibasic_mextDeriv_ofFunction_comp {g : B → F}
+    (hg : MDifferentiable IB 𝓘(ℝ, F) g) (hf : MDifferentiable I IB f) :
+    IsSemibasic IB f (mextDeriv (RoughForm.ofFunction I (g ∘ f))) :=
+  fun _ ↦ isSemibasicAt_mextDeriv_ofFunction_comp (hg _) (hf _)
 
 end ExtDeriv
 
