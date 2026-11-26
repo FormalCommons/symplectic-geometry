@@ -319,9 +319,9 @@ the gluing circle adds the product of commutators.
 ### `Geometry/Symplectic/Sum/RationalEllipticSurface.lean`
 
 - `rationalEllipticSurface`, the set of Decision 4, a compact complex
-  surface with charts from Tau Ceti's holomorphic submersion normal forms
-  (`Geometry/Manifold/Complex/Submersion.lean`) in the affine product
-  charts; its projections to $\mathbb CP^2$ and $\mathbb CP^1$.
+  surface with charts from the atlas of bihomogeneous zero sets in
+  `Geometry/Manifold/Projectivization/ProdZeroLocus/`; its projections to
+  $\mathbb CP^2$ and $\mathbb CP^1$.
 - `rationalEllipticSurface.symplecticForm` (Decision 5) with
   `isSymplectic_symplecticForm`.
 - `fibreEmbedding`, the Fermat cubic over $[1:0]$, a symplectic embedding
