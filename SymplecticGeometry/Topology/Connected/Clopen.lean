@@ -30,6 +30,8 @@ with boundary, this shows that the interior of a connected manifold is connected
   it has only one.
 * `IsPreconnected.sdiff_of_forall_exists_mem_nhds`: the same inside a preconnected set `U`, with
   the neighbourhoods taken inside `U`.
+* `IsPreconnected.of_isOpen_of_union_eq_univ`: in a preconnected space covered by open sets `s`
+  and `t` that meet in a nonempty preconnected set, `s` is preconnected.
 
 `PreconnectedSpace.eq_zero_of_eventually_eq_zero` abstracts the open-and-closed argument of
 Tau Ceti's `TauCeti.not_eventually_eq_zero_of_conjWirtingerDeriv_apply_one_eq_mul`.
@@ -257,5 +259,42 @@ theorem IsPreconnected.sdiff_of_forall_exists_mem_nhds {U A : Set X} (hUc : IsPr
       (hpre hPU).2 hP, (hpre hQU).2 hQ, ?_⟩
     rw [hcl hPU, hcl hQU]
     exact fun y hy ↦ hPQcl hy
+
+
+/-- In a preconnected space covered by two open sets `s` and `t` whose intersection is
+preconnected and nonempty, `s` is preconnected. A piece of a separation of `s` that misses
+`s ∩ t` misses `t`, so it is open and closed in the whole space. -/
+theorem IsPreconnected.of_isOpen_of_union_eq_univ [PreconnectedSpace X] {s t : Set X}
+    (hst : IsPreconnected (s ∩ t)) (hne : (s ∩ t).Nonempty) (hs : IsOpen s) (ht : IsOpen t)
+    (hunion : s ∪ t = univ) : IsPreconnected s := by
+  have key : ∀ u v : Set X, IsOpen u → IsOpen v → s ⊆ u ∪ v → s ∩ (u ∩ v) = ∅ →
+      s ∩ t ⊆ u → s ⊆ u := by
+    intro u v hu hv hsuv hdisj hstu
+    have hnot : ∀ y, y ∈ s → y ∈ u → y ∈ v → False := fun y h₁ h₂ h₃ ↦
+      (eq_empty_iff_forall_notMem.1 hdisj) y ⟨h₁, h₂, h₃⟩
+    have hcompl : (s ∩ v)ᶜ = t ∪ s ∩ u := by
+      ext y
+      simp only [mem_compl_iff, mem_inter_iff, mem_union, not_and]
+      refine ⟨fun h ↦ ?_, ?_⟩
+      · by_cases hyt : y ∈ t
+        · exact Or.inl hyt
+        · have hys : y ∈ s := (hunion.symm ▸ mem_univ y : y ∈ s ∪ t).resolve_right hyt
+          exact Or.inr ⟨hys, (hsuv hys).resolve_right (h hys)⟩
+      · rintro (hyt | ⟨hys, hyu⟩) hys' hyv
+        exacts [hnot y hys' (hstu ⟨hys', hyt⟩) hyv, hnot y hys hyu hyv]
+    have hclopen : IsClopen (s ∩ v) :=
+      ⟨by rw [← isOpen_compl_iff, hcompl]; exact ht.union (hs.inter hu), hs.inter hv⟩
+    rcases isClopen_iff.1 hclopen with h | h
+    · exact fun y hy ↦ (hsuv hy).resolve_right fun hyv ↦ (h ▸ ⟨hy, hyv⟩ : y ∈ (∅ : Set X))
+    · obtain ⟨y, hy⟩ := hne
+      exact (hnot y hy.1 (hstu hy) (h ▸ mem_univ y : y ∈ s ∩ v).2).elim
+  rw [isPreconnected_iff_subset_of_disjoint]
+  intro u v hu hv hsuv hdisj
+  have hdisj' : s ∩ t ∩ (u ∩ v) = ∅ :=
+    subset_empty_iff.1 (hdisj ▸ inter_subset_inter_left _ inter_subset_left)
+  rcases isPreconnected_iff_subset_of_disjoint.1 hst u v hu hv (inter_subset_left.trans hsuv)
+    hdisj' with h | h
+  · exact Or.inl (key u v hu hv hsuv hdisj h)
+  · exact Or.inr (key v u hv hu (union_comm u v ▸ hsuv) (inter_comm u v ▸ hdisj) h)
 
 end
