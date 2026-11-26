@@ -94,7 +94,7 @@ variable {σ : SmoothTwoForm I M} {J : SmoothAlmostComplexStructure I M}
 pair given by the construction for vector bundles, moved to the tangent bundle. -/
 theorem Compatible.metric_eq_tangentEquiv_symm_metric (hc : σ.Compatible J) :
     hc.metric = (ContMDiffTwoForm.compatible_tangentEquiv_symm_iff.2 hc).metric :=
-  ((hc.eq_metric_iff _).2 fun x u w ↦ by simp [ContMDiffTwoForm.bilinFormAt_apply]).symm
+  ((hc.eq_metric_iff _).2 fun x u w ↦ by simp).symm
 
 /-- The metric of a compatible pair `(σ, J)` is invariant under `J`: `g_J(J u, J v) = g_J(u, v)`. -/
 theorem Compatible.metric_inner_apply_apply (hc : σ.Compatible J) (x : M)
