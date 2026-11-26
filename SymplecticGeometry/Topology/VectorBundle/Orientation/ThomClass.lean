@@ -7,6 +7,8 @@ module
 
 public import TauCeti.Topology.VectorBundle.Orientation.ThomClass
 public import TauCeti.Topology.VectorBundle.Orientation.RankZero
+public import TauCeti.Topology.VectorBundle.Orientation.Comap
+public import TauCeti.Topology.VectorBundle.Thom.FiberwiseEquiv
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Basic
 public import SymplecticGeometry.Topology.VectorBundle.Thom.ChangeOfCoefficients
 import SymplecticGeometry.Topology.VectorBundle.EulerClass
@@ -61,9 +63,19 @@ The construction and the proofs of its properties follow those of Tau Ceti's
 `TauCeti.VectorBundleOrientation.thomClass`, `singularCohomologyMap_fiberThomPairMap_thomClass`,
 `eq_thomClass_iff`, `thomClass_neg` and `isThomClass_thomClass`
 (`TauCeti/Topology/VectorBundle/Orientation/ThomClass.lean`), with `modelThomGenerator` in place of
-`localCohomologyClass`; the independence of the trivialization,
-`Orientation.singularCohomologyMap_modelThomGenerator_map_eq`, reduces to Tau Ceti's
-`Orientation.singularCohomologyMap_localCohomologyClass_map_eq` in positive rank.
+`localCohomologyClass`. The naturality of the generator under a linear isomorphism,
+`Orientation.singularCohomologyMap_modelThomGenerator`, is Tau Ceti's
+`Orientation.singularCohomologyMap_localCohomologyClass` in positive rank; in rank zero it says
+that the isomorphism carries the class of the origin to the class of the origin. From it, the
+independence of the trivialization, `Orientation.singularCohomologyMap_modelThomGenerator_map_eq`,
+is proved as Tau Ceti's `Orientation.singularCohomologyMap_localCohomologyClass_map_eq` is.
+
+The naturality of the canonical class under fibrewise isomorphisms, and its proof, follow Tau
+Ceti's `TauCeti.VectorBundleOrientation.singularCohomologyMap_thomPairMapOfFiberwise_thomClass`,
+`singularCohomologyMap_thomPairMapOfFiberwise_thomClass_of_map_eq_neg` and
+`singularCohomologyMap_thomPairMapOfFiberwise_thomClass_comap`
+(`TauCeti/Topology/VectorBundle/Orientation/FiberwiseEquiv.lean`), again with `modelThomGenerator`
+in place of `localCohomologyClass`, so that they hold in rank zero too.
 
 ## Main definitions
 
@@ -100,6 +112,14 @@ The construction and the proofs of its properties follow those of Tau Ceti's
   integral class is Tau Ceti's `TauCeti.VectorBundleOrientation.rankZeroThomClass`, and
   `uliftIntegralCohomologyEquiv_canonicalThomClass_eq_rankZeroThomClass` states the same in degree
   `0`.
+* `Orientation.singularCohomologyMap_modelThomGenerator`: a linear isomorphism `h` pulls the
+  generator selected by `ω.map h` back to the generator selected by `ω`.
+* `TauCeti.VectorBundleOrientation.singularCohomologyMap_thomPairMapOfFiberwise_canonicalThomClass`:
+  for a fibrewise isomorphism `φ` over `g : B' → B` carrying the orientation `o'` of `E'` to the
+  orientation `o` of `E`, the map of Thom pairs of `φ` pulls the canonical Thom class of `o` back
+  to that of `o'`, in every rank; `..._of_map_eq_neg` gives the sign when `φ` reverses the
+  orientations, and `..._comap` the form with the transported orientation
+  `TauCeti.VectorBundleOrientation.comap`.
 
 ## References
 
@@ -143,6 +163,15 @@ private theorem kronecker_dualClass {d : ℕ} (hd : finrank ℝ P = d) (z : Loca
       (dualClass hd z)).hom z.val = 1 := by
   subst hd
   exact LocalOrientation.kronecker_cohomologyClass _ _ _
+
+private theorem eq_dualClass_iff {d : ℕ} (hd : finrank ℝ P = d) (z : LocalOrientation P 0 d)
+    (α : (TopPair.ofSubset (X := TopCat.of P) ({0}ᶜ : Set P)).singularCohomology
+      (ModuleCat.of ℤ (ULift.{w} ℤ)) ℤ (ModuleCat.of ℤ (ULift.{w} ℤ)) d) :
+    α = dualClass hd z ↔
+      ((TopPair.ofSubset (X := TopCat.of P) ({0}ᶜ : Set P)).singularKronecker ℤ d α).hom
+        z.val = 1 := by
+  subst hd
+  exact LocalOrientation.eq_cohomologyClass_iff _ _ _ α
 
 open Classical in
 /-- **The generator of the model pair selected by an orientation.** An orientation `ω` of a real
@@ -211,24 +240,63 @@ theorem span_modelThomGenerator {r : ℕ} (ω : Orientation ℝ P (Fin r)) (hP :
     split_ifs <;> exact span_dualClass _ _
   | succ n => exact span_localCohomologyClass ω hP
 
+/-- **Naturality of the selected generators.** A continuous linear equivalence `h : P ≃L[ℝ] P'`
+pulls the generator of the model pair of `P'` selected by the transported orientation `ω.map h`
+back to the generator of the model pair of `P` selected by `ω`, in every rank `r`. -/
+theorem singularCohomologyMap_modelThomGenerator {P' : Type w} [NormedAddCommGroup P']
+    [NormedSpace ℝ P'] [FiniteDimensional ℝ P'] {r : ℕ} (h : P ≃L[ℝ] P')
+    (ω : Orientation ℝ P (Fin r)) (hP : finrank ℝ P = r) (hP' : finrank ℝ P' = r) :
+    TopPair.singularCohomologyMap h.complZeroPairIso.hom r
+        ((ω.map _ h.toLinearEquiv).modelThomGenerator hP') =
+      ω.modelThomGenerator hP := by
+  cases r with
+  | zero =>
+    classical
+    -- The map of pairs carries the class of the origin of `P` to that of the origin of `P'`.
+    have hpt : (TopPair.singularHomologyMap h.complZeroPairIso.hom
+        (ModuleCat.of ℤ (ULift.{w} ℤ)) 0).hom
+          (localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl P)
+            (OpenPartialHomeomorph.mem_refl_source _) hP).val =
+        (localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl P')
+          (OpenPartialHomeomorph.mem_refl_source _) hP').val := by
+      rw [localOrientationOfZeroDimChart_coe, localOrientationOfZeroDimChart_coe,
+        localHomologyPointClass_def, localHomologyPointClass_def]
+      exact ConcreteCategory.congr_hom (TopPair.singularHomology₀Section_singularHomologyMap _
+        (ModuleCat.of ℤ (ULift.{w} ℤ)) h.complZeroPairIso.hom (0 : P) (0 : P')
+        ((ContinuousLinearEquiv.complZeroPairIso_hom_fst_apply h 0).trans h.map_zero)) 1
+    have hpos : ω.map _ h.toLinearEquiv = positiveOrientation ↔ ω = positiveOrientation :=
+      (Orientation.map _ _).injective.eq_iff' (Orientation.map_positiveOrientation_of_isEmpty _ _)
+    simp only [modelThomGenerator, hpos]
+    split_ifs
+    · refine (eq_dualClass_iff hP _ _).2 ?_
+      rw [TopPair.singularKronecker_naturality, ModuleCat.hom_comp, LinearMap.comp_apply, hpt]
+      exact kronecker_dualClass hP' _
+    · refine (eq_dualClass_iff hP _ _).2 ?_
+      rw [TopPair.singularKronecker_naturality, ModuleCat.hom_comp, LinearMap.comp_apply,
+        LocalOrientation.coe_neg, map_neg, hpt, ← LocalOrientation.coe_neg]
+      exact kronecker_dualClass hP' _
+  | succ n => exact singularCohomologyMap_localCohomologyClass h ω hP hP'
+
 /-- **The selected generator read through a linear equivalence.** For an orientation `ω` of a
 real topological vector space `V`, not necessarily normed, pulling back the generator of the model
 pair selected by the transported orientation `ω.map f` along a continuous linear equivalence
-`f : V ≃L[ℝ] P` gives a class of `Hʳ(V, V ∖ {0}; ℤ)` that does not depend on `f`. -/
+`f : V ≃L[ℝ] P` gives a class of `Hʳ(V, V ∖ {0}; ℤ)` that does not depend on `f`, nor on the
+target `P`. -/
 theorem singularCohomologyMap_modelThomGenerator_map_eq {V : Type w} [TopologicalSpace V]
-    [AddCommMonoid V] [Module ℝ V] {r : ℕ} (ω : Orientation ℝ V (Fin r)) (f f' : V ≃L[ℝ] P)
-    (hP : finrank ℝ P = r) :
+    [AddCommMonoid V] [Module ℝ V] {P' : Type w} [NormedAddCommGroup P'] [NormedSpace ℝ P']
+    [FiniteDimensional ℝ P'] {r : ℕ} (ω : Orientation ℝ V (Fin r)) (f : V ≃L[ℝ] P)
+    (f' : V ≃L[ℝ] P') (hP : finrank ℝ P = r) (hP' : finrank ℝ P' = r) :
     TopPair.singularCohomologyMap f.complZeroPairIso.hom r
         ((ω.map _ f.toLinearEquiv).modelThomGenerator hP) =
       TopPair.singularCohomologyMap f'.complZeroPairIso.hom r
-        ((ω.map _ f'.toLinearEquiv).modelThomGenerator hP) := by
-  cases r with
-  | zero =>
-    -- `P` is a point, so there is only one map `V → P`.
-    have : Subsingleton P := finrank_zero_iff.1 hP
-    obtain rfl : f = f' := ContinuousLinearEquiv.ext (funext fun _ ↦ Subsingleton.elim _ _)
-    rfl
-  | succ n => exact singularCohomologyMap_localCohomologyClass_map_eq ω f f' hP hP
+        ((ω.map _ f'.toLinearEquiv).modelThomGenerator hP') := by
+  -- `f'` is `f` followed by the isomorphism `h = f⁻¹ ≫ f' : P ≃ P'`.
+  obtain ⟨h, rfl⟩ : ∃ h : P ≃L[ℝ] P', f' = f.trans h := ⟨f.symm.trans f', by ext; simp⟩
+  have hmap : ω.map _ (f.trans h).toLinearEquiv =
+      (ω.map _ f.toLinearEquiv).map _ h.toLinearEquiv :=
+    Orientation.map_trans f.toLinearEquiv h.toLinearEquiv ω
+  rw [hmap, ContinuousLinearEquiv.complZeroPairIso_trans, Iso.trans_hom,
+    TopPair.singularCohomologyMap_comp_apply, singularCohomologyMap_modelThomGenerator h _ hP hP']
 
 section RankZeroIntegral
 
@@ -348,7 +416,7 @@ private theorem exists_canonicalThomClass :
   have hω : e.mapOrientation (Fin r) hb.2 (o b) = e.mapOrientation (Fin r) hc (o c) :=
     ht b hb.1 hb.2
   rw [hu b hb, ← hω, Trivialization.mapOrientation_apply, Trivialization.mapOrientation_apply]
-  exact Orientation.singularCohomologyMap_modelThomGenerator_map_eq (o b) _ _ hr
+  exact Orientation.singularCohomologyMap_modelThomGenerator_map_eq (o b) _ _ hr hr
 
 /-- **The canonical Thom class of an oriented vector bundle**, in any rank. For an orientation
 `o` of a real vector bundle `E` over an arbitrary base, with model fibre `F` of dimension `r`,
@@ -374,7 +442,7 @@ theorem singularCohomologyMap_fiberThomPairMap_canonicalThomClass (e : Trivializ
         ((e.mapOrientation (Fin r) hb (o b)).modelThomGenerator hr) :=
   ((exists_canonicalThomClass o hr).choose_spec b).trans <| by
     rw [Trivialization.mapOrientation_apply, Trivialization.mapOrientation_apply]
-    exact Orientation.singularCohomologyMap_modelThomGenerator_map_eq (o b) _ _ hr
+    exact Orientation.singularCohomologyMap_modelThomGenerator_map_eq (o b) _ _ hr hr
 
 /-- **Uniqueness of the canonical Thom class.** A class of `Hʳ(E, E₀; ℤ)` is the canonical Thom
 class exactly when it restricts on every fibre to the generator selected by the fibre orientation,
@@ -433,6 +501,66 @@ theorem isThomClass_canonicalThomClass :
     (ModuleCat.of ℤ (ULift.{w} ℤ)) r).mapIso
       ((trivializationAt F E b).continuousLinearEquivAt ℝ b hb).complZeroPairIso.op
     ).toLinearEquiv.span_singleton_apply_eq_top_iff.2 (Orientation.span_modelThomGenerator _ _)
+
+section BaseMap
+
+/-! ### Naturality under fibrewise isomorphisms -/
+
+variable {B' : Type w} [TopologicalSpace B'] {F' : Type w} [NormedAddCommGroup F']
+  [NormedSpace ℝ F'] [FiniteDimensional ℝ F'] {E' : B' → Type w}
+  [TopologicalSpace (TotalSpace F' E')] [∀ b, AddCommMonoid (E' b)] [∀ b, Module ℝ (E' b)]
+  [∀ b, TopologicalSpace (E' b)] [FiberBundle F' E'] [VectorBundle ℝ F' E']
+  (o' : VectorBundleOrientation F' E' (Fin r)) (hr' : finrank ℝ F' = r) {g : C(B', B)}
+  {φ : ∀ b', E' b' ≃L[ℝ] E (g b')}
+  (hφ : Continuous fun v : TotalSpace F' E' ↦ TotalSpace.mk' F (g v.proj) (φ v.proj v.snd))
+
+include hφ
+
+/-- **Naturality of the canonical Thom class under orientation-preserving bundle maps.** For a
+fibrewise isomorphism `φ b' : E'_{b'} ≃ E_{g b'}` over `g` carrying the orientation `o' b'` to
+`o (g b')` for every `b'`, the map of Thom pairs of `φ` pulls the canonical Thom class of `(E, o)`
+back to the canonical Thom class of `(E', o')`, in every rank `r`. -/
+theorem singularCohomologyMap_thomPairMapOfFiberwise_canonicalThomClass
+    (ho : ∀ b', Orientation.map (Fin r) (φ b').toLinearEquiv (o' b') = o (g b')) :
+    TopPair.singularCohomologyMap (thomPairMapOfFiberwise hφ) r (o.canonicalThomClass hr) =
+      o'.canonicalThomClass hr' := by
+  refine (o'.eq_canonicalThomClass_iff hr' _).2 fun e' _ b' hb' ↦ ?_
+  -- On the fibre over `b'`, the pulled-back class is the generator selected by `o (g b')`, pulled
+  -- back along `φ b'` followed by the preferred trivialization at `g b'`.
+  have hb := FiberBundle.mem_baseSet_trivializationAt' (F := F) (E := E) (g b')
+  rw [← TopPair.singularCohomologyMap_comp_apply, fiberThomPairMap_comp_thomPairMapOfFiberwise,
+    TopPair.singularCohomologyMap_comp_apply,
+    o.singularCohomologyMap_fiberThomPairMap_canonicalThomClass hr _ hb,
+    ← TopPair.singularCohomologyMap_comp_apply, ← Iso.trans_hom,
+    ← ContinuousLinearEquiv.complZeroPairIso_trans, Trivialization.mapOrientation_apply,
+    Trivialization.mapOrientation_apply, ← ho, ← Orientation.map_trans]
+  -- The generator selected by `o' b'` does not depend on the linear isomorphism with a model
+  -- fibre used to read it.
+  exact Orientation.singularCohomologyMap_modelThomGenerator_map_eq (o' b') _ _ hr hr'
+
+/-- **Orientation-reversing bundle maps negate the canonical Thom class.** For a fibrewise
+isomorphism `φ b' : E'_{b'} ≃ E_{g b'}` over `g` carrying the orientation `o' b'` to `-o (g b')`
+for every `b'`, the map of Thom pairs of `φ` pulls the canonical Thom class of `(E, o)` back to the
+negative of the canonical Thom class of `(E', o')`. -/
+theorem singularCohomologyMap_thomPairMapOfFiberwise_canonicalThomClass_of_map_eq_neg
+    (ho : ∀ b', Orientation.map (Fin r) (φ b').toLinearEquiv (o' b') = -o (g b')) :
+    TopPair.singularCohomologyMap (thomPairMapOfFiberwise hφ) r (o.canonicalThomClass hr) =
+      -o'.canonicalThomClass hr' := by
+  have h := (-o).singularCohomologyMap_thomPairMapOfFiberwise_canonicalThomClass hr o' hr' hφ ho
+  rw [canonicalThomClass_neg, map_neg] at h
+  exact neg_eq_iff_eq_neg.1 h
+
+/-- **The canonical Thom class of a transported orientation.** For a fibrewise isomorphism
+`φ b' : E'_{b'} ≃ E_{g b'}` over `g`, the map of Thom pairs of `φ` pulls the canonical Thom class
+of `(E, o)` back to the canonical Thom class of `E'` with the transported orientation `φ^* o`, in
+every rank `r`. -/
+theorem singularCohomologyMap_thomPairMapOfFiberwise_canonicalThomClass_comap :
+    TopPair.singularCohomologyMap (thomPairMapOfFiberwise hφ) r (o.canonicalThomClass hr) =
+      (o.comap ((Fintype.card_fin _).trans hr'.symm) hφ).canonicalThomClass hr' :=
+  o.singularCohomologyMap_thomPairMapOfFiberwise_canonicalThomClass hr _ hr' hφ
+    (map_comap_apply _ o hφ)
+
+end BaseMap
 
 section Integral
 
