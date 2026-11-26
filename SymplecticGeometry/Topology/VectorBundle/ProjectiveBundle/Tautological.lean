@@ -341,19 +341,6 @@ end Tautological
 
 /-! ### Restriction of a continuous linear equivalence -/
 
-section MapProjectivization
-
-variable {K V : Type*} [DivisionRing K] [AddCommGroup V] [Module K V] [TopologicalSpace V]
-  {L W : Type*} [DivisionRing L] [AddCommGroup W] [Module L W] [TopologicalSpace W]
-  {σ : K →+* L} {σ' : L →+* K} [RingHomInvPair σ σ'] [RingHomInvPair σ' σ]
-
-/-- The line `e.mapProjectivization ℓ` is the image of the line `ℓ` under `e`. -/
-theorem _root_.ContinuousLinearEquiv.submodule_mapProjectivization (e : V ≃SL[σ] W)
-    (ℓ : ℙ K V) : (e.mapProjectivization ℓ).submodule = ℓ.submodule.map (e : V →ₛₗ[σ] W) := by
-  rw [ContinuousLinearEquiv.coe_mapProjectivization, submodule_map]
-
-end MapProjectivization
-
 section MapProjectivizationEquiv
 
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
