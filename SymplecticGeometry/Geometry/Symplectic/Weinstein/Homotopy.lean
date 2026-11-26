@@ -44,8 +44,8 @@ bundle along the projection `unitInterval × M → M`, in the form of the hypoth
 
 The functions `c k` are smooth on `[0, 1]`, with the model `𝓡∂ 1`, as Cieliebak and Eliashberg
 ask, so that a statement that a Weinstein homotopy exists says as much as theirs. They ask for
-`c k t → ∞` at each `t`; for continuous `c k`, increasing in `k`, the convergence is then uniform,
-since `[0, 1]` is compact, and the predicate asks for the uniform form.
+`c k t → ∞` at each `t`; since the `c k` are continuous and increasing in `k`, the convergence
+is then uniform, as `[0, 1]` is compact, and the predicate asks for the uniform form.
 
 For a single Weinstein structure, the regular values `c k ∈ (k, k + 1)` exist because a proper
 generalized Morse function has finitely many critical values in each compact interval
@@ -137,13 +137,13 @@ a smooth map `φ : [0, 1] → [0, 1]` gives a Weinstein homotopy. -/
 protected theorem comp (h : IsWeinsteinHomotopy ω X f) (φ : unitInterval → unitInterval)
     (hφ : ContMDiff (𝓡∂ 1) (𝓡∂ 1) (⊤ : ℕ∞) φ) :
     IsWeinsteinHomotopy (fun t ↦ ω (φ t)) (fun t ↦ X (φ t)) (fun t ↦ f (φ t)) := by
-  obtain ⟨c, hcont, hmono, htend, hreg⟩ := h.exists_isRegularValue
+  obtain ⟨c, hsmooth, hmono, htend, hreg⟩ := h.exists_isRegularValue
   have hσ : ContMDiff ((𝓡∂ 1).prod 𝓘(ℝ, E)) ((𝓡∂ 1).prod 𝓘(ℝ, E)) (⊤ : ℕ∞)
       fun p : unitInterval × M ↦ (φ p.1, p.2) :=
     (hφ.comp contMDiff_fst).prodMk contMDiff_snd
   refine ⟨h.isSmoothFamily.comp φ hφ, h.contMDiff_field.comp hσ,
     h.contMDiff_function.comp hσ, fun t ↦ h.isWeinsteinStructure _,
-    ⟨fun k t ↦ c k (φ t), fun k ↦ (hcont k).comp hφ,
+    ⟨fun k t ↦ c k (φ t), fun k ↦ (hsmooth k).comp hφ,
       fun t ↦ hmono _, fun C ↦ ?_, fun k t ↦ hreg k _⟩⟩
   filter_upwards [htend C] with k hk t using hk _
 
@@ -162,7 +162,7 @@ theorem pullback (h : IsWeinsteinHomotopy ω X f) {M' : Type*} [TopologicalSpace
     (Φ : Diffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) M' M (⊤ : ℕ∞)) :
     IsWeinsteinHomotopy (fun t ↦ SmoothForm.mpullback Φ Φ.contMDiff (ω t))
       (fun t ↦ VectorField.mpullback 𝓘(ℝ, E) 𝓘(ℝ, E) Φ (X t)) (fun t ↦ f t ∘ Φ) := by
-  obtain ⟨c, hcont, hmono, htend, hreg⟩ := h.exists_isRegularValue
+  obtain ⟨c, hsmooth, hmono, htend, hreg⟩ := h.exists_isRegularValue
   have hΦ : ContMDiff ((𝓡∂ 1).prod 𝓘(ℝ, E)) ((𝓡∂ 1).prod 𝓘(ℝ, E)) (⊤ : ℕ∞)
       fun p : unitInterval × M' ↦ (p.1, Φ p.2) :=
     contMDiff_fst.prodMk (Φ.contMDiff.comp contMDiff_snd)
@@ -175,7 +175,7 @@ theorem pullback (h : IsWeinsteinHomotopy ω X f) {M' : Type*} [TopologicalSpace
       rw [Function.comp_apply,Φ.tangentMap_symm_mk (by simp), VectorField.mpullback_apply]
   refine ⟨h.isSmoothFamily.mpullback Φ Φ.contMDiff, ?_, h.contMDiff_function.comp hΦ,
     fun t ↦ (h.isWeinsteinStructure t).pullback Φ,
-    ⟨c, hcont, hmono, htend, fun k t ↦ (Φ.isRegularValue_comp_iff (by simp)).2 (hreg k t)⟩⟩
+    ⟨c, hsmooth, hmono, htend, fun k t ↦ (Φ.isRegularValue_comp_iff (by simp)).2 (hreg k t)⟩⟩
   rw [hfield]
   exact (Φ.symm.contMDiff.contMDiff_tangentMap le_rfl).comp (h.contMDiff_field.comp hΦ)
 
