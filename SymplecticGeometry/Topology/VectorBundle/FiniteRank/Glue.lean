@@ -883,8 +883,7 @@ variable {A D : FiniteRankBundleCore 𝕜 B} {U V : Set B} (hU : IsOpen U) (hV :
 restriction of `A ⊕ D` through `pullback_whitneySum`, is block diagonal, with the gluing cocycles
 of the two automorphisms as blocks. -/
 theorem glueCocycle_whitneyMapIso (s t : Bool) (b : B) :
-    glueCocycle (A := whitneySum A D) (eqToIso (pullback_whitneySum A D _) ≪≫
-      whitneyMapIso g₁ g₂ ≪≫ eqToIso (pullback_whitneySum A D _).symm) s t b =
+    glueCocycle (A := whitneySum A D) (whitneyMapIsoPullback g₁ g₂) s t b =
       (splitCoords (𝕜 := 𝕜) A.rank D.rank).symm.toContinuousLinearMap.comp
         (((glueCocycle g₁ s t b).prodMap (glueCocycle g₂ s t b)).comp
           (splitCoords (𝕜 := 𝕜) A.rank D.rank).toContinuousLinearMap) := by
@@ -892,27 +891,25 @@ theorem glueCocycle_whitneyMapIso (s t : Bool) (b : B) :
       (((ContinuousLinearMap.id 𝕜 (Fin A.rank → 𝕜)).prodMap (.id 𝕜 (Fin D.rank → 𝕜))).comp
         (splitCoords (𝕜 := 𝕜) A.rank D.rank).toContinuousLinearMap) = .id 𝕜 _ :=
     ContinuousLinearMap.ext (splitCoords (𝕜 := 𝕜) A.rank D.rank).symm_apply_apply
-  cases s <;> cases t <;> simp only [glueCocycle, fiberMap_eqToIso_whitneyMapIso_hom,
-    fiberMap_eqToIso_whitneyMapIso_inv] <;> by_cases h : b ∈ U ∩ V <;>
+  cases s <;> cases t <;> simp only [glueCocycle, fiberMap_whitneyMapIsoPullback_hom,
+    fiberMap_whitneyMapIsoPullback_inv] <;> by_cases h : b ∈ U ∩ V <;>
     (try simp only [h, ↓reduceDIte]) <;> first | exact hid.symm | rfl
 
 /-- The gluing cocycle of the tensor product of two automorphisms, as an automorphism of the
 restriction of `A ⊗ D` through `pullback_tensorObj`, is the Kronecker product of their gluing
 cocycles. -/
 theorem glueCocycle_tensorIso (s t : Bool) (b : B) :
-    glueCocycle (A := A ⊗ D) (eqToIso (pullback_tensorObj A D _) ≪≫ (g₁ ⊗ᵢ g₂) ≪≫
-      eqToIso (pullback_tensorObj A D _).symm) s t b =
+    glueCocycle (A := A ⊗ D) (tensorIsoPullback g₁ g₂) s t b =
       (glueCocycle g₁ s t b).kronecker (glueCocycle g₂ s t b) := by
-  cases s <;> cases t <;> simp only [glueCocycle, fiberMap_eqToIso_tensorIso_hom,
-    fiberMap_eqToIso_tensorIso_inv] <;> by_cases h : b ∈ U ∩ V <;>
+  cases s <;> cases t <;> simp only [glueCocycle, fiberMap_tensorIsoPullback_hom,
+    fiberMap_tensorIsoPullback_inv] <;> by_cases h : b ∈ U ∩ V <;>
     (try simp only [h, ↓reduceDIte]) <;>
     first | exact ContinuousLinearMap.id_kronecker_id.symm | rfl
 
 /-- The transitions of the gluing of `A ⊕ D` by the direct sum of `g₁` and `g₂` are those of the
 Whitney sum of the gluing of `A` by `g₁` and that of `D` by `g₂`. -/
 theorem coordChange_glue_whitneyMapIso (i j b : B) :
-    ((whitneySum A D).glue hU hV hUV (eqToIso (pullback_whitneySum A D _) ≪≫
-      whitneyMapIso g₁ g₂ ≪≫ eqToIso (pullback_whitneySum A D _).symm)).core.coordChange i j b =
+    ((whitneySum A D).glue hU hV hUV (whitneyMapIsoPullback g₁ g₂)).core.coordChange i j b =
       (whitneySum (A.glue hU hV hUV g₁) (D.glue hU hV hUV g₂)).core.coordChange i j b := by
   rw [coordChange_glue, glueCocycle_whitneyMapIso]
   exact inChartCoordinates_whitneySum_prodMap A A D D _ _ i j b
@@ -920,11 +917,12 @@ theorem coordChange_glue_whitneyMapIso (i j b : B) :
 /-- The transitions of the gluing of `A ⊗ D` by the tensor product of `g₁` and `g₂` are those of
 the tensor product of the gluing of `A` by `g₁` and that of `D` by `g₂`. -/
 theorem coordChange_glue_tensorIso (i j b : B) :
-    ((A ⊗ D).glue hU hV hUV (eqToIso (pullback_tensorObj A D _) ≪≫ (g₁ ⊗ᵢ g₂) ≪≫
-      eqToIso (pullback_tensorObj A D _).symm)).core.coordChange i j b =
+    ((A ⊗ D).glue hU hV hUV (tensorIsoPullback g₁ g₂)).core.coordChange i j b =
       (A.glue hU hV hUV g₁ ⊗ D.glue hU hV hUV g₂).core.coordChange i j b := by
   rw [coordChange_glue, glueCocycle_tensorIso]
-  -- The monoidal product `A ⊗ D` is Tau Ceti's `tensor A D`.
+  -- The monoidal product `A ⊗ D` is Tau Ceti's `tensor A D` by the definition of its
+  -- `MonoidalCategoryStruct` instance. Tau Ceti states neither that equality nor
+  -- `inChartCoordinates_tensor_kronecker` for `⊗`, so this step unfolds the instance.
   exact inChartCoordinates_tensor_kronecker A A D D _ _ i j b
 
 end Operations
