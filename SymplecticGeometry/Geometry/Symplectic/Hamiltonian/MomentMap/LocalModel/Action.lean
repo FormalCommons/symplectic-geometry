@@ -58,7 +58,7 @@ sign. Its component in `V` is `D.mfderiv_rep_apply`, and Tau Ceti's
 fact that each `rep k` preserves `σ` (Tau Ceti's
 `TauCeti.SymplecticForm.IsSymplectomorphism.mpullback_constSmooth`), makes the form of the local
 model invariant under `(g, p) ↦ (g * k⁻¹, k • p)`, by
-`SymplecticGeometry.mpullback_prodMap_mul_right_leftInvariantCovectorMapForm`.
+`TauCeti.CotangentBundle.mpullback_prodMap_mul_right_inducedForm` with `k⁻¹` in place of `k`.
 
 ## Main definitions
 
@@ -365,8 +365,12 @@ theorem mpullback_prodMap_mul_right_smul_form (k : K) :
       (funext fun p ↦ congrArg Prod.snd (D.fiberDistribMulAction_smul k p)),
       he.mpullback_constSmooth]
   rw [form_def, localModelForm_def]
-  exact mpullback_prodMap_mul_right_leftInvariantCovectorMapForm _ (k : G) hk
-    (fun p ↦ by rw [← covector_def, ← covector_def]; exact D.covector_smul k p) hσ
+  -- `ν (k • p) = Ad*_k (ν p)` is `ν (k • p) = ν p ∘ Ad_{k⁻¹}` on each `ξ`.
+  exact TauCeti.CotangentBundle.mpullback_prodMap_mul_right_inducedForm _ (k : G)⁻¹ hk
+    (fun p ↦ ContinuousLinearMap.ext fun ξ ↦ by
+      rw [← covector_def, ← covector_def]
+      exact
+        (congrArg (· ξ) (D.covector_smul k p)).trans (coadjointRepresentation_apply _ _ _)) hσ
 
 /-- The infinitesimal representation of the Lie algebra of `K` on `A ≃ 𝔪*`: the derivative at `1`
 of `k ↦ repA k η` in the direction `ξ`, read in `𝔪*` through `D.equivDual𝔪`, is
