@@ -530,7 +530,7 @@ def circleLoop (i : Fin 2) :
 theorem diffeomorph_circleLoop_apply (i : Fin 2) (t : I) :
     diffeomorph (circleLoop i t : EuclideanTorus) =
       Pi.single i ((t : ℝ) : AddCircle (1 : ℝ)) := by
-  simp [circleLoop, -coe_diffeomorph_symm, -coe_diffeomorph]
+  simp [circleLoop]
 
 /-- The generators `0` and `1` of the free group on `Fin 2`, matched with the generators `a 0` and
 `b 0` of Tau Ceti's `TauCeti.SurfaceGroup.Orientable.equivFreeGroup 1 0`. -/
