@@ -14,6 +14,7 @@ public import TauCeti.LinearAlgebra.BilinearMap.Multilinear
 public import TauCeti.Topology.Algebra.Module.FiniteDimension
 public import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # Precomposition, flat maps and bilinear maps in bundles of continuous alternating maps
@@ -111,10 +112,7 @@ theorem contMDiff_compContinuousLinearMap_totalSpace (L : ∀ x, V₂ x →L[�
   have hc := ((ContinuousAlternatingMap.contDiff_compContinuousLinearMapCLM (𝕜 := 𝕜)
     (E := F₂) (F := F₁) (G := G) (ι := ι) n).contMDiff.contMDiffAt.comp p₀ hl).clm_apply hp.2
   refine hc.congr_of_eventuallyEq ?_
-  have hmem : (trivializationAt F₁ V₁ p₀.proj).baseSet ∈ nhds p₀.proj :=
-    (trivializationAt F₁ V₁ p₀.proj).open_baseSet.mem_nhds
-      (FiberBundle.mem_baseSet_trivializationAt F₁ V₁ p₀.proj)
-  filter_upwards [hp.1.continuousAt.preimage_mem_nhds hmem] with p hp
+  filter_upwards [hp.1.continuousAt.eventually_mem_baseSet_trivializationAt F₁ V₁] with p hp
   ext v
   simp only [ContinuousAlternatingMap.inCoordinates, ContinuousLinearMap.inCoordinates,
     Function.comp_apply, ContinuousAlternatingMap.compContinuousLinearMapCLM_apply,
@@ -246,9 +244,7 @@ theorem contMDiffAt_sectionAlong_flatAt {b : N → M}
   -- In coordinates, the flat map is `flatL` applied to the coordinate expression of the form.
   refine ((ContinuousAlternatingMap.flatL 𝕜 F G).contDiff.comp_contMDiffAt
     hα'.2).congr_of_eventuallyEq ?_
-  filter_upwards [hα'.1.continuousAt.preimage_mem_nhds
-    ((trivializationAt F V (b y₀)).open_baseSet.mem_nhds
-      (FiberBundle.mem_baseSet_trivializationAt F V (b y₀)))] with y
+  filter_upwards [hα'.1.continuousAt.eventually_mem_baseSet_trivializationAt F V] with y
     (hy : b y ∈ (trivializationAt F V (b y₀)).baseSet)
   ext v w
   rw [inCoordinates_apply_eq₂ (E₃ := Trivial M G) hy hy (Set.mem_univ _), Function.comp_apply,
@@ -292,9 +288,8 @@ theorem contMDiffAt_sectionAlong_continuousAlternatingMap_of_bilinear [CompleteS
   have hc := (contMDiffAt_totalSpace_iff.1 (hβ.clm_bundle_apply₂ (hs 0) (hs 1))).2
   refine hc.congr_of_eventuallyEq ?_
   let e' := trivializationAt G W (b y₀)
-  have he' : b y₀ ∈ e'.baseSet := FiberBundle.mem_baseSet_trivializationAt G W (b y₀)
-  filter_upwards [hb.continuousAt.preimage_mem_nhds (e.open_baseSet.mem_nhds he),
-    hb.continuousAt.preimage_mem_nhds (e'.open_baseSet.mem_nhds he')] with y
+  filter_upwards [hb.continuousAt.eventually_mem_baseSet_trivializationAt F₁ V₁,
+    hb.continuousAt.eventually_mem_baseSet_trivializationAt G W] with y
     (hy : b y ∈ e.baseSet) (hy' : b y ∈ e'.baseSet)
   simp only [ContinuousAlternatingMap.inCoordinates,
     ContinuousLinearMap.compContinuousAlternatingMap_coe,
