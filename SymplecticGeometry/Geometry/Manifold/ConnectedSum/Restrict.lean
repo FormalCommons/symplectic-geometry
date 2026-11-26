@@ -6,8 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.ConnectedSum.Map
+public import SymplecticGeometry.Data.Set.Function
 
 import SymplecticGeometry.Geometry.Manifold.ConnectedSum.Range
+import SymplecticGeometry.Topology.Maps.Embedding
 
 /-!
 # The connected sum with an open subset of the second summand
@@ -21,7 +23,10 @@ misses the ball `e₂` removes the same set from the connected sum.
 
 The homeomorphism is Tau Ceti's `TauCeti.ConnectedSum.map` for the identity of `M` and the
 inclusion of `U` into `N`, an open embedding by `TauCeti.ConnectedSum.isOpenEmbedding_map`, onto
-its range, which `TauCeti.ConnectedSum.range_map` computes.
+its range, which `TauCeti.ConnectedSum.range_map` computes. This generalizes the construction of
+Tau Ceti's `TauCeti.ConnectedSum.leftHomeomorph` (in
+`TauCeti/Geometry/Manifold/ConnectedSum/Assoc.lean`), where `U` is `N` with one point removed, to
+any open `U` containing the ball.
 
 ## Main definitions
 
@@ -31,6 +36,8 @@ its range, which `TauCeti.ConnectedSum.range_map` computes.
 
 ## Main results
 
+* `TauCeti.ConnectedSum.isOpenEmbedding_map_id_subtypeVal`: the induced map of connected sums
+  is an open embedding.
 * `TauCeti.ConnectedSum.coe_restrictRightHomeomorph_inl`,
   `TauCeti.ConnectedSum.coe_restrictRightHomeomorph_inr`: the homeomorphism on the punctured
   summands.
@@ -55,18 +62,6 @@ variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
   {M : Type*} [TopologicalSpace M] [T1Space M] {N : Type*} [TopologicalSpace N] [T1Space N]
   {e₁ : E → M} {e₂ : E → N} {U : Set N}
 
-/-- The inclusion of `s` after the corestriction of `f` to `s` is `f`. -/
-theorem _root_.Set.val_comp_codRestrict {X Y : Type*} (f : X → Y) (s : Set Y) (h : ∀ x, f x ∈ s) :
-    Subtype.val ∘ codRestrict f s h = f :=
-  rfl
-
-/-- The corestriction of an open embedding `f` to an open set `s` containing its range is an open
-embedding. -/
-theorem _root_.Topology.IsOpenEmbedding.codRestrict {X Y : Type*} [TopologicalSpace X]
-    [TopologicalSpace Y] {f : X → Y} (hf : IsOpenEmbedding f) {s : Set Y} (hs : IsOpen s)
-    (h : ∀ x, f x ∈ s) : IsOpenEmbedding (codRestrict f s h) :=
-  (IsOpenEmbedding.of_comp_iff _ hs.isOpenEmbedding_subtypeVal).1 hf
-
 /-- The map of connected sums induced by the identity of `M` and the inclusion of `U` into `N`
 has as range the punctured first summand together with the points of the punctured second
 summand that lie in `U`. -/
@@ -76,15 +71,23 @@ theorem range_map_id_subtypeVal (h : ∀ v, e₂ v ∈ U) :
       range (inl e₁ e₂) ∪ inr e₁ e₂ '' {y | (y : N) ∈ U} := by
   simp only [range_map, range_id, Subtype.range_coe, mem_univ, ofPred_true, image_univ]
 
+/-- The map of connected sums induced by the identity of `M` and the inclusion of an open set
+`U ⊆ N` containing the ball `e₂` is an open embedding. -/
+theorem isOpenEmbedding_map_id_subtypeVal (he₁ : IsOpenEmbedding e₁) (he₂ : IsOpenEmbedding e₂)
+    (hU : IsOpen U) (h : ∀ v, e₂ v ∈ U) :
+    IsOpenEmbedding (map id ((↑) : U → N) injective_id Subtype.val_injective (id_comp e₁)
+      (val_comp_codRestrict e₂ U h)) :=
+  isOpenEmbedding_map injective_id Subtype.val_injective (id_comp e₁)
+    (val_comp_codRestrict e₂ U h) IsOpenEmbedding.id hU.isOpenEmbedding_subtypeVal he₁
+    (he₂.codRestrict U h)
+
 /-- The points of the punctured first summand, and those of the punctured second summand that
 lie in an open set `U` containing the ball `e₂`, form an open subset of the connected sum. -/
 theorem isOpen_range_inl_union_image_inr (he₁ : IsOpenEmbedding e₁) (he₂ : IsOpenEmbedding e₂)
     (hU : IsOpen U) (h : ∀ v, e₂ v ∈ U) :
     IsOpen (range (inl e₁ e₂) ∪ inr e₁ e₂ '' {y | (y : N) ∈ U}) := by
   rw [← range_map_id_subtypeVal h]
-  exact (isOpenEmbedding_map injective_id Subtype.val_injective (id_comp e₁)
-    (val_comp_codRestrict e₂ U h) IsOpenEmbedding.id hU.isOpenEmbedding_subtypeVal he₁
-    (he₂.codRestrict hU h)).isOpen_range
+  exact (isOpenEmbedding_map_id_subtypeVal he₁ he₂ hU h).isOpen_range
 
 /-- If `U` contains the ball `e₂`, the points of the connected sum that are neither on the
 punctured first summand nor on the points of the punctured second summand in `U` are the images
@@ -114,9 +117,7 @@ def restrictRightHomeomorph (he₁ : IsOpenEmbedding e₁) (he₂ : IsOpenEmbedd
     (h : ∀ v, e₂ v ∈ U) :
     ConnectedSum e₁ (codRestrict e₂ U h) ≃ₜ
       (range (inl e₁ e₂) ∪ inr e₁ e₂ '' {y | (y : N) ∈ U} : Set (ConnectedSum e₁ e₂)) :=
-  (isOpenEmbedding_map injective_id Subtype.val_injective (id_comp e₁)
-    (val_comp_codRestrict e₂ U h) IsOpenEmbedding.id hU.isOpenEmbedding_subtypeVal he₁
-    (he₂.codRestrict hU h)).isEmbedding.toHomeomorph.trans
+  (isOpenEmbedding_map_id_subtypeVal he₁ he₂ hU h).isEmbedding.toHomeomorph.trans
     (Homeomorph.setCongr (range_map_id_subtypeVal h))
 
 variable (he₁ : IsOpenEmbedding e₁) (he₂ : IsOpenEmbedding e₂) (hU : IsOpen U)
