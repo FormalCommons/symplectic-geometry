@@ -326,7 +326,7 @@ theorem coe_blowdownPuncturedDiffeomorph_apply
 @[simp]
 theorem coe_blowdownPuncturedDiffeomorph_symm_apply (z : puncturedSpace (Fin (n + 1) → ℂ)) :
     ((blowdownPuncturedDiffeomorph n).symm z : BlowupModel n) =
-      ⟨(mk ℂ z (mem_puncturedSpace.1 z.property), z), mk_self_mem_blowupModel _⟩ := by
+      ofNeZero (mem_puncturedSpace.1 z.property) := by
   simp [blowdownPuncturedDiffeomorph, blowdownDiffeomorph_symm_apply]
 
 /-- The radial potential `s ↦ s + l² log s` is smooth on `(0, ∞)`. -/
@@ -356,10 +356,10 @@ theorem mpullback_blowdownDiffeomorph_symm_blowupForm (l : ℝ) :
   congr 1
   · refine SmoothForm.mpullback_congr _ _ (funext fun z ↦ ?_) _
     rw [Function.comp_apply, Function.comp_apply, coe_blowdownPuncturedDiffeomorph_symm_apply,
-      blowdown_mk]
+      blowdown_ofNeZero]
   · refine congrArg _ (SmoothForm.mpullback_congr _ _ (funext fun z ↦ ?_) _)
     rw [Function.comp_apply, Function.comp_apply, coe_blowdownPuncturedDiffeomorph_symm_apply,
-      pr_mk, mkNonzero_apply]
+      pr_ofNeZero, mkNonzero_apply]
 
 /-- The radial map `F_l z = √(1 + l² / |z|²) z` of the profile `h s = s + l²`, composed with the
 blowdown, pulls `ω₀` back to `ω̃_l` off the exceptional divisor. -/
