@@ -122,12 +122,8 @@ theorem singularCohomologyRealImageAddMonoidHom_naturality {Y : TopCat.{0}} (f :
         (TopCat.singularCohomologyMap (R := ModuleCat.of ℤ (ULift.{0} ℤ)) (k := ℤ)
           (M := ModuleCat.of ℤ (ULift.{0} ℤ)) f n c) =
       TopCat.singularCohomologyMap (R := ModuleCat.of ℝ ℝ) (k := ℝ) (M := ModuleCat.of ℝ ℝ) f n
-        (Y.singularCohomologyRealImageAddMonoidHom n c) := by
-  rw [singularCohomologyRealImageAddMonoidHom_apply, singularCohomologyRealImage_naturality_apply]
-  -- The two sides differ only in reading `Y.singularCohomologyRealImage n c` as an element of
-  -- real cohomology or of its restriction of scalars to `ℤ`, which have the same carrier;
-  -- `ModuleCat.restrictScalars.map_apply` cannot be rewritten here, as it changes that type.
-  rfl
+        (Y.singularCohomologyRealImageAddMonoidHom n c) :=
+  singularCohomologyRealImage_naturality_apply n f c
 
 end TopCat
 
