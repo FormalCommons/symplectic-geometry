@@ -8,7 +8,6 @@ module
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.Excisive
 public import SymplecticGeometry.Topology.Category.TopCat.Monoidal
 public import SymplecticGeometry.Topology.VectorBundle.Thom.LocalChart
-public import TauCeti.Topology.VectorBundle.ZeroSection
 
 /-!
 # The cap product of an excisive couple, read in a local chart of the total space
@@ -42,8 +41,8 @@ bundle is the second projection.
 
 ## Main results
 
-* `Bundle.compl_singleton_zeroSection_subset_zeroSectionCompl_union`: the complement of `0_b` lies
-  in `E ∖ 0 ∪ E ∖ E_b`.
+* `Bundle.zeroSectionCompl_union_compl_preimage_singleton`: `E ∖ 0 ∪ E ∖ E_b` is the complement
+  of `0_b`.
 * `Bundle.Trivialization.localChartLocalHomologyIso_hom_comp_singularRelativeCap`: the cap product
   of the excisive couple carried through the chart.
 
@@ -65,16 +64,21 @@ namespace Bundle
 
 variable {B : Type*} {P : Type*} {E : B → Type*} [∀ b, Zero (E b)]
 
-/-- A point of the total space other than the zero vector `0_b` is a nonzero vector or lies off
-the fibre over `b`. -/
-theorem compl_singleton_zeroSection_subset_zeroSectionCompl_union (b : B) :
-    {zeroSection P E b}ᶜ ⊆ zeroSectionCompl P E ∪ (π P E ⁻¹' {b})ᶜ := by
-  intro v hv
-  by_contra h
-  simp only [mem_union, mem_zeroSectionCompl, ne_eq, not_not, mem_compl_iff, mem_preimage,
-    mem_singleton_iff, not_or] at h
-  obtain ⟨hv0, rfl⟩ := h
-  exact hv (TotalSpace.ext rfl (heq_of_eq hv0))
+/-- The points of the total space that are nonzero vectors or lie off the fibre over `b` are
+the points other than the zero vector `0_b`. -/
+theorem zeroSectionCompl_union_compl_preimage_singleton (b : B) :
+    zeroSectionCompl P E ∪ (π P E ⁻¹' {b})ᶜ = {zeroSection P E b}ᶜ := by
+  ext ⟨b', v⟩
+  simp only [mem_union, mem_zeroSectionCompl, mem_compl_iff, mem_preimage, mem_singleton_iff,
+    zeroSection, TotalSpace.mk.injEq, not_and]
+  constructor
+  · rintro (hv | hb) rfl
+    exacts [fun h ↦ hv (eq_of_heq h), (hb rfl).elim]
+  · intro h
+    by_cases hb : b' = b
+    · subst hb
+      exact Or.inl fun hv ↦ h rfl (heq_of_eq hv)
+    · exact Or.inr hb
 
 end Bundle
 
@@ -109,12 +113,8 @@ with `a'` by the cap product of the couple `((P ∖ 0) × Q, P × (Q ∖ 0))` an
 the second projection to `H_q(Q, Q ∖ 0)`. -/
 theorem localChartLocalHomologyIso_hom_comp_singularRelativeCap (hS : IsOpen S)
     (hSc : S ⊆ c.target) (hSe : MapsTo c.symm S e.baseSet) (hb : b ∈ c.source) (hcb : c b = 0)
-    (h0 : (0 : Q) ∈ S) (hc : c.sourceRestrict ⁻¹' {0} ⊆ {(⟨b, hb⟩ : c.source)})
+    (h0 : (0 : Q) ∈ S)
     (hU : IsOpen ((↑) ⁻¹' (zeroSectionCompl P E : Set (TopCat.of (TotalSpace P E))) :
-      Set ↥((zeroSectionCompl P E : Set (TopCat.of (TotalSpace P E))) ∪
-        TopCat.ofHom ⟨π P E, FiberBundle.continuous_proj P E⟩ ⁻¹' ({b}ᶜ : Set (TopCat.of B)))))
-    (hV : IsOpen ((↑) ⁻¹' (TopCat.ofHom ⟨π P E, FiberBundle.continuous_proj P E⟩ ⁻¹'
-        ({b}ᶜ : Set (TopCat.of B))) :
       Set ↥((zeroSectionCompl P E : Set (TopCat.of (TotalSpace P E))) ∪
         TopCat.ofHom ⟨π P E, FiberBundle.continuous_proj P E⟩ ⁻¹' ({b}ᶜ : Set (TopCat.of B)))))
     {r q n : ℕ} (hn : r + q = n)
@@ -134,16 +134,20 @@ theorem localChartLocalHomologyIso_hom_comp_singularRelativeCap (hS : IsOpen S)
           (localChart_preimage_zeroSectionCompl hSe).superset) r a) :
     (localChartLocalHomologyIso T hS hSc hSe hb hcb h0 n).hom ≫
         TopPair.singularHomologyMap (TopPair.ofSubsetMap (𝟙 _) fun _ hv ↦
-          compl_singleton_zeroSection_subset_zeroSectionCompl_union b hv) T n ≫
+          (zeroSectionCompl_union_compl_preimage_singleton b).superset hv) T n ≫
         TopCat.singularRelativeCap k u μ _
           (TopCat.ofHom ⟨π P E, FiberBundle.continuous_proj P E⟩ ⁻¹' ({b}ᶜ : Set (TopCat.of B)))
-          hU hV r q n hn a ≫
+          hU ((isOpen_compl_singleton.preimage (FiberBundle.continuous_proj P E)).preimage
+            continuous_subtypeVal) r q n hn a ≫
         TopPair.singularHomologyMap
           (TopPair.ofSubsetMap (TopCat.ofHom ⟨π P E, FiberBundle.continuous_proj P E⟩)
             (mapsTo_preimage _ ({b}ᶜ : Set (TopCat.of B)))) N q ≫
         ((localHomologyIsoOfIsOpenEmbedding N c.open_source.isOpenEmbedding_subtypeVal
           ⟨b, hb⟩ q).inv : localHomology N {b} q ⟶ _) ≫
-        localHomologyMap N c.sourceRestrict hc q =
+        localHomologyMap N c.sourceRestrict
+          -- The ascription types the singleton in `c.source`, as `localHomologyMap_comp` needs.
+          (show c.sourceRestrict ⁻¹' {0} ⊆ {(⟨b, hb⟩ : c.source)} from
+            fun _ hx ↦ Subtype.ext (c.sourceRestrict_preimage hb (by rwa [hcb]))) q =
       TopPair.singularHomologyMap (TopPair.ofSubsetMap _
           (TopCat.mapsTo_compl_singleton_preimage_fst_compl_union_preimage_snd_compl
             (0 : P) (0 : Q))) T n ≫
@@ -157,7 +161,7 @@ theorem localChartLocalHomologyIso_hom_comp_singularRelativeCap (hS : IsOpen S)
           (TopPair.ofSubsetMap (snd (TopCat.of P) (TopCat.of Q)) (mapsTo_preimage _ _)) N q := by
   have hW := (isOpen_univ.prod hS).isOpenEmbedding_subtypeVal (X := P × Q)
   have h0' : ((0, 0) : P × Q) ∈ univ ×ˢ S := mk_mem_prod (mem_univ _) h0
-  have hpt := localChart_preimage_singleton_zeroSection_subset hS hSc hSe hb hcb h0
+  have hpt := (localChart_preimage_singleton_zeroSection hS hSc hSe hb hcb h0).subset
   -- Both sides are computed on the class of `P × S` from which excision recovers the given one.
   rw [← cancel_epi (localHomologyIsoOfIsOpenEmbedding T hW ⟨(0, 0), h0'⟩ n).hom,
     localChartLocalHomologyIso_hom _ hS hSc hSe hb hcb h0 hpt, Category.assoc,
@@ -194,7 +198,7 @@ theorem localChartLocalHomologyIso_hom_comp_singularRelativeCap (hS : IsOpen S)
   have h1 : localHomologyMap T
         (.mk (e.localChart c S) (isOpenEmbedding_localChart hS hSc hSe).continuous) hpt n ≫
       TopPair.singularHomologyMap (TopPair.ofSubsetMap (𝟙 _) fun _ hv ↦
-        compl_singleton_zeroSection_subset_zeroSectionCompl_union b hv) T n =
+        (zeroSectionCompl_union_compl_preimage_singleton b).superset hv) T n =
       TopPair.singularHomologyMap (TopPair.ofSubsetMap _ hy) T n ≫
         TopPair.singularHomologyMap (TopPair.ofSubsetMap ι (hιU.union_union hιV)) T n := by
     rw [localHomologyMap_def, ← TopPair.singularHomologyMap_comp,
@@ -215,8 +219,12 @@ theorem localChartLocalHomologyIso_hom_comp_singularRelativeCap (hS : IsOpen S)
     exact congrArg (TopPair.singularHomologyMap · T n)
       (TopPair.ofSubsetMap_comp_ofSubsetMap_eq _ _ hy (hjU.union_union hjV)
         (by rw [Category.id_comp, Iso.comp_inv_eq, TopCat.tensorObjIsoProd_hom_eq_id]; rfl))
+  -- `ha` writes the chart, the inclusion and `UW` out, while the goal has the local definitions
+  -- `ι`, `j` and `UW`, which `rw` does not unfold; so `ha` is restated through them first.
   rw [reassoc_of% h1, reassoc_of% h2,
-    ← reassoc_of% (TopCat.singularRelativeCap_naturality k u μ hUW hVW hU hV ι hιU hιV r q n hn a),
+    ← reassoc_of% (TopCat.singularRelativeCap_naturality k u μ hUW hVW hU
+      ((isOpen_compl_singleton.preimage (FiberBundle.continuous_proj P E)).preimage
+        continuous_subtypeVal) ι hιU hιV r q n hn a),
     ← reassoc_of% (TopCat.singularRelativeCap_naturality k u μ hUW hVW
       (TopCat.isOpen_subtypeVal_preimage_preimage_fst_union isOpen_compl_singleton)
       (TopCat.isOpen_subtypeVal_preimage_preimage_snd_union isOpen_compl_singleton) j hjU hjV
@@ -224,32 +232,12 @@ theorem localChartLocalHomologyIso_hom_comp_singularRelativeCap (hS : IsOpen S)
     show TopPair.singularCohomologyMap (TopPair.ofSubsetMap j hjU) r a' =
       TopPair.singularCohomologyMap (TopPair.ofSubsetMap ι hιU) r a from ha]
   congr 2
-  -- Read in the chart, the projection of the bundle factors through the source of `c`, and read
-  -- in `c` it is the second projection.
-  let γ : C((univ ×ˢ S : Set (P × Q)), c.source) :=
-    ⟨fun w ↦ ⟨c.symm w.val.2, c.map_target (hSc w.property.2)⟩,
-      (c.continuousOn_symm.comp_continuous (continuous_snd.comp continuous_subtypeVal)
-        fun w ↦ hSc w.property.2).subtype_mk _⟩
-  have hγ : MapsTo (TopCat.ofHom γ) VW ({⟨b, hb⟩}ᶜ : Set (TopCat.of c.source)) := fun w hw h ↦
-    hw ((proj_localChart_eq_iff hSc hSe hb hcb w).1
-      ((proj_localChart hSe w).trans (congrArg Subtype.val h)))
-  have h3 : TopPair.singularHomologyMap (TopPair.ofSubsetMap ι hιV) N q ≫
-      TopPair.singularHomologyMap
-        (TopPair.ofSubsetMap (TopCat.ofHom ⟨π P E, FiberBundle.continuous_proj P E⟩)
-          (mapsTo_preimage _ _)) N q =
-      TopPair.singularHomologyMap (TopPair.ofSubsetMap _ hγ) N q ≫
-        (localHomologyIsoOfIsOpenEmbedding N c.open_source.isOpenEmbedding_subtypeVal
-          ⟨b, hb⟩ q).hom := by
-    rw [localHomologyIsoOfIsOpenEmbedding_hom, localHomologyMap_def,
-      ← TopPair.singularHomologyMap_comp, ← TopPair.singularHomologyMap_comp]
-    exact congrArg (TopPair.singularHomologyMap · N q)
-      (TopPair.ofSubsetMap_comp_ofSubsetMap_eq _ _ _ _
-        (TopCat.ext fun w ↦ proj_localChart hSe w))
-  rw [reassoc_of% h3, Iso.hom_inv_id_assoc, localHomologyMap_def,
-    ← TopPair.singularHomologyMap_comp, ← TopPair.singularHomologyMap_comp]
-  exact congrArg (TopPair.singularHomologyMap · N q)
-    (TopPair.ofSubsetMap_comp_ofSubsetMap_eq _ _ _ _
-      (TopCat.ext fun w ↦ (c.sourceRestrict_apply _).trans (c.right_inv (hSc w.property.2))))
+  -- Read in the charts, the projection of the bundle is the second projection.
+  have h3 := localHomologyMap_localChart_comp_localHomologyMap_proj N hS hSc hSe hb hcb q
+  simp only [localHomologyMap_def] at h3 ⊢
+  -- The two sides differ only by the local definitions `ι`, `VW` and `j`, and by the second
+  -- projection of the product `TopCat.of P ⊗ TopCat.of Q`, which is `Prod.snd` by definition.
+  exact h3
 
 end Bundle.Trivialization
 
