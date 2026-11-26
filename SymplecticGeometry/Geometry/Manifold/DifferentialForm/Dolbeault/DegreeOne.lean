@@ -21,11 +21,15 @@ one-form through `TauCeti.SmoothForm.degreeOneEquiv`. This file links the two de
 
 ## Main results
 
-* `TauCeti.SmoothForm.isOfType_zero_one_degreeOneEquiv_symm_iff`: the one-form of `β` has type
-  `(0,1)` exactly when `β x` is a `(0,1)`-form at every point `x`.
+* `TauCeti.SmoothForm.isOfType_zero_one_iff_isZeroOneForm`: a one-form `α` has type `(0,1)`
+  exactly when its section `degreeOneEquiv α` is a `(0,1)`-form at every point.
+* `TauCeti.SmoothForm.isOfType_zero_one_degreeOneEquiv_symm_iff`: the same, for the one-form of
+  a smooth section `β`.
+* `TauCeti.SmoothAlmostComplexStructure.degreeOneEquiv_delBar`: for a smooth function `f`, the
+  section of `∂bar f` at `x` is `TauCeti.SmoothAlmostComplexStructure.dbarFunction` of `f` at `x`.
 * `TauCeti.SmoothAlmostComplexStructure.delBar_eq_degreeOneEquiv_symm_iff`: for a smooth function
-  `f`, the one-form `∂bar f` is the one-form of `β` exactly when the operator
-  `TauCeti.SmoothAlmostComplexStructure.dbarFunction` on `f` gives `β` at every point.
+  `f`, the one-form `∂bar f` is the one-form of `β` exactly when `dbarFunction` of `f` is `β x`
+  at every point `x`.
 
 ## References
 
@@ -46,17 +50,32 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topological
 
 namespace SmoothForm
 
+/-- A one-form `α` has type `(0,1)` exactly when its section `degreeOneEquiv α` is a
+`(0,1)`-form at every point `x`. -/
+theorem isOfType_zero_one_iff_isZeroOneForm {α : SmoothForm I M F 1} :
+    α.IsOfType J 0 1 ↔
+      ∀ x, J.IsZeroOneForm (V := Bundle.Trivial M F) (degreeOneEquiv α x) := by
+  simp [isOfType_zero_one_iff, SmoothAlmostComplexStructure.isZeroOneForm_iff]
+
 /-- The one-form of a smooth section `β` of `x ↦ (T_x M →L[ℝ] F)` has type `(0,1)` exactly when
 `β x` is a `(0,1)`-form at every point `x`. -/
 theorem isOfType_zero_one_degreeOneEquiv_symm_iff
     {β : ContMDiffSection I (E →L[ℝ] F) ∞ (fun x : M ↦ TangentSpace I x →L[ℝ] F)} :
     (degreeOneEquiv.symm β).IsOfType J 0 1 ↔
       ∀ x, J.IsZeroOneForm (V := Bundle.Trivial M F) (β x) := by
-  simp [isOfType_zero_one_iff, SmoothAlmostComplexStructure.isZeroOneForm_iff]
+  simp [isOfType_zero_one_iff_isZeroOneForm]
 
 end SmoothForm
 
 namespace SmoothAlmostComplexStructure
+
+/-- For a smooth function `f`, seen as a `0`-form, the section of `∂bar f` at `x` is `∂bar` of
+the function `y ↦ f y` at `x`. -/
+@[simp]
+theorem degreeOneEquiv_delBar (f : SmoothForm I M F 0) (x : M) :
+    SmoothForm.degreeOneEquiv (J.delBar f) x = J.dbarFunction (fun y ↦ f.val y 0) x := by
+  ext v
+  simp [delBar_apply_apply_eq_dbarFunction]
 
 /-- For a smooth function `f`, seen as a `0`-form, `∂bar f` is the one-form of a smooth section
 `β` of `x ↦ (T_x M →L[ℝ] F)` exactly when `∂bar` of the function `y ↦ f y` is `β x` at every
@@ -65,10 +84,7 @@ theorem delBar_eq_degreeOneEquiv_symm_iff (f : SmoothForm I M F 0)
     {β : ContMDiffSection I (E →L[ℝ] F) ∞ (fun x : M ↦ TangentSpace I x →L[ℝ] F)} :
     J.delBar f = SmoothForm.degreeOneEquiv.symm β ↔
       ∀ x, J.dbarFunction (fun y ↦ f.val y 0) x = β x := by
-  rw [← SmoothForm.degreeOneEquiv.injective.eq_iff, LinearEquiv.apply_symm_apply,
-    ContMDiffSection.ext_iff]
-  simp [ContinuousLinearMap.ext_iff, SmoothForm.degreeOneEquiv_apply_apply_vec,
-    delBar_apply_apply_eq_dbarFunction]
+  simp [LinearEquiv.eq_symm_apply, ContMDiffSection.ext_iff]
 
 end SmoothAlmostComplexStructure
 
