@@ -288,27 +288,20 @@ noncomputable def blowdownPuncturedDiffeomorph :
     (⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ : Opens (BlowupModel n))
       ≃ₘ⟮𝓘(ℝ, Fin (n + 1) → ℂ), 𝓘(ℝ, Fin (n + 1) → ℂ)⟯ puncturedSpace (Fin (n + 1) → ℂ) :=
   (((blowdownDiffeomorph n).restrictScalars' ℝ).ofLE le_top).trans
-    ((Diffeomorph.refl _ _ _).subtype fun _ ↦ by
-      rw [Diffeomorph.coe_refl, id, mem_puncturedSpace, Opens.mem_mk, Set.mem_ofPred_eq])
+    ((Diffeomorph.refl _ _ _).subtype fun _ ↦ by simp)
 
 @[simp]
 theorem coe_blowdownPuncturedDiffeomorph_apply
     (p : (⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ :
       Opens (BlowupModel n))) :
     (blowdownPuncturedDiffeomorph n p : Fin (n + 1) → ℂ) = p.val.blowdown := by
-  rw [blowdownPuncturedDiffeomorph, Diffeomorph.coe_trans, Function.comp_apply,
-    Diffeomorph.subtype_apply_coe, Diffeomorph.coe_refl, id, Diffeomorph.coe_ofLE,
-    Diffeomorph.coe_restrictScalars', coe_blowdownDiffeomorph]
+  simp [blowdownPuncturedDiffeomorph]
 
 @[simp]
 theorem coe_blowdownPuncturedDiffeomorph_symm_apply (z : puncturedSpace (Fin (n + 1) → ℂ)) :
     ((blowdownPuncturedDiffeomorph n).symm z : BlowupModel n) =
       ⟨(mk ℂ z (mem_puncturedSpace.1 z.property), z), mk_self_mem_blowupModel _⟩ := by
-  rw [blowdownPuncturedDiffeomorph, Diffeomorph.symm_trans', Diffeomorph.coe_trans,
-    Function.comp_apply, Diffeomorph.ofLE_symm, Diffeomorph.coe_ofLE,
-    Diffeomorph.restrictScalars'_symm, Diffeomorph.coe_restrictScalars',
-    blowdownDiffeomorph_symm_apply]
-  simp only [Diffeomorph.subtype_symm_apply_coe, Diffeomorph.symm_refl, Diffeomorph.coe_refl, id]
+  simp [blowdownPuncturedDiffeomorph, blowdownDiffeomorph_symm_apply]
 
 /-- The radial potential `s ↦ s + l² log s` is smooth on `(0, ∞)`. -/
 theorem contDiffOn_add_mul_log (l : ℝ) :
@@ -499,9 +492,7 @@ theorem coe_shellSymplectomorph_apply {l ε : ℝ} (hl : 0 ≤ l) (hε : 0 ≤ �
     (shellSymplectomorph n l ε hl hε p : Fin (n + 1) → ℂ) =
       radialMap (fun s ↦ s + l ^ 2) (fun _ hs ↦ add_pos_of_pos_of_nonneg hs (sq_nonneg l))
         (blowdownPuncturedDiffeomorph n ⟨p.val, p.property.2⟩) := by
-  simp only [shellSymplectomorph, Diffeomorph.coe_trans, Function.comp_apply,
-    Diffeomorph.nestedOpen_apply, Diffeomorph.subtype_apply_coe, Diffeomorph.nestedOpen_symm_apply,
-    coe_radialBlowdownDiffeomorph_apply]
+  simp [shellSymplectomorph]
 
 /-- **The shell symplectomorphism.** `shellSymplectomorph` carries `ω̃_l` on the open
 neighbourhood of radius `ε` minus the exceptional divisor to `ω₀` on the open shell

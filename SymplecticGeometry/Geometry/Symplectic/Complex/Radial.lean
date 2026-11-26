@@ -439,11 +439,7 @@ than `c`. -/
 theorem mem_radialShell_add_const {c : ℝ} {w : ι → ℂ} :
     w ∈ radialShell ι (fun s ↦ s + c) (contDiffOn_id.add contDiffOn_const) (fun _ _ ↦ by simp) ↔
       c < ∑ i, ‖w i‖ ^ 2 := by
-  rw [mem_radialShell]
-  refine ⟨?_, fun hw ↦ ⟨_, sub_pos.2 hw, sub_add_cancel _ _⟩⟩
-  rintro ⟨s, hs, hsw⟩
-  rw [← hsw]
-  exact lt_add_of_pos_left c hs
+  rw [mem_radialShell, image_add_const_Ioi, zero_add, mem_Ioi]
 
 /-- For `0 ≤ l`, a point is in the shell of `s ↦ s + l²` exactly when its Euclidean norm is
 greater than `l`. -/
