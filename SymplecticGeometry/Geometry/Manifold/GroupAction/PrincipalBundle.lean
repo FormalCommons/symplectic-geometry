@@ -7,10 +7,11 @@ module
 
 public import TauCeti.Geometry.Manifold.FiberBundle.MapFiber
 public import TauCeti.Geometry.Manifold.GroupAction.Quotient
-public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
+public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Injective
 public import SymplecticGeometry.Geometry.Manifold.Algebra.MulOpposite
 public import SymplecticGeometry.Topology.Algebra.ProperAction.Free
 public import SymplecticGeometry.Topology.FiberBundle.ChangeModelFiber
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
 /-!
 # The principal bundle of a free proper action
@@ -57,8 +58,8 @@ compact Lie groups.
 `(q, g) ↦ (op g, q)` built from `MulOpposite.opDiffeomorph`. For the slice charts of the
 orbit space, that map is a local diffeomorphism on `Gᵐᵒᵖ × U`
 (`ProperSMul.isLocalDiffeomorphAt_smul_section`), and so is the inverse on `U × G`. The
-trivialization, its inverse on its image, is then smooth
-(`IsLocalDiffeomorphOn.contMDiffOn_invFunOn`). So the atlas is smooth
+trivialization, whose inverse is this local diffeomorphism, is then smooth
+(`OpenPartialHomeomorph.contMDiffOn_of_isLocalDiffeomorphOn_symm`). So the atlas is smooth
 (`SymplecticGeometry.orbitFiber.isContMDiff_atlas`): Tau Ceti's
 `TauCeti.MapFiber.Atlas.contMDiffFiberBundle` makes `orbitFiber Gᵐᵒᵖ X` a smooth fibre bundle,
 and `TauCeti.MapFiber.Atlas.totalSpaceDiffeomorph` is a diffeomorphism of its total space with
@@ -327,22 +328,12 @@ private theorem contMDiffOn_orbitTrivializationOfSectionUnop [ContinuousInv G] (
   have hsymm : EqOn e.toOpenPartialHomeomorph.symm Φ (U ×ˢ univ) := fun p hp ↦
     orbitTrivializationOfSectionUnop_symm_apply hp.1 p.2
   have hloc := isLocalDiffeomorphOn_op_smul_section (IG := IG) hU hs hsec
-  refine ⟨fun x hx ↦ ?_, htarget ▸ hloc.contMDiffOn.congr hsymm⟩
-  have : Nonempty (orbitRel.Quotient Gᵐᵒᵖ X × G) := ⟨e x⟩
-  have hinjOn : InjOn Φ (U ×ˢ univ) :=
-    (htarget ▸ e.toPartialEquiv.symm_source ▸ e.toPartialEquiv.symm.injOn).congr hsymm
-  have himage : Φ '' (U ×ˢ univ) = e.source := by
-    rw [← hsymm.image_eq, ← htarget]
-    exact e.toPartialEquiv.symm_image_target_eq_source
-  have hinv : ∀ y ∈ e.source, Function.invFunOn Φ (U ×ˢ univ) y = e y := fun y hy ↦ by
-    have hm : e y ∈ U ×ˢ univ := htarget ▸ e.map_source hy
-    calc Function.invFunOn Φ (U ×ˢ univ) y = Function.invFunOn Φ (U ×ˢ univ) (Φ (e y)) := by
-          rw [← hsymm hm]
-          exact congrArg _ (e.left_inv hy).symm
-      _ = e y := hinjOn.leftInvOn_invFunOn hm
-  have key := hloc.contMDiffOn_invFunOn (hU.prod isOpen_univ) hinjOn
-  rw [himage] at key
-  exact (key.congr fun y hy ↦ (hinv y hy).symm) x hx
+  have hloc' : IsLocalDiffeomorphOn _ _ ∞ e.toOpenPartialHomeomorph.symm e.target := fun p ↦ by
+    have hp : (p : orbitRel.Quotient Gᵐᵒᵖ X × G) ∈ U ×ˢ univ := htarget ▸ p.property
+    exact (hloc ⟨p, hp⟩).congr_of_eventuallyEq <|
+      hsymm.eventuallyEq_of_mem <| (hU.prod isOpen_univ).mem_nhds hp
+  exact ⟨e.toOpenPartialHomeomorph.contMDiffOn_of_isLocalDiffeomorphOn_symm hloc',
+    hloc'.contMDiffOn⟩
 
 end orbitFiber
 
