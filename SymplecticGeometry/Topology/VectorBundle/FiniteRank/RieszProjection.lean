@@ -21,9 +21,11 @@ spectrum of no fibre map `T.fiberMap x` meets the unit circle. Then the Riesz pr
 To see that this family is a morphism, we build it with Tau Ceti's
 `VectorBundleCore.CoordinateHom.ofContinuous`, which asks for continuity in every pair of charts
 `i`, `j`. In the chart `i` on both sides, the chart expression of a fibre map is its conjugate
-by a unit (`VectorBundleCore.exists_units_inv_mul_mul_eq_inChartCoordinates`), and the Riesz
-projection is natural under conjugation (`SymplecticGeometry.map_unitDiscRieszProjection`); so
-there it is the Riesz projection of the chart expression of `T`, which has the spectrum of `T`
+by a continuous linear automorphism of the model fibre
+(`VectorBundleCore.exists_conjContinuousAlgEquiv_eq_inChartCoordinates`), and the Riesz
+projection commutes with such a conjugation
+(`SymplecticGeometry.unitDiscRieszProjection_conjContinuousAlgEquiv`); so there it is the Riesz
+projection of the chart expression of `T`, which has the spectrum of `T` (`AlgEquiv.spectrum_eq`)
 and is continuous, hence so is its projection (`Continuous.unitDiscRieszProjection`). The chart
 expression in the charts `i`, `j` is the one in `i`, `i` followed by that of the identity, which
 is continuous too.
@@ -65,24 +67,13 @@ private theorem continuous_unitDiscRieszProjection_fiberMap (T : E ⟶ E)
       (E := fun y ↦ E.core.Fiber y →L[ℂ] E.core.Fiber y) x
       (SymplecticGeometry.unitDiscRieszProjection
         (A := (Fin E.rank → ℂ) →L[ℂ] (Fin E.rank → ℂ)) (T.fiberMap x)) := by
-  -- In the chart `i` on both sides, the chart expression of the Riesz projection of a fibre map
-  -- is the Riesz projection of its chart expression, which is a conjugate of it.
+  -- In the chart `i` on both sides, the chart expression of a fibre map is its conjugate by an
+  -- algebra isomorphism, under which the Riesz projection is natural and the spectrum invariant.
   have hconj {i x : X} (hx : x ∈ E.core.baseSet i) (M : (Fin E.rank → ℂ) →L[ℂ] _) :
       E.core.inChartCoordinates E.core i i x (SymplecticGeometry.unitDiscRieszProjection M) =
         SymplecticGeometry.unitDiscRieszProjection (E.core.inChartCoordinates E.core i i x M) := by
-    obtain ⟨U, hU⟩ := E.core.exists_units_inv_mul_mul_eq_inChartCoordinates hx
-    have he (N : (Fin E.rank → ℂ) →L[ℂ] _) :
-        (ContinuousLinearEquiv.unitsEquiv ℂ _ U⁻¹).conjContinuousAlgEquiv N = ↑U⁻¹ * N * ↑U := by
-      have hs (v : Fin E.rank → ℂ) :
-          (ContinuousLinearEquiv.unitsEquiv ℂ _ U⁻¹).symm v = (U : _ →L[ℂ] _) v := by
-        rw [ContinuousLinearEquiv.symm_apply_eq, ContinuousLinearEquiv.unitsEquiv_apply,
-          ← ContinuousLinearMap.comp_apply, ← ContinuousLinearMap.mul_def, Units.inv_mul,
-          one_apply_eq_self]
-      ext v : 1
-      simp only [ContinuousLinearEquiv.conjContinuousAlgEquiv_apply_apply,
-        ContinuousLinearEquiv.unitsEquiv_apply, ContinuousLinearMap.mul_def,
-        ContinuousLinearMap.comp_apply, hs]
-    rw [← hU, ← hU, ← he, ← he, SymplecticGeometry.map_unitDiscRieszProjection]
+    obtain ⟨e, he⟩ := E.core.exists_conjContinuousAlgEquiv_eq_inChartCoordinates hx
+    rw [← he, ← he, SymplecticGeometry.unitDiscRieszProjection_conjContinuousAlgEquiv]
   refine E.core.continuous_hom_bundle_iff_forall_continuousOn.2 fun i j ↦ ?_
   have hid := E.core.continuous_hom_bundle_iff_forall_continuousOn.1
     (CoordinateHom.id E.core).continuous_fiberMap i j
@@ -94,8 +85,8 @@ private theorem continuous_unitDiscRieszProjection_fiberMap (T : E ⟶ E)
       (E.core.inChartCoordinates E.core i i x (T.fiberMap x))) (E.core.baseSet i) := by
     rw [continuousOn_iff_continuous_domRestrict] at hT ⊢
     refine hT.unitDiscRieszProjection fun x ↦ ?_
-    obtain ⟨U, hU⟩ := E.core.exists_units_inv_mul_mul_eq_inChartCoordinates x.property
-    simpa only [Set.domRestrict_apply, ← hU, spectrum.units_conjugate'] using h x
+    obtain ⟨e, he⟩ := E.core.exists_conjContinuousAlgEquiv_eq_inChartCoordinates x.property
+    simpa only [Set.domRestrict_apply, ← he, AlgEquiv.spectrum_eq] using h x
   -- In the charts `i`, `j`, it is the chart expression in `i`, `i` followed by that of the
   -- identity.
   refine (hid.clm_comp (hR.mono Set.inter_subset_left)).congr fun x hx ↦ ?_
