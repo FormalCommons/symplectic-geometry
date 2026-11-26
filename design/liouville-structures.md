@@ -735,12 +735,14 @@ Expected size: 300 lines.
   theorems, `ModelWithCorners.isClosed_boundary_of_finiteDimensional`,
   smooth bump functions on manifolds.
 
-Searched at the pinned versions, in Mathlib, Tau Ceti and this library: a
+Searched at the pinned versions, in Mathlib, Tau Ceti and this library,
+before this part was built: a
 converse to `IsContactType.isContactForm_mpullback`, a neighbourhood model
 or converse normal form for stable Hamiltonian structures, smoothness of
 `characteristicVectorField`, strong fillings, the existence of smooth
 collars, and the gluing of an end to a manifold with boundary. None
-exists; Tau Ceti's
+existed then; the part's own files listed above now provide them. Tau
+Ceti's
 `Liouville/Completion.lean` and `CylindricalEnd.lean` start from a completion
 that is already given.
 
