@@ -36,7 +36,7 @@ the Mayer–Vietoris proof of the Thom isomorphism follows Milnor–Stasheff,
   with `hf : IsClosed (Set.range f)`. Tau Ceti has no subset-based notion of
   submanifold, and its normal bundles and tubes are stated for embeddings.
 - The normal bundle is Tau Ceti's intrinsic quotient
-  `f.NormalSpace x hn` (`Geometry/Manifold/SmoothEmbedding/NormalSpace/Basic.lean`),
+  `f.isImmersion.NormalSpace x hn` (`Geometry/Manifold/Immersion/NormalSpace/Basic.lean`),
   with model fibre a space `P` of dimension
   `hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E`, and its bundle structure
   installed by `letI` from `instTopologicalSpaceNormalBundle`,
@@ -46,7 +46,7 @@ the Mayer–Vietoris proof of the Thom isomorphism follows Milnor–Stasheff,
   `r = 0` is allowed throughout (then $Z$ is open and closed, $\nu$ is the
   zero bundle and $d_Z$ is the indicator class of $Z$ in degree $0$).
 - A normal orientation is
-  `o : TauCeti.VectorBundleOrientation P (f.NormalSpace · hn) (Fin r)`.
+  `o : TauCeti.VectorBundleOrientation P (f.isImmersion.NormalSpace · hn) (Fin r)`.
 
 Declarations about `TauCeti.SmoothEmbedding` are in the namespace
 `TauCeti.SmoothEmbedding`, as `AGENTS.md` asks for declarations that dot
@@ -313,8 +313,8 @@ in a trivialization since the fibres carry no norm, are
   of the total space of the normal bundle onto an open set of `X`, equal to
   `f` on the zero section, which is normalized: for each `x`, read in the
   trivialization at `x`, the derivative of `Φ` at the zero of the fibre on
-  vertical vectors `(0, w)`, `w : P`, followed by `f.normalClassL x`, is the
-  trivialization's identification of `P` with `f.NormalSpace x hn` (the
+  vertical vectors `(0, w)`, `w : P`, followed by `f.isImmersion.normalClassL x`, is the
+  trivialization's identification of `P` with `f.isImmersion.NormalSpace x hn` (the
   fibres carry no norm, so the condition is read through the
   trivialization; it does not depend on which linear trivialization).
 - `TauCeti.SmoothEmbedding.exists_isNormalizedTube_subset`: inside every

@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Analysis.Sobolev.Wkp.LineDeriv
-public import SymplecticGeometry.Analysis.Normed.Operator.Bilinear
+public import TauCeti.Analysis.Normed.Operator.Bilinear
 public import SymplecticGeometry.MeasureTheory.Function.LpSpace.Basic
 
 /-!

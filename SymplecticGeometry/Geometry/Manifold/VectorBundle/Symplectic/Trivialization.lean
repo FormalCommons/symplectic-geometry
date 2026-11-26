@@ -9,7 +9,6 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.FrameTrivialization
 public import TauCeti.Geometry.Symplectic.Darboux.Basis
 import TauCeti.Geometry.Symplectic.Darboux.EuclideanBasis
-import SymplecticGeometry.Geometry.Manifold.VectorBundle.LocalFrame
 import SymplecticGeometry.LinearAlgebra.Symplectic.Darboux
 
 /-!

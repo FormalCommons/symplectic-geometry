@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.InnerProductSpace.Calculus
-public import SymplecticGeometry.Analysis.Normed.Lp.PiLp
+public import TauCeti.Analysis.Normed.Lp.PiLp.Basic
 public import SymplecticGeometry.Analysis.Complex.Polydisc.HolomorphicApproximation
 public import SymplecticGeometry.Analysis.Complex.Polydisc.TaylorTruncation
 public import Mathlib.Topology.MetricSpace.HausdorffDistance

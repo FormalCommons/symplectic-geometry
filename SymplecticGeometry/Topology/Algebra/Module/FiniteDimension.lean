@@ -6,7 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Topology.Algebra.Module.FiniteDimension
-public import TauCeti.Topology.Algebra.Module.FiniteDimension
 import SymplecticGeometry.LinearAlgebra.FiniteDimensional.Submodule
 
 /-!

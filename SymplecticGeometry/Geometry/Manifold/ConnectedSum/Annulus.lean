@@ -13,7 +13,7 @@ public import Mathlib.Analysis.Normed.Module.FiniteDimension
 public import TauCeti.Geometry.Manifold.ConnectedSum.Smooth
 public import SymplecticGeometry.Geometry.Manifold.ConnectedSum.OrientationPreserving
 
-import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
+import TauCeti.Geometry.Manifold.Diffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.Diffeomorph.NormedSpace
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition

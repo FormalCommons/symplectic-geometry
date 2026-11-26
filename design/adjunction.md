@@ -31,7 +31,7 @@ pinned versions, as for `DESIGN.md`. Tau Ceti paths are relative to
   general files below allow any source model `I' : ModelWithCorners ℝ E' H'`
   in place of `𝓡 2`.
 - **$J$-invariance.** "$J(T\Sigma)=T\Sigma$" is the hypothesis
-  `hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn)`,
+  `hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn) (f.isImmersion.tangentRange x hn)`,
   with Tau Ceti's `Manifold.IsImmersion.tangentRange` and `hn` the proof
   that `∞ ≠ 0` in `ℕ∞ω`. It is the hypothesis `hp` of Tau Ceti's
   `TauCeti.AlmostComplexStructure.quotient` at each point, and no new
@@ -81,7 +81,7 @@ pinned versions, as for `DESIGN.md`. Tau Ceti paths are relative to
 ### How $J$ descends to the normal bundle
 
 The normal space at `x` is Tau Ceti's quotient
-`f.NormalSpace x hn = TangentSpace I (f x) ⧸ f.tangentRange x hn`. Tau Ceti
+`f.isImmersion.NormalSpace x hn = TangentSpace I (f x) ⧸ f.isImmersion.tangentRange x hn`. Tau Ceti
 already has the complex structure on a quotient by an invariant subspace,
 `TauCeti.AlmostComplexStructure.quotient` (`Geometry/Symplectic/AlmostComplex/Quotient.lean`),
 built with `Submodule.mapQ`, with `quotient_mk` and
@@ -205,15 +205,15 @@ Namespace `TauCeti.SmoothEmbedding`, for `f : SmoothEmbedding I' I ∞ M X`,
 take an embedding of any regularity `n` with `hn : n ≠ 0`.
 
 - `normalAlmostComplexStructureAt f J hJ x : TauCeti.AlmostComplexStructure
-  (f.NormalSpace x hn)`, defined as
-  `(J.almostComplexStructureAt (f x)).quotient (f.tangentRange x hn) _`, whose
+  (f.isImmersion.NormalSpace x hn)`, defined as
+  `(J.almostComplexStructureAt (f x)).quotient (f.isImmersion.tangentRange x hn) _`, whose
   invariance proof is `hJ x` after a rewrite by `almostComplexStructureAt_apply`,
   with `normalAlmostComplexStructureAt_def` by `(rfl)`.
 - `@[simp] normalAlmostComplexStructureAt_apply`: it acts as Tau Ceti's
   `normalComplexStructureAt`, by `normalComplexStructureAt_toLinearMap`; and
   `@[simp] isComplexLinearMap_normalClass`, from `isComplexLinearMap_mkQ`.
 - `contMDiffNormalComplexStructure f hdim J hJ`, of type
-  `ContMDiffComplexStructure I' ⊤ P (fun x ↦ f.NormalSpace x hn)` under the
+  `ContMDiffComplexStructure I' ⊤ P (fun x ↦ f.isImmersion.NormalSpace x hn)` under the
   `letI`s of Tau Ceti's `normalSpaceFiberBundle` and `normalSpaceVectorBundle`,
   the two that the type needs; its value at `x` is Tau Ceti's
   `normalComplexStructureAt` (`contMDiffNormalComplexStructure_apply`), its

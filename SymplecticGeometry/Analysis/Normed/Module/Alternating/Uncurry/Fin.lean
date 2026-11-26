@@ -6,8 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Normed.Module.Alternating.Curry
-public import SymplecticGeometry.Topology.Algebra.Module.FiniteDimension
 public import TauCeti.Analysis.Normed.Module.Alternating.Uncurry.Fin
+public import TauCeti.Topology.Algebra.Module.FiniteDimension
 
 /-!
 # Interior and exterior products against a covector

@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Topology.VectorBundle.Basic
+public import TauCeti.Topology.VectorBundle.Trivialization
 public import SymplecticGeometry.Topology.VectorBundle.FiniteTrivializingCover
 public import TauCeti.Topology.VectorBundle.Determinant
 

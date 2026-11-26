@@ -7,7 +7,6 @@ module
 
 public import Mathlib.Analysis.Normed.Operator.Bilinear
 public import Mathlib.Analysis.Normed.Operator.BoundedLinearMaps
-public import TauCeti.Analysis.Normed.Operator.Bilinear
 
 /-!
 # Continuous bilinear maps
