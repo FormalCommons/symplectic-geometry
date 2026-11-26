@@ -184,7 +184,7 @@ theorem mpullback_symm_weightOneForm_apply_weightChart (k' : ι → ℝ)
     rw [← hX]
     exact Φ.mfderiv_symm_apply_mfderiv_apply (by simp) hz _
   rw [hv, Φ.symm_toPartialEquiv, Φ.left_inv hz]
-  -- `hv` lists the vectors as points of `StdSpace ι`, the lemmas as tangent vectors at `z`.
+  -- `hv` gives the vector as a point of `StdSpace ι`, the lemmas as a tangent vector at `z`.
   exact (weightOneForm_apply_weightGenerator_smul k k' (2 * π) z).trans
     (congrArg _ (weightOneForm_apply_weightGenerator k k' z))
 
