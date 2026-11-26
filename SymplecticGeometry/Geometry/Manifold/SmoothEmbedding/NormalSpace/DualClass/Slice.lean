@@ -52,11 +52,11 @@ linearization argument of Tau Ceti's
 `TauCeti.VectorBundleOrientation.sectionIndex_eq_sign_det_of_hasFDerivAt`, which
 compares a map with its derivative on a small ball around a zero.
 
-For `u` in the degree `r` of the rank, with module coefficients, the class does not depend on
-the normalized tube. For two normalized tubes `Φ` and `Φ'` and a
-point `x`, the map `w ↦ Φ'(x, e⁻¹ w)` on `P` has, by normalization of `Φ'`, the derivative that
-the local-degree lemma asks for, so the lemma applied to `Φ` and to `Φ'` shows that their normal
-slices at `x` pull classes back alike
+For `u` in the degree `r` of the rank, with coefficients `R, M : ModuleCat k` and `R` projective
+over `k`, the class does not depend on the normalized tube. For two normalized tubes `Φ`
+and `Φ'` and a point `x`, the map `w ↦ Φ'(x, e⁻¹ w)` on `P` has, by normalization of `Φ'`, the
+derivative that the local-degree lemma asks for, so the lemma applied to `Φ` and to `Φ'` shows
+that their normal slices at `x` pull classes back alike
 (`singularCohomologyMap_normalSlice_eq_of_isNormalizedTube`). By the slice criterion, every
 normalized tube then carries `relDualClassOf f hn hdim hf u` for `u` of degree `r`
 (`singularCohomologyMap_excisionMap_relDualClassOf`, `relDualClassOf_eq_of_isNormalizedTube`).
@@ -78,8 +78,8 @@ normalized tube then carries `relDualClassOf f hn hdim hf u` for `u` of degree `
   slices of two normalized tubes at a point pull classes back alike.
 * `TauCeti.SmoothEmbedding.relDualClassOf_eq_of_isNormalizedTube`,
   `TauCeti.SmoothEmbedding.singularCohomologyMap_excisionMap_relDualClassOf`: independence of the
-  tube: for `u` of degree `r`, with module coefficients, every normalized tube carries
-  `relDualClassOf f hn hdim hf u`.
+  tube: for `u` of degree `r`, with coefficients `R, M : ModuleCat k` and `R` projective over `k`,
+  every normalized tube carries `relDualClassOf f hn hdim hf u`.
 
 ## References
 
@@ -536,8 +536,9 @@ variable {k : Type*} [CommRing k] {R M : ModuleCat.{w} k} [Module.Projective k R
 
 /-- **Every normalized tube carries the relative dual class.** For every normalized tube `Φ` of
 `f` onto an open set `W` and every class `u` of the Thom pair of the normal bundle in the degree
-`r = finrank ℝ P` of its rank, the restriction of `relDualClassOf f hn hdim hf u` to
-`(W, W ∖ f(Z))` by excision is the image of `u` under the pair isomorphism of `Φ`. -/
+`r = finrank ℝ P` of its rank, with coefficients `R, M : ModuleCat k` and `R` projective over
+`k`, the restriction of `relDualClassOf f hn hdim hf u` to `(W, W ∖ f(Z))` by excision is the
+image of `u` under the pair isomorphism of `Φ`. -/
 theorem singularCohomologyMap_excisionMap_relDualClassOf (f : SmoothEmbedding I J ∞ Z X)
     (hn : (∞ : ℕ∞ω) ≠ 0) (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E)
     (hf : IsClosed (range f)) {W : TopologicalSpace.Opens X}
@@ -558,7 +559,8 @@ theorem singularCohomologyMap_excisionMap_relDualClassOf (f : SmoothEmbedding I 
 
 /-- **The dual class does not depend on the tube.** Let `Φ` be any normalized tube of `f` onto an
 open set `W`, and `u` a class of the Thom pair of the normal bundle in the degree
-`r = finrank ℝ P` of its rank. A class `c ∈ Hʳ(X, X ∖ f(Z))` whose restriction to `(W, W ∖ f(Z))`
+`r = finrank ℝ P` of its rank, with coefficients `R, M : ModuleCat k` and `R` projective over
+`k`. A class `c ∈ Hʳ(X, X ∖ f(Z))` whose restriction to `(W, W ∖ f(Z))`
 by excision is the image of `u` under the pair isomorphism of `Φ` is
 `relDualClassOf f hn hdim hf u`. -/
 theorem relDualClassOf_eq_of_isNormalizedTube (f : SmoothEmbedding I J ∞ Z X)
