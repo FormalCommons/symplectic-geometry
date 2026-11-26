@@ -5,7 +5,6 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Algebra.Module.ZLattice.Basic
 public import TauCeti.Geometry.Manifold.Algebra.Quotient
 public import TauCeti.Geometry.Symplectic.Manifold.Torus.Basic
 public import SymplecticGeometry.Algebra.Module.ZLattice.Complex
@@ -54,7 +53,9 @@ factor is positive for a positively oriented basis, and such a basis always exis
   torus form along `latticeTorusCover p b` is `det A • ω₀`.
 
 The computation of that pull-back through the derivative of the covering map follows the proof of
-Tau Ceti's `TauCeti.mpullback_complexPiTorusCover_torusSymplecticForm`.
+Tau Ceti's `TauCeti.mpullback_complexPiTorusCover_torusSymplecticForm`, and the computation of the
+kernel of `latticeTorusCover p b` follows that of Tau Ceti's
+`Module.Basis.ker_latticeCircleCoordinates`, with periods `p` in place of `1`.
 
 ## References
 
@@ -239,14 +240,13 @@ theorem mpullback_latticeTorusCover_torusSymplecticForm :
 /-- The additive isomorphism from `ℂ ⧸ Λ` onto the standard torus induced by
 `latticeTorusCover p b`. -/
 def latticeTorusAddEquiv : ℂ ⧸ Λ.toAddSubgroup ≃+ ∀ i, AddCircle (p i) :=
-  (QuotientAddGroup.quotientAddEquivOfEq (ker_latticeTorusCover p b).symm).trans
-    (QuotientAddGroup.quotientKerEquivOfSurjective _ (latticeTorusCover_surjective p b))
+  QuotientAddGroup.liftEquiv _ (latticeTorusCover_surjective p b) (ker_latticeTorusCover p b).symm
 
 /-- `latticeTorusAddEquiv p b` sends the class of `z` to `latticeTorusCover p b z`. -/
 @[simp]
 theorem latticeTorusAddEquiv_mk (z : ℂ) :
     latticeTorusAddEquiv p b (z : ℂ ⧸ Λ.toAddSubgroup) = latticeTorusCover p b z :=
-  (rfl)
+  QuotientAddGroup.liftEquiv_mk _ _ _ z
 
 /-- **A complex torus is diffeomorphic to the standard torus.** For a `ℤ`-basis `b` of a lattice
 `Λ` in `ℂ`, the smooth diffeomorphism from `ℂ ⧸ Λ` onto `∀ i, AddCircle (p i)` induced by

@@ -5,18 +5,19 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.LinearAlgebra.Complex.Module
 public import Mathlib.LinearAlgebra.Determinant
 public import TauCeti.Geometry.Symplectic.Complex.Line
+import TauCeti.LinearAlgebra.Complex.Determinant
 
 /-!
 # Real-linear maps and the area form of the complex line
 
-Every real-linear endomorphism `A` of `ℂ` multiplies Tau Ceti's standard area form
+A real-linear endomorphism `A` of `ℂ` multiplies Tau Ceti's standard area form
 `ω₀(z, w) = Re z Im w - Im z Re w` (`TauCeti.stdComplexSymplecticForm`) by its determinant:
-`ω₀(A z, A w) = det A · ω₀(z, w)`. This generalizes Tau Ceti's
-`TauCeti.stdComplexSymplecticForm_smul_sub_smul` and `TauCeti.stdComplexSymplecticForm_mul_mul`,
-which treat particular maps.
+`ω₀(A z, A w) = det A · ω₀(z, w)`. Tau Ceti proves this for particular maps, in
+`TauCeti.stdComplexSymplecticForm_smul_sub_smul`, `TauCeti.stdComplexSymplecticForm_mul_mul`
+and `TauCeti.Beltrami.area_linearMap`. The proof expands `z` and `w` in the basis `1, I` and
+uses Tau Ceti's formula `LinearMap.det_complex` for `det A`.
 
 ## Main results
 
@@ -37,10 +38,8 @@ theorem stdComplexSymplecticForm_apply_apply_eq_det_mul (A : ℂ →ₗ[ℝ] ℂ
     rw [← map_smul, ← map_smul, ← map_add]
     congr 1
     apply Complex.ext <;> simp
-  rw [← LinearMap.det_toMatrix basisOneI, Matrix.det_fin_two, h z, h w]
-  simp only [LinearMap.toMatrix_apply, coe_basisOneI, coe_basisOneI_repr,
-    stdComplexSymplecticForm_apply]
-  simp
+  rw [LinearMap.det_complex, h z, h w]
+  simp [stdComplexSymplecticForm_apply]
   ring
 
 end TauCeti
