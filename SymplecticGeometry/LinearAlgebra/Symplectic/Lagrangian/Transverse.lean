@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Action
 public import TauCeti.LinearAlgebra.SymplecticGroup
+import SymplecticGeometry.LinearAlgebra.Matrix.OfReal
 
 /-!
 # Chart points and transverse pairs of Lagrangians

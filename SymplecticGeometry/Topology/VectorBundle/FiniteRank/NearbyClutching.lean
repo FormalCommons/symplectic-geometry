@@ -7,8 +7,9 @@ module
 
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Clutching
 public import Mathlib.Analysis.SpecificLimits.Normed
-public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.SMul
-public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.CompactCharts
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.SMul
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.CompactCharts
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 
 /-!
 # Nearby clutching functions give isomorphic clutchings

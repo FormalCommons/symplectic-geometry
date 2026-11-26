@@ -9,10 +9,11 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Interior
 public import TauCeti.Geometry.Manifold.MFDeriv.Prod
 public import TauCeti.Geometry.Manifold.VectorField.Prod
 public import SymplecticGeometry.Geometry.Manifold.ContMDiff.TimeExtension
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 public import SymplecticGeometry.Geometry.Manifold.Instances.Icc
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Family
 
 /-!
 # Time extension of forms

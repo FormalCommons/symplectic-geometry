@@ -5,10 +5,14 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.LeviCivita
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.Nijenhuis
 public import TauCeti.Geometry.Symplectic.Manifold.Kahler
+public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.Hom
+public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.CompatibleMetric
+public import Mathlib.Geometry.Manifold.VectorBundle.CovariantDerivative.LeviCivita
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.LeviCivita
+import SymplecticGeometry.Geometry.Symplectic.Manifold.Nijenhuis
 import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Metric
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric
 
 /-!
 # The Kähler condition through the Levi-Civita derivative of `J`

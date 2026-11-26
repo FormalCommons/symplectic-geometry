@@ -6,7 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Complex.Plurisubharmonic
-public import SymplecticGeometry.Geometry.Manifold.Morse.GradientLike
 public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Basic
 public import TauCeti.Geometry.Symplectic.Hamiltonian.SymplecticVectorField
 public import TauCeti.Geometry.Symplectic.Liouville.VectorField
@@ -14,8 +13,10 @@ public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.CompatibleMetri
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
 public import TauCeti.Geometry.Symplectic.TameMetric
 public import TauCeti.Geometry.Manifold.Flow.Complete
+import SymplecticGeometry.Geometry.Manifold.Morse.GradientLike
 import SymplecticGeometry.Analysis.SpecialFunctions.ExpDeriv
 import TauCeti.Geometry.Manifold.Morse.ScalarComposition
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Dolbeault.Potential
 
 /-!
 # The Liouville field and the Weinstein structure of a Stein function

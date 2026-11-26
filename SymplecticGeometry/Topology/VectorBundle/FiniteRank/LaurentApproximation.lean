@@ -5,12 +5,13 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Topology.VectorBundle.Core.Basic
-public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.CompactCharts
-public import SymplecticGeometry.Topology.ContinuousMap.LaurentApproximation
-public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.ChartHom
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.LaurentClutching
-public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.NearbyClutching
+import SymplecticGeometry.Topology.VectorBundle.Core.Basic
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.CompactCharts
+import SymplecticGeometry.Topology.ContinuousMap.LaurentApproximation
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.ChartHom
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.NearbyClutching
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 
 /-!
 # Laurent approximation of clutching functions

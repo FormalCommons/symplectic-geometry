@@ -7,10 +7,10 @@ module
 
 public import Mathlib.LinearAlgebra.Matrix.Dual
 public import Mathlib.Topology.Algebra.Module.FiniteDimensionBilinear
-public import SymplecticGeometry.Analysis.Complex.HolomorphicQuadratic
-import SymplecticGeometry.Analysis.Complex.RealFunctional
 public import TauCeti.Geometry.Manifold.Morse.Basic
 public import TauCeti.Geometry.Manifold.Morse.Index
+import SymplecticGeometry.Analysis.Complex.HolomorphicQuadratic
+import SymplecticGeometry.Analysis.Complex.RealFunctional
 import Mathlib.Analysis.Calculus.Deriv.Shift
 import Mathlib.Analysis.Calculus.DSlope
 import TauCeti.Analysis.Analytic.Inverse

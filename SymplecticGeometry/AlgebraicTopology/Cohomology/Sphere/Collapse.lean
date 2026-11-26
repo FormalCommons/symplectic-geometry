@@ -7,13 +7,16 @@ module
 
 public import TauCeti.Analysis.InnerProductSpace.Sphere.Stereographic
 public import TauCeti.Topology.Compactification.OnePoint.Collapse
-public import SymplecticGeometry.Topology.Compactification.OnePoint.Sphere
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Degree
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Prod
 public import TauCeti.Geometry.Manifold.Instances.TopCatSphere
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.Sphere.Generator
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.ProjectiveLinePow
+public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Basic
+public import SymplecticGeometry.Topology.ComplexProjectiveSpace.Sphere
+import SymplecticGeometry.Topology.Compactification.OnePoint.Sphere
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Degree
+import SymplecticGeometry.AlgebraicTopology.Cohomology.ProjectiveLinePow
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Naturality
 
 /-!
 # The collapse map `S^a × S^b → S^{a+b}` and its iterate on `(ℂP¹)^{m+1}`

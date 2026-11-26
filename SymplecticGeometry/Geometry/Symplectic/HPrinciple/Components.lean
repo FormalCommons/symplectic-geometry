@@ -6,7 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.HPrinciple.FormSpaces
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Components
+public import Mathlib.Topology.Sets.OpenCover
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Components
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Opens
 
 /-!

@@ -9,9 +9,9 @@ public import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.Basic
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap.LinearNormalForm
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap.Slice.MomentMap
 public import SymplecticGeometry.Geometry.Lie.Subgroup.IdentityComponent
-public import SymplecticGeometry.Geometry.Manifold.GroupAction.TangentRepresentation.Smooth
-public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Data
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.TangentSpace
+import SymplecticGeometry.Geometry.Manifold.GroupAction.TangentRepresentation.Smooth
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Data
 
 /-!
 # The local model at a point of a Hamiltonian `G`-manifold, and its tangent space at `[1, 0]`

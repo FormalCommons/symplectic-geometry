@@ -10,7 +10,8 @@ public import TauCeti.Topology.VectorBundle.Orientation.RankZero
 public import TauCeti.Topology.VectorBundle.Orientation.Comap
 public import TauCeti.Topology.VectorBundle.Thom.FiberwiseEquiv
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Basic
-public import SymplecticGeometry.Topology.VectorBundle.Thom.ChangeOfCoefficients
+public import SymplecticGeometry.AlgebraicTopology.Cohomology.PairChangeOfCoefficients
+import SymplecticGeometry.Topology.VectorBundle.Thom.ChangeOfCoefficients
 import SymplecticGeometry.Topology.VectorBundle.EulerClass
 import SymplecticGeometry.AlgebraicTopology.Cohomology.Local.PointClass
 import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.ZeroDimChart

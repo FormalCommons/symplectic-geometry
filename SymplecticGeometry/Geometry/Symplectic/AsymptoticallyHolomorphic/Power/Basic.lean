@@ -11,7 +11,8 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Associated.Metric
 public import SymplecticGeometry.Topology.VectorBundle.Associated.Basic
 public import TauCeti.Topology.VectorBundle.TensorProduct.Basic
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.CircleBundle
-public import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Tensor
+public import TauCeti.Topology.VectorBundle.Orientation.Complex.EulerClass
+import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Tensor
 
 /-!
 # Powers of a principal circle bundle

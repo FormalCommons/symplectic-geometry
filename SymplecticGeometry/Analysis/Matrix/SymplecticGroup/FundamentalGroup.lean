@@ -5,10 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Matrix.Polar.GLSymplectic
-public import SymplecticGeometry.Analysis.Matrix.UnitaryGroup.FundamentalGroup
 public import TauCeti.Analysis.Matrix.SymplecticGroup.Maslov
 public import TauCeti.Topology.Homotopy.HomotopyGroup.WeakHomotopyEquivalence
+public import TauCeti.AlgebraicTopology.UniversalCover.Circle.FundamentalGroup
+import SymplecticGeometry.Analysis.Matrix.Polar.GLSymplectic
+import SymplecticGeometry.Analysis.Matrix.UnitaryGroup.FundamentalGroup
+import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Circle
 
 /-!
 # The fundamental group of the real symplectic group

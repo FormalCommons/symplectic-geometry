@@ -14,12 +14,12 @@ public import SymplecticGeometry.Geometry.Manifold.Projectivization.TwistCore
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Linearization
 public import TauCeti.Topology.VectorBundle.Pullback
 
-import SymplecticGeometry.Geometry.Manifold.VectorBundle.RestrictScalars
 import SymplecticGeometry.LinearAlgebra.FiniteDimensional.KerInf
 import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 import TauCeti.LinearAlgebra.Dimension.Submodule
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.RestrictScalars
 
 /-!
 # The section of `X.embedding^* 𝒪(1)^{⊕ι}` given by linear forms

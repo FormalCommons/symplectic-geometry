@@ -5,11 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Matrix.LDL
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint
-public import SymplecticGeometry.Geometry.Manifold.Orientation.Sphere
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Basic
-public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.ChangeOfVariables
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.UnitSphere
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.FubiniStudy
@@ -17,7 +14,11 @@ public import TauCeti.Geometry.Manifold.Instances.OnePoint.Projectivization
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.Sphere
 public import TauCeti.Geometry.Manifold.Orientation.Sphere
 public import TauCeti.Geometry.Manifold.Projectivization.ProjectiveLine
+import SymplecticGeometry.Analysis.Matrix.LDL
+import SymplecticGeometry.Geometry.Manifold.Orientation.Sphere
+import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
 import TauCeti.Geometry.Manifold.Instances.OnePoint.Tangent.Basic
+import SymplecticGeometry.Data.Matrix.Mul
 
 /-!
 # The Fubini–Study form of `ℂP¹`: affine formula, stereographic coordinates, area of lines

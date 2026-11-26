@@ -5,8 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.GroupAction.LinearTube
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.TangentSpace
+import SymplecticGeometry.Geometry.Manifold.GroupAction.LinearTube
 
 /-!
 # An equivariant local diffeomorphism from a local model at a point to `M`

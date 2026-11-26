@@ -7,9 +7,9 @@ module
 
 public import Mathlib.Data.Fintype.Order
 public import Mathlib.Topology.VectorBundle.Basic
-public import SymplecticGeometry.Topology.Algebra.Module.Spaces.ContinuousLinearMap
 public import TauCeti.LinearAlgebra.Dimension.Submodule
 public import TauCeti.Topology.VectorBundle.Coordinates
+import SymplecticGeometry.Topology.Algebra.Module.Spaces.ContinuousLinearMap
 
 /-!
 # Basic facts about vector-bundle cores

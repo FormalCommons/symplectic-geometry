@@ -12,9 +12,9 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Leibniz
 public import TauCeti.Geometry.Manifold.Complex.DdbarForm.DC
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.AlmostComplexType
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.DegreeOne
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Wedge.Smooth.FunSMul
-public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Wedge.Smooth.FunSMul
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 
 /-!
 # Real potentials and `∂∂bar`

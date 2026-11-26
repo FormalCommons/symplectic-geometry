@@ -5,10 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.CStarAlgebra.Matrix
-public import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.Connected
-public import SymplecticGeometry.Geometry.Symplectic.LinearMoser
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+public import Mathlib.Analysis.Calculus.ContDiff.Defs
+import SymplecticGeometry.Analysis.CStarAlgebra.Matrix
+import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.Connected
+import SymplecticGeometry.Geometry.Symplectic.LinearMoser
+import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 
 /-!
 # Smooth paths of symplectic frames

@@ -7,8 +7,10 @@ module
 
 public import SymplecticGeometry.Topology.ComplexProjectiveSpace.ProjectiveLine
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Glue
-public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.SMul
 public import SymplecticGeometry.Topology.VectorBundle.ProjectiveBundle.Tautological
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.SMul
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
+import SymplecticGeometry.Topology.Algebra.Projectivization
 
 /-!
 # The clutching construction over `X × ℂP¹`

@@ -7,7 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.Algebra.Quotient
 public import TauCeti.Geometry.Symplectic.Manifold.Torus.Basic
-public import SymplecticGeometry.Algebra.Module.ZLattice.Complex
+import SymplecticGeometry.Algebra.Module.ZLattice.Complex
 import TauCeti.LinearAlgebra.Determinant.Basic
 
 /-!

@@ -6,7 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Topology.VectorBundle.Basic
-public import SymplecticGeometry.Analysis.LocallyConvex.SeparatingDual
+public import Mathlib.Analysis.LocallyConvex.SeparatingDual
+import SymplecticGeometry.Analysis.LocallyConvex.SeparatingDual
 
 /-!
 # Separating duals of the fibres of a vector bundle

@@ -5,9 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Singular.CrossProduct
 public import TauCeti.AlgebraicTopology.Singular.Kunneth.Relative
 public import TauCeti.AlgebraicTopology.Singular.Reduced
+import SymplecticGeometry.AlgebraicTopology.Singular.CrossProduct
 
 /-!
 # The relative cross product with the class of a point

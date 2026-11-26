@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.Circle
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.RealChernClass
 public import SymplecticGeometry.Topology.VectorBundle.Pullback
 public import TauCeti.Geometry.Manifold.VectorBundle.Pullback
+import SymplecticGeometry.Data.Bundle
 
 /-!
 # The real first Chern class of a Hermitian line bundle

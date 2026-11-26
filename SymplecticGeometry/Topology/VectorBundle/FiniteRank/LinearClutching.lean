@@ -5,8 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.NearbyClutching
 public import TauCeti.Analysis.Complex.Basic
+public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Clutching
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.NearbyClutching
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 
 /-!
 # Linear clutching functions with an invertible leading coefficient

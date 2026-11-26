@@ -5,13 +5,13 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.Connecting
-public import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.RelativePoint
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Cross.Basic
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Sheets
-public import SymplecticGeometry.AlgebraicTopology.Singular.PairChangeOfCoefficients
 public import TauCeti.AlgebraicTopology.SimplicialSet.Homology.Relative.Basic
-public import SymplecticGeometry.Algebra.Category.ModuleCat.ULiftTensor
+import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.Connecting
+import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.RelativePoint
+import SymplecticGeometry.AlgebraicTopology.Singular.PairChangeOfCoefficients
+import SymplecticGeometry.Algebra.Category.ModuleCat.ULiftTensor
 
 /-!
 # The sign of the cross product of local orientations with the real line

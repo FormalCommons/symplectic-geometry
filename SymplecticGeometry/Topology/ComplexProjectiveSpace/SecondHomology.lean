@@ -10,6 +10,7 @@ public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Projec
 public import TauCeti.AlgebraicTopology.Cellular.ComplexProjective.Basic
 public import TauCeti.AlgebraicTopology.Cohomology.IntegralCup
 public import TauCeti.AlgebraicTopology.Cohomology.UniversalCoefficient
+import SymplecticGeometry.Topology.ComplexProjectiveSpace.Homeomorph
 
 /-!
 # The hyperplane class on the second homology of complex projective space

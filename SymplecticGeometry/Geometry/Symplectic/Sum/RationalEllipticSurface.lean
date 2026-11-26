@@ -12,15 +12,15 @@ public import Mathlib.RingTheory.MvPolynomial.WeightedHomogeneous
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Basic
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.Basic
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.ProdZeroLocus.Manifold
-public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.RestrictScalars
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.HolomorphicEmbedding
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Submanifold
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Basic
 public import TauCeti.Geometry.Symplectic.Lagrangian.SymplecticTangent
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Prod
 public import TauCeti.LinearAlgebra.Projectivization.ZeroLocus
 public import TauCeti.RingTheory.MvPolynomial.Jacobian.Basic
+import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.RestrictScalars
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Submanifold
 import Mathlib.Algebra.Polynomial.Roots
 import Mathlib.Topology.LocalAtTarget
 import TauCeti.RingTheory.MvPolynomial.Symmetric.PowerSum.Basic

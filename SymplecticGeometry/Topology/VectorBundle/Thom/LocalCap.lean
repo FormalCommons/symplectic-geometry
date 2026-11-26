@@ -6,8 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.ThomClass
-public import SymplecticGeometry.Topology.VectorBundle.Thom.FiberCoordinate
 public import SymplecticGeometry.Topology.VectorBundle.Thom.LocalChart
+import SymplecticGeometry.Topology.VectorBundle.Thom.FiberCoordinate
 
 /-!
 # The canonical Thom class near a point of the base

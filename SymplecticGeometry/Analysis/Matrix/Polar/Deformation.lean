@@ -5,9 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Matrix.Polar.Basic
-public import SymplecticGeometry.Analysis.SpecialFunctions.ContinuousFunctionalCalculus.Polar
 public import TauCeti.Analysis.Matrix.Polar.Deformation
+import SymplecticGeometry.Analysis.Matrix.Polar.Basic
+import SymplecticGeometry.Analysis.SpecialFunctions.ContinuousFunctionalCalculus.Polar
 
 /-!
 # The polar deformation of an invertible matrix in right form

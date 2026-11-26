@@ -7,7 +7,8 @@ module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.CoordinateDisc
 public import SymplecticGeometry.Geometry.Manifold.DeRham.RadialAngularForm
-public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Circle
+public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.CircleConnection
+import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Circle
 import SymplecticGeometry.Analysis.Complex.RadialProjection
 import SymplecticGeometry.Geometry.Manifold.DeRham.Circle
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic

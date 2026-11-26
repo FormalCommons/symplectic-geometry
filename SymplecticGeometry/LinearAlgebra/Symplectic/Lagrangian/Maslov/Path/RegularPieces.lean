@@ -10,10 +10,13 @@ public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Path
 public import Mathlib.Analysis.Calculus.ContDiff.Operations
 public import Mathlib.Analysis.Matrix.Normed
 public import SymplecticGeometry.Analysis.Matrix.UnitaryGroup.Basic
-public import SymplecticGeometry.Data.Matrix.Basis
-public import SymplecticGeometry.LinearAlgebra.Matrix.Realify
+import SymplecticGeometry.Data.Matrix.Basis
+import SymplecticGeometry.LinearAlgebra.Matrix.Realify
 import TauCeti.Analysis.Matrix.ContDiff
 import TauCeti.Analysis.SpecialFunctions.Trigonometric.UnitInterval
+import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Graph
+import SymplecticGeometry.LinearAlgebra.Matrix.UnitaryGroup.Projective
+import SymplecticGeometry.Analysis.Calculus.Deriv.Matrix
 
 /-!
 # Regular pieces of paths of Lagrangian subspaces

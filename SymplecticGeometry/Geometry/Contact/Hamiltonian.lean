@@ -15,10 +15,11 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Hom
 public import TauCeti.Geometry.Manifold.VectorBundle.Scalar
 public import TauCeti.Geometry.Manifold.VectorBundle.Translate
 public import TauCeti.Geometry.Manifold.VectorBundle.SectionAlongMap.Regularity
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.DegreeOne
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv
-public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
+public import TauCeti.Geometry.Manifold.Flow.TimeDependent
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.DegreeOne
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 
 /-!
 # Contact vector fields and their Hamiltonians

@@ -10,9 +10,10 @@ public import TauCeti.Geometry.Manifold.Complex.Pseudoconvex.Morse
 public import TauCeti.Geometry.Manifold.Complex.SquaredDistance
 public import TauCeti.Geometry.Symplectic.Manifold.Kahler
 public import TauCeti.Topology.Maps.Proper.Metric
-public import SymplecticGeometry.Analysis.Convex.Deriv
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Dolbeault.Potential
-public import SymplecticGeometry.Topology.Maps.Proper
+public import TauCeti.Geometry.Manifold.DifferentialForm.AlmostComplexType
+import SymplecticGeometry.Analysis.Convex.Deriv
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Dolbeault.Potential
+import SymplecticGeometry.Topology.Maps.Proper
 import SymplecticGeometry.Analysis.SpecialFunctions.ExpDeriv
 
 /-!

@@ -5,7 +5,6 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
 public import SymplecticGeometry.Geometry.Manifold.Complex.HomologicalOrientation
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.ChernClass
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.LinearSection
@@ -19,6 +18,9 @@ import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.EulerClass
 import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.ComplexLinear
 import TauCeti.Geometry.Manifold.VectorBundle.Section.Generic
 import TauCeti.LinearAlgebra.Matrix.Rank.Closed
+import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
+import SymplecticGeometry.Geometry.Manifold.Projectivization.ChernClass
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Naturality
 
 /-!
 # The degree of a smooth projective hypersurface

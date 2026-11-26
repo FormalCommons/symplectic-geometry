@@ -5,8 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Algebra.Star.Basic
 public import TauCeti.Analysis.SpecialFunctions.ContinuousFunctionalCalculus.Polar
+import SymplecticGeometry.Algebra.Star.Basic
 
 /-!
 # The polar decomposition of a unit of square `-1`

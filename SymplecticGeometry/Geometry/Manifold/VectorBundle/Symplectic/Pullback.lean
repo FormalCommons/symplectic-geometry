@@ -9,6 +9,8 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.Basic
 public import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
+import SymplecticGeometry.Topology.VectorBundle.Pullback
+import SymplecticGeometry.Data.Bundle
 
 /-!
 # Pull-backs of two-forms on vector bundles

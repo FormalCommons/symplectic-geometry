@@ -5,9 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Symplectic
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.Prod
 public import TauCeti.Geometry.Symplectic.Complex.Line
+public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Normal
+public import TauCeti.Geometry.Symplectic.Manifold.Prod
+public import Mathlib.Analysis.CStarAlgebra.Classes
+import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Symplectic
+import SymplecticGeometry.Geometry.Symplectic.Manifold.Prod
 import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Basic
 import TauCeti.Geometry.Symplectic.Lagrangian.Graph
 import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Level

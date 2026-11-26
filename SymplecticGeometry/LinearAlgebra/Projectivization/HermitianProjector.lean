@@ -5,8 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
 public import TauCeti.LinearAlgebra.Projectivization.HermitianProjector
+import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
 
 /-!
 # The Hermitian projector in the standard affine charts

@@ -6,12 +6,12 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.RingTheory.TensorProduct.Finite
-public import SymplecticGeometry.Geometry.Manifold.DeRham.GoodCover.Compact
 public import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.Contractible
 public import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.MayerVietoris
 public import SymplecticGeometry.Order.CompleteLattice.Finset
 public import TauCeti.Geometry.Manifold.DeRham.ComplexCoefficients
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import SymplecticGeometry.Geometry.Manifold.DeRham.GoodCover.Compact
 import SymplecticGeometry.Topology.Sets.Opens.Basic
 
 /-!

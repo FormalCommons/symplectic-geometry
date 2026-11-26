@@ -15,6 +15,8 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 import TauCeti.Analysis.Calculus.IntervalIntegral.ParametricPrimitive
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
+import SymplecticGeometry.Analysis.Complex.QuadraticLeviForm
 
 /-!
 # The profiles `h_{λ,ε}` of the symplectic blowup

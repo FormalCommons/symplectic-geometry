@@ -7,13 +7,14 @@ module
 
 public import Mathlib.Analysis.SpecialFunctions.Log.Deriv
 public import SymplecticGeometry.Geometry.Manifold.Complex.RadialPotential
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Dolbeault.Potential
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hopf
 public import TauCeti.Geometry.Contact.Sphere
 public import TauCeti.Geometry.Diffeomorphism.Sphere
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
 public import TauCeti.Geometry.Symplectic.Manifold.Descent
+public import TauCeti.Geometry.Manifold.DifferentialForm.Dolbeault.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Dolbeault.Potential
 import Mathlib.Analysis.InnerProductSpace.Calculus
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
@@ -21,6 +22,7 @@ import TauCeti.Geometry.Manifold.MFDeriv.Opens
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.DegreeOne
+import SymplecticGeometry.Analysis.Complex.QuadraticLeviForm
 
 /-!
 # The Fubini–Study form of `ℂPⁿ`

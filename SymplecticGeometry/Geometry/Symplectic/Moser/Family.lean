@@ -5,9 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Symplectic.Moser.Field
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
+public import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
+public import TauCeti.Geometry.Manifold.TwoForm.Basic
+import SymplecticGeometry.Geometry.Symplectic.Moser.Field
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Real
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family

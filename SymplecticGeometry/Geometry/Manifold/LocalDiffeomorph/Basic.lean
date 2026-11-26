@@ -13,7 +13,7 @@ public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Diffeomorph
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
-public import SymplecticGeometry.Topology.OpenPartialHomeomorph.Compact
+import SymplecticGeometry.Topology.OpenPartialHomeomorph.Compact
 
 /-!
 # Local diffeomorphisms at a point and their local inverses

@@ -6,19 +6,23 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Model
-public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Normalization
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
-public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
 public import TauCeti.Geometry.Symplectic.Manifold.Kahler
 public import SymplecticGeometry.Geometry.Symplectic.Complex.Radial
 public import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 public import SymplecticGeometry.Geometry.Manifold.Diffeomorph.RestrictScalars
+public import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
+public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.TopForm
+public import SymplecticGeometry.Geometry.Manifold.Complex.Orientation
+import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Normalization
+import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Pseudoholomorphic
 import SymplecticGeometry.Analysis.Complex.Euclidean.Space
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
+import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import TauCeti.Topology.Order.Sublevel
+import SymplecticGeometry.Analysis.Complex.QuadraticLeviForm
 
 /-!
 # The forms `ω̃_λ` on the model blowup

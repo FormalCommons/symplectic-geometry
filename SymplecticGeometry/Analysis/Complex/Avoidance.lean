@@ -6,9 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.InnerProductSpace.Calculus
-public import SymplecticGeometry.Analysis.Normed.Lp.PiLp
-public import SymplecticGeometry.Analysis.Complex.Polydisc.HolomorphicApproximation
-public import SymplecticGeometry.Analysis.Complex.Polydisc.TaylorTruncation
+public import TauCeti.Analysis.Complex.Wirtinger.Basic
+import SymplecticGeometry.Analysis.Normed.Lp.PiLp
+import SymplecticGeometry.Analysis.Complex.Polydisc.HolomorphicApproximation
+import SymplecticGeometry.Analysis.Complex.Polydisc.TaylorTruncation
 
 /-!
 # Auroux's avoidance estimate

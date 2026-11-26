@@ -8,9 +8,9 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.DehnTwist.Model
 public import SymplecticGeometry.Geometry.Symplectic.DehnTwist.Framing
 public import TauCeti.Geometry.Symplectic.Lagrangian.Manifold
-import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Lagrangian
 public import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.IsSymplectic
 public import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.WeinsteinChart
+import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Lagrangian
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
@@ -18,7 +18,7 @@ import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Extend
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Stabilizer
-public import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Basic
+import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Basic
 import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Diffeotopy
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Submanifold

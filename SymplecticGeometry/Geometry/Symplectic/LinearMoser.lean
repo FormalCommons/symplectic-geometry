@@ -10,9 +10,10 @@ public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 public import TauCeti.Geometry.Symplectic.AlmostComplex.Topology
 public import TauCeti.Geometry.Symplectic.Transport
 public import TauCeti.Topology.Algebra.Module.BilinearForm
-public import SymplecticGeometry.Analysis.ODE.DysonSeries
 public import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
-public import SymplecticGeometry.Analysis.Calculus.Deriv.ContinuousLinearMap
+public import TauCeti.Analysis.ODE.DysonSeries
+import SymplecticGeometry.Analysis.ODE.DysonSeries
+import SymplecticGeometry.Analysis.Calculus.Deriv.ContinuousLinearMap
 import TauCeti.Analysis.Calculus.ContDiff.FDerivApply
 import TauCeti.Analysis.Calculus.FDeriv.Prod
 import TauCeti.Analysis.Calculus.ContinuousLinearMapInverse

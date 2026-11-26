@@ -9,9 +9,10 @@ public import Mathlib.Geometry.Manifold.Instances.Real
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.ComplexStructure
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Exact
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Submanifold
-public import SymplecticGeometry.LinearAlgebra.ComplexStructure.Orientation
 public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
+public import TauCeti.LinearAlgebra.Orientation.ShortExact
+import SymplecticGeometry.LinearAlgebra.ComplexStructure.Orientation
 
 /-!
 # The self-intersection number of a `J`-invariant surface

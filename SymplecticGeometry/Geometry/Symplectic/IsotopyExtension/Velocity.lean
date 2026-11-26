@@ -13,7 +13,7 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 public import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 public import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.IsSymplectic
-public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.DegreeOne
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 import SymplecticGeometry.Geometry.Manifold.DeRham.FamilyPrimitive
