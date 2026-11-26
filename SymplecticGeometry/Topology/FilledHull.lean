@@ -282,6 +282,22 @@ theorem frontier_filledSublevel_subset (hh : Continuous h) :
   exact (IsClosed.frontier_setOf_isCompact_closure_connectedComponentIn_compl_subset
     (isClosed_le hh continuous_const)).trans (frontier_le_subset_eq hh continuous_const)
 
+/-- A preconnected set on which `h` never takes the value `c` lies in `filledSublevel h c` or
+misses it, since the frontier of that set lies on the level `c`. -/
+theorem subset_filledSublevel_or_disjoint_of_isPreconnected (hh : Continuous h) {S : Set X}
+    (hS : IsPreconnected S) (hc : ∀ x ∈ S, h x ≠ c) :
+    S ⊆ filledSublevel h c ∨ Disjoint S (filledSublevel h c) := by
+  have hF := isClosed_filledSublevel (c := c) hh
+  have hsub : S ⊆ interior (filledSublevel h c) ∪ (filledSublevel h c)ᶜ := fun x hx ↦ by
+    by_cases hxF : x ∈ filledSublevel h c
+    · refine .inl (by_contra fun hi ↦ hc x hx ?_)
+      exact frontier_filledSublevel_subset hh ⟨subset_closure hxF, hi⟩
+    · exact .inr hxF
+  rcases hS.subset_or_subset isOpen_interior hF.isOpen_compl
+    (disjoint_compl_right.mono_left interior_subset) hsub with h₁ | h₁
+  · exact .inl (h₁.trans interior_subset)
+  · exact .inr (subset_compl_iff_disjoint_right.1 h₁)
+
 /-- **First exit of a curve from a filled sublevel set.** Let `α : ℝ → X` be a continuous curve
 with `α a` in the filled sublevel set `filledSublevel h c` and `α b` outside it, where `a < b`,
 and suppose that each parameter `t ∈ [a, b)` with `h (α t) = c` is followed by an interval on
