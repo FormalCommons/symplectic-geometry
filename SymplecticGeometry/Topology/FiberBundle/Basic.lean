@@ -47,12 +47,16 @@ two trivializations, these inclusions differ by the coordinate change.
   the model fibre under the fibre coordinate, is open.
 * `FiberBundle.nonempty_fiber`: the fibres of a fibre bundle with a nonempty model fibre are
   nonempty.
+* `ContinuousAt.eventually_mem_baseSet_trivializationAt`: a map into the base of a fibre bundle,
+  continuous at `x₀`, takes the points near `x₀` into the base set of the preferred trivialization
+  at its value at `x₀`; Tau Ceti's `Bundle.TotalSpace.eventually_proj_mem_baseSet_trivializationAt`
+  is the case of the projection.
 
 ## Implementation notes
 
 The proof is the trivialization argument of Tau Ceti's `TauCeti.isOpen_zeroSectionCompl`
 (`TauCeti/Topology/VectorBundle/ZeroSection.lean`): the preimage of `Prod.snd ⁻¹' t` under a
-trivialization is open in its source, by `ContinuousOn.isOpen_inter_preimage`.
+trivialization is open in its source, by `OpenPartialHomeomorph.isOpen_inter_preimage`.
 
 ## References
 
@@ -173,7 +177,7 @@ theorem isOpen_of_forall_mem_iff_snd_mem {s : Set (TotalSpace F E)} {t : Set F}
   have hpe : p ∈ e.source := mem_trivializationAt_proj_source
   exact ⟨e.source ∩ e ⁻¹' (Prod.snd ⁻¹' t),
     fun q hq ↦ (h p.proj q hq.1).2 hq.2,
-    e.continuousOn.isOpen_inter_preimage e.open_source (ht.preimage continuous_snd),
+    e.toOpenPartialHomeomorph.isOpen_inter_preimage (ht.preimage continuous_snd),
     hpe, (h p.proj p hpe).1 hp⟩
 
 variable (F E) in
@@ -186,5 +190,16 @@ theorem nonempty_fiber [Nonempty F] (b : B) : Nonempty (E b) :=
   ⟨(homeomorphAt F E b).symm (Classical.arbitrary F)⟩
 
 end FiberBundle
+
+open Bundle Filter Topology in
+/-- A map `f` into the base of a fibre bundle that is continuous at `x₀` takes every point near
+`x₀` into the base set of the preferred trivialization at `f x₀`. -/
+theorem ContinuousAt.eventually_mem_baseSet_trivializationAt {X B : Type*} (F : Type*)
+    (E : B → Type*) [TopologicalSpace X] [TopologicalSpace B] [TopologicalSpace F]
+    [TopologicalSpace (TotalSpace F E)] [∀ b, TopologicalSpace (E b)] [FiberBundle F E]
+    {f : X → B} {x₀ : X} (hf : ContinuousAt f x₀) :
+    ∀ᶠ x in 𝓝 x₀, f x ∈ (trivializationAt F E (f x₀)).baseSet :=
+  hf.eventually_mem ((trivializationAt F E (f x₀)).open_baseSet.mem_nhds
+    (FiberBundle.mem_baseSet_trivializationAt' (f x₀)))
 
 end

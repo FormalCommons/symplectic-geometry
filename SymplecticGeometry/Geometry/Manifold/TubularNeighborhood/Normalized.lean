@@ -13,6 +13,7 @@ import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.TubularNeighborhood.Existence
 import Mathlib.Geometry.Manifold.VectorBundle.Pullback
 import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Quotient
+import TauCeti.Topology.VectorBundle.ZeroSection
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
 import SymplecticGeometry.Topology.VectorBundle.Basic
@@ -129,6 +130,9 @@ applied to `h`, which is differentiable since the tube is a local diffeomorphism
 * `TauCeti.SmoothEmbedding.IsNormalizedTube.hasFDerivAt_trivializationAt_snd`: the fibre coordinate,
   in the preferred trivialization at `x`, of a lift through a normalized tube of a map whose
   derivative has the fibre coordinates as normal classes has derivative the identity.
+* `TauCeti.SmoothEmbedding.IsNormalizedTube.exists_hasMFDerivAt_apply_mk`: the map
+  `w ↦ Φ(x, ψ w)` given by a normalized tube `Φ` and a linear isomorphism `ψ : P ≃ ν_x` meets
+  the range of `f` only at `0`, and has at `0` a derivative whose normal classes are given by `ψ`.
 
 ## References
 
@@ -723,6 +727,69 @@ theorem IsNormalizedTube.hasFDerivAt_trivializationAt_snd {f : SmoothEmbedding I
   have hfd := (TauCeti.Manifold.hasMFDerivAt_totalSpace_iff.1 hd.hasMFDerivAt).2
   rw [h0, zeroSection_proj] at hfd
   exact (hasMFDerivAt_iff_hasFDerivAt.1 hfd).congr_fderiv (ContinuousLinearMap.ext hL)
+
+/-- **A normal slice read through a linear isomorphism.** Let `Φ` be a normalized tube of `f`,
+`x : M`, and `ψ : P ≃ ν_x` a continuous linear isomorphism. The map `g : w ↦ Φ(x, ψ w)` from `P`
+to `N` is continuous, sends `0` to `f x` and no other point into the range of `f`, and has at `0`
+a derivative `A` whose composite with the normal class is `ψ`. -/
+theorem IsNormalizedTube.exists_hasMFDerivAt_apply_mk {f : SmoothEmbedding I J ∞ M N}
+    {hn : (∞ : ℕ∞ω) ≠ 0} {hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E}
+    {W : TopologicalSpace.Opens N}
+    {Φ : letI := f.normalSpaceFiberBundle hn hdim
+      TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W}
+    (hΦ : f.IsNormalizedTube hn hdim Φ) (x : M) (ψ : P ≃L[ℝ] f.NormalSpace x hn) :
+    letI := f.normalSpaceFiberBundle hn hdim
+    Continuous (fun w ↦ (Φ (TotalSpace.mk' P x (ψ w)) : N)) ∧
+      (Φ (TotalSpace.mk' P x (ψ 0)) : N) = f x ∧
+      (∀ w, (Φ (TotalSpace.mk' P x (ψ w)) : N) ∈ Set.range f → w = 0) ∧
+      ∃ A : P →L[ℝ] V, HasMFDerivAt 𝓘(ℝ, P) J (fun w ↦ (Φ (TotalSpace.mk' P x (ψ w)) : N)) 0 A ∧
+        ∀ w, f.normalClassL x hn (A w) = ψ w := by
+  let := f.normalSpaceFiberBundle hn hdim
+  have := f.normalSpaceVectorBundle hn hdim
+  set e := trivializationAt P (fun x ↦ f.NormalSpace x hn) x
+  have hx : x ∈ e.baseSet := mem_baseSet_trivializationAt P _ x
+  set ψ' := ψ.trans (e.continuousLinearEquivAt ℝ x hx)
+  set h : P → TotalSpace P (fun x ↦ f.NormalSpace x hn) := fun w ↦ TotalSpace.mk' P x (ψ w)
+  have hh0 : h 0 = zeroSection P _ x := by
+    simp only [h, map_zero, zeroSection]
+  refine ⟨continuous_subtypeVal.comp (Φ.continuous.comp
+      ((FiberBundle.continuous_totalSpaceMk P _ x).comp ψ.continuous)), ?_, ?_, ?_⟩
+  · rw [map_zero]
+    exact hΦ.apply_zeroSection x
+  · rintro w ⟨z, hz⟩
+    by_contra hw
+    have hs : h w ∈ zeroSectionCompl P (fun x ↦ f.NormalSpace x hn) :=
+      mem_zeroSectionCompl.2 (ψ.map_ne_zero_iff.2 hw)
+    rw [zeroSectionCompl_eq_compl_range] at hs
+    exact hs ⟨z, Φ.injective (Subtype.ext ((hΦ.apply_zeroSection z).trans hz))⟩
+  -- `h` has derivative `w ↦ (0, ψ' w)` at `0`.
+  let L : P →L[ℝ] TangentSpace (I.prod 𝓘(ℝ, P)) (zeroSection P (fun x ↦ f.NormalSpace x hn) x) :=
+    ContinuousLinearMap.inr ℝ E P
+  have hhd : HasMFDerivAt 𝓘(ℝ, P) (I.prod 𝓘(ℝ, P)) h 0 (L.comp (ψ' : P →L[ℝ] P)) := by
+    have hh : h = (fun w ↦ TotalSpace.mk' P (E := fun x ↦ f.NormalSpace x hn) x (e.symm x w)) ∘
+        ψ' :=
+      funext fun w ↦ by simp [h, ψ', e.symm_apply_apply_mk hx]
+    have h₀ : HasMFDerivAt 𝓘(ℝ, P) (I.prod 𝓘(ℝ, P))
+        (fun w ↦ TotalSpace.mk' P (E := fun x ↦ f.NormalSpace x hn) x (e.symm x w)) (ψ' 0) L := by
+      rw [map_zero]
+      exact Bundle.hasMFDerivAt_totalSpaceMk_trivializationAt_symm x 0
+    rw [hh]
+    exact h₀.comp 0 (ψ' : P →L[ℝ] P).hasMFDerivAt
+  -- The chain rule through `Φ`, and the normal class of its derivative.
+  set F : TotalSpace P (fun x ↦ f.NormalSpace x hn) → N := fun p ↦ (Φ p : N)
+  have hF : HasMFDerivAt (I.prod 𝓘(ℝ, P)) J F (h 0)
+      (mfderiv (I.prod 𝓘(ℝ, P)) J F (zeroSection P _ x)) := by
+    rw [hh0]
+    exact ((contMDiff_subtypeVal.comp Φ.contMDiff).mdifferentiableAt (by simp)).hasMFDerivAt
+  set A := (mfderiv (I.prod 𝓘(ℝ, P)) J F (zeroSection P _ x)).comp (L.comp (ψ' : P →L[ℝ] P))
+  refine ⟨A, hF.comp 0 hhd, fun w ↦ ?_⟩
+  simp only [A]
+  refine (hΦ.normalClassL_mfderiv_zeroSection x (L (ψ' w))).trans ?_
+  rw [← e.symm_continuousLinearEquivAt_eq' hx]
+  -- `L v` is `(0, v)`, read in the tangent space `E × P`, which `simp` does not see through.
+  have hL (v : P) : (L v).2 = v := rfl
+  rw [hL]
+  simp [ψ', e.symm_apply_apply_mk hx]
 
 end TauCeti.SmoothEmbedding
 

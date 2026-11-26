@@ -35,6 +35,9 @@ The smoothness at `s = 0` is that of the library's `fiberRescale`
 * `SymplecticGeometry.IsSymplecticBallEmbedding.inv_smul_comp_smul_comp`: the rescaling
   `z ↦ s⁻¹ • j (s • Q z)` of a symplectic embedding `j` of a ball, after a linear map `Q`
   preserving `stdForm`, is a symplectic embedding of a smaller ball.
+* `SymplecticGeometry.IsSymplecticBallEmbedding.comp_continuousLinearMap`: its case `s = 1`.
+* `ContinuousLinearMap.isSymplecticBallEmbedding`: a continuous linear map preserving `stdForm`
+  is a symplectic embedding of every ball.
 * `SymplecticGeometry.IsSymplecticBallFamily.exists_rescaling_family`: the two-parameter family
   joining the identity to `θ` described above.
 
@@ -105,15 +108,42 @@ theorem IsSymplecticBallEmbedding.inv_smul_comp_smul_comp {ρ ρ' s : ℝ}
   rw [fderiv_fun_comp z hd Q.differentiableAt, ContinuousLinearMap.fderiv,
     ContinuousLinearMap.comp_apply, ContinuousLinearMap.comp_apply, hpull, hQ]
 
+/-- Let `j` be a symplectic embedding of `B(ρ)` into `StdSpace (Fin n)` with `ω₀`, and `Q` a
+linear map preserving `stdForm` that maps `B(ρ')` into the open ball of radius `ρ`. Then
+`j ∘ Q` is a symplectic embedding of `B(ρ')`. -/
+theorem IsSymplecticBallEmbedding.comp_continuousLinearMap {ρ ρ' : ℝ}
+    {j : StdSpace (Fin n) → StdSpace (Fin n)}
+    (hj : IsSymplecticBallEmbedding (stdForm (Fin n)).constSmooth ρ j)
+    {Q : StdSpace (Fin n) →L[ℝ] StdSpace (Fin n)}
+    (hQ : ∀ v w, stdForm (Fin n) (Q v) (Q w) = stdForm (Fin n) v w)
+    (hρ' : ∀ z ∈ closedBall 0 ρ', Q z ∈ ball 0 ρ) :
+    IsSymplecticBallEmbedding (stdForm (Fin n)).constSmooth ρ' fun z ↦ j (Q z) := by
+  simpa only [inv_one, one_smul] using
+    hj.inv_smul_comp_smul_comp one_ne_zero hQ fun z hz ↦ by simpa only [one_smul] using hρ' z hz
+
+/-- A continuous linear map of `StdSpace (Fin n)` preserving `stdForm` is a symplectic embedding
+of every ball into `StdSpace (Fin n)` with `ω₀`. -/
+theorem _root_.ContinuousLinearMap.isSymplecticBallEmbedding
+    (Q : StdSpace (Fin n) →L[ℝ] StdSpace (Fin n))
+    (hQ : ∀ v w, stdForm (Fin n) (Q v) (Q w) = stdForm (Fin n) v w) (r : ℝ) :
+    IsSymplecticBallEmbedding (stdForm (Fin n)).constSmooth r Q :=
+  (isSymplecticBallEmbedding_id (‖Q‖ * |r| + 1)).comp_continuousLinearMap hQ fun z hz ↦ by
+    rw [mem_ball_zero_iff]
+    calc ‖Q z‖ ≤ ‖Q‖ * ‖z‖ := Q.le_opNorm z
+      _ ≤ ‖Q‖ * |r| := by
+        gcongr
+        exact (mem_closedBall_zero_iff.1 hz).trans (le_abs_self r)
+      _ < ‖Q‖ * |r| + 1 := lt_add_one _
+
 /-- **Rescaling a family of symplectic germs to its linearization.** Let `θ` be a smooth family
 over `[0, 1]` of symplectic embeddings of `B(ρ)`, `0 < ρ`, into `StdSpace (Fin n)` with `ω₀`, each
 fixing `0`. Let `Q : ℝ × ℝ → (StdSpace (Fin n) →L[ℝ] StdSpace (Fin n))` be smooth, with `Q (t, s)`
 preserving `ω₀` for `(t, s) ∈ [0, 1]²`, `Q (t, 1) = 1` and `dθ_t(0) ∘ Q (t, 0) = 1`. Then there
 are `0 < ρ'` and a family `G : [0, 1] × [0, 1] × StdSpace (Fin n) → StdSpace (Fin n)`, jointly
 smooth near `[0, 1]² × B(ρ')`, such that for each `t`, `s ↦ G (t, s, ·)` is a smooth family of
-symplectic embeddings of `B(ρ')`, `G (t, 0, ·)` is the identity and `G (t, 1, ·) = θ_t`; and
-`G (t, s, ·)` is the identity on `B(ρ')` for all `s` whenever `θ_t` is the identity on `B(ρ)` and
-`Q (t, s) = 1` for all `s`. -/
+symplectic embeddings of `B(ρ')`, `G (t, 0, ·)` is the identity, `G (t, 1, ·) = θ_t` and
+`G (t, s, 0) = 0`; and `G (t, s, ·)` is the identity on `B(ρ')` for all `s` whenever `θ_t` is
+the identity on `B(ρ)` and `Q (t, s) = 1` for all `s`. -/
 theorem IsSymplecticBallFamily.exists_rescaling_family {ρ : ℝ} (hρ : 0 < ρ)
     {θ : unitInterval × StdSpace (Fin n) → StdSpace (Fin n)}
     (hθ : IsSymplecticBallFamily (stdForm (Fin n)).constSmooth ρ θ) (hθ0 : ∀ t, θ (t, 0) = 0)
@@ -127,7 +157,7 @@ theorem IsSymplecticBallFamily.exists_rescaling_family {ρ : ℝ} (hρ : 0 < ρ)
         ContMDiffOn ((𝓡∂ 1).prod ((𝓡∂ 1).prod 𝓘(ℝ, StdSpace (Fin n)))) 𝓘(ℝ, StdSpace (Fin n)) ∞
           G (univ ×ˢ univ ×ˢ U)) ∧
       (∀ t, IsSymplecticBallFamily (stdForm (Fin n)).constSmooth ρ' fun p ↦ G (t, p.1, p.2)) ∧
-      (∀ t z, G (t, 0, z) = z) ∧ (∀ t z, G (t, 1, z) = θ (t, z)) ∧
+      (∀ t z, G (t, 0, z) = z) ∧ (∀ t z, G (t, 1, z) = θ (t, z)) ∧ (∀ t s, G (t, s, 0) = 0) ∧
       (∀ t, (∀ z ∈ closedBall 0 ρ, θ (t, z) = z) → (∀ s : unitInterval, Q (t, s) = 1) →
         ∀ s, ∀ z ∈ closedBall 0 ρ', G (t, s, z) = z) := by
   set ω₀ := (stdForm (Fin n)).constSmooth
@@ -208,7 +238,11 @@ theorem IsSymplecticBallFamily.exists_rescaling_family {ρ : ℝ} (hρ : 0 < ρ)
       fun z hz ↦ hmem t s (hρ'W hz)
   refine ⟨ρ', hρ', G, ⟨W, isOpen_ball, hρ'W, hGs⟩,
     fun t ↦ (isSymplecticBallFamily_def _ _ _).2 ⟨⟨W, isOpen_ball, hρ'W, hslice t⟩, hemb t⟩,
-    hG0, hG1, fun t hid hQid s z hz ↦ ?_⟩
+    hG0, hG1, fun t s ↦ ?_, fun t hid hQid s z hz ↦ ?_⟩
+  · by_cases hs : (s : ℝ) = 0
+    · obtain rfl : s = 0 := Subtype.ext hs
+      exact hG0 t 0
+    rw [congrFun (hGne t s hs) 0, map_zero, smul_zero, hθ0, smul_zero]
   by_cases hs : (s : ℝ) = 0
   · obtain rfl : s = 0 := Subtype.ext hs
     exact hG0 t z

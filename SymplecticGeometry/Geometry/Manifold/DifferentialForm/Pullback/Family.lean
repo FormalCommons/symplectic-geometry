@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Family
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # Slices of families of forms, and pullbacks of families along families of maps
@@ -138,12 +139,8 @@ theorem _root_.ContMDiffAt.mpullback_form_family_of_family {φ : N → RoughForm
   have hp := (hpre.comp_contMDiffAt hd).clm_apply hc
   apply (contMDiffAt_continuousAlternatingMap_bundle _).mpr
   refine ⟨hg, hp.congr_of_eventuallyEq ?_⟩
-  have hmem : (fun p ↦ f p (g p)) ⁻¹'
-      (trivializationAt E' (TangentSpace I') (f p₀ (g p₀))).baseSet ∈ 𝓝 p₀ :=
-    hfg.continuousAt.preimage_mem_nhds
-      ((trivializationAt E' (TangentSpace I') (f p₀ (g p₀))).open_baseSet.mem_nhds
-        (FiberBundle.mem_baseSet_trivializationAt' (f p₀ (g p₀))))
-  filter_upwards [hmem] with p hp
+  filter_upwards [hfg.continuousAt.eventually_mem_baseSet_trivializationAt E' (TangentSpace I')]
+    with p hp
   simpa only [Function.comp_apply, ContinuousAlternatingMap.compContinuousLinearMapCLM_apply]
     using inCoordinates_mpullback_family (I := I) (φ p) f g p₀ p hp
 

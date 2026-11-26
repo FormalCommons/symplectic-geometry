@@ -9,6 +9,7 @@ public import Mathlib.Topology.VectorBundle.ContinuousAlternatingMap
 public import TauCeti.Topology.VectorBundle.Pullback
 public import SymplecticGeometry.Data.Bundle
 public import SymplecticGeometry.Topology.VectorBundle.Coordinates
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # Alternating maps and fibre operations on a pull-back bundle
@@ -125,9 +126,8 @@ theorem eventually_inCoordinates_pullback_trivial (f : K) (x₀ : X) :
     ∀ᶠ x in nhds x₀, ∀ A : V (f x) [⋀^ι]→L[𝕜] G,
       inCoordinates F G (E₁ := (f : X → B) *ᵖ V) (E₂ := Bundle.Trivial X G) x₀ x x₀ x A =
         inCoordinates F G (E₁ := V) (E₂ := Bundle.Trivial B G) (f x₀) (f x) (f x₀) (f x) A := by
-  filter_upwards [(map_continuous f).continuousAt.preimage_mem_nhds
-    ((trivializationAt F V (f x₀)).open_baseSet.mem_nhds
-      (FiberBundle.mem_baseSet_trivializationAt F V (f x₀)))] with x hx A
+  filter_upwards [(map_continuous f).continuousAt.eventually_mem_baseSet_trivializationAt F V]
+    with x hx A
   exact inCoordinates_pullback_trivial_of_mem f x₀ x A hx
 
 end ContinuousAlternatingMap
@@ -163,9 +163,8 @@ theorem eventually_inCoordinates_pullback_bilinear (f : K) (x₀ : X) :
           (fun y ↦ ((f : X → B) *ᵖ V) y →L[𝕜] Trivial X 𝕜 y) x₀ x x₀ x β =
         inCoordinates F V (F →L[𝕜] 𝕜) (fun b ↦ V b →L[𝕜] Trivial B 𝕜 b)
           (f x₀) (f x) (f x₀) (f x) β := by
-  filter_upwards [(map_continuous f).continuousAt.preimage_mem_nhds
-    ((trivializationAt F V (f x₀)).open_baseSet.mem_nhds
-      (FiberBundle.mem_baseSet_trivializationAt F V (f x₀)))] with x hx β
+  filter_upwards [(map_continuous f).continuousAt.eventually_mem_baseSet_trivializationAt F V]
+    with x hx β
   exact inCoordinates_pullback_bilinear_of_mem f x₀ x β hx
 
 end ContinuousLinearMap
