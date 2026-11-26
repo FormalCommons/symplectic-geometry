@@ -8,6 +8,7 @@ module
 public import Mathlib.Topology.Order.IntermediateValue
 public import TauCeti.Topology.FilledIn
 import TauCeti.Topology.Compactness.Compact
+import TauCeti.Topology.Frontier
 
 /-!
 # Filled sublevel sets and the first exit of a curve
@@ -30,7 +31,9 @@ For a function `h : X → ℝ` and a level `c`, `SymplecticGeometry.filledSublev
 for the sublevel set `{x | h x ≤ c}`. For continuous `h` with compact sublevel sets these sets
 form a compact exhaustion of `X`: each is compact, `filledSublevel h c ⊆ interior
 (filledSublevel h c')` for `c < c'`, and they cover `X`. Their frontier lies on the level set
-`{x | h x = c}`.
+`{x | h x = c}`, so a preconnected set on which `h` avoids `c` lies inside or outside
+`filledSublevel h c` (`subset_filledSublevel_or_disjoint_of_isPreconnected`, from Tau Ceti's
+`IsPreconnected.subset_interior_or_subset_compl_closure`).
 
 `IsClosed.exists_mem_Ico_image_Icc_subset_mem_frontier` locates where a curve from a closed set
 to its complement first leaves it: at the infimum `s` of the parameters at which it is outside,
@@ -281,6 +284,16 @@ theorem frontier_filledSublevel_subset (hh : Continuous h) :
   rw [filledSublevel_def]
   exact (IsClosed.frontier_setOfPred_isCompact_closure_connectedComponentIn_compl_subset
     (isClosed_le hh continuous_const)).trans (frontier_le_subset_eq hh continuous_const)
+
+/-- A preconnected set on which `h` never takes the value `c` lies in `filledSublevel h c` or
+misses it, since the frontier of that set lies on the level `c`. -/
+theorem subset_filledSublevel_or_disjoint_of_isPreconnected (hh : Continuous h) {S : Set X}
+    (hS : IsPreconnected S) (hc : ∀ x ∈ S, h x ≠ c) :
+    S ⊆ filledSublevel h c ∨ Disjoint S (filledSublevel h c) := by
+  rcases hS.subset_interior_or_subset_compl_closure (disjoint_left.2 fun x hx hfr ↦
+      hc x hx (frontier_filledSublevel_subset hh hfr)) with h₁ | h₁
+  · exact .inl (h₁.trans interior_subset)
+  · exact .inr (subset_compl_iff_disjoint_right.1 (h₁.trans (compl_subset_compl.2 subset_closure)))
 
 /-- **First exit of a curve from a filled sublevel set.** Let `α : ℝ → X` be a continuous curve
 with `α a` in the filled sublevel set `filledSublevel h c` and `α b` outside it, where `a < b`,
