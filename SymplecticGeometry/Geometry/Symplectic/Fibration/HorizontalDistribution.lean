@@ -37,6 +37,8 @@ of its three arguments are vertical.
 * `TauCeti.SmoothTwoForm.isVerticallyClosed_mpullback`: the pull-back of a two-form on the base
   is vertically closed, so adding it does not change vertical closedness
   (`isVerticallyClosed_add_mpullback_iff`).
+* `TauCeti.SmoothTwoForm.convex_setOfPred_restrictsTo_isVerticallyClosed`: the vertically closed
+  two-forms that restrict to a given form on the fibre along an atlas form a convex set.
 * `IsVerticallyNondegenerate.isContMDiffDistribution_horizontalDistribution`:
   for a smooth submersion, the horizontal spaces of a vertically nondegenerate form are a smooth
   distribution of the rank of the base.
@@ -157,6 +159,24 @@ theorem isVerticallyClosed_add_mpullback_iff [IsManifold IB ∞ B]
     IsVerticallyClosed IB proj (τ + SmoothForm.mpullback proj hproj β) ↔
       IsVerticallyClosed IB proj τ :=
   (isVerticallyClosed_mpullback hproj β).add_right_iff
+
+section RestrictsTo
+
+variable {EF : Type*} [NormedAddCommGroup EF] [NormedSpace ℝ EF] {HF : Type*}
+  [TopologicalSpace HF] {IF : ModelWithCorners ℝ EF HF} {F : Type*} [TopologicalSpace F]
+  [ChartedSpace HF F] [IsManifold IF ∞ F]
+
+variable (IB) in
+/-- The two-forms on `M` that restrict to `σ` along an atlas `A` of `proj` and are vertically
+closed form a convex set. -/
+theorem convex_setOfPred_restrictsTo_isVerticallyClosed (A : MapFiber.Atlas F proj)
+    (σ : SmoothTwoForm IF F) :
+    Convex ℝ {τ : SmoothTwoForm IM M | A.RestrictsTo σ τ ∧ IsVerticallyClosed IB proj τ} :=
+  fun _ (h₁ : _ ∧ _) _ (h₂ : _ ∧ _) _ _ ha hb hab ↦
+    ⟨MapFiber.Atlas.convex_setOfPred_restrictsTo A σ h₁.1 h₂.1 ha hb hab,
+      (h₁.2.smul _).add (h₂.2.smul _)⟩
+
+end RestrictsTo
 
 /-! ### The horizontal spaces of a two-form -/
 
