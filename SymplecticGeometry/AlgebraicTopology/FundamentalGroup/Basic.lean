@@ -8,18 +8,22 @@ module
 public import Mathlib.AlgebraicTopology.FundamentalGroupoid.FundamentalGroup
 
 /-!
-# The basepoint-transported induced map on the class of a loop
+# The class of a loop in the fundamental group
 
 Mathlib's `FundamentalGroup.mapOfEq f h : π₁(X, x) →* π₁(Y, y)`, for `f : C(X, Y)` and
 `h : f x = y`, sends the class of a loop `γ` at `x` to the class of the loop `f ∘ γ`, read at
 `y` through `h`. This file states that on the class of a loop, as a rewrite rule, to go with
 `FundamentalGroup.mapOfEq_apply`, which states it on an element of `π₁(X, x)` in the
-fundamental groupoid.
+fundamental groupoid. It also states how concatenation and reversal of loops read on their
+classes.
 
 ## Main results
 
 * `FundamentalGroup.mapOfEq_fromPath_mk`: `mapOfEq f h` sends the class of `γ` to the class of
   `(γ.map f.continuous).cast h.symm h.symm`.
+* `FundamentalGroup.fromPath_mk_trans`, `FundamentalGroup.fromPath_mk_symm`: the class of a
+  concatenation of loops is the product of their classes, in the reverse order, and the class of
+  a reversed loop is the inverse.
 -/
 
 public section
@@ -34,6 +38,18 @@ theorem mapOfEq_fromPath_mk (f : C(X, Y)) (h : f x = y) (γ : Path x x) :
     mapOfEq f h (fromPath (Path.Homotopic.Quotient.mk γ)) =
       fromPath (Path.Homotopic.Quotient.mk ((γ.map f.continuous).cast h.symm h.symm)) := by
   rw [mapOfEq_apply, ← Path.Homotopic.Quotient.mk_map, ← Path.Homotopic.Quotient.mk_cast]
+
+/-- The class of the concatenation `p · q` of two loops is the product of their classes in the
+reverse order: in Mathlib's `FundamentalGroup`, `g * h` is the class of `h` followed by `g`. -/
+theorem fromPath_mk_trans (p q : Path x x) :
+    fromPath (Path.Homotopic.Quotient.mk (p.trans q)) =
+      fromPath (Path.Homotopic.Quotient.mk q) * fromPath (Path.Homotopic.Quotient.mk p) :=
+  (rfl)
+
+/-- The class of the reversed loop is the inverse of the class. -/
+theorem fromPath_mk_symm (p : Path x x) :
+    fromPath (Path.Homotopic.Quotient.mk p.symm) = (fromPath (Path.Homotopic.Quotient.mk p))⁻¹ :=
+  (rfl)
 
 end FundamentalGroup
 
