@@ -80,11 +80,8 @@ theorem mpullback_mul_planeAngularForm {a : ℂ} (ha : ‖a‖ = 1) :
   rw [← one_smul ℝ (planeAngularForm z)]
   refine mpullback_planeAngularForm_eq_smul_of_hasFDerivAt
     ((hasFDerivAt_id z).const_mul a) fun v ↦ ?_
-  simp only [smul_apply, ContinuousLinearMap.id_apply, id, smul_eq_mul,
-    map_mul, one_mul]
-  rw [show (starRingEnd ℂ) a * (starRingEnd ℂ) z * (a * v) =
-      ((starRingEnd ℂ) a * a) * ((starRingEnd ℂ) z * v) by ring, Complex.conj_mul', ha]
-  simp
+  simp only [smul_apply, ContinuousLinearMap.id_apply, id, smul_eq_mul, one_mul]
+  rw [Circle.conj_coe_mul_mul_coe_mul ⟨a, mem_sphere_zero_iff_norm.2 ha⟩ z v]
 
 /-! ### The plane angular form under powers and radial projection -/
 

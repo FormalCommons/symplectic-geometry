@@ -9,6 +9,7 @@ public import SymplecticGeometry.Analysis.Distribution.LinearEquiv
 public import SymplecticGeometry.Analysis.Distribution.OfFun
 public import TauCeti.Analysis.Distribution.Restriction
 public import TauCeti.Analysis.Distribution.SingularSupport
+import SymplecticGeometry.Analysis.Calculus.ContDiff.Basis
 import TauCeti.Analysis.Calculus.IteratedFDeriv.Basic
 
 /-!
@@ -309,8 +310,8 @@ theorem exists_contDiffOn_ae_eq_of_singularSupport_coordOfFun_eq_empty
 theorem singularSupport_coordOfFun_eq_empty (hw : ContDiffOn ℝ ∞ w U) (i : ι) :
     (coordOfFun e hΩ b w μ i).singularSupport = ∅ := by
   have hc : ContDiffOn ℝ ∞ (fun z ↦ (b.repr (w (e.symm z)) i : ℂ)) Ω :=
-    (Complex.ofRealCLM.comp (b.coord i).toContinuousLinearMap).contDiff.comp_contDiffOn
-      (hw.comp e.symm.contDiff.contDiffOn fun z hz ↦ hΩ hz)
+    Complex.ofRealCLM.contDiff.comp_contDiffOn
+      (b.contDiffOn_repr (hw.comp e.symm.contDiff.contDiffOn fun z hz ↦ hΩ hz) i)
   -- After the change of variables `x = e⁻¹ z`, it is a multiple of the distribution of a function
   -- smooth on `Ω`.
   rw [coordOfFun_def, transportCLM_ofFun_of_isAddHaarMeasure e.symm hΩ μ volume
