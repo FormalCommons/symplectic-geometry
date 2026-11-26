@@ -430,26 +430,10 @@ private theorem norm_sub_update (i₀ : Fin m) (x : (Fin m → ℝ) × (Fin k �
   rw [Prod.norm_def]
   simp [h, Pi.norm_single, Real.norm_eq_abs]
 
-/-- The coordinate projection of `Fin m → ℝ` onto the coordinates in `s`. -/
-private noncomputable def coordProj (s : Finset (Fin m)) : (Fin m → ℝ) →L[ℝ] (Fin m → ℝ) :=
-  ContinuousLinearMap.pi fun i ↦ if i ∈ s then ContinuousLinearMap.proj i else 0
-
-private theorem coordProj_apply (s : Finset (Fin m)) (u : Fin m → ℝ) (i : Fin m) :
-    coordProj s u i = if i ∈ s then u i else 0 := by
-  simp only [coordProj, ContinuousLinearMap.pi_apply]
-  split_ifs <;> simp
-
-private theorem norm_coordProj_apply_le (s : Finset (Fin m)) (u : Fin m → ℝ) :
-    ‖coordProj s u‖ ≤ ‖u‖ :=
-  (pi_norm_le_iff_of_nonneg (norm_nonneg u)).2 fun i ↦ by
-    rw [coordProj_apply]
-    split_ifs
-    · exact norm_le_pi_norm u i
-    · simp
-
 /-- A step of `exists_holonomic_approximation_zigzag`: on the part of the curve where it is used,
-each section of the chain is `C¹`-close to `(f, G)`. These are `f` near the end points, where
-`(f, G)` is holonomic, and in between the Taylor maps at the crossings within `r` of the point. -/
+each section of the chain is `C¹`-close to `(f, G)`. These are `f` near the faces `u i₀ = ± 1`,
+where `(f, G)` is holonomic, and in between the Taylor maps at the crossings within `r` of the
+point. -/
 private theorem zigzag_section_estimate (i₀ : Fin m) {n : ℕ} {F : Type*} [NormedAddCommGroup F]
     [NormedSpace ℝ F] {f : (Fin m → ℝ) × (Fin k → ℝ) → F}
     {G : (Fin m → ℝ) × (Fin k → ℝ) → (Fin m → ℝ) × (Fin k → ℝ) →L[ℝ] F}
@@ -477,7 +461,7 @@ private theorem zigzag_section_estimate (i₀ : Fin m) {n : ℕ} {F : Type*} [No
   have hx1' := abs_le.1 hx1
   have h2η : 0 ≤ 2 * η := by positivity
   rcases Nat.eq_zero_or_pos l with rfl | hl0
-  · -- `f`, near the left end point.
+  · -- `f`, near the face `u i₀ = -1`.
     have h := h₂ 0 rfl
     rw [hS0, sub_self, norm_zero, hhol (-1) (by norm_num) ?_, sub_self, norm_zero]
     · exact ⟨mul_nonneg hM'0 ((norm_nonneg _).trans hx2), h2η⟩
@@ -503,7 +487,7 @@ private theorem zigzag_section_estimate (i₀ : Fin m) {n : ℕ} {F : Type*} [No
     rw [show S (m + 1) x = _ from hST ⟨m, by omega⟩ hm]
     exact ⟨t₁.trans (mul_le_mul (hM' _ (haK _ hcl)) hxa (norm_nonneg _) hM'0),
       hSd ⟨m, by omega⟩ hm hxa⟩
-  · -- `f`, near the right end point.
+  · -- `f`, near the face `u i₀ = 1`.
     have h := h₁ (Fin.last n) (by simp)
     rw [hSn, sub_self, norm_zero, hhol 1 (by norm_num) ?_, sub_self, norm_zero]
     · exact ⟨mul_nonneg hM'0 ((norm_nonneg _).trans hx2), h2η⟩
@@ -632,6 +616,98 @@ private theorem zigzag_curve_estimate {n : ℕ} {F : Type*} [NormedAddCommGroup 
     have := hB l hl (fun i h ↦ by linarith [h₁ i (by omega)]) (fun i h ↦ by linarith [h₀ i h.ge])
     exact ⟨this.1.trans_lt hrε, this.2.trans_lt (by linarith)⟩
 
+/-- A step of `exists_holonomic_approximation_zigzag`: the Taylor map of `(f, G)` at the moving
+base point `Q' y + (eᵢ₀ s, 0) = (update y.1 i₀ s, 0)` has, at a point `x` within `r` of its base
+point, derivative within `2 η` of `G' x`, for a field `G'` that equals
+`D f ∘ Q' + G ∘ (1 - Q')` at the base point. This needs a bound `MH` on the derivative of
+`u ↦ G (update u i₀ s, 0)` at `x.1`, with `MH r ≤ η`, and `G'` to vary by at most `η` between
+the base point and `x`. -/
+private theorem zigzag_taylor_fderiv_estimate (i₀ : Fin m) {F : Type*} [NormedAddCommGroup F]
+    [NormedSpace ℝ F] {f : (Fin m → ℝ) × (Fin k → ℝ) → F}
+    {G G' : (Fin m → ℝ) × (Fin k → ℝ) → (Fin m → ℝ) × (Fin k → ℝ) →L[ℝ] F}
+    (Q' : (Fin m → ℝ) × (Fin k → ℝ) →L[ℝ] (Fin m → ℝ) × (Fin k → ℝ))
+    {x : (Fin m → ℝ) × (Fin k → ℝ)} {s MH r η : ℝ}
+    (hQp : Q' x + (Pi.single i₀ s, 0) = (Function.update x.1 i₀ s, 0))
+    (hG' : G' (Function.update x.1 i₀ s, 0) =
+      (fderiv ℝ f (Function.update x.1 i₀ s, 0)).comp Q' +
+        (G (Function.update x.1 i₀ s, 0)).comp (ContinuousLinearMap.id ℝ _ - Q'))
+    (hf : DifferentiableAt ℝ f (Function.update x.1 i₀ s, 0))
+    (hGs : DifferentiableAt ℝ (fun u : Fin m → ℝ ↦ G (Function.update u i₀ s, 0)) x.1)
+    (hMH : ‖fderiv ℝ (fun u : Fin m → ℝ ↦ G (Function.update u i₀ s, 0)) x.1‖ ≤ MH)
+    (hMH0 : 0 ≤ MH) (hxr : ‖x - (Function.update x.1 i₀ s, 0)‖ ≤ r) (hrH : MH * r ≤ η)
+    (hG'x : ‖G' (Function.update x.1 i₀ s, 0) - G' x‖ ≤ η) :
+    ‖fderiv ℝ (fun y ↦ f (Q' y + (Pi.single i₀ s, 0)) +
+      G (Function.update y.1 i₀ s, 0) (y - (Q' y + (Pi.single i₀ s, 0)))) x - G' x‖ ≤ 2 * η := by
+  have hΓ : HasFDerivAt (fun y : (Fin m → ℝ) × (Fin k → ℝ) ↦ G (Function.update y.1 i₀ s, 0))
+      ((fderiv ℝ (fun u : Fin m → ℝ ↦ G (Function.update u i₀ s, 0)) x.1).comp
+        (ContinuousLinearMap.fst ℝ _ _)) x :=
+    hGs.hasFDerivAt.comp x hasFDerivAt_fst
+  have h₁ := norm_fderiv_taylor_affine_sub_le
+    (Γ := fun y : (Fin m → ℝ) × (Fin k → ℝ) ↦ G (Function.update y.1 i₀ s, 0)) Q'
+    (Pi.single i₀ s, 0) x (by rw [hQp]; exact hf) hΓ.differentiableAt
+  rw [hΓ.fderiv, hQp, ← hG'] at h₁
+  have hΓn : ‖(fderiv ℝ (fun u : Fin m → ℝ ↦ G (Function.update u i₀ s, 0)) x.1).comp
+      (ContinuousLinearMap.fst ℝ (Fin m → ℝ) (Fin k → ℝ))‖ ≤ MH :=
+    (ContinuousLinearMap.opNorm_comp_le _ _).trans
+      ((mul_le_of_le_one_right (norm_nonneg _) (ContinuousLinearMap.norm_fst_le ..)).trans hMH)
+  have h₃ := h₁.trans ((mul_le_mul hΓn hxr (norm_nonneg _) hMH0).trans hrH)
+  refine (norm_sub_le_norm_sub_add_norm_sub _ (G' (Function.update x.1 i₀ s, 0)) _).trans ?_
+  linarith
+
+/-- A step of `exists_holonomic_approximation_zigzag`: let `Q'` keep the core coordinates other
+than `i₀`, let `P` keep the core directions `insert i₀ J'` and the transverse ones, and let
+`G' = D f ∘ Q' + G ∘ (1 - Q')`. If `D f` agrees with `G` on the core vectors in the directions
+`J'` over the core cube, then within some `δE > 0` of the cube, `G'` and `G` agree on the image of
+`P` up to `ε`: `‖(A - G y) ∘ P‖ < ‖A - G' y‖ + ε` for every linear map `A`. -/
+private theorem exists_zigzag_defect_lt (i₀ : Fin m) {J' : Finset (Fin m)} {F : Type*}
+    [NormedAddCommGroup F] [NormedSpace ℝ F] {f : (Fin m → ℝ) × (Fin k → ℝ) → F}
+    {G G' : (Fin m → ℝ) × (Fin k → ℝ) → (Fin m → ℝ) × (Fin k → ℝ) →L[ℝ] F}
+    {Q' P : (Fin m → ℝ) × (Fin k → ℝ) →L[ℝ] (Fin m → ℝ) × (Fin k → ℝ)}
+    (hQ' : ∀ y, Q' y = (Function.update y.1 i₀ 0, 0))
+    (hP : ∀ y, P y = (ContinuousLinearMap.coordProj (𝕜 := ℝ) (insert i₀ J') y.1, y.2))
+    (hfd : Continuous (fderiv ℝ f)) (hG : Continuous G)
+    (hG' : ∀ y, G' y = (fderiv ℝ f y).comp Q' + (G y).comp (ContinuousLinearMap.id ℝ _ - Q'))
+    (hJ' : ∀ u ∈ Metric.closedBall (0 : Fin m → ℝ) 1, ∀ v : Fin m → ℝ, (∀ i ∉ J', v i = 0) →
+      fderiv ℝ f (u, 0) (v, 0) = G (u, 0) (v, 0))
+    {ε : ℝ} (hε : 0 < ε) :
+    ∃ δE > 0, ∀ u ∈ Metric.closedBall (0 : Fin m → ℝ) 1, ∀ y, dist y (u, 0) < δE →
+      ∀ A : (Fin m → ℝ) × (Fin k → ℝ) →L[ℝ] F, ‖(A - G y).comp P‖ < ‖A - G' y‖ + ε := by
+  have hGG' : ∀ y, G' y - G y = (fderiv ℝ f y - G y).comp Q' := fun y ↦
+    ContinuousLinearMap.ext fun w ↦ by simp [hG']; abel
+  have hPn : ‖P‖ ≤ 1 := ContinuousLinearMap.opNorm_le_bound _ zero_le_one fun y ↦ by
+    rw [one_mul, hP, Prod.norm_def, Prod.norm_def]
+    exact max_le_max (ContinuousLinearMap.norm_coordProj_apply_le _ _) le_rfl
+  -- The defect `(D f - G) ∘ Q' ∘ P` vanishes on the cube, so it is small near it.
+  have hO : IsOpen {y | ‖(fderiv ℝ f y - G y).comp (Q'.comp P)‖ < ε} :=
+    isOpen_lt (((hfd.sub hG).clm_comp continuous_const).norm) continuous_const
+  have hBO : Metric.closedBall (0 : Fin m → ℝ) 1 ×ˢ {(0 : Fin k → ℝ)} ⊆
+      {y | ‖(fderiv ℝ f y - G y).comp (Q'.comp P)‖ < ε} := by
+    rintro ⟨u, v⟩ ⟨hu, hv⟩
+    rw [mem_singleton_iff] at hv
+    subst hv
+    have : (fderiv ℝ f (u, 0) - G (u, 0)).comp (Q'.comp P) = 0 :=
+      ContinuousLinearMap.ext fun w ↦ by
+        simp only [ContinuousLinearMap.comp_apply, sub_apply,
+          zero_apply, hQ']
+        rw [hJ' u hu _ fun i hi ↦ ?_, sub_self]
+        rcases eq_or_ne i i₀ with rfl | h
+        · simp
+        · rw [Function.update_of_ne h]
+          simp [hP, h, hi]
+    rw [mem_ofPred_eq, this, norm_zero]
+    exact hε
+  obtain ⟨δE, hδE, hδEO⟩ := ((isCompact_closedBall (0 : Fin m → ℝ) 1).prod
+    (isCompact_singleton (x := (0 : Fin k → ℝ)))).exists_thickening_subset_open hO hBO
+  refine ⟨δE, hδE, fun u hu y hy A ↦ ?_⟩
+  have hyO := hδEO (Metric.mem_thickening_iff.2 ⟨(u, 0), ⟨hu, rfl⟩, hy⟩)
+  rw [mem_ofPred_eq] at hyO
+  have hsplit : (A - G y).comp P = (A - G' y).comp P + (fderiv ℝ f y - G y).comp (Q'.comp P) := by
+    rw [← ContinuousLinearMap.comp_assoc, ← hGG', ← ContinuousLinearMap.add_comp,
+      sub_add_sub_cancel]
+  rw [hsplit]
+  refine (norm_add_le _ _).trans_lt (add_lt_add_of_le_of_lt ?_ hyO)
+  exact (ContinuousLinearMap.opNorm_comp_le _ _).trans (mul_le_of_le_one_right (norm_nonneg _) hPn)
+
 /-- **Holonomic approximation along a zig-zag in one direction of a cube.** On
 `D = (Fin m → ℝ) × (Fin k → ℝ)` with sup norms, fix a core direction `i₀`, a transverse direction
 `j` and a set `J'` of core directions. Let `(f, G)` be a formal section with `f` smooth and `G`
@@ -671,7 +747,6 @@ theorem exists_holonomic_approximation_zigzag (i₀ : Fin m) (j : Fin k) {J' : F
         (∀ i ∉ insert i₀ J', w.1 i = 0) → ‖(fderiv ℝ f' x - G x) w‖ ≤ ε * ‖w‖) ∧
       ∃ U' ∈ 𝓝ˢ ({u ∈ Metric.closedBall (0 : Fin m → ℝ) 1 | |u i₀| = 1} ×ˢ {0}),
         Set.EqOn f' f U' := by
-  classical
   set B : Set (Fin m → ℝ) := Metric.closedBall 0 1
   have hB1 : ∀ u ∈ B, |u i₀| ≤ 1 := fun u hu ↦ by
     rw [← Real.norm_eq_abs]; exact (norm_le_pi_norm u i₀).trans (mem_closedBall_zero_iff.1 hu)
@@ -684,17 +759,17 @@ theorem exists_holonomic_approximation_zigzag (i₀ : Fin m) (j : Fin k) {J' : F
   -- `Q'` keeps the core coordinates other than `i₀`; `P` keeps the directions `insert i₀ J'`.
   set Q' : (Fin m → ℝ) × (Fin k → ℝ) →L[ℝ] (Fin m → ℝ) × (Fin k → ℝ) :=
     (ContinuousLinearMap.inl ℝ (Fin m → ℝ) (Fin k → ℝ)).comp
-      ((coordProj (Finset.univ.erase i₀)).comp (ContinuousLinearMap.fst ℝ _ _)) with hQ'
+      ((ContinuousLinearMap.coordProj (Finset.univ.erase i₀)).comp
+        (ContinuousLinearMap.fst ℝ _ _)) with hQ'
   have hQ'_apply : ∀ y, Q' y = (Function.update y.1 i₀ 0, 0) := fun y ↦ by
     ext i
-    · rcases eq_or_ne i i₀ with rfl | h <;> simp [coordProj_apply, *]
+    · rcases eq_or_ne i i₀ with rfl | h <;> simp [*]
     · simp [hQ']
   set P : (Fin m → ℝ) × (Fin k → ℝ) →L[ℝ] (Fin m → ℝ) × (Fin k → ℝ) :=
-    (coordProj (insert i₀ J')).prodMap (ContinuousLinearMap.id ℝ (Fin k → ℝ)) with hP
-  have hP_apply : ∀ y, P y = (coordProj (insert i₀ J') y.1, y.2) := fun y ↦ rfl
-  have hPn : ‖P‖ ≤ 1 := ContinuousLinearMap.opNorm_le_bound _ zero_le_one fun y ↦ by
-    rw [one_mul, hP_apply, Prod.norm_def, Prod.norm_def]
-    exact max_le_max (norm_coordProj_apply_le _ _) le_rfl
+    (ContinuousLinearMap.coordProj (insert i₀ J')).prodMap
+      (ContinuousLinearMap.id ℝ (Fin k → ℝ)) with hP
+  have hP_apply : ∀ y, P y = (ContinuousLinearMap.coordProj (𝕜 := ℝ) (insert i₀ J') y.1, y.2) :=
+    fun ⟨_, _⟩ ↦ by simp [hP]
   -- `G'` is `D f` on the core directions other than `i₀`, and `G` on the others.
   have hfd : Continuous (fderiv ℝ f) := hf.continuous_fderiv (by simp)
   set G' : (Fin m → ℝ) × (Fin k → ℝ) → (Fin m → ℝ) × (Fin k → ℝ) →L[ℝ] F := fun y ↦
@@ -702,31 +777,11 @@ theorem exists_holonomic_approximation_zigzag (i₀ : Fin m) (j : Fin k) {J' : F
   have hG' : Continuous G' := (hfd.clm_comp continuous_const).add (hG.clm_comp continuous_const)
   have hUf' : ∀ x ∈ U, fderiv ℝ f x = G' x := fun x hx ↦ ContinuousLinearMap.ext fun w ↦ by
     simp [hG'_def, hUf x hx]
-  have hGG' : ∀ y, G' y - G y = (fderiv ℝ f y - G y).comp Q' := fun y ↦
-    ContinuousLinearMap.ext fun w ↦ by simp [hG'_def]; abel
   -- `G'` and `G` agree in the directions `insert i₀ J'` near the core cube.
   set ε₂ := ε / 2 with hε₂
   have hε₂0 : 0 < ε₂ := by positivity
-  have hO : IsOpen {y | ‖(fderiv ℝ f y - G y).comp (Q'.comp P)‖ < ε₂} :=
-    isOpen_lt (((hfd.sub hG).clm_comp continuous_const).norm) continuous_const
-  have hBO : B ×ˢ {(0 : Fin k → ℝ)} ⊆ {y | ‖(fderiv ℝ f y - G y).comp (Q'.comp P)‖ < ε₂} := by
-    rintro ⟨u, v⟩ ⟨hu, hv⟩
-    rw [mem_singleton_iff] at hv
-    subst hv
-    have : (fderiv ℝ f (u, 0) - G (u, 0)).comp (Q'.comp P) = 0 :=
-      ContinuousLinearMap.ext fun w ↦ by
-        simp only [ContinuousLinearMap.comp_apply, sub_apply, zero_apply, hQ'_apply]
-        rw [hJ' u hu _ fun i hi ↦ ?_, sub_self]
-        rcases eq_or_ne i i₀ with rfl | h
-        · simp
-        · rw [Function.update_of_ne h]
-          simp [hP_apply, coordProj_apply, h, hi]
-    -- unfold the set-builder membership
-    change ‖_‖ < ε₂
-    rw [this, norm_zero]
-    exact hε₂0
-  obtain ⟨δE, hδE, hδEO⟩ := ((isCompact_closedBall (0 : Fin m → ℝ) 1).prod
-    (isCompact_singleton (x := (0 : Fin k → ℝ)))).exists_thickening_subset_open hO hBO
+  obtain ⟨δE, hδE, hδEO⟩ := exists_zigzag_defect_lt (G' := G') i₀ hQ'_apply hP_apply hfd hG
+    (fun y ↦ by rw [hG'_def]) hJ' hε₂0
   -- `f` is holonomic within `δ` of the faces `|u i₀| = 1`.
   have hKf : IsCompact ({u ∈ B | |u i₀| = 1} ×ˢ ({0} : Set (Fin k → ℝ))) :=
     ((isCompact_closedBall _ _).inter_right
@@ -806,30 +861,12 @@ theorem exists_holonomic_approximation_zigzag (i₀ : Fin m) (j : Fin k) {J' : F
   have hTd : ∀ x : (Fin m → ℝ) × (Fin k → ℝ), x.1 ∈ B → ∀ s, |s| ≤ 1 →
       ‖x - (Function.update x.1 i₀ s, 0)‖ ≤ r → ‖fderiv ℝ (T s) x - G' x‖ ≤ 2 * η := by
     intro x hx s hs hxr
-    have hGsx : DifferentiableAt ℝ (fun u : Fin m → ℝ ↦ G (Function.update u i₀ s, 0)) x.1 :=
-      (hGs s).differentiable (by simp) _
-    have hΓ : HasFDerivAt (fun y : (Fin m → ℝ) × (Fin k → ℝ) ↦ G (Function.update y.1 i₀ s, 0))
-        ((fderiv ℝ (fun u : Fin m → ℝ ↦ G (Function.update u i₀ s, 0)) x.1).comp
-          (ContinuousLinearMap.fst ℝ _ _)) x :=
-      hGsx.hasFDerivAt.comp x (hasFDerivAt_fst)
-    have h₁ := norm_fderiv_taylor_affine_sub_le
-      (Γ := fun y : (Fin m → ℝ) × (Fin k → ℝ) ↦ G (Function.update y.1 i₀ s, 0)) Q' (p₀ s) x
-      (hf.differentiable (by simp) _) hΓ.differentiableAt
-    rw [hΓ.fderiv, hQp] at h₁
-    have hΓn : ‖(fderiv ℝ (fun u : Fin m → ℝ ↦ G (Function.update u i₀ s, 0)) x.1).comp
-        (ContinuousLinearMap.fst ℝ (Fin m → ℝ) (Fin k → ℝ))‖ ≤ MH' := by
-      refine (ContinuousLinearMap.opNorm_comp_le _ _).trans ?_
-      refine (mul_le_of_le_one_right (norm_nonneg _) (ContinuousLinearMap.norm_fst_le ..)).trans ?_
-      have := hMH (x.1, s) ⟨hx, (abs_le.1 hs).1, (abs_le.1 hs).2⟩
-      linarith [le_max_left MH 0]
     have h₂ := (hTay _ (haK x hx s hs) x (hxr.trans_lt hrρT)).2.1
     rw [fderiv_taylor] at h₂
-    have h₃ : ‖fderiv ℝ (T s) x - G' (Function.update x.1 i₀ s, 0)‖ ≤ η :=
-      h₁.trans ((mul_le_mul hΓn hxr (norm_nonneg _) hMH'.le).trans hrH)
-    calc ‖fderiv ℝ (T s) x - G' x‖
-        ≤ ‖fderiv ℝ (T s) x - G' (Function.update x.1 i₀ s, 0)‖ +
-          ‖G' (Function.update x.1 i₀ s, 0) - G' x‖ := norm_sub_le_norm_sub_add_norm_sub _ _ _
-      _ ≤ 2 * η := by linarith
+    have hMHx := hMH (x.1, s) ⟨hx, (abs_le.1 hs).1, (abs_le.1 hs).2⟩
+    exact zigzag_taylor_fderiv_estimate i₀ Q' (hQp x s) (by rw [hG'_def])
+      (hf.differentiable (by simp) _) ((hGs s).differentiable (by simp) _)
+      (by linarith [le_max_left MH 0]) hMH'.le hxr hrH h₂
   -- The sections: `f`, then the Taylor maps at `c 0, …, c (n - 1)`, then `f`.
   set S : ℕ → (Fin m → ℝ) × (Fin k → ℝ) → F := fun l ↦
     if h : 0 < l ∧ l ≤ n then T (c ⟨l - 1, by omega⟩) else f with hS_def
@@ -870,33 +907,13 @@ theorem exists_holonomic_approximation_zigzag (i₀ : Fin m) (j : Fin k) {J' : F
         continuous_const).norm) continuous_const)
   · -- On the curve, `G'` and `G` agree in the directions of `P` up to `ε / 2`.
     obtain ⟨e₀, e₁⟩ := hcurve u hu
-    have hXE : X u ∈ {y | ‖(fderiv ℝ f y - G y).comp (Q'.comp P)‖ < ε₂} := by
-      refine hδEO (Metric.mem_thickening_iff.2 ⟨(u, 0), ⟨hu, rfl⟩, ?_⟩)
+    have hXu : dist (X u) (u, 0) < δE := by
       rw [Prod.dist_eq, dist_self, dist_zero_right]
       exact (max_le hr.le (hX2 u)).trans_lt hrE
-    have hsplit : (fderiv ℝ f' (X u) - G (X u)).comp P =
-        (fderiv ℝ f' (X u) - G' (X u)).comp P + (fderiv ℝ f (X u) - G (X u)).comp (Q'.comp P) := by
-      rw [← ContinuousLinearMap.comp_assoc, ← hGG', ← ContinuousLinearMap.add_comp,
-        sub_add_sub_cancel]
-    refine ⟨e₀.trans (by linarith), ?_⟩
-    rw [hsplit]
-    refine (norm_add_le _ _).trans_lt ?_
-    have : ‖(fderiv ℝ f' (X u) - G' (X u)).comp P‖ < ε₂ :=
-      (ContinuousLinearMap.opNorm_comp_le _ _).trans_lt
-        ((mul_le_of_le_one_right (norm_nonneg _) hPn).trans_lt e₁)
-    have hXE' : ‖(fderiv ℝ f (X u) - G (X u)).comp (Q'.comp P)‖ < ε₂ := hXE
-    linarith
+    exact ⟨e₀.trans (by linarith), (hδEO u hu (X u) hXu _).trans (by linarith)⟩
   · -- In the directions of `P`, the derivative error is that of the projected one.
     refine ⟨hx.1, fun v hv ↦ ?_⟩
-    have hPv : P v = v := by
-      rw [hP_apply]
-      ext i
-      · dsimp only
-        rw [coordProj_apply]
-        split_ifs with h
-        · rfl
-        · exact (hv i h).symm
-      · rfl
+    have hPv : P v = v := by rw [hP_apply, ContinuousLinearMap.coordProj_apply_eq_self hv]
     calc ‖(fderiv ℝ f' x - G x) v‖ = ‖((fderiv ℝ f' x - G x).comp P) v‖ := by
           rw [ContinuousLinearMap.comp_apply, hPv]
       _ ≤ ‖(fderiv ℝ f' x - G x).comp P‖ * ‖v‖ := ContinuousLinearMap.le_opNorm _ _

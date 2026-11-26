@@ -470,9 +470,9 @@ needed for it.
    `pₗ x := (Function.update x.1 i₀ (c l), 0)`. Their derivative in a
    direction `w` of `insert i₀ J'` is `G (pₗ x) w` up to the holonomy defect
    of `(f, G)` in the directions `J'` at `pₗ x`, which the hypothesis makes
-   `0`, and a term bounded by `‖fderiv ℝ G‖ ‖x - pₗ x‖`, small with `r` and
-   the mesh. The chain is `exists_zigzag_chain`, which already takes `m`
-   and `i₀`, with `S 0 = S (n + 1) = f` near the faces `|u i₀| = 1`. The
+   `0` on the cube, so that it is small near the cube, and a term bounded by
+   `‖fderiv ℝ G‖ ‖x - pₗ x‖`, small with `r` and the mesh. The chain is
+   `exists_zigzag_chain`, which already takes `m` and `i₀`, with `S 0 = S (n + 1) = f` near the faces `|u i₀| = 1`. The
    estimates `zigzag_section_estimate`, `zigzag_neighbour_estimate` and
    `zigzag_curve_estimate` become uniform over the other coordinates by
    compactness of the cube. Besides `Continuous G`, the hypothesis on `G` is

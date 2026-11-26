@@ -85,12 +85,11 @@ theorem exists_holonomic_approximation_segment {k : ℕ} (hk : 0 < k)
     ext u
     simp only [mem_ofPred_eq, mem_closedBall_zero_iff, mem_sphere_zero_iff_norm, hnorm]
     exact ⟨fun h ↦ h.2, fun h ↦ ⟨h.le, h⟩⟩
-  have hupd : ∀ (u : Fin 1 → ℝ) s, Function.update u 0 s = fun _ ↦ s := fun u s ↦
-    funext fun i ↦ by rw [Subsingleton.elim i 0, Function.update_self]
   obtain ⟨r, g, f', V, hr, hrδ, hg, hg1, ⟨b, hb, hbg⟩, hV, hXV, hf', hf'V, hU''⟩ :=
     exists_holonomic_approximation_zigzag 0 j (J' := ∅) hf hG
-      (fun s ↦ by simp only [hupd]; exact contDiff_const)
-      (by simp only [hupd, fderiv_const_apply]; exact continuous_const)
+      (fun s ↦ by simp only [Function.update_eq_const_of_subsingleton]; exact contDiff_const)
+      (by simpa only [Function.update_eq_const_of_subsingleton, fderiv_const_apply] using
+        continuous_const)
       (fun u _ v hv ↦ by
         obtain rfl : v = 0 := funext fun i ↦ hv i (Finset.notMem_empty i)
         rw [Prod.mk_zero_zero, map_zero, map_zero])
