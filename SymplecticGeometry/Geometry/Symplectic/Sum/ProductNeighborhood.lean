@@ -18,8 +18,8 @@ import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.IsManifold.SecondCountable
 import SymplecticGeometry.Topology.MetricSpace.Tube
 import SymplecticGeometry.LinearAlgebra.BilinearMap.Alternating
-import SymplecticGeometry.Geometry.Symplectic.Complex.Line
-import Mathlib.Analysis.SpecialFunctions.Sqrt
+import TauCeti.Geometry.Manifold.ContMDiff.Sqrt
+import Mathlib.Geometry.Manifold.Algebra.LieGroup
 
 /-!
 # Symplectic framings and product neighbourhoods
@@ -63,9 +63,9 @@ so the hypotheses on `ι` are stated with `HasSymplecticTangentImages`.
   `SymplecticGeometry.SymplecticFraming.ofPos`, the framing obtained from linear isomorphisms
   `e q : ℂ ≃ N_q ι`, smooth in `q`, on which the normal form `ω_ι` of `ι` is positive, by rescaling
   `e q` by `(√(ω_ι (e q 1) (e q i)))⁻¹`. On the plane `ℂ` every alternating form is a multiple
-  of `ω₀` (`LinearMap.IsAlt.apply_eq_mul_stdComplexSymplecticForm`), so the rescaling carries `ω₀`
-  exactly to `ω_ι`; the rescaling factor is smooth by
-  `TauCeti.SmoothEmbedding.contMDiffAt_symplecticNormalForm`. The construction adapts the rescaled
+  of `ω₀` (`LinearMap.IsAlt.apply_eq_div_mul`), so the rescaling carries `ω₀` exactly to `ω_ι`;
+  the rescaling factor is smooth by `TauCeti.SmoothEmbedding.contMDiffAt_symplecticNormalForm`
+  and `ContMDiff.sqrt`. The construction adapts the rescaled
   isomorphisms of `HasSymplecticTangentImages.exists_symplectomorphism_opens_of_finrank_eq_two`
   (namespace `TauCeti.SmoothTwoForm.IsNondegenerate`, `Geometry/Symplectic/Neighborhood/CodimTwo`),
   with an explicit factor in place of a ratio on a local frame.
@@ -453,9 +453,8 @@ def ofPos
         ((he.comp (contMDiff_id.prodMk contMDiff_const)) q)
         ((he.comp (contMDiff_id.prodMk contMDiff_const)) q)
     have ha : ContMDiff J 𝓘(ℝ) ∞ fun q ↦
-        (√(ι.symplecticNormalForm hι q _ (e q 1) (e q Complex.I)))⁻¹ := fun q ↦
-      ((Real.contDiffAt_sqrt (hpos q).ne').contMDiffAt.comp q (hl q)).inv₀
-        (Real.sqrt_pos.2 (hpos q)).ne'
+        (√(ι.symplecticNormalForm hι q _ (e q 1) (e q Complex.I)))⁻¹ :=
+      (hl.sqrt fun q ↦ (hpos q).ne').inv₀ fun q ↦ (Real.sqrt_pos.2 (hpos q)).ne'
     -- The framing is the identification with `Q × ℂ`, a rescaling of `Q × ℂ`, and `e`.
     refine (he.comp ((contMDiff_fst.prodMk ((ha.comp contMDiff_fst).smul contMDiff_snd)).comp
       contMDiff_zeroSliceNormalEquiv)).congr fun p ↦ ?_
@@ -467,13 +466,16 @@ def ofPos
     rw [(e q).map_smul, (e q).map_smul]
     -- On the plane `ℂ`, the normal form of `ι` read through `e q` is a multiple of `ω₀`.
     exact LinearMap.apply_inv_sqrt_smul_inv_sqrt_smul _ (hpos q)
-      (LinearMap.IsAlt.apply_eq_mul_stdComplexSymplecticForm (B := (ι.symplecticNormalForm hι q
+      (by simpa using (LinearMap.IsAlt.apply_eq_div_mul (B := (ι.symplecticNormalForm hι q
         _).toBilinForm.compl₁₂ (e q).toLinearMap (e q).toLinearMap)
-        (fun u ↦ (ι.symplecticNormalForm hι q _).self_eq_zero (e q u)) _ _)
+        (fun u ↦ (ι.symplecticNormalForm hι q _).self_eq_zero (e q u))
+        stdComplexSymplecticForm.isAlt stdComplexSymplecticForm.separatingLeft
+        Complex.basisOneI _ _))
 
 /-- The framing `ofPos e he hpos` sends a normal vector `v` of the zero slice at `q` to
 `e q ((√(λ q))⁻¹ • z)`, where `z ∈ ℂ` is the `ℂ`-component of `v` and
 `λ q = ω_ι (e q 1) (e q i)`. -/
+@[simp]
 theorem ofPos_apply
     (he : letI := ι.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
       ContMDiff (J.prod 𝓘(ℝ, ℂ)) (J.prod 𝓘(ℝ, ℂ)) ∞
