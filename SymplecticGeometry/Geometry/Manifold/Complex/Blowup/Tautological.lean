@@ -13,6 +13,7 @@ public import TauCeti.Geometry.Manifold.Complex.Orientation
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Quotient
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.RestrictScalars
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
 import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
@@ -490,8 +491,8 @@ theorem continuous_normalSpaceZeroSectionEquiv :
         TotalSpace ℂ (Projectivization.Tautological ℂ (Fin (n + 1) → ℂ))) := by
   let := (zeroSectionEmbedding n).normalSpaceFiberBundle (P := ℂ) WithTop.top_ne_zero
     (by simp)
-  -- On the pulled-back tangent bundle, the family of differentials of `blowdown` is the tangent
-  -- map of `blowdown`, which is continuous.
+  -- On the pulled-back tangent bundle, the differentials of `blowdown` along the zero section
+  -- form a continuous map, as `blowdown` is `C^1`.
   have hgs : ContMDiff (𝓘(ℂ, Fin n → ℂ).prod 𝓘(ℂ, Fin (n + 1) → ℂ)) (𝓘(ℂ, Fin n → ℂ).prod 𝓘(ℂ, ℂ))
       0 (fun p : TotalSpace (Fin (n + 1) → ℂ)
           ((zeroSectionEmbedding n : ℙ ℂ (Fin (n + 1) → ℂ) → BlowupModel n) *ᵖ
@@ -500,11 +501,9 @@ theorem continuous_normalSpaceZeroSectionEquiv :
           (mfderivBlowdownZeroSection p.proj p.snd)) := by
     refine contMDiff_zero_iff.2
       (continuous_totalSpace_tautological_iff.2 ⟨FiberBundle.continuous_proj _ _, ?_⟩)
-    refine (continuous_snd.comp ((tangentBundleModelSpaceHomeomorph _).continuous.comp
-      (((contMDiff_blowdown 1).continuous_tangentMap le_rfl).comp
-        (Pullback.continuous_lift (Fin (n + 1) → ℂ) (TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ))
-          (zeroSectionEmbedding n))))).congr fun p => ?_
-    -- The tangent map is taken at `zeroSectionEmbedding n p.proj`, and the differential in
+    refine (Pullback.continuous_mfderiv_apply (zeroSectionEmbedding n) (contMDiff_blowdown 1)
+      le_rfl).congr fun p => ?_
+    -- The differential of `blowdown` is taken at `zeroSectionEmbedding n p.proj`, and the one in
     -- `mfderivBlowdownZeroSection` at `zeroSection p.proj`, the same point.
     exact (congrArg (fun x => mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown x p.snd)
       (congrFun (coe_zeroSectionEmbedding n) p.proj)).trans
@@ -714,8 +713,8 @@ theorem continuous_normalSpaceZeroSectionRealEquiv {P : Type*} [NormedAddCommGro
       (⟨p.proj, normalSpaceZeroSectionRealEquiv n hn p.proj p.snd⟩ :
         TotalSpace ℂ (Projectivization.Tautological ℂ (Fin (n + 1) → ℂ))) := by
   let := (zeroSectionRealEmbedding n).normalSpaceFiberBundle hn hdim
-  -- On the pulled-back real tangent bundle, the family of differentials of `blowdown` is the
-  -- real tangent map of `blowdown`, which is continuous.
+  -- On the pulled-back real tangent bundle, the real differentials of `blowdown` along the zero
+  -- section form a continuous map, as `blowdown` is `C^1`.
   have hgs : ContMDiff (𝓘(ℝ, Fin n → ℂ).prod 𝓘(ℝ, Fin (n + 1) → ℂ)) (𝓘(ℝ, Fin n → ℂ).prod 𝓘(ℝ, ℂ))
       0 (fun p : TotalSpace (Fin (n + 1) → ℂ)
           ((zeroSectionRealEmbedding n : ℙ ℂ (Fin (n + 1) → ℂ) → BlowupModel n) *ᵖ
@@ -724,11 +723,9 @@ theorem continuous_normalSpaceZeroSectionRealEquiv {P : Type*} [NormedAddCommGro
           (mfderivBlowdownZeroSectionReal p.proj p.snd)) := by
     refine contMDiff_zero_iff.2
       (continuous_totalSpace_tautological_iff.2 ⟨FiberBundle.continuous_proj _ _, ?_⟩)
-    refine (continuous_snd.comp ((tangentBundleModelSpaceHomeomorph _).continuous.comp
-      ((((contMDiff_blowdown 1).restrictScalars' ℝ).continuous_tangentMap le_rfl).comp
-        (Pullback.continuous_lift (Fin (n + 1) → ℂ) (TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ))
-          (zeroSectionRealEmbedding n))))).congr fun p => ?_
-    -- The real tangent map is taken at `zeroSectionRealEmbedding n p.proj`, and the complex
+    refine (Pullback.continuous_mfderiv_apply (zeroSectionRealEmbedding n)
+      ((contMDiff_blowdown 1).restrictScalars' ℝ) le_rfl).congr fun p => ?_
+    -- The real differential is taken at `zeroSectionRealEmbedding n p.proj`, and the complex
     -- differential in `mfderivBlowdownZeroSection` at `zeroSection p.proj`, the same point; the
     -- two differentials agree, as `blowdown` is holomorphic.
     refine (congrArg
