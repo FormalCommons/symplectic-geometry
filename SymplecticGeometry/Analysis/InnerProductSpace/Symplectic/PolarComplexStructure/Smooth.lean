@@ -105,7 +105,7 @@ variable (V) in
 /-- In finite dimension, the domain of `SymplecticGeometry.metricPolarFormula` is open. -/
 theorem isOpen_polarDomain [FiniteDimensional ℝ V] : IsOpen (polarDomain V) :=
   (isOpen_setOf_forall_bilinear_apply_self_pos.preimage continuous_fst).inter
-    (isOpen_setOf_nondegenerate_toBilinForm_sub_flip.preimage continuous_snd)
+    (isOpen_setOfPred_nondegenerate_toBilinForm_sub_flip.preimage continuous_snd)
 
 end Domain
 
