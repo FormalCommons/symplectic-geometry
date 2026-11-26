@@ -143,6 +143,10 @@ theorem diffeomorph_zero : diffeomorph 0 = 0 := by
   -- `rfl`: the zero of `EuclideanTorus` is that of `Fin 2 → AddCircle 1` (`inferInstanceAs`).
   rfl
 
+/-- Its inverse keeps the base point `0`. -/
+theorem diffeomorph_symm_zero : diffeomorph.symm 0 = 0 :=
+  (congrArg diffeomorph.symm diffeomorph_zero).symm.trans (diffeomorph.symm_apply_apply 0)
+
 /-- The covering map of the torus by the Euclidean plane, `t ↦ ([t 0], [t 1])`. -/
 def cover (t : EuclideanSpace ℝ (Fin 2)) : EuclideanTorus :=
   diffeomorph.symm fun i ↦ (t i : AddCircle (1 : ℝ))

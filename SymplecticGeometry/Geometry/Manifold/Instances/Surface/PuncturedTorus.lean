@@ -7,7 +7,9 @@ module
 
 public import Mathlib.AlgebraicTopology.FundamentalGroupoid.FundamentalGroup
 public import SymplecticGeometry.Geometry.Manifold.Instances.Surface.Genus
+public import SymplecticGeometry.Geometry.Manifold.Instances.Surface.TorusWedge
 public import TauCeti.AlgebraicTopology.FundamentalGroup.HomotopyEquiv
+public import TauCeti.GroupTheory.SurfaceGroup.Free
 import SymplecticGeometry.Topology.Instances.AddCircle.Icc
 import TauCeti.Topology.Homotopy.PuncturedStarConvex
 import TauCeti.Topology.Homotopy.Quotient
@@ -20,6 +22,15 @@ coordinate ball `SymplecticGeometry.EuclideanTorus.ball` along which it is summe
 the union `SymplecticGeometry.EuclideanTorus.circles` of its two circles `{x | x i = 0}` through
 `0`, keeping these circles fixed. So the inclusion of the two circles is a homotopy equivalence,
 and it induces an isomorphism of fundamental groups at `0`.
+
+Read in Tau Ceti's torus `Fin 2 → AddCircle 1` through
+`SymplecticGeometry.EuclideanTorus.diffeomorph`, the two circles are
+`SymplecticGeometry.torusCircles`, whose fundamental group is free on `Fin 2`
+(`SymplecticGeometry.torusCirclesFundamentalGroupMulEquiv`). Matching its generators with `a 0`
+and `b 0` in Tau Ceti's `TauCeti.SurfaceGroup.Orientable.equivFreeGroup 1 0` identifies the
+fundamental group of the punctured torus with the surface group
+`TauCeti.SurfaceGroup.Orientable 1 1` of the torus with one boundary circle, the loops
+`t ↦ ([t], 0)` and `t ↦ (0, [t])` going to `a 0` and `b 0`.
 
 The torus is the image of the unit square `[0, 1]²` of `ℝ × ℝ` under `z ↦ ([z.1], [z.2])`, the
 covering map `SymplecticGeometry.EuclideanTorus.cover` read on `ℝ × ℝ`, a continuous surjection
@@ -50,6 +61,12 @@ torus.
   equivalence.
 * `SymplecticGeometry.EuclideanTorus.circlesFundamentalGroupMulEquiv`: the isomorphism of
   fundamental groups at `0` induced by the inclusion.
+* `SymplecticGeometry.EuclideanTorus.circlesHomeomorph`: the two circles, as
+  `SymplecticGeometry.torusCircles`.
+* `SymplecticGeometry.EuclideanTorus.circleLoop i`: the loop `t ↦ Pi.single i [t]` of the
+  punctured torus.
+* `SymplecticGeometry.EuclideanTorus.puncturedFundamentalGroupMulEquiv`: the fundamental group of
+  the punctured torus at `0` is `TauCeti.SurfaceGroup.Orientable 1 1`.
 
 ## Main results
 
@@ -58,6 +75,9 @@ torus.
 * `SymplecticGeometry.EuclideanTorus.diffeomorph_circlesHomotopyRel_apply`,
   `SymplecticGeometry.EuclideanTorus.diffeomorph_circlesRetraction_apply`: the homotopy and the
   retraction in the coordinates of the square.
+* `SymplecticGeometry.EuclideanTorus.puncturedFundamentalGroupMulEquiv_circleLoop_zero`,
+  `SymplecticGeometry.EuclideanTorus.puncturedFundamentalGroupMulEquiv_circleLoop_one`: it sends
+  the two circle loops to the generators `a 0` and `b 0`.
 
 ## References
 
@@ -468,6 +488,122 @@ punctured torus. -/
 theorem circlesFundamentalGroupMulEquiv_apply (a : FundamentalGroup circles ⟨0, zero_mem_circles⟩) :
     circlesFundamentalGroupMulEquiv a = FundamentalGroup.map circlesInclusion _ a :=
   (rfl)
+
+/-! ### The fundamental group of the punctured torus as a surface group -/
+
+/-- The two circles of the torus through `0`, carried to Tau Ceti's torus `Fin 2 → AddCircle 1`
+by the identity `SymplecticGeometry.EuclideanTorus.diffeomorph`: the restriction of that
+diffeomorphism, as a homeomorphism onto `SymplecticGeometry.torusCircles`. -/
+def circlesHomeomorph : circles ≃ₜ torusCircles :=
+  diffeomorph.toHomeomorph.subtype fun x ↦ by
+    rw [mem_circles_iff, mem_torusCircles_iff, Diffeomorph.coe_toHomeomorph]
+
+/-- The homeomorphism is `diffeomorph` on points. -/
+@[simp]
+theorem coe_circlesHomeomorph_apply (x : circles) :
+    (circlesHomeomorph x : Fin 2 → AddCircle (1 : ℝ)) = diffeomorph (x : EuclideanTorus) := by
+  rw [circlesHomeomorph, Homeomorph.subtype_apply_coe, Diffeomorph.coe_toHomeomorph]
+
+/-- Its inverse is `diffeomorph.symm` on points. -/
+@[simp]
+theorem coe_circlesHomeomorph_symm_apply (y : torusCircles) :
+    (circlesHomeomorph.symm y : EuclideanTorus) =
+      diffeomorph.symm (y : Fin 2 → AddCircle (1 : ℝ)) := by
+  rw [circlesHomeomorph, Homeomorph.subtype_symm_apply_coe, Diffeomorph.coe_toHomeomorph_symm]
+
+/-- The homeomorphism keeps the base point `0`. -/
+theorem circlesHomeomorph_zero :
+    circlesHomeomorph ⟨0, zero_mem_circles⟩ = ⟨0, zero_mem_torusCircles⟩ :=
+  Subtype.ext ((coe_circlesHomeomorph_apply _).trans diffeomorph_zero)
+
+/-- The loop `t ↦ Pi.single i [t]` of the punctured torus at `0`, once around the `i`-th circle
+through `0`: for `i = 0` the loop `t ↦ ([t], 0)`, for `i = 1` the loop `t ↦ (0, [t])`. It is
+`SymplecticGeometry.torusCircleLoop i`, carried to the punctured torus. -/
+def circleLoop (i : Fin 2) :
+    Path (⟨0, zero_mem_puncture⟩ : ConnectedSum.puncture ball) ⟨0, zero_mem_puncture⟩ :=
+  ((torusCircleLoop i).map
+    (circlesInclusion.comp (circlesHomeomorph.symm : C(torusCircles, circles))).continuous).cast
+    (Subtype.ext (by simp [-coe_diffeomorph_symm, diffeomorph_symm_zero]))
+    (Subtype.ext (by simp [-coe_diffeomorph_symm, diffeomorph_symm_zero]))
+
+/-- The loop in the coordinates of `Fin 2 → AddCircle 1`. -/
+@[simp]
+theorem diffeomorph_circleLoop_apply (i : Fin 2) (t : I) :
+    diffeomorph (circleLoop i t : EuclideanTorus) =
+      Pi.single i ((t : ℝ) : AddCircle (1 : ℝ)) := by
+  simp [circleLoop, -coe_diffeomorph_symm, -coe_diffeomorph]
+
+/-- The generators `0` and `1` of the free group on `Fin 2`, matched with the generators `a 0` and
+`b 0` of Tau Ceti's `TauCeti.SurfaceGroup.Orientable.equivFreeGroup 1 0`. -/
+private def generatorEquiv : Fin 2 ≃ Fin 1 ⊕ Fin 1 ⊕ Fin 0 where
+  toFun := ![.inl 0, .inr (.inl 0)]
+  invFun
+    | .inl _ => 0
+    | .inr (.inl _) => 1
+    | .inr (.inr k) => k.elim0
+  left_inv i := by fin_cases i <;> rfl
+  right_inv
+    | .inl k => by rw [Subsingleton.elim k 0]; rfl
+    | .inr (.inl k) => by rw [Subsingleton.elim k 0]; rfl
+    | .inr (.inr k) => k.elim0
+
+private theorem generatorEquiv_zero : generatorEquiv 0 = .inl 0 :=
+  (rfl)
+
+private theorem generatorEquiv_one : generatorEquiv 1 = .inr (.inl 0) :=
+  (rfl)
+
+/-- The **fundamental group of the punctured torus** at `0` is Tau Ceti's orientable surface group
+`TauCeti.SurfaceGroup.Orientable 1 1`: the composite of the isomorphism with the group of its two
+circles through `0`, of that group with the free group on `Fin 2`, and of Tau Ceti's
+`TauCeti.SurfaceGroup.Orientable.equivFreeGroup 1 0`, the generators `0` and `1` going to
+`a 0` and `b 0`. -/
+def puncturedFundamentalGroupMulEquiv :
+    FundamentalGroup (ConnectedSum.puncture ball) ⟨0, zero_mem_puncture⟩ ≃*
+      SurfaceGroup.Orientable 1 1 :=
+  circlesFundamentalGroupMulEquiv.symm.trans <|
+    (FundamentalGroup.homeomorphMulEquivOfEq circlesHomeomorph circlesHomeomorph_zero).trans <|
+      torusCirclesFundamentalGroupMulEquiv.trans <|
+        (FreeGroup.freeGroupCongr generatorEquiv).trans
+          (SurfaceGroup.Orientable.equivFreeGroup 1 0).symm
+
+/-- The class of `circleLoop i` in the punctured torus, read in the two circles of
+`Fin 2 → AddCircle 1`, is that of `torusCircleLoop i`. -/
+private theorem homeomorphMulEquivOfEq_symm_circleLoop (i : Fin 2) :
+    FundamentalGroup.homeomorphMulEquivOfEq circlesHomeomorph circlesHomeomorph_zero
+        (circlesFundamentalGroupMulEquiv.symm
+          (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk (circleLoop i)))) =
+      FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk (torusCircleLoop i)) := by
+  rw [← MulEquiv.eq_symm_apply, MulEquiv.symm_apply_eq, circlesFundamentalGroupMulEquiv_apply,
+    FundamentalGroup.homeomorphMulEquivOfEq_symm_apply, ← FundamentalGroup.mapOfEq_rfl,
+    FundamentalGroup.mapOfEq_comp, FundamentalGroup.mapOfEq_apply, ← Path.Homotopic.Quotient.mk_map,
+    ← Path.Homotopic.Quotient.mk_cast, circleLoop]
+  -- `FundamentalGroup.fromPath` is the abbreviation `CategoryTheory.End.of`.
+  rfl
+
+/-- The isomorphism sends the class of the loop `t ↦ ([t], 0)` to the generator `a 0`. -/
+@[simp]
+theorem puncturedFundamentalGroupMulEquiv_circleLoop_zero :
+    puncturedFundamentalGroupMulEquiv
+        (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk (circleLoop 0))) =
+      SurfaceGroup.Orientable.a 1 1 0 := by
+  rw [puncturedFundamentalGroupMulEquiv, MulEquiv.trans_apply, MulEquiv.trans_apply,
+    homeomorphMulEquivOfEq_symm_circleLoop, MulEquiv.trans_apply,
+    torusCirclesFundamentalGroupMulEquiv_torusCircleLoop, MulEquiv.trans_apply,
+    FreeGroup.freeGroupCongr_apply, FreeGroup.map.of, generatorEquiv_zero,
+    SurfaceGroup.Orientable.equivFreeGroup_symm_of_inl]
+
+/-- The isomorphism sends the class of the loop `t ↦ (0, [t])` to the generator `b 0`. -/
+@[simp]
+theorem puncturedFundamentalGroupMulEquiv_circleLoop_one :
+    puncturedFundamentalGroupMulEquiv
+        (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk (circleLoop 1))) =
+      SurfaceGroup.Orientable.b 1 1 0 := by
+  rw [puncturedFundamentalGroupMulEquiv, MulEquiv.trans_apply, MulEquiv.trans_apply,
+    homeomorphMulEquivOfEq_symm_circleLoop, MulEquiv.trans_apply,
+    torusCirclesFundamentalGroupMulEquiv_torusCircleLoop, MulEquiv.trans_apply,
+    FreeGroup.freeGroupCongr_apply, FreeGroup.map.of, generatorEquiv_one,
+    SurfaceGroup.Orientable.equivFreeGroup_symm_of_inr_inl]
 
 end EuclideanTorus
 
