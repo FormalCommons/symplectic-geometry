@@ -33,8 +33,8 @@ finite-dimensional normed space, such as a fibre of a vector bundle.
 * `TauCeti.contDiffAt_cayleyFormula`: the Cayley coordinate is smooth, jointly in both
   arguments, wherever `1 - A B` is a unit.
 * `SymplecticGeometry.isOpen_cayleyDomain`, `SymplecticGeometry.contDiffOn_cayleyPathFormula`.
-* `SymplecticGeometry.isOpen_setOf_forall_Icc_mem_cayleyDomain`: the pairs `(A, B)` whose segment
-  over `[0, 1]` lies in the domain form an open set.
+* `SymplecticGeometry.isOpen_setOfPred_forall_Icc_mem_cayleyDomain`: the pairs `(A, B)` whose
+  segment over `[0, 1]` lies in the domain form an open set.
 * `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`: a compatible and a tame structure,
   with `|b| ≤ 1`, give a point of the domain, and
   `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain_of_continuousLinearEquiv` does so on a
@@ -169,7 +169,7 @@ theorem contDiffOn_cayleyPathFormula {n : WithTop ℕ∞} :
 variable (R) in
 /-- The pairs `(A, B)` such that `(b, A, B)` lies in the domain of the Cayley path for every
 `b ∈ [0, 1]` form an open set. -/
-theorem isOpen_setOf_forall_Icc_mem_cayleyDomain :
+theorem isOpen_setOfPred_forall_Icc_mem_cayleyDomain :
     IsOpen {p : R × R | ∀ b ∈ Icc (0 : ℝ) 1, (b, p.1, p.2) ∈ cayleyDomain R} := by
   refine isOpen_iff_mem_nhds.2 fun p hp ↦ ?_
   refine isCompact_Icc.eventually_forall_of_forall_eventually fun b hb ↦ ?_

@@ -24,9 +24,9 @@ the supremum of the widths of the former and the infimum of the widths of the la
 * `SymplecticGeometry.stdEllipsoid_subset_stdCylinder`: `E(r) ⊆ Z²ⁿ(rᵢ)` for `0 < rᵢ`.
 * `SymplecticGeometry.linearSymplecticWidth_stdEllipsoid`: `w_L(E(r)) = π rᵢ²` for a positive
   smallest radius `rᵢ`.
-* `SymplecticGeometry.linearSymplecticWidth_setOf_le_one_eq`: the ellipsoid of a positive
+* `SymplecticGeometry.linearSymplecticWidth_setOfPred_le_one_eq`: the ellipsoid of a positive
   definite form has width `π s²`, for `s` the smallest element of its symplectic spectrum.
-* `SymplecticGeometry.linearSymplecticWidth_setOf_le_one`: the width of the ellipsoid of a
+* `SymplecticGeometry.linearSymplecticWidth_setOfPred_le_one`: the width of the ellipsoid of a
   positive definite form, in terms of its symplectic spectrum, as a supremum over symplectic
   balls and as an infimum over symplectic cylinders.
 
@@ -68,7 +68,7 @@ theorem linearSymplecticWidth_stdEllipsoid {r : ι → ℝ} {i : ι} (hi : 0 < r
 
 /-- The ellipsoid `{z | Q z ≤ 1}` has width `π s²`, for `s` the smallest element of the
 symplectic spectrum of `Q`. Such an `s` exists only if `Q` is positive definite. -/
-theorem linearSymplecticWidth_setOf_le_one_eq {Q : QuadraticForm ℝ (StdSpace ι)}
+theorem linearSymplecticWidth_setOfPred_le_one_eq {Q : QuadraticForm ℝ (StdSpace ι)}
     {s : ℝ} (hs : s ∈ symplecticSpectrum Q)
     (hmin : ∀ t ∈ symplecticSpectrum Q, s ≤ t) :
     linearSymplecticWidth {z | Q z ≤ 1} = ENNReal.ofReal (π * s ^ 2) := by
@@ -86,7 +86,7 @@ symplectic images of balls that lie in `E`, and the infimum of the widths of the
 symplectic images of cylinders that contain `E`.
 
 Milestone: *Linear symplectic width of an ellipsoid*. -/
-theorem linearSymplecticWidth_setOf_le_one {Q : QuadraticForm ℝ (StdSpace ι)}
+theorem linearSymplecticWidth_setOfPred_le_one {Q : QuadraticForm ℝ (StdSpace ι)}
     {s : ℝ} (hs : s ∈ symplecticSpectrum Q)
     (hmin : ∀ t ∈ symplecticSpectrum Q, s ≤ t) :
     linearSymplecticWidth {z | Q z ≤ 1} = ENNReal.ofReal (π * s ^ 2) ∧
@@ -98,7 +98,7 @@ theorem linearSymplecticWidth_setOf_le_one {Q : QuadraticForm ℝ (StdSpace ι)}
       ⨅ (f ∈ affineSymplecticGroup (stdForm ι)) (i : ι) (R : ℝ)
         (_ : {z | Q z ≤ 1} ⊆ f '' stdCylinder i R),
         linearSymplecticWidth (f '' stdCylinder i R) := by
-  have hE := linearSymplecticWidth_setOf_le_one_eq hs hmin
+  have hE := linearSymplecticWidth_setOfPred_le_one_eq hs hmin
   refine ⟨hE, linearSymplecticWidth_eq_iSup_image_closedBall _, ?_⟩
   · refine le_antisymm (le_iInf₂ fun _ _ ↦ le_iInf₂ fun i R ↦ le_iInf fun h ↦
       linearSymplecticWidth_mono h) ?_
