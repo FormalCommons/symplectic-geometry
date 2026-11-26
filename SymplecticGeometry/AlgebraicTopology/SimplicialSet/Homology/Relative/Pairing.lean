@@ -18,6 +18,8 @@ For a pair of simplicial sets `P`, this file shows that the chain map
 
 * `SSetPair.chainComplexπ_coefficient_naturality`: the quotient map from the chains of the
   ambient simplicial set to the relative chains commutes with a change of coefficients.
+* `SSetPair.homologyMap_coefficient_naturality`: the map on relative homology induced by a map of
+  pairs commutes with a change of coefficients.
 * `SSetPair.chainComplexPairing_comp_chainComplexFunctor_map_app`: naturality in `N`.
 * `SSetPair.whiskerLeft_chainComplexFunctor_map_app_comp_chainComplexPairing`: naturality in `S`.
 * `SSetPair.whiskerRight_comp_chainComplexPairing`: naturality in `M`.
@@ -49,6 +51,20 @@ lemma chainComplexπ_coefficient_naturality {C : Type u} [Category.{v} C] [Pread
     ((SSet.chainComplexFunctor C).map g).app P.right ≫ P.chainComplexπ S' =
       P.chainComplexπ S ≫ ((chainComplexFunctor C).map g).app P :=
   congrArg (fun η ↦ η.app P) ((chainComplexFunctorπ C).naturality g)
+
+/-- The map on relative homology induced by a map of pairs `f : P ⟶ P'` commutes with the maps
+induced by a coefficient morphism `g : S ⟶ S'`. -/
+@[reassoc]
+lemma homologyMap_coefficient_naturality {C : Type u} [Category.{v} C] [Preadditive C]
+    [HasCoproducts.{w} C] [CategoryWithHomology C] {P P' : SSetPair.{w}} (f : P ⟶ P')
+    {S S' : C} (g : S ⟶ S') (n : ℕ) :
+    HomologicalComplex.homologyMap (((chainComplexFunctor C).map g).app P) n ≫
+        SSetPair.homologyMap f S' n =
+      SSetPair.homologyMap f S n ≫
+        HomologicalComplex.homologyMap (((chainComplexFunctor C).map g).app P') n := by
+  rw [SSetPair.homologyMap, SSetPair.homologyMap, ← HomologicalComplex.homologyMap_comp,
+    ← HomologicalComplex.homologyMap_comp, SSetPair.chainComplexMap, SSetPair.chainComplexMap,
+    ((chainComplexFunctor C).map g).naturality]
 
 variable {C : Type u} [Category.{v} C] [Abelian C] [HasCoproducts.{w} C] [MonoidalCategory C]
   [MonoidalPreadditive C] {M S N : C}
