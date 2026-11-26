@@ -29,6 +29,8 @@ continuous since the model is finite-dimensional
   `TauCeti.DetBundle.pretrivialization e`. For `e` in the atlas it is Tau Ceti's
   `TauCeti.DetBundle.trivialization e`
   (`TauCeti.DetBundle.trivializationOfIsLinear_eq_trivialization`).
+* `TauCeti.DetBundle.coordChangeL_trivializationOfIsLinear`: the coordinate changes of these
+  trivializations are the determinants of those of `E`.
 * `SymplecticGeometry.Bundle.HasFiniteTrivializingCover.detBundle`: if `E` has a finite
   trivializing cover, so does its determinant line, with model `𝕜`.
 
@@ -53,29 +55,27 @@ variable {𝕜 B F : Type*} [NontriviallyNormedField 𝕜] [CompleteSpace 𝕜] 
 on its source. -/
 theorem continuousOn_pretrivialization (e : Trivialization F (π F E)) [e.IsLinear 𝕜] :
     ContinuousOn (pretrivialization (𝕜 := 𝕜) e) (pretrivialization (𝕜 := 𝕜) e).source := by
-  refine continuousOn_of_locally_continuousOn fun p _ ↦ ?_
-  set b := trivializationAt F E p.proj
-  set t := trivializationAt 𝕜 (DetBundle 𝕜 F E) p.proj
-  have ht : t = trivialization b := trivializationAt_eq p.proj
-  refine ⟨t.source, t.open_source, FiberBundle.mem_trivializationAt_proj_source, ?_⟩
-  have hproj := (FiberBundle.continuous_proj 𝕜 (DetBundle 𝕜 F E)).continuousOn
-    (s := (pretrivialization (𝕜 := 𝕜) e).source ∩ t.source)
-  have hdet : ContinuousOn
-      (fun q : TotalSpace 𝕜 (DetBundle 𝕜 F E) ↦ (b.coordChangeL 𝕜 e q.proj : F →L[𝕜] F).det)
-      ((pretrivialization (𝕜 := 𝕜) e).source ∩ t.source) :=
+  rw [(pretrivialization (𝕜 := 𝕜) e).source_eq, pretrivialization_baseSet]
+  refine (vectorPrebundle 𝕜 F E).toFiberPrebundle.continuousOn_of_comp_right e.open_baseSet
+    fun b _ ↦ ?_
+  set t := trivializationAt F E b
+  -- The prebundle's pretrivialization at `b` is that of the bundle's trivialization at `b`.
+  -- Mathlib has no lemma for this; it holds by the definition of `FiberPrebundle.toFiberBundle`.
+  have hat : (vectorPrebundle 𝕜 F E).toFiberPrebundle.pretrivializationAt b =
+      pretrivialization t := by
+    rw [← trivialization_toPretrivialization, ← trivializationAt_eq]
+    rfl
+  rw [hat, pretrivialization_baseSet]
+  have hdet : ContinuousOn (fun y : B × 𝕜 ↦ (t.coordChangeL 𝕜 e y.1 : F →L[𝕜] F).det)
+      ((e.baseSet ∩ t.baseSet) ×ˢ univ) :=
     ContinuousLinearMap.continuous_det.comp_continuousOn
-      ((b.continuousOn_coordChangeL e).comp hproj fun q hq ↦
-        ⟨by simpa [ht] using t.mem_source.1 hq.2, pretrivialization_baseSet (𝕜 := 𝕜) e ▸
-          (pretrivialization e).mem_source.1 hq.1⟩)
-  refine (hproj.prodMk (hdet.mul
-    (continuous_snd.comp_continuousOn (t.continuousOn.mono inter_subset_right)))).congr ?_
-  rintro ⟨x, v⟩ ⟨hx, hb⟩
-  replace hx : x ∈ e.baseSet := pretrivialization_baseSet (𝕜 := 𝕜) e ▸
-    (pretrivialization e).mem_source.1 hx
-  have hb : x ∈ b.baseSet := by simpa [ht] using t.mem_source.1 hb
-  simp only [ht, Pi.mul_apply, Function.comp_apply, trivialization_apply_mk b hb,
-    pretrivialization_apply_mk e hx]
-  rw [← chartCoord_chartCoord_symm b e hb hx, LinearEquiv.symm_apply_apply]
+      ((t.continuousOn_coordChangeL e).comp continuous_fst.continuousOn
+        fun y hy ↦ ⟨hy.1.2, hy.1.1⟩)
+  refine (continuous_fst.continuousOn.prodMk (hdet.mul continuous_snd.continuousOn)).congr ?_
+  rintro ⟨x, c⟩ ⟨⟨hx, hb⟩, -⟩
+  rw [Function.comp_apply, ← Pretrivialization.mk_symm _ (by simpa using hb),
+    pretrivialization_symm_apply t hb, pretrivialization_apply_mk e hx, chartCoord_chartCoord_symm]
+  simp only [Pi.mul_apply]
 
 /-- The inverse of the pretrivialization of `det E` induced by a linear trivialization `e` of `E`
 is continuous on its target. -/
@@ -150,11 +150,18 @@ theorem trivializationOfIsLinear_symm_apply (e : Trivialization F (π F E)) [e.I
   pretrivialization_symm_apply e h c
 
 instance (e : Trivialization F (π F E)) [e.IsLinear 𝕜] :
-    (trivializationOfIsLinear (𝕜 := 𝕜) e).IsLinear 𝕜 where
-  linear x h := by
-    rw [trivializationOfIsLinear_baseSet] at h
-    simp only [trivializationOfIsLinear_apply_mk e h]
-    exact (chartCoord e h).toLinearMap.isLinear
+    (trivializationOfIsLinear (𝕜 := 𝕜) e).IsLinear 𝕜 :=
+  ⟨fun _ ↦ (pretrivialization (𝕜 := 𝕜) e).linear 𝕜⟩
+
+/-- The coordinate changes between the trivializations of `det E` induced by linear
+trivializations `e` and `e'` of `E` are the determinants of the coordinate changes of `E`. -/
+theorem coordChangeL_trivializationOfIsLinear (e e' : Trivialization F (π F E)) [e.IsLinear 𝕜]
+    [e'.IsLinear 𝕜] {x : B} (hx : x ∈ e.baseSet ∩ e'.baseSet) (c : 𝕜) :
+    (trivializationOfIsLinear (𝕜 := 𝕜) e).coordChangeL 𝕜 (trivializationOfIsLinear e') x c =
+      (e.coordChangeL 𝕜 e' x : F →L[𝕜] F).det * c := by
+  rw [Trivialization.coordChangeL_apply _ _ (by simpa using hx),
+    trivializationOfIsLinear_symm_apply e hx.1,
+    trivializationOfIsLinear_apply_mk e' hx.2, chartCoord_chartCoord_symm]
 
 /-- For a trivialization `e` in the atlas of `E`, the trivialization of `det E` induced by `e` as
 a linear trivialization is Tau Ceti's `TauCeti.DetBundle.trivialization e`. -/
