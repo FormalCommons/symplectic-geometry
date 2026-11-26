@@ -530,22 +530,23 @@ private theorem exists_extend_of_maslovIndex_eq_zero
   obtain ⟨C, hCs, hC⟩ := Matrix.SymplecticGroup.exists_contMDiffOn_toEuclideanCLM_eq hO hD
     fun x hx ↦ (toEuclideanCLM_symm_mem_symplecticGroup_iff (D x)).2 (hDσ x hx)
   -- So `C ∘ ψ` is smooth on the annulus `A` of the chart.
-  set A : Set ℂ := {z | 1 - ε < ‖z‖ ∧ ‖z‖ < 1 + ε}
+  set A : Set ℂ := (annulus ℂ (1 - ε) (1 + ε) : Set ℂ)
   have hψO (z : ℂ) (hz : z ∈ A) : ψ z ∈ O := by
+    rw [SetLike.mem_coe, mem_annulus] at hz
     have hb : z ∈ CoordinateDisc.ball := CoordinateDisc.mem_ball_iff.2 (by linarith [hz.2])
     rw [show z = ((⟨z, hb⟩ : CoordinateDisc.ball) : ℂ) from rfl, hψ]
     exact hεO _ hz.1 hz.2
   have hf : ContMDiffOn 𝓘(ℝ, ℂ) 𝓘(ℝ, TauCeti.Lie.SymplecticGroupModel κ ℝ) ∞
       (fun z ↦ C (ψ z)) A :=
     hCs.comp ((CoordinateDisc.contMDiffOn_symm_add_smul_orthonormalBasisOneI_repr e hr hc
-      hea).mono fun z hz ↦ CoordinateDisc.mem_ball_iff.2 (by linarith [hz.2]))
+      hea).mono fun z hz ↦ CoordinateDisc.mem_ball_iff.2 (by linarith [(mem_annulus.1 hz).2]))
       fun z hz ↦ hψO z hz
   -- On the circle, `C ∘ ψ` is the loop `Ψ`, which is null-homotopic.
   let γ : C(Circle, symplecticGroup κ ℝ) :=
     (ContinuousMap.mk _ (symplecticGroupContinuousMulEquiv κ ℝ).symm.continuous).comp Ψ
   have hγ (ζ : Circle) : γ ζ = C (ψ ζ) := by
     have hζ : (ζ : ℂ) ∈ A := by
-      exact ⟨by rw [Circle.norm_coe]; linarith, by rw [Circle.norm_coe]; linarith⟩
+      exact mem_annulus.2 ⟨by rw [Circle.norm_coe]; linarith, by rw [Circle.norm_coe]; linarith⟩
     have hb : ψ ζ = φ.boundaryCircle ζ := by rw [CoordinateDisc.boundaryCircle_apply, ← hψ]
     have hγζ : ((γ ζ : symplecticGroup κ ℝ) : Matrix (κ ⊕ κ) (κ ⊕ κ) ℝ) =
         ((Ψ ζ : GLSymplectic κ ℝ) : GL (κ ⊕ κ) ℝ) :=
