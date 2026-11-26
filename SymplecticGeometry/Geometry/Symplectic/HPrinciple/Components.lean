@@ -7,12 +7,12 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.HPrinciple.FormSpaces
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Components
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Topology
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Opens
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.Comp
 import TauCeti.Geometry.Manifold.VectorBundle.Section.FrameCover
 import TauCeti.Topology.Homeomorph.Pi
-import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Topology
 
 /-!
 # The spaces of nondegenerate and of symplectic forms over the components
