@@ -5,11 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
+public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Flow
 import Mathlib.Geometry.Manifold.PartitionOfUnity
-import SymplecticGeometry.Analysis.ODE.Basic
-import SymplecticGeometry.Geometry.Manifold.Flow.Basic
-import TauCeti.Geometry.Manifold.IntegralCurve.Monotone
 
 /-!
 # Diffeotopies that push a compact set along a direction
@@ -32,11 +29,6 @@ its flow lines; and the field vanishes wherever `g` does.
 * `SymplecticGeometry.maximalIntegralCurve_eqOn_add_smul`: if a `C¹` vector field equals the
   constant `c` along the line `s ↦ x + s • c` for `s` in an open interval around `0`, then its
   maximal integral curve through `x` is that line on the interval.
-* `SymplecticGeometry.norm_compactlySupportedFlowDiffeotopy_sub_le`: the compactly supported flow
-  diffeotopy of a field of norm at most `M`, run for a duration `a ≥ 0`, moves each point by at
-  most `a * t * M` at time `t`.
-* `SymplecticGeometry.map_compactlySupportedFlowDiffeotopy`: a continuous linear map that kills
-  a compactly supported field keeps its value along the flow diffeotopy of the field.
 * `SymplecticGeometry.exists_diffeotopy_apply_eq_add_smul`: the diffeotopy described above.
 
 The proofs adapt two proofs of Tau Ceti to a compact set and a profile `g`:
@@ -71,50 +63,6 @@ theorem maximalIntegralCurve_eqOn_add_smul {v : E → E}
     TauCeti.isMIntegralCurveOn_iff_isIntegralCurveOn.2 fun s hs ↦ by
       simpa [hvc s hs] using (((hasDerivAt_id s).smul_const c).const_add x).hasDerivWithinAt
   exact hline.eqOn_maximalIntegralCurve hv h0 (by simp)
-
-/-- **Displacement of a compactly supported flow.** If a compactly supported `C^n` vector field
-`v` on a finite-dimensional real normed space has norm at most `M` everywhere, then its flow
-diffeotopy run for a duration `a ≥ 0` moves each point by at most `a * t * M` at time `t`. -/
-theorem norm_compactlySupportedFlowDiffeotopy_sub_le [FiniteDimensional ℝ E] {v : E → E}
-    {K : Set E} {n : ℕ∞} (hn : 1 ≤ n)
-    (hv : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ, E).tangent (n : WithTop ℕ∞)
-      (fun y ↦ (⟨y, v y⟩ : TangentBundle 𝓘(ℝ, E) E)))
-    (hK : IsCompact K) (hzero : ∀ y ∉ K, v y = 0) {a M : ℝ} (ha : 0 ≤ a)
-    (hM : ∀ y, ‖v y‖ ≤ M) (t : unitInterval) (x : E) :
-    ‖TauCeti.compactlySupportedFlowDiffeotopy hn hv hK hzero a (t, x) - x‖ ≤ a * t * M := by
-  have := ((TauCeti.isIntegralCurve_maximalIntegralCurve_of_isCompact
-    (hv.of_le (m := 1) (by exact_mod_cast hn)) hK hzero x).isIntegralCurveOn _).norm_sub_le_mul
-    (fun s _ ↦ hM _) (mul_nonneg ha t.property.1)
-  -- `maximalIntegralCurve_zero` is stated for fields valued in tangent spaces, and `rw` does
-  -- not find it for the `E`-valued `v`.
-  have h0 : maximalIntegralCurve (I := 𝓘(ℝ, E)) v x 0 = x := maximalIntegralCurve_zero
-  rw [h0, sub_zero] at this
-  rw [TauCeti.compactlySupportedFlowDiffeotopy_apply hn hv hK hzero a (t, x)]
-  linarith
-
-/-- **Quantities kept by a compactly supported flow.** If a continuous linear map `L` kills a
-compactly supported `C^n` vector field `v` on a finite-dimensional real normed space, then the
-flow diffeotopy of `v`, run for any duration `a`, keeps the value of `L`. -/
-theorem map_compactlySupportedFlowDiffeotopy [FiniteDimensional ℝ E] {F : Type*}
-    [NormedAddCommGroup F] [NormedSpace ℝ F] {v : E → E} {K : Set E} {n : ℕ∞} (hn : 1 ≤ n)
-    (hv : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ, E).tangent (n : WithTop ℕ∞)
-      (fun y ↦ (⟨y, v y⟩ : TangentBundle 𝓘(ℝ, E) E)))
-    (hK : IsCompact K) (hzero : ∀ y ∉ K, v y = 0) (a : ℝ) (L : E →L[ℝ] F)
-    (hL : ∀ y, L (v y) = 0) (t : unitInterval) (x : E) :
-    L (TauCeti.compactlySupportedFlowDiffeotopy hn hv hK hzero a (t, x)) = L x := by
-  have := (TauCeti.isMIntegralCurveOn_iff_isIntegralCurveOn.2
-    ((TauCeti.isIntegralCurve_maximalIntegralCurve_of_isCompact (hv.of_le (m := 1)
-      (by exact_mod_cast hn)) hK hzero x).isIntegralCurveOn univ)
-    ).apply_eq_add_smul_of_mvfderiv_apply_eq (g := L) (c := 0) isPreconnected_univ
-      (fun _ _ ↦ L.mdifferentiableAt)
-      (fun s _ ↦ by simp only [mvfderiv_eq_fderiv, L.fderiv]; exact hL _) (mem_univ 0)
-      (mem_univ (a * t))
-  -- `maximalIntegralCurve_zero` is stated for fields valued in tangent spaces, and `rw` does
-  -- not find it for the `E`-valued `v`.
-  have h0 : maximalIntegralCurve (I := 𝓘(ℝ, E)) v x 0 = x := maximalIntegralCurve_zero
-  rw [h0, smul_zero, add_zero] at this
-  rw [TauCeti.compactlySupportedFlowDiffeotopy_apply hn hv hK hzero a (t, x)]
-  exact this
 
 variable [FiniteDimensional ℝ E]
 
