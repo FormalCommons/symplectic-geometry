@@ -282,8 +282,7 @@ theorem mfderiv_convexComb_one (s t : Icc x y) (u : unitInterval) :
     mfderiv_eq_fderiv, hd.hasFDerivAt.fderiv]
   simp only [ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
     ContinuousLinearMap.toSpanSingleton_apply]
-  -- The tangent spaces of `ℝ` are `ℝ` itself, through `NormedSpace.fromTangentSpace`, which is
-  -- the identity; Mathlib has no lemma that evaluates it.
+  rw [NormedSpace.fromTangentSpace_apply, NormedSpace.fromTangentSpace_symm_apply]
   exact one_smul ℝ ((t : ℝ) - s)
 
 end Set.Icc

@@ -10,12 +10,14 @@ public import SymplecticGeometry.Geometry.Symplectic.Coupling.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Moser.Field
 import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Prod.Basic
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Prod.Icc
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import SymplecticGeometry.Geometry.Symplectic.Moser.Equivariant
 import TauCeti.Geometry.Manifold.PartitionOfUnity.Compact
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.ProdIcc
 import TauCeti.Topology.Algebra.Module.Alternating.Basic
+import TauCeti.Topology.FiberBundle.Separation
 
 /-!
 # Uniqueness of coupling forms
@@ -26,7 +28,7 @@ coordinate `t` of the interval (McDuff–Salamon, Proposition 5.1.9). The proof 
 argument along the segment `ω₀ + s • (ω₁ - ω₀)`, with a primitive of `ω₁ - ω₀` that is invariant
 under the circle action and makes the Moser field tangent to the levels `t = const`.
 
-This file builds that primitive. It is `K (ω₁ - ω₀)`, for the homotopy operator `K` of the
+The primitive is `K (ω₁ - ω₀)`, for the homotopy operator `K` of the
 contraction of `P × [a, b]` onto its bottom level `P × {a}`
 (`SymplecticGeometry.prodIccHomotopyOperator`). The contraction does not move the point of `P`,
 so `K η` is invariant under the circle action when `η` is
@@ -133,6 +135,17 @@ derivative `dσ̃` in `s`. So the time-one map pulls `ω̃₀ + dσ̃` back to `
 (`IsCouplingForm.mpullback_timeDependentFlowOf_prodIccMoserField_apply`,
 from `TauCeti.SmoothTwoForm.mpullback_timeDependentFlowOf_moserField_lineMapFamily_apply` of
 `Moser/Field.lean`).
+
+The main theorem `SymplecticGeometry.IsCouplingForm.exists_diffeomorph` puts the steps together,
+over a compact Hausdorff boundaryless base. With the cutoff of
+`IsCouplingForm.exists_cutoff_prodIccExtension_add_smul`, the time-one map `Φ` of the cut-off
+Moser flow and its inverse, the flow from `1` to `0`, keep every level over `[a, b]`, so `Φ`
+restricts to a diffeomorphism `Ψ` of `P × [a, b]` (`Diffeomorph.restrictProdIcc`). It preserves
+`t`, and it commutes with the circle action since `Φ` does. Restricting to `P × [a, b]` takes
+`ω̃₀ + dσ̃` to `ω₁` and `ω̃₀` to `ω₀`, and restricting and then pulling back by `Ψ` is pulling
+back by `Φ` and then restricting
+(`Diffeomorph.mpullback_restrictProdIcc_mpullback_prodMap_subtypeVal`). Moser's equation at the
+points over `[a, b]` then gives `Ψ^* ω₁ = ω₀`.
 
 ## References
 
@@ -914,6 +927,68 @@ theorem exists_cutoff_prodIccExtension_add_smul (h₀ : IsCouplingForm ω₀ τ)
     (hΨ.tendsto_nhdsSet (s := Icc 0 1 ×ˢ (univ ×ˢ Icc a b)) (t := Icc 0 1 ×ˢ Icc a b)
       fun _ hp ↦ ⟨hp.1, hp.2.2⟩).eventually h1,
     fun p hp ↦ hs (tsupport_comp_subset_preimage ρ hΨ hp) p.2.1, fun _ _ _ _ ↦ rfl, h01⟩
+
+/-- **Uniqueness of coupling forms.** Let `P` be a smooth principal `Circle`-bundle over a compact
+Hausdorff boundaryless manifold `B`, modelled on a finite-dimensional space, and let `ω₀` and
+`ω₁` be coupling forms on `P × [a, b]` for the same family `τ` of nondegenerate two-forms on `B`.
+Then there is a diffeomorphism `Ψ` of `P × [a, b]` that preserves the coordinate `t` of the
+interval, commutes with the action `(x, t) ↦ (op z • x, t)` of every `z : Circle`, and pulls
+`ω₁` back to `ω₀`. It need not cover the identity of `B`.
+
+Milestone: *Minimal coupling*. -/
+theorem exists_diffeomorph [IB.Boundaryless] [T2Space B] (h₀ : IsCouplingForm ω₀ τ)
+    (h₁ : IsCouplingForm ω₁ τ) (hτ : ∀ t, (τ t).IsNondegenerate) :
+    ∃ Ψ : (ManifoldTotalSpace Circle P × Icc a b) ≃ₘ⟮(IB.prod (𝓡 1)).prod (𝓡∂ 1),
+        (IB.prod (𝓡 1)).prod (𝓡∂ 1)⟯ ManifoldTotalSpace Circle P × Icc a b,
+      (∀ x, (Ψ x).2 = x.2) ∧
+      (∀ (z : Circle) (x : ManifoldTotalSpace Circle P × Icc a b),
+        Ψ (op z • x.1, x.2) = (op z • (Ψ x).1, x.2)) ∧
+      SmoothForm.mpullback Ψ Ψ.contMDiff ω₁ = ω₀ := by
+  -- the total space of `P` is Hausdorff, as `B` and the fibre are
+  have : T2Space (ManifoldTotalSpace Circle P) :=
+    inferInstanceAs (T2Space (TotalSpace Circle P))
+  obtain ⟨ρ, hρ, hρc, hρ1, hnd, hinv, -⟩ := exists_cutoff_prodIccExtension_add_smul h₀ h₁ hτ
+  set W := prodIccExtension (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1 ω₀
+  set D := mextDerivₗ ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) 1 (SmoothForm.timeExtendIcc
+    (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1 (ω₁ - ω₀)))
+  have hX := contMDiff_prodIccMoserField ω₀ ω₁ hρ hnd
+  have hX₁ := hX.of_le (m := 1) (by simp)
+  have hc : IsCompleteVectorField
+      (timeDependentSuspensionField (prodIccMoserField ω₀ ω₁ (ρ ∘ Prod.map id Prod.snd))) := by
+    have hX₁' := hX₁
+    rw [prodIccMoserField_def] at hX₁' ⊢
+    exact isCompleteVectorField_timeDependentSuspensionField_moserField hX₁' hρc
+  -- `Φ` is the time-one map of the cut-off Moser flow on `P × ℝ`; it and its inverse keep the
+  -- levels over `[a, b]`
+  set Φ := timeDependentFlowDiffeomorph hc le_top hX 0 1
+  have hΦ (x : ManifoldTotalSpace Circle P) (t : ℝ) (ht : t ∈ Icc a b) : (Φ (x, t)).2 = t := by
+    rw [timeDependentFlowDiffeomorph_apply]
+    exact timeDependentFlowOf_prodIccMoserField_snd h₀ h₁ hρc hX₁ 0 1 x ⟨t, ht⟩
+  have hΦ' (x : ManifoldTotalSpace Circle P) (t : ℝ) (ht : t ∈ Icc a b) :
+      (Φ.symm (x, t)).2 = t := by
+    rw [timeDependentFlowDiffeomorph_symm_apply]
+    exact timeDependentFlowOf_prodIccMoserField_snd h₀ h₁ hρc hX₁ 1 0 x ⟨t, ht⟩
+  refine ⟨Φ.restrictProdIcc hΦ hΦ', Φ.restrictProdIcc_apply_snd hΦ hΦ', fun z x ↦ ?_, ?_⟩
+  · rw [Diffeomorph.restrictProdIcc_apply, Diffeomorph.restrictProdIcc_apply,
+      timeDependentFlowDiffeomorph_apply, timeDependentFlowDiffeomorph_apply,
+      timeDependentFlowOf_prodIccMoserField_smul h₀ h₁ z (fun s p ↦ hinv z s p.1 p.2) hX₁ 0 1
+        (x.1, x.2)]
+  -- `ω₁` and `ω₀` are the restrictions of `W + D` and `W`, and `Φ` pulls `W + D` back to `W`
+  -- over `[a, b]`
+  have hW₁ : SmoothForm.mpullback (Prod.map id Subtype.val)
+      (contMDiff_id.prodMap contMDiff_subtypeVal_Icc) (W + D) = ω₁ := by
+    have h := mpullback_prodMap_subtypeVal_prodIccExtension_add_smul h₀ h₁ 1
+    rwa [one_smul, one_smul, add_sub_cancel] at h
+  have hW₀ : SmoothForm.mpullback (Prod.map id Subtype.val)
+      (contMDiff_id.prodMap contMDiff_subtypeVal_Icc) W = ω₀ := by
+    have h := mpullback_prodMap_subtypeVal_prodIccExtension_add_smul h₀ h₁ 0
+    rwa [zero_smul, zero_smul, add_zero, add_zero] at h
+  rw [← hW₁, ← hW₀, Diffeomorph.mpullback_restrictProdIcc_mpullback_prodMap_subtypeVal]
+  refine Subtype.ext (funext fun p ↦ ?_)
+  rw [SmoothForm.coe_mpullback, SmoothForm.coe_mpullback, SmoothForm.coe_mpullback]
+  refine TauCeti.mpullback_apply_congr ?_
+  rw [show ⇑Φ = _ from funext (timeDependentFlowDiffeomorph_apply hc le_top hX 0 1)]
+  exact mpullback_timeDependentFlowOf_prodIccMoserField_apply h₀ h₁ hρ hρc hρ1 hnd p.1 p.2
 
 end Extension
 

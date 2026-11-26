@@ -128,7 +128,7 @@ applied through the Veronese embedding, as the book does:
   (`Geometry/Manifold/TubularNeighborhood/Existence.lean`) gives an open
   neighbourhood of $\iota(X)$ in $\mathbb CP^{n+1}$ onto which $\iota$ is a
   homotopy equivalence. It is stated for real models, so $\iota$ is read as a
-  real embedding by `Manifold.IsSmoothEmbedding.restrictScalars`
+  real embedding by `TauCeti.SmoothEmbedding.restrictScalars`
   (`Geometry/Manifold/SmoothEmbedding/RestrictScalars.lean`).
   Its image under $v$ is the $W$ wanted: a homotopy equivalence is a weak
   homotopy equivalence (`ContinuousMap.HomotopyEquiv.isWeakHomotopyEquivalence`)
@@ -554,7 +554,7 @@ setting of Tau Ceti's Lefschetz theorems.
   (`LinearAlgebra/Pi/LinearForm.lean`) and
   `MvPolynomial.IsHomogeneous.veroneseLinearForm_coeff_ne_zero`
   (`LinearAlgebra/Projectivization/VeroneseLinearForm.lean`) for `veroneseEquiv`;
-  `Manifold.IsSmoothEmbedding.restrictScalars`
+  `TauCeti.SmoothEmbedding.restrictScalars`
   (`Geometry/Manifold/SmoothEmbedding/RestrictScalars.lean`) for the tubular
   neighbourhood.
 
