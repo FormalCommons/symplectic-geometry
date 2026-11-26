@@ -8,7 +8,7 @@ module
 public import TauCeti.Topology.VectorBundle.Associated.Basic
 
 /-!
-# Scalar towers on the fibres of an associated bundle
+# Scalar towers and differences on the fibres of an associated bundle
 
 Tau Ceti's `TauCeti.AssociatedBundle.instModule` gives each fibre of an associated bundle
 `P ×_G F` the `𝕜`-module structure of the model fibre `F`, for every field `𝕜` over which the
@@ -17,10 +17,16 @@ instance a complex vector space viewed also as a real one, so is each fibre. Thi
 complex associated bundle be used where both its real and its complex structures appear, such as
 Tau Ceti's `complexEulerClass`.
 
+The file also completes Tau Ceti's `TauCeti.AssociatedBundle.mk_add` and
+`TauCeti.AssociatedBundle.mk_zero`: in a fixed frame `p`, the class map `v ↦ [p, v]` sends
+negatives and differences in the model fibre to those in the fibre.
+
 ## Main results
 
 * `TauCeti.AssociatedBundle.instIsScalarTower`: the fibres of `P ×_G F` form a scalar tower
   `𝕜 → 𝕜' → AssociatedBundle G P F b` when `F` does.
+* `TauCeti.AssociatedBundle.mk_neg`, `TauCeti.AssociatedBundle.mk_sub`: `[p, -v] = -[p, v]` and
+  `[p, v - w] = [p, v] - [p, w]`.
 
 ## References
 
@@ -47,6 +53,25 @@ variable {𝕜 𝕜' B G F : Type*} [NontriviallyNormedField 𝕜] [Nontrivially
 fibre is one. -/
 instance instIsScalarTower (b : B) : IsScalarTower 𝕜 𝕜' (AssociatedBundle G P F b) :=
   inferInstanceAs (IsScalarTower 𝕜 𝕜' F)
+
+section Additive
+
+variable {B G F : Type*} [TopologicalSpace B] [Group G] [TopologicalSpace G]
+  {P : B → Type*} [TopologicalSpace (TotalSpace G P)] [∀ b, TopologicalSpace (P b)]
+  [FiberBundle G P] [∀ b, MulAction Gᵐᵒᵖ (P b)] [PrincipalBundle G P]
+  [NormedAddCommGroup F] [DistribMulAction G F] [ContinuousSMul G F]
+
+/-- Classes in a fixed principal frame respect negation. -/
+@[simp]
+theorem mk_neg {b : B} (p : P b) (v : F) : mk G p (-v) = -mk G p v :=
+  (AddMonoidHom.mk' (mk G p) (mk_add p)).map_neg v
+
+/-- Classes in a fixed principal frame respect subtraction. -/
+@[simp]
+theorem mk_sub {b : B} (p : P b) (v w : F) : mk G p (v - w) = mk G p v - mk G p w :=
+  (AddMonoidHom.mk' (mk G p) (mk_add p)).map_sub v w
+
+end Additive
 
 end TauCeti.AssociatedBundle
 
