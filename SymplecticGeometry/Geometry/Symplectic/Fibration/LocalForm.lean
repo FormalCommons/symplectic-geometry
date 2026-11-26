@@ -10,6 +10,10 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Interior
 public import TauCeti.Geometry.Manifold.DifferentialForm.Vertical
 public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Basic
 public import TauCeti.Geometry.Manifold.VectorField.Prod
+public import SymplecticGeometry.Geometry.Symplectic.Fibration.HorizontalDistribution
+public import TauCeti.Geometry.Symplectic.Manifold.Flat
+import SymplecticGeometry.Geometry.Manifold.Submersion.HorizontalLiftField
+import TauCeti.Geometry.Manifold.Submersion.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 
@@ -35,15 +39,29 @@ for which this formula holds: `αᵢ(x)` evaluates `τ` on a vector `(0, w)` fol
 The identity holds at every point, since it is a statement about the values of `τ` at each point
 of `EB × F`; no regularity of `τ` is needed.
 
+For a smooth two-form `τ` whose fibre components are all nondegenerate, the first projection
+carries the connection `TauCeti.SmoothTwoForm.horizontalDistribution` of `τ`. The flat maps of
+`σ(x)` are then invertible, which gives vector fields `Xᵢ(x)` on `F` with
+`ι(Xᵢ(x)) σ(x) = αᵢ(x)`. The horizontal lift of `∂ᵢ` at `(x, y)` is `(∂ᵢ, Xᵢ(x)(y))`
+(`TauCeti.SmoothTwoForm.horizontalLift_local`), and `Xᵢ` is smooth in `(x, y)`.
+
 ## Main definitions
 
 * `TauCeti.RoughForm.fiberComponent τ x`: the slice of `τ` over `x`.
 * `TauCeti.RoughForm.mixedComponent τ bs i x`: the one-form `αᵢ(x)` on `F`.
 * `TauCeti.RoughForm.baseComponent τ bs i j x`: the function `f_{ij}(x)` on `F`.
+* `TauCeti.SmoothTwoForm.smoothFiberComponent τ x`: the slice of a smooth `τ`, as a smooth form.
+* `TauCeti.SmoothTwoForm.mixedVectorField τ bs i x`: the vector field `Xᵢ(x)` on `F`, the inverse
+  of the flat map of `σ(x)` applied to `αᵢ(x)`.
 
 ## Main results
 
 * `TauCeti.RoughForm.eq_verticalForm_add_sum`: the local form of `τ`.
+* `TauCeti.SmoothTwoForm.isVerticallyNondegenerate_fst_iff`: `τ` is vertically nondegenerate for
+  the first projection exactly when every `σ(x)` is nondegenerate.
+* `TauCeti.SmoothTwoForm.horizontalLift_local`: the horizontal lift of `∂ᵢ` is `(∂ᵢ, Xᵢ)`.
+* `TauCeti.SmoothTwoForm.contMDiff_mixedVectorField`: `Xᵢ` is smooth jointly in `x` and the
+  point of `F`.
 
 ## Implementation notes
 
@@ -52,6 +70,11 @@ of `σ` and `αᵢ` are `σ(x)` and `αᵢ(x)`, so the components can be recover
 local form. The proof of the local form is linear algebra at each point: it applies
 `ContinuousAlternatingMap.apply_vecCons_prod_eq_sum`, the same splitting for a single
 continuous alternating two-form on a product, to the value of `τ` at that point.
+
+The smoothness of `Xᵢ` is not proved by inverting `σ(x)` in charts. The horizontal lift of the
+constant field `∂ᵢ` for the smooth connection of `τ` is smooth
+(`TauCeti.IsEhresmannConnection.contMDiff_horizontalLift`), and `Xᵢ` is its second component,
+its image under the derivative of `Prod.snd`.
 
 ## References
 
@@ -63,7 +86,7 @@ public section
 
 noncomputable section
 
-open scoped Manifold
+open scoped Manifold ContDiff
 
 namespace TauCeti.RoughForm
 
@@ -184,3 +207,141 @@ theorem eq_verticalForm_add_sum [FiniteDimensional ℝ EB] [Fintype ι] [LinearO
   · exact Finset.sum_congr rfl fun i _ ↦ Finset.sum_congr rfl fun j _ ↦ mul_comm _ _
 
 end TauCeti.RoughForm
+
+namespace TauCeti.SmoothTwoForm
+
+variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
+  {EF HF F : Type*} [NormedAddCommGroup EF] [NormedSpace ℝ EF] [TopologicalSpace HF]
+  {IF : ModelWithCorners ℝ EF HF} [TopologicalSpace F] [ChartedSpace HF F] [IsManifold IF ∞ F]
+  {ι : Type*} (τ : SmoothTwoForm (𝓘(ℝ, EB).prod IF) (EB × F)) (bs : Module.Basis ι ℝ EB)
+
+/-- The fibre component `σ(x)` of a smooth two-form `τ` on `EB × F`, as a smooth two-form on
+`F`: the pull-back of `τ` along `y ↦ (x, y)`. -/
+def smoothFiberComponent (x : EB) : SmoothTwoForm IF F :=
+  SmoothForm.mpullback (Prod.mk x) (contMDiff_const.prodMk contMDiff_id) τ
+
+@[simp]
+theorem coe_smoothFiberComponent (x : EB) :
+    (τ.smoothFiberComponent x).val = RoughForm.fiberComponent τ.val x := by
+  rw [smoothFiberComponent, SmoothForm.coe_mpullback, RoughForm.fiberComponent_def]
+
+/-- The smooth fibre component of `τ` over `x` evaluates `τ` on vectors tangent to the fibre. -/
+theorem eval₂_smoothFiberComponent (x : EB) (y : F) (w₁ w₂ : TangentSpace IF y) :
+    SmoothBundleForm.eval₂ (τ.smoothFiberComponent x) y w₁ w₂ =
+      τ.val (x, y) ![((0 : EB), w₁), ((0 : EB), w₂)] := by
+  rw [SmoothBundleForm.eval₂_apply, coe_smoothFiberComponent, RoughForm.fiberComponent_apply]
+
+/-- The vector field `Xᵢ(x)` on `F` dual to the mixed component `αᵢ(x)` through the fibre
+component `σ(x)`: its value at `y` is the inverse of the flat map of `σ(x)` at `y` applied to
+`αᵢ(x)` at `y`. Where `σ(x)` is nondegenerate, it is the vector field with `ι(Xᵢ(x)) σ(x) = αᵢ(x)`
+(`TauCeti.SmoothTwoForm.eval₂_mixedVectorField`). -/
+def mixedVectorField (i : ι) (x : EB) (y : F) : TangentSpace IF y :=
+  ((τ.smoothFiberComponent x).flat y).inverse
+    ((ContinuousAlternatingMap.ofSubsingleton ℝ (TangentSpace IF y) ℝ (0 : Fin 1)).symm
+      (RoughForm.mixedComponent τ.val bs i x y))
+
+theorem mixedVectorField_def (i : ι) (x : EB) (y : F) :
+    τ.mixedVectorField bs i x y = ((τ.smoothFiberComponent x).flat y).inverse
+      ((ContinuousAlternatingMap.ofSubsingleton ℝ (TangentSpace IF y) ℝ (0 : Fin 1)).symm
+        (RoughForm.mixedComponent τ.val bs i x y)) :=
+  (rfl)
+
+/-- Where the fibre component `σ(x)` is nondegenerate, the contraction of `σ(x)` with the vector
+field `Xᵢ(x)` is the mixed component `αᵢ(x)`: `σ(x)(Xᵢ(x), w) = αᵢ(x)(w)`. -/
+theorem eval₂_mixedVectorField [FiniteDimensional ℝ EF] {x : EB}
+    (hσ : (τ.smoothFiberComponent x).IsNondegenerate) (i : ι) (y : F) (w : TangentSpace IF y) :
+    SmoothBundleForm.eval₂ (τ.smoothFiberComponent x) y (τ.mixedVectorField bs i x y) w =
+      RoughForm.mixedComponent τ.val bs i x y ![w] := by
+  rw [← flat_apply, mixedVectorField_def,
+    ContinuousLinearMap.IsInvertible.self_apply_inverse (hσ.isInvertible_flat y),
+    ContinuousAlternatingMap.ofSubsingleton_symm_apply_apply, Matrix.vec_single_eq_const]
+
+/-- Where the fibre component `σ(x)` is nondegenerate, the vector `(bs i, Xᵢ(x)(y))` at `(x, y)`
+is horizontal for `τ` and the first projection. -/
+theorem mk_mixedVectorField_mem_horizontalDistribution [FiniteDimensional ℝ EF] {x : EB}
+    (hσ : (τ.smoothFiberComponent x).IsNondegenerate) (i : ι) (y : F) :
+    ((bs i, τ.mixedVectorField bs i x y) : TangentSpace (𝓘(ℝ, EB).prod IF) (x, y)) ∈
+      horizontalDistribution 𝓘(ℝ, EB) Prod.fst τ (x, y) := by
+  refine mem_horizontalDistribution_iff.2 fun η hη ↦ ?_
+  have hη' : η = ((0 : EB), η.2) := by
+    rw [mfderiv_fst] at hη
+    exact Prod.ext (LinearMap.mem_ker.1 hη) rfl
+  have hsplit : ((bs i, τ.mixedVectorField bs i x y) : TangentSpace (𝓘(ℝ, EB).prod IF) (x, y)) =
+      (bs i, 0) + ((0 : EB), τ.mixedVectorField bs i x y) :=
+    Prod.ext (add_zero _).symm (zero_add _).symm
+  have h := ((τ.eval₂_smoothFiberComponent x y _ _).symm.trans
+    (τ.eval₂_mixedVectorField bs hσ i y η.2)).trans
+    (RoughForm.mixedComponent_apply τ.val bs i x y η.2)
+  have hs := (τ.val (x, y)).apply_vecCons_swap ((0 : EB), η.2)
+    ((0 : EB), τ.mixedVectorField bs i x y)
+  have hadd := (τ.val (x, y)).apply_vecCons_add_right ((0 : EB), η.2) (bs i, 0)
+    ((0 : EB), τ.mixedVectorField bs i x y)
+  -- `erw`: the pairs are vectors of `EB × EF` on one side and of the tangent space of
+  -- `EB × F` on the other, which agree only up to unfolding `TangentSpace`.
+  erw [SmoothForm.bilinFormAt_apply, SmoothBundleForm.eval₂_apply, hsplit, hη', hadd]
+  linarith
+
+/-- **The horizontal lift in a chart.** Where the fibre component `σ(x)` is nondegenerate, the
+horizontal lift of the basis vector `bs i` at `(x, y)` for the connection of `τ` on the first
+projection `EB × F → EB` is `(bs i, Xᵢ(x)(y))`, where `Xᵢ(x)` is the vector field on `F` with
+`ι(Xᵢ(x)) σ(x) = αᵢ(x)`. -/
+theorem horizontalLift_local [FiniteDimensional ℝ EF] {n : ℕ∞ω}
+    (hD : IsEhresmannConnection (𝓘(ℝ, EB).prod IF) 𝓘(ℝ, EB) n Prod.fst
+      (horizontalDistribution 𝓘(ℝ, EB) Prod.fst τ)) {x : EB}
+    (hσ : (τ.smoothFiberComponent x).IsNondegenerate) (i : ι) (y : F) :
+    (hD.horizontalLift (x, y) (bs i) : TangentSpace (𝓘(ℝ, EB).prod IF) (x, y)) =
+      (bs i, τ.mixedVectorField bs i x y) := by
+  refine (congrArg Subtype.val (hD.eq_horizontalLift_iff
+    (w := ⟨_, τ.mk_mixedVectorField_mem_horizontalDistribution bs hσ i y⟩) |>.2 ?_)).symm
+  rw [mfderiv_fst]
+  -- The goal is the first projection of the pair `(bs i, Xᵢ(x)(y))`, a vector of the tangent
+  -- space of `EB × F`, which is `EB × EF` only up to unfolding.
+  rfl
+
+/-- A two-form `τ` on `EB × F` is vertically nondegenerate for the first projection exactly when
+each of its fibre components `σ(x)` is nondegenerate. -/
+theorem isVerticallyNondegenerate_fst_iff :
+    IsVerticallyNondegenerate 𝓘(ℝ, EB) Prod.fst τ ↔
+      ∀ x, (τ.smoothFiberComponent x).IsNondegenerate := by
+  simp only [isVerticallyNondegenerate_iff_forall, isNondegenerate_iff_separatingLeft,
+    mfderiv_fst, LinearMap.mem_ker, Prod.forall, eval₂_smoothFiberComponent]
+  refine ⟨fun h x y v hv ↦ ?_, fun h x y u hu hτ ↦ ?_⟩
+  · refine congrArg Prod.snd (h x y ((0 : EB), v) rfl fun w hw ↦ ?_ : ((0 : EB), v) = 0)
+    have hw' : w = ((0 : EB), w.2) := Prod.ext hw rfl
+    -- `erw`: the pairs are vectors of `EB × EF` on one side and of the tangent space of
+    -- `EB × F` on the other, which agree only up to unfolding `TangentSpace`.
+    erw [SmoothForm.bilinFormAt_apply, SmoothBundleForm.eval₂_apply, hw']
+    exact hv w.2
+  · have hu' : u = ((0 : EB), u.2) := Prod.ext hu rfl
+    refine hu'.trans (Prod.ext rfl (h x y u.2 fun w ↦ ?_))
+    have := hτ ((0 : EB), w) rfl
+    -- `erw`: the pairs are vectors of `EB × EF` on one side and of the tangent space of
+    -- `EB × F` on the other, which agree only up to unfolding `TangentSpace`.
+    erw [SmoothForm.bilinFormAt_apply, SmoothBundleForm.eval₂_apply, hu'] at this
+    exact this
+
+/-- **The vector fields `Xᵢ` are smooth.** If every fibre component `σ(x)` is nondegenerate,
+the vector field `Xᵢ(x)` on `F` with `ι(Xᵢ(x)) σ(x) = αᵢ(x)` is smooth jointly in `x` and the
+point of `F`. -/
+theorem contMDiff_mixedVectorField [FiniteDimensional ℝ EB] [FiniteDimensional ℝ EF]
+    (hσ : ∀ x, (τ.smoothFiberComponent x).IsNondegenerate) (i : ι) :
+    ContMDiff (𝓘(ℝ, EB).prod IF) IF.tangent ∞
+      (fun p : EB × F ↦ (⟨p.2, τ.mixedVectorField bs i p.1 p.2⟩ : TangentBundle IF F)) := by
+  have hD := ((τ.isVerticallyNondegenerate_fst_iff).2 hσ).isEhresmannConnection
+    (Manifold.isSubmersion_fst (n := ∞))
+  -- The constant field `bs i` on `EB`, along the first projection.
+  have hw : ContMDiff (𝓘(ℝ, EB).prod IF) 𝓘(ℝ, EB).tangent ∞
+      (fun p : EB × F ↦ (⟨p.1, bs i⟩ : TangentBundle 𝓘(ℝ, EB) EB)) :=
+    (contMDiff_vectorSpace_iff_contDiff.2 contDiff_const :
+      ContMDiff 𝓘(ℝ, EB) 𝓘(ℝ, EB).tangent ∞
+        (fun b : EB ↦ (⟨b, bs i⟩ : TangentBundle 𝓘(ℝ, EB) EB))).comp contMDiff_fst
+  have hl := hD.contMDiff_horizontalLift (g := id) (fun _ ↦ rfl) (by simpa using contMDiff_fst)
+    contMDiff_id hw
+  refine ((contMDiff_snd.contMDiff_tangentMap le_rfl).comp hl).congr fun p ↦ ?_
+  simp only [Function.comp_apply, id_eq, tangentMap, mfderiv_snd]
+  rw [τ.horizontalLift_local bs hD (hσ p.1) i p.2]
+  -- The second projection of the pair `(bs i, Xᵢ(x)(y))`, a vector of the tangent space of
+  -- `EB × F`, which is `EB × EF` only up to unfolding.
+  rfl
+
+end TauCeti.SmoothTwoForm

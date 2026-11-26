@@ -375,8 +375,8 @@ constant fields `∂ i := bs i`.
 - `horizontalLift_local`: when every $\sigma(x)$ is nondegenerate, the lift
   of `∂ i` for `τ.horizontalDistribution Prod.fst` at `(x, v)` is
   `(∂ i, X i x v)`, where `X i x` is the vector field on `F` with
-  $\iota(X_i)\sigma(x)=\alpha_i(x)$. It is smooth in `(x, v)`, by
-  inverting $\sigma(x)$ (Tau Ceti's `IsNondegenerate.symplecticFormAt`).
+  $\iota(X_i)\sigma(x)=\alpha_i(x)$. It is smooth in `(x, v)`, as the fibre part of
+  the horizontal lift of the constant field `∂ i`, which is smooth.
 
 ### `Geometry/Symplectic/Fibration/SymplecticFibres.lean`
 
