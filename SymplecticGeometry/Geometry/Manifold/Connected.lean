@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Manifold.LocallyFlat.Basic
 import Mathlib.Topology.Order.IntermediateValue
 import SymplecticGeometry.Geometry.Manifold.Immersion.Complement
 import SymplecticGeometry.Geometry.Manifold.LocallyFlat.LineComplement
+import SymplecticGeometry.Topology.Closure
 import SymplecticGeometry.Topology.Connected.Clopen
 import TauCeti.Geometry.Manifold.Connected
 import TauCeti.Geometry.Manifold.LocallyFlat.Smooth
@@ -35,19 +36,18 @@ closure, and near the free end it is preconnected
 (`TauCeti.IsLocallyFlat.exists_isPreconnected_diff_image` and
 `TauCeti.IsLocallyFlat.exists_isPreconnected_diff_image_of_mem_bounds`). These local facts hold
 for any locally flat embedding of `ℝ` with a nontrivial complementary model, so the one-arc step
-is stated in that generality first. Relative closedness keeps the set left open after each step.
+is stated in that generality first. Relative closedness keeps the set left open after each step
+(`IsOpen.sdiff_iUnion_of_closure_inter_subset`).
 
 ## Main results
 
-* `IsOpen.sdiff_iUnion_of_closure_inter_subset`: removing from an open set `V` finitely many sets,
-  each closed in `V`, leaves an open set.
 * `TauCeti.IsLocallyFlat.isPreconnected_sdiff_image`: removing one arc with a free end, the image
   of a locally flat embedding, from a preconnected open set that contains it leaves a
   preconnected set.
 * `Manifold.IsSmoothEmbedding.isPreconnected_sdiff_image`: the same for a smooth embedding into a
   boundaryless manifold whose model space has rank greater than one.
-* `isPreconnected_sdiff_union_iUnion_image_of_one_lt_rank`: the statement above, for a closed
-  discrete set and finitely many arcs.
+* `SymplecticGeometry.isPreconnected_sdiff_union_iUnion_image_of_one_lt_rank`: the statement
+  above, for a closed discrete set and finitely many arcs.
 
 ## References
 
@@ -58,19 +58,6 @@ is stated in that generality first. Relative closedness keeps the set left open 
 public section
 
 open Function Set Topology Manifold
-
-/-- Removing from an open set `V` finitely many sets `A i`, each closed in `V` in the sense that
-`closure (A i) ∩ V ⊆ A i`, leaves an open set. -/
-theorem IsOpen.sdiff_iUnion_of_closure_inter_subset {X ι : Type*} [TopologicalSpace X]
-    [Finite ι] {V : Set X} (hV : IsOpen V) {A : ι → Set X}
-    (hA : ∀ i, closure (A i) ∩ V ⊆ A i) : IsOpen (V \ ⋃ i, A i) := by
-  have heq : V \ ⋃ i, A i = V \ ⋃ i, closure (A i) := by
-    refine Subset.antisymm (fun x hx ↦ ⟨hx.1, fun h ↦ ?_⟩)
-      (sdiff_subset_sdiff_right (iUnion_mono fun _ ↦ subset_closure))
-    obtain ⟨i, hi⟩ := mem_iUnion.1 h
-    exact hx.2 (mem_iUnion.2 ⟨i, hA i ⟨hi, hx.1⟩⟩)
-  rw [heq]
-  exact hV.sdiff (isClosed_iUnion_of_finite fun _ ↦ isClosed_closure)
 
 namespace TauCeti.IsLocallyFlat
 
@@ -116,6 +103,8 @@ theorem isPreconnected_sdiff_image {f : ℝ → M} (h : IsSmoothEmbedding 𝓘(�
   (TauCeti.IsLocallyFlat.of_isSmoothEmbedding h).isPreconnected_sdiff_image hU hUc hJ hb hbJ hJU
 
 end Manifold.IsSmoothEmbedding
+
+namespace SymplecticGeometry
 
 /-- **Removing finitely many arcs with free ends and a closed discrete set keeps an open set
 preconnected.** Let `M` be a boundaryless manifold whose model space has rank greater than one,
@@ -164,5 +153,7 @@ theorem isPreconnected_sdiff_union_iUnion_image_of_one_lt_rank {ι : Type*} [Fin
       exacts [⟨b, hb.1, .inl hb.2⟩, ⟨b, hb.1, .inr hb.2⟩]
     rw [heq]
     exact (hf j).isPreconnected_sdiff_image hE (hopen T) ih (hJ j) hbJ hbb hjV
+
+end SymplecticGeometry
 
 end

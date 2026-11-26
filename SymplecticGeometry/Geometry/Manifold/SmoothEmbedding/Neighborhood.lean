@@ -8,7 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.ContMDiff.Constructions
 public import Mathlib.Geometry.Manifold.Instances.Real
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
-import Mathlib.Topology.MetricSpace.Thickening
+import SymplecticGeometry.Topology.Order.NhdsSet
 import TauCeti.Geometry.Manifold.Immersion.Differential
 import TauCeti.Geometry.Manifold.Immersion.Family
 import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
@@ -169,16 +169,8 @@ theorem exists_pos_forall_isSmoothEmbedding_of_injOn {G : ℝ × P → M} {W : S
       ∀ t ∈ Ioo (-δ) (1 + δ), Manifold.IsSmoothEmbedding J I ∞ (fun x : V ↦ G (t, x)) := by
   obtain ⟨U, hUo, hU, V, hKV, hVW, hV⟩ := exists_isOpen_superset_forall_isSmoothEmbedding_of_injOn
     hW hG isCompact_Icc hK hKW hinj himm
-  obtain ⟨δ, hδ, hδU⟩ := isCompact_Icc.exists_thickening_subset_open hUo hU
-  have hIoo : Ioo (-δ) (1 + δ) ⊆ U := fun t ht ↦ hδU <| Metric.mem_thickening_iff.2
-    ⟨max 0 (min t 1), ⟨le_max_left _ _, max_le zero_le_one (min_le_right _ _)⟩, by
-      rcases le_total t 0 with h0 | h0
-      · rw [min_eq_left (h0.trans zero_le_one), max_eq_left h0, Real.dist_eq, sub_zero, abs_lt]
-        constructor <;> linarith [ht.1]
-      · rcases le_total t 1 with h1 | h1
-        · rwa [min_eq_left h1, max_eq_right h0, dist_self]
-        · rw [min_eq_right h1, max_eq_right zero_le_one, Real.dist_eq, abs_lt]
-          constructor <;> linarith [ht.2]⟩
+  obtain ⟨δ, hδ, hIoo⟩ := hUo.exists_pos_Ioo_subset_of_Icc_subset hU
+  rw [zero_sub] at hIoo
   exact ⟨δ, hδ, V, hKV, (prod_mono hIoo subset_rfl).trans hVW, fun t ht ↦ hV t (hIoo ht)⟩
 
 omit [FiniteDimensional ℝ E'] [T2Space P] in
