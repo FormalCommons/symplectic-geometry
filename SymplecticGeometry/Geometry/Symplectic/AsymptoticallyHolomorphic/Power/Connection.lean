@@ -5,12 +5,14 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.CircleConnection
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.Power.Basic
 public import SymplecticGeometry.Topology.FiberBundle.Associated.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.LocalFrame
 public import TauCeti.Geometry.Manifold.FiberBundle.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Geometry.Manifold.DeRham.Circle
 
 /-!
 # The connection on the powers of a principal circle bundle
@@ -34,7 +36,13 @@ derivative are conditions at one point, so this is a covariant derivative on all
 comparison of frames is needed to define it. On a section that reads `[σ_x, f]` near `x`, with
 `f` differentiable at `x`, `D_k` is given at `x` by the local formula in the preferred frame
 (`SymplecticGeometry.powerConnection_apply_trivializationAt`). The definition uses no property
-of `α`; that the formula holds in every local section of `P` uses that `α` is a connection form.
+of `α`; that the formula holds in every local section of `P` uses that `α` is a connection form
+(`SymplecticGeometry.powerConnection_apply_frame`). To prove it for a local section `σ`, write
+the preferred section `σ_x` as `σ · g`; a section `[σ, f]` is then `[σ_x, g ^ (-k) f]`, and the
+change-of-section formula `σ_x^* α = σ^* α + g^* dθ`
+(`SymplecticGeometry.IsCircleConnectionForm.mpullback_apply_eq_mpullback_division_add`) cancels
+the derivative of `g ^ (-k)`, which is `-i k g ^ (-k) g^* dθ` (`TauCeti.mvfderiv_coe_circle_apply`,
+Tau Ceti's `TauCeti.mpullback_zpow_circleAngularForm_apply`).
 
 The statements take `[∀ b, Nonempty (P b)]`, since Mathlib's `Bundle.Trivialization.symm`, which
 defines `σ_b`, asks for it; a caller supplies it with `FiberBundle.nonempty_fiber Circle P`, as
@@ -54,6 +62,9 @@ defines `σ_b`, asks for it; a caller supplies it with `FiberBundle.nonempty_fib
 * `SymplecticGeometry.powerConnection_apply_trivializationAt`: if a section reads `[σ_x, f]` near
   `x`, with `f` differentiable at `x`, its derivative at `x` is
   `[σ_x x, df_x + i k (σ_x^* α)_x f(x)]`.
+* `SymplecticGeometry.powerConnection_apply_frame`: for a connection form `α` and a local section
+  `σ` of `P`, smooth on an open set `U`, the derivative of a section reading `[σ, f]` on `U` is
+  `[σ x, df_x + i k (σ^* α)_x f(x)]` at a point `x ∈ U` where `f` is differentiable.
 
 ## References
 
@@ -133,7 +144,8 @@ theorem isCovariantDerivativeOn_powerConnectionAt (b : B) :
 `x`, the operator `d + i k σ_x^* α` read in the preferred frame at `x`, where `σ_x` is the
 preferred local section of `P` at `x` (`SymplecticGeometry.powerConnection_apply_trivializationAt`).
 It is a covariant derivative for every `α`. When `α` is a connection form, it is the connection
-`D_k`, which has this form in every local section of `P`. -/
+`D_k`, which has this form in every local section of `P`
+(`SymplecticGeometry.powerConnection_apply_frame`). -/
 def powerConnection : CovariantDerivative IB (PowerModel k) (PowerBundle P k) where
   toFun s x := powerConnectionAt α k x s x
   isCovariantDerivativeOnUniv :=
@@ -178,6 +190,86 @@ theorem powerConnection_apply_trivializationAt {s : Π x, PowerBundle P k x}
     ContinuousLinearMap.comp_apply, Trivialization.symmL_apply _ hxe,
     AssociatedBundle.trivializationAt_symm_eq_mk hx, powerConnectionForm_apply, hs.self_of_nhds,
     ← AssociatedBundle.mk_smul_scalar, AssociatedBundle.mk_add]
+
+attribute [local instance] finrank_real_complex_fact'
+
+/-- **The connection in a local section.** Let `α` be a connection form and `σ` a section of `P`
+that is smooth on an open set `U` of the base. If a section `s` of `PowerBundle P k` reads
+`[σ, f]` on `U`, and `f` is differentiable at `x ∈ U`, then `D_k s` at `x` is
+`[σ x, df_x + i k (σ^* α)_x f(x)]`. -/
+theorem powerConnection_apply_frame (hα : IsCircleConnectionForm α) {σ : ∀ b, P b} {U : Set B}
+    (hU : IsOpen U)
+    (hσ : ContMDiffOn IB (IB.prod (𝓡 1)) ∞
+      (fun b ↦ ManifoldTotalSpace.homeomorph Circle P ⟨b, σ b⟩) U)
+    {s : Π x, PowerBundle P k x} {f : B → PowerModel k} {x : B} (hx : x ∈ U)
+    (hf : MDifferentiableAt IB 𝓘(ℝ, PowerModel k) f x)
+    (hs : ∀ y ∈ U, s y = AssociatedBundle.mk Circle (σ y) (f y)) (v : TangentSpace IB x) :
+    powerConnection α k s x v =
+      AssociatedBundle.mk Circle (σ x)
+        (mvfderiv IB f x v +
+          (Complex.I * k * (TauCeti.mpullback IB (IB.prod (𝓡 1))
+            (fun y ↦ ManifoldTotalSpace.homeomorph Circle P ⟨y, σ y⟩) α.val x ![v] : ℝ)) •
+            f x) := by
+  -- Compare with the preferred section `τ` at `x`, through the transition `g` with `τ = σ · g`.
+  set τ : ∀ y, P y := fun y ↦ (trivializationAt Circle P x).symm y 1 with hτdef
+  set g : B → Circle := fun y ↦ PrincipalBundle.division Circle (σ y) (τ y) with hgdef
+  -- In the frame `τ`, the section `s` reads `[τ, c • f]`, with `c = g ^ (-k)`.
+  set c : B → ℂ := fun y ↦ ((g y ^ (-k) : Circle) : ℂ) with hcdef
+  have hxU : x ∈ (trivializationAt Circle P x).baseSet := mem_baseSet_trivializationAt Circle P x
+  have hτ : MDifferentiableAt IB (IB.prod (𝓡 1))
+      (fun y ↦ ManifoldTotalSpace.homeomorph Circle P ⟨y, τ y⟩) x := by
+    refine ((ManifoldTotalSpace.contMDiffAt_trivializationAt_symm (n := 1) (IB := IB)
+      (IF := 𝓡 1) x (1 : Circle)).mdifferentiableAt one_ne_zero).congr_of_eventuallyEq ?_
+    filter_upwards [(trivializationAt Circle P x).open_baseSet.mem_nhds hxU] with y hy
+    rw [hτdef, (trivializationAt Circle P x).mk_symm hy]
+  -- `g` is the fibre coordinate of `τ` in the trivialization defined by `σ`.
+  have hg : MDifferentiableAt IB (𝓡 1) g x := by
+    have hθ := (PrincipalBundle.contMDiffAt_snd_trivializationOfSection
+      (hσ := ManifoldTotalSpace.continuousOn_of_contMDiffOn_homeomorph hσ) (hU := hU) hσ
+      (x := ManifoldTotalSpace.homeomorph Circle P ⟨x, τ x⟩) (by simpa using hx)).mdifferentiableAt
+        (by simp)
+    exact (hθ.comp x hτ).congr_of_eventuallyEq (.of_forall fun y ↦ by
+      simp [Trivialization.manifoldSnd_homeomorph, PrincipalBundle.trivializationOfSection_apply,
+        hgdef])
+  have hgk : MDifferentiableAt IB (𝓡 1) (fun y ↦ g y ^ (-k)) x :=
+    ((contMDiff_zpow (I := 𝓡 1) (G := Circle) (-k)).mdifferentiableAt (n := 1) one_ne_zero).comp
+      x hg
+  have hc : MDifferentiableAt IB 𝓘(ℝ, ℂ) c x :=
+    ((contMDiff_coe_sphere (m := 1)).mdifferentiableAt one_ne_zero).comp x hgk
+  have hcf : MDifferentiableAt IB 𝓘(ℝ, PowerModel k) (c • f) x :=
+    (mdifferentiableAt_iff _ _).2 ⟨hc.continuousAt.smul hf.continuousAt,
+      hc.differentiableWithinAt_writtenInExtChartAt.smul
+        hf.differentiableWithinAt_writtenInExtChartAt⟩
+  have hgc (y : B) : ((g y : ℂ) ^ k) * c y = 1 := by
+    simp only [hcdef]
+    rw [Circle.coe_zpow, zpow_neg, mul_inv_cancel₀ (zpow_ne_zero _ (Circle.coe_ne_zero _))]
+  have hmk (y : B) (w : PowerModel k) :
+      (AssociatedBundle.mk Circle (τ y) w : PowerBundle P k y) =
+        AssociatedBundle.mk Circle (σ y) (((g y : ℂ) ^ k) • w) := by
+    rw [← PrincipalBundle.smul_division (G := Circle) (σ y) (τ y), PowerBundle.mk_op_smul,
+      AssociatedBundle.mk_smul_scalar]
+  have hs' : ∀ᶠ y in 𝓝 x, s y = AssociatedBundle.mk Circle (τ y) ((c • f) y) := by
+    filter_upwards [hU.mem_nhds hx] with y hy
+    rw [hs y hy, hmk, Pi.smul_apply', smul_smul, hgc, one_smul]
+  -- The pull-backs of `α` along `τ` and `σ` differ by the pull-back of `dθ` along `g`.
+  have hA := congrArg (· ![v]) (hα.mpullback_apply_eq_mpullback_division_add hU hσ hx hτ)
+  simp only [ContinuousAlternatingMap.add_apply] at hA
+  -- The derivative of `c • f`, where `dc = c · (-i k g^* dθ)`.
+  have hdc : mvfderiv IB c x v = c x * (Complex.I *
+      (TauCeti.mpullback IB (𝓡 1) (fun y ↦ g y ^ (-k)) circleAngularForm x ![v] : ℝ)) :=
+    mvfderiv_coe_circle_apply hgk v
+  rw [mpullback_fun_zpow_circleAngularForm_apply hg (-k)] at hdc
+  have hd := congrArg (· v) (mvfderiv_smul_algebra hc hf)
+  simp only [add_apply, smul_apply, ContinuousLinearMap.smulRight_apply, hdc] at hd
+  rw [powerConnection_apply_trivializationAt α k hcf hs' v, hd, hmk, hA, Pi.smul_apply']
+  congr 1
+  simp only [smul_add, smul_smul, hgc, one_smul]
+  match_scalars
+  · simp
+  · simp only [ContinuousAlternatingMap.smul_apply, smul_eq_mul]
+    push_cast
+    linear_combination (Complex.I * k * TauCeti.mpullback IB (IB.prod (𝓡 1))
+      (fun b ↦ ManifoldTotalSpace.homeomorph Circle P ⟨b, σ b⟩) α.val x ![v]) * hgc x
 
 end SymplecticGeometry
 
