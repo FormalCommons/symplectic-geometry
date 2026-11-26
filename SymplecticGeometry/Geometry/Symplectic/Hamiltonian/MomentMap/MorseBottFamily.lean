@@ -35,6 +35,11 @@ dimension `d` of the sets `M^{T_ξ}_d` that Tau Ceti uses
 (`exists_isNondegenerateCriticalSubmanifold_fixedPointsOfFinrank_of_compactSpace`), since a
 Morse–Bott family needs nonempty connected pieces, and `M^{T_ξ}_d` can be empty or disconnected.
 
+The proofs adapt those of Tau Ceti's
+`TauCeti.SmoothTwoForm.IsMomentMap.exists_isNondegenerateCriticalSubmanifold_fixedPointsOfFinrank`
+and `exists_isNondegenerateCriticalSubmanifold_fixedPointsOfFinrank_of_compactSpace`, with the
+connected components of `M^{T_ξ}` in place of the sets `M^{T_ξ}_d`.
+
 ## Main results
 
 * `TauCeti.SmoothTwoForm.IsMomentMap.exists_isMorseBottFamily`: the connected components of the
@@ -43,7 +48,8 @@ Morse–Bott family needs nonempty connected pieces, and `M^{T_ξ}_d` can be emp
 ## References
 
 * [M. F. Atiyah, *Convexity and commuting Hamiltonians*][Atiyah1982], §2.
-* [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §5.7.
+* [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017],
+  Lemma 5.5.8 (§5.5).
 -/
 
 public section
@@ -96,7 +102,8 @@ private theorem exists_isSmoothEmbedding_carrierIn
 acting smoothly on a σ-compact manifold with moment map `μ` for a nondegenerate two-form `σ`, and
 any `ξ` in the Lie algebra, each connected component of the critical set of `x ↦ μ x ξ` is a
 smooth manifold, modelled on a subspace `L c` of the model, whose inclusion into `M` is a smooth
-embedding, and these inclusions form a Morse–Bott family for `x ↦ μ x ξ`. -/
+embedding whose tangent image at each point `y` is the fixed tangent subspace of `T_ξ` at `y`, and
+these inclusions form a Morse–Bott family for `x ↦ μ x ξ`. -/
 theorem exists_isMorseBottFamily
     (h : σ.IsMomentMap (InfinitesimalAction.fundamental I G 𝓘(ℝ, E') M) μ)
     (hσ : σ.IsNondegenerate) (ξ : GroupLieAlgebra I G) :
@@ -104,7 +111,10 @@ theorem exists_isMorseBottFamily
       (C : ∀ c, ChartedSpace (L c) c.carrierIn), letI := C
       (∀ c, IsManifold 𝓘(ℝ, L c) ∞ c.carrierIn) ∧
       ∃ i : ∀ c, SmoothEmbedding 𝓘(ℝ, L c) 𝓘(ℝ, E') ∞ c.carrierIn M,
-        (∀ c y, i c y = y) ∧ IsMorseBottFamily i fun x ↦ μ x ξ := by
+        (∀ c y, i c y = y) ∧
+        (∀ c (y : c.carrierIn), LinearMap.range (mfderiv 𝓘(ℝ, L c) 𝓘(ℝ, E') (i c) y).toLinearMap =
+          fixedTangentSubspace 𝓘(ℝ, E') (Lie.closedOneParameterSubgroup ξ) (y : M)) ∧
+        IsMorseBottFamily i fun x ↦ μ x ξ := by
   choose L C hman hemb hrange using h.exists_isSmoothEmbedding_carrierIn hσ ξ
   let := C
   let i c : SmoothEmbedding 𝓘(ℝ, L c) 𝓘(ℝ, E') ∞ c.carrierIn M :=
@@ -117,7 +127,7 @@ theorem exists_isMorseBottFamily
   have (c : ConnectedComponents (criticalPoints 𝓘(ℝ, E') fun x ↦ μ x ξ)) :
       PreconnectedSpace c.carrierIn :=
     isPreconnected_iff_preconnectedSpace.1 c.isPreconnected_carrierIn
-  refine ⟨L, C, hman, i, fun c y ↦ by rw [hi], ?_⟩
+  refine ⟨L, C, hman, i, fun c y ↦ by rw [hi], fun c y ↦ by rw [hi]; exact hrange c y, ?_⟩
   refine IsMorseBottFamily.of_pairwise_disjoint (by simp) (h.contMDiff ξ) (fun c ↦ ?_) ?_ ?_
   · refine h.isNondegenerateCriticalSubmanifold_of_fixedTangentSubspace_le hσ (fun y ↦ ?_)
       (fun y ↦ ?_) <;> rw [hi]

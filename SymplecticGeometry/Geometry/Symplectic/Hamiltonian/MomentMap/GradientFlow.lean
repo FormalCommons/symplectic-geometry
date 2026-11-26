@@ -69,7 +69,7 @@ theorem exists_tendsto_maximalIntegralCurve_neg_mgradient [CompactSpace M]
     (hσ : σ.IsNondegenerate) (ξ : GroupLieAlgebra I G) (x : M) :
     ∃ q ∈ criticalPoints 𝓘(ℝ, E') (fun y ↦ μ y ξ),
       Tendsto (maximalIntegralCurve (-mgradient 𝓘(ℝ, E') fun y ↦ μ y ξ) x) atTop (𝓝 q) := by
-  obtain ⟨L, C, -, i, -, hi⟩ := h.exists_isMorseBottFamily hσ ξ
+  obtain ⟨L, C, -, i, -, -, hi⟩ := h.exists_isMorseBottFamily hσ ξ
   let := C
   have hcont : Continuous fun y ↦ μ y ξ := (h.contMDiff ξ).continuous
   obtain ⟨c, s, hlim, -⟩ :=
