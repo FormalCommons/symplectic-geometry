@@ -65,7 +65,8 @@ rank to be even (for finite rank, a nondegenerate form forces it), and rank zero
 * `ContMDiffTwoForm.compContinuousLinearMap`: the pull-back `ω ↦ ω(L ·, L ·)` along a `C^n`
   family of linear maps `L` between bundles, which need not be invertible.
 * `ContMDiffTwoForm.tangentEquiv`: on the tangent bundle, smooth two-forms are Tau Ceti's
-  `TauCeti.SmoothTwoForm`, with the same nondegenerate ones.
+  `TauCeti.SmoothTwoForm`, with the same bilinear forms on each tangent space
+  (`bilinFormAt_tangentEquiv`) and the same nondegenerate ones.
 * `ContMDiffTwoForm.pushforward_eq_iff`: an isomorphism `Φ` of bundles transports `ω₁` to `ω₂`
   exactly when `ω₂(Φ v, Φ w) = ω₁(v, w)` on every fibre. Symplectic isomorphisms are stated in
   this unbundled form.
@@ -634,6 +635,22 @@ theorem tangentEquiv_apply (ω : ContMDiffTwoForm I ⊤ EB (TangentSpace I (M :=
 theorem tangentEquiv_symm_apply (φ : TauCeti.SmoothTwoForm I M) (x : M) :
     tangentEquiv.symm φ x = φ.val x :=
   TauCeti.SmoothForm.toContMDiffSection_apply φ x
+
+/-- At each point, the bilinear form of the Tau Ceti form of a two-form `ω` on the tangent bundle
+is the bilinear form of `ω`. -/
+@[simp]
+theorem bilinFormAt_tangentEquiv (ω : ContMDiffTwoForm I ⊤ EB (TangentSpace I (M := M))) (x : M) :
+    (tangentEquiv ω).bilinFormAt x = ω.bilinFormAt x := by
+  ext v w
+  simp [bilinFormAt_apply, TauCeti.SmoothBundleForm.eval₂_apply]
+
+/-- At each point, the bilinear form of the two-form of a Tau Ceti smooth two-form `φ` is the
+bilinear form of `φ`. -/
+@[simp]
+theorem bilinFormAt_tangentEquiv_symm (φ : TauCeti.SmoothTwoForm I M) (x : M) :
+    (tangentEquiv.symm φ).bilinFormAt x = φ.bilinFormAt x := by
+  ext v w
+  simp [bilinFormAt_apply, TauCeti.SmoothBundleForm.eval₂_apply]
 
 /-- A two-form on the tangent bundle is nondegenerate exactly when the corresponding Tau Ceti
 two-form is. -/

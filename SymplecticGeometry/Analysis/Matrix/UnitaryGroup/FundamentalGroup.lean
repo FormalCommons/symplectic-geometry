@@ -10,7 +10,7 @@ public import TauCeti.AlgebraicTopology.UniversalCover.Circle.FundamentalGroup
 public import TauCeti.Topology.Algebra.Matrix.UnitaryGroup
 import TauCeti.Topology.Algebra.UnitaryGroup
 public import TauCeti.Topology.Homotopy.HomotopyGroup.BasepointChange
-public import SymplecticGeometry.AlgebraicTopology.FundamentalGroup
+public import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Circle
 public import SymplecticGeometry.Analysis.Matrix.UnitaryGroup.Basic
 public import SymplecticGeometry.Topology.Grassmannian.StiefelFibration.Stability
 
