@@ -224,7 +224,8 @@ def mapFiberDiffeomorph (he : ContMDiffOn IM (IB.prod IF) n e e.source)
   contMDiff_toFun :=
     (he.comp_contMDiff hι.contMDiff fun x ↦ e.mem_source.2 (x.property.symm ▸ hb)).snd
   contMDiff_invFun := hι.contMDiff_iff_comp.2 <|
-    (e.contMDiff_fiberInclusion he_symm hb).congr fun v ↦ (e.fiberInclusion_apply hb v).symm
+    (e.contMDiff_fiberInclusionMap he_symm hb).congr fun v ↦
+      (e.fiberInclusionMap_apply hb v).symm
 
 variable (hι : Manifold.IsSmoothEmbedding IZ IM n (Subtype.val : TauCeti.MapFiber proj b → M))
 
