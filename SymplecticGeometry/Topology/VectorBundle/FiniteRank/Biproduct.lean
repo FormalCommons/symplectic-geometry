@@ -5,26 +5,20 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Topology.Algebra.Module.Determinant
 public import TauCeti.Topology.VectorBundle.FiniteRank.Biproduct
-import SymplecticGeometry.Topology.Algebra.Module.Determinant
 
 /-!
 # Whitney sums of finite-rank cores in charts
 
 Tau Ceti's `TauCeti.FiniteRankBundleCore.whitneySum A D` has the concatenated coordinates
 `Fin (A.rank + D.rank) → 𝕜`, split into the two blocks by `TauCeti.splitCoords`. This file
-computes chart expressions in charts of Whitney sums, and the determinants of the transitions of
-a Whitney sum.
+computes chart expressions in charts of Whitney sums.
 
 ## Main results
 
 * `TauCeti.FiniteRankBundleCore.inChartCoordinates_whitneySum_prodMap`: in charts of Whitney
   sums, the chart expression of a block-diagonal map is the block-diagonal map of the chart
-  expressions of its blocks;
-* `TauCeti.FiniteRankBundleCore.det_coordChange_whitneySum`: the transitions of a Whitney sum
-  are block diagonal, so their determinants are the products of the determinants of the
-  transitions of the summands.
+  expressions of its blocks.
 
 The proof of `inChartCoordinates_whitneySum_prodMap` follows Tau Ceti's
 `TauCeti.FiniteRankBundleCore.inChartCoordinates_tensor_kronecker`, which computes the chart
@@ -59,15 +53,6 @@ theorem inChartCoordinates_whitneySum_prodMap
   dsimp +instances only [whitneySum]
   ext v : 1
   simp
-
-/-- The transition maps of a Whitney sum are block diagonal, so their determinants are the
-products of the determinants of the transition maps of the two summands. -/
-@[simp]
-theorem det_coordChange_whitneySum (A D : FiniteRankBundleCore 𝕜 B) (i j x : B) :
-    ((whitneySum A D).core.coordChange i j x).det =
-      (A.core.coordChange i j x).det * (D.core.coordChange i j x).det :=
-  ContinuousLinearMap.det_eq_det_mul_det_of_splitCoords _ _ _
-    (coordChange_whitneySum_splitCoords_symm A D i j x)
 
 end TauCeti.FiniteRankBundleCore
 

@@ -969,9 +969,6 @@ Beside Tau Ceti's `FiniteRank/Tensor.lean`, in Tau Ceti's terms only.
   are the tensor products of the fibres of `A` and `D`, through
   `TauCeti.piTensorEquiv`, continuously into Tau Ceti's tensor product
   bundle.
-- `TauCeti.FiniteRankBundleCore.detWhitneySumIso`: the determinant line of
-  `whitneySum A D` is `tensor A.det D.det`, by a constant change of
-  coordinates (`det_coordChange_whitneySum`, in `FiniteRank/Biproduct.lean`).
 
 ### `Topology/VectorBundle/Complex/ChernClass/EulerClass.lean`
 
@@ -1233,9 +1230,8 @@ come before it. Issues 1, 2, 3, 5, 13 and 16 can start at once.
 12. **Euler class of a tensor product of lines, and $\mathcal O(1)$.**
     `Topology/VectorBundle/Orientation/Complex/Tensor.lean`. Waits for 2
     and 7.
-13. **Determinant of a direct sum.**
-    `Topology/VectorBundle/FiniteRank/Tensor.lean`; the comparison of
-    determinant lines is Tau Ceti's `TauCeti.DetBundle.prodEquiv`.
+13. **Determinant of a direct sum.** Tau Ceti's `TauCeti.DetBundle.prodEquiv`
+    compares the determinant lines.
 14. **Splitting principle.**
     `Topology/VectorBundle/ProjectiveBundle/Splitting.lean`. Waits for 8.
 15. **Top class and first class.** `ChernClass/EulerClass.lean` and

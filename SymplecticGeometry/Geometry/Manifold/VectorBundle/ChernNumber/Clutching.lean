@@ -139,7 +139,7 @@ variable {M : Type} [TopologicalSpace M] [T2Space M] {EM : Type} [NormedAddCommG
   {o : HomologicalOrientation M EM 2} {ι : Type*} {φ : ι → CoordinateDisc o}
   (hφ : Pairwise (Disjoint on fun i ↦ (φ i).disc))
   {G : Type*} [NormedAddCommGroup G] [NormedSpace ℂ G]
-  {E : M → Type} [∀ x, AddCommGroup (E x)] [∀ x, Module ℂ (E x)] [∀ x, TopologicalSpace (E x)]
+  {E : M → Type*} [∀ x, AddCommGroup (E x)] [∀ x, Module ℂ (E x)] [∀ x, TopologicalSpace (E x)]
 
 variable (Φ : ∀ i, ∀ x : (φ i).disc, G ≃L[ℂ] E x) (Φout : ∀ x : discComplement φ, G ≃L[ℂ] E x)
 
@@ -358,6 +358,25 @@ private theorem clutchingSection_eq_zero_iff {x : M} :
       (hj ▸ (φ i).openDisc_subset_disc hi)
     rw [← (φ j).injective hj, CoordinateDisc.coe_zero]
 
+end Clutching
+
+section ClutchingIndex
+
+/-! Tau Ceti's Euler classes and section indices take the fibres in the universe of the base, so
+from here on the fibres of `E` are in `Type`. -/
+
+variable {M : Type} [TopologicalSpace M] [T2Space M] {EM : Type} [NormedAddCommGroup EM]
+  [NormedSpace ℝ EM] [FiniteDimensional ℝ EM] [ChartedSpace EM M]
+  {o : HomologicalOrientation M EM 2} {ι : Type*} {φ : ι → CoordinateDisc o}
+  (hφ : Pairwise (Disjoint on fun i ↦ (φ i).disc))
+  {G : Type*} [NormedAddCommGroup G] [NormedSpace ℂ G]
+  {E : M → Type} [∀ x, AddCommGroup (E x)] [∀ x, Module ℂ (E x)] [∀ x, TopologicalSpace (E x)]
+  {Φ : ∀ i, ∀ x : (φ i).disc, G ≃L[ℂ] E x} {Φout : ∀ x : discComplement φ, G ≃L[ℂ] E x}
+  [FiniteDimensional ℂ G] [TopologicalSpace (TotalSpace G E)] [FiberBundle G E]
+  [VectorBundle ℂ G E]
+  (hΦ : ∀ i, Continuous fun q : (φ i).disc × G ↦ TotalSpace.mk' G (q.1 : M) (Φ i q.1 q.2))
+  (hΦout : Continuous fun q : discComplement φ × G ↦ TotalSpace.mk' G (q.1 : M) (Φout q.1 q.2))
+
 open scoped VectorBundle.ComplexToReal
 
 /-- The local index of the clutching section at the centre of the `i`-th disc is the degree of
@@ -445,7 +464,7 @@ theorem chernNumber_eq_sum_degree_clutching [Fintype ι] [CompactSpace M] (hn : 
   rw [hset, Finset.sum_map]
   exact Finset.sum_congr rfl fun i _ ↦ hind i
 
-end Clutching
+end ClutchingIndex
 
 /-! ### Frames from sections of the circle bundle of a Hermitian line bundle -/
 
