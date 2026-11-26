@@ -128,16 +128,12 @@ theorem exists_invariant_smoothForm_apply_fundamentalVectorField_nonneg
   refine ⟨SmoothForm.mpullback Φ Φ.contMDiff β, fun g ↦ ?_, fun x ↦ ?_⟩
   · have hg := ContMDiffSMul.contMDiff_const_smul (I := J) (I' := 𝓘(ℝ, E)) (n := ∞)
       (M := BoundarylessModel I M) g
-    have hcomm : (Φ ∘ fun y : M ↦ g • y) = (fun y ↦ g • y) ∘ Φ :=
-      funext fun y ↦ BoundarylessModel.interiorDiffeomorph_smul I ∞ g y
-    rw [SmoothForm.mpullback_mpullback, SmoothForm.mpullback_congr _ (hg.comp Φ.contMDiff) hcomm,
-      ← SmoothForm.mpullback_mpullback _ _ Φ.contMDiff hg, hinv g]
+    rw [SmoothForm.mpullback_mpullback_of_comp_eq _ _ Φ.contMDiff hg
+      (funext fun y ↦ BoundarylessModel.interiorDiffeomorph_smul I ∞ g y), hinv g]
   · rw [SmoothForm.mpullback_apply_one, hX]
     refine ⟨(hβ (Φ x)).1, (hβ (Φ x)).2.trans ?_⟩
     rw [← hX]
-    exact ⟨fun h ↦ (Φ.mfderivToContinuousLinearEquiv (by simp) x).map_eq_zero_iff.1
-      (by rwa [← ContinuousLinearEquiv.coe_coe, Diffeomorph.mfderivToContinuousLinearEquiv_coe]),
-      fun h ↦ by rw [h, map_zero]⟩
+    exact map_eq_zero_iff _ (Φ.isInvertible_mfderiv (x := x) (by simp)).injective
 
 end CommGroup
 
