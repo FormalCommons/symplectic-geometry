@@ -184,6 +184,7 @@ fit Tau Ceti's without a change of sign.
 | `Geometry/Symplectic/Weinstein/OfStein.lean` | the Weinstein structure of a Stein function | 8, 9 |
 | `Geometry/Symplectic/Weinstein/Stein.lean` | the converse and the first milestone | 21 |
 | `Geometry/Manifold/Complex/JConvex/` | the $J$-convex toolkit of the converse | 10–14e |
+| `Analysis/ODE/LyapunovPerron/ParameterDerivative.lean` | the bounded parameter derivative of local stable solutions | 15b |
 | `Geometry/Symplectic/Weinstein/Handle/` | Weinstein cobordisms, handles and their homotopies | 15–18 |
 | `Geometry/Symplectic/Weinstein/SteinHandle.lean` | Stein structures on elementary cobordisms | 19, 20 |
 | `Geometry/Symplectic/Weinstein/Complement/` | Giroux's Sections A, B and C; second milestone | 22–29 |
@@ -1209,10 +1210,13 @@ The symplectic side of the converse: Cieliebak–Eliashberg's Morse and
 Weinstein theory before Theorem 13.9.
 
 - `Cobordism.lean` (issue 15): Weinstein cobordisms between two regular
-  levels; elementary cobordisms (critical points in one level); the stable
-  disc of a critical point is isotropic and its boundary sphere is an
-  isotropic sphere in the contact lower level (from Tau Ceti's
-  `Contact/Isotropic.lean`).
+  levels; elementary cobordisms (critical points in one level).
+- `Linearization.lean`, `StableDisc.lean` and `AttachingSphere.lean`
+  (issues 15c–15e, after issue 15b in
+  `Analysis/ODE/LyapunovPerron/ParameterDerivative.lean`): the stable disc
+  of a nondegenerate critical point is isotropic and its boundary sphere is
+  an isotropic sphere in the contact lower level (from Tau Ceti's
+  `Contact/Isotropic.lean`); see *Stable discs* below.
 - `Model.lean` (issue 16): the standard Weinstein handle of index `k` on
   `ℂⁿ`, and the attachment of a handle along an isotropic sphere with its
   conformal symplectic normal framing (Tau Ceti's
@@ -1225,7 +1229,154 @@ Weinstein theory before Theorem 13.9.
   17 is its design issue.
 
 Expected size: 450 lines for each of issues 15 and 16; issue 18 is sized
-by issue 17.
+by issue 17, and issues 15b–15e by the table.
+
+#### Stable discs
+
+Issue 15a, the design issue of the stable discs, fixed this subsection.
+Throughout, `hW : IsWeinsteinStructure ω X f`, and `p` is a critical point
+with `IsManifoldNondegenerateCriticalPoint` (Tau Ceti), of index
+`k = manifoldMorseIndex f p`.
+
+**Birth–death points are left out.** At such a point the zero of `X` is not
+hyperbolic and its stable set is not a disc. Handles are attached only at
+nondegenerate points (issues 16, 19 and 20), and Weinstein homotopies pass
+through birth–death points only in issue 18, which treats them by their
+normal form. So every statement below assumes `p` nondegenerate, and issue
+15e assumes it of every critical point in the cobordism.
+
+**Lean form.**
+
+- The flow of `X` is Tau Ceti's `globalFlow X _ hW.isCompleteVectorField`
+  (`Geometry/Manifold/IntegralCurve/GlobalFlow.lean`), named
+  `IsWeinsteinStructure.flow hW : Flow ℝ M` with `flow_apply`, so that the
+  smoothness argument is not repeated. Its conformal scaling,
+  $\varphi_t^*(\iota_X\omega)=e^t\,\iota_X\omega$ and
+  $\varphi_t^*\omega=e^t\omega$, is Tau Ceti's (`Liouville/Scaling.lean`),
+  used as it is.
+- The stable disc of `p` in the cobordism between `a` and `b` is
+  `hW.flow.stableSet p ∩ f ⁻¹' Icc a b`, with Tau Ceti's `Flow.stableSet`
+  (`Dynamics/Flow/Stable.lean`), and its boundary sphere is
+  `hW.flow.stableSet p ∩ f ⁻¹' {a}`. Neither gets a definition. The stable
+  set lies in `f ⁻¹' Iic (f p)`, since `f` increases along orbits.
+- Isotropic means, pointwise: for a map `γ : N → M` from any manifold,
+  differentiable at `y`, with `range γ ⊆ hW.flow.stableSet p`, the forms
+  `ι_X ω` and `ω` vanish on the image of `mfderiv γ y`. No predicate for
+  isotropic sets is added; this form covers every `C¹` parametrization and
+  needs no manifold structure on the stable set.
+- For the sphere, the lower level is the boundary of the Weinstein domain
+  `{x | f x ≤ a}` of `IsWeinsteinStructure.isWeinsteinDomain_scalarRegularSublevel`,
+  with its contact form `fillingContactForm`. Isotropic there means Tau
+  Ceti's `IsHorizontalMap` for the kernel distribution of that form, which
+  `SmoothForm.isHorizontalMap_kerDistribution_iff_mpullback_eq_zero` turns
+  into the vanishing of a pullback of `ι_X ω`.
+
+**The route.** Route (a): Tau Ceti already has the local stable manifold
+theorem at a hyperbolic zero of a `C^n` field on a finite-dimensional
+normed space, `ContinuousLinearMap.exists_localStableGraph_of_contDiffAt`
+(`Analysis/ODE/LyapunovPerron/VectorField.lean`): the confined forward
+solutions start on a `C^n` graph `z ↦ z + g z` over a ball in `range P`,
+and tend to the zero. The dichotomy it needs comes from
+`ContinuousLinearMap.exists_projection_exponential_bounds`
+(`Analysis/ODE/ExponentialDichotomy/Hyperbolic.lean`), whose hypothesis
+is hyperbolicity in real form: no `v, w`, not both zero, with
+`A v = -θ • w` and `A w = θ • v`. Route (b) is not taken: it would carry a
+homotopy through issues 16–21, and Tau Ceti's adapted pseudo-gradients
+are set on compact manifolds. Three pieces are missing:
+
+1. The bound in time. The isotropy argument writes
+   $(\iota_X\omega)(d\iota\,v)=e^{-t}(\iota_X\omega)(d(\varphi_t\circ\iota)\,v)$,
+   and the same with $\omega$, and lets `t → ∞`. It needs
+   `d(φ_t ∘ ι)` bounded in `t`. Tau Ceti's theorem does not state this,
+   but its proof builds the solutions as Lyapunov–Perron fixed points in
+   bounded continuous curves, whose derivative in the parameter
+   (`fderiv_lyapunovPerronSolution_apply`) is a bounded curve; issue 15b
+   exposes it.
+2. Hyperbolicity and the index (issue 15c). The gradient-like inequality,
+   to second order at `p`, makes $v\mapsto H(v,Av)$ positive definite, for
+   `A` the linearization of `X` and `H` the Hessian of `f` in a chart. A
+   rotating pair `v, w` would give $H(v,Av)+H(w,Aw)=0$, so `A` is
+   hyperbolic. Along $e^{tA}v$ the form $H$ increases strictly, so it is
+   negative definite on `range P` and positive definite on `ker P`, and
+   `finrank (range P) = k`. The Liouville condition at the zero gives
+   $\omega_p(Au,v)+\omega_p(u,Av)=\omega_p(u,v)$, so
+   $F(t)=\omega_p(e^{tA}u,e^{tA}v)$ solves $F'=F$; on `range P` it tends
+   to `0`, so $\omega_p$ vanishes there and $2k\le\dim M$. This gives the
+   index bound without the stable manifold.
+3. Globalization (issue 15d). For `x` in the stable set, some `φ_T x` lies
+   in the open part of the local disc. Inside the ball of confinement, a
+   point of the stable set with `f` close to `f p` cannot leave the ball:
+   crossing the annulus between half the radius and the radius takes `f`
+   up by a fixed amount, as `df(X)` is bounded below there and `X` above,
+   while `f` stays below `f p`. So `φ_T ∘ γ` maps the points near `y`
+   (continuity at `y`) into the graph, and the chain rule on
+   `z = P z + g (P z)` puts its derivative at `y` in the tangent space of
+   the graph.
+
+**Lemma list.**
+
+- Issue 15b, `Analysis/ODE/LyapunovPerron/ParameterDerivative.lean`,
+  namespace `ContinuousLinearMap`, under the hypotheses of
+  `exists_localStableGraph_of_contDiffAt`:
+  `exists_localStableGraph_of_contDiffAt_fderiv` gives that theorem's
+  `r`, `ρ` and `g` with its conclusions, and moreover a family
+  `y : E → ℝ → E` such that, for `z ∈ range P ∩ closedBall 0 ρ`,
+  `y z` is a confined forward integral curve of `fun _ w ↦ V (x + w)` with
+  `y z 0 = z + g z`, each `fun w ↦ y w t` (`t ≥ 0`) is differentiable at
+  `z`, and `∃ C, ∀ t ≥ 0, ‖fderiv ℝ (fun w ↦ y w t) z‖ ≤ C`. The family is
+  the Lyapunov–Perron solution of the cut-off remainder, and the bound is
+  the norm of its derivative into bounded continuous curves; the module
+  docstring credits Tau Ceti's proof of
+  `exists_localStableGraph_of_contDiffAt`, which it follows.
+- Issue 15c, `Weinstein/Handle/Linearization.lean`, with `A` the
+  `sectionLinearization` of `X` at `p` (Tau Ceti,
+  `VectorBundle/Section/Linearization.lean`) and `H` the bilinear form of
+  the Hessian (`hessianQuadraticForm`, by `associated_hessianQuadraticForm`)
+  of `f` read in `extChartAt 𝓘(ℝ, E) p`:
+  `IsGradientLike.exists_pos_mul_norm_sq_le_hessian` (in `TauCeti`, a
+  `c > 0` with $c\|v\|^2\le H(v,Av)$),
+  `IsGradientLike.exists_projection_exponential_bounds` (the dichotomy),
+  `IsGradientLike.finrank_range_eq_manifoldMorseIndex` (for the projection
+  of any such dichotomy),
+  `IsLiouvilleVectorField.apply_sectionLinearization_add` (the identity
+  for $\omega_p$ at a zero), `IsLiouvilleVectorField.apply_eq_zero_of_mem_range`
+  ($\omega_p$ vanishes on `range P`), and
+  `IsWeinsteinStructure.two_mul_manifoldMorseIndex_le`
+  (`2 * k ≤ finrank ℝ E`), with the dimension bound for isotropic
+  subspaces of a nondegenerate form taken from Mathlib, Tau Ceti or the
+  library.
+- Issue 15d, `Weinstein/Handle/StableDisc.lean`: `IsWeinsteinStructure.flow`
+  and `flow_apply`; `IsWeinsteinStructure.apply_le_of_mem_stableSet`
+  (`f ≤ f p` on the stable set); `IsWeinsteinStructure.exists_localStableDisc`
+  (a map `ι : E → M` with `ι 0 = p`, smooth with injective `mfderiv` on
+  `range P ∩ ball 0 ρ`, whose image there lies in the stable set and
+  contains the points of the stable set near `p` with `f` near `f p`, and
+  with `d(φ_t ∘ ι)` bounded in `t ≥ 0`); and the main results
+  `IsWeinsteinStructure.interior_apply_mfderiv_eq_zero_of_range_subset_stableSet`
+  and `IsWeinsteinStructure.apply_mfderiv_mfderiv_eq_zero_of_range_subset_stableSet`.
+- Issue 15e, `Weinstein/Handle/AttachingSphere.lean`, for
+  `IsElementaryWeinsteinCobordism ω X f a b` and `p` in the region:
+  `IsElementaryWeinsteinCobordism.stableSet_inter_preimage_eq_empty` for
+  `k = 0` (the stable set is `{p}`), and, for `k = m + 1`,
+  `IsElementaryWeinsteinCobordism.exists_attachingSphere`, a smooth
+  embedding of the unit sphere of `EuclideanSpace ℝ (Fin (m + 1))` into
+  the boundary of `{x | f x ≤ a}` whose image in `M` is
+  `hW.flow.stableSet p ∩ f ⁻¹' {a}`, horizontal for the contact form of
+  that boundary. The sphere is first a small level of $-H$ in the local
+  disc, which every orbit of the disc other than `p` crosses once and
+  transversally; it is then carried back to the level `a`, which every
+  backward orbit of the stable set reaches since the cobordism is
+  elementary, at a time that Tau Ceti's `Flow.levelCrossingTime`
+  (`Dynamics/Flow/LevelCrossing.lean`) gives as a continuous function and
+  the implicit function theorem makes smooth. With
+  `IsHorizontalMap.two_mul_finrank_add_one_le` it gives the index bound
+  of issue 15c again, for `k ≥ 1`.
+
+Sources: Cieliebak–Eliashberg [CieliebakEliashberg2012], Chapter 11, for
+the stable discs and their isotropy; this design could not check the
+numbers of their statements against the book, so each building issue
+looks them up and cites them. The stable manifold theorem is the one that
+Tau Ceti proves after Chicone and Coppel.
 
 ### `Geometry/Symplectic/Weinstein/SteinHandle.lean`
 
@@ -1397,8 +1548,13 @@ In this order; each is blocked by the ones listed. All are parts of
 | 14d19 | The normal form of $\varphi$ near the attaching sphere | `JConvex/Surround/NormalForm.lean` | 14d13, 14d15, 14d17, 14d18 | 300 |
 | 14d | The $J$-convex surrounding of an attached disc | `JConvex/Surround/Basic.lean` | 14a, 14b, 14c | 500 |
 | 14e | The surrounding with one new critical point | `JConvex/Surround/Basic.lean` | 14d | 400 |
-| 15 | Weinstein cobordisms and stable discs | `Handle/Cobordism.lean` | 7 | 450 |
-| 16 | Standard Weinstein handles and their attachment | `Handle/Model.lean` | 15 | 450 |
+| 15 | Weinstein cobordisms and elementary cobordisms | `Handle/Cobordism.lean` | 7 | 450 |
+| 15a | Design: stable discs | this file | 15 | — |
+| 15b | The bounded parameter derivative of local stable solutions | `LyapunovPerron/ParameterDerivative.lean` | 15a | 250 |
+| 15c | The linearization at a nondegenerate critical point; the index bound | `Handle/Linearization.lean` | 15a | 400 |
+| 15d | Stable discs are isotropic | `Handle/StableDisc.lean` | 15b, 15c | 450 |
+| 15e | The attaching sphere in the lower level | `Handle/AttachingSphere.lean` | 15d | 500 |
+| 16 | Standard Weinstein handles and their attachment | `Handle/Model.lean` | 15, 15e | 450 |
 | 17 | Design: normal forms of Weinstein homotopies | this file | 16 | — |
 | 18 | Normal forms of Weinstein homotopies | `Handle/Homotopy.lean` | 17 | by 17 |
 | 19 | A Stein structure across one critical level | `SteinHandle.lean` | 9, 14e, 18 | 500 |
@@ -1417,7 +1573,8 @@ Issues 1, 2 and 3 can start at once. The first milestone is proved in
 issue 21 and the second in issue 28. Issues 13 and 17 are design issues:
 their pull requests extend this file by the lemma lists of issues 14 and
 18 and split them into issues of a few hundred lines; issue 13 has split
-issue 14 (#3538) into 14a–14e. Issues 22–29 wait
+issue 14 (#3538) into 14a–14e. Issue 15a is a design issue too: it split
+the stable discs of issue 15 into 15b–15e. Issues 22–29 wait
 for the design file of *Asymptotically holomorphic sections*, which fixes
 the hypersurfaces that issue 28 states its result for; issues 22 and 24
 are written after it.
