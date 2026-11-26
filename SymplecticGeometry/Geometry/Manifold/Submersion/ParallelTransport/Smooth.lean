@@ -178,14 +178,11 @@ private theorem exists_diffeomorph_eqOn_parallelTransport_of_mapsTo_baseSet (hn 
     (e : Trivialization F (π F (TangentSpace J))) [MemTrivializationAtlas e]
     (hγe : MapsTo γ (Icc a b) e.baseSet) {s t : ℝ} (hs : s ∈ Icc a b) (ht : t ∈ Icc a b) :
     ∃ Ψ : P ≃ₘ^n⟮I, I⟯ P, EqOn Ψ (hD.parallelTransport γ s t) (f ⁻¹' {γ s}) := by
-  have h2 : (2 : ℕ∞ω) ≤ n + 1 := SymplecticGeometry.two_le_add_one_of_one_le (mod_cast hn)
-  obtain ⟨V, K, hK, hV, hV0, hVγ⟩ := e.exists_timeDependentField_eq_curveVelocity hγ hγe
-  refine ⟨timeDependentFlowDiffeomorph
-    (hD.isCompleteVectorField_timeDependentSuspensionField_horizontalLiftField hn hf hfp hV hK hV0)
-    hn (hD.contMDiff_horizontalLiftField_family hf hV) s t, fun x hx ↦ ?_⟩
-  rw [timeDependentFlowDiffeomorph_apply]
-  exact (hD.parallelTransport_eq_timeDependentFlowOf hn hf hfp (hγ.of_le h2) hV hK hV0
-    (fun u hu ↦ hVγ u (uIcc_subset_Icc hs ht hu)) hx).symm
+  obtain ⟨X, hXc, hX, -, hXγ⟩ :=
+    hD.exists_timeDependentField_eqOn_parallelTransport_of_mapsTo_baseSet hn hf hfp hγ e hγe
+  exact ⟨timeDependentFlowDiffeomorph hXc hn hX s t, fun x hx ↦ by
+    rw [timeDependentFlowDiffeomorph_apply]
+    exact hXγ s hs t ht hx⟩
 
 include hD in
 /-- **Parallel transport is the restriction of a diffeomorphism.** Let `D` be a `C^n` Ehresmann
