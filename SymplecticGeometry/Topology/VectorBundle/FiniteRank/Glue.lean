@@ -55,8 +55,10 @@ cocycle condition from `g.hom ≫ g.inv = 𝟙` and `g.inv ≫ g.hom = 𝟙` (`g
   on either side (`glueCocycle_comp_fiberMap_isoGlue_hom`); followed by `glueRestrictIso`, its
   restriction to either side is the given isomorphism there
   (`pullbackFunctor_mapIso_isoGlue_trans_glueRestrictIso`).
-* `TauCeti.FiniteRankBundleCore.nonempty_iso_glue_of_fiberMap_comp_eq`: an isomorphism `A ≅ A'`
-  that carries `g` to `g'` fibre by fibre gives an isomorphism of the gluings, by `isoGlue`.
+* `TauCeti.FiniteRankBundleCore.nonempty_iso_glue_of_fiberMap_comp_eq_comp`: isomorphisms
+  between the restrictions of `A` and `A'` to `U` and to `V` that relate `g` to `g'` fibre by
+  fibre give an isomorphism of the gluings, by `isoGlue`. In particular an isomorphism `A ≅ A'`
+  that carries `g` to `g'` does (`nonempty_iso_glue_of_fiberMap_comp_eq`).
 * `TauCeti.FiniteRankBundleCore.glue_eqToIso_trans_trans_eqToIso`: a gluing by an automorphism
   `k` of a core `P`, read through an equality between `P` and the restriction of the glued core,
   depends only on `k` and on the glued core, not on that equality.
@@ -803,12 +805,47 @@ theorem fiberMap_isoGlue_inv_of_notMem {b : B} (hb : b ∉ U) (hbV : b ∈ V) :
 
 end OfIso
 
-/-! ### Gluings by conjugate automorphisms -/
+/-! ### Gluings by automorphisms related over each side -/
 
 section Conj
 
 variable {A A' : FiniteRankBundleCore 𝕜 B} {U V : Set B} (hU : IsOpen U) (hV : IsOpen V)
   (hUV : U ∪ V = univ)
+
+/-- **Gluings by automorphisms related by isomorphisms over each side are isomorphic.** If
+`kU` and `kV` are isomorphisms between the restrictions of `A` and `A'` to `U` and to `V`, and
+the automorphisms `g` of the restriction of `A` to `U ∩ V` and `g'` of that of `A'` satisfy
+`kU_b ∘ g_b = g'_b ∘ kV_b` at each point `b` of `U ∩ V`, then the gluing of `A` by `g` is
+isomorphic to that of `A'` by `g'`. -/
+theorem nonempty_iso_glue_of_fiberMap_comp_eq_comp
+    (kU : A.pullback (ContinuousMap.subtypeVal U) ≅ A'.pullback (ContinuousMap.subtypeVal U))
+    (kV : A.pullback (ContinuousMap.subtypeVal V) ≅ A'.pullback (ContinuousMap.subtypeVal V))
+    {g : A.pullback (ContinuousMap.subtypeVal (U ∩ V)) ≅
+      A.pullback (ContinuousMap.subtypeVal (U ∩ V))}
+    {g' : A'.pullback (ContinuousMap.subtypeVal (U ∩ V)) ≅
+      A'.pullback (ContinuousMap.subtypeVal (U ∩ V))}
+    (h : ∀ b : ↥(U ∩ V), (kU.hom.fiberMap ⟨b, b.property.1⟩).comp (g.hom.fiberMap b) =
+      (g'.hom.fiberMap b).comp (kV.hom.fiberMap ⟨b, b.property.2⟩)) :
+    Nonempty (A.glue hU hV hUV g ≅ A'.glue hU hV hUV g') := by
+  -- The glued core has the restrictions of `A'` to both sides, through `kU` and `kV`; their
+  -- transition is `g'`, so `isoGlue` gives the isomorphism.
+  let φ := A.glueRestrictIso hU hV hUV g true ≪≫ kU
+  let ψ := A.glueRestrictIso hU hV hUV g false ≪≫ kV
+  have ht : glueTransition φ ψ = g' := by
+    refine Iso.ext (hom_ext fun b ↦ ?_)
+    have hb : glueIndex U (b : B) = true := glueIndex_of_mem b.property.1
+    have hφ : φ.hom.fiberMap ⟨b, b.property.1⟩ = kU.hom.fiberMap ⟨b, b.property.1⟩ := by
+      simp only [φ, Iso.trans_hom, fiberMap_comp, fiberMap_glueRestrictIso_true_hom]
+      exact ContinuousLinearMap.comp_id _
+    have hψ : ψ.inv.fiberMap ⟨b, b.property.2⟩ =
+        (g.hom.fiberMap b).comp (kV.inv.fiberMap ⟨b, b.property.2⟩) := by
+      simp only [ψ, Iso.trans_inv, fiberMap_comp, fiberMap_glueRestrictIso_inv,
+        hb, glueCocycle_false_true _ b.property]
+    rw [fiberMap_glueTransition_hom, hφ, hψ, ← ContinuousLinearMap.comp_assoc, h,
+      ContinuousLinearMap.comp_assoc, fiberMap_inv_hom_id]
+    exact ContinuousLinearMap.comp_id _
+  rw [← ht]
+  exact ⟨isoGlue φ ψ hU hV hUV⟩
 
 /-- **Gluings by conjugate automorphisms are isomorphic.** If an isomorphism `Φ : A ≅ A'`
 carries the automorphism `g` of the restriction of `A` to `U ∩ V` to the automorphism `g'` of
@@ -821,31 +858,12 @@ theorem nonempty_iso_glue_of_fiberMap_comp_eq (Φ : A ≅ A')
       A'.pullback (ContinuousMap.subtypeVal (U ∩ V))}
     (h : ∀ b : ↥(U ∩ V), (Φ.hom.fiberMap b).comp (g.hom.fiberMap b) =
       (g'.hom.fiberMap b).comp (Φ.hom.fiberMap b)) :
-    Nonempty (A.glue hU hV hUV g ≅ A'.glue hU hV hUV g') := by
-  -- The glued core has the restrictions of `A'` to both sides, through `Φ`; their transition
-  -- is `g'`, so `isoGlue` gives the isomorphism.
-  let φ := A.glueRestrictIso hU hV hUV g true ≪≫
-    (pullbackFunctor (ContinuousMap.subtypeVal U)).mapIso Φ
-  let ψ := A.glueRestrictIso hU hV hUV g false ≪≫
-    (pullbackFunctor (ContinuousMap.subtypeVal V)).mapIso Φ
-  have ht : glueTransition φ ψ = g' := by
-    refine Iso.ext (hom_ext fun b ↦ ?_)
-    have hb : glueIndex U (b : B) = true := glueIndex_of_mem b.property.1
-    have hφ : φ.hom.fiberMap ⟨b, b.property.1⟩ = Φ.hom.fiberMap b := by
-      simp only [φ, Iso.trans_hom, Functor.mapIso_hom, fiberMap_comp,
-        fiberMap_pullbackMap, fiberMap_glueRestrictIso_hom, hb, glueCocycle_self]
-      exact ContinuousLinearMap.comp_id _
-    have hψ : ψ.inv.fiberMap ⟨b, b.property.2⟩ =
-        (g.hom.fiberMap b).comp (Φ.inv.fiberMap b) := by
-      simp only [ψ, Iso.trans_inv, Functor.mapIso_inv, fiberMap_comp,
-        fiberMap_pullbackMap, fiberMap_glueRestrictIso_inv, hb, glueCocycle_false_true _ b.property]
-      -- The two points are `b`, written through `Subtype` and `ContinuousMap.subtypeVal`.
-      rfl
-    rw [fiberMap_glueTransition_hom, hφ, hψ, ← ContinuousLinearMap.comp_assoc, h,
-      ContinuousLinearMap.comp_assoc, fiberMap_inv_hom_id]
-    exact ContinuousLinearMap.comp_id _
-  rw [← ht]
-  exact ⟨isoGlue φ ψ hU hV hUV⟩
+    Nonempty (A.glue hU hV hUV g ≅ A'.glue hU hV hUV g') :=
+  nonempty_iso_glue_of_fiberMap_comp_eq_comp hU hV hUV
+    ((pullbackFunctor (ContinuousMap.subtypeVal U)).mapIso Φ)
+    ((pullbackFunctor (ContinuousMap.subtypeVal V)).mapIso Φ) fun b ↦ by
+      simpa only [Functor.mapIso_hom, fiberMap_pullbackMap, ContinuousMap.subtypeVal_apply] using
+        h b
 
 end Conj
 
