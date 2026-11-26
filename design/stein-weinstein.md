@@ -346,8 +346,8 @@ Issue 8: the Weinstein structure of a Stein function.
 - `IsSteinFunction.exists_comp_isCompleteVectorField`
   (Cieliebak–Eliashberg, Remark 11.16): a smooth convex increasing `h` with
   `dCLiouvilleField (h ∘ φ)` complete. The field of `h ∘ φ` is computed from
-  the composition formulas of issue 3, and `h` is chosen to grow fast enough on each
-  sublevel of `φ`. Tau Ceti's `isCompleteVectorField_rateDampedField`
+  the composition formulas of issue 3, and `h = exp` works for every `φ`
+  on a Hausdorff `M`. Tau Ceti's `isCompleteVectorField_rateDampedField`
   proves completeness of a field damped by a similar estimate; if the
   building issue follows its proof, it credits it.
 
@@ -498,9 +498,7 @@ containing `ι '' closedBall 0 1`:
   sphere),
   `IsJOrthogonallyAttached.comp` (for `h ∘ φ` with `h 0 = 0` and `h' > 0`),
   `IsJOrthogonallyAttached.comp_linearIsometry` (for `ι ∘ e`, `e` a linear
-  isometry),
-  and the example of the model below,
-  `isJOrthogonallyAttached_model`.
+  isometry).
 - `Surround/Shape.lean` (issue 14c): the model. On
   `V = EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)`, write
   `p = (x + i y, w)`, $s=|x|^2$ and $t=|y|^2+|w|^2$, and `ι₀` for the
@@ -515,7 +513,7 @@ containing `ι '' closedBall 0 1`:
   $0<a<b$: both strictly plurisubharmonic by the criterion,
   `IsJConvexLevel` for $\varphi_0$ at `0`, and the handle function with
   one critical point, at `0`, nondegenerate of index `k`. With
-  `isJOrthogonallyAttached_model` of issue 14b, $(\varphi_0,\iota_0)$ satisfies
+  `isJOrthogonallyAttached_model`, $(\varphi_0,\iota_0)$ satisfies
   every hypothesis of the statements above (`ι₀` is a linear embedding with
   totally real image), and is the test case of issue 14d. These are the
   computations of Cieliebak–Eliashberg's chapter on shapes of
