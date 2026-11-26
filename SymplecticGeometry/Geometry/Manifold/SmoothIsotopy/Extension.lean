@@ -7,11 +7,11 @@ module
 
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
-import Mathlib.Analysis.Normed.Module.Ball.Pointwise
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Real
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.TimeExtension
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Neighborhood
+import SymplecticGeometry.Topology.Order.NhdsSet
 import TauCeti.Geometry.Manifold.ContMDiffMap.Extension
 import TauCeti.Geometry.Manifold.SmoothEmbedding.Euclidean
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LeftInverse
@@ -176,12 +176,8 @@ theorem _root_.ContMDiff.exists_contMDiffOn_extend_unitInterval {EX HX X : Type*
   -- A neighbourhood `(-δ, 1 + δ) ×ˢ V` of `[0, 1] ×ˢ L` inside `S`.
   obtain ⟨u', V, hu', hV, hIu', hLV, hVS⟩ := generalized_tube_lemma isCompact_Icc hL hS
     (fun p hp ↦ hkO ⟨p.1, hp.1⟩ p.2 (hLU hp.2))
-  obtain ⟨δ, hδ, hδu'⟩ := isCompact_Icc.exists_thickening_subset_open hu' hIu'
-  have hIoo : Ioo (-δ) (1 + δ) ⊆ u' := by
-    have h : Icc (0 : ℝ) 1 = Metric.closedBall (1 / 2) (1 / 2) := by
-      rw [Real.closedBall_eq_Icc]; norm_num
-    rw [h, thickening_closedBall hδ (by norm_num), Real.ball_eq_Ioo] at hδu'
-    convert hδu' using 2 <;> ring
+  obtain ⟨δ, hδ, hIoo⟩ := hu'.exists_pos_Ioo_subset_of_Icc_subset hIu'
+  rw [zero_sub] at hIoo
   have hVU (x : X) (hx : x ∈ V) : x ∈ U :=
     (hVS (mk_mem_prod (a := (0 : ℝ)) (hIoo ⟨by linarith, by linarith⟩) hx)).1.2
   refine ⟨δ, hδ, V, hV, hLV, fun p ↦ r (k p), ?_,

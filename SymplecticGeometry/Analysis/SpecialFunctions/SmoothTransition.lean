@@ -9,6 +9,7 @@ public import Mathlib.Analysis.Calculus.BumpFunction.InnerProduct
 public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import Mathlib.Analysis.Calculus.Deriv.Inv
 import Mathlib.Analysis.Calculus.LocalExtr.Basic
+import SymplecticGeometry.Topology.Order.NhdsSet
 public import TauCeti.Geometry.Manifold.Instances.Icc.CollaredSmoothTransition
 import TauCeti.Analysis.Calculus.Deriv.Parity
 import TauCeti.Analysis.SpecialFunctions.SmoothTransition
@@ -271,19 +272,9 @@ values in a given open set `U ⊇ [a, b]`, for any `a ≤ b`. -/
 theorem exists_contDiff_eqOn_id_Icc_mem_of_isOpen {a b : ℝ} {U : Set ℝ} (hab : a ≤ b)
     (hU : IsOpen U) (hIU : Set.Icc a b ⊆ U) :
     ∃ c : ℝ → ℝ, ContDiff ℝ ∞ c ∧ Set.EqOn c id (Set.Icc a b) ∧ ∀ t, c t ∈ U := by
-  obtain ⟨ε₀, hε₀, h₀⟩ := Metric.isOpen_iff.mp hU a (hIU ⟨le_rfl, hab⟩)
-  obtain ⟨ε₁, hε₁, h₁⟩ := Metric.isOpen_iff.mp hU b (hIU ⟨hab, le_rfl⟩)
-  obtain ⟨c, hc, hcI, hcU, -⟩ := exists_contDiff_eqOn_id_Icc_mem_Ioo hab (lt_min hε₀ hε₁)
-  refine ⟨c, hc, hcI, fun t ↦ ?_⟩
-  -- The value `c t` lies in `[a, b]` or within `min ε₀ ε₁` of one of its ends.
-  obtain ⟨ht₀, ht₁⟩ := hcU t
-  have := min_le_left ε₀ ε₁
-  have := min_le_right ε₀ ε₁
-  rcases lt_or_ge (c t) a with ha | ha
-  · exact h₀ (by rw [Metric.mem_ball, Real.dist_eq, abs_lt]; constructor <;> linarith)
-  rcases le_or_gt (c t) b with hb | hb
-  · exact hIU ⟨ha, hb⟩
-  · exact h₁ (by rw [Metric.mem_ball, Real.dist_eq, abs_lt]; constructor <;> linarith)
+  obtain ⟨δ, hδ, hδU⟩ := hU.exists_pos_Ioo_subset_of_Icc_subset hIU
+  obtain ⟨c, hc, hcI, hcU, -⟩ := exists_contDiff_eqOn_id_Icc_mem_Ioo hab hδ
+  exact ⟨c, hc, hcI, fun t ↦ hδU (hcU t)⟩
 
 /-- For a differentiable `ν` with values in `[0, 1]`, equal to `1` on `(-∞, r]` for some
 `0 ≤ r ≤ R ≤ 1`, with `|ν'| ≤ τ` everywhere and `ν' = 0` outside `(r, R)`, the derivative of
