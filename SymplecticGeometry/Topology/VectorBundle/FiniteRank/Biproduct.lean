@@ -36,7 +36,8 @@ the sum of the classes.
 * `TauCeti.FiniteRankBundleCore.whitneySumIter E n F`: the Whitney sum `F ⊕ E ⊕ ⋯ ⊕ E` of `F`
   with `n` copies of `E`;
 * `TauCeti.SplitK0.of_whitneySum`: in the split Grothendieck group of cores, the class of a
-  Whitney sum is the sum of the classes;
+  Whitney sum is the sum of the classes, and `TauCeti.SplitK0.of_whitneySumIter` that of an
+  iterated one;
 * `TauCeti.FiniteRankBundleCore.whitneyMapIsoPullback e₁ e₂`: the direct sum of isomorphisms
   between two pullbacks, read through Tau Ceti's `pullback_whitneySum` as an isomorphism between
   the pullbacks of the Whitney sums;
@@ -299,6 +300,19 @@ theorem of_whitneySum {𝕜 B : Type*} [NontriviallyNormedField 𝕜] [Topologic
     (of (FiniteRankBundleCore.whitneySum A D) : SplitK0 (FiniteRankBundleCore 𝕜 B)) = of A + of D :=
   (of_congr (biprod.uniqueUpToIso A D (FiniteRankBundleCore.whitneyBiconeIsBilimit A D))).trans
     (of_biprod A D)
+
+/-- In the split Grothendieck group of finite-rank cores over `B`, the class of the Whitney sum
+`F ⊕ E ⊕ ⋯ ⊕ E` of `F` with `n` copies of `E` is `n • [E] + [F]`. -/
+@[simp]
+theorem of_whitneySumIter {𝕜 B : Type*} [NontriviallyNormedField 𝕜] [TopologicalSpace B]
+    (E F : FiniteRankBundleCore 𝕜 B) (n : ℕ) :
+    (of (FiniteRankBundleCore.whitneySumIter E n F) : SplitK0 (FiniteRankBundleCore 𝕜 B)) =
+      n • of E + of F := by
+  induction n generalizing F with
+  | zero => simp
+  | succ n ih =>
+    rw [FiniteRankBundleCore.whitneySumIter_succ, ih, of_whitneySum, succ_nsmul]
+    abel
 
 end TauCeti.SplitK0
 
