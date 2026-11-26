@@ -9,7 +9,6 @@ public import Mathlib.Analysis.InnerProductSpace.Basic
 public import Mathlib.Geometry.Manifold.Algebra.SMul
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.GroupAction.InvariantCutoff
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Topology.Algebra.Support
 import SymplecticGeometry.Analysis.Calculus.BumpFunction.Radial
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
@@ -111,9 +110,6 @@ theorem exists_smul_invariant_cutoff (Φ : PartialDiffeomorph 𝓘(ℝ, V) I V M
 
 end PartialDiffeomorph
 
-noncomputable section
-
-open Function TauCeti Topology
 open scoped Pointwise
 
 namespace SymplecticGeometry
@@ -163,7 +159,5 @@ theorem exists_invariant_contMDiff_eq_one_of_isCompact {K U : Set M} (hK : IsCom
     hρc, hρU⟩
 
 end SymplecticGeometry
-
-end
 
 end
