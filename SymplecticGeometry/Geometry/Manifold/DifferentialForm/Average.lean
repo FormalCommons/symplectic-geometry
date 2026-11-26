@@ -24,8 +24,8 @@ manifold `M`, and let `μ` be a probability measure on `G`. Tau Ceti's
 closed. This file shows that on a Hausdorff
 preconnected `M` the average of a closed one-form `γ` lies in the de Rham class of `γ`. No
 invariance of `μ` is needed; with a right-invariant `μ` the average is moreover invariant
-(`TauCeti.SmoothForm.mpullback_smul_measureAverage`), so every class of `H¹` has an invariant
-representative.
+(`TauCeti.SmoothForm.mpullback_smul_measureAverage_eq_self`), so every class of `H¹` has an
+invariant representative.
 
 The argument has three steps.
 
@@ -54,6 +54,9 @@ forms, so it lies in the class of the original form. The transport follows
 
 * `TauCeti.SmoothForm.mpullback_smul_sub_mem_exactForms`: an element of a path-connected group
   acts trivially on de Rham cohomology.
+* `TauCeti.SmoothForm.mpullback_smul_measureAverage_eq_self`,
+  `TauCeti.SmoothForm.measureAverage_eq_self_iff_forall_mpullback_smul`: Tau Ceti's invariance of
+  averages, and its description of the forms that averaging fixes, stated with smooth pullbacks.
 * `TauCeti.SmoothForm.pathIntegral_measureAverage`: the line integral of an average is the
   average of the line integrals.
 * `TauCeti.SmoothForm.measureAverage_sub_mem_exactForms_one`: averaging a closed one-form
@@ -131,6 +134,33 @@ theorem continuous_mpullback_smul_apply_curveVelocity (γ : SmoothForm I M F 1)
 
 variable [MeasurableSpace G] [OpensMeasurableSpace G] [CompactSpace G] [T2Space G] (μ : Measure G)
 
+section Invariant
+
+variable [I.Boundaryless] [CompleteSpace F] [IsFiniteMeasure μ] [MeasurableMul G]
+  [μ.IsMulRightInvariant] {k : ℕ}
+
+/-- **Averages are invariant**, for smooth forms. For a right-invariant finite measure `μ` on `G`,
+the smooth pullback by each `b • ·` fixes the average of a smooth form `α`. Tau Ceti's
+`TauCeti.SmoothForm.mpullback_smul_measureAverage` states this on the underlying rough forms. -/
+@[simp]
+theorem mpullback_smul_measureAverage_eq_self (α : SmoothForm I M F k) (b : G) :
+    mpullback (b • ·) (ContMDiffSMul.contMDiff_const_smul (I := J) (I' := I) b)
+      (measureAverage J μ α) = measureAverage J μ α :=
+  (mpullback_eq_iff _).2 (mpullback_smul_measureAverage J μ α b)
+
+/-- **Averaging fixes exactly the invariant forms**, for smooth forms. For a right-invariant
+probability measure `μ` on `G`, the average of a smooth form `α` is `α` if and only if the smooth
+pullback by every `a • ·` fixes `α`. Tau Ceti's `TauCeti.SmoothForm.measureAverage_eq_self_iff`
+states the invariance on the underlying rough forms. -/
+theorem measureAverage_eq_self_iff_forall_mpullback_smul [IsProbabilityMeasure μ]
+    (α : SmoothForm I M F k) :
+    measureAverage J μ α = α ↔ ∀ a : G,
+      mpullback (a • ·) (ContMDiffSMul.contMDiff_const_smul (I := J) (I' := I) a) α = α := by
+  simp only [mpullback_eq_iff]
+  exact measureAverage_eq_self_iff J μ α
+
+end Invariant
+
 /-- **Line integrals commute with averaging.** Along a smooth curve `c`, the line integral of the
 average of a smooth one-form `γ` over `G` is the average over `G` of the line integrals of the
 pullbacks `(g •)^* γ`. -/
@@ -205,7 +235,7 @@ theorem exists_invariant_sub_mem_exactForms_one [FiniteDimensional ℝ E] [Finit
   · -- The map `Φ` is equivariant, and the average is invariant.
     have : ContMDiffConstSMul I ∞ G M := ContMDiffSMul.contMDiffConstSMul J
     exact mpullback_smul_mpullback Φ.contMDiff (BoundarylessModel.interiorDiffeomorph_smul I ∞ g)
-      ((mpullback_eq_iff _).2 (mpullback_smul_measureAverage J μ β g))
+      (mpullback_smul_measureAverage_eq_self J μ β g)
   · -- The difference is the pullback of the exact form `avg β - β`.
     have h := closedForms.mpullback_mem_exactForms Φ Φ.contMDiff 1
       ⟨_, sub_mem hβ' hβ⟩ (measureAverage_sub_mem_exactForms_one J μ hβ)

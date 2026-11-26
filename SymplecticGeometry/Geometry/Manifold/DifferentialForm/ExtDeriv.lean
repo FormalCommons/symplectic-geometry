@@ -10,10 +10,10 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 
 /-!
-# The exterior derivative of functions
+# The exterior derivative of functions, and in a chart
 
 Facts about the exterior derivative `df` of the `0`-form of a function `f` that Tau Ceti does
-not state.
+not state, and the coordinate formula for the exterior derivative of a form.
 
 At a point where `f` and `g` are differentiable, `d(f + g) = df + dg` and `d(f - g) = df - dg`
 (`TauCeti.mextDeriv_ofFunction_add_apply`, `TauCeti.mextDeriv_ofFunction_sub_apply`). So for
@@ -32,6 +32,11 @@ on a single vector `v 0` the value of the Fréchet derivative, `fderiv ℝ f x (
 `TauCeti.mextDeriv_ofFunction_apply` together with `TauCeti.mvfderiv_eq_fderiv_apply`, stated
 for every `v : Fin 1 → E` rather than for `![v]`.
 
+In the chart at `x`, `dφ` at `x` on `V₀, …, Vₖ` is the alternating sum of the derivatives of the
+coordinate expression of `φ` in the directions `Vₚ`, evaluated on the other vectors
+(`TauCeti.mextDeriv_apply_eq_sum_fderivWithin`): Tau Ceti's `TauCeti.mextDeriv_def` followed by
+Mathlib's `extDerivWithin_apply`.
+
 ## Main results
 
 * `TauCeti.mextDeriv_ofFunction_add_apply`, `TauCeti.mextDeriv_ofFunction_sub_apply`:
@@ -40,6 +45,8 @@ for every `v : Fin 1 → E` rather than for `![v]`.
 * `TauCeti.mextDeriv_ofFunction_neg`, `TauCeti.mextDeriv_ofFunction_fun_neg`: `d(-f) = -df`.
 * `TauCeti.mextDeriv_ofFunction_modelSpace_apply`: `df(x)(v) = fderiv ℝ f x (v 0)` on a normed
   space.
+* `TauCeti.mextDeriv_apply_eq_sum_fderivWithin`: the coordinate formula for `dφ` in the chart at
+  `x`.
 
 ## References
 
@@ -95,6 +102,20 @@ theorem mextDeriv_ofFunction_neg (f : M → F) :
 theorem mextDeriv_ofFunction_fun_neg (f : M → F) :
     mextDeriv (RoughForm.ofFunction I fun x ↦ -f x) = -mextDeriv (RoughForm.ofFunction I f) :=
   mextDeriv_ofFunction_neg f
+
+/-- **The exterior derivative in a chart.** If the coordinate expression of `φ` in the chart at
+`x` is differentiable within the model range at the chart image of `x`, then `dφ` at `x` on
+`V₀, …, Vₖ` is the alternating sum, over `p`, of the derivatives in the direction `Vₚ` of the
+coordinate expression of `φ` evaluated on the other vectors. -/
+theorem mextDeriv_apply_eq_sum_fderivWithin {k : ℕ} {φ : RoughForm I M F k} {x : M}
+    (hφ : DifferentiableWithinAt ℝ (φ.inChartAt x) (Set.range I) (extChartAt I x x))
+    (V : Fin (k + 1) → E) :
+    mextDeriv φ x V = ∑ p, (-1) ^ p.val •
+      fderivWithin ℝ (fun z ↦ φ.inChartAt x z (p.removeNth V)) (Set.range I)
+        (extChartAt I x x) (V p) := by
+  rw [mextDeriv_def]
+  exact extDerivWithin_apply hφ
+    (I.uniqueDiffOn _ (extChartAt_target_subset_range x (mem_extChartAt_target x))) V
 
 end Manifold
 
