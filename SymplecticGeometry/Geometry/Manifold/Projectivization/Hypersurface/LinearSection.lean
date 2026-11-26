@@ -153,7 +153,7 @@ the line `x`. -/
 @[simp]
 theorem linearSection_eq_zero_iff (ℓ : (Fin (m + 1) → 𝕜) →ₗ[𝕜] ι → 𝕜)
     (x : ℙ 𝕜 (Fin (m + 1) → 𝕜)) : linearSection ℓ x = 0 ↔ ℓ x.rep = 0 := by
-  have hi := (mem_affineOpen_iff _ x).1 (mem_affineOpen_twistCore_indexAt (n := m) 1 x)
+  have hi := rep_indexAt_twistCore_ne_zero (n := m) 1 x
   constructor
   · intro h
     funext k
@@ -277,8 +277,7 @@ theorem span_range_linearSection_smulRight [DecidableEq ι] (x : X) :
     Submodule.span ℝ (range fun p : Fin (n + 2) × ι × Fin 2 ↦
       X.linearSection ((LinearMap.proj (R := ℂ) (φ := fun _ ↦ ℂ) p.1).smulRight
         (Pi.single p.2.1 (Complex.basisOneI p.2.2))) x) = ⊤ := by
-  have hi := (mem_affineOpen_iff _ _).1
-    (mem_affineOpen_twistCore_indexAt (𝕜 := ℂ) 1 (X.embedding x))
+  have hi := rep_indexAt_twistCore_ne_zero (𝕜 := ℂ) 1 (X.embedding x)
   -- The fibre is `ι → ℂ` by the definitions of `Bundle.Pullback` and
   -- `VectorBundleCore.Fiber`, so the real basis of `ι → ℂ` is one of the fibre.
   let e : Module.Basis (Σ _ : ι, Fin 2) ℝ
