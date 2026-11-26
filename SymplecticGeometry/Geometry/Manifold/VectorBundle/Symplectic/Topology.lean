@@ -43,6 +43,8 @@ and of its restriction agree.
 * `Bundle.ContMDiffTwoForm.continuous_tangentEquiv_symm_mpullback_subtypeVal`: its case of the
   inclusion of an open `U ⊆ M`, that is, the restriction of two-forms on the tangent bundle from
   `M` to `U`.
+* `Bundle.ContMDiffTwoForm.trivializationAtFrameTopology`: the frame topology on the two-forms on
+  the tangent bundle of `M` given by the trivializations `trivializationAt` at its points.
 * `Bundle.ContMDiffTwoForm.exists_frameCoordinates_eq_frameCoordinates_mpullback_subtypeVal`: near
   each point `x` of `U`, the frame coordinates of a two-form on `M` in the trivialization at `x`
   are those of its restriction to `U` in the trivialization of the two-forms on `U` at `x`.
@@ -211,6 +213,36 @@ theorem continuous_tangentEquiv_symm_mpullback_of_contMDiff {g : M → N}
   exact h
 
 end Isotopy
+
+section TrivializationAt
+
+variable {EB HB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [TopologicalSpace HB]
+  (I : ModelWithCorners ℝ EB HB) (M : Type*) [TopologicalSpace M] [ChartedSpace HB M]
+  [IsManifold I ((⊤ : ℕ∞) : WithTop ℕ∞) M]
+
+/-- The frame topology on the smooth two-forms on the tangent bundle of `M` given by the frames
+`trivializationAt` of the bundle of two-forms at the points of `M`, each over its base set. -/
+@[instance_reducible]
+noncomputable def trivializationAtFrameTopology :
+    TopologicalSpace (ContMDiffTwoForm I ⊤ EB (TangentSpace I (M := M))) :=
+  ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞))
+    (fun x : M ↦ trivializationAt (EB [⋀^Fin 2]→L[ℝ] ℝ)
+      (fun y : M ↦ TangentSpace I y [⋀^Fin 2]→L[ℝ] Trivial M ℝ y) x)
+    (fun x ↦ ⟨_, (trivializationAt (EB [⋀^Fin 2]→L[ℝ] ℝ)
+      (fun y : M ↦ TangentSpace I y [⋀^Fin 2]→L[ℝ] Trivial M ℝ y) x).open_baseSet⟩)
+    fun _ ↦ subset_rfl
+
+theorem trivializationAtFrameTopology_def :
+    trivializationAtFrameTopology I M =
+      ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞))
+        (fun x : M ↦ trivializationAt (EB [⋀^Fin 2]→L[ℝ] ℝ)
+          (fun y : M ↦ TangentSpace I y [⋀^Fin 2]→L[ℝ] Trivial M ℝ y) x)
+        (fun x ↦ ⟨_, (trivializationAt (EB [⋀^Fin 2]→L[ℝ] ℝ)
+          (fun y : M ↦ TangentSpace I y [⋀^Fin 2]→L[ℝ] Trivial M ℝ y) x).open_baseSet⟩)
+        fun _ ↦ subset_rfl :=
+  (rfl)
+
+end TrivializationAt
 
 section Restriction
 
