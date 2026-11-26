@@ -302,7 +302,7 @@ theorem contDiff_blowupProfile_sub_sub_div {n : ℕ∞} (hl : 0 < l) (hε : 0 < 
   exact h
 
 /-- The derivative of `blowupCorrection l ε` at `s` is `(h(s) - s - l²) / s`, with
-`h = blowupProfile l ε` (which is `0` at `s = 0`). -/
+`h = blowupProfile l ε`; at `s = 0` the quotient is `0`, since the integrand vanishes near `0`. -/
 theorem hasDerivAt_blowupCorrection (hl : 0 < l) (hε : 0 < ε) (s : ℝ) :
     HasDerivAt (blowupCorrection l ε) ((blowupProfile l ε s - s - l ^ 2) / s) s :=
   ((contDiff_blowupProfile_sub_sub_div (n := 0) hl hε).continuous.integral_hasStrictDerivAt 0
