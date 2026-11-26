@@ -16,6 +16,7 @@ import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Family
 import TauCeti.Geometry.Manifold.Diffeomorph.Family
 import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
+import TauCeti.Geometry.Manifold.MFDeriv.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
 import TauCeti.Geometry.Manifold.PartitionOfUnity.Compact
 
@@ -49,7 +50,7 @@ step carried out over the parameter:
    so `G (q, ·, ·)` vanishes with `h (q, ·, ·)`.
 
 Tau Ceti's family inverse needs a boundaryless parameter, so the case of `unitInterval` first
-extends `k` and `h` in the parameter near `univ ×ˢ A`
+extends the pair `(k, h)` in the parameter near `univ ×ˢ A`
 (`ContMDiff.exists_contMDiffOn_extend_unitInterval`), runs them at a parameter `c q` with `c` the
 identity on `[0, 1]` (`SymplecticGeometry.exists_contDiff_eqOn_id_Icc_mem_Ioo`), as in the proof of
 `ContMDiff.exists_contMDiff_diffeomorph_unitInterval_family_forall_apply_eq`, and applies the
@@ -78,7 +79,7 @@ namespace TauCeti
 
 variable {E E' EQ H H' HQ P M Q : Type*}
   [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
-  [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
+  [NormedAddCommGroup E'] [NormedSpace ℝ E']
   [NormedAddCommGroup EQ] [NormedSpace ℝ EQ] [FiniteDimensional ℝ EQ]
   [TopologicalSpace H] [TopologicalSpace H'] [TopologicalSpace HQ]
   {I : ModelWithCorners ℝ E H} {J : ModelWithCorners ℝ E' H'} {IQ : ModelWithCorners ℝ EQ HQ}
@@ -113,7 +114,10 @@ theorem _root_.ContMDiff.exists_contMDiff_family_comp_eventuallyEq
   · exact ⟨0, ∅, contMDiff_const, isCompact_empty, empty_subset _, fun _ _ _ _ ↦ rfl,
       fun q hq _ x hx ↦ (hTA ⟨(q, x), hq, hx⟩).elim, fun _ _ _ _ ↦ rfl⟩
   obtain ⟨⟨q₀, x₀⟩, hq₀, hx₀⟩ := hTA
+  -- `P` is Hausdorff and its model finite-dimensional, since a slice embeds it into `M`.
   have : T2Space P := (hemb q₀ hq₀ 0).isEmbedding.t2Space
+  have : FiniteDimensional ℝ E' := finiteDimensional_of_injective_mfderiv
+    ((hemb q₀ hq₀ 0).isImmersion.mfderiv_injective (by simp) x₀)
   have := Manifold.locallyCompact_of_finiteDimensional J (M := P)
   have : CompleteSpace EQ := FiniteDimensional.completeSpace ℝ EQ
   have : CompleteSpace E := FiniteDimensional.completeSpace ℝ E
@@ -224,43 +228,36 @@ theorem _root_.ContMDiff.exists_contMDiff_unitInterval_family_comp_eventuallyEq
       (∀ a y s, y ∉ C → G (a, y, s) = 0) ∧
       (∀ a s, ∀ x ∈ A, (fun y ↦ G (a, k (a, s, y), s)) =ᶠ[𝓝 x] fun y ↦ h (a, s, y)) ∧
       ∀ a, (∀ s y, h (a, s, y) = 0) → ∀ y s, G (a, y, s) = 0 := by
-  -- Extend `k` and `h` in the parameter near `univ ×ˢ A`, and shrink to a product `univ ×ˢ V`.
-  obtain ⟨δ₁, hδ₁, U₁, hU₁, hAU₁, Gk, hGk, hGkk⟩ :=
-    hk.exists_contMDiffOn_extend_unitInterval (isCompact_univ.prod hA)
-  obtain ⟨δ₂, hδ₂, U₂, hU₂, hAU₂, Gh, hGh, hGhh⟩ :=
-    hh.exists_contMDiffOn_extend_unitInterval (I := 𝓘(ℝ)) (isCompact_univ.prod hA)
-  obtain ⟨u, V, -, hV, hu, hAV, hVU⟩ :=
-    generalized_tube_lemma isCompact_univ hA (hU₁.inter hU₂) (subset_inter hAU₁ hAU₂)
-  have hsV (s : unitInterval) (x : P) (hx : x ∈ V) : (s, x) ∈ U₁ ∩ U₂ :=
-    hVU ⟨hu (mem_univ s), hx⟩
+  -- Extend the pair `(k, h)` in the parameter near `univ ×ˢ A`, and shrink to a product
+  -- `univ ×ˢ V`.
+  obtain ⟨δ, hδ, U, hU, hAU, F, hF, hFkh⟩ :=
+    (hk.prodMk hh).exists_contMDiffOn_extend_unitInterval (I := I.prod 𝓘(ℝ))
+      (isCompact_univ.prod hA)
+  obtain ⟨u, V, -, hV, hu, hAV, hVU⟩ := generalized_tube_lemma isCompact_univ hA hU hAU
+  have hsV (s : unitInterval) (x : P) (hx : x ∈ V) : (s, x) ∈ U := hVU ⟨hu (mem_univ s), hx⟩
   let V' : TopologicalSpace.Opens P := ⟨V, hV⟩
   -- The families `k'` and `h'` over `ℝ`, run at a parameter `c q` equal to `q` on `[0, 1]`.
   obtain ⟨c, hc, hc_id, hc_mem, -⟩ :=
-    SymplecticGeometry.exists_contDiff_eqOn_id_Icc_mem_Ioo zero_le_one (lt_min hδ₁ hδ₂)
-  have hc₁ (t : ℝ) : c t ∈ Ioo (-δ₁) (1 + δ₁) := by
-    have := hc_mem t
-    exact ⟨by linarith [this.1, min_le_left δ₁ δ₂], by linarith [this.2, min_le_left δ₁ δ₂]⟩
-  have hc₂ (t : ℝ) : c t ∈ Ioo (-δ₂) (1 + δ₂) := by
-    have := hc_mem t
-    exact ⟨by linarith [this.1, min_le_right δ₁ δ₂], by linarith [this.2, min_le_right δ₁ δ₂]⟩
-  have hpr : ContMDiff (𝓘(ℝ, ℝ).prod ((𝓡∂ 1).prod J)) (𝓘(ℝ, ℝ).prod ((𝓡∂ 1).prod J)) ∞
-      fun p : ℝ × unitInterval × V' ↦ (c p.1, p.2.1, (p.2.2 : P)) :=
-    (hc.contMDiff.comp contMDiff_fst).prodMk
-      (contMDiff_snd.fst.prodMk (contMDiff_subtypeVal.comp contMDiff_snd.snd))
-  let k' : ℝ × unitInterval × V' → M := fun p ↦ Gk (c p.1, p.2.1, p.2.2)
-  have hk' : ContMDiff (𝓘(ℝ, ℝ).prod ((𝓡∂ 1).prod J)) I ∞ k' :=
-    hGk.comp_contMDiff hpr fun p ↦ ⟨hc₁ p.1, (hsV _ _ p.2.2.property).1⟩
-  let h' : ℝ × unitInterval × V' → ℝ := fun p ↦ Gh (c p.1, p.2.1, p.2.2)
-  have hh' : ContMDiff (𝓘(ℝ, ℝ).prod ((𝓡∂ 1).prod J)) 𝓘(ℝ) ∞ h' :=
-    hGh.comp_contMDiff hpr fun p ↦ ⟨hc₂ p.1, (hsV _ _ p.2.2.property).2⟩
+    SymplecticGeometry.exists_contDiff_eqOn_id_Icc_mem_Ioo zero_le_one hδ
+  have hF' : ContMDiff (𝓘(ℝ, ℝ).prod ((𝓡∂ 1).prod J)) (I.prod 𝓘(ℝ)) ∞
+      fun p : ℝ × unitInterval × V' ↦ F (c p.1, p.2.1, p.2.2) :=
+    hF.comp_contMDiff ((hc.contMDiff.comp contMDiff_fst).prodMk
+      (contMDiff_snd.fst.prodMk (contMDiff_subtypeVal.comp contMDiff_snd.snd)))
+      fun p ↦ ⟨by simpa only [zero_sub] using hc_mem p.1, hsV _ _ p.2.2.property⟩
+  let k' : ℝ × unitInterval × V' → M := fun p ↦ (F (c p.1, p.2.1, p.2.2)).1
+  let h' : ℝ × unitInterval × V' → ℝ := fun p ↦ (F (c p.1, p.2.1, p.2.2)).2
+  have hk' : ContMDiff (𝓘(ℝ, ℝ).prod ((𝓡∂ 1).prod J)) I ∞ k' := contMDiff_fst.comp hF'
+  have hh' : ContMDiff (𝓘(ℝ, ℝ).prod ((𝓡∂ 1).prod J)) 𝓘(ℝ) ∞ h' := contMDiff_snd.comp hF'
+  have hFkh' (q : ℝ) (hq : q ∈ Icc 0 1) (s : unitInterval) (x : V') :
+      F (c q, s, x) = (k (⟨q, hq⟩, s, x), h (⟨q, hq⟩, s, x)) := by
+    rw [show c q = q from hc_id hq]
+    exact hFkh ⟨q, hq⟩ (s, x) (hsV s x x.property)
   have hk'k (q : ℝ) (hq : q ∈ Icc 0 1) (s : unitInterval) (x : V') :
       k' (q, s, x) = k (⟨q, hq⟩, s, x) := by
-    simp only [k', show c q = q from hc_id hq]
-    exact hGkk ⟨q, hq⟩ (s, x) (hsV s x x.property).1
+    simp only [k', hFkh' q hq]
   have hh'h (q : ℝ) (hq : q ∈ Icc 0 1) (s : unitInterval) (x : V') :
       h' (q, s, x) = h (⟨q, hq⟩, s, x) := by
-    simp only [h', show c q = q from hc_id hq]
-    exact hGhh ⟨q, hq⟩ (s, x) (hsV s x x.property).2
+    simp only [h', hFkh' q hq]
   have hA' : IsCompact (Subtype.val ⁻¹' A : Set V') :=
     Topology.IsInducing.subtypeVal.isCompact_preimage' hA (by rw [Subtype.range_coe]; exact hAV)
   obtain ⟨G, C, hG, hC, hCW, hGC, hGk', hG0⟩ :=
