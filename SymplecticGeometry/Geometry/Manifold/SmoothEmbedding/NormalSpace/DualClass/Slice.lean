@@ -9,9 +9,9 @@ public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.D
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.ThomPairMap
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.Local.Restrict
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.Local.Derivative
+public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 public import SymplecticGeometry.Topology.VectorBundle.Thom.FiberCoordinate
 public import TauCeti.Geometry.Manifold.LocallyContractible
-public import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 public import TauCeti.Topology.VectorBundle.MayerVietoris.DirectedUnion
 public import TauCeti.Topology.VectorBundle.Thom.FiberwiseEquiv
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
@@ -606,13 +606,6 @@ end Independence
 section TransDiffeomorph
 
 variable {X' : Type w} [TopologicalSpace X'] [ChartedSpace G X'] [IsManifold J ∞ X']
-
-omit [FiniteDimensional ℝ E] [FiniteDimensional ℝ V] [IsManifold I ∞ Z] [IsManifold J ∞ X] in
-/-- A diffeomorphism `φ : X' ≃ X` satisfies `φ ∘ (φ⁻¹ ∘ f) = f`. -/
-theorem comp_transDiffeomorph_symm (f : SmoothEmbedding I J ∞ Z X) (φ : X' ≃ₘ^∞⟮J, J⟯ X) :
-    φ ∘ f.transDiffeomorph φ.symm = f := by
-  funext y
-  simp
 
 /-- **The normal spaces of an embedding moved by an ambient diffeomorphism.** For a
 diffeomorphism `φ : X' ≃ X`, the derivative of `φ` identifies the normal space at `x` of the

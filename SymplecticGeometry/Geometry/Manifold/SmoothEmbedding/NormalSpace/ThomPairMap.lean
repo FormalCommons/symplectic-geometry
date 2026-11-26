@@ -53,7 +53,8 @@ universe w
 
 namespace TauCeti.SmoothEmbedding
 
-variable {E H G G' : Type*} {V V' Z X X' : Type w} [NormedAddCommGroup E] [NormedSpace ℝ E]
+variable {E H G G' : Type*} {V V' Z : Type w} {X X' : Type*} [NormedAddCommGroup E]
+  [NormedSpace ℝ E]
   [NormedAddCommGroup V] [NormedSpace ℝ V] [NormedAddCommGroup V'] [NormedSpace ℝ V']
   [TopologicalSpace H] [TopologicalSpace G] [TopologicalSpace G'] {I : ModelWithCorners ℝ E H}
   {J : ModelWithCorners ℝ V G} {J' : ModelWithCorners ℝ V' G'}
