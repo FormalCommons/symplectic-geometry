@@ -11,8 +11,8 @@ public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.D
 public import TauCeti.AlgebraicTopology.Cohomology.Cap.Relative
 public import TauCeti.AlgebraicTopology.Singular.Homotopy.Invariance
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
+public import SymplecticGeometry.Topology.VectorBundle.TotalSpaceHomotopy
 public import TauCeti.CategoryTheory.Monoidal.Preadditive
-public import TauCeti.Topology.VectorBundle.Smul
 
 /-!
 # The cap product of a dual class with the fundamental class
@@ -44,7 +44,11 @@ The proof has three steps.
   along the tube carries the cap product to the normal bundle.
 * The tube followed by the inclusion of `W` is homotopic to `f ∘ π`, since `Φ` is `f` on the zero
   section and the zero section after `π` is homotopic to the identity of `ν`
-  (Tau Ceti's `VectorBundle.totalSpaceHomotopyEquiv`), so both maps act alike on homology.
+  (Tau Ceti's `VectorBundle.totalSpaceHomotopyEquiv`, through
+  `TauCeti.VectorBundle.homotopic_comp_zeroSection_proj`), so both maps act alike on homology.
+
+Tau Ceti's `TauCeti.IsFramedTube.singularCap_pontryaginThomCollapse` runs through the same three
+steps for a framed tube and its collapse map.
 
 The statement holds for every class `u`, every degree and every coefficient group `L`, so that it
 covers the canonical Thom class of a normal orientation and the case of codimension zero.
@@ -74,7 +78,7 @@ attribute [local instance] MonoidalPreadditive.monoidalLinearInt
 
 namespace TauCeti.SmoothEmbedding
 
-variable {E H G F : Type} {V P Z X : Type} [NormedAddCommGroup E] [NormedSpace ℝ E]
+variable {E H G : Type*} {F : Type} {V P Z X : Type} [NormedAddCommGroup E] [NormedSpace ℝ E]
   [FiniteDimensional ℝ E] [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]
   [NormedAddCommGroup P] [NormedSpace ℝ P] [FiniteDimensional ℝ P]
   [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
@@ -170,17 +174,9 @@ theorem exists_isNormalizedTube_singularCap_dualClassOf_fundamentalClass
   let g : C(TotalSpace P (fun x ↦ f.NormalSpace x hn), X) :=
     ⟨fun v ↦ (Φ v : X), continuous_subtypeVal.comp Φ.continuous⟩
   have hgf : g.Homotopic ⟨fun v ↦ f v.proj,
-      f.isEmbedding.continuous.comp (FiberBundle.continuous_proj P _)⟩ := by
-    have := (ContinuousMap.Homotopic.refl g).comp (VectorBundle.totalSpaceHomotopyEquiv P
-      (fun x ↦ f.NormalSpace x hn)).left_inv.symm
-    convert this using 1
-    · ext v; rfl
-    · ext v
-      -- Read the homotopy equivalence through its coercions, for which Tau Ceti has lemmas.
-      change f v.proj = (Φ ((VectorBundle.totalSpaceHomotopyEquiv P _).symm
-        (VectorBundle.totalSpaceHomotopyEquiv P _ v)) : X)
-      rw [VectorBundle.coe_totalSpaceHomotopyEquiv_symm, VectorBundle.coe_totalSpaceHomotopyEquiv,
-        hΦ.apply_zeroSection]
+      f.isEmbedding.continuous.comp (FiberBundle.continuous_proj P _)⟩ :=
+    VectorBundle.homotopic_comp_zeroSection_proj g (f := ⟨f, f.isEmbedding.continuous⟩)
+      hΦ.apply_zeroSection
   have hg : TopPair.Hom.fst (f.tubePairIso hn hdim Φ hΦ.apply_zeroSection).hom ≫
       TopPair.Hom.fst (TopPair.excisionMap (X := TopCat.of X) (W : Set X) (range f)ᶜ) =
       TopCat.ofHom g := by
