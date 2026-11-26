@@ -28,7 +28,9 @@ conditions on that map.
   `ω₀(A u, B v) = uᵀ (Aᵀ (-J₀) B) v` for matrices `A`, `B` with `2n` rows.
 * `SymplecticGeometry.mem_symplecticGroup_iff_forall_stdForm`: `A` lies in
   `Matrix.symplecticGroup ι ℝ` (that is, `Aᵀ J A = J`) if and only if its map preserves `ω₀`,
-  `ω₀(A v, A w) = ω₀(v, w)` for all `v, w`.
+  `ω₀(A v, A w) = ω₀(v, w)` for all `v, w`;
+  `SymplecticGeometry.mem_symplecticGroup_iff_forall_stdForm_toEuclideanCLM` is the same for
+  `Matrix.toEuclideanCLM A`.
 * `SymplecticGeometry.mem_symplecticGroup_iff_isSymplectomorphism`: the same in terms of Tau Ceti's
   `SymplecticForm.IsSymplectomorphism`, for a linear automorphism `e` of `StdSpace ι` and its
   matrix `Matrix.toEuclideanLin.symm e`.
@@ -131,6 +133,16 @@ theorem mem_symplecticGroup_iff_forall_stdForm {A : Matrix (ι ⊕ ι) (ι ⊕ �
     refine (Matrix.toBilin' (R₁ := ℝ)).injective (LinearMap.ext₂ fun v w ↦ ?_)
     have := h (WithLp.toLp 2 v) (WithLp.toLp 2 w)
     rwa [key, base] at this
+
+/-- A real matrix `A` indexed by `ι ⊕ ι` is symplectic if and only if its continuous linear map
+`Matrix.toEuclideanCLM A` preserves the standard symplectic form: `ω₀(A v, A w) = ω₀(v, w)` for
+all `v, w`. This is `mem_symplecticGroup_iff_forall_stdForm` for `Matrix.toEuclideanCLM`. -/
+theorem mem_symplecticGroup_iff_forall_stdForm_toEuclideanCLM {A : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ} :
+    A ∈ symplecticGroup ι ℝ ↔
+      ∀ v w, stdForm ι (toEuclideanCLM (n := ι ⊕ ι) (𝕜 := ℝ) A v)
+        (toEuclideanCLM (n := ι ⊕ ι) (𝕜 := ℝ) A w) = stdForm ι v w := by
+  simp only [← coe_toEuclideanCLM_eq_toEuclideanLin, ContinuousLinearMap.coe_coe,
+    mem_symplecticGroup_iff_forall_stdForm]
 
 /-- A linear automorphism `e` of `StdSpace ι` is a symplectomorphism of `ω₀` if and only if its
 matrix `Matrix.toEuclideanLin.symm e` lies in `Matrix.symplecticGroup ι ℝ`. -/

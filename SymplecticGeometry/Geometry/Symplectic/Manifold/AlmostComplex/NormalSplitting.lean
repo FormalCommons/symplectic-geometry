@@ -498,18 +498,19 @@ theorem normalForm_normalClass (hdim : finrank ℝ P = finrank ℝ E - finrank �
 omit [FiniteDimensional ℝ E'] [IsManifold I' ((⊤ : ℕ∞) : WithTop ℕ∞) M] in
 /-- The representative in the `ω`-orthogonal of the image of `a` under the complex structure
 induced by `J` on the normal space is the image under `J` of the representative of `a`. -/
-private theorem complementRepresentative_normalAlmostComplexStructureAt
+private theorem complementRepresentative_normalComplexStructureAt
     (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn)
     (hω : ω.Compatible (J.pullbackComplexStructure f f.contMDiff)) (x : M)
     (a : f.NormalSpace x hn) :
     f.complementRepresentative x hn (isTopCompl_tangentRange_orthogonal hJ hω.tames x)
-        (f.normalAlmostComplexStructureAt J hJ x a) =
+        (f.normalComplexStructureAt hn J x (fun v hv ↦ hJ x v hv) a) =
       J (f x) (f.complementRepresentative x hn (isTopCompl_tangentRange_orthogonal hJ hω.tames x)
         a) := by
   rw [complementRepresentative_eq_iff, ← pullbackComplexStructure_apply J f f.contMDiff]
   refine ⟨pullbackComplexStructure_mem_orthogonal hJ hω.invariant
     (complementRepresentative_mem _ _ _ _ _), ?_⟩
-  rw [pullbackComplexStructure_apply, ← normalAlmostComplexStructureAt_normalClass,
+  rw [pullbackComplexStructure_apply,
+    ← normalComplexStructureAt_normalClass (fun v hv ↦ hJ x v hv),
     normalClass_complementRepresentative]
 
 /-- If `ω` is compatible with the pull-back of `J`, the form on the normal bundle is compatible
@@ -526,13 +527,13 @@ theorem compatible_normalForm (hdim : finrank ℝ P = finrank ℝ E - finrank �
     ContMDiffTwoForm.tames_def.2 fun x a ha ↦ ?_⟩
   · rw [contMDiffNormalComplexStructure_apply, contMDiffNormalComplexStructure_apply,
       bilinFormAt_normalForm, bilinFormAt_normalForm,
-      complementRepresentative_normalAlmostComplexStructureAt hJ hω,
-      complementRepresentative_normalAlmostComplexStructureAt hJ hω,
+      complementRepresentative_normalComplexStructureAt hJ hω,
+      complementRepresentative_normalComplexStructureAt hJ hω,
       ← pullbackComplexStructure_apply J f f.contMDiff,
       ← pullbackComplexStructure_apply J f f.contMDiff]
     exact ContMDiffTwoForm.invariant_def.1 hω.invariant x _ _
   · rw [contMDiffNormalComplexStructure_apply, bilinFormAt_normalForm,
-      complementRepresentative_normalAlmostComplexStructureAt hJ hω,
+      complementRepresentative_normalComplexStructureAt hJ hω,
       ← pullbackComplexStructure_apply J f f.contMDiff]
     refine ContMDiffTwoForm.tames_def.1 hω.tames x _ fun h ↦ ha ?_
     exact complementRepresentative_injective _ _ _ _ (h.trans (map_zero _).symm)

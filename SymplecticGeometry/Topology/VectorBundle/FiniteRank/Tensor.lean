@@ -5,7 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Topology.VectorBundle.FiniteRank.Tensor
+public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
+public import TauCeti.Topology.VectorBundle.FiniteRank.Monoidal
 public import TauCeti.Topology.VectorBundle.TensorProduct.Basic
 
 /-!
@@ -25,6 +26,11 @@ transitions as transitions. This file compares it with Tau Ceti's tensor product
   `A.core.Fiber x ⊗[𝕜] D.core.Fiber x`, by Tau Ceti's coordinates `TauCeti.piTensorEquiv`;
 * `TauCeti.FiniteRankBundleCore.continuous_tensorFiberEquiv`: this identification is continuous
   from the total space of `tensor A D` to that of the tensor product bundle;
+* `TauCeti.FiniteRankBundleCore.fiberMap_eqToHom_tensorHom_eqToHom`, with its forms
+  `fiberMap_eqToIso_tensorIso_hom` and `fiberMap_eqToIso_tensorIso_inv` for automorphisms: the
+  tensor product of morphisms between two pullbacks, read through Tau Ceti's `pullback_tensorObj`
+  as a morphism between the pullbacks of the tensor products, is the Kronecker product of their
+  fibre maps in each fibre.
 
 ## References
 
@@ -138,6 +144,50 @@ theorem continuous_tensorFiberEquiv :
   exact congrArg (ProjectiveTensor.linearEquiv 𝕜 _ _).symm (hk p.snd).symm
 
 end TensorFiber
+
+section Pullback
+
+open MonoidalCategory
+
+variable {X : Type*} [TopologicalSpace X] {A A' D D' : FiniteRankBundleCore 𝕜 B} (p : C(X, B))
+
+/-- Read through `pullback_tensorObj`, the tensor product of morphisms `f` and `g` between
+pullbacks along `p` acts on the fibres of the pullbacks of the tensor products by the Kronecker
+product of their fibre maps. -/
+theorem fiberMap_eqToHom_tensorHom_eqToHom (f : A.pullback p ⟶ A'.pullback p)
+    (g : D.pullback p ⟶ D'.pullback p) (x : X) :
+    (eqToHom (pullback_tensorObj A D p) ≫ (f ⊗ₘ g) ≫
+      eqToHom (pullback_tensorObj A' D' p).symm).fiberMap x =
+      (f.fiberMap x).kronecker (g.fiberMap x) := by
+  ext v i
+  simp only [fiberMap_comp, ContinuousLinearMap.comp_apply, fiberMap_eqToHom,
+    Function.comp_apply]
+  -- The casts are along `rank_pullback` and `rank_tensorObj`, which hold by `rfl`.
+  exact congrFun (DFunLike.congr_fun (fiberMap_tensorHom_monoidal _ _ _) _) _
+
+variable (e₁ : A.pullback p ≅ A.pullback p) (e₂ : D.pullback p ≅ D.pullback p)
+
+/-- Read through `pullback_tensorObj`, the tensor product of automorphisms `e₁` and `e₂` of the
+pullbacks of `A` and `D` along `p` acts on the fibre of the pullback of `A ⊗ D` by the Kronecker
+product of their fibre maps. -/
+theorem fiberMap_eqToIso_tensorIso_hom (x : X) :
+    (eqToIso (pullback_tensorObj A D p) ≪≫ (e₁ ⊗ᵢ e₂) ≪≫
+      eqToIso (pullback_tensorObj A D p).symm).hom.fiberMap x =
+      (e₁.hom.fiberMap x).kronecker (e₂.hom.fiberMap x) := by
+  simp only [Iso.trans_hom, eqToIso.hom, tensorIso_hom]
+  exact fiberMap_eqToHom_tensorHom_eqToHom p _ _ x
+
+/-- Read through `pullback_tensorObj`, the inverse of the tensor product of automorphisms `e₁`
+and `e₂` of the pullbacks of `A` and `D` along `p` acts on the fibre of the pullback of `A ⊗ D` by
+the Kronecker product of the fibre maps of `e₁⁻¹` and `e₂⁻¹`. -/
+theorem fiberMap_eqToIso_tensorIso_inv (x : X) :
+    (eqToIso (pullback_tensorObj A D p) ≪≫ (e₁ ⊗ᵢ e₂) ≪≫
+      eqToIso (pullback_tensorObj A D p).symm).inv.fiberMap x =
+      (e₁.inv.fiberMap x).kronecker (e₂.inv.fiberMap x) := by
+  simp only [Iso.trans_inv, eqToIso.inv, tensorIso_inv, Category.assoc]
+  exact fiberMap_eqToHom_tensorHom_eqToHom p _ _ x
+
+end Pullback
 
 end FiniteRankBundleCore
 

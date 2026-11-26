@@ -176,7 +176,7 @@ theorem vectorBundleRescaledFamily_zeroSection [T2Space (TotalSpace F V)]
       rwa [vectorBundleFiberScaling_zeroSection]
     have hzx : (⟨_, hz⟩ : U) = ⟨_, hx⟩ := Subtype.ext (vectorBundleFiberScaling_zeroSection x t)
     rw [vectorBundleRescaledFamily_of_ne_zero ψ ht _ hz, hzx, hψ0]
-    simp only [zeroSection]
+    rw [zeroSection_def]
     exact congrArg _ (smul_zero _)
   rcases eq_or_ne (t : ℝ) 0 with ht | ht
   · obtain rfl : t = 0 := Subtype.ext ht
@@ -211,7 +211,7 @@ theorem tendsto_vectorBundleRescaledFamily_zero (e : Trivialization F (π F V)) 
   have hGc : ∀ v, ContinuousAt G (x, v) := fun v ↦
     e.continuousOn_symm.continuousAt (prod_mem_nhds (e.open_baseSet.mem_nhds hz) univ_mem)
   have hG0 : G (x, 0) = zeroSection F V x := by
-    simp [hG, zeroSection, ← Trivialization.symmₗ_apply (R := ℝ) _ hz]
+    simp [hG, zeroSection_def, ← Trivialization.symmₗ_apply (R := ℝ) _ hz]
   have hcoe : Tendsto (fun t : Icc (0 : ℝ) 1 ↦ (t : ℝ)) (𝓝[>] 0) (𝓝[>] 0) :=
     continuous_subtypeVal.continuousWithinAt.tendsto_nhdsWithin fun _ ↦ id
   have hsmall : Tendsto (fun t : Icc (0 : ℝ) 1 ↦ (t : ℝ) • w₀) (𝓝[>] 0) (𝓝 0) := by

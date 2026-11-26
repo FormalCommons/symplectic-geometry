@@ -8,7 +8,8 @@ module
 public import Mathlib.Geometry.Manifold.ContMDiff.Constructions
 public import Mathlib.Geometry.Manifold.Instances.Real
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
-import Mathlib.Topology.MetricSpace.Thickening
+import SymplecticGeometry.Data.Set.Prod
+import SymplecticGeometry.Topology.Order.NhdsSet
 import TauCeti.Geometry.Manifold.Immersion.Differential
 import TauCeti.Geometry.Manifold.Immersion.Family
 import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
@@ -100,13 +101,8 @@ theorem exists_isOpen_superset_forall_isSmoothEmbedding_of_injOn [FiniteDimensio
   have hGat : ∀ p ∈ W, ContMDiffAt (IQ.prod J) I ∞ G p := fun p hp ↦
     hG.contMDiffAt (hW.mem_nhds hp)
   -- The track `(q, x) ↦ (q, G (q, x))` is injective near `T ×ˢ K`.
-  have htrack : ∀ {s : Set (Q × P)}, (∀ q, InjOn (fun x ↦ G (q, x)) {x | (q, x) ∈ s}) →
-      InjOn (fun p : Q × P ↦ (p.1, G p)) s := by
-    rintro s hs ⟨q, x⟩ hx ⟨q', y⟩ hy hxy
-    obtain ⟨rfl, hxy⟩ := Prod.ext_iff.1 hxy
-    exact congrArg (Prod.mk q) (hs q hx hy hxy)
   obtain ⟨W₁, hW₁o, hTKW₁, hW₁⟩ := Set.InjOn.exists_isOpen_superset
-    (htrack (s := T ×ˢ K) fun q x hx y hy ↦ hinj q hx.1 hx.2 hy.2) (hT.prod hK)
+    (Set.injOn_fst_prod_iff.2 hinj) (hT.prod hK)
     (fun p hp ↦ continuousAt_fst.prodMk (hGat p (hTK hp)).continuousAt) fun p hp ↦ by
       have h := hGat p (hTK hp)
       exact (contMDiffAt_fst.prodMk h).exists_mem_nhds_injOn (by simp)
@@ -169,16 +165,8 @@ theorem exists_pos_forall_isSmoothEmbedding_of_injOn {G : ℝ × P → M} {W : S
       ∀ t ∈ Ioo (-δ) (1 + δ), Manifold.IsSmoothEmbedding J I ∞ (fun x : V ↦ G (t, x)) := by
   obtain ⟨U, hUo, hU, V, hKV, hVW, hV⟩ := exists_isOpen_superset_forall_isSmoothEmbedding_of_injOn
     hW hG isCompact_Icc hK hKW hinj himm
-  obtain ⟨δ, hδ, hδU⟩ := isCompact_Icc.exists_thickening_subset_open hUo hU
-  have hIoo : Ioo (-δ) (1 + δ) ⊆ U := fun t ht ↦ hδU <| Metric.mem_thickening_iff.2
-    ⟨max 0 (min t 1), ⟨le_max_left _ _, max_le zero_le_one (min_le_right _ _)⟩, by
-      rcases le_total t 0 with h0 | h0
-      · rw [min_eq_left (h0.trans zero_le_one), max_eq_left h0, Real.dist_eq, sub_zero, abs_lt]
-        constructor <;> linarith [ht.1]
-      · rcases le_total t 1 with h1 | h1
-        · rwa [min_eq_left h1, max_eq_right h0, dist_self]
-        · rw [min_eq_right h1, max_eq_right zero_le_one, Real.dist_eq, abs_lt]
-          constructor <;> linarith [ht.2]⟩
+  obtain ⟨δ, hδ, hIoo⟩ := hUo.exists_pos_Ioo_subset_of_Icc_subset hU
+  rw [zero_sub] at hIoo
   exact ⟨δ, hδ, V, hKV, (prod_mono hIoo subset_rfl).trans hVW, fun t ht ↦ hV t (hIoo ht)⟩
 
 omit [FiniteDimensional ℝ E'] [T2Space P] in
