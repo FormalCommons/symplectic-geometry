@@ -42,7 +42,7 @@ have determinant `1`, the volume of the ellipsoid is that of `E(r)`, namely
   each element of the spectrum is a radius of some normal form.
 * `SymplecticGeometry.symplecticSpectrum_comp`: the spectrum is invariant under linear
   symplectic maps.
-* `SymplecticGeometry.volume_setOf_le_one`: the volume of the ellipsoid of `Q` in terms of its
+* `SymplecticGeometry.volume_setOfPred_le_one`: the volume of the ellipsoid of `Q` in terms of its
   spectrum.
 * `SymplecticGeometry.exists_isDarbouxBasis_orthogonal_and_stdEllipsoid_normalForm`: the
   orthogonal Darboux bases for an inner product, together with the normal form of ellipsoids,
@@ -78,8 +78,8 @@ theorem exists_perm_eq_of_image_stdEllipsoid_eq {r r' : ι → ℝ} (hr : ∀ j,
   -- The ellipsoid `E(r')` determines its form, which is therefore `stdEllipsoidForm r ∘ e⁻¹`.
   have hQ : (stdEllipsoidForm r).comp (e.symm : StdSpace ι →ₗ[ℝ] StdSpace ι) =
       stdEllipsoidForm r' := by
-    refine ((stdEllipsoidForm_posDef fun j ↦ (hr' j).ne').eq_of_setOf_le_one_eq ?_).symm
-    rw [← stdEllipsoid_def, ← h, stdEllipsoid_def, QuadraticMap.image_setOf_le_one]
+    refine ((stdEllipsoidForm_posDef fun j ↦ (hr' j).ne').eq_of_setOfPred_le_one_eq ?_).symm
+    rw [← stdEllipsoid_def, ← h, stdEllipsoid_def, QuadraticMap.image_setOfPred_le_one]
   have hsum : ∑ k, (2 / r (τ k) ^ 2) • elliptic (d.map e) k =
       ∑ k, (2 / r' (τ k) ^ 2) • elliptic d k := by
     rw [← stdEllipsoidForm_eq_sum_smul_elliptic τ, ← hQ, stdEllipsoidForm_eq_sum_smul_elliptic τ]
@@ -201,7 +201,7 @@ theorem symplecticSpectrum_comp (Q : QuadraticForm ℝ (StdSpace ι))
     rw [symplecticSpectrum_eq hQ hr he₀ h₀]
     refine symplecticSpectrum_eq (hQ.comp _ e.injective) hr (he.trans he₀) ?_
     have hpre : e '' {z | Q.comp (e : StdSpace ι →ₗ[ℝ] StdSpace ι) z ≤ 1} = {z | Q z ≤ 1} := by
-      rw [QuadraticMap.image_setOf_le_one, hback]
+      rw [QuadraticMap.image_setOfPred_le_one, hback]
     rw [← h₀, ← hpre, Set.image_image]
     rfl
   · have hQe : ¬(Q.comp (e : StdSpace ι →ₗ[ℝ] StdSpace ι)).PosDef := fun h ↦
@@ -241,7 +241,7 @@ theorem volume_stdEllipsoid {r : ι → ℝ} (hr : ∀ j, 0 < r j) :
 /-- **The volume of an ellipsoid.** For a positive definite form `Q` on `(ℝ²ⁿ, ω₀)` with
 symplectic spectrum `r₁, …, rₙ`, the ellipsoid `{z | Q z ≤ 1}` has volume
 `πⁿ / n! · ∏ⱼ rⱼ²`. -/
-theorem volume_setOf_le_one {Q : QuadraticForm ℝ (StdSpace ι)} (hQ : Q.PosDef) :
+theorem volume_setOfPred_le_one {Q : QuadraticForm ℝ (StdSpace ι)} (hQ : Q.PosDef) :
     MeasureTheory.volume {z | Q z ≤ 1} =
       ENNReal.ofReal (π ^ Fintype.card ι / (Fintype.card ι).factorial *
         ((symplecticSpectrum Q).map (· ^ 2)).prod) := by
@@ -287,7 +287,7 @@ theorem exists_isDarbouxBasis_orthogonal_and_stdEllipsoid_normalForm
           ((symplecticSpectrum Q).map (· ^ 2)).prod) :=
   ⟨ω.exists_isDarbouxBasis_orthogonal, fun _ hQ ↦
     ⟨exists_isSymplectomorphism_image_eq_stdEllipsoid hQ,
-      fun _ _ hr he h ↦ symplecticSpectrum_eq hQ hr he h, volume_setOf_le_one hQ⟩⟩
+      fun _ _ hr he h ↦ symplecticSpectrum_eq hQ hr he h, volume_setOfPred_le_one hQ⟩⟩
 
 end NormalForm
 

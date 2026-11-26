@@ -357,7 +357,7 @@ normed space:
   the comap of `compatibleTangentSpace ω J` along
   `ContinuousLinearMap.coeLM ℝ`, with `mem_compatibleTangentSpaceCLM`
   (`@[simp]`).
-- `TauCeti.SymplecticForm.isOpen_setOf_strictContraction ω J₀ :
+- `TauCeti.SymplecticForm.isOpen_setOfPred_strictContraction ω J₀ :
   IsOpen {C : V →L[ℝ] V | ∀ v, v ≠ 0 → ω (C v) (J₀ (C v)) < ω v (J₀ v)}`,
   with no tameness hypothesis: the condition is positivity on the diagonal of
   the form $\omega(v,J_0w)-\omega(Cv,J_0Cw)$, which depends continuously on

@@ -52,8 +52,8 @@ rank to be even (for finite rank, a nondegenerate form forces it), and rank zero
   pairing `C^n` sections with `ω` gives a `C^n` function.
 * `ContMDiffTwoForm.IsNondegenerate`, with `isNondegenerate_iff_separatingLeft` and
   `IsNondegenerate.symplecticFormAt`, the Tau Ceti symplectic form on each fibre.
-* `isOpen_setOf_nondegenerate`: for finite rank, the fibrewise nondegenerate alternating maps are
-  open in the total space of the bundle of alternating maps.
+* `isOpen_setOfPred_nondegenerate`: for finite rank, the fibrewise nondegenerate alternating maps
+  are open in the total space of the bundle of alternating maps.
 * `ContMDiffTwoForm.ofBilinearSection`: for finite rank, the two-form of a `C^n` bilinear section
   that vanishes on the diagonal.
 * `ContMDiffTwoForm.const`: the constant form of a symplectic form on the fibre of a trivial
@@ -347,11 +347,11 @@ end ContMDiffTwoForm
 omit [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)] in
 /-- On a bundle of finite rank, the alternating maps of two vectors on a fibre whose bilinear form
 is nondegenerate form an open subset of the total space of the bundle of alternating maps. -/
-theorem isOpen_setOf_nondegenerate [FiniteDimensional ℝ F] :
+theorem isOpen_setOfPred_nondegenerate [FiniteDimensional ℝ F] :
     IsOpen {p : TotalSpace (F [⋀^Fin 2]→L[ℝ] ℝ) (fun x ↦ V x [⋀^Fin 2]→L[ℝ] Trivial M ℝ x) |
       LinearMap.BilinForm.Nondegenerate (MultilinearMap.toBilinMap p.snd.toMultilinearMap)} := by
   refine FiberBundle.isOpen_of_forall_mem_iff_snd_mem
-    ContinuousAlternatingMap.isOpen_setOf_nondegenerate_toBilinMap fun b q hq ↦ ?_
+    ContinuousAlternatingMap.isOpen_setOfPred_nondegenerate_toBilinMap fun b q hq ↦ ?_
   -- In the fibre coordinates of the trivialization, a form becomes its pull-back by a linear
   -- equivalence.
   have hy : q.proj ∈ (trivializationAt F V b).baseSet := by
