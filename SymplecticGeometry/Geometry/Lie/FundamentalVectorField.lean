@@ -27,6 +27,16 @@ Ceti's namespace, beside `TauCeti.orbitTangent_fundamental_smul`, its analogue f
 `y ↦ g • y` (which intertwines the actions only up to conjugation by `g`), so that they can move
 there unchanged.
 
+For any infinitesimal action, a point `x` and an injective linear map `L : P → T_x M` whose
+range meets `𝔤 · x` only in `0`, `TauCeti.InfinitesimalAction.ker_eval_coprod` and
+`TauCeti.InfinitesimalAction.apply_add_eq_zero_iff` say that `(Z, p) ↦ Z_M(x) + L p` vanishes
+exactly on `𝔤_x × 0`. This is the kernel half of the linear algebra of a slice through `x`, by
+Mathlib's `LinearMap.ker_coprod_of_disjoint_range`, and follows the steps of the proof of Tau
+Ceti's `TauCeti.mfderiv_smul_slice_eq_zero_iff`, which treats the inclusion of a subspace in place
+of `L`. The other half, that the map is onto `T_x M` exactly when `𝔤 · x + range L = T_x M`, is
+Tau Ceti's `LinearMap.surjective_coprod_iff`, since `𝔤 · x` is the range of
+`TauCeti.InfinitesimalAction.eval`.
+
 The file also has `TauCeti.InfinitesimalAction.coe_fundamental_toSectionLinearMap`: the smooth
 section `(InfinitesimalAction.fundamental I G I' M).toSectionLinearMap ξ` is, as a function, the
 fundamental vector field `fundamentalVectorField I' ξ`.
@@ -126,6 +136,37 @@ theorem map_orbitTangent_fundamental_of_map_smul (hf : MDifferentiableAt I' I'' 
 end InfinitesimalAction
 
 end TauCeti
+
+section Coprod
+
+namespace TauCeti.InfinitesimalAction
+
+variable {𝔤 : Type*} [LieRing 𝔤] [LieAlgebra ℝ 𝔤]
+  {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] {H : Type*} [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+  [IsManifold I 1 M] (a : InfinitesimalAction 𝔤 I M) {x : M}
+  {P : Type*} [AddCommGroup P] [Module ℝ P] {L : P →ₗ[ℝ] TangentSpace I x}
+
+/-- For an injective `L` whose range meets the orbit tangent space `𝔤 · x` only in `0`, the
+kernel of `(Z, p) ↦ Z_M(x) + L p` is `𝔤_x × 0`, where `𝔤_x` is the isotropy algebra of `x`. -/
+theorem ker_eval_coprod (hL : Function.Injective L)
+    (h : Disjoint (a.orbitTangent x) (LinearMap.range L)) :
+    LinearMap.ker ((a.eval x).coprod L) = (a.isotropy x).toSubmodule.prod ⊥ := by
+  rw [LinearMap.ker_coprod_of_disjoint_range _ _ ((a.orbitTangent_eq_range x) ▸ h),
+    isotropy_toSubmodule, LinearMap.ker_eq_bot.2 hL]
+
+/-- For an injective `L` whose range meets the orbit tangent space `𝔤 · x` only in `0`,
+`Z_M(x) + L p` vanishes exactly when `Z` lies in the isotropy algebra `𝔤_x` and `p = 0`. -/
+theorem apply_add_eq_zero_iff (hL : Function.Injective L)
+    (h : Disjoint (a.orbitTangent x) (LinearMap.range L)) {Z : 𝔤} {p : P} :
+    a Z x + L p = 0 ↔ Z ∈ a.isotropy x ∧ p = 0 := by
+  have := SetLike.ext_iff.1 (a.ker_eval_coprod hL h) (Z, p)
+  rwa [LinearMap.mem_ker, LinearMap.coprod_apply, eval_apply, Submodule.mem_prod,
+    Submodule.mem_bot] at this
+
+end TauCeti.InfinitesimalAction
+
+end Coprod
 
 section Inverse
 

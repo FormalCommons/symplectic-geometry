@@ -9,6 +9,8 @@ public import Mathlib.Analysis.Calculus.ContDiff.Defs
 public import Mathlib.Analysis.Normed.Operator.Basic
 import Mathlib.Analysis.Calculus.ContDiff.Comp
 import Mathlib.Analysis.Calculus.ContDiff.Operations
+import Mathlib.Analysis.Calculus.FDeriv.CompCLM
+import Mathlib.Analysis.Normed.Operator.Bilinear
 import TauCeti.Analysis.Calculus.FDeriv.Remainder
 import TauCeti.Topology.Compactness.Normed
 
@@ -37,6 +39,9 @@ of holonomic approximation in [EliashbergMishachev2002], Chapter 3.
   `C¹`-close to `(f, G)` near `a`, and close to the Taylor maps at nearby base points.
 * `SymplecticGeometry.contDiff_taylor` and `SymplecticGeometry.fderiv_taylor`: a Taylor map is
   smooth, with constant derivative `G a`.
+* `SymplecticGeometry.norm_fderiv_taylor_affine_sub_le`: a Taylor map whose base point
+  `L y + p₀` moves affinely with `y`, and whose linear part `Γ y` moves too, has derivative at
+  `x` within `‖D Γ (x)‖ ‖x - (L x + p₀)‖` of `D f (L x + p₀) ∘ L + Γ x ∘ (1 - L)`.
 
 ## References
 
@@ -81,6 +86,26 @@ theorem hasFDerivAt_taylor (f : E → F) (G : E → E →L[ℝ] F) (a x : E) :
 theorem fderiv_taylor (f : E → F) (G : E → E →L[ℝ] F) (a x : E) :
     fderiv ℝ (fun y ↦ f a + G a (y - a)) x = G a :=
   (hasFDerivAt_taylor f G a x).fderiv
+
+/-- **The derivative of a Taylor map with a moving base point.** Let the base point `L y + p₀`
+depend affinely on `y`, and let `Γ y` be a field of linear maps. The map
+`y ↦ f (L y + p₀) + Γ y (y - (L y + p₀))` has derivative at `x` within
+`‖D Γ (x)‖ ‖x - (L x + p₀)‖` of `D f (L x + p₀) ∘ L + Γ x ∘ (1 - L)`. -/
+theorem norm_fderiv_taylor_affine_sub_le {f : E → F} {Γ : E → E →L[ℝ] F} (L : E →L[ℝ] E)
+    (p₀ x : E) (hf : DifferentiableAt ℝ f (L x + p₀)) (hΓ : DifferentiableAt ℝ Γ x) :
+    ‖fderiv ℝ (fun y ↦ f (L y + p₀) + Γ y (y - (L y + p₀))) x -
+        ((fderiv ℝ f (L x + p₀)).comp L + (Γ x).comp (ContinuousLinearMap.id ℝ E - L))‖ ≤
+      ‖fderiv ℝ Γ x‖ * ‖x - (L x + p₀)‖ := by
+  have h₁ : HasFDerivAt (fun y ↦ L y + p₀) L x := L.hasFDerivAt.add_const p₀
+  have h₂ : HasFDerivAt (fun y ↦ y - (L y + p₀)) (ContinuousLinearMap.id ℝ E - L) x :=
+    (hasFDerivAt_id x).sub h₁
+  have h₃ : HasFDerivAt (fun y ↦ f (L y + p₀) + Γ y (y - (L y + p₀)))
+      ((fderiv ℝ f (L x + p₀)).comp L +
+        ((Γ x).comp (ContinuousLinearMap.id ℝ E - L) + (fderiv ℝ Γ x).flip (x - (L x + p₀)))) x :=
+    (hf.hasFDerivAt.comp x h₁).add (hΓ.hasFDerivAt.clm_apply h₂)
+  rw [h₃.fderiv,
+    ← add_assoc, add_sub_cancel_left, ← ContinuousLinearMap.opNorm_flip]
+  exact ContinuousLinearMap.le_opNorm _ _
 
 end SymplecticGeometry
 
