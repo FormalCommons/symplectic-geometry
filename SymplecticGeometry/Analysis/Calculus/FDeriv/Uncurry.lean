@@ -5,8 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Analysis.Calculus.Deriv.Basic
-public import Mathlib.Analysis.Calculus.FDeriv.Prod
+public import TauCeti.Analysis.Calculus.FDeriv.Prod
 
 /-!
 # The derivative of a family that starts at the identity
@@ -34,13 +33,7 @@ theorem DifferentiableAt.hasFDerivAt_uncurry_zero
     (hΨ0 : ∀ᶠ x in 𝓝 y, Ψ x 0 = x) (hv : HasDerivAt (Ψ y) v 0) :
     HasFDerivAt (fun p : E × 𝕜 ↦ Ψ p.1 p.2)
       (ContinuousLinearMap.fst 𝕜 E 𝕜 + (ContinuousLinearMap.snd 𝕜 E 𝕜).smulRight v) (y, 0) := by
-  have hD := hd.hasFDerivAt
-  refine hD.congr_fderiv (ContinuousLinearMap.prod_ext ?_ ?_)
-  · have h := hD.comp y (hasFDerivAt_prodMk_left (𝕜 := 𝕜) y (0 : 𝕜))
-    rw [h.unique ((hasFDerivAt_id y).congr_of_eventuallyEq hΨ0)]
-    ext u
-    simp
-  · have h := hD.comp (0 : 𝕜) (hasFDerivAt_prodMk_right (𝕜 := 𝕜) y (0 : 𝕜))
-    rw [h.unique hv.hasFDerivAt]
-    ext
-    simp
+  refine hd.hasFDerivAt.congr_fderiv (ContinuousLinearMap.ext fun w ↦ ?_)
+  rw [TauCeti.fderiv_apply_eq_fderiv_slice_left_add_fderiv_slice_right hd,
+    ((hasFDerivAt_id y).congr_of_eventuallyEq hΨ0).fderiv, hv.hasFDerivAt.fderiv]
+  simp
