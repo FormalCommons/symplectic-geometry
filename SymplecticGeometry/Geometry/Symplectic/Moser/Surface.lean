@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.TopForm
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 import Mathlib.Geometry.Manifold.Instances.Icc
@@ -19,7 +20,10 @@ import TauCeti.Geometry.Symplectic.Manifold.Surface
 
 Let `M` be a closed connected surface with an orientation `o`, and let `ω₀` and `σ` be smooth
 two-forms on `M` that are positive for `o`: both take positive values on every positively oriented
-tangent basis. If `∫_M σ = ∫_M ω₀`, then there is a diffeomorphism `ψ` of `M` with `ψ^* σ = ω₀`
+tangent basis. If `∫_M σ = ∫_M ω₀`, then there is a diffeotopy `Ψ` of `M`, which starts at the
+identity, with `Ψ_1^* σ = ω₀`
+(`TauCeti.SmoothTwoForm.exists_diffeotopy_mpullback_eq_of_integralTopForm_eq`). In particular
+its time-one map `ψ = Ψ_1` is a diffeomorphism of `M` with `ψ^* σ = ω₀`
 (`TauCeti.SmoothTwoForm.exists_diffeomorph_mpullback_eq_of_integralTopForm_eq`).
 
 The proof is Moser's argument along the segment `σ_t = ω₀ + t (σ - ω₀)`, `t ∈ [0, 1]`.
@@ -36,9 +40,11 @@ The proof is Moser's argument along the segment `σ_t = ω₀ + t (σ - ω₀)`,
 
 ## Main results
 
-* `TauCeti.SmoothTwoForm.exists_diffeomorph_mpullback_eq_of_integralTopForm_eq`: two area forms of
+* `TauCeti.SmoothTwoForm.exists_diffeotopy_mpullback_eq_of_integralTopForm_eq`: two area forms of
   equal integral, positive for the same orientation of a closed connected surface, are related by
-  a diffeomorphism.
+  the time-one map of a diffeotopy.
+* `TauCeti.SmoothTwoForm.exists_diffeomorph_mpullback_eq_of_integralTopForm_eq`: the same, with
+  only the diffeomorphism.
 
 ## References
 
@@ -64,15 +70,16 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimen
 /-- **Moser's theorem for area forms.** Let `M` be a closed surface, connected or empty, with an
 orientation `o`, and let `ω₀` and `σ` be smooth two-forms on `M`, both positive on every
 positively oriented tangent basis. If `σ` and `ω₀` have the same integral over `M`, then there is a
-diffeomorphism `ψ` of `M` with `ψ^* σ = ω₀`. -/
-theorem exists_diffeomorph_mpullback_eq_of_integralTopForm_eq [PreconnectedSpace M]
+diffeotopy `Ψ` of `M`, which starts at the identity, whose time-one map `Ψ.final` pulls `σ` back
+to `ω₀`. -/
+theorem exists_diffeotopy_mpullback_eq_of_integralTopForm_eq [PreconnectedSpace M]
     (o : Manifold.Orientation I M (Fin 2)) {ω₀ σ : SmoothTwoForm I M}
     (hω : ∀ x (b : Module.Basis (Fin 2) ℝ (TangentSpace I x)),
       b.orientation = o.orientationAt x → 0 < ω₀.val x b)
     (hσ : ∀ x (b : Module.Basis (Fin 2) ℝ (TangentSpace I x)),
       b.orientation = o.orientationAt x → 0 < σ.val x b)
     (hint : integralTopForm o σ.val = integralTopForm o ω₀.val) :
-    ∃ ψ : M ≃ₘ⟮I, I⟯ M, SmoothForm.mpullback ψ ψ.contMDiff σ = ω₀ := by
+    ∃ Ψ : Diffeotopy I ∞ M, SmoothForm.mpullback Ψ.final Ψ.final.contMDiff σ = ω₀ := by
   have hE : Module.finrank ℝ E = 2 := by simpa using o.card_eq.symm
   -- The segment from `ω₀` to `σ`.
   set α : unitInterval → SmoothTwoForm I M := fun t ↦ ω₀ + (t : ℝ) • (σ - ω₀) with hα
@@ -105,8 +112,24 @@ theorem exists_diffeomorph_mpullback_eq_of_integralTopForm_eq [PreconnectedSpace
     fun t ↦ by
       rw [hΩα, hΩα, hα]
       simpa using Submodule.smul_mem _ (t : ℝ) hexact
-  refine ⟨Ψ.timeSlice 1, ?_⟩
+  refine ⟨Ψ, ?_⟩
+  rw [Diffeotopy.final_def]
   simpa [hΩα, hα] using hΨ 1
+
+/-- **Moser's theorem for area forms**, as a diffeomorphism. Let `M` be a closed surface, connected
+or empty, with an orientation `o`, and let `ω₀` and `σ` be smooth two-forms on `M`, both positive
+on every positively oriented tangent basis. If `σ` and `ω₀` have the same integral over `M`, then
+there is a diffeomorphism `ψ` of `M` with `ψ^* σ = ω₀`. -/
+theorem exists_diffeomorph_mpullback_eq_of_integralTopForm_eq [PreconnectedSpace M]
+    (o : Manifold.Orientation I M (Fin 2)) {ω₀ σ : SmoothTwoForm I M}
+    (hω : ∀ x (b : Module.Basis (Fin 2) ℝ (TangentSpace I x)),
+      b.orientation = o.orientationAt x → 0 < ω₀.val x b)
+    (hσ : ∀ x (b : Module.Basis (Fin 2) ℝ (TangentSpace I x)),
+      b.orientation = o.orientationAt x → 0 < σ.val x b)
+    (hint : integralTopForm o σ.val = integralTopForm o ω₀.val) :
+    ∃ ψ : M ≃ₘ⟮I, I⟯ M, SmoothForm.mpullback ψ ψ.contMDiff σ = ω₀ :=
+  let ⟨Ψ, hΨ⟩ := exists_diffeotopy_mpullback_eq_of_integralTopForm_eq o hω hσ hint
+  ⟨Ψ.final, hΨ⟩
 
 end TauCeti.SmoothTwoForm
 
