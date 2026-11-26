@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Geometry.Manifold.MFDeriv.SpecificFunctions
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
+import TauCeti.Geometry.Manifold.MFDeriv.Prod
 
 /-!
 # Partial derivatives of a map on a product manifold
@@ -36,6 +37,9 @@ That identification is the identity map, so the same two facts also hold with th
 `M × M'` written directly as a pair (`mfderiv_prodMk_right_apply`, `mfderiv_prodMk_left_apply`).
 These are the forms that `rw` and `simp` can use on the differential of a slice inclusion applied
 to a vector.
+
+A tangent vector of `M × M'` is in the kernel of the differential of the first projection exactly
+when its first component is zero (`mem_ker_mfderiv_fst_iff`).
 -/
 
 public section
@@ -100,5 +104,14 @@ theorem mfderiv_prodMk_left_apply (v : TangentSpace I x) :
     mfderiv I (I.prod I') (fun z ↦ (z, y)) x v = (v, 0) :=
   (TauCeti.Manifold.tangentSpaceProdEquiv_apply _ _).symm.trans
     (TauCeti.Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_left v)
+
+/-- A tangent vector of `M × M'` at `p` lies in the kernel of the differential of the first
+projection exactly when its first component vanishes. -/
+theorem mem_ker_mfderiv_fst_iff {p : M × M'} {v : TangentSpace (I.prod I') p} :
+    v ∈ (mfderiv (I.prod I') I Prod.fst p).ker ↔ v.1 = 0 := by
+  rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe, TauCeti.mfderiv_fst_apply]
+  -- The left side compares `v.1` with the zero of `TangentSpace I p.1`, the right side with the
+  -- zero of `E`; the two spaces agree only by definition.
+  exact Iff.rfl
 
 end
