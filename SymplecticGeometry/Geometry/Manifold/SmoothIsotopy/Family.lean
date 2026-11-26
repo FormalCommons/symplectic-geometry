@@ -18,9 +18,9 @@ import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Real
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Neighborhood
 import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Extension
 import TauCeti.Geometry.Manifold.Flow.TimeDependent
-import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.MFDeriv.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
+import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LeftInverse
 import TauCeti.Geometry.Manifold.SmoothIsotopy.Velocity.Basic
 
@@ -407,8 +407,7 @@ theorem _root_.ContMDiff.exists_contMDiff_isSmoothEmbedding_unitInterval_family_
   refine ⟨fun p ↦ ψ p.1 p.2.1 (e (p.1, p.2.2)),
     hψ.comp (contMDiff_fst.prodMk ((contMDiff_subtypeVal_Icc.comp contMDiff_snd.fst).prodMk
       (he.comp (contMDiff_fst.prodMk contMDiff_snd.snd)))),
-    fun t s ↦ ⟨isImmersion_isLocalDiffeomorphAt_comp (fun x ↦ (ψ t s).isLocalDiffeomorph _)
-      (hemb t).isImmersion, (ψ t s).toHomeomorph.isEmbedding.comp (hemb t).isEmbedding⟩,
+    fun t s ↦ isSmoothEmbedding_diffeomorph_comp (hemb t) (ψ t s),
     fun t x ↦ by simp only [Set.Icc.coe_zero, hψ₀], fun t s ↦ ?_⟩
   have h := hψH t s 0 rfl
   rwa [hH₀] at h
