@@ -5,7 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.AlgebraicTopology.Cohomology.Local.Derivative
+public import SymplecticGeometry.AlgebraicTopology.Cohomology.Local.Restrict
 public import SymplecticGeometry.Topology.Category.TopPair
+public import Mathlib.Topology.Homotopy.LocallyContractible
 public import TauCeti.AlgebraicTopology.Cohomology.HomotopyInvariance
 public import TauCeti.Topology.Category.TopPair.ContinuousLinearEquiv
 public import TauCeti.Topology.Homotopy.Contractible
@@ -28,6 +31,23 @@ inclusion `TauCeti.fiberThomPairMap F E b` of the fibre, so `φ` pulls classes o
 back through the fibre over `b`. Carrying that fibre to the model pair `(F, F ∖ {0})` along `e`
 at `b`, the pullback along `φ` becomes the pullback along the map of pairs `q ↦ (e (φ q)).2`.
 
+The local-degree lemma for maps into the Thom pair combines this with linearization. Let
+`g : Q → E` be defined near `0` in a real normed space `Q`, sending `0` to the zero vector over
+`b` and no other point near `0` into the zero section, and suppose that its coordinate
+`w ↦ (e (g w)).2` has an antilipschitz derivative `A` at `0`. On a small neighbourhood of `0` the
+base points of `g` stay in a contractible neighbourhood of `b` in the base set, so `g` pulls
+classes back through the fibre over `b` and its coordinate in `e`; that coordinate pulls classes
+back as its linearization `A` does
+(`TopPair.singularCohomologyMap_ofSubsetMap_eq_affine_of_hasFDerivAt`); and restricting to the
+small neighbourhood loses nothing, by excision
+(`TopPair.isIso_singularCohomologyMap_ofSubsetMap_inclusion`). The argument follows the
+private `singularCohomologyMap_slice_eq_of_isOpen` and
+`TauCeti.SmoothEmbedding.singularCohomologyMap_slice_eq_of_hasFDerivAt` of
+`SymplecticGeometry/Geometry/Manifold/SmoothEmbedding/NormalSpace/DualClass/Slice.lean`, which do
+the same for maps into a manifold compared with a normal slice of a tube, and through them the
+linearization argument of Tau Ceti's
+`TauCeti.VectorBundleOrientation.sectionIndex_eq_sign_det_of_hasFDerivAt`.
+
 ## Main results
 
 * `Bundle.Trivialization.fiberCoordPairMap`: the fibre coordinate of a map into the Thom pair,
@@ -45,20 +65,26 @@ at `b`, the pullback along `φ` becomes the pullback along the map of pairs `q �
 * `TauCeti.singularCohomologyMap_eq_singularCohomologyMap_complZeroPairIso_inv`: carried to the
   model pair `(F, F ∖ {0})` along `e` at `b`, that pullback is the pullback along the map of pairs
   `q ↦ (e (φ q)).2`.
+* `TauCeti.singularCohomologyMap_ofSubsetMap_eq_complZeroPairIso_inv_of_hasFDerivAt_of_mapsTo`:
+  the local-degree lemma for a map `g : (S, S ∖ {0}) ⟶ (E, E₀)` whose base points lie in a
+  contractible subset of the base set: `g` pulls classes back as the restriction to the fibre over
+  `b`, carried to `(F, F ∖ {0})`, followed by the derivative at `0` of its coordinate in `e`.
+* `TauCeti.singularCohomologyMap_ofSubsetMap_eq_complZeroPairIso_inv_of_hasFDerivAt`: the same
+  over a strongly locally contractible base, with no condition on the base points.
 
 ## References
 
 * J. W. Milnor, J. D. Stasheff, *Characteristic Classes*, Annals of Mathematics Studies 76,
   Princeton (1974), §10 (the Thom pair of a vector bundle and its restriction to the fibres).
-* A. Hatcher, *Algebraic Topology*, Cambridge University Press (2002), §3.1 (homotopy invariance
-  of relative cohomology).
+* A. Hatcher, *Algebraic Topology*, Cambridge University Press (2002), §2.2 (local degree) and
+  §3.1 (homotopy invariance and excision in relative cohomology).
 -/
 
 public section
 
 noncomputable section
 
-open Bundle CategoryTheory Set
+open Bundle CategoryTheory Set Topology
 
 universe w
 
@@ -248,6 +274,150 @@ theorem singularCohomologyMap_eq_singularCohomologyMap_complZeroPairIso_inv
     ← e.fiberCoordPairMap_comp_complZeroPairIso_hom, TopPair.singularCohomologyMap_comp_apply,
     ← TopPair.singularCohomologyMap_comp_apply _ (Iso.inv _), Iso.hom_inv_id,
     TopPair.singularCohomologyMap_id, ConcreteCategory.id_apply]
+
+/-- **The local-degree lemma for maps into a Thom pair, over a contractible trivializing set.**
+Let `e` be a linear trivialization of a real vector bundle `E → B` with model fibre `F`, `U` a
+contractible subset of its base set and `b ∈ U`; write `ℓ : E_b ≃L[ℝ] F` for `e` at `b`. Let `S`
+be a neighbourhood of `0` in a real normed space `Q`, and `g : Q → E` a map continuous on `S`
+with base points in `U`, with `g 0` the zero vector over `b` and `g w` nonzero for every other
+`w ∈ S`, so that `g` is a map of pairs `(S, S ∖ {0}) ⟶ (E, E₀)`. If the fibre coordinate
+`w ↦ (e (g w)).2` has an antilipschitz derivative `A` at `0`, then `g` pulls every class `u` of
+the Thom pair back as the restriction of `u` to the fibre over `b`, carried to `(F, F ∖ {0})`
+along `ℓ`, and pulled back along `A`, as a map of pairs `(S, S ∖ {0}) ⟶ (F, F ∖ {0})`. -/
+theorem singularCohomologyMap_ofSubsetMap_eq_complZeroPairIso_inv_of_hasFDerivAt_of_mapsTo
+    (e : Trivialization F (π F E)) [e.IsLinear ℝ] {U : Set B} [ContractibleSpace U]
+    (hU : U ⊆ e.baseSet) {b : B} (hbU : b ∈ U) {Q : Type w} [NormedAddCommGroup Q]
+    [NormedSpace ℝ Q] {S : Set Q} (hS : S ∈ 𝓝 0) {g : Q → TotalSpace F E}
+    (hgS : ContinuousOn g S) (hgU : MapsTo (fun w ↦ (g w).proj) S U)
+    (hg0 : g 0 = zeroSection F E b) (hgS0 : ∀ w ∈ S, w ≠ 0 → (g w).snd ≠ 0) {A : Q →L[ℝ] F}
+    (hA : HasFDerivAt (fun w ↦ (e (g w)).2) A 0) {K : NNReal} (hAK : AntilipschitzWith K A)
+    {n : ℕ} (u : (thomPair F E).singularCohomology R k M n) :
+    TopPair.singularCohomologyMap
+        (TopPair.ofSubsetMap (X := TopCat.of S) (Y := TopCat.of (TotalSpace F E))
+          (TopCat.ofHom ⟨S.domRestrict g, hgS.domRestrict⟩)
+          (B := {⟨0, mem_of_mem_nhds hS⟩}ᶜ) (B' := zeroSectionCompl F E)
+          fun w hw ↦ mem_zeroSectionCompl.2 (hgS0 w w.property fun h ↦ hw (Subtype.ext h)) :
+          _ ⟶ thomPair F E) n u =
+      TopPair.singularCohomologyMap
+        (TopPair.ofSubsetMap (X := TopCat.of S) (Y := TopCat.of F)
+          (TopCat.ofHom ⟨fun w : S ↦ A w, by fun_prop⟩)
+          (B := {⟨0, mem_of_mem_nhds hS⟩}ᶜ) (B' := {0}ᶜ)
+          fun w hw h ↦ hw (Subtype.ext (hAK.injective (h.trans (map_zero A).symm)))) n
+        (TopPair.singularCohomologyMap
+          (e.continuousLinearEquivAt ℝ b (hU hbU)).complZeroPairIso.inv n
+          (TopPair.singularCohomologyMap (fiberThomPairMap F E b) n u)) := by
+  have hS0 := mem_of_mem_nhds hS
+  have hb := hU hbU
+  -- The base points of `g` lie in `U`, so `g` reads through the fibre over `b`.
+  set ψ : TopPair.ofSubset (X := TopCat.of S) ({⟨0, hS0⟩}ᶜ) ⟶ thomPair F E :=
+    TopPair.ofSubsetMap (X := TopCat.of S) (Y := TopCat.of (TotalSpace F E))
+      (TopCat.ofHom ⟨S.domRestrict g, hgS.domRestrict⟩) (B := {⟨0, hS0⟩}ᶜ)
+      (B' := zeroSectionCompl F E)
+      fun w hw ↦ mem_zeroSectionCompl.2 (hgS0 w w.property fun h ↦ hw (Subtype.ext h))
+  have hψ (w : S) : TopPair.Hom.fst ψ w = g w :=
+    TopPair.ofSubsetMap_fst_apply (X := TopCat.of S) (B := {⟨0, hS0⟩}ᶜ) _ _ w
+  have hψU (w : S) : (TopPair.Hom.fst ψ w).proj ∈ U := hψ w ▸ hgU w.property
+  rw [singularCohomologyMap_eq_singularCohomologyMap_complZeroPairIso_inv e hU hbU ψ hψU]
+  generalize TopPair.singularCohomologyMap (R := R) (k := k) (M := M)
+    (e.continuousLinearEquivAt ℝ b hb).complZeroPairIso.inv n _ = d
+  -- The coordinate of `g` in `e` and its linearization `A` agree on cohomology.
+  set G : Q → F := fun w ↦ (e (g w)).2
+  have hGc : ContinuousOn G S :=
+    (e.continuousOn.comp hgS fun w hw ↦ e.mem_source.2 (hU (hgU hw))).snd
+  have hG0 : G 0 = 0 := by simp [G, hg0, e.zeroSection ℝ hb]
+  have hGx : ∀ w ∈ S, G w = G 0 → w = 0 := fun w hw h ↦ by_contra fun hw0 ↦
+    (e.snd_apply_ne_zero_iff ℝ (hU (hgU hw))).2 (hgS0 w hw hw0) (h.trans hG0)
+  have hcoord : e.coordPairMap ψ (fun q ↦ hU (hψU q)) =
+      TopPair.ofSubsetMap (X := TopCat.of S) (Y := TopCat.of F)
+        (TopCat.ofHom ⟨S.domRestrict G, hGc.domRestrict⟩) (B := {⟨0, hS0⟩}ᶜ) (B' := {0}ᶜ)
+        (fun y hy h ↦ hy (Subtype.ext (hGx y y.property (h.trans hG0.symm)))) := by
+    refine TopPair.hom_ext_of_fst _ (ConcreteCategory.hom_ext _ _ fun w ↦ ?_)
+    rw [Trivialization.coordPairMap_fst_apply]
+    -- The points of the pair are those of `S` only up to unfolding `ofSubset`.
+    erw [TopPair.ofSubsetMap_fst_apply (X := TopCat.of S) (Y := TopCat.of F)]
+    exact congrArg (fun p ↦ (e p).2) (hψ w)
+  -- `G` and its linearization at `0` both factor through `(F, F ∖ {G 0})`.
+  let j := TopPair.ofSubsetMap (X := TopCat.of F) (𝟙 _) (B := {G 0}ᶜ) (B' := {0}ᶜ)
+    (by rw [hG0]; exact mapsTo_id _)
+  have key := congrArg (TopPair.singularCohomologyMap (R := R) (k := k) (M := M) j n ≫ ·)
+    (TopPair.singularCohomologyMap_ofSubsetMap_eq_affine_of_hasFDerivAt R k M hS hGc hA hAK
+      hGx n)
+  simp only [← TopPair.singularCohomologyMap_comp] at key
+  have h1 : TopPair.ofSubsetMap (X := TopCat.of S) (Y := TopCat.of F)
+      (TopCat.ofHom ⟨S.domRestrict G, hGc.domRestrict⟩) (B := {⟨0, hS0⟩}ᶜ) (B' := {G 0}ᶜ)
+      (fun y hy h ↦ hy (Subtype.ext (hGx y y.property h))) ≫ j =
+      TopPair.ofSubsetMap (X := TopCat.of S) (Y := TopCat.of F)
+        (TopCat.ofHom ⟨S.domRestrict G, hGc.domRestrict⟩) (B := {⟨0, hS0⟩}ᶜ) (B' := {0}ᶜ)
+        (fun y hy h ↦ hy (Subtype.ext (hGx y y.property (h.trans hG0.symm)))) :=
+    TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ _ (Category.comp_id _)
+  have h2 : TopPair.ofSubsetMap (X := TopCat.of S) (Y := TopCat.of F)
+      (TopCat.ofHom ⟨fun y : S ↦ G 0 + A (y - 0), by fun_prop⟩) (B := {⟨0, hS0⟩}ᶜ)
+      (B' := {G 0}ᶜ) (fun y hy h ↦ hy (Subtype.ext <| sub_eq_zero.1 <| hAK.injective <|
+        (add_eq_left.1 h).trans (map_zero A).symm)) ≫ j =
+      TopPair.ofSubsetMap (X := TopCat.of S) (Y := TopCat.of F)
+        (TopCat.ofHom ⟨fun w : S ↦ A w, by fun_prop⟩) (B := {⟨0, hS0⟩}ᶜ) (B' := {0}ᶜ)
+        fun w hw h ↦ hw (Subtype.ext (hAK.injective (h.trans (map_zero A).symm))) :=
+    TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ _
+      (ConcreteCategory.hom_ext _ _ fun y ↦ by simp [hG0])
+  rw [h1, h2] at key
+  rw [hcoord, key]
+
+/-- **The local-degree lemma for maps into a Thom pair.** Let `e` be a linear trivialization of a
+real vector bundle `E → B` with model fibre `F`, over a strongly locally contractible base, and
+`b` a point of its base set; write `ℓ : E_b ≃L[ℝ] F` for `e` at `b`. Let `S` be a neighbourhood
+of `0` in a real normed space `Q`, and `g : Q → E` a map continuous on `S` with `g 0` the zero
+vector over `b` and `g w` nonzero for every other `w ∈ S`, so that `g` is a map of pairs
+`(S, S ∖ {0}) ⟶ (E, E₀)`. If the fibre coordinate `w ↦ (e (g w)).2` has an antilipschitz
+derivative `A` at `0`, then `g` pulls every class `u` of the Thom pair back as the restriction of
+`u` to the fibre over `b`, carried to `(F, F ∖ {0})` along `ℓ`, and pulled back along `A`, as a
+map of pairs `(S, S ∖ {0}) ⟶ (F, F ∖ {0})`. -/
+theorem singularCohomologyMap_ofSubsetMap_eq_complZeroPairIso_inv_of_hasFDerivAt
+    [StronglyLocallyContractibleSpace B] (e : Trivialization F (π F E)) [e.IsLinear ℝ] {b : B}
+    (hb : b ∈ e.baseSet) {Q : Type w} [NormedAddCommGroup Q] [NormedSpace ℝ Q] {S : Set Q}
+    (hS : S ∈ 𝓝 0) {g : Q → TotalSpace F E} (hgS : ContinuousOn g S)
+    (hg0 : g 0 = zeroSection F E b) (hgS0 : ∀ w ∈ S, w ≠ 0 → (g w).snd ≠ 0) {A : Q →L[ℝ] F}
+    (hA : HasFDerivAt (fun w ↦ (e (g w)).2) A 0) {K : NNReal} (hAK : AntilipschitzWith K A)
+    {n : ℕ} (u : (thomPair F E).singularCohomology R k M n) :
+    TopPair.singularCohomologyMap
+        (TopPair.ofSubsetMap (X := TopCat.of S) (Y := TopCat.of (TotalSpace F E))
+          (TopCat.ofHom ⟨S.domRestrict g, hgS.domRestrict⟩)
+          (B := {⟨0, mem_of_mem_nhds hS⟩}ᶜ) (B' := zeroSectionCompl F E)
+          fun w hw ↦ mem_zeroSectionCompl.2 (hgS0 w w.property fun h ↦ hw (Subtype.ext h)) :
+          _ ⟶ thomPair F E) n u =
+      TopPair.singularCohomologyMap
+        (TopPair.ofSubsetMap (X := TopCat.of S) (Y := TopCat.of F)
+          (TopCat.ofHom ⟨fun w : S ↦ A w, by fun_prop⟩)
+          (B := {⟨0, mem_of_mem_nhds hS⟩}ᶜ) (B' := {0}ᶜ)
+          fun w hw h ↦ hw (Subtype.ext (hAK.injective (h.trans (map_zero A).symm)))) n
+        (TopPair.singularCohomologyMap (e.continuousLinearEquivAt ℝ b hb).complZeroPairIso.inv n
+          (TopPair.singularCohomologyMap (fiberThomPairMap F E b) n u)) := by
+  have hS0 := mem_of_mem_nhds hS
+  -- A contractible neighbourhood `U` of `b` inside the base set of `e`.
+  obtain ⟨U, ⟨hU, hUc⟩, hUe : U ⊆ e.baseSet⟩ :=
+    (StronglyLocallyContractibleSpace.contractible_basis b).mem_iff.1
+      (e.open_baseSet.mem_nhds hb)
+  -- A small open neighbourhood `O` of `0` inside `S` whose base points lie in `U`.
+  have hT : S ∩ (fun w ↦ (g w).proj) ⁻¹' U ∈ 𝓝 0 := by
+    refine Filter.inter_mem hS (((FiberBundle.continuous_proj F E).continuousAt.comp
+      (hgS.continuousAt hS)).preimage_mem_nhds ?_)
+    simpa [hg0] using hU
+  set O := interior (S ∩ (fun w ↦ (g w).proj) ⁻¹' U)
+  have hO0 : (0 : Q) ∈ O := mem_interior_iff_mem_nhds.2 hT
+  have hOS : O ⊆ S := fun w hw ↦ (interior_subset hw).1
+  -- Restriction from `S` to `O` is injective on cohomology, by excision.
+  have := TopPair.isIso_singularCohomologyMap_ofSubsetMap_inclusion R k M isOpen_interior hOS hO0 n
+  refine (ConcreteCategory.injective_of_mono_of_preservesPullback _ :
+    Function.Injective (ConcreteCategory.hom (TopPair.singularCohomologyMap (R := R) (k := k)
+      (M := M) (TopPair.ofSubsetMap (X := TopCat.of O) (Y := TopCat.of S)
+        (TopCat.ofHom ⟨Set.inclusion hOS, continuous_inclusion hOS⟩)
+        (B := {⟨0, hO0⟩}ᶜ) (B' := {⟨0, hS0⟩}ᶜ)
+        fun _ hw h ↦ hw (Set.inclusion_injective hOS h)) n))) ?_
+  rw [← TopPair.singularCohomologyMap_comp_apply, ← TopPair.singularCohomologyMap_comp_apply]
+  convert singularCohomologyMap_ofSubsetMap_eq_complZeroPairIso_inv_of_hasFDerivAt_of_mapsTo e hUe
+    (mem_of_mem_nhds hU) (isOpen_interior.mem_nhds hO0) (hgS.mono hOS)
+    (fun w hw ↦ (interior_subset hw).2) hg0 (fun w hw ↦ hgS0 w (hOS hw)) hA hAK u using 4
+  · exact TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ _ rfl
+  · exact TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ _ rfl
 
 end
 
