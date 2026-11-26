@@ -154,12 +154,12 @@ theorem isContactFamily_iff : IsContactFamily ξ ↔
     eventually_congr (.of_forall fun q ↦ and_congr_right' ?_)
   rw [SetLike.ext_iff]
   refine forall_congr' fun v ↦ ?_
-  rw [TauCeti.SmoothForm.mem_kerDistribution, TauCeti.SmoothForm.mpullback_apply]
   -- The slice inclusion `Prod.mk t` sends `v` to the vertical vector `(0, v)`.
-  congr! 3
-  ext i : 1
-  fin_cases i
-  exact mfderiv_prodMk_right_apply v
+  rw [TauCeti.SmoothForm.mem_kerDistribution, TauCeti.SmoothForm.mpullback_apply_one,
+    mfderiv_prodMk_right_apply v, Prod.mk.eta]
+  -- The two sides differ only in implicit fibre types and instances, such as those of the trivial
+  -- bundles over `M` at `q.2` and over the cylinder at `q`, which agree by definition.
+  rfl
 
 namespace IsContactFamily
 

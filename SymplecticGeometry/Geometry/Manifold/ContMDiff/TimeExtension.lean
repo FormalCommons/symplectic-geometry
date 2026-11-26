@@ -10,9 +10,6 @@ public import Mathlib.Geometry.Manifold.ContMDiff.NormedSpace
 public import Mathlib.Geometry.Manifold.Instances.Icc
 public import Mathlib.Geometry.Manifold.IsManifold.InteriorBoundary
 public import SymplecticGeometry.Analysis.Calculus.ContDiff.Seeley.Extension
-import TauCeti.Geometry.Manifold.ContMDiffMap.Extension
-import TauCeti.Geometry.Manifold.SmoothEmbedding.Euclidean
-import TauCeti.Geometry.Manifold.TubularNeighborhood.Existence
 
 /-!
 # Time extension of maps
@@ -53,13 +50,6 @@ first interval variable to one smooth on `ℝ × (unitInterval × N)`.
   `projIcc` in the time variable and the inverse chart of `M`, is smooth on `[a, b] × V`.
 * `ContMDiff.contDiffOn_extChartAt_comp_projIcc`: a smooth `f` read in these charts, through
   `projIcc` in the time variable, is smooth on `[a, b] × U`, so that Seeley's extension applies.
-* `ContMDiff.exists_contMDiffOn_extend_of_isCompact`: a smooth map on `unitInterval × P` into a
-  finite-dimensional, Hausdorff boundaryless manifold `N` extends in time to a map smooth on an
-  open set containing `[0, 1] ×ˢ A`, for a compact `A ⊆ P`. A neighbourhood of the compact image
-  of `unitInterval ×ˢ A` embeds into a Euclidean space (Tau Ceti's
-  `IsCompact.exists_opens_nonempty_smoothEmbedding_euclidean`), and the image has a smooth
-  retraction on a neighbourhood (`TauCeti.SmoothEmbedding.exists_contMDiffOn_retraction`); the
-  extension is the retraction applied to `timeExtend` of the composite with the embedding.
 
 ## References
 
@@ -290,60 +280,5 @@ theorem ContMDiff.contDiffOn_extChartAt_comp_projIcc [IsManifold I ∞ M] [IsMan
   exact (hU' hq).2
 
 end Charts
-
-section Manifold
-
-/-! ### Maps into a manifold -/
-
-variable {E H P E' H' N : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
-  {I : ModelWithCorners ℝ E H} [TopologicalSpace P] [ChartedSpace H P] [IsManifold I ∞ P]
-  [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E'] [TopologicalSpace H']
-  {J : ModelWithCorners ℝ E' H'} [J.Boundaryless] [TopologicalSpace N] [ChartedSpace H' N]
-  [IsManifold J ∞ N] [T2Space N]
-
-/-- **Time extension of a map into a manifold, near a compact set.** A smooth map
-`f : unitInterval × P → N` into a finite-dimensional, Hausdorff boundaryless manifold extends in
-time near a compact `A ⊆ P`: there are an open `S ⊇ [0, 1] ×ˢ A` and a map `G : ℝ × P → N`,
-smooth on `S`, with `G (t, x) = f (t, x)` whenever `t ∈ [0, 1]` and `(t, x) ∈ S`. The manifold
-`P` may have boundary. -/
-theorem ContMDiff.exists_contMDiffOn_extend_of_isCompact {f : unitInterval × P → N}
-    (hf : ContMDiff ((𝓡∂ 1).prod I) J ∞ f) {A : Set P} (hA : IsCompact A) :
-    ∃ S : Set (ℝ × P), IsOpen S ∧ Icc 0 1 ×ˢ A ⊆ S ∧ ∃ G : ℝ × P → N,
-      ContMDiffOn (𝓘(ℝ, ℝ).prod I) J ∞ G S ∧
-      ∀ t : unitInterval, ∀ x, ((t : ℝ), x) ∈ S → G (t, x) = f (t, x) := by
-  rcases A.eq_empty_or_nonempty with rfl | ⟨x₀, hx₀⟩
-  · exact ⟨∅, isOpen_empty, by simp, fun p ↦ f (0, p.2), contMDiffOn_empty,
-      fun _ _ h ↦ h.elim⟩
-  -- A neighbourhood `W` of the compact track of `A` embeds into a Euclidean space by `e`, and
-  -- `r` retracts a neighbourhood `O` of the image of `e`.
-  have hT : IsCompact (f '' (univ ×ˢ A)) := (isCompact_univ.prod hA).image hf.continuous
-  obtain ⟨W, hTW, -, n, ⟨e⟩⟩ := hT.exists_opens_nonempty_smoothEmbedding_euclidean (I := J)
-  have : Nonempty W := ⟨⟨f (0, x₀), hTW ⟨(0, x₀), ⟨mem_univ _, hx₀⟩, rfl⟩⟩⟩
-  obtain ⟨O, hO, heO, -, r, hr, hre⟩ := e.exists_contMDiffOn_retraction isOpen_univ (subset_univ _)
-  -- `g` is `e` on `W`, extended by `0`.
-  let g : N → EuclideanSpace ℝ (Fin n) := Function.extend Subtype.val e 0
-  have hgW (y : W) : g y = e y := Subtype.val_injective.extend_apply _ _ y
-  have hg : ContMDiffOn J 𝓘(ℝ, EuclideanSpace ℝ (Fin n)) ∞ g W :=
-    ContMDiffMap.contMDiffOn_extend W ⟨e, e.contMDiff⟩ 0
-  -- The tube lemma gives an open `U ⊇ A` whose track stays in `W`.
-  obtain ⟨u, U, -, hU, hu, hAU, hUW⟩ := generalized_tube_lemma isCompact_univ hA
-    (W.isOpen.preimage hf.continuous) (fun p hp ↦ hTW ⟨p, hp, rfl⟩)
-  have hUW' : univ ×ˢ U ⊆ f ⁻¹' W := (prod_mono hu subset_rfl).trans hUW
-  -- Seeley's extension in time of `g ∘ f`, followed by the retraction.
-  let k : ℝ × P → EuclideanSpace ℝ (Fin n) := SymplecticGeometry.timeExtend fun p ↦ g (f p)
-  have hk : ContMDiffOn (𝓘(ℝ, ℝ).prod I) 𝓘(ℝ, EuclideanSpace ℝ (Fin n)) ∞ k (univ ×ˢ U) :=
-    (hg.comp hf.contMDiffOn hUW').timeExtend hU
-  have hkf (t : unitInterval) (x : P) (hx : x ∈ U) :
-      k (t, x) = e ⟨f (t, x), hUW' ⟨trivial, hx⟩⟩ :=
-    (SymplecticGeometry.timeExtend_apply_coe _ t x).trans (hgW ⟨_, hUW' ⟨trivial, hx⟩⟩)
-  refine ⟨univ ×ˢ U ∩ k ⁻¹' O, hk.continuousOn.isOpen_inter_preimage (isOpen_univ.prod hU) hO,
-    fun p hp ↦ ⟨⟨trivial, hAU hp.2⟩, ?_⟩, fun p ↦ r (k p),
-    contMDiff_subtypeVal.comp_contMDiffOn (hr.comp (hk.mono inter_subset_left) fun _ hp ↦ hp.2),
-    fun t x hx ↦ by simp only [hkf t x hx.1.2, hre]⟩
-  obtain ⟨t, x⟩ := p
-  rw [mem_preimage, ← Subtype.coe_mk t hp.1, hkf ⟨t, hp.1⟩ x (hAU hp.2)]
-  exact heO (mem_range_self _)
-
-end Manifold
 
 end

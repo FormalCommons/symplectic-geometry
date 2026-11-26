@@ -44,10 +44,11 @@ files are under `SymplecticGeometry/`.
   the book's $\omega_0$ is `ω₀E := (TauCeti.stdComplexPiSymplecticForm
   (Fin (n + 1))).constSmooth`, which `stdForm_complexToRealEuclidean`
   identifies with *Standard model*'s `stdForm` read through
-  `complexToRealEuclidean`; a small lemma of `Model.lean` states this for
-  the constant forms, so that ball embeddings (on `StdSpace`) and the model
-  (on `E`) meet. The Fubini–Study form is the library's `fubiniStudyForm n`
-  on `ℙ ℂ E`, in which a line has area $\pi$
+  `complexToRealEuclidean`; `constSmooth_stdComplexPiSymplecticForm_eq`
+  of `Complex/Radial.lean` states this for the constant forms, so that
+  ball embeddings (on `StdSpace`) and the model (on `E`) meet. The
+  Fubini–Study form is the library's `fubiniStudyForm n` on `ℙ ℂ E`, in
+  which a line has area $\pi$
   (`integralTopForm_mpullback_map_fubiniStudyForm`, for every line). The
   note of the review of #3195 asked for a restriction lemma for that area:
   this theorem is it, and it is merged.
@@ -232,6 +233,9 @@ potential forms, up to `radialPotentialForm_id`, are stated on `ι → ℂ` for
   with $s=|z|^2$, which the computations below read. `radialPotentialForm_id` ($g(s)=s$
   gives $\omega_0$) and `radialPotentialForm_log` ($g=\log$ gives
   `fubiniStudyLift`, by `fubiniStudyPrimitive_eq`).
+- `constSmooth_stdComplexPiSymplecticForm_eq`: the constant form
+  `(stdComplexPiSymplecticForm ι).constSmooth` is the pull-back of
+  `(stdForm ι).constSmooth` along `complexToRealEuclidean ι`.
 - `isKahler_radialPotentialForm`: if $g'>0$ and $(sg')'>0$ on `Ioi 0`, the
   form is Kähler for the complex structure of the open subset, by the Levi
   form above.
@@ -250,9 +254,7 @@ potential forms, up to `radialPotentialForm_id`, are stated on `ι → ℂ` for
 
 Namespace `SymplecticGeometry.BlowupModel`, on `BlowupModel n`.
 
-- `ω₀E` as in *Setting*, with `constSmooth_stdComplexPiSymplecticForm_eq`:
-  its pull-back along `complexToRealEuclidean` is `stdForm` as a constant
-  form.
+- `ω₀E` as in *Setting*.
 - `closedNbhd n ε`, `openNbhd n ε` as in *Setting*, with
   `isCompact_closedNbhd`, `isOpen_openNbhd`, and
   `exceptionalDivisor_subset_openNbhd`, `exceptionalDivisor_subset_closedNbhd`
