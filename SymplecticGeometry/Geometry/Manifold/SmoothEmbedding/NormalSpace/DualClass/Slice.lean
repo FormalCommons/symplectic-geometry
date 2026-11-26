@@ -33,11 +33,9 @@ In degree `r`, a class of the Thom pair of `ν` is determined by its restriction
 excision onto `W` is one in cohomology, a class `c ∈ Hʳ(X, X ∖ f(Z))` restricts on `(W, W ∖ f(Z))`
 to the image of `u ∈ Hʳ(ν, ν ∖ 0)` under the tube exactly when, at every point `x`, its pull-back
 along the normal slice at `x` is the restriction of `u` to the fibre over `x`
-(`singularCohomologyMap_excisionMap_eq_iff_forall_normalSlice`). For the normalized tube through
-which `relDualClassOf` is defined, this says that `c = relDualClassOf f hn hdim hf u` exactly when
-the slices of `c` are the fibre restrictions of `u` (`eq_relDualClassOf_iff_forall_slice`). No
-condition on `u`, such as being a Thom class, is needed; the degree must be the rank `r`, the
-degree in which Tau Ceti's uniqueness by fibre restrictions holds.
+(`singularCohomologyMap_excisionMap_eq_iff_forall_normalSlice`). No condition on `u`, such as
+being a Thom class, is needed; the degree must be the rank `r`, the degree in which Tau
+Ceti's uniqueness by fibre restrictions holds.
 
 The local-degree lemma (`singularCohomologyMap_slice_eq_of_hasFDerivAt`) compares the normal
 slice of a normalized tube `Φ` at `x` with any map `g` from a neighbourhood `B` of `0` in `P`
@@ -63,7 +61,9 @@ derivative that the local-degree lemma asks for, so the lemma applied to `Φ` an
 that their normal slices at `x` pull classes back alike
 (`singularCohomologyMap_normalSlice_eq_of_isNormalizedTube`). By the slice criterion, every
 normalized tube then carries `relDualClassOf f hn hdim hf u` for `u` of degree `r`
-(`singularCohomologyMap_excisionMap_relDualClassOf`, `relDualClassOf_eq_of_isNormalizedTube`).
+(`singularCohomologyMap_excisionMap_relDualClassOf`, `relDualClassOf_eq_of_isNormalizedTube`), so
+that `c = relDualClassOf f hn hdim hf u` exactly when the slices of `c` along any normalized tube
+are the fibre restrictions of `u` (`eq_relDualClassOf_iff_forall_slice`).
 
 For a diffeomorphism `φ : X' ≃ X` and the embedding `f' = φ⁻¹ ∘ f`
 (`f.transDiffeomorph φ.symm`), the derivative of `φ` carries the normal spaces of `f'` onto
@@ -87,8 +87,6 @@ fibre over `x` is the isomorphism of fibre pairs of the equivalence at `x`
 * `TauCeti.SmoothEmbedding.singularCohomologyMap_excisionMap_eq_iff_forall_normalSlice`: for any
   tube, a class of degree `r` restricts to the image of `u` exactly when its slices are the fibre
   restrictions of `u`.
-* `TauCeti.SmoothEmbedding.eq_relDualClassOf_iff_forall_slice`: the same characterization of
-  `relDualClassOf f hn hdim hf u`, through the normalized tube that defines it.
 * `TauCeti.SmoothEmbedding.singularCohomologyMap_slice_eq_of_hasFDerivAt`: the local-degree
   lemma: a map with the derivative of a normal slice at `0` pulls classes back as the slice does.
 * `TauCeti.SmoothEmbedding.singularCohomologyMap_normalSlice_eq_of_isNormalizedTube`: the normal
@@ -97,6 +95,9 @@ fibre over `x` is the isomorphism of fibre pairs of the equivalence at `x`
   `TauCeti.SmoothEmbedding.singularCohomologyMap_excisionMap_relDualClassOf`: independence of the
   tube: for `u` of degree `r`, with coefficients `R, M : ModuleCat k` and `R` projective over `k`,
   every normalized tube carries `relDualClassOf f hn hdim hf u`.
+* `TauCeti.SmoothEmbedding.eq_relDualClassOf_iff_forall_slice`: for `u` of degree `r`, a class
+  is `relDualClassOf f hn hdim hf u` exactly when its slices along a normalized tube are the
+  fibre restrictions of `u`.
 * `TauCeti.SmoothEmbedding.fiberThomPairMap_comp_transDiffeomorphThomPairMap`: on the fibre over
   `x`, the map of Thom pairs under a diffeomorphism is the fibre-pair isomorphism of the
   derivative.
@@ -219,37 +220,6 @@ theorem singularCohomologyMap_excisionMap_eq_iff_forall_normalSlice
   refine ⟨fun h x ↦ by rw [h, hu], fun h ↦ ?_⟩
   rw [← singularCohomology_thomPair_ext h, hc]
 
-variable [I.Boundaryless] [J.Boundaryless] [T2Space X] [SecondCountableTopology X]
-
-/-- **The relative class of a submanifold is determined by its normal slices.** There is a
-normalized tube `Φ`, the one through which `relDualClassOf` is defined, such that for every class
-`u` of the Thom pair of the normal bundle in the degree `r = finrank ℝ P` of its rank, a class
-`c ∈ Hʳ(X, X ∖ f(Z))` is `relDualClassOf f hn hdim hf u` exactly when, at every `x : Z`, its
-pull-back along the normal slice of `Φ` at `x` is the restriction of `u` to the fibre over `x`. -/
-theorem eq_relDualClassOf_iff_forall_slice (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
-    (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f)) :
-    letI := f.normalSpaceFiberBundle hn hdim
-    ∃ (W : TopologicalSpace.Opens X)
-      (Φ : TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
-      (hΦ : f.IsNormalizedTube hn hdim Φ), ∀
-        (u : (thomPair P (fun x ↦ f.NormalSpace x hn)).singularCohomology R k M (finrank ℝ P))
-        (c : (TopPair.ofSubset (X := TopCat.of X) (range f)ᶜ).singularCohomology R k M
-          (finrank ℝ P)),
-        c = f.relDualClassOf hn hdim hf u ↔
-          ∀ x, TopPair.singularCohomologyMap (f.normalSlice hn hdim Φ hΦ.apply_zeroSection x) _ c =
-            TopPair.singularCohomologyMap (fiberThomPairMap P (fun x ↦ f.NormalSpace x hn) x) _
-              u := by
-  let := f.normalSpaceFiberBundle hn hdim
-  obtain ⟨W, Φ, hΦ, h⟩ :=
-    exists_isNormalizedTube_singularCohomologyMap_excisionMap_relDualClassOf (R := R) (k := k)
-      (M := M) f hn hdim hf
-  refine ⟨W, Φ, hΦ, fun u c ↦ ?_⟩
-  have := TopPair.isIso_singularCohomologyMap_excisionMap_of_isClosed_subset R k M
-    (X := TopCat.of X) W.isOpen hf
-    (range_subset_of_apply_zeroSection f hn hdim Φ hΦ.apply_zeroSection) (finrank ℝ P)
-  rw [← singularCohomologyMap_excisionMap_eq_iff_forall_normalSlice, ← h,
-    (ConcreteCategory.injective_of_mono_of_preservesPullback _).eq_iff]
-
 end Slice
 
 section LocalDegree
@@ -310,9 +280,9 @@ private theorem singularCohomologyMap_slice_eq_of_isOpen {f : SmoothEmbedding I 
       by_contra h
       rw [← mem_compl_iff, ← zeroSectionCompl_eq_compl_range, mem_zeroSectionCompl] at h
       exact h hs
-    obtain ⟨z, hz⟩ := hr
-    refine hw0 (hgf w hw ⟨z, ?_⟩)
-    rw [← hΦΨ (hOW w hw), ← hz, hΦ.apply_zeroSection]
+    refine hw0 (hgf w hw ?_)
+    rw [← hΦΨ (hOW w hw)]
+    exact (apply_mem_range_iff_of_apply_zeroSection f hn hdim Φ hΦ.apply_zeroSection _).2 hr
   -- On `O`, the map `g` factors through the inverse of the tube.
   let ψ : TopPair.ofSubset (X := TopCat.of O) ({⟨0, hO0⟩}ᶜ) ⟶
       thomPair P (fun x ↦ f.NormalSpace x hn) :=
@@ -501,7 +471,8 @@ theorem singularCohomologyMap_normalSlice_eq_of_isNormalizedTube {f : SmoothEmbe
     have hs : h w ∈ zeroSectionCompl P (fun x ↦ f.NormalSpace x hn) :=
       mem_zeroSectionCompl.2 (ℓ.symm.map_ne_zero_iff.2 hw)
     rw [zeroSectionCompl_eq_compl_range] at hs
-    exact hs ⟨z, Φ'.injective (Subtype.ext ((hΦ'.apply_zeroSection z).trans hz))⟩
+    exact hs ((apply_mem_range_iff_of_apply_zeroSection f hn hdim Φ' hΦ'.apply_zeroSection _).1
+      ⟨z, hz⟩)
   -- `h` has derivative `w ↦ (0, w)` at `0`.
   let L : P →L[ℝ] TangentSpace (I.prod 𝓘(ℝ, P)) (zeroSection P (fun x ↦ f.NormalSpace x hn) x) :=
     ContinuousLinearMap.inr ℝ E P
@@ -570,12 +541,14 @@ theorem singularCohomologyMap_excisionMap_relDualClassOf (f : SmoothEmbedding I 
     TopPair.singularCohomologyMap (TopPair.excisionMap (X := TopCat.of X) (W : Set X) (range f)ᶜ)
         _ (f.relDualClassOf hn hdim hf u) =
       TopPair.singularCohomologyMap (f.tubePairIso hn hdim Φ hΦ.apply_zeroSection).inv _ u := by
-  obtain ⟨W₀, Φ₀, hΦ₀, h⟩ := eq_relDualClassOf_iff_forall_slice (R := R) (k := k) (M := M) f hn
-    hdim hf
+  obtain ⟨W₀, Φ₀, hΦ₀, h⟩ :=
+    exists_isNormalizedTube_singularCohomologyMap_excisionMap_relDualClassOf (R := R) (k := k)
+      (M := M) f hn hdim hf
   rw [singularCohomologyMap_excisionMap_eq_iff_forall_normalSlice]
   intro x
   rw [singularCohomologyMap_normalSlice_eq_of_isNormalizedTube hΦ₀ hΦ]
-  exact (h u _).1 rfl x
+  exact (singularCohomologyMap_excisionMap_eq_iff_forall_normalSlice f hn hdim Φ₀ _ u _).1
+    (h _ u) x
 
 /-- **The dual class does not depend on the tube.** Let `Φ` be any normalized tube of `f` onto an
 open set `W`, and `u` a class of the Thom pair of the normal bundle in the degree
@@ -603,6 +576,31 @@ theorem relDualClassOf_eq_of_isNormalizedTube (f : SmoothEmbedding I J ∞ Z X)
   refine ConcreteCategory.injective_of_mono_of_preservesPullback (TopPair.singularCohomologyMap
     (TopPair.excisionMap (X := TopCat.of X) (W : Set X) (range f)ᶜ) _) ?_
   rw [singularCohomologyMap_excisionMap_relDualClassOf f hn hdim hf hΦ, hc]
+
+/-- **The relative class of a submanifold is determined by its normal slices.** Let `Φ` be any
+normalized tube of `f` onto an open set `W`, and `u` a class of the Thom pair of the normal bundle
+in the degree `r = finrank ℝ P` of its rank, with coefficients `R, M : ModuleCat k` and `R`
+projective over `k`. A class `c ∈ Hʳ(X, X ∖ f(Z))` is `relDualClassOf f hn hdim hf u` exactly
+when, at every `x : Z`, its pull-back along the normal slice of `Φ` at `x` is the restriction of
+`u` to the fibre over `x`. -/
+theorem eq_relDualClassOf_iff_forall_slice (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
+    (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f))
+    {W : TopologicalSpace.Opens X}
+    {Φ : letI := f.normalSpaceFiberBundle hn hdim
+      TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W}
+    (hΦ : f.IsNormalizedTube hn hdim Φ)
+    (u : letI := f.normalSpaceFiberBundle hn hdim
+      (thomPair P (fun x ↦ f.NormalSpace x hn)).singularCohomology R k M (finrank ℝ P))
+    (c : (TopPair.ofSubset (X := TopCat.of X) (range f)ᶜ).singularCohomology R k M
+      (finrank ℝ P)) :
+    letI := f.normalSpaceFiberBundle hn hdim
+    c = f.relDualClassOf hn hdim hf u ↔
+      ∀ x, TopPair.singularCohomologyMap (f.normalSlice hn hdim Φ hΦ.apply_zeroSection x) _ c =
+        TopPair.singularCohomologyMap (fiberThomPairMap P (fun x ↦ f.NormalSpace x hn) x) _ u := by
+  rw [← singularCohomologyMap_excisionMap_eq_iff_forall_normalSlice]
+  refine ⟨?_, fun h ↦ (relDualClassOf_eq_of_isNormalizedTube f hn hdim hf hΦ h).symm⟩
+  rintro rfl
+  exact singularCohomologyMap_excisionMap_relDualClassOf f hn hdim hf hΦ u
 
 end Independence
 

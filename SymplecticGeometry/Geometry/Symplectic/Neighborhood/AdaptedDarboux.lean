@@ -187,9 +187,8 @@ private theorem exists_localDiffeomorph_mpullback_eq (hσ : σ.IsNondegenerate) 
   -- `H = G ∘ Φ` is a local diffeomorphism at `0` which pulls `σ` back to `σ₀`.
   refine ⟨G ∘ Φ, (PartialDiffeomorph.isLocalDiffeomorphAt _ _ _ Φ h0Φ).comp (K := I) (P := M)
     (by rw [hΦ0]; exact hG), ?_, ?_⟩
-  · have hO : Φ.source ∩ Φ ⁻¹' W ∈ 𝓝 0 :=
-      (Φ.contMDiffOn.continuousOn.isOpen_inter_preimage Φ.open_source hWo).mem_nhds
-        ⟨h0Φ, by rwa [mem_preimage, hΦ0]⟩
+  · have hWΦ : IsOpen (Φ.source ∩ Φ ⁻¹' W) := Φ.toOpenPartialHomeomorph.isOpen_inter_preimage hWo
+    have hO : Φ.source ∩ Φ ⁻¹' W ∈ 𝓝 0 := hWΦ.mem_nhds ⟨h0Φ, by rwa [mem_preimage, hΦ0]⟩
     filter_upwards [hO] with v ⟨hv, hvW⟩
     rw [mpullback_comp_at (Φ.mdifferentiableAt (by simp) hv)
       ((hGW _ hvW).mdifferentiableAt (by simp)), ← hσ₁_def]
@@ -214,8 +213,8 @@ private theorem exists_partialDiffeomorph_apply_eq_of_mpullback_eq {H : StdSpace
       ∀ᶠ s in 𝓝 0, u s ∈ e₀.source ∧ e₀ (u s) = ι s := by
   set Λ := hH.localInverse
   obtain ⟨O, hOsub, hOo, h0O⟩ := mem_nhds_iff.1 hHpb
-  refine ⟨Λ.restrOpen _ (Λ.contMDiffOn.continuousOn.isOpen_inter_preimage Λ.open_source hOo),
-    fun x hx v w ↦ ?_, ?_⟩
+  have hOΛ : IsOpen (Λ.source ∩ Λ ⁻¹' O) := Λ.toOpenPartialHomeomorph.isOpen_inter_preimage hOo
+  refine ⟨Λ.restrOpen _ hOΛ, fun x hx v w ↦ ?_, ?_⟩
   · -- `Λ` pulls `stdForm` back to `σ` at `x`, since `H^* σ = stdForm` at `Λ x`.
     rw [PartialDiffeomorph.restrOpen_source] at hx
     obtain ⟨hxΛ, -, hxO⟩ := hx
