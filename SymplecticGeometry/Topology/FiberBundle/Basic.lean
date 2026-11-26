@@ -84,6 +84,23 @@ lemma proj_fiberInclusionMap (e : Trivialization F proj) {b : B} (hb : b ∈ e.b
     proj (e.fiberInclusionMap hb f) = b :=
   ((e.preimageSingletonHomeomorph hb).symm f).property
 
+/-- The inclusion of the fibre over `b` is the inverse of `e` on `{b} × F`. -/
+lemma coe_fiberInclusionMap (e : Trivialization F proj) {b : B} (hb : b ∈ e.baseSet) :
+    ⇑(e.fiberInclusionMap hb) = fun f ↦ e.toOpenPartialHomeomorph.symm (b, f) :=
+  funext (e.fiberInclusionMap_apply hb)
+
+/-- The inclusion of the fibre over a point of the base set lands in the source of `e`. -/
+lemma fiberInclusionMap_mem_source (e : Trivialization F proj) {b : B} (hb : b ∈ e.baseSet)
+    (f : F) : e.fiberInclusionMap hb f ∈ e.source :=
+  e.mem_source.2 ((e.proj_fiberInclusionMap hb f).symm ▸ hb)
+
+/-- `e` sends the image of `f` under the fibre inclusion over `b` to `(b, f)`. -/
+@[simp]
+lemma apply_fiberInclusionMap (e : Trivialization F proj) {b : B} (hb : b ∈ e.baseSet) (f : F) :
+    e (e.fiberInclusionMap hb f) = (b, f) := by
+  rw [fiberInclusionMap_apply]
+  exact e.apply_symm_apply' hb
+
 /-- The inclusions of a fibre read through two trivializations differ by the coordinate
 change. -/
 lemma fiberInclusionMap_coordChange (e₁ e₂ : Trivialization F proj) {b : B} (h₁ : b ∈ e₁.baseSet)
