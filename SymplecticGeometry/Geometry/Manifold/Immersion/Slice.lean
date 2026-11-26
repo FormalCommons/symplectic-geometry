@@ -25,7 +25,10 @@ If `f` is moreover a topological embedding and `M` is boundaryless, then on a ne
 of `f x` a point lies in the image of `f` exactly when its normal coordinate vanishes. Tau Ceti's
 `TauCeti.exists_contMDiffOn_isSliceChart_of_isEmbedding_of_isImmersionAtOfComplement` gives a
 `C^n` slice chart but does not say which one; here the coordinates are those of the normal-form
-chart `ψ` itself, which the statements below on the squared normal coordinate need.
+chart `ψ` itself. The pointwise statements below on the squared normal coordinate hold for any
+immersion, but `Manifold.IsImmersionAtOfComplement.mem_range_iff_norm_sq_snd_eq_zero` and
+`Manifold.IsSmoothEmbedding.exists_contMDiffOn_criticalHessian_pos` need the image of `f` to be
+cut out in the coordinates of `ψ`.
 
 For a linear isomorphism `e : F ≃L[ℝ] W` onto a real inner product space, the squared normal
 coordinate `g p = ‖e (L⁻¹ (ψ p)).2‖²` is `C^n` on the source of `ψ`, vanishes exactly where the
@@ -39,8 +42,10 @@ neighbourhood carrying such a function
 (`Manifold.IsSmoothEmbedding.exists_contMDiffOn_criticalHessian_pos`).
 
 The set-level statement follows the proof of Tau Ceti's
-`TauCeti.exists_isSliceChart_of_isEmbedding_of_isImmersionAtOfComplement`, keeping the chart of
-the maximal atlas. The statements on `g` follow `TauCeti.IsAdaptedChart.norm_sq_snd_eq_zero_iff`,
+`TauCeti.exists_contMDiffOn_isSliceChart_of_isEmbedding_of_isImmersionAtOfComplement`, but
+concludes in the coordinates `h.equiv.symm (h.codChart.extend J p)` of `ψ`, with
+`V ⊆ h.codChart.source` and `f ⁻¹' V ⊆ h.domChart.source`. The statements on `g` follow
+`TauCeti.IsAdaptedChart.norm_sq_snd_eq_zero_iff`,
 `TauCeti.IsAdaptedChart.mem_criticalPoints_norm_sq_snd`,
 `TauCeti.IsAdaptedChart.criticalHessian_norm_sq_snd_apply` and
 `TauCeti.IsAdaptedChart.criticalHessian_norm_sq_snd_pos` of this library's
