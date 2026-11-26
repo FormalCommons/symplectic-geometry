@@ -27,6 +27,7 @@ import SymplecticGeometry.Geometry.Symplectic.Manifold.Rescale
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 import SymplecticGeometry.MeasureTheory.Integral.IntervalIntegral.Primitive
+import TauCeti.Analysis.Normed.Group.Basic
 
 /-!
 # Radial potential forms on `ℂⁿ ∖ 0`
@@ -210,10 +211,7 @@ theorem isManifoldStrictlyPlurisubharmonicAt_radialPotential {g : ℝ → ℝ}
   set s := ∑ i, ‖(z : ι → ℂ) i‖ ^ 2
   have hs : 0 < s := by
     simpa only [s, norm_sq_complexToRealEuclidean] using norm_sq_complexToRealEuclidean_pos z
-  have hA : 0 < ∑ i, ‖v i‖ ^ 2 := by
-    obtain ⟨i, hi⟩ := Function.ne_iff.1 hv
-    exact Finset.sum_pos' (fun j _ ↦ by positivity)
-      ⟨i, Finset.mem_univ _, pow_pos (norm_pos_iff.2 hi) 2⟩
+  have hA : 0 < ∑ i, ‖v i‖ ^ 2 := sum_norm_sq_pos hv
   -- Cauchy–Schwarz: `|star z ⬝ᵥ v|² ≤ |z|² |v|²`.
   have hCS : Complex.normSq (star (z : ι → ℂ) ⬝ᵥ v) ≤ s * ∑ i, ‖v i‖ ^ 2 := by
     rw [← Complex.sq_norm]

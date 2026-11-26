@@ -5,8 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.Relative.Pairing
 public import SymplecticGeometry.AlgebraicTopology.Singular.AlexanderWhitney.RelativeCup
+public import TauCeti.Algebra.Homology.Monoidal.Cap.Kronecker
 public import TauCeti.AlgebraicTopology.Cohomology.Cap.Relative
+public import TauCeti.AlgebraicTopology.Cohomology.Cup.Relative
+public import TauCeti.AlgebraicTopology.Cohomology.Kronecker
 public import TauCeti.AlgebraicTopology.SimplicialSet.Homology.Relative.Pairing
 
 /-!
@@ -46,6 +50,15 @@ descent of the Alexander–Whitney diagonal. Here the descent is along the chain
 * `TopCat.singularCap_comp_singularHomologyπ_eq_singularRelativeCap`: compatibility with Tau Ceti's
   relative cap product `TopPair.singularCap : Hᵖ(X, U) ⊗ Hₙ(X, U) ⟶ H_q(X)`,
   `j_*(y ⌢ a) = j_*y ⌢ a`.
+* `TopCat.singularRelativeCap_comp_singularKronecker`: the Kronecker pairing of the cap product,
+  `⟨c, y ⌢ a⟩ = ⟨a ⌣ c, y⟩` for a class `a` with values in the tensor unit, with Tau Ceti's
+  relative cup product `TopCat.singularRelativeCup`.
+
+The proof of the Kronecker pairing adapts that of Tau Ceti's
+`TopPair.singularCap_comp_singularKronecker` (`Cohomology/Cap/Kronecker.lean`): after cancelling
+the small-chain isomorphism, it is `TauCeti.ChainComplex.cap_comp_kronecker` on the chains
+`C(X; U + V)`, with the relative form `SSetPair.chainComplexPairing_leftUnitor_hom_f` of the action
+of the tensor unit on the chains of `(X, V)`.
 
 ## References
 
@@ -193,5 +206,39 @@ theorem singularCap_comp_singularHomologyπ_eq_singularRelativeCap (u : T ⟶ R 
   -- `TopPair.singularCap` and `TopPair.singularHomologyπ` are, by definition, the cap product
   -- and the map on homology that `this` states its identity with.
   exact this
+
+section Kronecker
+
+variable {C : Type u} [Category.{v} C] [Abelian C] [HasCoproducts.{w} C] [MonoidalCategory C]
+  [MonoidalPreadditive C] {R S T N : C}
+  [∀ J : Type w, PreservesColimitsOfShape (Discrete J) (tensorLeft (𝟙_ C))]
+  (k : Type*) [CommRing k] [Linear k C] [MonoidalLinear k C] {X : TopCat.{w}}
+
+/-- **The Kronecker pairing of the cap product of an excisive couple**, `⟨c, y ⌢ a⟩ = ⟨a ⌣ c, y⟩`:
+for subsets `U` and `V` of `X`, open in `U ∪ V`, a class `a ∈ Hᵖ(X, U; R, 𝟙)` with values in the
+tensor unit and a class `c ∈ H^q(X, V; S, N)`, capping a class `y ∈ Hₙ(X, U ∪ V; T)`, `n = p + q`,
+with `a` along `u` and the left unitor of `S`, and then evaluating `c`, is evaluating on `y` the
+relative cup product `a ⌣ c ∈ Hⁿ(X, U ∪ V; T, N)` along `u` and the left unitor of `N`. -/
+theorem singularRelativeCap_comp_singularKronecker (u : T ⟶ R ⊗ S) (U V : Set X)
+    (hU : IsOpen ((↑) ⁻¹' U : Set ↥(U ∪ V))) (hV : IsOpen ((↑) ⁻¹' V : Set ↥(U ∪ V)))
+    (p q n : ℕ) (h : p + q = n) (a : (TopPair.ofSubset U).singularCohomology R k (𝟙_ C) p)
+    (c : (TopPair.ofSubset V).singularCohomology S k N q) :
+    singularRelativeCap k u (λ_ S).hom U V hU hV p q n h a ≫
+        (TopPair.ofSubset V).singularKronecker k q c =
+      (TopPair.ofSubset (U ∪ V)).singularKronecker k n
+        (singularRelativeCup k u (λ_ N).hom U V hU hV p q n h a c) := by
+  have := isIso_homologyMap_smallSingularSubcomplexPairToUnion U V T hU hV n
+  rw [← cancel_epi (SSetPair.homologyMap (smallSingularSubcomplexPairToUnion U V) T n),
+    homologyMap_smallSingularSubcomplexPairToUnion_singularRelativeCap_assoc]
+  obtain ⟨φ, rfl⟩ := HomologicalComplex.moduleCat_homologyπ_surjective _ p a
+  obtain ⟨ψ, rfl⟩ := HomologicalComplex.moduleCat_homologyπ_surjective _ q c
+  rw [TopPair.singularKronecker_def, TopPair.singularKronecker_def, SSetPair.homologyMap,
+    ← TauCeti.ChainComplex.kronecker_naturality, ← SSetPair.cochainComplexMap,
+    homologyMap_cochainComplexMap_singularRelativeCup]
+  refine TauCeti.ChainComplex.cap_comp_kronecker _ _ _ p q n h φ ψ ψ ?_
+  rw [SSetPair.chainComplexPairing_leftUnitor_hom_f]
+  exact (leftUnitor_naturality _).symm
+
+end Kronecker
 
 end TopCat
