@@ -38,9 +38,9 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
 projection of `v` onto `W` along the tangent image. -/
 theorem complementRepresentative_normalClass (f : SmoothEmbedding I J n M N) (x : M)
     (hn : n ≠ 0) {W : Submodule 𝕜 (TangentSpace J (f x))}
-    (hW : (f.tangentRange x hn).IsTopCompl W) (v : TangentSpace J (f x)) :
-    f.complementRepresentative x hn hW (f.normalClass x hn v) =
-      W.projection (f.tangentRange x hn) hW.isCompl.symm v := by
+    (hW : (f.isImmersion.tangentRange x hn).IsTopCompl W) (v : TangentSpace J (f x)) :
+    f.complementRepresentative x hn hW (f.isImmersion.normalClass x hn v) =
+      W.projection (f.isImmersion.tangentRange x hn) hW.isCompl.symm v := by
   rw [complementRepresentative_eq_iff]
   refine ⟨Submodule.projection_apply_mem _ _, ?_⟩
   rw [normalClass_eq_iff, Submodule.projection_eq_self_sub_projection hW.isCompl,

@@ -154,13 +154,13 @@ isomorphism of the tube and the inclusion `(W, W ∖ f(Z)) ⟶ (X, X ∖ f(Z))`.
 def normalSlice (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) {W : TopologicalSpace.Opens X}
     (Φ : letI := f.normalSpaceFiberBundle hn hdim
-      TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
+      TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
     (hΦ : letI := f.normalSpaceFiberBundle hn hdim
       ∀ x, (Φ (zeroSection P _ x) : X) = f x) (x : Z) :
-    TopPair.ofSubset (X := TopCat.of (f.NormalSpace x hn)) ({0}ᶜ : Set (f.NormalSpace x hn)) ⟶
+    TopPair.ofSubset (X := TopCat.of (f.isImmersion.NormalSpace x hn)) ({0}ᶜ : Set (f.isImmersion.NormalSpace x hn)) ⟶
       TopPair.ofSubset (X := TopCat.of X) (range f)ᶜ :=
   letI := f.normalSpaceFiberBundle hn hdim
-  fiberThomPairMap P (fun x ↦ f.NormalSpace x hn) x ≫ (f.tubePairIso hn hdim Φ hΦ).hom ≫
+  fiberThomPairMap P (fun x ↦ f.isImmersion.NormalSpace x hn) x ≫ (f.tubePairIso hn hdim Φ hΦ).hom ≫
     TopPair.excisionMap (X := TopCat.of X) (W : Set X) (range f)ᶜ
 
 /-- The normal slice of a tube factors through the fibre inclusion, the pair isomorphism of the
@@ -168,12 +168,12 @@ tube and excision. -/
 theorem normalSlice_def (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) {W : TopologicalSpace.Opens X}
     (Φ : letI := f.normalSpaceFiberBundle hn hdim
-      TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
+      TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
     (hΦ : letI := f.normalSpaceFiberBundle hn hdim
       ∀ x, (Φ (zeroSection P _ x) : X) = f x) (x : Z) :
     letI := f.normalSpaceFiberBundle hn hdim
     f.normalSlice hn hdim Φ hΦ x =
-      fiberThomPairMap P (fun x ↦ f.NormalSpace x hn) x ≫ (f.tubePairIso hn hdim Φ hΦ).hom ≫
+      fiberThomPairMap P (fun x ↦ f.isImmersion.NormalSpace x hn) x ≫ (f.tubePairIso hn hdim Φ hΦ).hom ≫
         TopPair.excisionMap (X := TopCat.of X) (W : Set X) (range f)ᶜ :=
   (rfl)
 
@@ -182,17 +182,17 @@ theorem normalSlice_def (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω)
 theorem normalSlice_fst_apply (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) {W : TopologicalSpace.Opens X}
     (Φ : letI := f.normalSpaceFiberBundle hn hdim
-      TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
+      TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
     (hΦ : letI := f.normalSpaceFiberBundle hn hdim
-      ∀ x, (Φ (zeroSection P _ x) : X) = f x) (x : Z) (v : f.NormalSpace x hn) :
+      ∀ x, (Φ (zeroSection P _ x) : X) = f x) (x : Z) (v : f.isImmersion.NormalSpace x hn) :
     TopPair.Hom.fst (f.normalSlice hn hdim Φ hΦ x) v =
       (Φ (TotalSpace.mk' P x v) : X) := by
   let := f.normalSpaceFiberBundle hn hdim
   rw [normalSlice_def, TopPair.Hom.fst_comp, TopPair.Hom.fst_comp]
-  refine (ConcreteCategory.comp_apply (X := TopCat.of (f.NormalSpace x hn)) _ _ v).trans ?_
+  refine (ConcreteCategory.comp_apply (X := TopCat.of (f.isImmersion.NormalSpace x hn)) _ _ v).trans ?_
   rw [ConcreteCategory.comp_apply]
   exact (tubePairIso_hom_fst_comp_excisionMap_fst_apply f hn hdim Φ hΦ _).trans
-    (congrArg (fun v ↦ (Φ v : X)) (fiberThomPairMap_fst_apply P (fun x ↦ f.NormalSpace x hn) x v))
+    (congrArg (fun v ↦ (Φ v : X)) (fiberThomPairMap_fst_apply P (fun x ↦ f.isImmersion.NormalSpace x hn) x v))
 
 end NormalSlice
 
@@ -210,24 +210,24 @@ theorem singularCohomologyMap_excisionMap_eq_iff_forall_normalSlice
     (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) {W : TopologicalSpace.Opens X}
     (Φ : letI := f.normalSpaceFiberBundle hn hdim
-      TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
+      TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
     (hΦ : letI := f.normalSpaceFiberBundle hn hdim
       ∀ x, (Φ (zeroSection P _ x) : X) = f x)
     (u : letI := f.normalSpaceFiberBundle hn hdim
-      (thomPair P (fun x ↦ f.NormalSpace x hn)).singularCohomology R k M (finrank ℝ P))
+      (thomPair P (fun x ↦ f.isImmersion.NormalSpace x hn)).singularCohomology R k M (finrank ℝ P))
     (c : (TopPair.ofSubset (X := TopCat.of X) (range f)ᶜ).singularCohomology R k M
       (finrank ℝ P)) :
     letI := f.normalSpaceFiberBundle hn hdim
     TopPair.singularCohomologyMap (TopPair.excisionMap (X := TopCat.of X) (W : Set X) (range f)ᶜ)
         _ c = TopPair.singularCohomologyMap (f.tubePairIso hn hdim Φ hΦ).inv _ u ↔
       ∀ x, TopPair.singularCohomologyMap (f.normalSlice hn hdim Φ hΦ x) _ c =
-        TopPair.singularCohomologyMap (fiberThomPairMap P (fun x ↦ f.NormalSpace x hn) x) _ u := by
+        TopPair.singularCohomologyMap (fiberThomPairMap P (fun x ↦ f.isImmersion.NormalSpace x hn) x) _ u := by
   let := f.normalSpaceFiberBundle hn hdim
   let := f.normalSpaceVectorBundle hn hdim
   set t := f.tubePairIso hn hdim Φ hΦ
   set e := TopPair.excisionMap (X := TopCat.of X) (W : Set X) (range f)ᶜ
   have hslice (x : Z) : TopPair.singularCohomologyMap (f.normalSlice hn hdim Φ hΦ x) _ c =
-      TopPair.singularCohomologyMap (fiberThomPairMap P (fun x ↦ f.NormalSpace x hn) x) _
+      TopPair.singularCohomologyMap (fiberThomPairMap P (fun x ↦ f.isImmersion.NormalSpace x hn) x) _
         (TopPair.singularCohomologyMap t.hom _ (TopPair.singularCohomologyMap e _ c)) := by
     rw [normalSlice_def, TopPair.singularCohomologyMap_comp_apply,
       TopPair.singularCohomologyMap_comp_apply]
@@ -252,19 +252,19 @@ private theorem singularCohomologyMap_slice_eq_of_isOpen {f : SmoothEmbedding I 
     {hn : (∞ : ℕ∞ω) ≠ 0} {hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E}
     {W : TopologicalSpace.Opens X}
     {Φ : letI := f.normalSpaceFiberBundle hn hdim
-      TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W}
+      TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W}
     (hΦ : f.IsNormalizedTube hn hdim Φ) (x : Z) {O : Set P} (hO : IsOpen O) (hO0 : (0 : P) ∈ O)
     {g : P → X} (hgO : ContinuousOn g O) (hgf : ∀ w ∈ O, g w ∈ range f → w = 0)
     {A : P →L[ℝ] V} (hg : HasMFDerivAt 𝓘(ℝ, P) J g 0 A)
     (hA : letI := f.normalSpaceFiberBundle hn hdim
       haveI := f.normalSpaceVectorBundle hn hdim
-      ∀ w : P, f.normalClassL x hn (A w) =
-        (trivializationAt P (fun x ↦ f.NormalSpace x hn) x).symmL ℝ x w)
-    {Ψ : X → TotalSpace P (fun x ↦ f.NormalSpace x hn)} (hΨc : ContinuousOn Ψ W)
+      ∀ w : P, f.isImmersion.normalClassL x hn (A w) =
+        (trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) x).symmL ℝ x w)
+    {Ψ : X → TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn)} (hΨc : ContinuousOn Ψ W)
     (hΦΨ : ∀ {y : X}, y ∈ W → (Φ (Ψ y) : X) = y)
-    (hΨ0 : Ψ (g 0) = zeroSection P (fun x ↦ f.NormalSpace x hn) x) {U : Set Z}
+    (hΨ0 : Ψ (g 0) = zeroSection P (fun x ↦ f.isImmersion.NormalSpace x hn) x) {U : Set Z}
     [ContractibleSpace U] (hUe : letI := f.normalSpaceFiberBundle hn hdim
-      U ⊆ (trivializationAt P (fun x ↦ f.NormalSpace x hn) x).baseSet)
+      U ⊆ (trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) x).baseSet)
     (hOW : ∀ w ∈ O, g w ∈ W) (hOU : ∀ w ∈ O, (Ψ (g w)).proj ∈ U)
     {n : ℕ} (c : (TopPair.ofSubset (X := TopCat.of X) (range f)ᶜ).singularCohomology R k M n) :
     letI := f.normalSpaceFiberBundle hn hdim
@@ -278,12 +278,12 @@ private theorem singularCohomologyMap_slice_eq_of_isOpen {f : SmoothEmbedding I 
         (TopPair.ofSubsetMap (X := TopCat.of O) (Y := TopCat.of P)
           (TopCat.ofHom (ContinuousMap.subtypeVal O)) (B := {⟨0, hO0⟩}ᶜ) (B' := {0}ᶜ)
           (fun _ hw h ↦ hw (Subtype.ext (Set.mem_singleton_iff.1 h))) ≫
-          ((trivializationAt P (fun x ↦ f.NormalSpace x hn) x).continuousLinearEquivAt ℝ x
+          ((trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) x).continuousLinearEquivAt ℝ x
             (mem_baseSet_trivializationAt P _ x)).symm.complZeroPairIso.hom) n
         (TopPair.singularCohomologyMap (f.normalSlice hn hdim Φ hΦ.apply_zeroSection x) n c) := by
   let := f.normalSpaceFiberBundle hn hdim
   have := f.normalSpaceVectorBundle hn hdim
-  set e := trivializationAt P (fun x ↦ f.NormalSpace x hn) x
+  set e := trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) x
   have hx : x ∈ e.baseSet := mem_baseSet_trivializationAt P _ x
   have hxU : x ∈ U := by simpa [hΨ0] using hOU 0 hO0
   have hΨg : ContinuousAt (fun w ↦ Ψ (g w)) 0 :=
@@ -294,7 +294,7 @@ private theorem singularCohomologyMap_slice_eq_of_isOpen {f : SmoothEmbedding I 
   -- Off `0`, the inverse of the tube does not meet the zero section along `g`.
   have hψ0 : ∀ w ∈ O, w ≠ 0 → (Ψ (g w)).snd ≠ 0 := by
     intro w hw hw0 hs
-    have hr : Ψ (g w) ∈ range (zeroSection P (fun x ↦ f.NormalSpace x hn)) := by
+    have hr : Ψ (g w) ∈ range (zeroSection P (fun x ↦ f.isImmersion.NormalSpace x hn)) := by
       by_contra h
       rw [← mem_compl_iff, ← zeroSectionCompl_eq_compl_range, mem_zeroSectionCompl] at h
       exact h hs
@@ -303,9 +303,9 @@ private theorem singularCohomologyMap_slice_eq_of_isOpen {f : SmoothEmbedding I 
     exact (apply_mem_range_iff_of_apply_zeroSection f hn hdim Φ hΦ.apply_zeroSection _).2 hr
   -- On `O`, the map `g` factors through the inverse of the tube.
   let ψ : TopPair.ofSubset (X := TopCat.of O) ({⟨0, hO0⟩}ᶜ) ⟶
-      thomPair P (fun x ↦ f.NormalSpace x hn) :=
+      thomPair P (fun x ↦ f.isImmersion.NormalSpace x hn) :=
     TopPair.ofSubsetMap (X := TopCat.of O)
-      (Y := TopCat.of (TotalSpace P (fun x ↦ f.NormalSpace x hn)))
+      (Y := TopCat.of (TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn)))
       (TopCat.ofHom ⟨O.domRestrict (Ψ ∘ g), (hΨc.comp hgO hOW).domRestrict⟩)
       (B := {⟨0, hO0⟩}ᶜ) (B' := zeroSectionCompl P _)
       fun w hw ↦ mem_zeroSectionCompl.2 (hψ0 w w.property fun h ↦ hw (Subtype.ext h))
@@ -325,7 +325,7 @@ private theorem singularCohomologyMap_slice_eq_of_isOpen {f : SmoothEmbedding I 
     normalSlice_def]
   simp only [TopPair.singularCohomologyMap_comp_apply]
   generalize TopPair.singularCohomologyMap (R := R) (k := k) (M := M)
-    (fiberThomPairMap P (fun x ↦ f.NormalSpace x hn) x) n _ = d
+    (fiberThomPairMap P (fun x ↦ f.isImmersion.NormalSpace x hn) x) n _ = d
   -- Read in `e`, the fibre over `x` is `P`.
   set ℓ := e.continuousLinearEquivAt ℝ x hx
   obtain ⟨d, rfl⟩ : ∃ d', d = TopPair.singularCohomologyMap ℓ.complZeroPairIso.hom n d' :=
@@ -375,14 +375,14 @@ theorem singularCohomologyMap_slice_eq_of_hasFDerivAt {f : SmoothEmbedding I J �
     {hn : (∞ : ℕ∞ω) ≠ 0} {hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E}
     {W : TopologicalSpace.Opens X}
     {Φ : letI := f.normalSpaceFiberBundle hn hdim
-      TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W}
+      TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W}
     (hΦ : f.IsNormalizedTube hn hdim Φ) (x : Z) {B : Set P} (hB : B ∈ 𝓝 0) {g : P → X}
     (hgB : ContinuousOn g B) (hg0 : g 0 = f x) (hgf : ∀ w ∈ B, g w ∈ range f → w = 0)
     {A : P →L[ℝ] V} (hg : HasMFDerivAt 𝓘(ℝ, P) J g 0 A)
     (hA : letI := f.normalSpaceFiberBundle hn hdim
       haveI := f.normalSpaceVectorBundle hn hdim
-      ∀ w : P, f.normalClassL x hn (A w) =
-        (trivializationAt P (fun x ↦ f.NormalSpace x hn) x).symmL ℝ x w)
+      ∀ w : P, f.isImmersion.normalClassL x hn (A w) =
+        (trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) x).symmL ℝ x w)
     {n : ℕ} (c : (TopPair.ofSubset (X := TopCat.of X) (range f)ᶜ).singularCohomology R k M n) :
     letI := f.normalSpaceFiberBundle hn hdim
     haveI := f.normalSpaceVectorBundle hn hdim
@@ -395,17 +395,17 @@ theorem singularCohomologyMap_slice_eq_of_hasFDerivAt {f : SmoothEmbedding I J �
         (TopPair.ofSubsetMap (X := TopCat.of B) (Y := TopCat.of P)
           (TopCat.ofHom (ContinuousMap.subtypeVal B)) (B := {⟨0, mem_of_mem_nhds hB⟩}ᶜ)
           (B' := {0}ᶜ) (fun _ hw h ↦ hw (Subtype.ext (Set.mem_singleton_iff.1 h))) ≫
-          ((trivializationAt P (fun x ↦ f.NormalSpace x hn) x).continuousLinearEquivAt ℝ x
+          ((trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) x).continuousLinearEquivAt ℝ x
             (mem_baseSet_trivializationAt P _ x)).symm.complZeroPairIso.hom) n
         (TopPair.singularCohomologyMap (f.normalSlice hn hdim Φ hΦ.apply_zeroSection x) n c) := by
   let := f.normalSpaceFiberBundle hn hdim
   have := f.normalSpaceVectorBundle hn hdim
   classical
-  set e := trivializationAt P (fun x ↦ f.NormalSpace x hn) x
+  set e := trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) x
   have hx : x ∈ e.baseSet := mem_baseSet_trivializationAt P _ x
   have hfxW : f x ∈ W := hΦ.apply_zeroSection x ▸ (Φ (zeroSection P _ x)).property
   -- The inverse of the tube, extended by the zero vector over `x` off `W`.
-  let Ψ : X → TotalSpace P (fun x ↦ f.NormalSpace x hn) := fun y ↦
+  let Ψ : X → TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) := fun y ↦
     if hy : y ∈ W then Φ.symm ⟨y, hy⟩ else zeroSection P _ x
   have hΨ {y : X} (hy : y ∈ W) : Ψ y = Φ.symm ⟨y, hy⟩ := by simp [Ψ, hy]
   have hΨc : ContinuousOn Ψ W := by
@@ -459,21 +459,21 @@ theorem singularCohomologyMap_normalSlice_eq_of_isNormalizedTube {f : SmoothEmbe
     {hn : (∞ : ℕ∞ω) ≠ 0} {hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E}
     {W W' : TopologicalSpace.Opens X}
     {Φ : letI := f.normalSpaceFiberBundle hn hdim
-      TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W}
+      TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W}
     {Φ' : letI := f.normalSpaceFiberBundle hn hdim
-      TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W'}
+      TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W'}
     (hΦ : f.IsNormalizedTube hn hdim Φ) (hΦ' : f.IsNormalizedTube hn hdim Φ') (x : Z) {n : ℕ}
     (c : (TopPair.ofSubset (X := TopCat.of X) (range f)ᶜ).singularCohomology R k M n) :
     TopPair.singularCohomologyMap (f.normalSlice hn hdim Φ' hΦ'.apply_zeroSection x) n c =
       TopPair.singularCohomologyMap (f.normalSlice hn hdim Φ hΦ.apply_zeroSection x) n c := by
   let := f.normalSpaceFiberBundle hn hdim
   have := f.normalSpaceVectorBundle hn hdim
-  set e := trivializationAt P (fun x ↦ f.NormalSpace x hn) x
+  set e := trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) x
   have hx : x ∈ e.baseSet := mem_baseSet_trivializationAt P _ x
   set ℓ := e.continuousLinearEquivAt ℝ x hx
   -- The map `w ↦ Φ'(x, ℓ⁻¹ w)` has the derivative that the local-degree lemma asks for.
   obtain ⟨hgc, hg0, hgf, A, hg, hA⟩ := hΦ'.exists_hasMFDerivAt_apply_mk x ℓ.symm
-  have hA' (w : P) : f.normalClassL x hn (A w) = e.symmL ℝ x w := by
+  have hA' (w : P) : f.isImmersion.normalClassL x hn (A w) = e.symmL ℝ x w := by
     rw [hA, ← e.symm_continuousLinearEquivAt_eq' hx, ContinuousLinearEquiv.coe_coe]
   have h1 := singularCohomologyMap_slice_eq_of_hasFDerivAt hΦ x Filter.univ_mem hgc.continuousOn
     hg0 (fun w _ ↦ hgf w) hg hA' c
@@ -499,10 +499,10 @@ theorem singularCohomologyMap_excisionMap_relDualClassOf (f : SmoothEmbedding I 
     (hn : (∞ : ℕ∞ω) ≠ 0) (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E)
     (hf : IsClosed (range f)) {W : TopologicalSpace.Opens X}
     {Φ : letI := f.normalSpaceFiberBundle hn hdim
-      TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W}
+      TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W}
     (hΦ : f.IsNormalizedTube hn hdim Φ)
     (u : letI := f.normalSpaceFiberBundle hn hdim
-      (thomPair P (fun x ↦ f.NormalSpace x hn)).singularCohomology R k M (finrank ℝ P)) :
+      (thomPair P (fun x ↦ f.isImmersion.NormalSpace x hn)).singularCohomology R k M (finrank ℝ P)) :
     TopPair.singularCohomologyMap (TopPair.excisionMap (X := TopCat.of X) (W : Set X) (range f)ᶜ)
         _ (f.relDualClassOf hn hdim hf u) =
       TopPair.singularCohomologyMap (f.tubePairIso hn hdim Φ hΦ.apply_zeroSection).inv _ u := by
@@ -525,10 +525,10 @@ theorem relDualClassOf_eq_of_isNormalizedTube (f : SmoothEmbedding I J ∞ Z X)
     (hn : (∞ : ℕ∞ω) ≠ 0) (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E)
     (hf : IsClosed (range f)) {W : TopologicalSpace.Opens X}
     {Φ : letI := f.normalSpaceFiberBundle hn hdim
-      TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W}
+      TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W}
     (hΦ : f.IsNormalizedTube hn hdim Φ)
     {u : letI := f.normalSpaceFiberBundle hn hdim
-      (thomPair P (fun x ↦ f.NormalSpace x hn)).singularCohomology R k M (finrank ℝ P)}
+      (thomPair P (fun x ↦ f.isImmersion.NormalSpace x hn)).singularCohomology R k M (finrank ℝ P)}
     {c : (TopPair.ofSubset (X := TopCat.of X) (range f)ᶜ).singularCohomology R k M
       (finrank ℝ P)}
     (hc : TopPair.singularCohomologyMap
@@ -552,16 +552,16 @@ theorem eq_relDualClassOf_iff_forall_slice (f : SmoothEmbedding I J ∞ Z X) (hn
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f))
     {W : TopologicalSpace.Opens X}
     {Φ : letI := f.normalSpaceFiberBundle hn hdim
-      TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W}
+      TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W}
     (hΦ : f.IsNormalizedTube hn hdim Φ)
     (u : letI := f.normalSpaceFiberBundle hn hdim
-      (thomPair P (fun x ↦ f.NormalSpace x hn)).singularCohomology R k M (finrank ℝ P))
+      (thomPair P (fun x ↦ f.isImmersion.NormalSpace x hn)).singularCohomology R k M (finrank ℝ P))
     (c : (TopPair.ofSubset (X := TopCat.of X) (range f)ᶜ).singularCohomology R k M
       (finrank ℝ P)) :
     letI := f.normalSpaceFiberBundle hn hdim
     c = f.relDualClassOf hn hdim hf u ↔
       ∀ x, TopPair.singularCohomologyMap (f.normalSlice hn hdim Φ hΦ.apply_zeroSection x) _ c =
-        TopPair.singularCohomologyMap (fiberThomPairMap P (fun x ↦ f.NormalSpace x hn) x) _ u := by
+        TopPair.singularCohomologyMap (fiberThomPairMap P (fun x ↦ f.isImmersion.NormalSpace x hn) x) _ u := by
   rw [← singularCohomologyMap_excisionMap_eq_iff_forall_normalSlice]
   refine ⟨?_, fun h ↦ (relDualClassOf_eq_of_isNormalizedTube f hn hdim hf hΦ h).symm⟩
   rintro rfl
@@ -579,7 +579,7 @@ embedding `φ⁻¹ ∘ f` with that of `f`: `normalSpaceEquivOfComp` for the tri
 `φ ∘ (φ⁻¹ ∘ f) = f`. -/
 def transDiffeomorphNormalSpaceEquiv (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
     (φ : X' ≃ₘ^∞⟮J, J⟯ X) (x : Z) :
-    (f.transDiffeomorph φ.symm).NormalSpace x hn ≃L[ℝ] f.NormalSpace x hn :=
+    (f.transDiffeomorph φ.symm).isImmersion.NormalSpace x hn ≃L[ℝ] f.isImmersion.NormalSpace x hn :=
   (f.transDiffeomorph φ.symm).normalSpaceEquivOfComp f hn hn
     (fun _ ↦ φ.isInvertible_mfderiv hn) (f.comp_transDiffeomorph_symm φ) x
 
@@ -600,8 +600,8 @@ normal class of its image `dφ w`. -/
 theorem transDiffeomorphNormalSpaceEquiv_normalClass (f : SmoothEmbedding I J ∞ Z X)
     (hn : (∞ : ℕ∞ω) ≠ 0) (φ : X' ≃ₘ^∞⟮J, J⟯ X) (x : Z)
     (w : TangentSpace J (f.transDiffeomorph φ.symm x)) :
-    f.transDiffeomorphNormalSpaceEquiv hn φ x ((f.transDiffeomorph φ.symm).normalClass x hn w) =
-      f.normalClass x hn (tangentSpaceCast J (φ (f.transDiffeomorph φ.symm x)) (f x)
+    f.transDiffeomorphNormalSpaceEquiv hn φ x ((f.transDiffeomorph φ.symm).isImmersion.normalClass x hn w) =
+      f.isImmersion.normalClass x hn (tangentSpaceCast J (φ (f.transDiffeomorph φ.symm x)) (f x)
         (mfderiv J J φ (f.transDiffeomorph φ.symm x) w)) := by
   rw [transDiffeomorphNormalSpaceEquiv_def, normalSpaceEquivOfComp_normalClass]
 
@@ -611,8 +611,8 @@ bundle of `φ⁻¹ ∘ f` to that of `f`, over the identity of `Z`, which is the
 each fibre: `thomPairMapOfComp` for the triangle `φ ∘ (φ⁻¹ ∘ f) = f`. -/
 def transDiffeomorphThomPairMap (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
     (φ : X' ≃ₘ^∞⟮J, J⟯ X) :
-    thomPair P (fun x ↦ (f.transDiffeomorph φ.symm).NormalSpace x hn) ⟶
-      thomPair P (fun x ↦ f.NormalSpace x hn) :=
+    thomPair P (fun x ↦ (f.transDiffeomorph φ.symm).isImmersion.NormalSpace x hn) ⟶
+      thomPair P (fun x ↦ f.isImmersion.NormalSpace x hn) :=
   (f.transDiffeomorph φ.symm).thomPairMapOfComp f hn hn
     (φ.contMDiff.of_le (ENat.one_le_iff_ne_zero_withTop.mpr hn))
     (fun _ ↦ φ.isInvertible_mfderiv hn) (f.comp_transDiffeomorph_symm φ)
@@ -636,10 +636,10 @@ theorem fiberThomPairMap_comp_transDiffeomorphThomPairMap (f : SmoothEmbedding I
     (φ : X' ≃ₘ^∞⟮J, J⟯ X) (x : Z) :
     letI := (f.transDiffeomorph φ.symm).normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceFiberBundle hn hdim
-    fiberThomPairMap P (fun x ↦ (f.transDiffeomorph φ.symm).NormalSpace x hn) x ≫
+    fiberThomPairMap P (fun x ↦ (f.transDiffeomorph φ.symm).isImmersion.NormalSpace x hn) x ≫
         f.transDiffeomorphThomPairMap hn φ =
       (f.transDiffeomorphNormalSpaceEquiv hn φ x).complZeroPairIso.hom ≫
-        fiberThomPairMap P (fun x ↦ f.NormalSpace x hn) x :=
+        fiberThomPairMap P (fun x ↦ f.isImmersion.NormalSpace x hn) x :=
   letI := (f.transDiffeomorph φ.symm).normalSpaceFiberBundle hn hdim
   letI := f.normalSpaceFiberBundle hn hdim
   fiberThomPairMap_comp_thomPairMapOfComp _ _ hn hn _ _ _ x
@@ -675,9 +675,9 @@ theorem singularCohomologyMap_normalSlice_transDiffeomorph {f : SmoothEmbedding 
     {hn : (∞ : ℕ∞ω) ≠ 0} {hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E}
     (φ : X' ≃ₘ^∞⟮J, J⟯ X) {W : TopologicalSpace.Opens X} {W' : TopologicalSpace.Opens X'}
     {Φ : letI := f.normalSpaceFiberBundle hn hdim
-      TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W}
+      TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W}
     {Φ' : letI := (f.transDiffeomorph φ.symm).normalSpaceFiberBundle hn hdim
-      TotalSpace P (fun x ↦ (f.transDiffeomorph φ.symm).NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯
+      TotalSpace P (fun x ↦ (f.transDiffeomorph φ.symm).isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯
         W'}
     (hΦ : f.IsNormalizedTube hn hdim Φ)
     (hΦ' : (f.transDiffeomorph φ.symm).IsNormalizedTube hn hdim Φ') (x : Z) {n : ℕ}
@@ -693,7 +693,7 @@ theorem singularCohomologyMap_normalSlice_transDiffeomorph {f : SmoothEmbedding 
   have := f.normalSpaceVectorBundle hn hdim
   let := (f.transDiffeomorph φ.symm).normalSpaceFiberBundle hn hdim
   have := (f.transDiffeomorph φ.symm).normalSpaceVectorBundle hn hdim
-  set e := trivializationAt P (fun x ↦ f.NormalSpace x hn) x
+  set e := trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) x
   have hx : x ∈ e.baseSet := mem_baseSet_trivializationAt P _ x
   set m := (e.continuousLinearEquivAt ℝ x hx).symm
   set ℓ := f.transDiffeomorphNormalSpaceEquiv hn φ x
@@ -712,15 +712,15 @@ theorem singularCohomologyMap_normalSlice_transDiffeomorph {f : SmoothEmbedding 
     (φ.contMDiff.mdifferentiableAt (by simp)).hasMFDerivAt
   -- On normal classes, `dφ` at the point `f' x` is `ℓ`.
   have hdφ : ∀ (y : X') (_ : y = f.transDiffeomorph φ.symm x) (D : TangentSpace J y),
-      f.normalClassL x hn (mfderiv J J φ y D) =
-        ℓ ((f.transDiffeomorph φ.symm).normalClassL x hn D) := by
+      f.isImmersion.normalClassL x hn (mfderiv J J φ y D) =
+        ℓ ((f.transDiffeomorph φ.symm).isImmersion.normalClassL x hn D) := by
     rintro _ rfl D
     have h := f.transDiffeomorphNormalSpaceEquiv_normalClass hn φ x D
     rw [tangentSpaceCast_apply] at h
     rw [normalClassL_apply (f := f.transDiffeomorph φ.symm)]
     exact (normalClassL_apply _ _ _ _).trans h.symm
   set A := (mfderiv J J φ (g' 0)).comp (A' : P →L[ℝ] TangentSpace J (g' 0))
-  have hA (w : P) : f.normalClassL x hn (A w) = e.symmL ℝ x w := by
+  have hA (w : P) : f.isImmersion.normalClassL x hn (A w) = e.symmL ℝ x w := by
     refine (hdφ _ hg0' (A' w)).trans ?_
     rw [hA', ← e.symm_continuousLinearEquivAt_eq' hx, ContinuousLinearEquiv.coe_coe]
     simp [ψ, m]
@@ -777,7 +777,7 @@ theorem relDualClassOf_transDiffeomorph (f : SmoothEmbedding I J ∞ Z X) (hn : 
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f))
     (φ : X' ≃ₘ^∞⟮J, J⟯ X)
     (u : letI := f.normalSpaceFiberBundle hn hdim
-      (thomPair P (fun x ↦ f.NormalSpace x hn)).singularCohomology R k M (finrank ℝ P)) :
+      (thomPair P (fun x ↦ f.isImmersion.NormalSpace x hn)).singularCohomology R k M (finrank ℝ P)) :
     (f.transDiffeomorph φ.symm).relDualClassOf hn hdim
         (f.isClosed_range_transDiffeomorph hf φ.symm)
         (TopPair.singularCohomologyMap (f.transDiffeomorphThomPairMap hn φ) _ u) =
@@ -814,7 +814,7 @@ theorem dualClassOf_transDiffeomorph (f : SmoothEmbedding I J ∞ Z X) (hn : (�
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f))
     (φ : X' ≃ₘ^∞⟮J, J⟯ X)
     (u : letI := f.normalSpaceFiberBundle hn hdim
-      (thomPair P (fun x ↦ f.NormalSpace x hn)).singularCohomology R k M (finrank ℝ P)) :
+      (thomPair P (fun x ↦ f.isImmersion.NormalSpace x hn)).singularCohomology R k M (finrank ℝ P)) :
     (f.transDiffeomorph φ.symm).dualClassOf hn hdim
         (f.isClosed_range_transDiffeomorph hf φ.symm)
         (TopPair.singularCohomologyMap (f.transDiffeomorphThomPairMap hn φ) _ u) =

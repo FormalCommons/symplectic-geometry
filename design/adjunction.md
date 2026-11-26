@@ -32,7 +32,7 @@ pinned versions, as for `DESIGN.md`. Tau Ceti paths are relative to
   in place of `𝓡 2`.
 - **$J$-invariance.** "$J(T\Sigma)=T\Sigma$" is the hypothesis
   `hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn)`,
-  with Tau Ceti's `TauCeti.SmoothEmbedding.tangentRange` and `hn` the proof
+  with Tau Ceti's `Manifold.IsImmersion.tangentRange` and `hn` the proof
   that `∞ ≠ 0` in `ℕ∞ω`. It is the hypothesis `hp` of Tau Ceti's
   `TauCeti.AlmostComplexStructure.quotient` at each point, and no new
   predicate is defined. Inclusion is enough, since $J$ is invertible and the
@@ -391,7 +391,7 @@ Namespace `TauCeti.AlmostComplexStructure`, for an almost complex structure
 
 ## What the part uses
 
-- Tau Ceti, normal bundles: `SmoothEmbedding.NormalSpace`, `tangentRange`,
+- Tau Ceti, normal bundles: `Manifold.IsImmersion.NormalSpace`, `tangentRange`,
   `normalClass`, `normalQuotientMap`, `normalSpaceFiberBundle`,
   `normalSpaceVectorBundle`, `normalSpaceContMDiffVectorBundle`,
   `contMDiff_normalBundle_iff`, `complementRepresentative` with its

@@ -47,7 +47,7 @@ theorems about a neighbourhood of a whole submanifold.
   `RoughForm.IsBasic`. Tau Ceti's only criterion for `IsBasic`,
   `isBasic_of_mpullback_eq`, needs fibre-preserving self-maps that act
   transitively on the fibres. It has no criterion from connected fibres.
-- **Normal bundles.** `TauCeti.SmoothEmbedding.NormalSpace` with its bundle
+- **Normal bundles.** `Manifold.IsImmersion.NormalSpace` with its bundle
   structure `normalSpaceFiberBundle`; the symplectic normal form
   `TauCeti.SmoothEmbedding.symplecticNormalForm` with
   `symplecticNormalRepresentative` and `contMDiff_symplecticNormalRepresentative`

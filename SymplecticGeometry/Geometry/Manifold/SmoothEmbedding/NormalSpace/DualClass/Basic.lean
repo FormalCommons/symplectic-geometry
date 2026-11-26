@@ -94,7 +94,7 @@ section TubePair
 theorem range_subset_of_apply_zeroSection (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) {W : TopologicalSpace.Opens X}
     (Φ : letI := f.normalSpaceFiberBundle hn hdim
-      TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
+      TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
     (hΦ : letI := f.normalSpaceFiberBundle hn hdim
       ∀ x, (Φ (zeroSection P _ x) : X) = f x) :
     range f ⊆ W :=
@@ -106,10 +106,10 @@ theorem apply_mem_range_iff_of_apply_zeroSection (f : SmoothEmbedding I J ∞ Z 
     (hn : (∞ : ℕ∞ω) ≠ 0) (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E)
     {W : TopologicalSpace.Opens X}
     (Φ : letI := f.normalSpaceFiberBundle hn hdim
-      TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
+      TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
     (hΦ : letI := f.normalSpaceFiberBundle hn hdim
-      ∀ x, (Φ (zeroSection P _ x) : X) = f x) (v : TotalSpace P (fun x ↦ f.NormalSpace x hn)) :
-    (Φ v : X) ∈ range f ↔ v ∈ range (zeroSection P (fun x ↦ f.NormalSpace x hn)) := by
+      ∀ x, (Φ (zeroSection P _ x) : X) = f x) (v : TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn)) :
+    (Φ v : X) ∈ range f ↔ v ∈ range (zeroSection P (fun x ↦ f.isImmersion.NormalSpace x hn)) := by
   refine ⟨fun ⟨x, hx⟩ ↦ ⟨x, Φ.injective (Subtype.ext ((hΦ x).trans hx))⟩, ?_⟩
   rintro ⟨x, rfl⟩
   exact ⟨x, (hΦ x).symm⟩
@@ -121,11 +121,11 @@ of `f`. -/
 def tubePairIso (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) {W : TopologicalSpace.Opens X}
     (Φ : letI := f.normalSpaceFiberBundle hn hdim
-      TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
+      TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
     (hΦ : letI := f.normalSpaceFiberBundle hn hdim
       ∀ x, (Φ (zeroSection P _ x) : X) = f x) :
     letI := f.normalSpaceFiberBundle hn hdim
-    thomPair P (fun x ↦ f.NormalSpace x hn) ≅
+    thomPair P (fun x ↦ f.isImmersion.NormalSpace x hn) ≅
       TopPair.interPair (X := TopCat.of X) (W : Set X) (range f)ᶜ :=
   letI := f.normalSpaceFiberBundle hn hdim
   TopPair.ofSubsetIso Φ.toHomeomorph fun v ↦ by
@@ -137,21 +137,21 @@ def tubePairIso (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
 theorem tubePairIso_hom_fst_apply (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) {W : TopologicalSpace.Opens X}
     (Φ : letI := f.normalSpaceFiberBundle hn hdim
-      TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
+      TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
     (hΦ : letI := f.normalSpaceFiberBundle hn hdim
-      ∀ x, (Φ (zeroSection P _ x) : X) = f x) (v : TotalSpace P (fun x ↦ f.NormalSpace x hn)) :
+      ∀ x, (Φ (zeroSection P _ x) : X) = f x) (v : TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn)) :
     letI := f.normalSpaceFiberBundle hn hdim
     TopPair.Hom.fst (f.tubePairIso hn hdim Φ hΦ).hom v = Φ v := by
   rw [tubePairIso, TopPair.ofSubsetIso_hom]
-  exact TopPair.ofSubsetMap_fst_apply (X := TopCat.of (TotalSpace P fun x ↦ f.NormalSpace x hn))
-    (B := zeroSectionCompl P (fun x ↦ f.NormalSpace x hn)) _ _ v
+  exact TopPair.ofSubsetMap_fst_apply (X := TopCat.of (TotalSpace P fun x ↦ f.isImmersion.NormalSpace x hn))
+    (B := zeroSectionCompl P (fun x ↦ f.isImmersion.NormalSpace x hn)) _ _ v
 
 /-- On ambient spaces, the inverse of the pair isomorphism of a tube is the inverse of the tube. -/
 @[simp]
 theorem tubePairIso_inv_fst_apply (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) {W : TopologicalSpace.Opens X}
     (Φ : letI := f.normalSpaceFiberBundle hn hdim
-      TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
+      TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
     (hΦ : letI := f.normalSpaceFiberBundle hn hdim
       ∀ x, (Φ (zeroSection P _ x) : X) = f x) (y : W) :
     letI := f.normalSpaceFiberBundle hn hdim
@@ -165,9 +165,9 @@ theorem tubePairIso_hom_fst_comp_excisionMap_fst_apply (f : SmoothEmbedding I J 
     (hn : (∞ : ℕ∞ω) ≠ 0) (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E)
     {W : TopologicalSpace.Opens X}
     (Φ : letI := f.normalSpaceFiberBundle hn hdim
-      TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
+      TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
     (hΦ : letI := f.normalSpaceFiberBundle hn hdim
-      ∀ x, (Φ (zeroSection P _ x) : X) = f x) (v : TotalSpace P (fun x ↦ f.NormalSpace x hn)) :
+      ∀ x, (Φ (zeroSection P _ x) : X) = f x) (v : TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn)) :
     letI := f.normalSpaceFiberBundle hn hdim
     TopPair.Hom.fst (TopPair.excisionMap (X := TopCat.of X) (W : Set X) (range f)ᶜ)
       (TopPair.Hom.fst (f.tubePairIso hn hdim Φ hΦ).hom v) = (Φ v : X) :=
@@ -180,7 +180,7 @@ theorem tubePairIso_hom_fst_comp_excisionMap_fst (f : SmoothEmbedding I J ∞ Z 
     (hn : (∞ : ℕ∞ω) ≠ 0) (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E)
     {W : TopologicalSpace.Opens X}
     (Φ : letI := f.normalSpaceFiberBundle hn hdim
-      TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
+      TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
     (hΦ : letI := f.normalSpaceFiberBundle hn hdim
       ∀ x, (Φ (zeroSection P _ x) : X) = f x) :
     letI := f.normalSpaceFiberBundle hn hdim
@@ -202,7 +202,7 @@ variable (R k M) in
 private def relDualClassHom (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f)) (n : ℕ) :
     letI := f.normalSpaceFiberBundle hn hdim
-    (thomPair P (fun x ↦ f.NormalSpace x hn)).singularCohomology R k M n ⟶
+    (thomPair P (fun x ↦ f.isImmersion.NormalSpace x hn)).singularCohomology R k M n ⟶
       (TopPair.ofSubset (X := TopCat.of X) (range f)ᶜ).singularCohomology R k M n :=
   let := f.normalSpaceFiberBundle hn hdim
   let h := f.exists_isNormalizedTube_subset (P := P) hdim isOpen_univ (subset_univ _)
@@ -219,7 +219,7 @@ private theorem exists_relDualClassHom (f : SmoothEmbedding I J ∞ Z X) (hn : (
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f)) :
     letI := f.normalSpaceFiberBundle hn hdim
     ∃ (W : TopologicalSpace.Opens X)
-      (Φ : TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
+      (Φ : TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
       (hΦ : f.IsNormalizedTube hn hdim Φ), ∀ n,
         relDualClassHom R k M f hn hdim hf n ≫ TopPair.singularCohomologyMap
             (TopPair.excisionMap (X := TopCat.of X) (W : Set X) (range f)ᶜ) n =
@@ -239,7 +239,7 @@ property of it that the definition uses. -/
 def relDualClassOf (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f)) {n : ℕ}
     (u : letI := f.normalSpaceFiberBundle hn hdim
-      (thomPair P (fun x ↦ f.NormalSpace x hn)).singularCohomology R k M n) :
+      (thomPair P (fun x ↦ f.isImmersion.NormalSpace x hn)).singularCohomology R k M n) :
     (TopPair.ofSubset (X := TopCat.of X) (range f)ᶜ).singularCohomology R k M n :=
   relDualClassHom R k M f hn hdim hf n u
 
@@ -251,9 +251,9 @@ theorem exists_isNormalizedTube_singularCohomologyMap_excisionMap_relDualClassOf
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f)) :
     letI := f.normalSpaceFiberBundle hn hdim
     ∃ (W : TopologicalSpace.Opens X)
-      (Φ : TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
+      (Φ : TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
       (hΦ : f.IsNormalizedTube hn hdim Φ), ∀ (n : ℕ)
-        (u : (thomPair P (fun x ↦ f.NormalSpace x hn)).singularCohomology R k M n),
+        (u : (thomPair P (fun x ↦ f.isImmersion.NormalSpace x hn)).singularCohomology R k M n),
         TopPair.singularCohomologyMap
             (TopPair.excisionMap (X := TopCat.of X) (W : Set X) (range f)ᶜ) n
             (f.relDualClassOf hn hdim hf u) =
@@ -267,7 +267,7 @@ theorem relDualClassOf_zero (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ�
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f)) (n : ℕ) :
     letI := f.normalSpaceFiberBundle hn hdim
     f.relDualClassOf hn hdim hf
-      (0 : (thomPair P (fun x ↦ f.NormalSpace x hn)).singularCohomology R k M n) = 0 :=
+      (0 : (thomPair P (fun x ↦ f.isImmersion.NormalSpace x hn)).singularCohomology R k M n) = 0 :=
   map_zero _
 
 /-- The relative class is additive in the class of the normal bundle. -/
@@ -275,7 +275,7 @@ theorem relDualClassOf_zero (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ�
 theorem relDualClassOf_add (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f)) {n : ℕ}
     (u u' : letI := f.normalSpaceFiberBundle hn hdim
-      (thomPair P (fun x ↦ f.NormalSpace x hn)).singularCohomology R k M n) :
+      (thomPair P (fun x ↦ f.isImmersion.NormalSpace x hn)).singularCohomology R k M n) :
     f.relDualClassOf hn hdim hf (u + u') =
       f.relDualClassOf hn hdim hf u + f.relDualClassOf hn hdim hf u' :=
   map_add _ _ _
@@ -285,7 +285,7 @@ theorem relDualClassOf_add (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞
 theorem relDualClassOf_smul (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f)) {n : ℕ} (c : k)
     (u : letI := f.normalSpaceFiberBundle hn hdim
-      (thomPair P (fun x ↦ f.NormalSpace x hn)).singularCohomology R k M n) :
+      (thomPair P (fun x ↦ f.isImmersion.NormalSpace x hn)).singularCohomology R k M n) :
     f.relDualClassOf hn hdim hf (c • u) = c • f.relDualClassOf hn hdim hf u :=
   map_smul _ _ _
 
@@ -294,7 +294,7 @@ theorem relDualClassOf_smul (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ�
 theorem relDualClassOf_neg (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f)) {n : ℕ}
     (u : letI := f.normalSpaceFiberBundle hn hdim
-      (thomPair P (fun x ↦ f.NormalSpace x hn)).singularCohomology R k M n) :
+      (thomPair P (fun x ↦ f.isImmersion.NormalSpace x hn)).singularCohomology R k M n) :
     f.relDualClassOf hn hdim hf (-u) = -f.relDualClassOf hn hdim hf u :=
   map_neg _ _
 
@@ -303,7 +303,7 @@ theorem relDualClassOf_neg (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞
 def dualClassOf (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f)) {n : ℕ}
     (u : letI := f.normalSpaceFiberBundle hn hdim
-      (thomPair P (fun x ↦ f.NormalSpace x hn)).singularCohomology R k M n) :
+      (thomPair P (fun x ↦ f.isImmersion.NormalSpace x hn)).singularCohomology R k M n) :
     (TopCat.of X).singularCohomology R k M n :=
   (TopPair.ofSubset (X := TopCat.of X) (range f)ᶜ).singularCohomologyπ R k M n
     (f.relDualClassOf hn hdim hf u)
@@ -312,7 +312,7 @@ def dualClassOf (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
 theorem dualClassOf_def (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f)) {n : ℕ}
     (u : letI := f.normalSpaceFiberBundle hn hdim
-      (thomPair P (fun x ↦ f.NormalSpace x hn)).singularCohomology R k M n) :
+      (thomPair P (fun x ↦ f.isImmersion.NormalSpace x hn)).singularCohomology R k M n) :
     f.dualClassOf hn hdim hf u =
       (TopPair.ofSubset (X := TopCat.of X) (range f)ᶜ).singularCohomologyπ R k M n
         (f.relDualClassOf hn hdim hf u) :=
@@ -323,7 +323,7 @@ theorem dualClassOf_def (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω)
 theorem dualClassOf_neg (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f)) {n : ℕ}
     (u : letI := f.normalSpaceFiberBundle hn hdim
-      (thomPair P (fun x ↦ f.NormalSpace x hn)).singularCohomology R k M n) :
+      (thomPair P (fun x ↦ f.isImmersion.NormalSpace x hn)).singularCohomology R k M n) :
     f.dualClassOf hn hdim hf (-u) = -f.dualClassOf hn hdim hf u := by
   rw [dualClassOf_def, dualClassOf_def, relDualClassOf_neg]
   exact map_neg _ _
@@ -333,7 +333,7 @@ theorem dualClassOf_neg (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω)
 theorem dualClassOf_restrict_compl (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f)) {n : ℕ}
     (u : letI := f.normalSpaceFiberBundle hn hdim
-      (thomPair P (fun x ↦ f.NormalSpace x hn)).singularCohomology R k M n) :
+      (thomPair P (fun x ↦ f.isImmersion.NormalSpace x hn)).singularCohomology R k M n) :
     TopCat.singularCohomologyMap (TopPair.ofSubset (X := TopCat.of X) (range f)ᶜ).map n
       (f.dualClassOf hn hdim hf u) = 0 := by
   rw [dualClassOf_def]
@@ -345,11 +345,11 @@ the normal bundle. -/
 theorem dualClassOf_restrict (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f)) {n : ℕ}
     (u : letI := f.normalSpaceFiberBundle hn hdim
-      (thomPair P (fun x ↦ f.NormalSpace x hn)).singularCohomology R k M n) :
+      (thomPair P (fun x ↦ f.isImmersion.NormalSpace x hn)).singularCohomology R k M n) :
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
     TopCat.singularCohomologyMap (TopCat.ofHom ⟨f, f.isEmbedding.continuous⟩) n
-      (f.dualClassOf hn hdim hf u) = eulerClass R k M P (fun x ↦ f.NormalSpace x hn) n u := by
+      (f.dualClassOf hn hdim hf u) = eulerClass R k M P (fun x ↦ f.isImmersion.NormalSpace x hn) n u := by
   let := f.normalSpaceFiberBundle hn hdim
   let := f.normalSpaceVectorBundle hn hdim
   obtain ⟨W, Φ, hΦ, h⟩ := exists_relDualClassHom (R := R) (k := k) (M := M) f hn hdim hf
@@ -370,7 +370,7 @@ theorem dualClassOf_restrict (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ�
   have key : relDualClassHom R k M f hn hdim hf n ≫
       (TopPair.ofSubset (X := TopCat.of X) (range f)ᶜ).singularCohomologyπ R k M n ≫
         TopCat.singularCohomologyMap (TopCat.ofHom ⟨f, f.isEmbedding.continuous⟩) n =
-      eulerClass R k M P (fun x ↦ f.NormalSpace x hn) n := by
+      eulerClass R k M P (fun x ↦ f.isImmersion.NormalSpace x hn) n := by
     rw [hfac, TopPair.singularCohomologyπ_naturality_assoc, reassoc_of% (h n),
       TopPair.singularCohomologyπ_naturality_assoc, ← TopPair.singularCohomologyMap_comp_assoc,
       Iso.hom_inv_id, TopPair.singularCohomologyMap_id, Category.id_comp, eulerClass_def]
@@ -392,7 +392,7 @@ def relDualClass (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f))
     (o : letI := f.normalSpaceFiberBundle hn hdim
       letI := f.normalSpaceVectorBundle hn hdim
-      VectorBundleOrientation P (fun x ↦ f.NormalSpace x hn) (Fin r)) (hr : finrank ℝ P = r) :
+      VectorBundleOrientation P (fun x ↦ f.isImmersion.NormalSpace x hn) (Fin r)) (hr : finrank ℝ P = r) :
     (TopPair.ofSubset (X := TopCat.of X) (range f)ᶜ).singularCohomology
       (ModuleCat.of ℤ (ULift.{w} ℤ)) ℤ (ModuleCat.of ℤ (ULift.{w} ℤ)) r :=
   letI := f.normalSpaceFiberBundle hn hdim
@@ -404,7 +404,7 @@ theorem relDualClass_def (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f))
     (o : letI := f.normalSpaceFiberBundle hn hdim
       letI := f.normalSpaceVectorBundle hn hdim
-      VectorBundleOrientation P (fun x ↦ f.NormalSpace x hn) (Fin r)) (hr : finrank ℝ P = r) :
+      VectorBundleOrientation P (fun x ↦ f.isImmersion.NormalSpace x hn) (Fin r)) (hr : finrank ℝ P = r) :
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
     f.relDualClass hn hdim hf o hr = f.relDualClassOf hn hdim hf (o.canonicalThomClass hr) :=
@@ -419,7 +419,7 @@ def dualClass (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f))
     (o : letI := f.normalSpaceFiberBundle hn hdim
       letI := f.normalSpaceVectorBundle hn hdim
-      VectorBundleOrientation P (fun x ↦ f.NormalSpace x hn) (Fin r)) (hr : finrank ℝ P = r) :
+      VectorBundleOrientation P (fun x ↦ f.isImmersion.NormalSpace x hn) (Fin r)) (hr : finrank ℝ P = r) :
     (TopCat.of X).singularCohomology (ModuleCat.of ℤ (ULift.{w} ℤ)) ℤ
       (ModuleCat.of ℤ (ULift.{w} ℤ)) r :=
   letI := f.normalSpaceFiberBundle hn hdim
@@ -431,7 +431,7 @@ theorem dualClass_def (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) �
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f))
     (o : letI := f.normalSpaceFiberBundle hn hdim
       letI := f.normalSpaceVectorBundle hn hdim
-      VectorBundleOrientation P (fun x ↦ f.NormalSpace x hn) (Fin r)) (hr : finrank ℝ P = r) :
+      VectorBundleOrientation P (fun x ↦ f.isImmersion.NormalSpace x hn) (Fin r)) (hr : finrank ℝ P = r) :
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
     f.dualClass hn hdim hf o hr = f.dualClassOf hn hdim hf (o.canonicalThomClass hr) :=
@@ -443,7 +443,7 @@ theorem dualClass_eq_singularCohomologyπ_relDualClass (f : SmoothEmbedding I J 
     (hf : IsClosed (range f))
     (o : letI := f.normalSpaceFiberBundle hn hdim
       letI := f.normalSpaceVectorBundle hn hdim
-      VectorBundleOrientation P (fun x ↦ f.NormalSpace x hn) (Fin r)) (hr : finrank ℝ P = r) :
+      VectorBundleOrientation P (fun x ↦ f.isImmersion.NormalSpace x hn) (Fin r)) (hr : finrank ℝ P = r) :
     f.dualClass hn hdim hf o hr =
       (TopPair.ofSubset (X := TopCat.of X) (range f)ᶜ).singularCohomologyπ _ _ _ r
         (f.relDualClass hn hdim hf o hr) :=
@@ -455,7 +455,7 @@ theorem relDualClass_neg (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f))
     (o : letI := f.normalSpaceFiberBundle hn hdim
       letI := f.normalSpaceVectorBundle hn hdim
-      VectorBundleOrientation P (fun x ↦ f.NormalSpace x hn) (Fin r)) (hr : finrank ℝ P = r) :
+      VectorBundleOrientation P (fun x ↦ f.isImmersion.NormalSpace x hn) (Fin r)) (hr : finrank ℝ P = r) :
     f.relDualClass hn hdim hf (-o) hr = -f.relDualClass hn hdim hf o hr := by
   let := f.normalSpaceFiberBundle hn hdim
   let := f.normalSpaceVectorBundle hn hdim
@@ -468,7 +468,7 @@ theorem dualClass_neg (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) �
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f))
     (o : letI := f.normalSpaceFiberBundle hn hdim
       letI := f.normalSpaceVectorBundle hn hdim
-      VectorBundleOrientation P (fun x ↦ f.NormalSpace x hn) (Fin r)) (hr : finrank ℝ P = r) :
+      VectorBundleOrientation P (fun x ↦ f.isImmersion.NormalSpace x hn) (Fin r)) (hr : finrank ℝ P = r) :
     f.dualClass hn hdim hf (-o) hr = -f.dualClass hn hdim hf o hr := by
   let := f.normalSpaceFiberBundle hn hdim
   let := f.normalSpaceVectorBundle hn hdim
@@ -480,7 +480,7 @@ theorem dualClass_restrict_compl (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : 
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f))
     (o : letI := f.normalSpaceFiberBundle hn hdim
       letI := f.normalSpaceVectorBundle hn hdim
-      VectorBundleOrientation P (fun x ↦ f.NormalSpace x hn) (Fin r)) (hr : finrank ℝ P = r) :
+      VectorBundleOrientation P (fun x ↦ f.isImmersion.NormalSpace x hn) (Fin r)) (hr : finrank ℝ P = r) :
     TopCat.singularCohomologyMap (TopPair.ofSubset (X := TopCat.of X) (range f)ᶜ).map r
       (f.dualClass hn hdim hf o hr) = 0 :=
   dualClassOf_restrict_compl f hn hdim hf _
@@ -491,12 +491,12 @@ theorem dualClass_restrict (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f))
     (o : letI := f.normalSpaceFiberBundle hn hdim
       letI := f.normalSpaceVectorBundle hn hdim
-      VectorBundleOrientation P (fun x ↦ f.NormalSpace x hn) (Fin r)) (hr : finrank ℝ P = r) :
+      VectorBundleOrientation P (fun x ↦ f.isImmersion.NormalSpace x hn) (Fin r)) (hr : finrank ℝ P = r) :
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
     TopCat.singularCohomologyMap (TopCat.ofHom ⟨f, f.isEmbedding.continuous⟩) r
         (f.dualClass hn hdim hf o hr) =
-      eulerClass _ _ _ P (fun x ↦ f.NormalSpace x hn) r (o.canonicalThomClass hr) :=
+      eulerClass _ _ _ P (fun x ↦ f.isImmersion.NormalSpace x hn) r (o.canonicalThomClass hr) :=
   dualClassOf_restrict f hn hdim hf _
 
 /-- **The restriction of the dual class to the submanifold is the Euler class** of the oriented
@@ -505,7 +505,7 @@ theorem dualClass_restrict_eq_eulerClass (f : SmoothEmbedding I J ∞ Z X) (hn :
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f)) {m : ℕ}
     (o : letI := f.normalSpaceFiberBundle hn hdim
       letI := f.normalSpaceVectorBundle hn hdim
-      VectorBundleOrientation P (fun x ↦ f.NormalSpace x hn) (Fin (m + 1)))
+      VectorBundleOrientation P (fun x ↦ f.isImmersion.NormalSpace x hn) (Fin (m + 1)))
     (hr : finrank ℝ P = m + 1) :
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim

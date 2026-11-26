@@ -88,12 +88,12 @@ theorem HasSymplecticTangentImages.exists_contMDiff_pos_symplecticNormalForm_eq_
     (h₀ : hσ₀.HasSymplecticTangentImages J₀ f₀) (h₁ : hσ₁.HasSymplecticTangentImages J₁ f₁)
     {φ : Q₀ → Q₁} (hn : (∞ : ℕ∞ω) ≠ 0) (hP₀ : finrank ℝ P₀ = finrank ℝ E₀ - finrank ℝ EQ₀)
     (hP₁ : finrank ℝ P₁ = finrank ℝ E₁ - finrank ℝ EQ₁) (h2 : finrank ℝ P₀ = 2)
-    (Φ : ∀ q, f₀.NormalSpace q hn →L[ℝ] f₁.NormalSpace (φ q) hn)
+    (Φ : ∀ q, f₀.isImmersion.NormalSpace q hn →L[ℝ] f₁.isImmersion.NormalSpace (φ q) hn)
     (hΦ : letI := f₀.normalSpaceFiberBundle hn hP₀
       letI := f₁.normalSpaceFiberBundle hn hP₁
       ContMDiff (J₀.prod 𝓘(ℝ, P₀)) (J₁.prod 𝓘(ℝ, P₁)) ∞
-        (fun p : TotalSpace P₀ (fun q ↦ f₀.NormalSpace q hn) ↦
-          (⟨φ p.proj, Φ p.proj p.snd⟩ : TotalSpace P₁ (fun q ↦ f₁.NormalSpace q hn))))
+        (fun p : TotalSpace P₀ (fun q ↦ f₀.isImmersion.NormalSpace q hn) ↦
+          (⟨φ p.proj, Φ p.proj p.snd⟩ : TotalSpace P₁ (fun q ↦ f₁.isImmersion.NormalSpace q hn))))
     (hΦσ : ∀ q v w, 0 < f₀.symplecticNormalForm h₀ q hn v w →
       0 < f₁.symplecticNormalForm h₁ (φ q) hn (Φ q v) (Φ q w)) :
     ∃ c : Q₀ → ℝ, ContMDiff J₀ 𝓘(ℝ) ∞ c ∧ (∀ q, 0 < c q) ∧
@@ -105,7 +105,7 @@ theorem HasSymplecticTangentImages.exists_contMDiff_pos_symplecticNormalForm_eq_
   let := f₁.normalSpaceFiberBundle hn hP₁
   let b : Module.Basis (Fin 2) ℝ P₀ := Module.finBasisOfFinrankEq ℝ P₀ h2
   -- The basis of the normal space at `q` given by the preferred trivialization at `q`.
-  let β (q : Q₀) := (trivializationAt P₀ (fun q ↦ f₀.NormalSpace q hn) q).basisAt b
+  let β (q : Q₀) := (trivializationAt P₀ (fun q ↦ f₀.isImmersion.NormalSpace q hn) q).basisAt b
     (mem_baseSet_trivializationAt P₀ _ q)
   -- The normal form of `f₀` at `q`, and the pullback by `Φ q` of that of `f₁` at `φ q`.
   let ω₀ (q : Q₀) := f₀.symplecticNormalForm h₀ q hn
@@ -124,12 +124,12 @@ theorem HasSymplecticTangentImages.exists_contMDiff_pos_symplecticNormalForm_eq_
     exact (hB q).apply_eq_div_mul (ω₀ q).isAlt (ω₀ q).separatingLeft (β q) v w
   refine ⟨c, fun q₀ ↦ ?_, fun q ↦ ?_, hc⟩
   · -- Near `q₀`, `c` is the ratio of the two forms on a local frame.
-    let e := trivializationAt P₀ (fun q ↦ f₀.NormalSpace q hn) q₀
+    let e := trivializationAt P₀ (fun q ↦ f₀.isImmersion.NormalSpace q hn) q₀
     have hq₀ : q₀ ∈ e.baseSet := mem_baseSet_trivializationAt P₀ _ q₀
     let s := e.localFrame b
     have hs (i : Fin 2) := contMDiffAt_localFrame_of_mem (I := J₀) (n := ∞) e b i hq₀
     have hΦs (i : Fin 2) : ContMDiffAt J₀ (J₁.prod 𝓘(ℝ, P₁)) ∞
-        (fun q ↦ TotalSpace.mk' P₁ (E := fun q ↦ f₁.NormalSpace q hn) (φ q) (Φ q (s i q))) q₀ :=
+        (fun q ↦ TotalSpace.mk' P₁ (E := fun q ↦ f₁.isImmersion.NormalSpace q hn) (φ q) (Φ q (s i q))) q₀ :=
       (hΦ _).comp q₀ (hs i)
     have hnum := SmoothEmbedding.contMDiffAt_symplecticNormalForm h₁ hn hP₁ (hΦs 0) (hΦs 1)
     have hden := SmoothEmbedding.contMDiffAt_symplecticNormalForm (u := id) h₀ hn hP₀ (hs 0)
@@ -168,12 +168,12 @@ theorem HasSymplecticTangentImages.exists_symplectomorphism_opens_of_finrank_eq_
       SmoothForm.mpullback f₀ f₀.contMDiff σ₀)
     (hn : (∞ : ℕ∞ω) ≠ 0) (hP₀ : finrank ℝ P₀ = finrank ℝ E₀ - finrank ℝ EQ₀)
     (hP₁ : finrank ℝ P₁ = finrank ℝ E₁ - finrank ℝ EQ₁) (h2 : finrank ℝ P₀ = 2)
-    (Φ : ∀ q, f₀.NormalSpace q hn ≃L[ℝ] f₁.NormalSpace (φ q) hn)
+    (Φ : ∀ q, f₀.isImmersion.NormalSpace q hn ≃L[ℝ] f₁.isImmersion.NormalSpace (φ q) hn)
     (hΦ : letI := f₀.normalSpaceFiberBundle hn hP₀
       letI := f₁.normalSpaceFiberBundle hn hP₁
       ContMDiff (J₀.prod 𝓘(ℝ, P₀)) (J₁.prod 𝓘(ℝ, P₁)) ∞
-        (fun p : TotalSpace P₀ (fun q ↦ f₀.NormalSpace q hn) ↦
-          (⟨φ p.proj, Φ p.proj p.snd⟩ : TotalSpace P₁ (fun q ↦ f₁.NormalSpace q hn))))
+        (fun p : TotalSpace P₀ (fun q ↦ f₀.isImmersion.NormalSpace q hn) ↦
+          (⟨φ p.proj, Φ p.proj p.snd⟩ : TotalSpace P₁ (fun q ↦ f₁.isImmersion.NormalSpace q hn))))
     (hΦσ : ∀ q v w, 0 < f₀.symplecticNormalForm h₀ q hn v w →
       0 < f₁.symplecticNormalForm h₁ (φ q) hn (Φ q v) (Φ q w)) :
     ∃ c : Q₀ → ℝ, ContMDiff J₀ 𝓘(ℝ) ∞ c ∧ (∀ q, 0 < c q) ∧
@@ -189,12 +189,12 @@ theorem HasSymplecticTangentImages.exists_symplectomorphism_opens_of_finrank_eq_
             (SmoothForm.mpullback (Subtype.val : U₁ → M₁) contMDiff_subtypeVal σ₁) =
           SmoothForm.mpullback (Subtype.val : U₀ → M₀) contMDiff_subtypeVal σ₀ := by
   obtain ⟨c, hcs, hc0, hc⟩ := exists_contMDiff_pos_symplecticNormalForm_eq_mul h₀ h₁ hn hP₀ hP₁
-    h2 (fun q ↦ (Φ q : f₀.NormalSpace q hn →L[ℝ] f₁.NormalSpace (φ q) hn)) hΦ hΦσ
+    h2 (fun q ↦ (Φ q : f₀.isImmersion.NormalSpace q hn →L[ℝ] f₁.isImmersion.NormalSpace (φ q) hn)) hΦ hΦσ
   have hc0' (q : Q₀) : (√(c q))⁻¹ ≠ 0 := inv_ne_zero (Real.sqrt_pos.2 (hc0 q)).ne'
   -- The rescaled isomorphisms.
-  let Φ' (q : Q₀) : f₀.NormalSpace q hn ≃L[ℝ] f₁.NormalSpace (φ q) hn :=
+  let Φ' (q : Q₀) : f₀.isImmersion.NormalSpace q hn ≃L[ℝ] f₁.isImmersion.NormalSpace (φ q) hn :=
     (Φ q).trans (ContinuousLinearEquiv.smulLeft (Units.mk0 _ (hc0' q)))
-  have hΦ' (q : Q₀) (v : f₀.NormalSpace q hn) : Φ' q v = (√(c q))⁻¹ • Φ q v := by
+  have hΦ' (q : Q₀) (v : f₀.isImmersion.NormalSpace q hn) : Φ' q v = (√(c q))⁻¹ • Φ q v := by
     simp only [Φ', ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.smulLeft_apply_apply,
       Units.smul_mk0]
   have ha : ContMDiff J₀ 𝓘(ℝ) ∞ fun q ↦ (√(c q))⁻¹ :=

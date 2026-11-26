@@ -674,8 +674,8 @@ variable (hn : (∞ : ℕ∞ω) ≠ 0)
 /-- The normal spaces of the zero section in the model piece and in the model are the same,
 through the inclusion of the model piece. -/
 private def normalSpaceZeroSectionModelPieceEquiv (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
-    (zeroSectionModelPiece (n := n) hε).NormalSpace ℓ hn ≃L[ℝ]
-      (zeroSectionRealEmbedding n).NormalSpace ℓ hn :=
+    (zeroSectionModelPiece (n := n) hε).isImmersion.NormalSpace ℓ hn ≃L[ℝ]
+      (zeroSectionRealEmbedding n).isImmersion.NormalSpace ℓ hn :=
   (zeroSectionModelPiece hε).normalSpaceEquiv (zeroSectionRealEmbedding n) hn hn
     (u := _root_.id) (v := Subtype.val)
     ((isLocalDiffeomorph_subtype_val _).isInvertible_mfderiv hn)
@@ -685,8 +685,8 @@ private def normalSpaceZeroSectionModelPieceEquiv (ℓ : ℙ ℂ (Fin (n + 1) �
 /-- The normal spaces of the zero section in the model piece and of the divisor are the same,
 through `inr`. -/
 private def normalSpaceZeroSectionModelPieceDivisorEquiv (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
-    (zeroSectionModelPiece (n := n) hε).NormalSpace ℓ hn ≃L[ℝ]
-      (divisor hψ hl hε).NormalSpace ℓ hn :=
+    (zeroSectionModelPiece (n := n) hε).isImmersion.NormalSpace ℓ hn ≃L[ℝ]
+      (divisor hψ hl hε).isImmersion.NormalSpace ℓ hn :=
   (zeroSectionModelPiece hε).normalSpaceEquiv (divisor hψ hl hε) hn hn
     (u := _root_.id) (v := GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm)
     ((GluedAlong.isLocalDiffeomorph_inr _ _).isInvertible_mfderiv hn)
@@ -699,7 +699,7 @@ from the normal space of the divisor at `ℓ` onto the line `ℓ`: the isomorphi
 class of the image under `inr` of a tangent vector `w` of the model at `zeroSection ℓ` to the
 differential of `blowdown` applied to `w` (`normalSpaceDivisorEquiv_normalClass`). -/
 def normalSpaceDivisorEquiv (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
-    (divisor hψ hl hε).NormalSpace ℓ hn ≃L[ℝ]
+    (divisor hψ hl hε).isImmersion.NormalSpace ℓ hn ≃L[ℝ]
       Projectivization.Tautological ℂ (Fin (n + 1) → ℂ) ℓ :=
   ((normalSpaceZeroSectionModelPieceDivisorEquiv hψ hl hε hn ℓ).symm.trans
     (normalSpaceZeroSectionModelPieceEquiv hε hn ℓ)).trans
@@ -711,7 +711,7 @@ to `w`, a vector of the line `ℓ`. -/
 @[simp]
 theorem normalSpaceDivisorEquiv_normalClass (ℓ : ℙ ℂ (Fin (n + 1) → ℂ))
     (w : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) (zeroSection ℓ : BlowupModel n)) :
-    normalSpaceDivisorEquiv hψ hl hε hn ℓ ((divisor hψ hl hε).normalClass ℓ hn
+    normalSpaceDivisorEquiv hψ hl hε hn ℓ ((divisor hψ hl hε).isImmersion.normalClass ℓ hn
         (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
           (GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm)
           ⟨zeroSection ℓ, zeroSection_mem_modelPiece hε ℓ⟩ w)) =
@@ -722,18 +722,18 @@ theorem normalSpaceDivisorEquiv_normalClass (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)
   -- vectors of `Fin (n + 1) → ℂ`: `h₁` states the first step for every point equal to it.
   have h₁ : ∀ p, p = zeroSectionModelPiece hε ℓ → ∀ v : Fin (n + 1) → ℂ,
       (normalSpaceZeroSectionModelPieceDivisorEquiv hψ hl hε hn ℓ).symm
-        ((divisor hψ hl hε).normalClass ℓ hn
+        ((divisor hψ hl hε).isImmersion.normalClass ℓ hn
           (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
             (GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm) p v)) =
-        (zeroSectionModelPiece hε).normalClass ℓ hn v := by
+        (zeroSectionModelPiece hε).isImmersion.normalClass ℓ hn v := by
     rintro _ rfl v
     rw [ContinuousLinearEquiv.symm_apply_eq, normalSpaceZeroSectionModelPieceDivisorEquiv]
     exact (SmoothEmbedding.normalSpaceEquiv_normalClass (zeroSectionModelPiece hε)
       (divisor hψ hl hε) hn hn (u := _root_.id)
       (v := GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm) _ _ _ v).symm
   have h₂ : ∀ v : Fin (n + 1) → ℂ, normalSpaceZeroSectionModelPieceEquiv hε hn ℓ
-      ((zeroSectionModelPiece hε).normalClass ℓ hn v) =
-      (zeroSectionRealEmbedding n).normalClass ℓ hn v := by
+      ((zeroSectionModelPiece hε).isImmersion.normalClass ℓ hn v) =
+      (zeroSectionRealEmbedding n).isImmersion.normalClass ℓ hn v := by
     intro v
     rw [normalSpaceZeroSectionModelPieceEquiv]
     refine (SmoothEmbedding.normalSpaceEquiv_normalClass _ _ hn hn _ _ _ v).trans ?_
@@ -750,7 +750,7 @@ theorem normalSpaceDivisorEquiv_symm_apply (ℓ : ℙ ℂ (Fin (n + 1) → ℂ))
     (normalSpaceDivisorEquiv hψ hl hε hn ℓ).symm
         ⟨mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown (zeroSection ℓ) w,
           mfderiv_blowdown_zeroSection_mem ℓ w⟩ =
-      (divisor hψ hl hε).normalClass ℓ hn
+      (divisor hψ hl hε).isImmersion.normalClass ℓ hn
         (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
           (GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm)
           ⟨zeroSection ℓ, zeroSection_mem_modelPiece hε ℓ⟩ w) := by

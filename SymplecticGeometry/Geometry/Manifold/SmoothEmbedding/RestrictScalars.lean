@@ -193,8 +193,8 @@ theorem coe_mfderiv_restrictScalars (f : SmoothEmbedding 𝓘(𝕜', E) 𝓘(�
 of the larger field `𝕜'`. -/
 theorem smul_mem_tangentRange_restrictScalars (f : SmoothEmbedding 𝓘(𝕜', E) 𝓘(𝕜', E') m M N)
     (hnm : n ≤ m) (hn : 1 ≤ n) (x : M) (hn₀ : n ≠ 0) (c : 𝕜') {v : E'}
-    (hv : v ∈ (f.restrictScalars 𝕜 hnm hn).tangentRange x hn₀) :
-    c • v ∈ (f.restrictScalars 𝕜 hnm hn).tangentRange x hn₀ := by
+    (hv : v ∈ (f.restrictScalars 𝕜 hnm hn).isImmersion.tangentRange x hn₀) :
+    c • v ∈ (f.restrictScalars 𝕜 hnm hn).isImmersion.tangentRange x hn₀ := by
   have h := congrFun (f.coe_mfderiv_restrictScalars (𝕜 := 𝕜) hnm hn x)
   obtain ⟨u, rfl⟩ := (mem_tangentRange_iff _ x hn₀ v).1 hv
   -- The witness lives in `TangentSpace 𝓘(𝕜, E) x`, which carries only the `𝕜`-structure.
@@ -247,8 +247,8 @@ scalars of the larger field `𝕜'`. -/
 theorem smul_mem_tangentRange_restrictScalarsProd
     (f : SmoothEmbedding 𝓘(𝕜', E) (𝓘(𝕜', E').prod 𝓘(𝕜', F')) m M (N × N')) (hnm : n ≤ m)
     (hn : 1 ≤ n) (x : M) (hn₀ : n ≠ 0) (c : 𝕜') {v : E' × F'}
-    (hv : v ∈ (f.restrictScalarsProd 𝕜 hnm hn).tangentRange x hn₀) :
-    c • v ∈ (f.restrictScalarsProd 𝕜 hnm hn).tangentRange x hn₀ := by
+    (hv : v ∈ (f.restrictScalarsProd 𝕜 hnm hn).isImmersion.tangentRange x hn₀) :
+    c • v ∈ (f.restrictScalarsProd 𝕜 hnm hn).isImmersion.tangentRange x hn₀ := by
   have h := congrFun (f.coe_mfderiv_restrictScalarsProd (𝕜 := 𝕜) hnm hn x)
   obtain ⟨u, rfl⟩ := (mem_tangentRange_iff _ x hn₀ v).1 hv
   -- The witness lives in `TangentSpace 𝓘(𝕜, E) x`, which carries only the `𝕜`-structure.

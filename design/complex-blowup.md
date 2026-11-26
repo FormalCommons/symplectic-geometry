@@ -248,7 +248,7 @@ Namespace `SymplecticGeometry`, for `n : ℕ` and `E := Fin (n + 1) → ℂ`.
   `TauCeti.SmoothEmbedding 𝓘(ℂ, Fin n → ℂ) 𝓘(ℂ, E) ω`, with range the
   exceptional divisor.
 - `normalSpaceZeroSectionEquiv n ℓ`, the complex-linear isomorphism from
-  Tau Ceti's `SmoothEmbedding.NormalSpace` of `zeroSectionEmbedding n` at
+  Tau Ceti's `Manifold.IsImmersion.NormalSpace` of `zeroSectionEmbedding n` at
   `ℓ` onto `Tautological ℂ E ℓ`, induced by the differential of `blowdown`,
   whose kernel at `(ℓ, 0)` is the tangent image of the zero section and whose
   image is `ℓ`; and its continuity on total spaces, in Tau Ceti's local

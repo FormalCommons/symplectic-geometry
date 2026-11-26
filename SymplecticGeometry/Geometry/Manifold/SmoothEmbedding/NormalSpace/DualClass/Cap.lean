@@ -105,17 +105,17 @@ theorem exists_isNormalizedTube_singularCap_dualClassOf_fundamentalClass
     (oX : HomologicalOrientation X F n) (hnX : finrank ℝ F = n) (L : ModuleCat.{0} ℤ) :
     letI := f.normalSpaceFiberBundle hn hdim
     ∃ (W : TopologicalSpace.Opens X)
-      (Φ : TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
+      (Φ : TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
       (hΦ : f.IsNormalizedTube hn hdim Φ)
       (hK : IsCompact (Subtype.val ⁻¹' range f : Set W)), ∀ {p q : ℕ} (h : p + q = n)
-        (u : (thomPair P (fun x ↦ f.NormalSpace x hn)).singularCohomology
+        (u : (thomPair P (fun x ↦ f.isImmersion.NormalSpace x hn)).singularCohomology
           (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ L p),
         ((TopCat.of X).singularCap ℤ (ρ_ _).inv (ρ_ L).hom p q n h
             (f.dualClassOf hn hdim hf u)).hom (oX.fundamentalClass hnX) =
           (((singularHomologyFunctor (ModuleCat.{0} ℤ) q).obj L).map
-            (TopCat.ofHom ⟨fun v : TotalSpace P (fun x ↦ f.NormalSpace x hn) ↦ f v.proj,
+            (TopCat.ofHom ⟨fun v : TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ↦ f v.proj,
               f.isEmbedding.continuous.comp (FiberBundle.continuous_proj P _)⟩)).hom
-            (((thomPair P (fun x ↦ f.NormalSpace x hn)).singularCap ℤ (ρ_ _).inv (ρ_ L).hom
+            (((thomPair P (fun x ↦ f.isImmersion.NormalSpace x hn)).singularCap ℤ (ρ_ _).inv (ρ_ L).hom
               p q n h u).hom
               ((TopPair.singularHomologyMap
                 (TopPair.ofSubsetMap (X := TopCat.of W) (Y := TopCat.of W)
@@ -171,7 +171,7 @@ theorem exists_isNormalizedTube_singularCap_dualClassOf_fundamentalClass
   -- The tube, followed by the inclusion of `W`, is homotopic to `f ∘ π`, as `Φ` is `f` on the
   -- zero section and the zero section after `π` is homotopic to the identity.
   let := f.normalSpaceVectorBundle hn hdim
-  let g : C(TotalSpace P (fun x ↦ f.NormalSpace x hn), X) :=
+  let g : C(TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn), X) :=
     ⟨fun v ↦ (Φ v : X), continuous_subtypeVal.comp Φ.continuous⟩
   have hgf : g.Homotopic ⟨fun v ↦ f v.proj,
       f.isEmbedding.continuous.comp (FiberBundle.continuous_proj P _)⟩ :=

@@ -26,7 +26,7 @@ linear equivalences over the continuous map `f` with continuous total-space map,
 Tau Ceti's `TauCeti.thomPairMapOfFiberwise` and `TauCeti.VectorBundleOrientation.comap` take.
 Over the reals, an orientation `o'` of `E'` is carried along them to a normal orientation of `Z`.
 
-The fibrewise isomorphism is Tau Ceti's `TauCeti.SmoothEmbedding.normalSpaceEquivOfKer` for the
+The fibrewise isomorphism is Tau Ceti's `Manifold.IsImmersion.normalSpaceEquivOfKer` for the
 linearization read in the preferred trivialization of `E'`; it is the analogue for zero sets of
 sections of Tau Ceti's `TauCeti.SmoothEmbedding.normalSpaceEquivOfLevel` for level sets.
 Its continuity is `SymplecticGeometry.continuous_sectionLinearization_pullback`, read through the
@@ -91,7 +91,7 @@ open SymplecticGeometry
 zero set of a transverse section at `z` is the kernel of the linearization of `s` at `z`. -/
 theorem tangentRange_ofTransverseSection (z : ↥{x : X | s x = 0}) :
     letI := transverseZeroSetChartedSpace hm hsm hs hE
-    (ofTransverseSection hm hsm hs hE).tangentRange z hm =
+    (ofTransverseSection hm hsm hs hE).isImmersion.tangentRange z hm =
       (sectionLinearization (F := F') J _root_.id s (ofTransverseSection hm hsm hs hE z)).ker := by
   let := transverseZeroSetChartedSpace hm hsm hs hE
   -- `range_mfderiv_coe_transverseZeroSet` is stated for `Subtype.val`, the coercion of `f`.
@@ -115,20 +115,20 @@ equivalence from the normal space of the zero set at `z` onto the fibre of `E'` 
 (`SymplecticGeometry.normalSpaceEquivOfTransverseSection_normalClass`). -/
 noncomputable def normalSpaceEquivOfTransverseSection (z : ↥{x : X | s x = 0}) :
     letI := transverseZeroSetChartedSpace hm hsm hs hE
-    (ofTransverseSection hm hsm hs hE).NormalSpace z hm ≃L[𝕜]
+    (ofTransverseSection hm hsm hs hE).isImmersion.NormalSpace z hm ≃L[𝕜]
       E' (ofTransverseSection hm hsm hs hE z) :=
   letI := transverseZeroSetChartedSpace hm hsm hs hE
   let f := ofTransverseSection hm hsm hs hE
   let e := (trivializationAt F' E' (f z)).continuousLinearEquivAt 𝕜 (f z)
     (mem_baseSet_trivializationAt F' E' (f z))
-  (f.normalSpaceEquivOfKer z hm
+  (f.isImmersion.normalSpaceEquivOfKer z hm
     ((e : E' (f z) →L[𝕜] F').comp (sectionLinearization (F := F') J _root_.id s (f z)))
     (fun v ↦ by
       rw [ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe, e.map_eq_zero_iff,
         tangentRange_ofTransverseSection hm hsm hs hE z, LinearMap.mem_ker,
         ContinuousLinearMap.coe_coe])
     (by
-      have h := f.finrank_normalSpace z hm
+      have h := f.isImmersion.finrank_normalSpace z hm
       have hV : finrank 𝕜 (TangentSpace J (f z)) = finrank 𝕜 V := rfl
       have hE' : finrank 𝕜 (TangentSpace 𝓘(𝕜, E) z) = finrank 𝕜 E := rfl
       omega)).trans e.symm
@@ -140,7 +140,7 @@ theorem normalSpaceEquivOfTransverseSection_normalClass (z : ↥{x : X | s x = 0
     (v : TangentSpace J (ofTransverseSection hm hsm hs hE z)) :
     letI := transverseZeroSetChartedSpace hm hsm hs hE
     normalSpaceEquivOfTransverseSection hm hsm hs hE z
-        ((ofTransverseSection hm hsm hs hE).normalClass z hm v) =
+        ((ofTransverseSection hm hsm hs hE).isImmersion.normalClass z hm v) =
       sectionLinearization (F := F') J _root_.id s (ofTransverseSection hm hsm hs hE z) v := by
   let := transverseZeroSetChartedSpace hm hsm hs hE
   rw [normalSpaceEquivOfTransverseSection, ContinuousLinearEquiv.trans_apply,
@@ -155,7 +155,7 @@ theorem normalSpaceEquivOfTransverseSection_symm_apply (z : ↥{x : X | s x = 0}
     letI := transverseZeroSetChartedSpace hm hsm hs hE
     (normalSpaceEquivOfTransverseSection hm hsm hs hE z).symm
         (sectionLinearization (F := F') J _root_.id s (ofTransverseSection hm hsm hs hE z) v) =
-      (ofTransverseSection hm hsm hs hE).normalClass z hm v := by
+      (ofTransverseSection hm hsm hs hE).isImmersion.normalClass z hm v := by
   let := transverseZeroSetChartedSpace hm hsm hs hE
   rw [ContinuousLinearEquiv.symm_apply_eq, normalSpaceEquivOfTransverseSection_normalClass]
 
@@ -168,7 +168,7 @@ the fibrewise equivalences, this is the input of `TauCeti.thomPairMapOfFiberwise
 theorem continuous_normalSpaceEquivOfTransverseSection :
     letI := transverseZeroSetChartedSpace hm hsm hs hE
     haveI : IsManifold J 1 X := .of_le (ENat.one_le_iff_ne_zero_withTop.mpr hm)
-    Continuous fun v : TotalSpace F' fun z ↦ (ofTransverseSection hm hsm hs hE).NormalSpace z hm ↦
+    Continuous fun v : TotalSpace F' fun z ↦ (ofTransverseSection hm hsm hs hE).isImmersion.NormalSpace z hm ↦
       TotalSpace.mk' F' (ofTransverseSection hm hsm hs hE v.proj)
         (normalSpaceEquivOfTransverseSection hm hsm hs hE v.proj v.snd) := by
   let := transverseZeroSetChartedSpace hm hsm hs hE
@@ -176,7 +176,7 @@ theorem continuous_normalSpaceEquivOfTransverseSection :
   set f := ofTransverseSection hm hsm hs hE
   rw [f.continuous_normalBundle_iff hm]
   -- On an ambient representative `(z, v)` the map is `(z, L_z v)`.
-  have hrep : (fun v : TotalSpace F' fun z ↦ f.NormalSpace z hm ↦ TotalSpace.mk' F' (f v.proj)
+  have hrep : (fun v : TotalSpace F' fun z ↦ f.isImmersion.NormalSpace z hm ↦ TotalSpace.mk' F' (f v.proj)
       (normalSpaceEquivOfTransverseSection hm hsm hs hE v.proj v.snd)) ∘ f.normalQuotientMap hm =
       fun p ↦ TotalSpace.mk' F' (f p.proj)
         (sectionLinearization (F := F') J _root_.id s (f p.proj) p.snd) := by
@@ -228,7 +228,7 @@ noncomputable def normalOrientationOfSection (o' : VectorBundleOrientation F' E'
       (Nat.eq_sub_of_add_eq' hE)
     letI := (ofTransverseSection hm hsm hs hE).normalSpaceVectorBundle (P := F') hm
       (Nat.eq_sub_of_add_eq' hE)
-    VectorBundleOrientation F' (fun z ↦ (ofTransverseSection hm hsm hs hE).NormalSpace z hm) ι :=
+    VectorBundleOrientation F' (fun z ↦ (ofTransverseSection hm hsm hs hE).isImmersion.NormalSpace z hm) ι :=
   letI := transverseZeroSetChartedSpace hm hsm hs hE
   haveI := isManifold_transverseZeroSet hm hsm hs hE
   haveI : IsManifold 𝓘(ℝ, E) 1 ↥{x : X | s x = 0} :=

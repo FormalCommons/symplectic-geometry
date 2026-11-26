@@ -91,7 +91,7 @@ theorem hyperplaneClass_pow_eq_zero :
 
 Milestone: *Chern classes of projective hypersurfaces*. -/
 theorem chernClass_one_normalSpace :
-    chernClass ℂ (fun x : X ↦ X.embedding.NormalSpace x WithTop.top_ne_zero) 1 =
+    chernClass ℂ (fun x : X ↦ X.embedding.isImmersion.NormalSpace x WithTop.top_ne_zero) 1 =
       d • X.hyperplaneClass := by
   rw [chernClass_congr _ X.continuous_normalSpaceEquiv]
   refine (chernClass_pullback X.embedding.toContinuousMap 1).trans ?_
@@ -99,7 +99,7 @@ theorem chernClass_one_normalSpace :
 
 /-- The total Chern class of the normal bundle of a hypersurface is `1 + d ι^* h`. -/
 theorem totalChernClass_normalSpace :
-    totalChernClass ℂ (fun x : X ↦ X.embedding.NormalSpace x WithTop.top_ne_zero) =
+    totalChernClass ℂ (fun x : X ↦ X.embedding.isImmersion.NormalSpace x WithTop.top_ne_zero) =
       1 + d • (TopCat.of X).evenIntegralCohomologyOf 1 X.hyperplaneClass := by
   rw [totalChernClass_eq_one_add_of_finrank_eq_one _ _ (finrank_self ℂ),
     chernClass_one_normalSpace, map_nsmul]
