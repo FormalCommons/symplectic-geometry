@@ -29,7 +29,21 @@ structure `TauCeti.BalancedProduct.rightTranslationChartedSpace` on `G ×_H P`:
   `e` (`SymplecticGeometry.LinearizingChart.linearTubeDomain`), since the slice map is smooth
   at each `p` with `L p` in the target of `e`;
 * composed with the differential at `(1, 0)` of the projection `π : G × P → G ×_H P`, its
-  differential at `[1, 0]` is `(ξ, p) ↦ ξ_M(x) + L p`.
+  differential at `[1, 0]` is `(ξ, p) ↦ ξ_M(x) + L p`;
+* when `L` is injective with range a complement of the orbit tangent space `𝔤 · x`, and `M` is
+  boundaryless and Hausdorff, it is a local diffeomorphism at `[1, 0]`, and at every `[g, p]`
+  with `p` in some open `H`-invariant neighbourhood `Z` of `0` with `L '' Z` in the target of
+  `e`.
+
+For the last point, `(ξ, p) ↦ ξ_M(x) + L p` is onto `T_x M` since `𝔤 · x + range L = T_x M`, and
+vanishes only on `𝔤_x × 0` since the two subspaces meet in `0` and `L` is injective. The rest is
+shared with the tube map of a slice domain: the inverse function theorem for the lift of an
+equivariant map, `TauCeti.BalancedProduct.isLocalDiffeomorphAt_liftRightTranslation_mk_one`, and
+the invariance of local diffeomorphy along orbits,
+`TauCeti.BalancedProduct.isLocalDiffeomorphAt_liftRightTranslation_mk_iff` and
+`TauCeti.BalancedProduct.isLocalDiffeomorphAt_liftRightTranslation_mk_one_smul_iff`. The linear
+algebra follows the proofs of Tau Ceti's `TauCeti.surjective_mfderiv_smul_slice` and
+`TauCeti.mfderiv_smul_slice_eq_zero_iff`, which treat the inclusion of a subspace in place of `L`.
 
 The construction parallels `SymplecticGeometry.LinearizingChart.SliceDomain.tubeMap`, with the
 linear fibre `P` in place of a slice domain. Both results follow from the corresponding facts
@@ -57,6 +71,10 @@ and `TauCeti.BalancedProduct.mfderiv_liftRightTranslation_mfderiv_quotientMk`.
   domain.
 * `SymplecticGeometry.LinearizingChart.mfderiv_linearTubeMap_mfderiv_quotientMk`: its differential
   at `[1, 0]`, composed with that of the projection, is `(ξ, p) ↦ ξ_M(x) + L p`.
+* `SymplecticGeometry.LinearizingChart.isLocalDiffeomorphAt_linearTubeMap_mk_one`,
+  `SymplecticGeometry.LinearizingChart.exists_isLocalDiffeomorphAt_linearTubeMap`: for a complement
+  of `𝔤 · x`, the map is a local diffeomorphism at `[1, 0]`, and at every `[g, p]` with `p` near
+  `0`.
 
 ## References
 
@@ -296,6 +314,95 @@ theorem mfderiv_linearTubeMap_mfderiv_quotientMk (ξ : GroupLieAlgebra I G) (p :
   -- The sides differ only in how `L p` is typed: as a map between the tangent spaces at `0` and
   -- at `x`, or between `P` and `E'`, of which those tangent spaces are type synonyms.
   rfl
+
+/-! ### Local diffeomorphy near the zero section -/
+
+variable (F) in
+/-- **The tube map along a linear fibre is a local diffeomorphism at `[1, 0]`** when `L` is
+injective and its range is a complement of the orbit tangent space `𝔤 · x` in `T_x M`. Composed
+with the differential of the projection `π : G × P → G ×_H P`, its differential at `[1, 0]` is
+`(ξ, p) ↦ ξ_M(x) + L p`, which is onto `T_x M` and vanishes only on `𝔤_x × 0`, a set that `dπ`
+kills. -/
+theorem isLocalDiffeomorphAt_linearTubeMap_mk_one [CompleteSpace E'] [IsManifold I' ∞ M] [T2Space M]
+    [I'.Boundaryless]
+    (hLi : Injective L)
+    (hV : IsCompl ((InfinitesimalAction.fundamental I G I' M).orbitTangent x)
+      (L : P →ₗ[ℝ] E').range) :
+    letI := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) P I 𝓘(ℝ, P) F
+    IsLocalDiffeomorphAt 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × P)) I' ∞ (e.linearTubeMap hL)
+      (Quotient.mk _ ((stabilizer G x).toRightTranslation 1, 0)) := by
+  let _ := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) P I 𝓘(ℝ, P) F
+  have : T2Space G := I.t2Space_of_lieGroup ∞
+  -- The stabilizer fixes `0`, since `L` is injective and the differentials fix `0`.
+  have hfix : ∀ k : stabilizer G x, k • (0 : P) = 0 := fun k ↦
+    hLi (by rw [hL, map_zero]; exact (mfderiv I' I' (fun y : M ↦ (k : G) • y) x).map_zero)
+  have h0 : (0 : P) ∈ L ⁻¹' e.chart.target := by
+    rw [mem_preimage, map_zero]
+    exact e.zero_mem_target
+  rw [linearTubeMap_def]
+  refine BalancedProduct.isLocalDiffeomorphAt_liftRightTranslation_mk_one F
+    (e.chart.open_target.preimage L.continuous) h0
+    (fun p hp ↦ (e.contMDiffAt_linearSliceMap hL hp).contMDiffWithinAt) hfix
+    (fun (w : TangentSpace I' x) ↦ ?_) fun ξ p hp ↦ ?_
+  · rw [← linearTubeMap_def]
+    obtain ⟨y, hy, _, ⟨p, rfl⟩, hyp⟩ :=
+      Submodule.mem_sup.1 ((SetLike.ext_iff.1 hV.sup_eq_top w).2 Submodule.mem_top)
+    obtain ⟨ξ, rfl⟩ := (InfinitesimalAction.mem_orbitTangent_iff _ _).1 hy
+    rw [InfinitesimalAction.fundamental_apply] at hyp
+    exact ⟨(ξ, p), (e.mfderiv_linearTubeMap_mfderiv_quotientMk hL F ξ p).trans hyp⟩
+  · rw [← linearTubeMap_def, e.mfderiv_linearTubeMap_mfderiv_quotientMk hL F ξ p] at hp
+    -- `L p = -ξ_M(x)` lies in both `𝔤 · x` and the range of `L`, so it is `0`.
+    have hLp : L p = 0 := by
+      refine (Submodule.disjoint_def.1 hV.disjoint) (L p) ?_
+        (LinearMap.mem_range_self (L : P →ₗ[ℝ] E') p)
+      have hξ := InfinitesimalAction.mem_orbitTangent (InfinitesimalAction.fundamental I G I' M) x ξ
+      rw [InfinitesimalAction.fundamental_apply] at hξ
+      rw [eq_neg_of_add_eq_zero_right hp]
+      exact Submodule.neg_mem _ hξ
+    refine ⟨TauCeti.Lie.mem_isotropy_fundamental_iff (I' := I') (M := M).1 ?_,
+      hLi (hLp.trans (map_zero L).symm)⟩
+    rw [InfinitesimalAction.mem_isotropy_iff, InfinitesimalAction.fundamental_apply]
+    rw [hLp] at hp
+    exact (add_zero _).symm.trans hp
+
+variable (F) in
+/-- **The tube map along a linear fibre is a local diffeomorphism near the zero section.** When
+`L` is injective and its range is a complement of the orbit tangent space `𝔤 · x` in `T_x M`,
+there is an open neighbourhood `Z` of `0` in `P`, invariant under the stabilizer `H` of `x` and
+mapped by `L` into the target of `e`, such that the tube map is a local diffeomorphism at every
+class `[g, p]` with `p ∈ Z`. -/
+theorem exists_isLocalDiffeomorphAt_linearTubeMap [CompleteSpace E'] [IsManifold I' ∞ M] [T2Space M]
+    [I'.Boundaryless]
+    (hLi : Injective L)
+    (hV : IsCompl ((InfinitesimalAction.fundamental I G I' M).orbitTangent x)
+      (L : P →ₗ[ℝ] E').range) :
+    letI := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) P I 𝓘(ℝ, P) F
+    ∃ Z : Set P, IsOpen Z ∧ (0 : P) ∈ Z ∧ (∀ (k : stabilizer G x) {p : P}, p ∈ Z → k • p ∈ Z) ∧
+      L '' Z ⊆ e.chart.target ∧ ∀ (g : G) {p : P}, p ∈ Z →
+        IsLocalDiffeomorphAt 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × P)) I' ∞
+          (e.linearTubeMap hL)
+          (BalancedProduct.mk _ ((stabilizer G x).toRightTranslation g) p) := by
+  let _ := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) P I 𝓘(ℝ, P) F
+  -- `Z` is the set of `p` with `L p` in the target of `e` at whose class `[1, p]` the tube map is
+  -- a local diffeomorphism.
+  refine ⟨L ⁻¹' e.chart.target ∩ {p | IsLocalDiffeomorphAt
+    𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × P)) I' ∞ (e.linearTubeMap hL)
+      (BalancedProduct.mk _ ((stabilizer G x).toRightTranslation 1) p)}, ?_, ⟨?_, ?_⟩, ?_, ?_, ?_⟩
+  · rw [linearTubeMap_def]
+    exact (e.chart.open_target.preimage L.continuous).inter
+      (BalancedProduct.isOpen_setOf_isLocalDiffeomorphAt_liftRightTranslation_mk_one F)
+  · rw [mem_preimage, map_zero]
+    exact e.zero_mem_target
+  · exact e.isLocalDiffeomorphAt_linearTubeMap_mk_one hL F hLi hV
+  · rintro k p ⟨hp, hp'⟩
+    refine ⟨(e.apply_smul_mem_target_iff hL k p).2 hp, ?_⟩
+    simp only [mem_ofPred_eq, linearTubeMap_def] at hp' ⊢
+    exact (BalancedProduct.isLocalDiffeomorphAt_liftRightTranslation_mk_one_smul_iff F k p).2 hp'
+  · rintro _ ⟨p, ⟨hp, -⟩, rfl⟩
+    exact hp
+  · rintro g p ⟨-, hp⟩
+    rw [linearTubeMap_def, BalancedProduct.isLocalDiffeomorphAt_liftRightTranslation_mk_iff F g]
+    exact hp
 
 end Smooth
 
