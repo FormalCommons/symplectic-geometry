@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Data.Fintype.Order
 public import Mathlib.Topology.VectorBundle.Basic
 public import TauCeti.Topology.VectorBundle.Coordinates
 
@@ -18,6 +19,14 @@ public import TauCeti.Topology.VectorBundle.Coordinates
   (`VectorBundleCore.fiberEquiv_localTriv_symm`).
 * `VectorBundleCore.inChartCoordinates_id`: the chart expression of the identity, between two
   charts at a point of both, is their coordinate change.
+* `VectorBundleCore.exists_norm_coordChange_le`: over a Hausdorff base, the transitions between
+  finitely many charts are bounded on the overlaps of compact subsets of their domains.
+* `VectorBundleCore.inChartCoordinates_eq_coordChange_comp`: chart expressions of one operator in
+  two pairs of charts differ by the transitions between them.
+* `VectorBundleCore.inChartCoordinates_smul` and `VectorBundleCore.inChartCoordinates_sum`: the
+  chart expression is linear in the operator.
+* `VectorBundleCore.exists_units_inv_mul_mul_eq_inChartCoordinates`: reading an endomorphism of a
+  fibre in a chart is a conjugation by a unit.
 -/
 
 public section
@@ -69,5 +78,59 @@ theorem inChartCoordinates_id {i j : ι} {x : B} (hi : x ∈ Z.baseSet i) (hj : 
   ext v : 1
   rw [inChartCoordinates_apply, ContinuousLinearMap.id_apply,
     Z.coordChange_comp _ _ _ x ⟨⟨hi, Z.mem_baseSet_at x⟩, hj⟩]
+
+/-- Let `K k`, for `k` in a finite type, be compact subsets of the domains of charts `p k` of a
+core over a Hausdorff base. Then the transitions from the chart `p k` to the chart `p j` are
+bounded, uniformly in `j` and `k`, on `K j ∩ K k`. -/
+theorem exists_norm_coordChange_le [T2Space B] {κ : Type*} [Finite κ] (p : κ → ι)
+    {K : κ → Set B} (hK : ∀ k, IsCompact (K k)) (hKs : ∀ k, K k ⊆ Z.baseSet (p k)) :
+    ∃ C, ∀ j k, ∀ x ∈ K j ∩ K k, ‖Z.coordChange (p k) (p j) x‖ ≤ C := by
+  have h (j k : κ) : ∃ C, ∀ x ∈ K j ∩ K k, ‖Z.coordChange (p k) (p j) x‖ ≤ C :=
+    ((hK j).inter_right (hK k).isClosed).exists_bound_of_continuousOn
+      ((Z.continuousOn_coordChange (p k) (p j)).mono fun x hx ↦ ⟨hKs k hx.2, hKs j hx.1⟩)
+  choose C hC using h
+  obtain ⟨M, hM⟩ := Finite.exists_le fun q : κ × κ ↦ C q.1 q.2
+  exact ⟨M, fun j k x hx ↦ (hC j k x hx).trans (hM (j, k))⟩
+
+variable {G κ : Type*} [NormedAddCommGroup G] [NormedSpace R G] {W : VectorBundleCore R B G κ}
+
+/-- At a point of the charts `i` and `i'` of `Z` and `j` and `j'` of `W`, the chart expression of
+`ϕ` from `i'` to `j'` is its chart expression from `i` to `j`, after the transition from `i'` to
+`i` and before the transition from `j` to `j'`. -/
+theorem inChartCoordinates_eq_coordChange_comp {i i' : ι} {j j' : κ} {x : B}
+    (hi : x ∈ Z.baseSet i) (hi' : x ∈ Z.baseSet i') (hj : x ∈ W.baseSet j)
+    (hj' : x ∈ W.baseSet j') (ϕ : F →L[R] G) :
+    Z.inChartCoordinates W i' j' x ϕ =
+      (W.coordChange j j' x).comp
+        ((Z.inChartCoordinates W i j x ϕ).comp (Z.coordChange i' i x)) := by
+  ext v : 1
+  simp only [inChartCoordinates_apply, ContinuousLinearMap.comp_apply,
+    Z.coordChange_comp i' i (Z.indexAt x) x ⟨⟨hi', hi⟩, Z.mem_baseSet_at x⟩,
+    W.coordChange_comp (W.indexAt x) j j' x ⟨⟨W.mem_baseSet_at x, hj⟩, hj'⟩]
+
+/-- The chart expression of an operator is linear in the operator: scalar multiples. -/
+theorem inChartCoordinates_smul (i : ι) (j : κ) (x : B) (c : R) (ϕ : F →L[R] G) :
+    Z.inChartCoordinates W i j x (c • ϕ) = c • Z.inChartCoordinates W i j x ϕ := by
+  ext v : 1
+  simp only [inChartCoordinates_apply, smul_apply, map_smul]
+
+/-- The chart expression of an operator is linear in the operator: finite sums. -/
+theorem inChartCoordinates_sum {α : Type*} (s : Finset α) (i : ι) (j : κ) (x : B)
+    (ϕ : α → F →L[R] G) :
+    Z.inChartCoordinates W i j x (∑ a ∈ s, ϕ a) = ∑ a ∈ s, Z.inChartCoordinates W i j x (ϕ a) := by
+  ext v : 1
+  simp only [inChartCoordinates_apply, sum_apply, map_sum]
+
+/-- At a point of the domain of a chart `i`, reading an endomorphism of the fibre in the chart `i`
+is a conjugation by a unit of the ring of endomorphisms of the model fibre. -/
+theorem exists_units_inv_mul_mul_eq_inChartCoordinates {i : ι} {x : B} (hx : x ∈ Z.baseSet i) :
+    ∃ U : (F →L[R] F)ˣ, ∀ M : F →L[R] F, ↑U⁻¹ * M * ↑U = Z.inChartCoordinates Z i i x M := by
+  have h {j k : ι} (hj : x ∈ Z.baseSet j) (hk : x ∈ Z.baseSet k) :
+      Z.coordChange k j x * Z.coordChange j k x = 1 :=
+    (Z.coordChange_comp_coordChange_eq_id hj hk).trans ContinuousLinearMap.one_def.symm
+  refine ⟨⟨Z.coordChange i (Z.indexAt x) x, Z.coordChange (Z.indexAt x) i x,
+    h (Z.mem_baseSet_at x) hx, h hx (Z.mem_baseSet_at x)⟩, fun M ↦ ?_⟩
+  rw [inChartCoordinates_def, Units.inv_mk, Units.val_mk, ContinuousLinearMap.mul_def,
+    ContinuousLinearMap.mul_def, ContinuousLinearMap.comp_assoc]
 
 end VectorBundleCore

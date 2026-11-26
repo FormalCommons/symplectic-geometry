@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Lie.Adjoint.Basic
 public import TauCeti.Geometry.Manifold.Riemannian.Invariant
+public import SymplecticGeometry.Geometry.Manifold.GroupAction.BoundarylessModel
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.Circle
 public import SymplecticGeometry.Geometry.Manifold.Riemannian.OneForm.Flat
 
@@ -26,6 +27,14 @@ where `X` does. Invariance of `β` comes from that of `g` and of `X`
 fundamental vector field of `Ad_a ξ` at `a • x` (`TauCeti.mfderiv_smul_fundamentalVectorField`),
 and `Ad_a` is the identity because `G` is commutative
 (`TauCeti.Lie.adjointContinuousLinearMap_eq_id`).
+
+Tau Ceti's invariant metrics are stated for a boundaryless model `I`. For a boundaryless manifold
+whose model may have boundary, the form is built as above on the copy
+`TauCeti.BoundarylessModel I M` with charts in `E`, which carries the action
+(`SymplecticGeometry/Geometry/Manifold/GroupAction/BoundarylessModel.lean`), and pulled back
+along the identity diffeomorphism `TauCeti.BoundarylessModel.interiorDiffeomorph`. Since that map
+is equivariant, its differential carries the fundamental vector field of `ξ` on `M` to the one on
+the copy (`TauCeti.mfderiv_fundamentalVectorField_of_map_smul`), and is injective.
 
 For a smooth circle action and the period-one generator, the zeros of `X` are the fixed points
 (`SymplecticGeometry.mem_fixedPoints_circle_iff_fundamentalVectorField_eq_zero`), so `β(X)`
@@ -59,7 +68,7 @@ open scoped ContDiff Manifold
 namespace SymplecticGeometry
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
-  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
   {M : Type*} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M] [T2Space M]
   [SigmaCompactSpace M]
 
@@ -71,12 +80,9 @@ variable {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
   [CompactSpace G] [T2Space G] [ChartedSpace H' G] [LieGroup J ∞ G] [MulAction G M]
   [ContMDiffSMul J I ∞ G M]
 
-/-- For a smooth action of a compact commutative Lie group `G` on a σ-compact Hausdorff
-boundaryless manifold `M` with a finite-dimensional model, and `ξ` in the Lie algebra of `G` with
-fundamental vector field `X`, there is a smooth one-form `β` on `M`, invariant under every
-`g • ·`, such that `β(X) ≥ 0` at every point, with equality exactly where `X` vanishes. -/
-theorem exists_invariant_smoothForm_apply_fundamentalVectorField_nonneg
-    (ξ : GroupLieAlgebra J G) :
+/-- The case of a boundaryless model, where Tau Ceti gives an invariant metric directly. -/
+private theorem exists_invariant_smoothForm_apply_fundamentalVectorField_nonneg_of_boundaryless
+    [I.Boundaryless] (ξ : GroupLieAlgebra J G) :
     ∃ β : SmoothForm I M ℝ 1,
       (∀ g : G, SmoothForm.mpullback (g • ·)
         (ContMDiffSMul.contMDiff_const_smul (I := J) (I' := I) g) β = β) ∧
@@ -94,11 +100,46 @@ theorem exists_invariant_smoothForm_apply_fundamentalVectorField_nonneg
   rw [SmoothForm.flat_apply_self]
   exact ⟨sq_nonneg _, by simp⟩
 
+attribute [local instance] BoundarylessModel.interiorChartedSpace in
+/-- For a smooth action of a compact commutative Lie group `G` on a σ-compact Hausdorff
+boundaryless manifold `M` with a finite-dimensional model, and `ξ` in the Lie algebra of `G` with
+fundamental vector field `X`, there is a smooth one-form `β` on `M`, invariant under every
+`g • ·`, such that `β(X) ≥ 0` at every point, with equality exactly where `X` vanishes. -/
+theorem exists_invariant_smoothForm_apply_fundamentalVectorField_nonneg
+    [BoundarylessManifold I M] (ξ : GroupLieAlgebra J G) :
+    ∃ β : SmoothForm I M ℝ 1,
+      (∀ g : G, SmoothForm.mpullback (g • ·)
+        (ContMDiffSMul.contMDiff_const_smul (I := J) (I' := I) g) β = β) ∧
+      ∀ x : M, 0 ≤ β.val x ![fundamentalVectorField I ξ x] ∧
+        (β.val x ![fundamentalVectorField I ξ x] = 0 ↔ fundamentalVectorField I ξ x = 0) := by
+  have : SigmaCompactSpace (BoundarylessModel I M) := inferInstanceAs (SigmaCompactSpace M)
+  obtain ⟨β, hinv, hβ⟩ :=
+    exists_invariant_smoothForm_apply_fundamentalVectorField_nonneg_of_boundaryless
+      (I := 𝓘(ℝ, E)) (M := BoundarylessModel I M) ξ
+  let Φ := BoundarylessModel.interiorDiffeomorph I (M := M) ∞
+  have hΦd (x : M) : MDifferentiableAt I 𝓘(ℝ, E) Φ x := Φ.mdifferentiable (by simp) x
+  -- The differential of `Φ` carries the fundamental vector field on `M` to the one on the copy.
+  have hX (x : M) : mfderiv I 𝓘(ℝ, E) Φ x (fundamentalVectorField I ξ x) =
+      fundamentalVectorField 𝓘(ℝ, E) ξ (Φ x) :=
+    mfderiv_fundamentalVectorField_of_map_smul (hΦd x)
+      ((ContMDiffSMul.contMDiff_smul_const (I := J) (I' := I) (n := ∞) x).mdifferentiableAt
+        (by simp))
+      (fun g ↦ BoundarylessModel.interiorDiffeomorph_smul I ∞ g x) ξ
+  refine ⟨SmoothForm.mpullback Φ Φ.contMDiff β, fun g ↦ ?_, fun x ↦ ?_⟩
+  · have hg := ContMDiffSMul.contMDiff_const_smul (I := J) (I' := 𝓘(ℝ, E)) (n := ∞)
+      (M := BoundarylessModel I M) g
+    rw [SmoothForm.mpullback_mpullback_of_comp_eq _ _ Φ.contMDiff hg
+      (funext fun y ↦ BoundarylessModel.interiorDiffeomorph_smul I ∞ g y), hinv g]
+  · rw [SmoothForm.mpullback_apply_one, hX]
+    refine ⟨(hβ (Φ x)).1, (hβ (Φ x)).2.trans ?_⟩
+    rw [← hX]
+    exact map_eq_zero_iff _ (Φ.isInvertible_mfderiv (x := x) (by simp)).injective
+
 end CommGroup
 
 section Circle
 
-variable [MulAction Circle M] [ContMDiffSMul (𝓡 1) I ∞ Circle M]
+variable [BoundarylessManifold I M] [MulAction Circle M] [ContMDiffSMul (𝓡 1) I ∞ Circle M]
 
 /-- For a smooth circle action on a σ-compact Hausdorff boundaryless manifold `M` with a
 finite-dimensional model, and `X` the fundamental vector field of `circlePeriodOneGenerator`,
