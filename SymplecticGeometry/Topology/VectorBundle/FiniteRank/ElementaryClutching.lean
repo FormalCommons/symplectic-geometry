@@ -60,9 +60,6 @@ namespace TauCeti.FiniteRankBundleCore
 variable {𝕜 X : Type*} [NontriviallyNormedField 𝕜] [TopologicalSpace X]
   {E : FiniteRankBundleCore 𝕜 X}
 
-/-- The pullback of `E` to `X × Circle`, on which the clutching functions live. -/
-local notation "Q" E => (FiniteRankBundleCore.pullback E (ContinuousMap.fst : C(X × Circle, X)))
-
 /-- For an endomorphism `n` of a finite-rank core with `n ≫ n = 0`, the map `1 + s n` on each fibre
 is invertible, for every scalar `s`. -/
 theorem isUnit_one_add_smul_fiberMap {B : Type*} [TopologicalSpace B]
@@ -79,7 +76,8 @@ variable [NormedAlgebra ℝ 𝕜] [CompleteSpace 𝕜]
 `n ≫ n = 0`. Then the clutching of `E` by `(𝟙 + n) ≫ f` is isomorphic to its clutching by
 `f`. -/
 theorem nonempty_iso_clutching_idAddIso_trans [ParacompactSpace X] [R1Space X]
-    (f : (Q E) ≅ (Q E)) (n : (Q E) ⟶ (Q E)) (hn : n ≫ n = 0) :
+    (f : E.circlePullback ≅ E.circlePullback) (n : E.circlePullback ⟶ E.circlePullback)
+    (hn : n ≫ n = 0) :
     Nonempty (E.clutching (idAddIso n hn ≪≫ f) ≅ E.clutching f) := by
   have : IsIso (segmentHom f.hom (idAddIso n hn ≪≫ f).hom) := by
     refine (isIso_iff_bijective _).2 fun b ↦ ?_
@@ -105,7 +103,8 @@ theorem nonempty_iso_clutching_idAddIso_trans [ParacompactSpace X] [R1Space X]
 `n ≫ n = 0`. Then the clutching of `E` by `f ≫ (𝟙 + n)` is isomorphic to its clutching by
 `f`. -/
 theorem nonempty_iso_clutching_trans_idAddIso [ParacompactSpace X] [R1Space X]
-    (f : (Q E) ≅ (Q E)) (n : (Q E) ⟶ (Q E)) (hn : n ≫ n = 0) :
+    (f : E.circlePullback ≅ E.circlePullback) (n : E.circlePullback ⟶ E.circlePullback)
+    (hn : n ≫ n = 0) :
     Nonempty (E.clutching (f ≪≫ idAddIso n hn) ≅ E.clutching f) := by
   rw [trans_idAddIso]
   exact nonempty_iso_clutching_idAddIso_trans _ _ _
