@@ -167,8 +167,7 @@ theorem ContMDiff.orbitAverage [BoundarylessManifold I M] {f : M → F}
     (hf : ContMDiff I 𝓘(ℝ, F) n f) :
     ContMDiff I 𝓘(ℝ, F) n (SymplecticGeometry.orbitAverage G f) := by
   rcases eq_or_ne n 0 with rfl | hn
-  · have : ContinuousSMul G M := ⟨(contMDiff_smul (I := J) (I' := I) (G := G) (M := M)
-      (n := ((0 : ℕ∞) : ℕ∞ω))).continuous⟩
+  · have := ContMDiffSMul.continuousSMul (I := J) (I' := I) (G := G) (M := M) ((0 : ℕ∞) : ℕ∞ω)
     rw [WithTop.coe_zero, contMDiff_zero_iff] at hf ⊢
     exact hf.orbitAverage
   -- Otherwise `M` is a `C¹` manifold: carry `f` to the copy of `M` with charts in `E`.
