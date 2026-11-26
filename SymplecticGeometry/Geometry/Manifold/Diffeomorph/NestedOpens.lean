@@ -41,6 +41,12 @@ the ambient manifolds as the diffeomorphism `ψ.imageValCongr` between `imageVal
 * `Diffeomorph.mfderiv_imageValCongr_apply`, `Diffeomorph.mfderiv_imageValCongr_eq_id_iff`,
   `Diffeomorph.imageValCongr_smul`: the transported diffeomorphism has the differentials of `ψ`,
   and is equivariant when `ψ` is.
+
+The two maps of `diffeomorphImageVal`, and the proofs that they are smooth, adapt the private
+declarations `toImage`, `ofImage`, `contMDiff_toImage` and `contMDiff_ofImage` of Tau Ceti's
+`TauCeti/Geometry/Manifold/Sheaf/Smooth/Restrict.lean`, which treat the image in `M` of an open
+subset `V` of `U` as `U.isOpenEmbedding.isOpenMap.functor.obj V`, at smoothness `∞`; here the
+image is an `Opens M` and the smoothness is any `n`.
 -/
 
 public section
@@ -169,15 +175,17 @@ theorem inclusion_comp_imageValCongr :
   funext fun _ ↦ rfl
 
 /-- The transported diffeomorphism has the differentials of `ψ`. -/
-theorem mfderiv_imageValCongr_apply (hn : n ≠ 0) (x : imageVal V) (v : TangentSpace I x) :
+theorem mfderiv_imageValCongr_apply (x : imageVal V) (v : TangentSpace I x) :
     mfderiv I J ψ.imageValCongr x v =
       mfderiv I J ψ ((diffeomorphImageVal (I := I) (n := n) V).symm x) v := by
+  -- `diffeomorphImageVal V` is the same map at every smoothness `n`; take it at `∞`, so that
+  -- `mfderiv_comp_diffeomorph` needs no hypothesis on `n`.
   have h : (Subtype.val : imageVal V' → N) ∘ ψ.imageValCongr =
       ((Subtype.val : W' → N) ∘ (Subtype.val ∘ ψ)) ∘
-        (diffeomorphImageVal (I := I) (n := n) V).symm :=
+        (diffeomorphImageVal (I := I) (n := ∞) V).symm :=
     funext fun _ ↦ rfl
   rw [← TauCeti.Manifold.mfderiv_subtype_val_comp_apply, h,
-    Diffeomorph.mfderiv_comp_diffeomorph _ hn, ContinuousLinearMap.comp_apply,
+    Diffeomorph.mfderiv_comp_diffeomorph _ (by simp), ContinuousLinearMap.comp_apply,
     mfderiv_diffeomorphImageVal_symm_apply]
   exact (TauCeti.Manifold.mfderiv_subtype_val_comp_apply _).trans
     (TauCeti.Manifold.mfderiv_subtype_val_comp_apply _)
@@ -185,27 +193,29 @@ theorem mfderiv_imageValCongr_apply (hn : n ≠ 0) (x : imageVal V) (v : Tangent
 /-- A diffeomorphism between open subsets of open subsets of `M` has identity differential at a
 point exactly when its transport to the ambient manifold has. -/
 theorem mfderiv_imageValCongr_eq_id_iff {W' : Opens M} {V' : Opens W'} (ψ : V ≃ₘ^n⟮I, I⟯ V')
-    (hn : n ≠ 0) (x : imageVal V) :
+    (x : imageVal V) :
     mfderiv I I ψ.imageValCongr x = ContinuousLinearMap.id 𝕜 (TangentSpace I x) ↔
       mfderiv I I ψ ((diffeomorphImageVal (I := I) (n := n) V).symm x) =
         ContinuousLinearMap.id 𝕜 (TangentSpace I ((diffeomorphImageVal V).symm x)) := by
   constructor <;> intro h <;> ext v
   · -- Both identities act on the model space `E`.
-    exact (ψ.mfderiv_imageValCongr_apply hn x v).symm.trans (congrArg (· v) h)
-  · exact (ψ.mfderiv_imageValCongr_apply hn x v).trans (congrArg (· v) h)
+    exact (ψ.mfderiv_imageValCongr_apply x v).symm.trans (congrArg (· v) h)
+  · exact (ψ.mfderiv_imageValCongr_apply x v).trans (congrArg (· v) h)
 
-/-- If `G` acts on `W` and `W'` with equivariant inclusions, `V` is invariant, and `ψ` is
-equivariant, then so is the transported diffeomorphism. -/
+/-- If `G` acts on `W` and `W'` with equivariant inclusions, and `ψ` is equivariant, then so is
+the transported diffeomorphism. -/
 theorem imageValCongr_smul {G : Type*} [SMul G M] [SMul G W] [SMul G N] [SMul G W']
     (hc : ∀ (g : G) (x : W), ((g • x : W) : M) = g • (x : M))
     (hc' : ∀ (g : G) (x : W'), ((g • x : W') : N) = g • (x : N))
-    (hV : ∀ (g : G), ∀ x ∈ V, g • x ∈ V)
     (hψ : ∀ (g : G) (y : V) (hy : g • (y : W) ∈ V), (ψ ⟨g • (y : W), hy⟩ : W') = g • (ψ y : W'))
     (g : G) (x : imageVal V) (hx : g • (x : M) ∈ imageVal V) :
     (ψ.imageValCongr ⟨g • (x : M), hx⟩ : N) = g • (ψ.imageValCongr x : N) := by
   obtain ⟨y, rfl⟩ : ∃ y, diffeomorphImageVal (I := I) (n := n) V y = x :=
     ⟨_, apply_symm_apply _ x⟩
-  have hy : g • (y : W) ∈ V := hV g _ y.property
+  have hy : g • (y : W) ∈ V := by
+    obtain ⟨h, hm⟩ := mem_imageVal.1 hx
+    have : (⟨_, h⟩ : W) = g • (y : W) := Subtype.ext (by simp [hc])
+    exact this ▸ hm
   have hgy : (⟨g • ((diffeomorphImageVal (I := I) (n := n) V y : imageVal V) : M), hx⟩ :
       imageVal V) = diffeomorphImageVal (I := I) (n := n) V ⟨g • (y : W), hy⟩ :=
     Subtype.ext (by simp [hc])

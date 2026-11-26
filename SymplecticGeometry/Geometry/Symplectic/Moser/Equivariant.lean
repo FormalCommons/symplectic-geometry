@@ -517,12 +517,12 @@ theorem exists_equivariant_diffeomorph_opens_le_of_eq_along (f : SmoothEmbedding
   set e₀ := Opens.diffeomorphImageVal (I := I) (n := ∞) V₀
   refine ⟨_, _, Opens.imageVal_le V₀, Opens.imageVal_le V₁, ψ.imageValCongr,
     fun g _ ↦ Opens.smul_mem_imageVal hcW hV₀ g, fun g _ ↦ Opens.smul_mem_imageVal hcW hV₁ g,
-    ψ.imageValCongr_smul hcW hcW hV₀ hψG, fun q ↦ ?_, ?_⟩
+    ψ.imageValCongr_smul hcW hcW hψG, fun q ↦ ?_, ?_⟩
   · obtain ⟨hq, hfix, hjet⟩ := hψf q
     have hx : f q ∈ Opens.imageVal V₀ := Opens.mem_imageVal.2 ⟨hfW' q, hf' q ▸ hq⟩
     have hex : (⟨f q, hx⟩ : Opens.imageVal V₀) = e₀ ⟨f' q, hq⟩ :=
       Subtype.ext (by simp [e₀, hf'])
-    refine ⟨hx, ?_, (ψ.mfderiv_imageValCongr_eq_id_iff (by simp) _).2 ?_⟩
+    refine ⟨hx, ?_, (ψ.mfderiv_imageValCongr_eq_id_iff _).2 ?_⟩
     · rw [hex, Diffeomorph.imageValCongr_apply_diffeomorphImageVal, hfix]
       exact f.val_codRestrict_apply W hfW' q
     · rw [hex, Diffeomorph.symm_apply_apply]
