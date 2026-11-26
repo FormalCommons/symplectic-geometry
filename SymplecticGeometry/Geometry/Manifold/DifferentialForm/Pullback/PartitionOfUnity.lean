@@ -80,7 +80,7 @@ smooth map `b : X → M`, let each `g i : X → Z` be smooth at every point of `
 `φ` be a closed smooth real form on `Z`. Then at every `x`, the exterior derivative of the glued
 form `∑ᵢ (ρᵢ ∘ b) • (g i)^* φ` is `∑ᵢ d(ρᵢ ∘ b) ∧ (g i)^* φ`, over the indices `i` with `b x` in
 the topological support of `ρ i`; the degree `0 + 1 + k` of the wedge is read as `k + 1`. -/
-theorem mextDeriv_sum_finsupport_smul_mpullback_apply [IsManifold IX ∞ X] [IsManifold IZ ∞ Z]
+theorem mextDeriv_sum_finsupport_smul_mpullback_apply [IsManifold IX 2 X] [IsManifold IZ 2 Z]
     {U : ι → Set M} (hρ : ρ.IsSubordinate U) (hU : ∀ i, IsOpen (U i)) (hb : ContMDiff IX IM ∞ b)
     {g : ι → X → Z} (hg : ∀ i x, b x ∈ U i → ContMDiffAt IX IZ ∞ (g i) x)
     {φ : RoughForm IZ Z ℝ k} (hφs : IsSmoothForm IZ ∞ φ) (hφ : mextDeriv φ = 0) (x : X)
