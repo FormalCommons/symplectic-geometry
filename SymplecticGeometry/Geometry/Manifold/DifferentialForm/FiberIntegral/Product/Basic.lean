@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Basic
 public import SymplecticGeometry.Analysis.Normed.Module.Alternating.AppendLeft
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Basic
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegral.Product.Coefficient
 import TauCeti.Geometry.Manifold.ContMDiff.ContinuousAlternatingMap
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Trivialization
 
@@ -42,6 +43,9 @@ smoothness in `(p, y)` (`SymplecticGeometry.contMDiff_prodFiberIntegrand`). That
 one of `ContMDiffAt.mpullback_form_family`: the section is read in the coordinates of the bundle
 of alternating maps (`contMDiffAt_continuousAlternatingMap_bundle`), and a family of alternating
 maps is smooth when its evaluations are (`TauCeti.contMDiffAt_continuousAlternatingMap_apply`).
+For vector fields `X` on an open set `U` of `B`, taking `U` itself as the parameter manifold and
+applying `TauCeti.contMDiff_integralTopForm` shows that the integrals over `F` of the integrands
+along `X` are smooth on `U` (`SymplecticGeometry.contMDiffOn_integralTopForm_prodFiberIntegrand`).
 
 ## Main definitions
 
@@ -63,6 +67,9 @@ maps is smooth when its evaluations are (`TauCeti.contMDiffAt_continuousAlternat
 * `SymplecticGeometry.contMDiff_prodFiberIntegrand`: along a smooth map `g : P → B` and smooth
   tangent vectors `X` along `g`, the integrands `prodFiberIntegrand α (g p) (X · p)` are jointly
   smooth in `(p, y)`.
+* `SymplecticGeometry.contMDiffOn_integralTopForm_prodFiberIntegrand`: over a compact oriented
+  `F`, the integrals `∫_F prodFiberIntegrand α b (X · b)` along vector fields `X` that are smooth
+  on an open set `U` of `B` are smooth on `U`.
 * `SymplecticGeometry.prodFiberIntegrand_degree_zero`: for `r = 0` it is the slice of `α` over
   `b`, its pull-back along `y ↦ (b, y)`.
 
@@ -327,6 +334,29 @@ theorem contMDiff_prodFiberIntegrand {EP HP P : Type*} [NormedAddCommGroup EP] [
   refine hG.congr_of_eventuallyEq (Filter.eventually_of_mem hmem fun q hq ↦ ?_)
   exact (RoughForm.inCoordinates_eq_inChartAt _ hq.2).trans
     (inChartAt_prodFiberIntegrand α hq.1 _ q₀.2 ((extChartAt J q₀.2).map_source hq.2))
+
+/-- **Fibre integrals along smooth vector fields are smooth.** Let `F` be a compact Hausdorff
+manifold of dimension `m` with an orientation `o`, let `B` be boundaryless, and let `α` be a
+`C^n` form of degree `r + m` on `B × F`. If the vector fields `X₁, …, Xᵣ` of `B` are `C^n` on an
+open set `U`, as maps into the tangent bundle, then so is
+`b ↦ ∫_F prodFiberIntegrand α b (X · b)`. -/
+theorem contMDiffOn_integralTopForm_prodFiberIntegrand [FiniteDimensional ℝ E']
+    [I.Boundaryless] {n : ℕ∞} [IsManifold I n B] [IsManifold I 1 B] [IsManifold J ∞ F]
+    [T2Space F] [CompactSpace F] (o : Manifold.Orientation J F (Fin m))
+    {α : RoughForm (I.prod J) (B × F) ℝ (r + m)} (hα : IsSmoothForm (I.prod J) n α)
+    {U : Set B} (hU : IsOpen U) {X : Fin r → (b : B) → TangentSpace I b}
+    (hX : ∀ i, ContMDiffOn I I.tangent n (fun b ↦ (⟨b, X i b⟩ : TangentBundle I B)) U) :
+    ContMDiffOn I 𝓘(ℝ) n
+      (fun b ↦ integralTopForm o (prodFiberIntegrand α b fun i ↦ X i b)) U := by
+  -- The open set `U` is the parameter manifold, mapped to `B` by its inclusion.
+  let V : TopologicalSpace.Opens B := ⟨U, hU⟩
+  have hV : ContMDiff I 𝓘(ℝ) n fun p : V ↦
+      integralTopForm o (prodFiberIntegrand α p.val fun i ↦ X i p.val) :=
+    contMDiff_integralTopForm o (contMDiff_prodFiberIntegrand hα contMDiff_subtypeVal
+      fun i p ↦ contMDiffAt_subtype_iff.2 ((hX i).contMDiffAt (hU.mem_nhds p.property)))
+  exact fun b hb ↦ (contMDiffAt_subtype_iff (U := V) (x := ⟨b, hb⟩)
+    (f := fun b ↦ integralTopForm o (prodFiberIntegrand α b fun i ↦ X i b))).1
+    (hV ⟨b, hb⟩) |>.contMDiffWithinAt
 
 /-- **The integrand in degree zero.** For `r = 0`, the integrand at `b` is the slice of `α` over
 `b`, its pull-back along `y ↦ (b, y)`, after the degree cast `0 + m = m`. -/

@@ -6,13 +6,15 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.Basic
+public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap.LinearNormalForm
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap.Slice.MomentMap
 public import SymplecticGeometry.Geometry.Lie.Subgroup.IdentityComponent
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.TangentRepresentation.Smooth
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Data
+public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.TangentSpace
 
 /-!
-# The local model's data at a point of a Hamiltonian `G`-manifold
+# The local model at a point of a Hamiltonian `G`-manifold, and its tangent space at `[1, 0]`
 
 Let a real Lie group `G` act smoothly on a manifold `M` with a nondegenerate two-form `σ` and a
 coadjoint-equivariant moment map `μ`, and let `x ∈ M` have compact stabilizer `H = G_x` which
@@ -42,6 +44,14 @@ representation `h ↦ dh_x` (`TauCeti.contMDiff_tangentRepresentation_apply` and
 `TauCeti.mfderiv_tangentRepresentation_apply_one`), through continuous linear maps
 `T_x M → V` and `V → T_x M` that read the quotient `W^σ ⧸ (W ∩ W^σ)` on `W^σ`.
 
+Finally, the tangent space of the model `Y = G ×_H (A × V)` at `[1, 0]` is identified with
+`T_x M`: `SymplecticGeometry.LocalModelData.linearModelEquiv` identifies it with the linear model
+`(𝔪 × 𝔪*) × (𝔮 × V)`, and Tau Ceti's equivariant linear normal form at `x`, with `V` read as the
+slice through `eV`, identifies that model with `T_x M`. A direction `(ξ, 0)` at `(1, 0, 0)` with
+`ξ = h + m + q`, `h ∈ 𝔤_x`, `m ∈ 𝔪`, `q ∈ 𝔮`, has the same image under `dπ` as `(m + q, 0)`
+(`SymplecticGeometry.LocalModelData.linearModelEquiv_mk_zero_mk_zero`), and `h_M(x) = 0`, so the
+composite sends it to `ξ_M(x)`.
+
 ## Main definitions
 
 * `SymplecticGeometry.LocalModelData.ofPoint`: the data of the local model at `x`.
@@ -61,6 +71,10 @@ representation `h ↦ dh_x` (`TauCeti.contMDiff_tangentRepresentation_apply` and
   `TauCeti.SmoothTwoForm.IsNondegenerate.mfderiv_symplecticSliceRepresentation_apply_one`: the
   representation of the stabilizer on the symplectic slice, read on `V` through `eV`, is smooth,
   and its derivative at `1` is the action of the isotropy algebra.
+* `SymplecticGeometry.LocalModelData.exists_linearEquiv_tangentSpace_ofPoint`: a linear
+  isomorphism from the tangent space of the model at `[1, 0]` to `T_x M` that takes the
+  descended form to `σ_x`, intertwines the actions of the stabilizer, and sends `dπ (ξ, 0)` to
+  `ξ_M(x)`.
 
 ## References
 
@@ -71,7 +85,7 @@ representation `h ↦ dh_x` (`TauCeti.contMDiff_tangentRepresentation_apply` and
 
 public section
 
-open MulAction TauCeti TauCeti.Lie
+open MulAction TauCeti TauCeti.Lie TauCeti.Manifold
 open scoped Manifold ContDiff
 
 noncomputable section
@@ -372,6 +386,116 @@ theorem ofPoint_equivDual𝔪 :
     (ofPoint hσ hσG hμ d h𝔪 h𝔪' h𝔮 eV eA).equivDual𝔪 = eA :=
   (rfl)
 
+/-! ### The tangent space at `[1, 0]` -/
+
+/-- **The tangent space of the local model at `[1, 0]` is `T_x M`.** For the data `D` of the
+local model at `x`, with `Y = G ×_{G_x} (A × V)`, its descended form `ω = D.descendedForm` and the
+projection `π (g, p) = [g, p]`, some linear isomorphism `T : T_{[1, 0]} Y ≃ T_x M`
+
+* takes `ω` at `[1, 0]` to `σ_x`;
+* intertwines the differential at `[1, 0]` of `y ↦ k • y` with `dk_x`, for each `k ∈ G_x`;
+* sends `dπ_(1, 0, 0) (ξ, 0)` to the fundamental vector `ξ_M(x)`, for each `ξ ∈ 𝔤`. -/
+theorem exists_linearEquiv_tangentSpace_ofPoint :
+    let _ := d.chartedSpace
+    let _ := d.lieGroup
+    let _ := d.contMDiffSMul (I'' := I) (M := G)
+    let D := ofPoint hσ hσG hμ d h𝔪 h𝔪' h𝔮 eV eA
+    letI := D.fiberDistribMulAction
+    haveI := D.contMDiffSMul_fiberDistribMulAction
+    letI := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) (A × V) I
+      𝓘(ℝ, A × V) F
+    haveI := BalancedProduct.isManifold_rightTranslation (K := stabilizer G x) (Z := A × V)
+      (I := I) (IZ := 𝓘(ℝ, A × V)) (F := F)
+    ∃ T : TangentSpace 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
+        (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
+          ((0 : A), (0 : V))) ≃ₗ[ℝ] TangentSpace I' x,
+      (∀ u v, SmoothBundleForm.eval₂ σ x (T u) (T v) =
+        SmoothBundleForm.eval₂ D.descendedForm
+          (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
+            ((0 : A), (0 : V))) u v) ∧
+      (∀ (k : stabilizer G x) u,
+        T (mfderiv 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
+          𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
+          (fun y : BalancedProduct (stabilizer G x) (stabilizer G x).RightTranslation (A × V) ↦
+            (k : G) • y)
+          (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
+            ((0 : A), (0 : V))) u) =
+          tangentRepresentation (fun (g : G) _ ↦
+            ContMDiffSMul.mdifferentiable_const_smul (I := I) (n := ∞) (by simp) g x) k
+            (T u)) ∧
+      ∀ ξ : GroupLieAlgebra I G,
+        T (mfderiv (I.prod 𝓘(ℝ, A × V)) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
+          (fun p : G × (A × V) ↦
+            BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation p.1) p.2)
+          ((1 : G), ((0 : A), (0 : V)))
+          ((tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V)))).symm (ξ, 0))) =
+          InfinitesimalAction.fundamental I G I' M ξ x := by
+  intro _ _ _ D
+  let := D.fiberDistribMulAction
+  have := D.contMDiffSMul_fiberDistribMulAction
+  let := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) (A × V) I 𝓘(ℝ, A × V) F
+  have := BalancedProduct.isManifold_rightTranslation (K := stabilizer G x) (Z := A × V)
+    (I := I) (IZ := 𝓘(ℝ, A × V)) (F := F)
+  obtain ⟨e, he, he𝔪, he𝔮, -, hek⟩ :=
+    hσ.exists_equivariant_isSymplectomorphism_cotangent_prod_kirillov_prod_symplecticSlice hσG
+      (hμ.momentCocycle_eq_zero x) (isCompact_iff_compactSpace.2 ‹_›) h𝔪 h𝔪' h𝔮
+  -- `D`'s model `(𝔪 × 𝔪*) × (𝔮 × V)` is Tau Ceti's with the symplectic slice read on `V`.
+  let ψ : ((D.𝔪 × Module.Dual ℝ D.𝔪) × (D.𝔮 × V)) ≃ₗ[ℝ]
+      ((𝔪.toSubmodule × Module.Dual ℝ 𝔪.toSubmodule) ×
+        (𝔮.toSubmodule × hσ.SymplecticSlice (InfinitesimalAction.fundamental I G I' M) x)) :=
+    (LinearEquiv.refl ℝ _).prodCongr ((LinearEquiv.refl ℝ _).prodCongr eV)
+  have hψ (m f q b) : ψ ((m, f), (q, b)) = ((m, f), (q, eV b)) := rfl
+  refine ⟨D.linearModelEquiv.symm ≪≫ₗ ψ ≪≫ₗ e, fun u v ↦ ?_, fun k u ↦ ?_, fun ξ ↦ ?_⟩
+  · obtain ⟨y₁, rfl⟩ := D.linearModelEquiv.surjective u
+    obtain ⟨y₂, rfl⟩ := D.linearModelEquiv.surjective v
+    simp only [LinearEquiv.trans_apply, LinearEquiv.symm_apply_apply]
+    refine (hσ.symplecticFormAt_apply x _ _).symm.trans ((he.apply _ _).trans ?_)
+    rw [eval₂_descendedForm_linearModelEquiv]
+    obtain ⟨⟨m₁, f₁⟩, q₁, b₁⟩ := y₁
+    obtain ⟨⟨m₂, f₂⟩, q₂, b₂⟩ := y₂
+    simp only [hψ, SymplecticForm.prod_apply]
+    -- `ofPoint` is exposed: the `𝔪`, `𝔮` and `τ` of `D` are those of `x` by definition, and its
+    -- form `σ` is the reduced form read through `eV`, so the two sides agree by unfolding `D`.
+    rfl
+  · obtain ⟨y, rfl⟩ := D.linearModelEquiv.surjective u
+    rw [← linearModelEquiv_linearModelRepresentation]
+    simp only [LinearEquiv.trans_apply, LinearEquiv.symm_apply_apply]
+    rw [← hek]
+    congr 1
+    obtain ⟨⟨m, f⟩, q, b⟩ := y
+    rw [linearModelRepresentation_apply, hψ, hψ]
+    refine Prod.ext (Prod.ext ?_ ?_) (Prod.ext ?_ ?_)
+    · exact Subtype.ext (coe_adjoint𝔪_apply _ k m)
+    · -- `D.sub𝔪` is `𝔪` by definition, since `sub𝔪` and `ofPoint` are exposed.
+      rw [adjoint𝔪_def]
+      rfl
+    · exact Subtype.ext (coe_adjoint𝔮_apply _ k q)
+    · exact (congrArg eV (repV_apply _ k b)).trans
+        (ofPoint_rep_apply hσ hσG hμ d h𝔪 h𝔪' h𝔮 eV eA k b)
+  · -- Write `ξ = h + m + q` with `h ∈ 𝔤_x`, `m ∈ 𝔪` and `q ∈ 𝔮`.
+    obtain ⟨κ, hκ, q, hq, rfl⟩ := Submodule.mem_sup.1 (h𝔮.sup_eq_top ▸ Submodule.mem_top (x := ξ))
+    obtain ⟨h, hh, m, hm, rfl⟩ := Submodule.mem_sup.1 (h𝔪'.symm ▸ hκ)
+    -- The `𝔥` direction is in the kernel of `dπ`, so `dπ (ξ, 0)` is in the image of the model.
+    have hm' : m ∈ D.𝔪 := hm
+    have hq' : q ∈ D.𝔮 := hq
+    rw [← D.linearModelEquiv_mk_zero_mk_zero ⟨m, hm'⟩ ⟨q, hq'⟩
+      ((congrArg (· ∈ D.𝔥) (by abel : h + m + q - (m + q) = h)).mpr hh)]
+    simp only [LinearEquiv.trans_apply, LinearEquiv.symm_apply_apply, hψ, map_zero]
+    -- `e` sends `((m, 0), (q, 0))` to `m_M(x) + q_M(x)`, and `h_M(x) = 0`.
+    have he𝔪𝔮 (m' : 𝔪.toSubmodule) (q' : 𝔮.toSubmodule) :
+        e ((m', 0), (q', 0)) =
+          InfinitesimalAction.fundamental I G I' M (m' + q' : GroupLieAlgebra I G) x := by
+      rw [← InfinitesimalAction.eval_apply, map_add, InfinitesimalAction.eval_apply,
+        InfinitesimalAction.eval_apply, ← he𝔪, ← he𝔮, ← map_add]
+      simp
+    refine (he𝔪𝔮 ⟨m, hm⟩ ⟨q, hq⟩).trans ?_
+    have h0 : (InfinitesimalAction.fundamental I G I' M).eval x h = 0 :=
+      (InfinitesimalAction.eval_apply _ x h).trans ((InfinitesimalAction.mem_isotropy_iff _ x).1 hh)
+    rw [← InfinitesimalAction.eval_apply, ← InfinitesimalAction.eval_apply, map_add, map_add,
+      map_add, h0, zero_add]
+
 end LocalModelData
 
 end SymplecticGeometry
+
+end
