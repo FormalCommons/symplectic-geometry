@@ -30,7 +30,9 @@ structures.
   it through `Matrix.toEuclideanLin` without reindexing.
 * `SymplecticGeometry.stdForm ι` is `ω₀ = ∑ᵢ dxᵢ ∧ dyᵢ`, defined by transporting Tau Ceti's
   `TauCeti.stdComplexPiSymplecticForm ι` along `TauCeti.complexToRealEuclidean ι`, which sends
-  `u : ι → ℂ` to its real parts (`x`) and imaginary parts (`y`).
+  `u : ι → ℂ` to its real parts (`x`) and imaginary parts (`y`), so that
+  `complexToRealEuclidean ι` is a symplectomorphism onto `(StdSpace ι, ω₀)`
+  (`isSymplectomorphism_complexToRealEuclidean`).
 * `SymplecticGeometry.stdComplexStructure ι` is `J₀`, the transport of multiplication by `I`,
   so that `x (J₀ z) = -y z` and `y (J₀ z) = x z`; it is the map of `Matrix.J ι ℝ`.
 * `SymplecticGeometry.StdSpace.complexEuclideanEquiv ι` identifies `EuclideanSpace ℂ ι` with
@@ -330,6 +332,14 @@ theorem stdForm_complexToRealEuclidean (u v : ι → ℂ) :
     stdForm ι (complexToRealEuclidean ι u) (complexToRealEuclidean ι v) =
       stdComplexPiSymplecticForm ι u v :=
   SymplecticForm.transport_apply_apply _ _ u v
+
+variable (ι) in
+/-- `complexToRealEuclidean ι` is a symplectomorphism from `(ι → ℂ, stdComplexPiSymplecticForm ι)`
+to the standard model `(StdSpace ι, ω₀)`. -/
+theorem isSymplectomorphism_complexToRealEuclidean :
+    (stdComplexPiSymplecticForm ι).IsSymplectomorphism (stdForm ι)
+      (complexToRealEuclidean ι).toLinearEquiv :=
+  SymplecticForm.isSymplectomorphism_iff.2 stdForm_complexToRealEuclidean
 
 /-- The coordinate swap `(x, y) ↦ (y, x)` reverses the sign of the standard form:
 `ω₀(swap z, swap w) = -ω₀(z, w)`. -/
