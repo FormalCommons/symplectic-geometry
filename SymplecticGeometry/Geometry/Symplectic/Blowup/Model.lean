@@ -11,6 +11,10 @@ public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
 public import TauCeti.Geometry.Symplectic.Manifold.Kahler
+public import SymplecticGeometry.Geometry.Symplectic.Complex.Radial
+public import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
+public import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Opens
+public import SymplecticGeometry.Geometry.Manifold.Diffeomorph.RestrictScalars
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Pseudoholomorphic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
@@ -250,6 +254,96 @@ theorem integralTopForm_blowupForm_line (l : ℝ) (f : (Fin 2 → ℂ) →ₗ[�
     ((contMDiff_zeroSection ∞).restrictScalars' ℝ), mpullback_zeroSection_blowupForm, map_smul,
     SetLike.val_smul, integralTopForm_smul, integralTopForm_mpullback_map_fubiniStudyForm,
     mul_comm]
+
+/-! ### The forms `ω̃_λ` off the divisor, and the shell -/
+
+section Shell
+
+open TopologicalSpace
+
+variable (n) in
+/-- The blowdown off the exceptional divisor, `blowdownDiffeomorph n`, as a diffeomorphism of real
+manifolds onto the punctured space `E ∖ 0 = puncturedSpace E`, on which the radial forms and maps
+of `Geometry/Symplectic/Complex/Radial.lean` live. -/
+noncomputable def blowdownPuncturedDiffeomorph :
+    (⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ : Opens (BlowupModel n))
+      ≃ₘ⟮𝓘(ℝ, Fin (n + 1) → ℂ), 𝓘(ℝ, Fin (n + 1) → ℂ)⟯ puncturedSpace (Fin (n + 1) → ℂ) :=
+  (((blowdownDiffeomorph n).restrictScalars' ℝ).ofLE le_top).restrictOpens le_rfl
+    (fun _ hz ↦ mem_puncturedSpace.1 hz) fun p ↦
+      iff_of_true p.property (by
+        rw [mem_puncturedSpace, Diffeomorph.coe_ofLE, Diffeomorph.coe_restrictScalars']
+        exact (blowdownDiffeomorph n p).property)
+
+@[simp]
+theorem coe_blowdownPuncturedDiffeomorph_apply
+    (p : (⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ :
+      Opens (BlowupModel n))) :
+    (blowdownPuncturedDiffeomorph n p : Fin (n + 1) → ℂ) = p.val.blowdown := by
+  rw [blowdownPuncturedDiffeomorph, Diffeomorph.coe_restrictOpens_apply, Diffeomorph.coe_ofLE,
+    Diffeomorph.coe_restrictScalars', coe_blowdownDiffeomorph]
+
+@[simp]
+theorem coe_blowdownPuncturedDiffeomorph_symm_apply (z : puncturedSpace (Fin (n + 1) → ℂ)) :
+    ((blowdownPuncturedDiffeomorph n).symm z : BlowupModel n) =
+      ⟨(mk ℂ z (mem_puncturedSpace.1 z.property), z), mk_self_mem_blowupModel _⟩ := by
+  rw [blowdownPuncturedDiffeomorph, Diffeomorph.coe_restrictOpens_symm_apply, Diffeomorph.ofLE_symm,
+    Diffeomorph.coe_ofLE, Diffeomorph.restrictScalars'_symm, Diffeomorph.coe_restrictScalars',
+    blowdownDiffeomorph_symm_apply]
+
+/-- The radial potential `s ↦ s + l² log s` is smooth on `(0, ∞)`. -/
+theorem contDiffOn_add_mul_log (l : ℝ) :
+    ContDiffOn ℝ ∞ (fun s ↦ s + l ^ 2 * Real.log s) (Ioi 0) :=
+  contDiffOn_id.add (contDiffOn_const.mul (Real.contDiffOn_log.mono fun _ hs ↦ ne_of_gt hs))
+
+/-- Off the exceptional divisor, `ω̃_l` is the form of the radial potential `|z|² + l² log |z|²`:
+its pull-back along the inverse of the blowdown, from `E ∖ 0` to the complement of the divisor,
+is `radialPotentialForm` of `s ↦ s + l² log s`. -/
+theorem mpullback_blowdownDiffeomorph_symm_blowupForm (l : ℝ) :
+    SmoothForm.mpullback (blowdownPuncturedDiffeomorph n).symm
+        (blowdownPuncturedDiffeomorph n).symm.contMDiff
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (blowupForm n l)) =
+      radialPotentialForm (Fin (n + 1)) (fun s ↦ s + l ^ 2 * Real.log s)
+        (contDiffOn_add_mul_log l) := by
+  have hlog : ContDiffOn ℝ ∞ Real.log (Ioi 0) :=
+    Real.contDiffOn_log.mono fun _ hs ↦ ne_of_gt hs
+  rw [radialPotentialForm_add (g₁ := fun s ↦ s) contDiffOn_id (contDiffOn_const.mul hlog),
+    radialPotentialForm_const_mul _ hlog, radialPotentialForm_log n hlog]
+  erw [radialPotentialForm_id]
+  rw [blowupForm_def, map_add, map_smul, map_add, map_smul, SmoothForm.mpullback_mpullback,
+    SmoothForm.mpullback_mpullback, SmoothForm.mpullback_mpullback,
+    SmoothForm.mpullback_mpullback, ← mpullback_mkNonzero_fubiniStudyForm, ω₀E_def]
+  congr 1
+  · refine SmoothForm.mpullback_congr _ _ (funext fun z ↦ ?_) _
+    rw [Function.comp_apply, Function.comp_apply, coe_blowdownPuncturedDiffeomorph_symm_apply,
+      blowdown_mk]
+  · refine congrArg _ (SmoothForm.mpullback_congr _ _ (funext fun z ↦ ?_) _)
+    rw [Function.comp_apply, Function.comp_apply, coe_blowdownPuncturedDiffeomorph_symm_apply,
+      pr_mk, mkNonzero_apply]
+
+/-- The radial map `F_l z = √(1 + l² / |z|²) z` of the profile `h s = s + l²`, composed with the
+blowdown, pulls `ω₀` back to `ω̃_l` off the exceptional divisor. -/
+theorem mpullback_radialMap_blowdown (l : ℝ) :
+    SmoothForm.mpullback
+        (radialMap (fun s ↦ s + l ^ 2) (fun s hs ↦ add_pos_of_pos_of_nonneg hs (sq_nonneg l)) ∘
+          blowdownPuncturedDiffeomorph n)
+        ((contMDiff_radialMap (h := fun s ↦ s + l ^ 2) (contDiffOn_id.add contDiffOn_const) _).comp
+          (blowdownPuncturedDiffeomorph n).contMDiff)
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (ω₀E n)) =
+      SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (blowupForm n l) := by
+  have hgh : ∀ s ∈ Ioi (0 : ℝ), deriv (fun s ↦ s + l ^ 2 * Real.log s) s = (s + l ^ 2) / s :=
+    fun s hs ↦ by
+      have hs : s ≠ 0 := ne_of_gt hs
+      rw [deriv_fun_add (f := fun s ↦ s) differentiableAt_id
+          ((Real.differentiableAt_log hs).const_mul _),
+        deriv_const_mul_field, Real.deriv_log, deriv_id'']
+      field_simp
+  have hs : ContDiffOn ℝ ∞ (fun s ↦ s + l ^ 2) (Ioi 0) := contDiffOn_id.add contDiffOn_const
+  rw [← SmoothForm.mpullback_mpullback _ _ (blowdownPuncturedDiffeomorph n).contMDiff
+      (contMDiff_radialMap hs _), ω₀E_def,
+    mpullback_radialMap_stdForm (ι := Fin (n + 1)) hs _ (contDiffOn_add_mul_log l) hgh,
+    ← mpullback_blowdownDiffeomorph_symm_blowupForm, SmoothForm.mpullback_mpullback_symm]
+
+end Shell
 
 end BlowupModel
 
