@@ -75,7 +75,7 @@ orientation of the normal fibre with the class of the origin of `E`, taken with 
 (`localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_of_finrank_eq_zero`). Exchanging
 a zero-dimensional factor brings no sign (Tau Ceti's `Orientation.map_prodComm_prod_of_even`), and
 the cross product with the class of the origin is computed by the library's
-`Orientation.localHomologyCross_localOrientation_tmul_localOrientationOfZeroDimChart`.
+`Orientation.localHomologyCross_localOrientation_tmul_ite_localOrientationOfZeroDimChart`.
 
 The same class is then read from the total space of the normal bundle, through the chart
 `Bundle.Trivialization.localChart` built from `e` and the chart `c` of `Z` at `z` translated so
@@ -659,22 +659,10 @@ theorem localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_of_finrank
       (mem_baseSet_trivializationAt P _ z) (normalOrientation f hn hdim oX oZ z))
   -- The orientation of `Z` at `z`, as one of `E`.
   set o : Orientation ℝ E (Fin 0) := oZ.orientationAt z
-  have hcross := Orientation.localHomologyCross_localOrientation_tmul_localOrientationOfZeroDimChart
-    hP hE p o
   -- With the sign in the class of the origin, the cross product is that of `p.prod o`.
-  have hpt : (SymplecticGeometry.localHomologyCross (0 : P) (0 : E) (r + 1) 0 (r + 1)
-      (add_zero _)).hom ((p.localOrientation hP).val ⊗ₜ
-        (if o = positiveOrientation then
-          (localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl E)
-            (OpenPartialHomeomorph.mem_refl_source _) hE).val
-        else
-          -(localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl E)
-            (OpenPartialHomeomorph.mem_refl_source _) hE).val)) =
-      ((p.prod o hP hE).localOrientation (by rw [Module.finrank_prod, hP, hE, add_zero])).val := by
-    split_ifs at hcross ⊢ with h
-    · exact hcross
-    · rw [TensorProduct.tmul_neg, map_neg, hcross, neg_neg]
-  refine Eq.trans ?_ hpt.symm
+  refine Eq.trans ?_
+    (Orientation.localHomologyCross_localOrientation_tmul_ite_localOrientationOfZeroDimChart
+      hP hE p o).symm
   -- In dimension zero for `Z`, exchanging the factors brings no sign.
   rw [Orientation.map_prodComm_prod_of_even _ _ _ _ (by simp), ← Orientation.reindex_trans,
     Orientation.prod_reindex_finCongr_left]
