@@ -6,8 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.AlgebraicTopology.Cohomology.MayerVietoris.Basic
+public import TauCeti.AlgebraicTopology.Cohomology.MayerVietoris.Module
 public import TauCeti.Geometry.Manifold.DeRham.MayerVietoris
-public import TauCeti.Geometry.Manifold.SmoothSingular.DeRham
+public import TauCeti.Geometry.Manifold.SmoothSingular.DeRham.Basic
 public import TauCeti.Geometry.Manifold.SmoothSingular.MayerVietoris
 public import TauCeti.Geometry.Manifold.SmoothSingular.SingularCohomology
 public import SymplecticGeometry.Geometry.Manifold.SmoothSingular.MayerVietorisCochain
@@ -48,6 +49,12 @@ Rham and the singular Mayer–Vietoris connecting maps, with sign `+1`
 simplices lying in `U` or in `V`, which is injective on singular cohomology by the smoothing
 theorem and the theorem on small simplices (`TauCeti.smallSmoothSingularCohomologyIso`).
 
+The restriction maps of the two Mayer–Vietoris sequences, `H^n(M) → H^n(U) × H^n(V)` and
+`H^n(U) × H^n(V) → H^n(U ⊓ V)`, are pullbacks along inclusions, so the de Rham homomorphism
+commutes with them by its naturality `TauCeti.deRhamHom_map`
+(`TauCeti.singularCohomologyMayerVietorisToProd_deRhamHom`,
+`TauCeti.singularCohomologyMayerVietorisFromProd_deRhamHom`).
+
 The proofs about integration follow Tau Ceti's `TauCeti.smoothMayerVietorisδ_ι` and
 `SSet.mayerVietorisCochainδ_naturality`, which build a morphism of short complexes and apply
 `HomologicalComplex.HomologySequence.δ_naturality` in the same way.
@@ -60,6 +67,9 @@ The proofs about integration follow Tau Ceti's `TauCeti.smoothMayerVietorisδ_ι
   commutes with the two Mayer–Vietoris connecting maps.
 * `TauCeti.deRhamHom_mayerVietorisδ`: the de Rham homomorphism commutes with the de Rham and the
   singular Mayer–Vietoris connecting maps.
+* `TauCeti.singularCohomologyMayerVietorisToProd_deRhamHom`,
+  `TauCeti.singularCohomologyMayerVietorisFromProd_deRhamHom`: the de Rham homomorphism commutes
+  with the restriction maps of the de Rham and the singular Mayer–Vietoris sequences.
 
 ## References
 
@@ -156,6 +166,44 @@ theorem ofHom_mayerVietorisδ_comp_homologyMap_deRhamIntegration (U V : Opens M)
     _ _ n (n + 1) rfl
 
 end deRhamCohomology
+
+section Restriction
+
+variable [FiniteDimensional ℝ E] [IsManifold I ∞ M] [T2Space M]
+  (U V : Opens M)
+
+/-- **The de Rham homomorphism commutes with the restrictions to `U` and `V`.** For open sets `U`
+and `V` of `M` and a de Rham class `c` of `M`, the singular Mayer–Vietoris map
+`H^n(M) → H^n(U) × H^n(V)`, with real coefficients, sends the de Rham homomorphism of `c` to the
+pair of the de Rham homomorphisms of the restrictions of `c` to `U` and to `V`. -/
+theorem singularCohomologyMayerVietorisToProd_deRhamHom [SigmaCompactSpace M]
+    [SigmaCompactSpace U] [SigmaCompactSpace V] (n : ℕ) (c : deRhamCohomology I M n) :
+    TopCat.singularCohomologyMayerVietorisToProd (ModuleCat.of ℝ ℝ) ℝ (ModuleCat.of ℝ ℝ)
+        (X := TopCat.of M) U V n (deRhamHom I M n c) =
+      (deRhamHom I U n (deRhamCohomology.map Subtype.val contMDiff_subtypeVal n c),
+        deRhamHom I V n (deRhamCohomology.map Subtype.val contMDiff_subtypeVal n c)) := by
+  rw [TopCat.singularCohomologyMayerVietorisToProd_apply, deRhamHom_map, deRhamHom_map]
+  -- The inclusions of `U` and of `V` in `M`, as continuous maps and as smooth maps, agree.
+  rfl
+
+/-- **The de Rham homomorphism commutes with the differences of restrictions to `U ⊓ V`.** For
+open sets `U` and `V` of `M`, a de Rham class `a` of `U` and a de Rham class `b` of `V`, the
+singular Mayer–Vietoris map `H^n(U) × H^n(V) → H^n(U ⊓ V)`, with real coefficients, sends the
+pair of the de Rham homomorphisms of `a` and `b` to the de Rham homomorphism of the difference of
+the restrictions of `a` and `b` to `U ⊓ V`, which is the image of `(a, b)` under the de Rham
+Mayer–Vietoris map `TauCeti.deRhamCohomology.mayerVietorisFromProd`. -/
+theorem singularCohomologyMayerVietorisFromProd_deRhamHom [SigmaCompactSpace U]
+    [SigmaCompactSpace V] [SigmaCompactSpace (U ⊓ V : Opens M)] (n : ℕ)
+    (a : deRhamCohomology I U n) (b : deRhamCohomology I V n) :
+    TopCat.singularCohomologyMayerVietorisFromProd (ModuleCat.of ℝ ℝ) ℝ (ModuleCat.of ℝ ℝ)
+        (X := TopCat.of M) U V n (deRhamHom I U n a, deRhamHom I V n b) =
+      deRhamHom I (U ⊓ V : Opens M) n (deRhamCohomology.mayerVietorisFromProd I U V n (a, b)) := by
+  rw [TopCat.singularCohomologyMayerVietorisFromProd_apply,
+    deRhamCohomology.mayerVietorisFromProd_apply, map_sub, deRhamHom_map, deRhamHom_map]
+  -- The inclusions of `U ⊓ V` in `U` and in `V`, as continuous maps and as smooth maps, agree.
+  rfl
+
+end Restriction
 
 section Singular
 

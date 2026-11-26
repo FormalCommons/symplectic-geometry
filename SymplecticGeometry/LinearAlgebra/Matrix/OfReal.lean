@@ -12,6 +12,7 @@ public import Mathlib.LinearAlgebra.Matrix.ConjTranspose
 public import TauCeti.Analysis.Complex.Euclidean.Space
 public import TauCeti.LinearAlgebra.Matrix.OfReal
 public import TauCeti.LinearAlgebra.TotallyReal.Euclidean
+import TauCeti.LinearAlgebra.Matrix.Determinant.Pencil
 
 /-!
 # Real matrices read as complex matrices
@@ -128,19 +129,15 @@ open Polynomial in
 theorem exists_det_sub_smul_ne_zero [Fintype n] [DecidableEq n] {X Y : Matrix n n ℝ}
     (h : (X.map ofReal + I • Y.map ofReal).det ≠ 0) :
     ∃ t : ℝ, (X - t • Y).det ≠ 0 := by
-  set p : ℝ[X] := (X.map C - (Polynomial.X : ℝ[X]) • Y.map C).det
+  set p : ℝ[X] := ((Polynomial.X : ℝ[X]) • (-Y).map C + X.map C).det
   have heval (t : ℝ) : p.eval t = (X - t • Y).det := by
-    rw [← coe_evalRingHom, RingHom.map_det]
-    congr 1
-    ext i j
-    simp only [RingHom.mapMatrix_apply, map_apply, Matrix.sub_apply, Matrix.smul_apply,
-      smul_eq_mul, map_sub, coe_evalRingHom, eval_C, eval_mul, eval_X]
+    rw [eval_det_X_add_C, smul_neg, neg_add_eq_sub]
   have haeval : aeval (-I) p = (X.map ofReal + I • Y.map ofReal).det := by
     rw [AlgHom.map_det]
     congr 1
     ext i j
-    simp only [AlgHom.mapMatrix_apply, map_apply, Matrix.sub_apply, Matrix.add_apply,
-      Matrix.smul_apply, smul_eq_mul, map_sub, map_mul, aeval_C, aeval_X,
+    simp only [AlgHom.mapMatrix_apply, map_apply, Matrix.add_apply, Matrix.neg_apply,
+      Matrix.smul_apply, smul_eq_mul, map_add, map_mul, map_neg, aeval_C, aeval_X,
       Complex.coe_algebraMap]
     ring
   have hp : p ≠ 0 := fun hp ↦ h (by rw [← haeval, hp, map_zero])

@@ -161,10 +161,10 @@ theorem sectionIndex_eq_degree_sphereCone (hn : finrank ℝ E = 2) (hG : finrank
   rw [hf0] at h3
   rw [h3]
   -- The local index of `g` is that of `F`, which is a local degree.
-  have h4 := HomologicalOrientation.localIndex_comap Complex.finrank_real_complex
-    (complexHomologicalOrientation ℂ)
-    (complexHomologicalOrientation ℂ) ball.isOpenEmbedding' IsOpenEmbedding.id (f := g) (g := F)
-    (x := 0) (Filter.Eventually.of_forall fun _ ↦ rfl)
+  have h4 := HomologicalOrientation.localIndex_comap (complexHomologicalOrientation ℂ)
+    (complexHomologicalOrientation ℂ) Complex.finrank_real_complex
+    ball.isOpenEmbedding' IsOpenEmbedding.id (f := g) (g := F) (x := 0)
+    (Filter.Eventually.of_forall fun _ ↦ rfl)
   rw [comap_subtypeVal_complexHomologicalOrientation, HomologicalOrientation.comap_id,
     coe_zero] at h4
   have hF1 : F ⁻¹' {0} = {0} := Set.ext fun z ↦ hF0 z

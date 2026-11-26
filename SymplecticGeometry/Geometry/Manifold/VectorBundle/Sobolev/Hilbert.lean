@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Analysis.Sobolev.Wkp.Hilbert
-public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.ZeroOneForm
+public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.ZeroOneForm.Basic
 import TauCeti.Geometry.Manifold.Complex.Analytic
 
 /-!

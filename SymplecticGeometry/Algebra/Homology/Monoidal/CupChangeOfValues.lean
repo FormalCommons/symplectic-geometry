@@ -59,9 +59,8 @@ theorem cupCochain_comp_comp (D : E ⟶ HomologicalComplex.tensorObj A B) {μ : 
     (hμ : (g₁ ⊗ₘ g₂) ≫ μ' = μ ≫ g) (p q n : ℕ) (h : p + q = n) (φ : A.X p ⟶ M)
     (ψ : B.X q ⟶ N) :
     cupCochain k D μ' p q n h (φ ≫ g₁) (ψ ≫ g₂) = cupCochain k D μ p q n h φ ψ ≫ g := by
-  rw [cupCochain_apply, cupCochain_apply, Category.assoc, tensorCochain_comp, ← hμ,
-    tensorHom_def, Category.assoc, tensorCochain_whiskerRight_comp,
-    tensorCochain_whiskerLeft_comp]
+  rw [← cupCochain_whiskerLeft_comp, ← cupCochain_whiskerRight_comp, ← Category.assoc,
+    ← tensorHom_def, hμ, cupCochain_apply, cupCochain_apply, Category.assoc, tensorCochain_comp]
 
 end Cochain
 

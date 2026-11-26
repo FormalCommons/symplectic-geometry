@@ -11,6 +11,7 @@ public import SymplecticGeometry.Topology.Algebra.GroupAction.Stabilizer
 public import TauCeti.Geometry.Lie.FundamentalVectorField
 public import TauCeti.Geometry.Manifold.Algebra.ComplexSmoothFunctions
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
+public import TauCeti.Geometry.Manifold.IntegralCurve.Maximal
 public import TauCeti.Geometry.Manifold.MFDeriv.Curve
 public import TauCeti.Geometry.Manifold.Riemannian.Gradient.Basic
 public import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.Basic
@@ -74,6 +75,9 @@ and the moment weights.
 * `SymplecticGeometry.hasDerivAt_moment_expI`, `SymplecticGeometry.antitone_moment_expI`: for a
   complexified action, `t ↦ μ (C.expI (t • ξ) • p) ξ` has derivative `-‖X_ξ‖²` at the moving
   point, so it is antitone.
+* `SymplecticGeometry.maximalIntegralCurve_neg_mgradient_moment`: for a complexified action and
+  a `C¹` metric, `t ↦ C.expI (t • ξ) • p` is the maximal integral curve of `-grad ⟨μ, ξ⟩`
+  through `p`.
 * `SymplecticGeometry.expI_smul_eq_self_of_moment_apply_le`: for a complexified action, if
   `μ x ξ ≤ μ (C.expI ξ • x) ξ`, then `C.expI ξ` fixes `x`.
 * `SymplecticGeometry.differentiable_moment_inv_smul_im_mfderiv`: along a smooth map `γ` from a
@@ -381,6 +385,30 @@ theorem antitone_moment_expI [ContMDiffSMul IC I' ∞ Gc M] {C : LieComplexifica
     Antitone fun t : ℝ ↦ μ (C.expI (t • ξ) • p) ξ :=
   antitone_of_hasDerivAt_nonpos (hasDerivAt_moment_expI h hμ hg ξ p)
     fun _ ↦ neg_nonpos.2 (sq_nonneg _)
+
+/-- **The curves `exp(itξ) p` are the negative gradient lines of `⟨μ, ξ⟩`.** For a complexified
+action on a Hausdorff manifold without boundary, with `-μ` a moment map for `σ` and the `C¹` metric
+`g(u, w) = σ(u, J w)`, the maximal
+integral curve of `-grad ⟨μ, ξ⟩` through `p` is `t ↦ C.expI (t • ξ) • p`. -/
+theorem maximalIntegralCurve_neg_mgradient_moment [T2Space M] [BoundarylessManifold I' M]
+    [ContMDiffSMul IC I' ∞ Gc M]
+    [IsContMDiffRiemannianBundle I' 1 E' (fun x : M ↦ TangentSpace I' x)]
+    {C : LieComplexification I G IC Gc} (h : IsComplexifiedAction C J)
+    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental I G I' M) fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
+    (ξ : GroupLieAlgebra I G) (p : M) :
+    maximalIntegralCurve (-Manifold.mgradient I' fun y ↦ μ y ξ) p =
+      fun t : ℝ ↦ C.expI (t • ξ) • p := by
+  have hf : ContMDiff I' 𝓘(ℝ) 2 fun y ↦ μ y ξ := by
+    simpa using ((hμ.contMDiff ξ).of_le (by simp)).neg
+  have hv : -Manifold.mgradient I' (fun y ↦ μ y ξ) =
+      fun x ↦ J x (fundamentalVectorField I' ξ x) := by
+    funext x
+    rw [Pi.neg_apply, mgradient_moment_apply hμ hg, neg_neg]
+  have hγ := h.isMIntegralCurve_expI_smul ξ p
+  rw [← hv] at hγ
+  funext t
+  simpa using hγ.maximalIntegralCurve_eq (Manifold.contMDiff_neg_mgradient_one hf) t
 
 /-- **`⟨μ, ξ⟩` stays constant along `exp(itξ)` only at a fixed point.** For a complexified
 action, with `-μ` a moment map for `σ` and the metric `g(u, w) = σ(u, J w)`: if
