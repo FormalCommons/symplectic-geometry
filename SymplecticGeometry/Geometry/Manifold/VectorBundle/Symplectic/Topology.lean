@@ -21,8 +21,9 @@ Tau Ceti's frame topology on the sections of a vector bundle (`ContMDiffSection.
 is a topology on the `C^n` two-forms of a bundle `V`, since these are the sections of the bundle
 of alternating maps on `V`. This file proves that nondegeneracy over a compact subset of the base
 is an open condition in it, that restricting two-forms on the tangent bundle to an open
-subset is continuous for it, and that pulling two-forms back along the time slices of a smooth
-isotopy is jointly continuous in the form and the time.
+subset is continuous for it, and that pulling two-forms back along the slices of a smooth family
+of maps, such as the time slices of a smooth isotopy, is jointly continuous in the form and the
+parameter.
 
 ## Main results
 
@@ -32,10 +33,13 @@ isotopy is jointly continuous in the form and the time.
 * `Bundle.ContMDiffTwoForm.continuous_tangentEquiv_symm_mpullback_subtypeVal`: for a covering
   frame system of the two-forms on `M` and any frame system of those on an open `U ⊆ M`, the
   restriction of two-forms on the tangent bundle from `M` to `U` is continuous.
-* `Bundle.ContMDiffTwoForm.continuous_tangentEquiv_symm_mpullback`: for a smooth isotopy `h`
-  from `M` to `N`, a covering frame system of the two-forms on `N` and any frame system of those
-  on `M`, the map `(ω, t) ↦ tangentEquiv.symm ((tangentEquiv ω).mpullback (h.timeSlice t))` is
+* `Bundle.ContMDiffTwoForm.continuous_tangentEquiv_symm_mpullback_prod`: for a smooth family
+  `f : P × M → N`, a covering frame system of the two-forms on `N` and any frame system of those
+  on `M`, the map `(ω, p) ↦ tangentEquiv.symm ((tangentEquiv ω).mpullback (f (p, ·)))` is
   continuous.
+* `Bundle.ContMDiffTwoForm.continuous_tangentEquiv_symm_mpullback`: its case of a smooth
+  isotopy `h` from `M` to `N`, where the map is
+  `(ω, t) ↦ tangentEquiv.symm ((tangentEquiv ω).mpullback (h.timeSlice t))`.
 
 ## Implementation notes
 
@@ -54,11 +58,12 @@ total spaces by `Bundle.Pullback.contMDiff_continuousAlternatingMap_totalSpace` 
 `contMDiff_compContinuousLinearMap_totalSpace`, with the derivatives of `ι` as a section
 (`Bundle.Pullback.contMDiff_mfderiv_hom`).
 
-Pull-back along the time slices of an isotopy `h` is the library's
-`ContMDiffSection.continuous_pullbackMap`, with parameter space `unitInterval`, the motion of `h`
-as the family of maps, and fibre maps `ξ ↦ ξ ∘ (d(h (t, ·))ₓ × d(h (t, ·))ₓ)`. These are jointly
-`C^∞` on the total space of the pull-back bundle by
-`Bundle.Pullback.contMDiff_totalSpace_compContinuousLinearMap_mfderiv`.
+Pull-back along the slices of a family `f : P × M → N` is the library's
+`ContMDiffSection.continuous_pullbackMap`, with fibre maps
+`ξ ↦ ξ ∘ (d(f (p, ·))ₓ × d(f (p, ·))ₓ)`. These are jointly `C^∞` on the total space of the
+pull-back bundle by
+`Bundle.Pullback.contMDiff_totalSpace_compContinuousLinearMap_mfderiv`. For an isotopy `h`, the
+family is the motion of `h` over `unitInterval`.
 
 ## References
 
@@ -190,6 +195,33 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [FiniteD
   [∀ j, MemTrivializationAtlas (e' j)]
   (W' : κ → Opens M) (hW' : ∀ j, (W' j : Set M) ⊆ (e' j).baseSet)
 
+/-- Pulling smooth two-forms on the tangent bundle back along the slices `f (p, ·)` of a smooth
+family of maps `f : P × M → N` is jointly continuous in the form and the parameter: the map
+`(ω, p) ↦ tangentEquiv.symm ((tangentEquiv ω).mpullback (f (p, ·)))` is continuous from the
+product of the frame topology of a covering frame system of the two-forms on `N` with `P` to the
+frame topology of any frame system of the two-forms on `M`, when the models of `M` and `N` are
+finite-dimensional and that of `P` is locally compact. -/
+theorem continuous_tangentEquiv_symm_mpullback_prod
+    {EP HP P : Type*} [NormedAddCommGroup EP] [NormedSpace ℝ EP] [LocallyCompactSpace EP]
+    [TopologicalSpace HP] {IP : ModelWithCorners ℝ EP HP} [TopologicalSpace P]
+    [ChartedSpace HP P] [IsManifold IP ((⊤ : ℕ∞) : WithTop ℕ∞) P]
+    (f : C^∞⟮IP.prod I, P × M; J, N⟯) (hcover : ∀ y, ∃ i, y ∈ W i) :
+    let _ := ContMDiffSection.frameTopology (I := J) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e W hW
+    let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e' W' hW'
+    Continuous fun q : ContMDiffTwoForm J ⊤ EN (TangentSpace J (M := N)) × P ↦
+      (tangentEquiv.symm (TauCeti.SmoothForm.mpullback (fun y ↦ f (q.2, y))
+        (f.contMDiff.comp (contMDiff_const.prodMk contMDiff_id)) (tangentEquiv q.1)) :
+        ContMDiffTwoForm I ⊤ EB (TangentSpace I (M := M))) := by
+  let _ := ContMDiffSection.frameTopology (I := J) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e W hW
+  let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e' W' hW'
+  have hΦ := Pullback.contMDiff_totalSpace_compContinuousLinearMap_mfderiv (ι := Fin 2) (G := ℝ)
+    (I := I) (I' := J) (IP := IP) (m := ((⊤ : ℕ∞) : WithTop ℕ∞)) f f.contMDiff (by simp)
+  refine ((ContMDiffSection.continuous_pullbackMap f
+    (fun p x ξ ↦ ξ.compContinuousLinearMap (mfderiv I J (fun y ↦ f (p, y)) x))
+    hΦ e W hW hcover e' W' hW').comp continuous_swap).congr fun q ↦ ?_
+  ext x v
+  simp [tangentEquiv_symm_apply, tangentEquiv_apply, Function.comp_def]
+
 /-- Pulling smooth two-forms on the tangent bundle back along the time slices of a smooth isotopy
 `h` from `M` to `N` is jointly continuous in the form and the time: the map
 `(ω, t) ↦ tangentEquiv.symm ((tangentEquiv ω).mpullback (h.timeSlice t))` is continuous from
@@ -204,23 +236,10 @@ theorem continuous_tangentEquiv_symm_mpullback {f₀ f₁ : C^∞⟮I, M; J, N�
       (tangentEquiv.symm (TauCeti.SmoothForm.mpullback (h.timeSlice q.2)
         (h.timeSlice q.2).contMDiff (tangentEquiv q.1)) :
         ContMDiffTwoForm I ⊤ EB (TangentSpace I (M := M))) := by
-  let _ := ContMDiffSection.frameTopology (I := J) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e W hW
-  let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e' W' hW'
-  have hΦ := Pullback.contMDiff_totalSpace_compContinuousLinearMap_mfderiv (ι := Fin 2) (G := ℝ)
-    (I := I) (I' := J) (IP := 𝓡∂ 1) (m := ((⊤ : ℕ∞) : WithTop ℕ∞)) h.toContMDiffMap
-    h.toContMDiffMap.contMDiff (by simp)
-  refine ((ContMDiffSection.continuous_pullbackMap h.toContMDiffMap
-    (fun t x ξ ↦ ξ.compContinuousLinearMap (mfderiv I J (fun y ↦ h.toContMDiffMap (t, y)) x))
-    hΦ e W hW hcover e' W' hW').comp continuous_swap).congr fun q ↦ ?_
-  ext x v
-  rw [Function.comp_apply, tangentEquiv_symm_apply, TauCeti.SmoothForm.mpullback_apply,
-    ContMDiffSection.pullbackMap_apply, ContinuousAlternatingMap.compContinuousLinearMap_apply,
-    tangentEquiv_apply]
-  -- The time slice is the isotopy at a fixed time, as a function.
-  have hs : (h.timeSlice q.2 : M → N) = fun y ↦ h.toContMDiffMap (q.2, y) :=
-    funext fun y ↦ (h.timeSlice_apply q.2 y).trans (h.toContMDiffMap_apply _).symm
-  rw [hs]
-  simp only [Prod.fst_swap, Prod.snd_swap, Function.comp_def]
+  have hs (t : unitInterval) : (h.timeSlice t : M → N) = fun y ↦ h.toContMDiffMap (t, y) := by
+    ext y; simp
+  simp_rw [hs]
+  exact continuous_tangentEquiv_symm_mpullback_prod e W hW e' W' hW' h.toContMDiffMap hcover
 
 end Isotopy
 
