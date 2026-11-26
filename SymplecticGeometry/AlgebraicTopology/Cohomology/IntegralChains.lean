@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Algebra.Category.ModuleCat.ChangeOfRings
 public import SymplecticGeometry.Algebra.Homology.ShortComplex.PreservesHomology
+public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.RestrictScalars
 public import TauCeti.AlgebraicTopology.Cohomology.IntegralComparison
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
 
@@ -19,6 +20,10 @@ coefficients in `k`, read as abelian groups through the restriction of scalars `
 Here integral chains have coefficients `ModuleCat.of ℤ (ULift ℤ)`, as those of Tau Ceti's
 fundamental class.
 
+* `SymplecticGeometry.intCastCoeff k : ULift ℤ → k`: the cast of integers, as a map of
+  coefficients, along which `SSet.restrictScalarsChainMap` turns an integral chain into a chain
+  with coefficients in `k` (`SymplecticGeometry.restrictScalarsChainMap_intCastCoeff_f_comp_apply`
+  on simplices).
 * `TopCat.singularCochainComplexRestrictScalarsIso`: the restricted `k`-linear cochains are the
   same morphisms, with the action of `ℤ` of the `ℤ`-linear category `ModuleCat k`.
 * `TopCat.singularCochainComplexIntChainsIso`: the comparison of cochains, the composite of the
@@ -31,6 +36,9 @@ fundamental class.
   cohomology, natural under continuous maps
   (`TopCat.singularCohomologyIntChainsIso_hom_naturality`), and its value on the class of a
   cocycle (`TopCat.map_homologyπ_singularCohomologyIntChainsIso_hom`).
+* `TopCat.chainComplexMap_f_singularCochainComplexIntChainsIso_hom_f`: read through integral
+  chains, a cochain `ψ` takes on an integral chain, of any simplicial set over the singular one,
+  the value of `ψ` on that chain with its coefficients cast to `k`.
 
 ## References
 
@@ -42,6 +50,47 @@ public section
 noncomputable section
 
 open CategoryTheory Simplicial TauCeti
+
+namespace SymplecticGeometry
+
+variable (k : Type) [CommRing k]
+
+/-- The coefficient map `ULift ℤ → k` of abelian groups given by the cast of integers. -/
+def intCastCoeff : ModuleCat.of ℤ (ULift.{0} ℤ) ⟶ ModuleCat.of ℤ k :=
+  ModuleCat.ofHom ((Int.castAddHom k).toIntLinearMap ∘ₗ ULift.moduleEquiv.toLinearMap)
+
+/-- The coefficient map `ULift ℤ → k` is the cast of integers. -/
+@[simp]
+theorem intCastCoeff_apply (m : ULift.{0} ℤ) : intCastCoeff k m = (m.down : k) :=
+  (rfl)
+
+variable {k} in
+/-- Casting the coefficients of an integral chain to `k` and then applying a `k`-linear map `φ`
+on chains with coefficients in `k`, read as abelian groups: the simplex `σ` with coefficient `a`
+goes to `a φ(σ)`. -/
+theorem restrictScalarsChainMap_intCastCoeff_f_comp_apply (S : SSet.{0}) {n : ℕ}
+    (σ : S _⦋n⦌) (φ : (S.chainComplex (ModuleCat.of k k)).X n ⟶ ModuleCat.of k k)
+    (a : ULift.{0} ℤ) :
+    ((SSet.restrictScalarsChainMap (algebraMap ℤ k) (N := ModuleCat.of k k)
+        (intCastCoeff k ≫ (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := k) k).inv)
+          S).f n ≫ (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).map φ ≫
+        (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := k) k).hom)
+        (S.ιChainComplex (R := ModuleCat.of ℤ (ULift.{0} ℤ)) σ a) =
+      (a.down : k) * φ (S.ιChainComplex (R := ModuleCat.of k k) σ 1) := by
+  rw [← ConcreteCategory.comp_apply (S.ιChainComplex σ),
+    SSet.ιChainComplex_restrictScalarsChainMap_f_assoc, ← smul_eq_mul, ← map_smul, ← map_smul,
+    smul_eq_mul, mul_one]
+  -- The identifications of `k` with the restricted `k`-module `k`, and restrictions of scalars
+  -- of morphisms, are the identity on elements, but their evaluation lemmas are stated for the
+  -- underlying types, which `rw` does not identify with the carriers here.
+  erw [ConcreteCategory.comp_apply, ConcreteCategory.comp_apply, ConcreteCategory.comp_apply,
+    ConcreteCategory.comp_apply, ModuleCat.restrictScalarsAlgebraMapIso_hom_apply,
+    ModuleCat.restrictScalars.map_apply (algebraMap ℤ k),
+    ModuleCat.restrictScalars.map_apply (algebraMap ℤ k),
+    ModuleCat.restrictScalarsAlgebraMapIso_inv_apply, intCastCoeff_apply,
+    ModuleCat.restrictScalars.map_apply (algebraMap ℤ k)]
+
+end SymplecticGeometry
 
 namespace TopCat
 
@@ -238,6 +287,34 @@ theorem singularCohomologyIntChainsIso_hom_naturality {Y : TopCat.{0}} (f : X �
     ((HomologicalComplex.shortComplexFunctor _ _ p).map
       (singularCochainComplexMap (R := ModuleCat.of k k) (k := k) (M := ModuleCat.of k k) f))
     (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)) _)
+
+variable {X} in
+/-- **Restricting a cochain to integral chains.** For a map `j : S ⟶ toSSet X` of simplicial sets
+and a `k`-linear cochain `ψ` of `X`, the cochain `ψ` read through integral chains, on the image
+under `j` of a chain of `S` with coefficients `ULift ℤ`, is `ψ` on the image under `j` of that
+chain with its coefficients cast to `k` (`SSet.restrictScalarsChainMap` along
+`SymplecticGeometry.intCastCoeff`). -/
+theorem chainComplexMap_f_singularCochainComplexIntChainsIso_hom_f {S : SSet.{0}}
+    (j : S ⟶ toSSet.obj X) (p : ℕ)
+    (ψ : ((toSSet.obj X).chainComplex (ModuleCat.of k k)).X p ⟶ ModuleCat.of k k) :
+    (SSet.chainComplexMap j (ModuleCat.of ℤ (ULift.{0} ℤ))).f p ≫
+        (X.singularCochainComplexIntChainsIso k).hom.f p ψ =
+      (SSet.restrictScalarsChainMap (algebraMap ℤ k) (N := ModuleCat.of k k)
+        (SymplecticGeometry.intCastCoeff k ≫
+          (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := k) k).inv) S).f p ≫
+        (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).map
+            ((SSet.chainComplexMap j (ModuleCat.of k k)).f p ≫ ψ) ≫
+          (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := k) k).hom := by
+  refine SSet.chainComplex_hom_ext fun σ ↦ ?_
+  ext a
+  refine (ConcreteCategory.congr_hom (SSet.ι_chainComplexMap_f_assoc (f := j) (x := σ)
+    (R := ModuleCat.of ℤ (ULift.{0} ℤ))
+      (h := (X.singularCochainComplexIntChainsIso k).hom.f p ψ)) a).trans ?_
+  refine (X.singularCochainComplexIntChainsIso_hom_f_apply_ιChainComplex k _ ψ a).trans ?_
+  rw [ConcreteCategory.comp_apply,
+    SymplecticGeometry.restrictScalarsChainMap_intCastCoeff_f_comp_apply]
+  exact congrArg _
+    (ConcreteCategory.congr_hom (SSet.ι_chainComplexMap_f_assoc (f := j) (x := σ) (h := ψ)) 1).symm
 
 end TopCat
 
