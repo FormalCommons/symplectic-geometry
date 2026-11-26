@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Topology.Category.TopPair
 public import TauCeti.AlgebraicTopology.Cohomology.HomotopyInvariance
 public import TauCeti.Topology.Homotopy.Contractible
 public import TauCeti.Topology.VectorBundle.EulerClass
@@ -27,8 +28,6 @@ back through the fibre over `b`.
 
 ## Main results
 
-* `TopPair.homotopic_of_homotopy_fst`: two maps of pairs into a pair `(X, A)` are homotopic as
-  soon as their maps of ambient spaces are homotopic through maps sending the subspace into `A`.
 * `Bundle.Trivialization.fiberCoordPairMap`: the fibre coordinate of a map into the Thom pair,
   read in a linear trivialization and carried into the fibre over `b`.
 * `Bundle.Trivialization.homotopic_fiberCoordPairMap_comp_fiberThomPairMap`: over a
@@ -53,21 +52,6 @@ noncomputable section
 open Bundle CategoryTheory Set
 
 universe w
-
-namespace TopPair
-
-variable {P : TopPair.{w}} {X : TopCat.{w}} {A : Set X}
-
-/-- Two maps of pairs `φ ψ : P ⟶ (X, A)` are homotopic as maps of pairs as soon as their maps of
-ambient spaces are homotopic through maps which send the subspace of `P` into `A`. -/
-theorem homotopic_of_homotopy_fst {φ ψ : P ⟶ ofSubset A}
-    (F : (Hom.fst φ).hom.Homotopy (Hom.fst ψ).hom)
-    (hF : ∀ (t : unitInterval) (x : P.fst), x ∈ Set.range P.map → F (t, x) ∈ A) :
-    Homotopic φ ψ := by
-  rw [← isoOfSubsetRange_hom_comp_ofSubsetMap φ, ← isoOfSubsetRange_hom_comp_ofSubsetMap ψ]
-  exact ⟨(ofSubsetHomotopy F hF).comp (Homotopy.refl _)⟩
-
-end TopPair
 
 namespace Bundle.Trivialization
 
