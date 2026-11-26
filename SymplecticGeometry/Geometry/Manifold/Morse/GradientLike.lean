@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.Riemannian.Gradient.Basic
 public import Mathlib.Geometry.Manifold.IntegralCurve.Basic
 public import Mathlib.Geometry.Manifold.VectorField.Pullback
+public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 import Mathlib.Analysis.Calculus.ContDiff.Deriv
 import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import TauCeti.Topology.LocallyFinite.Basic
@@ -17,6 +18,10 @@ import TauCeti.Geometry.Manifold.Riemannian.Gradient.Isometry
 import TauCeti.Geometry.Manifold.Riemannian.Isometry.Pullback
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
+import TauCeti.Geometry.Manifold.Riemannian.Pullback.Basic
+import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Existence
 import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Basic
 import TauCeti.Geometry.Manifold.VectorField.Regularity
 import TauCeti.Topology.VectorBundle.Riemannian.Basic
@@ -57,6 +62,9 @@ structures are defined. It makes `f` increase strictly along `X` away from the c
   is local: a metric and a constant for which the inequality holds near each point suffice.
 * `TauCeti.exists_nhds_mul_le_of_mvfderiv_apply_pos`: near a point where `df(X) > 0`, the
   inequality holds for every metric and a small constant, when `f` is `C¹` and `X` continuous.
+* `TauCeti.IsGradientLike.exists_nhds_mul_le_of_isLocalDiffeomorphAt`: the local hypothesis of
+  `TauCeti.isGradientLike_of_forall_exists_nhds` holds at `Φ y` when, near `y`, a local
+  diffeomorphism `Φ` carries a gradient-like field for `f'` to `X` and `f ∘ Φ = f'`.
 
 ## Implementation notes
 
@@ -83,6 +91,14 @@ The inequality with constant `δ y` at `y` is then convex in the metric: with
 `δ (df v) ^ 2 ≤ R g(v, v)` for every `v`, and this is convex in `g` by
 `SymplecticGeometry.convex_setOfPred_le_mul`: for any `C` the pairs `(p, q)` of nonnegative reals
 with `C ≤ p q` form a convex set.
+
+For `IsGradientLike.exists_nhds_mul_le_of_isLocalDiffeomorphAt`, the metric near `Φ y` is the
+metric of the field on `M'` pulled back along the local inverse `Ψ` of `Φ`, which is smooth by
+Tau Ceti's `Bundle.ContMDiffRiemannianMetric.contMDiffAt_pullback`. The fibrewise condition with
+a constant `c` is carried along `dΨ` from `M'` to `M`. It is imposed only on a closed
+neighbourhood `K` of `Φ y`, and the gluing by
+`TauCeti.exists_contMDiffRiemannianMetric_inner_mem_of_local` uses any metric off `K` (Tau Ceti's
+`TauCeti.nonempty_contMDiffRiemannianMetric`).
 
 ## References
 
@@ -386,6 +402,107 @@ theorem isGradientLike_of_forall_exists_nhds [T2Space M] [SigmaCompactSpace M]
         (hg x y (interior_subset (hVU x hy)))
   exact ⟨G, δ, δ.continuous, fun y ↦ (hδ y).1,
     fun y ↦ (inner_mem_gradientLikeCondition_iff G (hδ y).1.le y).1 (hG y)⟩
+
+omit [FiniteDimensional ℝ E] [IsManifold 𝓘(ℝ, E) ∞ M] in
+/-- The condition `gradientLikeCondition` is carried back along a linear map `L : T_x M → T_y M'`
+that sends `X x` to `X' y` and through which `df_x` factors as `df'_y ∘ L`. -/
+private theorem pullback_mem_gradientLikeCondition {E' : Type*} [NormedAddCommGroup E']
+    [NormedSpace ℝ E'] {M' : Type*} [TopologicalSpace M'] [ChartedSpace E' M']
+    {f' : M' → ℝ} {X' : (y : M') → TangentSpace 𝓘(ℝ, E') y} {δ : ℝ} {x : M} {y : M'}
+    (L : TangentSpace 𝓘(ℝ, E) x →L[ℝ] TangentSpace 𝓘(ℝ, E') y)
+    {t : TangentSpace 𝓘(ℝ, E') y →L[ℝ] TangentSpace 𝓘(ℝ, E') y →L[ℝ] ℝ}
+    (ht : t ∈ gradientLikeCondition f' X' δ y) (hLX : L (X x) = X' y)
+    (hdf : ∀ v, mvfderiv 𝓘(ℝ, E) f x v = mvfderiv 𝓘(ℝ, E') f' y (L v)) :
+    (ContinuousLinearMap.precomp ℝ L).comp (t.comp L) ∈ gradientLikeCondition f X δ x := by
+  obtain ⟨h₀, h₁, h₂⟩ := ht
+  refine ⟨fun v ↦ ?_, ?_, fun v ↦ ?_⟩ <;>
+    simp only [ContinuousLinearMap.coe_comp, Function.comp_apply,
+      ContinuousLinearMap.precomp_apply, hdf, hLX]
+  · exact h₀ (L v)
+  · exact h₁
+  · exact h₂ (L v)
+
+/-- **The local criterion through a local diffeomorphism.** Let `X'` be gradient-like for `f'` on
+`M'`, and let `Φ : M' → M` be a smooth local diffeomorphism at `y` such that `f ∘ Φ = f'` near `y`
+and `dΦ_{y'} (X' y') = X (Φ y')` for `y'` near `y`. Then `Φ y` has a neighbourhood `U`, with a
+smooth metric `g` on `M` and a constant `c > 0`, such that
+`c * (g x (X x) (X x) + ‖grad f x‖ ^ 2) ≤ df_x (X x)` for every `x ∈ U`, the gradient and its norm
+being those of `g`: this is the local hypothesis of `TauCeti.isGradientLike_of_forall_exists_nhds`
+at `Φ y`. -/
+theorem IsGradientLike.exists_nhds_mul_le_of_isLocalDiffeomorphAt [T2Space M]
+    [SigmaCompactSpace M] {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
+    [FiniteDimensional ℝ E'] {M' : Type*} [TopologicalSpace M'] [ChartedSpace E' M']
+    [IsManifold 𝓘(ℝ, E') ∞ M'] {f' : M' → ℝ} {X' : (y : M') → TangentSpace 𝓘(ℝ, E') y}
+    (hX' : IsGradientLike f' X') {Φ : M' → M} {y : M'}
+    (hΦ : IsLocalDiffeomorphAt 𝓘(ℝ, E') 𝓘(ℝ, E) ∞ Φ y) (hf : f ∘ Φ =ᶠ[𝓝 y] f')
+    (hX : ∀ᶠ y' in 𝓝 y, mfderiv 𝓘(ℝ, E') 𝓘(ℝ, E) Φ y' (X' y') = X (Φ y')) :
+    ∃ U ∈ 𝓝 (Φ y),
+      ∃ g : ContMDiffRiemannianMetric 𝓘(ℝ, E) ∞ E (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x),
+      ∃ c : ℝ, 0 < c ∧
+        letI : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
+        ∀ x ∈ U, c * (g.inner x (X x) (X x) + ‖mgradient 𝓘(ℝ, E) f x‖ ^ 2) ≤
+          mvfderiv 𝓘(ℝ, E) f x (X x) := by
+  obtain ⟨g', δ', hδ'c, hδ', hg'⟩ := hX'
+  set Ψ := hΦ.localInverse
+  set c := δ' y / 2
+  have hc : 0 < c := half_pos (hδ' y)
+  have hΨy : Ψ (Φ y) = y := hΦ.localInverse_left_inv hΦ.localInverse_mem_target
+  -- The conditions that hold near `y`, read near `Φ y` through the local inverse `Ψ`.
+  have hev : ∀ᶠ y' in 𝓝 y, IsLocalDiffeomorphAt 𝓘(ℝ, E') 𝓘(ℝ, E) ∞ Φ y' ∧ c < δ' y' ∧
+      f ∘ Φ =ᶠ[𝓝 y'] f' ∧ mfderiv 𝓘(ℝ, E') 𝓘(ℝ, E) Φ y' (X' y') = X (Φ y') :=
+    hΦ.eventually.and ((hδ'c.continuousAt.eventually (lt_mem_nhds (half_lt_self (hδ' y)))).and
+      (hf.eventuallyEq_nhds.and hX))
+  have hev' : ∀ᶠ x in 𝓝 (Φ y), x ∈ Ψ.source ∧ IsLocalDiffeomorphAt 𝓘(ℝ, E') 𝓘(ℝ, E) ∞ Φ (Ψ x) ∧
+      c < δ' (Ψ x) ∧ f ∘ Φ =ᶠ[𝓝 (Ψ x)] f' ∧
+      mfderiv 𝓘(ℝ, E') 𝓘(ℝ, E) Φ (Ψ x) (X' (Ψ x)) = X (Φ (Ψ x)) :=
+    Filter.Eventually.and (p := (· ∈ Ψ.source))
+      (hΦ.localInverse_open_source.mem_nhds hΦ.localInverse_mem_source)
+      (hΦ.continuousAt_localInverse.eventually (by rwa [hΨy]))
+  obtain ⟨V, hVP, hVo, hyV⟩ := eventually_nhds_iff.1 hev'
+  have := Manifold.locallyCompact_of_finiteDimensional (M := M) 𝓘(ℝ, E)
+  obtain ⟨K, hK, hKc, hKV⟩ := exists_mem_nhds_isClosed_subset (hVo.mem_nhds hyV)
+  obtain ⟨g₀⟩ := nonempty_contMDiffRiemannianMetric (IB := 𝓘(ℝ, E)) (n := ⊤) (F := E)
+    (E := fun x : M ↦ TangentSpace 𝓘(ℝ, E) x)
+  -- On `K`, glue under the fibrewise condition with constant `c`; elsewhere, impose nothing.
+  obtain ⟨G, hG⟩ := exists_contMDiffRiemannianMetric_inner_mem_of_local
+    (IB := 𝓘(ℝ, E)) (n := ⊤) (F := E) (E := fun x : M ↦ TangentSpace 𝓘(ℝ, E) x)
+    (c := fun x ↦ {s | x ∈ K → s ∈ gradientLikeCondition f X c x})
+    (fun x ↦ by
+      by_cases hx : x ∈ K
+      · simpa [hx] using convex_gradientLikeCondition c x
+      · simpa [hx] using convex_univ) fun x₀ ↦ by
+      by_cases hx₀ : x₀ ∈ K
+      swap
+      · exact ⟨Kᶜ, hKc.isOpen_compl.mem_nhds hx₀, g₀.inner, g₀.contMDiff.contMDiffOn,
+          fun b hb ↦ ⟨⟨g₀.symm b, g₀.pos b⟩, fun h ↦ (hb h).elim⟩⟩
+      -- Near `K`, the metric `g'` pushed forward along `Φ`, that is pulled back along `Ψ`.
+      refine ⟨V, hVo.mem_nhds (hKV hx₀), fun b ↦ (ContinuousLinearMap.precomp ℝ
+        (mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E') Ψ b)).comp ((g'.inner (Ψ b)).comp
+          (mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E') Ψ b)), fun b hb ↦ ?_, fun b hb ↦ ?_⟩
+      · have hΨb : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ, E') (∞ + 1) Ψ b := by
+          simpa using hΦ.contMDiffOn_localInverse.contMDiffAt
+            (hΦ.localInverse_open_source.mem_nhds (hVP b hb).1)
+        exact (g'.contMDiffAt_pullback hΨb).contMDiffWithinAt
+      obtain ⟨hbs, hloc, hcb, hfb, hXb⟩ := hVP b hb
+      have hΦΨ : Φ (Ψ b) = b := hΦ.localInverse_right_inv hbs
+      have hinv (w : TangentSpace 𝓘(ℝ, E) b) :
+          mfderiv 𝓘(ℝ, E') 𝓘(ℝ, E) Φ (Ψ b) (mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E') Ψ b w) = w :=
+        hΦ.mfderiv_apply_mfderiv_localInverse_apply (by simp) hbs w
+      refine ⟨⟨fun v w ↦ by simp [g'.symm], fun v hv ↦ by
+        simpa using g'.pos (Ψ b) _
+          ((map_ne_zero_iff _ (Function.LeftInverse.injective hinv)).2 hv)⟩, fun _ ↦ ?_⟩
+      refine pullback_mem_gradientLikeCondition _
+        ((inner_mem_gradientLikeCondition_iff (f := f') (X := X') g' hc.le (Ψ b)).2 ?_) ?_
+        fun v ↦ ?_
+      · let : RiemannianBundle (fun x : M' ↦ TangentSpace 𝓘(ℝ, E') x) := ⟨g'.toRiemannianMetric⟩
+        have hQ : 0 ≤ g'.inner (Ψ b) (X' (Ψ b)) (X' (Ψ b)) + ‖mgradient 𝓘(ℝ, E') f' (Ψ b)‖ ^ 2 :=
+          add_nonneg (g'.toRiemannianMetric.inner_self_nonneg _ _) (sq_nonneg _)
+        exact (mul_le_mul_of_nonneg_right hcb.le hQ).trans (hg' (Ψ b))
+      · exact (hloc.isInvertible_mfderiv (by simp)).injective (by rw [hinv, hXb, hΦΨ])
+      · rw [← hfb.mvfderiv_eq, mvfderiv_apply_eq_mfderiv_apply, mvfderiv_apply_eq_mfderiv_apply,
+          hloc.mfderiv_comp (by simp), ContinuousLinearMap.comp_apply, hinv, hΦΨ]
+  exact ⟨K, hK, G, c, hc, fun x hx ↦
+    (inner_mem_gradientLikeCondition_iff G hc.le x).1 (hG x hx)⟩
 
 /-- Near a point `x` with `df_x (X x) > 0`, the inequality of `TauCeti.IsGradientLike` holds for
 every smooth metric `g` with some constant `c > 0`, when `f` is `C¹` at `x` and `X` is continuous
