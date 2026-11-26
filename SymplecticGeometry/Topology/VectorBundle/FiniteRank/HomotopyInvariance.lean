@@ -5,6 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Topology.Homotopy.Affine
+public import Mathlib.Topology.Homotopy.Product
 public import TauCeti.Topology.VectorBundle.FiniteRank.Pullback
 public import TauCeti.Topology.VectorBundle.HomotopyInvariance
 
@@ -57,8 +59,7 @@ theorem nonempty_iso_pullback_fst {E : Type*} [NormedAddCommGroup E] [NormedSpac
       ContinuousMap.fst) := by
   have h : (ContinuousMap.id (Y × E)).Homotopic
       (((ContinuousMap.id Y).prodMk (.const Y c)).comp ContinuousMap.fst) :=
-    ⟨⟨⟨fun q ↦ (q.2.1, c + (1 - q.1 : ℝ) • (q.2.2 - c)), by fun_prop⟩,
-      fun q ↦ by simp, fun q ↦ by simp⟩⟩
+    ⟨(ContinuousMap.Homotopy.refl ContinuousMap.fst).prod (.affine ContinuousMap.snd (.const _ c))⟩
   obtain ⟨e⟩ := A.nonempty_pullback_iso_of_homotopic h
   rw [pullback_id, ← pullback_comp] at e
   exact ⟨e⟩

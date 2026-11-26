@@ -184,8 +184,9 @@ theorem affineChart_symm_mem_annulus_iff (z : Fin 1 → ℂ) :
 
 /-! ### Maps on products with the projective line
 
-The bodies of these maps are exposed: pullbacks of cores along them are compared with pullbacks
-along the projections by definitional unfolding, as in `TauCeti.FiniteRankBundleCore.clutchingAut`.
+The bodies of `clutchingMap`, `circleToAnnulus` and `annulusDeformation` are exposed: pullbacks
+of cores along them are compared with pullbacks along the projections by definitional unfolding,
+as in `TauCeti.FiniteRankBundleCore.clutchingAut`.
 -/
 
 variable (X : Type*) [TopologicalSpace X]
@@ -209,7 +210,6 @@ theorem clutchingMap_apply
 
 /-- The inverse of the affine chart `i` of the projective line, in the second factor of
 `X × (Fin 1 → ℂ)`. -/
-@[expose]
 def affineChartMap (i : Fin 2) : C(X × (Fin 1 → ℂ), X × ℙ ℂ (Fin 2 → ℂ)) :=
   ContinuousMap.prodMap (.id X) ⟨(affineChart i).symm, continuous_affineChart_symm i⟩
 
@@ -230,9 +230,12 @@ theorem prodMkOne_apply (x : X) : prodMkOne X x = (x, Projectivization.mk ℂ 1 
 
 /-- The radial deformation of the annulus onto the unit circle, at time `t`, in the affine
 coordinate: `z ↦ ((1 - t) + t / |z|) z`. -/
-@[expose]
 def radialDeform (z : Fin 1 → ℂ) (t : ℝ) : Fin 1 → ℂ :=
   ((1 - t) + t * ‖z 0‖⁻¹ : ℝ) • z
+
+theorem radialDeform_def (z : Fin 1 → ℂ) (t : ℝ) :
+    radialDeform z t = ((1 - t) + t * ‖z 0‖⁻¹ : ℝ) • z :=
+  (rfl)
 
 /-- The radial deformation keeps the annulus `1/2 < |z| < 2` in itself at each time `t ∈ [0, 1]`. -/
 theorem radialDeform_mem {z : Fin 1 → ℂ} (hz : 2⁻¹ < ‖z 0‖ ∧ ‖z 0‖ < 2) {t : ℝ}
@@ -242,7 +245,7 @@ theorem radialDeform_mem {z : Fin 1 → ℂ} (hz : 2⁻¹ < ‖z 0‖ ∧ ‖z 0
     add_nonneg (sub_nonneg.2 ht.2) (mul_nonneg ht.1 (inv_nonneg.2 (norm_nonneg _)))
   -- The new modulus `(1 - t) |z| + t` lies between `|z|` and `1`.
   have hn : ‖radialDeform z t 0‖ = (1 - t) * ‖z 0‖ + t := by
-    rw [radialDeform, Pi.smul_apply, norm_smul, Real.norm_of_nonneg hc, add_mul, mul_assoc,
+    rw [radialDeform_def, Pi.smul_apply, norm_smul, Real.norm_of_nonneg hc, add_mul, mul_assoc,
       inv_mul_cancel₀ hpos.ne', mul_one]
   rw [hn]
   obtain ⟨h0, h1⟩ := ht

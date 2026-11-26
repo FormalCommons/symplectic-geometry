@@ -100,8 +100,9 @@ theorem nonempty_pullback_subtypeVal_iso_of_subset_affineOpen {i : Fin 2}
         (continuousOn_iff_continuous_domRestrict.1 ((continuousOn_affineChart i).mono hS) |>.comp
           ((continuous_snd.comp continuous_subtypeVal).subtype_mk fun w ↦ w.property))⟩
   have hk : (affineChartMap X i).comp k = ContinuousMap.subtypeVal (Prod.snd ⁻¹' S) :=
-    ContinuousMap.ext fun w ↦ Prod.ext rfl
-      ((affineChart i).left_inv (by rw [affineChart_source]; exact hS w.property))
+    ContinuousMap.ext fun w ↦ Prod.ext (by simp [affineChartMap_apply, k])
+      (by simpa [affineChartMap_apply, k] using
+        (affineChart i).left_inv (by rw [affineChart_source]; exact hS w.property))
   obtain ⟨e⟩ := F.nonempty_pullback_affineChartMap_iso i
   refine ⟨eqToIso ?_ ≪≫ (pullbackFunctor k).mapIso e ≪≫ eqToIso ?_⟩
   · rw [pullbackFunctor_obj, pullback_comp, hk]
