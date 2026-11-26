@@ -71,8 +71,9 @@ plane by Möbius transformations.
 
 The action is (2.5.19) of McDuff–Salamon, and its properties are those of their Exercise 2.5.11.
 All the algebra comes from the two identities above, which use the block relations of a
-symplectic matrix in the form of Tau Ceti's `SymplecticGroup.mem_iff_toBlocks`, Mathlib's
-`SymplecticGroup.fromBlocks_mem_iff`. Transitivity is checked by the explicit matrix above, with
+symplectic matrix as Tau Ceti's `SymplecticGroup.mem_iff_toBlocks` states them for the blocks of
+an arbitrary matrix. Transitivity is checked by the explicit matrix above, whose membership is
+Mathlib's `SymplecticGroup.fromBlocks_mem_iff` applied directly, with
 `G` from Tau Ceti's `Matrix.PosDef.exists_generalLinearGroup_mul_transpose_eq`, so that this file
 does not need the complex structures of `ComplexStructure.lean`. Holomorphy is stated with the
 operator norm on matrices (`Matrix.Norms.Operator`); all norms on matrices give the same
