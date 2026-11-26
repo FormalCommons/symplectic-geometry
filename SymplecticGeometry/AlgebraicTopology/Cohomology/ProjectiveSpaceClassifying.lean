@@ -162,7 +162,9 @@ theorem exists_continuousMap_projectivization_pullback_eq
         rw [hga, TopCat.singularCohomologyMap_comp, ConcreteCategory.comp_apply,
           hf₂, ← ConcreteCategory.comp_apply, ← TopCat.singularCohomologyMap_comp,
           ← TopCat.ofHom_comp, TopCat.singularCohomologyMap_eq_zero_of_nullhomotopic ha two_ne_zero]
-        rfl)
+        simp)
+    -- `gT.hom` is `g.comp ec` by `TopCat.hom_ofHom`, which `simp` does not apply here, since the
+    -- carrier of `TopCat.diskBoundary 3` is not syntactically that of `TopCat.of`.
     convert h0.comp_left (e.symm : C(sphere (0 : Fin 3 → ℝ) 1, TopCat.diskBoundary.{0} 3))
     ext y
     exact congrArg g (e.apply_symm_apply y).symm
