@@ -15,7 +15,6 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
 public import TauCeti.Geometry.Symplectic.Manifold.Kahler
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Restriction
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Pseudoholomorphic
-public import TauCeti.Geometry.Symplectic.Manifold.Opens
 public import TauCeti.Geometry.Symplectic.Lagrangian.Basic
 import SymplecticGeometry.LinearAlgebra.ComplexStructure.Hom
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
@@ -82,8 +81,7 @@ restriction (`TauCeti.SmoothTwoForm.Tames.restrictOpen`). The inclusion is pseud
 (Tau Ceti's `TauCeti.SmoothAlmostComplexStructure.isPseudoholomorphic_subtype_val`) and its
 differentials are injective (`TauCeti.Manifold.mfderiv_subtype_val_injective`), so this follows
 from the pull-back lemma along pseudoholomorphic maps, `TauCeti.SmoothTwoForm.Tames.mpullback`.
-The kernel of the derivative of a
-pseudoholomorphic map is `J`-invariant, so by Tau Ceti's
+The kernel of the derivative of a pseudoholomorphic map is `J`-invariant, so by Tau Ceti's
 `TauCeti.SymplecticForm.Tames.isSymplectic_of_mem_invtSubmodule` a taming form is nondegenerate
 on it (`TauCeti.SmoothTwoForm.Tames.nondegenerate_restrict_ker_mfderiv`).
 
