@@ -298,7 +298,9 @@ The surjective half of the product theorem [Hatcher2017, §2.1]:
   Laurent polynomial $\sum_{|i|\le N}a_i(x)z^i$, by uniform approximation
   on fibres (Fejér sums in a finite atlas) and since nearby clutching
   functions are homotopic;
-- `of_clutching_polynomial`: a polynomial clutching function of degree
+- `TauCeti.FiniteRankBundleCore.exists_linear_clutching_iso_of_fiberMap_eq_sum`,
+  in `Topology/VectorBundle/FiniteRank/PolynomialClutching.lean`: a
+  polynomial clutching function of degree
   $\le N$ becomes linear on $(N+1)E$ (Hatcher's matrix), and
   `of_clutching_linear`: for a linear one $a(x)z+b(x)$, $E$ splits as
   $E_+\oplus E_-$ by the spectral projection

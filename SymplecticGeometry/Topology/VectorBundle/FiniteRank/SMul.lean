@@ -82,6 +82,22 @@ theorem fiberMap_smul (c : C(B, 𝕜)) (a : A ⟶ D) (x : B) :
     (c • a).fiberMap x = c x • a.fiberMap x :=
   VectorBundleCore.CoordinateHom.fiberMap_smul c a x
 
+/-- Multiplying a morphism by a scalar function commutes with composing it with a morphism after
+it. -/
+@[simp]
+theorem smul_comp {D' : FiniteRankBundleCore 𝕜 B} (c : C(B, 𝕜)) (a : A ⟶ D) (b : D ⟶ D') :
+    (c • a) ≫ b = c • (a ≫ b) :=
+  hom_ext fun x ↦ by
+    simp only [fiberMap_comp, fiberMap_smul, ContinuousLinearMap.comp_smul]
+
+/-- Multiplying a morphism by a scalar function commutes with composing it with a morphism before
+it. -/
+@[simp]
+theorem comp_smul {D' : FiniteRankBundleCore 𝕜 B} (c : C(B, 𝕜)) (a : D' ⟶ A) (b : A ⟶ D) :
+    a ≫ (c • b) = c • (a ≫ b) :=
+  hom_ext fun x ↦ by
+    simp only [fiberMap_comp, fiberMap_smul, ContinuousLinearMap.smul_comp]
+
 end TauCeti.FiniteRankBundleCore
 
 end
