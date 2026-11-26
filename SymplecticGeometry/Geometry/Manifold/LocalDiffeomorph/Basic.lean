@@ -6,7 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Algebra.SMul
-public import Mathlib.Geometry.Manifold.Instances.Real
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import TauCeti.Geometry.Manifold.Algebra.SMul
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
@@ -37,6 +36,9 @@ target of `Λ`, not only at `x`.
   is. It is the left-hand partner of Tau Ceti's `IsLocalDiffeomorphAt.comp_iff_right`, and
   combines Tau Ceti's `IsLocalDiffeomorphAt.of_comp_left` with Mathlib's
   `IsLocalDiffeomorphAt.comp`.
+* `MDifferentiableAt.of_comp_isLocalDiffeomorph`: a map continuous at a point is differentiable
+  there when its composite with a local diffeomorphism at the image point is. It is the
+  differentiable counterpart of Tau Ceti's `ContMDiffWithinAt.of_comp_isLocalDiffeomorph`.
 * `IsLocalDiffeomorphAt.exists_contMDiffAt_transition`: two maps that agree wherever two local
   diffeomorphisms into a common manifold do are related, near a point, by a map smooth there, as
   the transition maps of a gluing must be.
@@ -51,8 +53,6 @@ target of `Λ`, not only at `x`.
 * `PartialDiffeomorph.isLocalDiffeomorphAt_symm_comp_comp_model`: a partial diffeomorphism of
   model vector spaces that preserves the ranges of two models with corners is a local
   diffeomorphism between their model spaces.
-* `TauCeti.EuclideanHalfSpace.isLocalDiffeomorph_of_val_eq_smul`: multiplication by a positive
-  constant is a local diffeomorphism of the half-space.
 * `ModelWithCorners.isLocalDiffeomorphAt_coe`: a model with corners is a local diffeomorphism at
   every point that it sends into the interior of its range.
 * `PartialDiffeomorph.isCompact_image_of_subset_source`: a partial diffeomorphism sends compact
@@ -90,6 +90,18 @@ theorem comp_iff_left {F' : Type*} [NormedAddCommGroup F'] [NormedSpace 𝕜 F']
     (hf : ContinuousAt f x) :
     IsLocalDiffeomorphAt I K n (g ∘ f) x ↔ IsLocalDiffeomorphAt I J n f x :=
   ⟨fun h ↦ h.of_comp_left hg hf, fun h ↦ h.comp (hg := hg)⟩
+
+/-- Let `f` be a `C^n` local diffeomorphism at `g y`, with `n ≠ 0`, and let `g` be continuous at
+`y`. If `f ∘ g` is differentiable at `y`, so is `g`: near `y` it is the local inverse of `f`
+composed with `f ∘ g`. -/
+theorem _root_.MDifferentiableAt.of_comp_isLocalDiffeomorph {F' : Type*}
+    [NormedAddCommGroup F'] [NormedSpace 𝕜 F'] {G' : Type*} [TopologicalSpace G']
+    {K : ModelWithCorners 𝕜 F' G'} {P : Type*} [TopologicalSpace P] [ChartedSpace G' P]
+    {g : P → M} {y : P} (hf : IsLocalDiffeomorphAt I J n f (g y)) (hn : n ≠ 0)
+    (hg : ContinuousAt g y) (hfg : MDifferentiableAt K J (f ∘ g) y) :
+    MDifferentiableAt K I g y :=
+  ((hf.mdifferentiableAt_localInverse hn).comp y hfg).congr_of_eventuallyEq
+    (hf.localInverse_eventuallyEq_left.comp_tendsto hg).symm
 
 open Topology in
 /-- **Transition maps through local diffeomorphisms.** Let `f : M → N` and `g : M' → N` be `C^n`
@@ -193,28 +205,6 @@ theorem PartialDiffeomorph.isLocalDiffeomorphAt_symm_comp_comp_model
         (Θ.symm.contMDiffOn.comp J.contMDiff.contMDiffOn fun _ hz ↦ hz) fun z hz ↦
           htgt z hz }
   exact TauCeti.isLocalDiffeomorphAt_of_eqOn (Φ := Ψ) hx fun _ _ ↦ rfl
-
-/-- A map of the half-space `EuclideanHalfSpace m` to itself that multiplies every point by a
-fixed `ε > 0` is a `C^k` local diffeomorphism, for every `k`. -/
-theorem TauCeti.EuclideanHalfSpace.isLocalDiffeomorph_of_val_eq_smul {m : ℕ} [NeZero m]
-    {k : WithTop ℕ∞} {ε : ℝ} (hε : 0 < ε) {f : EuclideanHalfSpace m → EuclideanHalfSpace m}
-    (hf : ∀ t, (f t).val = ε • t.val) : IsLocalDiffeomorph (𝓡∂ m) (𝓡∂ m) k f := by
-  intro t
-  let Θ := ((LinearEquiv.smulOfNeZero ℝ (EuclideanSpace ℝ (Fin m)) ε
-    hε.ne').toContinuousLinearEquiv).toPartialDiffeomorph (n := k)
-  have hΘ : ∀ y : EuclideanSpace ℝ (Fin m), Θ y = ε • y := fun y ↦ by simp [Θ]
-  have h := Θ.isLocalDiffeomorphAt_symm_comp_comp_model (𝓡∂ m) (𝓡∂ m) (x := t)
-    (fun y _ ↦ by
-      simp only [hΘ, range_modelWithCornersEuclideanHalfSpace, mem_ofPred_eq, PiLp.smul_apply,
-        smul_eq_mul]
-      exact ⟨fun hy ↦ nonneg_of_mul_nonneg_right hy hε, fun hy ↦ mul_nonneg hε.le hy⟩)
-    (by simp [Θ])
-  convert h using 1
-  funext s
-  simp only [comp_apply, hΘ]
-  rw [← (𝓡∂ m).left_inv (f s)]
-  congr 1
-  rw [modelWithCornersEuclideanHalfSpace_apply, modelWithCornersEuclideanHalfSpace_apply, hf]
 
 /-- A model with corners `I` is a `C^n` local diffeomorphism from its model space to the model
 vector space at every point that it sends into the interior of its range. -/

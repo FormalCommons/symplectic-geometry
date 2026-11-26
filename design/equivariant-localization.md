@@ -360,7 +360,7 @@ existence theorem, not a definition.
 | localization lemma | `SymplecticGeometry.integralTopForm_formCalculus_mul` | `Equivariant/Localization.lean` |
 | top forms and their measure | `TauCeti.integralTopForm_smul_eq_integral_measure` | `Integration/Measure.lean` |
 | the model integral | `MeasureTheory.integral_iteratedDeriv_neg_sum_mul_sq` | `HalfSqRadius.lean` |
-| the formula for real $\hbar>0$ | `SymplecticGeometry.integral_exp_neg_mul_eq_finsum_of_pos` | `Localization/Real.lean` |
+| the formula for real $\hbar>0$ | `SymplecticGeometry.integralTopForm_exp_neg_mul_eq_finsum_of_pos` | `Localization/Real.lean` |
 | the milestone | `SymplecticGeometry.integral_cexp_neg_mul_eq_finsum_fixedPoints` | `Localization/DuistermaatHeckman.lean` |
 | its value at $\hbar=0$ | `SymplecticGeometry.tendsto_finsum_fixedPoints_liouvilleMeasure` | `Localization/DuistermaatHeckman.lean` |
 

@@ -32,16 +32,9 @@ covers it. This is the induction of Hatcher's Lemma 3.36, for vanishing alone.
   given by pulling back along a homeomorphism `X ≃ₜ Y`.
 * `TopCat.isZero_compactSupportCohomology_iff_of_homeomorph`: vanishing of `Hᵐ_c` is invariant
   under homeomorphisms.
-* `TopCat.isZero_compactSupportCohomology_comap_iff`: for open sets `W ≤ Y` of `X`, `Hᵐ_c(W)`
-  vanishes exactly when `Hᵐ_c` of `W`, read as an open set of `Y`, does.
 * `TopCat.isZero_compactSupportCohomology_of_infClosed`: vanishing of `Hᵐ_c` above a degree
   passes from the members of an inf-closed family of open sets that covers the space to the
   whole space.
-
-## Implementation notes
-
-`TopCat.isZero_compactSupportCohomology_comap_iff` compares `W` with `W` read as an open set of `Y`
-through Mathlib's homeomorphism `Topology.IsEmbedding.homeomorphOfSubsetRange`.
 
 ## References
 
@@ -102,17 +95,6 @@ theorem isZero_compactSupportCohomology_iff_of_homeomorph {X Y : TopCat.{v}} (e 
     fun h ↦ h.of_iso (compactSupportCohomologyMapIsoOfHomeomorph R k N e m).symm⟩
 
 variable {X : Type v} [TopologicalSpace X]
-
-/-- Cohomology with compact supports of an open set `W ≤ Y` of `X` vanishes exactly when that of
-`W`, read as an open set of `Y`, does. -/
-theorem isZero_compactSupportCohomology_comap_iff {Y W : Opens X} (hWY : W ≤ Y) (m : ℕ) :
-    IsZero ((of ↥(Opens.comap ⟨Subtype.val, continuous_subtypeVal⟩ W :
-        Opens Y)).compactSupportCohomology R k N m) ↔
-      IsZero ((of W).compactSupportCohomology R k N m) :=
-  isZero_compactSupportCohomology_iff_of_homeomorph R k N
-    (X := of ↥(Opens.comap ⟨Subtype.val, continuous_subtypeVal⟩ W : Opens Y)) (Y := of W)
-    (IsEmbedding.subtypeVal.homeomorphOfSubsetRange
-      (Subtype.range_coe.symm ▸ SetLike.coe_subset_coe.2 hWY)) m
 
 /-- **Vanishing of cohomology with compact supports over an inf-closed family of open sets.** Let
 `S` be a family of open sets of a Hausdorff space `X`, closed under intersection, that covers

@@ -109,13 +109,8 @@ theorem mpullback_trivialization_snd_maurerCartan_apply_rightFundamentalVectorFi
     (TauCeti.mpullback (IB.prod IG) IG e.manifoldSnd (leftMaurerCartanForm IG G).val :
         RoughForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1) x
       ![rightFundamentalVectorField (IB.prod IG) ξ x] = ξ := by
-  have hvec : (fun i ↦ mfderiv (IB.prod IG) IG e.manifoldSnd x
-      (![rightFundamentalVectorField (IB.prod IG) ξ x] i)) =
-      ![mulInvariantVectorField ξ (e.manifoldSnd x)] := by
-    funext i
-    fin_cases i
-    exact e.mfderiv_snd_rightFundamentalVectorField hx (hθ _ hx) ξ
-  rw [mpullback_apply, hvec, leftMaurerCartanForm_apply_mulInvariantVectorField]
+  rw [mpullback_apply_one, e.mfderiv_snd_rightFundamentalVectorField hx (hθ _ hx) ξ,
+    leftMaurerCartanForm_apply_mulInvariantVectorField]
 
 end Local
 
@@ -152,8 +147,7 @@ theorem exists_isConnectionForm [FiniteDimensional ℝ EB] [T2Space B] [SigmaCom
       A.val x v = ∑ b ∈ ρ.finsupport (p x), ρ b (p x) • ℓ b x v := by
     simp only [A, ContinuousAlternatingMap.sum_apply, ContinuousAlternatingMap.smul_apply]
   refine ⟨A, fun g ↦ ?_, fun x ξ ↦ ?_⟩
-  · refine Subtype.ext (funext fun x ↦ ?_)
-    ext v
+  · refine SmoothBundleForm.ext fun x v ↦ ?_
     have hpg : p (op g • x) = p x := by simp [hp, ManifoldTotalSpace.homeomorph_symm_smul]
     rw [SmoothForm.coe_mpullback, mpullback_apply, SmoothForm.coe_mapCoeff,
       RoughForm.mapCoeff_apply, hA, hA, map_sum, hpg]
