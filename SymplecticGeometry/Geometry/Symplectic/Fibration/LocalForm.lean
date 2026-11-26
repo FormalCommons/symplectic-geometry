@@ -10,7 +10,9 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Interior
 public import TauCeti.Geometry.Manifold.DifferentialForm.Vertical
 public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Basic
 public import TauCeti.Geometry.Manifold.VectorField.Prod
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
+import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Family
 import TauCeti.Geometry.Manifold.DifferentialForm.VectorField
@@ -74,10 +76,11 @@ local form. The proof of the local form is linear algebra at each point: it appl
 continuous alternating two-form on a product, to the value of `τ` at that point.
 
 The formula for `dτ` follows the proof of Tau Ceti's
-`TauCeti.SmoothForm.mextDeriv_apply_eq_fderiv_sub_fderiv_add_mvfderiv`, which evaluates the
-invariant formula `TauCeti.mextDeriv_apply_two` on the frame `(a, 0), (b, 0), (0, W)` of a
-product; here the frame is `(0, W₁), (0, W₂), (∂ᵢ, 0)` for extensions `Wₖ` of `wₖ` to vector
-fields on `F`. Its one nonzero bracket is `[(0, W₁), (0, W₂)] = (0, [W₁, W₂])`, and the terms
+`TauCeti.SmoothForm.mextDeriv_apply_eq_fderiv_sub_fderiv_add_mvfderiv`, which evaluates `dτ` on
+the product frame `(a, 0), (b, 0), (0, W)`, whose brackets all vanish. Here the frame is
+`(0, W₁), (0, W₂), (∂ᵢ, 0)` for extensions `Wₖ` of `wₖ` to vector fields on `F`. One of its
+brackets does not vanish, so the proof uses the invariant formula `TauCeti.mextDeriv_apply_two`
+instead. That bracket is `[(0, W₁), (0, W₂)] = (0, [W₁, W₂])`, and the terms
 along `F` make up `d_F αᵢ(x)(w₁, w₂)` by `TauCeti.mextDeriv_apply_one`.
 
 ## References
@@ -352,18 +355,14 @@ private theorem mextDeriv_apply_prodVectorField (i : ι) {x : EB} {y : F}
         (fun z ↦ (B z : TangentBundle (𝓘(ℝ, EB).prod IF) (EB × F))) (x, y) →
       MDifferentiableAt (𝓘(ℝ, EB).prod IF) 𝓘(ℝ, ℝ) (fun z ↦ τ z ![A z, B z]) (x, y) := by
     intro A B hA hB
-    have h := hτ'.continuousAlternatingMap_bundle_apply (b := id) (v := ![A, B])
-      (fun k ↦ by fin_cases k; exacts [hA, hB])
     have hev (z : EB × F) : (fun k ↦ ![A, B] k z) = ![A z, B z] := by
       funext k; fin_cases k <;> rfl
-    simpa [hev] using ((mdifferentiableAt_totalSpace _ _).1 h).2
+    simpa [hev] using mdifferentiableAt_apply_vectorField (V := ![A, B]) hτ'
+      (fun k ↦ by fin_cases k; exacts [hA, hB])
   -- The values of the frame.
-  have hU_apply (z : EB × F) : U z = ((0 : EB), W₁ z.2) :=
-    Prod.ext (Manifold.prodVectorField_fst _ _ z) (Manifold.prodVectorField_snd _ _ z)
-  have hV_apply (z : EB × F) : V z = ((0 : EB), W₂ z.2) :=
-    Prod.ext (Manifold.prodVectorField_fst _ _ z) (Manifold.prodVectorField_snd _ _ z)
-  have hX_apply (z : EB × F) : X z = (bs i, 0) :=
-    Prod.ext (Manifold.prodVectorField_fst _ _ z) (Manifold.prodVectorField_snd _ _ z)
+  have hU_apply (z : EB × F) : U z = ((0 : EB), W₁ z.2) := Manifold.prodVectorField_apply _ _ z
+  have hV_apply (z : EB × F) : V z = ((0 : EB), W₂ z.2) := Manifold.prodVectorField_apply _ _ z
+  have hX_apply (z : EB × F) : X z = (bs i, 0) := Manifold.prodVectorField_apply _ _ z
   -- The brackets of the frame: only `[(0, W₁), (0, W₂)] = (0, [W₁, W₂])` survives.
   have hUV : mlieBracket (𝓘(ℝ, EB).prod IF) U V (x, y) = ((0 : EB), mlieBracket IF W₁ W₂ y) := by
     rw [Manifold.mlieBracket_prodVectorField h0B h0B hW₁ hW₂]
