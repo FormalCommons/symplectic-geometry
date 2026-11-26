@@ -49,6 +49,8 @@ fixing `x`, be read on the isotropy algebra of `G` itself.
   inclusion of an embedded Lie subgroup is injective, with range its Lie algebra.
 * `TauCeti.Lie.EmbeddedLieSubgroupData.coe_mulInvariantExp`: the inclusion carries the
   exponential of `K` to that of `G`, through that differential.
+* `TauCeti.Lie.EmbeddedLieSubgroupData.range_groupLieAlgebraMap_subtype_eq_isotropy`: for a
+  subgroup with the same Lie algebra as `G_x`, that range is `𝔤_x`.
 * `TauCeti.Lie.EmbeddedLieSubgroupData.range_groupLieAlgebraMap_subtype_stabilizer` and
   `TauCeti.Lie.EmbeddedLieSubgroupData.range_groupLieAlgebraMap_stabilizer_subtype`: for the
   identity component of `G_x`, and for `G_x` itself, that range is `𝔤_x`.
@@ -159,6 +161,23 @@ theorem injective_groupLieAlgebraMap_subtype (d : EmbeddedLieSubgroupData I K F)
   rw [MonoidHom.groupLieAlgebraMap_apply, MonoidHom.groupLieAlgebraMap_apply] at h
   exact d.injective_mfderiv_subtypeVal 1 h
 
+omit [T2Space G] in
+/-- The Lie algebra map of the smooth inclusion `K → G` of an embedded Lie subgroup is the
+differential at `1` of the inclusion `K.subtype`. -/
+theorem groupLieAlgebraLieHom_subtypeVal (d : EmbeddedLieSubgroupData I K F) :
+    let _ : ChartedSpace F K := d.chartedSpace
+    let _ : LieGroup 𝓘(ℝ, F) ∞ K := d.lieGroup
+    ∀ ζ, d.subtypeVal.groupLieAlgebraLieHom ζ = K.subtype.groupLieAlgebraMap 𝓘(ℝ, F) I ζ := by
+  let _ : ChartedSpace F K := d.chartedSpace
+  let _ : LieGroup 𝓘(ℝ, F) ∞ K := d.lieGroup
+  dsimp only
+  intro ζ
+  rw [ContMDiffMonoidMorphism.coe_groupLieAlgebraLieHom, MonoidHom.groupLieAlgebraMap_apply,
+    MonoidHom.groupLieAlgebraMap_apply, ContMDiffMonoidMorphism.coe_toMonoidHom,
+    mfderiv_congr (funext fun k ↦ d.subtypeVal_apply k), Subgroup.coe_subtype]
+  -- The two sides differ only in instance arguments, which agree up to unfolding.
+  rfl
+
 /-- **The range of the differential at `1` of the inclusion of an embedded Lie subgroup `K` is its
 Lie algebra**, carried to the tangent space `𝔤 = T₁G` by evaluation at the identity. This is
 `TauCeti.Lie.EmbeddedLieSubgroupData.range_lieMapSubtypeVal_eq` on tangent vectors; it does not
@@ -178,11 +197,9 @@ theorem range_groupLieAlgebraMap_subtype (d : EmbeddedLieSubgroupData I K F)
   let e := leftInvariantDerivationLieEquivGroupLieAlgebra (I := I) (G := G) h₁
   have key₀ (D : LeftInvariantDerivation 𝓘(ℝ, F) K) :
       K.subtype.groupLieAlgebraMap 𝓘(ℝ, F) I (eK D) = e (d.lieMapSubtypeVal D) := by
-    rw [lieMapSubtypeVal_apply, leftInvariantDerivationLieEquivGroupLieAlgebra_lieMap,
-      MonoidHom.groupLieAlgebraMap_apply,
-      mfderiv_congr (funext fun k ↦ d.subtypeVal_apply k), Subgroup.coe_subtype]
-    -- The two sides differ only by unfolding the local abbreviation `eK`.
-    rfl
+    rw [lieMapSubtypeVal_apply,
+      ContMDiffMonoidMorphism.leftInvariantDerivationLieEquivGroupLieAlgebra_lieMap_eq,
+      d.groupLieAlgebraLieHom_subtypeVal]
   have key : (K.subtype.groupLieAlgebraMap 𝓘(ℝ, F) I).toLinearMap ∘ₗ
       (eK.toLinearEquiv : LeftInvariantDerivation 𝓘(ℝ, F) K →ₗ[ℝ] GroupLieAlgebra 𝓘(ℝ, F) K) =
       (e.toLinearEquiv : LeftInvariantDerivation I G →ₗ[ℝ] GroupLieAlgebra I G) ∘ₗ
@@ -190,23 +207,6 @@ theorem range_groupLieAlgebraMap_subtype (d : EmbeddedLieSubgroupData I K F)
   rw [← d.range_lieMapSubtypeVal_eq, ← LinearMap.range_comp_of_range_eq_top _
     (LinearEquiv.range eK.toLinearEquiv), key, LinearMap.range_comp,
     LieHom.range_toSubmodule]
-
-omit [T2Space G] in
-/-- The Lie algebra map of the smooth inclusion `K → G` of an embedded Lie subgroup is the
-differential at `1` of the inclusion `K.subtype`. -/
-theorem groupLieAlgebraLieHom_subtypeVal (d : EmbeddedLieSubgroupData I K F) :
-    let _ : ChartedSpace F K := d.chartedSpace
-    let _ : LieGroup 𝓘(ℝ, F) ∞ K := d.lieGroup
-    ∀ ζ, d.subtypeVal.groupLieAlgebraLieHom ζ = K.subtype.groupLieAlgebraMap 𝓘(ℝ, F) I ζ := by
-  let _ : ChartedSpace F K := d.chartedSpace
-  let _ : LieGroup 𝓘(ℝ, F) ∞ K := d.lieGroup
-  dsimp only
-  intro ζ
-  rw [ContMDiffMonoidMorphism.coe_groupLieAlgebraLieHom, MonoidHom.groupLieAlgebraMap_apply,
-    MonoidHom.groupLieAlgebraMap_apply, ContMDiffMonoidMorphism.coe_toMonoidHom,
-    mfderiv_congr (funext fun k ↦ d.subtypeVal_apply k), Subgroup.coe_subtype]
-  -- The two sides differ only in instance arguments, which agree up to unfolding.
-  rfl
 
 /-- The inclusion of an embedded Lie subgroup `K` carries its exponential to that of `G`:
 `(exp ζ : G) = exp (dι₁ ζ)`, where `ι : K → G` is the inclusion. -/
@@ -227,6 +227,23 @@ variable [IsTopologicalGroup G]
   {M : Type*} [TopologicalSpace M] [ChartedSpace H' M] [MulAction G M]
   [IsManifold I' ∞ M] [T2Space M] [BoundarylessManifold I' M] [ContMDiffSMul I I' ∞ G M]
 
+omit [IsTopologicalGroup G] in
+/-- **A subgroup with the Lie algebra of a stabilizer has tangent space `𝔤_x` at `1`.** For any
+embedded Lie subgroup structure on a subgroup `K` of `G` whose Lie algebra is that of `G_x`, the
+differential at `1` of the inclusion `K → G` has range `𝔤_x = {ξ | ξ_M(x) = 0}`. -/
+theorem range_groupLieAlgebraMap_subtype_eq_isotropy {x : M} (d : EmbeddedLieSubgroupData I K F)
+    (hK : lieSubalgebraOfSubgroup (I := I) K =
+      lieSubalgebraOfSubgroup (I := I) (MulAction.stabilizer G x)) :
+    let _ := d.chartedSpace
+    LinearMap.range (K.subtype.groupLieAlgebraMap 𝓘(ℝ, F) I).toLinearMap =
+      ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule := by
+  let _ := d.chartedSpace
+  dsimp only
+  have h₁ : I.IsInteriorPoint (1 : G) := BoundarylessManifold.isInteriorPoint
+  rw [d.range_groupLieAlgebraMap_subtype h₁, hK, lieSubalgebraOfSubgroup_stabilizer (I' := I') h₁ x]
+  exact Submodule.map_comap_eq_of_surjective
+    (leftInvariantDerivationLieEquivGroupLieAlgebra (I := I) (G := G) h₁).toLinearEquiv.surjective _
+
 /-- **The tangent space at `1` of the identity component of a stabilizer is the isotropy
 algebra.** For any embedded Lie subgroup structure on the identity component `K` of `G_x`, the
 differential at `1` of the inclusion `K → G` has range `𝔤_x = {ξ | ξ_M(x) = 0}`. -/
@@ -237,14 +254,9 @@ theorem range_groupLieAlgebraMap_subtype_stabilizer {x : M}
     LinearMap.range ((Subgroup.map (MulAction.stabilizer G x).subtype
         (Subgroup.connectedComponentOfOne (MulAction.stabilizer G x))).subtype.groupLieAlgebraMap
           𝓘(ℝ, F) I).toLinearMap =
-      ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule := by
-  let _ := d.chartedSpace
-  dsimp only
-  have h₁ : I.IsInteriorPoint (1 : G) := BoundarylessManifold.isInteriorPoint
-  rw [d.range_groupLieAlgebraMap_subtype h₁,
-    lieSubalgebraOfSubgroup_map_connectedComponentOfOne_stabilizer (I' := I') h₁ x]
-  exact Submodule.map_comap_eq_of_surjective
-    (leftInvariantDerivationLieEquivGroupLieAlgebra (I := I) (G := G) h₁).toLinearEquiv.surjective _
+      ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule :=
+  d.range_groupLieAlgebraMap_subtype_eq_isotropy (I' := I')
+    (lieSubalgebraOfSubgroup_map_connectedComponentOfOne _)
 
 omit [IsTopologicalGroup G] in
 /-- **The tangent space at `1` of a stabilizer is the isotropy algebra.** For any embedded Lie
@@ -255,13 +267,8 @@ theorem range_groupLieAlgebraMap_stabilizer_subtype {x : M}
     let _ := d.chartedSpace
     LinearMap.range
         ((MulAction.stabilizer G x).subtype.groupLieAlgebraMap 𝓘(ℝ, F) I).toLinearMap =
-      ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule := by
-  let _ := d.chartedSpace
-  dsimp only
-  have h₁ : I.IsInteriorPoint (1 : G) := BoundarylessManifold.isInteriorPoint
-  rw [d.range_groupLieAlgebraMap_subtype h₁, lieSubalgebraOfSubgroup_stabilizer (I' := I') h₁ x]
-  exact Submodule.map_comap_eq_of_surjective
-    (leftInvariantDerivationLieEquivGroupLieAlgebra (I := I) (G := G) h₁).toLinearEquiv.surjective _
+      ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule :=
+  d.range_groupLieAlgebraMap_subtype_eq_isotropy (I' := I') rfl
 
 omit [IsTopologicalGroup G] in
 /-- For any embedded Lie subgroup structure on the stabilizer `G_x`, the differential at `1` of the
