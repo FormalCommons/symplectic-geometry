@@ -5,8 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Analysis.InnerProductSpace.Calculus
 public import Mathlib.Geometry.Manifold.Algebra.Structures
 public import Mathlib.Geometry.Manifold.PartitionOfUnity
+public import TauCeti.Analysis.InnerProductSpace.Calculus
 public import TauCeti.Geometry.Manifold.Morse.Hessian
 
 /-!
@@ -26,6 +28,13 @@ critical Hessian of `f * g` is `f x` times that of `g`
 (`TauCeti.criticalHessian_mul_of_mem_criticalPoints`), by the Leibniz rule for the second
 derivative of the coordinate expressions (Tau Ceti's `TauCeti.fderiv_fderiv_add` and
 `TauCeti.fderiv_fderiv_mul_apply`).
+
+For a map `φ : M → W` into a normed group and a zero `x` of `φ` that is an interior point, the
+function `p ↦ ‖φ p‖²` has a minimum, hence a critical point, at `x`
+(`TauCeti.mem_criticalPoints_norm_sq_of_eq_zero`). If moreover `W` is a real inner product space,
+`M` is boundaryless and `φ` is `C²` at `x`, its critical Hessian there is `2 ⟪dφ u, dφ w⟫`
+(`TauCeti.criticalHessian_norm_sq_apply_of_eq_zero`), by the second-order chain rule and Tau
+Ceti's `TauCeti.fderiv_fderiv_norm_sq_apply`.
 
 For a smooth partition of unity `φ` subordinate to `U`, and functions `g i` that are `C²`, vanish
 and are critical at an interior point `q` whenever `q ∈ U i`, the critical Hessian of
@@ -102,6 +111,37 @@ theorem criticalHessian_mul_of_mem_criticalPoints (hf : ContMDiffAt I 𝓘(ℝ) 
   simp [hg0]
 
 end Algebra
+
+section NormSq
+
+variable {E H M W : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  [TopologicalSpace M] [ChartedSpace H M] [NormedAddCommGroup W] {φ : M → W} {x : M}
+
+/-- An interior point `x` where a map `φ` into a normed group vanishes is a critical point of
+`p ↦ ‖φ p‖²`, which takes its minimum `0` there. -/
+theorem mem_criticalPoints_norm_sq_of_eq_zero (hφx : φ x = 0) (hx : I.IsInteriorPoint x) :
+    x ∈ criticalPoints I (fun p ↦ ‖φ p‖ ^ 2) := by
+  refine IsLocalMin.mem_criticalPoints (Eventually.of_forall fun p ↦ ?_) hx
+  simp only [hφx, norm_zero, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, zero_pow]
+  positivity
+
+/-- **The Hessian of `‖φ‖²` at a zero of `φ`.** On a boundaryless manifold, if a map `φ` into a
+real inner product space is `C²` at `x` and vanishes there, then the critical Hessian of
+`p ↦ ‖φ p‖²` at `x` is `2 ⟪dφ u, dφ w⟫`. -/
+theorem criticalHessian_norm_sq_apply_of_eq_zero [InnerProductSpace ℝ W] [I.Boundaryless]
+    (hφ : ContMDiffAt I 𝓘(ℝ, W) 2 φ x) (hφx : φ x = 0) (u w : TangentSpace I x) :
+    criticalHessian I (fun p ↦ ‖φ p‖ ^ 2) x u w =
+      2 * inner ℝ (E := W) (mfderiv I 𝓘(ℝ, W) φ x u) (mfderiv I 𝓘(ℝ, W) φ x w) := by
+  have hcrit : φ x ∈ criticalPoints 𝓘(ℝ, W) (fun z : W ↦ ‖z‖ ^ 2) :=
+    mem_criticalPoints_norm_sq_of_eq_zero (φ := id) hφx BoundarylessManifold.isInteriorPoint
+  -- The second-order chain rule at the critical point `φ x = 0` of `‖·‖²`.
+  have hH := criticalHessian_comp_apply (f := fun z : W ↦ ‖z‖ ^ 2) rfl
+    (contDiff_norm_sq ℝ).contMDiff.contMDiffAt hφ hcrit u w
+  rw [criticalHessian_modelSpace] at hH
+  exact hH.trans (fderiv_fderiv_norm_sq_apply (E := W) _ _ _)
+
+end NormSq
 
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]

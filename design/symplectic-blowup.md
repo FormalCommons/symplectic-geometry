@@ -347,7 +347,7 @@ $\psi$ to the larger ball is this hypothesis, and *Isotopy extension*'s
 `exists_lt_isSymplecticBallEmbedding_eqOn` provides it from an embedding of
 $B(\lambda)$.
 
-- `IsSymplecticBallEmbedding.openEmbedding`: on the open ball a symplectic
+- `IsSymplecticBallEmbedding.toPartialDiffeomorph`: on the open ball a symplectic
   ball embedding is an open smooth embedding, a `PartialDiffeomorph`
   (injective, with injective differential by `injective_mfderiv`, in equal
   dimension). It goes in *Isotopy extension*'s `Ball/Basic.lean` if that
