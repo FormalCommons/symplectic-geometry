@@ -228,7 +228,7 @@ for Morse–Bott functions, so the first equation is proved with one:
    and $2$ (`isMorse_projectiveMomentFunction`);
 3. $\mu\circ\pi$ is Morse–Bott: along the two fibres over the critical
    points of $\mu$ by Tau Ceti's
-   `TauCeti.SmoothEmbedding.isNondegenerateCriticalSubmanifold_comp_regularFiber`,
+   `TauCeti.isNondegenerateCriticalSubmanifold_comp_regularFiber`,
    of index $0$ and $2$; at each critical point of $\pi$ it is
    $\mathrm{Re}(\lambda(z_1^2+z_2^2))$ plus a constant in the model, with
    $\lambda\neq0$ since $\mu$ is regular at the critical value, so a

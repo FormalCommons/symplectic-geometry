@@ -69,7 +69,8 @@ itself (`SymplecticGeometry.map_mem_annulus_iff`).
 * `SymplecticGeometry.ConnectedSum.gluingDiffeomorph Φ ε hε`: the diffeomorphism of the annulus
   that it gives, with `coe_gluingDiffeomorph_apply` and `coe_gluingDiffeomorph_symm_apply`; its
   inverse is the gluing diffeomorphism for `Φ⁻¹` (`gluingDiffeomorph_symm`), and `simp` cancels
-  the two with `gluingDiffeomorph_symm_apply_apply` and `gluingDiffeomorph_apply_symm_apply`.
+  the two with `gluingDiffeomorph_symm_apply_apply`, `gluingDiffeomorph_apply_symm_apply`,
+  `gluingDiffeomorph_self_trans_symm` and `gluingDiffeomorph_symm_trans_self`.
 * `SymplecticGeometry.ConnectedSum.piece ι ε hι`: the open set `M \ ι (closedBall 0 ε²)`, and
   `SymplecticGeometry.ConnectedSum.overlap`: the image of the annulus in it, as an open subset
   of the piece.
@@ -79,7 +80,8 @@ itself (`SymplecticGeometry.map_mem_annulus_iff`).
   the two pieces, with `overlapDiffeomorph_annulusDiffeomorph` and
   `coe_overlapDiffeomorph_apply`; its inverse is the gluing map for `Φ⁻¹`
   (`overlapDiffeomorph_symm`), and `simp` cancels the two with
-  `overlapDiffeomorph_symm_apply_apply` and `overlapDiffeomorph_apply_symm_apply`.
+  `overlapDiffeomorph_symm_apply_apply`, `overlapDiffeomorph_apply_symm_apply`,
+  `overlapDiffeomorph_self_trans_symm` and `overlapDiffeomorph_symm_trans_self`.
 * `SymplecticGeometry.ConnectedSum.AnnulusSum`: the connected sum, and
   `SymplecticGeometry.ConnectedSum.AnnulusSum.inl_eq_inr_iff`: a point `x` of the first piece and
   a point `y` of the second are equal in it exactly when `x = ι₁ ξ` and
@@ -220,6 +222,24 @@ with `gluingDiffeomorph_symm`, this is the form in which it cancels the two maps
 theorem gluingDiffeomorph_apply_symm_apply (η : annulus E (ε ^ 2) 1) :
     gluingDiffeomorph Φ ε hε (n := n) (gluingDiffeomorph Φ.symm ε hε (n := n) η) = η := by
   simpa using (gluingDiffeomorph Φ ε hε (n := n)).apply_symm_apply η
+
+/-- Composing the gluing diffeomorphism for `Φ` with the one for `Φ⁻¹` gives the identity of the
+annulus. Since `simp` rewrites the inverse with `gluingDiffeomorph_symm`, this is the form in which
+it cancels the two maps. -/
+@[simp]
+theorem gluingDiffeomorph_self_trans_symm :
+    (gluingDiffeomorph Φ ε hε (n := n)).trans (gluingDiffeomorph Φ.symm ε hε) =
+      Diffeomorph.refl 𝓘(ℝ, E) (annulus E (ε ^ 2) 1) n := by
+  simpa using (gluingDiffeomorph Φ ε hε (n := n)).self_trans_symm
+
+/-- Composing the gluing diffeomorphism for `Φ⁻¹` with the one for `Φ` gives the identity of the
+annulus. Since `simp` rewrites the inverse with `gluingDiffeomorph_symm`, this is the form in which
+it cancels the two maps. -/
+@[simp]
+theorem gluingDiffeomorph_symm_trans_self :
+    (gluingDiffeomorph Φ.symm ε hε (n := n)).trans (gluingDiffeomorph Φ ε hε) =
+      Diffeomorph.refl 𝓘(ℝ, E) (annulus E (ε ^ 2) 1) n := by
+  simpa using (gluingDiffeomorph Φ ε hε (n := n)).symm_trans_self
 
 end SymplecticGeometry.ConnectedSum
 
@@ -382,6 +402,26 @@ theorem overlapDiffeomorph_apply_symm_apply (y : overlap ι₂ ε hι₂.continu
     overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε (overlapDiffeomorph hι₂ hdι₂ hι₁ hdι₁ Φ.symm hε y) =
       y := by
   simpa using (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε).apply_symm_apply y
+
+/-- Composing the gluing map for `Φ` with the gluing map for `Φ⁻¹` gives the identity of the
+overlap of the first piece. Since `simp` rewrites the inverse with `overlapDiffeomorph_symm`, this
+is the form in which it cancels the two maps. -/
+@[simp]
+theorem overlapDiffeomorph_self_trans_symm :
+    (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε).trans
+        (overlapDiffeomorph hι₂ hdι₂ hι₁ hdι₁ Φ.symm hε) =
+      Diffeomorph.refl 𝓘(ℝ, E) (overlap ι₁ ε hι₁.continuous hι₁.isOpenMap) n := by
+  simpa using (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε).self_trans_symm
+
+/-- Composing the gluing map for `Φ⁻¹` with the gluing map for `Φ` gives the identity of the
+overlap of the second piece. Since `simp` rewrites the inverse with `overlapDiffeomorph_symm`,
+this is the form in which it cancels the two maps. -/
+@[simp]
+theorem overlapDiffeomorph_symm_trans_self :
+    (overlapDiffeomorph hι₂ hdι₂ hι₁ hdι₁ Φ.symm hε).trans
+        (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε) =
+      Diffeomorph.refl 𝓘(ℝ, E) (overlap ι₂ ε hι₂.continuous hι₂.isOpenMap) n := by
+  simpa using (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε).symm_trans_self
 
 /-- The connected sum of McDuff–Salamon (Exercise 7.1.4): the pieces `M₁ \ ι₁ (closedBall 0 ε²)`
 and `M₂ \ ι₂ (closedBall 0 ε²)`, glued by identifying `ι₁ ξ` with `ι₂ (Φ (inversion 0 ε ξ))`,
