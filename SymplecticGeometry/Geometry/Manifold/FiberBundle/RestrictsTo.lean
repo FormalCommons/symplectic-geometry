@@ -42,6 +42,13 @@ base does. This gives Thurston's forms `τ + K proj^* β`.
 * `Bundle.Trivialization.mpullback_fiberInclusionMap_eq_of_mem_diffeomorphStabilizer`: a form that
   one chart pulls back to `σ` over a point is pulled back to `σ` by every chart whose coordinate
   change to the first one preserves `σ`.
+* `Bundle.Trivialization.mpullback_fiberInclusionMap_mpullback_snd`: pulling a form on the fibre
+  back along the fibre coordinate of a chart and then along its fibre inclusion gives it back.
+* `Bundle.Trivialization.apply_eq_of_mpullback_fiberInclusionMap_eq`: two forms with the same
+  pull-back to the fibre through `x` agree at `x` on vertical vectors.
+* `TauCeti.MapFiber.Atlas.mpullback_snd_trivAt_apply_eq`: when the coordinate changes preserve
+  `σ`, the pull-backs of `σ` along the fibre coordinates of any two charts agree on vertical
+  vectors.
 * `TauCeti.MapFiber.Atlas.restrictsTo_iff_forall_exists`: for a smooth atlas with structure group
   the stabilizer of `σ`, it suffices that one chart at each point pull `τ` back to `σ`.
 * `TauCeti.MapFiber.Atlas.RestrictsTo.of_coordChangeMem`: the predicate passes to an atlas
@@ -118,6 +125,48 @@ theorem mpullback_fiberInclusionMap_eq_of_mem_diffeomorphStabilizer [IsManifold 
     (hφe ▸ φ.mdifferentiable (by simp)), h, ← hφe]
   exact funext (TauCeti.SmoothForm.mem_diffeomorphStabilizer_iff_forall.1 hφ)
 
+/-- **The fibre coordinate is a left inverse of the fibre inclusion.** For a trivialization `e`
+that is differentiable with differentiable inverse, pulling a form on `F` back to `M` along the
+fibre coordinate `x ↦ (e x).2`, and then to `F` along the fibre inclusion of `e` over `b`, gives
+the form back. -/
+theorem mpullback_fiberInclusionMap_mpullback_snd {e : Trivialization F proj}
+    (he : e.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF)) {b : B} (hb : b ∈ e.baseSet)
+    (α : TauCeti.RoughForm IF F V k) :
+    TauCeti.mpullback IF IM (e.fiberInclusionMap hb)
+      (TauCeti.mpullback IM IF (fun x ↦ (e x).2) α) = α := by
+  funext v
+  have hg : MDifferentiableAt IM IF (fun x ↦ (e x).2) (e.fiberInclusionMap hb v) :=
+    mdifferentiableAt_snd.comp _ (he.mdifferentiableAt (e.fiberInclusionMap_mem_source hb v))
+  have hid : (fun x ↦ (e x).2) ∘ e.fiberInclusionMap hb = id :=
+    funext fun w ↦ congrArg Prod.snd (e.apply_fiberInclusionMap hb w)
+  rw [← TauCeti.mpullback_comp_at (mdifferentiable_fiberInclusionMap he hb v) hg, hid,
+    TauCeti.mpullback_id]
+
+/-- **Forms are determined on vertical vectors by their pull-backs to a fibre.** For a
+trivialization `e` that is differentiable with differentiable inverse, two forms on `M` with the
+same pull-back along the fibre inclusion of `e` over `proj x` take the same value at `x` on every
+tuple of vertical vectors, since the derivative of that fibre inclusion has the vertical space as
+range. -/
+theorem apply_eq_of_mpullback_fiberInclusionMap_eq {e : Trivialization F proj}
+    (he : e.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF)) {x : M}
+    (hx : proj x ∈ e.baseSet) {α β : TauCeti.RoughForm IM M V k}
+    (h : TauCeti.mpullback IF IM (e.fiberInclusionMap hx) α =
+      TauCeti.mpullback IF IM (e.fiberInclusionMap hx) β)
+    {u : Fin k → TangentSpace IM x} (hu : ∀ i, u i ∈ (mfderiv IM IB proj x).ker) :
+    α x u = β x u := by
+  -- Read `x` as the image of its fibre coordinate under the fibre inclusion; the statement is
+  -- generalized over that point, since the tangent vectors depend on it.
+  have key : ∀ (y : M) (_ : y = e.fiberInclusionMap hx (e x).2) {u : Fin k → TangentSpace IM y},
+      (∀ i, u i ∈ (mfderiv IM IB proj y).ker) → α y u = β y u := by
+    rintro y rfl u hu
+    have hr := e.range_mfderiv_fiberInclusionMap he hx (e x).2
+    choose w hw using fun i ↦ (hr ▸ hu i : u i ∈ LinearMap.range _)
+    have hu' : u = fun i ↦ mfderiv IF IM (e.fiberInclusionMap hx) (e x).2 (w i) :=
+      funext fun i ↦ (hw i).symm
+    rw [hu', ← TauCeti.mpullback_apply, ← TauCeti.mpullback_apply, h]
+  refine key x ?_ hu
+  rw [Trivialization.fiberInclusionMap_apply, e.symm_apply_mk_proj (e.mem_source.2 hx)]
+
 /-- **Forms from the base vanish on the fibres.** The pull-back to a fibre of the pull-back
 `proj^* β` of a form of positive degree on the base is zero, since `proj` is constant on the
 fibre. No smoothness is needed: where one of the two maps is not differentiable, its derivative is
@@ -181,6 +230,36 @@ theorem restrictsTo_iff_forall_exists (hA : A.IsContMDiff ∞ IB IF IM)
   obtain ⟨φ, hφ, hφe⟩ := hasStructureGroup_iff.1 hH b b₀ b' hb' hb₀
   exact Trivialization.mpullback_fiberInclusionMap_eq_of_mem_diffeomorphStabilizer
     (hA.mdifferentiable_trivAt (by simp) b₀) hb' hb₀ hφ hφe h₀
+
+omit [IsManifold IM 1 M] in
+/-- **Fibre coordinates of charts with stabilizing coordinate changes.** For a smooth atlas whose
+coordinate changes preserve `σ`, the pull-back of `σ` along the fibre coordinate
+`x ↦ (A.trivAt b₀ x).2` of a chart pulls back to `σ` along the fibre inclusion of every chart over
+every point `b'` of the base set of `A.trivAt b₀`. -/
+theorem mpullback_fiberInclusionMap_mpullback_snd_trivAt (hA : A.IsContMDiff ∞ IB IF IM)
+    (hH : A.HasStructureGroup (SmoothForm.diffeomorphStabilizer σ)) {b₀ b b' : B}
+    (hb₀ : b' ∈ (A.trivAt b₀).baseSet) (hb : b' ∈ (A.trivAt b).baseSet) :
+    TauCeti.mpullback IF IM ((A.trivAt b).fiberInclusionMap hb)
+      (TauCeti.mpullback IM IF (fun x ↦ (A.trivAt b₀ x).2) σ.val) = σ.val := by
+  obtain ⟨φ, hφ, hφe⟩ := hasStructureGroup_iff.1 hH b b₀ b' hb hb₀
+  have he₀ := hA.mdifferentiable_trivAt (by simp) b₀
+  exact Trivialization.mpullback_fiberInclusionMap_eq_of_mem_diffeomorphStabilizer he₀ hb hb₀ hφ
+    hφe ((A.trivAt b₀).mpullback_fiberInclusionMap_mpullback_snd he₀ hb₀ σ.val)
+
+omit [IsManifold IM 1 M] in
+/-- **Fibre coordinates of two charts agree on vertical vectors.** For a smooth atlas whose
+coordinate changes preserve `σ`, the pull-backs of `σ` along the fibre coordinates of two charts
+whose base sets contain `proj x` take the same value at `x` on every tuple of vertical vectors. -/
+theorem mpullback_snd_trivAt_apply_eq (hA : A.IsContMDiff ∞ IB IF IM)
+    (hH : A.HasStructureGroup (SmoothForm.diffeomorphStabilizer σ)) {b₀ b₁ : B} {x : M}
+    (h₀ : proj x ∈ (A.trivAt b₀).baseSet) (h₁ : proj x ∈ (A.trivAt b₁).baseSet)
+    {u : Fin k → TangentSpace IM x} (hu : ∀ i, u i ∈ (mfderiv IM IB proj x).ker) :
+    TauCeti.mpullback IM IF (fun y ↦ (A.trivAt b₀ y).2) σ.val x u =
+      TauCeti.mpullback IM IF (fun y ↦ (A.trivAt b₁ y).2) σ.val x u :=
+  (A.trivAt (proj x)).apply_eq_of_mpullback_fiberInclusionMap_eq
+    (hA.mdifferentiable_trivAt (by simp) _) (A.mem_baseSet_trivAt _)
+    ((mpullback_fiberInclusionMap_mpullback_snd_trivAt hA hH h₀ _).trans
+      (mpullback_fiberInclusionMap_mpullback_snd_trivAt hA hH h₁ _).symm) hu
 
 /-- **Independence of the atlas.** If `τ` restricts to `σ` along a smooth atlas `A`, then it
 does along every atlas `A'` compatible with `A` through the stabilizer of `σ`. -/
