@@ -7,7 +7,7 @@ module
 
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
 public import TauCeti.AlgebraicTopology.Cohomology.LerayHirsch.MayerVietoris
-public import SymplecticGeometry.Topology.FiberBundle.Basic
+public import SymplecticGeometry.Topology.Category.TopCat.Trivialization
 public import SymplecticGeometry.LinearAlgebra.LinearIndependent
 public import TauCeti.AlgebraicTopology.Cohomology.LerayHirsch.FiberwiseBasis
 
@@ -25,7 +25,8 @@ generated in degrees `d ≤ n`, and that classes `c d i ∈ Hᵈ(Z; k)` restrict
 
 is bijective (`TopCat.lerayHirsch_bijective`, and `TopCat.lerayHirschEquiv` for the linear
 equivalence). The same holds for any map `p : E ⟶ B` with finitely many trivializations whose base
-sets cover `B`, if the classes restrict to bases through each of them
+sets cover `B`, if the classes restrict to bases through the fibre inclusions
+`Bundle.Trivialization.fiberInclusion` of Tau Ceti of each of them
 (`TopCat.lerayHirsch_bijective_of_biUnion_baseSet_eq_univ`), and over any finite union of open
 sets, each inside the base set of such a trivialization, for the restriction of `p` there
 (`TopCat.lerayHirschRestrict_biUnion_bijective`). When one of the classes of degree
@@ -46,7 +47,8 @@ cohomology of `F` in degrees up to `n`, its bijectivity is
 ## Proof
 
 Over a subset `S` of the base set of one trivialization `t`, the trivialization identifies
-`p⁻¹ S` with `S × F` over `S`, and the Leray–Hirsch map with that of the projection
+`p⁻¹ S` with `S × F` over `S` (Tau Ceti's `Bundle.Trivialization.preimageIso`), and the
+Leray–Hirsch map with that of the projection
 `S × F ⟶ S`, which is bijective by Tau Ceti's
 `TopCat.lerayHirsch_fst_bijective_of_fiberwise_basis`
 (`TopCat.lerayHirschRestrict_bijective_of_subset_baseSet`). The finite cover is handled by
@@ -57,7 +59,8 @@ proof of Tau Ceti's `TauCeti.bijective_pullbackCupRestrict_thomPair_biUnion` (th
 isomorphism over a finite union of trivializing sets) to the Leray–Hirsch map. For a fibre bundle,
 the restrictions of the classes through two trivializations differ by the coordinate change, a
 homeomorphism of `F`, so the hypothesis at the trivialization of each point gives it through every
-trivialization of the atlas.
+trivialization of the atlas; `Bundle.Trivialization.ofHom_fiberInclusionMap` turns these
+restrictions into restrictions through Tau Ceti's fibre inclusions.
 
 The integral form follows from the case `k = ℤ`, through the inverse of Tau Ceti's linear
 equivalence `TopCat.integralCohomologyEquiv` of integral cohomology with cohomology with
@@ -104,25 +107,15 @@ theorem lerayHirschRestrict_bijective_of_subset_baseSet (t : Trivialization F p)
       (𝟙_ (ModuleCat.{w} k))).obj F))
     (hc : ∀ x (hx : x ∈ S), ∀ d ≤ n,
       LinearIndependent k (fun i ↦
-        TopCat.singularCohomologyMap (ofHom (t.fiberInclusionMap (hS hx))) d (c d i)) ∧
+        TopCat.singularCohomologyMap (t.fiberInclusion (hS hx)) d (c d i)) ∧
       ⊤ ≤ Submodule.span k (Set.range fun i ↦
-        TopCat.singularCohomologyMap (ofHom (t.fiberInclusionMap (hS hx))) d (c d i))) :
+        TopCat.singularCohomologyMap (t.fiberInclusion (hS hx)) d (c d i))) :
     Function.Bijective (lerayHirschRestrict p c S n) := by
-  let f : of S ⊗ F ⟶ of (p ⁻¹' S) := (isoOfHomeo (t.preimageHomeomorph hS).symm).hom
-  have hf : f ≫ ofHom (p.hom.restrictPreimage S) = fst (of S) F ≫ 𝟙 _ := by
-    ext ⟨x, y⟩
-    -- The map of `isoOfHomeo` is the homeomorphism, which sends `(x, y)` to `t⁻¹ (x, y)`.
-    exact t.proj_symm_apply' (hS x.property)
-  rw [← lerayHirsch_bijective_iff_of_isIso f (𝟙 _) hf (fun _ _ _ ↦ rfl)]
+  rw [← lerayHirsch_bijective_iff_of_isIso (t.preimageIso hS).hom (𝟙 _)
+    (by rw [Trivialization.preimageIso_hom_comp, Category.comp_id]) (fun _ _ _ ↦ rfl)]
   refine lerayHirsch_fst_bijective_of_fiberwise_basis _ n _ hF fun x d hd ↦ ?_
-  have hx : prodFiberInclusion (of S) F x ≫ f ≫ ofHom (ContinuousMap.subtypeVal (p ⁻¹' S)) =
-      ofHom (t.fiberInclusionMap (hS x.property)) := by
-    ext y
-    rw [ConcreteCategory.comp_apply, prodFiberInclusion_apply, ConcreteCategory.hom_ofHom,
-      Trivialization.fiberInclusionMap_apply]
-    -- The map of `isoOfHomeo` is the homeomorphism, which sends `(x, y)` to `t⁻¹ (x, y)`.
-    exact congrArg Subtype.val (t.preimageHomeomorph_symm_apply hS (x, y))
-  simp only [← ConcreteCategory.comp_apply, ← singularCohomologyMap_comp, hx]
+  simp only [← ConcreteCategory.comp_apply, ← singularCohomologyMap_comp,
+    Trivialization.prodFiberInclusion_comp_preimageIso_hom]
   exact hc x x.property d hd
 
 end Local
@@ -143,9 +136,9 @@ private theorem lerayHirschRestrict_biUnion_bijective_of_le {κ : Type*} (s : Fi
     (hWe : ∀ j ∈ s, ∃ (t : Trivialization F p) (hW : W j ⊆ t.baseSet),
       ∀ x (hx : x ∈ W j), ∀ d ≤ n,
       LinearIndependent k (fun i ↦
-        TopCat.singularCohomologyMap (ofHom (t.fiberInclusionMap (hW hx))) d (c d i)) ∧
+        TopCat.singularCohomologyMap (t.fiberInclusion (hW hx)) d (c d i)) ∧
       ⊤ ≤ Submodule.span k (Set.range fun i ↦
-        TopCat.singularCohomologyMap (ofHom (t.fiberInclusionMap (hW hx))) d (c d i))) :
+        TopCat.singularCohomologyMap (t.fiberInclusion (hW hx)) d (c d i))) :
     ∀ m ≤ n, Function.Bijective (lerayHirschRestrict p c (⋃ j ∈ s, W j) m) := by
   classical
   induction s using Finset.induction_on generalizing W with
@@ -184,9 +177,9 @@ theorem lerayHirschRestrict_biUnion_bijective {κ : Type*} (s : Finset κ)
     (hWe : ∀ j ∈ s, ∃ (t : Trivialization F p) (hW : W j ⊆ t.baseSet),
       ∀ x (hx : x ∈ W j), ∀ d ≤ n,
       LinearIndependent k (fun i ↦
-        TopCat.singularCohomologyMap (ofHom (t.fiberInclusionMap (hW hx))) d (c d i)) ∧
+        TopCat.singularCohomologyMap (t.fiberInclusion (hW hx)) d (c d i)) ∧
       ⊤ ≤ Submodule.span k (Set.range fun i ↦
-        TopCat.singularCohomologyMap (ofHom (t.fiberInclusionMap (hW hx))) d (c d i))) :
+        TopCat.singularCohomologyMap (t.fiberInclusion (hW hx)) d (c d i))) :
     Function.Bijective (lerayHirschRestrict p c (⋃ j ∈ s, W j) n) :=
   lerayHirschRestrict_biUnion_bijective_of_le p s hWo n c hF hWe n le_rfl
 
@@ -203,10 +196,10 @@ theorem lerayHirsch_bijective_of_biUnion_baseSet_eq_univ {κ : Type*} (s : Finse
     (hF : ∀ d ≤ n, Module.Finite k (((singularHomologyFunctor (ModuleCat.{w} k) d).obj
       (𝟙_ (ModuleCat.{w} k))).obj F))
     (hc : ∀ j ∈ s, ∀ x (hx : x ∈ (t j).baseSet), ∀ d ≤ n,
-      LinearIndependent k (fun i ↦ TopCat.singularCohomologyMap (ofHom ((t j).fiberInclusionMap hx))
+      LinearIndependent k (fun i ↦ TopCat.singularCohomologyMap ((t j).fiberInclusion hx)
         d (c d i)) ∧
       ⊤ ≤ Submodule.span k (Set.range fun i ↦
-        TopCat.singularCohomologyMap (ofHom ((t j).fiberInclusionMap hx)) d (c d i))) :
+        TopCat.singularCohomologyMap ((t j).fiberInclusion hx) d (c d i))) :
     Function.Bijective (lerayHirsch p n c) := by
   refine (lerayHirschRestrict_univ_bijective_iff p c n).1 ?_
   rw [← hs]
@@ -284,9 +277,11 @@ theorem lerayHirsch_bijective (s : Finset Y)
       ⊤ ≤ Submodule.span k (Set.range fun i ↦ TopCat.singularCohomologyMap
         (ofHom ((trivializationAt F Z y).fiberInclusionMap (mem_baseSet_trivializationAt F Z y)))
         d (c d i))) :
-    Function.Bijective (lerayHirsch (ofHom ⟨π F Z, FiberBundle.continuous_proj F Z⟩) n c) :=
-  lerayHirsch_bijective_of_biUnion_baseSet_eq_univ (F := of F) _ s (trivializationAt F Z) hs n c
-    hF fun _ _ _ hx d hd ↦ fiberInclusionMap_basis_of_trivializationAt c d (fun y ↦ hc y d hd) _ hx
+    Function.Bijective (lerayHirsch (ofHom ⟨π F Z, FiberBundle.continuous_proj F Z⟩) n c) := by
+  refine lerayHirsch_bijective_of_biUnion_baseSet_eq_univ (F := of F) _ s (trivializationAt F Z) hs
+    n c hF fun _ _ _ hx d hd ↦ ?_
+  rw [← Trivialization.ofHom_fiberInclusionMap]
+  exact fiberInclusionMap_basis_of_trivializationAt c d (fun y ↦ hc y d hd) _ hx
 
 /-- **The Leray–Hirsch isomorphism** of a fibre bundle with a finite trivializing cover,
 `⨁_{d + q = n} ⨁_{i : ι d} H^q(Y; k) ≃ Hⁿ(Z; k)`, the linear equivalence given by the
