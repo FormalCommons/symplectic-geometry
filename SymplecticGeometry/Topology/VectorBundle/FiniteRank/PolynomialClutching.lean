@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Biproduct
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.ElementaryClutching
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.SMul
 
@@ -34,8 +35,6 @@ a polynomial of degree `m - 1` left; so `m` steps make it linear
 
 ## Main definitions and results
 
-* `TauCeti.FiniteRankBundleCore.whitneySumIter E n F`: the Whitney sum `F ⊕ E ⊕ ⋯ ⊕ E` of `F`
-  with `n` copies of `E`;
 * `TauCeti.FiniteRankBundleCore.polynomialHom n a`: the polynomial family `∑_{i < n} u^i a_i(x)`
   of morphisms between pullbacks to `X × Circle`;
 * `TauCeti.FiniteRankBundleCore.exists_iso_clutching_whitneySum_of_hom_eq_add_comp`: one row
@@ -59,45 +58,6 @@ open CategoryTheory CategoryTheory.Preadditive CategoryTheory.Limits
 open scoped LinearAlgebra.Projectivization
 
 namespace TauCeti.FiniteRankBundleCore
-
-/-! ### Iterated Whitney sums -/
-
-section WhitneySumIter
-
-variable {𝕜 B : Type*} [NontriviallyNormedField 𝕜] [TopologicalSpace B]
-
-/-- The Whitney sum `F ⊕ E ⊕ ⋯ ⊕ E` of `F` with `n` copies of `E`, the sums taken from the
-left: `whitneySumIter E (n + 1) F` is `whitneySumIter E n (F ⊕ E)`. -/
-def whitneySumIter (E : FiniteRankBundleCore 𝕜 B) :
-    ℕ → FiniteRankBundleCore 𝕜 B → FiniteRankBundleCore 𝕜 B
-  | 0, F => F
-  | n + 1, F => whitneySumIter E n (whitneySum F E)
-
-variable (E F : FiniteRankBundleCore 𝕜 B)
-
-@[simp]
-theorem whitneySumIter_zero : whitneySumIter E 0 F = F :=
-  (rfl)
-
-theorem whitneySumIter_succ (n : ℕ) :
-    whitneySumIter E (n + 1) F = whitneySumIter E n (whitneySum F E) :=
-  (rfl)
-
-@[simp]
-theorem rank_whitneySumIter (n : ℕ) :
-    (whitneySumIter E n F).rank = F.rank + n * E.rank := by
-  induction n generalizing F with
-  | zero => simp
-  | succ n ih => rw [whitneySumIter_succ, ih, rank_whitneySum]; ring
-
-/-- An isomorphism `F ≅ F'` gives an isomorphism of `F ⊕ E ⊕ ⋯ ⊕ E` with `F' ⊕ E ⊕ ⋯ ⊕ E`, the
-sum of it with the identities of the copies of `E`. -/
-def whitneySumIterMapIso : (n : ℕ) → {F F' : FiniteRankBundleCore 𝕜 B} → (F ≅ F') →
-    (whitneySumIter E n F ≅ whitneySumIter E n F')
-  | 0, _, _, e => e
-  | n + 1, _, _, e => whitneySumIterMapIso n (whitneyMapIso e (Iso.refl E))
-
-end WhitneySumIter
 
 /-! ### Polynomial families -/
 
