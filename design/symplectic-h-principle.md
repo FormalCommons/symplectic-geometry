@@ -212,8 +212,7 @@ formulation.
      of the two-forms on each. Restriction is continuous; conversely
      every frame domain can be shrunk into a single component, so each
      frame jet of a form on `M` is a frame jet of one of its
-     restrictions. (This is where a compact set meeting only finitely
-     many components enters.) Nondegeneracy and closedness hold on `M`
+     restrictions. Nondegeneracy and closedness hold on `M`
      when they hold on every component, and so does exactness, since
      primitives chosen on the components glue to a primitive on `M`. So
      both spaces of forms on `M` are the products of the spaces on the
@@ -1429,9 +1428,9 @@ give the same topology.
   from the two-forms on `M` onto the product of the two-forms on the
   components. Its inverse is `tangentEquiv.symm ∘ ofDisjointCover` on the
   `tangentEquiv` forms. Continuity of the inverse: by
-  `frameTopology_eq_of_covers` the frame domains on `M` can be cut down
-  to their intersections with the components, and each frame jet of a
-  form on `M` on such a domain is a frame jet of its restriction to that
+  `frameTopology_le_of_cover` it can be tested on frames of `M` whose
+  domains each lie in one component, and each frame jet of a form on
+  `M` on such a domain is a frame jet of its restriction to that
   component.
 - `mem_nondegenerateForms_iff_forall_restrict` and
   `mem_symplecticFormsInClass_iff_forall_restrict`: `ω` is in the space on

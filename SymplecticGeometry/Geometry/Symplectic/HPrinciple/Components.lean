@@ -8,6 +8,9 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.HPrinciple.FormSpaces
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Components
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Opens
+import TauCeti.Geometry.Manifold.ContMDiff.Subtype
+import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.Comp
+import TauCeti.Geometry.Manifold.VectorBundle.Section.FrameCover
 
 /-!
 # The spaces of nondegenerate and of symplectic forms over the components
@@ -19,7 +22,8 @@ change the form at a point, so a two-form is nondegenerate exactly when each of 
 to the `U i` is, and so is a symplectic form (`Symplectic/Manifold/Opens.lean`). Exactness can be
 tested on the `U i` when they are moreover pairwise disjoint (`DifferentialForm/Components.lean`),
 so membership in the spaces of `HPrinciple/FormSpaces.lean` is tested on the members of the
-cover.
+cover. For the connected components of `M`, restriction identifies the two-forms on `M` with the
+families of two-forms on the components, also as topological spaces for the frame topologies.
 
 ## Main results
 
@@ -29,10 +33,28 @@ cover.
 * `mem_symplecticFormsInClass_iff_forall_restrict`: for a pairwise disjoint open cover, a two-form
   is in `symplecticFormsInClass α` exactly when each restriction is in the space of symplectic
   forms in the class of the restriction of `α`.
+* `continuous_tangentEquiv_symm_ofDisjointCover_opens`: gluing a family of two-forms on the
+  components of `M` by `TauCeti.SmoothForm.ofDisjointCover` is continuous into the frame topology
+  of any frame system on `M`.
+* `restrictComponentsHomeomorph`: for covering frames on `M`, restriction to the components is a
+  homeomorphism onto the product of the two-forms on the components, with
+  `restrictComponentsHomeomorph_apply` and `restrictComponentsHomeomorph_symm_apply`.
 
 The restriction of a two-form `ω` on the tangent bundle is read through
 `Bundle.ContMDiffTwoForm.tangentEquiv`, as in
 `Bundle.ContMDiffTwoForm.continuous_tangentEquiv_symm_mpullback_subtypeVal`.
+
+## Implementation notes
+
+On each component `c.opens` the frames are the trivializations `trivializationAt` at its points,
+over their base sets; `M` is assumed locally connected, so that its components are open. The
+continuity of gluing compares the frame topology on `M` with that of frames whose domains each lie
+in one component and on which the frame coordinates of a form are those of its restriction
+(`Bundle.ContMDiffTwoForm.exists_frameCoordinates_eq_frameCoordinates_mpullback_subtypeVal`);
+they cover `M`, so their topology is the finer one (`ContMDiffSection.frameTopology_le_of_cover`).
+On such a domain the frame coordinates of the glued form are those of one form of the family,
+composed with an inclusion, as in the proof of Tau Ceti's
+`ContMDiffSection.frameTopology_le_of_refinement`, which this argument adapts.
 
 ## References
 
@@ -78,6 +100,150 @@ theorem mem_symplecticFormsInClass_iff_forall_restrict (hU : Pairwise (Disjoint 
   simp only [mem_symplecticFormsInClass, LinearEquiv.apply_symm_apply, ← map_sub, forall_and,
     ← TauCeti.SmoothTwoForm.isSymplectic_iff_forall_mpullback_subtype_val hcover,
     ← TauCeti.SmoothForm.mem_exactForms_iff_forall_mpullback_subtype_val hU hcover]
+
+section Homeomorph
+
+open scoped TauCeti.ManifoldWeakWhitney
+
+variable [FiniteDimensional ℝ E] [LocallyConnectedSpace M] {κ : Type*}
+  (e : κ → Trivialization (E [⋀^Fin 2]→L[ℝ] ℝ)
+    (π (E [⋀^Fin 2]→L[ℝ] ℝ) (fun x : M ↦ TangentSpace I x [⋀^Fin 2]→L[ℝ] Trivial M ℝ x)))
+  [∀ i, MemTrivializationAtlas (e i)]
+  (W : κ → Opens M) (hW : ∀ i, (W i : Set M) ⊆ (e i).baseSet)
+
+/-- Gluing smooth two-forms on the tangent bundles of the connected components `c.opens` of `M`
+into a two-form on the tangent bundle of `M`, by `TauCeti.SmoothForm.ofDisjointCover`, is
+continuous from the product of the frame topologies of the trivializations `trivializationAt` at
+the points of each `c.opens`, over their base sets, to the frame topology of any frame system
+`e i` over `W i` of the two-forms on `M`. -/
+theorem continuous_tangentEquiv_symm_ofDisjointCover_opens :
+    let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e W hW
+    let _ (c : ConnectedComponents M) :=
+      ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞))
+        (fun x : c.opens ↦ trivializationAt (E [⋀^Fin 2]→L[ℝ] ℝ)
+          (fun y : c.opens ↦ TangentSpace I y [⋀^Fin 2]→L[ℝ] Trivial c.opens ℝ y) x)
+        (fun x ↦ ⟨_, (trivializationAt (E [⋀^Fin 2]→L[ℝ] ℝ)
+          (fun y : c.opens ↦ TangentSpace I y [⋀^Fin 2]→L[ℝ] Trivial c.opens ℝ y) x).open_baseSet⟩)
+        fun _ ↦ subset_rfl
+    Continuous fun σ : ∀ c : ConnectedComponents M,
+        ContMDiffTwoForm I ⊤ E (TangentSpace I (M := c.opens)) ↦
+      (ContMDiffTwoForm.tangentEquiv.symm (TauCeti.SmoothForm.ofDisjointCover
+        ConnectedComponents.pairwise_disjoint_opens (IsOpenCover.mk ConnectedComponents.iSup_opens)
+          fun c ↦ ContMDiffTwoForm.tangentEquiv (σ c)) :
+        ContMDiffTwoForm I ⊤ E (TangentSpace I (M := M))) := by
+  let eC (c : ConnectedComponents M) (x : c.opens) := trivializationAt (E [⋀^Fin 2]→L[ℝ] ℝ)
+    (fun y : c.opens ↦ TangentSpace I y [⋀^Fin 2]→L[ℝ] Trivial c.opens ℝ y) x
+  let UC (c : ConnectedComponents M) (x : c.opens) : Opens c.opens := ⟨_, (eC c x).open_baseSet⟩
+  -- Frames on `M` whose domains `D x` each lie in the component of `x`, where the frame
+  -- coordinates of a form are those of its restriction to that component.
+  choose D hxD hDU hD hD' hDω using fun x : M ↦
+    ContMDiffTwoForm.exists_frameCoordinates_eq_frameCoordinates_mpullback_subtypeVal (I := I)
+      (U := (ConnectedComponents.mk x).opens) ⟨x, ConnectedComponents.mem_opens.2 rfl⟩
+  have key :
+      let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) _ D hD
+      let _ (c : ConnectedComponents M) :=
+        ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) (eC c) (UC c)
+          fun _ ↦ subset_rfl
+      Continuous fun σ : ∀ c : ConnectedComponents M,
+          ContMDiffTwoForm I ⊤ E (TangentSpace I (M := c.opens)) ↦
+        (ContMDiffTwoForm.tangentEquiv.symm (TauCeti.SmoothForm.ofDisjointCover
+          ConnectedComponents.pairwise_disjoint_opens
+            (IsOpenCover.mk ConnectedComponents.iSup_opens)
+            fun c ↦ ContMDiffTwoForm.tangentEquiv (σ c)) :
+          ContMDiffTwoForm I ⊤ E (TangentSpace I (M := M))) := by
+    intro _ _
+    refine (ContMDiffSection.continuous_frameTopology_iff_frameCoordinates _ D hD).mpr fun x ↦ ?_
+    set c := ConnectedComponents.mk x
+    -- On `D x`, the frame coordinates of the glued form are those of its `c`-th form, composed
+    -- with the inclusion `j` of `D x` into its preimage in `c.opens`.
+    let j : C^((⊤ : ℕ∞) : WithTop ℕ∞)⟮I, D x; I,
+        (D x).comap (⟨Subtype.val, continuous_subtypeVal⟩ : C(c.opens, M))⟯ :=
+      ⟨fun z ↦ ⟨Opens.inclusion (hDU x) z, z.property⟩,
+        (TauCeti.ContMDiff.subtypeVal_comp_iff _ _).mp (contMDiff_inclusion (hDU x))⟩
+    refine ((ContMDiffMap.continuous_comp_manifoldWeakWhitney.comp
+      (((ContMDiffSection.continuous_frameCoordinates_of_cover (eC c) (UC c)
+        (fun _ ↦ subset_rfl) (fun y ↦ ⟨y, FiberBundle.mem_baseSet_trivializationAt' y⟩) _ _
+          (hD' x)).comp (continuous_apply c)).prodMk (continuous_const (y := j))))).congr
+            fun σ ↦ ContMDiffMap.ext fun z ↦ ?_
+    rw [Function.comp_apply, hDω x _ z z.property, LinearEquiv.apply_symm_apply,
+      TauCeti.SmoothForm.mpullback_subtype_val_ofDisjointCover,
+      LinearEquiv.symm_apply_apply, ContMDiffMap.comp_apply]
+    -- `j z` is `⟨⟨z, _⟩, _⟩` by the definition of `j`.
+    rfl
+  intro _ _
+  exact continuous_le_rng
+    (ContMDiffSection.frameTopology_le_of_cover _ D hD (fun x ↦ ⟨x, hxD x⟩) e W hW) key
+
+/-- For covering frames `e i` over `W i` on the two-forms of `M`, restriction to the connected
+components is a homeomorphism from the smooth two-forms on the tangent bundle of `M` onto the
+product, over the components `c`, of the smooth two-forms on the tangent bundle of `c.opens`.
+Each factor carries the frame topology of the trivializations `trivializationAt` at the points
+of `c.opens`, over their base sets. The inverse glues a family of forms by
+`TauCeti.SmoothForm.ofDisjointCover` (`restrictComponentsHomeomorph_symm_apply`). -/
+noncomputable def restrictComponentsHomeomorph (hcover : ∀ x, ∃ i, x ∈ W i) :
+    let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e W hW
+    let _ (c : ConnectedComponents M) :=
+      ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞))
+        (fun x : c.opens ↦ trivializationAt (E [⋀^Fin 2]→L[ℝ] ℝ)
+          (fun y : c.opens ↦ TangentSpace I y [⋀^Fin 2]→L[ℝ] Trivial c.opens ℝ y) x)
+        (fun x ↦ ⟨_, (trivializationAt (E [⋀^Fin 2]→L[ℝ] ℝ)
+          (fun y : c.opens ↦ TangentSpace I y [⋀^Fin 2]→L[ℝ] Trivial c.opens ℝ y) x).open_baseSet⟩)
+        fun _ ↦ subset_rfl
+    ContMDiffTwoForm I ⊤ E (TangentSpace I (M := M)) ≃ₜ
+      ∀ c : ConnectedComponents M, ContMDiffTwoForm I ⊤ E (TangentSpace I (M := c.opens)) := by
+  intro _ _
+  let Φ := ContMDiffTwoForm.tangentEquiv (I := I) (M := M) ≪≫ₗ
+    TauCeti.SmoothForm.disjointCoverEquiv ℝ 2 ConnectedComponents.pairwise_disjoint_opens
+      (IsOpenCover.mk ConnectedComponents.iSup_opens) ≪≫ₗ
+        LinearEquiv.piCongrRight fun c ↦ ContMDiffTwoForm.tangentEquiv.symm
+  refine ⟨Φ.toEquiv, continuous_pi fun c ↦ ?_,
+    (continuous_tangentEquiv_symm_ofDisjointCover_opens e W hW).congr fun σ ↦ ?_⟩
+  · refine (ContMDiffTwoForm.continuous_tangentEquiv_symm_mpullback_subtypeVal e W hW
+      (fun x : c.opens ↦ trivializationAt _ _ x)
+      (fun x ↦ ⟨_, (trivializationAt (E [⋀^Fin 2]→L[ℝ] ℝ)
+        (fun y : c.opens ↦ TangentSpace I y [⋀^Fin 2]→L[ℝ] Trivial c.opens ℝ y) x).open_baseSet⟩)
+      (fun _ ↦ subset_rfl) hcover).congr fun ω ↦ ?_
+    simp [Φ]
+  · exact (Φ.symm_apply_eq.mpr (funext fun c ↦ by simp [Φ])).symm
+
+@[simp]
+theorem restrictComponentsHomeomorph_apply (hcover : ∀ x, ∃ i, x ∈ W i)
+    (ω : ContMDiffTwoForm I ⊤ E (TangentSpace I (M := M))) (c : ConnectedComponents M) :
+    let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e W hW
+    let _ (c : ConnectedComponents M) :=
+      ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞))
+        (fun x : c.opens ↦ trivializationAt (E [⋀^Fin 2]→L[ℝ] ℝ)
+          (fun y : c.opens ↦ TangentSpace I y [⋀^Fin 2]→L[ℝ] Trivial c.opens ℝ y) x)
+        (fun x ↦ ⟨_, (trivializationAt (E [⋀^Fin 2]→L[ℝ] ℝ)
+          (fun y : c.opens ↦ TangentSpace I y [⋀^Fin 2]→L[ℝ] Trivial c.opens ℝ y) x).open_baseSet⟩)
+        fun _ ↦ subset_rfl
+    restrictComponentsHomeomorph e W hW hcover ω c =
+      ContMDiffTwoForm.tangentEquiv.symm (TauCeti.SmoothForm.mpullback
+        (Subtype.val : c.opens → M) contMDiff_subtypeVal (ContMDiffTwoForm.tangentEquiv ω)) := by
+  intro _ _
+  exact congrArg ContMDiffTwoForm.tangentEquiv.symm
+    (TauCeti.SmoothForm.disjointCoverEquiv_apply _ _ _ c)
+
+@[simp]
+theorem restrictComponentsHomeomorph_symm_apply (hcover : ∀ x, ∃ i, x ∈ W i)
+    (σ : ∀ c : ConnectedComponents M, ContMDiffTwoForm I ⊤ E (TangentSpace I (M := c.opens))) :
+    let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e W hW
+    let _ (c : ConnectedComponents M) :=
+      ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞))
+        (fun x : c.opens ↦ trivializationAt (E [⋀^Fin 2]→L[ℝ] ℝ)
+          (fun y : c.opens ↦ TangentSpace I y [⋀^Fin 2]→L[ℝ] Trivial c.opens ℝ y) x)
+        (fun x ↦ ⟨_, (trivializationAt (E [⋀^Fin 2]→L[ℝ] ℝ)
+          (fun y : c.opens ↦ TangentSpace I y [⋀^Fin 2]→L[ℝ] Trivial c.opens ℝ y) x).open_baseSet⟩)
+        fun _ ↦ subset_rfl
+    (restrictComponentsHomeomorph e W hW hcover).symm σ =
+      ContMDiffTwoForm.tangentEquiv.symm (TauCeti.SmoothForm.ofDisjointCover
+        ConnectedComponents.pairwise_disjoint_opens (IsOpenCover.mk ConnectedComponents.iSup_opens)
+          fun c ↦ ContMDiffTwoForm.tangentEquiv (σ c)) := by
+  intro _ _
+  refine (Homeomorph.symm_apply_eq _).mpr (funext fun c ↦ ?_)
+  simp
+
+end Homeomorph
 
 end SymplecticGeometry
 
