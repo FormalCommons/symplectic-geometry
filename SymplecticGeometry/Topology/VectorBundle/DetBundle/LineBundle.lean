@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Topology.VectorBundle.Determinant
+import TauCeti.LinearAlgebra.Determinant.Basic
 
 /-!
 # The determinant line of a line bundle
@@ -106,9 +107,8 @@ theorem trivialization_oneEquiv (h : finrank 𝕜 F = 1) (e : Trivialization F (
   let : Unique (Fin (finrank 𝕜 F)) := h ▸ Fin.instUnique
   obtain ⟨w, rfl⟩ := (oneEquiv 𝕜 F E h x).symm.surjective v
   rw [ContinuousLinearEquiv.apply_symm_apply, oneEquiv_symm_apply, chartCoord_ιMulti,
-    Module.Basis.det_apply, Matrix.det_unique, Module.Basis.toMatrix_apply,
     Subsingleton.elim (Fin.cast h.symm 0) default]
-  exact ((Module.finBasis 𝕜 F).sum_repr (e ⟨x, w⟩).2).symm.trans (Fintype.sum_unique _)
+  exact ((Module.finBasis 𝕜 F).det_unique_smul fun _ ↦ (e ⟨x, w⟩).2).symm
 
 variable (𝕜 F E) in
 /-- **A line bundle is its own determinant line.** When the model `F` has rank one, the total
