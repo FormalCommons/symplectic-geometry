@@ -408,7 +408,7 @@ theorem isSymplectic_form_and_divisor [SecondCountableTopology M] [MeasurableSpa
           (w : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) (zeroSection ℓ : BlowupModel n)),
           e ℓ ((divisor hψ hl.le hε).isImmersion.normalClass ℓ hn
               (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
-                (GluedAlong.inr (gluingDiffeomorph hψ hl.le hε).symm)
+                (GluedAlong.inr (gluingDiffeomorphSymm hψ hl.le hε).toHomeomorph)
                 ⟨zeroSection ℓ, zeroSection_mem_modelPiece hε ℓ⟩ w)) =
             ⟨mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown (zeroSection ℓ) w,
               mfderiv_blowdown_zeroSection_mem ℓ w⟩) ∧

@@ -804,14 +804,16 @@ theorem normalSpaceDivisorEquiv_symm_apply (ℓ : ℙ ℂ (Fin (n + 1) → ℂ))
 private theorem exists_contMDiffAt_comp_inr_eq_blowdown [Nonempty (modelPiece n ε)] :
     ∃ g : WeightBlowup hψ hl hε → Fin (n + 1) → ℂ,
       (∀ y, ContMDiffAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ g
-        (GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm y)) ∧
-      g ∘ GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm = blowdown ∘ Subtype.val := by
-  have hi := ((GluedAlong.isLocalDiffeomorph_inr (gluingDiffeomorph hψ hl hε).symm
+        (GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph y)) ∧
+      g ∘ GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph =
+        blowdown ∘ Subtype.val := by
+  have hi := ((GluedAlong.isLocalDiffeomorph_inr (gluingDiffeomorphSymm hψ hl hε)
     (n := ∞)).isLocalDiffeomorphOn univ).contMDiffOn_invFunOn isOpen_univ
     (GluedAlong.inr_injective _).injOn
   rw [image_univ] at hi
   refine ⟨blowdown ∘ Subtype.val ∘
-    Function.invFunOn (GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm) univ, fun y ↦ ?_, ?_⟩
+    Function.invFunOn (GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph) univ,
+    fun y ↦ ?_, ?_⟩
   · exact (((contMDiff_blowdown ∞).restrictScalars' ℝ).contMDiffAt.comp _
       contMDiff_subtypeVal.contMDiffAt).comp _
       (hi.contMDiffAt ((GluedAlong.isOpen_range_inr _).mem_nhds (mem_range_self y)))
@@ -844,18 +846,18 @@ theorem continuous_normalSpaceDivisorEquiv {K : Type*} :
       (Filter.Eventually.of_forall fun p ↦ ?_)
   obtain ⟨ℓ, v⟩ := p
   let x : modelPiece n ε := ⟨zeroSection ℓ, zeroSection_mem_modelPiece hε ℓ⟩
-  obtain ⟨w, rfl⟩ := ((GluedAlong.isLocalDiffeomorph_inr (gluingDiffeomorph hψ hl hε).symm
+  obtain ⟨w, rfl⟩ := ((GluedAlong.isLocalDiffeomorph_inr (gluingDiffeomorphSymm hψ hl hε)
     (n := ∞)).isInvertible_mfderiv hn x).bijective.2 v
   have hb : MDifferentiableAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown
       (x : BlowupModel n) := (contMDiff_blowdown 1).mdifferentiableAt one_ne_zero
   have hr : MDifferentiableAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
-      (GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm) x :=
+      (GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph) x :=
     (GluedAlong.isLocalDiffeomorph_inr _ (n := ∞)).mdifferentiable hn x
   -- The differential of `g` at `divisor ℓ`, which is `inr x`, read through `inr`.
-  have key : ∀ z, z = GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm x →
+  have key : ∀ z, z = GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph x →
       mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) g z
           (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
-            (GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm) x w) =
+            (GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph) x w) =
         mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown (x : BlowupModel n) w := by
     rintro _ rfl
     refine (mfderiv_comp_apply x ((hg x).mdifferentiableAt (by simp)) hr w).symm.trans ?_
