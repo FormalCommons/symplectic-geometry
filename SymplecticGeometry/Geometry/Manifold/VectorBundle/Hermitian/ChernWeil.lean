@@ -50,9 +50,9 @@ pull-backs by `TauCeti.deRhamHom_map`, the Euler class by `TauCeti.complexEulerC
 and the real image by `TopCat.singularCohomologyRealImage_naturality`. So the identity for `V`
 gives it for `f *ᵖ V`, and conversely when `f^*` is injective on `H²(B; ℝ)`.
 
-A homeomorphism induces an isomorphism on singular cohomology, so the identity holds over every
-manifold `B` that is the image of a closed connected orientable surface under a smooth
-homeomorphism: pull `V` back to the surface, give the pull-back a Hermitian metric
+A homotopy equivalence induces an isomorphism on singular cohomology, so the identity holds over
+every manifold `B` that receives a homotopy equivalence from a closed connected orientable surface
+whose forward map is smooth: pull `V` back to the surface, give the pull-back a Hermitian metric
 (`TauCeti.exists_contMDiffRiemannianMetric_inner_smul_I`) and descend. The projective line
 `ℂP¹`, modelled on `Fin 1 → ℂ`, is such a manifold, through the analytic diffeomorphism
 `SymplecticGeometry.sphereToProjectiveLine` from the unit sphere of `ℝ³`.
@@ -68,8 +68,9 @@ homeomorphism: pull `V` back to the surface, give the pull-back a Hermitian metr
   implies it for `f *ᵖ V`.
 * `SymplecticGeometry.Bundle.deRhamHom_realFirstChernClass_eq_neg_of_pullback`: if `f^*` is
   injective in degree two, the identity for `f *ᵖ V` implies it for `V`.
-* `SymplecticGeometry.Bundle.deRhamHom_realFirstChernClass_eq_neg_of_homeomorph`: the identity
-  over a manifold with a smooth homeomorphism from a closed connected orientable surface.
+* `SymplecticGeometry.Bundle.deRhamHom_realFirstChernClass_eq_neg_of_homotopyEquiv`: the
+  identity over a manifold that receives a homotopy equivalence with smooth forward map from a
+  closed connected orientable surface.
 * `SymplecticGeometry.Bundle.deRhamHom_realFirstChernClass_eq_neg_projectiveLine`: the identity
   over `ℂP¹ = ℙ ℂ (Fin 2 → ℂ)`.
 
@@ -277,15 +278,16 @@ theorem deRhamHom_realFirstChernClass_eq_neg_of_pullback
   rw [h]
   exact neg_add_cancel _
 
-/-- **Chern–Weil in degree two, over a manifold homeomorphic to a surface.** Let `M` be a
-closed connected orientable smooth surface and `φ : M ≃ₜ B` a homeomorphism that is smooth as a
-map `M → B`. For every smooth complex line bundle `V` over `B` with a smooth Hermitian metric
-`g`, the de Rham homomorphism sends the real first Chern class of the circle bundle of unitary
-frames of `V` to minus the real image of the Euler class of `V` in `H²(B; ℝ)`. -/
-theorem deRhamHom_realFirstChernClass_eq_neg_of_homeomorph {M : Type} [TopologicalSpace M]
+/-- **Chern–Weil in degree two, over a manifold homotopy equivalent to a surface.** Let `M` be
+a closed connected orientable smooth surface and `φ : M ≃ₕ B` a homotopy equivalence whose
+forward map `M → B` is smooth. For every smooth complex line bundle `V` over `B` with a
+smooth Hermitian metric `g`, the de Rham homomorphism sends the real first Chern class of the
+circle bundle of unitary frames of `V` to minus the real image of the Euler class of `V` in
+`H²(B; ℝ)`. -/
+theorem deRhamHom_realFirstChernClass_eq_neg_of_homotopyEquiv {M : Type} [TopologicalSpace M]
     [ChartedSpace (EuclideanSpace ℝ (Fin 2)) M] [IsManifold (𝓡 2) ∞ M] [T2Space M]
-    [CompactSpace M] [ConnectedSpace M] [Orientable (𝓡 2) M] (φ : M ≃ₜ B)
-    (hφ : ContMDiff (𝓡 2) IB ∞ φ) :
+    [CompactSpace M] [ConnectedSpace M] [Orientable (𝓡 2) M]
+    (φ : ContinuousMap.HomotopyEquiv M B) (hφ : ContMDiff (𝓡 2) IB ∞ φ.toFun) :
     letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
     letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
     letI : IsContinuousRiemannianBundle F V :=
@@ -296,12 +298,12 @@ theorem deRhamHom_realFirstChernClass_eq_neg_of_homeomorph {M : Type} [Topologic
       -((TopCat.of B).singularCohomologyRealImage 2).hom
         (complexEulerClass (r := 0) F V Fact.out) := by
   have : ∀ b, ContinuousSMul ℂ (V b) := VectorBundle.continuousSMul ℂ F V
-  let f : C(M, B) := φ.toHomotopyEquiv.toFun
+  let f : C(M, B) := φ.toFun
   have : ContMDiffVectorBundle ∞ F ((⇑f) *ᵖ V) (𝓡 2) :=
     _root_.Bundle.Pullback.contMDiffVectorBundle (F := F) (E := V) hφ
   obtain ⟨g'', hI''⟩ := exists_contMDiffRiemannianMetric_inner_smul_I (IB := 𝓡 2) (n := ⊤)
     (F := F) (V := (⇑f) *ᵖ V)
-  have := φ.toHomotopyEquiv.isIso_singularCohomologyMap (ModuleCat.of ℝ ℝ) ℝ (ModuleCat.of ℝ ℝ) 2
+  have := φ.isIso_singularCohomologyMap (ModuleCat.of ℝ ℝ) ℝ (ModuleCat.of ℝ ℝ) 2
   exact deRhamHom_realFirstChernClass_eq_neg_of_pullback g hI f hφ g'' hI''
     (ConcreteCategory.bijective_of_isIso _).1
     (deRhamHom_realFirstChernClass_eq_neg_of_connectedSpace g'' hI'')
@@ -340,8 +342,9 @@ theorem deRhamHom_realFirstChernClass_eq_neg_projectiveLine :
   have : Fact (finrank ℝ (EuclideanSpace ℝ (Fin 3)) = 2 + 1) := ⟨by simp⟩
   have := connectedSpace_euclideanSphere (ι := Fin 3) (by simp)
   have := orientable_sphere (E := EuclideanSpace ℝ (Fin 3)) (n := 2)
-  exact deRhamHom_realFirstChernClass_eq_neg_of_homeomorph g hI
-    sphereToProjectiveLine.toHomeomorph (sphereToProjectiveLine.contMDiff.of_le le_top)
+  exact deRhamHom_realFirstChernClass_eq_neg_of_homotopyEquiv g hI
+    sphereToProjectiveLine.toHomeomorph.toHomotopyEquiv
+    (sphereToProjectiveLine.contMDiff.of_le le_top)
 
 end ProjectiveLine
 
