@@ -49,22 +49,22 @@ open Bundle CategoryTheory Function Module
 
 namespace TauCeti.FiniteRankBundleCore
 
-variable {𝕜 B : Type*} [RCLike 𝕜] [TopologicalSpace B] {A D : FiniteRankBundleCore 𝕜 B}
-  (f : A ⟶ D)
+variable {𝕜 B : Type*} [NontriviallyNormedField 𝕜] [TopologicalSpace B]
+  {A D : FiniteRankBundleCore 𝕜 B} (f : A ⟶ D)
 
 /-- The range of the fibre map of `f` at `x`, as a subspace of the fibre of `D` at `x`. -/
 def fiberRange (x : B) : Submodule 𝕜 (D.core.Fiber x) := (f.fiberMap x).range
 
 theorem fiberRange_def (x : B) : fiberRange f x = (f.fiberMap x).range := (rfl)
 
-@[simp] theorem mem_fiberRange_iff {x : B} {w : D.core.Fiber x} :
+@[simp] theorem mem_fiberRange_iff {x : B} {w : Fin D.rank → 𝕜} :
     w ∈ fiberRange f x ↔ ∃ v, f.fiberMap x v = w :=
   LinearMap.mem_range (f := (f.fiberMap x : (Fin A.rank → 𝕜) →ₗ[𝕜] (Fin D.rank → 𝕜)))
 
 theorem fiberMap_mem_fiberRange (x : B) (v : Fin A.rank → 𝕜) :
     f.fiberMap x v ∈ fiberRange f x := (mem_fiberRange_iff f).2 ⟨v, rfl⟩
 
-variable {r : ℕ} (hr : ∀ x, finrank 𝕜 (f.fiberMap x).range = r)
+variable [CompleteSpace 𝕜] {r : ℕ} (hr : ∀ x, finrank 𝕜 (f.fiberMap x).range = r)
 
 include hr
 
@@ -74,6 +74,8 @@ theorem hasLocalSubbundleFrames_fiberRange :
     HasLocalSubbundleFrames (Fin D.rank → 𝕜) (Fin r) (fiberRange f) :=
   hasLocalSubbundleFrames_range (F₁ := Fin A.rank → 𝕜) (E₁ := A.core.Fiber)
     f.continuous_fiberMap hr
+
+variable [IsRCLikeNormedField 𝕜]
 
 /-- The range of a bundle map `f : A ⟶ D` of constant rank `r`, as a finite-rank core of rank
 `r`: the subbundle of `D` whose fibre at `x` is the range of `f.fiberMap x`, with the topology of
@@ -138,6 +140,17 @@ noncomputable def rangeInclusion : range f hr ⟶ D :=
     (rangeInclusion f hr).fiberMap x v = (rangeFiberEquiv f hr x v : D.core.Fiber x) :=
   DFunLike.congr_fun (congrFun (VectorBundleCore.CoordinateHom.fiberMap_ofContinuous _ _) x) v
 
+/-- A vector of the fibre of `range f hr`, read in the fibre of `D` through `rangeFiberEquiv`,
+lies in the range of `f`. In simp normal form, this says that the inclusion of the range core
+takes values in the ranges of `f`. -/
+-- The membership is stated at the type `Fin D.rank → 𝕜` of the values of fibre maps, the form
+-- that `simp` reaches from `(rangeInclusion f hr).fiberMap x v ∈ fiberRange f x`; at the type
+-- `D.core.Fiber x`, `SetLike.coe_mem` would prove it and it would not fire on that goal.
+@[simp] theorem coe_rangeFiberEquiv_mem_fiberRange (x : B) (v : Fin r → 𝕜) :
+    @Membership.mem (Fin D.rank → 𝕜) (Submodule 𝕜 (D.core.Fiber x)) _ (fiberRange f x)
+      (rangeFiberEquiv f hr x v : D.core.Fiber x) :=
+  (rangeFiberEquiv f hr x v).property
+
 /-- The corestriction of `f` to its range core. On the fibre at `x` it is `f.fiberMap x`, with
 values in its range, read through the inverse of `rangeFiberEquiv`. -/
 noncomputable def rangeRestrict : A ⟶ range f hr :=
@@ -168,13 +181,13 @@ theorem rangeRestrict_rangeInclusion : rangeRestrict f hr ≫ rangeInclusion f h
       rangeFiberEquiv_fiberMap_rangeRestrict_apply]
 
 /-- The inclusion of the range core is injective on every fibre. -/
-theorem injective_fiberMap_rangeInclusion (x : B) :
+theorem fiberMap_rangeInclusion_injective (x : B) :
     Injective ((rangeInclusion f hr).fiberMap x) := fun v w h ↦ by
   rw [fiberMap_rangeInclusion_apply, fiberMap_rangeInclusion_apply] at h
   exact (rangeFiberEquiv f hr x).injective (Subtype.ext h)
 
 /-- The corestriction of `f` to its range core is surjective on every fibre. -/
-theorem surjective_fiberMap_rangeRestrict (x : B) :
+theorem fiberMap_rangeRestrict_surjective (x : B) :
     Surjective ((rangeRestrict f hr).fiberMap x) := fun w ↦ by
   obtain ⟨v, hv⟩ := ((rangeFiberEquiv f hr x) w).property
   refine ⟨v, (rangeFiberEquiv f hr x).injective (Subtype.ext ?_)⟩
@@ -186,7 +199,7 @@ theorem range_fiberMap_rangeInclusion (x : B) :
     ((rangeInclusion f hr).fiberMap x).range = (f.fiberMap x).range := by
   conv_rhs => rw [← rangeRestrict_rangeInclusion f hr, fiberMap_comp,
     ContinuousLinearMap.toLinearMap_comp, LinearMap.range_comp_of_range_eq_top _
-      (LinearMap.range_eq_top.2 (surjective_fiberMap_rangeRestrict f hr x))]
+      (LinearMap.range_eq_top.2 (fiberMap_rangeRestrict_surjective f hr x))]
 
 /-- A vector of the fibre of `D` lies in the image of the inclusion of the range core of `f`
 exactly when it lies in the range of `f`. -/
@@ -220,7 +233,7 @@ the range core: it is a left inverse of the inclusion. -/
 @[reassoc]
 theorem rangeInclusion_rangeRestrict_of_comp_self :
     rangeInclusion P hr ≫ rangeRestrict P hr = 𝟙 _ :=
-  hom_ext fun x ↦ ContinuousLinearMap.ext fun v ↦ injective_fiberMap_rangeInclusion P hr x <| by
+  hom_ext fun x ↦ ContinuousLinearMap.ext fun v ↦ fiberMap_rangeInclusion_injective P hr x <| by
     have h := congrArg (fun g : range P hr ⟶ E ↦ g.fiberMap x v)
       ((Category.assoc _ _ _).trans ((congrArg (rangeInclusion P hr ≫ ·)
         (rangeRestrict_rangeInclusion P hr)).trans (rangeInclusion_comp_of_comp_self hr hP)))
