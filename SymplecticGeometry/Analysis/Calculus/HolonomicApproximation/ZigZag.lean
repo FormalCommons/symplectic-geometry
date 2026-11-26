@@ -345,17 +345,52 @@ theorem exists_zigzag_chain (i₀ : Fin m) (j : Fin k) {F : Type*} [NormedAddCom
       exact norm_fderiv_add_smul_sub_sub_le B (hdi i (by omega)) (hdi (i + 1) (by omega))
         (((hφ i).differentiable (by simp)).differentiableAt) h01.1 h01.2 (hφx i u).1
 
+/-- The constants of `exists_holonomic_approximation_zigzag`: a height `r` below `r₀`, `ρT` and
+`δ` with `M r < ε`, a margin `b < 1` with `3 b < δ`, and a mesh `ρ ≤ b` small against `r`. -/
+private theorem exists_zigzag_constants {M ε r₀ ρT δ : ℝ} (hM : 0 < M) (hε : 0 < ε)
+    (hr₀ : 0 < r₀) (hρT : 0 < ρT) (hδ : 0 < δ) :
+    ∃ r b ρ : ℝ, 0 < r ∧ r < r₀ ∧ r < ρT ∧ r < δ ∧ M * r < ε ∧ 0 < b ∧ b < 1 ∧ 3 * b < δ ∧
+      0 < ρ ∧ ρ ≤ b ∧ ρ ≤ r / 2 ∧ 3 * M * ρ / r ≤ ε / 4 := by
+  set r := min (min (r₀ / 2) (ρT / 2)) (min (δ / 2) (ε / (2 * M)))
+  have hr : 0 < r := by positivity
+  have hrr₀ : r < r₀ := by
+    have := min_le_left (min (r₀ / 2) (ρT / 2)) (min (δ / 2) (ε / (2 * M)))
+    have := min_le_left (r₀ / 2) (ρT / 2); linarith
+  have hrρT : r < ρT := by
+    have := min_le_left (min (r₀ / 2) (ρT / 2)) (min (δ / 2) (ε / (2 * M)))
+    have := min_le_right (r₀ / 2) (ρT / 2); linarith
+  have hrδ : r < δ := by
+    have := min_le_right (min (r₀ / 2) (ρT / 2)) (min (δ / 2) (ε / (2 * M)))
+    have := min_le_left (δ / 2) (ε / (2 * M)); linarith
+  have hrε : M * r < ε := by
+    have := min_le_right (min (r₀ / 2) (ρT / 2)) (min (δ / 2) (ε / (2 * M)))
+    have := min_le_right (δ / 2) (ε / (2 * M))
+    have h2 : M * r ≤ M * (ε / (2 * M)) := by gcongr; linarith
+    rw [show M * (ε / (2 * M)) = ε / 2 by field_simp] at h2
+    linarith
+  set b := min (δ / 4) (1 / 2)
+  have hb : 0 < b := by positivity
+  have hb1 : b < 1 := (min_le_right _ _).trans_lt (by norm_num)
+  have hbδ : 3 * b < δ := by have := min_le_left (δ / 4) (1 / 2); linarith
+  set ρ := min (min b (r / 2)) (ε * r / (12 * M))
+  have hρ : 0 < ρ := by positivity
+  have hρb : ρ ≤ b := (min_le_left _ _).trans (min_le_left _ _)
+  have hρr : ρ ≤ r / 2 := (min_le_left _ _).trans (min_le_right _ _)
+  have hρε : 3 * M * ρ / r ≤ ε / 4 := by
+    have h1 : ρ ≤ ε * r / (12 * M) := min_le_right _ _
+    rw [div_le_iff₀ hr]
+    have : 3 * M * ρ ≤ 3 * M * (ε * r / (12 * M)) := by gcongr
+    rw [show 3 * M * (ε * r / (12 * M)) = ε / 4 * r by field_simp; ring] at this
+    exact this
+  exact ⟨r, b, ρ, hr, hrr₀, hrρT, hrδ, hrε, hb, hb1, hbδ, hρ, hρb, hρr, hρε⟩
+
 /-- **Holonomic approximation along the zig-zag of a segment.** On
 `D = (Fin 1 → ℝ) × (Fin k → ℝ)` with sup norms, let `(f, G)` be a smooth formal section that is
 holonomic (`D f = G`) on an open set `U` containing the two end points `(± 1, 0)` of the core
 segment, and let `ε, r₀ > 0`. There are a height `0 < r < r₀` and a smooth profile
 `g₀ : (Fin 1 → ℝ) → ℝ` with `|g₀| ≤ 1`, vanishing near `u = ± 1`, and a smooth map `f'` that is
 `ε`-close to `f` with derivative `ε`-close to `G` on an open set `V` containing the zig-zag curve
-`u ↦ (u, r g₀ (u) eⱼ)` over `[-1, 1]`, and that equals `f` near `(± 1, 0)`.
-
-The proof glues, by `SymplecticGeometry.exists_zigzag_chain`, the map `f` near the two end points
-and the first-order Taylor maps `x ↦ f a + G a (x - a)` at the crossings of a fine zig-zag
-profile, choosing first the height `r`, then the mesh of the crossings. -/
+`u ↦ (u, r g₀ (u) eⱼ)` over `[-1, 1]`, and that equals `f` near `(± 1, 0)`. -/
 theorem exists_holonomic_approximation_zigzag {k : ℕ} (j : Fin k)
     {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
     {f : (Fin 1 → ℝ) × (Fin k → ℝ) → F}
@@ -403,37 +438,8 @@ theorem exists_holonomic_approximation_zigzag {k : ℕ} (j : Fin k)
   set M' := max M 0 + η with hM'_def
   have hM' : 0 < M' := by positivity
   -- The parameters: first the height `r`, then the mesh `ρ`.
-  set r := min (min (r₀ / 2) (ρT / 2)) (min (δ / 2) (ε / (2 * M')))
-  have hr : 0 < r := by positivity
-  have hrr₀ : r < r₀ := by
-    have := min_le_left (min (r₀ / 2) (ρT / 2)) (min (δ / 2) (ε / (2 * M')))
-    have := min_le_left (r₀ / 2) (ρT / 2); linarith
-  have hrρT : r < ρT := by
-    have := min_le_left (min (r₀ / 2) (ρT / 2)) (min (δ / 2) (ε / (2 * M')))
-    have := min_le_right (r₀ / 2) (ρT / 2); linarith
-  have hrδ : r < δ := by
-    have := min_le_right (min (r₀ / 2) (ρT / 2)) (min (δ / 2) (ε / (2 * M')))
-    have := min_le_left (δ / 2) (ε / (2 * M')); linarith
-  have hrε : M' * r < ε := by
-    have := min_le_right (min (r₀ / 2) (ρT / 2)) (min (δ / 2) (ε / (2 * M')))
-    have := min_le_right (δ / 2) (ε / (2 * M'))
-    have h2 : M' * r ≤ M' * (ε / (2 * M')) := by gcongr; linarith
-    rw [show M' * (ε / (2 * M')) = ε / 2 by field_simp] at h2
-    linarith
-  set b := min (δ / 4) (1 / 2)
-  have hb : 0 < b := by positivity
-  have hb1 : b < 1 := (min_le_right _ _).trans_lt (by norm_num)
-  have hbδ : 3 * b < δ := by have := min_le_left (δ / 4) (1 / 2); linarith
-  set ρ := min (min b (r / 2)) (ε * r / (12 * M'))
-  have hρ : 0 < ρ := by positivity
-  have hρb : ρ ≤ b := (min_le_left _ _).trans (min_le_left _ _)
-  have hρr : ρ ≤ r / 2 := (min_le_left _ _).trans (min_le_right _ _)
-  have hρε : 3 * M' * ρ / r ≤ ε / 4 := by
-    have h1 : ρ ≤ ε * r / (12 * M') := min_le_right _ _
-    rw [div_le_iff₀ hr]
-    have : 3 * M' * ρ ≤ 3 * M' * (ε * r / (12 * M')) := by gcongr
-    rw [show 3 * M' * (ε * r / (12 * M')) = ε / 4 * r by field_simp; ring] at this
-    exact this
+  obtain ⟨r, b, ρ, hr, hrr₀, hrρT, hrδ, hrε, hb, hb1, hbδ, hρ, hρb, hρr, hρε⟩ :=
+    exists_zigzag_constants hM' hε hr₀ hρT hδ
   -- The zig-zag profile.
   obtain ⟨g, n, c, w, hg, hg1, hg0, hw, hcm, hc0, hc0', hcn, hcn', hcc, hgs⟩ :=
     exists_zigzag_profile hb hb1 hρ
