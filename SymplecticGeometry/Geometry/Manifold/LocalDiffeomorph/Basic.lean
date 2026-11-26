@@ -36,6 +36,9 @@ target of `Λ`, not only at `x`.
   is. It is the left-hand partner of Tau Ceti's `IsLocalDiffeomorphAt.comp_iff_right`, and
   combines Tau Ceti's `IsLocalDiffeomorphAt.of_comp_left` with Mathlib's
   `IsLocalDiffeomorphAt.comp`.
+* `MDifferentiableAt.of_comp_isLocalDiffeomorph`: a map continuous at a point is differentiable
+  there when its composite with a local diffeomorphism at the image point is. It is the
+  differentiable counterpart of Tau Ceti's `ContMDiffWithinAt.of_comp_isLocalDiffeomorph`.
 * `IsLocalDiffeomorphAt.exists_contMDiffAt_transition`: two maps that agree wherever two local
   diffeomorphisms into a common manifold do are related, near a point, by a map smooth there, as
   the transition maps of a gluing must be.
@@ -87,6 +90,18 @@ theorem comp_iff_left {F' : Type*} [NormedAddCommGroup F'] [NormedSpace 𝕜 F']
     (hf : ContinuousAt f x) :
     IsLocalDiffeomorphAt I K n (g ∘ f) x ↔ IsLocalDiffeomorphAt I J n f x :=
   ⟨fun h ↦ h.of_comp_left hg hf, fun h ↦ h.comp (hg := hg)⟩
+
+/-- Let `f` be a `C^n` local diffeomorphism at `g y`, with `n ≠ 0`, and let `g` be continuous at
+`y`. If `f ∘ g` is differentiable at `y`, so is `g`: near `y` it is the local inverse of `f`
+composed with `f ∘ g`. -/
+theorem _root_.MDifferentiableAt.of_comp_isLocalDiffeomorph {F' : Type*}
+    [NormedAddCommGroup F'] [NormedSpace 𝕜 F'] {G' : Type*} [TopologicalSpace G']
+    {K : ModelWithCorners 𝕜 F' G'} {P : Type*} [TopologicalSpace P] [ChartedSpace G' P]
+    {g : P → M} {y : P} (hf : IsLocalDiffeomorphAt I J n f (g y)) (hn : n ≠ 0)
+    (hg : ContinuousAt g y) (hfg : MDifferentiableAt K J (f ∘ g) y) :
+    MDifferentiableAt K I g y :=
+  ((hf.mdifferentiableAt_localInverse hn).comp y hfg).congr_of_eventuallyEq
+    (hf.localInverse_eventuallyEq_left.comp_tendsto hg).symm
 
 open Topology in
 /-- **Transition maps through local diffeomorphisms.** Let `f : M → N` and `g : M' → N` be `C^n`
