@@ -198,7 +198,6 @@ namespace SymplecticGeometry
 open TauCeti
 
 /-- The angular form of the circle takes the value `1` on the generator of its Lie algebra. -/
-@[simp]
 theorem circleAngularForm_one_circleLieGenerator :
     circleAngularForm 1 ![circleLieGenerator] = 1 := by
   have h := circleAngularForm_apply_curveVelocity_circleExp 0

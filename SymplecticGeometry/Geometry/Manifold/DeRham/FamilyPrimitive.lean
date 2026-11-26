@@ -101,10 +101,12 @@ theorem exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms {α : N → Smoot
       mvfderiv I (g t) z v = (SmoothForm.mpullback _ hψ Ω).val (z, t) ![(v, (0 : EN))] := by
     have h1 : mvfderiv I (g t) z v = mextDeriv (RoughForm.ofFunction I (g t)) z ![v] :=
       ((mextDeriv_ofFunction_apply _ z v).trans (mvfderiv_apply_eq_mfderiv_apply ..).symm).symm
-    rw [h1, hdg t, ← hΩ t, SmoothForm.mpullback_apply, SmoothForm.mpullback_apply]
-    congr 1
-    funext i
-    rw [Subsingleton.elim i 0]
+    rw [h1, hdg t, ← hΩ t]
+    -- The vectors `v` and `(v, 0)` are stated in the model spaces, so the two evaluation lemmas
+    -- are applied by unification rather than by `rw`.
+    refine (SmoothForm.mpullback_apply_one _ _ Ω z v).trans
+      (Eq.trans ?_ (SmoothForm.mpullback_apply_one _ hψ Ω (z, t) (v, 0)).symm)
+    congr 2
     exact (MDifferentiableAt.mfderiv_uncurry_apply_mk_zero (f := fun z t ↦ (t, z))
       (hψ.mdifferentiable (by simp) (z, t)) v).symm
   obtain ⟨F, hF, -, hFd⟩ := exists_contMDiff_mvfderiv_eq_of_forall_exists (r := ⊤)
