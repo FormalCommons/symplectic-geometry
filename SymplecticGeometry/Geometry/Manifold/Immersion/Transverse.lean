@@ -8,7 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
 public import Mathlib.Analysis.Normed.Module.FiniteDimension
 public import SymplecticGeometry.Topology.Algebra.Module.ContinuousLinearMap.PiProd
-import SymplecticGeometry.Topology.VectorBundle.Basic
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # Stability of immersions transverse to a vector field

@@ -7,7 +7,7 @@ module
 
 public import TauCeti.Topology.VectorBundle.Contractible
 public import TauCeti.Topology.VectorBundle.Determinant
-import SymplecticGeometry.Topology.VectorBundle.Basic
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # The determinant section of a frame

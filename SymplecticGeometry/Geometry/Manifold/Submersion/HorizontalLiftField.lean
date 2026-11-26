@@ -12,7 +12,7 @@ import TauCeti.Geometry.Manifold.ContMDiff.MFDeriv
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
 import TauCeti.Geometry.Manifold.VectorBundle.SectionAlongMap.Regularity
 import TauCeti.Topology.VectorBundle.Trivialization
-import SymplecticGeometry.Topology.VectorBundle.Basic
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # Horizontal lifts of vector fields

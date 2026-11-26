@@ -10,7 +10,7 @@ public import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
 public import Mathlib.Geometry.Manifold.VectorBundle.Hom
 import TauCeti.Geometry.Manifold.ContMDiff.LeftInverse
 import TauCeti.Topology.VectorBundle.Coordinates
-import SymplecticGeometry.Topology.VectorBundle.Basic
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # Endomorphism fields related through a split-injective differential

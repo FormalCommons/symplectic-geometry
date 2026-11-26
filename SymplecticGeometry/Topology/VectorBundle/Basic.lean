@@ -28,10 +28,6 @@ Mathlib's `Mathlib/Topology/VectorBundle/Basic.lean` and Tau Ceti's
   operator topology.
 * `Bundle.zeroSection_def`: Mathlib's zero section `Bundle.zeroSection F E` sends `x` to
   `⟨x, 0⟩`, which Mathlib's `zeroSection_proj` and `zeroSection_snd` state only componentwise.
-* `ContinuousAt.eventually_mem_baseSet_trivializationAt`: a map into the base of a fibre bundle,
-  continuous at `x₀`, takes the points near `x₀` into the base set of the preferred trivialization
-  at its value at `x₀`; Tau Ceti's `Bundle.TotalSpace.eventually_proj_mem_baseSet_trivializationAt`
-  is the case of the projection.
 -/
 
 public section
@@ -82,16 +78,5 @@ theorem continuousOn_coordChangeL {𝕜 B F : Type*} [NontriviallyNormedField �
   simp [coordChangeL_apply' _ _ hb, coordChange]
 
 end Bundle.Trivialization
-
-open Bundle Filter Topology in
-/-- A map `f` into the base of a fibre bundle that is continuous at `x₀` takes every point near
-`x₀` into the base set of the preferred trivialization at `f x₀`. -/
-theorem ContinuousAt.eventually_mem_baseSet_trivializationAt {X B : Type*} (F : Type*)
-    (E : B → Type*) [TopologicalSpace X] [TopologicalSpace B] [TopologicalSpace F]
-    [TopologicalSpace (TotalSpace F E)] [∀ b, TopologicalSpace (E b)] [FiberBundle F E]
-    {f : X → B} {x₀ : X} (hf : ContinuousAt f x₀) :
-    ∀ᶠ x in 𝓝 x₀, f x ∈ (trivializationAt F E (f x₀)).baseSet :=
-  hf.eventually_mem ((trivializationAt F E (f x₀)).open_baseSet.mem_nhds
-    (FiberBundle.mem_baseSet_trivializationAt' (f x₀)))
 
 end

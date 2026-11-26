@@ -8,7 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.ZeroOneForm
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Topology
 import TauCeti.Geometry.Manifold.VectorBundle.Section.Map.Topology
-import SymplecticGeometry.Topology.VectorBundle.Basic
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # The `(0,1)`-projection as a smooth section of a hom bundle

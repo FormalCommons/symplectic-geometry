@@ -14,7 +14,7 @@ public import TauCeti.LinearAlgebra.BilinearMap.Multilinear
 public import TauCeti.Topology.Algebra.Module.FiniteDimension
 public import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
-import SymplecticGeometry.Topology.VectorBundle.Basic
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # Precomposition, flat maps and bilinear maps in bundles of continuous alternating maps

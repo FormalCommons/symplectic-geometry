@@ -7,7 +7,7 @@ module
 
 public import Mathlib.Topology.VectorBundle.Basic
 import TauCeti.Topology.VectorBundle.Trivialization
-import SymplecticGeometry.Topology.VectorBundle.Basic
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # Zero sets of continuous sections

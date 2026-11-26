@@ -14,7 +14,7 @@ import SymplecticGeometry.Geometry.Manifold.Distribution.Horizontal
 public import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
 import TauCeti.Geometry.Manifold.IntegralCurve.Interval
 import TauCeti.Geometry.Manifold.IsManifold.Basic
-import SymplecticGeometry.Topology.VectorBundle.Basic
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # Horizontal lifts of curves and parallel transport

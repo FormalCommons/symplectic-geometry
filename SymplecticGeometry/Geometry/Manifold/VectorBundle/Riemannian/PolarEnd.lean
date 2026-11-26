@@ -13,7 +13,6 @@ public import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 public import SymplecticGeometry.Topology.FiberBundle.Basic
 public import SymplecticGeometry.Topology.VectorBundle.Coordinates
 public import TauCeti.Topology.VectorBundle.Coordinates
-import SymplecticGeometry.Topology.VectorBundle.Basic
 
 /-!
 # The polar formula on the bundles of bilinear forms and of endomorphisms

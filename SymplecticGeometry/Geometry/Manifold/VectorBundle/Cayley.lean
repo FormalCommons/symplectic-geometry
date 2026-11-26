@@ -9,7 +9,7 @@ public import Mathlib.Geometry.Manifold.VectorBundle.Hom
 public import TauCeti.Geometry.Symplectic.Cayley.Smooth
 public import TauCeti.Topology.VectorBundle.Coordinates
 public import SymplecticGeometry.Geometry.Symplectic.Cayley.Domain
-import SymplecticGeometry.Topology.VectorBundle.Basic
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # The Cayley path in the endomorphism bundle of a vector bundle

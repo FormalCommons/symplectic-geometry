@@ -19,6 +19,7 @@ import TauCeti.Geometry.Manifold.VectorBundle.TotalSpace.MFDeriv
 import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
 import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
+import SymplecticGeometry.Topology.FiberBundle.Basic
 import SymplecticGeometry.Topology.VectorBundle.Basic
 
 /-!

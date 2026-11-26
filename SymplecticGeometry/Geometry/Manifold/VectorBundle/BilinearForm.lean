@@ -8,7 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.VectorBundle.Hom
 public import SymplecticGeometry.Topology.VectorBundle.Coordinates
 public import TauCeti.Topology.VectorBundle.Coordinates
-import SymplecticGeometry.Topology.VectorBundle.Basic
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # Natural maps on pairs of bilinear forms, applied in the fibres of a vector bundle

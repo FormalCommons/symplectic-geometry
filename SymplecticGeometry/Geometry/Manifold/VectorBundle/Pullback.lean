@@ -17,7 +17,7 @@ import TauCeti.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Hom
 import TauCeti.Geometry.Manifold.VectorBundle.TotalSpace.Basic
 import TauCeti.Topology.VectorBundle.ContinuousAlternatingMap
-import SymplecticGeometry.Topology.VectorBundle.Basic
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # Sections of the alternating and bilinear bundles of a pull-back

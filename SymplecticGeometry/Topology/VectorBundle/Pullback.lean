@@ -9,7 +9,7 @@ public import Mathlib.Topology.VectorBundle.ContinuousAlternatingMap
 public import TauCeti.Topology.VectorBundle.Pullback
 public import SymplecticGeometry.Data.Bundle
 public import SymplecticGeometry.Topology.VectorBundle.Coordinates
-import SymplecticGeometry.Topology.VectorBundle.Basic
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # Alternating maps and fibre operations on a pull-back bundle
