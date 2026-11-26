@@ -19,6 +19,7 @@ public import TauCeti.LinearAlgebra.Orientation.Exact.Basic
 import Mathlib.Analysis.Normed.Module.RCLike.Real
 import SymplecticGeometry.Analysis.Normed.Operator.SpanSingleton
 import SymplecticGeometry.LinearAlgebra.Complex.LinearPart
+import TauCeti.Analysis.Normed.Operator.FiniteDimensional
 
 /-!
 # Real-linear forms with dominant complex-linear part
@@ -352,12 +353,9 @@ private theorem exists_norm_complexAntilinearPart_comp_lt (hW : finrank ℂ W = 
     isComplexLinear_of_apply fun w ↦ by
       simp [ψ, AlmostComplexStructure.ofComplexModule_apply]
   refine ⟨ψ, ?_⟩
-  have key (P : V →ₗ[ℝ] W) : LinearMap.toContinuousLinearMap (ψ.toLinearMap ∘ₗ P) =
-      ψ.toContinuousLinearMap.comp (LinearMap.toContinuousLinearMap P) := by
-    ext v
-    simp
-  rw [hψ.complexLinearPart_comp, hψ.complexAntilinearPart_comp, key, key,
-    ψ.norm_toContinuousLinearMap_comp, ψ.norm_toContinuousLinearMap_comp]
+  rw [hψ.complexLinearPart_comp, hψ.complexAntilinearPart_comp,
+    LinearMap.norm_toContinuousLinearMap_linearIsometry_comp,
+    LinearMap.norm_toContinuousLinearMap_linearIsometry_comp]
   exact h
 
 /-- **A real-linear map to a complex line with dominant complex-linear part is surjective.**
