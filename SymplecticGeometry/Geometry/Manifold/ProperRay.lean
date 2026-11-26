@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Connected
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Homogeneity
+import SymplecticGeometry.Geometry.Manifold.NullSet
 import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 
 /-!
@@ -17,6 +18,10 @@ closed discrete set of a manifold of dimension at least two. Each ray is grown a
 
 ## Main results
 
+* `exists_mem_sdiff_union_iUnion_image_notMem`: a target for the arc. If an open set `W` is not
+  contained in a closed set `L`, some point of `W` outside `L` misses a discrete set and
+  countably many arcs of differentiable curves, since these form a null set
+  (`dense_compl_union_iUnion_range`).
 * `exists_diffeomorph_grow_arc`: one arc of growth. Let `W` be a preconnected open set of `M`,
   `s` a closed discrete set and finitely many disjoint arcs with free ends, closed in `W \ s`,
   among them the part `γ '' J` of a smooth embedding `γ` that ends at `γ T`. Some diffeomorphism
@@ -48,6 +53,23 @@ namespace SymplecticGeometry
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]
   {M : Type*} [TopologicalSpace M] [T2Space M] [ChartedSpace H M] [IsManifold I ∞ M]
+
+omit [I.Boundaryless] [T2Space M] [IsManifold I ∞ M] in
+/-- **A target off the arcs, outside a closed set.** Let `M` be a manifold whose model space has
+rank greater than one, `W ⊆ M` open, `s` discrete and `f i : ℝ → M`, for `i` in a countable type,
+differentiable curves. If `W` is not contained in a closed set `L`, for instance a compact set
+when `closure W` is not compact, then some point of `W` outside `L` lies neither on `s` nor on
+any of the arcs `f i '' J i`. -/
+theorem exists_mem_sdiff_union_iUnion_image_notMem [IsManifold I 1 M]
+    (hE : 1 < Module.rank ℝ E) {ι : Type*} [Countable ι] {W s L : Set M} (hW : IsOpen W)
+    (hL : IsClosed L) (hWL : ¬ W ⊆ L) (hs : IsDiscrete s) {f : ι → ℝ → M}
+    (hf : ∀ i, MDifferentiable 𝓘(ℝ) I (f i)) (J : ι → Set ℝ) :
+    ∃ y ∈ W \ (s ∪ ⋃ i, f i '' J i), y ∉ L := by
+  rw [← Module.finrank_eq_rank] at hE
+  obtain ⟨y, ⟨hyW, hyL⟩, hy⟩ := (dense_compl_union_iUnion_range (by exact_mod_cast hE) hs hf)
+    |>.inter_open_nonempty (W \ L) (hW.sdiff hL) (not_subset.1 hWL)
+  refine ⟨y, ⟨hyW, fun h ↦ hy ?_⟩, hyL⟩
+  exact union_subset_union_right s (iUnion_mono fun i ↦ image_subset_range _ _) h
 
 /-- **Growing a ray by one arc.** Let `M` be a finite-dimensional Hausdorff boundaryless smooth
 manifold whose model space has rank greater than one, `W ⊆ M` open and preconnected and `s`
