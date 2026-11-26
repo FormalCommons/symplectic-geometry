@@ -49,6 +49,17 @@ theorem map_eq_zero_of_eq_smul {ι : Type*} (f : M [⋀^ι]→L[R] N) {v : ι �
     (hij : i ≠ j) {x : M} {a b : R} (hi : v i = a • x) (hj : v j = b • x) : f v = 0 :=
   f.toAlternatingMap.map_eq_zero_of_eq_smul hij hi hj
 
+/-- Let `V` be a subspace of `W` of dimension at most `m`. A continuous alternating map `f` of
+`r + m` vectors takes the same value on `Fin.append (v + u) w` and on `Fin.append v w` when every
+`u i` and every `w j` lies in `V`. -/
+theorem map_append_add_of_mem {K W N : Type*} [DivisionRing K] [AddCommGroup W] [Module K W]
+    [TopologicalSpace W] [AddCommGroup N] [Module K N] [TopologicalSpace N] {r m : ℕ}
+    (f : W [⋀^Fin (r + m)]→L[K] N) {V : Submodule K W} [FiniteDimensional K V]
+    (hV : Module.finrank K V ≤ m) (v : Fin r → W) {u : Fin r → W} (hu : ∀ i, u i ∈ V)
+    {w : Fin m → W} (hw : ∀ j, w j ∈ V) :
+    f (Fin.append (v + u) w) = f (Fin.append v w) :=
+  f.toAlternatingMap.map_append_add_of_mem hV v hu hw
+
 end ContinuousAlternatingMap
 
 end
