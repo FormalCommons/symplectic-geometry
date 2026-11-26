@@ -88,6 +88,8 @@ since it inverts the flat maps of the smooth family `σ`.
 * `TauCeti.RoughForm.contMDiffAt_mixedComponent`: the mixed components of a `C^n` form are `C^n`.
 * `TauCeti.RoughForm.mextDeriv_apply_eq_fderivFiberComponent_add_mextDeriv_mixedComponent`: `dτ` on
   two fibre vectors and a base field.
+* `TauCeti.RoughForm.mextDeriv_apply_eq_mextDeriv_fiberComponent_add_sum`: `dτ` on two fibre
+  vectors and an arbitrary third vector, through `d(σ(x))`, `∂ᵢσ(x)` and `d_F αᵢ(x)`.
 * `TauCeti.RoughForm.isVerticallyClosed_iff_local`: a `C¹` form on `U ×ˢ univ` is vertically closed
   there for the first projection exactly when each slice `σ(x)` is closed and
   `∂ᵢσ(x) + d_F αᵢ(x) = 0` for every `i`.
@@ -510,11 +512,50 @@ theorem mextDeriv_apply_eq_fderivFiberComponent_add_mextDeriv_mixedComponent [Co
     one_ne_zero) hW₁ hW₂, FiberBundle.extend_apply_self, FiberBundle.extend_apply_self] at h
   exact h
 
+/-- **The exterior derivative of `τ` on two fibre vectors.** For a two-form `τ` on `EB × F` that
+is `C¹` at `(x, y)`, vectors `w₁, w₂` tangent to `F` at `y` and any `v = (a, u)` tangent to
+`EB × F` there, with `a = ∑ᵢ cᵢ bs i` in the basis `bs`,
+`dτ((0, w₁), (0, w₂), v) = d(σ(x))(w₁, w₂, u) + ∑ᵢ cᵢ (∂ᵢσ(x) + d_F αᵢ(x))(w₁, w₂)`. -/
+theorem mextDeriv_apply_eq_mextDeriv_fiberComponent_add_sum [CompleteSpace EB]
+    [CompleteSpace EF] [IsManifold IF 2 F] {x : EB} {y : F}
+    (hτ : ContMDiffAt (𝓘(ℝ, EB).prod IF)
+      ((𝓘(ℝ, EB).prod IF).prod 𝓘(ℝ, (EB × EF) [⋀^Fin 2]→L[ℝ] ℝ)) 1
+      (fun z ↦ Bundle.TotalSpace.mk' ((EB × EF) [⋀^Fin 2]→L[ℝ] ℝ) z (τ z)) (x, y))
+    (w₁ w₂ : TangentSpace IF y) (v : TangentSpace (𝓘(ℝ, EB).prod IF) (x, y)) :
+    mextDeriv τ (x, y) ![((0 : EB), w₁), (0, w₂), v] =
+      mextDeriv (τ.fiberComponent x) y ![w₁, w₂, v.2] +
+        (bs.repr v.1).sum fun i c ↦
+          c * (τ.fderivFiberComponent x (bs i) y ![w₁, w₂] +
+            mextDeriv (τ.mixedComponent bs i x) y ![w₁, w₂]) := by
+  -- `dτ` at `(x, y)` with the first two vectors fixed, as a linear map of the third.
+  -- The tangent space of `EB × F` at `(x, y)` is `EB × EF`, where the splitting below lives.
+  let f : (EB × EF) [⋀^Fin 3]→L[ℝ] ℝ := mextDeriv τ (x, y)
+  let L := f.toContinuousMultilinearMap.toContinuousLinearMap ![((0 : EB), w₁), (0, w₂), 0] 2
+  have hL (u : EB × EF) : mextDeriv τ (x, y) ![((0 : EB), w₁), (0, w₂), u] = L u := by
+    rw [ContinuousMultilinearMap.toContinuousLinearMap_apply,
+      ContinuousAlternatingMap.coe_toContinuousMultilinearMap]
+    exact congrArg _ (funext fun k ↦ by fin_cases k <;> rfl)
+  -- Split the third vector along the fibre and along the basis of `EB`.
+  have hv : (v : EB × EF) =
+      ((0 : EB), v.2) + (bs.repr v.1).sum fun i c ↦ c • ((bs i, 0) : EB × EF) := by
+    refine Prod.ext ?_ ?_
+    · simpa [Finsupp.sum, Prod.fst_sum, Finsupp.linearCombination_apply] using
+        (bs.linearCombination_repr v.1).symm
+    · simp [Finsupp.sum, Prod.snd_sum]
+  rw [hL v, congrArg L hv, L.map_add, map_finsuppSum, ← hL]
+  -- The fibre vectors are elements of `EF` here and of `TangentSpace IF y` in the lemmas on the
+  -- components, so the terms are matched up to that identification.
+  refine congrArg₂ (· + ·) (τ.mextDeriv_fiberComponent_apply hτ w₁ w₂ v.2).symm
+    (Finsupp.sum_congr fun i _ ↦ ?_)
+  rw [map_smul, ← hL, smul_eq_mul]
+  exact congrArg _
+    (τ.mextDeriv_apply_eq_fderivFiberComponent_add_mextDeriv_mixedComponent bs i hτ w₁ w₂)
+
 /-! ### Vertical closedness in a chart -/
 
 section VerticallyClosed
 
-variable [CompleteSpace EB] [CompleteSpace EF] [IsManifold IF 2 F] [Finite ι]
+variable [CompleteSpace EB] [CompleteSpace EF] [IsManifold IF 2 F]
 
 /-- **Vertical closedness at a point of a chart.** For a two-form `τ` on `EB × F` that is `C¹` at
 `(x, y)`, the exterior derivative `dτ` vanishes at `(x, y)` on every triple whose first two
@@ -542,38 +583,13 @@ theorem isVerticallyClosedOn_singleton_iff_local {x : EB} {y : F}
     exact h (x, y) rfl _ (hver _ rfl) _ (hver _ rfl) _
   · obtain ⟨h₀, h⟩ := hh
     obtain rfl : z = (x, y) := hz
-    have := Fintype.ofFinite ι
-    -- `dτ` at `(x, y)` with the first two vectors fixed, as a linear map of the third.
-    -- The tangent space of `EB × F` at `(x, y)` is `EB × EF`, where the splitting below lives.
-    let f : (EB × EF) [⋀^Fin 3]→L[ℝ] ℝ := mextDeriv τ (x, y)
-    let L := f.toContinuousMultilinearMap.toContinuousLinearMap ![η₁, η₂, 0] 2
-    have hL (u : EB × EF) : mextDeriv τ (x, y) ![η₁, η₂, u] = L u := by
-      rw [ContinuousMultilinearMap.toContinuousLinearMap_apply,
-        ContinuousAlternatingMap.coe_toContinuousMultilinearMap]
-      exact congrArg _ (funext fun k ↦ by fin_cases k <;> rfl)
     rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe, mfderiv_fst_apply] at hη₁ hη₂
     have hη₁' : η₁ = ((0 : EB), η₁.2) := Prod.ext hη₁ rfl
     have hη₂' : η₂ = ((0 : EB), η₂.2) := Prod.ext hη₂ rfl
-    -- Split the third vector along the fibre and along the basis of `EB`.
-    have hv : (v : EB × EF) = ((0 : EB), v.2) + ∑ i, bs.coord i v.1 • ((bs i, 0) : EB × EF) := by
-      refine Prod.ext ?_ ?_
-      · simp only [Prod.fst_add, Prod.fst_sum, Prod.smul_fst, zero_add,
-          Module.Basis.coord_apply, bs.sum_repr]
-      · simp only [Prod.snd_add, Prod.snd_sum, Prod.smul_snd, smul_zero,
-          Finset.sum_const_zero, add_zero]
-    rw [hL v, hv, L.map_add, map_sum L, ← hL, hη₁', hη₂']
-    -- The fibre vectors are elements of `EF` here and of `TangentSpace IF y` in the lemmas on the
-    -- components, so the terms are matched up to that identification.
-    refine (congrArg₂ (· + ·)
-      ((τ.mextDeriv_fiberComponent_apply hτ η₁.2 η₂.2 v.2).symm.trans ?_)
-      (Finset.sum_eq_zero fun i _ ↦ ?_)).trans (add_zero 0)
-    · rw [h₀, ContinuousAlternatingMap.coe_zero, Pi.zero_apply]
-    · rw [map_smul, ← hL, hη₁', hη₂']
-      refine (congrArg (bs.coord i v.1 • ·)
-        ((τ.mextDeriv_apply_eq_fderivFiberComponent_add_mextDeriv_mixedComponent bs i hτ
-          η₁.2 η₂.2).trans ?_)).trans (smul_zero _)
-      rw [← ContinuousAlternatingMap.add_apply, h i, ContinuousAlternatingMap.coe_zero,
-        Pi.zero_apply]
+    rw [hη₁', hη₂']
+    refine (τ.mextDeriv_apply_eq_mextDeriv_fiberComponent_add_sum bs hτ η₁.2 η₂.2 v).trans ?_
+    simp only [h₀, ← ContinuousAlternatingMap.add_apply, h]
+    simp
 
 /-- **Vertical closedness in a chart.** Let `U` be open in `EB` and `τ` a two-form on `EB × F`
 that is `C¹` on `U ×ˢ univ`. Then `τ` is vertically closed on `U ×ˢ univ` for the first
