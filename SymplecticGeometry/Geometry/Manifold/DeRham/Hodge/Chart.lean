@@ -20,6 +20,7 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartialDiffe
 public import SymplecticGeometry.Geometry.Manifold.Riemannian.PartialDiffeomorph
 import SymplecticGeometry.LinearAlgebra.BilinearForm.Gram
 import SymplecticGeometry.Analysis.Calculus.ContDiff.Basis
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import Mathlib.Analysis.Calculus.BumpFunction.FiniteDimension
 import TauCeti.Geometry.Manifold.Riemannian.FormMetric
@@ -435,7 +436,7 @@ theorem mpullback_symm_codifferential
       (-1 : ℝ) ^ (m * (k + 2) + 1) • hodgeStarInChart o ψ hlk y
         (extDeriv (fun z ↦ hodgeStarInChart o ψ hkl z (mpullback 𝓘(ℝ, E) I ψ.symm β.val z)) y) := by
   have hsymm (z : E) (hz : z ∈ ψ.target) : ContMDiffAt 𝓘(ℝ, E) I 2 ψ.symm z :=
-    (ψ.symm.contMDiffOn.contMDiffAt (ψ.open_target.mem_nhds hz)).of_le (by simp)
+    (ψ.symm.contMDiffAt hz).of_le (by simp)
   have hd := mpullback_mextDeriv_on (s := ψ.target) hsymm
     (φ := (SmoothForm.hodgeStar o hkl β).val)
     (fun z _ ↦ ((SmoothForm.hodgeStar o hkl β).contMDiff _).of_le (m := 1) (by simp)) y hy
@@ -651,7 +652,7 @@ theorem contDiffOn_formInnerInChart_apply [T2Space M] [IsManifold I ∞ M]
         θ.one_of_mem_closedBall hy, one_smul]
     rw [alternatingFormInner_eq_formInnerInChart ψ hn _ _ hyt, h1, h1]
   have hψ : ContMDiffAt 𝓘(ℝ, E) I ∞ ψ.symm y₀ :=
-    ψ.symm.contMDiffOn.contMDiffAt (ψ.open_target.mem_nhds hy₀)
+    ψ.symm.contMDiffAt hy₀
   have hinner := (((ext β).isSmoothForm.contMDiff_alternatingFormInner
     (ext γ).isSmoothForm).contMDiffAt (x := ψ.symm y₀)).comp y₀ hψ
   exact (contMDiffAt_iff_contDiffAt.1 hinner).congr_of_eventuallyEq heq.symm |>.contDiffWithinAt
