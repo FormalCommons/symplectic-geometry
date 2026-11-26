@@ -45,6 +45,8 @@ blowdown is a biholomorphism onto the nonzero vectors of `E`.
 * `SymplecticGeometry.BlowupModel.exceptionalDivisor n`: the fibre of the blowdown over `0`,
   which is the range of the zero section `SymplecticGeometry.BlowupModel.zeroSection`
   (`SymplecticGeometry.BlowupModel.exceptionalDivisor_eq_range`).
+* `SymplecticGeometry.BlowupModel.offDivisorOpens n`: the complement of the exceptional divisor,
+  as an open set.
 * `SymplecticGeometry.BlowupModel.dense_exceptionalDivisor_compl`: the complement of the
   exceptional divisor is dense, since `(ℓ, t • v)` tends to `(ℓ, 0)` as `t → 0`.
 * `SymplecticGeometry.BlowupModel.blowupModelChart i`, for `i : Fin (n + 1)`: the chart of the
@@ -191,6 +193,25 @@ theorem mem_exceptionalDivisor_iff {p : BlowupModel n} :
 
 theorem isClosed_exceptionalDivisor : IsClosed (exceptionalDivisor n) :=
   isClosed_eq continuous_blowdown continuous_const
+
+variable (n) in
+/-- The complement of the exceptional divisor, as an open set of the blowup. -/
+def offDivisorOpens : TopologicalSpace.Opens (BlowupModel n) :=
+  ⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩
+
+theorem offDivisorOpens_def :
+    offDivisorOpens n = ⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ :=
+  (rfl)
+
+@[simp]
+theorem coe_offDivisorOpens :
+    (offDivisorOpens n : Set (BlowupModel n)) = (exceptionalDivisor n)ᶜ := by
+  rw [offDivisorOpens_def, TopologicalSpace.Opens.coe_mk]
+
+@[simp]
+theorem mem_offDivisorOpens {p : BlowupModel n} :
+    p ∈ offDivisorOpens n ↔ p ∉ exceptionalDivisor n := by
+  rw [← SetLike.mem_coe, coe_offDivisorOpens, Set.mem_compl_iff]
 
 /-- The zero section of the blowup over the projective space: `ℓ ↦ (ℓ, 0)`. -/
 def zeroSection (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) : BlowupModel n :=
@@ -711,11 +732,11 @@ the tautological line bundle, with the divisor as its zero section.
 
 Milestone: *Tautological line bundle and the exceptional divisor*. -/
 noncomputable def blowdownDiffeomorph :
-    (⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ : Opens (BlowupModel n))
-      ≃ₘ^ω⟮𝓘(ℂ, Fin (n + 1) → ℂ), 𝓘(ℂ, Fin (n + 1) → ℂ)⟯
+    offDivisorOpens n ≃ₘ^ω⟮𝓘(ℂ, Fin (n + 1) → ℂ), 𝓘(ℂ, Fin (n + 1) → ℂ)⟯
       (⟨{z | z ≠ 0}, isOpen_ne⟩ : Opens (Fin (n + 1) → ℂ)) where
-  toFun p := ⟨p.val.blowdown, p.property⟩
-  invFun z := ⟨ofNeZero z.property, ofNeZero_notMem_exceptionalDivisor z.property⟩
+  toFun p := ⟨p.val.blowdown, mt mem_exceptionalDivisor_iff.2 (mem_offDivisorOpens.1 p.property)⟩
+  invFun z :=
+    ⟨ofNeZero z.property, mem_offDivisorOpens.2 (ofNeZero_notMem_exceptionalDivisor z.property)⟩
   left_inv p := Subtype.ext <| ofNeZero_blowdown p.property
   right_inv z := Subtype.ext <| blowdown_ofNeZero z.property
   contMDiff_toFun := (TauCeti.ContMDiff.subtypeVal_comp_iff _ _).1
@@ -728,7 +749,7 @@ noncomputable def blowdownDiffeomorph :
       (Eventually.of_forall fun y => ⟨y.property, rfl⟩)).prodMk contMDiff_subtypeVal.contMDiffAt
 
 @[simp]
-theorem coe_blowdownDiffeomorph (p : (⟨(exceptionalDivisor n)ᶜ, _⟩ : Opens (BlowupModel n))) :
+theorem coe_blowdownDiffeomorph (p : offDivisorOpens n) :
     (blowdownDiffeomorph n p : Fin (n + 1) → ℂ) = p.val.blowdown :=
   (rfl)
 
