@@ -48,7 +48,8 @@ namespace `TauCeti.Bundle`, `bundleDiffeomorph_zeroSection` and
 `contMDiff_totalSpaceMk_comp`, about linear maps into one fibre,
 `hasMFDerivAt_totalSpaceMk_trivializationAt_symm`, about the inclusion of one fibre,
 `contMDiff_subtypeMk_zeroSection` and `subtypeVal_comp_subtypeMk_zeroSection`, about the zero
-section as a map into a set that contains it, and
+section as a map into a set that contains it, `contMDiff_of_apply_zeroSection`, about maps
+that factor through it, and
 `contMDiff_mfderiv_smul_curve`, about maps on the total space, in Mathlib's namespace `Bundle`.
 
 ## Main definitions
@@ -73,6 +74,8 @@ section as a map into a set that contains it, and
   total space, read through the preferred trivialization, has derivative `w ↦ (0, w)`.
 * `Bundle.contMDiff_subtypeMk_zeroSection`: the zero section, as a map into an open set of the
   total space that contains it, is `C^n` for every `n`.
+* `Bundle.contMDiff_of_apply_zeroSection`: a map on the base that agrees on the zero section
+  with a `C^n` map from an open set of the total space is `C^n`.
 * `TauCeti.Bundle.zeroSectionTangentEquiv_symm_inl`: the inverse of Tau Ceti's splitting sends
   the horizontal vector `(u, 0)` at `b` to the image of `u` under the differential of the zero
   section.
@@ -238,6 +241,18 @@ theorem subtypeVal_comp_subtypeMk_zeroSection {U : Set (TotalSpace F V)}
     (hU : ∀ b, zeroSection F V b ∈ U) :
     Subtype.val ∘ (fun b ↦ (⟨zeroSection F V b, hU b⟩ : U)) = zeroSection F V :=
   (rfl)
+
+/-- Let `ι : U → W` be a `C^n` map from an open set `U` of the total space to an open set `W` of
+a manifold `M`. If the zero vector over each `b` lies in `U` and `ι` sends it to `f b`, then
+`f : B → M` is `C^n`, being `ι` composed with the zero section. -/
+theorem contMDiff_of_apply_zeroSection {EM HM M : Type*} [NormedAddCommGroup EM]
+    [NormedSpace 𝕜 EM] [TopologicalSpace HM] {IM : ModelWithCorners 𝕜 EM HM} [TopologicalSpace M]
+    [ChartedSpace HM M] {n : WithTop ℕ∞} {U : TopologicalSpace.Opens (TotalSpace F V)}
+    {W : TopologicalSpace.Opens M} {ι : U → W} (hι : ContMDiff (IB.prod 𝓘(𝕜, F)) IM n ι)
+    {f : B → M} (hιf : ∀ b, ∃ h : zeroSection F V b ∈ U, (ι ⟨_, h⟩ : M) = f b) :
+    ContMDiff IB IM n f :=
+  (contMDiff_subtypeVal.comp (hι.comp (contMDiff_subtypeMk_zeroSection fun b ↦ (hιf b).1))).congr
+    fun b ↦ (hιf b).2.symm
 
 end Bundle
 

@@ -62,7 +62,8 @@ computed by the naturality of the Euler class
 (`TauCeti.complexEulerClass_eq_singularCohomologyMap_of_fiberwise`), as in
 `Projectivization.hyperplaneClass_map`: the fibre inclusion acts on lines by Tau Ceti's
 `ContinuousLinearEquiv.mapProjectivization` of the trivialization, and the fibrewise isomorphisms
-of tautological lines are its restrictions `ContinuousLinearEquiv.ofSubmodules`.
+of tautological lines are its restrictions
+`Projectivization.tautologicalMapProjectivizationEquiv`.
 
 ## References
 
@@ -129,8 +130,7 @@ theorem singularCohomologyMap_fiberInclusionMap_projectiveBundleClass (b : B) :
   have h := complexEulerClass_eq_singularCohomologyMap_of_fiberwise (r := 0) (finrank_self ℂ)
     (finrank_self ℂ) (g := g) (E := ProjectiveBundle.Tautological ℂ G E)
     (E' := Projectivization.Tautological ℂ G)
-    (φ := fun ℓ ↦ L.ofSubmodules ℓ.submodule (L.mapProjectivization ℓ).submodule
-      (by rw [ContinuousLinearEquiv.coe_mapProjectivization, Projectivization.submodule_map]))
+    (φ := Projectivization.tautologicalMapProjectivizationEquiv L)
     ?_
   · rw [hg, projectiveBundleClass_def, Projectivization.hyperplaneClass_def, map_neg, h]
     exact congrArg _ (TopCat.uliftIntegralCohomologyIso_naturality_apply _ 2 _).symm
@@ -142,7 +142,7 @@ theorem singularCohomologyMap_fiberInclusionMap_projectiveBundleClass (b : B) :
     refine hs.congr fun v ↦ ?_
     have hL (w : G) : L w = e.symm b w := congrFun (e.continuousLinearEquivAt_symm_apply ℂ b hb) w
     exact congrArg (TotalSpace.mk' G b) ((hL _).symm.trans
-      (L.ofSubmodules_apply _ v.snd).symm)
+      (Projectivization.coe_tautologicalMapProjectivizationEquiv_apply L _ v.snd).symm)
 
 /-! ### The Leray–Hirsch classes -/
 
