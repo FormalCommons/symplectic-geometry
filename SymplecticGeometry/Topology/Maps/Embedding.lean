@@ -16,12 +16,22 @@ near `z₀`, a parametrization `g : Z → X` which is open at `z₀` is carried 
 set of points that `e` sends into the range of `ι`
 (`Topology.IsInducing.exists_isOpen_inter_range_eq`). This is how a chart that straightens a
 submanifold along a parametrization is shrunk until the submanifold is a slice of it.
+
+The file also shows that the corestriction of an open embedding to a set containing its range is
+an open embedding (`Topology.IsOpenEmbedding.codRestrict`).
 -/
 
 public section
 
 open Set Filter Function
 open scoped Topology
+
+/-- The corestriction of an open embedding `f` to a set `s` containing its range is an open
+embedding. -/
+protected theorem Topology.IsOpenEmbedding.codRestrict {X Y : Type*} [TopologicalSpace X]
+    [TopologicalSpace Y] {f : X → Y} (hf : IsOpenEmbedding f) (s : Set Y) (h : ∀ x, f x ∈ s) :
+    IsOpenEmbedding (codRestrict f s h) :=
+  .of_isEmbedding_isOpenMap (hf.isEmbedding.codRestrict s h) (hf.isOpenMap.codRestrict h)
 
 namespace Topology.IsInducing
 
