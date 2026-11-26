@@ -187,7 +187,7 @@ variable [FiniteDimensional ℝ EQ]
 theorem snd_eq_zero_iff_mem_tangentRange_zeroSlice (q : Q)
     (v : TangentSpace (J.prod 𝓘(ℝ, ℂ)) (zeroSlice J Q q)) :
     ContinuousLinearMap.snd ℝ EQ ℂ v = 0 ↔
-      v ∈ (zeroSlice J Q).tangentRange q (WithTop.coe_ne_zero.2 ENat.top_ne_zero) := by
+      v ∈ (zeroSlice J Q).isImmersion.tangentRange q (WithTop.coe_ne_zero.2 ENat.top_ne_zero) := by
   rw [(zeroSlice J Q).tangentRange_eq_ker_mfderiv q _ (g := Prod.snd) (c := 0)
     (.of_forall fun _ ↦ by simp) (isRegularPoint_snd _) (by simp [finrank_prod]),
     LinearMap.mem_ker, mfderiv_snd]
@@ -196,21 +196,22 @@ theorem snd_eq_zero_iff_mem_tangentRange_zeroSlice (q : Q)
 
 /-- The normal spaces of the zero slice have real dimension two. -/
 theorem finrank_normalSpace_zeroSlice (q : Q) :
-    finrank ℝ ((zeroSlice J Q).NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) =
+    finrank ℝ ((zeroSlice J Q).isImmersion.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) =
       finrank ℝ ℂ :=
-  ((zeroSlice J Q).finrank_normalSpace q _).trans finrank_complex_eq_finrank_prod_sub.symm
+  ((zeroSlice J Q).isImmersion.finrank_normalSpace q _).trans
+      finrank_complex_eq_finrank_prod_sub.symm
 
 variable (J Q) in
 /-- The identification of the normal space of the zero slice at `q` with `ℂ`, sending the normal
 class of a tangent vector of `Q × ℂ` at `(q, 0)` to its `ℂ`-component. -/
 def zeroSliceNormalEquiv (q : Q) :
-    (zeroSlice J Q).NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero) ≃L[ℝ] ℂ :=
-  (zeroSlice J Q).normalSpaceEquivOfKer q _ (ContinuousLinearMap.snd ℝ EQ ℂ)
+    (zeroSlice J Q).isImmersion.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero) ≃L[ℝ] ℂ :=
+  (zeroSlice J Q).isImmersion.normalSpaceEquivOfKer q _ (ContinuousLinearMap.snd ℝ EQ ℂ)
     (snd_eq_zero_iff_mem_tangentRange_zeroSlice q) (finrank_normalSpace_zeroSlice q)
 
 theorem zeroSliceNormalEquiv_def (q : Q) :
     zeroSliceNormalEquiv J Q q =
-      (zeroSlice J Q).normalSpaceEquivOfKer q _ (ContinuousLinearMap.snd ℝ EQ ℂ)
+      (zeroSlice J Q).isImmersion.normalSpaceEquivOfKer q _ (ContinuousLinearMap.snd ℝ EQ ℂ)
         (snd_eq_zero_iff_mem_tangentRange_zeroSlice q) (finrank_normalSpace_zeroSlice q) :=
   (rfl)
 
@@ -220,15 +221,17 @@ its `ℂ`-component. -/
 theorem zeroSliceNormalEquiv_normalClass (q : Q)
     (v : TangentSpace (J.prod 𝓘(ℝ, ℂ)) (zeroSlice J Q q)) :
     zeroSliceNormalEquiv J Q q
-        ((zeroSlice J Q).normalClass q (WithTop.coe_ne_zero.2 ENat.top_ne_zero) v) = v.2 :=
-  (zeroSlice J Q).normalSpaceEquivOfKer_normalClass q _ _ _ _ v
+        ((zeroSlice J Q).isImmersion.normalClass q (WithTop.coe_ne_zero.2 ENat.top_ne_zero) v) =
+            v.2 :=
+  (zeroSlice J Q).isImmersion.normalSpaceEquivOfKer_normalClass q _ _ _ _ v
 
 /-- The inverse of `zeroSliceNormalEquiv` sends `z` to the normal class of the vertical vector
 `(0, z)`. -/
 theorem zeroSliceNormalEquiv_symm_apply (q : Q) (z : ℂ) :
     (zeroSliceNormalEquiv J Q q).symm z =
-      (zeroSlice J Q).normalClass q (WithTop.coe_ne_zero.2 ENat.top_ne_zero) ((0, z) : EQ × ℂ) :=
-  (zeroSlice J Q).normalSpaceEquivOfKer_symm_apply q _ _ _ _ ((0, z) : EQ × ℂ)
+      (zeroSlice J Q).isImmersion.normalClass q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
+          ((0, z) : EQ × ℂ) :=
+  (zeroSlice J Q).isImmersion.normalSpaceEquivOfKer_symm_apply q _ _ _ _ ((0, z) : EQ × ℂ)
 
 variable (J Q) in
 /-- The normal bundle of the zero slice, with the bundle structure that `SymplecticFraming` uses,
@@ -236,7 +239,8 @@ is diffeomorphic to `Q × ℂ` over the identity of `Q`, by `zeroSliceNormalEqui
 def zeroSliceNormalBundleDiffeomorph :
     letI := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
       (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
-    TotalSpace ℂ (fun q ↦ (zeroSlice J Q).NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero))
+    TotalSpace ℂ (fun q ↦ (zeroSlice J Q).isImmersion.NormalSpace q
+        (WithTop.coe_ne_zero.2 ENat.top_ne_zero))
       ≃ₘ⟮J.prod 𝓘(ℝ, ℂ), J.prod 𝓘(ℝ, ℂ)⟯ Q × ℂ :=
   letI := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
     (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
@@ -256,7 +260,8 @@ def zeroSliceNormalBundleDiffeomorph :
 @[simp]
 theorem zeroSliceNormalBundleDiffeomorph_apply
     (p : TotalSpace ℂ
-      (fun q ↦ (zeroSlice J Q).NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero))) :
+      (fun q ↦ (zeroSlice J Q).isImmersion.NormalSpace q
+          (WithTop.coe_ne_zero.2 ENat.top_ne_zero))) :
     letI := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
       (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
     zeroSliceNormalBundleDiffeomorph J Q p = (p.proj, zeroSliceNormalEquiv J Q p.proj p.snd) := by
@@ -286,7 +291,8 @@ theorem contMDiff_zeroSliceNormalEquiv :
       (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
     ContMDiff (J.prod 𝓘(ℝ, ℂ)) (J.prod 𝓘(ℝ, ℂ)) ∞
       (fun p : TotalSpace ℂ
-          (fun q ↦ (zeroSlice J Q).NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) ↦
+          (fun q ↦ (zeroSlice J Q).isImmersion.NormalSpace q
+              (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) ↦
         (p.proj, zeroSliceNormalEquiv J Q p.proj p.snd)) := by
   let := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
     (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
@@ -299,7 +305,8 @@ theorem contMDiff_zeroSliceNormalEquiv_symm :
       (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
     ContMDiff (J.prod 𝓘(ℝ, ℂ)) (J.prod 𝓘(ℝ, ℂ)) ∞
       (fun x : Q × ℂ ↦ (⟨x.1, (zeroSliceNormalEquiv J Q x.1).symm x.2⟩ : TotalSpace ℂ
-          (fun q ↦ (zeroSlice J Q).NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)))) := by
+          (fun q ↦ (zeroSlice J Q).isImmersion.NormalSpace q
+              (WithTop.coe_ne_zero.2 ENat.top_ne_zero)))) := by
   let := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
     (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
   exact (zeroSliceNormalBundleDiffeomorph J Q).symm.contMDiff.congr
@@ -312,7 +319,7 @@ theorem mem_orthogonal_tangentRange_zeroSlice {τ : SmoothTwoForm J Q}
     (hτ : (τ.prod stdComplexSymplecticForm.constSmooth).IsNondegenerate) (q : Q)
     {v : TangentSpace (J.prod 𝓘(ℝ, ℂ)) (zeroSlice J Q q)} (hv : v.1 = 0) :
     v ∈ (hτ.symplecticFormAt (zeroSlice J Q q)).orthogonal
-      ((zeroSlice J Q).tangentRange q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) := by
+      ((zeroSlice J Q).isImmersion.tangentRange q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) := by
   refine SymplecticForm.mem_orthogonal_iff.2 fun u hu ↦ ?_
   have hu2 : u.2 = 0 := (snd_eq_zero_iff_mem_tangentRange_zeroSlice q u).2 hu
   rw [SmoothTwoForm.IsNondegenerate.symplecticFormAt_apply, SmoothTwoForm.eval₂_prod_eq_add, hv,
@@ -325,7 +332,7 @@ identification `zeroSliceNormalEquiv` of the normal spaces with `ℂ`. -/
 theorem symplecticNormalForm_zeroSlice {τ : SmoothTwoForm J Q}
     {hτ : (τ.prod stdComplexSymplecticForm.constSmooth).IsNondegenerate}
     (h : hτ.HasSymplecticTangentImages J (zeroSlice J Q)) (q : Q)
-    (v w : (zeroSlice J Q).NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) :
+    (v w : (zeroSlice J Q).isImmersion.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) :
     (zeroSlice J Q).symplecticNormalForm h q (WithTop.coe_ne_zero.2 ENat.top_ne_zero) v w =
       stdComplexSymplecticForm (zeroSliceNormalEquiv J Q q v) (zeroSliceNormalEquiv J Q q w) := by
   obtain ⟨z, rfl⟩ := (zeroSliceNormalEquiv J Q q).symm.surjective v
@@ -354,8 +361,9 @@ structure SymplecticFraming {hσ : σ.IsNondegenerate} {ι : SmoothEmbedding J I
     (hι : hσ.HasSymplecticTangentImages J ι)
     (hP : finrank ℝ ℂ = finrank ℝ E - finrank ℝ EQ) where
   /-- The isomorphism of normal spaces at `q`. -/
-  toFun : ∀ q, (zeroSlice J Q).NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero) ≃L[ℝ]
-    ι.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
+  toFun : ∀ q, (zeroSlice J Q).isImmersion.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
+      ≃L[ℝ]
+    ι.isImmersion.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
   /-- The framing is smooth as a map of normal bundles. -/
   contMDiff_toFun :
     letI := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
@@ -363,9 +371,11 @@ structure SymplecticFraming {hσ : σ.IsNondegenerate} {ι : SmoothEmbedding J I
     letI := ι.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
     ContMDiff (J.prod 𝓘(ℝ, ℂ)) (J.prod 𝓘(ℝ, ℂ)) ∞
       (fun p : TotalSpace ℂ
-          (fun q ↦ (zeroSlice J Q).NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) ↦
+          (fun q ↦ (zeroSlice J Q).isImmersion.NormalSpace q
+              (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) ↦
         (⟨p.proj, toFun p.proj p.snd⟩ :
-          TotalSpace ℂ (fun q ↦ ι.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero))))
+          TotalSpace ℂ (fun q ↦ ι.isImmersion.NormalSpace q
+              (WithTop.coe_ne_zero.2 ENat.top_ne_zero))))
   /-- The framing carries the normal symplectic form of the zero slice to that of `ι`. -/
   symplecticNormalForm_toFun : ∀ q v w,
     ι.symplecticNormalForm hι q (WithTop.coe_ne_zero.2 ENat.top_ne_zero) (toFun q v)
@@ -383,8 +393,8 @@ variable {hσ : σ.IsNondegenerate} {ι : SmoothEmbedding J I ∞ Q M}
 attribute [coe] toFun
 
 instance : CoeFun (SymplecticFraming hι hP) fun _ ↦ ∀ q,
-    (zeroSlice J Q).NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero) ≃L[ℝ]
-      ι.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero) :=
+    (zeroSlice J Q).isImmersion.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero) ≃L[ℝ]
+      ι.isImmersion.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero) :=
   ⟨toFun⟩
 
 /-- Two framings are equal if their isomorphisms of normal spaces agree at every point. -/
@@ -421,7 +431,7 @@ section OfPos
 
 variable {hσ : σ.IsNondegenerate} {ι : SmoothEmbedding J I ∞ Q M}
   {hι : hσ.HasSymplecticTangentImages J ι} {hP : finrank ℝ ℂ = finrank ℝ E - finrank ℝ EQ}
-  {e : ∀ q, ℂ ≃L[ℝ] ι.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)}
+  {e : ∀ q, ℂ ≃L[ℝ] ι.isImmersion.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)}
 
 variable (e) in
 /-- **The symplectic framing of a positive trivialization of the normal bundle.** Let
@@ -435,7 +445,8 @@ def ofPos
     (he : letI := ι.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
       ContMDiff (J.prod 𝓘(ℝ, ℂ)) (J.prod 𝓘(ℝ, ℂ)) ∞
         (fun x : Q × ℂ ↦ (⟨x.1, e x.1 x.2⟩ :
-          TotalSpace ℂ (fun q ↦ ι.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)))))
+          TotalSpace ℂ (fun q ↦ ι.isImmersion.NormalSpace q
+              (WithTop.coe_ne_zero.2 ENat.top_ne_zero)))))
     (hpos : ∀ q, 0 < ι.symplecticNormalForm hι q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
       (e q 1) (e q Complex.I)) :
     SymplecticFraming hι hP where
@@ -480,10 +491,11 @@ theorem ofPos_apply
     (he : letI := ι.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
       ContMDiff (J.prod 𝓘(ℝ, ℂ)) (J.prod 𝓘(ℝ, ℂ)) ∞
         (fun x : Q × ℂ ↦ (⟨x.1, e x.1 x.2⟩ :
-          TotalSpace ℂ (fun q ↦ ι.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)))))
+          TotalSpace ℂ (fun q ↦ ι.isImmersion.NormalSpace q
+              (WithTop.coe_ne_zero.2 ENat.top_ne_zero)))))
     (hpos : ∀ q, 0 < ι.symplecticNormalForm hι q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
       (e q 1) (e q Complex.I)) (q : Q)
-    (v : (zeroSlice J Q).NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) :
+    (v : (zeroSlice J Q).isImmersion.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) :
     ofPos e he hpos q v = e q ((√(ι.symplecticNormalForm hι q
       (WithTop.coe_ne_zero.2 ENat.top_ne_zero) (e q 1) (e q Complex.I)))⁻¹ •
         zeroSliceNormalEquiv J Q q v) := by
@@ -630,7 +642,7 @@ theorem mpullback_eq (f : ProductNeighborhood Φ ε) :
 
 theorem mfderiv_symplecticNormalRepresentative (f : ProductNeighborhood Φ ε) (q : Q)
     (h : zeroSlice J Q q ∈ prodBall Q ε)
-    (v : (zeroSlice J Q).NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) :
+    (v : (zeroSlice J Q).isImmersion.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) :
     mfderiv (J.prod 𝓘(ℝ, ℂ)) I f ⟨zeroSlice J Q q, h⟩
         ((zeroSlice J Q).symplecticNormalRepresentative (hasSymplecticTangentImages_zeroSlice hι)
           q (WithTop.coe_ne_zero.2 ENat.top_ne_zero) v) =

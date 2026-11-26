@@ -24,9 +24,9 @@ manifolds and the product of the almost complex structures of `N` and `N'`, whic
 multiplication by `i` (`TauCeti.SmoothAlmostComplexStructure.prod_ofComplexManifold_apply`).
 
 These are the hypotheses, written
-`∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn)`, under which
-`AlmostComplex/Submanifold.lean` restricts an almost complex structure and pulls back taming
-forms. So a complex submanifold, such as a smooth hypersurface, is a symplectic
+`∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn) (f.isImmersion.tangentRange x hn)`,
+under which `AlmostComplex/Submanifold.lean` restricts an almost complex structure and pulls back
+taming forms. So a complex submanifold, such as a smooth hypersurface, is a symplectic
 submanifold for every form that tames the complex structure of the ambient manifold.
 
 The structure that the complex structure of `N` restricts to along the real form is the complex
@@ -74,8 +74,8 @@ theorem mapsTo_ofComplexManifold_tangentRange_restrictScalars
     (f : SmoothEmbedding 𝓘(ℂ, E) 𝓘(ℂ, E') m M N) (hnm : n ≤ m) (hn : 1 ≤ n) (hn₀ : n ≠ 0)
     (x : M) :
     Set.MapsTo (ofComplexManifold E' N (f.restrictScalars ℝ hnm hn x))
-      ((f.restrictScalars ℝ hnm hn).tangentRange x hn₀)
-      ((f.restrictScalars ℝ hnm hn).tangentRange x hn₀) := fun v hv ↦
+      ((f.restrictScalars ℝ hnm hn).isImmersion.tangentRange x hn₀)
+      ((f.restrictScalars ℝ hnm hn).isImmersion.tangentRange x hn₀) := fun v hv ↦
   -- `ofComplexManifold_apply` states `v` in `E'`, so it does not rewrite the goal directly.
   (ofComplexManifold_apply (E := E') (M := N) _ v).symm ▸
     f.smul_mem_tangentRange_restrictScalars hnm hn x hn₀ Complex.I hv
@@ -108,8 +108,8 @@ theorem mapsTo_prod_ofComplexManifold_tangentRange_restrictScalarsProd
     (hn : 1 ≤ n) (hn₀ : n ≠ 0) (x : M) :
     Set.MapsTo ((ofComplexManifold E' N).prod (ofComplexManifold F' N')
         (f.restrictScalarsProd ℝ hnm hn x))
-      ((f.restrictScalarsProd ℝ hnm hn).tangentRange x hn₀)
-      ((f.restrictScalarsProd ℝ hnm hn).tangentRange x hn₀) := fun v hv ↦
+      ((f.restrictScalarsProd ℝ hnm hn).isImmersion.tangentRange x hn₀)
+      ((f.restrictScalarsProd ℝ hnm hn).isImmersion.tangentRange x hn₀) := fun v hv ↦
   -- `prod_ofComplexManifold_apply` states `v` in `E' × F'`, so it does not rewrite the goal
   -- directly.
   (prod_ofComplexManifold_apply (M := N) (N := N') _ v).symm ▸

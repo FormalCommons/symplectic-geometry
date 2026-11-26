@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Topology.Order.Interval
+public import TauCeti.Topology.Order.Interval.Basic
 
 /-!
 # Open neighbourhoods of closed intervals in an ordered field

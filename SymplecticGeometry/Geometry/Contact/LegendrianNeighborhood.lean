@@ -135,7 +135,7 @@ variable {g : SmoothEmbedding J I ∞ L M}
 with `T^* L × ℝ`. -/
 private def cotangentToNormal (hf : IsLegendrianEmbedding J α.kerDistribution g)
     (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E') :
-    CotangentBundle J L → TotalSpace P (fun q ↦ g.NormalSpace q infty_ne_zero) :=
+    CotangentBundle J L → TotalSpace P (fun q ↦ g.isImmersion.NormalSpace q infty_ne_zero) :=
   letI := g.normalSpaceFiberBundle infty_ne_zero hdim
   fun p ↦ (g.normalBundleDiffeomorphOfIsLegendrianImmersion hf.toIsLegendrianImmersion
     (m := ∞) infty_ne_zero (by simp) (by simp) hdim).symm (p, 0)
@@ -178,7 +178,7 @@ private theorem mfderiv_comp_cotangentToNormal (hf : IsLegendrianEmbedding J α.
     (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E') :
     letI := g.normalSpaceFiberBundle infty_ne_zero hdim
     letI := g.normalSpaceVectorBundle infty_ne_zero hdim
-    ∀ T : TotalSpace P (fun q ↦ g.NormalSpace q infty_ne_zero) → M,
+    ∀ T : TotalSpace P (fun q ↦ g.isImmersion.NormalSpace q infty_ne_zero) → M,
       ContMDiff (J.prod 𝓘(ℝ, P)) I ∞ T → (∀ q, T (zeroSection P _ q) = g q) →
       ∀ (q : L) (u : TangentSpace J q) (p : TangentSpace J q →L[ℝ] ℝ),
         mfderiv (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) I (T ∘ cotangentToNormal hf hdim)
@@ -214,7 +214,7 @@ private def sliceDeriv (hf : IsLegendrianEmbedding J α.kerDistribution g)
     (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E') :
     letI := g.normalSpaceFiberBundle infty_ne_zero hdim
     letI := g.normalSpaceVectorBundle infty_ne_zero hdim
-    (TotalSpace P (fun q ↦ g.NormalSpace q infty_ne_zero) → M) → ∀ q : L,
+    (TotalSpace P (fun q ↦ g.isImmersion.NormalSpace q infty_ne_zero) → M) → ∀ q : L,
       TangentSpace (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ))
           (zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q) →L[ℝ]
         TangentSpace I (g q) :=
@@ -228,7 +228,7 @@ private theorem sliceDeriv_apply (hf : IsLegendrianEmbedding J α.kerDistributio
     (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E') :
     letI := g.normalSpaceFiberBundle infty_ne_zero hdim
     letI := g.normalSpaceVectorBundle infty_ne_zero hdim
-    ∀ (T : TotalSpace P (fun q ↦ g.NormalSpace q infty_ne_zero) → M) (q : L) (X),
+    ∀ (T : TotalSpace P (fun q ↦ g.isImmersion.NormalSpace q infty_ne_zero) → M) (q : L) (X),
       sliceDeriv hf hdim T q X = mfderiv (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) I
         (T ∘ cotangentToNormal hf hdim)
         (zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q) X :=
@@ -241,9 +241,9 @@ private theorem sliceDeriv_mem_kerDistribution_and_injective
     (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E') :
     letI := g.normalSpaceFiberBundle infty_ne_zero hdim
     letI := g.normalSpaceVectorBundle infty_ne_zero hdim
-    ∀ T : TotalSpace P (fun q ↦ g.NormalSpace q infty_ne_zero) → M,
+    ∀ T : TotalSpace P (fun q ↦ g.isImmersion.NormalSpace q infty_ne_zero) → M,
       ContMDiff (J.prod 𝓘(ℝ, P)) I ∞ T → (∀ q, T (zeroSection P _ q) = g q) →
-      ∀ c : L → ℝ, (∀ q, 0 < c q) → (∀ q (v : g.NormalSpace q infty_ne_zero),
+      ∀ c : L → ℝ, (∀ q, 0 < c q) → (∀ q (v : g.isImmersion.NormalSpace q infty_ne_zero),
         g.normalFiberDeriv infty_ne_zero hdim T q v = c q • v) →
       ∀ q, (∀ X, sliceDeriv hf hdim T q X ∈ α.kerDistribution (g q)) ∧
         Injective (sliceDeriv hf hdim T q) := by
@@ -254,7 +254,7 @@ private theorem sliceDeriv_mem_kerDistribution_and_injective
   set e := (Bundle.zeroSectionTangentEquiv (I := J)
     (F := E' →L[ℝ] ℝ) (V := fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q).symm
   set e' := (Bundle.zeroSectionTangentEquiv (I := J) (F := P)
-    (V := fun q ↦ g.NormalSpace q infty_ne_zero) q).symm
+    (V := fun q ↦ g.isImmersion.NormalSpace q infty_ne_zero) q).symm
   set en := g.normalSpaceEquivOfIsLegendrianImmersion hf.toIsLegendrianImmersion infty_ne_zero q
   have hd := mfderiv_comp_cotangentToNormal hf hdim T hT hT0 q
   have hhor (u : TangentSpace J q) : D (e (u, 0)) = mfderiv J I g q u :=
@@ -268,13 +268,14 @@ private theorem sliceDeriv_mem_kerDistribution_and_injective
     rw [← hhor, ← map_add, ← map_add, Prod.mk_add_mk,
       add_zero, zero_add]
   have hvert (p : TangentSpace J q →L[ℝ] ℝ) :
-      g.normalClass q infty_ne_zero (D (e (0, p))) = c q • en.symm (p, 0) := by
+      g.isImmersion.normalClass q infty_ne_zero (D (e (0, p))) = c q • en.symm (p, 0) := by
     have h := hTd q (en.symm (p, 0))
     rw [SmoothEmbedding.normalFiberDeriv_apply] at h
     rw [hver]
     -- `exact`, not `rw`: the vector lies in the tangent space at `T 0_q`, which `rw` does not
-    -- identify with the tangent space at `g q` that `normalClassL_apply` expects.
-    exact (SmoothEmbedding.normalClassL_apply ..).symm.trans h
+    -- identify with the tangent space at `g q` that `Manifold.IsImmersion.normalClassL_apply`
+    -- expects.
+    exact (Manifold.IsImmersion.normalClassL_apply ..).symm.trans h
   have hαvert (p : TangentSpace J q →L[ℝ] ℝ) : α.val (g q) ![D (e (0, p))] = 0 := by
     have h := g.normalSpaceEquivOfIsLegendrianImmersion_normalClass hf.toIsLegendrianImmersion
       infty_ne_zero q (D (e (0, p)))
@@ -288,8 +289,8 @@ private theorem sliceDeriv_mem_kerDistribution_and_injective
       SmoothForm.mem_kerDistribution.1 (hf.isHorizontalMap.mfderiv_mem q u), add_zero]
   · obtain ⟨⟨u, p⟩, rfl⟩ := e.surjective X
     rw [hsplit] at hX
-    have hcl := congrArg (g.normalClass q infty_ne_zero) hX
-    rw [map_add, hvert, SmoothEmbedding.normalClass_mfderiv, zero_add, map_zero,
+    have hcl := congrArg (g.isImmersion.normalClass q infty_ne_zero) hX
+    rw [map_add, hvert, Manifold.IsImmersion.normalClass_mfderiv, zero_add, map_zero,
       smul_eq_zero] at hcl
     obtain rfl : p = 0 := congrArg Prod.fst (en.symm.injective
       ((hcl.resolve_left (hc q).ne').trans (map_zero _).symm))

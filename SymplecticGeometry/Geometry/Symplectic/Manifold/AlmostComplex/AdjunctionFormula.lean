@@ -91,7 +91,8 @@ theorem adjunction_formula [T2Space M] [CompactSpace M] [ConnectedSpace M]
     [Fact (finrank ℝ E = 2 * finrank ℂ G)]
     (f : SmoothEmbedding (𝓡 2) I ((⊤ : ℕ∞) : WithTop ℕ∞) M X)
     (J : SmoothAlmostComplexStructure I X)
-    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.tangentRange x hn) (f.tangentRange x hn))
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn)
+        (f.isImmersion.tangentRange x hn))
     (o : Manifold.Orientation (𝓡 2) M (Fin 2))
     (ho : ∀ c (b : Basis (Fin 2) ℝ (TangentSpace (𝓡 2) c)),
       mfderiv (𝓡 2) I f c (b 1) = J (f c) (mfderiv (𝓡 2) I f c (b 0)) →
@@ -100,7 +101,8 @@ theorem adjunction_formula [T2Space M] [CompactSpace M] [ConnectedSpace M]
       f.selfIntersectionNumber hE J hJ o -
         ((o.toHomologicalOrientation finrank_euclideanSpace_fin).evalFundamentalClass
           finrank_euclideanSpace_fin (ModuleCat.of ℤ (ULift ℤ)) (f : C(M, X))
-          (firstChernClass G (J.toContMDiff ⊤).toContinuousComplexStructure.Fiber)).down := by
+          (SymplecticGeometry.Bundle.firstChernClass G
+            (J.toContMDiff ⊤).toContinuousComplexStructure.Fiber)).down := by
   have hdim := finrank_real_complex_eq_sub_of_finrank_eq_four hE
   let := f.normalSpaceFiberBundle hn hdim
   let := f.normalSpaceVectorBundle hn hdim
@@ -117,7 +119,8 @@ theorem adjunction_formula [T2Space M] [CompactSpace M] [ConnectedSpace M]
   obtain ⟨ω, hω⟩ := (J.pullbackComplexStructure f f.contMDiff).exists_compatible
   -- `⟨c₁(TX, J), f_*[M]⟩` is the first Chern number of `(f *ᵖ TX, ω)`.
   have h₁ : (oₕ.evalFundamentalClass finrank_euclideanSpace_fin (ModuleCat.of ℤ (ULift ℤ))
-      (f : C(M, X)) (firstChernClass G (J.toContMDiff ⊤).toContinuousComplexStructure.Fiber)).down
+      (f : C(M, X)) (SymplecticGeometry.Bundle.firstChernClass G
+        (J.toContMDiff ⊤).toContinuousComplexStructure.Fiber)).down
       = symplecticChernNumber oₕ finrank_euclideanSpace_fin G ω := by
     rw [symplecticChernNumber_eq_chernNumber _ _ _ hω.tames,
       SmoothAlmostComplexStructure.pullbackComplexStructure_def,
