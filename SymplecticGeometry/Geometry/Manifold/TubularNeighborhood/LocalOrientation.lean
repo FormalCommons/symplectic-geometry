@@ -50,32 +50,46 @@ tangent factor first, moved to `P × E` by the exchange of factors
 splitting lemma `Orientation.ofExact_eq_map_prod` and `Orientation.map_prod`. No sign appears, in
 any dimension and codimension, including zero.
 
-In positive dimensions, the local orientation of `X` at `f z` is then read in the chart, translated
-so that `f z` goes to the origin: it is the cross product `TauCeti.LocalOrientation.cross` of the
-local orientation of the normal fibre and that of `Z`, normal factor first, with no sign
-(`localHomologyMap_sub_normalTubeChart_toHomologicalOrientation`). The chart is first followed by
-a linear identification of `P × E` with a Euclidean space, in which the library's
+When `X` has positive dimension, the local orientation of `X` at `f z` is then read in the
+chart, translated so that `f z` goes to the origin: it is the local orientation of `P × E`
+selected by the image of the orientation of `X` under the derivative, which is the product
+orientation above, for any dimension of the normal fibre
+(`localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_eq_localOrientation`). The chart
+is first followed by a linear identification of `P × E` with a Euclidean space, in which the
+library's
 `TauCeti.Manifold.Orientation.toHomologicalOrientation_apply_eq_localOrientationOfOrientedChart`
 reads the local orientation of `X` through the derivative, and Tau Ceti's
 `OpenPartialHomeomorph.localHomologyMap_chart_localOrientationOfOrientedChart` carries it back to
 `P × E`; this is the argument of the library's
 `TauCeti.Manifold.Orientation.localHomologyMap_sub_toHomologicalOrientation_transHomeomorph`, for
-a chart that is not a preferred one. The derivative carries the orientation of `X` to the
-product orientation tangent factor first, exchanged; the cross product normal first is the local
-orientation of that same orientation, by the library's
-`TauCeti.LocalOrientation.cross_eq_map_prodComm_prod` and Tau Ceti's
-`TauCeti.LocalOrientation.prod_localOrientation` and `Orientation.localOrientation_map`.
+a chart that is not a preferred one. Two cases follow.
 
-The same class is then read from the total space of the normal bundle, through the chart
+* If `P` and `Z` have positive dimension, the class is the cross product
+  `TauCeti.LocalOrientation.cross` of the local orientation of the normal fibre and that of `Z`,
+  normal factor first, with no sign
+  (`localHomologyMap_sub_normalTubeChart_toHomologicalOrientation`): the cross product normal
+  first is the local orientation of the exchanged product orientation, by the library's
+  `TauCeti.LocalOrientation.cross_eq_map_prodComm_prod` and Tau Ceti's
+  `TauCeti.LocalOrientation.prod_localOrientation` and `Orientation.localOrientation_map`.
+* If `P` has dimension zero and `Z` positive dimension, the class is the cross product
+  `SymplecticGeometry.localHomologyCross` of the class of the origin of `P` with the local
+  orientation of `Z`, up to the sign of the normal orientation, an orientation of `P` indexed by
+  `Fin 0` (`localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_of_finrank_eq_zero`).
+  This is the unit law
+  `Orientation.localHomologyCross_localOrientationOfZeroDimChart_tmul_localOrientation`.
+
+The same classes are then read from the total space of the normal bundle, through the chart
 `Bundle.Trivialization.localChart` built from `e` and the chart `c` of `Z` at `z` translated so
-that `z` goes to `0` (`localHomologyMap_localChartLocalHomologyIso_hom_cross`): the isomorphism
-`Bundle.Trivialization.localChartLocalHomologyIso` sends the cross product to a local class of
-the total space at `0_z`, and `Φ` sends that class to the local orientation of `X` at `f z`. Up
+that `z` goes to `0`. The isomorphism `Bundle.Trivialization.localChartLocalHomologyIso` sends
+the class that the chart gives a local orientation of `X` at `f z` to a local class of the total
+space at `0_z`, and `Φ` sends that class back to the local orientation
+(`localHomologyMap_localChartLocalHomologyIso_hom_localHomologyMap_sub_normalTubeChart`). Up
 to the translation by the coordinate of `z`, the chart `normalTubeChart Φ z` undoes `Φ` after
 that chart of the total space (`tube_localChart_mem_normalTubeChart_source`,
 `normalTubeChart_apply_tube_localChart`); as both maps of local homology are induced by open
-embeddings, the statement follows from the one for the chart by functoriality of
-`TauCeti.localHomologyMap` and excision.
+embeddings, this follows by functoriality of `TauCeti.localHomologyMap` and excision. With the
+two cases above it gives `localHomologyMap_localChartLocalHomologyIso_hom_cross` and
+`localHomologyMap_localChartLocalHomologyIso_hom_localHomologyCross_of_finrank_eq_zero`.
 
 ## Main definitions
 
@@ -94,12 +108,23 @@ embeddings, the statement follows from the one for the chart by functoriality of
 * `TauCeti.SmoothEmbedding.map_orientationAt_normalTubeChartDeriv`: the derivative carries the
   orientation of `X` to the exchanged product of the orientation of `Z` and the normal
   orientation.
+* `localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_eq_localOrientation`:
+  the chart carries the local orientation of `X` at `f z` to the local orientation of the
+  exchanged product of the orientation of `Z` and the normal orientation.
 * `TauCeti.SmoothEmbedding.localHomologyMap_sub_normalTubeChart_toHomologicalOrientation`: in
   positive dimensions, the chart carries the local orientation of `X` at `f z` to the cross
   product of the local orientations of the normal fibre and of `Z`, normal factor first.
+* `localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_of_finrank_eq_zero`:
+  the same when the normal fibre is a point, with the cross product with the class of the origin
+  of `P` and the sign of the normal orientation.
+* `localHomologyMap_localChartLocalHomologyIso_hom_localHomologyMap_sub_normalTubeChart`:
+  the tube undoes the chart on local orientations of `X` at `f z`, read in the total space at
+  `0_z` through `Bundle.Trivialization.localChartLocalHomologyIso`.
 * `TauCeti.SmoothEmbedding.localHomologyMap_localChartLocalHomologyIso_hom_cross`: in positive
   dimensions, the tube carries the cross product, read in the total space at `0_z` through
   `Bundle.Trivialization.localChartLocalHomologyIso`, to the local orientation of `X` at `f z`.
+* `localHomologyMap_localChartLocalHomologyIso_hom_localHomologyCross_of_finrank_eq_zero`:
+  the same when the normal fibre is a point, up to the sign of the normal orientation.
 
 ## References
 
@@ -724,6 +749,7 @@ theorem normalTubeChart_apply_tube_localChart
   · dsimp only [Function.comp_apply]
     rw [(chartAt H z).right_inv hqt, I.right_inv (I.range_eq_univ ▸ mem_univ _)]
 
+omit [J.Boundaryless] [ChartedSpace V X] in
 /-- **A normalized tube undoes its chart on local orientations.** Let `c` be the chart of `Z` at
 `z` read in `E` and translated so that `z` goes to `0`, and `S` an open set of its target
 containing `0` that `c⁻¹` carries into the base set of the preferred trivialization `e` of the
@@ -938,9 +964,9 @@ theorem localHomologyMap_localChartLocalHomologyIso_hom_localHomologyCross_of_fi
   have hG := localHomologyMap_localChartLocalHomologyIso_hom_localHomologyMap_sub_normalTubeChart
     Φ z hΦ hS hSc hSe h0 ((oX.reindex (finCongr (by omega))).toHomologicalOrientation hV (f z))
   split_ifs with hc
-  · rw [if_pos hc] at h
+  · rw [ite_eq_left hc] at h
     rwa [← h]
-  · rw [if_neg hc] at h
+  · rw [ite_eq_right hc] at h
     rw [← neg_eq_iff_eq_neg.2 h, map_neg, map_neg, hG]
 
 end TauCeti.SmoothEmbedding
