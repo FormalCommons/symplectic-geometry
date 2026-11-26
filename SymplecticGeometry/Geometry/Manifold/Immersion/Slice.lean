@@ -6,16 +6,13 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.InnerProductSpace.Calculus
+public import Mathlib.Analysis.InnerProductSpace.EuclideanDist
+public import Mathlib.Geometry.Manifold.SmoothEmbedding
 public import SymplecticGeometry.Geometry.Manifold.Immersion.Chart
-public import TauCeti.Analysis.InnerProductSpace.Calculus
-public import TauCeti.Geometry.Manifold.Morse.Hessian
+public import SymplecticGeometry.Geometry.Manifold.Morse.Hessian
 
 /-!
 # The squared normal coordinate of an embedding in a slice chart
-
-For a map `φ : M → W` into a real inner product space and a zero `x` of `φ`, the function
-`p ↦ ‖φ p‖²` has a critical point at `x` (if `x` is an interior point), and its critical Hessian
-there is `2 ⟪dφ u, dφ w⟫` (if `M` is boundaryless and `φ` is `C²` at `x`).
 
 Let `f : M → N` be a `C^n` immersion at `x` with complement `F`, with normal-form charts `φ` on
 `M` and `ψ` on `N` and linear equivalence `L : E × F ≃ E''` (`h.domChart`, `h.codChart`,
@@ -33,7 +30,11 @@ coordinate `g p = ‖e (L⁻¹ (ψ p)).2‖²` is `C^n` on the source of `ψ`, v
 normal coordinate does, and so, on `V`, exactly on the image of `f`. It has a critical point at
 each `f y` with `y` in the source of `φ`, and for `n ≥ 2` its critical Hessian there is
 `2 ⟪e (L⁻¹ (dψ u)).2, e (L⁻¹ (dψ w)).2⟫`, which is positive on every vector off the tangent
-image of `f`. Nothing here asks for finite dimension.
+image of `f`. Nothing here asks for finite dimension, except the last statement, where an
+inner product on the complement comes from `toEuclidean`: for a `C^n` embedding `f`, `n ≥ 2`,
+into a manifold with finite-dimensional model, every point of the image has an open
+neighbourhood carrying such a function
+(`Manifold.IsSmoothEmbedding.exists_contMDiffOn_criticalHessian_pos`).
 
 The set-level statement follows the proof of Tau Ceti's
 `TauCeti.exists_isSliceChart_of_isEmbedding_of_isImmersionAtOfComplement`, keeping the chart of
@@ -42,14 +43,12 @@ the maximal atlas. The statements on `g` follow `TauCeti.IsAdaptedChart.norm_sq_
 `TauCeti.IsAdaptedChart.criticalHessian_norm_sq_snd_apply` and
 `TauCeti.IsAdaptedChart.criticalHessian_norm_sq_snd_pos` of this library's
 `Geometry/Manifold/Complex/JConvex/TotallyReal.lean`, with a slice chart of an embedding in place
-of a chart adapted to a totally real submanifold; the general statements on `‖φ‖²` isolate the
-steps of the last proofs that do not depend on the chart.
+of a chart adapted to a totally real submanifold; the steps of the last proofs that do not depend
+on the chart are `TauCeti.mem_criticalPoints_norm_sq_of_eq_zero` and
+`TauCeti.criticalHessian_norm_sq_apply_of_eq_zero` of `Geometry/Manifold/Morse/Hessian.lean`.
 
 ## Main results
 
-* `TauCeti.mem_criticalPoints_norm_sq_of_eq_zero` and
-  `TauCeti.criticalHessian_norm_sq_apply_of_eq_zero`: a zero of `φ` is a critical point of
-  `‖φ‖²`, and the critical Hessian there.
 * `Manifold.IsImmersionAtOfComplement.exists_isOpen_mem_range_iff_snd_eq_zero`: near `f x`, the
   image of an embedding is the zero set of the normal coordinate.
 * `Manifold.IsImmersionAtOfComplement.norm_sq_snd_eq_zero_iff` and
@@ -60,6 +59,8 @@ steps of the last proofs that do not depend on the chart.
   `Manifold.IsImmersionAtOfComplement.criticalHessian_norm_sq_snd_apply` and
   `Manifold.IsImmersionAtOfComplement.criticalHessian_norm_sq_snd_pos`: smoothness, critical
   points and the critical Hessian of the squared normal coordinate.
+* `Manifold.IsSmoothEmbedding.exists_contMDiffOn_criticalHessian_pos`: these facts, collected for
+  a `C^n` embedding near a point of its image.
 
 ## References
 
@@ -72,38 +73,6 @@ public section
 
 open Set Function Filter Manifold Topology TauCeti
 open scoped ContDiff Manifold
-
-namespace TauCeti
-
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
-  {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
-  {W : Type*} [NormedAddCommGroup W] {φ : M → W} {x : M}
-
-/-- An interior point `x` where a map `φ` into a normed group vanishes is a critical point of
-`p ↦ ‖φ p‖²`, which takes its minimum `0` there. -/
-theorem mem_criticalPoints_norm_sq_of_eq_zero (hφx : φ x = 0) (hx : I.IsInteriorPoint x) :
-    x ∈ criticalPoints I (fun p ↦ ‖φ p‖ ^ 2) := by
-  refine IsLocalMin.mem_criticalPoints (Eventually.of_forall fun p ↦ ?_) hx
-  simp only [hφx, norm_zero, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, zero_pow]
-  positivity
-
-/-- **The Hessian of `‖φ‖²` at a zero of `φ`.** On a boundaryless manifold, if a map `φ` into a
-real inner product space is `C²` at `x` and vanishes there, then the critical Hessian of
-`p ↦ ‖φ p‖²` at `x` is `2 ⟪dφ u, dφ w⟫`. -/
-theorem criticalHessian_norm_sq_apply_of_eq_zero [InnerProductSpace ℝ W] [I.Boundaryless]
-    (hφ : ContMDiffAt I 𝓘(ℝ, W) 2 φ x) (hφx : φ x = 0) (u w : TangentSpace I x) :
-    criticalHessian I (fun p ↦ ‖φ p‖ ^ 2) x u w =
-      2 * inner ℝ (E := W) (mfderiv I 𝓘(ℝ, W) φ x u) (mfderiv I 𝓘(ℝ, W) φ x w) := by
-  have hcrit : φ x ∈ criticalPoints 𝓘(ℝ, W) (fun z : W ↦ ‖z‖ ^ 2) :=
-    mem_criticalPoints_norm_sq_of_eq_zero (φ := id) hφx BoundarylessManifold.isInteriorPoint
-  -- The second-order chain rule at the critical point `φ x = 0` of `‖·‖²`.
-  have hH := criticalHessian_comp_apply (f := fun z : W ↦ ‖z‖ ^ 2) rfl
-    (contDiff_norm_sq ℝ).contMDiff.contMDiffAt hφ hcrit u w
-  rw [criticalHessian_modelSpace] at hH
-  exact hH.trans (fderiv_fderiv_norm_sq_apply (E := W) _ _ _)
-
-end TauCeti
 
 namespace Manifold.IsImmersionAtOfComplement
 
@@ -252,5 +221,40 @@ theorem criticalHessian_norm_sq_snd_pos [J.Boundaryless] (hn : 2 ≤ n) {y : M}
 end NormSq
 
 end Manifold.IsImmersionAtOfComplement
+
+namespace Manifold.IsSmoothEmbedding
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+  {E'' : Type*} [NormedAddCommGroup E''] [NormedSpace ℝ E''] [FiniteDimensional ℝ E'']
+  {G : Type*} [TopologicalSpace G] {J : ModelWithCorners ℝ E'' G}
+  {N : Type*} [TopologicalSpace N] [ChartedSpace G N]
+  {n : WithTop ℕ∞} {f : M → N}
+
+/-- **A local squared distance to an embedded submanifold.** Let `f` be a `C^n` embedding,
+`n ≥ 2`, of a boundaryless manifold into a boundaryless manifold with finite-dimensional model.
+Each point `f x` has an open neighbourhood `V` with a nonnegative function `g`, `C^n` on `V`, that
+vanishes on `V` exactly on the image of `f`, and such that each point `f y` of `V` is a critical
+point of `g` at which the critical Hessian of `g` is positive on every vector off the tangent
+image of `f` at `y`. -/
+theorem exists_contMDiffOn_criticalHessian_pos [I.Boundaryless] [J.Boundaryless]
+    (hf : IsSmoothEmbedding I J n f) (hn : 2 ≤ n) (x : M) :
+    ∃ V : Set N, IsOpen V ∧ f x ∈ V ∧ ∃ g : N → ℝ, ContMDiffOn J 𝓘(ℝ) n g V ∧ (∀ p, 0 ≤ g p) ∧
+      (∀ p ∈ V, g p = 0 ↔ p ∈ range f) ∧
+      ∀ y, f y ∈ V → f y ∈ criticalPoints J g ∧
+        ∀ v ∉ LinearMap.range (mfderiv I J f y).toLinearMap, 0 < criticalHessian J g (f y) v v := by
+  have h := (hf.isImmersion.isImmersionAt x).isImmersionAtOfComplement_complement
+  -- The complement is finite-dimensional, as a quotient of the model `E''` of `N`.
+  have : FiniteDimensional ℝ (hf.isImmersion.isImmersionAt x).complement :=
+    Module.Finite.of_surjective ((LinearMap.snd ℝ E _).comp h.equiv.symm.toLinearMap)
+      fun v ↦ ⟨h.equiv (0, v), by simp⟩
+  obtain ⟨V, hVo, hxV, hVsrc, hVdom, hV⟩ := h.exists_isOpen_mem_range_iff_snd_eq_zero hf.isEmbedding
+  exact ⟨V, hVo, hxV, _, (h.contMDiffOn_norm_sq_snd toEuclidean).mono hVsrc,
+    fun _ ↦ sq_nonneg _, fun _ hp ↦ (h.mem_range_iff_norm_sq_snd_eq_zero toEuclidean hV hp).symm,
+    fun _ hy ↦ ⟨h.mem_criticalPoints_norm_sq_snd toEuclidean (hVdom hy),
+      fun _ hv ↦ h.criticalHessian_norm_sq_snd_pos toEuclidean hn (hVdom hy) hv⟩⟩
+
+end Manifold.IsSmoothEmbedding
 
 end

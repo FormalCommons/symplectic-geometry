@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.Basic
 public import TauCeti.Geometry.Manifold.SmoothSingular.Smoothing
 
 /-!
@@ -14,7 +15,8 @@ Tau Ceti's `TauCeti.smoothSingularHomologyIso` identifies the smooth singular ho
 manifold with its singular homology, and `TauCeti.smoothSingularHomologyIso_hom_naturality` says
 that it is natural in the manifold. This file adds that it is natural in the coefficient object:
 `TauCeti.smoothSingularHomologyIso_hom_comp_homologyMap_coefficients` says that it commutes with
-the maps on homology induced by a morphism of coefficients `R ⟶ R'`.
+the maps on homology induced by a morphism of coefficients `R ⟶ R'`. It is
+`SSet.homologyMap_coefficient_naturality` for the inclusion of the smooth singular subcomplex.
 
 ## References
 
@@ -50,10 +52,7 @@ theorem smoothSingularHomologyIso_hom_comp_homologyMap_coefficients {R R' : C} (
           (((SSet.chainComplexFunctor C).map g).app (smoothSingularSubcomplex I M : SSet)) n ≫
         (smoothSingularHomologyIso I M R' n).hom := by
   rw [smoothSingularHomologyIso_hom, smoothSingularHomologyIso_hom]
-  exact (HomologicalComplex.homologyMap_comp _ _ n).symm.trans
-    ((congrArg (HomologicalComplex.homologyMap · n)
-      (((SSet.chainComplexFunctor C).map g).naturality
-        (smoothSingularSubcomplex I M).ι)).trans (HomologicalComplex.homologyMap_comp _ _ n))
+  exact (SSet.homologyMap_coefficient_naturality (smoothSingularSubcomplex I M).ι g n).symm
 
 end TauCeti
 

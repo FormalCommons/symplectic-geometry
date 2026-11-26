@@ -19,12 +19,17 @@ import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 Mathlib's `VectorField.mpullback I J f V` is the vector field `x ↦ (df_x)⁻¹ (V (f x))`, which is
 meaningful when the differential of `f` is invertible. This file gives its basic properties
-when `f` is a local diffeomorphism, and specializes them to the inclusion `Subtype.val : U → M`
-of an open subset, where the pullback is the restriction of a vector field to `U`.
+when that differential is invertible at a point and when `f` is a local diffeomorphism, and
+specializes them to the inclusion `Subtype.val : U → M` of an open subset, where the
+pullback is the restriction of a vector field to `U`.
 
-* `IsLocalDiffeomorphAt.mfderiv_apply_mpullback`: at a point where `f` is a local diffeomorphism,
-  the differential of `f` sends the pulled-back field to `V (f x)`; that is, the pullback is
-  `f`-related to `V` there.
+* `VectorField.mfderiv_apply_mpullback`: at a point where the differential of `f` is
+  invertible, it sends the pulled-back field to `V (f x)`; that is, the pullback is
+  `f`-related to `V` there. This covers maps that are not local diffeomorphisms, such as the
+  inclusion of a regular sublevel at its boundary. `IsLocalDiffeomorphAt.mfderiv_apply_mpullback`
+  is the case of a local diffeomorphism.
+* `VectorField.mvfderiv_comp_apply_mpullback`: by the chain rule, the derivative of `g ∘ f`
+  along the pulled-back field is the derivative of `g` along `V`.
 * `IsLocalDiffeomorph.contMDiffOn_mpullback`: if `f` is a `C^n` local diffeomorphism and `V` is
   `C^m` on a set `t`, with `m + 1 ≤ n`, then the pullback is `C^m` on `f ⁻¹' t`.
 * `IsLocalDiffeomorphAt.contMDiffAt_of_eventually_mfderiv_apply_eq`: conversely, a vector field
@@ -40,9 +45,9 @@ of an open subset, where the pullback is the restriction of a vector field to `U
 
 The first item has the proof of Tau Ceti's `Diffeomorph.mfderiv_apply_mpullback` and
 `TauCeti.IsLocalRiemannianIsometry.mfderiv_apply_mpullback`, which state it for a global
-diffeomorphism and for a local Riemannian isometry. The second follows Mathlib's
-`ContMDiffOn.mpullback_vectorField_preimage`, with the invertibility of the differential given by
-`IsLocalDiffeomorph.isInvertible_mfderiv`. The last is Mathlib's
+diffeomorphism and for a local Riemannian isometry. `IsLocalDiffeomorph.contMDiffOn_mpullback`
+follows Mathlib's `ContMDiffOn.mpullback_vectorField_preimage`, with the invertibility of the
+differential given by `IsLocalDiffeomorph.isInvertible_mfderiv`. The last is Mathlib's
 `IsMIntegralCurveOn.map_of_mfderiv_eq` in one direction and Tau Ceti's
 `IsLocalDiffeomorph.isMIntegralCurveOn_of_comp` in the other.
 
@@ -63,12 +68,34 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
   {J : ModelWithCorners 𝕜 E' H'} [TopologicalSpace N] [ChartedSpace H' N]
   {f : M → N} {m n : ℕ∞ω}
 
+namespace VectorField
+
+/-- At a point `x` where the differential of `f` is invertible, the differential of `f` sends the
+pullback of a vector field `V` to the value of `V` at `f x`; that is, the pullback is `f`-related
+to `V` at `x`. -/
+theorem mfderiv_apply_mpullback {x : M} (hf : (mfderiv I J f x).IsInvertible)
+    (V : Π y : N, TangentSpace J y) :
+    mfderiv I J f x (VectorField.mpullback I J f V x) = V (f x) :=
+  hf.self_apply_inverse _
+
+/-- **Chain rule along a pulled-back field.** If the differential of `f` at `x` is invertible
+and `g` is differentiable at `f x`, then the derivative of `g ∘ f` at `x` along the
+pullback of a vector field `V` is the derivative of `g` at `f x` along `V (f x)`. -/
+theorem mvfderiv_comp_apply_mpullback {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
+    {g : N → F} {x : M} (hg : MDifferentiableAt J 𝓘(𝕜, F) g (f x))
+    (hf : (mfderiv I J f x).IsInvertible) (V : Π y : N, TangentSpace J y) :
+    mvfderiv I (g ∘ f) x (VectorField.mpullback I J f V x) = mvfderiv J g (f x) (V (f x)) := by
+  rw [mvfderiv_comp_apply x hg (mdifferentiableAt_of_isInvertible_mfderiv hf),
+    mfderiv_apply_mpullback hf]
+
+end VectorField
+
 /-- At a point `x` where `f` is a local diffeomorphism, the differential of `f` sends the pullback
 of a vector field `V` to the value of `V` at `f x`. -/
 theorem IsLocalDiffeomorphAt.mfderiv_apply_mpullback {x : M} (hf : IsLocalDiffeomorphAt I J n f x)
     (hn : n ≠ 0) (V : Π y : N, TangentSpace J y) :
     mfderiv I J f x (VectorField.mpullback I J f V x) = V (f x) :=
-  (hf.isInvertible_mfderiv hn).self_apply_inverse _
+  VectorField.mfderiv_apply_mpullback (hf.isInvertible_mfderiv hn) V
 
 /-- The pullback of a vector field that is `C^m` on a set `t` along a `C^n` local diffeomorphism
 `f`, with `m + 1 ≤ n`, is `C^m` on `f ⁻¹' t`. -/
