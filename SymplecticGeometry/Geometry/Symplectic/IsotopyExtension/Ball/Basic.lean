@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Instances.Real
+public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 import SymplecticGeometry.Analysis.Calculus.DifferentialForm.Poincare
@@ -13,6 +14,8 @@ import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Neighborhood
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import TauCeti.Geometry.Symplectic.Manifold.RelativeMoser
 import TauCeti.Topology.MetricSpace.SeparatedBalls
 
@@ -61,6 +64,13 @@ constant family), which contains a larger closed ball
   symplectic embedding of `B(r)` pulls `σ` back to `ω₀` on all of `B(r)`.
 * `SymplecticGeometry.IsSymplecticBallEmbedding.injective_mfderiv`: for `0 < r`, it is an
   immersion along `B(r)`.
+* `SymplecticGeometry.IsSymplecticBallEmbedding.isLocalDiffeomorphOn`,
+  `SymplecticGeometry.IsSymplecticBallEmbedding.toPartialDiffeomorph`: into a manifold of the
+  same finite dimension, a symplectic embedding of `B(r)` is a local diffeomorphism on the open
+  ball, hence a partial diffeomorphism from the open ball onto its image, which is open
+  (`.isOpen_image_ball`). This combines Tau Ceti's inverse function theorem
+  `TauCeti.isLocalDiffeomorphAt_of_injective_mfderiv` with Tau Ceti's
+  `IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn`.
 * `SymplecticGeometry.isSymplecticBallEmbedding_id`,
   `SymplecticGeometry.isSymplecticBallFamily_const`,
   `SymplecticGeometry.IsSymplecticBallFamily.of_path`: the identity, constant families, and paths
@@ -80,7 +90,7 @@ The form on `M` is called `σ`, since `ω` is a token once the scope `ContDiff` 
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017],
-  Theorem 3.3.1.
+  Theorem 3.3.1 and §7.1.
 -/
 
 public section
@@ -176,6 +186,54 @@ theorem injective_mfderiv (hj : IsSymplecticBallEmbedding σ r j) (hr : 0 < r)
   SmoothTwoForm.injective_mfderiv_of_mpullback_apply_eq
     ((SymplecticForm.isNondegenerate_constSmooth _).nondegenerate_bilinFormAt z)
     (hj.mpullback_eq_of_mem_closedBall hr hz)
+
+variable [FiniteDimensional ℝ E]
+
+/-- Into a manifold whose model has the same finite dimension as `StdSpace (Fin n)`, a
+symplectic embedding of `B(r)` is a smooth local diffeomorphism at each point of the open
+ball. -/
+theorem isLocalDiffeomorphOn (hj : IsSymplecticBallEmbedding σ r j)
+    (hdim : Module.finrank ℝ (StdSpace (Fin n)) = Module.finrank ℝ E) :
+    IsLocalDiffeomorphOn 𝓘(ℝ, StdSpace (Fin n)) I ∞ j (ball 0 r) := by
+  obtain ⟨U, hUo, hU, hjU⟩ := hj.exists_contMDiffOn
+  rintro ⟨z, hz⟩
+  exact isLocalDiffeomorphAt_of_injective_mfderiv hjU hUo (hU (ball_subset_closedBall hz))
+    BoundarylessManifold.isInteriorPoint (by simp)
+    (hj.injective_mfderiv (pos_of_mem_ball hz) (ball_subset_closedBall hz)) hdim
+
+/-- Into a manifold whose model has the same finite dimension as `StdSpace (Fin n)`, a
+symplectic embedding `j` of `B(r)` restricted to the open ball: a smooth partial
+diffeomorphism with source `ball 0 r` and target `j '' ball 0 r` that agrees with `j`. -/
+def toPartialDiffeomorph (hj : IsSymplecticBallEmbedding σ r j)
+    (hdim : Module.finrank ℝ (StdSpace (Fin n)) = Module.finrank ℝ E) :
+    PartialDiffeomorph 𝓘(ℝ, StdSpace (Fin n)) I (StdSpace (Fin n)) M ∞ :=
+  (hj.isLocalDiffeomorphOn hdim).partialDiffeomorphOfInjOn isOpen_ball
+    (hj.injOn.mono ball_subset_closedBall)
+
+@[simp]
+theorem toPartialDiffeomorph_source (hj : IsSymplecticBallEmbedding σ r j)
+    (hdim : Module.finrank ℝ (StdSpace (Fin n)) = Module.finrank ℝ E) :
+    (hj.toPartialDiffeomorph hdim).source = ball 0 r :=
+  IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn_source ..
+
+@[simp]
+theorem toPartialDiffeomorph_target (hj : IsSymplecticBallEmbedding σ r j)
+    (hdim : Module.finrank ℝ (StdSpace (Fin n)) = Module.finrank ℝ E) :
+    (hj.toPartialDiffeomorph hdim).target = j '' ball 0 r :=
+  IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn_target ..
+
+@[simp]
+theorem coe_toPartialDiffeomorph (hj : IsSymplecticBallEmbedding σ r j)
+    (hdim : Module.finrank ℝ (StdSpace (Fin n)) = Module.finrank ℝ E) :
+    ⇑(hj.toPartialDiffeomorph hdim) = j :=
+  IsLocalDiffeomorphOn.coe_partialDiffeomorphOfInjOn ..
+
+/-- Into a manifold whose model has the same finite dimension as `StdSpace (Fin n)`, a
+symplectic embedding of `B(r)` maps the open ball onto an open set. -/
+theorem isOpen_image_ball (hj : IsSymplecticBallEmbedding σ r j)
+    (hdim : Module.finrank ℝ (StdSpace (Fin n)) = Module.finrank ℝ E) :
+    IsOpen (j '' ball 0 r) :=
+  hj.toPartialDiffeomorph_target hdim ▸ (hj.toPartialDiffeomorph hdim).open_target
 
 end IsSymplecticBallEmbedding
 
