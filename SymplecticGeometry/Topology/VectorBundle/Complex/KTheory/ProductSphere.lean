@@ -461,6 +461,7 @@ theorem clutching_smulIdempotentAddIso {P : E ⟶ E} (hP : P ≫ P = P) {r s : �
     DFunLike.congr_fun (isIdempotentElem_fiberMap hP x).eq y
   -- Through the splitting of `E` along `P`, `u P + (𝟙 E - P)` is `u ⊕ 1`.
   obtain ⟨i₁⟩ := nonempty_iso_clutching_of_fiberMap_comp_eq (rangeWhitneySumIso hr hs hP)
+    (rangeWhitneySumIso hr hs hP)
     (f := smulIdempotentAddIso hP)
     (f' := whitneyMapIsoPullback (circleZPowSMul 1 (Iso.refl _)) (Iso.refl _))
     fun w ↦ by
