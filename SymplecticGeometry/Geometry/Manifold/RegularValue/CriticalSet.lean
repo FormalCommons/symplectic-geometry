@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 public import TauCeti.Geometry.Manifold.RegularValue
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.RestrictScalars
+import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
 import TauCeti.Geometry.Manifold.Morse.ScalarComposition
 import TauCeti.Geometry.Manifold.RegularValue.Open
 
@@ -37,6 +38,8 @@ Tau Ceti's own `criticalPoints` is the corresponding notion for real-valued func
   `Diffeomorph.comp_isRegularValue_iff_restrictScalars'` and
   `Diffeomorph.criticalSet_comp_restrictScalars'`: the same for a diffeomorphism over a larger
   field, such as a biholomorphism, seen over the smaller field by `Diffeomorph.restrictScalars'`.
+* `TauCeti.IsRegularPoint.restrictScalars'`: a map differentiable over a larger field and regular
+  for its self models is regular for the self models over the smaller field.
 * `SymplecticGeometry.criticalSet_eq_criticalPoints`: for a real-valued function the critical
   set is Tau Ceti's `TauCeti.criticalPoints`, by
   `TauCeti.isRegularPoint_iff_notMem_criticalPoints`.
@@ -158,6 +161,15 @@ theorem _root_.Diffeomorph.criticalSet_comp_restrictScalars'
     (Ψ : P ≃ₘ^n⟮𝓘(𝕜', F), 𝓘(𝕜', F')⟯ P') (hn : n ≠ 0) (f : M → P) :
     criticalSet I 𝓘(𝕜, F') (Ψ ∘ f) = criticalSet I 𝓘(𝕜, F) f := by
   rw [← Diffeomorph.coe_restrictScalars' 𝕜 Ψ, Diffeomorph.criticalSet_comp _ hn]
+
+/-- A map that is differentiable over a larger field `𝕜'` at `x`, such as a holomorphic map, and
+regular at `x` for the self models over `𝕜'`, is regular at `x` for the self models over `𝕜`. -/
+theorem _root_.TauCeti.IsRegularPoint.restrictScalars' {f : P → P'} {x : P}
+    (h : IsRegularPoint 𝓘(𝕜', F) 𝓘(𝕜', F') f x) (hf : MDifferentiableAt 𝓘(𝕜', F) 𝓘(𝕜', F') f x) :
+    IsRegularPoint 𝓘(𝕜, F) 𝓘(𝕜, F') f x := by
+  refine isRegularPoint_iff.2 fun c ↦ ?_
+  obtain ⟨u, hu⟩ := isRegularPoint_iff.1 h c
+  exact ⟨u, (hf.mfderiv_modelWithCornersSelf_restrictScalars_apply 𝕜 u).trans hu⟩
 
 end RestrictScalars
 
