@@ -28,7 +28,7 @@ finite-dimensional space, the vertical projections form a `C^n` section of the b
 endomorphisms of the tangent bundle
 (`TauCeti.IsEhresmannConnection.contMDiff_verticalProjection`). The map
 `v ↦ v - (horizontal lift of df v)` of the tangent bundle is `C^n` by the library's
-`TauCeti.IsEhresmannConnection.contMDiffAt_horizontalLift`, applied along the projection of the
+`TauCeti.IsEhresmannConnection.contMDiff_horizontalLift`, applied along the projection of the
 tangent bundle to the tangent map of `f`, and Tau Ceti's `TauCeti.contMDiff_hom_bundle_iff`
 turns this map of total spaces into a section of the endomorphism bundle. Precomposing a family
 of alternating maps on the tangent spaces with the vertical projections therefore keeps it as
@@ -98,6 +98,12 @@ theorem verticalProjection_def (x : P) :
     hD.verticalProjection x = (mfderiv I J f x).ker.projectionL (D x) (hD.isTopCompl_ker x) :=
   (rfl)
 
+/-- The vertical projection does not depend on the smoothness index at which the connection is
+seen. -/
+theorem verticalProjection_of_le {m : ℕ∞ω} (hmn : m ≤ n) (x : P) :
+    (hD.of_le hmn).verticalProjection x = hD.verticalProjection x := by
+  rw [verticalProjection_def, verticalProjection_def]
+
 /-- The vertical projection is the linear projection onto `ker (df_x)` along `D x`. -/
 theorem verticalProjection_apply (x : P) (v : TangentSpace I x) :
     hD.verticalProjection x v =
@@ -126,7 +132,7 @@ theorem verticalProjection_apply_of_mem_ker {x : P} {v : TangentSpace I x}
   Submodule.projectionL_apply_left _ ⟨v, hv⟩
 
 /-- The vertical projection kills horizontal vectors. -/
-theorem verticalProjection_apply_of_mem {x : P} {v : TangentSpace I x} (hv : v ∈ D x) :
+theorem verticalProjection_apply_eq_zero_of_mem {x : P} {v : TangentSpace I x} (hv : v ∈ D x) :
     hD.verticalProjection x v = 0 :=
   Submodule.projectionL_apply_eq_zero_of_mem_right _ hv
 
@@ -190,8 +196,8 @@ variable {ι : Type*} [Fintype ι] {F' : Type*} [NormedAddCommGroup F'] [NormedS
 /-- **Precomposing with the vertical projection keeps forms smooth.** For a `C^n` Ehresmann
 connection on a `C^(n+1)` map `f`, with `P` modelled on a finite-dimensional space, and `m ≤ n`:
 if a family `α x` of alternating maps on `T_x P`, with values in the fibres of a vector bundle `W`,
-is `C^m` on a set `u`, so is the family of its restrictions to vertical parts,
-`v ↦ α x (vertical part of v)`. -/
+is `C^m` on a set `u`, so is the family of its precompositions with the vertical projections,
+`x ↦ (α x).compContinuousLinearMap (verticalProjection x)`. -/
 theorem contMDiffOn_compContinuousLinearMap_verticalProjection [FiniteDimensional 𝕜 E]
     (hf : ContMDiff I J (n + 1) f)
     {m : ℕ∞} (hm : (m : ℕ∞ω) ≤ n) {α : Π x : P, TangentSpace I x [⋀^ι]→L[𝕜] W x} {u : Set P}
