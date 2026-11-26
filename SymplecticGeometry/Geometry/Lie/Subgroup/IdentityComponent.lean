@@ -198,7 +198,8 @@ theorem range_groupLieAlgebraMap_subtype (d : EmbeddedLieSubgroupData I K F)
   have key₀ (D : LeftInvariantDerivation 𝓘(ℝ, F) K) :
       K.subtype.groupLieAlgebraMap 𝓘(ℝ, F) I (eK D) = e (d.lieMapSubtypeVal D) := by
     rw [lieMapSubtypeVal_apply,
-      ContMDiffMonoidMorphism.leftInvariantDerivationLieEquivGroupLieAlgebra_lieMap_eq,
+      ← leftInvariantDerivationLieEquivGroupLieAlgebra_symm_groupLieAlgebraMap,
+      LieEquiv.apply_symm_apply, ← ContMDiffMonoidMorphism.coe_groupLieAlgebraLieHom,
       d.groupLieAlgebraLieHom_subtypeVal]
   have key : (K.subtype.groupLieAlgebraMap 𝓘(ℝ, F) I).toLinearMap ∘ₗ
       (eK.toLinearEquiv : LeftInvariantDerivation 𝓘(ℝ, F) K →ₗ[ℝ] GroupLieAlgebra 𝓘(ℝ, F) K) =
