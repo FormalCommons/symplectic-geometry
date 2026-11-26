@@ -22,6 +22,8 @@ the regions `R ^ 2 / r < ‖x‖` and `‖x‖ < r` of the punctured space, for 
 (`EuclideanGeometry.norm_inversion_zero_lt_iff`, `EuclideanGeometry.lt_norm_inversion_zero_iff`).
 These extend Tau Ceti's `EuclideanGeometry.norm_inversion_lt_inv_iff` and
 `EuclideanGeometry.inv_lt_norm_inversion_iff` from the unit sphere to any radius.
+Inversion about a point commutes with the homotheties of the same centre, once the radius is
+scaled as well (`EuclideanGeometry.inversion_mul_homothety`).
 -/
 
 public section
@@ -40,6 +42,23 @@ theorem inversion_circleMap (c : ℂ) (R r θ : ℝ) :
   push_cast
   field_simp
   ring
+
+/-- Inversion about `c` commutes with the homothety of centre `c` and ratio `a`, when the radius
+is scaled by `a` too: `inversion c (a * R) (homothety c a x) = homothety c a (inversion c R x)`. -/
+theorem inversion_mul_homothety {V P : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V]
+    [MetricSpace P] [NormedAddTorsor V P] (c : P) (a R : ℝ) (x : P) :
+    inversion c (a * R) (AffineMap.homothety c a x) =
+      AffineMap.homothety c a (inversion c R x) := by
+  rcases eq_or_ne a 0 with rfl | ha
+  · simp
+  rcases eq_or_ne x c with rfl | hx
+  · simp
+  have : dist x c ≠ 0 := dist_ne_zero.2 hx
+  simp only [inversion, AffineMap.homothety_apply, vadd_vsub, dist_vadd_left, norm_smul,
+    Real.norm_eq_abs, ← dist_eq_norm_vsub, smul_smul]
+  congr 2
+  rw [div_pow, div_pow, mul_pow, mul_pow, sq_abs]
+  field_simp
 
 section Norm
 

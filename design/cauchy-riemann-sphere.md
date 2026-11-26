@@ -321,8 +321,8 @@ among the parts this one builds on.
 | `Geometry/Manifold/VectorBundle/Sobolev/CovariantDerivative.lean` | a smooth covariant derivative realized from $W^{k+1,p}$ to $W^{k,p}$ of one-forms | 3 |
 | `Analysis/Complex/Wirtinger/Beurling/Estimate.lean` | $\|\partial v\|_2\le\|\bar\partial v\|_2$ and the estimate for $\bar\partial+\mu\partial$ | 4 |
 | `Geometry/Manifold/Instances/OnePoint/CauchyRiemann/Basic.lean` | the connection, $D_J$, the projection | 5 |
-| `Geometry/Manifold/Instances/OnePoint/CauchyRiemann/Sobolev.lean` | $\mathcal D_J$, continuity in $J$ (issue 6); the a priori estimate, closed range, finite kernel (issue 7); regularity of the kernel (issue 8) | 6, 7, 8 |
-| `Geometry/Manifold/Instances/OnePoint/CauchyRiemann/LocalForm.lean` | solutions in an isothermal chart are $e^{-g}h$ with $h$ holomorphic | 8 |
+| `Geometry/Manifold/Instances/OnePoint/CauchyRiemann/Sobolev.lean` | $\mathcal D_J$, continuity in $J$ (issue 6); the a priori estimate, closed range, finite kernel (issue 7) | 6, 7 |
+| `Geometry/Manifold/Instances/OnePoint/CauchyRiemann/LocalForm.lean` | solutions in an isothermal chart are $e^{-g}h$ with $h$ holomorphic; regularity of the kernel | 8 |
 | `Geometry/Manifold/Instances/OnePoint/CauchyRiemann/Standard.lean` | $D_i$: kernel $H^0(\mathcal O(1))$, onto on smooth forms, Fredholm of index $4$ at every order | 9 |
 | `Geometry/Manifold/Instances/OnePoint/CauchyRiemann/Kernel.lean` | the zero count (issue 10); index, $\dim_{\mathbb C}E_J=2$, surjectivity (issue 11); the continuous family (issue 12) | 10, 11, 12 |
 
@@ -458,13 +458,6 @@ Issue 7:
   `finiteDimensional_ker_twistOneDelBarSobolev`, by Rellich and
   `isClosed_range_of_compact_estimate`.
 
-Issue 8:
-
-- `contMDiff_of_twistOneDelBarSobolev_eq_zero`: an element of the kernel, at
-  any order, is a smooth section (through `toSection`), from
-  `LocalForm.lean`; and `ker_twistOneDelBarSobolev_eq`: the kernel is the
-  image of `twistOneKernel J`.
-
 About 450 lines in all.
 
 ### `OnePoint/CauchyRiemann/LocalForm.lean`
@@ -486,6 +479,11 @@ frame of $L$ near `x`:
   isolated: an element vanishing on a nonempty open set is zero, since the
   set of points near which it vanishes is open and closed in the connected
   sphere.
+- `contMDiff_of_twistOneDelBarSobolev_eq_zero`: an element of the kernel of
+  `twistOneDelBarSobolev J k`, at any order, is a smooth section (through
+  `toSection`); and `ker_twistOneDelBarSobolev_eq`: the kernel is the image
+  of `twistOneKernel J`. They are here and not in `Sobolev.lean`, which this
+  file imports.
 
 About 350 lines.
 
@@ -567,7 +565,7 @@ operators on the sphere*. Sizes are estimates.
 | 5 | The connection on $\mathcal O(1)$ and the operators $D_J$ | `OnePoint/CauchyRiemann/Basic.lean` | — | 350 |
 | 6 | $D_J$ on Sobolev sections, continuous in $J$ | `OnePoint/CauchyRiemann/Sobolev.lean` | 2, 3, 5 | 200 |
 | 7 | The a priori estimate for $D_J$, closed range and finite kernel | `OnePoint/CauchyRiemann/Sobolev.lean` | 4, 6 | 250 |
-| 8 | The local form of solutions, and regularity of the kernel | `OnePoint/CauchyRiemann/LocalForm.lean`, `…/Sobolev.lean` | 6 | 400 |
+| 8 | The local form of solutions, and regularity of the kernel | `OnePoint/CauchyRiemann/LocalForm.lean` | 6 | 400 |
 | 9 | The standard sphere: kernel, surjectivity, Fredholm | `OnePoint/CauchyRiemann/Standard.lean` | 7, 8 | 350 |
 | 10 | The zero count | `OnePoint/CauchyRiemann/Kernel.lean` | 8 | 300 |
 | 11 | Index four, $\dim_{\mathbb C}E_J=2$, surjectivity | `OnePoint/CauchyRiemann/Kernel.lean` | 1, 7, 9, 10 | 200 |

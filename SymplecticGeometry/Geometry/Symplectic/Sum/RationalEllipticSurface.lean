@@ -7,7 +7,8 @@ module
 
 public import Mathlib.Algebra.MvPolynomial.PDeriv
 public import Mathlib.RingTheory.MvPolynomial.WeightedHomogeneous
-import Mathlib.RingTheory.MvPolynomial.EulerIdentity
+public import SymplecticGeometry.Geometry.Manifold.Projectivization.ProdZeroLocus.Manifold
+public import TauCeti.RingTheory.MvPolynomial.Jacobian.Basic
 import SymplecticGeometry.RingTheory.MvPolynomial.WeightedHomogeneous
 
 /-!
@@ -15,7 +16,12 @@ import SymplecticGeometry.RingTheory.MvPolynomial.WeightedHomogeneous
 
 The rational elliptic surface `E(1)` is the total space of the Hesse pencil of plane cubics: the
 hypersurface `s (x³ + y³ + z³) + t x y z = 0` of `ℂℙ² × ℂℙ¹`. This file starts with the algebra of
-its equation, which does not depend on any manifold structure.
+its equation, which does not depend on any manifold structure, and then makes the zero set a
+compact complex surface by specializing the atlas of bihomogeneous zero sets in a product of two
+projective spaces (`SymplecticGeometry.complexProjectiveProdZeroLocusChartedSpace`) to one
+equation of bidegree `(3, 1)` in `ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)`. The regularity it needs is
+`SymplecticGeometry.exists_eval_pderiv_hessePencil_ne_zero`, read as surjectivity of the Jacobian
+through Tau Ceti's `TauCeti.mulVec_surjective_jacobiMatrixAt_iff_exists_eval_pderiv_ne_zero`.
 
 The variables are indexed by `Fin 3 ⊕ Fin 2`: `Sum.inl 0`, `Sum.inl 1`, `Sum.inl 2` are the
 homogeneous coordinates `x, y, z` of the plane, and `Sum.inr 0`, `Sum.inr 1` are the homogeneous
@@ -41,6 +47,18 @@ coordinates `s, t` of the line. A point of the cone `K³ × K²` is written `Sum
   than `Sum.inl i` and `Sum.inr j`, that is, in a coordinate of the chart. The step from the cone
   to the chart is `MvPolynomial.IsWeightedHomogeneous.eval_pderiv_eq_zero_of_eval_eq_zero`,
   applied to each of the two blocks of coordinates.
+* `SymplecticGeometry.rationalEllipticSurface`: the zero set of `hessePencil ℂ` in
+  `ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)`, with the membership tests
+  `SymplecticGeometry.mem_rationalEllipticSurface_iff` (on the chosen representatives) and
+  `SymplecticGeometry.mk_mem_rationalEllipticSurface_iff` (on any nonzero ones).
+* The instances `ChartedSpace`, `IsManifold 𝓘(ℂ, _) ω` and `CompactSpace` on it. The
+  model is `Fin (2 + 1 - Fintype.card Unit) → ℂ`, as the general atlas gives it; its dimension is
+  `2` (`SymplecticGeometry.rationalEllipticSurface.finrank_model`).
+* `SymplecticGeometry.rationalEllipticSurface.embedding`: the inclusion into the product as an
+  analytic embedding, for the model `𝓘(ℂ, Fin 2 → ℂ).prod 𝓘(ℂ, Fin 1 → ℂ)`.
+* `SymplecticGeometry.rationalEllipticSurface.contMDiff_fst` and
+  `SymplecticGeometry.rationalEllipticSurface.contMDiff_snd`: the projections to `ℂℙ²` and `ℂℙ¹`
+  are analytic.
 
 ## References
 
@@ -51,7 +69,8 @@ coordinates `s, t` of the line. A point of the cone `K³ × K²` is written `Sum
 
 public section
 
-open MvPolynomial
+open MvPolynomial Set TauCeti
+open scoped ContDiff Manifold LinearAlgebra.Projectivization
 
 namespace SymplecticGeometry
 
@@ -137,18 +156,14 @@ theorem isWeightedHomogeneous_hessePencil_inr :
 theorem sum_mul_eval_pderiv_inl_hessePencil (p : Fin 3 ⊕ Fin 2 → R) :
     ∑ k : Fin 3, p (.inl k) * eval p (pderiv (.inl k) (hessePencil R)) =
       3 * eval p (hessePencil R) := by
-  have h := congrArg (eval p) isWeightedHomogeneous_hessePencil_inl.sum_weight_X_mul_pderiv
-  simpa [Fintype.sum_sum_type, nsmul_eq_mul] using h
+  simpa [Fintype.sum_sum_type] using
+    isWeightedHomogeneous_hessePencil_inl.sum_weight_mul_eval_pderiv p
 
 /-- Euler's relation for the line coordinates: `s ∂ₛP + t ∂ₜP = P`. -/
 theorem sum_mul_eval_pderiv_inr_hessePencil (p : Fin 3 ⊕ Fin 2 → R) :
     ∑ k : Fin 2, p (.inr k) * eval p (pderiv (.inr k) (hessePencil R)) =
       eval p (hessePencil R) := by
-  have h := congrArg (eval p) isWeightedHomogeneous_hessePencil_inr.sum_weight_X_mul_pderiv
-  simp only [nsmul_eq_mul, Fintype.sum_sum_type, Sum.elim_inl, Pi.zero_apply, Nat.cast_zero,
-    zero_mul, Finset.sum_const_zero, Sum.elim_inr, Pi.one_apply, Nat.cast_one, one_mul, zero_add,
-    map_sum, map_mul, eval_X, one_smul] at h
-  exact h
+  simp
 
 variable {K : Type*} [Field K]
 
@@ -199,6 +214,115 @@ theorem exists_eval_pderiv_hessePencil_ne_zero_of_ne_zero (h3 : (3 : K) ≠ 0) {
       · simp at hwk
       · exact H _ (by simp) hk
     · exact H _ (by simp) (by simpa using hl)
+
+/-! ### The surface -/
+
+/-- The **rational elliptic surface** `E(1)`: the zero set of the Hesse pencil
+`s (x³ + y³ + z³) + t x y z` in `ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)`, that is in `ℂℙ² × ℂℙ¹`. -/
+noncomputable def rationalEllipticSurface : Set (ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)) :=
+  complexProjectiveProdZeroLocus (m := 2) (n := 1) fun _ : Unit ↦ hessePencil ℂ
+
+theorem rationalEllipticSurface_def :
+    rationalEllipticSurface =
+      complexProjectiveProdZeroLocus (m := 2) (n := 1) fun _ : Unit ↦ hessePencil ℂ :=
+  (rfl)
+
+/-- A pair of points of `ℂℙ²` and `ℂℙ¹` lies on the rational elliptic surface when the Hesse
+pencil vanishes at their chosen representatives. -/
+theorem mem_rationalEllipticSurface_iff {x : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)} :
+    x ∈ rationalEllipticSurface ↔ eval (Sum.elim x.1.rep x.2.rep) (hessePencil ℂ) = 0 := by
+  rw [rationalEllipticSurface_def, mem_complexProjectiveProdZeroLocus_iff_eval_rep
+    (fun _ ↦ isWeightedHomogeneous_hessePencil_inl) (fun _ ↦ isWeightedHomogeneous_hessePencil_inr)]
+  simp
+
+/-- The pair of points spanned by nonzero vectors `v` and `w` lies on the rational elliptic
+surface exactly when the Hesse pencil vanishes at `Sum.elim v w`. -/
+@[simp]
+theorem mk_mem_rationalEllipticSurface_iff {v : Fin 3 → ℂ} (hv : v ≠ 0) {w : Fin 2 → ℂ}
+    (hw : w ≠ 0) :
+    (Projectivization.mk ℂ v hv, Projectivization.mk ℂ w hw) ∈ rationalEllipticSurface ↔
+      eval (Sum.elim v w) (hessePencil ℂ) = 0 := by
+  rw [rationalEllipticSurface_def, mk_mem_complexProjectiveProdZeroLocus_iff
+    (fun _ ↦ isWeightedHomogeneous_hessePencil_inl) (fun _ ↦ isWeightedHomogeneous_hessePencil_inr)]
+  simp
+
+namespace rationalEllipticSurface
+
+/-- The rational elliptic surface is the zero set of the Hesse pencil cut by the open set `univ`,
+the form in which the zero-set atlas takes it. -/
+theorem eq_inter_univ :
+    rationalEllipticSurface =
+      complexProjectiveProdZeroLocus (m := 2) (n := 1) (fun _ : Unit ↦ hessePencil ℂ) ∩ univ := by
+  rw [rationalEllipticSurface_def, inter_univ]
+
+/-- The cone Jacobian of the Hesse pencil is surjective at the chosen representatives of every
+point of `ℂℙ² × ℂℙ¹`, whether or not it lies on the rational elliptic surface. -/
+theorem surjective_jacobiMatrixAt (x : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)) :
+    Function.Surjective
+      (jacobiMatrixAt (fun _ : Unit ↦ hessePencil ℂ) (Sum.elim x.1.rep x.2.rep)).mulVec :=
+  mulVec_surjective_jacobiMatrixAt_iff_exists_eval_pderiv_ne_zero.2
+    (exists_eval_pderiv_hessePencil_ne_zero three_ne_zero x.1.rep_ne_zero x.2.rep_ne_zero)
+
+/-- The atlas of the rational elliptic surface, induced by the slice charts of bihomogeneous zero
+sets in `ℂℙ² × ℂℙ¹`. -/
+noncomputable instance instChartedSpace :
+    ChartedSpace (Fin (2 + 1 - Fintype.card Unit) → ℂ) rationalEllipticSurface :=
+  complexProjectiveProdZeroLocusChartedSpace (fun _ ↦ isWeightedHomogeneous_hessePencil_inl)
+    (fun _ ↦ isWeightedHomogeneous_hessePencil_inr) isOpen_univ eq_inter_univ
+    fun x _ ↦ surjective_jacobiMatrixAt x
+
+/-- The rational elliptic surface is a complex analytic manifold. -/
+instance instIsManifold :
+    IsManifold 𝓘(ℂ, Fin (2 + 1 - Fintype.card Unit) → ℂ) ω rationalEllipticSurface :=
+  isManifold_complexProjectiveProdZeroLocus (fun _ ↦ isWeightedHomogeneous_hessePencil_inl)
+    (fun _ ↦ isWeightedHomogeneous_hessePencil_inr) isOpen_univ eq_inter_univ
+    (fun x _ ↦ surjective_jacobiMatrixAt x) ω
+
+/-- The rational elliptic surface is compact, as every zero set in `ℂℙ² × ℂℙ¹` is. -/
+instance instCompactSpace : CompactSpace rationalEllipticSurface :=
+  inferInstanceAs (CompactSpace (complexProjectiveProdZeroLocus _))
+
+/-- The model of the rational elliptic surface has complex dimension `2`: it is a surface. -/
+theorem finrank_model : Module.finrank ℂ (Fin (2 + 1 - Fintype.card Unit) → ℂ) = 2 := by
+  rw [Fintype.card_unit, Module.finrank_fin_fun]
+
+/-- The inclusion of the rational elliptic surface into `ℂℙ² × ℂℙ¹`, as an analytic embedding:
+`SymplecticGeometry.complexProjectiveProdZeroLocusEmbedding`. -/
+noncomputable def embedding :
+    SmoothEmbedding 𝓘(ℂ, Fin (2 + 1 - Fintype.card Unit) → ℂ)
+      (𝓘(ℂ, Fin 2 → ℂ).prod 𝓘(ℂ, Fin 1 → ℂ)) ω rationalEllipticSurface
+      (ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)) :=
+  complexProjectiveProdZeroLocusEmbedding (fun _ ↦ isWeightedHomogeneous_hessePencil_inl)
+    (fun _ ↦ isWeightedHomogeneous_hessePencil_inr) isOpen_univ eq_inter_univ
+    (fun x _ ↦ surjective_jacobiMatrixAt x) ω
+
+/-- The embedding of the rational elliptic surface is the embedding of a bihomogeneous zero set,
+specialized to the Hesse pencil. -/
+theorem embedding_def :
+    embedding = complexProjectiveProdZeroLocusEmbedding
+      (fun _ ↦ isWeightedHomogeneous_hessePencil_inl)
+      (fun _ ↦ isWeightedHomogeneous_hessePencil_inr) isOpen_univ eq_inter_univ
+      (fun x _ ↦ surjective_jacobiMatrixAt x) ω :=
+  (rfl)
+
+/-- The embedding of the rational elliptic surface is the inclusion. -/
+@[simp]
+theorem coe_embedding : ⇑embedding = Subtype.val := by
+  rw [embedding_def, coe_complexProjectiveProdZeroLocusEmbedding]
+
+/-- The projection of the rational elliptic surface to `ℂℙ²` is analytic. -/
+theorem contMDiff_fst :
+    ContMDiff 𝓘(ℂ, Fin (2 + 1 - Fintype.card Unit) → ℂ) 𝓘(ℂ, Fin 2 → ℂ) ω
+      (fun x : rationalEllipticSurface ↦ (x : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)).1) :=
+  _root_.contMDiff_fst.comp (coe_embedding ▸ embedding.contMDiff)
+
+/-- The projection of the rational elliptic surface to `ℂℙ¹` is analytic. -/
+theorem contMDiff_snd :
+    ContMDiff 𝓘(ℂ, Fin (2 + 1 - Fintype.card Unit) → ℂ) 𝓘(ℂ, Fin 1 → ℂ) ω
+      (fun x : rationalEllipticSurface ↦ (x : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)).2) :=
+  _root_.contMDiff_snd.comp (coe_embedding ▸ embedding.contMDiff)
+
+end rationalEllipticSurface
 
 end SymplecticGeometry
 

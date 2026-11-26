@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Codisc
+public import TauCeti.Geometry.Manifold.VectorBundle.FiberScaling
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
 
 /-!
@@ -24,8 +25,12 @@ sublevel set `{z | ‖z.2‖ ≤ r}` is compact (`TauCeti.CotangentBundle.isComp
 Tau Ceti's `TauCeti.isCompact_setOf_norm_le_bundle` and `IsCompact.norm_le_bundle` need fibres
 with an inner product, so they do not apply to covectors, whose norm is an operator norm.
 
+It also records that fibre scaling by `t ∈ [0, 1]` multiplies the norm of a covector by `t`
+(`TauCeti.CotangentBundle.norm_snd_vectorBundleFiberScaling`).
+
 ## Main results
 
+* `TauCeti.CotangentBundle.norm_snd_vectorBundleFiberScaling`: `‖(t • z).2‖ = t ‖z.2‖`.
 * `TauCeti.CotangentBundle.isCompact_setOf_norm_snd_le_inter_preimage_proj`: the covectors of
   norm at most `r` over a compact set form a compact set.
 * `TauCeti.CotangentBundle.isCompact_setOf_norm_snd_le`: on a compact Riemannian manifold, the
@@ -38,6 +43,26 @@ open Bundle Set
 open scoped Manifold
 
 namespace TauCeti.CotangentBundle
+
+section FiberScaling
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+  [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
+
+/-- On a Riemannian manifold, fibre scaling by `t ∈ [0, 1]` multiplies the norm of a covector
+by `t`. -/
+theorem norm_snd_vectorBundleFiberScaling (z : CotangentBundle I M) (t : Icc (0 : ℝ) 1) :
+    ‖(vectorBundleFiberScaling (E →L[ℝ] ℝ) (fun x : M ↦ TangentSpace I x →L[ℝ] ℝ)
+      (z, t)).snd‖ = t * ‖z.snd‖ := by
+  rw [vectorBundleFiberScaling_apply]
+  -- This is `norm_smul`; instance search does not find `NormSMulClass` for covectors of the
+  -- Riemannian fibre norm, so it is supplied from the `NormedSpace` instance, as in Tau Ceti.
+  rw [(NormedSpace.toNormSMulClass (𝕜 := ℝ) (E := TangentSpace I z.proj →L[ℝ] ℝ)).norm_smul,
+    Real.norm_of_nonneg t.property.1]
+
+end FiberScaling
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}

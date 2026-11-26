@@ -558,13 +558,9 @@ exists by `exists_isTwistProfile` and compactness of the zero section.
    family of symplectic open embeddings from $\iota$ to an embedding that
    extends $f\circ\Phi_1$. `Diffeotopy/Extend.lean` moves a model twist
    along it. Each slice $F_t\circ\iota$ is an immersion between manifolds
-   of dimension $2n$, hence a local diffeomorphism. The extension theorem
-   does not say that the slices of $F$ are injective, but they are on $L$,
-   where $F_t\circ f=f\circ\Phi_t$. So the library's
-   `exists_isOpen_forall_isSmoothEmbedding_of_injOn`
-   (`Geometry/Manifold/SmoothEmbedding/Neighborhood.lean`, of *Isotopy
-   extension*) gives a neighbourhood of $L$ on which every slice is an
-   embedding.
+   of dimension $2n$, hence a local diffeomorphism. The slices of $F$ are
+   smooth embeddings, as those of every `SmoothIsotopy` are, so the slices
+   $F_t\circ\iota$ are injective, hence smooth embeddings.
 
 For $f_1=f_2\circ\Phi_1\circ A$, steps 2 and 3 and step 1 compose; the
 composite of the diffeotopies is `Diffeotopy.trans`, and the union of the

@@ -19,7 +19,7 @@ Let `k` be a commutative ring and `Z` a fibre bundle over `Y` with fibre `F`, gi
 cover `Y`. Suppose that the homology `H_d(F; k)` is projective in every degree and finitely
 generated in degrees `d ≤ n`, and that classes `c d i ∈ Hᵈ(Z; k)` restrict, in each degree
 `d ≤ n`, on the fibre over every point `y`, read through the trivialization at `y`
-(`Bundle.Trivialization.fiberInclusion`), to a basis of `Hᵈ(F; k)`. Then the Leray–Hirsch map
+(`Bundle.Trivialization.fiberInclusionMap`), to a basis of `Hᵈ(F; k)`. Then the Leray–Hirsch map
 
 `⨁_{d + q = n} ⨁_{i : ι d} H^q(Y; k) ⟶ Hⁿ(Z; k)`, `(a_{d,i}) ↦ ∑ π^* a_{d,i} ⌣ c d i`,
 
@@ -103,10 +103,10 @@ theorem lerayHirschRestrict_bijective_of_subset_baseSet (t : Trivialization F p)
     (hF : ∀ d ≤ n, Module.Finite k (((singularHomologyFunctor (ModuleCat.{w} k) d).obj
       (𝟙_ (ModuleCat.{w} k))).obj F))
     (hc : ∀ x (hx : x ∈ S), ∀ d ≤ n,
-      LinearIndependent k (fun i ↦ TopCat.singularCohomologyMap (ofHom (t.fiberInclusion (hS hx))) d
-        (c d i)) ∧
+      LinearIndependent k (fun i ↦
+        TopCat.singularCohomologyMap (ofHom (t.fiberInclusionMap (hS hx))) d (c d i)) ∧
       ⊤ ≤ Submodule.span k (Set.range fun i ↦
-        TopCat.singularCohomologyMap (ofHom (t.fiberInclusion (hS hx))) d (c d i))) :
+        TopCat.singularCohomologyMap (ofHom (t.fiberInclusionMap (hS hx))) d (c d i))) :
     Function.Bijective (lerayHirschRestrict p c S n) := by
   let f : of S ⊗ F ⟶ of (p ⁻¹' S) := (isoOfHomeo (t.preimageHomeomorph hS).symm).hom
   have hf : f ≫ ofHom (p.hom.restrictPreimage S) = fst (of S) F ≫ 𝟙 _ := by
@@ -116,10 +116,10 @@ theorem lerayHirschRestrict_bijective_of_subset_baseSet (t : Trivialization F p)
   rw [← lerayHirsch_bijective_iff_of_isIso f (𝟙 _) hf (fun _ _ _ ↦ rfl)]
   refine lerayHirsch_fst_bijective_of_fiberwise_basis _ n _ hF fun x d hd ↦ ?_
   have hx : prodFiberInclusion (of S) F x ≫ f ≫ ofHom (ContinuousMap.subtypeVal (p ⁻¹' S)) =
-      ofHom (t.fiberInclusion (hS x.property)) := by
+      ofHom (t.fiberInclusionMap (hS x.property)) := by
     ext y
     rw [ConcreteCategory.comp_apply, prodFiberInclusion_apply, ConcreteCategory.hom_ofHom,
-      Trivialization.fiberInclusion_apply]
+      Trivialization.fiberInclusionMap_apply]
     -- The map of `isoOfHomeo` is the homeomorphism, which sends `(x, y)` to `t⁻¹ (x, y)`.
     exact congrArg Subtype.val (t.preimageHomeomorph_symm_apply hS (x, y))
   simp only [← ConcreteCategory.comp_apply, ← singularCohomologyMap_comp, hx]
@@ -142,10 +142,10 @@ private theorem lerayHirschRestrict_biUnion_bijective_of_le {κ : Type*} (s : Fi
       (𝟙_ (ModuleCat.{w} k))).obj F))
     (hWe : ∀ j ∈ s, ∃ (t : Trivialization F p) (hW : W j ⊆ t.baseSet),
       ∀ x (hx : x ∈ W j), ∀ d ≤ n,
-      LinearIndependent k (fun i ↦ TopCat.singularCohomologyMap (ofHom (t.fiberInclusion (hW hx)))
-        d (c d i)) ∧
+      LinearIndependent k (fun i ↦
+        TopCat.singularCohomologyMap (ofHom (t.fiberInclusionMap (hW hx))) d (c d i)) ∧
       ⊤ ≤ Submodule.span k (Set.range fun i ↦
-        TopCat.singularCohomologyMap (ofHom (t.fiberInclusion (hW hx))) d (c d i))) :
+        TopCat.singularCohomologyMap (ofHom (t.fiberInclusionMap (hW hx))) d (c d i))) :
     ∀ m ≤ n, Function.Bijective (lerayHirschRestrict p c (⋃ j ∈ s, W j) m) := by
   classical
   induction s using Finset.induction_on generalizing W with
@@ -183,10 +183,10 @@ theorem lerayHirschRestrict_biUnion_bijective {κ : Type*} (s : Finset κ)
       (𝟙_ (ModuleCat.{w} k))).obj F))
     (hWe : ∀ j ∈ s, ∃ (t : Trivialization F p) (hW : W j ⊆ t.baseSet),
       ∀ x (hx : x ∈ W j), ∀ d ≤ n,
-      LinearIndependent k (fun i ↦ TopCat.singularCohomologyMap (ofHom (t.fiberInclusion (hW hx)))
-        d (c d i)) ∧
+      LinearIndependent k (fun i ↦
+        TopCat.singularCohomologyMap (ofHom (t.fiberInclusionMap (hW hx))) d (c d i)) ∧
       ⊤ ≤ Submodule.span k (Set.range fun i ↦
-        TopCat.singularCohomologyMap (ofHom (t.fiberInclusion (hW hx))) d (c d i))) :
+        TopCat.singularCohomologyMap (ofHom (t.fiberInclusionMap (hW hx))) d (c d i))) :
     Function.Bijective (lerayHirschRestrict p c (⋃ j ∈ s, W j) n) :=
   lerayHirschRestrict_biUnion_bijective_of_le p s hWo n c hF hWe n le_rfl
 
@@ -203,10 +203,10 @@ theorem lerayHirsch_bijective_of_biUnion_baseSet_eq_univ {κ : Type*} (s : Finse
     (hF : ∀ d ≤ n, Module.Finite k (((singularHomologyFunctor (ModuleCat.{w} k) d).obj
       (𝟙_ (ModuleCat.{w} k))).obj F))
     (hc : ∀ j ∈ s, ∀ x (hx : x ∈ (t j).baseSet), ∀ d ≤ n,
-      LinearIndependent k (fun i ↦ TopCat.singularCohomologyMap (ofHom ((t j).fiberInclusion hx))
+      LinearIndependent k (fun i ↦ TopCat.singularCohomologyMap (ofHom ((t j).fiberInclusionMap hx))
         d (c d i)) ∧
       ⊤ ≤ Submodule.span k (Set.range fun i ↦
-        TopCat.singularCohomologyMap (ofHom ((t j).fiberInclusion hx)) d (c d i))) :
+        TopCat.singularCohomologyMap (ofHom ((t j).fiberInclusionMap hx)) d (c d i))) :
     Function.Bijective (lerayHirsch p n c) := by
   refine (lerayHirschRestrict_univ_bijective_iff p c n).1 ?_
   rw [← hs]
@@ -224,34 +224,35 @@ variable {Y F : Type w} [TopologicalSpace Y] [TopologicalSpace F] {Z : Y → Typ
 /-- If the classes `c d` of degree `d` restrict to bases of `Hᵈ(F; k)` through the trivialization
 at every point, they do so through every trivialization of the atlas: the two restrictions differ
 by the homeomorphism of `F` given by the coordinate change. -/
-private theorem fiberInclusion_basis_of_trivializationAt
+private theorem fiberInclusionMap_basis_of_trivializationAt
     (c : ∀ d, ι d → (of (TotalSpace F Z)).singularCohomology (𝟙_ (ModuleCat.{w} k)) k
       (𝟙_ (ModuleCat.{w} k)) d)
     (d : ℕ) (hc : ∀ y : Y,
       LinearIndependent k (fun i ↦ TopCat.singularCohomologyMap
-        (ofHom ((trivializationAt F Z y).fiberInclusion (mem_baseSet_trivializationAt F Z y)))
+        (ofHom ((trivializationAt F Z y).fiberInclusionMap (mem_baseSet_trivializationAt F Z y)))
         d (c d i)) ∧
       ⊤ ≤ Submodule.span k (Set.range fun i ↦ TopCat.singularCohomologyMap
-        (ofHom ((trivializationAt F Z y).fiberInclusion (mem_baseSet_trivializationAt F Z y)))
+        (ofHom ((trivializationAt F Z y).fiberInclusionMap (mem_baseSet_trivializationAt F Z y)))
         d (c d i)))
     (t : Trivialization F (π F Z)) {x : Y} (hx : x ∈ t.baseSet) :
-    LinearIndependent k (fun i ↦ TopCat.singularCohomologyMap (ofHom (t.fiberInclusion hx))
+    LinearIndependent k (fun i ↦ TopCat.singularCohomologyMap (ofHom (t.fiberInclusionMap hx))
       d (c d i)) ∧
     ⊤ ≤ Submodule.span k (Set.range fun i ↦
-      TopCat.singularCohomologyMap (ofHom (t.fiberInclusion hx)) d (c d i)) := by
+      TopCat.singularCohomologyMap (ofHom (t.fiberInclusionMap hx)) d (c d i)) := by
   set t' := trivializationAt F Z x
   have hx' : x ∈ t'.baseSet := mem_baseSet_trivializationAt F Z x
   let φ := t.coordChangeHomeomorph t' hx hx'
-  have hφ : ofHom (t.fiberInclusion hx) =
-      (isoOfHomeo (X := of F) (Y := of F) φ).hom ≫ ofHom (t'.fiberInclusion hx') := by
+  have hφ : ofHom (t.fiberInclusionMap hx) =
+      (isoOfHomeo (X := of F) (Y := of F) φ).hom ≫ ofHom (t'.fiberInclusionMap hx') := by
     refine TopCat.ext fun f ↦ ?_
-    exact (t.fiberInclusion_coordChange t' hx hx' f).symm
+    exact (t.fiberInclusionMap_coordChange t' hx hx' f).symm
   let L := LinearEquiv.ofBijective (TopCat.singularCohomologyMap (R := 𝟙_ (ModuleCat.{w} k))
     (k := k) (M := 𝟙_ (ModuleCat.{w} k)) (isoOfHomeo (X := of F) (Y := of F) φ).hom d).hom
     ((TauCeti.singularCohomologyFunctor _ k _ d).mapIso
       (isoOfHomeo (X := of F) (Y := of F) φ).op).toLinearEquiv.bijective
-  have hb : (L ∘ fun i ↦ TopCat.singularCohomologyMap (ofHom (t'.fiberInclusion hx')) d (c d i)) =
-      fun i ↦ TopCat.singularCohomologyMap (ofHom (t.fiberInclusion hx)) d (c d i) := by
+  have hb : (L ∘ fun i ↦
+      TopCat.singularCohomologyMap (ofHom (t'.fiberInclusionMap hx')) d (c d i)) =
+      fun i ↦ TopCat.singularCohomologyMap (ofHom (t.fiberInclusionMap hx)) d (c d i) := by
     ext i
     rw [Function.comp_apply, hφ, singularCohomologyMap_comp, ConcreteCategory.comp_apply]
     exact LinearEquiv.ofBijective_apply _ _
@@ -278,14 +279,14 @@ theorem lerayHirsch_bijective (s : Finset Y)
       (𝟙_ (ModuleCat.{w} k))).obj (of F)))
     (hc : ∀ (y : Y), ∀ d ≤ n,
       LinearIndependent k (fun i ↦ TopCat.singularCohomologyMap
-        (ofHom ((trivializationAt F Z y).fiberInclusion (mem_baseSet_trivializationAt F Z y)))
+        (ofHom ((trivializationAt F Z y).fiberInclusionMap (mem_baseSet_trivializationAt F Z y)))
         d (c d i)) ∧
       ⊤ ≤ Submodule.span k (Set.range fun i ↦ TopCat.singularCohomologyMap
-        (ofHom ((trivializationAt F Z y).fiberInclusion (mem_baseSet_trivializationAt F Z y)))
+        (ofHom ((trivializationAt F Z y).fiberInclusionMap (mem_baseSet_trivializationAt F Z y)))
         d (c d i))) :
     Function.Bijective (lerayHirsch (ofHom ⟨π F Z, FiberBundle.continuous_proj F Z⟩) n c) :=
   lerayHirsch_bijective_of_biUnion_baseSet_eq_univ (F := of F) _ s (trivializationAt F Z) hs n c
-    hF fun _ _ _ hx d hd ↦ fiberInclusion_basis_of_trivializationAt c d (fun y ↦ hc y d hd) _ hx
+    hF fun _ _ _ hx d hd ↦ fiberInclusionMap_basis_of_trivializationAt c d (fun y ↦ hc y d hd) _ hx
 
 /-- **The Leray–Hirsch isomorphism** of a fibre bundle with a finite trivializing cover,
 `⨁_{d + q = n} ⨁_{i : ι d} H^q(Y; k) ≃ Hⁿ(Z; k)`, the linear equivalence given by the
@@ -298,10 +299,10 @@ def lerayHirschEquiv (s : Finset Y)
       (𝟙_ (ModuleCat.{w} k))).obj (of F)))
     (hc : ∀ (y : Y), ∀ d ≤ n,
       LinearIndependent k (fun i ↦ TopCat.singularCohomologyMap
-        (ofHom ((trivializationAt F Z y).fiberInclusion (mem_baseSet_trivializationAt F Z y)))
+        (ofHom ((trivializationAt F Z y).fiberInclusionMap (mem_baseSet_trivializationAt F Z y)))
         d (c d i)) ∧
       ⊤ ≤ Submodule.span k (Set.range fun i ↦ TopCat.singularCohomologyMap
-        (ofHom ((trivializationAt F Z y).fiberInclusion (mem_baseSet_trivializationAt F Z y)))
+        (ofHom ((trivializationAt F Z y).fiberInclusionMap (mem_baseSet_trivializationAt F Z y)))
         d (c d i))) :
     (⨁ j : Σ pq : {pq : ℕ × ℕ // pq.1 + pq.2 = n}, ι pq.val.1,
         (of Y).singularCohomology (𝟙_ (ModuleCat.{w} k)) k (𝟙_ (ModuleCat.{w} k)) j.1.val.2) ≃ₗ[k]
@@ -317,10 +318,10 @@ lemma lerayHirschEquiv_apply (s : Finset Y)
       (𝟙_ (ModuleCat.{w} k))).obj (of F)))
     (hc : ∀ (y : Y), ∀ d ≤ n,
       LinearIndependent k (fun i ↦ TopCat.singularCohomologyMap
-        (ofHom ((trivializationAt F Z y).fiberInclusion (mem_baseSet_trivializationAt F Z y)))
+        (ofHom ((trivializationAt F Z y).fiberInclusionMap (mem_baseSet_trivializationAt F Z y)))
         d (c d i)) ∧
       ⊤ ≤ Submodule.span k (Set.range fun i ↦ TopCat.singularCohomologyMap
-        (ofHom ((trivializationAt F Z y).fiberInclusion (mem_baseSet_trivializationAt F Z y)))
+        (ofHom ((trivializationAt F Z y).fiberInclusionMap (mem_baseSet_trivializationAt F Z y)))
         d (c d i)))
     (a : ⨁ j : Σ pq : {pq : ℕ × ℕ // pq.1 + pq.2 = n}, ι pq.val.1,
         (of Y).singularCohomology (𝟙_ (ModuleCat.{w} k)) k (𝟙_ (ModuleCat.{w} k)) j.1.val.2) :
@@ -338,10 +339,10 @@ lemma lerayHirschEquiv_lof (s : Finset Y)
       (𝟙_ (ModuleCat.{w} k))).obj (of F)))
     (hc : ∀ (y : Y), ∀ d ≤ n,
       LinearIndependent k (fun i ↦ TopCat.singularCohomologyMap
-        (ofHom ((trivializationAt F Z y).fiberInclusion (mem_baseSet_trivializationAt F Z y)))
+        (ofHom ((trivializationAt F Z y).fiberInclusionMap (mem_baseSet_trivializationAt F Z y)))
         d (c d i)) ∧
       ⊤ ≤ Submodule.span k (Set.range fun i ↦ TopCat.singularCohomologyMap
-        (ofHom ((trivializationAt F Z y).fiberInclusion (mem_baseSet_trivializationAt F Z y)))
+        (ofHom ((trivializationAt F Z y).fiberInclusionMap (mem_baseSet_trivializationAt F Z y)))
         d (c d i)))
     (d q : ℕ) (h : d + q = n) (i : ι d)
     (a : (of Y).singularCohomology (𝟙_ (ModuleCat.{w} k)) k (𝟙_ (ModuleCat.{w} k)) q) :
@@ -535,10 +536,10 @@ theorem integralLerayHirsch_bijective (s : Finset Y)
       (𝟙_ (ModuleCat.{0} ℤ))).obj (of F)))
     (hc : ∀ (y : Y), ∀ d ≤ n,
       LinearIndependent ℤ (fun i ↦ TopCat.singularCohomologyMap
-        (ofHom ((trivializationAt F Z y).fiberInclusion (mem_baseSet_trivializationAt F Z y)))
+        (ofHom ((trivializationAt F Z y).fiberInclusionMap (mem_baseSet_trivializationAt F Z y)))
         d (c d i)) ∧
       ⊤ ≤ Submodule.span ℤ (Set.range fun i ↦ TopCat.singularCohomologyMap
-        (ofHom ((trivializationAt F Z y).fiberInclusion (mem_baseSet_trivializationAt F Z y)))
+        (ofHom ((trivializationAt F Z y).fiberInclusionMap (mem_baseSet_trivializationAt F Z y)))
         d (c d i))) :
     Function.Bijective
       (integralLerayHirsch (ofHom ⟨π F Z, FiberBundle.continuous_proj F Z⟩) n c) := by
@@ -552,11 +553,11 @@ theorem integralLerayHirsch_bijective (s : Finset Y)
     -- `TopCat.lerayHirsch` uses, which instance search would not find here.
     have hb : ((of F).integralCohomologyEquiv d ∘ fun i ↦
         TopCat.singularCohomologyMap
-          (ofHom ((trivializationAt F Z y).fiberInclusion (mem_baseSet_trivializationAt F Z y)))
+          (ofHom ((trivializationAt F Z y).fiberInclusionMap (mem_baseSet_trivializationAt F Z y)))
           d (c d i)) = fun i ↦
         @TopCat.singularCohomologyMap _ _ _ _ (𝟙_ (ModuleCat.{0} ℤ)) ℤ _ ModuleCat.instLinear
           (𝟙_ (ModuleCat.{0} ℤ)) _ _
-          (ofHom ((trivializationAt F Z y).fiberInclusion (mem_baseSet_trivializationAt F Z y)))
+          (ofHom ((trivializationAt F Z y).fiberInclusionMap (mem_baseSet_trivializationAt F Z y)))
           d (c' d i) := by
       ext i
       rw [Function.comp_apply, integralCohomologyEquiv_naturality]
@@ -574,10 +575,10 @@ def integralLerayHirschEquiv (s : Finset Y)
       (𝟙_ (ModuleCat.{0} ℤ))).obj (of F)))
     (hc : ∀ (y : Y), ∀ d ≤ n,
       LinearIndependent ℤ (fun i ↦ TopCat.singularCohomologyMap
-        (ofHom ((trivializationAt F Z y).fiberInclusion (mem_baseSet_trivializationAt F Z y)))
+        (ofHom ((trivializationAt F Z y).fiberInclusionMap (mem_baseSet_trivializationAt F Z y)))
         d (c d i)) ∧
       ⊤ ≤ Submodule.span ℤ (Set.range fun i ↦ TopCat.singularCohomologyMap
-        (ofHom ((trivializationAt F Z y).fiberInclusion (mem_baseSet_trivializationAt F Z y)))
+        (ofHom ((trivializationAt F Z y).fiberInclusionMap (mem_baseSet_trivializationAt F Z y)))
         d (c d i))) :
     (⨁ j : Σ pq : {pq : ℕ × ℕ // pq.1 + pq.2 = n}, ι pq.val.1,
         (of Y).integralCohomology j.1.val.2) ≃+ (of (TotalSpace F Z)).integralCohomology n :=
@@ -591,10 +592,10 @@ lemma integralLerayHirschEquiv_apply (s : Finset Y)
       (𝟙_ (ModuleCat.{0} ℤ))).obj (of F)))
     (hc : ∀ (y : Y), ∀ d ≤ n,
       LinearIndependent ℤ (fun i ↦ TopCat.singularCohomologyMap
-        (ofHom ((trivializationAt F Z y).fiberInclusion (mem_baseSet_trivializationAt F Z y)))
+        (ofHom ((trivializationAt F Z y).fiberInclusionMap (mem_baseSet_trivializationAt F Z y)))
         d (c d i)) ∧
       ⊤ ≤ Submodule.span ℤ (Set.range fun i ↦ TopCat.singularCohomologyMap
-        (ofHom ((trivializationAt F Z y).fiberInclusion (mem_baseSet_trivializationAt F Z y)))
+        (ofHom ((trivializationAt F Z y).fiberInclusionMap (mem_baseSet_trivializationAt F Z y)))
         d (c d i)))
     (a : ⨁ j : Σ pq : {pq : ℕ × ℕ // pq.1 + pq.2 = n}, ι pq.val.1,
       (of Y).integralCohomology j.1.val.2) :
@@ -611,10 +612,10 @@ lemma integralLerayHirschEquiv_of (s : Finset Y)
       (𝟙_ (ModuleCat.{0} ℤ))).obj (of F)))
     (hc : ∀ (y : Y), ∀ d ≤ n,
       LinearIndependent ℤ (fun i ↦ TopCat.singularCohomologyMap
-        (ofHom ((trivializationAt F Z y).fiberInclusion (mem_baseSet_trivializationAt F Z y)))
+        (ofHom ((trivializationAt F Z y).fiberInclusionMap (mem_baseSet_trivializationAt F Z y)))
         d (c d i)) ∧
       ⊤ ≤ Submodule.span ℤ (Set.range fun i ↦ TopCat.singularCohomologyMap
-        (ofHom ((trivializationAt F Z y).fiberInclusion (mem_baseSet_trivializationAt F Z y)))
+        (ofHom ((trivializationAt F Z y).fiberInclusionMap (mem_baseSet_trivializationAt F Z y)))
         d (c d i)))
     (d q : ℕ) (h : d + q = n) (i : ι d) (a : (of Y).integralCohomology q) :
     integralLerayHirschEquiv s hs n c hF hc (DirectSum.of

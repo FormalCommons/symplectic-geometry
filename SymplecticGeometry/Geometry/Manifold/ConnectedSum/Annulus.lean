@@ -6,12 +6,16 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Euclidean.Inversion
+public import SymplecticGeometry.Topology.Sets.Annulus
 public import SymplecticGeometry.Geometry.Manifold.Gluing.Pair
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 public import Mathlib.Analysis.Normed.Module.FiniteDimension
+public import TauCeti.Geometry.Manifold.ConnectedSum.Smooth
 
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import TauCeti.Geometry.Manifold.Diffeomorph.NormedSpace
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 
 /-!
@@ -35,23 +39,37 @@ the two pieces along `ι₂ ∘ Φ ∘ inversion 0 ε ∘ ι₁⁻¹`; it inheri
 its structure of `C^n` manifold, and the inclusions `GluedAlong.inl`, `GluedAlong.inr` of the
 pieces, which are open embeddings and `C^n` local diffeomorphisms whose ranges cover it.
 
+For `ε ≠ 0` with `ε² < 1` and `M₁`, `M₂` manifolds, this connected sum is `C^n` diffeomorphic to
+Tau Ceti's `TauCeti.ConnectedSum e₁ e₂` along the rescaled balls `e₁ v = ι₁ (ε • v)` and
+`e₂ v = ι₂ (Φ (ε • v))`, so that later statements can be made about Tau Ceti's construction.
+Tau Ceti removes only the centres and glues `e₁ v` to `e₂ (inversion 0 1 v)` for every `v ≠ 0`;
+since `ε • inversion 0 1 v = inversion 0 ε (ε • v)`, this glues `ι₁ ξ` to
+`ι₂ (Φ (inversion 0 ε ξ))` for every `ξ ≠ 0`, the gluing of the book extended to the whole
+punctured ball. The diffeomorphism is the inclusion of each piece into the corresponding punctured
+summand. It is injective since two points of the pieces that Tau Ceti glues lie over the annulus,
+and surjective since a point `ι₁ ξ` with `0 < ‖ξ‖ ≤ ε²`, which the first piece lacks, is glued to
+`ι₂ (Φ (inversion 0 ε ξ))`, of norm at least `1`, in the second piece, and symmetrically. So it
+is a bijective local diffeomorphism, and Mathlib's `IsLocalDiffeomorph.diffeomorphOfBijective`
+makes it a diffeomorphism, as Tau Ceti's `TauCeti.ConnectedSum.assocDiffeomorph` is built.
+
 ## Main definitions and results
 
-* `SymplecticGeometry.ConnectedSum.annulus E ε`: the open annulus `{ξ | ε² < ‖ξ‖ < 1}` of `E`,
-  with `mem_annulus`.
+The annulus is `SymplecticGeometry.annulus E (ε ^ 2) 1`, which every linear isometry maps onto
+itself (`SymplecticGeometry.map_mem_annulus_iff`).
+
 * `SymplecticGeometry.ConnectedSum.inversion_mem_annulus_iff`: for `ε ≠ 0` the inversion
   `inversion 0 ε` maps the annulus onto itself; it is an involution (Mathlib's
   `EuclideanGeometry.inversion_inversion`) that exchanges the two ends of the annulus
   (`EuclideanGeometry.norm_inversion_zero_lt_iff` and
   `EuclideanGeometry.lt_norm_inversion_zero_iff` with `r = 1` and `r = ε²`).
-  `SymplecticGeometry.ConnectedSum.map_mem_annulus_iff`: so does every linear isometry.
 * `SymplecticGeometry.ConnectedSum.gluingPartialDiffeomorph Φ ε hε`: the map
   `ξ ↦ Φ (inversion 0 ε ξ)` as a `C^n` partial diffeomorphism of `E` with source and target the
   annulus, and inverse `η ↦ inversion 0 ε (Φ⁻¹ η)`, which is the same map for `Φ⁻¹`
   (`gluingPartialDiffeomorph_symm`).
 * `SymplecticGeometry.ConnectedSum.gluingDiffeomorph Φ ε hε`: the diffeomorphism of the annulus
   that it gives, with `coe_gluingDiffeomorph_apply` and `coe_gluingDiffeomorph_symm_apply`; its
-  inverse is the gluing diffeomorphism for `Φ⁻¹` (`gluingDiffeomorph_symm`).
+  inverse is the gluing diffeomorphism for `Φ⁻¹` (`gluingDiffeomorph_symm`), and `simp` cancels
+  the two with `gluingDiffeomorph_symm_apply_apply` and `gluingDiffeomorph_apply_symm_apply`.
 * `SymplecticGeometry.ConnectedSum.piece ι ε hι`: the open set `M \ ι (closedBall 0 ε²)`, and
   `SymplecticGeometry.ConnectedSum.overlap`: the image of the annulus in it, as an open subset
   of the piece.
@@ -69,6 +87,20 @@ pieces, which are open embeddings and `C^n` local diffeomorphisms whose ranges c
 * `SymplecticGeometry.ConnectedSum.AnnulusSum.instT2Space`: the connected sum is Hausdorff, by
   `SymplecticGeometry.GluedAlong.t2Space_of_isClosed_graph`: the graph of the gluing map is
   closed, as the image of the compact closed annulus `ε² ≤ ‖ξ‖ ≤ 1` cut down to the two pieces.
+* `SymplecticGeometry.ConnectedSum.rescale ι ε`: the ball `v ↦ ι (ε • v)`, an open embedding and
+  a `C^n` local diffeomorphism with `ι` when `ε ≠ 0`, and
+  `SymplecticGeometry.ConnectedSum.connectedSum_inl_eq_inr_iff`: the points that Tau Ceti's
+  connected sum along `rescale ι₁ ε` and `rescale ι₂ ε` glues, from
+  `EuclideanGeometry.inversion_mul_homothety`.
+* `SymplecticGeometry.ConnectedSum.apply_inversion_mem_piece`: for `ε ≠ 0` and
+  `0 < ‖ξ‖ < 1`, the point `ι (inversion 0 ε ξ)` lies in the piece; with `ε² < 1` this sends each
+  removed point `ι ξ`, `0 < ‖ξ‖ ≤ ε²`, into the piece.
+* `SymplecticGeometry.ConnectedSum.toConnectedSum`: the map from `AnnulusSum` to Tau Ceti's
+  connected sum, with `toConnectedSum_inl` and `toConnectedSum_inr`; it is a local diffeomorphism
+  (`isLocalDiffeomorph_toConnectedSum`), injective (`injective_toConnectedSum`) and, for
+  `ε² < 1`, surjective (`surjective_toConnectedSum`), so bijective (`bijective_toConnectedSum`).
+* `SymplecticGeometry.ConnectedSum.annulusSumDiffeomorph`: the diffeomorphism from `AnnulusSum`
+  to Tau Ceti's connected sum, with `annulusSumDiffeomorph_inl` and `annulusSumDiffeomorph_inr`.
 
 The smoothness of the inversion away from its centre is Tau Ceti's
 `EuclideanGeometry.contDiffAt_inversion`, and the diffeomorphism is Tau Ceti's
@@ -90,34 +122,12 @@ open scoped Manifold ContDiff
 
 namespace SymplecticGeometry.ConnectedSum
 
-variable (E : Type*) [NormedAddCommGroup E]
-
-/-- The open annulus `{ξ | ε² < ‖ξ‖ < 1}` of `E`, along which the connected sum is glued. -/
-def annulus (ε : ℝ) : Opens E :=
-  ⟨{ξ | ε ^ 2 < ‖ξ‖ ∧ ‖ξ‖ < 1}, (isOpen_lt continuous_const continuous_norm).inter
-    (isOpen_lt continuous_norm continuous_const)⟩
-
-variable {E}
-
-@[simp]
-theorem mem_annulus {ε : ℝ} {ξ : E} : ξ ∈ annulus E ε ↔ ε ^ 2 < ‖ξ‖ ∧ ‖ξ‖ < 1 :=
-  Iff.rfl
-
-/-- The points of the annulus are nonzero. -/
-theorem ne_zero_of_mem_annulus {ε : ℝ} {ξ : E} (hξ : ξ ∈ annulus E ε) : ξ ≠ 0 :=
-  norm_pos_iff.1 ((sq_nonneg ε).trans_lt hξ.1)
-
-/-- A linear isometry `Φ` of `E` maps the annulus onto itself. -/
-theorem map_mem_annulus_iff [NormedSpace ℝ E] (Φ : E ≃ₗᵢ[ℝ] E) {ε : ℝ} {ξ : E} :
-    Φ ξ ∈ annulus E ε ↔ ξ ∈ annulus E ε := by
-  simp
-
-variable [InnerProductSpace ℝ E]
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
 
 /-- For `ε ≠ 0`, the inversion in the sphere of radius `ε` about the origin maps the annulus
 `ε² < ‖ξ‖ < 1` onto itself. -/
 theorem inversion_mem_annulus_iff {ε : ℝ} (hε : ε ≠ 0) {ξ : E} :
-    inversion (0 : E) ε ξ ∈ annulus E ε ↔ ξ ∈ annulus E ε := by
+    inversion (0 : E) ε ξ ∈ annulus E (ε ^ 2) 1 ↔ ξ ∈ annulus E (ε ^ 2) 1 := by
   rcases eq_or_ne ξ 0 with rfl | hξ
   · simp only [inversion_self]
   have hε₂ : 0 < ε ^ 2 := by positivity
@@ -131,19 +141,20 @@ def gluingPartialDiffeomorph (Φ : E ≃ₗᵢ[ℝ] E) (ε : ℝ) (hε : ε ≠ 
     PartialDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) E E n where
   toFun ξ := Φ (inversion 0 ε ξ)
   invFun η := inversion 0 ε (Φ.symm η)
-  source := annulus E ε
-  target := annulus E ε
+  source := annulus E (ε ^ 2) 1
+  target := annulus E (ε ^ 2) 1
   map_source' _ hξ := (map_mem_annulus_iff Φ).2 ((inversion_mem_annulus_iff hε).2 hξ)
   map_target' _ hη := (inversion_mem_annulus_iff hε).2 ((map_mem_annulus_iff Φ.symm).2 hη)
   left_inv' ξ _ := by simp [inversion_inversion (0 : E) hε]
   right_inv' η _ := by simp [inversion_inversion (0 : E) hε]
-  open_source := (annulus E ε).isOpen
-  open_target := (annulus E ε).isOpen
+  open_source := (annulus E (ε ^ 2) 1).isOpen
+  open_target := (annulus E (ε ^ 2) 1).isOpen
   contMDiffOn_toFun := contMDiffOn_iff_contDiffOn.2 fun ξ hξ ↦
     (Φ.contDiff.contDiffAt.comp ξ
-      (contDiffAt_inversion (ne_zero_of_mem_annulus hξ))).contDiffWithinAt
+      (contDiffAt_inversion (ne_zero_of_mem_annulus (sq_nonneg ε) hξ))).contDiffWithinAt
   contMDiffOn_invFun := contMDiffOn_iff_contDiffOn.2 fun η hη ↦
-    ((contDiffAt_inversion (Φ.symm.map_ne_zero_iff.2 (ne_zero_of_mem_annulus hη))).comp η
+    ((contDiffAt_inversion
+      (Φ.symm.map_ne_zero_iff.2 (ne_zero_of_mem_annulus (sq_nonneg ε) hη))).comp η
       Φ.symm.contDiff.contDiffAt).contDiffWithinAt
 
 variable (Φ : E ≃ₗᵢ[ℝ] E) (ε : ℝ) (hε : ε ≠ 0) {n : ℕ∞ω}
@@ -160,12 +171,12 @@ theorem gluingPartialDiffeomorph_symm_apply (η : E) :
 
 @[simp]
 theorem gluingPartialDiffeomorph_source :
-    (gluingPartialDiffeomorph Φ ε hε (n := n)).source = annulus E ε :=
+    (gluingPartialDiffeomorph Φ ε hε (n := n)).source = annulus E (ε ^ 2) 1 :=
   (rfl)
 
 @[simp]
 theorem gluingPartialDiffeomorph_target :
-    (gluingPartialDiffeomorph Φ ε hε (n := n)).target = annulus E ε :=
+    (gluingPartialDiffeomorph Φ ε hε (n := n)).target = annulus E (ε ^ 2) 1 :=
   (rfl)
 
 /-- The inverse of the gluing map for `Φ` is the gluing map for `Φ⁻¹`. -/
@@ -177,15 +188,15 @@ theorem gluingPartialDiffeomorph_symm :
 
 /-- For `ε ≠ 0`, the gluing map `ξ ↦ Φ (inversion 0 ε ξ)` of the connected sum, as a `C^n`
 diffeomorphism of the annulus `ε² < ‖ξ‖ < 1` onto itself. -/
-def gluingDiffeomorph : annulus E ε ≃ₘ^n⟮𝓘(ℝ, E), 𝓘(ℝ, E)⟯ annulus E ε :=
+def gluingDiffeomorph : annulus E (ε ^ 2) 1 ≃ₘ^n⟮𝓘(ℝ, E), 𝓘(ℝ, E)⟯ annulus E (ε ^ 2) 1 :=
   (gluingPartialDiffeomorph Φ ε hε).toDiffeomorphSourceTarget
 
 @[simp]
-theorem coe_gluingDiffeomorph_apply (ξ : annulus E ε) :
+theorem coe_gluingDiffeomorph_apply (ξ : annulus E (ε ^ 2) 1) :
     (gluingDiffeomorph Φ ε hε (n := n) ξ : E) = Φ (inversion 0 ε ξ) :=
   (gluingPartialDiffeomorph Φ ε hε).toDiffeomorphSourceTarget_apply_coe ξ
 
-theorem coe_gluingDiffeomorph_symm_apply (η : annulus E ε) :
+theorem coe_gluingDiffeomorph_symm_apply (η : annulus E (ε ^ 2) 1) :
     ((gluingDiffeomorph Φ ε hε (n := n)).symm η : E) = inversion 0 ε (Φ.symm η) :=
   (gluingPartialDiffeomorph Φ ε hε).toDiffeomorphSourceTarget_symm_apply_coe η
 
@@ -195,6 +206,20 @@ theorem gluingDiffeomorph_symm :
     (gluingDiffeomorph Φ ε hε (n := n)).symm = gluingDiffeomorph Φ.symm ε hε :=
   Diffeomorph.ext fun η ↦ Subtype.ext <| by
     simp [coe_gluingDiffeomorph_symm_apply, LinearIsometryEquiv.map_inversion_zero]
+
+/-- The gluing diffeomorphism for `Φ⁻¹` undoes the one for `Φ`. Since `simp` rewrites the inverse
+with `gluingDiffeomorph_symm`, this is the form in which it cancels the two maps. -/
+@[simp]
+theorem gluingDiffeomorph_symm_apply_apply (ξ : annulus E (ε ^ 2) 1) :
+    gluingDiffeomorph Φ.symm ε hε (n := n) (gluingDiffeomorph Φ ε hε (n := n) ξ) = ξ := by
+  simpa using (gluingDiffeomorph Φ ε hε (n := n)).symm_apply_apply ξ
+
+/-- The gluing diffeomorphism for `Φ` undoes the one for `Φ⁻¹`. Since `simp` rewrites the inverse
+with `gluingDiffeomorph_symm`, this is the form in which it cancels the two maps. -/
+@[simp]
+theorem gluingDiffeomorph_apply_symm_apply (η : annulus E (ε ^ 2) 1) :
+    gluingDiffeomorph Φ ε hε (n := n) (gluingDiffeomorph Φ.symm ε hε (n := n) η) = η := by
+  simpa using (gluingDiffeomorph Φ ε hε (n := n)).apply_symm_apply η
 
 end SymplecticGeometry.ConnectedSum
 
@@ -222,23 +247,48 @@ variable {ι ε} {hι : Continuous ι}
 theorem mem_piece_iff {x : M} : x ∈ piece ι ε hι ↔ x ∉ ι '' Metric.closedBall 0 (ε ^ 2) :=
   Iff.rfl
 
+/-- For injective `ι`, the image `ι ξ` lies in the piece exactly when `ε² < ‖ξ‖`. -/
+theorem apply_mem_piece_iff (hι' : Function.Injective ι) {ξ : E} :
+    ι ξ ∈ piece ι ε hι ↔ ε ^ 2 < ‖ξ‖ := by
+  rw [mem_piece_iff, hι'.mem_set_image, Metric.mem_closedBall, dist_zero_right, not_le]
+
+variable [InnerProductSpace ℝ E] in
+/-- For injective `ι` and `ε ≠ 0`, the inversion `inversion 0 ε` sends a point `ξ ≠ 0` inside the
+open unit ball to a point whose image under `ι` lies in the piece: its norm `ε² / ‖ξ‖` exceeds
+`ε²`. -/
+theorem apply_inversion_mem_piece (hι' : Function.Injective ι) (hε : ε ≠ 0) {ξ : E}
+    (hξ : ξ ≠ 0) (h : ‖ξ‖ < 1) : ι (inversion 0 ε ξ) ∈ piece ι ε hι := by
+  rw [apply_mem_piece_iff hι', lt_norm_inversion_zero_iff ε (by positivity) hξ,
+    div_self (by positivity)]
+  exact h
+
 /-- For injective `ι`, the image of a point of the annulus lies in the piece. -/
-theorem mem_piece_of_mem_annulus (hι' : Function.Injective ι) {ξ : E} (hξ : ξ ∈ annulus E ε) :
-    ι ξ ∈ piece ι ε hι := by
+theorem mem_piece_of_mem_annulus (hι' : Function.Injective ι) {ξ : E}
+    (hξ : ξ ∈ annulus E (ε ^ 2) 1) : ι ξ ∈ piece ι ε hι := by
   rintro ⟨η, hη, h⟩
   rw [hι' h, Metric.mem_closedBall, dist_zero_right] at hη
-  exact hη.not_gt hξ.1
+  exact hη.not_gt (mem_annulus.1 hξ).1
+
+variable (ε) in
+/-- The piece `M \ ι (closedBall 0 ε²)` lies in the complement of `e 0` for every map `e` with
+`e 0 = ι 0`: in the summand of Tau Ceti's connected sum along such an `e`. -/
+theorem piece_le_puncture {e : E → M} (he : e 0 = ι 0) :
+    piece ι ε hι ≤ TauCeti.ConnectedSum.puncture e := by
+  intro x hx
+  rw [TauCeti.ConnectedSum.mem_puncture, he]
+  rintro rfl
+  exact hx ⟨0, by simp [sq_nonneg], rfl⟩
 
 variable (ι ε hι) in
 /-- The part of the piece `piece ι ε` along which it is glued: the image under the open map `ι`
 of the annulus `ε² < ‖ξ‖ < 1`, as an open subset of the piece. -/
 def overlap (hι' : IsOpenMap ι) : Opens (piece ι ε hι) :=
-  ⟨Subtype.val ⁻¹' (ι '' annulus E ε),
-    (hι' _ (annulus E ε).isOpen).preimage continuous_subtypeVal⟩
+  ⟨Subtype.val ⁻¹' (ι '' annulus E (ε ^ 2) 1),
+    (hι' _ (annulus E (ε ^ 2) 1).isOpen).preimage continuous_subtypeVal⟩
 
 @[simp]
 theorem mem_overlap_iff {hι' : IsOpenMap ι} {x : piece ι ε hι} :
-    x ∈ overlap ι ε hι hι' ↔ (x : M) ∈ ι '' annulus E ε :=
+    x ∈ overlap ι ε hι hι' ↔ (x : M) ∈ ι '' annulus E (ε ^ 2) 1 :=
   Iff.rfl
 
 end Piece
@@ -256,7 +306,7 @@ variable {M : Type*} [TopologicalSpace M] [ChartedSpace E M] [T2Space M] {ι : E
 /-- For an open embedding `ι` that is a `C^n` local diffeomorphism, `ι` restricted to the annulus
 `ε² < ‖ξ‖ < 1`, as a `C^n` diffeomorphism onto the overlap `overlap ι ε`. -/
 def annulusDiffeomorph :
-    annulus E ε ≃ₘ^n⟮𝓘(ℝ, E), 𝓘(ℝ, E)⟯ overlap ι ε hι.continuous hι.isOpenMap :=
+    annulus E (ε ^ 2) 1 ≃ₘ^n⟮𝓘(ℝ, E), 𝓘(ℝ, E)⟯ overlap ι ε hι.continuous hι.isOpenMap :=
   IsLocalDiffeomorph.diffeomorphOfBijective
     (f := fun ξ ↦ ⟨⟨ι ξ, mem_piece_of_mem_annulus hι.injective ξ.property⟩, ξ, ξ.property, rfl⟩)
     (TauCeti.isLocalDiffeomorph_subtypeVal_comp_iff.1 <|
@@ -269,7 +319,7 @@ def annulusDiffeomorph :
 variable {hι hdι ε}
 
 @[simp]
-theorem coe_annulusDiffeomorph_apply (ξ : annulus E ε) :
+theorem coe_annulusDiffeomorph_apply (ξ : annulus E (ε ^ 2) 1) :
     ((annulusDiffeomorph hι hdι ε ξ : piece ι ε hι.continuous) : M) = ι ξ := by
   unfold annulusDiffeomorph
   exact congrArg (fun x : overlap ι ε hι.continuous hι.isOpenMap ↦
@@ -298,7 +348,7 @@ def overlapDiffeomorph :
     ((gluingDiffeomorph Φ ε hε).trans (annulusDiffeomorph hι₂ hdι₂ ε))
 
 @[simp]
-theorem overlapDiffeomorph_annulusDiffeomorph (ξ : annulus E ε) :
+theorem overlapDiffeomorph_annulusDiffeomorph (ξ : annulus E (ε ^ 2) 1) :
     overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε (annulusDiffeomorph hι₁ hdι₁ ε ξ) =
       annulusDiffeomorph hι₂ hdι₂ ε (gluingDiffeomorph Φ ε hε (n := n) ξ) := by
   simp [overlapDiffeomorph]
@@ -357,12 +407,13 @@ theorem AnnulusSum.inl_eq_inr_iff {x : piece ι₁ ε hι₁.continuous}
   · rintro ⟨hx, rfl⟩
     obtain ⟨ξ, hξ⟩ : ∃ ξ, annulusDiffeomorph hι₁ hdι₁ ε ξ = ⟨x, hx⟩ :=
       (annulusDiffeomorph hι₁ hdι₁ ε).surjective _
-    refine ⟨ξ, ξ.property, ?_, ?_⟩
+    refine ⟨ξ, mem_annulus.1 ξ.property, ?_, ?_⟩
     · exact (congrArg (fun z : overlap ι₁ ε hι₁.continuous hι₁.isOpenMap ↦
         ((z : piece ι₁ ε hι₁.continuous) : M₁)) hξ).symm.trans (coe_annulusDiffeomorph_apply ξ)
     · rw [← hξ, overlapDiffeomorph_annulusDiffeomorph, coe_annulusDiffeomorph_apply,
         coe_gluingDiffeomorph_apply]
   · rintro ⟨ξ, hξ, hx, hy⟩
+    rw [← mem_annulus] at hξ
     have hx' : x ∈ overlap ι₁ ε hι₁.continuous hι₁.isOpenMap := ⟨ξ, hξ, hx.symm⟩
     have hξx : annulusDiffeomorph hι₁ hdι₁ ε ⟨ξ, hξ⟩ = ⟨x, hx'⟩ :=
       Subtype.ext <| Subtype.ext <| by rw [coe_annulusDiffeomorph_apply, hx]
@@ -414,6 +465,269 @@ instance AnnulusSum.instT2Space : T2Space (AnnulusSum hι₁ hdι₁ hι₂ hdι
     exact ⟨⟨x, hx'⟩, rfl, hy'⟩
 
 end Diffeomorph
+
+/-! ### The connected sum as Tau Ceti's connected sum -/
+
+section TauCeti
+
+section Rescale
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] {M : Type*}
+
+/-- The coordinate ball `ι : E → M` rescaled by `ε`: the map `v ↦ ι (ε • v)`. -/
+def rescale (ι : E → M) (ε : ℝ) : E → M := fun v ↦ ι (ε • v)
+
+@[simp]
+theorem rescale_apply (ι : E → M) (ε : ℝ) (v : E) : rescale ι ε v = ι (ε • v) :=
+  (rfl)
+
+/-- For `ε ≠ 0`, the rescaled ball of an injective map is injective. -/
+theorem rescale_injective {ι : E → M} (hι : Function.Injective ι) {ε : ℝ} (hε : ε ≠ 0) :
+    Function.Injective (rescale ι ε) :=
+  hι.comp (smul_right_injective E hε)
+
+/-- For `ε ≠ 0`, the rescaled ball of an open embedding is an open embedding. -/
+theorem isOpenEmbedding_rescale [TopologicalSpace M] {ι : E → M} (hι : IsOpenEmbedding ι) {ε : ℝ}
+    (hε : ε ≠ 0) : IsOpenEmbedding (rescale ι ε) :=
+  hι.comp (Homeomorph.smulOfNeZero ε hε).isOpenEmbedding
+
+/-- For `ε ≠ 0`, the rescaled ball of a `C^n` local diffeomorphism is a `C^n` local
+diffeomorphism. -/
+theorem isLocalDiffeomorph_rescale {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+    [TopologicalSpace M] [ChartedSpace H M] {n : ℕ∞ω} {ι : E → M}
+    (hdι : IsLocalDiffeomorph 𝓘(ℝ, E) I n ι) {ε : ℝ}
+    (hε : ε ≠ 0) : IsLocalDiffeomorph 𝓘(ℝ, E) I n (rescale ι ε) := by
+  have h : rescale ι ε = ι ∘ Diffeomorph.smulAdd n ε 0 hε := funext fun v ↦ by simp
+  exact h ▸ ((Diffeomorph.smulAdd n ε 0 hε).isLocalDiffeomorph_comp_diffeomorph_iff le_rfl).2 hdι
+
+end Rescale
+
+section Gluing
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {M₁ M₂ : Type*}
+  [TopologicalSpace M₁] [T1Space M₁] [TopologicalSpace M₂] [T1Space M₂] {ι₁ : E → M₁}
+  {ι₂ : E → M₂} {ε : ℝ}
+
+/-- In Tau Ceti's connected sum along the rescaled balls `v ↦ ι₁ (ε • v)` and `v ↦ ι₂ (ε • v)`,
+a point `x` of the first summand and a point `y` of the second are glued exactly when
+`x = ι₁ ξ` and `y = ι₂ (inversion 0 ε ξ)` for some `ξ ≠ 0`. -/
+theorem connectedSum_inl_eq_inr_iff (hι₁ : Function.Injective ι₁) (hε : ε ≠ 0)
+    {x : TauCeti.ConnectedSum.puncture (rescale ι₁ ε)}
+    {y : TauCeti.ConnectedSum.puncture (rescale ι₂ ε)} :
+    TauCeti.ConnectedSum.inl _ _ x = TauCeti.ConnectedSum.inr _ _ y ↔
+      ∃ ξ ≠ 0, (x : M₁) = ι₁ ξ ∧ (y : M₂) = ι₂ (inversion 0 ε ξ) := by
+  rw [TauCeti.ConnectedSum.inl_eq_inr_iff (rescale_injective hι₁ hε)]
+  have key (v : E) : ε • inversion 0 1 v = inversion 0 ε (ε • v) := by
+    simpa [AffineMap.homothety_apply] using (inversion_mul_homothety (0 : E) ε 1 v).symm
+  constructor
+  · rintro ⟨v, hv, hx, hy⟩
+    refine ⟨ε • v, smul_ne_zero hε hv, hx.symm, ?_⟩
+    rw [← hy, rescale_apply, key]
+  · rintro ⟨ξ, hξ, hx, hy⟩
+    refine ⟨ε⁻¹ • ξ, smul_ne_zero (inv_ne_zero hε) hξ, ?_, ?_⟩
+    · rw [hx, rescale_apply, smul_inv_smul₀ hε]
+    · rw [hy, rescale_apply, key, smul_inv_smul₀ hε]
+
+end Gluing
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]
+  {n : ℕ∞} {M₁ M₂ : Type u} [TopologicalSpace M₁] [ChartedSpace E M₁] [T2Space M₁]
+  [TopologicalSpace M₂] [ChartedSpace E M₂] [T2Space M₂] {ι₁ : E → M₁} {ι₂ : E → M₂}
+  (hι₁ : IsOpenEmbedding ι₁) (hdι₁ : IsLocalDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) n ι₁)
+  (hι₂ : IsOpenEmbedding ι₂) (hdι₂ : IsLocalDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) n ι₂)
+  (Φ : E ≃ₗᵢ[ℝ] E) {ε : ℝ} (hε : ε ≠ 0)
+
+/-- The map from `AnnulusSum` to Tau Ceti's connected sum along `v ↦ ι₁ (ε • v)` and
+`v ↦ ι₂ (Φ (ε • v))` that is the inclusion of each piece into the corresponding punctured
+summand. -/
+def toConnectedSum :
+    C(AnnulusSum hι₁ hdι₁ hι₂ hdι₂ Φ hε,
+      TauCeti.ConnectedSum (rescale ι₁ ε) (rescale (ι₂ ∘ Φ) ε)) :=
+  GluedAlong.desc _
+    ⟨fun x ↦ TauCeti.ConnectedSum.inl _ _
+      (Opens.inclusion (piece_le_puncture ε (by simp)) x),
+      (TauCeti.ConnectedSum.continuous_inl _ _).comp (continuous_inclusion _)⟩
+    ⟨fun y ↦ TauCeti.ConnectedSum.inr _ _
+      (Opens.inclusion (piece_le_puncture ε (by simp)) y),
+      (TauCeti.ConnectedSum.continuous_inr _ _).comp (continuous_inclusion _)⟩
+    fun x ↦ by
+      obtain ⟨ξ, hξ, hx, hy⟩ := (AnnulusSum.inl_eq_inr_iff hι₁ hdι₁ hι₂ hdι₂ Φ hε).1
+        (GluedAlong.inr_apply _ x).symm
+      exact ((connectedSum_inl_eq_inr_iff (ι₂ := ι₂ ∘ Φ) hι₁.injective hε).2
+        ⟨ξ, norm_pos_iff.1 ((sq_nonneg ε).trans_lt hξ.1), hx, hy⟩).symm
+
+/-- The map `toConnectedSum` sends a point of the first piece to the same point of the first
+punctured summand. -/
+@[simp]
+theorem toConnectedSum_inl (x : piece ι₁ ε hι₁.continuous) :
+    toConnectedSum hι₁ hdι₁ hι₂ hdι₂ Φ hε (GluedAlong.inl _ x) =
+      TauCeti.ConnectedSum.inl (rescale ι₁ ε) (rescale (ι₂ ∘ Φ) ε)
+        ⟨x, piece_le_puncture ε (by simp) x.property⟩ := by
+  simp [toConnectedSum]
+
+/-- The map `toConnectedSum` sends a point of the second piece to the same point of the second
+punctured summand. -/
+@[simp]
+theorem toConnectedSum_inr (y : piece ι₂ ε hι₂.continuous) :
+    toConnectedSum hι₁ hdι₁ hι₂ hdι₂ Φ hε (GluedAlong.inr _ y) =
+      TauCeti.ConnectedSum.inr (rescale ι₁ ε) (rescale (ι₂ ∘ Φ) ε)
+        ⟨y, piece_le_puncture ε (by simp) y.property⟩ := by
+  simp [toConnectedSum]
+
+/-- Points of the two pieces that `toConnectedSum` sends to the same point of Tau Ceti's sum are
+glued in `AnnulusSum`: Tau Ceti glues `ι₁ ξ` to `ι₂ (Φ (inversion 0 ε ξ))`, and both lie in the
+pieces only for `ξ` in the annulus. -/
+private theorem inl_eq_inr_of_toConnectedSum_eq {x : piece ι₁ ε hι₁.continuous}
+    {y : piece ι₂ ε hι₂.continuous}
+    (h : toConnectedSum hι₁ hdι₁ hι₂ hdι₂ Φ hε (GluedAlong.inl _ x) =
+      toConnectedSum hι₁ hdι₁ hι₂ hdι₂ Φ hε (GluedAlong.inr _ y)) :
+    GluedAlong.inl (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε) x =
+      GluedAlong.inr (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε) y := by
+  have hε₂ : 0 < ε ^ 2 := by positivity
+  rw [toConnectedSum_inl, toConnectedSum_inr,
+    connectedSum_inl_eq_inr_iff hι₁.injective hε] at h
+  obtain ⟨ξ, hξ, hx, hy⟩ := h
+  have h₁ := x.property
+  have h₂ := y.property
+  rw [hx, apply_mem_piece_iff hι₁.injective] at h₁
+  rw [hy, Function.comp_apply, apply_mem_piece_iff hι₂.injective, LinearIsometryEquiv.norm_map,
+    lt_norm_inversion_zero_iff ε hε₂ hξ, div_self hε₂.ne'] at h₂
+  exact (AnnulusSum.inl_eq_inr_iff hι₁ hdι₁ hι₂ hdι₂ Φ hε).2 ⟨ξ, ⟨h₁, h₂⟩, hx, hy⟩
+
+/-- The map from `AnnulusSum` to Tau Ceti's connected sum is injective. -/
+theorem injective_toConnectedSum : Function.Injective (toConnectedSum hι₁ hdι₁ hι₂ hdι₂ Φ hε) := by
+  intro z z' h
+  rcases GluedAlong.exists_inl_or_exists_inr _ z with ⟨x, rfl⟩ | ⟨y, rfl⟩ <;>
+    rcases GluedAlong.exists_inl_or_exists_inr _ z' with ⟨x', rfl⟩ | ⟨y', rfl⟩
+  · rw [toConnectedSum_inl, toConnectedSum_inl] at h
+    have := TauCeti.ConnectedSum.inl_injective
+      (rescale_injective (hι₂.injective.comp Φ.injective) hε) h
+    exact congrArg (GluedAlong.inl _) (Subtype.ext (Subtype.mk.inj this))
+  · exact inl_eq_inr_of_toConnectedSum_eq hι₁ hdι₁ hι₂ hdι₂ Φ hε h
+  · exact (inl_eq_inr_of_toConnectedSum_eq hι₁ hdι₁ hι₂ hdι₂ Φ hε h.symm).symm
+  · rw [toConnectedSum_inr, toConnectedSum_inr] at h
+    have := TauCeti.ConnectedSum.inr_injective (rescale_injective hι₁.injective hε) h
+    exact congrArg (GluedAlong.inr _) (Subtype.ext (Subtype.mk.inj this))
+
+/-- For `ε² < 1`, the map from `AnnulusSum` to Tau Ceti's connected sum is surjective: a point
+`ι₁ ξ` with `0 < ‖ξ‖ ≤ ε²`, which Tau Ceti's sum keeps but the first piece removes, is glued to
+the point `ι₂ (Φ (inversion 0 ε ξ))` of the second piece, and symmetrically. -/
+theorem surjective_toConnectedSum (hε₁ : ε ^ 2 < 1) :
+    Function.Surjective (toConnectedSum hι₁ hdι₁ hι₂ hdι₂ Φ hε) := by
+  intro p
+  obtain ⟨⟨x, hx⟩, rfl⟩ | ⟨⟨y, hy⟩, rfl⟩ :=
+    (TauCeti.ConnectedSum.range_inl_union_range_inr (rescale ι₁ ε) (rescale (ι₂ ∘ Φ) ε)).symm ▸
+      Set.mem_univ p
+  · by_cases hp : x ∈ piece ι₁ ε hι₁.continuous
+    · exact ⟨GluedAlong.inl _ ⟨x, hp⟩, toConnectedSum_inl hι₁ hdι₁ hι₂ hdι₂ Φ hε _⟩
+    obtain ⟨ξ, hξε, rfl⟩ := not_not.1 hp
+    have hξ : ξ ≠ 0 := by
+      rintro rfl
+      exact (TauCeti.ConnectedSum.mem_puncture.1 hx) (by simp)
+    have hy : ι₂ (Φ (inversion 0 ε ξ)) ∈ piece ι₂ ε hι₂.continuous := by
+      rw [Φ.map_inversion_zero]
+      exact apply_inversion_mem_piece hι₂.injective hε (Φ.map_ne_zero_iff.2 hξ)
+        (by simpa using hξε.trans_lt hε₁)
+    refine ⟨GluedAlong.inr _ ⟨_, hy⟩, ?_⟩
+    rw [toConnectedSum_inr]
+    exact ((connectedSum_inl_eq_inr_iff hι₁.injective hε).2 ⟨ξ, hξ, rfl, rfl⟩).symm
+  · by_cases hp : y ∈ piece ι₂ ε hι₂.continuous
+    · exact ⟨GluedAlong.inr _ ⟨y, hp⟩, toConnectedSum_inr hι₁ hdι₁ hι₂ hdι₂ Φ hε _⟩
+    obtain ⟨η, hηε, rfl⟩ := not_not.1 hp
+    have hη : η ≠ 0 := by
+      rintro rfl
+      exact (TauCeti.ConnectedSum.mem_puncture.1 hy) (by simp)
+    have hx := apply_inversion_mem_piece (hι := hι₁.continuous) hι₁.injective hε
+      (Φ.symm.map_ne_zero_iff.2 hη) (by simpa using hηε.trans_lt hε₁)
+    refine ⟨GluedAlong.inl _ ⟨_, hx⟩, ?_⟩
+    rw [toConnectedSum_inl]
+    exact (connectedSum_inl_eq_inr_iff hι₁.injective hε).2
+      ⟨_, by simpa [inversion_eq_center hε] using hη, rfl,
+        by simp [inversion_inversion (0 : E) hε]⟩
+
+/-- For `ε ≠ 0` and `ε² < 1`, the map from `AnnulusSum` to Tau Ceti's connected sum is
+bijective. -/
+theorem bijective_toConnectedSum (hε₁ : ε ^ 2 < 1) :
+    Function.Bijective (toConnectedSum hι₁ hdι₁ hι₂ hdι₂ Φ hε) :=
+  ⟨injective_toConnectedSum hι₁ hdι₁ hι₂ hdι₂ Φ hε,
+    surjective_toConnectedSum hι₁ hdι₁ hι₂ hdι₂ Φ hε hε₁⟩
+
+variable [IsManifold 𝓘(ℝ, E) n M₁] [IsManifold 𝓘(ℝ, E) n M₂]
+
+/-- The map from `AnnulusSum` to Tau Ceti's connected sum is a `C^n` local diffeomorphism: on
+each piece it is the inclusion of an open subset followed by the inclusion of a punctured
+summand. -/
+theorem isLocalDiffeomorph_toConnectedSum :
+    letI := TauCeti.ConnectedSum.chartedSpace (H := E) (isOpenEmbedding_rescale hι₁ hε)
+      (isOpenEmbedding_rescale (hι₂.comp_linearIsometryEquiv Φ) hε)
+    IsLocalDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) n (toConnectedSum hι₁ hdι₁ hι₂ hdι₂ Φ hε) := by
+  let := TauCeti.ConnectedSum.chartedSpace (H := E) (isOpenEmbedding_rescale hι₁ hε)
+    (isOpenEmbedding_rescale (hι₂.comp_linearIsometryEquiv Φ) hε)
+  have d₁ := TauCeti.ConnectedSum.isLocalDiffeomorph_inl (isOpenEmbedding_rescale hι₁ hε)
+    (isOpenEmbedding_rescale (hι₂.comp_linearIsometryEquiv Φ) hε)
+    (isLocalDiffeomorph_rescale hdι₁ hε)
+    (isLocalDiffeomorph_rescale (hdι₂.comp_linearIsometryEquiv Φ) hε)
+  have d₂ := TauCeti.ConnectedSum.isLocalDiffeomorph_inr (isOpenEmbedding_rescale hι₁ hε)
+    (isOpenEmbedding_rescale (hι₂.comp_linearIsometryEquiv Φ) hε)
+    (isLocalDiffeomorph_rescale hdι₁ hε)
+    (isLocalDiffeomorph_rescale (hdι₂.comp_linearIsometryEquiv Φ) hε)
+  intro z
+  rcases GluedAlong.exists_inl_or_exists_inr _ z with ⟨x, rfl⟩ | ⟨y, rfl⟩
+  · refine IsLocalDiffeomorphAt.of_comp_right ?_ (GluedAlong.isLocalDiffeomorph_inl _ x)
+    have h : toConnectedSum hι₁ hdι₁ hι₂ hdι₂ Φ hε ∘ GluedAlong.inl _ =
+        TauCeti.ConnectedSum.inl _ _ ∘ Opens.inclusion (piece_le_puncture ε (by simp)) :=
+      funext fun x ↦ toConnectedSum_inl hι₁ hdι₁ hι₂ hdι₂ Φ hε x
+    rw [h]
+    exact (TauCeti.isLocalDiffeomorph_inclusion _ x).comp (hg := d₁ _)
+  · refine IsLocalDiffeomorphAt.of_comp_right ?_ (GluedAlong.isLocalDiffeomorph_inr _ y)
+    have h : toConnectedSum hι₁ hdι₁ hι₂ hdι₂ Φ hε ∘ GluedAlong.inr _ =
+        TauCeti.ConnectedSum.inr _ _ ∘ Opens.inclusion (piece_le_puncture ε (by simp)) :=
+      funext fun y ↦ toConnectedSum_inr hι₁ hdι₁ hι₂ hdι₂ Φ hε y
+    rw [h]
+    exact (TauCeti.isLocalDiffeomorph_inclusion _ y).comp (hg := d₂ _)
+
+/-- For `ε ≠ 0` and `ε² < 1`, the connected sum `AnnulusSum` of McDuff–Salamon is `C^n`
+diffeomorphic to Tau Ceti's connected sum `TauCeti.ConnectedSum` along the rescaled balls
+`v ↦ ι₁ (ε • v)` and `v ↦ ι₂ (Φ (ε • v))`, with Tau Ceti's charts
+`TauCeti.ConnectedSum.chartedSpace`. The diffeomorphism is the identity of `M₁` on the first piece
+and of `M₂` on the second (`annulusSumDiffeomorph_inl`, `annulusSumDiffeomorph_inr`). -/
+def annulusSumDiffeomorph (hε₁ : ε ^ 2 < 1) :
+    letI := TauCeti.ConnectedSum.chartedSpace (H := E) (isOpenEmbedding_rescale hι₁ hε)
+      (isOpenEmbedding_rescale (hι₂.comp_linearIsometryEquiv Φ) hε)
+    AnnulusSum hι₁ hdι₁ hι₂ hdι₂ Φ hε ≃ₘ^n⟮𝓘(ℝ, E), 𝓘(ℝ, E)⟯
+      TauCeti.ConnectedSum (rescale ι₁ ε) (rescale (ι₂ ∘ Φ) ε) :=
+  letI := TauCeti.ConnectedSum.chartedSpace (H := E) (isOpenEmbedding_rescale hι₁ hε)
+    (isOpenEmbedding_rescale (hι₂.comp_linearIsometryEquiv Φ) hε)
+  (isLocalDiffeomorph_toConnectedSum hι₁ hdι₁ hι₂ hdι₂ Φ hε).diffeomorphOfBijective
+    (bijective_toConnectedSum hι₁ hdι₁ hι₂ hdι₂ Φ hε hε₁)
+
+/-- The diffeomorphism `annulusSumDiffeomorph` sends a point `x` of the first piece to the same
+point of the first punctured summand of Tau Ceti's connected sum. -/
+@[simp]
+theorem annulusSumDiffeomorph_inl (hε₁ : ε ^ 2 < 1) (x : piece ι₁ ε hι₁.continuous) :
+    letI := TauCeti.ConnectedSum.chartedSpace (H := E) (isOpenEmbedding_rescale hι₁ hε)
+      (isOpenEmbedding_rescale (hι₂.comp_linearIsometryEquiv Φ) hε)
+    annulusSumDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε hε₁ (GluedAlong.inl _ x) =
+      TauCeti.ConnectedSum.inl (rescale ι₁ ε) (rescale (ι₂ ∘ Φ) ε)
+        ⟨x, piece_le_puncture ε (by simp) x.property⟩ := by
+  let := TauCeti.ConnectedSum.chartedSpace (H := E) (isOpenEmbedding_rescale hι₁ hε)
+    (isOpenEmbedding_rescale (hι₂.comp_linearIsometryEquiv Φ) hε)
+  rw [annulusSumDiffeomorph, IsLocalDiffeomorph.coe_diffeomorphOfBijective, toConnectedSum_inl]
+
+/-- The diffeomorphism `annulusSumDiffeomorph` sends a point `y` of the second piece to the same
+point of the second punctured summand of Tau Ceti's connected sum. -/
+@[simp]
+theorem annulusSumDiffeomorph_inr (hε₁ : ε ^ 2 < 1) (y : piece ι₂ ε hι₂.continuous) :
+    letI := TauCeti.ConnectedSum.chartedSpace (H := E) (isOpenEmbedding_rescale hι₁ hε)
+      (isOpenEmbedding_rescale (hι₂.comp_linearIsometryEquiv Φ) hε)
+    annulusSumDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε hε₁ (GluedAlong.inr _ y) =
+      TauCeti.ConnectedSum.inr (rescale ι₁ ε) (rescale (ι₂ ∘ Φ) ε)
+        ⟨y, piece_le_puncture ε (by simp) y.property⟩ := by
+  let := TauCeti.ConnectedSum.chartedSpace (H := E) (isOpenEmbedding_rescale hι₁ hε)
+    (isOpenEmbedding_rescale (hι₂.comp_linearIsometryEquiv Φ) hε)
+  rw [annulusSumDiffeomorph, IsLocalDiffeomorph.coe_diffeomorphOfBijective, toConnectedSum_inr]
+
+end TauCeti
 
 end SymplecticGeometry.ConnectedSum
 

@@ -46,24 +46,6 @@ noncomputable section
 open Function Manifold
 open scoped Manifold ContDiff
 
-section Coe
-
-variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
-  {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E]
-  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H}
-  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Monoid G]
-  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace 𝕜 E']
-  {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners 𝕜 E' H'}
-  {G' : Type*} [TopologicalSpace G'] [ChartedSpace H' G'] [Monoid G']
-
-/-- The underlying monoid homomorphism of a smooth monoid morphism has the same values. -/
-@[simp]
-theorem ContMDiffMonoidMorphism.coe_toMonoidHom {n : WithTop ℕ∞}
-    (φ : ContMDiffMonoidMorphism I I' n G G') : ⇑φ.toMonoidHom = φ :=
-  (rfl)
-
-end Coe
-
 section Adjoint
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]

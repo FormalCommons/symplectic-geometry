@@ -35,10 +35,10 @@ base does. This gives Thurston's forms `τ + K proj^* β`.
 
 ## Main results
 
-* `Bundle.Trivialization.mpullback_fiberInclusion_eq_mpullback_coordChange`: the pull-backs of a
+* `Bundle.Trivialization.mpullback_fiberInclusionMap_eq_mpullback_coordChange`: the pull-backs of a
   form along the fibre inclusions of two trivializations over a point differ by the coordinate
   change.
-* `Bundle.Trivialization.mpullback_fiberInclusion_eq_of_mem_diffeomorphStabilizer`: a form that
+* `Bundle.Trivialization.mpullback_fiberInclusionMap_eq_of_mem_diffeomorphStabilizer`: a form that
   one chart pulls back to `σ` over a point is pulled back to `σ` by every chart whose coordinate
   change to the first one preserves `σ`.
 * `TauCeti.MapFiber.Atlas.restrictsTo_iff_forall_exists`: for a smooth atlas with structure group
@@ -47,7 +47,7 @@ base does. This gives Thurston's forms `τ + K proj^* β`.
   compatible with a smooth one through the stabilizer of `σ`.
 * `TauCeti.MapFiber.Atlas.RestrictsTo.hasStructureGroup`: a smooth atlas along which a form
   restricts to `σ` has structure group the stabilizer of `σ`.
-* `Bundle.Trivialization.mpullback_fiberInclusion_mpullback_eq_zero`: the pull-back of a form of
+* `Bundle.Trivialization.mpullback_fiberInclusionMap_mpullback_eq_zero`: the pull-back of a form of
   positive degree on the base vanishes on every fibre.
 * `TauCeti.MapFiber.Atlas.restrictsTo_add_iff`, `TauCeti.MapFiber.Atlas.RestrictsTo.add_mpullback`
   and `TauCeti.MapFiber.Atlas.convex_setOf_restrictsTo`: the affine structure of the forms that
@@ -88,32 +88,32 @@ variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] {HB : Type*}
 inverse and the coordinate change from `e` to `e'` over `b` is differentiable, then the pull-back
 of a form along the fibre inclusion of `e` over `b` is the pull-back, along that coordinate
 change, of its pull-back along the fibre inclusion of `e'`. -/
-theorem mpullback_fiberInclusion_eq_mpullback_coordChange {e e' : Trivialization F proj}
+theorem mpullback_fiberInclusionMap_eq_mpullback_coordChange {e e' : Trivialization F proj}
     (he' : e'.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF)) {b : B}
     (hb : b ∈ e.baseSet) (hb' : b ∈ e'.baseSet) (hc : MDifferentiable IF IF (e.coordChange e' b))
     (α : TauCeti.RoughForm IM M V k) :
-    TauCeti.mpullback IF IM (e.fiberInclusion hb) α =
+    TauCeti.mpullback IF IM (e.fiberInclusionMap hb) α =
       TauCeti.mpullback IF IF (e.coordChange e' b)
-        (TauCeti.mpullback IF IM (e'.fiberInclusion hb') α) := by
-  have h : ⇑(e.fiberInclusion hb) = e'.fiberInclusion hb' ∘ e.coordChange e' b :=
-    funext fun v ↦ (e.fiberInclusion_coordChange e' hb hb' v).symm
+        (TauCeti.mpullback IF IM (e'.fiberInclusionMap hb') α) := by
+  have h : ⇑(e.fiberInclusionMap hb) = e'.fiberInclusionMap hb' ∘ e.coordChange e' b :=
+    funext fun v ↦ (e.fiberInclusionMap_coordChange e' hb hb' v).symm
   funext v
   rw [h]
-  exact TauCeti.mpullback_comp_at (hc v) (mdifferentiable_fiberInclusion he' hb' _) α
+  exact TauCeti.mpullback_comp_at (hc v) (mdifferentiable_fiberInclusionMap he' hb' _) α
 
 /-- **Charts related by a stabilizing coordinate change.** If the coordinate change from `e` to
 `e'` over `b` is a diffeomorphism `φ` that preserves a form `σ` on the fibre, and a form `α` on
 the total space pulls back to `σ` along the fibre inclusion of `e'` over `b`, then `α` pulls back
 to `σ` along that of `e` too. -/
-theorem mpullback_fiberInclusion_eq_of_mem_diffeomorphStabilizer [IsManifold IF 1 F]
+theorem mpullback_fiberInclusionMap_eq_of_mem_diffeomorphStabilizer [IsManifold IF 1 F]
     {e e' : Trivialization F proj}
     (he' : e'.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF)) {b : B}
     (hb : b ∈ e.baseSet) (hb' : b ∈ e'.baseSet) {σ : TauCeti.SmoothForm IF F V k}
     {φ : F ≃ₘ⟮IF, IF⟯ F} (hφ : φ ∈ TauCeti.SmoothForm.diffeomorphStabilizer σ)
     (hφe : ⇑φ = e.coordChange e' b) {α : TauCeti.RoughForm IM M V k}
-    (h : TauCeti.mpullback IF IM (e'.fiberInclusion hb') α = σ.val) :
-    TauCeti.mpullback IF IM (e.fiberInclusion hb) α = σ.val := by
-  rw [e.mpullback_fiberInclusion_eq_mpullback_coordChange he' hb hb'
+    (h : TauCeti.mpullback IF IM (e'.fiberInclusionMap hb') α = σ.val) :
+    TauCeti.mpullback IF IM (e.fiberInclusionMap hb) α = σ.val := by
+  rw [e.mpullback_fiberInclusionMap_eq_mpullback_coordChange he' hb hb'
     (hφe ▸ φ.mdifferentiable (by simp)), h, ← hφe]
   exact funext (TauCeti.SmoothForm.mem_diffeomorphStabilizer_iff_forall.1 hφ)
 
@@ -121,14 +121,14 @@ theorem mpullback_fiberInclusion_eq_of_mem_diffeomorphStabilizer [IsManifold IF 
 `proj^* β` of a form of positive degree on the base is zero, since `proj` is constant on the
 fibre. No smoothness is needed: where one of the two maps is not differentiable, its derivative is
 zero. -/
-theorem mpullback_fiberInclusion_mpullback_eq_zero (e : Trivialization F proj) {b : B}
+theorem mpullback_fiberInclusionMap_mpullback_eq_zero (e : Trivialization F proj) {b : B}
     (hb : b ∈ e.baseSet) (hk : k ≠ 0) (β : TauCeti.RoughForm IB B V k) :
-    TauCeti.mpullback IF IM (e.fiberInclusion hb) (TauCeti.mpullback IM IB proj β) = 0 := by
+    TauCeti.mpullback IF IM (e.fiberInclusionMap hb) (TauCeti.mpullback IM IB proj β) = 0 := by
   funext v
-  by_cases hι : MDifferentiableAt IF IM (e.fiberInclusion hb) v
-  · by_cases hproj : MDifferentiableAt IM IB proj (e.fiberInclusion hb v)
+  by_cases hι : MDifferentiableAt IF IM (e.fiberInclusionMap hb) v
+  · by_cases hproj : MDifferentiableAt IM IB proj (e.fiberInclusionMap hb v)
     · rw [← TauCeti.mpullback_comp_at hι hproj,
-        show proj ∘ e.fiberInclusion hb = fun _ ↦ b from funext (e.proj_fiberInclusion hb),
+        show proj ∘ e.fiberInclusionMap hb = fun _ ↦ b from funext (e.proj_fiberInclusionMap hb),
         TauCeti.mpullback_const hk]
     · refine TauCeti.mpullback_apply_eq_zero ?_
       ext w
@@ -161,11 +161,11 @@ variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] {HB : Type*}
 along the fibre inclusion `v ↦ (A.trivAt b)⁻¹ (b', v)` is `σ`. -/
 def RestrictsTo (A : Atlas F proj) (σ : SmoothForm IF F ℝ k) (τ : SmoothForm IM M ℝ k) : Prop :=
   ∀ b b' (hb' : b' ∈ (A.trivAt b).baseSet),
-    TauCeti.mpullback IF IM ((A.trivAt b).fiberInclusion hb') τ.val = σ.val
+    TauCeti.mpullback IF IM ((A.trivAt b).fiberInclusionMap hb') τ.val = σ.val
 
 theorem restrictsTo_iff :
     A.RestrictsTo σ τ ↔ ∀ b b' (hb' : b' ∈ (A.trivAt b).baseSet),
-      TauCeti.mpullback IF IM ((A.trivAt b).fiberInclusion hb') τ.val = σ.val :=
+      TauCeti.mpullback IF IM ((A.trivAt b).fiberInclusionMap hb') τ.val = σ.val :=
   Iff.rfl
 
 /-- **One chart at each point suffices.** For a smooth atlas whose coordinate changes preserve
@@ -174,11 +174,11 @@ base set contains `b'` pulls `τ` back to `σ` over `b'`. -/
 theorem restrictsTo_iff_forall_exists (hA : A.IsContMDiff ∞ IB IF IM)
     (hH : A.HasStructureGroup (SmoothForm.diffeomorphStabilizer σ)) :
     A.RestrictsTo σ τ ↔ ∀ b', ∃ b, ∃ hb' : b' ∈ (A.trivAt b).baseSet,
-      TauCeti.mpullback IF IM ((A.trivAt b).fiberInclusion hb') τ.val = σ.val := by
+      TauCeti.mpullback IF IM ((A.trivAt b).fiberInclusionMap hb') τ.val = σ.val := by
   refine ⟨fun h b' ↦ ⟨b', A.mem_baseSet_trivAt b', h _ _ _⟩, fun h b b' hb' ↦ ?_⟩
   obtain ⟨b₀, hb₀, h₀⟩ := h b'
   obtain ⟨φ, hφ, hφe⟩ := hasStructureGroup_iff.1 hH b b₀ b' hb' hb₀
-  exact Trivialization.mpullback_fiberInclusion_eq_of_mem_diffeomorphStabilizer
+  exact Trivialization.mpullback_fiberInclusionMap_eq_of_mem_diffeomorphStabilizer
     (hA.mdifferentiable_trivAt (by simp) b₀) hb' hb₀ hφ hφe h₀
 
 /-- **Independence of the atlas.** If `τ` restricts to `σ` along a smooth atlas `A`, then it
@@ -187,7 +187,7 @@ theorem RestrictsTo.of_coordChangeMem (hA : A.IsContMDiff ∞ IB IF IM)
     (h : A.CoordChangeMem A' (SmoothForm.diffeomorphStabilizer σ)) (hτ : A.RestrictsTo σ τ) :
     A'.RestrictsTo σ τ := fun b b' hb' ↦ by
   obtain ⟨φ, hφ, hφe⟩ := coordChangeMem_iff.1 h.symm b b' b' hb' (A.mem_baseSet_trivAt b')
-  exact Trivialization.mpullback_fiberInclusion_eq_of_mem_diffeomorphStabilizer
+  exact Trivialization.mpullback_fiberInclusionMap_eq_of_mem_diffeomorphStabilizer
     (hA.mdifferentiable_trivAt (by simp) b') hb' (A.mem_baseSet_trivAt b') hφ hφe (hτ _ _ _)
 
 /-- **Restricting forms give symplectic atlases.** If a form restricts to `σ` along a smooth
@@ -198,7 +198,7 @@ theorem RestrictsTo.hasStructureGroup (hA : A.IsContMDiff ∞ IB IF IM) (hτ : A
   refine hasStructureGroup_iff.2 fun b b' x hb hb' ↦ ?_
   obtain ⟨φ, -, hφe⟩ := hasStructureGroup_iff.1 hA.hasStructureGroup_top b b' x hb hb'
   refine ⟨φ, SmoothForm.mem_diffeomorphStabilizer_iff_forall.2 fun v ↦ ?_, hφe⟩
-  rw [hφe, ← hτ b' x hb', ← (A.trivAt b).mpullback_fiberInclusion_eq_mpullback_coordChange
+  rw [hφe, ← hτ b' x hb', ← (A.trivAt b).mpullback_fiberInclusionMap_eq_mpullback_coordChange
       (hA.mdifferentiable_trivAt (by simp) b') hb hb' (hφe ▸ φ.mdifferentiable (by simp)),
     hτ b x hb, hτ b' x hb']
 
@@ -208,7 +208,7 @@ theorem RestrictsTo.hasStructureGroup (hA : A.IsContMDiff ∞ IB IF IM) (hτ : A
 zero along every fibre inclusion of the atlas. -/
 theorem restrictsTo_add_iff (hτ : A.RestrictsTo σ τ) (β : SmoothForm IM M ℝ k) :
     A.RestrictsTo σ (τ + β) ↔ ∀ b b' (hb' : b' ∈ (A.trivAt b).baseSet),
-      TauCeti.mpullback IF IM ((A.trivAt b).fiberInclusion hb') β.val = 0 := by
+      TauCeti.mpullback IF IM ((A.trivAt b).fiberInclusionMap hb') β.val = 0 := by
   refine forall₃_congr fun b b' hb' ↦ ?_
   rw [Submodule.coe_add, TauCeti.mpullback_add, hτ b b' hb', add_eq_left]
 
@@ -220,7 +220,7 @@ theorem RestrictsTo.add_mpullback [IsManifold IB 1 B] (hτ : A.RestrictsTo σ τ
     A.RestrictsTo σ (τ + K • SmoothForm.mpullback proj hproj β) := by
   refine (restrictsTo_add_iff hτ _).2 fun b b' hb' ↦ ?_
   rw [Submodule.coe_smul, SmoothForm.coe_mpullback, TauCeti.mpullback_smul,
-    (A.trivAt b).mpullback_fiberInclusion_mpullback_eq_zero hb' hk, smul_zero]
+    (A.trivAt b).mpullback_fiberInclusionMap_mpullback_eq_zero hb' hk, smul_zero]
 
 /-- **Convexity.** The forms that restrict to `σ` along an atlas form a convex set. -/
 theorem convex_setOf_restrictsTo (A : Atlas F proj) (σ : SmoothForm IF F ℝ k) :
