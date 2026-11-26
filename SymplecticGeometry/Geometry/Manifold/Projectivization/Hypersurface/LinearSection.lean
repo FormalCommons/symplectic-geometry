@@ -562,7 +562,7 @@ private theorem range_fderiv_chartLift (z : X) :
     (ContinuousLinearMap.proj (R := ℂ) (φ := fun _ ↦ ℂ) j).toLinearMap
   set g : (Fin (n + 2) → ℂ) →ₗ[ℂ] ℂ := (X.polyDeriv v).toLinearMap
   have hc : ((z : ℙ ℂ (Fin (n + 2) → ℂ)).rep j)⁻¹ ≠ 0 :=
-    inv_ne_zero ((mem_affineOpen_iff _ _).1 (mem_affineOpen_twistCore_indexAt 1 _))
+    inv_ne_zero (rep_indexAt_twistCore_ne_zero 1 _)
   have hv : v = ((z : ℙ ℂ (Fin (n + 2) → ℂ)).rep j)⁻¹ • (z : ℙ ℂ (Fin (n + 2) → ℂ)).rep :=
     X.chartLift_chartAt z
   have hfv : f v = 1 := X.chartLift_apply_indexAt z _
@@ -595,7 +595,7 @@ private theorem surjective_comp_fderiv_chartLift_iff {ℓ : (Fin (n + 2) → ℂ
   set v := chartLift X z (chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z z)
   set c := ((z : ℙ ℂ (Fin (n + 2) → ℂ)).rep j)⁻¹
   have hc : c ≠ 0 :=
-    inv_ne_zero ((mem_affineOpen_iff _ _).1 (mem_affineOpen_twistCore_indexAt 1 _))
+    inv_ne_zero (rep_indexAt_twistCore_ne_zero 1 _)
   have hv : v = c • (z : ℙ ℂ (Fin (n + 2) → ℂ)).rep := X.chartLift_chartAt z
   have hD := X.injective_fderiv_chartLift z
   -- Surjectivity is injectivity, as source and target both have dimension `n`.
