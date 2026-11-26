@@ -14,6 +14,7 @@ import SymplecticGeometry.Geometry.Symplectic.Moser.Relative
 import TauCeti.Geometry.Symplectic.Hamiltonian.CanonicalTransformation
 import SymplecticGeometry.Geometry.Manifold.GroupAction.Opens
 import SymplecticGeometry.Geometry.Manifold.GroupAction.InvariantPrimitive
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Average
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Logic.Equiv.PartialEquiv
@@ -381,8 +382,7 @@ private theorem exists_partialDiffeomorph_invariantCore_of_eq_along [ContinuousS
       SmoothForm.mextDerivₗ_measureAverage_of_invariant IG (haarProb G) hβₗ hτG]
   have hγG (g : G) : SmoothForm.mpullback (fun x : W.invariantCore G ↦ g • x)
       (contMDiff_const_smul g) γ = γ :=
-    Subtype.ext ((SmoothForm.coe_mpullback _ _ _).trans
-      (SmoothForm.mpullback_smul_measureAverage IG _ β g))
+    SmoothForm.mpullback_smul_measureAverage_eq_self IG _ β g
   -- Moser's argument on the invariant core, equivariantly.
   obtain ⟨Φ, hΦf, hΦ, hsrc, hΦG⟩ :=
     SmoothTwoForm.exists_partialDiffeomorph_mpullback_eq_of_mextDeriv_eq_sub_of_smul
