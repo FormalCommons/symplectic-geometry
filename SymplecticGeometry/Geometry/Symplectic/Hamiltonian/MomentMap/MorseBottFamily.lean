@@ -7,8 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.Morse.Bott.Family
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap.MorseBott
-import TauCeti.Geometry.Manifold.Riemannian.Invariant
-import TauCeti.Geometry.Manifold.Riemannian.Isometry.FixedPoints.Submanifold
+import SymplecticGeometry.Geometry.Manifold.GroupAction.FixedPoints
 
 /-!
 # The components of a moment map are Morse–Bott functions
@@ -20,12 +19,11 @@ structure for which its inclusion into `M` is a smooth embedding, form a
 `TauCeti.IsMorseBottFamily` for `x ↦ μ x ξ`.
 
 The critical set is the fixed set `M^{T_ξ}` of the closure `T_ξ` of `{exp (t ξ) | t ∈ ℝ}`
-(`TauCeti.SmoothTwoForm.IsMomentMap.criticalPoints_eq_fixedPoints`). The compact group `G`
-preserves a smooth metric (`TauCeti.of_forall_riemannianBundle_inner_mfderiv`), so `T_ξ` acts by
-isometries of it, and each connected component of `M^{T_ξ}` is an embedded submanifold whose
+(`TauCeti.SmoothTwoForm.IsMomentMap.criticalPoints_eq_fixedPoints`). Since `T_ξ` is a subgroup of
+the compact Lie group `G`, each connected component of `M^{T_ξ}` is an embedded submanifold whose
 tangent spaces are the fixed tangent subspaces of `T_ξ`
-(`TauCeti.exists_isSmoothEmbedding_connectedComponentIn_fixedPoints`), hence a nondegenerate
-critical submanifold of `x ↦ μ x ξ`
+(`SymplecticGeometry.exists_isSmoothEmbedding_connectedComponentIn_fixedPoints_of_compactSpace`),
+hence a nondegenerate critical submanifold of `x ↦ μ x ξ`
 (`TauCeti.SmoothTwoForm.IsMomentMap.isNondegenerateCriticalSubmanifold_of_fixedTangentSubspace_le`).
 The components are connected, pairwise disjoint and cover the critical set, so they form a
 Morse–Bott family by `TauCeti.IsMorseBottFamily.of_pairwise_disjoint`.
@@ -89,14 +87,9 @@ private theorem exists_isSmoothEmbedding_carrierIn
     rw [← h.criticalPoints_eq_fixedPoints hσ]
     exact c.carrierIn_subset hp
   rw [c.carrierIn_eq_connectedComponentIn hp, h.criticalPoints_eq_fixedPoints hσ]
-  obtain ⟨L, hL⟩ : ∃ L : Submodule ℝ E', Module.finrank ℝ L =
-      Module.finrank ℝ (fixedTangentSubspace 𝓘(ℝ, E') (Lie.closedOneParameterSubgroup ξ) p) :=
-    ⟨_, rfl⟩
-  -- `G` preserves some smooth metric, so `T_ξ` acts by isometries of it.
-  have : ContMDiffConstSMul 𝓘(ℝ, E') ∞ G M := ⟨ContMDiffSMul.contMDiff_const_smul (I := I)⟩
-  refine of_forall_riemannianBundle_inner_mfderiv (I := 𝓘(ℝ, E')) (M := M) I G fun hG ↦ ?_
-  exact ⟨L, exists_isSmoothEmbedding_connectedComponentIn_fixedPoints
-    (K := Lie.closedOneParameterSubgroup ξ) (fun a x u w ↦ hG a x u w) hpfix hL⟩
+  exact ⟨_,
+    SymplecticGeometry.exists_isSmoothEmbedding_connectedComponentIn_fixedPoints_of_compactSpace I
+      hpfix rfl⟩
 
 /-- **The components of a moment map are Morse–Bott functions.** For a compact Lie group `G`
 acting smoothly on a σ-compact manifold with moment map `μ` for a nondegenerate two-form `σ`, and
