@@ -41,8 +41,9 @@ of `-(2π)⁻¹ F_α` is the first Chern number of `V`
   `Φ : Q → P` of principal `Circle`-bundles covering `f : B' → B`, the pull-back `Φ^* α` is a
   connection form on `Q`, with curvature `f^* F_α`.
 * `SymplecticGeometry.realFirstChernClass_map`: the real first Chern class of `Q` is the pull-back
-  along `f` of that of `P`; for `f = id` this is its invariance under isomorphisms of circle
-  bundles.
+  along `f` of that of `P`.
+* `SymplecticGeometry.realFirstChernClass_eq_of_map`: the case `f = id`, so that `Q` and `P`
+  have the same class; in particular the class is invariant under isomorphisms of circle bundles.
 
 That `dΦ` carries fundamental vector fields to fundamental vector fields is Tau Ceti's
 `TauCeti.mfderiv_rightFundamentalVectorField_of_map_op_smul`.
@@ -193,6 +194,21 @@ theorem realFirstChernClass_map :
   congr 2
   exact Subtype.ext ((hα.curvature_mpullback hf hΦ hΦz hΦf).trans
     (closedForms.coe_mpullback f hf 2 ⟨_, hα.curvature_mem_closedForms⟩).symm)
+
+/-- **Invariance of the real first Chern class under maps over the identity.** If a smooth map `Φ`
+of total spaces of principal `Circle`-bundles over the same base `B` commutes with the action of
+`Circle` and covers the identity of `B`, then `Q` and `P` have the same real first Chern class. -/
+theorem realFirstChernClass_eq_of_map {Q : B → Type*} [TopologicalSpace (TotalSpace Circle Q)]
+    [∀ b, TopologicalSpace (Q b)] [FiberBundle Circle Q] [∀ b, MulAction Circleᵐᵒᵖ (Q b)]
+    [PrincipalBundle Circle Q] [ContMDiffFiberBundle ∞ Circle Q IB (𝓡 1)]
+    {Φ : ManifoldTotalSpace Circle Q → ManifoldTotalSpace Circle P}
+    (hΦ : ContMDiff (IB.prod (𝓡 1)) (IB.prod (𝓡 1)) ∞ Φ)
+    (hΦz : ∀ (z : Circle) (q : ManifoldTotalSpace Circle Q), Φ (op z • q) = op z • Φ q)
+    (hΦπ : ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1) ∘ Φ =
+      ManifoldTotalSpace.projContMDiffMap ∞ Circle Q IB (𝓡 1)) :
+    realFirstChernClass IB Q = realFirstChernClass IB P := by
+  rw [realFirstChernClass_map contMDiff_id hΦ hΦz hΦπ, deRhamCohomology.map_id,
+    LinearMap.id_apply]
 
 end Naturality
 
