@@ -80,10 +80,7 @@ set of the preferred trivialization at `b`. -/
 theorem continuousOn_localSection (b : B) :
     ContinuousOn (fun y ↦ (⟨y, localSection G P b y⟩ : TotalSpace G P))
       (trivializationAt G P b).baseSet :=
-  ((trivializationAt G P b).continuousOn_symm.comp
-    (continuous_id.prodMk (continuous_const (y := (1 : G)))).continuousOn
-    fun _ hy ↦ ⟨hy, Set.mem_univ _⟩).congr fun _ _ ↦ by
-    rw [Function.comp_apply, id, localSection_def]
+  (trivializationAt G P b).continuousOn_symm_prodMk_left.congr fun _ hy ↦ mk_localSection hy
 
 end TauCeti.PrincipalBundle
 
