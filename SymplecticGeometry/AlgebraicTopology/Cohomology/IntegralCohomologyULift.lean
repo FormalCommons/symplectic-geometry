@@ -55,6 +55,8 @@ is why the file imports all of `TauCeti.AlgebraicTopology.Cohomology.IntegralCup
   inverse of its multiplication.
 * `TauCeti.integralCoeffIso_inv_eq_uliftIntIso_inv`: Tau Ceti's isomorphisms
   `TauCeti.integralCoeffIso` and `TauCeti.uliftIntIso` have the same inverse.
+* `TauCeti.integralCoeffIso_inv_eq_ofHom`: the inverse of `TauCeti.integralCoeffIso` is the
+  inverse of `ULift.moduleEquiv`.
 * `TopCat.uliftIntegralCohomologyIso_naturality`: `TopCat.uliftIntegralCohomologyIso` commutes
   with the maps induced by continuous maps; `TopCat.uliftIntegralCohomologyIso_naturality_apply`
   states it on a class.
@@ -117,6 +119,13 @@ of integral cohomology) and `TauCeti.uliftIntIso`, have the same inverse `n ↦ 
 theorem integralCoeffIso_inv_eq_uliftIntIso_inv : integralCoeffIso.inv = uliftIntIso.inv :=
   ModuleCat.hom_ext (LinearMap.ext fun x ↦
     (integralCoeffIso_inv_apply x).trans (uliftIntIso_inv_apply x).symm)
+
+/-- The inverse of `TauCeti.integralCoeffIso` is the linear map `n ↦ ⟨n⟩` given by the inverse of
+`ULift.moduleEquiv`. -/
+theorem integralCoeffIso_inv_eq_ofHom :
+    integralCoeffIso.inv =
+      ModuleCat.ofHom (ULift.moduleEquiv.symm : ℤ ≃ₗ[ℤ] ULift.{0} ℤ).toLinearMap :=
+  ModuleCat.hom_ext (LinearMap.ext fun x ↦ integralCoeffIso_inv_apply x)
 
 end TauCeti
 
