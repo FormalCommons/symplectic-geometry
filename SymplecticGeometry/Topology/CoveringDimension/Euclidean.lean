@@ -5,16 +5,17 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Topology.CoveringDimension.Basic
+public import TauCeti.Topology.Dimension.Covering
 public import Mathlib.Topology.MetricSpace.Pseudo.Pi
 public import Mathlib.Topology.Algebra.Module.FiniteDimension
-public import Mathlib.Topology.MetricSpace.Pseudo.Lemmas
+import Mathlib.Topology.Homeomorph.Lemmas
 
 /-!
 # Covering dimension of compact sets in Euclidean space
 
-Every compact subset of a finite-dimensional real normed space `E` satisfies
-`CoveringDimLE K (finrank ℝ E)`.
+Every compact subset `K` of a finite-dimensional real normed space `E` has covering dimension at
+most `finrank ℝ E`, as a subspace, in the sense of Tau Ceti's `TauCeti.HasCoveringDimensionLE`.
+Tau Ceti proves this for `ℝ` only (`Real.hasCoveringDimensionLE_one_of_isCompact`).
 
 The proof colours `Fin n → ℝ` by `n + 1` shifted grids of open cubes. For a scale `r > 0` and
 `u = r / (3 (n + 1))`, the cube `gridCube n r c k` of colour `c : Fin (n + 1)` and index
@@ -22,18 +23,19 @@ The proof colours `Fin n → ℝ` by `n + 1` shifted grids of open cubes. For a 
 `((3 (n + 1) kᵢ + 3 c + 1) u, (3 (n + 1) kᵢ + 3 c + 3 (n + 1) - 1) u)`. Cubes of one colour are
 disjoint, any two points of one cube are at distance less than `r`, and every point lies in a
 cube of some colour: each coordinate lies near the boundary of the grid of at most one colour,
-and there are `n` coordinates and `n + 1` colours. Given a finite open cover of a compact `K`,
-the cubes of a scale below a Lebesgue number that meet `K` refine it, finitely many of them
-cover `K`, and a point lies in at most one cube of each colour.
+and there are `n` coordinates and `n + 1` colours. Given an open cover of a compact `K`, the
+traces on `K` of the cubes of a scale below a Lebesgue number refine it, and a point lies in at
+most one cube of each colour.
 
 ## Main declarations
 
 * `SymplecticGeometry.gridCube`: the cube of a colour and an index, with `isOpen_gridCube`,
   `eq_of_mem_gridCube` (cubes of one colour are disjoint), `dist_lt_of_mem_gridCube` and
   `exists_mem_gridCube` (every point lies in a cube).
-* `IsCompact.coveringDimLE_pi`: compact subsets of `Fin n → ℝ` satisfy `CoveringDimLE K n`.
-* `IsCompact.coveringDimLE_finrank`: compact subsets of a finite-dimensional real normed space
-  `E` satisfy `CoveringDimLE K (finrank ℝ E)`.
+* `IsCompact.hasCoveringDimensionLE_pi`: compact subsets of `Fin n → ℝ` have covering dimension
+  at most `n`.
+* `IsCompact.hasCoveringDimensionLE_finrank`: compact subsets of a finite-dimensional real
+  normed space `E` have covering dimension at most `finrank ℝ E`.
 
 ## References
 
@@ -156,52 +158,52 @@ end SymplecticGeometry
 
 namespace IsCompact
 
-open SymplecticGeometry
+open SymplecticGeometry TauCeti
 
-/-- Every compact subset of `Fin n → ℝ`, with the sup distance, satisfies `CoveringDimLE K n`. -/
-theorem coveringDimLE_pi {n : ℕ} {K : Set (Fin n → ℝ)} (hK : IsCompact K) :
-    CoveringDimLE K n := by
-  classical
-  rw [coveringDimLE_def]
-  intro 𝒰 hU hKU
-  obtain ⟨δ, hδ, hδU⟩ := lebesgue_number_lemma_of_metric hK (c := fun U : 𝒰 => (U : Set _))
-    (fun U => hU U U.property) (by simpa [sUnion_eq_iUnion] using hKU)
-  obtain ⟨t, ht⟩ := hK.elim_finite_subcover (fun p : Fin (n + 1) × (Fin n → ℤ) =>
-    gridCube n δ p.1 p.2) (fun p => isOpen_gridCube _ _ _ _)
-    (fun x _ => by
-      obtain ⟨c, k, h⟩ := exists_mem_gridCube n hδ x
-      exact mem_iUnion.2 ⟨(c, k), h⟩)
-  refine ⟨(t.filter fun p => (gridCube n δ p.1 p.2 ∩ K).Nonempty).image
-    fun p => gridCube n δ p.1 p.2, ?_, fun x hx => ?_, ?_, fun x _ => ?_⟩
-  · simp only [Finset.mem_image]
-    rintro _ ⟨p, -, rfl⟩
-    exact isOpen_gridCube n δ p.1 p.2
-  · obtain ⟨p, hpt, hxp⟩ := mem_iUnion₂.1 (ht hx)
-    exact ⟨_, Finset.mem_coe.2 (Finset.mem_image_of_mem _
-      (Finset.mem_filter.2 ⟨hpt, x, hxp, hx⟩)), hxp⟩
-  · simp only [Finset.mem_image, Finset.mem_filter, forall_exists_index, and_imp]
-    rintro _ p - ⟨y, hyp, hyK⟩ rfl
-    obtain ⟨U, hyU⟩ := hδU y hyK
-    exact ⟨U, U.property, fun z hz => hyU (by
-      rw [Metric.mem_ball]; exact dist_lt_of_mem_gridCube hδ hz hyp)⟩
-  · rw [Finset.filter_image]
-    refine Finset.card_image_le.trans ((Finset.card_le_card_of_injOn Prod.fst
-      (fun _ _ => Finset.mem_univ _) fun p hp p' hp' hpp' => ?_).trans (by simp))
-    simp only [Finset.coe_filter, mem_ofPred_eq] at hp hp'
+/-- Every compact subset `K` of `Fin n → ℝ`, with the sup distance, has covering dimension at
+most `n`. -/
+theorem hasCoveringDimensionLE_pi {n : ℕ} {K : Set (Fin n → ℝ)} (hK : IsCompact K) :
+    HasCoveringDimensionLE K n := by
+  have : CompactSpace K := isCompact_iff_compactSpace.1 hK
+  refine hasCoveringDimensionLE_iff.2 fun 𝒰 hUo hUc => ?_
+  obtain ⟨δ, hδ, hδU⟩ := lebesgue_number_lemma_of_metric isCompact_univ
+    (c := fun U : 𝒰 => (U : Set K)) (fun U => hUo U U.property)
+    (by simpa [sUnion_eq_iUnion] using hUc.ge)
+  -- The refinement: the traces on `K` of all cubes at scale `δ` that meet `K`.
+  let cube : Fin (n + 1) × (Fin n → ℤ) → Set K := fun p => (↑) ⁻¹' gridCube n δ p.1 p.2
+  refine ⟨{V | ∃ p, cube p = V ∧ V.Nonempty}, ?_, ?_, ?_, fun x => ?_⟩
+  · rintro _ ⟨p, rfl, -⟩
+    exact (isOpen_gridCube n δ _ _).preimage continuous_subtypeVal
+  · refine eq_univ_of_forall fun x => ?_
+    obtain ⟨c, k, h⟩ := exists_mem_gridCube n hδ x
+    exact mem_sUnion.2 ⟨cube (c, k), ⟨(c, k), rfl, x, h⟩, h⟩
+  · rintro _ ⟨p, rfl, y, hy⟩
+    obtain ⟨U, hyU⟩ := hδU y (mem_univ y)
+    refine ⟨U, U.property, fun z hz => hyU ?_⟩
+    rw [Metric.mem_ball, Subtype.dist_eq]
+    exact dist_lt_of_mem_gridCube hδ hz hy
+  · -- A cube containing `x` is determined by its colour.
+    have hsub : {V | V ∈ {V | ∃ p, cube p = V ∧ V.Nonempty} ∧ x ∈ V} ⊆
+        cube '' {p | (x : Fin n → ℝ) ∈ gridCube n δ p.1 p.2} := by
+      rintro _ ⟨⟨p, rfl, -⟩, hx⟩
+      exact ⟨p, hx, rfl⟩
+    refine (encard_le_encard hsub).trans ((encard_image_le _ _).trans ?_)
+    refine (encard_le_encard_of_injOn (f := Prod.fst) (t := univ) (mapsTo_univ _ _)
+      fun p hp p' hp' hpp' => ?_).trans (by simp)
     obtain ⟨c, k⟩ := p
     obtain ⟨c', k'⟩ := p'
     obtain rfl : c = c' := hpp'
-    rw [eq_of_mem_gridCube hδ (k := k) hp.2 hp'.2]
+    rw [eq_of_mem_gridCube hδ (k := k) hp hp']
 
-/-- Every compact subset `K` of a finite-dimensional real normed space `E` satisfies
-`CoveringDimLE K (finrank ℝ E)`. -/
-theorem coveringDimLE_finrank {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+/-- Every compact subset `K` of a finite-dimensional real normed space `E` has covering
+dimension at most `finrank ℝ E`. -/
+theorem hasCoveringDimensionLE_finrank {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     [FiniteDimensional ℝ E] {K : Set E} (hK : IsCompact K) :
-    CoveringDimLE K (Module.finrank ℝ E) := by
+    HasCoveringDimensionLE K (Module.finrank ℝ E) := by
   let e : E ≃L[ℝ] (Fin (Module.finrank ℝ E) → ℝ) :=
     ContinuousLinearEquiv.ofFinrankEq (by simp)
-  exact CoveringDimLE.of_isInducing e.toHomeomorph.isInducing
-    (hK.image e.continuous).coveringDimLE_pi
+  exact (e.toHomeomorph.image K).isHomeomorph.hasCoveringDimensionLE_iff.2
+    (hK.image e.continuous).hasCoveringDimensionLE_pi
 
 end IsCompact
 
