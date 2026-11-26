@@ -308,7 +308,7 @@ theorem nondegenerate_bilinFormAt_smul_iff [IsManifold I 1 M] {G : Type*} [Group
     (σ.bilinFormAt (k • y)).Nondegenerate ↔ (σ.bilinFormAt y).Nondegenerate := by
   have hk : (mfderiv I I (k • ·) y).IsInvertible := by
     rw [← Diffeomorph.coe_constSmul (I := I) (n := ∞) k]
-    exact ((Diffeomorph.constSmul I ∞ k).isLocalDiffeomorph y).isInvertible_mfderiv (by simp)
+    exact (Diffeomorph.constSmul I ∞ k).isInvertible_mfderiv (by simp)
   refine nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv hk ?_
   have h := congrArg Subtype.val hσ
   rw [SmoothForm.coe_mpullback] at h
