@@ -48,6 +48,9 @@ open sets on which the Moser fields of Moser's argument are defined
 * `TauCeti.SmoothTwoForm.bilinFormAt_add_smul_sub_of_eq`,
   `TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_add_smul_sub_of_eq`: at a point where `σ₀` and
   `σ₁` agree, every form `σ₀ + s (σ₁ - σ₀)` has the bilinear form of `σ₀`.
+* `TauCeti.SmoothTwoForm.IsNondegenerate.contMDiff_interiorEquiv_symm_mpullback_prodMk`: for a
+  fixed nondegenerate `σ`, the fields `(σ♭)⁻¹ α_t` of a smooth family of one-forms `α_t` depend
+  smoothly on `(t, x)`.
 
 The proofs of `isOpen_setOf_isInvertible_flat_mpullback_prodMk` and
 `isOpen_setOf_forall_mem_Icc_nondegenerate` follow Tau Ceti's private
@@ -213,6 +216,29 @@ theorem nondegenerate_bilinFormAt_add_smul_sub_of_eq {σ₀ σ₁ : SmoothTwoFor
     ((σ₀ + s • (σ₁ - σ₀)).bilinFormAt x).Nondegenerate := by
   rw [bilinFormAt_add_smul_sub_of_eq h s]
   exact hσ₀
+
+/-- **Inverse flat maps of a fixed nondegenerate two-form along a family of one-forms.** For a
+nondegenerate two-form `σ` on `M` and a smooth one-form `α` on `N × M` with slices `α_t`, the
+vector fields `(σ♭)⁻¹ α_t` depend smoothly on `t`: the map `(t, x) ↦ (x, (σ♭)⁻¹ α_t (x))` is
+smooth. This is `TauCeti.SmoothTwoForm.contMDiff_interiorEquiv_symm_mpullback_prodMk` for the
+constant family `Prod.snd^* σ`. -/
+theorem IsNondegenerate.contMDiff_interiorEquiv_symm_mpullback_prodMk [FiniteDimensional ℝ E]
+    {EN HN N : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] [TopologicalSpace HN]
+    {J : ModelWithCorners ℝ EN HN} [TopologicalSpace N] [ChartedSpace HN N] [IsManifold J ∞ N]
+    {σ : SmoothTwoForm I M} (hσ : σ.IsNondegenerate) (α : SmoothForm (J.prod I) (N × M) ℝ 1) :
+    ContMDiff (J.prod I) I.tangent ∞ (fun p : N × M ↦ (⟨p.2, hσ.interiorEquiv.symm
+      (SmoothForm.mpullback (Prod.mk p.1) (contMDiff_const.prodMk contMDiff_id) α) p.2⟩ :
+        TangentBundle I M)) := by
+  -- The constant family `σ'` of `σ` on `N × M`, whose slices are all `σ`.
+  set σ' : SmoothTwoForm (J.prod I) (N × M) := SmoothForm.mpullback Prod.snd contMDiff_snd σ
+  have hσ' (t : N) :
+      SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) σ' = σ :=
+    SmoothForm.mpullback_prodMk_mpullback_snd σ t
+  have hnd (t : N) : IsNondegenerate
+      (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) σ') :=
+    (hσ' t).symm ▸ hσ
+  exact (SmoothTwoForm.contMDiff_interiorEquiv_symm_mpullback_prodMk σ' hnd α).congr fun p ↦ by
+    simp only [IsNondegenerate.interiorEquiv_symm_apply, hσ']
 
 end SmoothTwoForm
 

@@ -13,8 +13,9 @@ public import TauCeti.AlgebraicTopology.Cohomology.Sphere.Product
 
 Let `θ ∈ Hᵈ⁺¹(Sᵈ⁺¹; ℤ)` be Tau Ceti's class `singularCohomologyTopCatSphereGenerator`, dual to the
 standard generator of `H_{d+1}(Sᵈ⁺¹)`, carried into the library's integral cohomology by
-`TopCat.integralCohomologyEquiv`. This file shows that `θ` generates `Hᵈ⁺¹(Sᵈ⁺¹; ℤ)`, and that
-cup product with its pull-back to `Sᵈ⁺¹ × Y` keeps classes of infinite order. It also shows
+`TopCat.integralCohomologyEquiv`, which this file names `TopCat.integralSphereGenerator`. It
+shows that `θ` generates `Hᵈ⁺¹(Sᵈ⁺¹; ℤ)`, and that cup product with its pull-back to `Sᵈ⁺¹ × Y`
+keeps classes of infinite order. It also shows
 that, over any commutative ring `k`, the class `pr₁^* θ_a ⌣ pr₂^* θ_b` spans `Hᵃ⁺ᵇ(Sᵃ × Sᵇ; k)`
 and takes the value `1` on the cross product `γ_a × γ_b` of the homology generators.
 
@@ -38,6 +39,10 @@ top cohomology of `Sᵃ` and `Sᵇ`, `a, b ≥ 1`, and `γ_a`, `γ_b` the standa
   `TopCat.singularKronecker_singularCup_fst_snd_singularHomologyCross`.
 * `TopCat.eq_singularKronecker_smul_singularCup_sphereGenerator`: so every class `x` of
   `Hᵃ⁺ᵇ(Sᵃ × Sᵇ; k)` is `⟨x, γ_a × γ_b⟩ • (pr₁^* θ_a ⌣ pr₂^* θ_b)`.
+* `TopCat.singularCohomologyMap_eq_singularKronecker_smul_singularCup_sphereGenerator`: for a
+  map `f : Sᵃ × Sᵇ ⟶ Z` and a class `u` of `Hᵃ⁺ᵇ(Z; k)`,
+  `f^* u = ⟨u, f_*(γ_a × γ_b)⟩ • (pr₁^* θ_a ⌣ pr₂^* θ_b)`, by the naturality
+  `TopCat.singularKronecker_naturality` of the Kronecker pairing.
 * `TopCat.exists_eq_zsmul_integralCup_sphereGenerator`: in the integral cohomology
   `TopCat.integralCohomology`, every class of degree `a + b` of `Sᵃ × Sᵇ` is an integer multiple
   of the integral cup product `pr₁^* θ_a ⌣ pr₂^* θ_b`.
@@ -58,19 +63,39 @@ namespace TopCat
 
 open TauCeti
 
+/-- The generator `θ ∈ Hᵈ⁺¹(Sᵈ⁺¹; ℤ)` of integral cohomology: Tau Ceti's class
+`TauCeti.singularCohomologyTopCatSphereGenerator` with coefficients `ℤ`, dual to the standard
+generator of `H_{d+1}(Sᵈ⁺¹)`, carried into `TopCat.integralCohomology` by the inverse of
+`TopCat.integralCohomologyEquiv`. -/
+noncomputable def integralSphereGenerator (d : ℕ) :
+    (sphere.{0} (d + 1)).integralCohomology (d + 1) :=
+  ((sphere.{0} (d + 1)).integralCohomologyEquiv (d + 1)).symm
+    (singularCohomologyTopCatSphereGenerator ℤ d)
+
+theorem integralSphereGenerator_def (d : ℕ) :
+    integralSphereGenerator d = ((sphere.{0} (d + 1)).integralCohomologyEquiv (d + 1)).symm
+      (singularCohomologyTopCatSphereGenerator ℤ d) :=
+  (rfl)
+
+@[simp]
+theorem integralCohomologyEquiv_integralSphereGenerator (d : ℕ) :
+    (sphere.{0} (d + 1)).integralCohomologyEquiv (d + 1) (integralSphereGenerator d) =
+      singularCohomologyTopCatSphereGenerator ℤ d := by
+  rw [integralSphereGenerator_def, LinearEquiv.apply_symm_apply]
+
 /-- Every class of `Hᵈ⁺¹(Sᵈ⁺¹; ℤ)` is an integer multiple of the generator `θ`, the integral
 class dual to the standard generator of `H_{d+1}(Sᵈ⁺¹)`. -/
 theorem exists_eq_zsmul_sphereGenerator {d : ℕ}
     (x : (sphere.{0} (d + 1)).integralCohomology (d + 1)) :
-    ∃ r : ℤ, x = r • ((sphere.{0} (d + 1)).integralCohomologyEquiv (d + 1)).symm
-      (singularCohomologyTopCatSphereGenerator ℤ d) := by
+    ∃ r : ℤ, x = r • integralSphereGenerator d := by
   set e := (sphere.{0} (d + 1)).integralCohomologyEquiv (d + 1)
   set s := singularCohomologyTopCatSphereEquiv ℤ (𝟙_ (ModuleCat.{0} ℤ)) d
   have hθ : s (singularCohomologyTopCatSphereGenerator ℤ d) = 1 :=
     (singularCohomologyTopCatSphereEquiv_apply _ _ _ _).trans
       (singularKronecker_singularCohomologyTopCatSphereGenerator ℤ d)
   refine ⟨s (e x), e.injective (s.injective ?_)⟩
-  rw [map_zsmul, map_zsmul, LinearEquiv.apply_symm_apply, hθ, smul_eq_mul, mul_one]
+  rw [map_zsmul, map_zsmul, integralCohomologyEquiv_integralSphereGenerator, hθ, smul_eq_mul,
+    mul_one]
 
 /-- **Products with the sphere generator keep infinite order.** Let `θ ∈ Hᵈ⁺¹(Sᵈ⁺¹; ℤ)` be the
 integral class dual to the standard generator of `H_{d+1}(Sᵈ⁺¹)`. If `c ∈ Hⁿ(Y; ℤ)` has infinite
@@ -78,22 +103,19 @@ order, then so has `pr₁^* θ ⌣ pr₂^* c ∈ H^N(Sᵈ⁺¹ × Y; ℤ)`, `N =
 theorem not_isOfFinAddOrder_integralCup_sphereGenerator (Y : TopCat.{0}) {d n N : ℕ}
     (h : d + 1 + n = N) {c : Y.integralCohomology n} (hc : ¬IsOfFinAddOrder c) :
     ¬IsOfFinAddOrder ((sphere.{0} (d + 1) ⊗ Y).integralCup (d + 1) n N h
-      (TopCat.singularCohomologyMap (fst _ Y) (d + 1)
-        (((sphere.{0} (d + 1)).integralCohomologyEquiv (d + 1)).symm
-          (singularCohomologyTopCatSphereGenerator ℤ d)))
+      (TopCat.singularCohomologyMap (fst _ Y) (d + 1) (integralSphereGenerator d))
       (TopCat.singularCohomologyMap (snd _ Y) n c)) := by
   obtain rfl : N = n + (d + 1) := by omega
   -- the class is the image of `(0, c)` under the decomposition of the cohomology of `Sᵈ⁺¹ × Y`
   set e₁ := (sphere.{0} (d + 1) ⊗ Y).integralCohomologyEquiv (n + (d + 1))
   set S := singularCohomologySphereProdSlantEquiv (𝟙_ (ModuleCat.{0} ℤ)) Y (sphereBasePoint d) n
   have hFc : (sphere.{0} (d + 1) ⊗ Y).integralCup (d + 1) n (n + (d + 1)) h
-      (TopCat.singularCohomologyMap (fst _ Y) (d + 1)
-        (((sphere.{0} (d + 1)).integralCohomologyEquiv (d + 1)).symm
-          (singularCohomologyTopCatSphereGenerator ℤ d)))
+      (TopCat.singularCohomologyMap (fst _ Y) (d + 1) (integralSphereGenerator d))
       (TopCat.singularCohomologyMap (snd _ Y) n c) =
         e₁.symm (S.symm (0, Y.integralCohomologyEquiv n c)) := by
     rw [singularCohomologySphereProdSlantEquiv_symm_apply, map_zero, zero_add,
-      integralCohomologyEquiv_symm_singularCup, integralCohomologyEquiv_symm_naturality,
+      integralSphereGenerator_def, integralCohomologyEquiv_symm_singularCup,
+      integralCohomologyEquiv_symm_naturality,
       integralCohomologyEquiv_symm_naturality, LinearEquiv.symm_apply_apply]
   rw [hFc]
   refine fun hfin ↦ hc ?_
@@ -180,22 +202,44 @@ theorem eq_singularKronecker_smul_singularCup_sphereGenerator {d e N : ℕ}
   obtain ⟨r, rfl⟩ := exists_eq_smul_singularCup_sphereGenerator k h x
   simp
 
+/-- **Pull-backs to a product of two spheres.** For a map `f : Sᵃ × Sᵇ ⟶ Z`, `a = d + 1`,
+`b = e + 1`, every class `u` of `Hᵃ⁺ᵇ(Z; k)` pulls back to
+`f^* u = ⟨u, f_*(γ_a × γ_b)⟩ • (pr₁^* θ_a ⌣ pr₂^* θ_b)`, with `γ_a × γ_b` the cross product of
+the standard homology generators and `θ_a`, `θ_b` the dual generators of the top cohomology of
+the two spheres. -/
+theorem singularCohomologyMap_eq_singularKronecker_smul_singularCup_sphereGenerator
+    {d e N : ℕ} (h : d + 1 + (e + 1) = N) {Z : TopCat.{w}}
+    (f : sphere.{w} (d + 1) ⊗ sphere.{w} (e + 1) ⟶ Z)
+    (u : Z.singularCohomology (𝟙_ (ModuleCat.{w} k)) k (𝟙_ (ModuleCat.{w} k)) N) :
+    TopCat.singularCohomologyMap f N u = Z.singularKronecker k N u
+      (((AlgebraicTopology.singularHomologyFunctor (ModuleCat.{w} k) N).obj
+          (𝟙_ (ModuleCat.{w} k))).map f
+        (((AlgebraicTopology.singularHomologyFunctor (ModuleCat.{w} k) N).map
+            (λ_ (𝟙_ (ModuleCat.{w} k))).hom).app (sphere.{w} (d + 1) ⊗ sphere.{w} (e + 1))
+          (singularHomologyCross _ _ (𝟙_ (ModuleCat.{w} k)) (𝟙_ (ModuleCat.{w} k))
+            (d + 1) (e + 1) N h
+            (singularHomologyTopCatSphereGenerator k d ⊗ₜ
+              singularHomologyTopCatSphereGenerator k e))))
+      • (sphere.{w} (d + 1) ⊗ sphere.{w} (e + 1)).singularCup k (λ_ _).inv (λ_ _).hom
+        (d + 1) (e + 1) N h
+        (TopCat.singularCohomologyMap (fst _ _) (d + 1)
+          (singularCohomologyTopCatSphereGenerator k d))
+        (TopCat.singularCohomologyMap (snd _ _) (e + 1)
+          (singularCohomologyTopCatSphereGenerator k e)) := by
+  rw [eq_singularKronecker_smul_singularCup_sphereGenerator k h
+    (TopCat.singularCohomologyMap f N u), singularKronecker_naturality, ConcreteCategory.comp_apply]
+
 end SphereProdSphere
 
 /-- **The top integral cohomology of a product of two spheres.** Every class of the integral
 cohomology `Hᵃ⁺ᵇ(Sᵃ × Sᵇ; ℤ)`, `a = d + 1`, `b = e + 1`, is an integer multiple of the integral
-cup product `pr₁^* θ_a ⌣ pr₂^* θ_b`, where `θ_a`, `θ_b` are the generators of the top cohomology
-of the two spheres dual to their standard homology generators, read in integral cohomology through
-`TopCat.integralCohomologyEquiv`. -/
+cup product `pr₁^* θ_a ⌣ pr₂^* θ_b`, where `θ_a`, `θ_b` are the integral generators
+`TopCat.integralSphereGenerator` of the top cohomology of the two spheres. -/
 theorem exists_eq_zsmul_integralCup_sphereGenerator {d e N : ℕ} (h : d + 1 + (e + 1) = N)
     (x : (sphere.{0} (d + 1) ⊗ sphere.{0} (e + 1)).integralCohomology N) :
     ∃ r : ℤ, x = r • (sphere.{0} (d + 1) ⊗ sphere.{0} (e + 1)).integralCup (d + 1) (e + 1) N h
-      (TopCat.singularCohomologyMap (fst _ _) (d + 1)
-        (((sphere.{0} (d + 1)).integralCohomologyEquiv (d + 1)).symm
-          (singularCohomologyTopCatSphereGenerator ℤ d)))
-      (TopCat.singularCohomologyMap (snd _ _) (e + 1)
-        (((sphere.{0} (e + 1)).integralCohomologyEquiv (e + 1)).symm
-          (singularCohomologyTopCatSphereGenerator ℤ e))) := by
+      (TopCat.singularCohomologyMap (fst _ _) (d + 1) (integralSphereGenerator d))
+      (TopCat.singularCohomologyMap (snd _ _) (e + 1) (integralSphereGenerator e)) := by
   obtain ⟨v, rfl⟩ :=
     ((sphere.{0} (d + 1) ⊗ sphere.{0} (e + 1)).integralCohomologyEquiv N).symm.surjective x
   obtain ⟨r, rfl⟩ := exists_eq_smul_singularCup_sphereGenerator ℤ h v
@@ -204,7 +248,8 @@ theorem exists_eq_zsmul_integralCup_sphereGenerator {d e N : ℕ} (h : d + 1 + (
   -- in `exists_eq_smul_singularCup_sphereGenerator`; `Int.cast_smul_eq_zsmul` relates them.
   rw [← Int.cast_smul_eq_zsmul ℤ, Int.cast_id, LinearEquiv.map_smul,
     integralCohomologyEquiv_symm_singularCup, integralCohomologyEquiv_symm_naturality,
-    integralCohomologyEquiv_symm_naturality]
+    integralCohomologyEquiv_symm_naturality, integralSphereGenerator_def,
+    integralSphereGenerator_def]
 
 end TopCat
 

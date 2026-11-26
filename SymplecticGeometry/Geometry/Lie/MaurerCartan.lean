@@ -128,9 +128,7 @@ adjoint action of `h⁻¹`: `R_h^* θ = Ad(h⁻¹) θ`. -/
 theorem mpullback_mul_right_leftMaurerCartanForm (h : G) :
     SmoothForm.mpullback (· * h) contMDiff_mul_right (leftMaurerCartanForm I G) =
       SmoothForm.mapCoeff (adjointContinuousLinearMap h⁻¹) (leftMaurerCartanForm I G) := by
-  apply Subtype.ext
-  funext g
-  ext v
+  refine SmoothBundleForm.ext fun g v ↦ ?_
   obtain ⟨ξ, hξ⟩ := exists_mulInvariantVectorField_eq (v 0)
   rw [SmoothForm.coe_mpullback, TauCeti.mpullback_apply, SmoothForm.coe_mapCoeff,
     RoughForm.mapCoeff_apply, leftMaurerCartanForm_apply, leftMaurerCartanForm_apply, ← hξ,

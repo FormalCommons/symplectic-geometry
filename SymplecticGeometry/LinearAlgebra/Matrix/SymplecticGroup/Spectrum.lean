@@ -11,16 +11,15 @@ public import Mathlib.LinearAlgebra.Matrix.Charpoly.Eigs
 public import Mathlib.LinearAlgebra.Matrix.SesquilinearForm
 public import Mathlib.LinearAlgebra.SymplecticGroup
 public import SymplecticGeometry.Algebra.Polynomial.Reverse
-import SymplecticGeometry.LinearAlgebra.Eigenspace.Inverse
 import TauCeti.Algebra.Polynomial.Reverse
+import TauCeti.LinearAlgebra.Eigenspace.Pairing
 import TauCeti.LinearAlgebra.Matrix.Charpoly.Symplectic
-import TauCeti.LinearAlgebra.SesquilinearForm.AdjointPair
 
 /-!
 # The spectrum of a symplectic matrix
 
 Let `A ∈ Sp(2n, K)` be a symplectic matrix over a field `K` (a domain suffices for the parity
-statements), so that `A J Aᵀ = J` for
+and orthogonality statements), so that `A J Aᵀ = J` for
 `J = Matrix.J l K`. Its characteristic polynomial `χ` is self-reciprocal,
 `X ^ (2n) χ (1 / X) = χ (X)` (Tau Ceti's `SymplecticGroup.reflect_charpolyRev` and
 `SymplecticGroup.charpolyRev_eq_charpoly`). This file draws the consequences for the eigenvalues
@@ -35,10 +34,8 @@ of `A`, with multiplicity meaning multiplicity as a root of `χ` (algebraic mult
   `2`, the eigenvalues `1` and `-1` have even multiplicity;
 * `SymplecticGroup.toLinearMap₂'_J_eq_zero_of_mem_genEigenspace`: generalized eigenvectors of `A`
   for eigenvalues `μ`, `ν` with `μ ν ≠ 1` are orthogonal for the bilinear form `vᵀ J w`.
-  This uses that `A⁻¹` is the adjoint of `A` for this form, so that the generalized
-  `ν`-eigenvectors of `A` are generalized `ν⁻¹`-eigenvectors of the adjoint
-  (`Module.End.mem_genEigenspace_inv`), and Tau Ceti's
-  `LinearMap.IsAdjointPair.apply_eq_zero_of_mem_genEigenspace`.
+  Since `Aᵀ J A = J`, this is Tau Ceti's
+  `LinearMap.apply_eq_zero_of_mem_maxGenEigenspace_of_compl₁₂_eq_smul` with multiplier `1`.
 
 Finally `SymplecticGroup.spectrum_map_complex` collects these statements for a real symplectic
 matrix `Ψ`, whose eigenvalues are those of `Ψ` viewed as a complex matrix, and the complex
@@ -91,6 +88,18 @@ theorem even_rootMultiplicity_neg_one_charpoly (hK : ringChar K ≠ 2)
   even_rootMultiplicity_neg_one_of_reflect_eq hK (natDegree_charpoly_le A) (even_two_mul _)
     (reflect_charpoly hA)
 
+/-- Generalized eigenvectors of a symplectic matrix `A` for eigenvalues `μ`, `ν` with `μ ν ≠ 1`
+are orthogonal for the bilinear form `(v, w) ↦ vᵀ J w`. -/
+theorem toLinearMap₂'_J_eq_zero_of_mem_genEigenspace {A : Matrix (l ⊕ l) (l ⊕ l) K}
+    (hA : A ∈ symplecticGroup l K) {μ ν : K} (hμν : μ * ν ≠ 1) {k k' : ℕ∞} {v w : l ⊕ l → K}
+    (hv : v ∈ Module.End.genEigenspace (toLin' A) μ k)
+    (hw : w ∈ Module.End.genEigenspace (toLin' A) ν k') :
+    toLinearMap₂' K (J l K) v w = 0 := by
+  refine LinearMap.apply_eq_zero_of_mem_maxGenEigenspace_of_compl₁₂_eq_smul _ ?_ hμν
+    ((Module.End.genEigenspace _ μ).monotone le_top hv)
+    ((Module.End.genEigenspace _ ν).monotone le_top hw)
+  rw [one_smul, Matrix.toLinearMap₂'_comp, (SymplecticGroup.mem_iff' (A := A)).1 hA]
+
 end Domain
 
 section Field
@@ -112,36 +121,6 @@ theorem inv_mem_spectrum_iff {A : Matrix (l ⊕ l) (l ⊕ l) K} (hA : A ∈ symp
     (μ : K) : μ⁻¹ ∈ spectrum K A ↔ μ ∈ spectrum K A := by
   simp only [mem_spectrum_iff_isRoot_charpoly, ← rootMultiplicity_pos (A.charpoly_monic.ne_zero),
     rootMultiplicity_inv_charpoly hA]
-
-/-- Generalized eigenvectors of a symplectic matrix `A` for eigenvalues `μ`, `ν` with `μ ν ≠ 1`
-are orthogonal for the bilinear form `(v, w) ↦ vᵀ J w`. -/
-theorem toLinearMap₂'_J_eq_zero_of_mem_genEigenspace {A : Matrix (l ⊕ l) (l ⊕ l) K}
-    (hA : A ∈ symplecticGroup l K) {μ ν : K} (hμν : μ * ν ≠ 1) {k k' : ℕ∞} {v w : l ⊕ l → K}
-    (hv : v ∈ Module.End.genEigenspace (toLin' A) μ k)
-    (hw : w ∈ Module.End.genEigenspace (toLin' A) ν k') :
-    toLinearMap₂' K (J l K) v w = 0 := by
-  have hdet : IsUnit A.det := symplectic_det hA
-  have hfg : toLin' A * toLin' A⁻¹ = 1 := by
-    rw [Module.End.mul_eq_comp, ← toLin'_mul, mul_nonsing_inv A hdet,
-      toLin'_one, Module.End.one_eq_id]
-  have hgf : toLin' A⁻¹ * toLin' A = 1 := by
-    rw [Module.End.mul_eq_comp, ← toLin'_mul, nonsing_inv_mul A hdet,
-      toLin'_one, Module.End.one_eq_id]
-  rcases eq_or_ne ν 0 with rfl | hν
-  · have hinj : Function.Injective (toLin' A) :=
-      Matrix.mulVec_injective_iff_isUnit.2 ((Matrix.isUnit_iff_isUnit_det A).2 hdet)
-    rw [Module.End.genEigenspace_zero_eq_bot_of_injective hinj, Submodule.mem_bot] at hw
-    rw [hw, map_zero]
-  have hadj : LinearMap.IsAdjointPair (toLinearMap₂' K (J l K)) (toLinearMap₂' K (J l K))
-      (toLin' A) (toLin' A⁻¹) := by
-    rw [isAdjointPair_toLinearMap₂', Matrix.IsAdjointPair]
-    have h := (SymplecticGroup.mem_iff' (A := A)).1 hA
-    calc Aᵀ * J l K = Aᵀ * J l K * (A * A⁻¹) := by rw [mul_nonsing_inv A hdet, Matrix.mul_one]
-      _ = J l K * A⁻¹ := by rw [← Matrix.mul_assoc, h]
-  refine hadj.apply_eq_zero_of_mem_genEigenspace (ν := ν⁻¹) ?_ hv
-    (Module.End.mem_genEigenspace_inv hfg hgf hw)
-  refine (sub_ne_zero.2 fun h ↦ hμν ?_).isUnit
-  rw [h, inv_mul_cancel₀ hν]
 
 end Field
 

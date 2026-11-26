@@ -151,20 +151,12 @@ base. -/
 @[simp]
 theorem newtonClass_trivial [FiniteDimensional ℂ G] [CompactSpace B] {j : ℕ} (hj : j ≠ 0) :
     newtonClass G (Bundle.Trivial B G) j = 0 := by
-  -- The Chern classes are the elementary symmetric functions of `n` zero roots.
-  have hc : chernClassVec G (Bundle.Trivial B G) =
-      fun i : Fin (finrank ℂ G) ↦ (Multiset.replicate (finrank ℂ G) 0).esymm (i + 1) := by
+  -- The Chern classes of positive degree vanish, so `s_j` is evaluated at zero.
+  have hc : chernClassVec G (Bundle.Trivial B G) = 0 := by
     funext i
-    rw [chernClassVec, chernClass_trivial B G (Nat.add_one_ne_zero _), map_zero]
-    have hz : ∀ n k, (Multiset.replicate n (0 : (TopCat.of B).EvenIntegralCohomology)).esymm
-        (k + 1) = 0 := fun n k ↦ by
-      induction n with
-      | zero => exact Multiset.esymm_of_card_lt (by simp)
-      | succ n ih => rw [Multiset.replicate_succ, Multiset.esymm_cons_zero, ih]
-    exact (hz _ _).symm
-  rw [newtonClass_eq_newtonSum, newtonSum, hc,
-    Multiset.aeval_esymm_newtonMvPolynomial _ (Multiset.card_replicate _ _)]
-  simp [zero_pow hj]
+    rw [chernClassVec, chernClass_trivial B G (Nat.add_one_ne_zero _), map_zero, Pi.zero_apply]
+  rw [newtonClass_eq_newtonSum, newtonSum, hc, MvPolynomial.aeval_zero,
+    constantCoeff_newtonMvPolynomial hj, map_zero, DirectSum.zero_apply]
 
 /-- **The Newton classes of a line bundle** are the powers of its first Chern class:
 `s_j(L) = c₁(L) ^ j`, the power taken in the even integral cohomology ring. -/

@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.FrameTrivialization
 public import TauCeti.Geometry.Symplectic.Darboux.Basis
 import TauCeti.Geometry.Symplectic.Darboux.EuclideanBasis
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.LocalFrame
 import SymplecticGeometry.LinearAlgebra.Symplectic.Darboux
 
 /-!
@@ -143,15 +144,14 @@ private theorem exists_darboux_sections (ω : ContMDiffTwoForm I n F V) {k : ℕ
       ((hv.mono hW₀W).sub_section ((ω.contMDiffOn_bilinFormAt ((ha 0).mono hW₀W)
         (hv.mono hW₀W)).smul_section hβ)).add_section
         ((ω.contMDiffOn_bilinFormAt hβ (hv.mono hW₀W)).smul_section ((ha 0).mono hW₀W))
-    have hPmem (v : ∀ y, V y) (y : M) (hy : y ∈ W₀) (u : V y) (hu : u ∈ ({β y, a 0 y} : Set _)) :
-        ω.bilinFormAt y (P v y) u = 0 :=
-      (ω.isAlt_bilinFormAt y).eq_iff.1 <| LinearMap.BilinForm.mem_orthogonal_iff.1
-        ((ω.isAlt_bilinFormAt y).sub_smul_add_smul_mem_orthogonal_span_pair (haβ y hy) (v y)) u
-        (Submodule.subset_span hu)
+    have hPmem (v : ∀ y, V y) (y : M) (hy : y ∈ W₀) :
+        ω.bilinFormAt y (β y) (P v y) = 0 ∧ ω.bilinFormAt y (a 0 y) (P v y) = 0 :=
+      LinearMap.BilinForm.mem_orthogonal_span_pair_iff.1
+        ((ω.isAlt_bilinFormAt y).sub_smul_add_smul_mem_orthogonal_span_pair (haβ y hy) (v y))
     have hPa (v : ∀ y, V y) (y : M) (hy : y ∈ W₀) : ω.bilinFormAt y (P v y) (a 0 y) = 0 :=
-      hPmem v y hy _ (by simp)
+      (ω.isAlt_bilinFormAt y).eq_iff.1 (hPmem v y hy).2
     have hPβ (v : ∀ y, V y) (y : M) (hy : y ∈ W₀) : ω.bilinFormAt y (P v y) (β y) = 0 :=
-      hPmem v y hy _ (by simp)
+      (ω.isAlt_bilinFormAt y).eq_iff.1 (hPmem v y hy).1
     have hPorth (v : ∀ y, V y) (y : M) (w : V y) (hwa : ω.bilinFormAt y w (a 0 y) = 0)
         (hwb : ω.bilinFormAt y w (b 0 y) = 0) (hwv : ω.bilinFormAt y w (v y) = 0) :
         ω.bilinFormAt y w (P v y) = 0 := by
@@ -248,7 +248,6 @@ theorem IsNondegenerate.exists_isLocalFrameOn_isDarbouxBasis (hω : ω.IsNondege
   classical
   have hB (y : M) (u v : V y) : hω.symplecticFormAt y u v = ω.bilinFormAt y u v := by
     rw [symplecticFormAt_apply, bilinFormAt_apply]
-  have := VectorBundle.finiteDimensional ℝ F V
   obtain ⟨U, hU, hx₀U, k, hk, a, b, ha, hb, hrel⟩ := hω.exists_local_darboux_sections x₀
   let s : Fin k × Fin 2 → ∀ y, V y := fun p ↦ if p.2 = 0 then a p.1 else b p.1
   have hs₀ (i : Fin k) : s (i, 0) = a i := by simp [s]
@@ -262,13 +261,10 @@ theorem IsNondegenerate.exists_isLocalFrameOn_isDarbouxBasis (hω : ω.IsNondege
     TauCeti.SymplecticForm.linearIndependent_of_apply_fst_snd (hrel' y hy).1 (hrel' y hy).2.1
       (hrel' y hy).2.2
   have hs : IsLocalFrameOn I F n s U :=
-    { linearIndependent := fun {y} hy ↦ hli y hy
-      generating := fun {y} hy ↦ ((hli y hy).span_eq_top_of_card_eq_finrank' (by
-          simp [VectorBundle.finrank_eq ℝ F V y, hk, mul_comm])).ge
-      contMDiffOn := fun ⟨i, j⟩ ↦ by
-        by_cases hj : j = 0
-        · simpa only [s, hj, ↓reduceIte] using ha i
-        · simpa only [s, hj, ↓reduceIte] using hb i }
+    .of_linearIndependent_of_card_eq_finrank hli (by simp [hk, mul_comm]) fun ⟨i, j⟩ ↦ by
+      by_cases hj : j = 0
+      · simpa only [s, hj, ↓reduceIte] using ha i
+      · simpa only [s, hj, ↓reduceIte] using hb i
   refine ⟨U, hU, hx₀U, k, s, hs, fun y hy ↦ ?_⟩
   obtain ⟨h₁, h₂, h₃⟩ := hrel' y hy
   exact ⟨by simpa only [hs.toBasisAt_coe] using h₁, by simpa only [hs.toBasisAt_coe] using h₂,

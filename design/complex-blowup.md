@@ -292,7 +292,7 @@ in coordinates.
   isolated zero at `t₀` of order $k$ (Mathlib's `analyticOrderAt`, with
   `AnalyticAt.analyticOrderAt_eq_natCast`, so $u(t)=(t-t_0)^kg(t)$ with
   $g(t_0)\ne0$), the lift `(mk (g t), u t)` near `t₀`;
-  `analyticAt_curveLift`, `blowdown_curveLift`, and `curveLift_apply_self`:
+  `contMDiffAt_curveLift`, `blowdown_curveLift`, and `curveLift_apply_self`:
   its value at `t₀` is the line of the first nonvanishing derivative of
   $u$, `iteratedDeriv k u t₀` (`analyticOrderAt_eq_nat_iff_iteratedDeriv_eq_zero`).
 
