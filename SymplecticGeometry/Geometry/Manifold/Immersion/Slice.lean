@@ -13,10 +13,15 @@ public import TauCeti.Geometry.Manifold.Morse.Hessian
 /-!
 # The squared normal coordinate of an embedding in a slice chart
 
+For a map `φ : M → W` into a real inner product space and a zero `x` of `φ`, the function
+`p ↦ ‖φ p‖²` has a critical point at `x` (if `x` is an interior point), and its critical Hessian
+there is `2 ⟪dφ u, dφ w⟫` (if `M` is boundaryless and `φ` is `C²` at `x`).
+
 Let `f : M → N` be a `C^n` immersion at `x` with complement `F`, with normal-form charts `φ` on
 `M` and `ψ` on `N` and linear equivalence `L : E × F ≃ E''` (`h.domChart`, `h.codChart`,
 `h.equiv`). Read through `L⁻¹`, the extended chart `ψ` has an `E`-coordinate and an
-`F`-coordinate, the *normal coordinate* `p ↦ (L⁻¹ (ψ p)).2`, and `f` reads as `u ↦ (u, 0)` there.
+`F`-coordinate, the *normal coordinate* `p ↦ (L⁻¹ (ψ p)).2`, and `f` reads as `u ↦ (u, 0)` there
+(`Manifold.IsImmersionAtOfComplement.equiv_symm_codChart_extend_apply`).
 
 If `f` is moreover a topological embedding and `M` is boundaryless, then on a neighbourhood `V`
 of `f x` a point lies in the image of `f` exactly when its normal coordinate vanishes. Unlike
@@ -24,9 +29,9 @@ Tau Ceti's slice chart, which is only an open partial homeomorphism, the coordin
 those of the chart `ψ` of the maximal atlas, so they are `C^n`.
 
 For a linear isomorphism `e : F ≃L[ℝ] W` onto a real inner product space, the squared normal
-coordinate `g p = ‖e (L⁻¹ (ψ p)).2‖²` is nonnegative and `C^n` on the source of `ψ`; on `V` it
-vanishes exactly on the image of `f`, since `e` is injective. It has a critical point at each
-`f y` with `y` in the source of `φ`, and for `n ≥ 2` its critical Hessian there is
+coordinate `g p = ‖e (L⁻¹ (ψ p)).2‖²` is `C^n` on the source of `ψ`, vanishes exactly where the
+normal coordinate does, and so, on `V`, exactly on the image of `f`. It has a critical point at
+each `f y` with `y` in the source of `φ`, and for `n ≥ 2` its critical Hessian there is
 `2 ⟪e (L⁻¹ (dψ u)).2, e (L⁻¹ (dψ w)).2⟫`, which is positive on every vector off the tangent
 image of `f`. Nothing here asks for finite dimension.
 
@@ -37,14 +42,19 @@ the maximal atlas. The statements on `g` follow `TauCeti.IsAdaptedChart.norm_sq_
 `TauCeti.IsAdaptedChart.criticalHessian_norm_sq_snd_apply` and
 `TauCeti.IsAdaptedChart.criticalHessian_norm_sq_snd_pos` of this library's
 `Geometry/Manifold/Complex/JConvex/TotallyReal.lean`, with a slice chart of an embedding in place
-of a chart adapted to a totally real submanifold.
+of a chart adapted to a totally real submanifold; the general statements on `‖φ‖²` isolate the
+steps of the last proofs that do not depend on the chart.
 
 ## Main results
 
-* `Manifold.IsImmersionAtOfComplement.equiv_symm_codChart_extend_apply`: in the split
-  coordinates of the codomain chart, `f` is `u ↦ (u, 0)` on the domain chart's side.
+* `TauCeti.mem_criticalPoints_norm_sq_of_eq_zero` and
+  `TauCeti.criticalHessian_norm_sq_apply_of_eq_zero`: a zero of `φ` is a critical point of
+  `‖φ‖²`, and the critical Hessian there.
 * `Manifold.IsImmersionAtOfComplement.exists_isOpen_mem_range_iff_snd_eq_zero`: near `f x`, the
   image of an embedding is the zero set of the normal coordinate.
+* `Manifold.IsImmersionAtOfComplement.norm_sq_snd_eq_zero_iff` and
+  `Manifold.IsImmersionAtOfComplement.mem_range_iff_norm_sq_snd_eq_zero`: the zero set of the
+  squared normal coordinate.
 * `Manifold.IsImmersionAtOfComplement.contMDiffOn_norm_sq_snd`,
   `Manifold.IsImmersionAtOfComplement.mem_criticalPoints_norm_sq_snd`,
   `Manifold.IsImmersionAtOfComplement.criticalHessian_norm_sq_snd_apply` and
@@ -63,6 +73,38 @@ public section
 open Set Function Filter Manifold Topology TauCeti
 open scoped ContDiff Manifold
 
+namespace TauCeti
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+  {W : Type*} [NormedAddCommGroup W] {φ : M → W} {x : M}
+
+/-- An interior point `x` where a map `φ` into a normed group vanishes is a critical point of
+`p ↦ ‖φ p‖²`, which takes its minimum `0` there. -/
+theorem mem_criticalPoints_norm_sq_of_eq_zero (hφx : φ x = 0) (hx : I.IsInteriorPoint x) :
+    x ∈ criticalPoints I (fun p ↦ ‖φ p‖ ^ 2) := by
+  refine IsLocalMin.mem_criticalPoints (Eventually.of_forall fun p ↦ ?_) hx
+  simp only [hφx, norm_zero, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, zero_pow]
+  positivity
+
+/-- **The Hessian of `‖φ‖²` at a zero of `φ`.** On a boundaryless manifold, if a map `φ` into a
+real inner product space is `C²` at `x` and vanishes there, then the critical Hessian of
+`p ↦ ‖φ p‖²` at `x` is `2 ⟪dφ u, dφ w⟫`. -/
+theorem criticalHessian_norm_sq_apply_of_eq_zero [InnerProductSpace ℝ W] [I.Boundaryless]
+    (hφ : ContMDiffAt I 𝓘(ℝ, W) 2 φ x) (hφx : φ x = 0) (u w : TangentSpace I x) :
+    criticalHessian I (fun p ↦ ‖φ p‖ ^ 2) x u w =
+      2 * inner ℝ (E := W) (mfderiv I 𝓘(ℝ, W) φ x u) (mfderiv I 𝓘(ℝ, W) φ x w) := by
+  have hcrit : φ x ∈ criticalPoints 𝓘(ℝ, W) (fun z : W ↦ ‖z‖ ^ 2) :=
+    mem_criticalPoints_norm_sq_of_eq_zero (φ := id) hφx BoundarylessManifold.isInteriorPoint
+  -- The second-order chain rule at the critical point `φ x = 0` of `‖·‖²`.
+  have hH := criticalHessian_comp_apply (f := fun z : W ↦ ‖z‖ ^ 2) rfl
+    (contDiff_norm_sq ℝ).contMDiff.contMDiffAt hφ hcrit u w
+  rw [criticalHessian_modelSpace] at hH
+  exact hH.trans (fderiv_fderiv_norm_sq_apply (E := W) _ _ _)
+
+end TauCeti
+
 namespace Manifold.IsImmersionAtOfComplement
 
 section Slice
@@ -76,16 +118,6 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
   {N : Type*} [TopologicalSpace N] [ChartedSpace G N]
   {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
   {n : WithTop ℕ∞} {f : M → N} {x : M}
-
-/-- In the coordinates `E × F` of the codomain chart, read through `h.equiv`, an immersion is the
-inclusion `u ↦ (u, 0)` of the coordinates of the domain chart. -/
-theorem equiv_symm_codChart_extend_apply (h : IsImmersionAtOfComplement F I J n f x) {y : M}
-    (hy : y ∈ h.domChart.source) :
-    h.equiv.symm (h.codChart.extend J (f y)) = (h.domChart.extend I y, 0) := by
-  have hy' : y ∈ (h.domChart.extend I).source := by rwa [h.domChart.extend_source]
-  have hw := h.writtenInCharts ((h.domChart.extend I).map_source hy')
-  simp only [comp_apply, (h.domChart.extend I).left_inv hy'] at hw
-  rw [hw, ContinuousLinearEquiv.symm_apply_apply]
 
 /-- **The slice of an embedding.** Let `f` be a topological embedding of a boundaryless manifold
 which is an immersion at `x`. Then there is an open neighbourhood `V` of `f x` inside the source
@@ -119,18 +151,15 @@ theorem exists_isOpen_mem_range_iff_snd_eq_zero [I.Boundaryless]
     rw [h.equiv_symm_codChart_extend_apply ((hmemO y).1 hp.2)]
   · -- A point of the slice over the target of the domain chart is the image of a point of
     -- the domain chart's source.
-    set u := (h.equiv.symm (h.codChart.extend J p)).1
-    have hmem : u ∈ (h.domChart.extend I).target := by
+    have hmem : (h.equiv.symm (h.codChart.extend J p)).1 ∈ (h.domChart.extend I).target := by
       rw [h.domChart.extend_target, I.range_eq_univ, inter_univ]
       exact hp.1.2
-    have hys : (h.domChart.extend I).symm u ∈ h.domChart.source := by
-      rw [← h.domChart.extend_source (I := I)]
-      exact (h.domChart.extend I).map_target hmem
-    refine ⟨(h.domChart.extend I).symm u, (h.codChart.extend J).injOn ?_ ?_ ?_⟩
-    · rw [h.codChart.extend_source]; exact h.source_subset_preimage_source hys
+    obtain ⟨hsrc, hext, -, -⟩ := h.mem_codChart_source_and_extend_eq hmem
+    refine ⟨(h.domChart.extend I).symm (h.equiv.symm (h.codChart.extend J p)).1,
+      (h.codChart.extend J).injOn ?_ ?_ ?_⟩
+    · rwa [h.codChart.extend_source]
     · rw [h.codChart.extend_source]; exact hp.1.1
-    · apply h.equiv.symm.injective
-      rw [h.equiv_symm_codChart_extend_apply hys, (h.domChart.extend I).right_inv hmem, ← hp0]
+    · rw [hext, ← hp0, Prod.mk.eta, ContinuousLinearEquiv.apply_symm_apply]
 
 end Slice
 
@@ -147,6 +176,21 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   {n : WithTop ℕ∞} {f : M → N} {x : M} (h : IsImmersionAtOfComplement F I J n f x) (e : F ≃L[ℝ] W)
 include h
 
+/-- The squared normal coordinate `‖e (h.equiv.symm (ψ p)).2‖²` of an immersion, `ψ` the extended
+codomain chart, vanishes exactly where the normal coordinate `(h.equiv.symm (ψ p)).2` does. -/
+theorem norm_sq_snd_eq_zero_iff (p : N) :
+    ‖e (h.equiv.symm (h.codChart.extend J p)).2‖ ^ 2 = 0 ↔
+      (h.equiv.symm (h.codChart.extend J p)).2 = 0 := by
+  simp
+
+/-- On a set `V` where the image of `f` is the zero set of the normal coordinate, as given by
+`exists_isOpen_mem_range_iff_snd_eq_zero`, it is also the zero set of the squared normal
+coordinate `p ↦ ‖e (h.equiv.symm (ψ p)).2‖²`. -/
+theorem mem_range_iff_norm_sq_snd_eq_zero {V : Set N}
+    (hV : ∀ p ∈ V, (p ∈ range f ↔ (h.equiv.symm (h.codChart.extend J p)).2 = 0)) {p : N}
+    (hp : p ∈ V) : p ∈ range f ↔ ‖e (h.equiv.symm (h.codChart.extend J p)).2‖ ^ 2 = 0 := by
+  rw [hV p hp, h.norm_sq_snd_eq_zero_iff e]
+
 /-- The squared normal coordinate `p ↦ ‖e (h.equiv.symm (ψ p)).2‖²` of an immersion is `C^n` on
 the source of the codomain chart `ψ`. -/
 theorem contMDiffOn_norm_sq_snd :
@@ -159,12 +203,10 @@ theorem contMDiffOn_norm_sq_snd :
 normal coordinate, which takes its minimum `0` there. -/
 theorem mem_criticalPoints_norm_sq_snd [BoundarylessManifold J N] {y : M}
     (hy : y ∈ h.domChart.source) :
-    f y ∈ criticalPoints J (fun p ↦ ‖e (h.equiv.symm (h.codChart.extend J p)).2‖ ^ 2) := by
-  refine IsLocalMin.mem_criticalPoints (Eventually.of_forall fun p ↦ ?_)
+    f y ∈ criticalPoints J (fun p ↦ ‖e (h.equiv.symm (h.codChart.extend J p)).2‖ ^ 2) :=
+  mem_criticalPoints_norm_sq_of_eq_zero
+    (by rw [h.equiv_symm_codChart_extend_apply hy, map_zero])
     BoundarylessManifold.isInteriorPoint
-  simp only [h.equiv_symm_codChart_extend_apply hy, map_zero, norm_zero, ne_eq,
-    OfNat.ofNat_ne_zero, not_false_eq_true, zero_pow]
-  positivity
 
 /-- **The Hessian of the squared normal coordinate.** For `n ≥ 2` and `y` in the domain chart's
 source, the critical Hessian at `f y` of `p ↦ ‖e (L⁻¹ (ψ p)).2‖²`, `ψ` the extended codomain chart
@@ -177,26 +219,21 @@ theorem criticalHessian_norm_sq_snd_apply [J.Boundaryless] (hn : 2 ≤ n) {y : M
   have hψ : ContMDiffAt J 𝓘(ℝ, E'') 2 (h.codChart.extend J) (f y) :=
     (h.codChart.contMDiffAt_extend h.codChart_mem_maximalAtlas
       (h.source_subset_preimage_source hy)).of_le hn
-  set A : E'' →L[ℝ] W :=
-    (e : F →L[ℝ] W).comp ((ContinuousLinearMap.snd ℝ E F).comp (h.equiv.symm : E'' →L[ℝ] E × F))
-  have hA : ∀ v, A v = e (h.equiv.symm v).2 := fun _ ↦ by simp [A]
-  have hφ : ContMDiffAt J 𝓘(ℝ, W) 2 (fun p ↦ A (h.codChart.extend J p)) (f y) :=
-    A.contDiff.contMDiff.contMDiffAt.comp (f y) hψ
-  have hcrit : A (h.codChart.extend J (f y)) ∈ criticalPoints 𝓘(ℝ, W) (fun z : W ↦ ‖z‖ ^ 2) := by
-    refine IsLocalMin.mem_criticalPoints (Eventually.of_forall fun z ↦ ?_)
-      BoundarylessManifold.isInteriorPoint
-    simp only [hA, h.equiv_symm_codChart_extend_apply hy, map_zero, norm_zero, ne_eq,
-      OfNat.ofNat_ne_zero, not_false_eq_true, zero_pow]
-    positivity
-  -- The second-order chain rule at the critical point `0` of `‖·‖²`.
-  have hH := criticalHessian_comp_apply (f := fun z : W ↦ ‖z‖ ^ 2) rfl
-    (contDiff_norm_sq ℝ).contMDiff.contMDiffAt hφ hcrit u w
-  have hD : mfderiv J 𝓘(ℝ, W) (fun p ↦ A (h.codChart.extend J p)) (f y) =
-      A.comp (mfderiv J 𝓘(ℝ, E'') (h.codChart.extend J) (f y)) :=
-    (A.hasFDerivAt.hasMFDerivAt.comp (f y)
-      (hψ.mdifferentiableAt two_ne_zero).hasMFDerivAt).mfderiv
-  rw [hD, criticalHessian_modelSpace] at hH
-  exact hH.trans (TauCeti.fderiv_fderiv_norm_sq_apply (E := W) _ _ _)
+  have hφ : ContMDiffAt J 𝓘(ℝ, W) 2 (fun p ↦ e (h.equiv.symm (h.codChart.extend J p)).2) (f y) :=
+    (e.contDiff.comp (contDiff_snd.comp h.equiv.symm.contDiff)).contMDiff.contMDiffAt.comp
+      (f y) hψ
+  have hD : mfderiv J 𝓘(ℝ, W) (fun p ↦ e (h.equiv.symm (h.codChart.extend J p)).2) (f y) =
+      ((e : F →L[ℝ] W).comp
+        ((ContinuousLinearMap.snd ℝ E F).comp (h.equiv.symm : E'' →L[ℝ] E × F))).comp
+        (mfderiv J 𝓘(ℝ, E'') (h.codChart.extend J) (f y)) :=
+    ((e.hasFDerivAt.comp _ (hasFDerivAt_snd.comp _ h.equiv.symm.hasFDerivAt)).hasMFDerivAt.comp
+      (f y) (hψ.mdifferentiableAt two_ne_zero).hasMFDerivAt).mfderiv
+  rw [criticalHessian_norm_sq_apply_of_eq_zero hφ
+    (by rw [h.equiv_symm_codChart_extend_apply hy, map_zero]), hD]
+  -- `(e ∘L snd ∘L L⁻¹ ∘L dψ) u` is `e (L⁻¹ (dψ u)).2` by definition of the composite. `dψ` takes
+  -- values in `TangentSpace 𝓘(ℝ, E'') _`, which is `E''` only by definition, so `comp_apply`
+  -- cannot be rewritten with here.
+  rfl
 
 /-- **Positivity of the Hessian off the tangent image.** For `n ≥ 2` and `y` in the domain chart's
 source, the critical Hessian at `f y` of the squared normal coordinate is positive on every
@@ -205,34 +242,12 @@ theorem criticalHessian_norm_sq_snd_pos [J.Boundaryless] (hn : 2 ≤ n) {y : M}
     (hy : y ∈ h.domChart.source) {v : TangentSpace J (f y)}
     (hv : v ∉ LinearMap.range (mfderiv I J f y).toLinearMap) :
     0 < criticalHessian J (fun p ↦ ‖e (h.equiv.symm (h.codChart.extend J p)).2‖ ^ 2) (f y) v v := by
-  have h1 : (1 : WithTop ℕ∞) ≤ n := le_trans (by norm_num) hn
   rw [h.criticalHessian_norm_sq_snd_apply e hn hy, real_inner_self_eq_norm_sq]
-  suffices (h.equiv.symm (mfderiv J 𝓘(ℝ, E'') (h.codChart.extend J) (f y) v)).2 ≠ 0 by
-    have : e (h.equiv.symm (mfderiv J 𝓘(ℝ, E'') (h.codChart.extend J) (f y) v)).2 ≠ 0 := by
-      simpa using this
-    positivity
-  intro h0
-  apply hv
-  -- A vector whose normal coordinate vanishes is `dψ (df w)` for some `w`, hence tangent to `f`.
-  obtain ⟨Lφ, hLφ⟩ := isInvertible_mfderiv_extend
-    (IsManifold.maximalAtlas_subset_of_le h1 h.domChart_mem_maximalAtlas) hy
-  obtain ⟨Lψ, hLψ⟩ := isInvertible_mfderiv_extend
-    (IsManifold.maximalAtlas_subset_of_le h1 h.codChart_mem_maximalAtlas)
-    (h.source_subset_preimage_source hy)
-  have hsurj : Surjective (mfderiv I 𝓘(ℝ, E) (h.domChart.extend I) y) := hLφ ▸ Lφ.surjective
-  have hinj : Injective (mfderiv J 𝓘(ℝ, E'') (h.codChart.extend J) (f y)) :=
-    hLψ ▸ Lψ.injective
-  obtain ⟨w, hw⟩ := hsurj (h.equiv.symm (mfderiv J 𝓘(ℝ, E'') (h.codChart.extend J) (f y) v)).1
-  refine ⟨w, hinj ?_⟩
-  have hc : mfderiv J 𝓘(ℝ, E'') (h.codChart.extend J) (f y) (mfderiv I J f y w) =
-      h.equiv (mfderiv I 𝓘(ℝ, E) (h.domChart.extend I) y w, 0) := by
-    have := congr($(h.mfderiv_extend_comp_mfderiv (one_pos.trans_le h1).ne' hy) w)
-    simp only [ContinuousLinearMap.coe_comp, Function.comp_apply] at this
-    -- `this` applies `h.equiv` (as a linear map) to `inl _ = (_, 0)`.
-    exact this
-  rw [ContinuousLinearMap.coe_coe, hc, hw, ← h0, Prod.mk.eta]
-  -- `apply_symm_apply` read in `TangentSpace 𝓘(ℝ, E'') _`, which is `E''` by definition.
-  exact h.equiv.apply_symm_apply _
+  have := (h.snd_equiv_symm_mfderiv_extend_eq_zero_iff
+    (ENat.one_le_iff_ne_zero_withTop.1 (one_le_two.trans hn)) hy v).not.2 hv
+  have : e (h.equiv.symm (mfderiv J 𝓘(ℝ, E'') (h.codChart.extend J) (f y) v)).2 ≠ 0 := by
+    simpa using this
+  positivity
 
 end NormSq
 
