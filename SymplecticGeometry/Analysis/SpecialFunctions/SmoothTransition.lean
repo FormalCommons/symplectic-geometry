@@ -68,7 +68,7 @@ For the flat function `f = expNegInvGlue`, whose derivatives at `x > 0` are `x�
 `(|K| + 2) x ≤ 1` (`expNegInvGlue.mul_deriv_le_deriv_deriv`), so for every `K` at all small
 `x > 0` (`expNegInvGlue.eventually_mul_deriv_le_deriv_deriv`). From it the file builds, for
 `a < b`, a smooth antitone cutoff with values in `[0, 1]`, equal to `1` up to `a`, to `0` from `b`
-on and positive before `b`, so with derivative `0` outside `(a, b)`, with `K |β'| ≤ β''` on some
+on and positive before `b`, with derivative `0` outside `(a, b)` and with `K |β'| ≤ β''` on some
 interval `[b - s, b)` for each `K`
 (`SymplecticGeometry.exists_contDiff_antitone_cutoff_mul_abs_deriv_le_deriv_deriv`). It is
 `χ + (1 - χ) g` for `g r = f (b - r) / f (b - a)` and a cutoff `χ` from Tau Ceti's
