@@ -111,7 +111,8 @@ theorem liouvilleMeasure_form_complDivisor :
     (form hψ hl hε).liouvilleMeasure m (complDivisor hψ hl hε) =
       σ.liouvilleMeasure m (outerPiece hψ) := by
   have hinl :=
-    (GluedAlong.isOpenEmbedding_inl (gluingDiffeomorph hψ hl hε).symm).measurableEmbedding
+    (GluedAlong.isOpenEmbedding_inl
+      (gluingDiffeomorphSymm hψ hl hε).toHomeomorph).measurableEmbedding
   -- `inl` pulls `ω̃_ψ` back to the restriction of `σ`.
   have hmap := hinl.map_liouvilleMeasure (n := m)
     ((GluedAlong.isLocalDiffeomorph_inl _).contMDiff.mdifferentiable (by simp))
@@ -130,7 +131,8 @@ theorem liouvilleMeasure_form_range_divisor :
   let : MeasurableSpace (BlowupModel n) := borel _
   have : BorelSpace (BlowupModel n) := ⟨rfl⟩
   have hinr :=
-    (GluedAlong.isOpenEmbedding_inr (gluingDiffeomorph hψ hl hε).symm).measurableEmbedding
+    (GluedAlong.isOpenEmbedding_inr
+      (gluingDiffeomorphSymm hψ hl hε).toHomeomorph).measurableEmbedding
   -- `inr` pulls `ω̃_ψ` back to the restriction of `ω̃_l`.
   have hmap := hinr.map_liouvilleMeasure (n := m)
     ((GluedAlong.isLocalDiffeomorph_inr _).contMDiff.mdifferentiable (by simp))
@@ -138,11 +140,13 @@ theorem liouvilleMeasure_form_range_divisor :
     (σ := SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (blowupForm n l))
     (by rw [← mpullback_inr_form hψ hl hε, SmoothForm.coe_mpullback])
   -- The divisor is the image under `inr` of the exceptional divisor of the model piece.
-  have hrange : range (divisor hψ hl hε) = GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm ''
-      {y : modelPiece n ε | (y : BlowupModel n) ∈ exceptionalDivisor n} := by
+  have hrange : range (divisor hψ hl hε) =
+      GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph ''
+        {y : modelPiece n ε | (y : BlowupModel n) ∈ exceptionalDivisor n} := by
     ext z
     rw [range_divisor, mem_compl_iff, SetLike.mem_coe, mem_complDivisor_iff, not_not]
-  have hsub : range (divisor hψ hl hε) ⊆ range (GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm) :=
+  have hsub : range (divisor hψ hl hε) ⊆
+      range (GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph) :=
     hrange ▸ image_subset_range _ _
   rw [← Measure.restrict_eq_self _ hsub, ← hmap, hinr.map_apply, hrange,
     preimage_image_eq _ (GluedAlong.inr_injective _),
