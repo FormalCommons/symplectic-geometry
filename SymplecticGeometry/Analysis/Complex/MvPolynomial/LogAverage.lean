@@ -54,7 +54,7 @@ plurisubharmonic. Here it is proved from one complex variable:
 * `MvPolynomial.log_norm_eval_le_setAverage_ball`: if `P c ≠ 0`, then `log ‖P c‖` is at most the
   average of `log ‖P‖` over `Metric.ball c r`, for every `r > 0`.
   The lower-integral bound gives it through
-  `MeasureTheory.sub_setAverage_le_of_setLIntegral_ofReal_sub_le`.
+  `MeasureTheory.sub_setAverage_le_of_setLAverage_ofReal_sub_le`.
 
 Last comes the comparison with the maximum:
 
@@ -72,7 +72,7 @@ Last comes the comparison with the maximum:
   bounds the lower average over the larger ball of the gap between the logarithm of that bound
   and `log ‖P‖`. Tau Ceti's `TauCeti.setLAverage_ball_le` passes to the lower average over
   `Metric.ball y R`, at the cost of the factor `2 ^ (2 * card ι) = 4 ^ card ι`, and
-  `MeasureTheory.sub_setAverage_le_of_setLIntegral_ofReal_sub_le` turns that bound into one on the
+  `MeasureTheory.sub_setAverage_le_of_setLAverage_ofReal_sub_le` turns that bound into one on the
   average of `log ‖P‖`.
 
 ## References
@@ -192,12 +192,13 @@ theorem log_norm_eval_le_setAverage_ball {P : MvPolynomial ι ℂ} {c : Euclidea
   obtain ⟨M, hM'⟩ := (isCompact_closedBall c r).exists_bound_of_continuousOn
     (by fun_prop : Continuous fun z : EuclideanSpace ℂ ι => eval z.ofLp P).continuousOn
   have hM : ∀ z ∈ ball c r, ‖eval z.ofLp P‖ ≤ M := fun z hz => hM' z (ball_subset_closedBall hz)
-  obtain ⟨hnn, hu⟩ := integrableOn_log_norm_eval_ball_of_eval_ne_zero hc hM
+  have hu := (integrableOn_log_norm_eval_ball_of_eval_ne_zero hc hM).2
   have hK : 0 ≤ Real.log M - Real.log ‖eval c.ofLp P‖ :=
     sub_nonneg.2 (Real.log_le_log (norm_pos_iff.2 hc) (hM c (mem_ball_self hr)))
-  have h := sub_setAverage_le_of_setLIntegral_ofReal_sub_le
-    (measure_ball_pos volume c hr).ne' measure_ball_lt_top.ne hu
-    (hnn.mono fun _ => sub_nonneg.1) hK (setLIntegral_ofReal_log_sub_log_norm_eval_le hc hM)
+  have h := sub_setAverage_le_of_setLAverage_ofReal_sub_le
+    (measure_ball_pos volume c hr).ne' measure_ball_lt_top.ne hu hK
+    ((setLAverage_eq _ _ _).trans_le <| ENNReal.div_le_of_le_mul'
+      (setLIntegral_ofReal_log_sub_log_norm_eval_le hc hM))
   linarith
 
 /-- **Growth of `‖P‖` from a ball to a larger ball.** If a complex polynomial `P` on
@@ -281,13 +282,10 @@ theorem log_sup_sub_setAverage_log_norm_eval_le (P : MvPolynomial ι ℂ) {D : �
   have h := (TauCeti.setLAverage_ball_le (μ := volume) _ hR hsub).trans <| mul_le_mul_right
     ((setLAverage_eq _ _ _).trans_le <| ENNReal.div_le_of_le_mul'
       (setLIntegral_ofReal_log_sub_log_norm_eval_le hz₀P hM)) _
-  rw [setLAverage_eq, ENNReal.div_le_iff_le_mul (Or.inl hpos) (Or.inl measure_ball_lt_top.ne),
-    mul_div_cancel_right₀ _ hR.ne', finrank_real_of_complex, finrank_euclideanSpace, pow_mul,
-    show (2 : ℝ) ^ 2 = 4 by norm_num, hlogM, ← ENNReal.ofReal_mul (by positivity), mul_comm] at h
-  have := sub_setAverage_le_of_setLIntegral_ofReal_sub_le hpos measure_ball_lt_top.ne
-    (integrableOn_log_norm_eval_ball hP y R)
-    (ae_restrict_log_norm_eval_le_log hP measurableSet_ball fun z hz => hM z (hsub hz))
-    (by positivity) h
+  rw [mul_div_cancel_right₀ _ hR.ne', finrank_real_of_complex, finrank_euclideanSpace, pow_mul,
+    show (2 : ℝ) ^ 2 = 4 by norm_num, hlogM, ← ENNReal.ofReal_mul (by positivity)] at h
+  have := sub_setAverage_le_of_setLAverage_ofReal_sub_le hpos measure_ball_lt_top.ne
+    (integrableOn_log_norm_eval_ball hP y R) (by positivity) h
   have : 0 ≤ (D : ℝ) * Real.log 4 := by positivity
   linarith
 
