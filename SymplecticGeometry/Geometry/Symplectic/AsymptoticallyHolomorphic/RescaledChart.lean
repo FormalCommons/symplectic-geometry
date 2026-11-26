@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Geometry.Manifold.Riemannian.Basic
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.CircleConnection
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ModelConnection
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
@@ -13,6 +14,8 @@ public import SymplecticGeometry.Geometry.Symplectic.Manifold.Darboux
 public import SymplecticGeometry.LinearAlgebra.Symplectic.UnitaryNormalForm
 import SymplecticGeometry.Analysis.Normed.Module.Ball.Pointwise
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.LocalSection
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
+import SymplecticGeometry.Geometry.Manifold.Riemannian.Distance
 import SymplecticGeometry.Geometry.Symplectic.Liouville.RadialPrimitive
 import SymplecticGeometry.Topology.Algebra.Module.Equiv.Basic
 
@@ -89,6 +92,12 @@ derivative of the chart: since `ω₀(u, J₀ u) = ‖u‖ ^ 2`, the two differ 
 `bound 1 * ‖z‖ / √k * ‖u‖ ^ 2` at a point with image `z`, so on the ball of radius `ρ₁ * √k`, for
 `ρ₁ ≤ ρ₀` with `|bound 1| * ρ₁ ≤ 1 / 2`, the form lies between `‖u‖ ^ 2 / 2` and `3 / 2 * ‖u‖ ^ 2`.
 
+With the metric `g_J` installed on `M`, the upper half of this comparison bounds distances from
+the centre: for `z` in the ball of radius `ρ₁ * √k`, the image under the inverse of the chart of
+the segment from `0` to `z` has `g_J`-speed at most `√(3 / 2) * ‖z‖ / √(2π k)`, so
+`√(2π k)` times the Riemannian distance from `x` to the inverse image of `z` is at most
+`2 * ‖z‖` (`Manifold.riemannianEDist_le_of_norm_mfderiv_le`).
+
 ## Main definitions
 
 * `SymplecticGeometry.CenteredDarbouxCharts`: centred Darboux charts at every point of `M`, with
@@ -126,6 +135,9 @@ derivative of the chart: since `ω₀(u, J₀ u) = ‖u‖ ^ 2`, the two differ 
   `SymplecticGeometry.RescaledUnitaryCharts.exists_forall_eval₂_apply_mem_Icc`: `2π k σ(v, J v)`
   is `‖u‖ ^ 2` up to `bound 1 * ‖z‖ / √k * ‖u‖ ^ 2`, `u` the image of `v` in the chart, and on a
   smaller ball it lies between `‖u‖ ^ 2 / 2` and `3 / 2 * ‖u‖ ^ 2`.
+* `SymplecticGeometry.RescaledUnitaryCharts.exists_forall_ofReal_mul_riemannianEDist_symm_le`:
+  for the metric `g_J`, `√(2π k)` times the distance from the centre `x` to the point with image
+  `z` is at most `2 * ‖z‖` on a ball of radius `ρ₁ * √k`.
 
 ## References
 
@@ -828,6 +840,65 @@ theorem exists_forall_eval₂_apply_mem_Icc (hρ₀ : 0 < ρ₀) :
   have hu := sq_nonneg ‖mvfderiv I (D.chart k x) y v‖
   have h' := h.trans (mul_le_mul_of_nonneg_right hsmall hu)
   exact Set.mem_Icc.2 ⟨by nlinarith [abs_le.1 h'], by nlinarith [abs_le.1 h']⟩
+
+section RiemannianEDist
+
+variable [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
+
+/-- **Distances from the centre, bounded in the rescaled unitary charts.** Let `M` carry a
+Riemannian metric whose inner product is `g_J(u, w) = σ(u, J w)`, and let `D` be rescaled unitary
+charts with radius `ρ₀ > 0`. There is a radius `ρ₁` with `0 < ρ₁ ≤ ρ₀` such that, for every
+`k ≥ k₀`, every point `x` and every `z` in the ball of radius `ρ₁ * √k`, the Riemannian distance
+from `x` to the point `(D.chart k x).symm z`, multiplied by `√(2π k)`, is at most `2 * ‖z‖`. -/
+theorem exists_forall_ofReal_mul_riemannianEDist_symm_le (hρ₀ : 0 < ρ₀)
+    (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w)) :
+    ∃ ρ₁, 0 < ρ₁ ∧ ρ₁ ≤ ρ₀ ∧ ∀ {k : ℕ}, k₀ ≤ k → ∀ (x : M), ∀ z ∈ ball (0 : StdSpace ι) (ρ₁ * √k),
+      ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I x ((D.chart k x).symm z) ≤
+        ENNReal.ofReal (2 * ‖z‖) := by
+  obtain ⟨ρ₁, hρ₁, hρ₁₀, hcmp⟩ := D.exists_forall_eval₂_apply_mem_Icc hρ₀
+  refine ⟨ρ₁, hρ₁, hρ₁₀, fun {k} hk x z hz ↦ ?_⟩
+  set φ := D.chart k x
+  have hk0 : 0 < √k :=
+    pos_of_mul_pos_right ((norm_nonneg z).trans_lt (mem_ball_zero_iff.1 hz)) hρ₁.le
+  set s := √(2 * Real.pi * k)
+  have hs : 0 < s := by
+    have : 0 < (k : ℝ) := Real.sqrt_pos.1 hk0
+    positivity
+  have hball : ball (0 : StdSpace ι) (ρ₁ * √k) ⊆ φ.target :=
+    (ball_subset_ball (by gcongr)).trans (D.ball_subset_target hk x)
+  -- The `g_J`-speed of the inverse of the chart in the direction `z`, on the ball.
+  have hspeed : ∀ w ∈ ball (0 : StdSpace ι) (ρ₁ * √k),
+      ‖mfderiv 𝓘(ℝ, StdSpace ι) I φ.symm w z‖ ≤ 2 * ‖z‖ / s := by
+    intro w hw
+    have hwt := hball hw
+    set v := mfderiv 𝓘(ℝ, StdSpace ι) I φ.symm w z
+    have hu : mvfderiv I φ (φ.symm w) v = z := by
+      rw [mvfderiv_apply_eq_mfderiv_apply]
+      exact φ.mfderiv_apply_mfderiv_symm_apply (by simp) hwt z
+    have h := (hcmp hk x (φ.symm w) (φ.map_target hwt)
+      (by convert hw; exact φ.right_inv hwt) v).2
+    rw [hu, ← hg, real_inner_self_eq_norm_sq] at h
+    rw [le_div_iff₀ hs]
+    refine (pow_le_pow_iff_left₀ (by positivity) (by positivity) two_ne_zero).1 ?_
+    rw [mul_pow, Real.sq_sqrt (by positivity)]
+    nlinarith [sq_nonneg ‖z‖]
+  -- The straight segment from `0` to `z` lies in the ball, and its image is a path from `x`.
+  have hseg : segment ℝ 0 z ⊆ ball (0 : StdSpace ι) (ρ₁ * √k) :=
+    (convex_ball _ _).segment_subset (mem_ball_self (by positivity)) hz
+  have h0 : φ.symm 0 = x := by
+    rw [← D.apply_self hk x]
+    exact φ.left_inv (D.mem_source hk x)
+  have hd := Manifold.riemannianEDist_le_of_norm_mfderiv_le (I := I) (f := φ.symm)
+    (C := 2 * ‖z‖ / s)
+    (fun w hw ↦ (φ.symm.contMDiffAt (by simpa using hball (hseg hw))).of_le (by simp))
+    (fun w hw ↦ by simpa using hspeed w (hseg hw))
+  rw [h0] at hd
+  calc ENNReal.ofReal s * Manifold.riemannianEDist I x (φ.symm z)
+      ≤ ENNReal.ofReal s * ENNReal.ofReal (2 * ‖z‖ / s) := by gcongr
+    _ = ENNReal.ofReal (2 * ‖z‖) := by
+        rw [← ENNReal.ofReal_mul hs.le, mul_div_cancel₀ _ hs.ne']
+
+end RiemannianEDist
 
 end RescaledUnitaryCharts
 
