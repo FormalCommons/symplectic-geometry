@@ -10,6 +10,11 @@ public import Mathlib.Geometry.Manifold.Algebra.Structures
 public import Mathlib.Geometry.Manifold.PartitionOfUnity
 public import TauCeti.Analysis.InnerProductSpace.Calculus
 public import TauCeti.Geometry.Manifold.Morse.Hessian
+public import TauCeti.Geometry.Manifold.RegularValue
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
+import SymplecticGeometry.Geometry.Manifold.Morse.CriticalPoints
+import TauCeti.Geometry.Manifold.MFDeriv.IsInvertible
+import TauCeti.Geometry.Manifold.Morse.Submersion
 
 /-!
 # Positive directions of the critical Hessian in charts
@@ -20,6 +25,22 @@ the chart derivative (`TauCeti.criticalHessian_apply_eq_of_mem_maximalAtlas`). S
 derivative is invertible (`TauCeti.isInvertible_mvfderiv_extend`), the critical Hessian is positive
 on some tangent vector exactly when the coordinate Hessian is positive on some vector, in any chart
 of the `C²` maximal atlas (`TauCeti.exists_criticalHessian_pos_iff_of_mem_maximalAtlas`).
+
+The same holds along a map `π` which is `C²` at `z` with onto differential, between
+boundaryless manifolds: at a critical point `π z` of `f`, the critical Hessian of `f` is positive
+on some vector exactly when that of `f ∘ π` at `z` is
+(`TauCeti.IsRegularPoint.exists_criticalHessian_pos_iff_comp`), by Tau Ceti's second-order chain
+rule `TauCeti.criticalHessian_comp_apply`; this is the Hessian counterpart of Tau Ceti's
+`TauCeti.IsRegularPoint.mem_criticalPoints_comp_iff`. A smooth embedding `Φ : F → M` of a real
+normed space with the dimension of `M` has onto differential everywhere
+(`TauCeti.SmoothEmbedding.isRegularPoint_of_finrank_eq`), since an injective linear map between
+spaces of the same finite dimension is onto. So critical points of `f` and their positive Hessian
+directions are read off the first and second derivatives of `f ∘ Φ`
+(`TauCeti.SmoothEmbedding.mem_criticalPoints_iff_fderiv_comp_eq_zero`,
+`TauCeti.SmoothEmbedding.exists_criticalHessian_pos_iff_fderiv_fderiv_comp`), and in the same way
+for an embedding of `F₁ × F₂` with the product model `𝓘(ℝ, F₁).prod 𝓘(ℝ, F₂)`, such as a tube
+around a ray, which gives the same critical Hessian as the self-model of the product
+(`TauCeti.criticalHessian_modelWithCornersSelf_prod`).
 
 It also says how the critical Hessian meets sums and products at an interior point where the
 functions are `C²`: it is additive (`TauCeti.criticalHessian_add`,
@@ -225,6 +246,115 @@ theorem exists_criticalHessian_pos_iff_of_mem_maximalAtlas {f : M → ℝ} {x : 
   simp only [criticalHessian_apply_eq_of_mem_maximalAtlas he hx hf (mem_criticalPoints.mp hcrit)]
   refine ⟨fun ⟨v, hv⟩ ↦ ⟨_, hv⟩, fun ⟨w, hw⟩ ↦ ⟨D.symm w, ?_⟩⟩
   rwa [← hD, ContinuousLinearEquiv.coe_coe, ContinuousLinearEquiv.apply_symm_apply]
+
+section ModelProd
+
+variable {F₁ F₂ : Type*} [NormedAddCommGroup F₁] [NormedSpace ℝ F₁] [NormedAddCommGroup F₂]
+  [NormedSpace ℝ F₂]
+
+/-- On a product of two normed spaces, the product of the self-models and the self-model of the
+product give a function the same critical Hessian. -/
+theorem criticalHessian_modelWithCornersSelf_prod (g : F₁ × F₂ → ℝ) (p : F₁ × F₂) :
+    criticalHessian (𝓘(ℝ, F₁).prod 𝓘(ℝ, F₂)) g p = criticalHessian 𝓘(ℝ, F₁ × F₂) g p := by
+  rw [modelWithCornersSelf_prod, ← chartedSpaceSelf_prod]
+
+end ModelProd
+
+section Regular
+
+variable {E' H' N : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+  {J : ModelWithCorners ℝ E' H'} [J.Boundaryless] [TopologicalSpace N] [ChartedSpace H' N]
+  {f : M → ℝ} {π : N → M} {z : N}
+
+/-- **Positive Hessian directions along a submersion.** Let `π z` be a critical point of a
+function `f` which is `C²` there, and let `π` be `C²` at `z` with onto differential. Then the
+critical Hessian of `f` at `π z` is positive on some tangent vector exactly when that of `f ∘ π`
+at `z` is. -/
+theorem IsRegularPoint.exists_criticalHessian_pos_iff_comp (hπ : IsRegularPoint J I π z)
+    (hπ₂ : ContMDiffAt J I 2 π z) (hf : ContMDiffAt I 𝓘(ℝ) 2 f (π z))
+    (hcrit : π z ∈ criticalPoints I f) :
+    (∃ v, 0 < criticalHessian I f (π z) v v) ↔ ∃ u, 0 < criticalHessian J (f ∘ π) z u u := by
+  simp only [criticalHessian_comp_apply rfl hf hπ₂ hcrit]
+  refine ⟨fun ⟨v, hv⟩ ↦ ?_, fun ⟨u, hu⟩ ↦ ⟨_, hu⟩⟩
+  obtain ⟨u, rfl⟩ := isRegularPoint_iff.1 hπ v
+  exact ⟨u, hv⟩
+
+end Regular
+
+/-! ### Through a smooth embedding of a vector space of the same dimension -/
+
+namespace SmoothEmbedding
+
+variable [FiniteDimensional ℝ E] {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+  {F₁ F₂ : Type*} [NormedAddCommGroup F₁] [NormedSpace ℝ F₁] [NormedAddCommGroup F₂]
+  [NormedSpace ℝ F₂] {n : WithTop ℕ∞} {f : M → ℝ}
+
+omit [I.Boundaryless] in
+/-- A `C^n` embedding, `n ≠ 0`, between manifolds whose models have the same finite dimension has
+onto differential at every point. -/
+theorem isRegularPoint_of_finrank_eq {E' H' N : Type*} [NormedAddCommGroup E']
+    [NormedSpace ℝ E'] [TopologicalSpace H'] {J : ModelWithCorners ℝ E' H'} [TopologicalSpace N]
+    [ChartedSpace H' N] (Φ : SmoothEmbedding J I n N M) (hn : n ≠ 0)
+    (hdim : Module.finrank ℝ E' = Module.finrank ℝ E) (z : N) : IsRegularPoint J I Φ z :=
+  isRegularPoint_iff.2 ((isInvertible_mfderiv_iff_injective hdim).2
+    (Φ.isSmoothEmbedding.isImmersion.mfderiv_injective hn z)).surjective
+
+omit [I.Boundaryless] in
+/-- **Critical points through a smooth embedding of a vector space.** Let `Φ : F → M` be a
+`C^n` embedding, `n ≠ 0`, of a real normed space of the dimension of `M`, and `f` differentiable
+at `Φ z`. Then `Φ z` is a critical point of `f` exactly when the derivative of `f ∘ Φ` vanishes
+at `z`. -/
+theorem mem_criticalPoints_iff_fderiv_comp_eq_zero (Φ : SmoothEmbedding 𝓘(ℝ, F) I n F M)
+    (hn : n ≠ 0) (hdim : Module.finrank ℝ F = Module.finrank ℝ E) {z : F}
+    (hf : MDifferentiableAt I 𝓘(ℝ) f (Φ z)) :
+    Φ z ∈ criticalPoints I f ↔ fderiv ℝ (f ∘ Φ) z = 0 := by
+  rw [← mem_criticalPoints_iff_fderiv_eq_zero,
+    (Φ.isRegularPoint_of_finrank_eq hn hdim z).mem_criticalPoints_comp_iff
+      (Φ.contMDiff.mdifferentiableAt hn) hf]
+
+/-- **Positive Hessian directions through a smooth embedding of a vector space.** Let
+`Φ : F → M` be a `C^n` embedding, `2 ≤ n`, of a real normed space of the dimension of `M`, and
+let `Φ z` be a critical point of a function `f` which is `C²` there. Then the critical Hessian of
+`f` at `Φ z` is positive on some tangent vector exactly when the second derivative of `f ∘ Φ` at
+`z` is positive on some vector. -/
+theorem exists_criticalHessian_pos_iff_fderiv_fderiv_comp (Φ : SmoothEmbedding 𝓘(ℝ, F) I n F M)
+    (hn : 2 ≤ n) (hdim : Module.finrank ℝ F = Module.finrank ℝ E) {z : F}
+    (hf : ContMDiffAt I 𝓘(ℝ) 2 f (Φ z)) (hcrit : Φ z ∈ criticalPoints I f) :
+    (∃ v, 0 < criticalHessian I f (Φ z) v v) ↔
+      ∃ w : F, 0 < fderiv ℝ (fderiv ℝ (f ∘ Φ)) z w w := by
+  rw [(Φ.isRegularPoint_of_finrank_eq (two_pos.trans_le hn).ne' hdim z
+    ).exists_criticalHessian_pos_iff_comp (Φ.contMDiff.of_le hn).contMDiffAt hf hcrit,
+    criticalHessian_modelSpace]
+  -- The two sides differ only in reading `F` as the tangent space at `z`.
+  exact Iff.rfl
+
+omit [I.Boundaryless] in
+/-- The form of `TauCeti.SmoothEmbedding.mem_criticalPoints_iff_fderiv_comp_eq_zero` for an
+embedding of a product `F₁ × F₂` with the product model, such as a tube around a ray. -/
+theorem mem_criticalPoints_iff_fderiv_comp_eq_zero_prod
+    (Φ : SmoothEmbedding (𝓘(ℝ, F₁).prod 𝓘(ℝ, F₂)) I n (F₁ × F₂) M) (hn : n ≠ 0)
+    (hdim : Module.finrank ℝ (F₁ × F₂) = Module.finrank ℝ E) {z : F₁ × F₂}
+    (hf : MDifferentiableAt I 𝓘(ℝ) f (Φ z)) :
+    Φ z ∈ criticalPoints I f ↔ fderiv ℝ (f ∘ Φ) z = 0 := by
+  rw [← mem_criticalPoints_iff_fderiv_eq_zero, ← criticalPoints_modelWithCornersSelf_prod,
+    (Φ.isRegularPoint_of_finrank_eq hn hdim z).mem_criticalPoints_comp_iff
+      (Φ.contMDiff.mdifferentiableAt hn) hf]
+
+/-- The form of `TauCeti.SmoothEmbedding.exists_criticalHessian_pos_iff_fderiv_fderiv_comp` for
+an embedding of a product `F₁ × F₂` with the product model, such as a tube around a ray. -/
+theorem exists_criticalHessian_pos_iff_fderiv_fderiv_comp_prod
+    (Φ : SmoothEmbedding (𝓘(ℝ, F₁).prod 𝓘(ℝ, F₂)) I n (F₁ × F₂) M) (hn : 2 ≤ n)
+    (hdim : Module.finrank ℝ (F₁ × F₂) = Module.finrank ℝ E) {z : F₁ × F₂}
+    (hf : ContMDiffAt I 𝓘(ℝ) 2 f (Φ z)) (hcrit : Φ z ∈ criticalPoints I f) :
+    (∃ v, 0 < criticalHessian I f (Φ z) v v) ↔
+      ∃ w : F₁ × F₂, 0 < fderiv ℝ (fderiv ℝ (f ∘ Φ)) z w w := by
+  rw [(Φ.isRegularPoint_of_finrank_eq (two_pos.trans_le hn).ne' hdim z
+    ).exists_criticalHessian_pos_iff_comp (Φ.contMDiff.of_le hn).contMDiffAt hf hcrit,
+    criticalHessian_modelWithCornersSelf_prod, criticalHessian_modelSpace]
+  -- The two sides differ only in reading `F₁ × F₂` as the tangent space at `z`.
+  exact Iff.rfl
+
+end SmoothEmbedding
 
 end TauCeti
 

@@ -18,6 +18,11 @@ closed (`TauCeti.isClosed_criticalPoints`). No Morse condition is assumed, so th
 serves Morse functions, whose critical points are isolated because they are nondegenerate, as well
 as generalized Morse functions, whose degenerate critical points are of birth–death type.
 
+On a product `F₁ × F₂` of normed spaces, the product model `𝓘(ℝ, F₁).prod 𝓘(ℝ, F₂)` and the
+self-model `𝓘(ℝ, F₁ × F₂)` give a function the same critical points
+(`TauCeti.criticalPoints_modelWithCornersSelf_prod`), by Mathlib's `modelWithCornersSelf_prod`
+and `chartedSpaceSelf_prod`.
+
 ## Implementation notes
 
 The statement is Tau Ceti's
@@ -46,6 +51,19 @@ theorem finite_criticalPoints_inter_of_forall_eventually_notMem (hf : ContMDiff 
     (h : ∀ x ∈ criticalPoints I f ∩ K, ∀ᶠ y in 𝓝[≠] x, y ∉ criticalPoints I f) :
     (criticalPoints I f ∩ K).Finite :=
   (isClosed_criticalPoints hf).finite_inter_of_forall_eventually_notMem hK h
+
+section ModelProd
+
+variable {F₁ F₂ : Type*} [NormedAddCommGroup F₁] [NormedSpace ℝ F₁] [NormedAddCommGroup F₂]
+  [NormedSpace ℝ F₂]
+
+/-- On a product of two normed spaces, the product of the self-models and the self-model of the
+product have the same critical points. -/
+theorem criticalPoints_modelWithCornersSelf_prod (g : F₁ × F₂ → ℝ) :
+    criticalPoints (𝓘(ℝ, F₁).prod 𝓘(ℝ, F₂)) g = criticalPoints 𝓘(ℝ, F₁ × F₂) g := by
+  rw [modelWithCornersSelf_prod, ← chartedSpaceSelf_prod]
+
+end ModelProd
 
 end TauCeti
 
