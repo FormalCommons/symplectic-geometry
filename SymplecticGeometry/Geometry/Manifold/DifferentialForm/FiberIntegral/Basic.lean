@@ -304,33 +304,19 @@ theorem fiberIntegrand_eq_mpullback_coordChange [FiniteDimensional ℝ E']
     e'.fiberIntegrand α b v = mpullback J J (e'.coordChange e b) (e.fiberIntegrand α b v) := by
   -- The coordinate change, extended to all of `B × F` so that it covers the identity of `B`.
   let Φ : B × F → B × F := fun p ↦ (p.1, e'.coordChange e p.1 p.2)
-  have hopen : IsOpen {p : B × F | p.1 ∈ e.baseSet ∩ e'.baseSet} :=
-    (e.open_baseSet.inter e'.open_baseSet).preimage continuous_fst
-  have hnhds (y : F) : {p : B × F | p.1 ∈ e.baseSet ∩ e'.baseSet} ∈ nhds (b, y) :=
-    hopen.mem_nhds ⟨hb, hb'⟩
-  -- Over both base sets, `Φ` is `e ∘ e'⁻¹`, so `e⁻¹ ∘ Φ` is `e'⁻¹` there.
-  have hΦ {p : B × F} (hp : p.1 ∈ e.baseSet ∩ e'.baseSet) :
-      Φ p = e (e'.toOpenPartialHomeomorph.symm p) :=
-    e'.mk_coordChange e hp.2 hp.1 p.2
-  have hsrc {p : B × F} (hp : p.1 ∈ e.baseSet ∩ e'.baseSet) :
-      e'.toOpenPartialHomeomorph.symm p ∈ e.source := by
-    rw [e.mem_source, e'.proj_symm_apply (e'.mem_target.2 hp.2)]
-    exact hp.1
   have hd (y : F) : MDifferentiableAt (I.prod J) (I.prod J) Φ (b, y) := by
     have hy : ((b, y) : B × F) ∈ e'.target := e'.mem_target.2 hb'
-    have h : MDifferentiableAt (I.prod J) (I.prod J)
-        (fun p ↦ e (e'.toOpenPartialHomeomorph.symm p)) (b, y) :=
-      (he.mdifferentiableAt (hsrc ⟨hb, hb'⟩)).comp _
-        ((he' _ hy).mdifferentiableAt (e'.open_target.mem_nhds hy))
-    refine (mdifferentiableAt_fst.prodMk h.snd).congr_of_eventuallyEq ?_
-    filter_upwards [hnhds y] with p hp
-    refine (hΦ hp).trans (Prod.ext ?_ rfl)
-    rw [e.coe_fst (hsrc hp), e'.proj_symm_apply (e'.mem_target.2 hp.2)]
+    have hs : e'.toOpenPartialHomeomorph.symm (b, y) ∈ e.source :=
+      e.mem_source.2 (by rwa [e'.proj_symm_apply' hb'])
+    -- By definition, `e'.coordChange e p.1 p.2` is `(e (e'⁻¹ p)).2`.
+    exact mdifferentiableAt_fst.prodMk ((he.mdifferentiableAt hs).comp _
+      ((he' _ hy).mdifferentiableAt (e'.open_target.mem_nhds hy))).snd
+  -- Over both base sets, `e⁻¹ ∘ Φ` is `e'⁻¹`.
   have hev (y : F) : (e.toOpenPartialHomeomorph.symm ∘ Φ) =ᶠ[nhds (b, y)]
       e'.toOpenPartialHomeomorph.symm := by
-    filter_upwards [hnhds y] with p hp
-    rw [comp_apply, hΦ hp]
-    exact e.toOpenPartialHomeomorph.left_inv (hsrc hp)
+    filter_upwards [((e.open_baseSet.inter e'.open_baseSet).preimage continuous_fst).mem_nhds
+      ⟨hb, hb'⟩] with p hp
+    simpa [fiberInclusionMap_apply] using e'.fiberInclusionMap_coordChange e hp.2 hp.1 p.2
   funext y
   rw [fiberIntegrand_def, fiberIntegrand_def,
     ← prodFiberIntegrand_mpullback_of_fst_eq (Φ := Φ) rfl hd hm]
