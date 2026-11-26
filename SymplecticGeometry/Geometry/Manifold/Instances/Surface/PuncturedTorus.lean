@@ -5,12 +5,17 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Analysis.Complex.Isometry
 public import Mathlib.AlgebraicTopology.FundamentalGroupoid.FundamentalGroup
+public import Mathlib.Analysis.SpecialFunctions.Complex.CircleMap
 public import SymplecticGeometry.Geometry.Manifold.Instances.Surface.Genus
 public import SymplecticGeometry.Geometry.Manifold.Instances.Surface.TorusWedge
+public import SymplecticGeometry.Geometry.Manifold.ConnectedSum.FundamentalGroup
 public import TauCeti.AlgebraicTopology.FundamentalGroup.HomotopyEquiv
 public import TauCeti.GroupTheory.SurfaceGroup.Free
+import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
 import SymplecticGeometry.Topology.Instances.AddCircle.Icc
+import TauCeti.Analysis.Normed.Module.Ball.Homeomorph
 import TauCeti.Topology.Homotopy.PuncturedStarConvex
 import TauCeti.Topology.Homotopy.Quotient
 
@@ -67,6 +72,13 @@ torus.
   punctured torus.
 * `SymplecticGeometry.EuclideanTorus.puncturedFundamentalGroupMulEquiv`: the fundamental group of
   the punctured torus at `0` is `TauCeti.SurfaceGroup.Orientable 1 1`.
+* `SymplecticGeometry.EuclideanTorus.neckIsometry`: the identification of `ℂ` with the plane, the
+  rotation by `π / 4` followed by `x + iy ↦ (x, y)`, along which the neck is read.
+* `SymplecticGeometry.EuclideanTorus.neckLoop`: the circle of the neck, a loop around the puncture.
+* `SymplecticGeometry.EuclideanTorus.diagonalPath`: the segment of the diagonal of the square from
+  `0` to the start of the neck loop.
+* `SymplecticGeometry.EuclideanTorus.punctureLoop`: the neck loop conjugated by the diagonal path,
+  a loop around the puncture based at `0`.
 
 ## Main results
 
@@ -78,6 +90,11 @@ torus.
 * `SymplecticGeometry.EuclideanTorus.puncturedFundamentalGroupMulEquiv_circleLoop_zero`,
   `SymplecticGeometry.EuclideanTorus.puncturedFundamentalGroupMulEquiv_circleLoop_one`: it sends
   the two circle loops to the generators `a 0` and `b 0`.
+* `SymplecticGeometry.EuclideanTorus.diffeomorph_neckLoop_apply`,
+  `SymplecticGeometry.EuclideanTorus.diffeomorph_diagonalPath_apply`: the neck loop and the
+  diagonal path in the coordinates of the square.
+* `SymplecticGeometry.EuclideanTorus.circlesRetraction_diagonalPath`: the retraction onto the two
+  circles sends the diagonal path to `0`.
 
 ## References
 
@@ -600,6 +617,151 @@ theorem puncturedFundamentalGroupMulEquiv_circleLoop_one :
       SurfaceGroup.Orientable.b 1 1 0 := by
   rw [puncturedFundamentalGroupMulEquiv_circleLoop, generatorEquiv_one,
     SurfaceGroup.Orientable.equivFreeGroup_symm_of_inr_inl]
+
+/-! ### The loop around the puncture
+
+The neck of the connected sum along `SymplecticGeometry.EuclideanTorus.ball` is the punctured
+plane, identified with `ℂ ∖ {0}` by `SymplecticGeometry.EuclideanTorus.neckIsometry`, and its
+circle `LinearIsometryEquiv.circleLoop` of radius `1` lies in the punctured torus as a loop
+around the puncture. The ball has radius `1 / 4` about `(1 / 2, 1 / 2)`, and Mathlib's
+`OpenPartialHomeomorph.univBall` sends the circle of radius `1` to that of radius
+`(1 / 4) / √(1 + 1²) = 1 / (4 √2)`. The rotation by `π / 4` in `neckIsometry` makes the loop start
+at `(1 / 2 + 1 / 8, 1 / 2 + 1 / 8)`, on the diagonal of the square, where a segment of the diagonal
+joins it to the corner `(1, 1)`, that is to `0`; the retraction onto the two circles sends that
+segment to `0`. -/
+
+/-- The identification of `ℂ` with the Euclidean plane along which the loop around the puncture is
+read: the rotation `z ↦ e^{iπ/4} z`, followed by the standard identification
+`Complex.orthonormalBasisOneI.repr`, `x + iy ↦ (x, y)`. It sends `1` to `(1, 1) / √2`. -/
+def neckIsometry : ℂ ≃ₗᵢ[ℝ] EuclideanSpace ℝ (Fin 2) :=
+  (rotation (Circle.exp (Real.pi / 4))).trans Complex.orthonormalBasisOneI.repr
+
+theorem neckIsometry_apply (z : ℂ) :
+    neckIsometry z = Complex.orthonormalBasisOneI.repr (Circle.exp (Real.pi / 4) * z) :=
+  (rfl)
+
+/-- The identification sends the point `r e^{iθ}` to `(r cos (θ + π / 4), r sin (θ + π / 4))`. -/
+theorem neckIsometry_circleMap (r θ : ℝ) :
+    neckIsometry (circleMap 0 r θ) =
+      WithLp.toLp 2 ![r * Real.cos (θ + Real.pi / 4), r * Real.sin (θ + Real.pi / 4)] := by
+  have h : (Circle.exp (Real.pi / 4) : ℂ) * circleMap 0 r θ = circleMap 0 r (θ + Real.pi / 4) := by
+    rw [show (Circle.exp (Real.pi / 4) : ℂ) = circleMap 0 1 (Real.pi / 4) by
+        simp [circleMap_zero, Circle.coe_exp], circleMap_zero_mul, one_mul, add_comm]
+  rw [neckIsometry_apply, h]
+  ext i
+  fin_cases i <;> simp [circleMap_zero_re, circleMap_zero_im]
+
+/-- The coordinate ball sends the point `e^{iθ}` of the unit circle, read by `neckIsometry`, to
+`([1 / 2 + ρ cos (θ + π / 4)], [1 / 2 + ρ sin (θ + π / 4)])`, with `ρ = 1 / (4 √2)`. -/
+private theorem diffeomorph_ball_neckIsometry_circleMap (θ : ℝ) :
+    diffeomorph (ball (neckIsometry (circleMap 0 1 θ))) =
+      ![((1 / 2 + 1 / (4 * √2) * Real.cos (θ + Real.pi / 4) : ℝ) : AddCircle (1 : ℝ)),
+        ((1 / 2 + 1 / (4 * √2) * Real.sin (θ + Real.pi / 4) : ℝ) : AddCircle (1 : ℝ))] := by
+  have hn : ‖neckIsometry (circleMap 0 1 θ)‖ = 1 := by simp
+  rw [ball_def, Function.comp_apply, OpenPartialHomeomorph.univBall_apply (by norm_num), hn,
+    show √(1 + (1 : ℝ) ^ 2) = √2 by norm_num, neckIsometry_circleMap]
+  refine funext (Fin.forall_fin_two.2 ⟨?_, ?_⟩)
+  all_goals simp only [diffeomorph_cover]; congr 1; simp; ring
+
+/-- The **neck loop** of the punctured torus: the circle `t ↦ neckIsometry e^{2πit}` of the neck,
+carried into the punctured torus by `TauCeti.ConnectedSum.neckInl`. It goes once around the
+puncture, counterclockwise in the coordinates of the square
+(`SymplecticGeometry.EuclideanTorus.diffeomorph_neckLoop_apply`). -/
+def neckLoop :
+    Path (ConnectedSum.neckInl isOpenEmbedding_ball (neckIsometry.circleBasepoint one_pos))
+      (ConnectedSum.neckInl isOpenEmbedding_ball (neckIsometry.circleBasepoint one_pos)) :=
+  (neckIsometry.circleLoop one_pos).map (ConnectedSum.neckInl isOpenEmbedding_ball).continuous
+
+/-- The neck loop in coordinates: at time `t` it is the point
+`([1 / 2 + ρ cos (2πt + π / 4)], [1 / 2 + ρ sin (2πt + π / 4)])`, with `ρ = 1 / (4 √2)`, of the
+circle of radius `ρ` about the puncture `([1 / 2], [1 / 2])`. -/
+theorem diffeomorph_neckLoop_apply (t : I) :
+    diffeomorph (neckLoop t : EuclideanTorus) =
+      ![((1 / 2 + 1 / (4 * √2) * Real.cos (2 * Real.pi * t + Real.pi / 4) : ℝ) :
+          AddCircle (1 : ℝ)),
+        ((1 / 2 + 1 / (4 * √2) * Real.sin (2 * Real.pi * t + Real.pi / 4) : ℝ) :
+          AddCircle (1 : ℝ))] := by
+  rw [neckLoop, ConnectedSum.coe_map_neckInl_circleLoop_apply,
+    diffeomorph_ball_neckIsometry_circleMap]
+
+/-- The point `([s], [s])` of the diagonal of the torus. -/
+private theorem diffeomorph_cover_diag (s : ℝ) :
+    diffeomorph (cover (WithLp.toLp 2 fun _ ↦ s)) = ![(s : AddCircle (1 : ℝ)), s] :=
+  funext (Fin.forall_fin_two.2 ⟨diffeomorph_cover _ 0, diffeomorph_cover _ 1⟩)
+
+/-- A point `([s], [s])` of the diagonal, with `1 / 2 < s ≤ 1`, is not the puncture. -/
+private theorem cover_diag_mem_puncture {s : ℝ} (hs : s ∈ Ioc (1 / 2 : ℝ) 1) :
+    cover (WithLp.toLp 2 fun _ ↦ s) ∈ ConnectedSum.puncture ball := by
+  refine ConnectedSum.mem_puncture.2 fun h ↦ ?_
+  have h₀ := congrFun (congrArg diffeomorph h) 0
+  rw [diffeomorph_cover_diag, diffeomorph_ball_zero, Matrix.cons_val_zero] at h₀
+  have hm : (1 / 2 : ℝ) ∈ Icc (0 : ℝ) (0 + 1) := ⟨by norm_num, by norm_num⟩
+  rcases (AddCircle.coe_eq_coe_iff_of_mem_Icc ⟨by linarith [hs.1], by linarith [hs.2]⟩ hm).1 h₀
+    with h | ⟨-, h⟩ | ⟨-, h⟩ <;> norm_num at h
+  linarith [hs.1]
+
+private theorem one_sub_mem_Ioc (t : I) : 1 - 3 / 8 * (t : ℝ) ∈ Ioc (1 / 2 : ℝ) 1 :=
+  ⟨by linarith [t.property.2], by linarith [t.property.1]⟩
+
+/-- The **diagonal path** of the punctured torus, `t ↦ ([1 - 3t / 8], [1 - 3t / 8])`: the
+segment of the diagonal of the square from the corner `(1, 1)`, which is `0` in the torus,
+towards the centre, up to the start `(5 / 8, 5 / 8)` of the neck loop. -/
+def diagonalPath : Path (⟨0, zero_mem_puncture⟩ : ConnectedSum.puncture ball)
+    (ConnectedSum.neckInl isOpenEmbedding_ball (neckIsometry.circleBasepoint one_pos)) where
+  toFun t := ⟨cover (WithLp.toLp 2 fun _ ↦ 1 - 3 / 8 * (t : ℝ)),
+    cover_diag_mem_puncture (one_sub_mem_Ioc t)⟩
+  continuous_toFun := by
+    refine Continuous.subtype_mk (isLocalHomeomorph_cover.continuous.comp ?_) _
+    exact (PiLp.continuous_toLp _ _).comp (continuous_pi fun _ ↦ by fun_prop)
+  source' := by
+    refine Subtype.ext (EquivLike.injective diffeomorph ?_)
+    rw [diffeomorph_cover_diag, diffeomorph_zero]
+    funext i
+    fin_cases i <;> simp
+  target' := by
+    refine Subtype.ext (EquivLike.injective diffeomorph ?_)
+    have h₁ : ((1 : ℝ) : ℂ) = circleMap 0 1 0 := by simp [circleMap]
+    have h₂ : (1 - 3 / 8 * ((1 : I) : ℝ)) = 1 / 2 + 1 / (4 * √2) * (√2 / 2) := by
+      have := Real.sq_sqrt (show (0 : ℝ) ≤ 2 by norm_num)
+      field_simp
+      norm_num [this]
+    rw [ConnectedSum.coe_neckInl_apply, LinearIsometryEquiv.coe_circleBasepoint, h₁,
+      diffeomorph_ball_neckIsometry_circleMap, diffeomorph_cover_diag, zero_add,
+      Real.cos_pi_div_four, Real.sin_pi_div_four, h₂]
+
+private theorem coe_diagonalPath_apply (t : I) :
+    (diagonalPath t : EuclideanTorus) = cover (WithLp.toLp 2 fun _ ↦ 1 - 3 / 8 * (t : ℝ)) :=
+  (rfl)
+
+/-- The diagonal path in coordinates: at time `t` it is `([1 - 3t / 8], [1 - 3t / 8])`. -/
+theorem diffeomorph_diagonalPath_apply (t : I) :
+    diffeomorph (diagonalPath t : EuclideanTorus) =
+      ![((1 - 3 / 8 * t : ℝ) : AddCircle (1 : ℝ)), ((1 - 3 / 8 * t : ℝ) : AddCircle (1 : ℝ))] := by
+  rw [coe_diagonalPath_apply, diffeomorph_cover_diag]
+
+/-- The retraction onto the two circles sends every point of the diagonal path to `0`: the ray
+from the centre of the square through a point of the diagonal between the centre and the corner
+`(1, 1)` meets the boundary at that corner. -/
+theorem circlesRetraction_diagonalPath (t : I) :
+    circlesRetraction (diagonalPath t) = ⟨0, zero_mem_circles⟩ := by
+  have hs := one_sub_mem_Ioc t
+  have hs' : 1 - 3 / 8 * (t : ℝ) ∈ Icc (0 : ℝ) 1 := ⟨by linarith [hs.1], hs.2⟩
+  refine Subtype.ext (EquivLike.injective diffeomorph ?_)
+  rw [diffeomorph_circlesRetraction_apply _ hs' hs' (diffeomorph_diagonalPath_apply t),
+    max_self, abs_of_pos (by linarith [hs.1]), div_mul_cancel₀ _ (by linarith [hs.1]),
+    show (1 / 2 + 1 / 2 : ℝ) = 1 by norm_num, AddCircle.coe_period]
+  funext i
+  fin_cases i <;> simp
+
+/-- The **loop around the puncture** of the punctured torus, based at `0`: the neck loop,
+conjugated by the diagonal path, which runs from `0` to the start of the neck loop. -/
+def punctureLoop :
+    Path (⟨0, zero_mem_puncture⟩ : ConnectedSum.puncture ball) ⟨0, zero_mem_puncture⟩ :=
+  (diagonalPath.trans neckLoop).trans diagonalPath.symm
+
+theorem punctureLoop_def :
+    punctureLoop = (diagonalPath.trans neckLoop).trans diagonalPath.symm :=
+  (rfl)
 
 end EuclideanTorus
 
