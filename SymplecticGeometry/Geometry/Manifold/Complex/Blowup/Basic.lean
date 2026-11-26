@@ -539,8 +539,7 @@ theorem contMDiff_gluingHomeomorph_symm
 
 /-- The gluing is compatible as soon as `c`, its inverse, the model's blowdown and its inverse
 off the divisor are `C^r`. -/
-theorem isCompatible_of_contMDiff [IsManifold 𝓘(𝕜, Fin (n + 1) → ℂ) r M]
-    [IsManifold 𝓘(𝕜, Fin (n + 1) → ℂ) r (BlowupModel n)]
+theorem isCompatible_of_contMDiff
     (hc : ContMDiffOn 𝓘(𝕜, Fin (n + 1) → ℂ) 𝓘(𝕜, Fin (n + 1) → ℂ) r c c.source)
     (hcs : ContMDiffOn 𝓘(𝕜, Fin (n + 1) → ℂ) 𝓘(𝕜, Fin (n + 1) → ℂ) r c.symm c.target)
     (hb : ContMDiff 𝓘(𝕜, Fin (n + 1) → ℂ) 𝓘(𝕜, Fin (n + 1) → ℂ) r

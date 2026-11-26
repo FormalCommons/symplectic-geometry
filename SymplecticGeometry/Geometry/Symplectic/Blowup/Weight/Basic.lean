@@ -263,7 +263,7 @@ along the inverse of `gluingDiffeomorph`, which identifies `p ∈ openNbhd n ε 
 `ψ(F_l(π p))`. It is a smooth manifold modelled on `Fin (n + 1) → ℂ`. -/
 abbrev _root_.SymplecticGeometry.WeightBlowup
     (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) (hl : 0 ≤ l) (hε : 0 < ε) : Type :=
-  GluedAlong (gluingDiffeomorph hψ hl hε).symm
+  GluedAlong (U₁ := outerOverlap hψ) (U₂ := modelOverlap n ε) (gluingDiffeomorph hψ hl hε).symm
 
 variable (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) (hl : 0 ≤ l) (hε : 0 < ε)
 
@@ -275,15 +275,19 @@ instance instIsManifold : IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ (WeightB
 /-- A point `p` of `openNbhd n ε ∖ Z` is glued to `ψ(F_l(π p))`. -/
 @[simp]
 theorem inl_gluingDiffeomorph (p : modelOverlap n ε) :
-    GluedAlong.inl (gluingDiffeomorph hψ hl hε).symm (gluingDiffeomorph hψ hl hε p) =
-      GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm p :=
-  GluedAlong.inl_symm_apply (gluingDiffeomorph hψ hl hε).symm p
+    GluedAlong.inl (U₁ := outerOverlap hψ) (U₂ := modelOverlap n ε)
+        (gluingDiffeomorph hψ hl hε).symm (gluingDiffeomorph hψ hl hε p) =
+      GluedAlong.inr (U₁ := outerOverlap hψ) (U₂ := modelOverlap n ε)
+        (gluingDiffeomorph hψ hl hε).symm p :=
+  GluedAlong.inl_diffeomorph_symm_apply (gluingDiffeomorph hψ hl hε).symm p
 
 /-- A point `x` of the outer piece and a point `y` of the model piece have the same image in the
 blowup exactly when `y` is off the divisor and `x` is its image under the gluing map. -/
 theorem inl_eq_inr_iff {x : outerPiece hψ} {y : modelPiece n ε} :
-    GluedAlong.inl (gluingDiffeomorph hψ hl hε).symm x =
-        GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm y ↔
+    GluedAlong.inl (U₁ := outerOverlap hψ) (U₂ := modelOverlap n ε)
+          (gluingDiffeomorph hψ hl hε).symm x =
+        GluedAlong.inr (U₁ := outerOverlap hψ) (U₂ := modelOverlap n ε)
+          (gluingDiffeomorph hψ hl hε).symm y ↔
       ∃ h : y ∈ modelOverlap n ε, (gluingDiffeomorph hψ hl hε ⟨y, h⟩ : outerPiece hψ) = x := by
   refine ⟨fun h ↦ ?_, fun ⟨hy, hx⟩ ↦ hx ▸ inl_gluingDiffeomorph hψ hl hε ⟨y, hy⟩⟩
   obtain ⟨hx, hxy⟩ := (GluedAlong.inl_eq_inr_iff _).1 h
