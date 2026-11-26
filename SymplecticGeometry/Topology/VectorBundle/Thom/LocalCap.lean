@@ -86,13 +86,7 @@ theorem singularCohomologyMap_canonicalThomClass_eq_modelThomGenerator
     (hU : U ⊆ e.baseSet) {b : B} (hbU : b ∈ U) {Q : TopPair.{w}} (φ : Q ⟶ thomPair F E)
     (hφU : ∀ q, (TopPair.Hom.fst φ q).proj ∈ U) :
     TopPair.singularCohomologyMap φ r (o.canonicalThomClass hr) =
-      TopPair.singularCohomologyMap ((TopPair.isoOfSubsetRange Q).hom ≫
-        TopPair.ofSubsetMap (X := Q.fst) (Y := TopCat.of F)
-          (TopCat.ofHom ⟨fun q ↦ (e (TopPair.Hom.fst φ q)).2,
-            (e.continuousOn.comp_continuous (TopPair.Hom.fst φ).hom.continuous
-              fun q ↦ e.mem_source.2 (hU (hφU q))).snd⟩)
-          (B' := {0}ᶜ) fun q hq ↦ (e.snd_apply_ne_zero_iff ℝ (hU (hφU q))).2 <|
-            mem_zeroSectionCompl.1 (TopPair.mapsTo_range_map_of_hom φ hq)) r
+      TopPair.singularCohomologyMap (e.coordPairMap φ fun q ↦ hU (hφU q)) r
         ((e.mapOrientation (Fin r) (hU hbU) (o b)).modelThomGenerator hr) := by
   rw [singularCohomologyMap_eq_singularCohomologyMap_complZeroPairIso_inv e hU hbU φ hφU,
     singularCohomologyMap_fiberThomPairMap_canonicalThomClass o hr e (hU hbU),
@@ -143,10 +137,10 @@ theorem singularCohomologyMap_localChart_canonicalThomClass (e : Trivialization 
       hφ x ▸ (e.proj_localChart hSe x).symm ▸ mem_image_of_mem _ x.property.2]
   congr 3
   refine TopPair.hom_ext_of_fst _ (ConcreteCategory.hom_ext _ _ fun x ↦ ?_)
-  rw [TopPair.Hom.fst_comp, ConcreteCategory.comp_apply, TopPair.isoOfSubsetRange_hom_fst_apply]
+  rw [Trivialization.coordPairMap_fst_apply, hφ x]
   -- The point `x` of the pair is a point of `univ ×ˢ S` only up to unfolding `ofSubset`.
-  erw [TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply]
-  exact (congrArg (fun p ↦ (e p).2) (hφ x)).trans (hfst x)
+  erw [TopPair.ofSubsetMap_fst_apply]
+  exact hfst x
 
 section Cap
 

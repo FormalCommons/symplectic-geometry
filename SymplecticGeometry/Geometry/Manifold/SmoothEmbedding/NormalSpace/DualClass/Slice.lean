@@ -43,9 +43,11 @@ followed by the quotient onto the normal space, is the inverse of the preferred 
 at `x`. Both pull classes of `(X, X ∖ f(Z))` back in the same way, in every degree, once the
 slice is read on `B` through `e`. On a small enough open `O ⊆ B` (restriction to which is
 injective by excision), `g` lifts through `Φ` to a map into the Thom pair whose base points stay
-in a contractible neighbourhood of `x`; this lift pulls classes back through its fibre coordinate
-in `e` (`TauCeti.singularCohomologyMap_eq_singularCohomologyMap_fiberCoordPairMap`). Since `Φ`
-is normalized, that fibre coordinate has derivative the identity at `0`
+in a contractible neighbourhood of `x`; this lift pulls classes back, through
+`(e.continuousLinearEquivAt ℝ x hx).complZeroPairIso.inv`, along its coordinate in the model
+fibre (`Bundle.Trivialization.coordPairMap`,
+`TauCeti.singularCohomologyMap_eq_singularCohomologyMap_complZeroPairIso_inv`). Since `Φ` is
+normalized, that coordinate has derivative the identity at `0`
 (`TauCeti.SmoothEmbedding.IsNormalizedTube.hasFDerivAt_trivializationAt_snd`), so it agrees on
 relative cohomology with the inclusion of `O`
 (`TopPair.singularCohomologyMap_ofSubsetMap_eq_inclusion_of_hasFDerivAt_id`). This follows the
@@ -321,20 +323,11 @@ private theorem singularCohomologyMap_slice_eq_of_isOpen {f : SmoothEmbedding I 
     erw [TopPair.ofSubsetMap_fst_apply, hψ]
     exact (hΦΨ (hOW _ (show O from w).property)).symm
   rw [hLψ, TopPair.singularCohomologyMap_comp_apply,
-    singularCohomologyMap_eq_singularCohomologyMap_fiberCoordPairMap e (U := U) hUe hxU ψ hψU,
-    normalSlice_def]
+    singularCohomologyMap_eq_singularCohomologyMap_complZeroPairIso_inv e (U := U) hUe hxU ψ hψU,
+    normalSlice_def, ContinuousLinearEquiv.complZeroPairIso_symm, Iso.symm_hom]
   simp only [TopPair.singularCohomologyMap_comp_apply]
   generalize TopPair.singularCohomologyMap (R := R) (k := k) (M := M)
-    (fiberThomPairMap P (fun x ↦ f.NormalSpace x hn) x) n _ = d
-  -- Read in `e`, the fibre over `x` is `P`.
-  set ℓ := e.continuousLinearEquivAt ℝ x hx
-  obtain ⟨d, rfl⟩ : ∃ d', d = TopPair.singularCohomologyMap ℓ.complZeroPairIso.hom n d' :=
-    ⟨_, by rw [← TopPair.singularCohomologyMap_comp_apply, Iso.hom_inv_id,
-      TopPair.singularCohomologyMap_id, ConcreteCategory.id_apply]⟩
-  rw [ContinuousLinearEquiv.complZeroPairIso_symm, Iso.symm_hom,
-    ← TopPair.singularCohomologyMap_comp_apply ℓ.complZeroPairIso.inv, Iso.inv_hom_id,
-    TopPair.singularCohomologyMap_id, ConcreteCategory.id_apply,
-    ← TopPair.singularCohomologyMap_comp_apply, e.fiberCoordPairMap_comp_complZeroPairIso_hom]
+    (e.continuousLinearEquivAt ℝ x hx).complZeroPairIso.inv n _ = d
   -- The fibre coordinate of `g` has derivative the identity at `0`.
   set F : P → P := fun w ↦ (e (Ψ (g w))).2
   have hFc : ContinuousOn F O := (e.continuousOn.comp (hΨc.comp hgO hOW)
@@ -345,20 +338,14 @@ private theorem singularCohomologyMap_slice_eq_of_isOpen {f : SmoothEmbedding I 
       (by filter_upwards [hO.mem_nhds hO0] with w hw using hΦΨ (hOW w hw))
   have hFx : ∀ w ∈ O, F w = 0 → w = 0 := fun w hw h ↦ by_contra fun hw0 ↦
     (e.snd_apply_ne_zero_iff ℝ (hUe (hOU w hw))).2 (hψ0 w hw hw0) h
-  have hfc : (TopPair.isoOfSubsetRange _).hom ≫ TopPair.ofSubsetMap
-      (TopCat.ofHom ⟨fun q ↦ (e (TopPair.Hom.fst ψ q)).2,
-        (e.continuousOn.comp_continuous (TopPair.Hom.fst ψ).hom.continuous
-          fun q ↦ e.mem_source.2 (hUe (hψU q))).snd⟩)
-      (fun q hq ↦ (e.snd_apply_ne_zero_iff ℝ (hUe (hψU q))).2 <|
-        mem_zeroSectionCompl.1 (TopPair.mapsTo_range_map_of_hom ψ hq)) =
+  have hfc : e.coordPairMap ψ (fun q ↦ hUe (hψU q)) =
       TopPair.ofSubsetMap (X := TopCat.of O) (Y := TopCat.of P)
         (TopCat.ofHom ⟨O.domRestrict F, hFc.domRestrict⟩) (B := {⟨0, hO0⟩}ᶜ) (B' := {0}ᶜ)
         (fun y hy h ↦ hy (Subtype.ext (hFx y y.property h))) := by
     refine TopPair.hom_ext_of_fst _ (ConcreteCategory.hom_ext _ _ fun w ↦ ?_)
-    rw [TopPair.Hom.fst_comp, ConcreteCategory.comp_apply,
-      TopPair.isoOfSubsetRange_hom_fst_apply]
-    -- The points of the pairs are those of `O` and `P` only up to unfolding `ofSubset`.
-    erw [TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply]
+    rw [Trivialization.coordPairMap_fst_apply]
+    -- The points of the pair are those of `O` only up to unfolding `ofSubset`.
+    erw [TopPair.ofSubsetMap_fst_apply (X := TopCat.of O) (Y := TopCat.of P)]
     exact congrArg (fun p ↦ (e p).2) (hψ w)
   rw [hfc, TopPair.singularCohomologyMap_ofSubsetMap_eq_inclusion_of_hasFDerivAt_id R k M
     (hO.mem_nhds hO0) hFc hF0 hF hFx n]
