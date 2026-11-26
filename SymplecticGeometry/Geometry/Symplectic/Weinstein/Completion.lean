@@ -139,10 +139,8 @@ private theorem completionFunction_toCompletion (hδ0 : 0 < δ) (hδ : 2 * δ < 
     completionFunction h f c ε δ (h.toCompletion p) = f p := by
   by_cases hz : ∃ q ∈ Ioi (-(2 * δ)) ×ˢ univ, h.completionEnd q = h.toCompletion p
   · obtain ⟨q, hq, hqp⟩ := hz
-    have hq0 : q.1 ≤ 0 := le_of_not_gt fun hq0 ↦ disjoint_left.1
-      h.disjoint_range_toCompletion_completionEnd_image ⟨p, rfl⟩ ⟨q, ⟨hq0, trivial⟩, hqp⟩
-    have hpΦ : p = h.collarFlow q := h.injective_toCompletion <| hqp.symm.trans <|
-      h.completionEnd_eq_toCompletion ⟨by linarith [show -(2 * δ) < q.1 from hq.1], hq0⟩ q.2
+    obtain ⟨hq0, hpΦ⟩ := (h.completionEnd_eq_toCompletion_iff
+      (by linarith [show -(2 * δ) < q.1 from hq.1])).1 hqp
     have hqδ : q.1 ≤ -δ := le_of_not_gt fun hqδ ↦ hp ⟨q, ⟨⟨hqδ, hq0⟩, trivial⟩, hpΦ.symm⟩
     rw [← hqp, completionFunction_completionEnd hδ hq, endFunction, cutoff_of_le hδ0 hqδ, ← hpΦ]
     ring
@@ -296,10 +294,7 @@ private theorem contMDiff_completionFunction (hW : IsWeinsteinDomain σ Y f c) (
   obtain ⟨p, hp, rfl⟩ := h.exists_mem_interior_toCompletion_eq (by positivity) hz
   -- Off the compact image `K` of `[-δ, 0] × ∂W`, the function is `f` read through the inclusion.
   set K := h.completionEnd '' (Icc (-δ) 0 ×ˢ univ)
-  have hKc : IsClosed K := by
-    refine (IsCompact.image_of_continuousOn (isCompact_Icc.prod isCompact_univ)
-      (h.contMDiffOn_completionEnd.continuousOn.mono ?_)).isClosed
-    exact prod_mono (fun s hs ↦ by simp only [mem_Ioi]; linarith [hs.1]) subset_rfl
+  have hKc : IsClosed K := (h.isCompact_completionEnd_image_Icc (by linarith)).isClosed
   have hpK : h.toCompletion p ∉ K := by
     rintro ⟨r, hr, hrp⟩
     exact hz ⟨r, ⟨by simp only [mem_Ioi]; linarith [hr.1.1], trivial⟩, hrp⟩
@@ -363,9 +358,7 @@ private theorem isCompact_preimage_Iic_completionFunction [CompactSpace W]
   -- The sublevel lies in `W` and the image of `[0, T] × ∂W`.
   have hC : IsCompact (range h.toCompletion ∪ h.completionEnd '' (Icc 0 T ×ˢ univ)) :=
     (isCompact_range h.contMDiff_toCompletion.continuous).union
-      (IsCompact.image_of_continuousOn (isCompact_Icc.prod isCompact_univ)
-        (h.contMDiffOn_completionEnd.continuousOn.mono (prod_mono (fun s hs ↦
-          lt_of_lt_of_le (neg_lt_zero.2 h.collarWidth_pos) hs.1) subset_rfl)))
+      (h.isCompact_completionEnd_image_Icc (neg_lt_zero.2 h.collarWidth_pos))
   refine hC.of_isClosed_subset (isClosed_Iic.preimage
     (hW.contMDiff_completionFunction hδ0 hδ).continuous) fun z hz ↦ ?_
   rcases (h.range_toCompletion_union ▸ mem_univ z :

@@ -13,7 +13,7 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.UnitFr
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.UnitaryFrame
 public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
 public import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
-public import SymplecticGeometry.Topology.VectorBundle.Determinant
+public import SymplecticGeometry.Topology.VectorBundle.DetBundle.Frame
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.Radial
 public import TauCeti.Topology.VectorBundle.Complex.Clutching
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
@@ -30,15 +30,15 @@ orientation, whose closed discs are pairwise disjoint, and let `E` be a complex 
 `clutchingTransition hφ Φ Φout i ζ = (Φ i)⁻¹ ∘ Φout` of `G`.
 
 This file builds from these frames a section of the determinant line `Λ^top E`
-(`SymplecticGeometry.Bundle.detCore`) that the disc clutching formula sums over:
+(Tau Ceti's `TauCeti.DetBundle ℂ G E`) that the disc clutching formula sums over:
 
-* on the complement of the open discs, the determinant section `detCoreFrameSection` of `Φout`;
+* on the complement of the open discs, the determinant `TauCeti.DetBundle.ofFrame` of `Φout`;
 * at `φ i z` with `‖z‖ < 1`, the determinant section of `Φ i` times `sphereCone uᵢ z`, for
   `uᵢ ζ = det (clutchingTransition hφ Φ Φout i ζ)` and `sphereCone` Tau Ceti's radial extension
   `r ζ ↦ r uᵢ(ζ)` of a function on the circle (read on `Circle` through
   `Circle.homeomorphSphere`).
 
-The main result, `exists_detCore_section_clutching`, says that this section is continuous on
+The main result, `exists_detBundle_section_clutching`, says that this section is continuous on
 total spaces, that its zeros are exactly the centres `φ i 0`, and that its local index at `φ i 0`,
 for the orientation of the determinant line as a complex line, is the degree of the loop of
 normalized determinants `ContinuousLinearEquiv.normalizedDet` of the transition around the `i`-th
@@ -46,10 +46,10 @@ circle.
 
 The disc clutching formula, `chernNumber_eq_sum_degree_clutching`, follows when `M` is compact:
 the first Chern number of `E` is the sum over `i` of these degrees. The first Chern class is the
-Euler class of the determinant line (`firstChernClass_def`), and Tau Ceti evaluates it on the
-fundamental class as the sum of the local indices of the section at its zeros
-(`TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_sectionIndex`), as in
-`chernNumber_eq_sum_sectionIndex` for line bundles; the zeros are indexed by `ι`, since distinct
+Euler class of the determinant line (`firstChernClass_eq_complexEulerClass_detBundle`), and Tau
+Ceti evaluates it on the fundamental class as the sum of the local indices of the section at its
+zeros (`TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_sectionIndex`), as
+in `chernNumber_eq_sum_sectionIndex` for line bundles; the zeros are indexed by `ι`, since distinct
 discs have distinct centres. One disc is the case `ι = Unit`.
 
 For a Hermitian line bundle, sections of its circle bundle of unitary frames give frames
@@ -70,13 +70,12 @@ then the first Chern number `symplecticChernNumber` of `(V, ω)` is the sum of t
 ## Proof
 
 The two descriptions agree on the boundary circles: there the section of `Φout` is that of `Φ i`
-times the determinant of the transition (`detCoreFrameSection_eq_det_smul`, after restricting both
-frames to the circle by `detCoreFrameSection_comp`), and the radial extension of `uᵢ` equals `uᵢ`
-on the unit circle. So the section is continuous on each closed disc and on the complement of the
-open discs, a finite closed cover of `M` (`LocallyFinite.continuous`). The determinant of an
-isomorphism and the determinant section of a frame vanish nowhere
-(`detCoreFrameSection_ne_zero`), and the radial extension of a function without zeros vanishes
-only at the centre (`TauCeti.sphereCone_eq_zero_iff`). The local index is
+times the determinant of the transition (`TauCeti.DetBundle.ofFrame_eq_det_smul`), and the
+radial extension of `uᵢ` equals `uᵢ` on the unit circle. So the section is continuous on each
+closed disc and on the complement of the open discs, a finite closed cover of `M`
+(`LocallyFinite.continuous`). The determinant of an isomorphism and the determinant of a frame
+vanish nowhere (`TauCeti.DetBundle.ofFrame_ne_zero`), and the radial extension of a function
+without zeros vanishes only at the centre (`TauCeti.sphereCone_eq_zero_iff`). The local index is
 `SymplecticGeometry.CoordinateDisc.sectionIndex_eq_degree_sphereCone`.
 
 For symplectic frames, the frames show that `ω` is nondegenerate, so it is compatible with a
@@ -104,8 +103,8 @@ complement of the open discs.
   `i`-th boundary circle.
 * `SymplecticGeometry.Bundle.continuous_normalizedDet_clutchingTransition`: its normalized
   determinant is a continuous loop on the circle.
-* `SymplecticGeometry.Bundle.exists_detCore_section_clutching`: the section described above, its
-  continuity, its zeros and its local indices.
+* `SymplecticGeometry.Bundle.exists_detBundle_section_clutching`: the section described above,
+  its continuity, its zeros and its local indices.
 * `SymplecticGeometry.Bundle.chernNumber_eq_sum_degree_clutching`: the first Chern number is the
   sum of the degrees of the normalized determinants of the clutching transitions.
 * `SymplecticGeometry.Bundle.symplecticChernNumber_eq_sum_maslovIndex_clutching`: for symplectic
@@ -236,80 +235,63 @@ private theorem continuousAt_radialCoeff (i : ι) (z : CoordinateDisc.ball) :
     (clutchingDet hφ hΦ hΦout i).continuous).comp continuous_subtypeVal).continuousAt
 
 /-- The determinant section of the frame `Φ i` over the `i`-th closed disc. -/
-private def discSection (i : ι) (y : (φ i).disc) : (detCore ℂ G E).core.Fiber y :=
-  detCoreFrameSection (⟨Subtype.val, continuous_subtypeVal⟩) (Φ i) (hΦ i) y
+private def discSection (Φ : ∀ i, ∀ x : (φ i).disc, G ≃L[ℂ] E x) (i : ι) (y : (φ i).disc) :
+    DetBundle ℂ G E y :=
+  DetBundle.ofFrame (Φ i y : G ≃ₗ[ℂ] E y)
 
 /-- The determinant section of the frame `Φout` over the complement of the open discs. -/
-private def outSection (y : discComplement φ) : (detCore ℂ G E).core.Fiber y :=
-  detCoreFrameSection (⟨Subtype.val, continuous_subtypeVal⟩) Φout hΦout y
+private def outSection (Φout : ∀ x : discComplement φ, G ≃L[ℂ] E x) (y : discComplement φ) :
+    DetBundle ℂ G E y :=
+  DetBundle.ofFrame (Φout y : G ≃ₗ[ℂ] E y)
 
-private theorem discSection_ne_zero (i : ι) (y : (φ i).disc) : discSection hΦ i y ≠ 0 :=
-  detCoreFrameSection_ne_zero ⟨Subtype.val, continuous_subtypeVal⟩ (hΦ i) y
+omit [TopologicalSpace (TotalSpace G E)] [FiberBundle G E] [VectorBundle ℂ G E] in
+private theorem discSection_ne_zero (i : ι) (y : (φ i).disc) : discSection Φ i y ≠ 0 :=
+  DetBundle.ofFrame_ne_zero _
 
-private theorem outSection_ne_zero (y : discComplement φ) : outSection hΦout y ≠ 0 :=
-  detCoreFrameSection_ne_zero ⟨Subtype.val, continuous_subtypeVal⟩ hΦout y
+omit [TopologicalSpace (TotalSpace G E)] [FiberBundle G E] [VectorBundle ℂ G E] in
+private theorem outSection_ne_zero (y : discComplement φ) : outSection Φout y ≠ 0 :=
+  DetBundle.ofFrame_ne_zero _
 
+include hΦ in
 private theorem continuous_discSection (i : ι) :
-    Continuous fun y : (φ i).disc ↦ TotalSpace.mk' (Fin (detCore ℂ G E).rank → ℂ)
-      (E := (detCore ℂ G E).core.Fiber) (y : M) (discSection hΦ i y) :=
-  continuous_totalSpaceMk_detCoreFrameSection ⟨Subtype.val, continuous_subtypeVal⟩ (hΦ i)
+    Continuous fun y : (φ i).disc ↦
+      TotalSpace.mk' ℂ (E := DetBundle ℂ G E) (y : M) (discSection Φ i y) :=
+  DetBundle.continuous_totalSpaceMk_ofFrame (hΦ i)
 
+include hΦout in
 private theorem continuous_outSection :
-    Continuous fun y : discComplement φ ↦ TotalSpace.mk' (Fin (detCore ℂ G E).rank → ℂ)
-      (E := (detCore ℂ G E).core.Fiber) (y : M) (outSection hΦout y) :=
-  continuous_totalSpaceMk_detCoreFrameSection ⟨Subtype.val, continuous_subtypeVal⟩ hΦout
+    Continuous fun y : discComplement φ ↦
+      TotalSpace.mk' ℂ (E := DetBundle ℂ G E) (y : M) (outSection Φout y) :=
+  DetBundle.continuous_totalSpaceMk_ofFrame hΦout
 
 /-- On the boundary circle of the `i`-th disc, the determinant section of `Φout` is that of
 `Φ i` times the determinant of the clutching transition. -/
 private theorem outSection_boundaryCircle (i : ι) (ζ : Circle) :
-    outSection hΦout ⟨(φ i).boundaryCircle ζ, boundaryCircle_mem_discComplement φ hφ i ζ⟩ =
+    outSection Φout ⟨(φ i).boundaryCircle ζ, boundaryCircle_mem_discComplement φ hφ i ζ⟩ =
       clutchingDet hφ hΦ hΦout i ζ •
-        discSection hΦ i ⟨(φ i).boundaryCircle ζ, (φ i).boundaryCircle_mem_disc ζ⟩ := by
-  let gout : C(Circle, discComplement φ) :=
-    ⟨fun ζ ↦ ⟨(φ i).boundaryCircle ζ, boundaryCircle_mem_discComplement φ hφ i ζ⟩,
-      (φ i).boundaryCircle.continuous.subtype_mk _⟩
-  let gin : C(Circle, (φ i).disc) :=
-    ⟨fun ζ ↦ ⟨(φ i).boundaryCircle ζ, (φ i).boundaryCircle_mem_disc ζ⟩,
-      (φ i).boundaryCircle.continuous.subtype_mk _⟩
-  have h1 := detCoreFrameSection_comp (⟨Subtype.val, continuous_subtypeVal⟩) hΦout gout
-    (continuous_outFrame_boundaryCircle hφ hΦout i) ζ
-  have h2 := detCoreFrameSection_comp (⟨Subtype.val, continuous_subtypeVal⟩) (hΦ i) gin
-    (continuous_discFrame_boundaryCircle hΦ i) ζ
-  have h3 := detCoreFrameSection_eq_det_smul (φ i).boundaryCircle
-    (Φ := fun ζ ↦ Φ i ⟨(φ i).boundaryCircle ζ, (φ i).boundaryCircle_mem_disc ζ⟩)
-    (Ψ := fun ζ ↦ Φout ⟨(φ i).boundaryCircle ζ, boundaryCircle_mem_discComplement φ hφ i ζ⟩)
-    (continuous_discFrame_boundaryCircle hΦ i) (continuous_outFrame_boundaryCircle hφ hΦout i) ζ
-  -- The determinant of `Φout ∘ (Φ i)⁻¹` on the fibre is that of `(Φ i)⁻¹ ∘ Φout` on `G`.
-  have hc : LinearMap.det
-      (((Φ i ⟨(φ i).boundaryCircle ζ, (φ i).boundaryCircle_mem_disc ζ⟩).symm.trans
-        (Φout ⟨(φ i).boundaryCircle ζ, boundaryCircle_mem_discComplement φ hφ i ζ⟩) :
-          E ((φ i).boundaryCircle ζ) →ₗ[ℂ] E ((φ i).boundaryCircle ζ))) =
-      clutchingDet hφ hΦ hΦout i ζ := by
-    rw [← ContinuousLinearEquiv.det_coe_trans_symm, clutchingDet_apply, clutchingTransition_def]
-  rw [outSection, discSection]
-  refine h1.symm.trans (h3.trans ?_)
-  rw [hc]
-  exact congrArg _ h2
+        discSection Φ i ⟨(φ i).boundaryCircle ζ, (φ i).boundaryCircle_mem_disc ζ⟩ := by
+  rw [outSection, discSection, clutchingDet_apply, clutchingTransition_def]
+  exact DetBundle.ofFrame_eq_det_smul _ _
 
 open Classical in
 /-- The clutching section: the radial extension of `clutchingDet` times the determinant section of
 `Φ i` on the `i`-th open disc, and the determinant section of `Φout` elsewhere. -/
-private def clutchingSection (x : M) : (detCore ℂ G E).core.Fiber x :=
+private def clutchingSection (x : M) : DetBundle ℂ G E x :=
   if h : ∃ i, x ∈ (φ i).openDisc then
     radialCoeff hφ hΦ hΦout h.choose x •
-      discSection hΦ h.choose ⟨x, (φ _).openDisc_subset_disc h.choose_spec⟩
-  else outSection hΦout ⟨x, (mem_discComplement_iff φ).2 fun i hi ↦ h ⟨i, hi⟩⟩
+      discSection Φ h.choose ⟨x, (φ _).openDisc_subset_disc h.choose_spec⟩
+  else outSection Φout ⟨x, (mem_discComplement_iff φ).2 fun i hi ↦ h ⟨i, hi⟩⟩
 
 private theorem clutchingSection_of_mem_discComplement {x : M} (hx : x ∈ discComplement φ) :
-    clutchingSection hφ hΦ hΦout x = outSection hΦout ⟨x, hx⟩ := by
+    clutchingSection hφ hΦ hΦout x = outSection Φout ⟨x, hx⟩ := by
   rw [clutchingSection, dite_eq_right fun ⟨i, hi⟩ ↦ (mem_discComplement_iff φ).1 hx i hi]
 
 private theorem clutchingSection_of_mem_openDisc {i : ι} {x : M} (hx : x ∈ (φ i).openDisc) :
     clutchingSection hφ hΦ hΦout x = radialCoeff hφ hΦ hΦout i x •
-      discSection hΦ i ⟨x, (φ i).openDisc_subset_disc hx⟩ := by
+      discSection Φ i ⟨x, (φ i).openDisc_subset_disc hx⟩ := by
   have key : ∀ j (hj : x ∈ (φ j).openDisc), radialCoeff hφ hΦ hΦout j x •
-      discSection hΦ j ⟨x, (φ j).openDisc_subset_disc hj⟩ = radialCoeff hφ hΦ hΦout i x •
-      discSection hΦ i ⟨x, (φ i).openDisc_subset_disc hx⟩ := by
+      discSection Φ j ⟨x, (φ j).openDisc_subset_disc hj⟩ = radialCoeff hφ hΦ hΦout i x •
+      discSection Φ i ⟨x, (φ i).openDisc_subset_disc hx⟩ := by
     intro j hj
     obtain rfl := eq_of_mem_openDisc_of_mem_disc φ hφ hj ((φ i).openDisc_subset_disc hx)
     rfl
@@ -319,7 +301,7 @@ private theorem clutchingSection_of_mem_openDisc {i : ι} {x : M} (hx : x ∈ (�
 /-- On the whole closed `i`-th disc, the clutching section is the radial extension of
 `clutchingDet` times the determinant section of `Φ i`. -/
 private theorem clutchingSection_of_mem_disc {i : ι} {x : M} (hx : x ∈ (φ i).disc) :
-    clutchingSection hφ hΦ hΦout x = radialCoeff hφ hΦ hΦout i x • discSection hΦ i ⟨x, hx⟩ := by
+    clutchingSection hφ hΦ hΦout x = radialCoeff hφ hΦ hΦout i x • discSection Φ i ⟨x, hx⟩ := by
   by_cases ho : x ∈ (φ i).openDisc
   · exact clutchingSection_of_mem_openDisc hφ hΦ hΦout ho
   obtain ⟨ζ, rfl⟩ : x ∈ range (φ i).boundaryCircle := (φ i).disc_diff_openDisc ▸ ⟨hx, ho⟩
@@ -329,8 +311,8 @@ private theorem clutchingSection_of_mem_disc {i : ι} {x : M} (hx : x ∈ (φ i)
 
 /-- The clutching section is continuous on total spaces. -/
 private theorem continuous_clutchingSection [Finite ι] :
-    Continuous fun x ↦ TotalSpace.mk' (Fin (detCore ℂ G E).rank → ℂ)
-      (E := (detCore ℂ G E).core.Fiber) x (clutchingSection hφ hΦ hΦout x) := by
+    Continuous fun x ↦
+      TotalSpace.mk' ℂ (E := DetBundle ℂ G E) x (clutchingSection hφ hΦ hΦout x) := by
   refine LocallyFinite.continuous (f := fun j : Option ι ↦ j.elim (discComplement φ)
     fun i ↦ (φ i).disc) (locallyFinite_of_finite _) ?_ ?_ ?_
   · refine eq_univ_of_forall fun x ↦ ?_
@@ -359,13 +341,13 @@ private theorem clutchingSection_eq_zero_iff {x : M} :
     clutchingSection hφ hΦ hΦout x = 0 ↔ ∃ i, φ i 0 = x := by
   by_cases hx : x ∈ discComplement φ
   · rw [clutchingSection_of_mem_discComplement hφ hΦ hΦout hx]
-    refine iff_of_false (outSection_ne_zero hΦout _) ?_
+    refine iff_of_false (outSection_ne_zero (Φout := Φout) _) ?_
     rintro ⟨i, rfl⟩
     exact (mem_discComplement_iff φ).1 hx i (φ i).apply_zero_mem_openDisc
   obtain ⟨i, hi⟩ : ∃ i, x ∈ (φ i).openDisc := by simpa using hx
   obtain ⟨z, -, rfl⟩ := (φ i).mem_openDisc_iff.1 hi
   rw [clutchingSection_of_mem_openDisc hφ hΦ hΦout hi, smul_eq_zero,
-    or_iff_left (discSection_ne_zero hΦ i _), radialCoeff_apply,
+    or_iff_left (discSection_ne_zero (Φ := Φ) i _), radialCoeff_apply,
     sphereCone_eq_zero_iff (f := clutchingDet hφ hΦ hΦout i ∘ Circle.homeomorphSphere.symm)
       fun _ ↦ clutchingDet_ne_zero hφ hΦ hΦout i _]
   constructor
@@ -376,28 +358,46 @@ private theorem clutchingSection_eq_zero_iff {x : M} :
       (hj ▸ (φ i).openDisc_subset_disc hi)
     rw [← (φ j).injective hj, CoordinateDisc.coe_zero]
 
+end Clutching
+
+section ClutchingIndex
+
+/-! Tau Ceti's Euler classes and section indices take the fibres in the universe of the base, so
+from here on the fibres of `E` are in `Type`. -/
+
+variable {M : Type} [TopologicalSpace M] [T2Space M] {EM : Type} [NormedAddCommGroup EM]
+  [NormedSpace ℝ EM] [FiniteDimensional ℝ EM] [ChartedSpace EM M]
+  {o : HomologicalOrientation M EM 2} {ι : Type*} {φ : ι → CoordinateDisc o}
+  (hφ : Pairwise (Disjoint on fun i ↦ (φ i).disc))
+  {G : Type*} [NormedAddCommGroup G] [NormedSpace ℂ G]
+  {E : M → Type} [∀ x, AddCommGroup (E x)] [∀ x, Module ℂ (E x)] [∀ x, TopologicalSpace (E x)]
+  {Φ : ∀ i, ∀ x : (φ i).disc, G ≃L[ℂ] E x} {Φout : ∀ x : discComplement φ, G ≃L[ℂ] E x}
+  [FiniteDimensional ℂ G] [TopologicalSpace (TotalSpace G E)] [FiberBundle G E]
+  [VectorBundle ℂ G E]
+  (hΦ : ∀ i, Continuous fun q : (φ i).disc × G ↦ TotalSpace.mk' G (q.1 : M) (Φ i q.1 q.2))
+  (hΦout : Continuous fun q : discComplement φ × G ↦ TotalSpace.mk' G (q.1 : M) (Φout q.1 q.2))
+
 open scoped VectorBundle.ComplexToReal
 
 /-- The local index of the clutching section at the centre of the `i`-th disc is the degree of
 the loop of normalized determinants of the clutching transition. -/
 private theorem sectionIndex_clutchingSection (hn : finrank ℝ EM = 2) (i : ι)
-    (hs : Continuous fun x ↦ TotalSpace.mk' (Fin (detCore ℂ G E).rank → ℂ)
-      (E := (detCore ℂ G E).core.Fiber) x (clutchingSection hφ hΦ hΦout x)) :
+    (hs : Continuous fun x ↦
+      TotalSpace.mk' ℂ (E := DetBundle ℂ G E) x (clutchingSection hφ hΦ hΦout x)) :
     (VectorBundleOrientation.reindex (finCongr (by simp))
-        (VectorBundleOrientation.complex (Fin (detCore ℂ G E).rank → ℂ)
-          (detCore ℂ G E).core.Fiber)).sectionIndex
+        (VectorBundleOrientation.complex ℂ (DetBundle ℂ G E))).sectionIndex
         (by simp [finrank_real_eq_two_mul_finrank_complex]) o hs (φ i 0) =
       Circle.degree (ContinuousMap.mk _
         (continuous_normalizedDet_clutchingTransition hφ hΦ hΦout i)).toBasedLoop := by
   classical
   -- The frame of the determinant line given by `Φ i`, read along the chart.
-  let σ : ∀ z : CoordinateDisc.ball, (detCore ℂ G E).core.Fiber (φ i z) := fun z ↦
-    if h : φ i z ∈ (φ i).disc then discSection hΦ i ⟨φ i z, h⟩ else 0
+  let σ : ∀ z : CoordinateDisc.ball, DetBundle ℂ G E (φ i z) := fun z ↦
+    if h : φ i z ∈ (φ i).disc then discSection Φ i ⟨φ i z, h⟩ else 0
   have hσe : ∀ (z : CoordinateDisc.ball) (hz : ‖(z : ℂ)‖ ≤ 1),
-      σ z = discSection hΦ i ⟨φ i z, (φ i).apply_mem_disc_iff.2 hz⟩ := fun z hz ↦
+      σ z = discSection Φ i ⟨φ i z, (φ i).apply_mem_disc_iff.2 hz⟩ := fun z hz ↦
     dite_eq_left ((φ i).apply_mem_disc_iff.2 hz)
-  have hσ : ContinuousOn (fun z ↦ TotalSpace.mk' (Fin (detCore ℂ G E).rank → ℂ)
-      (E := (detCore ℂ G E).core.Fiber) (φ i z) (σ z)) {z | ‖(z : ℂ)‖ < 1} := by
+  have hσ : ContinuousOn (fun z ↦ TotalSpace.mk' ℂ (E := DetBundle ℂ G E) (φ i z) (σ z))
+      {z | ‖(z : ℂ)‖ < 1} := by
     refine ContinuousOn.mono (s := {z : CoordinateDisc.ball | ‖(z : ℂ)‖ ≤ 1}) ?_
       fun (z : CoordinateDisc.ball) (hz : ‖(z : ℂ)‖ < 1) ↦ (hz.le : ‖(z : ℂ)‖ ≤ 1)
     refine continuousOn_iff_continuous_domRestrict.2 ?_
@@ -407,7 +407,7 @@ private theorem sectionIndex_clutchingSection (hn : finrank ℝ EM = 2) (i : ι)
     simp only [domRestrict, Function.comp_apply, hσe z z.property]
   have hσ0 : ∀ z : CoordinateDisc.ball, ‖(z : ℂ)‖ < 1 → σ z ≠ 0 := fun z hz ↦ by
     rw [hσe z hz.le]
-    exact discSection_ne_zero hΦ i _
+    exact discSection_ne_zero (Φ := Φ) i _
   have hsσ : ∀ z : CoordinateDisc.ball, ‖(z : ℂ)‖ < 1 → clutchingSection hφ hΦ hΦout (φ i z) =
       sphereCone (clutchingDet hφ hΦ hΦout i ∘ Circle.homeomorphSphere.symm) z • σ z :=
     fun z hz ↦ by
@@ -431,14 +431,12 @@ loop `ζ ↦ normalizedDet ((Φ i)⁻¹ ∘ Φout)` around the `i`-th boundary c
 The section is the determinant section of `Φout` on the complement of the open discs, and the
 determinant section of `Φ i` times the radial extension of `det ((Φ i)⁻¹ ∘ Φout)` on the `i`-th
 open disc. -/
-theorem exists_detCore_section_clutching [Finite ι] (hn : finrank ℝ EM = 2) :
-    ∃ (s : ∀ x, (detCore ℂ G E).core.Fiber x)
-      (hs : Continuous fun x ↦ TotalSpace.mk' (Fin (detCore ℂ G E).rank → ℂ)
-        (E := (detCore ℂ G E).core.Fiber) x (s x)),
+theorem exists_detBundle_section_clutching [Finite ι] (hn : finrank ℝ EM = 2) :
+    ∃ (s : ∀ x, DetBundle ℂ G E x)
+      (hs : Continuous fun x ↦ TotalSpace.mk' ℂ (E := DetBundle ℂ G E) x (s x)),
       {x | s x = 0} = range (fun i ↦ φ i 0) ∧
       ∀ i, (VectorBundleOrientation.reindex (finCongr (by simp))
-          (VectorBundleOrientation.complex (Fin (detCore ℂ G E).rank → ℂ)
-            (detCore ℂ G E).core.Fiber)).sectionIndex
+          (VectorBundleOrientation.complex ℂ (DetBundle ℂ G E))).sectionIndex
           (by simp [finrank_real_eq_two_mul_finrank_complex]) o hs (φ i 0) =
         Circle.degree (ContinuousMap.mk _
           (continuous_normalizedDet_clutchingTransition hφ hΦ hΦout i)).toBasedLoop :=
@@ -455,9 +453,9 @@ the boundary circles `(φ i).boundaryCircle`. -/
 theorem chernNumber_eq_sum_degree_clutching [Fintype ι] [CompactSpace M] (hn : finrank ℝ EM = 2) :
     chernNumber o hn G E = ∑ i, Circle.degree (ContinuousMap.mk _
       (continuous_normalizedDet_clutchingTransition hφ hΦ hΦout i)).toBasedLoop := by
-  obtain ⟨s, hs, hZ, hind⟩ := exists_detCore_section_clutching hφ hΦ hΦout hn
+  obtain ⟨s, hs, hZ, hind⟩ := exists_detBundle_section_clutching hφ hΦ hΦout hn
   have hfin : {x | s x = 0}.Finite := hZ ▸ finite_range _
-  rw [chernNumber_def, firstChernClass_def, complexEulerClass_def,
+  rw [chernNumber_def, firstChernClass_eq_complexEulerClass_detBundle, complexEulerClass_def,
     VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_sectionIndex _ _ o hs hn hfin]
   have hset : hfin.toFinset =
       Finset.univ.map ⟨_, injective_apply_zero_of_pairwise_disjoint φ hφ⟩ := by
@@ -466,7 +464,7 @@ theorem chernNumber_eq_sum_degree_clutching [Fintype ι] [CompactSpace M] (hn : 
   rw [hset, Finset.sum_map]
   exact Finset.sum_congr rfl fun i _ ↦ hind i
 
-end Clutching
+end ClutchingIndex
 
 /-! ### Frames from sections of the circle bundle of a Hermitian line bundle -/
 
@@ -566,7 +564,7 @@ private theorem sum_maslovIndex_boundaryCircle_discComplement_eq_zero [CompactSp
 section Frames
 
 variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
-  {V : M → Type*} [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)]
+  {V : M → Type} [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)]
   [∀ x, TopologicalSpace (V x)] [∀ x, IsTopologicalAddGroup (V x)]
   [∀ x, ContinuousSMul ℝ (V x)] [TopologicalSpace (TotalSpace F V)]
   [FiberBundle F V] [VectorBundle ℝ F V]

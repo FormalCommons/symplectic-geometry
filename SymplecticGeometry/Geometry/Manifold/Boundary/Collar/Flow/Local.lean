@@ -337,7 +337,7 @@ theorem exists_isMIntegralCurveOn_of_isOutwardPointing (hY : IsOutwardPointingFi
   -- A product box in the source of `Θ`, and the corresponding set `B` of boundary points.
   obtain ⟨δ, hδ, hδsub⟩ := Metric.isOpen_iff.1 Θ.open_source _ hΘ0
   set B : Set ((𝓡∂ (n + 1)).boundary W) := β.source ∩ β ⁻¹' Metric.ball (β p) δ
-  have hB : IsOpen B := β.continuousOn.isOpen_inter_preimage β.open_source Metric.isOpen_ball
+  have hB : IsOpen B := β.isOpen_inter_preimage Metric.isOpen_ball
   have hBsrc : ∀ x ∈ B, (x : W) ∈ φ.source := fun x hx ↦ by
     simpa [boundaryChartedSpace_chartAt_source, β, φ] using hx.1
   have hBΘ : ∀ x ∈ B, ∀ τ : EuclideanSpace ℝ (Fin 1), ‖τ‖ < δ → (β x, τ) ∈ Θ.source :=

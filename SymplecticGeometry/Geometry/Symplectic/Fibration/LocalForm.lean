@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.CoordOneForm
 public import TauCeti.Geometry.Manifold.DifferentialForm.Interior
+public import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 public import TauCeti.Geometry.Manifold.DifferentialForm.Vertical
 public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Basic
 public import TauCeti.Geometry.Manifold.VectorField.Prod
@@ -60,6 +61,8 @@ since it inverts the flat maps of the smooth family `σ`.
 ## Main results
 
 * `TauCeti.RoughForm.eq_verticalForm_add_sum`: the local form of `τ`.
+* `TauCeti.RoughForm.mextDeriv_fiberComponent_apply`: on vectors tangent to the fibre over `x`,
+  the exterior derivative of `τ` is that of its slice `σ(x)`, for `τ` of class `C¹` at the point.
 * `TauCeti.SmoothTwoForm.isVerticallyNondegenerate_fst_iff`: `τ` is vertically nondegenerate for
   the first projection exactly when every `σ(x)` is nondegenerate.
 * `TauCeti.SmoothTwoForm.horizontalLift_local`: the horizontal lift of `∂ᵢ` is `(∂ᵢ, Xᵢ)`.
@@ -85,6 +88,10 @@ The definition of `Xᵢ(x)` follows Tau Ceti's `TauCeti.SmoothTwoForm.hamiltonia
 which also applies the inverse of a flat map to a covector. The statement of
 `TauCeti.SmoothTwoForm.mixedVectorField_eq_iff`, and its proof, are adapted from Tau Ceti's
 `TauCeti.SmoothTwoForm.hamiltonianVectorField_eq_iff_of_isInvertible_flat`.
+
+The exterior derivative of a slice is read off `dτ` by Tau Ceti's
+`TauCeti.mpullback_mextDeriv_at`, since the slice is the pull-back along `ι_x`, whose
+derivative sends `w` to `(0, w)`.
 
 ## References
 
@@ -123,6 +130,23 @@ theorem fiberComponent_apply (x : EB) (y : F) (w₁ w₂ : TangentSpace IF y) :
   -- The two sides differ only in the type of the vectors, `TangentSpace` of the product or
   -- the product of the tangent spaces, which agree by definition.
   rfl
+
+/-- The exterior derivative of the fibre component of `τ` over `x` is that of `τ` on vectors
+tangent to the fibre: on `w₁, w₂, u` at `y`, `d(σ(x))` takes the value of `dτ` at `(x, y)` on
+`(0, w₁), (0, w₂), (0, u)`. The form `τ` need only be `C¹` at `(x, y)` as a section. -/
+theorem mextDeriv_fiberComponent_apply [IsManifold IF 2 F] {x : EB} {y : F}
+    (hτ : ContMDiffAt (𝓘(ℝ, EB).prod IF)
+      ((𝓘(ℝ, EB).prod IF).prod 𝓘(ℝ, (EB × EF) [⋀^Fin 2]→L[ℝ] ℝ)) 1
+      (fun z ↦ Bundle.TotalSpace.mk' ((EB × EF) [⋀^Fin 2]→L[ℝ] ℝ) z (τ z)) (x, y))
+    (w₁ w₂ u : TangentSpace IF y) :
+    mextDeriv (τ.fiberComponent x) y ![w₁, w₂, u] =
+      mextDeriv τ (x, y) ![((0 : EB), w₁), ((0 : EB), w₂), ((0 : EB), u)] := by
+  rw [fiberComponent_def,
+    ← mpullback_mextDeriv_at (f := Prod.mk x) (contMDiffAt_const.prodMk contMDiffAt_id) hτ,
+    mpullback_apply]
+  congr 1
+  funext i
+  fin_cases i <;> exact mfderiv_prodMk_right_apply _
 
 /-- The **mixed component** `αᵢ(x)` of a two-form `τ` on `EB × F`, for the basis `bs` of `EB`:
 the one-form on `F` that is minus the slice over `x` of the contraction of `τ` with the constant
