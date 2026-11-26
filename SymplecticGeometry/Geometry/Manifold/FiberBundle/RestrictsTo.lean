@@ -14,9 +14,10 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 Let `A` be an atlas of a map `proj : M → B` with model fibre a manifold `F`
 (`TauCeti.MapFiber.Atlas`), and let `σ` be a `k`-form on `F`. A `k`-form `τ` on `M`
 *restricts to `σ` along `A`* when, for every chart `e` of `A` and every point `b` of its base set,
-the pull-back of `τ` along the fibre inclusion `v ↦ e⁻¹ (b, v)` is `σ`. For a symplectic
-fibration, whose fibre forms are the forms that the charts carry to `σ`, this says that `τ`
-restricts to the fibre form on every fibre.
+the pull-back of `τ` along the fibre inclusion `v ↦ e⁻¹ (b, v)` is `σ`. Nothing here needs `σ`
+to be symplectic: it may be any form, such as a volume form. For a symplectic fibration, whose
+fibre forms are the forms that the charts carry to `σ`, the predicate says that `τ` restricts to
+the fibre form on every fibre.
 
 When the coordinate changes of `A` preserve `σ`, that is, when `A` has structure group the
 stabilizer `TauCeti.SmoothForm.diffeomorphStabilizer σ`, one chart at each point is enough, and
@@ -190,9 +191,9 @@ theorem RestrictsTo.of_coordChangeMem (hA : A.IsContMDiff ∞ IB IF IM)
   exact Trivialization.mpullback_fiberInclusionMap_eq_of_mem_diffeomorphStabilizer
     (hA.mdifferentiable_trivAt (by simp) b') hb' (A.mem_baseSet_trivAt b') hφ hφe (hτ _ _ _)
 
-/-- **Restricting forms give symplectic atlases.** If a form restricts to `σ` along a smooth
-atlas, the coordinate changes of the atlas preserve `σ`: the atlas has structure group the
-stabilizer of `σ`. -/
+/-- **Restricting forms give atlases with structure group the stabilizer.** If a form
+restricts to `σ` along a smooth atlas, the coordinate changes of the atlas preserve `σ`: the
+atlas has structure group the stabilizer of `σ`; for a symplectic `σ`, a symplectic atlas. -/
 theorem RestrictsTo.hasStructureGroup (hA : A.IsContMDiff ∞ IB IF IM) (hτ : A.RestrictsTo σ τ) :
     A.HasStructureGroup (SmoothForm.diffeomorphStabilizer σ) := by
   refine hasStructureGroup_iff.2 fun b b' x hb hb' ↦ ?_
