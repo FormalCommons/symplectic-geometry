@@ -19,6 +19,7 @@ import SymplecticGeometry.Geometry.Manifold.ProperRay
 import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.Ray
 import SymplecticGeometry.Geometry.Manifold.Morse.PositiveDirection
 import SymplecticGeometry.Topology.Compactness.Paracompact
+import SymplecticGeometry.Topology.Maps.Embedding
 import SymplecticGeometry.Topology.Maps.Proper
 import SymplecticGeometry.Geometry.Manifold.IsManifold.SecondCountable
 import SymplecticGeometry.Geometry.Manifold.Morse.CriticalPoints
@@ -216,7 +217,7 @@ private lemma exists_tubes (h2 : 2 ≤ Module.finrank ℝ E)
     (isClosed_of_subset_discrete_closed hPc hcd hcc) hQcl hPQ
   obtain ⟨O, hOo, hRO, hOdisj, hOQ, hOlf⟩ :=
     hγlf.exists_isOpen_superset_pairwise_disjoint
-      (fun p ↦ (hγt p).isClosed_image_Ici (γ p).contMDiff.continuous (-2))
+      (fun p ↦ (hγt p).isClosed_image_Ici (-2) (γ p).contMDiff.continuous.continuousOn)
       (fun i j hij ↦ (hγdisj hij).mono (image_subset_range _ _) (image_subset_range _ _))
       hQcl fun p ↦ (hγQ p).mono_left (image_subset_range _ _)
   -- Tubes around the rays inside these neighbourhoods.
@@ -261,13 +262,9 @@ theorem exists_isMorse_isProperMap_manifoldMorseIndex_lt
   have hSB : S ⊆ B := Set.prod_mono (Ici_subset_Ici.2 (by norm_num))
     (Metric.closedBall_subset_closedBall (by norm_num))
   have h0S : (0 : ℝ × V) ∈ S := by simp [S]
-  have hSc (p : P) : IsClosed (Φ p '' S) := by
-    refine closure_subset_iff_isClosed.1 fun x hx ↦ ?_
-    obtain ⟨z, -, rfl⟩ := (hΦB p).closure_subset_iff.2 (image_mono hSB) hx
-    refine mem_image_of_mem _ ?_
-    rw [← (show IsClosed S from isClosed_Ici.prod Metric.isClosed_closedBall).closure_eq,
-      (Φ p).isEmbedding.closure_eq_preimage_closure_image]
-    exact hx
+  have hSc (p : P) : IsClosed (Φ p '' S) :=
+    (Φ p).isEmbedding.isClosed_image_of_subset hSB (isClosed_Ici.prod Metric.isClosed_closedBall)
+      (hΦB p)
   -- Step 4: raise `g₀` inside the tubes.
   obtain ⟨g₁, hg₀₁, hg₁s, hg₁pos⟩ := exists_le_criticalHessian_pos_of_tubes g₀ Φ hV hSc
     (hlfB.subset fun p ↦ image_mono hSB)

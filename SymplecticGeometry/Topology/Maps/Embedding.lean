@@ -18,7 +18,9 @@ set of points that `e` sends into the range of `ι`
 submanifold along a parametrization is shrunk until the submanifold is a slice of it.
 
 The file also shows that the corestriction of an open embedding to a set containing its range is
-an open embedding (`Topology.IsOpenEmbedding.codRestrict`).
+an open embedding (`Topology.IsOpenEmbedding.codRestrict`), and that an embedding whose image of a
+set `t` is closed maps each closed subset of `t` onto a closed set
+(`Topology.IsEmbedding.isClosed_image_of_subset`).
 -/
 
 public section
@@ -32,6 +34,17 @@ protected theorem Topology.IsOpenEmbedding.codRestrict {X Y : Type*} [Topologica
     [TopologicalSpace Y] {f : X → Y} (hf : IsOpenEmbedding f) (s : Set Y) (h : ∀ x, f x ∈ s) :
     IsOpenEmbedding (codRestrict f s h) :=
   .of_isEmbedding_isOpenMap (hf.isEmbedding.codRestrict s h) (hf.isOpenMap.codRestrict h)
+
+/-- If `e` is an embedding and `e '' t` is closed, then the image of every closed subset `s` of `t`
+is closed. -/
+theorem Topology.IsEmbedding.isClosed_image_of_subset {X Y : Type*} [TopologicalSpace X]
+    [TopologicalSpace Y] {e : X → Y} (he : IsEmbedding e) {s t : Set X} (hst : s ⊆ t)
+    (hs : IsClosed s) (ht : IsClosed (e '' t)) : IsClosed (e '' s) := by
+  refine closure_subset_iff_isClosed.1 fun y hy ↦ ?_
+  obtain ⟨x, -, rfl⟩ := ht.closure_subset_iff.2 (image_mono hst) hy
+  refine mem_image_of_mem _ ?_
+  rw [← hs.closure_eq, he.closure_eq_preimage_closure_image]
+  exact hy
 
 namespace Topology.IsInducing
 
