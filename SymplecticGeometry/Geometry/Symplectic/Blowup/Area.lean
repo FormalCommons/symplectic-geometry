@@ -16,7 +16,6 @@ import TauCeti.Analysis.Calculus.ContDiff.Differentiable
 import SymplecticGeometry.Analysis.InnerProductSpace.Laplacian.LogarithmicPole
 import TauCeti.Analysis.Calculus.FDeriv.RestrictScalars
 import TauCeti.Analysis.Analytic.Order
-import SymplecticGeometry.LinearAlgebra.Symplectic.Basic
 import Mathlib.Analysis.Complex.CauchyIntegral
 
 /-!
@@ -275,7 +274,7 @@ theorem integrableOn_eval₂_ω₀E_mfderiv {Ω : Set ℂ} (hb : Bornology.IsBou
   refine ((hc.integrableOn_compact hb.isCompact_closure).mono_set subset_closure).congr_fun_ae
     (Filter.Eventually.of_forall fun t ↦ ?_)
   beta_reduce
-  rw [LinearMap.toContinuousBilinearMap_apply, TauCeti.SymplecticForm.toBilinForm_apply, ω₀E_def]
+  rw [LinearMap.toContinuousBilinearMap_apply, ω₀E_def]
   refine Eq.symm ((SymplecticForm.eval₂_constSmooth_mfderiv_eq _ u t _ _).trans ?_)
   exact congrArg₂ (fun v w ↦ (stdComplexPiSymplecticForm _).toBilinForm v w)
     (mvfderiv_eq_fderiv_apply u t _) (mvfderiv_eq_fderiv_apply u t _)
