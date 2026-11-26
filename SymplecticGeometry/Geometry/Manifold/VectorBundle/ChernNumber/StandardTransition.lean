@@ -87,16 +87,16 @@ centre `φ 0`. -/
 private theorem contMDiffAt_ite_mem_range
     {o : HomologicalOrientation M (EuclideanSpace ℝ (Fin 2)) 2} (φ : CoordinateDisc o)
     (hB : ContMDiffOn (𝓡 2) 𝓘(ℝ, ℂ) ∞ φ.coord (range φ))
-    {c : ℂ → Circle} (hc : ContMDiffOn 𝓘(ℝ, ℂ) (𝓡 1) ∞ c {z | 0 < ‖z‖ ∧ ‖z‖ < 2})
+    {c : ℂ → Circle} (hc : ContMDiffOn 𝓘(ℝ, ℂ) (𝓡 1) ∞ c (annulus ℂ 0 2))
     (hc1 : ∀ z, 3 / 2 ≤ ‖z‖ → c z = 1) {x : M} (hx : x ≠ φ 0) :
     ContMDiffAt (𝓡 2) (𝓡 1) ∞ (fun y ↦ if y ∈ range φ then c (φ.coord y) else 1) x := by
   by_cases hxφ : x ∈ range φ
   · -- on the punctured image, the map is `c ∘ φ.coord`
     set W := range φ \ {φ 0}
     have hW : IsOpen W := φ.isOpenEmbedding.isOpen_range.sdiff isClosed_singleton
-    have hBW : MapsTo φ.coord W {z | 0 < ‖z‖ ∧ ‖z‖ < 2} := by
+    have hBW : MapsTo φ.coord W (annulus ℂ 0 2) := by
       rintro _ ⟨⟨z, rfl⟩, hz⟩
-      rw [mem_ofPred_eq, CoordinateDisc.coord_apply]
+      rw [SetLike.mem_coe, mem_annulus, CoordinateDisc.coord_apply]
       refine ⟨norm_pos_iff.2 fun h ↦ hz ?_, CoordinateDisc.mem_ball_iff.1 z.property⟩
       rw [show z = 0 from Subtype.ext h]
       rfl
@@ -222,9 +222,10 @@ theorem exists_coordinateDisc_unitSection_eq_phase_zpow_smul
     · exact (hrdisj hij).ne_of_mem (mem_range_self 0) (mem_range_self z) h0.symm
   -- the quotient `w i` of `ν` by `τ` on the punctured `i`-th disc, read on `ℂ`
   let w (i : ι) (z : ℂ) : Circle := division Circle (τ i (ψ i z)) (ν (ψ i z))
-  have hw (i : ι) : ContMDiffOn 𝓘(ℝ, ℂ) (𝓡 1) ∞ (w i) {z | 0 < ‖z‖ ∧ ‖z‖ < 2} := by
+  have hw (i : ι) : ContMDiffOn 𝓘(ℝ, ℂ) (𝓡 1) ∞ (w i) (annulus ℂ 0 2) := by
     refine (((hτ i).mono inter_subset_left).division (hν.mono inter_subset_right)).comp
-      ((hψs i).mono fun z hz ↦ by simpa using hz.2) fun z hz ↦ ?_
+      ((hψs i).mono fun z hz ↦ by simpa using (mem_annulus.1 hz).2) fun z hz ↦ ?_
+    rw [SetLike.mem_coe, mem_annulus] at hz
     have hzφ := hψ i ⟨z, CoordinateDisc.mem_ball_iff.2 hz.2⟩
     refine ⟨hzφ ▸ hrU i (mem_range_self _), ?_⟩
     rw [mem_ofPred_eq, ← hzφ]
