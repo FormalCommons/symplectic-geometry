@@ -5,39 +5,36 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Topology.Algebra.Module.Determinant
 public import TauCeti.CategoryTheory.GrothendieckGroup.Split
 public import TauCeti.Topology.VectorBundle.FiniteRank.Biproduct
 public import TauCeti.Topology.VectorBundle.FiniteRank.Pullback
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.SMul
-import SymplecticGeometry.Topology.Algebra.Module.Determinant
 
 /-!
 # Whitney sums of finite-rank cores: charts, rotations and classes
 
 Tau Ceti's `TauCeti.FiniteRankBundleCore.whitneySum A D` has the concatenated coordinates
 `Fin (A.rank + D.rank) → 𝕜`, split into the two blocks by `TauCeti.splitCoords`. This file
-computes chart expressions in charts of Whitney sums, and the determinants of the transitions of
-a Whitney sum. It also builds the rotations of a sum `A ⊕ A` of a core with itself, as
-automorphisms whose angle varies continuously along the base, from the quarter turn
-`(v, w) ↦ (-w, v)` and the multiplication of morphisms by scalar functions
-(`TauCeti.FiniteRankBundleCore.instModuleContinuousMapHom`), and records that the class of a
-Whitney sum in the split Grothendieck group is the sum of the classes.
+computes chart expressions in charts of Whitney sums. It also builds the rotations of a sum
+`A ⊕ A` of a core with itself, as automorphisms whose angle varies continuously along the base,
+from the quarter turn `(v, w) ↦ (-w, v)` and the multiplication of morphisms by scalar functions
+(`TauCeti.FiniteRankBundleCore.instModuleContinuousMapHom`), defines the iterated Whitney sum
+`F ⊕ E ⊕ ⋯ ⊕ E`, and records that the class of a Whitney sum in the split Grothendieck group is
+the sum of the classes.
 
 ## Main results
 
 * `TauCeti.FiniteRankBundleCore.inChartCoordinates_whitneySum_prodMap`: in charts of Whitney
   sums, the chart expression of a block-diagonal map is the block-diagonal map of the chart
   expressions of its blocks;
-* `TauCeti.FiniteRankBundleCore.det_coordChange_whitneySum`: the transitions of a Whitney sum
-  are block diagonal, so their determinants are the products of the determinants of the
-  transitions of the summands;
 * `TauCeti.FiniteRankBundleCore.whitneyQuarterTurn A`: the endomorphism `(v, w) ↦ (-w, v)` of
   `A ⊕ A`, whose square is `-𝟙`;
 * `TauCeti.FiniteRankBundleCore.whitneyRotation A c s h`: for continuous scalar functions `c`, `s`
   with `c ^ 2 + s ^ 2 = 1`, the automorphism `c • 𝟙 + s • whitneyQuarterTurn A` of `A ⊕ A`, the
   rotation by the angle whose cosine and sine are `c` and `s`;
+* `TauCeti.FiniteRankBundleCore.whitneySumIter E n F`: the Whitney sum `F ⊕ E ⊕ ⋯ ⊕ E` of `F`
+  with `n` copies of `E`;
 * `TauCeti.SplitK0.of_whitneySum`: in the split Grothendieck group of cores, the class of a
   Whitney sum is the sum of the classes;
 * `TauCeti.FiniteRankBundleCore.whitneyMapIsoPullback e₁ e₂`: the direct sum of isomorphisms
@@ -84,15 +81,6 @@ theorem inChartCoordinates_whitneySum_prodMap
   dsimp +instances only [whitneySum]
   ext v : 1
   simp
-
-/-- The transition maps of a Whitney sum are block diagonal, so their determinants are the
-products of the determinants of the transition maps of the two summands. -/
-@[simp]
-theorem det_coordChange_whitneySum (A D : FiniteRankBundleCore 𝕜 B) (i j x : B) :
-    ((whitneySum A D).core.coordChange i j x).det =
-      (A.core.coordChange i j x).det * (D.core.coordChange i j x).det :=
-  ContinuousLinearMap.det_eq_det_mul_det_of_splitCoords _ _ _
-    (coordChange_whitneySum_splitCoords_symm A D i j x)
 
 /-! ### Rotations of `A ⊕ A` -/
 
@@ -166,6 +154,54 @@ theorem fiberMap_whitneyRotation_inv (A : FiniteRankBundleCore 𝕜 B) (c s : C(
       c x • .id 𝕜 _ - s x • (whitneyQuarterTurn A).fiberMap x := by
   rw [whitneyRotation_inv, sub_eq_add_neg, ← neg_smul, fiberMap_add, fiberMap_smul, fiberMap_smul,
     fiberMap_id, ContinuousMap.neg_apply, neg_smul, ← sub_eq_add_neg]
+
+/-! ### Iterated Whitney sums -/
+
+section WhitneySumIter
+
+/-- The Whitney sum `F ⊕ E ⊕ ⋯ ⊕ E` of `F` with `n` copies of `E`, the sums taken from the
+left: `whitneySumIter E (n + 1) F` is `whitneySumIter E n (F ⊕ E)`. -/
+@[expose]
+def whitneySumIter (E : FiniteRankBundleCore 𝕜 B) :
+    ℕ → FiniteRankBundleCore 𝕜 B → FiniteRankBundleCore 𝕜 B
+  | 0, F => F
+  | n + 1, F => whitneySumIter E n (whitneySum F E)
+
+variable (E F : FiniteRankBundleCore 𝕜 B)
+
+@[simp]
+theorem whitneySumIter_zero : whitneySumIter E 0 F = F :=
+  (rfl)
+
+theorem whitneySumIter_succ (n : ℕ) :
+    whitneySumIter E (n + 1) F = whitneySumIter E n (whitneySum F E) :=
+  (rfl)
+
+@[simp]
+theorem rank_whitneySumIter (n : ℕ) :
+    (whitneySumIter E n F).rank = F.rank + n * E.rank := by
+  induction n generalizing F with
+  | zero => simp
+  | succ n ih => rw [whitneySumIter_succ, ih, rank_whitneySum]; ring
+
+/-- An isomorphism `F ≅ F'` gives an isomorphism of `F ⊕ E ⊕ ⋯ ⊕ E` with `F' ⊕ E ⊕ ⋯ ⊕ E`, the
+sum of it with the identities of the copies of `E`. -/
+def whitneySumIterMapIso : (n : ℕ) → {F F' : FiniteRankBundleCore 𝕜 B} → (F ≅ F') →
+    (whitneySumIter E n F ≅ whitneySumIter E n F')
+  | 0, _, _, e => e
+  | n + 1, _, _, e => whitneySumIterMapIso n (whitneyMapIso e (Iso.refl E))
+
+@[simp]
+theorem whitneySumIterMapIso_zero {F F' : FiniteRankBundleCore 𝕜 B} (e : F ≅ F') :
+    whitneySumIterMapIso E 0 e = e :=
+  (rfl)
+
+theorem whitneySumIterMapIso_succ (n : ℕ) {F F' : FiniteRankBundleCore 𝕜 B} (e : F ≅ F') :
+    whitneySumIterMapIso E (n + 1) e =
+      whitneySumIterMapIso E n (whitneyMapIso e (Iso.refl E)) :=
+  (rfl)
+
+end WhitneySumIter
 
 section Pullback
 

@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Neighborhood
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Radial
 public import TauCeti.Geometry.Manifold.VectorBundle.ZeroSection
 public import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.Normalized
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
 import SymplecticGeometry.GroupTheory.GroupAction.Hom
 import TauCeti.Geometry.Manifold.IsManifold.Basic
@@ -138,7 +139,7 @@ theorem exists_contMDiff_injective_normalBundle (f : SmoothEmbedding I J ∞ M N
   -- map sends this line to the image under `Ψ` of the reparametrized line `t ↦ s t • v`, with
   -- `s' 0 = r x`.
   have hΨ0 : MDifferentiableAt (I.prod 𝓘(ℝ, P)) J Ψ (zeroSection P ν x) :=
-    (Ψ.contMDiffOn.contMDiffAt (Ψ.open_source.mem_nhds (hzero x))).mdifferentiableAt (by simp)
+    (Ψ.contMDiffAt (hzero x)).mdifferentiableAt (by simp)
   rw [normalFiberDeriv_apply_eq_mfderiv_smul f hn hdim ((hT _).mdifferentiableAt (by simp))]
   let line : ℝ → TotalSpace P ν := fun t ↦ ⟨x, t • v⟩
   have hl : ContMDiff 𝓘(ℝ) (I.prod 𝓘(ℝ, P)) 1 line :=

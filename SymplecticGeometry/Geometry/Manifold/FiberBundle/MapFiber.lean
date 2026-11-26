@@ -155,8 +155,7 @@ theorem injective_mfderiv_fiberInclusionMap
     (v : F) : Injective (mfderiv IF IM (e.fiberInclusionMap hb) v) :=
   TauCeti.mfderiv_injective_of_leftInverse (g := fun x ↦ (e x).2)
     (mdifferentiableAt_snd.comp _ (he.mdifferentiableAt (e.fiberInclusionMap_mem_source hb v)))
-    (mdifferentiable_fiberInclusionMap he hb v) fun w ↦
-      congrArg Prod.snd (e.apply_fiberInclusionMap hb w)
+    (mdifferentiable_fiberInclusionMap he hb v) (e.leftInverse_snd_fiberInclusionMap hb)
 
 /-- **The tangent spaces of a fibre.** For a trivialization `e` of `proj` that is differentiable
 with differentiable inverse, the derivative of the fibre inclusion over `b` at `v` has as range
@@ -295,6 +294,20 @@ theorem IsContMDiff.mdifferentiable_trivAt (hA : A.IsContMDiff n IB IF IM) (hn :
     (b : B) : (A.trivAt b).toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF) :=
   ⟨(hA.contMDiffOn_trivAt b).mdifferentiableOn hn,
     (hA.contMDiffOn_trivAt_symm b).mdifferentiableOn hn⟩
+
+/-- The fibre coordinate `y ↦ (A.trivAt b y).2` of a chart of a `C^n` atlas is `C^n` on the
+source of the chart. -/
+theorem IsContMDiff.contMDiffOn_snd_trivAt (hA : A.IsContMDiff n IB IF IM) (b : B) :
+    ContMDiffOn IM IF n (fun y ↦ (A.trivAt b y).2) (A.trivAt b).source :=
+  contMDiff_snd.comp_contMDiffOn (hA.contMDiffOn_trivAt b)
+
+/-- The fibre coordinate `y ↦ (A.trivAt b y).2` of a chart of a `C^n` atlas is `C^n` at every
+point of `M` over the base set of the chart. -/
+theorem IsContMDiff.contMDiffAt_snd_trivAt (hA : A.IsContMDiff n IB IF IM) {b : B} {x : M}
+    (hx : proj x ∈ (A.trivAt b).baseSet) :
+    ContMDiffAt IM IF n (fun y ↦ (A.trivAt b y).2) x :=
+  (hA.contMDiffOn_snd_trivAt b).contMDiffAt
+    ((A.trivAt b).open_source.mem_nhds ((A.trivAt b).mem_source.2 hx))
 
 end TauCeti.MapFiber.Atlas
 

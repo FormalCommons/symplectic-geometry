@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Local
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.LinearNormalForm
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
+import SymplecticGeometry.Geometry.Symplectic.Manifold.Opens
 
 /-!
 # The local model's descended form is symplectic near the zero section

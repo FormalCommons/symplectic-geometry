@@ -25,11 +25,18 @@ differentiable at `x` (`TauCeti.RoughForm.mdifferentiableAt_apply_vectorField`).
 rough-form version of Tau Ceti's `TauCeti.SmoothForm.mdifferentiableAt_apply_vectorField`, and
 its proof is the same, through Mathlib's `MDifferentiableAt.continuousAlternatingMap_bundle_apply`.
 
+Taking the `0`-form of a function commutes with addition, negation and subtraction
+(`TauCeti.RoughForm.ofFunction_add`, `TauCeti.RoughForm.ofFunction_neg`,
+`TauCeti.RoughForm.ofFunction_sub`), as Tau Ceti's `TauCeti.RoughForm.ofFunction_smul` says for
+scalar multiplication.
+
 ## Main results
 
 * `TauCeti.RoughForm.cast_apply`: evaluation of a rough form cast along an equality of degrees.
 * `TauCeti.RoughForm.mdifferentiableAt_apply_vectorField`: a rough form differentiable at `x`,
   evaluated on vector fields differentiable at `x`, is differentiable at `x`.
+* `TauCeti.RoughForm.ofFunction_add`, `TauCeti.RoughForm.ofFunction_neg`,
+  `TauCeti.RoughForm.ofFunction_sub`: the `0`-form of `f + g`, `-f` and `f - g`.
 -/
 
 public section
@@ -57,6 +64,30 @@ theorem cast_apply {p q : ℕ} (h : p = q) (α : RoughForm I M V p) (x : M)
   simp only [LinearEquiv.cast_apply, cast_eq, Function.comp_def, Fin.cast_eq_self]
 
 end Cast
+
+section OfFunction
+
+variable {E H M F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+  [AddCommGroup F] [Module ℝ F] [TopologicalSpace F]
+
+/-- The `0`-form of a sum of functions is the sum of their `0`-forms. -/
+theorem ofFunction_add [ContinuousAdd F] (f g : M → F) :
+    ofFunction I (f + g) = ofFunction I f + ofFunction I g :=
+  funext fun x ↦ ContinuousAlternatingMap.ext fun v ↦ by simp
+
+variable [IsTopologicalAddGroup F]
+
+/-- The `0`-form of `-f` is minus the `0`-form of `f`. -/
+theorem ofFunction_neg (f : M → F) : ofFunction I (-f) = -ofFunction I f :=
+  funext fun x ↦ ContinuousAlternatingMap.ext fun v ↦ by simp
+
+/-- The `0`-form of a difference of functions is the difference of their `0`-forms. -/
+theorem ofFunction_sub (f g : M → F) :
+    ofFunction I (f - g) = ofFunction I f - ofFunction I g :=
+  funext fun x ↦ ContinuousAlternatingMap.ext fun v ↦ by simp
+
+end OfFunction
 
 section VectorField
 

@@ -10,9 +10,16 @@ public import SymplecticGeometry.Geometry.Symplectic.Manifold.Prod
 public import TauCeti.Geometry.Symplectic.Complex.Line
 import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Basic
 import TauCeti.Geometry.Symplectic.Lagrangian.Graph
+import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Level
+import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Equiv
+import TauCeti.Geometry.Manifold.VectorBundle.Trivial
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.IsManifold.SecondCountable
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 import SymplecticGeometry.Topology.MetricSpace.Tube
+import SymplecticGeometry.LinearAlgebra.BilinearMap.Alternating
+import TauCeti.Geometry.Manifold.ContMDiff.Sqrt
+import Mathlib.Geometry.Manifold.Algebra.LieGroup
 
 /-!
 # Symplectic framings and product neighbourhoods
@@ -45,14 +52,31 @@ so the hypotheses on `ι` are stated with `HasSymplecticTangentImages`.
 ## Main definitions
 
 * `SymplecticGeometry.zeroSlice J Q`: the smooth embedding `q ↦ (q, 0)` of `Q` into `Q × ℂ`.
+* `SymplecticGeometry.zeroSliceNormalEquiv J Q q`: the identification of the normal space of the
+  zero slice at `q` with `ℂ`, by the `ℂ`-component of tangent vectors of `Q × ℂ`;
+  `SymplecticGeometry.zeroSliceNormalBundleDiffeomorph J Q`, the resulting diffeomorphism of the
+  normal bundle of the zero slice onto `Q × ℂ`. It is Tau Ceti's
+  `TauCeti.SmoothEmbedding.normalBundleDiffeomorphOfKer` for the second projection, followed by
+  `Bundle.Trivial.diffeomorphProd`.
 * `SymplecticGeometry.SymplecticFraming hι hP`: symplectic framings of the normal bundle of `ι`;
-  `SymplecticGeometry.SymplecticFraming.refl`, the identity framing of the zero slice itself.
+  `SymplecticGeometry.SymplecticFraming.refl`, the identity framing of the zero slice itself;
+  `SymplecticGeometry.SymplecticFraming.ofPos`, the framing obtained from linear isomorphisms
+  `e q : ℂ ≃ N_q ι`, smooth in `q`, on which the normal form `ω_ι` of `ι` is positive, by rescaling
+  `e q` by `(√(ω_ι (e q 1) (e q i)))⁻¹`. On the plane `ℂ` every alternating form is a multiple
+  of `ω₀` (`LinearMap.IsAlt.apply_eq_div_mul`), so the rescaling carries `ω₀` exactly to `ω_ι`;
+  the rescaling factor is smooth by `TauCeti.SmoothEmbedding.contMDiffAt_symplecticNormalForm`
+  and `ContMDiff.sqrt`. The construction adapts the rescaled
+  isomorphisms of `HasSymplecticTangentImages.exists_symplectomorphism_opens_of_finrank_eq_two`
+  (namespace `TauCeti.SmoothTwoForm.IsNondegenerate`, `Geometry/Symplectic/Neighborhood/CodimTwo`),
+  with an explicit factor in place of a ratio on a local frame.
 * `SymplecticGeometry.prodBall Q ε`: the open set `Q × B²(ε)` of `Q × ℂ`.
 * `SymplecticGeometry.ProductNeighborhood Φ ε`: product neighbourhoods of radius `ε` adapted to
   the framing `Φ`.
 
 ## Main results
 
+* `SymplecticGeometry.symplecticNormalForm_zeroSlice`: the normal symplectic form of the zero
+  slice for `τ ⊕ ω₀` is `ω₀`, read through `zeroSliceNormalEquiv`.
 * `SymplecticGeometry.SymplecticFraming.exists_symplectomorphism_opens`: a framing gives a
   symplectomorphism between neighbourhoods of the zero slice and of `ι`.
 * `SymplecticGeometry.ProductNeighborhood.isClosed_image_closedBall`: for compact `Q` and
@@ -145,6 +169,175 @@ theorem hasSymplecticTangentImages_zeroSlice {hσ : σ.IsNondegenerate}
     ((SmoothTwoForm.IsNondegenerate.isSymplecticSubmanifoldEmbedding_iff_of_isSmoothEmbedding
       ι.isSmoothEmbedding).2 hι).isNondegenerate_mpullback
 
+/-! ### The normal bundle of the zero slice
+
+`Prod.snd : Q × ℂ → ℂ` vanishes on the zero slice and is a submersion, so its differential, the
+second projection `T_(q,0)(Q × ℂ) = T_q Q × ℂ → ℂ`, identifies each normal space of the zero slice
+with `ℂ`, and these identifications form a diffeomorphism of the normal bundle onto `Q × ℂ`. -/
+
+section NormalBundle
+
+variable [FiniteDimensional ℝ EQ]
+
+/-- A tangent vector of `Q × ℂ` at `(q, 0)` is tangent to the zero slice exactly when its
+`ℂ`-component vanishes. -/
+theorem snd_eq_zero_iff_mem_tangentRange_zeroSlice (q : Q)
+    (v : TangentSpace (J.prod 𝓘(ℝ, ℂ)) (zeroSlice J Q q)) :
+    ContinuousLinearMap.snd ℝ EQ ℂ v = 0 ↔
+      v ∈ (zeroSlice J Q).tangentRange q (WithTop.coe_ne_zero.2 ENat.top_ne_zero) := by
+  rw [(zeroSlice J Q).tangentRange_eq_ker_mfderiv q _ (g := Prod.snd) (c := 0)
+    (.of_forall fun _ ↦ by simp) (isRegularPoint_snd _) (by simp [finrank_prod]),
+    LinearMap.mem_ker, mfderiv_snd]
+  -- The tangent spaces of `Q` and `ℂ` at `q` and `0` are `EQ` and `ℂ`.
+  rfl
+
+/-- The normal spaces of the zero slice have real dimension two. -/
+theorem finrank_normalSpace_zeroSlice (q : Q) :
+    finrank ℝ ((zeroSlice J Q).NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) =
+      finrank ℝ ℂ :=
+  ((zeroSlice J Q).finrank_normalSpace q _).trans finrank_complex_eq_finrank_prod_sub.symm
+
+variable (J Q) in
+/-- The identification of the normal space of the zero slice at `q` with `ℂ`, sending the normal
+class of a tangent vector of `Q × ℂ` at `(q, 0)` to its `ℂ`-component. -/
+def zeroSliceNormalEquiv (q : Q) :
+    (zeroSlice J Q).NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero) ≃L[ℝ] ℂ :=
+  (zeroSlice J Q).normalSpaceEquivOfKer q _ (ContinuousLinearMap.snd ℝ EQ ℂ)
+    (snd_eq_zero_iff_mem_tangentRange_zeroSlice q) (finrank_normalSpace_zeroSlice q)
+
+theorem zeroSliceNormalEquiv_def (q : Q) :
+    zeroSliceNormalEquiv J Q q =
+      (zeroSlice J Q).normalSpaceEquivOfKer q _ (ContinuousLinearMap.snd ℝ EQ ℂ)
+        (snd_eq_zero_iff_mem_tangentRange_zeroSlice q) (finrank_normalSpace_zeroSlice q) :=
+  (rfl)
+
+/-- `zeroSliceNormalEquiv` sends the normal class of a tangent vector of `Q × ℂ` at `(q, 0)` to
+its `ℂ`-component. -/
+@[simp]
+theorem zeroSliceNormalEquiv_normalClass (q : Q)
+    (v : TangentSpace (J.prod 𝓘(ℝ, ℂ)) (zeroSlice J Q q)) :
+    zeroSliceNormalEquiv J Q q
+        ((zeroSlice J Q).normalClass q (WithTop.coe_ne_zero.2 ENat.top_ne_zero) v) = v.2 :=
+  (zeroSlice J Q).normalSpaceEquivOfKer_normalClass q _ _ _ _ v
+
+/-- The inverse of `zeroSliceNormalEquiv` sends `z` to the normal class of the vertical vector
+`(0, z)`. -/
+theorem zeroSliceNormalEquiv_symm_apply (q : Q) (z : ℂ) :
+    (zeroSliceNormalEquiv J Q q).symm z =
+      (zeroSlice J Q).normalClass q (WithTop.coe_ne_zero.2 ENat.top_ne_zero) ((0, z) : EQ × ℂ) :=
+  (zeroSlice J Q).normalSpaceEquivOfKer_symm_apply q _ _ _ _ ((0, z) : EQ × ℂ)
+
+variable (J Q) in
+/-- The normal bundle of the zero slice, with the bundle structure that `SymplecticFraming` uses,
+is diffeomorphic to `Q × ℂ` over the identity of `Q`, by `zeroSliceNormalEquiv` on each fibre. -/
+def zeroSliceNormalBundleDiffeomorph :
+    letI := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
+      (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+    TotalSpace ℂ (fun q ↦ (zeroSlice J Q).NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero))
+      ≃ₘ⟮J.prod 𝓘(ℝ, ℂ), J.prod 𝓘(ℝ, ℂ)⟯ Q × ℂ :=
+  letI := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
+    (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+  ((zeroSlice J Q).normalBundleDiffeomorphOfKer (m := ∞) _ (by simp)
+    finrank_complex_eq_finrank_prod_sub (E₂ := Trivial Q ℂ) (W := ℂ)
+    (fun _ ↦ ContinuousLinearMap.snd ℝ EQ ℂ) snd_eq_zero_iff_mem_tangentRange_zeroSlice
+    finrank_normalSpace_zeroSlice (by
+      -- The `ℂ`-component of an ambient tangent vector is its image by the differential of
+      -- `Prod.snd`.
+      refine Trivial.contMDiff_mk_iff.2 ⟨contMDiff_proj _, ?_⟩
+      refine (Pullback.contMDiff_mfderiv_apply (zeroSlice J Q) (zeroSlice J Q).contMDiff
+        contMDiff_snd le_rfl).congr fun p ↦ ?_
+      exact (DFunLike.congr_fun mfderiv_snd p.snd).symm)).trans
+    (Trivial.diffeomorphProd J Q ℂ ∞)
+
+/-- The diffeomorphism sends a normal vector at `q` to `q` and its `ℂ`-component. -/
+@[simp]
+theorem zeroSliceNormalBundleDiffeomorph_apply
+    (p : TotalSpace ℂ
+      (fun q ↦ (zeroSlice J Q).NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero))) :
+    letI := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
+      (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+    zeroSliceNormalBundleDiffeomorph J Q p = (p.proj, zeroSliceNormalEquiv J Q p.proj p.snd) := by
+  let := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
+    (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+  exact (congrArg (Trivial.diffeomorphProd J Q ℂ ∞)
+    ((zeroSlice J Q).normalBundleDiffeomorphOfKer_apply _ _ _ _ _ _ _ p)).trans
+    (Trivial.diffeomorphProd_apply ..)
+
+/-- The inverse diffeomorphism sends `(q, z)` to the normal vector at `q` with `ℂ`-component
+`z`. -/
+@[simp]
+theorem zeroSliceNormalBundleDiffeomorph_symm_apply (x : Q × ℂ) :
+    letI := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
+      (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+    (zeroSliceNormalBundleDiffeomorph J Q).symm x =
+      ⟨x.1, (zeroSliceNormalEquiv J Q x.1).symm x.2⟩ := by
+  let := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
+    (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+  exact ((zeroSlice J Q).normalBundleDiffeomorphOfKer_symm_apply (m := ∞) _ (by simp) _ _ _ _ _
+    ((Trivial.diffeomorphProd J Q ℂ ∞).symm x)).trans
+      (by rw [Trivial.diffeomorphProd_symm_apply, zeroSliceNormalEquiv_def])
+
+/-- The identification of the normal bundle of the zero slice with `Q × ℂ` is smooth. -/
+theorem contMDiff_zeroSliceNormalEquiv :
+    letI := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
+      (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+    ContMDiff (J.prod 𝓘(ℝ, ℂ)) (J.prod 𝓘(ℝ, ℂ)) ∞
+      (fun p : TotalSpace ℂ
+          (fun q ↦ (zeroSlice J Q).NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) ↦
+        (p.proj, zeroSliceNormalEquiv J Q p.proj p.snd)) := by
+  let := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
+    (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+  exact (zeroSliceNormalBundleDiffeomorph J Q).contMDiff.congr
+    fun p ↦ (zeroSliceNormalBundleDiffeomorph_apply p).symm
+
+/-- The inverse identification of `Q × ℂ` with the normal bundle of the zero slice is smooth. -/
+theorem contMDiff_zeroSliceNormalEquiv_symm :
+    letI := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
+      (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+    ContMDiff (J.prod 𝓘(ℝ, ℂ)) (J.prod 𝓘(ℝ, ℂ)) ∞
+      (fun x : Q × ℂ ↦ (⟨x.1, (zeroSliceNormalEquiv J Q x.1).symm x.2⟩ : TotalSpace ℂ
+          (fun q ↦ (zeroSlice J Q).NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)))) := by
+  let := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
+    (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+  exact (zeroSliceNormalBundleDiffeomorph J Q).symm.contMDiff.congr
+    fun x ↦ (zeroSliceNormalBundleDiffeomorph_symm_apply x).symm
+
+/-- The symplectic complement of the zero slice for `τ ⊕ ω₀` contains the vertical vectors: a
+tangent vector of `Q × ℂ` at `(q, 0)` with vanishing `Q`-component pairs to zero with every vector
+tangent to the zero slice. -/
+theorem mem_orthogonal_tangentRange_zeroSlice {τ : SmoothTwoForm J Q}
+    (hτ : (τ.prod stdComplexSymplecticForm.constSmooth).IsNondegenerate) (q : Q)
+    {v : TangentSpace (J.prod 𝓘(ℝ, ℂ)) (zeroSlice J Q q)} (hv : v.1 = 0) :
+    v ∈ (hτ.symplecticFormAt (zeroSlice J Q q)).orthogonal
+      ((zeroSlice J Q).tangentRange q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) := by
+  refine SymplecticForm.mem_orthogonal_iff.2 fun u hu ↦ ?_
+  have hu2 : u.2 = 0 := (snd_eq_zero_iff_mem_tangentRange_zeroSlice q u).2 hu
+  rw [SmoothTwoForm.IsNondegenerate.symplecticFormAt_apply, SmoothTwoForm.eval₂_prod_eq_add, hv,
+    hu2]
+  exact (congrArg₂ (· + ·) (SmoothBundleForm.eval₂_zero_right τ _ _)
+    (SmoothBundleForm.eval₂_zero_left _ _ _)).trans (add_zero 0)
+
+/-- The normal symplectic form of the zero slice of `(Q × ℂ, τ ⊕ ω₀)` is `ω₀`, read through the
+identification `zeroSliceNormalEquiv` of the normal spaces with `ℂ`. -/
+theorem symplecticNormalForm_zeroSlice {τ : SmoothTwoForm J Q}
+    {hτ : (τ.prod stdComplexSymplecticForm.constSmooth).IsNondegenerate}
+    (h : hτ.HasSymplecticTangentImages J (zeroSlice J Q)) (q : Q)
+    (v w : (zeroSlice J Q).NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) :
+    (zeroSlice J Q).symplecticNormalForm h q (WithTop.coe_ne_zero.2 ENat.top_ne_zero) v w =
+      stdComplexSymplecticForm (zeroSliceNormalEquiv J Q q v) (zeroSliceNormalEquiv J Q q w) := by
+  obtain ⟨z, rfl⟩ := (zeroSliceNormalEquiv J Q q).symm.surjective v
+  obtain ⟨z', rfl⟩ := (zeroSliceNormalEquiv J Q q).symm.surjective w
+  rw [ContinuousLinearEquiv.apply_symm_apply, ContinuousLinearEquiv.apply_symm_apply,
+    zeroSliceNormalEquiv_symm_apply, zeroSliceNormalEquiv_symm_apply]
+  refine ((zeroSlice J Q).symplecticNormalForm_normalClass_normalClass h q _ ((0, z) : EQ × ℂ)
+    (mem_orthogonal_tangentRange_zeroSlice hτ q (v := ((0, z') : EQ × ℂ)) rfl)).trans ?_
+  -- The components of the vertical vectors `(0, z)` and `(0, z')` are `0` and `z`, `z'`.
+  exact ((SmoothTwoForm.eval₂_prod_eq_add τ _ _ ((0, z) : EQ × ℂ) ((0, z') : EQ × ℂ)).trans
+    (congrArg₂ (· + ·) (SmoothBundleForm.eval₂_zero_left τ _ _)
+      (SymplecticForm.constSmooth_apply _ _ z z'))).trans (zero_add _)
+
+end NormalBundle
+
 /-! ### Symplectic framings -/
 
 variable [FiniteDimensional ℝ EQ] [FiniteDimensional ℝ E]
@@ -220,6 +413,81 @@ def refl {τ : SmoothTwoForm J Q} (hτ : τ.IsNondegenerate) :
 theorem refl_apply {τ : SmoothTwoForm J Q} (hτ : τ.IsNondegenerate) (q : Q) :
     refl hτ q = .refl ℝ _ :=
   (rfl)
+
+section OfPos
+
+variable {hσ : σ.IsNondegenerate} {ι : SmoothEmbedding J I ∞ Q M}
+  {hι : hσ.HasSymplecticTangentImages J ι} {hP : finrank ℝ ℂ = finrank ℝ E - finrank ℝ EQ}
+  {e : ∀ q, ℂ ≃L[ℝ] ι.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)}
+
+variable (e) in
+/-- **The symplectic framing of a positive trivialization of the normal bundle.** Let
+`e q : ℂ ≃ N_q ι` be linear isomorphisms such that `(q, z) ↦ e q z` is a smooth map of `Q × ℂ` to
+the normal bundle of `ι`, and such that `λ q = ω_ι (e q 1) (e q i)` is positive, where `ω_ι` is
+the normal symplectic form of `ι`. The framing at `q` identifies the normal space of the zero
+slice with `ℂ` (`zeroSliceNormalEquiv`), multiplies by `λ q ^ (-1/2) = (√(λ q))⁻¹`, and then
+applies `e q`. It carries `ω₀` to `ω_ι`: since `ω₀ 1 i = 1` and alternating forms on `ℂ` are
+proportional, `ω_ι (e q u) (e q v) = λ q * ω₀ u v`. -/
+def ofPos
+    (he : letI := ι.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
+      ContMDiff (J.prod 𝓘(ℝ, ℂ)) (J.prod 𝓘(ℝ, ℂ)) ∞
+        (fun x : Q × ℂ ↦ (⟨x.1, e x.1 x.2⟩ :
+          TotalSpace ℂ (fun q ↦ ι.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)))))
+    (hpos : ∀ q, 0 < ι.symplecticNormalForm hι q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
+      (e q 1) (e q Complex.I)) :
+    SymplecticFraming hι hP where
+  toFun q := (zeroSliceNormalEquiv J Q q).trans
+    ((ContinuousLinearEquiv.smulLeft (Units.mk0 (√(ι.symplecticNormalForm hι q _ (e q 1)
+      (e q Complex.I)))⁻¹ (inv_ne_zero (Real.sqrt_pos.2 (hpos q)).ne'))).trans (e q))
+  contMDiff_toFun := by
+    let := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
+      (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+    let := ι.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
+    -- The normal form of `ι` on the sections `q ↦ e q 1` and `q ↦ e q i` is smooth.
+    have hl : ContMDiff J 𝓘(ℝ) ∞ fun q ↦
+        ι.symplecticNormalForm hι q _ (e q 1) (e q Complex.I) := fun q ↦
+      SmoothEmbedding.contMDiffAt_symplecticNormalForm (u := id) hι _ hP
+        ((he.comp (contMDiff_id.prodMk contMDiff_const)) q)
+        ((he.comp (contMDiff_id.prodMk contMDiff_const)) q)
+    have ha : ContMDiff J 𝓘(ℝ) ∞ fun q ↦
+        (√(ι.symplecticNormalForm hι q _ (e q 1) (e q Complex.I)))⁻¹ :=
+      (hl.sqrt fun q ↦ (hpos q).ne').inv₀ fun q ↦ (Real.sqrt_pos.2 (hpos q)).ne'
+    -- The framing is the identification with `Q × ℂ`, a rescaling of `Q × ℂ`, and `e`.
+    refine (he.comp ((contMDiff_fst.prodMk ((ha.comp contMDiff_fst).smul contMDiff_snd)).comp
+      contMDiff_zeroSliceNormalEquiv)).congr fun p ↦ ?_
+    simp only [Function.comp_apply, Pi.smul_apply', ContinuousLinearEquiv.trans_apply,
+      ContinuousLinearEquiv.smulLeft_apply_apply, Units.smul_mk0]
+  symplecticNormalForm_toFun q v w := by
+    simp only [ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.smulLeft_apply_apply,
+      Units.smul_mk0, symplecticNormalForm_zeroSlice]
+    rw [(e q).map_smul, (e q).map_smul]
+    -- On the plane `ℂ`, the normal form of `ι` read through `e q` is a multiple of `ω₀`.
+    exact LinearMap.apply_inv_sqrt_smul_inv_sqrt_smul _ (hpos q)
+      (by simpa using (LinearMap.IsAlt.apply_eq_div_mul (B := (ι.symplecticNormalForm hι q
+        _).toBilinForm.compl₁₂ (e q).toLinearMap (e q).toLinearMap)
+        (fun u ↦ (ι.symplecticNormalForm hι q _).self_eq_zero (e q u))
+        stdComplexSymplecticForm.isAlt stdComplexSymplecticForm.separatingLeft
+        Complex.basisOneI _ _))
+
+/-- The framing `ofPos e he hpos` sends a normal vector `v` of the zero slice at `q` to
+`e q ((√(λ q))⁻¹ • z)`, where `z ∈ ℂ` is the `ℂ`-component of `v` and
+`λ q = ω_ι (e q 1) (e q i)`. -/
+@[simp]
+theorem ofPos_apply
+    (he : letI := ι.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
+      ContMDiff (J.prod 𝓘(ℝ, ℂ)) (J.prod 𝓘(ℝ, ℂ)) ∞
+        (fun x : Q × ℂ ↦ (⟨x.1, e x.1 x.2⟩ :
+          TotalSpace ℂ (fun q ↦ ι.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)))))
+    (hpos : ∀ q, 0 < ι.symplecticNormalForm hι q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
+      (e q 1) (e q Complex.I)) (q : Q)
+    (v : (zeroSlice J Q).NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) :
+    ofPos e he hpos q v = e q ((√(ι.symplecticNormalForm hι q
+      (WithTop.coe_ne_zero.2 ENat.top_ne_zero) (e q 1) (e q Complex.I)))⁻¹ •
+        zeroSliceNormalEquiv J Q q v) := by
+  simp only [ofPos, ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.smulLeft_apply_apply,
+    Units.smul_mk0]
+
+end OfPos
 
 variable (hσ : σ.IsSymplectic) {ι : SmoothEmbedding J I ∞ Q M}
   {hι : hσ.isNondegenerate.HasSymplecticTangentImages J ι}

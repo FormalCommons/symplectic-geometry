@@ -60,9 +60,6 @@ which is meaningful on `ψ.target`.
   (`PartialDiffeomorph.val_mextDerivₗ_symm_eq_alternatizeUncurryFin_symbolInChart`), and in a
   chart in which `J` is constant it carries `𝒥 φ` to the derivation of `J (ψ.symm y)`
   (`PartialDiffeomorph.symbolInChart_realAlternatingDerivation_apply`).
-* `TauCeti.IsSmoothForm.fun_smul_mpullback`: for a chart `ψ` onto any normed space `V`, a smooth
-  function with support in the source of `ψ` times the pullback along `ψ` of a smooth flat form
-  on `V` is a smooth form on `M`.
 * `TauCeti.RoughForm.extendByZeroAlong ψ a`: the form on `M` that is the pullback along `ψ` of a
   flat form `a` on the source of `ψ`, and zero elsewhere; `TauCeti.mpullback_symm_extendByZeroAlong`
   recovers `a` on `ψ.target`. When `a` is smooth with compact support in `ψ.target`, the
@@ -451,7 +448,7 @@ theorem IsSmoothForm.extendByZeroAlong [T2Space M] [IsManifold I ∞ M]
     (fun x hx ↦ ?_) (fun x hx ↦ ?_)
   · refine ContMDiffAt.contMDiffWithinAt <| ContMDiffAt.congr_of_eventuallyEq
       (((isSmoothForm_def _ _).mp ha' (ψ x)).mpullback_form
-        (ψ.contMDiffOn.contMDiffAt (ψ.open_source.mem_nhds hx)) (by simp)) ?_
+        (ψ.contMDiffAt hx) (by simp)) ?_
     filter_upwards [ψ.open_source.mem_nhds hx] with z hz
     rw [RoughForm.extendByZeroAlong_apply_of_mem a hz]
   · refine ((isSmoothForm_def _ _).mp (IsSmoothForm.zero (I := I) (M := M) (F := F) (k := k) ∞)
@@ -524,30 +521,6 @@ theorem SmoothForm.extendByZeroAlong_sub (ha : ContDiff ℝ ∞ a) (hac : HasCom
 end SmoothForm
 
 end ExtendByZero
-
-/-! ### A cut-off times a pulled-back form -/
-
-section CutoffSMul
-
-variable {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] [IsManifold I ∞ M]
-
-/-- Let `ψ` be a smooth partial diffeomorphism from `M` to a normed space `V`, `a` a smooth flat
-form on `V`, and `ρ` a smooth function on `M` whose support lies in the source of `ψ`. Then
-`ρ` times the pullback of `a` along `ψ`, which is zero off the support of `ρ`, is a smooth form
-on `M`. Unlike `TauCeti.IsSmoothForm.extendByZeroAlong`, `V` need not be the model space of `M`.
--/
-theorem IsSmoothForm.fun_smul_mpullback (ψ : PartialDiffeomorph I 𝓘(ℝ, V) M V ∞)
-    {a : V → V [⋀^Fin k]→L[ℝ] F} (ha : ContDiff ℝ ∞ a) {ρ : M → ℝ}
-    (hρ : ContMDiff I 𝓘(ℝ) ∞ ρ) (hs : tsupport ρ ⊆ ψ.source) :
-    IsSmoothForm I ∞ (fun x ↦ ρ x • TauCeti.mpullback I 𝓘(ℝ, V) ψ a x) := by
-  have ha' : IsSmoothForm 𝓘(ℝ, V) ∞ (a : RoughForm 𝓘(ℝ, V) V F k) :=
-    isSmoothForm_modelSpace_iff.mpr ha
-  rw [isSmoothForm_def]
-  refine ContMDiffOn.smul_section_of_tsupport hρ.contMDiffOn ψ.open_source hs fun x hx ↦ ?_
-  exact (((isSmoothForm_def _ _).mp ha' (ψ x)).mpullback_form
-    (ψ.contMDiffOn.contMDiffAt (ψ.open_source.mem_nhds hx)) (by simp)).contMDiffWithinAt
-
-end CutoffSMul
 
 /-! ### Localization of a smooth form to a chart -/
 

@@ -48,8 +48,6 @@ when the source of the partial diffeomorphism is.
 * `TopologicalSpace.Opens.contMDiffConstSMul_of_coe_smul`: the same for actions by `C^n` maps.
 * `TauCeti.SmoothForm.mpullback_smul_mpullback`: the pullback of an invariant form along an
   equivariant smooth map is invariant.
-* `TauCeti.SmoothForm.mpullback_smul_mpullback_subtypeVal`: the restriction of an invariant form
-  to `U` is invariant.
 * `PartialDiffeomorph.liftOpens_smul`, `PartialDiffeomorph.smul_mem_liftOpens_source`: the
   lift of a partial diffeomorphism between open subsets that is equivariant on its source is
   equivariant on its source, with invariant source.
@@ -178,20 +176,6 @@ theorem mpullback_smul_mpullback [SMul G N] [ContMDiffConstSMul I' ∞ G N] {f :
     mpullback (fun x : N ↦ g • x) (contMDiff_const_smul g) (mpullback f hf α) =
       mpullback f hf α := by
   rw [mpullback_mpullback_of_comp_eq _ _ hf (contMDiff_const_smul g) (funext h), hα]
-
-/-- If `G` acts on an open set `U` so that the inclusion `U → M` is equivariant, and every
-`g • ·` is smooth on `M`, then the restriction to `U` of a smooth form `α` on `M` invariant under
-pullback along `g • ·` is invariant under pullback along `g • ·` on `U`. -/
-theorem mpullback_smul_mpullback_subtypeVal {U : TopologicalSpace.Opens M} [SMul G U]
-    (h : ∀ (g : G) (x : U), ((g • x : U) : M) = g • (x : M)) {g : G} {α : SmoothForm I M F k}
-    (hα : mpullback (fun x : M ↦ g • x) (contMDiff_const_smul g) α = α) :
-    mpullback (fun x : U ↦ g • x)
-        ((TopologicalSpace.Opens.contMDiffConstSMul_of_coe_smul (I' := I) (n := ∞)
-          h).contMDiff_const_smul g)
-        (mpullback (Subtype.val : U → M) contMDiff_subtypeVal α) =
-      mpullback (Subtype.val : U → M) contMDiff_subtypeVal α :=
-  have := TopologicalSpace.Opens.contMDiffConstSMul_of_coe_smul (I' := I) (n := ∞) h
-  mpullback_smul_mpullback contMDiff_subtypeVal (h g) hα
 
 end TauCeti.SmoothForm
 
