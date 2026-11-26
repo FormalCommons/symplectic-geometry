@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Topology.VectorBundle.ConstantRank
 public import TauCeti.Topology.VectorBundle.FiniteRank.Basic
+public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 
 /-!
 # The range core of a bundle map of constant rank
@@ -20,6 +21,10 @@ finite-rank core of rank `r` presenting it, with fibres identified with these ra
   range of `f.fiberMap x` (`range_fiberMap_rangeInclusion`);
 * `rangeRestrict f hr : A ⟶ range f hr`, the corestriction of `f`, surjective on every fibre, with
   `rangeRestrict f hr ≫ rangeInclusion f hr = f`.
+
+By the fibrewise criteria `mono_of_injective_fiberMap` and `epi_of_surjective_fiberMap`, the
+inclusion is a monomorphism and the corestriction an epimorphism, so that Mathlib's `cancel_mono`
+and `cancel_epi` apply to them.
 
 For an idempotent endomorphism `P : E ⟶ E` (`P ≫ P = P`) of constant rank, `rangeRestrict P hr`
 is the projection onto the range core: `rangeInclusion P hr ≫ rangeRestrict P hr = 𝟙 _`
@@ -194,6 +199,12 @@ theorem fiberMap_rangeRestrict_surjective (x : B) :
   rw [rangeFiberEquiv_fiberMap_rangeRestrict_apply]
   exact hv
 
+instance : Mono (rangeInclusion f hr) :=
+  mono_of_injective_fiberMap _ (fiberMap_rangeInclusion_injective f hr)
+
+instance : Epi (rangeRestrict f hr) :=
+  epi_of_surjective_fiberMap _ (fiberMap_rangeRestrict_surjective f hr)
+
 /-- The fibrewise image of the inclusion of the range core of `f` is the range of `f`. -/
 theorem range_fiberMap_rangeInclusion (x : B) :
     ((rangeInclusion f hr).fiberMap x).range = (f.fiberMap x).range := by
@@ -233,12 +244,9 @@ the range core: it is a left inverse of the inclusion. -/
 @[reassoc]
 theorem rangeInclusion_rangeRestrict_of_comp_self :
     rangeInclusion P hr ≫ rangeRestrict P hr = 𝟙 _ :=
-  hom_ext fun x ↦ ContinuousLinearMap.ext fun v ↦ fiberMap_rangeInclusion_injective P hr x <| by
-    have h := congrArg (fun g : range P hr ⟶ E ↦ g.fiberMap x v)
-      ((Category.assoc _ _ _).trans ((congrArg (rangeInclusion P hr ≫ ·)
-        (rangeRestrict_rangeInclusion P hr)).trans (rangeInclusion_comp_of_comp_self hr hP)))
-    simpa only [fiberMap_comp, fiberMap_id, ContinuousLinearMap.comp_apply,
-      ContinuousLinearMap.id_apply] using h
+  (cancel_mono (rangeInclusion P hr)).1 <| by
+    rw [Category.assoc, rangeRestrict_rangeInclusion, rangeInclusion_comp_of_comp_self hr hP,
+      Category.id_comp]
 
 end Idempotent
 
