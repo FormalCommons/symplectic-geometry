@@ -40,7 +40,8 @@ is the Euler class `o.eulerClass` of the oriented normal bundle
 
 The class is defined through one chosen normalized tube, which
 `exists_isNormalizedTube_singularCohomologyMap_excisionMap_relDualClassOf` records. That it does
-not depend on the choice of tube is not proved here.
+not depend on the choice of tube is `relDualClassOf_eq_of_isNormalizedTube`, in
+`DualClass/Slice.lean`.
 
 ## Main definitions
 
