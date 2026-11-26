@@ -33,8 +33,8 @@ variable {𝕜 : Type*} [NormedField 𝕜] {G : Type*} [AddCommGroup G] [Module 
 endomorphisms. -/
 theorem conjContinuousAlgEquiv_apply_eq_mul (e : G ≃L[𝕜] G) (f : G →L[𝕜] G) :
     e.conjContinuousAlgEquiv f = ↑e.toUnit * f * ↑e.toUnit⁻¹ := by
-  rw [conjContinuousAlgEquiv_apply, coe_toUnit, coe_toUnit_inv, ContinuousLinearMap.mul_def,
-    ContinuousLinearMap.mul_def, ContinuousLinearMap.comp_assoc]
+  ext
+  simp
 
 end ContinuousLinearEquiv
 
