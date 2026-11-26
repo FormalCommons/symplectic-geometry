@@ -63,9 +63,12 @@ so the hypotheses on `ι` are stated with `HasSymplecticTangentImages`.
   `SymplecticGeometry.SymplecticFraming.ofPos`, the framing obtained from linear isomorphisms
   `e q : ℂ ≃ N_q ι`, smooth in `q`, on which the normal form `ω_ι` of `ι` is positive, by rescaling
   `e q` by `(√(ω_ι (e q 1) (e q i)))⁻¹`. On the plane `ℂ` every alternating form is a multiple
-  of `ω₀` (`LinearMap.IsAlt.apply_eq_mul_stdComplexSymplecticForm`), so the rescaling, as in
-  `Geometry/Symplectic/Neighborhood/CodimTwo.lean`, carries `ω₀` exactly to `ω_ι`; the rescaling
-  factor is smooth by `TauCeti.SmoothEmbedding.contMDiffAt_symplecticNormalForm`.
+  of `ω₀` (`LinearMap.IsAlt.apply_eq_mul_stdComplexSymplecticForm`), so the rescaling carries `ω₀`
+  exactly to `ω_ι`; the rescaling factor is smooth by
+  `TauCeti.SmoothEmbedding.contMDiffAt_symplecticNormalForm`. The construction adapts the rescaled
+  isomorphisms of `HasSymplecticTangentImages.exists_symplectomorphism_opens_of_finrank_eq_two`
+  (namespace `TauCeti.SmoothTwoForm.IsNondegenerate`, `Geometry/Symplectic/Neighborhood/CodimTwo`),
+  with an explicit factor in place of a ratio on a local frame.
 * `SymplecticGeometry.prodBall Q ε`: the open set `Q × B²(ε)` of `Q × ℂ`.
 * `SymplecticGeometry.ProductNeighborhood Φ ε`: product neighbourhoods of radius `ε` adapted to
   the framing `Φ`.
