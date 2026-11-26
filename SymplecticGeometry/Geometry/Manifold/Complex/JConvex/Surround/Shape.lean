@@ -78,9 +78,10 @@ bounds `|σ|² ≤ s |v₁|²` and `|τ|² ≤ t (|v₁|² + |v₂|²)`.
 
 * `SymplecticGeometry.modelLevel k m`: the model level `φ₀ = 1 - s + 2 t`. It is strictly
   plurisubharmonic everywhere (`SymplecticGeometry.isManifoldStrictlyPlurisubharmonicAt_modelLevel`,
-  by the criterion with `f' + g' = 1` and `g' = 2`), it is positive at its critical points, where
-  `s = 0` (`SymplecticGeometry.modelLevel_pos_of_mem_criticalPoints`), and so its zero level is a
-  J-convex level (`SymplecticGeometry.isJConvexLevel_modelLevel`).
+  by the criterion with `f' + g' = 1` and `g' = 2`). Its differential
+  (`SymplecticGeometry.fderiv_modelLevel_apply`) is `-2 s` on `(x, 0)`, so `s = 0` at its critical
+  points, where it is positive (`SymplecticGeometry.modelLevel_pos_of_mem_criticalPoints`); so
+  its zero level is a J-convex level (`SymplecticGeometry.isJConvexLevel_modelLevel`).
 * `SymplecticGeometry.modelHandle k m a b`: the model handle function `b t - a s`. For `0 < a < b`
   it is strictly plurisubharmonic everywhere
   (`SymplecticGeometry.isManifoldStrictlyPlurisubharmonicAt_modelHandle`, by the criterion with
@@ -507,32 +508,6 @@ theorem isManifoldStrictlyPlurisubharmonicAt_shape {f g : ℝ → ℝ}
   simpa only [manifoldLeviForm_eq_leviForm, ← isStrictlyPlurisubharmonicAt_iff] using
     isStrictlyPlurisubharmonicAt_shape hf hg h₁ h₂
 
-/-- The differential of an affine function `c + α s + β t` of the shape coordinates. -/
-private theorem fderiv_affine_shape_apply (c α β : ℝ)
-    (p v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
-    fderiv ℝ (fun q ↦ c + α * (shape q).1 + β * (shape q).2) p v =
-      α * (2 * ∑ j, (p.1 j).re * (v.1 j).re) +
-        β * (2 * (∑ j, (p.1 j).im * (v.1 j).im + (⟪p.2, v.2⟫_ℂ).re)) := by
-  have hs := (contDiff_shape (n := 1)).fst.differentiable one_ne_zero p
-  have ht := (contDiff_shape (n := 1)).snd.differentiable one_ne_zero p
-  rw [(((hs.hasFDerivAt.const_mul α).const_add c).fun_add (ht.hasFDerivAt.const_mul β)).fderiv]
-  simp only [add_apply, smul_apply, smul_eq_mul,
-    fderiv_shape_fst_apply, fderiv_shape_snd_apply]
-
-/-- At a critical point of `c + α s + β t` with `α ≠ 0`, the coordinate `s` vanishes: the
-differential takes the value `2 α s` on the vector `(x, 0)`. -/
-private theorem shape_fst_eq_zero_of_fderiv_affine_eq_zero {c α β : ℝ} (hα : α ≠ 0)
-    {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)}
-    (hp : fderiv ℝ (fun q ↦ c + α * (shape q).1 + β * (shape q).2) p = 0) :
-    (shape p).1 = 0 := by
-  have h := congrArg (fun L ↦ L (WithLp.toLp 2 fun j ↦ ((p.1 j).re : ℂ), 0)) hp
-  simp only [fderiv_affine_shape_apply, zero_apply] at h
-  simp only [ofReal_re, ofReal_im, mul_zero, Finset.sum_const_zero,
-    inner_zero_right, zero_re, add_zero] at h
-  rw [shape_fst]
-  have : α * (2 * ∑ j, (p.1 j).re ^ 2) = 0 := by simpa [sq] using h
-  simpa [hα] using this
-
 end Shape
 
 /-! ### The model level and the model handle function -/
@@ -549,6 +524,20 @@ theorem modelLevel_def (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fi
     modelLevel k m p = 1 - (shape p).1 + 2 * (shape p).2 :=
   (rfl)
 
+open scoped InnerProductSpace in
+/-- The differential of the model level `φ₀ = 1 - s + 2 t` at `p = (x + i y, w)` is
+`v ↦ -2 ∑ⱼ xⱼ Re v₁ⱼ + 4 (∑ⱼ yⱼ Im v₁ⱼ + Re ⟪w, v₂⟫)`. -/
+theorem fderiv_modelLevel_apply (p v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    fderiv ℝ (modelLevel k m) p v =
+      -(2 * ∑ j, (p.1 j).re * (v.1 j).re) +
+        2 * (2 * (∑ j, (p.1 j).im * (v.1 j).im + (⟪p.2, v.2⟫_ℂ).re)) := by
+  have hs := (contDiff_shape (n := 1)).fst.differentiable one_ne_zero p
+  have ht := (contDiff_shape (n := 1)).snd.differentiable one_ne_zero p
+  rw [funext modelLevel_def,
+    ((hs.hasFDerivAt.const_sub 1).fun_add (ht.hasFDerivAt.const_mul 2)).fderiv]
+  simp only [add_apply, neg_apply, smul_apply, smul_eq_mul, fderiv_shape_fst_apply,
+    fderiv_shape_snd_apply]
+
 /-- The model level is strictly plurisubharmonic at every point of `ℂᵏ × ℂᵐ`. -/
 theorem isManifoldStrictlyPlurisubharmonicAt_modelLevel
     (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
@@ -559,19 +548,20 @@ theorem isManifoldStrictlyPlurisubharmonicAt_modelLevel
     (by simp [iteratedDeriv_succ]) (fun _ ↦ by simp [iteratedDeriv_succ])
   simpa only [funext modelLevel_def] using h
 
-/-- The model level is positive at each of its critical points: there `s = 0`, so its value is
-`1 + 2 t`. -/
+/-- The model level is positive at each of its critical points: there the differential takes the
+value `-2 s` on `(x, 0)`, so `s = 0` and the value is `1 + 2 t`. -/
 theorem modelLevel_pos_of_mem_criticalPoints
     {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)}
     (hp : p ∈ criticalPoints 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
       (modelLevel k m)) :
     0 < modelLevel k m p := by
-  have h : modelLevel k m = fun q ↦ 1 + (-1) * (shape q).1 + 2 * (shape q).2 := by
-    funext q
-    rw [modelLevel_def]
-    ring
-  rw [mem_criticalPoints_iff_fderiv_eq_zero, h] at hp
-  rw [modelLevel_def, shape_fst_eq_zero_of_fderiv_affine_eq_zero (by norm_num) hp]
+  rw [mem_criticalPoints_iff_fderiv_eq_zero] at hp
+  have h := congrArg (fun L ↦ L (WithLp.toLp 2 fun j ↦ ((p.1 j).re : ℂ), 0)) hp
+  simp only [fderiv_modelLevel_apply, zero_apply] at h
+  have hs : (shape p).1 = 0 := by
+    rw [shape_fst]
+    simpa [sq] using h
+  rw [modelLevel_def, hs]
   linarith [shape_snd_nonneg p]
 
 /-- **The model level is a J-convex level**: `0` is a regular value of `φ₀ = 1 - s + 2 t` on
