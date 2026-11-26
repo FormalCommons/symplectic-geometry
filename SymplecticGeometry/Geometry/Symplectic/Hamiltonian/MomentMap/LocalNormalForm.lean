@@ -35,9 +35,9 @@ diffeomorphism at every `[g, 0]` (`SymplecticGeometry.isLocalDiffeomorphAt_smul_
 nondegenerate (`SymplecticGeometry.LocalModelData.nondegenerate_bilinFormAt_descendedForm_mk_zero`).
 The zero section `G ⧸ H → Y` is a smooth embedding with invariant image
 (`TauCeti.BalancedProduct.isSmoothEmbedding_zeroSectionRightTranslation`), and `Y` is Hausdorff
-and second countable (`TauCeti.BalancedProduct.t2Space_rightTranslation`,
-`TauCeti.BalancedProduct.secondCountableTopology_rightTranslation`), so the equivariant Moser
-correction
+(Mathlib's instance `t2Space_quotient_mulAction_of_properSMul`, with Tau Ceti's `properSMul_prod`)
+and second countable (`TauCeti.BalancedProduct.secondCountableTopology_rightTranslation`), so the
+equivariant Moser correction
 `TauCeti.SmoothEmbedding.exists_equivariant_isLocalDiffeomorph_mpullback_eq_of_eq_along` applies.
 The tube map of `SymplecticGeometry.LocalModelData.exists_isLocalDiffeomorphAt`, whose
 differential at `[1, 0]` is `T`, is such a `Ψ₀`.
@@ -186,7 +186,6 @@ theorem exists_mpullback_eq_descendedForm_of_isLocalDiffeomorphAt :
   refine ⟨N, Ψ, hΨ, fun g ↦ hfN ⟨g, hf g⟩, hNG, hΨG, fun g h ↦ ?_, hΨd, hΨσ⟩
   calc Ψ ⟨_, h⟩ = Ψ ⟨f g, hfN ⟨g, rfl⟩⟩ := congrArg Ψ (Subtype.ext (hf g).symm)
     _ = g • x := by rw [hΨf, hf, ← hmk, hΨ₀G, hΨ1]
-
 
 /-- **The local normal form near an orbit, as an equivariant local symplectomorphism.** Let a
 compact Hausdorff Lie group `G` act smoothly on `M`, let `σ` be a closed `G`-invariant two-form

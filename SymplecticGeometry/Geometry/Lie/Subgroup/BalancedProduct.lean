@@ -23,10 +23,11 @@ smoothly. Tau Ceti's `TauCeti.Geometry.Lie.Subgroup.BalancedProduct` makes the b
 (`TauCeti.BalancedProduct.rightTranslationChartedSpace`) for which the projection
 `π : (g, z) ↦ [g, z]` is a submersion. This file describes the kernel of `dπ`.
 
-The balanced product is Hausdorff when `K` is closed and acts continuously on a Hausdorff `Z`,
-by Mathlib's `t2Space_quotient_mulAction_of_properSMul` for the diagonal action, proper by Tau
-Ceti's `properSMul_prod`; it is second countable when `G` and `Z` are, by Mathlib's
-`ContinuousConstSMul.secondCountableTopology`.
+The balanced product is second countable when `G` and `Z` are, by Mathlib's
+`ContinuousConstSMul.secondCountableTopology`. That it is Hausdorff, when `K` is closed and acts
+continuously on a Hausdorff `Z`, needs nothing here: Mathlib's instance
+`t2Space_quotient_mulAction_of_properSMul` applies, since the diagonal action is proper by Tau
+Ceti's `properSMul_prod`.
 
 The action of `K` on `G` by `h • g = g h⁻¹` has the fundamental vector field
 `ξ_G(g) = -d(L_g)(ξ')`, where `ξ'` is the image of `ξ ∈ Lie(K)` in `Lie(G)`: the orbit map of `g`
@@ -57,9 +58,8 @@ one at `[1, z]`, and the set of such `z` is open and `K`-invariant.
 
 ## Main results
 
-* `TauCeti.BalancedProduct.t2Space_rightTranslation`,
-  `TauCeti.BalancedProduct.secondCountableTopology_rightTranslation`: `G ×_K Z` is Hausdorff and
-  second countable.
+* `TauCeti.BalancedProduct.secondCountableTopology_rightTranslation`: `G ×_K Z` is second
+  countable.
 * `TauCeti.BalancedProduct.ker_mfderiv_quotientMk_rightTranslation`: on
   `K.RightTranslation × Z`, the kernel of `dπ` is the orbit tangent space of the diagonal action.
 * `TauCeti.BalancedProduct.mem_ker_mfderiv_mk_toRightTranslation_iff`: on `G × Z`, a tangent
@@ -147,12 +147,6 @@ theorem smul_mk_toRightTranslation_one {z : Z} (hz : ∀ k : K, k • z = z) (k 
 section Topology
 
 variable [TopologicalSpace G] [IsTopologicalGroup G] [TopologicalSpace Z]
-
-/-- **The balanced product `G ×_K Z` is Hausdorff** when `K` is closed in `G` and acts
-continuously on a Hausdorff space `Z`: it is the quotient of `G × Z` by a proper action of `K`. -/
-instance t2Space_rightTranslation [IsClosed (K : Set G)] [ContinuousSMul K Z] [T2Space Z] :
-    T2Space (BalancedProduct K K.RightTranslation Z) :=
-  t2Space_quotient_mulAction_of_properSMul
 
 /-- **The balanced product `G ×_K Z` is second countable** when `G` and `Z` are and `K` acts on
 `Z` by homeomorphisms: it is the quotient of `G × Z` by an action by homeomorphisms. -/

@@ -615,10 +615,8 @@ theorem exists_equivariant_isLocalDiffeomorph_mpullback_eq_of_eq_along
   · have h₁ : ((Ψ₀ ∘ Subtype.val) ∘ Opens.inclusion hU₁) ∘ φ = (Ψ₀ ∘ Subtype.val) ∘ φ := by
       funext y
       simp
-    have h₂ : (Subtype.val : N₀ → M) ∘ Opens.inclusion hU₀ = Subtype.val := by
-      funext y
-      simp
-    simpa only [SmoothForm.mpullback_mpullback, h₁, h₂] using hφσ
+    rw [SmoothForm.mpullback_inclusion_mpullback_subtype_val] at hφσ
+    simpa only [SmoothForm.mpullback_mpullback, h₁] using hφσ
 
 end TauCeti.SmoothEmbedding
 
