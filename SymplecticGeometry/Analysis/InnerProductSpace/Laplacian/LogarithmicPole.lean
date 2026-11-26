@@ -9,8 +9,10 @@ public import TauCeti.Analysis.PDE.FundamentalSolution.Planar.DistributionalLapl
 public import TauCeti.Analysis.InnerProductSpace.Laplacian.Basic
 public import Mathlib.Analysis.Calculus.BumpFunction.InnerProduct
 public import Mathlib.Analysis.SpecialFunctions.Log.Deriv
+import Mathlib.Geometry.Manifold.ContMDiff.NormedSpace
 import TauCeti.Analysis.InnerProductSpace.Laplacian.Integral
 import TauCeti.Analysis.Sobolev.WeakDeriv.Laplacian
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
 
 /-!
 # Laplacians of functions with logarithmic poles
@@ -300,31 +302,31 @@ theorem exists_laplacian_ae_eq_add_sum_of_log_poles (hΩ : IsOpen Ω) (hb : Born
       contDiffAt_const |>.congr_of_eventuallyEq (Eventually.of_forall fun t ↦ by
         simp only [hG, hψ]
         ring)
-  -- `g` is `G` on `Ω`, extended by `0`.
+  -- `g` is `G` on `Ω`, extended by `0`; it vanishes off a closed set `K ⊆ Ω`.
+  obtain ⟨V, hVo, hfV, hVG⟩ := mem_nhdsSet_iff_exists.mp hGfront
+  set K : Set ℂ := closure Ω \ V
+  have hKc : IsClosed K := isClosed_closure.sdiff hVo
+  have hKΩ : K ⊆ Ω := fun x hx ↦ by
+    by_contra hxΩ
+    exact hx.2 (hfV (by rw [hΩ.frontier_eq]; exact ⟨hx.1, hxΩ⟩))
+  have hG0 : ∀ x ∈ Ω, x ∉ K → G x = 0 := fun x hx hxK ↦
+    hVG (by_contra fun hxV ↦ hxK ⟨subset_closure hx, hxV⟩)
   set g : ℂ → ℝ := Ω.indicator G with hg
   have hgΩ {z : ℂ} (hz : z ∈ Ω) : g =ᶠ[𝓝 z] G := by
     filter_upwards [hΩ.mem_nhds hz] with t ht
     exact Set.indicator_of_mem ht G
-  have hg0 {z : ℂ} (hz : z ∉ Ω) : g =ᶠ[𝓝 z] fun _ ↦ (0 : ℝ) := by
-    by_cases hzc : z ∈ closure Ω
-    · have hzf : z ∈ frontier Ω := by
-        rw [hΩ.frontier_eq]
-        exact ⟨hzc, hz⟩
-      filter_upwards [hGfront.filter_mono (nhds_le_nhdsSet hzf)] with t ht
-      by_cases htΩ : t ∈ Ω
-      · rw [hg, Set.indicator_of_mem htΩ, ht]
-      · exact Set.indicator_of_notMem htΩ G
-    · filter_upwards [isClosed_closure.isOpen_compl.mem_nhds hzc] with t ht
-      exact Set.indicator_of_notMem (fun h ↦ ht (subset_closure h)) G
-  have hgcd : ContDiff ℝ 2 g := by
-    refine contDiff_iff_contDiffAt.mpr fun z ↦ ?_
-    by_cases hz : z ∈ Ω
-    · exact (hGcd hz).congr_of_eventuallyEq (hgΩ hz)
-    · exact contDiffAt_const.congr_of_eventuallyEq (hg0 hz)
+  have hgcd : ContDiff ℝ 2 g :=
+    contMDiff_iff_contDiff.mp (ContMDiffOn.contMDiff_indicator (I := modelWithCornersSelf ℝ ℂ)
+      (contMDiffOn_iff_contDiffOn.mpr fun z hz ↦ (hGcd hz).contDiffWithinAt) hΩ hKc hKΩ hG0)
+  have hgK : tsupport g ⊆ K := closure_minimal (fun x hx ↦ by
+    by_contra hxK
+    by_cases hxΩ : x ∈ Ω
+    · exact hx (by rw [hg, Set.indicator_of_mem hxΩ, hG0 x hxΩ hxK])
+    · exact hx (Set.indicator_of_notMem hxΩ G)) hKc
   refine ⟨g, fun s ↦ φ s, hgcd, ?_, fun t ht ↦ ?_, fun s hs ↦ ?_, ?_⟩
-  · exact HasCompactSupport.intro hb.isCompact_closure fun t ht ↦
-      Set.indicator_of_notMem (fun h ↦ ht (subset_closure h)) G
-  · rw [(laplacian_congr_nhds (hg0 ht)).self_of_nhds, laplacian_const, Pi.zero_apply]
+  · exact hb.isCompact_closure.of_isClosed_subset (isClosed_tsupport g)
+      (hgK.trans Set.sdiff_subset)
+  · exact laplacian_of_notMem_tsupport fun h ↦ ht (hKΩ (hgK h))
   · refine ⟨(φ s).contDiff, (φ s).hasCompactSupport, (φ s).eventuallyEq_one, ?_⟩
     rw [(φ s).tsupport_eq]
     exact hφΩ s (hS hs)
@@ -366,8 +368,8 @@ theorem integrableOn_laplacian_of_log_poles (hΩ : IsOpen Ω) (hb : Bornology.Is
   obtain ⟨g, χ, hg, hgc, -, hχ, hae⟩ :=
     exists_laplacian_ae_eq_add_sum_of_log_poles hΩ hb hS hh hC hpole
   refine Integrable.congr (Integrable.integrableOn ?_) hae.symm
-  exact ((hg.laplacian (m := 0) (by norm_num)).continuous.integrable_of_hasCompactSupport
-    hgc.laplacian).add (integrable_finsetSum _ fun s hs ↦
+  exact (hg.continuous_laplacian.integrable_of_hasCompactSupport hgc.laplacian).add
+    (integrable_finsetSum _ fun s hs ↦
       (integrable_laplacian_fun_mul_log_norm_sub_sq (hχ s hs).1 (hχ s hs).2.1
         (hχ s hs).2.2.1).const_mul _)
 
@@ -391,7 +393,7 @@ theorem setIntegral_laplacian_eq_of_log_poles (hΩ : IsOpen Ω) (hb : Bornology.
         laplacian_of_notMem_tsupport fun h ↦ ht ((hχ s hs).2.2.2 (tsupport_mul_subset_left h)),
       integral_laplacian_fun_mul_log_norm_sub_sq (hχ s hs).1 (hχ s hs).2.1 (hχ s hs).2.2.1]
   rw [integral_congr_ae hae,
-    integral_add ((hg.laplacian (m := 0) (by norm_num)).continuous.integrable_of_hasCompactSupport
+    integral_add (hg.continuous_laplacian.integrable_of_hasCompactSupport
       hgc.laplacian).integrableOn
       (integrable_finsetSum _ fun s hs ↦ (hI s hs).const_mul _).integrableOn,
     integral_finsetSum _ fun s hs ↦ ((hI s hs).const_mul _).integrableOn,
