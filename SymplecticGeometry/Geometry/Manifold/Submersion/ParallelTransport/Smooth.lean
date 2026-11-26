@@ -177,8 +177,7 @@ theorem exists_diffeomorph_eqOn_parallelTransport (hn : 1 ≤ n) (hf : ContMDiff
   have hloc (u : ℝ) : ∀ᶠ v in 𝓝 u, R u v ∧ R v u := by
     let e := trivializationAt F (TangentSpace J) (γ u)
     obtain ⟨a, b, hu, hab, hmaps⟩ := exists_Icc_mem_subset_of_mem_nhds
-      (hγ.continuous.continuousAt.preimage_mem_nhds
-        (e.open_baseSet.mem_nhds (FiberBundle.mem_baseSet_trivializationAt' (γ u))))
+      (hγ.continuous.continuousAt.eventually_mem_baseSet_trivializationAt F (TangentSpace J))
     filter_upwards [hab] with v hv
     exact ⟨hD.exists_diffeomorph_eqOn_parallelTransport_of_mapsTo_baseSet hn hf hfp hγ e hmaps
       hu hv, hD.exists_diffeomorph_eqOn_parallelTransport_of_mapsTo_baseSet hn hf hfp hγ e hmaps
@@ -259,8 +258,8 @@ theorem exists_contMDiff_parallelTransport_param (hn : 1 ≤ n) (hf : ContMDiff 
   have hloc (u : ℝ) : ∀ᶠ v in 𝓝 u, R u v ∧ R v u := by
     let e := trivializationAt F (TangentSpace J) (Γ (a₀, u))
     obtain ⟨a, b, hu, hab, hmaps⟩ := exists_Icc_mem_subset_of_mem_nhds
-      ((hΓc a₀).continuous.continuousAt.preimage_mem_nhds
-        (e.open_baseSet.mem_nhds (FiberBundle.mem_baseSet_trivializationAt' (Γ (a₀, u)))))
+      ((hΓc a₀).continuous.continuousAt.eventually_mem_baseSet_trivializationAt F
+        (TangentSpace J))
     obtain ⟨U, hU, hΨ⟩ :=
       hD.exists_contMDiff_parallelTransport_param_of_mapsTo_baseSet hn hf hfp hΓ e hmaps
     filter_upwards [hab] with v hv

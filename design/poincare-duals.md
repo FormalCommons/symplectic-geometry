@@ -356,7 +356,7 @@ With `hf : IsClosed (range f)` and a normalized tube `Φ` with open image
   normal bundle in degree `r = finrank ℝ P` (for instance
   `o.canonicalThomClass rfl`), a class of
   $H^r(X,X\setminus Z)$ is `relDualClassOf f hn hdim hf u` exactly when its
-  restriction along each normal slice of the normalized tube that defines it is the fibre
+  restriction along each normal slice of any normalized tube is the fibre
   restriction of `u`; by excision and Tau Ceti's uniqueness by fibre
   restrictions, `TauCeti.singularCohomology_thomPair_ext`. (A class of another degree
   is not determined by its fibre restrictions.)

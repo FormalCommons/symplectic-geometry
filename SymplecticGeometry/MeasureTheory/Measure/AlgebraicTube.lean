@@ -152,11 +152,8 @@ theorem setAverage_log_norm_eval_sub_ge_of_dist_lt {P : MvPolynomial ι ℂ} (hP
     with hV
   have ha : 0 < a := dist_nonneg.trans_lt hc
   -- `D ≥ 1`, since a polynomial of degree `0` with a zero is `0`.
-  have hD1 : (1 : ℝ) ≤ D := by
-    refine Nat.one_le_cast.2 (Nat.one_le_iff_ne_zero.2 fun h0 => hP ?_)
-    have hC := totalDegree_eq_zero_iff_eq_C.1 (Nat.le_zero.1 (h0 ▸ hD))
-    rw [hC, eval_C] at hy
-    rw [hC, hy, map_zero]
+  have hD1 : (1 : ℝ) ≤ D := Nat.one_le_cast.2
+    ((Nat.one_le_iff_ne_zero.2 (totalDegree_ne_zero_of_eval_eq_zero hP hy)).trans hD)
   have hm : (2 : ℝ) ≤ 2 * (2 * m + (2 * m + 4 ^ m) * 4 ^ m) := by
     have : (1 : ℝ) ≤ 4 ^ m := one_le_pow₀ (by norm_num)
     nlinarith [(Nat.cast_nonneg m : (0 : ℝ) ≤ m)]
