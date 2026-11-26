@@ -20,7 +20,8 @@ interior `I.interior M` is open. This file shows that it is dense, makes it an o
 
 Connectedness is checked in charts: near any point `x` of `M`, the interior points of a small
 chart neighbourhood of `x` correspond to the intersection of a ball with the interior of the
-range of `I`, which is convex since the range is. No hypothesis on the dimension is needed: in
+range of `I` (Tau Ceti's `TauCeti.ModelWithCorners.isInteriorPoint_extChartAt_symm_iff`), which
+is convex since the range is. No hypothesis on the dimension is needed: in
 dimension zero, every point is an interior point.
 
 It also extends Tau Ceti's `OpenPartialHomeomorph.isOpen_extend_target_of_mem_atlas` from the
@@ -30,8 +31,6 @@ chart of the maximal atlas.
 
 ## Main definitions and results
 
-* `ModelWithCorners.isInteriorPoint_extChartAt_symm_iff`: a point of a chart target is the image
-  of an interior point if and only if it lies in the interior of the range of `I`.
 * `OpenPartialHomeomorph.isOpen_extend_target_of_mem_maximalAtlas`: in a manifold without
   boundary, every chart of the maximal atlas has an open extended target.
 * `ModelWithCorners.dense_interior`: the interior of `M` is dense.
@@ -64,20 +63,6 @@ variable {𝕜 E H M : Type*} [NontriviallyNormedField 𝕜] [NormedAddCommGroup
   [NormedSpace 𝕜 E] [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H} [TopologicalSpace M]
   [ChartedSpace H M] {n : WithTop ℕ∞}
 
-/-- In a `C¹` manifold, a point `z` of the target of the extended chart at `x` is the image of an
-interior point if and only if `z` lies in the interior of the range of the model. -/
-theorem isInteriorPoint_extChartAt_symm_iff [IsManifold I n M] (hn : n ≠ 0) {x : M} {z : E}
-    (hz : z ∈ (extChartAt I x).target) :
-    I.IsInteriorPoint ((extChartAt I x).symm z) ↔ z ∈ interior (range I) := by
-  have hy : (extChartAt I x).symm z ∈ (chartAt H x).source := by
-    simpa using (extChartAt I x).map_target hz
-  rw [I.isInteriorPoint_iff_of_mem_atlas hn (chart_mem_atlas H x) hy, ← extChartAt,
-    (extChartAt I x).right_inv hz]
-  refine ⟨fun h ↦ (chartAt H x).interior_extend_target_subset_interior_range h, fun h ↦ ?_⟩
-  obtain ⟨w, hw, rfl⟩ : z ∈ I '' (chartAt H x).target := by
-    rwa [← (chartAt H x).extend_target', ← extChartAt]
-  exact (chartAt H x).mem_interior_extend_target hw h
-
 /-- In a boundaryless manifold, every chart of the maximal atlas of nonzero regularity has an open
 extended target. This is Tau Ceti's `OpenPartialHomeomorph.isOpen_extend_target_of_mem_atlas` for
 the maximal atlas. -/
@@ -107,7 +92,8 @@ theorem dense_interior [IsManifold I n M] (hn : n ≠ 0) : Dense (I.interior M) 
     I.range_subset_closure_interior (extChartAt_target_subset_range x (mem_extChartAt_target x))
   obtain ⟨w, ⟨hwt, hwT⟩, hwi⟩ :=
     (mem_closure_iff_nhdsWithin_neBot.1 hx).nonempty_of_mem (inter_mem hS self_mem_nhdsWithin)
-  exact ⟨e.symm w, hwt, (I.isInteriorPoint_extChartAt_symm_iff hn hwT).2 hwi⟩
+  exact ⟨e.symm w, hwt,
+    (TauCeti.ModelWithCorners.isInteriorPoint_extChartAt_symm_iff hn x hwT).2 hwi⟩
 
 /-- Near every point `x` of a `C¹` manifold, the interior points of a small neighbourhood of `x`
 form a preconnected set. This is the local input to `isPreconnected_interior`. -/
@@ -124,11 +110,12 @@ theorem exists_mem_nhds_isPreconnected_inter_interior [NormedSpace ℝ E] [IsMan
     constructor
     · rintro ⟨⟨hys, hyb⟩, hyi⟩
       refine ⟨e y, ⟨hyb, ?_⟩, e.left_inv hys⟩
-      rw [← I.isInteriorPoint_extChartAt_symm_iff hn (e.map_source hys), e.left_inv hys]
+      rw [← TauCeti.ModelWithCorners.isInteriorPoint_extChartAt_symm_iff hn x (e.map_source hys),
+        e.left_inv hys]
       exact hyi
     · rintro ⟨w, hw, rfl⟩
       refine ⟨⟨e.map_target (hCT hw), ?_⟩,
-        (I.isInteriorPoint_extChartAt_symm_iff hn (hCT hw)).2 hw.2⟩
+        (TauCeti.ModelWithCorners.isInteriorPoint_extChartAt_symm_iff hn x (hCT hw)).2 hw.2⟩
       simpa [mem_preimage, e.right_inv (hCT hw)] using hw.1
   rw [heq]
   exact ((convex_ball _ _).inter I.convex_range.interior).isPreconnected.image _
