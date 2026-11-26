@@ -45,6 +45,10 @@ for the pull-back by Tau Ceti's `Bundle.Pullback.contMDiff_lift`, so no comparis
 * `SymplecticGeometry.Bundle.realFirstChernClass_eq_map_of_equivariant`: the real first Chern class
   of a principal `Circle`-bundle with an equivariant smooth map to the nonzero vectors of `V` over
   `f` is the pull-back along `f` of that of the unitary frame bundle of `V`.
+* `Bundle.ContMDiffRiemannianMetric.IsConnectionCurvature`,
+  `Bundle.ContMDiffRiemannianMetric.isConnectionCurvature_iff`: a two-form is the curvature of a
+  connection form on the unitary frame bundle, which for a closed form `σ` holds exactly when
+  `-(2π)⁻¹ [σ]` is the real first Chern class.
 * `Bundle.ContMDiffRiemannianMetric.realFirstChernClass_eq_of_metric`: the real first Chern
   classes of the unitary frame bundles of two smooth Hermitian metrics on a complex line bundle
   are equal.
@@ -112,6 +116,51 @@ theorem _root_.Bundle.ContMDiffRiemannianMetric.realFirstChernClass_def :
         contMDiffFiberBundle_circleFiber g hI
       SymplecticGeometry.realFirstChernClass IB (Fiber ℂ F V ℂ) :=
   (rfl)
+
+omit [FiniteDimensional ℝ EB] [T2Space B] [SigmaCompactSpace B] in
+/-- A two-form `σ` on `B` is the curvature of a unitary connection on the Hermitian line bundle
+`(V, g)`: some connection form `α` on the principal `Circle`-bundle of `g`-unitary frames of `V`
+has curvature `hα.curvature = σ` (`SymplecticGeometry.IsCircleConnectionForm.curvature`). -/
+def _root_.Bundle.ContMDiffRiemannianMetric.IsConnectionCurvature (σ : SmoothForm IB B ℝ 2) :
+    Prop :=
+  letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+  letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+  letI : IsContinuousRiemannianBundle F V :=
+    instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+  haveI : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) IB (𝓡 1) :=
+    contMDiffFiberBundle_circleFiber g hI
+  ∃ (α : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle (Fiber ℂ F V ℂ)) ℝ 1)
+    (hα : IsCircleConnectionForm α), hα.curvature = σ
+
+omit [FiniteDimensional ℝ EB] [T2Space B] [SigmaCompactSpace B] in
+theorem _root_.Bundle.ContMDiffRiemannianMetric.isConnectionCurvature_def
+    (σ : SmoothForm IB B ℝ 2) :
+    g.IsConnectionCurvature hI σ ↔
+      letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+      letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+      letI : IsContinuousRiemannianBundle F V :=
+        instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+      haveI : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) IB (𝓡 1) :=
+        contMDiffFiberBundle_circleFiber g hI
+      ∃ (α : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle (Fiber ℂ F V ℂ)) ℝ 1)
+        (hα : IsCircleConnectionForm α), hα.curvature = σ :=
+  Iff.rfl
+
+/-- A closed two-form `σ` on `B` is the curvature of a unitary connection on `(V, g)` exactly
+when `-(2π)⁻¹ [σ]` is the real first Chern class of `(V, g)`. -/
+theorem _root_.Bundle.ContMDiffRiemannianMetric.isConnectionCurvature_iff
+    {σ : SmoothForm IB B ℝ 2} (hσ : σ ∈ closedForms IB B 2) :
+    g.IsConnectionCurvature hI σ ↔
+      -(2 * Real.pi)⁻¹ • deRhamCohomology.mk IB 2 ⟨σ, hσ⟩ = g.realFirstChernClass hI := by
+  rw [ContMDiffRiemannianMetric.isConnectionCurvature_def,
+    ContMDiffRiemannianMetric.realFirstChernClass_def]
+  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+  let : IsContinuousRiemannianBundle F V :=
+    instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+  have : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) IB (𝓡 1) :=
+    contMDiffFiberBundle_circleFiber g hI
+  exact exists_isCircleConnectionForm_curvature_eq_iff hσ
 
 section Map
 

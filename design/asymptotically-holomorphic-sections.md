@@ -230,9 +230,9 @@ prerequisite issues (issues 1–4 below):
 $L$ from 2 with $b=-a$, and any connection form
 (`SymplecticGeometry.exists_isCircleConnectionForm`). By 3 its real class
 maps to the image of $a$, which is `deRhamHom` of $[\omega]$, so by 1 the
-real class is $[\omega]$. By
-`IsCircleConnectionForm.mk_sub_mk_eq_smul_realFirstChernClass_iff` the
-difference of the curvature from $-2\pi\omega$ is exact. Adding the
+real class is $[\omega]$. So the
+difference of the curvature from $-2\pi\omega$ is exact
+(`exists_isCircleConnectionForm_curvature_eq_iff`). Adding the
 pull-back of a primitive (`IsCircleConnectionForm.add_mpullback`,
 `curvature_add_mpullback`) makes the curvature exactly $-2\pi\omega$.
 
@@ -545,8 +545,9 @@ and the prerequisites, placed by topic.
 - `LineBundle.lean`: `exists_prequantumLineBundle`: for compact $M$ and an
   integral lift $a$ of $[\omega]$, there is a Hermitian line bundle $L$ with
   `complexEulerClass L = -a` and a connection form $\alpha$ on its unitary
-  frame bundle with `hα.curvature = -(2 * π) • ω`; the sign of the Euler
-  class is that of prerequisite 3.
+  frame bundle with `hα.curvature = -(2 * π) • ω`
+  (`g.IsConnectionCurvature hI (-(2 * π) • ω)`, for any closed $\omega$);
+  the sign of the Euler class is that of prerequisite 3.
 - `Power/Basic.lean`: `L k`, the associated bundle for $g\cdot z=g^kz$; its
   Hermitian metric; `powerOneEquiv : L 1 ≃ L`, `powerAddEquiv` with Tau
   Ceti's tensor product; `complexEulerClass_power` (`k •` the class of
