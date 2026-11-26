@@ -335,17 +335,17 @@ Namespace `SymplecticGeometry`, for `M : Type` with `[TopologicalSpace M]
   `[Fact (c.toOpenPartialHomeomorph ∈ …)]`, are `IsCompatible.isManifold`;
   `isLocalDiffeomorph_inl` and `isLocalDiffeomorph_inr` are
   `IsCompatible.isLocalDiffeomorph_ι`.
-- `Blowup.blowdown c` ($\pi_M$), Tau Ceti's
-  `TopCat.GlueData.IsCompatible.descContMDiffMap` of the inclusion on the
-  first piece and `c.symm ∘ BlowupModel.blowdown` on the second, with the
-  `@[simp]` lemmas `blowdown_inl`, `blowdown_inr`, and `contMDiff_blowdown`;
+- `Blowup.blowdown c : C(Blowup c, M)` ($\pi_M$), `Multicoequalizer.desc` of
+  the inclusion on the first piece and `c.symm ∘ BlowupModel.blowdown` on
+  the second, with the `@[simp]` lemmas `blowdown_inl`, `blowdown_inr`, and
+  `contMDiff_blowdown`;
   `blowdownDiffeomorph c`: a biholomorphism (resp. diffeomorphism) from the
   complement of $Z$, the range of `inl`, onto `{x | x ≠ p₀}`, as open
-  subsets, the inverse of `IsCompatible.partialDiffeomorphι` of the first
-  piece.
-- `Blowup.divisorEmbedding c`, `Blowup.divisor c` as a `TauCeti.SmoothEmbedding
+  subsets, with inverse `inl c`.
+- `Blowup.divisorEmbedding c` as a `TauCeti.SmoothEmbedding
   𝓘(ℂ, Fin n → ℂ) 𝓘(ℂ, E) ω (ℙ ℂ E) (Blowup c)` ($\tilde\iota$), `inr`
-  composed with the model's `zeroSectionEmbedding n`, and the real one.
+  composed with the model's `zeroSectionEmbedding n`, and the real one
+  `Blowup.divisorRealEmbedding c`.
 - `Blowup.liftChart c φ`: for any `φ : BlowupChart M p₀` in the same maximal
   atlas, $\tilde\phi$ of `φ` on `Blowup c`, `liftMap` of
   `φ ∘ c.symm` composed with `c.lift`; `liftChart_inl`, and `liftChart_inr`:
@@ -483,7 +483,7 @@ statements serve `ChernClass.lean` and *Symplectic blowup*; a complex `M`
 is a case of it by `maximalAtlas_subset_restrictScalars_of_ne_zero`.
 
 - `Blowup.exceptionalClass c`, the class $e$: *Poincaré duals of
-  submanifolds*' $d_Z$ of the real `divisorEmbedding c`, with the normal
+  submanifolds*' $d_Z$ of `divisorRealEmbedding c`, with the normal
   bundle oriented by the complex structure that `c.lift` carries from the
   model, which `normalSpaceZeroSectionEquiv` makes that of $L$;
   `exceptionalClass_def`.
