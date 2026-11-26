@@ -355,13 +355,11 @@ theorem LagrangianGrassmannian.exists_mul_eq_of_range_eq
     {Λ : LagrangianGrassmannian (stdForm ι)} {Z₁ Z₂ : Matrix (ι ⊕ ι) ι ℝ}
     (h₁ : LinearMap.range (toEuclideanLin Z₁) = Λ) (h₂ : LinearMap.range (toEuclideanLin Z₂) = Λ) :
     ∃ g : GL ι ℝ, Z₂ * (g : Matrix ι ι ℝ) = Z₁ := by
-  obtain ⟨g, hg⟩ := exists_mul_map_eq_of_span_le (S := ℝ) (B := Z₂) (C := Z₁) <| by
-    rw [← range_mulVecLin, ← range_mulVecLin]
-    rintro _ ⟨u, rfl⟩
-    obtain ⟨v, hv⟩ : toEuclideanLin Z₁ (WithLp.toLp 2 u) ∈ LinearMap.range (toEuclideanLin Z₂) := by
+  obtain ⟨g, hg⟩ := exists_mul_eq_of_range_le (L := Z₂) (L' := Z₁) fun j ↦ by
+    obtain ⟨v, hv⟩ : toEuclideanLin Z₁ (WithLp.toLp 2 (Pi.single j 1)) ∈
+        LinearMap.range (toEuclideanLin Z₂) := by
       rw [h₂, ← h₁]; exact ⟨_, rfl⟩
-    exact ⟨WithLp.ofLp v, congrArg WithLp.ofLp hv⟩
-  rw [Algebra.algebraMap_self, RingHom.coe_id, map_id] at hg
+    exact ⟨WithLp.ofLp v, by simpa [toLpLin_apply] using congrArg WithLp.ofLp hv⟩
   exact ⟨(isUnit_of_range_mul_eq (Z := Z₂) (hg ▸ h₁)).unit, hg⟩
 
 /-- The `x`-coordinates of `fromRows X Y` applied to `u` are `X u`. -/
