@@ -26,6 +26,10 @@ the map induced on homology by the shuffle map of the product of the pairs
 (`TopCat.shufflePair`). The coefficients `R` and `S` are objects of any abelian monoidal category
 with the coproducts that the singular chains use, as for Tau Ceti's relative cross product
 `TopCat.singularHomologyCrossRel`, which has a pair in the first factor only.
+Its compatibility with that product, through the map of pairs
+`(X × Y, A × Y) ⟶ (X × Y, A × Y ∪ X × B)`, is Tau Ceti's
+`TopCat.singularHomologyCrossRel_comp_singularHomologyMap`, whose right side is
+`TopCat.singularHomologyCrossRelPair` by `TopCat.singularHomologyCrossRelPair_def`.
 
 The shuffle map of the pairs factors through the small chains `C(X × Y; A × Y + X × B; R ⊗ S)` of
 `X × Y`, relative to its singular simplices lying in `A × Y` or in `X × B`
@@ -55,9 +59,6 @@ it descends along the two quotient maps (`Homotopy.descCokernel₂`).
 * `TopCat.shufflePair_coefficient_naturality` and
   `TopCat.singularHomologyCrossRelPair_coefficient_naturality`: naturality in the two coefficient
   objects.
-* `TopCat.whiskerLeft_singularHomologyπ_comp_singularHomologyCrossRelPair`: on the relative
-  cross product `Hₚ(X, A) ⊗ H_q(Y) ⟶ Hₙ(X × Y, A × Y)`, the cross product of the pairs is the
-  map of pairs `(X × Y, A × Y) ⟶ (X × Y, A × Y ∪ X × B)` applied after it.
 * `TopCat.singularHomologyCross_comp_singularHomologyπ_eq_singularHomologyCrossRelPair`: on
   absolute classes, the cross product of the pairs is the absolute cross product followed by the
   map to relative homology.
@@ -323,37 +324,6 @@ theorem singularHomologyCrossRelPair_coefficient_naturality
 
 end Coefficients
 
-/-- **The cross product of two pairs extends the relative cross product.** For
-`a ∈ Hₚ(X, A; R)` and `b ∈ H_q(Y; S)`, the relative cross product `a × b ∈ Hₙ(X × Y, A × Y)`,
-mapped to `Hₙ(X × Y, A × Y ∪ X × B)`, is the cross product of `a` with the image of `b` in
-`H_q(Y, B; S)`. -/
-@[reassoc]
-theorem whiskerLeft_singularHomologyπ_comp_singularHomologyCrossRelPair
-    [PreservesColimitsOfShape WalkingParallelPair
-      (tensorRight (((toSSet.obj Y).chainComplex S).cycles q))]
-    [PreservesColimitsOfShape WalkingParallelPair
-      (tensorRight (((toSSet.obj Y).chainComplex S).X ((ComplexShape.down ℕ).prev q)))] :
-    ((TopPair.ofSubset A).singularHomology R p ◁ (TopPair.ofSubset B).singularHomologyπ S q) ≫
-        singularHomologyCrossRelPair X Y A B R S p q n h =
-      singularHomologyCrossRel X Y A R S p q n h ≫
-        TopPair.singularHomologyMap (TopPair.ofSubsetMap (𝟙 _) fun _ hz ↦ Or.inl hz) (R ⊗ S) n := by
-  -- Naturality of the algebraic cross product along `𝟙 ⊗ π`, and the restriction of the shuffle
-  -- map of the pairs to `C(X, A; R) ⊗ C(Y; S)`; the singular homology maps are by definition maps
-  -- on homology.
-  have hn := homologyCross_naturality_assoc (L := (toSSet.obj Y).chainComplex S)
-    (𝟙 ((TopPair.ofSubset A).singularChainComplex R)) ((TopPair.ofSubset B).singularChainComplexπ S)
-    p q n h (homologyMap (shufflePair X Y A B R S) n)
-  rw [homologyMap_id, id_tensorHom, ← homologyMap_comp] at hn
-  -- `singularHomologyCrossRel` writes the homology of `Y` as `singularHomologyFunctor`, which is
-  -- that of its singular chains only up to unfolding
-  dsimp only [TauCeti.singularHomologyFunctor_obj_obj_eq_toSSet_homology]
-  rw [singularHomologyCrossRelPair_def, singularHomologyCrossRel_def, Category.assoc,
-    TopPair.singularHomologyMap, ← homologyMap_comp,
-    ← id_tensorHom_singularChainComplexπ_shufflePair]
-  -- `homologyCross_naturality` writes the tensor product of chain maps as
-  -- `HomologicalComplex.tensorHom`, which is `⊗ₘ` only up to unfolding the monoidal structure
-  exact hn
-
 /-- **The cross product of two pairs on absolute classes.** Mapping the cross product `a × b` of
 `a ∈ Hₚ(X; R)` and `b ∈ H_q(Y; S)` to the relative homology of `(X × Y, A × Y ∪ X × B)` gives the
 cross product of the images of `a` in `Hₚ(X, A; R)` and of `b` in `H_q(Y, B; S)`. -/
@@ -382,7 +352,8 @@ theorem singularHomologyCross_comp_singularHomologyπ_eq_singularHomologyCrossRe
   rw [singularHomologyCross_def, singularHomologyCrossRelPair_def, Category.assoc,
     ← homologyMap_comp,
     ← singularChainComplexπOfSubset_tensorHom_singularChainComplexπOfSubset_shufflePair]
-  -- as in `TopCat.whiskerLeft_singularHomologyπ_comp_singularHomologyCrossRelPair`
+  -- `homologyCross_naturality` writes the tensor product of chain maps as
+  -- `HomologicalComplex.tensorHom`, which is `⊗ₘ` only up to unfolding the monoidal structure
   exact hn.symm
 
 end CrossRelPair
