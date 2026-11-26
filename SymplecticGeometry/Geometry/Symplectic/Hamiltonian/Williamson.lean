@@ -8,6 +8,7 @@ module
 public import Mathlib.Analysis.InnerProductSpace.Basic
 public import TauCeti.Geometry.Symplectic.Hamiltonian.Williamson
 import SymplecticGeometry.LinearAlgebra.Matrix.Rank
+import TauCeti.Analysis.InnerProductSpace.Nondegenerate
 
 /-!
 # Orthogonal Darboux bases and the uniqueness of Williamson's frequencies
@@ -54,8 +55,8 @@ theorem exists_isDarbouxBasis_orthogonal (ω : SymplecticForm V) :
     ∃ (m : ℕ) (b : Basis (Fin m × Fin 2) ℝ V), ω.IsDarbouxBasis b ∧
       (Pairwise fun k l ↦ ⟪b k, b l⟫ = 0) ∧ ∀ k, ‖b (k, 0)‖ = ‖b (k, 1)‖ := by
   set Q : QuadraticForm ℝ V := LinearMap.BilinMap.toQuadraticMap (innerₗ V) with hQdef
-  have hQ : Q.PosDef := fun v hv ↦ real_inner_self_pos.2 hv
-  obtain ⟨m, b, ν, hb, -, hQe⟩ := ω.exists_isDarbouxBasis_eq_sum_smul_elliptic_of_posDef hQ
+  obtain ⟨m, b, ν, hb, -, hQe⟩ :=
+    ω.exists_isDarbouxBasis_eq_sum_smul_elliptic_of_posDef TauCeti.posDef_toQuadraticMap_innerₗ
   refine ⟨m, b, hb, fun i j hij ↦ ?_, fun k ↦ ?_⟩
   · have h := ω.apply_hamiltonianEnd Q (b i) (b j)
     rw [hQdef, LinearMap.BilinMap.polar_toQuadraticMap, ← hQdef, hQe] at h
