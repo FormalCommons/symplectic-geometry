@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.IsSymplectic
 public import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.WeinsteinChart
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Extend
@@ -29,6 +30,8 @@ import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Lift
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens
+import TauCeti.Geometry.Manifold.DeRham.SimplyConnected
+import TauCeti.AlgebraicTopology.Sphere.SimplyConnected
 
 /-!
 # The Dehn twist along a Lagrangian sphere
@@ -102,6 +105,8 @@ boundary such a `ι` exists, by the Lagrangian neighbourhood theorem for the for
 * `SymplecticGeometry.exists_mpullback_dehnTwist_sub_eq`: if `ι` is a Weinstein chart of `f` for
   `σ = dθ` and `f^*θ` is exact, then `Φ^*θ - θ = dK` for the twist `Φ` and a smooth `K` that
   vanishes off `ι '' {z | μ z ≤ r₀}`.
+* `SymplecticGeometry.exists_mpullback_dehnTwist_sub_eq_of_two_le`: the same conclusion for
+  `2 ≤ n`, with no hypothesis on `f^*θ`.
 
 ## Implementation notes
 
@@ -173,6 +178,11 @@ vanishes where `μ ≥ r₀`. Reading `ι` as a partial diffeomorphism of `T*S�
 `Diffeomorph.toPartialDiffeomorph_liftOpens_apply_coe`),
 `TauCeti.SmoothForm.exists_mpullback_sub_eq_mextDerivₗ_of_partialDiffeomorph` carries the identity
 to `M`.
+
+For `2 ≤ n` the exactness of `f^*θ` is automatic: its derivative is `f^*σ`, which vanishes as
+above, and a closed one-form on the simply connected sphere
+(`TauCeti.simplyConnectedSpace_sphere_euclideanSpace`) is exact
+(`TauCeti.exactForms_one_eq_closedForms_of_simplyConnectedSpace`).
 
 ## References
 
@@ -832,6 +842,32 @@ theorem exists_mpullback_dehnTwist_sub_eq [IsManifold I ∞ M] {σ : SmoothTwoFo
     (fun x hx ↦ dehnTwist_apply_of_notMem ι hR hU (by rwa [← himage])) hk.contMDiffOn
     (fun z _ hz ↦ hk0 z hz) hθk
   exact ⟨K, fun x hx ↦ hK0 x (by rwa [himage]), hK⟩
+
+/-- **The twist along a Lagrangian sphere of dimension at least two is exact.** Let `ι` be a
+Weinstein chart of `f : Sⁿ → M` for `σ`, with `2 ≤ n`, and let `θ` be a one-form on `M` with
+`dθ = σ`. Then the Dehn twist `Φ` of `ι` and a profile `R` of radius `r₀` satisfies
+`Φ^*θ - θ = dK` for a smooth function `K` on `M` that vanishes off `ι '' {z | μ z ≤ r₀}`. -/
+theorem exists_mpullback_dehnTwist_sub_eq_of_two_le [IsManifold I ∞ M] (hn : 2 ≤ n)
+    {σ : SmoothTwoForm I M} {f : (𝕊 n) → M} {ι : U ≃ₘ⟮𝓣 n, I⟯ V}
+    (hι : CotangentBundle.IsWeinsteinChart σ f ι) (hR : IsTwistProfile R r₀)
+    (hU : {z : 𝕋 n | cotangentNorm z ≤ r₀} ⊆ (U : Set (𝕋 n)))
+    (θ : SmoothForm I M ℝ 1) (hθ : mextDerivₗ I 1 θ = σ) :
+    ∃ K : C^∞⟮I, M; ℝ⟯,
+      (∀ x ∉ (fun z : U ↦ (ι z : M)) '' {z | cotangentNorm (z : 𝕋 n) ≤ r₀}, K x = 0) ∧
+      SmoothForm.mpullback (dehnTwist ι hR hU) (dehnTwist ι hR hU).contMDiff θ - θ =
+        mextDerivₗ I 0 (SmoothForm.ofFunction K) := by
+  refine exists_mpullback_dehnTwist_sub_eq hι hR hU θ hθ ?_
+  -- `f^*θ` is closed, as `d (f^*θ) = f^*σ = 0`, and `Sⁿ` is simply connected.
+  have := simplyConnectedSpace_sphere_euclideanSpace hn
+  have hclosed : SmoothForm.mpullback f hι.contMDiff θ ∈ closedForms (𝓡 n) (𝕊 n) 1 := by
+    rw [mem_closedForms_iff_mextDerivₗ_eq_zero, SmoothForm.mextDerivₗ_mpullback, hθ]
+    exact CotangentBundle.mpullback_eq_zero_of_apply_zeroSection ι.contMDiff
+      (SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq.1 hι.isSymplectomorphism)
+      hι.exists_apply_eq
+  rw [← exactForms_one_eq_closedForms_of_simplyConnectedSpace, exactForms_succ,
+    LinearMap.mem_range] at hclosed
+  obtain ⟨ψ, hψ⟩ := hclosed
+  exact ⟨SmoothForm.ofFunctionEquiv.symm ψ, by rw [SmoothForm.ofFunction_ofFunctionEquiv_symm, hψ]⟩
 
 end Twist
 
