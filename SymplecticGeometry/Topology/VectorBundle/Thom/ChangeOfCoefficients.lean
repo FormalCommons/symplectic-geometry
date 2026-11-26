@@ -6,7 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.PairChangeOfCoefficients
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
 public import TauCeti.Algebra.Module.Equiv.SpanSingleton
 public import TauCeti.Topology.VectorBundle.EulerClass
 
@@ -17,8 +16,9 @@ Let `E → B` be a real vector bundle with Thom pair `(E, E₀)`. The three chan
 of the cohomology of a pair (`PairChangeOfCoefficients.lean`) — of chain coefficients along an
 isomorphism, of cochain values along an isomorphism, and of the linear structure of the category
 of coefficients — carry Thom classes (`TauCeti.IsThomClass`) to Thom classes, since they commute
-with the restriction to each fibre and are isomorphisms; and they commute with the Euler class map
-`TauCeti.eulerClass`, since they commute with the map to absolute cohomology and with pull-backs.
+with the restriction to each fibre and are isomorphisms. Their combination below also commutes
+with the Euler class map `TauCeti.eulerClass`, since it commutes with the map to absolute
+cohomology and with pull-backs.
 
 So a Thom class in one convention of coefficients gives one in another, with the corresponding
 Euler class. This is how Tau Ceti's integral Thom class of an oriented bundle, with chain
@@ -34,10 +34,9 @@ coefficients of `TauCeti.thomMap`, and so also carries Thom classes to Thom clas
   `TauCeti.IsThomClass.singularCohomologyValueMap`,
   `TauCeti.IsThomClass.singularCohomologyLinearCongr`: the changes of coefficients preserve Thom
   classes, and `TauCeti.IsThomClass.uliftIntegralCohomologyEquiv` for their combination.
-* `TauCeti.eulerClass_comp_singularCohomologyChainCoefficientMap`,
-  `TauCeti.eulerClass_comp_singularCohomologyValueMap`,
-  `TauCeti.singularCohomologyLinearCongr_eulerClass`: they commute with the Euler class, and
-  `TauCeti.eulerClass_uliftIntegralCohomologyEquiv` for their combination.
+* `TauCeti.eulerClass_uliftIntegralCohomologyEquiv`: the combination commutes with the Euler
+  class, a consequence of `TopPair.singularCohomologyπ_uliftIntegralCohomologyEquiv` and the
+  naturality of the conversions for spaces.
 
 ## References
 
@@ -118,44 +117,6 @@ theorem IsThomClass.uliftIntegralCohomologyEquiv
 
 end Integral
 
-section EulerClass
-
-variable [∀ b, AddCommMonoid (E b)] [∀ b, Module ℝ (E b)] [VectorBundle ℝ F E]
-
-/-- **The Euler class commutes with a change of chain coefficients.** -/
-@[reassoc, elementwise]
-theorem eulerClass_comp_singularCohomologyChainCoefficientMap {R R' : C} (k : Type*) [Ring k]
-    [Linear k C] (M : C) (f : R' ⟶ R) (n : ℕ) :
-    eulerClass R k M F E n ≫ (TopCat.of B).singularCohomologyChainCoefficientMap k M f n =
-      (thomPair F E).singularCohomologyChainCoefficientMap k M f n ≫ eulerClass R' k M F E n := by
-  rw [eulerClass_def, eulerClass_def, Category.assoc,
-    TopCat.singularCohomologyChainCoefficientMap_naturality,
-    TopPair.singularCohomologyπ_singularCohomologyChainCoefficientMap_assoc]
-
-/-- **The Euler class commutes with a change of cochain values.** -/
-@[reassoc, elementwise]
-theorem eulerClass_comp_singularCohomologyValueMap (R : C) (k : Type*) [Ring k] [Linear k C]
-    {M M' : C} (g : M ⟶ M') (n : ℕ) :
-    eulerClass R k M F E n ≫ (TopCat.of B).singularCohomologyValueMap R k g n =
-      (thomPair F E).singularCohomologyValueMap R k g n ≫ eulerClass R k M' F E n := by
-  rw [eulerClass_def, eulerClass_def, Category.assoc,
-    TopCat.singularCohomologyValueMap_naturality,
-    TopPair.singularCohomologyπ_singularCohomologyValueMap_assoc]
-
-/-- **The Euler class commutes with a change of the linear structure of the coefficients.** -/
-theorem singularCohomologyLinearCongr_eulerClass {k : Type*} [Ring k] {L₁ L₂ : Linear k C}
-    (e : L₁ = L₂) (R M : C) (n : ℕ)
-    (u : @TopPair.singularCohomology C _ _ _ (thomPair F E) R k _ L₁ M n) :
-    TopCat.singularCohomologyLinearCongr e (TopCat.of B) R M n
-        (@eulerClass C _ _ _ R k _ L₁ M B _ F _ _ E _ _ _ _ _ _ n u) =
-      @eulerClass C _ _ _ R k _ L₂ M B _ F _ _ E _ _ _ _ _ _ n
-        (TopPair.singularCohomologyLinearCongr e (thomPair F E) R M n u) := by
-  subst e
-  simp only [TopPair.singularCohomologyLinearCongr_refl, TopCat.singularCohomologyLinearCongr_refl,
-    LinearEquiv.refl_apply]
-
-end EulerClass
-
 section IntegralEulerClass
 
 variable {B : Type} {F : Type*} {E : B → Type} [TopologicalSpace B] [NormedAddCommGroup F]
@@ -174,13 +135,10 @@ theorem eulerClass_uliftIntegralCohomologyEquiv (n : ℕ)
         _ _ _ _ _ _ n ((thomPair F E).uliftIntegralCohomologyEquiv n u) =
       (TopCat.of B).integralCohomologyEquiv n
         ((TopCat.uliftIntegralCohomologyIso _ n).hom (eulerClass _ ℤ _ F E n u)) := by
-  rw [TopPair.uliftIntegralCohomologyEquiv_apply, ← singularCohomologyLinearCongr_eulerClass,
-    ← eulerClass_comp_singularCohomologyChainCoefficientMap_apply,
-    ← eulerClass_comp_singularCohomologyValueMap_apply, TopCat.integralCohomologyEquiv_apply,
-    TopCat.uliftIntegralCohomologyIso_hom, Iso.symm_hom, integralCoeffIso_inv_eq_uliftIntIso_inv]
-  -- The two sides differ only in writing the cochain values as `ModuleCat.of ℤ ℤ` or as the unit
-  -- `𝟙_ (ModuleCat ℤ)`, which Mathlib defines to be it.
-  rfl
+  simp only [eulerClass_def, ConcreteCategory.comp_apply]
+  rw [TopPair.singularCohomologyπ_uliftIntegralCohomologyEquiv,
+    ← TopCat.integralCohomologyEquiv_naturality,
+    ← TopCat.uliftIntegralCohomologyIso_naturality_apply]
 
 end IntegralEulerClass
 

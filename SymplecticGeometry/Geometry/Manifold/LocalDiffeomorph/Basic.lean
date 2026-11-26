@@ -204,7 +204,7 @@ theorem PartialDiffeomorph.isLocalDiffeomorphAt_symm_comp_comp_model
       contMDiffOn_invFun := I.contMDiffOn_symm.comp
         (Θ.symm.contMDiffOn.comp J.contMDiff.contMDiffOn fun _ hz ↦ hz) fun z hz ↦
           htgt z hz }
-  exact TauCeti.isLocalDiffeomorphAt_of_eqOn (Φ := Ψ) hx fun _ _ ↦ rfl
+  exact Ψ.isLocalDiffeomorphAt _ _ _ hx
 
 /-- A model with corners `I` is a `C^n` local diffeomorphism from its model space to the model
 vector space at every point that it sends into the interior of its range. -/
