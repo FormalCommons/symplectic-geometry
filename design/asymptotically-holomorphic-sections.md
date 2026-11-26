@@ -585,7 +585,8 @@ and the prerequisites, placed by topic.
   by compactness. `RescaledUnitaryCharts k₀ ρ₀` adds the rescaling and the
   frames in which the connection form is the model, with `jStruct_sub_le`, `iteratedFDeriv_jStruct_le` and
   `connectionForm_eq_model`. The existence theorem is
-  `exists_rescaledUnitaryCharts`, and `dist_comparison` compares $d_k$ with
+  `exists_rescaledUnitaryCharts`, and
+  `exists_forall_ofReal_mul_riemannianEDist_symm_mem_Icc` compares $d_k$ with
   chart distances.
 - `AsymptoticallyHolomorphic.lean`: `jetNorm`, `IsAsymptoticallyHolomorphic`,
   `IsUniformlyTransverse`, closure under sums and under products with
