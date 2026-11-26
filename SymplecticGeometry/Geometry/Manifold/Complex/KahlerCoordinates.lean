@@ -91,10 +91,9 @@ theorem gramInChart_apply_eq_mpullback_symm_apply {J : SmoothAlmostComplexStruct
       mfderiv 𝓘(ℝ, E) I φ.symm z (J₀ v) := by
     rw [← hφ z hz v, J.mfderiv_symm_apply_chartPushforward_apply φ hz]
   rw [gramInChart_apply, hg, SmoothBundleForm.eval₂_apply, hJ]
-  refine Eq.trans ?_ (TauCeti.mpullback_apply _ _ _ _).symm
-  congr 1
-  -- The outer `Eq.symm` makes Lean read the vector off the goal's right side.
-  exact Eq.symm (FinVec.etaExpand_eq _).symm
+  -- `u` and `J₀ v` are vectors of `E` rather than of a tangent space, so the evaluation lemma is
+  -- applied by unification rather than by `rw`.
+  exact (TauCeti.mpullback_apply_pair _ _ _ u (J₀ v)).symm
 
 variable [FiniteDimensional ℝ E]
 
