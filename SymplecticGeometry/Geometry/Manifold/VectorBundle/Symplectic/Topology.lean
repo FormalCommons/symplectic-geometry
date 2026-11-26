@@ -18,10 +18,10 @@ import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.Topology
 Tau Ceti's frame topology on the sections of a vector bundle (`ContMDiffSection.frameTopology`)
 is a topology on the `C^n` two-forms of a bundle `V`, since these are the sections of the bundle
 of alternating maps on `V`. This file proves that nondegeneracy over a compact subset of the base
-is an open condition in it, that restricting two-forms on the tangent bundle to an open
-subset is continuous for it, and that pulling two-forms back along the slices of a smooth family
+is an open condition in it, that pulling two-forms back along the slices of a smooth family
 of maps, such as the time slices of a smooth isotopy, is jointly continuous in the form and the
-parameter.
+parameter, and that pulling them back along a single smooth map, such as the inclusion of an
+open subset, is continuous.
 
 ## Main results
 
@@ -35,9 +35,12 @@ parameter.
 * `Bundle.ContMDiffTwoForm.continuous_tangentEquiv_symm_mpullback`: its case of a smooth
   isotopy `h` from `M` to `N`, where the map is
   `(ω, t) ↦ tangentEquiv.symm ((tangentEquiv ω).mpullback (h.timeSlice t))`.
-* `Bundle.ContMDiffTwoForm.continuous_tangentEquiv_symm_mpullback_subtypeVal`: for a covering
-  frame system of the two-forms on `M` and any frame system of those on an open `U ⊆ M`, the
-  restriction of two-forms on the tangent bundle from `M` to `U` is continuous.
+* `Bundle.ContMDiffTwoForm.continuous_tangentEquiv_symm_mpullback_of_contMDiff`: for a smooth
+  map `g : M → N`, a covering frame system of the two-forms on `N` and any frame system of those
+  on `M`, the map `ω ↦ tangentEquiv.symm ((tangentEquiv ω).mpullback g)` is continuous.
+* `Bundle.ContMDiffTwoForm.continuous_tangentEquiv_symm_mpullback_subtypeVal`: its case of the
+  inclusion of an open `U ⊆ M`, that is, the restriction of two-forms on the tangent bundle from
+  `M` to `U`.
 
 ## Implementation notes
 
@@ -53,8 +56,9 @@ Pull-back along the slices of a family `f : P × M → N` is the library's
 `ξ ↦ ξ ∘ (d(f (p, ·))ₓ × d(f (p, ·))ₓ)`. These are jointly `C^∞` on the total space of the
 pull-back bundle by
 `Bundle.Pullback.contMDiff_totalSpace_compContinuousLinearMap_mfderiv`. For an isotopy `h`, the
-family is the motion of `h` over `unitInterval`. Restriction to an open `U ⊆ M` is the slice at
-`0` of the constant family `(p, x) ↦ x : ℝ × U → M`.
+family is the motion of `h` over `unitInterval`. Pull-back along a smooth map `g : M → N` is the
+slice at `0` of the constant family `(p, x) ↦ g x : ℝ × M → N`, and restriction to an open
+`U ⊆ M` is its case `g = Subtype.val`.
 
 ## References
 
@@ -171,6 +175,29 @@ theorem continuous_tangentEquiv_symm_mpullback {f₀ f₁ : C^∞⟮I, M; J, N�
   simp_rw [hs]
   exact continuous_tangentEquiv_symm_mpullback_prod e W hW e' W' hW' h.toContMDiffMap hcover
 
+/-- Pulling smooth two-forms on the tangent bundle back along a smooth map `g : M → N` is
+continuous: the map `ω ↦ tangentEquiv.symm ((tangentEquiv ω).mpullback g)` is continuous from the
+frame topology of a covering frame system of the two-forms on `N` to the frame topology of any
+frame system of the two-forms on `M`, when the models of `M` and `N` are finite-dimensional. -/
+theorem continuous_tangentEquiv_symm_mpullback_of_contMDiff {g : M → N}
+    (hg : ContMDiff I J ((⊤ : ℕ∞) : WithTop ℕ∞) g) (hcover : ∀ y, ∃ i, y ∈ W i) :
+    let _ := ContMDiffSection.frameTopology (I := J) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e W hW
+    let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e' W' hW'
+    Continuous fun σ : ContMDiffTwoForm J ⊤ EN (TangentSpace J (M := N)) ↦
+      (tangentEquiv.symm (TauCeti.SmoothForm.mpullback g hg (tangentEquiv σ)) :
+        ContMDiffTwoForm I ⊤ EB (TangentSpace I (M := M))) := by
+  let _ := ContMDiffSection.frameTopology (I := J) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e W hW
+  let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e' W' hW'
+  -- The pull-back along `g` is the one along the slice at `0` of the constant family
+  -- `(p, x) ↦ g x : ℝ × M → N`.
+  let f : C^((⊤ : ℕ∞) : WithTop ℕ∞)⟮𝓘(ℝ, ℝ).prod I, ℝ × M; J, N⟯ :=
+    ⟨fun q ↦ g q.2, hg.comp contMDiff_snd⟩
+  have hf (p : ℝ) : (fun y ↦ f (p, y)) = g := by ext; simp [f]
+  have h := (continuous_tangentEquiv_symm_mpullback_prod e W hW e' W' hW' f hcover).comp
+    (continuous_id.prodMk continuous_const : Continuous fun σ ↦ (σ, (0 : ℝ)))
+  simp_rw [Function.comp_def, hf] at h
+  exact h
+
 end Isotopy
 
 section Restriction
@@ -198,17 +225,8 @@ theorem continuous_tangentEquiv_symm_mpullback_subtypeVal (hcover : ∀ x, ∃ i
     Continuous fun ω : ContMDiffTwoForm I ⊤ EB (TangentSpace I (M := M)) ↦
       (tangentEquiv.symm (TauCeti.SmoothForm.mpullback (Subtype.val : U → M) contMDiff_subtypeVal
         (tangentEquiv ω)) : ContMDiffTwoForm I ⊤ EB (TangentSpace I (M := U))) := by
-  let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e W hW
-  let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e' W' hW'
-  -- Restriction is the pull-back along the slice at `0` of the constant family
-  -- `(p, x) ↦ x : ℝ × U → M`.
-  let f : C^((⊤ : ℕ∞) : WithTop ℕ∞)⟮𝓘(ℝ, ℝ).prod I, ℝ × U; I, M⟯ :=
-    ⟨fun q ↦ q.2, contMDiff_subtypeVal.comp contMDiff_snd⟩
-  have hf (p : ℝ) : (fun y ↦ f (p, y)) = Subtype.val := by ext; simp [f]
-  have h := (continuous_tangentEquiv_symm_mpullback_prod e W hW e' W' hW' f hcover).comp
-    (continuous_id.prodMk continuous_const : Continuous fun ω ↦ (ω, (0 : ℝ)))
-  simp_rw [Function.comp_def, hf] at h
-  exact h
+  exact continuous_tangentEquiv_symm_mpullback_of_contMDiff e W hW e' W' hW'
+    contMDiff_subtypeVal hcover
 
 end Restriction
 
