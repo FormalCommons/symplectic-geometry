@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegral.Product.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.OpensModelSpace
 import TauCeti.Data.Fin.Tuple.Basic
+import SymplecticGeometry.Analysis.Normed.Module.Alternating.AppendLeft
 import SymplecticGeometry.Data.Fin.Tuple.RemoveNth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.ExtDeriv
 
