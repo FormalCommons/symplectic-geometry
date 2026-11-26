@@ -86,7 +86,7 @@ theorem exists_isSymplectomorphism_image_eq_stdEllipsoid
       smul_eq_mul, d, hrepr, r, Equiv.symm_apply_apply]
     refine Finset.sum_congr rfl fun k _ ↦ ?_
     rw [Real.sq_sqrt (div_pos two_pos (hν k)).le, div_div_cancel₀ two_ne_zero]
-  rw [QuadraticMap.image_setOf_le_one, stdEllipsoid_def]
+  rw [QuadraticMap.image_setOfPred_le_one, stdEllipsoid_def]
   ext z
   simp only [Set.mem_ofPred_eq, QuadraticMap.comp_apply, LinearEquiv.coe_coe, ← hform,
     LinearEquiv.apply_symm_apply]
