@@ -114,6 +114,7 @@ theorem glueIndex_def (U : Set B) (x : B) : glueIndex U x = decide (x ∈ U) :=
 
 /-- The side of the chart at `x` of a gluing over the preimage `f ⁻¹' U` is that of the chart at
 `f x` of a gluing over `U`. -/
+@[simp]
 theorem glueIndex_preimage {X : Type*} (f : X → B) (U : Set B) (x : X) :
     glueIndex (f ⁻¹' U) x = glueIndex U (f x) :=
   (rfl)
