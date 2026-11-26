@@ -703,34 +703,24 @@ compact set at all times. -/
 theorem exists_diffeotopy_dehnTwist_eq_of_diffeotopy [IsManifold I ∞ M] [I.Boundaryless]
     [FiniteDimensional ℝ F] [SigmaCompactSpace M] {σ : SmoothTwoForm I M} (hσ : σ.IsSymplectic)
     (f : SmoothEmbedding (𝓡 n) I ∞ (𝕊 n) M) (ι : U ≃ₘ⟮𝓣 n, I⟯ V)
-    (hι : SmoothForm.mpullback ι ι.contMDiff
-        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) =
-      SmoothForm.mpullback Subtype.val contMDiff_subtypeVal
-        (-CotangentBundle.symplecticForm (𝓡 n) (𝕊 n)))
-    (hιf : ∀ q, ∃ h : zeroSection (EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)
-      (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ) q ∈ U, (ι ⟨_, h⟩ : M) = f q)
-    (hR : IsTwistProfile R r₀) (hU : {z : 𝕋 n | cotangentNorm z ≤ r₀} ⊆ (U : Set (𝕋 n)))
+    (hι : CotangentBundle.IsWeinsteinChart σ f ι) (hR : IsTwistProfile R r₀)
+    (hU : {z : 𝕋 n | cotangentNorm z ≤ r₀} ⊆ (U : Set (𝕋 n)))
     (Φ : Diffeotopy (𝓡 n) ∞ (𝕊 n)) :
     ∃ (W : Opens (𝕋 n)) (_ : W ≤ U) (V' : Opens M) (ι' : W ≃ₘ⟮𝓣 n, I⟯ V'),
-      SmoothForm.mpullback ι' ι'.contMDiff
-          (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) =
-        SmoothForm.mpullback Subtype.val contMDiff_subtypeVal
-          (-CotangentBundle.symplecticForm (𝓡 n) (𝕊 n)) ∧
-      (∀ q, ∃ h : zeroSection (EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)
-        (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ) q ∈ W, (ι' ⟨_, h⟩ : M) = f (Φ.final q)) ∧
+      CotangentBundle.IsWeinsteinChart σ (f ∘ Φ.final) ι' ∧
       ∀ {R' : ℝ → ℝ} {r' : ℝ} (hR' : IsTwistProfile R' r')
         (hU' : {z : 𝕋 n | cotangentNorm z ≤ r'} ⊆ (W : Set (𝕋 n))),
         ∃ (Ψ : Diffeotopy I ∞ M) (K : Set M), IsCompact K ∧
           (∀ t, Ψ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ) ∧
           (∀ t x, x ∉ K → Ψ (t, x) = x) ∧
           ∀ x, Ψ.final (dehnTwist ι hR hU x) = dehnTwist ι' hR' hU' x := by
-  obtain ⟨W, hW, V', ι', G, hGd, hGσ, -, hι', hι'f⟩ :=
-    exists_smoothIsotopy_of_diffeotopy hσ f ι hι hιf Φ
-  refine ⟨W, hW, V', ι', hι', hι'f, fun {R' r'} hR' hU' ↦ ?_⟩
+  obtain ⟨W, hW, V', ι', G, hGd, hGσ, -, hι'⟩ := exists_smoothIsotopy_of_diffeotopy hσ f ι hι Φ
+  refine ⟨W, hW, V', ι', hι', fun {R' r'} hR' hU' ↦ ?_⟩
   rw [← SmoothForm.mul_inv_mem_compactlySupportedIsotopyStabilizer_iff]
   -- Change the profile of `ι` to `R'`, then move the twist of `R'` along `G` to `ι'`.
   have hA := SmoothForm.mul_inv_mem_compactlySupportedIsotopyStabilizer_iff.2 <|
-    exists_diffeotopy_dehnTwist_eq_of_isTwistProfile ι hι hR hU hR' (hU'.trans hW)
+    exists_diffeotopy_dehnTwist_eq_of_isTwistProfile ι hι.isSymplectomorphism hR hU hR'
+      (hU'.trans hW)
   have hB := SmoothForm.mul_inv_mem_compactlySupportedIsotopyStabilizer_iff.2 <|
     exists_diffeotopy_dehnTwist_eq_of_smoothIsotopy ι ι' hW le_rfl (fun z ↦ by simp)
       (fun z ↦ by simp) G hGd hGσ hR' hU'
