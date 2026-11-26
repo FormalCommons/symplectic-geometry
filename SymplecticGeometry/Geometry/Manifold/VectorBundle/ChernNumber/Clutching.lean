@@ -13,7 +13,7 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.UnitFr
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.UnitaryFrame
 public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
 public import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
-public import SymplecticGeometry.Topology.VectorBundle.DetBundleFrame
+public import SymplecticGeometry.Topology.VectorBundle.DetBundle.Frame
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.Radial
 public import TauCeti.Topology.VectorBundle.Complex.Clutching
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars

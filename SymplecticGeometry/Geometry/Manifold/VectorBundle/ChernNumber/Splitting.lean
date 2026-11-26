@@ -12,7 +12,7 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.Basi
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.ArgumentPrinciple
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.UnitaryFrame
 public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
-public import SymplecticGeometry.Topology.VectorBundle.DetBundleFrame
+public import SymplecticGeometry.Topology.VectorBundle.DetBundle.Frame
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 public import TauCeti.Analysis.Complex.NormalizedDeterminant
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Topological
