@@ -25,7 +25,7 @@ the attaching faces by one that is exact on a fixed collar of them.
 Let `A = sphere 0 1 ×ˢ closedBall 0 1` and `Q = closedBall 0 1`. The clipping homotopy of
 `SymplecticGeometry.exists_contMDiff_cubeClipping` maps `A` and `Q` into themselves at every
 time, and its first stage maps each thin product collar
-`{x | |‖x.1‖ - 1| < ε ∧ ‖x.2‖ < 1 + ε}` with `ε ≤ δ` into `A`. For any such `Φ`, this file
+`attachingCollar ι κ ε` with `ε ≤ δ` into `A`. For any such `Φ`, this file
 proves:
 
 * if `τ = dβ` on a neighbourhood of `A`, then `η` vanishes on a neighbourhood of `A`
@@ -148,7 +148,7 @@ manifold `N`, with a compact set `K` of parameters, such that for every `l ∈ K
 nondegenerate on `Q` and is `dβ` on some neighbourhood of `A`, which may depend on `l`.
 
 Then there are `0 < ε ≤ 1` and a smooth family `η` of two-forms on `D` over `N` such that, for
-every `l ∈ K`, with `W₀ = {x | |‖x.1‖ - 1| < ε ∧ ‖x.2‖ < 1 + ε}` the product collar of `A`:
+every `l ∈ K`, with `W₀ = attachingCollar ι κ ε` the product collar of `A`:
 * `η l` vanishes on a neighbourhood of `A`;
 * `τ l - s • η l` is nondegenerate on `Q` for every `s ∈ [0, 1]`;
 * `τ l - η l` is `dγ` on `W₀` for a smooth one-form `γ` on `D`;
@@ -168,7 +168,7 @@ theorem exists_isSmoothFamily_collarCorrection
           (∀ s ∈ Icc (0 : ℝ) 1, ∀ x ∈ closedBall (0 : (ι → ℝ) × (κ → ℝ)) 1,
             ((τ l - s • η l).bilinFormAt x).Nondegenerate) ∧
           (∃ γ : SmoothForm 𝓘(ℝ, (ι → ℝ) × (κ → ℝ)) ((ι → ℝ) × (κ → ℝ)) ℝ 1,
-            ∀ x ∈ {x : (ι → ℝ) × (κ → ℝ) | |‖x.1‖ - 1| < ε ∧ ‖x.2‖ < 1 + ε},
+            ∀ x ∈ attachingCollar ι κ ε,
               (mextDerivₗ 𝓘(ℝ, (ι → ℝ) × (κ → ℝ)) 1 γ).val x = (τ l - η l).val x) ∧
           ((∃ V ∈ 𝓝ˢ (closedBall (0 : (ι → ℝ) × (κ → ℝ)) 1),
               ∃ γ' : SmoothForm 𝓘(ℝ, (ι → ℝ) × (κ → ℝ)) ((ι → ℝ) × (κ → ℝ)) ℝ 1,

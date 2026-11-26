@@ -43,7 +43,7 @@ merged declaration named below was checked against the library at
   $2n$ are evaluated on the fundamental class by Tau Ceti's
   `TauCeti.HomologicalOrientation.evalFundamentalClass`, through
   `Manifold.Orientation.toHomologicalOrientation`, as in the merged
-  `TauCeti.Manifold.Orientation.evalFundamentalClass_eulerClass_eq_eulerChar`
+  `TauCeti.Manifold.Orientation.evalFundamentalClass_eulerClass_eq_eulerChar_of_finiteCWType`
   (`Geometry/Manifold/Orientation/EulerCharacteristic.lean`). No statement
   depends on which orientation: the one used is that of `J`
   (`TauCeti.Bundle.ContinuousComplexStructure` orients the bundle through
@@ -86,7 +86,7 @@ bundle, of rank $2k$.
    and Tau Ceti's `TauCeti.complexEulerClass_conjugateBundle` gives
    $e(\overline{T_J})=(-1)^{2k}e(T_J)=e(T_J)$. Hence $2e(T_J)=0$.
 5. But $\langle e(T_J),[S^{4k}]\rangle=\chi(S^{4k})=2$, by
-   `evalFundamentalClass_eulerClass_eq_eulerChar` and Tau Ceti's
+   `evalFundamentalClass_eulerClass_eq_eulerChar_of_finiteCWType` and Tau Ceti's
    `TauCeti.eulerChar_sphere`, after identifying the complex Euler class
    with the real one of the oriented tangent bundle, as the merged
    `complexEulerClass_tangentSpace` of
@@ -327,8 +327,8 @@ on integral cohomology in degree $a+b$: the pull-back of a class is its
 evaluation times the cross product of the generators, up to one sign;
 from Tau Ceti's Künneth and slant products for $S^{d+1}\times Y$
 (`Cohomology/Sphere/Product.lean`,
-`TopCat.singularCohomologyKunneth_sphere_bijective`) and the long exact
-sequence of the pair $(S^a\times S^b,S^a\vee S^b)$. Its iterate
+`TopCat.singularCohomologyKunneth_sphere_bijective`) and the local degree
+of $\kappa$ at a point off the wedge. Its iterate
 $(\mathbb CP^1)^m\to S^{2m}$, through Tau Ceti's homeomorphism of
 $\mathbb CP^1$ with $S^2$, and that $y_1\cdots y_m$ has infinite order.
 
@@ -364,7 +364,7 @@ $\mathbb CP^1$ with $S^2$, and that $y_1\cdots y_m$ has infinite order.
   `chernClass_one_eq_complexEulerClass`, `chernClass_one_tensorProduct`,
   `Projectivization.hyperplaneClass`.
 - The library's `Geometry/Manifold/Orientation/EulerCharacteristic.lean`
-  (`evalFundamentalClass_eulerClass_eq_eulerChar`),
+  (`evalFundamentalClass_eulerClass_eq_eulerChar_of_finiteCWType`),
   `Geometry/Manifold/Complex/EulerCharacteristic.lean` (the pattern of
   `complexEulerClass_tangentSpace`) and
   `Geometry/Manifold/VectorBundle/ComplexStructure.lean`.

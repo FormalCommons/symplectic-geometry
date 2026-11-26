@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.LocalFrame
-public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Trivial
+public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Trivial.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.ZeroOneForm
 public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.Existence
 public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.LocalFrame

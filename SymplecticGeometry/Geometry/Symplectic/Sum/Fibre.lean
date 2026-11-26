@@ -101,16 +101,16 @@ section AnnulusToProdBall
 variable {ε δ : ℝ}
 
 /-- A point of `Q × A(δ, ε)` as a point of the domain `Q × B²(ε)` of a product neighbourhood. -/
-def annulusToProdBall (p : Q × annulus δ ε) : prodBall Q ε :=
+def annulusToProdBall (p : Q × annulus ℂ δ ε) : prodBall Q ε :=
   ⟨(p.1, p.2), mem_prodBall.2 (mem_annulus.1 p.2.property).2⟩
 
 @[simp]
-theorem coe_annulusToProdBall (p : Q × annulus δ ε) :
+theorem coe_annulusToProdBall (p : Q × annulus ℂ δ ε) :
     (annulusToProdBall p : Q × ℂ) = (p.1, (p.2 : ℂ)) :=
   (rfl)
 
 theorem annulusToProdBall_injective :
-    Function.Injective (annulusToProdBall : Q × annulus δ ε → prodBall Q ε) := by
+    Function.Injective (annulusToProdBall : Q × annulus ℂ δ ε → prodBall Q ε) := by
   intro p p' h
   have h' := congrArg Subtype.val h
   simp only [coe_annulusToProdBall, Prod.mk.injEq] at h'
@@ -119,7 +119,7 @@ theorem annulusToProdBall_injective :
 omit [FiniteDimensional ℝ EQ] [IsManifold J ∞ Q] in
 theorem isLocalDiffeomorph_annulusToProdBall :
     IsLocalDiffeomorph (J.prod 𝓘(ℝ, ℂ)) (J.prod 𝓘(ℝ, ℂ)) ∞
-      (annulusToProdBall : Q × annulus δ ε → prodBall Q ε) :=
+      (annulusToProdBall : Q × annulus ℂ δ ε → prodBall Q ε) :=
   isLocalDiffeomorph_subtypeVal_comp_iff.1
     (isLocalDiffeomorph_id.prodMap isLocalDiffeomorph_subtype_val)
 
@@ -146,7 +146,7 @@ theorem mem_complTube [CompactSpace Q] [T2Space M] {hδε : δ < ε} {x : M} :
 
 variable [CompactSpace Q] [T2Space M]
 
-theorem apply_annulusToProdBall_mem_complTube (hδε : δ < ε) (p : Q × annulus δ ε) :
+theorem apply_annulusToProdBall_mem_complTube (hδε : δ < ε) (p : Q × annulus ℂ δ ε) :
     f (annulusToProdBall p) ∈ f.complTube hδε := by
   rintro ⟨p', hp', heq⟩
   rw [f.isOpenEmbedding.injective heq] at hp'
@@ -154,11 +154,11 @@ theorem apply_annulusToProdBall_mem_complTube (hδε : δ < ε) (p : Q × annulu
 
 /-- The collar `(q, z) ↦ f (q, z)` of a product neighbourhood on `Q × A(δ, ε)`, as a map into the
 complement of the closed tube `Q × B̄²(δ)`. -/
-def collarMap (hδε : δ < ε) (p : Q × annulus δ ε) : f.complTube hδε :=
+def collarMap (hδε : δ < ε) (p : Q × annulus ℂ δ ε) : f.complTube hδε :=
   ⟨f (annulusToProdBall p), f.apply_annulusToProdBall_mem_complTube hδε p⟩
 
 @[simp]
-theorem coe_collarMap (hδε : δ < ε) (p : Q × annulus δ ε) :
+theorem coe_collarMap (hδε : δ < ε) (p : Q × annulus ℂ δ ε) :
     (f.collarMap hδε p : M) = f (annulusToProdBall p) :=
   (rfl)
 
@@ -183,17 +183,17 @@ theorem mem_collar_iff {hδε : δ < ε} {x : f.complTube hδε} :
     x ∈ f.collar hδε ↔ x ∈ range (f.collarMap hδε) := by
   rw [collar, ← SetLike.mem_coe, ← Opens.carrier_eq_coe, IsLocalDiffeomorph.image_coe]
 
-theorem collarMap_mem_collar (hδε : δ < ε) (p : Q × annulus δ ε) :
+theorem collarMap_mem_collar (hδε : δ < ε) (p : Q × annulus ℂ δ ε) :
     f.collarMap hδε p ∈ f.collar hδε :=
   f.mem_collar_iff.2 (mem_range_self p)
 
 /-- The collar of a product neighbourhood is diffeomorphic to `Q × A(δ, ε)`. -/
 def collarDiffeomorph (hδε : δ < ε) :
-    (Q × annulus δ ε) ≃ₘ⟮J.prod 𝓘(ℝ, ℂ), I⟯ f.collar hδε :=
+    (Q × annulus ℂ δ ε) ≃ₘ⟮J.prod 𝓘(ℝ, ℂ), I⟯ f.collar hδε :=
   (f.isLocalDiffeomorph_collarMap hδε).diffeomorphOfInjective (f.collarMap_injective hδε)
 
 @[simp]
-theorem coe_collarDiffeomorph_apply (hδε : δ < ε) (p : Q × annulus δ ε) :
+theorem coe_collarDiffeomorph_apply (hδε : δ < ε) (p : Q × annulus ℂ δ ε) :
     (f.collarDiffeomorph hδε p : f.complTube hδε) = f.collarMap hδε p :=
   IsLocalDiffeomorph.coe_diffeomorphOfInjective_apply _ _ p
 
@@ -277,7 +277,7 @@ theorem fiberSumGluing_def :
   (rfl)
 
 @[simp]
-theorem fiberSumGluing_collarDiffeomorph (p : Q × annulus δ ε) :
+theorem fiberSumGluing_collarDiffeomorph (p : Q × annulus ℂ δ ε) :
     fiberSumGluing f₁ f₂ hδ hδε (f₁.collarDiffeomorph hδε p) =
       f₂.collarDiffeomorph hδε (prodAnnulusDiffeomorph (I := J) Q δ ε hδ p) := by
   simp only [fiberSumGluing, Diffeomorph.coe_trans, Function.comp_apply,
@@ -293,7 +293,7 @@ namespace FiberSum
 
 /-- The point `f₁ (q, z)` of the collar of `M₁` is glued to the point `f₂ (q, a z)` of the collar
 of `M₂`, where `a` is the annulus map. -/
-theorem inl_collarMap (p : Q × annulus δ ε) :
+theorem inl_collarMap (p : Q × annulus ℂ δ ε) :
     GluedAlong.inl (fiberSumGluing f₁ f₂ hδ hδε) (f₁.collarMap hδε p) =
       GluedAlong.inr (fiberSumGluing f₁ f₂ hδ hδε)
         (f₂.collarMap hδε (prodAnnulusDiffeomorph (I := J) Q δ ε hδ p)) := by
@@ -306,7 +306,7 @@ same image in the fiber sum exactly when they are `f₁ (q, z)` and `f₂ (q, a 
 theorem inl_eq_inr_iff {x : f₁.complTube hδε} {y : f₂.complTube hδε} :
     GluedAlong.inl (fiberSumGluing f₁ f₂ hδ hδε) x =
         GluedAlong.inr (fiberSumGluing f₁ f₂ hδ hδε) y ↔
-      ∃ p : Q × annulus δ ε,
+      ∃ p : Q × annulus ℂ δ ε,
         f₁.collarMap hδε p = x ∧
           f₂.collarMap hδε (prodAnnulusDiffeomorph (I := J) Q δ ε hδ p) = y := by
   refine ⟨fun h ↦ ?_, fun ⟨p, hx, hy⟩ ↦ ?_⟩
@@ -325,9 +325,9 @@ end FiberSum
 /-- The pairs of glued points: the image of `Q × A(δ, ε)` under `(q, z) ↦ (f₁ (q, z), f₂ (q, a z))`
 is closed in the product of the two complements of the tubes. -/
 private theorem isClosed_range_collarMap_prod :
-    IsClosed (range fun p : Q × annulus δ ε ↦
+    IsClosed (range fun p : Q × annulus ℂ δ ε ↦
       (f₁.collarMap hδε p, f₂.collarMap hδε (prodAnnulusDiffeomorph (I := J) Q δ ε hδ p))) := by
-  set Ψ := fun p : Q × annulus δ ε ↦
+  set Ψ := fun p : Q × annulus ℂ δ ε ↦
     (f₁.collarMap hδε p, f₂.collarMap hδε (prodAnnulusDiffeomorph (I := J) Q δ ε hδ p))
   have hΨ : Continuous Ψ := (f₁.continuous_collarMap hδε).prodMk
     ((f₂.continuous_collarMap hδε).comp (prodAnnulusDiffeomorph (I := J) Q δ ε hδ).continuous)
@@ -338,7 +338,7 @@ private theorem isClosed_range_collarMap_prod :
     exact ⟨p, hts⟩
   have htend : Tendsto Ψ F (𝓝 xy) := tendsto_comap
   -- The collar coordinates of `F` cluster at a point `(q, z)` with `δ ≤ |z| ≤ ε`.
-  set ν : Q × annulus δ ε → Q × ℂ := fun p ↦ (p.1, (p.2 : ℂ))
+  set ν : Q × annulus ℂ δ ε → Q × ℂ := fun p ↦ (p.1, (p.2 : ℂ))
   have hK : IsCompact (univ ×ˢ {w : ℂ | δ ≤ ‖w‖ ∧ ‖w‖ ≤ ε}) :=
     (isCompact_univ (X := Q)).prod ((isCompact_closedBall (0 : ℂ) ε).of_isClosed_subset
       ((isClosed_le continuous_const continuous_norm).inter
@@ -367,7 +367,7 @@ private theorem isClosed_range_collarMap_prod :
       (fun _ ↦ rfl) ((continuous_snd.tendsto _).comp htend) ?_)
     rw [Prod.map_snd, norm_annulusMap δ ε hz, hz₂, add_sub_cancel_left, Real.sqrt_sq hδ]
   -- Otherwise `(q, z)` lies in the collar, and the point is on the graph.
-  set p₀ : Q × annulus δ ε := (q, ⟨z, mem_annulus.2 ⟨hz₁, hz₂⟩⟩)
+  set p₀ : Q × annulus ℂ δ ε := (q, ⟨z, mem_annulus.2 ⟨hz₁, hz₂⟩⟩)
   have hp₀ : ClusterPt p₀ F :=
     (IsInducing.id.prodMap IsInducing.subtypeVal).mapClusterPt_iff.1 hc
   exact ⟨p₀, eq_of_nhds_neBot ((hΨ.continuousAt.mapClusterPt hp₀).neBot.mono

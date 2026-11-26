@@ -230,10 +230,10 @@ notes of the reviews of #2280 and #2445.
    `TauCeti.circlePeriodHom_surjective` gives smooth maps
    $u,v\colon S\to U(1)$ whose period homomorphisms reduce mod 2 to classes
    $a,b\in H^1(S;\mathbb Z/2)$ with $a\cup b\neq0$, from two integral classes
-   whose cup product is one on $[S]$. They exist in positive genus by the
-   library's Poincaré duality for compact oriented manifolds
-   (`AlgebraicTopology/Cohomology/CompactSupport/Duality/Manifold.lean`,
-   #810), over `ℤ` or over `ZMod 2`, whichever form it has. The real
+   whose cup product is one on $[S]$. They exist in positive genus by
+   Tau Ceti's Poincaré duality for compact oriented manifolds
+   (`TauCeti/AlgebraicTopology/Cohomology/CompactSupport/Duality/Manifold.lean`),
+   over `ℤ` or over `ZMod 2`, whichever form it has. The real
    lines $\ell_u(x)=\mathbb R\sqrt{u(x)}\subset\mathbb C$ are flat line
    bundles, and the unit sphere bundle of $\ell_u\oplus\ell_v\oplus\ell_{uv}$
    is an $S^2$-bundle with locally constant transition functions in the

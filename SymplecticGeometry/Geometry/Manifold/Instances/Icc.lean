@@ -9,6 +9,7 @@ public import Mathlib.Geometry.Manifold.Instances.Icc
 public import Mathlib.Geometry.Manifold.VectorBundle.ContMDiffSection
 public import TauCeti.Geometry.Manifold.VectorField.Prod
 import Mathlib.Analysis.Calculus.Deriv.AffineMap
+import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
 import TauCeti.Geometry.Manifold.Instances.Icc
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
 
@@ -19,8 +20,9 @@ The inclusion `Icc x y → ℝ` of a closed interval, `x < y`, is differentiable
 included (`mdifferentiable_subtypeVal_Icc`, `mdifferentiableAt_subtypeVal_Icc`), by Mathlib's
 `contMDiff_subtypeVal_Icc`. Its derivative sends `r` times the unit tangent vector `1` to `r`
 (`mfderiv_subtypeVal_Icc_smul_one`). For a normed space `V`, the map `V × [x, y] → V × ℝ` that
-includes the second factor is smooth (`contMDiff_prodMap_id_subtypeVal_Icc`), and its derivative
-sends `(w, r • 1)` to `(w, r)` (`mfderiv_prodMap_id_subtypeVal_Icc`).
+includes the second factor is smooth (`contMDiff_prodMap_id_subtypeVal_Icc`). For a manifold `M`,
+the derivative of the map `M × [x, y] → M × ℝ` that includes the second factor sends `(w, r • 1)`
+to `(w, r)` (`mfderiv_prodMap_id_subtypeVal_Icc`).
 
 A closed interval `[x, y]`, `x < y`, with its manifold-with-boundary structure, carries the unit
 tangent vector `1` of Mathlib's `oneTangentSpaceIcc` at every point. The vector field `z ↦ 1` is
@@ -29,7 +31,8 @@ smooth, up to both ends, by Tau Ceti's `TauCeti.contMDiff_one_tangentSpace_Icc`.
 On a cylinder `[0, 1] × P`, the product (Tau Ceti's `TauCeti.Manifold.prodVectorField`) of this
 field with the zero field of `P` is the unit time field `∂ₜ = (1, 0)`. It is smooth, up to both
 ends (`contMDiff_prodVectorField_one_zero`), so it is a smooth section of the tangent bundle
-(`unitIntervalTimeField`).
+(`unitIntervalTimeField`). In the same way, on `[0, 1]² × P` the unit field `∂ₛ = ((0, 1), 0)`
+of the second time coordinate is a smooth section (`unitIntervalSqSndField`).
 
 Every tangent vector of the interval is a real multiple of `1`: a vector that the inclusion sends
 to `r` is `r • 1` (`eq_smul_one_of_mfderiv_subtypeVal_Icc`). So the derivative of a map into the
@@ -92,23 +95,25 @@ theorem contMDiff_prodMap_id_subtypeVal_Icc :
       (Prod.map (id : V → V) (Subtype.val : Icc x y → ℝ)) :=
   contMDiff_fst.prodMk_space (contMDiff_subtypeVal_Icc.comp contMDiff_snd)
 
-/-- For a normed space `V`, the derivative of `(v, s) ↦ (v, s)`, from `V × [x, y]` to `V × ℝ`,
-sends `(w, r • 1)` to `(w, r)`. -/
-theorem mfderiv_prodMap_id_subtypeVal_Icc (z : V × Icc x y) (w : V) (r : ℝ) :
-    mfderiv (𝓘(ℝ, V).prod (𝓡∂ 1)) 𝓘(ℝ, V × ℝ)
-        (Prod.map (id : V → V) (Subtype.val : Icc x y → ℝ)) z
-        (w, r • (1 : TangentSpace (𝓡∂ 1) z.2)) = (w, r) := by
-  have := mfderiv_prodMap (I := 𝓘(ℝ, V)) (J := 𝓘(ℝ, V)) (I' := 𝓡∂ 1) (J' := 𝓘(ℝ, ℝ)) (p := z)
-    (f := id) (g := (Subtype.val : Icc x y → ℝ)) mdifferentiableAt_id
-    (mdifferentiableAt_subtypeVal_Icc z.2)
-  rw [modelWithCornersSelf_prod, ← chartedSpaceSelf_prod, this]
-  -- The tangent spaces of `V` and of `V × ℝ` are those spaces only by unfolding
-  -- `TangentSpace`, so the two components are closed with `exact` rather than `rw`.
-  refine Prod.ext ?_ ?_
-  · exact congrArg (fun L => L w) (mfderiv_id (I := 𝓘(ℝ, V)) (x := z.1))
-  · exact mfderiv_subtypeVal_Icc_smul_one z.2 r
-
 end ProdMap
+
+section ProdMapManifold
+
+variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+
+/-- The derivative of `(p, s) ↦ (p, s)`, from `M × [x, y]` to `M × ℝ`, sends `(w, r • 1)` to
+`(w, r)`. -/
+theorem mfderiv_prodMap_id_subtypeVal_Icc (z : M × Icc x y) (w : TangentSpace I z.1) (r : ℝ) :
+    mfderiv (I.prod (𝓡∂ 1)) (I.prod 𝓘(ℝ, ℝ))
+        (Prod.map (id : M → M) (Subtype.val : Icc x y → ℝ)) z
+        (w, r • (1 : TangentSpace (𝓡∂ 1) z.2)) = (w, r) := by
+  rw [mfderiv_prodMap mdifferentiableAt_id (mdifferentiableAt_subtypeVal_Icc z.2), mfderiv_id]
+  -- `TangentSpace (I.prod (𝓡∂ 1)) z` is the product of the factors' tangent spaces only by
+  -- unfolding, so `rw` cannot see the components; they are closed by `Prod.ext`.
+  exact Prod.ext rfl (mfderiv_subtypeVal_Icc_smul_one z.2 r)
+
+end ProdMapManifold
 
 section Cylinder
 
@@ -142,6 +147,40 @@ theorem coe_unitIntervalTimeField :
       TauCeti.Manifold.prodVectorField (fun s : unitInterval ↦ (1 : TangentSpace (𝓡∂ 1) s))
         (0 : Π y : P, TangentSpace J y) :=
   (rfl)
+
+/-- The unit field `∂ₛ = ((0, 1), 0)` of the second time coordinate on `[0, 1]² × P`, as a
+smooth section of the tangent bundle. -/
+noncomputable def unitIntervalSqSndField :
+    Cₛ^∞⟮((𝓡∂ 1).prod (𝓡∂ 1)).prod J;
+      (EuclideanSpace ℝ (Fin 1) × EuclideanSpace ℝ (Fin 1)) × E',
+      TangentSpace (((𝓡∂ 1).prod (𝓡∂ 1)).prod J) (M := (unitInterval × unitInterval) × P)⟯ :=
+  ⟨TauCeti.Manifold.prodVectorField
+    (TauCeti.Manifold.prodVectorField (0 : Π t : unitInterval, TangentSpace (𝓡∂ 1) t)
+      fun s : unitInterval ↦ (1 : TangentSpace (𝓡∂ 1) s))
+    (0 : Π y : P, TangentSpace J y),
+    TauCeti.Manifold.contMDiff_prodVectorField
+      (TauCeti.Manifold.contMDiff_prodVectorField (Bundle.contMDiff_zeroSection ℝ _)
+        TauCeti.contMDiff_one_tangentSpace_Icc)
+      (Bundle.contMDiff_zeroSection ℝ (TangentSpace J))⟩
+
+/-- The field `∂ₛ` on `[0, 1]² × P` is the product field of `(0, 1)` on `[0, 1]²` and `0` on
+`P`. -/
+@[simp]
+theorem coe_unitIntervalSqSndField :
+    ⇑(unitIntervalSqSndField (J := J) (P := P)) = TauCeti.Manifold.prodVectorField
+      (TauCeti.Manifold.prodVectorField (0 : Π t : unitInterval, TangentSpace (𝓡∂ 1) t)
+        fun s : unitInterval ↦ (1 : TangentSpace (𝓡∂ 1) s))
+      (0 : Π y : P, TangentSpace J y) :=
+  (rfl)
+
+/-- The value of the field `∂ₛ` at `((t, s), x)` is `((0, 1), 0)`. -/
+theorem unitIntervalSqSndField_apply (p : (unitInterval × unitInterval) × P) :
+    unitIntervalSqSndField (J := J) p =
+      (((0 : EuclideanSpace ℝ (Fin 1)), (1 : TangentSpace (𝓡∂ 1) p.1.2)), (0 : E')) := by
+  rw [coe_unitIntervalSqSndField, TauCeti.Manifold.prodVectorField_apply,
+    TauCeti.Manifold.prodVectorField_apply, Pi.zero_apply, Pi.zero_apply]
+  -- The two sides differ only in the types `TangentSpace` and its model space for the zeros.
+  rfl
 
 end Cylinder
 

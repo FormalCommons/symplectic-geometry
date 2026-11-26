@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Topology.FiberBundle.Basic
+public import TauCeti.Topology.FiberBundle.MapFiber
 
 /-!
 # Fibre bundles read in their trivializations
@@ -18,20 +19,29 @@ alternating maps, is shown to be open: the condition is invariant under the fibr
 of the trivializations and open on the model fibre.
 
 A trivialization `e` whose base set contains `b` also gives the inclusion `f ↦ e⁻¹ (b, f)` of
-the model fibre onto the fibre over `b` (`Bundle.Trivialization.fiberInclusion`). Read through
+the model fibre onto the fibre over `b` (`Bundle.Trivialization.fiberInclusionMap`). Read through
 two trivializations, these inclusions differ by the coordinate change.
 
 ## Main definitions
 
-* `Bundle.Trivialization.fiberInclusion`: the inclusion of the model fibre onto the fibre over a
-  point of the base set of a trivialization.
+* `Bundle.Trivialization.fiberInclusionMap`: the inclusion of the model fibre onto the fibre over a
+  point of the base set of a trivialization, as a continuous map. Tau Ceti's
+  `Bundle.Trivialization.fiberInclusion` is the same inclusion as a morphism of `TopCat`.
 
 ## Main results
 
-* `Bundle.Trivialization.fiberInclusion_coordChange`: the inclusions of a fibre through two
+* `Bundle.Trivialization.fiberInclusionMap_coordChange`: the inclusions of a fibre through two
   trivializations differ by their coordinate change.
 * `Bundle.Trivialization.coordChange_compHomeomorph`: precomposing two trivializations with a
   homeomorphism leaves their coordinate change unchanged.
+* `Bundle.Trivialization.compTotalSpaceHomeomorph_refl`: a trivialization transported by Tau
+  Ceti's `Bundle.Trivialization.compTotalSpaceHomeomorph` along the identity of the total space
+  is itself.
+* `TauCeti.MapFiber.Atlas.trivializationAt_fiberBundleOfHomeomorph_refl` and
+  `TauCeti.MapFiber.Atlas.mem_trivializationAtlas_fiberBundleOfHomeomorph_refl_iff`: for an atlas
+  of a bundle and the identity of its total space, the fibre bundle structure of Tau Ceti's
+  `TauCeti.MapFiber.Atlas.fiberBundleOfHomeomorph` has the trivializations of the atlas as its
+  preferred trivializations and as its atlas.
 * `FiberBundle.isOpen_of_forall_mem_iff_snd_mem`: a set of the total space that every
   trivialization `trivializationAt F E b` reads, on its source, as the preimage of an open set of
   the model fibre under the fibre coordinate, is open.
@@ -62,24 +72,24 @@ variable {B F Z : Type*} [TopologicalSpace B] [TopologicalSpace F] [TopologicalS
 /-- The inclusion `f ↦ e⁻¹ (b, f)` of the model fibre `F` onto the fibre over `b` of the
 total space, read through a trivialization `e` whose base set contains `b`: the inverse of
 `Bundle.Trivialization.preimageSingletonHomeomorph`, followed by the inclusion of the fibre. -/
-def fiberInclusion (e : Trivialization F proj) {b : B} (hb : b ∈ e.baseSet) : C(F, Z) :=
+def fiberInclusionMap (e : Trivialization F proj) {b : B} (hb : b ∈ e.baseSet) : C(F, Z) :=
   (ContinuousMap.subtypeVal (proj ⁻¹' {b})).comp (e.preimageSingletonHomeomorph hb).symm
 
-lemma fiberInclusion_apply (e : Trivialization F proj) {b : B} (hb : b ∈ e.baseSet) (f : F) :
-    e.fiberInclusion hb f = e.toOpenPartialHomeomorph.symm (b, f) :=
+lemma fiberInclusionMap_apply (e : Trivialization F proj) {b : B} (hb : b ∈ e.baseSet) (f : F) :
+    e.fiberInclusionMap hb f = e.toOpenPartialHomeomorph.symm (b, f) :=
   (rfl)
 
 /-- The inclusion of the fibre over `b` lands in the fibre over `b`. -/
-lemma proj_fiberInclusion (e : Trivialization F proj) {b : B} (hb : b ∈ e.baseSet) (f : F) :
-    proj (e.fiberInclusion hb f) = b :=
+lemma proj_fiberInclusionMap (e : Trivialization F proj) {b : B} (hb : b ∈ e.baseSet) (f : F) :
+    proj (e.fiberInclusionMap hb f) = b :=
   ((e.preimageSingletonHomeomorph hb).symm f).property
 
 /-- The inclusions of a fibre read through two trivializations differ by the coordinate
 change. -/
-lemma fiberInclusion_coordChange (e₁ e₂ : Trivialization F proj) {b : B} (h₁ : b ∈ e₁.baseSet)
+lemma fiberInclusionMap_coordChange (e₁ e₂ : Trivialization F proj) {b : B} (h₁ : b ∈ e₁.baseSet)
     (h₂ : b ∈ e₂.baseSet) (f : F) :
-    e₂.fiberInclusion h₂ (e₁.coordChange e₂ b f) = e₁.fiberInclusion h₁ f := by
-  rw [fiberInclusion_apply, fiberInclusion_apply, e₁.mk_coordChange e₂ h₁ h₂]
+    e₂.fiberInclusionMap h₂ (e₁.coordChange e₂ b f) = e₁.fiberInclusionMap h₁ f := by
+  rw [fiberInclusionMap_apply, fiberInclusionMap_apply, e₁.mk_coordChange e₂ h₁ h₂]
   exact e₂.toOpenPartialHomeomorph.left_inv (e₂.mem_source.2 (by rwa [e₁.proj_symm_apply' h₁]))
 
 /-- Precomposing two trivializations with a homeomorphism does not change their coordinate
@@ -91,7 +101,41 @@ theorem coordChange_compHomeomorph {Z' : Type*} [TopologicalSpace Z']
   ext v
   simp [coordChange, Trivialization.compHomeomorph]
 
+/-- A trivialization of a bundle, transported along the identity of its total space, is itself. -/
+theorem compTotalSpaceHomeomorph_refl {E : B → Type*} [TopologicalSpace (TotalSpace F E)]
+    (e : Trivialization F (π F E)) (hh : ∀ x, (Homeomorph.refl (TotalSpace F E) x).proj = x.proj) :
+    e.compTotalSpaceHomeomorph (Homeomorph.refl _) hh = e :=
+  Trivialization.ext' _ _
+    (OpenPartialHomeomorph.ext _ _ (fun _ ↦ by simp) (fun _ ↦ by simp) (by simp)) (by simp)
+
 end Bundle.Trivialization
+
+namespace TauCeti.MapFiber.Atlas
+
+variable {B F : Type*} [TopologicalSpace B] [TopologicalSpace F] {E : B → Type*}
+  [TopologicalSpace (TotalSpace F E)] [∀ b, TopologicalSpace (E b)]
+
+/-- The preferred trivialization at `b` of the fibre bundle structure given by an atlas `A` of a
+bundle and the identity of its total space is the trivialization of `A` at `b`. -/
+@[simp]
+theorem trivializationAt_fiberBundleOfHomeomorph_refl (A : Atlas F (π F E))
+    (hE : ∀ b, IsInducing (TotalSpace.mk b : E b → TotalSpace F E)) (b : B) :
+    letI := A.fiberBundleOfHomeomorph (Homeomorph.refl _) (fun _ ↦ rfl) hE
+    trivializationAt F E b = A.trivAt b :=
+  (A.trivializationAt_fiberBundleOfHomeomorph _ _ _ b).trans
+    (Trivialization.compTotalSpaceHomeomorph_refl _ _)
+
+/-- The atlas of the fibre bundle structure given by an atlas `A` of a bundle and the identity of
+its total space consists of the trivializations of `A`. -/
+theorem mem_trivializationAtlas_fiberBundleOfHomeomorph_refl_iff (A : Atlas F (π F E))
+    (hE : ∀ b, IsInducing (TotalSpace.mk b : E b → TotalSpace F E))
+    (e : Trivialization F (π F E)) :
+    letI := A.fiberBundleOfHomeomorph (Homeomorph.refl _) (fun _ ↦ rfl) hE
+    e ∈ trivializationAtlas F E ↔ e ∈ Set.range A.trivAt :=
+  (A.mem_trivializationAtlas_fiberBundleOfHomeomorph_iff _ _ hE e).trans <| exists_congr fun b ↦
+    iff_of_eq (congrArg (· = e) ((A.trivAt b).compTotalSpaceHomeomorph_refl _))
+
+end TauCeti.MapFiber.Atlas
 
 namespace FiberBundle
 

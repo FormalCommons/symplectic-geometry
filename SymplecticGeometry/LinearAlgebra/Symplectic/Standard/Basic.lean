@@ -996,7 +996,7 @@ along the bijection `Fin m × Fin 2 ≃ ι ⊕ ι` that sends `(k, 0)` to `Sum.i
 to `Sum.inr (τ k)`. -/
 theorem stdDarbouxBasisOf_eq_reindex {m : ℕ} (τ : Fin m ≃ ι) :
     stdDarbouxBasisOf τ = (EuclideanSpace.basisFun (ι ⊕ ι) ℝ).toBasis.reindex
-      ((SymplecticForm.darbouxIndexEquiv m).trans
+      ((SymplecticForm.darbouxIndexEquiv (Fin m)).trans
         ((Equiv.sumComm _ _).trans (τ.sumCongr τ))).symm := by
   classical
   exact Basis.eq_of_apply_eq fun ⟨k, i⟩ ↦ by fin_cases i <;> simp
