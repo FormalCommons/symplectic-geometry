@@ -5,7 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Algebra.Category.ModuleCat.ChangeOfRings
+public import Mathlib.Algebra.Category.ModuleCat.ChangeOfRingsExact
+public import Mathlib.Algebra.Homology.ShortComplex.ExactFunctor
 public import TauCeti.AlgebraicTopology.SimplicialSet.Homology.Pairing
 
 /-!
@@ -24,6 +25,8 @@ integral chain into a real one.
   it sends the simplex `x` with coefficient `m` to `x` with coefficient `g m`.
 * `SSet.chainComplexMap_f_restrictScalarsChainMap`: it commutes with the chain maps induced by
   maps of simplicial sets.
+* `SSet.restrictScalarsCyclesMap f g X n`: the induced map on cycles, which
+  `SSet.restrictScalarsCyclesMap_iCycles` relates to the map on chains.
 * `SSet.restrictScalarsChainIso f e X`: for an isomorphism `e : M ≅ f^* N`, the isomorphism
   `C(X; M) ≅ f^* C(X; N)` whose forward map is `SSet.restrictScalarsChainMap f e.hom X`, with
   `SSet.ιChainComplex_restrictScalarsChainIso_hom_f` and
@@ -97,6 +100,37 @@ theorem chainComplexMap_f_restrictScalarsChainMap {X Y : SSet.{u}} (h : X ⟶ Y)
   refine chainComplex_hom_ext fun x ↦ ?_
   rw [ι_chainComplexMap_f_assoc, ιChainComplex_restrictScalarsChainMap_f,
     ιChainComplex_restrictScalarsChainMap_f_assoc, ← Functor.map_comp, ι_chainComplexMap_f]
+
+/-- The change of coefficients along `g` on cycles: a cycle of `X` with coefficients in `M` goes
+to the cycle of `X` with coefficients in `N`, with scalars restricted along `f`, that has the same
+simplices and the coefficients changed by `g`. -/
+def restrictScalarsCyclesMap (X : SSet.{u}) (n : ℕ) :
+    (X.chainComplex M).cycles n ⟶
+      (ModuleCat.restrictScalars f).obj ((X.chainComplex N).cycles n) :=
+  HomologicalComplex.cyclesMap (restrictScalarsChainMap f g X) n ≫
+    (((X.chainComplex N).sc n).mapCyclesIso (ModuleCat.restrictScalars f)).hom
+
+/-- The change of coefficients along `g` on cycles is the map on cycles of the change of
+coefficients on chains, followed by the identification of the cycles of the restricted complex
+with the restriction of the cycles. -/
+theorem restrictScalarsCyclesMap_def (X : SSet.{u}) (n : ℕ) :
+    restrictScalarsCyclesMap f g X n =
+      HomologicalComplex.cyclesMap (restrictScalarsChainMap f g X) n ≫
+        (((X.chainComplex N).sc n).mapCyclesIso (ModuleCat.restrictScalars f)).hom :=
+  (rfl)
+
+/-- The underlying chain of the change of coefficients of a cycle is the change of coefficients
+of its underlying chain. -/
+@[reassoc (attr := simp), elementwise nosimp]
+theorem restrictScalarsCyclesMap_iCycles (X : SSet.{u}) (n : ℕ) :
+    restrictScalarsCyclesMap f g X n ≫
+        (ModuleCat.restrictScalars f).map ((X.chainComplex N).iCycles n) =
+      (X.chainComplex M).iCycles n ≫ (restrictScalarsChainMap f g X).f n := by
+  rw [restrictScalarsCyclesMap_def, Category.assoc]
+  -- The cycles of a complex in degree `n` are those of its short complex in degree `n` only
+  -- after unfolding, which `rw` does not see, so the two squares are pasted as terms.
+  exact (congrArg (_ ≫ ·) (((X.chainComplex N).sc n).mapCyclesIso_hom_iCycles
+    (ModuleCat.restrictScalars f))).trans (HomologicalComplex.cyclesMap_i _ _)
 
 section Iso
 
