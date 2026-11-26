@@ -8,7 +8,6 @@ module
 public import Mathlib.LinearAlgebra.Dual.Lemmas
 public import Mathlib.LinearAlgebra.Matrix.Dual
 public import Mathlib.Topology.Algebra.Projectivization
-public import Mathlib.Topology.Algebra.Ring.Basic
 
 /-!
 # The quarter turn `(s, t) ↦ (t, -s)` of a plane and the line map it induces
