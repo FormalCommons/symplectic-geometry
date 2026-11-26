@@ -20,10 +20,15 @@ In the chart induced by a linear trivialization `e` of `E`, the degree-one wedge
 coordinate of `e v` in the basis `Module.finBasis 𝕜 F`
 (`TauCeti.DetBundle.chartCoord_ιMulti`). So the identification reads, in the charts of `det E`
 and of `E`, as `c ↦ c • b₀`, where `b₀` is the single vector of that basis
-(`TauCeti.DetBundle.trivialization_oneEquiv`). As in Tau Ceti's
-`TauCeti.DetBundle.congrHomeomorph`, continuity is checked in charts with
-`FiberBundle.continuous_of_forall_trivialization`, and `TauCeti.bundleHomeomorph` gives the
+(`TauCeti.DetBundle.trivialization_oneEquiv`), and `TauCeti.bundleHomeomorph` gives the
 homeomorphism.
+
+The fibrewise equivalence `TauCeti.DetBundle.oneEquiv` is built as Tau Ceti's
+`TauCeti.DetBundle.zeroEquiv` is in rank zero, by the same three-step composition. The proof of
+continuity in `TauCeti.DetBundle.oneHomeomorph` adapts that of Tau Ceti's
+`TauCeti.AssociatedBundle.continuous_detMap`: continuity is checked in charts with
+`FiberBundle.continuous_of_forall_trivialization`, the chart coordinate of `det E` going to a
+fixed multiple of the single basis vector.
 
 ## Main definitions and results
 
@@ -81,17 +86,8 @@ theorem oneEquiv_apply (h : finrank 𝕜 F = 1) {x : B} (v : DetBundle 𝕜 F E 
 /-- `TauCeti.DetBundle.oneEquiv` sends the wedge of a single vector `v` to `v`. -/
 theorem oneEquiv_ιMulti (h : finrank 𝕜 F = 1) {x : B} (v : E x) :
     oneEquiv 𝕜 F E h x ((linearEquiv 𝕜 F E x).symm (exteriorPower.ιMulti 𝕜 _ fun _ ↦ v)) = v := by
-  rw [oneEquiv_apply, LinearEquiv.apply_symm_apply]
-  have hv : LinearEquiv.ofEq _ _ (congrArg (⋀[𝕜]^· (E x)) h)
-      (exteriorPower.ιMulti 𝕜 _ fun _ ↦ v) = exteriorPower.ιMulti 𝕜 1 fun _ ↦ v := by
-    apply Subtype.ext
-    rw [LinearEquiv.coe_ofEq_apply, exteriorPower.ιMulti_apply_coe,
-      exteriorPower.ιMulti_apply_coe]
-    -- Once the degree `finrank 𝕜 F` is replaced by `1`, both sides are the same product.
-    generalize finrank 𝕜 F = n at h
-    subst h
-    rfl
-  rw [hv, exteriorPower.oneEquiv_ιMulti]
+  rw [oneEquiv_apply, LinearEquiv.apply_symm_apply, exteriorPower.ofEq_ιMulti h]
+  exact exteriorPower.oneEquiv_ιMulti _
 
 /-- The inverse of `TauCeti.DetBundle.oneEquiv` sends `v` to the wedge of `v` alone. -/
 @[simp]
