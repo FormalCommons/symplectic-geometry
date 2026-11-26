@@ -557,15 +557,14 @@ theorem univ_prod_Icc_subset_setOf_nondegenerate_prodIccExtension_add_smul
             (ω₁ - ω₀)))).bilinFormAt (x, p.2)).Nondegenerate} :=
   fun p hp x ↦ nondegenerate_bilinFormAt_prodIccExtension_add_smul h₀ h₁ hτ p.1 x hp.2
 
-variable [IB.Boundaryless]
-
 /-- **`dσ̃` vanishes on `(X, 0)`.** For two coupling forms `ω₀` and `ω₁` for the same family, the
 exterior derivative of the extension `σ̃` to `P × ℝ` of the primitive `K (ω₁ - ω₀)` vanishes when
 its first argument is the field `(X, 0)`, where `X` is the period-one fundamental vector field of
 the circle action: `σ̃` is invariant and vanishes on `(X, 0)`, so Cartan's formula gives
 `ι_{(X, 0)} dσ̃ = -d (σ̃ (X, 0)) = 0`. -/
 theorem mextDerivₗ_timeExtendIcc_prodIccHomotopyOperator_sub_apply_prodVectorField
-    (h₀ : IsCouplingForm ω₀ τ) (h₁ : IsCouplingForm ω₁ τ) (p : ManifoldTotalSpace Circle P × ℝ)
+    [IB.Boundaryless] (h₀ : IsCouplingForm ω₀ τ) (h₁ : IsCouplingForm ω₁ τ)
+    (p : ManifoldTotalSpace Circle P × ℝ)
     (w : TangentSpace ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) p) :
     (mextDerivₗ ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) 1 (SmoothForm.timeExtendIcc
         (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1
@@ -675,8 +674,9 @@ theorem _root_.SymplecticGeometry.contMDiff_prodIccMoserField [FiniteDimensional
 forms for the same family. For any cutoff `ρ`, the cut-off Moser field `Y_s`
 (`SymplecticGeometry.prodIccMoserField`) is killed at every point by `de`, where `e` is the
 time extension of the height `t - a` (`SymplecticGeometry.prodIccHeight`). -/
-theorem mextDerivₗ_timeExtendIcc_prodIccHeight_apply_prodIccMoserField (h₀ : IsCouplingForm ω₀ τ)
-    (h₁ : IsCouplingForm ω₁ τ) (ρ : ℝ × (ManifoldTotalSpace Circle P × ℝ) → ℝ) (s : ℝ)
+theorem mextDerivₗ_timeExtendIcc_prodIccHeight_apply_prodIccMoserField [IB.Boundaryless]
+    (h₀ : IsCouplingForm ω₀ τ) (h₁ : IsCouplingForm ω₁ τ)
+    (ρ : ℝ × (ManifoldTotalSpace Circle P × ℝ) → ℝ) (s : ℝ)
     (p : ManifoldTotalSpace Circle P × ℝ) :
     (mextDerivₗ ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) 0 (SmoothForm.timeExtendIcc
         (prodIccHeight (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b))).val p
@@ -715,14 +715,13 @@ theorem mextDerivₗ_timeExtendIcc_prodIccHeight_apply_prodIccMoserField (h₀ :
 coupling forms for the same family. For any cutoff `ρ`, at every point `(x, t)` of `P × ℝ` with
 `t ∈ [a, b]` the cut-off Moser field (`SymplecticGeometry.prodIccMoserField`) has no component
 along `ℝ`. -/
-theorem prodIccMoserField_snd_eq_zero (h₀ : IsCouplingForm ω₀ τ)
+theorem prodIccMoserField_snd_eq_zero [IB.Boundaryless] (h₀ : IsCouplingForm ω₀ τ)
     (h₁ : IsCouplingForm ω₁ τ) (ρ : ℝ × (ManifoldTotalSpace Circle P × ℝ) → ℝ) (s : ℝ)
     (x : ManifoldTotalSpace Circle P) (t : Icc a b) :
     (prodIccMoserField ω₀ ω₁ ρ s (x, t)).2 = 0 := by
   rw [← mextDerivₗ_timeExtendIcc_prodIccHeight_apply x t]
   exact mextDerivₗ_timeExtendIcc_prodIccHeight_apply_prodIccMoserField h₀ h₁ ρ s (x, t)
 
-omit [IB.Boundaryless] in
 /-- **The cut-off Moser field is invariant.** Let `ω₀` and `ω₁` be coupling forms for the same
 family and `z : Circle`. For a cutoff `ρ` invariant under `(x, t) ↦ (op z • x, t)` at every
 time, the differential of `(x, t) ↦ (op z • x, t)` carries the cut-off Moser field `Y_s`
@@ -764,7 +763,7 @@ family and `z : Circle`. For a cutoff `ρ` invariant under `(x, r) ↦ (op z •
 time, if the cut-off Moser field (`SymplecticGeometry.prodIccMoserField`) is jointly `C¹`, then
 its time-dependent flow from `s` to `t` commutes with `(x, r) ↦ (op z • x, r)`. -/
 theorem timeDependentFlowOf_prodIccMoserField_smul
-    [T2Space (ManifoldTotalSpace Circle P)] (h₀ : IsCouplingForm ω₀ τ)
+    [IB.Boundaryless] [T2Space (ManifoldTotalSpace Circle P)] (h₀ : IsCouplingForm ω₀ τ)
     (h₁ : IsCouplingForm ω₁ τ) (z : Circle) {ρ : ℝ × (ManifoldTotalSpace Circle P × ℝ) → ℝ}
     (hρ : ∀ (s : ℝ) (p : ManifoldTotalSpace Circle P × ℝ), ρ (s, (op z • p.1, p.2)) = ρ (s, p))
     (hX : ContMDiff (𝓘(ℝ, ℝ).prod ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)))
@@ -792,7 +791,8 @@ for the same family. For a cutoff `ρ` with compact support, if the cut-off Mose
 (`SymplecticGeometry.prodIccMoserField`) is jointly `C¹`, then its time-dependent flow between
 any two times keeps each level `P × {t}` with `t ∈ [a, b]`. -/
 theorem timeDependentFlowOf_prodIccMoserField_snd
-    [CompleteSpace EB] [T2Space (ManifoldTotalSpace Circle P)] (h₀ : IsCouplingForm ω₀ τ)
+    [IB.Boundaryless] [CompleteSpace EB] [T2Space (ManifoldTotalSpace Circle P)]
+    (h₀ : IsCouplingForm ω₀ τ)
     (h₁ : IsCouplingForm ω₁ τ) {ρ : ℝ × (ManifoldTotalSpace Circle P × ℝ) → ℝ}
     (hρ : HasCompactSupport ρ)
     (hX : ContMDiff (𝓘(ℝ, ℝ).prod ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)))
@@ -808,7 +808,6 @@ theorem timeDependentFlowOf_prodIccMoserField_snd
 
 variable [CompactSpace B] [FiniteDimensional ℝ EB]
 
-omit [IB.Boundaryless] in
 /-- **A cutoff in the parameters.** Let `ω₀` and `ω₁` be coupling forms for the same family `τ`
 of nondegenerate forms, over a compact base modelled on a finite-dimensional space. There is a
 smooth `ρ : ℝ × ℝ → ℝ` with values in `[0, 1]` and compact support, equal to `1` on a
@@ -832,7 +831,6 @@ theorem exists_contMDiff_tsupport_subset_setOf_nondegenerate_prodIccExtension_ad
     ((prod_mono (subset_univ _) subset_rfl).trans
       (univ_prod_Icc_subset_setOf_nondegenerate_prodIccExtension_add_smul h₀ h₁ hτ))
 
-omit [IB.Boundaryless] in
 /-- **The cutoff of the extended Moser field.** Let `ω₀` and `ω₁` be coupling forms for the same
 family `τ` of nondegenerate forms, over a compact base modelled on a finite-dimensional space.
 There is `ρ : ℝ × ℝ → ℝ` with values in `[0, 1]` such that the function
