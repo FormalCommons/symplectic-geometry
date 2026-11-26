@@ -59,7 +59,8 @@ every compact boundaryless one, by Weil's good covers
 * `TauCeti.bijective_deRhamHom_sup`: the Mayer–Vietoris step of the de Rham theorem.
 * `SymplecticGeometry.IsSmoothlyContractible.bijective_deRhamHom`: the de Rham theorem on a
   smoothly contractible manifold.
-* `TauCeti.bijective_deRhamHom`: the de Rham theorem on a manifold with a finite good cover.
+* `TauCeti.bijective_deRhamHom`: `deRhamHom` is bijective in every degree if `M` has a finite good
+  cover.
 * `TauCeti.bijective_deRhamHom_of_compactSpace` and `TauCeti.injective_deRhamHom`: the de Rham
   theorem on a compact boundaryless manifold, and the injectivity of the de Rham homomorphism
   there.
