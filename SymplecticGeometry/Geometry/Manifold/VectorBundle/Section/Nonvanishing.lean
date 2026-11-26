@@ -32,7 +32,7 @@ every bundle of rank at least two. The argument replaces the book's cutting of t
 1. Pulled back to the interior `M°`, a generic section in the span of finitely many spanning
    sections has no zeros if the rank exceeds `d` (Tau Ceti's
    `ContMDiffSection.mem_residual_setOf_affineFamily_ne_zero`), and a discrete set of zeros if
-   the rank is `d` (`ContMDiffSection.mem_residual_setOf_isDiscrete_zero_affineFamily`).
+   the rank is `d` (`ContMDiffSection.mem_residual_setOfPred_isDiscrete_zero_affineFamily`).
 2. A collar of the boundary gives a map `g : M → M` homotopic to the identity with image in a
    compact subset `K` of `M°` that misses a nonempty open subset of `M°`
    (`TauCeti.IsCollar.exists_homotopy_push`).
@@ -95,7 +95,7 @@ private theorem exists_contMDiffSection_isDiscrete_interior [SecondCountableTopo
     rcases hF.lt_or_eq with h | h
     · filter_upwards [mem_residual_setOf_affineFamily_ne_zero 0 t hspan' h] with a ha
       exact Set.Subsingleton.isDiscrete fun x hx ↦ (ha x hx).elim
-    · exact mem_residual_setOf_isDiscrete_zero_affineFamily h 0 t hspan'
+    · exact mem_residual_setOfPred_isDiscrete_zero_affineFamily h 0 t hspan'
   obtain ⟨a, ha⟩ := (dense_of_mem_residual hres).nonempty
   simp only [mem_ofPred_eq, key] at ha
   exact ⟨affineFamily 0 s a, ha⟩
@@ -111,7 +111,7 @@ private theorem exists_homotopy_interior_ne_zero [ConnectedSpace M] (hdim : 1 < 
     ∃ G : unitInterval × I.interior M → I.interior M, Continuous G ∧
       (∀ y, G (0, y) = y) ∧ ∀ y ∈ K, σ (G (1, y)) ≠ 0 := by
   have hZ : IsClosed {x : I.interior M | σ x = 0} :=
-    σ.isClosed_setOf_eq_zero.preimage continuous_subtypeVal
+    σ.isClosed_setOfPred_eq_zero.preimage continuous_subtypeVal
   obtain ⟨Ψ, hΨ, -⟩ := exists_diffeotopy_apply_one_notMem (E := E) (N := I.interior M) (n := ∞)
     (m := 1) (by rw [← Module.finrank_eq_rank]; exact_mod_cast hdim) le_rfl (by norm_num) hZ hσ
     hK hKc
