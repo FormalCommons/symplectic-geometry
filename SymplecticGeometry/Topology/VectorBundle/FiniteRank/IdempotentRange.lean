@@ -49,7 +49,7 @@ fibre map of `P` by transition maps, so it has the same rank
 
 public section
 
-open CategoryTheory Topology Filter
+open CategoryTheory Filter
 
 namespace VectorBundleCore.CoordinateHom
 
