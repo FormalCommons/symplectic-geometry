@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Model
-public import Mathlib.Topology.Algebra.Projectivization
+public import SymplecticGeometry.LinearAlgebra.Projectivization.Perp
 
 /-!
 # The blowup of `ℂ²` as the incidence set of a pencil of lines
@@ -15,16 +15,11 @@ The model blowup `BlowupModel 1` of `ℂ²` at `0` consists of the pairs `(ℓ, 
 line `ℓ`. Near an exceptional curve of a blown-up pencil, one meets it in another guise: as the
 pairs `(z, [s : t])` with `s z₀ + t z₁ = 0`. Since, for `(s, t) ≠ 0`, the solutions `z` of this
 equation are exactly the multiples of `(t, -s)`, the two descriptions agree through the line map
-`[s : t] ↦ [t : -s]`. This file makes that precise over a ball.
+`[s : t] ↦ [t : -s]` (`SymplecticGeometry.perpLine`, with
+`SymplecticGeometry.mem_submodule_perpLine_iff`). This file makes that precise over a ball.
 
 ## Main definitions and results
 
-* `SymplecticGeometry.BlowupModel.perpLine ℓ`: the image of `ℓ ∈ ℙ ℂ ℂ²` under the linear
-  automorphism `(s, t) ↦ (t, -s)` (`SymplecticGeometry.BlowupModel.perpLinearMap`), through
-  `Projectivization.map`; it is a continuous involution (`perpLine_perpLine`,
-  `continuous_perpLine`).
-* `SymplecticGeometry.BlowupModel.mem_span_perp_iff`: for `w ≠ 0`, a vector `z` is a multiple of
-  `(w₁, -w₀)` exactly when `w₀ z₀ + w₁ z₁ = 0`; hence `mem_submodule_perpLine_iff`.
 * `SymplecticGeometry.BlowupModel.pencilIncidence`: the pairs `(z, ℓ)` with `s z₀ + t z₁ = 0` for
   a representative `(s, t)` of `ℓ`, and `mk_mem_pencilIncidence_iff`: for any representative.
 * `SymplecticGeometry.BlowupModel.pencilNbhd r`: its part over the ball of radius `r` in the
@@ -32,7 +27,7 @@ equation are exactly the multiples of `(t, -s)`, the two descriptions agree thro
 * `SymplecticGeometry.BlowupModel.pencilNbhdHomeomorph r`: the homeomorphism
   `pencilNbhd r ≃ₜ openNbhd 1 r`, `(z, ℓ) ↦ (perpLine ℓ, z)`, with
   `blowdown_pencilNbhdHomeomorph_apply`, `pr_pencilNbhdHomeomorph_apply` and the inverse's
-  `pencilNbhdHomeomorph_symm_apply`; and
+  `coe_pencilNbhdHomeomorph_symm_apply`; and
   `SymplecticGeometry.BlowupModel.image_pencilNbhdHomeomorph_setOf_fst_eq_zero`: it maps the
   points with `z = 0` onto the exceptional divisor.
 
@@ -51,100 +46,6 @@ namespace SymplecticGeometry
 
 namespace BlowupModel
 
-/-! ### The line map `[s : t] ↦ [t : -s]` -/
-
-/-- The linear map `(s, t) ↦ (t, -s)` of `ℂ²`. -/
-def perpLinearMap : (Fin 2 → ℂ) →ₗ[ℂ] (Fin 2 → ℂ) where
-  toFun w := ![w 1, -w 0]
-  map_add' v w := by ext i; fin_cases i <;> simp [add_comm]
-  map_smul' a w := by ext i; fin_cases i <;> simp
-
-@[simp]
-theorem perpLinearMap_apply_zero (w : Fin 2 → ℂ) : perpLinearMap w 0 = w 1 :=
-  (rfl)
-
-@[simp]
-theorem perpLinearMap_apply_one (w : Fin 2 → ℂ) : perpLinearMap w 1 = -w 0 :=
-  (rfl)
-
-@[simp]
-theorem perpLinearMap_perpLinearMap (w : Fin 2 → ℂ) : perpLinearMap (perpLinearMap w) = -w := by
-  ext i; fin_cases i <;> simp
-
-theorem perpLinearMap_injective : Function.Injective perpLinearMap := fun v w h ↦ by
-  simpa using congrArg perpLinearMap h
-
-@[simp]
-theorem perpLinearMap_eq_zero_iff {w : Fin 2 → ℂ} : perpLinearMap w = 0 ↔ w = 0 :=
-  (injective_iff_map_eq_zero' _).1 perpLinearMap_injective w
-
-theorem continuous_perpLinearMap : Continuous perpLinearMap :=
-  LinearMap.continuous_of_finiteDimensional _
-
-/-- The line map `[s : t] ↦ [t : -s]` of `ℙ ℂ ℂ²`, induced by `perpLinearMap`. -/
-noncomputable def perpLine (ℓ : ℙ ℂ (Fin 2 → ℂ)) : ℙ ℂ (Fin 2 → ℂ) :=
-  map perpLinearMap perpLinearMap_injective ℓ
-
-@[simp]
-theorem perpLine_mk (w : Fin 2 → ℂ) (hw : w ≠ 0) :
-    perpLine (mk ℂ w hw) = mk ℂ (perpLinearMap w) (perpLinearMap_eq_zero_iff.not.2 hw) :=
-  map_mk _ _ _ _
-
-@[simp]
-theorem perpLine_perpLine (ℓ : ℙ ℂ (Fin 2 → ℂ)) : perpLine (perpLine ℓ) = ℓ := by
-  induction ℓ using ind with
-  | h w hw =>
-    rw [perpLine_mk, perpLine_mk, mk_eq_mk_iff']
-    exact ⟨-1, by simp⟩
-
-theorem perpLine_involutive : Function.Involutive perpLine :=
-  perpLine_perpLine
-
-theorem continuous_perpLine : Continuous perpLine :=
-  continuous_map perpLinearMap_injective continuous_perpLinearMap
-
-/-- For `w ≠ 0`, the vectors `z` with `w₀ z₀ + w₁ z₁ = 0` are the multiples of `(w₁, -w₀)`. -/
-theorem mem_span_perp_iff {w : Fin 2 → ℂ} (hw : w ≠ 0) (z : Fin 2 → ℂ) :
-    z ∈ ℂ ∙ perpLinearMap w ↔ w 0 * z 0 + w 1 * z 1 = 0 := by
-  rw [Submodule.mem_span_singleton]
-  constructor
-  · rintro ⟨a, rfl⟩
-    simp only [Pi.smul_apply, perpLinearMap_apply_zero, perpLinearMap_apply_one, smul_eq_mul]
-    ring
-  · intro h
-    have hw' : w 0 ≠ 0 ∨ w 1 ≠ 0 := by
-      by_contra! h'
-      exact hw (funext fun i ↦ by fin_cases i <;> simp [h'])
-    rcases hw' with h0 | h1
-    · refine ⟨-z 1 / w 0, funext fun i ↦ ?_⟩
-      fin_cases i
-      · simp only [Fin.zero_eta, Fin.isValue, Pi.smul_apply, perpLinearMap_apply_zero,
-          smul_eq_mul]
-        field_simp
-        linear_combination -h
-      · simp only [Fin.mk_one, Fin.isValue, Pi.smul_apply, perpLinearMap_apply_one, smul_eq_mul]
-        field_simp
-    · refine ⟨z 0 / w 1, funext fun i ↦ ?_⟩
-      fin_cases i
-      · simp only [Fin.zero_eta, Fin.isValue, Pi.smul_apply, perpLinearMap_apply_zero,
-          smul_eq_mul]
-        field_simp
-      · simp only [Fin.mk_one, Fin.isValue, Pi.smul_apply, perpLinearMap_apply_one, smul_eq_mul]
-        field_simp
-        linear_combination -h
-
-/-- A vector `z` lies on the line `perpLine (mk ℂ w hw)` exactly when `w₀ z₀ + w₁ z₁ = 0`. -/
-theorem mem_submodule_perpLine_mk_iff {w : Fin 2 → ℂ} (hw : w ≠ 0) (z : Fin 2 → ℂ) :
-    z ∈ (perpLine (mk ℂ w hw)).submodule ↔ w 0 * z 0 + w 1 * z 1 = 0 := by
-  rw [perpLine_mk, submodule_mk, mem_span_perp_iff hw]
-
-/-- A vector `z` lies on the line `perpLine ℓ` exactly when `s z₀ + t z₁ = 0` for the
-representative `(s, t)` of `ℓ`. -/
-theorem mem_submodule_perpLine_iff (ℓ : ℙ ℂ (Fin 2 → ℂ)) (z : Fin 2 → ℂ) :
-    z ∈ (perpLine ℓ).submodule ↔ ℓ.rep 0 * z 0 + ℓ.rep 1 * z 1 = 0 := by
-  conv_lhs => rw [← mk_rep ℓ]
-  exact mem_submodule_perpLine_mk_iff ℓ.rep_ne_zero z
-
 /-! ### The incidence set of the pencil -/
 
 /-- The incidence set of the pencil of lines of `ℂ²` through `0`: the pairs `(z, ℓ)` with
@@ -159,13 +60,14 @@ theorem mem_pencilIncidence_iff {p : (Fin 2 → ℂ) × ℙ ℂ (Fin 2 → ℂ)}
 
 /-- `(z, ℓ)` lies in the incidence set exactly when `z` lies on the line `perpLine ℓ`. -/
 theorem mem_pencilIncidence_iff_mem_submodule {p : (Fin 2 → ℂ) × ℙ ℂ (Fin 2 → ℂ)} :
-    p ∈ pencilIncidence ↔ p.1 ∈ (perpLine p.2).submodule :=
-  (mem_submodule_perpLine_iff p.2 p.1).symm
+    p ∈ pencilIncidence ↔ p.1 ∈ (perpLine p.2).submodule := by
+  rw [mem_submodule_perpLine_iff, Matrix.vec2_dotProduct, mem_pencilIncidence_iff]
 
 @[simp]
 theorem mk_mem_pencilIncidence_iff {z w : Fin 2 → ℂ} (hw : w ≠ 0) :
     (z, mk ℂ w hw) ∈ pencilIncidence ↔ w 0 * z 0 + w 1 * z 1 = 0 := by
-  rw [mem_pencilIncidence_iff_mem_submodule, mem_submodule_perpLine_mk_iff]
+  rw [mem_pencilIncidence_iff_mem_submodule, mem_submodule_perpLine_mk_iff,
+    Matrix.vec2_dotProduct]
 
 theorem isClosed_pencilIncidence : IsClosed pencilIncidence := by
   have h : pencilIncidence = (fun p ↦ (perpLine p.2, p.1)) ⁻¹' blowupModel 1 := by
@@ -173,8 +75,7 @@ theorem isClosed_pencilIncidence : IsClosed pencilIncidence := by
     rw [mem_preimage, mem_blowupModel_iff]
     exact mem_pencilIncidence_iff_mem_submodule
   rw [h]
-  exact (isClosed_blowupModel 1).preimage
-    ((continuous_perpLine.comp continuous_snd).prodMk continuous_fst)
+  exact (isClosed_blowupModel 1).preimage (by fun_prop)
 
 /-- The part of `pencilIncidence` over the ball of radius `r` of `ℂ²`, in the Euclidean norm
 that `openNbhd` uses. -/
@@ -190,7 +91,6 @@ theorem mk_mem_pencilNbhd_iff {r : ℝ} {z w : Fin 2 → ℂ} (hw : w ≠ 0) :
     (z, mk ℂ w hw) ∈ pencilNbhd r ↔
       w 0 * z 0 + w 1 * z 1 = 0 ∧ ‖complexToRealEuclidean (Fin 2) z‖ < r := by
   rw [mem_pencilNbhd_iff, mk_mem_pencilIncidence_iff]
-
 
 /-! ### The homeomorphism with `openNbhd 1 r` -/
 
@@ -209,14 +109,8 @@ noncomputable def pencilNbhdHomeomorph (r : ℝ) : pencilNbhd r ≃ₜ openNbhd 
       mem_openNbhd_iff.1 p.property⟩⟩
   left_inv p := Subtype.ext (Prod.ext (blowdown_mk _ _ _) (by simp))
   right_inv p := Subtype.ext (ext (by simp) (blowdown_mk _ _ _))
-  continuous_toFun := by
-    refine Continuous.subtype_mk (Continuous.subtype_mk ?_ _) _
-    exact (continuous_perpLine.comp (continuous_snd.comp continuous_subtypeVal)).prodMk
-      (continuous_fst.comp continuous_subtypeVal)
-  continuous_invFun := by
-    refine Continuous.subtype_mk ?_ _
-    exact ((continuous_blowdown.comp continuous_subtypeVal).prodMk
-      (continuous_perpLine.comp (continuous_pr.comp continuous_subtypeVal)))
+  continuous_toFun := by fun_prop
+  continuous_invFun := by fun_prop
 
 variable {r : ℝ}
 
@@ -231,7 +125,7 @@ theorem pr_pencilNbhdHomeomorph_apply (p : pencilNbhd r) :
   pr_mk _ _ _
 
 @[simp]
-theorem pencilNbhdHomeomorph_symm_apply (p : openNbhd 1 r) :
+theorem coe_pencilNbhdHomeomorph_symm_apply (p : openNbhd 1 r) :
     ((pencilNbhdHomeomorph r).symm p).val = (p.val.blowdown, perpLine p.val.pr) :=
   (rfl)
 
