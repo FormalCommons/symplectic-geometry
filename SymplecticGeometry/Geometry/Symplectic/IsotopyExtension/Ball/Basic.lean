@@ -8,6 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.Instances.Real
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+public import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 import SymplecticGeometry.Analysis.Calculus.DifferentialForm.Poincare
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Neighborhood
@@ -66,6 +67,8 @@ constant family), which contains a larger closed ball
   ball `B(r')` with `r' ≤ r` onto a compact set.
 * `SymplecticGeometry.IsSymplecticBallEmbedding.injective_mfderiv`: for `0 < r`, it is an
   immersion along `B(r)`.
+* `SymplecticGeometry.IsSymplecticBallEmbedding.isSymplecticMapOn`: it is a symplectic map from
+  `ω₀` to `σ` on the open ball.
 * `SymplecticGeometry.IsSymplecticBallEmbedding.isLocalDiffeomorphOn`,
   `SymplecticGeometry.IsSymplecticBallEmbedding.toPartialDiffeomorph`: into a manifold of the
   same finite dimension, a symplectic embedding of `B(r)` is a local diffeomorphism on the open
@@ -196,6 +199,13 @@ theorem injective_mfderiv (hj : IsSymplecticBallEmbedding σ r j) (hr : 0 < r)
   SmoothTwoForm.injective_mfderiv_of_mpullback_apply_eq
     ((SymplecticForm.isNondegenerate_constSmooth _).nondegenerate_bilinFormAt z)
     (hj.mpullback_eq_of_mem_closedBall hr hz)
+
+/-- A symplectic embedding of `B(r)` is a symplectic map from `ω₀` to `σ` on the open ball. -/
+theorem isSymplecticMapOn (hj : IsSymplecticBallEmbedding σ r j) :
+    SmoothTwoForm.IsSymplecticMapOn (stdForm (Fin n)).constSmooth σ j (ball 0 r) :=
+  SmoothTwoForm.isSymplecticMapOn_iff.2 fun _ hz v w ↦ by
+  rw [SmoothBundleForm.eval₂_apply, SmoothBundleForm.eval₂_apply, ← mpullback_apply_pair,
+    hj.mpullback_eq hz]
 
 variable [FiniteDimensional ℝ E]
 

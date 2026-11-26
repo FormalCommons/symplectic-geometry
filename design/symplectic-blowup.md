@@ -368,11 +368,8 @@ $B(\lambda)$.
   $\psi(B(\sqrt{\lambda^2+\delta^2}))$), `SecondCountableTopology`.
 - `form ψ λ ε` ($\tilde\omega_\psi$): $\omega$ on the first piece and
   `blowupForm n λ` on the second, which agree on the overlap by
-  `shellSymplectomorph`; `form_inl`, `form_inr`, `isSymplectic_form`.
-  The gluing of a form from two pieces is stated through
-  `IsCompatible.partialDiffeomorphι` and Tau Ceti's locality of forms; if
-  neither library has the two-piece gluing of forms, the issue adds it in
-  a general file under `Geometry/Manifold/Gluing/`.
+  `shellSymplectomorph`; `mpullback_inl_form`, `mpullback_inr_form`,
+  `isSymplectic_form`. The form is glued by `GluedAlong.gluedForm`.
 - `divisor ψ λ ε`: `inr ∘ zeroSection`, a `TauCeti.SmoothEmbedding` with
   `mpullback_divisor_form` ($\lambda^2\omega_{\mathrm{FS}}$), so a
   symplectic submanifold (`IsSymplecticSubmanifoldEmbedding`), and
