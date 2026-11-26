@@ -12,7 +12,7 @@ import Mathlib.Geometry.Manifold.Instances.Icc
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.RightInverse
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.UniqueDifferential
-import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Extension
+import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Family
 import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Frame
 import TauCeti.Analysis.Normed.Module.Alternating.Curry
 import TauCeti.Geometry.Manifold.Diffeomorph.Basic

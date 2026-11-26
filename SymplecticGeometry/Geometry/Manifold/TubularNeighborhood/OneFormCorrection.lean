@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Manifold.TubularNeighborhood.Existence
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.VectorBundlePoincare
 import Mathlib.Geometry.Manifold.PartitionOfUnity
 import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 
 /-!
 # Correcting a family of one-forms to vanish along a submanifold
@@ -109,7 +110,7 @@ theorem exists_contMDiff_mextDeriv_eq_mpullback_prodMk [CompactSpace Q]
     have hsmooth : ContMDiff I (J.prod 𝓘(ℝ, P)) ∞ fun w : W ↦ ψ w := by
       simp only [hψW]
       exact Φ.symm.contMDiff
-    exact contMDiffAt_subtype_iff (x := ⟨x, hx⟩).1 (hsmooth _)
+    exact (contMDiff_subtype_iff.1 hsmooth).contMDiffAt (W.isOpen.mem_nhds hx)
   have hΦψ {x : M} (hx : x ∈ W) : Φ' (ψ x) = x := by
     simp [Φ', ψ, hx]
   have hψf (q : Q) : ψ (f q) = zeroSection P N q := by
