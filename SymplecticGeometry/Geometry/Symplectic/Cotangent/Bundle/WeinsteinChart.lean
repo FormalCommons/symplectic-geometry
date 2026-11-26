@@ -9,7 +9,11 @@ public import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Liouville
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 public import TauCeti.Geometry.Manifold.Diffeomorph.Cotangent
 public import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
+public import TauCeti.Geometry.Manifold.VectorBundle.FiberScaling
 import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.VectorBundlePoincare
+import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
+import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Graph
 import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Lift
 
 /-!
@@ -39,10 +43,22 @@ restriction of `σ` to `V`; theorems that need only it take that hypothesis.
 * `SymplecticGeometry.CotangentBundle.IsWeinsteinChart.cotangent_subtype_trans`: the same
   precomposition gives a Weinstein chart of `f ∘ a`, as cotangent lifts preserve `ω` (Tau Ceti's
   `Diffeomorph.mpullback_cotangent_symplecticForm`).
+* `SymplecticGeometry.CotangentBundle.AgreesOnZeroSection.contMDiff`: a map that agrees with `ι`
+  on the zero section is smooth, being `ι` composed with the zero section.
+* `SymplecticGeometry.CotangentBundle.IsWeinsteinChart.exists_contMDiff_mextDeriv_ofFunction_eq`:
+  if `θ` is a primitive of `σ` (`dθ = σ`) and `f^*θ = dh`, then `ι^*θ - λ`, for the Liouville form
+  `λ`, has a smooth primitive on every set `W` that contains the zero section, has closure in `U`
+  and is stable under fibre scaling by `t ∈ [0, 1]`. The form `ι^*θ - λ` is closed on `U`, as
+  `ι^*σ = -ω = dλ`, and pulls back to `f^*θ = dh` along the zero section, where `λ` vanishes; the
+  relative Poincaré lemma `TauCeti.exists_contMDiff_mextDeriv_ofFunction_eq_of_mextDerivₗ_eq_zero`
+  then gives the primitive.
 
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §3.4.
+* [P. Seidel, *A long exact sequence for symplectic Floer cohomology*][Seidel2003], the paragraph
+  before Proposition 1.11 (arXiv version 2).
+* [A. Cannas da Silva, *Lectures on Symplectic Geometry*][CannasdaSilva2001Lectures], §6.2.
 -/
 
 public section
@@ -89,6 +105,24 @@ theorem AgreesOnZeroSection.cotangent_subtype_trans (hι : AgreesOnZeroSection f
   rw [Diffeomorph.coe_trans, Function.comp_apply, Function.comp_apply, ← hq]
   exact congrArg (fun w ↦ (ι w : M)) (Subtype.ext ((a.cotangent.subtype_apply_coe hUU' _).trans hc))
 
+/-- The zero section of `T*L`, as a map into the domain `U` of a map that agrees with `f` on it,
+is smooth. -/
+theorem AgreesOnZeroSection.contMDiff_zeroSection (hι : AgreesOnZeroSection f ι) :
+    ContMDiff J (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) ∞
+      (fun q ↦ (⟨_, (hι.exists_apply_eq q).1⟩ : U)) :=
+  (ContMDiff.subtypeVal_comp_iff U _).1 (Bundle.contMDiff_zeroSection ℝ _)
+
+/-- Composing `ι` with the zero section, as a map into `U`, gives `f`. -/
+theorem AgreesOnZeroSection.subtypeVal_comp_comp_eq (hι : AgreesOnZeroSection f ι) :
+    Subtype.val ∘ ι ∘ (fun q ↦ (⟨_, (hι.exists_apply_eq q).1⟩ : U)) = f :=
+  funext fun q ↦ (hι.exists_apply_eq q).2
+
+/-- A map that agrees on the zero section with a diffeomorphism `ι` from an open set of `T*L` is
+smooth. -/
+theorem AgreesOnZeroSection.contMDiff (hι : AgreesOnZeroSection f ι) : ContMDiff J I ∞ f :=
+  hι.subtypeVal_comp_comp_eq ▸
+    contMDiff_subtypeVal.comp (ι.contMDiff.comp hι.contMDiff_zeroSection)
+
 end ZeroSection
 
 section Weinstein
@@ -120,6 +154,46 @@ theorem IsWeinsteinChart.cotangent_subtype_trans {σ : SmoothTwoForm I M} {f : L
     ((SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq.2 (by
       rw [map_neg, Diffeomorph.mpullback_cotangent_symplecticForm])).subtype hUU').trans
       hι.isSymplectomorphism (by simp)
+
+/-- **A primitive of `ι^*θ - λ` near the zero section.** Let `ι : U ≃ V` be a Weinstein chart of
+`f : L → M` for `σ`, on a finite-dimensional Hausdorff σ-compact manifold `L`. Let `θ` be a
+one-form on `M` with `dθ = σ` whose pullback along `f` is `dh` for a smooth function `h` on `L`,
+and let `λ` be the Liouville form of `T*L`. For every set `W` of `T*L` that contains the zero
+section, has closure in `U` and is mapped into itself by the fibre scaling by each `t ∈ [0, 1]`,
+there is a smooth function `g` on `T*L` with `dg = ι^*θ - λ` at each point of `W`. -/
+theorem IsWeinsteinChart.exists_contMDiff_mextDeriv_ofFunction_eq [FiniteDimensional ℝ E]
+    [T2Space L] [SigmaCompactSpace L] {σ : SmoothTwoForm I M} {f : L → M}
+    {ι : U ≃ₘ⟮J.prod 𝓘(ℝ, E →L[ℝ] ℝ), I⟯ V} (hι : IsWeinsteinChart σ f ι)
+    {θ : SmoothForm I M ℝ 1} (hθ : mextDerivₗ I 1 θ = σ) {h : L → ℝ}
+    (hh : ContMDiff J 𝓘(ℝ) ∞ h) (hθh : mpullback J I f θ.val = mextDeriv (RoughForm.ofFunction J h))
+    {W : Set (CotangentBundle J L)}
+    (hW : ∀ z ∈ W, ∀ t, vectorBundleFiberScaling (E →L[ℝ] ℝ)
+      (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ) (z, t) ∈ W)
+    (hWU : closure W ⊆ U) (h0 : ∀ q, zeroSection (E →L[ℝ] ℝ)
+      (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ) q ∈ W) :
+    ∃ g : CotangentBundle J L → ℝ, ContMDiff (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) 𝓘(ℝ) ∞ g ∧
+      ∀ z (hz : z ∈ W), mextDeriv (RoughForm.ofFunction (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) g) z =
+        (SmoothForm.mpullback ι ι.contMDiff
+            (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal θ) -
+          SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (liouvilleForm J L)).val
+          ⟨z, hWU (subset_closure hz)⟩ := by
+  refine exists_contMDiff_mextDeriv_ofFunction_eq_of_mextDerivₗ_eq_zero hW hWU h0 ?_ hh ?_
+  · -- `d (ι^*θ - λ) = ι^*σ - dλ = ι^*σ + ω`, which vanishes as `ι` is a Weinstein chart.
+    have hs := SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq.1 hι.isSymplectomorphism
+    rw [map_sub, SmoothForm.mextDerivₗ_mpullback, SmoothForm.mextDerivₗ_mpullback,
+      SmoothForm.mextDerivₗ_mpullback, hθ, hs, symplecticForm_eq_neg_mextDerivₗ, neg_neg, sub_self]
+  · -- Along the zero section, `ι^*θ` pulls back to `f^*θ = dh` and `λ` to `0`.
+    rw [← SmoothForm.coe_mpullback _ hι.contMDiff_zeroSection, map_sub,
+      SmoothForm.mpullback_mpullback, SmoothForm.mpullback_mpullback,
+      SmoothForm.mpullback_mpullback, Submodule.coe_sub, SmoothForm.coe_mpullback,
+      SmoothForm.coe_mpullback, hι.subtypeVal_comp_comp_eq, hθh]
+    -- The zero section, as a map into `U`, followed by the inclusion of `U` is the zero section.
+    have hzs : (Subtype.val ∘ fun q ↦ (⟨_, (hι.exists_apply_eq q).1⟩ : U)) =
+        zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ) := rfl
+    have hzero := (isExactLagrangianMap_zeroSection (I := J) (M := L)).mpullback_eq
+    rw [mextDeriv_ofFunction_zero] at hzero
+    rw [hzs]
+    exact sub_eq_self.2 hzero
 
 end Weinstein
 
