@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Char
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.TransAffine
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.Darboux
 public import SymplecticGeometry.LinearAlgebra.Symplectic.UnitaryNormalForm
+import SymplecticGeometry.Analysis.Normed.Module.Ball.Pointwise
 import SymplecticGeometry.Topology.Algebra.Module.Equiv.Basic
 
 /-!
@@ -243,6 +244,12 @@ omit [I.Boundaryless]
 variable {σ : SmoothTwoForm I M} {J : SmoothAlmostComplexStructure I M}
   (D : CenteredDarbouxCharts σ J ι) (c : ℝˣ) (x : M)
 
+/-- On a nonempty manifold, each bound of centred Darboux charts is nonnegative, since it bounds
+a norm. -/
+theorem bound_nonneg [Nonempty M] (r : ℕ) : 0 ≤ D.bound r :=
+  (norm_nonneg _).trans
+    (D.norm_iteratedFDeriv_le r (Classical.arbitrary M) 0 (mem_ball_self D.radius_pos))
+
 /-- The centred chart at `x` rescaled by `c`: the chart `D.chart x` followed by `z ↦ c • z`. -/
 noncomputable def rescaledChart : PartialDiffeomorph I 𝓘(ℝ, StdSpace ι) M (StdSpace ι) ∞ :=
   (D.chart x).transAffine 0 (ContinuousLinearEquiv.smulLeft c)
@@ -265,23 +272,38 @@ theorem rescaledChart_apply (y : M) : D.rescaledChart c x y = (c : ℝ) • D.ch
 theorem rescaledChart_apply_self : D.rescaledChart c x x = 0 := by
   simp [D.apply_self x]
 
+theorem rescaledChart_symm_apply (z : StdSpace ι) :
+    (D.rescaledChart c x).symm z = (D.chart x).symm ((c : ℝ)⁻¹ • z) := by
+  rw [rescaledChart_def, PartialDiffeomorph.transAffine_symm_apply,
+    ContinuousLinearEquiv.smulLeft_symm_apply, add_zero, Units.smul_def, Units.val_inv_eq_inv_val]
+
+/-- The form of `rescaledChart_symm_apply` that `simp` uses, since `simp` writes the inverse of a
+partial diffeomorphism through its underlying partial equivalence. -/
+@[simp]
+theorem rescaledChart_toPartialEquiv_symm_apply (z : StdSpace ι) :
+    (D.rescaledChart c x).toPartialEquiv.symm z =
+      (D.chart x).toPartialEquiv.symm ((c : ℝ)⁻¹ • z) := by
+  simp [rescaledChart_def, Units.smul_def]
+
 @[simp]
 theorem mem_rescaledChart_target_iff {z : StdSpace ι} :
     z ∈ (D.rescaledChart c x).target ↔ (c : ℝ)⁻¹ • z ∈ (D.chart x).target := by
   simp [rescaledChart_def, Units.smul_def]
 
-/-- A point of the ball of radius `|c| * D.radius` about `0`, scaled by `c⁻¹`, lies in the ball of
-radius `D.radius`. -/
-theorem inv_smul_mem_ball {z : StdSpace ι} (hz : z ∈ ball 0 (|(c : ℝ)| * D.radius)) :
-    (c : ℝ)⁻¹ • z ∈ ball (0 : StdSpace ι) D.radius :=
-  (Set.mem_smul_set_iff_inv_smul_mem₀ c.ne_zero _ _).1
-    (by rwa [smul_ball c.ne_zero, smul_zero, Real.norm_eq_abs])
+/-- The derivative of the chart rescaled by `c` is `c` times that of `D.chart x`, at every
+point. -/
+theorem mvfderiv_rescaledChart (y : M) :
+    mvfderiv I (D.rescaledChart c x) y = (c : ℝ) • mvfderiv I (D.chart x) y := by
+  rw [rescaledChart_def, PartialDiffeomorph.mvfderiv_transAffine,
+    ContinuousLinearEquiv.coe_smulLeft, ContinuousLinearMap.smul_comp,
+    ContinuousLinearMap.id_comp]
 
 /-- The target of the chart rescaled by `c` contains the ball of radius `|c| * D.radius`
 about `0`. -/
 theorem ball_subset_rescaledChart_target :
     ball 0 (|(c : ℝ)| * D.radius) ⊆ (D.rescaledChart c x).target := fun _ hz ↦
-  (D.mem_rescaledChart_target_iff c x).2 (D.ball_subset_target x (D.inv_smul_mem_ball c hz))
+  (D.mem_rescaledChart_target_iff c x).2 (D.ball_subset_target x
+    ((inv_smul_mem_ball_zero_iff c.ne_zero).2 (by rwa [Real.norm_eq_abs])))
 
 /-- The chart rescaled by `c` pulls `stdForm ι` back to `c ^ 2 • σ` on its source. -/
 theorem eval₂_rescaledChart (y : M) (hy : y ∈ (D.rescaledChart c x).source)
@@ -289,11 +311,8 @@ theorem eval₂_rescaledChart (y : M) (hy : y ∈ (D.rescaledChart c x).source)
     (c : ℝ) ^ 2 * σ.eval₂ y v w =
       stdForm ι (mvfderiv I (D.rescaledChart c x) y v)
         (mvfderiv I (D.rescaledChart c x) y w) := by
-  rw [rescaledChart_def, PartialDiffeomorph.mvfderiv_transAffine, ContinuousLinearMap.comp_apply,
-    ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
-    ContinuousLinearEquiv.smulLeft_apply_apply, ContinuousLinearEquiv.smulLeft_apply_apply,
-    Units.smul_def, Units.smul_def, D.eval₂_eq x y (by simpa using hy) v w]
-  simp only [map_smul, LinearMap.smul_apply, smul_eq_mul]
+  rw [mvfderiv_rescaledChart, D.eval₂_eq x y (by simpa using hy) v w]
+  simp only [smul_apply, map_smul, LinearMap.smul_apply, smul_eq_mul]
   ring
 
 /-- `J` read in the chart rescaled by `c`, at a point `z` of its target, is `J` read in
@@ -315,7 +334,8 @@ theorem norm_chartPushforward_rescaledChart_sub_le [I.Boundaryless] {z : StdSpac
         LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap‖ ≤
       D.bound 1 * |(c : ℝ)|⁻¹ * ‖z‖ := by
   set ψ := (D.chart x).toOpenPartialHomeomorph
-  have hz' := D.inv_smul_mem_ball c hz
+  have hz' : (c : ℝ)⁻¹ • z ∈ ball (0 : StdSpace ι) D.radius :=
+    (inv_smul_mem_ball_zero_iff c.ne_zero).2 (by rwa [Real.norm_eq_abs])
   have h0 : J.chartPushforward ψ 0 =
       LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap := by
     exact ContinuousLinearMap.ext (D.chartPushforward_zero x)
@@ -340,22 +360,21 @@ theorem norm_iteratedFDeriv_chartPushforward_rescaledChart_le (r : ℕ) {z : Std
     ‖iteratedFDeriv ℝ r (J.chartPushforward (D.rescaledChart c x).toOpenPartialHomeomorph) z‖ ≤
       D.bound r * |(c : ℝ)|⁻¹ ^ r := by
   have hc : 0 < |(c : ℝ)| := abs_pos.2 c.ne_zero
-  have hz' := D.inv_smul_mem_ball c hz
-  have hA : ‖((ContinuousLinearEquiv.smulLeft c : StdSpace ι ≃L[ℝ] StdSpace ι) :
-      StdSpace ι →L[ℝ] StdSpace ι)‖ ≤ |(c : ℝ)| :=
-    ContinuousLinearMap.opNorm_le_bound _ hc.le fun v ↦ by simp [Units.smul_def, norm_smul]
-  have hA' : ‖((ContinuousLinearEquiv.smulLeft c : StdSpace ι ≃L[ℝ] StdSpace ι).symm :
-      StdSpace ι →L[ℝ] StdSpace ι)‖ ≤ |(c : ℝ)|⁻¹ :=
-    ContinuousLinearMap.opNorm_le_bound _ (inv_nonneg.2 hc.le) fun v ↦ by
-      simp [Units.smul_def, norm_smul]
+  have hz' : (c : ℝ)⁻¹ • z ∈ ball (0 : StdSpace ι) D.radius :=
+    (inv_smul_mem_ball_zero_iff c.ne_zero).2 (by rwa [Real.norm_eq_abs])
   have h := J.norm_iteratedFDeriv_chartPushforward_transAffine_le (D.chart x) 0
     (ContinuousLinearEquiv.smulLeft c) r (D.ball_subset_rescaledChart_target c x hz)
-  rw [← rescaledChart_def, ContinuousLinearEquiv.smulLeft_symm_apply, add_zero, Units.smul_def,
-    Units.val_inv_eq_inv_val] at h
+  rw [← rescaledChart_def, ContinuousLinearEquiv.smulLeft_symm, ContinuousLinearEquiv.coe_smulLeft,
+    ContinuousLinearEquiv.coe_smulLeft, ContinuousLinearEquiv.smulLeft_apply_apply, add_zero,
+    Units.smul_def, Units.val_inv_eq_inv_val] at h
   calc _ ≤ _ := h
     _ ≤ |(c : ℝ)| * |(c : ℝ)|⁻¹ ^ (r + 1) * D.bound r := by
         gcongr
-        exact D.norm_iteratedFDeriv_le r x _ hz'
+        · exact (ContinuousLinearMap.opNorm_smul_le _ _).trans
+            (by simpa using ContinuousLinearMap.norm_id_le)
+        · exact (ContinuousLinearMap.opNorm_smul_le _ _).trans
+            (by simpa using ContinuousLinearMap.norm_id_le)
+        · exact D.norm_iteratedFDeriv_le r x _ hz'
     _ = D.bound r * |(c : ℝ)|⁻¹ ^ r * (|(c : ℝ)| * |(c : ℝ)|⁻¹) := by ring
     _ = D.bound r * |(c : ℝ)|⁻¹ ^ r := by rw [mul_inv_cancel₀ hc.ne', mul_one]
 
@@ -369,9 +388,9 @@ theorem norm_iteratedFDeriv_chartPushforward_rescaledChart_le_of_one_le {r : ℕ
   have hc₀ : 0 < (c : ℝ) := zero_lt_one.trans_le hc
   rw [← abs_of_pos hc₀] at hz ⊢
   refine (D.norm_iteratedFDeriv_chartPushforward_rescaledChart_le c x r hz).trans ?_
-  have hB : 0 ≤ D.bound r :=
-    (norm_nonneg _).trans (D.norm_iteratedFDeriv_le r x 0 (mem_ball_self D.radius_pos))
+  have : Nonempty M := ⟨x⟩
   gcongr
+  · exact D.bound_nonneg r
   exact pow_le_of_le_one (inv_nonneg.2 (abs_nonneg _))
     (inv_le_one_of_one_le₀ (by rwa [abs_of_pos hc₀])) hr
 
