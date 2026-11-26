@@ -5,8 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Analysis.InnerProductSpace.Calculus
 public import Mathlib.Geometry.Manifold.Algebra.Structures
 public import Mathlib.Geometry.Manifold.PartitionOfUnity
+public import TauCeti.Analysis.InnerProductSpace.Calculus
 public import TauCeti.Geometry.Manifold.Morse.Hessian
 
 /-!
@@ -27,13 +29,22 @@ critical Hessian of `f * g` is `f x` times that of `g`
 derivative of the coordinate expressions (Tau Ceti's `TauCeti.fderiv_fderiv_add` and
 `TauCeti.fderiv_fderiv_mul_apply`).
 
+For a map `φ : M → W` into a normed group and a zero `x` of `φ` that is an interior point, the
+function `p ↦ ‖φ p‖²` has a minimum, hence a critical point, at `x`
+(`TauCeti.mem_criticalPoints_norm_sq_of_eq_zero`). If moreover `W` is a real inner product space,
+`M` is boundaryless and `φ` is `C²` at `x`, its critical Hessian there is `2 ⟪dφ u, dφ w⟫`
+(`TauCeti.criticalHessian_norm_sq_apply_of_eq_zero`), by the second-order chain rule and Tau
+Ceti's `TauCeti.fderiv_fderiv_norm_sq_apply`.
+
 For a smooth partition of unity `φ` subordinate to `U`, and functions `g i` that are `C²`, vanish
 and are critical at an interior point `q` whenever `q ∈ U i`, the critical Hessian of
 `∑ᶠ i, φ i • g i` at `q` is `∑ φ i q • criticalHessian I (g i) q`
 (`SmoothPartitionOfUnity.criticalHessian_finsum_smul`), so it is positive on a vector on which all
 these Hessians are (`SmoothPartitionOfUnity.criticalHessian_finsum_smul_pos`). This adapts Tau
 Ceti's first-order `SmoothPartitionOfUnity.mvfderiv_finsum_smul_pos` to second derivatives, with
-the same steps.
+the same steps. The same holds for a finite sum `∑ i ∈ s, b i * g i` of functions `g i` cut
+off by nonnegative functions `b i` supported where `g i` has these properties
+(`TauCeti.criticalHessian_sum_mul_pos`).
 
 ## References
 
@@ -101,7 +112,77 @@ theorem criticalHessian_mul_of_mem_criticalPoints (hf : ContMDiffAt I 𝓘(ℝ) 
     criticalHessian_apply_eq_fderiv_fderiv]
   simp [hg0]
 
+/-- **The critical Hessian of a finite sum of cut-off functions at a common critical zero.** Let
+`x` be an interior point and `s` a finite set of indices. For `i ∈ s`, let `b i` be `C²` at `x`,
+nonnegative at `x`, with topological support in `U i`, and let `g i` be `C²`, vanish, be critical,
+and have critical Hessian positive on `v` at `x` whenever `x ∈ U i`. If `b i x > 0` for some
+`i ∈ s`, then the critical Hessian of `∑ i ∈ s, b i * g i` at `x` is positive on `v`. -/
+theorem criticalHessian_sum_mul_pos {ι : Type*} {s : Finset ι} {b g : ι → M → ℝ}
+    {U : ι → Set M} (hx : I.IsInteriorPoint x) (hbU : ∀ i ∈ s, tsupport (b i) ⊆ U i)
+    (hb : ∀ i ∈ s, ContMDiffAt I 𝓘(ℝ) 2 (b i) x) (hb0 : ∀ i ∈ s, 0 ≤ b i x)
+    (hg : ∀ i ∈ s, x ∈ U i → ContMDiffAt I 𝓘(ℝ) 2 (g i) x)
+    (h0 : ∀ i ∈ s, x ∈ U i → g i x = 0) (hc : ∀ i ∈ s, x ∈ U i → x ∈ criticalPoints I (g i))
+    {v : TangentSpace I x} (hpos : ∀ i ∈ s, x ∈ U i → 0 < criticalHessian I (g i) x v v)
+    (hj : ∃ i ∈ s, 0 < b i x) :
+    0 < criticalHessian I (∑ i ∈ s, b i * g i) x v v := by
+  classical
+  -- Near `x`, the terms with `x ∉ U i` vanish, since then `x ∉ tsupport (b i)`.
+  have heq : ∑ i ∈ s, b i * g i =ᶠ[𝓝 x] ∑ i ∈ s with x ∈ U i, b i * g i := by
+    have hev : ∀ᶠ y in 𝓝 x, ∀ i ∈ s, x ∉ U i → b i y = 0 :=
+      (s.eventually_all.2 fun i hi ↦ by
+        by_cases hxi : x ∈ U i
+        · exact Eventually.of_forall fun _ h ↦ absurd hxi h
+        · filter_upwards [notMem_tsupport_iff_eventuallyEq.1 fun h ↦ hxi (hbU i hi h)]
+            with y hy _
+          exact hy)
+    filter_upwards [hev] with y hy
+    simp only [Finset.sum_apply, Pi.mul_apply, Finset.sum_filter]
+    exact Finset.sum_congr rfl fun i hi ↦ by split_ifs with h <;> simp [hy i hi, h]
+  rw [criticalHessian_congr_of_eventuallyEq heq, criticalHessian_sum _ (fun i hi ↦
+      (Finset.mem_filter.1 hi).elim fun his hxi ↦ (hb i his).mul (hg i his hxi)) hx,
+    Finset.sum_congr rfl fun i hi ↦ (Finset.mem_filter.1 hi).elim fun his hxi ↦
+      criticalHessian_mul_of_mem_criticalPoints (hb i his) (hg i his hxi) hx (h0 i his hxi)
+        (hc i his hxi)]
+  simp only [FunLike.coe_sum, Finset.sum_apply, FunLike.coe_smul,
+    Pi.smul_apply, smul_eq_mul]
+  obtain ⟨j, hjs, hj⟩ := hj
+  have hjU : x ∈ U j := hbU j hjs (subset_tsupport _ hj.ne')
+  exact Finset.sum_pos' (fun i hi ↦ (Finset.mem_filter.1 hi).elim fun his hxi ↦
+      mul_nonneg (hb0 i his) (hpos i his hxi).le)
+    ⟨j, Finset.mem_filter.2 ⟨hjs, hjU⟩, mul_pos hj (hpos j hjs hjU)⟩
+
 end Algebra
+
+section NormSq
+
+variable {E H M W : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  [TopologicalSpace M] [ChartedSpace H M] [NormedAddCommGroup W] {φ : M → W} {x : M}
+
+/-- An interior point `x` where a map `φ` into a normed group vanishes is a critical point of
+`p ↦ ‖φ p‖²`, which takes its minimum `0` there. -/
+theorem mem_criticalPoints_norm_sq_of_eq_zero (hφx : φ x = 0) (hx : I.IsInteriorPoint x) :
+    x ∈ criticalPoints I (fun p ↦ ‖φ p‖ ^ 2) := by
+  refine IsLocalMin.mem_criticalPoints (Eventually.of_forall fun p ↦ ?_) hx
+  simp only [hφx, norm_zero, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, zero_pow]
+  positivity
+
+/-- **The Hessian of `‖φ‖²` at a zero of `φ`.** On a boundaryless manifold, if a map `φ` into a
+real inner product space is `C²` at `x` and vanishes there, then the critical Hessian of
+`p ↦ ‖φ p‖²` at `x` is `2 ⟪dφ u, dφ w⟫`. -/
+theorem criticalHessian_norm_sq_apply_of_eq_zero [InnerProductSpace ℝ W] [I.Boundaryless]
+    (hφ : ContMDiffAt I 𝓘(ℝ, W) 2 φ x) (hφx : φ x = 0) (u w : TangentSpace I x) :
+    criticalHessian I (fun p ↦ ‖φ p‖ ^ 2) x u w =
+      2 * inner ℝ (E := W) (mfderiv I 𝓘(ℝ, W) φ x u) (mfderiv I 𝓘(ℝ, W) φ x w) := by
+  have hcrit : φ x ∈ criticalPoints 𝓘(ℝ, W) (fun z : W ↦ ‖z‖ ^ 2) :=
+    mem_criticalPoints_norm_sq_of_eq_zero (φ := id) hφx BoundarylessManifold.isInteriorPoint
+  -- The second-order chain rule at the critical point `φ x = 0` of `‖·‖²`.
+  have hH := criticalHessian_comp_apply (f := fun z : W ↦ ‖z‖ ^ 2) rfl
+    (contDiff_norm_sq ℝ).contMDiff.contMDiffAt hφ hcrit u w
+  rw [criticalHessian_modelSpace] at hH
+  exact hH.trans (fderiv_fderiv_norm_sq_apply (E := W) _ _ _)
+
+end NormSq
 
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]

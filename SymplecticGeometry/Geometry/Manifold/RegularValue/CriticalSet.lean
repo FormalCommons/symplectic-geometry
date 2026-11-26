@@ -27,8 +27,9 @@ Tau Ceti's own `criticalPoints` is the corresponding notion for real-valued func
   regular value, one direction of Tau Ceti's `TauCeti.isRegularValue_iff_notMem_image`.
 * `SymplecticGeometry.isClosed_criticalSet`: the critical set of a `C¹` map into a
   finite-dimensional manifold is closed, by Tau Ceti's `TauCeti.isOpen_setOf_isRegularPoint`.
-* `Diffeomorph.comp_isRegularPoint_iff` and `Diffeomorph.criticalSet_comp`: postcomposing with a
-  diffeomorphism changes neither the regular points nor the critical set. This is the
+* `Diffeomorph.comp_isRegularPoint_iff`, `Diffeomorph.comp_isRegularValue_iff` and
+  `Diffeomorph.criticalSet_comp`: postcomposing with a diffeomorphism changes neither the regular
+  points, nor the regular values (moved by the diffeomorphism), nor the critical set. This is the
   counterpart, for the target, of Tau Ceti's `Diffeomorph.isRegularPoint_comp_iff`.
 * `SymplecticGeometry.criticalSet_eq_criticalPoints`: for a real-valued function the critical
   set is Tau Ceti's `TauCeti.criticalPoints`, by
@@ -99,6 +100,16 @@ theorem _root_.Diffeomorph.comp_isRegularPoint_iff {n : WithTop ℕ∞}
   have := ((Φ.symm.isLocalDiffeomorph _).isRegularPoint hn).comp h
   rwa [← Function.comp_assoc, ← Diffeomorph.coe_trans, Diffeomorph.self_trans_symm,
     Diffeomorph.coe_refl, Function.id_comp] at this
+
+/-- Postcomposing a map with a `C^n` diffeomorphism `Φ` (`n ≠ 0`) preserves regular values:
+`Φ y` is a regular value of `Φ ∘ f` exactly when `y` is one of `f`. -/
+theorem _root_.Diffeomorph.comp_isRegularValue_iff {n : WithTop ℕ∞}
+    {E'' : Type*} [NormedAddCommGroup E''] [NormedSpace 𝕜 E''] {H'' : Type*} [TopologicalSpace H'']
+    {I'' : ModelWithCorners 𝕜 E'' H''} {N' : Type*} [TopologicalSpace N'] [ChartedSpace H'' N']
+    (Φ : N ≃ₘ^n⟮I', I''⟯ N') (hn : n ≠ 0) {f : M → N} {y : N} :
+    IsRegularValue I I'' (Φ ∘ f) (Φ y) ↔ IsRegularValue I I' f y := by
+  simp only [isRegularValue_iff, Function.comp_apply, EmbeddingLike.apply_eq_iff_eq,
+    Φ.comp_isRegularPoint_iff hn]
 
 /-- Postcomposing a map with a `C^n` diffeomorphism (`n ≠ 0`) does not change its critical set. -/
 theorem _root_.Diffeomorph.criticalSet_comp {n : WithTop ℕ∞}

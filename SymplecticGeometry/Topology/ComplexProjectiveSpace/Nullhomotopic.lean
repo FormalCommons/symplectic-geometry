@@ -35,11 +35,11 @@ For `n ≠ 0`, `ℙ ℂ V` is simply connected (`Projectivization.instSimplyConn
 by the Hurewicz theorem `g` is null-homotopic exactly when it sends the generator `[S²]`
 of `H₂(S²; ℤ)` to zero (`TopCat.Hom.nullhomotopic_iff_singularHomologyMap_eq_zero`). The pairing
 with `h` is injective on `H₂(ℙ ℂ V; ℤ)`
-(`Projectivization.bijective_singularKronecker_hyperplaneClass`), and
-`⟨h, g_*[S²]⟩ = ⟨g^* h, [S²]⟩` (`TopCat.singularKronecker_naturality`). Finally a class of
+(`Projectivization.bijective_integralKronecker_hyperplaneClass`), and
+`⟨h, g_*[S²]⟩ = ⟨g^* h, [S²]⟩` (`TopCat.integralKronecker_naturality`). Finally a class of
 `H²(S²; ℤ)` is zero exactly when it vanishes on `[S²]`, since evaluation on `[S²]` is a linear
 equivalence `H²(S²; ℤ) ≃ ℤ`
-(`TopCat.singularKronecker_singularHomologyTopCatSphereGenerator_eq_zero_iff`).
+(`TopCat.integralKronecker_singularHomologyTopCatSphereGenerator_eq_zero_iff`).
 
 In dimensions `3 ≤ k ≤ 2n`, Tau Ceti shows that `πₖ` of its model `ComplexProjectiveSpace n` of
 `ℂℙⁿ` vanishes, through the long exact sequence of the Hopf fibration
@@ -61,44 +61,11 @@ public section
 noncomputable section
 
 open CategoryTheory AlgebraicTopology Module
-open scoped LinearAlgebra.Projectivization MonoidalCategory
+open scoped LinearAlgebra.Projectivization
 
 namespace Projectivization
 
 variable {V : Type} [NormedAddCommGroup V] [NormedSpace ℂ V] {n : ℕ}
-
-section UnitCoefficients
-
-/- The Kronecker pairings in this section are those of cohomology with chain coefficients and
-cochain values `𝟙_ (ModuleCat ℤ)`, the target of `TopCat.integralCohomologyEquiv`, which carries
-the structure `ModuleCat.instLinear`; instance search would otherwise find
-`CategoryTheory.Linear.preadditiveIntLinear`, the structure of integral cohomology. -/
-attribute [local instance high] ModuleCat.instLinear
-
-/-- A class of `Hᵈ⁺²(Sᵈ⁺²; ℤ)` vanishes exactly when it vanishes on the generator `[Sᵈ⁺²]` of
-`H_{d+2}(Sᵈ⁺²; ℤ)`, with `[Sᵈ⁺²]` written out as the class that
-`TopCat.Hom.nullhomotopic_iff_singularHomologyMap_eq_zero` names; this is
-`TopCat.singularKronecker_singularHomologyTopCatSphereGenerator_eq_zero_iff`. A step of the proof
-of `nullhomotopic_iff_singularCohomologyMap_hyperplaneClass_eq_zero`, at `d = 0`. -/
-private theorem singularKronecker_sphere_eq_zero_iff (d : ℕ)
-    (c : (TopCat.diskBoundary.{0} (d + 3)).singularCohomology (𝟙_ (ModuleCat.{0} ℤ)) ℤ
-      (𝟙_ (ModuleCat.{0} ℤ)) (d + 2)) :
-    ((TopCat.diskBoundary.{0} (d + 3)).singularKronecker ℤ (d + 2) c).hom
-        ((TauCeti.reducedSingularHomologyι (ModuleCat.of ℤ ℤ) (d + 2)).app
-          (TopCat.diskBoundary.{0} (d + 3))
-          ((TauCeti.reducedSingularHomologyTopCatSphereIso (ModuleCat.of ℤ ℤ) (d + 2)).inv 1)) =
-        0 ↔ c = 0 := by
-  have hgen : TauCeti.singularHomologyTopCatSphereGenerator ℤ (d + 1) =
-      (TauCeti.reducedSingularHomologyι (ModuleCat.of ℤ ℤ) (d + 2)).app
-        (TopCat.diskBoundary.{0} (d + 3))
-        ((TauCeti.reducedSingularHomologyTopCatSphereIso (ModuleCat.of ℤ ℤ) (d + 2)).inv 1) := by
-    rw [TauCeti.singularHomologyTopCatSphereGenerator_def]
-    -- `TopCat.sphere (d + 2)` is `TopCat.diskBoundary (d + 3)` by definition
-    rfl
-  rw [← hgen]
-  exact TopCat.singularKronecker_singularHomologyTopCatSphereGenerator_eq_zero_iff _ (d + 1) c
-
-end UnitCoefficients
 
 /-- A continuous map `g` from the two-sphere `TopCat.diskBoundary 3` to the complex projective
 space `ℙ ℂ V`, with `finrank ℂ V = n + 1`, is null-homotopic if and only if it pulls the
@@ -120,14 +87,16 @@ theorem nullhomotopic_iff_singularCohomologyMap_hyperplaneClass_eq_zero
   have hz : ℙ ℂ V := g (TauCeti.sphereBasePoint 1)
   rw [TopCat.Hom.nullhomotopic_iff_singularHomologyMap_eq_zero (n := 0) (z := hz)
       fun k hk => TauCeti.subsingleton_homotopyGroup_of_lt_two hz hk,
-    ← ((TopCat.diskBoundary 3).integralCohomologyEquiv 2).map_eq_zero_iff,
-    TopCat.integralCohomologyEquiv_naturality,
-    ← (bijective_singularKronecker_hyperplaneClass hV hn).1.eq_iff' (map_zero _)]
-  refine Iff.trans ?_ (singularKronecker_sphere_eq_zero_iff 0 _)
-  rw [TopCat.singularKronecker_naturality, ModuleCat.hom_comp]
-  -- `LinearMap.comp_apply`, which `rw` cannot apply here: the two sides write the degree of
-  -- `H₂(S²; ℤ)` as `2` and as `0 + 2`
-  exact Iff.rfl
+    ← (bijective_integralKronecker_hyperplaneClass hV hn).1.eq_iff' (map_zero _)]
+  refine Iff.trans ?_
+    (TopCat.integralKronecker_singularHomologyTopCatSphereGenerator_eq_zero_iff 1 _)
+  rw [TauCeti.singularHomologyTopCatSphereGenerator_def]
+  -- `TopCat.integralKronecker_naturality`. The goal and that lemma agree only up to definitional
+  -- unfolding: the degree is `0 + 2` against `2`, the sphere `TopCat.sphere 2` against
+  -- `TopCat.diskBoundary 3`, the coefficients `ModuleCat.of ℤ ℤ` against `𝟙_ (ModuleCat ℤ)`, and
+  -- the morphism coercion `ModuleCat.Hom.hom` against `ConcreteCategory.hom`. `exact` checks
+  -- the lemma against the goal up to that unfolding.
+  exact Iff.of_eq (congrArg (· = 0) (TopCat.integralKronecker_naturality g 2 _ _)).symm
 
 
 section Higher

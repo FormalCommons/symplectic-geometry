@@ -16,6 +16,7 @@ public import TauCeti.Topology.VectorBundle.Hom
 public import TauCeti.Topology.VectorBundle.Pullback
 public import TauCeti.Topology.VectorBundle.Smul
 public import TauCeti.Topology.VectorBundle.ZeroSection
+public import SymplecticGeometry.Topology.Algebra.Projectivization
 public import SymplecticGeometry.Topology.VectorBundle.ZeroSet
 
 /-!
@@ -320,8 +321,7 @@ theorem symmL_mem_submodule {b₀ : B} {p : ProjectiveBundle 𝕜 G E} {w : G}
     (hw : w ∈ (trivializationAt (ℙ 𝕜 G) (fun b ↦ ℙ 𝕜 (E b)) b₀ p).2.submodule) :
     (trivializationAt G E b₀).symmL 𝕜 p.proj w ∈ p.snd.submodule := by
   by_cases hp : p.proj ∈ (trivializationAt G E b₀).baseSet
-  · rw [trivializationAt_apply _ hp, ContinuousLinearEquiv.coe_mapProjectivization,
-      Projectivization.submodule_map] at hw
+  · rw [trivializationAt_apply _ hp, ContinuousLinearEquiv.submodule_mapProjectivization] at hw
     obtain ⟨u, hu, rfl⟩ := hw
     rw [← Trivialization.symm_continuousLinearEquivAt_eq' _ hp, ContinuousLinearEquiv.coe_coe]
     simpa [Trivialization.symm_apply_apply_mk _ hp] using hu
@@ -334,8 +334,7 @@ theorem trivializationAt_mem_submodule {b₀ : B} {p : ProjectiveBundle 𝕜 G E
     (hp : p.proj ∈ (trivializationAt G E b₀).baseSet) {v : E p.proj} (hv : v ∈ p.snd.submodule) :
     (trivializationAt G E b₀ ⟨p.proj, v⟩).2 ∈
       (trivializationAt (ℙ 𝕜 G) (fun b ↦ ℙ 𝕜 (E b)) b₀ p).2.submodule := by
-  rw [trivializationAt_apply _ hp, ContinuousLinearEquiv.coe_mapProjectivization,
-    Projectivization.submodule_map,
+  rw [trivializationAt_apply _ hp, ContinuousLinearEquiv.submodule_mapProjectivization,
     (trivializationAt G E b₀).apply_eq_prod_continuousLinearEquivAt 𝕜 _ hp]
   exact Submodule.mem_map_of_mem hv
 

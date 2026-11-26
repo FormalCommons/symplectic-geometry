@@ -16,6 +16,7 @@ import TauCeti.Geometry.Manifold.Flow.Diffeomorph
 import TauCeti.Geometry.Manifold.VectorField.ModelChart
 import TauCeti.Geometry.Manifold.ContMDiff.MFDeriv
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Prod.Basic
+import SymplecticGeometry.Topology.VectorBundle.Basic
 
 /-!
 # Time-dependent flows: joint smoothness, uniqueness on intervals, naturality
@@ -454,7 +455,7 @@ theorem exists_timeDependentField_param_eq_curveVelocity {n : ℕ∞} {Γ : N ×
         contMDiffAt_snd).congr_of_eventuallyEq ?_
       filter_upwards [continuousAt_snd.preimage_mem_nhds
         ((isClosed_tsupport ψ).isOpen_compl.mem_nhds hy)] with p hp
-      simp [zeroSection, hV0 hp]
+      simp [zeroSection_def, hV0 hp]
   · obtain ⟨hχ1, hψ1⟩ := hUT (mk_mem_prod hc (subset_of_mem_nhdsSet hT hu))
     have hb : Γ (c, u) ∈ e.baseSet :=
       hχO (subset_tsupport _ (by simp [hχ1] : χ (c, u) ≠ 0))

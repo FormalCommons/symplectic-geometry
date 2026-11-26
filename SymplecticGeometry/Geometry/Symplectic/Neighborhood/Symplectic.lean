@@ -57,6 +57,10 @@ tangent space of `f₁` being symplectic, the difference vanishes.
   the symplectic neighbourhood theorem.
 * `TauCeti.SmoothEmbedding.symplecticNormalForm_congr`: the normal symplectic form depends only
   on the ambient form.
+* `TauCeti.SmoothEmbedding.contMDiffAt_symplecticNormalForm`: the normal symplectic form,
+  evaluated on two maps into the normal bundle that are smooth at a point, is smooth there. As in
+  the proof of Tau Ceti's `TauCeti.SmoothEmbedding.contMDiff_symplecticNormalFlat`, it is the
+  ambient form evaluated on the symplectic representatives.
 
 ## References
 
@@ -84,6 +88,40 @@ theorem symplecticNormalForm_congr {EQ HQ Q EN HN N : Type*} [NormedAddCommGroup
     f.symplecticNormalForm h₁ q hn = f.symplecticNormalForm h₂ q hn := by
   subst h
   rfl
+
+section
+
+variable {EQ HQ Q EN HN N EX HX X P : Type*} [NormedAddCommGroup EQ] [NormedSpace ℝ EQ]
+  [FiniteDimensional ℝ EQ] [TopologicalSpace HQ] {J : ModelWithCorners ℝ EQ HQ}
+  [TopologicalSpace Q] [ChartedSpace HQ Q] [IsManifold J ∞ Q]
+  [NormedAddCommGroup EN] [NormedSpace ℝ EN] [FiniteDimensional ℝ EN]
+  [TopologicalSpace HN] {K : ModelWithCorners ℝ EN HN} [TopologicalSpace N] [ChartedSpace HN N]
+  [IsManifold K ∞ N] [NormedAddCommGroup EX] [NormedSpace ℝ EX] [TopologicalSpace HX]
+  {L : ModelWithCorners ℝ EX HX} [TopologicalSpace X] [ChartedSpace HX X]
+  [NormedAddCommGroup P] [NormedSpace ℝ P] [FiniteDimensional ℝ P]
+  {σ : SmoothTwoForm K N} {hσ : σ.IsNondegenerate}
+
+/-- The normal symplectic form of a symplectic submanifold, evaluated on two maps into its normal
+bundle over the same base map that are smooth at a point, is smooth at that point. -/
+theorem contMDiffAt_symplecticNormalForm {f : SmoothEmbedding J K ∞ Q N}
+    (h : hσ.HasSymplecticTangentImages J f) (hn : (∞ : ℕ∞ω) ≠ 0)
+    (hP : finrank ℝ P = finrank ℝ EN - finrank ℝ EQ) {u : X → Q}
+    {v w : ∀ x, f.NormalSpace (u x) hn} {x₀ : X}
+    (hv : letI := f.normalSpaceFiberBundle hn hP
+      ContMDiffAt L (J.prod 𝓘(ℝ, P)) ∞
+        (fun x ↦ TotalSpace.mk' P (E := fun q ↦ f.NormalSpace q hn) (u x) (v x)) x₀)
+    (hw : letI := f.normalSpaceFiberBundle hn hP
+      ContMDiffAt L (J.prod 𝓘(ℝ, P)) ∞
+        (fun x ↦ TotalSpace.mk' P (E := fun q ↦ f.NormalSpace q hn) (u x) (w x)) x₀) :
+    ContMDiffAt L 𝓘(ℝ) ∞ (fun x ↦ f.symplecticNormalForm h (u x) hn (v x) (w x)) x₀ := by
+  let := f.normalSpaceFiberBundle hn hP
+  have hrep := f.contMDiff_symplecticNormalRepresentative h hn (m := ∞) (by simp) (by simp) hP
+  have hpair := σ.contMDiffAt_eval₂ (b := fun x ↦ f (u x)) ((hrep _).comp x₀ hv)
+    ((hrep _).comp x₀ hw)
+  rw [Bundle.contMDiffAt_totalSpace_iff] at hpair
+  simpa [Trivial.fiberBundle_trivializationAt'] using hpair.2
+
+end
 
 end TauCeti.SmoothEmbedding
 
