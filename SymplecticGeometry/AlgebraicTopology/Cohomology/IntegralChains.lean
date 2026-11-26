@@ -36,7 +36,8 @@ fundamental class.
   `SymplecticGeometry.intCastCyclesMap_eq_cyclesMap` writes with `HomologicalComplex.cyclesMap`
   and `SymplecticGeometry.intCastCyclesMap_iCycles` relates to `intCastChainMap` on chains.
 * `TopCat.singularCochainComplexRestrictScalarsIso`: the restricted `k`-linear cochains are the
-  same morphisms, with the action of `ℤ` of the `ℤ`-linear category `ModuleCat k`.
+  same morphisms, with the action of `ℤ` of the `ℤ`-linear category `ModuleCat k`, by Tau Ceti's
+  `RingHom.restrictScalarsIsoOfAddEquiv` in each degree.
 * `TopCat.singularCochainComplexIntChainsIso`: the comparison of cochains, the composite of the
   previous one with Tau Ceti's `TauCeti.singularCochainComplexIntegralIso` and with the change
   of chain coefficients along `TauCeti.uliftIntIso`. It takes a cochain `φ` to the integral
