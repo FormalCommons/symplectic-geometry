@@ -222,7 +222,11 @@ review of #420 raise four more.
   equation is an ODE along the Reeb flow that Tau Ceti takes as a
   hypothesis; and the first-order agreement itself needs a diffeomorphism
   with prescribed derivative along $L$. The page's route needs neither and
-  gives equality at once, so the design follows it:
+  gives equality at once, so the design followed it. Tau Ceti has since
+  proved the theorem itself
+  (`TauCeti.SmoothEmbedding.exists_partialDiffeomorph_mpullback_eq_contactization`),
+  and the milestone is deduced from it; of the route, the library keeps
+  step 1:
   1. *A hypersurface through `L` tangent to `ξ`, parametrized by `T*L`.* The
      map $[w]\mapsto\bigl(d\alpha(df\,\cdot,w),\ \alpha(w)\bigr)$,
      $\nu_q\to T_q^*L\times\mathbb R$, on the normal space
@@ -682,11 +686,9 @@ lemmas of N.
 
 ### `Geometry/Contact/Contactization.lean`
 
-Named like Tau Ceti's file, in `TauCeti.SmoothForm`: `coe_contactization`,
-the contactization form of `θ` as `dz - pr₁^* θ`, and
+Named like Tau Ceti's file, in `TauCeti.SmoothForm`:
 `mpullback_prodMap_contactization`, by which `Prod.map ι id` pulls the
-contactization form of `θ` back to that of `ι^* θ`. `LegendrianNeighborhood.lean`
-uses them.
+contactization form of `θ` back to that of `ι^* θ`.
 
 ### `Geometry/Contact/LegendrianNeighborhood.lean`
 
@@ -728,7 +730,10 @@ boundaryless and Hausdorff, and both are second countable.
 
   in the form of the neighbourhood germs of *Manifolds, families and signs*
   (that of `TauCeti.SmoothTwoForm.exists_diffeomorph_opens_of_eq_along`),
-  by steps 2–4 of the route. No properness hypothesis (see *Decisions*).
+  deduced from Tau Ceti's
+  `TauCeti.SmoothEmbedding.exists_partialDiffeomorph_mpullback_eq_contactization`
+  by the involution $(q,p,z)\mapsto(q,-p,-z)$ of `T*L × ℝ`, which pulls
+  $dz-\lambda_{\mathrm{can}}$ back to its negative. No properness hypothesis (see *Decisions*).
   Milestone: *Legendrian neighbourhood theorem*.
 
 Expected size: 650 lines, in two issues (L1 and L2).
