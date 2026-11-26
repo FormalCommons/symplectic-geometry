@@ -30,6 +30,8 @@ orbit of `x` for the normalized Haar measure `TauCeti.haarProb G`.
   that `f` takes on a `G`-invariant set.
 * `SymplecticGeometry.orbitAverage_mem_Icc`: the orbit average of a function with values in
   `[0, 1]` has values in `[0, 1]`.
+* `Continuous.orbitAverage`: for a continuous action, the orbit average of a continuous function
+  is continuous.
 * `ContMDiff.orbitAverage`: for a Lie group acting in a `C^n` way on a boundaryless manifold, the
   orbit average of a `C^n` function is `C^n`. This is differentiation under the integral over the
   compact group (Tau Ceti's `ContMDiff.parametric_integral`).
@@ -39,8 +41,9 @@ boundaryless manifold whose model may have boundary, and `n ≠ 0`, the function
 copy `TauCeti.BoundarylessModel I M` with charts in the model vector space along the identity
 diffeomorphism `TauCeti.BoundarylessModel.interiorDiffeomorph`, which is equivariant
 (`SymplecticGeometry/Geometry/Manifold/GroupAction/BoundarylessModel.lean`), and averaged there.
-For `n = 0` the claim is continuity, which holds on any manifold: integration over the compact
-group is continuous for the uniform norm (`TauCeti.continuous_integral_continuousMap`).
+For `n = 0` the claim is continuity, which holds for any continuous action
+(`Continuous.orbitAverage`): integration over the compact group is continuous for the uniform norm
+(`TauCeti.continuous_integral_continuousMap`).
 
 Tau Ceti averages functions on the group itself (`TauCeti.haarAverage`), Riemannian metrics and
 differential forms; this file does the same for functions on a `G`-space.
@@ -124,6 +127,15 @@ theorem orbitAverage_mem_Icc {f : M → ℝ} (hf : ∀ x, f x ∈ Icc 0 1) (x : 
           (.of_forall fun a ↦ (hf _).2)
     _ = 1 := by simp
 
+/-- For a continuous action of a compact group, the orbit average of a continuous function is
+continuous. -/
+theorem _root_.Continuous.orbitAverage [TopologicalSpace M] [ContinuousSMul G M] {f : M → F}
+    (hf : Continuous f) : Continuous (orbitAverage G f) := by
+  -- `x ↦ (a ↦ f (a • x))` is continuous into `C(G, F)` with the uniform norm, and integration
+  -- over the compact group is continuous for that norm.
+  let φ : C(M × G, F) := ⟨fun p ↦ f (p.2 • p.1), hf.comp (continuous_smul.comp continuous_swap)⟩
+  exact continuous_integral_continuousMap.comp φ.curry.continuous
+
 end SymplecticGeometry
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
@@ -155,13 +167,10 @@ theorem ContMDiff.orbitAverage [BoundarylessManifold I M] {f : M → F}
     (hf : ContMDiff I 𝓘(ℝ, F) n f) :
     ContMDiff I 𝓘(ℝ, F) n (SymplecticGeometry.orbitAverage G f) := by
   rcases eq_or_ne n 0 with rfl | hn
-  · -- A continuous function on the compact group `G` depends continuously on `x`, for the
-    -- uniform norm, and integration is continuous for that norm.
-    have hsmul := (contMDiff_smul (I := J) (I' := I) (G := G) (M := M)
-      (n := ((0 : ℕ∞) : ℕ∞ω))).continuous
+  · have : ContinuousSMul G M := ⟨(contMDiff_smul (I := J) (I' := I) (G := G) (M := M)
+      (n := ((0 : ℕ∞) : ℕ∞ω))).continuous⟩
     rw [WithTop.coe_zero, contMDiff_zero_iff] at hf ⊢
-    let φ : C(M × G, F) := ⟨fun p ↦ f (p.2 • p.1), hf.comp (hsmul.comp continuous_swap)⟩
-    exact continuous_integral_continuousMap.comp φ.curry.continuous
+    exact hf.orbitAverage
   -- Otherwise `M` is a `C¹` manifold: carry `f` to the copy of `M` with charts in `E`.
   have : IsManifold I 1 M := .of_le (n := n) (by exact_mod_cast Order.one_le_iff_ne_zero.2 hn)
   let Φ := BoundarylessModel.interiorDiffeomorph I (M := M) n
