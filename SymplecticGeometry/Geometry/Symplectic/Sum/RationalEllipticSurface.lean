@@ -7,13 +7,16 @@ module
 
 public import Mathlib.Algebra.MvPolynomial.PDeriv
 public import Mathlib.RingTheory.MvPolynomial.WeightedHomogeneous
+public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Basic
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.ProdZeroLocus.Manifold
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Prod
 public import TauCeti.RingTheory.MvPolynomial.Jacobian.Basic
+import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.RestrictScalars
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Prod
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Submanifold
 import SymplecticGeometry.RingTheory.MvPolynomial.WeightedHomogeneous
 import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
 
@@ -38,6 +41,15 @@ its complex derivative (`MDifferentiableAt.mfderiv_restrictScalars`), and multip
 by `i` on the tangent spaces of the product is the product of the complex structures of the two
 factors (`TauCeti.SmoothAlmostComplexStructure.prod_ofComplexManifold_apply`). So the image of
 each real derivative is a complex subspace, invariant under that product structure.
+
+The symplectic form of the surface is the pull-back along this real embedding of the product
+`ω_FS ⊕ ω_FS` of the Fubini–Study forms of `ℂℙ²` and `ℂℙ¹` (`TauCeti.SmoothTwoForm.prod`). The
+product form is symplectic (`TauCeti.SmoothTwoForm.IsSymplectic.prod`) and tames the product of
+the complex structures (`TauCeti.SmoothAlmostComplexStructure.tames_prod`), since each
+Fubini–Study form is compatible with the complex structure of its factor
+(`SymplecticGeometry.compatible_fubiniStudyForm`). A symplectic form that tames an almost complex
+structure pulls back to a symplectic form on a submanifold with invariant tangent spaces
+(`TauCeti.SmoothTwoForm.Tames.isSymplectic_mpullback`). No Kähler condition is used.
 
 The variables are indexed by `Fin 3 ⊕ Fin 2`: `Sum.inl 0`, `Sum.inl 1`, `Sum.inl 2` are the
 homogeneous coordinates `x, y, z` of the plane, and `Sum.inr 0`, `Sum.inr 1` are the homogeneous
@@ -83,6 +95,9 @@ coordinates `s, t` of the line. A point of the cone `K³ × K²` is written `Sum
 * `SymplecticGeometry.rationalEllipticSurface.prod_ofComplexManifold_mem_tangentRange`: the
   tangent images of `realEmbedding` are invariant under the product of the complex structures of
   `ℂℙ²` and `ℂℙ¹`.
+* `SymplecticGeometry.rationalEllipticSurface.symplecticForm`: the pull-back of the product of
+  the Fubini–Study forms, and
+  `SymplecticGeometry.rationalEllipticSurface.isSymplectic_symplecticForm`: it is symplectic.
 
 ## References
 
@@ -393,6 +408,29 @@ theorem prod_ofComplexManifold_mem_tangentRange {hn : (∞ : ℕ∞ω) ≠ 0}
   rw [h, coe_mfderiv_realEmbedding]
   -- The real and the complex tangent spaces of the surface at `x` are both its model space.
   exact ⟨_, (mfderiv _ _ embedding x).map_smul Complex.I u⟩
+
+/-! ### The symplectic form -/
+
+/-- The symplectic form of the rational elliptic surface: the pull-back along the inclusion of
+the product `pr₁^* ω_FS + pr₂^* ω_FS` of the Fubini–Study forms of `ℂℙ²` and `ℂℙ¹`. -/
+noncomputable def symplecticForm :
+    SmoothTwoForm 𝓘(ℝ, Fin (2 + 1 - Fintype.card Unit) → ℂ) rationalEllipticSurface :=
+  SmoothForm.mpullback realEmbedding realEmbedding.contMDiff
+    ((fubiniStudyForm 2).prod (fubiniStudyForm 1))
+
+theorem symplecticForm_def :
+    symplecticForm = SmoothForm.mpullback realEmbedding realEmbedding.contMDiff
+      ((fubiniStudyForm 2).prod (fubiniStudyForm 1)) :=
+  (rfl)
+
+/-- The symplectic form of the rational elliptic surface is symplectic: closed and
+nondegenerate. -/
+theorem isSymplectic_symplecticForm : symplecticForm.IsSymplectic := by
+  rw [symplecticForm_def]
+  exact (SmoothAlmostComplexStructure.tames_prod (compatible_fubiniStudyForm (n := 2)).tames
+    (compatible_fubiniStudyForm (n := 1)).tames).isSymplectic_mpullback
+      (hn := by simp) prod_ofComplexManifold_mem_tangentRange
+      ((isSymplectic_fubiniStudyForm 2).prod (isSymplectic_fubiniStudyForm 1))
 
 end rationalEllipticSurface
 

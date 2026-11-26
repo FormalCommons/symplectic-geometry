@@ -454,9 +454,8 @@ theorem exists_singularCohomologyMap_topCatSphereCollapse_eq_smul_integralCup :
   obtain ⟨v, rfl⟩ := ((TopCat.sphere.{0} (d + 1 + e + 1)).integralCohomologyEquiv
     (d + 1 + e + 1)).symm.surjective u
   rw [LinearEquiv.apply_symm_apply, ← TopCat.integralCohomologyEquiv_symm_naturality, hu,
-    map_zsmul, TopCat.integralCohomologyEquiv_symm_singularCup,
-    TopCat.integralCohomologyEquiv_symm_naturality, TopCat.integralCohomologyEquiv_symm_naturality,
-    TopCat.integralSphereGenerator_def, TopCat.integralSphereGenerator_def]
+    map_zsmul, TopCat.integralCohomologyEquiv_symm_singularCup_sphereGenerator,
+    ← TopCat.integralSphereGenerator_def]
 
 /-- **The collapse map in integral cohomology, any spelling of the top degree.** The formula of
 `exists_singularCohomologyMap_topCatSphereCollapse_eq_smul_integralCup` for the collapse map
