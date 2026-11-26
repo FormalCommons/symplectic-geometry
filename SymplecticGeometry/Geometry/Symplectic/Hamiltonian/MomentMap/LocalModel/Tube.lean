@@ -242,7 +242,11 @@ theorem mpullback_apply_mk_zero_eq_descendedForm :
   have hσg := congrArg Subtype.val (hσ g)
   rw [SmoothForm.coe_mpullback] at hω hσg
   rw [← hmk]
-  exact mpullback_apply_smul_eq_of_apply_eq (IG := I) g (hΨ g) hσg hω hdiff h₁
+  have := ContMDiffSMul.contMDiffConstSMul I (n := 1) (G := G)
+    (I' := 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))))
+    (M := BalancedProduct (stabilizer G x) (stabilizer G x).RightTranslation (A × V))
+  have := ContMDiffSMul.contMDiffConstSMul I (I' := I') (n := 1) (G := G) (M := M)
+  exact mpullback_apply_smul_eq_of_apply_eq g (hΨ g) hσg hω hdiff h₁
 
 omit [FiniteDimensional ℝ E'] [I'.Boundaryless] [T2Space M] in
 /-- **The tube map pulls `σ` back to the descended form along the zero section**, on pairs of
