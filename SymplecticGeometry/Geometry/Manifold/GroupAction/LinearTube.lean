@@ -327,9 +327,7 @@ theorem mfderiv_linearTubeMap_mfderiv_quotientMk (ξ : GroupLieAlgebra I G) (p :
           ((stabilizer G x).toRightTranslation 1, 0) (ξ, p)) =
       HAdd.hAdd (α := TangentSpace I' x) (β := TangentSpace I' x)
         (fundamentalVectorField I' ξ x) (L p) := by
-  let _ := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) P I 𝓘(ℝ, P) F
   rw [linearTubeMap_def]
-  have : ContMDiffSMul I I' 1 G M := ContMDiffSMul.of_le (M := M) ENat.LEInfty.out
   have hσ := e.hasMFDerivAt_linearSliceMap hL
   refine (BalancedProduct.mfderiv_liftRightTranslation_mfderiv_quotientMk hσ.mdifferentiableAt
     ξ p).trans ?_
