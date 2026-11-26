@@ -25,8 +25,8 @@ is a submersion. The range of `linearModelMap` is a complement of `𝔥 × 0`, s
 bijective (Tau Ceti's `LinearMap.bijective_comp_iff`). The form `ω` at `[1, 0]` evaluates on images
 under `dπ` as `D.form` at `(1, 0, 0)`, which on the range of `linearModelMap` is the model's form.
 Finally, `k ∈ K` fixes `[1, 0]`, so `K` acts on the tangent space there by the differentials
-of `y ↦ k • y`: the restriction to `K` of Tau Ceti's tangent representation
-`TauCeti.tangentRepresentation` of the stabilizer of `[1, 0]`. Since `(k • ·) ∘ π = π ∘ c_k` with
+of `y ↦ k • y`: Tau Ceti's `TauCeti.tangentRepresentationOfMemFixedPoints`, for the action of
+`K` at its fixed point `[1, 0]`. Since `(k • ·) ∘ π = π ∘ c_k` with
 `c_k (g, p) = (k g k⁻¹, k • p)`, it sends `dπ_(1, 0, 0) (ξ, p)` to `dπ_(1, 0, 0) (Ad_k ξ, k • p)`,
 and `linearModelMap` intertwines `dc_k` at `(1, 0, 0)` with the representation of `K` on the
 model.
@@ -214,8 +214,8 @@ theorem eval₂_descendedForm_linearModelEquiv (x₁ x₂ : (D.𝔪 × Module.Du
 
 /-- **The tangent representation of `K` at `[1, 0]`.** Each `k ∈ K` fixes `[1, 0]`, and acts on
 the tangent space of `G ×_K (A × V)` at `[1, 0]` by the differential there of `y ↦ k • y`: Tau
-Ceti's `TauCeti.tangentRepresentation` of the stabilizer of `[1, 0]` in `G`, restricted to
-`K`. -/
+Ceti's `TauCeti.tangentRepresentationOfMemFixedPoints` for the action of `K` at its fixed point
+`[1, 0]`. -/
 def tangentRepresentationOneZero :
     letI := D.fiberDistribMulAction
     haveI := D.contMDiffSMul_fiberDistribMulAction
@@ -229,12 +229,9 @@ def tangentRepresentationOneZero :
     (IZ := 𝓘(ℝ, A × V)) (F := F)
   have := BalancedProduct.contMDiffSMul_rightTranslation (K := K) (Z := A × V) (I := I)
     (IZ := 𝓘(ℝ, A × V)) (F := F)
-  (tangentRepresentation (𝕜 := ℝ) fun (g : G) _ ↦
-      ContMDiffSMul.mdifferentiable_const_smul (I := I) (n := ∞) (by simp) g
-        (BalancedProduct.mk K (K.toRightTranslation (1 : G))
-          ((0 : A), (0 : V)))).toRepresentation.comp
-    (K.subtype.codRestrict _ (BalancedProduct.smul_mk_toRightTranslation_one
-      (smul_zero (A := A × V))))
+  tangentRepresentationOfMemFixedPoints (G := K)
+    (BalancedProduct.smul_mk_toRightTranslation_one (smul_zero (A := A × V))) fun k ↦
+      ContMDiffSMul.mdifferentiable_const_smul (I := I) (n := ∞) (by simp) (k : G) _
 
 theorem tangentRepresentationOneZero_apply (k : K)
     (u : letI := D.fiberDistribMulAction
@@ -253,9 +250,7 @@ theorem tangentRepresentationOneZero_apply (k : K)
   let := D.fiberDistribMulAction
   have := D.contMDiffSMul_fiberDistribMulAction
   let := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
-  -- The restriction along `K → stabilizer G [1, 0]` is a composite of monoid homomorphisms, which
-  -- applies to `k` by definition; Tau Ceti's `tangentRepresentation_apply` gives the rest.
-  exact DFunLike.congr_fun (tangentRepresentation_apply _ _) u
+  exact tangentRepresentationOfMemFixedPoints_apply _ _ _ u
 
 /-- **The action of `K` at `[1, 0]`, read on `𝔤 × (A × V)`.** For `k ∈ K`, the tangent
 representation of `k` at `[1, 0]`, the differential there of `y ↦ k • y`, sends `dπ_(1, 0, 0) y`
