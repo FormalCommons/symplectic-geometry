@@ -9,6 +9,8 @@ public import Mathlib.Algebra.Category.ModuleCat.ChangeOfRings
 public import SymplecticGeometry.Algebra.Homology.ShortComplex.PreservesHomology
 public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.RestrictScalars
 public import TauCeti.AlgebraicTopology.Cohomology.IntegralComparison
+public import TauCeti.AlgebraicTopology.Cohomology.IntegralCup
+public import TauCeti.AlgebraicTopology.Cohomology.Kronecker
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
 
 /-!
@@ -41,6 +43,10 @@ fundamental class.
   cohomology, natural under continuous maps
   (`TopCat.singularCohomologyIntChainsIso_hom_naturality`), and its value on the class of a
   cocycle (`TopCat.map_homologyπ_singularCohomologyIntChainsIso_hom`).
+* `TopCat.injective_singularCohomologyMap_of_surjective`: when the abelian group `k` is
+  injective, as for `ℚ` and `ℝ`, a map that is onto integral homology in degree `p` is injective
+  on `Hᵖ(-; k)`, by the universal coefficient theorem `TopCat.singularKronecker_bijective` for
+  integral chains with values in `k`.
 
 ## References
 
@@ -52,6 +58,7 @@ public section
 noncomputable section
 
 open CategoryTheory Simplicial TauCeti
+open scoped MonoidalCategory
 
 namespace SymplecticGeometry
 
@@ -326,6 +333,53 @@ theorem singularCohomologyIntChainsIso_hom_naturality {Y : TopCat.{0}} (f : X �
     ((HomologicalComplex.shortComplexFunctor _ _ p).map
       (singularCochainComplexMap (R := ModuleCat.of k k) (k := k) (M := ModuleCat.of k k) f))
     (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)) _)
+
+variable {X} in
+open AlgebraicTopology in
+/-- **Injectivity on cohomology over `k` from surjectivity on integral homology.** Let `k` be a
+commutative ring whose underlying abelian group is an injective `ℤ`-module, such as `ℚ` or `ℝ`.
+If a continuous map `f : X ⟶ Y` induces a surjection `Hₚ(X; ℤ) → Hₚ(Y; ℤ)`, then it induces an
+injection `Hᵖ(Y; k) → Hᵖ(X; k)`. -/
+theorem injective_singularCohomologyMap_of_surjective [Injective (ModuleCat.of ℤ k)]
+    {Y : TopCat.{0}} (f : X ⟶ Y) (p : ℕ)
+    (hf : Function.Surjective
+      (((singularHomologyFunctor (ModuleCat.{0} ℤ) p).obj (𝟙_ (ModuleCat.{0} ℤ))).map f)) :
+    Function.Injective
+      (TopCat.singularCohomologyMap (R := ModuleCat.of k k) (k := k) (M := ModuleCat.of k k)
+        f p) := by
+  -- Homology with the coefficients `ULift ℤ` of integral chains is homology with coefficients
+  -- `ℤ`, naturally in the space, so `f` is onto it too.
+  let E := (singularHomologyFunctor (ModuleCat.{0} ℤ) p).mapIso integralCoeffIso
+  have hf' : Function.Surjective
+      (((singularHomologyFunctor (ModuleCat.{0} ℤ) p).obj (ModuleCat.of ℤ (ULift.{0} ℤ))).map
+        f) := by
+    have h : ((singularHomologyFunctor (ModuleCat.{0} ℤ) p).obj
+        (ModuleCat.of ℤ (ULift.{0} ℤ))).map f = (E.app X).hom ≫
+          ((singularHomologyFunctor (ModuleCat.{0} ℤ) p).obj (𝟙_ (ModuleCat.{0} ℤ))).map f ≫
+            (E.app Y).inv := by
+      rw [← Category.assoc, Iso.eq_comp_inv]
+      exact E.hom.naturality f
+    rw [h]
+    exact ((ConcreteCategory.bijective_of_isIso (E.app Y).inv).2.comp hf).comp
+      (ConcreteCategory.bijective_of_isIso (E.app X).hom).2
+  -- Read through integral chains, a class is determined by its Kronecker pairings, as the
+  -- values `k` are injective.
+  have key : ∀ c : Y.singularCohomology (ModuleCat.of k k) k (ModuleCat.of k k) p,
+      ((singularHomologyFunctor (ModuleCat.{0} ℤ) p).obj (ModuleCat.of ℤ (ULift.{0} ℤ))).map f ≫
+        Y.singularKronecker ℤ p ((Y.singularCohomologyIntChainsIso k p).hom c) =
+      X.singularKronecker ℤ p ((X.singularCohomologyIntChainsIso k p).hom
+        (TopCat.singularCohomologyMap f p c)) := fun c => by
+    rw [← singularKronecker_naturality]
+    exact congrArg _
+      (congrArg (fun φ => φ c) (singularCohomologyIntChainsIso_hom_naturality k f p)).symm
+  intro a b hab
+  refine (ConcreteCategory.bijective_of_isIso (Y.singularCohomologyIntChainsIso k p).hom).1 ?_
+  refine (Y.singularKronecker_bijective (R := ModuleCat.of ℤ (ULift.{0} ℤ))
+    (M := ModuleCat.of ℤ k) ℤ p).1 ?_
+  ext z
+  obtain ⟨y, rfl⟩ := hf' z
+  have h := congrArg (fun φ => φ y) ((key a).trans (hab ▸ key b).symm)
+  simpa using h
 
 end TopCat
 
