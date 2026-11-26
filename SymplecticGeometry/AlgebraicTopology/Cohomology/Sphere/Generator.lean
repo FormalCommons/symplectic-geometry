@@ -6,7 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
+public import TauCeti.AlgebraicTopology.Cohomology.FundamentalClass
 public import TauCeti.AlgebraicTopology.Cohomology.Sphere.Product
+public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Sphere
 
 /-!
 # Generators of the top cohomology of spheres and of products of two spheres
@@ -15,7 +17,9 @@ Let `θ ∈ Hᵈ⁺¹(Sᵈ⁺¹; ℤ)` be Tau Ceti's class `singularCohomologyTo
 standard generator of `H_{d+1}(Sᵈ⁺¹)`, carried into the library's integral cohomology by
 `TopCat.integralCohomologyEquiv`, which this file names `TopCat.integralSphereGenerator`. It
 shows that `θ` generates `Hᵈ⁺¹(Sᵈ⁺¹; ℤ)`, and that cup product with its pull-back to `Sᵈ⁺¹ × Y`
-keeps classes of infinite order. It also shows
+keeps classes of infinite order, and that on a compact connected oriented manifold homeomorphic to
+`Sᵈ⁺¹`, evaluation on the fundamental class agrees with evaluation on the standard generator up to
+one sign. It also shows
 that, over any commutative ring `k`, the class `pr₁^* θ_a ⌣ pr₂^* θ_b` spans `Hᵃ⁺ᵇ(Sᵃ × Sᵇ; k)`
 and takes the value `1` on the cross product `γ_a × γ_b` of the homology generators.
 
@@ -25,6 +29,13 @@ and takes the value `1` on the cross product `γ_a × γ_b` of the homology gene
   any commutative ring, `θ` evaluates to `1` on the standard homology generator.
 * `TopCat.exists_eq_zsmul_sphereGenerator`: every class of `Hᵈ⁺¹(Sᵈ⁺¹; ℤ)` is an integer
   multiple of `θ`.
+* `HomologicalOrientation.exists_singularCohomologyTopCatSphereEquiv_eq_mul_evalFundamentalClass`:
+  for a compact connected manifold `M` with an orientation `o` and a homeomorphism
+  `e : M ≃ₜ Sᵈ⁺¹`, there is one sign `s = ±1` such that every class `u` of `Hᵈ⁺¹(Sᵈ⁺¹; ℤ)` has
+  `⟨u, γ⟩ = s * ⟨u, e_*[M]⟩`. The image of the standard generator `γ` in homology with the
+  coefficients `ULift ℤ` of Tau Ceti's fundamental classes is a fundamental class
+  (`TauCeti.isFundamentalClass_singularHomologyTopCatSphereGenerator`), so it is `±e_*[M]`
+  (`TauCeti.HomologicalOrientation.exists_eq_smul_mapFundamentalClass_of_isFundamentalClass`).
 * `TopCat.not_isOfFinAddOrder_integralCup_sphereGenerator`: for a space `Y` and a class `c` of
   infinite order in `Hⁿ(Y; ℤ)`, the class `pr₁^* θ ⌣ pr₂^* c` of `Sᵈ⁺¹ × Y` has infinite order.
   It is read off Tau Ceti's decomposition `TopCat.singularCohomologySphereProdSlantEquiv` of the
@@ -59,7 +70,7 @@ top cohomology of `Sᵃ` and `Sᵇ`, `a, b ≥ 1`, and `γ_a`, `γ_b` the standa
 ## References
 
 * A. Hatcher, *Algebraic Topology*, Cambridge University Press, 2002, Theorem 3.15 (the Künneth
-  formula).
+  formula) and Section 3.3 (fundamental classes).
 -/
 
 public section
@@ -79,6 +90,44 @@ theorem singularCohomologyTopCatSphereEquiv_singularCohomologyTopCatSphereGenera
       (singularCohomologyTopCatSphereGenerator k n) = 1 :=
   (singularCohomologyTopCatSphereEquiv_apply _ _ _ _).trans
     (singularKronecker_singularCohomologyTopCatSphereGenerator k n)
+
+namespace HomologicalOrientation
+
+variable {M E : Type} [TopologicalSpace M] [T2Space M]
+  [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E] [ChartedSpace E M]
+  [CompactSpace M] {d : ℕ} (o : HomologicalOrientation M E (d + 1))
+  (hn : Module.finrank ℝ E = d + 1)
+
+/-- **Fundamental classes of a sphere and the standard generator.** Let `M` be a compact
+`(d + 1)`-manifold with an orientation `o`, and `e : M ≃ₜ Sᵈ⁺¹` a homeomorphism. There is a sign
+`s = ±1` such that for every class `u ∈ Hᵈ⁺¹(Sᵈ⁺¹; ℤ)` of the integral cohomology
+`TopCat.integralCohomology`, the value of `u` on the standard generator, read through
+`TopCat.integralCohomologyEquiv` and `TauCeti.singularCohomologyTopCatSphereEquiv`, is `s` times
+its value `TauCeti.HomologicalOrientation.evalFundamentalClass` on the image `e_*[M]` of the
+fundamental class. -/
+theorem exists_singularCohomologyTopCatSphereEquiv_eq_mul_evalFundamentalClass
+    (e : M ≃ₜ TopCat.sphere.{0} (d + 1)) :
+    ∃ s : ℤ, (s = 1 ∨ s = -1) ∧ ∀ u : (TopCat.sphere.{0} (d + 1)).integralCohomology (d + 1),
+      singularCohomologyTopCatSphereEquiv ℤ (𝟙_ (ModuleCat.{0} ℤ)) d
+          ((TopCat.sphere.{0} (d + 1)).integralCohomologyEquiv (d + 1) u) =
+        s * o.evalFundamentalClass hn (ModuleCat.of ℤ ℤ)
+          (e : C(M, TopCat.sphere.{0} (d + 1))) u := by
+  have : ConnectedSpace M := e.symm.surjective.connectedSpace e.symm.continuous
+  -- the standard generator, with the coefficients `ULift ℤ` of `[M]`, is `±e_*[M]`
+  have hγ := (isFundamentalClass_singularHomologyFunctor_map_app_iff integralCoeffIso.symm
+    (singularHomologyTopCatSphereGenerator ℤ d)).2
+    (isFundamentalClass_singularHomologyTopCatSphereGenerator ℤ d)
+  obtain ⟨s, hs, h⟩ := o.exists_eq_smul_mapFundamentalClass_of_isFundamentalClass hn e hγ
+  refine ⟨s, hs, fun u ↦ ?_⟩
+  rw [singularCohomologyTopCatSphereEquiv_apply, TopCat.singularKronecker_integralCohomologyEquiv,
+    ConcreteCategory.comp_apply]
+  rw [Iso.symm_hom] at h
+  -- `h` is stated on `TopCat.of` of the carrier of `TopCat.sphere (d + 1)`, so it is applied
+  -- through `congrArg` rather than used in a rewrite
+  refine (congrArg ((TopCat.sphere.{0} (d + 1)).singularKronecker ℤ (d + 1) u).hom h).trans ?_
+  rw [map_zsmul, evalFundamentalClass_apply, smul_eq_mul]
+
+end HomologicalOrientation
 
 end TauCeti
 

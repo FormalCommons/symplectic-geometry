@@ -783,7 +783,7 @@ The homology cross product of two pairs, for the Whitney file below:
 from Tau Ceti's shuffle map `TopCat.shufflePair`, with `_def`,
 `singularHomologyCrossRelPair_naturality`, and its compatibility with
 `TopCat.singularHomologyCrossRel`
-(`whiskerLeft_singularHomologyπ_comp_singularHomologyCrossRelPair`) and with
+(Tau Ceti's `singularHomologyCrossRel_comp_singularHomologyMap`) and with
 `TopCat.singularHomologyCross`
 (`singularHomologyCross_comp_singularHomologyπ_eq_singularHomologyCrossRelPair`).
 It uses these Tau Ceti files, of which the library had copies until the

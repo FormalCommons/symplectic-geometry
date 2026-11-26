@@ -167,8 +167,9 @@ These settle the questions that `DESIGN.md` leaves to this file.
    into $P_\sigma^b$, which is countable. The comparison of the swept area
    with a period goes through the torus: a map of $\mathbb R^2$ with period
    1 in both variables descends to $T^2=(\mathbb R/\mathbb Z)^2$, whose
-   integral is a period by
-   `integralTopForm_mpullback_eq_closedFormHomologyPeriod` and equals the
+   integral is a period by Tau Ceti's
+   `TauCeti.closedFormHomologyPeriod_singularHomologyMap_addCircleProdFundamentalClass`
+   and equals the
    rectangle integral by `AddCircle.integralTopForm_prod_eq_setIntegral`.
    This is the content of McDuff–Salamon's description
    of the flux by swept cylinders, equation (10.2.2) with Lemma 10.2.1.
