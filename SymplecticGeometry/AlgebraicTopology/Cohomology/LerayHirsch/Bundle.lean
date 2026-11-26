@@ -351,7 +351,9 @@ theorem integralLerayHirsch_integralCohomologyEquiv_symm
     obtain ⟨⟨⟨d, q⟩, h⟩, i⟩ := j
     rw [DirectSum.map_of, LinearMap.toAddMonoidHom_coe, LinearEquiv.coe_coe,
       integralLerayHirsch_of, ← DirectSum.lof_eq_of ℤ, lerayHirsch_lof,
-      integralCohomologyEquiv_symm_singularCup, integralCohomologyEquiv_symm_naturality]
+      LinearEquiv.eq_symm_apply, integralCohomologyEquiv_integralCup,
+      integralCohomologyEquiv_naturality, LinearEquiv.apply_symm_apply,
+      LinearEquiv.apply_symm_apply]
 
 /-- The integral Leray–Hirsch map of classes `c` with coefficients `ℤ`, read through
 the inverse of `TopCat.integralCohomologyEquiv`, is bijective exactly when the Leray–Hirsch map
