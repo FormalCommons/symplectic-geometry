@@ -16,6 +16,7 @@ import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Symplectic.Darboux.Immersion
 import TauCeti.Geometry.Symplectic.Manifold.Darboux
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Extend
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Topology.Maps.Embedding
@@ -260,7 +261,7 @@ theorem exists_darbouxChart_inter_range_eq_of_chart (hσ : σ.IsNondegenerate)
   have hu : ∀ᶠ s in 𝓝 0, ContMDiffAt 𝓘(ℝ, E') I ∞ (f ∘ c.symm) s := by
     filter_upwards [c.open_target.mem_nhds h0t] with s hs
     exact f.contMDiff.contMDiffAt.comp s
-      (c.symm.contMDiffOn.contMDiffAt (c.symm.open_source.mem_nhds hs))
+      (c.symm.contMDiffAt hs)
   have hinj : Injective (mfderiv 𝓘(ℝ, E') I (f ∘ c.symm) 0) := by
     rw [mfderiv_comp 0 (f.contMDiff.mdifferentiableAt (by simp))
       (c.symm.mdifferentiableAt (by simp) (by simpa using h0t))]

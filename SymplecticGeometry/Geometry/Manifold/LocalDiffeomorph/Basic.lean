@@ -55,6 +55,8 @@ target of `Λ`, not only at `x`.
   diffeomorphism between their model spaces.
 * `ModelWithCorners.isLocalDiffeomorphAt_coe`: a model with corners is a local diffeomorphism at
   every point that it sends into the interior of its range.
+* `PartialDiffeomorph.contMDiffAt`: a partial diffeomorphism is `C^n` at each point of its
+  source.
 * `PartialDiffeomorph.isCompact_image_of_subset_source`: a partial diffeomorphism sends compact
   subsets of its source to compact sets; it is
   `OpenPartialHomeomorph.isCompact_image_of_subset_source` applied to `Φ.toOpenPartialHomeomorph`.
@@ -213,6 +215,12 @@ theorem ModelWithCorners.isLocalDiffeomorphAt_coe {x : H} (hx : I x ∈ interior
   have h := TauCeti.isLocalDiffeomorphAt_extChartAt (I := I) (n := n) (mem_extChartAt_source x)
     (by simpa [extChartAt_self_eq] using hx)
   simpa [extChartAt_self_eq] using h
+
+/-- A `C^n` partial diffeomorphism is `C^n` at each point of its source. It is the `C^n`
+counterpart of Mathlib's `PartialDiffeomorph.mdifferentiableAt`. -/
+protected theorem PartialDiffeomorph.contMDiffAt (Φ : PartialDiffeomorph I J M N n) {x : M}
+    (hx : x ∈ Φ.source) : ContMDiffAt I J n Φ x :=
+  Φ.contMDiffOn.contMDiffAt (Φ.open_source.mem_nhds hx)
 
 /-- The image of a compact subset of the source of a partial diffeomorphism is compact. -/
 theorem PartialDiffeomorph.isCompact_image_of_subset_source (Φ : PartialDiffeomorph I J M N n)
