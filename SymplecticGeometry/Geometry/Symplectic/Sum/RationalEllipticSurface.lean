@@ -150,14 +150,14 @@ coordinates `s, t` of the line. A point of the cone `K³ × K²` is written `Sum
   coordinates at a base point `p`. Inside any neighbourhood of `p` there is an open partial
   homeomorphism `φ` of `ℂℙ²` onto a round ball of `ℂ²` with `φ p = 0`, whose source contains no
   other base point, and over whose source the surface is the incidence set
-  `{(x, [w]) | w₀ φ(x)₀ + w₁ φ(x)₁ = 0}`. In the standard affine chart `i` of Tau Ceti's
-  `Projectivization.affineOpenPartialHomeomorph` at `p`, the map `φ` reads `z ↦` the two cubics
-  evaluated at `Fin.insertNth i 1 z`, that is, their ratios to the cube of the coordinate `i`.
-  Its derivative is their Jacobian matrix in the chart (Tau Ceti's
-  `TauCeti.hasFDerivAt_eval_family`), whose determinant is nonzero at `p` by
-  `exists_eval_pderiv_hessePencil_ne_zero_of_ne_zero`. The inverse function theorem
-  (`HasStrictFDerivAt.toOpenPartialHomeomorph`) gives `φ` near `p`, and cutting its target down
-  to a small ball gives the rest.
+  `{(x, [w]) | w₀ φ(x)₀ + w₁ φ(x)₁ = 0}`. In the standard affine chart `i` at `p`, `φ` reads `z ↦`
+  the two cubics dehomogenized at coordinate `i` (Tau Ceti's `TauCeti.dehomogenize`) and
+  evaluated at `z`. Their Jacobian matrix there is the cone Jacobian with column `i` deleted
+  (`TauCeti.jacobiMatrixAt_dehomogenize`), whose determinant is nonzero at `p` by
+  `exists_eval_pderiv_hessePencil_ne_zero_of_ne_zero`. So the cone Jacobian is surjective at `p`,
+  and Tau Ceti's slice chart `TauCeti.complexProjectiveZeroLocusSliceChart` of the base locus,
+  whose slice factor `Fin 0 → ℂ` is trivial, gives `φ` near `p`; cutting its target down to a
+  small ball gives the rest.
 
 ## References
 
@@ -837,40 +837,14 @@ instance simplyConnectedSpace_complBaseLocus : SimplyConnectedSpace complBaseLoc
 
 /-! ### Coordinates at a base point of the pencil -/
 
-/-- The two cubics `hesseCubics ℂ` in the affine coordinates `z` of the standard chart `i` of
-`ℂℙ²`, that is, evaluated at `Fin.insertNth i 1 z`. -/
-private noncomputable def chartCubics (i : Fin 3) (z : Fin 2 → ℂ) : Fin 2 → ℂ :=
-  fun a ↦ eval (Fin.insertNth (α := fun _ ↦ ℂ) i 1 z) (hesseCubics ℂ a)
-
-/-- The Jacobian matrix of `chartCubics i` at `z`: its row `a` holds the partial derivatives of
-`hesseCubics ℂ a` in the coordinates of the chart. -/
-private noncomputable def chartJacobian (i : Fin 3) (z : Fin 2 → ℂ) :
-    Matrix (Fin 2) (Fin 2) ℂ :=
-  fun a l ↦ eval (Fin.insertNth (α := fun _ ↦ ℂ) i 1 z) (pderiv (i.succAbove l) (hesseCubics ℂ a))
-
-private theorem hasStrictFDerivAt_chartCubics (i : Fin 3) (z : Fin 2 → ℂ) :
-    HasStrictFDerivAt (chartCubics i) (Matrix.toLin' (chartJacobian i z)).toContinuousLinearMap
-      z := by
-  set V := Fin.insertNth (α := fun _ ↦ ℂ) i 1 z
-  have hF := ((analyticOnNhd_eval_family (hesseCubics ℂ)) V (mem_univ _)).hasStrictFDerivAt
-  rw [(hasFDerivAt_eval_family (hesseCubics ℂ) V).fderiv] at hF
-  have hA : HasStrictFDerivAt (fun z ↦ Fin.insertNth (α := fun _ ↦ ℂ) i 1 z)
-      (ContinuousLinearMap.pi fun k ↦ Fin.insertNth (α := fun _ ↦ (Fin 2 → ℂ) →L[ℂ] ℂ) i 0
-        ContinuousLinearMap.proj k) z := by
-    refine hasStrictFDerivAt_pi.2 fun k ↦ ?_
-    induction k using i.succAboveCases with
-    | x => simpa using hasStrictFDerivAt_const (1 : ℂ) z
-    | p l => simpa using hasStrictFDerivAt_apply l z
-  refine (hF.comp z hA).congr_fderiv (ContinuousLinearMap.ext fun ζ ↦ funext fun a ↦ ?_)
-  simp [chartJacobian, Matrix.mulVec, dotProduct, Fin.sum_univ_succAbove _ i, V, mul_comm]
-
 /-- At a base point, the two cubics have independent differentials in the coordinates of the
-chart: a vanishing combination `s ∂f + t ∂g` would make every partial derivative of the member
-`s f + t g` of the pencil vanish in the chart, against
+standard chart `i`: the Jacobian matrix of `hesseCubics ℂ` with column `i` deleted is invertible.
+A vanishing combination `s ∂f + t ∂g` of its rows would make every partial derivative of the
+member `s f + t g` of the pencil vanish in the chart, against
 `exists_eval_pderiv_hessePencil_ne_zero_of_ne_zero`. -/
-private theorem det_chartJacobian_ne_zero {i : Fin 3} {z : Fin 2 → ℂ}
+private theorem det_jacobiMatrixAt_hesseCubics_submatrix_ne_zero {i : Fin 3} {z : Fin 2 → ℂ}
     (hz : (Projectivization.affineChart (K := ℂ) i).symm z ∈ baseLocus) :
-    (chartJacobian i z).det ≠ 0 := by
+    ((jacobiMatrixAt (hesseCubics ℂ) (i.insertNth 1 z)).submatrix id i.succAbove).det ≠ 0 := by
   classical
   rw [Projectivization.affineChart_symm_apply, mk_mem_baseLocus_iff] at hz
   set V := Fin.insertNth (α := fun _ ↦ ℂ) i 1 z
@@ -884,15 +858,17 @@ private theorem det_chartJacobian_ne_zero {i : Fin 3} {z : Fin 2 → ℂ}
   · obtain ⟨m, rfl⟩ := Fin.exists_succAbove_eq (x := l) (y := i) (by simpa using hki)
     refine hk ?_
     have := congrFun hM m
-    simp only [Matrix.vecMul, dotProduct, Fin.sum_univ_two, chartJacobian, Pi.zero_apply] at this
+    simp only [Matrix.vecMul, dotProduct, Fin.sum_univ_two, Matrix.submatrix_apply, id,
+      jacobiMatrixAt_apply, Pi.zero_apply] at this
     rw [eval_pderiv_inl_hessePencil]
     linear_combination this
   · fin_cases l <;> simp at hk <;> simp_all
 
-/-- Near a base point `p`, the ratios of the two cubics to the cube of the coordinate of a chart
-at `p` form an open partial homeomorphism to `ℂ²`, by the inverse function theorem. It sends `p`
-to `0`, its zeros are the base points, and over its source the rational elliptic surface is the
-incidence set `s u + t v = 0`. -/
+/-- Near a base point `p`, the two cubics dehomogenized in a standard chart at `p` form an open
+partial homeomorphism to `ℂ²`: Tau Ceti's slice chart
+`TauCeti.complexProjectiveZeroLocusSliceChart` of the base locus, whose slice factor is trivial.
+It sends `p` to `0`, its zeros are the base points, and over its source the rational elliptic
+surface is the incidence set `s u + t v = 0`. -/
 private theorem exists_chart_of_mem_baseLocus {p : ℙ ℂ (Fin 3 → ℂ)} (hp : p ∈ baseLocus) :
     ∃ Φ : OpenPartialHomeomorph (ℙ ℂ (Fin 3 → ℂ)) (Fin 2 → ℂ), p ∈ Φ.source ∧ Φ p = 0 ∧
       (∀ x ∈ Φ.source, x ∈ baseLocus ↔ Φ x = 0) ∧
@@ -903,30 +879,33 @@ private theorem exists_chart_of_mem_baseLocus {p : ℙ ℂ (Fin 3 → ℂ)} (hp 
   have hsymm {x : ℙ ℂ (Fin 3 → ℂ)} (hx : x ∈ Projectivization.affineOpen i) :
       (Projectivization.affineChart (K := ℂ) i).symm (Projectivization.affineChart i x) = x :=
     (Projectivization.affineChart i).left_inv (by simpa using hx)
-  set z₀ := Projectivization.affineChart (K := ℂ) i p
-  have hdet : LinearMap.det (Matrix.toLin' (chartJacobian i z₀)) ≠ 0 := by
-    rw [LinearMap.det_toLin']
-    exact det_chartJacobian_ne_zero (by rwa [hsymm hi])
-  let D := ((Matrix.toLin' (chartJacobian i z₀)).equivOfDetNeZero hdet).toContinuousLinearEquiv
-  have hD : HasStrictFDerivAt (chartCubics i) (D : (Fin 2 → ℂ) →L[ℂ] Fin 2 → ℂ) z₀ :=
-    (hasStrictFDerivAt_chartCubics i z₀).congr_fderiv (by ext; simp [D])
-  set Φ := (Projectivization.affineOpenPartialHomeomorph (K := ℂ) i).trans
-    (hD.toOpenPartialHomeomorph (chartCubics i))
-  have hΦ (x : ℙ ℂ (Fin 3 → ℂ)) : Φ x = chartCubics i (Projectivization.affineChart i x) := by
-    simp [Φ]
-  have hsrc {x : ℙ ℂ (Fin 3 → ℂ)} (hx : x ∈ Φ.source) : x ∈ Projectivization.affineOpen i := by
-    simp only [Φ, OpenPartialHomeomorph.trans_source] at hx
-    simpa using hx.1
+  have hL : p ∈ complexProjectiveZeroLocus (hesseCubics ℂ) := baseLocus_def ▸ hp
+  have hrank : Function.Surjective (jacobiMatrixAt (hesseCubics ℂ) p.rep).mulVec := by
+    rw [← surjective_fderiv_eval_dehomogenize_affineChart_iff i isHomogeneous_hesseCubics hL hi,
+      ← ContinuousLinearMap.coe_coe, fderiv_eval_dehomogenize, Matrix.coe_mulVecLin,
+      Matrix.mulVec_surjective_iff_isUnit, Matrix.isUnit_iff_isUnit_det, isUnit_iff_ne_zero]
+    exact det_jacobiMatrixAt_hesseCubics_submatrix_ne_zero (by rwa [hsymm hi])
+  have : IsEmpty (Fin (2 - Fintype.card (Fin 2))) := by
+    rw [Fintype.card_fin]
+    exact Fin.isEmpty'
+  set Φ := (complexProjectiveZeroLocusSliceChart isHomogeneous_hesseCubics hL hi
+    hrank).transHomeomorph (Homeomorph.uniqueProd _ _)
+  have hΦ (x : ℙ ℂ (Fin 3 → ℂ)) :
+      Φ x = fun k ↦ eval (Projectivization.affineChart i x) (dehomogenize i (hesseCubics ℂ k)) := by
+    simp [Φ, Homeomorph.uniqueProd]
+  have hsrc {x : ℙ ℂ (Fin 3 → ℂ)} (hx : x ∈ Φ.source) : x ∈ Projectivization.affineOpen i :=
+    complexProjectiveZeroLocusSliceChart_source_subset _ _ _ _ hx
   have hzero {x : ℙ ℂ (Fin 3 → ℂ)} (hx : x ∈ Projectivization.affineOpen i) :
       x ∈ baseLocus ↔ Φ x = 0 := by
-    conv_lhs => rw [← hsymm hx, Projectivization.affineChart_symm_apply, mk_mem_baseLocus_iff]
-    simp [hΦ, chartCubics, funext_iff, Fin.forall_fin_two]
-  refine ⟨Φ, ?_, (hzero hi).1 hp, fun x hx ↦ hzero (hsrc hx), fun x hx w hw ↦ ?_⟩
-  · simpa [Φ, OpenPartialHomeomorph.trans_source] using
-      ⟨hi, hD.mem_toOpenPartialHomeomorph_source⟩
-  · conv_lhs => rw [← hsymm (hsrc hx), Projectivization.affineChart_symm_apply,
-      mk_mem_rationalEllipticSurface_iff]
-    simp [hΦ, chartCubics]
+    rw [baseLocus_def, mem_complexProjectiveZeroLocus_iff_eval_affineChart isHomogeneous_hesseCubics
+      hx, hΦ, _root_.funext_iff]
+    simp only [Pi.zero_apply]
+  refine ⟨Φ, mem_complexProjectiveZeroLocusSliceChart_source _ _ _ _, (hzero hi).1 hp,
+    fun x hx ↦ hzero (hsrc hx), fun x hx w hw ↦ ?_⟩
+  conv_lhs => rw [← hsymm (hsrc hx), Projectivization.affineChart_symm_apply,
+    mk_mem_rationalEllipticSurface_iff]
+  simp only [hΦ, eval_dehomogenize]
+  simp
 
 /-- **Coordinates of `E(1)` at a base point of the Hesse pencil.** For a base point `p` and a
 neighbourhood `U` of `p` in `ℂℙ²`, there is an open partial homeomorphism `φ` from `ℂℙ²` to `ℂ²`
