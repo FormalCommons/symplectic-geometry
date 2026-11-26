@@ -301,6 +301,12 @@ theorem eval_pderiv_inl_hessePencil (v : Fin 3 → R) (w : Fin 2 → R) (l : Fin
       w 0 * eval v (pderiv l (hesseCubics R 0)) + w 1 * eval v (pderiv l (hesseCubics R 1)) := by
   fin_cases l <;> simp [hesseCubics_zero', hesseCubics_one, pderiv_X] <;> ring
 
+/-- The partial derivative of the Fermat cubic `x³ + y³ + z³` in the coordinate `l`, evaluated at
+`v`, is `3 v_l²`. -/
+theorem eval_pderiv_hesseCubics_zero (v : Fin 3 → R) (l : Fin 3) :
+    eval v (pderiv l (hesseCubics R 0)) = 3 * v l ^ 2 := by
+  fin_cases l <;> simp [hesseCubics_zero', pderiv_X]
+
 /-- The Hesse pencil is weighted homogeneous of degree `n + m` for weights `w` that give each
 line coordinate `s, t` the weight `n` and for which both cubics are weighted homogeneous of degree
 `m` in the plane coordinates. -/
