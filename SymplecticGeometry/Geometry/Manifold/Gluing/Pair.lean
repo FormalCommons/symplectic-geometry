@@ -255,10 +255,12 @@ theorem inl_symm_apply (y : U₂) : inl φ (φ.symm y : M₁) = inr φ (y : M₂
   rw [← inr_apply, Homeomorph.apply_symm_apply]
 
 /-- The image of a point `x` of `M₁` lies in the image of `M₂` exactly when `x ∈ U₁`. -/
+@[grind =]
 theorem inl_mem_range_inr_iff {x : M₁} : inl φ x ∈ range (inr φ) ↔ x ∈ U₁ :=
   ⟨fun ⟨_, hy⟩ ↦ ((inr_eq_inl_iff φ).1 hy).1, fun hx ↦ ⟨_, inr_apply φ ⟨x, hx⟩⟩⟩
 
 /-- The image of a point `y` of `M₂` lies in the image of `M₁` exactly when `y ∈ U₂`. -/
+@[grind =]
 theorem inr_mem_range_inl_iff {y : M₂} : inr φ y ∈ range (inl φ) ↔ y ∈ U₂ := by
   refine ⟨fun ⟨x, hx⟩ ↦ ?_, fun hy ↦ ⟨_, inl_symm_apply φ ⟨y, hy⟩⟩⟩
   obtain ⟨h, rfl⟩ := (inl_eq_inr_iff φ).1 hx

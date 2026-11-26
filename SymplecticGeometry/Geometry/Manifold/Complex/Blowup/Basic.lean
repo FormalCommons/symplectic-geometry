@@ -360,9 +360,7 @@ theorem range_inl : range (inl (gluingHomeomorph c)) = (exceptionalDivisor c)ᶜ
   rcases GluedAlong.exists_inl_or_exists_inr _ z with ⟨x, rfl⟩ | ⟨y, rfl⟩
   · simp only [mem_range_self, mem_compl_iff, true_iff, mem_exceptionalDivisor_iff, not_exists,
       not_and]
-    intro y hy hxy
-    exact c.apply_ne_zero ((inl_eq_inr_iff c).1 hxy.symm).1 x.property
-      (((inl_eq_inr_iff c).1 hxy.symm).2.trans hy)
+    exact fun y hy hxy ↦ (GluedAlong.inr_mem_range_inl_iff _).1 ⟨x, hxy.symm⟩ hy
   · rw [GluedAlong.inr_mem_range_inl_iff, mem_modelOffDivisorOpens, mem_compl_iff,
       inr_mem_exceptionalDivisor_iff]
 
