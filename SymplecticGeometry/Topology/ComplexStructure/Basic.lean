@@ -11,6 +11,7 @@ public import TauCeti.Topology.Algebra.Star.Unitary
 import SymplecticGeometry.Analysis.CStarAlgebra.Matrix
 import SymplecticGeometry.LinearAlgebra.Matrix.NonsingularInverse
 import SymplecticGeometry.Algebra.Ring.Units
+import TauCeti.Algebra.Ring.Hom
 
 /-!
 # The space of linear complex structures
@@ -94,10 +95,10 @@ variable (n : Type*) [Fintype n] [DecidableEq n]
 private theorem toLinearMap_toEuclideanCLM_comp_self {A : Matrix n n ℝ} (hA : A * A = -1) :
     (Matrix.toEuclideanCLM (n := n) (𝕜 := ℝ) A).toLinearMap.comp
       (Matrix.toEuclideanCLM (n := n) (𝕜 := ℝ) A).toLinearMap = -LinearMap.id := by
-  have h := map_mul (Matrix.toEuclideanCLM (n := n) (𝕜 := ℝ)) A A
-  rw [hA, map_neg, map_one] at h
+  have h :=
+    TauCeti.mul_self_map_of_mul_self_eq_neg_one (Matrix.toEuclideanCLM (n := n) (𝕜 := ℝ)) hA
   refine LinearMap.ext fun v ↦ ?_
-  simpa using congr($h v).symm
+  simpa using congr($h v)
 
 /-- The complex structures of `EuclideanSpace ℝ n` are homeomorphic to the real matrices of
 square `-1`, a structure going to its matrix in the standard basis. -/
