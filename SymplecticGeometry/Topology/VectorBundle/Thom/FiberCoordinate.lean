@@ -41,11 +41,7 @@ classes back through the fibre over `b` and its coordinate in `e`; that coordina
 back as its linearization `A` does
 (`TopPair.singularCohomologyMap_ofSubsetMap_eq_linear_of_hasFDerivAt`); and restricting to the
 small neighbourhood loses nothing, by excision
-(`TopPair.isIso_singularCohomologyMap_ofSubsetMap_inclusion`). The argument follows the
-private `singularCohomologyMap_slice_eq_of_isOpen` and
-`TauCeti.SmoothEmbedding.singularCohomologyMap_slice_eq_of_hasFDerivAt` of
-`SymplecticGeometry/Geometry/Manifold/SmoothEmbedding/NormalSpace/DualClass/Slice.lean`, which do
-the same for maps into a manifold compared with a normal slice of a tube, and through them the
+(`TopPair.injective_singularCohomologyMap_ofSubsetMap_inclusion`). The argument follows the
 linearization argument of Tau Ceti's
 `TauCeti.VectorBundleOrientation.sectionIndex_eq_sign_det_of_hasFDerivAt`.
 
@@ -383,7 +379,6 @@ theorem singularCohomologyMap_ofSubsetMap_eq_complZeroPairIso_inv_of_hasFDerivAt
           fun w hw h ↦ hw (Subtype.ext (hAK.injective (h.trans (map_zero A).symm)))) n
         (TopPair.singularCohomologyMap (e.continuousLinearEquivAt ℝ b hb).complZeroPairIso.inv n
           (TopPair.singularCohomologyMap (fiberThomPairMap F E b) n u)) := by
-  have hS0 := mem_of_mem_nhds hS
   -- A contractible neighbourhood `U` of `b` inside the base set of `e`.
   obtain ⟨U, ⟨hU, hUc⟩, hUe : U ⊆ e.baseSet⟩ :=
     (StronglyLocallyContractibleSpace.contractible_basis b).mem_iff.1
@@ -397,13 +392,8 @@ theorem singularCohomologyMap_ofSubsetMap_eq_complZeroPairIso_inv_of_hasFDerivAt
   have hO0 : (0 : Q) ∈ O := mem_interior_iff_mem_nhds.2 hT
   have hOS : O ⊆ S := fun w hw ↦ (interior_subset hw).1
   -- Restriction from `S` to `O` is injective on cohomology, by excision.
-  have := TopPair.isIso_singularCohomologyMap_ofSubsetMap_inclusion R k M isOpen_interior hOS hO0 n
-  refine (ConcreteCategory.injective_of_mono_of_preservesPullback _ :
-    Function.Injective (ConcreteCategory.hom (TopPair.singularCohomologyMap (R := R) (k := k)
-      (M := M) (TopPair.ofSubsetMap (X := TopCat.of O) (Y := TopCat.of S)
-        (TopCat.ofHom ⟨Set.inclusion hOS, continuous_inclusion hOS⟩)
-        (B := {⟨0, hO0⟩}ᶜ) (B' := {⟨0, hS0⟩}ᶜ)
-        fun _ hw h ↦ hw (Set.inclusion_injective hOS h)) n))) ?_
+  refine TopPair.injective_singularCohomologyMap_ofSubsetMap_inclusion R k M isOpen_interior hOS
+    hO0 n ?_
   rw [← TopPair.singularCohomologyMap_comp_apply, ← TopPair.singularCohomologyMap_comp_apply]
   convert singularCohomologyMap_ofSubsetMap_eq_complZeroPairIso_inv_of_hasFDerivAt_of_mapsTo e hUe
     (mem_of_mem_nhds hU) (isOpen_interior.mem_nhds hO0) (hgS.mono hOS)
