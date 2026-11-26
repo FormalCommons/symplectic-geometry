@@ -6,9 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
-public import Mathlib.Topology.VectorBundle.ContinuousAlternatingMap
 public import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
+public import TauCeti.Topology.VectorBundle.ContinuousAlternatingMap
 
 /-!
 # Tangent vectors and alternating maps of open subsets, read on the ambient manifold
@@ -26,10 +26,13 @@ maps from the tangent spaces of `U` to a fixed space `G` gives the same coordina
 trivialization at `x` of the corresponding bundle over `M`
 (`TauCeti.Manifold.eventually_trivializationAt_continuousAlternatingMap_tangentSpace_opens_eq`).
 This is the analogue, for alternating maps, of Tau Ceti's
-`TauCeti.Manifold.eventually_trivializationAt_tangentSpace_opens_eq`; its proof applies Tau
-Ceti's `TauCeti.Manifold.eventually_tangentSpaceOpenEquiv_symmL_trivializationAt_eq`, since the
-trivialization of a bundle of alternating maps precomposes with the inverse trivialization of the
-tangent bundle.
+`TauCeti.Manifold.eventually_trivializationAt_tangentSpace_opens_eq`. Its proof adapts that of
+`TauCeti.CotangentBundle.inCoordinates_open_eventuallyEq`, in Tau Ceti's file
+`TauCeti/Geometry/Manifold/VectorBundle/Cotangent/Opens.lean`, from covectors to alternating
+maps. Both apply `TauCeti.Manifold.eventually_tangentSpaceOpenEquiv_symmL_trivializationAt_eq`,
+since such a trivialization precomposes with the inverse trivialization of the tangent bundle;
+here that precomposition is Tau Ceti's
+`FiberBundle.trivializationAt_continuousAlternatingMap_apply_snd`.
 
 The proof of `TauCeti.Manifold.contMDiffOn_tangentSpaceOpenEquiv_dite` adapts that of
 `TauCeti.IsContactDistributionFamily.contMDiff_distributionGrayVectorField`, in Tau Ceti's file
@@ -89,17 +92,11 @@ theorem eventually_trivializationAt_continuousAlternatingMap_tangentSpace_opens_
   filter_upwards [eventually_tangentSpaceOpenEquiv_symmL_trivializationAt_eq (I := I) x]
     with y hy φ
   simp only [tangentSpaceOpenEquiv_apply] at hy
+  rw [FiberBundle.trivializationAt_continuousAlternatingMap_apply_snd,
+    FiberBundle.trivializationAt_continuousAlternatingMap_apply_snd (V := TangentSpace I)
+      (F := G) (x : M) (x := (y : M)) φ]
   ext v
-  simp only [FiberBundle.trivializationAt_continuousAlternatingMap_apply,
-    ContinuousAlternatingMap.inCoordinates, Trivial.fiberBundle_trivializationAt',
-    Trivial.continuousLinearMapAt_trivialization,
-    ContinuousLinearMap.compContinuousAlternatingMap_coe, ContinuousLinearMap.id_apply,
-    Function.comp_apply, ContinuousAlternatingMap.compContinuousLinearMap_apply]
-  congr 1
-  ext i
-  -- The two sides apply `φ` to the same vectors, read in the definitionally equal tangent spaces
-  -- of `U` and of `M` at `y`.
-  exact hy (v i)
+  exact congrArg φ (funext fun i ↦ hy (v i))
 
 end ContinuousAlternatingMap
 
