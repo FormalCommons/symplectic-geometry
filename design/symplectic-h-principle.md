@@ -478,24 +478,34 @@ A smooth vector bundle over `ℝ` is smoothly trivial: for
 `Bundle.exists_diffeomorph_prod_of_real` gives a diffeomorphism
 `TotalSpace F T ≃ₘ^∞⟮𝓘(ℝ).prod 𝓘(ℝ, F), 𝓘(ℝ).prod 𝓘(ℝ, F)⟯ ℝ × F` over `ℝ`,
 linear on each fibre. Tau Ceti has only the continuous statement over
-contractible bases (`Topology/VectorBundle/Contractible.lean`). Route:
-frames on the intervals of a locally finite cover of `ℝ` by intervals over
-which the bundle is trivial, glued outward from `0` in both directions.
-Where the frame `e` built so far and the next frame `e'` overlap, they
-differ by a smooth `A : ℝ → GL`, and `e'` is replaced by `e' · A ∘ φ`, with
-`φ` smooth, equal to the identity on the part of the overlap nearer `0` and
-constant on the other part.
+contractible bases (`Topology/VectorBundle/Contractible.lean`). Route: a
+global smooth frame, built from the frames of the bundle's trivializations.
+Two frames glue along a smooth map into their overlap that is the identity
+on one side (`IsLocalFrameOn.exists_isLocalFrameOn_union`, in
+`VectorBundle/LocalFrame.lean`). Over `ℝ` this joins frames on overlapping
+open intervals, and a supremum argument extends a frame on an open interval
+as far as wanted to the right or the left, unchanged away from the end it
+moves (`IsLocalFrameOn.exists_isLocalFrameOn_Ioo_extend_right`, `_left`).
+That gives frames on `Ioo (-(k + 2)) (k + 2)`, each agreeing with the one
+before on `Ioo (-(k + 1)) (k + 1)`, whose limit
+(`IsLocalFrameOn.exists_isLocalFrameOn_iUnion`, in `LocalFrame.lean`) is a
+global frame (`Bundle.exists_isLocalFrameOn_univ_of_real`). A global frame
+of any smooth vector bundle gives the diffeomorphism with the product
+(`Bundle.exists_diffeomorph_prod_of_isLocalFrameOn_univ`, in
+`LocalFrame.lean`).
 
 #### `Geometry/Manifold/TubularNeighborhood/Ray.lean`
 
-The tube around a ray, with `V := EuclideanSpace ℝ (Fin (Module.finrank ℝ E - 1))`:
+The tube around a ray, for a fibre `V` with `Module.finrank ℝ V + 1 = Module.finrank ℝ E`, such as
+`EuclideanSpace ℝ (Fin (Module.finrank ℝ E - 1))`:
 
 ```lean
 theorem TauCeti.SmoothEmbedding.exists_rayTube (γ : SmoothEmbedding 𝓘(ℝ) I ∞ ℝ M)
+    (hV : Module.finrank ℝ V + 1 = Module.finrank ℝ E)
     (hγ : Filter.Tendsto γ Filter.atTop (Filter.cocompact M))
     {O O' : Set M} (hO : IsOpen O) (hγO : Set.range γ ⊆ O)
     (hO' : IsOpen O') (hγO' : γ '' Set.Ici (-2) ⊆ O') :
-    ∃ Φ : ℝ × V → M, Manifold.IsSmoothEmbedding 𝓘(ℝ).prod 𝓘(ℝ, V) I ∞ Φ ∧
+    ∃ Φ : SmoothEmbedding (𝓘(ℝ).prod 𝓘(ℝ, V)) I ∞ (ℝ × V) M,
       IsOpen (Set.range Φ) ∧ Set.range Φ ⊆ O ∧ (∀ t, Φ (t, 0) = γ t) ∧
       IsClosed (Φ '' (Set.Ici (-2) ×ˢ Metric.closedBall 0 2)) ∧
       Φ '' (Set.Ici (-2) ×ˢ Metric.closedBall 0 2) ⊆ O'
@@ -517,8 +527,7 @@ inner product space `V` of finite dimension and `S := Ici (-1) ×ˢ closedBall 0
 in `ℝ × V`:
 
 ```lean
-theorem exists_nonneg_halfCylinder_hessian_pos {f : ℝ × V → ℝ} (hf : ContDiff ℝ ∞ f)
-    (h0 : TauCeti.IsNondegenerateCriticalPoint f 0)
+theorem exists_nonneg_halfCylinder_hessian_pos {f : ℝ × V → ℝ} (hf : ContDiff ℝ 2 f)
     (hcrit : ∀ x ∈ Set.Ici (-1 : ℝ) ×ˢ Metric.closedBall (0 : V) 1, fderiv ℝ f x = 0 → x = 0) :
     ∃ μ : ℝ × V → ℝ, ContDiff ℝ ∞ μ ∧ 0 ≤ μ ∧
       tsupport μ ⊆ Set.Ici (-1) ×ˢ Metric.closedBall 0 1 ∧
@@ -544,9 +553,9 @@ on that part outside the interior of the box `[-ρ, ρ] × closedBall 0 ρ`
 (positive by `hcrit` and compactness, since `0` is inside the box). With
 `F = f + μ`, at a critical point `x = (t, y)` in `S`:
 
-- *In the box*, `β = 1`, so `∇F = ∇f + Λ' t • e_t` with `‖∇f‖ ≤ 2 C ρ`
-  (as `∇f 0 = 0`); this is not zero once `A > 2 C ρ`. So there are no critical points there,
-  and `0` is not one.
+- *In the box*, `β = 1`, so `∂_t F = ∂_t f + Λ' t`, and `|∂_t f| ≤ C₁` on
+  `[-1, 1] × closedBall 0 1` by compactness; this is not zero once `A > C₁`.
+  So there are no critical points there.
 - *Elsewhere*, `Λ t > 0` or `Λ' t > 0` (else `x` is critical for `f`), and:
   - if `‖∇_y f‖ < ε/2`, then `β Λ' = -∂_t f > ε/2` (from `∂_t F = 0`), and in the direction
     `e_t` the Hessian of `F` is `∂²_t f + β Λ'' ≥ -C + L ε / 2 > 0`;
