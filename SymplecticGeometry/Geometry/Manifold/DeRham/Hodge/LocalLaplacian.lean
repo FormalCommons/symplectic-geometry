@@ -44,7 +44,7 @@ since forms of degree `m + 1` vanish.
 * `PartialDiffeomorph.smul_hodgeStarInChart_alternatizeUncurryFin_hodgeStarInChart`: the symbol of
   the codifferential in the chart: `± S' ε_ξ S a = -ι_u a`, with `u = ∑ᵢⱼ G⁻¹ᵢⱼ ξ(bᵢ) bⱼ` the
   vector dual to `ξ` (`LinearMap.BilinForm.apply_sum_inv_toMatrix_smul`). This is
-  `Orientation.smul_formHodgeStar_alternatizeUncurryFin_formHodgeStar` in the tangent space at
+  `Orientation.neg_one_pow_smul_formHodgeStar_wedgeCovector_formHodgeStar` in the tangent space at
   `ψ.symm y`, read through the differential of `ψ.symm`.
 * `PartialDiffeomorph.exists_mpullback_symm_codifferential_eq`: the codifferential in the chart is
   a first-order operator with principal part `-∑ᵢⱼ G⁻¹ᵢⱼ ι_{b_j} ∂_{b_i}`.
@@ -137,19 +137,18 @@ theorem smul_hodgeStarInChart_alternatizeUncurryFin_hodgeStarInChart (hkl : k + 
     rw [← hξ]
     ext v w
     simp [hcomp']
-  have key := (o.orientationAt (ψ.symm y)).smul_formHodgeStar_alternatizeUncurryFin_formHodgeStar
-    (A u) (hkl.trans this.out.symm) (hlk.trans this.out.symm) (a.compContinuousLinearMap P)
+  have key :=
+    (o.orientationAt (ψ.symm y)).neg_one_pow_smul_formHodgeStar_wedgeCovector_formHodgeStar
+      (A u) (hkl.trans this.out.symm) (hlk.trans this.out.symm) (a.compContinuousLinearMap P)
+  rw [wedgeCovector_eq_alternatizeUncurryFin, curryLeftFlipL_apply_apply] at key
   rw [hS, hS, alternatizeUncurryFin_compContinuousLinearMap, hinner, formHodgeStarCLM_apply,
     formHodgeStarCLM_apply]
-  have hsign : (-1 : ℝ) ^ (m * (k + 2) + 1) =
-      (-1) ^ (finrank ℝ (TangentSpace I (ψ.symm y)) * (k + 2) + 1) := by
-    rw [this.out]
   have hcurry : ((a.compContinuousLinearMap P).curryLeft (A u)).compContinuousLinearMap A =
       a.curryLeft u := by
     rw [← curryLeft_compContinuousLinearMap, hcomp]
   ext w
   rw [← hcurry, ContinuousAlternatingMap.smul_apply, compContinuousLinearMap_apply,
-    ContinuousAlternatingMap.neg_apply, compContinuousLinearMap_apply, hsign]
+    ContinuousAlternatingMap.neg_apply, compContinuousLinearMap_apply]
   exact congrArg (· (A ∘ w)) key
 
 /-- **The codifferential in a chart is a first-order operator.** For a chart `ψ` and a basis `b`
