@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
-public import Mathlib.Analysis.InnerProductSpace.PiL2
+public import Mathlib.Analysis.Complex.Basic
 import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import SymplecticGeometry.Topology.MetricSpace.Tube
 
