@@ -157,30 +157,21 @@ theorem surjective_mfderiv_prodChartEquations_affineChart_iff [Fintype ι]
       (affineOpenPartialHomeomorph_mem_atlas (𝕜 := ℂ) j)
   have hxe : x ∈ e.source := by simpa [e] using ⟨hi, hj⟩
   have he' := mdifferentiable_of_mem_atlas (I := 𝓘(ℂ, Fin m → ℂ).prod 𝓘(ℂ, Fin n → ℂ)) he
-  -- The chart lands in the model space `ModelProd`, with its charted-space structure as a model
-  -- space, so the differentiability of the chart equations is stated there.
-  have hg : @MDifferentiableAt _ _ _ _ _ _ _ (𝓘(ℂ, Fin m → ℂ).prod 𝓘(ℂ, Fin n → ℂ)) _ _
-      (chartedSpaceSelf (ModelProd (Fin m → ℂ) (Fin n → ℂ))) _ _ _ _ _ 𝓘(ℂ, ι → ℂ) _ _ _
-      (prodChartEquations i j p : ModelProd (Fin m → ℂ) (Fin n → ℂ) → ι → ℂ) (e x) := by
-    have h : MDifferentiableAt 𝓘(ℂ, (Fin m → ℂ) × (Fin n → ℂ)) 𝓘(ℂ, ι → ℂ)
-        (prodChartEquations i j p) (e x) :=
-      (hasStrictFDerivAt_prodChartEquations i j p _).differentiableAt.mdifferentiableAt
-    rwa [modelWithCornersSelf_prod] at h
-  have hderiv : mfderiv 𝓘(ℂ, (Fin m → ℂ) × (Fin n → ℂ)) 𝓘(ℂ, ι → ℂ)
-      (prodChartEquations i j p) (e x) = fderiv ℂ (prodChartEquations i j p) (e x) :=
-    mfderiv_eq_fderiv
-  rw [modelWithCornersSelf_prod] at hderiv
+  have hg : MDifferentiableAt 𝓘(ℂ, (Fin m → ℂ) × (Fin n → ℂ)) 𝓘(ℂ, ι → ℂ)
+      (prodChartEquations i j p) (e x) :=
+    (hasStrictFDerivAt_prodChartEquations i j p _).differentiableAt.mdifferentiableAt
+  rw [modelWithCornersSelf_prod] at hg
   have hfun : (fun y : ℙ ℂ (Fin (m + 1) → ℂ) × ℙ ℂ (Fin (n + 1) → ℂ) ↦
       prodChartEquations i j p (affineChart i y.1, affineChart j y.2)) =
-      (prodChartEquations i j p : ModelProd (Fin m → ℂ) (Fin n → ℂ) → ι → ℂ) ∘ e := by
+      prodChartEquations i j p ∘ e := by
     ext y
     simp [e]
   rw [hfun, mfderiv_comp x hg (he'.mdifferentiableAt hxe)]
   refine (Function.Surjective.of_comp_iff _ (he'.mfderiv_bijective hxe).surjective).trans ?_
-  convert surjective_fderiv_prodChartEquations_affineChart_iff_rep hp₁ hp₂ hx hi hj using 1
   have hex : e x = (affineChart i x.1, affineChart j x.2) := by simp [e]
-  rw [← hex]
-  exact iff_of_eq (congrArg (fun f ↦ Function.Surjective (DFunLike.coe f)) hderiv)
+  rw [hex, ← modelWithCornersSelf_prod]
+  exact isRegularPoint_iff.symm.trans <| isRegularPoint_iff_surjective_fderiv.trans
+    (surjective_fderiv_prodChartEquations_affineChart_iff_rep hp₁ hp₂ hx hi hj)
 
 namespace ComplexProjectiveProdZeroLocus
 
