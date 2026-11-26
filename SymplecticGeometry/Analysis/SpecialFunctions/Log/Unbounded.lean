@@ -7,8 +7,8 @@ module
 
 public import Mathlib.Analysis.Calculus.Deriv.Basic
 public import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import Mathlib.Analysis.SpecialFunctions.Log.Deriv
+import TauCeti.Analysis.Calculus.Deriv.MeanValue
 
 /-!
 # Functions whose derivative is at least `k / t` near `0⁺`
@@ -40,9 +40,7 @@ theorem tendsto_atBot_nhdsGT_zero_of_div_le_deriv {g : ℝ → ℝ} {k δ : ℝ}
     fun t ht ↦ ((hd t ht).differentiableAt (Ioo_mem_nhds ht.1 ht.2)).hasDerivAt.sub
       ((hasDerivAt_log ht.1.ne').const_mul k)
   have hmono : MonotoneOn (fun u ↦ g u - k * log u) (Ioo 0 δ) := by
-    refine monotoneOn_of_hasDerivWithinAt_nonneg (convex_Ioo 0 δ)
-      (fun t ht ↦ (hφ t ht).continuousAt.continuousWithinAt)
-      (fun t ht ↦ (hφ t (interior_subset ht)).hasDerivWithinAt) fun t ht ↦ ?_
+    refine TauCeti.monotoneOn_of_hasDerivAt_nonneg (convex_Ioo 0 δ) hφ fun t ht ↦ ?_
     rw [interior_Ioo] at ht
     have := hD t ht
     rw [div_eq_mul_inv] at this

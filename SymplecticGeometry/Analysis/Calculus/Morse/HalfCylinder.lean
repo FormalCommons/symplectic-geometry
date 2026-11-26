@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.InnerProductSpace.Calculus
+import Mathlib.Analysis.Calculus.LocalExtr.Basic
 import Mathlib.Topology.Algebra.Support
 import SymplecticGeometry.Analysis.Calculus.ConvexProfile
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Prod
