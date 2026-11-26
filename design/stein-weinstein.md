@@ -660,9 +660,24 @@ containing `ι '' closedBall 0 1`:
     a function with nonzero gradient. Issue 14d7 avoids the corner:
     its final function, `exists_modelSurround`, has `-1` as a regular
     value and agrees with `Σ` only on `{p | s p ≤ 1}` and on
-    `{p | γ ^ 2 ≤ t p}`; near the corner circle its level `-1` is the
-    level of a smoothed maximum of a function of `t` alone with a
-    level function of the shapes, as in `exists_isConvexShapeAt_eq_max`.
+    `{p | γ ^ 2 ≤ t p}`. Near the corner it bounds the intersection of
+    the inside `{r < ρ₁ R}` of `Σ`, written as a graph over `R` (14d6;
+    `ρ₁ = δ` for `R ≤ χ δ`), with the inside `{r < ρ₂ R}` of a second
+    shape, a graph over `R` with `ρ₂ = δ` for `R ≤ 1` and `ρ₂ < δ` on
+    `Ioc 1 (χ δ)`. Since the inside is the side where `Ψ < -1`, two
+    insides combine by intersection (the minimum of the graphs over
+    `R`, the maximum of the shapes over `r`). A `C²`-small perturbation
+    of the cylinder cannot cross `ρ₁`, which leaves `δ` quadratically,
+    from below; but where `|ρ₂'|` is small the criterion over `R`
+    allows a curvature `ρ₂''` up to about `1 / r`, and the Struwe leaf
+    has `ρ₁'' ≈ 1 / (2 * δ)`. So `ρ₂` can dip below `δ` after `R = 1`
+    and bend up faster than `ρ₁`, crossing it once, transversally, at
+    some `R_c > χ δ`, where `Σ` is smooth. The level `-1` is `ρ₂` before
+    `R_c` and `Σ` after it, joined at `R_c` as in Lemma 4.13 (d), and
+    the function there is a smoothed maximum (`smoothedMax`,
+    `exists_isManifoldStrictlyPlurisubharmonicAt_glue`) of a defining
+    function of the `ρ₂` shape and the foliation's `Ψ`, both smooth near
+    the crossing.
     Issue 14d4 or 14d7, whichever proves the statement that meets the
     corner, records it in `ERRATA.md` with that route.
 
@@ -732,15 +747,23 @@ containing `ι '' closedBall 0 1`:
     `exists_convexShape_surround` gives, so that `Σ` is a hypersurface
     as in Theorem 4.1, and on
     `Ωext = {p | δ ^ 2 ≤ t p ∧ √(s p) ≤ χ (√(t p))}` there is a
-    continuous `Ψ = H ∘ shape`, smooth on `Ωext` off the corner circle
-    `{p | t p = δ ^ 2 ∧ s p = χ δ ^ 2}`, with `∂H/∂t > 0`, `∂H/∂s ≤ 0`,
-    `Ψ = Ψst` on `Ωext ∩ {p | γ ^ 2 ≤ t p}`, `Ψ = -1` on the curved part
-    `{p | δ ^ 2 ≤ t p ∧ √(s p) = χ (√(t p))}` of `Σ`, an `ε > 0` with
-    `-1 + ε ≤ Ψ` on `Ωext ∩ {p | s p ≤ 1}`, and
-    `g ∘ Ψ` strictly plurisubharmonic on `Ωext ∩ K` for each compact
-    `K` and a `g` as in the lemma of `Hypersurface.lean`. `Ψ` is not
-    `-1` on the cylinder part of `Σ`: every leaf of the family has its
-    vertical tangent at `r = δ`, and their heights `χ ℓ δ` fill
+    continuous `Ψ = H ∘ shape`, with `Ψ = Ψst` on
+    `Ωext ∩ {p | γ ^ 2 ≤ t p}`, `Ψ = -1` on the curved part
+    `{p | δ ^ 2 ≤ t p ∧ √(s p) = χ (√(t p))}` of `Σ`, and an `ε > 0`
+    with `-1 + ε ≤ Ψ` on `Ωext ∩ {p | s p ≤ 1}`; and on
+    `Ωext ∩ {p | δ ^ 2 < t p}` only, `Ψ` is smooth with `∂H/∂t > 0` and
+    `∂H/∂s ≤ 0`, and `g ∘ Ψ` is strictly plurisubharmonic on
+    `Ωext ∩ {p | δ ^ 2 < t p} ∩ K` for each compact `K` and a `g` as in
+    the lemma of `Hypersurface.lean`. At the cylinder `Ψ` is not `C¹`:
+    each leaf meets it tangentially, at a height that varies with the
+    leaf, so `Ψ` grows like `√(t - δ ^ 2)` across the leaves
+    (`r - δ ≈ (R - χ ℓ δ) ^ 2 / (4 * δ)`) and `∂H/∂t` tends to `+∞`.
+    Below the leaf `χ (-8 * δ)`, which the family does not sweep, `Ψ` is
+    `64 * t - s`, the value on the standard leaves
+    `s = 64 * t + ℓ * |ℓ|` with `ℓ < -8 * δ` (whose foliation level is
+    `√(64 * t - s)`), continued by the interpolation towards `Ψst`.
+    `Ψ` is not `-1` on the cylinder part of `Σ`: every leaf of the
+    family has its vertical tangent at `r = δ`, and their heights `χ ℓ δ` fill
     `Icc 0 (χ 1 δ)`, so each point of the cylinder below the corner lies
     on a leaf `ℓ < 1`, where `Ψ > -1`. The points with `t = δ ^ 2` and
     `s = 1` lie on a leaf `ℓ₁ < 1`, and since the leaves increase in `r`,
@@ -754,7 +777,7 @@ containing `ι '' closedBall 0 1`:
     `exists_convexShape_surround`.
   - `exists_modelHandle_collar` (Corollary 4.3, with the collar given by
     a function of `t`): for small `σ > 0`, the `Ψ` above extends, with
-    the same properties and off the corner circle, to an open `Ω`
+    the same properties, to an open `Ω`
     containing `Ωext` minus the cylinder `{p | t p = δ ^ 2}`, with values
     in `Ioi (-1 - σ)`; and there is a smooth `h : ℝ → ℝ` with
     `0 < deriv h`, `h (δ ^ 2) = -1` and `g ∘ h ∘ t` strictly
@@ -777,8 +800,10 @@ containing `ι '' closedBall 0 1`:
     `Ψ` is `h ∘ t` on `{p | s p ≤ 1}` near the cylinder and the `Ψ` of
     `exists_modelHandle_collar` away from it; the margin `ε` keeps the
     latter above `-1` on `{p | s p ≤ 1}`, so the level `-1` there is the
-    cylinder, and the two are joined near the corner circle as in
-    issue 14d4's paragraph on the corner. The
+    cylinder. Near the corner circle the level `-1` leaves the cylinder
+    for the second shape `ρ₂` of issue 14d4's paragraph on the corner,
+    which crosses `Σ` transversally where both functions are smooth, and
+    the two are joined there as that paragraph says. The
     homotopy `Ψ_t` of the book's Corollary 4.4 is not stated: the
     statements of issues 14d and 14e need only its end, and the book's
     homotopy serves its Theorem 8.5, which the design does not state.
