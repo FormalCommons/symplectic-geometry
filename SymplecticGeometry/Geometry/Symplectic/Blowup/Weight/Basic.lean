@@ -431,17 +431,15 @@ theorem form_def :
   (rfl)
 
 /-- The form of the blowup pulls back by `inl` to the restriction of `σ` to `M ∖ ψ(B(l))`. -/
-@[simp]
 theorem mpullback_inl_form :
-    SmoothForm.mpullback (GluedAlong.inl (gluingDiffeomorph hψ hl hε).symm)
+    SmoothForm.mpullback (GluedAlong.inl (gluingDiffeomorph hψ hl hε).symm.toHomeomorph)
         (GluedAlong.isLocalDiffeomorph_inl _).contMDiff (form hψ hl hε) =
       SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ :=
   GluedAlong.mpullback_inl_gluedForm
 
 /-- The form of the blowup pulls back by `inr` to the restriction of `ω̃_l` to `openNbhd n ε`. -/
-@[simp]
 theorem mpullback_inr_form :
-    SmoothForm.mpullback (GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm)
+    SmoothForm.mpullback (GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm.toHomeomorph)
         (GluedAlong.isLocalDiffeomorph_inr _).contMDiff (form hψ hl hε) =
       SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (blowupForm n l) :=
   GluedAlong.mpullback_inr_gluedForm
@@ -450,10 +448,10 @@ theorem mpullback_inr_form :
 restriction of `σ` and by `inr` to the restriction of `ω̃_l`. -/
 theorem eq_form_iff {α : SmoothTwoForm 𝓘(ℝ, Fin (n + 1) → ℂ) (WeightBlowup hψ hl hε)} :
     α = form hψ hl hε ↔
-      SmoothForm.mpullback (GluedAlong.inl (gluingDiffeomorph hψ hl hε).symm)
+      SmoothForm.mpullback (GluedAlong.inl (gluingDiffeomorph hψ hl hε).symm.toHomeomorph)
           (GluedAlong.isLocalDiffeomorph_inl _).contMDiff α =
         SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ ∧
-      SmoothForm.mpullback (GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm)
+      SmoothForm.mpullback (GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm.toHomeomorph)
           (GluedAlong.isLocalDiffeomorph_inr _).contMDiff α =
         SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (blowupForm n l) :=
   GluedAlong.eq_gluedForm_iff
@@ -474,21 +472,20 @@ def complDivisor : Opens (WeightBlowup hψ hl hε) :=
 @[simp]
 theorem coe_complDivisor :
     (complDivisor hψ hl hε : Set (WeightBlowup hψ hl hε)) =
-      range (GluedAlong.inl (gluingDiffeomorph hψ hl hε).symm) := by
+      range (GluedAlong.inl (gluingDiffeomorph hψ hl hε).symm.toHomeomorph) := by
   rw [complDivisor, ← Opens.carrier_eq_coe, IsLocalDiffeomorph.image_coe]
 
 /-- Every point `inl x` of the blowup lies in `complDivisor`. -/
 @[simp]
 theorem inl_mem_complDivisor (x : outerPiece hψ) :
-    GluedAlong.inl (gluingDiffeomorph hψ hl hε).symm x ∈ complDivisor hψ hl hε := by
-  rw [← SetLike.mem_coe, coe_complDivisor]
-  exact mem_range_self x
+    GluedAlong.inl (gluingDiffeomorph hψ hl hε).toHomeomorph.symm x ∈ complDivisor hψ hl hε :=
+  SetLike.mem_coe.1 ((coe_complDivisor hψ hl hε).symm ▸ mem_range_self x)
 
 /-- A point of the blowup lies in `complDivisor` exactly when it is not the image under `inr` of a
 point of the exceptional divisor. -/
 theorem mem_complDivisor_iff {z : WeightBlowup hψ hl hε} :
     z ∈ complDivisor hψ hl hε ↔
-      z ∉ GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm ''
+      z ∉ GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm.toHomeomorph ''
         {y : modelPiece n ε | (y : BlowupModel n) ∈ exceptionalDivisor n} := by
   rw [← SetLike.mem_coe, coe_complDivisor]
   constructor
@@ -512,24 +509,25 @@ def complDivisorSymplectomorph :
 @[simp]
 theorem coe_complDivisorSymplectomorph_symm_apply (x : outerPiece hψ) :
     ((complDivisorSymplectomorph hψ hl hε).symm x : WeightBlowup hψ hl hε) =
-      GluedAlong.inl (gluingDiffeomorph hψ hl hε).symm x :=
+      GluedAlong.inl (gluingDiffeomorph hψ hl hε).symm.toHomeomorph x :=
   IsLocalDiffeomorph.coe_diffeomorphOfInjective_apply _ _ x
 
 /-- `inl` undoes `complDivisorSymplectomorph`. -/
-@[simp]
 theorem inl_complDivisorSymplectomorph_apply (z : complDivisor hψ hl hε) :
-    GluedAlong.inl (gluingDiffeomorph hψ hl hε).symm (complDivisorSymplectomorph hψ hl hε z) =
-      z := by
+    GluedAlong.inl (gluingDiffeomorph hψ hl hε).symm.toHomeomorph
+        (complDivisorSymplectomorph hψ hl hε z) = z := by
   rw [← coe_complDivisorSymplectomorph_symm_apply, Diffeomorph.symm_apply_apply]
 
 /-- `complDivisorSymplectomorph` sends the point `inl x` to `x`. -/
 @[simp]
 theorem complDivisorSymplectomorph_inl (x : outerPiece hψ) :
     complDivisorSymplectomorph hψ hl hε
-        ⟨GluedAlong.inl (gluingDiffeomorph hψ hl hε).symm x, inl_mem_complDivisor hψ hl hε x⟩ =
-      x := by
-  apply GluedAlong.inl_injective (gluingDiffeomorph hψ hl hε).symm
-  rw [inl_complDivisorSymplectomorph_apply]
+        ⟨GluedAlong.inl (gluingDiffeomorph hψ hl hε).toHomeomorph.symm x,
+          inl_mem_complDivisor hψ hl hε x⟩ = x := by
+  apply GluedAlong.inl_injective (gluingDiffeomorph hψ hl hε).symm.toHomeomorph
+  -- The two sides name the gluing map as `.symm.toHomeomorph` and `.toHomeomorph.symm`, equal by
+  -- `Diffeomorph.symm_toHomeomorph`; `rw` cannot rewrite it inside the point of `complDivisor`.
+  exact inl_complDivisorSymplectomorph_apply hψ hl hε _
 
 /-- **The complement of the divisor is symplectomorphic to `M ∖ ψ(B(l))`**:
 `complDivisorSymplectomorph` pulls the restriction of `σ` to `M ∖ ψ(B(l))` back to the restriction
