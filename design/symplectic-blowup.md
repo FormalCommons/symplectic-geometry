@@ -207,7 +207,7 @@ they are split here so that each issue is a few hundred lines, and
 | `Blowup/Profile.lean` | the profiles and the forms $\tilde\omega_{\lambda,\varepsilon}$ | 3 |
 | `Blowup/Area.lean` | the area identity; the first milestone | 4 |
 | `Blowup/Weight/Basic.lean` | the blowup $\widetilde M_\psi$ of weight $\lambda$ and its divisor | 5 |
-| `Blowup/Weight/Collapse.lean` | the Hopf collapse, the volume, the second milestone | 6 |
+| `Blowup/Weight/Collapse.lean` | the Hopf collapse, the second milestone | 6 |
 | `Blowup/DivisorNeighborhood.lean` | a neighbourhood of a divisor is $L(\varepsilon)$ | 7 |
 | `Blowup/Blowdown.lean` | the blowdown; the third milestone | 8 |
 | `Blowup/Normalized/Basic.lean` | normalizations, lifts, the forms $\tilde\omega_{\psi,\lambda,\varepsilon}$ | 9 |
@@ -393,10 +393,12 @@ $B(\lambda)$.
   `(ψ '' ball 0 λ)ᶜ` by the relation "equal, or both on the sphere with
   the same `sphereHopf`" onto `WeightBlowup hψ hλ hε`.
 - `liouvilleMeasure_form_add`: the Liouville measure of the blowup plus
-  that of $B(\lambda)$ for $\omega_0$ is that of `M`, in `ℝ≥0∞`: $Z$ is
-  null, `complDivisorSymplectomorph` preserves the Liouville measure, and
-  $\psi$ carries that of $\omega_0$ on $B(\lambda)$ to that of $\omega$
-  (`measurePreserving_liouvilleMeasure`).
+  the Lebesgue measure of $B(\lambda)$, its Liouville measure for
+  $\omega_0$, is that of `M`, in `ℝ≥0∞`, for any `σ` and `0 ≤ λ`; it is in
+  `Blowup/Weight/Volume.lean`. $Z$ is null in the charts of the model,
+  `inl` carries the Liouville measure of $M\setminus\psi(B(\lambda))$ onto the
+  complement of $Z$, and $\psi$ carries that of $\omega_0$ on $B(\lambda)$ to that of
+  $\omega$ (`IsSymplecticMapOn.map_restrict_liouvilleMeasure`).
 - **Milestone** `WeightBlowup.isSymplectic_form_and_divisor`: the conjunction
   of `isSymplectic_form`, the divisor statements, `collapseHomeomorph` and
   `liouvilleMeasure_form_add`. Its docstring ends with the line Milestone:
