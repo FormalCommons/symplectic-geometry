@@ -35,10 +35,10 @@ of `M`, and take the fundamental class of the homological orientation of `-o`.
   (`SymplecticGeometry.Bundle.chernNumber_eq_integral_curvature`).
 * The real image of the Euler class takes the cast of the value of the Euler class
   (`TauCeti.HomologicalOrientation.evalFundamentalClass_singularCohomologyRealImage`). The Euler
-  class is the first Chern class (`SymplecticGeometry.firstChernClass_eq_complexEulerClass`), and
-  reversing the orientation negates the Chern number
-  (`SymplecticGeometry.chernNumber_neg_orientation`), so this value is minus the same
-  Chern number.
+  class is the first Chern class
+  (`SymplecticGeometry.Bundle.firstChernClass_eq_complexEulerClass`), and reversing the
+  orientation negates the Chern number (`SymplecticGeometry.Bundle.chernNumber_neg_orientation`),
+  so this value is minus the same Chern number.
 
 ## Main results
 
