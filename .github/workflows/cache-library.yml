@@ -39,8 +39,9 @@ name: cache-library
 # that this job itself would have built with. The artifact is always a build
 # from nothing (CI hands one over only when it restored no save), and it is
 # taken only while main has no build from source for these dependencies (the
-# file `from` says `none`, as this run's save name does), so the builds from
-# source replace what the saves carry along as they did before; the
+# step that takes it runs only while this run's save is named `none`), so
+# the builds from source replace what the saves carry along as they did
+# before; the
 # workflow cache-source never reads an artifact. `lake build --wfail` below
 # still runs over the build and fails as it would have. What is new: main's
 # save now trusts that nothing but the merge queue can start a run with the
@@ -118,10 +119,11 @@ jobs:
             printf '%s\n' 'from=none' "restore=$BUILD-" >> "$GITHUB_OUTPUT"
           fi
       # The build that the merge queue's run of CI made of this commit; see
-      # the top of the file. It takes one request to find the run and two to
-      # download its artifact. The build is unpacked beside `.lake/build` and
-      # moved there only when it is whole. Whatever fails here, the next step
-      # restores the latest save instead.
+      # the top of the file, and build-artifact.sh for how it is unpacked.
+      # It takes two requests to find the run and its artifact and two to
+      # download it. A run of the merge queue that started from a save
+      # handed over nothing, and that is no fault. Whatever fails here, the
+      # next step restores the latest save instead.
       - name: take the merge queue's build of this commit
         id: queue
         if: steps.turn.outputs.go == 'true' && steps.name.outputs.from == 'none'
@@ -129,32 +131,25 @@ jobs:
         timeout-minutes: 20
         env:
           GH_TOKEN: ${{ github.token }}
-          FROM: ${{ steps.name.outputs.from }}
         run: |
           set -o pipefail
-          take() {
-            local run dir=$RUNNER_TEMP/queue-build
+          # The merge queue's run for this commit, into `run`, if it handed
+          # over a build.
+          handed() {
+            local count
             run=$(timeout 60 gh api -X GET "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs" \
               -f head_sha="$GITHUB_SHA" -f event=merge_group -f status=success -F per_page=10 |
               jq -r --arg sha "$GITHUB_SHA" 'first(.workflow_runs[] | select(.event == "merge_group" and .conclusion == "success" and .head_sha == $sha)) | .id') ||
-              { echo "could not ask GitHub for the merge queue's run of CI for $GITHUB_SHA"; return 1; }
+              { echo "::warning::could not ask GitHub for the merge queue's run of CI for $GITHUB_SHA"; return 1; }
             [[ $run =~ ^[0-9]+$ ]] || { echo "GitHub lists no run of CI that passed in the merge queue for $GITHUB_SHA"; return 1; }
-            rm -rf "$dir" && mkdir -p "$dir/unpacked" .lake || return 1
-            timeout 900 gh run download "$run" --repo "$GITHUB_REPOSITORY" --name queue-build --dir "$dir" ||
-              { echo "could not download the build of run $run"; return 1; }
-            [ -f "$dir/from" ] && [ "$(cat "$dir/from")" = "$FROM" ] ||
-              { echo "the build of run $run does not descend from the build from source that this run's save is named after, $FROM"; return 1; }
-            tar --use-compress-program unzstd -xf "$dir/build.tar.zst" -C "$dir/unpacked" && [ -d "$dir/unpacked/build" ] &&
-              [ -z "$(find "$dir/unpacked" ! -type f ! -type d -print -quit)" ] ||
-              { echo "could not unpack the build of run $run, or it holds something other than files and directories"; return 1; }
-            rm -rf .lake/build && mv "$dir/unpacked/build" .lake/build || return 1
-            rm -rf "$dir"
-            echo "took the build of run $run"
+            count=$(timeout 60 gh api -X GET "repos/$GITHUB_REPOSITORY/actions/runs/$run/artifacts" -f name=queue-build |
+              jq '[.artifacts[] | select(.name == "queue-build" and (.expired | not))] | length') ||
+              { echo "::warning::could not ask GitHub for the build of run $run"; return 1; }
+            [ "$count" -gt 0 ] || { echo "run $run handed over no build: it started from a save"; return 1; }
           }
-          if take; then
+          if handed && .github/build-artifact.sh take "$run" queue-build; then
             echo 'took=true' >> "$GITHUB_OUTPUT"
           else
-            rm -rf .lake/build "$RUNNER_TEMP/queue-build"
             echo "this run starts from the latest save"
           fi
       - name: restore the latest build of the library
