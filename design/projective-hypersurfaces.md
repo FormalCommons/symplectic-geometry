@@ -50,7 +50,7 @@ pinned versions, as for `DESIGN.md`. Tau Ceti paths are relative to
   Tau Ceti's `Projectivization.twistCore k` for $\mathcal O(k)$ (so the page's
   hyperplane bundle $H$, with fibre $\ell^*$, is `twistCore 1`, and
   `twistCore (-1)` is the tautological line), pull-backs `f *ᵖ E`, and Tau
-  Ceti's normal bundle `f.NormalSpace` of the embedding $\iota$ over the
+  Ceti's normal bundle `f.isImmersion.NormalSpace` of the embedding $\iota$ over the
   field `ℂ` (`normalSpaceFiberBundle`, `normalSpaceVectorBundle` with
   `𝕜 = ℂ`, model `ℂ`).
 - **Cohomology and $h$.** Chern classes are *Chern classes*' `chernClass` and
@@ -276,7 +276,7 @@ The list is in the order of the paths.
 
 | File | Contents | Issue |
 |---|---|---|
-| `Algebra/Module/LinearMap/Polynomial.lean` | evaluating and differentiating pullbacks along `Matrix.toMvPolynomial` | 9 |
+| `Algebra/Module/LinearMap/Polynomial.lean` | differentiating the linear forms of `Matrix.toMvPolynomial` | 9 |
 | `AlgebraicTopology/Cohomology/Cap/RationalCoefficients.lean` (addition) | Poincaré duality for rational Betti numbers | 13 |
 | `AlgebraicTopology/Singular/HomologyMap.lean` | homology isomorphisms across a commutative square | 12 |
 | `Geometry/Manifold/Complex/EulerCharacteristic.lean` | real and complex tangent bundles of a complex manifold; $\chi=\langle c_{top},[M]\rangle$ | 7 |
@@ -412,7 +412,7 @@ Namespace `Projectivization`, with `h := hyperplaneClass (Fin (m + 1) → ℂ)`.
 Namespace `TauCeti.SmoothEmbedding`, for `f : SmoothEmbedding I J n M N`
 with `hn : n ≠ 0`, between finite-dimensional manifolds over `𝕜`.
 
-- `tangentNormalEquiv f hn r hr x : (TangentSpace I ×ᵇ fun x ↦ f.NormalSpace x hn) x
+- `tangentNormalEquiv f hn r hr x : (TangentSpace I ×ᵇ fun x ↦ f.isImmersion.NormalSpace x hn) x
   ≃L[𝕜] (f *ᵖ TangentSpace J) x`, `(u, a) ↦ df u + r a`, for any fibrewise
   linear right inverse `r` of `normalClass` (`hr`), with
   `tangentNormalEquiv_apply` and the continuity of its map of total spaces
@@ -421,7 +421,7 @@ with `hn : n ≠ 0`, between finite-dimensional manifolds over `𝕜`.
   `normalClass` (Tau Ceti's `NormalSpace` is that quotient). *Adjunction*'s
   `normalSplitting` is its inverse for the representatives in the
   `ω`-orthogonal.
-- `normalRightInverse f hn x : f.NormalSpace x hn →L[𝕜] TangentSpace J (f x)`,
+- `normalRightInverse f hn x : f.isImmersion.NormalSpace x hn →L[𝕜] TangentSpace J (f x)`,
   with `[IsRCLikeNormedField 𝕜]` and `[NormalSpace M] [ParacompactSpace M]` (for
   a partition of unity), with `normalClass_normalRightInverse` (a right inverse
   of `normalClass`) and the continuity of its map of total spaces; the right
@@ -433,7 +433,7 @@ with `hn : n ≠ 0`, between finite-dimensional manifolds over `𝕜`.
 
 Namespace `SymplecticGeometry.SmoothProjectiveHypersurface`.
 
-- `normalSpaceEquiv X x : X.embedding.NormalSpace x _ ≃L[ℂ]
+- `normalSpaceEquiv X x : X.embedding.isImmersion.NormalSpace x _ ≃L[ℂ]
   (twistCore d).Fiber (x : ℙ ℂ (Fin (n + 2) → ℂ))`, in the chart
   `(twistCore d).indexAt x`, Tau Ceti's
   `complexProjectiveZeroLocusNormalSpaceEquiv`; with
@@ -450,7 +450,7 @@ Namespace `SymplecticGeometry.SmoothProjectiveHypersurface`.
   `hyperplaneClass` by the inclusion, with `hyperplaneClass_def`; and its
   image in `EvenIntegralCohomology`.
 - **Milestone, part 2 (first half)** `chernClass_one_normalSpace`:
-  `chernClass ℂ (X.embedding.NormalSpace · _) 1 = d • X.hyperplaneClass`, from
+  `chernClass ℂ (X.embedding.isImmersion.NormalSpace · _) 1 = d • X.hyperplaneClass`, from
   `normalSpaceEquiv`, `chernClass_congr`, `chernClass_pullback` and
   `chernClass_one_twistCore`.
 - **Milestone, part 3** `totalChernClass_tangentSpace_mul`:

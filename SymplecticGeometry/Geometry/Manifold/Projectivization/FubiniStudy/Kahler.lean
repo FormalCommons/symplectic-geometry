@@ -272,7 +272,7 @@ Milestone: *Complex submanifolds of Kähler manifolds*. -/
 theorem isKahler_mpullback_fubiniStudyForm
     {f : SmoothEmbedding I' 𝓘(ℝ, Fin n → ℂ) ∞ N (ℙ ℂ (Fin (n + 1) → ℂ))}
     (hJ : ∀ x, Set.MapsTo (ofComplexManifold (Fin n → ℂ) (ℙ ℂ (Fin (n + 1) → ℂ)) (f x))
-      (f.tangentRange x hn) (f.tangentRange x hn)) :
+      (f.isImmersion.tangentRange x hn) (f.isImmersion.tangentRange x hn)) :
     SmoothTwoForm.IsSymplectic (SmoothForm.mpullback f f.contMDiff (fubiniStudyForm n)) ∧
       SmoothTwoForm.IsKahler (SmoothForm.mpullback f f.contMDiff (fubiniStudyForm n))
         ((ofComplexManifold (Fin n → ℂ) (ℙ ℂ (Fin (n + 1) → ℂ))).restrict f hJ) ∧

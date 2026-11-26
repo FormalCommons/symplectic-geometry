@@ -821,11 +821,11 @@ issues, in an order where each issue's blockers come before it.
    `TopCat.singularHomologyIntToRat`, from bijectivity of the duality map with
    values in `ℚ`
    (`TauCeti.HomologicalOrientation.bijective_singularCapLinearMap_fundamentalClass`).
-   It uses two new general files:
+   It uses a new general file,
    `AlgebraicTopology/Cohomology/Cap/Basic.lean`, the singular cap product
-   of a simplex along the unitors, and
-   `Algebra/Homology/ShortComplex/PreservesHomology.lean`,
-   `CategoryTheory.ShortComplex.map_homologyπ_comp_mapHomologyIso_inv`.
+   of a simplex along the unitors, and Tau Ceti's
+   `CategoryTheory.ShortComplex.map_homologyπ_comp_mapHomologyIso_inv`
+   (`Algebra/Homology/ShortComplex/PreservesHomology.lean`).
    Its chain map from integral to rational chains is the change of
    coefficients `SSet.restrictScalarsChainMap` of
    `AlgebraicTopology/SimplicialSet/Homology/RestrictScalars.lean`
@@ -897,7 +897,7 @@ issues, in an order where each issue's blockers come before it.
    `TauCeti.HomologicalOrientation.bijective_dualityMap`, for every
    homologically oriented manifold, compact or not, and for compact `M` its
    form for capping with the fundamental class,
-   `bijective_singularCap_fundamentalClass`.
+   `bijective_singularCapAddHom_fundamentalClass`.
 3. **The unit circle bundle of a Hermitian line bundle.**
    `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean`, the file
    of *Symplectic vector bundles* (its section *The circle bundle of a

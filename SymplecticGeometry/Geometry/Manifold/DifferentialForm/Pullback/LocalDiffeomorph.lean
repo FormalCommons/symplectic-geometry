@@ -60,7 +60,7 @@ differential (`IsLocalDiffeomorphAt.interior_apply_eq_iff`), nondegeneracy of a 
 an invertible differential at `x`; for an immersion at `x` between manifolds of one finite
 dimension, which has one, the direction from `f x` to `x` is
 `TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_mpullback_of_isImmersionAt`; for the action of an
-element of a group acting smoothly, on a
+element of a group acting by smooth maps, on a
 two-form invariant under it, this is `TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_smul_iff`),
 and, for a two-form closed at `f x`, the
 identity `L_Z ω = ψ` (`IsLocalDiffeomorphAt.mlieDerivForm_apply_eq_iff`, through the
@@ -299,17 +299,17 @@ theorem nondegenerate_bilinFormAt_mpullback_of_isImmersionAt [FiniteDimensional 
     (by rw [SmoothForm.coe_mpullback])).1 hσ
 
 open scoped ContDiff in
-/-- Let a group `G` act smoothly on `M`, and let the two-form `σ` on `M` be invariant under
-`y ↦ k • y`. Then `σ` is nondegenerate at `k • y` exactly when it is nondegenerate at `y`. -/
-theorem nondegenerate_bilinFormAt_smul_iff [IsManifold I 1 M] {EG HG G : Type*}
-    [NormedAddCommGroup EG] [NormedSpace ℝ EG] [TopologicalSpace HG]
-    {IG : ModelWithCorners ℝ EG HG} [TopologicalSpace G] [ChartedSpace HG G] [Group G]
-    [MulAction G M] [ContMDiffSMul IG I ∞ G M] {σ : SmoothForm I M ℝ 2} (k : G)
-    (hσ : SmoothForm.mpullback (k • ·) (ContMDiffSMul.contMDiff_const_smul (I := IG) k) σ = σ)
+/-- Let a group `G` act on `M` by smooth maps, and let the two-form `σ` on `M` be invariant
+under `y ↦ k • y`. Then `σ` is nondegenerate at `k • y` exactly when it is nondegenerate at `y`. -/
+theorem nondegenerate_bilinFormAt_smul_iff [IsManifold I 1 M] {G : Type*} [Group G]
+    [MulAction G M] [ContMDiffConstSMul I ∞ G M] {σ : SmoothForm I M ℝ 2} (k : G)
+    (hσ : SmoothForm.mpullback (k • ·) (ContMDiffConstSMul.contMDiff_const_smul k) σ = σ)
     (y : M) :
     (σ.bilinFormAt (k • y)).Nondegenerate ↔ (σ.bilinFormAt y).Nondegenerate := by
-  refine nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv
-    (((Diffeomorph.smul IG I ∞ k).isLocalDiffeomorph y).isInvertible_mfderiv (by simp)) ?_
+  have hk : (mfderiv I I (k • ·) y).IsInvertible := by
+    rw [← Diffeomorph.coe_constSmul (I := I) (n := ∞) k]
+    exact (Diffeomorph.constSmul I ∞ k).isInvertible_mfderiv (by simp)
+  refine nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv hk ?_
   have h := congrArg Subtype.val hσ
   rw [SmoothForm.coe_mpullback] at h
   exact congrFun h y
@@ -500,7 +500,7 @@ theorem exists_mpullback_sub_eq_mextDerivₗ_of_partialDiffeomorph [IsManifold I
       rw [hK₀e z hz, hk0 z hz fun hzC ↦ hx (mem_image_of_mem _ hzC)]
     · exact indicator_of_notMem hxW _
   have hK₀s : ContMDiff I' 𝓘(ℝ) ∞ K₀ :=
-    e.contMDiff_indicator_image_comp_symm hk hC hW hCW hWe hk0
+    e.contMDiff_indicator_image_comp_symm hk hCc hW hCW hWe hk0
   set K : C^∞⟮I', M'; ℝ⟯ := ⟨K₀, hK₀s⟩
   have hKK : ⇑K = K₀ := ContMDiffMap.coeFn_mk K₀ hK₀s
   refine ⟨K, hKK ▸ hK₀C, hKK ▸ hK₀e, Subtype.ext (funext fun x ↦ ?_)⟩

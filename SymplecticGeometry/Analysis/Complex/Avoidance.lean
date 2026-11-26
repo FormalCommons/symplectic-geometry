@@ -8,7 +8,7 @@ module
 public import Mathlib.Analysis.InnerProductSpace.Calculus
 public import Mathlib.Topology.MetricSpace.HausdorffDistance
 public import TauCeti.Analysis.Complex.Wirtinger.Basic
-import SymplecticGeometry.Analysis.Normed.Lp.PiLp
+import TauCeti.Analysis.Normed.Lp.PiLp.Basic
 import SymplecticGeometry.Analysis.Complex.Polydisc.HolomorphicApproximation
 import SymplecticGeometry.Analysis.Complex.Polydisc.TaylorTruncation
 import Mathlib.Analysis.Complex.ExponentialBounds

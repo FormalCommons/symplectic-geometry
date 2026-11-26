@@ -9,7 +9,6 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.FrameTrivialization
 public import TauCeti.Geometry.Symplectic.Darboux.Basis
 import TauCeti.Geometry.Symplectic.Darboux.EuclideanBasis
-import SymplecticGeometry.Geometry.Manifold.VectorBundle.LocalFrame
 import SymplecticGeometry.LinearAlgebra.Symplectic.Darboux
 
 /-!
@@ -261,7 +260,7 @@ theorem IsNondegenerate.exists_isLocalFrameOn_isDarbouxBasis (hω : ω.IsNondege
     TauCeti.SymplecticForm.linearIndependent_of_apply_fst_snd (hrel' y hy).1 (hrel' y hy).2.1
       (hrel' y hy).2.2
   have hs : IsLocalFrameOn I F n s U :=
-    .of_linearIndependent_of_card_eq_finrank hli (by simp [hk, mul_comm]) fun ⟨i, j⟩ ↦ by
+    .of_linearIndependent_of_card_eq_finrank (hli := hli) (by simp [hk, mul_comm]) fun ⟨i, j⟩ ↦ by
       by_cases hj : j = 0
       · simpa only [s, hj, ↓reduceIte] using ha i
       · simpa only [s, hj, ↓reduceIte] using hb i

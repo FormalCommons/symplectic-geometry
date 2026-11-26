@@ -11,7 +11,6 @@ public import TauCeti.AlgebraicTopology.Cohomology.Cup.Relative
 public import TauCeti.AlgebraicTopology.Cohomology.Kronecker
 public import TauCeti.AlgebraicTopology.SimplicialSet.Homology.Relative.Pairing
 import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.Relative.Pairing
-import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.Relative.Pairing.FromTauCeti
 import SymplecticGeometry.AlgebraicTopology.Singular.AlexanderWhitney.RelativeCup
 
 /-!

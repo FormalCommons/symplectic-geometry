@@ -12,6 +12,9 @@ public import Mathlib.Analysis.Analytic.Order
 public import TauCeti.Topology.Codiscrete
 public import TauCeti.Analysis.Analytic.Hadamard
 import TauCeti.Analysis.Calculus.IteratedDeriv.Leibniz
+import TauCeti.Analysis.Calculus.FDeriv.RestrictScalars
+import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 
 /-!
 # Lifts of holomorphic maps fixing the origin and of curves through it to the model blowup
@@ -75,6 +78,10 @@ defined by this last description, without choosing `g`.
 * `SymplecticGeometry.BlowupModel.contMDiffAt_curveLift`: the lift is holomorphic at a point where
   `u` is analytic of finite order, and `contMDiffOn_curveLift` on a set of such points, with
   `continuousOn_curveLift`.
+* `SymplecticGeometry.BlowupModel.mfderiv_curveLift_of_ne_zero`: at a point `t` where `u` is
+  complex differentiable with `u t ≠ 0`, the real derivative of the lift along `c` is that of the
+  inverse of the blowdown off the divisor (`blowdownDiffeomorph`) at `u t` along
+  `c • u'(t)`, since near `t` the lift is `u` followed by that inverse.
 * `SymplecticGeometry.BlowupModel.curveLift_eq_of_blowdown_comp`: the lift of a curve is unique.
   On an open set where `u` is analytic of finite order at every point, a continuous map lying
   over `u` is its lift, since the zeros of `u` there are isolated and the blowdown is injective
@@ -483,6 +490,47 @@ theorem curveLift_eq_of_blowdown_comp {U : Set ℂ} (hU : IsOpen U) (hu : Analyt
     (continuousOn_iff_continuous_domRestrict.2 (hv.symm ▸ hũ)) (fun s hs => by simp [v, hs, hũu])
     t.property
   simpa [v] using h
+
+open TauCeti TauCeti.Manifold TopologicalSpace in
+/-- The real derivative of the lift of a curve off the zeros of the curve. At `t` with `u` complex
+differentiable at `t` and `u t ≠ 0`, the derivative of `curveLift u` along `c` is the derivative
+of the inverse of the blowdown off the exceptional divisor, read in the model, at `u t` along
+`c • u'(t)`. -/
+theorem mfderiv_curveLift_of_ne_zero (hu : DifferentiableAt ℂ u t) (h0 : u t ≠ 0) (c : ℂ) :
+    mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift u) t c =
+      mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
+        (Subtype.val ∘ (blowdownDiffeomorph n).symm) ⟨u t, h0⟩ (c • deriv u t) := by
+  -- Near `t`, the curve `u` as a curve `ũ` in `E ∖ 0`.
+  set ũ : ℂ → (⟨{z | z ≠ 0}, isOpen_ne⟩ : Opens (Fin (n + 1) → ℂ)) := fun s ↦
+    if h : u s = 0 then ⟨u t, h0⟩ else ⟨u s, h⟩
+  have hne : ∀ᶠ s in 𝓝 t, u s ≠ 0 := hu.continuousAt.eventually_ne h0
+  have hev : Subtype.val ∘ ũ =ᶠ[𝓝 t] u := by
+    filter_upwards [hne] with s hs
+    simp [ũ, hs]
+  have hũt : ũ t = ⟨u t, h0⟩ := Subtype.ext hev.self_of_nhds
+  have hũd : MDifferentiableAt 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ũ t :=
+    mdifferentiableAt_subtype_val_comp_iff.1
+      ((hu.restrictScalars ℝ).mdifferentiableAt.congr_of_eventuallyEq hev)
+  -- Near `t`, the lift is `ũ` followed by the inverse of the blowdown off the divisor.
+  set Ψ : (⟨{z | z ≠ 0}, isOpen_ne⟩ : Opens (Fin (n + 1) → ℂ)) → BlowupModel n :=
+    Subtype.val ∘ (blowdownDiffeomorph n).symm
+  have hΨ : ContMDiff 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ω Ψ :=
+    (contMDiff_subtypeVal.comp (blowdownDiffeomorph n).symm.contMDiff).restrictScalars' ℝ
+  have hlift : curveLift u =ᶠ[𝓝 t] Ψ ∘ ũ := by
+    filter_upwards [hne] with s hs
+    simp [Ψ, ũ, hs, curveLift_of_ne_zero hs]
+  have h₁ := (((hΨ.mdifferentiableAt (by simp)).hasMFDerivAt.comp t
+    hũd.hasMFDerivAt).congr_of_eventuallyEq_abuse hlift).mfderiv
+  have h₂ : mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ũ t c = c • deriv u t :=
+    ((mfderiv_subtype_val_comp_apply c).symm.trans
+      (mvfderiv_apply_eq_mfderiv_apply (Subtype.val ∘ ũ) t c).symm).trans
+      ((DFunLike.congr_fun hev.mvfderiv_eq c).trans ((mvfderiv_eq_fderiv_apply u t c).trans
+        (hu.fderiv_restrictScalars_eq_smul_deriv ℝ c)))
+  rw [← hũt]
+  -- The tangent spaces at `curveLift u t` and at `Ψ (ũ t)` are both `E`.
+  exact (DFunLike.congr_fun h₁ c).trans ((ContinuousLinearMap.comp_apply
+    (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) Ψ (ũ t))
+    (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ũ t) c).trans (congrArg _ h₂))
 
 end Curve
 

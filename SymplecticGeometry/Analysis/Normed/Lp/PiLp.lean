@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Analysis.Normed.Lp.PiLp
+public import TauCeti.Analysis.Normed.Lp.PiLp.Basic
 
 /-!
 # `Lᵖ` products
@@ -13,13 +13,12 @@ public import TauCeti.Analysis.Normed.Lp.PiLp
 Mathlib's `LinearIsometryEquiv.piLpCongrLeft p 𝕜 E e` moves the coordinates of `Lᵖ(ι, E)` along an
 equivalence `e : ι ≃ ι'`. Tau Ceti shows that the identity of `ι` gives the identity
 (`LinearIsometryEquiv.piLpCongrLeft_refl`). This file adds the matching statement for
-composition, and bounds the `Lᵖ` norm by the sum of the norms of the coordinates.
+composition.
 
 ## Main results
 
 * `LinearIsometryEquiv.piLpCongrLeft_trans`: reindexing along `e` and then along `f` is
   reindexing along `e.trans f`.
-* `PiLp.norm_le_sum_norm`: for `1 ≤ p`, the `Lᵖ` norm of `x` is at most `∑ i, ‖x i‖`.
 -/
 
 public section
@@ -38,19 +37,5 @@ theorem piLpCongrLeft_trans (e : ι ≃ ι') (f : ι' ≃ ι'') :
   simp [piLpCongrLeft_apply, Equiv.piCongrLeft'_apply]
 
 end LinearIsometryEquiv
-
-namespace PiLp
-
-variable {p : ENNReal} [Fact (1 ≤ p)] {ι : Type*} [Fintype ι] {β : ι → Type*}
-  [∀ i, SeminormedAddCommGroup (β i)]
-
-/-- For `1 ≤ p`, the `Lᵖ` norm of `x` is at most the sum of the norms of its coordinates. -/
-theorem norm_le_sum_norm (x : PiLp p β) : ‖x‖ ≤ ∑ i, ‖x i‖ := by
-  classical
-  calc ‖x‖ = ‖∑ i, PiLp.single p i (x i)‖ := by rw [PiLp.univ_sum_single]
-    _ ≤ ∑ i, ‖PiLp.single p i (x i)‖ := norm_sum_le _ _
-    _ = ∑ i, ‖x i‖ := by simp_rw [PiLp.norm_single]
-
-end PiLp
 
 end

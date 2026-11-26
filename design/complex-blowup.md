@@ -70,8 +70,9 @@ from two pieces with Tau Ceti's gluing of manifolds,
 `Geometry/Manifold/Gluing/CapDiscs/` already does:
 
 ```
-def Blowup.glueData (c : BlowupChart M p₀) : TopCat.GlueData := TopCat.GlueData.ofHomeomorph …
-def Blowup (c : BlowupChart M p₀) : Type := (Blowup.glueData c).toGlueData.glued
+def Blowup.gluingHomeomorph (c : BlowupChart M p₀) :
+    Blowup.puncturedSourceOpens c ≃ₜ Blowup.modelOffDivisorOpens c := …
+abbrev Blowup (c : BlowupChart M p₀) : Type := GluedAlong (Blowup.gluingHomeomorph c)
 ```
 
 The index type is `Bool`. The piece `false` is the open set
@@ -112,8 +113,8 @@ one construction gives the complex blowup and the smooth blowup that
 `IsCompatible.isManifold` the instances, `IsCompatible.partialDiffeomorphι`
 and `IsCompatible.isLocalDiffeomorph_ι` the pieces as open submanifolds,
 `IsCompatible.contMDiff_iff` and `IsCompatible.isLocalDiffeomorph_iff` the
-maps out of the blowup, such as $\pi_M$, `ofHomeomorph_t2Space_iff` and
-`secondCountableTopology` the topology, and
+maps out of the blowup, such as $\pi_M$, `GluedAlong.t2Space_iff` and the
+`SecondCountableTopology` instance of `GluedAlong` the topology, and
 `TauCeti.diffeomorphOfForallIsLocalDiffeomorphEquiv`
 (`Geometry/Manifold/Gluing/Basic.lean`) the uniqueness of the structure.
 
@@ -248,7 +249,7 @@ Namespace `SymplecticGeometry`, for `n : ℕ` and `E := Fin (n + 1) → ℂ`.
   `TauCeti.SmoothEmbedding 𝓘(ℂ, Fin n → ℂ) 𝓘(ℂ, E) ω`, with range the
   exceptional divisor.
 - `normalSpaceZeroSectionEquiv n ℓ`, the complex-linear isomorphism from
-  Tau Ceti's `SmoothEmbedding.NormalSpace` of `zeroSectionEmbedding n` at
+  Tau Ceti's `Manifold.IsImmersion.NormalSpace` of `zeroSectionEmbedding n` at
   `ℓ` onto `Tautological ℂ E ℓ`, induced by the differential of `blowdown`,
   whose kernel at `(ℓ, 0)` is the tangent image of the zero section and whose
   image is `ℓ`; and its continuity on total spaces, in Tau Ceti's local
@@ -304,25 +305,27 @@ Namespace `SymplecticGeometry`, for `M : Type` with `[TopologicalSpace M]
 - `BlowupChart M p₀`, a structure: an `OpenPartialHomeomorph M E`
   (`toOpenPartialHomeomorph`, with a coercion) with `mem_source : p₀ ∈ source`
   and `map_center : toOpenPartialHomeomorph p₀ = 0`; `@[ext]`.
-- `Blowup.glueData c` and `Blowup c` as in *Decisions*, with
-  `glueData_def`, the gluing `TopCat.GlueData.ofHomeomorph` along
-  `Blowup.gluingHomeomorph c`, whose lemmas give its pieces, overlaps and
-  transitions; the canonical maps
-  `Blowup.inl c : Blowup.puncturedOpens c → Blowup c` (the open set
-  `{p₀}ᶜ`) and `Blowup.inr c : Blowup.modelOpens c → Blowup c` (the open set
-  `blowdown ⁻¹' c.target`), with `range_inl`, `range_inr`,
-  `inl_eq_inr_iff` and `range_inl_union_range_inr`; `Blowup.ofDirection c ℓ`, `inr` of
+- `Blowup c` as in *Decisions*, the `GluedAlong` of
+  `Blowup.gluingHomeomorph c`, whose gluing data
+  `GluedAlong.glueData (Blowup.gluingHomeomorph c)` is
+  `TopCat.GlueData.ofHomeomorph` along it; the canonical maps are
+  `GluedAlong.inl (Blowup.gluingHomeomorph c) : Blowup.puncturedOpens c → Blowup c`
+  (the open set `{p₀}ᶜ`) and
+  `GluedAlong.inr (Blowup.gluingHomeomorph c) : Blowup.modelOpens c → Blowup c`
+  (the open set `blowdown ⁻¹' c.target`), with `range_inl`, `range_inr`,
+  `inl_eq_inr_iff` and `GluedAlong.range_inl_union_range_inr`; `Blowup.ofDirection c ℓ`, `inr` of
   `zeroSection ℓ`, and `Blowup.exceptionalDivisor c`, its range, with
   `mem_exceptionalDivisor_iff`.
 - `Blowup.lift c : Blowup c → BlowupModel n` ($\tilde\phi$), the inverse
   of `inr` on its range followed by the inclusion, with `lift_inr`, and
   `lift_inl`: for `x ∈ c.source` it is `(mk (c x), c x)`.
 - The topology and the atlas are the glued ones, `TopCat.GlueData.chartedSpace`
-  as an instance `ChartedSpace E (Blowup c)`; `isOpen_range_inl`,
-  `isClosed_exceptionalDivisor`, `isOpenEmbedding_inl`, `isOpenEmbedding_inr`
+  as an instance `ChartedSpace E (Blowup c)`, all from `GluedAlong`;
+  `GluedAlong.isOpen_range_inl`, `isClosed_exceptionalDivisor`,
+  `GluedAlong.isOpenEmbedding_inl`, `GluedAlong.isOpenEmbedding_inr`
   (Mathlib's `TopCat.GlueData.ι_isOpenEmbedding`). `SecondCountableTopology`
-  when `M` has it, by Tau Ceti's `TopCat.GlueData.secondCountableTopology`,
-  and `T2Space` when `M` has it, by `TopCat.GlueData.ofHomeomorph_t2Space_iff`:
+  when `M` has it, by the instance of `GluedAlong`,
+  and `T2Space` when `M` has it, by `GluedAlong.t2Space_iff`:
   for a point `x ≠ p₀` and a point of $Z$, take disjoint open sets `A ∋ x`
   and `B ∋ p₀` of `M`; the preimage of `A` in the first piece and that of
   `B` under `c.symm ∘ blowdown` in the second separate the two points.
@@ -335,13 +338,13 @@ Namespace `SymplecticGeometry`, for `M : Type` with `[TopologicalSpace M]
   `[Fact (c.toOpenPartialHomeomorph ∈ …)]`, are `IsCompatible.isManifold`;
   `isLocalDiffeomorph_inl` and `isLocalDiffeomorph_inr` are
   `IsCompatible.isLocalDiffeomorph_ι`.
-- `Blowup.blowdown c : C(Blowup c, M)` ($\pi_M$), `Multicoequalizer.desc` of
+- `Blowup.blowdown c : C(Blowup c, M)` ($\pi_M$), `GluedAlong.desc` of
   the inclusion on the first piece and `c.symm ∘ BlowupModel.blowdown` on
   the second, with the `@[simp]` lemmas `blowdown_inl`, `blowdown_inr`, and
   `contMDiff_blowdown`;
   `blowdownDiffeomorph c`: a biholomorphism (resp. diffeomorphism) from the
   complement of $Z$, the range of `inl`, onto `{x | x ≠ p₀}`, as open
-  subsets, with inverse `inl c`.
+  subsets, with inverse `GluedAlong.inl (gluingHomeomorph c)`.
 - `Blowup.divisorEmbedding c` as a `TauCeti.SmoothEmbedding
   𝓘(ℂ, Fin n → ℂ) 𝓘(ℂ, E) ω (ℙ ℂ E) (Blowup c)` ($\tilde\iota$), `inr`
   composed with the model's `zeroSectionEmbedding n`, and the real one
@@ -356,9 +359,12 @@ Namespace `SymplecticGeometry`, for `M : Type` with `[TopologicalSpace M]
   the model, by `liftPartialDiffeomorph` and
   `IsCompatible.isLocalDiffeomorph_iff`.
 - `Blowup.chartChange c c'`, the biholomorphism `Blowup c ≃ Blowup c'` for
-  two charts of the same atlas: `descContMDiffMap` of `inl c'` on the first
-  piece and, on the second, of `inr c'` of `liftMap` of `c' ∘ c.symm` over
-  the source of `c' ∘ c.symm` and `inl c'` of `c.symm ∘ blowdown` off $Z$,
+  two charts of the same atlas: `descContMDiffMap` of
+  `GluedAlong.inl (gluingHomeomorph c')` on the first
+  piece and, on the second, of `GluedAlong.inr (gluingHomeomorph c')` of
+  `liftMap` of `c' ∘ c.symm` over
+  the source of `c' ∘ c.symm` and `GluedAlong.inl (gluingHomeomorph c')` of
+  `c.symm ∘ blowdown` off $Z$,
   which agree where both are defined. It is a local biholomorphism by
   `IsCompatible.isLocalDiffeomorph_iff` and `liftPartialDiffeomorph`, and
   bijective with inverse the same map for `c'` and `c`, so a biholomorphism

@@ -75,6 +75,9 @@ holonomy of the loop read in `e`.
 * `IsEhresmannConnection.exists_timeDependentField_eqOn_parallelTransport_of_mapsTo_baseSet`:
   over an interval that `γ` maps into the base set of one trivialization, transport between any
   two of its times is the flow of one horizontal field with complete suspension.
+* `IsEhresmannConnection.exists_timeDependentField_param_eqOn_parallelTransport_of_mapsTo_baseSet`:
+  the same for a `C^(n+1)` family of curves, near a parameter, with a family of horizontal
+  fields that is jointly `C^n` in the parameter; the result above is its constant family.
 * `TauCeti.IsEhresmannConnection.exists_diffeomorph_eqOn_parallelTransport`: transport from the
   fibre over `γ s` onto the fibre over `γ t` is the restriction of a `C^n` diffeomorphism of `P`.
 * `TauCeti.IsEhresmannConnection.exists_contMDiff_parallelTransport_param`: transport along the
@@ -117,6 +120,11 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimension
   {n : ℕ∞} {f : P → B} {D : Π x : P, Submodule ℝ (TangentSpace I x)}
   (hD : IsEhresmannConnection I J n f D)
 
+variable {EN : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] [FiniteDimensional ℝ EN]
+  {HN : Type*} [TopologicalSpace HN] {IN : ModelWithCorners ℝ EN HN}
+  {N : Type*} [TopologicalSpace N] [ChartedSpace HN N] [IsManifold IN ∞ N] [IN.Boundaryless]
+  [T2Space N]
+
 /-- **Parallel transport is the flow of a lifted field.** Let `D` be a `C^n` Ehresmann
 connection, `1 ≤ n`, on a proper `C^(n+1)` map `f : P → B`, `γ` a `C²` curve in `B`, and `V` a
 jointly `C^n` time-dependent vector field on `B` that vanishes outside a compact set and whose
@@ -141,6 +149,47 @@ theorem parallelTransport_eq_timeDependentFlowOf (hn : 1 ≤ n) (hf : ContMDiff 
   exact hD.parallelTransport_eq hn' (hf.of_le h2) hγ
     (hc.mdifferentiable (zero_lt_one.trans_le hn').ne') hh hγc (timeDependentFlowOf_self _ s x)
 
+omit [IN.Boundaryless] in
+include hD in
+/-- **Parallel transport over a short interval, in a family of curves, is the flow of a family of
+horizontal fields.** Let `D` be a `C^n` Ehresmann connection, `1 ≤ n`, on a proper `C^(n+1)` map
+`f : P → B`, and `Γ : N × ℝ → B` a `C^(n+1)` family of curves in `B` whose curve at `a₀` maps
+`Icc a b` into the base set of one trivialization of the tangent bundle of `B`. There are a
+neighbourhood `U` of `a₀` and a family `X` of time-dependent vector fields on `P` with parameters
+in `N`, jointly `C^n` in the parameter, the time and the point, with values in `D` and with
+complete suspensions, such that for every `c ∈ U` and all `s t ∈ Icc a b` the time-dependent flow
+of `X c` from `s` to `t` agrees with parallel transport along `u ↦ Γ (c, u)` from `s` to `t` on
+the fibre over `Γ (c, s)`. -/
+theorem exists_timeDependentField_param_eqOn_parallelTransport_of_mapsTo_baseSet (hn : 1 ≤ n)
+    (hf : ContMDiff I J (n + 1) f) (hfp : IsProperMap f) {Γ : N × ℝ → B}
+    (hΓ : ContMDiff (IN.prod 𝓘(ℝ, ℝ)) J (n + 1) Γ) {a₀ : N} {a b : ℝ}
+    (e : Trivialization F (π F (TangentSpace J))) [MemTrivializationAtlas e]
+    (hΓe : MapsTo (fun u ↦ Γ (a₀, u)) (Icc a b) e.baseSet) :
+    ∃ U ∈ 𝓝 a₀, ∃ X : N → ℝ → Π x : P, TangentSpace I x,
+      (∀ c, IsCompleteVectorField (timeDependentSuspensionField (X c))) ∧
+      ContMDiff ((IN.prod 𝓘(ℝ, ℝ)).prod I) I.tangent n
+        (fun p : (N × ℝ) × P ↦ (⟨p.2, X p.1.1 p.1.2 p.2⟩ : TangentBundle I P)) ∧
+      (∀ c u x, X c u x ∈ D x) ∧
+      ∀ c ∈ U, ∀ s ∈ Icc a b, ∀ t ∈ Icc a b,
+        EqOn (timeDependentFlowOf (X c) s t) (hD.parallelTransport (fun u ↦ Γ (c, u)) s t)
+          (f ⁻¹' {Γ (c, s)}) := by
+  have h2 : (2 : ℕ∞ω) ≤ n + 1 := SymplecticGeometry.two_le_add_one_of_one_le (mod_cast hn)
+  obtain ⟨U, hU, V, K, hK, hV, hV0, hVγ⟩ :=
+    e.exists_timeDependentField_param_eq_curveVelocity hΓ hΓe
+  -- The fields of the family at a parameter `c`.
+  have hVc (c : N) : ContMDiff (𝓘(ℝ, ℝ).prod J) J.tangent n
+      (fun p : ℝ × B ↦ (⟨p.2, V c p.1 p.2⟩ : TangentBundle J B)) :=
+    hV.comp ((contMDiff_const.prodMk contMDiff_fst).prodMk contMDiff_snd)
+  refine ⟨U, hU, fun c u ↦ hD.horizontalLiftField (V c u), fun c ↦
+    hD.isCompleteVectorField_timeDependentSuspensionField_horizontalLiftField hn hf hfp (hVc c) hK
+      (hV0 c),
+    hD.contMDiff_horizontalLiftField_family (V := fun q : N × ℝ ↦ V q.1 q.2) hf hV,
+    fun c u x ↦ hD.horizontalLiftField_mem _ x, fun c hc s hs t ht x hx ↦ ?_⟩
+  have hΓc : ContMDiff 𝓘(ℝ, ℝ) J (n + 1) (fun u ↦ Γ (c, u)) :=
+    hΓ.comp (contMDiff_const.prodMk contMDiff_id)
+  exact (hD.parallelTransport_eq_timeDependentFlowOf hn hf hfp (hΓc.of_le h2) (hVc c) hK (hV0 c)
+    (fun u hu ↦ hVγ c hc u (uIcc_subset_Icc hs ht hu)) hx).symm
+
 include hD in
 /-- **Parallel transport over a short interval is the flow of one horizontal field.** Let `D` be
 a `C^n` Ehresmann connection, `1 ≤ n`, on a proper `C^(n+1)` map `f : P → B`, and `γ` a `C^(n+1)`
@@ -160,13 +209,11 @@ theorem exists_timeDependentField_eqOn_parallelTransport_of_mapsTo_baseSet (hn :
       (∀ u x, X u x ∈ D x) ∧
       ∀ s ∈ Icc a b, ∀ t ∈ Icc a b,
         EqOn (timeDependentFlowOf X s t) (hD.parallelTransport γ s t) (f ⁻¹' {γ s}) := by
-  have h2 : (2 : ℕ∞ω) ≤ n + 1 := SymplecticGeometry.two_le_add_one_of_one_le (mod_cast hn)
-  obtain ⟨V, K, hK, hV, hV0, hVγ⟩ := e.exists_timeDependentField_eq_curveVelocity hγ hγe
-  exact ⟨fun u ↦ hD.horizontalLiftField (V u),
-    hD.isCompleteVectorField_timeDependentSuspensionField_horizontalLiftField hn hf hfp hV hK hV0,
-    hD.contMDiff_horizontalLiftField_family hf hV, fun u x ↦ hD.horizontalLiftField_mem _ x,
-    fun s hs t ht x hx ↦ (hD.parallelTransport_eq_timeDependentFlowOf hn hf hfp (hγ.of_le h2) hV
-      hK hV0 (fun u hu ↦ hVγ u (uIcc_subset_Icc hs ht hu)) hx).symm⟩
+  obtain ⟨U, hU, X, hXc, hX, hXD, hXγ⟩ :=
+    hD.exists_timeDependentField_param_eqOn_parallelTransport_of_mapsTo_baseSet (IN := 𝓘(ℝ, ℝ))
+      (a₀ := (0 : ℝ)) (Γ := fun p : ℝ × ℝ ↦ γ p.2) hn hf hfp (hγ.comp contMDiff_snd) e hγe
+  exact ⟨X 0, hXc 0, hX.comp ((contMDiff_const.prodMk contMDiff_fst).prodMk contMDiff_snd),
+    hXD 0, hXγ 0 (mem_of_mem_nhds hU)⟩
 
 include hD in
 /-- The local step of `TauCeti.IsEhresmannConnection.exists_diffeomorph_eqOn_parallelTransport`:
@@ -178,14 +225,11 @@ private theorem exists_diffeomorph_eqOn_parallelTransport_of_mapsTo_baseSet (hn 
     (e : Trivialization F (π F (TangentSpace J))) [MemTrivializationAtlas e]
     (hγe : MapsTo γ (Icc a b) e.baseSet) {s t : ℝ} (hs : s ∈ Icc a b) (ht : t ∈ Icc a b) :
     ∃ Ψ : P ≃ₘ^n⟮I, I⟯ P, EqOn Ψ (hD.parallelTransport γ s t) (f ⁻¹' {γ s}) := by
-  have h2 : (2 : ℕ∞ω) ≤ n + 1 := SymplecticGeometry.two_le_add_one_of_one_le (mod_cast hn)
-  obtain ⟨V, K, hK, hV, hV0, hVγ⟩ := e.exists_timeDependentField_eq_curveVelocity hγ hγe
-  refine ⟨timeDependentFlowDiffeomorph
-    (hD.isCompleteVectorField_timeDependentSuspensionField_horizontalLiftField hn hf hfp hV hK hV0)
-    hn (hD.contMDiff_horizontalLiftField_family hf hV) s t, fun x hx ↦ ?_⟩
-  rw [timeDependentFlowDiffeomorph_apply]
-  exact (hD.parallelTransport_eq_timeDependentFlowOf hn hf hfp (hγ.of_le h2) hV hK hV0
-    (fun u hu ↦ hVγ u (uIcc_subset_Icc hs ht hu)) hx).symm
+  obtain ⟨X, hXc, hX, -, hXγ⟩ :=
+    hD.exists_timeDependentField_eqOn_parallelTransport_of_mapsTo_baseSet hn hf hfp hγ e hγe
+  exact ⟨timeDependentFlowDiffeomorph hXc hn hX s t, fun x hx ↦ by
+    rw [timeDependentFlowDiffeomorph_apply]
+    exact hXγ s hs t ht hx⟩
 
 include hD in
 /-- **Parallel transport is the restriction of a diffeomorphism.** Let `D` be a `C^n` Ehresmann
@@ -217,13 +261,6 @@ theorem exists_diffeomorph_eqOn_parallelTransport (hn : 1 ≤ n) (hf : ContMDiff
   obtain ⟨Ψ, hΨ⟩ := PreconnectedSpace.induction₂' R hloc htrans s t
   exact ⟨Ψ, hΨ, hΨ.image_eq.trans (hD.bijOn_parallelTransport hn hf hfp hγ s t).image_eq⟩
 
-section Param
-
-variable {EN : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] [FiniteDimensional ℝ EN]
-  {HN : Type*} [TopologicalSpace HN] {IN : ModelWithCorners ℝ EN HN}
-  {N : Type*} [TopologicalSpace N] [ChartedSpace HN N] [IsManifold IN ∞ N] [IN.Boundaryless]
-  [T2Space N]
-
 include hD in
 /-- The local step of `TauCeti.IsEhresmannConnection.exists_contMDiff_parallelTransport_param`:
 if the curve at `a₀` of the family `Γ` maps a closed interval into the base set of one
@@ -237,26 +274,12 @@ private theorem exists_contMDiff_parallelTransport_param_of_mapsTo_baseSet (hn :
     ∃ U ∈ 𝓝 a₀, ∀ s ∈ Icc a b, ∀ t ∈ Icc a b, ∃ Ψ : N × P → P, ContMDiff (IN.prod I) I n Ψ ∧
       ∀ c ∈ U, EqOn (fun x ↦ Ψ (c, x)) (hD.parallelTransport (fun u ↦ Γ (c, u)) s t)
         (f ⁻¹' {Γ (c, s)}) := by
-  have h2 : (2 : ℕ∞ω) ≤ n + 1 := SymplecticGeometry.two_le_add_one_of_one_le (mod_cast hn)
-  obtain ⟨U, hU, V, K, hK, hV, hV0, hVγ⟩ :=
-    e.exists_timeDependentField_param_eq_curveVelocity hΓ hΓe
-  -- The fields of the family at a parameter `c`, and their horizontal lifts.
-  have hVc (c : N) : ContMDiff (𝓘(ℝ, ℝ).prod J) J.tangent n
-      (fun p : ℝ × B ↦ (⟨p.2, V c p.1 p.2⟩ : TangentBundle J B)) :=
-    hV.comp ((contMDiff_const.prodMk contMDiff_fst).prodMk contMDiff_snd)
-  have hX : ContMDiff ((IN.prod 𝓘(ℝ, ℝ)).prod I) I.tangent n
-      (fun p : (N × ℝ) × P ↦
-        (⟨p.2, hD.horizontalLiftField (V p.1.1 p.1.2) p.2⟩ : TangentBundle I P)) :=
-    hD.contMDiff_horizontalLiftField_family (V := fun q : N × ℝ ↦ V q.1 q.2) hf hV
-  have hflow := contMDiff_timeDependentFlowOf_param hn hX fun c ↦
-    hD.isCompleteVectorField_timeDependentSuspensionField_horizontalLiftField hn hf hfp (hVc c) hK
-      (hV0 c)
-  refine ⟨U, hU, fun s hs t ht ↦ ⟨_, hflow.comp (f := fun p : N × P ↦ ((p.1, s, t), p.2))
-    ((contMDiff_fst.prodMk contMDiff_const).prodMk contMDiff_snd), fun c hc x hx ↦ ?_⟩⟩
-  have hΓc : ContMDiff 𝓘(ℝ, ℝ) J (n + 1) (fun u ↦ Γ (c, u)) :=
-    hΓ.comp (contMDiff_const.prodMk contMDiff_id)
-  exact (hD.parallelTransport_eq_timeDependentFlowOf hn hf hfp (hΓc.of_le h2) (hVc c) hK (hV0 c)
-    (fun u hu ↦ hVγ c hc u (uIcc_subset_Icc hs ht hu)) hx).symm
+  obtain ⟨U, hU, X, hXc, hX, -, hXΓ⟩ :=
+    hD.exists_timeDependentField_param_eqOn_parallelTransport_of_mapsTo_baseSet hn hf hfp hΓ e hΓe
+  exact ⟨U, hU, fun s hs t ht ↦ ⟨_, (contMDiff_timeDependentFlowOf_param hn hX hXc).comp
+    (f := fun p : N × P ↦ ((p.1, s, t), p.2))
+    ((contMDiff_fst.prodMk contMDiff_const).prodMk contMDiff_snd),
+    fun c hc ↦ hXΓ c hc s hs t ht⟩⟩
 
 include hD in
 /-- **Parallel transport depends smoothly on a family of curves.** Let `D` be a `C^n` Ehresmann
@@ -344,8 +367,6 @@ theorem contMDiffOn_parallelTransport_param (hn : 1 ≤ n) (hf : ContMDiff I J (
     ).congr_of_eventuallyEq ?_ (hev.self_of_nhds x₀ hx₀).symm
   filter_upwards [nhdsWithin_le_nhds hev, self_mem_nhdsWithin] with p hp hpS
   exact (hp p.2 hpS.2).symm
-
-end Param
 
 section Trivialization
 

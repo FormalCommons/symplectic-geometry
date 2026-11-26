@@ -575,27 +575,19 @@ complexification:
 
 - `ContinuousAlternatingMap.alternatizeUncurryFin_eq_sum_coord_smulRight`:
   for a basis `b`, `alternatizeUncurryFin f` is the sum of the
-  alternatizations of `b.coord i • f (b i)`.
+  alternatizations of `b.coord i • f (b i)`, by Tau Ceti's
+  `Module.Basis.sum_coord_smulRight`.
 - `ContinuousAlternatingMap.curryLeft_alternatizeUncurryFin_smulRight_add`
   and `curryLeft_alternatizeUncurryFin_smulRight_zero`: for a covector
   $\xi$, $\iota_v\varepsilon_\xi+\varepsilon_\xi\iota_v=\xi(v)$ in positive
   degree, and $\iota_v\varepsilon_\xi=\xi(v)$ in degree $0$.
 
-### `Topology/Algebra/Module/FiniteDimension.lean`
-
-- `Module.Basis.sum_coord_smulRight`: for a basis `b` of a
-  finite-dimensional space, a continuous linear map `f` is
-  `∑ i, (b.coord i).smulRight (f (b i))`. The file above uses it.
-
 ### `Analysis/InnerProductSpace/HodgeStar/AlternatingForm.lean`
 
 - `TauCeti.alternatingFormEquiv_lieMap`: for a skew-adjoint `A`, `lieMap A`
   on $\Lambda^k V$ is minus the derivation of `A` on forms.
-- `TauCeti.alternatingFormEquiv_wedgeLeft`: the form of `u ∧ x` is
-  `alternatizeUncurryFin` of `(innerSL ℝ u).smulRight`.
-- `Orientation.smul_formHodgeStar_alternatizeUncurryFin_formHodgeStar`: the
-  symbol of $d^*$ with Tau Ceti's sign,
-  $\delta_u=\pm\star\varepsilon_u\star=-\iota_u$.
+- `TauCeti.wedgeCovector_eq_alternatizeUncurryFin`: Tau Ceti's
+  `wedgeCovector u` is `alternatizeUncurryFin` of `(innerSL ℝ u).smulRight`.
 
 ### `Analysis/InnerProductSpace/HodgeStar/Kahler/Lefschetz.lean`
 
@@ -618,8 +610,8 @@ on the fibres `V [⋀^Fin k]→L[ℝ] ℝ` of the form bundle, beside Tau Ceti's
   $L\iota_u-\iota_u L=\mathcal J\varepsilon_u-\varepsilon_u\mathcal J$.
   The symbol of $d^*$ with Tau Ceti's sign is
   $\delta_u=\pm\star\varepsilon_u\star=-\iota_u$
-  (`Orientation.smul_formHodgeStar_alternatizeUncurryFin_formHodgeStar` of
-  `HodgeStar/AlternatingForm.lean`), so
+  (Tau Ceti's `Orientation.neg_one_pow_smul_formHodgeStar_wedgeCovector_formHodgeStar`
+  with `TauCeti.wedgeCovector_eq_alternatizeUncurryFin`), so
   this is
   $L\delta_u-\delta_u L=-(\mathcal J\varepsilon_u-\varepsilon_u\mathcal J)$,
   the constant-coefficient Kähler identity. It is proved from the Leibniz

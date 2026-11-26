@@ -13,7 +13,7 @@ public import TauCeti.Geometry.Manifold.Submersion.Split
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 import Mathlib.Analysis.Calculus.Deriv.Inv
 import TauCeti.Analysis.Calculus.ContDiff.FinInsertNth
-import TauCeti.Analysis.InnerProductSpace.RadialRescale
+import TauCeti.Analysis.InnerProductSpace.Radial.Rescale
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 import SymplecticGeometry.LinearAlgebra.FiniteDimensional.RestrictScalars
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype

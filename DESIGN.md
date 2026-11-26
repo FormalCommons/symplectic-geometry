@@ -443,7 +443,14 @@ bracket is negated.
   real first Chern class of the vertical bundle is a de Rham class, built
   by Chern–Weil in *Compatible symplectic forms*, and compared with the
   library's integral `SymplecticGeometry.Bundle.firstChernClass` there
-  over closed oriented surfaces, through Chern numbers.
+  over closed oriented surfaces, through Chern numbers. With the merged
+  orientation and integration signs, `deRhamHom` of the real class of a
+  Hermitian line bundle is **minus** the real image of Tau Ceti's
+  `TauCeti.complexEulerClass` of the bundle
+  (`SymplecticGeometry.Bundle.deRhamHom_realFirstChernClass_eq_neg`, for
+  pull-backs of `Projectivization.twistCore 1` along smooth maps). Parts
+  that pass between the two classes, such as the blowup, Lefschetz and
+  Stein–Weinstein parts, rewrite with it rather than recompute the sign.
 - **Diffeomorphism groups.** $\mathrm{Diff}(M)$ is Tau Ceti's `TauCeti.Diff`
   with the weak Whitney topology (`Diffeomorph.weakWhitneyTopology`,
   `Geometry/Diffeomorphism/Topology.lean`), which for a compact source is
@@ -2800,7 +2807,7 @@ complete target and a function on the whole half-space.
 
 - **Files:** `Geometry/Manifold/SmoothEmbedding/NormalSpace/ComplexStructure.lean`
   (since $T\Sigma$ is $J$-invariant, $J$ descends to the fibres of Tau
-  Ceti's intrinsic normal bundle `TauCeti.SmoothEmbedding.NormalSpace` and
+  Ceti's intrinsic normal bundle `Manifold.IsImmersion.NormalSpace` and
   makes it a smooth complex bundle, with no metric), and in
   `Geometry/Symplectic/Manifold/AlmostComplex/`: `NormalSplitting.lean`
   (the splitting of $TX|_\Sigma$ as a direct sum of symplectic bundles, over
@@ -2873,7 +2880,7 @@ complete target and a function on the whole half-space.
   complex submanifold): the tangent bundle of $\mathbb CP^{n+1}$ plus a
   trivial line as $H^{\oplus(n+2)}$, with $H$ Tau Ceti's
   `Projectivization.twistCore 1`; the normal bundle of a hypersurface of
-  degree $d$, Tau Ceti's `TauCeti.SmoothEmbedding.NormalSpace` bundle over
+  degree $d$, Tau Ceti's `Manifold.IsImmersion.NormalSpace` bundle over
   `ℂ`, as the restriction of $H^{\otimes d}$, through the derivative
   of the polynomial; $\langle\iota^*h^n,[M]\rangle=d$; then the total Chern class
   and $c_1$ of $M$; the Euler characteristic; the numbers for surfaces in
@@ -3633,7 +3640,7 @@ For `auxiliary/first-chern-class.md`; it waits for no part.
 
 - **Files:** in `Geometry/Manifold/SmoothEmbedding/NormalSpace/`, beside
   Tau Ceti's files on the intrinsic normal bundle
-  `TauCeti.SmoothEmbedding.NormalSpace`: `ThomClass.lean` (for an
+  `Manifold.IsImmersion.NormalSpace`: `ThomClass.lean` (for an
   orientation of the normal bundle of a closed embedded submanifold $Z$ of
   codimension $r$, its Thom class, the canonical class
   `TauCeti.VectorBundleOrientation.canonicalThomClass`, and
@@ -4486,9 +4493,11 @@ Both milestones, proved in full. Their parts wait for no part of
   back, so the library builds the real class directly as a de Rham class by
   Chern–Weil, instead of taking the image of the integral class, and
   compares the two over closed oriented surfaces, through Chern numbers.
-  *Asymptotically holomorphic sections* also compares them for Hermitian
-  line bundles over compact manifolds, which it needs to build its line
-  bundle from an integral lift.
+  *Asymptotically holomorphic sections* also compares them for the
+  Hermitian line bundles pulled back from `Projectivization.twistCore 1`
+  along smooth maps, which on a compact manifold realize every integral
+  class of degree two; that is what it needs to build its line bundle from
+  an integral lift.
 - **Diffeomorphisms of the 2-sphere.** The library takes the proof through
   the bundle over complex structures that the auxiliary page proposes, with
   the page's variant of step 1 that uses only the standard sphere, the
