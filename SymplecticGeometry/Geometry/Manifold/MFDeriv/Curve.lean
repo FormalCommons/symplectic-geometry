@@ -6,9 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.MFDeriv.Curve
-import Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv
 import Mathlib.Geometry.Manifold.ContMDiff.Atlas
 import Mathlib.Geometry.Manifold.MFDeriv.Atlas
+import TauCeti.Analysis.Calculus.Deriv.BoundedReparametrization
 
 /-!
 # Velocities of curves along which a map is constant, and curves with a given velocity
@@ -25,10 +25,13 @@ This file adds to Tau Ceti's API for `TauCeti.Manifold.curveVelocityWithin` and
   `f` or the velocity of `γ` is `0`.
 * `TauCeti.Manifold.exists_contMDiff_curveVelocity_eq`: on a real manifold without boundary,
   every tangent vector `v` at `x` is the velocity at `0` of a `C^n` curve `γ : ℝ → M` with
-  `γ 0 = x`. In the extended chart at `x` the curve is `t ↦ c + (ε * sin (t / ε)) • d`, where `c`
-  is the image of `x` and `d` that of `v`; it is defined for all times since `ε` is so small
-  that it stays in the target of the chart. Its velocity is computed with Tau Ceti's
-  `TauCeti.Manifold.hasMFDerivWithinAt_extChartAt_symm_comp`.
+  `γ 0 = x`. In the extended chart at `x` the curve is `t ↦ c + φ t • d`, where `c` is the
+  image of `x`, `d` that of `v`, and `φ` is a small bounded reparametrization of the line given
+  by Tau Ceti's `TauCeti.exists_contDiff_hasDerivAt_abs_le`, so that the curve stays in the
+  target of the chart for all times. Its velocity is computed with Tau Ceti's
+  `TauCeti.Manifold.hasMFDerivWithinAt_extChartAt_symm_comp`. Tau Ceti's
+  `TauCeti.Manifold.exists_contMDiffAt_curveVelocity_eq` is the local version, whose curve is
+  smooth only near the given time.
 -/
 
 public section
@@ -81,35 +84,29 @@ theorem exists_contMDiff_curveVelocity_eq {n : WithTop ℕ∞} [IsManifold I n M
   obtain ⟨r, hr, hrt⟩ := Metric.mem_nhds_iff.1 (extChartAt_target_mem_nhds (I := I) x)
   set ε : ℝ := r / (‖d‖ + 1)
   have hε : 0 < ε := by positivity
+  obtain ⟨φ, hφs, hφ0, hφd, hφε⟩ := TauCeti.exists_contDiff_hasDerivAt_abs_le hε
   -- The curve in the chart, which stays in the ball of radius `r` about `c`.
-  set g : ℝ → E := fun t ↦ c + (ε * Real.sin (t / ε)) • d
+  set g : ℝ → E := fun t ↦ c + φ t • d
   have hg_mem (t : ℝ) : g t ∈ (extChartAt I x).target := by
     refine hrt ?_
-    rw [Metric.mem_ball, dist_eq_norm, add_sub_cancel_left, norm_smul, Real.norm_eq_abs, abs_mul,
-      abs_of_pos hε]
-    calc ε * |Real.sin (t / ε)| * ‖d‖ ≤ ε * 1 * ‖d‖ := by
-          gcongr
-          exact Real.abs_sin_le_one _
+    rw [Metric.mem_ball, dist_eq_norm, add_sub_cancel_left, norm_smul, Real.norm_eq_abs]
+    calc |φ t| * ‖d‖ ≤ ε * ‖d‖ := by gcongr; exact hφε t
       _ = r * (‖d‖ / (‖d‖ + 1)) := by ring
       _ < r * 1 := by
           gcongr
           exact (div_lt_one (by positivity)).2 (lt_add_one _)
       _ = r := mul_one r
-  have hg : ContDiff ℝ n g :=
-    contDiff_const.add ((contDiff_const.mul (Real.contDiff_sin.comp
-      (contDiff_id.div_const ε))).smul contDiff_const)
+  have hg : ContDiff ℝ n g := contDiff_const.add ((hφs.of_le le_top).smul contDiff_const)
   have hgd : HasDerivAt g d 0 := by
-    have := ((((Real.hasDerivAt_sin (0 / ε)).comp 0 ((hasDerivAt_id 0).div_const ε)).const_mul
-      ε).smul_const d).const_add c
-    exact this.congr_deriv (by simp [hε.ne'])
+    simpa only [one_smul] using (hφd.smul_const d).const_add c
   refine ⟨fun t ↦ (extChartAt I x).symm (g t),
-    (contMDiffOn_extChartAt_symm x).comp_contMDiff hg.contMDiff hg_mem, by simp [g, c], ?_⟩
+    (contMDiffOn_extChartAt_symm x).comp_contMDiff hg.contMDiff hg_mem, by simp [g, c, hφ0], ?_⟩
   have h := hasMFDerivWithinAt_extChartAt_symm_comp (J := univ) (hg_mem 0)
     (Filter.Eventually.of_forall fun t ↦ extChartAt_target_subset_range x (hg_mem t))
     hgd.hasDerivWithinAt
   rw [← curveVelocityWithin_univ, curveVelocityWithin_eq_of_hasMFDerivWithinAt h
     uniqueDiffWithinAt_univ]
-  have h0 : g 0 = c := by simp [g]
+  have h0 : g 0 = c := by simp [g, hφ0]
   rw [h0]
   exact congr($(mfderivWithin_extChartAt_symm_comp_mfderiv_extChartAt' (mem_extChartAt_source x))
     v)
