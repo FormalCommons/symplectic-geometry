@@ -81,9 +81,11 @@ No statement of this part is one that the authors' errata
   `seeleyExtension`, `contDiff_seeleyExtension`,
   `tsum_seeleyCoeff_smul_compContinuousLinearMap_timeScale` and
   `exists_contDiff_infty_extension_halfSpace`, all for a complete target and
-  for functions on the whole half-space of `ℝ × E`. The library keeps its own
-  operator, since it needs one with no complete target, with parameters in an
-  open set `U`, from both ends of $[0,1]$, and near a single boundary point.
+  for functions on the whole half-space of `ℝ × E`; and
+  `exists_contDiff_eqOn_upperHalfSpace`, the local `C^n` extension near any
+  point, for finite-dimensional `E` and a complete target. The library keeps
+  its own operator, since it needs one with no complete target, with
+  parameters in an open set `U`, and from both ends of $[0,1]$.
   It reuses `timeScale`, `map_timeScale_eq_sum_pow_card_smul` for the
   derivatives of the dilated terms, and glues at $t=0$ as
   `HasFTaylorSeriesUpToOn.union_of_isClosed` does, by `HasFTaylorSeriesUpToOn.union`
