@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Basic
 public import TauCeti.LinearAlgebra.Projectivization.Basic
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Atlas
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 
 /-!
@@ -23,16 +24,17 @@ defines that bijection.
 
 * `SymplecticGeometry.BlowupChart.mfderivCenterEquiv c`: the differential of `c` at `p₀`, as a
   continuous linear equivalence `T_{p₀}M ≃L[ℂ] E` whose inverse is the differential of `c⁻¹`
-  at `0`.
+  at `0`. It is Mathlib's `OpenPartialHomeomorph.MDifferentiable.mfderiv` of `c` at `p₀`, typed
+  onto `E`.
 * `SymplecticGeometry.Blowup.directionEquiv c`: the bijection
   `ℙ ℂ (TangentSpace 𝓘(ℂ, E) p₀) ≃ ℙ ℂ E` that it induces, through Tau Ceti's
   `LinearEquiv.mapProjectivization`.
 
 ## Main results
 
-* `SymplecticGeometry.BlowupChart.mfderiv_symm_zero_comp_mfderiv_center`,
-  `SymplecticGeometry.BlowupChart.mfderiv_center_comp_mfderiv_symm_zero`: the differentials of `c`
-  at `p₀` and of `c⁻¹` at `0` are mutually inverse.
+* `SymplecticGeometry.BlowupChart.coe_mfderivCenterEquiv`,
+  `SymplecticGeometry.BlowupChart.coe_mfderivCenterEquiv_symm`: the equivalence is the
+  differential of `c` at `p₀`, and its inverse is the differential of `c⁻¹` at `0`.
 * `SymplecticGeometry.Blowup.directionEquiv_apply`: `directionEquiv c` is `Projectivization.map`
   of the differential of `c` at `p₀`.
 * `SymplecticGeometry.Blowup.directionEquiv_mk`,
@@ -69,34 +71,14 @@ theorem mdifferentiable :
   TauCeti.mdifferentiable_of_mem_maximalAtlas
     (IsManifold.maximalAtlas_subset_of_le (by simp) hc.out)
 
-/-- The differential of `c⁻¹` at `0` is a left inverse of the differential of a holomorphic
-chart `c` at the centre. -/
-theorem mfderiv_symm_zero_comp_mfderiv_center :
-    (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) c.toOpenPartialHomeomorph.symm 0).comp
-        (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) c p₀) =
-      .id ℂ (TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) p₀) := by
-  have h := (mdifferentiable c).symm_comp_deriv c.mem_source
-  rwa [c.map_center] at h
-
-/-- The differential of `c⁻¹` at `0` is a right inverse of the differential of a holomorphic
-chart `c` at the centre. -/
-theorem mfderiv_center_comp_mfderiv_symm_zero :
-    (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) c p₀).comp
-        (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) c.toOpenPartialHomeomorph.symm 0) =
-      .id ℂ (Fin (n + 1) → ℂ) := by
-  have h0 : (0 : Fin (n + 1) → ℂ) ∈ c.target := c.map_center ▸ c.map_source c.mem_source
-  have hsymm : c.toOpenPartialHomeomorph.symm 0 = p₀ := by
-    rw [← c.map_center]
-    exact c.left_inv c.mem_source
-  have h := (mdifferentiable c).comp_symm_deriv h0
-  rwa [hsymm] at h
-
 /-- The differential of a holomorphic chart `c` at the centre, as a continuous linear equivalence
 from the tangent space at `p₀` to `ℂⁿ⁺¹`. Its inverse is the differential of `c⁻¹` at `0`. -/
 def mfderivCenterEquiv : TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) p₀ ≃L[ℂ] (Fin (n + 1) → ℂ) :=
-  .ofContinuousLinearMap (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) c p₀)
-    (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) c.toOpenPartialHomeomorph.symm 0)
-    (mfderiv_center_comp_mfderiv_symm_zero c) (mfderiv_symm_zero_comp_mfderiv_center c)
+  (mdifferentiable c).mfderiv c.mem_source
+
+theorem mfderivCenterEquiv_def :
+    mfderivCenterEquiv c = (mdifferentiable c).mfderiv c.mem_source :=
+  (rfl)
 
 /-- `mfderivCenterEquiv c` is the differential of `c` at the centre. -/
 @[simp]
@@ -108,8 +90,10 @@ theorem coe_mfderivCenterEquiv :
 @[simp]
 theorem coe_mfderivCenterEquiv_symm :
     ⇑(mfderivCenterEquiv c).symm =
-      mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) c.toOpenPartialHomeomorph.symm 0 :=
-  (rfl)
+      mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) c.toOpenPartialHomeomorph.symm 0 := by
+  have h := (mdifferentiable c).coe_mfderiv_symm c.mem_source
+  rw [c.map_center] at h
+  exact h
 
 end BlowupChart
 
@@ -121,6 +105,10 @@ differential of the holomorphic chart `c` at `p₀`. -/
 def directionEquiv :
     ℙ ℂ (TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) p₀) ≃ ℙ ℂ (Fin (n + 1) → ℂ) :=
   (c.mfderivCenterEquiv).toLinearEquiv.mapProjectivization
+
+theorem directionEquiv_def :
+    directionEquiv c = c.mfderivCenterEquiv.toLinearEquiv.mapProjectivization :=
+  (rfl)
 
 /-- `directionEquiv c` is `Projectivization.map` of the differential of `c` at the centre. -/
 theorem directionEquiv_apply (ℓ : ℙ ℂ (TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) p₀)) :
@@ -136,7 +124,7 @@ theorem directionEquiv_mk (v : TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) p₀)
     directionEquiv c (mk ℂ v hv) =
       mk ℂ (V := Fin (n + 1) → ℂ) (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) c p₀ v)
         (by simpa using (c.mfderivCenterEquiv.injective.ne_iff' (map_zero _)).2 hv) := by
-  simp only [directionEquiv, LinearEquiv.mapProjectivization_mk,
+  simp only [directionEquiv_def, LinearEquiv.mapProjectivization_mk,
     ContinuousLinearEquiv.coe_toLinearEquiv, BlowupChart.coe_mfderivCenterEquiv]
 
 /-- The inverse of `directionEquiv c` sends the line of `w : ℂⁿ⁺¹` to the line of its image
@@ -147,7 +135,7 @@ theorem directionEquiv_symm_mk (w : Fin (n + 1) → ℂ) (hw : w ≠ 0) :
       mk ℂ (V := TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) p₀)
         (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) c.toOpenPartialHomeomorph.symm 0 w)
         (by simpa using (c.mfderivCenterEquiv.symm.injective.ne_iff' (map_zero _)).2 hw) := by
-  simp only [directionEquiv, LinearEquiv.mapProjectivization_symm,
+  simp only [directionEquiv_def, LinearEquiv.mapProjectivization_symm,
     LinearEquiv.mapProjectivization_mk, ContinuousLinearEquiv.coe_symm_toLinearEquiv,
     BlowupChart.coe_mfderivCenterEquiv_symm]
 
