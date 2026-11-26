@@ -605,7 +605,7 @@ def divisor :
     SmoothEmbedding 𝓘(ℝ, Fin n → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ (ℙ ℂ (Fin (n + 1) → ℂ))
       (WeightBlowup hψ hl hε) :=
   (zeroSectionModelPiece hε).transLocalDiffeomorph
-    (GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm) (s := univ)
+    (GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm.toHomeomorph) (s := univ)
     (fun y _ ↦ GluedAlong.isLocalDiffeomorph_inr _ y)
     (by
       rw [domRestrict_def]
@@ -617,13 +617,13 @@ model piece. -/
 @[simp]
 theorem divisor_apply (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
     divisor hψ hl hε ℓ =
-      GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm
+      GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm.toHomeomorph
         ⟨zeroSection ℓ, zeroSection_mem_modelPiece hε ℓ⟩ := by
   rw [divisor, SmoothEmbedding.transLocalDiffeomorph_apply, zeroSectionModelPiece_apply]
 
 private theorem coe_divisor :
     ⇑(divisor hψ hl hε) =
-      GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm ∘ zeroSectionModelPiece hε := by
+      GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm.toHomeomorph ∘ zeroSectionModelPiece hε := by
   rw [divisor, SmoothEmbedding.coe_transLocalDiffeomorph]
 
 /-- The image of the divisor is the complement of `complDivisor`, the image under `inr` of the
@@ -649,7 +649,7 @@ theorem mpullback_divisor_form :
     SmoothForm.mpullback (divisor hψ hl hε) (divisor hψ hl hε).contMDiff (form hψ hl hε) =
       l ^ 2 • fubiniStudyForm n := by
   have hr : ContMDiff 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞
-      (GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm) :=
+      (GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm.toHomeomorph) :=
     (GluedAlong.isLocalDiffeomorph_inr _).contMDiff
   rw [SmoothForm.mpullback_congr _ (hr.comp (zeroSectionModelPiece hε).contMDiff)
       (coe_divisor hψ hl hε),
@@ -687,7 +687,7 @@ private def normalSpaceZeroSectionModelPieceDivisorEquiv (ℓ : ℙ ℂ (Fin (n 
     (zeroSectionModelPiece (n := n) hε).NormalSpace ℓ hn ≃L[ℝ]
       (divisor hψ hl hε).NormalSpace ℓ hn :=
   (zeroSectionModelPiece hε).normalSpaceEquiv (divisor hψ hl hε) hn hn
-    (u := _root_.id) (v := GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm)
+    (u := _root_.id) (v := GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm.toHomeomorph)
     ((GluedAlong.isLocalDiffeomorph_inr _ _).isInvertible_mfderiv hn)
     (by rw [mfderiv_id]; exact Function.surjective_id)
     (Filter.EventuallyEq.of_eq (coe_divisor hψ hl hε).symm)
@@ -707,12 +707,11 @@ def normalSpaceDivisorEquiv (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
 /-- `normalSpaceDivisorEquiv` sends the normal class of the image under `inr` of a tangent vector
 `w` of the model at `zeroSection ℓ` to the differential of `blowdown` at `zeroSection ℓ` applied
 to `w`, a vector of the line `ℓ`. -/
-@[simp]
 theorem normalSpaceDivisorEquiv_normalClass (ℓ : ℙ ℂ (Fin (n + 1) → ℂ))
     (w : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) (zeroSection ℓ : BlowupModel n)) :
     normalSpaceDivisorEquiv hψ hl hε hn ℓ ((divisor hψ hl hε).normalClass ℓ hn
         (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
-          (GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm)
+          (GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm.toHomeomorph)
           ⟨zeroSection ℓ, zeroSection_mem_modelPiece hε ℓ⟩ w)) =
       ⟨mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown (zeroSection ℓ) w,
         mfderiv_blowdown_zeroSection_mem ℓ w⟩ := by
@@ -723,13 +722,13 @@ theorem normalSpaceDivisorEquiv_normalClass (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)
       (normalSpaceZeroSectionModelPieceDivisorEquiv hψ hl hε hn ℓ).symm
         ((divisor hψ hl hε).normalClass ℓ hn
           (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
-            (GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm) p v)) =
+            (GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm.toHomeomorph) p v)) =
         (zeroSectionModelPiece hε).normalClass ℓ hn v := by
     rintro _ rfl v
     rw [ContinuousLinearEquiv.symm_apply_eq, normalSpaceZeroSectionModelPieceDivisorEquiv]
     exact (SmoothEmbedding.normalSpaceEquiv_normalClass (zeroSectionModelPiece hε)
       (divisor hψ hl hε) hn hn (u := _root_.id)
-      (v := GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm) _ _ _ v).symm
+      (v := GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm.toHomeomorph) _ _ _ v).symm
   have h₂ : ∀ v : Fin (n + 1) → ℂ, normalSpaceZeroSectionModelPieceEquiv hε hn ℓ
       ((zeroSectionModelPiece hε).normalClass ℓ hn v) =
       (zeroSectionRealEmbedding n).normalClass ℓ hn v := by
@@ -751,7 +750,7 @@ theorem normalSpaceDivisorEquiv_symm_apply (ℓ : ℙ ℂ (Fin (n + 1) → ℂ))
           mfderiv_blowdown_zeroSection_mem ℓ w⟩ =
       (divisor hψ hl hε).normalClass ℓ hn
         (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
-          (GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm)
+          (GluedAlong.inr (gluingDiffeomorph hψ hl hε).symm.toHomeomorph)
           ⟨zeroSection ℓ, zeroSection_mem_modelPiece hε ℓ⟩ w) := by
   rw [ContinuousLinearEquiv.symm_apply_eq, normalSpaceDivisorEquiv_normalClass]
 
