@@ -17,9 +17,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.MapFiber
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.ChangeOfVariables
-import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Regularity
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
-import TauCeti.Topology.Algebra.Module.FiniteDimension
 
 /-!
 # The fibre integral of a fibration with an atlas
@@ -497,14 +495,11 @@ theorem integralTopForm_fiberIntegrand_trivAt [FiniteDimensional ℝ E'] [IsMani
   exact φ.toHomeomorph.isOpenEmbedding.integralTopForm_mpullback_of_isOrientationPreservingAt
     (Diffeomorph.mem_orientationPreservingSubgroup_iff.mp hφ) (by simp)
 
-section Operator
-
-variable [IsManifold I ∞ B] [IsManifold J ∞ F] [IsManifold IM 1 M]
-
 /-- **The integrand of a smooth form is smooth.** For a smooth atlas, the integrand over `b` of a
 smooth form on `M` is a smooth form on `F`. -/
-theorem isSmoothForm_fiberIntegrand (hA : A.IsContMDiff ∞ I J IM)
-    (α : SmoothForm IM M ℝ (r + m)) (b : B) (v : Fin r → TangentSpace I b) :
+theorem isSmoothForm_fiberIntegrand [IsManifold I 1 B] [IsManifold J 1 F] [IsManifold IM 1 M]
+    (hA : A.IsContMDiff ∞ I J IM) (α : SmoothForm IM M ℝ (r + m)) (b : B)
+    (v : Fin r → TangentSpace I b) :
     IsSmoothForm J ∞ (A.fiberIntegrand α.val b v) := by
   have h := (SmoothForm.mpullback _ ((A.trivAt b).contMDiff_symm_val_prod
     (hA.contMDiffOn_trivAt_symm b) (U := ⟨(A.trivAt b).baseSet, (A.trivAt b).open_baseSet⟩)
@@ -513,44 +508,45 @@ theorem isSmoothForm_fiberIntegrand (hA : A.IsContMDiff ∞ I J IM)
   rw [fiberIntegrand_eq_prodFiberIntegrand hA (by simp)]
   exact isSmoothForm_prodFiberIntegrand h _ v
 
-variable [FiniteDimensional ℝ E'] [CompactSpace F]
+section Operator
+
+variable [IsManifold I ∞ B] [IsManifold J ∞ F] [IsManifold IM 1 M] [FiniteDimensional ℝ E]
+  [FiniteDimensional ℝ E'] [CompactSpace F] [BoundarylessManifold I B] [T2Space F]
 
 variable (o : Manifold.Orientation J F (Fin m))
 
-/-- For a smooth atlas and a smooth form `α`, the alternating map `v ↦ ∫_F A.fiberIntegrand α b v`
-of the base vectors at `b`. -/
-private def fiberIntegralAlternatingMap (hA : A.IsContMDiff ∞ I J IM)
-    (α : SmoothForm IM M ℝ (r + m)) (b : B) : TangentSpace I b [⋀^Fin r]→ₗ[ℝ] ℝ where
-  toFun v := integralTopForm o (A.fiberIntegrand α.val b v)
-  map_update_add' v i x x' := by
-    rw [fiberIntegrand_update_add, integralTopForm_add_of_compactSpace o
-      ((isSmoothForm_fiberIntegrand hA α b _).of_le bot_le)
-      ((isSmoothForm_fiberIntegrand hA α b _).of_le bot_le)]
-  map_update_smul' v i c x := by
-    rw [fiberIntegrand_update_smul, integralTopForm_smul, smul_eq_mul, RingHom.id_apply]
-  map_eq_zero_of_eq' v i j hv hij := by
-    rw [fiberIntegrand_eq_zero_of_eq A α.val b hv hij, integralTopForm_zero]
+/-- For a smooth atlas, the value at `b` of the fibre integral, as a linear map in the form. With
+`U` the base set of the chart `e = A.trivAt b`, it sends `α` to the value at `⟨b, _⟩` of the fibre
+integral on `U × F` of the pull-back of `α` along `(b', y) ↦ e⁻¹ (b', y)`. -/
+private def fiberIntegralAt (hA : A.IsContMDiff ∞ I J IM) (b : B) :
+    SmoothForm IM M ℝ (r + m) →ₗ[ℝ] TangentSpace I b [⋀^Fin r]→L[ℝ] ℝ where
+  toFun α := (prodFiberIntegral o (SmoothForm.mpullback _ ((A.trivAt b).contMDiff_symm_val_prod
+    (hA.contMDiffOn_trivAt_symm b) (U := ⟨(A.trivAt b).baseSet, (A.trivAt b).open_baseSet⟩)
+    subset_rfl) α)).val ⟨b, A.mem_baseSet_trivAt b⟩
+  -- The sums and multiples are taken in the tangent space of the open set `U` at `⟨b, _⟩` and
+  -- in that of `B` at `b`; both are the model space `E`, so they agree by `rfl`.
+  map_add' α β := by simp only [map_add, Submodule.coe_add, Pi.add_apply]; rfl
+  map_smul' c α := by simp only [map_smul, Submodule.coe_smul, Pi.smul_apply]; rfl
 
-private theorem fiberIntegralAlternatingMap_apply (hA : A.IsContMDiff ∞ I J IM)
+private theorem fiberIntegralAt_apply (hA : A.IsContMDiff ∞ I J IM)
     (α : SmoothForm IM M ℝ (r + m)) (b : B) (v : Fin r → TangentSpace I b) :
-    fiberIntegralAlternatingMap o hA α b v = integralTopForm o (A.fiberIntegrand α.val b v) :=
-  (rfl)
-
-variable [FiniteDimensional ℝ E]
+    fiberIntegralAt o hA b α v = integralTopForm o (A.fiberIntegrand α.val b v) := by
+  rw [fiberIntegrand_eq_prodFiberIntegrand hA (by simp), ← SmoothForm.coe_mpullback]
+  -- By definition, the left side is the value of `prodFiberIntegral` at `⟨b, _⟩`, on `v` read in
+  -- the tangent space of the open set; `LinearMap.coe_mk` does not apply, since the codomain is
+  -- written with the tangent space of `B` at `b`.
+  exact prodFiberIntegral_apply (B := (⟨(A.trivAt b).baseSet, (A.trivAt b).open_baseSet⟩ :
+    TopologicalSpace.Opens B)) o _ ⟨b, A.mem_baseSet_trivAt b⟩ v
 
 /-- The rough form underlying the fibre integral: at `b`, the continuous alternating map
 `v ↦ ∫_F A.fiberIntegrand α b v`. -/
 private def fiberIntegralRoughForm (hA : A.IsContMDiff ∞ I J IM)
-    (α : SmoothForm IM M ℝ (r + m)) : RoughForm I B ℝ r := fun b ↦
-  AlternatingMap.toContinuousAlternatingMap (fiberIntegralAlternatingMap o hA α b)
+    (α : SmoothForm IM M ℝ (r + m)) : RoughForm I B ℝ r := fun b ↦ fiberIntegralAt o hA b α
 
 private theorem fiberIntegralRoughForm_apply (hA : A.IsContMDiff ∞ I J IM)
     (α : SmoothForm IM M ℝ (r + m)) (b : B) (v : Fin r → TangentSpace I b) :
-    fiberIntegralRoughForm o hA α b v = integralTopForm o (A.fiberIntegrand α.val b v) := by
-  rw [fiberIntegralRoughForm, AlternatingMap.coe_toContinuousAlternatingMap,
-    fiberIntegralAlternatingMap_apply]
-
-variable [BoundarylessManifold I B] [T2Space F]
+    fiberIntegralRoughForm o hA α b v = integralTopForm o (A.fiberIntegrand α.val b v) :=
+  fiberIntegralAt_apply o hA α b v
 
 /-- On the base set `U` of a chart, the restriction of the fibre integral is the fibre integral
 on the product `U × F` of the pull-back along `(b, y) ↦ e⁻¹ (b, y)`. -/
@@ -591,15 +587,10 @@ def fiberIntegral (hA : A.IsContMDiff ∞ I J IM) {hn : (∞ : ℕ∞ω) ≠ 0}
   toFun α := ⟨fiberIntegralRoughForm o hA α,
     (isSmoothForm_fiberIntegralRoughForm o hA ho α).mem_smoothBundleForms⟩
   map_add' α β := SmoothBundleForm.ext fun b v ↦ by
-    simp only [Submodule.coe_add, Pi.add_apply, ContinuousAlternatingMap.add_apply,
-      fiberIntegralRoughForm_apply, fiberIntegrand_add]
-    exact integralTopForm_add_of_compactSpace o
-      ((isSmoothForm_fiberIntegrand hA α b v).of_le bot_le)
-      ((isSmoothForm_fiberIntegrand hA β b v).of_le bot_le)
+    simp only [Submodule.coe_add, Pi.add_apply, fiberIntegralRoughForm, map_add]
   map_smul' c α := SmoothBundleForm.ext fun b v ↦ by
-    simp only [Submodule.coe_smul, Pi.smul_apply, ContinuousAlternatingMap.smul_apply,
-      fiberIntegralRoughForm_apply, fiberIntegrand_smul, integralTopForm_smul,
-      RingHom.id_apply, smul_eq_mul]
+    simp only [Submodule.coe_smul, Pi.smul_apply, fiberIntegralRoughForm, map_smul,
+      RingHom.id_apply]
 
 variable (hA : A.IsContMDiff ∞ I J IM) {hn : (∞ : ℕ∞ω) ≠ 0}
   (ho : A.HasStructureGroup (Diffeomorph.orientationPreservingSubgroup hn o))
