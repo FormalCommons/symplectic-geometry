@@ -31,11 +31,11 @@ Combined with the cap product of the excisive couple `(E ∖ 0, E ∖ E_b)` carr
 the cap product of a local class of `E` at `0_b` with the canonical Thom class, pushed forward to
 the base: in the chart it is the cap product on `F × Q` with the generator pulled back along the
 first projection, followed by the second projection. When the chart reads the local class as the
-cross product, fibre factor first, of the local orientation of `F` selected by `o b` read in `e` with
-a local class `ζ` of the base chart, `Cap/ProdLocal.lean` evaluates the result: it is `ζ`. In rank zero
-the point class of `F` takes the place of the local orientation, and the result is `ζ` or `-ζ`
-according to the sign of `o b`. Both cases hold for every degree of `ζ`, so for a base of any
-dimension.
+cross product, fibre factor first, of the local orientation of `F` selected by `o b` read in `e`
+with a local class `ζ` of the base chart, `Cap/ProdLocal.lean` evaluates the result: it is `ζ`.
+In rank zero the point class of `F` takes the place of the local orientation, and the result is
+`ζ` or `-ζ` according to the sign of `o b`. Both cases hold for every degree of `ζ`, so for a
+base of any dimension.
 
 ## Main results
 
