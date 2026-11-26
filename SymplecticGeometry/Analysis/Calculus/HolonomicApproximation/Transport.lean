@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Diffeomorph
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.FDeriv
 import TauCeti.Geometry.Manifold.Diffeomorph.NormedSpace
 
 /-!
@@ -31,7 +32,11 @@ pulling the problem back along `Φ`. This file proves what that transport needs:
   `ε * L * ‖w‖` when the pulled-back error is at most `ε` on vectors in the directions `J` and
   `‖fderiv ℝ Φ.symm y‖ ≤ L`.
 
-The constant `L`, with `Φ` also `L`-Lipschitz, is
+The facts that hold for every diffeomorphism of a normed space are in
+`SymplecticGeometry.Geometry.Manifold.Diffeomorph.FDeriv`: the pulled-back `G` is smooth by
+`Diffeomorph.contDiff_clm_comp_fderiv` (and `f ∘ Φ` by `ContDiff.comp`), and the error of
+`f' ∘ Φ.symm` is rewritten by `Diffeomorph.fderiv_comp_symm_sub_apply`. The constant `L`, with
+`Φ` also `L`-Lipschitz, is
 `Diffeomorph.exists_lipschitzWith_and_norm_fderiv_symm_le` of
 `SymplecticGeometry.Geometry.Manifold.Diffeomorph.CompactSupport`. The pulled-back section is
 written out rather than defined; it is the second component of Tau Ceti's
@@ -44,12 +49,10 @@ written out rather than defined; it is the second component of Tau Ceti's
 * `SymplecticGeometry.fderiv_diffeomorph_apply_fst_apply_eq_zero`,
   `SymplecticGeometry.fderiv_diffeomorph_symm_apply_fst_apply_eq_zero`: the same for `Φ` and its
   inverse.
-* `SymplecticGeometry.contDiff_comp_clm_comp_fderiv`: the pulled-back `G` is smooth.
 * `SymplecticGeometry.fderiv_comp_diffeomorph_apply_eq`: the pulled-back section is holonomic in
   the directions `J` where `(f, G)` is.
-* `SymplecticGeometry.fderiv_comp_diffeomorph_symm_sub_apply`,
-  `SymplecticGeometry.norm_fderiv_comp_diffeomorph_symm_sub_apply_le`: the transported error and
-  its bound.
+* `SymplecticGeometry.norm_fderiv_comp_diffeomorph_symm_sub_apply_le`: the bound on the
+  transported error.
 
 ## References
 
@@ -113,12 +116,6 @@ theorem fderiv_diffeomorph_symm_apply_fst_apply_eq_zero
   fderiv_apply_fst_apply_eq_zero (Φ.symm.differentiable (by simp) y)
     (fun y _ hi ↦ diffeomorph_symm_apply_fst_apply hΦ y hi) hJ hw
 
-/-- The pulled-back `G`, `x ↦ G (Φ x) ∘L fderiv ℝ Φ x`, is smooth when `G` is. -/
-theorem contDiff_comp_clm_comp_fderiv {G : (Fin m → ℝ) × (Fin k → ℝ) →
-      ((Fin m → ℝ) × (Fin k → ℝ)) →L[ℝ] F} (hG : ContDiff ℝ ∞ G) :
-    ContDiff ℝ ∞ fun x ↦ (G (Φ x)).comp (fderiv ℝ Φ x) :=
-  (hG.comp Φ.contDiff).clm_comp (Φ.contDiff.fderiv_right le_rfl)
-
 /-- **The pulled-back section is holonomic.** If `(f, G)` is holonomic in the directions
 `J ⊇ J'` at `Φ x`, where `Φ` keeps the core coordinates outside `J'`, then the pulled-back
 section `(f ∘ Φ, y ↦ G (Φ y) ∘L fderiv ℝ Φ y)` is holonomic in the directions `J` at `x`. -/
@@ -133,21 +130,6 @@ theorem fderiv_comp_diffeomorph_apply_eq {f : (Fin m → ℝ) × (Fin k → ℝ)
     ContinuousLinearMap.comp_apply,
     hfG _ (fderiv_diffeomorph_apply_fst_apply_eq_zero hΦ hJ x hw)]
 
-/-- **The transported error.** If `f'` is differentiable at `z`, the error of `f' ∘ Φ.symm`
-against `G` at `Φ z`, on a vector `w`, is the error of `f'` against the pulled-back
-`G (Φ z) ∘L fderiv ℝ Φ z` at `z`, on the vector `fderiv ℝ Φ.symm (Φ z) w`. -/
-theorem fderiv_comp_diffeomorph_symm_sub_apply {f' : (Fin m → ℝ) × (Fin k → ℝ) → F}
-    {G : (Fin m → ℝ) × (Fin k → ℝ) → ((Fin m → ℝ) × (Fin k → ℝ)) →L[ℝ] F}
-    {z : (Fin m → ℝ) × (Fin k → ℝ)} (hf' : DifferentiableAt ℝ f' z)
-    (w : (Fin m → ℝ) × (Fin k → ℝ)) :
-    (fderiv ℝ (f' ∘ Φ.symm) (Φ z) - G (Φ z)) w =
-      (fderiv ℝ f' z - (G (Φ z)).comp (fderiv ℝ Φ z)) (fderiv ℝ Φ.symm (Φ z) w) := by
-  have hΦs := Φ.symm.differentiable (by simp) (Φ z)
-  have hw := Φ.fderiv_apply_fderiv_symm_apply (by simp) (Φ z) w
-  rw [fderiv_comp (Φ z) (by rwa [Φ.symm_apply_apply]) hΦs]
-  rw [Φ.symm_apply_apply] at hw ⊢
-  simp [hw]
-
 /-- **The transported estimate.** If `Φ` keeps the core coordinates outside `J' ⊆ J`, the error
 of `f'` against the pulled-back `G (Φ z) ∘L fderiv ℝ Φ z` at `z` is at most `ε * ‖v‖` on vectors
 `v` in the directions `J`, and `‖fderiv ℝ Φ.symm (Φ z)‖ ≤ L`, then the error of `f' ∘ Φ.symm`
@@ -161,7 +143,7 @@ theorem norm_fderiv_comp_diffeomorph_symm_sub_apply_le {f' : (Fin m → ℝ) × 
     (hL : ‖fderiv ℝ Φ.symm (Φ z)‖ ≤ L) {w : (Fin m → ℝ) × (Fin k → ℝ)}
     (hw : ∀ i ∉ J, w.1 i = 0) :
     ‖(fderiv ℝ (f' ∘ Φ.symm) (Φ z) - G (Φ z)) w‖ ≤ ε * L * ‖w‖ := by
-  rw [fderiv_comp_diffeomorph_symm_sub_apply hf' w, mul_assoc]
+  rw [Φ.fderiv_comp_symm_sub_apply (by simp) hf' w, mul_assoc]
   refine (herr _ (fderiv_diffeomorph_symm_apply_fst_apply_eq_zero hΦ hJ _ hw)).trans ?_
   gcongr
   exact (ContinuousLinearMap.le_opNorm _ _).trans (by gcongr)
