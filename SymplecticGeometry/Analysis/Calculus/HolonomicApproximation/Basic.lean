@@ -66,7 +66,8 @@ namespace SymplecticGeometry
 `j` a transverse direction, `0 ≤ r < δ`, and `g : (Fin m → ℝ) → ℝ` a smooth profile on the core
 with `|g| ≤ 1`. There is a smooth diffeotopy `h` of `D` that is the identity off a compact subset
 of the `δ`-neighbourhood of `K`, moves every point by less than `δ`, and sends each `(u, v) ∈ K`
-at time `t` to `(u, v + t r g(u) eⱼ)`.
+at time `t` to `(u, v + t r g(u) eⱼ)`. It keeps the core coordinate `u` of every point, and fixes
+every point `(u, v)` with `g u = 0`.
 
 The zig-zag is the case `g := fun u ↦ Real.sin (N * u i)` for a core direction `i`: taking `N`
 large makes the image of a segment along the `i`-th core direction oscillate between the
@@ -77,12 +78,14 @@ theorem exists_wiggling_diffeotopy {m k : ℕ} {K : Set ((Fin m → ℝ) × (Fin
     ∃ h : TauCeti.Diffeotopy 𝓘(ℝ, (Fin m → ℝ) × (Fin k → ℝ)) ∞ ((Fin m → ℝ) × (Fin k → ℝ)),
       (∃ C, IsCompact C ∧ C ⊆ thickening δ K ∧ ∀ t, ∀ x ∉ C, h (t, x) = x) ∧
       (∀ t x, dist (h (t, x)) x < δ) ∧
-      ∀ t, ∀ x ∈ K, h (t, x) = (x.1, x.2 + Pi.single j ((t : ℝ) * r * g x.1)) := by
+      (∀ t, ∀ x ∈ K, h (t, x) = (x.1, x.2 + Pi.single j ((t : ℝ) * r * g x.1))) ∧
+      (∀ t x, (h (t, x)).1 = x.1) ∧
+      ∀ t x, g x.1 = 0 → h (t, x) = x := by
   set e : (Fin m → ℝ) × (Fin k → ℝ) := (0, Pi.single j r)
   have hne : ‖e‖ = r := by simp [e, Pi.norm_single, hr]
-  obtain ⟨h, hsupp, hsmall, hK'⟩ := exists_diffeotopy_apply_eq_add_smul hK
+  obtain ⟨h, hsupp, hsmall, hK', hline, hfix⟩ := exists_diffeotopy_apply_eq_add_smul hK
     (hg.comp contDiff_fst) (fun x ↦ hg1 x.1) (e := e) (fun x _ s ↦ by simp [e]) (hne ▸ hrδ)
-  refine ⟨h, hsupp, fun t x ↦ ?_, fun t x hx ↦ ?_⟩
+  refine ⟨h, hsupp, fun t x ↦ ?_, fun t x hx ↦ ?_, fun t x ↦ ?_, fun t x ↦ hfix t x⟩
   · rw [dist_eq_norm]
     calc ‖h (t, x) - x‖ ≤ (t : ℝ) * ‖e‖ := hsmall t x
       _ ≤ 1 * r := by rw [hne]; gcongr; exact t.property.2
@@ -93,6 +96,11 @@ theorem exists_wiggling_diffeotopy {m k : ℕ} {K : Set ((Fin m → ℝ) × (Fin
     · rcases eq_or_ne l j with rfl | hl
       · simp [e]; ring
       · simp [e, hl]
+  · -- `h` moves `x` by a multiple of `e`, whose core component is `0`.
+    obtain ⟨c, hc⟩ := Submodule.mem_span_singleton.1 (hline t x)
+    have := congrArg Prod.fst hc
+    simp only [e, Prod.smul_fst, smul_zero, Prod.fst_sub] at this
+    exact sub_eq_zero.1 this.symm
 
 /-- **A zig-zag profile on the segment.** Let `0 < b < 1` and `ρ > 0`. There is a smooth
 `g : ℝ → ℝ` with `|g| ≤ 1`, vanishing where `1 - b ≤ |t|`, together with points

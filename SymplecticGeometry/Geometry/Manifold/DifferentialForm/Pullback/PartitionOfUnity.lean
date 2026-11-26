@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.PartitionOfUnity
 public import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Leibniz
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # The exterior derivative of pullbacks glued by a partition of unity
@@ -21,20 +22,18 @@ where it is smooth, only the differentials of the weights contribute,
 `dτ = ∑ᵢ d(ρᵢ ∘ b) ∧ (g i)^* φ`, the sum running over the finite set `ρ.fintsupport (b x)`
 (`TauCeti.mextDeriv_sum_finsupport_smul_mpullback_apply`). Moreover the differentials of the
 weights sum to zero there (`SmoothPartitionOfUnity.sum_fintsupport_mextDeriv_ofFunction_comp`),
-because the weights sum to one near `x`.
+because the weights sum to one near `x`. Each term `(ρᵢ ∘ b) • (g i)^* φ` is smooth by
+`TauCeti.isSmoothForm_fun_smul_mpullback`.
 
 ## Main results
 
-* `TauCeti.isSmoothForm_fun_smul_mpullback`: a smooth function times the pullback of a smooth form
-  along a map that is smooth on an open set containing the function's support is a smooth form.
 * `TauCeti.mextDeriv_sum_finsupport_smul_mpullback_apply`: the exterior derivative of the glued
   form of a closed form.
 * `SmoothPartitionOfUnity.sum_fintsupport_mextDeriv_ofFunction_comp`: the differentials of the
   weights of a partition of unity sum to zero.
 
-The smoothness lemma extracts a step of the proof of
-`TauCeti.isSmoothForm_sum_finsupport_smul_mpullback`, and the reduction to the fixed finite set
-`ρ.fintsupport (b x)` near `x` follows the proof of Tau Ceti's
+The reduction to the fixed finite set `ρ.fintsupport (b x)` near `x` follows the proof of Tau
+Ceti's
 `SmoothPartitionOfUnity.mvfderiv_finsum_smul_pos`.
 
 ## References
@@ -61,18 +60,6 @@ variable {EX HX X EZ HZ Z EM HM M F : Type*}
   {ι : Type*} {ρ : SmoothPartitionOfUnity ι IM M univ} {b : X → M}
 
 namespace TauCeti
-
-/-- Let `f` be a smooth function on `X` whose topological support lies in an open set `u`, and
-let `g : X → Z` be smooth at every point of `u`. Then for every smooth form `φ` on `Z`, the form
-`f • g^* φ`, which vanishes off the support of `f`, is a smooth form on `X`. -/
-theorem isSmoothForm_fun_smul_mpullback [IsManifold IX 1 X] [IsManifold IZ 1 Z] {f : X → ℝ}
-    (hf : ContMDiff IX 𝓘(ℝ) ∞ f) {u : Set X} (hu : IsOpen u) (hfu : tsupport f ⊆ u) {g : X → Z}
-    (hg : ∀ x ∈ u, ContMDiffAt IX IZ ∞ g x) {φ : RoughForm IZ Z F k}
-    (hφ : IsSmoothForm IZ ∞ φ) :
-    IsSmoothForm IX ∞ (fun x ↦ f x • mpullback (F := F) IX IZ g φ x) := by
-  rw [isSmoothForm_def]
-  exact ContMDiffOn.smul_section_of_tsupport hf.contMDiffOn hu hfu fun x hx ↦
-    ((hφ.contMDiff (g x)).mpullback_form (hg x hx) (by simp)).contMDiffWithinAt
 
 /-- **The exterior derivative of pullbacks of a closed form glued by a partition of unity.** Let
 `ρ` be a smooth partition of unity on `M` subordinate to an open cover `U`, read on `X` through a
