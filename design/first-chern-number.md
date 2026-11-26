@@ -905,8 +905,9 @@ issues, in an order where each issue's blockers come before it.
    (`Duality/MayerVietoris.lean` and
    `AlgebraicTopology/Cohomology/Cap/MayerVietoris/Basic.lean`) and
    duality for convex and star-convex open subsets of a vector space
-   (`Euclidean/Duality.lean`), but not duality for a manifold, which the
-   library proves (below). Done when the evenness theorem is proved.
+   (`Euclidean/Duality.lean`), but not duality for a manifold, which Tau
+   Ceti has since `522d48f5cf3a`, in `Duality/Manifold.lean` (below). Done
+   when the evenness theorem is proved.
    Before the move to `c9d170eed5a8`, the library had copied from Tau
    Ceti's main branch, under Tau Ceti's names and namespaces so that a
    move of Tau Ceti past them would delete the files, the duality maps on
