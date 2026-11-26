@@ -10,6 +10,7 @@ public import Mathlib.MeasureTheory.Function.LpSeminorm.Basic
 import Mathlib.MeasureTheory.Function.LpSeminorm.TriangleInequality
 import Mathlib.MeasureTheory.Integral.IntegrableOn
 import Mathlib.MeasureTheory.Constructions.BorelSpace.Metrizable
+import TauCeti.Analysis.Calculus.ContDiff.Integrable
 
 /-!
 # The Leibniz rule in `Lᵖ` on an open set, for a coefficient smooth near its closure
@@ -86,14 +87,11 @@ theorem exists_eLpNorm_iteratedFDeriv_smul_le_of_isOpen (μ : Measure E) {p : �
           simp only [C]
           gcongr
           exact_mod_cast (by omega : j + 1 ≤ k + 1)
-  have hmeas {g : E → F} (hg : ContDiffOn ℝ k g s) {l : ℕ} (hl : l ≤ k) :
-      AEStronglyMeasurable (iteratedFDeriv ℝ l g) (μ.restrict s) :=
-    (ContinuousOn.continuousOn_iteratedFDeriv hg hs (by exact_mod_cast hl)).aestronglyMeasurable
-      hs.measurableSet
   have hC : ‖C‖ₑ = C.toNNReal := by
     rw [Real.eNorm_eq_ofReal (by positivity), ENNReal.ofReal]
   calc _ ≤ eLpNorm (C • S) p (μ.restrict s) :=
-        eLpNorm_mono_ae (hmeas ((ha.mono (hsK.trans hKt)).smul hf) hj) hpt
+        eLpNorm_mono_ae
+          (((ha.mono (hsK.trans hKt)).smul hf).aestronglyMeasurable_iteratedFDeriv hs hj) hpt
     _ = C.toNNReal * eLpNorm S p (μ.restrict s) := by rw [eLpNorm_const_smul, hC]
     _ ≤ C.toNNReal * ∑ l ∈ Finset.range (k + 1),
           eLpNorm (fun x ↦ ‖iteratedFDeriv ℝ l f x‖) p (μ.restrict s) := by
@@ -105,7 +103,8 @@ theorem exists_eLpNorm_iteratedFDeriv_smul_le_of_isOpen (μ : Measure E) {p : �
     _ = _ := by
         congr 1
         exact Finset.sum_congr rfl fun l hl ↦
-          eLpNorm_norm _ (hmeas hf (Finset.mem_range_succ_iff.1 hl))
+          eLpNorm_norm _
+            (hf.aestronglyMeasurable_iteratedFDeriv hs (Finset.mem_range_succ_iff.1 hl))
 
 omit [SecondCountableTopology E] in
 /-- On an open set `s`, two functions that agree on `s` have derivatives with the same `Lᵖ` norms

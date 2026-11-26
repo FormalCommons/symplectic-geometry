@@ -19,6 +19,7 @@ import SymplecticGeometry.Analysis.Normed.Operator.ComplexLinearPart
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.ZeroOnePart
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Tames
 import TauCeti.Analysis.Calculus.BumpFunction.Cutoff
+import TauCeti.Analysis.Calculus.ContDiff.Integrable
 
 /-!
 # The Cauchy–Riemann operators `D_J` of `𝒪(1)` on Sobolev sections
@@ -447,9 +448,8 @@ private theorem exists_sum_eLpNorm_iteratedFDeriv_mul_le {W U T K : Set ℂ} (hW
   have hθ₁ (z : ℂ) (hz : z ∈ W) : θ z 1 = g z := by simp [hθg z hz]
   have hθ₁le (l : ℕ) : eLpNorm (iteratedFDeriv ℝ l fun z ↦ θ z 1) 2 ν ≤
       eLpNorm (iteratedFDeriv ℝ l θ) 2 ν := by
-    refine eLpNorm_mono_ae ((ContinuousOn.continuousOn_iteratedFDeriv
-      (hθs.clm_apply contDiffOn_const) hW
-      (by exact_mod_cast le_top)).aestronglyMeasurable hW.measurableSet) ?_
+    refine eLpNorm_mono_ae (((hθs.clm_apply contDiffOn_const).of_le (m := l)
+      (by exact_mod_cast le_top)).aestronglyMeasurable_iteratedFDeriv hW le_rfl) ?_
     filter_upwards [ae_restrict_mem hW.measurableSet] with z hz
     simpa using norm_iteratedFDeriv_clm_apply_const (c := (1 : ℂ))
       (hθs.contDiffAt (hW.mem_nhds hz)) (n := l) (by exact_mod_cast le_top)

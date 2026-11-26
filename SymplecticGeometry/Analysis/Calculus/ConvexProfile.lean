@@ -5,12 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Analysis.Calculus.Deriv.MeanValue
 public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 public import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
 import SymplecticGeometry.Geometry.Manifold.PartitionOfUnity
 import SymplecticGeometry.MeasureTheory.Integral.IntervalIntegral.Monotone
+import TauCeti.Analysis.Calculus.Deriv.MeanValue
 import TauCeti.MeasureTheory.Integral.IntervalIntegral.Primitive
 
 /-!
@@ -86,10 +86,8 @@ theorem exists_contDiff_profile {t₀ b A : ℝ} (hb : t₀ < b) {L : ℝ → �
     mul_pos (expNegInvGlue.pos_of_pos (sub_pos.2 ht)) (exp_pos _)
   -- `D` is monotone on `[t₀, ∞)`.
   have hDmono : MonotoneOn D (Ici t₀) :=
-    monotoneOn_of_deriv_nonneg (convex_Ici t₀) hDs.continuous.continuousOn
-      (hDs.differentiable (by simp)).differentiableOn fun t _ ↦ by
-        rw [(hD' t).deriv]
-        exact mul_nonneg (hDnn t) (add_nonneg (by positivity) (hg0 t))
+    TauCeti.monotoneOn_of_hasDerivAt_nonneg (convex_Ici t₀) (fun t _ ↦ hD' t) fun t _ ↦
+      mul_nonneg (hDnn t) (add_nonneg (by positivity) (hg0 t))
   -- The profile.
   have hderiv : deriv (fun u ↦ ∫ s in t₀..u, D s) = D :=
     funext (hDs.continuous.deriv_integral D t₀)
