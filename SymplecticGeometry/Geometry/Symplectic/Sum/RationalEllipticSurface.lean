@@ -760,7 +760,8 @@ theorem mk_mem_iff_eq_pencilMember {p : ℙ ℂ (Fin 3 → ℂ)} (hp : p ∉ bas
   conv_rhs => rw [← q.mk_rep]
   rw [mem_rationalEllipticSurface_iff, pencilMember_def, Projectivization.mk_eq_mk_iff_mem_span,
     pencilVector_def, mem_span_singleton_perpLinearEquiv_iff hw, Matrix.vec2_dotProduct]
-  simp only [eval_hessePencil, Sum.elim_inl, Sum.elim_inr, hesseCubics_zero, hesseCubics_one]
+  simp only [eval_hessePencil, Sum.elim_inl, Sum.elim_inr, eval_hesseCubics_zero,
+    eval_hesseCubics_one]
   simp [mul_comm]
 
 /-- The part of the rational elliptic surface over the complement of the base locus. -/
