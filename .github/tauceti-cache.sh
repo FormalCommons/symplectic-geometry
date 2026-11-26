@@ -79,7 +79,7 @@ state=$notes/$(cat lean-toolchain lake-manifest.json | sha256sum | cut -c1-16)
 mkdir -p "$notes" || exit 0
 # `.modules` is the note of the modules built so far, `.mapped` says that
 # Tau Ceti's cache has told which builds it has for these dependencies, and
-# `.unread` is the time of the last run that did not learn that.
+# `.unread` is the time of the last run that asked and did not learn that.
 missing() {
   sort -u "$state.modules" 2>/dev/null | comm -23 "$tmp/imports.txt" - > "$tmp/missing.txt"
   [ -s "$tmp/missing.txt" ]
@@ -113,20 +113,42 @@ printf '%s\n' \
 # answer covers every module of Tau Ceti, so later runs do not ask again.
 # After a run that got no answer, the runs of the next 15 minutes do not ask
 # either. Lake sets no limit on a download, so each command has one here.
+#
+# Lake asks the cache only once it has loaded the checkout with its packages,
+# and says `downloading build outputs` when it asks. A command that fails
+# without that line did not get that far: something here stopped it, such as
+# another Lake command that sets up `.lake/packages` at the same moment. That
+# says nothing about the cache, so the script leaves no note and tries again
+# every 20 seconds until 5 minutes have passed, which is 10 minutes at most,
+# since the last command has its own limit. Only then does it compile from
+# source, like a run that got no answer, and still without a note: the next
+# run asks again.
 if [ ! -e "$state.mapped" ] && [ -z "$(find "$state.unread" -mmin -15 2>/dev/null)" ]; then
-  if LAKE_CONFIG=$config run timeout 5m lake cache get --service tauceti-public \
-      --repo TauCetiProject/TauCeti --package TauCeti --mappings-only --max-revs=500 > "$tmp/get.log" 2>&1; then
-    grep 'downloading build outputs' "$tmp/get.log" | tail -n 1
-    touch "$state.mapped"
-  else
-    tail -n 5 "$tmp/get.log"
-    if grep -q 'no outputs found' "$tmp/get.log"; then
-      warn "Tau Ceti's cache has no builds for the pinned commit or the 499 before it; the Tau Ceti modules are compiled from source"
-    else
-      warn "reading Tau Ceti's cache failed or took more than 5 minutes, see the lines above; the Tau Ceti modules are compiled from source"
+  since=$SECONDS
+  while true; do
+    if LAKE_CONFIG=$config run timeout 5m lake cache get --service tauceti-public \
+        --repo TauCetiProject/TauCeti --package TauCeti --mappings-only --max-revs=500 > "$tmp/get.log" 2>&1; then
+      grep 'downloading build outputs' "$tmp/get.log" | tail -n 1
+      touch "$state.mapped"
+      break
     fi
-    touch "$state.unread"
-  fi
+    tail -n 5 "$tmp/get.log"
+    if grep -q 'downloading build outputs' "$tmp/get.log"; then
+      if grep -q 'no outputs found' "$tmp/get.log"; then
+        warn "Tau Ceti's cache has no builds for the pinned commit or the 499 before it; the Tau Ceti modules are compiled from source"
+      else
+        warn "reading Tau Ceti's cache failed or took more than 5 minutes, see the lines above; the Tau Ceti modules are compiled from source"
+      fi
+      touch "$state.unread"
+      break
+    fi
+    if [ $((SECONDS - since)) -ge 300 ]; then
+      warn "Lake could not ask Tau Ceti's cache for 5 minutes, see the lines above; the Tau Ceti modules are compiled from source"
+      break
+    fi
+    say "Lake did not get as far as asking Tau Ceti's cache, see the lines above; if another Lake command is setting up the packages, this passes; trying again in 20 seconds"
+    run sleep 20
+  done
 fi
 if [ -e "$state.mapped" ]; then
   export LAKE_CONFIG=$config
