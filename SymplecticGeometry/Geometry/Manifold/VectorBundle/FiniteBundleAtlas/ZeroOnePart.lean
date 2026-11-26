@@ -106,8 +106,7 @@ theorem coord_hom_zeroOnePartL_apply_I_smul_iff {i : Fin A.n} {y : ℂ} (hy : y 
       ∀ v : ℂ, L (J.inChart (A.center i) y v) = Complex.I • L v := by
   have hyT : y ∈ A.tangentHom.image i := by rwa [image_tangentHom]
   have hyt : y ∈ (extChartAt 𝓘(ℝ, ℂ) (A.center i)).target := by
-    simpa using (A.chart_image_closure_dom_subset i
-      (A.image_subset_chart_image_closure_dom i hy)).1
+    simpa using (A.image_subset_target_inter_preimage_baseSet i hy).1
   -- A one-form whose reading at `y` is `L`.
   set η : Π x, TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] V x := fun x ↦ (A.tangentHom.triv i).symm x L
   have hη : A.tangentHom.coord i η y = L := coord_triv_symm _ L hyT

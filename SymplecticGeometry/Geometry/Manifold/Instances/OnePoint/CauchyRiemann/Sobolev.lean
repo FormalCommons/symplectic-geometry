@@ -356,7 +356,7 @@ theorem exists_coord_zeroOnePart_twistOneDelBar_apply
     simp only [hμ, div_eq_mul_inv]
     exact (hK1s.sub contDiffOn_const).mul (((hconj hK1s).sub contDiffOn_const).inv hden)
   have hcl : closure (A.image i : Set ℂ) ⊆ U :=
-    (A.closure_image_subset_chart_image_closure_dom i).trans (A.chart_image_closure_dom_subset i)
+    A.closure_image_subset_target_inter_preimage_baseSet i
   refine ⟨U, (A.chart i).isOpen_inter_preimage_symm (A.triv i).open_baseSet, hcl, c₂, μ, Z, hc₂s,
     hμs, hc₂s.mul ((hGs.complexAntilinearPart_apply 1).add (hμs.mul
       (hGs.complexLinearPart_apply 1))), fun z hz ↦ mul_ne_zero (inv_ne_zero two_ne_zero)
@@ -591,7 +591,7 @@ theorem exists_sum_eLpNorm_iteratedFDeriv_coord_smul_le
   have hu : ContDiffOn ℝ ∞ (A.coord i s) (A.image i) :=
     ((contDiffOn_trivialization_comp_chart_symm_of_contMDiff hs
       (IsManifold.chart_mem_maximalAtlas _) (A.triv i)).congr fun y _ ↦ A.coord_def i s y).mono
-        ((A.image_subset_chart_image_closure_dom i).trans (A.chart_image_closure_dom_subset i))
+        (A.image_subset_target_inter_preimage_baseSet i)
   have hcw : EqOn (A.coord i fun x ↦ χ x • s x) (fun z ↦ χ' z • A.coord i s z) (A.image i) :=
     fun z hz ↦ (A.coord_fun_smul i χ s hz).trans (Complex.coe_smul _ _).symm
   refine le_of_eq_of_le (Finset.sum_congr rfl fun j _ ↦
@@ -638,8 +638,7 @@ private theorem exists_norm_contMDiffSMulL_component_le
   set g := (twistCoreAtlas 1).coord i fun x ↦ χ x • s x
   set u := (twistCoreAtlas 1).coord i s
   set θ := (twistCoreAtlas 1).tangentHom.coord i fun x ↦ 𝒊.zeroOnePart (twistOneDelBar J s x)
-  have hsub := ((twistCoreAtlas 1).image_subset_chart_image_closure_dom i).trans
-    ((twistCoreAtlas 1).chart_image_closure_dom_subset i)
+  have hsub := (twistCoreAtlas 1).image_subset_target_inter_preimage_baseSet i
   have hk : ((k + 1 : ℕ) : WithTop ℕ∞) ≤ ((⊤ : ℕ∞) : WithTop ℕ∞) := by exact_mod_cast le_top
   have hu : ContDiffOn ℝ (k + 1 : ℕ) u ((twistCoreAtlas 1).image i) :=
     ((twistCoreAtlas 1).contDiffOn_coord (hs.of_le hk) i).mono hsub
