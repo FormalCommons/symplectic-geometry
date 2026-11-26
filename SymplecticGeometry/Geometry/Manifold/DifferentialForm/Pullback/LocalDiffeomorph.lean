@@ -16,6 +16,7 @@ public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 public import TauCeti.Geometry.Manifold.TwoForm.Basic
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
+import SymplecticGeometry.Geometry.Manifold.VectorField.Pullback
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.IsManifold.Basic
@@ -46,8 +47,8 @@ A `C^n` local diffeomorphism `f` with `2 ≤ n` also pulls a pair with `ι_Y dα
 pair, for the pulled-back field and form
 (`IsLocalDiffeomorph.interior_mextDeriv_mpullback_of_interior_mextDeriv`). The proof combines Tau
 Ceti's `TauCeti.mpullback_mextDeriv_at` and `TauCeti.mpullback_interior`; that the differential of
-`f` sends the pulled-back field to `Y` comes from Mathlib's
-`IsLocalDiffeomorphAt.isInvertible_mfderiv`.
+`f` sends the pulled-back field to `Y` is `IsLocalDiffeomorphAt.mfderiv_apply_mpullback`, from
+`SymplecticGeometry.Geometry.Manifold.VectorField.Pullback`.
 
 At a single point `x` where `f` is a local diffeomorphism, the same tools transfer pointwise
 identities between a form `ω` at `f x` and its pullback at `x`: `dφ = ψ`
@@ -402,9 +403,7 @@ theorem interior_mextDeriv_mpullback_of_interior_mextDeriv (hf : IsLocalDiffeomo
   have hd : mextDeriv (mpullback I I' f α.val) = mpullback I I' f (mextDeriv α.val) :=
     funext fun x ↦ (mpullback_mextDeriv_at ((hf x).contMDiffAt.of_le hn)
       ((α.contMDiff (f x)).of_le (by simp))).symm
-  have hY (x : M) : mfderiv I I' f x (VectorField.mpullback I I' f Y x) = Y (f x) := by
-    rw [VectorField.mpullback_apply]
-    exact ((hf x).isInvertible_mfderiv (lt_of_lt_of_le (by simp) hn).ne').self_apply_inverse _
+  have hY (x : M) := (hf x).mfderiv_apply_mpullback (lt_of_lt_of_le (by simp) hn).ne' Y
   rw [hd, ← mpullback_interior _ _ _ _ hY, hYα]
 
 end IsLocalDiffeomorph

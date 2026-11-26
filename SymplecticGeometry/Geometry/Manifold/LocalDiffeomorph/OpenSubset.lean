@@ -50,8 +50,9 @@ differential at a point exactly when `Φ` has, by Tau Ceti's
 `TauCeti.Manifold.mfderiv_eq_id_iff_of_comp_subtype_val`; so a point that `Φ` fixes with identity
 differential is fixed by it, with identity differential. The lift maps a subset `C` of `U` onto
 the image of `C` under `Φ` (`PartialDiffeomorph.image_liftOpens`). When `Φ` is a diffeomorphism
-between `U` and `V`, the lift has source `U` and takes the values of `Φ` there
+between `U` and `V`, the lift has source `U` and target `V`, and takes the values of `Φ` on `U`
 (`Diffeomorph.toPartialDiffeomorph_liftOpens_source`,
+`Diffeomorph.toPartialDiffeomorph_liftOpens_target`,
 `Diffeomorph.toPartialDiffeomorph_liftOpens_apply_coe`). A diffeomorphism from `M` onto an open
 subset of `N`, followed by the inclusion, is a local diffeomorphism from `M` to `N`
 (`Diffeomorph.isLocalDiffeomorph_subtypeVal_comp`), by the first point above.
@@ -77,9 +78,10 @@ subset of `N`, followed by the inclusion, is a local diffeomorphism from `M` to 
   `V`, read as a partial diffeomorphism of the ambient manifolds, maps each subset of `U` onto its
   image under it.
 * `Diffeomorph.toPartialDiffeomorph_liftOpens_source`,
+  `Diffeomorph.toPartialDiffeomorph_liftOpens_target`,
   `Diffeomorph.toPartialDiffeomorph_liftOpens_apply_coe`: a diffeomorphism between open subsets
   `U` and `V`, read as a partial diffeomorphism of the ambient manifolds, has source `U` and
-  agrees with the diffeomorphism there.
+  target `V`, and agrees with the diffeomorphism on `U`.
 * `Diffeomorph.isLocalDiffeomorph_subtypeVal_comp`: a diffeomorphism onto an open subset,
   followed by the inclusion of that subset, is a local diffeomorphism.
 -/
@@ -255,6 +257,12 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
 diffeomorphism from `M` to `N`, has source `U`. -/
 theorem toPartialDiffeomorph_liftOpens_source :
     (Φ.toPartialDiffeomorph.liftOpens hU hV).source = U := by
+  simp
+
+/-- A diffeomorphism `Φ` between open subsets `U` of `M` and `V` of `N`, read as a partial
+diffeomorphism from `M` to `N`, has target `V`. -/
+theorem toPartialDiffeomorph_liftOpens_target :
+    (Φ.toPartialDiffeomorph.liftOpens hU hV).target = V := by
   simp
 
 /-- A diffeomorphism `Φ` between open subsets `U` of `M` and `V` of `N`, read as a partial

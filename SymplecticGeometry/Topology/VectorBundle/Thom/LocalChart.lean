@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.OpenEmbedding
 public import TauCeti.Topology.OpenPartialHomeomorph.Basic
 public import TauCeti.Topology.VectorBundle.Trivialization
+public import TauCeti.Topology.VectorBundle.ZeroSection
 
 /-!
 # A chart of the total space at a point of the zero section
@@ -35,7 +36,9 @@ by the second projection.
 * `Bundle.Trivialization.localChart`: the chart, and
   `Bundle.Trivialization.isOpenEmbedding_localChart`: it is an open embedding.
 * `Bundle.Trivialization.localChart_zero`,
+  `Bundle.Trivialization.localChart_preimage_singleton_zeroSection`,
   `Bundle.Trivialization.localChart_mem_range_zeroSection_iff`,
+  `Bundle.Trivialization.localChart_preimage_zeroSectionCompl`,
   `Bundle.Trivialization.localChart_preimage_proj_preimage`,
   `Bundle.Trivialization.proj_comp_localChart`: where the chart sends the origin, which points it
   sends to the zero section and to the fibre over `b`, and how it meets the projection.
@@ -46,8 +49,10 @@ by the second projection.
   `Bundle.Trivialization.localChartFiberLocalHomologyIso_hom`.
 * `Bundle.Trivialization.localChartFiberLocalHomologyIso_hom_comp_localHomologyRestriction`: the
   isomorphism along the fibre restricts to the isomorphism at the point.
-* `Bundle.Trivialization.localChartFiberLocalHomologyIso_hom_comp_localHomologyMap_proj`: the
-  square with the projection of the bundle and the second projection.
+* `Bundle.Trivialization.localHomologyMap_localChart_comp_localHomologyMap_proj` and
+  `Bundle.Trivialization.localChartFiberLocalHomologyIso_hom_comp_localHomologyMap_proj`: the
+  square with the projection of the bundle and the second projection, on `P × S` and through
+  the isomorphism along the fibre.
 
 ## References
 
@@ -140,6 +145,12 @@ theorem localChart_mem_range_zeroSection_iff (hSe : MapsTo c.symm S e.baseSet)
   rw [← localChart_snd_eq_zero_iff hSe]
   exact ⟨fun ⟨b, hb⟩ ↦ hb ▸ rfl, fun h ↦ ⟨_, TotalSpace.ext rfl (heq_of_eq h.symm)⟩⟩
 
+/-- The chart pulls the nonzero vectors back to the points whose first coordinate, the one in the
+model fibre, is nonzero. -/
+theorem localChart_preimage_zeroSectionCompl (hSe : MapsTo c.symm S e.baseSet) :
+    e.localChart c S ⁻¹' zeroSectionCompl P E = Subtype.val ⁻¹' (Prod.fst ⁻¹' {0}ᶜ) :=
+  ext fun x ↦ mem_zeroSectionCompl.trans (localChart_snd_eq_zero_iff hSe x).not
+
 end Linear
 
 variable [Zero Q] {b : B}
@@ -206,25 +217,29 @@ theorem localChartFiberLocalHomologyIso_hom (hS : IsOpen S) (hSc : S ⊆ c.targe
   rw [localChartFiberLocalHomologyIso, Iso.trans_hom, Iso.symm_hom,
     localHomologyIsoOfIsOpenEmbeddingOfPreimage_hom]
 
-/-- **The chart carries the projection of the bundle to the second projection.** The isomorphism
-`Bundle.Trivialization.localChartFiberLocalHomologyIso`, followed by the map
-`Hₖ(E, E ∖ E_b) ⟶ Hₖ(B, B ∖ {b})` induced by the projection and by the reading of local homology
-at `b` in the chart `c` (excision to the source of `c`, then `c`), is the map
-`Hₖ(P × Q, P × Q ∖ (P × {0})) ⟶ Hₖ(Q, Q ∖ {0})` induced by the second projection. -/
-theorem localChartFiberLocalHomologyIso_hom_comp_localHomologyMap_proj (hS : IsOpen S)
+omit [T1Space Q] in
+/-- **Read in the charts, the projection of the bundle is the second projection.** On `P × S`, the
+map `Hₖ(P × S, P × S ∖ (P × {0})) ⟶ Hₖ(B, B ∖ {b})` induced by the chart of the total space and
+then the projection, followed by the reading of local homology at `b` in the chart `c` (excision
+to the source of `c`, then `c`), is the map to `Hₖ(Q, Q ∖ {0})` induced by the inclusion in
+`P × Q` and then the second projection. -/
+theorem localHomologyMap_localChart_comp_localHomologyMap_proj (hS : IsOpen S)
     (hSc : S ⊆ c.target) (hSe : MapsTo c.symm S e.baseSet) (hb : b ∈ c.source) (hcb : c b = 0)
-    (h0 : (0 : Q) ∈ S) (h : c.sourceRestrict ⁻¹' {0} ⊆ {(⟨b, hb⟩ : c.source)}) (k : ℕ) :
-    (localChartFiberLocalHomologyIso R hS hSc hSe hb hcb h0 k).hom ≫
+    (k : ℕ) :
+    localHomologyMap R (.mk (e.localChart c S) (isOpenEmbedding_localChart hS hSc hSe).continuous)
+        (localChart_preimage_proj_preimage hSc hSe hb hcb).subset k ≫
         localHomologyMap R (.mk (π P E) (FiberBundle.continuous_proj P E))
           (T := {((⟨b, hb⟩ : c.source) : B)}) subset_rfl k ≫
         (localHomologyIsoOfIsOpenEmbedding R c.open_source.isOpenEmbedding_subtypeVal
-          (⟨b, hb⟩ : c.source) k).inv ≫ localHomologyMap R c.sourceRestrict h k =
-      localHomologyMap R (.mk Prod.snd continuous_snd) (T := {(0 : Q)})
-        (S := (Prod.snd ⁻¹' {0} : Set (P × Q))) subset_rfl k := by
-  rw [localChartFiberLocalHomologyIso_hom _ _ _ _ _ _ _
-      (localChart_preimage_proj_preimage hSc hSe hb hcb).subset, Category.assoc, Iso.inv_comp_eq,
-    localHomologyIsoOfIsOpenEmbeddingOfPreimage_hom, localHomologyMap_comp_assoc,
-    localHomologyMap_comp]
+          (⟨b, hb⟩ : c.source) k).inv ≫
+        localHomologyMap R c.sourceRestrict
+          -- The ascription types the singleton in `c.source`, as `localHomologyMap_comp` needs.
+          (show c.sourceRestrict ⁻¹' {0} ⊆ {(⟨b, hb⟩ : c.source)} from
+            fun _ hx ↦ Subtype.ext (c.sourceRestrict_preimage hb (by rwa [hcb]))) k =
+      localHomologyMap R (ContinuousMap.subtypeVal (univ ×ˢ S : Set (P × Q)))
+          (T := (Prod.snd ⁻¹' {0} : Set (P × Q))) subset_rfl k ≫
+        localHomologyMap R (.mk Prod.snd continuous_snd) (T := {(0 : Q)}) subset_rfl k := by
+  rw [localHomologyMap_comp_assoc, localHomologyMap_comp]
   -- Read in the chart, the projection of the bundle factors through the source of `c`.
   let γ : C((univ ×ˢ S : Set (P × Q)), c.source) :=
     ⟨fun x ↦ ⟨c.symm x.val.2, c.map_target (hSc x.property.2)⟩,
@@ -247,6 +262,26 @@ theorem localChartFiberLocalHomologyIso_hom_comp_localHomologyMap_proj (hS : IsO
   rw [ContinuousMap.comp_apply, c.sourceRestrict_apply]
   exact c.right_inv (hSc x.property.2)
 
+/-- **The chart carries the projection of the bundle to the second projection.** The isomorphism
+`Bundle.Trivialization.localChartFiberLocalHomologyIso`, followed by the map
+`Hₖ(E, E ∖ E_b) ⟶ Hₖ(B, B ∖ {b})` induced by the projection and by the reading of local homology
+at `b` in the chart `c` (excision to the source of `c`, then `c`), is the map
+`Hₖ(P × Q, P × Q ∖ (P × {0})) ⟶ Hₖ(Q, Q ∖ {0})` induced by the second projection. -/
+theorem localChartFiberLocalHomologyIso_hom_comp_localHomologyMap_proj (hS : IsOpen S)
+    (hSc : S ⊆ c.target) (hSe : MapsTo c.symm S e.baseSet) (hb : b ∈ c.source) (hcb : c b = 0)
+    (h0 : (0 : Q) ∈ S) (h : c.sourceRestrict ⁻¹' {0} ⊆ {(⟨b, hb⟩ : c.source)}) (k : ℕ) :
+    (localChartFiberLocalHomologyIso R hS hSc hSe hb hcb h0 k).hom ≫
+        localHomologyMap R (.mk (π P E) (FiberBundle.continuous_proj P E))
+          (T := {((⟨b, hb⟩ : c.source) : B)}) subset_rfl k ≫
+        (localHomologyIsoOfIsOpenEmbedding R c.open_source.isOpenEmbedding_subtypeVal
+          (⟨b, hb⟩ : c.source) k).inv ≫ localHomologyMap R c.sourceRestrict h k =
+      localHomologyMap R (.mk Prod.snd continuous_snd) (T := {(0 : Q)})
+        (S := (Prod.snd ⁻¹' {0} : Set (P × Q))) subset_rfl k := by
+  rw [localChartFiberLocalHomologyIso_hom _ _ _ _ _ _ _
+      (localChart_preimage_proj_preimage hSc hSe hb hcb).subset, Category.assoc, Iso.inv_comp_eq,
+    localHomologyIsoOfIsOpenEmbeddingOfPreimage_hom]
+  exact localHomologyMap_localChart_comp_localHomologyMap_proj R hS hSc hSe hb hcb k
+
 end FiberLocalHomology
 
 variable [∀ b, AddCommMonoid (E b)] [AddCommMonoid P] [Module ℝ P] [∀ b, Module ℝ (E b)]
@@ -259,6 +294,13 @@ theorem localChart_zero (hSe : MapsTo c.symm S e.baseSet) (hb : b ∈ c.source) 
   obtain rfl : c.symm 0 = b := by rw [← hcb, c.left_inv hb]
   rw [localChart_apply hSe]
   exact TotalSpace.ext rfl (heq_of_eq ((not_iff_not.1 (e.symm_apply_ne_zero_iff ℝ (hSe h0))).2 rfl))
+
+/-- The origin is the only point that the chart sends to the point `0_b` of the zero section. -/
+theorem localChart_preimage_singleton_zeroSection (hS : IsOpen S) (hSc : S ⊆ c.target)
+    (hSe : MapsTo c.symm S e.baseSet) (hb : b ∈ c.source) (hcb : c b = 0) (h0 : (0 : Q) ∈ S) :
+    e.localChart c S ⁻¹' {zeroSection P E b} = {⟨(0, 0), mk_mem_prod (mem_univ _) h0⟩} := by
+  rw [← localChart_zero hSe hb hcb h0, ← image_singleton,
+    (isOpenEmbedding_localChart hS hSc hSe).injective.preimage_image]
 
 section LocalHomology
 
@@ -323,10 +365,7 @@ theorem localChartFiberLocalHomologyIso_hom_comp_localHomologyRestriction [T1Spa
       localHomologyRestriction R
           (singleton_subset_iff.2 (rfl : ((0, 0) : P × Q).2 = 0)) k ≫
         (localChartLocalHomologyIso R hS hSc hSe hb hcb h0 k).hom := by
-  have hpt : e.localChart c S ⁻¹' {zeroSection P E b} ⊆
-      {⟨(0, 0), mk_mem_prod (mem_univ _) h0⟩} := fun x hx ↦
-    (isOpenEmbedding_localChart hS hSc hSe).injective
-      (hx.trans (localChart_zero hSe hb hcb h0).symm)
+  have hpt := (localChart_preimage_singleton_zeroSection hS hSc hSe hb hcb h0).subset
   rw [localChartFiberLocalHomologyIso_hom _ _ _ _ _ _ _
       (localChart_preimage_proj_preimage hSc hSe hb hcb).subset,
     localChartLocalHomologyIso_hom _ _ _ _ _ _ _ hpt, Category.assoc,

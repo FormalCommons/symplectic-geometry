@@ -8,7 +8,7 @@ module
 public import Mathlib.LinearAlgebra.Complex.FiniteDimensional
 public import Mathlib.MeasureTheory.Measure.Lebesgue.EqHaar
 public import SymplecticGeometry.LinearAlgebra.FiniteDimensional.RestrictScalars
-public import SymplecticGeometry.Topology.Algebra.Group.Pointwise
+public import SymplecticGeometry.Analysis.Normed.Module.LineReach
 public import TauCeti.MeasureTheory.Measure.Lebesgue.OrthogonalSlices
 
 /-!

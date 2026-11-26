@@ -30,6 +30,9 @@ two trivializations, these inclusions differ by the coordinate change.
 
 ## Main results
 
+* `Bundle.Trivialization.leftInverse_snd_fiberInclusionMap` and
+  `Bundle.Trivialization.fiberInclusionMap_snd_apply`: the fibre coordinate of a trivialization and
+  its fibre inclusion are inverse to each other.
 * `Bundle.Trivialization.fiberInclusionMap_coordChange`: the inclusions of a fibre through two
   trivializations differ by their coordinate change.
 * `Bundle.Trivialization.coordChange_compHomeomorph`: precomposing two trivializations with a
@@ -56,7 +59,7 @@ two trivializations, these inclusions differ by the coordinate change.
 
 The proof is the trivialization argument of Tau Ceti's `TauCeti.isOpen_zeroSectionCompl`
 (`TauCeti/Topology/VectorBundle/ZeroSection.lean`): the preimage of `Prod.snd ⁻¹' t` under a
-trivialization is open in its source, by `ContinuousOn.isOpen_inter_preimage`.
+trivialization is open in its source, by `OpenPartialHomeomorph.isOpen_inter_preimage`.
 
 ## References
 
@@ -104,6 +107,17 @@ lemma apply_fiberInclusionMap (e : Trivialization F proj) {b : B} (hb : b ∈ e.
     e (e.fiberInclusionMap hb f) = (b, f) := by
   rw [fiberInclusionMap_apply]
   exact e.apply_symm_apply' hb
+
+/-- The fibre coordinate of `e` is a left inverse of the fibre inclusion over `b`. -/
+lemma leftInverse_snd_fiberInclusionMap (e : Trivialization F proj) {b : B}
+    (hb : b ∈ e.baseSet) : Function.LeftInverse (fun x ↦ (e x).2) (e.fiberInclusionMap hb) :=
+  fun f ↦ congrArg Prod.snd (e.apply_fiberInclusionMap hb f)
+
+/-- The fibre inclusion over `proj x` sends the fibre coordinate of `x` in `e` back to `x`. -/
+@[simp]
+lemma fiberInclusionMap_snd_apply (e : Trivialization F proj) {x : Z}
+    (hx : proj x ∈ e.baseSet) : e.fiberInclusionMap hx (e x).2 = x := by
+  rw [fiberInclusionMap_apply, e.symm_apply_mk_proj (e.mem_source.2 hx)]
 
 /-- The inclusions of a fibre read through two trivializations differ by the coordinate
 change. -/
@@ -177,7 +191,7 @@ theorem isOpen_of_forall_mem_iff_snd_mem {s : Set (TotalSpace F E)} {t : Set F}
   have hpe : p ∈ e.source := mem_trivializationAt_proj_source
   exact ⟨e.source ∩ e ⁻¹' (Prod.snd ⁻¹' t),
     fun q hq ↦ (h p.proj q hq.1).2 hq.2,
-    e.continuousOn.isOpen_inter_preimage e.open_source (ht.preimage continuous_snd),
+    e.toOpenPartialHomeomorph.isOpen_inter_preimage (ht.preimage continuous_snd),
     hpe, (h p.proj p hpe).1 hp⟩
 
 variable (F E) in
