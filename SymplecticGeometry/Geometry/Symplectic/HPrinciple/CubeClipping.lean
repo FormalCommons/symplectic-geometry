@@ -9,9 +9,10 @@ public import Mathlib.Geometry.Manifold.Algebra.SMul
 public import Mathlib.Geometry.Manifold.ContMDiff.NormedSpace
 public import Mathlib.Geometry.Manifold.Instances.Icc
 public import Mathlib.Topology.UnitInterval
-public import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.HomotopyOperator
 public import SymplecticGeometry.Geometry.Symplectic.HPrinciple.AttachingCollar
+public import TauCeti.Geometry.Manifold.DifferentialForm.HomotopyOperator
+import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.HomotopyOperator
 import Mathlib.Analysis.Calculus.MeanValue
 import SymplecticGeometry.Analysis.Normed.Group.Pi
 import SymplecticGeometry.Geometry.Manifold.Instances.Icc

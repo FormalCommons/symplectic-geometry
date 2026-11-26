@@ -16,10 +16,10 @@ public import TauCeti.Topology.VectorBundle.Hom
 public import TauCeti.Topology.VectorBundle.Pullback
 public import TauCeti.Topology.VectorBundle.Smul
 public import TauCeti.Topology.VectorBundle.ZeroSection
-public import SymplecticGeometry.Topology.Algebra.Projectivization
-public import SymplecticGeometry.Topology.VectorBundle.ZeroSet
 
 import SymplecticGeometry.Topology.FiberBundle.Basic
+import SymplecticGeometry.Topology.Algebra.Projectivization
+import SymplecticGeometry.Topology.VectorBundle.ZeroSet
 
 /-!
 # The projective bundle of a vector bundle

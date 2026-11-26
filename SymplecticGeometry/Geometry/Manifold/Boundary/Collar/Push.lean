@@ -5,10 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Deformation
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Retraction
 public import TauCeti.Geometry.Manifold.Boundary.Interior
+import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
 
 /-!
 # Pushing a compact manifold with boundary into its interior

@@ -5,8 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Singular.PairMap
 public import TauCeti.AlgebraicTopology.Cohomology.Excision
+import SymplecticGeometry.AlgebraicTopology.Singular.PairMap
 
 /-!
 # Local cohomology only depends on a neighbourhood of the point

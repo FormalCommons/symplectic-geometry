@@ -10,6 +10,8 @@ public import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.Whitney
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 public import SymplecticGeometry.LinearAlgebra.Complex.FiniteDimensional
+public import TauCeti.AlgebraicTopology.Cohomology.IntegralCup
+public import TauCeti.Algebra.Category.ModuleCat.Monoidal.Unit
 
 /-!
 # The Whitney formula for Euler classes of complex vector bundles

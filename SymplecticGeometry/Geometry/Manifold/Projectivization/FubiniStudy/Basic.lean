@@ -21,6 +21,7 @@ import TauCeti.Geometry.Manifold.MFDeriv.Opens
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.DegreeOne
+import SymplecticGeometry.Analysis.Complex.QuadraticLeviForm
 
 /-!
 # The Fubini–Study form of `ℂPⁿ`

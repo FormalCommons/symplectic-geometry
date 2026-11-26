@@ -5,11 +5,14 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.Degree
 public import TauCeti.Geometry.Manifold.Complex.FiniteCWType
 
 import SymplecticGeometry.Geometry.Manifold.Complex.EulerCharacteristic
 import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.Line
+import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.Degree
+public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.Basic
+public import SymplecticGeometry.Geometry.Manifold.Complex.HomologicalOrientation
+public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Basic
 
 /-!
 # The Euler characteristic of a smooth projective hypersurface

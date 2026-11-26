@@ -7,7 +7,6 @@ module
 
 public import Mathlib.Analysis.Calculus.FDeriv.Basic
 public import Mathlib.Topology.Sets.Opens
-public import SymplecticGeometry.Topology.VectorBundle.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.FiberScaling
 public import TauCeti.Geometry.Manifold.VectorBundle.ZeroSection
 public import TauCeti.Topology.VectorBundle.Radial
@@ -19,6 +18,7 @@ import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 import TauCeti.Geometry.Manifold.VectorBundle.Submersion
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 import TauCeti.Topology.FiberBundle.Separation
+import SymplecticGeometry.Topology.VectorBundle.Basic
 
 /-!
 # The rescaled family of a map near the zero section of a vector bundle

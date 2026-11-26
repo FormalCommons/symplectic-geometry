@@ -5,8 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.FundamentalClass
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.LocalIndex
+public import TauCeti.AlgebraicTopology.Singular.LocalHomology.IsFundamentalClass
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.FundamentalClass
 
 /-!
 # Fundamental classes under maps of degree `±1`

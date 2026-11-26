@@ -7,7 +7,7 @@ module
 
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.RelativeFundamentalClass
 public import TauCeti.AlgebraicTopology.Singular.Relative
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.OpenEmbedding
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.OpenEmbedding
 
 /-!
 # The boundary class of a compact manifold with collared boundary

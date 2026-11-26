@@ -11,6 +11,7 @@ import TauCeti.Geometry.Manifold.MFDeriv.IsInvertible
 import Mathlib.Geometry.Manifold.MFDeriv.FDeriv
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Neighborhood
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.UnivBall
+import SymplecticGeometry.Analysis.Normed.Module.Ball.Homeomorph
 
 /-!
 # Short straight segments through a point of a manifold

@@ -5,15 +5,16 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Topology.ContinuousMap.Defs
-public import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
-public import SymplecticGeometry.Topology.VectorBundle.DetBundle.CongrModel
-public import SymplecticGeometry.Topology.VectorBundle.DetBundle.LineBundle
 public import TauCeti.AlgebraicTopology.Cohomology.FundamentalClass
 public import TauCeti.Topology.VectorBundle.Determinant.Conjugate
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.Conjugate
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.FiberwiseEquiv
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.FirstChernClass
+public import TauCeti.Topology.VectorBundle.Complex.Structure
+import SymplecticGeometry.Topology.ContinuousMap.Defs
+import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
+import SymplecticGeometry.Topology.VectorBundle.DetBundle.CongrModel
+import SymplecticGeometry.Topology.VectorBundle.DetBundle.LineBundle
 
 /-!
 # The first Chern class and the first Chern number

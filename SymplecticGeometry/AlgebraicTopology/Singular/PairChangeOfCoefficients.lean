@@ -7,7 +7,7 @@ module
 
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
 public import TauCeti.AlgebraicTopology.Singular.Relative
-public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.Relative.Pairing
+import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.Relative.Pairing
 import all TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
 
 /-!

@@ -5,10 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.InnerProductSpace.Ellipsoid
 public import SymplecticGeometry.Analysis.InnerProductSpace.Symplectic.LinearWidth.Basic
-public import SymplecticGeometry.LinearAlgebra.BilinearMap.Sign
 public import TauCeti.Geometry.Symplectic.WittExtension
+import SymplecticGeometry.Analysis.InnerProductSpace.Ellipsoid
+import SymplecticGeometry.LinearAlgebra.BilinearMap.Sign
 
 /-!
 # Linear symplectic rigidity

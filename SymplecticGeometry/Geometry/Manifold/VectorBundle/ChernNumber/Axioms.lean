@@ -12,6 +12,7 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.Glui
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.ComplexOrientation
 public import TauCeti.AlgebraicTopology.Cellular.EulerCharacteristic.Genus
 public import TauCeti.Geometry.Manifold.Morse.CWModel
+public import TauCeti.Geometry.Symplectic.Manifold.Volume
 import SymplecticGeometry.Geometry.Manifold.Degree.Collapse
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Volume
 import TauCeti.Geometry.Symplectic.Manifold.Sphere

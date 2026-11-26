@@ -8,6 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.VectorBundle.Basic
 public import SymplecticGeometry.Topology.VectorBundle.Core.TwoChart
 import TauCeti.Analysis.Calculus.ContinuousLinearMapInverse
+import SymplecticGeometry.Algebra.GroupWithZero.Units.Lemmas
 
 /-!
 # Smoothness of vector bundle cores with two charts

@@ -5,8 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Components
 public import TauCeti.Geometry.Symplectic.Manifold.Opens
+public import Mathlib.Topology.Sets.OpenCover
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Components
 import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
 
 /-!

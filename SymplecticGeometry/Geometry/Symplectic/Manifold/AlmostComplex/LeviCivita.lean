@@ -6,12 +6,15 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.VectorBundle.CovariantDerivative.LeviCivita
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.CovariantDerivative.TwoForm
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Covariant
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric
 public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
 public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.ComplexStructure
 public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.Metric.Hom
+public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.CompatibleMetric
+public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.Trivial
+public import TauCeti.Geometry.Symplectic.Manifold.Flat
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.CovariantDerivative.TwoForm
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Covariant
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric
 import SymplecticGeometry.LinearAlgebra.ComplexStructure.Trilinear
 
 /-!

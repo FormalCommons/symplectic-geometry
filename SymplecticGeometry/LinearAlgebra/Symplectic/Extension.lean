@@ -7,11 +7,13 @@ module
 
 public import Mathlib.LinearAlgebra.BilinearForm.Properties
 public import Mathlib.LinearAlgebra.Projection
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Basic
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Compatible
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Reduction
 public import TauCeti.LinearAlgebra.BilinearForm.Orthogonal
 public import TauCeti.LinearAlgebra.Submodule.Compl
+public import TauCeti.Geometry.Symplectic.LinearReduction
+import SymplecticGeometry.LinearAlgebra.Symplectic.Basic
+import SymplecticGeometry.LinearAlgebra.Symplectic.Reduction
+import SymplecticGeometry.LinearAlgebra.Symplectic.Subspace
 
 /-!
 # An explicit linear symplectic extension

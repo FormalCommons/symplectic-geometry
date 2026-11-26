@@ -10,11 +10,11 @@ public import Mathlib.Geometry.Manifold.VectorBundle.Riemannian
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ComplexStructure
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.PolarEnd
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Basic
-public import SymplecticGeometry.LinearAlgebra.SesquilinearForm
 public import TauCeti.Geometry.Manifold.Riemannian.Section
 public import TauCeti.Geometry.Manifold.VectorBundle.Bilinear.Section
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Existence
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Polar
+import SymplecticGeometry.LinearAlgebra.SesquilinearForm
 
 /-!
 # Tame and compatible pairs on a vector bundle

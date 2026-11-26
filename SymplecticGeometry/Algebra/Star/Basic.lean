@@ -6,7 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Algebra.Star.Basic
-public import SymplecticGeometry.Algebra.GroupWithZero.Units.Basic
+import SymplecticGeometry.Algebra.GroupWithZero.Units.Basic
+import SymplecticGeometry.Algebra.Ring.Units
 
 /-!
 # Star rings: elements of square `-1`

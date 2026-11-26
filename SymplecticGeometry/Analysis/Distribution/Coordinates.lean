@@ -5,10 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Distribution.LinearEquiv
-public import SymplecticGeometry.Analysis.Distribution.OfFun
 public import TauCeti.Analysis.Distribution.Restriction
 public import TauCeti.Analysis.Distribution.SingularSupport
+public import TauCeti.Analysis.Distribution.LinearEquiv
+import SymplecticGeometry.Analysis.Distribution.LinearEquiv
+import SymplecticGeometry.Analysis.Distribution.OfFun
 import SymplecticGeometry.Analysis.Calculus.ContDiff.Basis
 import TauCeti.Analysis.Calculus.IteratedFDeriv.Basic
 

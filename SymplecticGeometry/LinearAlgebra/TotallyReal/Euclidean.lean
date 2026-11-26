@@ -5,8 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Frame
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Subspace
+public import TauCeti.LinearAlgebra.TotallyReal.Euclidean
+import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Frame
+import SymplecticGeometry.LinearAlgebra.Symplectic.Subspace
 
 /-!
 # Lagrangian subspaces of `ℂⁿ` transverse to `ℝⁿ`

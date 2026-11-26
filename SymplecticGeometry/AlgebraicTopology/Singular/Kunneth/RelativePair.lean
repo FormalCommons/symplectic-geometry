@@ -5,12 +5,14 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Algebra.Homology.Homotopy.DescCokernel
-public import SymplecticGeometry.Algebra.Homology.Monoidal.Abelian
 public import TauCeti.AlgebraicTopology.Singular.Kunneth.Pair
-public import SymplecticGeometry.AlgebraicTopology.Singular.AlexanderWhitney.RelativeCup
 public import TauCeti.AlgebraicTopology.Singular.CrossProduct
 public import TauCeti.AlgebraicTopology.SimplicialSet.EilenbergZilber
+public import SymplecticGeometry.AlgebraicTopology.Singular.MayerVietoris.Relative
+public import TauCeti.AlgebraicTopology.Singular.AlexanderWhitney.RelativeCup
+import SymplecticGeometry.Algebra.Homology.Homotopy.DescCokernel
+import SymplecticGeometry.Algebra.Homology.Monoidal.Abelian
+import SymplecticGeometry.AlgebraicTopology.Singular.AlexanderWhitney.RelativeCup
 
 /-!
 # The homology cross product of two pairs

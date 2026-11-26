@@ -5,8 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Symplectic.Coupling.Primitive
 public import SymplecticGeometry.Geometry.Symplectic.Moser.Field
+public import SymplecticGeometry.Geometry.Symplectic.Coupling.Basic
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.IntervalContraction
+import SymplecticGeometry.Geometry.Symplectic.Coupling.Primitive
 import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Prod.Basic
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Prod.Icc
@@ -15,6 +17,8 @@ import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import SymplecticGeometry.Geometry.Symplectic.Moser.Equivariant
 import TauCeti.Geometry.Manifold.PartitionOfUnity.Compact
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.ProdIcc
+import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.BasicForm
+import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
 
 /-!
 # Uniqueness of coupling forms

@@ -5,8 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.DeRham.GoodCover.Compact
-public import SymplecticGeometry.Geometry.Manifold.SmoothSingular.DeRham.MayerVietoris.Basic
+public import TauCeti.Geometry.Manifold.SmoothSingular.SingularCohomology
+public import SymplecticGeometry.Geometry.Manifold.DeRham.GoodCover.Basic
+import SymplecticGeometry.Geometry.Manifold.DeRham.GoodCover.Compact
+import SymplecticGeometry.Geometry.Manifold.SmoothSingular.DeRham.MayerVietoris.Basic
 import Mathlib.Algebra.FiveLemma
 import SymplecticGeometry.Topology.Sets.Opens.Comap
 import TauCeti.AlgebraicTopology.Cohomology.HomotopyInvariance

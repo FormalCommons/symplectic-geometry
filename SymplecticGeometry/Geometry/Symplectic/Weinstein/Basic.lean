@@ -8,12 +8,13 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Morse.BirthDeath
 public import SymplecticGeometry.Geometry.Manifold.Morse.GradientLike
 public import SymplecticGeometry.Geometry.Symplectic.Liouville.Filling
-public import SymplecticGeometry.Geometry.Symplectic.Liouville.Sublevel
 public import TauCeti.Geometry.Manifold.Boundary.Interior
 public import TauCeti.Geometry.Manifold.Flow.Complete
 public import TauCeti.Geometry.Manifold.RegularValue.NormSq
 public import TauCeti.Geometry.Symplectic.Liouville.VectorField
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
+public import TauCeti.Geometry.Manifold.RegularValue.Scalar.Sublevel.Basic
+import SymplecticGeometry.Geometry.Symplectic.Liouville.Sublevel
 import Mathlib.Geometry.Manifold.Riemannian.Basic
 import SymplecticGeometry.Geometry.Manifold.Boundary.Interior
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
@@ -111,7 +112,8 @@ restriction of `f`, in a compact subset of the interior, and so finitely many by
 For a regular sublevel `W = {f ≤ c}` of a Weinstein structure, Tau Ceti's
 `TauCeti.boundary_scalarRegularSublevel` and `TauCeti.interior_scalarRegularSublevel` identify
 `∂W` with the level and the interior with `{f < c}`. The level is regular, so `df ≠ 0` there and
-the gradient-like field increases `f` along it (`TauCeti.IsGradientLike.mvfderiv_apply_pos`);
+the gradient-like field increases `f` along it
+(`TauCeti.IsGradientLike.mvfderiv_apply_pos_of_isRegularValue`);
 this gives the boundary condition and, through
 `SymplecticGeometry.isStrongFilling_scalarRegularSublevel`, the Liouville domain. On the interior,
 the inclusion into `M` is the inclusion into `W` after that of the interior, whose differential is
@@ -423,8 +425,7 @@ theorem isWeinsteinDomain_scalarRegularSublevel {n : ℕ} (hn : finrank ℝ E = 
   have hinv := isInvertible_mfderiv_subtypeVal_scalarRegularSublevel (hf.of_le (by simp)) hc hn
   -- On the level `f⁻¹(c)` the differential of `f` is nonzero, so `X` increases `f` there.
   have hpos (x : M) (hx : f x = c) : 0 < mvfderiv 𝓘(ℝ, E) f x (X x) :=
-    hW.isGradientLike.mvfderiv_apply_pos
-      (isRegularPoint_iff_mvfderiv_ne_zero.1 (hc.isRegularPoint hx))
+    hW.isGradientLike.mvfderiv_apply_pos_of_isRegularValue hc hx
   have hbd := boundary_scalarRegularSublevel hc hn (by simp) hf
   -- The inclusion `Φ` of the interior of the sublevel into `M`; its differential is that of `ι`.
   set Φ : (𝓡∂ (n + 1)).interior {x | f x ≤ c} → M := fun x ↦ ((x : {x | f x ≤ c}) : M)

@@ -6,8 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.IsManifold.Basic
-public import SymplecticGeometry.Topology.CoveringDimension.Euclidean
-public import SymplecticGeometry.Topology.CoveringDimension.Union
+public import SymplecticGeometry.Topology.CoveringDimension.Basic
+public import Mathlib.LinearAlgebra.FiniteDimensional.Defs
+import SymplecticGeometry.Topology.CoveringDimension.Euclidean
+import SymplecticGeometry.Topology.CoveringDimension.Union
 
 /-!
 # The covering dimension of compact subsets of manifolds

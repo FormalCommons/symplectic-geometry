@@ -5,12 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Topology.Category.TopPair
 public import TauCeti.AlgebraicTopology.Cohomology.HomotopyInvariance
 public import TauCeti.Topology.Category.TopPair.ContinuousLinearEquiv
 public import TauCeti.Topology.Homotopy.Contractible
 public import TauCeti.Topology.VectorBundle.EulerClass
 public import TauCeti.Topology.VectorBundle.Trivialization
+import SymplecticGeometry.Topology.Category.TopPair
 
 /-!
 # Maps into a Thom pair over a contractible trivializing set

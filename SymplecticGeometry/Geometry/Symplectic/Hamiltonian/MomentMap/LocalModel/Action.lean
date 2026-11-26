@@ -5,14 +5,14 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Lie.Adjoint.Splitting
-public import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Data
 
 import SymplecticGeometry.Geometry.Lie.Adjoint.Coadjoint
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
 import TauCeti.Geometry.Manifold.Algebra.SMul
 import TauCeti.Geometry.Manifold.ContMDiff.FiniteDimension
+import SymplecticGeometry.Geometry.Lie.Adjoint.Splitting
+import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 
 /-!
 # The action of `K` on the splitting and on the fibre `𝔪* × V` of the local model

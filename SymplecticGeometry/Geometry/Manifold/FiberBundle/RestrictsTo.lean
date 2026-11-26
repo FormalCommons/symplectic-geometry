@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.StructureGroup
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Semibasic
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Descent
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 
@@ -171,28 +171,6 @@ theorem apply_eq_of_mpullback_fiberInclusionMap_eq {e : Trivialization F proj}
     rw [hu', ← TauCeti.mpullback_apply, ← TauCeti.mpullback_apply, h]
   exact key x (e.fiberInclusionMap_snd_apply hx).symm hu
 
-/-- **Forms from the base vanish on the fibres.** The pull-back to a fibre of the pull-back
-`proj^* β` of a form of positive degree on the base is zero, since `proj` is constant on the
-fibre. No smoothness is needed: where one of the two maps is not differentiable, its derivative is
-zero. -/
-theorem mpullback_fiberInclusionMap_mpullback_eq_zero (e : Trivialization F proj) {b : B}
-    (hb : b ∈ e.baseSet) (hk : k ≠ 0) (β : TauCeti.RoughForm IB B V k) :
-    TauCeti.mpullback IF IM (e.fiberInclusionMap hb) (TauCeti.mpullback IM IB proj β) = 0 := by
-  funext v
-  by_cases hι : MDifferentiableAt IF IM (e.fiberInclusionMap hb) v
-  · by_cases hproj : MDifferentiableAt IM IB proj (e.fiberInclusionMap hb v)
-    · rw [← TauCeti.mpullback_comp_at hι hproj,
-        show proj ∘ e.fiberInclusionMap hb = fun _ ↦ b from funext (e.proj_fiberInclusionMap hb),
-        TauCeti.mpullback_const hk]
-    · refine TauCeti.mpullback_apply_eq_zero ?_
-      ext w
-      rw [TauCeti.mpullback_apply, mfderiv_zero_of_not_mdifferentiableAt hproj]
-      exact (β _).map_coord_zero ⟨0, Nat.pos_of_ne_zero hk⟩ (zero_apply _)
-  · ext w
-    rw [TauCeti.mpullback_apply, mfderiv_zero_of_not_mdifferentiableAt hι]
-    exact (TauCeti.mpullback IM IB proj β _).map_coord_zero ⟨0, Nat.pos_of_ne_zero hk⟩
-      (zero_apply _)
-
 /-- **Semibasic forms vanish on the fibres.** The pull-back to a fibre of a form of positive
 degree that is semibasic for `proj` is zero, since `proj` is constant on the fibre. No smoothness
 is needed (Tau Ceti's `TauCeti.range_mfderiv_le_ker_mfderiv_of_eventually_eq`). -/
@@ -205,6 +183,16 @@ theorem mpullback_fiberInclusionMap_eq_zero_of_isSemibasic (e : Trivialization F
   rw [TauCeti.mpullback_apply, Pi.zero_apply, ContinuousAlternatingMap.coe_zero, Pi.zero_apply]
   exact hα.apply_eq_zero _ _ 0 (TauCeti.range_mfderiv_le_ker_mfderiv_of_eventually_eq
     (Filter.Eventually.of_forall (e.proj_fiberInclusionMap hb)) ⟨w 0, rfl⟩)
+
+/-- **Forms from the base vanish on the fibres.** The pull-back to a fibre of the pull-back
+`proj^* β` of a form of positive degree on the base is zero, since `proj^* β` is semibasic for
+`proj`. No smoothness is needed. -/
+theorem mpullback_fiberInclusionMap_mpullback_eq_zero (e : Trivialization F proj) {b : B}
+    (hb : b ∈ e.baseSet) (hk : k ≠ 0) (β : TauCeti.RoughForm IB B V k) :
+    TauCeti.mpullback IF IM (e.fiberInclusionMap hb) (TauCeti.mpullback IM IB proj β) = 0 := by
+  obtain ⟨k, rfl⟩ := Nat.exists_eq_succ_of_ne_zero hk
+  exact e.mpullback_fiberInclusionMap_eq_zero_of_isSemibasic hb
+    (TauCeti.RoughForm.isSemibasic_mpullback IB proj β)
 
 /-- **The derivative of a semibasic form on vertical vectors.** Let `e` be a trivialization of
 `proj` that is differentiable, with `C²` inverse. The exterior derivative of a `C¹` form of
