@@ -983,7 +983,6 @@ theorem exists_openPartialHomeomorph_of_mem_baseLocus {p : ℙ ℂ (Fin 3 → �
 
 /-! ### Neighbourhoods of the exceptional curves -/
 
-
 /-- For coordinates `φ` at a base point as in `exists_openPartialHomeomorph_of_mem_baseLocus`, the
 part of the surface over the source of `φ` is homeomorphic to the incidence set
 `BlowupModel.pencilNbhd r` of the pencil over the ball of radius `r`, by `(x, ℓ) ↦ (φ x, ℓ)`. -/
