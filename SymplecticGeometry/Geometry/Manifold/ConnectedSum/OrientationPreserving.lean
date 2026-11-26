@@ -14,7 +14,7 @@ import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Orientation
 import TauCeti.Analysis.InnerProductSpace.Reflection
 import TauCeti.Geometry.Euclidean.Inversion
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
-import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
+import TauCeti.Geometry.Manifold.Diffeomorph.Basic
 
 /-!
 # The oriented connected sum up to orientation-preserving diffeomorphism

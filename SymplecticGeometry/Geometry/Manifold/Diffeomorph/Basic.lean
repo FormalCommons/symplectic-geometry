@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Diffeomorph
-public import TauCeti.Geometry.Manifold.Diffeomorph.Basic
+import TauCeti.Geometry.Manifold.Diffeomorph.Basic
 
 /-!
 # Basic facts about diffeomorphisms
