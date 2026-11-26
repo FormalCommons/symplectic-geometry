@@ -24,16 +24,17 @@ other side. This is the step of [Hatcher2017, §2.1] that elementary row and col
 a clutching function do not change the clutched bundle, used there to make a polynomial clutching
 function linear.
 
-For a Whitney sum `A ⊕ D`, the elementary automorphisms are the block unitriangular ones: for
-`c : A ⟶ D`, the lower one `𝟙 + whitneyFst ≫ c ≫ whitneyInr`, with block matrix
-`[[1, 0], [c, 1]]`, and for `c : D ⟶ A`, the upper one `𝟙 + whitneySnd ≫ c ≫ whitneyInl`, with
-block matrix `[[1, c], [0, 1]]`.
+The row case follows from the column case, since `f ≪≫ (𝟙 + n)` is `(𝟙 + f n f⁻¹) ≪≫ f`
+(`CategoryTheory.Preadditive.trans_idAddIso`).
+
+For a Whitney sum `A ⊕ D`, the elementary automorphisms are the block unitriangular ones of Tau
+Ceti's bicone `whitneyBicone A D`: `(whitneyBicone A D).unipotentUpper c` for `c : A ⟶ D`, which
+is `𝟙 + whitneyFst ≫ c ≫ whitneyInr`, and `(whitneyBicone A D).unipotentLower c` for
+`c : D ⟶ A`, which is `𝟙 + whitneySnd ≫ c ≫ whitneyInl`
+(`CategoryTheory.Limits.BinaryBicone.unipotentUpper` and `unipotentLower`).
 
 ## Main definitions and results
 
-* `TauCeti.FiniteRankBundleCore.whitneyLowerIso` and
-  `TauCeti.FiniteRankBundleCore.whitneyUpperIso`: the elementary automorphisms of a Whitney
-  sum of two finite-rank cores;
 * `TauCeti.FiniteRankBundleCore.isUnit_one_add_smul_fiberMap`: for `n ≫ n = 0`, the fibre maps
   of `1 + s n` are invertible;
 * `TauCeti.FiniteRankBundleCore.nonempty_iso_clutching_idAddIso_trans` and
@@ -53,57 +54,6 @@ noncomputable section
 open CategoryTheory CategoryTheory.Preadditive
 
 namespace TauCeti.FiniteRankBundleCore
-
-/-! ### Elementary automorphisms of a Whitney sum -/
-
-section Whitney
-
-variable {𝕜 B : Type*} [NontriviallyNormedField 𝕜] [TopologicalSpace B]
-  {A D : FiniteRankBundleCore 𝕜 B}
-
-/-- The lower elementary automorphism `𝟙 + whitneyFst ≫ c ≫ whitneyInr` of the Whitney sum
-`A ⊕ D`, for `c : A ⟶ D`: it sends `(a, d)` to `(a, d + c a)`, the block matrix
-`[[1, 0], [c, 1]]`. -/
-def whitneyLowerIso (c : A ⟶ D) : whitneySum A D ≅ whitneySum A D :=
-  idAddIso (whitneyFst A D ≫ c ≫ whitneyInr A D) (by simp)
-
-@[simp]
-theorem whitneyLowerIso_hom (c : A ⟶ D) :
-    (whitneyLowerIso c).hom = 𝟙 _ + whitneyFst A D ≫ c ≫ whitneyInr A D :=
-  idAddIso_hom _ _
-
-@[simp]
-theorem whitneyLowerIso_inv (c : A ⟶ D) :
-    (whitneyLowerIso c).inv = 𝟙 _ - whitneyFst A D ≫ c ≫ whitneyInr A D :=
-  idAddIso_inv _ _
-
-/-- The inverse of the lower elementary automorphism by `c` is the one by `-c`. -/
-theorem whitneyLowerIso_symm (c : A ⟶ D) : (whitneyLowerIso c).symm = whitneyLowerIso (-c) := by
-  ext : 1
-  simp [sub_eq_add_neg]
-
-/-- The upper elementary automorphism `𝟙 + whitneySnd ≫ c ≫ whitneyInl` of the Whitney sum
-`A ⊕ D`, for `c : D ⟶ A`: it sends `(a, d)` to `(a + c d, d)`, the block matrix
-`[[1, c], [0, 1]]`. -/
-def whitneyUpperIso (c : D ⟶ A) : whitneySum A D ≅ whitneySum A D :=
-  idAddIso (whitneySnd A D ≫ c ≫ whitneyInl A D) (by simp)
-
-@[simp]
-theorem whitneyUpperIso_hom (c : D ⟶ A) :
-    (whitneyUpperIso c).hom = 𝟙 _ + whitneySnd A D ≫ c ≫ whitneyInl A D :=
-  idAddIso_hom _ _
-
-@[simp]
-theorem whitneyUpperIso_inv (c : D ⟶ A) :
-    (whitneyUpperIso c).inv = 𝟙 _ - whitneySnd A D ≫ c ≫ whitneyInl A D :=
-  idAddIso_inv _ _
-
-/-- The inverse of the upper elementary automorphism by `c` is the one by `-c`. -/
-theorem whitneyUpperIso_symm (c : D ⟶ A) : (whitneyUpperIso c).symm = whitneyUpperIso (-c) := by
-  ext : 1
-  simp [sub_eq_add_neg]
-
-end Whitney
 
 /-! ### Elementary operations on clutching functions -/
 
@@ -157,24 +107,8 @@ theorem nonempty_iso_clutching_idAddIso_trans [ParacompactSpace X] [R1Space X]
 theorem nonempty_iso_clutching_trans_idAddIso [ParacompactSpace X] [R1Space X]
     (f : (Q E) ≅ (Q E)) (n : (Q E) ⟶ (Q E)) (hn : n ≫ n = 0) :
     Nonempty (E.clutching (f ≪≫ idAddIso n hn) ≅ E.clutching f) := by
-  have : IsIso (segmentHom f.hom (f ≪≫ idAddIso n hn).hom) := by
-    refine (isIso_iff_bijective _).2 fun b ↦ ?_
-    -- At time `s`, the fibre map is `(1 + s n) ∘ f`.
-    have he : (segmentHom f.hom (f ≪≫ idAddIso n hn).hom).fiberMap b =
-        (.id 𝕜 _ + algebraMap ℝ 𝕜 b.1.2 • n.fiberMap (b.1.1, b.2)).comp
-          (f.hom.fiberMap (b.1.1, b.2)) := by
-      rw [fiberMap_segmentHom, Iso.trans_hom, fiberMap_comp, idAddIso_hom, fiberMap_add,
-        fiberMap_id]
-      ext v : 1
-      simp only [add_apply, smul_apply,
-        ContinuousLinearMap.comp_apply, ContinuousLinearMap.id_apply]
-      module
-    rw [he, ContinuousLinearMap.coe_comp, ← toContinuousLinearMap_isoFiberEquiv,
-      ← ContinuousLinearMap.one_def]
-    exact (ContinuousLinearEquiv.unitsEquiv 𝕜 _
-      (isUnit_one_add_smul_fiberMap n hn _ _).unit).bijective.comp (isoFiberEquiv f _).bijective
-  exact (E.nonempty_iso_clutching_of_homotopic (asIso (segmentHom f.hom (f ≪≫ idAddIso n hn).hom))
-    (fiberMap_segmentHom_zero _ _) (fiberMap_segmentHom_one _ _)).map Iso.symm
+  rw [trans_idAddIso]
+  exact nonempty_iso_clutching_idAddIso_trans _ _ _
 
 end TauCeti.FiniteRankBundleCore
 
