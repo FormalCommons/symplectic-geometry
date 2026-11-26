@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Orthogonal
-public import TauCeti.Geometry.Manifold.Distribution.VectorBundle
+public import SymplecticGeometry.Geometry.Manifold.Distribution.VectorBundle
 
 /-!
 # Orthogonals of distributions for a smooth field of bilinear forms
@@ -18,18 +18,17 @@ and nondegenerate on `D x`, then the `β`-orthogonals of `D` form a `C^n` distri
 `dim M - k`. This is the bilinear-form counterpart of Tau Ceti's metric
 `TauCeti.IsContMDiffDistribution.orthogonal`.
 
-A distribution is a family of subspaces of the tangent spaces, so its `C^n` local frames as a
-distribution are its `C^n` local frames as a family of subspaces of the tangent bundle: Tau
-Ceti's `TauCeti.IsContMDiffDistribution.hasLocalContMDiffSubbundleFrames` gives one direction,
-and `TauCeti.HasLocalContMDiffSubbundleFrames.isContMDiffDistribution` the other. The frames of
-the orthogonal then come from `TauCeti.HasLocalContMDiffSubbundleFrames.orthogonal_of_isCompl`
-and `TauCeti.HasLocalContMDiffSubbundleFrames.orthogonal`.
+The proof goes through local frames. Tau Ceti's
+`TauCeti.IsContMDiffDistribution.hasLocalContMDiffSubbundleFrames` gives `D` local frames as a
+family of subspaces of the tangent bundle, and
+`TauCeti.HasLocalContMDiffSubbundleFrames.orthogonal_of_isCompl` and
+`TauCeti.HasLocalContMDiffSubbundleFrames.orthogonal` give frames of its orthogonal. The
+converse `TauCeti.HasLocalContMDiffSubbundleFrames.isContMDiffDistribution`, in
+`SymplecticGeometry.Geometry.Manifold.Distribution.VectorBundle`, makes these frames a
+distribution again.
 
 ## Main results
 
-* `TauCeti.HasLocalContMDiffSubbundleFrames.isContMDiffDistribution`: a family of subspaces of
-  the tangent spaces with `C^n` local frames of size `k` is a `C^n` distribution of rank `k`.
-* `TauCeti.isContMDiffDistribution_iff_hasLocalContMDiffSubbundleFrames`: both notions agree.
 * `TauCeti.IsContMDiffDistribution.bilinFormOrthogonal_of_isCompl`,
   `TauCeti.IsContMDiffDistribution.bilinFormOrthogonal`: the `β`-orthogonal of a `C^n`
   distribution of rank `k` is a `C^n` distribution of rank `dim M - k`.
@@ -53,22 +52,6 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {E : Type*} [NormedAddCom
   [NormedSpace 𝕜 E] {H : Type*} [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H}
   {M : Type*} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I 1 M] {n : ℕ∞ω} {k : ℕ}
   {D : Π x : M, Submodule 𝕜 (TangentSpace I x)}
-
-/-- A family of subspaces of the tangent spaces with `C^n` local frames of size `k`, as a family
-of subspaces of the tangent bundle, is a `C^n` distribution of rank `k`. -/
-theorem HasLocalContMDiffSubbundleFrames.isContMDiffDistribution
-    (hD : HasLocalContMDiffSubbundleFrames I n E (Fin k) D) :
-    IsContMDiffDistribution I n k D :=
-  isContMDiffDistribution_iff.mpr fun x ↦ by
-    obtain ⟨U, hU, hx, X, hX, hXs⟩ := hasLocalContMDiffSubbundleFrames_iff.mp hD x
-    exact ⟨U, hU, hx, X, ⟨hXs, hX.linearIndependent, hX.span_eq⟩⟩
-
-/-- A family of subspaces of the tangent spaces is a `C^n` distribution of rank `k` exactly when
-it has `C^n` local frames of size `k` as a family of subspaces of the tangent bundle. -/
-theorem isContMDiffDistribution_iff_hasLocalContMDiffSubbundleFrames :
-    IsContMDiffDistribution I n k D ↔ HasLocalContMDiffSubbundleFrames I n E (Fin k) D :=
-  ⟨IsContMDiffDistribution.hasLocalContMDiffSubbundleFrames,
-    HasLocalContMDiffSubbundleFrames.isContMDiffDistribution⟩
 
 namespace IsContMDiffDistribution
 
