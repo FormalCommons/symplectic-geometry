@@ -52,7 +52,8 @@ is its form along a map `γ : N → G`, for `y ↦ (γ y)⁻¹ • x`.
 `Φ : M → N`, with `n ≠ 0`, sends `ξ_M(x)` to `ξ_N(Φ x)`, over any nontrivially normed field and
 with no hypothesis on the actions. Where the orbit map of `x` is differentiable at `1`, this is
 `TauCeti.mfderiv_fundamentalVectorField_of_map_smul`; where it is not, neither is that of `Φ x`,
-since `Φ.symm` carries one to the other, and both sides are zero.
+which is `Φ` composed with the orbit map of `x` (Tau Ceti's
+`Diffeomorph.mdifferentiableAt_comp_iff`), and both sides are zero.
 
 `TauCeti.mfderiv_rightFundamentalVectorField_of_map_op_smul_eq_smul` is the mixed case of the
 first statement: a map `f : M → N` with `f (x • g) = g • f x`, from a right action to a left one,
@@ -232,13 +233,11 @@ theorem mfderiv_fundamentalVectorField {n : ℕ∞ω} (Φ : M ≃ₘ^n⟮I', I''
   by_cases h : MDifferentiableAt I I' (fun g : G ↦ g • x) 1
   · exact mfderiv_fundamentalVectorField_of_map_smul (Φ.mdifferentiable hn x) h
       (fun g ↦ hΦ g x) ξ
-  -- Otherwise neither orbit map is differentiable at `1`, since composing the second with
-  -- `Φ.symm` gives the first, and both sides vanish.
-  have h' : ¬MDifferentiableAt I I'' (fun g : G ↦ g • Φ x) 1 := fun h' ↦ h <| by
-    have hc := (Φ.symm.mdifferentiable hn _).comp_of_eq (1 : G) h' (one_smul G (Φ x))
-    convert hc using 1
-    funext g
-    rw [Function.comp_apply, ← hΦ, symm_apply_apply]
+  -- Otherwise the orbit map of `Φ x` is `Φ` composed with that of `x`, so it is not
+  -- differentiable at `1` either, and both sides vanish.
+  have hc : (fun g : G ↦ g • Φ x) = Φ ∘ fun g : G ↦ g • x := funext fun g ↦ (hΦ g x).symm
+  have h' : ¬MDifferentiableAt I I'' (fun g : G ↦ g • Φ x) 1 :=
+    hc ▸ (Φ.mdifferentiableAt_comp_iff hn).not.mpr h
   rw [fundamentalVectorField_apply, fundamentalVectorField_apply,
     mfderiv_zero_of_not_mdifferentiableAt h, mfderiv_zero_of_not_mdifferentiableAt h',
     zero_apply]
