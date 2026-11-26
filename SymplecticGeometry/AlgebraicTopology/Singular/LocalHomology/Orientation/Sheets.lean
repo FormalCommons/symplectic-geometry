@@ -373,21 +373,20 @@ theorem singularHomologyComplSingletonIsoOfOrientation_inv_singularHomologyδ_si
       orthogonalSheetInterPairMap p (neg_ne_zero.2 one_ne_zero) _ _
         (orthogonalSheet_mem_complRay_of_neg p (neg_lt_zero.2 zero_lt_one))
         (fun _ hx ↦ (orthogonalSheet_mem_complRay_inter_complRay_neg p _ hx).2) ≫
-        TopPair.ofSubsetMap (B := Subtype.val ⁻¹' complRay (-p))
-          (B' := complRay p ∩ complRay (-p)) (TopCat.ofHom (ContinuousMap.subtypeVal (complRay p)))
-          fun (x : complRay p) (hx : x.val ∈ complRay (-p)) ↦ ⟨x.property, hx⟩ := by
+        TopPair.interPairMapOfSubset (X := TopCat.of ({0}ᶜ : Set E))
+          (subset_refl (complRay p ∩ complRay (-p))) := by
     unfold orthogonalSheetPairMap orthogonalSheetInterPairMap
+    rw [TopPair.interPairMapOfSubset_eq_ofSubsetMap]
     -- Both continuous maps send `x` to `x - p`.
     exact (TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ _ (by ext; rfl)).symm
   have e₂ : orthogonalSheetPairMap p one_ne_zero =
       orthogonalSheetInterPairMap p one_ne_zero _ _
         (orthogonalSheet_mem_complRay_neg_of_pos p zero_lt_one)
         (fun _ hx ↦ (orthogonalSheet_mem_complRay_inter_complRay_neg p _ hx).1) ≫
-        TopPair.ofSubsetMap (B := Subtype.val ⁻¹' complRay p)
-          (B' := complRay p ∩ complRay (-p))
-          (TopCat.ofHom (ContinuousMap.subtypeVal (complRay (-p))))
-          fun (x : complRay (-p)) (hx : x.val ∈ complRay p) ↦ ⟨hx, x.property⟩ := by
+        TopPair.interPairMapOfSubset (X := TopCat.of ({0}ᶜ : Set E))
+          (Set.inter_comm (complRay (-p)) (complRay p)).subset := by
     unfold orthogonalSheetPairMap orthogonalSheetInterPairMap
+    rw [TopPair.interPairMapOfSubset_eq_ofSubsetMap]
     exact (TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ _ (by ext; rfl)).symm
   rw [e₁, e₂, TopPair.singularHomologyMap_comp, TopPair.singularHomologyMap_comp,
     Preadditive.comp_sub, sub_eq_add_neg]
