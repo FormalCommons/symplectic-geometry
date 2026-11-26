@@ -288,13 +288,10 @@ theorem mfderiv_linearTubeMap_mfderiv_quotientMk (ξ : GroupLieAlgebra I G) (p :
         (fundamentalVectorField I' ξ x) (L p) := by
   let _ := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) P I 𝓘(ℝ, P) F
   rw [linearTubeMap_def]
-  have h0 : L 0 ∈ e.chart.target := (map_zero L).symm ▸ e.zero_mem_target
-  have hΦ := (BalancedProduct.contMDiffAt_liftRightTranslation (I := I) (F := F)
-    (e.contMDiffAt_linearSliceMap hL h0) 1).mdifferentiableAt (by simp)
   have : ContMDiffSMul I I' 1 G M := ContMDiffSMul.of_le (M := M) ENat.LEInfty.out
   have hσ := e.hasMFDerivAt_linearSliceMap hL
   refine (BalancedProduct.mfderiv_liftRightTranslation_mfderiv_quotientMk hσ.mdifferentiableAt
-    hΦ ξ p).trans ?_
+    ξ p).trans ?_
   rw [hσ.mfderiv, linearSliceMap_zero]
   -- The sides differ only in how `L p` is typed: as a map between the tangent spaces at `0` and
   -- at `x`, or between `P` and `E'`, of which those tangent spaces are type synonyms.
