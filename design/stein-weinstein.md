@@ -538,8 +538,250 @@ containing `ι '' closedBall 0 1`:
   `isJOrthogonallyAttached_model`, $(\varphi_0,\iota_0)$ satisfies
   every hypothesis of the statements above (`ι₀` is a linear embedding with
   totally real image), and is the test case of issue 14d. These are the
-  computations of Cieliebak–Eliashberg's chapter on shapes of
-  $i$-convex hypersurfaces that the surrounding uses.
+  first computations of Cieliebak–Eliashberg's chapter on shapes of
+  $i$-convex hypersurfaces that the surrounding uses; the rest are below.
+- **The $i$-convex model handle (issues 14d1–14d8).** These files carry
+  out Cieliebak–Eliashberg's Chapter 4 on `V`, with $\mathbb C^n=V$,
+  $n=k+m$. Their coordinates are $R=\sqrt s$, along the core, and
+  $r=\sqrt t$, across it; their standard function $ar^2-R^2$ is
+  `modelHandle k m 1 a`, and the model level of issue 14c is its case
+  $a=2$ plus `1`. Their Chapter 4 treats a hypersurface whose trace on the
+  quadrant of $(r,R)$ is a curve $R=\chi(r)$, the *shape*, and states
+  everything in terms of the one-variable function $\chi$; the files do
+  the same (below, `s p = (shape p).1` and `t p = (shape p).2`), so
+  that most of the work is real analysis of one variable.
+  Two choices differ from the book. (1) The book proves its criterion
+  for $k=n$ first and passes to $k<n$ by a maximum over $U(n-k)$
+  (Lemma 4.14 (a)); here `re_leviForm_comp_shape_apply_self` already
+  covers `m ≠ 0`, and the extra directions only ask for $\chi'>0$, which
+  (4.3) implies. (2) In the proof of Theorem 4.2 the book
+  interpolates between $ar^2-R^2$ and $64r^2-R^2$ by Proposition 3.26.
+  Both are functions $g(t)-s$, and `isStrictlyPlurisubharmonicAt_shape`
+  shows $g(t)-s$ strictly plurisubharmonic as soon as
+  $g'+2\min(g'',0)\,t>1$; for a concave $g$ this says that
+  $\sqrt t\,(g'(t)-1)$ has positive derivative. A concave $g$ with
+  slope 64 on $[0,t_0]$ and slope $a$ on $[\gamma^2,\infty)$ meets it
+  once $63\sqrt{t_0}<(a-1)\gamma$ (and if $a\ge64$ a convex $g$ with
+  $g'>1$ does), so this interpolation is separable and Proposition 3.26
+  is not needed here.
+
+  *Shapes.* For `χ : ℝ → ℝ` and `r : ℝ`, `IsConvexShapeAt χ r : Prop`
+  is the structure with fields `pos : 0 < r`, `pos_value : 0 < χ r`,
+  `perp : 1 / χ r < deriv χ r / r` (the book's (4.3); it gives
+  `IsConvexShapeAt.deriv_pos : 0 < deriv χ r`) and `levi : ∀ σ u : ℝ, σ ^ 2 + u ^ 2 = r ^ 2 →
+  1 / χ r * (1 + deriv χ r ^ 2 * u ^ 2 / r ^ 2) < iteratedDeriv 2 χ r *
+  σ ^ 2 / r ^ 2 + deriv χ r * u ^ 2 / r ^ 3 + deriv χ r ^ 3 / r` (the
+  book's (4.4)). The defining function of the shape is
+  `shapeGraph χ : ℝ × ℝ → ℝ`, `(s, t) ↦ χ (√t) - √s`, with
+  `shapeGraph_def`.
+
+- `Surround/ConvexShape.lean` (issues 14d1 and 14d2): $i$-convex shapes.
+  - `IsConvexShapeAt.re_leviForm_pos` (14d1; the book's
+    Proposition 4.8 (a), (b), Proposition 4.10 and Lemma 4.14 (a)): if
+    `χ` is `C²` at `r` and `IsConvexShapeAt χ r`, then at every `p` with
+    `shape p = (χ r ^ 2, r ^ 2)`, writing `F = shapeGraph χ ∘ shape`
+    (which is `C²` near `p`, since `s, t > 0` there), every `v ≠ 0` with
+    `fderiv ℝ F p v = 0` and `fderiv ℝ F p (Complex.I • v) = 0` has
+    `0 < (leviForm F p v v).re`. The proof evaluates
+    `re_leviForm_comp_shape_apply_self` on the complex tangencies; the
+    book's splitting into $\Lambda^{\mathbb C}_\perp$ and
+    $\Lambda^{\mathbb C}_{xy}$ is the case split of that formula
+    according to the components of `v` along `x`, `y` and `w`.
+  - `isConvexShapeAt_of_iteratedDeriv_two_nonpos` (14d2; Corollary
+    4.11 (a)): `0 < r`, `0 < χ r`, `0 < deriv χ r`,
+    `iteratedDeriv 2 χ r ≤ 0` and
+    `(1 + deriv χ r ^ 2) / χ r < iteratedDeriv 2 χ r + deriv χ r ^ 3 / r`
+    give `IsConvexShapeAt χ r`.
+  - `IsConvexShapeAt.add_const` (14d2; Lemma 4.13 (a)), for `0 ≤ c`, and
+    `IsConvexShapeAt.rescale` (Lemma 4.13 (b)): for `0 < ℓ`,
+    `IsConvexShapeAt (fun r ↦ ℓ * χ (r / ℓ)) (ℓ * r)`.
+  - `exists_isConvexShapeAt_eq_max` (14d2; Lemma 4.13 (d)): let `χ₁`,
+    `χ₂` be `C²` with `IsConvexShapeAt` at every point of a compact
+    interval `Icc r₁ r₂`, `0 < r₁`, crossing transversally there
+    (`χ₁ r = χ₂ r → deriv χ₁ r ≠ deriv χ₂ r`), and let `O` be a
+    neighbourhood of `{r | χ₁ r = χ₂ r}`. Then there is a `C²` (smooth if
+    `χ₁`, `χ₂` are) `χ`, a convex shape at every point of `Icc r₁ r₂`,
+    equal to `max (χ₁ r) (χ₂ r)` off `O`. Condition (4.3) passes to
+    `smoothedMax δ (χ₁ r) (χ₂ r)` (`Analysis/SpecialFunctions/SmoothedMax.lean`),
+    whose value is at least each `χᵢ r` and whose slope is a convex
+    combination of theirs; for (4.4) the book makes the second
+    derivative large near each crossing by a quadratic bridge, and the
+    smoothed maximum does the same if `smoothedAbs`'s second derivative
+    is large wherever its first is away from `±1`; the building issue
+    takes whichever of the two the library's `smoothedAbs` allows.
+
+- `Surround/SpecialShape.lean` (issues 14d3 and 14d4): the shapes of
+  §4.5, and Theorem 4.1 (i)–(iii).
+  - `struweShape δ K c : ℝ → ℝ`, `r ↦ c + ∫ u in K * δ..r, 1 / √(log (u / δ))`,
+    the solution of Struwe's equation $\chi''+\chi'^3/2r=0$ with
+    $\chi'(\delta)=+\infty$ and $\chi(K\delta)=c$ (Remark 4.16), with
+    `deriv_struweShape` ($1/\sqrt{\log(r/\delta)}$ for `δ < r`) and
+    `iteratedDeriv_two_struweShape`. `isConvexShapeAt_struweShape`
+    (14d3; Lemma 4.15): for `0 < d`, `0 < δ`, `exp (4 / d ^ 2) ≤ K` and
+    `4 * K * δ ≤ (log K) ^ (-3 / 2 : ℝ)`, the shape with
+    `c = 1 + d * K * δ` is convex at every `r ∈ Ioc δ (K * δ)`, has
+    `deriv ≤ d` at `K * δ`, satisfies
+    `1 + d * δ ≤ struweShape δ K c δ < 1 + d * K * δ`, and its derivative
+    tends to `atTop` along `𝓝[>] δ`. The rescaled forms of the lemma
+    follow by `IsConvexShapeAt.rescale`.
+  - `isConvexShapeAt_sqrt` (14d3; Lemma 4.17 (a)): for `1 < a` and
+    `0 ≤ ℓ`, `r ↦ √(ℓ ^ 2 + a * r ^ 2)` is a convex shape at every
+    `r > 0`; `isConvexShapeAt_quadratic` (Lemma 4.17 (b)): for `0 < ℓ`,
+    `0 ≤ b`, `1 < c`, `r ↦ ℓ + b * r + c * r ^ 2 / (2 * ℓ)` at every
+    `r > 0`; `isConvexShapeAt_linear` (Lemma 4.17 (e)): for `0 < ℓ`,
+    `0 < d`, `r ↦ ℓ + d * r` at every `r ∈ Ioo 0 (ℓ * d ^ 3)`.
+  - (14d4) The crossings of Lemma 4.18 (a)–(c), as statements about the
+    real roots of the differences of these three functions, with the
+    transversality that `exists_isConvexShapeAt_eq_max` asks for;
+    `exists_isConvexShapeAt_eq_sqrt_of_eq_linear` (Lemma 4.19): for
+    `1 < a` and `0 < γ` there are `d ∈ Ioo 0 1`, `β ∈ Ioo 0 γ` and a
+    smooth `ψ`, convex shape at every `r > 0`, with
+    `ψ r = √(1 + a * r ^ 2)` for `γ ≤ r` and `ψ r = 1 + d * r` for
+    `r ≤ β`; Remark 4.20's admissible constants
+    (`c = (1 + a) / 2`, `b = γ * (a - 1) / 16`), which §4.7 needs.
+  - `exists_convexShape_surround` (14d4; Proposition 4.21, which is
+    Theorem 4.1 (i)–(iii) in terms of the shape): for `1 < a` and
+    `γ ∈ Ioo 0 1` there are `δ ∈ Ioo 0 γ` and `χ : ℝ → ℝ`, smooth on
+    `Ioi δ` and continuous on `Ici δ`, with `IsConvexShapeAt χ r` for
+    all `r > δ`, `χ r = √(1 + a * r ^ 2)` for `γ ≤ r`,
+    `Tendsto (deriv χ) (𝓝[>] δ) atTop` and `1 < χ δ < 1 + γ`. The
+    hypersurface of Theorem 4.1 is
+    $\Sigma=\{t=\delta^2,\ \sqrt s\le\chi(\delta)\}\cup\{t>\delta^2,\ \sqrt s=\chi(\sqrt t)\}$;
+    the statement records (ii) and (iii) as
+    `Σ ∩ {p | γ ^ 2 ≤ t p} = {p | a * t p - s p = -1} ∩ {p | γ ^ 2 ≤ t p}`
+    and `Σ ∩ {p | s p ≤ 1} = {p | t p = δ ^ 2 ∧ s p ≤ 1}`, and (i) by
+    `IsConvexShapeAt.re_leviForm_pos` on the curved part and
+    `leviForm_shape_snd_apply` on the cylinder `t = δ ^ 2`. The book
+    joins the two parts of $\Sigma$ at $r=\delta$, $R=\chi(\delta)>1$,
+    where the Struwe curve meets the line $r=\delta$ with the same
+    tangent; there $r-\delta$ grows like $(R-\chi(\delta))^2$ on one side
+    and vanishes on the other, so $\Sigma$ is $C^{1,1}$ and not $C^2$ at
+    that corner, although the book's Theorem 4.2 (iii) makes it a level of
+    a function with nonzero gradient. Issue 14d7 avoids the corner:
+    its final function, `exists_modelSurround`, has `-1` as a regular
+    value and agrees with `Σ` only on `{p | s p ≤ 1}` and on
+    `{p | γ ^ 2 ≤ t p}`; near the corner circle its level `-1` is the
+    level of a smoothed maximum of a function of `t` alone with a
+    level function of the shapes, as in `exists_isConvexShapeAt_eq_max`.
+    Issue 14d4 or 14d7, whichever proves the statement that meets the
+    corner, records it in `ERRATA.md` with that route.
+
+- `Surround/ShapeFamily.lean` (issue 14d5): the families of §4.6.
+  `isConvexShapeAt_struweShape_two` (Lemma 4.23: for `0 < δ`, `4 ≤ d`,
+  the solution on `Ioc δ (2 * δ)` with value `2 * d * δ` at `2 * δ`),
+  `exists_convexShapeFamily_linear` (Lemma 4.25, bending the linear
+  family `ℓ + d ℓ * r` down to `√(64 * r ^ 2 - 64 * δ ^ 2)`),
+  `exists_convexShapeFamily_sqrt` (Lemma 4.26, from `8 * r` to
+  `√(64 * r ^ 2 + ℓ ^ 2)`), and `exists_convexShapeFamily_surround`
+  (Proposition 4.27): for `0 < γ` and all small enough `δ ∈ Ioo 0 γ`, a
+  family `χ : ℝ → ℝ → ℝ`, `ℓ ∈ Icc (-8 * δ) 1`, continuous in
+  `(ℓ, r)` and smooth in `r` on `Ioi δ` for each `ℓ`, with every
+  `χ ℓ` increasing and a convex shape at every `r > δ`,
+  `χ (-8 * δ) r = √(64 * r ^ 2 - 64 * δ ^ 2)`, `χ ℓ r` equal to the
+  standard `√(64 * r ^ 2 + ℓ * |ℓ|)` for `γ ≤ r`,
+  `Tendsto (deriv (χ ℓ)) (𝓝[>] δ) atTop` and `1 < χ 1 δ < 1 + γ`. The
+  book's family is piecewise smooth in `ℓ`; the statement asks only
+  for continuity in `ℓ`, which is what issue 14d6 uses.
+
+- `Surround/ShapeFoliation.lean` (issue 14d6): from families of shapes
+  to functions.
+  - `exists_shapeFoliation` (Proposition 3.25 within shapes, Corollary
+    4.29): let `χ : ℝ → ℝ → ℝ` be continuous on `Icc ℓ₀ ℓ₁ ×ˢ Icc r₁ r₂`,
+    `0 < r₁`, with `χ ℓ` `C²` and a convex shape at every point of
+    `Icc r₁ r₂` for each `ℓ`, `χ ℓ₀ ≤ χ ℓ ≤ χ ℓ₁`, and smooth in `(ℓ, r)`
+    and strictly increasing in `ℓ` for `ℓ` near `ℓ₀` and `ℓ₁` and for
+    `r` near `r₂`. Then there is a family with all these properties that
+    is smooth in `(ℓ, r)` and strictly increasing in `ℓ` everywhere,
+    agrees with `χ` for `ℓ` near `ℓ₀` and `ℓ₁` and `r` near `r₂`, and
+    has the same values at `ℓ₀` and `ℓ₁`. The book makes the family
+    monotone by maxima and then perturbs it; in one variable the maxima
+    are those of `exists_isConvexShapeAt_eq_max`, and the perturbation is
+    small in `C²`, under which the conditions of `IsConvexShapeAt`, strict
+    inequalities on a compact set, persist.
+    The shapes of `exists_convexShapeFamily_surround` have vertical
+    tangents at `r = δ`, where they are not graphs over `r`; there the
+    same statement is used with `r` as a function of `R`, the shapes
+    being graphs over `R` near that line, and the building issue states
+    that second form with the criterion of 14d1 rewritten for it.
+  - `exists_contDiff_shapeLevel` (the function of a foliation): a family
+    as above defines, by the implicit function theorem (Mathlib's
+    `HasStrictFDerivAt.implicitFunction`), a smooth `H : ℝ × ℝ → ℝ` on
+    the region it sweeps out, with `H (χ ℓ r ^ 2, r ^ 2) = ℓ`,
+    `∂H/∂t > 0` and `∂H/∂s < 0` there; every level of `H ∘ shape` is
+    then $i$-convex by `IsConvexShapeAt.re_leviForm_pos` and
+    `forall_re_manifoldLeviForm_pos_iff_of_mvfderiv_eq_smul`.
+  - In `JConvex/Hypersurface.lean`:
+    `exists_isManifoldStrictlyPlurisubharmonicAt_comp_of_isCompact`
+    (the book's Lemma 2.7, on a compact set): let `f : M → ℝ` be `C²`
+    on an open `U`, `K ⊆ U` compact, `mvfderiv 𝓘(ℝ, E) f x ≠ 0` for
+    `x ∈ K`, and the Levi form of `f` positive on the nonzero `v` with
+    `df(v) = df(i v) = 0` at each `x ∈ K`. Then there is `C ≥ 0` such
+    that `g ∘ f` is strictly plurisubharmonic at every point of `K`
+    for each `C²` function `g` with `0 < deriv g` and
+    `C * deriv g ≤ iteratedDeriv 2 g` on `f '' K`. This is a
+    statement about $J$-convex levels and belongs with them.
+
+- `Surround/ModelHandle.lean` (issue 14d7): Theorems 4.2 (i)–(iii),
+  Corollary 4.3 and Corollary 4.4 for `J = i`, with `1 < a`,
+  `γ ∈ Ioo 0 1` and `Ψst = modelHandle k m 1 a`.
+  - `exists_modelHandle_exterior` (Theorem 4.2 (i)–(iii)): there are
+    `δ ∈ Ioo 0 γ` and a shape `χ` with the properties that
+    `exists_convexShape_surround` gives, so that `Σ` is a hypersurface
+    as in Theorem 4.1, and on
+    `Ωext = {p | δ ^ 2 ≤ t p ∧ √(s p) ≤ χ (√(t p))}` there is a
+    continuous `Ψ = H ∘ shape`, smooth on `Ωext` off the corner circle
+    `{p | t p = δ ^ 2 ∧ s p = χ δ ^ 2}`, with `∂H/∂t > 0`, `∂H/∂s ≤ 0`,
+    `Ψ = Ψst` on `Ωext ∩ {p | γ ^ 2 ≤ t p}`, `Ψ = -1` on `Σ`, and
+    `g ∘ Ψ` strictly plurisubharmonic on `Ωext ∩ K` for each compact
+    `K` and a `g` as in the lemma of `Hypersurface.lean`. The proof is
+    the book's: the shapes of `exists_convexShapeFamily_surround` (with
+    a smaller `γ'` for `γ`) continued by the levels of the separable
+    interpolation above, which replaces Proposition 3.26, and
+    `exists_shapeFoliation` for Proposition 3.25; so `χ` is the shape
+    `χ 1` of that family, continued, and not the one of
+    `exists_convexShape_surround`.
+  - `exists_modelHandle_collar` (Corollary 4.3): for small `σ > 0`, the
+    same, off the corner circle, on an open `Ω ⊇ Ωext` with values in
+    `Ioi (-1 - σ)`, and a
+    smooth increasing `f` with `f (Ψ p) = √(t p)` on
+    `Ω ∩ {p | t p ≤ δ ^ 2 ∧ s p ≤ 1}`.
+  - `exists_modelSurround` (Corollary 4.4 for `t = 1`): for `1 < a` and
+    `γ ∈ Ioo 0 1` there are `δ ∈ Ioo 0 γ`, a smooth `Ψ : V → ℝ` of the
+    form `H ∘ shape` with `∂H/∂t > 0` and `∂H/∂s ≤ 0` where `t > 0`,
+    and a smooth `g : ℝ → ℝ` with `0 < deriv g`,
+    `0 ≤ iteratedDeriv 2 g`, such that `g ∘ Ψ` is strictly
+    plurisubharmonic at every point of `V`, `Ψ = Ψst` on
+    `{p | γ ^ 2 ≤ t p ∨ (1 + γ) ^ 2 ≤ s p}`, `Ψ = -1` on
+    `{p | t p = δ ^ 2 ∧ s p ≤ 1}` and `Ψ < -1` on
+    `{p | t p < δ ^ 2 ∧ s p ≤ 1}` (so the image of `closedBall 0 1`
+    under `modelDisc k m` lies in `{Ψ < -1}`), `-1` is a regular value
+    of `Ψ`, and near `{p | t p = 0}` the function `Ψ` is `e ∘ Ψst` for
+    a smooth increasing `e` (target equivalent, the book's (iii)). The
+    homotopy `Ψ_t` of the book's Corollary 4.4 is not stated: the
+    statements of issues 14d and 14e need only its end, and the book's
+    homotopy serves its Theorem 8.5, which the design does not state.
+    This is the model that issue 14d implants: with `a = 2`,
+    `1 + Ψ` agrees with `modelLevel k m` where `Ψ = Ψst`.
+
+- `Surround/ModelMargin.lean` (issue 14d8): the margin of §4.7 that the
+  move onto a manifold (#5489) needs. With the normalized modulus of the
+  book's (3.10), the statement is
+  `exists_modelSurround_margin`: there are `c > 0` and `N : ℕ`,
+  depending on `a`, `k`, `m` only, such that for every `γ ∈ Ioo 0 1`
+  the `Ψ` and `g` of `exists_modelSurround` can be chosen with
+  `c * γ ^ N * max ‖fderiv ℝ (fderiv ℝ (g ∘ Ψ)) p‖ ‖fderiv ℝ (g ∘ Ψ) p‖ * ‖v‖ ^ 2 ≤
+  (leviForm (g ∘ Ψ) p v v).re` for all `v` and all `p` with
+  `t p ≤ γ ^ 2` and `s p ≤ (1 + γ) ^ 2`. Its steps are the quantitative
+  versions of the above: Proposition 4.30 (the margin conditions
+  (4.15)–(4.20) on a shape), Lemma 4.31 (Struwe's solutions),
+  Lemma 4.32 (a), (b), (e) (the shapes `S`, `Q`, `L`), Propositions 4.33
+  and 4.34, and the book's Proposition 3.38 in shape form (a defining
+  function of a convex shape with a margin). The book reaches
+  `‖J - i‖_{C²} ≤ c γ ^ 12` in (4.1), from a margin `c γ ^ 6` on each
+  shape (proof of Proposition 4.33); the statement keeps `N`
+  existential, since #5489 needs only a fixed power of `γ` and chooses
+  the order of its chart after it.
+
 - `Surround/Basic.lean` (issues 14d and 14e): issue 14d proves
   `IsJOrthogonallyAttached.exists_surround`, following
   Cieliebak–Eliashberg's proof: along the disc, away from the sphere,
@@ -555,7 +797,8 @@ containing `ι '' closedBall 0 1`:
   issue 14d does not fit in 500 lines, it begins by extending this section
   with its lemma list. Issue 14d cites the theorem it follows by number.
 
-Expected sizes: 300 lines for each of issues 14a and 14b, 400 for 14c,
+Expected sizes: 300 lines for each of issues 14a and 14b, 400 for 14c
+and for each of issues 14d1–14d8,
 500 for 14d and 400 for 14e.
 
 ### `Geometry/Symplectic/Weinstein/Handle/`
@@ -731,6 +974,14 @@ In this order; each is blocked by the ones listed. All are parts of
 | 14a | Squared distance near a compact part of a totally real embedding | `JConvex/TotallyReal.lean` | 13 | 300 |
 | 14b | $J$-orthogonally attached discs | `JConvex/Surround/Attached.lean` | 13 | 300 |
 | 14c | Shape functions and the model handle | `JConvex/Surround/Shape.lean` | 13 | 400 |
+| 14d1 | The Levi form of an $i$-convex shape | `JConvex/Surround/ConvexShape.lean` | 14c | 400 |
+| 14d2 | Sufficient conditions, shifts, rescaling and smoothed maxima of shapes | `JConvex/Surround/ConvexShape.lean` | 14d1 | 400 |
+| 14d3 | Struwe’s solutions and the shapes $S$, $Q$, $L$ | `JConvex/Surround/SpecialShape.lean` | 14d2 | 400 |
+| 14d4 | The surrounding shape: Theorem 4.1 (i)–(iii) | `JConvex/Surround/SpecialShape.lean` | 14d3 | 400 |
+| 14d5 | Families of special shapes | `JConvex/Surround/ShapeFamily.lean` | 14d4 | 400 |
+| 14d6 | Foliations by shapes and their level functions | `JConvex/Surround/ShapeFoliation.lean`, `JConvex/Hypersurface.lean` | 14d2 | 400 |
+| 14d7 | The model handle: Theorem 4.2 (i)–(iii), Corollaries 4.3 and 4.4 | `JConvex/Surround/ModelHandle.lean` | 14d5, 14d6 | 400 |
+| 14d8 | The margin of the model handle (§4.7) | `JConvex/Surround/ModelMargin.lean` | 14d7 | 400 |
 | 14d | The $J$-convex surrounding of an attached disc | `JConvex/Surround/Basic.lean` | 14a, 14b, 14c | 500 |
 | 14e | The surrounding with one new critical point | `JConvex/Surround/Basic.lean` | 14d | 400 |
 | 15 | Weinstein cobordisms and stable discs | `Handle/Cobordism.lean` | 7 | 450 |
