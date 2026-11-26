@@ -5,8 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Analysis.SpecialFunctions.Log.Basic
 public import SymplecticGeometry.Analysis.SpecialFunctions.SmoothedMax
 import Mathlib.Analysis.Calculus.Deriv.MeanValue
+import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
+import TauCeti.Analysis.Calculus.IntervalIntegral.ParametricPrimitive
 
 /-!
 # The profiles `h_{λ,ε}` of the symplectic blowup
@@ -36,6 +39,16 @@ explicit formula, without an integral, and its smoothness in `(l, ε, s)` is tha
   `deriv_blowupProfile_le_one`); so `h` is
   strictly increasing, `s ≤ h s ≤ s + l ^ 2`, and `h` is positive on `[0, ∞)`
   (`blowupProfile_pos`), as `radialMap` asks on `Ioi 0`.
+* `SymplecticGeometry.BlowupModel.blowupCorrection l ε s`: the correction
+  `q(s) = ∫₀ˢ (h(u) - u - l²) / u du`, smooth in `(l, ε, s)` (`contDiffOn_blowupCorrection`), zero
+  for `s ≤ ε ^ 2` (`blowupCorrection_of_le`), equal to `-l² log s` plus a constant for
+  `s ≥ (l + ε) ^ 2` (`sq_mul_log_add_blowupCorrection_of_ge`), with
+  `s q'(s) = h(s) - s - l²` (`mul_deriv_blowupCorrection`).
+
+The smoothness of `q` in the parameters is that of a parametric primitive, Tau Ceti's
+`Convex.contDiffOn_parametric_primitive`: the integrand is smooth
+(`contDiffOn_blowupProfile_sub_sub_div`) since it vanishes for
+`u ≤ ε ^ 2`, so near `u = 0`.
 
 ## References
 
@@ -220,6 +233,137 @@ theorem blowupProfile_pos (hl : 0 < l) (hε : 0 < ε) {s : ℝ} (hs : 0 ≤ s) :
   have := (strictMono_blowupProfile hl hε).monotone hs
   rw [blowupProfile_of_le hl hε (by positivity)] at this
   linarith [pow_pos hl 2]
+
+/-- The correction `q = blowupCorrection l ε` of the blowup of weight `l` with collar `ε`:
+`q(s) = ∫₀ˢ (h(u) - u - l²) / u du` with `h = blowupProfile l ε`. For `0 < l` and `0 < ε` the
+integrand vanishes for `u ≤ ε²`, so `q` is smooth (`contDiff_blowupCorrection`) and zero on
+`Iic (ε ^ 2)`; it satisfies `s q'(s) = h(s) - s - l²` (`mul_deriv_blowupCorrection`), and
+`l² log s + q s` is constant for `s ≥ (l + ε)²`. -/
+def blowupCorrection (l ε s : ℝ) : ℝ :=
+  ∫ u in 0..s, (blowupProfile l ε u - u - l ^ 2) / u
+
+theorem blowupCorrection_def (l ε s : ℝ) :
+    blowupCorrection l ε s = ∫ u in 0..s, (blowupProfile l ε u - u - l ^ 2) / u :=
+  (rfl)
+
+/-- The integrand `(blowupProfile l ε u - u - l ^ 2) / u` of `blowupCorrection l ε` is a smooth
+function of `((l, ε), u)` for `0 < l`, `0 < ε`: it vanishes for `u ≤ ε ^ 2`. -/
+theorem contDiffOn_blowupProfile_sub_sub_div {n : ℕ∞} :
+    ContDiffOn ℝ n (fun p : (ℝ × ℝ) × ℝ ↦
+        (blowupProfile p.1.1 p.1.2 p.2 - p.2 - p.1.1 ^ 2) / p.2)
+      (({l | 0 < l} ×ˢ {ε | 0 < ε}) ×ˢ univ) := by
+  rintro ⟨⟨l, ε⟩, u⟩ ⟨⟨hl, hε⟩, -⟩
+  simp only [mem_ofPred_eq] at hl hε
+  refine ContDiffAt.contDiffWithinAt ?_
+  rcases lt_or_ge 0 u with hu | hu
+  · have hU : IsOpen ({l : ℝ | 0 < l} ×ˢ {ε : ℝ | 0 < ε} ×ˢ (univ : Set ℝ)) :=
+      (isOpen_lt continuous_const continuous_id).prod
+        ((isOpen_lt continuous_const continuous_id).prod isOpen_univ)
+    have hh : ContDiffAt ℝ n (fun p : (ℝ × ℝ) × ℝ ↦ blowupProfile p.1.1 p.1.2 p.2)
+        ((l, ε), u) :=
+      ((contDiffOn_blowupProfile (n := n)).contDiffAt
+        (hU.mem_nhds ⟨hl, hε, mem_univ u⟩)).comp ((l, ε), u)
+        (by fun_prop : ContDiff ℝ n fun p : (ℝ × ℝ) × ℝ ↦ (p.1.1, p.1.2, p.2)).contDiffAt
+    exact ((hh.sub contDiffAt_snd).sub (contDiffAt_fst.fst.pow 2)).div contDiffAt_snd hu.ne'
+  · refine contDiffAt_const (c := (0 : ℝ)).congr_of_eventuallyEq ?_
+    have hV : IsOpen {p : (ℝ × ℝ) × ℝ | 0 < p.1.1 ∧ 0 < p.1.2 ∧ p.2 < p.1.2 ^ 2} :=
+      (isOpen_lt continuous_const continuous_fst.fst).inter
+        ((isOpen_lt continuous_const continuous_fst.snd).inter
+          (isOpen_lt continuous_snd (continuous_fst.snd.pow 2)))
+    filter_upwards [hV.mem_nhds ⟨hl, hε, hu.trans_lt (by positivity)⟩] with p hp
+    rw [blowupProfile_of_le hp.1 hp.2.1 hp.2.2.le]; ring
+
+/-- The correction `blowupCorrection l ε s` is a smooth function of `(l, ε, s)` for `0 < l`,
+`0 < ε`. -/
+theorem contDiffOn_blowupCorrection {n : ℕ∞} :
+    ContDiffOn ℝ n (fun p : ℝ × ℝ × ℝ ↦ blowupCorrection p.1 p.2.1 p.2.2)
+      ({l | 0 < l} ×ˢ {ε | 0 < ε} ×ˢ univ) := by
+  have hS : IsOpen ({l : ℝ | 0 < l} ×ˢ {ε : ℝ | 0 < ε}) :=
+    (isOpen_lt continuous_const continuous_id).prod (isOpen_lt continuous_const continuous_id)
+  have h := ((convex_Ioi 0).prod (convex_Ioi 0)).contDiffOn_parametric_primitive convex_univ
+    hS.uniqueDiffOn (mem_univ 0) (contDiffOn_blowupProfile_sub_sub_div (n := n))
+  have hm : MapsTo (fun p : ℝ × ℝ × ℝ ↦ ((p.1, p.2.1), p.2.2))
+      ({l : ℝ | 0 < l} ×ˢ {ε : ℝ | 0 < ε} ×ˢ univ)
+      (({l : ℝ | 0 < l} ×ˢ {ε : ℝ | 0 < ε}) ×ˢ univ) :=
+    fun p hp ↦ ⟨⟨hp.1, hp.2.1⟩, mem_univ _⟩
+  have hφ : ContDiff ℝ n fun p : ℝ × ℝ × ℝ ↦ ((p.1, p.2.1), p.2.2) := by fun_prop
+  exact (h.comp hφ.contDiffOn hm).congr fun p _ ↦ blowupCorrection_def _ _ _
+
+/-- For `0 < l` and `0 < ε`, the integrand `(blowupProfile l ε u - u - l ^ 2) / u` of
+`blowupCorrection l ε` is smooth in `u`. -/
+theorem contDiff_blowupProfile_sub_sub_div {n : ℕ∞} (hl : 0 < l) (hε : 0 < ε) :
+    ContDiff ℝ n fun u ↦ (blowupProfile l ε u - u - l ^ 2) / u := by
+  have hm : MapsTo (fun u : ℝ ↦ ((l, ε), u)) univ
+      (({l : ℝ | 0 < l} ×ˢ {ε : ℝ | 0 < ε}) ×ˢ univ) :=
+    fun u _ ↦ ⟨⟨hl, hε⟩, mem_univ u⟩
+  have hg : ContDiff ℝ n fun u : ℝ ↦ ((l, ε), u) := contDiff_const.prodMk contDiff_id
+  have h := (contDiffOn_blowupProfile_sub_sub_div (n := n)).comp hg.contDiffOn hm
+  rw [← contDiffOn_univ]
+  exact h
+
+/-- The derivative of `blowupCorrection l ε` at `s` is `(h(s) - s - l²) / s`, with
+`h = blowupProfile l ε` (which is `0` at `s = 0`). -/
+theorem hasDerivAt_blowupCorrection (hl : 0 < l) (hε : 0 < ε) (s : ℝ) :
+    HasDerivAt (blowupCorrection l ε) ((blowupProfile l ε s - s - l ^ 2) / s) s :=
+  ((contDiff_blowupProfile_sub_sub_div (n := 0) hl hε).continuous.integral_hasStrictDerivAt 0
+    s).hasDerivAt.congr_of_eventuallyEq
+      (Filter.Eventually.of_forall fun s ↦ blowupCorrection_def l ε s)
+
+/-- For `0 < l` and `0 < ε`, the correction `blowupCorrection l ε` is smooth in `s`. -/
+theorem contDiff_blowupCorrection {n : ℕ∞} (hl : 0 < l) (hε : 0 < ε) :
+    ContDiff ℝ n (blowupCorrection l ε) := by
+  have hg : ContDiff ℝ n fun s : ℝ ↦ (l, ε, s) :=
+    contDiff_const.prodMk (contDiff_const.prodMk contDiff_id)
+  have hm : MapsTo (fun s : ℝ ↦ (l, ε, s)) univ ({l : ℝ | 0 < l} ×ˢ {ε : ℝ | 0 < ε} ×ˢ univ) :=
+    fun s _ ↦ ⟨hl, hε, mem_univ s⟩
+  have h := (contDiffOn_blowupCorrection (n := n)).comp hg.contDiffOn hm
+  rw [← contDiffOn_univ]
+  exact h
+
+/-- The derivative of the correction against the profile: `s q'(s) = h(s) - s - l²` for
+`q = blowupCorrection l ε` and `h = blowupProfile l ε`. -/
+theorem mul_deriv_blowupCorrection (hl : 0 < l) (hε : 0 < ε) (s : ℝ) :
+    s * deriv (blowupCorrection l ε) s = blowupProfile l ε s - s - l ^ 2 := by
+  rw [(hasDerivAt_blowupCorrection hl hε s).deriv]
+  rcases eq_or_ne s 0 with rfl | hs
+  · rw [blowupProfile_of_le hl hε (by positivity)]; ring
+  · exact mul_div_cancel₀ _ hs
+
+/-- Near the exceptional divisor, the correction `blowupCorrection l ε` vanishes. -/
+theorem blowupCorrection_of_le (hl : 0 < l) (hε : 0 < ε) {s : ℝ} (hs : s ≤ ε ^ 2) :
+    blowupCorrection l ε s = 0 := by
+  rw [blowupCorrection_def, intervalIntegral.integral_congr (g := fun _ ↦ (0 : ℝ)),
+    intervalIntegral.integral_zero]
+  intro u hu
+  dsimp only
+  rw [blowupProfile_of_le hl hε ((mem_uIcc.1 hu).elim (fun h ↦ h.2.trans hs)
+    fun h ↦ h.2.trans (by positivity))]
+  ring
+
+/-- Far from the exceptional divisor, `l² log s + blowupCorrection l ε s` is constant: it takes
+its value at `(l + ε)²` for every `s ≥ (l + ε)²`. -/
+theorem sq_mul_log_add_blowupCorrection_of_ge (hl : 0 < l) (hε : 0 < ε) {s : ℝ}
+    (hs : (l + ε) ^ 2 ≤ s) :
+    l ^ 2 * Real.log s + blowupCorrection l ε s =
+      l ^ 2 * Real.log ((l + ε) ^ 2) + blowupCorrection l ε ((l + ε) ^ 2) := by
+  have hc : 0 < (l + ε) ^ 2 := by positivity
+  have hs0 : 0 < s := hc.trans_le hs
+  have hi : ∀ a b : ℝ, IntervalIntegrable
+      (fun u ↦ (blowupProfile l ε u - u - l ^ 2) / u) MeasureTheory.volume a b :=
+    (contDiff_blowupProfile_sub_sub_div (n := 0) hl hε).continuous.intervalIntegrable
+  have hsplit : blowupCorrection l ε s = blowupCorrection l ε ((l + ε) ^ 2) +
+      ∫ u in (l + ε) ^ 2..s, (blowupProfile l ε u - u - l ^ 2) / u := by
+    rw [blowupCorrection_def, blowupCorrection_def,
+      intervalIntegral.integral_add_adjacent_intervals (hi _ _) (hi _ _)]
+  have hint : ∫ u in (l + ε) ^ 2..s, (blowupProfile l ε u - u - l ^ 2) / u =
+      ∫ u in (l + ε) ^ 2..s, -l ^ 2 * u⁻¹ := by
+    refine intervalIntegral.integral_congr fun u hu ↦ ?_
+    rw [uIcc_of_le hs] at hu
+    simp only [blowupProfile_of_ge hl hε hu.1]
+    ring
+  rw [hsplit, hint, intervalIntegral.integral_const_mul, integral_inv_of_pos hc hs0,
+    Real.log_div hs0.ne' hc.ne']
+  ring
 
 end SymplecticGeometry.BlowupModel
 
