@@ -102,7 +102,7 @@ the neighbouring Tau Ceti lemmas.
   the front face, `Cap/Basic.lean`), its naturality, relative caps
   (`Cap/Relative.lean`, `Cap/AbsoluteRelative.lean`) and the cross product
   with caps (`Cap/CrossRel.lean`). Tau Ceti has Poincaré duality for
-  closed manifolds, `HomologicalOrientation.bijective_singularCap_fundamentalClass`
+  closed manifolds, `HomologicalOrientation.bijective_singularCapAddHom_fundamentalClass`
   (`TauCeti/AlgebraicTopology/Cohomology/CompactSupport/Duality/Manifold.lean`).
 - **Orientations of exact sequences**: `Orientation.cokerOfExact`
   (`LinearAlgebra/Orientation/Exact/Basic.lean`) and `Orientation.ofExact`,
@@ -436,7 +436,7 @@ For closed `X` and `Z` (`[CompactSpace X]`), `hf`, and
   Poincaré dual of a submanifold*. The plan's identity
   $d_Z=\mathrm{PD}(i_*[Z])$ is this cap identity, as `DESIGN.md`'s
   convention *Poincaré duals* says; by
-  `bijective_singularCap_fundamentalClass` it determines $d_Z$.
+  `bijective_singularCapAddHom_fundamentalClass` it determines $d_Z$.
 
 ### `Geometry/Manifold/VectorBundle/ZeroSet/Embedding.lean`
 
@@ -488,7 +488,7 @@ derivative $D s(x):T_xX\to E'_x$, read in any trivialization, is onto):
 None. The part uses Tau Ceti as listed above, and from the library the
 merged change-of-coefficient lemmas of
 `Topology/VectorBundle/Thom/ChangeOfCoefficients.lean` and
-`bijective_singularCap_fundamentalClass`, for the remark that the cap
+`bijective_singularCapAddHom_fundamentalClass`, for the remark that the cap
 identity determines $d_Z$.
 
 ## Issues

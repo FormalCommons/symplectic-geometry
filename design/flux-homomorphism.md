@@ -32,7 +32,7 @@ Below, `σ : TauCeti.closedForms J M 2` is a closed two-form on a manifold
   (`Flux/Eulerian.lean`: the flux is the class of
   $\int_0^1\iota_{X_t}\sigma\,dt$); `flux_globalFlowDiffeotopyAlong`,
   `exists_flux_eq` (`Flux/Flow.lean`); `flux_orderedGlobalFlowDiffeotopy`
-  and `exists_homotopy_orderedGlobalFlowDiffeotopy_mem_diffeomorphStabilizer`
+  and `homotopicWith_orderedGlobalFlowDiffeotopy_refl`
   (`Flux/OrderedFlow.lean`: for symplectic fields $Y_i$ and time functions
   $A_i$ with $A_i(0)=0$, the ordered flow
   $\psi^{Y_0}_{A_0(t)}\circ\dots\circ\psi^{Y_{k-1}}_{A_{k-1}(t)}$ has flux

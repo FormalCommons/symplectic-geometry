@@ -897,7 +897,7 @@ issues, in an order where each issue's blockers come before it.
    `TauCeti.HomologicalOrientation.bijective_dualityMap`, for every
    homologically oriented manifold, compact or not, and for compact `M` its
    form for capping with the fundamental class,
-   `bijective_singularCap_fundamentalClass`.
+   `bijective_singularCapAddHom_fundamentalClass`.
 3. **The unit circle bundle of a Hermitian line bundle.**
    `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean`, the file
    of *Symplectic vector bundles* (its section *The circle bundle of a
