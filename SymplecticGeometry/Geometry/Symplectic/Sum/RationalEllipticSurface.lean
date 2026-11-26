@@ -457,7 +457,7 @@ theorem restrict_prod_ofComplexManifold {hn : (∞ : ℕ∞ω) ≠ 0} :
               (by simp) hn) =
       SmoothAlmostComplexStructure.ofComplexManifold (Fin 2 → ℂ) rationalEllipticSurface := by
   simp only [realEmbedding_def]
-  exact embedding.restrict_prod_ofComplexManifold le_top (by simp) hn
+  exact embedding.restrict_prod_ofComplexManifold le_top
 
 /-! ### The symplectic form -/
 

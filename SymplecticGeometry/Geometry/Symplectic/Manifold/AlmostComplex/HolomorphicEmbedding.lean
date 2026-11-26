@@ -81,16 +81,16 @@ theorem ofComplexManifold_mem_tangentRange_restrictScalars
 /-- The almost complex structure that the complex structure of `N` restricts to along the real
 form of a holomorphic embedding `f : M → N` is the complex structure of `M`. -/
 theorem restrict_ofComplexManifold [CompleteSpace E] [IsManifold 𝓘(ℂ, E) ∞ M]
-    (f : SmoothEmbedding 𝓘(ℂ, E) 𝓘(ℂ, E') m M N) (hnm : ∞ ≤ m) (hn : 1 ≤ (∞ : ℕ∞ω))
-    (hn₀ : (∞ : ℕ∞ω) ≠ 0) :
-    (ofComplexManifold E' N).restrict (f.restrictScalars ℝ hnm hn) (hn := hn₀)
-        (f.ofComplexManifold_mem_tangentRange_restrictScalars hnm hn hn₀) =
+    (f : SmoothEmbedding 𝓘(ℂ, E) 𝓘(ℂ, E') m M N) (hnm : ∞ ≤ m)
+    {hn₀ : (∞ : ℕ∞ω) ≠ 0} :
+    (ofComplexManifold E' N).restrict (f.restrictScalars ℝ hnm (by simp)) (hn := hn₀)
+        (f.ofComplexManifold_mem_tangentRange_restrictScalars hnm (by simp) hn₀) =
       ofComplexManifold E M := by
   refine ((eq_restrict_iff _).2 fun x v ↦ ?_).symm
   -- `ofComplexManifold_apply` states `v` in the model space, so it does not rewrite directly.
   have hJ := ofComplexManifold_apply (E := E) x v
-  have h := ofComplexManifold_apply (E := E') (f.restrictScalars ℝ hnm hn x)
-    (mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E') (f.restrictScalars ℝ hnm hn) x v)
+  have h := ofComplexManifold_apply (E := E') (f.restrictScalars ℝ hnm (by simp) x)
+    (mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E') (f.restrictScalars ℝ hnm (by simp)) x v)
   rw [hJ, h, coe_mfderiv_restrictScalars]
   exact (mfderiv _ _ f x).map_smul Complex.I v
 
@@ -117,17 +117,18 @@ restricts to along the real form of a holomorphic embedding `f : M → N × N'` 
 structure of `M`. -/
 theorem restrict_prod_ofComplexManifold [CompleteSpace E] [IsManifold 𝓘(ℂ, E) ∞ M]
     (f : SmoothEmbedding 𝓘(ℂ, E) (𝓘(ℂ, E').prod 𝓘(ℂ, F')) m M (N × N')) (hnm : ∞ ≤ m)
-    (hn : 1 ≤ (∞ : ℕ∞ω)) (hn₀ : (∞ : ℕ∞ω) ≠ 0) :
+    {hn₀ : (∞ : ℕ∞ω) ≠ 0} :
     ((ofComplexManifold E' N).prod (ofComplexManifold F' N')).restrict
-        (f.restrictScalarsProd ℝ hnm hn) (hn := hn₀)
-        (f.prod_ofComplexManifold_mem_tangentRange_restrictScalarsProd hnm hn hn₀) =
+        (f.restrictScalarsProd ℝ hnm (by simp)) (hn := hn₀)
+        (f.prod_ofComplexManifold_mem_tangentRange_restrictScalarsProd hnm (by simp) hn₀) =
       ofComplexManifold E M := by
   refine ((eq_restrict_iff _).2 fun x v ↦ ?_).symm
   -- `ofComplexManifold_apply` and `prod_ofComplexManifold_apply` state `v` in the model space,
   -- so they do not rewrite directly.
   have hJ := ofComplexManifold_apply (E := E) x v
-  have h := prod_ofComplexManifold_apply (M := N) (N := N') (f.restrictScalarsProd ℝ hnm hn x)
-    (mfderiv 𝓘(ℝ, E) (𝓘(ℝ, E').prod 𝓘(ℝ, F')) (f.restrictScalarsProd ℝ hnm hn) x v)
+  have h := prod_ofComplexManifold_apply (M := N) (N := N')
+    (f.restrictScalarsProd ℝ hnm (by simp) x)
+    (mfderiv 𝓘(ℝ, E) (𝓘(ℝ, E').prod 𝓘(ℝ, F')) (f.restrictScalarsProd ℝ hnm (by simp)) x v)
   rw [hJ, h, coe_mfderiv_restrictScalarsProd]
   exact (mfderiv _ _ f x).map_smul Complex.I v
 
