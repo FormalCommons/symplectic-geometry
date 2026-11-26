@@ -22,9 +22,10 @@ Let `f : M → N` be a `C^n` immersion at `x` with complement `F`, with normal-f
 (`Manifold.IsImmersionAtOfComplement.equiv_symm_codChart_extend_apply`).
 
 If `f` is moreover a topological embedding and `M` is boundaryless, then on a neighbourhood `V`
-of `f x` a point lies in the image of `f` exactly when its normal coordinate vanishes. Unlike
-Tau Ceti's slice chart, which is only an open partial homeomorphism, the coordinates here are
-those of the chart `ψ` of the maximal atlas, so they are `C^n`.
+of `f x` a point lies in the image of `f` exactly when its normal coordinate vanishes. Tau Ceti's
+`TauCeti.exists_contMDiffOn_isSliceChart_of_isEmbedding_of_isImmersionAtOfComplement` gives a
+`C^n` slice chart but does not say which one; here the coordinates are those of the normal-form
+chart `ψ` itself, which the statements below on the squared normal coordinate need.
 
 For a linear isomorphism `e : F ≃L[ℝ] W` onto a real inner product space, the squared normal
 coordinate `g p = ‖e (L⁻¹ (ψ p)).2‖²` is `C^n` on the source of `ψ`, vanishes exactly where the
