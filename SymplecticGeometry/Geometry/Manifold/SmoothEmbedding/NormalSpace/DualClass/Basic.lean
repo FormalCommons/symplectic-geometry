@@ -39,9 +39,9 @@ is the Euler class `o.eulerClass` of the oriented normal bundle
 (`dualClass_neg`).
 
 The class is defined through one chosen normalized tube, which
-`exists_isNormalizedTube_singularCohomologyMap_excisionMap_relDualClassOf` records. That it does
-not depend on the choice of tube is `relDualClassOf_eq_of_isNormalizedTube`, in
-`DualClass/Slice.lean`.
+`exists_isNormalizedTube_singularCohomologyMap_excisionMap_relDualClassOf` records. For `u` in the
+degree `r = finrank ℝ P` of the rank, with module coefficients, it does not depend on the choice
+of tube: `relDualClassOf_eq_of_isNormalizedTube`, in `DualClass/Slice.lean`.
 
 ## Main definitions
 

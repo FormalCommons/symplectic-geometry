@@ -15,6 +15,7 @@ import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 import TauCeti.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LeftInverse
 import TauCeti.Geometry.Manifold.VectorBundle.Submersion
+import TauCeti.Geometry.Manifold.VectorBundle.TotalSpace.MFDeriv
 import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
 import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
@@ -45,6 +46,7 @@ namespace `TauCeti.Bundle`, `bundleDiffeomorph_zeroSection` and
 `TauCeti`, and
 `extChartAt_symm_apply_zero_of_mem_baseSet`, about the charts of the total space,
 `contMDiff_totalSpaceMk_comp`, about linear maps into one fibre,
+`hasMFDerivAt_totalSpaceMk_trivializationAt_symm`, about the inclusion of one fibre,
 `contMDiff_subtypeMk_zeroSection` and `subtypeVal_comp_subtypeMk_zeroSection`, about the zero
 section as a map into a set that contains it, and
 `contMDiff_mfderiv_smul_curve`, about maps on the total space, in Mathlib's namespace `Bundle`.
@@ -67,6 +69,8 @@ section as a map into a set that contains it, and
   fibre, followed by the inclusion of that fibre into the total space, is `C^n` for every `n`.
   Its proof follows that of Tau Ceti's `TauCeti.Manifold.contMDiff_totalSpaceMk`, the case of
   the identity of a normed fibre.
+* `Bundle.hasMFDerivAt_totalSpaceMk_trivializationAt_symm`: the inclusion of a fibre into the
+  total space, read through the preferred trivialization, has derivative `w ↦ (0, w)`.
 * `Bundle.contMDiff_subtypeMk_zeroSection`: the zero section, as a map into an open set of the
   total space that contains it, is `C^n` for every `n`.
 * `TauCeti.Bundle.zeroSectionTangentEquiv_symm_inl`: the inverse of Tau Ceti's splitting sends
@@ -197,6 +201,27 @@ theorem contMDiff_totalSpaceMk_comp {Q : Type*} [NormedAddCommGroup Q] [NormedSp
   exact ((trivializationAt F V b).continuousLinearMapAt 𝕜 b ∘L L).contMDiff.contMDiffAt
     |>.congr_of_eventuallyEq (Filter.Eventually.of_forall fun w' ↦
       ((trivializationAt F V b).continuousLinearMapAt_apply_of_mem 𝕜 hb (L w')).symm)
+
+omit [∀ x, Module 𝕜 (V x)] [VectorBundle 𝕜 F V] in
+/-- The inclusion of the fibre over `b` into the total space, read through the preferred
+trivialization at `b`, `w ↦ (b, e⁻¹ w)`, has at every `w₀` the derivative `w ↦ (0, w)`. -/
+theorem hasMFDerivAt_totalSpaceMk_trivializationAt_symm (b : B) (w₀ : F) :
+    HasMFDerivAt 𝓘(𝕜, F) (IB.prod 𝓘(𝕜, F))
+      (fun w ↦ TotalSpace.mk' F b ((trivializationAt F V b).symm b w)) w₀
+      (ContinuousLinearMap.inr 𝕜 EB F) := by
+  have hb := FiberBundle.mem_baseSet_trivializationAt F V b
+  refine TauCeti.Manifold.hasMFDerivAt_totalSpace_iff.2 ⟨?_, ?_⟩
+  · -- The base point is constant; the tangent space of the base is `EB` only up to unfolding
+    -- `TangentSpace`, so the first component of `inr` is computed by `rfl`.
+    convert hasMFDerivAt_const (I := 𝓘(𝕜, F)) (I' := IB) b w₀ using 1
+    ext w
+    rfl
+  · refine hasMFDerivAt_iff_hasFDerivAt.2 <| ((hasFDerivAt_id w₀).congr_of_eventuallyEq
+      (Filter.Eventually.of_forall fun w ↦
+        congrArg Prod.snd ((trivializationAt F V b).apply_mk_symm hb w))).congr_fderiv ?_
+    -- As above, the second component of `inr` is the identity only up to unfolding.
+    ext w
+    rfl
 
 /-- The zero section, as a map into an open set `U` of the total space that contains it, is
 `C^n`. -/

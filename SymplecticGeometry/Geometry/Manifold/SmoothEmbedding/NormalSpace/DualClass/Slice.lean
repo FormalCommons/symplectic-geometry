@@ -11,6 +11,7 @@ public import SymplecticGeometry.AlgebraicTopology.Cohomology.Local.Derivative
 public import SymplecticGeometry.Topology.VectorBundle.Thom.FiberCoordinate
 public import TauCeti.Geometry.Manifold.LocallyContractible
 public import TauCeti.Topology.VectorBundle.MayerVietoris.DirectedUnion
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
 
 /-!
 # The dual class is determined by its normal slices
@@ -51,7 +52,8 @@ linearization argument of Tau Ceti's
 `TauCeti.VectorBundleOrientation.sectionIndex_eq_sign_det_of_hasFDerivAt`, which
 compares a map with its derivative on a small ball around a zero.
 
-The class does not depend on the normalized tube. For two normalized tubes `Φ` and `Φ'` and a
+For `u` in the degree `r` of the rank, with module coefficients, the class does not depend on
+the normalized tube. For two normalized tubes `Φ` and `Φ'` and a
 point `x`, the map `w ↦ Φ'(x, e⁻¹ w)` on `P` has, by normalization of `Φ'`, the derivative that
 the local-degree lemma asks for, so the lemma applied to `Φ` and to `Φ'` shows that their normal
 slices at `x` pull classes back alike
@@ -76,7 +78,8 @@ normalized tube then carries `relDualClassOf f hn hdim hf u` for `u` of degree `
   slices of two normalized tubes at a point pull classes back alike.
 * `TauCeti.SmoothEmbedding.relDualClassOf_eq_of_isNormalizedTube`,
   `TauCeti.SmoothEmbedding.singularCohomologyMap_excisionMap_relDualClassOf`: independence of the
-  tube: every normalized tube carries `relDualClassOf f hn hdim hf u`.
+  tube: for `u` of degree `r`, with module coefficients, every normalized tube carries
+  `relDualClassOf f hn hdim hf u`.
 
 ## References
 
@@ -482,18 +485,11 @@ theorem singularCohomologyMap_normalSlice_eq_of_isNormalizedTube {f : SmoothEmbe
   -- `h` has derivative `w ↦ (0, w)` at `0`.
   let L : P →L[ℝ] TangentSpace (I.prod 𝓘(ℝ, P)) (zeroSection P (fun x ↦ f.NormalSpace x hn) x) :=
     ContinuousLinearMap.inr ℝ E P
-  -- The tangent space of the base is `E` only up to unfolding `TangentSpace`, which `simp` does
-  -- not do, so the two components of `L` are computed by `rfl`.
   have hhd : HasMFDerivAt 𝓘(ℝ, P) (I.prod 𝓘(ℝ, P)) h 0 L := by
-    refine TauCeti.Manifold.hasMFDerivAt_totalSpace_iff.2 ⟨?_, ?_⟩
-    · convert hasMFDerivAt_const (I := 𝓘(ℝ, P)) (I' := I) x (0 : P) using 1
-      ext w
-      rfl
-    · refine hasMFDerivAt_iff_hasFDerivAt.2 ?_
-      refine ((hasFDerivAt_id (0 : P)).congr_of_eventuallyEq (Filter.Eventually.of_forall
-        fun w ↦ ℓ.apply_symm_apply w)).congr_fderiv ?_
-      ext w
-      rfl
+    have hh : h = fun w ↦ TotalSpace.mk' P x (e.symm x w) :=
+      funext fun w ↦ by simp [h, ℓ]
+    rw [hh]
+    exact Bundle.hasMFDerivAt_totalSpaceMk_trivializationAt_symm x 0
   -- So the derivative of `g` at `0`, followed by the normal class, is the inverse of `e`.
   set F' : TotalSpace P (fun x ↦ f.NormalSpace x hn) → X := fun p ↦ (Φ' p : X)
   have hF' : MDifferentiableAt (I.prod 𝓘(ℝ, P)) J F' (zeroSection P _ x) :=
