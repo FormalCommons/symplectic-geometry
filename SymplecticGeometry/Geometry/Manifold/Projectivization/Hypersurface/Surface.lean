@@ -157,7 +157,7 @@ follows from the signature theorem in every degree.
 
 Milestone: *Chern classes of projective hypersurfaces*. -/
 theorem signature_surface (hd : d ≠ 0)
-    (hsignature : 3 * (complexManifoldHomologicalOrientation _ X
+    (hsignature : 3 * (complexManifoldHomologicalOrientation (Fin 2 → ℂ) X
         (Module.finrank_fin_fun ℂ)).signature
         (finrank_real_of_finrank_complex_eq_add_one (Module.finrank_fin_fun ℂ))
         (show 2 + 2 = 2 * 1 + 1 + 1 from rfl) =
@@ -170,18 +170,18 @@ theorem signature_surface (hd : d ≠ 0)
         2 * complexManifoldEvalFundamentalClass (Fin 2 → ℂ) X
           (Module.finrank_fin_fun ℂ) (chernClass (Fin 2 → ℂ)
             (TangentSpace 𝓘(ℂ, Fin 2 → ℂ) : X → Type) 2)) :
-    3 * (complexManifoldHomologicalOrientation _ X (Module.finrank_fin_fun ℂ)).signature
+    3 * (complexManifoldHomologicalOrientation (Fin 2 → ℂ) X (Module.finrank_fin_fun ℂ)).signature
         (finrank_real_of_finrank_complex_eq_add_one (Module.finrank_fin_fun ℂ))
         (show 2 + 2 = 2 * 1 + 1 + 1 from rfl) =
         (4 - (d : ℤ) ^ 2) * d ∧
       3 * (sigPos
-          ((complexManifoldHomologicalOrientation _ X
+          ((complexManifoldHomologicalOrientation (Fin 2 → ℂ) X
             (Module.finrank_fin_fun ℂ)).intersectionQuadraticForm
             (finrank_real_of_finrank_complex_eq_add_one (Module.finrank_fin_fun ℂ))
             (show 2 + 2 = 2 * 1 + 1 + 1 from rfl)) : ℤ) =
         (d : ℤ) ^ 3 - 6 * d ^ 2 + 11 * d - 3 ∧
       3 * (sigNeg
-          ((complexManifoldHomologicalOrientation _ X
+          ((complexManifoldHomologicalOrientation (Fin 2 → ℂ) X
             (Module.finrank_fin_fun ℂ)).intersectionQuadraticForm
             (finrank_real_of_finrank_complex_eq_add_one (Module.finrank_fin_fun ℂ))
             (show 2 + 2 = 2 * 1 + 1 + 1 from rfl)) : ℤ) =
@@ -191,7 +191,7 @@ theorem signature_surface (hd : d ≠ 0)
     QuadraticForm.signature_def] at hsignature
   rw [HomologicalOrientation.signature_def, QuadraticForm.signature_def]
   have hb := congrArg (Nat.cast : ℕ → ℤ) <|
-    (complexManifoldHomologicalOrientation _ X (Module.finrank_fin_fun ℂ))
+    (complexManifoldHomologicalOrientation (Fin 2 → ℂ) X (Module.finrank_fin_fun ℂ))
       |>.sigPos_add_sigNeg_intersectionQuadraticForm
         (finrank_real_of_finrank_complex_eq_add_one (Module.finrank_fin_fun ℂ))
         (show 2 + 2 = 2 * 1 + 1 + 1 from rfl)

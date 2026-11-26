@@ -97,7 +97,7 @@ theorem bettiNumber_of_ne (hd : d ≠ 0) {k : ℕ} (hk : k ≠ n) :
     have hE : finrank ℝ (Fin (m + 1) → ℂ) =
         2 * m + 1 + 1 :=
       finrank_real_of_finrank_complex_eq_add_one (Module.finrank_fin_fun ℂ)
-    rw [(complexManifoldHomologicalOrientation _ X
+    rw [(complexManifoldHomologicalOrientation (Fin (m + 1) → ℂ) X
         (Module.finrank_fin_fun ℂ)).bettiNumber_eq_bettiNumber hE (p := 2 * (m + 1) - k) (by omega),
       X.bettiNumber_of_lt ℚ hd (by omega)]
     simp [hk', Nat.even_sub hk']

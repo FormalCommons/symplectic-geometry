@@ -321,7 +321,9 @@ Namespace `SymplecticGeometry`.
 - `X.surjective_jacobiMatrixAt`, the cone-Jacobian form of `smooth`;
   `X.embedding`, Tau Ceti's `complexProjectiveZeroLocusEmbedding` for
   regularity `ω`, `@[expose]` so that Tau Ceti's lemmas about that embedding apply
-  to it, with `coe_embedding : ⇑X.embedding = Subtype.val`.
+  to it by definitional unfolding (`exact`, `erw`; not `rw` or `simp`, since
+  they are stated on the general model), with
+  `coe_embedding : ⇑X.embedding = Subtype.val`.
 - `X.poly_ne_zero`, and `X.nonempty` for `d ≠ 0` (a homogeneous polynomial
   of positive degree in at least two variables has a nonzero zero over `ℂ`).
 - `fermat n d`, the hypersurface $\sum_j z_j^d=0$ of the book,

@@ -126,7 +126,9 @@ instance instCompactSpace : CompactSpace X :=
   inferInstanceAs (CompactSpace (complexProjectiveZeroLocus _))
 
 -- The body is exposed so that Tau Ceti's lemmas about `complexProjectiveZeroLocusEmbedding` apply
--- to `X.embedding` in other files.
+-- to `X.embedding` in other files by definitional unfolding (in term mode, by `exact` or `erw`).
+-- They are stated on the model `Fin (n + 1 - Fintype.card Unit) → ℂ`, not on `Fin n → ℂ`, so
+-- `rw` and `simp` do not find them.
 /-- The inclusion of a smooth projective hypersurface into projective space, as an analytic
 embedding: Tau Ceti's `TauCeti.complexProjectiveZeroLocusEmbedding`. -/
 @[expose] noncomputable def embedding :
