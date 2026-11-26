@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Basic
+import TauCeti.Data.Fin.Tuple.Basic
 
 /-!
 # The integrand of the fibre integral on a product
@@ -20,11 +21,19 @@ vectors come first, as in Bott–Tu: with this order, integration over the fibre
 and satisfies the projection formula with no sign.
 
 The pointwise construction is `ContinuousAlternatingMap.appendLeft`, which fixes the first `r`
-arguments of an alternating map of `r + m` arguments.
+arguments of an alternating map of `r + m` arguments; it is continuous and linear in the map
+(`ContinuousAlternatingMap.appendLeftCLM`).
+
+Smoothness is checked in charts. In the product chart at `(b, y₀)`, the coordinate expression of
+the integrand is that of `α` along the slice through the chart point of `b`, followed by a fixed
+continuous linear map (`TauCeti.RoughForm.inChartAt_prod_apply_append`). The proof follows that
+of `TauCeti.IsSmoothForm.contDiffOn_inChartAt_mpullback_prodMk`, which treats the slices
+themselves, the case `r = 0`.
 
 ## Main definitions
 
 * `ContinuousAlternatingMap.appendLeft f u`: the alternating map `w ↦ f (Fin.append u w)`.
+* `ContinuousAlternatingMap.appendLeftCLM`: the same, as a continuous linear map in `f`.
 * `SymplecticGeometry.prodFiberIntegrand α b v`: the integrand on `F`.
 
 ## Main results
@@ -50,30 +59,6 @@ noncomputable section
 open Set Function
 open scoped Manifold ContDiff
 
-namespace Fin
-
-variable {α : Type*} {r m : ℕ}
-
-/-- Updating an entry of the left block of `Fin.append` updates the corresponding entry of the
-appended tuple. -/
-theorem append_update_left (u : Fin r → α) (w : Fin m → α) (i : Fin r) (x : α) :
-    Fin.append (update u i x) w = update (Fin.append u w) (Fin.castAdd m i) x := by
-  funext p
-  refine Fin.addCases (fun j ↦ ?_) (fun j ↦ ?_) p
-  · simp only [Fin.append_left, update_apply, Fin.castAdd_inj]
-  · rw [Fin.append_right, update_of_ne (by simp [Fin.ext_iff]; omega), Fin.append_right]
-
-/-- Updating an entry of the right block of `Fin.append` updates the corresponding entry of the
-appended tuple. -/
-theorem append_update_right (u : Fin r → α) (w : Fin m → α) (i : Fin m) (x : α) :
-    Fin.append u (update w i x) = update (Fin.append u w) (Fin.natAdd r i) x := by
-  funext p
-  refine Fin.addCases (fun j ↦ ?_) (fun j ↦ ?_) p
-  · rw [Fin.append_left, update_of_ne (by simp [Fin.ext_iff]; omega), Fin.append_left]
-  · simp only [Fin.append_right, update_apply, Fin.natAdd_inj]
-
-end Fin
-
 namespace ContinuousAlternatingMap
 
 section Topological
@@ -88,11 +73,11 @@ def appendLeft (f : W [⋀^Fin (r + m)]→L[R] N) (u : Fin r → W) : W [⋀^Fin
   map_update_add' := by
     intro _ w i x y
     obtain rfl := Subsingleton.elim ‹DecidableEq (Fin m)› (instDecidableEqFin _)
-    simp only [Fin.append_update_right, f.map_update_add]
+    simp only [← Fin.update_append_natAdd, f.map_update_add]
   map_update_smul' := by
     intro _ w i c x
     obtain rfl := Subsingleton.elim ‹DecidableEq (Fin m)› (instDecidableEqFin _)
-    simp only [Fin.append_update_right, f.map_update_smul, RingHom.id_apply]
+    simp only [← Fin.update_append_natAdd, f.map_update_smul, RingHom.id_apply]
   cont := f.cont.comp <| continuous_pi fun p ↦ by
     refine Fin.addCases (fun j ↦ ?_) (fun j ↦ ?_) p
     · simpa only [Fin.append_left] using continuous_const
@@ -100,16 +85,19 @@ def appendLeft (f : W [⋀^Fin (r + m)]→L[R] N) (u : Fin r → W) : W [⋀^Fin
   map_eq_zero_of_eq' w i j hw hij := f.map_eq_zero_of_eq _
     (by simpa only [Fin.append_right] using hw) (Fin.natAdd_inj r |>.not.mpr hij)
 
+/-- The value of `f.appendLeft u` on `w` is that of `f` on `Fin.append u w`. -/
 @[simp]
 theorem appendLeft_apply (f : W [⋀^Fin (r + m)]→L[R] N) (u : Fin r → W) (w : Fin m → W) :
     f.appendLeft u w = f (Fin.append u w) := (rfl)
 
+/-- Fixing the first arguments is additive in the alternating map. -/
 @[simp]
 theorem appendLeft_add [ContinuousAdd N] (f g : W [⋀^Fin (r + m)]→L[R] N) (u : Fin r → W) :
     (f + g).appendLeft u = f.appendLeft u + g.appendLeft u := by
   ext w
   simp
 
+/-- Fixing the first arguments commutes with scalar multiplication of the alternating map. -/
 @[simp]
 theorem appendLeft_smul {S : Type*} [Monoid S] [DistribMulAction S N] [ContinuousConstSMul S N]
     [SMulCommClass R S N] (c : S) (f : W [⋀^Fin (r + m)]→L[R] N) (u : Fin r → W) :
@@ -117,6 +105,7 @@ theorem appendLeft_smul {S : Type*} [Monoid S] [DistribMulAction S N] [Continuou
   ext w
   simp
 
+/-- `f.appendLeft u` is additive in each fixed argument `u i`. -/
 theorem appendLeft_update_add [ContinuousAdd N] [DecidableEq (Fin r)]
     (f : W [⋀^Fin (r + m)]→L[R] N)
     (u : Fin r → W) (i : Fin r) (x y : W) :
@@ -124,18 +113,20 @@ theorem appendLeft_update_add [ContinuousAdd N] [DecidableEq (Fin r)]
       f.appendLeft (update u i x) + f.appendLeft (update u i y) := by
   ext w
   obtain rfl := Subsingleton.elim ‹DecidableEq (Fin r)› (instDecidableEqFin _)
-  simp only [appendLeft_apply, coe_add, Pi.add_apply, Fin.append_update_left,
+  simp only [appendLeft_apply, coe_add, Pi.add_apply, ← Fin.update_append_castAdd,
     f.map_update_add]
 
+/-- `f.appendLeft u` is homogeneous in each fixed argument `u i`. -/
 theorem appendLeft_update_smul [ContinuousConstSMul R N] [DecidableEq (Fin r)]
     (f : W [⋀^Fin (r + m)]→L[R] N)
     (u : Fin r → W) (i : Fin r) (c : R) (x : W) :
     f.appendLeft (update u i (c • x)) = c • f.appendLeft (update u i x) := by
   ext w
   obtain rfl := Subsingleton.elim ‹DecidableEq (Fin r)› (instDecidableEqFin _)
-  simp only [appendLeft_apply, coe_smul, Pi.smul_apply, Fin.append_update_left,
+  simp only [appendLeft_apply, coe_smul, Pi.smul_apply, ← Fin.update_append_castAdd,
     f.map_update_smul]
 
+/-- `f.appendLeft u` vanishes when two fixed arguments are equal. -/
 theorem appendLeft_eq_zero_of_eq (f : W [⋀^Fin (r + m)]→L[R] N) {u : Fin r → W} {i j : Fin r}
     (hu : u i = u j) (hij : i ≠ j) : f.appendLeft u = 0 := by
   ext w
@@ -149,6 +140,7 @@ section Normed
 variable {𝕜 W N : Type*} [NontriviallyNormedField 𝕜] [NormedAddCommGroup W] [NormedSpace 𝕜 W]
   [NormedAddCommGroup N] [NormedSpace 𝕜 N] {r m : ℕ}
 
+/-- The operator norm of `f.appendLeft u` is at most `‖f‖ * ∏ i, ‖u i‖`. -/
 theorem norm_appendLeft_le (f : W [⋀^Fin (r + m)]→L[𝕜] N) (u : Fin r → W) :
     ‖f.appendLeft u‖ ≤ ‖f‖ * ∏ i, ‖u i‖ := by
   refine opNorm_le_bound _ (by positivity) fun w ↦ ?_
@@ -167,6 +159,7 @@ def appendLeftCLM (u : Fin r → W) : (W [⋀^Fin (r + m)]→L[𝕜] N) →L[�
       map_smul' c f := appendLeft_smul c f u }
     (∏ i, ‖u i‖) fun f ↦ (norm_appendLeft_le f u).trans_eq (mul_comm _ _)
 
+/-- `appendLeftCLM 𝕜 N m u` sends `f` to `f.appendLeft u`. -/
 @[simp]
 theorem appendLeftCLM_apply (u : Fin r → W) (f : W [⋀^Fin (r + m)]→L[𝕜] N) :
     appendLeftCLM 𝕜 N m u f = f.appendLeft u := (rfl)
@@ -189,7 +182,7 @@ theorem linearEquivCast_apply {p q : ℕ} (h : p = q) (α : RoughForm I M V p) (
     LinearEquiv.cast (R := ℝ) (M := fun k ↦ RoughForm I M V k) h α x w =
       α x (w ∘ Fin.cast h) := by
   subst h
-  rfl
+  simp only [LinearEquiv.cast_apply, cast_eq, comp_def, Fin.cast_eq_self]
 
 end TauCeti.RoughForm
 
@@ -213,6 +206,8 @@ def prodFiberIntegrand (α : RoughForm (I.prod J) (B × F) ℝ (r + m)) (b : B)
       ((Manifold.tangentSpaceProdEquiv (I := I) (J := J) (b, y)).symm.toContinuousLinearMap.comp
         (ContinuousLinearMap.inr ℝ (TangentSpace I b) (TangentSpace J y)))
 
+/-- The value of the integrand at `y` on `w` is that of `α` at `(b, y)` on
+`(v₁, 0), …, (vᵣ, 0), (0, w₁), …, (0, wₘ)`. -/
 @[simp]
 theorem prodFiberIntegrand_apply (α : RoughForm (I.prod J) (B × F) ℝ (r + m)) (b : B)
     (v : Fin r → TangentSpace I b) (y : F) (w : Fin m → TangentSpace J y) :
@@ -226,6 +221,7 @@ theorem prodFiberIntegrand_apply (α : RoughForm (I.prod J) (B × F) ℝ (r + m)
     simp only [Fin.append_left, Fin.append_right, comp_apply,
       ContinuousLinearMap.coe_comp, ContinuousLinearEquiv.coe_coe, ContinuousLinearMap.inr_apply]
 
+/-- The integrand is additive in the form. -/
 @[simp]
 theorem prodFiberIntegrand_add (α β : RoughForm (I.prod J) (B × F) ℝ (r + m)) (b : B)
     (v : Fin r → TangentSpace I b) :
@@ -234,6 +230,7 @@ theorem prodFiberIntegrand_add (α β : RoughForm (I.prod J) (B × F) ℝ (r + m
   ext w
   simp
 
+/-- The integrand is homogeneous in the form. -/
 @[simp]
 theorem prodFiberIntegrand_smul (c : ℝ) (α : RoughForm (I.prod J) (B × F) ℝ (r + m)) (b : B)
     (v : Fin r → TangentSpace I b) :
@@ -252,6 +249,7 @@ private theorem update_lift (b : B) (y : F) (v : Fin r → TangentSpace I b) (i 
   funext fun i' ↦ apply_update (fun _ t ↦ (Manifold.tangentSpaceProdEquiv (b, y)).symm (t, 0))
     v i x i'
 
+/-- The integrand is additive in each base vector `v i`. -/
 theorem prodFiberIntegrand_update_add (α : RoughForm (I.prod J) (B × F) ℝ (r + m)) (b : B)
     (v : Fin r → TangentSpace I b) (i : Fin r) (x x' : TangentSpace I b) :
     prodFiberIntegrand α b (update v i (x + x')) =
@@ -268,6 +266,7 @@ theorem prodFiberIntegrand_update_add (α : RoughForm (I.prod J) (B × F) ℝ (r
     Pi.add_apply,
     ContinuousAlternatingMap.add_apply]
 
+/-- The integrand is homogeneous in each base vector `v i`. -/
 theorem prodFiberIntegrand_update_smul (α : RoughForm (I.prod J) (B × F) ℝ (r + m)) (b : B)
     (v : Fin r → TangentSpace I b) (i : Fin r) (c : ℝ) (x : TangentSpace I b) :
     prodFiberIntegrand α b (update v i (c • x)) = c • prodFiberIntegrand α b (update v i x) := by
@@ -282,6 +281,7 @@ theorem prodFiberIntegrand_update_smul (α : RoughForm (I.prod J) (B × F) ℝ (
     Pi.smul_apply,
     ContinuousAlternatingMap.smul_apply]
 
+/-- The integrand vanishes when two base vectors are equal. -/
 theorem prodFiberIntegrand_eq_zero_of_eq (α : RoughForm (I.prod J) (B × F) ℝ (r + m)) (b : B)
     {v : Fin r → TangentSpace I b} {i j : Fin r} (hv : v i = v j) (hij : i ≠ j) :
     prodFiberIntegrand α b v = 0 := by
@@ -291,7 +291,7 @@ theorem prodFiberIntegrand_eq_zero_of_eq (α : RoughForm (I.prod J) (B × F) ℝ
     ContinuousAlternatingMap.appendLeft_eq_zero_of_eq _
       (u := fun i ↦ (Manifold.tangentSpaceProdEquiv (I := I) (J := J) (b, y)).symm (v i, 0))
       (by simp only [hv]) hij]
-  rfl
+  simp only [ContinuousAlternatingMap.coe_zero, Pi.zero_apply]
 
 /-- **The integrand is smooth.** For a `C^n` form `α` on `B × F`, each integrand
 `prodFiberIntegrand α b v` is a `C^n` form on `F`. -/

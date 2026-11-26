@@ -141,7 +141,7 @@ The fibre integral on `B × F`.
   `TauCeti.RoughForm.inChartAt_prod_apply_append`; `prodFiberIntegrand_apply`
   (`@[simp]`), linearity in `α`, multilinearity and alternation in `v`, and
   `isSmoothForm_prodFiberIntegrand` for smooth `α`. For `r = 0` it is the
-  slice `mpullback J (I.prod J) (Prod.mk b) α` (`prodFiberIntegrand_zero`,
+  slice `mpullback J (I.prod J) (Prod.mk b) α` (`prodFiberIntegrand_degree_zero`,
   through the degree cast `0 + m = m`).
 - `prodFiberIntegral o : SmoothForm (I.prod J) (B × F) ℝ (r + m) →ₗ[ℝ] SmoothForm I B ℝ r`,
   with `prodFiberIntegral_apply`:
