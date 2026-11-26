@@ -3948,12 +3948,13 @@ For §7.4 of `atlas/constructing-symplectic-manifolds.md`.
   structures*' collars and Tau Ceti's `TauCeti.IsLiouvilleDomain`),
   `Geometry/Manifold/Complex/Plurisubharmonic.lean` (Stein structures,
   on Tau Ceti's `TauCeti.IsManifoldStrictlyPlurisubharmonicAt`, and the
-  lemma that it means $\omega_f(v,Jv)>0$, as the conventions say), `Stein.lean`
-  (the passage in both directions: the gradient of a strictly
-  plurisubharmonic exhaustion, reparametrized to be complete, and the
-  converse up to homotopy of Weinstein structures, Cieliebak–Eliashberg's
-  theorem) and `Complement/` (Giroux's theorem: a Stein structure on
-  the complement of a suitable Donaldson hypersurface, and a Weinstein
+  lemma that it means $\omega_f(v,Jv)>0$, as the conventions say),
+  `OfStein.lean` (from Stein to Weinstein: the gradient of a strictly
+  plurisubharmonic exhaustion, reparametrized to be complete), `Stein.lean`
+  (the converse up to homotopy of Weinstein structures, Cieliebak–Eliashberg's
+  theorem, and the passage in both directions) and `Complement/` (Giroux's
+  theorem: a Stein structure on the complement of a suitable Donaldson
+  hypersurface, and a Weinstein
   domain whose interior is that complement, with his Remark 3 and
   Corollary 4).
 - **Builds on:** *Asymptotically holomorphic sections* (only for
