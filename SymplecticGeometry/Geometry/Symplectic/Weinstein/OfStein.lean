@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Complex.Plurisubharmonic
 public import SymplecticGeometry.Geometry.Manifold.Morse.GradientLike
+public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Basic
 public import TauCeti.Geometry.Symplectic.Hamiltonian.SymplecticVectorField
 public import TauCeti.Geometry.Symplectic.Liouville.VectorField
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.CompatibleMetric
@@ -14,9 +15,10 @@ public import TauCeti.Geometry.Symplectic.Manifold.Flat
 public import TauCeti.Geometry.Symplectic.TameMetric
 public import TauCeti.Geometry.Manifold.Flow.Complete
 import SymplecticGeometry.Analysis.SpecialFunctions.ExpDeriv
+import TauCeti.Geometry.Manifold.Morse.ScalarComposition
 
 /-!
-# The Liouville field of a Stein function
+# The Liouville field and the Weinstein structure of a Stein function
 
 Let `M` be a complex manifold modelled on `E`, seen as a real manifold, with complex structure
 `J = ofComplexManifold E M`. For a smooth real function `φ`, write `λ_φ = -dφ ∘ J`, Tau Ceti's
@@ -66,6 +68,16 @@ complete.
   is complete for a Stein function `φ`.
 * `SymplecticGeometry.IsSteinFunction.exists_comp_isCompleteVectorField`: a smooth `h` with
   `h' > 0` and `h'' ≥ 0` for which the field of `h ∘ φ` is complete.
+* `SymplecticGeometry.IsSteinFunction.isWeinsteinStructure`: a generalized Morse Stein function
+  `ψ` whose Liouville field `X` is complete gives the Weinstein structure `(ω_ψ, X, ψ)`.
+* `SymplecticGeometry.IsSteinFunction.isWeinsteinStructure_comp`: for a Stein function `φ` that
+  is generalized Morse, `ψ = exp ∘ φ` is a Stein function, and the previous result applies to it:
+  `(ω_ψ, X, ψ)`, with `X` the Liouville field of `ψ`, is a Weinstein structure.
+* `SymplecticGeometry.IsSteinFunction.exists_isWeinsteinStructure`: every Stein function has a
+  Morse perturbation `φ'` such that `ψ = exp ∘ φ'` is a Morse Stein function with the
+  Weinstein structure `(ω_ψ, X, ψ)`; the perturbation is
+  `SymplecticGeometry.IsSteinFunction.exists_isMorse`. This is the direction from Stein to
+  Weinstein of Cieliebak–Eliashberg, §11.5 and Definition 11.15.
 
 ## Implementation notes
 
@@ -79,7 +91,7 @@ identity and the smoothness.
 ## References
 
 * [K. Cieliebak, Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
-  §11.5, Remark 11.16
+  §11.5, Definition 11.15, Remark 11.16
 -/
 
 public section
@@ -91,7 +103,7 @@ open scoped Manifold ContDiff TauCeti.ComplexManifold
 
 namespace SymplecticGeometry
 
-open TauCeti TauCeti.Manifold TauCeti.SmoothAlmostComplexStructure
+open Module TauCeti TauCeti.Manifold TauCeti.SmoothAlmostComplexStructure
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E]
   {M : Type*} [TopologicalSpace M] [ChartedSpace E M] [IsManifold 𝓘(ℂ, E) ∞ M]
@@ -299,6 +311,68 @@ theorem IsSteinFunction.exists_comp_isCompleteVectorField [T2Space M] {φ : M �
     fun t ↦ by simp [Real.exp_pos], fun t ↦ by simp [(Real.exp_pos t).le],
     ⟨Real.exp ∘ φ, Real.contDiff_exp.contMDiff.comp hφ.contMDiff⟩, rfl,
     isCompleteVectorField_dCLiouvilleField_exp_comp hφ rfl⟩
+
+/-! ### The Weinstein structure of a Stein function -/
+
+/-- **The Weinstein structure of a Stein function with complete Liouville field.** If `ψ` is a
+generalized Morse Stein function whose Liouville field `X` is complete, then `(ω_ψ, X, ψ)` is a
+Weinstein structure, where `ω_ψ = d(-dψ ∘ J)`. -/
+theorem IsSteinFunction.isWeinsteinStructure {ψ : C^∞⟮𝓘(ℝ, E), M; ℝ⟯}
+    (hS : IsSteinFunction E ψ) (hm : IsGeneralizedMorse E ψ)
+    (hc : IsCompleteVectorField (dCLiouvilleField ψ)) :
+    IsWeinsteinStructure (mextDerivₗ 𝓘(ℝ, E) 1
+      ((ofComplexManifold E M).covectorComplexStructure
+        (mextDerivₗ 𝓘(ℝ, E) 0 (SmoothForm.ofFunction ψ)))) (dCLiouvilleField ψ) ψ :=
+  have hω := hS.isSymplectic
+  { isSymplectic := hω
+    contMDiff_field := contMDiff_dCLiouvilleField ψ hω.isNondegenerate
+    isLiouvilleVectorField := isLiouvilleVectorField_dCLiouvilleField hω.isNondegenerate
+    isCompleteVectorField := hc
+    isProperMap := hS.isProperMap
+    bddBelow := hS.bddBelow
+    isGeneralizedMorse := hm
+    isGradientLike := isGradientLike_dCLiouvilleField hS.isStrictlyPlurisubharmonic }
+
+/-- **The Weinstein structure of `exp ∘ φ`.** If `φ` is a Stein function on a Hausdorff complex
+manifold that is generalized Morse, and `ψ = exp ∘ φ`, then `ψ` is a Stein function and
+`(ω_ψ, X, ψ)` is a Weinstein structure, where `ω_ψ = d(-dψ ∘ J)` and `X` is the Liouville field
+of `ψ`. -/
+theorem IsSteinFunction.isWeinsteinStructure_comp [T2Space M] {φ : M → ℝ}
+    {ψ : C^∞⟮𝓘(ℝ, E), M; ℝ⟯} (hφ : IsSteinFunction E φ) (hm : IsGeneralizedMorse E φ)
+    (hψ : ⇑ψ = Real.exp ∘ φ) :
+    IsSteinFunction E ψ ∧
+      IsWeinsteinStructure (mextDerivₗ 𝓘(ℝ, E) 1
+        ((ofComplexManifold E M).covectorComplexStructure
+          (mextDerivₗ 𝓘(ℝ, E) 0 (SmoothForm.ofFunction ψ)))) (dCLiouvilleField ψ) ψ := by
+  have hS : IsSteinFunction E ψ := hψ ▸ hφ.comp Real.contDiff_exp
+    (fun t ↦ by simp [Real.exp_pos]) fun t ↦ by simp [(Real.exp_pos t).le]
+  exact ⟨hS, hS.isWeinsteinStructure
+    (hψ ▸ hm.comp Real.contDiff_exp fun x ↦ by simp [Real.exp_pos])
+    (isCompleteVectorField_dCLiouvilleField_exp_comp hφ hψ)⟩
+
+/-- **From Stein to Weinstein.** For a Stein function `φ` on a Hausdorff complex manifold there
+is a Morse Stein function `φ'` within `C⁰` distance `1` of `φ`, whose critical points have real
+Morse index at most `dim_ℂ E`, such that `ψ = exp ∘ φ'` is a Morse Stein function and
+`(ω_ψ, X, ψ)` is a Weinstein structure, where `ω_ψ = d(-dψ ∘ J)` and `X` is the Liouville field
+of `ψ`. -/
+theorem IsSteinFunction.exists_isWeinsteinStructure [T2Space M] {φ : M → ℝ}
+    (hφ : IsSteinFunction E φ) :
+    ∃ φ' : C^∞⟮𝓘(ℝ, E), M; ℝ⟯, IsMorse 𝓘(ℝ, E) φ' ∧ IsSteinFunction E φ' ∧
+      (∀ x ∈ criticalPoints 𝓘(ℝ, E) φ', manifoldMorseIndex 𝓘(ℝ, E) φ' x ≤ finrank ℂ E) ∧
+      (∀ x, |φ' x - φ x| < 1) ∧
+      ∃ ψ : C^∞⟮𝓘(ℝ, E), M; ℝ⟯, ⇑ψ = Real.exp ∘ φ' ∧ IsMorse 𝓘(ℝ, E) ψ ∧
+        IsSteinFunction E ψ ∧
+        IsWeinsteinStructure (mextDerivₗ 𝓘(ℝ, E) 1
+          ((ofComplexManifold E M).covectorComplexStructure
+            (mextDerivₗ 𝓘(ℝ, E) 0 (SmoothForm.ofFunction ψ)))) (dCLiouvilleField ψ) ψ := by
+  obtain ⟨φ', hm, hS, hi, hd⟩ := hφ.exists_isMorse
+  let ψ : C^∞⟮𝓘(ℝ, E), M; ℝ⟯ := ⟨Real.exp ∘ φ', Real.contDiff_exp.contMDiff.comp φ'.contMDiff⟩
+  have hψ : ⇑ψ = Real.exp ∘ φ' := rfl
+  obtain ⟨hSψ, hW⟩ := hS.isWeinsteinStructure_comp hm.isGeneralizedMorse hψ
+  refine ⟨φ', hm, hS, hi, hd, ψ, hψ, ?_, hSψ, hW⟩
+  rw [hψ]
+  exact hm.scalar_comp (fun _ ↦ Real.contDiff_exp.contDiffAt) fun _ ↦ by
+    simp [(Real.exp_pos _).ne']
 
 end SymplecticGeometry
 

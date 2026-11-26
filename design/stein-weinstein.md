@@ -375,11 +375,11 @@ Issue 8: the Weinstein structure of a Stein function.
 
 Issue 9: the first half of the milestone.
 `IsSteinFunction.exists_isWeinsteinStructure`: for a Stein function `φ`
-there is a Stein function `ψ`, Morse and of the form `h ∘ φ'` for a Morse
+there is a Stein function `ψ`, Morse and of the form `exp ∘ φ'` for a Morse
 perturbation `φ'` of `φ`, with
 `IsWeinsteinStructure` $(\omega_\psi,$ `dCLiouvilleField ψ`$,\psi)$; and
 `IsSteinFunction.isWeinsteinStructure_comp` for `φ` already generalized
-Morse, with `ψ = h ∘ φ`.
+Morse, with `ψ = exp ∘ φ`, which also says that `ψ` is a Stein function.
 
 Expected size: 400 lines for issue 8, 250 for issue 9.
 
