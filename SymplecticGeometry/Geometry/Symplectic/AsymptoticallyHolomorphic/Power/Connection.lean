@@ -82,6 +82,8 @@ The statements take `[∀ b, Nonempty (P b)]`, since `localSection`, through Mat
 * `SymplecticGeometry.powerConnection_apply_trivializationAt`: if a section reads `[σ_x, f]` near
   `x`, with `f` differentiable at `x`, its derivative at `x` is
   `[σ_x x, df_x + i k (σ_x^* α)_x f(x)]`.
+* `SymplecticGeometry.powerConnection_apply_of_mdifferentiableAt`: the same formula for a section
+  differentiable at `x`, with `f` its coordinate in the preferred trivialization at `x`.
 * `SymplecticGeometry.powerConnection_apply_frame`: for a connection form `α` and a local section
   `σ` of `P`, smooth on an open set `U`, the derivative of a section reading `[σ, f]` on `U` is
   `[σ x, df_x + i k (σ^* α)_x f(x)]` at a point `x ∈ U` where `f` is differentiable.
@@ -209,6 +211,24 @@ theorem powerConnection_apply_trivializationAt {s : Π x, PowerBundle P k x}
     AssociatedBundle.trivializationAt_symm_eq_mk hx, powerConnectionForm_apply, hs.self_of_nhds,
     ← AssociatedBundle.mk_smul_scalar, AssociatedBundle.mk_add]
 
+/-- **The connection on a differentiable section.** If a section `s` of `PowerBundle P k` is
+differentiable at `x`, and `f` is its coordinate in the preferred trivialization at `x`, then
+`D_k s` at `x` is `[σ_x x, df_x + i k (σ_x^* α)_x f(x)]`, where `σ_x` is the preferred local
+section of `P` at `x`. -/
+theorem powerConnection_apply_of_mdifferentiableAt {s : Π x, PowerBundle P k x} {x : B}
+    (hs : MDifferentiableAt IB (IB.prod 𝓘(ℝ, PowerModel k))
+      (fun y ↦ TotalSpace.mk' (PowerModel k) y (s y)) x)
+    (v : TangentSpace IB x) :
+    powerConnection α k s x v =
+      AssociatedBundle.mk Circle (localSection Circle P x x)
+        (mvfderiv IB (fun y ↦ (trivializationAt (PowerModel k) (PowerBundle P k) x
+            ⟨y, s y⟩).2) x v +
+          (Complex.I * k * (TauCeti.mpullback IB (IB.prod (𝓡 1))
+            (manifoldLocalSection Circle P x) α.val x ![v] : ℝ)) •
+            (trivializationAt (PowerModel k) (PowerBundle P k) x ⟨x, s x⟩).2) :=
+  powerConnection_apply_trivializationAt α k ((mdifferentiableAt_section _ _).1 hs)
+    (AssociatedBundle.eventually_eq_mk_localSection_trivializationAt s x) v
+
 attribute [local instance] finrank_real_complex_fact'
 
 /-- **The connection in a local section.** Let `α` be a connection form and `σ` a section of `P`
@@ -301,16 +321,12 @@ theorem powerConnection_const_smul (c : ℂ) {s : Π x, PowerBundle P k x} {x : 
     filter_upwards [hs'] with y hy
     rw [Pi.smul_apply, AssociatedBundle.mk_smul_scalar, ← hy]
   -- `y ↦ c • f y` is `f` followed by the real linear map `c • ·`.
-  set L := ContinuousLinearMap.lsmul ℝ ℂ (E := PowerModel k) c
   have hcf : MDifferentiableAt IB 𝓘(ℝ, PowerModel k) (fun y ↦ c • f y) x :=
-    L.mdifferentiableAt.comp x hf
-  have hd (v : TangentSpace IB x) :
-      mvfderiv IB (fun y ↦ c • f y) x v = c • mvfderiv IB f x v :=
-    L.mvfderiv_comp_apply hf v
+    (ContinuousLinearMap.lsmul ℝ ℂ (E := PowerModel k) c).mdifferentiableAt.comp x hf
   ext v
   rw [powerConnection_apply_trivializationAt α k hcf hcs v, smul_apply,
-    powerConnection_apply_trivializationAt α k hf hs' v, ← AssociatedBundle.mk_smul_scalar, hd,
-    smul_add, smul_smul, smul_smul, mul_comm]
+    powerConnection_apply_of_mdifferentiableAt α k hs v, ← AssociatedBundle.mk_smul_scalar,
+    mvfderiv_const_smul hf c, smul_apply, smul_add, smul_smul, smul_smul, mul_comm]
 
 /-- `D_k` is complex linear: on sections differentiable at a point it is additive and commutes
 with real constants and with multiplication by `i`. -/
@@ -340,9 +356,12 @@ theorem isMetricCompatible_powerConnection : (powerConnection α k).IsMetricComp
     filter_upwards [hs', ht'] with y hys hyt
     rw [hys, hyt, AssociatedBundle.inner_mk]
   beta_reduce
+  have hx := mem_baseSet_trivializationAt Circle P x
   rw [hin.mvfderiv_eq, mvfderiv_inner_apply hf hg,
-    powerConnection_apply_trivializationAt α k hf hs',
-    powerConnection_apply_trivializationAt α k hg ht', hs'.self_of_nhds, ht'.self_of_nhds,
+    powerConnection_apply_of_mdifferentiableAt α k hs,
+    powerConnection_apply_of_mdifferentiableAt α k ht, hs'.self_of_nhds, ht'.self_of_nhds,
+    AssociatedBundle.trivializationAt_mk_localSection hx,
+    AssociatedBundle.trivializationAt_mk_localSection hx,
     AssociatedBundle.inner_mk, AssociatedBundle.inner_mk]
   -- The connection form `i k (σ_x^* α)` is skew-Hermitian, so its terms cancel.
   generalize TauCeti.mpullback IB (IB.prod (𝓡 1)) (manifoldLocalSection Circle P x) α.val x
