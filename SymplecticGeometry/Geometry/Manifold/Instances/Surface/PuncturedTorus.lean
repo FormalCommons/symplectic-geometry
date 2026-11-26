@@ -66,6 +66,8 @@ conjugated by the diagonal path is homotopic to the boundary. In
 Mathlib's `FundamentalGroup` the product `g * h` is the class of `h` followed by `g`, so the
 boundary `a⁻¹ b⁻¹ a b` has class `b a b⁻¹ a⁻¹`, a conjugate of Tau Ceti's boundary generator
 `peripheral 0 = (a⁻¹ b⁻¹ a b)⁻¹` rather than that generator or its inverse.
+Conjugating the neck loop instead by the path that first runs around the circle loops `a`, then
+`b`, and then along the diagonal, conjugates that class by `(b a)⁻¹`, which gives `peripheral 0`.
 
 ## Main definitions
 
@@ -92,6 +94,9 @@ boundary `a⁻¹ b⁻¹ a b` has class `b a b⁻¹ a⁻¹`, a conjugate of Tau C
   `0` to the start of the neck loop.
 * `SymplecticGeometry.EuclideanTorus.punctureLoop`: the neck loop conjugated by the diagonal path,
   a loop around the puncture based at `0`.
+* `SymplecticGeometry.EuclideanTorus.peripheralPath`: the path from `0` once around the first
+  circle, once around the second, and then along the diagonal path to the start of the neck loop.
+* `SymplecticGeometry.EuclideanTorus.peripheralLoop`: the neck loop conjugated by that path.
 
 ## Main results
 
@@ -115,6 +120,8 @@ boundary `a⁻¹ b⁻¹ a b` has class `b a b⁻¹ a⁻¹`, a conjugate of Tau C
   `SymplecticGeometry.EuclideanTorus.puncturedFundamentalGroupMulEquiv_punctureLoop_eq_conj`: the
   isomorphism sends its class to `b a b⁻¹ a⁻¹`, the conjugate of the boundary generator
   `peripheral 0` by `b a`, where `a = a 0` and `b = b 0`.
+* `SymplecticGeometry.EuclideanTorus.puncturedFundamentalGroupMulEquiv_peripheralLoop`: it sends
+  the class of the peripheral loop to `peripheral 0` itself.
 
 ## References
 
@@ -1025,6 +1032,50 @@ theorem puncturedFundamentalGroupMulEquiv_punctureLoop_eq_conj :
         SurfaceGroup.Orientable.a 1 1 0 * SurfaceGroup.Orientable.b 1 1 0)⁻¹ := by
     simpa using SurfaceGroup.Orientable.peripheral_last 1 0
   rw [puncturedFundamentalGroupMulEquiv_punctureLoop, h]
+  group
+
+/-- The path from `0` to the start of the neck loop that runs once around the first circle, then
+once around the second, then along the diagonal path. -/
+def peripheralPath : Path (⟨0, zero_mem_puncture⟩ : ConnectedSum.puncture ball)
+    (ConnectedSum.neckInl isOpenEmbedding_ball (neckIsometry.circleBasepoint one_pos)) :=
+  ((circleLoop 0).trans (circleLoop 1)).trans diagonalPath
+
+theorem peripheralPath_def :
+    peripheralPath = ((circleLoop 0).trans (circleLoop 1)).trans diagonalPath :=
+  (rfl)
+
+/-- The **peripheral loop** of the punctured torus, based at `0`: the neck loop, conjugated by
+`SymplecticGeometry.EuclideanTorus.peripheralPath`. It differs from
+`SymplecticGeometry.EuclideanTorus.punctureLoop` only in the path to the base point. -/
+def peripheralLoop :
+    Path (⟨0, zero_mem_puncture⟩ : ConnectedSum.puncture ball) ⟨0, zero_mem_puncture⟩ :=
+  (peripheralPath.trans neckLoop).trans peripheralPath.symm
+
+theorem peripheralLoop_def :
+    peripheralLoop = (peripheralPath.trans neckLoop).trans peripheralPath.symm :=
+  (rfl)
+
+/-- The isomorphism sends the class of the peripheral loop to the boundary generator
+`peripheral 0` of `TauCeti.SurfaceGroup.Orientable 1 1`. -/
+@[simp]
+theorem puncturedFundamentalGroupMulEquiv_peripheralLoop :
+    puncturedFundamentalGroupMulEquiv
+        (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk peripheralLoop)) =
+      SurfaceGroup.Orientable.peripheral 1 1 0 := by
+  have h : Path.Homotopic.Quotient.mk peripheralLoop =
+      ((Path.Homotopic.Quotient.mk (circleLoop 0)).trans
+        (Path.Homotopic.Quotient.mk (circleLoop 1))).trans
+        ((Path.Homotopic.Quotient.mk punctureLoop).trans
+          ((Path.Homotopic.Quotient.mk (circleLoop 1)).symm.trans
+            (Path.Homotopic.Quotient.mk (circleLoop 0)).symm)) := by
+    simp only [peripheralLoop_def, peripheralPath_def, punctureLoop_def, Path.trans_symm,
+      Path.Homotopic.Quotient.mk_trans, Path.Homotopic.Quotient.mk_symm,
+      Path.Homotopic.Quotient.trans_assoc]
+  rw [h]
+  simp only [FundamentalGroup.fromPath_trans, FundamentalGroup.fromPath_symm, map_mul, map_inv,
+    puncturedFundamentalGroupMulEquiv_circleLoop_zero,
+    puncturedFundamentalGroupMulEquiv_circleLoop_one,
+    puncturedFundamentalGroupMulEquiv_punctureLoop_eq_conj]
   group
 
 end EuclideanTorus

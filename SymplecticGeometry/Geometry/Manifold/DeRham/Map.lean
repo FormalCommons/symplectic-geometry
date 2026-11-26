@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.DeRham.Basic
 public import TauCeti.Geometry.Manifold.DeRham.HomotopyInvariance
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
 import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 
@@ -20,7 +21,9 @@ the fact that a smooth map pulls closed forms back to closed forms,
 `SmoothForm.mpullback f hf φ` directly, without passing through the subtype map
 `TauCeti.closedForms.mpullback`. Also the form-level consequence of homotopy invariance,
 `TauCeti.SmoothForm.mpullback_sub_mem_exactForms_of_homotopy`: smoothly homotopic maps pull a
-closed form back to forms that differ by an exact form.
+closed form back to forms that differ by an exact form, and its case for the slices of a smooth
+isotopy, `TauCeti.SmoothForm.mpullback_sub_mpullback_timeSlice_mem_exactForms`, through the
+homotopy `(x, s) ↦ h (s t, x)`.
 
 ## References
 
@@ -63,6 +66,20 @@ theorem mpullback_sub_mem_exactForms_of_homotopy [IsManifold I ∞ M] {f g : M �
   simp only [deRhamCohomology.map_mk] at h
   rw [deRhamCohomology.mk_eq_mk_iff] at h
   simpa using h
+
+/-- The slices of a smooth isotopy `h` from `f₀` pull a closed form `γ` back into one class:
+for every time `t`, the difference `f₀^* γ - (h_t)^* γ` is exact, where `h_t` is the slice of
+`h` at time `t`. -/
+theorem mpullback_sub_mpullback_timeSlice_mem_exactForms [IsManifold I ∞ M]
+    {f₀ f₁ : C^∞⟮I, M; I', M'⟯} (h : SmoothIsotopy f₀ f₁) (t : unitInterval) {k : ℕ}
+    {γ : SmoothForm I' M' ℝ k} (hγ : γ ∈ closedForms I' M' k) :
+    SmoothForm.mpullback f₀ f₀.contMDiff γ -
+        SmoothForm.mpullback (h.timeSlice t) (h.timeSlice t).contMDiff γ ∈
+      exactForms I M k :=
+  mpullback_sub_mem_exactForms_of_homotopy _ _
+    (F := fun q : M × Set.Icc (0 : ℝ) 1 ↦ h (Set.Icc.convexComb 0 t q.2, q.1))
+    (h.contMDiff.comp ((contMDiff_const.convexComb contMDiff_const contMDiff_snd).prodMk
+      contMDiff_fst)) (fun x ↦ by simp) (fun x ↦ by simp) hγ
 
 end TauCeti.SmoothForm
 
