@@ -365,7 +365,7 @@ With `hf : IsClosed (range f)` and a normalized tube `Φ` with open image
   of *Decisions*.
 - `relDualClassOf_eq_of_isNormalizedTube`: every normalized tube defines
   the same class (independence of the tube).
-- `dualClass_comp_diffeomorph`: for a diffeomorphism `φ : X' ≃ X`, the
+- `dualClass_transDiffeomorph`: for a diffeomorphism `φ : X' ≃ X`, the
   class of `φ⁻¹ ∘ f` with the normal orientation carried by `dφ` (Tau
   Ceti's `normalSpaceEquiv` of `NormalSpace/Map.lean` and
   `VectorBundleOrientation.comap`) is `φ^* dualClass f hn hdim hf o hr`.
