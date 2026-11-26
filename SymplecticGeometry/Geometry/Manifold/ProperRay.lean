@@ -26,10 +26,11 @@ closed discrete set of a manifold of dimension at least two. Each ray is grown a
 * `LeavesForGood γ K D`: along the parameters `D`, once the curve `γ` is outside `K` it stays
   outside. This is the invariant that the rays keep for every compact set of the exhaustion as
   they grow. It holds when `γ` maps `D` into `K` or outside `K`, survives extension by a piece
-  outside `K` (`LeavesForGood.extend_Icc`, `LeavesForGood.extend_Iic`), and, for `D` an
+  outside `K` (`LeavesForGood.extend_Icc`, `LeavesForGood.extend_Iic`) and by an earlier piece
+  inside `K` (`LeavesForGood.union_of_mapsTo_left`), and, for `D` an
   interval ending at `T` on which `γ` is continuous, makes the points of `γ '' D` in the
-  component of `Kᶜ` through `γ T` the image of an interval ending at `T`
-  (`LeavesForGood.image_inter_connectedComponentIn`), the form that
+  component of `Kᶜ` through `γ T` the image of an order-connected set that contains `T` once it
+  is nonempty (`LeavesForGood.image_inter_connectedComponentIn`), the form that
   `exists_diffeomorph_grow_arc` takes.
 
 The set `U` is preconnected by `isPreconnected_sdiff_union_iUnion_image_of_one_lt_rank`, and
@@ -172,22 +173,35 @@ theorem LeavesForGood.union (h : LeavesForGood γ K D) (h' : MapsTo γ D' Kᶜ)
   · exact ((hDD' t ht s hs).not_ge hst).elim
   · exact fun _ ↦ h' ht
 
+/-- If `γ` maps `D` into `K` and leaves `K` for good along a set `D'` of parameters that
+all come at or after those of `D`, then `γ` leaves `K` for good along `D ∪ D'`. -/
+theorem LeavesForGood.union_of_mapsTo_left (h : LeavesForGood γ K D') (h' : MapsTo γ D K)
+    (hDD' : ∀ s ∈ D, ∀ t ∈ D', s ≤ t) : LeavesForGood γ K (D ∪ D') := by
+  rintro s (hs | hs) t (ht | ht) hst hsK
+  · exact (hsK (h' hs)).elim
+  · exact (hsK (h' hs)).elim
+  · exact (hsK (h' (le_antisymm hst (hDD' t ht s hs) ▸ ht))).elim
+  · exact h hs ht hst hsK
+
+/-- A curve that maps `Iic a` into `K` and leaves `K` for good along `Icc a s` leaves `K` for
+good along `Iic s`. -/
+theorem LeavesForGood.Iic_of_mapsTo_Iic (h : LeavesForGood γ K (Icc a s))
+    (h' : MapsTo γ (Iic a) K) : LeavesForGood γ K (Iic s) :=
+  (h.union_of_mapsTo_left h' fun _ hu _ hv ↦ (mem_Iic.1 hu).trans hv.1).mono
+    Iic_subset_Iic_union_Icc
+
 /-- Extension of a curve that leaves `K` for good along `Icc a T`: a curve `γ'` that agrees with
 `γ` on `Icc a T` and maps `Ioc T T'` outside `K` leaves `K` for good along `Icc a T'`. -/
 theorem LeavesForGood.extend_Icc (h : LeavesForGood γ K (Icc a T)) (hγ : EqOn γ' γ (Icc a T))
-    (h' : MapsTo γ' (Ioc T T') Kᶜ) : LeavesForGood γ' K (Icc a T') := by
-  refine ((h.congr hγ).union h' fun s hs t ht ↦ hs.2.trans_lt ht.1).mono fun t ht ↦ ?_
-  rcases le_or_gt t T with htT | htT
-  exacts [.inl ⟨ht.1, htT⟩, .inr ⟨htT, ht.2⟩]
+    (h' : MapsTo γ' (Ioc T T') Kᶜ) : LeavesForGood γ' K (Icc a T') :=
+  ((h.congr hγ).union h' fun _ hs _ ht ↦ hs.2.trans_lt ht.1).mono Icc_subset_Icc_union_Ioc
 
 /-- Extension of a curve that leaves `K` for good along `Iic T`: a curve `γ'` that agrees with
 `γ` on `Iic T` and maps `Ioc T T'` outside `K` leaves `K` for good along `Iic T'`. -/
 theorem LeavesForGood.extend_Iic (h : LeavesForGood γ K (Iic T)) (hγ : EqOn γ' γ (Iic T))
-    (h' : MapsTo γ' (Ioc T T') Kᶜ) : LeavesForGood γ' K (Iic T') := by
-  refine ((h.congr hγ).union h' fun s hs t ht ↦ (mem_Iic.1 hs).trans_lt ht.1).mono
-    fun t ht ↦ ?_
-  rcases le_or_gt t T with htT | htT
-  exacts [.inl htT, .inr ⟨htT, ht⟩]
+    (h' : MapsTo γ' (Ioc T T') Kᶜ) : LeavesForGood γ' K (Iic T') :=
+  ((h.congr hγ).union h' fun _ hs _ ht ↦ (mem_Iic.1 hs).trans_lt ht.1).mono
+    Iic_subset_Iic_union_Ioc
 
 /-- A curve that maps `Icc a s` into `K` and `Ioc s T` outside `K` leaves `K` for good along
 `Icc a T`. -/
