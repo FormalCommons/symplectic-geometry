@@ -7,7 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Model
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Tautological
-public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Basic
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LeftInverse
 
 /-!
@@ -241,6 +241,184 @@ divisor. -/
 theorem range_zeroSectionEmbedding :
     Set.range (zeroSectionEmbedding n) = exceptionalDivisor n := by
   rw [coe_zeroSectionEmbedding, exceptionalDivisor_eq_range]
+
+/-- The tangent image of the zero section at `ℓ` lies in the kernel of the differential of
+`blowdown` at `zeroSection ℓ`, since `blowdown` vanishes on the zero section. -/
+theorem mfderiv_blowdown_comp_mfderiv_zeroSection (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown (zeroSection ℓ)).comp
+      (mfderiv 𝓘(ℂ, Fin n → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) zeroSection ℓ) = 0 := by
+  rw [← mfderiv_comp ℓ ((contMDiff_blowdown 1).mdifferentiableAt one_ne_zero)
+    ((contMDiff_zeroSection 1).mdifferentiableAt one_ne_zero)]
+  have h : (blowdown ∘ zeroSection : ℙ ℂ (Fin (n + 1) → ℂ) → Fin (n + 1) → ℂ) = fun _ => 0 :=
+    funext blowdown_zeroSection
+  rw [h, mfderiv_const]
+  rfl
+
+/-- Every vector `z` of the line `ℓ` is a value of the differential of `blowdown` at
+`zeroSection ℓ`: it is the image of the velocity at `0` of the curve `t ↦ (ℓ, t • z)`. -/
+theorem exists_mfderiv_blowdown_zeroSection_eq (ℓ : ℙ ℂ (Fin (n + 1) → ℂ))
+    {z : Fin (n + 1) → ℂ} (hz : z ∈ ℓ.submodule) :
+    ∃ v : TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) (zeroSection ℓ),
+      mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown (zeroSection ℓ) v = z := by
+  let γ : ℂ → BlowupModel n := fun t =>
+    ⟨(ℓ, t • z), mem_blowupModel_iff.2 (ℓ.submodule.smul_mem t hz)⟩
+  have hγ : ContMDiff 𝓘(ℂ, ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) 1 γ :=
+    ((isSmoothEmbedding_blowupModel_val (n := n) (r := 1) le_rfl).contMDiff_iff_comp).2 <|
+      contMDiff_const.prodMk (contDiff_id.smul contDiff_const).contMDiff
+  have hγ₀ : γ 0 = zeroSection ℓ := ext (by simp [γ]) (by simp [γ])
+  have hcomp : (blowdown ∘ γ) = fun t : ℂ => t • z := funext fun t => blowdown_mk _ _ _
+  have hz' : HasFDerivAt (fun t : ℂ => t • z) ((ContinuousLinearMap.id ℂ ℂ).smulRight z) 0 :=
+    (hasFDerivAt_id (0 : ℂ)).smul_const z
+  have hd : mfderiv 𝓘(ℂ, ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) (blowdown ∘ γ) 0 (1 : ℂ) = z := by
+    rw [hcomp, (hasMFDerivAt_iff_hasFDerivAt.2 hz').mfderiv]
+    -- `ContinuousLinearMap.smulRight_apply` does not rewrite here, as the argument `1` lives in
+    -- `TangentSpace 𝓘(ℂ, ℂ) 0`.
+    exact one_smul ℂ z
+  rw [mfderiv_comp (0 : ℂ) ((contMDiff_blowdown 1).mdifferentiableAt one_ne_zero)
+    (hγ.mdifferentiableAt one_ne_zero), hγ₀] at hd
+  exact ⟨_, hd⟩
+
+/-- The differential of `blowdown` at `zeroSection ℓ` is not zero: its image has positive
+dimension. -/
+private theorem one_le_finrank_range_mfderiv_blowdown (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    1 ≤ Module.finrank ℂ (LinearMap.range
+      (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown
+        (zeroSection ℓ)).toLinearMap) := by
+  have : Module.Finite ℂ (TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) (zeroSection ℓ)) :=
+    inferInstanceAs (Module.Finite ℂ (Fin (n + 1) → ℂ))
+  obtain ⟨v, hv⟩ := exists_mfderiv_blowdown_zeroSection_eq ℓ (ℓ.submodule_eq ▸
+    Submodule.mem_span_singleton_self ℓ.rep)
+  exact Module.finrank_pos_iff_exists_ne_zero.2
+    ⟨⟨_, v, rfl⟩, fun h => ℓ.rep_ne_zero (hv ▸ congrArg Subtype.val h)⟩
+
+variable (n) in
+/-- The tangent image of the zero section at `ℓ` has dimension `n`. -/
+private theorem finrank_range_mfderiv_zeroSection (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    Module.finrank ℂ (LinearMap.range
+      (mfderiv 𝓘(ℂ, Fin n → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) zeroSection ℓ).toLinearMap) = n := by
+  have hi := (zeroSectionEmbedding n).isImmersion.mfderiv_injective (by simp) ℓ
+  rw [coe_zeroSectionEmbedding] at hi
+  rw [LinearMap.finrank_range_of_inj hi]
+  exact Module.finrank_fin_fun ℂ
+
+/-- Rank–nullity for the differential of `blowdown` at `zeroSection ℓ`. -/
+private theorem finrank_range_add_finrank_ker_mfderiv_blowdown (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    Module.finrank ℂ (LinearMap.range
+        (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown
+          (zeroSection ℓ)).toLinearMap) +
+      Module.finrank ℂ (LinearMap.ker
+        (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown
+          (zeroSection ℓ)).toLinearMap) =
+      n + 1 :=
+  (LinearMap.finrank_range_add_finrank_ker
+    (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown
+      (zeroSection ℓ)).toLinearMap).trans (Module.finrank_fin_fun ℂ)
+
+/-- The kernel of the differential of `blowdown` at the point `zeroSection ℓ` of the exceptional
+divisor is the tangent image of the zero section. -/
+theorem ker_mfderiv_blowdown_zeroSection (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    LinearMap.ker
+        (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown
+          (zeroSection ℓ)).toLinearMap =
+      LinearMap.range
+        (mfderiv 𝓘(ℂ, Fin n → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) zeroSection ℓ).toLinearMap := by
+  have hle : LinearMap.range
+        (mfderiv 𝓘(ℂ, Fin n → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) zeroSection ℓ).toLinearMap ≤
+      LinearMap.ker
+        (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown
+          (zeroSection ℓ)).toLinearMap := by
+    rintro _ ⟨v, rfl⟩
+    exact congrArg (· v) (mfderiv_blowdown_comp_mfderiv_zeroSection ℓ)
+  have : FiniteDimensional ℂ (TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) (zeroSection ℓ)) :=
+    inferInstanceAs (FiniteDimensional ℂ (Fin (n + 1) → ℂ))
+  have hrk := finrank_range_add_finrank_ker_mfderiv_blowdown ℓ
+  have h₁ := one_le_finrank_range_mfderiv_blowdown ℓ
+  have h₂ := finrank_range_mfderiv_zeroSection n ℓ
+  exact (Submodule.eq_of_le_of_finrank_le hle (by omega)).symm
+
+/-- The differential of `blowdown` at the point `zeroSection ℓ` of the exceptional divisor takes
+its values in the line `ℓ`. With `exists_mfderiv_blowdown_zeroSection_eq`, its image is `ℓ`. -/
+theorem mfderiv_blowdown_zeroSection_mem (ℓ : ℙ ℂ (Fin (n + 1) → ℂ))
+    (v : TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) (zeroSection ℓ)) :
+    mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown (zeroSection ℓ) v ∈
+      ℓ.submodule := by
+  have hrk := finrank_range_add_finrank_ker_mfderiv_blowdown ℓ
+  rw [ker_mfderiv_blowdown_zeroSection, finrank_range_mfderiv_zeroSection n ℓ] at hrk
+  obtain ⟨w, hw⟩ := exists_mfderiv_blowdown_zeroSection_eq ℓ (ℓ.submodule_eq ▸
+    Submodule.mem_span_singleton_self ℓ.rep)
+  obtain ⟨c, hc⟩ := (finrank_eq_one_iff_of_ne_zero' (⟨_, w, rfl⟩ : LinearMap.range
+      (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown
+        (zeroSection ℓ)).toLinearMap)
+    fun h => ℓ.rep_ne_zero (hw ▸ congrArg Subtype.val h)).1
+      (Nat.add_right_cancel (hrk.trans (Nat.add_comm n 1))) ⟨_, v, rfl⟩
+  have hc' : c • (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown
+      (zeroSection ℓ) w : Fin (n + 1) → ℂ) =
+        mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown (zeroSection ℓ) v :=
+    congrArg Subtype.val hc
+  rw [hw] at hc'
+  convert ℓ.submodule.smul_mem c (ℓ.submodule_eq ▸ Submodule.mem_span_singleton_self ℓ.rep)
+    using 0
+  exact Iff.of_eq (congrArg (· ∈ ℓ.submodule) hc'.symm)
+
+/-- The differential of `blowdown` at `zeroSection ℓ`, as a map into the line `ℓ`. -/
+private noncomputable def mfderivBlowdownZeroSection (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) (zeroSectionEmbedding n ℓ) →L[ℂ]
+      Projectivization.Tautological ℂ (Fin (n + 1) → ℂ) ℓ :=
+  (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown (zeroSection ℓ)).codRestrict
+    ℓ.submodule (mfderiv_blowdown_zeroSection_mem ℓ)
+
+private theorem coe_mfderivBlowdownZeroSection_apply (ℓ : ℙ ℂ (Fin (n + 1) → ℂ))
+    (v : TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) (zeroSectionEmbedding n ℓ)) :
+    (mfderivBlowdownZeroSection ℓ v : Fin (n + 1) → ℂ) =
+      mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown (zeroSection ℓ) v :=
+  (rfl)
+
+private theorem mfderivBlowdownZeroSection_eq_zero_iff (ℓ : ℙ ℂ (Fin (n + 1) → ℂ))
+    (v : TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) (zeroSectionEmbedding n ℓ)) :
+    mfderivBlowdownZeroSection ℓ v = 0 ↔ v ∈ (zeroSectionEmbedding n).tangentRange ℓ (by simp) := by
+  have h := SetLike.ext_iff.1 (ker_mfderiv_blowdown_zeroSection ℓ) v
+  rw [← Subtype.coe_inj, coe_mfderivBlowdownZeroSection_apply, ZeroMemClass.coe_zero,
+    TauCeti.SmoothEmbedding.mem_tangentRange_iff, coe_zeroSectionEmbedding]
+  exact h
+
+variable (n) in
+private theorem finrank_normalSpace_zeroSectionEmbedding (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    Module.finrank ℂ ((zeroSectionEmbedding n).NormalSpace ℓ (by simp)) =
+      Module.finrank ℂ ℓ.submodule := by
+  have h₁ : Module.finrank ℂ
+      (TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) (zeroSectionEmbedding n ℓ)) = n + 1 :=
+    Module.finrank_fin_fun ℂ
+  have h₂ : Module.finrank ℂ (TangentSpace 𝓘(ℂ, Fin n → ℂ) ℓ) = n := Module.finrank_fin_fun ℂ
+  rw [TauCeti.SmoothEmbedding.finrank_normalSpace, h₁, h₂, Projectivization.finrank_submodule]
+  omega
+
+variable (n) in
+/-- **The normal bundle of the exceptional divisor is the tautological line.** The
+complex-linear isomorphism from the normal space at `ℓ` of the zero section
+`zeroSectionEmbedding n` of the model blowup, Tau Ceti's `SmoothEmbedding.NormalSpace`, onto the
+line `ℓ`, the fibre `Projectivization.Tautological ℂ E ℓ` of the tautological line. It sends the
+class of a tangent vector `v` at `zeroSection ℓ` to the differential of `blowdown` at
+`zeroSection ℓ` applied to `v` (`normalSpaceZeroSectionEquiv_normalClass`).
+
+Of the milestone *Tautological line bundle and the exceptional divisor*, this states that the
+normal space of the exceptional divisor at each of its points is the corresponding fibre of the
+tautological line. -/
+noncomputable def normalSpaceZeroSectionEquiv (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    (zeroSectionEmbedding n).NormalSpace ℓ (by simp) ≃L[ℂ]
+      Projectivization.Tautological ℂ (Fin (n + 1) → ℂ) ℓ :=
+  (zeroSectionEmbedding n).normalSpaceEquivOfKer ℓ (by simp) (mfderivBlowdownZeroSection ℓ)
+    (mfderivBlowdownZeroSection_eq_zero_iff ℓ) (finrank_normalSpace_zeroSectionEmbedding n ℓ)
+
+/-- `normalSpaceZeroSectionEquiv n ℓ` sends the normal class of a tangent vector `v` at
+`zeroSection ℓ` to the differential of `blowdown` at `zeroSection ℓ` applied to `v`. -/
+@[simp]
+theorem coe_normalSpaceZeroSectionEquiv_normalClass (ℓ : ℙ ℂ (Fin (n + 1) → ℂ))
+    (v : TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) (zeroSectionEmbedding n ℓ)) :
+    (normalSpaceZeroSectionEquiv n ℓ ((zeroSectionEmbedding n).normalClass ℓ (by simp) v) :
+        Fin (n + 1) → ℂ) =
+      mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown (zeroSection ℓ) v := by
+  rw [normalSpaceZeroSectionEquiv, TauCeti.SmoothEmbedding.normalSpaceEquivOfKer_normalClass,
+    coe_mfderivBlowdownZeroSection_apply]
 
 end BlowupModel
 
