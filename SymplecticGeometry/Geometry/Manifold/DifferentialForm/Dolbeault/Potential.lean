@@ -40,7 +40,7 @@ In the namespace `TauCeti.SmoothAlmostComplexStructure`:
 
 * `dC_mapCoeff_ofReal`: `dᶜ f = -df ∘ J`, for every almost complex structure.
 * `potentialForm`: the real two-form `J.potentialForm f = (1/4) d (J.covectorComplexStructure
-  (d f))` of a potential `f`, closed and linear in `f`.
+  (d f))` of a potential `f`, closed and `ℝ`-linear in `f`.
 * `del_delBar_mapCoeff_ofReal_of_mextDerivₗ_eq_del_add_delBar`:
   `(i/2) ∂∂bar f` is the complexification of `J.potentialForm f` wherever `d = ∂ + ∂bar` on
   one-forms.
@@ -68,7 +68,7 @@ In the namespace `TauCeti`:
 * `coe_mextDerivₗ_covectorComplexStructure_eq_two_smul_ddbarForm`: on a complex manifold,
   `ω_f = 2 • TauCeti.ddbarForm V u`, for the function `u` underlying `f`, from
   `dC_mapCoeff_ofReal` and Tau Ceti's `ddbarForm_apply_eq_inv_two_smul_mextDerivₗ_dC_apply`;
-  hence `SmoothAlmostComplexStructure.coe_potentialForm_ofComplexManifold`: the form of a
+  hence `SmoothAlmostComplexStructure.coe_potentialForm_eq_inv_two_smul_ddbarForm`: the form of a
   potential `u` is `(1/2) • TauCeti.ddbarForm V u`.
 
 ## References
@@ -107,9 +107,9 @@ theorem dC_mapCoeff_ofReal (f : SmoothForm I M ℝ 0) :
 /-- The form `(1/4) d (J* d f)` of a real potential `f`, where `J*` is the almost complex
 structure `a ↦ -a ∘ J` on real one-forms. Wherever `d = ∂ + ∂bar` on one-forms, its
 complexification is `(i/2) ∂∂bar f`
-(`del_delBar_mapCoeff_ofReal_of_mextDerivₗ_eq_del_add_delBar`). -/
-noncomputable def potentialForm (f : SmoothForm I M ℝ 0) : SmoothForm I M ℝ 2 :=
-  (4 : ℝ)⁻¹ • mextDerivₗ I 1 (J.covectorComplexStructure (mextDerivₗ I 0 f))
+(`del_delBar_mapCoeff_ofReal_of_mextDerivₗ_eq_del_add_delBar`). It is `ℝ`-linear in `f`. -/
+noncomputable def potentialForm : SmoothForm I M ℝ 0 →ₗ[ℝ] SmoothForm I M ℝ 2 :=
+  (4 : ℝ)⁻¹ • (mextDerivₗ I 1 ∘ₗ J.covectorComplexStructure.toLinearMap ∘ₗ mextDerivₗ I 0)
 
 theorem potentialForm_def (f : SmoothForm I M ℝ 0) :
     J.potentialForm f =
@@ -117,18 +117,9 @@ theorem potentialForm_def (f : SmoothForm I M ℝ 0) :
   (rfl)
 
 /-- The form of a potential is closed. -/
-theorem isClosed_potentialForm (f : SmoothForm I M ℝ 0) : (J.potentialForm f).IsClosed :=
-  (SmoothForm.isClosed_mextDerivₗ _).smul _
-
-/-- The form of a potential is additive in the potential. -/
-theorem potentialForm_add (f g : SmoothForm I M ℝ 0) :
-    J.potentialForm (f + g) = J.potentialForm f + J.potentialForm g := by
-  simp only [potentialForm_def, map_add, smul_add]
-
-/-- The form of a potential is homogeneous in the potential. -/
-theorem potentialForm_smul (c : ℝ) (f : SmoothForm I M ℝ 0) :
-    J.potentialForm (c • f) = c • J.potentialForm f := by
-  simp only [potentialForm_def, map_smul, smul_comm c]
+theorem isClosed_potentialForm (f : SmoothForm I M ℝ 0) : (J.potentialForm f).IsClosed := by
+  rw [potentialForm_def]
+  exact (SmoothForm.isClosed_mextDerivₗ _).smul _
 
 variable {J}
 
@@ -288,8 +279,8 @@ theorem coe_mextDerivₗ_covectorComplexStructure_eq_two_smul_ddbarForm {u : N �
 
 /-- On a complex manifold, the form of a real potential `u`, given by the smooth `0`-form `f`,
 is half of Tau Ceti's real (1,1)-form `TauCeti.ddbarForm V u`, that is, `(i/2) ∂∂bar u`. -/
-theorem SmoothAlmostComplexStructure.coe_potentialForm_ofComplexManifold {u : N → ℝ}
-    (f : SmoothForm 𝓘(ℝ, V) N ℝ 0) (hf : ∀ y, f.val y 0 = u y) :
+theorem SmoothAlmostComplexStructure.coe_potentialForm_eq_inv_two_smul_ddbarForm
+    {u : N → ℝ} (f : SmoothForm 𝓘(ℝ, V) N ℝ 0) (hf : ∀ y, f.val y 0 = u y) :
     ((ofComplexManifold V N).potentialForm f).val = (2 : ℝ)⁻¹ • ddbarForm V u := by
   rw [potentialForm_def, SmoothForm.smul_toRoughForm,
     coe_mextDerivₗ_covectorComplexStructure_eq_two_smul_ddbarForm f hf, smul_smul]

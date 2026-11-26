@@ -43,7 +43,7 @@ blowup constructions read the forms they build off `Z` in these terms.
   (`Geometry/Manifold/Complex/RadialPotential.lean`), where `J*` is `covectorComplexStructure`,
   the real form of `dᶜ`: it is `potentialForm` of that potential. By `Dolbeault/Potential.lean`
   it is `(i/2) ∂∂bar (g ∘ s)`, and half of Tau Ceti's real (1,1)-form `TauCeti.ddbarForm` of
-  `g ∘ s` (`TauCeti.SmoothAlmostComplexStructure.coe_potentialForm_ofComplexManifold`).
+  `g ∘ s` (`TauCeti.SmoothAlmostComplexStructure.coe_potentialForm_eq_inv_two_smul_ddbarForm`).
 * `SymplecticGeometry.radialPotentialForm_apply`: at `z`, with `s = |z|²`,
   `ω_g(v, w) = g'(s) ω₀(v, w) + g''(s) (⟨z, v⟩ ω₀(z, w) - ⟨z, w⟩ ω₀(z, v))`, the second term
   being the value of `(i/2) ∂s ∧ ∂bar s`. It is read off from the Levi form, since `ddbarForm` is
@@ -159,7 +159,7 @@ theorem radialPotentialForm_apply (g : ℝ → ℝ) (hg : ContDiffOn ℝ ∞ g (
     (contDiffAt_comp_norm_sq_complexToRealEuclidean (hg.of_le (by simp)) z).contMDiffAt
   have hval : ContMDiffAt 𝓘(ℂ, ι → ℂ) 𝓘(ℂ, ι → ℂ) 2
       (Subtype.val : puncturedSpace (ι → ℂ) → _) z := contMDiff_subtypeVal z
-  have key := congrFun (coe_potentialForm_ofComplexManifold
+  have key := congrFun (coe_potentialForm_eq_inv_two_smul_ddbarForm
     (u := (g ∘ s) ∘ Subtype.val) (SmoothForm.ofFunction (radialPotential hg)) (fun y ↦ by
       rw [SmoothForm.coe_ofFunction, RoughForm.ofFunction_apply, coe_radialPotential]
       rfl)) z

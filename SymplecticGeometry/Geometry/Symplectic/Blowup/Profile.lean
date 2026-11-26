@@ -474,7 +474,7 @@ theorem correctionForm_apply_eq_zero {l ε : ℝ} {z : Fin (n + 1) → ℂ}
       rw [correctionPotential_of_not n h]
       exact SmoothBundleForm.ext fun x v ↦ by
         simp [SmoothForm.coe_ofFunction, RoughForm.ofFunction_apply]
-    rw [correctionForm_def, h0, potentialForm_def]
+    rw [correctionForm_def, h0, map_zero]
     simp
   obtain ⟨hl, hε⟩ := h
   have hq := contDiff_blowupCorrection (n := ⊤) hl hε
