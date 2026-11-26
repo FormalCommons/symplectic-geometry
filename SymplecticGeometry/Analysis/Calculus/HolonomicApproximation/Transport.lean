@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Diffeomorph
+public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Group
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.FDeriv
 import TauCeti.Geometry.Manifold.Diffeomorph.NormedSpace
 
@@ -30,7 +31,10 @@ pulling the problem back along `Φ`. This file proves what that transport needs:
 * an approximation `f'` of the pulled-back section gives the approximation `f' ∘ Φ.symm` of
   `(f, G)`, whose error on `w` is the pulled-back error on `fderiv ℝ Φ.symm y w`; so it is at most
   `ε * L * ‖w‖` when the pulled-back error is at most `ε` on vectors in the directions `J` and
-  `‖fderiv ℝ Φ.symm y‖ ≤ L`.
+  `‖fderiv ℝ Φ.symm y‖ ≤ L`;
+* the composite diffeotopy `h₂.transDiffeomorph h₁.final * h₁`, which runs the first diffeotopy
+  `h₁` and then a second one `h₂` conjugated by `Φ = h₁.final`, keeps the core coordinates
+  outside `J` when `h₁` and `h₂` both do.
 
 The facts that hold for every diffeomorphism of a normed space are in
 `SymplecticGeometry.Geometry.Manifold.Diffeomorph.FDeriv`: the pulled-back `G` is smooth by
@@ -41,6 +45,13 @@ The facts that hold for every diffeomorphism of a normed space are in
 `SymplecticGeometry.Geometry.Manifold.Diffeomorph.CompactSupport`. The pulled-back section is
 written out rather than defined; it is the second component of Tau Ceti's
 `ContinuousLinearMap.firstJetPullback` with fibre map the identity and fibre derivative `0`.
+
+The other clauses of that composite hold for diffeotopies of any manifold, and are in
+`SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Support`: its final map is
+`Φ * h₂.final` (`TauCeti.Diffeotopy.final_transDiffeomorph_final_mul`), so it sends a set into
+`Φ '' V` when `h₂.final` sends it into `V`; it is the identity outside `C₁ ∪ Φ '' C₂`, and near a
+set near which both factors are; and its displacement is less than `δ₁ + L * δ₂` when `Φ` is
+`L`-Lipschitz.
 
 ## Main results
 
@@ -53,6 +64,8 @@ written out rather than defined; it is the second component of Tau Ceti's
   the directions `J` where `(f, G)` is.
 * `SymplecticGeometry.norm_fderiv_comp_diffeomorph_symm_sub_apply_le`: the bound on the
   transported error.
+* `SymplecticGeometry.transDiffeomorph_final_mul_apply_fst_apply`: the composite diffeotopy
+  keeps the core coordinates outside `J`.
 
 ## References
 
@@ -148,6 +161,20 @@ theorem norm_fderiv_comp_diffeomorph_symm_sub_apply_le {f' : (Fin m → ℝ) × 
   gcongr
   exact (ContinuousLinearMap.le_opNorm _ _).trans (by gcongr)
 
+
+/-- If the diffeotopies `h₁` and `h₂` of `D` keep the core coordinates outside `J` at every
+time, then so does the composite `h₂.transDiffeomorph h₁.final * h₁`, which runs `h₁` and then
+`h₂` conjugated by the final map of `h₁`. -/
+theorem transDiffeomorph_final_mul_apply_fst_apply
+    {h₁ h₂ : TauCeti.Diffeotopy 𝓘(ℝ, (Fin m → ℝ) × (Fin k → ℝ)) ∞ ((Fin m → ℝ) × (Fin k → ℝ))}
+    (hh₁ : ∀ t x, ∀ i ∉ J, (h₁ (t, x)).1 i = x.1 i)
+    (hh₂ : ∀ t x, ∀ i ∉ J, (h₂ (t, x)).1 i = x.1 i) (t : unitInterval)
+    (x : (Fin m → ℝ) × (Fin k → ℝ)) {i : Fin m} (hi : i ∉ J) :
+    ((h₂.transDiffeomorph h₁.final * h₁) (t, x)).1 i = x.1 i := by
+  have hΦ : ∀ y, ∀ i ∉ J, (h₁.final y).1 i = y.1 i := fun y i hi ↦ by
+    rw [TauCeti.Diffeotopy.final_apply, hh₁ 1 y i hi]
+  rw [TauCeti.Diffeotopy.mul_apply, TauCeti.Diffeotopy.transDiffeomorph_apply, hΦ _ i hi,
+    hh₂ _ _ i hi, diffeomorph_symm_apply_fst_apply hΦ _ hi, hh₁ t x i hi]
 end SymplecticGeometry
 
 end
