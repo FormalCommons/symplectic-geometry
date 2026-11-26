@@ -11,6 +11,7 @@ public import Mathlib.Geometry.Manifold.Instances.Icc
 public import Mathlib.Topology.UnitInterval
 public import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.HomotopyOperator
+public import SymplecticGeometry.Geometry.Symplectic.HPrinciple.AttachingCollar
 import Mathlib.Analysis.Calculus.MeanValue
 import SymplecticGeometry.Analysis.Normed.Group.Pi
 import SymplecticGeometry.Geometry.Manifold.Instances.Icc
@@ -207,14 +208,15 @@ private theorem contMDiff_clip (hf : ContDiff ℝ ∞ f) :
   exact (ht'.smul (hF.contMDiff.comp contMDiff_fst)).add (ht.smul contMDiff_fst)
 
 /-- If `f` is `±1` beyond `R ∈ (0, 1]` and bounded by `1`, applying it to every coordinate sends
-each collar `{x | |‖x.1‖ - 1| < ε ∧ ‖x.2‖ < 1 + ε}` with `ε ≤ 1 - R` into
+each product collar `attachingCollar ι κ ε` with `ε ≤ 1 - R` into
 `sphere 0 1 ×ˢ closedBall 0 1`. -/
 private theorem mapsTo_clip_collar (hodd : Function.Odd f) (hf1 : ∀ s, |f s| ≤ 1) {R : ℝ}
     (hR : 0 < R) (hfR : ∀ s, R ≤ s → f s = 1) {ε : ℝ} (hε : ε ≤ 1 - R) :
     MapsTo (fun x : (ι → ℝ) × (κ → ℝ) ↦ ((fun i ↦ f (x.1 i)), fun j ↦ f (x.2 j)))
-      {x | |‖x.1‖ - 1| < ε ∧ ‖x.2‖ < 1 + ε} (sphere 0 1 ×ˢ closedBall 0 1) := fun x hx ↦
+      (attachingCollar ι κ ε) (sphere 0 1 ×ˢ closedBall 0 1) := fun x hx ↦
   ⟨mem_sphere_zero_iff_norm.2 <|
-      norm_comp_eq_one hodd hf1 hR hfR (by linarith [(abs_lt.1 hx.1).1]),
+      norm_comp_eq_one hodd hf1 hR hfR
+        (by linarith [(abs_lt.1 (mem_attachingCollar_iff.1 hx).1).1]),
     mem_closedBall_zero_iff.2 <| (pi_norm_le_iff_of_nonneg zero_le_one).2 fun j ↦ hf1 _⟩
 
 /-- **The clipping homotopy of the cube onto its attaching faces.** Let `D = (ι → ℝ) × (κ → ℝ)`
@@ -223,8 +225,8 @@ with the sup norms, `Q = closedBall 0 1` and `A = sphere 0 1 ×ˢ closedBall 0 1
 * `Φ (x, t) = (1 - t) • Φ (x, 0) + t • x`: each point moves along the segment from its image
   under `Φ (·, 0)` to itself;
 * `Φ (·, 1)` is the identity, and every `Φ (·, t)` is the identity on `closedBall 0 (1 - 2δ)`;
-* every `Φ (·, t)` maps `A` into `A`, `Q` into `Q`, and each collar
-  `{x | |‖x.1‖ - 1| < ε ∧ ‖x.2‖ < 1 + ε}` into itself;
+* every `Φ (·, t)` maps `A` into `A`, `Q` into `Q`, and each product collar
+  `attachingCollar ι κ ε` into itself;
 * `Φ (·, 0)` maps each such collar with `ε ≤ δ` into `A`;
 * every `Φ (·, t)` moves no point of `Q` by more than `2δ`, and its derivative has norm at most
   `5` everywhere, a bound that does not depend on `δ`. -/
@@ -236,9 +238,8 @@ theorem exists_contMDiff_cubeClipping {δ : ℝ} (hδ : 0 < δ) (hδ₂ : δ ≤
       (∀ t, MapsTo (fun x ↦ Φ (x, t)) (sphere 0 1 ×ˢ closedBall 0 1)
         (sphere 0 1 ×ˢ closedBall 0 1)) ∧
       (∀ t, MapsTo (fun x ↦ Φ (x, t)) (closedBall 0 1) (closedBall 0 1)) ∧
-      (∀ ε t, MapsTo (fun x ↦ Φ (x, t)) {x | |‖x.1‖ - 1| < ε ∧ ‖x.2‖ < 1 + ε}
-        {x | |‖x.1‖ - 1| < ε ∧ ‖x.2‖ < 1 + ε}) ∧
-      (∀ ε ≤ δ, MapsTo (fun x ↦ Φ (x, 0)) {x | |‖x.1‖ - 1| < ε ∧ ‖x.2‖ < 1 + ε}
+      (∀ ε t, MapsTo (fun x ↦ Φ (x, t)) (attachingCollar ι κ ε) (attachingCollar ι κ ε)) ∧
+      (∀ ε ≤ δ, MapsTo (fun x ↦ Φ (x, 0)) (attachingCollar ι κ ε)
         (sphere 0 1 ×ˢ closedBall 0 1)) ∧
       (∀ t, ∀ x ∈ closedBall 0 1, ‖Φ (x, t) - x‖ ≤ 2 * δ) ∧
       ∀ t x, ‖fderiv ℝ (fun x ↦ Φ (x, t)) x‖ ≤ 5 := by
@@ -289,9 +290,10 @@ theorem exists_contMDiff_cubeClipping {δ : ℝ} (hδ : 0 < δ) (hδ₂ : δ ≤
   · obtain ⟨-, hu₂, hv₂⟩ := hb x t
     simp only [mem_closedBall_zero_iff, Prod.norm_def, max_le_iff] at hx ⊢
     exact ⟨hu₂.trans (max_le hx.1 le_rfl), hv₂.trans (max_le hx.2 le_rfl)⟩
-  · obtain ⟨hu, hv⟩ := hx
+  · obtain ⟨hu, hv⟩ := mem_attachingCollar_iff.1 hx
     obtain ⟨hu₁, hu₂, hv₂⟩ := hb x t
-    refine ⟨?_, hv₂.trans_lt (max_lt hv (by linarith [abs_nonneg (‖x.1‖ - 1)]))⟩
+    refine mem_attachingCollar_iff.2
+      ⟨?_, hv₂.trans_lt (max_lt hv (by linarith [abs_nonneg (‖x.1‖ - 1)]))⟩
     rw [abs_lt] at hu ⊢
     rw [min_le_iff] at hu₁
     rw [le_max_iff] at hu₂

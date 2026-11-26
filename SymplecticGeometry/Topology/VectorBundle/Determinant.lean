@@ -10,8 +10,10 @@ public import SymplecticGeometry.Topology.FiberBundle.Pullback
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Conjugate
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.ConjugateExteriorPower
+public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.FiniteTrivializingCover
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.OfBundle
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Tensor
+public import SymplecticGeometry.Topology.VectorBundle.OfTrivializationAt
 
 /-!
 # The determinant line of a vector bundle
@@ -34,6 +36,12 @@ of rank one: Tau Ceti's `TauCeti.FiniteRankBundleCore.det` of the core
   conjugate-linear fibrewise isomorphism between the two determinant lines, continuous on total
   spaces, in the form taken by
   `TauCeti.complexEulerClass_eq_neg_of_finrank_eq_one_of_conjugateFiberwise`;
+* `HasFiniteTrivializingCover.detCore`: the determinant line of a bundle with a finite trivializing
+  cover has one. Its charts are those of the preferred trivializations of `E`, so the proof first
+  makes the members of the given cover the preferred trivializations of `E`, by Tau Ceti's
+  `TauCeti.MapFiber.Atlas.fiberBundleOfHomeomorph` for the identity of the total space and
+  `VectorBundle.ofTrivializationAt`, and then carries the cover of the resulting determinant line
+  back along `detCoreMap` of the identity (`HasFiniteTrivializingCover.of_iso`);
 * `detCoreProdIso`: the determinant line of the direct sum `E₁ ×ᵇ E₂` is the tensor product
   `TauCeti.FiniteRankBundleCore.tensor` of the determinant lines of `E₁` and `E₂`;
 * `detCoreProdFiberEquiv` and `continuous_detCoreProdFiberEquiv`: the resulting linear isomorphism
@@ -154,11 +162,11 @@ section Map
 variable {G₀ : Type*} [NormedAddCommGroup G₀] [NormedSpace 𝕜 G₀] [FiniteDimensional 𝕜 G₀]
   {E₀ : B → Type*} [∀ x, AddCommMonoid (E₀ x)] [∀ x, Module 𝕜 (E₀ x)]
   [∀ x, TopologicalSpace (E₀ x)] [TopologicalSpace (TotalSpace G₀ E₀)]
-  [FiberBundle G₀ E₀] [VectorBundle 𝕜 G₀ E₀]
+  [fb₀ : FiberBundle G₀ E₀] [vb₀ : VectorBundle 𝕜 G₀ E₀]
   {G₁ : Type*} [NormedAddCommGroup G₁] [NormedSpace 𝕜 G₁] [FiniteDimensional 𝕜 G₁]
   {E₁ : B → Type*} [∀ x, AddCommMonoid (E₁ x)] [∀ x, Module 𝕜 (E₁ x)]
   [∀ x, TopologicalSpace (E₁ x)] [TopologicalSpace (TotalSpace G₁ E₁)]
-  [FiberBundle G₁ E₁] [VectorBundle 𝕜 G₁ E₁]
+  [fb₁ : FiberBundle G₁ E₁] [vb₁ : VectorBundle 𝕜 G₁ E₁]
   (hG : finrank 𝕜 G₁ = finrank 𝕜 G₀) (Φ : ∀ x, E₀ x ≃L[𝕜] E₁ x)
   (hΦ : Continuous fun p : TotalSpace G₀ E₀ ↦ TotalSpace.mk' G₁ (E := E₁) p.proj (Φ p.proj p.snd))
 
@@ -231,6 +239,57 @@ theorem fiberMap_detCoreMap_hom_apply (Φ : ∀ x, E x ≃L[𝕜] E₁ x)
     (funext (fiberMap_eqToHom_apply _ x v))
 
 end SameModel
+
+section FiniteTrivializingCover
+
+open Set
+
+variable {𝕜} {G : Type*} [NormedAddCommGroup G] [NormedSpace 𝕜 G] [FiniteDimensional 𝕜 G]
+  {E : B → Type*} [∀ x, AddCommMonoid (E x)] [∀ x, Module 𝕜 (E x)]
+  [∀ x, TopologicalSpace (E x)] [TopologicalSpace (TotalSpace G E)]
+  [fb : FiberBundle G E] [vb : VectorBundle 𝕜 G E]
+
+/-- If the preferred trivializations `trivializationAt G E x` of a vector bundle are finitely
+many, its determinant line has a finite trivializing cover. -/
+theorem hasFiniteTrivializingCover_detCore_of_finite_range
+    (h : (range (trivializationAt G E)).Finite) :
+    HasFiniteTrivializingCover 𝕜 (Fin (detCore 𝕜 G E).rank → 𝕜) (detCore 𝕜 G E).core.Fiber := by
+  have := h.to_subtype
+  -- A point of `B` at which each trivialization of the range is the preferred one.
+  choose y hy using fun t : range (trivializationAt G E) ↦ t.property
+  refine .of_finite (fun t ↦ (detCore 𝕜 G E).core.localTriv (y t))
+    (eq_univ_of_forall fun x ↦ mem_iUnion.2 ⟨⟨_, mem_range_self x⟩, ?_⟩)
+  rw [detCore_def, localTriv_baseSet_det, VectorBundleCore.baseSet_at,
+    localTriv_baseSet_ofBundleOfFinrankEq, hy]
+  exact mem_baseSet_trivializationAt G E x
+
+/-- If a vector bundle with finite-dimensional model has a finite trivializing cover, so does its
+determinant line. -/
+theorem HasFiniteTrivializingCover.detCore (h : HasFiniteTrivializingCover 𝕜 G E) :
+    HasFiniteTrivializingCover 𝕜 (Fin (detCore 𝕜 G E).rank → 𝕜) (detCore 𝕜 G E).core.Fiber := by
+  obtain ⟨s, hlin, hcover⟩ := (hasFiniteTrivializingCover_def 𝕜 G E).1 h
+  have hc : ∀ x, ∃ e : s, x ∈ (e : Trivialization G (π G E)).baseSet := fun x ↦ by
+    simpa using (hcover ▸ mem_univ x : x ∈ ⋃ e ∈ s, e.baseSet)
+  choose c hc using hc
+  have : ∀ x, (c x : Trivialization G (π G E)).IsLinear 𝕜 := fun x ↦ hlin _ (c x).property
+  -- The atlas of `E` whose trivialization at `x` is `c x`, taken from `s`, and the fibre bundle
+  -- and vector bundle structures on `E` it gives. They are passed by name below, since the given
+  -- structures are instances on the same types, and instance search cannot tell them apart.
+  let A : TauCeti.MapFiber.Atlas G (π G E) := ⟨fun x ↦ c x, hc⟩
+  let FB := A.fiberBundleOfHomeomorph (Homeomorph.refl _) (fun _ ↦ rfl)
+    (FiberBundle.totalSpaceMk_isInducing G E)
+  have VB := VectorBundle.ofTrivializationAt (𝕜 := 𝕜) (fun x ↦ (c x : Trivialization G (π G E))) hc
+  have hat (x : B) : (letI := FB; trivializationAt G E x) = c x :=
+    A.trivializationAt_fiberBundleOfHomeomorph_refl _ x
+  have hfin : (letI := FB; range (trivializationAt G E)).Finite :=
+    congrArg range (funext hat) ▸
+      s.finite_toSet.subset (range_subset_iff.2 fun x ↦ (c x).property)
+  -- The identity of `E` identifies the determinant lines of the two structures.
+  exact (hasFiniteTrivializingCover_detCore_of_finite_range (fb := FB) (vb := VB) hfin).of_iso
+    (detCoreMap (fb₀ := FB) (vb₀ := VB) (fb₁ := fb) (vb₁ := vb) rfl (fun x ↦ .refl 𝕜 (E x))
+      continuous_id)
+
+end FiniteTrivializingCover
 
 section Pullback
 

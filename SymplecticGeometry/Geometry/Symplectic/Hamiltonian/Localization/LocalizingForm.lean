@@ -19,6 +19,7 @@ import SymplecticGeometry.Geometry.Manifold.GroupAction.InvariantOneForm
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Localization.Weights
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.WeightModel.Basic
 import SymplecticGeometry.Topology.Algebra.ConstMulAction
+import SymplecticGeometry.Topology.OpenPartialHomeomorph.Separation
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Symplectic.Manifold.NeighborhoodGerm
 import SymplecticGeometry.Analysis.Complex.Euclidean.Space
@@ -362,31 +363,24 @@ private theorem exists_smul_invariant_cutoffs_weightCharts {G : Type*} [Group G]
       (∀ i (g : G) x, ρ i (g • x) = ρ i x) ∧ (∀ i, tsupport (ρ i) ⊆ (Φ i).target) ∧
       (∀ i j x, ρ i x ≠ 0 → ρ j x ≠ 0 → i = j) ∧
       ∀ i, ∃ s > 0, ball 0 s ⊆ (Φ i).source ∧ ∀ z ∈ ball 0 s, ρ i (Φ i z) = 1 := by
-  -- Disjoint open neighbourhoods of the centres, and a ball about `0` in each chart that `Φ i`
-  -- sends into the neighbourhood of its centre.
-  obtain ⟨U, hU, hdisj⟩ := (Set.finite_range fun i ↦ Φ i 0).t2_separation
-  have hc (i : ι) : ∃ c > 0, ball (0 : StdSpace (Fin (n i))) c ⊆
-      (Φ i).source ∩ Φ i ⁻¹' U (Φ i 0) :=
-    Metric.isOpen_iff.1 ((Φ i).toOpenPartialHomeomorph.isOpen_inter_preimage (hU _).2) 0
-      ⟨h0 i, (hU _).1⟩
-  choose c hc0 hc using hc
+  -- Balls about `0` in the sources with pairwise disjoint images under the charts.
+  obtain ⟨c, hc0, hc, hdisj⟩ := OpenPartialHomeomorph.exists_pairwise_disjoint_image_ball
+    (fun i ↦ (Φ i).toOpenPartialHomeomorph) h0 hinj
   have hb (i : ι) : closedBall (0 : StdSpace (Fin (n i))) (c i / 2) ⊆ ball 0 (c i) :=
     closedBall_subset_ball (by linarith [hc0 i])
   choose ρ hρ h01 hinv h1 hsupp using fun i ↦
     exists_smul_invariant_cutoff_weightChart (χ i) (Φ i) (hequiv i) (a := c i / 4)
-      (b := c i / 2) (by linarith [hc0 i]) (by linarith [hc0 i])
-      (((hb i).trans (hc i)).trans inter_subset_left)
-  have hsU (i : ι) : tsupport (ρ i) ⊆ (Φ i).target ∩ U (Φ i 0) := by
+      (b := c i / 2) (by linarith [hc0 i]) (by linarith [hc0 i]) ((hb i).trans (hc i))
+  have hsU (i : ι) : tsupport (ρ i) ⊆ (Φ i).target ∩ Φ i '' ball 0 (c i) := by
     intro x hx
     obtain ⟨z, hz, rfl⟩ := hsupp i hx
-    have hz' := hc i (hb i hz)
-    exact ⟨(Φ i).map_source hz'.1, hz'.2⟩
+    exact ⟨(Φ i).map_source (hc i (hb i hz)), mem_image_of_mem _ (hb i hz)⟩
   refine ⟨ρ, hρ, h01, hinv, fun i ↦ (hsU i).trans inter_subset_left, fun i j x hi hj ↦ ?_,
     fun i ↦ ⟨c i / 4, by linarith [hc0 i], ?_, fun z hz ↦ ?_⟩⟩
   · by_contra hij
-    exact Set.disjoint_left.1 (hdisj (mem_range_self i) (mem_range_self j) (hinj.ne hij))
-      (hsU i (subset_tsupport _ hi)).2 (hsU j (subset_tsupport _ hj)).2
-  · exact ((ball_subset_ball (by linarith [hc0 i])).trans (hc i)).trans inter_subset_left
+    exact Set.disjoint_left.1 (hdisj hij) (hsU i (subset_tsupport _ hi)).2
+      (hsU j (subset_tsupport _ hj)).2
+  · exact (ball_subset_ball (by linarith [hc0 i])).trans (hc i)
   · exact h1 i (mem_image_of_mem _ (ball_subset_closedBall hz))
 
 variable [FiniteDimensional ℝ E] [I.Boundaryless] [IsManifold I ∞ M]

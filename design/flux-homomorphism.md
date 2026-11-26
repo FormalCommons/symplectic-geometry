@@ -248,9 +248,9 @@ Throughout, `[FiniteDimensional ℝ E] [J.Boundaryless] [T2Space M]
   (Theorem 10.2.5): for `σ` nondegenerate and `Φ` preserving `σ` at every
   time with `Φ.flux σ _ = 0`, there is `Ψ` with `Ψ.IsHamiltonian σ.val`
   and `Φ.Homotopic Ψ` (so `Ψ.final = Φ.final`, by `Homotopic.final_eq`).
-- `TauCeti.Diffeotopy.final_mem_hamiltonianGroup_of_flux_eq_zero`: the
+- `TauCeti.Diffeotopy.final_mem_hamiltonianGroup_of_flux_eq_zero'`: the
   same hypotheses give `Φ.final ∈ SmoothForm.hamiltonianGroup σ.val`.
-- `TauCeti.ker_endpointFlux`: for `σ` nondegenerate,
+- `TauCeti.ker_endpointFlux'`: for `σ` nondegenerate,
   `(endpointFlux σ).ker = (SmoothForm.hamiltonianGroup σ.val).subgroupOf
   (SmoothForm.isotopyStabilizer σ.val)`, from `mem_ker_endpointFlux_iff`
   and `hamiltonianGroup_subgroupOf_le_ker_endpointFlux`.
@@ -311,7 +311,7 @@ Each is a few hundred lines; each is blocked by the issues it names.
    Blocked by 1.
 3. **Theorem 10.2.5 and the kernel of the endpoint flux.** In
    `Kernel.lean`: `exists_isHamiltonian_homotopic_of_flux_eq_zero`,
-   `final_mem_hamiltonianGroup_of_flux_eq_zero` and `ker_endpointFlux`.
+   `final_mem_hamiltonianGroup_of_flux_eq_zero'` and `ker_endpointFlux'`.
    About 350 lines. Blocked by 2.
 4. **Rectangle integrals as periods.** `SmoothSingular/Rectangle.lean`,
    all of it. About 350 lines. No blockers.

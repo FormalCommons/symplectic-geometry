@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.AlgebraicTopology.FundamentalGroupoid.SimplyConnected
-public import TauCeti.Topology.ComplexProjectiveSpace.Projectivization
+public import SymplecticGeometry.Topology.ComplexProjectiveSpace.Homeomorph
 import TauCeti.Topology.ComplexProjectiveSpace.Hopf.Exact
 
 /-!
@@ -14,11 +14,9 @@ import TauCeti.Topology.ComplexProjectiveSpace.Hopf.Exact
 
 Tau Ceti proves that its sphere-quotient model `ComplexProjectiveSpace m` of `ℂℙᵐ` is simply
 connected (`TauCeti.ComplexProjectiveSpace.instSimplyConnectedSpace`). This file carries that
-across Tau Ceti's homeomorphism `TauCeti.ComplexProjectiveSpace.homeomorphProjectivization` to
-the projectivization `ℙ ℂ (Fin (m + 1) → ℂ)`, and from there, along the homeomorphism
-`ContinuousLinearEquiv.mapProjectivization` induced by a continuous linear equivalence
-`V ≃L[ℂ] (Fin (m + 1) → ℂ)`, to the projectivization `ℙ ℂ V` of every nonzero
-finite-dimensional Hausdorff complex topological vector space `V`, as an instance.
+along the homeomorphism `Projectivization.complexProjectiveSpaceHomeomorph` to the
+projectivization `ℙ ℂ V` of every nonzero finite-dimensional Hausdorff complex topological vector
+space `V`, as an instance.
 -/
 
 public section
@@ -33,12 +31,8 @@ instance instSimplyConnectedSpaceComplex {V : Type*} [AddCommGroup V] [Module �
     [TopologicalSpace V] [IsTopologicalAddGroup V] [ContinuousSMul ℂ V] [T2Space V]
     [FiniteDimensional ℂ V] [Nontrivial V] : SimplyConnectedSpace (ℙ ℂ V) := by
   obtain ⟨m, hV⟩ := Nat.exists_eq_succ_of_ne_zero (Module.finrank_pos (R := ℂ) (M := V)).ne'
-  have : SimplyConnectedSpace (ℙ ℂ (Fin (m + 1) → ℂ)) :=
-    (TauCeti.ComplexProjectiveSpace.homeomorphProjectivization m).toHomotopyEquiv
-      |>.simplyConnectedSpace_iff.1 inferInstance
-  exact (ContinuousLinearEquiv.ofFinrankEq (𝕜 := ℂ) (E := V) (F := Fin (m + 1) → ℂ)
-    (by rw [Module.finrank_fin_fun, hV])).mapProjectivization.toHomotopyEquiv
-      |>.simplyConnectedSpace_iff.2 this
+  exact (complexProjectiveSpaceHomeomorph hV).toHomotopyEquiv.simplyConnectedSpace_iff.1
+    inferInstance
 
 end Projectivization
 

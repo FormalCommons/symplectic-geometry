@@ -29,7 +29,7 @@ against the versions pinned when this file was written (Tau Ceti
   describe them. In `Geometry/Manifold/FiberBundle/MapFiber.lean`: an
   atlas `A` of `π` with fibre $F$ (`TauCeti.MapFiber.Atlas`), smooth in
   the sense of `A.IsContMDiff`, and for a chart `e` of `A` and
-  `b ∈ e.baseSet` the fibre inclusion `e.fiberInclusion hb`, written
+  `b ∈ e.baseSet` the fibre inclusion `e.fiberInclusionMap hb`, written
   $j_{e,b}:F\to M$, $v\mapsto e^{-1}(b,v)$. In
   `Geometry/Manifold/FiberBundle/StructureGroup.lean`: structure groups,
   so that symplectic atlases for $(F,\sigma)$ are those with structure
