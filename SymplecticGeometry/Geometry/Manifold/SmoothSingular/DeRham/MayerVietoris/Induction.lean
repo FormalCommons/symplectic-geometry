@@ -270,17 +270,16 @@ theorem bijective_deRhamHom [SigmaCompactSpace M] (hM : HasFiniteGoodCover I M) 
 variable [CompactSpace M] [BoundarylessManifold I M]
 
 /-- **The de Rham theorem for compact manifolds.** On a compact Hausdorff boundaryless smooth
-manifold, modelled on a finite-dimensional real normed space, the de Rham homomorphism is
+manifold, modelled on a finite-dimensional real model with corners, the de Rham homomorphism is
 bijective in every degree. -/
 theorem bijective_deRhamHom_of_compactSpace (k : ℕ) : Function.Bijective (deRhamHom I M k) :=
   bijective_deRhamHom hasFiniteGoodCover_of_compactSpace k
 
 /-- On a compact Hausdorff boundaryless smooth manifold, modelled on a finite-dimensional real
-normed space, the de Rham homomorphism is injective in every degree: a closed form whose image in
-real singular cohomology vanishes is exact. -/
+model with corners, the de Rham homomorphism is injective in every degree: a de Rham class whose
+image in real singular cohomology vanishes is zero. -/
 theorem injective_deRhamHom (k : ℕ) : Function.Injective (deRhamHom I M k) :=
   (bijective_deRhamHom_of_compactSpace k).1
-
 
 end GoodCover
 
