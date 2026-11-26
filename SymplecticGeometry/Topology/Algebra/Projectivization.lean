@@ -12,7 +12,7 @@ public import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
 public import TauCeti.Topology.Algebra.Projectivization
 
 /-!
-# Continuity of the normalized representative
+# Topology of projective space: normalized representatives and induced maps
 
 The representative `Projectivization.normalizedRep φ x` of a point `x` of `ℙ K V` on which a
 continuous linear form `φ` takes the value `1` depends continuously on `x`, on the open set
@@ -69,7 +69,12 @@ It is exposed so that `mapContinuousMap f hf x` and `map f hf x` agree by defini
     C(ℙ 𝕜 V, ℙ 𝕜 W) :=
   ⟨map f hf, continuous_map hf (LinearMap.continuous_of_finiteDimensional f)⟩
 
+/-- The underlying function of `mapContinuousMap f hf` is `Projectivization.map f hf`. -/
 @[simp]
+theorem coe_mapContinuousMap (f : V →ₗ[𝕜] W) (hf : Function.Injective f) :
+    ⇑(mapContinuousMap f hf) = map f hf :=
+  (rfl)
+
 theorem mapContinuousMap_apply (f : V →ₗ[𝕜] W) (hf : Function.Injective f) (x : ℙ 𝕜 V) :
     mapContinuousMap f hf x = map f hf x :=
   (rfl)
@@ -80,6 +85,7 @@ theorem mapContinuousMap_id :
       ContinuousMap.id (ℙ 𝕜 V) :=
   ContinuousMap.ext fun x ↦ congrFun map_id x
 
+@[simp]
 theorem mapContinuousMap_comp [AddCommGroup U] [Module 𝕜 U] [TopologicalSpace U]
     [IsTopologicalAddGroup U] [ContinuousSMul 𝕜 U] [T2Space W] [FiniteDimensional 𝕜 W]
     (f : V →ₗ[𝕜] W) (hf : Function.Injective f) (g : W →ₗ[𝕜] U) (hg : Function.Injective g) :
