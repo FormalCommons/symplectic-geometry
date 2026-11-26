@@ -43,8 +43,10 @@ each density being the value of the form on the derivatives of the curve along `
   differentiable at `t` with `u t ≠ 0`, the density of the pull-back of `ω̃_{l,ε}` along
   `curveLift u` is `g'(s) |v|² + g''(s) |star (u t) ⬝ᵥ v|²`, with `s = |u t|²` and `v = u'(t)`.
   By `mfderiv_curveLift_of_ne_zero` the derivative of the lift at `t` is that of the inverse of
-  the blowdown off the divisor, along which `ω̃_{l,ε}` pulls back to the radial potential form
-  of `g` (`mpullback_blowdownDiffeomorph_symm_profileForm`); its value on `(v, i v)` is
+  the blowdown off the divisor, the same for `blowdownPuncturedDiffeomorph`
+  (`mfderiv_subtypeVal_comp_blowdownPuncturedDiffeomorph_symm_apply`), along whose inverse
+  `ω̃_{l,ε}` pulls back to the radial potential form of `g`
+  (`mpullback_blowdownDiffeomorph_symm_profileForm`); its value on `(v, i v)` is
   `radialPotentialForm_apply_I_smul`. Only the derivative of the lift at `t` enters, so no form
   is pulled back along the lift itself, which is smooth only near `t`.
 * `SymplecticGeometry.BlowupModel.eval₂_ω₀E_sub_eval₂_profileForm_curveLift`: for `u` analytic
@@ -171,7 +173,9 @@ theorem eval₂_profileForm_mfderiv_curveLift (hl : 0 < l) (hε : 0 < ε)
     coe_blowdownPuncturedDiffeomorph_symm_apply] at key
   rw [mfderiv_curveLift_of_ne_zero hu h0, mfderiv_curveLift_of_ne_zero hu h0, one_smul,
     curveLift_of_ne_zero h0]
-  exact key.symm
+  exact (congrArg₂ ((profileForm n l ε).eval₂ (ofNeZero h0))
+    (mfderiv_subtypeVal_comp_blowdownPuncturedDiffeomorph_symm_apply _ _).symm
+    (mfderiv_subtypeVal_comp_blowdownPuncturedDiffeomorph_symm_apply _ _).symm).trans key.symm
 
 /-- **The two area densities along a curve differ by a quarter Laplacian.** For `0 < l`, `0 < ε`
 and `u : ℂ → ℂⁿ⁺¹` analytic at `t` with `u t ≠ 0`, the density at `t` of `u^* ω₀` minus that of

@@ -22,6 +22,7 @@ import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import TauCeti.Topology.Order.Sublevel
+import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 import SymplecticGeometry.Analysis.Complex.QuadraticLeviForm
 
 /-!
@@ -67,7 +68,9 @@ to the exceptional divisor `Z`, sets up the neighbourhoods `L(ε)` of `Z`, and i
   `SymplecticGeometry.BlowupModel.integralTopForm_blowupForm_line`: every projective line of the
   divisor has area `π l²`, by `integralTopForm_mpullback_map_fubiniStudyForm`.
 * `SymplecticGeometry.BlowupModel.blowdownPuncturedDiffeomorph n`: `blowdownDiffeomorph n` as a
-  real diffeomorphism from `L ∖ Z` onto `puncturedSpace E`, holomorphic
+  real diffeomorphism from `L ∖ Z` onto `puncturedSpace E`, whose inverse has the real
+  derivative of that of `blowdownDiffeomorph n`
+  (`mfderiv_subtypeVal_comp_blowdownPuncturedDiffeomorph_symm_apply`), holomorphic
   (`SymplecticGeometry.BlowupModel.isPseudoholomorphic_blowdownPuncturedDiffeomorph`), and
   `SymplecticGeometry.BlowupModel.mpullback_blowdownDiffeomorph_symm_blowupForm`: along its
   inverse, `ω̃_l` pulls back to `radialPotentialForm` of `s ↦ s + l² log s`, the sum of
@@ -369,6 +372,27 @@ theorem blowdown_comp_subtypeVal_comp_blowdownPuncturedDiffeomorph_symm :
   funext fun z ↦ by
     rw [Function.comp_apply, Function.comp_apply, coe_blowdownPuncturedDiffeomorph_symm_apply,
       blowdown_ofNeZero]
+
+/-- The real derivative of `(blowdownPuncturedDiffeomorph n).symm`, read in the model, is that of
+`(blowdownDiffeomorph n).symm`, since the two inverses agree on `E ∖ 0`. -/
+theorem mfderiv_subtypeVal_comp_blowdownPuncturedDiffeomorph_symm_apply
+    (z : puncturedSpace (Fin (n + 1) → ℂ)) (v : Fin (n + 1) → ℂ) :
+    mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
+        (Subtype.val ∘ (blowdownPuncturedDiffeomorph n).symm) z v =
+      mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
+        (Subtype.val ∘ (blowdownDiffeomorph n).symm) ⟨z, mem_puncturedSpace.1 z.property⟩ v := by
+  have hle : puncturedSpace (Fin (n + 1) → ℂ) ≤ ⟨{z | z ≠ 0}, isOpen_ne⟩ :=
+    fun _ h ↦ mem_puncturedSpace.1 h
+  have hcomp : Subtype.val ∘ (blowdownPuncturedDiffeomorph n).symm =
+      (Subtype.val ∘ (blowdownDiffeomorph n).symm) ∘ Opens.inclusion hle := funext fun w ↦ by
+    simp
+  have hz : Opens.inclusion hle z = ⟨z, mem_puncturedSpace.1 z.property⟩ :=
+    Subtype.ext (Set.coe_inclusion hle z)
+  exact (congrArg (fun f ↦ mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) f z v) hcomp).trans
+    ((mfderiv_comp_apply_of_eq _ (((contMDiff_subtypeVal.comp
+      (blowdownDiffeomorph n).symm.contMDiff).restrictScalars' ℝ).mdifferentiableAt (by simp))
+      ((contMDiff_inclusion hle).mdifferentiableAt (by simp) (n := ω)) hz v).trans
+      (congrArg _ (Manifold.mfderiv_inclusion_apply hle z v)))
 
 open SmoothAlmostComplexStructure in
 /-- The blowdown, from the complement of the exceptional divisor onto `E ∖ 0`, is holomorphic. -/
