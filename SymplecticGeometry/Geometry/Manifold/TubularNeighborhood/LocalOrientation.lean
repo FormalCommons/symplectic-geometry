@@ -15,8 +15,7 @@ public import TauCeti.Geometry.Manifold.ExtChartAt
 public import SymplecticGeometry.Topology.VectorBundle.Thom.LocalChart
 import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Cross.Sign
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
-import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
 /-!
 # A normalized tube read in a chart, and the orientation it carries
@@ -36,8 +35,9 @@ Read in the chart of `X` at `f z`, this chart has derivative `normalTubeChartDer
 factors exchanged, by Mathlib's `HasFDerivAt.of_local_left_inverse` applied to `Φ` read in the
 two charts. Its inverse is block triangular: it sends a tangent vector `(0, u)` of `Z` to
 the differential of `f` at `z` applied to `u`
-(`normalTubeChartDeriv_symm_apply_zero_left`), and the normal class of the image of `(w, u)` is
-the vector of `ν_z` with coordinate `w` in `e`
+(`normalTubeChartDeriv_symm_apply_zero_left`, from
+`TauCeti.SmoothEmbedding.mfderiv_zeroSection_apply_horizontal_of_apply_zeroSection`), and the
+normal class of the image of `(w, u)` is the vector of `ν_z` with coordinate `w` in `e`
 (`normalClassL_normalTubeChartDeriv_symm_apply`, from
 `TauCeti.SmoothEmbedding.IsNormalizedTube.normalClassL_mfderiv_zeroSection`).
 
@@ -240,27 +240,14 @@ theorem normalTubeChart_apply_eq {x : X} (hx : x ∈ W) :
   rw [normalTubeChart_apply Φ z hx, FiberBundle.extChartAt]
   simp
 
-omit [I.Boundaryless] [J.Boundaryless] in
-/-- A normalized tube takes the value `f z` at `0_z`, so `f z ∈ W`. -/
-private theorem mem_of_isNormalizedTube (hΦ : f.IsNormalizedTube hn hdim Φ) : f z ∈ W := by
-  let := f.normalSpaceFiberBundle hn hdim
-  exact hΦ.apply_zeroSection z ▸ (Φ (zeroSection P _ z)).property
-
-omit [I.Boundaryless] [J.Boundaryless] in
-private theorem symm_eq_zeroSection (hΦ : f.IsNormalizedTube hn hdim Φ) :
-    letI := f.normalSpaceFiberBundle hn hdim
-    Φ.symm ⟨f z, mem_of_isNormalizedTube Φ z hΦ⟩ = zeroSection P _ z := by
-  let := f.normalSpaceFiberBundle hn hdim
-  rw [← Φ.symm_apply_apply (zeroSection P _ z)]
-  exact congrArg Φ.symm (Subtype.ext (hΦ.apply_zeroSection z).symm)
-
 omit [J.Boundaryless] in
 /-- The source of the chart of a normalized tube at `z` contains `f z`. -/
 theorem mem_normalTubeChart_source (hΦ : f.IsNormalizedTube hn hdim Φ) :
     f z ∈ (normalTubeChart Φ z).source := by
   let := f.normalSpaceFiberBundle hn hdim
-  refine (mem_normalTubeChart_source_iff Φ z).2 ⟨mem_of_isNormalizedTube Φ z hΦ, ?_⟩
-  rw [symm_eq_zeroSection Φ z hΦ]
+  have hz := range_subset_of_apply_zeroSection f hn hdim Φ hΦ.apply_zeroSection (mem_range_self z)
+  refine (mem_normalTubeChart_source_iff Φ z).2 ⟨hz, ?_⟩
+  rw [symm_apply_eq_zeroSection_of_apply_zeroSection f hn hdim Φ hΦ.apply_zeroSection z hz]
   exact mem_extChartAt_source _
 
 omit [J.Boundaryless] in
@@ -270,18 +257,11 @@ theorem normalTubeChart_self (hΦ : f.IsNormalizedTube hn hdim Φ) :
     normalTubeChart Φ z (f z) = (0, extChartAt I z z) := by
   let := f.normalSpaceFiberBundle hn hdim
   have := f.normalSpaceVectorBundle hn hdim
-  rw [normalTubeChart_apply_eq Φ z (mem_of_isNormalizedTube Φ z hΦ), symm_eq_zeroSection Φ z hΦ,
+  have hz := range_subset_of_apply_zeroSection f hn hdim Φ hΦ.apply_zeroSection (mem_range_self z)
+  rw [normalTubeChart_apply_eq Φ z hz,
+    symm_apply_eq_zeroSection_of_apply_zeroSection f hn hdim Φ hΦ.apply_zeroSection z hz,
     (trivializationAt P (fun x ↦ f.NormalSpace x hn) z).zeroSection ℝ
       (mem_baseSet_trivializationAt P _ z)]
-
-omit [I.Boundaryless] [J.Boundaryless] in
-/-- The tube is a local diffeomorphism into `X` at each point. -/
-private theorem isLocalDiffeomorphAt_tube
-    (p : letI := f.normalSpaceFiberBundle hn hdim; TotalSpace P (fun x ↦ f.NormalSpace x hn)) :
-    letI := f.normalSpaceFiberBundle hn hdim
-    IsLocalDiffeomorphAt (I.prod 𝓘(ℝ, P)) J ∞ (fun p ↦ (Φ p : X)) p :=
-  letI := f.normalSpaceFiberBundle hn hdim
-  (Φ.isLocalDiffeomorph _).comp (hg := isLocalDiffeomorph_subtype_val (U := W) _)
 
 /-- The derivative of the chart of the tube at `z`, read in the chart of `X` at `f z`: the inverse
 of the differential of `Φ` at `0_z`, the factors of `E × P` exchanged
@@ -289,7 +269,8 @@ of the differential of `Φ` at `0_z`, the factors of `E × P` exchanged
 def normalTubeChartDeriv : V ≃L[ℝ] P × E :=
   letI := f.normalSpaceFiberBundle hn hdim
   ((ContinuousLinearEquiv.prodComm ℝ P E).trans
-    ((isLocalDiffeomorphAt_tube Φ (zeroSection P _ z)).mfderivToContinuousLinearEquiv hn)).symm
+    ((Φ.isLocalDiffeomorph_subtypeVal_comp (zeroSection P _ z)).mfderivToContinuousLinearEquiv
+      hn)).symm
 
 omit [I.Boundaryless] [J.Boundaryless] in
 /-- The inverse of the derivative of the chart of the tube at `z` sends `(w, u)` to the
@@ -305,14 +286,9 @@ omit [I.Boundaryless] [J.Boundaryless] in
 vector `(0, u)` to the differential of `f` at `z` applied to `u`. -/
 theorem normalTubeChartDeriv_symm_apply_zero_left (hΦ : f.IsNormalizedTube hn hdim Φ) (u : E) :
     (normalTubeChartDeriv Φ z).symm (0, u) = mfderiv I J f z u := by
-  let := f.normalSpaceFiberBundle hn hdim
-  have := f.normalSpaceVectorBundle hn hdim
   rw [normalTubeChartDeriv_symm_apply]
-  have hb := Bundle.mfderiv_zeroSectionTangentEquiv_symm_inl
-    ((isLocalDiffeomorphAt_tube Φ (zeroSection P _ z)).mdifferentiableAt (by simp))
-    (g := f) (Filter.Eventually.of_forall hΦ.apply_zeroSection) u
-  rw [Bundle.zeroSectionTangentEquiv_symm_apply, map_zero] at hb
-  exact hb
+  exact mfderiv_zeroSection_apply_horizontal_of_apply_zeroSection f hn hdim Φ hΦ.apply_zeroSection
+    z u
 
 omit [I.Boundaryless] [J.Boundaryless] in
 /-- The inverse of the derivative of the chart of a normalized tube at `z` sends `(w, u)` to a
@@ -345,7 +321,8 @@ theorem hasFDerivAt_normalTubeChart (hΦ : f.IsNormalizedTube hn hdim Φ) :
       (((normalTubeChartDeriv Φ z).symm : P × E →L[ℝ] V).comp
         (ContinuousLinearEquiv.prodComm ℝ E P : E × P →L[ℝ] P × E))
       (extChartAt (I.prod 𝓘(ℝ, P)) p₀ p₀) := by
-    have h := ((isLocalDiffeomorphAt_tube Φ p₀).mdifferentiableAt (by simp)).hasMFDerivAt.2
+    have h :=
+      ((Φ.isLocalDiffeomorph_subtypeVal_comp p₀).mdifferentiableAt (by simp)).hasMFDerivAt.2
     rw [ModelWithCorners.range_eq_univ, hasFDerivWithinAt_univ] at h
     convert h using 1
     refine ContinuousLinearMap.ext fun ⟨u, w⟩ ↦ ?_
@@ -357,7 +334,10 @@ theorem hasFDerivAt_normalTubeChart (hΦ : f.IsNormalizedTube hn hdim Φ) :
     rfl
   have hψ : ContinuousLinearEquiv.prodComm ℝ P E (ψ (f z)) =
       extChartAt (I.prod 𝓘(ℝ, P)) p₀ p₀ := by
-    rw [normalTubeChart_apply Φ z (mem_of_isNormalizedTube Φ z hΦ), symm_eq_zeroSection Φ z hΦ]
+    have hzW :=
+      range_subset_of_apply_zeroSection f hn hdim Φ hΦ.apply_zeroSection (mem_range_self z)
+    rw [normalTubeChart_apply Φ z hzW,
+      symm_apply_eq_zeroSection_of_apply_zeroSection f hn hdim Φ hΦ.apply_zeroSection z hzW]
     simp [p₀]
   rw [← hψ] at h1
   have h2 : HasFDerivAt (writtenInExtChartAt (I.prod 𝓘(ℝ, P)) J p₀ (fun p ↦ (Φ p : X)) ∘
