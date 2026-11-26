@@ -8,6 +8,7 @@ module
 public import Mathlib.Analysis.Complex.Circle
 public import TauCeti.Topology.VectorBundle.FiniteRank.Pullback
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Clutching
+public import SymplecticGeometry.Topology.ContinuousMap.LaurentApproximation
 import SymplecticGeometry.Topology.VectorBundle.FiniteRank.SMul
 
 /-!
@@ -70,21 +71,20 @@ the pullbacks of `A` and `D` to `X × Circle` whose fibre map at `(x, u)` is
 def laurentHom (N : ℕ) (a : ℤ → (A ⟶ D)) :
     A.circlePullback ⟶ D.circlePullback :=
   ∑ i ∈ Finset.Icc (-(N : ℤ)) N,
-    (⟨fun w ↦ ((w.2 ^ i : Circle) : ℂ), by fun_prop⟩ : C(X × Circle, ℂ)) •
-      pullbackMap (a i) ContinuousMap.fst
+    ContinuousMap.laurentMonomial i (1 : C(X, ℂ)) • pullbackMap (a i) ContinuousMap.fst
 
 theorem laurentHom_def (N : ℕ) (a : ℤ → (A ⟶ D)) :
     laurentHom N a = ∑ i ∈ Finset.Icc (-(N : ℤ)) N,
-      (⟨fun w ↦ ((w.2 ^ i : Circle) : ℂ), by fun_prop⟩ : C(X × Circle, ℂ)) •
-        pullbackMap (a i) ContinuousMap.fst :=
+      ContinuousMap.laurentMonomial i (1 : C(X, ℂ)) • pullbackMap (a i) ContinuousMap.fst :=
   (rfl)
 
 @[simp]
 theorem fiberMap_laurentHom (N : ℕ) (a : ℤ → (A ⟶ D)) (w : X × Circle) :
     (laurentHom N a).fiberMap w =
       ∑ i ∈ Finset.Icc (-(N : ℤ)) N, (w.2 : ℂ) ^ i • (a i).fiberMap w.1 := by
-  simp only [laurentHom_def, fiberMap_sum, fiberMap_smul, ContinuousMap.coe_mk,
-    fiberMap_pullbackMap, ContinuousMap.fst_apply, Circle.coe_zpow]
+  simp only [laurentHom_def, fiberMap_sum, fiberMap_smul,
+    ContinuousMap.laurentMonomial_apply, ContinuousMap.one_apply, smul_eq_mul, mul_one,
+    fiberMap_pullbackMap, ContinuousMap.fst_apply]
 
 /-- The Laurent family `∑_{|i| ≤ N} a_i(x) u^i`, multiplied by `u ^ N`, is the polynomial family
 `∑_{0 ≤ j ≤ 2N} a_{j - N}(x) u^j`, fibre by fibre. -/
