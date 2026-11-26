@@ -6,8 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Topology.VectorBundle.Orientation.ThomClass
+public import TauCeti.Topology.VectorBundle.Orientation.RankZero
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Basic
 public import SymplecticGeometry.Topology.VectorBundle.Thom.ChangeOfCoefficients
+import SymplecticGeometry.Topology.VectorBundle.EulerClass
 import SymplecticGeometry.AlgebraicTopology.Cohomology.Local.PointClass
 import TauCeti.Algebra.Module.Equiv.SpanSingleton
 
@@ -48,7 +50,12 @@ structure `ModuleCat.instLinear`. Over a base in `Type`, the canonical class car
 `TopPair.uliftIntegralCohomologyEquiv` is
 `TauCeti.VectorBundleOrientation.intCanonicalThomClass`, again a Thom class
 (`TauCeti.IsThomClass.uliftIntegralCohomologyEquiv`), in degree `finrank ℝ F`, the degree that
-the Thom isomorphism takes.
+the Thom isomorphism takes. In rank zero it is Tau Ceti's
+`TauCeti.VectorBundleOrientation.rankZeroThomClass` with coefficients `ℤ`
+(`TauCeti.VectorBundleOrientation.intCanonicalThomClass_eq_rankZeroThomClass`), so that Tau Ceti's
+rank-zero Euler class `TauCeti.VectorBundleOrientation.rankZeroEulerClass` applies to it. Both are
+determined by their Euler classes, whose values are compared through the fibres with
+`Orientation.singularCohomologyZeroEval_uliftIntegralCohomologyEquiv_modelThomGenerator_zero`.
 
 The construction and the proofs of its properties follow those of Tau Ceti's
 `TauCeti.VectorBundleOrientation.thomClass`, `singularCohomologyMap_fiberThomPairMap_thomClass`,
@@ -89,6 +96,10 @@ The construction and the proofs of its properties follow those of Tau Ceti's
 * `TauCeti.VectorBundleOrientation.isThomClass_intCanonicalThomClass` and
   `TauCeti.VectorBundleOrientation.intCanonicalThomClass_neg`: the integral class is a Thom class,
   and reversing the orientation negates it.
+* `TauCeti.VectorBundleOrientation.intCanonicalThomClass_eq_rankZeroThomClass`: in rank zero the
+  integral class is Tau Ceti's `TauCeti.VectorBundleOrientation.rankZeroThomClass`, and
+  `uliftIntegralCohomologyEquiv_canonicalThomClass_eq_rankZeroThomClass` states the same in degree
+  `0`.
 
 ## References
 
@@ -462,6 +473,62 @@ theorem intCanonicalThomClass_neg :
     (-o).intCanonicalThomClass hr = -o.intCanonicalThomClass hr := by
   subst hr
   simp only [intCanonicalThomClass_def, canonicalThomClass_neg, map_neg]
+
+/-- **The canonical Thom class in rank zero is Tau Ceti's.** For a bundle with zero model fibre,
+oriented by `Fin 0`, the canonical Thom class read with chain coefficients and values `ℤ` in
+degree `0` is Tau Ceti's `TauCeti.VectorBundleOrientation.rankZeroThomClass` with coefficients
+`ℤ`. -/
+theorem uliftIntegralCohomologyEquiv_canonicalThomClass_eq_rankZeroThomClass [Subsingleton F]
+    (o : VectorBundleOrientation F E (Fin 0)) :
+    (thomPair F E).uliftIntegralCohomologyEquiv 0
+        (o.canonicalThomClass (finrank_zero_of_subsingleton (R := ℝ) (M := F))) =
+      o.rankZeroThomClass ℤ := by
+  classical
+  -- Both classes are determined by their Euler classes; compare the values at each point `b`,
+  -- through the fibre over `b` and a trivialization at `b`.
+  refine (o.eq_rankZeroThomClass_iff ℤ _).2 (singularCohomologyZero_ext fun b ↦ ?_)
+  have hb := FiberBundle.mem_baseSet_trivializationAt' (F := F) (E := E) b
+  rw [singularCohomologyZeroEval_rankZeroEulerClass, singularCohomologyZeroEval_eulerClass,
+    ← TopPair.uliftIntegralCohomologyEquiv_naturality,
+    o.singularCohomologyMap_fiberThomPairMap_canonicalThomClass _ _ hb,
+    TopPair.uliftIntegralCohomologyEquiv_naturality]
+  -- As in `TauCeti.singularCohomologyZeroEval_eulerClass`
+  -- (`SymplecticGeometry/Topology/VectorBundle/EulerClass.lean`), the point is the zero vector of
+  -- `E b`, so the map to absolute cohomology is moved past the trivialization by `Eq.trans`.
+  have h := ConcreteCategory.congr_hom (@TopPair.singularCohomologyπ_naturality (ModuleCat.{0} ℤ)
+    _ _ _ (ModuleCat.of ℤ ℤ) ℤ _ ModuleCat.instLinear (ModuleCat.of ℤ ℤ) _ _
+    ((trivializationAt F E b).continuousLinearEquivAt ℝ b hb).complZeroPairIso.hom 0)
+    ((TopPair.ofSubset (X := TopCat.of F) ({0}ᶜ : Set F)).uliftIntegralCohomologyEquiv 0
+      (((trivializationAt F E b).mapOrientation (Fin 0) hb (o b)).modelThomGenerator
+        (finrank_zero_of_subsingleton (R := ℝ) (M := F))))
+  rw [ConcreteCategory.comp_apply, ConcreteCategory.comp_apply] at h
+  refine (congrArg (singularCohomologyZeroEval _) h).symm.trans ?_
+  refine (singularCohomologyZeroEval_naturality _ _ _).trans ?_
+  rw [Orientation.singularCohomologyZeroEval_uliftIntegralCohomologyEquiv_modelThomGenerator_zero,
+    Trivialization.mapOrientation_apply]
+  -- Reading an orientation of `E b` in the trivialization keeps it positive or negative.
+  exact if_congr ((Orientation.map _ _).injective.eq_iff'
+    (Orientation.map_positiveOrientation_of_isEmpty _ _)) rfl rfl
+
+/-- **The canonical Thom class with integer coefficients in rank zero** is Tau Ceti's
+`TauCeti.VectorBundleOrientation.rankZeroThomClass` with coefficients `ℤ`, moved to the degree
+`finrank ℝ F = 0`. -/
+theorem intCanonicalThomClass_eq_rankZeroThomClass [Subsingleton F]
+    (o : VectorBundleOrientation F E (Fin 0)) :
+    o.intCanonicalThomClass (finrank_zero_of_subsingleton (R := ℝ) (M := F)) =
+      (finrank_zero_of_subsingleton (R := ℝ) (M := F)).symm ▸ o.rankZeroThomClass ℤ := by
+  rw [intCanonicalThomClass_def,
+    ← uliftIntegralCohomologyEquiv_canonicalThomClass_eq_rankZeroThomClass]
+  -- Transport along `0 = finrank ℝ F` commutes with `TopPair.uliftIntegralCohomologyEquiv`.
+  have key {d : ℕ} (hd : 0 = d) (x : (thomPair F E).singularCohomology
+      (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ (ModuleCat.of ℤ (ULift.{0} ℤ)) 0) :
+      (thomPair F E).uliftIntegralCohomologyEquiv d (hd ▸ x) =
+        hd ▸ (thomPair F E).uliftIntegralCohomologyEquiv 0 x := by
+    subst hd
+    rfl
+  -- `rankZeroThomClass` takes the coefficients `𝟙_ (ModuleCat ℤ)`, which Mathlib defines to be
+  -- `ModuleCat.of ℤ ℤ`, the coefficients of `intCanonicalThomClass`.
+  exact key _ _
 
 end Integral
 
