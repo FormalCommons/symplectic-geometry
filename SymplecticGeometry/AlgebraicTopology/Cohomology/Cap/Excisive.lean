@@ -50,6 +50,9 @@ descent of the Alexander–Whitney diagonal. Here the descent is along the chain
 * `TopCat.singularCap_comp_singularHomologyπ_eq_singularRelativeCap`: compatibility with Tau Ceti's
   relative cap product `TopPair.singularCap : Hᵖ(X, U) ⊗ Hₙ(X, U) ⟶ H_q(X)`,
   `j_*(y ⌢ a) = j_*y ⌢ a`.
+* `TopCat.singularCap_comp_map_comp_singularHomologyπ`: the same after a push-forward along a map
+  `f : X ⟶ Y` carrying `V` into `S' ⊆ Y`: the image in `H_q(Y, S')` of `f_*(y ⌢ a)` is
+  `f_*(j_*y ⌢ a)`.
 * `TopCat.singularRelativeCap_comp_singularKronecker`: the Kronecker pairing of the cap product,
   `⟨c, y ⌢ a⟩ = ⟨a ⌣ c, y⟩` for a class `a` with values in the tensor unit, with Tau Ceti's
   relative cup product `TopCat.singularRelativeCup`.
@@ -215,6 +218,41 @@ theorem singularCap_comp_singularHomologyπ_eq_singularRelativeCap (u : T ⟶ R 
   -- `TopPair.singularCap` and `TopPair.singularHomologyπ` are, by definition, the cap product
   -- and the map on homology that `this` states its identity with.
   exact this
+
+/-- **The push-forward of a relative cap product, read relative to a subset of the target.** For a
+map `f : X ⟶ Y` carrying `V ⊆ X` into `S' ⊆ Y`, with `U` and `V` open in `U ∪ V`, a class
+`a ∈ Hᵖ(X, U)` and `γ ∈ Hₙ(X, U)`, the image in `H_q(Y, S')` of `f_*(γ ⌢ a) ∈ H_q(Y)` is
+`f_*(γ' ⌢ a)`, where `γ'` is the image of `γ` in `Hₙ(X, U ∪ V)` and the cap product is that of the
+excisive couple `(U, V)`. -/
+@[reassoc]
+theorem singularCap_comp_map_comp_singularHomologyπ (u : T ⟶ R ⊗ S) (μ : M ⊗ S ⟶ N) (f : X ⟶ Y)
+    {U V : Set X} {S' : Set Y} (hU : IsOpen ((↑) ⁻¹' U : Set ↥(U ∪ V)))
+    (hV : IsOpen ((↑) ⁻¹' V : Set ↥(U ∪ V))) (hfV : Set.MapsTo f V S') (p q n : ℕ)
+    (h : p + q = n) (a : (TopPair.ofSubset U).singularCohomology R k M p) :
+    (TopPair.ofSubset U).singularCap k u μ p q n h a ≫
+        ((AlgebraicTopology.singularHomologyFunctor C q).obj N).map f ≫
+          (TopPair.ofSubset S').singularHomologyπ N q =
+      TopPair.singularHomologyMap (TopPair.ofSubsetMap (𝟙 X) fun _ hx ↦ Or.inl hx) T n ≫
+        singularRelativeCap k u μ U V hU hV p q n h a ≫
+          TopPair.singularHomologyMap (TopPair.ofSubsetMap f hfV) N q := by
+  -- Pushing forward along `f` and passing to `H_q(Y, S')` is passing to `H_q(X, V)` and pushing
+  -- forward along the map of pairs.
+  have hπ := TopPair.singularHomologyπ_naturality (TopPair.ofSubsetMap f hfV) N q
+  rw [TopPair.ofSubsetMap_fst] at hπ
+  have key : (TopPair.ofSubset U).singularCap k u μ p q n h a ≫
+      (TopPair.ofSubset V).singularHomologyπ N q ≫
+        TopPair.singularHomologyMap (TopPair.ofSubsetMap f hfV) N q =
+      TopPair.singularHomologyMap (TopPair.ofSubsetMap (𝟙 X) fun _ hx ↦ Or.inl hx) T n ≫
+        singularRelativeCap k u μ U V hU hV p q n h a ≫
+          TopPair.singularHomologyMap (TopPair.ofSubsetMap f hfV) N q :=
+    (Category.assoc _ _ _).symm.trans
+      ((congrArg (· ≫ TopPair.singularHomologyMap (TopPair.ofSubsetMap f hfV) N q)
+        (singularCap_comp_singularHomologyπ_eq_singularRelativeCap k u μ U V hU hV p q n h a)).trans
+        (Category.assoc _ _ _))
+  exact (congrArg (fun g ↦ (TopPair.ofSubset U).singularCap k u μ p q n h a ≫ g ≫
+    (TopPair.ofSubset S').singularHomologyπ N q)
+      (TauCeti.singularHomologyFunctor_obj_map N q f)).trans
+    ((congrArg ((TopPair.ofSubset U).singularCap k u μ p q n h a ≫ ·) hπ).trans key)
 
 section Coefficients
 
