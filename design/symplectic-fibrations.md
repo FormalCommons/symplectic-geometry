@@ -237,8 +237,10 @@ Vertically nondegenerate forms and compatible symplectic forms. It imports
 The connection $\Gamma_\tau$ of a two-form, and connection two-forms; no
 parallel transport. About 550 lines.
 
-- `TauCeti.SmoothTwoForm.IsVerticallyClosed π τ`: for every `x`, all
-  vertical `η₁ η₂` and every `v`, `mextDeriv τ.val x ![η₁, η₂, v] = 0`; with
+- `TauCeti.SmoothTwoForm.IsVerticallyClosed π τ :=
+  RoughForm.IsVerticallyClosedOn π τ.val univ`, where
+  `RoughForm.IsVerticallyClosedOn π θ s` asks, for every `x ∈ s`, all
+  vertical `η₁ η₂` and every `v`, that `mextDeriv θ x ![η₁, η₂, v] = 0`; with
   `isVerticallyClosed_iff`, `IsClosed.isVerticallyClosed`,
   `IsVerticallyClosed.add`, `IsVerticallyClosed.smul`, and
   `isVerticallyClosed_add_mpullback_iff` (adding `π^*β` changes nothing,
