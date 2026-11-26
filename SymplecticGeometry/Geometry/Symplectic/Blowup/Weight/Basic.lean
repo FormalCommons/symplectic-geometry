@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Blowup.Model
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Basic
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Tautological
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Map
 public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Basic
@@ -597,14 +598,12 @@ theorem isSymplectomorphism_complDivisorSymplectomorph :
       (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (form hψ hl hε))
       (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ)
       (complDivisorSymplectomorph hψ hl hε) := by
-  -- The inverse of `complDivisorSymplectomorph` followed by the inclusion is `inl`; the `show`
-  -- states this as an equality of functions, the form `SmoothForm.mpullback_congr` takes.
+  -- The inverse of `complDivisorSymplectomorph` is the diffeomorphism of `inl` onto its image,
+  -- which is `complDivisor` by definition.
   rw [← SmoothTwoForm.isSymplectomorphism_symm_iff (by simp),
-    SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq,
-    SmoothForm.mpullback_mpullback, SmoothForm.mpullback_congr _
-      (GluedAlong.isLocalDiffeomorph_inl _).contMDiff
-      (show Subtype.val ∘ (complDivisorSymplectomorph hψ hl hε).symm = GluedAlong.inl _ from
-        funext (coe_complDivisorSymplectomorph_symm_apply hψ hl hε)), mpullback_inl_form]
+    SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq, ← mpullback_inl_form]
+  exact SmoothForm.mpullback_diffeomorphOfInjective_mpullback_subtype_val
+    (GluedAlong.isLocalDiffeomorph_inl _) (GluedAlong.inl_injective _) _
 
 /-! ### The divisor and its normal bundle -/
 
