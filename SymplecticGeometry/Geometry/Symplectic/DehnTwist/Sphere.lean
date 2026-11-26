@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.IsSymplectic
 public import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.WeinsteinChart
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Extend
@@ -863,12 +864,10 @@ theorem exists_mpullback_dehnTwist_sub_eq_of_two_le [IsManifold I ∞ M] (hn : 2
     exact CotangentBundle.mpullback_eq_zero_of_apply_zeroSection ι.contMDiff
       (SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq.1 hι.isSymplectomorphism)
       hι.exists_apply_eq
-  rw [← exactForms_one_eq_closedForms_of_simplyConnectedSpace] at hclosed
-  obtain ⟨h, hh, hdh⟩ := exists_contMDiff_mextDeriv_eq_of_mem_exactForms (𝓡 n) hclosed
-  refine ⟨⟨h, hh⟩, Subtype.ext ?_⟩
-  rw [mextDerivₗ_apply]
-  exact hdh.symm.trans
-    (congrArg mextDeriv (SmoothForm.coe_ofFunction (⟨h, hh⟩ : C^∞⟮𝓡 n, 𝕊 n; ℝ⟯)).symm)
+  rw [← exactForms_one_eq_closedForms_of_simplyConnectedSpace, exactForms_succ,
+    LinearMap.mem_range] at hclosed
+  obtain ⟨ψ, hψ⟩ := hclosed
+  exact ⟨SmoothForm.ofFunctionEquiv.symm ψ, by rw [SmoothForm.ofFunction_ofFunctionEquiv_symm, hψ]⟩
 
 end Twist
 
