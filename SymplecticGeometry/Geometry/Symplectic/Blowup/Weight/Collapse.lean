@@ -120,7 +120,7 @@ theorem collapseMap_eq_inr_shellPoint {z : puncturedSpace (Fin (n + 1) → ℂ)}
     (hz : ‖complexToRealEuclidean (Fin (n + 1)) z‖ < √(l ^ 2 + ε ^ 2))
     (hx : ψ (complexToRealEuclidean (Fin (n + 1)) z) ∈ (ψ '' ball 0 l)ᶜ) :
     collapseMap hψ hl hε ⟨ψ (complexToRealEuclidean (Fin (n + 1)) z), hx⟩ =
-      GluedAlong.inr (gluingDiffeomorph hψ hl.le hε).symm
+      GluedAlong.inr (gluingDiffeomorphSymm hψ hl.le hε).toHomeomorph
         ⟨shellPoint l z, mem_modelPiece_iff.2 (shellPoint_mem_openNbhd hε hz)⟩ := by
   have hle : l ≤ √(l ^ 2 + ε ^ 2) := Real.le_sqrt_of_sq_le (by nlinarith)
   rcases hlz.eq_or_lt with hlz | hlz
@@ -181,7 +181,7 @@ private theorem continuousOn_collapseMap_image_ball :
     exact Φ.symm.contMDiffOn.continuousOn.comp_continuous
       (continuous_subtypeVal.comp continuous_subtypeVal) htarget
   -- On `W`, the collapse map is `inr ∘ shellPoint l ∘ z`.
-  refine ((GluedAlong.continuous_inr (gluingDiffeomorph hψ hl.le hε).symm).comp
+  refine ((GluedAlong.continuous_inr (gluingDiffeomorphSymm hψ hl.le hε).toHomeomorph).comp
     (((continuous_shellPoint l).comp hz).subtype_mk
       fun y ↦ mem_modelPiece_iff.2 (shellPoint_mem_openNbhd hε (hlt y)))).congr fun y ↦ ?_
   have hx : ψ (complexToRealEuclidean (Fin (n + 1)) (z y)) ∈ (ψ '' ball 0 l)ᶜ :=
