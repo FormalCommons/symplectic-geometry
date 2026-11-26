@@ -60,10 +60,6 @@ two series glue across `t = 0` by `HasFTaylorSeriesUpToOn.union`. The uniform co
   smooth.
 * `SymplecticGeometry.exists_contDiffOn_eqOn_Icc_prod`: a family smooth on `Icc a b ×ˢ U` agrees
   there with one smooth on `univ ×ˢ U`.
-* `SymplecticGeometry.exists_contDiff_eqOn_of_contDiffOn_halfSpace`: a function smooth on a
-  relatively open part of the half-space `0 ≤ t` of `ℝ × E` agrees near a boundary point with one
-  smooth on `ℝ × E`; the `C^∞` counterpart of Tau Ceti's finite-order
-  `TauCeti.HalfSpaceExtension.exists_local_contDiff_extension_halfSpace`.
 
 ## References
 
@@ -579,46 +575,6 @@ theorem exists_contDiffOn_eqOn_Icc_prod {f : ℝ × E → F} {U : Set E} {a b : 
     ⟨div_nonneg (by linarith [hp.1.1]) hc.le, (div_le_one hc).2 (by linarith [hp.1.2])⟩
   simp only [seeleyIccExtend_of_mem _ hmem]
   rw [mul_div_cancel₀ _ hc.ne', add_sub_cancel]
-
-/-- **Seeley's extension near a boundary point of the half-space `0 ≤ t` of `ℝ × E`.** A function
-smooth on the part of an open set `U` where `0 ≤ t` agrees, near a point `(0, x₀)` of `U` and on
-that part, with a function smooth on all of `ℝ × E`. -/
-theorem exists_contDiff_eqOn_of_contDiffOn_halfSpace [HasContDiffBump E] {f : ℝ × E → F}
-    {U : Set (ℝ × E)} (hU : IsOpen U) (hf : ContDiffOn ℝ ∞ f (U ∩ {z | 0 ≤ z.1})) {x₀ : E}
-    (hx₀ : (0, x₀) ∈ U) :
-    ∃ g : ℝ × E → F, ContDiff ℝ ∞ g ∧
-      ∃ V, IsOpen V ∧ (0, x₀) ∈ V ∧ EqOn g f (V ∩ {z | 0 ≤ z.1}) := by
-  -- A box `Ioo (-a) a ×ˢ B` around `(0, x₀)` inside `U`.
-  have hUn : U ∈ 𝓝 ((0 : ℝ), x₀) := hU.mem_nhds hx₀
-  rw [nhds_prod_eq] at hUn
-  obtain ⟨u, hu, B', hB', huB⟩ := mem_prod_iff.1 hUn
-  obtain ⟨B, hBB', hB, hx₀B⟩ := mem_nhds_iff.1 hB'
-  obtain ⟨a, ha, hau⟩ := Metric.mem_nhds_iff.1 hu
-  have hsub : Icc 0 (a / 2) ×ˢ B ⊆ U ∩ {z | 0 ≤ z.1} := fun z hz ↦
-    ⟨huB ⟨hau (by rw [Real.ball_eq_Ioo]; constructor <;> linarith [hz.1.1, hz.1.2]),
-      hBB' hz.2⟩, hz.1.1⟩
-  obtain ⟨g₀, hg₀, hg₀f⟩ := exists_contDiffOn_eqOn_Icc_prod (half_pos ha) hB (hf.mono hsub)
-  -- `g₀` is already smooth on `univ ×ˢ B`, so a cut-off in the `E` direction suffices.
-  obtain ⟨r, hr, hrB⟩ := Metric.isOpen_iff.1 hB x₀ hx₀B
-  let ρ : ContDiffBump x₀ := ⟨r / 4, r / 2, by positivity, by linarith⟩
-  refine ⟨fun z ↦ ρ z.2 • g₀ z, ?_, Prod.fst ⁻¹' Iio (a / 2) ∩ Prod.snd ⁻¹' Metric.ball x₀ (r / 4),
-    (isOpen_Iio.preimage continuous_fst).inter (Metric.isOpen_ball.preimage continuous_snd),
-    ⟨half_pos ha, Metric.mem_ball_self (by positivity)⟩, ?_⟩
-  · refine contDiff_iff_contDiffAt.2 fun z ↦ ?_
-    by_cases hz : z.2 ∈ Metric.ball x₀ r
-    · exact (ρ.contDiff.comp contDiff_snd).contDiffAt.smul
-        (hg₀.contDiffAt ((isOpen_univ.prod hB).mem_nhds ⟨mem_univ _, hrB hz⟩))
-    · refine contDiffAt_const (c := (0 : F)).congr_of_eventuallyEq ?_
-      have hz' : z.2 ∈ (Metric.closedBall x₀ (r / 2))ᶜ := fun h ↦
-        hz (Metric.closedBall_subset_ball (by linarith) h)
-      filter_upwards [continuous_snd.continuousAt.preimage_mem_nhds
-        (Metric.isClosed_closedBall.isOpen_compl.mem_nhds hz')] with z' hz''
-      rw [ρ.zero_of_le_dist (le_of_lt (by simpa using hz'')), zero_smul]
-  · rintro z ⟨⟨hza, hzb⟩, hz0⟩
-    have hzB : z.2 ∈ B := hrB (Metric.ball_subset_ball (by linarith) hzb)
-    simp only
-    rw [ρ.one_of_mem_closedBall (Metric.ball_subset_closedBall hzb), one_smul]
-    exact hg₀f ⟨⟨hz0, le_of_lt hza⟩, hzB⟩
 
 end Smooth
 

@@ -317,11 +317,6 @@ reflection $t\mapsto1-t$.
   $t=0$ is that of $f$ by `tsum_seeleyCoeff_mul_neg_pow`; and
   `HasFTaylorSeriesUpToOn.union` glues the two sides on `univ ×ˢ U`, where
   they are closed only relative to their union.
-- `exists_contDiff_eqOn_of_contDiffOn_halfSpace [HasContDiffBump E]`:
-  a function smooth on `U ∩ {z | 0 ≤ z.1}`, for an open `U` of `ℝ × E`
-  containing `(0, x₀)`, agrees on the part of some open `V ∋ (0, x₀)`
-  where `0 ≤ z.1` with a function smooth on `ℝ × E`; added by issue 5 of
-  *Liouville structures*.
 
 The module docstring cites R. T. Seeley, *Extension of $C^\infty$ functions
 defined in a half space*, Proc. Amer. Math. Soc. 15 (1964), 625–626, which
