@@ -258,9 +258,8 @@ private theorem fiberMap_rotationHomotopyIso_zero (m n : ℤ) (w : X × Circle) 
     Category.id_comp, Category.comp_id, whitneyMapIso_hom, fiberMap_whitneyMap, fiberMap_whitneyMap,
     fiberMap_pullbackForgetTimeIso_hom, fiberMap_pullbackForgetTimeIso_hom,
     fiberMap_circleZPowIso_hom, fiberMap_circleZPowIso_hom]
-  -- The two sides differ only in the ranks of the trivial line pulled back to `(X × I) × Circle`
-  -- and to `X × Circle`,
-  -- which are both `1` by definition of the pullback.
+  -- The two sides differ only in the ranks of the pullbacks of the trivial line to
+  -- `(X × I) × Circle` and to `X × Circle`, which are both `1` by definition of the pullback.
   rfl
 
 private theorem fiberMap_rotationHomotopyIso_one (m n : ℤ) (w : X × Circle) :
