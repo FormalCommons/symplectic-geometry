@@ -66,6 +66,33 @@ variable {n : ℕ} {W : Type*} [TopologicalSpace W] [ChartedSpace (EuclideanHalf
 variable {σ : SmoothTwoForm (𝓡∂ (n + 1)) W} {Y : (x : W) → TangentSpace (𝓡∂ (n + 1)) x}
   {f : W → ℝ} {c : ℝ}
 
+namespace IsStrongFilling
+
+variable {U : Set W} (h : IsStrongFilling σ U Y)
+
+/-- Along the lines `t ↦ Φ (t, x)` of the collar map, which are integral curves of `Y` on
+`(-ε₀, 0)`, a differentiable function `g` on `W` has derivative `dg(Y)`. -/
+theorem hasDerivAt_comp_collarFlow {g : W → ℝ} (hg : MDifferentiable (𝓡∂ (n + 1)) 𝓘(ℝ) g)
+    {s : ℝ} (hs : s ∈ Ioo (-h.collarWidth) 0) (x : (𝓡∂ (n + 1)).boundary W) :
+    HasDerivAt (fun t ↦ g (h.collarFlow (t, x)))
+      (mvfderiv (𝓡∂ (n + 1)) g (h.collarFlow (s, x)) (Y (h.collarFlow (s, x)))) s :=
+  Manifold.hasDerivAt_comp_curve (hg _)
+    ((h.isMIntegralCurveOn_collarFlow x s ⟨hs.1, hs.2.le⟩).hasMFDerivAt (Ioc_mem_nhds hs.1 hs.2))
+
+/-- For `r > 0`, a point of the completion outside the image of `(-r, ∞) × ∂W` under the end map
+is the image of an interior point of `W`. -/
+theorem exists_mem_interior_toCompletion_eq {r : ℝ} (hr : 0 < r) {z : h.Completion}
+    (hz : z ∉ h.completionEnd '' (Ioi (-r) ×ˢ univ)) :
+    ∃ p ∈ (𝓡∂ (n + 1)).interior W, h.toCompletion p = z := by
+  rcases h.exists_completionEnd_or_toCompletion z with ⟨q, hq, rfl⟩ | hp
+  · have hqr : q.1 ≤ -r := le_of_not_gt fun hqr ↦ hz ⟨q, ⟨hqr, trivial⟩, rfl⟩
+    have hqI : q.1 ∈ Ioo (-h.collarWidth) 0 := ⟨hq.1, by linarith⟩
+    exact ⟨h.collarFlow q, h.collarFlow_mem_interior hqI q.2,
+      (h.completionEnd_eq_toCompletion ⟨hqI.1, hqI.2.le⟩ q.2).symm⟩
+  · exact hp
+
+end IsStrongFilling
+
 namespace IsWeinsteinDomain
 
 /-! ### The cutoff and the function on the end -/
@@ -144,39 +171,26 @@ private theorem completionFunction_toCompletion (hδ0 : 0 < δ) (hδ : 2 * δ < 
 
 /-! ### The derivative of `f` along the collar -/
 
-omit [T2Space W] [CompactSpace ((𝓡∂ (n + 1)).boundary W)] in
-/-- The derivative `df(Y)` is continuous on `W`. -/
-private theorem continuous_mvfderiv_apply (hW : IsWeinsteinDomain σ Y f c) :
-    Continuous fun p ↦ mvfderiv (𝓡∂ (n + 1)) f p (Y p) :=
-  (hW.contMDiff.contMDiff_mvfderiv_apply (m := 0) (by simp)).continuous.comp
-    hW.isStrongFilling.isOutwardPointingField.contMDiff.continuous
-
-/-- Along the lines of `Φ`, the function `f` has derivative `df(Y)`. -/
-private theorem hasDerivAt_comp_collarFlow (hW : IsWeinsteinDomain σ Y f c) {s : ℝ}
-    (hs : s ∈ Ioo (-hW.isStrongFilling.collarWidth) 0) (x : (𝓡∂ (n + 1)).boundary W) :
-    HasDerivAt (fun t ↦ f (hW.isStrongFilling.collarFlow (t, x)))
-      (mvfderiv (𝓡∂ (n + 1)) f (hW.isStrongFilling.collarFlow (s, x))
-        (Y (hW.isStrongFilling.collarFlow (s, x)))) s :=
-  Manifold.hasDerivAt_comp_curve ((hW.contMDiff _).mdifferentiableAt (by simp))
-    ((hW.isStrongFilling.isMIntegralCurveOn_collarFlow x s ⟨hs.1, hs.2.le⟩).hasMFDerivAt
-      (Ioc_mem_nhds hs.1 hs.2))
-
 /-- On a thin collar `[-2δ, 0] × ∂W`, the derivative `df(Y)` along the lines of `Φ` is bounded
 below by a positive constant. -/
 private theorem exists_lt_mvfderiv [CompactSpace W] (hW : IsWeinsteinDomain σ Y f c) :
     ∃ a > 0, ∃ δ > 0, 2 * δ < hW.isStrongFilling.collarWidth ∧
-      ∀ s ∈ Icc (-(2 * δ)) 0, ∀ x, a < mvfderiv (𝓡∂ (n + 1)) f (hW.isStrongFilling.collarFlow (s, x))
+      ∀ s ∈ Icc (-(2 * δ)) 0, ∀ x,
+        a < mvfderiv (𝓡∂ (n + 1)) f (hW.isStrongFilling.collarFlow (s, x))
         (Y (hW.isStrongFilling.collarFlow (s, x))) := by
   set h := hW.isStrongFilling
-  have hD := hW.continuous_mvfderiv_apply
+  have hD : Continuous fun p ↦ mvfderiv (𝓡∂ (n + 1)) f p (Y p) :=
+    (hW.contMDiff.contMDiff_mvfderiv_apply (m := 0) (by simp)).continuous.comp
+      h.isOutwardPointingField.contMDiff.continuous
   -- A positive lower bound on the compact boundary.
   obtain ⟨a, ha, hab⟩ : ∃ a > 0, ∀ x : (𝓡∂ (n + 1)).boundary W,
       a < mvfderiv (𝓡∂ (n + 1)) f x (Y x) := by
     rcases isEmpty_or_nonempty ((𝓡∂ (n + 1)).boundary W) with hb | hb
     · exact ⟨1, one_pos, fun x ↦ isEmptyElim x⟩
-    obtain ⟨x₀, -, hx₀⟩ := isCompact_univ.exists_isMinOn (s := (univ : Set ((𝓡∂ (n + 1)).boundary W)))
-      univ_nonempty (hD.comp continuous_subtypeVal).continuousOn
-    have h₀ := hW.mvfderiv_pos x₀ x₀.2
+    obtain ⟨x₀, -, hx₀⟩ := isCompact_univ.exists_isMinOn
+      (s := (univ : Set ((𝓡∂ (n + 1)).boundary W))) univ_nonempty
+      (hD.comp continuous_subtypeVal).continuousOn
+    have h₀ := hW.mvfderiv_pos x₀ x₀.property
     exact ⟨_, half_pos h₀, fun x ↦ (half_lt_self h₀).trans_le (hx₀ (mem_univ x))⟩
   -- The set where `df(Y) > a` is the trace of an open set of the completion.
   obtain ⟨O, hO, hOp⟩ := (h.contMDiff_toCompletion.continuous.isClosedEmbedding
@@ -222,14 +236,15 @@ private theorem comp_collarFlow_le (hW : IsWeinsteinDomain σ Y f c) {a δ : ℝ
       (mvfderiv (𝓡∂ (n + 1)) f (h.collarFlow (t, x)) (Y (h.collarFlow (t, x))) - a) t := by
     intro t ht
     rw [interior_Icc] at ht
-    exact (hW.hasDerivAt_comp_collarFlow ⟨by linarith [ht.1], ht.2⟩ x).sub
+    exact (h.hasDerivAt_comp_collarFlow (hW.contMDiff.mdifferentiable (by simp))
+      ⟨by linarith [ht.1], ht.2⟩ x).sub
       (by simpa using (hasDerivAt_id t).const_mul a)
   have hmono := monotoneOn_of_deriv_nonneg (convex_Icc _ _) hcont
     (fun t ht ↦ (hderiv t ht).differentiableAt.differentiableWithinAt) fun t ht ↦ by
       rw [(hderiv t ht).deriv]
       exact sub_nonneg.2 (ha t (interior_subset ht) x).le
   have := hmono hs ⟨by linarith [hs.1, hs.2], le_rfl⟩ hs.2
-  simp only [h.collarFlow_zero, mul_zero, sub_zero, hW.eq_of_mem_boundary x x.2] at this
+  simp only [h.collarFlow_zero, mul_zero, sub_zero, hW.eq_of_mem_boundary x x.property] at this
   linarith
 
 /-! ### Smoothness and the derivative of the function on the end -/
@@ -275,10 +290,10 @@ private theorem exists_hasDerivAt_endFunction (hW : IsWeinsteinDomain σ Y f c) 
   rcases lt_or_ge s 0 with hs0 | hs0
   · have hρd : HasDerivAt (cutoff δ) (deriv (cutoff δ) s) s :=
       ((contDiff_cutoff δ).differentiable (by simp) s).hasDerivAt
-    have hg := hW.hasDerivAt_comp_collarFlow ⟨by linarith, hs0⟩ x
+    have hg := h.hasDerivAt_comp_collarFlow (hW.contMDiff.mdifferentiable (by simp))
+      ⟨by linarith, hs0⟩ x
     have hd := ((hρd.const_sub 1).mul hg).add (hρd.mul (hk s))
     refine ⟨_, ?_, hd⟩
-    have hρ0 := Real.smoothTransition.nonneg ((s + δ) / (δ / 2))
     have hρ1 := Real.smoothTransition.le_one ((s + δ) / (δ / 2))
     have hρ' : 0 ≤ deriv (cutoff δ) s := (monotone_cutoff hδ0).deriv_nonneg
     have hD := ha s ⟨hs.le, hs0.le⟩ x
@@ -298,6 +313,146 @@ private theorem exists_hasDerivAt_endFunction (hW : IsWeinsteinDomain σ Y f c) 
     filter_upwards [isOpen_Ioi.mem_nhds (show s ∈ Ioi (-δ / 2) by simp only [mem_Ioi]; linarith)]
       with t ht
     exact endFunction_of_ge hδ0 (le_of_lt ht)
+
+/-! ### The function on the completion -/
+
+private theorem contMDiff_completionFunction (hW : IsWeinsteinDomain σ Y f c) (hδ0 : 0 < δ)
+    (hδ : 2 * δ < hW.isStrongFilling.collarWidth) :
+    ContMDiff (𝓡 (n + 1)) 𝓘(ℝ) ∞ (completionFunction hW.isStrongFilling f c ε δ) := by
+  set h := hW.isStrongFilling
+  intro z
+  by_cases hz : ∃ q ∈ Ioi (-(2 * δ)) ×ˢ univ, h.completionEnd q = z
+  · obtain ⟨q, hq, rfl⟩ := hz
+    have hq' : q ∈ Ioi (-h.collarWidth) ×ˢ (univ : Set ((𝓡∂ (n + 1)).boundary W)) :=
+      ⟨lt_trans (by linarith) hq.1, trivial⟩
+    refine ((h.isLocalDiffeomorphOn_completionEnd ⟨q, hq'⟩).contMDiffAt_comp_iff le_rfl).1 ?_
+    refine (hW.contMDiffAt_endFunction (ε := ε) hδ0 hδ hq).congr_of_eventuallyEq ?_
+    filter_upwards [(isOpen_Ioi.prod isOpen_univ).mem_nhds hq] with r hr
+    exact completionFunction_completionEnd hδ hr
+  obtain ⟨p, hp, rfl⟩ := h.exists_mem_interior_toCompletion_eq (by positivity) hz
+  -- Off the compact image `K` of `[-δ, 0] × ∂W`, the function is `f` read through the inclusion.
+  set K := h.completionEnd '' (Icc (-δ) 0 ×ˢ univ)
+  have hKc : IsClosed K := by
+    refine (IsCompact.image_of_continuousOn (isCompact_Icc.prod isCompact_univ)
+      (h.contMDiffOn_completionEnd.continuousOn.mono ?_)).isClosed
+    exact prod_mono (fun s hs ↦ by simp only [mem_Ioi]; linarith [hs.1]) subset_rfl
+  have hpK : h.toCompletion p ∉ K := by
+    rintro ⟨r, hr, hrp⟩
+    exact hz ⟨r, ⟨by simp only [mem_Ioi]; linarith [hr.1.1], trivial⟩, hrp⟩
+  have heq : completionFunction h f c ε δ ∘ h.toCompletion =ᶠ[𝓝 p] f := by
+    filter_upwards [h.contMDiff_toCompletion.continuous.continuousAt.preimage_mem_nhds
+      (hKc.isOpen_compl.mem_nhds hpK)] with p' hp'
+    refine completionFunction_toCompletion hδ0 hδ fun ⟨r, hr, hrp⟩ ↦ hp' ?_
+    rw [← hrp, ← h.completionEnd_eq_toCompletion ⟨by linarith [hr.1.1], hr.1.2⟩ r.2]
+    exact ⟨r, ⟨⟨hr.1.1.le, hr.1.2⟩, trivial⟩, rfl⟩
+  exact ((h.isLocalDiffeomorphAt_toCompletion hp).contMDiffAt_comp_iff le_rfl).1
+    ((hW.contMDiff p).congr_of_eventuallyEq heq)
+
+private theorem mvfderiv_completionFunction_pos (hW : IsWeinsteinDomain σ Y f c) {a : ℝ}
+    (hε : 0 < ε) (hεa : ε ≤ a) (hδ0 : 0 < δ) (hδ : 2 * δ < hW.isStrongFilling.collarWidth)
+    (ha : ∀ s ∈ Icc (-(2 * δ)) 0, ∀ x, a < mvfderiv (𝓡∂ (n + 1)) f
+      (hW.isStrongFilling.collarFlow (s, x)) (Y (hW.isStrongFilling.collarFlow (s, x))))
+    {z : hW.isStrongFilling.Completion}
+    (hz : z ∈ hW.isStrongFilling.completionEnd '' (Ioi (-(2 * δ)) ×ˢ univ)) :
+    0 < mvfderiv (𝓡 (n + 1)) (completionFunction hW.isStrongFilling f c ε δ) z
+      (hW.isStrongFilling.completionField z) := by
+  set h := hW.isStrongFilling
+  obtain ⟨⟨s, x⟩, hq, rfl⟩ := hz
+  have hs : s ∈ Ioi (-h.collarWidth) := lt_trans (by linarith) hq.1
+  obtain ⟨d, hd, hd'⟩ := hW.exists_hasDerivAt_endFunction hε hεa hδ0 hδ ha hq.1 x
+  -- Along the integral curve `t ↦ (t, x)` of the field, the function is the function on the end.
+  have hγ := (h.isMIntegralCurveOn_completionEnd x s hs).hasMFDerivAt (isOpen_Ioi.mem_nhds hs)
+  have hF := Manifold.hasDerivAt_comp_curve
+    ((hW.contMDiff_completionFunction (ε := ε) hδ0 hδ _).mdifferentiableAt (by simp)) hγ
+  have heq : completionFunction h f c ε δ ∘ (fun t ↦ h.completionEnd (t, x)) =ᶠ[𝓝 s]
+      fun t ↦ endFunction h f c ε δ (t, x) := by
+    filter_upwards [isOpen_Ioi.mem_nhds hq.1] with t ht
+    exact completionFunction_completionEnd hδ ⟨ht, trivial⟩
+  rwa [(hF.congr_of_eventuallyEq heq.symm).unique hd']
+
+/-- The function on the completion is bounded below by the minimum of `f` and `c - ε`. -/
+private theorem le_completionFunction (hε : 0 < ε) (hδ0 : 0 < δ) (hδ : 2 * δ < h.collarWidth)
+    {m : ℝ} (hm : ∀ p, m ≤ f p) (z : h.Completion) :
+    min m (c - ε) ≤ completionFunction h f c ε δ z := by
+  by_cases hz : ∃ q ∈ Ioi (-(2 * δ)) ×ˢ univ, h.completionEnd q = z
+  · obtain ⟨q, hq, hqz⟩ := hz
+    rw [← hqz, completionFunction_completionEnd hδ hq, endFunction]
+    have hρ0 := Real.smoothTransition.nonneg ((q.1 + δ) / (δ / 2))
+    have hρ1 := Real.smoothTransition.le_one ((q.1 + δ) / (δ / 2))
+    have h1 : min m (c - ε) ≤ f (h.collarFlow q) := (min_le_left _ _).trans (hm _)
+    have h2 : min m (c - ε) ≤ c + ε * (Real.exp q.1 - 1) :=
+      (min_le_right _ _).trans (by nlinarith [Real.exp_pos q.1])
+    unfold cutoff
+    nlinarith [mul_le_mul_of_nonneg_left h1 (sub_nonneg.2 hρ1), mul_le_mul_of_nonneg_left h2 hρ0]
+  · obtain ⟨p, -, hpz⟩ := h.exists_mem_interior_toCompletion_eq (by positivity) hz
+    subst hpz
+    rw [completionFunction_toCompletion_of_not hz]
+    exact (min_le_left _ _).trans (hm p)
+
+/-- The sublevels of the function on the completion are compact. -/
+private theorem isCompact_preimage_Iic_completionFunction [CompactSpace W]
+    (hW : IsWeinsteinDomain σ Y f c) (hε : 0 < ε) (hδ0 : 0 < δ)
+    (hδ : 2 * δ < hW.isStrongFilling.collarWidth) (b : ℝ) :
+    IsCompact (completionFunction hW.isStrongFilling f c ε δ ⁻¹' Iic b) := by
+  set h := hW.isStrongFilling
+  set T := max 0 ((b - c) / ε)
+  have hT : 0 ≤ T := le_max_left _ _
+  -- The sublevel lies in `W` and the image of `[0, T] × ∂W`.
+  have hC : IsCompact (range h.toCompletion ∪ h.completionEnd '' (Icc 0 T ×ˢ univ)) :=
+    (isCompact_range h.contMDiff_toCompletion.continuous).union
+      (IsCompact.image_of_continuousOn (isCompact_Icc.prod isCompact_univ)
+        (h.contMDiffOn_completionEnd.continuousOn.mono (prod_mono (fun s hs ↦
+          lt_of_lt_of_le (neg_lt_zero.2 h.collarWidth_pos) hs.1) subset_rfl)))
+  refine hC.of_isClosed_subset (isClosed_Iic.preimage
+    (hW.contMDiff_completionFunction hδ0 hδ).continuous) fun z hz ↦ ?_
+  rcases (h.range_toCompletion_union ▸ mem_univ z :
+      z ∈ range h.toCompletion ∪ h.completionEnd '' (Ioi 0 ×ˢ univ)) with hz' | ⟨q, hq, rfl⟩
+  · exact Or.inl hz'
+  refine Or.inr ⟨q, ⟨⟨hq.1.le, le_of_not_gt fun hqT ↦ ?_⟩, trivial⟩, rfl⟩
+  have hq' : q ∈ Ioi (-(2 * δ)) ×ˢ (univ : Set ((𝓡∂ (n + 1)).boundary W)) :=
+    ⟨lt_trans (by linarith) hq.1, trivial⟩
+  have hz := hz
+  rw [mem_preimage, completionFunction_completionEnd hδ hq', endFunction_of_ge hδ0
+    (by linarith [show (0 : ℝ) < q.1 from hq.1]), mem_Iic] at hz
+  have hexp := Real.add_one_le_exp q.1
+  have hbT : (b - c) / ε < q.1 := lt_of_le_of_lt (le_max_right _ _) hqT
+  rw [div_lt_iff₀ hε] at hbT
+  nlinarith
+
+/-! ### The function of the completion -/
+
+/-- **The function of the completion of a Weinstein domain.** Let `(W, σ, Y, f)` be a compact
+Weinstein domain with top level `c`, and `Ŵ` the completion of its Liouville domain, with end
+map `(s, x) ↦ (s, x)` in the Liouville time and Liouville field `Ŷ`. There are `ε > 0` and
+`δ > 0` with `2δ` less than the width of the collar of `Ŵ`, and a smooth function `F : Ŵ → ℝ`,
+proper and bounded below, such that
+
+* `F` is `f` on `W` away from the image of `(-δ, 0] × ∂W` under the collar map;
+* `F (s, x) = c + ε (eˢ − 1)` on the end `s ≥ 0`;
+* `dF(Ŷ) > 0` on the image of `(-2δ, ∞) × ∂W`. -/
+theorem exists_completion_function [CompactSpace W] (hW : IsWeinsteinDomain σ Y f c) :
+    ∃ ε > 0, ∃ δ > 0, 2 * δ < hW.isStrongFilling.collarWidth ∧
+      ∃ F : hW.isStrongFilling.Completion → ℝ, ContMDiff (𝓡 (n + 1)) 𝓘(ℝ) ∞ F ∧
+        (∀ p ∉ hW.isStrongFilling.collarFlow '' (Ioc (-δ) 0 ×ˢ univ),
+          F (hW.isStrongFilling.toCompletion p) = f p) ∧
+        (∀ s ≥ 0, ∀ x, F (hW.isStrongFilling.completionEnd (s, x)) = c + ε * (Real.exp s - 1)) ∧
+        (∀ z ∈ hW.isStrongFilling.completionEnd '' (Ioi (-(2 * δ)) ×ˢ univ),
+          0 < mvfderiv (𝓡 (n + 1)) F z (hW.isStrongFilling.completionField z)) ∧
+        IsProperMap F ∧ BddBelow (range F) := by
+  obtain ⟨a, ha0, δ, hδ0, hδ, ha⟩ := hW.exists_lt_mvfderiv
+  obtain ⟨m, hm⟩ := (isCompact_range hW.contMDiff.continuous).bddBelow
+  have hFc := hW.contMDiff_completionFunction (ε := a / 2) hδ0 hδ
+  refine ⟨a / 2, half_pos ha0, δ, hδ0, hδ, completionFunction hW.isStrongFilling f c (a / 2) δ,
+    hFc, fun p hp ↦ completionFunction_toCompletion hδ0 hδ hp, fun s hs x ↦ ?_,
+    fun z hz ↦ hW.mvfderiv_completionFunction_pos (half_pos ha0) (half_le_self ha0.le) hδ0 hδ ha hz,
+    ?_, ⟨_, forall_mem_range.2 (le_completionFunction (half_pos ha0) hδ0 hδ
+      fun p ↦ hm ⟨p, rfl⟩)⟩⟩
+  · rw [completionFunction_completionEnd (q := (s, x)) hδ ⟨show -(2 * δ) < s by linarith, trivial⟩,
+      endFunction_of_ge hδ0 (show -δ / 2 ≤ s by linarith)]
+  · refine isProperMap_iff_isCompact_preimage.2 ⟨hFc.continuous, fun K hK ↦ ?_⟩
+    obtain ⟨b, hb⟩ := hK.bddAbove
+    exact (hW.isCompact_preimage_Iic_completionFunction (half_pos ha0) hδ0 hδ b).of_isClosed_subset
+      (hK.isClosed.preimage hFc.continuous) fun z hz ↦ hb hz
 
 end IsWeinsteinDomain
 
