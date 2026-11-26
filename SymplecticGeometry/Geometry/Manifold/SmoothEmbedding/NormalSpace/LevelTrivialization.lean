@@ -9,14 +9,14 @@ public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.DefiningFunctions
 
 /-!
-# The normal trivialization of a global regular level
+# Smoothness of the level identifications of normal spaces
 
 Let `f : M → N` be an embedding and `g : N → P` a single map that is a defining function of `f`
 near every point: it is `C^n` at the image of every point, constant on the image of `f` near every
 point, and its differential is onto there. At each `x`, Tau Ceti's
 `TauCeti.SmoothEmbedding.normalSpaceEquivOfLevel` identifies the normal space of `f` at `x` with
-`P` by the differential of `g`. This file shows that the inverses of these identifications form a
-`C^m` trivialization of the normal bundle, `m + 1 ≤ n`: the map `(x, z) ↦ (x, dg_x⁻¹ z)` from
+`P` by the differential of `g`. This file shows that the inverses of these identifications depend
+`C^m` on the point, `m + 1 ≤ n`: the map `(x, z) ↦ (x, dg_x⁻¹ z)` from
 `M × P` to the normal bundle is `C^m`.
 
 The proof goes through Tau Ceti's transition-cocycle model of the normal bundle. The atlas
@@ -98,6 +98,7 @@ theorem ofLevel_normalEquiv (x : M) {y : M} (hy : y ∈ (ofLevel hg hgf hreg).ba
   rw [normalEquiv_normalClass, normalSpaceEquivOfLevel_normalClass, ofLevel_apply]
 
 /-- The transitions of the atlas given by a single map are the identity. -/
+@[simp]
 theorem ofLevel_coordChange (x₀ x₁ y : M) :
     (ofLevel hg hgf hreg).coordChange hn hdim x₀ x₁ y = ContinuousLinearMap.id 𝕜 P := by
   ext w
@@ -118,7 +119,7 @@ variable [CompleteSpace 𝕜] [FiniteDimensional 𝕜 V] [FiniteDimensional 𝕜
   (hdim : finrank 𝕜 E + finrank 𝕜 P = finrank 𝕜 V)
 
 include hg in
-/-- **The normal trivialization of a global regular level.** If a single map `g : N → P` is a
+/-- **Smoothness of the inverse level identifications.** If a single map `g : N → P` is a
 `C^n` defining function of the embedding `f` near every point, then the inverses of the
 identifications `normalSpaceEquivOfLevel` of the normal spaces of `f` with `P` by the
 differential of `g` form a `C^m` map `(x, z) ↦ (x, dg_x⁻¹ z)` from `M × P` to the normal bundle

@@ -7,9 +7,8 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Sum.RationalEllipticSurface
 public import TauCeti.Geometry.Manifold.RegularValue
-public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.LevelTrivialization
 import SymplecticGeometry.Geometry.Manifold.RegularValue.CriticalSet
-import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
+import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.LevelTrivialization
 
 /-!
 # The affine coordinate of the rational elliptic surface over `ℂℙ¹`
@@ -72,7 +71,8 @@ smooth in `x` because one function does this at every point
 (`TauCeti.SmoothEmbedding.contMDiff_normalSpaceEquivOfLevel_symm`). The complex structure of the
 normal space sends the class of `v` to the class of `i v`
 (`TauCeti.SmoothEmbedding.normalComplexStructureAt_normalClass`), and the affine coordinate is
-holomorphic, so its differential sends `i v` to `i` times its value on `v`.
+holomorphic, so its real differential sends `i v` to `i` times its value on `v`
+(`MDifferentiableAt.mfderiv_ofComplexManifold_apply`).
 
 ## References
 
@@ -335,32 +335,24 @@ theorem contMDiff_fibreNormalEquiv :
 
 /-- The normal trivialization is complex linear: the complex structure that the surface induces
 on the normal space of the fibre sends `fibreNormalEquiv x z` to `fibreNormalEquiv x (i z)`. -/
+@[simp]
 theorem normalComplexStructureAt_fibreNormalEquiv (x : SmoothProjectiveHypersurface.fermat 1 3)
     (z : ℂ) :
     fibreEmbedding.normalComplexStructureAt (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
         (SmoothAlmostComplexStructure.ofComplexManifold (Fin 2 → ℂ) rationalEllipticSurface) x
         (mapsTo_ofComplexManifold_tangentRange_fibreEmbedding x) (fibreNormalEquiv x z) =
       fibreNormalEquiv x (Complex.I * z) := by
-  -- The tangent vector is taken in the model space, where `ℂ` acts on it.
-  obtain ⟨v, hv⟩ : ∃ v : Fin 2 → ℂ, fibreEmbedding.normalClass x _ v = fibreNormalEquiv x z :=
-    fibreEmbedding.normalClass_surjective x _ _
-  have hz := fibreNormalEquiv_symm_normalClass x v
-  rw [hv, ContinuousLinearEquiv.symm_apply_apply] at hz
-  have hd := (contMDiffAt_affineCoordinate (snd_fibreEmbedding_mem_affineOpen x) 1)
-    |>.mdifferentiableAt one_ne_zero
-  have hJ := SmoothAlmostComplexStructure.ofComplexManifold_apply (E := Fin 2 → ℂ)
-    (M := rationalEllipticSurface) (fibreEmbedding x) v
-  rw [← hv]
-  refine ((SmoothEmbedding.normalComplexStructureAt_normalClass _ v).trans
-    (congrArg _ hJ)).trans ?_
-  refine (fibreNormalEquiv_mfderiv x _).symm.trans (congrArg (fibreNormalEquiv x) ?_)
-  -- Over `ℝ` the differential is the complex one, which is complex linear.
-  rw [hz]
-  exact ((hd.mfderiv_modelWithCornersSelf_restrictScalars_apply (R := ℝ)
-    (v := Complex.I • v)).trans
-    ((mfderiv 𝓘(ℂ, Fin 2 → ℂ) 𝓘(ℂ, ℂ) affineCoordinate (fibreEmbedding x)).map_smul _ _)).trans
-    (congrArg (Complex.I * ·)
-      (hd.mfderiv_modelWithCornersSelf_restrictScalars_apply (R := ℝ) (v := v)).symm)
+  obtain ⟨v, rfl⟩ := (fibreNormalEquiv x).symm.surjective z
+  obtain ⟨v, rfl⟩ := fibreEmbedding.normalClass_surjective x _ v
+  rw [ContinuousLinearEquiv.apply_symm_apply,
+    SmoothEmbedding.normalComplexStructureAt_normalClass, fibreNormalEquiv_symm_normalClass,
+    ← fibreNormalEquiv_mfderiv,
+    ((contMDiffAt_affineCoordinate (snd_fibreEmbedding_mem_affineOpen x) 1).mdifferentiableAt
+      one_ne_zero).mfderiv_ofComplexManifold_apply]
+  -- The structure of `ℂ` as a complex manifold is multiplication by `i`.
+  exact congrArg (fibreNormalEquiv x)
+    ((SmoothAlmostComplexStructure.ofComplexManifold_apply _ _).trans
+      (smul_eq_mul (α := ℂ) _ _))
 
 end SymplecticGeometry.rationalEllipticSurface
 
