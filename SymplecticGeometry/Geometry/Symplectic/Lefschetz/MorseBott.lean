@@ -244,9 +244,8 @@ omit [FiniteDimensional ℝ E] [I.Boundaryless] [IsManifold I ∞ X] in
 coordinate point. -/
 theorem apply_notMem_range_coordinatePoint
     (hreg : ∀ k, IsRegularValue I 𝓘(ℝ, Fin 1 → ℂ) π (coordinatePoint k)) {p : X}
-    (hp : p ∈ criticalSet I 𝓘(ℝ, Fin 1 → ℂ) π) : π p ∉ range coordinatePoint := by
-  rintro ⟨k, hk⟩
-  exact (mem_criticalSet_iff.1 hp) ((hreg k).isRegularPoint hk.symm)
+    (hp : p ∈ criticalSet I 𝓘(ℝ, Fin 1 → ℂ) π) : π p ∉ range coordinatePoint :=
+  fun ⟨k, hk⟩ ↦ (hreg k).apply_ne_of_mem_criticalSet hp hk.symm
 
 end MomentPullback
 
@@ -297,9 +296,6 @@ theorem isMorseBottFamily_momentPullback (hconn : ∀ k, IsConnected (π ⁻¹' 
     | .inl k => isPreconnected_iff_preconnectedSpace.1 (hconn k).isPreconnected
     | .inr _ => inferInstanceAs (PreconnectedSpace (Fin 0 → ℝ))
   have hπ : ContMDiff I 𝓘(ℝ, Fin 1 → ℂ) (⊤ : ℕ∞) π := h.contMDiff
-  have hnotcrit (k : Fin 2) {x : X} (hx : π x = coordinatePoint k) :
-      x ∉ criticalSet I 𝓘(ℝ, Fin 1 → ℂ) π :=
-    fun hc ↦ mem_criticalSet_iff.1 hc ((hreg k).isRegularPoint hx)
   refine IsMorseBottFamily.of_pairwise_disjoint (by simp)
     ((contMDiff_projectiveMomentFunction _).comp hπ) ?_ ?_ ?_
   · rintro (k | p)
@@ -315,9 +311,9 @@ theorem isMorseBottFamily_momentPullback (hconn : ∀ k, IsConnected (π ⁻¹' 
       refine disjoint_left.2 fun x hx hx' ↦ hne' ?_
       exact congrArg Sum.inl (coordinatePoint_injective (hx.symm.trans hx'))
     · rw [onFun, range_embedding_inl, range_embedding_inr, disjoint_singleton_right]
-      exact fun hx ↦ hnotcrit k hx p'.property
+      exact fun hx ↦ (hreg k).notMem_criticalSet hx p'.property
     · rw [onFun, range_embedding_inl, range_embedding_inr, disjoint_singleton_left]
-      exact fun hx ↦ hnotcrit k' hx p.property
+      exact fun hx ↦ (hreg k').notMem_criticalSet hx p.property
     · rw [onFun, range_embedding_inr, range_embedding_inr, disjoint_singleton]
       exact fun hpp ↦ hne' (congrArg Sum.inr (Subtype.ext hpp))
   · intro x hx

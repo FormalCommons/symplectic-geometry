@@ -7,6 +7,8 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Model
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Tautological
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
+import TauCeti.Geometry.Manifold.SmoothEmbedding.LeftInverse
 
 /-!
 # The model blowup as the total space of the tautological line
@@ -35,16 +37,24 @@ Lemma 7.1.1; Griffiths–Harris, Chapter 1, §4).
 * `SymplecticGeometry.BlowupModel.blowupModelTotalSpaceDiffeomorph_symm_apply` and
   `SymplecticGeometry.BlowupModel.blowupModelTotalSpaceDiffeomorph_symm_zeroSection`: the
   inverse, and its value on the exceptional divisor.
+* `SymplecticGeometry.BlowupModel.zeroSectionEmbedding n`: the zero section
+  `BlowupModel.zeroSection` as Tau Ceti's holomorphic embedding `TauCeti.SmoothEmbedding`
+  (`SymplecticGeometry.BlowupModel.coe_zeroSectionEmbedding`), with image the exceptional divisor
+  (`SymplecticGeometry.BlowupModel.range_zeroSectionEmbedding`).
 
 ## Implementation notes
 
 The map into the blowup is shown holomorphic through the embedding of the blowup into
-`ℙ ℂ E × E` (`BlowupModel.isSmoothEmbedding_blowupModel_val`): over the affine open `U_i`, the
-vector of the line is the coordinate of `a` in the chart `i` of `𝒪(-1)` times the representative
-`[1 : affineChart i ℓ]` of `ℓ`. For the inverse, in the frame of
-the chart `k` of `𝒪(-1)` the image of `(ℓ, z)` has the coordinate `z k`
+`ℙ ℂ E × E` (`BlowupModel.isSmoothEmbedding_blowupModel_val`), whose second component is
+holomorphic by `Projectivization.contMDiff_coe_tautologicalTwistCoreEquiv_symm`. For the
+inverse, in the frame of the chart `k` of `𝒪(-1)` the image of `(ℓ, z)` has the coordinate `z k`
 (`Projectivization.twistCore_localTriv_tautologicalTwistCoreEquiv`), a coordinate of the
 holomorphic map `BlowupModel.blowdown`.
+
+The zero section is holomorphic as the image under `blowupModelTotalSpaceDiffeomorph` of the zero
+section of `𝒪(-1)`, and an embedding by Tau Ceti's
+`ContMDiff.isSmoothEmbedding_of_leftInverse`, since `BlowupModel.pr` is a holomorphic left
+inverse of it.
 
 ## References
 
@@ -56,7 +66,7 @@ holomorphic map `BlowupModel.blowdown`.
 
 public section
 
-open Bundle Projectivization Filter Topology
+open Bundle Projectivization Filter
 open scoped LinearAlgebra.Projectivization ContDiff Manifold
 
 namespace SymplecticGeometry
@@ -70,32 +80,9 @@ private theorem contMDiff_blowupModelTotalSpaceToFun :
       (fun q : TotalSpace ℂ (twistCore (𝕜 := ℂ) (n := n) (-1)).Fiber =>
         (⟨(q.proj, (tautologicalTwistCoreEquiv q.proj).symm q.snd),
           mem_blowupModel_iff.2 ((tautologicalTwistCoreEquiv q.proj).symm q.snd).property⟩ :
-            BlowupModel n)) := by
-  refine ((isSmoothEmbedding_blowupModel_val (n := n) (r := ω) le_top).contMDiff_iff_comp).2 ?_
-  refine fun q₀ => (contMDiffAt_proj _).prodMk ?_
-  set i := (twistCore (𝕜 := ℂ) (n := n) (-1)).indexAt q₀.proj
-  have hi₀ : q₀.proj ∈ affineOpen i := mem_affineOpen_twistCore_indexAt (-1) q₀.proj
-  have hU : {q : TotalSpace ℂ (twistCore (𝕜 := ℂ) (n := n) (-1)).Fiber |
-      q.proj ∈ affineOpen i} ∈ 𝓝 q₀ :=
-    (FiberBundle.continuous_proj _ _).continuousAt.preimage_mem_nhds
-      ((isOpen_affineOpen i).mem_nhds hi₀)
-  have : MemTrivializationAtlas ((twistCore (𝕜 := ℂ) (n := n) (-1)).localTriv i) := ⟨⟨i, rfl⟩⟩
-  have hsrc : q₀ ∈ ((twistCore (𝕜 := ℂ) (n := n) (-1)).localTriv i).source :=
-    ((twistCore (-1)).mem_localTriv_source (i := i) q₀).2
-      (by simpa [twistCore_baseSet] using hi₀)
-  -- The coordinate of `q` in the chart `i` of `𝒪(-1)`.
-  have h₁ : ContMDiffAt (𝓘(ℂ, Fin n → ℂ).prod 𝓘(ℂ, ℂ)) 𝓘(ℂ, ℂ) ω
-      (fun q => ((twistCore (𝕜 := ℂ) (n := n) (-1)).localTriv i q).2) q₀ :=
-    contMDiffAt_snd.comp _ (((twistCore (-1)).localTriv i).contMDiffAt hsrc)
-  -- The representative `[1 : affineChart i ℓ]` of the line.
-  have h₂ : ContMDiffAt (𝓘(ℂ, Fin n → ℂ).prod 𝓘(ℂ, ℂ)) 𝓘(ℂ, Fin (n + 1) → ℂ) ω
-      (fun q : TotalSpace ℂ (twistCore (𝕜 := ℂ) (n := n) (-1)).Fiber =>
-        Fin.insertNth (α := fun _ => ℂ) i 1 (affineChart i q.proj)) q₀ :=
-    ((contMDiffOn_insertNth_affineChart i ω).contMDiffAt
-      ((isOpen_affineOpen i).mem_nhds hi₀)).comp _ (contMDiffAt_proj _)
-  refine (h₁.smul h₂).congr_of_eventuallyEq (eventually_of_mem hU fun q hq => ?_)
-  rw [Pi.smul_apply', insertNth_one_affineChart_eq_normalizedRep i hq]
-  exact coe_tautologicalTwistCoreEquiv_symm_apply_of_mem hq q.snd
+            BlowupModel n)) :=
+  ((isSmoothEmbedding_blowupModel_val (n := n) (r := ω) le_top).contMDiff_iff_comp).2 <|
+    (contMDiff_proj _).prodMk (contMDiff_coe_tautologicalTwistCoreEquiv_symm ω)
 
 private theorem contMDiff_blowupModelTotalSpaceInvFun :
     ContMDiff 𝓘(ℂ, Fin (n + 1) → ℂ) (𝓘(ℂ, Fin n → ℂ).prod 𝓘(ℂ, ℂ)) ω
@@ -198,6 +185,38 @@ theorem blowupModelTotalSpaceDiffeomorph_symm_zeroSection (ℓ : ℙ ℂ (Fin (n
     (blowupModelTotalSpaceDiffeomorph n).symm (zeroSection ℓ) =
       TotalSpace.mk' ℂ (E := (twistCore (-1)).Fiber) ℓ 0 := by
   rw [← blowupModelTotalSpaceDiffeomorph_zero, Diffeomorph.symm_apply_apply]
+
+variable (n) in
+/-- The zero section `zeroSection` of the model blowup `BlowupModel n`, which sends a line `ℓ` to
+the point `(ℓ, 0)`, as a holomorphic embedding of `ℙ ℂ E` into `BlowupModel n`. Its image is the
+exceptional divisor (`range_zeroSectionEmbedding`). -/
+noncomputable def zeroSectionEmbedding :
+    TauCeti.SmoothEmbedding 𝓘(ℂ, Fin n → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω (ℙ ℂ (Fin (n + 1) → ℂ))
+      (BlowupModel n) :=
+  TauCeti.SmoothEmbedding.ofIsSmoothEmbedding zeroSection <| by
+    -- Through `blowupModelTotalSpaceDiffeomorph`, `zeroSection` is the zero section of `𝒪(-1)`,
+    -- and `pr` is a holomorphic left inverse of it.
+    have h : (zeroSection : ℙ ℂ (Fin (n + 1) → ℂ) → BlowupModel n) =
+        blowupModelTotalSpaceDiffeomorph n ∘ Bundle.zeroSection ℂ (twistCore (-1)).Fiber :=
+      funext fun ℓ => (blowupModelTotalSpaceDiffeomorph_zero ℓ).symm
+    refine ContMDiff.isSmoothEmbedding_of_leftInverse ?_ le_top (contMDiff_pr 1) pr_zeroSection
+    rw [h]
+    exact (blowupModelTotalSpaceDiffeomorph n).contMDiff.comp
+      (Bundle.contMDiff_zeroSection ℂ (twistCore (-1)).Fiber)
+
+variable (n) in
+/-- The underlying map of `zeroSectionEmbedding n` is `zeroSection`. -/
+@[simp]
+theorem coe_zeroSectionEmbedding :
+    ⇑(zeroSectionEmbedding n) = (zeroSection : ℙ ℂ (Fin (n + 1) → ℂ) → BlowupModel n) :=
+  TauCeti.SmoothEmbedding.coe_ofIsSmoothEmbedding _ _
+
+variable (n) in
+/-- The image of the zero section embedding `zeroSectionEmbedding n` is the exceptional
+divisor. -/
+theorem range_zeroSectionEmbedding :
+    Set.range (zeroSectionEmbedding n) = exceptionalDivisor n := by
+  rw [coe_zeroSectionEmbedding, exceptionalDivisor_eq_range]
 
 end BlowupModel
 

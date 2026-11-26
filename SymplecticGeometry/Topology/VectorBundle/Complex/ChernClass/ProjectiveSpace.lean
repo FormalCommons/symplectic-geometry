@@ -31,8 +31,6 @@ cohomology ring of `ℙ ℂ V` is `ℤ[X] ⧸ (X ^ (n + 1))`, with `X` going to 
   isomorphisms `Projectivization.tautologicalMapEquiv`, so this is the naturality of the Euler
   class, `TauCeti.complexEulerClass_eq_singularCohomologyMap_of_fiberwise`, together with that of
   `TopCat.uliftIntegralCohomologyIso`.
-* `Projectivization.projective_singularHomology`: the singular homology of `ℙ ℂ V` is projective
-  in every degree, as the Leray–Hirsch theorem asks of a fibre.
 * `Projectivization.bijective_zsmul_hyperplaneClass_pow`: for `k ≤ n`, `m ↦ m • h ^ k` is a
   bijection `ℤ → H^{2k}(ℙ ℂ V; ℤ)`.
 * `Projectivization.bijective_zsmul_hyperplaneClass` and
@@ -120,22 +118,6 @@ section Ring
 open CategoryTheory Limits Polynomial
 
 variable {V : Type} [NormedAddCommGroup V] [NormedSpace ℂ V] {n : ℕ}
-
-section Homology
-
-open AlgebraicTopology
-
-variable {k : Type} [CommRing k] (R : ModuleCat.{0} k)
-
-/-- The singular homology of `ℙ ℂ V`, for `finrank ℂ V = n + 1`, is projective in every degree,
-with projective coefficients `R`. -/
-theorem projective_singularHomology (hV : finrank ℂ V = n + 1) [Module.Projective k R] (m : ℕ) :
-    Projective (((singularHomologyFunctor (ModuleCat.{0} k) m).obj R).obj (TopCat.of (ℙ ℂ V))) :=
-  Projective.of_iso (((singularHomologyFunctor _ m).obj R).mapIso
-    (TopCat.isoOfHomeo (X := TopCat.of (ComplexProjectiveSpace n)) (Y := TopCat.of (ℙ ℂ V))
-      (complexProjectiveSpaceHomeomorph hV))) inferInstance
-
-end Homology
 
 /-- The integral cohomology of the nonzero vectors of the tautological line of `ℙ ℂ V`, for
 `finrank ℂ V = n + 1`, vanishes in the degrees `m ≠ 0` with `m + 1 ≠ 2n + 2`. -/

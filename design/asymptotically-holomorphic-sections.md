@@ -468,7 +468,7 @@ and the prerequisites, placed by topic.
 
 ### Prerequisites
 
-- `Geometry/Manifold/SmoothSingular/DeRham/MayerVietorisInduction.lean`:
+- `Geometry/Manifold/SmoothSingular/DeRham/MayerVietoris/Induction.lean`:
   `TauCeti.bijective_deRhamHom` (for manifolds that have a finite good cover, or
   a second-countable one through `mayerVietoris_induction`),
   `TauCeti.injective_deRhamHom`. If Tau Ceti's `deRhamHom` lands in smooth
@@ -652,7 +652,7 @@ Mathlib uses it instead; each prerequisite issue first searches both for its
 statement.
 
 1. **The de Rham theorem**
-   (`SmoothSingular/DeRham/MayerVietorisInduction.lean`). Waits for
+   (`SmoothSingular/DeRham/MayerVietoris/Induction.lean`). Waits for
    nothing. Its agent may split it in two: the Mayer–Vietoris square of
    `deRhamHom` with its connecting maps, then the induction.
 2. **Classifying maps for $H^2$** (`ProjectiveSpaceClassifying.lean`).

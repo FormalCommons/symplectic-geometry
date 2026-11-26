@@ -5,40 +5,30 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Complex.RadialProjection
+public import SymplecticGeometry.Topology.ComplexProjectiveSpace.ProjectiveLine
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Glue
-public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.HomotopyInvariance
 public import SymplecticGeometry.Topology.VectorBundle.ProjectiveBundle.Tautological
-public import TauCeti.Topology.Algebra.Projectivization
 
 /-!
 # The clutching construction over `X × ℂP¹`
 
-The projective line `ℙ ℂ (Fin 2 → ℂ)` is covered by two open discs: the inner disc
-`ProjectiveLine.innerDisc`, the points `[z : 1]` with `|z| < 2`, and the outer disc
-`ProjectiveLine.outerDisc`, the points `[1 : w]` with `|w| < 2`, that is `|z| > 1/2` together with
-`∞ = [1 : 0]`. They meet in the annulus `1/2 < |z| < 2`, which `ProjectiveLine.annulusToCircle`
-retracts radially onto the unit circle, `[z : 1] ↦ z / |z|`.
+The projective line `ℙ ℂ (Fin 2 → ℂ)` is covered by two open discs, the inner disc
+`ProjectiveLine.innerDisc` and the outer disc `ProjectiveLine.outerDisc`, which meet in an annulus
+that `ProjectiveLine.annulusToCircle` retracts radially onto the unit circle,
+`[z : 1] ↦ z / |z|` (see `SymplecticGeometry.Topology.ComplexProjectiveSpace.ProjectiveLine`).
 
 For a finite-rank core `E` over `X` and an automorphism `f` of the pullback of `E` to `X × Circle`
 along the projection, `E.clutching f` is the core over `X × ℙ ℂ (Fin 2 → ℂ)` obtained by gluing
 the pullback of `E` along `Prod.fst` to itself over the product of `X` with the annulus by `f`
-composed with the radial retraction (`clutchingMap`): a vector `v` over `(x, [z : 1])` in the
-copy over the outer disc is the vector `f_{(x, z / |z|)} v` in the copy over the inner disc. This
-is the clutching construction of [Hatcher2017, §2.1]. It uses no K-theory, and the fibres may be
-over any nontrivially normed field.
+composed with the radial retraction (`ProjectiveLine.clutchingMap`): a vector `v` over
+`(x, [z : 1])` in the copy over the outer disc is the vector `f_{(x, z / |z|)} v` in the copy over
+the inner disc. This is the clutching construction of [Hatcher2017, §2.1]. It uses no K-theory,
+and the fibres may be over any nontrivially normed field.
 
 ## Main definitions and results
 
-* `SymplecticGeometry.ProjectiveLine.innerDisc`, `SymplecticGeometry.ProjectiveLine.outerDisc`:
-  the two open discs, open (`isOpen_innerDisc`, `isOpen_outerDisc`) and covering the projective
-  line (`innerDisc_union_outerDisc`).
-* `SymplecticGeometry.ProjectiveLine.annulusCoord`: the affine coordinate `z` of the points
-  `[z : 1]` of their intersection, the annulus, as a nonzero complex number.
-* `SymplecticGeometry.ProjectiveLine.annulusToCircle`: the radial retraction of the annulus onto
-  `Circle`, `[z : 1] ↦ z / |z|` (`coe_annulusToCircle_apply`).
-* `TauCeti.FiniteRankBundleCore.clutchingMap`: the map from the product of `X` with the annulus to
-  `X × Circle`, and `TauCeti.FiniteRankBundleCore.clutchingAut E f`, the pullback of `f` along it.
+* `TauCeti.FiniteRankBundleCore.clutchingAut E f`: the pullback of `f` along
+  `SymplecticGeometry.ProjectiveLine.clutchingMap`.
 * `TauCeti.FiniteRankBundleCore.clutching`: the clutched core, of rank `E.rank`
   (`rank_clutching`).
 * `TauCeti.FiniteRankBundleCore.coordChange_clutching`: its transitions, through the gluing cocycle.
@@ -56,9 +46,6 @@ over any nontrivially normed field.
 * `TauCeti.FiniteRankBundleCore.clutchingTensorIso` and `clutching_tensor`: the clutching of
   `E₁ ⊗ E₂` by the tensor product `f₁ ⊗ᵢ f₂` of the families is the tensor product of the
   clutchings, for instance the twist of a clutching by a line bundle with its clutching function.
-* `TauCeti.FiniteRankBundleCore.pullbackClutchingIso`: for an automorphism `H` over
-  `(X × T) × Circle`, the pullback of the clutching by `H` along `(x, p) ↦ ((x, t), p)` is the
-  clutching by any automorphism over `X × Circle` with the fibre maps of `H` at time `t`.
 * `TauCeti.FiniteRankBundleCore.nonempty_iso_clutching_of_homotopic`: over a paracompact R₁
   space, clutchings by automorphisms joined by a family over `X × I` are isomorphic.
 * `TauCeti.FiniteRankBundleCore.circleZPowIso X n`: the automorphism of the trivial line over
@@ -81,12 +68,13 @@ its transitions are those of the Whitney sum or tensor product of the clutchings
 (`TauCeti.FiniteRankBundleCore.coordChange_glue_whitneyMapIso`, `coordChange_glue_tensorIso`), and
 the identity of coordinates is an isomorphism (`TauCeti.FiniteRankBundleCore.constIso`).
 
-For clutchings by homotopic families, the family over `X × I` clutches a core over
-`(X × I) × ℙ ℂ (Fin 2 → ℂ)`, whose pullbacks along the inclusions at times `0` and `1` are the
-two clutchings (`pullbackClutchingIso`, by `TauCeti.FiniteRankBundleCore.constIso`). These
-inclusions are homotopic, so the pullbacks are isomorphic by homotopy invariance
-(`TauCeti.FiniteRankBundleCore.nonempty_pullback_iso_of_homotopic`, from Tau Ceti's
-`ContinuousMap.Homotopic.exists_continuousLinearEquiv_pullback`), as in [Hatcher2017, §2.1].
+Clutchings by homotopic families are gluings by homotopic automorphisms: the family `H` over
+`(X × I) × Circle`, pulled back along `((x, p), s) ↦ ((x, s), p / |p|)`, is an automorphism over
+the product of the annulus part of `X × ℙ ℂ (Fin 2 → ℂ)` with `I`, whose slices at `0` and `1`
+are the gluing automorphisms of the two clutchings. So
+`nonempty_iso_clutching_of_homotopic` follows from
+`TauCeti.FiniteRankBundleCore.nonempty_iso_glue_of_homotopic`, which rests on homotopy invariance
+of pullbacks, as in [Hatcher2017, §2.1].
 
 For `clutchingZIso`, a coordinate `a` of the clutched line over a point of `X × innerDisc` goes to
 `a • innerSection`, and over the rest to `a • outerSection`. These agree with the gluing because
@@ -111,106 +99,6 @@ open Set CategoryTheory Projectivization Bundle Module Topology
 
 open scoped LinearAlgebra.Projectivization
 
-namespace SymplecticGeometry.ProjectiveLine
-
-/-! ### The two discs of the projective line and their annulus -/
-
-/-- The inner disc of the projective line: the points `[z : 1]` with `|z| < 2`. -/
-def innerDisc : Set (ℙ ℂ (Fin 2 → ℂ)) :=
-  affineOpen 1 ∩ affineChart 1 ⁻¹' {z | ‖z 0‖ < 2}
-
-/-- The outer disc of the projective line: the points `[1 : w]` with `|w| < 2`, that is the points
-`[z : 1]` with `|z| > 1/2` together with `∞ = [1 : 0]`. -/
-def outerDisc : Set (ℙ ℂ (Fin 2 → ℂ)) :=
-  affineOpen 0 ∩ affineChart 0 ⁻¹' {z | ‖z 0‖ < 2}
-
-theorem innerDisc_def : innerDisc = affineOpen 1 ∩ affineChart 1 ⁻¹' {z | ‖z 0‖ < 2} :=
-  (rfl)
-
-theorem outerDisc_def : outerDisc = affineOpen 0 ∩ affineChart 0 ⁻¹' {z | ‖z 0‖ < 2} :=
-  (rfl)
-
-theorem mem_innerDisc_iff {p : ℙ ℂ (Fin 2 → ℂ)} :
-    p ∈ innerDisc ↔ p ∈ affineOpen 1 ∧ ‖affineChart 1 p 0‖ < 2 :=
-  Iff.rfl
-
-theorem mem_outerDisc_iff {p : ℙ ℂ (Fin 2 → ℂ)} :
-    p ∈ outerDisc ↔ p ∈ affineOpen 0 ∧ ‖affineChart 0 p 0‖ < 2 :=
-  Iff.rfl
-
-@[simp]
-theorem mk_mem_innerDisc_iff (v : Fin 2 → ℂ) (hv : v ≠ 0) :
-    mk ℂ v hv ∈ innerDisc ↔ v 1 ≠ 0 ∧ ‖v 0 / v 1‖ < 2 := by
-  simp [mem_innerDisc_iff]
-
-@[simp]
-theorem mk_mem_outerDisc_iff (v : Fin 2 → ℂ) (hv : v ≠ 0) :
-    mk ℂ v hv ∈ outerDisc ↔ v 0 ≠ 0 ∧ ‖v 1 / v 0‖ < 2 := by
-  simp [mem_outerDisc_iff]
-
-theorem isOpen_innerDisc : IsOpen innerDisc := by
-  rw [innerDisc_def]
-  simpa using (affineOpenPartialHomeomorph (K := ℂ) (n := 1) 1).isOpen_inter_preimage
-    (isOpen_lt (continuous_norm.comp (continuous_apply 0)) continuous_const)
-
-theorem isOpen_outerDisc : IsOpen outerDisc := by
-  rw [outerDisc_def]
-  simpa using (affineOpenPartialHomeomorph (K := ℂ) (n := 1) 0).isOpen_inter_preimage
-    (isOpen_lt (continuous_norm.comp (continuous_apply 0)) continuous_const)
-
-/-- The inner and outer discs cover the projective line. -/
-theorem innerDisc_union_outerDisc : innerDisc ∪ outerDisc = univ := by
-  refine eq_univ_of_forall fun p ↦ ?_
-  induction p using Projectivization.ind with | h v hv =>
-  simp only [mem_union, mk_mem_innerDisc_iff, mk_mem_outerDisc_iff]
-  by_cases h1 : v 1 = 0
-  · have h0 : v 0 ≠ 0 := fun h0 ↦ hv (funext fun i ↦ by fin_cases i <;> assumption)
-    exact Or.inr ⟨h0, by simp [h1]⟩
-  by_cases h : ‖v 0 / v 1‖ < 2
-  · exact Or.inl ⟨h1, h⟩
-  have h0 : v 0 ≠ 0 := fun h0 ↦ h (by simp [h0])
-  refine Or.inr ⟨h0, ?_⟩
-  rw [not_lt] at h
-  have h' : ‖v 0 / v 1‖⁻¹ ≤ 2⁻¹ := inv_anti₀ (by norm_num) h
-  rw [← inv_div, norm_inv]
-  linarith
-
-/-- On the annulus, the affine coordinate `z` of a point `[z : 1]` is nonzero. -/
-theorem affineChart_one_ne_zero_of_mem {p : ℙ ℂ (Fin 2 → ℂ)} (hp : p ∈ innerDisc ∩ outerDisc) :
-    affineChart 1 p 0 ≠ 0 := by
-  induction p using Projectivization.ind with | h v hv =>
-  simp only [mem_inter_iff, mk_mem_innerDisc_iff, mk_mem_outerDisc_iff] at hp
-  simpa using div_ne_zero hp.2.1 hp.1.1
-
-/-- The affine coordinate `z` of the points `[z : 1]` of the annulus `innerDisc ∩ outerDisc`, as a
-nonzero complex number. -/
-def annulusCoord : C(↥(innerDisc ∩ outerDisc), ({0}ᶜ : Set ℂ)) :=
-  ⟨fun p ↦ ⟨affineChart 1 p.val 0, affineChart_one_ne_zero_of_mem p.property⟩,
-    (continuousOn_iff_continuous_domRestrict.1 ((continuous_apply 0).comp_continuousOn
-      ((continuousOn_affineChart (K := ℂ) 1).mono
-        fun _ (hp : _ ∈ innerDisc ∩ outerDisc) ↦ hp.1.1))).subtype_mk _⟩
-
-@[simp]
-theorem coe_annulusCoord_apply (p : ↥(innerDisc ∩ outerDisc)) :
-    (annulusCoord p : ℂ) = affineChart 1 p.val 0 :=
-  (rfl)
-
-/-- The radial retraction of the annulus `innerDisc ∩ outerDisc` onto the unit circle,
-`[z : 1] ↦ z / |z|`. -/
-def annulusToCircle : C(↥(innerDisc ∩ outerDisc), Circle) :=
-  Circle.radialProjection.comp annulusCoord
-
-theorem annulusToCircle_def : annulusToCircle = Circle.radialProjection.comp annulusCoord :=
-  (rfl)
-
-/-- The radial retraction of the annulus sends `[z : 1]` to `z / |z|`. -/
-@[simp]
-theorem coe_annulusToCircle_apply (p : ↥(innerDisc ∩ outerDisc)) :
-    (annulusToCircle p : ℂ) = ‖affineChart 1 p.val 0‖⁻¹ • affineChart 1 p.val 0 := by
-  simp [annulusToCircle_def]
-
-end SymplecticGeometry.ProjectiveLine
-
 /-! ### The clutched core -/
 
 namespace TauCeti.FiniteRankBundleCore
@@ -218,23 +106,6 @@ namespace TauCeti.FiniteRankBundleCore
 open SymplecticGeometry.ProjectiveLine
 
 variable {𝕜 X : Type*} [NontriviallyNormedField 𝕜] [TopologicalSpace X]
-
-variable (X) in
-/-- The map from the product of `X` with the annulus of the projective line to `X × Circle`:
-the identity on `X`, and the radial retraction `annulusToCircle` on the annulus. -/
-def clutchingMap :
-    C(↥(Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc : Set (X × ℙ ℂ (Fin 2 → ℂ))),
-      X × Circle) :=
-  ⟨fun w ↦ (w.val.1, annulusToCircle ⟨w.val.2, w.property⟩),
-    (continuous_fst.comp continuous_subtypeVal).prodMk
-      (annulusToCircle.continuous.comp
-        ((continuous_snd.comp continuous_subtypeVal).subtype_mk _))⟩
-
-@[simp]
-theorem clutchingMap_apply
-    (w : ↥(Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc : Set (X × ℙ ℂ (Fin 2 → ℂ)))) :
-    clutchingMap X w = (w.val.1, annulusToCircle ⟨w.val.2, w.property⟩) :=
-  (rfl)
 
 /-- The automorphism of the pullback of `E` to the product of `X` with the annulus by which the
 clutching by `f` glues: the pullback of `f` along `clutchingMap`. -/
@@ -553,124 +424,6 @@ end Operations
 
 /-! ### Clutching by homotopic families -/
 
-section Homotopic
-
-variable {T : Type*} [TopologicalSpace T]
-  (H : (E.pullback (ContinuousMap.fst : C(X × T, X))).pullback
-      (ContinuousMap.fst : C((X × T) × Circle, X × T)) ≅
-    (E.pullback (ContinuousMap.fst : C(X × T, X))).pullback
-      (ContinuousMap.fst : C((X × T) × Circle, X × T)))
-  (t : T)
-
-/-- The side of the chart at `((x, t), p)` of a clutching over `X × T` is that of the chart at
-`(x, p)` of a clutching over `X`. -/
-private theorem glueIndex_sliceAt (x : X × ℙ ℂ (Fin 2 → ℂ)) :
-    glueIndex (Prod.snd ⁻¹' innerDisc)
-        ((((ContinuousMap.id X).prodMk (.const X t)).prodMap (.id _)) x) =
-      glueIndex (Prod.snd ⁻¹' innerDisc) x := by
-  simp [glueIndex_def]
-
-/-- The chart at `i` of the pullback of a clutching over `X × T` along `(x, p) ↦ ((x, t), p)` lies
-in the chart at `i` of a clutching over `X`. -/
-private theorem baseSet_pullback_clutching_subset (i : X × ℙ ℂ (Fin 2 → ℂ)) :
-    (((E.pullback ContinuousMap.fst).clutching H).pullback
-        (((ContinuousMap.id X).prodMk (.const X t)).prodMap (.id _))).core.baseSet i ⊆
-      (E.clutching f).core.baseSet i := by
-  intro b hb
-  rw [VectorBundleCore.baseSet_at, localTriv_baseSet_pullback, ← VectorBundleCore.baseSet_at,
-    Set.mem_preimage] at hb
-  rw [baseSet_clutching, glueIndex_sliceAt] at hb
-  rw [baseSet_clutching]
-  generalize glueIndex (Prod.snd ⁻¹' innerDisc) i = s at hb ⊢
-  cases s <;> exact ⟨hb.1, hb.2⟩
-
-variable {H t}
-
-/-- If the fibre maps of `H` at `((x, t), z)` are those of `f` at `(x, z)`, so are the fibre maps
-of their inverses. -/
-private theorem fiberMap_inv_sliceAt
-    (hf : ∀ w : X × Circle, H.hom.fiberMap ((w.1, t), w.2) = f.hom.fiberMap w) (w : X × Circle) :
-    H.inv.fiberMap ((w.1, t), w.2) = f.inv.fiberMap w := by
-  rw [← inverse_fiberMap_hom, hf, inverse_fiberMap_hom]
-
-/-- The transitions of the pullback of a clutching over `X × T` along `(x, p) ↦ ((x, t), p)` are
-those of the clutching by the slice of `H` at `t`. -/
-private theorem coordChange_pullback_clutching
-    (hf : ∀ w : X × Circle, H.hom.fiberMap ((w.1, t), w.2) = f.hom.fiberMap w)
-    (i k b : X × ℙ ℂ (Fin 2 → ℂ))
-    (hi : b ∈ (((E.pullback ContinuousMap.fst).clutching H).pullback
-      (((ContinuousMap.id X).prodMk (.const X t)).prodMap (.id _))).core.baseSet i)
-    (hk : b ∈ (((E.pullback ContinuousMap.fst).clutching H).pullback
-      (((ContinuousMap.id X).prodMk (.const X t)).prodMap (.id _))).core.baseSet k) :
-    ((((E.pullback ContinuousMap.fst).clutching H).pullback
-        (((ContinuousMap.id X).prodMk (.const X t)).prodMap (.id _))).core.coordChange i k b) =
-      (E.clutching f).core.coordChange i k b := by
-  have hs := ((baseSet_clutching E f i).le (baseSet_pullback_clutching_subset E f H t i hi)).2
-  have hr := ((baseSet_clutching E f k).le (baseSet_pullback_clutching_subset E f H t k hk)).2
-  simp only [coordChange_pullback, coordChange_clutching, glueIndex_sliceAt,
-    inChartCoordinates_pullback]
-  congr 1
-  generalize glueIndex (Prod.snd ⁻¹' innerDisc) i = s at hs ⊢
-  generalize glueIndex (Prod.snd ⁻¹' innerDisc) k = r at hr ⊢
-  cases s <;> cases r
-  · -- Both sides are the identity of `Fin E.rank → 𝕜`: the rank of a pullback is that of the core.
-    simp only [glueCocycle_self]
-    rfl
-  · have hb : b ∈ Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc := ⟨hr, hs⟩
-    have hb' : (((ContinuousMap.id X).prodMk (.const X t)).prodMap (.id _)) b ∈
-        (Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc : Set ((X × T) × ℙ ℂ (Fin 2 → ℂ))) :=
-      hb
-    rw [glueCocycle_false_true _ hb', glueCocycle_false_true _ hb, fiberMap_clutchingAut_hom,
-      fiberMap_clutchingAut_hom]
-    exact hf (clutchingMap X ⟨b, hb⟩)
-  · have hb : b ∈ Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc := ⟨hs, hr⟩
-    have hb' : (((ContinuousMap.id X).prodMk (.const X t)).prodMap (.id _)) b ∈
-        (Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc : Set ((X × T) × ℙ ℂ (Fin 2 → ℂ))) :=
-      hb
-    rw [glueCocycle_true_false _ hb', glueCocycle_true_false _ hb, fiberMap_clutchingAut_inv,
-      fiberMap_clutchingAut_inv]
-    exact fiberMap_inv_sliceAt E f hf (clutchingMap X ⟨b, hb⟩)
-  · -- Both sides are the identity of `Fin E.rank → 𝕜`: the rank of a pullback is that of the core.
-    simp only [glueCocycle_self]
-    rfl
-
-variable (H t)
-
-/-- **Restricting the parameter of a clutching.** Let `H` be an automorphism of the pullback of
-`E` to `(X × T) × Circle`, and `f` one of the pullback of `E` to `X × Circle` whose fibre map at
-`(x, z)` is that of `H` at `((x, t), z)`. Then the pullback of the clutching of the pullback of `E`
-to `X × T` by `H`, along `(x, p) ↦ ((x, t), p)`, is isomorphic to the clutching of `E` by `f`, by
-the identity in coordinates. -/
-def pullbackClutchingIso
-    (hf : ∀ w : X × Circle, H.hom.fiberMap ((w.1, t), w.2) = f.hom.fiberMap w) :
-    ((E.pullback ContinuousMap.fst).clutching H).pullback
-        (((ContinuousMap.id X).prodMk (.const X t)).prodMap (.id _)) ≅ E.clutching f :=
-  constIso (baseSet_pullback_clutching_subset E f H t) (.refl 𝕜 _) fun i k b hi hk ↦ by
-    rw [ContinuousLinearEquiv.coe_refl, ContinuousLinearMap.id_comp, ContinuousLinearMap.comp_id]
-    exact coordChange_pullback_clutching E f hf i k b hi hk
-
-/-- The isomorphism `pullbackClutchingIso` is the identity in coordinates. -/
-@[simp]
-theorem fiberMap_pullbackClutchingIso_hom
-    (hf : ∀ w : X × Circle, H.hom.fiberMap ((w.1, t), w.2) = f.hom.fiberMap w)
-    (x : X × ℙ ℂ (Fin 2 → ℂ)) :
-    (E.pullbackClutchingIso f H t hf).hom.fiberMap x = .id 𝕜 _ := by
-  rw [pullbackClutchingIso, fiberMap_constIso_hom]
-  -- The two sides differ only in the rank they name, both `E.rank` by definition.
-  exact ContinuousLinearEquiv.coe_refl
-
-/-- The inverse of `pullbackClutchingIso` is the identity in coordinates. -/
-@[simp]
-theorem fiberMap_pullbackClutchingIso_inv
-    (hf : ∀ w : X × Circle, H.hom.fiberMap ((w.1, t), w.2) = f.hom.fiberMap w)
-    (x : X × ℙ ℂ (Fin 2 → ℂ)) :
-    (E.pullbackClutchingIso f H t hf).inv.fiberMap x = .id 𝕜 _ := by
-  rw [pullbackClutchingIso, fiberMap_constIso_inv, ContinuousLinearEquiv.refl_symm]
-  -- The two sides differ only in the rank they name, both `E.rank` by definition.
-  exact ContinuousLinearEquiv.coe_refl
-
-end Homotopic
-
 open scoped unitInterval in
 /-- **Clutchings by homotopic families are isomorphic.** Let `X` be paracompact and R₁, for
 instance compact Hausdorff, and let `f₀` and `f₁` be automorphisms of the pullback of `E` to
@@ -687,15 +440,17 @@ theorem nonempty_iso_clutching_of_homotopic [NormedAlgebra ℝ 𝕜] [CompleteSp
     (h₀ : ∀ w : X × Circle, H.hom.fiberMap ((w.1, 0), w.2) = f₀.hom.fiberMap w)
     (h₁ : ∀ w : X × Circle, H.hom.fiberMap ((w.1, 1), w.2) = f₁.hom.fiberMap w) :
     Nonempty (E.clutching f₀ ≅ E.clutching f₁) := by
-  -- The two ends of the clutching over `X × I` are pullbacks along homotopic maps; the homotopy
-  -- `(s, (x, p)) ↦ ((x, s), p)` is at its ends the two maps, as they are evaluated.
-  have hJ : (((ContinuousMap.id X).prodMk (.const X (0 : I))).prodMap
-      (.id (ℙ ℂ (Fin 2 → ℂ)))).Homotopic
-        (((ContinuousMap.id X).prodMk (.const X (1 : I))).prodMap (.id _)) :=
-    ⟨⟨⟨fun p ↦ ((p.2.1, p.1), p.2.2), by fun_prop⟩, fun _ ↦ rfl, fun _ ↦ rfl⟩⟩
-  obtain ⟨e⟩ :=
-    ((E.pullback ContinuousMap.fst).clutching H).nonempty_pullback_iso_of_homotopic hJ
-  exact ⟨(E.pullbackClutchingIso f₀ H 0 h₀).symm ≪≫ e ≪≫ E.pullbackClutchingIso f₁ H 1 h₁⟩
+  -- The clutching by `H` glues by its pullback along `((x, p), s) ↦ ((x, s), p / |p|)`, a map
+  -- from the product of the annulus part of `X × ℙ ℂ (Fin 2 → ℂ)` with `I`.
+  let m : C(↥(Prod.fst ⁻¹' (Prod.snd ⁻¹' innerDisc) ∩ Prod.fst ⁻¹' (Prod.snd ⁻¹' outerDisc) :
+      Set ((X × ℙ ℂ (Fin 2 → ℂ)) × I)), (X × I) × Circle) :=
+    ⟨fun w ↦ ((w.val.1.1, w.val.2), annulusToCircle ⟨w.val.1.2, w.property⟩), by fun_prop⟩
+  refine nonempty_iso_glue_of_homotopic (E.pullback ContinuousMap.fst) _ _ _
+    ((pullbackFunctor m).mapIso H) (fun w ↦ ?_) (fun w ↦ ?_)
+  · rw [fiberMap_clutchingAut_hom, ← h₀]
+    exact fiberMap_pullbackMap H.hom m _
+  · rw [fiberMap_clutchingAut_hom, ← h₁]
+    exact fiberMap_pullbackMap H.hom m _
 
 /-! ### Clutching by a power of the coordinate -/
 
@@ -852,16 +607,16 @@ private theorem discSection_mem_submodule (s : Bool) (p : ℙ ℂ (Fin 2 → ℂ
 private theorem discSection_ne_zero {s : Bool} {p : ℙ ℂ (Fin 2 → ℂ)}
     (hp : p ∈ bif s then innerDisc else outerDisc) : discSection s p ≠ 0 := by
   cases s
-  · exact outerSection_ne_zero hp.1
-  · exact innerSection_ne_zero hp.1
+  · exact outerSection_ne_zero (outerDisc_subset_affineOpen hp)
+  · exact innerSection_ne_zero (innerDisc_subset_affineOpen hp)
 
 private theorem continuousAt_discSection {s : Bool} {p : ℙ ℂ (Fin 2 → ℂ)}
     (hp : p ∈ bif s then innerDisc else outerDisc) : ContinuousAt (discSection s) p := by
   cases s
   · exact continuousOn_outerSection.continuousAt
-      ((isOpen_affineOpen 0).mem_nhds hp.1)
+      ((isOpen_affineOpen 0).mem_nhds (outerDisc_subset_affineOpen hp))
   · exact continuousOn_innerSection.continuousAt
-      ((isOpen_affineOpen 1).mem_nhds hp.1)
+      ((isOpen_affineOpen 1).mem_nhds (innerDisc_subset_affineOpen hp))
 
 variable (X)
 

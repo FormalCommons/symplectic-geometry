@@ -65,22 +65,19 @@ theorem coe_conj {k : ℕ} (φ : complexClosedForms I M k) :
 /-- Conjugating the coefficients twice gives back the closed form. -/
 @[simp]
 theorem conj_conj {k : ℕ} (φ : complexClosedForms I M k) : conj I (conj I φ) = φ := by
-  refine Subtype.ext <| Subtype.ext <| funext fun x ↦ ?_
-  ext v
+  refine Subtype.ext <| SmoothBundleForm.ext fun x v ↦ ?_
   simp [RoughForm.mapCoeff_apply]
 
 /-- The real part of the conjugate of a closed complex form is its real part. -/
 @[simp]
 theorem re_conj {k : ℕ} (φ : complexClosedForms I M k) : re I (conj I φ) = re I φ := by
-  refine Subtype.ext <| Subtype.ext <| funext fun x ↦ ?_
-  ext v
+  refine Subtype.ext <| SmoothBundleForm.ext fun x v ↦ ?_
   simp [RoughForm.mapCoeff_apply]
 
 /-- The imaginary part of the conjugate of a closed complex form is minus its imaginary part. -/
 @[simp]
 theorem im_conj {k : ℕ} (φ : complexClosedForms I M k) : im I (conj I φ) = -im I φ := by
-  refine Subtype.ext <| Subtype.ext <| funext fun x ↦ ?_
-  ext v
+  refine Subtype.ext <| SmoothBundleForm.ext fun x v ↦ ?_
   simp [RoughForm.mapCoeff_apply]
 
 /-- The conjugate of a closed complex form `α + i β`, with `α` and `β` its real and imaginary
@@ -88,8 +85,7 @@ parts, is `α + (-i) β`. -/
 theorem conj_eq_ofReal_re_add_neg_I_smul_ofReal_im {k : ℕ} (φ : complexClosedForms I M k) :
     conj I φ =
       closedForms.ofReal I (re I φ) + (-Complex.I) • closedForms.ofReal I (im I φ) := by
-  refine Subtype.ext <| Subtype.ext <| funext fun x ↦ ?_
-  ext v
+  refine Subtype.ext <| SmoothBundleForm.ext fun x v ↦ ?_
   apply Complex.ext <;> simp [RoughForm.mapCoeff_apply]
 
 end complexClosedForms

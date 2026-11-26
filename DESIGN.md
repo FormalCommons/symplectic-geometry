@@ -743,7 +743,7 @@ table may fall behind.
   even multiplicity at $\pm1$, $\omega_0$-orthogonality of eigenvectors for
   $\lambda\lambda'\neq1$ with the bilinear extension; from Tau Ceti's
   `SymplecticGroup.charpoly_inv`, `SymplecticGroup.reflect_charpolyRev` and
-  `LinearMap.IsAdjointPair.apply_eq_zero_of_mem_genEigenspace`),
+  `LinearMap.apply_eq_zero_of_mem_maxGenEigenspace_of_compl₁₂_eq_smul`),
   `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` (algebraic facts beside
   Mathlib's `SymplecticGroup.transpose_mem`: the `simp` lemmas
   `Matrix.J_inl_inl`, `Matrix.J_inl_inr`, `Matrix.J_inr_inl` and
@@ -2466,10 +2466,10 @@ complete target and a function on the whole half-space.
   nondegeneracy, for `StableHamiltonian.lean`), which is merged,
   `Geometry/Manifold/DifferentialForm/Smooth.lean` of *Moser isotopy* (for
   `StableHamiltonian.lean`), and *Smooth families*: its
-  `Analysis/Calculus/ContDiff/Seeley/Extension.lean`,
   `Geometry/Manifold/LocalDiffeomorph/Basic.lean` and
   `Geometry/Manifold/MFDeriv/Chart.lean`, which are merged, for
-  `Collar/Flow/Local.lean`, which extends a field across the boundary, and its
+  `Collar/Flow/Local.lean`, which reads the field in a boundary chart and
+  takes Tau Ceti's half-space flow of its negative, and its
   `DifferentialForm/SmoothFamily/Basic.lean`, which is merged, for
   `StableHamiltonian.lean`. `Completion.lean` uses
   `Filling.lean` and `End.lean`.
@@ -3005,7 +3005,7 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
   cases of the de Rham theorem in
   `Geometry/Manifold/SmoothSingular/DeRham/Theorem.lean`; the general
   theorem is planned in *Asymptotically holomorphic sections*, in
-  `SmoothSingular/DeRham/MayerVietorisInduction.lean`), or directly from
+  `SmoothSingular/DeRham/MayerVietoris/Induction.lean`), or directly from
   periods of closed one-forms; and how the hypothesis on
   $[\omega]^{n-1}\smile-$ is stated with Tau Ceti's de Rham classes. The
   page's route through the Poincaré dual of an orbit is replaced by the
@@ -3316,10 +3316,10 @@ Differential topology and complex analysis only; it waits for no part of
   Tau Ceti's `TauCeti.MapFiber.Atlas` with `IsContMDiff`, with structure
   group $H\le\mathrm{Diff}(F)$ and its reductions; oriented and symplectic
   atlases; the bridge from Tau Ceti's `ContMDiffFiberBundle` and
-  `AssociatedBundle`); in `Geometry/Symplectic/Fibration/`: `Basic.lean`
-  (the predicate that a
-  form restricts to the fibre forms, with its independence of the chart;
-  compatible symplectic forms, for a symplectic atlas and, with an
+  `AssociatedBundle`), and `RestrictsTo.lean` (the predicate that a
+  form restricts to the fibre forms, with its independence of the chart);
+  in `Geometry/Symplectic/Fibration/`: `Basic.lean`
+  (compatible symplectic forms, for a symplectic atlas and, with an
   orientation, for an oriented one), `HorizontalDistribution.lean` (a
   two-form that
   restricts to the fibre forms defines the Ehresmann connection
@@ -4006,7 +4006,7 @@ behind.
 | 0 | *Linear Moser* | — (it imports `Topology/Algebra/Module/BilinearForm.lean` of *Compatible complex structures*, which imports only Mathlib and Tau Ceti and is merged) |
 | 0 | *Smooth families* | — (`Diffeotopy/Real.lean` imports `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean` of *Hamiltonian flows*, which is merged and imports no file of *Smooth families*) |
 | 0 | *Cotangent bundles* | — |
-| 0 | *Liouville structures* | — (it imports `Analysis/Calculus/ContDiff/Seeley/Extension.lean`, `Geometry/Manifold/LocalDiffeomorph/Basic.lean` and `Geometry/Manifold/MFDeriv/Chart.lean` of *Smooth families*, in `Geometry/Manifold/Boundary/Collar/Flow/Local.lean`, which are merged, `Geometry/Manifold/IsManifold/InteriorBoundary.lean` of *Symplectic vector bundles*, which is merged, `Geometry/Manifold/DifferentialForm/Smooth.lean` of *Moser isotopy*, which imports only Tau Ceti and is merged, and `Geometry/Symplectic/Manifold/Family.lean` of *Moser isotopy* and `Geometry/Manifold/DifferentialForm/SmoothFamily/Basic.lean` of *Smooth families*, in `StableHamiltonian.lean`, which are merged) |
+| 0 | *Liouville structures* | — (it imports `Geometry/Manifold/LocalDiffeomorph/Basic.lean` and `Geometry/Manifold/MFDeriv/Chart.lean` of *Smooth families*, in `Geometry/Manifold/Boundary/Collar/Flow/Local.lean`, which are merged, `Geometry/Manifold/IsManifold/InteriorBoundary.lean` of *Symplectic vector bundles*, which is merged, `Geometry/Manifold/DifferentialForm/Smooth.lean` of *Moser isotopy*, which imports only Tau Ceti and is merged, and `Geometry/Symplectic/Manifold/Family.lean` of *Moser isotopy* and `Geometry/Manifold/DifferentialForm/SmoothFamily/Basic.lean` of *Smooth families*, in `StableHamiltonian.lean`, which are merged) |
 | 0 | *Almost complex manifolds* | — (it uses only merged files of *Symplectic vector bundles*: `Symplectic/ComplexStructure/Basic.lean`, `Contractible.lean` and `ComplexStructure.lean`) |
 | 0 | *Nijenhuis tensor* | — |
 | 0 | *Lie group actions* | — |

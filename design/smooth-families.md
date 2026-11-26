@@ -331,7 +331,7 @@ one follows with an infinite sum in place of a finite one.
 
 ### `Geometry/Manifold/ContMDiff/TimeExtension.lean`
 
-Maps `unitInterval × M → F` into a normed space, for a boundaryless `M`.
+Maps `unitInterval × M → F` into a normed space, for a manifold `M` that may have boundary.
 
 - `SymplecticGeometry.timeExtend (f : unitInterval × M → F) : ℝ × M → F`,
   `(t, x) ↦ seeleyIccExtend (fun s ↦ f (projIcc 0 1 _ s, x)) t`, with
@@ -347,7 +347,7 @@ Maps `unitInterval × M → F` into a normed space, for a boundaryless `M`.
 - `ContMDiffOn.timeExtend {U : Set M} (hU : IsOpen U)
   (hf : ContMDiffOn ((𝓡∂ 1).prod I) 𝓘(ℝ, F) ∞ f (univ ×ˢ U)) :
   ContMDiffOn (𝓘(ℝ, ℝ).prod I) 𝓘(ℝ, F) ∞ (timeExtend f) (univ ×ˢ U)`, and
-  `ContMDiff.timeExtend`, from `contDiffOn_seeleyIccExtend` in charts of $M$
+  `ContMDiff.timeExtend`, from `contDiffOn_seeleyIccExtend_of_convex` in charts of $M$
   (the time coordinate needs no chart beyond `Subtype.val`).
 
 ### `Geometry/Manifold/DifferentialForm/SmoothFamily/Basic.lean`
@@ -501,7 +501,7 @@ Named like Tau Ceti's file; in `TauCeti`.
 - `TauCeti.SmoothForm.timeExtend : SmoothForm ((𝓡∂ 1).prod I)
   (unitInterval × M) F k →ₗ[ℝ] SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F k`
   (in Tau Ceti's namespace, as it is about Tau Ceti's `SmoothForm`),
-  for a boundaryless `M`: the form `ofSlices` of the slices extended by
+  for a manifold `M` that may have boundary: the form `ofSlices` of the slices extended by
   `seeleyIccExtend` at each point (see *Decisions*), named
   `TauCeti.SmoothForm.timeExtendSlice Ω s`, with `timeExtend_def`.
 - `mpullback_prodMk_timeExtend (t : unitInterval)`: the slice of

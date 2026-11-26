@@ -10,15 +10,17 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Equivariant.
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Localization.LocalizingForm
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Localization.WeightOneForm
+public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Localization.Weights
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.LiouvilleMeasure
 public import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
 public import TauCeti.Geometry.Symplectic.Manifold.Volume
+import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Support
 import SymplecticGeometry.Geometry.Manifold.PartitionOfUnity
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
+import SymplecticGeometry.Topology.Algebra.ConstMulAction
 import SymplecticGeometry.Topology.OpenPartialHomeomorph.Separation
 import TauCeti.Geometry.Symplectic.Manifold.NeighborhoodGerm
 import TauCeti.Topology.Algebra.Support
@@ -28,7 +30,13 @@ import TauCeti.Topology.Algebra.Support
 
 Let the circle act on a compact symplectic manifold `(M, σ)` with a moment map, `X` the
 fundamental vector field of the period-one generator `ξ₁` and `H = ⟨μ, ξ₁⟩`. This file computes
-the integrals that the Duistermaat–Heckman formula for real `ħ` is assembled from.
+the integrals that the Duistermaat–Heckman formula for real `ħ` is assembled from, and assembles
+it.
+
+* `SymplecticGeometry.integralTopForm_exp_neg_mul_eq_finsum_of_pos`: for real `ħ > 0`, with
+  isolated fixed points and weights `k p` at each fixed point `p`
+  (`SymplecticGeometry.IsTangentWeights`), the top component of `e^{σ - ħH}` has integral
+  `∑ᶠ p ∈ fixedPoints, e^{-ħ H(p)} / (ħⁿ ∏ⱼ k p j)` against the symplectic orientation.
 
 * `SymplecticGeometry.IsWeightChart.integralTopForm_mul_formCalculus_exp`: near a fixed point
   `p`, the form `e^{σ - ħH} = formCalculus Real.exp _ (-ħ • H) σ` contributes only the constant
@@ -109,6 +117,25 @@ into a Lebesgue integral on `StdSpace (Fin n)`
 compact support is `PartialDiffeomorph.continuous_indicator_comp_symm` and
 `PartialDiffeomorph.hasCompactSupport_indicator_comp_symm` for `Φ`.
 In dimension `0` all sums and products are empty and the value is `F(0)`.
+
+## The formula
+
+`SymplecticGeometry.integralTopForm_exp_neg_mul_eq_finsum_of_pos` puts these together, following
+Berline, Getzler and Vergne, §7.2. Since `ι_X σ = -dH`, the form `e^{σ - ħH}` is equivariantly
+closed for every real `ħ`
+(`SymplecticGeometry.cartanDiff_formCalculus_of_isHamiltonianVectorField`). Take the localizing
+one-form `θ` and the weight charts of `SymplecticGeometry.exists_localizingForm`, a level `δ` and
+radii from `SymplecticGeometry.exists_cutoffLevel_radii` for `f = θ(X)`, and a bump function `F`
+with `F(0) = 1` and support in `[-δ, δ]`. By `SymplecticGeometry.integralTopForm_formCalculus_mul`
+the
+integral of the top component of `e^{σ - ħH}` is that of `F(d_ħ θ) e^{σ - ħH}`; cut `F(d_ħ θ)`
+into its pieces at the fixed points (`SymplecticGeometry.exists_formCalculus_eq_sum`). The piece
+at `p` contributes `e^{-ħ H(p)}` times its own integral
+(`SymplecticGeometry.IsWeightChart.integralTopForm_mul_formCalculus_exp`), which is
+`1 / (ħⁿ ∏ⱼ αⱼ(ξ₁))` for the weights `αⱼ(ξ₁)` of the chart
+(`SymplecticGeometry.integralTopForm_formCalculus_weightChart`), and their product is that of the
+given weights (`SymplecticGeometry.IsWeightChart.prod_apply_circlePeriodOneGenerator_eq`). In
+dimension `0` the same argument gives `∑ᶠ p, e^{-ħ H(p)}`.
 
 ## References
 
@@ -580,6 +607,139 @@ theorem integralTopForm_mul_formCalculus_exp {σ : SmoothTwoForm I M}
   ring
 
 end IsWeightChart
+
+omit [I.Boundaryless] [ContMDiffSMul (𝓡 1) I ∞ Circle M] in
+/-- The integral of one piece of `F(d_ħ θ)` at a fixed point. Let `Φ` be a weight chart at `p` of
+radius `r` with nonzero weights `αⱼ(ξ₁)`, and `θ` the model one-form `weightOneForm` of these
+weights read through `Φ` on `Φ '' ball 0 b`, for `b ≤ r`. Let `F` be smooth with compact support
+in `[-δ, δ]` and `F 0 = 1`, and let `δ < 2πħ ∑ⱼ αⱼ(ξ₁)² (xⱼ² + yⱼ²)` for `‖z‖ ≥ a`, where
+`a < b`. If `γ` vanishes outside `Φ '' closedBall 0 c`, for some `c < b`, and agrees with
+`F(d_ħ θ)` on `Φ '' ball 0 b`, then the top component of `γ` has integral
+`1 / (ħⁿ ∏ⱼ αⱼ(ξ₁))` against the symplectic orientation. -/
+private theorem integralTopForm_piece_weightChart {n : ℕ} [Fact (Module.finrank ℝ E = 2 * n)]
+    {σ : SmoothTwoForm I M} (hσ : σ.IsNondegenerate)
+    {μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle)} {p : M} {m : ℕ}
+    {χ : Fin m → Circle →ₜ* Circle} {α : Fin m → StrongDual ℝ (EuclideanSpace ℝ (Fin 1))}
+    {Φ : PartialDiffeomorph 𝓘(ℝ, StdSpace (Fin m)) I (StdSpace (Fin m)) M ∞} {r : ℝ}
+    (hΦ : IsWeightChart σ μ p χ α Φ r) (hα : ∀ j, α j circlePeriodOneGenerator ≠ 0)
+    {θ : SmoothForm I M ℝ 1} {b : ℝ} (hbr : b ≤ r)
+    (hθ : ∀ x ∈ Φ '' ball 0 b, θ.val x = TauCeti.mpullback I 𝓘(ℝ, StdSpace (Fin m)) Φ.symm
+      (weightOneForm fun j ↦ α j circlePeriodOneGenerator).val x)
+    {hX : ContMDiff I I.tangent ∞ fun x ↦
+      (⟨x, fundamentalVectorField I circlePeriodOneGenerator x⟩ : TangentBundle I M)}
+    {F : ℝ → ℝ} (hF : ContDiff ℝ ∞ F) (hF0 : F 0 = 1)
+    {ħ δ : ℝ} (hħ : 0 < ħ) (hFδ : tsupport F ⊆ Icc (-δ) δ) {a c : ℝ} (hab : a < b)
+    (hcb : c < b)
+    (hδ : ∀ z : StdSpace (Fin m), a ≤ ‖z‖ →
+      δ < 2 * π * ħ * ∑ j, α j circlePeriodOneGenerator ^ 2 * (z.x j ^ 2 + z.y j ^ 2))
+    {γ : ⨁ k, SmoothForm I M ℝ k} (hγc : ∀ x ∉ Φ '' closedBall 0 c, ∀ k, (γ k).val x = 0)
+    (hγb : ∀ x ∈ Φ '' ball 0 b, ∀ k, (γ k).val x = (formCalculus F hF
+      (-ħ • SmoothForm.ofFunctionEquiv.symm
+        (SmoothForm.interiorProduct ⟨fundamentalVectorField I circlePeriodOneGenerator, hX⟩ θ))
+      (mextDerivₗ I 1 θ) k).val x) :
+    integralTopForm (hσ.volumeOrientation Fact.out) (γ (2 * n)).val =
+      1 / (ħ ^ n * ∏ j, α j circlePeriodOneGenerator) := by
+  obtain rfl : m = n := hΦ.eq_of_finrank_eq Fact.out
+  have hFc : HasCompactSupport F := isCompact_Icc.of_isClosed_subset (isClosed_tsupport F) hFδ
+  borelize M
+  have hbs : ball (0 : StdSpace (Fin m)) b ⊆ Φ.source := hΦ.source_eq ▸ ball_subset_ball hbr
+  rw [← hF0]
+  refine integralTopForm_formCalculus_weightChart hσ hΦ.isSymplecticMapOn hbs hθ
+    (fun z hz ↦ ?_) hα hF hFc hħ hab (fun z hz ↦ ?_)
+    (fun z hz ↦ hγb _ (mem_image_of_mem _ hz) _)
+    (fun x hx ↦ hγc x (fun h ↦ hx (image_mono (closedBall_subset_ball hcb) h)) _)
+  · simpa only [Pi.smul_def, smul_eq_mul] using
+      hΦ.mfderiv_weightGenerator z (hbs hz) circlePeriodOneGenerator
+  · refine Function.notMem_support.1 fun h ↦ ?_
+    have h1 := (hFδ (support_iteratedDeriv_subset _ h)).1
+    have h2 := hδ z hz.le
+    linarith
+
+/-- **The Duistermaat–Heckman formula for real `ħ`.** Let the circle act smoothly on a compact
+boundaryless manifold `M` of dimension `2 n`, preserving a symplectic form `σ`, with a moment map
+`μ` in the sign `d⟨μ, ξ⟩ = -ι_{ξ_M} σ` and isolated fixed points, and let `H` be the smooth
+function `⟨μ, ξ₁⟩` for the period-one generator `ξ₁ = circlePeriodOneGenerator`. Let `k p` be
+weights of the action at each fixed point `p`, as in `SymplecticGeometry.IsTangentWeights`. Then
+for real `ħ > 0` the integral, against the symplectic orientation, of the top component of
+`e^{σ - ħH} = formCalculus Real.exp _ (-ħ • H) σ` is
+`∑ᶠ p ∈ fixedPoints, e^{-ħ H(p)} / (ħ ^ n * ∏ j, k p j)`. -/
+theorem integralTopForm_exp_neg_mul_eq_finsum_of_pos {n : ℕ}
+    [Fact (Module.finrank ℝ E = 2 * n)] {σ : SmoothTwoForm I M} (hσ : σ.IsSymplectic)
+    (hinv : ∀ g : Circle, SmoothForm.mpullback (fun x : M ↦ g • x)
+      (ContMDiffSMul.contMDiff_const_smul (I := 𝓡 1) g) σ = σ)
+    {μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle)}
+    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) fun x ↦ -μ x)
+    (hiso : ∀ p ∈ MulAction.fixedPoints Circle M,
+      ∀ᶠ x in 𝓝[≠] p, x ∉ MulAction.fixedPoints Circle M)
+    (k : M → Fin n → ℤ)
+    (hk : ∀ p ∈ MulAction.fixedPoints Circle M,
+      ∃ L : TangentSpace I p ≃L[ℝ] (Fin n → ℂ), IsTangentWeights σ p (k p) L)
+    {H : C^∞⟮I, M; ℝ⟯} (hH : ∀ x, H x = μ x circlePeriodOneGenerator) {ħ : ℝ} (hħ : 0 < ħ) :
+    integralTopForm (hσ.isNondegenerate.volumeOrientation (n := n) Fact.out)
+        ((formCalculus Real.exp Real.contDiff_exp (-ħ • H) σ) (2 * n)).val =
+      ∑ᶠ p ∈ MulAction.fixedPoints Circle M,
+        Real.exp (-ħ * H p) / (ħ ^ n * ∏ j, (k p j : ℝ)) := by
+  classical
+  set o := hσ.isNondegenerate.volumeOrientation (n := n) Fact.out
+  set ξ := circlePeriodOneGenerator
+  set X := fundamentalVectorField I ξ (M := M)
+  have hX : ContMDiff I I.tangent ∞ fun x ↦ (⟨x, X x⟩ : TangentBundle I M) :=
+    contMDiff_fundamentalVectorField (m := ∞) (n := ∞) (by simp) ξ
+  set e := formCalculus Real.exp Real.contDiff_exp (-ħ • H) σ
+  -- The moment map makes `X` a Hamiltonian vector field of `-H`, so `e^{σ - ħH}` is
+  -- equivariantly closed.
+  have he : cartanDiff X hX ħ e = 0 := by
+    refine cartanDiff_formCalculus_of_isHamiltonianVectorField hσ.isClosed hX ?_ _ _ ħ
+    convert hμ.isHamiltonianVectorField ξ using 1
+    · funext x
+      simp [hH, ξ]
+    · funext x
+      rw [InfinitesimalAction.fundamental_apply]
+  -- The localizing one-form `θ` and the weight charts at the finitely many fixed points.
+  obtain ⟨θ, hθinv, hθ0, hθz, hloc⟩ := exists_localizingForm hμ hσ hinv hiso
+  have hθL : mlieDerivForm X θ.val = 0 := mlieDerivForm_fundamentalVectorField_eq_zero hθinv ξ
+  have : ContinuousSMul Circle M := ContMDiffSMul.continuousSMul (I := 𝓡 1) (I' := I) ∞
+  set S := MulAction.fixedPoints Circle M
+  have : Fintype S := (finite_fixedPoints hiso).fintype
+  choose m χ α Φ r s hW hα hs0 hsr hθΦ using fun p : S ↦ hloc p.val p.property
+  have hsrc (p : S) : ball (0 : StdSpace (Fin (m p))) (s p) ⊆ (Φ p).source := by
+    rw [(hW p).source_eq]; exact ball_subset_ball (hsr p)
+  have hfc : Continuous fun x ↦ θ.val x ![X x] := by
+    have := (SmoothForm.contMDiff_apply_zero (SmoothForm.interiorProduct ⟨X, hX⟩ θ)).continuous
+    simpa only [SmoothForm.interiorProduct_apply_degree_one, ContMDiffSection.coeFn_mk] using this
+  -- The cut-off level `δ`, the radii, and a bump function `F` supported in `[-δ, δ]`.
+  obtain ⟨δ, hδ, a, b, hab, hd, hδa, hδz⟩ := exists_cutoffLevel_radii
+    (fun p ↦ (Φ p).toOpenPartialHomeomorph) hs0 hsrc
+    (fun p q h ↦ Subtype.ext ((hW p).apply_zero.symm.trans (h.trans (hW q).apply_zero)))
+    (k := fun p j ↦ α p j ξ) (fun p j ↦ hα p j) hfc hθ0
+    (fun x hx ↦ ⟨⟨x, (hθz x).1 hx⟩, (hW ⟨x, (hθz x).1 hx⟩).apply_zero.symm⟩) hħ
+  let F : ContDiffBump (0 : ℝ) := ⟨δ / 2, δ, half_pos hδ, half_lt_self hδ⟩
+  have hFδ : tsupport F ⊆ Icc (-δ) δ := by
+    rw [F.tsupport_eq, Real.closedBall_eq_Icc]; simp [F]
+  have hF0 : F 0 = 1 := F.one_of_mem_closedBall (mem_closedBall_self (half_pos hδ).le)
+  -- `F(d_ħ θ)` cut into pieces `γ p` near the fixed points.
+  obtain ⟨γ, c, hcb, hγ, hγc, hγb, hsum⟩ := exists_formCalculus_eq_sum (X := X) (hX := hX)
+    (ħ := ħ) Φ (fun p ↦ (hab p).2.1) (fun p ↦ (ball_subset_ball (hab p).2.2).trans (hsrc p)) hd
+    hθL hδa F F.contDiff hFδ
+  -- The contribution of each piece.
+  have hterm (p : S) : integralTopForm o ((γ p * e) (2 * n)).val =
+      Real.exp (-ħ * H p) / (ħ ^ n * ∏ j, (k p j : ℝ)) := by
+    have hcr : c p < r p := ((hcb p).trans_le (hab p).2.2).trans_le (hsr p)
+    rw [IsWeightChart.integralTopForm_mul_formCalculus_exp (hW p) hH (hγ p) hcr (hγc p) o,
+      integralTopForm_piece_weightChart hσ.isNondegenerate (hW p) (hα p)
+        ((hab p).2.2.trans (hsr p))
+        (fun x hx ↦ hθΦ p x (image_mono (ball_subset_ball (hab p).2.2) hx)) F.contDiff
+        hF0 hħ hFδ (hab p).2.1 (hcb p) (hδz p) (hγc p) (hγb p),
+      (hW p).prod_apply_circlePeriodOneGenerator_eq (hk p p.property).choose_spec, mul_one_div]
+  -- Each piece is a smooth top form on a compact manifold, so integrable.
+  have hint (p : S) : IntegrableTopForm ((γ p * e) (2 * n)).val :=
+    ((γ p * e) (2 * n)).isSmoothForm.integrableTopForm
+      (isClosed_tsupport _).isCompact
+      (Module.finBasisOfFinrankEq ℝ E (by simpa using o.card_eq.symm))
+  rw [← integralTopForm_formCalculus_mul o F F.contDiff hF0 hθL he, hsum, Finset.sum_mul,
+    DirectSum.sum_apply, Submodule.coe_sum, integralTopForm_sum o _ _ fun p _ ↦ hint p,
+    Finset.sum_congr rfl fun p _ ↦ hterm p, ← finsum_set_coe_eq_finsum_mem,
+    finsum_eq_sum_of_fintype]
 
 end SymplecticGeometry
 
