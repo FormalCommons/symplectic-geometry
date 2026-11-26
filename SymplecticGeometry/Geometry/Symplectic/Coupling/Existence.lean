@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Coupling.Basic
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.DegreeOne
 import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.GoodCover
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Descent
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.BasicForm
@@ -172,7 +173,7 @@ theorem mpullback_slice_couplingOneForm (t : Set.Icc a b) :
       ((2 * Real.pi)⁻¹ * ((t : ℝ) - a)) • α +
         SmoothForm.mpullback (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1))
           (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)).contMDiff (β t) := by
-  refine Subtype.ext <| funext fun p ↦ ContinuousAlternatingMap.ext fun v ↦ ?_
+  refine SmoothBundleForm.ext_fin_one fun p v ↦ ?_
   rw [SmoothForm.mpullback_apply, couplingOneForm_apply]
   simp only [mfderiv_prodMk_left_apply, Submodule.coe_add, SetLike.val_smul,
     SmoothForm.coe_mpullback, Pi.add_apply, Pi.smul_apply, ContinuousAlternatingMap.add_apply,
@@ -233,7 +234,7 @@ theorem mpullback_smul_couplingOneForm (hα : IsCircleConnectionForm α) (z : Ci
         (((contMDiff_const_smul (op z)).comp contMDiff_fst).prodMk contMDiff_snd)
         (couplingOneForm α β hβ) =
       couplingOneForm α β hβ := by
-  refine Subtype.ext <| funext fun x ↦ ContinuousAlternatingMap.ext fun v ↦ ?_
+  refine SmoothBundleForm.ext fun x v ↦ ?_
   have hz : ContMDiff (IB.prod (𝓡 1)) (IB.prod (𝓡 1)) ∞
       (fun y : ManifoldTotalSpace Circle P ↦ op z • y) := contMDiff_const_smul (op z)
   have hD : mfderiv ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) ((IB.prod (𝓡 1)).prod (𝓡∂ 1))
