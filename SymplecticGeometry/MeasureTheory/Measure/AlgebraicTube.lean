@@ -64,7 +64,7 @@ Let `T` be the part of the `t`-thickening of the zero set `Z` in the unit ball `
 `ρ = 4 * (K * D * t)`. Each `c ∈ T` is within `t` of a zero, so by the change of centre at least
 `1 / (2 * D)` of the directions `v ∈ B` give a line `s ↦ c + s • v` that meets `Z` within
 `‖s‖ ≤ ρ`. The pairs `(c, v)` with this property form a closed set
-(`IsClosed.setOfPred_exists_norm_le_fst_add_smul_snd_mem`), so Tonelli's theorem applies to its
+(`IsClosed.setOfPred_exists_mem_fst_add_smul_snd_mem`), so Tonelli's theorem applies to its
 indicator on `T × B`, and `volume B * volume T` is at most `2 * D` times the integral over
 `v ∈ B` of the volume of the `c ∈ T` that reach `Z` along `v`. For almost every `v` the top
 homogeneous component of `P` does not vanish at `v` (`MvPolynomial.ae_eval_ne_zero`), so every
@@ -288,7 +288,9 @@ theorem volume_thickening_zeroLocus_le_pow_four_mul_sq : ∃ C : ℝ, ∀ P : Mv
     ((Nat.one_le_iff_ne_zero.2 (totalDegree_ne_zero_of_eval_eq_zero hP hy₀)).trans hD)
   have hρ : 0 < ρ := by positivity
   have hZ : IsClosed Z := isClosed_eq (by fun_prop) continuous_const
-  have hF : MeasurableSet F := (hZ.setOfPred_exists_norm_le_fst_add_smul_snd_mem ρ).measurableSet
+  have hF : MeasurableSet F := by
+    simpa only [mem_closedBall_zero_iff] using
+      (hZ.setOfPred_exists_mem_fst_add_smul_snd_mem (isCompact_closedBall (0 : ℂ) ρ)).measurableSet
   have hTm : MeasurableSet T := isOpen_thickening.measurableSet.inter measurableSet_ball
   have hB0 : volume B ≠ 0 := (measure_ball_pos volume 0 one_pos).ne'
   have hBt : volume B ≠ ∞ := measure_ball_lt_top.ne
