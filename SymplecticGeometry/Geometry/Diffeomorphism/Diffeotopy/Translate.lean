@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Flow
 import Mathlib.Geometry.Manifold.PartitionOfUnity
+import SymplecticGeometry.Geometry.Manifold.Flow.Basic
 
 /-!
 # Diffeotopies that push a compact set along a direction
@@ -27,16 +28,12 @@ its flow lines; and the field vanishes wherever `g` does.
 
 ## Main results
 
-* `SymplecticGeometry.maximalIntegralCurve_eqOn_add_smul`: if a `C¹` vector field equals the
-  constant `c` along the line `s ↦ x + s • c` for `s` in an open interval around `0`, then its
-  maximal integral curve through `x` is that line on the interval.
 * `SymplecticGeometry.exists_diffeotopy_apply_eq_add_smul`: the diffeotopy described above.
 
-The proofs adapt two proofs of Tau Ceti to a compact set and a profile `g`:
-`TauCeti.eventually_exists_diffeotopy_final_apply_eq`, which takes the compactly supported flow
-diffeotopy of a cut-off constant field, and
-`TauCeti.maximalIntegralCurve_bumpChartField_extChartAt_symm`, which identifies the flow line of
-such a field with a straight segment by uniqueness of integral curves.
+The proof adapts Tau Ceti's `TauCeti.eventually_exists_diffeotopy_final_apply_eq`, which takes
+the compactly supported flow diffeotopy of a cut-off constant field, to a compact set and a
+profile `g`. Near `K` it identifies the flow lines with straight lines by
+`maximalIntegralCurve_eqOn_add_smul` (`SymplecticGeometry.Geometry.Manifold.Flow.Basic`).
 
 ## References
 
@@ -51,21 +48,7 @@ open scoped Manifold ContDiff
 
 namespace SymplecticGeometry
 
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-
-/-- If a `C¹` vector field `v` on a real normed space equals the constant `c` at the points
-`x + s • c` for `s ∈ (a, b)`, an interval containing `0`, then the maximal integral curve of `v`
-through `x` is `s ↦ x + s • c` on `(a, b)`. -/
-theorem maximalIntegralCurve_eqOn_add_smul {v : E → E}
-    (hv : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ, E).tangent 1 (fun y ↦ (⟨y, v y⟩ : TangentBundle 𝓘(ℝ, E) E)))
-    {x c : E} {a b : ℝ} (h0 : (0 : ℝ) ∈ Ioo a b) (hvc : ∀ s ∈ Ioo a b, v (x + s • c) = c) :
-    EqOn (maximalIntegralCurve (I := 𝓘(ℝ, E)) v x) (fun s ↦ x + s • c) (Ioo a b) := by
-  have hline : IsMIntegralCurveOn (I := 𝓘(ℝ, E)) (fun s : ℝ ↦ x + s • c) v (Ioo a b) :=
-    TauCeti.isMIntegralCurveOn_iff_isIntegralCurveOn.2 fun s hs ↦ by
-      simpa [hvc s hs] using (((hasDerivAt_id s).smul_const c).const_add x).hasDerivWithinAt
-  exact hline.eqOn_maximalIntegralCurve hv h0 (by simp)
-
-variable [FiniteDimensional ℝ E]
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
 
 /-- **Pushing a compact set along a direction.** On a finite-dimensional real normed space, let
 `K` be compact, `e` a vector with `‖e‖ < δ`, and `g` a smooth function with `|g| ≤ 1` such that

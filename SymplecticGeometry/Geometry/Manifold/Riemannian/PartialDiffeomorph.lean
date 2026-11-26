@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Manifold.Riemannian.VolumeDensity.ChangeOfVariabl
 import SymplecticGeometry.Geometry.Manifold.Riemannian.Basic
 import SymplecticGeometry.Geometry.Manifold.Riemannian.VolumeDensity.ChangeOfVariables
 import SymplecticGeometry.Analysis.Calculus.ContDiff.Matrix
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import Mathlib.Analysis.Calculus.ContDiff.FiniteDimension
 import Mathlib.Analysis.InnerProductSpace.GramMatrix
 import Mathlib.Analysis.SpecialFunctions.Sqrt
@@ -168,7 +169,7 @@ theorem contDiffOn_gramInChart
     ContDiffOn ℝ ∞ (gramInChart ψ) ψ.target := by
   refine contDiffOn_clm_apply.2 fun v ↦ contDiffOn_clm_apply.2 fun w y hy ↦ ?_
   have hψ : ContMDiffAt 𝓘(ℝ, E) I ∞ ψ.symm y :=
-    ψ.symm.contMDiffOn.contMDiffAt (ψ.open_target.mem_nhds hy)
+    ψ.symm.contMDiffAt hy
   have hs (v : E) := hψ.mfderiv_apply_sectionAlong (b := id) (s := fun _ ↦ v)
     (contMDiff_tangentBundleModelSpaceHomeomorph_symm_prodMk_const 𝓘(ℝ, E) v ∞).contMDiffAt
     (by simp)

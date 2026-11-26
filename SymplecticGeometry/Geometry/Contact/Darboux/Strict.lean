@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Contact.Darboux.Strict
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Geometry.Contact.Pullback
 import SymplecticGeometry.Geometry.Contact.Standard
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 
 /-!
@@ -119,7 +120,7 @@ theorem SmoothForm.IsContactForm.exists_strictDarbouxChart_reebVectorField_of_fi
       rw [← hform y hy, mvfderiv_apply_eq_mfderiv_apply, TauCeti.mpullback_apply_one]
     have hR := hα.mfderiv_reebVectorField_of_eventuallyEq_mpullback
       (SmoothForm.isContactForm_neg_iff.2 (isContactForm_innerProductContactForm V))
-      (((chart.contMDiffOn x hx).contMDiffAt (chart.open_source.mem_nhds hx)).of_le (by simp))
+      ((chart.contMDiffAt hx).of_le (by simp))
       (chart.isInvertible_mfderiv (by simp) hx).surjective hpb'
     rw [mvfderiv_apply_eq_mfderiv_apply, hR,
       (isContactForm_innerProductContactForm V).reebVectorField_neg,

@@ -27,8 +27,10 @@ import SymplecticGeometry.Geometry.Symplectic.Blowup.PencilIncidence
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Submanifold
 import Mathlib.Algebra.Polynomial.Roots
 import Mathlib.Topology.LocalAtTarget
+import TauCeti.AlgebraicTopology.FundamentalGroup.Product
 import TauCeti.RingTheory.MvPolynomial.Symmetric.PowerSum.Basic
 import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.ComplFinite
+import SymplecticGeometry.AlgebraicTopology.FundamentalGroupoid.SimplyConnected
 import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
 import SymplecticGeometry.Geometry.Symplectic.Blowup.SimplyConnected
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Prod
@@ -184,6 +186,12 @@ coordinates `s, t` of the line. A point of the cone `K³ × K²` is written `Sum
   `N` is simply connected and stays path connected once the curve is removed
   (`BlowupModel.isSimplyConnected_openNbhd`,
   `BlowupModel.isPathConnected_openNbhd_sdiff_exceptionalDivisor`).
+* `SymplecticGeometry.rationalEllipticSurface.simplyConnectedSpace`: the surface is simply
+  connected. Starting from `complBaseLocus`, the neighbourhoods `N` of the exceptional curves are
+  added one base point at a time, by induction over a `Finset` of base points; at each step the
+  union so far meets `N` in `N` minus its curve, so van Kampen for two open sets
+  (`IsSimplyConnected.union_of_isOpen`, from Tau Ceti's
+  `TauCeti.simplyConnectedSpace_of_interior_union`) applies.
 
 ## References
 
@@ -1079,6 +1087,51 @@ theorem exists_isSimplyConnected_of_mem_baseLocus {p : ℙ ℂ (Fin 3 → ℂ)} 
   simp only [mem_sdiff, mem_ofPred_eq, mem_image, mem_compl_iff, Subtype.exists,
     exists_and_right, exists_eq_right]
   tauto
+
+
+/-! ### Simple connectivity -/
+
+/-- **The rational elliptic surface is simply connected.** It is the union of the part over the
+complement of the base locus, which is simply connected, and of a simply connected open
+neighbourhood of the exceptional curve over each base point. Each such neighbourhood meets the
+first part, and the neighbourhoods of the other base points, only off its own curve, where it
+is path connected, so adding them one at a time keeps the union simply connected
+(`IsSimplyConnected.union_of_isOpen`). -/
+instance simplyConnectedSpace : SimplyConnectedSpace rationalEllipticSurface := by
+  choose! N hNo hpN _ hNb hN hNp using fun p (hp : p ∈ baseLocus) ↦
+    exists_isSimplyConnected_of_mem_baseLocus hp Filter.univ_mem
+  -- Adding the neighbourhoods of the curves over a finite set `S` of base points.
+  have key (S : Finset (ℙ ℂ (Fin 3 → ℂ))) (hS : ↑S ⊆ baseLocus) :
+      IsOpen (complBaseLocus ∪ ⋃ p ∈ S, N p) ∧
+        IsSimplyConnected (complBaseLocus ∪ ⋃ p ∈ S, N p) := by
+    classical
+    induction S using Finset.induction_on with
+    | empty => simpa using ⟨isOpen_complBaseLocus, simplyConnectedSpace_complBaseLocus⟩
+    | insert p S hpS ih =>
+      rw [Finset.coe_insert, insert_subset_iff] at hS
+      obtain ⟨ho, hsc⟩ := ih hS.2
+      rw [Finset.set_biUnion_insert, union_left_comm, union_comm]
+      refine ⟨ho.union (hNo p hS.1), hsc.union_of_isOpen (hN p hS.1) ho (hNo p hS.1) ?_⟩
+      -- The union so far meets `N p` exactly off the curve over `p`.
+      convert hNp p hS.1 using 1
+      ext x
+      simp only [mem_inter_iff, mem_union, mem_iUnion, mem_sdiff, mem_ofPred_eq,
+        mem_complBaseLocus_iff, exists_prop]
+      constructor
+      · rintro ⟨hx | ⟨q, hq, hxq⟩, hxp⟩
+        · exact ⟨hxp, fun h ↦ hx (h ▸ hS.1)⟩
+        · refine ⟨hxp, fun h ↦ hpS ?_⟩
+          rwa [← h, hNb q (hS.2 hq) x hxq (h ▸ hS.1)]
+      · rintro ⟨hxp, hx⟩
+        exact ⟨Or.inl fun hb ↦ hx (hNb p hS.1 x hxp hb), hxp⟩
+  have huniv : complBaseLocus ∪ ⋃ p ∈ finite_baseLocus.toFinset, N p = univ := by
+    refine eq_univ_of_forall fun x ↦ ?_
+    by_cases hx : x.val.1 ∈ baseLocus
+    · exact Or.inr (mem_biUnion (finite_baseLocus.mem_toFinset.2 hx) (hpN _ hx rfl))
+    · exact Or.inl hx
+  have h := (key _ finite_baseLocus.coe_toFinset.subset).2
+  rw [huniv] at h
+  exact simplyConnectedSpace_iff_univ.2 h
 
 end rationalEllipticSurface
 
