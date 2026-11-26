@@ -14,11 +14,11 @@ import Mathlib.Analysis.Normed.Operator.BoundedLinearMaps
 /-!
 # Inequalities between vanishing derivatives at second order
 
-Let `D : E → E →L[ℝ] ℝ` (typically the derivative of a function) and `Y : E → E` (a vector
-field) both vanish at `x₀` and be differentiable there, with derivatives `B` and `A`. Both
-sides of an inequality `K * (D u e) ^ 2 ≤ D u (Y u)`, for `u` near `x₀`, vanish to second order
-at `x₀`; dividing by `s ^ 2` along `u = x₀ + s • v` and letting `s → 0`
-gives `K * (B v e) ^ 2 ≤ B v (A v)`
+Let `D : E → F →L[ℝ] ℝ` (typically the derivative of a function, read on a space `F`) and
+`Y : E → F` (typically a vector field) both vanish at `x₀` and be differentiable there, with
+derivatives `B` and `A`. Both sides of an inequality `K * (D u e) ^ 2 ≤ D u (Y u)`, for `u`
+near `x₀`, vanish to second order at `x₀`; dividing by `s ^ 2` along `u = x₀ + s • v` and
+letting `s → 0` gives `K * (B v e) ^ 2 ≤ B v (A v)`
 (`HasFDerivAt.mul_sq_apply_le_apply_apply_of_eventually`).
 
 This is the step by which a gradient-like inequality at a nondegenerate critical point passes to
@@ -29,18 +29,19 @@ lines `s ↦ x₀ + s • v` and passes to the limit in the slopes, as Tau Ceti'
 
 public section
 
-open Filter Set
+open Filter
 open scoped Topology
 
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+variable {E F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [NormedAddCommGroup F]
+  [NormedSpace ℝ F]
 
-/-- **An inequality between vanishing derivatives, at second order.** Let `D : E → E →L[ℝ] ℝ` and
-`Y : E → E` vanish at `x₀`, with derivatives `B` and `A` there. If
+/-- **An inequality between vanishing derivatives, at second order.** Let `D : E → F →L[ℝ] ℝ` and
+`Y : E → F` vanish at `x₀`, with derivatives `B` and `A` there. If
 `K * (D u e) ^ 2 ≤ D u (Y u)` for every `u` near `x₀`, then `K * (B v e) ^ 2 ≤ B v (A v)` for
 every `v`. -/
-theorem HasFDerivAt.mul_sq_apply_le_apply_apply_of_eventually {D : E → E →L[ℝ] ℝ} {Y : E → E}
-    {x₀ : E} {B : E →L[ℝ] E →L[ℝ] ℝ} {A : E →L[ℝ] E} (hD : HasFDerivAt D B x₀) (hD₀ : D x₀ = 0)
-    (hY : HasFDerivAt Y A x₀) (hY₀ : Y x₀ = 0) {K : ℝ} {e : E}
+theorem HasFDerivAt.mul_sq_apply_le_apply_apply_of_eventually {D : E → F →L[ℝ] ℝ} {Y : E → F}
+    {x₀ : E} {B : E →L[ℝ] F →L[ℝ] ℝ} {A : E →L[ℝ] F} (hD : HasFDerivAt D B x₀) (hD₀ : D x₀ = 0)
+    (hY : HasFDerivAt Y A x₀) (hY₀ : Y x₀ = 0) {K : ℝ} {e : F}
     (h : ∀ᶠ u in 𝓝 x₀, K * D u e ^ 2 ≤ D u (Y u)) (v : E) :
     K * B v e ^ 2 ≤ B v (A v) := by
   have hℓ : HasDerivAt (fun s : ℝ ↦ x₀ + s • v) v 0 := by

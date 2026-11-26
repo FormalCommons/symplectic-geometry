@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Manifold.Morse.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Linearization
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Basic
+import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 import TauCeti.Geometry.Manifold.VectorField.Chart.Linearization
 import TauCeti.Geometry.Manifold.VectorField.Regularity
 import TauCeti.Topology.VectorBundle.Riemannian.Basic
@@ -78,13 +79,7 @@ private theorem IsGradientLike.exists_eventually_mul_sq_le (hX : IsGradientLike 
   have hpT : p ∈ T.baseSet := FiberBundle.mem_baseSet_trivializationAt' p
   -- The vector `e` of the chart at `p`, as a vector field near `p`.
   set W : (y : M) → TangentSpace 𝓘(ℝ, E) y := fun y ↦ T.symm y e
-  have hWp : W p = e := by
-    simp only [W]
-    rw [← T.symmL_apply (R := ℝ) hpT, TangentBundle.symmL_trivializationAt (mem_chart_source E p),
-      mfderivWithin_range_extChartAt_symm]
-    -- The identity of the tangent space at `φ p`, applied to a vector of the tangent space at `p`:
-    -- both are `E`.
-    rfl
+  have hWp : W p = e := TangentBundle.trivializationAt_symm_apply_self p e
   have hWc : ContinuousAt (fun y ↦ TotalSpace.mk' E y (W y)) p :=
     (T.continuousAt_symm_prodMk_left hpT).congr <|
       (T.open_baseSet.eventually_mem hpT).mono fun y hy ↦ (T.mk_symm hy e).symm
@@ -127,11 +122,8 @@ private theorem IsGradientLike.exists_eventually_mul_sq_le (hX : IsGradientLike 
       (mfderiv_extChartAt_comp_mfderivWithin_extChartAt_symm' (I := 𝓘(ℝ, E)) hys) e
   have hXY : mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) φ y (X y) =
       VectorField.mpullback 𝓘(ℝ, E) 𝓘(ℝ, E) φ.symm X u := by
-    have hinv := isInvertible_mfderivWithin_extChartAt_symm (I := 𝓘(ℝ, E)) hu
-    have h := mfderivWithin_extChartAt_symm_comp_mfderiv_extChartAt (I := 𝓘(ℝ, E)) hu
-    rw [𝓘(ℝ, E).range_eq_univ, mfderivWithin_univ] at hinv h
-    rw [VectorField.mpullback_apply]
-    exact (hinv.inverse_apply_eq.2 (DFunLike.congr_fun h (X y)).symm).symm
+    rw [← hφy]
+    exact (VectorField.mpullback_extChartAt_symm_apply_eq_mfderiv X hys (by simp)).symm
   rw [← hWe, ← hXY, ← hdf, ← hdf]
   -- The Cauchy–Schwarz inequality for the gradient `G` of `f` at `y`.
   set G := mgradient 𝓘(ℝ, E) f y
