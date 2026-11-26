@@ -536,7 +536,7 @@ theorem clutching_smul_add [ParacompactSpace X] [R1Space X] {r s : ℕ}
       fiberMap_smulIdempotentAddIso_hom, fiberMap_add, fiberMap_pullbackMap, fiberMap_sub,
       fiberMap_id, ContinuousMap.fst_apply, add_apply, sub_apply, smul_apply,
       ContinuousLinearMap.comp_apply, map_add, map_sub, fiberMap_fiberMap_of_comp_self hP, hpq,
-      id_apply_pullback]
+      id_apply_coords]
     module
   obtain ⟨i₁⟩ := E.nonempty_iso_clutching_of_homotopic (asIso (segmentHom g₀.hom g.hom))
     (fiberMap_segmentHom_zero _ _) (fiberMap_segmentHom_one _ _)
@@ -596,7 +596,7 @@ theorem exists_nonempty_clutching_iso_whitneySum_of_linear [CompactSpace X] [T2S
     simp only [k, φ, T, Iso.trans_hom, Functor.mapIso_hom, Iso.symm_hom, asIso_inv,
       fiberMap_comp, fiberMap_pullbackMap, ContinuousMap.fst_apply, hg',
       ContinuousLinearMap.comp_apply, add_apply, smul_apply, map_add, map_smul, hAA]
-    rw [id_apply_pullback]
+    rw [id_apply_coords]
   -- `u + T` is invertible on the circle, so `T` has no eigenvalue of norm `1`.
   have h := norm_ne_one_of_mem_spectrum_fiberMap T k hkT
   -- The Riesz projection of `T` and its complement have constant rank.
