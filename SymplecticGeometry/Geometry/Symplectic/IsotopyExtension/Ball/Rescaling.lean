@@ -112,9 +112,9 @@ fixing `0`. Let `Q : ℝ × ℝ → (StdSpace (Fin n) →L[ℝ] StdSpace (Fin n)
 preserving `ω₀` for `(t, s) ∈ [0, 1]²`, `Q (t, 1) = 1` and `dθ_t(0) ∘ Q (t, 0) = 1`. Then there
 are `0 < ρ'` and a family `G : [0, 1] × [0, 1] × StdSpace (Fin n) → StdSpace (Fin n)`, jointly
 smooth near `[0, 1]² × B(ρ')`, such that for each `t`, `s ↦ G (t, s, ·)` is a smooth family of
-symplectic embeddings of `B(ρ')`, `G (t, 0, ·)` is the identity and `G (t, 1, ·) = θ_t`; and
-`G (t, s, ·)` is the identity on `B(ρ')` for all `s` whenever `θ_t` is the identity on `B(ρ)` and
-`Q (t, s) = 1` for all `s`. -/
+symplectic embeddings of `B(ρ')`, `G (t, 0, ·)` is the identity, `G (t, 1, ·) = θ_t` and
+`G (t, s, 0) = 0`; and `G (t, s, ·)` is the identity on `B(ρ')` for all `s` whenever `θ_t` is
+the identity on `B(ρ)` and `Q (t, s) = 1` for all `s`. -/
 theorem IsSymplecticBallFamily.exists_rescaling_family {ρ : ℝ} (hρ : 0 < ρ)
     {θ : unitInterval × StdSpace (Fin n) → StdSpace (Fin n)}
     (hθ : IsSymplecticBallFamily (stdForm (Fin n)).constSmooth ρ θ) (hθ0 : ∀ t, θ (t, 0) = 0)
@@ -128,7 +128,7 @@ theorem IsSymplecticBallFamily.exists_rescaling_family {ρ : ℝ} (hρ : 0 < ρ)
         ContMDiffOn ((𝓡∂ 1).prod ((𝓡∂ 1).prod 𝓘(ℝ, StdSpace (Fin n)))) 𝓘(ℝ, StdSpace (Fin n)) ∞
           G (univ ×ˢ univ ×ˢ U)) ∧
       (∀ t, IsSymplecticBallFamily (stdForm (Fin n)).constSmooth ρ' fun p ↦ G (t, p.1, p.2)) ∧
-      (∀ t z, G (t, 0, z) = z) ∧ (∀ t z, G (t, 1, z) = θ (t, z)) ∧
+      (∀ t z, G (t, 0, z) = z) ∧ (∀ t z, G (t, 1, z) = θ (t, z)) ∧ (∀ t s, G (t, s, 0) = 0) ∧
       (∀ t, (∀ z ∈ closedBall 0 ρ, θ (t, z) = z) → (∀ s : unitInterval, Q (t, s) = 1) →
         ∀ s, ∀ z ∈ closedBall 0 ρ', G (t, s, z) = z) := by
   set ω₀ := (stdForm (Fin n)).constSmooth
@@ -210,7 +210,11 @@ theorem IsSymplecticBallFamily.exists_rescaling_family {ρ : ℝ} (hρ : 0 < ρ)
       fun z hz ↦ hmem t s (hρ'W hz)
   refine ⟨ρ', hρ', G, ⟨W, isOpen_ball, hρ'W, hGs⟩,
     fun t ↦ (isSymplecticBallFamily_def _ _ _).2 ⟨⟨W, isOpen_ball, hρ'W, hslice t⟩, hemb t⟩,
-    hG0, hG1, fun t hid hQid s z hz ↦ ?_⟩
+    hG0, hG1, fun t s ↦ ?_, fun t hid hQid s z hz ↦ ?_⟩
+  · by_cases hs : (s : ℝ) = 0
+    · obtain rfl : s = 0 := Subtype.ext hs
+      exact hG0 t 0
+    rw [congrFun (hGne t s hs) 0, map_zero, smul_zero, hθ0, smul_zero]
   by_cases hs : (s : ℝ) = 0
   · obtain rfl : s = 0 := Subtype.ext hs
     exact hG0 t z
