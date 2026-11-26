@@ -10,12 +10,14 @@ public import Mathlib.Geometry.Manifold.SmoothEmbedding
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
 import Mathlib.Geometry.Manifold.Algebra.Structures
 import Mathlib.Geometry.Manifold.Instances.Icc
+import SymplecticGeometry.Data.Set.Prod
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Neighborhood
 import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Family
 import TauCeti.Geometry.Manifold.Diffeomorph.Family
 import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import TauCeti.Geometry.Manifold.MFDeriv.Basic
+import TauCeti.Geometry.Manifold.MFDeriv.Prod
 import TauCeti.Geometry.Manifold.PartitionOfUnity.Compact
 
 /-!
@@ -40,7 +42,7 @@ The function `G` is built from isotopy extension and two cutoffs, in three steps
    inverses are jointly smooth by Tau Ceti's `Diffeomorph.contMDiff_symm_family`.
 2. The graph `(q, x) ↦ (q, k (q, 0, x))` is a smooth embedding of a neighbourhood `V` of
    `T ×ˢ A` into `Q × M` (`TauCeti.exists_isOpen_isSmoothEmbedding_of_injOn`, with
-   `Set.injOn_fst_prod_iff` and `ContMDiff.injective_mfderiv_fst_prod_iff`), hence an
+   `Set.injOn_fst_prod_iff` and `MDifferentiableAt.injective_mfderiv_fst_prod_iff`), hence an
    injective local diffeomorphism (`Manifold.IsImmersion.isLocalDiffeomorph`), whose inverse is
    smooth on its image (`TauCeti.IsLocalDiffeomorphOn.contMDiffOn_invFunOn`).
 3. With a cutoff `χ` on `Q × M` near the image of `T ×ˢ A` and a cutoff `ρ` on `M` near the
@@ -136,7 +138,9 @@ theorem _root_.ContMDiff.exists_contMDiff_family_comp_eventuallyEq
   obtain ⟨V, hTAV, -, hV⟩ := exists_isOpen_isSmoothEmbedding_of_injOn isOpen_univ
     hΦ₀.contMDiffOn (hT.prod hA) (subset_univ _)
     (Set.injOn_fst_prod_iff.2 fun q hq ↦ (hemb q hq 0).isEmbedding.injective.injOn)
-    fun p hp ↦ (hk.injective_mfderiv_fst_prod_iff 0 p).2
+    fun p hp ↦ (ContMDiff.mdifferentiableAt (f := fun x : Q × P ↦ k (x.1, 0, x.2))
+      (hk.comp (contMDiff_fst.prodMk (contMDiff_const.prodMk contMDiff_snd))) (by simp)
+        ).injective_mfderiv_fst_prod_iff.2
       ((hemb p.1 hp.1 0).isImmersion.mfderiv_injective (by simp) p.2)
   have : Nonempty V := ⟨⟨(q₀, x₀), hTAV ⟨hq₀, hx₀⟩⟩⟩
   let f : V → Q × M := fun x ↦ Φ₀ x

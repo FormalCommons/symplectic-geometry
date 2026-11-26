@@ -11,6 +11,7 @@ public import Mathlib.Geometry.Manifold.SmoothEmbedding
 import Mathlib.Geometry.Manifold.Instances.Icc
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
 import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
+import SymplecticGeometry.Data.Set.Prod
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Neighborhood
 import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Extension
 import TauCeti.Geometry.Manifold.Flow.TimeDependent
@@ -35,8 +36,7 @@ applied to the graph isotopy `(q, y) ↦ (q, k (q, s, y))` of an open neighbourh
 
 1. The graph slices are smooth embeddings of a neighbourhood `V` of `T ×ˢ A`
    (`TauCeti.exists_isOpen_forall_isSmoothEmbedding_of_injOn`): a graph is injective where its
-   slices are (`Set.injOn_fst_prod_iff`), and so is its differential
-   (`ContMDiff.injective_mfderiv_fst_prod_iff`, from Tau Ceti's
+   slices are (`Set.injOn_fst_prod_iff`), and so is its differential (Tau Ceti's
    `MDifferentiableAt.injective_mfderiv_fst_prod_iff`).
 2. The family `k` itself extends in time near `T ×ˢ A`
    (`ContMDiff.exists_contMDiffOn_extend_unitInterval`). The graph of the extension keeps the
@@ -68,9 +68,6 @@ and run the extension at a parameter `c q ∈ (-δ, 1 + δ)` with `c` the identi
 * `TauCeti.exists_contMDiff_diffeomorph_family_of_graph`: the same for a motion of a manifold
   `R` through embeddings `x ↦ (π x, G (t, x))` into `Q × M` that keep a parameter `π x` fixed,
   stationary outside a bounded interval of times; this is step 3.
-* `Set.injOn_fst_prod_iff` and `ContMDiff.injective_mfderiv_fst_prod_iff`: the graph
-  `(q, x) ↦ (q, k (q, s, x))` of a family, and its differential, are injective exactly when those
-  of the slices are.
 * `ContMDiff.exists_contMDiff_real_family_eq`: near a compact set, a smooth family over
   `unitInterval` agrees on `[0, 1]` with a smooth family over `ℝ`.
 * `ContMDiff.exists_contMDiff_diffeomorph_unitInterval_family_forall_apply_eq`: isotopy extension
@@ -101,30 +98,6 @@ variable {E E' EQ H H' HQ P M Q : Type*}
   [I.Boundaryless] [J.Boundaryless] [IQ.Boundaryless]
   [IsManifold J ∞ P] [IsManifold I ∞ M] [IsManifold IQ ∞ Q]
   [T2Space M] [T2Space Q] [SigmaCompactSpace M] [SigmaCompactSpace Q]
-
-/-- The graph `(q, x) ↦ (q, g (q, x))` of a map `g` on a product is injective on `T ×ˢ A`
-exactly when every slice `g (q, ·)` with `q ∈ T` is injective on `A`. -/
-theorem _root_.Set.injOn_fst_prod_iff {α β γ : Type*} {g : α × β → γ} {T : Set α}
-    {A : Set β} :
-    InjOn (fun p ↦ (p.1, g p)) (T ×ˢ A) ↔ ∀ q ∈ T, InjOn (fun x ↦ g (q, x)) A := by
-  refine ⟨fun h q hq x hx y hy hxy ↦ (Prod.mk.inj (h (show (q, x) ∈ T ×ˢ A from ⟨hq, hx⟩)
-    (show (q, y) ∈ T ×ˢ A from ⟨hq, hy⟩) (Prod.ext rfl hxy))).2, ?_⟩
-  rintro h ⟨q, x⟩ ⟨hq, hx⟩ ⟨q', y⟩ ⟨-, hy⟩ hxy
-  obtain ⟨rfl, hxy⟩ := Prod.mk.inj hxy
-  exact congrArg (Prod.mk q) (h q hq hx hy hxy)
-
-omit [FiniteDimensional ℝ E] [FiniteDimensional ℝ EQ] [I.Boundaryless] [J.Boundaryless]
-  [IQ.Boundaryless] [IsManifold J ∞ P] [IsManifold I ∞ M] [IsManifold IQ ∞ Q] [T2Space M]
-  [T2Space Q] [SigmaCompactSpace M] [SigmaCompactSpace Q] in
-/-- For a smooth family `k : Q × [0, 1] × P → M`, the differential at `p` of the graph
-`(q, x) ↦ (q, k (q, s, x))` is injective exactly when the differential of the slice
-`k (p.1, s, ·)` at `p.2` is. -/
-theorem _root_.ContMDiff.injective_mfderiv_fst_prod_iff {k : Q × unitInterval × P → M}
-    (hk : ContMDiff (IQ.prod ((𝓡∂ 1).prod J)) I ∞ k) (s : unitInterval) (p : Q × P) :
-    Injective (mfderiv (IQ.prod J) (IQ.prod I) (fun x : Q × P ↦ (x.1, k (x.1, s, x.2))) p) ↔
-      Injective (mfderiv J I (fun x ↦ k (p.1, s, x)) p.2) :=
-  ((hk.comp (contMDiff_fst.prodMk (contMDiff_const.prodMk contMDiff_snd))).mdifferentiableAt
-    (by simp)).injective_mfderiv_fst_prod_iff
 
 /-- **Isotopy extension for a motion over a parameter.** Let `R` be a boundaryless manifold with a
 smooth map `π : R → Q`, and `G : ℝ × R → M` smooth, such that every map `x ↦ (π x, G (t, x))`
@@ -219,7 +192,9 @@ theorem _root_.ContMDiff.exists_contMDiff_diffeomorph_family_forall_apply_eq
   obtain ⟨V, hTAV, -, hV⟩ := exists_isOpen_forall_isSmoothEmbedding_of_injOn (G := g) isOpen_univ
     hg.contMDiffOn (hT.prod hA) (subset_univ _)
     (fun s ↦ Set.injOn_fst_prod_iff.2 fun q hq ↦ (hemb q hq s).isEmbedding.injective.injOn)
-    fun s p hp ↦ (hk.injective_mfderiv_fst_prod_iff s p).2
+    fun s p hp ↦ (ContMDiff.mdifferentiableAt (f := fun x : Q × P ↦ k (x.1, s, x.2))
+      (hk.comp (contMDiff_fst.prodMk (contMDiff_const.prodMk contMDiff_snd))) (by simp)
+        ).injective_mfderiv_fst_prod_iff.2
       ((hemb p.1 hp.1 s).isImmersion.mfderiv_injective (by simp) p.2)
   let A' : Set V := Subtype.val ⁻¹' (T ×ˢ A)
   have hA' : IsCompact A' :=

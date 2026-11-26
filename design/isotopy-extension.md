@@ -463,14 +463,11 @@ theorem TauCeti.SmoothIsotopy.exists_diffeotopy_mem_diffeomorphStabilizer_forall
 velocity forms `k_t^* β_t + dh_t` with every `β_t` closed and vanishing off a
 compact set: the first with `β = 0`, the second with that set `univ`. Its route:
 
-1. Choose a compact neighbourhood `K'` of `K`. Isotopy extension at every
-   time (`Extension.lean`) gives `Ψ` with `Ψ (t, f₀ x) = k (t, x)` on `K'`.
-2. With a smooth cutoff $\chi$ on `M` that is `1` near $f_0(K)$ and supported in
-   $f_0(K')$, set $G_t=(\chi\cdot h_t\circ f_0^{-1})\circ\Psi_t^{-1}$, and $0$
-   off the image of $f_0$. It is smooth on `M × unitInterval`, because `Ψ⁻¹` is
-   jointly smooth and $f_0$ is a local diffeomorphism, and $G_t\circ k_t=h_t$
-   near `K` (`TauCeti.SmoothIsotopy.exists_contMDiff_comp_eventuallyEq`, in
-   `SmoothIsotopy/Transport.lean`).
+1. A compactly supported smooth `G` on `M × unitInterval` with $G_t\circ k_t=h_t$
+   near `K` comes from `TauCeti.SmoothIsotopy.exists_contMDiff_comp_eventuallyEq`,
+   in `SmoothIsotopy/Transport.lean`.
+2. That lemma is the case of a point parameter of
+   `ContMDiff.exists_contMDiff_family_comp_eventuallyEq`, in the same file.
 3. `Φ` comes from `TauCeti.Diffeotopy.exists_interior_velocity_eq_add_mextDeriv`
    of *Hamiltonian flows*' `Flux/CompactSupport.lean`, which applies
    `TauCeti.Diffeotopy.exists_interior_velocity_eq`, which
