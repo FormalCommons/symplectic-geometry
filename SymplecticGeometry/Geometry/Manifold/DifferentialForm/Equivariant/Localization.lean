@@ -79,8 +79,8 @@ theorem cartanDiff_of_one_eq_formCalculus_id [FiniteDimensional ℝ E]
       formCalculus id contDiff_id
         (-ħ • SmoothForm.ofFunctionEquiv.symm (SmoothForm.interiorProduct ⟨X, hX⟩ θ))
         (mextDerivₗ I 1 θ) := by
-  rw [formCalculus_id, cartanDiff_of_succ, ← SmoothForm.ofFunctionEquiv_apply, map_smul,
-    LinearEquiv.apply_symm_apply, DirectSum.of_smul, neg_smul, neg_add_eq_sub]
+  rw [formCalculus_id, cartanDiff_of_succ, SmoothForm.ofFunction_smul,
+    SmoothForm.ofFunction_ofFunctionEquiv_symm, DirectSum.of_smul, neg_smul, neg_add_eq_sub]
 
 /-- For a one-form `θ` with zero Lie derivative along `X`, the function `-ħ θ(X)` and the closed
 two-form `dθ` satisfy `ħ ι_X dθ = d (-ħ θ(X))`, by Cartan's formula. -/
@@ -93,7 +93,7 @@ theorem smul_interiorProduct_mextDerivₗ_of_mlieDerivForm_eq_zero {θ : SmoothF
     rw [SmoothForm.lieDeriv_eq_zero_iff, ContMDiffSection.coeFn_mk]
     exact hθ
   rw [SmoothForm.lieDeriv_eq_interiorProduct_add, add_eq_zero_iff_eq_neg] at hL
-  rw [hL, ← SmoothForm.ofFunctionEquiv_apply, map_smul, LinearEquiv.apply_symm_apply, map_smul,
+  rw [hL, SmoothForm.ofFunction_smul, SmoothForm.ofFunction_ofFunctionEquiv_symm, map_smul,
     smul_neg]
   exact (neg_smul _ _).symm
 
