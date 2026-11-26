@@ -58,6 +58,9 @@ that is `f`-related near `x` to a field on `M`
 The API of the restriction adapts Tau Ceti's `TauCeti.SmoothAlmostComplexStructure.pullback`
 and `TauCeti.ContMDiffAlmostComplexStructure.eq_pullback_iff`, from
 `TauCeti/Geometry/Symplectic/Manifold/AlmostComplex/Pullback.lean`, from diffeomorphisms to
+embeddings. The proof of `isPseudoholomorphic_restrict` adapts Tau Ceti's
+`TauCeti.SmoothAlmostComplexStructure.isPseudoholomorphic_descend`, from
+`TauCeti/Geometry/Symplectic/Manifold/AlmostComplex/Descent.lean`, from quotient maps to
 embeddings.
 
 If `J` is integrable and `N` has no boundary, the restriction is integrable
