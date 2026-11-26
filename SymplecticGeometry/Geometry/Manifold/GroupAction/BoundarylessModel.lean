@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Algebra.SMul
+public import TauCeti.Geometry.Lie.FundamentalVectorField
 public import TauCeti.Geometry.Manifold.ModelTransport.Interior
 
 /-!
@@ -26,7 +27,15 @@ boundary.
   monoid structure.
 * `TauCeti.BoundarylessModel.homeomorph_smul`, `homeomorph_symm_smul`,
   `interiorDiffeomorph_smul` and `interiorDiffeomorph_symm_smul`: the identity maps commute with
-  the actions.
+  the actions; `interiorDiffeomorph_comp_smul` and `interiorDiffeomorph_symm_comp_smul` state
+  this as equations of functions.
+* `TauCeti.BoundarylessModel.mfderiv_interiorDiffeomorph_fundamentalVectorField` and
+  `mfderiv_interiorDiffeomorph_symm_fundamentalVectorField`: for an action of a group `G` with
+  charts, the differentials of the identity diffeomorphism and of its inverse carry the
+  fundamental vector field of each `ξ` in the Lie algebra of `G` on one side to that on the other.
+  Where the orbit map is differentiable at `1`, this is Tau Ceti's
+  `TauCeti.mfderiv_fundamentalVectorField_of_map_smul`; where it is not, both sides vanish, so
+  no hypothesis on the action is needed.
 * `TauCeti.BoundarylessModel.instContMDiffSMulInteriorChartedSpace`: a `C^n` scalar multiplication
   on `M` is a `C^n` scalar multiplication on the copy with its vector-space atlas.
 -/
@@ -93,6 +102,74 @@ theorem interiorDiffeomorph_symm_smul [SMul G M] (n : ℕ∞ω) (g : G)
     (x : BoundarylessModel I M) :
     (interiorDiffeomorph I n).symm (g • x) = g • (interiorDiffeomorph I n).symm x := by
   rw [coe_interiorDiffeomorph_symm, homeomorph_symm_smul]
+
+/-- The identity diffeomorphism to the vector-space model copy intertwines the maps `g • ·`. -/
+@[to_additive
+  /-- The identity diffeomorphism to the vector-space model copy intertwines the maps
+  `g +ᵥ ·`. -/]
+theorem interiorDiffeomorph_comp_smul [SMul G M] (n : ℕ∞ω) (g : G) :
+    interiorDiffeomorph I n ∘ (fun x : M ↦ g • x) =
+      (fun y : BoundarylessModel I M ↦ g • y) ∘ interiorDiffeomorph I n :=
+  funext (interiorDiffeomorph_smul I n g)
+
+/-- The inverse identity diffeomorphism from the vector-space model copy intertwines the maps
+`g • ·`. -/
+@[to_additive
+  /-- The inverse identity diffeomorphism from the vector-space model copy intertwines the maps
+  `g +ᵥ ·`. -/]
+theorem interiorDiffeomorph_symm_comp_smul [SMul G M] (n : ℕ∞ω) (g : G) :
+    (interiorDiffeomorph I n).symm ∘ (fun y : BoundarylessModel I M ↦ g • y) =
+      (fun x : M ↦ g • x) ∘ (interiorDiffeomorph I n).symm :=
+  funext (interiorDiffeomorph_symm_smul I n g)
+
+section FundamentalVectorField
+
+variable {EG HG : Type*} [NormedAddCommGroup EG] [NormedSpace 𝕜 EG] [TopologicalSpace HG]
+  {IG : ModelWithCorners 𝕜 EG HG} [TopologicalSpace G] [ChartedSpace HG G] [Group G]
+  [MulAction G M]
+
+/-- The differential of the identity diffeomorphism to the vector-space model copy sends the
+fundamental vector field of `ξ` on `M` to the fundamental vector field of `ξ` on the copy. -/
+theorem mfderiv_interiorDiffeomorph_fundamentalVectorField (n : ℕ∞ω) (ξ : GroupLieAlgebra IG G)
+    (x : M) :
+    mfderiv I 𝓘(𝕜, E) (interiorDiffeomorph I n) x (fundamentalVectorField I ξ x) =
+      fundamentalVectorField 𝓘(𝕜, E) ξ (interiorDiffeomorph I n x) := by
+  -- The map does not depend on `n`, and is a `C¹` diffeomorphism.
+  have hn : ⇑(interiorDiffeomorph I (M := M) n) = interiorDiffeomorph I 1 := by
+    rw [coe_interiorDiffeomorph, coe_interiorDiffeomorph]
+  rw [hn]
+  set Φ := interiorDiffeomorph I (M := M) 1
+  by_cases h : MDifferentiableAt IG I (fun g : G ↦ g • x) 1
+  · exact mfderiv_fundamentalVectorField_of_map_smul (Φ.mdifferentiable one_ne_zero x) h
+      (fun g ↦ interiorDiffeomorph_smul I 1 g x) ξ
+  -- Otherwise neither orbit map is differentiable at `1`, and both sides vanish.
+  have h' : ¬MDifferentiableAt IG 𝓘(𝕜, E) (fun g : G ↦ g • Φ x) 1 := fun h' ↦ h <| by
+    have hc := (Φ.symm.mdifferentiable one_ne_zero _).comp_of_eq (1 : G) h'
+      (one_smul G (Φ x))
+    convert hc using 1
+    funext g
+    rw [Function.comp_apply, interiorDiffeomorph_symm_smul, Diffeomorph.symm_apply_apply]
+  rw [fundamentalVectorField_apply, fundamentalVectorField_apply,
+    mfderiv_zero_of_not_mdifferentiableAt h, mfderiv_zero_of_not_mdifferentiableAt h',
+    zero_apply]
+  exact map_zero _
+
+/-- The differential of the inverse identity diffeomorphism from the vector-space model copy
+sends the fundamental vector field of `ξ` on the copy to the fundamental vector field of `ξ` on
+`M`. -/
+theorem mfderiv_interiorDiffeomorph_symm_fundamentalVectorField (n : ℕ∞ω)
+    (ξ : GroupLieAlgebra IG G) (y : BoundarylessModel I M) :
+    mfderiv 𝓘(𝕜, E) I (interiorDiffeomorph I n).symm y (fundamentalVectorField 𝓘(𝕜, E) ξ y) =
+      fundamentalVectorField I ξ ((interiorDiffeomorph I n).symm y) := by
+  have hn : ⇑(interiorDiffeomorph I (M := M) n).symm = (interiorDiffeomorph I 1).symm := by
+    rw [coe_interiorDiffeomorph_symm, coe_interiorDiffeomorph_symm]
+  rw [hn]
+  obtain ⟨x, rfl⟩ : ∃ x, interiorDiffeomorph I 1 x = y := ⟨_, Diffeomorph.apply_symm_apply _ y⟩
+  rw [← mfderiv_interiorDiffeomorph_fundamentalVectorField,
+    (interiorDiffeomorph I 1).mfderiv_symm_apply_mfderiv_apply one_ne_zero,
+    Diffeomorph.symm_apply_apply]
+
+end FundamentalVectorField
 
 /-- A `C^n` scalar multiplication on a boundaryless manifold is a `C^n` scalar
 multiplication on its copy with the vector-space atlas. -/

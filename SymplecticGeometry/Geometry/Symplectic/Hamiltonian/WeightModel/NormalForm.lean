@@ -367,9 +367,7 @@ theorem exists_weightChart_fundamentalVectorField [BoundarylessManifold I' M]
   have hfund (ξ : GroupLieAlgebra I G) (y : N) :
       mfderiv 𝓘(ℝ, E') I' ψ y (fundamentalVectorField 𝓘(ℝ, E') ξ y) =
         fundamentalVectorField I' ξ (ψ y) :=
-    mfderiv_fundamentalVectorField_of_map_smul (ψ.mdifferentiable (by simp) y)
-      ((ContMDiffSMul.contMDiff_smul_const (I := I) (n := ∞) y).mdifferentiableAt (by simp))
-      (fun g ↦ hψ g y) ξ
+    BoundarylessModel.mfderiv_interiorDiffeomorph_symm_fundamentalVectorField I' ∞ ξ y
   have hμ' := hμ.mpullback (a' := InfinitesimalAction.fundamental I G 𝓘(ℝ, E') N) ψ.contMDiff
     fun ξ y ↦ by simpa only [InfinitesimalAction.fundamental_apply] using hfund ξ y
   have hσ' : SmoothTwoForm.IsSymplectic (SmoothForm.mpullback ψ ψ.contMDiff σ) :=
@@ -378,7 +376,8 @@ theorem exists_weightChart_fundamentalVectorField [BoundarylessManifold I' M]
       (ContMDiffSMul.contMDiff_const_smul (I := I) g) (SmoothForm.mpullback ψ ψ.contMDiff σ) =
         SmoothForm.mpullback ψ ψ.contMDiff σ := by
     rw [SmoothForm.mpullback_mpullback_of_comp_eq _ _ ψ.contMDiff
-      (ContMDiffSMul.contMDiff_const_smul (I := I) g) (funext (hψ g)), hG g]
+      (ContMDiffSMul.contMDiff_const_smul (I := I) g)
+      (BoundarylessModel.interiorDiffeomorph_symm_comp_smul I' ∞ g), hG g]
   have hp' (g : G) : g • ψ.symm p = ψ.symm p := by
     rw [← ψ.symm_apply_apply (g • ψ.symm p), hψ, Diffeomorph.apply_symm_apply, hp]
   obtain ⟨n, χ, α, Φ, r, h⟩ :=
