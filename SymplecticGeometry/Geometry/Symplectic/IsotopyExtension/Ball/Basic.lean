@@ -264,6 +264,13 @@ theorem isSymplecticBallEmbedding (he : IsSymplecticBallFamily σ r e) (t : unit
     IsSymplecticBallEmbedding σ r (fun z ↦ e (t, z)) :=
   he.2 t
 
+/-- A smooth family of symplectic embeddings of `B(r)` restricts to a smooth family of symplectic
+embeddings of any smaller ball. -/
+theorem mono {r' : ℝ} (he : IsSymplecticBallFamily σ r e) (h : r' ≤ r) :
+    IsSymplecticBallFamily σ r' e := by
+  obtain ⟨⟨U, hUo, hU, heU⟩, hemb⟩ := he
+  exact ⟨⟨U, hUo, (closedBall_subset_closedBall h).trans hU, heU⟩, fun t ↦ (hemb t).mono h⟩
+
 end IsSymplecticBallFamily
 
 /-- The identity is a symplectic embedding of every ball into `StdSpace (Fin n)` with `ω₀`. -/
