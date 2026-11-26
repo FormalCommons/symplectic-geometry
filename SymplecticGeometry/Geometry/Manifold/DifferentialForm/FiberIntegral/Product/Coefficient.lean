@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Manifold.ContMDiff.ParametricIntegral.Basic
+public import SymplecticGeometry.Geometry.Manifold.ContMDiff.ParametricIntegral
 public import TauCeti.Geometry.Manifold.Riemannian.HodgeStar
 public import TauCeti.Geometry.Manifold.Riemannian.VolumeForm.Measure
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Existence
@@ -29,7 +29,7 @@ Tau Ceti's `TauCeti.contMDiff_mpullback_prodMk_form` gives the slices of a form 
   `p ↦ ∫_F β p` are `C^n`. With a smooth metric from
   `TauCeti.nonempty_contMDiffRiemannianMetric`, the integral of `β p` is the integral of
   `c (p, ·)` against the Riemannian measure (`TauCeti.integralTopForm_smul_riemannianVolumeForm`),
-  which is `C^n` in `p` by `ContMDiff.parametric_integral`.
+  which is `C^n` in `p` by `ContMDiff.parametric_integral_of_boundarylessManifold`.
 
 These give the smoothness in the base of the fibre integral on a product `B × F`, as in Bott–Tu,
 §6, where the integrand is written as a function times a fixed volume form on the fibre.
@@ -90,7 +90,7 @@ compact Hausdorff manifold `F` of dimension `m` with an orientation `o`, let `β
 `m`-form for each `p` in a boundaryless manifold `P`, such that `(p, y) ↦ β p y` is a `C^n`
 section of the bundle of `m`-forms along `(p, y) ↦ y`. Then `p ↦ ∫_F β p` is `C^n`. -/
 theorem contMDiff_integralTopForm [IsManifold J ∞ F] [T2Space F] [CompactSpace F]
-    [K.Boundaryless] [IsManifold K n P]
+    [BoundarylessManifold K P] [IsManifold K n P]
     (o : Manifold.Orientation J F (Fin m)) {β : P → RoughForm J F ℝ m}
     (hβ : ContMDiff (K.prod J) (J.prod 𝓘(ℝ, E [⋀^Fin m]→L[ℝ] ℝ)) n
       (fun q : P × F ↦ TotalSpace.mk' (E [⋀^Fin m]→L[ℝ] ℝ)
@@ -111,7 +111,7 @@ theorem contMDiff_integralTopForm [IsManifold J ∞ F] [T2Space F] [CompactSpace
     exact integralTopForm_smul_riemannianVolumeForm o
       (hc.continuous.comp (Continuous.prodMk_right p)) (HasCompactSupport.of_compactSpace _)
   simp only [heq]
-  exact ContMDiff.parametric_integral (J := J) hc
+  exact ContMDiff.parametric_integral_of_boundarylessManifold (J := J) hc
 
 end TauCeti
 

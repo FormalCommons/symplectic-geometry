@@ -8,7 +8,11 @@ module
 public import Mathlib.Topology.Algebra.Module.Alternating.Basic
 public import SymplecticGeometry.LinearAlgebra.Alternating.Basic
 public import SymplecticGeometry.Logic.Equiv.Fin.Basic
+public import Mathlib.LinearAlgebra.Basis.Basic
 public import TauCeti.LinearAlgebra.Alternating.Curry
+import TauCeti.Algebra.BigOperators.Finset.Pairs
+import TauCeti.Data.Fin.VecNotation
+import TauCeti.Topology.Algebra.Module.Alternating.Basic
 
 /-!
 # Continuous alternating maps
@@ -37,6 +41,12 @@ submodule `V` of rank at most `m` does not change its value once its last `m` ar
 `AlternatingMap.map_append_add_of_mem`, whose proof rests on
 `AlternatingMap.map_eq_zero_of_finrank_lt`: an alternating map vanishes on a family with more
 members in `V` than the rank of `V`.
+
+A two-form `T` on a product `M₁ × M₂` splits, for a basis `bs` of `M₁`, into its values on pairs
+of vectors of `M₂`, on a vector of `M₂` and a basis vector of `M₁`, and on increasing pairs of
+basis vectors of `M₁` (`ContinuousAlternatingMap.apply_vecCons_prod_eq_sum`). The part along `M₁`
+is expanded by Tau Ceti's `ContinuousAlternatingMap.apply_vecCons_eq_sum_repr`, and its double
+sum folded onto the increasing pairs by Tau Ceti's `TauCeti.sum_univ_prod_eq_sum_lt_add_swap`.
 -/
 
 public section
@@ -145,6 +155,68 @@ theorem appendLeftAlternatingMap_apply (f : W [⋀^Fin (r + m)]→L[R] N) (u : F
     f.appendLeftAlternatingMap u = f.appendLeft u := (rfl)
 
 end AppendLeft
+
+section Prod
+
+variable {R M₁ M₂ N : Type*} [CommRing R] [AddCommGroup M₁] [Module R M₁] [TopologicalSpace M₁]
+  [AddCommGroup M₂] [Module R M₂] [TopologicalSpace M₂] [AddCommGroup N] [Module R N]
+  [TopologicalSpace N] {ι : Type*} [Fintype ι] [LinearOrder ι]
+
+/-- **A two-form on a product in coordinates along the first factor.** For a basis `bs` of
+`M₁`, with coordinates `cᵢ = bs.coord i`, a two-form `T` on `M₁ × M₂` takes the value
+`T((0, w₁), (0, w₂)) + ∑ᵢ (cᵢ(u₂) T((0, w₁), (bsᵢ, 0)) - cᵢ(u₁) T((0, w₂), (bsᵢ, 0)))
++ ∑_{i<j} (cᵢ(u₁) cⱼ(u₂) - cᵢ(u₂) cⱼ(u₁)) T((bsᵢ, 0), (bsⱼ, 0))` on `(u₁, w₁)` and
+`(u₂, w₂)`. -/
+theorem apply_vecCons_prod_eq_sum (bs : Module.Basis ι R M₁) (T : (M₁ × M₂) [⋀^Fin 2]→L[R] N)
+    (u₁ u₂ : M₁) (w₁ w₂ : M₂) :
+    T ![(u₁, w₁), (u₂, w₂)] = T ![(0, w₁), (0, w₂)] +
+      ∑ i, (bs.coord i u₂ • T ![(0, w₁), (bs i, 0)] - bs.coord i u₁ • T ![(0, w₂), (bs i, 0)]) +
+      ∑ i, ∑ j with i < j, (bs.coord i u₁ * bs.coord j u₂ - bs.coord i u₂ * bs.coord j u₁) •
+        T ![(bs i, 0), (bs j, 0)] := by
+  -- Split both vectors into their parts along `M₁` and along `M₂`.
+  have hsplit : T ![(u₁, w₁), (u₂, w₂)] = T ![(u₁, 0), (u₂, 0)] - T ![(0, w₂), (u₁, 0)] +
+      T ![(0, w₁), (u₂, 0)] + T ![(0, w₁), (0, w₂)] := by
+    rw [show ((u₁, w₁) : M₁ × M₂) = (u₁, 0) + (0, w₁) by simp,
+      show ((u₂, w₂) : M₁ × M₂) = (u₂, 0) + (0, w₂) by simp, T.vecCons_add,
+      T.apply_vecCons_add_right, T.apply_vecCons_add_right,
+      T.apply_vecCons_swap (u₁, 0) (0, w₂)]
+    abel
+  -- Expand a second vector along `M₁` in the basis `bs`.
+  have hbs (a : M₁ × M₂) (u : M₁) :
+      T ![a, (u, 0)] = ∑ i, bs.coord i u • T ![a, (bs i, 0)] := by
+    have hu : ((u, 0) : M₁ × M₂) = ∑ i, bs.repr u i • ((bs i, 0) : M₁ × M₂) :=
+      Prod.ext (by simp [Prod.fst_sum, bs.sum_repr]) (by simp [Prod.snd_sum])
+    have hlin := _root_.map_sum
+      (T.toContinuousMultilinearMap.toMultilinearMap.toLinearMap ![a, (u, 0)] 1)
+      (fun i ↦ bs.repr u i • ((bs i, 0) : M₁ × M₂)) Finset.univ
+    have h₁ (z : M₁ × M₂) : Function.update ![a, (u, 0)] 1 z = ![a, z] := by
+      funext k; fin_cases k <;> simp
+    simp only [← hu, MultilinearMap.toLinearMap_apply, map_smul, h₁] at hlin
+    simpa using hlin
+  -- The part along `M₁` is a two-form on `M₁`, expanded in `bs`.
+  have hbase : T ![(u₁, 0), (u₂, 0)] = ∑ i, ∑ j with i < j,
+      (bs.coord i u₁ * bs.coord j u₂ - bs.coord i u₂ * bs.coord j u₁) •
+        T ![(bs i, 0), (bs j, 0)] := by
+    have h := (T.compContinuousLinearMap
+      (ContinuousLinearMap.inl R M₁ M₂)).apply_vecCons_eq_sum_repr bs u₁ u₂
+    simp only [compContinuousLinearMap_apply, Matrix.comp_vec2,
+      ContinuousLinearMap.inl_apply] at h
+    rw [h, ← Fintype.sum_prod_type' (f := fun i j ↦
+        (bs.repr u₁ i * bs.repr u₂ j) • T ![(bs i, 0), (bs j, 0)]),
+      TauCeti.sum_univ_prod_eq_sum_lt_add_swap _ fun i ↦ by
+        rw [T.map_eq_zero_of_eq ![(bs i, 0), (bs i, 0)] (i := 0) (j := 1) rfl Fin.zero_ne_one,
+          smul_zero],
+      Finset.sum_filter, Fintype.sum_prod_type]
+    simp only [Finset.sum_filter, Prod.swap, Module.Basis.coord_apply]
+    refine Finset.sum_congr rfl fun i _ ↦ Finset.sum_congr rfl fun j _ ↦ ?_
+    split_ifs
+    · rw [T.apply_vecCons_swap (bs i, 0), sub_smul, smul_neg, mul_comm (bs.repr u₁ j)]
+      abel
+    · rfl
+  rw [hsplit, hbase, hbs (0, w₁) u₂, hbs (0, w₂) u₁, Finset.sum_sub_distrib]
+  abel
+
+end Prod
 
 end ContinuousAlternatingMap
 
