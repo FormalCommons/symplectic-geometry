@@ -75,11 +75,8 @@ theorem exists_based_family_of_family [FiniteDimensional ℝ E] [I.Boundaryless]
   obtain ⟨V, hrV, f₀, f₁, k, hk⟩ := he.exists_smoothIsotopy hr
   let x₀ : V := ⟨0, hrV (mem_closedBall_self hr.le)⟩
   -- The loop of centres and a smooth null-homotopy `H` of it.
-  have hc : ContMDiff (𝓡∂ 1) I ∞ fun t ↦ e (t, 0) := by
-    convert k.contMDiff.comp (contMDiff_id.prodMk (contMDiff_const (c := x₀))) using 1
-    funext t
-    exact (hk (t, x₀)).symm
-  obtain ⟨G, hG, hG₀, hG₁, hGl, hGr⟩ := hc.exists_contMDiff_nullhomotopy he₀ he₁
+  obtain ⟨G, hG, hG₀, hG₁, hGl, hGr⟩ :=
+    (he.contMDiff_apply_mk (mem_closedBall_self hr.le)).exists_contMDiff_nullhomotopy he₀ he₁
   -- Hamiltonian diffeotopies `Φ t` moving `G (t, 0)` along `s ↦ G (t, s)`.
   have hd : Module.finrank ℝ (StdSpace (Fin n)) = Module.finrank ℝ E := by
     simp [hdim, two_mul]
