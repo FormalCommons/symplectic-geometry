@@ -11,6 +11,8 @@ import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Parametric
 import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Polar
 import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Rescaling
 import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+import SymplecticGeometry.Topology.MetricSpace.Tube
+import TauCeti.Geometry.Manifold.ContMDiff.ContinuousLinearEquiv
 
 /-!
 # Realizing a family of symplectic germs by symplectomorphisms of a ball
@@ -83,12 +85,10 @@ theorem IsSymplecticBallFamily.exists_symplectomorphism_family_eq_of_map_zero {�
   obtain ⟨U, Q, hU, hQ, hUs, hQs, hQ1, hQ0, h1⟩ := hκ.exists_polar_fderiv_zero hδ
   set Uinv : ℝ → StdSpace (Fin n) →L[ℝ] StdSpace (Fin n) :=
     fun t ↦ ((U t).symm : StdSpace (Fin n) →L[ℝ] StdSpace (Fin n))
-  have hUinv : ContDiff ℝ ∞ Uinv := by
-    refine contDiff_iff_contDiffAt.2 fun t ↦ ?_
-    have h := (contDiffAt_map_inverse (n := ∞) (U t).toContinuousLinearEquiv).comp t
-      hU.contDiffAt
-    refine h.congr_of_eventuallyEq (Eventually.of_forall fun s ↦ ?_)
-    exact (ContinuousLinearMap.inverse_equiv (U s).toContinuousLinearEquiv).symm
+  have hUinv : ContMDiff 𝓘(ℝ, ℝ) 𝓘(ℝ, StdSpace (Fin n) →L[ℝ] StdSpace (Fin n)) ∞ Uinv := by
+    simpa only [Uinv, LinearIsometryEquiv.toContinuousLinearEquiv_symm] using
+      ContMDiff.continuousLinearEquiv_symm (A := fun t ↦ (U t).toContinuousLinearEquiv)
+        hU.contMDiff
   have hUinvs (t : unitInterval) (v w : StdSpace (Fin n)) :
       stdForm (Fin n) (Uinv t v) (Uinv t w) = stdForm (Fin n) v w := by
     simpa [Uinv] using (hUs t ((U t).symm v) ((U t).symm w)).symm
@@ -101,17 +101,14 @@ theorem IsSymplecticBallFamily.exists_symplectomorphism_family_eq_of_map_zero {�
     obtain ⟨V, -, hδV, hκV⟩ := hκ.exists_contMDiffOn
     have hm : ContMDiff ((𝓡∂ 1).prod 𝓘(ℝ, StdSpace (Fin n))) ((𝓡∂ 1).prod 𝓘(ℝ, StdSpace (Fin n)))
         ∞ fun p : unitInterval × StdSpace (Fin n) ↦ (p.1, Uinv p.1 p.2) :=
-      contMDiff_fst.prodMk ((hUinv.contMDiff.comp (contMDiff_subtypeVal_Icc.comp
+      contMDiff_fst.prodMk ((hUinv.comp (contMDiff_subtypeVal_Icc.comp
         contMDiff_fst)).clm_apply contMDiff_snd)
     refine (isSymplecticBallFamily_def _ _ _).2 ⟨⟨ball 0 δ, isOpen_ball,
       closedBall_subset_ball (half_lt_self hδ),
       hκV.comp hm.contMDiffOn fun p hp ↦ ⟨trivial, hδV (ball_subset_closedBall
         (hUball p.1 hp.2))⟩⟩, fun t ↦ ?_⟩
-    have h := ((hκ.isSymplecticBallEmbedding t).inv_smul_comp_smul_comp one_ne_zero (hUinvs t)
-      (ρ' := δ / 2) fun z hz ↦ by
-        rw [one_smul]
-        exact hUball t (closedBall_subset_ball (half_lt_self hδ) hz))
-    simpa only [inv_one, one_smul] using h
+    exact (hκ.isSymplecticBallEmbedding t).comp_continuousLinearMap (hUinvs t) fun z hz ↦
+      hUball t (closedBall_subset_ball (half_lt_self hδ) hz)
   have hθ0 (t : unitInterval) : θ (t, 0) = 0 := by simp [θ, hκ0]
   have hdθ (t : unitInterval) : fderiv ℝ (fun z ↦ θ (t, z)) 0 =
       (fderiv ℝ (fun z ↦ κ (t, z)) 0).comp (Uinv t) := by
@@ -122,30 +119,23 @@ theorem IsSymplecticBallFamily.exists_symplectomorphism_family_eq_of_map_zero {�
   obtain ⟨ρ, hρ, G, ⟨W, hWo, hρW, hGW⟩, hGfam, hG0, hG1, hGz, hGid⟩ :=
     hθ.exists_rescaling_family hδ2 hθ0 hQ (fun t s ↦ hQs t s) (fun t ↦ hQ1 t)
       fun t ↦ by rw [hdθ t]; exact hQ0 t
-  -- Step 3: near `0`, `G` takes values in `B°(r)`.
-  have hGc : ContinuousOn G (univ ×ˢ univ ×ˢ W) := hGW.continuousOn
-  have hev : ∀ᶠ z in 𝓝 (0 : StdSpace (Fin n)),
-      ∀ p ∈ (univ : Set (unitInterval × unitInterval)), G (p.1, p.2, z) ∈ ball 0 r := by
-    refine isCompact_univ.eventually_forall_of_forall_eventually fun p _ ↦ ?_
-    have hc : ContinuousAt G (p.1, p.2, 0) :=
-      hGc.continuousAt (prod_mem_nhds univ_mem (prod_mem_nhds univ_mem
-        (hWo.mem_nhds (hρW (mem_closedBall_self hρ.le)))))
-    have hG00 : G (p.1, p.2, 0) ∈ ball 0 r := by
-      rw [hGz]
-      exact mem_ball_self hr
-    have hcont : ContinuousAt (fun q : StdSpace (Fin n) × (unitInterval × unitInterval) ↦
-        G (q.2.1, q.2.2, q.1)) (0, p) :=
-      hc.comp (f := fun q : StdSpace (Fin n) × (unitInterval × unitInterval) ↦
-        (q.2.1, q.2.2, q.1)) (by fun_prop)
-    exact hcont.preimage_mem_nhds (isOpen_ball.mem_nhds hG00)
-  obtain ⟨ε₀, hε₀, hε₀G⟩ := Metric.eventually_nhds_iff_ball.1 hev
+  -- Step 3: near `0`, `G` takes values in `B°(r)`, by the tube lemma.
+  have hGc : ContinuousOn (fun q : (unitInterval × unitInterval) × StdSpace (Fin n) ↦
+      G (q.1.1, q.1.2, q.2)) (univ ×ˢ W) :=
+    hGW.continuousOn.comp (by fun_prop) fun q hq ↦ ⟨trivial, trivial, hq.2⟩
+  obtain ⟨ε₀, hε₀, hε₀G⟩ := isCompact_univ.exists_prod_ball_subset (y := 0)
+    (hGc.isOpen_inter_preimage (isOpen_univ.prod hWo) isOpen_ball) (by
+      rintro ⟨p, z⟩ ⟨-, hz⟩
+      obtain rfl : z = 0 := mem_singleton_iff.1 hz
+      exact ⟨⟨trivial, hρW (mem_closedBall_self hρ.le)⟩,
+        mem_preimage.2 (by rw [hGz]; exact mem_ball_self hr)⟩)
   set ε := min (ρ / 2) (ε₀ / 2)
   have hε : 0 < ε := lt_min (half_pos hρ) (half_pos hε₀)
   have hερ : ε < ρ := (min_le_left _ _).trans_lt (half_lt_self hρ)
   have hεG (t s : unitInterval) {z : StdSpace (Fin n)} (hz : z ∈ closedBall 0 ε) :
       G (t, s, z) ∈ ball 0 r :=
-    hε₀G z (closedBall_subset_ball ((min_le_right _ _).trans_lt (half_lt_self hε₀)) hz) (t, s)
-      trivial
+    mem_preimage.1 (hε₀G (mk_mem_prod (mem_univ (t, s)) (closedBall_subset_ball
+      ((min_le_right _ _).trans_lt (half_lt_self hε₀)) hz))).2
   -- The Hamiltonian extension `Φ` of `G` inside `B°(r)`.
   obtain ⟨Φ, K, -, hKr, hΦH, hΦs, hΦK, hΦG, hΦid⟩ :=
     exists_isCompactlySupportedHamiltonian_param_apply_eq
@@ -159,13 +149,8 @@ theorem IsSymplecticBallFamily.exists_symplectomorphism_family_eq_of_map_zero {�
   refine ⟨ε, hε, χ, ?_, fun t ↦ ?_, fun t ↦ ?_, fun t z hz ↦ ?_, fun t ht z ↦ ?_⟩
   · exact hΦs.comp ((contMDiff_fst.prodMk contMDiff_const).prodMk
       ((hU.contMDiff.comp (contMDiff_subtypeVal_Icc.comp contMDiff_fst)).clm_apply contMDiff_snd))
-  · have hj : IsSymplecticBallEmbedding ω₀ r fun z ↦ U t z := by
-      have h := (isSymplecticBallEmbedding_id (2 * r)).inv_smul_comp_smul_comp one_ne_zero
-        (Q := (U t : StdSpace (Fin n) →L[ℝ] StdSpace (Fin n))) (hUs t) (ρ' := r) fun z hz ↦ by
-          rw [one_smul, mem_ball_zero_iff]
-          simpa using (mem_closedBall_zero_iff.1 hz).trans_lt (by linarith : r < 2 * r)
-      simpa [ω₀] using h
-    exact hj.diffeotopy_comp ((Diffeotopy.isCompactlySupportedHamiltonian_iff.1 (hΦH t)).1 1)
+  · exact (isSymplecticBallEmbedding_linearIsometry r (U := (U t).toLinearIsometry)
+      (hUs t)).diffeotopy_comp ((Diffeotopy.isCompactlySupportedHamiltonian_iff.1 (hΦH t)).1 1)
   · have hχ : (fun z ↦ χ (t, z)) = ((Φ t).timeSlice 1).toEquiv ∘ U t := by
       funext z
       simp [χ, Diffeotopy.timeSlice_apply]
