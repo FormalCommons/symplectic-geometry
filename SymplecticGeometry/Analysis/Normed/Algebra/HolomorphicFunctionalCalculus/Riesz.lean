@@ -7,6 +7,8 @@ module
 
 public import TauCeti.Analysis.Normed.Algebra.HolomorphicFunctionalCalculus.Riesz
 
+import TauCeti.Topology.Algebra.Module.ContinuousLinearMap.Basic
+
 /-!
 # Eigenvectors in the range of a Riesz idempotent
 
@@ -40,8 +42,7 @@ theorem mem_image_of_rieszIdempotent_apply_eq_self {T : E →L[ℂ] E}
     rw [hu]
     simp [hP, hT, Algebra.algebraMap_eq_smul_one]
   have h1 := congrArg (↑u⁻¹ : E →L[ℂ] E) h0
-  rwa [← mul_apply_eq_comp, Units.inv_mul, one_apply_eq_self,
-    map_zero] at h1
+  rwa [units_inv_apply_apply, map_zero] at h1
 
 end ContinuousLinearMap
 

@@ -202,8 +202,7 @@ theorem exists_weightModelChart_isotropy
       (ContMDiffSMul.contMDiff_const_smul (I := I) g) σ = σ) (x : M) :
     let 𝔤ₓ : Submodule ℝ (GroupLieAlgebra I G) :=
       ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule
-    let K : Subgroup G := (Subgroup.connectedComponentOfOne (MulAction.stabilizer G x)).map
-      (MulAction.stabilizer G x).subtype
+    let K : Subgroup G := (MulAction.stabilizer G x).ambientConnectedComponentOfOne
     ∃ (n : ℕ) (χ : Fin n → K →ₜ* Circle)
       (α : Fin n → StrongDual ℝ 𝔤ₓ)
       (chart : PartialDiffeomorph I' 𝓘(ℝ, EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin n))
@@ -225,7 +224,7 @@ theorem exists_weightModelChart_isotropy
   set S := MulAction.stabilizer G x
   have hS : IsClosed (S : Set G) := isClosed_stabilizer
     (ContMDiffSMul.contMDiff_smul_const (I := I) (I' := I') (n := ∞) x).continuous
-  refine (Lie.isTorus_map_connectedComponentOfOne (S := S) hS.isCompact).elim (I := I)
+  refine (Lie.isTorus_ambientConnectedComponentOfOne (S := S) hS.isCompact).elim (I := I)
     fun d ↦ ?_
   intro _ _ _ _ _ _ _
   let F := (Lie.lieSubalgebraOfSubgroup (I := I) K).toSubmodule
