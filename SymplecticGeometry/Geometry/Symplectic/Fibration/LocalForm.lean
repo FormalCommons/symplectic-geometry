@@ -5,17 +5,13 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.LinearAlgebra.Basis.Basic
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.CoordOneForm
 public import TauCeti.Geometry.Manifold.DifferentialForm.Interior
-public import TauCeti.Geometry.Manifold.DifferentialForm.Smooth
 public import TauCeti.Geometry.Manifold.DifferentialForm.Vertical
 public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Basic
 public import TauCeti.Geometry.Manifold.VectorField.Prod
-import SymplecticGeometry.Algebra.BigOperators.Pairs
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
-import TauCeti.Geometry.Manifold.MFDeriv.Prod
-import TauCeti.Topology.Algebra.Module.Alternating.Basic
 
 /-!
 # The local form of a two-form on a product
@@ -41,26 +37,21 @@ of `EB × F`; no regularity of `τ` is needed.
 
 ## Main definitions
 
-* `Module.Basis.coordOneForm bs i`: the constant one-form `dxᵢ` on `EB`.
 * `TauCeti.RoughForm.fiberComponent τ x`: the slice of `τ` over `x`.
 * `TauCeti.RoughForm.mixedComponent τ bs i x`: the one-form `αᵢ(x)` on `F`.
 * `TauCeti.RoughForm.baseComponent τ bs i j x`: the function `f_{ij}(x)` on `F`.
 
 ## Main results
 
-* `ContinuousAlternatingMap.apply_vecCons_prod_eq_sum`: the same splitting for a single
-  continuous alternating two-form on a product `EB × EF` of normed spaces.
 * `TauCeti.RoughForm.eq_verticalForm_add_sum`: the local form of `τ`.
 
 ## Implementation notes
 
 By Tau Ceti's `TauCeti.mpullback_prodMk_verticalForm`, the slices over `x` of the vertical forms
 of `σ` and `αᵢ` are `σ(x)` and `αᵢ(x)`, so the components can be recovered from the terms of the
-local form. The proof of the local form is linear algebra at each point
-(`ContinuousAlternatingMap.apply_vecCons_prod_eq_sum`): the value of `τ` on two vectors is
-expanded by bilinearity into the parts along `EB` and along the model space of `F`, the vectors
-along `EB` are expanded in the basis `bs`, and the double sum over the indices is folded into a sum
-over the pairs `i < j` by `Finset.sum_sum_eq_sum_sum_lt_add_swap`.
+local form. The proof of the local form is linear algebra at each point: it applies
+`ContinuousAlternatingMap.apply_vecCons_prod_eq_sum`, the same splitting for a single
+continuous alternating two-form on a product, to the value of `τ` at that point.
 
 ## References
 
@@ -73,91 +64,6 @@ public section
 noncomputable section
 
 open scoped Manifold
-
-namespace Module.Basis
-
-variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [FiniteDimensional ℝ EB]
-  {ι : Type*} (bs : Module.Basis ι ℝ EB)
-
-/-- The constant one-form `dxᵢ` on a finite-dimensional real normed space `EB`, for a basis `bs`
-of `EB`: its value on a tangent vector `v` is the `i`-th coordinate `bs.coord i v`. -/
-def coordOneForm (i : ι) : TauCeti.SmoothForm 𝓘(ℝ, EB) EB ℝ 1 :=
-  TauCeti.SmoothForm.const
-    (ContinuousAlternatingMap.ofSubsingleton ℝ EB ℝ 0
-      (LinearMap.toContinuousLinearMap (bs.coord i)))
-
-/-- The one-form `dxᵢ` takes a tangent vector to its `i`-th coordinate in the basis `bs`. -/
-@[simp]
-theorem coordOneForm_apply (i : ι) (x : EB) (v : Fin 1 → TangentSpace 𝓘(ℝ, EB) x) :
-    (bs.coordOneForm i).val x v = bs.coord i (v 0) := by
-  rw [coordOneForm, TauCeti.SmoothForm.const_apply,
-    ContinuousAlternatingMap.ofSubsingleton_apply_apply, NormedSpace.fromTangentSpace_apply,
-    LinearMap.coe_toContinuousLinearMap']
-
-end Module.Basis
-
-namespace ContinuousAlternatingMap
-
-variable {EB EF : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [NormedAddCommGroup EF]
-  [NormedSpace ℝ EF] {ι : Type*} [Fintype ι] [LinearOrder ι] (bs : Module.Basis ι ℝ EB)
-  (T : (EB × EF) [⋀^Fin 2]→L[ℝ] ℝ)
-
-/-- **A two-form on a product in coordinates along the first factor.** For a basis `bs` of
-`EB`, with coordinates `cᵢ = bs.coord i`, a two-form `T` on `EB × EF` takes the value
-`T((0, w₁), (0, w₂)) + ∑ᵢ (T((0, w₁), (bsᵢ, 0)) cᵢ(u₂) - T((0, w₂), (bsᵢ, 0)) cᵢ(u₁))
-+ ∑_{i<j} T((bsᵢ, 0), (bsⱼ, 0)) (cᵢ(u₁) cⱼ(u₂) - cᵢ(u₂) cⱼ(u₁))` on `(u₁, w₁)` and
-`(u₂, w₂)`. -/
-theorem apply_vecCons_prod_eq_sum (u₁ u₂ : EB) (w₁ w₂ : EF) :
-    T ![(u₁, w₁), (u₂, w₂)] = T ![(0, w₁), (0, w₂)] +
-      ∑ i, (T ![(0, w₁), (bs i, 0)] * bs.coord i u₂ - T ![(0, w₂), (bs i, 0)] * bs.coord i u₁) +
-      ∑ i, ∑ j with i < j, T ![(bs i, 0), (bs j, 0)] *
-        (bs.coord i u₁ * bs.coord j u₂ - bs.coord i u₂ * bs.coord j u₁) := by
-  -- Split both vectors into their parts along `EB` and along `EF`.
-  have hsplit : T ![(u₁, w₁), (u₂, w₂)] = T ![(u₁, 0), (u₂, 0)] - T ![(0, w₂), (u₁, 0)] +
-      T ![(0, w₁), (u₂, 0)] + T ![(0, w₁), (0, w₂)] := by
-    rw [show ((u₁, w₁) : EB × EF) = (u₁, 0) + (0, w₁) by simp,
-      show ((u₂, w₂) : EB × EF) = (u₂, 0) + (0, w₂) by simp, T.vecCons_add,
-      T.apply_vecCons_add_right, T.apply_vecCons_add_right,
-      T.apply_vecCons_swap (u₁, 0) (0, w₂)]
-    abel
-  -- Expand a second vector along `EB` in the basis `bs`.
-  have hlin : ∀ (a : EB × EF) (s : Finset ι) (c : ι → ℝ) (v : ι → EB × EF),
-      T ![a, ∑ i ∈ s, c i • v i] = ∑ i ∈ s, T ![a, v i] * c i := by
-    intro a s c v
-    induction s using Finset.cons_induction with
-    | empty => simpa using T.apply_vecCons_smul_right 0 a 0
-    | cons i s hi ih =>
-      rw [Finset.sum_cons, Finset.sum_cons, T.apply_vecCons_add_right,
-        T.apply_vecCons_smul_right, ih, smul_eq_mul, mul_comm]
-  have hbs : ∀ (a : EB × EF) (u : EB),
-      T ![a, (u, 0)] = ∑ i, T ![a, (bs i, 0)] * bs.coord i u := by
-    intro a u
-    have hu : ((u, 0) : EB × EF) = ∑ i, bs.repr u i • ((bs i, 0) : EB × EF) :=
-      Prod.ext (by simp [Prod.fst_sum, bs.sum_repr]) (by simp [Prod.snd_sum])
-    rw [hu, hlin]
-    simp only [Module.Basis.coord_apply]
-  -- The part along `EB` is a two-form on `EB`, expanded in `bs`.
-  have hbase : T ![(u₁, 0), (u₂, 0)] = ∑ i, ∑ j with i < j, T ![(bs i, 0), (bs j, 0)] *
-      (bs.coord i u₁ * bs.coord j u₂ - bs.coord i u₂ * bs.coord j u₁) := by
-    have hfirst : ∀ j, T ![(u₁, 0), (bs j, 0)] =
-        ∑ i, T ![(bs i, 0), (bs j, 0)] * bs.coord i u₁ := fun j ↦ by
-      rw [T.apply_vecCons_swap, hbs, ← Finset.sum_neg_distrib]
-      exact Finset.sum_congr rfl fun i _ ↦ by rw [T.apply_vecCons_swap (bs j, 0)]; ring
-    rw [hbs]
-    simp_rw [hfirst, Finset.sum_mul]
-    rw [Finset.sum_comm]
-    refine (Finset.sum_sum_eq_sum_sum_lt_add_swap _
-      (fun i j ↦ T ![(bs i, 0), (bs j, 0)] * bs.coord i u₁ * bs.coord j u₂) fun i ↦ ?_).trans
-      (Finset.sum_congr rfl fun i _ ↦ Finset.sum_congr rfl fun j _ ↦ ?_)
-    · have h0 : T ![(bs i, 0), (bs i, 0)] = 0 := T.map_eq_zero_of_eq _ (i := 0) (j := 1) rfl
-        Fin.zero_ne_one
-      rw [h0, zero_mul, zero_mul]
-    · rw [T.apply_vecCons_swap (bs j, 0)]
-      ring
-  rw [hsplit, hbase, hbs (0, w₁) u₂, hbs (0, w₂) u₁, Finset.sum_sub_distrib]
-  ring
-
-end ContinuousAlternatingMap
 
 namespace TauCeti.RoughForm
 
@@ -218,22 +124,24 @@ theorem mixedComponent_apply (i : ι) (x : EB) (y : F) (w : TangentSpace IF y) :
 def baseComponent (i j : ι) (x : EB) (y : F) : ℝ :=
   τ (x, y) ![(bs i, 0), (bs j, 0)]
 
+@[simp]
 theorem baseComponent_def (i j : ι) (x : EB) (y : F) :
     τ.baseComponent bs i j x y = τ (x, y) ![(bs i, 0), (bs j, 0)] :=
   (rfl)
+
+/-- The base component `f_{ii}(x)` vanishes at every point. -/
+theorem baseComponent_self_apply (i : ι) (x : EB) (y : F) : τ.baseComponent bs i i x y = 0 :=
+  ContinuousAlternatingMap.map_eq_zero_of_eq _ _ (i := 0) (j := 1) rfl Fin.zero_ne_one
+
+/-- The base components vanish on the diagonal: `f_{ii}(x)` is the zero function on `F`. -/
+@[simp]
+theorem baseComponent_self (i : ι) (x : EB) : τ.baseComponent bs i i x = 0 :=
+  funext (τ.baseComponent_self_apply bs i x)
 
 /-- The base components are antisymmetric in the two indices. -/
 theorem baseComponent_swap (i j : ι) (x : EB) (y : F) :
     τ.baseComponent bs j i x y = -τ.baseComponent bs i j x y :=
   ContinuousAlternatingMap.apply_vecCons_swap _ _ _
-
-/-- The pull-back along `Prod.fst` of the one-form `dxᵢ` on `EB` takes a tangent vector of
-`EB × F` to the `i`-th coordinate of its component along `EB`. -/
-theorem mpullback_fst_coordOneForm_apply [FiniteDimensional ℝ EB] (i : ι) (z : EB × F)
-    (v : Fin 1 → TangentSpace (𝓘(ℝ, EB).prod IF) z) :
-    mpullback (𝓘(ℝ, EB).prod IF) 𝓘(ℝ, EB) Prod.fst (bs.coordOneForm i).val z v =
-      bs.coord i (v 0).1 := by
-  rw [mpullback_apply, Module.Basis.coordOneForm_apply, TauCeti.mfderiv_fst_apply]
 
 /-- **The local form of a two-form on a product.** A two-form `τ` on `EB × F` is the sum of the
 vertical form of its fibre components `σ(x)`, of `∑ᵢ αᵢ ∧ dxᵢ` with its mixed components `αᵢ(x)`,
@@ -257,15 +165,19 @@ theorem eq_verticalForm_add_sum [FiniteDimensional ℝ EB] [Fintype ι] [LinearO
   simp only [Pi.add_apply, ContinuousAlternatingMap.add_apply, Finset.sum_apply,
     ContinuousAlternatingMap.sum_apply, Pi.smul_apply', ContinuousAlternatingMap.smul_apply,
     mpullback_wedge, wedge_apply_one_one, verticalForm_apply, h₁, h₂,
-    mpullback_fst_coordOneForm_apply, baseComponent_def, smul_eq_mul,
+    Module.Basis.mpullback_fst_coordOneForm_apply, baseComponent_def, smul_eq_mul,
     Matrix.cons_val_zero]
   refine ((τ z).apply_vecCons_prod_eq_sum bs v₁.1 v₂.1 v₁.2 v₂.2).trans ?_
   -- The fibre vectors are elements of `EF` on the left and of `TangentSpace IF z.2` on the right,
   -- so the components are matched term by term.
-  congr 2
-  · exact (τ.fiberComponent_apply z.1 z.2 v₁.2 v₂.2).symm
-  · refine Finset.sum_congr rfl fun i _ ↦ ?_
-    exact congrArg₂ (· - ·) (congrArg (· * _) (τ.mixedComponent_apply bs i z.1 z.2 v₁.2).symm)
-      (congrArg (· * _) (τ.mixedComponent_apply bs i z.1 z.2 v₂.2).symm)
+  congr 1
+  · congr 1
+    · exact (τ.fiberComponent_apply z.1 z.2 v₁.2 v₂.2).symm
+    · refine Finset.sum_congr rfl fun i _ ↦ ?_
+      rw [τ.mixedComponent_apply bs i z.1 z.2 v₁.2, τ.mixedComponent_apply bs i z.1 z.2 v₂.2,
+        smul_eq_mul, smul_eq_mul, mul_comm, mul_comm (bs.coord i v₁.1)]
+      -- `τ (z.1, z.2)` and `τ z` agree by `Prod.mk_eta`, up to the types of the vectors.
+      rfl
+  · exact Finset.sum_congr rfl fun i _ ↦ Finset.sum_congr rfl fun j _ ↦ mul_comm _ _
 
 end TauCeti.RoughForm
