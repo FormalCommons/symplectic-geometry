@@ -7,7 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.SmoothSingular.DeRham.MayerVietoris.Basic
 import Mathlib.Algebra.FiveLemma
-import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Opens
+import SymplecticGeometry.Topology.Sets.Opens.Comap
 import TauCeti.AlgebraicTopology.Cohomology.HomotopyInvariance
 import TauCeti.Geometry.Manifold.SmoothSingular.DeRham.Theorem
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
@@ -37,7 +37,7 @@ The singular Mayer–Vietoris sequence of Tau Ceti
 covering the space, and `TauCeti.deRhamHom_mayerVietorisδ` for two open sets covering `M`. The
 step is first proved under the hypothesis `U ⊔ V = ⊤`, and then in general by applying that case
 on the manifold `U ⊔ V`, whose open subsets with the points of `U` and of `V` are diffeomorphic to
-`U` and `V` (`Diffeomorph.subtypeSubtype`). De Rham's theorem holds on a manifold if and only if
+`U` and `V` (`Diffeomorph.nestedOpen`). De Rham's theorem holds on a manifold if and only if
 it holds on a diffeomorphic one (`Diffeomorph.bijective_deRhamHom_iff`).
 
 ## Main results
@@ -175,20 +175,18 @@ theorem bijective_deRhamHom_sup (hU : ∀ k, Function.Bijective (deRhamHom I U k
     (hUV : ∀ k, Function.Bijective (deRhamHom I (U ⊓ V : Opens M) k)) (k : ℕ) :
     Function.Bijective (deRhamHom I (U ⊔ V : Opens M) k) := by
   -- Read `U` and `V` as open subsets `U'` and `V'` of the manifold `U ⊔ V`, which they cover.
-  let U' : Opens (U ⊔ V : Opens M) := ⟨Subtype.val ⁻¹' U, U.isOpen.preimage continuous_subtypeVal⟩
-  let V' : Opens (U ⊔ V : Opens M) := ⟨Subtype.val ⁻¹' V, V.isOpen.preimage continuous_subtypeVal⟩
-  have hcov : U' ⊔ V' = ⊤ := eq_top_iff.2 fun x _ ↦ x.property
+  let U' : Opens (U ⊔ V : Opens M) := Opens.comap ⟨Subtype.val, continuous_subtypeVal⟩ U
+  let V' : Opens (U ⊔ V : Opens M) := Opens.comap ⟨Subtype.val, continuous_subtypeVal⟩ V
   have := Manifold.sigmaCompactSpace_opens I U'
   have := Manifold.sigmaCompactSpace_opens I V'
   have := Manifold.sigmaCompactSpace_opens I (U' ⊓ V')
   have := Manifold.sigmaCompactSpace_opens I (U' ⊔ V')
-  exact bijective_deRhamHom_of_sup_eq_top hcov
-    (fun k ↦ (Diffeomorph.bijective_deRhamHom_iff
-      (Diffeomorph.subtypeSubtype U' le_sup_left fun _ ↦ Iff.rfl) k).2 (hU k))
-    (fun k ↦ (Diffeomorph.bijective_deRhamHom_iff
-      (Diffeomorph.subtypeSubtype V' le_sup_right fun _ ↦ Iff.rfl) k).2 (hV k))
-    (fun k ↦ (Diffeomorph.bijective_deRhamHom_iff
-      (Diffeomorph.subtypeSubtype (U' ⊓ V') inf_le_sup fun _ ↦ Iff.rfl) k).2 (hUV k)) k
+  have := Manifold.sigmaCompactSpace_opens I
+    (Opens.comap ⟨Subtype.val, continuous_subtypeVal⟩ (U ⊓ V) : Opens (U ⊔ V : Opens M))
+  exact bijective_deRhamHom_of_sup_eq_top (Opens.comap_val_sup_comap_val_eq_top U V)
+    (fun k ↦ ((Diffeomorph.nestedOpen le_sup_left).bijective_deRhamHom_iff k).2 (hU k))
+    (fun k ↦ ((Diffeomorph.nestedOpen le_sup_right).bijective_deRhamHom_iff k).2 (hV k))
+    (fun k ↦ ((Diffeomorph.nestedOpen inf_le_sup).bijective_deRhamHom_iff k).2 (hUV k)) k
 
 end Step
 
