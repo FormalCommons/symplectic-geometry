@@ -68,7 +68,7 @@ The construction and the proofs of its properties follow those of Tau Ceti's
 `Orientation.singularCohomologyMap_modelThomGenerator`, is Tau Ceti's
 `Orientation.singularCohomologyMap_localCohomologyClass` in positive rank; in rank zero it says
 that the isomorphism carries the class of the origin to the class of the origin
-(`TauCeti.localOrientationOfZeroDimChart_refl_map`). From it, the
+(`TauCeti.localOrientationOfZeroDimChart_map`). From it, the
 independence of the trivialization, `Orientation.singularCohomologyMap_modelThomGenerator_map_eq`,
 is proved as Tau Ceti's `Orientation.singularCohomologyMap_localCohomologyClass_map_eq` is.
 
@@ -255,7 +255,10 @@ theorem singularCohomologyMap_modelThomGenerator {P' : Type w} [NormedAddCommGro
   | zero =>
     classical
     -- The map of pairs carries the class of the origin of `P` to that of the origin of `P'`.
-    have hpt := congrArg Subtype.val (localOrientationOfZeroDimChart_refl_map h hP hP')
+    have hpt := congrArg Subtype.val (localOrientationOfZeroDimChart_map
+      (OpenPartialHomeomorph.refl P) (OpenPartialHomeomorph.refl P')
+      (OpenPartialHomeomorph.mem_refl_source _) (OpenPartialHomeomorph.mem_refl_source _) hP hP'
+      _ ((ContinuousLinearEquiv.complZeroPairIso_hom_fst_apply h 0).trans h.map_zero))
     rw [LocalOrientation.coe_map] at hpt
     have hpos : ω.map _ h.toLinearEquiv = positiveOrientation ↔ ω = positiveOrientation :=
       (Orientation.map _ _).injective.eq_iff' (Orientation.map_positiveOrientation_of_isEmpty _ _)
