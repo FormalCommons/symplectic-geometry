@@ -7,7 +7,7 @@ module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Cross.Basic
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Linear
-public import TauCeti.LinearAlgebra.Orientation.Prod
+public import SymplecticGeometry.LinearAlgebra.Orientation.Prod
 import SymplecticGeometry.Algebra.Category.ModuleCat.ULiftTensor
 import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.RelativePoint
 import SymplecticGeometry.AlgebraicTopology.Singular.PairChangeOfCoefficients
@@ -77,33 +77,6 @@ noncomputable section
 
 open CategoryTheory MonoidalCategory CartesianMonoidalCategory Limits Set Module TauCeti
 open TopCat (mapsTo_preimage_fst_compl_union_preimage_snd_compl)
-
-namespace Orientation
-
-variable {R E F : Type*} [CommRing R] [LinearOrder R] [IsStrictOrderedRing R]
-  [AddCommGroup E] [Module R E] [AddCommGroup F] [Module R F] {m : ℕ}
-  [Module.Free R E] [Module.Finite R E] [Module.Free R F] [Module.Finite R F]
-
-/-- The product of an orientation `o` of `E` with the positive orientation of a zero-dimensional
-module `F` is the image of `o` under the inclusion `E ≃ E × F`, `v ↦ (v, 0)`. -/
-theorem prod_positiveOrientation_right [Unique F] (o : Orientation R E (Fin m))
-    (hm : finrank R E = m) (hn : finrank R F = 0) :
-    o.prod positiveOrientation hm hn =
-      o.map (Fin m) (LinearEquiv.prodUnique (R := R) (M := E) (M₂ := F)).symm := by
-  let b := Module.finBasisOfFinrankEq R E hm
-  let c := Module.finBasisOfFinrankEq R F hn
-  have hb : prod b.orientation positiveOrientation hm hn =
-      b.orientation.map (Fin m) (LinearEquiv.prodUnique (R := R) (M := E) (M₂ := F)).symm := by
-    rw [← c.orientation_isEmpty, prod_basis_orientation, ← Basis.orientation_map]
-    congr 1
-    refine Basis.eq_of_apply_eq fun k ↦ Fin.addCases (fun i ↦ ?_) (fun j ↦ j.elim0) k
-    rw [Basis.reindex_apply, finSumFinEquiv_symm_apply_castAdd, Basis.prod_apply, Basis.map_apply]
-    exact Prod.ext rfl (Subsingleton.elim _ _)
-  rcases b.orientation_eq_or_eq_neg o with rfl | rfl
-  · exact hb
-  · rw [prod_neg_left, hb, Orientation.map_neg]
-
-end Orientation
 
 namespace SymplecticGeometry
 
