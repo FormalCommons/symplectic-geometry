@@ -14,7 +14,9 @@ public import SymplecticGeometry.Geometry.Manifold.ConnectedSum.FundamentalGroup
 public import TauCeti.AlgebraicTopology.FundamentalGroup.HomotopyEquiv
 public import TauCeti.GroupTheory.SurfaceGroup.Free
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
+import Mathlib.Topology.Homotopy.Affine
 import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Basic
+import SymplecticGeometry.Topology.Homotopy.Path
 import SymplecticGeometry.Topology.Instances.AddCircle.Icc
 import TauCeti.Analysis.Normed.Module.Ball.Homeomorph
 import TauCeti.Topology.Homotopy.PuncturedStarConvex
@@ -56,12 +58,12 @@ deformation of the punctured square itself is used, so that the homotopy stays i
 torus.
 
 The loop around the puncture is compared with the boundary of the square by a straight-line
-homotopy in the punctured square, from the neck circle to the boundary, which stays in the open
-half-plane beyond the side of the square being run. Its track at the base point is the reversed
-diagonal path, and the square of the homotopy along `Path.id` (Mathlib's
-`Path.Homotopic.map_trans_evalAt`) then shows that the neck loop conjugated by the diagonal path
-is homotopic to the boundary. This step follows the proof of Tau Ceti's
-`Path.exists_trans_homotopic_trans_of_homotopicWith`, with the track given explicitly. In
+homotopy in the punctured square, from the neck circle to the boundary (Mathlib's
+`ContinuousMap.Homotopy.affine`). At each time it stays in an open half-plane: the one bounded
+by the line through the centre parallel to the side being run, on the side of that line where
+that side lies. Its track at the base point is the reversed diagonal path, so
+`Path.trans_homotopic_trans_of_homotopy` (`Topology/Homotopy/Path.lean`) shows that the neck loop
+conjugated by the diagonal path is homotopic to the boundary. In
 Mathlib's `FundamentalGroup` the product `g * h` is the class of `h` followed by `g`, so the
 boundary `a⁻¹ b⁻¹ a b` has class `b a b⁻¹ a⁻¹`, a conjugate of Tau Ceti's boundary generator
 `peripheral 0 = (a⁻¹ b⁻¹ a b)⁻¹` rather than that generator or its inverse.
@@ -754,7 +756,7 @@ def diagonalPath : Path (⟨0, zero_mem_puncture⟩ : ConnectedSum.puncture ball
       Real.sin_pi_div_four, ← h₂, ContinuousMap.toFun_eq_coe,
       ContinuousMap.comp_apply, coe_puncturedSquareMap, ContinuousMap.coe_mk,
       coe_diagonalPoint]
-    exact funext (Fin.forall_fin_two.2 ⟨diffeomorph_squareMap_zero _, diffeomorph_squareMap_one _⟩)
+    exact diffeomorph_squareMap _
 
 /-- The diagonal path in coordinates: at time `t` it is `([1 - 3t / 8], [1 - 3t / 8])`. -/
 @[simp]
@@ -763,7 +765,7 @@ theorem diffeomorph_diagonalPath_apply (t : I) :
       ![((1 - 3 / 8 * t : ℝ) : AddCircle (1 : ℝ)), ((1 - 3 / 8 * t : ℝ) : AddCircle (1 : ℝ))] := by
   rw [diagonalPath, Path.coe_mk_mk, ContinuousMap.toFun_eq_coe, ContinuousMap.comp_apply,
     coe_puncturedSquareMap, ContinuousMap.coe_mk, coe_diagonalPoint]
-  exact funext (Fin.forall_fin_two.2 ⟨diffeomorph_squareMap_zero _, diffeomorph_squareMap_one _⟩)
+  exact diffeomorph_squareMap _
 
 /-- The retraction onto the two circles sends every point of the diagonal path to `0`: the ray
 from the centre of the square through a point of the diagonal between the centre and the corner
@@ -845,7 +847,8 @@ private theorem squareLoop_mem_square (t : I) : squareLoop t ∈ square := by
   exact h ⟨t, rfl⟩
 
 /-- At each time, the neck loop and the boundary of the square lie in a convex set that misses
-the centre: the open half-plane beyond the side of the square that the boundary runs through. -/
+the centre: the open half-plane bounded by the line through the centre parallel to the side that
+the boundary runs through, on the side of that line where that side lies. -/
 private theorem exists_convex_neckPoint_squareLoop_mem (t : I) :
     ∃ C : Set (ℝ × ℝ), Convex ℝ C ∧ centre ∉ C ∧ neckPoint t ∈ C ∧ squareLoop t ∈ C := by
   have hρ := neckRadius_pos
@@ -917,12 +920,9 @@ private def neckHomotopy :
         ((circleLoop 0).trans (circleLoop 1)) : C(I, ConnectedSum.puncture ball)) where
   toFun p := puncturedSquareMap
     ⟨Path.segment (neckPoint p.2) (squareLoop p.2) p.1, segment_neckPoint_squareLoop_mem p.1 p.2⟩
-  continuous_toFun := by
-    refine puncturedSquareMap.continuous.comp (Continuous.subtype_mk ?_ _)
-    have := continuous_neckPoint
-    have := squareLoop.continuous
-    simp only [Path.segment_apply, AffineMap.lineMap_apply_module]
-    fun_prop
+  continuous_toFun := puncturedSquareMap.continuous.comp
+    ((ContinuousMap.Homotopy.affine ⟨neckPoint, continuous_neckPoint⟩ squareLoop).continuous
+      |>.subtype_mk _)
   map_zero_left t := by
     refine Subtype.ext (EquivLike.injective diffeomorph ?_)
     rw [coe_puncturedSquareMap, diffeomorph_squareMap, ContinuousMap.coe_ofClass,
@@ -985,22 +985,9 @@ theorem punctureLoop_homotopic :
         ((circleLoop 0).trans (circleLoop 1))) := by
   set Q := ((circleLoop 0).symm.trans (circleLoop 1).symm).trans
     ((circleLoop 0).trans (circleLoop 1))
-  -- The square of `neckHomotopy` along `Path.id`, whose tracks at `0` and `1` are both the
-  -- reversed diagonal path.
-  have h := (Path.Homotopic.map_trans_evalAt neckHomotopy Path.id).pathCast
-    neckLoop.source.symm Q.target.symm
-  have h' : (neckLoop.trans diagonalPath.symm).Homotopic (diagonalPath.symm.trans Q) := by
-    convert h using 1 <;> ext t
-    · simp only [Path.trans_apply, Path.cast_coe, Path.map_coe, Function.comp_apply, Path.id,
-        ContinuousMap.Homotopy.evalAt_apply]
-      split_ifs
-      · rfl
-      · exact congrArg Subtype.val (neckHomotopy_apply_one_right _).symm
-    · simp only [Path.trans_apply, Path.cast_coe, Path.map_coe, Function.comp_apply, Path.id,
-        ContinuousMap.Homotopy.evalAt_apply]
-      split_ifs
-      · exact congrArg Subtype.val (neckHomotopy_apply_zero_right _).symm
-      · rfl
+  have h' : (neckLoop.trans diagonalPath.symm).Homotopic (diagonalPath.symm.trans Q) :=
+    Path.trans_homotopic_trans_of_homotopy neckHomotopy diagonalPath.symm
+      neckHomotopy_apply_zero_right neckHomotopy_apply_one_right
   rw [← Path.Homotopic.Quotient.eq, Path.Homotopic.Quotient.mk_trans (P₁ := Q),
     Path.Homotopic.Quotient.mk_trans neckLoop] at h'
   rw [punctureLoop_def, ← Path.Homotopic.Quotient.eq, Path.Homotopic.Quotient.mk_trans,
@@ -1016,11 +1003,11 @@ theorem puncturedFundamentalGroupMulEquiv_punctureLoop :
         (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk punctureLoop)) =
       SurfaceGroup.Orientable.b 1 1 0 * SurfaceGroup.Orientable.a 1 1 0 *
         (SurfaceGroup.Orientable.b 1 1 0)⁻¹ * (SurfaceGroup.Orientable.a 1 1 0)⁻¹ := by
-  rw [Path.Homotopic.Quotient.eq.2 punctureLoop_homotopic, FundamentalGroup.fromPath_mk_trans,
-    FundamentalGroup.fromPath_mk_trans, FundamentalGroup.fromPath_mk_trans,
-    FundamentalGroup.fromPath_mk_symm, FundamentalGroup.fromPath_mk_symm, map_mul, map_mul,
-    map_mul, map_inv, map_inv, puncturedFundamentalGroupMulEquiv_circleLoop_zero,
-    puncturedFundamentalGroupMulEquiv_circleLoop_one, ← mul_assoc]
+  rw [Path.Homotopic.Quotient.eq.2 punctureLoop_homotopic]
+  simp only [Path.Homotopic.Quotient.mk_trans, Path.Homotopic.Quotient.mk_symm,
+    FundamentalGroup.fromPath_trans, FundamentalGroup.fromPath_symm, map_mul, map_inv,
+    puncturedFundamentalGroupMulEquiv_circleLoop_zero,
+    puncturedFundamentalGroupMulEquiv_circleLoop_one, mul_assoc]
 
 /-- The isomorphism sends the class of the loop around the puncture to a conjugate of the
 boundary generator `peripheral 0` of `TauCeti.SurfaceGroup.Orientable 1 1`, by `b a`, for the

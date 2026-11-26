@@ -21,7 +21,7 @@ classes.
 
 * `FundamentalGroup.mapOfEq_fromPath_mk`: `mapOfEq f h` sends the class of `γ` to the class of
   `(γ.map f.continuous).cast h.symm h.symm`.
-* `FundamentalGroup.fromPath_mk_trans`, `FundamentalGroup.fromPath_mk_symm`: the class of a
+* `FundamentalGroup.fromPath_trans`, `FundamentalGroup.fromPath_symm`: the class of a
   concatenation of loops is the product of their classes, in the reverse order, and the class of
   a reversed loop is the inverse.
 -/
@@ -39,16 +39,17 @@ theorem mapOfEq_fromPath_mk (f : C(X, Y)) (h : f x = y) (γ : Path x x) :
       fromPath (Path.Homotopic.Quotient.mk ((γ.map f.continuous).cast h.symm h.symm)) := by
   rw [mapOfEq_apply, ← Path.Homotopic.Quotient.mk_map, ← Path.Homotopic.Quotient.mk_cast]
 
-/-- The class of the concatenation `p · q` of two loops is the product of their classes in the
-reverse order: in Mathlib's `FundamentalGroup`, `g * h` is the class of `h` followed by `g`. -/
-theorem fromPath_mk_trans (p q : Path x x) :
-    fromPath (Path.Homotopic.Quotient.mk (p.trans q)) =
-      fromPath (Path.Homotopic.Quotient.mk q) * fromPath (Path.Homotopic.Quotient.mk p) :=
+/-- The concatenation `γ · δ` of two classes of loops is their product in the fundamental group, in
+the reverse order: in Mathlib's `FundamentalGroup`, `g * h` is `h` followed by `g`. -/
+@[simp]
+theorem fromPath_trans (γ δ : Path.Homotopic.Quotient x x) :
+    fromPath (γ.trans δ) = fromPath δ * fromPath γ :=
   (rfl)
 
-/-- The class of the reversed loop is the inverse of the class. -/
-theorem fromPath_mk_symm (p : Path x x) :
-    fromPath (Path.Homotopic.Quotient.mk p.symm) = (fromPath (Path.Homotopic.Quotient.mk p))⁻¹ :=
+/-- The reversal of a class of loops is its inverse in the fundamental group. -/
+@[simp]
+theorem fromPath_symm (γ : Path.Homotopic.Quotient x x) :
+    fromPath γ.symm = (fromPath γ)⁻¹ :=
   (rfl)
 
 end FundamentalGroup
