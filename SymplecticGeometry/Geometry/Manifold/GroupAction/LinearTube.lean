@@ -38,7 +38,9 @@ structure `TauCeti.BalancedProduct.rightTranslationChartedSpace` on `G ×_H P`:
 For the last point, `(ξ, p) ↦ ξ_M(x) + L p` is onto `T_x M` since `𝔤 · x + range L = T_x M`
 (`SymplecticGeometry.LinearizingChart.surjective_mfderiv_linearTubeMap_mfderiv_quotientMk`), and
 vanishes only on `𝔤_x × 0` since the two subspaces meet in `0` and `L` is injective
-(`SymplecticGeometry.LinearizingChart.mfderiv_linearTubeMap_mfderiv_quotientMk_eq_zero_iff`); and
+(`SymplecticGeometry.LinearizingChart.mfderiv_linearTubeMap_mfderiv_quotientMk_eq_zero_iff`),
+the first by Tau Ceti's `LinearMap.surjective_coprod_iff` and the second by
+`TauCeti.InfinitesimalAction.apply_add_eq_zero_iff`; and
 the stabilizer fixes `0 ∈ P` since `L` is injective
 (`SymplecticGeometry.LinearizingChart.smul_zero_eq_zero_of_injective`). The rest is shared with
 the tube map of a slice domain: the inverse function theorem for the lift of an equivariant map,
@@ -53,8 +55,7 @@ differential of the slice map, and its surjectivity step follows the surjectivit
 proof. It departs from it in two ways: the slice map is smooth only near `0`, where `L p` lies in
 the target of `e`, rather than everywhere; and in place of the dimension count
 `dim H = dim 𝔤_x`, which need not hold for an arbitrary Lie group structure on `H`, injectivity
-comes from a kernel argument. That kernel step follows the proof of Tau Ceti's
-`TauCeti.mfderiv_smul_slice_eq_zero_iff`, which treats the inclusion of a subspace in place of `L`.
+comes from a kernel argument.
 
 The construction parallels `SymplecticGeometry.LinearizingChart.SliceDomain.tubeMap`, with the
 linear fibre `P` in place of a slice domain. Both results follow from the corresponding facts
@@ -351,12 +352,15 @@ theorem surjective_mfderiv_linearTubeMap_mfderiv_quotientMk [CompleteSpace E']
         (mfderiv (I.prod 𝓘(ℝ, P)) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × P))
           (Quotient.mk (orbitRel (stabilizer G x) ((stabilizer G x).RightTranslation × P)))
           ((stabilizer G x).toRightTranslation 1, 0) q) := by
+  -- `L` read as a map into `T_x M`, a type synonym of `E'`.
+  let ι : P →ₗ[ℝ] TangentSpace I' x := (L : P →ₗ[ℝ] E')
   intro (w : TangentSpace I' x)
-  obtain ⟨y, hy, _, ⟨p, rfl⟩, hyp⟩ :=
-    Submodule.mem_sup.1 ((SetLike.ext_iff.1 hV w).2 Submodule.mem_top)
-  obtain ⟨ξ, rfl⟩ := (InfinitesimalAction.mem_orbitTangent_iff _ _).1 hy
-  rw [InfinitesimalAction.fundamental_apply] at hyp
-  exact ⟨(ξ, p), (e.mfderiv_linearTubeMap_mfderiv_quotientMk hL F ξ p).trans hyp⟩
+  obtain ⟨⟨ξ, p⟩, hp⟩ :=
+    (LinearMap.surjective_coprod_iff ((InfinitesimalAction.fundamental I G I' M).eval x) ι).2
+      (by rw [← InfinitesimalAction.orbitTangent_eq_range]; exact hV) w
+  refine ⟨(ξ, p), (e.mfderiv_linearTubeMap_mfderiv_quotientMk hL F ξ p).trans ?_⟩
+  rwa [LinearMap.coprod_apply, InfinitesimalAction.eval_apply,
+    InfinitesimalAction.fundamental_apply] at hp
 
 variable (F) in
 /-- For an injective map `L` whose range meets the orbit tangent space `𝔤 · x` only in `0`, the
@@ -375,24 +379,10 @@ theorem mfderiv_linearTubeMap_mfderiv_quotientMk_eq_zero_iff [CompleteSpace E']
           (Quotient.mk (orbitRel (stabilizer G x) ((stabilizer G x).RightTranslation × P)))
           ((stabilizer G x).toRightTranslation 1, 0) (ξ, p)) = 0 ↔
       ξ ∈ (InfinitesimalAction.fundamental I G I' M).isotropy x ∧ p = 0 := by
-  rw [e.mfderiv_linearTubeMap_mfderiv_quotientMk hL F ξ p]
-  refine ⟨fun hp ↦ ?_, ?_⟩
-  · -- `L p = -ξ_M(x)` lies in both `𝔤 · x` and the range of `L`, so it is `0`.
-    have hLp : L p = 0 := by
-      refine (Submodule.disjoint_def.1 hV) (L p) ?_
-        (LinearMap.mem_range_self (L : P →ₗ[ℝ] E') p)
-      have hξ := InfinitesimalAction.mem_orbitTangent (InfinitesimalAction.fundamental I G I' M) x ξ
-      rw [InfinitesimalAction.fundamental_apply] at hξ
-      rw [eq_neg_of_add_eq_zero_right hp]
-      exact Submodule.neg_mem _ hξ
-    refine ⟨?_, hLi (hLp.trans (map_zero L).symm)⟩
-    rw [InfinitesimalAction.mem_isotropy_iff, InfinitesimalAction.fundamental_apply]
-    rw [hLp] at hp
-    exact (add_zero _).symm.trans hp
-  · rintro ⟨hξ, rfl⟩
-    rw [InfinitesimalAction.mem_isotropy_iff, InfinitesimalAction.fundamental_apply] at hξ
-    rw [map_zero, hξ]
-    exact add_zero _
+  rw [e.mfderiv_linearTubeMap_mfderiv_quotientMk hL F ξ p, ← InfinitesimalAction.fundamental_apply]
+  -- `L` read as a map into `T_x M`, a type synonym of `E'`.
+  let ι : P →ₗ[ℝ] TangentSpace I' x := (L : P →ₗ[ℝ] E')
+  exact (InfinitesimalAction.fundamental I G I' M).apply_add_eq_zero_iff (L := ι) hLi hV
 
 /-! ### Local diffeomorphy near the zero section -/
 
@@ -450,7 +440,7 @@ theorem exists_isLocalDiffeomorphAt_linearTubeMap [CompleteSpace E'] [IsManifold
       (BalancedProduct.mk _ ((stabilizer G x).toRightTranslation 1) p)}, ?_, ⟨?_, ?_⟩, ?_, ?_, ?_⟩
   · rw [linearTubeMap_def]
     exact (e.chart.open_target.preimage L.continuous).inter
-      (BalancedProduct.isOpen_setOf_isLocalDiffeomorphAt_liftRightTranslation_mk_one F)
+      (BalancedProduct.isOpen_setOfPred_isLocalDiffeomorphAt_liftRightTranslation_mk_one F)
   · rw [mem_preimage, map_zero]
     exact e.zero_mem_target
   · exact e.isLocalDiffeomorphAt_linearTubeMap_mk_one hL F hLi hV
