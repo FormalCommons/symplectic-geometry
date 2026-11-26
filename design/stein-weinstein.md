@@ -163,7 +163,7 @@ fit Tau Ceti's without a change of sign.
 | `Geometry/Symplectic/Weinstein/Homotopy.lean` | Weinstein homotopies | 7 |
 | `Geometry/Symplectic/Weinstein/OfStein.lean` | the Weinstein structure of a Stein function | 8, 9 |
 | `Geometry/Symplectic/Weinstein/Stein.lean` | the converse and the first milestone | 21 |
-| `Geometry/Manifold/Complex/JConvex/` | the $J$-convex toolkit of the converse | 10–14 |
+| `Geometry/Manifold/Complex/JConvex/` | the $J$-convex toolkit of the converse | 10–14e |
 | `Geometry/Symplectic/Weinstein/Handle/` | Weinstein cobordisms, handles and their homotopies | 15–18 |
 | `Geometry/Symplectic/Weinstein/SteinHandle.lean` | Stein structures on elementary cobordisms | 19, 20 |
 | `Geometry/Symplectic/Weinstein/Complement/` | Giroux's Sections A, B and C; second milestone | 22–29 |
@@ -400,12 +400,137 @@ and that neither library has. Each file is in
   it (Tau Ceti's `SquaredDistance.lean` has the complex-chart
   computation); isotropic submanifolds of a $J$-convex level, tangent to
   the complex tangencies, are totally real.
-- `Surround.lean` (issues 13 and 14): the $J$-convex surrounding of a
-  totally real disc attached to a $J$-convex level, split into a design issue and its parts as
-  *Decisions* says.
+- `Surround/` (issue 13 designs it, issues 14a–14e build it): the
+  $J$-convex surrounding of a totally real disc attached to a $J$-convex
+  level, below.
 
-Expected size: 400 lines each for issues 10–12; issues 13 and 14 are
-sized by their design issue.
+Expected size: 400 lines each for issues 10–12.
+
+### `Geometry/Manifold/Complex/JConvex/Surround/`
+
+Cieliebak–Eliashberg's $J$-convex surrounding: a domain
+$W=\{\varphi\le0\}$ with $J$-convex boundary, together with a totally real
+disc $\Delta$ attached to $\partial W$ along its boundary sphere, has
+arbitrarily small neighbourhoods $\{\psi\le0\}$ with $J$-convex boundary,
+where $\psi$ agrees with $\varphi$ away from $\Delta$ and has one new
+critical point, of index $\dim\Delta$, on $\Delta$. It is what issue 19
+needs to extend a Stein function across a handle. The work is more than one
+file of 1000 lines, so it is a folder. Each file is in `SymplecticGeometry`,
+on a complex manifold as in *Signs and setting*.
+
+**The disc.** A disc is given by a map `ι : F → M` from a finite-dimensional
+real inner product space, with $\Delta$ = `ι '' closedBall 0 1` and
+$\partial\Delta$ = `ι '' sphere 0 1`. It is a smooth embedding
+(`Manifold.IsSmoothEmbedding 𝓘(ℝ, F) 𝓘(ℝ, E) ∞ ι`) whose tangent images are
+totally real in Tau Ceti's weak sense,
+`∀ x, IsTotallyReal ((ofComplexManifold E M).toEndomorphism (ι x)).toLinearMap
+(LinearMap.range (mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) ι x).toLinearMap)`, the form in
+which `IsJConvexLevel.isTotallyReal_range_mfderiv` (issue 12) gives it.
+`TauCeti.IsTotallyRealEmbedding` is not used here: it forces half the
+dimension, and the cores of subcritical handles are smaller. Asking for an
+embedding of all of `F` loses nothing, since an embedded closed disc
+extends to a slightly larger open ball, which a radial diffeomorphism
+fixing `closedBall 0 1` identifies with `F`. For `F = 0` the disc is a point
+outside `W` and the sphere is empty; the statements below hold there too,
+the new critical point being a minimum.
+
+**$J$-orthogonal attachment.** `IsJOrthogonallyAttached E φ ι : Prop`, a
+structure with the fields
+
+- `pos : ∀ x, ‖x‖ < 1 → 0 < φ (ι x)` (the open disc lies outside `W`),
+- `eq_zero : ∀ x, ‖x‖ = 1 → φ (ι x) = 0` (its boundary lies on `∂W`),
+- `mvfderiv_mfderiv_self_neg : ∀ x, ‖x‖ = 1 →
+  mvfderiv 𝓘(ℝ, E) φ (ι x) (mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) ι x x) < 0` (the disc
+  meets `∂W` transversally, and continues into `W`),
+- `mvfderiv_I_smul_mfderiv : ∀ x, ‖x‖ = 1 → ∀ v,
+  mvfderiv 𝓘(ℝ, E) φ (ι x) (Complex.I • (show E from mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) ι x v)) = 0`
+  ($J\,T_p\Delta\subseteq T_p\partial W$ along $\partial\Delta$).
+
+The last field says that $\partial\Delta$ is tangent to the complex
+tangencies of $\partial W$ and that the radial direction of $\Delta$ is sent
+by $J$ into $T\partial W$. The building issue checks the fields against
+Cieliebak–Eliashberg's definition of a $J$-orthogonally attached disc,
+cites it by number, and corrects this list if they differ.
+
+**The statements.** With `φ` smooth, strictly plurisubharmonic at every
+point of `{x | φ x ≤ 0}`, `0` a regular value of `φ`, `ι` a disc as above
+with `IsJOrthogonallyAttached E φ ι`, `[T2Space M]`, and an open `U`
+containing `ι '' closedBall 0 1`:
+
+- `IsJOrthogonallyAttached.exists_surround`: there is a smooth
+  `ψ : M → ℝ` with `ψ ≤ φ`, `EqOn ψ φ Uᶜ`, `ψ` strictly plurisubharmonic at
+  every point of `{x | ψ x ≤ 0}`, `0` a regular value of `ψ`, and
+  `ι '' closedBall 0 1 ⊆ {x | ψ x < 0}`. So `{ψ ≤ 0}` contains `W` and the
+  disc in its interior, lies in `W ∪ U`, and has a $J$-convex boundary.
+- `IsJOrthogonallyAttached.exists_surround_critical`: moreover, every
+  critical point `x ∈ U` of `ψ` with `ψ x ≤ 0` is `ι 0` or a critical point
+  of `φ` near which `ψ = φ`; `ι 0` is a nondegenerate critical point of `ψ`
+  (`TauCeti.IsManifoldNondegenerateCriticalPoint`) with
+  `manifoldMorseIndex 𝓘(ℝ, E) ψ (ι 0) = finrank ℝ F`; and `ψ ∘ ι` strictly
+  decreases along each radius `t ↦ t • x`, `t ∈ [0, 1]`, `‖x‖ = 1`.
+
+**The files and their declarations.**
+
+- `JConvex/TotallyReal.lean` (existing; issue 14a):
+  `Manifold.IsSmoothEmbedding.exists_contMDiff_isManifoldStrictlyPlurisubharmonicAt_of_isCompact`.
+  For a smooth embedding `ι : N → M` of a boundaryless manifold, with
+  totally real tangent images in the weak sense, and a compact `K ⊆ N`,
+  there are a smooth `ρ : M → ℝ`, `ρ ≥ 0`, and an open `V ⊇ ι '' K` such
+  that on `V` the function `ρ` vanishes exactly on `range ι` and is
+  strictly plurisubharmonic, and its critical Hessian at `ι y`, `y ∈ K`, is
+  positive off the tangent image of `ι` at `y`. The proof is that of
+  `exists_contMDiff_isManifoldStrictlyPlurisubharmonicAt_of_isClosed_range`,
+  with Tau Ceti's slice charts
+  (`TauCeti.exists_isSliceChart_of_isEmbedding_of_isImmersionAtOfComplement`)
+  in place of adapted charts, which need half the dimension, and finitely
+  many of them, which compactness of `K` gives. A refactor that derives the
+  existing theorem from the new one is an issue of its own.
+- `Surround/Attached.lean` (issue 14b): `IsJOrthogonallyAttached` and its
+  API: `IsJOrthogonallyAttached.image_closedBall_inter` (the disc meets
+  `{φ ≤ 0}` exactly in its boundary sphere),
+  `IsJOrthogonallyAttached.exists_lt_forall_neg` (some `r > 1` with
+  `φ (ι x) < 0` for `1 < ‖x‖ < r`, by transversality and compactness of the
+  sphere),
+  `IsJOrthogonallyAttached.comp` (for `h ∘ φ` with `h 0 = 0` and `h' > 0`),
+  `IsJOrthogonallyAttached.comp_linearIsometryEquiv` (for `ι ∘ e`),
+  and the example of the model below,
+  `isJOrthogonallyAttached_model`.
+- `Surround/Shape.lean` (issue 14c): the model. On
+  `V = EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)`, write
+  `p = (x + i y, w)`, $s=|x|^2$ and $t=|y|^2+|w|^2$, and `ι₀` for the
+  inclusion of `EuclideanSpace ℝ (Fin k)` as `y = 0`, `w = 0`. For `C²`
+  functions of $(s,t)$: the Levi form at `p` in terms of the first and
+  second partial derivatives and of `x`, `y`, `w`
+  (`re_leviForm_comp_shape_apply_self`), and the sufficient criterion
+  `isManifoldStrictlyPlurisubharmonicAt_shape` for
+  $f(s)+g(t)$: with $u^-=\min(u,0)$,
+  $f'+g'+2f''^-s+2g''^-t>0$, and $g'+2g''^-t>0$ when `m ≠ 0`. The model
+  level $\varphi_0=1-s+2t$ and the model handle function $bt-as$,
+  $0<a<b$: both strictly plurisubharmonic by the criterion,
+  `IsJConvexLevel` for $\varphi_0$ at `0`, and the handle function with
+  one critical point, at `0`, nondegenerate of index `k`. With
+  `isJOrthogonallyAttached_model` of issue 14b, $(\varphi_0,\iota_0)$ satisfies
+  every hypothesis of the statements above (`ι₀` is a linear embedding with
+  totally real image), and is the test case of issue 14d. These are the
+  computations of Cieliebak–Eliashberg's chapter on shapes of
+  $i$-convex hypersurfaces that the surrounding uses.
+- `Surround/Basic.lean` (issues 14d and 14e): issue 14d proves
+  `IsJOrthogonallyAttached.exists_surround`, following
+  Cieliebak–Eliashberg's proof: along the disc, away from the sphere,
+  `ψ` is built from `φ` and the function `ρ` of issue 14a, which is
+  strictly plurisubharmonic near the disc and vanishes on it; near the
+  sphere, $J$-orthogonality lets the shapes of issue 14c, read in
+  coordinates along $\partial\Delta$, replace the corner where $\{\varphi\le0\}$
+  and a thin neighbourhood of the disc meet; the pieces are glued by
+  `exists_isManifoldStrictlyPlurisubharmonicAt_glue` (issue 11). Issue 14e
+  proves `IsJOrthogonallyAttached.exists_surround_critical`, making the
+  restriction of `ψ` to the disc a function with one critical point, at its
+  centre, which the model handle function of issue 14c describes there. If
+  issue 14d does not fit in 500 lines, it begins by extending this section
+  with its lemma list. Issue 14d cites the theorem it follows by number.
+
+Expected sizes: 300 lines for each of issues 14a and 14b, 400 for 14c,
+500 for 14d and 400 for 14e.
 
 ### `Geometry/Symplectic/Weinstein/Handle/`
 
@@ -436,7 +561,7 @@ by issue 17.
 Issues 19 and 20: Cieliebak–Eliashberg's proof of Theorem 13.9. A
 Stein function on the lower part extends across an elementary Weinstein
 cobordism attached along isotropic spheres, made totally real by issue
-12, by the surrounding of issues 13–14 and the smoothing of issue 11;
+12, by the surrounding of issues 13–14e and the smoothing of issue 11;
 the Weinstein structure of the extension is homotopic to the given one by
 issue 18. Issue 19 covers one critical level; issue 20 runs the induction
 over an exhaustion by regular sublevels (Tau Ceti's
@@ -577,12 +702,16 @@ In this order; each is blocked by the ones listed. All are parts of
 | 11 | Smoothing maxima of plurisubharmonic functions | `JConvex/Smoothing.lean` | 4 | 400 |
 | 12 | Plurisubharmonic squared distance to totally real submanifolds | `JConvex/TotallyReal.lean` | 10 | 400 |
 | 13 | Design: $J$-convex surrounding | this file | 11, 12 | — |
-| 14 | $J$-convex surrounding of totally real discs | `JConvex/Surround.lean` | 13 | by 13 |
+| 14a | Squared distance near a compact part of a totally real embedding | `JConvex/TotallyReal.lean` | 13 | 300 |
+| 14b | $J$-orthogonally attached discs | `JConvex/Surround/Attached.lean` | 13 | 300 |
+| 14c | Shape functions and the model handle | `JConvex/Surround/Shape.lean` | 13 | 400 |
+| 14d | The $J$-convex surrounding of an attached disc | `JConvex/Surround/Basic.lean` | 14a, 14b, 14c | 500 |
+| 14e | The surrounding with one new critical point | `JConvex/Surround/Basic.lean` | 14d | 400 |
 | 15 | Weinstein cobordisms and stable discs | `Handle/Cobordism.lean` | 7 | 450 |
 | 16 | Standard Weinstein handles and their attachment | `Handle/Model.lean` | 15 | 450 |
 | 17 | Design: normal forms of Weinstein homotopies | this file | 16 | — |
 | 18 | Normal forms of Weinstein homotopies | `Handle/Homotopy.lean` | 17 | by 17 |
-| 19 | A Stein structure across one critical level | `SteinHandle.lean` | 9, 14, 18 | 500 |
+| 19 | A Stein structure across one critical level | `SteinHandle.lean` | 9, 14e, 18 | 500 |
 | 20 | Stein structures on Weinstein manifolds | `SteinHandle.lean` | 19 | 500 |
 | 21 | From Weinstein to Stein up to homotopy; first milestone | `Weinstein/Stein.lean` | 9, 20 | 400 |
 | 22 | Giroux's Lemma 7 and Proposition 5 | `Complement/Liouville.lean` | AHS | 500 |
@@ -597,7 +726,8 @@ In this order; each is blocked by the ones listed. All are parts of
 Issues 1, 2 and 3 can start at once. The first milestone is proved in
 issue 21 and the second in issue 28. Issues 13 and 17 are design issues:
 their pull requests extend this file by the lemma lists of issues 14 and
-18 and split them into issues of a few hundred lines. Issues 22–29 wait
+18 and split them into issues of a few hundred lines; issue 13 has split
+issue 14 (#3538) into 14a–14e. Issues 22–29 wait
 for the design file of *Asymptotically holomorphic sections*, which fixes
 the hypersurfaces that issue 28 states its result for; issues 22 and 24
 are written after it.
@@ -611,7 +741,9 @@ Theorem 13.9 that the page omits, records it in `ERRATA.md`.
 * [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*, 3rd ed.][McDuffSalamon2017],
   Definitions 7.4.5, 7.4.7, 7.4.8 and Remarks 7.4.6, 7.4.9.
 * [K. Cieliebak, Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
-  §11.5, Definition 11.15, Remark 11.16, Theorem 1.1 and Theorem 13.9.
+  §11.5, Definition 11.15, Remark 11.16, Theorem 1.1 and Theorem 13.9, and
+  their $J$-convex surrounding theorem with the shapes of $i$-convex
+  hypersurfaces it uses.
 * [E. Giroux, *Remarks on Donaldson's symplectic submanifolds*][Giroux2017],
   Theorems 1 and 2, Remark 3, Corollary 4, Section A (Proposition 5, Lemma 7,
   Corollary 8), Sections B and C.
