@@ -7,6 +7,8 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.MomentMap
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Tube
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.NestedOpens
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.GroupAction.Opens
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.WeaklyHamiltonian
@@ -50,12 +52,11 @@ If moreover `μ : M → 𝔤*` is a coadjoint-equivariant moment map of `σ` wit
 can be shrunk so that also `μ ∘ Ψ` is the moment map `μ_Y` of the local model
 (`SymplecticGeometry.LocalModelData.descendedMomentMap`). Give `N` the restricted action of `G`
 (`TopologicalSpace.Opens.mulActionOfForallSMulMem`). Both `μ ∘ Ψ` and `μ_Y` restricted to `N` are
-equivariant moment maps of `Ψ^* σ = ω|_N` (Tau Ceti's
-`TauCeti.SmoothTwoForm.IsEquivariantMomentMap.mpullback`), so they differ by locally constant
-functions
-(`TauCeti.SmoothTwoForm.IsMomentMap.isMomentMap_iff_exists_eq_add_locallyConstant`). The set where
-these vanish on a basis of `𝔤` is open, `G`-invariant since both maps are equivariant, and contains
-the zero section, where both maps are `[g, 0] ↦ Ad*_g (μ x)`; restrict `Ψ` to it.
+equivariant moment maps of `Ψ^* σ = ω|_N`
+(`TauCeti.SmoothTwoForm.IsEquivariantMomentMap.mpullback`, from Tau Ceti), so the set where they
+agree is open (`TauCeti.SmoothTwoForm.IsMomentMap.isClopen_setOf_eq`). It is `G`-invariant since
+both maps are equivariant, and contains the zero section, where both maps are
+`[g, 0] ↦ Ad*_g (μ x)`; restrict `Ψ` to it (`TopologicalSpace.Opens.imageVal`).
 
 ## Main results
 
@@ -328,50 +329,24 @@ theorem exists_isLocalDiffeomorph_apply_eq_descendedMomentMap :
   have h₁ := hμ.mpullback hΨ hΨG'
   rw [hΨσ] at h₁
   have h₂ := D.isEquivariantMomentMap_descendedForm.mpullback contMDiff_subtypeVal hcN
-  obtain ⟨c, hc⟩ :=
-    (h₂.toIsMomentMap.isMomentMap_iff_exists_eq_add_locallyConstant).1 h₁.toIsMomentMap
-  -- The set where the two agree is open: it is cut out by the locally constant `c` on a basis.
-  let b := Module.finBasis ℝ (GroupLieAlgebra I G)
-  have hagree (y : N) : μ (Ψ y) = D.descendedMomentMap y ↔ ∀ i, c (b i) y = 0 := by
-    refine ⟨fun h i ↦ ?_, fun h ↦ b.ext fun i ↦ ?_⟩
-    · have := hc y (b i)
-      simp only [Function.comp_apply, h] at this
-      linarith
-    · have := hc y (b i)
-      simp only [Function.comp_apply, h i, add_zero] at this
-      exact this
-  let S : Set N := {y | ∀ i, c (b i) y = 0}
-  have hS : IsOpen S := by
-    simp only [S, Set.ofPred_forall]
-    exact isOpen_iInter_of_finite fun i ↦ (c (b i)).isLocallyConstant.isOpen_fiber 0
-  let N' : Opens (BalancedProduct (stabilizer G x) (stabilizer G x).RightTranslation (A × V)) :=
-    ⟨Subtype.val '' S, N.isOpen.isOpenMap_subtypeVal S hS⟩
-  have hN'N : N' ≤ N := by
-    rintro _ ⟨y, -, rfl⟩
-    exact y.property
-  have hmemN' (y : N) : (y : BalancedProduct _ _ _) ∈ N' ↔ y ∈ S :=
-    Subtype.val_injective.mem_set_image
-  have hagree' (y : N') : μ ((Ψ ∘ Opens.inclusion hN'N) y) = D.descendedMomentMap y := by
-    obtain ⟨_, ⟨z, hz, rfl⟩⟩ := y
-    exact (hagree z).2 hz
-  -- `Ψ` restricted to `N'` keeps all the other properties.
-  refine ⟨N', Ψ ∘ Opens.inclusion hN'N, hΨ.comp (contMDiff_inclusion hN'N), fun g ↦ ?_,
-    fun g y hy ↦ ?_, fun g y h ↦ ?_, fun g h ↦ ?_,
-    fun y ↦ (TauCeti.isLocalDiffeomorph_inclusion hN'N y).comp (hg := hΨd _), ?_, hagree'⟩
+  -- The set where the two agree is open and `G`-invariant; restrict `Ψ` to it.
+  let V : Opens N := ⟨{y | μ (Ψ y) = D.descendedMomentMap y},
+    (h₁.toIsMomentMap.isClopen_setOf_eq h₂.toIsMomentMap).isOpen⟩
+  have hVG (g : G) (y : N) (hy : y ∈ V) : g • y ∈ V := by
+    simp only [V, Opens.mem_mk, Set.mem_ofPred_eq] at hy ⊢
+    rw [hΨG', hμ.apply_smul, hcN, descendedMomentMap_smul, hy]
+  let N' := Opens.imageVal V
+  have hN'N : N' ≤ N := Opens.imageVal_le V
+  refine ⟨N', Ψ ∘ Opens.inclusion hN'N, hΨ.comp (contMDiff_inclusion hN'N),
+    fun g ↦ Opens.mem_imageVal.2 ⟨hN0 g, ?_⟩, fun g y ↦ Opens.smul_mem_imageVal hcN hVG g,
+    fun g y h ↦ hΨG g (Opens.inclusion hN'N y) (hN'N h), fun g h ↦ hΨ0 g (hN'N h),
+    fun y ↦ (TauCeti.isLocalDiffeomorph_inclusion hN'N y).comp (hg := hΨd _), ?_,
+    fun ⟨y, hy⟩ ↦ (Opens.mem_imageVal.1 hy).2⟩
   · -- The zero section: there both maps are `Ad*_g τ`.
-    refine (hmemN' ⟨_, hN0 g⟩).2 ((hagree _).1 ?_)
+    simp only [V, Opens.mem_mk, Set.mem_ofPred_eq]
     rw [hΨ0, hμ.apply_smul, descendedMomentMap_mk_zero, hτ]
-  · -- Invariance: both maps are equivariant.
-    obtain ⟨z, hz, rfl⟩ := hy
-    refine (hmemN' (g • z)).2 ((hagree _).1 ?_)
-    rw [hΨG', hμ.apply_smul, hcN, descendedMomentMap_smul,
-      (hagree z).2 hz]
-  · exact hΨG g (Opens.inclusion hN'N y) (hN'N h)
-  · exact hΨ0 g (hN'N h)
   · rw [← SmoothForm.mpullback_mpullback _ _ (contMDiff_inclusion hN'N) hΨ, hΨσ,
-      SmoothForm.mpullback_mpullback_of_comp_eq (contMDiff_inclusion hN'N) contMDiff_subtypeVal
-        contMDiff_id contMDiff_subtypeVal (Set.val_comp_inclusion hN'N),
-      SmoothForm.mpullback_id, LinearMap.id_apply]
+      SmoothForm.mpullback_inclusion_mpullback_subtype_val]
 
 end LocalModelData
 
