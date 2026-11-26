@@ -88,7 +88,7 @@ private theorem exists_isSmoothEmbedding_carrierIn
     exact c.carrierIn_subset hp
   rw [c.carrierIn_eq_connectedComponentIn hp, h.criticalPoints_eq_fixedPoints hσ]
   exact ⟨_,
-    SymplecticGeometry.exists_isSmoothEmbedding_connectedComponentIn_fixedPoints_of_compactSpace I _
+    SymplecticGeometry.exists_isSmoothEmbedding_connectedComponentIn_fixedPoints_of_compactSpace I
       hpfix rfl⟩
 
 /-- **The components of a moment map are Morse–Bott functions.** For a compact Lie group `G`

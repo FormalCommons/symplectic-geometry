@@ -172,7 +172,7 @@ For a subspace `L` of the model whose dimension is that of the fixed tangent sub
 `L`, whose inclusion into `M` is a smooth embedding with tangent image the fixed tangent subspace
 of `K` at every point. -/
 theorem exists_isSmoothEmbedding_connectedComponentIn_fixedPoints_of_compactSpace
-    (K : Subgroup G) {x : M} (hx : x ∈ fixedPoints K M) {L : Submodule ℝ E}
+    {K : Subgroup G} {x : M} (hx : x ∈ fixedPoints K M) {L : Submodule ℝ E}
     (hL : Module.finrank ℝ L = Module.finrank ℝ (fixedTangentSubspace I K x)) :
     ∃ C : ChartedSpace L (connectedComponentIn (fixedPoints K M) x), letI := C
       IsManifold 𝓘(ℝ, L) ∞ (connectedComponentIn (fixedPoints K M) x) ∧
