@@ -39,10 +39,10 @@ vector space along the inverse of the identity diffeomorphism
 `TauCeti.BoundarylessModel.interiorDiffeomorph`. It stays invariant there, since that map is
 equivariant, so Tau Ceti's result applies on the copy. Pulling back along the diffeomorphism, the
 Lie derivative on `M` vanishes by naturality along related fields
-(`TauCeti.mpullback_mlieDerivForm_of_related`), since the differential of an equivariant map
+(`TauCeti.mpullback_mlieDerivForm_of_related`), since the differential of the equivariant map
 carries one fundamental vector field to the other
-(`TauCeti.mfderiv_fundamentalVectorField_of_map_smul`). The transport follows
-`SymplecticGeometry.exists_invariant_smoothForm_apply_fundamentalVectorField_nonneg`.
+(`TauCeti.BoundarylessModel.mfderiv_interiorDiffeomorph_fundamentalVectorField`). The transport
+follows `SymplecticGeometry.exists_invariant_smoothForm_apply_fundamentalVectorField_nonneg`.
 
 ## Main results
 
@@ -96,21 +96,15 @@ theorem mlieDerivForm_fundamentalVectorField_eq_zero_of_boundarylessManifold {k 
       (ContMDiffSMul.contMDiff_const_smul (I := I) (I' := 𝓘(ℝ, E')) g) β = β := by
     rw [SmoothForm.mpullback_mpullback_of_comp_eq _ _ Φ.symm.contMDiff
       (ContMDiffSMul.contMDiff_const_smul (I := I) (I' := I') g)
-      (funext fun y ↦ BoundarylessModel.interiorDiffeomorph_symm_smul I' ∞ g y), hα g]
+      (BoundarylessModel.interiorDiffeomorph_symm_comp_smul I' ∞ g), hα g]
   have hαβ : α = SmoothForm.mpullback Φ Φ.contMDiff β :=
     (SmoothForm.mpullback_mpullback_symm Φ α).symm
-  -- The differential of the equivariant map `Φ` carries one fundamental vector field to the other.
-  have hXY (x : M) : mfderiv I' 𝓘(ℝ, E') Φ x (fundamentalVectorField I' ξ x) =
-      fundamentalVectorField 𝓘(ℝ, E') ξ (Φ x) :=
-    mfderiv_fundamentalVectorField_of_map_smul (Φ.mdifferentiable (by simp) x)
-      ((ContMDiffSMul.contMDiff_smul_const (I := I) (I' := I') (n := ∞) x).mdifferentiableAt
-        (by simp))
-      (fun g ↦ BoundarylessModel.interiorDiffeomorph_smul I' ∞ g x) ξ
   rw [hαβ, SmoothForm.coe_mpullback, ← mpullback_mlieDerivForm_of_related
       (Φ.contMDiff.of_le (by simp)) (β.isSmoothForm.of_le (by simp))
       (contMDiff_fundamentalVectorField (m := 1) (n := ∞) (by simp) ξ)
       ((contMDiff_fundamentalVectorField (m := 1) (n := ∞) (by simp) ξ).mdifferentiable
-        one_ne_zero) hXY,
+        one_ne_zero)
+      (BoundarylessModel.mfderiv_interiorDiffeomorph_fundamentalVectorField I' ∞ ξ),
     mlieDerivForm_fundamentalVectorField_eq_zero hβ ξ, mpullback_zero]
 
 /-- If a closed one-form `γ` is invariant under every element of `G`, then for each `ξ` in the
