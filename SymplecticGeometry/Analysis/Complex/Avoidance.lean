@@ -5,7 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Analysis.InnerProductSpace.PiL2
+public import Mathlib.Analysis.InnerProductSpace.Calculus
+public import SymplecticGeometry.Analysis.Normed.Lp.PiLp
 public import SymplecticGeometry.Analysis.Complex.Polydisc.HolomorphicApproximation
 public import SymplecticGeometry.Analysis.Complex.Polydisc.TaylorTruncation
 
@@ -73,9 +74,8 @@ theorem exists_mvPolynomial_norm_sub_eval_le {G : (σ → ℂ) → EuclideanSpac
   set A := 4 * (2 ^ Fintype.card σ - 1) * ρ * ε
   -- The components of `h` are holomorphic on `ball c ρ` and bounded by `M + A` on
   -- `closedBall c (ρ / 2)`.
-  have hhi : ∀ i, DifferentiableOn ℂ (fun z ↦ h z i) (ball c (ρ / 2)) := fun i ↦ by
-    have := (EuclideanSpace.proj (𝕜 := ℂ) i).differentiable.comp_differentiableOn hh
-    simpa [Function.comp_def] using this.mono (ball_subset_ball (by linarith))
+  have hhi : ∀ i, DifferentiableOn ℂ (fun z ↦ h z i) (ball c (ρ / 2)) := fun i ↦
+    (differentiableOn_euclidean.1 hh i).mono (ball_subset_ball (by linarith))
   have hhM : ∀ i, ∀ z ∈ ball c (ρ / 2), ‖h z i‖ ≤ M + A := fun i z hz ↦ by
     have hz' := ball_subset_closedBall hz
     have := hGh z hz'
@@ -84,11 +84,7 @@ theorem exists_mvPolynomial_norm_sub_eval_le {G : (σ → ℂ) → EuclideanSpac
       _ ≤ ‖G z‖ + ‖h z - G z‖ := norm_le_insert' _ _
       _ ≤ M + A := add_le_add (hM z (closedBall_subset_closedBall (by linarith) hz')) this
   refine ⟨fun i ↦ taylorPolynomial (fun z ↦ h z i) c d, fun i ↦ ?_, fun z hz ↦ ?_⟩
-  · rcases d.eq_zero_or_pos with rfl | hd
-    · simp [taylorPolynomial_zero]
-    · dsimp only
-      rw [taylorPolynomial_def]
-      exact (MvPowerSeries.totalDegree_truncTotal_lt _ hd.ne').le
+  · exact (totalDegree_taylorPolynomial_le _ c d).trans (Nat.sub_le d 1)
   have hc : c ∈ closedBall c ρ := mem_closedBall_self hρ.le
   have hM0 : 0 ≤ M := (norm_nonneg _).trans (hM c hc)
   have h2 : (1 : ℝ) ≤ 2 ^ Fintype.card σ := one_le_pow₀ one_le_two
@@ -120,11 +116,7 @@ theorem exists_mvPolynomial_norm_sub_eval_le {G : (σ → ℂ) → EuclideanSpac
   -- The Euclidean norm is at most the sum of the norms of the components.
   set x := G z - WithLp.toLp 2 (fun i ↦ MvPolynomial.eval (z - c)
     (taylorPolynomial (fun z ↦ h z i) c d))
-  have hx : ‖x‖ ≤ ∑ i, ‖x i‖ := by
-    refine abs_le_of_sq_le_sq' ?_ (by positivity) |>.2
-    rw [EuclideanSpace.norm_sq_eq]
-    exact Finset.sum_sq_le_sq_sum_of_nonneg fun _ _ ↦ norm_nonneg _
-  calc ‖x‖ ≤ ∑ i, ‖x i‖ := hx
+  calc ‖x‖ ≤ ∑ i, ‖x i‖ := PiLp.norm_le_sum_norm x
     _ ≤ ∑ _i : ι, B := Finset.sum_le_sum fun i _ ↦ by simpa [x] using hcomp i
     _ = _ := by simp [B, mul_assoc]
 
