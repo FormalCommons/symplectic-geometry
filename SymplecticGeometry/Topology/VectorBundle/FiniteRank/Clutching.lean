@@ -49,7 +49,8 @@ and the fibres may be over any nontrivially normed field.
 * `TauCeti.FiniteRankBundleCore.nonempty_iso_clutching_of_homotopic`: over a paracompact R₁
   space, clutchings by automorphisms joined by a family over `X × I` are isomorphic.
 * `TauCeti.FiniteRankBundleCore.circleZPowIso X n`: the automorphism of the trivial line over
-  `X × Circle` that multiplies the fibre over `(x, u)` by `u ^ n`.
+  `X × Circle` that multiplies the fibre over `(x, u)` by `u ^ n`; for `n = 0` it is the identity
+  (`circleZPowIso_zero`).
 * `SymplecticGeometry.ProjectiveLine.innerSection` and `outerSection`: the vectors
   `(z, 1) / max 1 |z|` and `(1, w) / max 1 |w|` of the lines `[z : 1]` and `[1 : w]`, multiples
   of `Projectivization.normalizedRep` and nonzero on the affine opens; on the
@@ -136,10 +137,7 @@ theorem fiberMap_clutchingAut_hom (E : FiniteRankBundleCore 𝕜 X)
     (w : ↥(Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc : Set (X × ℙ ℂ (Fin 2 → ℂ)))) :
     (clutchingAut E f).hom.fiberMap w = f.hom.fiberMap (clutchingMap X w) := by
   ext v i
-  have hv :
-      (eqToHom (pullback_fst_pullback_subtypeVal_eq_pullback_clutchingMap E)).fiberMap w v = v :=
-    funext fun j ↦ by simp [Fin.cast_eq_self]
-  simp [clutchingAut, hv, Fin.cast_eq_self]
+  simp [clutchingAut]
 
 @[simp]
 theorem fiberMap_clutchingAut_inv (E : FiniteRankBundleCore 𝕜 X)
@@ -148,10 +146,7 @@ theorem fiberMap_clutchingAut_inv (E : FiniteRankBundleCore 𝕜 X)
     (w : ↥(Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc : Set (X × ℙ ℂ (Fin 2 → ℂ)))) :
     (clutchingAut E f).inv.fiberMap w = f.inv.fiberMap (clutchingMap X w) := by
   ext v i
-  have hv :
-      (eqToHom (pullback_fst_pullback_subtypeVal_eq_pullback_clutchingMap E)).fiberMap w v = v :=
-    funext fun j ↦ by simp [Fin.cast_eq_self]
-  simp [clutchingAut, hv, Fin.cast_eq_self]
+  simp [clutchingAut]
 
 /-- **The clutching construction.** For a core `E` over `X` and an automorphism `f` of its pullback
 to `X × Circle`, the core over `X × ℙ ℂ (Fin 2 → ℂ)` that is the pullback of `E` along `Prod.fst`
@@ -519,6 +514,10 @@ theorem fiberMap_circleZPowIso_inv (n : ℤ) (b : X × Circle) :
   -- Multiplication by a unit is multiplication by its value.
   rw [← Circle.coe_zpow, ← Circle.coe_inv]
   rfl
+
+/-- Multiplication by `u ^ 0` is the identity: `circleZPowIso X 0` is the identity automorphism. -/
+theorem circleZPowIso_zero : circleZPowIso X 0 = Iso.refl _ :=
+  Iso.ext <| hom_ext fun b ↦ by simp
 
 end TauCeti.FiniteRankBundleCore
 

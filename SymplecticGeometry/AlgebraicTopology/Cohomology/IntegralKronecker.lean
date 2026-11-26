@@ -140,9 +140,9 @@ theorem integralKronecker_integralCup_fst_snd_singularHomologyCross (X Y : TopCa
       X.integralKronecker p a x * Y.integralKronecker q b y := by
   obtain ⟨a, rfl⟩ := (X.integralCohomologyEquiv p).symm.surjective a
   obtain ⟨b, rfl⟩ := (Y.integralCohomologyEquiv q).symm.surjective b
-  rw [← integralCohomologyEquiv_symm_naturality, ← integralCohomologyEquiv_symm_naturality,
-    ← integralCohomologyEquiv_symm_singularCup, integralKronecker_integralCohomologyEquiv_symm,
-    integralKronecker_integralCohomologyEquiv_symm, integralKronecker_integralCohomologyEquiv_symm]
+  rw [← integralCohomologyEquiv_symm_singularCup_fst_snd,
+    integralKronecker_integralCohomologyEquiv_symm, integralKronecker_integralCohomologyEquiv_symm,
+    integralKronecker_integralCohomologyEquiv_symm]
   exact singularKronecker_singularCup_fst_snd_singularHomologyCross X Y h a b x y
 
 end TopCat
