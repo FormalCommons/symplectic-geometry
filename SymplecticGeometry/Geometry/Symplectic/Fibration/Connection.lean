@@ -198,7 +198,7 @@ theorem IsVerticallyClosed.mlieDerivForm_apply_eq_zero (hA : A.IsContMDiff ∞ I
       (hA.mdifferentiable_trivAt (by simp) _) ((hA.contMDiffOn_trivAt_symm _).of_le (by simp))
       hsb hsm (A.mem_baseSet_trivAt _) (Fin.forall_fin_two.2 ⟨hη₁, hη₂⟩), add_zero,
     RoughForm.interior_apply]
-  -- `(X, η₁, η₂)` is a cyclic permutation of `(η₁, η₂, X)`, an even one.
+  -- `(X, η₁, η₂)` is a permutation of `(η₁, η₂, X)`, on which `dτ` vanishes.
   have hσ : ![X x, η₁, η₂] = ![η₁, η₂, X x] ∘ (finRotate 3).symm := by
     ext i
     fin_cases i <;> simp
