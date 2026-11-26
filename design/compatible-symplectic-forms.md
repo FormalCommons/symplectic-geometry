@@ -83,8 +83,8 @@ The paragraph *The design file decides* of part 49 asks for two things.
      and, on the tangent bundle, `TauCeti.SmoothTwoForm.IsNondegenerate.realFirstChernClass`,
      beside the integral `TauCeti.SmoothTwoForm.IsNondegenerate.firstChernClass`.
 
-  The determinant line is the library's
-  `SymplecticGeometry.Bundle.detCore` (`Topology/VectorBundle/Determinant.lean`),
+  The determinant line is Tau Ceti's `TauCeti.DetBundle`
+  (`Topology/VectorBundle/Determinant.lean` of Tau Ceti),
   which is only a topological bundle today; this part makes it a smooth
   one. The vertical bundle $\mathrm{Ver}=\ker d\pi$ gets the symplectic
   structure $\tau|_{\mathrm{Ver}}$ of any form $\tau$ that restricts to
@@ -185,25 +185,26 @@ About 150 lines.
 
 For a smooth real vector bundle `V` over `M` with finite-dimensional model
 and a smooth complex structure `J` (so that `J.toContinuousComplexStructure.Fiber`
-is a complex bundle), the determinant line `Bundle.detCore ℂ G _`:
+is a complex bundle), the determinant line `TauCeti.DetBundle ℂ G _`:
 
 - an instance `ContMDiffVectorBundle ∞` on it: its coordinate changes are
   determinants of the smooth coordinate changes of `V`, smooth since `det`
   is polynomial;
-- `contMDiff_detCoreMap`: a smooth fibrewise complex-linear isomorphism of
-  such bundles (for instance `Tames.exists_complex_bundleEquiv`) induces a
-  smooth isomorphism of determinant lines, and the pull-back isomorphism
-  `detCore_pullback` is smooth;
-- `exists_hermitianMetric_detCore`: the determinant line has a smooth
+- the smoothness of `TauCeti.DetBundle.congrModelHomeomorph`: a smooth
+  fibrewise complex-linear isomorphism of such bundles (for instance
+  `Tames.exists_complex_bundleEquiv`) induces a smooth isomorphism of
+  determinant lines, and the pull-back isomorphism
+  `TauCeti.DetBundle.pullbackHomeomorph` is smooth;
+- `exists_hermitianMetric_detBundle`: the determinant line has a smooth
   Hermitian metric in the form taken by `Hermitian/CircleBundle.lean`
   (`circleBundleDiffeomorph`, `contMDiffFiberBundle_circleFiber`): a smooth
-  real metric that multiplication by `Complex.I` preserves, by a partition
-  of unity and averaging over `i`, unless Tau Ceti's Riemannian bundles
-  already give one;
-- `detCoreIsoOfFinrankEqOne` is smooth for a line bundle.
+  real metric that multiplication by `Complex.I` preserves, from Tau Ceti's
+  `TauCeti.exists_contMDiffRiemannianMetric_inner_smul_I`;
+- `TauCeti.DetBundle.oneHomeomorph` is smooth for a line bundle.
 
-About 300 lines. The smoothness of the coordinate changes is checked in
-the trivializations of Tau Ceti's `TauCeti.FiniteRankBundleCore.det`.
+About 300 lines. The coordinate changes of `TauCeti.DetBundle` are the
+determinants of those of `V` (`TauCeti.DetBundle.coordChangeL_trivialization`),
+so their smoothness follows from that of `V`'s.
 
 ### `Geometry/Manifold/VectorBundle/ChernNumber/RealChernClass.lean`
 
@@ -211,7 +212,7 @@ Over a base `M` as in *Setting*, for `J : ContMDiffComplexStructure I ∞ F V`:
 
 - `ContMDiffComplexStructure.realFirstChernClass J : TauCeti.deRhamCohomology I M 2`,
   `realFirstChernClass` of the unit circle bundle of the determinant line
-  for the metric that `exists_hermitianMetric_detCore` chooses; with
+  for the metric that `exists_hermitianMetric_detBundle` chooses; with
   `realFirstChernClass_def`.
 - `realFirstChernClass_eq_of_metric`: any smooth Hermitian metric on the
   determinant line gives the same class. Normalization $v\mapsto v/|v|_{g'}$
@@ -225,7 +226,7 @@ Over a base `M` as in *Setting*, for `J : ContMDiffComplexStructure I ∞ F V`:
   bundle map over `f`).
 - `realFirstChernClass_eq_of_finrank_eq_one`: for a line bundle with a
   smooth Hermitian metric, the class is `realFirstChernClass` of its own
-  unit circle bundle (through the smooth `detCoreIsoOfFinrankEqOne`).
+  unit circle bundle (through the smooth `TauCeti.DetBundle.oneHomeomorph`).
 - `integralTopForm_realFirstChernClass`: over a closed surface with
   orientation `o`, the integral of any closed representative of the class
   of `J` is the Chern number `chernNumber` of `J.toContinuousComplexStructure.Fiber`
@@ -511,7 +512,7 @@ Issues 1, 2, 5 and 9 can start at once.
   (`Hermitian/CircleBundle.lean`), top-degree Poincaré duality.
 - Merged files of *Symplectic vector bundles*: two-forms and complex
   structures on bundles, `polarComplexStructure`,
-  `Tames.exists_complex_bundleEquiv`, pull-backs, `detCore`.
+  `Tames.exists_complex_bundleEquiv`, pull-backs; Tau Ceti's `TauCeti.DetBundle`.
 - Merged files of *Moser isotopy* and *Smooth families*: `moserField`,
   the time extensions, and `PreservesSmoothFamilies` and
   `exists_isSmoothFamily_mextDerivₗ_eq` as issue 9 generalizes them.

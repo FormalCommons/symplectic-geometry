@@ -7,11 +7,8 @@ module
 
 public import Mathlib.Topology.Algebra.Module.FiniteDimension
 public import SymplecticGeometry.Topology.VectorBundle.Core.Basic
-public import SymplecticGeometry.Topology.VectorBundle.Pullback
-public import TauCeti.Topology.FiberBundle.Prod
 public import TauCeti.Topology.FiberBundle.Pullback
 public import TauCeti.Topology.VectorBundle.Core.Congr
-public import TauCeti.Topology.VectorBundle.FiniteRank.Biproduct
 public import TauCeti.Topology.VectorBundle.FiniteRank.Pullback
 public import TauCeti.Topology.VectorBundle.Trivialization
 
@@ -28,27 +25,18 @@ along `ContinuousLinearEquiv.ofFinrankEq` (`VectorBundleCore.congrModel`).
 ## Main definitions and results
 
 * `ofBundleOfFinrankEqFiberEquiv`: the identification of each fibre of the core with the fibre of
-  `E`; for the trivial bundle it is the inverse of `ContinuousLinearEquiv.ofFinrankEq`
-  (`ofBundleOfFinrankEqFiberEquiv_trivial_apply`), and for a pull-back `f *ᵖ E` it is, over `y`,
-  that of `E` over `f y` (`ofBundleOfFinrankEqFiberEquiv_pullback_symm_apply`, from
-  `TauCeti.pointIndexedCoreFiberEquiv_pullback_symm_apply`);
+  `E`;
 * `ofBundleOfFinrankEqHomeomorph`: the identification of total spaces, over the identity of `B`,
   acting on each fibre by `ofBundleOfFinrankEqFiberEquiv`;
 * `ofBundleOfFinrankEqIso`: a fibrewise isomorphism of bundles, continuous on total spaces, gives
   an isomorphism of their cores; this is the analogue of `ofBundleIso`, and the two bundles may
   have different models;
 * `pullback_ofBundleOfFinrankEq`: pulling back the core is the core of the pulled-back bundle, the
-  analogue of `pullback_ofBundle`;
-* `ofBundleOfFinrankEq_trivial`: the core of the trivial bundle is the trivial core;
-* `ofBundleOfFinrankEqProdIso`: the core of the direct sum `E₁ ×ᵇ E₂` is the Whitney sum
-  `TauCeti.FiniteRankBundleCore.whitneySum` of the cores of `E₁` and `E₂`.
+  analogue of `pullback_ofBundle`.
 
 The constructions follow Tau Ceti's `ofBundle` and `ofBundleIso`, and the use of `congrModel` in
 `TauCeti.FiniteRankAtlas.whitneyStratumCore`; the proof of `pullback_ofBundleOfFinrankEq`
-adapts that of Tau Ceti's `pullback_ofBundle`. The lemma
-`TauCeti.pointIndexedCoreFiberEquiv_pullback_symm_apply`, the general form of Tau Ceti's private
-`pointIndexedCoreFiberEquiv_toInfinite_pullback_symm_apply` for the stages of the infinite
-Grassmannian, is read off `VectorBundle.continuousLinearEquivAt_pullback`.
+adapts that of Tau Ceti's `pullback_ofBundle`.
 -/
 
 public section
@@ -56,31 +44,6 @@ public section
 open Bundle Module
 
 namespace TauCeti
-
-section PointIndexed
-
-variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {B : Type*} [TopologicalSpace B]
-  {X : Type*} [TopologicalSpace X]
-  {G : Type*} [NormedAddCommGroup G] [NormedSpace 𝕜 G]
-  (E : B → Type*) [∀ x, AddCommMonoid (E x)] [∀ x, Module 𝕜 (E x)]
-  [∀ x, TopologicalSpace (E x)] [TopologicalSpace (TotalSpace G E)]
-  [FiberBundle G E] [VectorBundle 𝕜 G E]
-
-/-- Over `y`, the inverse of the identification of the fibre of the point-indexed core of the
-pull-back `f *ᵖ E` with that of `f *ᵖ E` is the inverse of the identification for `E` over
-`f y`: the preferred chart of `f *ᵖ E` at `y` is the pull-back of that of `E` at `f y`. -/
-theorem pointIndexedCoreFiberEquiv_pullback_symm_apply (f : C(X, B)) (y : X)
-    (w : ((⇑f) *ᵖ E) y) :
-    (pointIndexedCoreFiberEquiv 𝕜 G ((⇑f) *ᵖ E) y).symm w =
-      (pointIndexedCoreFiberEquiv 𝕜 G E (f y)).symm w := by
-  have h := DFunLike.congr_fun
-    (VectorBundle.continuousLinearEquivAt_pullback (𝕜 := 𝕜) (F := G) E f y) w
-  simp only [VectorBundle.continuousLinearEquivAt,
-    Trivialization.continuousLinearEquivAt_apply] at h
-  exact (pointIndexedCoreFiberEquiv_symm_apply 𝕜 G _ y w).trans
-    (h.trans (pointIndexedCoreFiberEquiv_symm_apply 𝕜 G E (f y) w).symm)
-
-end PointIndexed
 
 namespace FiniteRankBundleCore
 
@@ -257,132 +220,7 @@ pulled-back bundle `f *ᵖ E`. -/
       rw [eᵢ.coordChangeL_of_notMem 𝕜 eⱼ hfx,
         (eᵢ.pullback f).coordChangeL_of_notMem 𝕜 (eⱼ.pullback f) hx]
 
-/-- Over `y`, the inverse of the identification of the fibre of
-`ofBundleOfFinrankEq 𝕜 G (f *ᵖ E) h` with that of `f *ᵖ E` is the inverse of the identification
-for `E` over `f y`. -/
-theorem ofBundleOfFinrankEqFiberEquiv_pullback_symm_apply (f : C(X, B)) (y : X)
-    (w : ((⇑f) *ᵖ E) y) :
-    (ofBundleOfFinrankEqFiberEquiv 𝕜 G ((⇑f) *ᵖ E) h y).symm w =
-      (ofBundleOfFinrankEqFiberEquiv 𝕜 G E h (f y)).symm w :=
-  (ofBundleOfFinrankEqFiberEquiv_symm_apply 𝕜 G _ h y w).trans <|
-    (congrArg (ContinuousLinearEquiv.ofFinrankEq (h.trans (finrank_fin_fun 𝕜).symm))
-      (pointIndexedCoreFiberEquiv_pullback_symm_apply E f y w)).trans
-      (ofBundleOfFinrankEqFiberEquiv_symm_apply 𝕜 G E h (f y) w).symm
-
 end Pullback
-
-section Trivial
-
-variable (B) {G : Type*} [NormedAddCommGroup G] [NormedSpace 𝕜 G] [FiniteDimensional 𝕜 G]
-  {n : ℕ} (h : finrank 𝕜 G = n)
-
-/-- The core of the trivial bundle `B × G` is the trivial core. -/
-@[simp] theorem ofBundleOfFinrankEq_trivial :
-    ofBundleOfFinrankEq 𝕜 G (Bundle.Trivial B G) h = trivial 𝕜 B n := by
-  dsimp only [trivial, ofBundleOfFinrankEq]
-  congr 1
-  refine VectorBundleCore.ext ?_ ?_ ?_
-  · funext x
-    rw [VectorBundleCore.baseSet_congrModel, VectorBundleCore.baseSet_at,
-      pointIndexedCore_localTriv_baseSet]
-    rfl
-  · funext x
-    exact (VectorBundleCore.indexAt_congrModel _ _ x).trans
-      (pointIndexedCore_indexAt 𝕜 G (Bundle.Trivial B G) x)
-  · funext i j x
-    rw [VectorBundleCore.coordChange_congrModel, pointIndexedCore_coordChange]
-    refine ContinuousLinearMap.ext fun v ↦ ?_
-    simp
-
-/-- The identification of the fibre of the core of the trivial bundle `B × G` with `G` is the
-inverse of `ContinuousLinearEquiv.ofFinrankEq`. -/
-theorem ofBundleOfFinrankEqFiberEquiv_trivial_apply (x : B) (v : Fin n → 𝕜) :
-    ofBundleOfFinrankEqFiberEquiv 𝕜 G (Bundle.Trivial B G) h x v =
-      (ContinuousLinearEquiv.ofFinrankEq (h.trans (finrank_fin_fun 𝕜).symm)).symm v := by
-  rw [ofBundleOfFinrankEqFiberEquiv_apply, pointIndexedCoreFiberEquiv_apply]
-  exact Trivial.trivialization_symm_apply B G x _
-
-end Trivial
-
-section Prod
-
-variable {G₁ : Type*} [NormedAddCommGroup G₁] [NormedSpace 𝕜 G₁] [FiniteDimensional 𝕜 G₁]
-  (E₁ : B → Type*) [∀ x, AddCommMonoid (E₁ x)] [∀ x, Module 𝕜 (E₁ x)]
-  [∀ x, TopologicalSpace (E₁ x)] [TopologicalSpace (TotalSpace G₁ E₁)]
-  [FiberBundle G₁ E₁] [VectorBundle 𝕜 G₁ E₁]
-  {G₂ : Type*} [NormedAddCommGroup G₂] [NormedSpace 𝕜 G₂] [FiniteDimensional 𝕜 G₂]
-  (E₂ : B → Type*) [∀ x, AddCommMonoid (E₂ x)] [∀ x, Module 𝕜 (E₂ x)]
-  [∀ x, TopologicalSpace (E₂ x)] [TopologicalSpace (TotalSpace G₂ E₂)]
-  [FiberBundle G₂ E₂] [VectorBundle 𝕜 G₂ E₂]
-  {n₁ n₂ : ℕ} (h₁ : finrank 𝕜 G₁ = n₁) (h₂ : finrank 𝕜 G₂ = n₂)
-  (h : finrank 𝕜 (G₁ × G₂) = n₁ + n₂)
-
-/-- The fibre of the core of the direct sum `E₁ ×ᵇ E₂` is identified with the fibre of the
-Whitney sum of the cores of `E₁` and `E₂`. -/
-noncomputable def ofBundleOfFinrankEqProdFiberEquiv (x : B) :
-    (ofBundleOfFinrankEq 𝕜 (G₁ × G₂) (E₁ ×ᵇ E₂) h).core.Fiber x ≃L[𝕜]
-      (whitneySum (ofBundleOfFinrankEq 𝕜 G₁ E₁ h₁)
-        (ofBundleOfFinrankEq 𝕜 G₂ E₂ h₂)).core.Fiber x :=
-  (ofBundleOfFinrankEqFiberEquiv 𝕜 (G₁ × G₂) (E₁ ×ᵇ E₂) _ x).trans <|
-    ((ofBundleOfFinrankEqFiberEquiv 𝕜 G₁ E₁ h₁ x).symm.prodCongr
-      (ofBundleOfFinrankEqFiberEquiv 𝕜 G₂ E₂ h₂ x).symm).trans
-      (whitneySumFiberEquiv _ _ x).symm
-
-@[simp] theorem ofBundleOfFinrankEqProdFiberEquiv_apply (x : B)
-    (v : (ofBundleOfFinrankEq 𝕜 (G₁ × G₂) (E₁ ×ᵇ E₂) h).core.Fiber x) :
-    ofBundleOfFinrankEqProdFiberEquiv E₁ E₂ h₁ h₂ h x v =
-      (whitneySumFiberEquiv _ _ x).symm
-        ((ofBundleOfFinrankEqFiberEquiv 𝕜 G₁ E₁ h₁ x).symm
-          (ofBundleOfFinrankEqFiberEquiv 𝕜 (G₁ × G₂) (E₁ ×ᵇ E₂) _ x v).1,
-        (ofBundleOfFinrankEqFiberEquiv 𝕜 G₂ E₂ h₂ x).symm
-          (ofBundleOfFinrankEqFiberEquiv 𝕜 (G₁ × G₂) (E₁ ×ᵇ E₂) _ x v).2) := (rfl)
-
-@[simp] theorem ofBundleOfFinrankEqProdFiberEquiv_symm_apply (x : B)
-    (w : (whitneySum (ofBundleOfFinrankEq 𝕜 G₁ E₁ h₁)
-      (ofBundleOfFinrankEq 𝕜 G₂ E₂ h₂)).core.Fiber x) :
-    (ofBundleOfFinrankEqProdFiberEquiv E₁ E₂ h₁ h₂ h x).symm w =
-      (ofBundleOfFinrankEqFiberEquiv 𝕜 (G₁ × G₂) (E₁ ×ᵇ E₂) _ x).symm
-        (ofBundleOfFinrankEqFiberEquiv 𝕜 G₁ E₁ h₁ x (whitneySumFiberEquiv _ _ x w).1,
-          ofBundleOfFinrankEqFiberEquiv 𝕜 G₂ E₂ h₂ x (whitneySumFiberEquiv _ _ x w).2) := (rfl)
-
-/-- The fibrewise identification `ofBundleOfFinrankEqProdFiberEquiv` is continuous on total
-spaces. -/
-theorem continuous_ofBundleOfFinrankEqProdFiberEquiv :
-    Continuous fun p : (ofBundleOfFinrankEq 𝕜 (G₁ × G₂) (E₁ ×ᵇ E₂) h).core.TotalSpace ↦
-      (⟨p.proj, ofBundleOfFinrankEqProdFiberEquiv E₁ E₂ h₁ h₂ h p.proj p.snd⟩ :
-        (whitneySum (ofBundleOfFinrankEq 𝕜 G₁ E₁ h₁)
-          (ofBundleOfFinrankEq 𝕜 G₂ E₂ h₂)).core.TotalSpace) := by
-  refine (whitneySumTotalSpaceHomeomorph _ _).isInducing.continuous_iff.2 ?_
-  refine (FiberBundle.Prod.isInducing_diag _ _ _ _).continuous_iff.2 ?_
-  have hp := (ofBundleOfFinrankEqHomeomorph 𝕜 (G₁ × G₂) (E₁ ×ᵇ E₂) h).continuous
-  refine (((ofBundleOfFinrankEqHomeomorph 𝕜 G₁ E₁ h₁).symm.continuous.comp
-    (FiberBundle.Prod.continuous_totalSpaceFst.comp hp)).prodMk
-    ((ofBundleOfFinrankEqHomeomorph 𝕜 G₂ E₂ h₂).symm.continuous.comp
-    (FiberBundle.Prod.continuous_totalSpaceSnd.comp hp))).congr fun p ↦ ?_
-  dsimp only [Function.comp_apply]
-  rw [whitneySumTotalSpaceHomeomorph_apply, ofBundleOfFinrankEqHomeomorph_apply]
-  dsimp only
-  rw [ofBundleOfFinrankEqProdFiberEquiv_apply, ContinuousLinearEquiv.apply_symm_apply,
-    ofBundleOfFinrankEqHomeomorph_symm_apply, ofBundleOfFinrankEqHomeomorph_symm_apply]
-
-/-- The core of the direct sum `E₁ ×ᵇ E₂` is isomorphic to the Whitney sum of the cores of `E₁`
-and `E₂`, by `ofBundleOfFinrankEqProdFiberEquiv` on each fibre. -/
-noncomputable def ofBundleOfFinrankEqProdIso :
-    ofBundleOfFinrankEq 𝕜 (G₁ × G₂) (E₁ ×ᵇ E₂) h ≅
-      whitneySum (ofBundleOfFinrankEq 𝕜 G₁ E₁ h₁) (ofBundleOfFinrankEq 𝕜 G₂ E₂ h₂) :=
-  isoOfContinuousEquiv _ (continuous_ofBundleOfFinrankEqProdFiberEquiv E₁ E₂ h₁ h₂ h)
-
-@[simp] theorem fiberMap_ofBundleOfFinrankEqProdIso_hom (x : B) :
-    (ofBundleOfFinrankEqProdIso E₁ E₂ h₁ h₂ h).hom.fiberMap x =
-      (ofBundleOfFinrankEqProdFiberEquiv E₁ E₂ h₁ h₂ h x).toContinuousLinearMap := by
-  rw [ofBundleOfFinrankEqProdIso]; exact fiberMap_isoOfContinuousEquiv_hom _ _ x
-
-@[simp] theorem fiberMap_ofBundleOfFinrankEqProdIso_inv (x : B) :
-    (ofBundleOfFinrankEqProdIso E₁ E₂ h₁ h₂ h).inv.fiberMap x =
-      (ofBundleOfFinrankEqProdFiberEquiv E₁ E₂ h₁ h₂ h x).symm.toContinuousLinearMap := by
-  rw [ofBundleOfFinrankEqProdIso]; exact fiberMap_isoOfContinuousEquiv_inv _ _ x
-
-end Prod
 
 end FiniteRankBundleCore
 
