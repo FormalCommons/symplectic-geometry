@@ -543,8 +543,8 @@ theorem symplecticNormalForm_normalComplexStructureAt_pos (hτ : σ.Tames J)
     {ν : f.isImmersion.NormalSpace x hn} (hν : ν ≠ 0) :
     0 < f.symplecticNormalForm h x hn ν (f.normalComplexStructureAt hn J x hJ ν) := by
   let w := f.symplecticNormalRepresentative h x hn ν
-  have hw : f.isImmersion.normalClass x hn w = ν := f.normalClass_symplecticNormalRepresentative h x
-      hn ν
+  have hw : f.isImmersion.normalClass x hn w = ν :=
+    f.normalClass_symplecticNormalRepresentative h x hn ν
   have hw0 : w ≠ 0 := fun h0 ↦ hν (by rw [← hw, h0, map_zero])
   -- The class of `J w` is `J_ν ν`, and `w` represents `ν` in the symplectic complement.
   rw [← SymplecticForm.neg_eq, ← hw, normalComplexStructureAt_normalClass,

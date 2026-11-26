@@ -846,7 +846,8 @@ theorem relDualClass_transDiffeomorph (f : SmoothEmbedding I J ∞ Z X) (hn : (�
     (φ : X' ≃ₘ^∞⟮J, J⟯ X) {r : ℕ}
     (o : letI := f.normalSpaceFiberBundle hn hdim
       letI := f.normalSpaceVectorBundle hn hdim
-      VectorBundleOrientation P (fun x ↦ f.NormalSpace x hn) (Fin r)) (hr : finrank ℝ P = r) :
+      VectorBundleOrientation P (fun x ↦ f.isImmersion.NormalSpace x hn) (Fin r))
+          (hr : finrank ℝ P = r) :
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
     letI := (f.transDiffeomorph φ.symm).normalSpaceFiberBundle hn hdim
@@ -869,7 +870,7 @@ theorem relDualClass_transDiffeomorph (f : SmoothEmbedding I J ∞ Z X) (hn : (�
   -- `ModuleCat ℤ`, `relDualClassOf_transDiffeomorph` the structure `ModuleCat.instLinear`; they
   -- are equal (`Linear.subsingletonInt`) but not by definition.
   have key (L : Linear ℤ (ModuleCat.{w} ℤ))
-      (u : (thomPair P fun x ↦ f.NormalSpace x hn).singularCohomology
+      (u : (thomPair P fun x ↦ f.isImmersion.NormalSpace x hn).singularCohomology
         (ModuleCat.of ℤ (ULift.{w} ℤ)) ℤ (ModuleCat.of ℤ (ULift.{w} ℤ)) (finrank ℝ P)) :
       (f.transDiffeomorph φ.symm).relDualClassOf hn hdim
           (f.isClosed_range_transDiffeomorph hf φ.symm)
@@ -897,7 +898,8 @@ theorem dualClass_transDiffeomorph (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ 
     (φ : X' ≃ₘ^∞⟮J, J⟯ X) {r : ℕ}
     (o : letI := f.normalSpaceFiberBundle hn hdim
       letI := f.normalSpaceVectorBundle hn hdim
-      VectorBundleOrientation P (fun x ↦ f.NormalSpace x hn) (Fin r)) (hr : finrank ℝ P = r) :
+      VectorBundleOrientation P (fun x ↦ f.isImmersion.NormalSpace x hn) (Fin r))
+          (hr : finrank ℝ P = r) :
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
     letI := (f.transDiffeomorph φ.symm).normalSpaceFiberBundle hn hdim
