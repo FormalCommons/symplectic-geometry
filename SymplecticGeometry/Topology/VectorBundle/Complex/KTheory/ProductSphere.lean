@@ -401,30 +401,40 @@ private theorem eq_zero_of_unitDiscRieszProjection_homotopy (x : X) {u : ℂ} (h
 identity on the range of `𝟙 E - P`. -/
 noncomputable def smulIdempotentAddIso {P : E ⟶ E} (hP : P ≫ P = P) :
     E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
-      E.pullback (ContinuousMap.fst : C(X × Circle, X)) :=
-  haveI : IsIso ((⟨fun w ↦ (w.2 : ℂ), by fun_prop⟩ : C(X × Circle, ℂ)) •
+      E.pullback (ContinuousMap.fst : C(X × Circle, X)) where
+  hom := (⟨fun w ↦ (w.2 : ℂ), by fun_prop⟩ : C(X × Circle, ℂ)) •
       pullbackMap P (ContinuousMap.fst : C(X × Circle, X)) +
-        pullbackMap (𝟙 E - P) (ContinuousMap.fst : C(X × Circle, X))) := by
-    refine isIso_of_injective_fiberMap _ fun w ↦ (injective_iff_map_eq_zero _).2 fun v hv ↦ ?_
+    pullbackMap (𝟙 E - P) (ContinuousMap.fst : C(X × Circle, X))
+  inv := (⟨fun w ↦ ((w.2⁻¹ : Circle) : ℂ), by fun_prop⟩ : C(X × Circle, ℂ)) •
+      pullbackMap P (ContinuousMap.fst : C(X × Circle, X)) +
+    pullbackMap (𝟙 E - P) (ContinuousMap.fst : C(X × Circle, X))
+  hom_inv_id := hom_ext fun w ↦ ContinuousLinearMap.ext fun y ↦ by
     have hsub (y : Fin E.rank → ℂ) : (𝟙 E - P).fiberMap w.1 y = y - P.fiberMap w.1 y := by
       rw [sub_eq_add_neg, fiberMap_add, fiberMap_neg, fiberMap_id, add_apply, neg_apply,
         ← sub_eq_add_neg, ContinuousLinearMap.id_apply]
     have hpp (y : Fin E.rank → ℂ) : P.fiberMap w.1 (P.fiberMap w.1 y) = P.fiberMap w.1 y :=
       DFunLike.congr_fun (isIdempotentElem_fiberMap hP w.1).eq y
-    simp only [fiberMap_add, fiberMap_smul, fiberMap_pullbackMap, hsub, ContinuousMap.fst_apply,
-      add_apply, smul_apply] at hv
-    have hu0 : (w.2 : ℂ) ≠ 0 := Circle.coe_ne_zero w.2
-    have h1 : P.fiberMap w.1 v = 0 := by
-      have := congrArg (P.fiberMap w.1) hv
-      rwa [ContinuousMap.coe_mk, map_add, map_smul, map_sub, hpp, sub_self, add_zero, map_zero,
-        smul_eq_zero_iff_right hu0] at this
-    rwa [h1, smul_zero, zero_add, sub_zero] at hv
-  @asIso _ _ _ _ _ this
+    simp [fiberMap_comp, fiberMap_add, fiberMap_smul, fiberMap_pullbackMap, hsub, hpp, smul_smul,
+      Circle.coe_ne_zero]
+  inv_hom_id := hom_ext fun w ↦ ContinuousLinearMap.ext fun y ↦ by
+    have hsub (y : Fin E.rank → ℂ) : (𝟙 E - P).fiberMap w.1 y = y - P.fiberMap w.1 y := by
+      rw [sub_eq_add_neg, fiberMap_add, fiberMap_neg, fiberMap_id, add_apply, neg_apply,
+        ← sub_eq_add_neg, ContinuousLinearMap.id_apply]
+    have hpp (y : Fin E.rank → ℂ) : P.fiberMap w.1 (P.fiberMap w.1 y) = P.fiberMap w.1 y :=
+      DFunLike.congr_fun (isIdempotentElem_fiberMap hP w.1).eq y
+    simp [fiberMap_comp, fiberMap_add, fiberMap_smul, fiberMap_pullbackMap, hsub, hpp, smul_smul,
+      Circle.coe_ne_zero]
 
 @[simp]
 theorem fiberMap_smulIdempotentAddIso_hom {P : E ⟶ E} (hP : P ≫ P = P) (w : X × Circle) :
     (smulIdempotentAddIso hP).hom.fiberMap w =
       (w.2 : ℂ) • P.fiberMap w.1 + (𝟙 E - P).fiberMap w.1 := by
+  simp [smulIdempotentAddIso, fiberMap_add, fiberMap_smul, fiberMap_pullbackMap]
+
+@[simp]
+theorem fiberMap_smulIdempotentAddIso_inv {P : E ⟶ E} (hP : P ≫ P = P) (w : X × Circle) :
+    (smulIdempotentAddIso hP).inv.fiberMap w =
+      (w.2 : ℂ)⁻¹ • P.fiberMap w.1 + (𝟙 E - P).fiberMap w.1 := by
   simp [smulIdempotentAddIso, fiberMap_add, fiberMap_smul, fiberMap_pullbackMap]
 
 /-- **Clutching by `u` on the range of an idempotent.** Let `P` be an idempotent endomorphism of
