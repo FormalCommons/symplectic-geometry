@@ -345,8 +345,8 @@ Issue 8: the Weinstein structure of a Stein function.
 - `IsSteinFunction.exists_comp_isCompleteVectorField`
   (Cieliebak–Eliashberg, Remark 11.16): a smooth convex increasing `h` with
   `dCLiouvilleField (h ∘ φ)` complete. The field of `h ∘ φ` is computed from
-  the composition formulas of issue 3, and `h` is chosen to grow fast enough on each
-  sublevel of `φ`. Tau Ceti's `isCompleteVectorField_rateDampedField`
+  the composition formulas of issue 3, and `h = exp` works for every `φ`
+  on a Hausdorff `M`. Tau Ceti's `isCompleteVectorField_rateDampedField`
   proves completeness of a field damped by a similar estimate; if the
   building issue follows its proof, it credits it.
 
