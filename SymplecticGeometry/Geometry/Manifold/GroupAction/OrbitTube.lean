@@ -436,7 +436,6 @@ theorem mfderiv_tubeMap_mfderiv_quotientMk_eq_mfderiv_smul_symm (hz : (z : V) = 
           ((stabilizer G x).toRightTranslation 1, z) (ξ, v)) =
       mfderiv (I.prod 𝓘(ℝ, V)) I' (fun p : G × V ↦ p.1 • e.chart.symm (p.2 : E')) (1, 0)
         (ξ, v) := by
-  have : ContMDiffSMul I I' 1 G M := ContMDiffSMul.of_le (M := M) ENat.LEInfty.out
   have hσ := e.hasMFDerivAt_symm_comp_subtype V
   refine (U.mfderiv_tubeMap_mfderiv_quotientMk F hz ξ v).trans
     (Eq.trans ?_ (mfderiv_smul_slice_apply hσ.mdifferentiableAt ξ v).symm)
