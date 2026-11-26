@@ -12,6 +12,7 @@ import TauCeti.Geometry.Manifold.ContMDiff.MFDeriv
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
 import TauCeti.Geometry.Manifold.VectorBundle.SectionAlongMap.Regularity
 import TauCeti.Topology.VectorBundle.Trivialization
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # Horizontal lifts of vector fields
@@ -258,7 +259,7 @@ theorem contMDiffAt_horizontalLift {g : Q → P} {w : Q → TangentBundle J B}
   have hfg : ContinuousAt (f ∘ g) q₀ :=
     (hf.continuousAt).comp (f := g) hg.continuousAt
   filter_upwards [hLinv, hg.continuousAt.preimage_mem_nhds (hUo.mem_nhds hxU),
-    hfg.preimage_mem_nhds (eB.open_baseSet.mem_nhds hb₀)] with q hLq hqU hqe
+    hfg.eventually_mem_baseSet_trivializationAt F (TangentSpace J)] with q hLq hqU hqe
   obtain ⟨a, ha⟩ := (Submodule.mem_span_range_iff_exists_fun 𝕜).1 (by
     rw [hX.span_eq hqU]
     exact (hD.horizontalLift (g q) (w q).snd).property)
