@@ -101,10 +101,7 @@ theorem exists_contMDiffOn_apply_eq_apply_zero {e : unitInterval × F → M} {U 
       fun q hq ↦ by simpa [φ] using (hB q.1 q.2 hq.2).2
   set G := timeExtend f
   have hO : IsOpen (univ ×ˢ B : Set (ℝ × F)) := isOpen_univ.prod hBo
-  have hG : ContDiffOn ℝ ∞ G (univ ×ˢ B) := by
-    have := hf.timeExtend hBo
-    rw [← modelWithCornersSelf_prod, chartedSpaceSelf_prod] at this
-    exact contMDiffOn_iff_contDiffOn.1 this
+  have hG : ContDiffOn ℝ ∞ G (univ ×ˢ B) := hf.contDiffOn_timeExtend hBo
   have hGcoe (t : unitInterval) (x : F) : G (t, x) = f (t, x) := timeExtend_apply_coe f t x
   have hGslice (t : unitInterval) : (fun x ↦ G (t, x)) = fun x ↦ φ (e (t, x)) := by
     funext x

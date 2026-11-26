@@ -15,7 +15,6 @@ import SymplecticGeometry.Analysis.Calculus.DifferentialForm.Poincare
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Neighborhood
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
-import TauCeti.Geometry.Manifold.ContMDiff.Prod
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
@@ -296,8 +295,7 @@ theorem exists_contDiffOn_timeExtend {F : Type*} [NormedAddCommGroup F] [NormedS
     (he : IsSymplecticBallFamily σ r e) :
     ∃ U, IsOpen U ∧ closedBall 0 r ⊆ U ∧ ContDiffOn ℝ ∞ (timeExtend e) (univ ×ˢ U) := by
   obtain ⟨U, hUo, hrU, heU⟩ := he.exists_contMDiffOn
-  exact ⟨U, hUo, hrU,
-    contMDiffOn_iff_contDiffOn.1 (contMDiffOn_prod_modelWithCornersSelf_iff.1 (heU.timeExtend hUo))⟩
+  exact ⟨U, hUo, hrU, heU.contDiffOn_timeExtend hUo⟩
 
 end IsSymplecticBallFamily
 
