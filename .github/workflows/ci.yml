@@ -35,7 +35,7 @@ jobs:
       # which the next step compares.
       - uses: actions/checkout@v7
         with:
-          fetch-depth: ${{ github.event_name == 'pull_request' && 2 || 1 }}
+          fetch-depth: 30
       # A run for a pull request builds the merge of its branch with the base
       # branch as that is when the run starts. For a move of Tau Ceti this
       # costs much. No build of main's exists for the new dependencies, and
@@ -200,6 +200,7 @@ jobs:
       # looks at `restore-keys`, so the kind to prefer is in `key`.
       - name: restore main's build of the library
         id: library
+        if: false  # TEST ONLY: the build comes from the bucket
         uses: actions/cache/restore@v6
         with:
           path: .lake/build
@@ -260,9 +261,41 @@ jobs:
             echo "this run builds the library from its source"
           fi
       # --wfail fails the build on any warning, including a `sorry`.
+      # TEST ONLY: the library's build from the bucket, timed.
+      - name: fetch the mappings from the bucket
+        env:
+          LAKE_CONFIG: ${{ github.workspace }}/.github/lake-config.toml
+          LAKE_ARTIFACT_CACHE: 'true'
+          LAKE_RESTORE_ARTIFACTS: 'true'
+          LAKE_CACHE_DIR: ${{ runner.temp }}/lake-cache
+        run: |
+          git log --oneline -3
+          time lake cache get --service=fc-queue --package=SymplecticGeometry --mappings-only || echo "::warning::no mappings from the bucket"
       - name: build
         id: build
-        run: lake build --wfail
+        env:
+          LAKE_CONFIG: ${{ github.workspace }}/.github/lake-config.toml
+          LAKE_ARTIFACT_CACHE: 'true'
+          LAKE_RESTORE_ARTIFACTS: 'true'
+          LAKE_CACHE_DIR: ${{ runner.temp }}/lake-cache
+        run: |
+          time lake build --wfail -o "$RUNNER_TEMP/mappings.jsonl" > "$RUNNER_TEMP/build.log" 2>&1 || { tail -40 "$RUNNER_TEMP/build.log"; exit 1; }
+          tail -3 "$RUNNER_TEMP/build.log"
+          echo "fetched: $(grep -c ' Fetched ' "$RUNNER_TEMP/build.log"), built: $(grep -c ' Built ' "$RUNNER_TEMP/build.log"), mappings: $(wc -l < "$RUNNER_TEMP/mappings.jsonl")"
+      - name: stage the build for the upload
+        env:
+          LAKE_ARTIFACT_CACHE: 'true'
+          LAKE_CACHE_DIR: ${{ runner.temp }}/lake-cache
+        run: |
+          time lake cache stage "$RUNNER_TEMP/mappings.jsonl" "$RUNNER_TEMP/staged"
+          ls "$RUNNER_TEMP/staged" | wc -l; du -sh "$RUNNER_TEMP/staged"
+      - name: hand the staged build over
+        uses: actions/upload-artifact@v7
+        with:
+          name: lake-cache
+          path: ${{ runner.temp }}/staged
+          retention-days: 1
+          compression-level: 0
       # A run of the merge queue builds the commit that main gets when the
       # pull request merges. When it found no build of main's to start from,
       # as the run of a move of Tau Ceti does, and the runs after it until

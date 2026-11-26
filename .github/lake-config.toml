@@ -1,0 +1,7 @@
+# TEST ONLY (throwaway bucket): Lake's cache services for CI.
+[[cache.service]]
+name = "fc-queue"
+kind = "s3"
+artifactEndpoint = "https://fc-lake-cache-test-b4d5717c.fsn1.your-objectstorage.com/a"
+revisionEndpoint = "https://fc-lake-cache-test-b4d5717c.fsn1.your-objectstorage.com/r/queue"
+hasPackageScopes = false
