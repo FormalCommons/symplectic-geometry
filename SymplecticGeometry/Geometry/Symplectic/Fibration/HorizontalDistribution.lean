@@ -299,8 +299,8 @@ private theorem isSmoothForm_formOfConnection [IsManifold IB 1 B] [FiniteDimensi
   have hθ : ContMDiffOn IM (IM.prod 𝓘(ℝ, EM [⋀^Fin 2]→L[ℝ] ℝ)) ∞
       (fun y ↦ TotalSpace.mk' (EM [⋀^Fin 2]→L[ℝ] ℝ) y
         (TauCeti.mpullback IM IF (fun y ↦ (e y).2) σ.val y)) e.source := fun y hy ↦
-    (ContMDiffAt.mpullback_form (σ.contMDiff _) (contMDiffAt_snd.comp y
-      ((hA.contMDiffOn_trivAt _).contMDiffAt (hU.mem_nhds hy))) (by simp)).contMDiffWithinAt
+    (ContMDiffAt.mpullback_form (σ.contMDiff _) (hA.contMDiffAt_snd_trivAt (e.mem_source.1 hy))
+      (by simp)).contMDiffWithinAt
   have hx₀ : e.source ∈ nhds x₀ := hU.mem_nhds (e.mem_source.2 (A.mem_baseSet_trivAt _))
   refine ((hD.contMDiffOn_compContinuousLinearMap_verticalProjection hproj (m := ⊤) le_rfl
     hθ).contMDiffAt hx₀).congr_of_eventuallyEq ?_
