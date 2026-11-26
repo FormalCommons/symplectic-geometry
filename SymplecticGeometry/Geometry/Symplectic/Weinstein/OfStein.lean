@@ -68,9 +68,11 @@ complete.
   is complete for a Stein function `φ`.
 * `SymplecticGeometry.IsSteinFunction.exists_comp_isCompleteVectorField`: a smooth `h` with
   `h' > 0` and `h'' ≥ 0` for which the field of `h ∘ φ` is complete.
+* `SymplecticGeometry.IsSteinFunction.isWeinsteinStructure`: a generalized Morse Stein function
+  `ψ` whose Liouville field `X` is complete gives the Weinstein structure `(ω_ψ, X, ψ)`.
 * `SymplecticGeometry.IsSteinFunction.isWeinsteinStructure_comp`: for a Stein function `φ` that
-  is generalized Morse, `ψ = exp ∘ φ` is a Stein function and `(ω_ψ, X, ψ)`, with `X` the
-  Liouville field of `ψ`, is a Weinstein structure.
+  is generalized Morse, `ψ = exp ∘ φ` is a Stein function, and the previous result applies to it:
+  `(ω_ψ, X, ψ)`, with `X` the Liouville field of `ψ`, is a Weinstein structure.
 * `SymplecticGeometry.IsSteinFunction.exists_isWeinsteinStructure`: every Stein function has a
   Morse perturbation `φ'` such that `ψ = exp ∘ φ'` is a Morse Stein function with the
   Weinstein structure `(ω_ψ, X, ψ)`; the perturbation is
