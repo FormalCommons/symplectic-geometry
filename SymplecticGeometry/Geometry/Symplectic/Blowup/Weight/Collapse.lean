@@ -398,14 +398,15 @@ theorem isSymplectic_form_and_divisor [SecondCountableTopology M] [MeasurableSpa
       hω.isNondegenerate.IsSymplecticSubmanifoldEmbedding 𝓘(ℝ, Fin n → ℂ)
         (divisor hψ hl.le hε) ∧
       (∀ hn : (∞ : ℕ∞ω) ≠ 0, ∃ e : ∀ ℓ : ℙ ℂ (Fin (n + 1) → ℂ),
-          (divisor hψ hl.le hε).NormalSpace ℓ hn ≃L[ℝ]
+          (divisor hψ hl.le hε).isImmersion.NormalSpace ℓ hn ≃L[ℝ]
             Projectivization.Tautological ℂ (Fin (n + 1) → ℂ) ℓ,
-        (Continuous fun p : TotalSpace ℂ (fun ℓ ↦ (divisor hψ hl.le hε).NormalSpace ℓ hn) ↦
+        (Continuous fun p : TotalSpace ℂ
+            (fun ℓ ↦ (divisor hψ hl.le hε).isImmersion.NormalSpace ℓ hn) ↦
           (⟨p.proj, e p.proj p.snd⟩ :
             TotalSpace ℂ (Projectivization.Tautological ℂ (Fin (n + 1) → ℂ)))) ∧
         ∀ (ℓ : ℙ ℂ (Fin (n + 1) → ℂ))
           (w : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) (zeroSection ℓ : BlowupModel n)),
-          e ℓ ((divisor hψ hl.le hε).normalClass ℓ hn
+          e ℓ ((divisor hψ hl.le hε).isImmersion.normalClass ℓ hn
               (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
                 (GluedAlong.inr (gluingDiffeomorph hψ hl.le hε).symm)
                 ⟨zeroSection ℓ, zeroSection_mem_modelPiece hε ℓ⟩ w)) =

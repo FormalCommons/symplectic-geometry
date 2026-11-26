@@ -794,7 +794,7 @@ type `K` only labels the total space and does not change its topology, so the th
 every `K`. When `K` has real dimension 2, such as `ℂ`, this quotient topology is that of the
 bundle structure `SmoothEmbedding.normalSpaceFiberBundle`. -/
 theorem continuous_normalSpaceDivisorEquiv {K : Type*} :
-    Continuous fun p : TotalSpace K (fun ℓ => (divisor hψ hl hε).NormalSpace ℓ hn) =>
+    Continuous fun p : TotalSpace K (fun ℓ => (divisor hψ hl hε).isImmersion.NormalSpace ℓ hn) =>
       (⟨p.proj, normalSpaceDivisorEquiv hψ hl hε hn p.proj p.snd⟩ :
         TotalSpace ℂ (Projectivization.Tautological ℂ (Fin (n + 1) → ℂ))) := by
   rw [SmoothEmbedding.continuous_normalBundle_iff,
