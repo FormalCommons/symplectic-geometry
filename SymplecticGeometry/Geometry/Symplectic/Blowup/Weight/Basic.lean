@@ -324,6 +324,13 @@ theorem gluingDiffeomorphSymm_def (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2
     gluingDiffeomorphSymm hψ hl hε = (gluingDiffeomorph hψ hl hε).symm :=
   (rfl)
 
+/-- The inverse of `gluingDiffeomorphSymm` is the gluing map `gluingDiffeomorph`. -/
+@[simp]
+theorem gluingDiffeomorphSymm_symm (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ)
+    (hl : 0 ≤ l) (hε : 0 < ε) :
+    (gluingDiffeomorphSymm hψ hl hε).symm = gluingDiffeomorph hψ hl hε := by
+  rw [gluingDiffeomorphSymm_def, Diffeomorph.symm_symm]
+
 @[simp]
 theorem gluingDiffeomorph_gluingDiffeomorphSymm_apply
     (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) (hl : 0 ≤ l) (hε : 0 < ε)
