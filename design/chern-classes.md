@@ -962,26 +962,13 @@ model fibres:
 
 ### `Topology/VectorBundle/FiniteRank/Tensor.lean`
 
-Beside Tau Ceti's `FiniteRank/Tensor.lean`, in Tau Ceti's terms only;
-`Determinant.lean` imports it.
+Beside Tau Ceti's `FiniteRank/Tensor.lean`, in Tau Ceti's terms only.
 
 - `TauCeti.FiniteRankBundleCore.tensorFiberEquiv` and
   `continuous_tensorFiberEquiv`: the fibres of `FiniteRankBundleCore.tensor A D`
   are the tensor products of the fibres of `A` and `D`, through
   `TauCeti.piTensorEquiv`, continuously into Tau Ceti's tensor product
   bundle.
-- `TauCeti.FiniteRankBundleCore.detWhitneySumIso`: the determinant line of
-  `whitneySum A D` is `tensor A.det D.det`, by a constant change of
-  coordinates (`det_coordChange_whitneySum`, in `FiniteRank/Biproduct.lean`).
-
-### `Topology/VectorBundle/Determinant.lean` (addition)
-
-- `SymplecticGeometry.Bundle.detCoreProdIso`: the determinant line of
-  `E₁ ×ᵇ E₂` is the tensor product of the determinant lines, from the
-  exterior powers of Tau Ceti's biproduct of finite-rank cores
-  (`Topology/VectorBundle/FiniteRank/Biproduct.lean`, `Tensor.lean`); and,
-  read on bundles, the complex-linear fibrewise isomorphism continuous on
-  total spaces that `firstChernClass` takes.
 
 ### `Topology/VectorBundle/Complex/ChernClass/EulerClass.lean`
 
@@ -1000,7 +987,7 @@ Beside Tau Ceti's `FiniteRank/Tensor.lean`, in Tau Ceti's terms only;
   `chernClass G E 1 = (uliftIntegralCohomologyIso _ 2).hom
   (firstChernClass G E)`. By induction on the rank with
   the splitting principle: both sides are additive on `L ×ᵇ Q`, the first
-  by `chernClass_prod`, the second by `detCoreProdIso`,
+  by `chernClass_prod`, the second by Tau Ceti's `TauCeti.DetBundle.prodEquiv`,
   `TauCeti.complexEulerClass_tensorProduct` and `firstChernClass_congr`; on
   lines both are `complexEulerClass` (`firstChernClass_eq_complexEulerClass`).
   Rank zero: both vanish (`chernClass_eq_zero_of_finrank_lt`, and
@@ -1141,8 +1128,8 @@ pass `HasFiniteTrivializingCover.of_compactSpace`.
 Whitney formula of the milestone, as stated above: the determinant lines of
 `E₁` and `E₂` have finite trivializing covers by
 `HasFiniteTrivializingCover.of_chartedSpace` and
-`HasFiniteTrivializingCover.detCore`, so the proof of
-`firstChernClass_prod` (`detCoreProdFiberEquiv` and the tensor formula)
+`HasFiniteTrivializingCover.detBundle`, so the proof of
+`firstChernClass_prod` (`TauCeti.DetBundle.prodEquiv` and the tensor formula)
 applies. The issue of this file also adds the milestone line to the
 docstrings of `firstChernClass_pullback` and
 `firstChernClass_eq_complexEulerClass`.
@@ -1168,8 +1155,8 @@ then imports `ChernClass/FirstChernClass.lean`.
 
 - From *First Chern number*: `firstChernClass` with `firstChernClass_congr`,
   `firstChernClass_trivial` and `firstChernClass_eq_complexEulerClass`
-  (#784), only in `ChernClass/FirstChernClass.lean`; `detCore` from the merged
-  `Topology/VectorBundle/Determinant.lean`.
+  (#784), only in `ChernClass/FirstChernClass.lean`; the determinant line is
+  Tau Ceti's `TauCeti.DetBundle`.
 - From *First Chern number*: its file
   `AlgebraicTopology/Singular/LocalHomology/OrientedChart.lean`, only in
   `Geometry/Manifold/Orientation/EulerCharacteristic.lean`, for
@@ -1243,9 +1230,8 @@ come before it. Issues 1, 2, 3, 5, 13 and 16 can start at once.
 12. **Euler class of a tensor product of lines, and $\mathcal O(1)$.**
     `Topology/VectorBundle/Orientation/Complex/Tensor.lean`. Waits for 2
     and 7.
-13. **Determinant of a direct sum.** Addition to
-    `Topology/VectorBundle/Determinant.lean`, with
-    `Topology/VectorBundle/FiniteRank/Tensor.lean`.
+13. **Determinant of a direct sum.** Tau Ceti's `TauCeti.DetBundle.prodEquiv`
+    compares the determinant lines.
 14. **Splitting principle.**
     `Topology/VectorBundle/ProjectiveBundle/Splitting.lean`. Waits for 8.
 15. **Top class and first class.** `ChernClass/EulerClass.lean` and
