@@ -65,10 +65,9 @@ theorem mfderiv_smoothTransition_one (u : ℝ) :
     ((contMDiff_smoothTransition le_rfl).mdifferentiableAt (by simp)) ?_
   have hc : Subtype.val ∘ smoothTransition = Real.smoothTransition :=
     funext coe_smoothTransition
-  rw [hc, mfderiv_eq_fderiv]
-  -- `NormedSpace.fromTangentSpace` is the identity by definition and has no apply lemma.
-  change fderiv ℝ Real.smoothTransition u 1 = deriv Real.smoothTransition u
-  exact fderiv_apply_one_eq_deriv
+  rw [hc, ← mvfderiv_apply_eq_mfderiv_apply, TauCeti.mvfderiv_eq_fderiv_apply]
+  -- The goal is an equation in `TangentSpace 𝓘(ℝ) _`; `F := ℝ` states the lemma over `ℝ`.
+  exact fderiv_apply_one_eq_deriv (F := ℝ)
 
 end unitInterval
 
