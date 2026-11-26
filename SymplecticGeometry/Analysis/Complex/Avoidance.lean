@@ -51,9 +51,9 @@ degree `d = ⌈3 log (1 / δ)⌉₊`, whose image lies in the zero set of a nonz
 `SymplecticGeometry.exists_mvPolynomial_ne_zero_eval_eq_zero`. The product `Q` of these
 polynomials has degree of order `d ^ card σ`, and the image of the unit ball lies near its zero
 set. If every point of the ball of radius `δ` were within `η` of that image, this ball would lie
-in a thin neighbourhood of the zero set of `Q`, whose volume
-`MvPolynomial.volume_thickening_zeroLocus_inter_ball_le` bounds by less than the volume of the
-ball. The comparison uses that `(log (1 / δ)) ^ k * δ` tends to `0` as `δ → 0`
+in a thin neighbourhood of the zero set of `Q`, which
+`MvPolynomial.measureReal_ball_mul_le_of_ball_subset_thickening` rules out. The
+comparison uses that `(log (1 / δ)) ^ k * δ` tends to `0` as `δ → 0`
 (`Real.tendsto_pow_log_div_mul_add_atTop`).
 
 ## References
@@ -222,36 +222,6 @@ private theorem exists_zeroLocus_near_image (hι : Fintype.card ι = Fintype.car
   · rw [dist_eq_norm]
     simpa [e] using hPG c hc _ hzc
 
-/-- If the ball of radius `δ` lies in the `t`-neighbourhood of the zero set of a nonzero
-polynomial of degree at most `D` on `ℂ^ι`, then `vol (ball 0 1) * δ ≤ C * D ^ (2 * card ι) * t`
-for a constant `C > 0` that depends only on `ι`: this is the tube-volume bound
-`MvPolynomial.volume_thickening_zeroLocus_inter_ball_le` on `ball 0 δ`. -/
-private theorem exists_mul_le_of_ball_subset_thickening :
-    ∃ C > 0, ∀ Q : MvPolynomial ι ℂ, Q ≠ 0 → ∀ D : ℕ, Q.totalDegree ≤ D → ∀ δ, 0 < δ →
-      ∀ t, ball (0 : EuclideanSpace ℂ ι) δ ⊆
-          thickening t {z : EuclideanSpace ℂ ι | MvPolynomial.eval z.ofLp Q = 0} →
-        volume.real (ball (0 : EuclideanSpace ℂ ι) 1) * δ ≤
-          C * D ^ (2 * Fintype.card ι) * t := by
-  obtain ⟨C₀, hC₀⟩ := MvPolynomial.volume_thickening_zeroLocus_inter_ball_le (ι := ι)
-  refine ⟨max C₀ 1, lt_max_of_lt_right one_pos, fun Q hQ0 D hQd δ hδ t hsub ↦ ?_⟩
-  set m := Fintype.card ι
-  set V := volume.real (ball (0 : EuclideanSpace ℂ ι) 1)
-  have hV : 0 < V := ENNReal.toReal_pos (measure_ball_pos _ _ one_pos).ne' measure_ball_lt_top.ne
-  have ht0 : 0 ≤ t := by
-    by_contra! ht
-    have := hsub (mem_ball_self hδ)
-    rwa [thickening_of_nonpos ht.le] at this
-  have hvol := (measure_mono (Set.subset_inter hsub subset_rfl)).trans (hC₀ Q hQ0 D hQd δ hδ t)
-  rw [Measure.addHaar_ball_of_pos _ _ hδ, finrank_real_of_complex, finrank_euclideanSpace,
-    ← ofReal_measureReal measure_ball_lt_top.ne, ← ENNReal.ofReal_mul (by positivity),
-    ENNReal.ofReal_le_ofReal_iff'] at hvol
-  have hvol' : δ ^ (2 * m) * V ≤ δ ^ (2 * m) * (max C₀ 1 * D ^ (2 * m) * t / δ) := by
-    calc _ ≤ C₀ * D ^ (2 * m) * δ ^ (2 * m) * (t / δ) :=
-          hvol.resolve_right (not_le.2 (by positivity))
-      _ ≤ max C₀ 1 * D ^ (2 * m) * δ ^ (2 * m) * (t / δ) := by gcongr; exact le_max_left _ _
-      _ = _ := by ring
-  exact (le_div_iff₀ hδ).1 (le_of_mul_le_mul_left hvol' (by positivity))
-
 /-- The choice of the degree in the avoidance estimate: for `1 < L`, the degree `d = ⌈3 L⌉₊` is
 positive, at most `4 L`, and `2 ^ d` is at least `exp (2 L)`. -/
 private theorem natCeil_three_mul_bounds {L : ℝ} (hL : 1 < L) :
@@ -312,6 +282,36 @@ private theorem mul_width_le {B K ρ V δ L c θ : ℝ} {p d : ℕ} (hB : 0 < B)
     ring
   linarith
 
+/-- The bounds that a small `δ` satisfies in the avoidance estimate, with `L = log (1 / δ)`: if
+`δ < exp (-1)` and `δ < 1 / max X 1`, where `log x ^ (p + 1) / x < θ` for all `x ≥ X`, then
+`1 < L`, `L ^ (p + 1) * δ < θ`, `c * δ / L ^ p ≤ 1` for `c ≤ 1`, and
+`1 / δ ^ 2 ≤ 2 ^ ⌈3 * L⌉₊`. -/
+private theorem small_delta_bounds {X θ δ c : ℝ} {p : ℕ}
+    (hX : ∀ x ≥ X, Real.log x ^ (p + 1) / (1 * x + 0) < θ) (hδ : 0 < δ)
+    (hδ₀ : δ < min (Real.exp (-1)) (1 / max X 1)) (hc1 : c ≤ 1) :
+    1 < Real.log (1 / δ) ∧ Real.log (1 / δ) ^ (p + 1) * δ < θ ∧
+      c * δ / Real.log (1 / δ) ^ p ≤ 1 ∧ 1 / δ ^ 2 ≤ 2 ^ ⌈3 * Real.log (1 / δ)⌉₊ := by
+  have hδ1 : δ < Real.exp (-1) := hδ₀.trans_le (min_le_left _ _)
+  have hδX : max X 1 < 1 / δ :=
+    (lt_one_div hδ (by positivity)).1 (hδ₀.trans_le (min_le_right _ _))
+  have hδ1' : δ < 1 := hδ1.trans (by simp)
+  set L := Real.log (1 / δ)
+  have hL : 1 < L := by
+    rw [Real.lt_log_iff_exp_lt (by positivity), lt_one_div (Real.exp_pos 1) hδ, one_div,
+      ← Real.exp_neg]
+    exact hδ1
+  refine ⟨hL, ?_, ?_, ?_⟩
+  · have h := hX (1 / δ) ((le_max_left _ _).trans hδX.le)
+    have e : L ^ (p + 1) / (1 * (1 / δ) + 0) = L ^ (p + 1) * δ := by
+      rw [one_mul, add_zero, div_div_eq_mul_div, div_one]
+    rwa [e] at h
+  · have hcδ : c * δ ≤ 1 := by nlinarith
+    have : 1 ≤ L ^ p := one_le_pow₀ hL.le
+    exact (div_le_one (by positivity)).2 (hcδ.trans this)
+  · calc 1 / δ ^ 2 = Real.exp L ^ 2 := by rw [Real.exp_log (by positivity)]; ring
+      _ = Real.exp (2 * L) := by rw [← Real.exp_natCast_mul]; norm_num
+      _ ≤ 2 ^ ⌈3 * L⌉₊ := (natCeil_three_mul_bounds hL).2.2
+
 /-- **Auroux's avoidance estimate.** Let `card ι = card σ + 1` and `1 < R`. There are constants
 `c > 0` and `δ₀ > 0` such that for every `0 < δ < δ₀`, with `η = c δ / (log (1 / δ)) ^ p₀` and
 `p₀ = 2 * card σ * card ι`, the following holds. If `G : ℂ^σ → ℂ^ι` is `C¹` on `ball 0 R`, with
@@ -341,7 +341,8 @@ theorem exists_infDist_image_ge (hι : Fintype.card ι = Fintype.card σ + 1) {R
   have hT0 : T.Nonempty := by
     obtain ⟨c, hc, -⟩ := hcov 0 (mem_closedBall_self zero_le_one)
     exact ⟨c, hc⟩
-  obtain ⟨C, hC, hvol⟩ := exists_mul_le_of_ball_subset_thickening (ι := ι)
+  obtain ⟨C, hC, hvol⟩ :=
+    MvPolynomial.measureReal_ball_mul_le_of_ball_subset_thickening (ι := ι)
   set K : ℝ := m * 4 * 2 ^ s
   set A : ℝ := T.card * (s + 1).factorial
   set V := volume.real (ball (0 : EuclideanSpace ℂ ι) 1)
@@ -359,33 +360,13 @@ theorem exists_infDist_image_ge (hι : Fintype.card ι = Fintype.card σ + 1) {R
     (Real.tendsto_pow_log_div_mul_add_atTop 1 0 (p + 1) one_ne_zero)).2 θ hθ
   refine ⟨c, hc, min (Real.exp (-1)) (1 / max X 1), by positivity,
     fun δ hδ hδ₀ G hG hM hdG ↦ ?_⟩
-  have hδ1 : δ < Real.exp (-1) := hδ₀.trans_le (min_le_left _ _)
-  have hδX : max X 1 < 1 / δ :=
-    (lt_one_div hδ (by positivity)).1 (hδ₀.trans_le (min_le_right _ _))
-  have hδ1' : δ < 1 := hδ1.trans (by simp)
+  obtain ⟨hL, hLδ, hη1, h2d⟩ := small_delta_bounds hX hδ hδ₀ (min_le_left _ _)
   set L := Real.log (1 / δ)
-  have hL : 1 < L := by
-    rw [Real.lt_log_iff_exp_lt (by positivity), lt_one_div (Real.exp_pos 1) hδ, one_div,
-      ← Real.exp_neg]
-    exact hδ1
-  have hLδ : L ^ (p + 1) * δ < θ := by
-    have h := hX (1 / δ) ((le_max_left _ _).trans hδX.le)
-    have e : L ^ (p + 1) / (1 * (1 / δ) + 0) = L ^ (p + 1) * δ := by
-      rw [one_mul, add_zero, div_div_eq_mul_div, div_one]
-    rwa [e] at h
   set η := c * δ / L ^ p
   have hη0 : 0 ≤ η := by positivity
-  have hη1 : η ≤ 1 := by
-    have hcδ : c * δ ≤ 1 := by nlinarith [min_le_left 1 (V / (4 * B * 4 ^ p * (1 + K * ρ)))]
-    have : 1 ≤ L ^ p := one_le_pow₀ hL.le
-    exact (div_le_one (by positivity)).2 (hcδ.trans this)
   -- The degree of the polynomial approximations.
   set d := ⌈3 * L⌉₊
-  obtain ⟨hd1, hd4, hexp⟩ := natCeil_three_mul_bounds hL
-  have h2d : 1 / δ ^ 2 ≤ 2 ^ d := by
-    calc 1 / δ ^ 2 = Real.exp L ^ 2 := by rw [Real.exp_log (by positivity)]; ring
-      _ = Real.exp (2 * L) := by rw [← Real.exp_natCast_mul]; norm_num
-      _ ≤ 2 ^ d := hexp
+  obtain ⟨hd1, hd4, -⟩ := natCeil_three_mul_bounds hL
   obtain ⟨Q, hQ0, hQd, hQG⟩ := exists_zeroLocus_near_image hι hT hcov hη0 hG hM hdG hd1
   set D := T.card * ((s + 1).factorial * d ^ s)
   by_contra! hcon
