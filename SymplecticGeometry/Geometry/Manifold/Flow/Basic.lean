@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Manifold.Algebra.SMul
 public import TauCeti.Geometry.Manifold.Flow.Basic
 public import TauCeti.Geometry.Manifold.Flow.Complete
 public import TauCeti.Geometry.Manifold.Flow.Diffeomorph
+import TauCeti.Geometry.Manifold.Flow.NormedSpace
 
 /-!
 # Maximal flows: time-map differentials, integral curves, equivariance, translation
@@ -66,8 +67,9 @@ Ceti's chain rule for the time maps, `TauCeti.mfderiv_flowOf_add_apply`, and
 * `maximalIntegralCurve_eqOn_add_smul`: if a `C¹` field `v : E → E` equals the constant `c`
   along the line `s ↦ x + s • c` for `s` in an open interval around `0`, then the maximal integral
   curve of `v` through `x` is that line on the interval. The proof adapts Tau Ceti's
-  `TauCeti.maximalIntegralCurve_bumpChartField_extChartAt_symm`: the line is an integral curve,
-  so it agrees with the maximal one by `IsMIntegralCurveOn.eqOn_maximalIntegralCurve`.
+  `TauCeti.maximalIntegralCurve_bumpChartField_extChartAt_symm`: the line is an integral curve
+  of the constant field `c` (`TauCeti.isMIntegralCurve_translation`), hence of `v` on the
+  interval, so it agrees with the maximal one by `IsMIntegralCurveOn.eqOn_maximalIntegralCurve`.
 -/
 
 public section
@@ -385,8 +387,7 @@ theorem maximalIntegralCurve_eqOn_add_smul {v : E → E}
     {x c : E} {a b : ℝ} (h0 : (0 : ℝ) ∈ Ioo a b) (hvc : ∀ s ∈ Ioo a b, v (x + s • c) = c) :
     EqOn (maximalIntegralCurve (I := 𝓘(ℝ, E)) v x) (fun s ↦ x + s • c) (Ioo a b) := by
   have hline : IsMIntegralCurveOn (I := 𝓘(ℝ, E)) (fun s : ℝ ↦ x + s • c) v (Ioo a b) :=
-    TauCeti.isMIntegralCurveOn_iff_isIntegralCurveOn.2 fun s hs ↦ by
-      simpa [hvc s hs] using (((hasDerivAt_id s).smul_const c).const_add x).hasDerivWithinAt
+    fun s hs ↦ (hvc s hs).symm ▸ (TauCeti.isMIntegralCurve_translation c x s).hasMFDerivWithinAt
   exact hline.eqOn_maximalIntegralCurve hv h0 (by simp)
 
 end VectorSpace

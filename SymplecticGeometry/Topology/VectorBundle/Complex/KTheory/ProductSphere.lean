@@ -189,8 +189,7 @@ finite-rank core over `X × ℙ ℂ (Fin 2 → ℂ)`, and let `E` be its restric
 the pullback of `F` along `x ↦ (x, [1 : 1])`. Then `F` is isomorphic to the clutching of `E` by
 some automorphism `f` of the pullback of `E` to `X × Circle`. -/
 theorem exists_iso_clutching :
-    ∃ f : (F.pullback (prodMkOne X)).pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
-        (F.pullback (prodMkOne X)).pullback (ContinuousMap.fst : C(X × Circle, X)),
+    ∃ f : (F.pullback (prodMkOne X)).circlePullback ≅ (F.pullback (prodMkOne X)).circlePullback,
       Nonempty (F ≅ (F.pullback (prodMkOne X)).clutching f) := by
   obtain ⟨φ⟩ := F.nonempty_pullback_subtypeVal_iso_of_subset_affineOpen
     (S := innerDisc) innerDisc_subset_affineOpen
@@ -242,8 +241,7 @@ family `laurentHom N a`, with fibre map `∑_{|i| ≤ N} u ^ i • (a i).fiberMa
 that `F` is isomorphic to the clutching of `E` by `g`. -/
 theorem exists_iso_clutching_laurent (F : FiniteRankBundleCore ℂ (X × ℙ ℂ (Fin 2 → ℂ))) :
     ∃ (N : ℕ) (a : ℤ → (F.pullback (prodMkOne X) ⟶ F.pullback (prodMkOne X)))
-      (g : (F.pullback (prodMkOne X)).pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
-        (F.pullback (prodMkOne X)).pullback (ContinuousMap.fst : C(X × Circle, X))),
+      (g : (F.pullback (prodMkOne X)).circlePullback ≅ (F.pullback (prodMkOne X)).circlePullback),
       g.hom = laurentHom N a ∧ Nonempty (F ≅ (F.pullback (prodMkOne X)).clutching g) := by
   obtain ⟨f, ⟨e⟩⟩ := F.exists_iso_clutching
   obtain ⟨N, a, g, hg, ⟨e'⟩⟩ := exists_iso_clutching_laurentHom f
@@ -345,7 +343,7 @@ end TauCeti.FiniteRankBundleCore
 
 namespace TauCeti.FiniteRankBundleCore
 
-open MonoidalCategory
+open MonoidalCategory SymplecticGeometry
 
 variable {X : Type*} [TopologicalSpace X] {E : FiniteRankBundleCore ℂ X}
   (T : E ⟶ E) (h : ∀ x, ∀ z ∈ spectrum ℂ (T.fiberMap x), ‖z‖ ≠ 1)
@@ -405,9 +403,8 @@ private theorem eq_zero_of_unitDiscRieszProjection_homotopy (x : X) {u : ℂ} (h
 `X × Circle`, with `u` the circle coordinate: it multiplies the range of `P` by `u` and is the
 identity on the range of `𝟙 E - P`. -/
 noncomputable def smulIdempotentAddIso {P : E ⟶ E} (hP : P ≫ P = P) :
-    E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
-      E.pullback (ContinuousMap.fst : C(X × Circle, X)) where
-  hom := (⟨fun w ↦ (w.2 : ℂ), by fun_prop⟩ : C(X × Circle, ℂ)) •
+    E.circlePullback ≅ E.circlePullback where
+  hom := circleCoord X •
       pullbackMap P (ContinuousMap.fst : C(X × Circle, X)) +
     pullbackMap (𝟙 E - P) (ContinuousMap.fst : C(X × Circle, X))
   inv := (⟨fun w ↦ ((w.2⁻¹ : Circle) : ℂ), by fun_prop⟩ : C(X × Circle, ℂ)) •
@@ -505,11 +502,9 @@ theorem clutching_smulIdempotentAddIso {P : E ⟶ E} (hP : P ≫ P = P) {r s : �
           sub_self, add_zero]
       · simp only [add_apply, smul_apply, sub_apply, hid, map_add, map_smul, hb, hb', smul_zero,
           zero_add]
-  obtain ⟨i₂⟩ := clutching_whitneySum (circleZPowSMul 1 (Iso.refl
-    ((range P hr).pullback (ContinuousMap.fst : C(X × Circle, X)))))
-    (Iso.refl ((range (𝟙 E - P) hs).pullback (ContinuousMap.fst : C(X × Circle, X))))
-  obtain ⟨i₃⟩ := clutching_circleZPowSMul 1 (Iso.refl
-    ((range P hr).pullback (ContinuousMap.fst : C(X × Circle, X))))
+  obtain ⟨i₂⟩ := clutching_whitneySum (circleZPowSMul 1 (Iso.refl (range P hr).circlePullback))
+    (Iso.refl (range (𝟙 E - P) hs).circlePullback)
+  obtain ⟨i₃⟩ := clutching_circleZPowSMul 1 (Iso.refl (range P hr).circlePullback)
   exact ⟨i₁ ≪≫ i₂ ≪≫
     whitneyMapIso (i₃ ≪≫ whiskerRightIso (clutchingOneIso _) _) (clutchingOneIso _)⟩
 
@@ -524,8 +519,7 @@ pullback of the range of `𝟙 E - P`. -/
 theorem clutching_smul_add [ParacompactSpace X] [R1Space X] {r s : ℕ}
     (hr : ∀ x, Module.finrank ℂ ((unitDiscRieszProjection T h).fiberMap x).range = r)
     (hs : ∀ x, Module.finrank ℂ ((𝟙 E - unitDiscRieszProjection T h).fiberMap x).range = s)
-    (g : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
-      E.pullback (ContinuousMap.fst : C(X × Circle, X)))
+    (g : E.circlePullback ≅ E.circlePullback)
     (hg : ∀ w : X × Circle,
       g.hom.fiberMap w = (w.2 : ℂ) • ContinuousLinearMap.id ℂ _ + T.fiberMap w.1) :
     Nonempty (E.clutching g ≅
