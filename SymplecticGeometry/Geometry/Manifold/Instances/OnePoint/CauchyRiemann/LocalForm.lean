@@ -36,7 +36,7 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.Morrey
 This file reads the Cauchy–Riemann equation on `𝒪(1)` over the sphere `OnePoint ℂ` in charts:
 first for Sobolev sections in the charts of `twistCoreAtlas 1`, then for smooth sections in an
 isothermal chart, and last for Sobolev sections in an isothermal chart. From the smooth
-equation it also derives unique continuation and the finiteness of the zeros of a smooth
+equation it also derives unique continuation and the isolation of the zeros of a nonzero smooth
 kernel element, and from the last reading the regularity of the kernel of `D_J` on Sobolev
 sections of every order.
 
