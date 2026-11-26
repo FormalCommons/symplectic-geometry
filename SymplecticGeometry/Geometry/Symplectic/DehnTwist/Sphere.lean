@@ -158,8 +158,9 @@ That slice is the new embedding `ι'`; to compare twists, the profile of `ι` is
 one that fits the domain of `ι'`, and the twist for that profile is then moved along the
 isotopy (`exists_diffeotopy_dehnTwist_eq_of_diffeotopy`).
 
-For exactness, pick `r₁ > r₀` with `{z | μ z ≤ r₁} ⊆ U` (`exists_gt_setOf_cotangentNorm_le_subset`)
-and let `W = {z | μ z < r₁}`. It contains the zero section, its closure lies in `U`, and it is
+For exactness, pick `r₁ > r₀` with `{z | μ z ≤ r₁} ⊆ U`
+(`exists_gt_setOfPred_cotangentNorm_le_subset`) and let `W = {z | μ z < r₁}`. It contains the
+zero section, its closure lies in `U`, and it is
 mapped into itself by the fibre scalings and by `τ_R`, which preserves `μ`. The one-form
 `ι^*θ - λ` lives only on `U`, where `ι` is defined; it is closed and restricts to `f^*θ` on
 the zero section, so `CotangentBundle.IsWeinsteinChart.exists_contMDiff_mextDeriv_ofFunction_eq`
@@ -765,13 +766,13 @@ theorem exists_mpullback_dehnTwist_sub_eq [IsManifold I ∞ M] {σ : SmoothTwoFo
   have hθh : TauCeti.mpullback (𝓡 n) I f θ.val = mextDeriv (RoughForm.ofFunction (𝓡 n) h) := by
     simpa using congrArg Subtype.val hh
   -- Step 1: a primitive `g` of `ι^*θ - λ` on `W = {μ < r₁}`, for some `r₁ > r₀`.
-  obtain ⟨r₁, hr₁, hr₁U⟩ := exists_gt_setOf_cotangentNorm_le_subset (U.isOpen.mem_nhdsSet.2 hU)
+  obtain ⟨r₁, hr₁, hr₁U⟩ := exists_gt_setOfPred_cotangentNorm_le_subset (U.isOpen.mem_nhdsSet.2 hU)
   set W : Set (𝕋 n) := {z | cotangentNorm z < r₁} with hW
   have hWo : IsOpen W := isOpen_lt continuous_cotangentNorm continuous_const
   have hWU : closure W ⊆ U :=
     (closure_lt_subset_le continuous_cotangentNorm continuous_const).trans hr₁U
   obtain ⟨g, hg, hdg⟩ := hι.exists_contMDiff_mextDeriv_ofFunction_eq hθ h.contMDiff hθh
-    (fun z hz t ↦ vectorBundleFiberScaling_mem_setOf_cotangentNorm_lt hz t) hWU
+    (fun z hz t ↦ vectorBundleFiberScaling_mem_setOfPred_cotangentNorm_lt hz t) hWU
     fun q ↦ by
       rw [mem_ofPred_eq, cotangentNorm_zeroSection]
       exact hR.pos.trans hr₁
@@ -827,7 +828,7 @@ theorem exists_mpullback_dehnTwist_sub_eq [IsManifold I ∞ M] {σ : SmoothTwoFo
       mextDeriv_ofFunction_add ((contMDiff_twistPrimitive hR).mdifferentiable (by simp))
         ((hgd.comp hτd).sub hgd), Pi.add_apply]
   obtain ⟨K, hK0, -, hK⟩ := SmoothForm.exists_mpullback_sub_eq_mextDerivₗ_of_partialDiffeomorph e
-    (isCompact_setOf_cotangentNorm_le r₀) hWo (fun z hz ↦ lt_of_le_of_lt hz hr₁)
+    (isCompact_setOfPred_cotangentNorm_le r₀) hWo (fun z hz ↦ lt_of_le_of_lt hz hr₁)
     (fun z hz ↦ hes (hWU (subset_closure hz)))
     (fun x hx ↦ dehnTwist_apply_of_notMem ι hR hU (by rwa [← himage])) hk.contMDiffOn
     (fun z _ hz ↦ hk0 z hz) hθk
