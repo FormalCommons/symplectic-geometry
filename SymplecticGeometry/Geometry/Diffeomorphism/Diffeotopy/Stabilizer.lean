@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Support
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Stabilizer
 
 /-!
@@ -20,7 +21,8 @@ equivalence under which Dehn twists are well defined.
 It is the compactly supported analogue of Tau Ceti's `TauCeti.SmoothForm.isotopyStabilizer`, and
 is built in the same way, from Tau Ceti's constant diffeotopy `TauCeti.Diffeotopy.refl`,
 pointwise composite `TauCeti.Diffeotopy.trans` and pointwise inverse `TauCeti.Diffeotopy.symm`;
-the composite of two diffeotopies supported in `K` and `L` is supported in `K ∪ L`.
+the composite of two diffeotopies supported in `K` and `L` is supported in `K ∪ L`
+(`TauCeti.Diffeotopy.mul_apply_eq_self_of_notMem_union`).
 
 Two diffeomorphisms `φ` and `ψ` are joined by such an isotopy, `Φ₁ ∘ φ = ψ`, exactly when
 `ψ * φ⁻¹` lies in the subgroup
@@ -72,8 +74,8 @@ def compactlySupportedIsotopyStabilizer (σ : SmoothForm J M F k) : Subgroup (M 
     rintro _ _ ⟨Φ, K, hK, hΦ, hΦK, rfl⟩ ⟨Ψ, L, hL, hΨ, hΨL, rfl⟩
     refine ⟨Ψ.trans Φ, L ∪ K, hL.union hK, timeSlice_trans_mem_diffeomorphStabilizer hΨ hΦ,
       fun t x hx ↦ ?_, by rw [Diffeotopy.final_trans, Diffeomorph.mul_def]⟩
-    rw [mem_union, not_or] at hx
-    rw [Diffeotopy.trans_apply, hΨL t x hx.1, hΦK t x hx.2]
+    rw [← Diffeotopy.mul_def]
+    exact Diffeotopy.mul_apply_eq_self_of_notMem_union hΨL hΦK t x hx
   inv_mem' := by
     rintro _ ⟨Φ, K, hK, hΦ, hΦK, rfl⟩
     exact ⟨Φ.symm, K, hK, timeSlice_symm_mem_diffeomorphStabilizer hΦ,

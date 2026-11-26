@@ -9,12 +9,12 @@ public import TauCeti.Geometry.Manifold.MFDeriv.Translation
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.ZeroSection
 public import TauCeti.Geometry.Manifold.VectorBundle.Hom
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.TubularNeighborhood.Existence
 import Mathlib.Geometry.Manifold.VectorBundle.Pullback
 import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Quotient
 import TauCeti.Topology.VectorBundle.ZeroSection
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
 import SymplecticGeometry.Topology.VectorBundle.Basic
 
@@ -63,7 +63,17 @@ inverse acts on each fibre by the inverse of the normal derivative, and both fix
 Precomposing a map with the diffeomorphism `bundleDiffeomorph Ψ` given by fibrewise automorphisms
 `Ψ x` composes its normal derivative at `x` with `Ψ x`
 (`normalFiberDeriv_comp_bundleDiffeomorph`), since it turns each ray `t ↦ ⟨x, t • v⟩` into the
-ray of `Ψ x v`. A *normalized tube* (`IsNormalizedTube`) is a diffeomorphism of the total space
+ray of `Ψ x v`.
+
+A tube `Φ` onto an open set `W`, equal to `f` on the zero section, is a local diffeomorphism into
+`N` at every point (`Diffeomorph.isLocalDiffeomorph_subtypeVal_comp`). Its image contains the
+range of `f` (`range_subset_of_apply_zeroSection`), it meets that range only on the zero section
+(`apply_mem_range_iff_of_apply_zeroSection`), its inverse sends `f x` to `0_x`
+(`symm_apply_eq_zeroSection_of_apply_zeroSection`), and its differential at `0_x` sends a
+horizontal vector `(u, 0)` to the differential of `f` applied to `u`
+(`mfderiv_zeroSection_apply_horizontal_of_apply_zeroSection`).
+
+A *normalized tube* (`IsNormalizedTube`) is a diffeomorphism of the total space
 of the normal bundle onto an open set of `N`, equal to `f` on the zero section, whose normal
 derivative is the identity; read in the preferred trivialization at `x`, this says that the
 differential at `0_x` sends each vertical vector `(0, w)` to a vector whose normal class has
@@ -117,6 +127,14 @@ applied to `h`, which is differentiable since the tube is a local diffeomorphism
   section.
 * `TauCeti.SmoothEmbedding.normalFiberDeriv_comp_bundleDiffeomorph`: precomposing with the
   diffeomorphism of fibrewise automorphisms `Ψ x` composes the normal derivative with `Ψ x`.
+* `TauCeti.SmoothEmbedding.range_subset_of_apply_zeroSection`,
+  `TauCeti.SmoothEmbedding.apply_mem_range_iff_of_apply_zeroSection`,
+  `TauCeti.SmoothEmbedding.symm_apply_eq_zeroSection_of_apply_zeroSection`: a tube equal to `f`
+  on the zero section contains the range of `f`, meets it exactly on the zero section, and its
+  inverse sends `f x` to `0_x`.
+* `TauCeti.SmoothEmbedding.mfderiv_zeroSection_apply_horizontal_of_apply_zeroSection`: the
+  differential of such a tube at `0_x` sends `(u, 0)` to the differential of `f` at `x` applied
+  to `u`.
 * `TauCeti.SmoothEmbedding.isNormalizedTube_comp_bundleEquiv`: a tube precomposed with fibrewise
   inverses of its normal derivative is normalized.
 * `TauCeti.SmoothEmbedding.isNormalizedTube_normalFiberDerivDiffeomorph_symm_trans`: a tube equal
@@ -492,6 +510,58 @@ theorem normalFiberDeriv_comp_bundleDiffeomorph (f : SmoothEmbedding I J ∞ M N
   -- types, which are all `V`.
   rfl
 
+section Tube
+
+/-! ### Tubes equal to `f` on the zero section -/
+
+variable (f : SmoothEmbedding I J ∞ M N) (hn : (∞ : ℕ∞ω) ≠ 0)
+  (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) {W : TopologicalSpace.Opens N}
+  (Φ : letI := f.normalSpaceFiberBundle hn hdim
+    TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
+
+/-- The image of a tube that equals `f` on the zero section contains the range of `f`. -/
+theorem range_subset_of_apply_zeroSection
+    (hΦ : letI := f.normalSpaceFiberBundle hn hdim
+      ∀ x, (Φ (zeroSection P _ x) : N) = f x) :
+    Set.range f ⊆ W :=
+  Set.range_subset_iff.2 fun x ↦ hΦ x ▸ (Φ _).property
+
+/-- A tube that equals `f` on the zero section sends a vector into the range of `f` exactly when
+the vector lies on the zero section. -/
+theorem apply_mem_range_iff_of_apply_zeroSection
+    (hΦ : letI := f.normalSpaceFiberBundle hn hdim
+      ∀ x, (Φ (zeroSection P _ x) : N) = f x) (v : TotalSpace P (fun x ↦ f.NormalSpace x hn)) :
+    (Φ v : N) ∈ Set.range f ↔ v ∈ Set.range (zeroSection P (fun x ↦ f.NormalSpace x hn)) := by
+  refine ⟨fun ⟨x, hx⟩ ↦ ⟨x, Φ.injective (Subtype.ext ((hΦ x).trans hx))⟩, ?_⟩
+  rintro ⟨x, rfl⟩
+  exact ⟨x, (hΦ x).symm⟩
+
+/-- The inverse of a tube that equals `f` on the zero section sends `f x` to the zero vector over
+`x`. -/
+theorem symm_apply_eq_zeroSection_of_apply_zeroSection
+    (hΦ : letI := f.normalSpaceFiberBundle hn hdim
+      ∀ x, (Φ (zeroSection P _ x) : N) = f x) (x : M) (hx : f x ∈ W) :
+    letI := f.normalSpaceFiberBundle hn hdim
+    Φ.symm ⟨f x, hx⟩ = zeroSection P _ x :=
+  Φ.symm_apply_eq.2 (Subtype.ext (hΦ x).symm)
+
+/-- A tube that equals `f` on the zero section has, at the zero vector over `x`, a differential
+that sends the horizontal vector `(u, 0)` to the differential of `f` at `x` applied to `u`. -/
+theorem mfderiv_zeroSection_apply_horizontal_of_apply_zeroSection
+    (hΦ : letI := f.normalSpaceFiberBundle hn hdim
+      ∀ x, (Φ (zeroSection P _ x) : N) = f x) (x : M) (u : E) :
+    letI := f.normalSpaceFiberBundle hn hdim
+    mfderiv (I.prod 𝓘(ℝ, P)) J (fun p ↦ (Φ p : N)) (zeroSection P _ x) (u, (0 : P)) =
+      mfderiv I J f x u := by
+  let := f.normalSpaceFiberBundle hn hdim
+  have := f.normalSpaceVectorBundle hn hdim
+  have hb := Bundle.mfderiv_zeroSectionTangentEquiv_symm_inl
+    ((Φ.isLocalDiffeomorph_subtypeVal_comp _).mdifferentiableAt (by simp))
+    (g := f) (b := x) (Filter.Eventually.of_forall hΦ) u
+  rwa [Bundle.zeroSectionTangentEquiv_symm_apply, map_zero] at hb
+
+end Tube
+
 /-- A *normalized tube* of the smooth embedding `f`: a diffeomorphism `Φ` of the total space of
 the normal bundle onto an open set `W` of `N` that sends the zero vector over each `x` to `f x`
 and whose normal derivative `f.normalFiberDeriv hn hdim` is the identity of the normal space at
@@ -558,9 +628,6 @@ theorem IsNormalizedTube.normalClassL_mfderiv_zeroSection {f : SmoothEmbedding I
   let F : TotalSpace P (fun x ↦ f.NormalSpace x hn) → N := fun p ↦ (Φ p : N)
   let p₀ := zeroSection P (fun x ↦ f.NormalSpace x hn) x
   let D := mfderiv (I.prod 𝓘(ℝ, P)) J F p₀
-  have hF : MDifferentiableAt (I.prod 𝓘(ℝ, P)) J F p₀ :=
-    ((isLocalDiffeomorph_subtype_val (I := J) (n := ∞) (U := W) _).mdifferentiableAt
-      (by simp)).comp _ (Φ.contMDiff.mdifferentiableAt (by simp))
   -- Split `v` into its vertical part `a` and its horizontal part `b`. `D` sends `a` to a vector
   -- with normal class of coordinate `v.2`, and `b` to a tangent vector of `f`.
   let a : TangentSpace (I.prod 𝓘(ℝ, P)) p₀ := ((0 : E), v.2)
@@ -571,12 +638,10 @@ theorem IsNormalizedTube.normalClassL_mfderiv_zeroSection {f : SmoothEmbedding I
     exact congrArg D (Prod.ext (zero_add _).symm (add_zero _).symm)
   have ha : f.normalClassL x hn (D a) = e.symmL ℝ x v.2 :=
     (normalFiberDeriv_eq_id_iff f hn hdim F x).1 (hΦ.normalFiberDeriv_eq_id x) v.2
-  have hb := Bundle.mfderiv_zeroSectionTangentEquiv_symm_inl hF
-    (g := f) (Filter.Eventually.of_forall hΦ.apply_zeroSection) v.1
-  rw [Bundle.zeroSectionTangentEquiv_symm_apply, map_zero] at hb
   have hb' : f.normalClassL x hn (D b) = 0 := by
-    -- `hb` is about `((v.1, 0).1, 0)`, which reduces to `b`.
-    have : D b = mfderiv I J f x v.1 := hb
+    have : D b = mfderiv I J f x v.1 :=
+      mfderiv_zeroSection_apply_horizontal_of_apply_zeroSection f hn hdim Φ hΦ.apply_zeroSection
+        x v.1
     rw [this, normalClassL_apply]
     exact normalClass_mfderiv f x hn _
   -- The two sums live in tangent spaces of `N` at `F p₀` and at `f x`, both `V`.
@@ -614,8 +679,7 @@ theorem isNormalizedTube_comp_bundleEquiv (f : SmoothEmbedding I J ∞ M N)
   · rw [Diffeomorph.coe_trans, Function.comp_apply, bundleDiffeomorph_zeroSection]
     exact hΦ x
   · have hd : MDifferentiableAt (I.prod 𝓘(ℝ, P)) J (fun p ↦ (Φ p : N)) (zeroSection P _ x) :=
-      ((isLocalDiffeomorph_subtype_val (I := J) (n := ∞) (U := W) _).mdifferentiableAt
-        (by simp)).comp _ (Φ.contMDiff.mdifferentiableAt (by simp))
+      (Φ.isLocalDiffeomorph_subtypeVal_comp _).mdifferentiableAt (by simp)
     rw [← hΦΨ x, ← normalFiberDeriv_comp_bundleDiffeomorph f hn hdim hd Ψ hΨ,
       Diffeomorph.coe_trans]
     -- The two maps differ only in where `Function.comp` and the coercion to `N` are applied.
@@ -667,12 +731,8 @@ theorem exists_isNormalizedTube_subset [I.Boundaryless] [J.Boundaryless] [T2Spac
   intro hn
   let := f.normalSpaceFiberBundle hn hdim
   obtain ⟨W, hWO, Φ, hΦ⟩ := f.exists_diffeomorph_normalBundle_subset (P := P) hdim hO hfO
-  -- The tube as a map into `N` is a local diffeomorphism.
-  have hl (x : M) : IsLocalDiffeomorphAt (I.prod 𝓘(ℝ, P)) J ∞ (fun p ↦ (Φ p : N))
-      (zeroSection P _ x) :=
-    (Φ.isLocalDiffeomorph _).comp (hg := isLocalDiffeomorph_subtype_val (U := W) _)
-  exact ⟨W, hWO, _,
-    f.isNormalizedTube_normalFiberDerivDiffeomorph_symm_trans hn hdim Φ hl (funext hΦ)⟩
+  exact ⟨W, hWO, _, f.isNormalizedTube_normalFiberDerivDiffeomorph_symm_trans hn hdim Φ
+    (fun _ ↦ Φ.isLocalDiffeomorph_subtypeVal_comp _) (funext hΦ)⟩
 
 /-- Let `Φ` be a normalized tube of `f`, `x : M`, and `e` the preferred trivialization of the normal
 bundle at `x`. Let `g : P → N` have derivative `A` at `0`, such that the normal class of each
@@ -704,7 +764,7 @@ theorem IsNormalizedTube.hasFDerivAt_trivializationAt_snd {f : SmoothEmbedding I
   set F : TotalSpace P (fun x ↦ f.NormalSpace x hn) → N := fun p ↦ (Φ p : N)
   set p₀ := zeroSection P (fun x ↦ f.NormalSpace x hn) x
   have hl : IsLocalDiffeomorphAt (I.prod 𝓘(ℝ, P)) J ∞ F p₀ :=
-    (Φ.isLocalDiffeomorph _).comp (hg := isLocalDiffeomorph_subtype_val (U := W) _)
+    Φ.isLocalDiffeomorph_subtypeVal_comp p₀
   have hFh : F ∘ h =ᶠ[𝓝 0] g := hgh
   -- `h` is differentiable at `0`, and its differential `L` followed by the differential `D` of
   -- `F` at `p₀` is `A`.

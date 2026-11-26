@@ -104,15 +104,10 @@ the de Rham homomorphism sends the real first Chern class of the circle bundle o
 of `V` to minus the real image of the Euler class of `V` in `H²(M; ℝ)`. -/
 theorem deRhamHom_realFirstChernClass_eq_neg_of_connectedSpace [ConnectedSpace M]
     [Orientable (𝓡 2) M] :
-    letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-    letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-    letI : IsContinuousRiemannianBundle F V :=
-      instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
-    haveI : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) (𝓡 2) (𝓡 1) :=
-      contMDiffFiberBundle_circleFiber g hI
-    deRhamHom (𝓡 2) M 2 (realFirstChernClass (𝓡 2) (Fiber ℂ F V ℂ)) =
+    deRhamHom (𝓡 2) M 2 (g.realFirstChernClass hI) =
       -(TopCat.of M).singularCohomologyRealImageAddMonoidHom 2
         (complexEulerClass (r := 0) F V Fact.out) := by
+  rw [ContMDiffRiemannianMetric.realFirstChernClass_def]
   let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
   let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
   let : IsContinuousRiemannianBundle F V :=
@@ -176,25 +171,13 @@ the real image of the Euler class of `f *ᵖ V` is the pull-back along `f` of th
 `V`. -/
 theorem deRhamHom_realFirstChernClass_add_realImage_pullback :
     haveI := _root_.Bundle.Pullback.contMDiffVectorBundle (F := F) (E := V) hf
-    (letI : RiemannianBundle ((⇑f) *ᵖ V) := ⟨g''.toRiemannianMetric⟩
-     letI : ∀ x, InnerProductSpace ℂ (((⇑f) *ᵖ V) x) := g''.complexInnerProductSpace hI''
-     letI : IsContinuousRiemannianBundle F ((⇑f) *ᵖ V) :=
-       instIsContinuousRiemannianBundle g''.toContinuousRiemannianMetric
-     haveI : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F ((⇑f) *ᵖ V) ℂ) IB' (𝓡 1) :=
-       contMDiffFiberBundle_circleFiber g'' hI''
-     deRhamHom IB' B' 2 (realFirstChernClass IB' (Fiber ℂ F ((⇑f) *ᵖ V) ℂ)) +
-      (TopCat.of B').singularCohomologyRealImageAddMonoidHom 2
-        (complexEulerClass (r := 0) F ((⇑f) *ᵖ V) Fact.out)) =
-    TopCat.singularCohomologyMap (TopCat.ofHom f) 2
-    (letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-     letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-     letI : IsContinuousRiemannianBundle F V :=
-       instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
-     haveI : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) IB (𝓡 1) :=
-       contMDiffFiberBundle_circleFiber g hI
-     deRhamHom IB B 2 (realFirstChernClass IB (Fiber ℂ F V ℂ)) +
-      (TopCat.of B).singularCohomologyRealImageAddMonoidHom 2
-        (complexEulerClass (r := 0) F V Fact.out)) := by
+    deRhamHom IB' B' 2 (g''.realFirstChernClass hI'') +
+        (TopCat.of B').singularCohomologyRealImageAddMonoidHom 2
+          (complexEulerClass (r := 0) F ((⇑f) *ᵖ V) Fact.out) =
+      TopCat.singularCohomologyMap (TopCat.ofHom f) 2
+        (deRhamHom IB B 2 (g.realFirstChernClass hI) +
+          (TopCat.of B).singularCohomologyRealImageAddMonoidHom 2
+            (complexEulerClass (r := 0) F V Fact.out)) := by
   rw [realFirstChernClass_circleFiber_pullback g hI f hf g'' hI'', deRhamHom_map,
     complexEulerClass_pullback, TopCat.singularCohomologyRealImageAddMonoidHom_naturality]
   exact (map_add _ _ _).symm
@@ -205,23 +188,11 @@ real first Chern class of the unitary frame bundle of `V` is minus the real imag
 class of `V`, then the same holds for `f *ᵖ V` along a smooth map `f : B' → B`, with any smooth
 Hermitian metric on `f *ᵖ V`. -/
 theorem deRhamHom_realFirstChernClass_pullback_eq_neg
-    (h : letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-      letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-      letI : IsContinuousRiemannianBundle F V :=
-        instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
-      haveI : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) IB (𝓡 1) :=
-        contMDiffFiberBundle_circleFiber g hI
-      deRhamHom IB B 2 (realFirstChernClass IB (Fiber ℂ F V ℂ)) =
+    (h : deRhamHom IB B 2 (g.realFirstChernClass hI) =
         -(TopCat.of B).singularCohomologyRealImageAddMonoidHom 2
           (complexEulerClass (r := 0) F V Fact.out)) :
     haveI := _root_.Bundle.Pullback.contMDiffVectorBundle (F := F) (E := V) hf
-    letI : RiemannianBundle ((⇑f) *ᵖ V) := ⟨g''.toRiemannianMetric⟩
-    letI : ∀ x, InnerProductSpace ℂ (((⇑f) *ᵖ V) x) := g''.complexInnerProductSpace hI''
-    letI : IsContinuousRiemannianBundle F ((⇑f) *ᵖ V) :=
-      instIsContinuousRiemannianBundle g''.toContinuousRiemannianMetric
-    haveI : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F ((⇑f) *ᵖ V) ℂ) IB' (𝓡 1) :=
-      contMDiffFiberBundle_circleFiber g'' hI''
-    deRhamHom IB' B' 2 (realFirstChernClass IB' (Fiber ℂ F ((⇑f) *ᵖ V) ℂ)) =
+    deRhamHom IB' B' 2 (g''.realFirstChernClass hI'') =
       -(TopCat.of B').singularCohomologyRealImageAddMonoidHom 2
         (complexEulerClass (r := 0) F ((⇑f) *ᵖ V) Fact.out) := by
   refine eq_neg_of_add_eq_zero_left ?_
@@ -238,22 +209,10 @@ theorem deRhamHom_realFirstChernClass_eq_neg_of_pullback
       (TopCat.singularCohomologyMap (R := ModuleCat.of ℝ ℝ) (k := ℝ) (M := ModuleCat.of ℝ ℝ)
         (TopCat.ofHom f) 2))
     (h : haveI := _root_.Bundle.Pullback.contMDiffVectorBundle (F := F) (E := V) hf
-      letI : RiemannianBundle ((⇑f) *ᵖ V) := ⟨g''.toRiemannianMetric⟩
-      letI : ∀ x, InnerProductSpace ℂ (((⇑f) *ᵖ V) x) := g''.complexInnerProductSpace hI''
-      letI : IsContinuousRiemannianBundle F ((⇑f) *ᵖ V) :=
-        instIsContinuousRiemannianBundle g''.toContinuousRiemannianMetric
-      haveI : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F ((⇑f) *ᵖ V) ℂ) IB' (𝓡 1) :=
-        contMDiffFiberBundle_circleFiber g'' hI''
-      deRhamHom IB' B' 2 (realFirstChernClass IB' (Fiber ℂ F ((⇑f) *ᵖ V) ℂ)) =
+      deRhamHom IB' B' 2 (g''.realFirstChernClass hI'') =
         -(TopCat.of B').singularCohomologyRealImageAddMonoidHom 2
           (complexEulerClass (r := 0) F ((⇑f) *ᵖ V) Fact.out)) :
-    letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-    letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-    letI : IsContinuousRiemannianBundle F V :=
-      instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
-    haveI : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) IB (𝓡 1) :=
-      contMDiffFiberBundle_circleFiber g hI
-    deRhamHom IB B 2 (realFirstChernClass IB (Fiber ℂ F V ℂ)) =
+    deRhamHom IB B 2 (g.realFirstChernClass hI) =
       -(TopCat.of B).singularCohomologyRealImageAddMonoidHom 2
         (complexEulerClass (r := 0) F V Fact.out) := by
   refine eq_neg_of_add_eq_zero_left (hinj ?_)

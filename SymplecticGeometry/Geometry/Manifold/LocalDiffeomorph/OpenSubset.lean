@@ -53,7 +53,9 @@ the image of `C` under `Φ` (`PartialDiffeomorph.image_liftOpens`). When `Φ` is
 between `U` and `V`, the lift has source `U` and target `V`, and takes the values of `Φ` on `U`
 (`Diffeomorph.toPartialDiffeomorph_liftOpens_source`,
 `Diffeomorph.toPartialDiffeomorph_liftOpens_target`,
-`Diffeomorph.toPartialDiffeomorph_liftOpens_apply_coe`).
+`Diffeomorph.toPartialDiffeomorph_liftOpens_apply_coe`). A diffeomorphism from `M` onto an open
+subset of `N`, followed by the inclusion, is a local diffeomorphism from `M` to `N`
+(`Diffeomorph.isLocalDiffeomorph_subtypeVal_comp`), by the first point above.
 
 ## Main results
 
@@ -80,6 +82,8 @@ between `U` and `V`, the lift has source `U` and target `V`, and takes the value
   `Diffeomorph.toPartialDiffeomorph_liftOpens_apply_coe`: a diffeomorphism between open subsets
   `U` and `V`, read as a partial diffeomorphism of the ambient manifolds, has source `U` and
   target `V`, and agrees with the diffeomorphism on `U`.
+* `Diffeomorph.isLocalDiffeomorph_subtypeVal_comp`: a diffeomorphism onto an open subset,
+  followed by the inclusion of that subset, is a local diffeomorphism.
 -/
 
 public section
@@ -266,6 +270,12 @@ diffeomorphism from `M` to `N`, takes the values of `Φ` on `U`. -/
 theorem toPartialDiffeomorph_liftOpens_apply_coe (x : U) :
     Φ.toPartialDiffeomorph.liftOpens hU hV x = Φ x := by
   rw [PartialDiffeomorph.liftOpens_apply_coe, coe_toPartialDiffeomorph]
+
+/-- A diffeomorphism `Ψ` from `M` onto an open subset `V` of `N`, followed by the inclusion of `V`,
+is a `C^n` local diffeomorphism from `M` to `N`. -/
+theorem isLocalDiffeomorph_subtypeVal_comp (Ψ : M ≃ₘ^n⟮I, J⟯ V) :
+    IsLocalDiffeomorph I J n (fun x ↦ (Ψ x : N)) :=
+  TauCeti.isLocalDiffeomorph_subtypeVal_comp_iff.2 Ψ.isLocalDiffeomorph
 
 end Diffeomorph
 
