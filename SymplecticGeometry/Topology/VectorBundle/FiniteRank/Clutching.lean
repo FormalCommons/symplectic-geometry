@@ -49,7 +49,8 @@ and the fibres may be over any nontrivially normed field.
 * `TauCeti.FiniteRankBundleCore.nonempty_iso_clutching_of_homotopic`: over a paracompact R₁
   space, clutchings by automorphisms joined by a family over `X × I` are isomorphic.
 * `TauCeti.FiniteRankBundleCore.circleZPowIso X n`: the automorphism of the trivial line over
-  `X × Circle` that multiplies the fibre over `(x, u)` by `u ^ n`.
+  `X × Circle` that multiplies the fibre over `(x, u)` by `u ^ n`; for `n = 0` it is the identity
+  (`circleZPowIso_zero`).
 * `SymplecticGeometry.ProjectiveLine.innerSection` and `outerSection`: the vectors
   `(z, 1) / max 1 |z|` and `(1, w) / max 1 |w|` of the lines `[z : 1]` and `[1 : w]`, multiples
   of `Projectivization.normalizedRep` and nonzero on the affine opens; on the
@@ -513,6 +514,10 @@ theorem fiberMap_circleZPowIso_inv (n : ℤ) (b : X × Circle) :
   -- Multiplication by a unit is multiplication by its value.
   rw [← Circle.coe_zpow, ← Circle.coe_inv]
   rfl
+
+/-- Multiplication by `u ^ 0` is the identity: `circleZPowIso X 0` is the identity automorphism. -/
+theorem circleZPowIso_zero : circleZPowIso X 0 = Iso.refl _ :=
+  Iso.ext <| hom_ext fun b ↦ by simp
 
 end TauCeti.FiniteRankBundleCore
 
