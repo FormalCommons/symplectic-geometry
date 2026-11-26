@@ -43,7 +43,7 @@ public section
 open Metric Set Topology
 open scoped Manifold ContDiff
 open SymplecticGeometry (annulus annulus_mono mem_annulus)
-open Complex (closedAnnulus isCompact_closedAnnulus mem_closedAnnulus)
+open Complex (closedAnnulus closedAnnulus_subset_annulus isCompact_closedAnnulus mem_closedAnnulus)
 
 variable {F G M : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
   [TopologicalSpace G] {J : ModelWithCorners ℝ F G} [J.Boundaryless]
@@ -65,15 +65,13 @@ theorem ContMDiffOn.exists_contMDiffOn_ball_eq_of_nullhomotopic {n : ℕ∞} {a 
   -- image
   obtain ⟨F₀, hF₀K, hF₀f⟩ := ContinuousOn.exists_continuousMap_eq_of_nullhomotopic
     (r := r₀) (R := b') (by linarith) (by linarith) (by linarith)
-    (hf.continuousOn.mono fun z hz ↦ mem_annulus.2
-      ⟨by linarith [(mem_closedAnnulus.1 hz).1], by linarith [(mem_closedAnnulus.1 hz).2]⟩)
+    (hf.continuousOn.mono (closedAnnulus_subset_annulus (by linarith) (by linarith)))
     γ hγ hγ0
   set S : Set ℂ := closedAnnulus a' 1
   set U : Set ℂ := (annulus ℂ r₀ b' : Set ℂ)
   have hS : IsClosed S := (isCompact_closedAnnulus a' 1).isClosed
   have hU : IsOpen U := (annulus ℂ r₀ b').isOpen
-  have hSU : S ⊆ U := fun z hz ↦ mem_annulus.2
-    ⟨by linarith [(mem_closedAnnulus.1 hz).1], by linarith [(mem_closedAnnulus.1 hz).2]⟩
+  have hSU : S ⊆ U := closedAnnulus_subset_annulus (by linarith) (by linarith)
   have hF₀U (z : ℂ) (hz : z ∈ U) : F₀ z = f z :=
     hF₀f z (mem_annulus.1 hz).1.le (mem_annulus.1 hz).2.le
   -- the relative Whitney approximation gives a `C^n` map `g₀` equal to `F₀` on `S`

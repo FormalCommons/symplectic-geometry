@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Topology.UnitInterval
 public import SymplecticGeometry.Analysis.Complex.RadialProjection
+public import SymplecticGeometry.Topology.Sets.Annulus
 public import TauCeti.Topology.Algebra.Projectivization
 
 /-!
@@ -27,7 +28,7 @@ parts over the discs and the annulus, and `X × Circle` that the clutching const
   line (`innerDisc_union_outerDisc`), and inside the affine opens `1` and `0`
   (`innerDisc_subset_affineOpen`, `outerDisc_subset_affineOpen`).
 * `SymplecticGeometry.ProjectiveLine.affineChart_symm_mem_annulus_iff`: the point `[z : 1]` lies
-  in the annulus `innerDisc ∩ outerDisc` exactly when `1/2 < |z| < 2`.
+  in the annulus `innerDisc ∩ outerDisc` exactly when `z 0 ∈ annulus ℂ 2⁻¹ 2`.
 * `SymplecticGeometry.ProjectiveLine.annulusCoord`: the affine coordinate `z` of the points
   `[z : 1]` of the annulus, as a nonzero complex number.
 * `SymplecticGeometry.ProjectiveLine.annulusToCircle`: the radial retraction of the annulus onto
@@ -165,10 +166,11 @@ theorem coe_annulusToCircle_apply (p : ↥(innerDisc ∩ outerDisc)) :
   simp [annulusToCircle_def]
 
 /-- The point `[z : 1]` of the projective line lies in the annulus `innerDisc ∩ outerDisc` exactly
-when `1/2 < |z| < 2`. -/
+when `z 0` lies in the open annulus `annulus ℂ 2⁻¹ 2`, that is `1/2 < |z 0| < 2`. -/
 theorem affineChart_symm_mem_annulus_iff (z : Fin 1 → ℂ) :
-    (affineChart 1).symm z ∈ innerDisc ∩ outerDisc ↔ 2⁻¹ < ‖z 0‖ ∧ ‖z 0‖ < 2 := by
-  rw [affineChart_symm_apply, mem_inter_iff, mk_mem_innerDisc_iff, mk_mem_outerDisc_iff]
+    (affineChart 1).symm z ∈ innerDisc ∩ outerDisc ↔ z 0 ∈ annulus ℂ 2⁻¹ 2 := by
+  rw [affineChart_symm_apply, mem_inter_iff, mk_mem_innerDisc_iff, mk_mem_outerDisc_iff,
+    mem_annulus]
   have h0 : Fin.insertNth (α := fun _ ↦ ℂ) 1 1 z 0 = z 0 := by
     simp
   rw [Fin.insertNth_apply_same, h0, div_one, one_div, norm_inv]
@@ -182,18 +184,12 @@ theorem affineChart_symm_mem_annulus_iff (z : Fin 1 → ℂ) :
     refine ⟨⟨one_ne_zero, h2⟩, norm_pos_iff.1 hpos, ?_⟩
     rwa [inv_lt_comm₀ hpos (by norm_num)]
 
-/-! ### Maps on products with the projective line
-
-The bodies of `clutchingMap`, `circleToAnnulus` and `annulusDeformation` are exposed: pullbacks
-of cores along them are compared with pullbacks along the projections by definitional unfolding,
-as in `TauCeti.FiniteRankBundleCore.clutchingAut`.
--/
+/-! ### Maps on products with the projective line -/
 
 variable (X : Type*) [TopologicalSpace X]
 
 /-- The map from the product of `X` with the annulus of the projective line to `X × Circle`:
 the identity on `X`, and the radial retraction `annulusToCircle` on the annulus. -/
-@[expose]
 def clutchingMap :
     C(↥(Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc : Set (X × ℙ ℂ (Fin 2 → ℂ))),
       X × Circle) :=
@@ -207,6 +203,13 @@ theorem clutchingMap_apply
     (w : ↥(Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc : Set (X × ℙ ℂ (Fin 2 → ℂ)))) :
     clutchingMap X w = (w.val.1, annulusToCircle ⟨w.val.2, w.property⟩) :=
   (rfl)
+
+/-- `clutchingMap` is the identity on the factor `X`. -/
+@[simp]
+theorem fst_comp_clutchingMap :
+    ContinuousMap.fst.comp (clutchingMap X) =
+      ContinuousMap.fst.comp (ContinuousMap.subtypeVal _) :=
+  ContinuousMap.ext fun w ↦ by simp
 
 /-- The inverse of the affine chart `i` of the projective line, in the second factor of
 `X × (Fin 1 → ℂ)`. -/
@@ -238,8 +241,9 @@ theorem radialDeform_def (z : Fin 1 → ℂ) (t : ℝ) :
   (rfl)
 
 /-- The radial deformation keeps the annulus `1/2 < |z| < 2` in itself at each time `t ∈ [0, 1]`. -/
-theorem radialDeform_mem {z : Fin 1 → ℂ} (hz : 2⁻¹ < ‖z 0‖ ∧ ‖z 0‖ < 2) {t : ℝ}
-    (ht : t ∈ I) : 2⁻¹ < ‖radialDeform z t 0‖ ∧ ‖radialDeform z t 0‖ < 2 := by
+theorem radialDeform_mem {z : Fin 1 → ℂ} (hz : z 0 ∈ annulus ℂ 2⁻¹ 2) {t : ℝ}
+    (ht : t ∈ I) : radialDeform z t 0 ∈ annulus ℂ 2⁻¹ 2 := by
+  rw [mem_annulus] at hz ⊢
   have hpos : 0 < ‖z 0‖ := lt_trans (by norm_num) hz.1
   have hc : 0 ≤ (1 - t) + t * ‖z 0‖⁻¹ :=
     add_nonneg (sub_nonneg.2 ht.2) (mul_nonneg ht.1 (inv_nonneg.2 (norm_nonneg _)))
@@ -253,7 +257,6 @@ theorem radialDeform_mem {z : Fin 1 → ℂ} (hz : 2⁻¹ < ‖z 0‖ ∧ ‖z 0
 
 /-- The map `(x, u) ↦ (x, [u : 1])` from `X × Circle` to the product of `X` with the annulus
 `innerDisc ∩ outerDisc`. -/
-@[expose]
 def circleToAnnulus :
     C(X × Circle, ↥(Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc :
       Set (X × ℙ ℂ (Fin 2 → ℂ)))) :=
@@ -268,10 +271,16 @@ theorem coe_circleToAnnulus_apply (q : X × Circle) :
       (q.1, (affineChart 1).symm fun _ ↦ (q.2 : ℂ)) :=
   (rfl)
 
+/-- `circleToAnnulus` is the identity on the factor `X`. -/
+@[simp]
+theorem fst_comp_subtypeVal_comp_circleToAnnulus :
+    ContinuousMap.fst.comp ((ContinuousMap.subtypeVal _).comp (circleToAnnulus X)) =
+      ContinuousMap.fst :=
+  ContinuousMap.ext fun q ↦ by simp
+
 /-- The radial deformation of the product of `X` with the annulus onto the product with the unit
 circle, `((x, [z : 1]), t) ↦ (x, [((1 - t) + t / |z|) z : 1])`, on the part over the annulus of
 `(X × ℙ ℂ (Fin 2 → ℂ)) × I`. -/
-@[expose]
 def annulusDeformation :
     C(↥(Prod.fst ⁻¹' (Prod.snd ⁻¹' innerDisc) ∩ Prod.fst ⁻¹' (Prod.snd ⁻¹' outerDisc) :
         Set ((X × ℙ ℂ (Fin 2 → ℂ)) × I)),
@@ -314,6 +323,13 @@ theorem coe_annulusDeformation_apply
         (((1 - w.val.2) + w.val.2 * ‖affineChart 1 w.val.1.2 0‖⁻¹ : ℝ) •
           affineChart 1 w.val.1.2)) :=
   (rfl)
+
+/-- `annulusDeformation` is the identity on the factor `X`. -/
+@[simp]
+theorem fst_comp_subtypeVal_comp_annulusDeformation :
+    ContinuousMap.fst.comp ((ContinuousMap.subtypeVal _).comp (annulusDeformation X)) =
+      ContinuousMap.fst.comp (ContinuousMap.fst.comp (ContinuousMap.subtypeVal _)) :=
+  ContinuousMap.ext fun w ↦ by simp [coe_annulusDeformation_apply]
 
 /-- At time `0`, the radial deformation of the annulus is the identity. -/
 theorem annulusDeformation_zero

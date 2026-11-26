@@ -18,6 +18,7 @@ public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Basic
 public import Mathlib.Geometry.Manifold.VectorBundle.CovariantDerivative.Metric
 import SymplecticGeometry.Geometry.Manifold.DeRham.Circle
 import TauCeti.Geometry.Manifold.MFDeriv.Inner
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.NormedSpace
 
 /-!
 # The connection on the powers of a principal circle bundle
@@ -267,10 +268,7 @@ theorem powerConnection_apply_frame (hα : IsCircleConnectionForm α) {σ : ∀ 
       x hg
   have hc : MDifferentiableAt IB 𝓘(ℝ, ℂ) c x :=
     ((contMDiff_coe_sphere (m := 1)).mdifferentiableAt one_ne_zero).comp x hgk
-  have hcf : MDifferentiableAt IB 𝓘(ℝ, PowerModel k) (c • f) x :=
-    (mdifferentiableAt_iff _ _).2 ⟨hc.continuousAt.smul hf.continuousAt,
-      hc.differentiableWithinAt_writtenInExtChartAt.smul
-        hf.differentiableWithinAt_writtenInExtChartAt⟩
+  have hcf : MDifferentiableAt IB 𝓘(ℝ, PowerModel k) (c • f) x := hc.smul_algebra hf
   have hgc (y : B) : ((g y : ℂ) ^ k) * c y = 1 := by
     simp only [hcdef]
     rw [Circle.coe_zpow, zpow_neg, mul_inv_cancel₀ (zpow_ne_zero _ (Circle.coe_ne_zero _))]
