@@ -23,7 +23,8 @@ fundamental class.
 * `SymplecticGeometry.intCastCoeff k : ULift ℤ → k`: the cast of integers, as a map of
   coefficients, along which `SSet.restrictScalarsChainMap` turns an integral chain into a chain
   with coefficients in `k` (`SymplecticGeometry.restrictScalarsChainMap_intCastCoeff_f_comp_apply`
-  on simplices).
+  on simplices). It is Tau Ceti's `TauCeti.intToRealCoeff` with any commutative ring `k` in
+  place of `ℝ`, and serves for `k = ℚ` as well as `k = ℝ`.
 * `TopCat.singularCochainComplexRestrictScalarsIso`: the restricted `k`-linear cochains are the
   same morphisms, with the action of `ℤ` of the `ℤ`-linear category `ModuleCat k`.
 * `TopCat.singularCochainComplexIntChainsIso`: the comparison of cochains, the composite of the
@@ -36,9 +37,10 @@ fundamental class.
   cohomology, natural under continuous maps
   (`TopCat.singularCohomologyIntChainsIso_hom_naturality`), and its value on the class of a
   cocycle (`TopCat.map_homologyπ_singularCohomologyIntChainsIso_hom`).
-* `TopCat.chainComplexMap_f_singularCochainComplexIntChainsIso_hom_f`: read through integral
-  chains, a cochain `ψ` takes on an integral chain, of any simplicial set over the singular one,
-  the value of `ψ` on that chain with its coefficients cast to `k`.
+* `TopCat.singularCochainComplexIntChainsIso_hom_f_eq`: read through integral chains, a cochain
+  `ψ` is `ψ` precomposed with the chain map that casts coefficients to `k`; on the integral
+  chains of a simplicial set over the singular one, this is
+  `TopCat.chainComplexMap_f_singularCochainComplexIntChainsIso_hom_f`.
 
 ## References
 
@@ -288,12 +290,29 @@ theorem singularCohomologyIntChainsIso_hom_naturality {Y : TopCat.{0}} (f : X �
       (singularCochainComplexMap (R := ModuleCat.of k k) (k := k) (M := ModuleCat.of k k) f))
     (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)) _)
 
+/-- **Restricting a cochain to integral chains.** Read through integral chains, a `k`-linear
+cochain `ψ` of `X` is `ψ` precomposed with the chain map that casts the coefficients of integral
+chains to `k` (`SSet.restrictScalarsChainMap` along `SymplecticGeometry.intCastCoeff`). -/
+theorem singularCochainComplexIntChainsIso_hom_f_eq (p : ℕ)
+    (ψ : ((toSSet.obj X).chainComplex (ModuleCat.of k k)).X p ⟶ ModuleCat.of k k) :
+    (X.singularCochainComplexIntChainsIso k).hom.f p ψ =
+      (SSet.restrictScalarsChainMap (algebraMap ℤ k) (N := ModuleCat.of k k)
+        (SymplecticGeometry.intCastCoeff k ≫
+          (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := k) k).inv) (toSSet.obj X)).f p ≫
+        (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).map ψ ≫
+          (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := k) k).hom := by
+  refine SSet.chainComplex_hom_ext fun σ ↦ ?_
+  ext a
+  refine (X.singularCochainComplexIntChainsIso_hom_f_apply_ιChainComplex k σ ψ a).trans ?_
+  rw [ConcreteCategory.comp_apply,
+    SymplecticGeometry.restrictScalarsChainMap_intCastCoeff_f_comp_apply]
+
 variable {X} in
-/-- **Restricting a cochain to integral chains.** For a map `j : S ⟶ toSSet X` of simplicial sets
-and a `k`-linear cochain `ψ` of `X`, the cochain `ψ` read through integral chains, on the image
-under `j` of a chain of `S` with coefficients `ULift ℤ`, is `ψ` on the image under `j` of that
-chain with its coefficients cast to `k` (`SSet.restrictScalarsChainMap` along
-`SymplecticGeometry.intCastCoeff`). -/
+/-- **Restricting a cochain to integral chains of a simplicial set over `X`.** For a map
+`j : S ⟶ toSSet X` of simplicial sets and a `k`-linear cochain `ψ` of `X`, the cochain `ψ` read
+through integral chains, on the image under `j` of a chain of `S` with coefficients `ULift ℤ`, is
+`ψ` on the image under `j` of that chain with its coefficients cast to `k`
+(`SSet.restrictScalarsChainMap` along `SymplecticGeometry.intCastCoeff`). -/
 theorem chainComplexMap_f_singularCochainComplexIntChainsIso_hom_f {S : SSet.{0}}
     (j : S ⟶ toSSet.obj X) (p : ℕ)
     (ψ : ((toSSet.obj X).chainComplex (ModuleCat.of k k)).X p ⟶ ModuleCat.of k k) :
@@ -305,16 +324,8 @@ theorem chainComplexMap_f_singularCochainComplexIntChainsIso_hom_f {S : SSet.{0}
         (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).map
             ((SSet.chainComplexMap j (ModuleCat.of k k)).f p ≫ ψ) ≫
           (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := k) k).hom := by
-  refine SSet.chainComplex_hom_ext fun σ ↦ ?_
-  ext a
-  refine (ConcreteCategory.congr_hom (SSet.ι_chainComplexMap_f_assoc (f := j) (x := σ)
-    (R := ModuleCat.of ℤ (ULift.{0} ℤ))
-      (h := (X.singularCochainComplexIntChainsIso k).hom.f p ψ)) a).trans ?_
-  refine (X.singularCochainComplexIntChainsIso_hom_f_apply_ιChainComplex k _ ψ a).trans ?_
-  rw [ConcreteCategory.comp_apply,
-    SymplecticGeometry.restrictScalarsChainMap_intCastCoeff_f_comp_apply]
-  exact congrArg _
-    (ConcreteCategory.congr_hom (SSet.ι_chainComplexMap_f_assoc (f := j) (x := σ) (h := ψ)) 1).symm
+  rw [singularCochainComplexIntChainsIso_hom_f_eq,
+    SSet.chainComplexMap_f_restrictScalarsChainMap_assoc, Functor.map_comp, Category.assoc]
 
 end TopCat
 
