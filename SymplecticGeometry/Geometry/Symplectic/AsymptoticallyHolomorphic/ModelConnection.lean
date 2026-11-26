@@ -27,8 +27,6 @@ becomes `A₀`.
   is `-2π` times Tau Ceti's radial primitive `TauCeti.SymplecticForm.radialPrimitive` of `ω₀`.
 * `SymplecticGeometry.mextDeriv_stdConnectionForm`: `dA₀ = -2π ω₀`, from Tau Ceti's
   `TauCeti.SymplecticForm.mextDeriv_radialPrimitive`.
-* `TauCeti.SymplecticForm.mpullback_const_smul_radialPrimitive`: the radial primitive is
-  homogeneous of degree two, its pull-back along `x ↦ a • x` being `a ^ 2` times itself.
 * `SymplecticGeometry.exists_contDiffOn_add_mextDeriv_eq_stdConnectionForm`: if a one-form `β`
   on `StdSpace ι` is `Cʳ` (`r ≥ 1`) on an open star-convex set `s` and `dβ = -2π ω₀` on `s`,
   there is a function `θ`, `Cʳ⁺¹` on `s`, with `β + dθ = A₀` on `s`. The closed form `A₀ - β`
@@ -50,33 +48,6 @@ noncomputable section
 
 open TauCeti
 open scoped ContDiff Manifold
-
-namespace TauCeti.SymplecticForm
-
-variable {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]
-  (B : SymplecticForm V)
-
-/-- **The radial primitive is homogeneous of degree two**: its pull-back along the dilation
-`x ↦ a • x` is `a ^ 2` times itself. -/
-theorem mpullback_const_smul_radialPrimitive (a : ℝ) :
-    mpullback 𝓘(ℝ, V) 𝓘(ℝ, V) (a • ·) B.radialPrimitive.val = a ^ 2 • B.radialPrimitive.val := by
-  funext x
-  ext v
-  obtain ⟨w, rfl⟩ : ∃ w, v = ![w] := ⟨v 0, by funext i; fin_cases i; rfl⟩
-  -- `w` is a tangent vector at `x` and its image one at `a • x`; both sides are read in `V`.
-  have hm : @Eq V (mfderiv 𝓘(ℝ, V) 𝓘(ℝ, V) (a • ·) x w) (a • w) :=
-    congrArg (· w) ((hasFDerivAt_id x).const_smul a).hasMFDerivAt.mfderiv
-  rw [mpullback_apply_one, radialPrimitive_apply, Pi.smul_apply,
-    ContinuousAlternatingMap.smul_apply, radialPrimitive_apply, hm]
-  simp only [map_smul, smul_eq_mul]
-  have key (u : V) : 2⁻¹ * (a • B.toBilinForm x) (a • u) = a ^ 2 * (2⁻¹ * B.toBilinForm x u) := by
-    simp only [LinearMap.smul_apply, map_smul, smul_eq_mul]
-    ring
-  -- The goal is `key w`, with `w` typed as a tangent vector at `x` rather than in `V`, which
-  -- blocks `rw [LinearMap.smul_apply]` on it directly.
-  exact key w
-
-end TauCeti.SymplecticForm
 
 namespace SymplecticGeometry
 

@@ -20,6 +20,7 @@ import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Extension
 import TauCeti.Geometry.Manifold.Flow.TimeDependent
 import TauCeti.Geometry.Manifold.MFDeriv.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
+import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LeftInverse
 import TauCeti.Geometry.Manifold.SmoothIsotopy.Velocity.Basic
 
@@ -72,6 +73,11 @@ smooth isotopy of a point, whose slices are smooth embeddings by Tau Ceti's
 `TauCeti.isSmoothEmbedding_const_of_subsingleton`
 (`ContMDiff.exists_contMDiff_diffeomorph_forall_apply_eq`).
 
+The case of a point as source, for the family `(t, s) ↦ H (t, s)`, gives diffeomorphisms
+`ψ t s` of `M` that carry `H (t, 0)` to `H (t, s)`; composing them with a smooth family of
+embeddings `e (t, ·)` through `H (t, 0)` gives a two-parameter family of embeddings through `H`
+(`ContMDiff.exists_contMDiff_isSmoothEmbedding_unitInterval_family_apply_eq`).
+
 ## Main results
 
 * `ContMDiff.exists_contMDiff_diffeomorph_family_forall_apply_eq`: isotopy extension at every
@@ -91,6 +97,10 @@ smooth isotopy of a point, whose slices are smooth embeddings by Tau Ceti's
 * `ContMDiff.exists_contMDiff_diffeomorph_forall_apply_eq`: a smooth path is the track of its
   starting point under a jointly smooth family of diffeomorphisms over `ℝ`, with `ψ 0` the
   identity, that fixes every point outside a compact set.
+* `ContMDiff.exists_contMDiff_isSmoothEmbedding_unitInterval_family_apply_eq`: a smooth family of
+  embeddings `e (t, ·)` and a smooth map `H` of the square with `H (t, 0) = e (t, x₀)` give a
+  smooth two-parameter family of embeddings `k (t, s, ·)` with `k (t, 0, ·) = e (t, ·)` and
+  `k (t, s, x₀) = H (t, s)`.
 
 ## References
 
@@ -369,6 +379,38 @@ theorem _root_.ContMDiff.exists_contMDiff_diffeomorph_unitInterval_family_forall
       contMDiff_snd), fun a ↦ hψ₀ a, K, hK, fun a ↦ hψK a, fun a s x hx ↦ ?_⟩
   have h := hψk a a.property s ⟨x, hAV hx⟩ hx
   rwa [hk'k, hk'k] at h
+
+omit [J.Boundaryless] [IsManifold J ∞ P] in
+/-- **A two-parameter family of embeddings through a map of the square.** Let `M` be a
+finite-dimensional, Hausdorff, σ-compact boundaryless manifold, `e : [0, 1] × P → M` smooth with
+every slice `e (t, ·)` a smooth embedding of a manifold `P`, `x₀ ∈ P`, and
+`H : [0, 1] × [0, 1] → M` smooth with `H (t, 0) = e (t, x₀)` for every `t`. Then there is a
+smooth `k : [0, 1] × [0, 1] × P → M` with every slice `k (t, s, ·)` a smooth embedding,
+`k (t, 0, x) = e (t, x)` and `k (t, s, x₀) = H (t, s)` for all `t`, `s` and `x`. -/
+theorem _root_.ContMDiff.exists_contMDiff_isSmoothEmbedding_unitInterval_family_apply_eq
+    {e : unitInterval × P → M} (he : ContMDiff ((𝓡∂ 1).prod J) I ∞ e)
+    (hemb : ∀ t, IsSmoothEmbedding J I ∞ fun x ↦ e (t, x)) (x₀ : P)
+    {H : unitInterval × unitInterval → M} (hH : ContMDiff ((𝓡∂ 1).prod (𝓡∂ 1)) I ∞ H)
+    (hH₀ : ∀ t, H (t, 0) = e (t, x₀)) :
+    ∃ k : unitInterval × unitInterval × P → M,
+      ContMDiff ((𝓡∂ 1).prod ((𝓡∂ 1).prod J)) I ∞ k ∧
+      (∀ t s, IsSmoothEmbedding J I ∞ fun x ↦ k (t, s, x)) ∧
+      (∀ t x, k (t, 0, x) = e (t, x)) ∧ ∀ t s, k (t, s, x₀) = H (t, s) := by
+  -- Diffeomorphisms `ψ t s` of `M` that push `H (t, 0)` to `H (t, s)`: `H` is a family of
+  -- isotopies of the point `EuclideanSpace ℝ (Fin 0)`.
+  let Q := EuclideanSpace ℝ (Fin 0)
+  obtain ⟨ψ, hψ, hψ₀, -, -, -, hψH⟩ :=
+    ContMDiff.exists_contMDiff_diffeomorph_unitInterval_family_forall_apply_eq
+      (J := 𝓘(ℝ, Q)) (k := fun p : unitInterval × unitInterval × Q ↦ H (p.1, p.2.1))
+      (hH.comp (contMDiff_fst.prodMk contMDiff_snd.fst)) (isCompact_singleton (x := 0))
+      fun t s ↦ isSmoothEmbedding_const_of_subsingleton (by simp) (H (t, s))
+  refine ⟨fun p ↦ ψ p.1 p.2.1 (e (p.1, p.2.2)),
+    hψ.comp (contMDiff_fst.prodMk ((contMDiff_subtypeVal_Icc.comp contMDiff_snd.fst).prodMk
+      (he.comp (contMDiff_fst.prodMk contMDiff_snd.snd)))),
+    fun t s ↦ isSmoothEmbedding_diffeomorph_comp (hemb t) (ψ t s),
+    fun t x ↦ by simp only [Set.Icc.coe_zero, hψ₀], fun t s ↦ ?_⟩
+  have h := hψH t s 0 rfl
+  rwa [hH₀] at h
 
 end TauCeti
 
