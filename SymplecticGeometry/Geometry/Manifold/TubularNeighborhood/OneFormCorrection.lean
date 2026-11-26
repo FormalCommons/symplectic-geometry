@@ -6,11 +6,14 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.TubularNeighborhood.Existence
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.VectorBundlePoincare
+public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+public import TauCeti.Geometry.Manifold.DifferentialForm.ExtDeriv
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.VectorBundlePoincare
 import Mathlib.Geometry.Manifold.PartitionOfUnity
 import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.Normalized
+import TauCeti.Geometry.Manifold.IsManifold.Basic
 
 /-!
 # Correcting a family of one-forms to vanish along a submanifold

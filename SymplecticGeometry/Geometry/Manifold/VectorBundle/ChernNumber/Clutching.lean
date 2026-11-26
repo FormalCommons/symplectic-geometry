@@ -5,18 +5,21 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.ArgumentPrinciple
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.DiscComplement.Basic
-public import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.Maslov
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.Basic
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.UnitFrame
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.UnitaryFrame
-public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
-public import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
-public import SymplecticGeometry.Topology.VectorBundle.DetBundle.Frame
-public import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.Radial
 public import TauCeti.Topology.VectorBundle.Complex.Clutching
-public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
+public import TauCeti.Analysis.Matrix.SymplecticGroup.Maslov
+public import TauCeti.Topology.VectorBundle.Orientation.SectionIndex
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.ArgumentPrinciple
+import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.Maslov
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.UnitaryFrame
+import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
+import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
+import SymplecticGeometry.Topology.VectorBundle.DetBundle.Frame
+import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.Radial
+import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
+import SymplecticGeometry.Analysis.Normed.Module.Ball.Radial.Cone
 
 /-!
 # The disc clutching formula for the first Chern number

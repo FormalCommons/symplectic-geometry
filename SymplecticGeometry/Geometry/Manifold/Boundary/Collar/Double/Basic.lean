@@ -8,7 +8,13 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.End
 public import TauCeti.Geometry.Manifold.Gluing.Basic
 public import TauCeti.Topology.Constructions.DoubleAlong.Separation
+public import SymplecticGeometry.Geometry.Manifold.ModelTransport.Remodel
+public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Local
+public import TauCeti.Geometry.Manifold.Boundary.Interior
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
+import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Interior
+import SymplecticGeometry.Geometry.Manifold.Boundary.Interior
+import SymplecticGeometry.Geometry.Manifold.Boundary.Charts
 
 /-!
 # The double of a manifold along a smooth collar

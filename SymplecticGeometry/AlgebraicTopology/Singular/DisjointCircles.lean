@@ -5,8 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Singular.CircleMap
-public import SymplecticGeometry.AlgebraicTopology.Singular.DiscreteProd
+public import TauCeti.AlgebraicTopology.Singular.Circle
+public import SymplecticGeometry.Topology.Category.TopCat.Monoidal
+import SymplecticGeometry.AlgebraicTopology.Singular.CircleMap
+import SymplecticGeometry.AlgebraicTopology.Singular.DiscreteProd
 
 /-!
 # First homology of a finite disjoint union of circles

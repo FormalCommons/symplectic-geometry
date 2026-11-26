@@ -12,7 +12,7 @@ public import TauCeti.Geometry.Manifold.Submersion.LocalDiffeomorph
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 public import TauCeti.Geometry.Manifold.Submersion.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
-public import SymplecticGeometry.Geometry.Manifold.Submersion.Basic
+import SymplecticGeometry.Geometry.Manifold.Submersion.Basic
 
 /-!
 # Restricting a map over an open subset of its target

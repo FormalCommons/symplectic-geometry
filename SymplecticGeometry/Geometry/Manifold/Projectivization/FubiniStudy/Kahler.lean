@@ -6,16 +6,17 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.LinearAlgebra.UnitaryGroup
-public import SymplecticGeometry.Data.Matrix.Mul
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Basic
-public import SymplecticGeometry.LinearAlgebra.Matrix.DotProduct
 public import SymplecticGeometry.LinearAlgebra.Matrix.ToLin
 public import TauCeti.Geometry.Manifold.Projectivization.Map
 public import TauCeti.Geometry.Symplectic.Manifold.Kahler
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Submanifold
+import SymplecticGeometry.Data.Matrix.Mul
+import SymplecticGeometry.LinearAlgebra.Matrix.DotProduct
 import Mathlib.Analysis.InnerProductSpace.Calculus
 import Mathlib.Analysis.SpecialFunctions.Log.Deriv
 import SymplecticGeometry.Analysis.Complex.Euclidean.Space
+import SymplecticGeometry.Analysis.InnerProductSpace.PiL2
 
 /-!
 # The Fubini–Study form is Kähler
@@ -55,9 +56,9 @@ potentials in the affine charts. Each statement is proved on `ℂⁿ⁺¹ ∖ 0`
   `(1/4) d (J* d f) = (i/2) ∂∂bar f` for the potential `f(w) = log (1 + ∑ₖ ‖wₖ‖²)`
   (`SymplecticGeometry.fubiniStudyAffinePotential`). The inverse chart is the projection after the
   holomorphic section `Projectivization.affineLift ℂ j`, `w ↦ Fin.insertNth j 1 w`, along which
-  `log |z|²` pulls back to `f`; the potential identity on `ℂⁿ⁺¹ ∖ 0` (`fubiniStudyPrimitive_eq`)
-  pulls back by naturality of `d` and of `J*`
-  (`TauCeti.SmoothAlmostComplexStructure.mpullback_covectorComplexStructure`).
+  `log |z|²` pulls back to `f`; the potential identity on `ℂⁿ⁺¹ ∖ 0`
+  (`fubiniStudyLift_eq_potentialForm`) pulls back by naturality of the form of a potential
+  (`TauCeti.SmoothAlmostComplexStructure.mpullback_potentialForm`).
 
 ## References
 
@@ -334,9 +335,7 @@ of the affine chart of `j`, the Fubini–Study form pulls back to `(1/4) d (J* d
 theorem mpullback_affineChart_symm_fubiniStudyForm (j : Fin (n + 1)) :
     SmoothForm.mpullback (affineChart (K := ℂ) j).symm
         (contMDiff_affineChart_symm_restrictScalars j ∞) (fubiniStudyForm n) =
-      (4 : ℝ)⁻¹ • mextDerivₗ 𝓘(ℝ, Fin n → ℂ) 1
-        ((ofComplexManifold (Fin n → ℂ) (Fin n → ℂ)).covectorComplexStructure
-          (mextDerivₗ 𝓘(ℝ, Fin n → ℂ) 0 (fubiniStudyAffinePotential n))) := by
+      (ofComplexManifold (Fin n → ℂ) (Fin n → ℂ)).potentialForm (fubiniStudyAffinePotential n) := by
   have hJ : IsPseudoholomorphic (ofComplexManifold (Fin n → ℂ) (Fin n → ℂ))
       (ofComplexManifold (Fin (n + 1) → ℂ) (puncturedSpace (Fin (n + 1) → ℂ))) (affineLift ℂ j) :=
     isPseudoholomorphic_ofComplexManifold_iff.2
@@ -348,10 +347,8 @@ theorem mpullback_affineChart_symm_fubiniStudyForm (j : Fin (n + 1)) :
             (fubiniStudyForm n)) := by
     rw [SmoothForm.mpullback_mpullback]
     simp only [mkNonzero_comp_affineLift ℂ]
-  rw [h, mpullback_mkNonzero_fubiniStudyForm, fubiniStudyLift_def,
-    ← SmoothForm.mextDerivₗ_mpullback, fubiniStudyPrimitive_eq, SmoothForm.mpullback_smul,
-    mpullback_covectorComplexStructure _ hJ, ← SmoothForm.mextDerivₗ_mpullback,
-    mpullback_affineLift_fubiniStudyPotential, map_smul]
+  rw [h, mpullback_mkNonzero_fubiniStudyForm, fubiniStudyLift_eq_potentialForm,
+    mpullback_potentialForm _ hJ, mpullback_affineLift_fubiniStudyPotential]
 
 /-- The local potentials in Dolbeault form: along the inverse of the affine chart of `j`, the
 complexified Fubini–Study form is `(i/2) ∂∂bar f` for `f = fubiniStudyAffinePotential n`, the

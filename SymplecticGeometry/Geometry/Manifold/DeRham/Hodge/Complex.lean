@@ -5,9 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.Basic
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Complexification
 public import TauCeti.Geometry.Manifold.DeRham.ComplexCoefficients
+public import TauCeti.Geometry.Manifold.DeRham.Harmonic
+public import Mathlib.Analysis.CStarAlgebra.Classes
+import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.Basic
 import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
 import SymplecticGeometry.Geometry.Manifold.Riemannian.Codifferential
 

@@ -9,10 +9,10 @@ public import Mathlib.Geometry.Manifold.VectorBundle.Hom
 public import Mathlib.Geometry.Manifold.VectorBundle.Riemannian
 public import SymplecticGeometry.Analysis.InnerProductSpace.Symplectic.PolarComplexStructure.Smooth
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.BilinearForm
-public import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
-public import SymplecticGeometry.Topology.FiberBundle.Basic
-public import SymplecticGeometry.Topology.VectorBundle.Coordinates
 public import TauCeti.Topology.VectorBundle.Coordinates
+import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
+import SymplecticGeometry.Topology.FiberBundle.Basic
+import SymplecticGeometry.Topology.VectorBundle.Coordinates
 
 /-!
 # The polar formula on the bundles of bilinear forms and of endomorphisms

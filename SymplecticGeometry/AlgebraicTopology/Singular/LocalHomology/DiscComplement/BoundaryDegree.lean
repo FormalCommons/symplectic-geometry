@@ -5,9 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Singular.DisjointCircles
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.DiscComplement.Basic
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.HolomorphicZero
+public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.BoundaryDegree
+public import SymplecticGeometry.Topology.Category.TopCat.Monoidal
+import SymplecticGeometry.AlgebraicTopology.Singular.DisjointCircles
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.HolomorphicZero
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import SymplecticGeometry.Analysis.Complex.RadialProjection
 import TauCeti.Topology.Circle.Normalize

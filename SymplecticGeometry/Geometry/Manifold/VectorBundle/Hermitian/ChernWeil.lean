@@ -6,11 +6,14 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.RealImage
-public import SymplecticGeometry.Geometry.Manifold.DeRham.FundamentalClass
-public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.RealChernClass
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.ChernWeil
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.RealChernClass
-public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
+public import TauCeti.Geometry.Manifold.SmoothSingular.SingularCohomology
+public import TauCeti.Topology.VectorBundle.Orientation.Complex.EulerClass
+import SymplecticGeometry.Geometry.Manifold.DeRham.FundamentalClass
+import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.RealChernClass
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.ChernWeil
+import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
+import SymplecticGeometry.AlgebraicTopology.Cohomology.FundamentalClass
 
 /-!
 # Chern–Weil in degree two
@@ -20,7 +23,7 @@ Let `V` be a smooth complex line bundle with a smooth Hermitian metric `g`, and 
 `SymplecticGeometry.realFirstChernClass` of `P` is a de Rham class, and Tau Ceti's Euler class
 `TauCeti.complexEulerClass` of `V` an integral singular class. Under the library's conventions
 the de Rham homomorphism `TauCeti.deRhamHom` sends the first to **minus** the real image
-(`TopCat.singularCohomologyRealImage`) of the second.
+(`TopCat.singularCohomologyRealImageAddMonoidHom`) of the second.
 
 This file proves this over a closed connected orientable surface `M`. Both classes lie in
 `H²(M; ℝ)`, where a class is determined by its value on a fundamental class
@@ -45,8 +48,8 @@ The identity moves along a smooth map `f : B' → B` between manifolds of any di
 `deRhamHom c₁ + e_ℝ` is natural: the real first Chern class pulls back by
 `SymplecticGeometry.Bundle.realFirstChernClass_circleFiber_pullback`, `deRhamHom` commutes with
 pull-backs by `TauCeti.deRhamHom_map`, the Euler class by `TauCeti.complexEulerClass_pullback`,
-and the real image by `TopCat.singularCohomologyRealImage_naturality`. So the identity for `V`
-gives it for `f *ᵖ V`, and conversely when `f^*` is injective on `H²(B; ℝ)`.
+and the real image by `TopCat.singularCohomologyRealImageAddMonoidHom_naturality`. So the
+identity for `V` gives it for `f *ᵖ V`, and conversely when `f^*` is injective on `H²(B; ℝ)`.
 
 ## Main results
 
@@ -105,7 +108,7 @@ of `V` to minus the real image of the Euler class of `V` in `H²(M; ℝ)`. -/
 theorem deRhamHom_realFirstChernClass_eq_neg_of_connectedSpace [ConnectedSpace M]
     [Orientable (𝓡 2) M] :
     deRhamHom (𝓡 2) M 2 (g.realFirstChernClass hI) =
-      -((TopCat.of M).singularCohomologyRealImage 2).hom
+      -(TopCat.of M).singularCohomologyRealImageAddMonoidHom 2
         (complexEulerClass (r := 0) F V Fact.out) := by
   rw [ContMDiffRiemannianMetric.realFirstChernClass_def]
   let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
@@ -131,7 +134,8 @@ theorem deRhamHom_realFirstChernClass_eq_neg_of_connectedSpace [ConnectedSpace M
   rw [hc]
   refine (o.evalFundamentalClass_singularCohomologyIntChainsIso_hom_deRhamHom_mk hE
     ⟨_, hφ⟩).trans ?_
-  rw [map_neg, map_neg,
+  rw [← map_neg ((TopCat.of M).singularCohomologyRealImageAddMonoidHom 2),
+    TopCat.singularCohomologyRealImageAddMonoidHom_apply, map_neg, map_neg, map_neg,
     HomologicalOrientation.evalFundamentalClass_singularCohomologyRealImage,
     ← firstChernClass_eq_complexEulerClass, ← chernNumber_def,
     Manifold.Orientation.toHomologicalOrientation_neg, chernNumber_neg_orientation,
@@ -170,19 +174,15 @@ the real image of the Euler class of `f *ᵖ V` is the pull-back along `f` of th
 `V`. -/
 theorem deRhamHom_realFirstChernClass_add_realImage_pullback :
     haveI := _root_.Bundle.Pullback.contMDiffVectorBundle (F := F) (E := V) hf
-    (HAdd.hAdd (α := (TopCat.of B').singularCohomology (ModuleCat.of ℝ ℝ) ℝ (ModuleCat.of ℝ ℝ) 2)
-      (β := (TopCat.of B').singularCohomology (ModuleCat.of ℝ ℝ) ℝ (ModuleCat.of ℝ ℝ) 2)
-      (deRhamHom IB' B' 2 (g''.realFirstChernClass hI''))
-      (((TopCat.of B').singularCohomologyRealImage 2).hom
-        (complexEulerClass (r := 0) F ((⇑f) *ᵖ V) Fact.out))) =
-    TopCat.singularCohomologyMap (TopCat.ofHom f) 2
-    (HAdd.hAdd (α := (TopCat.of B).singularCohomology (ModuleCat.of ℝ ℝ) ℝ (ModuleCat.of ℝ ℝ) 2)
-      (β := (TopCat.of B).singularCohomology (ModuleCat.of ℝ ℝ) ℝ (ModuleCat.of ℝ ℝ) 2)
-      (deRhamHom IB B 2 (g.realFirstChernClass hI))
-      (((TopCat.of B).singularCohomologyRealImage 2).hom
-        (complexEulerClass (r := 0) F V Fact.out))) := by
+    deRhamHom IB' B' 2 (g''.realFirstChernClass hI'') +
+        (TopCat.of B').singularCohomologyRealImageAddMonoidHom 2
+          (complexEulerClass (r := 0) F ((⇑f) *ᵖ V) Fact.out) =
+      TopCat.singularCohomologyMap (TopCat.ofHom f) 2
+        (deRhamHom IB B 2 (g.realFirstChernClass hI) +
+          (TopCat.of B).singularCohomologyRealImageAddMonoidHom 2
+            (complexEulerClass (r := 0) F V Fact.out)) := by
   rw [realFirstChernClass_circleFiber_pullback g hI f hf g'' hI'', deRhamHom_map,
-    complexEulerClass_pullback, TopCat.singularCohomologyRealImage_naturality_apply]
+    complexEulerClass_pullback, TopCat.singularCohomologyRealImageAddMonoidHom_naturality]
   exact (map_add _ _ _).symm
 
 
@@ -192,11 +192,11 @@ class of `V`, then the same holds for `f *ᵖ V` along a smooth map `f : B' → 
 Hermitian metric on `f *ᵖ V`. -/
 theorem deRhamHom_realFirstChernClass_pullback_eq_neg
     (h : deRhamHom IB B 2 (g.realFirstChernClass hI) =
-        -((TopCat.of B).singularCohomologyRealImage 2).hom
+        -(TopCat.of B).singularCohomologyRealImageAddMonoidHom 2
           (complexEulerClass (r := 0) F V Fact.out)) :
     haveI := _root_.Bundle.Pullback.contMDiffVectorBundle (F := F) (E := V) hf
     deRhamHom IB' B' 2 (g''.realFirstChernClass hI'') =
-      -((TopCat.of B').singularCohomologyRealImage 2).hom
+      -(TopCat.of B').singularCohomologyRealImageAddMonoidHom 2
         (complexEulerClass (r := 0) F ((⇑f) *ᵖ V) Fact.out) := by
   refine eq_neg_of_add_eq_zero_left ?_
   rw [deRhamHom_realFirstChernClass_add_realImage_pullback g hI f hf g'' hI'', h]
@@ -213,10 +213,10 @@ theorem deRhamHom_realFirstChernClass_eq_neg_of_pullback
         (TopCat.ofHom f) 2))
     (h : haveI := _root_.Bundle.Pullback.contMDiffVectorBundle (F := F) (E := V) hf
       deRhamHom IB' B' 2 (g''.realFirstChernClass hI'') =
-        -((TopCat.of B').singularCohomologyRealImage 2).hom
+        -(TopCat.of B').singularCohomologyRealImageAddMonoidHom 2
           (complexEulerClass (r := 0) F ((⇑f) *ᵖ V) Fact.out)) :
     deRhamHom IB B 2 (g.realFirstChernClass hI) =
-      -((TopCat.of B).singularCohomologyRealImage 2).hom
+      -(TopCat.of B).singularCohomologyRealImageAddMonoidHom 2
         (complexEulerClass (r := 0) F V Fact.out) := by
   refine eq_neg_of_add_eq_zero_left (hinj ?_)
   rw [← deRhamHom_realFirstChernClass_add_realImage_pullback g hI f hf g'' hI'', map_zero]

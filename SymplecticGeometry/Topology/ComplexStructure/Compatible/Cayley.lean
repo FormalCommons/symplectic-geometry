@@ -5,10 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.LinearAlgebra.Symplectic.CompatibleTangent.Basic
 public import TauCeti.Geometry.Symplectic.Cayley.Smooth
 public import TauCeti.Geometry.Symplectic.ExistsCompatible
 public import TauCeti.Topology.Algebra.Module.BilinearForm
+import SymplecticGeometry.LinearAlgebra.Symplectic.CompatibleTangent.Basic
 
 /-!
 # Cayley coordinates on the compatible complex structures

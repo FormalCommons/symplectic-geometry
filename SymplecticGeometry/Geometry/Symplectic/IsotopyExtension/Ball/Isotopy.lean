@@ -6,7 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Basic
-public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Flow
+public import SymplecticGeometry.Geometry.Symplectic.Flux.CompactSupport
+public import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.IsSymplectic
+import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Flow
 import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Interpolation
 import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Moser
 import TauCeti.Topology.MetricSpace.SeparatedBalls

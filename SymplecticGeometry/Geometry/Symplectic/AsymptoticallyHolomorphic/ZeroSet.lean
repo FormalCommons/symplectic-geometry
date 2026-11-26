@@ -5,11 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.CovariantDerivative.Linearization
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSet.Embedding
-public import SymplecticGeometry.LinearAlgebra.Complex.DominantLinearPart
 public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.CompatibleMetric
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.CovariantDerivative.Linearization
+import SymplecticGeometry.LinearAlgebra.Complex.DominantLinearPart
 
 /-!
 # Transverse symplectic zero sets

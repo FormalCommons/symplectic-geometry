@@ -6,13 +6,18 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.FiberwiseEquiv
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.LerayHirsch.ProjectiveSpace
-public import SymplecticGeometry.Analysis.Normed.Module.TensorProduct.ProjectiveSeminorm
 public import SymplecticGeometry.Topology.VectorBundle.TensorProduct.External
-public import SymplecticGeometry.Topology.VectorBundle.TensorProduct.Pullback
-public import SymplecticGeometry.Topology.VectorBundle.ProjectiveBundle.ClassifyingMap
-public import SymplecticGeometry.Geometry.Manifold.Projectivization.Tautological
 public import TauCeti.Topology.VectorBundle.TensorProduct.Operations
+public import SymplecticGeometry.Topology.VectorBundle.FiniteTrivializingCover
+public import TauCeti.Geometry.Manifold.Projectivization.LineBundle
+public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.ProjectiveSpace
+import SymplecticGeometry.AlgebraicTopology.Cohomology.LerayHirsch.ProjectiveSpace
+import SymplecticGeometry.Analysis.Normed.Module.TensorProduct.ProjectiveSeminorm
+import SymplecticGeometry.Topology.VectorBundle.TensorProduct.Pullback
+import SymplecticGeometry.Topology.VectorBundle.ProjectiveBundle.ClassifyingMap
+import SymplecticGeometry.Geometry.Manifold.Projectivization.Tautological
+import SymplecticGeometry.Geometry.Manifold.Projectivization.TwistCore
+import SymplecticGeometry.AlgebraicTopology.Singular.Nullhomotopic
 
 /-!
 # The Euler class of a tensor product of complex line bundles

@@ -5,8 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Reduction
+public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
+import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 
 /-!
 # The tangent spaces of a reduced space, for general reduction data

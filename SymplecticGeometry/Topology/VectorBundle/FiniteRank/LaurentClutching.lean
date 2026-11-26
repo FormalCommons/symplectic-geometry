@@ -8,7 +8,7 @@ module
 public import Mathlib.Analysis.Complex.Circle
 public import TauCeti.Topology.VectorBundle.FiniteRank.Pullback
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Clutching
-public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.SMul
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.SMul
 
 /-!
 # Laurent families of bundle morphisms, and Laurent clutchings

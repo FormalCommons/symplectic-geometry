@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.DeRham.GoodCover.Basic
-public import SymplecticGeometry.Geometry.Manifold.Immersion.TangentProjection
+import SymplecticGeometry.Geometry.Manifold.Immersion.TangentProjection
 import Mathlib.Analysis.Calculus.MeanValue
 import Mathlib.Geometry.Manifold.WhitneyEmbedding
 import SymplecticGeometry.Analysis.Convex.Deriv

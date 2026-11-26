@@ -20,6 +20,8 @@ import TauCeti.Geometry.Manifold.Diffeomorph.NormedSpace
 import TauCeti.Geometry.Manifold.Orientation.Glue
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 import TauCeti.Topology.Algebra.Module.Determinant
+import SymplecticGeometry.Geometry.Manifold.Boundary.Interior
+import SymplecticGeometry.Geometry.Manifold.Boundary.Charts
 
 /-!
 # The orientation of the double

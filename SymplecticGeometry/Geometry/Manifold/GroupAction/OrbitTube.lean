@@ -6,10 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.LocallyConvex.HahnBanach
-public import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
-public import SymplecticGeometry.Geometry.Lie.Subgroup.BalancedProduct
-public import SymplecticGeometry.Geometry.Manifold.ContMDiff.Submodule
-public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Lie.Subgroup.Stabilizer
 public import TauCeti.Geometry.Manifold.GroupAction.EquivariantSlice
 public import TauCeti.Geometry.Manifold.GroupAction.TransverseSlice
@@ -17,6 +13,11 @@ public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 public import TauCeti.Geometry.Manifold.Submersion.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 public import TauCeti.LinearAlgebra.Prod
+public import TauCeti.Geometry.Lie.Subgroup.BalancedProduct
+import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
+import SymplecticGeometry.Geometry.Lie.Subgroup.BalancedProduct
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Submodule
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 
 /-!
 # The tube map of an orbit

@@ -7,10 +7,14 @@ module
 
 public import Mathlib.Topology.Connected.Clopen
 public import Mathlib.Topology.LocalAtTarget
-public import SymplecticGeometry.Geometry.Manifold.FiberBundle.MapFiber
-public import SymplecticGeometry.Geometry.Manifold.IsManifold.SecondCountable
-public import SymplecticGeometry.Geometry.Manifold.RegularValue.RestrictPreimage
-public import SymplecticGeometry.Geometry.Manifold.Submersion.RadialTrivialization
+public import TauCeti.Geometry.Manifold.RegularValue.ManifoldLevel
+public import SymplecticGeometry.Geometry.Manifold.RegularValue.Submersion
+public import TauCeti.Topology.FiberBundle.MapFiber
+public import Mathlib.Analysis.InnerProductSpace.Basic
+import SymplecticGeometry.Geometry.Manifold.FiberBundle.MapFiber
+import SymplecticGeometry.Geometry.Manifold.IsManifold.SecondCountable
+import SymplecticGeometry.Geometry.Manifold.RegularValue.RestrictPreimage
+import SymplecticGeometry.Geometry.Manifold.Submersion.RadialTrivialization
 
 /-!
 # The fibres of a proper submersion over a connected base

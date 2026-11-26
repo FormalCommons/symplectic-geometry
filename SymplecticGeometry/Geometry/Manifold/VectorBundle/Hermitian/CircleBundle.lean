@@ -10,14 +10,17 @@ public import TauCeti.Topology.VectorBundle.OrthonormalFrame.Associated
 public import TauCeti.Topology.VectorBundle.Smul
 public import SymplecticGeometry.Analysis.CStarAlgebra.Unitary.ContinuousLinearMap
 public import SymplecticGeometry.Analysis.Normed.Operator.SpanSingleton
-public import SymplecticGeometry.Topology.FiberBundle.Principal.ChangeGroup
-public import SymplecticGeometry.Geometry.Manifold.Instances.Sphere
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Hermitian
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Sphere
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 public import SymplecticGeometry.LinearAlgebra.Complex.FiniteDimensional
 public import SymplecticGeometry.LinearAlgebra.FiniteDimensional.FinrankOne
+public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Hermitian
+public import SymplecticGeometry.Topology.FiberBundle.ChangeModelFiber
+public import Mathlib.Geometry.Manifold.Instances.Sphere
+import SymplecticGeometry.Topology.FiberBundle.Principal.ChangeGroup
+import SymplecticGeometry.Geometry.Manifold.Instances.Sphere
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Hermitian
 import SymplecticGeometry.GroupTheory.GroupAction.Hom
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.Frame
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Norm

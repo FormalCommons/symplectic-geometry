@@ -5,8 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteTrivializingCover
-public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.FirstChernClass
+public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteTrivializingCover
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.FirstChernClass
 
 /-!
 # The Whitney formula for the first Chern class over manifolds

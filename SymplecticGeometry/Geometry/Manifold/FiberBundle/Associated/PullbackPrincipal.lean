@@ -13,9 +13,9 @@ public import TauCeti.Geometry.Manifold.FiberBundle.Principal.FundamentalVectorF
 public import TauCeti.Geometry.Manifold.FiberBundle.Pullback.Basic
 public import TauCeti.Geometry.Manifold.FiberBundle.Submersion
 public import TauCeti.Geometry.Manifold.Submersion.Split
-public import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
-public import SymplecticGeometry.Topology.FiberBundle.Basic
+import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # The product `P × F` as the pull-back of `P` to `P ×_G F`

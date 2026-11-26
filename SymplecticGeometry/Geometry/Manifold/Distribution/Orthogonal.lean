@@ -5,8 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Orthogonal
-public import SymplecticGeometry.Geometry.Manifold.Distribution.VectorBundle
+public import TauCeti.Geometry.Manifold.Distribution
+public import Mathlib.LinearAlgebra.BilinearForm.Orthogonal
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Orthogonal
+import SymplecticGeometry.Geometry.Manifold.Distribution.VectorBundle
 
 /-!
 # Orthogonals of distributions for a smooth field of bilinear forms

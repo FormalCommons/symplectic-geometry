@@ -6,11 +6,11 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
-public import SymplecticGeometry.Geometry.Lie.Complexification
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Basic
 public import TauCeti.Geometry.Lie.Adjoint.Representation.Coadjoint.Basic
 public import TauCeti.Algebra.GroupAction.OrbitRelQuotient
 public import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.LevelAction
+import SymplecticGeometry.Geometry.Lie.Complexification
 import Mathlib.Analysis.Convex.Deriv
 import SymplecticGeometry.Analysis.Calculus.ParametricIntervalIntegral
 import SymplecticGeometry.Geometry.Lie.Exponential.Derivative
