@@ -28,9 +28,11 @@ that is the locus `y = 0`, `w = 0`.
 * `SymplecticGeometry.isSmoothEmbedding_modelDisc`: `ι₀` is a smooth embedding, by Tau Ceti's
   `ContinuousLinearMap.isSmoothEmbedding_of_injective`;
 * `SymplecticGeometry.mfderiv_modelDisc`: its differential at every point is `ι₀` itself;
-* `SymplecticGeometry.isTotallyReal_range_mfderiv_modelDisc`: its tangent images are totally
-  real for the complex structure of `V` (Tau Ceti's `TauCeti.IsTotallyReal`), since they lie in
-  `ℝᵏ × 0`, the product of Tau Ceti's `TauCeti.realSubspace` with the zero subspace.
+* `SymplecticGeometry.isTotallyReal_range_modelDisc`: its image `ℝᵏ × 0` is totally real for
+  multiplication by `i` (Tau Ceti's `TauCeti.IsTotallyReal`), as the product of Tau Ceti's
+  totally real `TauCeti.realSubspace` with the zero subspace (`TauCeti.IsTotallyReal.prod`);
+* `SymplecticGeometry.isTotallyReal_range_mfderiv_modelDisc`: hence its tangent images are
+  totally real for the complex structure of `V`.
 
 When `m ≠ 0` the image has less than half the real dimension of `V`, so `ι₀` is not
 a totally real embedding in Tau Ceti's stronger sense `TauCeti.IsTotallyRealEmbedding`, and the
@@ -120,6 +122,14 @@ theorem mfderiv_modelDisc (x : EuclideanSpace ℝ (Fin k)) :
       modelDisc k m :=
   (modelDisc k m).mfderiv_eq
 
+/-- The image of the model disc is totally real for multiplication by `i` on `ℂᵏ × ℂᵐ`. -/
+theorem isTotallyReal_range_modelDisc :
+    IsTotallyReal ((LinearMap.lsmul ℂ
+        (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) Complex.I).restrictScalars ℝ)
+      (LinearMap.range (modelDisc k m).toLinearMap) := by
+  rw [range_modelDisc, LinearMap.lsmul_restrictScalars_prodMap]
+  exact isMaximalTotallyReal_realSubspace.isTotallyReal.prod (IsTotallyReal.bot _)
+
 /-- The tangent images of the model disc are totally real for the complex structure of
 `ℂᵏ × ℂᵐ`, multiplication by `i`. -/
 theorem isTotallyReal_range_mfderiv_modelDisc (x : EuclideanSpace ℝ (Fin k)) :
@@ -131,17 +141,8 @@ theorem isTotallyReal_range_mfderiv_modelDisc (x : EuclideanSpace ℝ (Fin k)) :
       (LinearMap.range (mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin k))
         𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) (modelDisc k m)
           x).toLinearMap) := by
-  rw [isTotallyReal_iff, Submodule.disjoint_def]
-  rintro _ ⟨(y : EuclideanSpace ℝ (Fin k)), rfl⟩ ⟨_, ⟨(z : EuclideanSpace ℝ (Fin k)), rfl⟩, h⟩
-  rw [mfderiv_modelDisc, SmoothAlmostComplexStructure.toEndomorphism_ofComplexManifold] at h
-  rw [mfderiv_modelDisc]
-  -- The tangent spaces of `ℝᵏ` and `V` are these spaces themselves: restate the goal and `h`
-  -- on them, where the coordinate lemmas of `modelDisc` apply.
-  change modelDisc k m y = 0
-  have h' : Complex.I • modelDisc k m z = modelDisc k m y := h
-  refine Prod.ext ?_ (modelDisc_apply_snd _)
-  ext j
-  simpa using (congrArg (fun p ↦ (p.1 j).re) h').symm
+  rw [mfderiv_modelDisc, SmoothAlmostComplexStructure.toEndomorphism_ofComplexManifold]
+  exact isTotallyReal_range_modelDisc
 
 end SymplecticGeometry
 
