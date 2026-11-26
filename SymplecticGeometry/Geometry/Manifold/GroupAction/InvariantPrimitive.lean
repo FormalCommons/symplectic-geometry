@@ -89,9 +89,11 @@ manifold acting smoothly on a boundaryless manifold `M`, a smooth form `α` on `
 invariant under every element of `G`. -/
 theorem exists_invariant_primitive [BoundarylessManifold I M] [IsTopologicalGroup G]
     {α : SmoothForm I M F (k + 1)} {β : SmoothForm I M F k} (hβ : mextDerivₗ I k β = α)
-    (hα : ∀ a : G, TauCeti.mpullback (F := F) I I (a • ·) α.val = α.val) :
+    (hα : ∀ a : G, mpullback (fun x : M ↦ a • x)
+      (ContMDiffSMul.contMDiff_const_smul (I := J) (I' := I) a) α = α) :
     ∃ γ : SmoothForm I M F k, mextDerivₗ I k γ = α ∧
-      ∀ a : G, TauCeti.mpullback (F := F) I I (a • ·) γ.val = γ.val := by
+      ∀ a : G, mpullback (fun x : M ↦ a • x)
+        (ContMDiffSMul.contMDiff_const_smul (I := J) (I' := I) a) γ = γ := by
   borelize G
   -- Carry `α` and `β` to the copy of `M` with charts in `E`, average `β` there, and pull the
   -- average back.
@@ -107,15 +109,15 @@ theorem exists_invariant_primitive [BoundarylessManifold I M] [IsTopologicalGrou
   have hα' (a : G) : mpullback (fun x : BoundarylessModel I M ↦ a • x)
       (contMDiff_const_smul a) α' = α' :=
     mpullback_smul_mpullback Φ.symm.contMDiff
-      (BoundarylessModel.interiorDiffeomorph_symm_smul I ∞ a) ((mpullback_eq_iff _).2 (hα a))
+      (BoundarylessModel.interiorDiffeomorph_symm_smul I ∞ a) (hα a)
   let γ' := measureAverage J (haarProb G) β'
   refine ⟨mpullback Φ Φ.contMDiff γ', ?_, fun a ↦ ?_⟩
   · rw [mextDerivₗ_mpullback, mextDerivₗ_measureAverage_of_invariant J (haarProb G) hβ' hα',
       mpullback_mpullback_symm]
   · -- The map `Φ` is equivariant, and the average is invariant.
-    exact (mpullback_eq_iff _).1 (mpullback_smul_mpullback Φ.contMDiff
+    exact mpullback_smul_mpullback Φ.contMDiff
       (BoundarylessModel.interiorDiffeomorph_smul I ∞ a)
-      ((mpullback_eq_iff _).2 (mpullback_smul_measureAverage J (haarProb G) β' a)))
+      ((mpullback_eq_iff _).2 (mpullback_smul_measureAverage J (haarProb G) β' a))
 
 end TauCeti.SmoothForm
 
