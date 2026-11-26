@@ -31,10 +31,10 @@ over `f` (by `SymplecticGeometry.Bundle.contMDiffOn_normalizedFrame`) that commu
 (`SymplecticGeometry.Bundle.normalizedFrame_circle_smul`). So the naturality of the real first
 Chern class, `SymplecticGeometry.realFirstChernClass_map`, applies. For the change of metric, `σ`
 sends a unitary frame `φ` of a second metric to its unit vector `φ 1`, over the identity of `B`.
-For the pull-back, `σ` sends a unitary frame `φ` of `f *ᵖ V` over `x` to `φ 1 ∈ V (f x)`; it is
-smooth by `SymplecticGeometry.Bundle.contMDiffOn_circleFiber_iff` followed by Tau Ceti's
-`Bundle.Pullback.contMDiff_lift`, so no comparison of the metric on `f *ᵖ V` with that of `V` is
-needed.
+For the pull-back, `σ` sends a unitary frame `φ` of `f *ᵖ V` over `x` to `φ 1 ∈ V (f x)`. In
+both cases `σ` is smooth by `SymplecticGeometry.Bundle.contMDiff_circleFiber_frame_one`, followed
+for the pull-back by Tau Ceti's `Bundle.Pullback.contMDiff_lift`, so no comparison of the metric on
+`f *ᵖ V` with that of `V` is needed.
 
 ## Main results
 
@@ -171,10 +171,8 @@ theorem realFirstChernClass_circleFiber_pullback {K : Type*} [FunLike K B' B]
   refine realFirstChernClass_eq_map_circleFiber g hI hf (fun _ φ ↦ φ.frame 1) ?_
     (fun _ φ ↦ φ.frame.map_ne_zero_iff.2 one_ne_zero) fun z _ φ ↦ ?_
   · -- The unit vectors of the frames, in `f *ᵖ V`, followed by `Pullback.lift f` into `V`.
-    have h₁ := (contMDiffOn_circleFiber_iff g'' hI'' isOpen_univ _).1 (contMDiffOn_id.congr
-      fun q _ ↦ (ManifoldTotalSpace.homeomorph _ _).apply_symm_apply q)
-    rw [contMDiffOn_univ] at h₁
-    exact (_root_.Bundle.Pullback.contMDiff_lift f hf).comp h₁
+    exact (_root_.Bundle.Pullback.contMDiff_lift f hf).comp
+      (contMDiff_circleFiber_frame_one g'' hI'')
   · rw [Fiber.frame_op_circle_smul_apply, mul_one]
     simpa using φ.frame.map_smul (z : ℂ) 1
 
@@ -230,9 +228,7 @@ theorem realFirstChernClass_circleFiber_eq (g' : ContMDiffRiemannianMetric IB �
     contMDiffFiberBundle_circleFiber g hI
   refine realFirstChernClass_eq_circleFiber g' hI' (Q := Fiber ℂ F V ℂ) (fun _ φ ↦ φ.frame 1)
     ?_ (fun _ φ ↦ ?_) fun z _ φ ↦ ?_
-  · rw [← contMDiffOn_univ]
-    exact (contMDiffOn_circleFiber_iff g hI isOpen_univ _).1 (contMDiffOn_id.congr fun q _ ↦
-      (ManifoldTotalSpace.homeomorph _ _).apply_symm_apply q)
+  · exact contMDiff_circleFiber_frame_one g hI
   · exact φ.frame.map_ne_zero_iff.2 one_ne_zero
   · rw [Fiber.frame_op_circle_smul_apply, mul_one, ← _root_.map_smul, smul_eq_mul, mul_one]
 
