@@ -32,7 +32,7 @@ and the fibres may be over any nontrivially normed field.
 
 * `TauCeti.FiniteRankBundleCore.circlePullback E`: the pullback of `E` to `X × Circle` along
   `Prod.fst`, on whose automorphisms the clutching functions are.
-* `TauCeti.FiniteRankBundleCore.circleCoord X`: the coordinate `(x, u) ↦ u` of the circle factor,
+* `SymplecticGeometry.circleCoord X`: the coordinate `(x, u) ↦ u` of the circle factor,
   as a continuous complex function on `X × Circle`.
 * `TauCeti.FiniteRankBundleCore.clutchingAut E f`: the pullback of `f` along
   `SymplecticGeometry.ProjectiveLine.clutchingMap`.
@@ -494,10 +494,8 @@ maps of `f₀` at time `0` and those of `f₁` at time `1`, then the clutchings 
 `f₁` are isomorphic. -/
 theorem nonempty_iso_clutching_of_homotopic [NormedAlgebra ℝ 𝕜] [CompleteSpace 𝕜]
     [ParacompactSpace X] [R1Space X] {f₀ f₁ : E.circlePullback ≅ E.circlePullback}
-    (H : (E.pullback (ContinuousMap.fst : C(X × I, X))).pullback
-        (ContinuousMap.fst : C((X × I) × Circle, X × I)) ≅
-      (E.pullback (ContinuousMap.fst : C(X × I, X))).pullback
-        (ContinuousMap.fst : C((X × I) × Circle, X × I)))
+    (H : (E.pullback (ContinuousMap.fst : C(X × I, X))).circlePullback ≅
+      (E.pullback (ContinuousMap.fst : C(X × I, X))).circlePullback)
     (h₀ : ∀ w : X × Circle, H.hom.fiberMap ((w.1, 0), w.2) = f₀.hom.fiberMap w)
     (h₁ : ∀ w : X × Circle, H.hom.fiberMap ((w.1, 1), w.2) = f₁.hom.fiberMap w) :
     Nonempty (E.clutching f₀ ≅ E.clutching f₁) := by
@@ -576,7 +574,7 @@ end TauCeti.FiniteRankBundleCore
 
 /-! ### Multiplying a clutching function by a power of the coordinate -/
 
-namespace TauCeti.FiniteRankBundleCore
+namespace SymplecticGeometry
 
 variable {X : Type*} [TopologicalSpace X]
 
@@ -588,6 +586,12 @@ def circleCoord : C(X × Circle, ℂ) :=
 @[simp]
 theorem circleCoord_apply (w : X × Circle) : circleCoord X w = w.2 :=
   (rfl)
+
+end SymplecticGeometry
+
+namespace TauCeti.FiniteRankBundleCore
+
+variable {X : Type*} [TopologicalSpace X]
 
 section CircleZPowSMul
 
