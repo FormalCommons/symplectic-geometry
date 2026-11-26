@@ -10,6 +10,7 @@ public import Mathlib.AlgebraicTopology.FundamentalGroupoid.SimplyConnected
 public import Mathlib.RingTheory.MvPolynomial.WeightedHomogeneous
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Basic
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.ProdZeroLocus.Manifold
+public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.RestrictScalars
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Prod
@@ -19,12 +20,11 @@ import Mathlib.Algebra.Polynomial.Roots
 import Mathlib.Topology.LocalAtTarget
 import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.ComplFinite
 import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
-import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.RestrictScalars
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.HolomorphicEmbedding
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Prod
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Submanifold
 import SymplecticGeometry.RingTheory.MvPolynomial.WeightedHomogeneous
 import SymplecticGeometry.Topology.ComplexProjectiveSpace.SimplyConnected
-import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
 
 /-!
 # The rational elliptic surface
@@ -42,11 +42,10 @@ The last section regards the surface as a real submanifold of `ℂℙ² × ℂ�
 the results on complex submanifolds of almost complex manifolds take it
 (`TauCeti.SmoothAlmostComplexStructure.restrict`,
 `TauCeti.SmoothTwoForm.Tames.isSymplectic_mpullback`). The analytic embedding is a smooth
-embedding over `ℝ` (`Manifold.IsSmoothEmbedding.restrictScalars_prod`), its real derivative is
-its complex derivative (`MDifferentiableAt.mfderiv_restrictScalars`), and multiplication
-by `i` on the tangent spaces of the product is the product of the complex structures of the two
-factors (`TauCeti.SmoothAlmostComplexStructure.prod_ofComplexManifold_apply`). So the image of
-each real derivative is a complex subspace, invariant under that product structure.
+embedding over `ℝ` (`TauCeti.SmoothEmbedding.restrictScalarsProd`), whose tangent images are
+invariant under the product of the complex structures of the two factors, as for every
+holomorphic embedding into a product
+(`TauCeti.SmoothEmbedding.prod_ofComplexManifold_mem_tangentRange_restrictScalarsProd`).
 
 The symplectic form of the surface is the pull-back along this real embedding of the product
 `ω_FS ⊕ ω_FS` of the Fubini–Study forms of `ℂℙ²` and `ℂℙ¹` (`TauCeti.SmoothTwoForm.prod`). The
@@ -94,12 +93,7 @@ coordinates `s, t` of the line. A point of the cone `K³ × K²` is written `Sum
   `SymplecticGeometry.rationalEllipticSurface.contMDiff_snd`: the projections to `ℂℙ²` and `ℂℙ¹`
   are analytic.
 * `SymplecticGeometry.rationalEllipticSurface.realEmbedding`: the inclusion as a smooth embedding
-  over `ℝ`, for the model `𝓘(ℝ, Fin 2 → ℂ).prod 𝓘(ℝ, Fin 1 → ℂ)`, and
-  `SymplecticGeometry.rationalEllipticSurface.coe_mfderiv_realEmbedding`: its real derivative is
-  the complex derivative of `SymplecticGeometry.rationalEllipticSurface.embedding`.
-* `SymplecticGeometry.rationalEllipticSurface.prod_ofComplexManifold_mem_tangentRange`: the
-  tangent images of `realEmbedding` are invariant under the product of the complex structures of
-  `ℂℙ²` and `ℂℙ¹`.
+  over `ℝ`, for the model `𝓘(ℝ, Fin 2 → ℂ).prod 𝓘(ℝ, Fin 1 → ℂ)`.
 * `SymplecticGeometry.rationalEllipticSurface.symplecticForm`: the pull-back of the product of
   the Fubini–Study forms, and
   `SymplecticGeometry.rationalEllipticSurface.isSymplectic_symplecticForm`: it is symplectic.
@@ -415,45 +409,15 @@ noncomputable def realEmbedding :
     SmoothEmbedding 𝓘(ℝ, Fin 2 → ℂ)
       (𝓘(ℝ, Fin 2 → ℂ).prod 𝓘(ℝ, Fin 1 → ℂ)) ∞ rationalEllipticSurface
       (ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)) :=
-  .ofIsSmoothEmbedding Subtype.val <|
-    ((coe_embedding ▸ embedding.isSmoothEmbedding).of_le le_top).restrictScalars_prod ℝ
-      (by simp)
+  embedding.restrictScalarsProd ℝ le_top (by simp)
+
+theorem realEmbedding_def : realEmbedding = embedding.restrictScalarsProd ℝ le_top (by simp) :=
+  (rfl)
 
 /-- The real embedding of the rational elliptic surface is the inclusion. -/
 @[simp]
-theorem coe_realEmbedding : ⇑realEmbedding = Subtype.val :=
-  SmoothEmbedding.coe_ofIsSmoothEmbedding _ _
-
-/-- The real derivative of the inclusion of the rational elliptic surface is its complex
-derivative, as a map of tangent vectors. -/
-theorem coe_mfderiv_realEmbedding (x : rationalEllipticSurface) :
-    ⇑(mfderiv 𝓘(ℝ, Fin 2 → ℂ)
-        (𝓘(ℝ, Fin 2 → ℂ).prod 𝓘(ℝ, Fin 1 → ℂ)) realEmbedding x) =
-      mfderiv 𝓘(ℂ, Fin 2 → ℂ)
-        (𝓘(ℂ, Fin 2 → ℂ).prod 𝓘(ℂ, Fin 1 → ℂ)) embedding x := by
-  have hd := (embedding.contMDiff x).mdifferentiableAt (by simp)
-  have h := congrArg DFunLike.coe (hd.mfderiv_restrictScalars ℝ)
-  rw [ModelWithCorners.restrictScalars_prod, modelWithCornersSelf_restrictScalars,
-    modelWithCornersSelf_restrictScalars] at h
-  rw [coe_realEmbedding, ← coe_embedding, h]
-  exact funext (ContinuousLinearMap.restrictScalarsTangent_apply _)
-
-/-- The tangent spaces of the rational elliptic surface, as a real submanifold of `ℂℙ² × ℂℙ¹`,
-are invariant under the product of the complex structures of `ℂℙ²` and `ℂℙ¹`. -/
-theorem prod_ofComplexManifold_mem_tangentRange {hn : (∞ : ℕ∞ω) ≠ 0}
-    (x : rationalEllipticSurface) (v) (hv : v ∈ realEmbedding.tangentRange x hn) :
-    (SmoothAlmostComplexStructure.ofComplexManifold (Fin 2 → ℂ) (ℙ ℂ (Fin 3 → ℂ))).prod
-        (SmoothAlmostComplexStructure.ofComplexManifold (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ)))
-          (realEmbedding x) v ∈
-      realEmbedding.tangentRange x hn := by
-  rw [SmoothEmbedding.mem_tangentRange_iff] at hv ⊢
-  obtain ⟨u, rfl⟩ := hv
-  -- `prod_ofComplexManifold_apply` states `v` in `E × F`, so it does not rewrite directly.
-  have h := SmoothAlmostComplexStructure.prod_ofComplexManifold_apply (realEmbedding x)
-    (mfderiv _ (𝓘(ℝ, Fin 2 → ℂ).prod 𝓘(ℝ, Fin 1 → ℂ)) realEmbedding x u)
-  rw [h, coe_mfderiv_realEmbedding]
-  -- The real and the complex tangent spaces of the surface at `x` are both its model space.
-  exact ⟨_, (mfderiv _ _ embedding x).map_smul Complex.I u⟩
+theorem coe_realEmbedding : ⇑realEmbedding = Subtype.val := by
+  rw [realEmbedding_def, SmoothEmbedding.coe_restrictScalarsProd, coe_embedding]
 
 /-! ### The symplectic form -/
 
@@ -472,10 +436,11 @@ theorem symplecticForm_def :
 /-- The symplectic form of the rational elliptic surface is symplectic: closed and
 nondegenerate. -/
 theorem isSymplectic_symplecticForm : symplecticForm.IsSymplectic := by
-  rw [symplecticForm_def]
+  rw [symplecticForm_def, realEmbedding_def]
   exact (SmoothAlmostComplexStructure.tames_prod (compatible_fubiniStudyForm (n := 2)).tames
     (compatible_fubiniStudyForm (n := 1)).tames).isSymplectic_mpullback
-      (hn := by simp) prod_ofComplexManifold_mem_tangentRange
+      (hn := by simp)
+      (embedding.prod_ofComplexManifold_mem_tangentRange_restrictScalarsProd le_top (by simp) _)
       ((isSymplectic_fubiniStudyForm 2).prod (isSymplectic_fubiniStudyForm 1))
 
 /-! ### The base locus of the pencil and its complement -/
