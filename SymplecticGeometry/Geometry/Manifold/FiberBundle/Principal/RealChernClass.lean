@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Circle
 public import TauCeti.Geometry.Manifold.DeRham.Basic
+public import TauCeti.Geometry.Manifold.DeRham.Map
 import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
 
 /-!
@@ -35,6 +36,16 @@ of `-(2π)⁻¹ F_α` is the first Chern number of `V`
 * `SymplecticGeometry.IsCircleConnectionForm.mk_sub_mk_eq_smul_realFirstChernClass_iff`: two
   closed `2`-forms differ in cohomology by `c` times the class exactly when
   `ω₁ - ω₂ + c (2π)⁻¹ F_α` is exact.
+* `SymplecticGeometry.IsCircleConnectionForm.mpullback`,
+  `SymplecticGeometry.IsCircleConnectionForm.curvature_mpullback`: for a smooth equivariant map
+  `Φ : Q → P` of principal `Circle`-bundles covering `f : B' → B`, the pull-back `Φ^* α` is a
+  connection form on `Q`, with curvature `f^* F_α`.
+* `SymplecticGeometry.realFirstChernClass_map`: the real first Chern class of `Q` is the pull-back
+  along `f` of that of `P`; for `f = id` this is its invariance under isomorphisms of circle
+  bundles.
+
+That `dΦ` carries fundamental vector fields to fundamental vector fields is Tau Ceti's
+`TauCeti.mfderiv_rightFundamentalVectorField_of_map_op_smul`.
 
 ## References
 
@@ -49,7 +60,7 @@ public section
 
 noncomputable section
 
-open Bundle Manifold TauCeti
+open Bundle Manifold MulOpposite TauCeti
 open scoped Manifold ContDiff
 
 namespace SymplecticGeometry
@@ -118,5 +129,68 @@ theorem IsCircleConnectionForm.mk_sub_mk_eq_smul_realFirstChernClass_iff
   rw [← map_sub, hα.realFirstChernClass_eq, smul_smul, ← map_smul,
     deRhamCohomology.mk_eq_mk_iff, Submodule.coe_sub, Submodule.coe_smul, mul_neg, neg_smul,
     sub_neg_eq_add]
+
+/-! ### Naturality under maps of principal bundles -/
+
+section Naturality
+
+variable {EB' HB' B' : Type*} [NormedAddCommGroup EB'] [NormedSpace ℝ EB'] [TopologicalSpace HB']
+  {IB' : ModelWithCorners ℝ EB' HB'} [TopologicalSpace B'] [ChartedSpace HB' B']
+  [IsManifold IB' ∞ B'] [IB'.Boundaryless]
+  {Q : B' → Type*} [TopologicalSpace (TotalSpace Circle Q)] [∀ b, TopologicalSpace (Q b)]
+  [FiberBundle Circle Q] [∀ b, MulAction Circleᵐᵒᵖ (Q b)] [PrincipalBundle Circle Q]
+  [ContMDiffFiberBundle ∞ Circle Q IB' (𝓡 1)]
+  {Φ : ManifoldTotalSpace Circle Q → ManifoldTotalSpace Circle P}
+
+omit [IB.Boundaryless] [FiniteDimensional ℝ EB] [T2Space B] [SigmaCompactSpace B]
+  [IB'.Boundaryless] in
+/-- The pull-back `Φ^* α` of a connection form `α` on `P` along a smooth map `Φ` of total spaces
+that commutes with the action of `Circle` is a connection form on `Q`. -/
+theorem IsCircleConnectionForm.mpullback (hα : IsCircleConnectionForm α)
+    (hΦ : ContMDiff (IB'.prod (𝓡 1)) (IB.prod (𝓡 1)) ∞ Φ)
+    (hΦz : ∀ (z : Circle) (q : ManifoldTotalSpace Circle Q), Φ (op z • q) = op z • Φ q) :
+    IsCircleConnectionForm (SmoothForm.mpullback Φ hΦ α) where
+  mpullback_op_smul z := by
+    rw [SmoothForm.mpullback_mpullback_of_comp_eq _ hΦ hΦ (contMDiff_const_smul (op z))
+      (funext fun q ↦ hΦz z q), hα.mpullback_op_smul]
+  apply_rightFundamentalVectorField q := by
+    rw [SmoothForm.mpullback_apply_one,
+      mfderiv_rightFundamentalVectorField_of_map_op_smul ((hΦ q).mdifferentiableAt (by simp))
+        (PrincipalBundle.mdifferentiableAt_orbit (n := ∞) (by simp) q 1) (fun z ↦ hΦz z q),
+      hα.apply_rightFundamentalVectorField]
+
+variable {f : B' → B} (hf : ContMDiff IB' IB ∞ f)
+  (hΦ : ContMDiff (IB'.prod (𝓡 1)) (IB.prod (𝓡 1)) ∞ Φ)
+  (hΦz : ∀ (z : Circle) (q : ManifoldTotalSpace Circle Q), Φ (op z • q) = op z • Φ q)
+  (hΦf : ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1) ∘ Φ =
+    f ∘ ManifoldTotalSpace.projContMDiffMap ∞ Circle Q IB' (𝓡 1))
+
+omit [FiniteDimensional ℝ EB] [T2Space B] [SigmaCompactSpace B] in
+include hΦf in
+/-- Let `Φ` be a smooth map of total spaces that commutes with the action of `Circle` and covers a
+smooth map `f` of bases. The curvature of the pull-back `Φ^* α` of a connection form `α` is the
+pull-back `f^* F_α` of the curvature of `α`. -/
+theorem IsCircleConnectionForm.curvature_mpullback (hα : IsCircleConnectionForm α) :
+    (hα.mpullback hΦ hΦz).curvature = SmoothForm.mpullback f hf hα.curvature := by
+  rw [curvature_eq_iff, SmoothForm.mpullback_mpullback_of_comp_eq _ hf hΦ
+    (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)).contMDiff hΦf.symm,
+    mpullback_curvature, SmoothForm.mextDerivₗ_mpullback]
+
+variable [FiniteDimensional ℝ EB'] [T2Space B'] [SigmaCompactSpace B']
+
+include hΦ hΦz hΦf in
+/-- **Naturality of the real first Chern class.** If a smooth map `Φ` of total spaces commutes with
+the action of `Circle` and covers a smooth map `f : B' → B`, then the real first Chern class of
+`Q` is the pull-back along `f` of that of `P`. -/
+theorem realFirstChernClass_map :
+    realFirstChernClass IB' Q = deRhamCohomology.map f hf 2 (realFirstChernClass IB P) := by
+  have hα := (exists_isCircleConnectionForm (IB := IB) (P := P)).choose_spec
+  rw [hα.realFirstChernClass_eq, (hα.mpullback hΦ hΦz).realFirstChernClass_eq, map_smul,
+    deRhamCohomology.map_mk]
+  congr 2
+  exact Subtype.ext ((hα.curvature_mpullback hf hΦ hΦz hΦf).trans
+    (closedForms.coe_mpullback f hf 2 ⟨_, hα.curvature_mem_closedForms⟩).symm)
+
+end Naturality
 
 end SymplecticGeometry
