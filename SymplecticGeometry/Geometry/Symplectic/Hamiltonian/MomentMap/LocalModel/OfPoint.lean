@@ -57,8 +57,10 @@ representation `h ↦ dh_x` (`TauCeti.contMDiff_tangentRepresentation_apply` and
 * `SymplecticGeometry.LocalModelData.ofPoint_rep_apply`,
   `SymplecticGeometry.LocalModelData.ofPoint_ρ_apply`: `eV` intertwines the representation and
   its infinitesimal map with those of the stabilizer and of the isotropy algebra on the slice.
-* `TauCeti.SymplecticForm.conj_mem_skewAdjointLieSubalgebra_transport`: conjugation by a linear
-  isomorphism carries `sp(V, ω)` to the symplectic Lie algebra of the transported form.
+* `TauCeti.SmoothTwoForm.IsNondegenerate.contMDiff_symplecticSliceRepresentation_apply`,
+  `TauCeti.SmoothTwoForm.IsNondegenerate.mfderiv_symplecticSliceRepresentation_apply_one`: the
+  representation of the stabilizer on the symplectic slice, read on `V` through `eV`, is smooth,
+  and its derivative at `1` is the action of the isotropy algebra.
 
 ## References
 
@@ -90,17 +92,6 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensi
   {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]
   {A : Type*} [NormedAddCommGroup A] [NormedSpace ℝ A] [FiniteDimensional ℝ A]
 
-/-- Transporting a symplectic form along a linear isomorphism `e` carries its symplectic Lie
-algebra to that of the transported form, by conjugation `A ↦ e ∘ A ∘ e⁻¹`. -/
-theorem _root_.TauCeti.SymplecticForm.conj_mem_skewAdjointLieSubalgebra_transport
-    {V W : Type*} [AddCommGroup V] [Module ℝ V] [AddCommGroup W] [Module ℝ W]
-    {ν : SymplecticForm V} {A : Module.End ℝ V} (hA : A ∈ skewAdjointLieSubalgebra ν.toBilinForm)
-    (e : V ≃ₗ[ℝ] W) :
-    e.conj A ∈ skewAdjointLieSubalgebra (ν.transport e).toBilinForm :=
-  (LinearMap.mem_skewAdjointSubmodule _).2 fun u w ↦ by
-    have h := (LinearMap.mem_skewAdjointSubmodule A).1 hA (e.symm u) (e.symm w)
-    simpa [LinearEquiv.conj_apply] using h
-
 omit [I'.Boundaryless] [T2Space M] in
 /-- A linear isomorphism `V ≃ W^σ ⧸ (W ∩ W^σ)` is read through continuous linear maps
 `L : T_x M → V` and `S : V → T_x M`: `L u = [u]` on `W^σ`, and `S v ∈ W^σ` lifts `v`. -/
@@ -125,6 +116,83 @@ private theorem exists_clm_symplecticSlice (hσ : σ.IsNondegenerate)
     exact congrArg (fun w ↦ eV.symm (Submodule.Quotient.mk w))
       (Submodule.projectionOnto_apply_left hC ⟨u, hu⟩)
   · exact LinearMap.congr_fun hs (eV v)
+
+section SliceRepresentation
+
+variable (hσ : σ.IsNondegenerate)
+  (hσG : ∀ g ∈ stabilizer G x, SmoothForm.mpullback (fun y : M ↦ g • y)
+    (ContMDiffSMul.contMDiff_const_smul (I := I) g) σ = σ)
+  (eV : V ≃ₗ[ℝ] hσ.SymplecticSlice (InfinitesimalAction.fundamental I G I' M) x)
+
+omit [I.Boundaryless] [T2Space G] [I'.Boundaryless] [T2Space M] [FiniteDimensional ℝ V] in
+/-- Read through maps `L`, `S` as in `exists_clm_symplecticSlice`, the representation of the
+stabilizer on the symplectic slice is the tangent representation. -/
+private theorem symm_symplecticSliceRepresentation_apply_eq {L : E' →L[ℝ] V} {S : V →L[ℝ] E'}
+    (hL : ∀ (u : TangentSpace I' x)
+      (hu : u ∈ (hσ.symplecticFormAt x).orthogonal
+        ((InfinitesimalAction.fundamental I G I' M).orbitTangent x)),
+      L u = eV.symm (Submodule.Quotient.mk ⟨u, hu⟩))
+    (hS : ∀ v, ∃ hv : S v ∈ (hσ.symplecticFormAt x).orthogonal
+        ((InfinitesimalAction.fundamental I G I' M).orbitTangent x),
+      (Submodule.Quotient.mk ⟨S v, hv⟩ :
+        hσ.SymplecticSlice (InfinitesimalAction.fundamental I G I' M) x) = eV v)
+    (k : stabilizer G x) (v : V) :
+    eV.symm (hσ.symplecticSliceRepresentation hσG k (eV v)) =
+      L (tangentRepresentation (fun g _ ↦
+        ContMDiffSMul.mdifferentiable_const_smul (I := I) (I' := I') (n := ∞) (by simp) g x) k
+        (S v)) := by
+  obtain ⟨hv, hv'⟩ := hS v
+  rw [← hv', SmoothTwoForm.IsNondegenerate.symplecticSliceRepresentation_mk]
+  exact (hL _ _).symm
+
+omit [I.Boundaryless] [T2Space G] [I'.Boundaryless] [T2Space M] [FiniteDimensional ℝ F] in
+/-- For an embedded Lie subgroup structure `d` on the stabilizer `G_x` and a linear isomorphism
+`eV` of `V` with the symplectic slice at `x`, the representation `[u] ↦ [dh_x u]` of `G_x` on the
+slice, read on `V` through `eV`, is jointly smooth on `G_x × V`. -/
+theorem _root_.TauCeti.SmoothTwoForm.IsNondegenerate.contMDiff_symplecticSliceRepresentation_apply
+    (d : EmbeddedLieSubgroupData I (stabilizer G x) F) :
+    let _ := d.chartedSpace
+    ContMDiff (𝓘(ℝ, F).prod 𝓘(ℝ, V)) 𝓘(ℝ, V) ∞ fun p : stabilizer G x × V ↦
+      eV.symm (hσ.symplecticSliceRepresentation hσG p.1 (eV p.2)) := by
+  intro _
+  obtain ⟨L, S, hL, hS⟩ := exists_clm_symplecticSlice hσ eV
+  exact (L.contMDiff.comp ((contMDiff_tangentRepresentation_apply d _).comp
+    (contMDiff_fst.prodMk (S.contMDiff.comp contMDiff_snd)))).congr fun p ↦
+      symm_symplecticSliceRepresentation_apply_eq hσ hσG eV hL hS p.1 p.2
+
+/-- For an embedded Lie subgroup structure `d` on the stabilizer `G_x` and a linear isomorphism
+`eV` of `V` with the symplectic slice at `x`, the derivative at `1` in the direction `ζ` of
+`k ↦ eV⁻¹ (k · eV v)` is `eV⁻¹ ([A_ξ] (eV v))`, where `ξ ∈ 𝔤_x` is the image of `ζ` under the
+differential at `1` of the inclusion `G_x → G` and `[A_ξ]` is
+`TauCeti.SmoothTwoForm.IsNondegenerate.symplecticSliceIsotropyAction`. -/
+theorem _root_.TauCeti.SmoothTwoForm.IsNondegenerate.mfderiv_symplecticSliceRepresentation_apply_one
+    (d : EmbeddedLieSubgroupData I (stabilizer G x) F) :
+    let _ := d.chartedSpace
+    ∀ (ζ : GroupLieAlgebra 𝓘(ℝ, F) (stabilizer G x)) (v : V),
+      mfderiv 𝓘(ℝ, F) 𝓘(ℝ, V)
+          (fun k : stabilizer G x ↦ eV.symm (hσ.symplecticSliceRepresentation hσG k (eV v))) 1 ζ =
+        eV.symm ((hσ.symplecticSliceIsotropyAction hσG
+          ⟨(stabilizer G x).subtype.groupLieAlgebraMap 𝓘(ℝ, F) I ζ,
+            d.groupLieAlgebraMap_subtype_mem_isotropy (I' := I') ζ⟩ :
+            Module.End ℝ (hσ.SymplecticSlice (InfinitesimalAction.fundamental I G I' M) x))
+          (eV v)) := by
+  intro _ ζ v
+  obtain ⟨L, S, hL, hS⟩ := exists_clm_symplecticSlice hσ eV
+  obtain ⟨hv, hv'⟩ := hS v
+  have hd : ∀ g ∈ stabilizer G x, MDifferentiableAt I' I' (fun y : M ↦ g • y) x :=
+    fun g _ ↦ ContMDiffSMul.mdifferentiable_const_smul (I := I) (n := ∞) (by simp) g x
+  have hφ : MDifferentiableAt 𝓘(ℝ, F) 𝓘(ℝ, E')
+      (fun k : stabilizer G x ↦ show E' from tangentRepresentation hd k (S v)) 1 :=
+    (((contMDiff_tangentRepresentation_apply d hd).comp
+      (contMDiff_id.prodMk contMDiff_const)).mdifferentiable (by simp)) 1
+  have h2 := (L.hasMFDerivAt.comp 1 hφ.hasMFDerivAt).mfderiv
+  rw [Function.comp_def] at h2
+  rw [funext (symm_symplecticSliceRepresentation_apply_eq hσ hσG eV hL hS · v), h2]
+  refine (congrArg L (mfderiv_tangentRepresentation_apply_one d hd ζ (S v))).trans ?_
+  rw [hL _ (hσ.isotropyLinearization_apply_mem_orthogonal hσG _ hv), ← hv',
+    SmoothTwoForm.IsNondegenerate.symplecticSliceIsotropyAction_mk]
+
+end SliceRepresentation
 
 variable (hσ : σ.IsNondegenerate)
   (hσG : ∀ g ∈ stabilizer G x, SmoothForm.mpullback (fun y : M ↦ g • y)
@@ -163,8 +231,6 @@ def LocalModelData.ofPoint :
     let _ := d.contMDiffSMul (I'' := I) (M := G)
     LocalModelData (I := I) (stabilizer G x) (F := F) V A := by
   intro _ _ _
-  have hd : ∀ g ∈ stabilizer G x, MDifferentiableAt I' I' (fun y : M ↦ g • y) x :=
-    fun g _ ↦ ContMDiffSMul.mdifferentiable_const_smul (I := I) (n := ∞) (by simp) g x
   exact
   { τ := μ x
     coadjointRepresentation_τ k := by
@@ -189,49 +255,21 @@ def LocalModelData.ofPoint :
         (SymplecticForm.transport_transport_symm _ eV)
       he.trans ((hσ.isSymplectomorphism_symplecticSliceRepresentation hσG k).trans he.symm)
     contMDiff_rep := by
-      obtain ⟨L, S, hL, hS⟩ := exists_clm_symplecticSlice hσ eV
-      refine (L.contMDiff.comp ((contMDiff_tangentRepresentation_apply d hd).comp
-        (contMDiff_fst.prodMk (S.contMDiff.comp contMDiff_snd)))).congr fun p ↦ ?_
-      obtain ⟨hv, hv'⟩ := hS p.2
-      simp only [MonoidHom.coe_mk, OneHom.coe_mk, LinearEquiv.trans_apply, Function.comp_apply]
-      rw [← hv', SmoothTwoForm.IsNondegenerate.symplecticSliceRepresentation_mk]
-      exact (hL _ (hσ.tangentRepresentation_mem_orthogonal_orbitTangent hσG hd p.1 hv)).symm
-    ρ :=
-      { toFun ξ := ⟨eV.symm.conj (hσ.symplecticSliceIsotropyAction hσG ⟨ξ.val, ξ.property⟩ :
-            Module.End ℝ (hσ.SymplecticSlice (InfinitesimalAction.fundamental I G I' M) x)),
-          SymplecticForm.conj_mem_skewAdjointLieSubalgebra_transport
-            (hσ.symplecticSliceIsotropyAction hσG ⟨ξ.val, ξ.property⟩).property eV.symm⟩
-        map_add' ξ ζ := Subtype.ext <| by
-          have h := map_add (hσ.symplecticSliceIsotropyAction (I := I) hσG) ⟨ξ.val, ξ.property⟩
-            ⟨ζ.val, ζ.property⟩
-          rw [Subtype.ext_iff, AddMemClass.coe_add] at h
-          exact (congrArg eV.symm.conj h).trans (map_add _ _ _)
-        map_smul' c ξ := Subtype.ext <| by
-          have h := map_smul (hσ.symplecticSliceIsotropyAction (I := I) hσG) c ⟨ξ.val, ξ.property⟩
-          rw [Subtype.ext_iff, SetLike.val_smul] at h
-          exact (congrArg eV.symm.conj h).trans (map_smul _ _ _) }
+      simp only [MonoidHom.coe_mk, OneHom.coe_mk, LinearEquiv.trans_apply]
+      exact hσ.contMDiff_symplecticSliceRepresentation_apply hσG eV d
+    ρ := (skewAdjointLieSubalgebraEquiv _ eV).symm.toLinearEquiv.toLinearMap ∘ₗ
+      hσ.symplecticSliceIsotropyAction hσG
     mfderiv_rep_apply_of_mem ξ hξ v := by
-      obtain ⟨L, S, hL, hS⟩ := exists_clm_symplecticSlice hσ eV
-      obtain ⟨hv, hv'⟩ := hS v
-      have hφ : MDifferentiableAt 𝓘(ℝ, F) 𝓘(ℝ, E')
-          (fun k : stabilizer G x ↦ show E' from tangentRepresentation hd k (S v)) 1 :=
-        (((contMDiff_tangentRepresentation_apply d hd).comp
-          (contMDiff_id.prodMk contMDiff_const)).mdifferentiable (by simp)) 1
-      have hfun : (fun k : stabilizer G x ↦
-          eV.symm (hσ.symplecticSliceRepresentation hσG k (eV v))) =
-          fun k ↦ L (show E' from tangentRepresentation hd k (S v)) := funext fun k ↦ by
-        rw [← hv', SmoothTwoForm.IsNondegenerate.symplecticSliceRepresentation_mk]
-        exact (hL _ (hσ.tangentRepresentation_mem_orthogonal_orbitTangent hσG hd k hv)).symm
-      simp only [MonoidHom.coe_mk, OneHom.coe_mk, LinearEquiv.trans_apply, LinearMap.coe_mk,
-        AddHom.coe_mk]
-      have h2 := (L.hasMFDerivAt.comp 1 hφ.hasMFDerivAt).mfderiv
-      rw [Function.comp_def] at h2
-      rw [hfun, h2]
-      refine (congrArg L (mfderiv_tangentRepresentation_apply_one d hd ξ (S v))).trans ?_
-      rw [hL _ (hσ.isotropyLinearization_apply_mem_orthogonal hσG _ hv), LinearEquiv.conj_apply,
-        LinearMap.comp_apply, LinearMap.comp_apply, LinearEquiv.symm_symm]
-      simp only [LinearEquiv.coe_coe]
-      rw [← hv', SmoothTwoForm.IsNondegenerate.symplecticSliceIsotropyAction_mk]
+      simp only [MonoidHom.coe_mk, OneHom.coe_mk, LinearEquiv.trans_apply]
+      -- The ascription states the rest in `V` rather than in the tangent space `T V`.
+      refine (hσ.mfderiv_symplecticSliceRepresentation_apply_one hσG eV d ξ v).trans
+        (?_ : (_ : V) = _)
+      -- `ρ` is defined on `𝔥` as a submodule, the isotropy action on the isotropy Lie
+      -- subalgebra; the two types agree by definition, and `change` states `ρ` on the latter.
+      change _ = ((skewAdjointLieSubalgebraEquiv _ eV).symm
+        (hσ.symplecticSliceIsotropyAction hσG ⟨_, hξ⟩) : Module.End ℝ V) v
+      rw [skewAdjointLieSubalgebraEquiv_symm_apply, LinearEquiv.lieConj_apply,
+        LinearEquiv.conj_apply_apply, LinearEquiv.symm_symm]
     equivDual𝔪 := eA }
 
 namespace LocalModelData
@@ -319,7 +357,12 @@ theorem ofPoint_ρ_apply :
           Module.End ℝ (hσ.SymplecticSlice (InfinitesimalAction.fundamental I G I' M) x))
           (eV v) := by
   intro _ _ _ ξ v
-  exact eV.apply_symm_apply _
+  -- `ρ` is defined on `𝔥` as a submodule, the isotropy action on the isotropy Lie subalgebra;
+  -- the two types agree by definition, and `change` states `ρ` on the latter.
+  change eV (((skewAdjointLieSubalgebraEquiv _ eV).symm
+    (hσ.symplecticSliceIsotropyAction hσG ⟨ξ.val, ξ.property⟩) : Module.End ℝ V) v) = _
+  rw [skewAdjointLieSubalgebraEquiv_symm_apply, LinearEquiv.lieConj_apply,
+    LinearEquiv.conj_apply_apply, LinearEquiv.symm_symm, LinearEquiv.apply_symm_apply]
 
 @[simp]
 theorem ofPoint_equivDual𝔪 :
