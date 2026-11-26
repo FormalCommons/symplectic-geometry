@@ -13,6 +13,7 @@ public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orient
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Cross.Point
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 public import TauCeti.Geometry.Manifold.ExtChartAt
+public import SymplecticGeometry.Geometry.Manifold.CenteredExtChartAt
 public import SymplecticGeometry.Topology.VectorBundle.Thom.LocalChart
 import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Cross.Sign
@@ -98,8 +99,6 @@ Applied to the two cases, it gives `localHomologyMap_localChartLocalHomologyIso_
 
 ## Main definitions
 
-* `SymplecticGeometry.centeredExtChartAt`: the extended chart of a manifold at a point,
-  translated in the model space so that the point goes to the origin.
 * `TauCeti.SmoothEmbedding.normalTubeChart`: the chart of `X` at `f z` given by the inverse of a
   tube read in the preferred chart of the normal bundle at `0_z`, normal coordinate first.
 * `TauCeti.SmoothEmbedding.centeredNormalTubeChart`: that chart on its source, translated so
@@ -147,70 +146,6 @@ noncomputable section
 
 open Bundle Filter Module Set
 open scoped Manifold Topology ContDiff
-
-namespace SymplecticGeometry
-
-section CenteredExtChartAt
-
-variable {𝕜 E H M : Type*} [NontriviallyNormedField 𝕜] [NormedAddCommGroup E] [NormedSpace 𝕜 E]
-  [TopologicalSpace H] [TopologicalSpace M] [ChartedSpace H M]
-  (I : ModelWithCorners 𝕜 E H) [I.Boundaryless] (x : M)
-
-/-- The extended chart of `M` at `x`, translated in the model space so that `x` goes to the
-origin: `y ↦ extChartAt I x y - extChartAt I x x` on the source of the chart at `x`
-(`centeredExtChartAt_apply`). -/
-def centeredExtChartAt : OpenPartialHomeomorph M E :=
-  (chartAt H x).extendTrans I (Homeomorph.subRight (extChartAt I x x))
-
-/-- The centred chart at `x` is the chart at `x`, read in the model space through `I` and
-translated by the coordinate of `x`. -/
-theorem centeredExtChartAt_def :
-    centeredExtChartAt I x =
-      (chartAt H x).extendTrans I (Homeomorph.subRight (extChartAt I x x)) :=
-  (rfl)
-
-/-- The source of the centred chart at `x` is that of the chart at `x`. -/
-@[simp]
-theorem centeredExtChartAt_source : (centeredExtChartAt I x).source = (chartAt H x).source := by
-  simp [centeredExtChartAt_def]
-
-/-- The point `x` lies in the source of its centred chart. -/
-theorem mem_centeredExtChartAt_source : x ∈ (centeredExtChartAt I x).source := by
-  simp
-
-/-- The centred chart at `x` sends `y` to the coordinate of `y` minus that of `x`. -/
-@[simp]
-theorem centeredExtChartAt_apply (y : M) :
-    centeredExtChartAt I x y = extChartAt I x y - extChartAt I x x := by
-  simp [centeredExtChartAt_def]
-
-/-- The centred chart at `x` sends `x` to the origin. -/
-theorem centeredExtChartAt_self : centeredExtChartAt I x x = 0 := by
-  simp
-
-/-- The inverse of the centred chart at `x` translates back by the coordinate of `x` and applies
-the inverse of the extended chart at `x`. -/
-@[simp]
-theorem centeredExtChartAt_symm_apply (v : E) :
-    (centeredExtChartAt I x).symm v = (extChartAt I x).symm (v + extChartAt I x x) := by
-  simp [centeredExtChartAt_def]
-
-/-- The target of the centred chart at `x` is that of the extended chart at `x`, translated by
-minus the coordinate of `x`. -/
-theorem centeredExtChartAt_target :
-    (centeredExtChartAt I x).target = (· + extChartAt I x x) ⁻¹' (extChartAt I x).target := by
-  ext v
-  simp [centeredExtChartAt_def, I.range_eq_univ]
-
-/-- On its source, the centred chart at `x` vanishes at `x` only. -/
-theorem sourceRestrict_centeredExtChartAt_preimage_zero :
-    (centeredExtChartAt I x).sourceRestrict ⁻¹' {0} = {⟨x, mem_centeredExtChartAt_source I x⟩} := by
-  rw [← centeredExtChartAt_self I x]
-  exact (centeredExtChartAt I x).sourceRestrict_preimage_singleton _
-
-end CenteredExtChartAt
-
-end SymplecticGeometry
 
 namespace TauCeti.SmoothEmbedding
 
@@ -362,46 +297,46 @@ theorem normalTubeChart_self (hΦ : f.IsNormalizedTube hn hdim Φ) :
       (mem_baseSet_trivializationAt P _ z)]
 
 /-- **The centred chart of a tube at a point of the submanifold.** The chart
-`normalTubeChart Φ z`, restricted to its source and translated so that `f z` goes to the origin,
+`normalTubeChart Φ z`, translated so that `f z` goes to the origin and restricted to its source,
 as a continuous map. For a normalized tube it vanishes at `f z` only
-(`centeredNormalTubeChart_preimage_zero`), and it is an open embedding
-(`isOpenEmbedding_centeredNormalTubeChart`). -/
+(`centeredNormalTubeChart_preimage_zero`); it is an open embedding by Tau Ceti's
+`OpenPartialHomeomorph.isOpenEmbedding_sourceRestrict`. -/
 def centeredNormalTubeChart : C((normalTubeChart Φ z).source, P × E) :=
-  ⟨fun x ↦ normalTubeChart Φ z x - normalTubeChart Φ z (f z),
-    (normalTubeChart Φ z).continuousOn.domRestrict.sub continuous_const⟩
+  ((normalTubeChart Φ z).transHomeomorph
+    (Homeomorph.subRight (normalTubeChart Φ z (f z)))).sourceRestrict
 
 omit [J.Boundaryless] in
-/-- The centred chart of the tube at `z` is the chart restricted to its source, minus its value at
-`f z`. -/
+/-- The centred chart of the tube at `z` is the chart followed by the translation by minus its
+value at `f z`, restricted to its source. -/
 theorem centeredNormalTubeChart_def :
     centeredNormalTubeChart Φ z =
-      (⟨fun x ↦ normalTubeChart Φ z x - normalTubeChart Φ z (f z),
-        (normalTubeChart Φ z).continuousOn.domRestrict.sub continuous_const⟩ :
-        C((normalTubeChart Φ z).source, P × E)) :=
+      ((normalTubeChart Φ z).transHomeomorph
+        (Homeomorph.subRight (normalTubeChart Φ z (f z)))).sourceRestrict :=
   (rfl)
 
 omit [J.Boundaryless] in
 /-- The value of the centred chart of the tube at `z` at a point of the source of the chart. -/
 @[simp]
 theorem centeredNormalTubeChart_apply (x : (normalTubeChart Φ z).source) :
-    centeredNormalTubeChart Φ z x = normalTubeChart Φ z x - normalTubeChart Φ z (f z) :=
-  (rfl)
+    centeredNormalTubeChart Φ z x = normalTubeChart Φ z x - normalTubeChart Φ z (f z) := by
+  -- `sourceRestrict_apply` is stated on the source of the translated chart, which is that of
+  -- `normalTubeChart Φ z` (`transHomeomorph_source`) only up to unfolding, so `simp` cannot
+  -- rewrite with it here.
+  rw [centeredNormalTubeChart_def]
+  refine (OpenPartialHomeomorph.sourceRestrict_apply ((normalTubeChart Φ z).transHomeomorph
+    (Homeomorph.subRight (normalTubeChart Φ z (f z)))) x).trans ?_
+  simp
 
 omit [J.Boundaryless] in
 /-- The centred chart of a normalized tube at `z` vanishes at `f z` only. -/
 theorem centeredNormalTubeChart_preimage_zero (hΦ : f.IsNormalizedTube hn hdim Φ) :
     centeredNormalTubeChart Φ z ⁻¹' {0} = {⟨f z, mem_normalTubeChart_source Φ z hΦ⟩} := by
-  ext x
-  simp only [mem_preimage, mem_singleton_iff, centeredNormalTubeChart_apply, sub_eq_zero]
-  exact ⟨fun h ↦ Subtype.ext ((normalTubeChart Φ z).injOn x.property
-    (mem_normalTubeChart_source Φ z hΦ) h), by rintro rfl; rfl⟩
-
-omit [J.Boundaryless] in
-/-- The centred chart of a tube at `z` is an open embedding. -/
-theorem isOpenEmbedding_centeredNormalTubeChart :
-    Topology.IsOpenEmbedding (centeredNormalTubeChart Φ z) :=
-  (Homeomorph.subRight (normalTubeChart Φ z (f z))).isOpenEmbedding.comp
-    (normalTubeChart Φ z).isOpenEmbedding_restrict
+  have h := ((normalTubeChart Φ z).transHomeomorph
+    (Homeomorph.subRight (normalTubeChart Φ z (f z)))).sourceRestrict_preimage_singleton
+      (mem_normalTubeChart_source Φ z hΦ)
+  simp only [OpenPartialHomeomorph.transHomeomorph_apply, Function.comp_apply,
+    Homeomorph.subRight_apply, sub_self] at h
+  exact h
 
 /-- The derivative of the chart of the tube at `z`, read in the chart of `X` at `f z`: the inverse
 of the differential of `Φ` at `0_z`, the factors of `E × P` exchanged
@@ -903,7 +838,7 @@ theorem localHomologyMap_localChartLocalHomologyIso_hom_of_normalTubeChart
   have hτ0 : τ ⁻¹' {0} = {x₀} := centeredNormalTubeChart_preimage_zero Φ z hΦ
   have : CategoryTheory.IsIso
       (localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ)) τ hτ0.subset n) :=
-    isIso_localHomologyMap _ τ (isOpenEmbedding_centeredNormalTubeChart Φ z) hτ0
+    isIso_localHomologyMap _ τ (OpenPartialHomeomorph.isOpenEmbedding_sourceRestrict _) hτ0
       isClosed_singleton (singleton_subset_iff.2 ⟨x₀, hτ0.ge rfl⟩) n
   have hinj : Function.Injective
       (localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ)) τ hτ0.subset n) :=
