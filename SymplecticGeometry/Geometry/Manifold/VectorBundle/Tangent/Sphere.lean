@@ -8,6 +8,7 @@ module
 public import Mathlib.Topology.VectorBundle.Constructions
 public import TauCeti.Geometry.Manifold.Riemannian.Sphere.Gradient
 public import TauCeti.Topology.VectorBundle.Hom
+import TauCeti.Analysis.InnerProductSpace.LinearIsometry
 
 /-!
 # The tangent bundle of the sphere plus a trivial line
@@ -77,14 +78,11 @@ def sphereTangentProdEquiv (x : sphere (0 : E) 1) :
       have ht : ⟪(x : E), (TauCeti.sphereTangentEquiv x v : E) + t • (x : E)⟫_ℝ = t := by
         rw [inner_add_right, real_inner_smul_right, hv, hx, zero_add, mul_one]
       refine Prod.ext ?_ ht
-      simp only [map_add, map_smul,
-        Submodule.orthogonalProjectionOnto_orthogonalComplement_singleton_eq_zero, smul_zero,
-        add_zero, Submodule.orthogonalProjectionOnto_mem_subspace_eq_self,
-        LinearIsometryEquiv.symm_apply_apply]
+      simp only [Submodule.orthogonalProjectionOnto_add_smul, LinearIsometryEquiv.symm_apply_apply]
     right_inv w := by
-      simp only [LinearIsometryEquiv.apply_symm_apply, Submodule.coe_orthogonalProjectionOnto_apply]
-      rw [← Submodule.starProjection_unit_singleton ℝ (norm_eq_of_mem_sphere x), add_comm,
-        Submodule.starProjection_add_starProjection_orthogonal]
+      simp only [LinearIsometryEquiv.apply_symm_apply]
+      rw [Submodule.coe_orthogonalProjectionOnto_orthogonal_singleton (norm_eq_of_mem_sphere x),
+        sub_add_cancel]
     continuous_toFun := by fun_prop
     continuous_invFun := by fun_prop }
 
