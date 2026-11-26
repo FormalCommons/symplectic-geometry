@@ -144,6 +144,7 @@ theorem diffeomorph_zero : diffeomorph 0 = 0 := by
   rfl
 
 /-- Its inverse keeps the base point `0`. -/
+@[simp]
 theorem diffeomorph_symm_zero : diffeomorph.symm 0 = 0 :=
   (congrArg diffeomorph.symm diffeomorph_zero).symm.trans (diffeomorph.symm_apply_apply 0)
 

@@ -523,8 +523,7 @@ def circleLoop (i : Fin 2) :
     Path (⟨0, zero_mem_puncture⟩ : ConnectedSum.puncture ball) ⟨0, zero_mem_puncture⟩ :=
   ((torusCircleLoop i).map
     (circlesInclusion.comp (circlesHomeomorph.symm : C(torusCircles, circles))).continuous).cast
-    (Subtype.ext (by simp [-coe_diffeomorph_symm, diffeomorph_symm_zero]))
-    (Subtype.ext (by simp [-coe_diffeomorph_symm, diffeomorph_symm_zero]))
+    (Subtype.ext (by simp)) (Subtype.ext (by simp))
 
 /-- The loop in the coordinates of `Fin 2 → AddCircle 1`. -/
 @[simp]
@@ -535,17 +534,9 @@ theorem diffeomorph_circleLoop_apply (i : Fin 2) (t : I) :
 
 /-- The generators `0` and `1` of the free group on `Fin 2`, matched with the generators `a 0` and
 `b 0` of Tau Ceti's `TauCeti.SurfaceGroup.Orientable.equivFreeGroup 1 0`. -/
-private def generatorEquiv : Fin 2 ≃ Fin 1 ⊕ Fin 1 ⊕ Fin 0 where
-  toFun := ![.inl 0, .inr (.inl 0)]
-  invFun
-    | .inl _ => 0
-    | .inr (.inl _) => 1
-    | .inr (.inr k) => k.elim0
-  left_inv i := by fin_cases i <;> rfl
-  right_inv
-    | .inl k => by rw [Subsingleton.elim k 0]; rfl
-    | .inr (.inl k) => by rw [Subsingleton.elim k 0]; rfl
-    | .inr (.inr k) => k.elim0
+private def generatorEquiv : Fin 2 ≃ Fin 1 ⊕ Fin 1 ⊕ Fin 0 :=
+  (finSumFinEquiv (m := 1) (n := 1)).symm.trans
+    (Equiv.sumCongr (.refl _) (Equiv.sumEmpty _ _).symm)
 
 private theorem generatorEquiv_zero : generatorEquiv 0 = .inl 0 :=
   (rfl)
@@ -581,16 +572,24 @@ private theorem homeomorphMulEquivOfEq_symm_circleLoop (i : Fin 2) :
   -- `FundamentalGroup.fromPath` is the abbreviation `CategoryTheory.End.of`.
   rfl
 
+/-- The isomorphism sends the class of `circleLoop i` to the image of the generator
+`generatorEquiv i` under Tau Ceti's `TauCeti.SurfaceGroup.Orientable.equivFreeGroup 1 0`. -/
+private theorem puncturedFundamentalGroupMulEquiv_circleLoop (i : Fin 2) :
+    puncturedFundamentalGroupMulEquiv
+        (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk (circleLoop i))) =
+      (SurfaceGroup.Orientable.equivFreeGroup 1 0).symm (FreeGroup.of (generatorEquiv i)) := by
+  rw [puncturedFundamentalGroupMulEquiv, MulEquiv.trans_apply, MulEquiv.trans_apply,
+    homeomorphMulEquivOfEq_symm_circleLoop, MulEquiv.trans_apply,
+    torusCirclesFundamentalGroupMulEquiv_torusCircleLoop, MulEquiv.trans_apply,
+    FreeGroup.freeGroupCongr_apply, FreeGroup.map.of]
+
 /-- The isomorphism sends the class of the loop `t ↦ ([t], 0)` to the generator `a 0`. -/
 @[simp]
 theorem puncturedFundamentalGroupMulEquiv_circleLoop_zero :
     puncturedFundamentalGroupMulEquiv
         (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk (circleLoop 0))) =
       SurfaceGroup.Orientable.a 1 1 0 := by
-  rw [puncturedFundamentalGroupMulEquiv, MulEquiv.trans_apply, MulEquiv.trans_apply,
-    homeomorphMulEquivOfEq_symm_circleLoop, MulEquiv.trans_apply,
-    torusCirclesFundamentalGroupMulEquiv_torusCircleLoop, MulEquiv.trans_apply,
-    FreeGroup.freeGroupCongr_apply, FreeGroup.map.of, generatorEquiv_zero,
+  rw [puncturedFundamentalGroupMulEquiv_circleLoop, generatorEquiv_zero,
     SurfaceGroup.Orientable.equivFreeGroup_symm_of_inl]
 
 /-- The isomorphism sends the class of the loop `t ↦ (0, [t])` to the generator `b 0`. -/
@@ -599,10 +598,7 @@ theorem puncturedFundamentalGroupMulEquiv_circleLoop_one :
     puncturedFundamentalGroupMulEquiv
         (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk (circleLoop 1))) =
       SurfaceGroup.Orientable.b 1 1 0 := by
-  rw [puncturedFundamentalGroupMulEquiv, MulEquiv.trans_apply, MulEquiv.trans_apply,
-    homeomorphMulEquivOfEq_symm_circleLoop, MulEquiv.trans_apply,
-    torusCirclesFundamentalGroupMulEquiv_torusCircleLoop, MulEquiv.trans_apply,
-    FreeGroup.freeGroupCongr_apply, FreeGroup.map.of, generatorEquiv_one,
+  rw [puncturedFundamentalGroupMulEquiv_circleLoop, generatorEquiv_one,
     SurfaceGroup.Orientable.equivFreeGroup_symm_of_inr_inl]
 
 end EuclideanTorus
