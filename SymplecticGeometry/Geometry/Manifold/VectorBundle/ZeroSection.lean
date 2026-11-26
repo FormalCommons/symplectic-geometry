@@ -18,6 +18,7 @@ import TauCeti.Geometry.Manifold.VectorBundle.Submersion
 import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
 import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
+import SymplecticGeometry.Topology.VectorBundle.Basic
 
 /-!
 # The zero section of a vector bundle as a smooth embedding
@@ -187,7 +188,7 @@ theorem extChartAt_symm_apply_zero_of_mem_baseSet (p : TotalSpace F V) {y : EB}
     (extChartAt (IB.prod 𝓘(𝕜, F)) p).symm (y, 0) =
       zeroSection F V ((extChartAt IB p.proj).symm y) := by
   rw [extChartAt_symm_apply_of_mem_baseSet p hy, ← Trivialization.symmₗ_apply (R := 𝕜) _ hy,
-    map_zero, zeroSection]
+    map_zero, zeroSection_def]
 
 /-- A continuous linear map `L` from a normed space into the fibre over `b`, followed by the
 inclusion of that fibre into the total space, is `C^n` for every `n`. -/
@@ -275,7 +276,7 @@ theorem mfderiv_zeroSectionTangentEquiv_symm_inr {f : TotalSpace F V → M} {b :
   have hl := (TotalSpace.hasMFDerivAt_smul_curve (IB := IB) (⟨b, v⟩ : TotalSpace F V)
     (hasDerivAt_id' (0 : 𝕜))).mdifferentiableAt
   rw [zeroSectionTangentEquiv_symm_inr]
-  exact (mfderiv_comp_apply_of_eq (0 : 𝕜) hf hl (by simp [zeroSection]) (1 : 𝕜)).symm
+  exact (mfderiv_comp_apply_of_eq (0 : 𝕜) hf hl (by simp [zeroSection_def]) (1 : 𝕜)).symm
 
 end TauCeti.Bundle
 
@@ -314,7 +315,7 @@ theorem contMDiff_mfderiv_smul_curve {Φ : TotalSpace F V → N} {f : C^∞⟮IB
   have hF : ContMDiffAt ((IB.prod 𝓘(𝕜, F)).prod 𝓘(𝕜)) J ∞
       (Function.uncurry fun (p : TotalSpace F V) (t : 𝕜) ↦ Φ ⟨p.proj, t • p.snd⟩) (p₀, 0) :=
     (hΦ p₀.proj).comp_of_eq (contMDiffAt_snd.smul_totalSpace contMDiffAt_fst)
-      (by simp [zeroSection])
+      (by simp [zeroSection_def])
   refine ((ContMDiffAt.mfderiv _ (fun _ ↦ (0 : 𝕜)) hF (m := ∞) contMDiffAt_const
     (by simp)).clm_apply (contMDiffAt_const (c := (1 : 𝕜)))).congr_of_eventuallyEq ?_
   let e := trivializationAt EN (TangentSpace J) (f p₀.proj)

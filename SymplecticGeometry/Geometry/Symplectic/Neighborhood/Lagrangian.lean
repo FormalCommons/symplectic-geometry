@@ -20,6 +20,7 @@ import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Chern
 import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Graph
 import TauCeti.Topology.FiberBundle.Countable
 import TauCeti.Topology.FiberBundle.Separation
+import SymplecticGeometry.Topology.VectorBundle.Basic
 
 /-!
 # Neighbourhoods of Lagrangian submanifolds
@@ -172,7 +173,7 @@ theorem IsLagrangianMap.exists_symplectomorphism_cotangent_neg {σ : SmoothTwoFo
   -- The fibrewise negation `N` of `T^*L`, which fixes the zero section.
   let N := CotangentBundle.fiberNeg J L
   have hN0 (q : L) : N (zeroSection _ _ q) = zeroSection _ _ q := by
-    simp [N, zeroSection]
+    simp [N, zeroSection_def]
   let U' : Opens (CotangentBundle J L) := ⟨N ⁻¹' U, U.isOpen.preimage N.continuous⟩
   let N' : U' ≃ₘ⟮J.prod 𝓘(ℝ, EL →L[ℝ] ℝ), J.prod 𝓘(ℝ, EL →L[ℝ] ℝ)⟯ U :=
     N.subtype fun _ ↦ Iff.rfl
