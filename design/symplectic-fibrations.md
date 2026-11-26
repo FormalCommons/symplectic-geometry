@@ -316,7 +316,9 @@ About 450 lines.
   `isSymplectic_iff_forall_exists`: for a symplectic atlas one pair of
   charts per curve suffices, by `parallelTransportIn_coordChange`.
 - `IsVerticallyClosed.mpullback_parallelTransportIn`: for `π` proper, `hA`,
-  and `τ` vertically closed and vertically nondegenerate, transport by
+  `τ` vertically closed, and `hD`, the proof that its horizontal spaces form
+  an Ehresmann connection (`IsVerticallyNondegenerate.isEhresmannConnection`
+  gives it for vertically nondegenerate `τ`), transport by
   `τ.horizontalDistribution π` along `γ` from `s` to `t`, read in charts
   `e e'` of `A`, pulls the pull-back of `τ` along
   `e'.fiberInclusionMap (γ t)` back to its pull-back along
