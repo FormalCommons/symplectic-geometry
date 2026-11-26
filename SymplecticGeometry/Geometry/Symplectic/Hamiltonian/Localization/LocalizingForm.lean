@@ -12,7 +12,7 @@ public import SymplecticGeometry.Geometry.Manifold.GroupAction.Circle
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Localization.WeightOneForm
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.WeightModel.NormalForm
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartialDiffeomorph
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.PartitionOfUnity
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.GroupAction.InvariantCutoff
 import SymplecticGeometry.Geometry.Manifold.GroupAction.InvariantOneForm
@@ -40,7 +40,7 @@ cut-off model forms, and the glued form.
   this is a case of `PartialDiffeomorph.exists_smul_invariant_cutoff`.
 
 A form on the chart, pulled back to `M` and multiplied by such a cut-off, is a smooth form on `M`
-(`TauCeti.IsSmoothForm.fun_smul_mpullback`), and it is invariant when the form is invariant on
+(`TauCeti.isSmoothForm_fun_smul_mpullback`), and it is invariant when the form is invariant on
 the support of the cut-off (`TauCeti.mpullback_fun_smul_eq_self`). For the model one-form
 `θₖ = SymplecticGeometry.weightOneForm k`, this gives the pieces of the localizing one-form at
 the fixed points:
@@ -150,9 +150,9 @@ smooth function `ρ` whose support lies in the image of `Φ`: the smooth one-for
 `x ↦ ρ x • ((Φ⁻¹)^* θₖ) x`, which is zero where `ρ` is. -/
 def cutoffWeightOneForm : SmoothForm I M ℝ 1 :=
   ⟨fun x ↦ ρ x • TauCeti.mpullback I 𝓘(ℝ, StdSpace ι) Φ.symm (weightOneForm k).val x,
-    (TauCeti.IsSmoothForm.fun_smul_mpullback Φ.symm
-      (isSmoothForm_modelSpace_iff.1 (weightOneForm k).isSmoothForm) hρ
-      (by simpa using hs)).mem_smoothBundleForms⟩
+    (isSmoothForm_fun_smul_mpullback hρ Φ.symm.open_source (by simpa using hs)
+      (fun _ hx ↦ Φ.symm.contMDiffOn.contMDiffAt (Φ.symm.open_source.mem_nhds hx))
+      (weightOneForm k).isSmoothForm).mem_smoothBundleForms⟩
 
 theorem cutoffWeightOneForm_val :
     (cutoffWeightOneForm Φ hρ hs k).val =

@@ -7,6 +7,8 @@ module
 
 public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Whitney
 public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
+public import SymplecticGeometry.Topology.VectorBundle.DetBundle.Trivialization
+public import TauCeti.Topology.VectorBundle.Determinant.Prod
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Tensor
 public import SymplecticGeometry.Topology.VectorBundle.ProjectiveBundle.Splitting
 
@@ -23,9 +25,9 @@ notion.
 Both are additive on direct sums. For the Chern class this is the Whitney sum formula in degree
 two (`chernClass_one_prod`, in `ChernClass/Whitney.lean`). For `firstChernClass` it is
 `firstChernClass_prod_of_hasFiniteTrivializingCover`: the determinant line of `E₁ ⊕ E₂` is the
-tensor product of the determinant lines (`SymplecticGeometry.Bundle.detCoreProdIso`), which
+tensor product of the determinant lines (Tau Ceti's `TauCeti.DetBundle.prodEquiv`), which
 have finite trivializing covers when `E₁` and `E₂` do
-(`SymplecticGeometry.Bundle.HasFiniteTrivializingCover.detCore`), and the Euler class of a tensor
+(`SymplecticGeometry.Bundle.HasFiniteTrivializingCover.detBundle`), and the Euler class of a tensor
 product of complex lines with finite trivializing covers over a normal base is the sum of their
 Euler classes (`TauCeti.complexEulerClass_tensorProduct`). On lines both are the Euler class
 of the bundle (`chernClass_one_eq_complexEulerClass`, `firstChernClass_eq_complexEulerClass`),
@@ -72,11 +74,11 @@ section FirstChernClass
 
 variable [NormalSpace B]
   {G₁ : Type*} [NormedAddCommGroup G₁] [NormedSpace ℂ G₁] [FiniteDimensional ℂ G₁]
-  {E₁ : B → Type*} [∀ b, AddCommMonoid (E₁ b)] [∀ b, Module ℂ (E₁ b)]
+  {E₁ : B → Type} [∀ b, AddCommGroup (E₁ b)] [∀ b, Module ℂ (E₁ b)]
   [∀ b, TopologicalSpace (E₁ b)] [TopologicalSpace (TotalSpace G₁ E₁)]
   [FiberBundle G₁ E₁] [VectorBundle ℂ G₁ E₁]
   {G₂ : Type*} [NormedAddCommGroup G₂] [NormedSpace ℂ G₂] [FiniteDimensional ℂ G₂]
-  {E₂ : B → Type*} [∀ b, AddCommMonoid (E₂ b)] [∀ b, Module ℂ (E₂ b)]
+  {E₂ : B → Type} [∀ b, AddCommGroup (E₂ b)] [∀ b, Module ℂ (E₂ b)]
   [∀ b, TopologicalSpace (E₂ b)] [TopologicalSpace (TotalSpace G₂ E₂)]
   [FiberBundle G₂ E₂] [VectorBundle ℂ G₂ E₂]
 
@@ -87,9 +89,13 @@ have finite trivializing covers too, and whose Euler class is the sum of their E
 theorem firstChernClass_prod_of_hasFiniteTrivializingCover
     (h₁ : HasFiniteTrivializingCover ℂ G₁ E₁) (h₂ : HasFiniteTrivializingCover ℂ G₂ E₂) :
     firstChernClass (G₁ × G₂) (E₁ ×ᵇ E₂) = firstChernClass G₁ E₁ + firstChernClass G₂ E₂ := by
-  rw [firstChernClass_def, firstChernClass_def, firstChernClass_def,
-    complexEulerClass_eq_of_fiberwise _ _ (continuous_detCoreProdFiberEquiv ℂ E₁ E₂)]
-  exact complexEulerClass_tensorProduct (by simp) (by simp) h₁.detCore h₂.detCore
+  rw [firstChernClass_eq_complexEulerClass_detBundle,
+    firstChernClass_eq_complexEulerClass_detBundle,
+    firstChernClass_eq_complexEulerClass_detBundle,
+    ← complexEulerClass_eq_of_fiberwise _ _ (φ := DetBundle.prodEquiv ℂ G₁ E₁ G₂ E₂)
+      DetBundle.continuous_prodEquiv]
+  exact complexEulerClass_tensorProduct (finrank_self ℂ) (finrank_self ℂ) h₁.detBundle
+    h₂.detBundle
 
 /-- **The first Chern class is additive on direct sums over a compact base.** Over a compact
 normal base, such as a compact Hausdorff one, `firstChernClass` of `E₁ ⊕ E₂` is the sum of those
@@ -106,11 +112,11 @@ variable {M : Type} [TopologicalSpace M] [T2Space M] [CompactSpace M]
   {EM : Type} [NormedAddCommGroup EM] [NormedSpace ℝ EM] [FiniteDimensional ℝ EM]
   [ChartedSpace EM M] (o : HomologicalOrientation M EM 2) (hn : finrank ℝ EM = 2)
   {G₁ : Type*} [NormedAddCommGroup G₁] [NormedSpace ℂ G₁] [FiniteDimensional ℂ G₁]
-  {E₁ : M → Type*} [∀ x, AddCommMonoid (E₁ x)] [∀ x, Module ℂ (E₁ x)]
+  {E₁ : M → Type} [∀ x, AddCommGroup (E₁ x)] [∀ x, Module ℂ (E₁ x)]
   [∀ x, TopologicalSpace (E₁ x)] [TopologicalSpace (TotalSpace G₁ E₁)]
   [FiberBundle G₁ E₁] [VectorBundle ℂ G₁ E₁]
   {G₂ : Type*} [NormedAddCommGroup G₂] [NormedSpace ℂ G₂] [FiniteDimensional ℂ G₂]
-  {E₂ : M → Type*} [∀ x, AddCommMonoid (E₂ x)] [∀ x, Module ℂ (E₂ x)]
+  {E₂ : M → Type} [∀ x, AddCommGroup (E₂ x)] [∀ x, Module ℂ (E₂ x)]
   [∀ x, TopologicalSpace (E₂ x)] [TopologicalSpace (TotalSpace G₂ E₂)]
   [FiberBundle G₂ E₂] [VectorBundle ℂ G₂ E₂]
 
