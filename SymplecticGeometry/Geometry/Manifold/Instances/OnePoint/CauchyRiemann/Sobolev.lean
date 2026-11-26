@@ -17,11 +17,11 @@ import SymplecticGeometry.Analysis.Complex.Wirtinger.Beurling.Estimate
 import SymplecticGeometry.Analysis.Complex.Wirtinger.Commutator
 import SymplecticGeometry.Analysis.Normed.Operator.ComplexLinearPart
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.ZeroOnePart
-import TauCeti.Analysis.Sobolev.Local.Norm.ContDiff
-import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.ContMDiffSection
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Tames
 import TauCeti.Analysis.Calculus.BumpFunction.Cutoff
+import TauCeti.Analysis.Sobolev.Local.Norm.ContDiff
 import TauCeti.Geometry.Manifold.ContMDiffMap.Extension
+import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.ContMDiffSection
 import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.Density
 import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.SMul
 
