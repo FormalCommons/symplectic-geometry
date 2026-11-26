@@ -110,8 +110,10 @@ pull-backs by the two maps (`mpullback_descContMDiffMap`, `mpullback_descDiffeom
   pull-back of a form on `X` is the form glued from its pull-backs to `M₁` and `M₂`.
 
 The compatibility proof follows Tau Ceti's `TauCeti.isCompatible_doubleGlueData`, which treats
-the gluing of two copies of one space along an open subset by the identity. The proof that
-`descDiffeomorph` is a local diffeomorphism and bijective follows the steps of Tau Ceti's
+the gluing of two copies of one space along an open subset by the identity. The smooth map
+`descContMDiffMap` has the shape of Tau Ceti's `TopCat.GlueData.IsCompatible.descContMDiffMap`,
+for a target in any universe. The proofs that `descDiffeomorph` is a local diffeomorphism and
+that `desc` is bijective (`bijective_desc`) follow the steps of Tau Ceti's
 `TopCat.GlueData.IsCompatible.gluedDiffeomorph`, for a target that is not itself a gluing.
 
 ## References
@@ -337,6 +339,26 @@ theorem continuousMap_ext {f g : C(GluedAlong φ, X)} (h₁ : ∀ x, f (inl φ x
   rcases exists_inl_or_exists_inr φ z with ⟨x, rfl⟩ | ⟨y, rfl⟩
   exacts [h₁ x, h₂ y]
 
+/-- The map out of the glued space given by injective maps `f₁` and `f₂` whose ranges cover `X`,
+and such that `f₁ x = f₂ y` only for `x ∈ U₁`, is bijective. -/
+theorem bijective_desc {f₁ : C(M₁, X)} {f₂ : C(M₂, X)} (h : ∀ x : U₁, f₂ (φ x) = f₁ x)
+    (hinj₁ : Function.Injective f₁) (hinj₂ : Function.Injective f₂)
+    (hcover : range f₁ ∪ range f₂ = univ) (hU₁ : ∀ x y, f₁ x = f₂ y → x ∈ U₁) :
+    Function.Bijective (desc φ f₁ f₂ h) := by
+  -- If `f₁ x = f₂ y`, then `x ∈ U₁`, and `f₂ (φ x) = f₁ x = f₂ y` gives `φ x = y`.
+  have key (x : M₁) (y : M₂) (hxy : f₁ x = f₂ y) : inl φ x = inr φ y :=
+    (inl_eq_inr_iff φ).2 ⟨hU₁ x y hxy, hinj₂ ((h ⟨x, hU₁ x y hxy⟩).trans hxy)⟩
+  refine ⟨fun z w hzw ↦ ?_, fun p ↦ ?_⟩
+  · rcases exists_inl_or_exists_inr φ z with ⟨x, rfl⟩ | ⟨y, rfl⟩ <;>
+      rcases exists_inl_or_exists_inr φ w with ⟨x', rfl⟩ | ⟨y', rfl⟩ <;>
+      simp only [desc_inl, desc_inr] at hzw
+    · rw [hinj₁ hzw]
+    · exact key x y' hzw
+    · exact (key x' y hzw.symm).symm
+    · rw [hinj₂ hzw]
+  · rcases (mem_union _ _ _).1 (hcover ▸ mem_univ p) with ⟨x, rfl⟩ | ⟨y, rfl⟩
+    exacts [⟨_, desc_inl φ h x⟩, ⟨_, desc_inr φ h y⟩]
+
 end Desc
 
 /-- **Hausdorff criterion for the glued space.** The glued space is Hausdorff exactly when `M₁`
@@ -499,6 +521,13 @@ def descContMDiffMap (hm : m ≤ n) (g₁ : C^m⟮I, M₁; I', X⟯) (g₂ : C^m
 
 variable {φ}
 
+/-- The underlying map of the smooth map out of the glued manifold is that of `desc`. -/
+theorem coe_descContMDiffMap (hm : m ≤ n) (g₁ : C^m⟮I, M₁; I', X⟯) (g₂ : C^m⟮I, M₂; I', X⟯)
+    (h : ∀ x : U₁, g₂ (φ x) = g₁ x) :
+    ⇑(descContMDiffMap φ hm g₁ g₂ h) =
+      desc φ.toHomeomorph ⟨g₁, g₁.contMDiff.continuous⟩ ⟨g₂, g₂.contMDiff.continuous⟩ h :=
+  (rfl)
+
 /-- The smooth map out of the glued manifold is `g₁` on `M₁`. -/
 @[simp]
 theorem descContMDiffMap_inl (hm : m ≤ n) {g₁ : C^m⟮I, M₁; I', X⟯} {g₂ : C^m⟮I, M₂; I', X⟯}
@@ -529,31 +558,6 @@ theorem isLocalDiffeomorph_descContMDiffMap :
   · convert hg₂ using 1
     exact funext (descContMDiffMap_inr le_rfl h)
 
-include hinj₁ hinj₂ hcover hU₁ in
-/-- The smooth map out of the glued manifold given by injective maps `g₁` and `g₂` whose ranges
-cover `X`, and such that `g₁ x = g₂ y` only for `x ∈ U₁`, is bijective. -/
-theorem bijective_descContMDiffMap :
-    Function.Bijective
-      (descContMDiffMap φ le_rfl ⟨g₁, hg₁.contMDiff⟩ ⟨g₂, hg₂.contMDiff⟩ h) := by
-  set f := descContMDiffMap φ le_rfl ⟨g₁, hg₁.contMDiff⟩ ⟨g₂, hg₂.contMDiff⟩ h
-  have hf₁ (x : M₁) : f (inl φ.toHomeomorph x) = g₁ x := descContMDiffMap_inl le_rfl h x
-  have hf₂ (y : M₂) : f (inr φ.toHomeomorph y) = g₂ y := descContMDiffMap_inr le_rfl h y
-  -- If `g₁ x = g₂ y`, then `x ∈ U₁`, and `g₂ (φ x) = g₁ x = g₂ y` gives `φ x = y`.
-  have key (x : M₁) (y : M₂) (hxy : g₁ x = g₂ y) :
-      inl φ.toHomeomorph x = inr φ.toHomeomorph y := by
-    have hx := hU₁ x y hxy
-    have hy : (φ ⟨x, hx⟩ : M₂) = y := hinj₂ ((h ⟨x, hx⟩).trans hxy)
-    rw [← hy, inr_diffeomorph_apply]
-  refine ⟨fun z w hzw ↦ ?_, fun p ↦ ?_⟩
-  · rcases exists_inl_or_exists_inr φ.toHomeomorph z with ⟨x, rfl⟩ | ⟨y, rfl⟩ <;>
-      rcases exists_inl_or_exists_inr φ.toHomeomorph w with ⟨x', rfl⟩ | ⟨y', rfl⟩
-    · rw [hinj₁ ((hf₁ x).symm.trans (hzw.trans (hf₁ x')))]
-    · exact key x y' ((hf₁ x).symm.trans (hzw.trans (hf₂ y')))
-    · exact (key x' y ((hf₁ x').symm.trans (hzw.symm.trans (hf₂ y)))).symm
-    · rw [hinj₂ ((hf₂ y).symm.trans (hzw.trans (hf₂ y')))]
-  · rcases (mem_union _ _ _).1 (hcover ▸ mem_univ p) with ⟨x, rfl⟩ | ⟨y, rfl⟩
-    exacts [⟨_, hf₁ x⟩, ⟨_, hf₂ y⟩]
-
 /-- **Two open pieces covering a manifold.** Let `g₁ : M₁ → X` and `g₂ : M₂ → X` be injective
 `C^n` local diffeomorphisms, that is `C^n` diffeomorphisms onto open subsets of `X`, whose ranges
 cover `X`, that agree on the overlap, `g₂ (φ x) = g₁ x` for `x ∈ U₁`, and such that `g₁ x = g₂ y`
@@ -561,7 +565,8 @@ only for `x ∈ U₁`. Then the map that is `g₁` on `M₁` and `g₂` on `M₂
 from `GluedAlong φ.toHomeomorph` onto `X` (`descDiffeomorph_inl`, `descDiffeomorph_inr`). -/
 def descDiffeomorph : GluedAlong φ.toHomeomorph ≃ₘ^n⟮I, I'⟯ X :=
   (isLocalDiffeomorph_descContMDiffMap hg₁ hg₂ h).diffeomorphOfBijective
-    (bijective_descContMDiffMap hg₁ hg₂ h hinj₁ hinj₂ hcover hU₁)
+    (coe_descContMDiffMap (φ := φ) le_rfl ⟨g₁, hg₁.contMDiff⟩ ⟨g₂, hg₂.contMDiff⟩ h ▸
+      bijective_desc φ.toHomeomorph h hinj₁ hinj₂ hcover hU₁)
 
 /-- The diffeomorphism onto `X` is the smooth map out of the glued manifold given by `g₁` and
 `g₂`. -/
