@@ -32,7 +32,9 @@ normal coordinate does, and so, on `V`, exactly on the image of `f`. It has a cr
 each `f y` with `y` in the source of `φ`, and for `n ≥ 2` its critical Hessian there is
 `2 ⟪e (L⁻¹ (dψ u)).2, e (L⁻¹ (dψ w)).2⟫`, which is positive on every vector off the tangent
 image of `f`. Nothing here asks for finite dimension, except the last statement, where an
-inner product on the complement comes from `toEuclidean`: for a `C^n` embedding `f`, `n ≥ 2`,
+inner product on the complement comes from Tau Ceti's isomorphism onto a Euclidean space of the
+codimension (`Manifold.IsImmersionAtOfComplement.nonempty_continuousLinearEquiv`): for a `C^n`
+embedding `f`, `n ≥ 2`,
 into a manifold with finite-dimensional model, every point of the image has an open
 neighbourhood carrying such a function
 (`Manifold.IsSmoothEmbedding.exists_contMDiffOn_criticalHessian_pos`).
@@ -240,15 +242,14 @@ theorem exists_contMDiffOn_criticalHessian_pos [I.Boundaryless] [J.Boundaryless]
       ∀ y, f y ∈ V → f y ∈ criticalPoints J g ∧
         ∀ v ∉ LinearMap.range (mfderiv I J f y).toLinearMap, 0 < criticalHessian J g (f y) v v := by
   have h := (hf.isImmersion.isImmersionAt x).isImmersionAtOfComplement_complement
-  -- The complement is finite-dimensional, as a quotient of the model `E''` of `N`.
-  have : FiniteDimensional ℝ (hf.isImmersion.isImmersionAt x).complement :=
-    Module.Finite.of_surjective ((LinearMap.snd ℝ E _).comp h.equiv.symm.toLinearMap)
-      fun v ↦ ⟨h.equiv (0, v), by simp⟩
+  -- The complement is isomorphic to a Euclidean space of the codimension.
+  obtain ⟨e⟩ := h.nonempty_continuousLinearEquiv
+    (Q := EuclideanSpace ℝ (Fin (Module.finrank ℝ E'' - Module.finrank ℝ E))) (by simp)
   obtain ⟨V, hVo, hxV, hVsrc, hVdom, hV⟩ := h.exists_isOpen_mem_range_iff_snd_eq_zero hf.isEmbedding
-  exact ⟨V, hVo, hxV, _, (h.contMDiffOn_norm_sq_snd toEuclidean).mono hVsrc,
-    fun _ ↦ sq_nonneg _, fun _ hp ↦ (h.mem_range_iff_norm_sq_snd_eq_zero toEuclidean hV hp).symm,
-    fun _ hy ↦ ⟨h.mem_criticalPoints_norm_sq_snd toEuclidean (hVdom hy),
-      fun _ hv ↦ h.criticalHessian_norm_sq_snd_pos toEuclidean hn (hVdom hy) hv⟩⟩
+  exact ⟨V, hVo, hxV, _, (h.contMDiffOn_norm_sq_snd e).mono hVsrc,
+    fun _ ↦ sq_nonneg _, fun _ hp ↦ (h.mem_range_iff_norm_sq_snd_eq_zero e hV hp).symm,
+    fun _ hy ↦ ⟨h.mem_criticalPoints_norm_sq_snd e (hVdom hy),
+      fun _ hv ↦ h.criticalHessian_norm_sq_snd_pos e hn (hVdom hy) hv⟩⟩
 
 end Manifold.IsSmoothEmbedding
 

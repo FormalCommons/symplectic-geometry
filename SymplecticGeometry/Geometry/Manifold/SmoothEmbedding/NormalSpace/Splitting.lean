@@ -195,9 +195,8 @@ theorem exists_rightInverse_normalClass :
       continuous_iff_continuousAt.2 fun v ↦ isEmptyElim v.proj⟩
   -- The differential at `x₀` embeds the model space of `M` in `V`, so it is finite-dimensional
   -- and the normal spaces, of rank `finrank V - finrank E`, form a vector bundle.
-  have : FiniteDimensional 𝕜 (TangentSpace J (f x₀)) := inferInstanceAs (FiniteDimensional 𝕜 V)
   have : FiniteDimensional 𝕜 (TangentSpace I x₀) :=
-    f.isSmoothEmbedding_toFun.isImmersion.finiteDimensional_tangentSpace x₀ hn
+    f.isImmersion.finiteDimensional_tangentSpace x₀ hn
   have : FiniteDimensional 𝕜 E := this
   let := IsRCLikeNormedField.rclike 𝕜
   let P := Fin (Module.finrank 𝕜 V - Module.finrank 𝕜 E) → 𝕜
