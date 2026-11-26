@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
+import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 
 /-!
 # Open partial homeomorphisms whose inverse is a local diffeomorphism
@@ -16,6 +17,11 @@ diffeomorphism on `e.target`, then `e` itself is `C^n` on `e.source`
 `e.target` and maps it onto `e.source`, and on `e.source` the map `e` is the inverse of `e.symm`
 on `e.target` in the sense of `Function.invFunOn`, so this is Tau Ceti's
 `IsLocalDiffeomorphOn.contMDiffOn_invFunOn`.
+
+The diffeomorphism of an injective local diffeomorphism `f` onto its open image (Tau Ceti's
+`IsLocalDiffeomorph.diffeomorphOfInjective`) has the differential of `f`
+(`IsLocalDiffeomorph.mfderiv_diffeomorphOfInjective_apply`), since it is `f` followed by the
+inclusion of the image.
 
 ## References
 
@@ -53,5 +59,18 @@ theorem contMDiffOn_of_isLocalDiffeomorphOn_symm (e : OpenPartialHomeomorph M N)
     _ = invFunOn e.symm e.target y := by rw [e.left_inv hy]
 
 end OpenPartialHomeomorph
+
+namespace IsLocalDiffeomorph
+
+/-- The diffeomorphism of an injective `C^n` local diffeomorphism `f` onto its image has the
+differential of `f`, tangent spaces of the image being those of `N`. -/
+theorem mfderiv_diffeomorphOfInjective_apply {f : M → N} (hf : IsLocalDiffeomorph I J n f)
+    (hinj : Injective f) (x : M) (v : TangentSpace I x) :
+    mfderiv I J (hf.diffeomorphOfInjective hinj) x v = mfderiv I J f x v := by
+  rw [← TauCeti.Manifold.mfderiv_subtype_val_comp_apply,
+    show Subtype.val ∘ hf.diffeomorphOfInjective hinj = f from
+      funext (hf.coe_diffeomorphOfInjective_apply hinj)]
+
+end IsLocalDiffeomorph
 
 end
