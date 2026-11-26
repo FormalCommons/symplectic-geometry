@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.AddCircle
 public import TauCeti.Geometry.Manifold.Orientation.TopForm
+public import TauCeti.LinearAlgebra.Determinant.Prod
 
 /-!
 # The orientation of the area form of a torus of circles
@@ -44,10 +45,7 @@ theorem wedge_timeForm_apply_finTwoProd (x : AddCircle p × AddCircle q) :
     (SmoothForm.wedge (SmoothForm.mpullback Prod.fst contMDiff_fst (timeForm p))
       (SmoothForm.mpullback Prod.snd contMDiff_snd (timeForm q))).val x
         (Module.Basis.finTwoProd ℝ) = 1 := by
-  have hb : (⇑(Module.Basis.finTwoProd ℝ) : Fin 2 → ℝ × ℝ) = ![(1, 0), (0, 1)] := by
-    ext i : 1
-    fin_cases i <;> simp
-  rw [hb]
+  rw [Module.Basis.coe_finTwoProd]
   refine (SmoothBundleForm.eval₂_apply _ x _ _).symm.trans ?_
   -- The tangent planes of the torus are `ℝ × ℝ`, so the frame is stated in the model.
   exact (eval₂_wedge_timeForm p q x _ _).trans (by norm_num)

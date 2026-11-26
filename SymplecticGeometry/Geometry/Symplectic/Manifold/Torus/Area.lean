@@ -9,7 +9,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.TopForm
 public import TauCeti.Geometry.Manifold.Orientation.TopForm
 public import TauCeti.Geometry.Symplectic.Manifold.Torus.Basic
 import Mathlib.Topology.Homeomorph.Lemmas
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.AddCircle
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.AddCircle
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.ChangeOfVariables
 
 /-!
