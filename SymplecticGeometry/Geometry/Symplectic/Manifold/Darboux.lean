@@ -8,8 +8,10 @@ module
 public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.TransAffine
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Darboux
 public import TauCeti.Geometry.Symplectic.Manifold.Darboux
+import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import TauCeti.Geometry.Symplectic.Manifold.NeighborhoodGerm
 
 /-!
 # Darboux charts with a prescribed derivative
@@ -34,6 +36,9 @@ derivatives preserve that form.
   derivative at every point.
 * `TauCeti.SmoothTwoForm.transAffine_darbouxChart`: so does following a Darboux chart by an affine
   map `z ↦ A (z - p)` whose linear part `A` preserves the constant form.
+* `TauCeti.SmoothTwoForm.mpullback_symm_apply_eq_constSmooth`: the inverse of a Darboux chart
+  pulls `σ` back to the constant form on the target, by Tau Ceti's
+  `PartialDiffeomorph.isSymplecticMapOn_symm`.
 * `TauCeti.SymplecticForm.apply_fderiv_transition_eq`: the derivatives of transition maps between
   two Darboux charts for the same constant form preserve that form.
 * `TauCeti.SmoothTwoForm.exists_darbouxChart_mvfderiv_eq_of_isInteriorPoint`: Darboux charts with
@@ -112,6 +117,22 @@ theorem transAffine_darbouxChart {F : Type*} [NormedAddCommGroup F] [NormedSpace
     rw [φ.mvfderiv_transSubRight p y, hφ y (by simpa using hy)]
   rw [PartialDiffeomorph.transAffine_def]
   exact (trans_toDiffeomorph_darbouxChart hτ A hA).2.2.2 x (by simpa using hx) v w
+
+/-- If a chart `φ` into a finite-dimensional space `F` pulls the constant form `form₀` back to `σ`
+on its source, then its inverse pulls `σ` back to the constant form `form₀` at every point of
+its target. -/
+theorem mpullback_symm_apply_eq_constSmooth {F : Type*} [NormedAddCommGroup F]
+    [NormedSpace ℝ F] [FiniteDimensional ℝ F] {σ : SmoothTwoForm I M} {form₀ : SymplecticForm F}
+    {φ : PartialDiffeomorph I 𝓘(ℝ, F) M F ∞}
+    (hφ : ∀ x ∈ φ.source, ∀ v w : TangentSpace I x,
+      σ.eval₂ x v w = form₀ (mvfderiv I φ x v) (mvfderiv I φ x w))
+    {z : F} (hz : z ∈ φ.target) :
+    mpullback 𝓘(ℝ, F) I φ.symm σ.val z = form₀.constSmooth.val z := by
+  have h : σ.IsSymplecticMapOn form₀.constSmooth φ φ.source :=
+    isSymplecticMapOn_iff.2 fun x hx v w ↦ by
+      rw [hφ x hx, mvfderiv_apply_eq_mfderiv_apply, mvfderiv_apply_eq_mfderiv_apply]
+      exact SymplecticForm.constSmooth_apply form₀ _ _ _
+  exact (φ.isSymplecticMapOn_symm h (by simp)).mpullback_apply hz
 
 end SmoothTwoForm
 
