@@ -159,11 +159,16 @@ formulation.
      compact component, and has $H^2(M)=0$, so $a=0$. Taking the sign of
      $\omega^n$ at the origin of each copy is a continuous map $s$ from the
      nondegenerate forms onto the Cantor set $\{\pm1\}^{\mathbb N}$, since
-     point evaluation is continuous. Sending $(\varepsilon_k)$ to the form
-     equal to $\varepsilon_k\omega_0$ on the $k$-th copy is a continuous
-     map $c$ back, since a compact set meets only finitely many copies, and
-     it lands
-     in the symplectic forms of class $0$; and $s\circ c=\mathrm{id}$. If
+     point evaluation is continuous. Let $\omega_0^-$ be $\omega_0$ with
+     the sign of $dx_1\wedge dy_1$ reversed, so that
+     $(\omega_0^-)^n=-\omega_0^n$; scaling $\omega_0$ by $-1$ would not
+     do, as $(-\omega_0)^n=(-1)^n\omega_0^n$. Sending $(\varepsilon_k)$ to
+     the form equal to $\omega_0$ on the $k$-th copy where
+     $\varepsilon_k=1$ and to $\omega_0^-$ where $\varepsilon_k=-1$ is a
+     continuous map $c$ back, since a compact set meets only finitely many
+     copies. Both forms are constant, hence closed and exact on
+     $\mathbb R^{2n}$, so $c$ lands in the symplectic forms of class $0$;
+     and $s\circ c=\mathrm{id}$ for every $n\ge1$. If
      either space were homotopy equivalent to a CW complex $L$, there would
      be maps $u:\{\pm1\}^{\mathbb N}\to L$ and $v:L\to\{\pm1\}^{\mathbb N}$
      with $v\circ u$ homotopic to the identity, so $u$ would be injective
