@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.OpenEmbedding
+public import SymplecticGeometry.Topology.OpenPartialHomeomorph.SourceRestrict
 public import TauCeti.Topology.OpenPartialHomeomorph.Basic
 public import TauCeti.Topology.VectorBundle.Trivialization
 public import TauCeti.Topology.VectorBundle.ZeroSection
@@ -233,9 +234,7 @@ theorem localHomologyMap_localChart_comp_localHomologyMap_proj (hS : IsOpen S)
         (localHomologyIsoOfIsOpenEmbedding R c.open_source.isOpenEmbedding_subtypeVal
           (⟨b, hb⟩ : c.source) k).inv ≫
         localHomologyMap R c.sourceRestrict
-          -- The ascription types the singleton in `c.source`, as `localHomologyMap_comp` needs.
-          (show c.sourceRestrict ⁻¹' {0} ⊆ {(⟨b, hb⟩ : c.source)} from
-            fun _ hx ↦ Subtype.ext (c.sourceRestrict_preimage hb (by rwa [hcb]))) k =
+          (hcb ▸ (c.sourceRestrict_preimage_singleton hb).subset) k =
       localHomologyMap R (ContinuousMap.subtypeVal (univ ×ˢ S : Set (P × Q)))
           (T := (Prod.snd ⁻¹' {0} : Set (P × Q))) subset_rfl k ≫
         localHomologyMap R (.mk Prod.snd continuous_snd) (T := {(0 : Q)}) subset_rfl k := by
@@ -276,7 +275,7 @@ theorem localChartFiberLocalHomologyIso_hom_comp_localHomologyMap_proj (hS : IsO
         (localHomologyIsoOfIsOpenEmbedding R c.open_source.isOpenEmbedding_subtypeVal
           (⟨b, hb⟩ : c.source) k).inv ≫
         localHomologyMap R c.sourceRestrict
-          (fun _ hx ↦ Subtype.ext (c.sourceRestrict_preimage hb (by rwa [hcb]))) k =
+          (hcb ▸ (c.sourceRestrict_preimage_singleton hb).subset) k =
       localHomologyMap R (.mk Prod.snd continuous_snd) (T := {(0 : Q)})
         (S := (Prod.snd ⁻¹' {0} : Set (P × Q))) subset_rfl k := by
   rw [localChartFiberLocalHomologyIso_hom _ _ _ _ _ _ _

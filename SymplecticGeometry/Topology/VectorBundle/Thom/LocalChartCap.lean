@@ -145,9 +145,7 @@ theorem localChartLocalHomologyIso_hom_comp_singularRelativeCap (hS : IsOpen S)
         ((localHomologyIsoOfIsOpenEmbedding N c.open_source.isOpenEmbedding_subtypeVal
           ⟨b, hb⟩ q).inv : localHomology N {b} q ⟶ _) ≫
         localHomologyMap N c.sourceRestrict
-          -- The ascription types the singleton in `c.source`, as `localHomologyMap_comp` needs.
-          (show c.sourceRestrict ⁻¹' {0} ⊆ {(⟨b, hb⟩ : c.source)} from
-            fun _ hx ↦ Subtype.ext (c.sourceRestrict_preimage hb (by rwa [hcb]))) q =
+          (hcb ▸ (c.sourceRestrict_preimage_singleton hb).subset) q =
       TopPair.singularHomologyMap (TopPair.ofSubsetMap _
           (TopCat.mapsTo_compl_singleton_preimage_fst_compl_union_preimage_snd_compl
             (0 : P) (0 : Q))) T n ≫
