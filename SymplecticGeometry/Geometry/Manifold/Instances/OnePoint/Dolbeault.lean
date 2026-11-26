@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.DegreeOne
 public import TauCeti.Geometry.Manifold.DifferentialForm.Dolbeault.ProjectiveLine.Cohomology
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.Projectivization
 public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Trivial.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Dolbeault.DegreeOne
 import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint
 
 /-!
@@ -84,12 +85,8 @@ theorem exists_contMDiff_dbarFunction_eq
       (equivProjectivization ℂ).symm :=
     contMDiff_equivProjectivization_symm_real.of_le le_top
   set α := SmoothForm.degreeOneEquiv.symm β
-  have hαβ (x : OnePoint ℂ) (v : TangentSpace 𝓘(ℝ, ℂ) x) : α.val x ![v] = β x v := by
-    rw [← SmoothForm.degreeOneEquiv_apply_apply_vec, LinearEquiv.apply_symm_apply]
   have hα : α.IsOfType (ofComplexManifold ℂ (OnePoint ℂ)) 0 1 :=
-    SmoothForm.isOfType_zero_one_iff.2 fun x v ↦ by
-      rw [hαβ, hαβ, isZeroOneForm_iff.1 (hβ x) v]
-      exact (_root_.neg_smul Complex.I (β x v)).symm
+    SmoothForm.isOfType_zero_one_degreeOneEquiv_symm_iff.2 hβ
   obtain ⟨g, hg⟩ := (hα.mpullback hψ isPseudoholomorphic_equivProjectivization_symm)
     |>.exists_delBar_eq_projectivization
   set f := SmoothForm.mpullback (equivProjectivization ℂ) hφ g
@@ -98,9 +95,8 @@ theorem exists_contMDiff_dbarFunction_eq
       SmoothForm.mpullback_mpullback_of_comp_eq hφ hψ contMDiff_id contMDiff_id
         (funext (equivProjectivization ℂ).symm_apply_apply)]
     simp
-  refine ⟨fun y ↦ f.val y 0, SmoothForm.contMDiff_apply_zero f,
-    fun x ↦ ContinuousLinearMap.ext fun v ↦ ?_⟩
-  rw [← delBar_apply_apply_eq_dbarFunction, hf, hαβ]
+  exact ⟨fun y ↦ f.val y 0, SmoothForm.contMDiff_apply_zero f,
+    (delBar_eq_degreeOneEquiv_symm_iff f).1 hf⟩
 
 end OnePoint
 
