@@ -16,6 +16,8 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Smooth
 public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Basic
 public import Mathlib.Geometry.Manifold.VectorBundle.CovariantDerivative.Metric
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Basic
+public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.Curvature.Basic
 import SymplecticGeometry.Geometry.Manifold.DeRham.Circle
 import TauCeti.Geometry.Manifold.MFDeriv.Inner
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.NormedSpace
@@ -65,6 +67,15 @@ metric compatibility follows Tau Ceti's
 `TauCeti.isMetricCompatible_exactPrequantumConnection`, the same statement for the connection
 `d + i θ / ℏ` on the trivial line bundle, read in the preferred frame.
 
+The curvature of `D_k`, with Tau Ceti's `CovariantDerivative.curvatureOperator`
+(`R(X, Y) = ∇_X ∇_Y - ∇_Y ∇_X - ∇_[X, Y]`), is computed in a local section `σ` of `P`: by the
+local formula, `D_k` on sections `[σ, f]` is `d + i k A` with `A = σ^* α`, so the second
+derivatives of `f` cancel against `df [X, Y]` (`TauCeti.mvfderiv_mlieBracket`), the terms in
+`A ∧ A` cancel since `A` is scalar, and `i k d A` remains (`TauCeti.mextDeriv_apply_one`). Near any
+point, `d A` is the curvature `F_α` of `α`
+(`SymplecticGeometry.IsCircleConnectionForm.curvature_apply_eq_mextDeriv_mpullback`), so the
+curvature of `D_k` is multiplication by `i k F_α`.
+
 The statements take `[∀ b, Nonempty (P b)]`, since `localSection`, through Mathlib's
 `Bundle.Trivialization.symm`, asks for it; a caller supplies it with
 `FiberBundle.nonempty_fiber Circle P`, as `Circle` is nonempty.
@@ -94,6 +105,10 @@ The statements take `[∀ b, Nonempty (P b)]`, since `localSection`, through Mat
   `IsCovariantDerivativeOn.isComplexLinearOperator_zeroOnePart`.
 * `SymplecticGeometry.isMetricCompatible_powerConnection`: `D_k` is compatible with the metric of
   `PowerBundle P k` (Mathlib's `CovariantDerivative.IsMetricCompatible`).
+* `SymplecticGeometry.curvatureOperator_powerConnection_of_frame`: in a local section `σ` of `P`,
+  smooth on an open set, the curvature of `D_k` is multiplication by `i k d (σ^* α)`.
+* `SymplecticGeometry.curvatureOperator_powerConnection`: the curvature of `D_k` is
+  multiplication by `i k F_α`, where `F_α = hα.curvature`.
 
 ## References
 
@@ -367,6 +382,118 @@ theorem isMetricCompatible_powerConnection : (powerConnection α k).IsMetricComp
   simp only [PowerModel.real_inner_eq_re_inner, inner_smul_left, inner_smul_right,
     ← Complex.add_re, map_mul, Complex.conj_I, Complex.conj_ofReal, map_intCast, neg_mul,
     neg_add_cancel, Complex.zero_re]
+
+/-! ### The curvature of `D_k` -/
+
+/-- **The curvature in a local section.** Let `α` be a connection form and `σ` a section of `P`
+that is smooth on an open set `U`, with `A = σ^* α`. If a section `s` of `PowerBundle P k` reads
+`[σ, f]` on `U`, with `f` of class `C²` at `x ∈ U`, then at `x` the curvature of `D_k` on vector
+fields `X`, `Y` differentiable at `x` is `R(X, Y) s = (i k (d A)_x (X x, Y x)) • s x`. -/
+theorem curvatureOperator_powerConnection_of_frame [CompleteSpace EB]
+    (hα : IsCircleConnectionForm α) {σ : ∀ b, P b} {U : Set B} (hU : IsOpen U)
+    (hσ : ContMDiffOn IB (IB.prod (𝓡 1)) ∞
+      (fun b ↦ ManifoldTotalSpace.homeomorph Circle P ⟨b, σ b⟩) U)
+    {s : Π x, PowerBundle P k x} {f : B → PowerModel k} {x : B} (hx : x ∈ U)
+    (hf : ContMDiffAt IB 𝓘(ℝ, PowerModel k) 2 f x)
+    (hs : ∀ y ∈ U, s y = AssociatedBundle.mk Circle (σ y) (f y))
+    {X Y : Π x : B, TangentSpace IB x} (hX : MDiffAt (T% X) x) (hY : MDiffAt (T% Y) x) :
+    (powerConnection α k).curvatureOperator X Y s x =
+      (Complex.I * k * (TauCeti.mextDeriv (TauCeti.mpullback IB (IB.prod (𝓡 1))
+        (fun b ↦ ManifoldTotalSpace.homeomorph Circle P ⟨b, σ b⟩) α.val) x ![X x, Y x] : ℂ)) •
+        s x := by
+  -- Shrink `U` to an open neighbourhood `U'` of `x` on which `f` is `C²`.
+  obtain ⟨U', hU'sub, hU', hxU'⟩ := mem_nhds_iff.1
+    (((contMDiffAt_iff_contMDiffAt_nhds (n := 2) (by simp)).1 hf).and (hU.mem_nhds hx))
+  replace hσ := hσ.mono fun y hy ↦ (hU'sub hy).2
+  replace hs : ∀ y ∈ U', s y = AssociatedBundle.mk Circle (σ y) (f y) :=
+    fun y hy ↦ hs y (hU'sub hy).2
+  have hf' : ∀ y ∈ U', ContMDiffAt IB 𝓘(ℝ, PowerModel k) 2 f y := fun y hy ↦ (hU'sub hy).1
+  set A := TauCeti.mpullback IB (IB.prod (𝓡 1))
+    (fun b ↦ ManifoldTotalSpace.homeomorph Circle P ⟨b, σ b⟩) α.val with hAdef
+  have hfx : ContMDiffAt IB 𝓘(ℝ, PowerModel k) 2 f x := hf
+  have hfd : MDifferentiableAt IB 𝓘(ℝ, PowerModel k) f x := hfx.mdifferentiableAt (by norm_num)
+  have hkf : MDifferentiableAt IB 𝓘(ℝ, PowerModel k) (fun y ↦ (Complex.I * k) • f y) x :=
+    (((Complex.I * k) • ContinuousLinearMap.id ℝ (PowerModel k)).mdifferentiableAt).comp x hfd
+  -- `A` is differentiable at `x`, and so are its values on vector fields differentiable there.
+  have hA : ContMDiffAt IB (IB.prod 𝓘(ℝ, EB [⋀^Fin 1]→L[ℝ] ℝ)) 1
+      (fun y ↦ TotalSpace.mk' (EB [⋀^Fin 1]→L[ℝ] ℝ) y (A y)) x :=
+    ContMDiffAt.mpullback_form ((α.contMDiff _).of_le (by simp))
+      (hσ.contMDiffAt (hU'.mem_nhds hxU')) (by simp)
+  have hAZ {Z : Π y : B, TangentSpace IB y} (hZ : MDiffAt (T% Z) x) :
+      MDifferentiableAt IB 𝓘(ℝ, ℝ) (fun y ↦ A y ![Z y]) x :=
+    RoughForm.mdifferentiableAt_apply_vectorField (hA.mdifferentiableAt one_ne_zero)
+      (V := fun i y ↦ ![Z y] i) fun i ↦ by fin_cases i; exact hZ
+  -- On `U'`, `D_k s` along a field `Z` reads `[σ, g Z]`, with `g Z = df(Z) + A(Z) • (i k f)`.
+  set g : (Π y : B, TangentSpace IB y) → B → PowerModel k := fun Z ↦
+    (fun y ↦ mvfderiv IB f y (Z y)) +
+      (fun y ↦ A y ![Z y]) • fun y ↦ (Complex.I * k) • f y with hgdef
+  have hconv (r : ℝ) (w : PowerModel k) :
+      (Complex.I * k * (r : ℂ)) • w = r • ((Complex.I * k) • w) := by
+    rw [mul_comm, mul_smul, Complex.coe_smul]
+  have hD (Z : Π y : B, TangentSpace IB y) {y : B} (hy : y ∈ U') :
+      powerConnection α k s y (Z y) = AssociatedBundle.mk Circle (σ y) (g Z y) := by
+    rw [powerConnection_apply_frame α k hα hU' hσ hy ((hf' y hy).mdifferentiableAt (by norm_num))
+      hs, hconv]
+    simp only [hgdef, hAdef, Pi.add_apply, Pi.smul_apply']
+  have hg1 {Z : Π y : B, TangentSpace IB y} (hZ : MDiffAt (T% Z) x) :
+      MDifferentiableAt IB 𝓘(ℝ, PowerModel k) (fun y ↦ mvfderiv IB f y (Z y)) x :=
+    mdifferentiableAt_mvfderiv_apply hfx (by norm_num) hZ
+  -- The outer derivatives, by the local formula applied to `[σ, g W]`.
+  have hout {Z W : Π y : B, TangentSpace IB y} (hW : MDiffAt (T% W) x) :
+      powerConnection α k (fun y ↦ powerConnection α k s y (W y)) x (Z x) =
+        AssociatedBundle.mk Circle (σ x) (mvfderiv IB (g W) x (Z x) +
+          A x ![Z x] • ((Complex.I * k) • g W x)) := by
+    rw [powerConnection_apply_frame α k hα hU' hσ hxU' ((hg1 hW).add ((hAZ hW).smul hkf))
+      (fun y hy ↦ hD W hy), hconv]
+  have hd {Z W : Π y : B, TangentSpace IB y} (hW : MDiffAt (T% W) x) :
+      mvfderiv IB (g W) x (Z x) = mvfderiv IB (fun y ↦ mvfderiv IB f y (W y)) x (Z x) +
+        A x ![W x] • ((Complex.I * k) • mvfderiv IB f x (Z x)) +
+        mvfderiv IB (fun y ↦ A y ![W y]) x (Z x) • ((Complex.I * k) • f x) := by
+    rw [hgdef, mvfderiv_add (hg1 hW) ((hAZ hW).smul hkf), mvfderiv_smul (hAZ hW) hkf,
+      mvfderiv_const_smul hfd (Complex.I * k)]
+    simp only [add_apply, smul_apply, ContinuousLinearMap.smulRight_apply, add_assoc]
+  -- The second derivatives of `f` cancel against `df [X, Y]`, and `d A (X, Y)` remains.
+  have : IsManifold IB (minSmoothness ℝ 2) B := IsManifold.of_le (n := ∞) (by simp)
+  have h2 := mvfderiv_mlieBracket hfx (by simp) hX hY
+  rw [CovariantDerivative.curvatureOperator_apply, hout hY, hout hX, hD _ hxU', hd hY, hd hX,
+    hs x hxU', TauCeti.mextDeriv_apply_one (hA.mdifferentiableAt one_ne_zero) hX hY,
+    ← AssociatedBundle.mk_sub, ← AssociatedBundle.mk_sub, ← AssociatedBundle.mk_smul_scalar,
+    hconv]
+  congr 1
+  simp only [hgdef, Pi.add_apply, Pi.smul_apply', h2]
+  module
+
+/-- **The curvature of `D_k`.** For a connection form `α` with curvature `F_α`
+(`IsCircleConnectionForm.curvature`), the curvature of `D_k` acts on each fibre of
+`PowerBundle P k` as multiplication by `i k F_α`: for vector fields `X`, `Y` differentiable at `x`
+and a section `s` of class `C²` at `x`, `R(X, Y) s = (i k F_α(X x, Y x)) • s x` at `x`. -/
+theorem curvatureOperator_powerConnection [CompleteSpace EB] [IB.Boundaryless]
+    (hα : IsCircleConnectionForm α) {X Y : Π x : B, TangentSpace IB x}
+    {s : Π x, PowerBundle P k x} {x : B} (hX : MDiffAt (T% X) x) (hY : MDiffAt (T% Y) x)
+    (hs : ContMDiffAt IB (IB.prod 𝓘(ℝ, PowerModel k)) 2
+      (fun y ↦ TotalSpace.mk' (PowerModel k) y (s y)) x) :
+    (powerConnection α k).curvatureOperator X Y s x =
+      (Complex.I * k * (hα.curvature.val x ![X x, Y x] : ℂ)) • s x := by
+  -- Read `s` in the preferred frame `τ` at `x`, over the base set of its trivialization.
+  set τ : ∀ y, P y := localSection Circle P x
+  set e := trivializationAt (PowerModel k) (PowerBundle P k) x
+  set f : B → PowerModel k := fun y ↦ (e ⟨y, s y⟩).2
+  have hxU := mem_baseSet_trivializationAt Circle P x
+  have heU : e.baseSet = (trivializationAt Circle P x).baseSet :=
+    AssociatedBundle.baseSet_trivializationAt x
+  have hsf (y : B) (hy : y ∈ (trivializationAt Circle P x).baseSet) :
+      s y = AssociatedBundle.mk Circle (τ y) (f y) := by
+    rw [← AssociatedBundle.trivializationAt_symm_eq_mk hy]
+    exact (e.symm_apply_apply_mk (heU ▸ hy) (s y)).symm
+  have hτ : ContMDiffOn IB (IB.prod (𝓡 1)) ∞
+      (fun y ↦ ManifoldTotalSpace.homeomorph Circle P ⟨y, τ y⟩)
+      (trivializationAt Circle P x).baseSet := by
+    rw [← funext (PrincipalBundle.manifoldLocalSection_def Circle P x)]
+    exact PrincipalBundle.contMDiffOn_manifoldLocalSection (IB := IB) (IG := 𝓡 1) (n := ∞) x
+  have hU := (trivializationAt Circle P x).open_baseSet
+  rw [curvatureOperator_powerConnection_of_frame α k hα hU hτ hxU
+      ((contMDiffAt_section_iff x).1 hs) hsf hX hY,
+    hα.curvature_apply_eq_mextDeriv_mpullback (hτ.contMDiffAt (hU.mem_nhds hxU))]
 
 end SymplecticGeometry
 
