@@ -188,21 +188,20 @@ theorem coe_shellDiffeomorph_apply (hψ : IsSymplecticBallEmbedding σ (√(l ^ 
 variable (n ε) in
 /-- `openNbhd n ε ∖ Z` lies in the model piece. -/
 theorem sdiff_le_modelPiece :
-    (⟨openNbhd n ε \ exceptionalDivisor n, (isOpen_openNbhd ε).sdiff isClosed_exceptionalDivisor⟩ :
-      Opens (BlowupModel n)) ≤ modelPiece n ε :=
-  fun _ hp ↦ hp.1
+    openNbhdComplDivisor n ε ≤ modelPiece n ε :=
+  fun _ hp ↦ (mem_openNbhdComplDivisor_iff.1 hp).1
 
 variable (n ε) in
 /-- The overlap on the side of the model: `openNbhd n ε ∖ Z`, as an open subset of the model
 piece. -/
 def modelOverlap : Opens (modelPiece n ε) :=
-  Opens.comap ⟨Subtype.val, continuous_subtypeVal⟩
-    ⟨openNbhd n ε \ exceptionalDivisor n, (isOpen_openNbhd ε).sdiff isClosed_exceptionalDivisor⟩
+  Opens.comap ⟨Subtype.val, continuous_subtypeVal⟩ (openNbhdComplDivisor n ε)
 
 @[simp]
 theorem mem_modelOverlap_iff {p : modelPiece n ε} :
-    p ∈ modelOverlap n ε ↔ (p : BlowupModel n) ∉ exceptionalDivisor n :=
-  ⟨fun h ↦ h.2, fun h ↦ ⟨p.property, h⟩⟩
+    p ∈ modelOverlap n ε ↔ (p : BlowupModel n) ∉ exceptionalDivisor n := by
+  rw [modelOverlap, Opens.mem_comap, ContinuousMap.coe_mk, mem_openNbhdComplDivisor_iff]
+  exact and_iff_right (mem_modelPiece_iff.1 p.property)
 
 /-- The overlap on the side of `M`: `shellImage hψ`, as an open subset of the outer piece. -/
 def outerOverlap (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) :
@@ -234,8 +233,8 @@ theorem coe_gluingDiffeomorph_apply (hψ : IsSymplecticBallEmbedding σ (√(l ^
     ((gluingDiffeomorph hψ hl hε p : outerPiece hψ) : M) =
       ψ (complexToRealEuclidean (Fin (n + 1))
         (shellSymplectomorph n l ε hl hε.le
-          ⟨p.val.val, mem_modelPiece_iff.1 p.val.property,
-            mem_modelOverlap_iff.1 p.property⟩)) := by
+          ⟨p.val.val, mem_openNbhdComplDivisor_iff.2 ⟨mem_modelPiece_iff.1 p.val.property,
+            mem_modelOverlap_iff.1 p.property⟩⟩)) := by
   -- The coercion of `gluingDiffeomorph` to a function goes between the types `modelOverlap n ε`
   -- and `outerOverlap hψ`, which the lemmas about `Diffeomorph.trans` and `Diffeomorph.nestedOpen`
   -- match only once both are unfolded, in the type of `p` too.
