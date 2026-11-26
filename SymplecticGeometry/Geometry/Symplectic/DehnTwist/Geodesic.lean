@@ -19,6 +19,7 @@ public import TauCeti.Geometry.Symplectic.Cotangent.InnerProduct
 public import TauCeti.Geometry.Symplectic.Cotangent.Liouville
 public import TauCeti.Geometry.Symplectic.Hamiltonian.Manifold
 import Mathlib.Analysis.InnerProductSpace.Calculus
+import TauCeti.Analysis.InnerProductSpace.Projection.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Cotangent
 import Mathlib.Analysis.SpecialFunctions.Sqrt
 import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.Codisc
@@ -740,13 +741,9 @@ theorem not_exists_continuous_eqOn_geodesicFlow [NeZero n] {t : ℝ} (ht : Real.
   rintro ⟨g, hg, hgz⟩
   -- a point `q` of the sphere and a nonzero `u ⊥ q`, which exists since `n ≥ 1`
   let q : 𝕊 n := ⟨EuclideanSpace.single 0 1, by simp⟩
-  have hq : (q : 𝔼 n) ≠ 0 := ne_zero_of_mem_unit_sphere q
-  have : Fact (Module.finrank ℝ (𝔼 n) = n + 1) := ⟨finrank_euclideanSpace_fin⟩
-  have hbot : (ℝ ∙ (q : 𝔼 n))ᗮ ≠ ⊥ := by
-    rw [Ne, ← Submodule.finrank_eq_zero (R := ℝ),
-      Submodule.finrank_orthogonal_span_singleton (n := n) hq]
-    exact NeZero.ne n
-  obtain ⟨u, hu_mem, hu⟩ := Submodule.exists_mem_ne_zero_of_ne_bot hbot
+  obtain ⟨⟨u, hu_mem⟩, hu1⟩ := TauCeti.exists_norm_eq_one_mem_orthogonal_singleton (𝕜 := ℝ)
+    (q : 𝔼 n) (by rw [finrank_euclideanSpace_fin]; have := NeZero.ne n; omega)
+  have hu : u ≠ 0 := by rintro rfl; simp at hu1
   have hqu : ⟪(q : 𝔼 n), u⟫_ℝ = 0 := Submodule.mem_orthogonal_singleton_iff_inner_right.1 hu_mem
   -- along the ray `s • v`, `s > 0`, the base point of `g` is constant, hence also at `s = 0`
   have key (v : 𝔼 n) (hv : v ≠ 0) (hqv : ⟪(q : 𝔼 n), v⟫_ℝ = 0) :

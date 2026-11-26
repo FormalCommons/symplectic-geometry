@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.InnerProductSpace.Calculus
+import SymplecticGeometry.Analysis.Calculus.FDeriv.Even
 import TauCeti.Analysis.Calculus.Taylor.Integral
 import TauCeti.Analysis.InnerProductSpace.NormPow
 
@@ -15,9 +16,12 @@ import TauCeti.Analysis.InnerProductSpace.NormPow
 Derivatives of a radial function `y ↦ β ‖y‖` on a real inner product space `V`, for `β : ℝ → F`.
 It is `Cⁿ` when `β` is `Cⁿ` and constant near `0` (`ContDiff.comp_norm_of_eventuallyEq_const`).
 Away from the origin its derivative along `v` is `(⟪y, v⟫ / ‖y‖) • β' (‖y‖)`
-(`fderiv_comp_norm_apply`), and its second derivative along the unit radial vector `‖y‖⁻¹ • y` is
-`β'' (‖y‖)` (`fderiv_fderiv_comp_norm_apply_inv_norm_smul`): along that line the norm is
-`‖y‖ + s`.
+(`fderiv_comp_norm_apply`). Its norm is at most `‖β' (‖y‖)‖` at every point
+(`norm_fderiv_comp_norm_le`): at the origin the derivative is `0` because the function is even
+(`Function.Even.fderiv_zero`), and away from it a radial function that is differentiable at `y`
+forces `β` to be differentiable at `‖y‖` (Tau Ceti's `TauCeti.differentiableAt_comp_norm_iff`).
+Its second derivative along the unit radial vector `‖y‖⁻¹ • y` is `β'' (‖y‖)`
+(`fderiv_fderiv_comp_norm_apply_inv_norm_smul`): along that line the norm is `‖y‖ + s`.
 
 The smoothness reduces to Tau Ceti's `ContDiff.comp_norm`, and the first derivative to Tau Ceti's
 `hasFDerivAt_norm_of_ne` (both in `TauCeti/Analysis/InnerProductSpace/NormPow.lean`). The second
@@ -53,6 +57,25 @@ theorem fderiv_comp_norm_apply {β : ℝ → F} {y : V} (hy : y ≠ 0)
     hβ.hasFDerivAt.comp y (TauCeti.hasFDerivAt_norm_of_ne hy)
   rw [H.fderiv]
   simp [div_eq_inv_mul, mul_smul]
+
+/-- The derivative of the radial function `z ↦ β ‖z‖` at `y` has norm at most `‖β' (‖y‖)‖`. -/
+theorem norm_fderiv_comp_norm_le (β : ℝ → F) (y : V) :
+    ‖fderiv ℝ (fun z : V ↦ β ‖z‖) y‖ ≤ ‖deriv β ‖y‖‖ := by
+  -- At the origin the derivative vanishes, since the radial function is even.
+  rcases eq_or_ne y 0 with rfl | hy
+  · rw [Function.Even.fderiv_zero fun z ↦ by simp only [norm_neg], norm_zero]
+    exact norm_nonneg _
+  by_cases hβ : DifferentiableAt ℝ β ‖y‖
+  · refine ContinuousLinearMap.opNorm_le_bound _ (norm_nonneg _) fun v ↦ ?_
+    rw [fderiv_comp_norm_apply hy hβ v, norm_smul, Real.norm_eq_abs, abs_div, abs_norm,
+      mul_comm]
+    refine mul_le_mul_of_nonneg_left ?_ (norm_nonneg _)
+    rw [div_le_iff₀ (norm_pos_iff.2 hy), mul_comm]
+    exact abs_real_inner_le_norm y v
+  -- Otherwise the radial function is not differentiable at `y` either.
+  rw [fderiv_zero_of_not_differentiableAt (mt (TauCeti.differentiableAt_comp_norm_iff hy).1 hβ),
+    norm_zero]
+  exact norm_nonneg _
 
 /-- Away from the origin, the second derivative of the radial function `z ↦ β ‖z‖` at `y` along
 the unit radial vector `u = ‖y‖⁻¹ • y` is `β'' (‖y‖)`. -/

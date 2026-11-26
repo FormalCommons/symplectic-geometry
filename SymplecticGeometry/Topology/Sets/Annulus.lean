@@ -19,6 +19,8 @@ symplectic fibre sums are diffeomorphisms of such annuli, in a vector space or i
 
 * `SymplecticGeometry.annulus E a b`: the open annulus `{x | a < ‖x‖ ∧ ‖x‖ < b}` of `E`, with
   `coe_annulus` and `mem_annulus`.
+* `SymplecticGeometry.annulus_mono`: the annulus is monotone in its outer radius and antitone in
+  its inner radius.
 * `SymplecticGeometry.map_mem_annulus_iff`: a semilinear isometry preserves membership in the
   annulus of given radii.
 * `SymplecticGeometry.ne_zero_of_mem_annulus`: for `0 ≤ a`, the annulus misses `0`.
@@ -50,6 +52,12 @@ theorem coe_annulus (a b : ℝ) : (annulus E a b : Set E) = {x | a < ‖x‖ ∧
 @[simp]
 theorem mem_annulus {a b : ℝ} {x : E} : x ∈ annulus E a b ↔ a < ‖x‖ ∧ ‖x‖ < b :=
   Iff.rfl
+
+/-- The open annulus grows as its inner radius decreases and its outer radius increases. -/
+@[gcongr]
+theorem annulus_mono {a a' b b' : ℝ} (ha : a ≤ a') (hb : b' ≤ b) :
+    annulus E a' b' ≤ annulus E a b :=
+  fun _ hx ↦ mem_annulus.2 ⟨ha.trans_lt (mem_annulus.1 hx).1, (mem_annulus.1 hx).2.trans_le hb⟩
 
 end Seminormed
 

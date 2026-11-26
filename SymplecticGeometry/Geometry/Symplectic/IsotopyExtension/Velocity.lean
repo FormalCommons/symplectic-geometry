@@ -179,11 +179,9 @@ theorem mpullback_prodMk_velocityForm (t : unitInterval) (x : P) (v : E') :
         (F.velocityForm σ)).val x ![v] =
       σ.val (F (t, x)) ![mfderiv (𝓡∂ 1) I (fun s ↦ F (s, x)) t 1,
         mfderiv J I (fun y ↦ F (t, y)) x v] := by
-  rw [SmoothForm.coe_mpullback, mpullback_apply, ← velocityForm_apply]
-  congr 1
-  funext i
-  fin_cases i
-  exact mfderiv_prodMk_right_apply v
+  rw [SmoothForm.coe_mpullback]
+  refine ((mpullback_apply_one _ _ x v).trans ?_).trans (velocityForm_apply σ F t x v)
+  exact congrArg (fun w ↦ (F.velocityForm σ).val (t, x) ![w]) (mfderiv_prodMk_right_apply v)
 
 variable {σ} in
 /-- **The velocity is determined by the velocity form.** Let `σ` be nondegenerate and let `P` and
@@ -381,7 +379,7 @@ theorem isSmoothFamily_velocityForm (σ : SmoothTwoForm I M)
         ((k q.1).velocityForm σ) := by
   refine isSmoothFamily_def.2 ⟨SmoothForm.interiorProduct unitIntervalSqSndField
     (SmoothForm.mpullback Ĝ hĜ σ),
-    fun ⟨t, s⟩ ↦ Subtype.ext <| funext fun x ↦ ContinuousAlternatingMap.ext_fin_one fun w ↦ ?_⟩
+    fun ⟨t, s⟩ ↦ SmoothBundleForm.ext_fin_one fun x w ↦ ?_⟩
   have hkt : (k t : unitInterval × P → M) = fun p ↦ Ĝ ((t, p.1), p.2) := funext (hk t)
   have hĜd := hĜ.mdifferentiableAt (x := ((t, s), x)) (by simp)
   rw [SmoothIsotopy.mpullback_prodMk_velocityForm σ (k t) s x w, hkt]

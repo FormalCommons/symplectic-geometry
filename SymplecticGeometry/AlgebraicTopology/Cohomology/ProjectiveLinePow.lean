@@ -24,8 +24,9 @@ class of infinite order in `H^{2m}(Pᵐ; ℤ)`.
 * `Projectivization.singularCohomologyMap_sphereGenerator_eq_hyperplaneClass_or_eq_neg_…`:
   under any homeomorphism `e : P ≃ₜ S²`, the generator `θ ∈ H²(S²; ℤ)` of
   `SymplecticGeometry/AlgebraicTopology/Cohomology/Sphere/Generator.lean` pulls back to `h` or to
-  `-h`. Since `c₁(𝒪(-1)) = -h` (by `SymplecticGeometry.Bundle.chernClass_one_eq_complexEulerClass`
-  and the definition of `h`), it pulls back to `±c₁` of the tautological line.
+  `-h`, and so to `±c₁` of the tautological line, which is `-h` by
+  `Projectivization.chernClass_one_tautological`
+  (`Projectivization.singularCohomologyMap_sphereGenerator_eq_zsmul_chernClass`).
 * `Projectivization.not_isOfFinAddOrder_prod_singularCohomologyMap`: for nonzero classes
   `bᵢ ∈ H²(P; ℤ)`, the product of the pull-backs `prᵢ^* bᵢ`, the component of degree `2m` of a
   product in the even integral cohomology ring of `Pᵐ`, has infinite order.
@@ -60,17 +61,13 @@ generator of `H₂(S²)` pulls back to the hyperplane class `h` or to `-h`. -/
 theorem singularCohomologyMap_sphereGenerator_eq_hyperplaneClass_or_eq_neg_hyperplaneClass
     (e : ℙ ℂ (Fin 2 → ℂ) ≃ₜ TopCat.sphere.{0} 2) :
     TopCat.singularCohomologyMap (TopCat.isoOfHomeo (X := TopCat.of (ℙ ℂ (Fin 2 → ℂ))) e).hom 2
-        (((TopCat.sphere.{0} 2).integralCohomologyEquiv 2).symm
-          (singularCohomologyTopCatSphereGenerator ℤ 1)) = hyperplaneClass (Fin 2 → ℂ) ∨
+        (TopCat.integralSphereGenerator 1) = hyperplaneClass (Fin 2 → ℂ) ∨
       TopCat.singularCohomologyMap (TopCat.isoOfHomeo (X := TopCat.of (ℙ ℂ (Fin 2 → ℂ))) e).hom 2
-        (((TopCat.sphere.{0} 2).integralCohomologyEquiv 2).symm
-          (singularCohomologyTopCatSphereGenerator ℤ 1)) = -hyperplaneClass (Fin 2 → ℂ) := by
+        (TopCat.integralSphereGenerator 1) = -hyperplaneClass (Fin 2 → ℂ) := by
   set φ := TopCat.isoOfHomeo (X := TopCat.of (ℙ ℂ (Fin 2 → ℂ))) e
   have hV : Module.finrank ℂ (Fin 2 → ℂ) = 1 + 1 := by simp
   obtain ⟨a, ha⟩ := exists_eq_zsmul_hyperplaneClass hV
-    (TopCat.singularCohomologyMap φ.hom 2
-      (((TopCat.sphere.{0} 2).integralCohomologyEquiv 2).symm
-        (singularCohomologyTopCatSphereGenerator ℤ 1)))
+    (TopCat.singularCohomologyMap φ.hom 2 (TopCat.integralSphereGenerator 1))
   obtain ⟨b, hb⟩ := TopCat.exists_eq_zsmul_sphereGenerator (d := 1)
     (TopCat.singularCohomologyMap φ.inv 2 (hyperplaneClass (Fin 2 → ℂ)))
   have hba : (b * a) • hyperplaneClass (Fin 2 → ℂ) = (1 : ℤ) • hyperplaneClass (Fin 2 → ℂ) := by
@@ -82,6 +79,21 @@ theorem singularCohomologyMap_sphereGenerator_eq_hyperplaneClass_or_eq_neg_hyper
   · exact .inl (ha.trans (one_smul _ _))
   · exact .inr (ha.trans (neg_one_zsmul _))
 
+/-- Under any homeomorphism `e : ℙ ℂ (Fin 2 → ℂ) ≃ₜ S²`, the integral class `θ` dual to the
+standard generator of `H₂(S²)` pulls back to `σ • c₁(𝒪(-1))` for a sign `σ = ±1`, the first Chern
+class of the tautological line being `-h`. -/
+theorem singularCohomologyMap_sphereGenerator_eq_zsmul_chernClass
+    (e : ℙ ℂ (Fin 2 → ℂ) ≃ₜ TopCat.sphere.{0} 2) :
+    ∃ σ : ℤ, (σ = 1 ∨ σ = -1) ∧
+      TopCat.singularCohomologyMap (TopCat.isoOfHomeo (X := TopCat.of (ℙ ℂ (Fin 2 → ℂ))) e).hom 2
+        (TopCat.integralSphereGenerator 1) =
+        σ • SymplecticGeometry.Bundle.chernClass ℂ (Tautological ℂ (Fin 2 → ℂ)) 1 := by
+  have hc := chernClass_one_tautological (Fin 2 → ℂ)
+  rcases singularCohomologyMap_sphereGenerator_eq_hyperplaneClass_or_eq_neg_hyperplaneClass e
+    with h | h
+  · exact ⟨-1, .inr rfl, by rw [h, hc, neg_one_zsmul, neg_neg]⟩
+  · exact ⟨1, .inl rfl, by rw [h, hc, one_zsmul]⟩
+
 /-- A nonzero class of `H²(ℂP¹; ℤ)` pulls back to a nonzero multiple of the sphere generator along
 the inverse of `homeomorphTopCatSphere`. -/
 private theorem exists_singularCohomologyMap_homeomorphTopCatSphere_symm
@@ -89,11 +101,9 @@ private theorem exists_singularCohomologyMap_homeomorphTopCatSphere_symm
     ∃ k : ℤ, k ≠ 0 ∧
       TopCat.singularCohomologyMap
         (TopCat.isoOfHomeo (X := TopCat.of (ℙ ℂ (Fin 2 → ℂ))) homeomorphTopCatSphere.{0}).inv 2 b =
-        k • ((TopCat.sphere.{0} 2).integralCohomologyEquiv 2).symm
-          (singularCohomologyTopCatSphereGenerator ℤ 1) := by
+        k • TopCat.integralSphereGenerator 1 := by
   set φ := TopCat.isoOfHomeo (X := TopCat.of (ℙ ℂ (Fin 2 → ℂ))) homeomorphTopCatSphere.{0}
-  set θ := ((TopCat.sphere.{0} 2).integralCohomologyEquiv 2).symm
-    (singularCohomologyTopCatSphereGenerator ℤ 1)
+  set θ := TopCat.integralSphereGenerator 1
   have hV : Module.finrank ℂ (Fin 2 → ℂ) = 1 + 1 := by simp
   obtain ⟨j, rfl⟩ := exists_eq_zsmul_hyperplaneClass hV b
   have hj : j ≠ 0 := by rintro rfl; exact hb (zero_smul _ _)
@@ -160,8 +170,7 @@ theorem not_isOfFinAddOrder_prod_singularCohomologyMap (m : ℕ)
       simp only [x, x', map_prod, map_mul, TopCat.evenIntegralCohomologyMap_of, Fin.prod_univ_succ]
       simp only [← ConcreteCategory.comp_apply, ← TopCat.singularCohomologyMap_comp, hΨ₀, hΨ]
     have hgk' : TopCat.singularCohomologyMap g (2 * 1) (b 0) =
-        k • ((TopCat.sphere.{0} 2).integralCohomologyEquiv 2).symm
-          (singularCohomologyTopCatSphereGenerator ℤ 1) := hgk
+        k • TopCat.integralSphereGenerator 1 := hgk
     have hx' := congrArg (· (1 + m)) hx
     rw [TopCat.evenIntegralCohomologyMap_apply, TopCat.evenIntegralCohomologyOf_mul_apply,
       TopCat.evenIntegralCohomologyMap_apply, hgk', map_zsmul,
@@ -186,12 +195,7 @@ theorem not_isOfFinAddOrder_prod_chernClass (m : ℕ) :
         (ContinuousMap.eval (X := fun _ : Fin m ↦ ℙ ℂ (Fin 2 → ℂ)) i *ᵖ
           (Tautological ℂ (Fin 2 → ℂ))) 1)) m) := by
   have hV : Module.finrank ℂ (Fin 2 → ℂ) = 1 + 1 := by simp
-  -- `c₁(𝒪(-1)) = -h`: on a line the first Chern class is the Euler class, and `h` is minus it
-  have hc : SymplecticGeometry.Bundle.chernClass ℂ (Tautological ℂ (Fin 2 → ℂ)) 1 =
-      -hyperplaneClass (Fin 2 → ℂ) := by
-    rw [SymplecticGeometry.Bundle.chernClass_one_eq_complexEulerClass _ _ (Module.finrank_self ℂ),
-      hyperplaneClass_def, neg_neg]
-  simp_rw [SymplecticGeometry.Bundle.chernClass_pullback, hc]
+  simp_rw [SymplecticGeometry.Bundle.chernClass_pullback, chernClass_one_tautological]
   have hh : hyperplaneClass (Fin 2 → ℂ) ≠ 0 := by
     simpa using (bijective_zsmul_hyperplaneClass hV one_pos).1.ne (one_ne_zero (α := ℤ))
   exact not_isOfFinAddOrder_prod_singularCohomologyMap m _ fun _ ↦ neg_ne_zero.2 hh
