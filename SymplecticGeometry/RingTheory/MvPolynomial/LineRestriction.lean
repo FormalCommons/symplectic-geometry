@@ -17,8 +17,7 @@ On the line `s ↦ a + s • v`, a multivariate polynomial `P` over an integral 
 polynomial in `s` whose coefficient of degree `P.totalDegree` is the top homogeneous component of
 `P` at `v` (Tau Ceti's `MvPolynomial.coeff_eval₂_C_add_C_mul_X_of_totalDegree_le`). So if that
 component does not vanish at `v`, then `P` has at most `P.totalDegree` zeros on the line
-(`MvPolynomial.encard_setOf_eval_add_smul_eq_zero_le`). A nonzero polynomial with a zero is not
-constant (`MvPolynomial.totalDegree_ne_zero_of_eval_eq_zero`).
+(`MvPolynomial.encard_setOf_eval_add_smul_eq_zero_le`).
 -/
 
 public section
@@ -26,14 +25,6 @@ public section
 open Set
 
 namespace MvPolynomial
-
-/-- A nonzero polynomial that vanishes somewhere is not constant. -/
-theorem totalDegree_ne_zero_of_eval_eq_zero {σ R : Type*} [CommSemiring R]
-    {P : MvPolynomial σ R} (hP : P ≠ 0) {x : σ → R} (hx : eval x P = 0) :
-    P.totalDegree ≠ 0 := fun h ↦ by
-  rw [totalDegree_eq_zero_iff_eq_C] at h
-  rw [h, eval_C] at hx
-  exact hP (by rw [h, hx, map_zero])
 
 /-- If the top homogeneous component of `P` does not vanish at `v`, then `P` vanishes at at most
 `P.totalDegree` points of each line `s ↦ a + s • v`: its restriction to the line is a nonzero

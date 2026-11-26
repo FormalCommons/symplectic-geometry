@@ -9,6 +9,7 @@ public import Mathlib.Topology.MetricSpace.Thickening
 public import SymplecticGeometry.Analysis.Complex.MvPolynomial.LogAverage
 import Mathlib.Analysis.Convex.Mul
 import Mathlib.LinearAlgebra.Complex.FiniteDimensional
+import SymplecticGeometry.Algebra.MvPolynomial.Degrees
 import SymplecticGeometry.MeasureTheory.Measure.Lebesgue.LineSlice
 import SymplecticGeometry.RingTheory.MvPolynomial.LineRestriction
 import SymplecticGeometry.Topology.Algebra.MvPolynomial
@@ -34,7 +35,7 @@ count over the points near the zero set.
   `‖s‖ < 4 * ρ₁` have at least `1 / (2 * D)` of the volume of the unit ball.
 * `MvPolynomial.volume_thickening_zeroLocus_le_pow_four_mul_sq`: the part of the `t`-thickening
   of the zero set of `P` in the unit ball has volume at most `C * D ^ 4 * t ^ 2`, with `C`
-  depending on `card ι` only.
+  depending on `ι` only, not on `P`, `D` or `t`.
 * `MvPolynomial.volume_thickening_zeroLocus_le`: the same volume is at most
   `C * D ^ (2 * card ι) * t`.
 
@@ -279,9 +280,9 @@ theorem volume_ball_le_mul_volume_setOf_exists_root {P : MvPolynomial ι ℂ} (h
   simp
 
 /-- **Volumes of tubes around complex algebraic hypersurfaces, `D ^ 4 * t ^ 2` form.** There is
-a constant `C`, depending only on `card ι`, such that for every nonzero complex polynomial `P` on
-`EuclideanSpace ℂ ι` of total degree at most `D` and every `t`, the part of the
-`t`-thickening of the zero set of `P` inside the unit ball has volume at most
+a constant `C`, depending only on `ι` and not on `P`, `D` or `t`, such that for every nonzero
+complex polynomial `P` on `EuclideanSpace ℂ ι` of total degree at most `D` and every `t`, the
+part of the `t`-thickening of the zero set of `P` inside the unit ball has volume at most
 `C * D ^ 4 * t ^ 2`. -/
 theorem volume_thickening_zeroLocus_le_pow_four_mul_sq : ∃ C : ℝ, ∀ P : MvPolynomial ι ℂ,
     P ≠ 0 → ∀ D : ℕ, P.totalDegree ≤ D → ∀ t : ℝ,
@@ -361,10 +362,11 @@ theorem volume_thickening_zeroLocus_le_pow_four_mul_sq : ∃ C : ℝ, ∀ P : Mv
   simp only [ρ]
   ring
 
-/-- **Volumes of tubes around complex algebraic hypersurfaces.** There is a constant `C`,
-depending only on `m = card ι`, such that for every nonzero complex polynomial `P` on
-`EuclideanSpace ℂ ι` of total degree at most `D` and every `t`, the part of the `t`-thickening
-of the zero set of `P` inside the unit ball has volume at most `C * D ^ (2 * m) * t`. -/
+/-- **Volumes of tubes around complex algebraic hypersurfaces.** Write `m = card ι`. There is a
+constant `C`, depending only on `ι` and not on `P`, `D` or `t`, such that for every nonzero
+complex polynomial `P` on `EuclideanSpace ℂ ι` of total degree at most `D` and every `t`, the
+part of the `t`-thickening of the zero set of `P` inside the unit ball has volume at most
+`C * D ^ (2 * m) * t`. -/
 theorem volume_thickening_zeroLocus_le : ∃ C : ℝ, ∀ P : MvPolynomial ι ℂ, P ≠ 0 → ∀ D : ℕ,
     P.totalDegree ≤ D → ∀ t : ℝ,
       volume (thickening t {z : EuclideanSpace ℂ ι | eval z.ofLp P = 0} ∩
