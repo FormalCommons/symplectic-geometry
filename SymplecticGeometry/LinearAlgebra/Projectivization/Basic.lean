@@ -42,6 +42,8 @@ For a linear form `φ` on a vector space `V` over a field `K`, every point `x` o
   representative normalized by the `i`-th coordinate.
 * `Projectivization.affineChart_symm_removeNth`: the inverse of the standard affine chart at `i`
   sends the coordinates of `w` other than `i` to the line spanned by `update w i 1`.
+* `Projectivization.finrank_submodule_of_isScalarTower`: for a tower of fields `K ⊆ L`, a point
+  of `ℙ L V` has dimension `finrank K L` over `K`.
 -/
 
 public section
@@ -158,6 +160,14 @@ theorem affineChart_symm_removeNth {n : ℕ} (i : Fin (n + 1)) (w : Fin (n + 1) 
     (affineChart i).symm (Fin.removeNth i w) =
       mk K (Function.update w i 1) (Function.update_ne_zero w i one_ne_zero) := by
   simp only [affineChart_symm_apply, Fin.insertNth_removeNth]
+
+/-- For a tower of fields `K ⊆ L`, a point `x` of the projective space `ℙ L V` is a line over
+`L`, so as a vector space over `K` it has the dimension of `L` over `K`. For instance, a
+complex line is a real plane. -/
+theorem finrank_submodule_of_isScalarTower {K L V : Type*} [Field K] [Field L] [Algebra K L]
+    [AddCommGroup V] [Module L V] [Module K V] [IsScalarTower K L V] (x : ℙ L V) :
+    Module.finrank K x.submodule = Module.finrank K L := by
+  rw [← Module.finrank_mul_finrank K L, finrank_submodule, mul_one]
 
 end Projectivization
 
