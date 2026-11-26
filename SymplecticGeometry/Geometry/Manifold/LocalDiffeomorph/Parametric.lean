@@ -7,13 +7,14 @@ module
 
 public import Mathlib.Geometry.Manifold.Instances.Icc
 public import Mathlib.Geometry.Manifold.MFDeriv.Defs
-import Mathlib.Analysis.Calculus.InverseFunctionTheorem.FDeriv
-import Mathlib.Analysis.Normed.Operator.BoundedLinearMaps
 import Mathlib.Geometry.Manifold.ContMDiff.Atlas
 import Mathlib.Geometry.Manifold.MFDeriv.Atlas
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.TimeExtension
-import TauCeti.Analysis.Calculus.FDeriv.Prod
+import SymplecticGeometry.Topology.MetricSpace.Tube
+import TauCeti.Analysis.Calculus.InverseFunctionTheorem
 import TauCeti.Analysis.Calculus.InverseFunctionTheorem.Parametric
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
+import TauCeti.Geometry.Manifold.MFDeriv.Prod
 import TauCeti.Topology.Algebra.Module.FiniteDimension
 
 /-!
@@ -27,17 +28,19 @@ and the point: there is a smooth `κ` defined on a neighbourhood `V` of `x₀` w
 `e (t, κ (t, x)) = e (0, x)`, and `κ (t, x) = x` wherever `e (t, x) = e (0, x)`
 (`SymplecticGeometry.exists_contMDiffOn_apply_eq_apply_zero`).
 
-The proof reads `e` in the chart of `M` at `e (0, x₀)`, extends it in time to `ℝ` by
-`SymplecticGeometry.timeExtend`, and applies Tau Ceti's parametric inverse function theorem
-`ContDiffOn.parametric_invFunOn_of_injective_fderiv` to the extension on an open neighbourhood
-of `[0, 1] × {x₀}` on which the map `(t, x) ↦ (t, e (t, x))`, read in the chart, is injective
-with invertible derivative. Such a neighbourhood exists by compactness of `[0, 1]`
-(`Set.InjOn.exists_isOpen_superset`).
+The proof reads `e` in the chart of `M` at `e (0, x₀)` and extends it in time to `ℝ` by
+`SymplecticGeometry.timeExtend`. The graph `Φ (t, x) = (t, G (t, x))` of the extension `G` has
+injective derivative along `[0, 1] × {x₀}` (Tau Ceti's
+`MDifferentiableAt.injective_mfderiv_fst_prod_iff`), so it is a local diffeomorphism there
+(`TauCeti.isLocalDiffeomorphAt_of_injective_mfderiv`), and also injective and a local
+diffeomorphism on an open neighbourhood `S` of that compact set
+(`Set.InjOn.exists_isOpen_superset_isLocalDiffeomorphOn`). Tau Ceti's parametric inverse
+function theorem `ContDiffOn.parametric_invFunOn_of_injective_fderiv` inverts `G` on `S`
+jointly smoothly over the open image `Φ '' S` (`Set.MapsTo.interior_of_contDiffOn`), and the
+tube lemma `IsCompact.exists_prod_ball_subset` gives the neighbourhood `V`.
 
 ## Main results
 
-* `DifferentiableAt.injective_fderiv_fst_prodMk_iff`: the derivative of `q ↦ (q.1, g q)` is
-  injective exactly when the derivative of the slice of `g` in the second variable is.
 * `SymplecticGeometry.exists_contMDiffOn_apply_eq_apply_zero`: the jointly smooth inverse.
 
 ## References
@@ -50,33 +53,6 @@ public section
 
 open Function Set Metric
 open scoped Manifold ContDiff Topology
-
-section FDeriv
-
-variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {P E F : Type*} [NormedAddCommGroup P]
-  [NormedSpace 𝕜 P] [NormedAddCommGroup E] [NormedSpace 𝕜 E] [NormedAddCommGroup F]
-  [NormedSpace 𝕜 F]
-
-/-- For `g : P × E → F` differentiable at `q`, the derivative at `q` of `p ↦ (p.1, g p)` is
-injective exactly when the derivative at `q.2` of the slice `x ↦ g (q.1, x)` is. -/
-theorem DifferentiableAt.injective_fderiv_fst_prodMk_iff {g : P × E → F} {q : P × E}
-    (hg : DifferentiableAt 𝕜 g q) :
-    Injective (fderiv 𝕜 (fun p ↦ (p.1, g p)) q) ↔
-      Injective (fderiv 𝕜 (fun x ↦ g (q.1, x)) q.2) := by
-  obtain ⟨a, b⟩ := q
-  rw [differentiableAt_fst.fderiv_prodMk hg, fderiv_fst, TauCeti.fderiv_slice_right hg,
-    injective_iff_map_eq_zero, injective_iff_map_eq_zero]
-  constructor
-  · intro h v hv
-    have := h (0, v) (by simpa using hv)
-    simpa using this
-  · rintro h ⟨s, v⟩ hv
-    simp only [ContinuousLinearMap.prod_apply, ContinuousLinearMap.coe_fst', Prod.mk_eq_zero]
-      at hv
-    obtain ⟨rfl, hv⟩ := hv
-    simpa using h v (by simpa using hv)
-
-end FDeriv
 
 namespace SymplecticGeometry
 
@@ -107,19 +83,17 @@ theorem exists_contMDiffOn_apply_eq_apply_zero {e : unitInterval × F → M} {U 
   set p₀ := e (0, x₀)
   set φ := extChartAt I p₀
   -- A ball `B` about `x₀` in `U` that every `e (t, ·)` maps into the chart's source.
-  obtain ⟨B, hBo, hx₀B, hB⟩ : ∃ B : Set F, IsOpen B ∧ x₀ ∈ B ∧
-      ∀ t, ∀ x ∈ B, x ∈ U ∧ e (t, x) ∈ φ.source := by
-    have hW := he.continuousOn.isOpen_inter_preimage (isOpen_univ.prod hU)
-      (isOpen_extChartAt_source (I := I) p₀)
-    obtain ⟨u, v, -, hv, hu, hxv, huv⟩ := generalized_tube_lemma isCompact_univ
-      isCompact_singleton hW (s := univ) (t := {x₀}) (by
+  obtain ⟨r, hr, hrW⟩ := isCompact_univ.exists_prod_ball_subset (y := x₀)
+    (he.continuousOn.isOpen_inter_preimage (isOpen_univ.prod hU)
+      (isOpen_extChartAt_source (I := I) p₀)) (by
         rintro ⟨t, x⟩ ⟨-, hx⟩
-        have hx' : x = x₀ := hx
-        rw [hx']
+        rw [show x = x₀ from mem_singleton_iff.1 hx]
         exact ⟨⟨trivial, hx₀⟩, by simp [hfix t]⟩)
-    exact ⟨v, hv, hxv rfl, fun t x hx ↦ by
-      have := huv (mk_mem_prod (hu (mem_univ t)) hx)
-      exact ⟨this.1.2, this.2⟩⟩
+  set B := ball x₀ r
+  have hBo : IsOpen B := isOpen_ball
+  have hx₀B : x₀ ∈ B := mem_ball_self hr
+  have hB (t : unitInterval) (x : F) (hx : x ∈ B) : x ∈ U ∧ e (t, x) ∈ φ.source :=
+    ⟨(hrW (mk_mem_prod (mem_univ t) hx)).1.2, (hrW (mk_mem_prod (mem_univ t) hx)).2⟩
   -- `e` read in the chart, and its extension `G` in time.
   set f : unitInterval × F → E := fun q ↦ φ (e q)
   have hf : ContMDiffOn ((𝓡∂ 1).prod 𝓘(ℝ, F)) 𝓘(ℝ, E) ∞ f (univ ×ˢ B) :=
@@ -135,103 +109,88 @@ theorem exists_contMDiffOn_apply_eq_apply_zero {e : unitInterval × F → M} {U 
   have hGslice (t : unitInterval) : (fun x ↦ G (t, x)) = fun x ↦ φ (e (t, x)) := by
     funext x
     exact timeExtend_apply_coe f t x
+  -- The graph `Φ` of `G` over the time coordinate.
   set Φ : ℝ × F → ℝ × E := fun q ↦ (q.1, G q)
   have hΦ : ContDiffOn ℝ ∞ Φ (univ ×ˢ B) := contDiffOn_fst.prodMk hG
-  have hGd {q : ℝ × F} (hq : q ∈ univ ×ˢ B) : DifferentiableAt ℝ G q :=
-    (hG.contDiffAt (hO.mem_nhds hq)).differentiableAt (by simp)
-  have hΦd {q : ℝ × F} (hq : q ∈ univ ×ˢ B) : DifferentiableAt ℝ Φ q :=
-    (hΦ.contDiffAt (hO.mem_nhds hq)).differentiableAt (by simp)
+  have hgraph {q : ℝ × F} (hq : q ∈ univ ×ˢ B) :
+      Injective (mfderiv 𝓘(ℝ, ℝ × F) 𝓘(ℝ, ℝ × E) Φ q) ↔
+        Injective (mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) (fun x ↦ G (q.1, x)) q.2) := by
+    have hGd : MDifferentiableAt (𝓘(ℝ, ℝ).prod 𝓘(ℝ, F)) 𝓘(ℝ, E) G q := by
+      rw [← modelWithCornersSelf_prod, chartedSpaceSelf_prod]
+      exact ((hG.contDiffAt (hO.mem_nhds hq)).differentiableAt (by simp)).mdifferentiableAt
+    have := hGd.injective_mfderiv_fst_prod_iff
+    rwa [← modelWithCornersSelf_prod, ← modelWithCornersSelf_prod, chartedSpaceSelf_prod,
+      chartedSpaceSelf_prod] at this
   have hfin : Module.finrank ℝ (ℝ × F) = Module.finrank ℝ (ℝ × E) := by
     simp [Module.finrank_prod, hdim]
-  -- The open set `A` where the derivative of `Φ` is invertible contains `[0, 1] × {x₀}`.
-  set A := univ ×ˢ B ∩
-    (fderiv ℝ Φ) ⁻¹' range ((↑) : ((ℝ × F) ≃L[ℝ] (ℝ × E)) → (ℝ × F) →L[ℝ] (ℝ × E))
-  have hA : IsOpen A := (hΦ.continuousOn_fderiv_of_isOpen hO (by simp)).isOpen_inter_preimage hO
-    ContinuousLinearEquiv.isOpen
-  have hAinj {q} (hq : q ∈ A) : Injective (fderiv ℝ (fun x ↦ G (q.1, x)) q.2) := by
-    obtain ⟨L, hL⟩ := hq.2
-    rw [← DifferentiableAt.injective_fderiv_fst_prodMk_iff (hGd hq.1)]
-    -- fold the local definition of `Φ`
-    change Injective (fderiv ℝ Φ q)
-    rw [← hL]
-    exact L.injective
-  have hKA : Icc (0 : ℝ) 1 ×ˢ {x₀} ⊆ A := by
+  -- `Φ` is a local diffeomorphism at each point of `[0, 1] × {x₀}`.
+  have hloc : ∀ q ∈ Icc (0 : ℝ) 1 ×ˢ {x₀},
+      IsLocalDiffeomorphAt 𝓘(ℝ, ℝ × F) 𝓘(ℝ, ℝ × E) ∞ Φ q := by
     rintro ⟨t, x⟩ ⟨ht, hx⟩
-    have hx' : x = x₀ := hx
-    rw [hx']
-    refine ⟨⟨trivial, hx₀B⟩, ?_⟩
-    have hinjΦ : Injective (fderiv ℝ Φ (t, x₀)) := by
-      rw [DifferentiableAt.injective_fderiv_fst_prodMk_iff (hGd ⟨trivial, hx₀B⟩)]
-      -- see `t` as the coercion of a point of `unitInterval`, to use `hGslice`
-      change Injective (fderiv ℝ (fun x ↦ G ((⟨t, ht⟩ : unitInterval), x)) x₀)
-      rw [hGslice]
-      have hφ : MDifferentiableAt I 𝓘(ℝ, E) φ (e (⟨t, ht⟩, x₀)) :=
-        mdifferentiableAt_extChartAt (by simpa [φ] using (hB ⟨t, ht⟩ x₀ hx₀B).2)
-      have het : MDifferentiableAt 𝓘(ℝ, F) I (fun x ↦ e (⟨t, ht⟩, x)) x₀ :=
-        ((he.contMDiffAt ((isOpen_univ.prod hU).mem_nhds ⟨trivial, hx₀⟩)).comp x₀
-          (contMDiffAt_const.prodMk contMDiffAt_id)).mdifferentiableAt (by simp)
-      have hm : Injective (mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) (fun x ↦ φ (e (⟨t, ht⟩, x))) x₀) := by
-        rw [show (fun x ↦ φ (e (⟨t, ht⟩, x))) = φ ∘ fun x ↦ e (⟨t, ht⟩, x) from rfl,
-          mfderiv_comp x₀ hφ het]
-        exact (isInvertible_mfderiv_extChartAt
-          (by simpa [φ] using (hB ⟨t, ht⟩ x₀ hx₀B).2)).injective.comp (hd _)
-      rw [mfderiv_eq_fderiv] at hm
-      exact fun a b hab ↦ (NormedSpace.fromTangentSpace (𝕜 := ℝ) x₀).symm.injective
-        (hm (by simp [hab]))
-    obtain ⟨L, hL⟩ := (ContinuousLinearMap.isInvertible_iff_injective_of_finrank_eq hfin).2
-      hinjΦ
-    exact ⟨L, hL⟩
-  have hstrict {q} (hq : q ∈ A) :
-      ∃ L : (ℝ × F) ≃L[ℝ] (ℝ × E), HasStrictFDerivAt Φ (L : (ℝ × F) →L[ℝ] (ℝ × E)) q := by
-    obtain ⟨L, hL⟩ := hq.2
-    refine ⟨L, ?_⟩
-    rw [hL]
-    exact (hΦ.contDiffAt (hO.mem_nhds hq.1)).hasStrictFDerivAt_fderiv (by simp)
-  -- An open neighbourhood `T` of `[0, 1] × {x₀}` on which `Φ` is injective.
-  obtain ⟨T, hT, hKT, hTinj⟩ := Set.InjOn.exists_isOpen_superset (f := Φ)
-    (s := Icc (0 : ℝ) 1 ×ˢ {x₀})
-    (by
-      intro p hp q hq h
-      exact Prod.ext (by simpa [Φ] using congrArg Prod.fst h)
+    rw [show x = x₀ from mem_singleton_iff.1 hx]
+    refine TauCeti.isLocalDiffeomorphAt_of_injective_mfderiv hΦ.contMDiffOn hO
+      ⟨trivial, hx₀B⟩ (BoundarylessManifold.isInteriorPoint) (by simp) ?_ hfin
+    rw [hgraph ⟨trivial, hx₀B⟩]
+    -- see `t` as the coercion of a point of `unitInterval`, to use `hGslice`
+    change Injective (mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) (fun x ↦ G ((⟨t, ht⟩ : unitInterval), x)) x₀)
+    rw [hGslice]
+    have hφ : MDifferentiableAt I 𝓘(ℝ, E) φ (e (⟨t, ht⟩, x₀)) :=
+      mdifferentiableAt_extChartAt (by simpa [φ] using (hB ⟨t, ht⟩ x₀ hx₀B).2)
+    have het : MDifferentiableAt 𝓘(ℝ, F) I (fun x ↦ e (⟨t, ht⟩, x)) x₀ :=
+      ((he.contMDiffAt ((isOpen_univ.prod hU).mem_nhds ⟨trivial, hx₀⟩)).comp x₀
+        (contMDiffAt_const.prodMk contMDiffAt_id)).mdifferentiableAt (by simp)
+    rw [show (fun x ↦ φ (e (⟨t, ht⟩, x))) = φ ∘ fun x ↦ e (⟨t, ht⟩, x) from rfl,
+      mfderiv_comp x₀ hφ het]
+    exact (isInvertible_mfderiv_extChartAt
+      (by simpa [φ] using (hB ⟨t, ht⟩ x₀ hx₀B).2)).injective.comp (hd _)
+  -- An open `T ⊇ [0, 1] × {x₀}` on which `Φ` is injective and a local diffeomorphism.
+  obtain ⟨T, hT, hKT, hTinj, hTloc⟩ := Set.InjOn.exists_isOpen_superset_isLocalDiffeomorphOn
+    (f := Φ) (K := Icc (0 : ℝ) 1 ×ˢ {x₀}) (fun p hp q hq h ↦
+      Prod.ext (by simpa [Φ] using congrArg Prod.fst h)
         ((mem_singleton_iff.1 hp.2).trans (mem_singleton_iff.1 hq.2).symm))
-    (isCompact_Icc.prod isCompact_singleton) (fun q hq ↦ (hΦd (hKA hq).1).continuousAt)
-    fun q hq ↦ by
-      obtain ⟨L, hL⟩ := hstrict (hKA hq)
-      have hinj' := (hL.toOpenPartialHomeomorph Φ).injOn
-      rw [hL.toOpenPartialHomeomorph_coe] at hinj'
-      exact ⟨_, (hL.toOpenPartialHomeomorph Φ).open_source.mem_nhds
-        hL.mem_toOpenPartialHomeomorph_source, hinj'⟩
-  set S := T ∩ A
-  have hS : IsOpen S := hT.inter hA
-  have hKS : Icc (0 : ℝ) 1 ×ˢ {x₀} ⊆ S := subset_inter hKT hKA
-  -- The parametric inverse.
-  have hGS : ContDiffOn ℝ ∞ G S := hG.mono (inter_subset_right.trans inter_subset_left)
-  have hκ := hGS.parametric_invFunOn_of_injective_fderiv hS (by simp)
+    (isCompact_Icc.prod isCompact_singleton) hloc
+  set S := T ∩ univ ×ˢ B
+  have hS : IsOpen S := hT.inter hO
+  have hKS : Icc (0 : ℝ) 1 ×ˢ {x₀} ⊆ S := subset_inter hKT fun q hq ↦
+    ⟨trivial, (mem_singleton_iff.1 hq.2) ▸ hx₀B⟩
+  -- Read the derivatives of `Φ` and of the slices of `G` on `S` as Fréchet derivatives.
+  have hinjΦ {q} (hq : q ∈ S) : Injective (fderiv ℝ Φ q) := by
+    have := ((hTloc ⟨q, hq.1⟩).isInvertible_mfderiv (by simp)).injective
+    rw [mfderiv_eq_fderiv] at this
+    simpa only [ContinuousLinearMap.coe_comp, ContinuousLinearEquiv.coe_coe,
+      EquivLike.comp_injective, EquivLike.injective_comp] using this
+  have hinjG {q} (hq : q ∈ S) : Injective (fderiv ℝ (fun x ↦ G (q.1, x)) q.2) := by
+    have := (hgraph hq.2).1 ((hTloc ⟨q, hq.1⟩).isInvertible_mfderiv (by simp)).injective
+    rw [mfderiv_eq_fderiv] at this
+    simpa only [ContinuousLinearMap.coe_comp, ContinuousLinearEquiv.coe_coe,
+      EquivLike.comp_injective, EquivLike.injective_comp] using this
+  -- The parametric inverse, defined on the open image `Φ '' S`.
+  have hκ := (hG.mono inter_subset_right).parametric_invFunOn_of_injective_fderiv hS (by simp)
     (fun p x hx y hy hxy ↦ (Prod.ext_iff.1 (hTinj hx.1 hy.1 (Prod.ext rfl hxy))).2)
-    (fun q hq ↦ hAinj hq.2) hdim
+    (fun q hq ↦ hinjG hq) hdim
   have hΦS : IsOpen (Φ '' S) := by
-    refine isOpen_iff_mem_nhds.2 ?_
-    rintro _ ⟨q, hq, rfl⟩
-    obtain ⟨L, hL⟩ := hstrict hq.2
-    rw [← hL.map_nhds_eq_of_equiv]
-    exact Filter.image_mem_map (hS.mem_nhds hq)
+    have := (mapsTo_image Φ S).interior_of_contDiffOn (hΦ.mono inter_subset_right) (by simp)
+      fun q hq ↦ (ContinuousLinearMap.isInvertible_iff_injective_of_finrank_eq hfin).2
+        (hinjΦ (interior_subset hq))
+    rw [hS.interior_eq] at this
+    exact subset_interior_iff_isOpen.1 this.image_subset
   -- A ball `V` about `x₀` on which `(t, f (0, x))` stays in `Φ '' S`.
-  obtain ⟨u, v, -, hv, hu, hφv, huv⟩ := generalized_tube_lemma (isCompact_Icc (a := (0 : ℝ))
-    (b := 1)) (isCompact_singleton (x := φ p₀)) hΦS (by
-      rintro ⟨t, y⟩ ⟨ht, rfl⟩
-      refine ⟨(t, x₀), hKS ⟨ht, rfl⟩, Prod.ext rfl ?_⟩
-      -- see `t` as the coercion of a point of `unitInterval`, to use `hGcoe`
-      change G ((⟨t, ht⟩ : unitInterval), x₀) = φ p₀
-      rw [hGcoe]
-      exact congrArg φ (hfix _))
   have hf0 : ContMDiffOn 𝓘(ℝ, F) 𝓘(ℝ, E) ∞ (fun x ↦ f (0, x)) B :=
     hf.comp (contMDiffOn_const.prodMk contMDiffOn_id) fun x hx ↦ ⟨trivial, hx⟩
-  obtain ⟨ρ, hρ, hρV⟩ := Metric.isOpen_iff.1
-    (hf0.continuousOn.isOpen_inter_preimage hBo hv) x₀ ⟨hx₀B, by simpa [f] using hφv rfl⟩
+  obtain ⟨ρ, hρ, hρV⟩ := isCompact_Icc.exists_prod_ball_subset (y := x₀)
+    ((continuousOn_fst.prodMk (hf0.continuousOn.comp continuousOn_snd
+      fun q (hq : q ∈ univ ×ˢ B) ↦ hq.2)).isOpen_inter_preimage hO hΦS) (by
+        rintro ⟨t, x⟩ ⟨ht, hx⟩
+        rw [show x = x₀ from mem_singleton_iff.1 hx]
+        refine ⟨⟨trivial, hx₀B⟩, (t, x₀), hKS ⟨ht, rfl⟩, Prod.ext rfl ?_⟩
+        -- see `t` as the coercion of a point of `unitInterval`, to use `hGcoe`
+        change G ((⟨t, ht⟩ : unitInterval), x₀) = f (0, x₀)
+        rw [hGcoe]
+        exact congrArg φ (hfix _))
   set V := ball x₀ ρ
-  have hVB : V ⊆ B := fun x hx ↦ (hρV hx).1
+  have hVB : V ⊆ B := fun x hx ↦ (hρV (mk_mem_prod (left_mem_Icc.2 zero_le_one) hx)).1.2
   have hVmem {t : unitInterval} {x : F} (hx : x ∈ V) : ((t : ℝ), f (0, x)) ∈ Φ '' S :=
-    huv ⟨hu t.property, (hρV hx).2⟩
+    (hρV (mk_mem_prod t.property hx)).2
   set Ψ := fun q : ℝ × E ↦ invFunOn (fun x ↦ G (q.1, x)) (Prod.mk q.1 ⁻¹' S) q.2
   refine ⟨min ε (ρ / 2), lt_min hε (half_pos hρ), min_le_left _ _, V, isOpen_ball,
     fun x hx ↦ (hB 0 x (hVB hx)).1,
@@ -252,7 +211,7 @@ theorem exists_contMDiffOn_apply_eq_apply_zero {e : unitInterval × F → M} {U 
     have hmem : Ψ (t, f (0, x)) ∈ Prod.mk (t : ℝ) ⁻¹' S := invFunOn_mem ⟨y, hy, hGy⟩
     have heq : G (t, Ψ (t, f (0, x))) = f (0, x) := invFunOn_eq (f := fun y ↦ G ((t : ℝ), y))
       ⟨y, hy, hGy⟩
-    have hκB : Ψ (t, f (0, x)) ∈ B := (hmem.2.1).2
+    have hκB : Ψ (t, f (0, x)) ∈ B := hmem.2.2
     rw [hGcoe] at heq
     have hκe : e (t, Ψ (t, f (0, x))) = e (0, x) :=
       φ.injOn (hB t _ hκB).2 (hB 0 x (hVB hx)).2 heq
