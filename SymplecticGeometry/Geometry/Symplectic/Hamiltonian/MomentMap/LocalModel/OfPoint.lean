@@ -429,12 +429,7 @@ theorem exists_linearEquiv_tangentSpace_ofPoint :
             ContMDiffSMul.mdifferentiable_const_smul (I := I) (n := ∞) (by simp) g x) k
             (T u)) ∧
       ∀ ξ : GroupLieAlgebra I G,
-        T (mfderiv (I.prod 𝓘(ℝ, A × V)) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
-          (fun p : G × (A × V) ↦
-            BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation p.1) p.2)
-          ((1 : G), ((0 : A), (0 : V)))
-          ((tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V)))).symm (ξ, 0))) =
-          InfinitesimalAction.fundamental I G I' M ξ x := by
+        T (D.orbitTangentMap ξ) = InfinitesimalAction.fundamental I G I' M ξ x := by
   intro _ _ _ D
   let := D.fiberDistribMulAction
   have := D.contMDiffSMul_fiberDistribMulAction
