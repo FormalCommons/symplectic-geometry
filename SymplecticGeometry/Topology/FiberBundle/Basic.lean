@@ -56,7 +56,7 @@ two trivializations, these inclusions differ by the coordinate change.
 
 The proof is the trivialization argument of Tau Ceti's `TauCeti.isOpen_zeroSectionCompl`
 (`TauCeti/Topology/VectorBundle/ZeroSection.lean`): the preimage of `Prod.snd ⁻¹' t` under a
-trivialization is open in its source, by `ContinuousOn.isOpen_inter_preimage`.
+trivialization is open in its source, by `OpenPartialHomeomorph.isOpen_inter_preimage`.
 
 ## References
 
@@ -177,7 +177,7 @@ theorem isOpen_of_forall_mem_iff_snd_mem {s : Set (TotalSpace F E)} {t : Set F}
   have hpe : p ∈ e.source := mem_trivializationAt_proj_source
   exact ⟨e.source ∩ e ⁻¹' (Prod.snd ⁻¹' t),
     fun q hq ↦ (h p.proj q hq.1).2 hq.2,
-    e.continuousOn.isOpen_inter_preimage e.open_source (ht.preimage continuous_snd),
+    e.toOpenPartialHomeomorph.isOpen_inter_preimage (ht.preimage continuous_snd),
     hpe, (h p.proj p hpe).1 hp⟩
 
 variable (F E) in

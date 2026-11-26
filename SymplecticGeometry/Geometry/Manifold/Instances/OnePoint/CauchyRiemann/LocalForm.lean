@@ -306,8 +306,8 @@ theorem contDiffOn_twistOneDelBar_localFrame_apply_mfderiv_symm (J) (y : OnePoin
     Complex.basisOneI 0))
   have hψs : ContMDiffOn 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) ∞ ψ.symm U := ψ.symm.contMDiffOn.mono inter_subset_left
   have hΦ := hω.comp hψs fun w hw ↦ hsource ▸ hw.2
-  have hU : IsOpen U := ψ.symm.contMDiffOn.continuousOn.isOpen_inter_preimage ψ.open_target
-    (chartAt ℂ y).open_source
+  have hU : IsOpen U :=
+    ψ.toOpenPartialHomeomorph.isOpen_inter_preimage_symm (chartAt ℂ y).open_source
   have hv := hψs.contMDiffOn_totalSpaceMk_mfderiv_apply (m := ∞) (by simp) hU 1
   have h := hΦ.clm_bundle_apply hv
   rw [← contMDiffOn_iff_contDiffOn]
@@ -335,8 +335,8 @@ theorem exists_conjWirtingerDeriv_apply_one_eq_mul_of_mem_twistOneKernel
   set e := (twistCore (𝕜 := ℂ) 1).localTriv y
   set U := ψ.target ∩ ψ.symm ⁻¹' (chartAt ℂ y).source
   have hsource : (chartAt ℂ y).source = e.baseSet := (OnePoint.twistCore_localTriv_baseSet 1 y).symm
-  have hU : IsOpen U := ψ.symm.contMDiffOn.continuousOn.isOpen_inter_preimage ψ.open_target
-    (chartAt ℂ y).open_source
+  have hU : IsOpen U :=
+    ψ.toOpenPartialHomeomorph.isOpen_inter_preimage_symm (chartAt ℂ y).open_source
   have hxU : ψ x ∈ U := ⟨ψ.map_source hx, by simpa [ψ.left_inv hx] using hxy⟩
   have hsm := (mem_twistOneKernel_iff J).1 hs
   set φ : OnePoint ℂ → ℂ := fun p ↦ (e ⟨p, s p⟩).2
