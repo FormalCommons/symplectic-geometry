@@ -5,9 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 public import SymplecticGeometry.Geometry.Symplectic.Flux.CompactSupport
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Velocity
+import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Transport
 import TauCeti.Geometry.Manifold.DifferentialForm.Squared
 

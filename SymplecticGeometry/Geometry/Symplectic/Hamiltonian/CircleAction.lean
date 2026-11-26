@@ -6,11 +6,12 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Instances.Sphere
-public import SymplecticGeometry.Geometry.Manifold.DeRham.PoincarePairing.Nondegenerate
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Wedge
 public import TauCeti.Geometry.Lie.FundamentalVectorField
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap
 public import TauCeti.Geometry.Symplectic.Hamiltonian.SymplecticVectorField
+public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.TopForm
+import SymplecticGeometry.Geometry.Manifold.DeRham.PoincarePairing.Nondegenerate
 import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Average
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Pow

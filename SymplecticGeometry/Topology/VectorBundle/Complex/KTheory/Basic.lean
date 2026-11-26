@@ -9,7 +9,7 @@ public import TauCeti.CategoryTheory.GrothendieckGroup.Monoidal.Basic
 public import TauCeti.Topology.VectorBundle.FiniteRank.Biproduct
 public import TauCeti.Topology.VectorBundle.FiniteRank.Monoidal
 public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Newton
-public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 
 /-!
 # Newton classes on the K-group of complex bundle cores

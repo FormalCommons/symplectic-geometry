@@ -5,10 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Leibniz
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Associated.PullbackPrincipal
-public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Basic
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Curvature
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
 public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
@@ -16,6 +13,9 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Basic
 public import TauCeti.Geometry.Manifold.MFDeriv.ContinuousLinearMap
 public import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.Basic
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Leibniz
+import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import TauCeti.Data.Fin.VecNotation
 

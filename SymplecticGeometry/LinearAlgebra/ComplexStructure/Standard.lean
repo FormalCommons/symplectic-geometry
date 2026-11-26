@@ -6,12 +6,13 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.LinearAlgebra.ComplexStructure.Action
-public import SymplecticGeometry.LinearAlgebra.ComplexStructure.Hom
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Compatible
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 public import TauCeti.Geometry.Symplectic.Finrank
-public import SymplecticGeometry.Geometry.Symplectic.Orientation
 public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Unitary
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+import SymplecticGeometry.LinearAlgebra.ComplexStructure.Hom
+import SymplecticGeometry.LinearAlgebra.Symplectic.Compatible
+import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
+import SymplecticGeometry.Geometry.Symplectic.Orientation
 
 /-!
 # Every linear complex structure is standard

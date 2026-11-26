@@ -8,8 +8,8 @@ module
 public import Mathlib.LinearAlgebra.Projectivization.Action
 public import SymplecticGeometry.Geometry.Manifold.RegularValue.CriticalSet
 public import TauCeti.Geometry.Manifold.Projectivization.ProjectiveLine
+public import TauCeti.Geometry.Manifold.Algebra.SMul
 import SymplecticGeometry.LinearAlgebra.Projectivization.Action
-import TauCeti.Geometry.Manifold.Algebra.SMul
 import TauCeti.Geometry.Manifold.Projectivization.Map
 
 /-!

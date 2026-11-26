@@ -8,8 +8,9 @@ module
 public import Mathlib.Analysis.InnerProductSpace.Calculus
 public import Mathlib.Analysis.InnerProductSpace.EuclideanDist
 public import Mathlib.Geometry.Manifold.SmoothEmbedding
-public import SymplecticGeometry.Geometry.Manifold.Immersion.Chart
-public import SymplecticGeometry.Geometry.Manifold.Morse.Hessian
+public import TauCeti.Geometry.Manifold.Morse.Hessian
+import SymplecticGeometry.Geometry.Manifold.Immersion.Chart
+import SymplecticGeometry.Geometry.Manifold.Morse.Hessian
 
 /-!
 # The squared normal coordinate of an embedding in a slice chart

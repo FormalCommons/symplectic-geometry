@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Diffeomorph
-public import SymplecticGeometry.Analysis.Calculus.ContDiff.Lipschitz
+import SymplecticGeometry.Analysis.Calculus.ContDiff.Lipschitz
 
 /-!
 # Diffeomorphisms of a normed space that are the identity off a compact set

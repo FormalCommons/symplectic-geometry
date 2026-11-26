@@ -5,9 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.ProjectiveSpaceClassifying
-public import SymplecticGeometry.Geometry.Manifold.Morse.CWModel
 public import TauCeti.AlgebraicTopology.Cohomology.HomotopyInvariance
+public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.ProjectiveSpace
+import SymplecticGeometry.AlgebraicTopology.Cohomology.ProjectiveSpaceClassifying
+import SymplecticGeometry.Geometry.Manifold.Morse.CWModel
 
 /-!
 # Classes of degree two on a compact manifold come from complex projective space

@@ -6,13 +6,14 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Convex.Contractible
-public import SymplecticGeometry.AlgebraicTopology.Singular.Contractible
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Suspension
-public import SymplecticGeometry.AlgebraicTopology.Singular.MayerVietoris.Connecting
-public import SymplecticGeometry.AlgebraicTopology.Singular.Nullhomotopic
-public import SymplecticGeometry.Analysis.InnerProductSpace.Orthogonal
-public import SymplecticGeometry.Analysis.InnerProductSpace.OrthogonalLast
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Prod
+public import SymplecticGeometry.Topology.Homotopy.PuncturedStarConvex
+import SymplecticGeometry.AlgebraicTopology.Singular.Contractible
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Suspension
+import SymplecticGeometry.AlgebraicTopology.Singular.MayerVietoris.Connecting
+import SymplecticGeometry.AlgebraicTopology.Singular.Nullhomotopic
+import SymplecticGeometry.Analysis.InnerProductSpace.Orthogonal
+import SymplecticGeometry.Analysis.InnerProductSpace.OrthogonalLast
 
 /-!
 # The local orientation of `F × ℝ` read on the sheets `F × {±1}`

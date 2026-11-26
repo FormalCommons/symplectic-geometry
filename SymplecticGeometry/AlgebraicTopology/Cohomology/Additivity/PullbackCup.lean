@@ -8,7 +8,8 @@ module
 public import TauCeti.AlgebraicTopology.Cohomology.Additivity.Relative
 public import TauCeti.AlgebraicTopology.Cohomology.Cup.Pullback
 public import TauCeti.AlgebraicTopology.Singular.Additivity
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.Additivity.Opens
+import SymplecticGeometry.AlgebraicTopology.Cohomology.Additivity.Opens
+import SymplecticGeometry.Topology.Homeomorph.Sigma
 
 /-!
 # Additivity of the map `a ↦ π^*a ⌣ u` over disjoint open sets

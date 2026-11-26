@@ -21,6 +21,7 @@ import TauCeti.Geometry.Manifold.MFDeriv.Opens
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.DegreeOne
+import SymplecticGeometry.Analysis.Complex.QuadraticLeviForm
 
 /-!
 # The Fubini–Study form of `ℂPⁿ`
@@ -43,7 +44,8 @@ builds the forms upstairs, and the Fubini–Study form of `ℂPⁿ` as the desce
   has the value
   `ρ_z(v, w) = ω₀(v, w) / |z|² - (⟨z, v⟩ ω₀(z, w) - ⟨z, w⟩ ω₀(z, v)) / |z|⁴`
   (`fubiniStudyLift_apply`), and its complexification is `(i/2) ∂∂bar log |z|²`
-  (`fubiniStudyLift_eq_del_delBar`), by `Dolbeault/Potential.lean`.
+  (`fubiniStudyLift_eq_del_delBar`), by `Dolbeault/Potential.lean`, since `ρ` is the form
+  `potentialForm` of `log |z|²` (`fubiniStudyLift_eq_potentialForm`).
 * `SymplecticGeometry.sphereStdForm n` is the restriction `σ` of `ω₀ = stdForm (Fin (n + 1))` to
   the unit sphere of `StdSpace (Fin (n + 1))` (`sphereStdForm_apply`). It is the exterior
   derivative of `sphereContactForm` (`sphereStdForm_eq_mextDeriv`), hence closed
@@ -197,6 +199,15 @@ theorem fubiniStudyLift_def :
     fubiniStudyLift n = mextDerivₗ 𝓘(ℝ, Fin (n + 1) → ℂ) 1 (fubiniStudyPrimitive n) :=
   (rfl)
 
+open TauCeti.ComplexManifold in
+/-- The two-form `ρ` on `ℂⁿ⁺¹ ∖ 0` is the form `(1/4) d (J* d log |z|²)` of the potential
+`log |z|²`, for the complex structure `J` of `ℂⁿ⁺¹ ∖ 0`. -/
+theorem fubiniStudyLift_eq_potentialForm :
+    fubiniStudyLift n = (SmoothAlmostComplexStructure.ofComplexManifold (Fin (n + 1) → ℂ)
+      (puncturedSpace (Fin (n + 1) → ℂ))).potentialForm (fubiniStudyPotential n) := by
+  rw [fubiniStudyLift_def, fubiniStudyPrimitive_eq, map_smul,
+    SmoothAlmostComplexStructure.potentialForm_def]
+
 /-- The two-form `ρ` on `ℂⁿ⁺¹ ∖ 0` is closed. -/
 theorem isClosed_fubiniStudyLift : (fubiniStudyLift n).IsClosed :=
   SmoothForm.isClosed_mextDerivₗ _
@@ -212,7 +223,7 @@ theorem fubiniStudyLift_eq_del_delBar :
             (puncturedSpace (Fin (n + 1) → ℂ))).delBar
               (SmoothForm.mapCoeff Complex.ofRealCLM (fubiniStudyPotential n))) := by
   rw [SmoothAlmostComplexStructure.del_delBar_mapCoeff_ofReal_ofComplexManifold,
-    fubiniStudyLift_def, fubiniStudyPrimitive_eq, map_smul]
+    fubiniStudyLift_eq_potentialForm]
 
 /-- The restriction `σ` of the standard form `ω₀ = stdForm (Fin (n + 1))` to the unit sphere of
 `StdSpace (Fin (n + 1))`: the pull-back of the constant form along the inclusion. -/

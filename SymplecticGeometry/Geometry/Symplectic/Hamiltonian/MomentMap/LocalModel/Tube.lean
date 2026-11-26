@@ -5,8 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.GroupAction.LinearTube
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.TangentSpace
+import SymplecticGeometry.Geometry.Manifold.GroupAction.LinearTube
 
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic

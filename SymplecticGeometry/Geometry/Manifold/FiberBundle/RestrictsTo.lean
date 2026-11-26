@@ -6,7 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.StructureGroup
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Semibasic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 
 /-!
 # Forms that restrict to the fibre forms
@@ -56,7 +58,12 @@ base does. This gives Thurston's forms `τ + K proj^* β`.
 * `TauCeti.MapFiber.Atlas.RestrictsTo.hasStructureGroup`: a smooth atlas along which a form
   restricts to `σ` has structure group the stabilizer of `σ`.
 * `Bundle.Trivialization.mpullback_fiberInclusionMap_mpullback_eq_zero`: the pull-back of a form of
-  positive degree on the base vanishes on every fibre.
+  positive degree on the base vanishes on every fibre, and
+  `Bundle.Trivialization.mpullback_fiberInclusionMap_eq_zero_of_isSemibasic`: so does that of a
+  form of positive degree semibasic for `proj`.
+* `Bundle.Trivialization.mextDeriv_apply_eq_zero_of_isSemibasic`: the exterior derivative of a
+  `C¹` form of positive degree semibasic for `proj` vanishes on tuples of vertical vectors, as
+  its pull-back to each fibre is zero.
 * `TauCeti.MapFiber.Atlas.restrictsTo_add_iff`, `TauCeti.MapFiber.Atlas.RestrictsTo.add_mpullback`
   and `TauCeti.MapFiber.Atlas.convex_setOfPred_restrictsTo`: the affine structure of the forms that
   restrict to `σ`.
@@ -185,6 +192,38 @@ theorem mpullback_fiberInclusionMap_mpullback_eq_zero (e : Trivialization F proj
     rw [TauCeti.mpullback_apply, mfderiv_zero_of_not_mdifferentiableAt hι]
     exact (TauCeti.mpullback IM IB proj β _).map_coord_zero ⟨0, Nat.pos_of_ne_zero hk⟩
       (zero_apply _)
+
+/-- **Semibasic forms vanish on the fibres.** The pull-back to a fibre of a form of positive
+degree that is semibasic for `proj` is zero, since `proj` is constant on the fibre. No smoothness
+is needed (Tau Ceti's `TauCeti.range_mfderiv_le_ker_mfderiv_of_eventually_eq`). -/
+theorem mpullback_fiberInclusionMap_eq_zero_of_isSemibasic (e : Trivialization F proj) {b : B}
+    (hb : b ∈ e.baseSet) {α : TauCeti.RoughForm IM M V (k + 1)}
+    (hα : TauCeti.RoughForm.IsSemibasic IB proj α) :
+    TauCeti.mpullback IF IM (e.fiberInclusionMap hb) α = 0 := by
+  funext v
+  ext w
+  rw [TauCeti.mpullback_apply, Pi.zero_apply, ContinuousAlternatingMap.coe_zero, Pi.zero_apply]
+  exact hα.apply_eq_zero _ _ 0 (TauCeti.range_mfderiv_le_ker_mfderiv_of_eventually_eq
+    (Filter.Eventually.of_forall (e.proj_fiberInclusionMap hb)) ⟨w 0, rfl⟩)
+
+/-- **The derivative of a semibasic form on vertical vectors.** Let `e` be a trivialization of
+`proj` that is differentiable, with `C²` inverse. The exterior derivative of a `C¹` form of
+positive degree that is semibasic for `proj` vanishes at every point over the base set of `e` on
+every tuple of vertical vectors: its pull-back to the fibre is the derivative of the pull-back of
+the form, which is zero. -/
+theorem mextDeriv_apply_eq_zero_of_isSemibasic [IsManifold IF 2 F] [IsManifold IM 2 M]
+    {e : Trivialization F proj} (he : e.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF))
+    (he' : ContMDiffOn (IB.prod IF) IM 2 e.toOpenPartialHomeomorph.symm e.target)
+    {α : TauCeti.RoughForm IM M V (k + 1)} (hα : TauCeti.RoughForm.IsSemibasic IB proj α)
+    (hα' : TauCeti.IsSmoothBundleForm (I := IM) (F := V) (V := Trivial M V) 1 α) {x : M}
+    (hx : proj x ∈ e.baseSet) {u : Fin (k + 1 + 1) → TangentSpace IM x}
+    (hu : ∀ i, u i ∈ (mfderiv IM IB proj x).ker) : TauCeti.mextDeriv α x u = 0 := by
+  have h : TauCeti.mpullback IF IM (e.fiberInclusionMap hx) (TauCeti.mextDeriv α) =
+      TauCeti.mpullback IF IM (e.fiberInclusionMap hx) 0 := by
+    rw [TauCeti.mpullback_mextDeriv (e.contMDiff_fiberInclusionMap he' hx) hα',
+      e.mpullback_fiberInclusionMap_eq_zero_of_isSemibasic hx hα, TauCeti.mextDeriv_zero,
+      TauCeti.mpullback_zero]
+  exact e.apply_eq_of_mpullback_fiberInclusionMap_eq he hx h hu
 
 end Bundle.Trivialization
 

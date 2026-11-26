@@ -6,11 +6,11 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.InnerProductSpace.PiL2
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.RationalCoefficients
 public import TauCeti.AlgebraicTopology.Cellular.EulerCharacteristic.Surface.Basic
 public import TauCeti.AlgebraicTopology.Cohomology.UniversalCoefficient.CapDuality
 public import TauCeti.AlgebraicTopology.Singular.Sphere
 public import TauCeti.AlgebraicTopology.Singular.SurfaceGenus
+import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.RationalCoefficients
 
 /-!
 # The genus of surfaces

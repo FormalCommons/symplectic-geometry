@@ -8,7 +8,7 @@ module
 public import TauCeti.Geometry.RealAlgebraic.CAD.Existence
 public import TauCeti.Geometry.RealAlgebraic.Semialgebraic.Image
 public import TauCeti.Geometry.RealAlgebraic.Semialgebraic.Connected
-public import SymplecticGeometry.Topology.Order.OrdConnected
+import SymplecticGeometry.Topology.Order.OrdConnected
 
 /-!
 # Semialgebraic sets and functions of one variable

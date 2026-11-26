@@ -13,17 +13,19 @@ public import TauCeti.Geometry.Symplectic.Complex.Module.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Restriction
 public import TauCeti.Geometry.Symplectic.Manifold.JHolomorphic
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Submanifold
 public import SymplecticGeometry.Topology.Sets.Opens.Basic
 public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
-public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Prod
 public import SymplecticGeometry.Geometry.Manifold.RegularValue.CriticalSet
 public import SymplecticGeometry.Geometry.Symplectic.Lefschetz.Model
 public import TauCeti.Geometry.Manifold.RegularValue.Open
+public import TauCeti.Geometry.Manifold.Algebra.SMul
+public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Basic
+public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Prod
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Submanifold
+import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Prod
 import SymplecticGeometry.Geometry.Manifold.Projectivization.ProjectiveLineBiholomorphism
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.RestrictScalars
-import TauCeti.Geometry.Manifold.Algebra.SMul
 import TauCeti.Geometry.Manifold.Connected
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition

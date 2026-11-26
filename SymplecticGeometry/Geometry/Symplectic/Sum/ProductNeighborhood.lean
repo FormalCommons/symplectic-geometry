@@ -5,9 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Symplectic
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.Prod
 public import TauCeti.Geometry.Symplectic.Complex.Line
+public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Normal
+public import TauCeti.Geometry.Symplectic.Manifold.Prod
+public import Mathlib.Analysis.CStarAlgebra.Classes
+import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Symplectic
+import SymplecticGeometry.Geometry.Symplectic.Manifold.Prod
 import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Basic
 import TauCeti.Geometry.Symplectic.Lagrangian.Graph
 import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Level
@@ -681,7 +684,7 @@ private def ofSymplectomorphism {U₀ : Opens (Q × ℂ)}
     (ψ.toHomeomorph.isOpenEmbedding.comp
       (Topology.IsOpenEmbedding.inclusion hle (prodBall Q ε).isOpen.preimage_val))
   isLocalDiffeomorph' p := (isLocalDiffeomorph_inclusion (n := ∞) hle p).comp (hg :=
-    (ψ.isLocalDiffeomorph _).comp (hg := TauCeti.isLocalDiffeomorph_subtype_val _))
+    ψ.isLocalDiffeomorph_subtypeVal_comp _)
   apply_zeroSlice' q _ := (hψ q).2.1
   mpullback_eq' := by
     refine (SmoothForm.mpullback_mpullback (Opens.inclusion hle) (Subtype.val ∘ ψ)

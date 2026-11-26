@@ -5,10 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Graph
 public import TauCeti.Topology.Algebra.Group.Quotient.LocalSection
 public import TauCeti.Topology.Homotopy.HurewiczFibration.LocallyTrivial
 public import TauCeti.Topology.Homotopy.SerreFibration.FiberBundle
+public import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Quotient
+import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Graph
 
 /-!
 # The unitary frame map `U(n) → ℒ(n)` is a fibration

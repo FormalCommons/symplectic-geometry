@@ -6,18 +6,19 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Hypersurface
-public import SymplecticGeometry.Geometry.Manifold.Complex.LeviForm
-public import SymplecticGeometry.Geometry.Manifold.Complex.TotallyReal.AdaptedChart
-public import SymplecticGeometry.Geometry.Manifold.Immersion.Slice
-public import SymplecticGeometry.Geometry.Manifold.Morse.Hessian
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.ContMDiff
-public import SymplecticGeometry.LinearAlgebra.TotallyReal.Basic
 public import TauCeti.Geometry.Contact.Pullback
 public import TauCeti.Geometry.Manifold.Complex.TotallyReal.AdaptedChart
 public import TauCeti.Geometry.Symplectic.Lagrangian.TotallyReal
 public import Mathlib.Geometry.Manifold.PartitionOfUnity
 public import TauCeti.LinearAlgebra.TotallyReal.Basic
-public import SymplecticGeometry.Algebra.Order.BigOperators.Ring.Finset
+import SymplecticGeometry.Geometry.Manifold.Complex.LeviForm
+import SymplecticGeometry.Geometry.Manifold.Complex.TotallyReal.AdaptedChart
+import SymplecticGeometry.Geometry.Manifold.Immersion.Slice
+import SymplecticGeometry.Geometry.Manifold.Morse.Hessian
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.ContMDiff
+import SymplecticGeometry.LinearAlgebra.TotallyReal.Basic
+import SymplecticGeometry.Algebra.Order.BigOperators.Ring.Finset
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Dolbeault.Potential
 
 /-!
 # Totally real submanifolds and J-convex functions

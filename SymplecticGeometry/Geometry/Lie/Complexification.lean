@@ -7,14 +7,15 @@ module
 
 public import Mathlib.LinearAlgebra.Projection
 public import SymplecticGeometry.Geometry.Lie.Exponential.Circle
-public import SymplecticGeometry.Geometry.Lie.Exponential.Units
 public import TauCeti.Geometry.Lie.Subgroup.Commutative
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Symplectic.AlmostComplex
 public import TauCeti.LinearAlgebra.TotallyReal.Basic
 public import TauCeti.Geometry.Lie.Adjoint.Basic
-public import SymplecticGeometry.Geometry.Lie.GroupLieAlgebraLieHom
 public import SymplecticGeometry.Geometry.Manifold.Instances.Sphere
+public import TauCeti.Geometry.Lie.Functor
+import SymplecticGeometry.Geometry.Lie.Exponential.Units
+import SymplecticGeometry.Geometry.Lie.GroupLieAlgebraLieHom
 import TauCeti.LinearAlgebra.TotallyReal.Finrank
 import TauCeti.Geometry.Lie.Adjoint.Exponential.Basic
 import SymplecticGeometry.Geometry.Lie.Adjoint.Commute

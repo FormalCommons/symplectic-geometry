@@ -6,9 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.AlgebraicTopology.FundamentalGroupoid.InducedMaps
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Loop
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Path.Basic
 public import TauCeti.Analysis.Matrix.SymplecticGroup.Connected
+import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Loop
+import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Fibration
 
 /-!
 # The Maslov index of paths: naturality, values, homotopy and the reference Lagrangian
