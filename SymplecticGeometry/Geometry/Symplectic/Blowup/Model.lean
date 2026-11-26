@@ -40,7 +40,9 @@ to the exceptional divisor `Z`, sets up the neighbourhoods `L(ε)` of `Z`, and i
 * `SymplecticGeometry.BlowupModel.closedNbhd n ε` and `SymplecticGeometry.BlowupModel.openNbhd n ε`:
   the points whose blowdown has Euclidean norm `≤ ε`, resp. `< ε`; the first is compact
   (`isCompact_closedNbhd`, since `ℙ ℂ E` is compact and the model is closed in `ℙ ℂ E × E`), the
-  second open, and both contain the exceptional divisor for `0 < ε`.
+  second open, and both contain the exceptional divisor for `0 < ε`. The divisor is their
+  intersection (`iInter_closedNbhd`), so by compactness every neighbourhood of it contains
+  some `L(ε)` (`exists_closedNbhd_subset`, `exists_openNbhd_subset`).
 * `SymplecticGeometry.BlowupModel.blowupForm n l`: the form `π^* ω₀ + l² pr^* ω_FS`, and
   `SymplecticGeometry.BlowupModel.isClosed_blowupForm`: it is closed.
 * `SymplecticGeometry.BlowupModel.isKahler_blowupForm`: for `l ≠ 0`, `ω̃_l` is Kähler for the
@@ -83,7 +85,7 @@ to the exceptional divisor `Z`, sets up the neighbourhoods `L(ε)` of `Z`, and i
 public section
 
 open Set Projectivization TauCeti
-open scoped Manifold ContDiff LinearAlgebra.Projectivization TauCeti.ComplexManifold
+open scoped Topology Manifold ContDiff LinearAlgebra.Projectivization TauCeti.ComplexManifold
 
 namespace SymplecticGeometry
 
@@ -169,6 +171,40 @@ theorem exceptionalDivisor_subset_openNbhd {ε : ℝ} (hε : 0 < ε) :
 theorem exceptionalDivisor_subset_closedNbhd {ε : ℝ} (hε : 0 < ε) :
     exceptionalDivisor n ⊆ closedNbhd n ε :=
   (exceptionalDivisor_subset_openNbhd hε).trans (openNbhd_subset_closedNbhd ε)
+
+theorem closedNbhd_mono {ε ε' : ℝ} (h : ε ≤ ε') : closedNbhd n ε ⊆ closedNbhd n ε' :=
+  fun _ hp ↦ (mem_closedNbhd_iff).2 ((mem_closedNbhd_iff.1 hp).trans h)
+
+theorem openNbhd_mono {ε ε' : ℝ} (h : ε ≤ ε') : openNbhd n ε ⊆ openNbhd n ε' :=
+  fun _ hp ↦ (mem_openNbhd_iff).2 ((mem_openNbhd_iff.1 hp).trans_le h)
+
+/-- The exceptional divisor is the intersection of the sets `L(ε)` over all `0 < ε`. -/
+theorem iInter_closedNbhd :
+    ⋂ ε : Ioi (0 : ℝ), closedNbhd n ε = exceptionalDivisor n := by
+  ext p
+  simp only [mem_iInter, mem_closedNbhd_iff, Subtype.forall, mem_Ioi,
+    mem_exceptionalDivisor_iff]
+  refine ⟨fun h ↦ ?_, fun h ε hε ↦ by simpa [h] using hε.le⟩
+  have h0 : ‖complexToRealEuclidean (Fin (n + 1)) p.blowdown‖ = 0 :=
+    le_antisymm (le_of_forall_pos_le_add fun ε hε ↦ by simpa using h ε hε) (norm_nonneg _)
+  simpa using h0
+
+/-- The sets `L(ε)` shrink to the exceptional divisor: every neighbourhood of the divisor
+contains `L(ε)` for some `0 < ε`. -/
+theorem exists_closedNbhd_subset {U : Set (BlowupModel n)}
+    (hU : U ∈ 𝓝ˢ (exceptionalDivisor n)) : ∃ ε, 0 < ε ∧ closedNbhd n ε ⊆ U := by
+  have hdir : Directed (· ⊇ ·) fun ε : Ioi (0 : ℝ) ↦ closedNbhd n ε := fun a b ↦
+    ⟨⟨min a b, lt_min a.property b.property⟩, closedNbhd_mono (min_le_left _ _),
+      closedNbhd_mono (min_le_right _ _)⟩
+  obtain ⟨ε, hε⟩ := exists_subset_nhds_of_isCompact' (ι := Ioi (0 : ℝ)) hdir
+    (fun ε ↦ isCompact_closedNbhd ε) (fun ε ↦ isClosed_closedNbhd ε)
+    (by rwa [iInter_closedNbhd])
+  exact ⟨ε, ε.property, hε⟩
+
+/-- Every neighbourhood of the exceptional divisor contains `openNbhd n ε` for some `0 < ε`. -/
+theorem exists_openNbhd_subset {U : Set (BlowupModel n)}
+    (hU : U ∈ 𝓝ˢ (exceptionalDivisor n)) : ∃ ε, 0 < ε ∧ openNbhd n ε ⊆ U :=
+  (exists_closedNbhd_subset hU).imp fun _ h ↦ ⟨h.1, (openNbhd_subset_closedNbhd _).trans h.2⟩
 
 /-! ### The forms `ω̃_λ` -/
 
