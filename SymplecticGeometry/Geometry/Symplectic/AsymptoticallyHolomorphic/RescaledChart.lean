@@ -67,14 +67,19 @@ to `τ₀^* α`
 The structure `RescaledUnitaryCharts P σ J α ι k₀ ρ₀` collects, for every power `k ≥ k₀` and
 every point `x`, a chart centred at `x` whose target contains the ball of radius `ρ₀ * √k`, which
 pulls `stdForm ι` back to `2π k σ`, and a section of `P` over the image of that ball in which `k`
-times the pull-back of `α`, read in the chart, is the form `z, v ↦ -ω₀(z, v) / 2` of exterior
-derivative `-ω₀`; `J` read in these charts is `k^{-1/2}`-close to `stdComplexStructure ι` with all
-its derivatives, with constants that do not depend on `k` or `x`. They exist on a compact
-manifold (`SymplecticGeometry.exists_rescaledUnitaryCharts`): take centred Darboux charts whose
-sources lie in base sets of trivializations of `P`, rescale them by `√(2π k)`, and rotate the
-preferred local sections of `P` into frames with the model connection form over the balls of
-radius `D.radius`. The frames do not depend on `k`, since rescaling the chart by `c` multiplies
-the model form read in it by `c⁻²`.
+times the pull-back of `α`, read in the chart, is `-λ₀`, for `λ₀ = (stdForm ι).radialPrimitive`
+the radial primitive `λ₀(z)(v) = ω₀(z, v) / 2` of `ω₀`, so that its exterior derivative is `-ω₀`
+(`TauCeti.SymplecticForm.mextDeriv_radialPrimitive`). On that ball, `J` read in these charts
+differs from `stdComplexStructure ι` by at most a constant times `k^{-1/2} ‖z‖` at `z`, and its
+derivatives of order `r ≥ 1` are `O(k^{-1/2})`, with constants that do not depend on `k` or `x`.
+They exist on a compact manifold (`SymplecticGeometry.exists_rescaledUnitaryCharts`): take centred
+Darboux charts whose sources lie in base sets of trivializations of `P`, rescale them by
+`√(2π k)`, and rotate the preferred local sections of `P` into frames with the model connection
+form over the balls of radius `D.radius`. The frames do not depend on `k`, since rescaling the
+chart by `c` multiplies the model form read in it by `c⁻²`
+(`SymplecticGeometry.CenteredDarbouxCharts.mpullback_rescaledChart_symm_apply` and
+`TauCeti.SymplecticForm.mpullback_const_smul_radialPrimitive`). The construction follows Auroux's
+local normalization of the charts for `k Ω` [Auroux2002, Lemma 1].
 
 ## Main definitions
 
@@ -107,14 +112,16 @@ the model form read in it by `c⁻²`.
   over an open star-convex subset of the target of a Darboux chart, a section of the circle bundle
   in which the connection form read in the chart is the model.
 * `SymplecticGeometry.exists_rescaledUnitaryCharts`: rescaled unitary charts exist on a compact
-  manifold with a closed two-form, a compatible almost complex structure, and a connection form
+  manifold with a two-form `σ`, a compatible almost complex structure, and a connection form
   of curvature `-2π σ`.
 
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017],
-  Sections 2.5, 2.7 and 3.2.
+  Sections 2.5, 2.7, 3.2 and 7.4.
 * [S. K. Donaldson, *Symplectic submanifolds and almost-complex geometry*][Donaldson1996].
+* [D. Auroux, *A remark about Donaldson's construction of symplectic submanifolds*][Auroux2002],
+  Lemma 1.
 -/
 
 public section
@@ -372,6 +379,23 @@ theorem eval₂_rescaledChart (y : M) (hy : y ∈ (D.rescaledChart c x).source)
   simp only [smul_apply, map_smul, LinearMap.smul_apply, smul_eq_mul]
   ring
 
+/-- At a point `z` of the target of the chart rescaled by `c`, the pull-back of a form along its
+inverse is the pull-back, along the dilation `w ↦ c⁻¹ • w`, of the pull-back along the inverse of
+`D.chart x`. -/
+theorem mpullback_rescaledChart_symm_apply {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+    {k : ℕ} (η : RoughForm I M F k) {z : StdSpace ι} (hz : z ∈ (D.rescaledChart c x).target) :
+    mpullback 𝓘(ℝ, StdSpace ι) I (D.rescaledChart c x).symm η z =
+      mpullback 𝓘(ℝ, StdSpace ι) 𝓘(ℝ, StdSpace ι) ((c : ℝ)⁻¹ • ·)
+        (mpullback 𝓘(ℝ, StdSpace ι) I (D.chart x).symm η) z := by
+  rw [mem_rescaledChart_target_iff] at hz
+  have hsymm : ⇑(D.rescaledChart c x).symm = ⇑(D.chart x).symm ∘ ((c : ℝ)⁻¹ • ·) :=
+    funext (D.rescaledChart_symm_apply c x)
+  rw [hsymm]
+  exact mpullback_comp_at
+    ((hasFDerivAt_id z).const_smul (c : ℝ)⁻¹).differentiableAt.mdifferentiableAt
+    (((D.chart x).symm.contMDiffOn.contMDiffAt ((D.chart x).open_target.mem_nhds hz)
+      ).mdifferentiableAt (by simp)) η
+
 /-- `J` read in the chart rescaled by `c`, at a point `z` of its target, is `J` read in
 `D.chart x` at `c⁻¹ • z`. -/
 theorem chartPushforward_rescaledChart {z : StdSpace ι}
@@ -568,11 +592,12 @@ variable (P) in
 * it pulls `stdForm ι` back to `2π k σ` on its source;
 * it reads `J` at `0` as `stdComplexStructure ι`;
 * the section is smooth over the image of `B`, and on `B` the form `k α`, pulled back along the
-  section and read in the chart, is the model `z, v ↦ -ω₀(z, v) / 2`, whose exterior derivative
-  is `-ω₀`. For a connection form `α`, `powerConnection α k` reads in the frame `[frame k x, 1]`
-  of `PowerBundle P k` as `d + i k (frame k x)^* α`
-  (`SymplecticGeometry.powerConnection_apply_frame`), so its connection form read in the chart
-  is `i` times this model;
+  section and read in the chart, is the model `-λ₀`, minus the radial primitive
+  `λ₀ = (stdForm ι).radialPrimitive`, `λ₀(z)(v) = ω₀(z, v) / 2`, whose exterior derivative is
+  `ω₀` (`TauCeti.SymplecticForm.mextDeriv_radialPrimitive`). For a connection form `α`,
+  `powerConnection α k` reads in the frame `[frame k x, 1]` of `PowerBundle P k` as
+  `d + i k (frame k x)^* α` (`SymplecticGeometry.powerConnection_apply_frame`), so its connection
+  form read in the chart is `i` times this model;
 * on `B`, `J` read in the chart differs from `stdComplexStructure ι` by at most
   `bound 1 * ‖z‖ / √k` at `z`, and its derivatives of order `r ≥ 1` are at most
   `bound r / √k`.
@@ -604,7 +629,7 @@ structure RescaledUnitaryCharts (σ : SmoothTwoForm I M) (J : SmoothAlmostComple
     ∀ z ∈ ball (0 : StdSpace ι) (ρ₀ * √k), ∀ v : StdSpace ι,
       k * mpullback 𝓘(ℝ, StdSpace ι) I (chart k x).symm (mpullback I (I.prod (𝓡 1))
           (fun y ↦ ManifoldTotalSpace.homeomorph Circle P ⟨y, frame k x y⟩) α.val) z ![v] =
-        -(stdForm ι z v / 2)
+        -(stdForm ι).radialPrimitive.val z ![v]
   jStruct_sub_le {k : ℕ} (hk : k₀ ≤ k) (x : M) : ∀ z ∈ ball (0 : StdSpace ι) (ρ₀ * √k),
     ‖J.chartPushforward (chart k x).toOpenPartialHomeomorph z -
         LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap‖ ≤
@@ -621,23 +646,29 @@ private theorem exists_unit_eq_sqrt (k : ℕ) : ∃ u : ℝˣ, 1 ≤ k → (u : 
   · exact ⟨1, fun h ↦ absurd h hk⟩
 
 /-- **Existence of rescaled unitary charts.** On a compact boundaryless manifold `M` of dimension
-`2 * card ι`, with a closed two-form `σ`, a smooth almost complex structure `J` compatible with
-`σ`, and a connection form `α` on a principal `Circle`-bundle `P` with curvature `-2π σ`, there
-are rescaled unitary charts from the power `1` on, for some radius `ρ₀ > 0`.
+`2 * card ι`, with a two-form `σ`, a smooth almost complex structure `J` compatible with `σ`,
+and a connection form `α` on a principal `Circle`-bundle `P` with curvature `-2π σ`, there are
+rescaled unitary charts from the power `1` on, for some radius `ρ₀ > 0`.
 
 They are the centred Darboux charts of
 `SymplecticGeometry.exists_centeredDarbouxCharts_source_subset`, with sources inside base sets of
 trivializations of `P`, rescaled by `√(2π k)`; the frames are local sections of `P` rotated so that
 `α` reads as the model connection form
 (`SymplecticGeometry.IsCircleConnectionForm.exists_mpullback_symm_mpullback_eq_stdConnectionForm`).
+`σ` need not be assumed closed: it is `-(2π)⁻¹` times the curvature, which is closed.
 -/
 theorem exists_rescaledUnitaryCharts [FiniteDimensional ℝ E] [CompactSpace M]
     [∀ x, Nonempty (P x)] (hE : Module.finrank ℝ E = 2 * Fintype.card ι)
-    {σ : SmoothTwoForm I M} (hσ : σ.IsClosed) {J : SmoothAlmostComplexStructure I M}
-    (hJ : σ.Compatible J) {α : SmoothForm (I.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1}
+    {σ : SmoothTwoForm I M} {J : SmoothAlmostComplexStructure I M} (hJ : σ.Compatible J)
+    {α : SmoothForm (I.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1}
     (hα : IsCircleConnectionForm α) (hασ : hα.curvature = -(2 * Real.pi) • σ) :
     ∃ ρ₀ > 0, Nonempty (RescaledUnitaryCharts P σ J α ι 1 ρ₀) := by
   classical
+  have hπ : 0 < 2 * Real.pi := by positivity
+  -- `σ` is closed, as `-2π` times it is the curvature.
+  have hσ : σ.IsClosed := by
+    have h := (hασ ▸ hα.isClosed_curvature).smul (-(2 * Real.pi))⁻¹
+    rwa [inv_smul_smul₀ (neg_ne_zero.2 hπ.ne')] at h
   -- Centred Darboux charts whose sources lie in base sets of trivializations of `P`.
   obtain ⟨D, c, hc⟩ := exists_centeredDarbouxCharts_source_subset hE hσ hJ
     (U := fun p ↦ (trivializationAt Circle P p).baseSet) fun p ↦
@@ -655,7 +686,6 @@ theorem exists_rescaledUnitaryCharts [FiniteDimensional ℝ E] [CompactSpace M]
       (mem_ball_self D.radius_pos)) isOpen_ball (D.ball_subset_target x) (hsec x)
   choose τ hτ hτα using hframe
   choose u hu using exists_unit_eq_sqrt
-  have hπ : 0 < 2 * Real.pi := by positivity
   set ρ₀ := √(2 * Real.pi) * D.radius
   -- The ball of radius `ρ₀ * √k` is the ball of radius `|u k| * D.radius`.
   have hball {k : ℕ} (hk : 1 ≤ k) : ρ₀ * √k = |(u k : ℝ)| * D.radius := by
@@ -696,31 +726,11 @@ theorem exists_rescaledUnitaryCharts [FiniteDimensional ℝ E] [CompactSpace M]
       rintro _ ⟨z, hz, rfl⟩
       exact ⟨_, hmem hk hz, (D.rescaledChart_symm_apply _ x z).symm⟩
     connectionForm_eq_model {k} hk x z hz v := by
-      have hz' := hmem hk hz
-      -- The rescaled chart's inverse is `(D.chart x).symm` after multiplication by `(u k)⁻¹`.
-      have hsymm : ⇑(D.rescaledChart (u k) x).symm =
-          ⇑(D.chart x).symm ∘ fun w : StdSpace ι ↦ ((u k : ℝ))⁻¹ • w :=
-        funext fun w ↦ D.rescaledChart_symm_apply _ x w
-      have hL : HasFDerivAt (fun w : StdSpace ι ↦ ((u k : ℝ))⁻¹ • w)
-          (((u k : ℝ))⁻¹ • ContinuousLinearMap.id ℝ (StdSpace ι)) z :=
-        (hasFDerivAt_id z).const_smul ((u k : ℝ))⁻¹
-      have hχ : MDifferentiableAt 𝓘(ℝ, StdSpace ι) I (D.chart x).symm ((u k : ℝ)⁻¹ • z) :=
-        ((D.chart x).symm.contMDiffOn.contMDiffAt ((D.chart x).open_target.mem_nhds
-          (D.ball_subset_target x hz'))).mdifferentiableAt (by simp)
-      rw [hsymm, mpullback_comp_apply_of_hasFDerivAt hL hχ, hτα x _ hz']
-      -- The tangent spaces of `StdSpace ι` are `StdSpace ι` itself, indexed by the point, which
-      -- blocks `rw [ContinuousAlternatingMap.compContinuousLinearMap_apply]`.
-      change (k : ℝ) * (stdConnectionForm ι).val (((u k : ℝ))⁻¹ • z)
-        (fun i ↦ ((u k : ℝ))⁻¹ •
-          (![v] : Fin 1 → TangentSpace 𝓘(ℝ, StdSpace ι) (((u k : ℝ))⁻¹ • z)) i) = _
-      rw [ContinuousAlternatingMap.map_smul_univ, stdConnectionForm_apply (((u k : ℝ))⁻¹ • z)
-        (v : TangentSpace 𝓘(ℝ, StdSpace ι) (((u k : ℝ))⁻¹ • z)), Finset.prod_const,
-        Finset.card_univ, Fintype.card_fin, pow_one, smul_eq_mul]
-      have hω : stdForm ι (((u k : ℝ))⁻¹ • z) v = ((u k : ℝ))⁻¹ * stdForm ι z v := by
-        simp
-      have hk₀ : (k : ℝ) ≠ 0 := by positivity
-      rw [hω, show (k : ℝ) * (((u k : ℝ))⁻¹ * (-Real.pi * (((u k : ℝ))⁻¹ * stdForm ι z v))) =
-        -(Real.pi * k / (u k : ℝ) ^ 2) * stdForm ι z v by ring, hsq hk]
+      rw [D.mpullback_rescaledChart_symm_apply _ x _ (D.ball_subset_rescaledChart_target _ x
+          (by rwa [← hball hk])), mpullback_apply_congr (hτα x _ (hmem hk hz)),
+        stdConnectionForm_def, SetLike.val_smul, mpullback_smul,
+        mpullback_const_smul_radialPrimitive, smul_smul, Pi.smul_apply,
+        ContinuousAlternatingMap.smul_apply, smul_eq_mul, inv_pow, hsq hk]
       field_simp
     jStruct_sub_le {k} hk x z hz := by
       have h := D.norm_chartPushforward_rescaledChart_sub_le (u k) x (z := z) (by rwa [← hball hk])
