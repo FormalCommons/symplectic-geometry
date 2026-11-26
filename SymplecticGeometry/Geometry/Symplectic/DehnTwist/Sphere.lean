@@ -1037,7 +1037,8 @@ theorem dehnTwist_isSymplectic_and_framing_invariant [NeZero n] [IsManifold I �
   refine ⟨fun z hz t ↦ cotangentCoord_geodesicFlow hz t,
     fun z hz ↦ isMIntegralCurve_geodesicFlow hz, geodesicFlow_two_pi, fun z hz ↦ geodesicFlow_pi hz,
     fun t ht ↦ not_exists_continuous_eqOn_geodesicFlow ht, fun {R r₀} hR ↦
-      ⟨fun z hz ↦ modelTwist_of_cotangentNorm_ne_zero hR hz, fun z hz ↦ ?_,
+      ⟨fun z hz ↦ modelTwist_of_cotangentNorm_ne_zero hR hz,
+        fun z hz ↦ modelTwist_of_cotangentNorm_eq_zero hR hz,
         fun z hz ↦ modelTwist_apply_of_le hR hz, mpullback_modelTwist_symplecticForm hR,
         modelTwist_cotangent_orthogonal hR, mpullback_modelTwist_liouvilleForm hR,
         fun z hz ↦ isMIntegralCurve_geodesicFlow_twistProfile hR hz,
@@ -1052,10 +1053,9 @@ theorem dehnTwist_isSymplectic_and_framing_invariant [NeZero n] [IsManifold I �
     fun hf ↦ fun hι₁ hι₂ ↦ fun hR₁ hU₁ hR₂ hU₂ ↦
       exists_diffeotopy_dehnTwist_eq hσ hf hι₁ hR₁ hU₁ hι₂ hR₂ hU₂,
     fun hι ↦ fun hR hU θ hθ hθL ↦ ?_⟩
-  · rw [coe_modelTwist, modelTwistFun_def, ite_eq_left hz]
-  · rcases hθL with hn | hθL
-    · exact exists_mpullback_dehnTwist_sub_eq_of_two_le hn hι hR hU θ hθ
-    · exact exists_mpullback_dehnTwist_sub_eq hι hR hU θ hθ hθL
+  rcases hθL with hn | hθL
+  · exact exists_mpullback_dehnTwist_sub_eq_of_two_le hn hι hR hU θ hθ
+  · exact exists_mpullback_dehnTwist_sub_eq hι hR hU θ hθ hθL
 
 end Twist
 

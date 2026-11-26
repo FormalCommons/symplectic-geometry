@@ -62,6 +62,7 @@ time `π` is the antipodal map; and since `R' = 0` on `[r₀, ∞)`, the twist i
   twist of `-R`.
 * `SymplecticGeometry.modelTwist_of_cotangentNorm_ne_zero`: off the zero section the model twist
   of `z` is `σ_{2π R'(μ z)} z`.
+* `SymplecticGeometry.modelTwist_of_cotangentNorm_eq_zero`: where `μ z = 0` it is `antipodal z`.
 * `SymplecticGeometry.modelTwist_apply_of_le`: the model twist is the identity where `μ ≥ r₀`.
 * `SymplecticGeometry.modelTwist_zeroSection`: on the zero section it is the antipodal map
   `0_q ↦ 0_{-q}`; `SymplecticGeometry.modelTwist_mem_iff`: it maps every set containing
@@ -569,6 +570,12 @@ theorem modelTwist_of_cotangentNorm_ne_zero {R : ℝ → ℝ} {r₀ : ℝ} (hR :
     modelTwist hR z = geodesicFlow (2 * π * deriv R (cotangentNorm z)) z := by
   rw [coe_modelTwist, modelTwistFun_def, ite_eq_right hz]
 
+/-- On the zero section, the model twist is the antipodal map. -/
+theorem modelTwist_of_cotangentNorm_eq_zero {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsTwistProfile R r₀)
+    {z : CotangentBundle (𝓡 n) (𝕊 n)} (hz : cotangentNorm z = 0) :
+    modelTwist hR z = antipodal z := by
+  rw [coe_modelTwist, modelTwistFun_def, ite_eq_left hz]
+
 /-- The model twist sends the zero covector at `q` to the zero covector at `-q`. -/
 @[simp]
 theorem modelTwist_zeroSection {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsTwistProfile R r₀) (q : 𝕊 n) :
@@ -576,8 +583,7 @@ theorem modelTwist_zeroSection {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsTwistProfi
       (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ) q) =
       zeroSection (EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)
         (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ) (-q) := by
-  rw [coe_modelTwist, modelTwistFun_def, ite_eq_left (cotangentNorm_zeroSection q),
-    antipodal_zeroSection]
+  rw [modelTwist_of_cotangentNorm_eq_zero hR (cotangentNorm_zeroSection q), antipodal_zeroSection]
 
 /-- The model twist of radius `r₀` maps every set containing `{z | μ z ≤ r₀}` onto itself. -/
 theorem modelTwist_mem_iff {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsTwistProfile R r₀)
@@ -932,7 +938,7 @@ theorem apply_modelTwist_eq_modelTwist_lineMap {R₀ R₁ : ℝ → ℝ} {r₀ :
     have hc : γ = fun _ ↦ antipodal z := by
       rw [hγ]
       funext s
-      rw [coe_modelTwist, modelTwistFun_def, ite_eq_left hz]
+      exact modelTwist_of_cotangentNorm_eq_zero _ hz
     refine Φ.apply_eq_of_mfderiv_eq_velocity (hc ▸ mdifferentiable_const) (fun s ↦ ?_) t
     rw [hc, mfderiv_const, hX s, (hσ.isNondegenerate.hamiltonianVectorField_eq_zero_iff).2
       (hge.mvfderiv_comp_cotangentNorm_eq_zero (hgd 0).differentiableAt
