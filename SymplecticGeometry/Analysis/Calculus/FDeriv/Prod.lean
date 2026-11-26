@@ -11,7 +11,7 @@ public import Mathlib.Analysis.Calculus.Deriv.Basic
 import TauCeti.Analysis.Calculus.SecondDerivative
 
 /-!
-# Derivatives of products of functions of separate variables
+# Derivatives of products of functions of separate variables, and second derivatives of pairs
 
 For `h : E → 𝕜` and `g : F → 𝕜`, the function `x ↦ g x.2 * h x.1` on `E × F`. Its derivative is
 `hasFDerivAt_comp_snd_mul_comp_fst`. Its first and second derivatives along vectors `(v, 0)`
@@ -28,6 +28,10 @@ For `E = 𝕜`, `fderiv_comp_snd_mul_comp_fst_apply_one_zero` and
 The second derivatives restrict to the fibres `x ↦ (x, b)` and `y ↦ (a, y)` with Tau Ceti's
 `TauCeti.fderiv_fderiv_comp_apply` and `TauCeti.fderiv_fderiv_slice_right_apply`, and pull out
 the constant factor with `TauCeti.fderiv_fderiv_const_smul`.
+
+For `f : E → F` and `g : E → G`, `fderiv_fderiv_prodMk_apply` computes the second derivative of
+`y ↦ (f y, g y)` componentwise, from `TauCeti.fderiv_fderiv_comp_apply` applied to the projections
+`ContinuousLinearMap.fst` and `ContinuousLinearMap.snd`.
 -/
 
 public section
@@ -106,6 +110,29 @@ theorem fderiv_fderiv_comp_snd_mul_comp_fst_apply_one_zero {h : 𝕜 → 𝕜} {
   rw [fderiv_fderiv_comp_snd_mul_comp_fst_apply_mk_zero hg hh,
     TauCeti.fderiv_fderiv_apply_eq_smul_iteratedDeriv, iteratedDeriv_succ, iteratedDeriv_one]
   simp
+
+section ProdMk
+
+variable {G : Type*} [NormedAddCommGroup G] [NormedSpace 𝕜 G] {f : E → F} {g : E → G} {x : E}
+
+/-- The second derivative of `y ↦ (f y, g y)` is the pair of the second derivatives of `f`
+and `g`, when both are `C²` at `x`. -/
+theorem fderiv_fderiv_prodMk_apply (hf : ContDiffAt 𝕜 2 f x) (hg : ContDiffAt 𝕜 2 g x)
+    (u w : E) :
+    fderiv 𝕜 (fderiv 𝕜 fun y ↦ (f y, g y)) x u w =
+      (fderiv 𝕜 (fderiv 𝕜 f) x u w, fderiv 𝕜 (fderiv 𝕜 g) x u w) := by
+  have hF : ContDiffAt 𝕜 2 (fun y ↦ (f y, g y)) x := hf.prodMk hg
+  -- The projections commute with the second derivative: `D²(L ∘ F) = L ∘ D²F` for linear `L`.
+  have h₁ := TauCeti.fderiv_fderiv_comp_apply (f := ContinuousLinearMap.fst 𝕜 F G)
+    (ContinuousLinearMap.fst 𝕜 F G).contDiff.contDiffAt hF u w
+  have h₂ := TauCeti.fderiv_fderiv_comp_apply (f := ContinuousLinearMap.snd 𝕜 F G)
+    (ContinuousLinearMap.snd 𝕜 F G).contDiff.contDiffAt hF u w
+  rw [ContinuousLinearMap.fderiv_fderiv, ContinuousLinearMap.fderiv, Function.comp_def] at h₁ h₂
+  ext
+  · simpa using h₁.symm
+  · simpa using h₂.symm
+
+end ProdMk
 
 end SymplecticGeometry
 

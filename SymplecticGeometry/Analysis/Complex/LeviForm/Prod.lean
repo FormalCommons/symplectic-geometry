@@ -7,6 +7,8 @@ module
 
 public import TauCeti.Analysis.Complex.LeviForm.Basic
 
+import SymplecticGeometry.Analysis.Calculus.FDeriv.Prod
+
 /-!
 # The Levi form of a function of two real functions
 
@@ -19,6 +21,8 @@ Dh (D²F)` with `F = (f, g)`, read on `v` and on `I • v`:
   + (D²h (Df v, Dg v)² + D²h (Df (I v), Dg (I v))²) / 4`.
 
 It is the two-variable form of Tau Ceti's composition rule `TauCeti.leviForm_scalar_comp_apply`.
+The second derivative of `F` is computed componentwise by
+`SymplecticGeometry.fderiv_fderiv_prodMk_apply`.
 
 ## Main results
 
@@ -51,21 +55,6 @@ theorem re_leviForm_comp_prodMk_apply_self {h : ℝ × ℝ → ℝ} (hh : ContDi
   have hDF (u : V) : fderiv ℝ (fun y ↦ (f y, g y)) x u = (fderiv ℝ f x u, fderiv ℝ g x u) := by
     rw [DifferentiableAt.fderiv_prodMk (hf.differentiableAt (by norm_num))
       (hg.differentiableAt (by norm_num)), ContinuousLinearMap.prod_apply]
-  -- A linear functional `L` commutes with the second derivative of `F = (f, g)`, since
-  -- `D²(L ∘ F) = L ∘ D²F`; for `L = fst` and `L = snd` this gives the components of `D²F`.
-  have hcomp (L : ℝ × ℝ →L[ℝ] ℝ) (u : V) :
-      L (fderiv ℝ (fderiv ℝ (fun y ↦ (f y, g y))) x u u) =
-        fderiv ℝ (fderiv ℝ (fun y ↦ L (f y, g y))) x u u := by
-    have := fderiv_fderiv_comp_apply (f := L) (φ := fun y ↦ (f y, g y))
-      L.contDiff.contDiffAt hF u u
-    rw [L.fderiv_fderiv, L.fderiv, Function.comp_def] at this
-    simpa using this.symm
-  have hfst (u : V) : (fderiv ℝ (fderiv ℝ (fun y ↦ (f y, g y))) x u u).1 =
-      fderiv ℝ (fderiv ℝ f) x u u := by
-    simpa using hcomp (ContinuousLinearMap.fst ℝ ℝ ℝ) u
-  have hsnd (u : V) : (fderiv ℝ (fderiv ℝ (fun y ↦ (f y, g y))) x u u).2 =
-      fderiv ℝ (fderiv ℝ g) x u u := by
-    simpa using hcomp (ContinuousLinearMap.snd ℝ ℝ ℝ) u
   have hlin (a : ℝ × ℝ) : fderiv ℝ h (f x, g x) a =
       a.1 * fderiv ℝ h (f x, g x) (1, 0) + a.2 * fderiv ℝ h (f x, g x) (0, 1) := by
     obtain ⟨a₁, a₂⟩ := a
@@ -77,7 +66,9 @@ theorem re_leviForm_comp_prodMk_apply_self {h : ℝ × ℝ → ℝ} (hh : ContDi
     fderiv_fderiv_comp_apply (f := h) (φ := fun y ↦ (f y, g y)) hh hF u u
   simp only [re_leviForm_apply]
   rw [key, key, hDF, hDF, hlin (fderiv ℝ (fderiv ℝ (fun y ↦ (f y, g y))) x v v),
-    hlin (fderiv ℝ (fderiv ℝ (fun y ↦ (f y, g y))) x (I • v) (I • v)), hfst, hfst, hsnd, hsnd]
+    hlin (fderiv ℝ (fderiv ℝ (fun y ↦ (f y, g y))) x (I • v) (I • v)),
+    SymplecticGeometry.fderiv_fderiv_prodMk_apply hf hg,
+    SymplecticGeometry.fderiv_fderiv_prodMk_apply hf hg]
   ring
 
 end TauCeti

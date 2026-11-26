@@ -8,6 +8,7 @@ module
 public import Mathlib.Analysis.InnerProductSpace.PiL2
 public import TauCeti.Geometry.Manifold.Complex.LeviForm
 
+import SymplecticGeometry.Algebra.Order.Ring.Basic
 import SymplecticGeometry.Analysis.Complex.LeviForm.Prod
 import Mathlib.Analysis.InnerProductSpace.ProdL2
 import TauCeti.Analysis.Calculus.FDeriv.Prod
@@ -32,7 +33,7 @@ plurisubharmonicity of `f(s) + g(t)`.
   the Levi forms of `s` and `t` are `⟪v₁, w₁⟫ / 2` and `⟪v₁, w₁⟫ / 2 + ⟪v₂, w₂⟫`.
 * `SymplecticGeometry.re_leviForm_comp_shape_apply_self`: for `h` of class `C²`, the Levi form of
   `h ∘ shape` on `v` in terms of the partial derivatives of `h` and of
-  `σ = ∑ⱼ xⱼ v₁ⱼ` and `τ = ⟪w, v₂⟫ - i ∑ⱼ yⱼ v₁ⱼ`, which are half the complex derivatives
+  `σ = ∑ⱼ xⱼ v₁ⱼ` and `τ = ⟪w, v₂⟫ - i ∑ⱼ yⱼ v₁ⱼ`, which are the Wirtinger derivatives
   `∂s v` and `∂t v`.
 * `SymplecticGeometry.isManifoldStrictlyPlurisubharmonicAt_shape`: with `u⁻ = min u 0`, if
   `f' + g' + 2 f''⁻ s + 2 g''⁻ t > 0` and, when `m ≠ 0`, `g' + 2 g''⁻ t > 0`, then
@@ -318,18 +319,10 @@ theorem isStrictlyPlurisubharmonicAt_shape {f g : ℝ → ℝ}
   have hS₀ : 0 ≤ S := by positivity
   have hT₀ : 0 ≤ T := by positivity
   -- `f'' S ≥ f''⁻ s a` and `g'' T ≥ g''⁻ t (a + b)`.
-  have hfS : min (iteratedDeriv 2 f s) 0 * s * a ≤ iteratedDeriv 2 f s * S := by
-    rcases le_total 0 (iteratedDeriv 2 f s) with h | h
-    · rw [min_eq_right h, zero_mul, zero_mul]
-      positivity
-    · rw [min_eq_left h, mul_assoc]
-      exact mul_le_mul_of_nonpos_left hS h
-  have hgT : min (iteratedDeriv 2 g t) 0 * t * (a + b) ≤ iteratedDeriv 2 g t * T := by
-    rcases le_total 0 (iteratedDeriv 2 g t) with h | h
-    · rw [min_eq_right h, zero_mul, zero_mul]
-      positivity
-    · rw [min_eq_left h, mul_assoc]
-      exact mul_le_mul_of_nonpos_left hT h
+  have hfS : min (iteratedDeriv 2 f s) 0 * s * a ≤ iteratedDeriv 2 f s * S :=
+    mul_assoc (min _ 0) s a ▸ min_zero_mul_le_mul hS₀ hS
+  have hgT : min (iteratedDeriv 2 g t) 0 * t * (a + b) ≤ iteratedDeriv 2 g t * T :=
+    mul_assoc (min _ 0) t (a + b) ▸ min_zero_mul_le_mul hT₀ hT
   have hmg : min (iteratedDeriv 2 g t) 0 * t ≤ 0 :=
     mul_nonpos_of_nonpos_of_nonneg (min_le_right _ _) ht₀
   rcases hb₀.lt_or_eq with hb' | hb'
