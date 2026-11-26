@@ -55,7 +55,9 @@ and, since jointly faithful functors jointly reflect monomorphisms and epimorphi
 * `TauCeti.FiniteRankBundleCore.mono_of_injective_fiberMap`: a bundle map that is injective on
   every fibre is a monomorphism;
 * `TauCeti.FiniteRankBundleCore.epi_of_surjective_fiberMap`: a bundle map that is surjective on
-  every fibre is an epimorphism.
+  every fibre is an epimorphism;
+* `TauCeti.FiniteRankBundleCore.isIso_of_injective_fiberMap`: an endomorphism that is injective on
+  every fibre is an isomorphism, the fibres being finite-dimensional.
 
 ## References
 
@@ -230,6 +232,14 @@ theorem epi_of_surjective_fiberMap (f : A ⟶ D) (hf : ∀ x, Function.Surjectiv
   -- As in `mono_of_injective_fiberMap`, this is `hf x` by definition of `fiberFunctor`.
   have (x : B) : Epi ((fiberFunctor x).map f) := (ModuleCat.epi_iff_surjective _).2 (hf x)
   jointlyFaithful_fiberFunctor.jointlyReflectEpimorphisms.epi f
+
+/-- An endomorphism of a finite-rank core over a complete field whose fibre maps are all injective
+is an isomorphism: each fibre map is an injective endomorphism of a finite-dimensional space. -/
+theorem isIso_of_injective_fiberMap [CompleteSpace 𝕜] (f : A ⟶ A)
+    (hf : ∀ x, Function.Injective (f.fiberMap x)) : IsIso f :=
+  (isIso_iff_bijective f).2 fun x ↦ by
+    have h : Function.Injective (f.fiberMap x).toLinearMap := hf x
+    exact ⟨h, LinearMap.injective_iff_surjective.1 h⟩
 
 end FiniteRankBundleCore
 

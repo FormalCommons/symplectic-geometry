@@ -8,7 +8,8 @@ module
 public import Mathlib.Geometry.Manifold.Algebra.SMul
 public import TauCeti.RepresentationTheory.Compact.Haar
 public import TauCeti.MeasureTheory.Integral.ContinuousMap
-public import SymplecticGeometry.Geometry.Manifold.ContMDiff.ParametricIntegral
+public import Mathlib.Geometry.Manifold.IsManifold.InteriorBoundary
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.ParametricIntegral
 
 /-!
 # Averaging a function over the orbits of a compact group

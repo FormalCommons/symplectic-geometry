@@ -5,7 +5,6 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.MFDeriv.Atlas
 public import SymplecticGeometry.Topology.FiberBundle.Basic
 public import SymplecticGeometry.Topology.FiberBundle.ChangeModelFiber
 public import TauCeti.Geometry.Manifold.FiberBundle.MapFiber
@@ -13,6 +12,7 @@ public import TauCeti.Geometry.Manifold.MFDeriv.Basic
 public import TauCeti.Geometry.Manifold.RegularValue
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Manifold.Submersion.Split
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Atlas
 import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 
 /-!

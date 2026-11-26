@@ -5,9 +5,14 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Algebra.Category.ModuleCat.Injective
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralChains
-public import SymplecticGeometry.Topology.ComplexProjectiveSpace.SecondHomology
+public import Mathlib.Topology.Algebra.Projectivization
+public import Mathlib.Algebra.Category.ModuleCat.Algebra
+public import TauCeti.AlgebraicTopology.Cohomology.Basic
+public import Mathlib.Topology.Algebra.Module.FiniteDimension
+public import Mathlib.Analysis.Complex.Basic
+import SymplecticGeometry.Algebra.Category.ModuleCat.Injective
+import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralChains
+import SymplecticGeometry.Topology.ComplexProjectiveSpace.SecondHomology
 
 /-!
 # Linear embeddings of complex projective spaces on real second cohomology

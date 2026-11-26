@@ -5,10 +5,6 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Calculus.FDeriv.Uncurry
-public import SymplecticGeometry.Geometry.Manifold.Boundary.Charts
-public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
-public import SymplecticGeometry.Geometry.Manifold.MFDeriv.Chart
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Local
 public import TauCeti.Geometry.Manifold.Boundary.Derivative
 public import TauCeti.Geometry.Manifold.Boundary.InwardFlow
@@ -17,6 +13,10 @@ public import TauCeti.Geometry.Manifold.MFDeriv.Curve
 public import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 public import TauCeti.Geometry.Manifold.VectorField.Regularity
+import SymplecticGeometry.Analysis.Calculus.FDeriv.Uncurry
+import SymplecticGeometry.Geometry.Manifold.Boundary.Charts
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Chart
 
 /-!
 # The flow of an outward field near a boundary point

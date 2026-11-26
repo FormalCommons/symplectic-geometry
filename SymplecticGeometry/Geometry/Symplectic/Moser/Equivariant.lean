@@ -6,9 +6,11 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Moser.Field
-public import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
 public import TauCeti.Geometry.Manifold.Algebra.SMul
-public import SymplecticGeometry.Geometry.Symplectic.Moser.Relative
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
+public import Mathlib.Geometry.Manifold.Algebra.Structures
+import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
+import SymplecticGeometry.Geometry.Symplectic.Moser.Relative
 import TauCeti.Geometry.Symplectic.Hamiltonian.CanonicalTransformation
 import SymplecticGeometry.Geometry.Manifold.GroupAction.Opens
 import SymplecticGeometry.Geometry.Manifold.GroupAction.InvariantPrimitive

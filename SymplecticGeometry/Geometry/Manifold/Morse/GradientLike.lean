@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Manifold.Riemannian.Gradient.Basic
 public import Mathlib.Geometry.Manifold.IntegralCurve.Basic
 public import Mathlib.Geometry.Manifold.VectorField.Pullback
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
+public import TauCeti.Geometry.Manifold.RegularValue
 import Mathlib.Analysis.Calculus.ContDiff.Deriv
 import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import TauCeti.Topology.LocallyFinite.Basic
@@ -47,6 +48,8 @@ structures are defined. It makes `f` increase strictly along `X` away from the c
 
 * `TauCeti.IsGradientLike`: the predicate, with `TauCeti.isGradientLike_def`.
 * `TauCeti.IsGradientLike.mvfderiv_apply_pos`: `df(X) > 0` off the critical points of `f`.
+* `TauCeti.IsGradientLike.mvfderiv_apply_pos_of_isRegularValue`: `df(X) > 0` on the level
+  `f⁻¹(c)` of a regular value `c`.
 * `TauCeti.IsGradientLike.eq_zero_iff`: `X x = 0` exactly when `x` is a critical point of `f`.
 * `TauCeti.IsGradientLike.strictMonoOn_comp`, `TauCeti.IsGradientLike.strictMono_comp`: `f`
   increases strictly along an integral curve of `X`, on a convex set of times or on all of `ℝ`,
@@ -153,6 +156,13 @@ theorem mvfderiv_apply_pos (hX : IsGradientLike f X) {x : M} (hx : mvfderiv 𝓘
     norm_pos_iff.2 (by rwa [ne_eq, mgradient_eq_zero_iff])
   have : 0 ≤ g.inner x (X x) (X x) := g.toRiemannianMetric.inner_self_nonneg x (X x)
   exact lt_of_lt_of_le (by have := hδ x; positivity) (h x)
+
+/-- A gradient-like field increases `f` strictly at every point of the level `f⁻¹(c)` of a
+regular value `c` of `f`. -/
+theorem mvfderiv_apply_pos_of_isRegularValue (hX : IsGradientLike f X) {c : ℝ}
+    (hc : IsRegularValue 𝓘(ℝ, E) 𝓘(ℝ) f c) {x : M} (hx : f x = c) :
+    0 < mvfderiv 𝓘(ℝ, E) f x (X x) :=
+  hX.mvfderiv_apply_pos (isRegularPoint_iff_mvfderiv_ne_zero.1 (hc.isRegularPoint hx))
 
 /-- The zeros of a gradient-like field are exactly the critical points of the function. -/
 theorem eq_zero_iff (hX : IsGradientLike f X) {x : M} :

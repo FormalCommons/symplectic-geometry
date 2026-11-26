@@ -7,14 +7,18 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.CircleConnection
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ModelConnection
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.TransAffine
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.Darboux
-public import SymplecticGeometry.LinearAlgebra.Symplectic.UnitaryNormalForm
+public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.TransAffine
+public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Chart
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.TransAffine
+import SymplecticGeometry.Geometry.Symplectic.Manifold.Darboux
+import SymplecticGeometry.LinearAlgebra.Symplectic.UnitaryNormalForm
 import SymplecticGeometry.Analysis.Normed.Module.Ball.Pointwise
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.LocalSection
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Symplectic.Liouville.RadialPrimitive
 import SymplecticGeometry.Topology.Algebra.Module.Equiv.Basic
+import Mathlib.Algebra.Order.Star.Real
 
 /-!
 # Centred Darboux charts with uniform bounds, their rescalings, and rescaled unitary charts
@@ -405,8 +409,7 @@ theorem mpullback_rescaledChart_symm_apply {F : Type*} [NormedAddCommGroup F] [N
   rw [hsymm]
   exact mpullback_comp_at
     ((hasFDerivAt_id z).const_smul (c : ℝ)⁻¹).differentiableAt.mdifferentiableAt
-    (((D.chart x).symm.contMDiffOn.contMDiffAt ((D.chart x).open_target.mem_nhds hz)
-      ).mdifferentiableAt (by simp)) η
+    (((D.chart x).symm.contMDiffAt hz).mdifferentiableAt (by simp)) η
 
 /-- `J` read in the chart rescaled by `c`, at a point `z` of its target, is `J` read in
 `D.chart x` at `c⁻¹ • z`. -/
@@ -530,7 +533,7 @@ theorem IsCircleConnectionForm.exists_mpullback_symm_mpullback_eq_stdConnectionF
   -- The connection form read in `χ` through `τ₀`.
   set β := mpullback 𝓘(ℝ, StdSpace ι) I χ.symm (mpullback I (I.prod (𝓡 1)) t₀ α.val)
   have hχs {z} (hz : z ∈ χ.target) : ContMDiffAt 𝓘(ℝ, StdSpace ι) I ∞ χ.symm z :=
-    χ.symm.contMDiffOn.contMDiffAt (χ.open_target.mem_nhds hz)
+    χ.symm.contMDiffAt hz
   have hU : IsOpen (χ.symm '' s) :=
     χ.toOpenPartialHomeomorph.isOpen_image_symm_of_subset_target hso hsχ
   have ht₀ {z} (hz : z ∈ s) : ContMDiffAt I (I.prod (𝓡 1)) ∞ t₀ (χ.symm z) :=
@@ -566,7 +569,7 @@ theorem IsCircleConnectionForm.exists_mpullback_symm_mpullback_eq_stdConnectionF
       rw [show χ (χ.symm z) = z from χ.right_inv hz']
       exact (hθ'.contDiffAt (hso.mem_nhds hz)).contMDiffAt
     exact hθz.comp (χ.symm z)
-      (χ.contMDiffOn.contMDiffAt (χ.open_source.mem_nhds (χ.map_target hz')))
+      (χ.contMDiffAt (χ.map_target hz'))
   -- The change of section adds `d (θ ∘ χ)`, which reads as `dθ` in `χ`.
   rw [mpullback_apply_congr (η := mextDeriv (RoughForm.ofFunction I fun x ↦ θ (χ x)) +
       mpullback I (I.prod (𝓡 1)) t₀ α.val)

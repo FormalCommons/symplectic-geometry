@@ -81,7 +81,7 @@ theorem mextDeriv_sum_finsupport_smul_mpullback_apply [IsManifold IX 2 X] [IsMan
   have hθ : ∀ i ∈ S, IsSmoothForm IX 1 (θ i) := fun i _ ↦
     (isSmoothForm_fun_smul_mpullback ((ρ i).contMDiff.comp hb) ((hU i).preimage hb.continuous)
       ((tsupport_comp_subset_preimage _ hb.continuous).trans (preimage_mono (hρ i)))
-      (fun y hy ↦ hg i y hy) hφs).of_le (by simp)
+      (fun y hy ↦ hg i y hy) (by simp) hφs).of_le (by simp)
   have hgerm : ∀ᶠ y in 𝓝 x,
       ∑ i ∈ ρ.finsupport (b y), ρ i (b y) • mpullback IX IZ (g i) φ y = (∑ i ∈ S, θ i) y := by
     filter_upwards [hb.continuous.continuousAt.eventually

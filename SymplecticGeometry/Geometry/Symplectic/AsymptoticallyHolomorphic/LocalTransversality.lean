@@ -5,9 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Complex.Avoidance
+public import TauCeti.Analysis.Complex.Wirtinger.Basic
+public import Mathlib.Analysis.InnerProductSpace.PiL2
+import SymplecticGeometry.Analysis.Complex.Avoidance
 import Mathlib.Analysis.Calculus.ContDiff.WithLp
-import TauCeti.Analysis.Complex.Wirtinger.Basic
+import SymplecticGeometry.Analysis.Normed.Lp.PiLp
 
 /-!
 # Local quantitative transversality

@@ -5,12 +5,14 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.OrientedChart
-public import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.Derivative
 public import TauCeti.AlgebraicTopology.Cellular.EulerCharacteristic.Manifold
 public import TauCeti.Geometry.Manifold.Morse.Generic.Basic
 public import TauCeti.Geometry.Manifold.Morse.PoincareHopf
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Existence
+public import TauCeti.Topology.VectorBundle.Orientation.SectionIndex
+public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.OrientedChart
+import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.Derivative
 import TauCeti.Geometry.Manifold.VectorField.Chart.Linearization
 import TauCeti.Geometry.Manifold.VectorField.Regularity
 

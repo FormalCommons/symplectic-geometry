@@ -8,8 +8,8 @@ module
 public import TauCeti.Analysis.Distribution.LinearEquiv
 public import TauCeti.Analysis.Distribution.SmulLeft
 public import TauCeti.Analysis.Distribution.TestFunction.LineDeriv
-public import SymplecticGeometry.Analysis.Distribution.OfFun
 public import Mathlib.MeasureTheory.Measure.Haar.Unique
+import SymplecticGeometry.Analysis.Distribution.OfFun
 import SymplecticGeometry.MeasureTheory.Function.LocallyIntegrable
 
 /-!

@@ -5,9 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.Axioms
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.NormalSplitting
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.SelfIntersection
+public import TauCeti.AlgebraicTopology.Singular.SurfaceGenus
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.Axioms
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.NormalSplitting
 
 /-!
 # The adjunction formula

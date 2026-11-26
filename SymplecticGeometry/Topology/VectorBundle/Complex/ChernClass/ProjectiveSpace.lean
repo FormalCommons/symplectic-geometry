@@ -5,13 +5,14 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.ComplSingleton
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.EvenIntegralCohomology
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
 public import SymplecticGeometry.Topology.VectorBundle.ProjectiveBundle.Tautological
-public import SymplecticGeometry.Topology.VectorBundle.Thom.CupEulerClass
-public import SymplecticGeometry.Topology.ComplexProjectiveSpace.Cohomology
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.FiberwiseEquiv
+import SymplecticGeometry.AlgebraicTopology.Cohomology.ComplSingleton
+import SymplecticGeometry.Topology.VectorBundle.Thom.CupEulerClass
+import SymplecticGeometry.Topology.ComplexProjectiveSpace.Cohomology
+import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 
 /-!
 # The hyperplane class and the cohomology ring of a complex projective space

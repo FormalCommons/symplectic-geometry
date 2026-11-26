@@ -5,13 +5,15 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.Projectivization.BaseChange
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Darboux
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Normalization
-public import SymplecticGeometry.Geometry.Manifold.Instances.AddCircle
-public import SymplecticGeometry.Geometry.Symplectic.Lagrangian.Submersion
 public import TauCeti.Geometry.Manifold.Instances.AddCircle.Torus
 public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Basic
+public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
+public import TauCeti.LinearAlgebra.Projectivization.BaseChange
+import SymplecticGeometry.Geometry.Manifold.Projectivization.BaseChange
+import SymplecticGeometry.Geometry.Manifold.Instances.AddCircle
+import SymplecticGeometry.Geometry.Symplectic.Lagrangian.Submersion
 import Mathlib.Analysis.SpecialFunctions.ExpDeriv
 import TauCeti.Algebra.AddCircle
 import TauCeti.Geometry.Manifold.Immersion.Differential

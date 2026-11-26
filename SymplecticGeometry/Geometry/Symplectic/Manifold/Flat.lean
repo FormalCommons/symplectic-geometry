@@ -6,9 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.LinearAlgebra.BilinearForm.Orthogonal
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 public import TauCeti.Geometry.Symplectic.Lagrangian.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
+public import TauCeti.Topology.VectorBundle.Pullback
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 import TauCeti.Analysis.Normed.Module.Alternating.Curry
 import TauCeti.Geometry.Manifold.VectorBundle.Hom
 

@@ -7,16 +7,20 @@ module
 
 public import Mathlib.LinearAlgebra.Matrix.Rank
 public import Mathlib.LinearAlgebra.Matrix.ToLinearEquiv
-public import SymplecticGeometry.LinearAlgebra.Matrix.OfReal
-public import SymplecticGeometry.LinearAlgebra.Matrix.Rank
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Basic
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 public import TauCeti.Geometry.Symplectic.Lagrangian.Constructions
 public import TauCeti.Geometry.Symplectic.Lagrangian.TotallyReal
 public import TauCeti.LinearAlgebra.Matrix.Rank
 public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Basic
 public import TauCeti.LinearAlgebra.Prod
+public import TauCeti.LinearAlgebra.TotallyReal.Euclidean
+public import Mathlib.Data.Matrix.ColumnRowPartitioned
+import SymplecticGeometry.LinearAlgebra.Matrix.OfReal
+import SymplecticGeometry.LinearAlgebra.Matrix.Rank
+import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
+import SymplecticGeometry.LinearAlgebra.Symplectic.Subspace
+import Mathlib.RingTheory.Flat.TorsionFree
 
 /-!
 # Lagrangian frames and graphs in the standard model

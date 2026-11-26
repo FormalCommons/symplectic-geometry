@@ -6,7 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.VectorBundle.Riemannian
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
+public import TauCeti.Topology.VectorBundle.Pullback
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 
 /-!
 # Pulling back a smooth bundle metric along a map of bases

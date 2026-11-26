@@ -8,11 +8,11 @@ module
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Hom
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Trivial
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Hermitian
 public import TauCeti.Geometry.Manifold.VectorBundle.Trivial
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 public import SymplecticGeometry.LinearAlgebra.Complex.FiniteDimensional
+import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 
 /-!
 # The symplectic form of a Hermitian bundle

@@ -5,9 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.MFDeriv
-public import SymplecticGeometry.Geometry.Symplectic.Moser.Relative
 public import TauCeti.Geometry.Symplectic.SymplecticTransport
+public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
+public import TauCeti.Topology.VectorBundle.Pullback
+import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.MFDeriv
+import SymplecticGeometry.Geometry.Symplectic.Moser.Relative
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset

@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.RelativePair
 public import TauCeti.AlgebraicTopology.Singular.Cubical.Kunneth.Excisive
 public import TauCeti.AlgebraicTopology.Singular.Cubical.Comparison.CrossProduct
+import SymplecticGeometry.Algebra.Homology.Homotopy.DescCokernel
 
 /-!
 # The cubical and the simplicial cross product of two pairs

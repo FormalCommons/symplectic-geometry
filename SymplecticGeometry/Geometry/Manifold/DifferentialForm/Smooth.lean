@@ -8,8 +8,8 @@ module
 public import Mathlib.Geometry.Manifold.Algebra.SmoothFunctions
 public import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
-public import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
+import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.ExtDeriv
 
 /-!
@@ -54,6 +54,8 @@ construction follows that of Tau Ceti's `TauCeti.kerDelBarZeroEquiv`, which iden
 * `TauCeti.SmoothForm.mextDerivₗ_ofFunction_comp_of_hasDerivAt`: `d (g ∘ f) = (g' ∘ f) df`.
 * `TauCeti.SmoothForm.ofFunctionEquiv`, with `ofFunctionEquiv_apply`,
   `coe_ofFunctionEquiv_symm` and `ofFunctionEquiv_symm_apply`.
+* `TauCeti.SmoothForm.ofFunction_add`, `TauCeti.SmoothForm.ofFunction_smul`: the `0`-form of a
+  sum and of a real multiple of smooth functions.
 -/
 
 public section
@@ -194,6 +196,19 @@ noncomputable def ofFunctionEquiv : C^∞⟮I, M; 𝓘(ℝ, F), F⟯ ≃ₗ[ℝ]
 @[simp]
 theorem ofFunctionEquiv_apply (f : C^∞⟮I, M; 𝓘(ℝ, F), F⟯) : ofFunctionEquiv f = ofFunction f :=
   (rfl)
+
+/-- The `0`-form of a sum of smooth functions is the sum of their `0`-forms. -/
+@[simp]
+theorem ofFunction_add (f g : C^∞⟮I, M; 𝓘(ℝ, F), F⟯) :
+    ofFunction (f + g) = ofFunction f + ofFunction g :=
+  map_add ofFunctionEquiv f g
+
+/-- The `0`-form of a real multiple `c • f` of a smooth function is `c` times the `0`-form of
+`f`. -/
+@[simp]
+theorem ofFunction_smul (c : ℝ) (f : C^∞⟮I, M; 𝓘(ℝ, F), F⟯) :
+    ofFunction (c • f) = c • ofFunction f :=
+  map_smul ofFunctionEquiv c f
 
 /-- Reading the `0`-form of a smooth function `f` back as a function gives `f`. -/
 @[simp]

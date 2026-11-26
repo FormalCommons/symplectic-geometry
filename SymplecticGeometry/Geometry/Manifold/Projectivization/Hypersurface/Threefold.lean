@@ -5,9 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.BettiNumber
 
 import SymplecticGeometry.AlgebraicTopology.Cohomology.Empty
+import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.BettiNumber
+public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.ChernClass
+public import Mathlib.Geometry.Manifold.VectorField.Pullback
 
 /-!
 # Smooth threefolds in `ℂℙ⁴`

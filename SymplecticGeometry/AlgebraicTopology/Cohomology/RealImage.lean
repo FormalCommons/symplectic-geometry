@@ -6,8 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.ChangeOfValues
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.FundamentalClass
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralChains
+public import TauCeti.AlgebraicTopology.Cohomology.FundamentalClass
+public import Mathlib.Algebra.Category.ModuleCat.Algebra
+import SymplecticGeometry.AlgebraicTopology.Cohomology.FundamentalClass
 
 /-!
 # The real image of an integral cohomology class
@@ -20,17 +22,22 @@ homomorphism `TauCeti.deRhamHom` lands in `Hⁿ(X; ℝ)`, computed from real cha
 class, computed from integral chains with values in `ℝ`, as a class of `Hⁿ(X; ℝ)` through the
 inverse of `TopCat.singularCohomologyIntChainsIso ℝ`. As that comparison is an isomorphism of
 abelian groups, the real image is `ℤ`-linear, with target `Hⁿ(X; ℝ)` read as an abelian group.
+Its additive form `TopCat.singularCohomologyRealImageAddMonoidHom` has `Hⁿ(X; ℝ)` itself as
+codomain, so that its values add to other real classes with `+`.
 
 ## Main definitions
 
 * `TopCat.singularCohomologyRealImage`: the real image `Hⁿ(X; ULift ℤ) → Hⁿ(X; ℝ)`.
+* `TopCat.singularCohomologyRealImageAddMonoidHom`: the real image as an additive map into
+  `Hⁿ(X; ℝ)`.
 
 ## Main results
 
 * `TopCat.singularCohomologyRealImage_comp_singularCohomologyIntChainsIso_hom`: computed from
   integral chains, the real image is the change of values along `ℤ → ℝ`.
 * `TopCat.singularCohomologyRealImage_naturality`: the real image commutes with the maps induced
-  by continuous maps.
+  by continuous maps; `TopCat.singularCohomologyRealImageAddMonoidHom_naturality` is its
+  additive form.
 * `TauCeti.HomologicalOrientation.evalFundamentalClass_singularCohomologyRealImage`: the
   evaluation with values in `ℝ` of the real image of `c` on `f_*[N]`, read through integral
   chains, is the cast of the evaluation of `c`.
@@ -92,6 +99,33 @@ theorem singularCohomologyRealImage_naturality {Y : TopCat.{0}} (f : X ⟶ Y) :
     Iso.comp_inv_eq, Category.assoc, Category.assoc,
     singularCohomologyIntChainsIso_hom_naturality, Iso.inv_hom_id_assoc,
     singularCohomologyValueMap_naturality]
+
+/-- The real image `Hⁿ(X; ULift ℤ) → Hⁿ(X; ℝ)` as an additive map whose codomain is real
+cohomology itself, rather than its restriction of scalars to `ℤ`: so its values can be added to,
+and compared with, other real classes such as the image of `TauCeti.deRhamHom`. -/
+def singularCohomologyRealImageAddMonoidHom :
+    X.singularCohomology (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ (ModuleCat.of ℤ (ULift.{0} ℤ)) n →+
+      X.singularCohomology (ModuleCat.of ℝ ℝ) ℝ (ModuleCat.of ℝ ℝ) n :=
+  AddMonoidHom.mk' (X.singularCohomologyRealImage n).hom (map_add _)
+
+/-- The additive form of the real image takes the same values as the real image. -/
+theorem singularCohomologyRealImageAddMonoidHom_apply
+    (c : X.singularCohomology (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ (ModuleCat.of ℤ (ULift.{0} ℤ)) n) :
+    X.singularCohomologyRealImageAddMonoidHom n c = (X.singularCohomologyRealImage n).hom c :=
+  (rfl)
+
+variable {X} in
+/-- **Naturality of the real image**, in its additive form: for a continuous map `f : X ⟶ Y`,
+the real image of the pull-back `f^* c` of an integral class is the pull-back of the real image
+of `c`. -/
+theorem singularCohomologyRealImageAddMonoidHom_naturality {Y : TopCat.{0}} (f : X ⟶ Y)
+    (c : Y.singularCohomology (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ (ModuleCat.of ℤ (ULift.{0} ℤ)) n) :
+    X.singularCohomologyRealImageAddMonoidHom n
+        (TopCat.singularCohomologyMap (R := ModuleCat.of ℤ (ULift.{0} ℤ)) (k := ℤ)
+          (M := ModuleCat.of ℤ (ULift.{0} ℤ)) f n c) =
+      TopCat.singularCohomologyMap (R := ModuleCat.of ℝ ℝ) (k := ℝ) (M := ModuleCat.of ℝ ℝ) f n
+        (Y.singularCohomologyRealImageAddMonoidHom n c) :=
+  singularCohomologyRealImage_naturality_apply n f c
 
 end TopCat
 

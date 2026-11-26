@@ -5,11 +5,17 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Singular.SurfaceGenus
-public import SymplecticGeometry.Geometry.Manifold.Morse.Bott.EulerCharacteristic
-public import SymplecticGeometry.Geometry.Manifold.Projectivization.ProjectiveLineAction
-public import SymplecticGeometry.Geometry.Manifold.Submersion.FiberDiffeomorph
-public import SymplecticGeometry.Geometry.Symplectic.Lefschetz.MorseBott
+public import SymplecticGeometry.Geometry.Symplectic.Lefschetz.Basic
+public import TauCeti.Geometry.Manifold.RegularValue.ManifoldLevel
+public import TauCeti.AlgebraicTopology.Cellular.EulerCharacteristic.FiniteCWType
+public import TauCeti.AlgebraicTopology.Singular.SurfaceGenus
+public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Homological
+import SymplecticGeometry.AlgebraicTopology.Singular.SurfaceGenus
+import SymplecticGeometry.Geometry.Manifold.Morse.Bott.EulerCharacteristic
+import SymplecticGeometry.Geometry.Manifold.Projectivization.ProjectiveLineAction
+import SymplecticGeometry.Geometry.Manifold.Submersion.FiberDiffeomorph
+import SymplecticGeometry.Geometry.Symplectic.Lefschetz.MorseBott
+import TauCeti.Geometry.Manifold.Morse.CWModel
 
 /-!
 # The Euler characteristic of a Lefschetz fibration

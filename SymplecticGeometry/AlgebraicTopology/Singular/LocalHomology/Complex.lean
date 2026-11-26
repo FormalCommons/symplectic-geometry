@@ -6,8 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Linear
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Plane
 public import TauCeti.Geometry.Manifold.Complex.FundamentalClass
+public import SymplecticGeometry.Analysis.Complex.RadialProjection
+public import TauCeti.AlgebraicTopology.Singular.Circle
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Plane
 
 /-!
 # The local homology of `ℂ` at the origin

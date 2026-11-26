@@ -16,8 +16,8 @@ public import TauCeti.Geometry.Symplectic.Manifold.Flat
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Semibasic
 public import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Vertical
-public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Vertical
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod

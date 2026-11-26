@@ -5,12 +5,14 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 public import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 public import TauCeti.Geometry.Manifold.Riemannian.Pullback.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Hom
 public import TauCeti.Geometry.Manifold.VectorBundle.Bilinear.Section
+public import TauCeti.Topology.VectorBundle.Pullback
+import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
+import SymplecticGeometry.Topology.VectorBundle.Pullback
 
 /-!
 # Adjoints for fields of nondegenerate bilinear forms

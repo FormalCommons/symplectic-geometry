@@ -10,11 +10,15 @@ public import SymplecticGeometry.Analysis.SpecialFunctions.SmoothedMax
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Model
 import SymplecticGeometry.Analysis.Complex.Euclidean.Space
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Dolbeault.Potential
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Dolbeault.Potential
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 import TauCeti.Analysis.Calculus.IntervalIntegral.ParametricPrimitive
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Submanifold
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Pseudoholomorphic
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
+import SymplecticGeometry.Analysis.Complex.QuadraticLeviForm
 
 /-!
 # The profiles `h_{λ,ε}` of the symplectic blowup
@@ -64,7 +68,7 @@ with blowdown `π : L → E = ℂⁿ⁺¹`, the exceptional divisor `Z` and the 
   and `0 < ε`), and `SymplecticGeometry.BlowupModel.correctionForm n l ε`: its form
   `ω_q = (1/4) d (J* d (q(|z|²)))` on all of `E`, the `potentialForm` of that function. It vanishes
   on the closed ball of radius `ε` (`correctionForm_apply_eq_zero`), since there the form of a
-  composite, `mextDerivₗ_covectorComplexStructure_mextDerivₗ_ofFunction_comp_of_hasDerivAt`, only
+  composite potential, `potentialForm_ofFunction_comp_of_hasDerivAt`, only
   involves `q'(|z|²)` and `q''(|z|²)` (`deriv_blowupCorrection_of_le`,
   `deriv_deriv_blowupCorrection_of_le`); on `E ∖ 0` it is `radialPotentialForm` of `q`
   (`mpullback_subtypeVal_correctionForm`, by `mpullback_potentialForm` along the
@@ -484,8 +488,8 @@ theorem correctionForm_def (l ε : ℝ) :
   (rfl)
 
 /-- The form of the correction potential vanishes at the points of the closed ball of radius `ε`:
-by `mextDerivₗ_covectorComplexStructure_mextDerivₗ_ofFunction_comp_of_hasDerivAt` its value at
-`z` is a combination of `q'(|z|²)` and `q''(|z|²)`, which vanish for `|z|² ≤ ε²`. -/
+by `potentialForm_ofFunction_comp_of_hasDerivAt` its value at `z` is a combination of `q'(|z|²)`
+and `q''(|z|²)`, which vanish for `|z|² ≤ ε²`. -/
 theorem correctionForm_apply_eq_zero {l ε : ℝ} {z : Fin (n + 1) → ℂ}
     (hz : ‖complexToRealEuclidean (Fin (n + 1)) z‖ ≤ ε) : (correctionForm n l ε).val z = 0 := by
   by_cases h : 0 < l ∧ 0 < ε
@@ -506,8 +510,8 @@ theorem correctionForm_apply_eq_zero {l ε : ℝ} {z : Fin (n + 1) → ℂ}
   let b : C^∞⟮𝓘(ℝ, Fin (n + 1) → ℂ), Fin (n + 1) → ℂ; ℝ⟯ := ⟨_, (hq''.comp hs).contMDiff⟩
   have hz2 : ‖complexToRealEuclidean (Fin (n + 1)) z‖ ^ 2 ≤ ε ^ 2 :=
     pow_le_pow_left₀ (norm_nonneg _) hz 2
-  rw [correctionForm_def, potentialForm_def,
-    mextDerivₗ_covectorComplexStructure_mextDerivₗ_ofFunction_comp_of_hasDerivAt (f := s)
+  rw [correctionForm_def,
+    potentialForm_ofFunction_comp_of_hasDerivAt (f := s)
       (a := a) (b := b) (fun x ↦ by simp [s, correctionPotential_apply n hl hε x])
       (fun _ ↦ by simp [a, s]) (fun _ ↦ by simp [b, s])
       (fun _ ↦ (hq.differentiable (by simp) _).hasDerivAt)

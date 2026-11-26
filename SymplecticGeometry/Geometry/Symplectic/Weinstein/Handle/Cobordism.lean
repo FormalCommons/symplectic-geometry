@@ -149,15 +149,15 @@ theorem criticalPoints_inter_subset_preimage_Ioo (h : IsWeinsteinCobordism ω X 
 into the region. -/
 theorem mvfderiv_apply_pos_of_eq_lower (h : IsWeinsteinCobordism ω X f a b) {x : M}
     (hx : f x = a) : 0 < mvfderiv 𝓘(ℝ, E) f x (X x) :=
-  h.isWeinsteinStructure.isGradientLike.mvfderiv_apply_pos
-    (isRegularPoint_iff_mvfderiv_ne_zero.1 (h.isRegularValue_lower.isRegularPoint hx))
+  h.isWeinsteinStructure.isGradientLike.mvfderiv_apply_pos_of_isRegularValue
+    h.isRegularValue_lower hx
 
 /-- Along the upper level `f ⁻¹' {b}` of a Weinstein cobordism, the field increases `f`: it points
 out of the region. -/
 theorem mvfderiv_apply_pos_of_eq_upper (h : IsWeinsteinCobordism ω X f a b) {x : M}
     (hx : f x = b) : 0 < mvfderiv 𝓘(ℝ, E) f x (X x) :=
-  h.isWeinsteinStructure.isGradientLike.mvfderiv_apply_pos
-    (isRegularPoint_iff_mvfderiv_ne_zero.1 (h.isRegularValue_upper.isRegularPoint hx))
+  h.isWeinsteinStructure.isGradientLike.mvfderiv_apply_pos_of_isRegularValue
+    h.isRegularValue_upper hx
 
 /-- Reparametrizing the function of a Weinstein cobordism between `a` and `b` by a smooth strictly
 increasing `h` with `h' > 0` at every value of `f` gives a Weinstein cobordism between `h a` and

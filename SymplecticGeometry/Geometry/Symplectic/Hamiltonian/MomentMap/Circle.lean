@@ -6,8 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.Circle
-public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Commutative
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap.Critical
+public import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.Basic
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Commutative
 import SymplecticGeometry.LinearAlgebra.FiniteDimensional.FinrankOne
 
 /-!

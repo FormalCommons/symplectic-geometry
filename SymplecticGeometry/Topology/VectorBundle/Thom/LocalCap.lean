@@ -5,11 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.ProdLocal
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.ThomClass
 public import SymplecticGeometry.Topology.VectorBundle.Thom.FiberCoordinate
-public import SymplecticGeometry.Topology.VectorBundle.Thom.LocalChart
 public import SymplecticGeometry.Topology.VectorBundle.Thom.LocalChartCap
+public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Cross.Basic
+import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.ProdLocal
+import SymplecticGeometry.Topology.VectorBundle.Thom.LocalChart
 
 /-!
 # The canonical Thom class near a point of the base, and the local cap computation
@@ -116,7 +117,7 @@ theorem singularCohomologyMap_localChart_canonicalThomClass (e : Trivialization 
         (TopPair.ofSubsetMap (X := TopCat.of (univ ×ˢ S : Set (F × Q))) (Y := TopCat.of F)
           (TopCat.ofHom ⟨fun x ↦ x.val.1, continuous_fst.comp continuous_subtypeVal⟩)
           (B := {x | x.val.1 ≠ 0}) (B' := {0}ᶜ) fun _ hx ↦ hx) r
-        ((e.mapOrientation (Fin r) (by rw [← c.left_inv hb, hcb]; exact hSe h0)
+        ((e.mapOrientation (Fin r) (c.mem_of_mapsTo_symm hb hcb hSe h0)
           (o b)).modelThomGenerator hr) := by
   have hcb' : c.symm 0 = b := by rw [← hcb, c.left_inv hb]
   -- `c.symm` carries `S` homeomorphically onto its image, which is therefore contractible.
@@ -188,8 +189,7 @@ theorem localChartLocalHomologyIso_hom_comp_singularRelativeCap_canonicalThomCla
           c.open_source.isOpenEmbedding_subtypeVal ⟨b, hb⟩ q).inv :
             localHomology N {b} q ⟶ _) ≫
         localHomologyMap N c.sourceRestrict
-          (show c.sourceRestrict ⁻¹' {0} ⊆ {(⟨b, hb⟩ : c.source)} from
-            fun _ hx ↦ Subtype.ext (c.sourceRestrict_preimage hb (by rwa [hcb]))) q =
+          (hcb ▸ (c.sourceRestrict_preimage_singleton hb).subset) q =
       TopPair.singularHomologyMap (TopPair.ofSubsetMap _
           (TopCat.mapsTo_compl_singleton_preimage_fst_compl_union_preimage_snd_compl
             (0 : P) (0 : Q))) T n ≫
@@ -201,7 +201,7 @@ theorem localChartLocalHomologyIso_hom_comp_singularRelativeCap_canonicalThomCla
           r q n hn
           (TopPair.singularCohomologyMap
             (TopPair.ofSubsetMap (fst (TopCat.of P) (TopCat.of Q)) (mapsTo_preimage _ _)) r
-            ((e.mapOrientation (Fin r) (by rw [← c.left_inv hb, hcb]; exact hSe h0)
+            ((e.mapOrientation (Fin r) (c.mem_of_mapsTo_symm hb hcb hSe h0)
               (o b)).modelThomGenerator hr)) ≫
         TopPair.singularHomologyMap
           (TopPair.ofSubsetMap (snd (TopCat.of P) (TopCat.of Q)) (mapsTo_preimage _ _)) N q := by
@@ -238,11 +238,10 @@ theorem localHomologyMap_singularRelativeCap_canonicalThomClass_of_localOrientat
       {zeroSection P E b} n)
     (hμ : (e.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe hb hcb h0 n).inv
         μ = (SymplecticGeometry.localHomologyCross (0 : P) (0 : Q) (k + 1) q n hn).hom
-          (((e.mapOrientation (Fin (k + 1)) (by rw [← c.left_inv hb, hcb]; exact hSe h0)
+          (((e.mapOrientation (Fin (k + 1)) (c.mem_of_mapsTo_symm hb hcb hSe h0)
             (o b)).localOrientation hr).val ⊗ₜ ζ)) :
     localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ)) c.sourceRestrict
-        (show c.sourceRestrict ⁻¹' {0} ⊆ {(⟨b, hb⟩ : c.source)} from
-          fun _ hx ↦ Subtype.ext (c.sourceRestrict_preimage hb (by rwa [hcb]))) q
+        (hcb ▸ (c.sourceRestrict_preimage_singleton hb).subset) q
         ((localHomologyIsoOfIsOpenEmbedding (ModuleCat.of ℤ (ULift.{0} ℤ))
           c.open_source.isOpenEmbedding_subtypeVal ⟨b, hb⟩ q).inv
           (TopPair.singularHomologyMap
@@ -290,8 +289,7 @@ theorem localHomologyMap_singularRelativeCap_canonicalThomClass_of_finrank_eq_ze
           ((localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl P)
             (OpenPartialHomeomorph.mem_refl_source _) hr).val ⊗ₜ ζ)) :
     localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ)) c.sourceRestrict
-        (show c.sourceRestrict ⁻¹' {0} ⊆ {(⟨b, hb⟩ : c.source)} from
-          fun _ hx ↦ Subtype.ext (c.sourceRestrict_preimage hb (by rwa [hcb]))) q
+        (hcb ▸ (c.sourceRestrict_preimage_singleton hb).subset) q
         ((localHomologyIsoOfIsOpenEmbedding (ModuleCat.of ℤ (ULift.{0} ℤ))
           c.open_source.isOpenEmbedding_subtypeVal ⟨b, hb⟩ q).inv
           (TopPair.singularHomologyMap
@@ -306,7 +304,7 @@ theorem localHomologyMap_singularRelativeCap_canonicalThomClass_of_finrank_eq_ze
               (TopPair.singularHomologyMap (TopPair.ofSubsetMap (𝟙 _) fun _ hv ↦
                 (zeroSectionCompl_union_compl_preimage_singleton b).superset hv)
                 (ModuleCat.of ℤ (ULift.{0} ℤ)) q μ)))) =
-      if e.mapOrientation (Fin 0) (by rw [← c.left_inv hb, hcb]; exact hSe h0) (o b) =
+      if e.mapOrientation (Fin 0) (c.mem_of_mapsTo_symm hb hcb hSe h0) (o b) =
           positiveOrientation then ζ else -ζ := by
   have h := ConcreteCategory.congr_hom
     (localChartLocalHomologyIso_hom_comp_singularRelativeCap_canonicalThomClass o hr e hS hSc hSe

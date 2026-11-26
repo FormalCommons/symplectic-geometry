@@ -8,9 +8,11 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
 public import SymplecticGeometry.Geometry.Manifold.Instances.CompatibleComplexStructures
 public import TauCeti.Geometry.Symplectic.Manifold.JHolomorphic
+public import Mathlib.RingTheory.DedekindDomain.Basic
 import Mathlib.Tactic.NoncommRing
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Singleton
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
+import SymplecticGeometry.LinearAlgebra.Symplectic.CompatibleTangent.Basic
 
 /-!
 # The complex structure of the space of compatible complex structures

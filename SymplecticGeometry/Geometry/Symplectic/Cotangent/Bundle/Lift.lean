@@ -5,10 +5,6 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.Flow.Basic
-public import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.Liouville
-public import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.ZeroSection
-public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Manifold
 public import TauCeti.Geometry.Manifold.IntegralCurve.GlobalFlow
 public import TauCeti.Geometry.Manifold.DifferentialForm.Flow
 public import TauCeti.Geometry.Manifold.Flow.Related
@@ -18,6 +14,11 @@ public import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Classification
 public import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Lift
 public import TauCeti.Geometry.Symplectic.Hamiltonian.Manifold
 public import TauCeti.Topology.FiberBundle.Separation
+public import TauCeti.Geometry.Manifold.VectorBundle.ZeroSection
+import SymplecticGeometry.Geometry.Manifold.Flow.Basic
+import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.Liouville
+import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.ZeroSection
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Manifold
 import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 
 /-!

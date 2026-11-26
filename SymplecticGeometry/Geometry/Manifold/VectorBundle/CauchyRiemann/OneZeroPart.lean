@@ -5,8 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.CauchyRiemann.Basic
 public import TauCeti.Geometry.Symplectic.Complex.Module.Basic
+public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Basic
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.CauchyRiemann.Basic
 
 /-!
 # The `(1,0)`-part of a one-form
