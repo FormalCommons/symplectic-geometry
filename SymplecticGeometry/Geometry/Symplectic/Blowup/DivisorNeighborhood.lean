@@ -164,15 +164,15 @@ theorem exists_symplectomorphism_blowupModel [FiniteDimensional ℝ E] {σ : Smo
     Φ₀.toOpenPartialHomeomorph.isOpen_inter_preimage (isOpen_openNbhd ε)
   refine ⟨ε, hε, Φ₀.restrOpen _ hs, ?_, fun q ↦ ?_, ?_⟩
   · refine Φ₀.restrOpen_target_eq_of_subset (fun y hy ↦ ?_) hs
-    rw [PartialDiffeomorph.liftOpens_target]
-    exact ⟨⟨y, hεU hy⟩, by simp, rfl⟩
+    rw [ψ.toPartialDiffeomorph_liftOpens_target]
+    exact hεU hy
   · obtain ⟨h, hq, -⟩ := hψ q
     have hΦ₀ : Φ₀ (f q) = zeroSection q := by
       have := PartialDiffeomorph.liftOpens_apply_coe ψ.toPartialDiffeomorph hU₀ hU₁ ⟨f q, h⟩
       simpa [hq] using this
     have hsrc : f q ∈ Φ₀.source := by
-      rw [PartialDiffeomorph.liftOpens_source]
-      exact ⟨⟨f q, h⟩, by simp, rfl⟩
+      rw [ψ.toPartialDiffeomorph_liftOpens_source]
+      exact h
     rw [PartialDiffeomorph.restrOpen_source, PartialDiffeomorph.coe_restrOpen]
     refine ⟨⟨hsrc, hsrc, ?_⟩, hΦ₀⟩
     rw [mem_preimage, hΦ₀]
