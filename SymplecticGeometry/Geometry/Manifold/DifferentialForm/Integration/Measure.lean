@@ -235,7 +235,7 @@ theorem integralTopForm_smul_eq_integral_measure (o : Manifold.Orientation I M (
   set b := finBasisOfFinrankEq ℝ E hk.out
   set ψ : RoughForm I M ℝ k := fun x ↦ f x • φ x
   -- `f φ` is a continuous top form supported in the support of `f`.
-  have hψ : IsSmoothForm I 0 ψ := hφ.fun_smul (contMDiff_zero_iff.2 hf)
+  have hψ : IsSmoothForm I 0 ψ := hφ.fun_smul_of_continuous hf
   have hsupp : _root_.tsupport (α := E [⋀^Fin k]→L[ℝ] ℝ) ψ ⊆ tsupport f :=
     -- `simp` leaves the zero of the fibre at `x` against the value at `x` of the zero form.
     closure_mono fun x hx ↦ Function.mem_support.2 fun h ↦ hx (by simp [ψ, h]; rfl)

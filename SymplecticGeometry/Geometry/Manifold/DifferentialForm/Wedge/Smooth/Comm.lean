@@ -13,10 +13,10 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Basic
 Tau Ceti's `TauCeti.SmoothForm.wedgeWith_comm` says that the paired wedge of smooth forms is
 graded-commutative when the coefficient pairing `μ` is symmetric. When `μ` is antisymmetric, as a
 Lie bracket is, the same holds with one more sign
-(`TauCeti.SmoothForm.wedgeWith_comm_of_anticomm`). In particular the paired wedge of two one-forms
-is then symmetric (`TauCeti.SmoothForm.wedgeWith_one_one_comm_of_anticomm`).
+(`TauCeti.SmoothForm.wedgeWith_comm_of_anticomm`). Its case of two one-forms is Tau Ceti's
+`TauCeti.SmoothForm.wedgeWith_comm_one_one_of_antisymm`.
 
-The first result lifts Tau Ceti's pointwise identity
+This lifts Tau Ceti's pointwise identity
 `ContinuousAlternatingMap.pairedWedge_anticomm` to smooth forms, as Tau Ceti's
 `TauCeti.SmoothForm.wedgeWith_comm` lifts `ContinuousAlternatingMap.pairedWedge_comm`.
 
@@ -24,8 +24,6 @@ The first result lifts Tau Ceti's pointwise identity
 
 * `TauCeti.SmoothForm.wedgeWith_comm_of_anticomm`: for an antisymmetric pairing `μ`,
   `φ ∧_μ ψ = -(-1) ^ (k l) ψ ∧_μ φ`.
-* `TauCeti.SmoothForm.wedgeWith_one_one_comm_of_anticomm`: for an antisymmetric pairing `μ` and
-  one-forms `φ`, `ψ`, `φ ∧_μ ψ = ψ ∧_μ φ`.
 
 ## References
 
@@ -55,15 +53,6 @@ theorem wedgeWith_comm_of_anticomm (μ : F₁ →L[ℝ] F₁ →L[ℝ] F₃)
       -((-1 : ℝ) ^ (k * l) • (wedgeWith μ ψ φ).val x (v ∘ Fin.cast (Nat.add_comm l k))) := by
   simpa only [coe_wedgeWith, RoughForm.wedgeWith_apply'] using
     ContinuousAlternatingMap.pairedWedge_anticomm μ.continuous₂ hμ (φ.val x) (ψ.val x) v
-
-/-- For an antisymmetric pairing `μ`, such as a Lie bracket, the paired wedge of two one-forms is
-symmetric: `φ ∧_μ ψ = ψ ∧_μ φ`. -/
-theorem wedgeWith_one_one_comm_of_anticomm (μ : F₁ →L[ℝ] F₁ →L[ℝ] F₃)
-    (hμ : ∀ a b, μ a b = -μ b a) (φ ψ : SmoothForm I M F₁ 1) :
-    wedgeWith μ φ ψ = wedgeWith μ ψ φ := by
-  refine SmoothBundleForm.ext fun x v ↦ ?_
-  rw [wedgeWith_comm_of_anticomm μ hμ]
-  simp
 
 end TauCeti.SmoothForm
 

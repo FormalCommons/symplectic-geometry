@@ -25,7 +25,7 @@ shows that the real circle connection forms (`SymplecticGeometry.IsCircleConnect
 the connection forms of `Principal/Connection/Basic.lean` (`SymplecticGeometry.IsConnectionForm`)
 under this identification (`SymplecticGeometry.isConnectionForm_mapCoeff_iff`). This file shows
 that every connection form arises so, and that the curvatures agree: the curvature
-`SymplecticGeometry.connectionCurvature` of `α ξ₀` is the pull-back to the total space of the
+`TauCeti.gaugeCurvature` of `α ξ₀` is the pull-back to the total space of the
 curvature `hα.curvature` on the base, times `ξ₀`. In particular, the existence of circle
 connection forms follows from that of connection forms.
 
@@ -33,7 +33,7 @@ connection forms follows from that of connection forms.
 
 * `SymplecticGeometry.IsConnectionForm.existsUnique_eq_mapCoeff`: every `𝔤`-valued connection form
   is `α ξ₀` for a unique real form `α`, and this `α` is a circle connection form.
-* `SymplecticGeometry.IsCircleConnectionForm.connectionCurvature_mapCoeff`: for a circle
+* `SymplecticGeometry.IsCircleConnectionForm.gaugeCurvature_mapCoeff`: for a circle
   connection form `α`, the curvature of `α ξ₀` is the pull-back of `hα.curvature` along the
   projection, times `ξ₀`.
 * `SymplecticGeometry.exists_isCircleConnectionForm`: every principal `Circle`-bundle over a
@@ -94,15 +94,15 @@ theorem IsConnectionForm.existsUnique_eq_mapCoeff
 principal `Circle`-bundle over a boundaryless base, the curvature of the `𝔤`-valued form `α ξ₀`,
 with `ξ₀ = circleLieGenerator`, is `(π^* hα.curvature) ξ₀`, where `π` is the projection to the
 base: the bracket term `½ [A ∧ A]` vanishes since `𝔤` is spanned by `ξ₀`. -/
-theorem IsCircleConnectionForm.connectionCurvature_mapCoeff [IB.Boundaryless]
+theorem IsCircleConnectionForm.gaugeCurvature_mapCoeff [IB.Boundaryless]
     {α : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1}
     (hα : IsCircleConnectionForm α) :
-    connectionCurvature
+    gaugeCurvature (lieL ℝ (GroupLieAlgebra (𝓡 1) Circle) (GroupLieAlgebra (𝓡 1) Circle))
         (SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ circleLieGenerator) α) =
       SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ circleLieGenerator)
         (SmoothForm.mpullback (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1))
           (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)).contMDiff hα.curvature) := by
-  rw [connectionCurvature_mapCoeff_toSpanSingleton, hα.mpullback_curvature]
+  rw [gaugeCurvature_mapCoeff_toSpanSingleton, hα.mpullback_curvature]
 
 /-! ### Existence -/
 
