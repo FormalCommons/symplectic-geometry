@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Data.Fintype.Order
 public import Mathlib.Topology.VectorBundle.Basic
+public import TauCeti.LinearAlgebra.Dimension.Submodule
 public import TauCeti.Topology.VectorBundle.Coordinates
 
 /-!
@@ -23,6 +24,8 @@ public import TauCeti.Topology.VectorBundle.Coordinates
   finitely many charts are bounded on the overlaps of compact subsets of their domains.
 * `VectorBundleCore.inChartCoordinates_eq_coordChange_comp`: chart expressions of one operator in
   two pairs of charts differ by the transitions between them.
+* `VectorBundleCore.finrank_range_inChartCoordinates`: at a point of both charts, the chart
+  expression of an operator has the rank of the operator.
 * `VectorBundleCore.inChartCoordinates_smul` and `VectorBundleCore.inChartCoordinates_sum`: the
   chart expression is linear in the operator.
 * `VectorBundleCore.exists_units_inv_mul_mul_eq_inChartCoordinates`: reading an endomorphism of a
@@ -107,6 +110,17 @@ theorem inChartCoordinates_eq_coordChange_comp {i i' : ι} {j j' : κ} {x : B}
   simp only [inChartCoordinates_apply, ContinuousLinearMap.comp_apply,
     Z.coordChange_comp i' i (Z.indexAt x) x ⟨⟨hi', hi⟩, Z.mem_baseSet_at x⟩,
     W.coordChange_comp (W.indexAt x) j j' x ⟨⟨W.mem_baseSet_at x, hj⟩, hj'⟩]
+
+/-- At a point of the chart `i` of `Z` and the chart `j` of `W`, the chart expression of `ϕ` from
+`i` to `j` has a range of the same dimension as that of `ϕ`. -/
+theorem finrank_range_inChartCoordinates {i : ι} {j : κ} {x : B} (hi : x ∈ Z.baseSet i)
+    (hj : x ∈ W.baseSet j) (ϕ : F →L[R] G) :
+    Module.finrank R (Z.inChartCoordinates W i j x ϕ).range = Module.finrank R ϕ.range := by
+  rw [inChartCoordinates_def, ContinuousLinearMap.toLinearMap_comp,
+    ContinuousLinearMap.toLinearMap_comp]
+  exact LinearMap.finrank_range_comp_comp _ _ _
+    (W.coordChange_bijective (W.mem_baseSet_at x) hj).1
+    (Z.coordChange_bijective hi (Z.mem_baseSet_at x)).2
 
 /-- The chart expression of an operator is linear in the operator: scalar multiples. -/
 theorem inChartCoordinates_smul (i : ι) (j : κ) (x : B) (c : R) (ϕ : F →L[R] G) :

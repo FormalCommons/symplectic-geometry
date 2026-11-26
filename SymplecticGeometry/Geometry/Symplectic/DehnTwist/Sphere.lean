@@ -557,7 +557,7 @@ private theorem exists_isSymplectic_extension_precompSmoothIsotopy [IsManifold I
         have h0 :=
           CotangentBundle.mpullback_eq_zero_of_apply_zeroSection ι.contMDiff
             (SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq.1 hι.isSymplectomorphism)
-            f.contMDiff hι.exists_apply_eq
+            hι.exists_apply_eq
         have ht : (fun q ↦ Φ.precompSmoothIsotopy f (t, q)) = f ∘ Φ.timeSlice t :=
           funext fun q ↦ by simp [Diffeotopy.timeSlice_apply]
         rw [ht, ← SmoothForm.coe_mpullback _ (f.contMDiff.comp (Φ.timeSlice t).contMDiff),
