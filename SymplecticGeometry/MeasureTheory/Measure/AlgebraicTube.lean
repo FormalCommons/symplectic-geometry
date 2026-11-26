@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Analysis.Complex.MvPolynomial.LogAverage
 import Mathlib.Analysis.Convex.Mul
 import Mathlib.LinearAlgebra.Complex.FiniteDimensional
+import SymplecticGeometry.MeasureTheory.Integral.Average
 import SymplecticGeometry.Topology.Algebra.MvPolynomial
 import TauCeti.MeasureTheory.Measure.Haar.Average
 
@@ -79,7 +80,7 @@ private theorem setLAverage_ofReal_sub_log_norm_eval {P : MvPolynomial ι ℂ} (
       fun _ => sub_nonneg.2
   have heq : Real.log M - ⨍ z in ball x r, Real.log ‖eval z.ofLp P‖ =
       ⨍ z in ball x r, (Real.log M - Real.log ‖eval z.ofLp P‖) := by
-    rw [setAverage_fun_sub (integrableOn_const hfin) hu, setAverage_const h0 hfin]
+    rw [setAverage_const_sub h0 hfin hu]
   rw [heq]
   constructor
   · rw [setAverage_eq, smul_eq_mul]
