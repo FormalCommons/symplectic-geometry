@@ -386,12 +386,8 @@ theorem singularHomologyπ_ofSubset_inter_eq_add (n : ℕ) :
   have h₀ {A B : Set X} (h₁ : A ∩ B ⊆ U ∩ V) (h₂ : Set.MapsTo (𝟙 X) (U ∩ V) A) :
       TopPair.singularHomologyMap (TopPair.interPairMapOfSubset h₁) R n ≫
         TopPair.singularHomologyMap (TopPair.ofSubsetMap (𝟙 X) h₂) R n = 0 := by
-    rw [← TopPair.singularHomologyMap_comp, TopPair.interPairMapOfSubset_comp_ofSubsetMap_id]
-    -- `TopPair.interPairMapOfSubset` is the map of pairs `TopPair.ofSubsetMap` of the inclusion.
-    refine (congrArg (TopPair.singularHomologyMap · R n) (TopPair.hom_ext_of_fst _
-      ((TopPair.interPairMapOfSubset_fst _).trans (TopPair.ofSubsetMap_fst _
-        (show Set.MapsTo (ofHom (ContinuousMap.subtypeVal A)) (Subtype.val ⁻¹' B) A from
-          fun x _ ↦ x.property)).symm))).trans ?_
+    rw [← TopPair.singularHomologyMap_comp, TopPair.interPairMapOfSubset_comp_ofSubsetMap_id,
+      TopPair.interPairMapOfSubset_eq_ofSubsetMap]
     exact TopPair.singularHomologyMap_ofSubsetMap_eq_zero_of_range_subset R _ _
       (fun _ ⟨y, hy⟩ ↦ hy ▸ y.property) n
   -- The steps below are `Eq.trans` rather than `rw` or `simp`: the two summands have the

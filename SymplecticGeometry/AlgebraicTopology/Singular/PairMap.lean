@@ -17,7 +17,9 @@ homology they induce.
 For subsets `A` and `B` of a space `X`, the subspace of the pair `TopPair.interPair A B`, the
 preimage of `B` in `A`, is homeomorphic to `A ∩ B` (`TopPair.interPairSndHomeomorph`,
 `TopPair.interPairSndIso`), and the ambient map of the excision map `(A, A ∩ B) ⟶ (X, B)` is the
-inclusion of `A` (`TopPair.excisionMap_fst`).
+inclusion of `A` (`TopPair.excisionMap_fst`). Tau Ceti's inclusion of pairs
+`TopPair.interPairMapOfSubset` is the map of subspace pairs induced by the inclusion of `A`
+(`TopPair.interPairMapOfSubset_eq_ofSubsetMap`).
 
 A map into the ambient space of a pair that factors through the subspace vanishes on relative
 chains (`TopPair.chainComplexMap_comp_singularChainComplexπ_of_fac`); so does a map into `X` with
@@ -64,6 +66,8 @@ the relative homology of `(X, A)` as the map induced by `TopPair.singularChainCo
 * `TopPair.homologyMap_comp_singularHomologyπFst`, `TopPair.singularHomologyπFst_naturality`: the
   same on homology.
 * `TopPair.excisionMap_fst`: the ambient map of the excision map is the inclusion of `A`.
+* `TopPair.interPairMapOfSubset_eq_ofSubsetMap`: `TopPair.interPairMapOfSubset` as the map of
+  subspace pairs induced by the inclusion of `A`.
 * `TopPair.codRestrict_comp_ofSubset_map`: the corestriction of a map to `A`, followed by the
   embedding of the subspace of `(X, A)`, is the map.
 * `TopPair.chainComplexMap_comp_singularChainComplexπ_of_fac`: maps through the subspace vanish on
@@ -148,6 +152,13 @@ lemma interPairSndIso_inv_comp_map :
 lemma excisionMap_fst : Hom.fst (excisionMap A B) = TopCat.ofHom (ContinuousMap.subtypeVal A) := by
   ext x
   exact excisionMap_fst_apply A B x
+
+/-- Tau Ceti's inclusion of pairs `TopPair.interPairMapOfSubset h : (A, A ∩ B) ⟶ (X, C)` is the
+map of subspace pairs induced by the inclusion of `A`. -/
+lemma interPairMapOfSubset_eq_ofSubsetMap {C : Set X} (h : A ∩ B ⊆ C) :
+    interPairMapOfSubset h =
+      ofSubsetMap (TopCat.ofHom (ContinuousMap.subtypeVal A)) fun x hx ↦ h ⟨x.property, hx⟩ :=
+  hom_ext_of_fst _ ((interPairMapOfSubset_fst h).trans (ofSubsetMap_fst _ _).symm)
 
 /-- The corestriction of a map `f : Z ⟶ X` to `A`, followed by the embedding of the subspace of
 the pair `(X, A)`, is `f`. -/
