@@ -81,6 +81,11 @@ the inverse of `TauCeti.SmoothTwoForm.IsNondegenerate.interiorEquiv` of `σ(x)` 
 `TauCeti.SmoothTwoForm.contMDiff_interiorEquiv_symm_mpullback_prodMk` shows that such fields are
 smooth in the parameter.
 
+The definition of `Xᵢ(x)` follows Tau Ceti's `TauCeti.SmoothTwoForm.hamiltonianVectorField`,
+which also applies the inverse of a flat map to a covector. The statement of
+`TauCeti.SmoothTwoForm.mixedVectorField_eq_iff`, and its proof, are adapted from Tau Ceti's
+`TauCeti.SmoothTwoForm.hamiltonianVectorField_eq_iff_of_isInvertible_flat`.
+
 ## References
 
 * [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*, 3rd ed.][McDuffSalamon2017],
