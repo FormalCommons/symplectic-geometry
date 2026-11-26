@@ -207,10 +207,7 @@ theorem SmoothForm.IsContactForm.notMem_range_mfderiv_of_interior_eq_neg [IsMani
   have hdαv (w : TangentSpace J s) :
       mextDeriv α.val s ![v, w] = -σ.val (i s) ![mfderiv J I i s v, mfderiv J I i s w] := by
     rw [← mextDerivₗ_apply, hdα, SmoothForm.neg_toRoughForm, Pi.neg_apply,
-      ContinuousAlternatingMap.neg_apply, SmoothForm.coe_mpullback, TauCeti.mpullback_apply]
-    congr 2
-    ext k
-    fin_cases k <;> simp
+      ContinuousAlternatingMap.neg_apply, SmoothForm.coe_mpullback, TauCeti.mpullback_apply_pair]
   have hαv : α.val s ![v] = 0 := by
     rw [hαβ, hv, hβZ, (σ.val (i s)).map_eq_zero_of_eq _ (i := 0) (j := 1) rfl (by simp),
       neg_zero]

@@ -403,11 +403,7 @@ private theorem IsCircleConnectionForm.sub_apply_eq_of_mfderiv_proj_eq
     simpa only [SmoothForm.mpullback_apply_one] using h
   have hℓu : ℓ (op g • y) ![u] = ℓ y ![w] := by
     have h := DFunLike.congr_fun (mpullback_op_smul_mpullback_trivialization_snd hθ hy g) ![w]
-    rw [mpullback_apply] at h
-    refine Eq.trans ?_ h
-    congr 1
-    -- The outer `Eq.symm` makes Lean read the vector off the goal's right side.
-    exact Eq.symm (FinVec.etaExpand_eq _).symm
+    rwa [mpullback_apply_one] at h
   rw [hvu, ContinuousAlternatingMap.vecCons_add, ContinuousAlternatingMap.vecCons_smul,
     ContinuousAlternatingMap.vecCons_add, ContinuousAlternatingMap.vecCons_smul, hαu, hℓu,
     hα.apply_rightFundamentalVectorField,
@@ -473,13 +469,11 @@ theorem IsCircleConnectionForm.apply_eq_mpullback_add_mpullback (hα : IsCircleC
     rw [← hpx, ← hpx, hps]
   have hkey := hα.sub_apply_eq_of_mfderiv_proj_eq hθd hxU hxy u w hdps
   have hℓ : TauCeti.mpullback (IB.prod (𝓡 1)) (𝓡 1) θ circleAngularForm (s (p x)) ![w] = 0 := by
-    rw [mpullback_apply]
+    rw [mpullback_apply_one]
     exact (circleAngularForm (θ (s (p x)))).map_coord_zero (0 : Fin 1) hdθs
   have hpull : TauCeti.mpullback (IB.prod (𝓡 1)) IB p
       (TauCeti.mpullback IB (IB.prod (𝓡 1)) s α.val) x ![u] = α.val (s (p x)) ![w] := by
-    rw [mpullback_apply, mpullback_apply]
-    congr 1
-    exact (FinVec.etaExpand_eq _).symm
+    rw [mpullback_apply_one, mpullback_apply_one]
   rw [hℓ, sub_zero] at hkey
   rw [ContinuousAlternatingMap.add_apply, hpull, ← hkey]
   ring
