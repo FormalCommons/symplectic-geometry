@@ -379,13 +379,8 @@ theorem exists_weightChart_fundamentalVectorField [BoundarylessManifold I' M]
       (ContMDiffSMul.contMDiff_const_smul (I := I) g) (SmoothForm.mpullback ψ ψ.contMDiff σ) =
         SmoothForm.mpullback ψ ψ.contMDiff σ := by
     have hg := ContMDiffSMul.contMDiff_const_smul (I := I) (I' := I') (n := ∞) (M := M) g
-    have hcongr : ∀ (f₁ f₂ : N → M) (h₁ : ContMDiff 𝓘(ℝ, E') I' ∞ f₁)
-        (h₂ : ContMDiff 𝓘(ℝ, E') I' ∞ f₂), f₁ = f₂ →
-        SmoothForm.mpullback (F := ℝ) (k := 2) f₁ h₁ = SmoothForm.mpullback f₂ h₂ := by
-      rintro f _ _ _ rfl
-      rfl
     rw [← LinearMap.comp_apply, ← SmoothForm.mpullback_comp,
-      hcongr (ψ ∘ fun y : N ↦ g • y) ((fun x : M ↦ g • x) ∘ ψ) _ (hg.comp ψ.contMDiff)
+      SmoothForm.mpullback_congr (f := ψ ∘ fun y : N ↦ g • y) _ (hg.comp ψ.contMDiff)
         (funext fun y ↦ hψ g y),
       SmoothForm.mpullback_comp ψ (fun x : M ↦ g • x) ψ.contMDiff hg, LinearMap.comp_apply, hG g]
   have hp' (g : G) : g • ψ.symm p = ψ.symm p := by
