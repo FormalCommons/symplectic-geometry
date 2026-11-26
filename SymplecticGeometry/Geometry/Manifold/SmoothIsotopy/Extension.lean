@@ -15,7 +15,6 @@ import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Neighborhood
 import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
 import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
-import TauCeti.Geometry.Manifold.MFDeriv.Basic
 import TauCeti.Geometry.Manifold.PartitionOfUnity.Compact
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LeftInverse
 import TauCeti.Geometry.Manifold.SmoothIsotopy.Velocity.Basic
