@@ -412,11 +412,13 @@ For `f : SmoothEmbedding (ℙ ℂ E) M` and the normal bundle isomorphism of
 
 - `exists_symplectomorphism_blowupModel`: there are `0 < ε` and a
   symplectomorphism of an open neighbourhood of `range f` onto
-  `openNbhd n ε` with `blowupForm n λ`, sending `f` to `zeroSection`. By
-  Tau Ceti's `IsNondegenerate.HasSymplecticTangentImages.exists_symplectomorphism_opens`
-  (`Geometry/Symplectic/Neighborhood/Symplectic.lean`) applied to `f` and
-  `zeroSectionEmbedding n` with $\tilde\omega_\lambda$, after rescaling the
-  normal isomorphism to a symplectic one; then shrink to `openNbhd n ε`
+  `openNbhd n ε` with `blowupForm n λ`, sending `f` to `zeroSection`, stated
+  as a `PartialDiffeomorph` with target `openNbhd n ε` that is symplectic on its
+  source. By
+  `HasSymplecticTangentImages.exists_symplectomorphism_opens_of_finrank_eq_two`
+  (`Geometry/Symplectic/Neighborhood/CodimTwo.lean`), which rescales the normal
+  isomorphism to a symplectic one, applied to `f` and
+  `zeroSectionRealEmbedding n` with $\tilde\omega_\lambda$; then shrink to `openNbhd n ε`
   inside the image, by compactness of $Z$ (McDuff, Lemma 2.1 and
   Corollary 2.2). For `n = 0`, $Z$ is a point and this is Darboux's
   theorem, with $\lambda$ as data, as the page notes.
