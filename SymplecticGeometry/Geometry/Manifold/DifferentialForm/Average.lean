@@ -142,6 +142,7 @@ variable [I.Boundaryless] [CompleteSpace F] [IsFiniteMeasure μ] [MeasurableMul 
 /-- **Averages are invariant**, for smooth forms. For a right-invariant finite measure `μ` on `G`,
 the smooth pullback by each `b • ·` fixes the average of a smooth form `α`. Tau Ceti's
 `TauCeti.SmoothForm.mpullback_smul_measureAverage` states this on the underlying rough forms. -/
+@[simp]
 theorem mpullback_smul_measureAverage_eq_self (α : SmoothForm I M F k) (b : G) :
     mpullback (b • ·) (ContMDiffSMul.contMDiff_const_smul (I := J) (I' := I) b)
       (measureAverage J μ α) = measureAverage J μ α :=
