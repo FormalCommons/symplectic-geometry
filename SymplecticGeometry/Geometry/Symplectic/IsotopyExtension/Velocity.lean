@@ -166,12 +166,14 @@ theorem velocityForm_apply (t : unitInterval) (x : P) (v : E') :
   have hT : Manifold.prodVectorField (fun s : unitInterval ↦ (1 : TangentSpace (𝓡∂ 1) s))
       (0 : Π y : P, TangentSpace J y) (t, x) = ((1 : TangentSpace (𝓡∂ 1) t), (0 : E')) :=
     Manifold.prodVectorField_apply _ _ _
-  rw [coe_velocityForm, RoughForm.interior_apply, mpullback_apply, hT]
-  congr 1
-  funext i
-  fin_cases i
-  · exact MDifferentiableAt.mfderiv_uncurry_apply_mk_zero (f := fun s y ↦ F (s, y)) hF _
-  · exact MDifferentiableAt.mfderiv_uncurry_apply_zero_mk (f := fun s y ↦ F (s, y)) hF v
+  rw [coe_velocityForm, RoughForm.interior_apply]
+  -- The spatial vector `(0, v)` lies in the model space rather than in a tangent space, so the
+  -- evaluation lemma is applied by unification rather than by `rw`.
+  refine (mpullback_apply_pair _ _ _ _ _).trans ?_
+  rw [hT]
+  exact congrArg₂ (fun a b ↦ σ.val (F (t, x)) ![a, b])
+    (MDifferentiableAt.mfderiv_uncurry_apply_mk_zero (f := fun s y ↦ F (s, y)) hF _)
+    (MDifferentiableAt.mfderiv_uncurry_apply_zero_mk (f := fun s y ↦ F (s, y)) hF v)
 
 /-- The slice of the velocity form at time `t` sends `v` at `x` to `σ (∂ₜ F (t, x), dF_t v)`. -/
 theorem mpullback_prodMk_velocityForm (t : unitInterval) (x : P) (v : E') :
@@ -324,13 +326,12 @@ theorem hasHamiltonian_iff_velocityForm {σ : SmoothTwoForm I M} {Φ : Diffeotop
       rw [hG]
     have h2 : (fun y ↦ G (t, y)) = Φ.timeSlice t := funext fun y ↦ by
       rw [hG, timeSlice_apply]
-    rw [SmoothIsotopy.mpullback_prodMk_velocityForm, h1, h2, mpullback_apply]
+    rw [SmoothIsotopy.mpullback_prodMk_velocityForm, h1, h2]
+    refine Eq.trans ?_ (mpullback_apply_pair _ _ _ _ _).symm
     congr 1
     · rw [hG, cylinderMap_apply]
-    · funext i
-      fin_cases i
-      · exact (Φ.mfderiv_cylinderMap_time (by simp) (x, t)).symm
-      · exact (Φ.mfderiv_cylinderMap_inl (by simp) (x, t) v).symm
+    · exact congrArg₂ (fun a b ↦ ![a, b]) (Φ.mfderiv_cylinderMap_time (by simp) (x, t)).symm
+        (Φ.mfderiv_cylinderMap_inl (by simp) (x, t) v).symm
   -- The differentials of the slices of `F` are its partial derivatives in space.
   have hd (hF : ContMDiff (I.prod (𝓡∂ 1)) 𝓘(ℝ) ∞ F) (t : unitInterval) (x : M) (v : E) :
       mextDeriv (RoughForm.ofFunction I fun y ↦ F (y, t)) x ![v] =
@@ -383,12 +384,10 @@ theorem isSmoothFamily_velocityForm (σ : SmoothTwoForm I M)
   have hkt : (k t : unitInterval × P → M) = fun p ↦ Ĝ ((t, p.1), p.2) := funext (hk t)
   have hĜd := hĜ.mdifferentiableAt (x := ((t, s), x)) (by simp)
   rw [SmoothIsotopy.mpullback_prodMk_velocityForm σ (k t) s x w, hkt]
-  rw [SmoothForm.coe_mpullback, TauCeti.mpullback_apply, SmoothForm.coe_interiorProduct,
-    RoughForm.interior_apply, SmoothForm.coe_mpullback, TauCeti.mpullback_apply,
+  rw [SmoothForm.coe_mpullback, TauCeti.mpullback_apply_one, SmoothForm.coe_interiorProduct,
+    RoughForm.interior_apply, SmoothForm.coe_mpullback, TauCeti.mpullback_apply_pair,
     unitIntervalSqSndField_apply]
-  congr 1
-  funext i
-  fin_cases i
+  refine congrArg₂ (fun a b ↦ σ.val _ ![a, b]) ?_ ?_
   · exact (MDifferentiableAt.mfderiv_uncurry_apply_mk_zero (f := fun q y ↦ Ĝ (q, y)) hĜd _).trans
       (MDifferentiableAt.mfderiv_uncurry_apply_zero_mk (f := fun t' s' ↦ Ĝ ((t', s'), x))
         (MDifferentiableAt.curry_left (f := fun q y ↦ Ĝ (q, y)) hĜd) _)
