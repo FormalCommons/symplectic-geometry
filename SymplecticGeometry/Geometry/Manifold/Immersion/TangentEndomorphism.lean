@@ -10,6 +10,7 @@ public import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
 public import Mathlib.Geometry.Manifold.VectorBundle.Hom
 import TauCeti.Geometry.Manifold.ContMDiff.LeftInverse
 import TauCeti.Topology.VectorBundle.Coordinates
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # Endomorphism fields related through a split-injective differential
@@ -83,8 +84,7 @@ theorem ContMDiffAt.tangentEnd_of_mfderiv (hf : ContMDiffAt I J n f x₀) (hmn :
     ⟨P.postcomp E, fun T ↦ ContinuousLinearMap.ext fun v ↦ hP (T v)⟩
   refine (((contMDiffAt_hom_bundle _).1 hB).2.clm_comp hD).congr_of_eventuallyEq ?_
   have hsrc := (trivializationAt E (TangentSpace I) x₀).open_baseSet.mem_nhds hx
-  have htgt := hf.continuousAt.preimage_mem_nhds
-    ((trivializationAt F (TangentSpace J) (f x₀)).open_baseSet.mem_nhds hy)
+  have htgt := hf.continuousAt.eventually_mem_baseSet_trivializationAt F (TangentSpace J)
   -- In coordinates, `D ∘ A = B ∘ D` near `x₀`, read off the relation `df ∘ A = B ∘ df`.
   filter_upwards [hsrc, htgt, hAB] with x hx' hy' hx''
   simp only [postcomp_apply, inTangentCoordinates, id_eq]
