@@ -17,13 +17,16 @@ Let `ψ` be a symplectic embedding of the closed ball of radius `√(l² + ε²)
 `0 < l` and `0 < ε`, and let `M̃_ψ = WeightBlowup hψ hl hε` be the blowup of weight `l` of
 `Blowup/Weight/Basic.lean`. Following McDuff–Salamon, §7.1 (the construction (7.1.14)), the
 blowup is obtained from `M ∖ ψ(B°(l))` by collapsing each Hopf circle of the sphere `ψ(∂B(l))` to
-a point of the divisor. This file defines the collapse map and proves its first properties.
+a point of the divisor. This file defines the collapse map, and shows that it is a quotient map
+with these fibres, so that the blowup is homeomorphic to that quotient.
 
 ## Main definitions
 
 * `SymplecticGeometry.WeightBlowup.collapseMap hψ hl hε`: the map from `M ∖ ψ(B°(l))` onto the
   blowup that is `GluedAlong.inl` off `ψ(B(l))` and sends `ψ w`, for `|w| = l`, to the point
   `divisor hψ hl hε` of the line `sphereHopf n (w / l)` through `w`.
+* `SymplecticGeometry.WeightBlowup.collapseHomeomorph hψ hl hε`: the homeomorphism from the
+  quotient of `M ∖ ψ(B°(l))` by the fibres of the collapse map onto the blowup.
 
 ## Main results
 
@@ -40,6 +43,14 @@ a point of the divisor. This file defines the collapse map and proves its first 
 * `SymplecticGeometry.WeightBlowup.surjective_collapseMap`: the collapse map is onto, since a point
   of the blowup is `inl` of a point of `M ∖ ψ(B(l))`, or `inr` of a point of the zero section,
   the image of a Hopf circle, or `inr` of a point glued to a point of `M ∖ ψ(B(l))`.
+* `SymplecticGeometry.WeightBlowup.collapseMap_eq_collapseMap_iff`: the fibres of the collapse
+  map are the points off the sphere `ψ(∂B(l))` and the images under `ψ` of the circles of that
+  sphere on which `w ↦ sphereHopf n (w / l)` is constant, the Hopf circles.
+* `SymplecticGeometry.WeightBlowup.isClosedMap_collapseMap` and
+  `SymplecticGeometry.WeightBlowup.isQuotientMap_collapseMap`: the collapse map is closed, so a
+  quotient map. A closed set of `M ∖ ψ(B°(l))` is the union of its part in the compact set
+  `ψ(B(√(l² + ε²)))`, whose image is compact, and of its part off `ψ(B°(√(l² + ε²)))`, whose image
+  under `inl` is closed, as the image of the model piece does not meet it.
 
 ## References
 
@@ -236,6 +247,116 @@ theorem surjective_collapseMap : Function.Surjective (collapseMap hψ hl hε) :=
   refine Subtype.ext ?_
   rw [← hℓ]
   exact congrArg (fun t ↦ zeroSection (sphereHopf n t)) (Subtype.ext (inv_smul_smul₀ hl.ne' _))
+
+/-! ### The collapse map is a quotient map, and its fibres -/
+
+/-- A point of `M ∖ ψ(B°(l))` in `ψ(B(l))` is `ψ w` for a `w` with `|w| = l`, and the collapse map
+sends it to the point of the divisor over `sphereHopf n (w / l)`. -/
+private theorem exists_collapseMap_eq_divisor {x : ((ψ '' ball 0 l)ᶜ : Set M)}
+    (hx : (x : M) ∈ ψ '' closedBall 0 l) :
+    ∃ (w : StdSpace (Fin (n + 1))) (hw : ‖w‖ = l), ψ w = x ∧ collapseMap hψ hl hε x =
+      divisor hψ hl.le hε (sphereHopf n ⟨l⁻¹ • w, inv_smul_mem_sphere_one_of_norm_eq hl hw⟩) := by
+  obtain ⟨x, hx'⟩ := x
+  obtain ⟨w, hwB, rfl⟩ := hx
+  have hw := norm_eq_of_mem_closedBall_of_notMem hwB hx'
+  exact ⟨w, hw, rfl, collapseMap_of_norm_eq hψ hl hε hw hx'⟩
+
+/-- **The fibres of the collapse map**: two points of `M ∖ ψ(B°(l))` have the same image exactly
+when they are equal, or are `ψ v` and `ψ w` for `v`, `w` on the sphere `|v| = |w| = l` with
+`sphereHopf n (v / l) = sphereHopf n (w / l)`, that is, on the same Hopf circle
+(`sphereHopf_eq_sphereHopf_iff`). -/
+theorem collapseMap_eq_collapseMap_iff {x y : ((ψ '' ball 0 l)ᶜ : Set M)} :
+    collapseMap hψ hl hε x = collapseMap hψ hl hε y ↔ x = y ∨
+      ∃ (v w : StdSpace (Fin (n + 1))) (hv : ‖v‖ = l) (hw : ‖w‖ = l), ψ v = x ∧ ψ w = y ∧
+        sphereHopf n ⟨l⁻¹ • v, inv_smul_mem_sphere_one_of_norm_eq hl hv⟩ =
+          sphereHopf n ⟨l⁻¹ • w, inv_smul_mem_sphere_one_of_norm_eq hl hw⟩ := by
+  -- A point of the divisor is not `inl` of a point of the outer piece.
+  have hne : ∀ (ℓ) (z : outerPiece hψ), divisor hψ hl.le hε ℓ ≠ GluedAlong.inl _ z :=
+    fun ℓ z h ↦ (Set.ext_iff.1 (range_divisor hψ hl.le hε) _).1 ⟨ℓ, h⟩
+      (inl_mem_complDivisor hψ hl.le hε z)
+  constructor
+  · intro h
+    by_cases hx : (x : M) ∈ ψ '' closedBall 0 l <;> by_cases hy : (y : M) ∈ ψ '' closedBall 0 l
+    · obtain ⟨v, hv, hvx, hfx⟩ := exists_collapseMap_eq_divisor hψ hl hε hx
+      obtain ⟨w, hw, hwy, hfy⟩ := exists_collapseMap_eq_divisor hψ hl hε hy
+      rw [hfx, hfy] at h
+      exact Or.inr ⟨v, w, hv, hw, hvx, hwy, (divisor hψ hl.le hε).isEmbedding.injective h⟩
+    · obtain ⟨v, hv, -, hfx⟩ := exists_collapseMap_eq_divisor hψ hl hε hx
+      rw [hfx, collapseMap_of_notMem hψ hl hε hy] at h
+      exact (hne _ _ h).elim
+    · obtain ⟨w, hw, -, hfy⟩ := exists_collapseMap_eq_divisor hψ hl hε hy
+      rw [hfy, collapseMap_of_notMem hψ hl hε hx] at h
+      exact (hne _ _ h.symm).elim
+    · rw [collapseMap_of_notMem hψ hl hε hx, collapseMap_of_notMem hψ hl hε hy,
+        GluedAlong.inl_inj] at h
+      exact Or.inl (Subtype.ext (congrArg (fun z : outerPiece hψ ↦ (z : M)) h))
+  · obtain ⟨x, hx⟩ := x
+    obtain ⟨y, hy⟩ := y
+    rintro (h | ⟨v, w, hv, hw, rfl, rfl, h⟩)
+    · rw [h]
+    · rw [collapseMap_of_norm_eq hψ hl hε hv, collapseMap_of_norm_eq hψ hl hε hw, h]
+
+/-- **The collapse map is closed**: it sends closed subsets of `M ∖ ψ(B°(l))` to closed subsets of
+the blowup. -/
+theorem isClosedMap_collapseMap : IsClosedMap (collapseMap hψ hl hε) := by
+  set R := √(l ^ 2 + ε ^ 2)
+  have hlR : l < R := (Real.lt_sqrt hl.le).2 (by nlinarith)
+  have hdim := (complexToRealEuclidean (Fin (n + 1))).toLinearEquiv.finrank_eq.symm
+  intro C hC
+  have hCM : IsClosed (Subtype.val '' C : Set M) :=
+    ((hψ.mono hlR.le).isOpen_image_ball hdim).isClosed_compl.isClosedMap_subtypeVal C hC
+  -- The part of `C` in `ψ(B(R))`, and the part off `ψ(B°(R))`.
+  set K := C ∩ Subtype.val ⁻¹' (ψ '' closedBall 0 R)
+  set A := C ∩ Subtype.val ⁻¹' (ψ '' ball 0 R)ᶜ
+  have hCKA : C = K ∪ A := by
+    rw [← inter_union_distrib_left, ← preimage_union]
+    refine (inter_eq_left.2 fun x _ ↦ ?_).symm
+    by_cases hx : (x : M) ∈ ψ '' ball 0 R
+    · exact Or.inl (image_mono ball_subset_closedBall hx)
+    · exact Or.inr hx
+  rw [hCKA, image_union]
+  refine IsClosed.union ?_ ?_
+  · refine (IsCompact.image ?_ (continuous_collapseMap hψ hl hε)).isClosed
+    rw [Subtype.isCompact_iff, image_inter_preimage]
+    exact (hψ.isCompact_image_closedBall le_rfl).inter_left hCM
+  -- On `A`, the collapse map is `inl` of the set `S` of points of the outer piece in `val '' A`.
+  set S : Set (outerPiece hψ) := {x | (x : M) ∈ Subtype.val '' C ∧ (x : M) ∉ ψ '' ball 0 R}
+  have hS : IsClosed S :=
+    (hCM.inter (hψ.isOpen_image_ball hdim).isClosed_compl).preimage continuous_subtypeVal
+  have hnot : ∀ {x : M}, x ∉ ψ '' ball 0 R → x ∉ ψ '' closedBall 0 l :=
+    fun hx h ↦ hx (image_mono (closedBall_subset_ball hlR) h)
+  have hAS : collapseMap hψ hl hε '' A = GluedAlong.inl _ '' S := by
+    ext z
+    constructor
+    · rintro ⟨x, ⟨hxC, hxR⟩, rfl⟩
+      exact ⟨⟨x, (mem_outerPiece_iff hψ).2 (hnot hxR)⟩, ⟨⟨x, hxC, rfl⟩, hxR⟩,
+        (collapseMap_of_notMem hψ hl hε (hnot hxR)).symm⟩
+    · rintro ⟨x', ⟨⟨x, hxC, hxx⟩, hxR⟩, rfl⟩
+      have hxR' : (x : M) ∉ ψ '' ball 0 R := fun h ↦ hxR (hxx ▸ h)
+      refine ⟨x, ⟨hxC, hxR'⟩, ?_⟩
+      rw [collapseMap_of_notMem hψ hl hε (hnot hxR')]
+      exact congrArg _ (Subtype.ext hxx)
+  rw [hAS]
+  exact GluedAlong.isClosed_image_inl _ hS
+    (disjoint_left.2 fun x hx hxU ↦ hx.2 ((mem_outerOverlap_iff hψ).1 hxU))
+
+/-- **The collapse map is a quotient map**: it is continuous, onto and closed. -/
+theorem isQuotientMap_collapseMap : IsQuotientMap (collapseMap hψ hl hε) :=
+  (isClosedMap_collapseMap hψ hl hε).isQuotientMap (continuous_collapseMap hψ hl hε)
+    (surjective_collapseMap hψ hl hε)
+
+/-- **The blowup as a quotient**: the homeomorphism from the quotient of `M ∖ ψ(B°(l))` by the
+fibres of the collapse map, which are the points off the sphere `ψ(∂B(l))` and the Hopf circles
+of that sphere (`collapseMap_eq_collapseMap_iff`), onto the blowup of weight `l`. -/
+def collapseHomeomorph :
+    Quotient (Setoid.ker (collapseMap hψ hl hε)) ≃ₜ WeightBlowup hψ hl.le hε :=
+  (isQuotientMap_collapseMap hψ hl hε).homeomorph (f := ⟨_, continuous_collapseMap hψ hl hε⟩)
+
+/-- `collapseHomeomorph` sends the class of a point to its image under the collapse map. -/
+@[simp]
+theorem collapseHomeomorph_mk (x : ((ψ '' ball 0 l)ᶜ : Set M)) :
+    collapseHomeomorph hψ hl hε (Quotient.mk _ x) = collapseMap hψ hl hε x :=
+  (rfl)
 
 end WeightBlowup
 

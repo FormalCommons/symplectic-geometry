@@ -34,7 +34,9 @@ dimension, including dimension `0`.
 It also computes Liouville integrals in symplectic coordinates. A partial diffeomorphism
 `Φ : N → M` that pulls `σ` back to a two-form `τ` on its source carries the Liouville measure of
 `τ` on the source to that of `σ` on the target
-(`TauCeti.SmoothTwoForm.IsSymplecticMapOn.map_restrict_liouvilleMeasure`), so that
+(`TauCeti.SmoothTwoForm.IsSymplecticMapOn.map_restrict_liouvilleMeasure`). So it sends each
+subset of the source onto a set of the same Liouville measure
+(`TauCeti.SmoothTwoForm.IsSymplecticMapOn.liouvilleMeasure_image`), and
 `∫ f dλ_σ = ∫_{Φ.source} f ∘ Φ dλ_τ` for every `f` vanishing outside the target
 (`TauCeti.SmoothTwoForm.IsSymplecticMapOn.integral_liouvilleMeasure`). The manifolds `N` and `M`
 may be modelled on different spaces of the same dimension; the proof restricts `Φ` to its open
@@ -149,6 +151,24 @@ theorem IsSymplecticMapOn.map_restrict_liouvilleMeasure (hΦ : τ.IsSymplecticMa
   rw [← map_comap_subtypeVal hs] at hΦm ⊢
   rw [AEMeasurable.map_map_of_aemeasurable hΦm (measurable_subtypeVal.aemeasurable)]
   exact hΦ.map_comap_subtypeVal_liouvilleMeasure
+
+/-- **Liouville measure of an image under a symplectic partial diffeomorphism.** If a partial
+diffeomorphism `Φ : N → M` pulls `σ` back to `τ` on its source, then it sends each
+subset `s` of its source onto a set whose Liouville measure for `σ` is that of `s` for `τ`. -/
+theorem IsSymplecticMapOn.liouvilleMeasure_image (hΦ : τ.IsSymplecticMapOn σ Φ Φ.source)
+    {s : Set N} (hsub : s ⊆ Φ.source) :
+    σ.liouvilleMeasure n (Φ '' s) = τ.liouvilleMeasure n s := by
+  have hg : MeasurableEmbedding (Φ.source.domRestrict Φ) :=
+    Φ.toOpenPartialHomeomorph.isOpenEmbedding_restrict.measurableEmbedding
+  have himg : Φ '' s = Φ.source.domRestrict Φ '' (Subtype.val ⁻¹' s) := by
+    rw [image_domRestrict, inter_eq_left.2 hsub]
+  have hval : (Subtype.val : Φ.source → N) '' (Subtype.val ⁻¹' s) = s := by
+    rw [image_preimage_eq_inter_range, Subtype.range_coe, inter_eq_left.2 hsub]
+  have ht : Φ '' s ⊆ Φ.target :=
+    (image_mono hsub).trans Φ.toPartialEquiv.image_source_eq_target.le
+  rw [← Measure.restrict_eq_self _ ht, ← hΦ.map_comap_subtypeVal_liouvilleMeasure, himg,
+    hg.map_apply, preimage_image_eq _ hg.injective,
+    (MeasurableEmbedding.subtypeVal Φ.open_source.measurableSet).comap_apply, hval]
 
 /-- **Integrals against the Liouville measure through a symplectic partial diffeomorphism.** If a
 partial diffeomorphism `Φ : N → M` pulls `σ` back to `τ` on its source, then a function `f` that

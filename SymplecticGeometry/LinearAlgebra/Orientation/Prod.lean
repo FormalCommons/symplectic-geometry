@@ -13,7 +13,9 @@ public import TauCeti.LinearAlgebra.Orientation.Prod
 A module of rank zero has two orientations of the empty index type, `positiveOrientation` and
 its negative. The product orientation (Tau Ceti's `Orientation.prod`) of an orientation `o` of
 `E` with the positive orientation of a zero-dimensional module `F` is the image of `o` under the
-inclusion `E ≃ E × F`, `v ↦ (v, 0)` (`Orientation.prod_positiveOrientation_right`).
+inclusion `E ≃ E × F`, `v ↦ (v, 0)` (`Orientation.prod_positiveOrientation_right`). When both
+factors have rank zero, the product of two orientations is positive exactly when they have the
+same sign (`Orientation.prod_eq_positiveOrientation_iff`).
 -/
 
 public section
@@ -44,5 +46,31 @@ theorem prod_positiveOrientation_right [Unique F] (o : Orientation R E (Fin m))
   rcases b.orientation_eq_or_eq_neg o with rfl | rfl
   · exact hb
   · rw [prod_neg_left, hb, Orientation.map_neg]
+
+/-- For empty index types `Fin m` and `Fin n`, the product of orientations `o` and `p` is the
+positive orientation if and only if `o` and `p` are both positive or both negative. -/
+theorem prod_eq_positiveOrientation_iff {n : ℕ} [IsEmpty (Fin m)] [IsEmpty (Fin n)]
+    [IsEmpty (Fin (m + n))] (o : Orientation R E (Fin m)) (p : Orientation R F (Fin n))
+    (hm : finrank R E = m) (hn : finrank R F = n) :
+    o.prod p hm hn = positiveOrientation ↔
+      (o = positiveOrientation ↔ p = positiveOrientation) := by
+  have hpp : prod (positiveOrientation : Orientation R E (Fin m))
+      (positiveOrientation : Orientation R F (Fin n)) hm hn = positiveOrientation := by
+    rw [← (finBasisOfFinrankEq R E hm).orientation_isEmpty,
+      ← (finBasisOfFinrankEq R F hn).orientation_isEmpty, prod_basis_orientation,
+      Basis.orientation_isEmpty]
+  have hE : -(positiveOrientation : Orientation R E (Fin m)) ≠ positiveOrientation :=
+    (Module.Ray.ne_neg_self _).symm
+  have hF : -(positiveOrientation : Orientation R F (Fin n)) ≠ positiveOrientation :=
+    (Module.Ray.ne_neg_self _).symm
+  have hEF : -(positiveOrientation : Orientation R (E × F) (Fin (m + n))) ≠
+      positiveOrientation := (Module.Ray.ne_neg_self _).symm
+  rcases eq_or_eq_neg_of_isEmpty o with rfl | rfl <;>
+    rcases eq_or_eq_neg_of_isEmpty p with rfl | rfl
+  · simp [hpp]
+  · simp [hpp, hF, hEF]
+  · simp [hpp, hE, hEF]
+  · rw [prod_neg_neg, hpp]
+    simp [hE, hF]
 
 end Orientation

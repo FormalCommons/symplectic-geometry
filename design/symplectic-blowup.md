@@ -207,7 +207,7 @@ they are split here so that each issue is a few hundred lines, and
 | `Blowup/Profile.lean` | the profiles and the forms $\tilde\omega_{\lambda,\varepsilon}$ | 3 |
 | `Blowup/Area.lean` | the area identity; the first milestone | 4 |
 | `Blowup/Weight/Basic.lean` | the blowup $\widetilde M_\psi$ of weight $\lambda$ and its divisor | 5 |
-| `Blowup/Weight/Collapse.lean` | the Hopf collapse, the volume, the second milestone | 6 |
+| `Blowup/Weight/Collapse.lean` | the Hopf collapse, the second milestone | 6 |
 | `Blowup/DivisorNeighborhood.lean` | a neighbourhood of a divisor is $L(\varepsilon)$ | 7 |
 | `Blowup/Blowdown.lean` | the blowdown; the third milestone | 8 |
 | `Blowup/Normalized/Basic.lean` | normalizations, lifts, the forms $\tilde\omega_{\psi,\lambda,\varepsilon}$ | 9 |
@@ -318,10 +318,10 @@ Namespace `SymplecticGeometry.BlowupModel`, on `BlowupModel n`.
   continuous with `blowdown ∘ ũ = u`, the integral over `Ω` of $u^*\omega_0$
   is that of $\tilde u^*\tilde\omega_{\lambda,\varepsilon}$ plus
   $m\pi\lambda^2$. The integrals are Lebesgue integrals over `Ω` of the
-  densities $\sigma(\partial_xu,\partial_yu)$. `ũ` is holomorphic by
-  *Complex blowup*'s `eqOn_liftMap_of_blowdown_comp` argument and
-  `curveLift` (`Lift.lean`), which also gives its existence
-  (`exists_lift_of_finite_zeros`).
+  densities $\sigma(\partial_xu,\partial_yu)$. `ũ` is `curveLift u` on `Ω`,
+  so holomorphic, by *Complex blowup*'s `curveLift_eq_of_blowdown_comp`
+  (`Lift.lean`), and `continuousOn_curveLift` with `blowdown_curveLift`
+  gives its existence.
 - Proof, the page's route: off the zeros the difference of the densities is
   $\tfrac14\Delta(\phi\circ u)$ with $\phi(s)=s-g(s)$, constant near
   `frontier Ω`; Stokes on `Ω` minus small discs about the zeros (Tau Ceti's
@@ -390,13 +390,16 @@ $B(\lambda)$.
   `sphereHopf_eq_sphereHopf_iff` (Hopf circles of the sphere of radius
   $\lambda$, after scaling).
 - `collapseHomeomorph`: the homeomorphism from the quotient of
-  `(ψ '' ball 0 λ)ᶜ` by the relation "equal, or both on the sphere with
-  the same `sphereHopf`" onto `WeightBlowup hψ hλ hε`.
+  `(ψ '' ball 0 λ)ᶜ` by `Setoid.ker (collapseMap hψ hλ hε)`, the relation
+  "equal, or both on the sphere with the same `sphereHopf`",
+  onto `WeightBlowup hψ hλ.le hε`.
 - `liouvilleMeasure_form_add`: the Liouville measure of the blowup plus
-  that of $B(\lambda)$ for $\omega_0$ is that of `M`, in `ℝ≥0∞`: $Z$ is
-  null, `complDivisorSymplectomorph` preserves the Liouville measure, and
-  $\psi$ carries that of $\omega_0$ on $B(\lambda)$ to that of $\omega$
-  (`measurePreserving_liouvilleMeasure`).
+  the Lebesgue measure of $B(\lambda)$, its Liouville measure for
+  $\omega_0$, is that of `M`, in `ℝ≥0∞`, for any `σ` and `0 ≤ λ`; it is in
+  `Blowup/Weight/Volume.lean`. $Z$ is null in the charts of the model,
+  `inl` carries the Liouville measure of $M\setminus\psi(B(\lambda))$ onto the
+  complement of $Z$, and $\psi$ carries that of $\omega_0$ on $B(\lambda)$ to that of
+  $\omega$ (`IsSymplecticBallEmbedding.liouvilleMeasure_image`).
 - **Milestone** `WeightBlowup.isSymplectic_form_and_divisor`: the conjunction
   of `isSymplectic_form`, the divisor statements, `collapseHomeomorph` and
   `liouvilleMeasure_form_add`. Its docstring ends with the line Milestone:

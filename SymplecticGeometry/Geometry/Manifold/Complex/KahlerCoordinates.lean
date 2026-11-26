@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.Riemannian.PartialDiffeomorph
 public import TauCeti.Analysis.Calculus.InverseFunctionTheorem
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartialDiffeomorph
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.LinearAlgebra.ComplexStructure.SymmetricBilinear
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
@@ -188,7 +189,7 @@ private theorem fderiv_gramInChart_symmetries {form : SmoothTwoForm I M} (hform 
   · -- The closedness of `form`, read in the chart, as a cyclic identity for `A`.
     have hΩd : DifferentiableAt ℝ Ω z₀ := form.differentiableAt_mpullback_symm φ hz₀
     have hcl : extDeriv Ω z₀ = 0 := SmoothForm.IsClosed.extDeriv_mpullback_eq_zero hform
-      ((φ.symm.contMDiffOn.contMDiffAt (φ.open_target.mem_nhds hz₀)).of_le (by simp))
+      ((φ.symm.contMDiffAt hz₀).of_le (by simp))
     have hΩe (a b k : E) : fderiv ℝ (fun z ↦ Ω z ![a, b]) z₀ k = - A k a (J₀ b) := by
       have he : (fun z ↦ Ω z ![a, b]) =ᶠ[𝓝 z₀] fun z ↦ - G z a (J₀ b) :=
         eventually_of_mem (φ.open_target.mem_nhds hz₀) fun z hz ↦ by

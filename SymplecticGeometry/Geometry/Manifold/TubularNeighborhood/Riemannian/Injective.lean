@@ -126,7 +126,7 @@ theorem exists_contMDiff_injective_normalBundle (f : SmoothEmbedding I J ∞ M N
     rw [vectorBundleRadialPartialDiffeomorphOfRadius_target] at h
     exact hdisc _ _ (le_of_lt h)
   have hR : ContMDiff (I.prod 𝓘(ℝ, P)) (I.prod 𝓘(ℝ, P)) ∞ R := fun p ↦
-    (R.contMDiffOn p (hRsrc p)).contMDiffAt (R.open_source.mem_nhds (hRsrc p))
+    R.contMDiffAt (hRsrc p)
   have hT : ContMDiff (I.prod 𝓘(ℝ, P)) J ∞ (fun p ↦ Ψ (R p)) :=
     Ψ.contMDiffOn.comp_contMDiff hR hRS
   have hzeroR (x : M) : R (zeroSection P ν x) = zeroSection P ν x := by
