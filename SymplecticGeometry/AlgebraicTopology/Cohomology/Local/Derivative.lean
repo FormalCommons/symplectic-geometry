@@ -37,6 +37,8 @@ restriction to the ball is an isomorphism on relative cohomology by excision
 * `TopPair.singularCohomologyMap_ofSubsetMap_eq_affine_of_hasFDerivAt`: a map with antilipschitz
   derivative at `x` and its affine linearization induce the same map on the relative cohomology of
   `(U, U ∖ {x})`.
+* `TopPair.singularCohomologyMap_ofSubsetMap_eq_linear_of_hasFDerivAt`: a map fixing `0` with
+  antilipschitz derivative there induces the same map as its derivative.
 * `TopPair.singularCohomologyMap_ofSubsetMap_eq_inclusion_of_hasFDerivAt_id`: a map fixing `x`
   with derivative the identity there induces the same map as the inclusion of `U`.
 
@@ -123,6 +125,38 @@ theorem singularCohomologyMap_ofSubsetMap_eq_affine_of_hasFDerivAt {f : E → F}
     (hseg.symm.trans (sub_eq_zero.2 (Set.mem_singleton_iff.1 h)))
   rw [norm_smul, Real.norm_of_nonneg (by linarith [t.property.2])]
   exact (mul_le_of_le_one_left (norm_nonneg _) (by linarith [t.property.1])).trans hrem
+
+/-- **A map fixing `0` with antilipschitz derivative there induces the same map on relative
+cohomology as its derivative.** Let `U ⊆ E` be a neighbourhood of `0` and `f : E → F` a map
+continuous on `U` with `f 0 = 0` and differentiable at `0`, with an antilipschitz derivative `f'`,
+such that `0` is the only point of `U` sent to `0`. Then `f` and `f'`, as maps of pairs
+`(U, U ∖ {0}) ⟶ (F, F ∖ {0})`, induce the same map `Hⁿ(F, F ∖ {0}) ⟶ Hⁿ(U, U ∖ {0})`. -/
+theorem singularCohomologyMap_ofSubsetMap_eq_linear_of_hasFDerivAt {f : E → F}
+    {f' : E →L[ℝ] F} {U : Set E} (hU : U ∈ 𝓝 0) (hfU : ContinuousOn f U) (hf0 : f 0 = 0)
+    (hf : HasFDerivAt f f' 0) {K : NNReal} (hf' : AntilipschitzWith K f')
+    (hfx : ∀ y ∈ U, f y = 0 → y = 0) (n : ℕ) :
+    TopPair.singularCohomologyMap (R := R) (k := k) (M := M)
+        (ofSubsetMap (X := TopCat.of U) (Y := TopCat.of F)
+          (TopCat.ofHom ⟨U.domRestrict f, hfU.domRestrict⟩)
+          (B := {⟨0, mem_of_mem_nhds hU⟩}ᶜ) (B' := {0}ᶜ)
+          fun y hy h ↦ hy (Subtype.ext (hfx y y.property h))) n =
+      TopPair.singularCohomologyMap
+        (ofSubsetMap (X := TopCat.of U) (Y := TopCat.of F)
+          (TopCat.ofHom ⟨fun y : U ↦ f' y, by fun_prop⟩)
+          (B := {⟨0, mem_of_mem_nhds hU⟩}ᶜ) (B' := {0}ᶜ)
+          fun y hy h ↦ hy (Subtype.ext (hf'.injective (h.trans (map_zero f').symm)))) n := by
+  have key := singularCohomologyMap_ofSubsetMap_eq_affine_of_hasFDerivAt R k M hU hfU hf hf'
+    (fun y hy h ↦ hfx y hy (h.trans hf0)) n
+  -- Both maps factor through `(F, F ∖ {f 0})`, followed by the identity of `F`.
+  let j := ofSubsetMap (X := TopCat.of F) (𝟙 _) (B := {f 0}ᶜ) (B' := {0}ᶜ)
+    (by rw [hf0]; exact mapsTo_id _)
+  convert congrArg (TopPair.singularCohomologyMap (R := R) (k := k) (M := M) j n ≫ ·) key
+    using 1 <;> rw [← singularCohomologyMap_comp]
+  · exact congrArg (TopPair.singularCohomologyMap · n)
+      (ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ _ (Category.comp_id _)).symm
+  · exact congrArg (TopPair.singularCohomologyMap · n)
+      (ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ _
+        (ConcreteCategory.hom_ext _ _ fun y ↦ by simp [hf0])).symm
 
 /-- **A map fixing a point with derivative the identity there induces the same map on relative
 cohomology as the inclusion.** Let `U ⊆ E` be a neighbourhood of `x` and `f : E → E` a map

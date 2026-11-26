@@ -38,7 +38,7 @@ The local-degree lemma for maps into the Thom pair combines this with linearizat
 base points of `g` stay in a contractible neighbourhood of `b` in the base set, so `g` pulls
 classes back through the fibre over `b` and its coordinate in `e`; that coordinate pulls classes
 back as its linearization `A` does
-(`TopPair.singularCohomologyMap_ofSubsetMap_eq_affine_of_hasFDerivAt`); and restricting to the
+(`TopPair.singularCohomologyMap_ofSubsetMap_eq_linear_of_hasFDerivAt`); and restricting to the
 small neighbourhood loses nothing, by excision
 (`TopPair.isIso_singularCohomologyMap_ofSubsetMap_inclusion`). The argument follows the
 private `singularCohomologyMap_slice_eq_of_isOpen` and
@@ -204,6 +204,25 @@ theorem coordPairMap_fst_apply (q : Q.fst) :
     TopPair.isoOfSubsetRange_hom_fst_apply]
   exact TopPair.ofSubsetMap_fst_apply _ _ _
 
+omit [∀ b, TopologicalSpace (E b)] [FiberBundle F E] in
+/-- The coordinate in the model fibre of the map of pairs `(X, A) ⟶ (E, E₀)` induced by a map
+`g : X → E` whose base points lie in the base set of `e` is the map of pairs
+`(X, A) ⟶ (F, F ∖ {0})` induced by `x ↦ (e (g x)).2`. -/
+theorem coordPairMap_ofSubsetMap {X : Type w} [TopologicalSpace X] {A : Set X}
+    (g : C(X, TotalSpace F E)) (hg : MapsTo g A (zeroSectionCompl F E))
+    (hge : ∀ x, (g x).proj ∈ e.baseSet) :
+    e.coordPairMap (TopPair.ofSubsetMap (X := TopCat.of X) (TopCat.ofHom g) hg : _ ⟶ thomPair F E)
+        (fun x ↦ (TopPair.ofSubsetMap_fst_apply (TopCat.ofHom g) hg x).symm ▸ hge x) =
+      TopPair.ofSubsetMap (X := TopCat.of X) (B' := {0}ᶜ)
+        (TopCat.ofHom ⟨fun x ↦ (e (g x)).2,
+          (e.continuousOn.comp_continuous g.continuous fun x ↦ e.mem_source.2 (hge x)).snd⟩)
+        fun x hx ↦ (e.snd_apply_ne_zero_iff ℝ (hge x)).2 (mem_zeroSectionCompl.1 (hg hx)) := by
+  refine TopPair.hom_ext_of_fst _ (ConcreteCategory.hom_ext _ _ fun x ↦ ?_)
+  rw [coordPairMap_fst_apply, TopPair.ofSubsetMap_fst_apply]
+  -- The points of the pair are those of `X` only up to unfolding `ofSubset`, which blocks
+  -- rewriting with `TopCat.ofHom_apply`; the instance of `ofSubsetMap_fst_apply` closes the goal.
+  exact (TopPair.ofSubsetMap_fst_apply (TopCat.ofHom ⟨fun x ↦ (e (g x)).2, _⟩) _ x).symm
+
 /-- Read back in `F` through the isomorphism `E_b ≃L[ℝ] F` of `e` at `b`, the fibre coordinate of
 `φ` is its coordinate `q ↦ (e (φ q)).2` in the model fibre. -/
 theorem fiberCoordPairMap_comp_complZeroPairIso_hom :
@@ -325,42 +344,14 @@ theorem singularCohomologyMap_ofSubsetMap_eq_complZeroPairIso_inv_of_hasFDerivAt
   have hGc : ContinuousOn G S :=
     (e.continuousOn.comp hgS fun w hw ↦ e.mem_source.2 (hU (hgU hw))).snd
   have hG0 : G 0 = 0 := by simp [G, hg0, e.zeroSection ℝ hb]
-  have hGx : ∀ w ∈ S, G w = G 0 → w = 0 := fun w hw h ↦ by_contra fun hw0 ↦
-    (e.snd_apply_ne_zero_iff ℝ (hU (hgU hw))).2 (hgS0 w hw hw0) (h.trans hG0)
-  have hcoord : e.coordPairMap ψ (fun q ↦ hU (hψU q)) =
-      TopPair.ofSubsetMap (X := TopCat.of S) (Y := TopCat.of F)
-        (TopCat.ofHom ⟨S.domRestrict G, hGc.domRestrict⟩) (B := {⟨0, hS0⟩}ᶜ) (B' := {0}ᶜ)
-        (fun y hy h ↦ hy (Subtype.ext (hGx y y.property (h.trans hG0.symm)))) := by
-    refine TopPair.hom_ext_of_fst _ (ConcreteCategory.hom_ext _ _ fun w ↦ ?_)
-    rw [Trivialization.coordPairMap_fst_apply]
-    -- The points of the pair are those of `S` only up to unfolding `ofSubset`.
-    erw [TopPair.ofSubsetMap_fst_apply (X := TopCat.of S) (Y := TopCat.of F)]
-    exact congrArg (fun p ↦ (e p).2) (hψ w)
-  -- `G` and its linearization at `0` both factor through `(F, F ∖ {G 0})`.
-  let j := TopPair.ofSubsetMap (X := TopCat.of F) (𝟙 _) (B := {G 0}ᶜ) (B' := {0}ᶜ)
-    (by rw [hG0]; exact mapsTo_id _)
-  have key := congrArg (TopPair.singularCohomologyMap (R := R) (k := k) (M := M) j n ≫ ·)
-    (TopPair.singularCohomologyMap_ofSubsetMap_eq_affine_of_hasFDerivAt R k M hS hGc hA hAK
-      hGx n)
-  simp only [← TopPair.singularCohomologyMap_comp] at key
-  have h1 : TopPair.ofSubsetMap (X := TopCat.of S) (Y := TopCat.of F)
-      (TopCat.ofHom ⟨S.domRestrict G, hGc.domRestrict⟩) (B := {⟨0, hS0⟩}ᶜ) (B' := {G 0}ᶜ)
-      (fun y hy h ↦ hy (Subtype.ext (hGx y y.property h))) ≫ j =
-      TopPair.ofSubsetMap (X := TopCat.of S) (Y := TopCat.of F)
-        (TopCat.ofHom ⟨S.domRestrict G, hGc.domRestrict⟩) (B := {⟨0, hS0⟩}ᶜ) (B' := {0}ᶜ)
-        (fun y hy h ↦ hy (Subtype.ext (hGx y y.property (h.trans hG0.symm)))) :=
-    TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ _ (Category.comp_id _)
-  have h2 : TopPair.ofSubsetMap (X := TopCat.of S) (Y := TopCat.of F)
-      (TopCat.ofHom ⟨fun y : S ↦ G 0 + A (y - 0), by fun_prop⟩) (B := {⟨0, hS0⟩}ᶜ)
-      (B' := {G 0}ᶜ) (fun y hy h ↦ hy (Subtype.ext <| sub_eq_zero.1 <| hAK.injective <|
-        (add_eq_left.1 h).trans (map_zero A).symm)) ≫ j =
-      TopPair.ofSubsetMap (X := TopCat.of S) (Y := TopCat.of F)
-        (TopCat.ofHom ⟨fun w : S ↦ A w, by fun_prop⟩) (B := {⟨0, hS0⟩}ᶜ) (B' := {0}ᶜ)
-        fun w hw h ↦ hw (Subtype.ext (hAK.injective (h.trans (map_zero A).symm))) :=
-    TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ _
-      (ConcreteCategory.hom_ext _ _ fun y ↦ by simp [hG0])
-  rw [h1, h2] at key
-  rw [hcoord, key]
+  have hGx : ∀ w ∈ S, G w = 0 → w = 0 := fun w hw h ↦ by_contra fun hw0 ↦
+    (e.snd_apply_ne_zero_iff ℝ (hU (hgU hw))).2 (hgS0 w hw hw0) h
+  -- The coordinate of `ψ` is `w ↦ (e (S.domRestrict g w)).2`, which is `S.domRestrict G` by the
+  -- definition of `Set.restrict`.
+  exact (congrArg (TopPair.singularCohomologyMap · n d) (e.coordPairMap_ofSubsetMap
+    ⟨S.domRestrict g, hgS.domRestrict⟩ _ fun w ↦ hU (hgU w.property))).trans
+      (congrArg (· d) (TopPair.singularCohomologyMap_ofSubsetMap_eq_linear_of_hasFDerivAt R k M
+        hS hGc hG0 hA hAK hGx n))
 
 /-- **The local-degree lemma for maps into a Thom pair.** Let `e` be a linear trivialization of a
 real vector bundle `E → B` with model fibre `F`, over a strongly locally contractible base, and
