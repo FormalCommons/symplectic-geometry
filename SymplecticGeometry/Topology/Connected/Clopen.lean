@@ -219,15 +219,16 @@ theorem isPreconnected_compl_of_forall_exists_mem_nhds [PreconnectedSpace X] {A 
 
 /-- **Removing a set that separates at most two ways locally, inside a preconnected set.**
 Let `U` be a preconnected set and `A ⊆ U` a preconnected set such that each `a ∈ A` has a
-neighbourhood `V ⊆ U` whose part outside `A` is the union of two preconnected sets `P` and `Q`
-whose closures both contain `V ∩ A`. If one point `b ∈ A` has a neighbourhood `V ⊆ U` with
-`V \ A` preconnected, then `U \ A` is preconnected.
+neighbourhood `V ⊆ U` within `U` whose part outside `A` is the union of two preconnected sets
+`P` and `Q` whose closures both contain `V ∩ A`. If one point `b ∈ A` has a neighbourhood
+`V ⊆ U` within `U` with `V \ A` preconnected, then `U \ A` is preconnected.
 
-This is `isPreconnected_compl_of_forall_exists_mem_nhds` in the subspace `U`. -/
+This is `isPreconnected_compl_of_forall_exists_mem_nhds` in the subspace `U`, so the
+neighbourhoods are taken in `U` and `U` need not be open. -/
 theorem IsPreconnected.sdiff_of_forall_exists_mem_nhds {U A : Set X} (hUc : IsPreconnected U)
     (hA : IsPreconnected A) (hAU : A ⊆ U) {b : X} (hb : b ∈ A)
-    (hbV : ∃ V ∈ 𝓝 b, V ⊆ U ∧ IsPreconnected (V \ A))
-    (h : ∀ a ∈ A, ∃ V ∈ 𝓝 a, V ⊆ U ∧ ∃ P Q : Set X, V \ A = P ∪ Q ∧ IsPreconnected P ∧
+    (hbV : ∃ V ∈ 𝓝[U] b, V ⊆ U ∧ IsPreconnected (V \ A))
+    (h : ∀ a ∈ A, ∃ V ∈ 𝓝[U] a, V ⊆ U ∧ ∃ P Q : Set X, V \ A = P ∪ Q ∧ IsPreconnected P ∧
       IsPreconnected Q ∧ V ∩ A ⊆ closure P ∩ closure Q) :
     IsPreconnected (U \ A) := by
   have : PreconnectedSpace U := isPreconnected_iff_preconnectedSpace.mp hUc
@@ -239,8 +240,8 @@ theorem IsPreconnected.sdiff_of_forall_exists_mem_nhds {U A : Set X} (hUc : IsPr
   have hcl {S : Set X} (hS : S ⊆ U) : closure ((↑) ⁻¹' S : Set U) = (↑) ⁻¹' closure S := by
     rw [IsInducing.subtypeVal.closure_eq_preimage_closure_image, Subtype.image_preimage_coe,
       inter_eq_right.2 hS]
-  have hnhds {x : U} {V : Set X} (hV : V ∈ 𝓝 (x : X)) : (↑) ⁻¹' V ∈ 𝓝 x :=
-    continuous_subtypeVal.continuousAt.preimage_mem_nhds hV
+  have hnhds {x : U} {V : Set X} (hV : V ∈ 𝓝[U] (x : X)) : (↑) ⁻¹' V ∈ 𝓝 x :=
+    preimage_coe_mem_nhds_subtype.2 hV
   have hc := isPreconnected_compl_of_forall_exists_mem_nhds (X := U)
     (A := ((↑) : U → X) ⁻¹' A) ((hpre hAU).2 hA) (b := ⟨b, hAU hb⟩) hb ?_ ?_
   · have himage : ((↑) : U → X) '' ((↑) ⁻¹' A)ᶜ = U \ A := by

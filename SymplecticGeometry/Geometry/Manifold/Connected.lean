@@ -7,11 +7,14 @@ module
 
 public import Mathlib.Geometry.Manifold.SmoothEmbedding
 public import Mathlib.Order.Interval.Set.OrdConnected
-public import TauCeti.Geometry.Manifold.Connected
-import Mathlib.Geometry.Manifold.HasGroupoid
+public import TauCeti.Geometry.Manifold.LocallyFlat.Basic
 import Mathlib.Topology.Order.IntermediateValue
+import SymplecticGeometry.Geometry.Manifold.Immersion.Complement
 import SymplecticGeometry.Geometry.Manifold.LocallyFlat.LineComplement
 import SymplecticGeometry.Topology.Connected.Clopen
+import TauCeti.Geometry.Manifold.Connected
+import TauCeti.Geometry.Manifold.LocallyFlat.Smooth
+import TauCeti.Geometry.Manifold.ModelTransport.Boundaryless
 
 /-!
 # Removing arcs and a discrete set from a connected open set of a manifold
@@ -24,21 +27,23 @@ under a smooth embedding `f : ℝ → M`, and its free end is `f b` for a greate
 element `b` of `J`.
 
 The points of `s` are removed first, by Tau Ceti's
-`TauCeti.isPreconnected_sdiff_of_isOpen_of_isDiscrete_of_one_lt_rank`, read in the model
-space `E` through the charts composed with `I`. The arcs are then removed one at a time by
-`IsPreconnected.sdiff_of_forall_exists_mem_nhds`: near an arc point, a small neighbourhood
-minus the arc consists of at most two preconnected pieces, each with the arc in its closure,
-and near the free end it is preconnected
-(`Manifold.IsSmoothEmbedding.exists_isPreconnected_diff_image` and
-`Manifold.IsSmoothEmbedding.exists_isPreconnected_diff_image_of_mem_bounds`). Relative
-closedness keeps the set left open after each step.
+`TauCeti.isPreconnected_sdiff_of_isOpen_of_isDiscrete_of_one_lt_rank`, applied to
+`TauCeti.BoundarylessModel I M`, the copy of `M` charted over `E`. The arcs are then removed one
+at a time by `IsPreconnected.sdiff_of_forall_exists_mem_nhds`: near an arc point, a small
+neighbourhood minus the arc consists of at most two preconnected pieces, each with the arc in its
+closure, and near the free end it is preconnected
+(`TauCeti.IsLocallyFlat.exists_isPreconnected_diff_image` and
+`TauCeti.IsLocallyFlat.exists_isPreconnected_diff_image_of_mem_bounds`). These local facts hold
+for any locally flat embedding of `ℝ` with a nontrivial complementary model, so the one-arc step
+is stated in that generality first. Relative closedness keeps the set left open after each step.
 
 ## Main results
 
-* `isPreconnected_sdiff_of_isOpen_of_isDiscrete_of_boundaryless`: Tau Ceti's discrete-set lemma
-  for a manifold modelled on a boundaryless model with corners.
-* `Manifold.IsSmoothEmbedding.isPreconnected_sdiff_image`: removing one arc with a free end from
-  a preconnected set that contains it and is open leaves a preconnected set.
+* `TauCeti.IsLocallyFlat.isPreconnected_sdiff_image`: removing one arc with a free end, the image
+  of a locally flat embedding, from a preconnected open set that contains it leaves a
+  preconnected set.
+* `Manifold.IsSmoothEmbedding.isPreconnected_sdiff_image`: the same for a smooth embedding into a
+  boundaryless manifold whose model space has rank greater than one.
 * `isPreconnected_sdiff_union_iUnion_image_of_one_lt_rank`: the statement above, for a closed
   discrete set and finitely many arcs.
 
@@ -52,23 +57,34 @@ public section
 
 open Function Set Topology Manifold
 
+namespace TauCeti.IsLocallyFlat
+
+variable {M : Type*} [TopologicalSpace M] {F' : Type*} [NormedAddCommGroup F'] [NormedSpace ℝ F']
+  [Nontrivial F'] {f : ℝ → M}
+
+/-- **Removing an arc with a free end keeps an open set preconnected.** Let `f : ℝ → M` be a
+locally flat embedding with nontrivial complementary model, `J` an order-connected subset of `ℝ`
+and `b ∈ J` an upper or a lower bound of `J`. If `U` is open and preconnected and contains
+`f '' J`, then `U \ f '' J` is preconnected. -/
+theorem isPreconnected_sdiff_image (h : IsLocallyFlat ℝ F' f) {U : Set M} (hU : IsOpen U)
+    (hUc : IsPreconnected U) {J : Set ℝ} (hJ : J.OrdConnected) {b : ℝ} (hb : b ∈ J)
+    (hbJ : b ∈ upperBounds J ∨ b ∈ lowerBounds J) (hJU : f '' J ⊆ U) :
+    IsPreconnected (U \ f '' J) := by
+  obtain ⟨V, hV, hVU, hVc⟩ :=
+    h.exists_isPreconnected_diff_image_of_mem_bounds hbJ
+      (hU.mem_nhds (hJU (mem_image_of_mem f hb)))
+  refine hUc.sdiff_of_forall_exists_mem_nhds (hJ.isPreconnected.image _ h.continuous.continuousOn)
+    hJU (mem_image_of_mem f hb) ⟨V, mem_nhdsWithin_of_mem_nhds hV, hVU, hVc⟩ ?_
+  rintro _ ⟨t, ht, rfl⟩
+  obtain ⟨V, hV, hVU, P, Q, hP, hQ, hPQ, hcl⟩ :=
+    h.exists_isPreconnected_diff_image J t (hU.mem_nhds (hJU (mem_image_of_mem f ht)))
+  exact ⟨V, mem_nhdsWithin_of_mem_nhds hV, hVU, P, Q, hPQ, hP, hQ, hcl⟩
+
+end TauCeti.IsLocallyFlat
+
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] {H : Type*} [TopologicalSpace H]
-  (I : ModelWithCorners ℝ E H) [I.Boundaryless] {M : Type*} [TopologicalSpace M]
-  [ChartedSpace H M]
-
-include I in
-/-- **Removing a closed discrete set from a preconnected open set of a manifold** modelled on a
-boundaryless model with corners `I : ModelWithCorners ℝ E H`, with `E` of real dimension greater
-than one, leaves it preconnected. -/
-theorem isPreconnected_sdiff_of_isOpen_of_isDiscrete_of_boundaryless (hE : 1 < Module.rank ℝ E)
-    {U s : Set M} (hU : IsOpen U) (hUc : IsPreconnected U) (hs : IsClosed s)
-    (hd : IsDiscrete s) : IsPreconnected (U \ s) :=
-  -- Composing the charts with the homeomorphism `I : H ≃ₜ E` makes `M` a charted space over `E`.
-  letI : ChartedSpace E H := I.toHomeomorph.toOpenPartialHomeomorph.singletonChartedSpace (by simp)
-  letI : ChartedSpace E M := ChartedSpace.comp E H M
-  TauCeti.isPreconnected_sdiff_of_isOpen_of_isDiscrete_of_one_lt_rank hE hU hUc hs hd
-
-variable {I} {n : WithTop ℕ∞}
+  {I : ModelWithCorners ℝ E H} [I.Boundaryless] {M : Type*} [TopologicalSpace M]
+  [ChartedSpace H M] {n : WithTop ℕ∞}
 
 namespace Manifold.IsSmoothEmbedding
 
@@ -80,15 +96,9 @@ theorem isPreconnected_sdiff_image {f : ℝ → M} (h : IsSmoothEmbedding 𝓘(�
     (hE : 1 < Module.rank ℝ E) {U : Set M} (hU : IsOpen U) (hUc : IsPreconnected U)
     {J : Set ℝ} (hJ : J.OrdConnected) {b : ℝ} (hb : b ∈ J)
     (hbJ : b ∈ upperBounds J ∨ b ∈ lowerBounds J) (hJU : f '' J ⊆ U) :
-    IsPreconnected (U \ f '' J) := by
-  refine hUc.sdiff_of_forall_exists_mem_nhds
-    (hJ.isPreconnected.image _ h.isEmbedding.continuous.continuousOn) hJU (mem_image_of_mem f hb)
-    (h.exists_isPreconnected_diff_image_of_mem_bounds hE hbJ
-      (hU.mem_nhds (hJU (mem_image_of_mem f hb)))) ?_
-  rintro _ ⟨t, ht, rfl⟩
-  obtain ⟨V, hV, hVU, P, Q, hP, hQ, hPQ, hcl⟩ :=
-    h.exists_isPreconnected_diff_image hE J t (hU.mem_nhds (hJU (mem_image_of_mem f ht)))
-  exact ⟨V, hV, hVU, P, Q, hPQ, hP, hQ, hcl⟩
+    IsPreconnected (U \ f '' J) :=
+  have := h.isImmersion.nontrivial_complement (by simpa using hE)
+  (TauCeti.IsLocallyFlat.of_isSmoothEmbedding h).isPreconnected_sdiff_image hU hUc hJ hb hbJ hJU
 
 end Manifold.IsSmoothEmbedding
 
@@ -115,8 +125,9 @@ theorem isPreconnected_sdiff_union_iUnion_image_of_one_lt_rank {ι : Type*} [Fin
   intro T
   induction T using Finset.induction_on with
   | empty =>
-    simpa using ⟨hU.sdiff hs, isPreconnected_sdiff_of_isOpen_of_isDiscrete_of_boundaryless I hE
-      hU hUc hs hd⟩
+    simpa using ⟨hU.sdiff hs,
+      TauCeti.isPreconnected_sdiff_of_isOpen_of_isDiscrete_of_one_lt_rank
+        (X := TauCeti.BoundarylessModel I M) hE hU hUc hs hd⟩
   | @insert j T hjT ih =>
     obtain ⟨hVo, hVc⟩ := ih
     have heq : U \ (s ∪ ⋃ i ∈ insert j T, f i '' J i) =
