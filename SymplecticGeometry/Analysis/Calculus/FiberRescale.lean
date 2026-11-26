@@ -22,7 +22,8 @@ in the fibre variable
 `fiberRescale f ((p, v), t) = ∫ s in 0..1, fderiv ℝ (fun w ↦ f (p, w)) (s • t • v) v`
 whenever the segment from `(p, 0)` to `(p, t • v)` lies in `U` (`fiberRescale_eq_integral`).
 Differentiating under the integral sign, `fiberRescale f` is `C^n` on the open set of such
-`(p, v, t)` (`contDiffOn_fiberRescale`), also at `t = 0`. If `U` is star-shaped in the fibre
+`(p, v, t)` (`contDiffOn_fiberRescale`), also at `t = 0`
+(`contDiffAt_fiberRescale_zero`). If `U` is star-shaped in the fibre
 variable, this set is that of all `(p, v, t)` with `(p, t • v) ∈ U`
 (`contDiffOn_fiberRescale_of_starShaped`).
 
@@ -45,6 +46,7 @@ whole space without parameters.
 * `fiberRescale_of_ne_zero`, `fiberRescale_zero`, `fiberRescale_one`: its values for `t ≠ 0`,
   at `t = 0` and at `t = 1`.
 * `fiberRescale_eq_integral`: Hadamard's formula for the rescaling.
+* `isOpen_setOf_forall_smul_smul_mem`: the set of `((p, v), t)` whose segments lie in `U` is open.
 * `integral_fderiv_slice_right_eq_integral_fderiv`: the fibre derivative under that integral is
   the derivative of `f` in the direction `(0, v)`.
 * `contDiffOn_fiberRescale`, `contDiffAt_fiberRescale_zero`,
@@ -143,9 +145,22 @@ theorem fiberRescale_eq_integral [CompleteSpace G] (hU : IsOpen U) (hf : ContDif
     ← TauCeti.inv_smul_sub_eq_integral_fderiv_of_mem_normalSegmentDomain hU hf ht hq',
     hf0 p (TauCeti.mk_zero_mem_of_mem_normalSegmentDomain hq'), sub_zero]
 
+omit [NormedSpace ℝ P] in
+/-- For an open set `U`, the set of `((p, v), t)` such that `U` contains the segment from `(p, 0)`
+to `(p, t • v)` is open. It is `TauCeti.normalSegmentDomain U` read in the coordinates
+`(t, (p, v))`. -/
+theorem isOpen_setOf_forall_smul_smul_mem (hU : IsOpen U) :
+    IsOpen {q : (P × F) × ℝ | ∀ s : I, (q.1.1, (s : ℝ) • q.2 • q.1.2) ∈ U} := by
+  convert (TauCeti.isOpen_normalSegmentDomain hU).preimage
+    (continuous_snd.prodMk continuous_fst : Continuous fun q : (P × F) × ℝ ↦ (q.2, q.1))
+    using 1
+  ext q
+  simp [Subtype.forall]
+
 /-- **Smoothness of the rescaling.** If `f` is `C^(n+1)` on an open set `U` and vanishes on
 `U ∩ (P × {0})`, its rescaling in the fibre variable is `C^n` on the set of `((p, v), t)` such
-that `U` contains the segment from `(p, 0)` to `(p, t • v)`; this set is open. -/
+that `U` contains the segment from `(p, 0)` to `(p, t • v)`, an open set by
+`isOpen_setOf_forall_smul_smul_mem`. -/
 theorem contDiffOn_fiberRescale [CompleteSpace G] {n : ℕ∞} (hU : IsOpen U)
     (hf : ContDiffOn ℝ (n + 1) f U)
     (hf0 : ∀ p, (p, (0 : F)) ∈ U → f (p, 0) = 0) :
@@ -165,15 +180,8 @@ for every `(p, 0) ∈ U` and every `v`. -/
 theorem contDiffAt_fiberRescale_zero [CompleteSpace G] {n : ℕ∞} (hU : IsOpen U)
     (hf : ContDiffOn ℝ (n + 1) f U) (hf0 : ∀ p, (p, (0 : F)) ∈ U → f (p, 0) = 0)
     {p : P × F} (hp : (p.1, (0 : F)) ∈ U) : ContDiffAt ℝ n (fiberRescale f) (p, 0) := by
-  -- The set of `((p, v), t)` whose segments lie in `U` is open, by Tau Ceti's
-  -- `isOpen_normalSegmentDomain` in the coordinates `(t, (p, v))`.
-  have hS : IsOpen {q : (P × F) × ℝ | ∀ s : I, (q.1.1, (s : ℝ) • q.2 • q.1.2) ∈ U} := by
-    convert (TauCeti.isOpen_normalSegmentDomain hU).preimage
-      (continuous_snd.prodMk continuous_fst : Continuous fun q : (P × F) × ℝ ↦ (q.2, q.1))
-      using 1
-    ext q
-    simp [Subtype.forall]
-  exact (contDiffOn_fiberRescale hU hf hf0).contDiffAt (hS.mem_nhds fun s ↦ by simpa using hp)
+  exact (contDiffOn_fiberRescale hU hf hf0).contDiffAt
+    ((isOpen_setOf_forall_smul_smul_mem hU).mem_nhds fun s ↦ by simpa using hp)
 
 /-- **Smoothness of the rescaling on a fibrewise star-shaped set.** If `U` is open and
 star-shaped in the fibre variable, and `f` is `C^(n+1)` on `U` and vanishes on
