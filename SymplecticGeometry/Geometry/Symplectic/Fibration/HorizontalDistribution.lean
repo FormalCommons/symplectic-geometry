@@ -53,6 +53,10 @@ of its three arguments are vertical.
 * `TauCeti.SmoothTwoForm.horizontalDistribution_eq_iff`: two forms that agree on pairs of
   vertical vectors, the first of them vertically nondegenerate, have the same horizontal spaces
   exactly when they agree on every pair of a vertical vector and any vector.
+* `TauCeti.SmoothTwoForm.isVerticallyClosed_iff_forall_mem_horizontalDistribution`: a vertically
+  nondegenerate two-form that restricts to a closed form along a smooth atlas is vertically
+  closed exactly when its exterior derivative vanishes on two vertical vectors and a horizontal
+  one.
 * `TauCeti.SmoothTwoForm.exists_restrictsTo_horizontalDistribution_eq`: for a smooth atlas whose
   coordinate changes preserve a nondegenerate form `σ` on the fibre, every smooth Ehresmann
   connection is the connection of a two-form that restricts to `σ`.
@@ -303,6 +307,40 @@ theorem horizontalDistribution_eq_iff [FiniteDimensional ℝ EM]
   rw [funext_iff]
   exact forall_congr' fun x ↦ LinearMap.BilinForm.orthogonal_eq_orthogonal_iff (h x)
     (hτ₁.isCompl_horizontalDistribution x).symm.codisjoint
+
+/-! ### Vertical closedness on horizontal vectors -/
+
+section HorizontalTest
+
+variable {EF : Type*} [NormedAddCommGroup EF] [NormedSpace ℝ EF] {HF : Type*}
+  [TopologicalSpace HF] {IF : ModelWithCorners ℝ EF HF} {F : Type*} [TopologicalSpace F]
+  [ChartedSpace HF F] [IsManifold IF ∞ F]
+  {A : MapFiber.Atlas F proj} {σ : SmoothTwoForm IF F}
+
+/-- **Vertical closedness on horizontal vectors.** Let `τ` be a vertically nondegenerate two-form
+that restricts to a closed form `σ` along a smooth atlas. Then `τ` is vertically closed exactly
+when its exterior derivative vanishes on `(η₁, η₂, h)` for all vertical `η₁`, `η₂` and every
+horizontal `h`: on three vertical vectors it vanishes already, and every tangent vector is the sum
+of a horizontal and a vertical one. -/
+theorem isVerticallyClosed_iff_forall_mem_horizontalDistribution [FiniteDimensional ℝ EM]
+    (hA : A.IsContMDiff ∞ IB IF IM) (hτ : A.RestrictsTo σ τ) (hσ : σ.IsClosed)
+    (hnd : IsVerticallyNondegenerate IB proj τ) :
+    IsVerticallyClosed IB proj τ ↔
+      ∀ x, ∀ η₁ ∈ (mfderiv IM IB proj x).ker, ∀ η₂ ∈ (mfderiv IM IB proj x).ker,
+        ∀ h ∈ horizontalDistribution IB proj τ x, mextDeriv τ.val x ![η₁, η₂, h] = 0 := by
+  refine ⟨fun H x η₁ hη₁ η₂ hη₂ h _ ↦ isVerticallyClosed_iff.1 H x η₁ hη₁ η₂ hη₂ h,
+    fun H ↦ isVerticallyClosed_iff.2 fun x η₁ hη₁ η₂ hη₂ v ↦ ?_⟩
+  obtain ⟨h, hh, η, hη, rfl⟩ := Submodule.mem_sup.1
+    ((hnd.isCompl_horizontalDistribution x).sup_eq_top ▸ Submodule.mem_top : v ∈ _)
+  have hu (w : TangentSpace IM x) : ![η₁, η₂, w] = Function.update ![η₁, η₂, h] 2 w := by
+    ext i
+    fin_cases i <;> simp
+  rw [hu, ContinuousAlternatingMap.map_update_add, ← hu, ← hu, H x η₁ hη₁ η₂ hη₂ h hh,
+    MapFiber.Atlas.RestrictsTo.mextDeriv_apply_eq_zero hA hτ hσ, add_zero]
+  intro i
+  fin_cases i <;> assumption
+
+end HorizontalTest
 
 /-! ### A form with a given connection -/
 

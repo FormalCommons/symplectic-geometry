@@ -46,6 +46,7 @@ time.
 * `TauCeti.Diffeotopy.dist_transDiffeomorph_apply_le`,
   `TauCeti.Diffeotopy.dist_transDiffeomorph_apply_le_mul`: the displacement of a conjugate.
 * `TauCeti.Diffeotopy.final_transDiffeomorph_final_mul`,
+  `TauCeti.Diffeotopy.transDiffeomorph_final_mul_apply_one`,
   `TauCeti.Diffeotopy.image_transDiffeomorph_final_mul_apply_one_subset`: the final map of
   `Ψ.transDiffeomorph Φ.final * Φ`.
 * `TauCeti.Diffeotopy.transDiffeomorph_mul_apply_eq_self_of_notMem_union_image`,
@@ -131,16 +132,20 @@ theorem final_transDiffeomorph_final_mul (Φ Ψ : Diffeotopy J n M) :
     (Ψ.transDiffeomorph Φ.final * Φ).final = Φ.final * Ψ.final := by
   rw [final_mul, final_transDiffeomorph_eq_mul_mul_inv, inv_mul_cancel_right]
 
+/-- At time `1`, the product `Ψ.transDiffeomorph Φ.final * Φ` sends `x` to
+`Φ.final (Ψ (1, x))`. -/
+theorem transDiffeomorph_final_mul_apply_one (Φ Ψ : Diffeotopy J n M) (x : M) :
+    (Ψ.transDiffeomorph Φ.final * Φ) (1, x) = Φ.final (Ψ (1, x)) := by
+  have h := DFunLike.congr_fun (final_transDiffeomorph_final_mul Φ Ψ) x
+  rwa [final_apply, Diffeomorph.mul_apply, final_apply Ψ] at h
+
 /-- If the final map of `Ψ` sends `S` into `V`, then the final map of the product
 `Ψ.transDiffeomorph Φ.final * Φ` sends `S` into `Φ.final '' V`. -/
 theorem image_transDiffeomorph_final_mul_apply_one_subset {Φ Ψ : Diffeotopy J n M}
     {S V : Set M} (hΨ : (fun x ↦ Ψ (1, x)) '' S ⊆ V) :
     (fun x ↦ (Ψ.transDiffeomorph Φ.final * Φ) (1, x)) '' S ⊆ Φ.final '' V := by
   rintro _ ⟨x, hx, rfl⟩
-  refine ⟨Ψ (1, x), hΨ ⟨x, hx, rfl⟩, ?_⟩
-  have h := DFunLike.congr_fun (final_transDiffeomorph_final_mul Φ Ψ) x
-  rw [final_apply, Diffeomorph.mul_apply, final_apply Ψ] at h
-  exact h.symm
+  exact ⟨Ψ (1, x), hΨ ⟨x, hx, rfl⟩, (transDiffeomorph_final_mul_apply_one Φ Ψ x).symm⟩
 
 /-- If `Φ` fixes every point of `W₁` and `Ψ` every point of `W₂`, at every time, then the product
 `Ψ.transDiffeomorph Φ.final * Φ` fixes every point of `W₁ ∩ W₂` at every time. -/
