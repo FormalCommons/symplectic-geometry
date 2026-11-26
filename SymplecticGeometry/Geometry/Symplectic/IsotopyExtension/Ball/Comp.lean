@@ -7,7 +7,6 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Basic
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
-import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # Composing a symplectic ball embedding with a symplectic map
@@ -18,7 +17,8 @@ smooth injective map with `f^* τ = σ`, then `f ∘ j` is a symplectic embeddin
 as a compactly supported Hamiltonian diffeotopy, carries symplectic ball embeddings to symplectic
 ball embeddings. This is a step of the proof of McDuff–Salamon, Proposition 7.1.22 (second part),
 where the diffeotopy moreover fixes every point outside a compact subset of the open ball, so that
-its slices map `B(r)` onto itself (`Function.Bijective.image_eq_of_eq_self`).
+its slices map `B(r)` onto itself (Mathlib's `Set.image_perm`, applied to the slice as an
+equivalence).
 
 ## Main results
 
