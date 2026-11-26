@@ -10,6 +10,7 @@ import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Translate
 import Mathlib.Analysis.Calculus.ContDiff.Comp
 import Mathlib.Analysis.Normed.Group.Bounded
 import Mathlib.Geometry.Manifold.PartitionOfUnity
+import SymplecticGeometry.Analysis.Calculus.ContDiff.Pi
 import SymplecticGeometry.Analysis.Calculus.FDeriv.AddSmulSub
 import SymplecticGeometry.Analysis.Calculus.HolonomicApproximation.Basic
 import SymplecticGeometry.Analysis.Calculus.HolonomicApproximation.ZigZag
@@ -235,11 +236,7 @@ theorem exists_holonomic_approximation_direction {m k : ℕ} (hk : 0 < k)
       _ = ε := mul_div_cancel₀ _ (by positivity)
   -- The zig-zag approximation.
   have hupd : ContDiff ℝ ∞ fun p : (Fin m → ℝ) × ℝ ↦ Function.update p.1 i₀ p.2 :=
-    contDiff_pi.2 fun i ↦ by
-      rcases eq_or_ne i i₀ with rfl | h
-      · simpa using contDiff_snd
-      · simp only [Function.update_of_ne h]
-        exact (contDiff_apply ℝ (fun _ : Fin m ↦ ℝ) i).comp contDiff_fst
+    contDiff_fst.update i₀ contDiff_snd
   have hGu : ContDiff ℝ ∞ (Function.uncurry fun (q : (Fin m → ℝ) × ℝ) (u : Fin m → ℝ) ↦
       G (Function.update u i₀ q.2, 0)) :=
     hG.comp ((hupd.comp (contDiff_snd.prodMk (contDiff_snd.comp contDiff_fst))).prodMk
