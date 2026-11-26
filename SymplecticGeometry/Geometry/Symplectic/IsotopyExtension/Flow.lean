@@ -8,7 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 public import SymplecticGeometry.Geometry.Symplectic.Flux.CompactSupport
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Velocity
-import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Extension
+import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Transport
 import TauCeti.Geometry.Manifold.DifferentialForm.Squared
 
 /-!
@@ -29,7 +29,7 @@ The construction (`TauCeti.SmoothIsotopy.exists_diffeotopy_interior_velocity_eq_
 
 1. A function `G` on `M × [0, 1]` vanishing off a compact set with `G_t ∘ k_t = h_t` near `K`
    (`TauCeti.SmoothIsotopy.exists_contMDiff_comp_eventuallyEq`, in
-   `SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Extension`).
+   `SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Transport`).
 2. The diffeotopy `φ_t` whose velocity `X_t` satisfies `ι_{X_t} σ = β_t + dG_t`, which preserves
    `σ` and fixes every point off a compact set
    (`TauCeti.Diffeotopy.exists_interior_velocity_eq_add_mextDeriv`, in
@@ -90,7 +90,7 @@ omit [T2Space M] [SigmaCompactSpace M] in
 /-- Along an isotopy `k` of embeddings between manifolds of the same dimension whose velocity form
 at time `t` is `k_t^* β_t + dh_t`, a field `Y` with `ι_Y σ = β_t + dG_t`, where `σ` is
 nondegenerate and `G_t ∘ k_t = h_t` near `x`, is the velocity of `k` at `k_t x`. -/
-private theorem apply_eq_mfderiv_of_interior_eq (hσ : σ.IsNondegenerate) (k : SmoothIsotopy f₀ f₁)
+theorem apply_eq_mfderiv_of_interior_eq (hσ : σ.IsNondegenerate) (k : SmoothIsotopy f₀ f₁)
     (hd : Module.finrank ℝ E' = Module.finrank ℝ E)
     {β : SmoothForm ((𝓡∂ 1).prod I) (unitInterval × M) ℝ 1} {h : unitInterval × P → ℝ}
     {t : unitInterval}

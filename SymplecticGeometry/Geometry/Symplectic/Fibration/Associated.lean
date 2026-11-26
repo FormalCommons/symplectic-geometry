@@ -480,11 +480,7 @@ theorem mpullback_associatedForm_fiber {σ : SmoothTwoForm IF F}
   refine h.symm.trans ?_
   refine SmoothBundleForm.ext_eval₂ fun v a b ↦ ?_
   rw [SmoothBundleForm.eval₂_apply, SmoothBundleForm.eval₂_apply]
-  have hd : (fun i ↦ mfderiv IF ((IB.prod IG).prod IF) (fun v : F ↦ (x, v)) v (![a, b] i)) =
-      ![mfderiv IF ((IB.prod IG).prod IF) (fun v : F ↦ (x, v)) v a,
-        mfderiv IF ((IB.prod IG).prod IF) (fun v : F ↦ (x, v)) v b] :=
-    Matrix.comp_vec2 _ a b
-  rw [SmoothForm.mpullback_apply, hd, weinsteinForm_apply hμ,
+  rw [SmoothForm.coe_mpullback, TauCeti.mpullback_apply_pair, weinsteinForm_apply hμ,
     Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_right,
     Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_right, (A.val x).map_coord_zero 0 rfl,
     ((connectionCurvature A).val x).map_coord_zero 0 rfl, fundamentalVectorField_zero]

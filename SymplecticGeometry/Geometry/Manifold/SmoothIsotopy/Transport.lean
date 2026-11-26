@@ -7,11 +7,11 @@ module
 
 public import Mathlib.Geometry.Manifold.Instances.Real
 public import Mathlib.Geometry.Manifold.SmoothEmbedding
+public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
 import Mathlib.Geometry.Manifold.Algebra.Structures
 import Mathlib.Geometry.Manifold.Instances.Icc
-import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
+import SymplecticGeometry.Data.Set.Prod
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Neighborhood
-import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Extension
 import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Family
 import TauCeti.Geometry.Manifold.Diffeomorph.Family
 import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
@@ -30,18 +30,19 @@ let `h : Q × [0, 1] × P → ℝ` be smooth. Near a compact `A ⊆ P`, and for 
 `G (q, k (q, s, y), s) = h (q, s, y)`. The function `G` vanishes outside a compact subset of any
 given open neighbourhood of the track of `A`, and `G (q, ·, ·)` vanishes whenever `h (q, ·, ·)`
 does (`ContMDiff.exists_contMDiff_family_comp_eventuallyEq`). The case of the parameter manifold
-`unitInterval` is `ContMDiff.exists_contMDiff_unitInterval_family_comp_eventuallyEq`.
+`unitInterval` is `ContMDiff.exists_contMDiff_unitInterval_family_comp_eventuallyEq`, and the case
+of a single isotopy, with a point as parameter manifold, is
+`TauCeti.SmoothIsotopy.exists_contMDiff_comp_eventuallyEq`.
 
-The proof follows that of `TauCeti.SmoothIsotopy.exists_contMDiff_comp_eventuallyEq`, with every
-step carried out over the parameter:
+The function `G` is built from isotopy extension and two cutoffs, in three steps:
 
 1. Isotopy extension at every time with a parameter
    (`ContMDiff.exists_contMDiff_diffeomorph_family_forall_apply_eq`) gives diffeomorphisms
    `ψ q s` of `M`, jointly smooth, with `ψ q s (k (q, 0, x)) = k (q, s, x)` near `A`. Their
    inverses are jointly smooth by Tau Ceti's `Diffeomorph.contMDiff_symm_family`.
 2. The graph `(q, x) ↦ (q, k (q, 0, x))` is a smooth embedding of a neighbourhood `V` of
-   `T ×ˢ A` into `Q × M` (`TauCeti.exists_isOpen_isSmoothEmbedding_of_injOn`, with the
-   differential of a graph from `MDifferentiableAt.injective_mfderiv_fst_prod_iff`), hence an
+   `T ×ˢ A` into `Q × M` (`TauCeti.exists_isOpen_isSmoothEmbedding_of_injOn`, with
+   `Set.injOn_fst_prod_iff` and `MDifferentiableAt.injective_mfderiv_fst_prod_iff`), hence an
    injective local diffeomorphism (`Manifold.IsImmersion.isLocalDiffeomorph`), whose inverse is
    smooth on its image (`TauCeti.IsLocalDiffeomorphOn.contMDiffOn_invFunOn`).
 3. With a cutoff `χ` on `Q × M` near the image of `T ×ˢ A` and a cutoff `ρ` on `M` near the
@@ -50,9 +51,8 @@ step carried out over the parameter:
    so `G (q, ·, ·)` vanishes with `h (q, ·, ·)`.
 
 Tau Ceti's family inverse needs a boundaryless parameter, so the case of `unitInterval` first
-extends the pair `(k, h)` in the parameter near `univ ×ˢ A`
-(`ContMDiff.exists_contMDiffOn_extend_unitInterval`), runs them at a parameter `c q` with `c` the
-identity on `[0, 1]` (`SymplecticGeometry.exists_contDiff_eqOn_id_Icc_mem_Ioo`), as in the proof of
+replaces the pair `(k, h)`, near `A`, by a family over `ℝ` that agrees with it on `[0, 1]`
+(`ContMDiff.exists_contMDiff_real_family_eq`), as in the proof of
 `ContMDiff.exists_contMDiff_diffeomorph_unitInterval_family_forall_apply_eq`, and applies the
 first result with `Q = ℝ` and `T = [0, 1]`.
 
@@ -62,6 +62,8 @@ first result with `Q = ℝ` and `T = [0, 1]`.
   family of isotopies over a boundaryless parameter manifold.
 * `ContMDiff.exists_contMDiff_unitInterval_family_comp_eventuallyEq`: the same for a family of
   isotopies with a parameter in `unitInterval`.
+* `TauCeti.SmoothIsotopy.exists_contMDiff_comp_eventuallyEq`: the same for a single smooth
+  isotopy.
 
 ## References
 
@@ -135,18 +137,11 @@ theorem _root_.ContMDiff.exists_contMDiff_family_comp_eventuallyEq
     contMDiff_fst.prodMk (hk.comp (contMDiff_fst.prodMk (contMDiff_const.prodMk contMDiff_snd)))
   obtain ⟨V, hTAV, -, hV⟩ := exists_isOpen_isSmoothEmbedding_of_injOn isOpen_univ
     hΦ₀.contMDiffOn (hT.prod hA) (subset_univ _)
-    (fun p hp p' hp' hpp ↦ by
-      obtain ⟨h₁, h₂⟩ := Prod.ext_iff.1 hpp
-      obtain ⟨q, x⟩ := p
-      obtain ⟨q', x'⟩ := p'
-      obtain rfl : q = q' := h₁
-      exact congrArg (Prod.mk q) ((hemb q hp.1 0).isEmbedding.injective h₂))
-    fun p hp ↦ by
-      have hdiff : MDifferentiableAt (IQ.prod J) I (fun x : Q × P ↦ k (x.1, 0, x.2)) p :=
-        (hk.comp (contMDiff_fst.prodMk (contMDiff_const.prodMk contMDiff_snd))).mdifferentiableAt
-          (by simp)
-      exact hdiff.injective_mfderiv_fst_prod_iff.2
-        ((hemb p.1 hp.1 0).isImmersion.mfderiv_injective (by simp) p.2)
+    (Set.injOn_fst_prod_iff.2 fun q hq ↦ (hemb q hq 0).isEmbedding.injective.injOn)
+    fun p hp ↦ (ContMDiff.mdifferentiableAt (f := fun x : Q × P ↦ k (x.1, 0, x.2))
+      (hk.comp (contMDiff_fst.prodMk (contMDiff_const.prodMk contMDiff_snd))) (by simp)
+        ).injective_mfderiv_fst_prod_iff.2
+      ((hemb p.1 hp.1 0).isImmersion.mfderiv_injective (by simp) p.2)
   have : Nonempty V := ⟨⟨(q₀, x₀), hTAV ⟨hq₀, hx₀⟩⟩⟩
   let f : V → Q × M := fun x ↦ Φ₀ x
   have hf : IsLocalDiffeomorph (IQ.prod J) (IQ.prod I) ∞ f :=
@@ -208,6 +203,25 @@ theorem _root_.ContMDiff.exists_contMDiff_family_comp_eventuallyEq
   simp only [comp_apply, Φ₀, id] at hyχ hyρ
   rw [hyχ, hyρ, one_mul, one_mul]
 
+/-- **Transport of functions along an isotopy.** Let `F` be a smooth isotopy of embeddings of `P`
+into a manifold `M` of the same dimension, `A ⊆ P` compact, and `h` a smooth function on
+`[0, 1] × P`. There is a smooth function `G` on `M × [0, 1]` that vanishes off a compact set and
+satisfies `G (F (t, y), t) = h (t, y)` for every `t` and every `y` near `A`. -/
+theorem SmoothIsotopy.exists_contMDiff_comp_eventuallyEq {f₀ f₁ : C^∞⟮J, P; I, M⟯}
+    (F : SmoothIsotopy f₀ f₁) (hd : Module.finrank ℝ E' = Module.finrank ℝ E) {A : Set P}
+    (hA : IsCompact A) {h : unitInterval × P → ℝ} (hh : ContMDiff ((𝓡∂ 1).prod J) 𝓘(ℝ) ∞ h) :
+    ∃ (G : M × unitInterval → ℝ) (C : Set M), ContMDiff (I.prod (𝓡∂ 1)) 𝓘(ℝ) ∞ G ∧
+      IsCompact C ∧ (∀ p, p.1 ∉ C → G p = 0) ∧
+      ∀ t, ∀ x ∈ A, (fun y ↦ G (F (t, y), t)) =ᶠ[𝓝 x] fun y ↦ h (t, y) := by
+  -- The case of the point `EuclideanSpace ℝ (Fin 0)` as parameter manifold.
+  obtain ⟨G, C, hG, hC, -, hGC, hGk, -⟩ :=
+    ContMDiff.exists_contMDiff_family_comp_eventuallyEq (Q := EuclideanSpace ℝ (Fin 0))
+      (IQ := 𝓘(ℝ, EuclideanSpace ℝ (Fin 0))) (k := fun p ↦ F p.2)
+      (F.contMDiff.comp contMDiff_snd) hd isCompact_univ hA (fun _ _ s ↦ F.isSmoothEmbedding s)
+      (h := fun p ↦ h p.2) (hh.comp contMDiff_snd) isOpen_univ fun _ _ _ _ _ ↦ mem_univ _
+  exact ⟨fun p ↦ G (0, p), C, hG.comp (contMDiff_const.prodMk contMDiff_id), hC,
+    fun p hp ↦ hGC 0 p.1 p.2 hp, fun t x hx ↦ hGk 0 (mem_univ _) t x hx⟩
+
 /-- **Transport of functions along a family of isotopies over `[0, 1]`.** Let
 `k : [0, 1] × [0, 1] × P → M` be smooth, with `M` a finite-dimensional, Hausdorff, σ-compact
 boundaryless manifold and `P` boundaryless of the dimension of `M`, with every slice `k (a, s, ·)`
@@ -228,36 +242,20 @@ theorem _root_.ContMDiff.exists_contMDiff_unitInterval_family_comp_eventuallyEq
       (∀ a y s, y ∉ C → G (a, y, s) = 0) ∧
       (∀ a s, ∀ x ∈ A, (fun y ↦ G (a, k (a, s, y), s)) =ᶠ[𝓝 x] fun y ↦ h (a, s, y)) ∧
       ∀ a, (∀ s y, h (a, s, y) = 0) → ∀ y s, G (a, y, s) = 0 := by
-  -- Extend the pair `(k, h)` in the parameter near `univ ×ˢ A`, and shrink to a product
-  -- `univ ×ˢ V`.
-  obtain ⟨δ, hδ, U, hU, hAU, F, hF, hFkh⟩ :=
-    (hk.prodMk hh).exists_contMDiffOn_extend_unitInterval (I := I.prod 𝓘(ℝ))
-      (isCompact_univ.prod hA)
-  obtain ⟨u, V, -, hV, hu, hAV, hVU⟩ := generalized_tube_lemma isCompact_univ hA hU hAU
-  have hsV (s : unitInterval) (x : P) (hx : x ∈ V) : (s, x) ∈ U := hVU ⟨hu (mem_univ s), hx⟩
-  let V' : TopologicalSpace.Opens P := ⟨V, hV⟩
-  -- The families `k'` and `h'` over `ℝ`, run at a parameter `c q` equal to `q` on `[0, 1]`.
-  obtain ⟨c, hc, hc_id, hc_mem, -⟩ :=
-    SymplecticGeometry.exists_contDiff_eqOn_id_Icc_mem_Ioo zero_le_one hδ
-  have hF' : ContMDiff (𝓘(ℝ, ℝ).prod ((𝓡∂ 1).prod J)) (I.prod 𝓘(ℝ)) ∞
-      fun p : ℝ × unitInterval × V' ↦ F (c p.1, p.2.1, p.2.2) :=
-    hF.comp_contMDiff ((hc.contMDiff.comp contMDiff_fst).prodMk
-      (contMDiff_snd.fst.prodMk (contMDiff_subtypeVal.comp contMDiff_snd.snd)))
-      fun p ↦ ⟨by simpa only [zero_sub] using hc_mem p.1, hsV _ _ p.2.2.property⟩
-  let k' : ℝ × unitInterval × V' → M := fun p ↦ (F (c p.1, p.2.1, p.2.2)).1
-  let h' : ℝ × unitInterval × V' → ℝ := fun p ↦ (F (c p.1, p.2.1, p.2.2)).2
+  -- The pair `(k, h)` as a family `F` over `ℝ` on a neighbourhood `V'` of `A`, equal to it on
+  -- `[0, 1]`, with components `k'` and `h'`.
+  obtain ⟨V', hAV, F, hF', hFkh⟩ :=
+    (hk.prodMk hh).exists_contMDiff_real_family_eq (I := I.prod 𝓘(ℝ)) hA
+  let k' : ℝ × unitInterval × V' → M := fun p ↦ (F p).1
+  let h' : ℝ × unitInterval × V' → ℝ := fun p ↦ (F p).2
   have hk' : ContMDiff (𝓘(ℝ, ℝ).prod ((𝓡∂ 1).prod J)) I ∞ k' := contMDiff_fst.comp hF'
   have hh' : ContMDiff (𝓘(ℝ, ℝ).prod ((𝓡∂ 1).prod J)) 𝓘(ℝ) ∞ h' := contMDiff_snd.comp hF'
-  have hFkh' (q : ℝ) (hq : q ∈ Icc 0 1) (s : unitInterval) (x : V') :
-      F (c q, s, x) = (k (⟨q, hq⟩, s, x), h (⟨q, hq⟩, s, x)) := by
-    rw [show c q = q from hc_id hq]
-    exact hFkh ⟨q, hq⟩ (s, x) (hsV s x x.property)
   have hk'k (q : ℝ) (hq : q ∈ Icc 0 1) (s : unitInterval) (x : V') :
       k' (q, s, x) = k (⟨q, hq⟩, s, x) := by
-    simp only [k', hFkh' q hq]
+    simp only [k', hFkh ⟨q, hq⟩ s x]
   have hh'h (q : ℝ) (hq : q ∈ Icc 0 1) (s : unitInterval) (x : V') :
       h' (q, s, x) = h (⟨q, hq⟩, s, x) := by
-    simp only [h', hFkh' q hq]
+    simp only [h', hFkh ⟨q, hq⟩ s x]
   have hA' : IsCompact (Subtype.val ⁻¹' A : Set V') :=
     Topology.IsInducing.subtypeVal.isCompact_preimage' hA (by rw [Subtype.range_coe]; exact hAV)
   obtain ⟨G, C, hG, hC, hCW, hGC, hGk', hG0⟩ :=
@@ -271,7 +269,7 @@ theorem _root_.ContMDiff.exists_contMDiff_unitInterval_family_comp_eventuallyEq
       contMDiff_snd), hC, hCW, fun a y s hy ↦ hGC a y s hy, fun a s x hx ↦ ?_,
     fun a ha y s ↦ hG0 a (fun s y ↦ by rw [hh'h a a.property]; exact ha s y) y s⟩
   have hx' := hGk' a a.property s ⟨x, hAV hx⟩ hx
-  rw [EventuallyEq, ← map_nhds_subtypeVal_eq_nhds (hAV hx) (hV.mem_nhds (hAV hx)),
+  rw [EventuallyEq, ← map_nhds_subtypeVal_eq_nhds (hAV hx) (V'.isOpen.mem_nhds (hAV hx)),
     eventually_map]
   filter_upwards [hx'] with y (hy : G (a, k' (a, s, y), s) = h' (a, s, y))
   rw [hk'k a a.property, hh'h a a.property] at hy

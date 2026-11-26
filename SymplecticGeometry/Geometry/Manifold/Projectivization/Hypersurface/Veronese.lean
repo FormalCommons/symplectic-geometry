@@ -183,13 +183,10 @@ theorem exists_isOpen_homotopyEquiv :
   -- The inclusion of `X` is a holomorphic embedding, so a smooth embedding over `ℝ`.
   let _ : IsManifold 𝓘(ℝ, Fin n → ℂ) ∞ X :=
     ((X.instIsManifold).of_le (m := ∞) (by simp)).restrictScalars ℝ
-  have h := (X.embedding.isSmoothEmbedding.of_le (n := ∞) (by simp)).restrictScalars ℝ (by simp)
-  rw [coe_embedding] at h
-  let f : SmoothEmbedding 𝓘(ℝ, Fin n → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ X
-      (ℙ ℂ (Fin (n + 2) → ℂ)) :=
-    .ofIsSmoothEmbedding _ h
-  obtain ⟨W, hW, -, e, he⟩ := f.exists_homotopyEquiv_subset isOpen_univ (subset_univ _)
-  exact ⟨W, hW, e, fun x ↦ (he x).trans (SmoothEmbedding.ofIsSmoothEmbedding_apply _ _ x)⟩
+  obtain ⟨W, hW, -, e, he⟩ :=
+    (X.embedding.restrictScalars ℝ (n := ∞) le_top (by simp)).exists_homotopyEquiv_subset
+      isOpen_univ (subset_univ _)
+  exact ⟨W, hW, e, fun x ↦ by rw [he, SmoothEmbedding.restrictScalars_apply, coe_embedding]⟩
 
 section Degree
 
