@@ -6,19 +6,20 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.LinearTube
-public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.OfPoint
+public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.TangentSpace
 
 /-!
-# An equivariant local diffeomorphism from the local model at a point to `M`
+# An equivariant local diffeomorphism from a local model at a point to `M`
 
-Let `D = SymplecticGeometry.LocalModelData.ofPoint …` be the data of the
-Marle–Guillemin–Sternberg local model `Y = G ×_H (A × V)` at a point `x` of a Hamiltonian
-`G`-manifold `M` with compact stabilizer `H = G_x`, and let `T : T_{[1, 0]} Y ≃ T_x M` be a linear
-isomorphism that is `H`-equivariant and sends `dπ_(1, 0, 0) (ξ, 0)` to `ξ_M(x)`, such as
-`SymplecticGeometry.LocalModelData.exists_linearEquiv_tangentSpace_ofPoint` gives. This file
-builds from `T` a `G`-equivariant map `Ψ : Y → M`, with `Ψ [g, 0] = g • x`, that is smooth and a
-local diffeomorphism near the zero section and has differential `T` at `[1, 0]`. It is the map
-that a Moser argument then corrects into a local symplectomorphism.
+Let `x` be a point of a `G`-manifold `M` whose stabilizer `H = G_x` is compact, let
+`D : SymplecticGeometry.LocalModelData H V A` be data of a Marle–Guillemin–Sternberg local model
+`Y = G ×_H (A × V)` over `H`, and let `T : T_{[1, 0]} Y ≃ T_x M` be a linear isomorphism that is
+`H`-equivariant and sends `dπ_(1, 0, 0) (ξ, 0)` to `ξ_M(x)`. This file builds from `T` a
+`G`-equivariant map `Ψ : Y → M`, with `Ψ [g, 0] = g • x`, that is smooth and a local
+diffeomorphism near the zero section and has differential `T` at `[1, 0]`. For the local model
+`SymplecticGeometry.LocalModelData.ofPoint …` of a Hamiltonian `G`-manifold at `x`,
+`SymplecticGeometry.LocalModelData.exists_linearEquiv_tangentSpace_ofPoint` gives such a `T`,
+and the map is then the one that a Moser argument corrects into a local symplectomorphism.
 
 The map is the tube map along a linear fibre of
 `Geometry/Manifold/GroupAction/LinearTube.lean`,
@@ -28,7 +29,7 @@ The map is the tube map along a linear fibre of
 (`SymplecticGeometry.LocalModelData.fiberTangentMap`). The map `L` is `H`-equivariant by
 `SymplecticGeometry.LocalModelData.fiberTangentMap_smul` and the equivariance of `T`, injective
 since `T` and `fiberTangentMap` are, and its range is a complement of `𝔤 · x`
-(`SymplecticGeometry.LocalModelData.isCompl_orbitTangent_range_linearEquiv_comp_fiberTangentMap`).
+(`SymplecticGeometry.LocalModelData.isCompl_range_range_comp_fiberTangentMap`).
 So `SymplecticGeometry.LinearizingChart.exists_isLocalDiffeomorphAt_linearTubeMap` gives the
 neighbourhood `Z` of `0` on which the map is a local diffeomorphism. Its differential at `[1, 0]`
 sends `dπ_(1, 0, 0) (ξ, p)` to `ξ_M(x) + L p`
@@ -38,7 +39,7 @@ the two agree.
 
 ## Main results
 
-* `SymplecticGeometry.LocalModelData.exists_isLocalDiffeomorphAt_ofPoint`: the equivariant map
+* `SymplecticGeometry.LocalModelData.exists_isLocalDiffeomorphAt`: the equivariant map
   `Ψ : Y → M` with `Ψ [g, 0] = g • x`, smooth and a local diffeomorphism at the classes `[g, p]`
   with `p` in an open `H`-invariant neighbourhood of `0`, and with differential `T` at `[1, 0]`.
 
@@ -62,45 +63,29 @@ attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
 
 variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]
-  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G] [T2Space G]
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
   {E' H' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
   [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'} [I'.Boundaryless]
   {M : Type*} [TopologicalSpace M] [ChartedSpace H' M] [IsManifold I' ∞ M] [T2Space M]
-  [MulAction G M] [ContMDiffSMul I I' ∞ G M]
-  {σ : SmoothTwoForm I' M} {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)} {x : M}
+  [MulAction G M] [ContMDiffSMul I I' ∞ G M] {x : M}
   {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
+  [IsClosed (stabilizer G x : Set G)] [CompactSpace (stabilizer G x)]
+  [ChartedSpace F (stabilizer G x)] [LieGroup 𝓘(ℝ, F) ∞ (stabilizer G x)]
+  [ContMDiffSMul 𝓘(ℝ, F) I ∞ (stabilizer G x) G]
   {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]
   {A : Type*} [NormedAddCommGroup A] [NormedSpace ℝ A] [FiniteDimensional ℝ A]
-  (hσ : σ.IsNondegenerate)
-  (hσG : ∀ g ∈ stabilizer G x, SmoothForm.mpullback (fun y : M ↦ g • y)
-    (ContMDiffSMul.contMDiff_const_smul (I := I) g) σ = σ)
-  (hμ : σ.IsEquivariantMomentMap μ)
-  [IsClosed (stabilizer G x : Set G)] [CompactSpace (stabilizer G x)]
-  (d : EmbeddedLieSubgroupData I (stabilizer G x) F)
-  {𝔪 𝔮 : Subrepresentation ((adjointRepresentation ℝ I G).comp (stabilizer G x).subtype)}
-  (h𝔪 : Disjoint ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule
-    𝔪.toSubmodule)
-  (h𝔪' : ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule ⊔ 𝔪.toSubmodule =
-    (lieAnnihilator ℝ (GroupLieAlgebra I G) (μ x)).toSubmodule)
-  (h𝔮 : IsCompl (lieAnnihilator ℝ (GroupLieAlgebra I G) (μ x)).toSubmodule 𝔮.toSubmodule)
-  (eV : V ≃ₗ[ℝ] hσ.SymplecticSlice (InfinitesimalAction.fundamental I G I' M) x)
-  (eA : A ≃ₗ[ℝ] Module.Dual ℝ 𝔪.toSubmodule)
+  (D : LocalModelData (I := I) (stabilizer G x) (F := F) V A)
 
 namespace LocalModelData
 
-/-- **An equivariant local diffeomorphism from the local model at `x` to `M`.** Let `D` be the
-data of the local model at `x`, `Y = G ×_H (A × V)` with `H = G_x`, and let
+/-- **An equivariant local diffeomorphism from a local model at `x` to `M`.** Let `D` be data of
+a local model `Y = G ×_H (A × V)` whose subgroup `H = G_x` is the stabilizer of `x`, and let
 `T : T_{[1, 0]} Y ≃ T_x M` be a linear isomorphism that intertwines the differential at `[1, 0]` of
 `y ↦ k • y` with `dk_x` for each `k ∈ H`, and sends `dπ_(1, 0, 0) (ξ, 0)` to `ξ_M(x)` for each
-`ξ ∈ 𝔤`, as `exists_linearEquiv_tangentSpace_ofPoint` provides. Then there are an open
-`H`-invariant neighbourhood `Z` of `0` in `A × V` and a `G`-equivariant map `Ψ : Y → M` with
-`Ψ [g, 0] = g • x`, which is smooth and a local diffeomorphism at every class `[g, p]` with
-`p ∈ Z`, and whose differential at `[1, 0]` is `T`. -/
-theorem exists_isLocalDiffeomorphAt_ofPoint :
-    let _ := d.chartedSpace
-    let _ := d.lieGroup
-    let _ := d.contMDiffSMul (I'' := I) (M := G)
-    let D := ofPoint hσ hσG hμ d h𝔪 h𝔪' h𝔮 eV eA
+`ξ ∈ 𝔤`. Then there are an open `H`-invariant neighbourhood `Z` of `0` in `A × V` and a
+`G`-equivariant map `Ψ : Y → M` with `Ψ [g, 0] = g • x`, which is smooth and a local
+diffeomorphism at every class `[g, p]` with `p ∈ Z`, and whose differential at `[1, 0]` is `T`. -/
+theorem exists_isLocalDiffeomorphAt :
     letI := D.fiberDistribMulAction
     haveI := D.contMDiffSMul_fiberDistribMulAction
     letI := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) (A × V) I
@@ -134,7 +119,7 @@ theorem exists_isLocalDiffeomorphAt_ofPoint :
         ∀ u, mfderiv 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))) I' Ψ
           (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
             ((0 : A), (0 : V))) u = T u := by
-  intro _ _ _ D T hTk hTξ
+  intro T hTk hTξ
   let := D.fiberDistribMulAction
   have := D.contMDiffSMul_fiberDistribMulAction
   let := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) (A × V) I 𝓘(ℝ, A × V) F
@@ -153,9 +138,10 @@ theorem exists_isLocalDiffeomorphAt_ofPoint :
     rfl
   have hLi : Injective L := T.injective.comp D.injective_fiberTangentMap
   have hV : IsCompl ((InfinitesimalAction.fundamental I G I' M).orbitTangent x)
-      (L : (A × V) →ₗ[ℝ] E').range :=
-    isCompl_orbitTangent_range_linearEquiv_comp_fiberTangentMap hσ hσG hμ d h𝔪 h𝔪' h𝔮 eV eA T
-      hTξ
+      (L : (A × V) →ₗ[ℝ] E').range := by
+    rw [InfinitesimalAction.orbitTangent_eq_range]
+    exact D.isCompl_range_range_comp_fiberTangentMap T _
+      (LinearMap.ext fun ξ ↦ (hTξ ξ).trans (InfinitesimalAction.eval_apply _ x ξ).symm)
   obtain ⟨Z, hZo, hZ0, hZk, -, hZd⟩ :=
     e.exists_isLocalDiffeomorphAt_linearTubeMap hL F hLi hV
   refine ⟨Z, e.linearTubeMap hL, hZo, hZ0, hZk, fun g p hp ↦ (hZd g hp).contMDiffAt,
