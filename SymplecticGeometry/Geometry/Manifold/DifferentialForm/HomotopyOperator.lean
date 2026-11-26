@@ -39,7 +39,10 @@ on a smooth manifold `M` possibly with boundary or corners. Smoothness of `h φ`
   `d (h φ) = ι₁^* φ - ι₀^* φ`.
 * `SmoothForm.mextDerivₗ_homotopyOperator_mpullback_add_homotopyOperator_mpullback_mextDerivₗ`:
   for a smooth `Φ : M × [0, 1] → M` from a smooth map `g` to the identity and any form `z` with
-  values in a Banach space, `d (h (Φ^* z)) + h (Φ^* (d z)) = z - g^* z`.
+  values in a Banach space, `d (h (Φ^* z)) + h (Φ^* (d z)) = z - g^* z`; it is the case of Tau
+  Ceti's
+  `TauCeti.mextDeriv_homotopyOperator_mpullback_add_homotopyOperator_mpullback_mextDeriv` for
+  smooth forms and a homotopy ending at the identity.
 * `TauCeti.SmoothForm.mextDerivₗ_homotopyOperator_mpullback_of_contraction`: for a smooth
   `Φ : M × [0, 1] → M` from a constant map to the identity and a closed form `z` of positive
   degree with values in a Banach space, `h (Φ^* z)` is a primitive of `z`.
@@ -146,12 +149,15 @@ theorem mextDerivₗ_homotopyOperator_mpullback_add_homotopyOperator_mpullback_m
     (z : SmoothForm I M F (k + 1)) :
     mextDerivₗ I k (homotopyOperator (mpullback Φ hΦ z)) +
         homotopyOperator (mpullback Φ hΦ (mextDerivₗ I (k + 1) z)) = z - mpullback g hg z := by
-  rw [← mextDerivₗ_mpullback, mextDerivₗ_homotopyOperator_add_homotopyOperator_mextDerivₗ,
-    mpullback_mpullback, mpullback_mpullback]
   -- The end slices of the homotopy are the identity and `g`.
-  have hid : Φ ∘ (fun x : M ↦ (x, (1 : unitInterval))) = id := funext h₁
-  have hg' : Φ ∘ (fun x : M ↦ (x, (0 : unitInterval))) = g := funext h₀
-  simp_rw [hid, hg', mpullback_id, LinearMap.id_apply]
+  have hid : (fun x : M ↦ Φ (x, 1)) = id := funext h₁
+  have hg' : (fun x : M ↦ Φ (x, 0)) = g := funext h₀
+  have h := mextDeriv_homotopyOperator_mpullback_add_homotopyOperator_mpullback_mextDeriv
+    (hΦ.of_le (by simp)) (z.isSmoothForm.of_le (by simp))
+  rw [hid, hg', TauCeti.mpullback_id] at h
+  refine Subtype.ext ?_
+  rw [Submodule.coe_add, mextDerivₗ_apply, coe_homotopyOperator, coe_homotopyOperator,
+    coe_mpullback, coe_mpullback, mextDerivₗ_apply, h, Submodule.coe_sub, coe_mpullback]
 
 /-- **The homotopy formula for a homotopy to the identity.** Let `Φ : M × [0, 1] → M` be a smooth
 homotopy from a smooth map `g`, `Φ (x, 0) = g x`, to the identity, `Φ (x, 1) = x`. For a closed

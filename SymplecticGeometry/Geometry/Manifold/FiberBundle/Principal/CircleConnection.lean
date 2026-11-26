@@ -350,15 +350,13 @@ theorem mpullback_trivialization_snd_apply_rightFundamentalVectorField
   set θ := e.manifoldSnd
   have hL := DFunLike.congr_fun (congrFun (mpullback_mul_left_circleAngularForm (θ x)) 1)
     ![circleLieGenerator]
-  rw [mpullback_apply, mul_one] at hL
-  have hvec : (fun i ↦ mfderiv (IB.prod (𝓡 1)) (𝓡 1) θ x
-      (![rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator x] i)) =
-      fun i ↦ mfderiv (𝓡 1) (𝓡 1) (fun g ↦ θ x * g) 1 (![circleLieGenerator] i) := by
-    funext i
-    fin_cases i
-    exact (e.mfderiv_snd_rightFundamentalVectorField hx (hθ _ hx) _).trans
+  rw [mpullback_apply_one, mul_one] at hL
+  have hv : mfderiv (IB.prod (𝓡 1)) (𝓡 1) θ x
+      (rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator x) =
+      mfderiv (𝓡 1) (𝓡 1) (fun g ↦ θ x * g) 1 circleLieGenerator :=
+    (e.mfderiv_snd_rightFundamentalVectorField hx (hθ _ hx) _).trans
       (GroupLieAlgebra.mulInvariantVectorField_apply _ _)
-  rw [mpullback_apply, hvec]
+  rw [mpullback_apply_one, hv]
   exact hL.trans circleAngularForm_one_circleLieGenerator
 
 /-- Over the base set of an equivariant trivialization with fibre coordinate `θ`, the difference
