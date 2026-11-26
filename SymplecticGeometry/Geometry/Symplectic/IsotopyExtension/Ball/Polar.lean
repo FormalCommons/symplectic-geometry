@@ -13,7 +13,6 @@ import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.Polar
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
 import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
-import TauCeti.Geometry.Manifold.ContMDiff.Prod
 
 /-!
 # Polar decomposition of the linearization of a family of symplectic balls
@@ -71,9 +70,7 @@ theorem IsSymplecticBallFamily.contDiff_fderiv_timeExtend
     {κ : unitInterval × StdSpace (Fin n) → StdSpace (Fin n)}
     (hκ : IsSymplecticBallFamily σ r κ) {z : StdSpace (Fin n)} (hz : z ∈ closedBall 0 r) :
     ContDiff ℝ ∞ fun t ↦ fderiv ℝ (fun w ↦ timeExtend κ (t, w)) z := by
-  obtain ⟨U, hUo, hrU, hκU⟩ := hκ.exists_contMDiffOn
-  have hf : ContDiffOn ℝ ∞ (timeExtend κ) (univ ×ˢ U) :=
-    contMDiffOn_iff_contDiffOn.1 (contMDiffOn_prod_modelWithCornersSelf_iff.1 (hκU.timeExtend hUo))
+  obtain ⟨U, hUo, hrU, hf⟩ := hκ.exists_contDiffOn_timeExtend
   refine contDiff_iff_contDiffAt.2 fun t ↦ ?_
   exact ContDiffAt.fderiv (f := fun t w ↦ timeExtend κ (t, w)) (g := fun _ ↦ z)
     (hf.contDiffAt ((isOpen_univ.prod hUo).mem_nhds ⟨trivial, hrU hz⟩)) contDiffAt_const

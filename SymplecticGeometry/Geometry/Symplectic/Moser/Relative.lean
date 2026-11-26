@@ -44,7 +44,7 @@ The proof is Moser's argument along a flow that is only partially defined.
    expressions of `β` also have zero derivative there.
 2. The tube is chosen inside the open set of points at which every form `σ₀ + s (σ₁ - σ₀)` with
    `s ∈ [0, 1]` is nondegenerate
-   (`TauCeti.SmoothTwoForm.isOpen_setOf_forall_mem_Icc_nondegenerate`).
+   (`TauCeti.SmoothTwoForm.isOpen_setOfPred_forall_mem_Icc_nondegenerate`).
    This set contains `f(Q)`, where all these forms equal `σ₀`.
 3. On `W`, the slices of `σ₀ + c(t) (σ₁ - σ₀)`, `c = Real.smoothTransition`, are symplectic, and
    the field `X_t = (σ_t♭)⁻¹ (-c'(t) β)` (`SymplecticGeometry.moserField`, without cutoff) is
@@ -300,7 +300,7 @@ theorem exists_smoothForm_relative_primitive_sub_of_eq_along (f : SmoothEmbeddin
     Subtype.ext (funext fun q ↦ by
       rw [SmoothForm.coe_mpullback, SmoothForm.coe_mpullback, mpullback_apply_congr (heq q)])
   obtain ⟨W, hWO, hfW, β, hdβ, hβ0, hβ1⟩ := f.exists_smoothForm_relative_primitive_sub h₀ h₁
-    hf (isOpen_setOf_forall_mem_Icc_nondegenerate σ₀ σ₁) hfO
+    hf (isOpen_setOfPred_forall_mem_Icc_nondegenerate σ₀ σ₁) hfO
   exact ⟨W, hWO, hfW, β, hdβ, hβ0, fun q ↦ hβ1 q (heq q)⟩
 
 open TopologicalSpace SmoothTwoForm in

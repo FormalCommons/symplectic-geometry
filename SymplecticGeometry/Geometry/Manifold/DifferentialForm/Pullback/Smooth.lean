@@ -8,7 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
-import TauCeti.Geometry.Manifold.DifferentialForm.ExtDeriv
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.ExtDeriv
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 
 /-!
@@ -37,11 +37,10 @@ Pulling a form back commutes with negation (`TauCeti.mpullback_neg`), as Tau Cet
 `TauCeti.mpullback_sub` says for subtraction. So a diffeomorphism preserves `-σ` exactly when it
 preserves `σ` (`TauCeti.SmoothForm.diffeomorphStabilizer_neg`).
 
-The `0`-form of a difference of differentiable functions has exterior derivative the difference
-of theirs (`TauCeti.mextDeriv_ofFunction_sub`), as Tau Ceti's `TauCeti.mextDeriv_ofFunction_add`
-says for sums. By Tau Ceti's naturality `TauCeti.mpullback_mextDeriv_ofFunction_apply`, if
-`α = β + dg` at `x` and at `f x` for a self-map `f` differentiable at `x`, and `g` is
-differentiable at both points, then `f^* α - α` and `f^* β - β` differ at `x` by the exact form
+By Tau Ceti's naturality `TauCeti.mpullback_mextDeriv_ofFunction_apply`, and
+`TauCeti.mextDeriv_ofFunction_sub_apply` of `DifferentialForm/ExtDeriv.lean`, if `α = β + dg` at
+`x` and at `f x` for a self-map `f` differentiable at `x`, and `g` is differentiable at both
+points, then `f^* α - α` and `f^* β - β` differ at `x` by the exact form
 `d(g ∘ f - g)` (`TauCeti.mpullback_apply_sub_eq_of_eq_add_mextDeriv`).
 
 Pulling a smooth form of positive degree back along a constant map gives the zero form
@@ -73,7 +72,6 @@ normed spaces with their own models, `𝓘(ℝ, E₁ × E₂)` is not syntactica
 * `TauCeti.mpullback_neg`: the pullback of `-φ` is minus the pullback of `φ`.
 * `TauCeti.SmoothForm.diffeomorphStabilizer_neg`: a diffeomorphism preserves `-σ` exactly when
   it preserves `σ`.
-* `TauCeti.mextDeriv_ofFunction_sub`: `d(f - g) = df - dg` for differentiable functions.
 * `TauCeti.mpullback_apply_sub_eq_of_eq_add_mextDeriv`: if `α = β + dg` at `x` and at `f x`,
   then `(f^* α - α) x = (f^* β - β) x + d(g ∘ f - g) x`.
 * `TauCeti.SmoothForm.mpullback_const`: the pullback of a smooth `(k + 1)`-form along a constant
@@ -152,15 +150,6 @@ theorem mpullback_neg (f : M → M') (φ : RoughForm I' M' F k) :
   ext v
   simp [mpullback_apply]
 
-/-- The exterior derivative of the `0`-form of a difference of differentiable functions is the
-difference of their exterior derivatives. -/
-theorem mextDeriv_ofFunction_sub {f g : M → F} (hf : MDifferentiable I 𝓘(ℝ, F) f)
-    (hg : MDifferentiable I 𝓘(ℝ, F) g) :
-    mextDeriv (RoughForm.ofFunction I (f - g)) =
-      mextDeriv (RoughForm.ofFunction I f) - mextDeriv (RoughForm.ofFunction I g) := by
-  rw [sub_eq_add_neg, mextDeriv_ofFunction_add hf hg.neg, ← neg_one_smul ℝ g,
-    RoughForm.ofFunction_smul, mextDeriv_smul, neg_one_smul, ← sub_eq_add_neg]
-
 /-- Let `f : M → M` be differentiable at `x`, and `g : M → F` at `x` and at `f x`, and let the
 one-forms `α` and `β` satisfy `α = β + dg` at `x` and at `f x`. Then at `x`,
 `f^* α - α = (f^* β - β) + d(g ∘ f - g)`. -/
@@ -171,14 +160,9 @@ theorem mpullback_apply_sub_eq_of_eq_add_mextDeriv {f : M → M} {g : M → F} {
     (hfx : α (f x) = β (f x) + mextDeriv (RoughForm.ofFunction I g) (f x)) :
     mpullback I I f α x - α x =
       mpullback I I f β x - β x + mextDeriv (RoughForm.ofFunction I (g ∘ f - g)) x := by
-  have hd : mextDeriv (RoughForm.ofFunction I (g ∘ f - g)) x =
-      mextDeriv (RoughForm.ofFunction I (g ∘ f)) x - mextDeriv (RoughForm.ofFunction I g) x := by
-    rw [mextDeriv_ofFunction, mextDeriv_ofFunction, mextDeriv_ofFunction,
-      mvfderiv_sub (hgfx.comp x hf) hgx]
-    ext v
-    simp
   rw [mpullback_apply_congr (η := β + mextDeriv (RoughForm.ofFunction I g)) hfx, hx,
-    mpullback_add, Pi.add_apply, mpullback_mextDeriv_ofFunction_apply hf hgfx, hd]
+    mpullback_add, Pi.add_apply, mpullback_mextDeriv_ofFunction_apply hf hgfx,
+    mextDeriv_ofFunction_sub_apply (hgfx.comp x hf) hgx]
   abel
 
 /-- Let `f : M × M₂ → M'` be differentiable at `(s, z)`. The pullback of `φ` along the slice

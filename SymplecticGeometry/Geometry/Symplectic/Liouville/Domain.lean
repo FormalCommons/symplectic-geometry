@@ -196,10 +196,7 @@ private theorem continuous_height : Continuous h.height := by
   -- Off the compact image `K` of `[-ε / 2, 0] × ∂W`, the image of the interior of `W` is an open
   -- set on which the function is constant.
   set K := h.completionEnd '' (Icc (-h.collarWidth / 2) 0 ×ˢ univ)
-  have hKc : IsClosed K := by
-    refine (IsCompact.image_of_continuousOn (isCompact_Icc.prod isCompact_univ)
-      (h.contMDiffOn_completionEnd.continuousOn.mono ?_)).isClosed
-    exact prod_mono (fun s hs ↦ by simp only [mem_Ioi]; linarith [hs.1]) subset_rfl
+  have hKc : IsClosed K := (h.isCompact_completionEnd_image_Icc (by linarith)).isClosed
   have hO : IsOpen (h.toCompletion '' (𝓡∂ (n + 1)).interior W) := by
     have := (SmoothCollar.WithEnd.interiorPart h.collar).isOpen
     rwa [SmoothCollar.WithEnd.coe_interiorPart, ← toCompletion_def] at this
@@ -207,16 +204,14 @@ private theorem continuous_height : Continuous h.height := by
       h.height w = -h.collarWidth / 2 := by
     rintro w ⟨⟨p', -, rfl⟩, hwK⟩
     refine h.height_of_notMem fun ⟨r, hr, hrw⟩ ↦ ?_
-    rcases le_or_gt r.1 0 with hr0 | hr0
-    · exact hwK ⟨r, ⟨⟨hr.1, hr0⟩, trivial⟩, hrw⟩
-    · exact disjoint_left.1 h.disjoint_range_toCompletion_completionEnd_image ⟨p', rfl⟩
-        ⟨r, ⟨hr0, trivial⟩, hrw⟩
+    exact hwK ⟨r, ⟨⟨hr.1, ((h.completionEnd_eq_toCompletion_iff
+      (by linarith [mem_Ici.1 hr.1])).1 hrw).1⟩, trivial⟩, hrw⟩
   refine continuousAt_const.congr (Filter.eventually_of_mem
     ((hO.sdiff hKc).mem_nhds ⟨⟨p, hp, rfl⟩, ?_⟩) fun w hw ↦ (hconst w hw).symm)
   rintro ⟨r, hr, hrp⟩
   exact hz ⟨r, ⟨by simp only [mem_Ioi]; linarith [hr.1.1], trivial⟩, hrp⟩
 
-private theorem range_toCompletion_eq_setOf_height_le :
+private theorem range_toCompletion_eq_setOfPred_height_le :
     range h.toCompletion = {z | h.height z ≤ 0} := by
   have hε := h.collarWidth_pos
   ext z
@@ -224,8 +219,7 @@ private theorem range_toCompletion_eq_setOf_height_le :
   · rintro ⟨p, rfl⟩
     by_cases hz : ∃ q ∈ Ioi (-h.collarWidth) ×ˢ univ, h.completionEnd q = h.toCompletion p
     · obtain ⟨q, hq, hqp⟩ := hz
-      have hq0 : q.1 ≤ 0 := le_of_not_gt fun hq0 ↦ disjoint_left.1
-        h.disjoint_range_toCompletion_completionEnd_image ⟨p, rfl⟩ ⟨q, ⟨hq0, trivial⟩, hqp⟩
+      have hq0 := ((h.completionEnd_eq_toCompletion_iff hq.1).1 hqp).1
       rw [mem_ofPred_eq, ← hqp, h.height_completionEnd hq]
       exact max_le hq0 (by linarith)
     · rw [mem_ofPred_eq, height, dite_eq_right hz]
@@ -285,7 +279,7 @@ theorem isLiouvilleCompletion_completion [CompactSpace W] (h : IsStrongFilling �
   subset_interior := by simp [ModelWithCorners.interior_eq_univ]
   exists_liouville_outward := ⟨h.completionField, h.contMDiff_completionField,
     h.interior_completionField_completionForm, h.height, 0, h.continuous_height,
-    h.range_toCompletion_eq_setOf_height_le, fun _ hz ↦
+    h.range_toCompletion_eq_setOfPred_height_le, fun _ hz ↦
       ⟨(h.contMDiffAt_height_and_mvfderiv hz).1,
         (h.contMDiffAt_height_and_mvfderiv hz).2 ▸ one_pos⟩⟩
   exists_isCompleteVectorField := ⟨h.completionField, h.interior_completionField_completionForm,

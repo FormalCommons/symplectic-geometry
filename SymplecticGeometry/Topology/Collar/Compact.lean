@@ -13,12 +13,12 @@ public import TauCeti.Geometry.Manifold.Boundary.Collar.Global
 Let `c : N × [0, 1) → M` be a collar of `f : N → M` (`TauCeti.IsCollar`). Tau Ceti's notion is
 purely topological, and so is this file. When `N` is compact, the part `c(N × [0, t])` of the
 collar of depth at most `t`, for `t < 1`, is compact, as the image of the compact set
-`N × [0, t]` (`TauCeti.IsCollar.isCompact_image_setOf_le`). In a Hausdorff space it is therefore
+`N × [0, t]` (`TauCeti.IsCollar.isCompact_image_setOfPred_le`). In a Hausdorff space it is therefore
 closed, which is how pushing along a collar and homotopy extension along a collar use it.
 
 ## Main results
 
-* `TauCeti.IsCollar.isCompact_image_setOf_le`: for compact `N` and `t < 1`, the image under a
+* `TauCeti.IsCollar.isCompact_image_setOfPred_le`: for compact `N` and `t < 1`, the image under a
   collar of the points of depth at most `t` is compact.
 -/
 
@@ -35,7 +35,7 @@ namespace IsCollar
 
 /-- For compact `N` and `t < 1`, the part `c(N × [0, t])` of the collar of depth at most `t` is
 compact. -/
-theorem isCompact_image_setOf_le (hc : IsCollar f c) [CompactSpace N] {t : ℝ} (ht : t < 1) :
+theorem isCompact_image_setOfPred_le (hc : IsCollar f c) [CompactSpace N] {t : ℝ} (ht : t < 1) :
     IsCompact (c '' {p | (p.2 : ℝ) ≤ t}) := by
   have hs : IsCompact {s : Ico (0 : ℝ) 1 | (s : ℝ) ≤ t} := by
     rw [Subtype.isCompact_iff]

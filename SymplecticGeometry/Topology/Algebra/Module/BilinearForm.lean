@@ -76,7 +76,7 @@ nondegenerate are an open set, by Tau Ceti's `TauCeti.isOpen_setOf_nondegenerate
   alternating.
 * `ContinuousLinearMap.nondegenerate_toBilinForm_skewSymmetrizeBilinear_iff`: it is
   nondegenerate if and only if `b - b.flip` is.
-* `ContinuousLinearMap.isOpen_setOf_nondegenerate_toBilinForm_sub_flip`: in finite dimension,
+* `ContinuousLinearMap.isOpen_setOfPred_nondegenerate_toBilinForm_sub_flip`: in finite dimension,
   the forms `b` with `b - b.flip` nondegenerate form an open set.
 * `ContinuousLinearMap.apply_bilinAdjoint_apply`, `ContinuousLinearMap.eq_bilinAdjoint_iff`:
   for invertible `β₁`, the adjoint is the unique map `A` with `β₁ (A u) y = β₀ u (T y)`.
@@ -84,7 +84,7 @@ nondegenerate are an open set, by Tau Ceti's `TauCeti.isOpen_setOf_nondegenerate
   are an adjoint pair in the sense of `LinearMap.IsAdjointPair`.
 * `ContinuousLinearMap.coe_bilinAdjoint`: in finite dimensions, its linear map is
   `(β₁.toDual)⁻¹ ∘ T.dualMap ∘ β₀`.
-* `ContinuousAlternatingMap.isOpen_setOf_nondegenerate_toBilinMap`: in finite dimension, the
+* `ContinuousAlternatingMap.isOpen_setOfPred_nondegenerate_toBilinMap`: in finite dimension, the
   continuous alternating maps of two vectors with nondegenerate bilinear form are an open set.
 -/
 
@@ -303,7 +303,7 @@ theorem nondegenerate_toBilinForm_skewSymmetrizeBilinear_iff [NeZero (2 : 𝕜)]
 
 /-- In finite dimension, the continuous bilinear forms `b` such that `b - bᵀ` is nondegenerate
 form an open set. -/
-theorem isOpen_setOf_nondegenerate_toBilinForm_sub_flip [FiniteDimensional 𝕜 V] :
+theorem isOpen_setOfPred_nondegenerate_toBilinForm_sub_flip [FiniteDimensional 𝕜 V] :
     IsOpen {b : V →L[𝕜] V →L[𝕜] 𝕜 | (b - b.flip).toBilinForm.Nondegenerate} :=
   isOpen_setOf_nondegenerate_toBilinForm.preimage
     (continuous_id.sub (flipₗᵢ 𝕜 V V 𝕜).continuous)
@@ -369,7 +369,7 @@ namespace ContinuousAlternatingMap
 
 /-- In finite dimension, the continuous alternating maps `A` of two vectors whose bilinear form
 `(v, w) ↦ A ![v, w]` is nondegenerate form an open set. -/
-theorem isOpen_setOf_nondegenerate_toBilinMap {𝕜 E : Type*} [NontriviallyNormedField 𝕜]
+theorem isOpen_setOfPred_nondegenerate_toBilinMap {𝕜 E : Type*} [NontriviallyNormedField 𝕜]
     [NormedAddCommGroup E] [NormedSpace 𝕜 E] [FiniteDimensional 𝕜 E] :
     IsOpen {A : E [⋀^Fin 2]→L[𝕜] 𝕜 |
       LinearMap.BilinForm.Nondegenerate (MultilinearMap.toBilinMap A.toMultilinearMap)} :=

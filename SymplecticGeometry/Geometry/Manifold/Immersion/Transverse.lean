@@ -8,6 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
 public import Mathlib.Analysis.Normed.Module.FiniteDimension
 public import SymplecticGeometry.Topology.Algebra.Module.ContinuousLinearMap.PiProd
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # Stability of immersions transverse to a vector field
@@ -86,7 +87,6 @@ theorem ContMDiffAt.eventually_injective_mfderiv_and_notMem_range
   have hBn := hB.preimage_mem_nhds (ContinuousLinearMap.isOpen_injective.mem_nhds hB0)
   have hxn := e₁.open_baseSet.mem_nhds
     (FiberBundle.mem_baseSet_trivializationAt E (TangentSpace I) x)
-  have hyn := hf.continuousAt.preimage_mem_nhds (e₂.open_baseSet.mem_nhds
-    (FiberBundle.mem_baseSet_trivializationAt E' (TangentSpace J) (f x)))
+  have hyn := hf.continuousAt.eventually_mem_baseSet_trivializationAt E' (TangentSpace J)
   filter_upwards [hBn, hxn, hyn] with y hy hx hfy
   exact (hcoord y hx hfy).1 hy

@@ -50,8 +50,9 @@ differential at a point exactly when `Φ` has, by Tau Ceti's
 `TauCeti.Manifold.mfderiv_eq_id_iff_of_comp_subtype_val`; so a point that `Φ` fixes with identity
 differential is fixed by it, with identity differential. The lift maps a subset `C` of `U` onto
 the image of `C` under `Φ` (`PartialDiffeomorph.image_liftOpens`). When `Φ` is a diffeomorphism
-between `U` and `V`, the lift has source `U` and takes the values of `Φ` there
+between `U` and `V`, the lift has source `U` and target `V`, and takes the values of `Φ` on `U`
 (`Diffeomorph.toPartialDiffeomorph_liftOpens_source`,
+`Diffeomorph.toPartialDiffeomorph_liftOpens_target`,
 `Diffeomorph.toPartialDiffeomorph_liftOpens_apply_coe`).
 
 ## Main results
@@ -75,9 +76,10 @@ between `U` and `V`, the lift has source `U` and takes the values of `Φ` there
   `V`, read as a partial diffeomorphism of the ambient manifolds, maps each subset of `U` onto its
   image under it.
 * `Diffeomorph.toPartialDiffeomorph_liftOpens_source`,
+  `Diffeomorph.toPartialDiffeomorph_liftOpens_target`,
   `Diffeomorph.toPartialDiffeomorph_liftOpens_apply_coe`: a diffeomorphism between open subsets
   `U` and `V`, read as a partial diffeomorphism of the ambient manifolds, has source `U` and
-  agrees with the diffeomorphism there.
+  target `V`, and agrees with the diffeomorphism on `U`.
 -/
 
 public section
@@ -162,10 +164,7 @@ theorem exists_diffeomorph_of_subset_target (Φ : PartialDiffeomorph I J M N n) 
     Φ.toOpenPartialHomeomorph.isOpen_inter_preimage V.isOpen
   let Φ' := Φ.restrOpen _ hs
   have htarget (v : N) : v ∈ Φ'.target ↔ v ∈ V := by
-    rw [Φ.restrOpen_target]
-    refine ⟨fun hv ↦ Φ.right_inv hv.1 ▸ hv.2.2, fun hv ↦ ?_⟩
-    have hvt : v ∈ Φ.target := hV hv
-    exact ⟨hvt, Φ.map_target hvt, by simpa [Φ.right_inv hvt] using hv⟩
+    rw [Φ.restrOpen_target_eq_of_subset hV hs, SetLike.mem_coe]
   refine ⟨⟨Φ'.source, Φ'.open_source⟩, Φ'.toDiffeomorphSourceTarget.trans
     (Diffeomorph.subtype (Diffeomorph.refl _ _ n) fun v ↦ htarget v), by simp [Φ'],
     fun u ↦ ?_⟩
@@ -254,6 +253,12 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
 diffeomorphism from `M` to `N`, has source `U`. -/
 theorem toPartialDiffeomorph_liftOpens_source :
     (Φ.toPartialDiffeomorph.liftOpens hU hV).source = U := by
+  simp
+
+/-- A diffeomorphism `Φ` between open subsets `U` of `M` and `V` of `N`, read as a partial
+diffeomorphism from `M` to `N`, has target `V`. -/
+theorem toPartialDiffeomorph_liftOpens_target :
+    (Φ.toPartialDiffeomorph.liftOpens hU hV).target = V := by
   simp
 
 /-- A diffeomorphism `Φ` between open subsets `U` of `M` and `V` of `N`, read as a partial

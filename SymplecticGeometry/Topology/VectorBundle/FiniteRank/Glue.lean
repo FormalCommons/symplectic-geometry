@@ -55,20 +55,25 @@ cocycle condition from `g.hom ≫ g.inv = 𝟙` and `g.inv ≫ g.hom = 𝟙` (`g
   on either side (`glueCocycle_comp_fiberMap_isoGlue_hom`); followed by `glueRestrictIso`, its
   restriction to either side is the given isomorphism there
   (`pullbackFunctor_mapIso_isoGlue_trans_glueRestrictIso`).
-* `TauCeti.FiniteRankBundleCore.nonempty_iso_glue_of_fiberMap_comp_eq`: an isomorphism `A ≅ A'`
-  that carries `g` to `g'` fibre by fibre gives an isomorphism of the gluings, by `isoGlue`.
+* `TauCeti.FiniteRankBundleCore.nonempty_iso_glue_of_fiberMap_comp_eq_comp`: isomorphisms
+  between the restrictions of `A` and `A'` to `U` and to `V` that relate `g` to `g'` fibre by
+  fibre give an isomorphism of the gluings, by `isoGlue`. In particular an isomorphism `A ≅ A'`
+  that carries `g` to `g'` does (`nonempty_iso_glue_of_fiberMap_comp_eq`).
 * `TauCeti.FiniteRankBundleCore.glue_eqToIso_trans_trans_eqToIso`: a gluing by an automorphism
   `k` of a core `P`, read through an equality between `P` and the restriction of the glued core,
   depends only on `k` and on the glued core, not on that equality.
-* `TauCeti.FiniteRankBundleCore.coordChange_glue_whitneyMapIso` and
-  `TauCeti.FiniteRankBundleCore.coordChange_glue_tensorIso`: the gluing of `A ⊕ D` by the direct
-  sum of two automorphisms has the transitions of the Whitney sum of the two gluings, and the
-  gluing of `A ⊗ D` by their tensor product those of the tensor product of the two gluings, since
-  the gluing cocycle of a direct sum or tensor product of automorphisms is the block-diagonal or
-  Kronecker product of their cocycles (`glueCocycle_whitneyMapIso`, `glueCocycle_tensorIso`).
+* `TauCeti.FiniteRankBundleCore.coordChange_glue_whitneyMapIsoPullback` and
+  `TauCeti.FiniteRankBundleCore.coordChange_glue_tensorIsoPullback`: the gluing of `A ⊕ D` by
+  the direct sum of two automorphisms has the transitions of the Whitney sum of the two gluings,
+  and the gluing of `A ⊗ D` by their tensor product those of the tensor product of the two
+  gluings, since the gluing cocycle of a direct sum or tensor product of automorphisms is the
+  block-diagonal or Kronecker product of their cocycles (`glueCocycle_whitneyMapIsoPullback`,
+  `glueCocycle_tensorIsoPullback`).
   The direct sum and the tensor product of the automorphisms act on the Whitney sum and the
   tensor product of the restrictions of `A` and `D`, so they are read through Tau Ceti's
-  `pullback_whitneySum` and `pullback_tensorObj` by `eqToIso`.
+  `pullback_whitneySum` and `pullback_tensorObj` by `eqToIso`: they are
+  `TauCeti.FiniteRankBundleCore.whitneyMapIsoPullback` and
+  `TauCeti.FiniteRankBundleCore.tensorIsoPullback`.
 * `TauCeti.FiniteRankBundleCore.nonempty_iso_glue_of_homotopic`: over a paracompact R₁
   base, gluings by two automorphisms joined by an automorphism of the pullback of `A` to the
   part `(U ∩ V) × I` of `B × I` are isomorphic. The gluing over `B × I` by that automorphism
@@ -800,12 +805,47 @@ theorem fiberMap_isoGlue_inv_of_notMem {b : B} (hb : b ∉ U) (hbV : b ∈ V) :
 
 end OfIso
 
-/-! ### Gluings by conjugate automorphisms -/
+/-! ### Gluings by automorphisms related over each side -/
 
 section Conj
 
 variable {A A' : FiniteRankBundleCore 𝕜 B} {U V : Set B} (hU : IsOpen U) (hV : IsOpen V)
   (hUV : U ∪ V = univ)
+
+/-- **Gluings by automorphisms related by isomorphisms over each side are isomorphic.** If
+`kU` and `kV` are isomorphisms between the restrictions of `A` and `A'` to `U` and to `V`, and
+the automorphisms `g` of the restriction of `A` to `U ∩ V` and `g'` of that of `A'` satisfy
+`kU_b ∘ g_b = g'_b ∘ kV_b` at each point `b` of `U ∩ V`, then the gluing of `A` by `g` is
+isomorphic to that of `A'` by `g'`. -/
+theorem nonempty_iso_glue_of_fiberMap_comp_eq_comp
+    (kU : A.pullback (ContinuousMap.subtypeVal U) ≅ A'.pullback (ContinuousMap.subtypeVal U))
+    (kV : A.pullback (ContinuousMap.subtypeVal V) ≅ A'.pullback (ContinuousMap.subtypeVal V))
+    {g : A.pullback (ContinuousMap.subtypeVal (U ∩ V)) ≅
+      A.pullback (ContinuousMap.subtypeVal (U ∩ V))}
+    {g' : A'.pullback (ContinuousMap.subtypeVal (U ∩ V)) ≅
+      A'.pullback (ContinuousMap.subtypeVal (U ∩ V))}
+    (h : ∀ b : ↥(U ∩ V), (kU.hom.fiberMap ⟨b, b.property.1⟩).comp (g.hom.fiberMap b) =
+      (g'.hom.fiberMap b).comp (kV.hom.fiberMap ⟨b, b.property.2⟩)) :
+    Nonempty (A.glue hU hV hUV g ≅ A'.glue hU hV hUV g') := by
+  -- The glued core has the restrictions of `A'` to both sides, through `kU` and `kV`; their
+  -- transition is `g'`, so `isoGlue` gives the isomorphism.
+  let φ := A.glueRestrictIso hU hV hUV g true ≪≫ kU
+  let ψ := A.glueRestrictIso hU hV hUV g false ≪≫ kV
+  have ht : glueTransition φ ψ = g' := by
+    refine Iso.ext (hom_ext fun b ↦ ?_)
+    have hb : glueIndex U (b : B) = true := glueIndex_of_mem b.property.1
+    have hφ : φ.hom.fiberMap ⟨b, b.property.1⟩ = kU.hom.fiberMap ⟨b, b.property.1⟩ := by
+      simp only [φ, Iso.trans_hom, fiberMap_comp, fiberMap_glueRestrictIso_true_hom]
+      exact ContinuousLinearMap.comp_id _
+    have hψ : ψ.inv.fiberMap ⟨b, b.property.2⟩ =
+        (g.hom.fiberMap b).comp (kV.inv.fiberMap ⟨b, b.property.2⟩) := by
+      simp only [ψ, Iso.trans_inv, fiberMap_comp, fiberMap_glueRestrictIso_inv,
+        hb, glueCocycle_false_true _ b.property]
+    rw [fiberMap_glueTransition_hom, hφ, hψ, ← ContinuousLinearMap.comp_assoc, h,
+      ContinuousLinearMap.comp_assoc, fiberMap_inv_hom_id]
+    exact ContinuousLinearMap.comp_id _
+  rw [← ht]
+  exact ⟨isoGlue φ ψ hU hV hUV⟩
 
 /-- **Gluings by conjugate automorphisms are isomorphic.** If an isomorphism `Φ : A ≅ A'`
 carries the automorphism `g` of the restriction of `A` to `U ∩ V` to the automorphism `g'` of
@@ -818,31 +858,12 @@ theorem nonempty_iso_glue_of_fiberMap_comp_eq (Φ : A ≅ A')
       A'.pullback (ContinuousMap.subtypeVal (U ∩ V))}
     (h : ∀ b : ↥(U ∩ V), (Φ.hom.fiberMap b).comp (g.hom.fiberMap b) =
       (g'.hom.fiberMap b).comp (Φ.hom.fiberMap b)) :
-    Nonempty (A.glue hU hV hUV g ≅ A'.glue hU hV hUV g') := by
-  -- The glued core has the restrictions of `A'` to both sides, through `Φ`; their transition
-  -- is `g'`, so `isoGlue` gives the isomorphism.
-  let φ := A.glueRestrictIso hU hV hUV g true ≪≫
-    (pullbackFunctor (ContinuousMap.subtypeVal U)).mapIso Φ
-  let ψ := A.glueRestrictIso hU hV hUV g false ≪≫
-    (pullbackFunctor (ContinuousMap.subtypeVal V)).mapIso Φ
-  have ht : glueTransition φ ψ = g' := by
-    refine Iso.ext (hom_ext fun b ↦ ?_)
-    have hb : glueIndex U (b : B) = true := glueIndex_of_mem b.property.1
-    have hφ : φ.hom.fiberMap ⟨b, b.property.1⟩ = Φ.hom.fiberMap b := by
-      simp only [φ, Iso.trans_hom, Functor.mapIso_hom, fiberMap_comp,
-        fiberMap_pullbackMap, fiberMap_glueRestrictIso_hom, hb, glueCocycle_self]
-      exact ContinuousLinearMap.comp_id _
-    have hψ : ψ.inv.fiberMap ⟨b, b.property.2⟩ =
-        (g.hom.fiberMap b).comp (Φ.inv.fiberMap b) := by
-      simp only [ψ, Iso.trans_inv, Functor.mapIso_inv, fiberMap_comp,
-        fiberMap_pullbackMap, fiberMap_glueRestrictIso_inv, hb, glueCocycle_false_true _ b.property]
-      -- The two points are `b`, written through `Subtype` and `ContinuousMap.subtypeVal`.
-      rfl
-    rw [fiberMap_glueTransition_hom, hφ, hψ, ← ContinuousLinearMap.comp_assoc, h,
-      ContinuousLinearMap.comp_assoc, fiberMap_inv_hom_id]
-    exact ContinuousLinearMap.comp_id _
-  rw [← ht]
-  exact ⟨isoGlue φ ψ hU hV hUV⟩
+    Nonempty (A.glue hU hV hUV g ≅ A'.glue hU hV hUV g') :=
+  nonempty_iso_glue_of_fiberMap_comp_eq_comp hU hV hUV
+    ((pullbackFunctor (ContinuousMap.subtypeVal U)).mapIso Φ)
+    ((pullbackFunctor (ContinuousMap.subtypeVal V)).mapIso Φ) fun b ↦ by
+      simpa only [Functor.mapIso_hom, fiberMap_pullbackMap, ContinuousMap.subtypeVal_apply] using
+        h b
 
 end Conj
 
@@ -882,9 +903,8 @@ variable {A D : FiniteRankBundleCore 𝕜 B} {U V : Set B} (hU : IsOpen U) (hV :
 /-- The gluing cocycle of the direct sum of two automorphisms, as an automorphism of the
 restriction of `A ⊕ D` through `pullback_whitneySum`, is block diagonal, with the gluing cocycles
 of the two automorphisms as blocks. -/
-theorem glueCocycle_whitneyMapIso (s t : Bool) (b : B) :
-    glueCocycle (A := whitneySum A D) (eqToIso (pullback_whitneySum A D _) ≪≫
-      whitneyMapIso g₁ g₂ ≪≫ eqToIso (pullback_whitneySum A D _).symm) s t b =
+theorem glueCocycle_whitneyMapIsoPullback (s t : Bool) (b : B) :
+    glueCocycle (A := whitneySum A D) (whitneyMapIsoPullback g₁ g₂) s t b =
       (splitCoords (𝕜 := 𝕜) A.rank D.rank).symm.toContinuousLinearMap.comp
         (((glueCocycle g₁ s t b).prodMap (glueCocycle g₂ s t b)).comp
           (splitCoords (𝕜 := 𝕜) A.rank D.rank).toContinuousLinearMap) := by
@@ -892,39 +912,38 @@ theorem glueCocycle_whitneyMapIso (s t : Bool) (b : B) :
       (((ContinuousLinearMap.id 𝕜 (Fin A.rank → 𝕜)).prodMap (.id 𝕜 (Fin D.rank → 𝕜))).comp
         (splitCoords (𝕜 := 𝕜) A.rank D.rank).toContinuousLinearMap) = .id 𝕜 _ :=
     ContinuousLinearMap.ext (splitCoords (𝕜 := 𝕜) A.rank D.rank).symm_apply_apply
-  cases s <;> cases t <;> simp only [glueCocycle, fiberMap_eqToIso_whitneyMapIso_hom,
-    fiberMap_eqToIso_whitneyMapIso_inv] <;> by_cases h : b ∈ U ∩ V <;>
+  cases s <;> cases t <;> simp only [glueCocycle, fiberMap_whitneyMapIsoPullback_hom,
+    fiberMap_whitneyMapIsoPullback_inv] <;> by_cases h : b ∈ U ∩ V <;>
     (try simp only [h, ↓reduceDIte]) <;> first | exact hid.symm | rfl
 
 /-- The gluing cocycle of the tensor product of two automorphisms, as an automorphism of the
 restriction of `A ⊗ D` through `pullback_tensorObj`, is the Kronecker product of their gluing
 cocycles. -/
-theorem glueCocycle_tensorIso (s t : Bool) (b : B) :
-    glueCocycle (A := A ⊗ D) (eqToIso (pullback_tensorObj A D _) ≪≫ (g₁ ⊗ᵢ g₂) ≪≫
-      eqToIso (pullback_tensorObj A D _).symm) s t b =
+theorem glueCocycle_tensorIsoPullback (s t : Bool) (b : B) :
+    glueCocycle (A := A ⊗ D) (tensorIsoPullback g₁ g₂) s t b =
       (glueCocycle g₁ s t b).kronecker (glueCocycle g₂ s t b) := by
-  cases s <;> cases t <;> simp only [glueCocycle, fiberMap_eqToIso_tensorIso_hom,
-    fiberMap_eqToIso_tensorIso_inv] <;> by_cases h : b ∈ U ∩ V <;>
+  cases s <;> cases t <;> simp only [glueCocycle, fiberMap_tensorIsoPullback_hom,
+    fiberMap_tensorIsoPullback_inv] <;> by_cases h : b ∈ U ∩ V <;>
     (try simp only [h, ↓reduceDIte]) <;>
     first | exact ContinuousLinearMap.id_kronecker_id.symm | rfl
 
 /-- The transitions of the gluing of `A ⊕ D` by the direct sum of `g₁` and `g₂` are those of the
 Whitney sum of the gluing of `A` by `g₁` and that of `D` by `g₂`. -/
-theorem coordChange_glue_whitneyMapIso (i j b : B) :
-    ((whitneySum A D).glue hU hV hUV (eqToIso (pullback_whitneySum A D _) ≪≫
-      whitneyMapIso g₁ g₂ ≪≫ eqToIso (pullback_whitneySum A D _).symm)).core.coordChange i j b =
+theorem coordChange_glue_whitneyMapIsoPullback (i j b : B) :
+    ((whitneySum A D).glue hU hV hUV (whitneyMapIsoPullback g₁ g₂)).core.coordChange i j b =
       (whitneySum (A.glue hU hV hUV g₁) (D.glue hU hV hUV g₂)).core.coordChange i j b := by
-  rw [coordChange_glue, glueCocycle_whitneyMapIso]
+  rw [coordChange_glue, glueCocycle_whitneyMapIsoPullback]
   exact inChartCoordinates_whitneySum_prodMap A A D D _ _ i j b
 
 /-- The transitions of the gluing of `A ⊗ D` by the tensor product of `g₁` and `g₂` are those of
 the tensor product of the gluing of `A` by `g₁` and that of `D` by `g₂`. -/
-theorem coordChange_glue_tensorIso (i j b : B) :
-    ((A ⊗ D).glue hU hV hUV (eqToIso (pullback_tensorObj A D _) ≪≫ (g₁ ⊗ᵢ g₂) ≪≫
-      eqToIso (pullback_tensorObj A D _).symm)).core.coordChange i j b =
+theorem coordChange_glue_tensorIsoPullback (i j b : B) :
+    ((A ⊗ D).glue hU hV hUV (tensorIsoPullback g₁ g₂)).core.coordChange i j b =
       (A.glue hU hV hUV g₁ ⊗ D.glue hU hV hUV g₂).core.coordChange i j b := by
-  rw [coordChange_glue, glueCocycle_tensorIso]
-  -- The monoidal product `A ⊗ D` is Tau Ceti's `tensor A D`.
+  rw [coordChange_glue, glueCocycle_tensorIsoPullback]
+  -- The monoidal product `A ⊗ D` is Tau Ceti's `tensor A D` by the definition of its
+  -- `MonoidalCategoryStruct` instance. Tau Ceti states neither that equality nor
+  -- `inChartCoordinates_tensor_kronecker` for `⊗`, so this step unfolds the instance.
   exact inChartCoordinates_tensor_kronecker A A D D _ _ i j b
 
 end Operations

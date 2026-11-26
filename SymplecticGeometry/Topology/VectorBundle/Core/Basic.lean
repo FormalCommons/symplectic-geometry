@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Data.Fintype.Order
 public import Mathlib.Topology.VectorBundle.Basic
+public import SymplecticGeometry.Topology.Algebra.Module.Spaces.ContinuousLinearMap
 public import TauCeti.LinearAlgebra.Dimension.Submodule
 public import TauCeti.Topology.VectorBundle.Coordinates
 
@@ -28,10 +29,11 @@ public import TauCeti.Topology.VectorBundle.Coordinates
   expression of an operator has the rank of the operator.
 * `VectorBundleCore.inChartCoordinates_smul` and `VectorBundleCore.inChartCoordinates_sum`: the
   chart expression is linear in the operator.
-* `VectorBundleCore.exists_units_inv_mul_mul_eq_inChartCoordinates`: reading an endomorphism of a
-  fibre in a chart is a conjugation by a unit, and
-  `VectorBundleCore.exists_conjContinuousAlgEquiv_eq_inChartCoordinates` by a continuous linear
-  automorphism of the model fibre.
+* `VectorBundleCore.exists_conjContinuousAlgEquiv_eq_inChartCoordinates`: reading an endomorphism
+  of a fibre in a chart is the conjugation by a continuous linear automorphism of the model fibre;
+  `VectorBundleCore.exists_units_inv_mul_mul_eq_inChartCoordinates` deduces from it the
+  conjugation by a unit of the endomorphism ring, through
+  `ContinuousLinearEquiv.conjContinuousAlgEquiv_apply_eq_mul`.
 -/
 
 public section
@@ -138,18 +140,6 @@ theorem inChartCoordinates_sum {α : Type*} (s : Finset α) (i : ι) (j : κ) (x
   simp only [inChartCoordinates_apply, sum_apply, map_sum]
 
 /-- At a point of the domain of a chart `i`, reading an endomorphism of the fibre in the chart `i`
-is a conjugation by a unit of the ring of endomorphisms of the model fibre. -/
-theorem exists_units_inv_mul_mul_eq_inChartCoordinates {i : ι} {x : B} (hx : x ∈ Z.baseSet i) :
-    ∃ U : (F →L[R] F)ˣ, ∀ M : F →L[R] F, ↑U⁻¹ * M * ↑U = Z.inChartCoordinates Z i i x M := by
-  have h {j k : ι} (hj : x ∈ Z.baseSet j) (hk : x ∈ Z.baseSet k) :
-      Z.coordChange k j x * Z.coordChange j k x = 1 :=
-    (Z.coordChange_comp_coordChange_eq_id hj hk).trans ContinuousLinearMap.one_def.symm
-  refine ⟨⟨Z.coordChange i (Z.indexAt x) x, Z.coordChange (Z.indexAt x) i x,
-    h (Z.mem_baseSet_at x) hx, h hx (Z.mem_baseSet_at x)⟩, fun M ↦ ?_⟩
-  rw [inChartCoordinates_def, Units.inv_mk, Units.val_mk, ContinuousLinearMap.mul_def,
-    ContinuousLinearMap.mul_def, ContinuousLinearMap.comp_assoc]
-
-/-- At a point of the domain of a chart `i`, reading an endomorphism of the fibre in the chart `i`
 is the conjugation by a continuous linear automorphism of the model fibre, an algebra
 isomorphism. -/
 theorem exists_conjContinuousAlgEquiv_eq_inChartCoordinates {i : ι} {x : B}
@@ -162,5 +152,13 @@ theorem exists_conjContinuousAlgEquiv_eq_inChartCoordinates {i : ι} {x : B}
   rw [ContinuousLinearEquiv.conjContinuousAlgEquiv_apply,
     Trivialization.symm_coordChangeL _ _ ⟨hx'.2, hx'.1⟩, localTriv_coordChangeL _ hx',
     localTriv_coordChangeL _ ⟨hx'.2, hx'.1⟩, inChartCoordinates_def]
+
+/-- At a point of the domain of a chart `i`, reading an endomorphism of the fibre in the chart `i`
+is a conjugation by a unit of the ring of endomorphisms of the model fibre. -/
+theorem exists_units_inv_mul_mul_eq_inChartCoordinates {i : ι} {x : B} (hx : x ∈ Z.baseSet i) :
+    ∃ U : (F →L[R] F)ˣ, ∀ M : F →L[R] F, ↑U⁻¹ * M * ↑U = Z.inChartCoordinates Z i i x M := by
+  obtain ⟨e, he⟩ := Z.exists_conjContinuousAlgEquiv_eq_inChartCoordinates hx
+  refine ⟨e.toUnit⁻¹, fun M ↦ ?_⟩
+  rw [← he, ContinuousLinearEquiv.conjContinuousAlgEquiv_apply_eq_mul, inv_inv]
 
 end VectorBundleCore

@@ -102,7 +102,7 @@ theorem card_inter_line {ι : (Fin 2 → ℂ) →ₗ[ℂ] (Fin (n + 2) → ℂ)}
     exact hmem p
   rw [Nat.card_coe_set_eq, hset,
     ncard_image_of_injective _ (Projectivization.map_injective ι hι),
-    IsHomogeneous.ncard_setOf_eval_rep_eq_zero hF hsing]
+    IsHomogeneous.ncard_setOfPred_eval_rep_eq_zero hF hsing]
 
 /-- **A zero-dimensional hypersurface has `d` points.** A smooth projective hypersurface of degree
 `d` in `ℂℙ¹` consists of exactly `d` points.

@@ -5,8 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.IntervalContraction
-public import SymplecticGeometry.Geometry.Symplectic.Coupling.Basic
+public import SymplecticGeometry.Geometry.Symplectic.Coupling.Primitive
 public import SymplecticGeometry.Geometry.Symplectic.Moser.Field
 import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Prod.Basic
@@ -16,8 +15,6 @@ import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import SymplecticGeometry.Geometry.Symplectic.Moser.Equivariant
 import TauCeti.Geometry.Manifold.PartitionOfUnity.Compact
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.ProdIcc
-import TauCeti.Topology.Algebra.Module.Alternating.Basic
-import TauCeti.Topology.FiberBundle.Separation
 
 /-!
 # Uniqueness of coupling forms
@@ -27,6 +24,9 @@ on the base are related by an equivariant diffeomorphism of `P × [a, b]` that p
 coordinate `t` of the interval (McDuff–Salamon, Proposition 5.1.9). The proof is Moser's
 argument along the segment `ω₀ + s • (ω₁ - ω₀)`, with a primitive of `ω₁ - ω₀` that is invariant
 under the circle action and makes the Moser field tangent to the levels `t = const`.
+
+The primitive and its properties, and the invariance of the extensions to `P × ℝ`, are in
+`Coupling/Primitive.lean`; this file builds the extended Moser flow on them.
 
 The primitive is `K (ω₁ - ω₀)`, for the homotopy operator `K` of the
 contraction of `P × [a, b]` onto its bottom level `P × {a}`
@@ -81,13 +81,13 @@ segment is nondegenerate at every point of `P × ℝ` over `[a, b]`
 (`SymplecticGeometry.IsCouplingForm.nondegenerate_bilinFormAt_prodIccExtension_add_smul`).
 So every pair `(s, t)` with `t ∈ [a, b]` lies in the set of pairs at which the extended segment
 is nondegenerate along all of `P × {t}`
-(`IsCouplingForm.univ_prod_Icc_subset_setOf_nondegenerate_prodIccExtension_add_smul`);
+(`IsCouplingForm.univ_prod_Icc_subset_setOfPred_nondegenerate_prodIccExtension_add_smul`);
 for compact `B` that set is open
-(`TauCeti.SmoothTwoForm.isOpen_setOf_forall_nondegenerate_bilinFormAt_add_smul`).
+(`TauCeti.SmoothTwoForm.isOpen_setOfPred_forall_nondegenerate_bilinFormAt_add_smul`).
 It contains the compact set `[0, 1] × [a, b]`, so Tau Ceti's smooth cutoff around a compact set
 (`IsCompact.exists_contMDiff_one_nhds_tsupport_subset`) gives a smooth `ρ : ℝ × ℝ → ℝ`, equal to
-`1` near `[0, 1] × [a, b]`, with compact support inside it
-(`IsCouplingForm.exists_contMDiff_tsupport_subset_setOf_nondegenerate_prodIccExtension_add_smul`).
+`1` near `[0, 1] × [a, b]`, with compact support inside it, by
+`IsCouplingForm.exists_contMDiff_tsupport_subset_setOfPred_nondegenerate_prodIccExtension_add_smul`.
 The cutoff of the extended Moser field is `(s, (x, t)) ↦ ρ (s, t)`: it is smooth, invariant
 under the circle action, compactly supported because `P` is compact, equal to `1` near
 `[0, 1] × P × [a, b]`, and the extended segment is nondegenerate on its support
@@ -116,7 +116,8 @@ so, where the flat map of the slice is invertible,
 (`IsCouplingForm.prodIccMoserField_snd_eq_zero`).
 
 For a cutoff with compact support and a jointly `C¹` field, the suspension of `Y` is complete
-(`SymplecticGeometry.isCompleteVectorField_timeDependentSuspensionField_moserField`), so the
+(`SymplecticGeometry.isCompleteVectorField_timeDependentSuspensionField_prodIccMoserField`, from
+`TauCeti.isCompleteVectorField_timeDependentSuspensionField`), so the
 time-one map `TauCeti.timeDependentFlowDiffeomorph … 0 1` is a diffeomorphism of `P × ℝ` whose
 inverse is the flow from `1` to `0`. The flow of `Y` between any two times commutes with
 `(x, t) ↦ (op z • x, t)` for an invariant cutoff, by naturality of flows
@@ -169,265 +170,11 @@ variable {EB HB B : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [Topolog
   [PrincipalBundle Circle P] [ContMDiffFiberBundle ∞ Circle P IB (𝓡 1)]
   {a b : ℝ} [Fact (a < b)]
 
-/-! ### The homotopy operator and the circle action -/
-
-section Homotopy
-
-variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [CompleteSpace F] {k : ℕ}
-
-/-- **Invariance of `K η`.** If a form `η` on `P × [a, b]` is invariant under the action of
-`z : Circle` on the total space, then so is `K η`. -/
-theorem mpullback_smul_prodIccHomotopyOperator (z : Circle)
-    {η : SmoothForm ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (ManifoldTotalSpace Circle P × Icc a b) F
-      (k + 1)}
-    (hη : SmoothForm.mpullback (fun x : ManifoldTotalSpace Circle P × Icc a b ↦ (op z • x.1, x.2))
-      (((contMDiff_const_smul (op z)).comp contMDiff_fst).prodMk contMDiff_snd) η = η) :
-    SmoothForm.mpullback (fun x : ManifoldTotalSpace Circle P × Icc a b ↦ (op z • x.1, x.2))
-        (((contMDiff_const_smul (op z)).comp contMDiff_fst).prodMk contMDiff_snd)
-        (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b F k η) =
-      prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b F k η := by
-  have hmap : (fun x : ManifoldTotalSpace Circle P × Icc a b ↦ (op z • x.1, x.2)) =
-      Prod.map (op z • ·) id := by
-    simp only [Prod.map_def, id_eq]
-  simp only [hmap] at hη ⊢
-  rw [mpullback_prodMap_prodIccHomotopyOperator (contMDiff_const_smul (op z)), hη]
-
-omit [IsManifold IB ∞ B] [PrincipalBundle Circle P] [ContMDiffFiberBundle ∞ Circle P IB (𝓡 1)] in
-/-- The fundamental field `(X, 0)` on `P × [a, b]` is the product of the period-one fundamental
-vector field on `P` with the zero field on the interval. -/
-theorem prodVectorField_eq_couplingField (x : ManifoldTotalSpace Circle P × Icc a b) :
-    Manifold.prodVectorField
-        (rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator) 0 x =
-      couplingField IB P a b x := by
-  rw [Manifold.prodVectorField_apply, couplingField_def, Pi.zero_apply]
-  -- the zero of the tangent space of the interval is the zero of its model space
-  rfl
-
-omit [IsManifold IB ∞ B] [PrincipalBundle Circle P] [ContMDiffFiberBundle ∞ Circle P IB (𝓡 1)] in
-/-- The contraction of `P × [a, b]` onto its bottom level does not move the point of `P`, so its
-derivative sends the fundamental field `(X, 0)` at `(x, u)` to `(X, 0)` at the image point. -/
-theorem mfderiv_prodIccContraction_couplingField (x : ManifoldTotalSpace Circle P × Icc a b)
-    (u : unitInterval) :
-    mfderiv (((IB.prod (𝓡 1)).prod (𝓡∂ 1)).prod (𝓡∂ 1)) ((IB.prod (𝓡 1)).prod (𝓡∂ 1))
-        (prodIccContraction (ManifoldTotalSpace Circle P) a b) (x, u)
-        (couplingField IB P a b x, 0) =
-      couplingField IB P a b (prodIccContraction (ManifoldTotalSpace Circle P) a b (x, u)) := by
-  have h := mfderiv_prodIccContraction (x, u)
-    (rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator x.1) 0 0
-  rw [zero_smul, zero_smul, mul_zero, mul_zero, add_zero, zero_smul] at h
-  rw [couplingField_def, couplingField_def, prodIccContraction_fst]
-  -- the zero vectors of the interval's tangent spaces are the zero of the model space
-  exact h
-
-omit [PrincipalBundle Circle P] in
-/-- **`K η` vanishes on `(X, 0)` when `η` does.** If the contraction of a two-form `η` on
-`P × [a, b]` with the fundamental field `(X, 0)` vanishes, then `K η` vanishes on `(X, 0)`. -/
-theorem prodIccHomotopyOperator_apply_couplingField
-    {η : SmoothForm ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (ManifoldTotalSpace Circle P × Icc a b) F 2}
-    (hη : ∀ x v, η.val x ![couplingField IB P a b x, v] = 0)
-    (x : ManifoldTotalSpace Circle P × Icc a b) :
-    (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b F 1 η).val x
-      ![couplingField IB P a b x] = 0 := by
-  refine (prodIccHomotopyOperator_apply_apply η x _).trans ?_
-  refine (intervalIntegral.integral_congr (g := fun _ ↦ (0 : F)) fun r _ ↦ ?_).trans
-    intervalIntegral.integral_zero
-  dsimp only
-  generalize projIcc 0 1 zero_le_one r = u
-  -- the family of the one vector `(X, 0)` is `![(X, 0)]`
-  simp only [Matrix.cons_val_fin_one]
-  rw [mfderiv_prodIccContraction_couplingField]
-  simp only [← Matrix.vec_single_eq_const]
-  rw [ContinuousAlternatingMap.apply_vecCons_swap, hη, neg_zero]
-
-end Homotopy
-
-/-! ### The extensions to `P × ℝ` and the circle action -/
-
-section Extension
-
-variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
-
-/-- **Invariance of the time extension.** If a form `η` on `P × [a, b]` is invariant under the
-action of `z : Circle` on the total space, then so is its time extension to `P × ℝ`
-(`TauCeti.SmoothForm.timeExtendIcc`). -/
-theorem mpullback_smul_timeExtendIcc (z : Circle)
-    {η : SmoothForm ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (ManifoldTotalSpace Circle P × Icc a b) F k}
-    (hη : SmoothForm.mpullback (fun x : ManifoldTotalSpace Circle P × Icc a b ↦ (op z • x.1, x.2))
-      (((contMDiff_const_smul (op z)).comp contMDiff_fst).prodMk contMDiff_snd) η = η) :
-    SmoothForm.mpullback (fun x : ManifoldTotalSpace Circle P × ℝ ↦ (op z • x.1, x.2))
-        (((contMDiff_const_smul (op z)).comp contMDiff_fst).prodMk contMDiff_snd)
-        (SmoothForm.timeExtendIcc η) =
-      SmoothForm.timeExtendIcc η := by
-  have hmap : (fun x : ManifoldTotalSpace Circle P × Icc a b ↦ (op z • x.1, x.2)) =
-      Prod.map (op z • ·) id := by
-    simp only [Prod.map_def, id_eq]
-  have hmap' : (fun x : ManifoldTotalSpace Circle P × ℝ ↦ (op z • x.1, x.2)) =
-      Prod.map (op z • ·) id := by
-    simp only [Prod.map_def, id_eq]
-  simp only [hmap, hmap'] at hη ⊢
-  rw [← SmoothForm.timeExtendIcc_mpullback_prodMap (contMDiff_const_smul (op z)), hη]
-
-/-- **Invariance of the extended form.** If a `(k + 1)`-form `η` on `P × [a, b]` is invariant
-under the action of `z : Circle` on the total space, then so is its extension to `P × ℝ`
-(`SymplecticGeometry.prodIccExtension`). This applies to coupling forms
-(`SymplecticGeometry.IsCouplingForm.mpullback_smul`). -/
-theorem mpullback_smul_prodIccExtension [CompleteSpace F] (z : Circle)
-    {η : SmoothForm ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (ManifoldTotalSpace Circle P × Icc a b) F
-      (k + 1)}
-    (hη : SmoothForm.mpullback (fun x : ManifoldTotalSpace Circle P × Icc a b ↦ (op z • x.1, x.2))
-      (((contMDiff_const_smul (op z)).comp contMDiff_fst).prodMk contMDiff_snd) η = η) :
-    SmoothForm.mpullback (fun x : ManifoldTotalSpace Circle P × ℝ ↦ (op z • x.1, x.2))
-        (((contMDiff_const_smul (op z)).comp contMDiff_fst).prodMk contMDiff_snd)
-        (prodIccExtension (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b F k η) =
-      prodIccExtension (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b F k η := by
-  have hmap : (fun x : ManifoldTotalSpace Circle P × Icc a b ↦ (op z • x.1, x.2)) =
-      Prod.map (op z • ·) id := by
-    simp only [Prod.map_def, id_eq]
-  have hmap' : (fun x : ManifoldTotalSpace Circle P × ℝ ↦ (op z • x.1, x.2)) =
-      Prod.map (op z • ·) id := by
-    simp only [Prod.map_def, id_eq]
-  simp only [hmap, hmap'] at hη ⊢
-  rw [mpullback_prodMap_prodIccExtension (contMDiff_const_smul (op z)), hη]
-
-end Extension
-
-/-! ### The primitive of the difference of two coupling forms -/
-
 namespace IsCouplingForm
 
 variable {η ω₀ ω₁ :
     SmoothTwoForm ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (ManifoldTotalSpace Circle P × Icc a b)}
   {τ : Icc a b → SmoothTwoForm IB B}
-
-/-- Two coupling forms for the same family agree on the bottom level: the pull-back of their
-difference along the projection `(p, t) ↦ (p, a)` vanishes. -/
-theorem mpullback_bot_sub (h₀ : IsCouplingForm ω₀ τ) (h₁ : IsCouplingForm ω₁ τ) :
-    SmoothForm.mpullback (I := (IB.prod (𝓡 1)).prod (𝓡∂ 1)) (I' := (IB.prod (𝓡 1)).prod (𝓡∂ 1))
-      (fun x : ManifoldTotalSpace Circle P × Icc a b ↦ (x.1, ⊥))
-      (contMDiff_fst.prodMk contMDiff_const) (ω₁ - ω₀) = 0 := by
-  have hp := SmoothForm.mpullback_mpullback (I := (IB.prod (𝓡 1)).prod (𝓡∂ 1))
-    (I' := IB.prod (𝓡 1)) (I'' := (IB.prod (𝓡 1)).prod (𝓡∂ 1))
-    (Prod.fst : ManifoldTotalSpace Circle P × Icc a b → ManifoldTotalSpace Circle P)
-    (fun p : ManifoldTotalSpace Circle P ↦ (p, (⊥ : Icc a b)))
-    contMDiff_fst (contMDiff_id.prodMk contMDiff_const) (ω₁ - ω₀)
-  -- the projection to the bottom level factors through the projection to `P`
-  have hb : (fun p : ManifoldTotalSpace Circle P ↦ (p, (⊥ : Icc a b))) ∘ Prod.fst =
-      fun x : ManifoldTotalSpace Circle P × Icc a b ↦ (x.1, ⊥) :=
-    rfl
-  simp only [hb] at hp
-  rw [← hp, map_sub, h₀.mpullback_slice, h₁.mpullback_slice, sub_self, map_zero]
-
-/-- **The primitive of the difference.** For two coupling forms `ω₀` and `ω₁` for the same
-family, `K (ω₁ - ω₀)` is a primitive of `ω₁ - ω₀`. -/
-theorem mextDerivₗ_prodIccHomotopyOperator_sub (h₀ : IsCouplingForm ω₀ τ)
-    (h₁ : IsCouplingForm ω₁ τ) :
-    mextDerivₗ ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) 1
-        (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1
-          (ω₁ - ω₀)) =
-      ω₁ - ω₀ := by
-  rw [mextDerivₗ_prodIccHomotopyOperator
-      ((SmoothForm.isClosed_iff_mextDerivₗ_eq_zero _).mp (h₁.isClosed.sub h₀.isClosed)),
-    mpullback_bot_sub h₀ h₁, sub_zero]
-
-/-- The primitive `K (ω₁ - ω₀)` of the difference of two coupling forms is invariant under the
-circle action. -/
-theorem mpullback_smul_prodIccHomotopyOperator_sub (h₀ : IsCouplingForm ω₀ τ)
-    (h₁ : IsCouplingForm ω₁ τ) (z : Circle) :
-    SmoothForm.mpullback (fun x : ManifoldTotalSpace Circle P × Icc a b ↦ (op z • x.1, x.2))
-        (((contMDiff_const_smul (op z)).comp contMDiff_fst).prodMk contMDiff_snd)
-        (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1
-          (ω₁ - ω₀)) =
-      prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1 (ω₁ - ω₀) :=
-  mpullback_smul_prodIccHomotopyOperator z
-    (by rw [map_sub, h₀.mpullback_smul, h₁.mpullback_smul])
-
-/-- The primitive `K (ω₁ - ω₀)` of the difference of two coupling forms vanishes on the
-fundamental field `(X, 0)`, since both forms have the same contraction `-dt` with it. -/
-theorem prodIccHomotopyOperator_sub_apply_couplingField (h₀ : IsCouplingForm ω₀ τ)
-    (h₁ : IsCouplingForm ω₁ τ) (x : ManifoldTotalSpace Circle P × Icc a b) :
-    (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1
-      (ω₁ - ω₀)).val x ![couplingField IB P a b x] = 0 :=
-  prodIccHomotopyOperator_apply_couplingField (fun y v ↦ by
-    simp only [Submodule.coe_sub, Pi.sub_apply, ContinuousAlternatingMap.sub_apply,
-      h₀.apply_couplingField, h₁.apply_couplingField]
-    exact sub_self _) x
-
-/-- **The contraction of `K η` with `(X, 0)` is the height.** For a coupling form `η`, the one-form
-`K η` takes the value `t - a` on the fundamental field `(X, 0)` at a point `(x, t)`. -/
-theorem prodIccHomotopyOperator_apply_couplingField_eq_sub (h : IsCouplingForm η τ)
-    (x : ManifoldTotalSpace Circle P × Icc a b) :
-    (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1 η).val x
-      ![couplingField IB P a b x] = (x.2 : ℝ) - a := by
-  refine (prodIccHomotopyOperator_apply_apply η x _).trans ?_
-  refine (intervalIntegral.integral_congr (g := fun _ ↦ (x.2 : ℝ) - a) fun r _ ↦ ?_).trans
-    (by simp)
-  dsimp only
-  generalize projIcc 0 1 zero_le_one r = u
-  -- the image of the unit time vector is `t - a` times the unit vector of the interval
-  have h₁ : mfderiv (((IB.prod (𝓡 1)).prod (𝓡∂ 1)).prod (𝓡∂ 1)) ((IB.prod (𝓡 1)).prod (𝓡∂ 1))
-      (prodIccContraction (ManifoldTotalSpace Circle P) a b) (x, u)
-      ((0 : TangentSpace ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) x), (1 : TangentSpace (𝓡∂ 1) u)) =
-      ((0 : TangentSpace (IB.prod (𝓡 1)) x.1), ((u : ℝ) * 0 + ((x.2 : ℝ) - a) * 1) •
-        (1 : TangentSpace (𝓡∂ 1)
-          (prodIccContraction (ManifoldTotalSpace Circle P) a b (x, u)).2)) := by
-    have h := mfderiv_prodIccContraction (x, u) (0 : TangentSpace (IB.prod (𝓡 1)) x.1) 0 1
-    rw [zero_smul, one_smul] at h
-    -- `0 : TangentSpace _ x` is the pair of zeros, by definition
-    exact h
-  -- the family of the one vector `(X, 0)` is `![(X, 0)]`
-  simp only [Matrix.cons_val_fin_one]
-  rw [mfderiv_prodIccContraction_couplingField]
-  simp only [← Matrix.vec_single_eq_const]
-  rw [ContinuousAlternatingMap.apply_vecCons_swap,
-    h.apply_couplingField_eq_neg_mfderiv_snd, h₁]
-  -- the values of the forms and of `mfderiv Subtype.val` are real numbers
-  exact (congrArg (fun c : ℝ ↦ -(-c)) (mfderiv_subtypeVal_Icc_smul_one _ _)).trans (by ring)
-
-/-- **The Moser field is tangent to the levels of `t`.** Let `η` be a coupling form and `σ` a
-one-form that vanishes on the fundamental field `(X, 0)` at a point `x`. A tangent vector `Y` at
-`x` with `ι_Y η = -σ` there has `dt(Y) = 0`. -/
-theorem mfderiv_snd_eq_zero_of_apply_eq_neg (h : IsCouplingForm η τ)
-    {σ : SmoothForm ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (ManifoldTotalSpace Circle P × Icc a b) ℝ 1}
-    {x : ManifoldTotalSpace Circle P × Icc a b}
-    (hσ : σ.val x ![couplingField IB P a b x] = 0)
-    {Y : TangentSpace ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) x}
-    (hY : ∀ v, η.val x ![Y, v] = -σ.val x ![v]) :
-    mfderiv ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) 𝓘(ℝ)
-      (fun y : ManifoldTotalSpace Circle P × Icc a b ↦ (y.2 : ℝ)) x Y = 0 := by
-  have hX := h.apply_couplingField x Y
-  rw [ContinuousAlternatingMap.apply_vecCons_swap, hY, hσ, neg_zero, neg_zero] at hX
-  exact neg_eq_zero.mp hX.symm
-
-/-- **The pull-back to the bottom level vanishes on `(X, 0)`.** For a coupling form `η`, the
-pull-back of `η` along the projection `(x, t) ↦ (x, a)` of `P × ℝ` onto the bottom level vanishes
-on the field `(X, 0)`: the projection sends `(X, 0)` to `(X, 0)`, and every tangent vector to one
-with no component along the interval. -/
-theorem mpullback_bot_apply_prodVectorField_eq_zero (h : IsCouplingForm η τ)
-    (p : ManifoldTotalSpace Circle P × ℝ) (w : TangentSpace ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) p) :
-    (SmoothForm.mpullback (fun x : ManifoldTotalSpace Circle P × ℝ ↦ (x.1, (⊥ : Icc a b)))
-      (contMDiff_fst.prodMk contMDiff_const) η).val p
-      ![Manifold.prodVectorField
-        (rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator) 0 p, w] = 0 := by
-  -- the projection keeps the component along `P` and kills the one along `ℝ`
-  have hpr : ∀ v : TangentSpace ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) p,
-      mfderiv ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) ((IB.prod (𝓡 1)).prod (𝓡∂ 1))
-        (fun x : ManifoldTotalSpace Circle P × ℝ ↦ (x.1, (⊥ : Icc a b))) p v =
-      ((v.1, 0) : TangentSpace ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (p.1, (⊥ : Icc a b))) := by
-    intro v
-    rw [mfderiv_prodMk mdifferentiableAt_fst mdifferentiableAt_const, mfderiv_const]
-    exact Prod.ext (mfderiv_fst_apply p v) rfl
-  have hX0 : mfderiv ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) ((IB.prod (𝓡 1)).prod (𝓡∂ 1))
-      (fun x : ManifoldTotalSpace Circle P × ℝ ↦ (x.1, (⊥ : Icc a b))) p
-      (Manifold.prodVectorField
-        (rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator) 0 p) =
-      couplingField IB P a b (p.1, ⊥) := by
-    rw [hpr, couplingField_def, Manifold.prodVectorField_fst]
-    -- `(p.1, ⊥).1` is `p.1`, and the zeros of the tangent spaces of the interval agree
-    rfl
-  rw [SmoothForm.coe_mpullback, TauCeti.mpullback_apply_pair, hX0, hpr w]
-  refine (h.apply_couplingField_eq_neg_mfderiv_snd _ _).trans ?_
-  -- the second component of `(w.1, 0)` is the zero vector
-  exact neg_eq_zero.mpr (map_zero _)
 
 /-! ### The extended Moser data on `P × ℝ` -/
 
@@ -559,8 +306,8 @@ coupling forms for the same family `τ` of nondegenerate forms. Every pair `(s, 
 `t ∈ [a, b]` lies in the set of pairs such that `ω̃₀ + s • dσ̃` (as in
 `SymplecticGeometry.IsCouplingForm.mpullback_prodMap_subtypeVal_prodIccExtension_add_smul`) is
 nondegenerate at every point of `P × {t}`. For compact `B` and finite-dimensional `EB`, that set
-is open (`TauCeti.SmoothTwoForm.isOpen_setOf_forall_nondegenerate_bilinFormAt_add_smul`). -/
-theorem univ_prod_Icc_subset_setOf_nondegenerate_prodIccExtension_add_smul
+is open (`TauCeti.SmoothTwoForm.isOpen_setOfPred_forall_nondegenerate_bilinFormAt_add_smul`). -/
+theorem univ_prod_Icc_subset_setOfPred_nondegenerate_prodIccExtension_add_smul
     (h₀ : IsCouplingForm ω₀ τ) (h₁ : IsCouplingForm ω₁ τ) (hτ : ∀ t, (τ t).IsNondegenerate) :
     univ ×ˢ Icc a b ⊆ {p : ℝ × ℝ | ∀ x : ManifoldTotalSpace Circle P,
       ((prodIccExtension (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1 ω₀ +
@@ -682,6 +429,25 @@ theorem _root_.SymplecticGeometry.contMDiff_prodIccMoserField [FiniteDimensional
   rw [prodIccMoserField_def]
   exact contMDiff_moserField_lineMapFamily _ _ _ hρ hnd
 
+omit [∀ b, MulAction Circleᵐᵒᵖ (P b)] [PrincipalBundle Circle P] in
+/-- **The suspension of the cut-off Moser field is complete.** For a cutoff `ρ` with compact
+support, if the cut-off Moser field `SymplecticGeometry.prodIccMoserField ω₀ ω₁ ρ` is jointly
+`C¹`, then its time-dependent flow is defined between any two times, as the field vanishes
+outside a compact subset of `P × ℝ`. -/
+theorem
+    _root_.SymplecticGeometry.isCompleteVectorField_timeDependentSuspensionField_prodIccMoserField
+    [IB.Boundaryless] [CompleteSpace EB] [T2Space B] (ω₀ ω₁ :
+      SmoothTwoForm ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (ManifoldTotalSpace Circle P × Icc a b))
+    {ρ : ℝ × (ManifoldTotalSpace Circle P × ℝ) → ℝ} (hρ : HasCompactSupport ρ)
+    (hX : ContMDiff (𝓘(ℝ, ℝ).prod ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)))
+      ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)).tangent 1
+      (fun p : ℝ × (ManifoldTotalSpace Circle P × ℝ) ↦
+        (⟨p.2, prodIccMoserField ω₀ ω₁ ρ p.1 p.2⟩ :
+          TangentBundle ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) (ManifoldTotalSpace Circle P × ℝ)))) :
+    IsCompleteVectorField (timeDependentSuspensionField (prodIccMoserField ω₀ ω₁ ρ)) := by
+  obtain ⟨K, hK, hXK⟩ := exists_isCompact_prodIccMoserField_eq_zero ω₀ ω₁ hρ
+  exact isCompleteVectorField_timeDependentSuspensionField hX hK hXK
+
 /-- **The cut-off Moser field preserves the extended height.** Let `ω₀` and `ω₁` be coupling
 forms for the same family. For any cutoff `ρ`, the cut-off Moser field `Y_s`
 (`SymplecticGeometry.prodIccMoserField`) is killed at every point by `de`, where `e` is the
@@ -775,7 +541,7 @@ family and `z : Circle`. For a cutoff `ρ` invariant under `(x, r) ↦ (op z •
 time, if the cut-off Moser field (`SymplecticGeometry.prodIccMoserField`) is jointly `C¹`, then
 its time-dependent flow from `s` to `t` commutes with `(x, r) ↦ (op z • x, r)`. -/
 theorem timeDependentFlowOf_prodIccMoserField_smul
-    [IB.Boundaryless] [T2Space (ManifoldTotalSpace Circle P)] (h₀ : IsCouplingForm ω₀ τ)
+    [IB.Boundaryless] [T2Space B] (h₀ : IsCouplingForm ω₀ τ)
     (h₁ : IsCouplingForm ω₁ τ) (z : Circle) {ρ : ℝ × (ManifoldTotalSpace Circle P × ℝ) → ℝ}
     (hρ : ∀ (s : ℝ) (p : ManifoldTotalSpace Circle P × ℝ), ρ (s, (op z • p.1, p.2)) = ρ (s, p))
     (hX : ContMDiff (𝓘(ℝ, ℝ).prod ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)))
@@ -803,7 +569,7 @@ for the same family. For a cutoff `ρ` with compact support, if the cut-off Mose
 (`SymplecticGeometry.prodIccMoserField`) is jointly `C¹`, then its time-dependent flow between
 any two times keeps each level `P × {t}` with `t ∈ [a, b]`. -/
 theorem timeDependentFlowOf_prodIccMoserField_snd
-    [IB.Boundaryless] [CompleteSpace EB] [T2Space (ManifoldTotalSpace Circle P)]
+    [IB.Boundaryless] [CompleteSpace EB] [T2Space B]
     (h₀ : IsCouplingForm ω₀ τ)
     (h₁ : IsCouplingForm ω₁ τ) {ρ : ℝ × (ManifoldTotalSpace Circle P × ℝ) → ℝ}
     (hρ : HasCompactSupport ρ)
@@ -827,7 +593,7 @@ of the topological support of `ρ`. Then the time-one map of the cut-off Moser f
 (`SymplecticGeometry.prodIccMoserField`) pulls `ω̃₀ + dσ̃` back to `ω̃₀` at every point `(x, t)`
 with `t ∈ [a, b]`. -/
 theorem mpullback_timeDependentFlowOf_prodIccMoserField_apply
-    [IB.Boundaryless] [FiniteDimensional ℝ EB] [T2Space (ManifoldTotalSpace Circle P)]
+    [IB.Boundaryless] [FiniteDimensional ℝ EB] [T2Space B]
     (h₀ : IsCouplingForm ω₀ τ) (h₁ : IsCouplingForm ω₁ τ)
     {ρ : ℝ × (ManifoldTotalSpace Circle P × ℝ) → ℝ}
     (hρ : ContMDiff (𝓘(ℝ, ℝ).prod ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ))) 𝓘(ℝ) ∞ ρ)
@@ -852,10 +618,11 @@ theorem mpullback_timeDependentFlowOf_prodIccMoserField_apply
   -- the trajectory of `(x, t)` stays on the level `P × {t}`, near which `ρ = 1`
   have hy (s : ℝ) := timeDependentFlowOf_prodIccMoserField_snd h₀ h₁ hρc
     (hX.of_le (by simp)) 0 s x t
-  rw [prodIccMoserField_def] at hX hy ⊢
+  have hc := isCompleteVectorField_timeDependentSuspensionField_prodIccMoserField ω₀ ω₁ hρc
+    (hX.of_le (by simp))
+  rw [prodIccMoserField_def] at hX hy hc ⊢
   refine SmoothTwoForm.mpullback_timeDependentFlowOf_moserField_lineMapFamily_apply
-    (isClosed_prodIccExtension h₀.isClosed) (add_sub_cancel_left W D) (hX.of_le (by simp))
-    (isCompleteVectorField_timeDependentSuspensionField_moserField (hX.of_le (by simp)) hρc)
+    (isClosed_prodIccExtension h₀.isClosed) (add_sub_cancel_left W D) (hX.of_le (by simp)) hc
     fun s hs ↦ ?_
   refine ((Continuous.prodMk_right s).continuousAt.eventually
     (hρ1.filter_mono (nhds_le_nhdsSet ?_))).mono fun z hz ↦ ⟨hz, ?_⟩
@@ -873,7 +640,7 @@ neighbourhood of `[0, 1] × [a, b]`, whose topological support lies in the set o
 such that `ω̃₀ + s • dσ̃` (as in
 `SymplecticGeometry.IsCouplingForm.mpullback_prodMap_subtypeVal_prodIccExtension_add_smul`) is
 nondegenerate at every point of `P × {t}`. -/
-theorem exists_contMDiff_tsupport_subset_setOf_nondegenerate_prodIccExtension_add_smul
+theorem exists_contMDiff_tsupport_subset_setOfPred_nondegenerate_prodIccExtension_add_smul
     (h₀ : IsCouplingForm ω₀ τ) (h₁ : IsCouplingForm ω₁ τ) (hτ : ∀ t, (τ t).IsNondegenerate) :
     ∃ ρ : ℝ × ℝ → ℝ, ContMDiff (𝓘(ℝ, ℝ).prod 𝓘(ℝ, ℝ)) 𝓘(ℝ) ∞ ρ ∧
       (∀ᶠ q in 𝓝ˢ (Icc 0 1 ×ˢ Icc a b), ρ q = 1) ∧ HasCompactSupport ρ ∧
@@ -885,9 +652,9 @@ theorem exists_contMDiff_tsupport_subset_setOf_nondegenerate_prodIccExtension_ad
       ∀ q, ρ q ∈ Icc 0 1 :=
   (isCompact_Icc.prod isCompact_Icc).exists_contMDiff_one_nhds_tsupport_subset
     (𝓘(ℝ, ℝ).prod 𝓘(ℝ, ℝ))
-    (SmoothTwoForm.isOpen_setOf_forall_nondegenerate_bilinFormAt_add_smul _ _)
+    (SmoothTwoForm.isOpen_setOfPred_forall_nondegenerate_bilinFormAt_add_smul _ _)
     ((prod_mono (subset_univ _) subset_rfl).trans
-      (univ_prod_Icc_subset_setOf_nondegenerate_prodIccExtension_add_smul h₀ h₁ hτ))
+      (univ_prod_Icc_subset_setOfPred_nondegenerate_prodIccExtension_add_smul h₀ h₁ hτ))
 
 /-- **The cutoff of the extended Moser field.** Let `ω₀` and `ω₁` be coupling forms for the same
 family `τ` of nondegenerate forms, over a compact base modelled on a finite-dimensional space.
@@ -915,7 +682,7 @@ theorem exists_cutoff_prodIccExtension_add_smul (h₀ : IsCouplingForm ω₀ τ)
         (ρ ∘ Prod.map id Prod.snd) (s, (op z • x, t)) = (ρ ∘ Prod.map id Prod.snd) (s, (x, t))) ∧
       ∀ q, ρ q ∈ Icc 0 1 := by
   obtain ⟨ρ, hρ, h1, hc, hs, h01⟩ :=
-    exists_contMDiff_tsupport_subset_setOf_nondegenerate_prodIccExtension_add_smul h₀ h₁ hτ
+    exists_contMDiff_tsupport_subset_setOfPred_nondegenerate_prodIccExtension_add_smul h₀ h₁ hτ
   have hΨ : Continuous (Prod.map id (Prod.snd (α := ManifoldTotalSpace Circle P)) :
       ℝ × (ManifoldTotalSpace Circle P × ℝ) → ℝ × ℝ) := by
     fun_prop
@@ -944,20 +711,13 @@ theorem exists_diffeomorph [IB.Boundaryless] [T2Space B] (h₀ : IsCouplingForm 
       (∀ (z : Circle) (x : ManifoldTotalSpace Circle P × Icc a b),
         Ψ (op z • x.1, x.2) = (op z • (Ψ x).1, x.2)) ∧
       SmoothForm.mpullback Ψ Ψ.contMDiff ω₁ = ω₀ := by
-  -- the total space of `P` is Hausdorff, as `B` and the fibre are
-  have : T2Space (ManifoldTotalSpace Circle P) :=
-    inferInstanceAs (T2Space (TotalSpace Circle P))
   obtain ⟨ρ, hρ, hρc, hρ1, hnd, hinv, -⟩ := exists_cutoff_prodIccExtension_add_smul h₀ h₁ hτ
   set W := prodIccExtension (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1 ω₀
   set D := mextDerivₗ ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) 1 (SmoothForm.timeExtendIcc
     (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1 (ω₁ - ω₀)))
   have hX := contMDiff_prodIccMoserField ω₀ ω₁ hρ hnd
   have hX₁ := hX.of_le (m := 1) (by simp)
-  have hc : IsCompleteVectorField
-      (timeDependentSuspensionField (prodIccMoserField ω₀ ω₁ (ρ ∘ Prod.map id Prod.snd))) := by
-    have hX₁' := hX₁
-    rw [prodIccMoserField_def] at hX₁' ⊢
-    exact isCompleteVectorField_timeDependentSuspensionField_moserField hX₁' hρc
+  have hc := isCompleteVectorField_timeDependentSuspensionField_prodIccMoserField ω₀ ω₁ hρc hX₁
   -- `Φ` is the time-one map of the cut-off Moser flow on `P × ℝ`; it and its inverse keep the
   -- levels over `[a, b]`
   set Φ := timeDependentFlowDiffeomorph hc le_top hX 0 1

@@ -54,7 +54,7 @@ modify the extension away from `C` so that it has finitely many zeros, none of t
 `SymplecticGeometry/Geometry/Manifold/RegularValue/FiniteZeros.lean`: a smooth approximation minus
 a small regular value given by Sard's theorem). Pulled back through the frame over `Σ₁` and glued
 with `s` along `C`, this gives a continuous section `t` of `L` over `M` with finitely many zeros,
-all in `{g < 0}` (`SymplecticGeometry.exists_section_eq_finite_setOf_eq_zero`).
+all in `{g < 0}` (`SymplecticGeometry.exists_section_eq_finite_setOfPred_eq_zero`).
 
 Adding up the local indices of `t` at its zeros gives the Euler number
 (`TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_sectionIndex`). The
@@ -66,7 +66,7 @@ local indices of `t` restricted to `{g < 0}` with the boundary degree, and the l
 
 ## Main results
 
-* `SymplecticGeometry.exists_section_eq_finite_setOf_eq_zero`: on a compact manifold, a
+* `SymplecticGeometry.exists_section_eq_finite_setOfPred_eq_zero`: on a compact manifold, a
   nowhere-zero section over `{g ≥ 0}` of a vector bundle of rank the dimension of the base extends,
   through a frame over `{g ≤ 0}`, to a section over `M` with finitely many zeros, all in `{g < 0}`.
 * `TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_boundaryDegree`: the Euler
@@ -106,7 +106,7 @@ a frame of a real vector bundle `L` over `{g ≤ 0}` (linear isomorphisms `τ x 
 `dim V = dim E`, continuous on the total space of the restriction of `L`), and `s` a nowhere-zero
 continuous section of `L` over `{g ≥ 0}`. Then `s` extends to a continuous section of `L` over `M`
 with finitely many zeros, all in `{g < 0}`. -/
-theorem exists_section_eq_finite_setOf_eq_zero {V : Type*} [NormedAddCommGroup V]
+theorem exists_section_eq_finite_setOfPred_eq_zero {V : Type*} [NormedAddCommGroup V]
     [NormedSpace ℝ V] [FiniteDimensional ℝ V] (hn : finrank ℝ E = finrank ℝ V) (hg : Continuous g)
     {τ : ∀ x : g ⁻¹' Iic 0, L x ≃L[ℝ] V}
     (hτ : Continuous fun v : TotalSpace F
@@ -219,7 +219,7 @@ theorem evalFundamentalClass_eulerClass_eq_boundaryDegree
   let i₁ : C(g ⁻¹' Iic 0, M) := ⟨Subtype.val, continuous_subtypeVal⟩
   -- A section `t` extending `s`, with finitely many zeros, all in `{g < 0}`.
   obtain ⟨t, ht, ht₂, hZ, hZneg⟩ :=
-    SymplecticGeometry.exists_section_eq_finite_setOf_eq_zero
+    SymplecticGeometry.exists_section_eq_finite_setOfPred_eq_zero
       (hn.trans Complex.finrank_real_complex.symm) hg.continuous hτ hs hs0
   -- Adding up the local indices of `t` at its zeros gives the Euler number.
   rw [evalFundamentalClass_eulerClass_eq_sum_sectionIndex oL hF oM ht hn hZ]

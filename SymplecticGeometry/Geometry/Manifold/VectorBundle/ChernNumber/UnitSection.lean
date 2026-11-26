@@ -63,8 +63,38 @@ namespace Bundle
 variable {M : Type} [TopologicalSpace M] [T2Space M] {EM : Type} [NormedAddCommGroup EM]
   [NormedSpace ℝ EM] [FiniteDimensional ℝ EM] [ChartedSpace EM M]
   {o : HomologicalOrientation M EM 2} {ι : Type*} {φ : ι → CoordinateDisc o}
-  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℂ F] {E : M → Type*}
-  [∀ x, NormedAddCommGroup (E x)] [∀ x, InnerProductSpace ℂ (E x)]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℂ F]
+
+section Collar
+
+variable {E : M → Type*} [∀ x, NormedAddCommGroup (E x)] [∀ x, InnerProductSpace ℂ (E x)]
+  [TopologicalSpace (TotalSpace F E)] [FiberBundle F E] [VectorBundle ℂ F E]
+  [ContinuousFiberNorm F E] [Fact (finrank ℂ F = 1)]
+
+/-- **Transitions on a collar extend to the boundary circle.** Let `φ` be a coordinate disc,
+`ρ < 1`, and `σ`, `σout` sections of the circle bundle of unitary frames of a Hermitian line
+bundle, continuous on the images under `φ` of the half-open annulus `ρ < ‖z‖ ≤ 1`. If
+`σout (φ z) = σ (φ z) • φ.phase (φ z) ^ k` on the open annulus `ρ < ‖z‖ < 1`, where the
+angular coordinate `φ.phase (φ z)` is `z / ‖z‖` for `z ≠ 0`, then `σout = σ • ζ ^ k`
+at each point `ζ` of the boundary circle. -/
+theorem boundaryCircle_eq_zpow_smul_of_collar {φ : CoordinateDisc o} {ρ : ℝ}
+    (hρ : ρ < 1) {σ σout : ∀ x, Fiber ℂ F E ℂ x}
+    (hσ : ContinuousOn (fun x ↦ TotalSpace.mk' Circle x (σ x))
+      (φ '' {z | ρ < ‖(z : ℂ)‖ ∧ ‖(z : ℂ)‖ ≤ 1}))
+    (hσout : ContinuousOn (fun x ↦ TotalSpace.mk' Circle x (σout x))
+      (φ '' {z | ρ < ‖(z : ℂ)‖ ∧ ‖(z : ℂ)‖ ≤ 1}))
+    (k : ℤ) (hk : ∀ z : CoordinateDisc.ball, ρ < ‖(z : ℂ)‖ → ‖(z : ℂ)‖ < 1 →
+      σout (φ z) = op (φ.phase (φ z) ^ k) • σ (φ z)) (ζ : Circle) :
+    σout (φ.boundaryCircle ζ) = op (ζ ^ k) • σ (φ.boundaryCircle ζ) := by
+  refine (division_eq_iff.1 (φ.apply_boundaryCircle_eq_of_continuousOn hρ (hσ.division hσout)
+    fun z hz hz1 hζ ↦ ?_)).symm
+  rw [division_eq_iff, hk z hz hz1, hζ]
+
+end Collar
+
+section ChernNumber
+
+variable {E : M → Type} [∀ x, NormedAddCommGroup (E x)] [∀ x, InnerProductSpace ℂ (E x)]
   [TopologicalSpace (TotalSpace F E)] [FiberBundle F E] [VectorBundle ℂ F E]
   [ContinuousFiberNorm F E] [Fact (finrank ℂ F = 1)]
   {σ : ι → ∀ x, Fiber ℂ F E ℂ x} {σout : ∀ x, Fiber ℂ F E ℂ x}
@@ -94,25 +124,6 @@ theorem chernNumber_eq_sum_of_boundaryCircle_eq_zpow_smul [Fintype ι] [CompactS
   ext ζ
   simp only [ContinuousMap.coe_mk, normalizedDet_clutchingTransition_unitFrame]
   exact congrArg _ (division_eq_iff.2 (hk i ζ).symm)
-
-/-- **Transitions on a collar extend to the boundary circle.** Let `φ` be a coordinate disc,
-`ρ < 1`, and `σ`, `σout` sections of the circle bundle of unitary frames of a Hermitian line
-bundle, continuous on the images under `φ` of the half-open annulus `ρ < ‖z‖ ≤ 1`. If
-`σout (φ z) = σ (φ z) • φ.phase (φ z) ^ k` on the open annulus `ρ < ‖z‖ < 1`, where the
-angular coordinate `φ.phase (φ z)` is `z / ‖z‖` for `z ≠ 0`, then `σout = σ • ζ ^ k`
-at each point `ζ` of the boundary circle. -/
-theorem boundaryCircle_eq_zpow_smul_of_collar {φ : CoordinateDisc o} {ρ : ℝ}
-    (hρ : ρ < 1) {σ σout : ∀ x, Fiber ℂ F E ℂ x}
-    (hσ : ContinuousOn (fun x ↦ TotalSpace.mk' Circle x (σ x))
-      (φ '' {z | ρ < ‖(z : ℂ)‖ ∧ ‖(z : ℂ)‖ ≤ 1}))
-    (hσout : ContinuousOn (fun x ↦ TotalSpace.mk' Circle x (σout x))
-      (φ '' {z | ρ < ‖(z : ℂ)‖ ∧ ‖(z : ℂ)‖ ≤ 1}))
-    (k : ℤ) (hk : ∀ z : CoordinateDisc.ball, ρ < ‖(z : ℂ)‖ → ‖(z : ℂ)‖ < 1 →
-      σout (φ z) = op (φ.phase (φ z) ^ k) • σ (φ z)) (ζ : Circle) :
-    σout (φ.boundaryCircle ζ) = op (ζ ^ k) • σ (φ.boundaryCircle ζ) := by
-  refine (division_eq_iff.1 (φ.apply_boundaryCircle_eq_of_continuousOn hρ (hσ.division hσout)
-    fun z hz hz1 hζ ↦ ?_)).symm
-  rw [division_eq_iff, hk z hz hz1, hζ]
 
 /-- **The first Chern number from unit sections with transitions `(z / ‖z‖) ^ k` on collars.**
 Let `φ i`, for `i` in a finite type `ι`, be coordinate discs of a compact surface with pairwise
@@ -149,6 +160,8 @@ theorem chernNumber_eq_sum_of_collar_eq_zpow_smul [Fintype ι] [CompactSpace M]
       exact (lt_irrefl _ (hz.1.trans_le hw)).elim
     · exact (hφ hij).ne_of_mem ((φ j).apply_mem_disc_iff.2 (hw.trans hρ.le))
         ((φ i).apply_mem_disc_iff.2 hz.2) hwz
+
+end ChernNumber
 
 end Bundle
 

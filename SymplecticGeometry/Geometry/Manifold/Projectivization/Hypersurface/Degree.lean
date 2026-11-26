@@ -55,8 +55,8 @@ The following are in the namespace `SymplecticGeometry.SmoothProjectiveHypersurf
   `(ι^* h) ^ (r + 1)`.
 * `exists_surjective_linearSection_regular`: some surjective `ℓ : ℂⁿ⁺² → ℂⁿ` gives a section
   of `ι^* 𝒪(1)^{⊕n}` that is transverse to zero, with finitely many zeros.
-* `card_setOf_linearSection_eq_zero`: for surjective `ℓ` whose section is transverse to zero, that
-  section has exactly `d` zeros.
+* `card_setOfPred_linearSection_eq_zero`: for surjective `ℓ` whose section is transverse to zero,
+  that section has exactly `d` zeros.
 * `evalFundamentalClass_hyperplaneClass_pow`: `⟨(ι^* h) ^ n, [X]⟩ = d` for `n ≠ 0`, written for a
   hypersurface of dimension `n + 1`. The case `n = 0`, where the pairing is read as a count of
   points, is `SmoothProjectiveHypersurface.card_eq`.
@@ -158,7 +158,7 @@ surjective, and suppose that the section of `ι^* 𝒪(1)^{⊕n}` that it gives 
 underlying real manifold of `X`, a surjective linearization at each of its zeros. Then that
 section has exactly `d` zeros: they are the points of `X` on the line `{ℓ = 0}`, which is
 transverse to `X`. -/
-theorem card_setOf_linearSection_eq_zero {ℓ : (Fin (n + 2) → ℂ) →ₗ[ℂ] Fin n → ℂ}
+theorem card_setOfPred_linearSection_eq_zero {ℓ : (Fin (n + 2) → ℂ) →ₗ[ℂ] Fin n → ℂ}
     (hℓ : Function.Surjective ℓ)
     (htr : ∀ z, X.linearSection ℓ z = 0 → Function.Surjective
       (sectionLinearization 𝓘(ℝ, Fin n → ℂ) (F := Fin n → ℂ) id
@@ -207,7 +207,7 @@ theorem evalFundamentalClass_hyperplaneClass_pow (X : SmoothProjectiveHypersurfa
   calc _ = ∑ _z ∈ hfin.toFinset, (1 : ℤ) := Finset.sum_congr rfl ?_
     _ = d := by
       rw [Finset.sum_const, nsmul_one, ← Set.ncard_eq_toFinset_card _ hfin, ← Nat.card_coe_set_eq,
-        X.card_setOf_linearSection_eq_zero hℓ hreg]
+        X.card_setOfPred_linearSection_eq_zero hℓ hreg]
   -- Each zero is transverse, with a complex-linear derivative, so its index is `1`.
   intro z hz
   have hz0 : X.linearSection ℓ z = 0 := hfin.mem_toFinset.1 hz

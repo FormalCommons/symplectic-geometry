@@ -46,7 +46,8 @@ whole space without parameters.
 * `fiberRescale_of_ne_zero`, `fiberRescale_zero`, `fiberRescale_one`: its values for `t ≠ 0`,
   at `t = 0` and at `t = 1`.
 * `fiberRescale_eq_integral`: Hadamard's formula for the rescaling.
-* `isOpen_setOf_forall_smul_smul_mem`: the set of `((p, v), t)` whose segments lie in `U` is open.
+* `isOpen_setOfPred_forall_smul_smul_mem`: the set of `((p, v), t)` whose segments lie in `U` is
+  open.
 * `integral_fderiv_slice_right_eq_integral_fderiv`: the fibre derivative under that integral is
   the derivative of `f` in the direction `(0, v)`.
 * `contDiffOn_fiberRescale`, `contDiffAt_fiberRescale_zero`,
@@ -149,7 +150,7 @@ omit [NormedSpace ℝ P] in
 /-- For an open set `U`, the set of `((p, v), t)` such that `U` contains the segment from `(p, 0)`
 to `(p, t • v)` is open. It is `TauCeti.normalSegmentDomain U` read in the coordinates
 `(t, (p, v))`. -/
-theorem isOpen_setOf_forall_smul_smul_mem (hU : IsOpen U) :
+theorem isOpen_setOfPred_forall_smul_smul_mem (hU : IsOpen U) :
     IsOpen {q : (P × F) × ℝ | ∀ s : I, (q.1.1, (s : ℝ) • q.2 • q.1.2) ∈ U} := by
   convert (TauCeti.isOpen_normalSegmentDomain hU).preimage
     (continuous_snd.prodMk continuous_fst : Continuous fun q : (P × F) × ℝ ↦ (q.2, q.1))
@@ -160,7 +161,7 @@ theorem isOpen_setOf_forall_smul_smul_mem (hU : IsOpen U) :
 /-- **Smoothness of the rescaling.** If `f` is `C^(n+1)` on an open set `U` and vanishes on
 `U ∩ (P × {0})`, its rescaling in the fibre variable is `C^n` on the set of `((p, v), t)` such
 that `U` contains the segment from `(p, 0)` to `(p, t • v)`, an open set by
-`isOpen_setOf_forall_smul_smul_mem`. -/
+`isOpen_setOfPred_forall_smul_smul_mem`. -/
 theorem contDiffOn_fiberRescale [CompleteSpace G] {n : ℕ∞} (hU : IsOpen U)
     (hf : ContDiffOn ℝ (n + 1) f U)
     (hf0 : ∀ p, (p, (0 : F)) ∈ U → f (p, 0) = 0) :
@@ -181,7 +182,7 @@ theorem contDiffAt_fiberRescale_zero [CompleteSpace G] {n : ℕ∞} (hU : IsOpen
     (hf : ContDiffOn ℝ (n + 1) f U) (hf0 : ∀ p, (p, (0 : F)) ∈ U → f (p, 0) = 0)
     {p : P × F} (hp : (p.1, (0 : F)) ∈ U) : ContDiffAt ℝ n (fiberRescale f) (p, 0) := by
   exact (contDiffOn_fiberRescale hU hf hf0).contDiffAt
-    ((isOpen_setOf_forall_smul_smul_mem hU).mem_nhds fun s ↦ by simpa using hp)
+    ((isOpen_setOfPred_forall_smul_smul_mem hU).mem_nhds fun s ↦ by simpa using hp)
 
 /-- **Smoothness of the rescaling on a fibrewise star-shaped set.** If `U` is open and
 star-shaped in the fibre variable, and `f` is `C^(n+1)` on `U` and vanishes on

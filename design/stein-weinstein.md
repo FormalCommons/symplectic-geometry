@@ -133,6 +133,25 @@ fit Tau Ceti's without a change of sign.
   On a compact `M` it holds with the constants $c_k=B+k+1$, where $B$ is an
   upper bound of $f$ on `[0, 1] × M`, so that their levels are empty; the
   building issue proves this as a lemma.
+- **Concatenation and the relation.** Two Weinstein homotopies whose end
+  and start agree need not concatenate to one. A continuous path of
+  regular values cannot cross the time at which a pair of critical points
+  is born or dies at a value between the pair's values, so the barriers of
+  the two halves can be forced into disjoint sets of regular values at the
+  seam (#5352 gives a family on $\mathbb C^2$ with infinitely many births
+  in the first half and deaths in the second). The predicate keeps its
+  barriers as an existential, and the part adds `IsRegularBarrier f c`,
+  the conditions that the predicate asks of `c` for the family `f`, with
+  `IsWeinsteinHomotopy.exists_isRegularBarrier`. `.trans` takes, besides
+  the two homotopies and their agreement at the seam, barriers `c` of the
+  first family and `c'` of the second with `c k 1 = c' k 0` for every `k`;
+  after the reparametrization flat at the ends, the glued `c k` are
+  smooth. Cieliebak–Eliashberg's step-by-step constructions meet in this
+  way, at fixed regular levels. `AreWeinsteinHomotopic` means joined by
+  one Weinstein homotopy, as in their Theorem 1.1 and the milestone; it is
+  reflexive and symmetric, and the part does not claim that it is
+  transitive. A proof that builds the homotopy of issue 21 in steps glues
+  them by `.trans` with matching barriers.
 - **The route to the converse.** Cieliebak–Eliashberg's proof, followed
   chapter by chapter, is the only proof known to this design. The part
   plans it as a sequence of supporting files (*Files*), each an issue or a
@@ -323,12 +342,15 @@ Expected size: 400 lines.
 Issue 7. `IsWeinsteinHomotopy ω X f` for families indexed by
 `t : unitInterval` and smooth on `unitInterval × M`, as in *Decisions*;
 `IsWeinsteinHomotopy.refl`, `.symm`,
-`.trans` (after a reparametrization of time that is flat at the ends;
+`.trans` (for barriers that agree at the seam, as in *Decisions*, after a
+reparametrization of time that is flat at the ends;
 the proof may pass to the model over `ℝ`, which no statement uses),
 `.pullback`, and `IsWeinsteinHomotopy.of_isCompact` (the condition at
-infinity on a compact manifold). Also the relation
-`AreWeinsteinHomotopic` between two Weinstein structures and that it is
-an equivalence relation.
+infinity on a compact manifold). Also `IsRegularBarrier` with
+`IsWeinsteinHomotopy.exists_isRegularBarrier`, and the relation
+`AreWeinsteinHomotopic` between two Weinstein structures, joined by one
+Weinstein homotopy, with `AreWeinsteinHomotopic.refl` and `.symm`; it is
+not claimed to be an equivalence relation (*Decisions*).
 
 Expected size: 450 lines.
 
@@ -346,8 +368,8 @@ Issue 8: the Weinstein structure of a Stein function.
 - `IsSteinFunction.exists_comp_isCompleteVectorField`
   (Cieliebak–Eliashberg, Remark 11.16): a smooth convex increasing `h` with
   `dCLiouvilleField (h ∘ φ)` complete. The field of `h ∘ φ` is computed from
-  the composition formulas of issue 3, and `h` is chosen to grow fast enough on each
-  sublevel of `φ`. Tau Ceti's `isCompleteVectorField_rateDampedField`
+  the composition formulas of issue 3, and `h = exp` works for every `φ`
+  on a Hausdorff `M`. Tau Ceti's `isCompleteVectorField_rateDampedField`
   proves completeness of a field damped by a similar estimate; if the
   building issue follows its proof, it credits it.
 
@@ -480,14 +502,16 @@ containing `ι '' closedBall 0 1`:
   sense, there are a `C^n` function `ρ : M → ℝ`, `ρ ≥ 0`, and an open `V ⊇ ι '' K` such
   that on `V` the function `ρ` vanishes exactly on `range ι` and is
   strictly plurisubharmonic, and its critical Hessian at `ι y`, `y ∈ K`, is
-  positive off the tangent image of `ι` at `y`. The proof is that of
-  `exists_contMDiff_isManifoldStrictlyPlurisubharmonicAt_of_isClosed_range`,
-  with the squared normal coordinates of slice charts
-  (`Manifold.IsSmoothEmbedding.exists_contMDiffOn_criticalHessian_pos`)
-  in place of adapted charts, which need half the dimension, and finitely
-  many of them, which compactness of `K` gives, glued by bump functions
-  instead of a partition of unity. A refactor that derives the
-  existing theorem from the new one is an issue of its own.
+  positive off the tangent image of `ι` at `y`. It glues the squared
+  normal coordinates of slice charts
+  (`Manifold.IsSmoothEmbedding.exists_contMDiffOn_criticalHessian_pos`),
+  finitely many of them, which compactness of `K` gives, by bump
+  functions. The closed-range form,
+  `Manifold.IsSmoothEmbedding.exists_contMDiff_isManifoldStrictlyPlurisubharmonicAt_of_isClosed_range`
+  (`M` also σ-compact, `range ι` closed, all tangent images totally real
+  in the weak sense), glues the same local functions by a partition of
+  unity; `TauCeti.IsTotallyRealEmbedding.exists_contMDiff_isManifoldStrictlyPlurisubharmonicAt_of_isClosed_range`
+  is its case of a totally real embedding.
 - `Surround/Attached.lean` (issue 14b): `IsJOrthogonallyAttached` and its
   API: `IsJOrthogonallyAttached.image_closedBall_inter` (the disc meets
   `{φ ≤ 0}` exactly in its boundary sphere),
@@ -496,9 +520,7 @@ containing `ι '' closedBall 0 1`:
   sphere),
   `IsJOrthogonallyAttached.comp` (for `h ∘ φ` with `h 0 = 0` and `h' > 0`),
   `IsJOrthogonallyAttached.comp_linearIsometry` (for `ι ∘ e`, `e` a linear
-  isometry),
-  and the example of the model below,
-  `isJOrthogonallyAttached_model`.
+  isometry).
 - `Surround/Shape.lean` (issue 14c): the model. On
   `V = EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)`, write
   `p = (x + i y, w)`, $s=|x|^2$ and $t=|y|^2+|w|^2$, and `ι₀` for the
@@ -513,7 +535,7 @@ containing `ι '' closedBall 0 1`:
   $0<a<b$: both strictly plurisubharmonic by the criterion,
   `IsJConvexLevel` for $\varphi_0$ at `0`, and the handle function with
   one critical point, at `0`, nondegenerate of index `k`. With
-  `isJOrthogonallyAttached_model` of issue 14b, $(\varphi_0,\iota_0)$ satisfies
+  `isJOrthogonallyAttached_model`, $(\varphi_0,\iota_0)$ satisfies
   every hypothesis of the statements above (`ι₀` is a linear embedding with
   totally real image), and is the test case of issue 14d. These are the
   computations of Cieliebak–Eliashberg's chapter on shapes of

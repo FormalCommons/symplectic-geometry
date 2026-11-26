@@ -5,10 +5,13 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
+public import TauCeti.Geometry.Lie.Exponential.Derivative.Basic
 public import TauCeti.Geometry.Lie.FundamentalVectorField
 public import TauCeti.Geometry.Lie.Subgroup.BalancedProduct
 public import TauCeti.Geometry.Manifold.GroupAction.TransverseSlice
 public import TauCeti.Geometry.Manifold.Submersion.Basic
+import TauCeti.Geometry.Manifold.MFDeriv.Slice
 
 /-!
 # The vertical directions of the projection `G × Z → G ×_K Z`
@@ -38,6 +41,15 @@ whose proof it follows; likewise it is differentiable at `[g, z]` when `ι` is d
 differential at `[1, z]` sends `(ξ, v)` to `ξ_M(ι z) + dι v`, by Tau Ceti's
 `TauCeti.mfderiv_smul_slice_apply`.
 
+At a point `z` fixed by `K`, `dπ` at `(1, z)` kills `(ξ, 0)` for every `ξ` whose one-parameter
+subgroup lies in `K`, since the curve `t ↦ (exp (t ξ), z)` stays in the class `[1, z]`. So the
+lift is a local diffeomorphism at `[1, z]` when its differential composed with `dπ` is onto and
+vanishes only on such vectors `(ξ, 0)`: its own differential is then bijective, and Tau Ceti's
+inverse function theorem `TauCeti.isLocalDiffeomorphAt_iff_exists_mfderiv_eq` applies. Since the
+lift is `G`-equivariant, the points where it is a local diffeomorphism are `G`-invariant
+(`SymplecticGeometry.isLocalDiffeomorphAt_smul_iff`); so it is one at `[g, z]` exactly when it is
+one at `[1, z]`, and the set of such `z` is open and `K`-invariant.
+
 ## Main results
 
 * `TauCeti.BalancedProduct.ker_mfderiv_quotientMk_rightTranslation`: on
@@ -53,17 +65,26 @@ differential at `[1, z]` sends `(ξ, v)` to `ξ_M(ι z) + dι v`, by Tau Ceti's
   at `[g, z]` when the map is differentiable at `z`.
 * `TauCeti.BalancedProduct.mfderiv_liftRightTranslation_mfderiv_quotientMk`: the differential of
   the lift at `[1, z]`, composed with `dπ`, is `(ξ, v) ↦ ξ_M(ι z) + dι v`.
+* `TauCeti.BalancedProduct.mfderiv_quotientMk_apply_eq_zero_of_forall_mem`: at a `K`-fixed point,
+  `dπ` kills the directions of `Lie(G)` whose one-parameter subgroups lie in `K`.
+* `TauCeti.BalancedProduct.isLocalDiffeomorphAt_liftRightTranslation_mk_one`: the inverse
+  function theorem for the lift at `[1, z]`, in terms of its differential composed with `dπ`.
+* `TauCeti.BalancedProduct.isLocalDiffeomorphAt_liftRightTranslation_mk_iff`,
+  `TauCeti.BalancedProduct.isLocalDiffeomorphAt_liftRightTranslation_mk_one_smul_iff`,
+  `TauCeti.BalancedProduct.isOpen_setOf_isLocalDiffeomorphAt_liftRightTranslation_mk_one`: where
+  the lift is a local diffeomorphism.
 
 ## References
 
 * J. M. Lee, *Introduction to Smooth Manifolds*, 2nd ed., Graduate Texts in Mathematics 218,
   Springer, 2013, Chapter 21 (the quotient manifold theorem) and Chapter 20 (infinitesimal
   generators of Lie group actions).
+* J. J. Duistermaat and J. A. C. Kolk, *Lie Groups*, Universitext, Springer, 2000, Section 2.4.
 -/
 
 public section
 
-open Function Manifold TauCeti
+open Function Manifold Set TauCeti
 open scoped ContDiff Manifold
 
 namespace Subgroup.RightTranslation
@@ -240,6 +261,150 @@ theorem mfderiv_liftRightTranslation_mfderiv_quotientMk [ContMDiffSMul I IM 1 G 
   -- `K.RightTranslation` is `G` with the same charts, and `toRightTranslation` is the identity,
   -- so this is the differential of `(g, z) ↦ g • ι z` on `G × Z` at `(1, z)`.
   exact mfderiv_smul_slice_apply (σ := ι) hι ξ v
+
+/-! ### Where the lift is a local diffeomorphism -/
+
+variable (F) in
+/-- **The projection is constant along directions of `K` at a fixed point.** If `z` is fixed by
+`K` and the one-parameter subgroup `t ↦ exp (t ξ)` of `ξ ∈ Lie(G)` lies in `K`, then the
+differential at `(1, z)` of the projection `G × Z → G ×_K Z` vanishes on `(ξ, 0)`: the curve
+`t ↦ (exp (t ξ), z)` stays in the class `[1, z]`. -/
+theorem mfderiv_quotientMk_apply_eq_zero_of_forall_mem [T2Space G] (hz : ∀ k : K, k • z = z)
+    {ξ : GroupLieAlgebra I G} (hξ : ∀ t : ℝ, mulInvariantExp (I := I) (t • ξ) ∈ K) :
+    letI := rightTranslationChartedSpace K Z I IZ F
+    mfderiv (I.prod IZ) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × EZ))
+      (Quotient.mk (MulAction.orbitRel K (K.RightTranslation × Z)))
+      (K.toRightTranslation 1, z) (ξ, 0) = 0 := by
+  let _ := rightTranslationChartedSpace K Z I IZ F
+  -- The curve `γ t = (exp (t ξ), z)` in `G × Z`, with velocity `(ξ, 0)` at `0`.
+  let γ : ℝ → K.RightTranslation × Z :=
+    fun t ↦ (K.toRightTranslation (mulInvariantExp (I := I) (t • ξ)), z)
+  have hγ : HasMFDerivAt 𝓘(ℝ, ℝ) (I.prod IZ) γ 0 (((1 : ℝ →L[ℝ] ℝ).smulRight ξ).prod 0) :=
+    (hasMFDerivAt_mulInvariantExp_smul_zero (I := I) (G := G) ξ).prodMk
+      (hasMFDerivAt_const (I := 𝓘(ℝ, ℝ)) (I' := IZ) z 0)
+  -- It stays in the class `[1, z]`.
+  have hconst : Quotient.mk (MulAction.orbitRel K (K.RightTranslation × Z)) ∘ γ =
+      fun _ ↦ Quotient.mk _ (K.toRightTranslation 1, z) := by
+    funext t
+    simp only [comp_apply, γ]
+    rw [quotientMk_eq_mk_toRightTranslation, quotientMk_eq_mk_toRightTranslation,
+      Equiv.symm_apply_apply, Equiv.symm_apply_apply, ← one_mul (mulInvariantExp (t • ξ))]
+    exact (mk_toRightTranslation_mul 1 ⟨_, hξ t⟩ z).trans (congrArg _ (hz _))
+  have hγ0 : γ 0 = (K.toRightTranslation 1, z) := by
+    simp only [γ, zero_smul, mulInvariantExp_zero]
+  have h := TauCeti.mfderiv_mfderiv_apply_eq_zero_of_comp_eventuallyEq_const (J := 𝓘(ℝ, ℝ))
+    (I := I.prod IZ) (K := 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × EZ)))
+    (s := 0) (.of_eq hconst) (1 : ℝ)
+  rw [hγ.mfderiv, hγ0] at h
+  -- The velocity of `γ` applied to `1` is `(ξ, 0)`.
+  convert h using 1
+  exact congrArg _ (Prod.ext (one_smul ℝ ξ).symm rfl)
+
+variable (F) in
+/-- **The inverse function theorem for the lift at `[1, z]`.** Let `z` be fixed by `K`, and let the
+`K`-equivariant map `ι` be smooth on an open neighbourhood of `z`. If the differential of the lift
+`[g, z] ↦ g • ι z` at `[1, z]`, composed with that of the projection `π : G × Z → G ×_K Z` at
+`(1, z)`, is onto, and vanishes at `(ξ, v)` only when `v = 0` and the one-parameter subgroup of `ξ`
+lies in `K`, then the lift is a local diffeomorphism at `[1, z]`. -/
+theorem isLocalDiffeomorphAt_liftRightTranslation_mk_one [T2Space G] [IsManifold IM ∞ M]
+    [ContMDiffSMul I IM ∞ G M]
+    {s : Set Z} (hs : IsOpen s) (hzs : z ∈ s) (hι : ContMDiffOn IZ IM ∞ ι s)
+    (hz : ∀ k : K, k • z = z) :
+    letI := rightTranslationChartedSpace K Z I IZ F
+    (Surjective fun p : GroupLieAlgebra I G × TangentSpace IZ z ↦
+      mfderiv 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × EZ)) IM (liftRightTranslation ι)
+        (Quotient.mk _ (K.toRightTranslation 1, z))
+        (mfderiv (I.prod IZ) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × EZ))
+          (Quotient.mk (MulAction.orbitRel K (K.RightTranslation × Z)))
+          (K.toRightTranslation 1, z) p)) →
+    (∀ (ξ : GroupLieAlgebra I G) (v : TangentSpace IZ z),
+      mfderiv 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × EZ)) IM (liftRightTranslation ι)
+        (Quotient.mk _ (K.toRightTranslation 1, z))
+        (mfderiv (I.prod IZ) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × EZ))
+          (Quotient.mk (MulAction.orbitRel K (K.RightTranslation × Z)))
+          (K.toRightTranslation 1, z) (ξ, v)) = 0 →
+        (∀ t : ℝ, mulInvariantExp (I := I) (t • ξ) ∈ K) ∧ v = 0) →
+    IsLocalDiffeomorphAt 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × EZ)) IM ∞
+      (liftRightTranslation ι) (Quotient.mk _ (K.toRightTranslation 1, z)) := by
+  let _ := rightTranslationChartedSpace K Z I IZ F
+  intro hsurj hker
+  have := isManifold_rightTranslation (K := K) (Z := Z) (I := I) (IZ := IZ) (F := F)
+  have := topologicalGroup_of_lieGroup I ∞ (G := G)
+  have := ContMDiffSMul.continuousSMul (I := 𝓘(ℝ, F)) (I' := IZ) (G := K) (M := Z) ∞
+  have hπ := (isSubmersion_quotientMk_rightTranslation (K := K) (Z := Z) (I := I) (IZ := IZ)
+    (F := F)).surjective_mfderiv (by simp) (K.toRightTranslation 1, z)
+  -- The lift is smooth on the open image of `G × s`.
+  have hopen : IsOpen ((fun p : G × Z ↦ mk K (K.toRightTranslation p.1) p.2) '' (univ ×ˢ s)) :=
+    isOpenQuotientMap_mk_toRightTranslation.isOpenMap _ (isOpen_univ.prod hs)
+  have hsmooth : ContMDiffOn 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × EZ)) IM ∞
+      (liftRightTranslation ι) ((fun p : G × Z ↦ mk K (K.toRightTranslation p.1) p.2) ''
+        (univ ×ˢ s)) := by
+    rintro _ ⟨⟨g, z'⟩, ⟨-, hz'⟩, rfl⟩
+    exact (contMDiffAt_liftRightTranslation (hι.contMDiffAt (hs.mem_nhds hz')) g).contMDiffWithinAt
+  set A := mfderiv 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × EZ)) IM (liftRightTranslation ι)
+    (Quotient.mk _ (K.toRightTranslation 1, z))
+  have hAsurj : Surjective A := fun w ↦ by
+    obtain ⟨p, hp⟩ := hsurj w
+    exact ⟨_, hp⟩
+  have hAinj : Injective A := by
+    refine (injective_iff_map_eq_zero A).2 fun w hw ↦ ?_
+    obtain ⟨⟨ξ, v⟩, rfl⟩ := hπ w
+    obtain ⟨hξ, rfl⟩ := hker ξ v hw
+    exact mfderiv_quotientMk_apply_eq_zero_of_forall_mem F hz hξ
+  refine (isLocalDiffeomorphAt_iff_exists_mfderiv_eq hsmooth hopen
+    ⟨(1, z), ⟨mem_univ _, hzs⟩, rfl⟩ BoundarylessManifold.isInteriorPoint (by simp)).2
+    ⟨(LinearEquiv.ofBijective A.toLinearMap ⟨hAinj, hAsurj⟩).toContinuousLinearEquiv, ?_⟩
+  ext w
+  -- `LinearEquiv.ofBijective_apply` does not match here, as the tangent spaces are type synonyms
+  -- of the model spaces; the equivalence applies `A` by definition.
+  rfl
+
+variable (F) in
+/-- **The lift is a local diffeomorphism at `[g, z]` exactly when it is one at `[1, z]`**, since
+the lift of a `K`-equivariant map is `G`-equivariant. -/
+theorem isLocalDiffeomorphAt_liftRightTranslation_mk_iff [ContMDiffSMul I IM ∞ G M] (g : G)
+    (z : Z) :
+    letI := rightTranslationChartedSpace K Z I IZ F
+    IsLocalDiffeomorphAt 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × EZ)) IM ∞
+        (liftRightTranslation ι) (mk K (K.toRightTranslation g) z) ↔
+      IsLocalDiffeomorphAt 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × EZ)) IM ∞
+        (liftRightTranslation ι) (mk K (K.toRightTranslation 1) z) := by
+  let _ := rightTranslationChartedSpace K Z I IZ F
+  have := contMDiffSMul_rightTranslation (K := K) (Z := Z) (I := I) (IZ := IZ) (F := F)
+  have : ContMDiffConstSMul 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × EZ)) ∞ G
+      (BalancedProduct K K.RightTranslation Z) :=
+    ContMDiffSMul.contMDiffConstSMul I
+  have : ContMDiffConstSMul IM ∞ G M := ContMDiffSMul.contMDiffConstSMul I
+  have h := SymplecticGeometry.isLocalDiffeomorphAt_smul_iff
+    (I := 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × EZ))) (J := IM) (n := ∞)
+    (liftRightTranslation_smul ι) g
+    (x := mk K (K.toRightTranslation 1) z)
+  rwa [smul_mk_toRightTranslation, mul_one] at h
+
+variable (F) in
+/-- The points `z` at whose class `[1, z]` the lift is a local diffeomorphism are invariant
+under `K`: the class `[1, k • z]` is `k • [1, z]`, and the lift is `G`-equivariant. -/
+theorem isLocalDiffeomorphAt_liftRightTranslation_mk_one_smul_iff [ContMDiffSMul I IM ∞ G M]
+    (k : K) (z : Z) :
+    letI := rightTranslationChartedSpace K Z I IZ F
+    IsLocalDiffeomorphAt 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × EZ)) IM ∞
+        (liftRightTranslation ι) (mk K (K.toRightTranslation 1) (k • z)) ↔
+      IsLocalDiffeomorphAt 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × EZ)) IM ∞
+        (liftRightTranslation ι) (mk K (K.toRightTranslation 1) z) := by
+  rw [mk_toRightTranslation_one_smul, smul_mk_toRightTranslation, mul_one]
+  exact isLocalDiffeomorphAt_liftRightTranslation_mk_iff F (k : G) z
+
+variable (F) in
+/-- The set of points `z` at whose class `[1, z]` the lift is a local diffeomorphism is open. -/
+theorem isOpen_setOf_isLocalDiffeomorphAt_liftRightTranslation_mk_one :
+    letI := rightTranslationChartedSpace K Z I IZ F
+    IsOpen {z : Z | IsLocalDiffeomorphAt 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × EZ)) IM ∞
+      (liftRightTranslation ι) (mk K (K.toRightTranslation 1) z)} := by
+  let _ := rightTranslationChartedSpace K Z I IZ F
+  refine isOpen_iff_mem_nhds.2 fun z hz ↦ ?_
+  have hc : Continuous fun z : Z ↦ mk K (K.toRightTranslation 1) z :=
+    continuous_quotient_mk'.comp (continuous_const.prodMk continuous_id)
+  exact hc.continuousAt.preimage_mem_nhds (IsLocalDiffeomorphAt.eventually hz)
 
 end Lift
 

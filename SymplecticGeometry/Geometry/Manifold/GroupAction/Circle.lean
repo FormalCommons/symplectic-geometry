@@ -45,8 +45,8 @@ its fundamental vector field `X_{ξ₁}` that later work on circle actions uses.
   `X_{ξ₁}` at time `t` is the action of `Circle.exp (2 * π * t)`.
 * `SymplecticGeometry.periodic_globalFlow_fundamentalVectorField_circlePeriodOneGenerator`: this
   flow has period one.
-* `SymplecticGeometry.fixedPoints_circle_eq_setOf_fundamentalVectorField_eq_zero`: the fixed points
-  of a circle action are the zeros of `X_{ξ₁}`.
+* `SymplecticGeometry.fixedPoints_circle_eq_setOfPred_fundamentalVectorField_eq_zero`: the fixed
+  points of a circle action are the zeros of `X_{ξ₁}`.
 
 ## References
 
@@ -182,7 +182,7 @@ theorem mem_fixedPoints_circle_iff_fundamentalVectorField_eq_zero {x : M} :
 
 /-- For a `C²` circle action on a Hausdorff manifold without boundary, the fixed points of the
 action are the zeros of the fundamental vector field of `circlePeriodOneGenerator`. -/
-theorem fixedPoints_circle_eq_setOf_fundamentalVectorField_eq_zero :
+theorem fixedPoints_circle_eq_setOfPred_fundamentalVectorField_eq_zero :
     MulAction.fixedPoints Circle M =
       {x : M | fundamentalVectorField I' circlePeriodOneGenerator x = 0} :=
   Set.ext fun _ ↦ mem_fixedPoints_circle_iff_fundamentalVectorField_eq_zero

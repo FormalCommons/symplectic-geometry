@@ -226,7 +226,7 @@ theorem cwType_of_mpullback_timeSlice_mem (hcover : ∀ x, ∃ i, x ∈ U i) {j 
     {σ : ContMDiffTwoForm I ⊤ E (TangentSpace I (M := M)) |
       ∀ x ∈ K, (σ.bilinFormAt x).Nondegenerate}
   have : TauCeti.CWType O := Convex.cwType_inter hC
-    (ContMDiffTwoForm.isOpen_setOf_forall_mem_nondegenerate e U hU hcover hj)
+    (ContMDiffTwoForm.isOpen_setOfPred_forall_mem_nondegenerate e U hU hcover hj)
   let i : C(S, O) :=
     ⟨fun σ ↦ ⟨σ, hSC σ.property, fun x _ ↦ (hSnd σ.property).nondegenerate_bilinFormAt x⟩,
       by fun_prop⟩

@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Topology.VectorBundle.Contractible
 public import TauCeti.Topology.VectorBundle.Determinant
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # The determinant section of a frame
@@ -109,9 +110,8 @@ theorem continuous_totalSpaceMk_ofFrame {Φ : ∀ y, G ≃L[𝕜] E (f y)}
   refine continuous_iff_continuousAt.2 fun y₀ ↦ (FiberBundle.continuousAt_totalSpace 𝕜 _).2
     ⟨hf.continuousAt, ?_⟩
   set e := trivializationAt G E (f y₀)
-  have hU : f ⁻¹' e.baseSet ∈ 𝓝 y₀ :=
-    hf.continuousAt.preimage_mem_nhds
-      (e.open_baseSet.mem_nhds (FiberBundle.mem_baseSet_trivializationAt' (f y₀)))
+  have hU : ∀ᶠ y in 𝓝 y₀, f y ∈ e.baseSet :=
+    hf.continuousAt.eventually_mem_baseSet_trivializationAt G E
   have hdet : ContinuousAt (fun y ↦ ((e.continuousLinearMapAt 𝕜 (f y)).comp
       (Φ y : G →L[𝕜] E (f y))).det) y₀ :=
     ContinuousLinearMap.continuous_det.continuousAt.comp

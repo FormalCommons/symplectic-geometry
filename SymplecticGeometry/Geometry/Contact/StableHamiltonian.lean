@@ -29,6 +29,7 @@ import Mathlib.Analysis.SpecialFunctions.Trigonometric.ArctanDeriv
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
+import SymplecticGeometry.Geometry.Symplectic.Manifold.Opens
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Symplectic.Manifold.RelativeMoser
 
@@ -516,7 +517,8 @@ theorem exists_isSymplectic_stableHamiltonianModel [FiniteDimensional ℝ E] [Co
       (mpullback (Subtype.val : SymplecticGeometry.symmStrip M ε → ℝ × M) contMDiff_subtypeVal
         (stableHamiltonianModel α σ)) := by
   obtain ⟨ε, hε, hle⟩ := SymplecticGeometry.exists_symmStrip_le
-    (U := ⟨_, SmoothTwoForm.isOpen_setOf_nondegenerate_bilinFormAt (stableHamiltonianModel α σ)⟩)
+    (U := ⟨_,
+      SmoothTwoForm.isOpen_setOfPred_nondegenerate_bilinFormAt (stableHamiltonianModel α σ)⟩)
     h.nondegenerate_bilinFormAt_stableHamiltonianModel_zero
   exact ⟨ε, hε, (isClosed_stableHamiltonianModel h.isClosed).isSymplectic_mpullback_subtype_val
     fun _ hp ↦ hle hp⟩

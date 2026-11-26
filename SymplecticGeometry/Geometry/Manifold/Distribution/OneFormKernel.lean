@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.DegreeOne
 public import TauCeti.Geometry.Manifold.Distribution
+import SymplecticGeometry.Geometry.Manifold.Distribution.VectorBundle
 import TauCeti.Geometry.Manifold.VectorBundle.ConstantRank
 
 /-!
@@ -17,8 +18,11 @@ space `F`. Through Tau Ceti's `TauCeti.SmoothForm.degreeOneEquiv`, `α` is a smo
 bundle of linear maps from the tangent bundle to the trivial bundle with fibre `F`. If `α_x` is
 onto `F` at every point, then `F` is finite-dimensional and this bundle map has constant rank
 `dim F`, so its kernels have smooth local frames (Tau Ceti's
-`TauCeti.exists_isSubbundleFrameOn_ker_of_surjective`): they form a smooth distribution of rank
-`dim M - dim F` (`TauCeti.SmoothForm.isContMDiffDistribution_ker_degreeOneEquiv`).
+`TauCeti.hasLocalContMDiffSubbundleFrames_ker_of_surjective`), and by
+`TauCeti.HasLocalContMDiffSubbundleFrames.isContMDiffDistribution` (in
+`SymplecticGeometry.Geometry.Manifold.Distribution.VectorBundle`) they form a smooth
+distribution of rank `dim M - dim F`
+(`TauCeti.SmoothForm.isContMDiffDistribution_ker_degreeOneEquiv`).
 
 For `F = ℝ` this is Tau Ceti's `TauCeti.SmoothForm.isContMDiffDistribution_kerDistribution`, on
 the kernels of a nowhere vanishing real one-form, which Tau Ceti proves by writing down a frame.
@@ -54,11 +58,7 @@ theorem isContMDiffDistribution_ker_degreeOneEquiv {n : ℕ∞ω} [ENat.LEInfty 
       fun x ↦ (degreeOneEquiv α x).ker := by
   let : ContMDiffVectorBundle n E (TangentSpace I : M → Type _) I :=
     TangentBundle.contMDiffVectorBundle
-  refine isContMDiffDistribution_iff.mpr fun x₀ ↦ ?_
-  obtain ⟨U, -, hU, hx₀U, X, hX, hXn⟩ :=
-    exists_isSubbundleFrameOn_ker_of_surjective (E₂ := Trivial M F) (n := n) isOpen_univ
-      ((degreeOneEquiv α).contMDiff.of_le ENat.LEInfty.out).contMDiffOn
-      (fun x _ ↦ hα x) (Set.mem_univ x₀)
-  exact ⟨U, hU, hx₀U, X, ⟨hXn, hX.linearIndependent, fun hx ↦ hX.span_eq hx⟩⟩
+  exact (hasLocalContMDiffSubbundleFrames_ker_of_surjective (E₂ := Trivial M F)
+    ((degreeOneEquiv α).contMDiff.of_le ENat.LEInfty.out) hα).isContMDiffDistribution
 
 end TauCeti.SmoothForm

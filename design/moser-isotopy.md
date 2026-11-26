@@ -146,22 +146,22 @@ change different lines.
 The file has the name of Tau Ceti's file on smooth families of nondegenerate
 two-forms. It is in the namespace `TauCeti.SmoothTwoForm`.
 
-- `isOpen_setOf_isInvertible_flat_mpullback_prodMk`: for a smooth two-form
+- `isOpen_setOfPred_isInvertible_flat_mpullback_prodMk`: for a smooth two-form
   `σ` on `N × M`, the set of `p : N × M` at which the slice `σ_{p.1}` has an
   invertible flat map at `p.2` is open. Its proof is the one in Tau Ceti's
   private `exists_isOpen_isInvertible_flat`: the flat maps form a continuous
   section along `Prod.snd` (`contMDiffAt_sectionAlong_flat` with
   `SmoothForm.contMDiff_mpullback_prodMk`), and
   `Continuous.isOpen_setOf_clm_bundle_isInvertible` applies.
-- `isOpen_setOf_isInvertible_flat_add_smul_sub`: for
+- `isOpen_setOfPred_isInvertible_flat_add_smul_sub`: for
   `σ₀ σ₁ : SmoothTwoForm I M`, the set of `p : ℝ × M` at which
   `σ₀ + p.1 • (σ₁ - σ₀)` has an invertible flat map at `p.2` is open. It is
   the previous lemma for `SmoothForm.lineMapFamily σ₀ σ₁ contDiff_id`.
-- `isOpen_setOf_forall_mem_Icc_nondegenerate`: for `σ₀ σ₁ : SmoothTwoForm I M`,
+- `isOpen_setOfPred_forall_mem_Icc_nondegenerate`: for `σ₀ σ₁ : SmoothTwoForm I M`,
   the set
   `{x | ∀ s ∈ Icc (0 : ℝ) 1, ((σ₀ + s • (σ₁ - σ₀)).bilinFormAt x).Nondegenerate}`
   is open. The proof starts from
-  `isOpen_setOf_isInvertible_flat_add_smul_sub` and applies Mathlib's
+  `isOpen_setOfPred_isInvertible_flat_add_smul_sub` and applies Mathlib's
   `generalized_tube_lemma` over `isCompact_Icc`, using
   `isInvertible_flat_iff` to pass between the flat map and nondegeneracy.
 
@@ -331,7 +331,7 @@ Proof, in four steps.
    there, because `heq` makes `σ₁ - σ₀` vanish at `f q`. The closedness
    input is `h₁.sub h₀`. The pullback `f^*(σ₁ - σ₀)` vanishes by `heq`.
 2. *Nondegeneracy region.* `N := W ∩ {x | ∀ s ∈ Icc 0 1, …}` is open by
-   `isOpen_setOf_forall_mem_Icc_nondegenerate`. It contains `range f`,
+   `isOpen_setOfPred_forall_mem_Icc_nondegenerate`. It contains `range f`,
    because along `f(Q)` every point of the segment is `σ₀`
    (`nondegenerate_bilinFormAt_add_smul_sub_of_eq`, in
    `Manifold/Family.lean`). Work on the
@@ -602,7 +602,7 @@ Let `τ := Prod.snd^* ω_0 + mextDeriv B` on `ℝ × M`. It is closed, and its
 slices are `ω_0 + d B_s`, which are `ω_s` for `s ∈ [0, 1]`. Nondegeneracy
 is open and `M` is compact, so the parameters `s` at which `τ_s` is
 nondegenerate everywhere form an open set containing $[0,1]$
-(`isOpen_setOf_forall_isInvertible_flat_mpullback_prodMk` of
+(`isOpen_setOfPred_forall_isInvertible_flat_mpullback_prodMk` of
 `Manifold/Family.lean`, through the closed projection `ℝ × M → ℝ`). Let `P`
 be that open set and `σ'` the restriction of `τ` to `P × M`: every slice of
 `σ'` is symplectic. The time derivative of a closed form on

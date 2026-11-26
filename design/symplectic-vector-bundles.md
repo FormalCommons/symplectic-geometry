@@ -79,7 +79,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
     (the `pushforward`s, the classification, the
     transition maps of symplectic frames and the direct sum of complex
     structures);
-  - finite rank of `F`: `isOpen_setOf_nondegenerate`;
+  - finite rank of `F`: `isOpen_setOfPred_nondegenerate`;
     `ContMDiffTwoForm.ofBilinearSection`, whose smoothness comes from Tau
     Ceti's `contMDiffAt_continuousAlternatingMap_bundle_of_bilinear`, and
     `compatibleForm` and the direct sum of forms, both built with it; every
@@ -245,7 +245,7 @@ file to it.
   a fibre bundle with another model fibre along a homeomorphism, involves no
   group, so it has its own file, `Topology/FiberBundle/ChangeModelFiber.lean`.
 - `Topology/FiberBundle/Basic.lean` is new: the openness argument behind
-  `isOpen_setOf_nondegenerate` and `isOpen_polarFormulaDomain` holds for any
+  `isOpen_setOfPred_nondegenerate` and `isOpen_polarFormulaDomain` holds for any
   fibrewise condition on any fibre bundle, so it is stated there, in Mathlib's `FiberBundle` namespace, as
   `FiberBundle.isOpen_of_forall_mem_iff_snd_mem` (#456).
 - `Analysis/InnerProductSpace/GramSchmidtOrtho.lean` is new, from
@@ -413,7 +413,7 @@ but the predicate below, as in Tau Ceti for $TM$.
   `IsNondegenerate.nondegenerate_bilinFormAt`, and
   `IsNondegenerate.symplecticFormAt : TauCeti.SymplecticForm (V x)` with
   `symplecticFormAt_apply`.
-- `isOpen_setOf_nondegenerate`: the fibrewise nondegenerate forms are an open
+- `isOpen_setOfPred_nondegenerate`: the fibrewise nondegenerate forms are an open
   subset of the total space of the alternating bundle (used by issue 4's
   lemma; nondegeneracy is not an open condition on sections over a
   noncompact base). It follows from
@@ -477,8 +477,8 @@ the form and of the structure are independent.
 - On $TM$, `tames_tangentEquiv_iff`, `invariant_tangentEquiv_iff` and
   `compatible_tangentEquiv_iff`: the predicates agree with Tau Ceti's under
   the two `tangentEquiv`s (followed by `toSmooth` for the structure).
-- `convex_setOf_tames J`, `convex_setOf_invariant J` and
-  `convex_setOf_compatible J`: in the vector space `ContMDiffTwoForm I n F V`,
+- `convex_setOfPred_tames J`, `convex_setOfPred_invariant J` and
+  `convex_setOfPred_compatible J`: in the vector space `ContMDiffTwoForm I n F V`,
   the forms taming (invariant under, compatible with) a fixed `J` form a
   convex set.
 - $\omega_{g,J}$: for `g : Bundle.ContMDiffRiemannianMetric I n F V`,
@@ -532,7 +532,7 @@ the form and of the structure are independent.
     (q.snd.toBilinForm - q.snd.toBilinForm.flip).Nondegenerate`. It is open
     (`isOpen_polarFormulaDomain`, `[FiniteDimensional ℝ F]`), by
     `FiberBundle.isOpen_of_forall_mem_iff_snd_mem` with the open set
-    `ContinuousLinearMap.isOpen_setOf_nondegenerate_toBilinForm_sub_flip`
+    `ContinuousLinearMap.isOpen_setOfPred_nondegenerate_toBilinForm_sub_flip`
     of forms on `F`: over the base set of a trivialization, the reading of
     `q.snd` in it is `q.snd` carried along the fibre equivalence
     (`ContinuousLinearMap.inCoordinates_eq_bilinearCongr`, over any
@@ -930,7 +930,7 @@ continuity is `continuous_fiberwiseMap`; that one is Tau Ceti's
     the endomorphism bundle reads `(x, B)` as `(x, φ B)`
     (`inCoordinates_eq_conjContinuousAlgEquiv`), so the set is, inside `U`,
     the preimage under the continuous reading of `q ↦ (A q, q.snd)` of the
-    open set of part 9's `isOpen_setOf_forall_Icc_mem_cayleyDomain`.
+    open set of part 9's `isOpen_setOfPred_forall_Icc_mem_cayleyDomain`.
   - `TauCeti.SymplecticForm.Compatible.mem_cayleyPathDomain`, under
     `[FiniteDimensional ℝ F]`, used as `h₀.mem_cayleyPathDomain h`:
     let `ω` be a Tau Ceti symplectic form on `V q.proj`, and `J₀`, `J`
@@ -1040,7 +1040,7 @@ continuity is `continuous_fiberwiseMap`; that one is Tau Ceti's
   and `contractibleSpace_compatible` (`ContractibleSpace {J // ω.Tames J}`,
   resp. `Compatible`, for every covering frame system).
 - **Fixed structure, taming and compatible forms.** These sets are convex
-  (`convex_setOf_tames`), nonempty (`ContMDiffComplexStructure.exists_compatible`),
+  (`convex_setOfPred_tames`), nonempty (`ContMDiffComplexStructure.exists_compatible`),
   and `frameTopology` is a topological vector space
   (`isTopologicalAddGroup_frameTopology`, `continuousSMul_frameTopology`), so
   Mathlib's `Convex.contractibleSpace` applies: `ContMDiffComplexStructure.contractibleSpace_tames`
@@ -1154,7 +1154,7 @@ continuity is `continuous_fiberwiseMap`; that one is Tau Ceti's
     `IsNondegenerate.mk_flat_mem_polarFormulaDomain` (the skew part of an
     alternating form is twice the form), which becomes its case `α = ω x`
     by `flat_def` and `bilinFormAt_def`. Its hypothesis is membership in the
-    open set of `isOpen_setOf_nondegenerate`.
+    open set of `isOpen_setOfPred_nondegenerate`.
   - `ContMDiffComplexStructure.compatibleForm_eq_alternatingMapOfBilin`:
     `compatibleForm g J x = alternatingMapOfBilin F (g.compatibleBilinAt x (J x)) _`,
     the proof of vanishing on the diagonal coming from
@@ -1185,7 +1185,7 @@ continuity is `continuous_fiberwiseMap`; that one is Tau Ceti's
 
   Only the cover of the source bundle is assumed, as in
   `continuous_fiberwiseMap`. For the first, the open set `O` is the set
-  of `isOpen_setOf_nondegenerate`, which contains `⟨x, ω x⟩` exactly when
+  of `isOpen_setOfPred_nondegenerate`, which contains `⟨x, ω x⟩` exactly when
   `ω` is nondegenerate at `x` (`bilinFormAt_def`), so the subtype of
   nondegenerate forms maps continuously into that of `fiberwiseMap`
   (`Continuous.subtype_mk`). The formula is
@@ -1210,7 +1210,7 @@ continuity is `continuous_fiberwiseMap`; that one is Tau Ceti's
   `hω : ω.IsNondegenerate`, a metric `g` and `t ∈ Icc 0 1`,
   `(AffineMap.lineMap ω (compatibleForm g (hω.polarComplexStructure g)) t).Tames
   (hω.polarComplexStructure g)`, by Mathlib's `Convex.lineMap_mem` for
-  `convex_setOf_tames`, since both ends tame $J_{g,\omega}$
+  `convex_setOfPred_tames`, since both ends tame $J_{g,\omega}$
   (`compatible_polarComplexStructure`, `compatible_compatibleForm`,
   `Compatible.tames`). Its `Tames.isNondegenerate` is the nondegeneracy the
   homotopy needs.
@@ -2145,13 +2145,13 @@ it, its design adds it.
   Cayley paths, the fixed-form contraction and the homotopy equivalence, is
   taken, which uses part 9's
   `Geometry/Symplectic/Cayley/Domain.lean` (`cayleyDomain`,
-  `isOpen_setOf_forall_Icc_mem_cayleyDomain`,
+  `isOpen_setOfPred_forall_Icc_mem_cayleyDomain`,
   `Compatible.mem_cayleyDomain`), so that the units, the compactness of
   $[0,1]$ and the two Tau Ceti unit lemmas are handled there once. It makes
   issue 7 wait for part 9's building issue 6, which has no blocker. So issues 6 and 7
   wait for part 9, and issue 8 through them. The straight line on forms of
   the homotopy equivalence needs nothing from part 9: its nondegeneracy
-  comes from `convex_setOf_tames` (see `tames_lineMap_compatibleForm`), not
+  comes from `convex_setOfPred_tames` (see `tames_lineMap_compatibleForm`), not
   from a fibrewise `TauCeti.SymplecticForm.Tames.lineMap`.
 
 ## Building issues
@@ -2172,7 +2172,7 @@ of *Constructions* for *First Chern number*.
    same file. Blockers: 1.
 3. **Two-forms on a bundle.** `Symplectic/Basic.lean`: `ContMDiffTwoForm`,
    `bilinFormAt`, `IsNondegenerate` with its unfolding lemmas,
-   `symplecticFormAt`, `isOpen_setOf_nondegenerate`, `flat` with
+   `symplecticFormAt`, `isOpen_setOfPred_nondegenerate`, `flat` with
    `contMDiff_flat`, `const`, `pushforward`, `tangentEquiv` (first checking
    that `SmoothForm.ofContMDiffSection` accepts sections with values in
    `Bundle.Trivial M ℝ x`). Blockers: none.
@@ -2319,7 +2319,7 @@ of *Constructions* for *First Chern number*.
     $0$-dimensional submanifold. The new work is the closed-and-discrete step,
     which the proof of Tau Ceti's `finite_sectionZero_of_contMDiff` contains
     for a compact base, without compactness. Its closedness half,
-    `VectorBundle.isClosed_setOf_eq_zero` for a continuous section along a
+    `VectorBundle.isClosed_setOfPred_eq_zero` for a continuous section along a
     map, goes in `Topology/VectorBundle/ZeroSet.lean`. Blockers: none.
 15. **Smoothing nowhere-zero sections.** Tau Ceti's
     `TauCeti/Geometry/Manifold/VectorBundle/Section/Nonvanishing.lean`:

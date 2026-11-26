@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Fibration.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
 public import TauCeti.Geometry.Manifold.Submersion.EhresmannConnection.Basic
 import SymplecticGeometry.Geometry.Manifold.Distribution.Orthogonal
+import SymplecticGeometry.Geometry.Manifold.Submersion.VerticalProjection
 import SymplecticGeometry.LinearAlgebra.BilinearForm.Orthogonal
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import TauCeti.Geometry.Manifold.Distribution.Submersion
@@ -36,6 +37,8 @@ of its three arguments are vertical.
 * `TauCeti.SmoothTwoForm.isVerticallyClosed_mpullback`: the pull-back of a two-form on the base
   is vertically closed, so adding it does not change vertical closedness
   (`isVerticallyClosed_add_mpullback_iff`).
+* `TauCeti.SmoothTwoForm.convex_setOfPred_restrictsTo_isVerticallyClosed`: the vertically closed
+  two-forms that restrict to a given form on the fibre along an atlas form a convex set.
 * `IsVerticallyNondegenerate.isContMDiffDistribution_horizontalDistribution`:
   for a smooth submersion, the horizontal spaces of a vertically nondegenerate form are a smooth
   distribution of the rank of the base.
@@ -45,6 +48,9 @@ of its three arguments are vertical.
 * `TauCeti.SmoothTwoForm.horizontalDistribution_eq_iff`: two forms that agree on pairs of
   vertical vectors, the first of them vertically nondegenerate, have the same horizontal spaces
   exactly when they agree on every pair of a vertical vector and any vector.
+* `TauCeti.SmoothTwoForm.exists_restrictsTo_horizontalDistribution_eq`: for a smooth atlas whose
+  coordinate changes preserve a nondegenerate form `σ` on the fibre, every smooth Ehresmann
+  connection is the connection of a two-form that restricts to `σ`.
 
 ## Implementation notes
 
@@ -54,6 +60,14 @@ in place of a Riemannian metric: the vertical spaces form a smooth distribution 
 `Manifold.IsSubmersion.isContMDiffDistribution_ker_mfderiv`), and the orthogonals of a smooth
 distribution for a smooth field of nondegenerate reflexive forms form one too
 (`TauCeti.IsContMDiffDistribution.bilinFormOrthogonal`).
+
+The two-form with a given connection `D` is built pointwise: at `x`, it is the pull-back of the
+fibre form along the fibre coordinate of the chart at `proj x`, precomposed with the vertical
+projection along `D`. Since the coordinate changes preserve the fibre form, any chart whose base
+set contains `proj x` gives the same value on vertical vectors
+(`TauCeti.MapFiber.Atlas.mpullback_snd_trivAt_apply_eq`), so near each point the form is read in
+a single chart, where it is smooth by
+`TauCeti.IsEhresmannConnection.contMDiffOn_compContinuousLinearMap_verticalProjection`.
 
 ## References
 
@@ -146,6 +160,24 @@ theorem isVerticallyClosed_add_mpullback_iff [IsManifold IB ∞ B]
       IsVerticallyClosed IB proj τ :=
   (isVerticallyClosed_mpullback hproj β).add_right_iff
 
+section RestrictsTo
+
+variable {EF : Type*} [NormedAddCommGroup EF] [NormedSpace ℝ EF] {HF : Type*}
+  [TopologicalSpace HF] {IF : ModelWithCorners ℝ EF HF} {F : Type*} [TopologicalSpace F]
+  [ChartedSpace HF F] [IsManifold IF ∞ F]
+
+variable (IB) in
+/-- The two-forms on `M` that restrict to `σ` along an atlas `A` of `proj` and are vertically
+closed form a convex set. -/
+theorem convex_setOfPred_restrictsTo_isVerticallyClosed (A : MapFiber.Atlas F proj)
+    (σ : SmoothTwoForm IF F) :
+    Convex ℝ {τ : SmoothTwoForm IM M | A.RestrictsTo σ τ ∧ IsVerticallyClosed IB proj τ} :=
+  fun _ (h₁ : _ ∧ _) _ (h₂ : _ ∧ _) _ _ ha hb hab ↦
+    ⟨MapFiber.Atlas.convex_setOfPred_restrictsTo A σ h₁.1 h₂.1 ha hb hab,
+      (h₁.2.smul _).add (h₂.2.smul _)⟩
+
+end RestrictsTo
+
 /-! ### The horizontal spaces of a two-form -/
 
 variable (IB) in
@@ -223,6 +255,112 @@ theorem horizontalDistribution_eq_iff [FiniteDimensional ℝ EM]
   rw [funext_iff]
   exact forall_congr' fun x ↦ LinearMap.BilinForm.orthogonal_eq_orthogonal_iff (h x)
     (hτ₁.isCompl_horizontalDistribution x).symm.codisjoint
+
+/-! ### A form with a given connection -/
+
+section GivenConnection
+
+variable {EF : Type*} [NormedAddCommGroup EF] [NormedSpace ℝ EF] {HF : Type*}
+  [TopologicalSpace HF] {IF : ModelWithCorners ℝ EF HF} {F : Type*} [TopologicalSpace F]
+  [ChartedSpace HF F] [IsManifold IF ∞ F]
+  {A : MapFiber.Atlas F proj} {σ : SmoothTwoForm IF F}
+  {D : Π x : M, Submodule ℝ (TangentSpace IM x)} (hD : IsEhresmannConnection IM IB ∞ proj D)
+
+variable (A σ) in
+/-- The form of `exists_restrictsTo_horizontalDistribution_eq`: at `x`, the pull-back of `σ`
+along the fibre coordinate of the chart `A.trivAt (proj x)`, precomposed with the vertical
+projection of `D`. -/
+private def formOfConnection : RoughForm IM M ℝ 2 := fun x ↦
+  (TauCeti.mpullback IM IF (fun y ↦ (A.trivAt (proj x) y).2) σ.val x).compContinuousLinearMap
+    (hD.verticalProjection x)
+
+private theorem formOfConnection_apply (x : M) (u : Fin 2 → TangentSpace IM x) :
+    formOfConnection A σ hD x u =
+      TauCeti.mpullback IM IF (fun y ↦ (A.trivAt (proj x) y).2) σ.val x
+        (fun i ↦ hD.verticalProjection x (u i)) :=
+  (rfl)
+
+/-- Near a point, the chart at `proj x` in `formOfConnection` may be replaced by any chart whose
+base set contains `proj x`. -/
+private theorem formOfConnection_eq (hA : A.IsContMDiff ∞ IB IF IM)
+    (hH : A.HasStructureGroup (SmoothForm.diffeomorphStabilizer σ)) {b : B} {x : M}
+    (hx : proj x ∈ (A.trivAt b).baseSet) :
+    formOfConnection A σ hD x =
+      (TauCeti.mpullback IM IF (fun y ↦ (A.trivAt b y).2) σ.val x).compContinuousLinearMap
+        (hD.verticalProjection x) := by
+  ext u
+  rw [formOfConnection_apply, ContinuousAlternatingMap.compContinuousLinearMap_apply]
+  exact MapFiber.Atlas.mpullback_snd_trivAt_apply_eq hA hH (A.mem_baseSet_trivAt _) hx
+    fun i ↦ hD.verticalProjection_apply_mem x (u i)
+
+private theorem isSmoothForm_formOfConnection [IsManifold IB 1 B] [FiniteDimensional ℝ EM]
+    (hA : A.IsContMDiff ∞ IB IF IM)
+    (hH : A.HasStructureGroup (SmoothForm.diffeomorphStabilizer σ)) :
+    IsSmoothForm IM ∞ (formOfConnection A σ hD) := by
+  have hproj : ContMDiff IM IB (∞ + 1) proj := by simpa using hA.contMDiff_proj
+  refine (isSmoothForm_def _ _).2 fun x₀ ↦ ?_
+  -- Near `x₀`, the form is read in the single chart `e` at `proj x₀`.
+  set e := A.trivAt (proj x₀)
+  have hU := e.open_source
+  have hθ : ContMDiffOn IM (IM.prod 𝓘(ℝ, EM [⋀^Fin 2]→L[ℝ] ℝ)) ∞
+      (fun y ↦ TotalSpace.mk' (EM [⋀^Fin 2]→L[ℝ] ℝ) y
+        (TauCeti.mpullback IM IF (fun y ↦ (e y).2) σ.val y)) e.source := fun y hy ↦
+    (ContMDiffAt.mpullback_form (σ.contMDiff _) (contMDiffAt_snd.comp y
+      ((hA.contMDiffOn_trivAt _).contMDiffAt (hU.mem_nhds hy))) (by simp)).contMDiffWithinAt
+  have hx₀ : e.source ∈ nhds x₀ := hU.mem_nhds (e.mem_source.2 (A.mem_baseSet_trivAt _))
+  refine ((hD.contMDiffOn_compContinuousLinearMap_verticalProjection hproj (m := ⊤) le_rfl
+    hθ).contMDiffAt hx₀).congr_of_eventuallyEq ?_
+  filter_upwards [hx₀] with y hy
+  rw [formOfConnection_eq hD hA hH (e.mem_source.1 hy)]
+
+private theorem restrictsTo_formOfConnection (hA : A.IsContMDiff ∞ IB IF IM)
+    (hH : A.HasStructureGroup (SmoothForm.diffeomorphStabilizer σ))
+    {τ : SmoothTwoForm IM M} (hτ : τ.val = formOfConnection A σ hD) : A.RestrictsTo σ τ := by
+  refine MapFiber.Atlas.restrictsTo_iff.2 fun b b' hb' ↦ funext fun v ↦ ?_
+  ext w
+  set ι := (A.trivAt b).fiberInclusionMap hb'
+  -- The derivative of `ι` takes values in the vertical spaces, which the projection fixes.
+  have hvert (i : Fin 2) : mfderiv IF IM ι v (w i) ∈ (mfderiv IM IB proj (ι v)).ker := by
+    rw [← (A.trivAt b).range_mfderiv_fiberInclusionMap (hA.mdifferentiable_trivAt (by simp) b)]
+    exact LinearMap.mem_range_self _ _
+  have hb₀ : b' ∈ (A.trivAt (proj (ι v))).baseSet :=
+    Set.mem_of_eq_of_mem ((A.trivAt b).proj_fiberInclusionMap hb' v).symm
+      (A.mem_baseSet_trivAt _)
+  rw [TauCeti.mpullback_apply, ← MapFiber.Atlas.mpullback_fiberInclusionMap_mpullback_snd_trivAt
+    hA hH hb₀ hb', TauCeti.mpullback_apply, hτ, formOfConnection_apply]
+  simp only [hD.verticalProjection_apply_of_mem_ker (hvert _)]
+  -- The two sides differ only in that `ι` is unfolded on the right.
+  rfl
+
+private theorem le_horizontalDistribution_formOfConnection {τ : SmoothTwoForm IM M}
+    (hτ : τ.val = formOfConnection A σ hD) (x : M) : D x ≤ horizontalDistribution IB proj τ x :=
+  fun v hv ↦ mem_horizontalDistribution_iff.2 fun η _ ↦ by
+    rw [SmoothForm.bilinFormAt_apply, SmoothBundleForm.eval₂_apply, hτ, formOfConnection_apply]
+    refine ContinuousAlternatingMap.map_coord_zero _ 1 ?_
+    simpa using hD.verticalProjection_apply_eq_zero_of_mem hv
+
+/-- **A form with a given connection.** Let `A` be a smooth atlas of `proj` whose coordinate
+changes preserve a nondegenerate two-form `σ` on the model fibre, and let `D` be a smooth
+Ehresmann connection on `proj`. Then some two-form `τ` on `M` restricts to `σ` along `A` and has
+the spaces of `D` as its horizontal spaces. -/
+theorem exists_restrictsTo_horizontalDistribution_eq [IsManifold IB 1 B] [FiniteDimensional ℝ EM]
+    (hA : A.IsContMDiff ∞ IB IF IM)
+    (hH : A.HasStructureGroup (SmoothForm.diffeomorphStabilizer σ)) (hσ : σ.IsNondegenerate)
+    (hD : IsEhresmannConnection IM IB ∞ proj D) :
+    ∃ τ : SmoothTwoForm IM M, A.RestrictsTo σ τ ∧ horizontalDistribution IB proj τ = D := by
+  -- At `x`, `τ` is the pull-back of `σ` along the fibre coordinate of the chart at `proj x`,
+  -- evaluated on the vertical parts of its arguments along `D`.
+  let τ : SmoothTwoForm IM M :=
+    ⟨formOfConnection A σ hD, (isSmoothForm_formOfConnection hD hA hH).mem_smoothBundleForms⟩
+  have hτ : A.RestrictsTo σ τ := restrictsTo_formOfConnection hD hA hH rfl
+  refine ⟨τ, hτ, funext fun x ↦ ?_⟩
+  -- `D x` lies in the horizontal space of `τ`, and both are complements of the vertical space.
+  have hτv := (hτ.isVerticallyNondegenerate hA hσ).isCompl_horizontalDistribution x
+  exact (eq_of_le_of_inf_le_of_le_sup (le_horizontalDistribution_formOfConnection hD rfl x)
+    (hτv.disjoint.le_bot.trans bot_le)
+    (le_top.trans (hD.isCompl_ker x).codisjoint.top_le)).symm
+
+end GivenConnection
 
 end TauCeti.SmoothTwoForm
 

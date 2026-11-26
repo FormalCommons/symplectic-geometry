@@ -220,7 +220,7 @@ theorem coe_polystableLocus : (polystableLocus C μ : Set M) = {p | IsPolystable
   (rfl)
 
 /-- The zero level set of `μ` lies in the polystable locus. -/
-theorem setOf_moment_eq_zero_subset_polystableLocus :
+theorem setOfPred_moment_eq_zero_subset_polystableLocus :
     {x | μ x = 0} ⊆ (polystableLocus C μ : Set M) :=
   fun _ hx ↦ isPolystable_of_moment_eq_zero (C := C) hx
 

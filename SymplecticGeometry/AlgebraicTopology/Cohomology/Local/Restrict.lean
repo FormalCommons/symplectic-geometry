@@ -19,11 +19,19 @@ every degree and for all coefficients
 excision of `B ∖ O` from `(B, B ∖ {y})`, composed with the homeomorphism between `O` and the
 preimage of `O` in `B`.
 
+For the neighbourhood `univ` of `y` in `Y` itself, the inclusion `(univ, univ ∖ {y}) ⟶ (Y, Y ∖ {y})`
+is the isomorphism of pairs of the homeomorphism `univ ≃ₜ Y`, so it stays injective on cohomology
+after composing with any isomorphism of pairs
+(`TopPair.injective_singularCohomologyMap_ofSubsetMap_subtypeVal_univ_comp`).
+
 ## Main results
 
 * `TopPair.isIso_singularCohomologyMap_ofSubsetMap_inclusion`: in a `T1` space, restriction
   from `(B, B ∖ {y})` to `(O, O ∖ {y})`, for `O` open in `Y` with `y ∈ O ⊆ B`, is an isomorphism
   on relative cohomology.
+* `TopPair.injective_singularCohomologyMap_ofSubsetMap_subtypeVal_univ_comp`: the inclusion
+  `(univ, univ ∖ {y}) ⟶ (Y, Y ∖ {y})`, followed by an isomorphism of pairs, is injective on
+  cohomology.
 
 ## References
 
@@ -81,6 +89,34 @@ theorem isIso_singularCohomologyMap_ofSubsetMap_inclusion {Y : Type w} [Topologi
     (hO.preimage continuous_subtypeVal) isClosed_singleton (singleton_subset_iff.2 hy) n
   rw [← hfac, singularCohomologyMap_comp]
   infer_instance
+
+/-- **The whole space as a neighbourhood of a point.** For a point `y` of `Y` and an isomorphism
+of pairs `i` out of `(Y, Y ∖ {y})`, the inclusion `(univ, univ ∖ {y}) ⟶ (Y, Y ∖ {y})` followed by
+`i` is injective on cohomology, in every degree: the inclusion is the isomorphism of pairs of the
+homeomorphism `univ ≃ₜ Y`. -/
+theorem injective_singularCohomologyMap_ofSubsetMap_subtypeVal_univ_comp {Y : Type w}
+    [TopologicalSpace Y] (y : Y) {Q : TopPair.{w}} (i : ofSubset (X := TopCat.of Y) {y}ᶜ ≅ Q)
+    (n : ℕ) :
+    Function.Injective (ConcreteCategory.hom (TopPair.singularCohomologyMap (R := R) (k := k)
+      (M := M) (ofSubsetMap (X := TopCat.of (univ : Set Y)) (Y := TopCat.of Y)
+        (TopCat.ofHom (ContinuousMap.subtypeVal univ)) (B := {⟨y, mem_univ y⟩}ᶜ)
+        (B' := {y}ᶜ) (fun _ hw h ↦ hw (Subtype.ext (Set.mem_singleton_iff.1 h))) ≫
+        i.hom) n)) := by
+  let j := ofSubsetIso (X := TopCat.of (univ : Set Y)) (Y := TopCat.of Y)
+    (Homeomorph.Set.univ Y) (B := {⟨y, mem_univ y⟩}ᶜ) (B' := {y}ᶜ)
+    (fun w ↦ by simp [Subtype.ext_iff]) ≪≫ i
+  have hj : j.hom = ofSubsetMap (X := TopCat.of (univ : Set Y)) (Y := TopCat.of Y)
+      (TopCat.ofHom (ContinuousMap.subtypeVal univ)) (B := {⟨y, mem_univ y⟩}ᶜ)
+      (B' := {y}ᶜ) (fun _ hw h ↦ hw (Subtype.ext (Set.mem_singleton_iff.1 h))) ≫ i.hom := by
+    rw [Iso.trans_hom]
+    congr 1
+    refine hom_ext_of_fst _ (ConcreteCategory.hom_ext _ _ fun w ↦ ?_)
+    rw [ofSubsetIso_hom]
+    -- The points of the pairs are those of `univ` and `Y` only up to unfolding `ofSubset`.
+    erw [ofSubsetMap_fst_apply]
+  have hinj := ConcreteCategory.injective_of_mono_of_preservesPullback
+    (singularCohomologyMapIso R k M j n).hom
+  rwa [singularCohomologyMapIso_hom, hj] at hinj
 
 end TopPair
 

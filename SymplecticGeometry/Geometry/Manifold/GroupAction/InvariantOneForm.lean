@@ -11,6 +11,7 @@ public import SymplecticGeometry.Geometry.Manifold.GroupAction.BoundarylessModel
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.Circle
 public import SymplecticGeometry.Geometry.Manifold.Riemannian.OneForm.Flat
 import SymplecticGeometry.Geometry.Manifold.ModelTransport.Boundaryless
+import SymplecticGeometry.Geometry.Manifold.GroupAction.Opens
 
 /-!
 # An invariant one-form dual to a fundamental vector field
@@ -119,15 +120,13 @@ theorem exists_invariant_smoothForm_apply_fundamentalVectorField_nonneg
       (I := 𝓘(ℝ, E)) (M := BoundarylessModel I M) ξ
   let Φ := BoundarylessModel.interiorDiffeomorph I (M := M) ∞
   have hX := BoundarylessModel.mfderiv_interiorDiffeomorph_fundamentalVectorField I (M := M) ∞ ξ
-  refine ⟨SmoothForm.mpullback Φ Φ.contMDiff β, fun g ↦ ?_, fun x ↦ ?_⟩
-  · have hg := ContMDiffSMul.contMDiff_const_smul (I := J) (I' := 𝓘(ℝ, E)) (n := ∞)
-      (M := BoundarylessModel I M) g
-    rw [SmoothForm.mpullback_mpullback_of_comp_eq _ _ Φ.contMDiff hg
-      (BoundarylessModel.interiorDiffeomorph_comp_smul I ∞ g), hinv g]
-  · rw [SmoothForm.mpullback_apply_one, hX]
-    refine ⟨(hβ (Φ x)).1, (hβ (Φ x)).2.trans ?_⟩
-    rw [← hX]
-    exact map_eq_zero_iff _ (Φ.isInvertible_mfderiv (x := x) (by simp)).injective
+  have : ContMDiffConstSMul I ∞ G M := ContMDiffSMul.contMDiffConstSMul J
+  refine ⟨SmoothForm.mpullback Φ Φ.contMDiff β, fun g ↦ SmoothForm.mpullback_smul_mpullback
+    Φ.contMDiff (BoundarylessModel.interiorDiffeomorph_smul I ∞ g) (hinv g), fun x ↦ ?_⟩
+  rw [SmoothForm.mpullback_apply_one, hX]
+  refine ⟨(hβ (Φ x)).1, (hβ (Φ x)).2.trans ?_⟩
+  rw [← hX]
+  exact map_eq_zero_iff _ (Φ.isInvertible_mfderiv (x := x) (by simp)).injective
 
 end CommGroup
 
