@@ -113,10 +113,10 @@ theorem singularCohomologyMap_localChart_canonicalThomClass (e : Trivialization 
       hφ x ▸ (e.proj_localChart hSe x).symm ▸ mem_image_of_mem _ x.property.2]
   congr 3
   refine TopPair.hom_ext_of_fst _ (ConcreteCategory.hom_ext _ _ fun x ↦ ?_)
-  rw [TopPair.Hom.fst_comp, ConcreteCategory.comp_apply, TopPair.isoOfSubsetRange_hom_fst_apply]
+  rw [Trivialization.coordPairMap_fst_apply]
   -- The point `x` of the pair is a point of `univ ×ˢ S` only up to unfolding `ofSubset`.
   erw [TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply]
-  exact (congrArg (fun p ↦ (e p).2) (hφ x)).trans (hfst x)
+  exact hfst x
 
 end TauCeti.VectorBundleOrientation
 
