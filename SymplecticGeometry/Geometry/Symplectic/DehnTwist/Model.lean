@@ -53,7 +53,9 @@ time `π` is the antipodal map; and since `R' = 0` on `[r₀, ∞)`, the twist i
   vanishes on `[r₀, ∞)`.
 * `SymplecticGeometry.IsTwistProfile.lineMap`: twist profiles of the same radius form an affine
   subspace; `SymplecticGeometry.exists_isTwistProfile`: there is one for every `r₀ > 0`;
-  `SymplecticGeometry.IsTwistProfile.mono`: a profile of radius `r₀` has every larger radius too.
+  `SymplecticGeometry.IsTwistProfile.mono`: a profile of radius `r₀` has every larger radius too;
+  `SymplecticGeometry.exists_isTwistProfile_setOfPred_cotangentNorm_le_subset`: every
+  neighbourhood of the zero section contains `{z | ‖p‖ ≤ r₀}` for a profile of some radius `r₀`.
 * `SymplecticGeometry.contMDiff_geodesicTwist`: the geodesic twist of `θ` is smooth when `θ` is,
   `cos ∘ θ` is even, `sin ∘ θ` is odd and `cos (θ 0) = -1`.
 * `SymplecticGeometry.coe_modelTwist_symm`: the inverse of the model twist of `R` is the model
@@ -144,7 +146,7 @@ noncomputable section
 namespace SymplecticGeometry
 
 open Bundle Metric Set TauCeti Real
-open scoped Manifold ContDiff InnerProductSpace
+open scoped Manifold ContDiff InnerProductSpace Topology
 
 variable {n : ℕ}
 
@@ -260,6 +262,17 @@ theorem exists_isTwistProfile {r₀ : ℝ} (hr : 0 < r₀) : ∃ R, IsTwistProfi
     dsimp only
     rw [h1, h0]
     ring
+
+/-- Every neighbourhood of the zero section of `T*Sⁿ` contains `{z | ‖p‖ ≤ r₀}` for a twist
+profile of some radius `r₀`. -/
+theorem exists_isTwistProfile_setOfPred_cotangentNorm_le_subset
+    {W : Set (CotangentBundle (𝓡 n) (𝕊 n))}
+    (hW : W ∈ 𝓝ˢ (range (zeroSection (EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)
+      (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ)))) :
+    ∃ R r₀, IsTwistProfile R r₀ ∧ {z | cotangentNorm z ≤ r₀} ⊆ W := by
+  obtain ⟨r₀, hr, hrW⟩ := exists_pos_setOfPred_cotangentNorm_le_subset hW
+  obtain ⟨R, hR⟩ := exists_isTwistProfile hr
+  exact ⟨R, r₀, hR, hrW⟩
 
 /-! ### Twisting along the geodesic flow by an angle function -/
 
