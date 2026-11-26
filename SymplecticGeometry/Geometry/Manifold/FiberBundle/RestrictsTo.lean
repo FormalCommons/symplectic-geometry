@@ -137,10 +137,8 @@ theorem mpullback_fiberInclusionMap_mpullback_snd {e : Trivialization F proj}
   funext v
   have hg : MDifferentiableAt IM IF (fun x ↦ (e x).2) (e.fiberInclusionMap hb v) :=
     mdifferentiableAt_snd.comp _ (he.mdifferentiableAt (e.fiberInclusionMap_mem_source hb v))
-  have hid : (fun x ↦ (e x).2) ∘ e.fiberInclusionMap hb = id :=
-    funext fun w ↦ congrArg Prod.snd (e.apply_fiberInclusionMap hb w)
-  rw [← TauCeti.mpullback_comp_at (mdifferentiable_fiberInclusionMap he hb v) hg, hid,
-    TauCeti.mpullback_id]
+  rw [← TauCeti.mpullback_comp_at (mdifferentiable_fiberInclusionMap he hb v) hg,
+    (e.leftInverse_snd_fiberInclusionMap hb).comp_eq_id, TauCeti.mpullback_id]
 
 /-- **Forms are determined on vertical vectors by their pull-backs to a fibre.** For a
 trivialization `e` that is differentiable with differentiable inverse, two forms on `M` with the
@@ -164,8 +162,7 @@ theorem apply_eq_of_mpullback_fiberInclusionMap_eq {e : Trivialization F proj}
     have hu' : u = fun i ↦ mfderiv IF IM (e.fiberInclusionMap hx) (e x).2 (w i) :=
       funext fun i ↦ (hw i).symm
     rw [hu', ← TauCeti.mpullback_apply, ← TauCeti.mpullback_apply, h]
-  refine key x ?_ hu
-  rw [Trivialization.fiberInclusionMap_apply, e.symm_apply_mk_proj (e.mem_source.2 hx)]
+  exact key x (e.fiberInclusionMap_snd_apply hx).symm hu
 
 /-- **Forms from the base vanish on the fibres.** The pull-back to a fibre of the pull-back
 `proj^* β` of a form of positive degree on the base is zero, since `proj` is constant on the

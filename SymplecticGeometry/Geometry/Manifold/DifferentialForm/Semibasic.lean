@@ -52,7 +52,8 @@ pullbacks are reached through `TauCeti.SmoothForm.coe_mpullback`.
   differential of `f` vanishes on every triple whose first two vectors lie in that kernel. It is
   the case `K = ker (mfderiv f x)` of `ContinuousAlternatingMap.pairedWedge_apply_eq_zero_of_mem`.
 * `TauCeti.RoughForm.isSemibasicAt_mextDeriv_ofFunction_comp`: the differential of `g ∘ f`, a
-  function on `B` pulled back along `f`, is semibasic for `f`; and
+  function on `B` pulled back along `f`, is semibasic for `f`, a case of
+  `TauCeti.RoughForm.isSemibasicAt_mpullback` (in `Pullback/Descent.lean`); and
   `TauCeti.RoughForm.isSemibasic_mextDeriv_ofFunction_comp`, the same at every point.
 * `TauCeti.RoughForm.isSemibasicAt_fst_iff`: a form on `M × N` is semibasic for `Prod.fst` at
   `p` exactly when it vanishes at `p` on every tuple one of whose vectors has zero component
@@ -326,7 +327,9 @@ variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
 
 /-- **Differentials of functions on the base are semibasic.** For `f : M → B` differentiable at
 `x` and `g : B → F` differentiable at `f x`, the differential `d (g ∘ f)` is semibasic for `f` at
-`x`. -/
+`x`. Its value at `x` is that of the pullback of `d g` along `f`
+(`TauCeti.mpullback_mextDeriv_ofFunction_apply`), so this is the case `ω = d g` of
+`TauCeti.RoughForm.isSemibasicAt_mpullback`, in `Pullback/Descent.lean`. -/
 theorem isSemibasicAt_mextDeriv_ofFunction_comp {g : B → F} {x : M}
     (hg : MDifferentiableAt IB 𝓘(ℝ, F) g (f x)) (hf : MDifferentiableAt I IB f x) :
     IsSemibasicAt IB f (mextDeriv (RoughForm.ofFunction I (g ∘ f))) x := by
