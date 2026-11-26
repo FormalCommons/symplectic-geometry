@@ -473,7 +473,7 @@ theorem L2Form.IsWeakSolution.exists_contDiff_ae_eq_localize {u : L2Form I M k}
   have hρθ (x : M) (hx : x ∈ tsupport ρ) : θ x = 1 := hθ1 x (hρU₁ hx)
   -- The open set of the chart where `θ ∘ ψ.symm = 1`.
   set V := ψ.target ∩ ψ.symm ⁻¹' U₁
-  have hV : IsOpen V := ψ.contMDiffOn_invFun.continuousOn.isOpen_inter_preimage ψ.open_target hU₁
+  have hV : IsOpen V := ψ.toOpenPartialHomeomorph.isOpen_inter_preimage_symm hU₁
   obtain ⟨g, hg, hug⟩ := hu.exists_contDiffOn_ae_eq_localize ψ θ hθ hV Set.inter_subset_left
     fun y hy ↦ hθ1 _ hy.2
   set r : E → ℝ := ψ.target.indicator fun y ↦ ρ (ψ.symm y)
@@ -764,7 +764,7 @@ theorem L2Form.isLocallySobolev_one_of_forall_inner {u : L2Form I M k} {C : ℝ}
   have hχθ (x : M) (hx : x ∈ tsupport χ) : θ x = 1 := hθ1 x (hχU₁ hx)
   -- The open set of the chart where `θ ∘ ψ.symm = 1`, and the compact image of `tsupport χ`.
   set V : TopologicalSpace.Opens E := ⟨ψ.target ∩ ψ.symm ⁻¹' U₁,
-    ψ.contMDiffOn_invFun.continuousOn.isOpen_inter_preimage ψ.open_target hU₁⟩
+    ψ.toOpenPartialHomeomorph.isOpen_inter_preimage_symm hU₁⟩
   set K := ψ '' tsupport χ
   have hK : IsCompact K :=
     ψ.isCompact_image_of_subset_source (isClosed_tsupport _).isCompact hχ
