@@ -40,8 +40,8 @@ two strictly plurisubharmonic functions is strictly plurisubharmonic.
 * `SymplecticGeometry.smoothedAbs_eq_abs`, `SymplecticGeometry.abs_le_smoothedAbs`,
   `SymplecticGeometry.smoothedAbs_le_abs_add`: comparison with `|t|`.
 * `SymplecticGeometry.smoothedMax`: the smoothed maximum, with `contDiff_smoothedMax`,
-  `smoothedMax_eq_max`, `smoothedMax_eq_left`, `smoothedMax_eq_right`, `max_le_smoothedMax`
-  and `smoothedMax_le_max_add`.
+  `hasDerivAt_smoothedMax_left`, `smoothedMax_eq_max`, `smoothedMax_eq_left`,
+  `smoothedMax_eq_right`, `max_le_smoothedMax` and `smoothedMax_le_max_add`.
 
 ## References
 
@@ -250,6 +250,15 @@ theorem contDiff_smoothedMax {n : ℕ∞} (δ : ℝ) :
   simp only [smoothedMax_def]
   exact ((contDiff_fst.add contDiff_snd).add
     ((contDiff_smoothedAbs δ).comp (contDiff_fst.sub contDiff_snd))).div_const _
+
+/-- The derivative of the smoothed maximum in its first argument: at `a`, it is
+`(1 + smoothedSign δ (a - b)) / 2`. -/
+theorem hasDerivAt_smoothedMax_left (δ b a : ℝ) :
+    HasDerivAt (fun a ↦ smoothedMax δ a b) ((1 + smoothedSign δ (a - b)) / 2) a := by
+  have h := (((hasDerivAt_id a).add_const b).add
+    ((hasDerivAt_smoothedAbs δ (a - b)).comp a ((hasDerivAt_id a).sub_const b))).div_const 2
+  simp only [smoothedMax_def]
+  convert h using 2 <;> simp
 
 theorem smoothedMax_comm (hδ : 0 < δ) (a b : ℝ) : smoothedMax δ a b = smoothedMax δ b a := by
   rw [smoothedMax_def, smoothedMax_def, ← neg_sub, smoothedAbs_neg hδ, add_comm a]
