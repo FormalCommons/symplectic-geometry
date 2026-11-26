@@ -260,8 +260,7 @@ Ceti's file of that name, in the namespace `TauCeti`; it imports only Tau
 Ceti:
 
 - `TauCeti.circleEquivUnitary_smul` (`@[simp]`): for `[MulAction ℂ M]`,
-  `circleEquivUnitary z • x = (z : ℂ) • x`. `Action.lean` uses it to compute
-  the scalar unitary of `rotate`.
+  `circleEquivUnitary z • x = (z : ℂ) • x`.
 
 ### `Analysis/Normed/Lp/PiLp.lean`
 
