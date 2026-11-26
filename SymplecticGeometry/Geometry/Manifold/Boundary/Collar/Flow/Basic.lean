@@ -33,7 +33,8 @@ on the interval `(-η, 0]`, for the smooth field `Y`), so the
 patched flow map is a local diffeomorphism on `∂W × [0, η)`. It is the inclusion on `∂W × {0}`,
 so it is injective on an open neighbourhood of `∂W × {0}`
 (`Set.InjOn.exists_isOpen_superset_isLocalDiffeomorphOn`), which by the tube lemma contains a
-product `∂W × [0, ε)`. Rescaling `[0, 1)` to `[0, ε)` gives the collar. This last part uses no
+product `∂W × [0, ε)`. Rescaling `[0, 1)` to `[0, ε)`, by Tau Ceti's
+`TauCeti.EuclideanHalfSpace.smulDiffeomorph`, gives the collar. This last part uses no
 flow, and is stated on its own as `TauCeti.SmoothCollar.exists_eq_of_isLocalDiffeomorphOn`; it
 adapts the proof of Tau Ceti's `TauCeti.exists_pos_injOn_flowOf_comp`, the uniform width of the
 Liouville collar of a compact hypersurface, from the time interval `(-ε, ε)` of a boundaryless
@@ -170,9 +171,8 @@ theorem exists_eq_of_isLocalDiffeomorphOn [CompactSpace ↥((𝓡∂ (n + 1)).bo
     huv ⟨hu (mem_univ _),
       hε'v (mem_normalIio.2 ((mem_normalIio.1 hq.2).trans_le (min_le_left _ _)))⟩
   -- Rescaling `[0, 1)` to `[0, ε)` gives the collar.
-  let σ : EuclideanHalfSpace 1 → EuclideanHalfSpace 1 := fun t ↦
-    ⟨ε • t.val, by simpa using mul_nonneg hε.le t.property⟩
-  have hσ : ∀ t, (σ t).val = ε • t.val := fun _ ↦ rfl
+  let σ := EuclideanHalfSpace.smulDiffeomorph 1 k hε
+  have hσ : ∀ t, (σ t).val = ε • t.val := EuclideanHalfSpace.coe_smulDiffeomorph_apply hε
   let ψ : (𝓡∂ (n + 1)).boundary W × normalIioOpens 1 →
       (𝓡∂ (n + 1)).boundary W × EuclideanHalfSpace 1 :=
     Prod.map id (σ ∘ Subtype.val)
@@ -181,10 +181,8 @@ theorem exists_eq_of_isLocalDiffeomorphOn [CompactSpace ↥((𝓡∂ (n + 1)).bo
       mul_lt_of_lt_one_right hε (mem_normalIioOpens.1 p.2.property)⟩
   have hψloc : IsLocalDiffeomorph ((𝓡 n).prod (𝓡∂ 1)) ((𝓡 n).prod (𝓡∂ 1)) k ψ :=
     SymplecticGeometry.isLocalDiffeomorph_id.prodMap fun t ↦
-      (isLocalDiffeomorph_subtype_val t).comp (hg :=
-        (EuclideanHalfSpace.isLocalDiffeomorph_of_val_eq_smul hε hσ _))
-  have hψinj : Injective ψ := injective_id.prodMap fun s t h ↦
-    Subtype.ext (Subtype.ext (smul_right_injective _ hε.ne' (congrArg Subtype.val h)))
+      (isLocalDiffeomorph_subtype_val t).comp (hg := σ.isLocalDiffeomorph _)
+  have hψinj : Injective ψ := injective_id.prodMap (σ.injective.comp Subtype.val_injective)
   have hFψ : ∀ p, F (ψ p) = F (p.1, normalRay (ε * (p.2 : EuclideanHalfSpace 1).val 0)) :=
     fun ⟨x, t⟩ ↦ by
       simp only [ψ, Prod.map_apply, id_eq, comp_apply]
