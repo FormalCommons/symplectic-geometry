@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Homogeneity
 public import SymplecticGeometry.Topology.FilledHull
 import SymplecticGeometry.Analysis.Calculus.Deriv.CriticalValue
 import SymplecticGeometry.Geometry.Manifold.NullSet
+import SymplecticGeometry.Topology.Closure
 import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 
 /-!
