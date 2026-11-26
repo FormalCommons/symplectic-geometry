@@ -220,8 +220,7 @@ theorem twistOneDelBarSobolev_eq_zero_iff {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (On
   have hK1 (i : Fin (twistCoreAtlas 1).n) {y : ℂ} (hy : y ∈ (twistCoreAtlas 1).image i) :
       J.inChart ((twistCoreAtlas 1).center i) y 1 ≠ -Complex.I :=
     SmoothAlmostComplexStructure.inChart_apply_one_ne_neg_I_of_tames hJ hi _ <| by
-      simpa using ((twistCoreAtlas 1).chart_image_closure_dom_subset i
-        ((twistCoreAtlas 1).image_subset_chart_image_closure_dom i hy)).1
+      simpa using ((twistCoreAtlas 1).image_subset_target_inter_preimage_baseSet i hy).1
   -- The chart data of `Φ_J ∇w` are the reading of `Φ_J` applied to those of `∇w`, which are
   -- `Du + Γ u` for any weak derivative `Du`.
   have hΦ (i : Fin (twistCoreAtlas 1).n) := by
@@ -485,8 +484,7 @@ private theorem contDiffOn_chartZeroOrder_comp_fderiv (i : Fin (twistCoreAtlas 1
         Complex.I * (twistCoreAtlas 1).chartZeroOrder twistOneConnection i (T z) 1
           (fderiv ℝ T z Complex.I))) Ω := by
   have hGT := (contDiffOn_chartZeroOrder_twistOneConnection_apply_one (twistCoreAtlas 1) i).comp
-    hT fun z hz ↦ ((twistCoreAtlas 1).closure_image_subset_chart_image_closure_dom i).trans
-      ((twistCoreAtlas 1).chart_image_closure_dom_subset i) (subset_closure (hmaps hz))
+    hT fun z hz ↦ (twistCoreAtlas 1).image_subset_target_inter_preimage_baseSet i (hmaps hz)
   have hM : ContDiffOn ℝ ∞ (fderiv ℝ T) Ω := hT.fderiv_of_isOpen hΩ (by simp)
   exact contDiffOn_const.mul ((hGT.clm_apply (hM.clm_apply contDiffOn_const)).add
     (contDiffOn_const.mul (hGT.clm_apply (hM.clm_apply contDiffOn_const))))
