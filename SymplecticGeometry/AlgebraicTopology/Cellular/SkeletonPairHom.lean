@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.AlgebraicTopology.Cellular.SkeletonPairCohomology
 public import TauCeti.AlgebraicTopology.Cellular.Boundary
 public import TauCeti.Topology.CWComplex.Classical.RelativeCWComplex
 
@@ -23,6 +24,13 @@ pairs `(Dⁿ, Sⁿ⁻¹) ⟶ (Y, {p})`, one for each `n`-cell, glues to a map of
 `(Xⁿ, Xⁿ⁻¹) ⟶ (Y, {p})` (`TauCeti.exists_skeletonPair_hom_ofSubset_singleton`), that is, a map
 `Xⁿ → Y` constant at `p` on `Xⁿ⁻¹`.
 
+With a class `h ∈ Hᵐ(Y, {p})` fixed, this realizes relative classes: if every class of
+`Hᵐ(Dⁿ, Sⁿ⁻¹)` is the pull-back of `h` along a map of pairs `(Dⁿ, Sⁿ⁻¹) ⟶ (Y, {p})`, then so is
+every class of `Hᵐ(Xⁿ, Xⁿ⁻¹)` along a map of pairs `(Xⁿ, Xⁿ⁻¹) ⟶ (Y, {p})`
+(`TauCeti.exists_skeletonPair_hom_singularCohomologyMap_eq`). The glued map pulls `h` back to
+the given class because a class of `Hᵐ(Xⁿ, Xⁿ⁻¹)` is determined by its pull-backs to the cells
+(`TauCeti.singularCohomology_skeletonPair_ext`).
+
 The ambient map comes from the universal property of the pushout square that attaches the
 `n`-cells to `Xⁿ⁻¹` to give `Xⁿ`, Tau Ceti's `TauCeti.isPushout_skeletonObj`.
 
@@ -32,6 +40,8 @@ The ambient map comes from the universal property of the pushout square that att
   the attaching maps with a map on `Xⁿ⁻¹`, glue to a map of pairs out of `(Xⁿ, Xⁿ⁻¹)`.
 * `TauCeti.exists_skeletonPair_hom_ofSubset_singleton`: maps of pairs from the disks of the
   `n`-cells to `(Y, {p})` glue to a map of pairs from `(Xⁿ, Xⁿ⁻¹)` to `(Y, {p})`.
+* `TauCeti.exists_skeletonPair_hom_singularCohomologyMap_eq`: if every class of `Hᵐ(Dⁿ, Sⁿ⁻¹)` is
+  a pull-back of `h ∈ Hᵐ(Y, {p})`, then so is every class of `Hᵐ(Xⁿ, Xⁿ⁻¹)`.
 
 ## References
 
@@ -45,7 +55,7 @@ noncomputable section
 
 open CategoryTheory Limits Topology Topology.RelCWComplex
 
-universe w
+universe w v
 
 namespace TauCeti
 
@@ -91,6 +101,28 @@ theorem exists_skeletonPair_hom_ofSubset_singleton {n : ℕ} {Y : TopCat.{w}} (p
       ext x
       exact Subsingleton.elim (α := ({p} : Set Y)) _ _
   exact ⟨F, hF⟩
+
+variable {A : Type v} [Ring A] {R : ModuleCat.{w} A} [Projective R]
+  {k : Type*} [Ring k] [Linear k (ModuleCat.{w} A)] {M : ModuleCat.{w} A}
+
+/-- **Relative classes of a skeletal pair are pulled back from `(Y, {p})`, cell by cell.** Let
+`Y` be a space with a point `p` and `h ∈ Hᵐ(Y, {p}; M)` a relative class, for projective chain
+coefficients `R`. If every class of `Hᵐ(Dⁿ, Sⁿ⁻¹; M)` is the pull-back of `h` along some map of
+pairs `(Dⁿ, Sⁿ⁻¹) ⟶ (Y, {p})`, then every class of `Hᵐ(Xⁿ, Xⁿ⁻¹; M)` is the pull-back of `h`
+along some map of pairs `(Xⁿ, Xⁿ⁻¹) ⟶ (Y, {p})`. -/
+theorem exists_skeletonPair_hom_singularCohomologyMap_eq {n m : ℕ} {Y : TopCat.{w}} {p : Y}
+    (h : (TopPair.ofSubset ({p} : Set Y)).singularCohomology R k M m)
+    (H : ∀ c : (diskBoundaryPair.{w} n).singularCohomology R k M m,
+      ∃ f : diskBoundaryPair.{w} n ⟶ TopPair.ofSubset ({p} : Set Y),
+        TopPair.singularCohomologyMap f m h = c)
+    (c : (skeletonPair C n).singularCohomology R k M m) :
+    ∃ F : skeletonPair C n ⟶ TopPair.ofSubset ({p} : Set Y),
+      TopPair.singularCohomologyMap F m h = c := by
+  choose f hf using fun j : cell C n ↦
+    H (TopPair.singularCohomologyMap (characteristicCellPairMap C j) m c)
+  obtain ⟨F, hF⟩ := exists_skeletonPair_hom_ofSubset_singleton C p f
+  refine ⟨F, singularCohomology_skeletonPair_ext C R k M fun j ↦ ?_⟩
+  rw [← TopPair.singularCohomologyMap_comp_apply, hF, hf]
 
 end TauCeti
 
