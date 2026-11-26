@@ -132,11 +132,10 @@ This file corrects part 39 of `DESIGN.md` in the same pull request:
 - The existence of a coupling form moves from `Coupling/Basic.lean` to a
   file of its own, `Coupling/Existence.lean`, so that the predicate and its
   properties come first and two issues do not write one file.
-- Two files are added: `Geometry/Manifold/FiberBundle/Principal/RealChernClass.lean`
-  (the Chern class above) and `Geometry/Manifold/GroupAction/PrincipalBundle.lean`
-  (the principal bundle of a free action of a compact Lie group, which the
-  converse needs to produce $P$; Tau Ceti has the quotient manifold, and
-  local trivializations only topologically).
+- One file is added: `Geometry/Manifold/FiberBundle/Principal/RealChernClass.lean`
+  (the Chern class above). The principal bundle of a free action of a
+  compact Lie group, which the converse needs to produce $P$, is Tau Ceti's
+  `ProperSMul.orbitRelFiberBundle` (`FiberBundle/Principal/Quotient.lean`).
 - The converse is stated for a compact band of a boundaryless manifold, as
   above.
 - The part does not use `GroupAction/InvariantPrimitive.lean` of *Lie group
@@ -156,7 +155,6 @@ This file corrects part 39 of `DESIGN.md` in the same pull request:
 | `Geometry/Symplectic/Coupling/Existence.lean` | the construction; the existence half of the milestone |
 | `Geometry/Symplectic/Moser/Equivariant.lean` | the cut-off Moser flow of invariant data commutes with the symmetries |
 | `Geometry/Symplectic/Coupling/Uniqueness.lean` | the uniqueness half of the milestone |
-| `Geometry/Manifold/GroupAction/PrincipalBundle.lean` | the principal bundle of a free action of a compact Lie group |
 | `Geometry/Symplectic/Coupling/Converse.lean` | the converse half of the milestone |
 
 ### `Geometry/Manifold/FiberBundle/Principal/RealChernClass.lean`
@@ -322,66 +320,21 @@ Proof:
 About 600 lines. If it grows past that, steps 1–3 go first, in one issue,
 and steps 4–5 in a second.
 
-### `Geometry/Manifold/GroupAction/PrincipalBundle.lean`
+### The principal bundle of a free action
 
-For a compact Lie group `G` (`[LieGroup IG ∞ G]`, boundaryless and
-finite-dimensional) acting smoothly and freely on the right
-(`[MulAction Gᵐᵒᵖ X]`, as Tau Ceti's principal bundles act) on a
-boundaryless, Hausdorff, finite-dimensional manifold $X$:
-
-- the fibres `orbitFiber Gᵐᵒᵖ X`, an `abbrev` for Tau Ceti's
-  `TauCeti.MapFiber (Quotient.mk (orbitRel Gᵐᵒᵖ X))`, over Tau Ceti's
-  quotient manifold (`Geometry/Manifold/GroupAction/Quotient.lean`, with
-  its charted space `ProperSMul.orbitRelQuotientChartedSpace`). The
-  trivializations are Tau Ceti's trivializations from equivariant maps
-  (`Topology/Algebra/GroupAction/OrbitTrivialization.lean`), with the
-  equivariant maps given by local sections, read with fibre `G`;
-  `orbitFiber.trivializationOfSection` passes them to the fibres by
-  `Bundle.Trivialization.toMapFiber`;
-- `orbitFiber.atlas IG G IX X :
-  TauCeti.MapFiber.Atlas G (Quotient.mk (orbitRel Gᵐᵒᵖ X))`,
-  whose trivialization at `q` is the one of the orbit projection given by
-  the smooth local section `ProperSMul.exists_contMDiffOn_section_quotientMk`
-  through `q.out`, so that its `toMapFiber` is
-  `orbitFiber.trivializationOfSection`. The models are explicit arguments,
-  since the choice of smooth sections depends on them, and so are `G` and
-  `X`, which nothing determines where the atlas is put in place by `letI`;
-- the bundle structures are Tau Ceti's, built from that atlas, and the file
-  adds none of its own: `FiberBundle G (orbitFiber Gᵐᵒᵖ X)` is
-  `TauCeti.MapFiber.Atlas.fiberBundle`; `PrincipalBundle G`, with
-  the fibrewise action of `orbitFiber.instMulAction`, holds because every
-  trivialization of the atlas is equivariant
-  (`orbitFiber.isEquivariant_trivializationOfSection`);
-  `ContMDiffFiberBundle ∞ G (orbitFiber Gᵐᵒᵖ X) 𝓘(ℝ, ProperSMul.QuotientModelSpace _ _) IG`
-  is `TauCeti.MapFiber.Atlas.contMDiffFiberBundle`, for a theorem
-  `orbitFiber.isContMDiff_atlas` that the atlas is
-  `TauCeti.MapFiber.Atlas.IsContMDiff ∞`. A trivialization of the atlas
-  sends `x` to `(⟦x⟧, unop (orbitSectionCoord s x))` and has inverse
-  `(q, g) ↦ op g • s q`. The inverse is smooth because `s` and the action
-  are; it has injective differential, so the inverse function theorem
-  makes the trivialization smooth too;
-- the equivariant diffeomorphism of the total space with $X$ over the
-  quotient map is Tau Ceti's `TauCeti.MapFiber.Atlas.totalSpaceDiffeomorph`
-  for `orbitFiber.isContMDiff_atlas`, with `totalSpaceDiffeomorph_smul`
-  and `proj_totalSpaceDiffeomorph`.
-
-Instance search cannot recover the models `IG` and `IX` from
-`orbitFiber Gᵐᵒᵖ X`, as it cannot for
-`ProperSMul.orbitRelQuotientChartedSpace`, so these structures are not
-global instances. A statement about the bundle puts them in place by
-`letI := ProperSMul.orbitRelQuotientChartedSpace IG Gᵐᵒᵖ IX X`,
-`letI := (orbitFiber.atlas IG G IX X).fiberBundle`, and `haveI` for the
-principal and the smooth structure, as Tau Ceti's statements about
-`Atlas.fiberBundle` do; the module docstring says so. The converse
-instead works on `FreeRegularLevel IG h` of `GroupAction/RegularLevel.lean`,
-whose type determines the models, so that there these structures are
-global instances.
-
-A compact group acts properly. For `Circle` the converse feeds it the
-right action `op z • x = z • x` of the commutative circle. The file is
-general, and the parts of `atlas/symplectic-fibrations.md` and *Hamiltonian
-reduction* may use it. About 600 lines; if the proof that the atlas is
-smooth runs long, it goes in a second issue after the topological bundle.
+Tau Ceti's `FiberBundle/Principal/Quotient.lean` makes the orbits
+`TauCeti.orbitRelFiber G X` of a free proper smooth left action of a Lie
+group `G` a smooth principal `G`-bundle over the quotient manifold
+(`ProperSMul.orbitRelFiberBundle`, `principalBundle_orbitRelFiber`,
+`contMDiffFiberBundle_orbitRelFiber`), for the right action
+`x · g = g⁻¹ • x`, with the diffeomorphism
+`ProperSMul.orbitRelFiberDiffeomorph` of its total space with $X$.
+These structures depend on the models, so they are not global instances;
+the converse works on `FreeRegularLevel IG h` of
+`GroupAction/RegularLevel.lean`, whose type determines the models, so that
+there they are global instances. On the level the commutative circle acts by
+inverses, `z • x = z⁻¹ • x`, so that the right action of the bundle is
+`x · z = z • x`.
 
 ### `Geometry/Symplectic/Coupling/Converse.lean`
 
@@ -393,7 +346,7 @@ smooth runs long, it goes in a second issue after the topological bundle.
   also asks for connectedness, which the proof does not use), with
   the action free on $K$. Then, with $P_0=H^{-1}(a)$
   (a closed manifold, through Tau Ceti's `regularLevelChartedSpace`),
-  $B=P_0/S^1$ and $P$ the bundle of `PrincipalBundle.lean`, there are a smooth
+  $B=P_0/S^1$ and $P$ Tau Ceti's bundle `TauCeti.orbitRelFiber`, there are a smooth
   family of symplectic forms $\tau$ on $B$ and
   a smooth equivariant injective map
   $\psi:P\times[a,b]\to M$ with range $K$, $H\circ\psi=\lambda$ and
@@ -411,7 +364,7 @@ Proof:
 2. Its flow $\Phi$ commutes with the action (`Flow/Related.lean`) and
    $H(\Phi_t(x))=H(x)+t$ while the trajectory stays near $K$. The map
    $\psi(p,\lambda)=\Phi_{\lambda-a}(p)$, read on the total space through
-   `TauCeti.MapFiber.Atlas.totalSpaceDiffeomorph`, is smooth, injective (by $H$ and the flow
+   `ProperSMul.orbitRelFiberDiffeomorph`, is smooth, injective (by $H$ and the flow
    property), onto $K$ (flowing back to $P_0$), equivariant, and has
    $H\circ\psi=\lambda$.
 3. $\psi^*\omega$ is closed and invariant, and $\iota_X\psi^*\omega=-d\lambda$
@@ -443,7 +396,8 @@ ones it waits for.
 5. **Uniqueness of coupling forms** (`Coupling/Uniqueness.lean`). Waits for
    2 and 3.
 6. **The principal bundle of a free compact group action**
-   (`GroupAction/PrincipalBundle.lean`). Waits for nothing.
+   (`GroupAction/PrincipalBundle.lean`, since replaced by Tau Ceti's
+   `FiberBundle/Principal/Quotient.lean`). Waits for nothing.
 7. **The converse** (`Coupling/Converse.lean`). Waits for 3, 6 and
    *Lie group actions*' `GroupAction/Circle.lean` (#2256).
 
