@@ -47,7 +47,9 @@ by the second projection.
   `Bundle.Trivialization.localChartFiberLocalHomologyIso`: the isomorphisms of local homology at
   the origin and along `P × {0}`, characterized by
   `Bundle.Trivialization.localChartLocalHomologyIso_hom` and
-  `Bundle.Trivialization.localChartFiberLocalHomologyIso_hom`.
+  `Bundle.Trivialization.localChartFiberLocalHomologyIso_hom`;
+  `Bundle.Trivialization.localHomologyPointClass_comp_localChartLocalHomologyIso_hom`: the first
+  carries the class of the origin to the class of `0_b`.
 * `Bundle.Trivialization.localChartFiberLocalHomologyIso_hom_comp_localHomologyRestriction`: the
   isomorphism along the fibre restricts to the isomorphism at the point.
 * `Bundle.Trivialization.localHomologyMap_localChart_comp_localHomologyMap_proj` and
@@ -351,6 +353,23 @@ theorem localChartLocalHomologyIso_hom [T1Space (TotalSpace P E)] (hS : IsOpen S
     rw [eqToHom_refl, Category.comp_id, localHomologyIsoOfIsOpenEmbedding_hom]
   rw [localChartLocalHomologyIso, Iso.trans_hom, Iso.trans_hom, Iso.symm_hom, eqToIso.hom,
     key (localChart_zero hSe hb hcb h0) h]
+
+/-- The isomorphism `Bundle.Trivialization.localChartLocalHomologyIso` carries the class of the
+origin of `P × Q` in degree zero to the class of the point `0_b` of the zero section. -/
+@[reassoc, elementwise]
+theorem localHomologyPointClass_comp_localChartLocalHomologyIso_hom [T1Space (TotalSpace P E)]
+    (hS : IsOpen S) (hSc : S ⊆ c.target) (hSe : MapsTo c.symm S e.baseSet) (hb : b ∈ c.source)
+    (hcb : c b = 0) (h0 : (0 : Q) ∈ S) :
+    localHomologyPointClass R {((0, 0) : P × Q)} (0, 0) ≫
+        (localChartLocalHomologyIso R hS hSc hSe hb hcb h0 0).hom =
+      localHomologyPointClass R {zeroSection P E b} (zeroSection P E b) := by
+  rw [localChartLocalHomologyIso_hom _ _ _ _ _ _ _
+      (localChart_preimage_singleton_zeroSection hS hSc hSe hb hcb h0).subset,
+    ← localHomologyPointClass_comp_localHomologyIsoOfIsOpenEmbedding_hom R
+      ((isOpen_univ.prod hS).isOpenEmbedding_subtypeVal (X := P × Q))
+      ⟨(0, 0), mk_mem_prod (mem_univ _) h0⟩,
+    Category.assoc, Iso.hom_inv_id_assoc, localHomologyPointClass_map, ContinuousMap.coe_mk,
+    localChart_zero hSe hb hcb h0]
 
 /-- **The isomorphism along the fibre restricts to the isomorphism at the point.** Restricting
 `Bundle.Trivialization.localChartFiberLocalHomologyIso` from the fibre `E_b` to its point `0_b` is

@@ -35,6 +35,7 @@ theorem reindex_positiveOrientation [IsEmpty ι] [IsEmpty ι'] (e : ι ≃ ι') 
 
 /-- For empty index types, a reindexed orientation is positive if and only if the orientation
 is. -/
+@[simp]
 theorem reindex_eq_positiveOrientation_iff [IsEmpty ι] [IsEmpty ι'] (e : ι ≃ ι')
     (o : Orientation R M ι) :
     reindex R M e o = positiveOrientation ↔ o = positiveOrientation := by
@@ -42,6 +43,7 @@ theorem reindex_eq_positiveOrientation_iff [IsEmpty ι] [IsEmpty ι'] (e : ι �
 
 /-- For an empty index type, the image of an orientation under a linear equivalence is positive
 if and only if the orientation is. -/
+@[simp]
 theorem map_eq_positiveOrientation_iff [IsEmpty ι] (f : M ≃ₗ[R] N) (o : Orientation R M ι) :
     map ι f o = positiveOrientation ↔ o = positiveOrientation := by
   rw [← map_positiveOrientation_of_isEmpty (ι := ι) f, (map ι f).injective.eq_iff]

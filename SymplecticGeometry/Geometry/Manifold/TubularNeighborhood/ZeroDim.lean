@@ -155,10 +155,6 @@ theorem localHomologyMap_localChartLocalHomologyIso_hom_cross_of_finrank_eq_zero
   set c := (chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))
   have hb : z ∈ c.source := by simp [c]
   have hcb : c z = 0 := by simp [c]
-  have hι := Trivialization.isOpenEmbedding_localChart (e := e) hS hSc hSe
-  have hpt : e.localChart c S ⁻¹' {zeroSection P _ z} ⊆
-      {⟨(0, 0), mk_mem_prod (mem_univ _) h0⟩} := fun y hy ↦
-    hι.injective (hy.trans (Trivialization.localChart_zero hSe hb hcb h0).symm)
   -- The cross product of the two point classes is carried to the point class of `f z`.
   have key : localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
         (⟨fun p ↦ (Φ p : X), continuous_subtypeVal.comp Φ.continuous⟩ :
@@ -180,40 +176,10 @@ theorem localHomologyMap_localChartLocalHomologyIso_hom_cross_of_finrank_eq_zero
         localHomologyPointClass (ModuleCat.of ℤ (ULift.{0} ℤ)) {((0, 0) : P × E)} (0, 0) 1 :=
       (SymplecticGeometry.localHomologyCross_tmul_localHomologyPointClass _ _ 0 _).trans
         (localHomologyPointClass_map_apply _ _ _ _ _)
-    have h2 : (Trivialization.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe
-          hb hcb h0 0).hom
-          (localHomologyPointClass (ModuleCat.of ℤ (ULift.{0} ℤ)) {((0, 0) : P × E)} (0, 0) 1) =
-        localHomologyPointClass (ModuleCat.of ℤ (ULift.{0} ℤ)) {zeroSection P _ z}
-          (zeroSection P _ z) 1 := by
-      have hh : (localHomologyIsoOfIsOpenEmbedding (ModuleCat.of ℤ (ULift.{0} ℤ))
-          ((isOpen_univ.prod hS).isOpenEmbedding_subtypeVal (X := P × E))
-          ⟨(0, 0), mk_mem_prod (mem_univ _) h0⟩ 0).hom
-          (localHomologyPointClass (ModuleCat.of ℤ (ULift.{0} ℤ))
-            {(⟨(0, 0), mk_mem_prod (mem_univ _) h0⟩ : (univ ×ˢ S : Set (P × E)))}
-            ⟨(0, 0), mk_mem_prod (mem_univ _) h0⟩ 1) =
-          localHomologyPointClass (ModuleCat.of ℤ (ULift.{0} ℤ)) {((0, 0) : P × E)} (0, 0) 1 := by
-        rw [localHomologyIsoOfIsOpenEmbedding_hom]
-        exact localHomologyPointClass_map_apply _ _ _ _ _
-      rw [Trivialization.localChartLocalHomologyIso_hom _ _ _ _ _ _ _ hpt,
-        CategoryTheory.ConcreteCategory.comp_apply, ← hh, CategoryTheory.Iso.hom_inv_id_apply]
-      exact (localHomologyPointClass_map_apply _ _ _ _ _).trans
-        (congrArg (fun y ↦ localHomologyPointClass (ModuleCat.of ℤ (ULift.{0} ℤ))
-          {zeroSection P _ z} y 1) (Trivialization.localChart_zero hSe hb hcb h0))
-    have h3 : localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
-        (⟨fun p ↦ (Φ p : X), continuous_subtypeVal.comp Φ.continuous⟩ :
-          C(TotalSpace P (fun x ↦ f.NormalSpace x hn), X))
-        (S := {zeroSection P _ z}) (T := {f z})
-        (by
-          rintro p hp
-          exact Φ.injective (Subtype.ext (hp.trans (hΦ.apply_zeroSection z).symm)))
-        0 (localHomologyPointClass (ModuleCat.of ℤ (ULift.{0} ℤ)) {zeroSection P _ z}
-          (zeroSection P _ z) 1) =
-        localHomologyPointClass (ModuleCat.of ℤ (ULift.{0} ℤ)) {f z} (f z) 1 :=
-      (localHomologyPointClass_map_apply _ _ _ _ _).trans
-        (congrArg (fun y ↦ localHomologyPointClass (ModuleCat.of ℤ (ULift.{0} ℤ)) {f z} y 1)
-          (hΦ.apply_zeroSection z))
-    rw [h1, h2]
-    exact h3
+    rw [h1, Trivialization.localHomologyPointClass_comp_localChartLocalHomologyIso_hom_apply]
+    exact (localHomologyPointClass_map_apply _ _ _ _ _).trans
+      (congrArg (fun y ↦ localHomologyPointClass (ModuleCat.of ℤ (ULift.{0} ℤ)) {f z} y 1)
+        (hΦ.apply_zeroSection z))
   rw [Manifold.Orientation.toHomologicalOrientationOfZeroDim_apply,
     Manifold.Orientation.localOrientationOfZeroDim_coe,
     orientationAt_reindex_eq_positiveOrientation_iff Φ z hΦ hP oX oZ]
@@ -221,7 +187,6 @@ theorem localHomologyMap_localChartLocalHomologyIso_hom_cross_of_finrank_eq_zero
   split_ifs <;> first
     | (exfalso; tauto)
     | simp only [TensorProduct.neg_tmul, TensorProduct.tmul_neg, map_neg, neg_neg, key]
-
 
 end TauCeti.SmoothEmbedding
 
