@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.Power.Basic
+public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.LocalSection
 public import SymplecticGeometry.Topology.FiberBundle.Associated.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.LocalFrame
 public import TauCeti.Geometry.Manifold.FiberBundle.Basic
@@ -22,10 +23,13 @@ connection `D_k = d + i k α` on the complex line bundle `PowerBundle P k = P ×
 weight `k` (`Power/Basic.lean`), as a Mathlib `CovariantDerivative` on its underlying real vector
 bundle.
 
-For a point `b` of the base, write `σ_b y` for the point of `P y` with fibre coordinate `1` in the
-preferred trivialization of `P` at `b`. By `TauCeti.AssociatedBundle.trivializationAt_mk_symm_one`
-the preferred trivialization of `PowerBundle P k` at `b` reads `[σ_b y, z]` as `z`. Over its base
-set, `SymplecticGeometry.powerConnectionAt α k b` is Tau Ceti's flat derivative of that frame
+For a point `b` of the base, write `σ_b = TauCeti.PrincipalBundle.localSection Circle P b` for the
+preferred local section of `P` at `b`: `σ_b y` is the point of `P y` with fibre coordinate `1` in
+the preferred trivialization of `P` at `b`. Forms are pulled back along it read in the charted
+total space, as `TauCeti.PrincipalBundle.manifoldLocalSection Circle P b`. By
+`TauCeti.AssociatedBundle.trivializationAt_mk_localSection` the preferred trivialization of
+`PowerBundle P k` at `b` reads `[σ_b y, z]` as `z`. Over its base set,
+`SymplecticGeometry.powerConnectionAt α k b` is Tau Ceti's flat derivative of that frame
 (`TauCeti.Manifold.frameCovariantDerivative`, for a real basis of the model fibre) plus the
 endomorphism-valued one-form `SymplecticGeometry.powerConnectionForm`,
 `v ↦ (i k (σ_b^* α) v) • ·` (Mathlib's `IsCovariantDerivativeOn.add_one_form`). The connection
@@ -36,9 +40,9 @@ comparison of frames is needed to define it. On a section that reads `[σ_x, f]`
 (`SymplecticGeometry.powerConnection_apply_trivializationAt`). The definition uses no property
 of `α`; that the formula holds in every local section of `P` uses that `α` is a connection form.
 
-The statements take `[∀ b, Nonempty (P b)]`, since Mathlib's `Bundle.Trivialization.symm`, which
-defines `σ_b`, asks for it; a caller supplies it with `FiberBundle.nonempty_fiber Circle P`, as
-`Circle` is nonempty.
+The statements take `[∀ b, Nonempty (P b)]`, since `localSection`, through Mathlib's
+`Bundle.Trivialization.symm`, asks for it; a caller supplies it with
+`FiberBundle.nonempty_fiber Circle P`, as `Circle` is nonempty.
 
 ## Main definitions
 
@@ -68,7 +72,7 @@ public section
 
 noncomputable section
 
-open Bundle Manifold TauCeti TauCeti.Manifold
+open Bundle Manifold TauCeti TauCeti.Manifold TauCeti.PrincipalBundle
 open scoped Manifold ContDiff Topology
 
 namespace SymplecticGeometry
@@ -82,23 +86,21 @@ variable {EB HB B : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [Topolog
 variable (α : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1) (k : ℤ)
 
 /-- The one-form `v ↦ (i k (σ_b^* α)_x v) • ·` with values in the endomorphisms of the fibre
-of `PowerBundle P k` at `x`, where `σ_b` is the preferred local section of `P` at `b`, the point
-of fibre coordinate `1` in the preferred trivialization of `P` at `b`. -/
+of `PowerBundle P k` at `x`, where `σ_b = localSection Circle P b` is the preferred local section
+of `P` at `b`, the point of fibre coordinate `1` in the preferred trivialization of `P` at `b`. -/
 def powerConnectionForm (b x : B) :
     PowerBundle P k x →L[ℝ] TangentSpace IB x →L[ℝ] PowerBundle P k x :=
   ContinuousLinearMap.smulRightL ℝ ℝ ℂ (TangentSpace IB x) (PowerBundle P k x)
     ((Complex.I * k) • Complex.ofRealCLM.comp
       ((ContinuousAlternatingMap.ofSubsingleton ℝ (TangentSpace IB x) ℝ (0 : Fin 1)).symm
-        (TauCeti.mpullback IB (IB.prod (𝓡 1)) (fun y ↦ ManifoldTotalSpace.homeomorph Circle P
-          ⟨y, (trivializationAt Circle P b).symm y 1⟩) α.val x)))
+        (TauCeti.mpullback IB (IB.prod (𝓡 1)) (manifoldLocalSection Circle P b) α.val x)))
 
 /-- `powerConnectionForm α k b x w` sends `v` to `(i k (σ_b^* α)_x v) • w`. -/
 @[simp]
 theorem powerConnectionForm_apply (b x : B) (w : PowerBundle P k x) (v : TangentSpace IB x) :
     powerConnectionForm α k b x w v =
       (Complex.I * k * (TauCeti.mpullback IB (IB.prod (𝓡 1))
-        (fun y ↦ ManifoldTotalSpace.homeomorph Circle P
-          ⟨y, (trivializationAt Circle P b).symm y 1⟩) α.val x ![v] : ℝ)) • w := by
+        (manifoldLocalSection Circle P b) α.val x ![v] : ℝ)) • w := by
   simp [powerConnectionForm]
 
 /-- The connection `d + i k σ_b^* α` of `PowerBundle P k` over the base set of the preferred
@@ -152,15 +154,13 @@ theorem powerConnection_apply (s : Π x, PowerBundle P k x) (x : B) :
 differentiable at `x`, then `D_k s` at `x` is `[σ_x x, df_x + i k (σ_x^* α)_x f(x)]`. -/
 theorem powerConnection_apply_trivializationAt {s : Π x, PowerBundle P k x}
     {f : B → PowerModel k} {x : B} (hf : MDifferentiableAt IB 𝓘(ℝ, PowerModel k) f x)
-    (hs : ∀ᶠ y in 𝓝 x,
-      s y = AssociatedBundle.mk Circle ((trivializationAt Circle P x).symm y 1) (f y))
+    (hs : ∀ᶠ y in 𝓝 x, s y = AssociatedBundle.mk Circle (localSection Circle P x y) (f y))
     (v : TangentSpace IB x) :
     powerConnection α k s x v =
-      AssociatedBundle.mk Circle ((trivializationAt Circle P x).symm x 1)
+      AssociatedBundle.mk Circle (localSection Circle P x x)
         (mvfderiv IB f x v +
           (Complex.I * k * (TauCeti.mpullback IB (IB.prod (𝓡 1))
-            (fun y ↦ ManifoldTotalSpace.homeomorph Circle P
-              ⟨y, (trivializationAt Circle P x).symm y 1⟩) α.val x ![v] : ℝ)) • f x) := by
+            (manifoldLocalSection Circle P x) α.val x ![v] : ℝ)) • f x) := by
   have hx := mem_baseSet_trivializationAt Circle P x
   have hxe : x ∈ (trivializationAt (PowerModel k) (PowerBundle P k) x).baseSet := by
     rwa [AssociatedBundle.baseSet_trivializationAt]
@@ -173,7 +173,7 @@ theorem powerConnection_apply_trivializationAt {s : Π x, PowerBundle P k x}
     filter_upwards [hs, (trivializationAt Circle P x).open_baseSet.mem_nhds hx] with y hy hyU
     rw [Trivialization.localFrameCoeff_eq_coeff _
       (hxe := by rwa [AssociatedBundle.baseSet_trivializationAt])]
-    simp only [hy, AssociatedBundle.trivializationAt_mk_symm_one hyU, Module.Basis.coord_apply]
+    simp only [hy, AssociatedBundle.trivializationAt_mk_localSection hyU, Module.Basis.coord_apply]
   rw [powerConnection_apply, powerConnectionAt_def, add_apply, hframe,
     ContinuousLinearMap.comp_apply, Trivialization.symmL_apply _ hxe,
     AssociatedBundle.trivializationAt_symm_eq_mk hx, powerConnectionForm_apply, hs.self_of_nhds,
