@@ -12,11 +12,14 @@ import Mathlib.Analysis.Normed.Operator.Prod
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import TauCeti.Analysis.SpecialFunctions.SmoothTransition
 import SymplecticGeometry.Analysis.Calculus.ContDiff.AddSumRangeSmulSub
+import Mathlib.Topology.MetricSpace.Thickening
 import SymplecticGeometry.Analysis.Calculus.FDeriv.AddSmulSub
+import SymplecticGeometry.Analysis.Calculus.HolonomicApproximation.Basic
+import SymplecticGeometry.Analysis.Calculus.MeanValue
 import SymplecticGeometry.Analysis.Normed.Operator.Pi
 
 /-!
-# Holonomic approximation along a zig-zag: cutoffs at the crossings and gluing
+# Holonomic approximation along a zig-zag
 
 In the coordinates of `SymplecticGeometry.Analysis.Calculus.HolonomicApproximation.Basic`, on
 `D = (Fin m → ℝ) × (Fin k → ℝ)` with sup norms, fix a core coordinate `i₀` and a transverse
@@ -45,6 +48,14 @@ locally the two-term interpolation of `S i` and `S (i + 1)`, which
 `SymplecticGeometry.norm_add_smul_sub_sub_le_max` and
 `SymplecticGeometry.norm_fderiv_add_smul_sub_sub_le` estimate.
 
+For `m = 1`, the gluing gives holonomic approximation along the zig-zag of the core segment: the
+map `f` near the end points, where `(f, G)` is holonomic, and the first-order Taylor maps of
+`(f, G)` at the crossings in between. At the points of the curve outside the windows the error is
+that of one Taylor map, of order the height `r`. In a window, the derivative error gains
+`(3 / r) ‖S (i + 1) - S i‖`, and two neighbouring Taylor maps differ by the mesh times a bound
+on `‖D f - G‖`, plus `r` times the variation of `G` over the mesh. So `r` is chosen first, and
+then the mesh small against `r`.
+
 ## Main results
 
 * `SymplecticGeometry.exists_zigzag_cutoffs`: the cutoffs at the crossings of a zig-zag profile.
@@ -52,6 +63,9 @@ locally the two-term interpolation of `S i` and `S (i + 1)`, which
   curve by these cutoffs, as `S 0 + ∑ φ l • (S (l + 1) - S l)`, with the glued map equal to `S l`
   near the points of the curve between the crossings and estimated against `S i` and `S (i + 1)`
   near the crossing `c i`.
+* `SymplecticGeometry.exists_holonomic_approximation_zigzag`: for `m = 1`, a smooth map that
+  approximates a formal section `(f, G)` near the zig-zag curve, `C¹`-closely, and equals `f`
+  near the end points of the segment, where `(f, G)` is holonomic.
 
 ## References
 
@@ -330,6 +344,317 @@ theorem exists_zigzag_chain (i₀ : Fin m) (j : Fin k) {F : Type*} [NormedAddCom
     · rw [heq.fderiv_eq, hψφ]
       exact norm_fderiv_add_smul_sub_sub_le B (hdi i (by omega)) (hdi (i + 1) (by omega))
         (((hφ i).differentiable (by simp)).differentiableAt) h01.1 h01.2 (hφx i u).1
+
+/-- **Holonomic approximation along the zig-zag of a segment.** On
+`D = (Fin 1 → ℝ) × (Fin k → ℝ)` with sup norms, let `(f, G)` be a smooth formal section that is
+holonomic (`D f = G`) on an open set `U` containing the two end points `(± 1, 0)` of the core
+segment, and let `ε, r₀ > 0`. There are a height `0 < r < r₀` and a smooth profile
+`g₀ : (Fin 1 → ℝ) → ℝ` with `|g₀| ≤ 1`, vanishing near `u = ± 1`, and a smooth map `f'` that is
+`ε`-close to `f` with derivative `ε`-close to `G` on an open set `V` containing the zig-zag curve
+`u ↦ (u, r g₀ (u) eⱼ)` over `[-1, 1]`, and that equals `f` near `(± 1, 0)`.
+
+The proof glues, by `SymplecticGeometry.exists_zigzag_chain`, the map `f` near the two end points
+and the first-order Taylor maps `x ↦ f a + G a (x - a)` at the crossings of a fine zig-zag
+profile, choosing first the height `r`, then the mesh of the crossings. -/
+theorem exists_holonomic_approximation_zigzag {k : ℕ} (j : Fin k)
+    {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+    {f : (Fin 1 → ℝ) × (Fin k → ℝ) → F}
+    {G : (Fin 1 → ℝ) × (Fin k → ℝ) → (Fin 1 → ℝ) × (Fin k → ℝ) →L[ℝ] F}
+    (hf : ContDiff ℝ ∞ f) (hG : ContDiff ℝ ∞ G) {U : Set ((Fin 1 → ℝ) × (Fin k → ℝ))}
+    (hU : IsOpen U) (hUf : ∀ x ∈ U, fderiv ℝ f x = G x)
+    (hU' : Metric.sphere 0 1 ×ˢ {0} ⊆ U) {ε r₀ : ℝ} (hε : 0 < ε) (hr₀ : 0 < r₀) :
+    ∃ (r : ℝ) (g₀ : (Fin 1 → ℝ) → ℝ) (f' : (Fin 1 → ℝ) × (Fin k → ℝ) → F)
+      (V : Set ((Fin 1 → ℝ) × (Fin k → ℝ))),
+      0 < r ∧ r < r₀ ∧ ContDiff ℝ ∞ g₀ ∧ (∀ u, |g₀ u| ≤ 1) ∧
+      (∃ W ∈ 𝓝ˢ (Metric.sphere (0 : Fin 1 → ℝ) 1), ∀ u ∈ W, g₀ u = 0) ∧
+      IsOpen V ∧ (∀ u ∈ Metric.closedBall (0 : Fin 1 → ℝ) 1, (u, Pi.single j (r * g₀ u)) ∈ V) ∧
+      ContDiff ℝ ∞ f' ∧ (∀ x ∈ V, ‖f' x - f x‖ < ε ∧ ‖fderiv ℝ f' x - G x‖ < ε) ∧
+      ∃ U' ∈ 𝓝ˢ (Metric.sphere 0 1 ×ˢ {0}), Set.EqOn f' f U' := by
+  classical
+  -- Sup norms on `Fin 1 → ℝ` and on `D`, at the points that the proof uses.
+  have hnorm : ∀ u : Fin 1 → ℝ, ‖u‖ = |u 0| := fun u ↦
+    le_antisymm ((pi_norm_le_iff_of_nonneg (abs_nonneg _)).2 fun i ↦ by
+      rw [Subsingleton.elim i 0, Real.norm_eq_abs]) (by
+      rw [← Real.norm_eq_abs]; exact norm_le_pi_norm u 0)
+  have hnorm' : ∀ (u : Fin 1 → ℝ) (t s : ℝ),
+      ‖((u, Pi.single j t) : (Fin 1 → ℝ) × (Fin k → ℝ)) - (fun _ ↦ s, 0)‖ =
+        max |u 0 - s| |t| := fun u t s ↦ by
+    rw [Prod.norm_def]
+    simp [hnorm, Pi.norm_single]
+  -- The points of the axis and the Taylor sections at them.
+  set a : ℝ → (Fin 1 → ℝ) × (Fin k → ℝ) := fun s ↦ (fun _ ↦ s, 0) with ha
+  set T : ℝ → (Fin 1 → ℝ) × (Fin k → ℝ) → F := fun s y ↦ f (a s) + G (a s) (y - a s) with hT_def
+  -- `f` is holonomic within `δ` of the end points.
+  obtain ⟨δ, hδ, hδU⟩ := ((isCompact_sphere (0 : Fin 1 → ℝ) 1).prod
+    (isCompact_singleton (x := (0 : Fin k → ℝ)))).exists_thickening_subset_open hU hU'
+  have hhol : ∀ s : ℝ, |s| = 1 → ∀ x, ‖x - a s‖ < δ → fderiv ℝ f x = G x := by
+    intro s hs x hx
+    refine hUf x (hδU (Metric.mem_thickening_iff.2 ⟨a s, ⟨?_, rfl⟩, ?_⟩))
+    · simp [ha, hs]
+    · rwa [dist_eq_norm]
+  -- Uniform estimates on the closed unit ball.
+  have hK := isCompact_closedBall (0 : (Fin 1 → ℝ) × (Fin k → ℝ)) 1
+  obtain ⟨M, hM⟩ := hK.exists_bound_of_continuousOn
+    ((hf.continuous_fderiv (by simp)).sub hG.continuous).continuousOn
+  set η := ε / 8 with hη_def
+  have hη : 0 < η := by positivity
+  obtain ⟨ρT, hρT, hTay⟩ := hK.exists_pos_norm_taylor_remainder_le
+    (fun a _ ↦ (hf.of_le (by simp)).contDiffAt) (fun a _ ↦ hG.continuous.continuousAt) hη
+  set M' := max M 0 + η with hM'_def
+  have hM' : 0 < M' := by positivity
+  -- The parameters: first the height `r`, then the mesh `ρ`.
+  set r := min (min (r₀ / 2) (ρT / 2)) (min (δ / 2) (ε / (2 * M')))
+  have hr : 0 < r := by positivity
+  have hrr₀ : r < r₀ := by
+    have := min_le_left (min (r₀ / 2) (ρT / 2)) (min (δ / 2) (ε / (2 * M')))
+    have := min_le_left (r₀ / 2) (ρT / 2); linarith
+  have hrρT : r < ρT := by
+    have := min_le_left (min (r₀ / 2) (ρT / 2)) (min (δ / 2) (ε / (2 * M')))
+    have := min_le_right (r₀ / 2) (ρT / 2); linarith
+  have hrδ : r < δ := by
+    have := min_le_right (min (r₀ / 2) (ρT / 2)) (min (δ / 2) (ε / (2 * M')))
+    have := min_le_left (δ / 2) (ε / (2 * M')); linarith
+  have hrε : M' * r < ε := by
+    have := min_le_right (min (r₀ / 2) (ρT / 2)) (min (δ / 2) (ε / (2 * M')))
+    have := min_le_right (δ / 2) (ε / (2 * M'))
+    have h2 : M' * r ≤ M' * (ε / (2 * M')) := by gcongr; linarith
+    rw [show M' * (ε / (2 * M')) = ε / 2 by field_simp] at h2
+    linarith
+  set b := min (δ / 4) (1 / 2)
+  have hb : 0 < b := by positivity
+  have hb1 : b < 1 := (min_le_right _ _).trans_lt (by norm_num)
+  have hbδ : 3 * b < δ := by have := min_le_left (δ / 4) (1 / 2); linarith
+  set ρ := min (min b (r / 2)) (ε * r / (12 * M'))
+  have hρ : 0 < ρ := by positivity
+  have hρb : ρ ≤ b := (min_le_left _ _).trans (min_le_left _ _)
+  have hρr : ρ ≤ r / 2 := (min_le_left _ _).trans (min_le_right _ _)
+  have hρε : 3 * M' * ρ / r ≤ ε / 4 := by
+    have h1 : ρ ≤ ε * r / (12 * M') := min_le_right _ _
+    rw [div_le_iff₀ hr]
+    have : 3 * M' * ρ ≤ 3 * M' * (ε * r / (12 * M')) := by gcongr
+    rw [show 3 * M' * (ε * r / (12 * M')) = ε / 4 * r by field_simp; ring] at this
+    exact this
+  -- The zig-zag profile.
+  obtain ⟨g, n, c, w, hg, hg1, hg0, hw, hcm, hc0, hc0', hcn, hcn', hcc, hgs⟩ :=
+    exists_zigzag_profile hb hb1 hρ
+  -- Facts about the crossings.
+  have hcle : ∀ i i' : Fin (n + 1), i ≤ i' → c i ≤ c i' := fun i i' h ↦ hcm.monotone h
+  have hc1 : ∀ i, -1 + b < c i ∧ c i < 1 - b := fun i ↦
+    ⟨by linarith [hcle 0 i (Fin.zero_le _)], by linarith [hcle i (Fin.last n) (Fin.le_last _)]⟩
+  have hw2 : 2 * w < b := by linarith
+  have hstep : ∀ l (h : l + 1 < n + 1), c ⟨l + 1, h⟩ - c ⟨l, by omega⟩ < ρ ∧
+      c ⟨l, by omega⟩ + 4 * w ≤ c ⟨l + 1, h⟩ := fun l h ↦ hcc ⟨l, by omega⟩
+  have hwρ : 0 < n → 4 * w < ρ := fun hn ↦ by
+    have := hstep 0 (by omega); linarith
+  -- The sections: `f`, then the Taylor sections at `c 0, …, c (n - 1)`, then `f`.
+  set cc : ℕ → ℝ := fun l ↦ if h : l < n + 1 then c ⟨l, h⟩ else 0 with hcc_def
+  have hcc_eq : ∀ l (h : l < n + 1), cc l = c ⟨l, h⟩ := fun l h ↦ dite_eq_left h
+  set S : ℕ → (Fin 1 → ℝ) × (Fin k → ℝ) → F :=
+    fun l ↦ if l = 0 ∨ n + 1 ≤ l then f else T (cc (l - 1)) with hS_def
+  have hS_f : ∀ l, (l = 0 ∨ n + 1 ≤ l) → S l = f := fun l h ↦ ite_eq_left h
+  have hS_T : ∀ l, 1 ≤ l → l ≤ n → S l = T (cc (l - 1)) := fun l h₁ h₂ ↦ ite_eq_right (by omega)
+  have hT_cd : ∀ s, ContDiff ℝ ∞ (T s) := fun s ↦
+    contDiff_const.add ((G (a s)).contDiff.comp (contDiff_id.sub contDiff_const))
+  have hS : ∀ l ≤ n + 1, ContDiff ℝ ∞ (S l) := fun l _ ↦ by
+    by_cases h : l = 0 ∨ n + 1 ≤ l
+    · rw [hS_f l h]; exact hf
+    · rw [hS_T l (by omega) (by omega)]; exact hT_cd _
+  obtain ⟨f', hf', hf'x⟩ := exists_zigzag_chain (0 : Fin 1) j hw hr (fun i ↦ (hcc i).2) hgs hS
+  -- The curve and its distance to the axis.
+  set X : (Fin 1 → ℝ) → (Fin 1 → ℝ) × (Fin k → ℝ) := fun u ↦ (u, Pi.single j (r * g (u 0)))
+    with hX
+  have hXa : ∀ u s, ‖X u - a s‖ ≤ max |u 0 - s| r := fun u s ↦ by
+    rw [hX, ha, hnorm', abs_mul, abs_of_pos hr]
+    exact max_le_max le_rfl (mul_le_of_le_one_right hr.le (hg1 _))
+  have haa : ∀ s s', ‖a s - a s'‖ = |s - s'| := fun s s' ↦ by
+    simpa [ha] using hnorm' (fun _ ↦ s) 0 s'
+  have haK : ∀ s, |s| ≤ 1 → a s ∈ Metric.closedBall 0 1 := fun s hs ↦ by
+    simp [ha, hs]
+  -- Estimates for the Taylor sections.
+  have hTest : ∀ s, |s| ≤ 1 → ∀ x, ‖x - a s‖ ≤ r →
+      ‖T s x - f x‖ ≤ (‖fderiv ℝ f (a s) - G (a s)‖ + η) * r ∧
+        ‖fderiv ℝ (T s) x - G x‖ ≤ η := by
+    intro s hs x hx
+    obtain ⟨h₁, h₂⟩ := hTay (a s) (haK s hs) x (hx.trans_lt hrρT)
+    refine ⟨?_, ?_⟩
+    · have : T s x - f x = -(f x - f (a s) - G (a s) (x - a s)) := by simp only [hT_def]; abel
+      rw [this, norm_neg]
+      exact h₁.trans (by gcongr)
+    · have hd : HasFDerivAt (fun y ↦ f (a s) + G (a s) (y - a s)) (G (a s)) x := by
+        simpa using ((G (a s)).hasFDerivAt.comp x ((hasFDerivAt_id x).sub_const (a s))).const_add
+          (f (a s))
+      simp only [hT_def]
+      rw [hd.fderiv, norm_sub_rev]
+      exact h₂
+  have hMa : ∀ s, |s| ≤ 1 → ‖fderiv ℝ f (a s) - G (a s)‖ + η ≤ M' := fun s hs ↦ by
+    have := hM (a s) (haK s hs); simp only [Pi.sub_apply] at this
+    rw [hM'_def]; linarith [le_max_left M 0]
+  -- The points of the curve, and the Taylor points, near the end points are holonomic.
+  have hcl : ∀ i, |c i| ≤ 1 := fun i ↦ abs_le.2 ⟨by linarith [hc1 i], by linarith [hc1 i]⟩
+  have holL : ∀ u : Fin 1 → ℝ, -1 ≤ u 0 → u 0 ≤ c 0 + w → fderiv ℝ f (X u) = G (X u) :=
+    fun u h₁ h₂ ↦ hhol (-1) (by norm_num) _ ((hXa u (-1)).trans_lt
+      (max_lt (by rw [abs_lt]; constructor <;> linarith) hrδ))
+  have holR : ∀ u : Fin 1 → ℝ, c (Fin.last n) - w ≤ u 0 → u 0 ≤ 1 →
+      fderiv ℝ f (X u) = G (X u) :=
+    fun u h₁ h₂ ↦ hhol 1 (by norm_num) _ ((hXa u 1).trans_lt
+      (max_lt (by rw [abs_lt]; constructor <;> linarith) hrδ))
+  -- Each section is close to `(f, G)` at the points of the curve where it is used.
+  have hB : ∀ l ≤ n + 1, ∀ u : Fin 1 → ℝ, |u 0| ≤ 1 → (l = 0 → u 0 ≤ c 0 + w) →
+      (n + 1 ≤ l → c (Fin.last n) - w ≤ u 0) → (1 ≤ l → l ≤ n → |u 0 - cc (l - 1)| ≤ r) →
+      ‖S l (X u) - f (X u)‖ ≤ M' * r ∧ ‖fderiv ℝ (S l) (X u) - G (X u)‖ ≤ η := by
+    intro l hl u hu h₀ h₁ h₂
+    have hu' := abs_le.1 hu
+    rcases Nat.eq_zero_or_pos l with rfl | hl0
+    · rw [hS_f 0 (Or.inl rfl), sub_self, norm_zero, holL u hu'.1 (h₀ rfl), sub_self, norm_zero]
+      exact ⟨by positivity, hη.le⟩
+    rcases hl.lt_or_eq with hl' | rfl
+    · have hcc1 : |cc (l - 1)| ≤ 1 := by rw [hcc_eq _ (by omega)]; exact hcl _
+      rw [hS_T l hl0 (by omega)]
+      obtain ⟨e₁, e₂⟩ := hTest _ hcc1 (X u) ((hXa u _).trans (max_le (h₂ hl0 (by omega)) le_rfl))
+      exact ⟨e₁.trans (by gcongr; exact hMa _ hcc1), e₂⟩
+    · rw [hS_f _ (Or.inr le_rfl), sub_self, norm_zero, holR u (h₁ le_rfl) hu'.2, sub_self,
+        norm_zero]
+      exact ⟨by positivity, hη.le⟩
+  have hci : ∀ i : Fin (n + 1), cc i = c i := fun i ↦ hcc_eq i i.isLt
+  have hst : ∀ l, 1 ≤ l → l < n + 1 → cc l - cc (l - 1) < ρ ∧ cc (l - 1) + 4 * w ≤ cc l := by
+    intro l h₁ h₂
+    obtain ⟨m, rfl⟩ : ∃ m, l = m + 1 := ⟨l - 1, by omega⟩
+    simpa [hcc_eq _ h₂, hcc_eq m (by omega)] using hstep m h₂
+  have hccle : ∀ l l', l ≤ l' → l' < n + 1 → cc l ≤ cc l' := fun l l' h h' ↦ by
+    rw [hcc_eq l (by omega), hcc_eq l' h']; exact hcle _ _ (Fin.mk_le_mk.2 h)
+  have hc0e : cc 0 = c 0 := hcc_eq 0 (by omega)
+  have hcne : cc n = c (Fin.last n) := hcc_eq n (by omega)
+  -- The estimate at the points of the curve.
+  have hcurve : ∀ u : Fin 1 → ℝ, |u 0| ≤ 1 →
+      ‖f' (X u) - f (X u)‖ < ε ∧ ‖fderiv ℝ f' (X u) - G (X u)‖ < ε := by
+    intro u hu
+    have hu' := abs_le.1 hu
+    by_cases hwin : ∃ i : Fin (n + 1), |u 0 - c i| < w
+    · obtain ⟨i, hi⟩ := hwin
+      have hi' := abs_lt.1 hi
+      rw [← hci] at hi'
+      obtain ⟨e₀, e₁⟩ := (hf'x u).2 i hi (f (X u)) (G (X u))
+      -- The point is within `r` of the Taylor points at `c (i - 1)` and `c i`.
+      have hdl : 1 ≤ (i : ℕ) → |u 0 - cc (i - 1)| ≤ r := fun h ↦ by
+        obtain ⟨s₁, s₂⟩ := hst i h i.isLt
+        have := hwρ (by omega)
+        rw [abs_le]; constructor <;> linarith
+      have hdr : (i : ℕ) + 1 ≤ n → |u 0 - cc i| ≤ r := fun h ↦ by
+        have := hwρ (by omega)
+        rw [abs_le]; constructor <;> linarith
+      have hBi := hB i (by omega) u hu (fun h ↦ by rw [h, hc0e] at hi'; linarith)
+        (fun h ↦ absurd h (by omega)) (fun h _ ↦ hdl h)
+      have hBi' := hB (i + 1) (by omega) u hu (fun h ↦ absurd h (by omega))
+        (fun h ↦ by rw [show (i : ℕ) = n by omega, hcne] at hi'; linarith)
+        (fun _ h ↦ by simpa using hdr h)
+      -- The two sections differ by little compared with `r`.
+      have hD : ‖S (i + 1) (X u) - S i (X u)‖ ≤ M' * ρ + η * r := by
+        have hηr : 0 ≤ M' * ρ := by positivity
+        rcases Nat.eq_zero_or_pos (i : ℕ) with h0 | h0 <;>
+          rcases (Nat.lt_succ_iff.1 i.isLt).lt_or_eq with hn | hn
+        · -- The first window: `f` against the Taylor section at `c 0`.
+          rw [h0, hS_f 0 (Or.inl rfl), hS_T 1 le_rfl (by omega)]
+          have hcc1 : |cc 0| ≤ 1 := by rw [hc0e]; exact hcl 0
+          have hhol0 : fderiv ℝ f (a (cc 0)) = G (a (cc 0)) := hhol (-1) (by norm_num) _
+            (by rw [haa, hc0e, abs_lt]; constructor <;> linarith [hc1 0])
+          have := (hTest _ hcc1 (X u) ((hXa u _).trans (max_le
+            (by have := hdr (by omega); rwa [h0] at this) le_rfl))).1
+          rw [hhol0, sub_self, norm_zero, zero_add] at this
+          simpa using this.trans (by linarith)
+        · -- Only one crossing: both sections are `f`.
+          rw [hS_f _ (Or.inl h0), hS_f _ (Or.inr (by omega)), sub_self, norm_zero]
+          positivity
+        · -- Between two Taylor sections.
+          rw [hS_T _ h0 (by omega), hS_T _ (by omega) (by omega), Nat.add_sub_cancel]
+          have hcc2 : |cc i| ≤ 1 := by rw [hci]; exact hcl _
+          obtain ⟨s₁, s₂⟩ := hst i h0 i.isLt
+          have hab : ‖a (cc (i - 1)) - a (cc i)‖ < ρ := by
+            rw [haa, abs_lt]; constructor <;> linarith [hwρ (by omega)]
+          obtain ⟨t₁, t₂⟩ := hTay _ (haK _ hcc2) _ (hab.trans_le (hρr.trans (by linarith)))
+          have hx : ‖X u - a (cc (i - 1))‖ ≤ r := (hXa u _).trans (max_le (hdl h0) le_rfl)
+          refine (norm_taylor_sub_taylor_le f G (a (cc i)) (a (cc (i - 1))) (X u)).trans ?_
+          rw [norm_sub_rev (G _)]
+          gcongr
+          exact t₁.trans (mul_le_mul (hMa _ hcc2) hab.le (norm_nonneg _) hM'.le)
+        · -- The last window: the Taylor section at `c (n - 1)` against `f`.
+          rw [hS_T _ h0 (by omega), hS_f _ (Or.inr (by omega)), norm_sub_rev]
+          have hcc1 : |cc (i - 1)| ≤ 1 := by rw [hcc_eq _ (by omega)]; exact hcl _
+          obtain ⟨s₁, s₂⟩ := hst i h0 i.isLt
+          have hholn : fderiv ℝ f (a (cc (i - 1))) = G (a (cc (i - 1))) := hhol 1 (by norm_num) _
+            (by
+              rw [haa, abs_lt, hn] at *
+              rw [hcne] at s₁ s₂
+              constructor <;> linarith)
+          have := (hTest _ hcc1 (X u) ((hXa u _).trans (max_le (hdl h0) le_rfl))).1
+          rw [hholn, sub_self, norm_zero, zero_add] at this
+          exact this.trans (by linarith)
+      refine ⟨e₀.trans_lt (max_lt (hBi.1.trans_lt hrε) (hBi'.1.trans_lt hrε)), e₁.trans_lt ?_⟩
+      have h3 : 3 / r * ‖S (i + 1) (X u) - S i (X u)‖ ≤ 3 * M' * ρ / r + 3 * η := by
+        calc 3 / r * ‖S (i + 1) (X u) - S i (X u)‖ ≤ 3 / r * (M' * ρ + η * r) := by gcongr
+          _ = 3 * M' * ρ / r + 3 * η := by field_simp
+      have := max_le hBi.2 hBi'.2
+      linarith
+    · -- Away from the windows, `f'` is one section near the point.
+      simp only [not_exists, not_lt] at hwin
+      have hex : ∃ l, l = n + 1 ∨ u 0 < cc l := ⟨n + 1, Or.inl rfl⟩
+      have hl : Nat.find hex ≤ n + 1 := Nat.find_min' hex (Or.inl rfl)
+      have hbefore : ∀ i : Fin (n + 1), (i : ℕ) < Nat.find hex → c i + w ≤ u 0 := by
+        intro i hi
+        have h := Nat.find_min hex hi
+        simp only [not_or, not_lt] at h
+        have := hwin i
+        rw [← hci] at this ⊢
+        rw [abs_of_nonneg (by linarith [h.2])] at this
+        linarith
+      have hafter : ∀ i : Fin (n + 1), Nat.find hex ≤ (i : ℕ) → u 0 ≤ c i - w := by
+        intro i hi
+        have h := Nat.find_spec hex
+        rcases h with h | h
+        · omega
+        have h' := (h.trans_le (hccle _ _ hi i.isLt))
+        have := hwin i
+        rw [← hci] at this ⊢
+        rw [abs_of_neg (by linarith)] at this
+        linarith
+      have heq := (hf'x u).1 _ hl hbefore hafter
+      rw [heq.eq_of_nhds, heq.fderiv_eq]
+      have hB' := hB _ hl u hu
+        (fun h ↦ by have := hafter 0 (by rw [h]; exact Nat.zero_le _); linarith)
+        (fun h ↦ by have := hbefore (Fin.last n) (by rw [Fin.val_last]; omega); linarith)
+        (fun h₁ h₂ ↦ by
+          have e₁ := hbefore ⟨Nat.find hex - 1, by omega⟩ (Nat.sub_one_lt (by omega))
+          have e₂ := hafter ⟨Nat.find hex, by omega⟩ le_rfl
+          rw [← hcc_eq] at e₁ e₂
+          obtain ⟨s₁, -⟩ := hst _ h₁ (by omega)
+          rw [abs_le]; constructor <;> linarith)
+      exact ⟨hB'.1.trans_lt hrε, hB'.2.trans_lt (by linarith)⟩
+  have hsph : ∀ u : Fin 1 → ℝ, u ∈ Metric.sphere 0 1 → |u 0| = 1 := fun u hu ↦ by
+    rwa [mem_sphere_zero_iff_norm, hnorm] at hu
+  refine ⟨r, fun u ↦ g (u 0), f', {x | ‖f' x - f x‖ < ε ∧ ‖fderiv ℝ f' x - G x‖ < ε}, hr, hrr₀,
+    hg.comp (by fun_prop), fun u ↦ hg1 _, ⟨{u | 1 - b < |u 0|}, ?_, fun u hu ↦ hg0 _ hu.le⟩,
+    ?_, fun u hu ↦ hcurve u ?_, hf', fun x hx ↦ hx, ?_⟩
+  · exact (isOpen_lt continuous_const (by fun_prop)).mem_nhdsSet.2 fun u hu ↦ by
+      simp only [mem_ofPred_eq, hsph u hu]; linarith
+  · exact (isOpen_lt (hf'.continuous.sub hf.continuous).norm continuous_const).inter
+      (isOpen_lt ((hf'.continuous_fderiv (by simp)).sub hG.continuous).norm continuous_const)
+  · rwa [Metric.mem_closedBall, dist_zero_right, hnorm] at hu
+  · -- Near the end points, `f'` is `f`.
+    refine ⟨{y | f' =ᶠ[𝓝 y] f}, isOpen_setOfPred_eventually_nhds.mem_nhdsSet.2 ?_,
+      fun y hy ↦ hy.eq_of_nhds⟩
+    rintro ⟨u, v⟩ ⟨hu, hv⟩
+    have hu1 := hsph u hu
+    rw [mem_singleton_iff] at hv
+    subst hv
+    have hX0 : X u = (u, 0) := by
+      simp only [hX, hg0 _ (by rw [hu1]; linarith), mul_zero, Pi.single_zero]
+    rw [mem_ofPred_eq, ← hX0]
+    rcases (abs_eq zero_le_one).1 hu1 with h | h
+    · rw [← hS_f (n + 1) (Or.inr le_rfl)]
+      exact (hf'x u).1 _ le_rfl (fun i _ ↦ by linarith [hc1 i, hcle i _ (Fin.le_last i)])
+        (fun i hi ↦ absurd hi (by omega))
+    · rw [← hS_f 0 (Or.inl rfl)]
+      exact (hf'x u).1 _ (by omega) (fun i hi ↦ absurd hi (by omega))
+        (fun i _ ↦ by linarith [hcle 0 i (Fin.zero_le i)])
 
 end SymplecticGeometry
 
