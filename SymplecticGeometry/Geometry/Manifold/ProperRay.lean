@@ -73,18 +73,12 @@ theorem exists_diffeomorph_grow_arc {ι : Type*} [Finite ι] (hE : 1 < Module.ra
       EqOn Ψ id Kᶜ ∧ ∃ δ > 0, IsSmoothEmbedding 𝓘(ℝ) I ∞ (Ψ ∘ γ) ∧
         EqOn (Ψ ∘ γ) γ (Iic T) ∧ Ψ (γ (T + δ)) = y ∧
         Ψ ∘ γ '' Ioc T (T + δ) ⊆ W \ (s ∪ ⋃ i, f i '' J i) := by
+  -- `U` is open, since the arcs are closed in `W \ s`.
+  have hUo : IsOpen (W \ (s ∪ ⋃ i, f i '' J i)) := by
+    rw [← sdiff_sdiff]
+    exact (hW.sdiff hs).sdiff_iUnion_of_closure_inter_subset hcl
   set U := W \ (s ∪ ⋃ i, f i '' J i)
   subst hγ
-  -- `U` is open, since the arcs are closed in `W \ s`.
-  have hUeq : U = (W \ s) \ ⋃ i, closure (f i '' J i) := by
-    refine Subset.antisymm (fun x hx ↦ ⟨⟨hx.1, fun h ↦ hx.2 (.inl h)⟩, fun h ↦ ?_⟩)
-      (fun x hx ↦ ⟨hx.1.1, fun h ↦ h.elim hx.1.2 fun h ↦ hx.2 ?_⟩)
-    · obtain ⟨i, hi⟩ := mem_iUnion.1 h
-      exact hx.2 (.inr (mem_iUnion.2 ⟨i, hcl i ⟨hi, hx.1, fun h ↦ hx.2 (.inl h)⟩⟩))
-    · obtain ⟨i, hi⟩ := mem_iUnion.1 h
-      exact mem_iUnion.2 ⟨i, subset_closure hi⟩
-  have hUo : IsOpen U := hUeq ▸ (hW.sdiff hs).sdiff (isClosed_iUnion_of_finite fun _ ↦
-    isClosed_closure)
   have hUc : IsPreconnected U :=
     isPreconnected_sdiff_union_iUnion_image_of_one_lt_rank hE hW hWc hs hd hf hJ hb hJW hdisj hcl
   -- Near `γ T`, the points of `W` off `s` miss the closures of the other arcs.
