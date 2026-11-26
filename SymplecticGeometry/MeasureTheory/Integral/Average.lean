@@ -9,7 +9,7 @@ public import Mathlib.MeasureTheory.Integral.Average
 import TauCeti.MeasureTheory.Integral.Bochner.Basic
 
 /-!
-# Set averages bounded through lower averages
+# Set averages through lower averages of `ofReal (K - u)`
 
 * `MeasureTheory.setLAverage_ofReal_sub_eq`: if a real function `u` is integrable on a set `s`
   of finite positive measure and `u ≤ K` almost everywhere on `s`, then
@@ -18,9 +18,11 @@ import TauCeti.MeasureTheory.Integral.Bochner.Basic
   integrable on a set `s` of finite positive measure, then a bound
   `⨍⁻ x in s, ofReal (K - u x) ∂μ ≤ ofReal L`, with `0 ≤ L`, gives `K - ⨍ x in s, u x ∂μ ≤ L`.
 
-Such bounds on lower averages are what one gets from a sub-mean value inequality, where the
-`ofReal` keeps the integrand nonnegative; this lemma turns them into a lower bound on the average
-of `u`.
+Both lemmas pass from the lower average of `ofReal (K - u)` over `s`, an extended nonnegative
+quantity, to the Bochner average of `u` over `s`. When `u ≤ K` almost everywhere on `s`, the
+`ofReal` loses nothing, and the identity computes the lower average from the average of `u`.
+When only a bound on the lower average is known, as a sub-mean value inequality gives, the
+inequality turns it into a lower bound on the average of `u`.
 -/
 
 public section
