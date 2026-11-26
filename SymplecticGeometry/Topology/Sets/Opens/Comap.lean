@@ -13,8 +13,6 @@ public import Mathlib.Topology.Sets.Opens
 Facts about open sets of `X` read as open sets of an open subspace `W` of `X`, that is, about
 their preimages under the inclusion `W → X`:
 
-* `TopologicalSpace.Opens.range_val_comp_val_comap`: for `U ≤ W`, the inclusion of `W` maps `U`,
-  read as an open set of `W`, back onto `U`;
 * `TopologicalSpace.Opens.comap_val_sup_comap_val_eq_top`: `U` and `V`, read as open sets of
   `U ⊔ V`, cover it;
 * `TopologicalSpace.Opens.iSup_comap_val_eq_top`: a family of open sets of `X` with union `U`,
@@ -31,14 +29,6 @@ public section
 namespace TopologicalSpace.Opens
 
 variable {X : Type*} [TopologicalSpace X]
-
-/-- For open sets `U ≤ W` of `X`, the composite of the inclusions `U ∩ W → W → X`, where `U ∩ W`
-is `U` read as an open set of `W`, has range `U`. -/
-theorem range_val_comp_val_comap {U W : Opens X} (hUW : U ≤ W) :
-    Set.range ((Subtype.val : W → X) ∘
-      (Subtype.val : Opens.comap ⟨Subtype.val, continuous_subtypeVal⟩ U → W)) = U := by
-  ext x
-  simpa using fun hx ↦ hUW hx
 
 /-- Two open sets `U` and `V` of `X`, read as open sets of the subspace `U ⊔ V` (their preimages
 under the inclusion `U ⊔ V → X`), cover `U ⊔ V`. -/
