@@ -8,7 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.Algebra.Quotient
 public import TauCeti.Geometry.Symplectic.Manifold.Torus.Basic
 public import SymplecticGeometry.Algebra.Module.ZLattice.Complex
-public import SymplecticGeometry.Geometry.Symplectic.Complex.Line
+import TauCeti.LinearAlgebra.Determinant.Basic
 
 /-!
 # Complex tori as standard symplectic tori
@@ -29,10 +29,11 @@ a local diffeomorphism. It therefore induces a diffeomorphism
 
 The covering map pulls `TauCeti.torusSymplecticForm p` back to
 `ω₀ = TauCeti.stdComplexSymplecticForm`
-(`TauCeti.mpullback_complexPiTorusCover_torusSymplecticForm`), and `A` scales `ω₀` by `det A`
-(`TauCeti.stdComplexSymplecticForm_apply_apply_eq_det_mul`). Hence `latticeTorusCover p b` pulls
-the torus form back to `det A • ω₀`, where `det A = p inl * p inr / Im (conj b₀ * b₁)`. The
-factor is positive for a positively oriented basis, and such a basis always exists
+(`TauCeti.mpullback_complexPiTorusCover_torusSymplecticForm`), and `A` scales the alternating
+form `ω₀` by `det A` (Tau Ceti's `LinearMap.IsAlt.compl₁₂_self_eq_det_smul`). Hence
+`latticeTorusCover p b` pulls the torus form back to `det A • ω₀`, where
+`det A = p inl * p inr / Im (conj b₀ * b₁)`. The factor is positive for a positively oriented
+basis, and such a basis always exists
 (`ZLattice.exists_basis_zero_lt_im_conj_mul`).
 
 ## Main definitions
@@ -129,12 +130,15 @@ theorem latticeTorusEquiv_apply_one : latticeTorusEquiv p b (b 1) = I * p (.inr 
 theorem det_latticeTorusEquiv :
     LinearMap.det (latticeTorusEquiv p b : ℂ →ₗ[ℝ] ℂ) =
       p (.inl ()) * p (.inr ()) / (conj (b 0 : ℂ) * b 1).im := by
-  have h := stdComplexSymplecticForm_apply_apply_eq_det_mul (latticeTorusEquiv p b : ℂ →ₗ[ℝ] ℂ)
-    (b 0) (b 1)
-  simp only [stdComplexSymplecticForm_apply] at h
+  have h : stdComplexSymplecticForm (latticeTorusEquiv p b (b 0)) (latticeTorusEquiv p b (b 1)) =
+      LinearMap.det (latticeTorusEquiv p b : ℂ →ₗ[ℝ] ℂ) * stdComplexSymplecticForm (b 0) (b 1) :=
+    congr($(stdComplexSymplecticForm.isAlt.compl₁₂_self_eq_det_smul basisOneI
+      (latticeTorusEquiv p b : ℂ →ₗ[ℝ] ℂ)) (b 0) (b 1))
+  rw [latticeTorusEquiv_apply_zero, latticeTorusEquiv_apply_one] at h
+  simp only [stdComplexSymplecticForm_apply, ofReal_re, ofReal_im, mul_re, mul_im, I_re, I_im]
+    at h
   rw [eq_div_iff (ZLattice.im_conj_mul_basis_ne_zero Λ b)]
   simp only [mul_im, conj_re, conj_im]
-  simp at h
   linear_combination -h
 
 /-- For a positively oriented basis, `latticeTorusEquiv p b` has positive determinant. -/
@@ -197,12 +201,8 @@ theorem isLocalDiffeomorph_latticeTorusCover :
       (latticeTorusCover p b) := by
   have h : IsLocalDiffeomorph 𝓘(ℝ, ℂ) 𝓘(ℝ, Unit → ℂ) ∞
       ((ContinuousLinearEquiv.funUnique Unit ℝ ℂ).symm ∘ latticeTorusEquiv p b) := by
-    have h := (((latticeTorusEquiv p b).trans
-      (ContinuousLinearEquiv.funUnique Unit ℝ ℂ).symm).toDiffeomorph).isLocalDiffeomorph
-    rw [ContinuousLinearEquiv.coe_toDiffeomorph,
-      show ⇑((latticeTorusEquiv p b).trans (ContinuousLinearEquiv.funUnique Unit ℝ ℂ).symm) = _
-        from funext (ContinuousLinearEquiv.trans_apply _ _)] at h
-    exact h
+    simpa using ((latticeTorusEquiv p b).toDiffeomorph.trans
+      (ContinuousLinearEquiv.funUnique Unit ℝ ℂ).symm.toDiffeomorph).isLocalDiffeomorph
   rw [coe_latticeTorusCover]
   exact fun z ↦ (h z).comp (hg := isLocalDiffeomorph_complexPiTorusCover p _)
 
@@ -227,8 +227,10 @@ theorem mpullback_latticeTorusCover_torusSymplecticForm :
   have key (v w : ℂ) :
       ∑ j : Unit, (D v (.inl j) * D w (.inr j) - D v (.inr j) * D w (.inl j)) =
         LinearMap.det (latticeTorusEquiv p b : ℂ →ₗ[ℝ] ℂ) * stdComplexSymplecticForm v w := by
-    have h := stdComplexSymplecticForm_apply_apply_eq_det_mul
-      (latticeTorusEquiv p b : ℂ →ₗ[ℝ] ℂ) v w
+    have h : stdComplexSymplecticForm (latticeTorusEquiv p b v) (latticeTorusEquiv p b w) =
+        LinearMap.det (latticeTorusEquiv p b : ℂ →ₗ[ℝ] ℂ) * stdComplexSymplecticForm v w :=
+      congr($(stdComplexSymplecticForm.isAlt.compl₁₂_self_eq_det_smul basisOneI
+        (latticeTorusEquiv p b : ℂ →ₗ[ℝ] ℂ)) v w)
     simp only [stdComplexSymplecticForm_apply] at h
     simpa [D, L, complexToRealPi_apply, stdComplexSymplecticForm_apply] using h
   rw [SmoothForm.eval₂_mpullback, hd.mfderiv, eval₂_torusSymplecticForm]
@@ -274,8 +276,8 @@ theorem coe_latticeTorusDiffeomorph :
 /-- `latticeTorusDiffeomorph p b` sends the class of `z` to `latticeTorusCover p b z`. -/
 @[simp]
 theorem latticeTorusDiffeomorph_mk (z : ℂ) :
-    latticeTorusDiffeomorph p b (z : ℂ ⧸ Λ.toAddSubgroup) = latticeTorusCover p b z :=
-  (rfl)
+    latticeTorusDiffeomorph p b (z : ℂ ⧸ Λ.toAddSubgroup) = latticeTorusCover p b z := by
+  rw [coe_latticeTorusDiffeomorph, latticeTorusAddEquiv_mk]
 
 /-- The diffeomorphism composed with the projection `ℂ → ℂ ⧸ Λ` is the covering map of the torus
 after `latticeTorusEquiv p b`. -/
