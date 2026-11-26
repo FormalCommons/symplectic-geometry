@@ -11,6 +11,9 @@ import TauCeti.MeasureTheory.Integral.Bochner.Basic
 /-!
 # Set averages bounded through lower averages
 
+* `MeasureTheory.setLAverage_ofReal_sub_eq`: if a real function `u` is integrable on a set `s`
+  of finite positive measure and `u ≤ K` almost everywhere on `s`, then
+  `⨍⁻ x in s, ofReal (K - u x) ∂μ = ofReal (K - ⨍ x in s, u x ∂μ)`.
 * `MeasureTheory.sub_setAverage_le_of_setLAverage_ofReal_sub_le`: if a real function `u` is
   integrable on a set `s` of finite positive measure, then a bound
   `⨍⁻ x in s, ofReal (K - u x) ∂μ ≤ ofReal L`, with `0 ≤ L`, gives `K - ⨍ x in s, u x ∂μ ≤ L`.
@@ -27,6 +30,16 @@ namespace MeasureTheory
 open scoped ENNReal
 
 variable {α : Type*} [MeasurableSpace α]
+
+/-- If `u` is integrable on a set `s` with `0 < μ s < ∞` and `u ≤ K` almost everywhere on `s`,
+then the lower average of `ofReal (K - u)` over `s` is `ofReal (K - ⨍ x in s, u x ∂μ)`. -/
+theorem setLAverage_ofReal_sub_eq {μ : Measure α} {s : Set α} {u : α → ℝ} {K : ℝ}
+    (h0 : μ s ≠ 0) (hfin : μ s ≠ ∞) (hu : IntegrableOn u s μ)
+    (hK : ∀ᵐ x ∂μ.restrict s, u x ≤ K) :
+    ⨍⁻ x in s, ENNReal.ofReal (K - u x) ∂μ = ENNReal.ofReal (K - ⨍ x in s, u x ∂μ) := by
+  rw [setLAverage_eq, ← ofReal_setAverage (f := fun x => K - u x)
+    ((integrableOn_const hfin).sub hu) (hK.mono fun _ => sub_nonneg.2),
+    setAverage_fun_sub (integrableOn_const hfin) hu, setAverage_const h0 hfin]
 
 /-- If `u` is integrable on a set `s` with `0 < μ s < ∞`, and `0 ≤ L`, then
 `⨍⁻ x in s, ofReal (K - u x) ∂μ ≤ ofReal L` gives `K - ⨍ x in s, u x ∂μ ≤ L`. -/

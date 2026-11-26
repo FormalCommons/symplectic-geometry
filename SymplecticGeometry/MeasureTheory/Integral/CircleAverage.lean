@@ -7,6 +7,7 @@ module
 
 public import Mathlib.MeasureTheory.Integral.Average
 public import Mathlib.MeasureTheory.Integral.CircleAverage
+import SymplecticGeometry.MeasureTheory.Integral.Average
 
 /-!
 # Circle averages as averages over a parameter interval
@@ -48,17 +49,9 @@ theorem setLAverage_ofReal_sub_circleMap {f : ℂ → ℝ} {c : ℂ} {r L : ℝ}
     (hL : ∀ᵐ θ ∂(volume.restrict (Ioc 0 (2 * π))), f (circleMap c r θ) ≤ L) :
     ⨍⁻ θ in Ioc 0 (2 * π), ENNReal.ofReal (L - f (circleMap c r θ)) =
       ENNReal.ofReal (L - circleAverage f c r) := by
-  have hIoc : volume (Ioc 0 (2 * π)) ≠ ∞ := measure_Ioc_lt_top.ne
-  have hint : IntegrableOn (fun θ => f (circleMap c r θ)) (Ioc 0 (2 * π)) :=
-    (intervalIntegrable_iff_integrableOn_Ioc_of_le two_pi_pos.le).1 hf
-  have hnn : 0 ≤ᵐ[volume.restrict (Ioc 0 (2 * π))] fun θ => L - f (circleMap c r θ) := by
-    filter_upwards [hL] with θ hθ
-    exact sub_nonneg.2 hθ
-  have hint' : IntegrableOn (fun θ => L - f (circleMap c r θ)) (Ioc 0 (2 * π)) :=
-    (integrableOn_const hIoc).sub hint
-  rw [setLAverage_eq, ← ofReal_setAverage hint' hnn,
-    setAverage_fun_sub (integrableOn_const hIoc) hint,
-    setAverage_const (by simp [pi_pos]) hIoc, setAverage_Ioc_circleMap_eq_circleAverage]
+  rw [setLAverage_ofReal_sub_eq (by simp [pi_pos]) measure_Ioc_lt_top.ne
+    ((intervalIntegrable_iff_integrableOn_Ioc_of_le two_pi_pos.le).1 hf) hL,
+    setAverage_Ioc_circleMap_eq_circleAverage]
 
 end Real
 
