@@ -27,7 +27,9 @@ symbol of the exterior derivative at the covector `⟪u, ·⟫`), `ι_u` for the
 `ContinuousAlternatingMap.curryLeft` by `u`, and `𝒥` for the derivation of `J` on forms, Mathlib's
 `ContinuousAlternatingMap.fderivCompContinuousLinearMap` at the identity in the direction `J`. The
 identity is `L ι_u - ι_u L = 𝒥 ε_u - ε_u 𝒥`. The symbol of the codifferential `d*` at
-`⟪u, ·⟫` is `δ_u = -ι_u`, by `Orientation.smul_formHodgeStar_alternatizeUncurryFin_formHodgeStar`.
+`⟪u, ·⟫` is `δ_u = -ι_u`, by Tau Ceti's
+`Orientation.neg_one_pow_smul_formHodgeStar_wedgeCovector_formHodgeStar` and
+`TauCeti.wedgeCovector_eq_alternatizeUncurryFin`.
 So the identity reads `L δ_u - δ_u L = -(𝒥 ε_u - ε_u 𝒥)`, the pointwise form of
 `[L, d*] = -[𝒥, d]`.
 
@@ -146,7 +148,7 @@ and a `(k + 1)`-form `α`, `L ι_u α - ι_u L α = 𝒥 ε_u α - ε_u 𝒥 α`
 operator, `ι_u` the interior product by `u`, `ε_u` the wedge with `⟪u, ·⟫` (as
 `alternatizeUncurryFin` of `⟪u, ·⟫ • ·`, the symbol of `d`) and `𝒥` the derivation of `J`. Since
 the symbol of `d*` is `-ι_u`
-(`Orientation.smul_formHodgeStar_alternatizeUncurryFin_formHodgeStar`), this is the
+(Tau Ceti's `Orientation.neg_one_pow_smul_formHodgeStar_wedgeCovector_formHodgeStar`), this is the
 constant-coefficient form of `[L, d*] = -[𝒥, d]`. -/
 theorem formLefschetz_curryLeft_sub {k : ℕ} (u : V) (α : V [⋀^Fin (k + 1)]→L[ℝ] ℝ) :
     J.formLefschetz (α.curryLeft u) - (J.formLefschetz α).curryLeft u =
