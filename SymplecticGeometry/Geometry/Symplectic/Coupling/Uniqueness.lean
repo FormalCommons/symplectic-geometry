@@ -117,7 +117,7 @@ so, where the flat map of the slice is invertible,
 
 For a cutoff with compact support and a jointly `C¹` field, the suspension of `Y` is complete
 (`SymplecticGeometry.isCompleteVectorField_timeDependentSuspensionField_prodIccMoserField`, from
-`SymplecticGeometry.isCompleteVectorField_timeDependentSuspensionField`), so the
+`TauCeti.isCompleteVectorField_timeDependentSuspensionField`), so the
 time-one map `TauCeti.timeDependentFlowDiffeomorph … 0 1` is a diffeomorphism of `P × ℝ` whose
 inverse is the flow from `1` to `0`. The flow of `Y` between any two times commutes with
 `(x, t) ↦ (op z • x, t)` for an invariant cutoff, by naturality of flows
