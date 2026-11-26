@@ -6,6 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.InnerProductSpace.Calculus
+public import Mathlib.Analysis.InnerProductSpace.EuclideanDist
+public import Mathlib.Geometry.Manifold.SmoothEmbedding
 public import SymplecticGeometry.Geometry.Manifold.Immersion.Chart
 public import TauCeti.Analysis.InnerProductSpace.Calculus
 public import TauCeti.Geometry.Manifold.Morse.Hessian
@@ -33,7 +35,11 @@ coordinate `g p = ‖e (L⁻¹ (ψ p)).2‖²` is `C^n` on the source of `ψ`, v
 normal coordinate does, and so, on `V`, exactly on the image of `f`. It has a critical point at
 each `f y` with `y` in the source of `φ`, and for `n ≥ 2` its critical Hessian there is
 `2 ⟪e (L⁻¹ (dψ u)).2, e (L⁻¹ (dψ w)).2⟫`, which is positive on every vector off the tangent
-image of `f`. Nothing here asks for finite dimension.
+image of `f`. Nothing here asks for finite dimension, except the last statement, where an
+inner product on the complement comes from `toEuclidean`: for a `C^n` embedding `f`, `n ≥ 2`,
+into a manifold with finite-dimensional model, every point of the image has an open
+neighbourhood carrying such a function
+(`Manifold.IsSmoothEmbedding.exists_contMDiffOn_criticalHessian_pos`).
 
 The set-level statement follows the proof of Tau Ceti's
 `TauCeti.exists_isSliceChart_of_isEmbedding_of_isImmersionAtOfComplement`, keeping the chart of
@@ -60,6 +66,8 @@ steps of the last proofs that do not depend on the chart.
   `Manifold.IsImmersionAtOfComplement.criticalHessian_norm_sq_snd_apply` and
   `Manifold.IsImmersionAtOfComplement.criticalHessian_norm_sq_snd_pos`: smoothness, critical
   points and the critical Hessian of the squared normal coordinate.
+* `Manifold.IsSmoothEmbedding.exists_contMDiffOn_criticalHessian_pos`: these facts, collected for
+  a `C^n` embedding near a point of its image.
 
 ## References
 
@@ -252,5 +260,40 @@ theorem criticalHessian_norm_sq_snd_pos [J.Boundaryless] (hn : 2 ≤ n) {y : M}
 end NormSq
 
 end Manifold.IsImmersionAtOfComplement
+
+namespace Manifold.IsSmoothEmbedding
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+  {E'' : Type*} [NormedAddCommGroup E''] [NormedSpace ℝ E''] [FiniteDimensional ℝ E'']
+  {G : Type*} [TopologicalSpace G] {J : ModelWithCorners ℝ E'' G}
+  {N : Type*} [TopologicalSpace N] [ChartedSpace G N]
+  {n : WithTop ℕ∞} {f : M → N}
+
+/-- **A local squared distance to an embedded submanifold.** Let `f` be a `C^n` embedding,
+`n ≥ 2`, of a boundaryless manifold into a boundaryless manifold with finite-dimensional model.
+Each point `f x` has an open neighbourhood `V` with a nonnegative function `g`, `C^n` on `V`, that
+vanishes on `V` exactly on the image of `f`, and such that each point `f y` of `V` is a critical
+point of `g` at which the critical Hessian of `g` is positive on every vector off the tangent
+image of `f` at `y`. -/
+theorem exists_contMDiffOn_criticalHessian_pos [I.Boundaryless] [J.Boundaryless]
+    (hf : IsSmoothEmbedding I J n f) (hn : 2 ≤ n) (x : M) :
+    ∃ V : Set N, IsOpen V ∧ f x ∈ V ∧ ∃ g : N → ℝ, ContMDiffOn J 𝓘(ℝ) n g V ∧ (∀ p, 0 ≤ g p) ∧
+      (∀ p ∈ V, g p = 0 ↔ p ∈ range f) ∧
+      ∀ y, f y ∈ V → f y ∈ criticalPoints J g ∧
+        ∀ v ∉ LinearMap.range (mfderiv I J f y).toLinearMap, 0 < criticalHessian J g (f y) v v := by
+  have h := (hf.isImmersion.isImmersionAt x).isImmersionAtOfComplement_complement
+  -- The complement is finite-dimensional, as a quotient of the model `E''` of `N`.
+  have : FiniteDimensional ℝ (hf.isImmersion.isImmersionAt x).complement :=
+    Module.Finite.of_surjective ((LinearMap.snd ℝ E _).comp h.equiv.symm.toLinearMap)
+      fun v ↦ ⟨h.equiv (0, v), by simp⟩
+  obtain ⟨V, hVo, hxV, hVsrc, hVdom, hV⟩ := h.exists_isOpen_mem_range_iff_snd_eq_zero hf.isEmbedding
+  exact ⟨V, hVo, hxV, _, (h.contMDiffOn_norm_sq_snd toEuclidean).mono hVsrc,
+    fun _ ↦ sq_nonneg _, fun _ hp ↦ (h.mem_range_iff_norm_sq_snd_eq_zero toEuclidean hV hp).symm,
+    fun _ hy ↦ ⟨h.mem_criticalPoints_norm_sq_snd toEuclidean (hVdom hy),
+      fun _ hv ↦ h.criticalHessian_norm_sq_snd_pos toEuclidean hn (hVdom hy) hv⟩⟩
+
+end Manifold.IsSmoothEmbedding
 
 end

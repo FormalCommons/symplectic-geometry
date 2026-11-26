@@ -473,17 +473,19 @@ containing `ι '' closedBall 0 1`:
 
 - `JConvex/TotallyReal.lean` (existing; issue 14a):
   `Manifold.IsSmoothEmbedding.exists_contMDiff_isManifoldStrictlyPlurisubharmonicAt_of_isCompact`.
-  For a smooth embedding `ι : N → M` of a boundaryless manifold, with
+  For a `C^n` embedding, `2 ≤ n` (`n = ∞` for a smooth one), `ι : N → M`
+  of a boundaryless manifold into a Hausdorff `M`, with
   totally real tangent images in the weak sense, and a compact `K ⊆ N`,
-  there are a smooth `ρ : M → ℝ`, `ρ ≥ 0`, and an open `V ⊇ ι '' K` such
+  there are a `C^n` function `ρ : M → ℝ`, `ρ ≥ 0`, and an open `V ⊇ ι '' K` such
   that on `V` the function `ρ` vanishes exactly on `range ι` and is
   strictly plurisubharmonic, and its critical Hessian at `ι y`, `y ∈ K`, is
   positive off the tangent image of `ι` at `y`. The proof is that of
   `exists_contMDiff_isManifoldStrictlyPlurisubharmonicAt_of_isClosed_range`,
-  with Tau Ceti's slice charts
-  (`TauCeti.exists_isSliceChart_of_isEmbedding_of_isImmersionAtOfComplement`)
+  with the squared normal coordinates of slice charts
+  (`Manifold.IsSmoothEmbedding.exists_contMDiffOn_criticalHessian_pos`)
   in place of adapted charts, which need half the dimension, and finitely
-  many of them, which compactness of `K` gives. A refactor that derives the
+  many of them, which compactness of `K` gives, glued by bump functions
+  instead of a partition of unity. A refactor that derives the
   existing theorem from the new one is an issue of its own.
 - `Surround/Attached.lean` (issue 14b): `IsJOrthogonallyAttached` and its
   API: `IsJOrthogonallyAttached.image_closedBall_inter` (the disc meets
