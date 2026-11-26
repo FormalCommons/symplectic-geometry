@@ -32,7 +32,7 @@ that is the locus `y = 0`, `w = 0`.
   real for the complex structure of `V` (Tau Ceti's `TauCeti.IsTotallyReal`), since they lie in
   `ℝᵏ × 0`, the product of Tau Ceti's `TauCeti.realSubspace` with the zero subspace.
 
-With `k ≠ 0` and `m ≠ 0` the image has less than half the real dimension of `V`, so `ι₀` is not
+When `m ≠ 0` the image has less than half the real dimension of `V`, so `ι₀` is not
 a totally real embedding in Tau Ceti's stronger sense `TauCeti.IsTotallyRealEmbedding`, and the
 weak form above is the one the surrounding uses.
 
