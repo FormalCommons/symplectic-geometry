@@ -200,7 +200,7 @@ theorem isOpen_cayleyPathDomain [CompleteSpace F]
     simp only [coord, ContinuousLinearMap.inCoordinates_eq_conjContinuousAlgEquiv hq]
     exact mem_cayleyPathDomain_iff_of_mem_baseSet e hq
   have hW := (hcA.prodMk hcB).preimage_mem_nhds
-    ((isOpen_setOf_forall_Icc_mem_cayleyDomain (F →L[ℝ] F)).mem_nhds
+    ((isOpen_setOfPred_forall_Icc_mem_cayleyDomain (F →L[ℝ] F)).mem_nhds
       ((hmem (mem_baseSet_trivializationAt F V x₀)).1 hq₀.2))
   filter_upwards [hU.mem_nhds hq₀.1, hbase, hW] with q hqU hqe hqW
   exact ⟨hqU, (hmem hqe).2 hqW⟩

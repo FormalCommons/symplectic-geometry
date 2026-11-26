@@ -51,7 +51,7 @@ On any manifold, a family over `[0, 1]` has local defining families over `ℝ` n
 every point (`SymplecticGeometry.IsContactFamily.exists_local_extension`). Near a point
 `(t₀, x₀)`, a local defining form on the cylinder is extended in time by Seeley's operator
 (`TauCeti.SmoothForm.timeExtend`). Its slices are contact on an open subset of `ℝ × M`
-(`TauCeti.SmoothForm.isOpen_setOf_isContactFormAt_mpullback_prodMk`, read off the invertibility
+(`TauCeti.SmoothForm.isOpen_setOfPred_isContactFormAt_mpullback_prodMk`, read off the invertibility
 of the contact flat map, as in the proof of Tau Ceti's
 `TauCeti.SmoothForm.exists_isOpen_forall_isContactFormAt_add_smul_sub`), hence on a product of
 an interval around `t₀` and an open `U ∋ x₀`.
@@ -87,7 +87,7 @@ of the same fact for Tau Ceti's contact-Moser vector field, in
   smooth family of contact structures has a local defining family over `ℝ`.
 * `SymplecticGeometry.IsLocalDefiningFamily.mpullback_inclusion`: a local defining family
   restricts to smaller open sets.
-* `TauCeti.SmoothForm.isOpen_setOf_isContactFormAt_mpullback_prodMk`: the points of `N × M` at
+* `TauCeti.SmoothForm.isOpen_setOfPred_isContactFormAt_mpullback_prodMk`: the points of `N × M` at
   which the slices of a one-form are contact form an open set.
 * `TauCeti.SmoothForm.map_kerDistribution_mpullback_subtype_val`: restricting a one-form to an open
   subset keeps its kernels; that it keeps its contact points is Tau Ceti's
@@ -241,7 +241,7 @@ theorem grayVectorField_eq_of_eventuallyEq_smul [I.Boundaryless]
 points `(t, y)` at which the slice `α_t = ι_t^* α` is a contact form form an open set. Near a
 contact point the model space is odd-dimensional, and there contactness of `α_t` at `y` is the
 invertibility of its contact flat map, which depends continuously on `(t, y)`. -/
-theorem isOpen_setOf_isContactFormAt_mpullback_prodMk {EN HN N : Type*} [NormedAddCommGroup EN]
+theorem isOpen_setOfPred_isContactFormAt_mpullback_prodMk {EN HN N : Type*} [NormedAddCommGroup EN]
     [NormedSpace ℝ EN] [TopologicalSpace HN] {J : ModelWithCorners ℝ EN HN} [TopologicalSpace N]
     [ChartedSpace HN N] [IsManifold J ∞ N] (α : SmoothForm (J.prod I) (N × M) ℝ 1) :
     IsOpen {q : N × M | IsContactFormAt
@@ -362,7 +362,7 @@ theorem exists_local_extension (hξ : IsContactFamily ξ) (p : unitInterval × M
   obtain ⟨α, hα⟩ := hξ p
   -- Extend `α` past the ends of `[0, 1]`; its slices are contact on an open set `C ∋ p`.
   set β := SmoothForm.timeExtend α
-  have hC := isOpen_setOf_isContactFormAt_mpullback_prodMk β
+  have hC := isOpen_setOfPred_isContactFormAt_mpullback_prodMk β
   have hp : ((p.1 : ℝ), p.2) ∈ {q : ℝ × M | IsContactFormAt
       (mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) β).val q.2} := by
     simpa only [mem_ofPred_eq, β, SmoothForm.mpullback_prodMk_timeExtend] using

@@ -19,7 +19,7 @@ scalars act compatibly (such as `EuclideanSpace ℂ (Fin m)`), `v : E`, and `A` 
 that meets each complex line `{c + s • v | s : ℂ}` in at most `N` points. Then the points `c`
 of the unit ball for which `c + s • v ∈ A` for some `‖s‖ < ρ` form a set of volume at most
 `C * N * ρ ^ 2 * ‖v‖ ^ 2`, with `C` the volume of the ball of radius `2` about `0` in `E`
-(`MeasureTheory.volume_setOf_exists_add_smul_mem_le`).
+(`MeasureTheory.volume_setOfPred_exists_add_smul_mem_le`).
 
 The proof is Tonelli's theorem along `E = Kᗮ ⊕ K`, with `K` the complex line spanned by `v`,
 in the form of Tau Ceti's `Submodule.lintegral_eq_lintegral_lintegral_add`. A slice parallel
@@ -30,12 +30,12 @@ the volume of the ball of radius `2` in `E`
 `Submodule.volume_preimage_measurableEquivProd_prod`).
 
 That `A` is closed makes the set measurable
-(`IsClosed.setOf_exists_norm_le_add_smul_mem`); zero sets of polynomials are closed. A complex
+(`IsClosed.setOfPred_exists_norm_le_add_smul_mem`); zero sets of polynomials are closed. A complex
 line has real dimension `2` by the tower law `Submodule.finrank_restrictScalars`.
 
 ## Main results
 
-* `MeasureTheory.volume_setOf_exists_add_smul_mem_le`: the volume bound.
+* `MeasureTheory.volume_setOfPred_exists_add_smul_mem_le`: the volume bound.
 * `Submodule.volume_ball_mul_volume_ball_orthogonal_le`: balls in a subspace and in its
   orthogonal complement.
 -/
@@ -128,7 +128,7 @@ complex space `E` with a real inner product, and `v : E`. If `A` meets every com
 `{c + s • v | s : ℂ}` in at most `N` points, then the points `c` of the unit ball such that
 `c + s • v ∈ A` for some `‖s‖ < ρ` form a set of volume at most `C * N * ρ ^ 2 * ‖v‖ ^ 2`,
 where `C` is the volume of the ball of radius `2` about `0` in `E`. -/
-theorem volume_setOf_exists_add_smul_mem_le {A : Set E} (hA : IsClosed A) (v : E) (N : ℕ)
+theorem volume_setOfPred_exists_add_smul_mem_le {A : Set E} (hA : IsClosed A) (v : E) (N : ℕ)
     (hN : ∀ c : E, {s : ℂ | c + s • v ∈ A}.encard ≤ N) (ρ : ℝ) :
     volume {c ∈ ball (0 : E) 1 | ∃ s : ℂ, ‖s‖ < ρ ∧ c + s • v ∈ A} ≤
       ENNReal.ofReal (volume.real (ball (0 : E) 2) * N * ρ ^ 2 * ‖v‖ ^ 2) := by
@@ -145,7 +145,7 @@ theorem volume_setOf_exists_add_smul_mem_le {A : Set E} (hA : IsClosed A) (v : E
   set K : Submodule ℝ E := (ℂ ∙ v).restrictScalars ℝ
   set T := ball (0 : E) 1 ∩ {c : E | ∃ s : ℂ, ‖s‖ ≤ ρ ∧ c + s • v ∈ A}
   have hT : MeasurableSet T :=
-    measurableSet_ball.inter (hA.setOf_exists_norm_le_add_smul_mem v ρ).measurableSet
+    measurableSet_ball.inter (hA.setOfPred_exists_norm_le_add_smul_mem v ρ).measurableSet
   have hball : volume (ball (0 : E) 2) ≠ ∞ := measure_ball_lt_top.ne
   calc volume S ≤ volume T := measure_mono fun c ⟨hc, s, hs, hcs⟩ ↦ ⟨hc, s, hs.le, hcs⟩
     _ = ∫⁻ x, T.indicator 1 x := (lintegral_indicator_one hT).symm
