@@ -8,7 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.Flux.Hamiltonian
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.TimeExtension
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.TimeExtension
-import TauCeti.Geometry.Symplectic.Manifold.Family
+import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 
 /-!
 # Compactly supported Hamiltonian diffeomorphisms
@@ -221,23 +221,13 @@ theorem exists_interior_velocity_eq (hσ : SmoothTwoForm.IsSymplectic σ)
         (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) Ω).val) ∧
       (∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ) ∧
       ∀ t, ∀ y ∉ L, Φ (t, y) = y := by
-  -- The time extension `α` of `Ω`, and the constant family `σ'` of `σ` on `ℝ × M`.
+  -- The time extension `α` of `Ω`, and the field `X_u = (σ♭)⁻¹ α_u`.
   set α := SmoothForm.timeExtend Ω
-  set σ' : SmoothTwoForm (𝓘(ℝ, ℝ).prod J) (ℝ × M) :=
-    SmoothForm.mpullback Prod.snd contMDiff_snd σ
-  have hσ' (u : ℝ) : SmoothForm.mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id) σ' =
-      σ :=
-    SmoothForm.mpullback_prodMk_mpullback_snd σ u
-  have hnd (u : ℝ) : SmoothTwoForm.IsNondegenerate
-      (SmoothForm.mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id) σ') :=
-    (hσ' u).symm ▸ hσ.isNondegenerate
-  -- The field `X_u = (σ♭)⁻¹ α_u`.
   set X : ℝ → (y : M) → TangentSpace J y := fun u ↦ hσ.isNondegenerate.interiorEquiv.symm
     (SmoothForm.mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id) α) with hXdef
   have hX : ContMDiff (𝓘(ℝ, ℝ).prod J) J.tangent ∞
       (fun p : ℝ × M ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle J M)) :=
-    (SmoothTwoForm.contMDiff_interiorEquiv_symm_mpullback_prodMk σ' hnd α).congr fun p ↦ by
-      simp only [hXdef, SmoothTwoForm.IsNondegenerate.interiorEquiv_symm_apply, hσ']
+    hσ.isNondegenerate.contMDiff_interiorEquiv_symm_mpullback_prodMk α
   -- On `[0, 1]`, `ι_{X_t} σ = Ω_t`.
   have hint (t : unitInterval) : RoughForm.interior (X t) σ.val =
       (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) Ω).val := by

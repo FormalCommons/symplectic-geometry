@@ -60,17 +60,13 @@ generator of `H₂(S²)` pulls back to the hyperplane class `h` or to `-h`. -/
 theorem singularCohomologyMap_sphereGenerator_eq_hyperplaneClass_or_eq_neg_hyperplaneClass
     (e : ℙ ℂ (Fin 2 → ℂ) ≃ₜ TopCat.sphere.{0} 2) :
     TopCat.singularCohomologyMap (TopCat.isoOfHomeo (X := TopCat.of (ℙ ℂ (Fin 2 → ℂ))) e).hom 2
-        (((TopCat.sphere.{0} 2).integralCohomologyEquiv 2).symm
-          (singularCohomologyTopCatSphereGenerator ℤ 1)) = hyperplaneClass (Fin 2 → ℂ) ∨
+        (TopCat.integralSphereGenerator 1) = hyperplaneClass (Fin 2 → ℂ) ∨
       TopCat.singularCohomologyMap (TopCat.isoOfHomeo (X := TopCat.of (ℙ ℂ (Fin 2 → ℂ))) e).hom 2
-        (((TopCat.sphere.{0} 2).integralCohomologyEquiv 2).symm
-          (singularCohomologyTopCatSphereGenerator ℤ 1)) = -hyperplaneClass (Fin 2 → ℂ) := by
+        (TopCat.integralSphereGenerator 1) = -hyperplaneClass (Fin 2 → ℂ) := by
   set φ := TopCat.isoOfHomeo (X := TopCat.of (ℙ ℂ (Fin 2 → ℂ))) e
   have hV : Module.finrank ℂ (Fin 2 → ℂ) = 1 + 1 := by simp
   obtain ⟨a, ha⟩ := exists_eq_zsmul_hyperplaneClass hV
-    (TopCat.singularCohomologyMap φ.hom 2
-      (((TopCat.sphere.{0} 2).integralCohomologyEquiv 2).symm
-        (singularCohomologyTopCatSphereGenerator ℤ 1)))
+    (TopCat.singularCohomologyMap φ.hom 2 (TopCat.integralSphereGenerator 1))
   obtain ⟨b, hb⟩ := TopCat.exists_eq_zsmul_sphereGenerator (d := 1)
     (TopCat.singularCohomologyMap φ.inv 2 (hyperplaneClass (Fin 2 → ℂ)))
   have hba : (b * a) • hyperplaneClass (Fin 2 → ℂ) = (1 : ℤ) • hyperplaneClass (Fin 2 → ℂ) := by
@@ -89,11 +85,9 @@ private theorem exists_singularCohomologyMap_homeomorphTopCatSphere_symm
     ∃ k : ℤ, k ≠ 0 ∧
       TopCat.singularCohomologyMap
         (TopCat.isoOfHomeo (X := TopCat.of (ℙ ℂ (Fin 2 → ℂ))) homeomorphTopCatSphere.{0}).inv 2 b =
-        k • ((TopCat.sphere.{0} 2).integralCohomologyEquiv 2).symm
-          (singularCohomologyTopCatSphereGenerator ℤ 1) := by
+        k • TopCat.integralSphereGenerator 1 := by
   set φ := TopCat.isoOfHomeo (X := TopCat.of (ℙ ℂ (Fin 2 → ℂ))) homeomorphTopCatSphere.{0}
-  set θ := ((TopCat.sphere.{0} 2).integralCohomologyEquiv 2).symm
-    (singularCohomologyTopCatSphereGenerator ℤ 1)
+  set θ := TopCat.integralSphereGenerator 1
   have hV : Module.finrank ℂ (Fin 2 → ℂ) = 1 + 1 := by simp
   obtain ⟨j, rfl⟩ := exists_eq_zsmul_hyperplaneClass hV b
   have hj : j ≠ 0 := by rintro rfl; exact hb (zero_smul _ _)
@@ -160,8 +154,7 @@ theorem not_isOfFinAddOrder_prod_singularCohomologyMap (m : ℕ)
       simp only [x, x', map_prod, map_mul, TopCat.evenIntegralCohomologyMap_of, Fin.prod_univ_succ]
       simp only [← ConcreteCategory.comp_apply, ← TopCat.singularCohomologyMap_comp, hΨ₀, hΨ]
     have hgk' : TopCat.singularCohomologyMap g (2 * 1) (b 0) =
-        k • ((TopCat.sphere.{0} 2).integralCohomologyEquiv 2).symm
-          (singularCohomologyTopCatSphereGenerator ℤ 1) := hgk
+        k • TopCat.integralSphereGenerator 1 := hgk
     have hx' := congrArg (· (1 + m)) hx
     rw [TopCat.evenIntegralCohomologyMap_apply, TopCat.evenIntegralCohomologyOf_mul_apply,
       TopCat.evenIntegralCohomologyMap_apply, hgk', map_zsmul,
