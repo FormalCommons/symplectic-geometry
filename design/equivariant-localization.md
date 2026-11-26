@@ -368,7 +368,7 @@ The milestone, with `H x := μ x ξ₁` and `fixedPoints := MulAction.fixedPoint
 
 ```lean
 theorem integral_cexp_neg_mul_eq_finsum_fixedPoints [CompactSpace M]
-    [BoundarylessManifold I M] (hσ : σ.IsSymplectic)
+    [I.Boundaryless] [T2Space M] (hσ : σ.IsSymplectic)
     (hinv : ∀ g : Circle, SmoothForm.mpullback (g • ·) _ σ = σ)
     (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M)
       (fun x ↦ -μ x))
