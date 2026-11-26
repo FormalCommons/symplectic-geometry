@@ -125,7 +125,7 @@ theorem clutching_circleZPowSMul (m : ℤ)
       E.clutching f ⊗ (trivial ℂ X 1).clutching (circleZPowIso X m)) := by
   -- The right unitor of `E` carries `f ⊗ u ^ m` to `u ^ m • f`, fibre by fibre.
   obtain ⟨φ⟩ := nonempty_iso_clutching_of_fiberMap_comp_eq (E := E ⊗ trivial ℂ X 1) (ρ_ E)
-    (f := tensorIsoPullback f (circleZPowIso X m))
+    (ρ_ E)    (f := tensorIsoPullback f (circleZPowIso X m))
     (f' := circleZPowSMul m f) fun w ↦ by
       rw [fiberMap_tensorIsoPullback_hom, fiberMap_circleZPowIso_hom,
         ContinuousLinearMap.kronecker_smul, fiberMap_circleZPowSMul_hom, fiberMap_rightUnitor_hom]
