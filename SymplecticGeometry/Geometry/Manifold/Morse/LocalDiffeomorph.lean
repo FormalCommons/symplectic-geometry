@@ -23,11 +23,13 @@ manifolds with the same model; the proof here goes through the second-order chai
 `TauCeti.criticalHessian_comp_apply` instead of a chart of the maximal atlas, as Tau Ceti's
 `TauCeti.IsRegularPoint.ker_criticalHessian_comp` does for submersions. The Morse index along such
 a map is Tau Ceti's `TauCeti.IsRegularPoint.manifoldMorseIndex_comp`.
+The converse applies this to the local inverse of `φ`, after which `f` is recovered near `φ y`.
 
 ## Main results
 
 * `IsLocalDiffeomorphAt.isManifoldNondegenerateCriticalPoint_comp`: a nondegenerate critical point
-  pulls back to a nondegenerate critical point along a local diffeomorphism.
+  pulls back to a nondegenerate critical point along a local diffeomorphism, and
+  `IsLocalDiffeomorphAt.isManifoldNondegenerateCriticalPoint_of_comp` gives the converse.
 
 ## References
 
@@ -76,6 +78,22 @@ theorem isManifoldNondegenerateCriticalPoint_comp
   ext u w
   rw [criticalHessian_comp_apply rfl hf₂ hφ₂ hcrit, ← hL]
   rfl
+
+/-- **Nondegenerate critical points along a local diffeomorphism, converse.** If `φ : M' → M` is
+a `C^n` local diffeomorphism at `y` with `2 ≤ n`, between boundaryless manifolds that may have
+different models, and `y` is a nondegenerate critical point of `f ∘ φ`, then `φ y` is a
+nondegenerate critical point of `f`. -/
+theorem isManifoldNondegenerateCriticalPoint_of_comp
+    (hφ : IsLocalDiffeomorphAt I' I n φ y) (hn : 2 ≤ n)
+    (hf : IsManifoldNondegenerateCriticalPoint I' (f ∘ φ) y) :
+    IsManifoldNondegenerateCriticalPoint I f (φ y) := by
+  -- Pull `f ∘ φ` back along the local inverse `ψ` of `φ`; near `φ y`, `(f ∘ φ) ∘ ψ` is `f`.
+  rw [← hφ.localInverse_left_inv hφ.localInverse_mem_target] at hf
+  refine (hφ.localInverse_isLocalDiffeomorphAt.isManifoldNondegenerateCriticalPoint_comp hn
+    hf).congr_of_eventuallyEq ?_
+  filter_upwards [hφ.localInverse_eventuallyEq_right] with z hz
+  simp only [comp_apply, id_eq] at hz ⊢
+  rw [hz]
 
 end IsLocalDiffeomorphAt
 

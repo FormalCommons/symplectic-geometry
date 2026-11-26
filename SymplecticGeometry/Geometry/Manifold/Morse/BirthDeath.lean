@@ -53,6 +53,12 @@ Weinstein homotopy.
 * `TauCeti.BirthDeathChart.pullback`: along a smooth local diffeomorphism `Φ : M' → M` at `y`,
   where `M'` and `M` may be modelled on different spaces, a birth–death chart for `f` at `Φ y`
   gives one for `f ∘ Φ` at `y`, of the same index (`TauCeti.BirthDeathChart.index_pullback`).
+* `TauCeti.BirthDeathChart.congr`: a birth–death chart for `f` is one for any function that agrees
+  with `f` on its source, so that having one depends only on the germ of the function
+  (`TauCeti.BirthDeathChart.nonempty_of_eventuallyEq`).
+* `TauCeti.BirthDeathChart.nonempty_of_comp_eventuallyEq`: if `f ∘ Φ` agrees near `y` with a
+  function that has a birth–death chart at `y`, for a smooth local diffeomorphism `Φ` at `y`, then
+  `f` has one at `Φ y`.
 * `TauCeti.IsGeneralizedMorse`: smooth, with nondegenerate or birth–death critical points;
   `TauCeti.IsMorse.isGeneralizedMorse`, `TauCeti.IsGeneralizedMorse.isClosed_criticalPoints`,
   `TauCeti.IsGeneralizedMorse.isDiscrete_criticalPoints`,
@@ -60,6 +66,9 @@ Weinstein homotopy.
   `TauCeti.IsGeneralizedMorse.exists_isRegularValue_mem_Ioo`,
   `TauCeti.IsGeneralizedMorse.comp`, `TauCeti.IsGeneralizedMorse.comp_isLocalDiffeomorph` and its
   special case `TauCeti.IsGeneralizedMorse.comp_diffeomorph`.
+* `TauCeti.isGeneralizedMorse_of_forall_exists_comp_eventuallyEq`: a smooth function is
+  generalized Morse when near each of its critical points it is, through a local diffeomorphism,
+  a generalized Morse function on another manifold.
 * `TauCeti.isGeneralizedMorse_birthDeathPotential` and `TauCeti.not_isMorse_birthDeathPotential`:
   the cubic on the line is generalized Morse and not Morse.
 
@@ -84,6 +93,15 @@ a linear equivalence `A : E' ≃L[ℝ] E` of the models. The quadratic part of `
 that of `f` after `Φ` only on the source, so the Morse–Bott chart is moved to it by
 `TauCeti.MorseBottChart.congr`. Nondegenerate critical points pull back by
 `IsLocalDiffeomorphAt.isManifoldNondegenerateCriticalPoint_comp`.
+
+The birth–death chart of `TauCeti.BirthDeathChart.nonempty_of_comp_eventuallyEq` is the pull-back
+of the chart of `g` along the chosen local inverse `Ψ` of `Φ`, a chart for `g ∘ Ψ` at `Φ y`, moved
+to `f` by `TauCeti.BirthDeathChart.congr` after restricting it to where `g ∘ Ψ = f`. In
+`TauCeti.isGeneralizedMorse_of_forall_exists_comp_eventuallyEq`, critical points and nondegeneracy
+go from `g` to `F ∘ Φ` by their germ invariance (`Filter.EventuallyEq.mem_criticalPoints_iff`,
+`IsManifoldNondegenerateCriticalPoint.congr_of_eventuallyEq`), and then to `F` by
+`IsLocalDiffeomorphAt.mem_criticalPoints_comp_iff` and
+`IsLocalDiffeomorphAt.isManifoldNondegenerateCriticalPoint_of_comp`.
 
 The finiteness of the critical points of a generalized Morse function in a compact set, or in a
 sublevel set of a proper one bounded below, uses only that its critical points are isolated:
@@ -581,6 +599,120 @@ end BirthDeathChart
 
 end Pullback
 
+/-! ### Changing the function near the centre -/
+
+namespace BirthDeathChart
+
+section Congr
+
+variable (φ : BirthDeathChart E f x) {g : M → ℝ}
+  (h : EqOn g f φ.toMorseBottChart.toChart.source)
+
+/-- The quadratic part of `TauCeti.BirthDeathChart.congr`: `g` minus the cubic term of `φ`. -/
+private noncomputable def congrQuadraticPart (g : M → ℝ) (z : M) : ℝ :=
+  g z - birthDeathPotential 0
+    (φ.toMorseBottChart.coord (φ.toMorseBottChart.toChart z) φ.cubicIndex)
+
+include h in
+private theorem eqOn_congrQuadraticPart :
+    EqOn (congrQuadraticPart φ g) φ.quadraticPart φ.toMorseBottChart.toChart.source :=
+  fun z hz ↦ by rw [congrQuadraticPart, h hz, φ.quadraticPart_apply]
+
+/-- A birth–death chart `φ` for `f` at `x` is a birth–death chart for any `g` that agrees with `f`
+on the source of `φ`, with the chart, the coordinates, the weights and the cubic coordinate of
+`φ`. Its quadratic part is `g` minus the cubic term. -/
+noncomputable def congr : BirthDeathChart E g x where
+  quadraticPart := congrQuadraticPart φ g
+  toMorseBottChart := φ.toMorseBottChart.congr (eqOn_congrQuadraticPart φ h)
+  cubicIndex := φ.cubicIndex
+  weight_cubicIndex := by rw [MorseBottChart.congr_weight]; exact φ.weight_cubicIndex
+  weight_ne_zero := by rw [MorseBottChart.congr_weight]; exact φ.weight_ne_zero
+  eq_add z := by
+    rw [MorseBottChart.congr_coord, MorseBottChart.congr_toChart, congrQuadraticPart,
+      sub_add_cancel]
+
+/-- The chart of `φ.congr h` is that of `φ`. -/
+@[simp]
+theorem congr_toChart : (φ.congr h).toMorseBottChart.toChart = φ.toMorseBottChart.toChart :=
+  MorseBottChart.congr_toChart _ _
+
+/-- The coordinates of `φ.congr h` are those of `φ`. -/
+@[simp]
+theorem congr_coord : (φ.congr h).toMorseBottChart.coord = φ.toMorseBottChart.coord :=
+  MorseBottChart.congr_coord _ _
+
+/-- The weights of `φ.congr h` are those of `φ`. -/
+@[simp]
+theorem congr_weight : (φ.congr h).toMorseBottChart.weight = φ.toMorseBottChart.weight :=
+  MorseBottChart.congr_weight _ _
+
+/-- The cubic coordinate of `φ.congr h` is that of `φ`. -/
+@[simp]
+theorem congr_cubicIndex : (φ.congr h).cubicIndex = φ.cubicIndex :=
+  (rfl)
+
+/-- The quadratic normal form of the Morse–Bott chart of `φ.congr h` is that of `φ`. -/
+@[simp]
+theorem congr_quadratic :
+    (φ.congr h).toMorseBottChart.quadratic = φ.toMorseBottChart.quadratic :=
+  MorseBottChart.congr_quadratic _ _
+
+/-- On the source of the chart, the quadratic part of `φ.congr h` is that of `φ`. -/
+theorem eqOn_congr_quadraticPart :
+    EqOn (φ.congr h).quadraticPart φ.quadraticPart
+      (φ.congr h).toMorseBottChart.toChart.source :=
+  congr_toChart φ h ▸ eqOn_congrQuadraticPart φ h
+
+/-- Changing the function off the source of a birth–death chart keeps its index. -/
+@[simp]
+theorem index_congr : (φ.congr h).index = φ.index := by
+  rw [index_def, index_def, congr_weight]
+
+/-- Changing the function off the source of a birth–death chart keeps its normal form. -/
+@[simp]
+theorem normalForm_congr : (φ.congr h).normalForm = φ.normalForm := by
+  funext z
+  simp [normalForm]
+
+end Congr
+
+/-- Having a birth–death chart at `x` depends only on the germ of the function at `x`. -/
+theorem nonempty_of_eventuallyEq (φ : BirthDeathChart E f x) {g : M → ℝ} (hfg : f =ᶠ[𝓝 x] g) :
+    Nonempty (BirthDeathChart E g x) := by
+  obtain ⟨s, hfs, hs, hx⟩ := eventually_nhds_iff.1 hfg
+  refine ⟨(φ.restr hs hx).congr fun z hz ↦ (hfs z ?_).symm⟩
+  rw [restr_toMorseBottChart, MorseBottChart.restr_source] at hz
+  exact hz.2
+
+end BirthDeathChart
+
+/-! ### Birth–death charts from local models -/
+
+section LocalModel
+
+variable {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
+  {M' : Type*} [TopologicalSpace M'] [ChartedSpace E' M'] [IsManifold 𝓘(ℝ, E) ∞ M]
+  {g : M' → ℝ} {Φ : M' → M} {y : M'}
+
+/-- **Birth–death charts from a local model.** If `Φ : M' → M` is a smooth local diffeomorphism at
+`y`, where `M'` is modelled on `E'` and `M` on `E`, and `f ∘ Φ` agrees near `y` with a function `g`
+that has a birth–death chart at `y`, then `f` has a birth–death chart at `Φ y`. It is the pull-back
+of the chart of `g` along the local inverse of `Φ`. -/
+theorem BirthDeathChart.nonempty_of_comp_eventuallyEq (φ : BirthDeathChart E' g y)
+    (hΦ : IsLocalDiffeomorphAt 𝓘(ℝ, E') 𝓘(ℝ, E) ∞ Φ y) (hfg : f ∘ Φ =ᶠ[𝓝 y] g) :
+    Nonempty (BirthDeathChart E f (Φ y)) := by
+  have hy : hΦ.localInverse (Φ y) = y := hΦ.localInverse_left_inv hΦ.localInverse_mem_target
+  have hΨ := hΦ.localInverse_isLocalDiffeomorphAt
+  refine ((hy.symm ▸ φ : BirthDeathChart E' g (hΦ.localInverse (Φ y))).pullback hΨ
+    (hΨ.mfderivToContinuousLinearEquiv (by simp))).nonempty_of_eventuallyEq ?_
+  have ht := hΦ.continuousAt_localInverse.tendsto
+  rw [hy] at ht
+  filter_upwards [hfg.comp_tendsto ht, hΦ.localInverse_eventuallyEq_right] with z h₁ h₂
+  simp only [comp_apply, id_eq] at h₁ h₂ ⊢
+  rw [← h₁, h₂]
+
+end LocalModel
+
 /-! ### Generalized Morse functions -/
 
 variable (E) in
@@ -695,6 +827,26 @@ theorem comp_diffeomorph {M' : Type*} [TopologicalSpace M'] [ChartedSpace E M']
   hf.comp_isLocalDiffeomorph σ.isLocalDiffeomorph
 
 end IsGeneralizedMorse
+
+/-- **Generalized Morse functions from local models.** Let `F : M → ℝ` be smooth, and let
+`g : M' → ℝ` be a generalized Morse function on a boundaryless manifold `M'`, modelled on `E'`,
+and `Φ : M' → M`. If each critical point of `F` is `Φ y` for a point `y` at which `Φ` is a smooth
+local diffeomorphism and near which `F ∘ Φ` agrees with `g`, then `F` is a generalized Morse
+function. -/
+theorem isGeneralizedMorse_of_forall_exists_comp_eventuallyEq [IsManifold 𝓘(ℝ, E) ∞ M]
+    {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
+    {M' : Type*} [TopologicalSpace M'] [ChartedSpace E' M'] {F : M → ℝ}
+    (hF : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) ∞ F) {g : M' → ℝ} (hg : IsGeneralizedMorse E' g) {Φ : M' → M}
+    (h : ∀ x ∈ criticalPoints 𝓘(ℝ, E) F, ∃ y, Φ y = x ∧
+      IsLocalDiffeomorphAt 𝓘(ℝ, E') 𝓘(ℝ, E) ∞ Φ y ∧ F ∘ Φ =ᶠ[𝓝 y] g) :
+    IsGeneralizedMorse E F := by
+  refine ⟨hF, fun x hx ↦ ?_⟩
+  obtain ⟨y, rfl, hΦ, hFg⟩ := h x hx
+  rw [← hΦ.mem_criticalPoints_comp_iff (by simp), hFg.mem_criticalPoints_iff] at hx
+  rcases hg.2 y hx with hnd | hbd
+  · exact .inl (hΦ.isManifoldNondegenerateCriticalPoint_of_comp (by simp)
+      (hnd.congr_of_eventuallyEq hFg.symm))
+  · exact .inr (hbd.some.nonempty_of_comp_eventuallyEq hΦ hFg)
 
 /-- A Morse function is a generalized Morse function. -/
 theorem IsMorse.isGeneralizedMorse (hf : IsMorse 𝓘(ℝ, E) f) : IsGeneralizedMorse E f :=
