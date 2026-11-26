@@ -173,8 +173,15 @@ theorem exists_iso_clutching_whitneySum_of_hom_eq_add_comp (M : (Q G) ≅ (Q G))
     exact key
   · obtain ⟨e₁⟩ := nonempty_iso_clutching_idAddIso_trans (E := whitneySum G E) N₂ _ hu
     obtain ⟨e₂⟩ := nonempty_iso_clutching_trans_idAddIso (E := whitneySum G E) N₁ _ hl
-    exact ⟨e₁ ≪≫ e₂ ≪≫ clutchingWhitneySumIso M (Iso.refl _) ≪≫
-      whitneyMapIso (Iso.refl _) E.clutchingOneIso⟩
+    -- `clutchingWhitneySumIso` takes `N₁` read through `pullback_whitneySum`, which holds by
+    -- `rfl`; the closing `exact` uses that the two cores agree by definition.
+    have hN : eqToIso (pullback_whitneySum G E ContinuousMap.fst) ≪≫ N₁ ≪≫
+        eqToIso (pullback_whitneySum G E ContinuousMap.fst).symm = N₁ :=
+      Iso.ext <| hom_ext fun x ↦ by
+        rw [fiberMap_eqToIso_whitneyMapIso_hom, whitneyMapIso_hom]
+        exact (fiberMap_whitneyMap M.hom (Iso.refl (Q E)).hom x).symm
+    exact ⟨e₁ ≪≫ e₂ ≪≫ eqToIso (congrArg _ hN.symm) ≪≫
+      clutchingWhitneySumIso M (Iso.refl _) ≪≫ whitneyMapIso (Iso.refl _) E.clutchingOneIso⟩
 
 /-- **Hatcher's matrix, by induction.** Let `M` be an automorphism of the pullback of `G` to
 `X × Circle` of the form `A₀ + u A₁ + u (π ≫ P ≫ j)`, for constant morphisms `A₀`, `A₁`,
