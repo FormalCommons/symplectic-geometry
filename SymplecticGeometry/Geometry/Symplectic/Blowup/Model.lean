@@ -9,6 +9,9 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Model
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Normalization
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
+public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
+public import TauCeti.Geometry.Symplectic.Manifold.Kahler
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Pseudoholomorphic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
@@ -19,8 +22,8 @@ For `n : ℕ` and `E := Fin (n + 1) → ℂ`, let `π : BlowupModel n → E` be 
 (`Geometry/Manifold/Complex/Blowup/Model.lean`), seen as real manifolds with the real structure
 of the complex manifold (the scoped instance `TauCeti.ComplexManifold.isManifold_real`). Following
 McDuff–Salamon, §7.1, this file defines on the model the closed two-forms
-`ω̃_λ = π^* ω₀ + λ² pr^* ω_FS`, computes their restriction to the exceptional divisor `Z`, and
-sets up the neighbourhoods `L(ε)` of `Z`.
+`ω̃_λ = π^* ω₀ + λ² pr^* ω_FS`, shows that they are Kähler for `λ ≠ 0`, computes their restriction
+to the exceptional divisor `Z`, and sets up the neighbourhoods `L(ε)` of `Z`.
 
 ## Main definitions and results
 
@@ -34,6 +37,15 @@ sets up the neighbourhoods `L(ε)` of `Z`.
   second open, and both contain the exceptional divisor for `0 < ε`.
 * `SymplecticGeometry.BlowupModel.blowupForm n l`: the form `π^* ω₀ + l² pr^* ω_FS`, and
   `SymplecticGeometry.BlowupModel.isClosed_blowupForm`: it is closed.
+* `SymplecticGeometry.BlowupModel.isKahler_blowupForm`: for `l ≠ 0`, `ω̃_l` is Kähler for the
+  complex structure of the model, and so `SymplecticGeometry.BlowupModel.isSymplectic_blowupForm`:
+  it is symplectic. Since `π` and `pr` are holomorphic and `ω₀`, `ω_FS` are compatible with
+  their complex structures (`SymplecticGeometry.BlowupModel.compatible_ω₀E`,
+  `isKahler_fubiniStudyForm`), both terms are invariant under `i` and nonnegative on `(v, i v)`
+  (`TauCeti.SmoothTwoForm.Invariant.mpullback`, `TauCeti.SmoothTwoForm.Tames.eval₂_mpullback_pos`
+  and `TauCeti.SmoothTwoForm.Tames.eval₂_mpullback_nonneg`); one of them is positive for `v ≠ 0`,
+  since the inclusion `(pr, π)` into `ℙ ℂ E × E` is an immersion
+  (`mfderiv_pr_eq_zero_and_mfderiv_blowdown_eq_zero_iff`).
 * `SymplecticGeometry.BlowupModel.mpullback_zeroSection_blowupForm`: on the exceptional divisor
   it restricts to `l² ω_FS`, since `π` is constant there; hence
   `SymplecticGeometry.BlowupModel.integralTopForm_blowupForm_line`: every projective line of the
@@ -65,6 +77,14 @@ noncomputable def ω₀E : SmoothTwoForm 𝓘(ℝ, Fin (n + 1) → ℂ) (Fin (n 
 
 theorem ω₀E_def : ω₀E n = (stdComplexPiSymplecticForm (Fin (n + 1))).constSmooth :=
   (rfl)
+
+/-- The standard form `ω₀E n` is compatible with the complex structure of `E`, multiplication by
+`i`. -/
+theorem compatible_ω₀E :
+    (ω₀E n).Compatible
+      (SmoothAlmostComplexStructure.ofComplexManifold (Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ)) := by
+  rw [ω₀E_def, SmoothAlmostComplexStructure.ofComplexManifold_self_eq_constSmooth]
+  exact SymplecticForm.compatible_constSmooth_iff.2 stdComplexPiSymplecticForm_compatible
 
 /-! ### The neighbourhoods `L(ε)` of the exceptional divisor -/
 
@@ -147,6 +167,44 @@ theorem isClosed_blowupForm (l : ℝ) : (blowupForm n l).IsClosed := by
   rw [blowupForm_def]
   exact ((SymplecticForm.isClosed_constSmooth _).mpullback _ _).add
     (((isSymplectic_fubiniStudyForm n).isClosed.mpullback _ _).smul _)
+
+open SmoothAlmostComplexStructure in
+/-- For `l ≠ 0`, the form `ω̃_l` is Kähler for the complex structure of the model blowup: it is
+closed, invariant under `i`, and `ω̃_l(v, i v) > 0` for every nonzero tangent vector `v`. -/
+theorem isKahler_blowupForm {l : ℝ} (hl : l ≠ 0) :
+    (blowupForm n l).IsKahler (ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n)) := by
+  have hb : IsPseudoholomorphic (ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n))
+      (ofComplexManifold (Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ)) blowdown :=
+    isPseudoholomorphic_ofComplexManifold_iff.2 ((contMDiff_blowdown ∞).mdifferentiable (by simp))
+  have hp : IsPseudoholomorphic (ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n))
+      (ofComplexManifold (Fin n → ℂ) (ℙ ℂ (Fin (n + 1) → ℂ))) pr :=
+    isPseudoholomorphic_ofComplexManifold_iff.2 ((contMDiff_pr ∞).mdifferentiable (by simp))
+  have hω := compatible_ω₀E (n := n)
+  have hFS := (isKahler_fubiniStudyForm (n := n)).compatible
+  refine SmoothTwoForm.isKahler_ofComplexManifold_iff.2 ⟨isClosed_blowupForm l, ⟨?_, ?_⟩⟩
+  · refine SmoothTwoForm.invariant_iff.2 fun x v w ↦ ?_
+    rw [blowupForm_def, SmoothBundleForm.eval₂_add, SmoothBundleForm.eval₂_add,
+      SmoothForm.eval₂_smul, SmoothForm.eval₂_smul, (hω.invariant.mpullback hb _).apply,
+      (hFS.invariant.mpullback hp _).apply]
+  · -- Both terms are nonnegative on `(v, i v)`, and one of them is positive, since the real
+    -- differentials of `pr` and of the blowdown do not both vanish on `v ≠ 0`.
+    refine SmoothTwoForm.tames_iff.2 fun x v hv ↦ ?_
+    rw [blowupForm_def, SmoothBundleForm.eval₂_add, SmoothForm.eval₂_smul, smul_eq_mul]
+    have hb₀ := hω.tames.eval₂_mpullback_nonneg (hb.isPseudoholomorphicAt x)
+      ((contMDiff_blowdown ∞).restrictScalars' ℝ) v
+    have hp₀ := hFS.tames.eval₂_mpullback_nonneg (hp.isPseudoholomorphicAt x)
+      ((contMDiff_pr ∞).restrictScalars' ℝ) v
+    have hl₂ : 0 < l ^ 2 := pow_pos (abs_pos.2 hl) 2 |>.trans_eq (by simp)
+    by_cases h : mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) blowdown x v = 0
+    · refine add_pos_of_nonneg_of_pos hb₀ (mul_pos hl₂ ?_)
+      exact hFS.tames.eval₂_mpullback_pos (hp.isPseudoholomorphicAt x) _ fun h' ↦
+        hv (mfderiv_pr_eq_zero_and_mfderiv_blowdown_eq_zero_iff.1 ⟨h', h⟩)
+    · exact add_pos_of_pos_of_nonneg
+        (hω.tames.eval₂_mpullback_pos (hb.isPseudoholomorphicAt x) _ h) (mul_nonneg hl₂.le hp₀)
+
+/-- For `l ≠ 0`, the form `ω̃_l` on the model blowup is symplectic. -/
+theorem isSymplectic_blowupForm {l : ℝ} (hl : l ≠ 0) : (blowupForm n l).IsSymplectic :=
+  (isKahler_blowupForm hl).isSymplectic
 
 /-- On the exceptional divisor, `ω̃_l` restricts to `l² ω_FS`: its pull-back along the zero
 section is `l² • fubiniStudyForm n`, since the blowdown is constant on the divisor and `pr` is a

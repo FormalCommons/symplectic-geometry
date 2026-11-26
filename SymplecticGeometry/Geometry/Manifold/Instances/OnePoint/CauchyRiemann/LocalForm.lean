@@ -14,6 +14,7 @@ import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Tames
 import SymplecticGeometry.Topology.VectorBundle.Basic
 import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Basic
 import TauCeti.Analysis.Complex.Wirtinger.Similarity.Basic
+import TauCeti.Topology.VectorBundle.Orientation.SectionIndex.Holomorphic
 public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Smooth
 import TauCeti.Geometry.Manifold.VectorBundle.MaximalAtlas
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.Basic
@@ -23,7 +24,7 @@ public import TauCeti.Analysis.Complex.Wirtinger.Weak
 import SymplecticGeometry.Analysis.Complex.Wirtinger.Similarity.Weak
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Analysis.Sobolev.W1p.ChangeOfVariables
-import Mathlib.Topology.DiscreteSubset
+import TauCeti.Topology.DiscreteSubset
 import SymplecticGeometry.Topology.Connected.Clopen
 import TauCeti.Geometry.Manifold.VectorField.Regularity
 import TauCeti.MeasureTheory.Function.Jacobian
@@ -100,12 +101,13 @@ at a zero of the section, apart from the orientation of the chart.
 
 ## Zeros of smooth kernel elements
 
-From this equation the zeros of a smooth kernel element are understood. Near each point,
-Tau Ceti's `TauCeti.eventually_ne_zero_of_conjWirtingerDeriv_apply_one_eq_mul` shows that the
-coordinate either vanishes identically or has an isolated zero, and a section vanishes exactly
-where its coordinate does. Since the sphere is connected, this dichotomy gives unique
-continuation (`PreconnectedSpace.eq_zero_of_eventually_eq_zero`); since it is compact, a nonzero
-kernel element has finitely many zeros.
+From this equation the zeros of a smooth kernel element are understood. In the rescaled
+trivialization above, its coordinate is complex analytic, so near each point the section either
+vanishes identically or has no zero on a punctured neighbourhood, by Tau Ceti's
+`Bundle.Trivialization.eventually_eq_zero_or_eventually_ne_zero_of_eventually_eq_mul` (with the
+constant factor `1`). Since the sphere is connected, this dichotomy gives unique continuation
+(`PreconnectedSpace.eq_zero_of_eventually_eq_zero`); since it is also compact, a nonzero kernel
+element has finitely many zeros (`TauCeti.finite_setOf_eq_zero_of_forall_eventually`).
 
 ## Sobolev kernel elements in an isothermal chart
 
@@ -452,33 +454,10 @@ neighbourhood of `z`, or `s` has no zero on a punctured neighbourhood of `z`. -/
 theorem eventually_eq_zero_or_eventually_ne_zero_of_mem_twistOneKernel {s : OnePoint ℂ → ℂ}
     (hs : s ∈ twistOneKernel J) (z : OnePoint ℂ) :
     (∀ᶠ y in 𝓝 z, s y = 0) ∨ ∀ᶠ y in 𝓝[≠] z, s y ≠ 0 := by
-  obtain ⟨ψ, hzψ, hψ⟩ := J.exists_isothermal_partialDiffeomorph Complex.finrank_real_complex z
-  obtain ⟨U, hU, hzU, a, ha, hv, heq⟩ :=
-    exists_conjWirtingerDeriv_apply_one_eq_mul_of_mem_twistOneKernel hψ hzψ
-      (mem_chart_source ℂ z) hs
-  set e := (twistCore (𝕜 := ℂ) 1).localTriv z
-  -- On the chart at `z`, the coordinate of a vector of `𝒪(1)` vanishes only if the vector does.
-  have hcoord (p : OnePoint ℂ) (hp : p ∈ (chartAt ℂ z).source) (v : ℂ) :
-      (e ⟨p, v⟩).2 = 0 ↔ v = 0 :=
-    (e.linearEquivAt ℂ p (by simpa [e] using hp)).map_eq_zero_iff
-  set φ := ψ.toOpenPartialHomeomorph
-  have hφ : ⇑φ = ψ := PartialDiffeomorph.toFun'_toOpenPartialHomeomorph ψ
-  have hW : ∀ᶠ p in 𝓝 z, p ∈ (chartAt ℂ z).source ∧ ψ.symm (ψ p) = p :=
-    ((chartAt ℂ z).open_source.eventually_mem (mem_chart_source ℂ z)).and
-      (hφ ▸ φ.eventually_left_inverse hzψ)
-  have hc : ContinuousAt ψ z := hφ ▸ φ.continuousAt hzψ
-  by_cases h : ∀ᶠ w in 𝓝 (ψ z), (e ⟨ψ.symm w, s (ψ.symm w)⟩).2 = 0
-  · refine .inl ?_
-    filter_upwards [hW, hc.eventually h] with p ⟨hp, hpp⟩ hp0
-    rwa [hpp, hcoord p hp] at hp0
-  · refine .inr ?_
-    have ht : Tendsto ψ (𝓝[≠] z) (𝓝[≠] (ψ z)) :=
-      tendsto_nhdsWithin_iff.2 ⟨hc.tendsto.mono_left nhdsWithin_le_nhds,
-        hφ ▸ φ.eventually_ne_nhdsWithin hzψ⟩
-    filter_upwards [ht.eventually (eventually_ne_zero_of_conjWirtingerDeriv_apply_one_eq_mul
-      (k := 1) le_rfl hU (ha.of_le (by simp)) hv heq hzU h), nhdsWithin_le_nhds hW]
-      with p hp0 ⟨hp, hpp⟩
-    rwa [hpp, Ne, hcoord p hp] at hp0
+  obtain ⟨e, _, ψ, hze, hzψ, -, hA, -⟩ :=
+    exists_trivialization_analyticAt_of_mem_twistOneKernel hs z
+  exact e.eventually_eq_zero_or_eventually_ne_zero_of_eventually_eq_mul ψ.toOpenPartialHomeomorph
+    (s := s) hze hzψ continuousAt_const one_ne_zero hA (.of_forall fun _ ↦ (one_mul _).symm)
 
 /-- **Unique continuation for `D_J` on `𝒪(1)`.** A smooth section `s` of `𝒪(1)` with
 `D_J s = 0` that vanishes on a neighbourhood of one point of the sphere is zero. -/
@@ -498,10 +477,9 @@ theorem eventually_ne_zero_of_mem_twistOneKernel {s : OnePoint ℂ → ℂ}
 /-- **A nonzero smooth kernel element has finitely many zeros.** If `s ≠ 0` is a smooth section
 of `𝒪(1)` with `D_J s = 0`, then the zero set of `s` on the sphere is finite. -/
 theorem finite_setOf_eq_zero_of_mem_twistOneKernel {s : OnePoint ℂ → ℂ}
-    (hs : s ∈ twistOneKernel J) (hs₀ : s ≠ 0) : {y | s y = 0}.Finite := by
-  have hc : {y | s y ≠ 0} ∈ codiscrete (OnePoint ℂ) :=
-    mem_codiscrete_iff_forall_mem_nhdsNE.2 (eventually_ne_zero_of_mem_twistOneKernel hs hs₀)
-  simpa [compl_ofPred] using cofinite_le_codiscrete hc
+    (hs : s ∈ twistOneKernel J) (hs₀ : s ≠ 0) : {y | s y = 0}.Finite :=
+  TauCeti.finite_setOf_eq_zero_of_forall_eventually
+    (eventually_eq_zero_or_eventually_ne_zero_of_mem_twistOneKernel hs) (Function.ne_iff.1 hs₀)
 
 /-- The coefficient of the weak equation in an isothermal chart is smooth: for a map `T` smooth on
 an open set `Ω` with values in the image of chart `i`, and the zeroth-order term `Γ` of the
