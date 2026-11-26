@@ -35,8 +35,8 @@ For `n ≠ 0`, `ℙ ℂ V` is simply connected (`Projectivization.instSimplyConn
 by the Hurewicz theorem `g` is null-homotopic exactly when it sends the generator `[S²]`
 of `H₂(S²; ℤ)` to zero (`TopCat.Hom.nullhomotopic_iff_singularHomologyMap_eq_zero`). The pairing
 with `h` is injective on `H₂(ℙ ℂ V; ℤ)`
-(`Projectivization.bijective_singularKronecker_hyperplaneClass`), and
-`⟨h, g_*[S²]⟩ = ⟨g^* h, [S²]⟩` (`TopCat.singularKronecker_naturality`). Finally a class of
+(`Projectivization.bijective_integralKronecker_hyperplaneClass`), and
+`⟨h, g_*[S²]⟩ = ⟨g^* h, [S²]⟩` (`TopCat.integralKronecker_naturality`). Finally a class of
 `H²(S²; ℤ)` is zero exactly when it vanishes on `[S²]`, since evaluation on `[S²]` is a linear
 equivalence `H²(S²; ℤ) ≃ ℤ`
 (`TopCat.singularKronecker_singularHomologyTopCatSphereGenerator_eq_zero_iff`).
@@ -120,14 +120,15 @@ theorem nullhomotopic_iff_singularCohomologyMap_hyperplaneClass_eq_zero
   have hz : ℙ ℂ V := g (TauCeti.sphereBasePoint 1)
   rw [TopCat.Hom.nullhomotopic_iff_singularHomologyMap_eq_zero (n := 0) (z := hz)
       fun k hk => TauCeti.subsingleton_homotopyGroup_of_lt_two hz hk,
-    ← ((TopCat.diskBoundary 3).integralCohomologyEquiv 2).map_eq_zero_iff,
-    TopCat.integralCohomologyEquiv_naturality,
-    ← (bijective_singularKronecker_hyperplaneClass hV hn).1.eq_iff' (map_zero _)]
+    ← (bijective_integralKronecker_hyperplaneClass hV hn).1.eq_iff' (map_zero _),
+    ← ((TopCat.diskBoundary 3).integralCohomologyEquiv 2).map_eq_zero_iff]
   refine Iff.trans ?_ (singularKronecker_sphere_eq_zero_iff 0 _)
-  rw [TopCat.singularKronecker_naturality, ModuleCat.hom_comp]
-  -- `LinearMap.comp_apply`, which `rw` cannot apply here: the two sides write the degree of
-  -- `H₂(S²; ℤ)` as `2` and as `0 + 2`
-  exact Iff.rfl
+  rw [← TopCat.integralKronecker_apply]
+  -- `TopCat.integralKronecker_naturality`. The goal and that lemma agree only up to definitional
+  -- unfolding: the degree is `0 + 2` against `2`, the coefficients `ModuleCat.of ℤ ℤ` against
+  -- `𝟙_ (ModuleCat ℤ)`, and the morphism coercion `ModuleCat.Hom.hom` against
+  -- `ConcreteCategory.hom`. `exact` checks the lemma against the goal up to that unfolding.
+  exact Iff.of_eq (congrArg (· = 0) (TopCat.integralKronecker_naturality g 2 _ _)).symm
 
 
 section Higher
