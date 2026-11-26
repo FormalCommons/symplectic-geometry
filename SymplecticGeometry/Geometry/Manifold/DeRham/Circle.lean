@@ -202,10 +202,7 @@ theorem mpullback_circleExp_comp_circleAngularForm_apply {f : M → ℝ} {x : M}
   have h := mpullback_comp_at hf (contMDiff_circleExp.mdifferentiableAt (x := f x) one_ne_zero)
     circleAngularForm
   rw [Function.comp_def, mpullback_circleExp_circleAngularForm] at h
-  rw [h]
-  ext v
-  rw [mpullback_apply, mextDeriv_ofFunction_id_apply, mextDeriv_ofFunction,
-    ContinuousAlternatingMap.ofSubsingleton_apply_apply, mvfderiv_apply_eq_mfderiv_apply]
+  exact h.trans (mpullback_mextDeriv_ofFunction_apply hf mdifferentiableAt_id)
 
 end CircleValued
 
