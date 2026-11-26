@@ -14,8 +14,7 @@ In a complete normed algebra `R` over a normed field `𝕜`, let `a` be a unit a
 with `‖a⁻¹ b - 1‖ < 1`. Then every point `(1 - s) a + s b` of the segment from `a` to `b`, for a
 scalar `‖s‖ ≤ 1`, is a unit (`Units.isUnit_one_sub_smul_add_smul_of_norm_lt_one`): it is
 `a (1 - s (1 - a⁻¹ b))`, and the second factor is a unit by the Neumann series, Mathlib's
-`isUnit_one_sub_of_norm_lt_one`. The hypothesis may also be checked after conjugation by a unit
-`P` (`Units.isUnit_one_sub_smul_add_smul_of_norm_conj_lt_one`).
+`isUnit_one_sub_of_norm_lt_one`.
 
 ## References
 
@@ -44,21 +43,6 @@ theorem isUnit_one_sub_smul_add_smul_of_norm_lt_one (a : Rˣ) {b : R}
     abel
   rw [hfac]
   exact a.isUnit.mul (isUnit_one_sub_of_norm_lt_one hu)
-
-/-- If `a` and `P` are units of a complete normed algebra and `‖P⁻¹ (a⁻¹ b) P - 1‖ < 1`, then
-`(1 - s) a + s b` is a unit for every scalar `s` with `‖s‖ ≤ 1`. -/
-theorem isUnit_one_sub_smul_add_smul_of_norm_conj_lt_one (a P : Rˣ) {b : R}
-    (h : ‖(↑P⁻¹ : R) * ((↑a⁻¹ : R) * b) * P - 1‖ < 1) {s : 𝕜} (hs : ‖s‖ ≤ 1) :
-    IsUnit ((1 - s) • (a : R) + s • b) := by
-  have h' : ‖(↑(P⁻¹ * a * P)⁻¹ : R) * ((↑P⁻¹ : R) * b * P) - 1‖ < 1 := by
-    convert h using 3
-    simp only [mul_inv_rev, inv_inv, Units.val_mul, mul_assoc, Units.mul_inv_cancel_left]
-  have hu := (P⁻¹ * a * P).isUnit_one_sub_smul_add_smul_of_norm_lt_one h' hs
-  have hc : (1 - s) • ((P⁻¹ * a * P : Rˣ) : R) + s • ((↑P⁻¹ : R) * b * P) =
-      (↑P⁻¹ : R) * ((1 - s) • (a : R) + s • b) * P := by
-    simp only [Units.val_mul, mul_add, add_mul, mul_smul_comm, smul_mul_assoc]
-  rw [hc, Units.isUnit_mul_units, Units.isUnit_units_mul] at hu
-  exact hu
 
 end Units
 
