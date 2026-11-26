@@ -253,7 +253,7 @@ theorem integralCohomologyEquiv_symm_apply (X : TopCat.{0}) (n : ℕ)
   simp only [ConcreteCategory.comp_apply] at h
   -- Tau Ceti's change of chain coefficients writes the cochain values as `ModuleCat.of ℤ ℤ` and
   -- its change of linear structure as `𝟙_ (ModuleCat ℤ)`, which Mathlib defines to be the
-  -- former; the two identifications compose only once their arguments are given.
+  -- former, so `rw` finds the composite of the two `eqToHom`s only with both of them given.
   rw [singularCohomologyLinearCongr_apply, h,
     ← ConcreteCategory.comp_apply (eqToHom _) (eqToHom _), eqToHom_trans, eqToHom_refl,
     ConcreteCategory.id_apply, ← singularCohomologyChainCoefficientIso_hom,
