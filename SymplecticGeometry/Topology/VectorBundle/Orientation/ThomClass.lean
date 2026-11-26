@@ -258,7 +258,7 @@ theorem singularCohomologyMap_modelThomGenerator {P' : Type w} [NormedAddCommGro
     have hpt := congrArg Subtype.val (localOrientationOfZeroDimChart_map
       (OpenPartialHomeomorph.refl P) (OpenPartialHomeomorph.refl P')
       (OpenPartialHomeomorph.mem_refl_source _) (OpenPartialHomeomorph.mem_refl_source _) hP hP'
-      _ ((ContinuousLinearEquiv.complZeroPairIso_hom_fst_apply h 0).trans h.map_zero))
+      h.complZeroPairIso)
     rw [LocalOrientation.coe_map] at hpt
     have hpos : ω.map _ h.toLinearEquiv = positiveOrientation ↔ ω = positiveOrientation :=
       (Orientation.map _ _).injective.eq_iff' (Orientation.map_positiveOrientation_of_isEmpty _ _)
