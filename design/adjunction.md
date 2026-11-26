@@ -89,20 +89,19 @@ built with `Submodule.mapQ`, with `quotient_mk` and
 applied to `J.almostComplexStructureAt (f x)`; nothing new is needed in
 linear algebra and no metric enters.
 
-Smoothness is the new part. With the bundle structure that Tau Ceti installs
+Smoothness is Tau Ceti's too. With the bundle structure that Tau Ceti installs
 locally (`normalSpaceFiberBundle`, `normalSpaceVectorBundle`,
 `normalSpaceContMDiffVectorBundle`, with model `P` and
-`hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E'`), the map of total spaces
-of the descended structure composed with `f.normalQuotientMap` is
-`normalQuotientMap` composed with $J$ on the pull-back `f *ᵖ TangentSpace I`.
-The latter is smooth, so Tau Ceti's `contMDiff_normalBundle_iff`
-(`NormalSpace/VectorBundle/Quotient.lean`) makes the descended map smooth,
-and Tau Ceti's `TauCeti.contMDiff_hom_bundle_iff` (`Geometry/Manifold/VectorBundle/Hom.lean`)
-turns this into a smooth section of the endomorphism bundle. The result is a
+`hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E'`), Tau Ceti's
+`TauCeti.SmoothEmbedding.normalComplexStructureAt`
+(`Geometry/Symplectic/Manifold/AlmostComplex/NormalBundle.lean`), the same
+endomorphism of each normal space, is a smooth section of the endomorphism
+bundle (`contMDiff_normalComplexStructureAt_hom_bundle`). The library bundles
+it as a
 `SymplecticGeometry.Bundle.ContMDiffComplexStructure` on the normal bundle,
-so all of *Symplectic vector bundles*' API, and through
-`toContinuousComplexStructure` Tau Ceti's complex vector bundle
-`.Fiber`, apply to it. `normalBundleMap` (for maps of pairs) does not
+so all of *Symplectic vector bundles*' API applies to it; its
+`toContinuousComplexStructure` is Tau Ceti's `normalComplexStructure`, whose
+`.Fiber` is the complex vector bundle. `normalBundleMap` (for maps of pairs) does not
 apply. As the approving review of #838 asked, the structure is in the
 namespace `TauCeti.SmoothEmbedding`, in a file beside Tau Ceti's
 `NormalSpace/` files. The structure serves this part; *Projective
@@ -210,16 +209,16 @@ take an embedding of any regularity `n` with `hn : n ≠ 0`.
   `(J.almostComplexStructureAt (f x)).quotient (f.tangentRange x hn) _`, whose
   invariance proof is `hJ x` after a rewrite by `almostComplexStructureAt_apply`,
   with `normalAlmostComplexStructureAt_def` by `(rfl)`.
-- `@[simp] normalAlmostComplexStructureAt_normalClass`: on
-  `f.normalClass x hn v` it gives `f.normalClass x hn (J (f x) v)`, from
-  `quotient_mk`; and `@[simp] isComplexLinearMap_normalClass`, from
-  `isComplexLinearMap_mkQ`.
+- `@[simp] normalAlmostComplexStructureAt_apply`: it acts as Tau Ceti's
+  `normalComplexStructureAt`, by `normalComplexStructureAt_toLinearMap`; and
+  `@[simp] isComplexLinearMap_normalClass`, from `isComplexLinearMap_mkQ`.
 - `contMDiffNormalComplexStructure f hdim J hJ`, of type
   `ContMDiffComplexStructure I' ⊤ P (fun x ↦ f.NormalSpace x hn)` under the
   `letI`s of Tau Ceti's `normalSpaceFiberBundle` and `normalSpaceVectorBundle`,
-  the two that the type needs; its value at `x` is
-  `normalAlmostComplexStructureAt` (`contMDiffNormalComplexStructure_apply`,
-  `@[simp] almostComplexStructureAt_contMDiffNormalComplexStructure`). Smoothness as in
+  the two that the type needs; its value at `x` is Tau Ceti's
+  `normalComplexStructureAt` (`contMDiffNormalComplexStructure_apply`), its
+  structure at `x` is `normalAlmostComplexStructureAt`
+  (`@[simp] almostComplexStructureAt_contMDiffNormalComplexStructure`). Smoothness as in
   *Decisions*.
 
 ### `Geometry/Manifold/SmoothEmbedding/NormalSpace/Exact.lean`
@@ -297,7 +296,7 @@ Namespace `TauCeti.SmoothEmbedding`, for a surface `M` in `X` with
 - `selfIntersectionNumber f hE J hJ o : ℤ`, the integer under
   `o.toHomologicalOrientation.evalFundamentalClass _ _ (ContinuousMap.id M)`
   of `TauCeti.complexEulerClass ℂ ν_J _`, with `ν_J` the complex line bundle
-  `(f.contMDiffNormalComplexStructure _ J hJ).toContinuousComplexStructure.Fiber` of
+  `(f.normalComplexStructure hn J _ hJ).Fiber`, Tau Ceti's, of
   model `ℂ`; with `selfIntersectionNumber_def` by `(rfl)`. Its docstring
   says that this is $\langle e(\nu_J), [M, o]\rangle$, the Euler number of the
   normal bundle oriented by its complex structure, and that it is the

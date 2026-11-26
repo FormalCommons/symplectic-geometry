@@ -56,7 +56,7 @@ theorem IsLiouvilleVectorField.mpullback {Φ : M' → M} (hΦ : ContMDiff I' I �
     (hXY : ∀ x, mfderiv I' I Φ x (Y x) = X (Φ x)) :
     IsLiouvilleVectorField (SmoothForm.mpullback Φ hΦ σ).val Y := by
   rw [isLiouvilleVectorField_iff, SmoothForm.coe_mpullback,
-    ← mpullback_mlieDerivForm_of_related (k := 1) (hΦ.of_le (by simp))
+    ← mpullback_mlieDerivForm_of_related (k := 2) (hΦ.of_le (by simp))
       (σ.isSmoothForm.of_le (by simp)) hX hY hXY, isLiouvilleVectorField_iff.mp hXσ]
 
 end TauCeti
