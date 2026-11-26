@@ -15,6 +15,7 @@ public import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.Normalize
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
 import SymplecticGeometry.GroupTheory.GroupAction.Hom
 import TauCeti.Geometry.Manifold.IsManifold.Basic
+import SymplecticGeometry.Topology.VectorBundle.Basic
 
 /-!
 # A smooth injective map of the whole normal bundle
@@ -144,7 +145,7 @@ theorem exists_contMDiff_injective_normalBundle (f : SmoothEmbedding I J ∞ M N
     contMDiff_id.smul_totalSpace (contMDiff_const (c := (⟨x, v⟩ : TotalSpace P ν)))
   have hΨl : MDifferentiableAt 𝓘(ℝ) J (Ψ ∘ line) 0 :=
     MDifferentiableAt.comp_of_eq 0 hΨ0 (hl.mdifferentiableAt one_ne_zero)
-      (by simp [line, zeroSection])
+      (by simp [line, zeroSection_def])
   let s : ℝ → ℝ := fun t ↦ r x * (Real.sqrt (1 + t ^ 2 * ‖(v : ν x)‖ ^ 2))⁻¹ * t
   have hs : HasDerivAt s (r x) 0 := by
     have hφ : DifferentiableAt ℝ (fun t : ℝ ↦ r x * (Real.sqrt (1 + t ^ 2 * ‖(v : ν x)‖ ^ 2))⁻¹)
