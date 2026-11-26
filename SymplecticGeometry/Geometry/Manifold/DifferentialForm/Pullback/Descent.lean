@@ -21,15 +21,18 @@ on the image of the point under `f` and on the images of the arguments under the
   one of its arguments lies in the kernel of the derivative of `f`. In other words
   (`TauCeti.RoughForm.IsBasic.isSemibasic`), it is semibasic for `f`
   (`TauCeti.RoughForm.IsSemibasic`).
-* `TauCeti.RoughForm.isSemibasicAt_mpullback`, `TauCeti.RoughForm.isSemibasic_mpullback`: the
-  pullback along any map `f` of a form on its target is semibasic for `f`, with no
-  differentiability asked of `f`, since Tau Ceti's `TauCeti.RoughForm.isBasic_mpullback` says
-  that it is basic. `TauCeti.SmoothForm.isSemibasic_mpullback` is the same for smooth pullbacks.
-* `TauCeti.RoughForm.IsBasic.mpullback_eq`: for a differentiable `f`, a basic form is invariant
+*`TauCeti.RoughForm.IsBasic.mpullback_eq`: for a differentiable `f`, a basic form is invariant
   under every differentiable self-map `σ` with `f ∘ σ = f`.
 
 These are the two conditions of Tau Ceti's `TauCeti.RoughForm.isBasic_of_mpullback_eq`, which
 gives the converse when the self-maps over `f` act transitively on its fibres.
+
+Tau Ceti's `TauCeti.RoughForm.isBasic_mpullback` says that the pullback along any map `f` of a
+form on its target is basic for `f`. With `TauCeti.RoughForm.IsBasic.isSemibasic`, this gives
+`TauCeti.RoughForm.isSemibasicAt_mpullback` and `TauCeti.RoughForm.isSemibasic_mpullback`: such
+a pullback is semibasic for `f`, with no differentiability asked of `f`.
+`TauCeti.SmoothForm.isSemibasic_mpullback` is the same for the smooth pullback along a smooth
+`f`.
 
 ## References
 
