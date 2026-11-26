@@ -45,7 +45,8 @@ the maximal atlas. The statements on `g` follow `TauCeti.IsAdaptedChart.norm_sq_
 `Geometry/Manifold/Complex/JConvex/TotallyReal.lean`, with a slice chart of an embedding in place
 of a chart adapted to a totally real submanifold; the steps of the last proofs that do not depend
 on the chart are `TauCeti.mem_criticalPoints_norm_sq_of_eq_zero` and
-`TauCeti.criticalHessian_norm_sq_apply_of_eq_zero` of `Geometry/Manifold/Morse/Hessian.lean`.
+`TauCeti.criticalHessian_norm_sq_continuousLinearMap_comp_apply_of_eq_zero` of
+`Geometry/Manifold/Morse/Hessian.lean`.
 
 ## Main results
 
@@ -185,24 +186,17 @@ theorem criticalHessian_norm_sq_snd_apply [J.Boundaryless] (hn : 2 ≤ n) {y : M
     criticalHessian J (fun p ↦ ‖e (h.equiv.symm (h.codChart.extend J p)).2‖ ^ 2) (f y) u w =
       2 * inner ℝ (e (h.equiv.symm (mfderiv J 𝓘(ℝ, E'') (h.codChart.extend J) (f y) u)).2)
         (e (h.equiv.symm (mfderiv J 𝓘(ℝ, E'') (h.codChart.extend J) (f y) w)).2) := by
-  have hψ : ContMDiffAt J 𝓘(ℝ, E'') 2 (h.codChart.extend J) (f y) :=
-    (h.codChart.contMDiffAt_extend h.codChart_mem_maximalAtlas
-      (h.source_subset_preimage_source hy)).of_le hn
-  have hφ : ContMDiffAt J 𝓘(ℝ, W) 2 (fun p ↦ e (h.equiv.symm (h.codChart.extend J p)).2) (f y) :=
-    (e.contDiff.comp (contDiff_snd.comp h.equiv.symm.contDiff)).contMDiff.contMDiffAt.comp
-      (f y) hψ
-  have hD : mfderiv J 𝓘(ℝ, W) (fun p ↦ e (h.equiv.symm (h.codChart.extend J p)).2) (f y) =
-      ((e : F →L[ℝ] W).comp
-        ((ContinuousLinearMap.snd ℝ E F).comp (h.equiv.symm : E'' →L[ℝ] E × F))).comp
-        (mfderiv J 𝓘(ℝ, E'') (h.codChart.extend J) (f y)) :=
-    ((e.hasFDerivAt.comp _ (hasFDerivAt_snd.comp _ h.equiv.symm.hasFDerivAt)).hasMFDerivAt.comp
-      (f y) (hψ.mdifferentiableAt two_ne_zero).hasMFDerivAt).mfderiv
-  rw [criticalHessian_norm_sq_apply_of_eq_zero hφ
-    (by rw [h.equiv_symm_codChart_extend_apply hy, map_zero]), hD]
-  -- `(e ∘L snd ∘L L⁻¹ ∘L dψ) u` is `e (L⁻¹ (dψ u)).2` by definition of the composite. `dψ` takes
-  -- values in `TangentSpace 𝓘(ℝ, E'') _`, which is `E''` only by definition, so `comp_apply`
-  -- cannot be rewritten with here.
-  rfl
+  have := criticalHessian_norm_sq_continuousLinearMap_comp_apply_of_eq_zero
+    (A := (e : F →L[ℝ] W).comp
+      ((ContinuousLinearMap.snd ℝ E F).comp (h.equiv.symm : E'' →L[ℝ] E × F)))
+    ((h.codChart.contMDiffAt_extend h.codChart_mem_maximalAtlas
+      (h.source_subset_preimage_source hy)).of_le hn)
+    (by simp only [ContinuousLinearMap.coe_comp, Function.comp_apply,
+      ContinuousLinearEquiv.coe_coe, ContinuousLinearMap.coe_snd',
+      h.equiv_symm_codChart_extend_apply hy, map_zero]) u w
+  simp only [ContinuousLinearMap.coe_comp, Function.comp_apply, ContinuousLinearEquiv.coe_coe,
+    ContinuousLinearMap.coe_snd'] at this
+  exact this
 
 /-- **Positivity of the Hessian off the tangent image.** For `n ≥ 2` and `y` in the domain chart's
 source, the critical Hessian at `f y` of the squared normal coordinate is positive on every

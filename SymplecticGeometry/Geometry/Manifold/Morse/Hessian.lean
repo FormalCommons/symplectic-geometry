@@ -34,7 +34,9 @@ function `p ↦ ‖φ p‖²` has a minimum, hence a critical point, at `x`
 (`TauCeti.mem_criticalPoints_norm_sq_of_eq_zero`). If moreover `W` is a real inner product space,
 `M` is boundaryless and `φ` is `C²` at `x`, its critical Hessian there is `2 ⟪dφ u, dφ w⟫`
 (`TauCeti.criticalHessian_norm_sq_apply_of_eq_zero`), by the second-order chain rule and Tau
-Ceti's `TauCeti.fderiv_fderiv_norm_sq_apply`.
+Ceti's `TauCeti.fderiv_fderiv_norm_sq_apply`. For `φ = A ∘ ψ`, with `A` a continuous linear map
+and `ψ` `C²` at a zero `x` of `A ∘ ψ`, this reads `2 ⟪A (dψ u), A (dψ w)⟫`
+(`TauCeti.criticalHessian_norm_sq_continuousLinearMap_comp_apply_of_eq_zero`).
 
 Let the functions `g i` be `C²`, vanish and be critical at an interior point `x` whenever
 `x ∈ U i`, with critical Hessians there positive on a vector `v`. Then a finite sum
@@ -181,6 +183,27 @@ theorem criticalHessian_norm_sq_apply_of_eq_zero [InnerProductSpace ℝ W] [I.Bo
     (contDiff_norm_sq ℝ).contMDiff.contMDiffAt hφ hcrit u w
   rw [criticalHessian_modelSpace] at hH
   exact hH.trans (fderiv_fderiv_norm_sq_apply (E := W) _ _ _)
+
+variable [InnerProductSpace ℝ W] {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+  {A : F →L[ℝ] W} {ψ : M → F}
+
+/-- **The Hessian of `‖A ∘ ψ‖²` at a zero.** On a boundaryless manifold, let `ψ` be a map into a
+real normed space that is `C²` at `x`, and `A` a continuous linear map into a real inner product
+space with `A (ψ x) = 0`. Then the critical Hessian of `p ↦ ‖A (ψ p)‖²` at `x` is
+`2 ⟪A (dψ u), A (dψ w)⟫`. -/
+theorem criticalHessian_norm_sq_continuousLinearMap_comp_apply_of_eq_zero [I.Boundaryless]
+    (hψ : ContMDiffAt I 𝓘(ℝ, F) 2 ψ x) (hψx : A (ψ x) = 0) (u w : TangentSpace I x) :
+    criticalHessian I (fun p ↦ ‖A (ψ p)‖ ^ 2) x u w =
+      2 * inner ℝ (A (mfderiv I 𝓘(ℝ, F) ψ x u)) (A (mfderiv I 𝓘(ℝ, F) ψ x w)) := by
+  have hD : mfderiv I 𝓘(ℝ, W) (fun p ↦ A (ψ p)) x = A.comp (mfderiv I 𝓘(ℝ, F) ψ x) :=
+    (A.hasFDerivAt.hasMFDerivAt.comp x (hψ.mdifferentiableAt two_ne_zero).hasMFDerivAt).mfderiv
+  refine (criticalHessian_norm_sq_apply_of_eq_zero (φ := fun p ↦ A (ψ p))
+    (A.contDiff.contMDiff.contMDiffAt.comp x hψ) hψx u w).trans ?_
+  rw [hD]
+  -- `(A ∘L dψ) u` is `A (dψ u)` by definition of the composite. `dψ` takes values in
+  -- `TangentSpace 𝓘(ℝ, F) _`, which is `F` only by definition, so `comp_apply` cannot be
+  -- rewritten with here.
+  rfl
 
 end NormSq
 
