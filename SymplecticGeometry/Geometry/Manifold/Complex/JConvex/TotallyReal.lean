@@ -8,12 +8,15 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Hypersurface
 public import SymplecticGeometry.Geometry.Manifold.Complex.LeviForm
 public import SymplecticGeometry.Geometry.Manifold.Complex.TotallyReal.AdaptedChart
+public import SymplecticGeometry.Geometry.Manifold.Morse.Hessian
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.ContMDiff
 public import SymplecticGeometry.LinearAlgebra.TotallyReal.Basic
 public import TauCeti.Analysis.InnerProductSpace.Calculus
 public import TauCeti.Geometry.Contact.Pullback
 public import TauCeti.Geometry.Manifold.Complex.TotallyReal.AdaptedChart
 public import TauCeti.Geometry.Symplectic.Lagrangian.TotallyReal
+public import Mathlib.Geometry.Manifold.PartitionOfUnity
+public import Mathlib.Analysis.InnerProductSpace.EuclideanDist
 public import TauCeti.LinearAlgebra.TotallyReal.Basic
 
 /-!
@@ -84,6 +87,18 @@ the image of `ι` onto `F × {0}` (`TauCeti.IsAdaptedChart`). Fix a linear isomo
   point of the image of a `C³` totally real embedding. Total reality for `ofComplexManifold E M`
   and for its `C^ℓ` version agree, since both have the same pointwise structures
   (`TauCeti.SmoothAlmostComplexStructure.almostComplexStructureAt_toContMDiff`).
+
+Gluing these local functions with a partition of unity gives the global statement:
+
+* `IsTotallyRealEmbedding.exists_contMDiff_isManifoldStrictlyPlurisubharmonicAt_of_isClosed_range`:
+  for a `C^k` totally real embedding `ι` with closed image into a Hausdorff σ-compact complex
+  manifold, and `2 ≤ ℓ` with `ℓ + 1 ≤ k`, there is a nonnegative `C^ℓ` function `φ` vanishing
+  exactly on the image of `ι`, with critical Hessian positive off the tangent images of `ι`, and
+  strictly plurisubharmonic on a neighbourhood of the image. It is `∑ᵢ ρᵢ φᵢ` for the squared
+  distances `φᵢ` in adapted charts covering the image and a partition of unity `ρᵢ`; at a point
+  of the image each `φᵢ` and its differential vanish, so the critical Hessian of the sum is
+  `∑ᵢ ρᵢ Hess φᵢ` (`TauCeti.criticalHessian_sum`,
+  `TauCeti.criticalHessian_mul_of_mem_criticalPoints`), and the criterion above applies.
 
 ## References
 
@@ -320,6 +335,16 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] [FiniteDimension
   [TopologicalSpace H'] {I' : ModelWithCorners ℝ F H'} [TopologicalSpace N] [ChartedSpace H' N]
   {k : ℕ∞ω} {ι : N → M}
 
+/-- The tangent images of a totally real embedding into a complex manifold are totally real for
+multiplication by `i` on the tangent spaces of `M`. -/
+theorem isTotallyReal_range_mfderiv
+    (h : IsTotallyRealEmbedding I' 𝓘(ℝ, E) k (ofComplexManifold E M).almostComplexStructureAt ι)
+    (y : N) :
+    IsTotallyReal ((ofComplexManifold E M).toEndomorphism (ι y)).toLinearMap
+      (LinearMap.range (mfderiv I' 𝓘(ℝ, E) ι y).toLinearMap) := by
+  rw [← almostComplexStructureAt_toLinearMap]
+  exact (isMaximalTotallyRealMap_iff.1 h.isMaximalTotallyRealMap y).isTotallyReal
+
 /-- **The squared distance in an adapted chart is strictly plurisubharmonic near a totally real
 submanifold.** Let `ι` be a `C^k` totally real embedding, `k ≥ 1`, into a complex manifold,
 `ψ` a chart adapted, with regularity `ℓ ≥ 2`, to its image and to the complex structure, and `e`
@@ -335,11 +360,8 @@ theorem setOf_isManifoldStrictlyPlurisubharmonicAt_norm_sq_snd_mem_nhdsSet
       𝓝ˢ (ψ.source ∩ range ι) := by
   rw [mem_nhdsSet_iff_forall]
   rintro _ ⟨hy, y, rfl⟩
-  have hL : IsTotallyReal ((ofComplexManifold E M).toEndomorphism (ι y)).toLinearMap
-      (LinearMap.range (mfderiv I' 𝓘(ℝ, E) ι y).toLinearMap) := by
-    rw [← almostComplexStructureAt_toLinearMap]
-    exact (isMaximalTotallyRealMap_iff.1 h.isMaximalTotallyRealMap y).isTotallyReal
-  exact (SymplecticGeometry.isManifoldStrictlyPlurisubharmonicAt_of_criticalHessian_pos hL
+  exact (SymplecticGeometry.isManifoldStrictlyPlurisubharmonicAt_of_criticalHessian_pos
+    (h.isTotallyReal_range_mfderiv y)
     fun v hv ↦ hψ.criticalHessian_norm_sq_snd_pos h hk hℓ hy hv).eventually
     ((hψ.contMDiffAt_norm_sq_snd hy).of_le (WithTop.coe_le_coe.2 hℓ))
 
@@ -363,6 +385,139 @@ theorem exists_isAdaptedChart_norm_sq_snd
   obtain ⟨ψ, -, -, -, -, hy, -, hψ⟩ := h'.exists_adaptedChart one_le_two hk y
   exact ⟨ψ, hy, hψ, h.setOf_isManifoldStrictlyPlurisubharmonicAt_norm_sq_snd_mem_nhdsSet
     (le_trans (by norm_num) hk) hψ le_rfl e⟩
+
+/-- **A nonnegative function strictly plurisubharmonic near a closed totally real submanifold.**
+Let `ι : N → M` be a `C^k` totally real embedding of a manifold without boundary, with closed
+image, into a complex manifold that is Hausdorff and σ-compact, and let `2 ≤ ℓ` with
+`ℓ + 1 ≤ k` (for a smooth embedding, `ℓ = ∞`). Then there is a `C^ℓ` function `φ : M → ℝ`,
+nonnegative and vanishing exactly on the image of `ι`,
+whose critical Hessian at each point `ι y` is positive on every vector outside the tangent image
+of `ι` at `y`, and which is strictly plurisubharmonic on a neighbourhood of the image of `ι`.
+
+The function constructed is `∑ᵢ ρᵢ φᵢ`, for the squared distances `φᵢ` to the zero section in
+adapted charts that cover the image, with `φ = 1` on the complement of the image, and for a
+smooth partition of unity `ρᵢ` subordinate to these open sets. It plays the role of the squared
+distance to the image for a suitable metric. -/
+theorem exists_contMDiff_isManifoldStrictlyPlurisubharmonicAt_of_isClosed_range
+    [T2Space M] [SigmaCompactSpace M]
+    [I'.Boundaryless] [IsManifold I' k N]
+    (h : IsTotallyRealEmbedding I' 𝓘(ℝ, E) k (ofComplexManifold E M).almostComplexStructureAt ι)
+    (hclosed : IsClosed (range ι)) {ℓ : ℕ∞} (hℓ : 2 ≤ ℓ) (hk : (ℓ : ℕ∞ω) + 1 ≤ k) :
+    ∃ φ : M → ℝ, ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) ℓ φ ∧ (∀ x, 0 ≤ φ x) ∧
+      (∀ x, φ x = 0 ↔ x ∈ range ι) ∧
+      (∀ y, ∀ v ∉ LinearMap.range (mfderiv I' 𝓘(ℝ, E) ι y).toLinearMap,
+        0 < criticalHessian 𝓘(ℝ, E) φ (ι y) v v) ∧
+      {x | IsManifoldStrictlyPlurisubharmonicAt E φ x} ∈ 𝓝ˢ (range ι) := by
+  classical
+  set e : F ≃L[ℝ] EuclideanSpace ℝ (Fin (finrank ℝ F)) := toEuclidean
+  -- Adapted charts at the points of the image.
+  have h' : IsTotallyRealEmbedding I' 𝓘(ℝ, E) k
+      ((ofComplexManifold E M).toContMDiff ℓ).almostComplexStructureAt ι := by
+    rwa [almostComplexStructureAt_toContMDiff]
+  have hex (y : N) : ∃ ψ : OpenPartialHomeomorph M (F × F), ι y ∈ ψ.source ∧
+      IsAdaptedChart ((ofComplexManifold E M).toContMDiff ℓ) (range ι) ψ := by
+    obtain ⟨ψ, -, -, -, -, hy, -, hψ⟩ := h'.exists_adaptedChart (one_le_two.trans hℓ) hk y
+    exact ⟨ψ, hy, hψ⟩
+  choose ψ hyψ hψ using hex
+  -- A partition of unity subordinate to their sources and to the complement of the image.
+  let U : Option N → Set M := fun i ↦ i.elim (range ι)ᶜ fun y ↦ (ψ y).source
+  have hUo (i : Option N) : IsOpen (U i) := by
+    cases i with
+    | none => exact hclosed.isOpen_compl
+    | some y => exact (ψ y).open_source
+  have hUcov : univ ⊆ ⋃ i, U i := by
+    intro x _
+    by_cases hx : x ∈ range ι
+    · obtain ⟨y, rfl⟩ := hx
+      exact mem_iUnion.2 ⟨some y, hyψ y⟩
+    · exact mem_iUnion.2 ⟨none, hx⟩
+  obtain ⟨ρ, hρ⟩ :=
+    SmoothPartitionOfUnity.exists_isSubordinate 𝓘(ℝ, E) isClosed_univ U hUo hUcov
+  let g : Option N → M → ℝ := fun i ↦ i.elim (fun _ ↦ 1) fun y x ↦ ‖e (ψ y x).2‖ ^ 2
+  have hg (i : Option N) {x : M} (hx : x ∈ U i) : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) ℓ (g i) x := by
+    cases i with
+    | none => exact contMDiffAt_const
+    | some y => exact (hψ y).contMDiffAt_norm_sq_snd hx
+  have hg0 (i : Option N) (x : M) : 0 ≤ g i x := by
+    cases i with
+    | none => exact zero_le_one
+    | some y => exact sq_nonneg _
+  -- The points of the image lie in no `tsupport ρ none`.
+  have hsome {i : Option N} {y : N} (hi : ι y ∈ tsupport (ρ i)) :
+      ∃ z, i = some z ∧ ι y ∈ (ψ z).source := by
+    cases i with
+    | none => exact absurd (hρ none hi) (by simp [U])
+    | some z => exact ⟨z, rfl, hρ (some z) hi⟩
+  set φ : M → ℝ := fun x ↦ ∑ᶠ i, ρ i x • g i x
+  have hφ : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) ℓ φ :=
+    ρ.contMDiff_finsum_smul fun i x hx ↦ hg i (hρ i hx)
+  have hφ0 (x : M) : 0 ≤ φ x := finsum_nonneg fun i ↦ smul_nonneg (ρ.nonneg i x) (hg0 i x)
+  -- Near `ι y`, `φ` is the finite sum of the `ρ i • g i` over the `tsupport`s containing `ι y`.
+  have hloc (y : N) : φ =ᶠ[𝓝 (ι y)] ∑ i ∈ ρ.fintsupport (ι y), ⇑(ρ i) * g i := by
+    filter_upwards [ρ.eventually_finsupport_subset (ι y)] with x hx
+    rw [Finset.sum_apply, show φ x = ∑ᶠ i, ρ i x • g i x from rfl,
+      ← ρ.sum_finsupport_smul_eq_finsum]
+    refine Finset.sum_subset hx fun i _ hi ↦ ?_
+    rw [ρ.mem_finsupport, Function.mem_support, not_not] at hi
+    simp [hi]
+  have hHess (y : N) (v : TangentSpace 𝓘(ℝ, E) (ι y))
+      (hv : v ∉ LinearMap.range (mfderiv I' 𝓘(ℝ, E) ι y).toLinearMap) :
+      0 < criticalHessian 𝓘(ℝ, E) φ (ι y) v v := by
+    have hint : 𝓘(ℝ, E).IsInteriorPoint (ι y) := BoundarylessManifold.isInteriorPoint
+    have hρg (i : Option N) (hi : i ∈ ρ.fintsupport (ι y)) :
+        ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) 2 (g i) (ι y) :=
+      (hg i (hρ i ((ρ.mem_fintsupport_iff _ i).1 hi))).of_le (WithTop.coe_le_coe.2 hℓ)
+    have hρs (i : Option N) : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) 2 (ρ i) (ι y) :=
+      ((ρ i).contMDiff.of_le (by simp)).contMDiffAt
+    -- Each term is `ρ i (ι y)` times the Hessian of `g i`, which is positive on `v`.
+    have hterm (i : Option N) (hi : i ∈ ρ.fintsupport (ι y)) :
+        criticalHessian 𝓘(ℝ, E) (⇑(ρ i) * g i) (ι y) v v =
+          ρ i (ι y) * criticalHessian 𝓘(ℝ, E) (g i) (ι y) v v ∧
+        0 < criticalHessian 𝓘(ℝ, E) (g i) (ι y) v v := by
+      obtain ⟨z, rfl, hz⟩ := hsome ((ρ.mem_fintsupport_iff _ _).1 hi)
+      refine ⟨?_, (hψ z).criticalHessian_norm_sq_snd_pos h' (le_trans (by norm_num) hk) hℓ hz hv⟩
+      rw [criticalHessian_mul_of_mem_criticalPoints (hρs _) (hρg _ hi) hint
+        (((hψ z).norm_sq_snd_eq_zero_iff hz).2 (mem_range_self y))
+        ((hψ z).mem_criticalPoints_norm_sq_snd ⟨hz, mem_range_self y⟩),
+        _root_.smul_apply, _root_.smul_apply, smul_eq_mul]
+    rw [criticalHessian_congr_of_eventuallyEq (hloc y),
+      criticalHessian_sum _ (fun i hi ↦ (hρs i).mul (hρg i hi)) hint,
+      FunLike.coe_sum, Finset.sum_apply, FunLike.coe_sum,
+      Finset.sum_apply]
+    obtain ⟨i, hi⟩ : (ρ.finsupport (ι y)).Nonempty :=
+      Finset.nonempty_of_sum_ne_zero ((ρ.sum_finsupport _ (mem_univ _)).symm ▸ one_ne_zero)
+    have hi' := ρ.finsupport_subset_fintsupport _ hi
+    refine Finset.sum_pos' (fun j hj ↦ ?_) ⟨i, hi', ?_⟩
+    · rw [(hterm j hj).1]
+      exact mul_nonneg (ρ.nonneg j _) (hterm j hj).2.le
+    · rw [(hterm i hi').1]
+      refine mul_pos (lt_of_le_of_ne (ρ.nonneg i _) ?_) (hterm i hi').2
+      exact (Ne.symm ((ρ.mem_finsupport _).1 hi))
+  refine ⟨φ, hφ, hφ0, fun x ↦ ⟨fun hx ↦ ?_, ?_⟩, hHess, ?_⟩
+  · -- Off the image, some `ρ i • g i` is positive at `x`.
+    by_contra hxι
+    have hpos : 0 < φ x := by
+      rw [show φ x = _ from (ρ.sum_finsupport_smul_eq_finsum x g).symm]
+      refine Finset.sum_pos (fun i hi ↦ ?_)
+        (Finset.nonempty_of_sum_ne_zero ((ρ.sum_finsupport x (mem_univ x)).symm ▸ one_ne_zero))
+      have hρi : 0 < ρ i x :=
+        lt_of_le_of_ne (ρ.nonneg i x) (Ne.symm ((ρ.mem_finsupport x).1 hi))
+      have hxU := hρ i (subset_tsupport _ ((ρ.mem_finsupport x).1 hi))
+      refine smul_pos hρi ?_
+      cases i with
+      | none => exact zero_lt_one
+      | some z =>
+        exact lt_of_le_of_ne (sq_nonneg _)
+          (Ne.symm (((hψ z).norm_sq_snd_eq_zero_iff hxU).not.2 hxι))
+    exact hpos.ne' hx
+  · rintro ⟨y, rfl⟩
+    refine finsum_eq_zero_of_forall_eq_zero fun i ↦ ?_
+    by_cases hi : ι y ∈ tsupport (ρ i)
+    · obtain ⟨z, rfl, hz⟩ := hsome hi
+      simp [g, ((hψ z).norm_sq_snd_eq_zero_iff hz).2 (mem_range_self y)]
+    · simp [image_eq_zero_of_notMem_tsupport hi]
+  · exact SymplecticGeometry.setOf_isManifoldStrictlyPlurisubharmonicAt_mem_nhdsSet_range
+      (fun y ↦ (hφ (ι y)).of_le (WithTop.coe_le_coe.2 hℓ)) h.isTotallyReal_range_mfderiv hHess
 
 end TauCeti.IsTotallyRealEmbedding
 
