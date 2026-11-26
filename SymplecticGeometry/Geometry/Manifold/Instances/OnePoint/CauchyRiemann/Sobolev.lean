@@ -20,6 +20,7 @@ import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.ZeroO
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.Chart.IteratedFDeriv
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Tames
 import TauCeti.Analysis.Calculus.BumpFunction.Cutoff
+import TauCeti.Analysis.Sobolev.Local.Norm.ContDiff
 import TauCeti.Geometry.Manifold.ContMDiffMap.Extension
 import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.Density
 import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.SMul
@@ -465,14 +466,14 @@ private theorem exists_sum_eLpNorm_iteratedFDeriv_mul_le {W U T K : Set ℂ} (hW
     ring
   have hθs : ContDiffOn ℝ ∞ θ W := (hg.smul contDiffOn_const).congr hθg
   have hθ₁ (z : ℂ) (hz : z ∈ W) : θ z 1 = g z := by simp [hθg z hz]
-  have hθ₁le (l : ℕ) : eLpNorm (iteratedFDeriv ℝ l fun z ↦ θ z 1) 2 ν ≤
-      eLpNorm (iteratedFDeriv ℝ l θ) 2 ν := by
-    refine eLpNorm_mono_ae ((ContinuousOn.continuousOn_iteratedFDeriv
-      (hθs.clm_apply contDiffOn_const) hW
-      (by exact_mod_cast le_top)).aestronglyMeasurable hW.measurableSet) ?_
-    filter_upwards [ae_restrict_mem hW.measurableSet] with z hz
-    simpa using norm_iteratedFDeriv_clm_apply_const (c := (1 : ℂ))
-      (hθs.contDiffAt (hW.mem_nhds hz)) (n := l) (by exact_mod_cast le_top)
+  -- Evaluation at `1` does not increase the `W^{k,2}(W)` norm, which for functions smooth on `W`
+  -- is the sum of the `L²(W)` norms of their derivatives of order at most `k`.
+  have hθ₁le : ∑ l ∈ Finset.range (k + 1), eLpNorm (iteratedFDeriv ℝ l fun z ↦ θ z 1) 2 ν ≤
+      ∑ l ∈ Finset.range (k + 1), eLpNorm (iteratedFDeriv ℝ l θ) 2 ν := by
+    rw [← eLpNormWkp_eq_sum_eLpNorm_iteratedFDeriv hW k
+        ((hθs.clm_apply contDiffOn_const).of_le hk),
+      ← eLpNormWkp_eq_sum_eLpNorm_iteratedFDeriv hW k (hθs.of_le hk)]
+    exact eLpNormWkp_apply_le_of_norm_le_one θ (by simp)
   -- The smooth function `v` on the plane, equal to `w = χ' u` on `W`.
   set w : ℂ → ℂ := fun z ↦ χ' z • u z
   have hw : ContDiffOn ℝ ∞ w W := (hχ'.mono hWT').smul hu
@@ -509,7 +510,7 @@ private theorem exists_sum_eLpNorm_iteratedFDeriv_mul_le {W U T K : Set ℂ} (hW
         ((hb.mono (subset_closure.trans hWt)).smul hu) (j := j) (by exact_mod_cast le_top)).trans
       (add_le_add ?_ (hCb u (hu.of_le hk) j hj)))
     exact (hCa _ ((hθs.clm_apply contDiffOn_const).of_le hk) j hj).trans
-      (by gcongr; exact Finset.sum_le_sum fun l _ ↦ hθ₁le l)
+      (by gcongr)
   -- Assemble.
   have hsum {f : ℕ → ℝ≥0∞} {B : ℝ≥0∞} (h : ∀ j ≤ k, f j ≤ B) :
       ∑ j ∈ Finset.range (k + 1), f j ≤ (k + 1) * B :=
