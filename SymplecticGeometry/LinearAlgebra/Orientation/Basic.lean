@@ -22,8 +22,8 @@ public section
 
 namespace Orientation
 
-variable {R M N : Type*} [CommRing R] [PartialOrder R] [IsStrictOrderedRing R]
-  [AddCommGroup M] [Module R M] [AddCommGroup N] [Module R N] {ι ι' : Type*}
+variable {R M N : Type*} [CommSemiring R] [PartialOrder R] [IsStrictOrderedRing R]
+  [AddCommMonoid M] [Module R M] [AddCommMonoid N] [Module R N] {ι ι' : Type*}
 
 /-- A change of the empty index type carries the positive orientation to the positive
 orientation. -/
