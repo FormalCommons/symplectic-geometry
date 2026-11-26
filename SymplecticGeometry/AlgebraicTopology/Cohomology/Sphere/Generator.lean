@@ -183,8 +183,7 @@ theorem integralCohomologyEquiv_symm_singularCup_sphereGenerator (Y : TopCat.{0}
         (@TopCat.singularCohomologyMap _ _ _ _ (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ _
           Linear.preadditiveIntLinear (ModuleCat.of ℤ ℤ) _ _ (snd _ Y) n
           ((Y.integralCohomologyEquiv n).symm c)) := by
-  rw [integralCohomologyEquiv_symm_singularCup, integralCohomologyEquiv_symm_naturality,
-    integralCohomologyEquiv_symm_naturality, integralSphereGenerator_def]
+  rw [integralCohomologyEquiv_symm_singularCup_fst_snd, ← integralSphereGenerator_def]
 
 end IntegerCoefficients
 
