@@ -478,13 +478,21 @@ A smooth vector bundle over `ℝ` is smoothly trivial: for
 `Bundle.exists_diffeomorph_prod_of_real` gives a diffeomorphism
 `TotalSpace F T ≃ₘ^∞⟮𝓘(ℝ).prod 𝓘(ℝ, F), 𝓘(ℝ).prod 𝓘(ℝ, F)⟯ ℝ × F` over `ℝ`,
 linear on each fibre. Tau Ceti has only the continuous statement over
-contractible bases (`Topology/VectorBundle/Contractible.lean`). Route:
-frames on the intervals of a locally finite cover of `ℝ` by intervals over
-which the bundle is trivial, glued outward from `0` in both directions.
-Where the frame `e` built so far and the next frame `e'` overlap, they
-differ by a smooth `A : ℝ → GL`, and `e'` is replaced by `e' · A ∘ φ`, with
-`φ` smooth, equal to the identity on the part of the overlap nearer `0` and
-constant on the other part.
+contractible bases (`Topology/VectorBundle/Contractible.lean`). Route: a
+global smooth frame, built from the frames of the bundle's trivializations.
+Two frames glue along a smooth map into their overlap that is the identity
+on one side (`IsLocalFrameOn.exists_isLocalFrameOn_union`, in
+`VectorBundle/LocalFrame.lean`). Over `ℝ` this joins frames on overlapping
+open intervals, and a supremum argument extends a frame on an open interval
+as far as wanted to the right or the left, unchanged away from the end it
+moves (`IsLocalFrameOn.exists_isLocalFrameOn_Ioo_extend_right`, `_left`).
+That gives frames on `Ioo (-(k + 2)) (k + 2)`, each agreeing with the one
+before on `Ioo (-(k + 1)) (k + 1)`, whose limit
+(`IsLocalFrameOn.exists_isLocalFrameOn_iUnion`, in `LocalFrame.lean`) is a
+global frame (`Bundle.exists_isLocalFrameOn_univ_of_real`). A global frame
+of any smooth vector bundle gives the diffeomorphism with the product
+(`Bundle.exists_diffeomorph_prod_of_isLocalFrameOn_univ`, in
+`LocalFrame.lean`).
 
 #### `Geometry/Manifold/TubularNeighborhood/Ray.lean`
 
