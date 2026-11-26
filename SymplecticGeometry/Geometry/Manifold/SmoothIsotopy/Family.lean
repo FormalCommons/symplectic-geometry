@@ -8,6 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.Diffeomorph
 public import Mathlib.Geometry.Manifold.Instances.Real
 public import Mathlib.Geometry.Manifold.SmoothEmbedding
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.TimeExtension
 import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Neighborhood
 import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Extension
@@ -34,9 +35,9 @@ applied to the graph isotopy `(q, y) ↦ (q, k (q, s, y))` of an open neighbourh
 1. The graph slices are smooth embeddings of a neighbourhood `V` of `T ×ˢ A`
    (`TauCeti.exists_isOpen_forall_isSmoothEmbedding_of_injOn`, with the differential of a graph
    from `MDifferentiableAt.injective_mfderiv_fst_prod_iff`).
-2. The time extension that `TauCeti.SmoothIsotopy.exists_contMDiff_extend` gives for the graph
-   isotopy need not keep the parameter fixed outside `[0, 1]`; its `Q`-component is replaced by the
-   parameter, and the slices of the new motion are embeddings near `T ×ˢ A` for times near
+2. The family `k` itself extends in time near `T ×ˢ A`
+   (`ContMDiff.exists_contMDiffOn_extend_of_isCompact`). The graph of the extension keeps the
+   parameter fixed by construction, and its slices are embeddings near `T ×ˢ A` for times near
    `[0, 1]` (`TauCeti.exists_pos_forall_isSmoothEmbedding_of_eventuallyEq`). Run at the time of
    a cut-off (`TauCeti.exists_contMDiff_forall_isSmoothEmbedding_comp`), it becomes a motion over
    `ℝ`, stationary outside a bounded interval.
@@ -185,40 +186,34 @@ theorem _root_.ContMDiff.exists_contMDiff_diffeomorph_family_forall_apply_eq
           (by simp)
       exact hd.injective_mfderiv_fst_prod_iff.2
         ((hemb p.1 hp.1 s).isImmersion.mfderiv_injective (by simp) p.2)
-  let F := SmoothIsotopy.ofForallIsSmoothEmbedding
-    (hg.contMDiffOn (s := univ ×ˢ (V : Set (Q × P)))) hV
-    (f₀ := ⟨fun x : V ↦ g (0, x), hg.comp (contMDiff_const.prodMk contMDiff_subtypeVal)⟩)
-    (f₁ := ⟨fun x : V ↦ g (1, x), hg.comp (contMDiff_const.prodMk contMDiff_subtypeVal)⟩)
-    (fun _ ↦ rfl) fun _ ↦ rfl
   let A' : Set V := Subtype.val ⁻¹' (T ×ˢ A)
   have hA' : IsCompact A' :=
     Topology.IsInducing.subtypeVal.isCompact_preimage' (hT.prod hA) (by rwa [Subtype.range_coe])
-  -- Step 2: extend `F` in time, and put the parameter back in the `Q`-component.
-  obtain ⟨δ, hδ, V₂, hAV₂, G, hG, hGF, -⟩ := F.exists_contMDiff_extend hA'
-  let G₂ : ℝ × V → Q × M := fun p ↦ ((p.2 : Q × P).1, (G p).2)
-  have hG₂ : ContMDiffOn (𝓘(ℝ).prod (IQ.prod J)) (IQ.prod I) ∞ G₂
-      (Ioo (-δ) (1 + δ) ×ˢ (V₂ : Set V)) :=
-    (contMDiff_fst.comp (contMDiff_subtypeVal.comp contMDiff_snd)).contMDiffOn.prodMk
-      (contMDiff_snd.comp_contMDiffOn hG)
-  have hGg (t : unitInterval) (x : V) (hx : x ∈ V₂) : G (t, x) = g (t, x) :=
-    (hGF t x hx).trans (SmoothIsotopy.ofForallIsSmoothEmbedding_apply _ _ _ _ _)
-  have hG₂F (t : unitInterval) (x : V) (hx : x ∈ V₂) : G₂ (t, x) = g (t, x) :=
-    Prod.ext rfl (by simp only [G₂, hGg t x hx])
-  obtain ⟨ε, hε, V₃, hAV₃, hV₃W, hV₃⟩ := exists_pos_forall_isSmoothEmbedding_of_eventuallyEq
-    (isOpen_Ioo.prod V₂.isOpen) hG₂ hA'
-    (fun p hp ↦ ⟨⟨by linarith [hp.1.1], by linarith [hp.1.2]⟩, hAV₂ hp.2⟩)
-    (F := fun p : unitInterval × V ↦ g (p.1, p.2)) hV
-    fun t ht ↦ Filter.eventually_of_mem (V₂.isOpen.mem_nhdsSet.2 hAV₂) fun x hx ↦
-      hG₂F ⟨t, ht⟩ x hx
+  -- Step 2: extend `k` in time near `A'`, and take the graph `Γ` of the extension, which keeps
+  -- the parameter fixed; its slices are embeddings near `A'` for times near `[0, 1]`.
+  obtain ⟨S, hS, hAS, G, hG, hGk⟩ := ContMDiff.exists_contMDiffOn_extend_of_isCompact
+    (f := fun p : unitInterval × V ↦ k ((p.2 : Q × P).1, p.1, (p.2 : Q × P).2))
+    (hk.comp ((contMDiff_subtypeVal.comp contMDiff_snd).fst.prodMk
+      (contMDiff_fst.prodMk (contMDiff_subtypeVal.comp contMDiff_snd).snd))) hA'
+  let Γ : ℝ × V → Q × M := fun p ↦ ((p.2 : Q × P).1, G p)
+  have hΓ : ContMDiffOn (𝓘(ℝ).prod (IQ.prod J)) (IQ.prod I) ∞ Γ S :=
+    (contMDiff_subtypeVal.comp contMDiff_snd).fst.contMDiffOn.prodMk hG
+  have hΓg (t : unitInterval) (x : V) (hx : ((t : ℝ), x) ∈ S) : Γ (t, x) = g (t, x) :=
+    Prod.ext rfl (hGk t x hx)
+  obtain ⟨ε, hε, V₃, hAV₃, hV₃S, hV₃⟩ := exists_pos_forall_isSmoothEmbedding_of_eventuallyEq
+    hS hΓ hA' hAS (F := fun p : unitInterval × V ↦ g (p.1, p.2)) hV
+    fun t ht ↦ Filter.eventually_of_mem
+      ((hS.preimage (Continuous.prodMk_right t)).mem_nhdsSet.2 fun x hx ↦ hAS ⟨ht, hx⟩)
+      fun x hx ↦ hΓg ⟨t, ht⟩ x hx
   -- A motion of `V₃` over `ℝ`, stationary outside a bounded interval.
   obtain ⟨c, hG', hemb', hc_id, hc_lo, hc_hi⟩ :=
-    exists_contMDiff_forall_isSmoothEmbedding_comp hε (hG₂.mono hV₃W) hV₃
+    exists_contMDiff_forall_isSmoothEmbedding_comp hε (hΓ.mono hV₃S) hV₃
   let A'' : Set V₃ := Subtype.val ⁻¹' A'
   have hA'' : IsCompact A'' :=
     Topology.IsInducing.subtypeVal.isCompact_preimage' hA' (by rwa [Subtype.range_coe])
   -- Step 3: the flows of the `M`-components of the ambient field.
   obtain ⟨ψ, hψ, hψ₀, K, hK, hψK, hψG⟩ := exists_contMDiff_diffeomorph_family_of_graph
-    (π := fun x : V₃ ↦ ((x : V) : Q × P).1) (G := fun p ↦ (G₂ (c p.1, p.2)).2)
+    (π := fun x : V₃ ↦ ((x : V) : Q × P).1) (G := fun p ↦ (Γ (c p.1, p.2)).2)
     (contMDiff_fst.comp (contMDiff_subtypeVal.comp contMDiff_subtypeVal))
     (contMDiff_snd.comp hG') hemb' hA'' (a := -(ε / 2)) (b := 1 + ε / 2)
     (fun t ht x _ ↦ by simp only [hc_lo t ht]) (fun t ht x _ ↦ by simp only [hc_hi t ht])
@@ -226,10 +221,10 @@ theorem _root_.ContMDiff.exists_contMDiff_diffeomorph_family_forall_apply_eq
   have hqx : ((q, x) : Q × P) ∈ T ×ˢ A := ⟨hq, hx⟩
   let pV : V := ⟨(q, x), hTAV hqx⟩
   have hpV : pV ∈ A' := hqx
-  have hGk (t : unitInterval) : (G₂ (c t, pV)).2 = k (q, t, x) := by
-    rw [hc_id t t.property, hG₂F t pV (hAV₂ hpV)]
+  have hΓk (t : unitInterval) : (Γ (c t, pV)).2 = k (q, t, x) := by
+    rw [hc_id t t.property, hΓg t pV (hAS ⟨t.property, hpV⟩)]
   have h := hψG s ⟨pV, hAV₃ hpV⟩ hpV
-  rwa [← Set.Icc.coe_zero, hGk, hGk] at h
+  rwa [← Set.Icc.coe_zero, hΓk, hΓk] at h
 
 end TauCeti
 
