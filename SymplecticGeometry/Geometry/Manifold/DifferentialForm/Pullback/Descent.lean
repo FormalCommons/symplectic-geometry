@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Descent
+public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Semibasic
 import TauCeti.Geometry.Manifold.IsManifold.Basic
 
@@ -20,6 +21,10 @@ on the image of the point under `f` and on the images of the arguments under the
   one of its arguments lies in the kernel of the derivative of `f`. In other words
   (`TauCeti.RoughForm.IsBasic.isSemibasic`), it is semibasic for `f`
   (`TauCeti.RoughForm.IsSemibasic`).
+* `TauCeti.RoughForm.isSemibasicAt_mpullback`, `TauCeti.RoughForm.isSemibasic_mpullback`: the
+  pullback along any map `f` of a form on its target is semibasic for `f`, with no
+  differentiability asked of `f`, since Tau Ceti's `TauCeti.RoughForm.isBasic_mpullback` says
+  that it is basic. `TauCeti.SmoothForm.isSemibasic_mpullback` is the same for smooth pullbacks.
 * `TauCeti.RoughForm.IsBasic.mpullback_eq`: for a differentiable `f`, a basic form is invariant
   under every differentiable self-map `σ` with `f ∘ σ = f`.
 
@@ -73,6 +78,42 @@ theorem IsBasic.mpullback_eq (hα : IsBasic I' f α) (hf : MDifferentiable I I' 
   rw [hfσ] at hcomp
   exact (congrArg (· (v i)) hcomp).symm
 
+variable (I' f) in
+/-- **Pullbacks from the base are semibasic.** For any map `f : M → M'` and any form `ω` on `M'`,
+the pullback of `ω` along `f` is semibasic for `f` at every point `x`. -/
+@[simp]
+theorem isSemibasicAt_mpullback (ω : RoughForm I' M' V k) (x : M) :
+    IsSemibasicAt I' f (mpullback I I' f ω) x :=
+  isSemibasic_def.mp (isBasic_mpullback ω).isSemibasic x
+
+variable (I' f) in
+/-- **Pullbacks from the base are semibasic.** For any map `f : M → M'` and any form `ω` on `M'`,
+the pullback of `ω` along `f` is semibasic for `f`. -/
+@[simp]
+theorem isSemibasic_mpullback (ω : RoughForm I' M' V k) :
+    IsSemibasic I' f (mpullback I I' f ω) :=
+  (isBasic_mpullback ω).isSemibasic
+
 end TauCeti.RoughForm
+
+namespace TauCeti.SmoothForm
+
+open scoped ContDiff
+
+variable {E H M E' H' M' F : Type*}
+  [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  [TopologicalSpace M] [ChartedSpace H M] [IsManifold I 1 M]
+  [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
+  [TopologicalSpace M'] [ChartedSpace H' M'] [IsManifold I' 1 M']
+  [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
+
+/-- **Smooth pullbacks from the base are semibasic.** For a smooth map `f : M → M'` and a smooth
+form `φ` on `M'`, the smooth pullback of `φ` along `f` is semibasic for `f`. -/
+theorem isSemibasic_mpullback {f : M → M'} (hf : ContMDiff I I' ∞ f) (φ : SmoothForm I' M' F k) :
+    RoughForm.IsSemibasic (F := F) I' f (mpullback f hf φ).val := by
+  rw [coe_mpullback]
+  exact RoughForm.isSemibasic_mpullback (I := I) (V := F) I' f φ.val
+
+end TauCeti.SmoothForm
 
 end

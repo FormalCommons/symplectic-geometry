@@ -6,7 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.ExtDeriv
-public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Smooth
 public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Basic
@@ -14,7 +13,6 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Wedge.Basic
 public import SymplecticGeometry.LinearAlgebra.Alternating.Conormal
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
-import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
 
 /-!
@@ -42,9 +40,6 @@ pullbacks are reached through `TauCeti.SmoothForm.coe_mpullback`.
   semibasic. `TauCeti.SmoothForm.isSemibasic_add`, `TauCeti.SmoothForm.isSemibasic_smul`, … and
   `TauCeti.SmoothForm.isSemibasic_iff` state closure and the vanishing on vertical arguments for
   the underlying rough forms of smooth forms, with the instances of `TauCeti.SmoothForm`.
-* `TauCeti.RoughForm.isSemibasicAt_mpullback`, `TauCeti.RoughForm.isSemibasic_mpullback`: the
-  pullback along any map `f` of a form on its target is semibasic for `f`; no differentiability
-  is needed. `TauCeti.SmoothForm.isSemibasic_mpullback` is the same for smooth pullbacks.
 * `TauCeti.RoughForm.IsSemibasicAt.mpullback_of_mfderiv`: the pullback along a map `g` of a form
   semibasic for `f` is semibasic for `f'` when the differential of `g` sends the kernel of that
   of `f'` into the kernel of that of `f`. The linear step is
@@ -57,9 +52,8 @@ pullbacks are reached through `TauCeti.SmoothForm.coe_mpullback`.
   differential of `f` vanishes on every triple whose first two vectors lie in that kernel. It is
   the case `K = ker (mfderiv f x)` of `ContinuousAlternatingMap.pairedWedge_apply_eq_zero_of_mem`.
 * `TauCeti.RoughForm.isSemibasicAt_mextDeriv_ofFunction_comp`: the differential of `g ∘ f`, a
-  function on `B` pulled back along `f`, is semibasic for `f`, as the case `β = d g` of
-  `TauCeti.RoughForm.isSemibasicAt_mpullback` through Tau Ceti's
-  `TauCeti.mpullback_mextDeriv_ofFunction_apply`; and
+  function on `B` pulled back along `f`, is semibasic for `f`, a case of
+  `TauCeti.RoughForm.isSemibasicAt_mpullback` (in `Pullback/Descent.lean`); and
   `TauCeti.RoughForm.isSemibasic_mextDeriv_ofFunction_comp`, the same at every point.
 * `TauCeti.RoughForm.isSemibasicAt_fst_iff`: a form on `M × N` is semibasic for `Prod.fst` at
   `p` exactly when it vanishes at `p` on every tuple one of whose vectors has zero component
@@ -86,7 +80,7 @@ public section
 noncomputable section
 
 open Manifold
-open scoped Manifold ContDiff
+open scoped Manifold
 
 namespace TauCeti.RoughForm
 
@@ -240,23 +234,6 @@ end IsSemibasic
 
 section Pullback
 
-variable (IB f) in
-/-- **Pullbacks from the base are semibasic.** For any map `f : M → B` and any form `β` on `B`,
-the pullback of `β` along `f` is semibasic for `f` at every point: its value at `x` evaluates
-`β (f x)` on the images of its arguments under the differential of `f` at `x`. -/
-theorem isSemibasicAt_mpullback (β : RoughForm IB B F k) (x : M) :
-    IsSemibasicAt IB f (mpullback I IB f β) x :=
-  isSemibasicAt_iff.mpr fun v i hv ↦ by
-    rw [mpullback_apply]
-    exact (β (f x)).map_coord_zero i hv
-
-variable (IB f) in
-/-- **Pullbacks from the base are semibasic.** For any map `f : M → B` and any form `β` on `B`,
-the pullback of `β` along `f` is semibasic for `f`. -/
-theorem isSemibasic_mpullback (β : RoughForm IB B F k) :
-    IsSemibasic IB f (mpullback I IB f β) :=
-  isSemibasicAt_mpullback IB f β
-
 variable {E' H' M' EB' HB' B' : Type*}
   [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
   [TopologicalSpace M'] [ChartedSpace H' M'] {I' : ModelWithCorners ℝ E' H'}
@@ -351,15 +328,19 @@ variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
 /-- **Differentials of functions on the base are semibasic.** For `f : M → B` differentiable at
 `x` and `g : B → F` differentiable at `f x`, the differential `d (g ∘ f)` is semibasic for `f` at
 `x`. Its value at `x` is that of the pullback of `d g` along `f`
-(`TauCeti.mpullback_mextDeriv_ofFunction_apply`), so this is a case of
-`TauCeti.RoughForm.isSemibasicAt_mpullback`. -/
+(`TauCeti.mpullback_mextDeriv_ofFunction_apply`), so this is the case `ω = d g` of
+`TauCeti.RoughForm.isSemibasicAt_mpullback`, in `Pullback/Descent.lean`. -/
 theorem isSemibasicAt_mextDeriv_ofFunction_comp {g : B → F} {x : M}
     (hg : MDifferentiableAt IB 𝓘(ℝ, F) g (f x)) (hf : MDifferentiableAt I IB f x) :
     IsSemibasicAt IB f (mextDeriv (RoughForm.ofFunction I (g ∘ f))) x := by
-  have h := isSemibasicAt_def.mp
-    (isSemibasicAt_mpullback (I := I) IB f (mextDeriv (RoughForm.ofFunction IB g)) x)
-  rw [mpullback_mextDeriv_ofFunction_apply hf hg] at h
-  exact isSemibasicAt_def.mpr h
+  refine isSemibasicAt_iff.mpr fun v i hv ↦ ?_
+  obtain rfl : i = 0 := Subsingleton.elim (α := Fin 1) _ _
+  have hv' : v = ![v 0] := by
+    ext j
+    fin_cases j
+    rfl
+  rw [hv', mextDeriv_ofFunction_apply, mfderiv_comp_apply x hg hf, hv]
+  exact map_zero _
 
 /-- **Differentials of functions on the base are semibasic.** For differentiable `f : M → B` and
 `g : B → F`, the differential `d (g ∘ f)` is semibasic for `f`. -/
@@ -457,14 +438,6 @@ theorem isSemibasic_sub {α β : SmoothForm I M F k} (hα : RoughForm.IsSemibasi
   exact hα.sub hβ
 
 end Linear
-
-/-- **Smooth pullbacks from the base are semibasic.** For a smooth map `f : M → B` and a smooth
-form `β` on `B`, the smooth pullback of `β` along `f` is semibasic for `f`. -/
-theorem isSemibasic_mpullback [IsManifold IB 1 B] {F : Type*} [NormedAddCommGroup F]
-    [NormedSpace ℝ F] {k : ℕ} (hf : ContMDiff I IB ∞ f) (β : SmoothForm IB B F k) :
-    RoughForm.IsSemibasic (F := F) IB f (mpullback f hf β).val := by
-  rw [coe_mpullback]
-  exact RoughForm.isSemibasic_mpullback (I := I) (F := F) IB f β.val
 
 /-- **Semibasic two-forms.** A smooth two-form `σ` is semibasic for `f` at `x` exactly when every
 vector in the kernel of the differential of `f` at `x` lies in the kernel of the bilinear form
