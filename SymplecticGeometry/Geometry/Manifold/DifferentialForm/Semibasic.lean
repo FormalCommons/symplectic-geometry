@@ -5,8 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Geometry.Manifold.DifferentialForm.ExtDeriv
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Smooth
+public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 public import SymplecticGeometry.LinearAlgebra.Alternating.Conormal
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
@@ -44,6 +46,11 @@ pullbacks are reached through `TauCeti.SmoothForm.coe_mpullback`.
 * `TauCeti.RoughForm.IsSemibasicAt.mpullback_of_comp_eq`: for differentiable maps with
   `f ∘ g = h ∘ f'`, the pullback along `g` of a form semibasic for `f` is semibasic for `f'`; in
   particular (`TauCeti.RoughForm.IsSemibasicAt.mpullback_comp`) it is semibasic for `f ∘ g`.
+* `TauCeti.RoughForm.IsSemibasicAt.wedge_apply_eq_zero`: at `x`, the wedge `φ ∧ ψ` of a one-form
+  `φ` semibasic for `f` with a two-form `ψ` that vanishes on pairs of vectors of the kernel of the
+  differential of `f` vanishes on every triple whose first two vectors lie in that kernel.
+* `TauCeti.RoughForm.isSemibasicAt_mextDeriv_ofFunction_comp`: the differential of `g ∘ f`, a
+  function on `B` pulled back along `f`, is semibasic for `f`.
 * `TauCeti.RoughForm.isSemibasicAt_fst_iff`: a form on `M × N` is semibasic for `Prod.fst` at
   `p` exactly when it vanishes at `p` on every tuple one of whose vectors has zero component
   along `M`; and `TauCeti.RoughForm.IsSemibasic.mpullback_prodMap`: pullback along a product of
@@ -291,6 +298,57 @@ theorem IsSemibasic.mpullback_comp {α : RoughForm I M F k} (hα : IsSemibasic I
   fun x' ↦ (hα (g x')).mpullback_comp (hg _) (hf _)
 
 end Pullback
+
+section Wedge
+
+/-- **Wedge with a semibasic one-form.** Let `φ` be a one-form semibasic for `f` at `x`, and `ψ`
+a two-form whose value at `x` vanishes on every pair of vectors of the kernel `K` of the
+differential of `f` at `x`. Then `(φ ∧ ψ)_x (η₁, η₂, v) = 0` for `η₁ η₂ ∈ K` and every `v`. -/
+theorem IsSemibasicAt.wedge_apply_eq_zero {φ : RoughForm I M ℝ 1} {ψ : RoughForm I M ℝ 2}
+    {x : M} (hφ : IsSemibasicAt IB f φ x)
+    (hψ : ∀ u w : TangentSpace I x, mfderiv I IB f x u = 0 → mfderiv I IB f x w = 0 →
+      ψ x ![u, w] = 0)
+    {η₁ η₂ : TangentSpace I x} (h₁ : mfderiv I IB f x η₁ = 0) (h₂ : mfderiv I IB f x η₂ = 0)
+    (v : TangentSpace I x) : φ.wedge ψ x ![η₁, η₂, v] = 0 := by
+  set w : Fin 3 → TangentSpace I x := ![η₁, η₂, v]
+  -- Every vector of the triple but the last lies in the kernel.
+  have hw (i : Fin 3) (hi : i ≠ 2) : mfderiv I IB f x (w i) = 0 := by
+    fin_cases i
+    exacts [h₁, h₂, absurd rfl hi]
+  rw [wedge_apply]
+  refine smul_eq_zero_of_right _ (Finset.sum_eq_zero fun σ _ ↦ ?_)
+  by_cases h0 : σ 0 = 2
+  · -- `φ` receives `v`, so `ψ` receives the two vectors of the kernel.
+    have hne (i : Fin 3) (hi : i ≠ 0) : σ i ≠ 2 := fun h ↦ hi (σ.injective (h.trans h0.symm))
+    have hψσ : (fun j : Fin 2 ↦ w (σ (Fin.natAdd 1 j))) = ![w (σ 1), w (σ 2)] := by
+      ext j
+      fin_cases j <;> rfl
+    rw [hψσ, hψ _ _ (hw _ (hne 1 (by decide))) (hw _ (hne 2 (by decide))), mul_zero, smul_zero]
+  · -- `φ` receives a vector of the kernel.
+    rw [hφ.apply_eq_zero _ 0 (hw _ h0), zero_mul, smul_zero]
+
+end Wedge
+
+section ExtDeriv
+
+variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+
+/-- **Differentials of functions on the base are semibasic.** For `f : M → B` differentiable at
+`x` and `g : B → F` differentiable at `f x`, the differential `d (g ∘ f)` is semibasic for `f` at
+`x`. -/
+theorem isSemibasicAt_mextDeriv_ofFunction_comp {g : B → F} {x : M}
+    (hg : MDifferentiableAt IB 𝓘(ℝ, F) g (f x)) (hf : MDifferentiableAt I IB f x) :
+    IsSemibasicAt IB f (mextDeriv (RoughForm.ofFunction I (g ∘ f))) x := by
+  refine isSemibasicAt_iff.mpr fun v i hv ↦ ?_
+  obtain rfl : i = 0 := Subsingleton.elim (α := Fin 1) _ _
+  have hv' : v = ![v 0] := by
+    ext j
+    fin_cases j
+    rfl
+  rw [hv', mextDeriv_ofFunction_apply, mfderiv_comp_apply x hg hf, hv]
+  exact map_zero _
+
+end ExtDeriv
 
 section Prod
 
