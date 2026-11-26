@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.CovariantDerivative.OfLocal
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.Power.Basic
 public import SymplecticGeometry.Topology.FiberBundle.Associated.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.LocalFrame
@@ -30,8 +31,9 @@ set, `SymplecticGeometry.powerConnectionAt α k b` is Tau Ceti's flat derivative
 endomorphism-valued one-form `SymplecticGeometry.powerConnectionForm`,
 `v ↦ (i k (σ_b^* α) v) • ·` (Mathlib's `IsCovariantDerivativeOn.add_one_form`). The connection
 `D_k` takes at `x` the value of the operator for `b = x`. Both conditions of a covariant
-derivative are conditions at one point, so this is a covariant derivative on all of `B`, and no
-comparison of frames is needed to define it. On a section that reads `[σ_x, f]` near `x`, with
+derivative are conditions at one point, so this is a covariant derivative on all of `B`
+(`CovariantDerivative.ofIsCovariantDerivativeOnOfMem`), and no comparison of frames is needed
+to define it. On a section that reads `[σ_x, f]` near `x`, with
 `f` differentiable at `x`, `D_k` is given at `x` by the local formula in the preferred frame
 (`SymplecticGeometry.powerConnection_apply_trivializationAt`). The definition uses no property
 of `α`; that the formula holds in every local section of `P` uses that `α` is a connection form.
@@ -134,18 +136,14 @@ theorem isCovariantDerivativeOn_powerConnectionAt (b : B) :
 preferred local section of `P` at `x` (`SymplecticGeometry.powerConnection_apply_trivializationAt`).
 It is a covariant derivative for every `α`. When `α` is a connection form, it is the connection
 `D_k`, which has this form in every local section of `P`. -/
-def powerConnection : CovariantDerivative IB (PowerModel k) (PowerBundle P k) where
-  toFun s x := powerConnectionAt α k x s x
-  isCovariantDerivativeOnUniv :=
-    { add := fun hσ hσ' _ ↦ (isCovariantDerivativeOn_powerConnectionAt α k _).add hσ hσ'
-        (mem_baseSet_trivializationAt Circle P _)
-      leibniz := fun hσ hg _ ↦ (isCovariantDerivativeOn_powerConnectionAt α k _).leibniz hσ hg
-        (mem_baseSet_trivializationAt Circle P _) }
+def powerConnection : CovariantDerivative IB (PowerModel k) (PowerBundle P k) :=
+  .ofIsCovariantDerivativeOnOfMem (isCovariantDerivativeOn_powerConnectionAt α k)
+    (mem_baseSet_trivializationAt Circle P)
 
 /-- At `x`, `D_k` is the connection `powerConnectionAt α k x` of the preferred frame at `x`. -/
 theorem powerConnection_apply (s : Π x, PowerBundle P k x) (x : B) :
     powerConnection α k s x = powerConnectionAt α k x s x :=
-  (rfl)
+  CovariantDerivative.ofIsCovariantDerivativeOnOfMem_apply _ _ s x
 
 /-- **The connection in the preferred frame.** If a section `s` of `PowerBundle P k` reads
 `[σ_x, f]` near `x`, where `σ_x` is the preferred local section of `P` at `x`, and `f` is

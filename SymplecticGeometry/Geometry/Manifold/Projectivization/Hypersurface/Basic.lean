@@ -28,7 +28,7 @@ manifold of dimension `n`, through Tau Ceti's zero-locus API
   in `n + 2` variables whose differential vanishes at no point of its projective zero locus.
 * `SymplecticGeometry.SmoothProjectiveHypersurface.carrier`: that zero locus, a subset of
   `ℙ ℂ (Fin (n + 2) → ℂ)`, to which the structure coerces as a type.
-* The instances `ChartedSpace`, `IsManifold 𝓘(ℂ, _) ω`, `CompactSpace` and `T2Space` on it. The
+* The instances `ChartedSpace`, `IsManifold 𝓘(ℂ, _) ω` and `CompactSpace` on it. The
   model is `Fin (n + 1 - Fintype.card Unit) → ℂ`, as Tau Ceti gives it; its dimension is `n`
   (`SymplecticGeometry.SmoothProjectiveHypersurface.finrank_model`).
 * `SymplecticGeometry.SmoothProjectiveHypersurface.embedding`: the inclusion into
@@ -123,10 +123,6 @@ instance instIsManifold : IsManifold 𝓘(ℂ, Fin (n + 1 - Fintype.card Unit) �
 /-- A smooth projective hypersurface is compact, as every zero locus in projective space is. -/
 instance instCompactSpace : CompactSpace X :=
   inferInstanceAs (CompactSpace (complexProjectiveZeroLocus _))
-
-/-- A smooth projective hypersurface is Hausdorff, as projective space is. -/
-instance instT2Space : T2Space X :=
-  inferInstanceAs (T2Space X.carrier)
 
 /-- The model of a smooth projective hypersurface in `ℂℙⁿ⁺¹` has complex dimension `n`. -/
 theorem finrank_model : Module.finrank ℂ (Fin (n + 1 - Fintype.card Unit) → ℂ) = n := by

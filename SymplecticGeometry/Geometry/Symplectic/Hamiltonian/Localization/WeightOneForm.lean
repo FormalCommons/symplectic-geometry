@@ -153,7 +153,7 @@ theorem mpullback_weightRotation_weightOneForm (k θ : ι → ℝ) :
   have hy (z : StdSpace ι) (j : ι) :
       (R z).y j = Real.sin (θ j) * z.x j + Real.cos (θ j) * z.y j := by
     simp [R]
-  refine Subtype.ext (funext fun z ↦ ContinuousAlternatingMap.ext fun v ↦ ?_)
+  refine SmoothBundleForm.ext fun z v ↦ ?_
   rw [SmoothForm.mpullback_apply, weightOneForm_apply, weightOneForm_apply, mfderiv_eq_fderiv]
   -- The pulled-back map is `R` written as a function, so its derivative is `R`.
   change ∑ j, k j * ((R z).x j * (fderiv ℝ R z (v 0)).y j -

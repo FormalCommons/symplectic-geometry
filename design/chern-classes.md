@@ -1137,7 +1137,8 @@ pass `HasFiniteTrivializingCover.of_compactSpace`.
 `SymplecticGeometry.Bundle.firstChernClass_prod_of_chartedSpace`, the
 Whitney formula of the milestone, as stated above: the determinant lines of
 `E₁` and `E₂` have finite trivializing covers by
-`HasFiniteTrivializingCover.of_chartedSpace`, so the proof of
+`HasFiniteTrivializingCover.of_chartedSpace` and
+`HasFiniteTrivializingCover.detCore`, so the proof of
 `firstChernClass_prod` (`detCoreProdFiberEquiv` and the tensor formula)
 applies. The issue of this file also adds the milestone line to the
 docstrings of `firstChernClass_pullback` and
