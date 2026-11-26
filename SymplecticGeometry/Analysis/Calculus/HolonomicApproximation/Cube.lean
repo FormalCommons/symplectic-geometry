@@ -20,6 +20,7 @@ import SymplecticGeometry.Analysis.Normed.Operator.Pi
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Support
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.CompactSupport
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.FDeriv
+import SymplecticGeometry.Topology.Algebra.Module.LinearMap
 import SymplecticGeometry.Topology.MetricSpace.Thickening
 
 /-!
@@ -284,14 +285,11 @@ private theorem exists_datum_directions {f₁ : (Fin m → ℝ) × (Fin k → �
     ((hf₁.fderiv_right (by simp)).clm_comp contDiff_const).add (hG.clm_comp contDiff_const),
     fun x w hw ↦ ?_, fun x hx ↦ ?_, fun x w ↦ ⟨P w, fun i hi ↦ ?_,
       max_le_max (ContinuousLinearMap.norm_coordProj_apply_le J w.1) le_rfl, ?_⟩⟩
-  · have hPw : P w = w := Prod.ext (ContinuousLinearMap.coordProj_apply_eq_self hw) rfl
-    simp [hPw]
-  · refine ContinuousLinearMap.ext fun w ↦ ?_
-    simp [hx]
+  · exact (ContinuousLinearMap.comp_add_comp_id_sub_apply_of_apply_eq _ _
+      (Prod.ext (ContinuousLinearMap.coordProj_apply_eq_self hw) rfl)).symm
+  · simp only [hx, ContinuousLinearMap.comp_add_comp_id_sub_self]
   · simp [P, hi]
-  · simp only [sub_apply, add_apply,
-      ContinuousLinearMap.comp_apply, ContinuousLinearMap.id_apply, map_sub]
-    abel
+  · simp only [ContinuousLinearMap.comp_add_comp_id_sub_sub, ContinuousLinearMap.comp_apply]
 
 /-- **The assembly estimate.** Let `Φ` be a diffeomorphism of `D` keeping the core coordinates
 outside `J' ⊆ J`, with `‖fderiv ℝ Φ.symm (Φ z)‖ ≤ L`. Suppose that at `Φ z` the map `f₁` is
@@ -453,10 +451,7 @@ theorem exists_holonomic_approximation_cube_directions_insert (hk : 0 < k) (i₀
     exact hf₁C₁ x fun h ↦ hx (Or.inl h)
   · exact TauCeti.Diffeotopy.image_transDiffeomorph_final_mul_apply_one_subset hQV₂ hy
   · obtain ⟨x, hx, rfl⟩ := hy
-    have e := DFunLike.congr_fun (TauCeti.Diffeotopy.final_transDiffeomorph_final_mul h₁ h₂) x
-    rw [TauCeti.Diffeotopy.final_apply, Diffeomorph.mul_apply,
-      TauCeti.Diffeotopy.final_apply h₂] at e
-    rw [e]
+    rw [TauCeti.Diffeotopy.transDiffeomorph_final_mul_apply_one]
     exact hδ₀V₁ (thickening_mono (min_le_left _ _) _ (mem_thickening_iff.2 ⟨x, hx, hh₂δ 1 x⟩))
   · rintro _ ⟨⟨z, hz, rfl⟩, hy⟩
     have hε₂L : ε / (2 * L) * L = ε / 2 := by field_simp
