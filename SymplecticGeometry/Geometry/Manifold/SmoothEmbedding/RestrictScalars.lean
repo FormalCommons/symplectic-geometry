@@ -195,23 +195,23 @@ theorem coe_mfderiv_restrictScalars (f : SmoothEmbedding 𝓘(𝕜', E) 𝓘(�
 `f`. -/
 theorem coe_tangentRange_restrictScalars (f : SmoothEmbedding 𝓘(𝕜', E) 𝓘(𝕜', E') m M N)
     (hnm : n ≤ m) (hn : 1 ≤ n) (x : M) (hn₀ : n ≠ 0) (hm₀ : m ≠ 0) :
-    ((f.restrictScalars 𝕜 hnm hn).tangentRange x hn₀ :
+    ((f.restrictScalars 𝕜 hnm hn).isImmersion.tangentRange x hn₀ :
         Set (TangentSpace 𝓘(𝕜, E') (f.restrictScalars 𝕜 hnm hn x))) =
-      (f.tangentRange x hm₀ : Set (TangentSpace 𝓘(𝕜', E') (f x))) := by
+      (f.isImmersion.tangentRange x hm₀ : Set (TangentSpace 𝓘(𝕜', E') (f x))) := by
   have h := congrFun (f.coe_mfderiv_restrictScalars (𝕜 := 𝕜) hnm hn x)
   ext v
-  simp only [SetLike.mem_coe, mem_tangentRange_iff]
+  simp only [SetLike.mem_coe, Manifold.IsImmersion.mem_tangentRange_iff]
   exact exists_congr fun u ↦ iff_of_eq (congrArg (· = v) (h u))
 
 /-- The tangent ranges of `f.restrictScalars 𝕜 hnm hn` are closed under multiplication by scalars
 of the larger field `𝕜'`. -/
 theorem smul_mem_tangentRange_restrictScalars (f : SmoothEmbedding 𝓘(𝕜', E) 𝓘(𝕜', E') m M N)
     (hnm : n ≤ m) (hn : 1 ≤ n) (x : M) (hn₀ : n ≠ 0) (c : 𝕜') {v : E'}
-    (hv : v ∈ (f.restrictScalars 𝕜 hnm hn).tangentRange x hn₀) :
-    c • v ∈ (f.restrictScalars 𝕜 hnm hn).tangentRange x hn₀ := by
+    (hv : v ∈ (f.restrictScalars 𝕜 hnm hn).isImmersion.tangentRange x hn₀) :
+    c • v ∈ (f.restrictScalars 𝕜 hnm hn).isImmersion.tangentRange x hn₀ := by
   have hm₀ : m ≠ 0 := ne_bot_of_le_ne_bot hn₀ hnm
   have h := Set.ext_iff.1 (f.coe_tangentRange_restrictScalars (𝕜 := 𝕜) hnm hn x hn₀ hm₀)
-  exact (h (c • v)).2 ((f.tangentRange x hm₀).smul_mem c ((h v).1 hv))
+  exact (h (c • v)).2 ((f.isImmersion.tangentRange x hm₀).smul_mem c ((h v).1 hv))
 
 section Prod
 
@@ -256,12 +256,12 @@ those of `f`. -/
 theorem coe_tangentRange_restrictScalarsProd
     (f : SmoothEmbedding 𝓘(𝕜', E) (𝓘(𝕜', E').prod 𝓘(𝕜', F')) m M (N × N')) (hnm : n ≤ m)
     (hn : 1 ≤ n) (x : M) (hn₀ : n ≠ 0) (hm₀ : m ≠ 0) :
-    ((f.restrictScalarsProd 𝕜 hnm hn).tangentRange x hn₀ :
+    ((f.restrictScalarsProd 𝕜 hnm hn).isImmersion.tangentRange x hn₀ :
         Set (TangentSpace (𝓘(𝕜, E').prod 𝓘(𝕜, F')) (f.restrictScalarsProd 𝕜 hnm hn x))) =
-      (f.tangentRange x hm₀ : Set (TangentSpace (𝓘(𝕜', E').prod 𝓘(𝕜', F')) (f x))) := by
+      (f.isImmersion.tangentRange x hm₀ : Set (TangentSpace (𝓘(𝕜', E').prod 𝓘(𝕜', F')) (f x))) := by
   have h := congrFun (f.coe_mfderiv_restrictScalarsProd (𝕜 := 𝕜) hnm hn x)
   ext v
-  simp only [SetLike.mem_coe, mem_tangentRange_iff]
+  simp only [SetLike.mem_coe, Manifold.IsImmersion.mem_tangentRange_iff]
   exact exists_congr fun u ↦ iff_of_eq (congrArg (· = v) (h u))
 
 /-- The tangent ranges of `f.restrictScalarsProd 𝕜 hnm hn` are closed under multiplication by
@@ -269,11 +269,11 @@ scalars of the larger field `𝕜'`. -/
 theorem smul_mem_tangentRange_restrictScalarsProd
     (f : SmoothEmbedding 𝓘(𝕜', E) (𝓘(𝕜', E').prod 𝓘(𝕜', F')) m M (N × N')) (hnm : n ≤ m)
     (hn : 1 ≤ n) (x : M) (hn₀ : n ≠ 0) (c : 𝕜') {v : E' × F'}
-    (hv : v ∈ (f.restrictScalarsProd 𝕜 hnm hn).tangentRange x hn₀) :
-    c • v ∈ (f.restrictScalarsProd 𝕜 hnm hn).tangentRange x hn₀ := by
+    (hv : v ∈ (f.restrictScalarsProd 𝕜 hnm hn).isImmersion.tangentRange x hn₀) :
+    c • v ∈ (f.restrictScalarsProd 𝕜 hnm hn).isImmersion.tangentRange x hn₀ := by
   have hm₀ : m ≠ 0 := ne_bot_of_le_ne_bot hn₀ hnm
   have h := Set.ext_iff.1 (f.coe_tangentRange_restrictScalarsProd (𝕜 := 𝕜) hnm hn x hn₀ hm₀)
-  exact (h (c • v)).2 ((f.tangentRange x hm₀).smul_mem c ((h v).1 hv))
+  exact (h (c • v)).2 ((f.isImmersion.tangentRange x hm₀).smul_mem c ((h v).1 hv))
 
 end Prod
 

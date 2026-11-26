@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.Orientation.Pullback
-import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
+import TauCeti.Geometry.Manifold.Diffeomorph.Basic
 
 /-!
 # Orientations carried along a diffeomorphism

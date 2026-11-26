@@ -53,6 +53,14 @@ symplectomorphism between these fibre forms.
   `IsEhresmannConnection.exists_timeDependentField_eqOn_parallelTransport_of_mapsTo_baseSet`,
   it shows that over a short interval transport carries the pull-back of `τ` to one fibre to its
   pull-back to the other.
+* `TauCeti.SmoothTwoForm.IsVerticallyClosed.mpullback_parallelTransportIn`: for a proper map
+  with a smooth atlas `A` and a vertically closed `τ` whose horizontal spaces form an Ehresmann
+  connection, transport along any smooth curve, read in two charts of `A`, carries the pull-back
+  of `τ` to the later fibre to its pull-back to the earlier one. The times between which this
+  holds form a transitive relation (`IsEhresmannConnection.parallelTransportIn_parallelTransportIn`)
+  that holds between nearby times by the short-interval case, so Mathlib's
+  `PreconnectedSpace.induction₂'` gives it for all times, as in
+  `TauCeti.IsEhresmannConnection.exists_diffeomorph_eqOn_parallelTransport`.
 
 ## Implementation notes
 
@@ -72,7 +80,7 @@ public section
 noncomputable section
 
 open Bundle Function
-open scoped ContDiff Manifold
+open scoped ContDiff Manifold Topology
 
 namespace TauCeti
 
@@ -263,7 +271,7 @@ theorem IsVerticallyClosed.hasDerivAt_mpullback_comp_zero
     (Filter.Eventually.of_forall fun u ↦ Filter.Eventually.of_forall fun y ↦
       (timeDependentFlowOf_trans hc hX₁ s t u (ι y)).symm) hg
     (Filter.Eventually.of_forall fun u ↦ hφ t u _)
-    (hasDerivAt_mpullback_timeDependentFlowOf_self hX t (g x)
+    (hasDerivAt_mpullback_timeDependentFlowOf_self hX₁ t (g x)
       ((τ.isSmoothForm.contMDiff.mdifferentiable (by simp)) _))).congr_deriv ?_
   ext w
   rw [mpullback_apply]
@@ -343,6 +351,53 @@ private theorem IsVerticallyClosed.mpullback_parallelTransportIn_of_mapsTo_baseS
   funext v
   rw [← mpullback_comp hP hι₂, ← hφt, hconst v, show φ s ∘ ι = ι from
     funext fun y ↦ timeDependentFlowOf_self X s _]
+
+/-- **Transport preserves the fibre forms of a vertically closed form.** Let `A` be a smooth atlas
+of a proper map `proj`, and `τ` a vertically closed two-form on `M` whose horizontal spaces form a
+smooth Ehresmann connection `hD`, as they do when `τ` is vertically nondegenerate
+(`IsVerticallyNondegenerate.isEhresmannConnection`). For a smooth curve `γ` in `B`, all times `s`
+and `t`, and charts `A.trivAt b₁` and `A.trivAt b₂` whose base sets contain `γ s` and `γ t`,
+transport along `γ` from `s` to `t`, read in these charts, pulls the pull-back of `τ` to the fibre
+over `γ t` back to the pull-back of `τ` to the fibre over `γ s`. -/
+theorem IsVerticallyClosed.mpullback_parallelTransportIn
+    (hfp : IsProperMap proj) (hA : A.IsContMDiff ∞ IB IF IM) (h : IsVerticallyClosed IB proj τ)
+    (hD : IsEhresmannConnection IM IB ∞ proj (horizontalDistribution IB proj τ)) {γ : ℝ → B}
+    (hγ : ContMDiff 𝓘(ℝ, ℝ) IB ∞ γ) {s t : ℝ} {b₁ b₂ : B}
+    (hs₁ : γ s ∈ (A.trivAt b₁).baseSet) (ht₂ : γ t ∈ (A.trivAt b₂).baseSet) :
+    mpullback IF IF (hD.parallelTransportIn (A.trivAt b₁) (A.trivAt b₂) γ s t)
+        (mpullback IF IM ((A.trivAt b₂).fiberInclusionMap ht₂) τ.val) =
+      mpullback IF IM ((A.trivAt b₁).fiberInclusionMap hs₁) τ.val := by
+  have hn' : ((⊤ : ℕ∞) : ℕ∞ω) + 1 ≤ ∞ := by exact_mod_cast le_top
+  have hf : ContMDiff IM IB ((⊤ : ℕ∞) + 1) proj := hA.contMDiff_proj.of_le hn'
+  have hγ' : ContMDiff 𝓘(ℝ, ℝ) IB ((⊤ : ℕ∞) + 1) γ := hγ.of_le hn'
+  -- Times between which transport, read in any two charts, carries one fibre form to the other.
+  let R : ℝ → ℝ → Prop := fun u v ↦ ∀ (c₁ c₂ : B) (hu : γ u ∈ (A.trivAt c₁).baseSet)
+    (hv : γ v ∈ (A.trivAt c₂).baseSet),
+    mpullback IF IF (hD.parallelTransportIn (A.trivAt c₁) (A.trivAt c₂) γ u v)
+        (mpullback IF IM ((A.trivAt c₂).fiberInclusionMap hv) τ.val) =
+      mpullback IF IM ((A.trivAt c₁).fiberInclusionMap hu) τ.val
+  have hP {c₁ c₂ : B} {u v : ℝ} (hu : γ u ∈ (A.trivAt c₁).baseSet)
+      (hv : γ v ∈ (A.trivAt c₂).baseSet) :
+      MDifferentiable IF IF (hD.parallelTransportIn (A.trivAt c₁) (A.trivAt c₂) γ u v) :=
+    (hD.contMDiff_parallelTransportIn le_top hf hfp hγ' (hA.contMDiffOn_trivAt_symm c₁)
+      (hA.contMDiffOn_trivAt c₂) hu hv).mdifferentiable (by simp)
+  -- The relation is transitive: transport from `u` to `w` passes through the chart at `γ v`.
+  have htrans : IsTrans ℝ R := ⟨fun u v w h₁ h₂ c₁ c₃ hu hw ↦ by
+    have hv := A.mem_baseSet_trivAt (γ v)
+    have hcomp : hD.parallelTransportIn (A.trivAt c₁) (A.trivAt c₃) γ u w =
+        hD.parallelTransportIn (A.trivAt (γ v)) (A.trivAt c₃) γ v w ∘
+          hD.parallelTransportIn (A.trivAt c₁) (A.trivAt (γ v)) γ u v := funext fun x ↦
+      (hD.parallelTransportIn_parallelTransportIn le_top hf hfp hγ' _ hu hv w x).symm
+    rw [hcomp, mpullback_comp (hP hu hv) (hP hv hw), h₂ _ _ hv hw, h₁ _ _ hu hv]⟩
+  -- It holds between nearby times: near `u`, `γ` stays in the base set of one trivialization.
+  have hloc (u : ℝ) : ∀ᶠ v in 𝓝 u, R u v ∧ R v u := by
+    let e := trivializationAt EB (TangentSpace IB) (γ u)
+    obtain ⟨a, b, hu, hab, hmaps⟩ := exists_Icc_mem_subset_of_mem_nhds
+      (hγ.continuous.continuousAt.eventually_mem_baseSet_trivializationAt EB (TangentSpace IB))
+    filter_upwards [hab] with v hv
+    exact ⟨fun _ _ ↦ h.mpullback_parallelTransportIn_of_mapsTo_baseSet hfp hA hD hγ e hmaps hu hv,
+      fun _ _ ↦ h.mpullback_parallelTransportIn_of_mapsTo_baseSet hfp hA hD hγ e hmaps hv hu⟩
+  exact PreconnectedSpace.induction₂' R hloc htrans s t b₁ b₂ hs₁ ht₂
 
 end Transport
 

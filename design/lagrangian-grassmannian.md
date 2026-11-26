@@ -257,7 +257,7 @@ file of that name, in the namespace `Matrix`, over `RCLike 𝕜`:
 
 A general fact about Mathlib's `LinearIsometryEquiv.piLpCongrLeft`, in the
 namespace `LinearIsometryEquiv`, beside Tau Ceti's file of that name
-(`TauCeti/Analysis/Normed/Lp/PiLp.lean`, which has `piLpCongrLeft_refl`), its
+(`TauCeti/Analysis/Normed/Lp/PiLp/Basic.lean`, which has `piLpCongrLeft_refl`), its
 natural upstream home:
 
 - `LinearIsometryEquiv.piLpCongrLeft_trans (e : ι ≃ ι') (f : ι' ≃ ι'')`
