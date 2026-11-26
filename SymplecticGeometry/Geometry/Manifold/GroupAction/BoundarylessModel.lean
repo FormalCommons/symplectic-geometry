@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Algebra.SMul
-public import TauCeti.Geometry.Lie.FundamentalVectorField
+public import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 public import TauCeti.Geometry.Manifold.ModelTransport.Interior
 
 /-!
@@ -33,9 +33,8 @@ boundary.
   `mfderiv_interiorDiffeomorph_symm_fundamentalVectorField`: for an action of a group `G` with
   charts, the differentials of the identity diffeomorphism and of its inverse carry the
   fundamental vector field of each `ξ` in the Lie algebra of `G` on one side to that on the other.
-  Where the orbit map is differentiable at `1`, this is Tau Ceti's
-  `TauCeti.mfderiv_fundamentalVectorField_of_map_smul`; where it is not, both sides vanish, so
-  no hypothesis on the action is needed.
+  Both are `Diffeomorph.mfderiv_fundamentalVectorField`, for the `C¹` diffeomorphism
+  `interiorDiffeomorph I 1` and its inverse, so no hypothesis on the action is needed.
 * `TauCeti.BoundarylessModel.instContMDiffSMulInteriorChartedSpace`: a `C^n` scalar multiplication
   on `M` is a `C^n` scalar multiplication on the copy with its vector-space atlas.
 -/
@@ -138,21 +137,8 @@ theorem mfderiv_interiorDiffeomorph_fundamentalVectorField (n : ℕ∞ω) (ξ : 
   have hn : ⇑(interiorDiffeomorph I (M := M) n) = interiorDiffeomorph I 1 := by
     rw [coe_interiorDiffeomorph, coe_interiorDiffeomorph]
   rw [hn]
-  set Φ := interiorDiffeomorph I (M := M) 1
-  by_cases h : MDifferentiableAt IG I (fun g : G ↦ g • x) 1
-  · exact mfderiv_fundamentalVectorField_of_map_smul (Φ.mdifferentiable one_ne_zero x) h
-      (fun g ↦ interiorDiffeomorph_smul I 1 g x) ξ
-  -- Otherwise neither orbit map is differentiable at `1`, and both sides vanish.
-  have h' : ¬MDifferentiableAt IG 𝓘(𝕜, E) (fun g : G ↦ g • Φ x) 1 := fun h' ↦ h <| by
-    have hc := (Φ.symm.mdifferentiable one_ne_zero _).comp_of_eq (1 : G) h'
-      (one_smul G (Φ x))
-    convert hc using 1
-    funext g
-    rw [Function.comp_apply, interiorDiffeomorph_symm_smul, Diffeomorph.symm_apply_apply]
-  rw [fundamentalVectorField_apply, fundamentalVectorField_apply,
-    mfderiv_zero_of_not_mdifferentiableAt h, mfderiv_zero_of_not_mdifferentiableAt h',
-    zero_apply]
-  exact map_zero _
+  exact (interiorDiffeomorph I 1).mfderiv_fundamentalVectorField one_ne_zero
+    (interiorDiffeomorph_smul I 1) ξ x
 
 /-- The differential of the inverse identity diffeomorphism from the vector-space model copy
 sends the fundamental vector field of `ξ` on the copy to the fundamental vector field of `ξ` on
@@ -164,10 +150,8 @@ theorem mfderiv_interiorDiffeomorph_symm_fundamentalVectorField (n : ℕ∞ω)
   have hn : ⇑(interiorDiffeomorph I (M := M) n).symm = (interiorDiffeomorph I 1).symm := by
     rw [coe_interiorDiffeomorph_symm, coe_interiorDiffeomorph_symm]
   rw [hn]
-  obtain ⟨x, rfl⟩ : ∃ x, interiorDiffeomorph I 1 x = y := ⟨_, Diffeomorph.apply_symm_apply _ y⟩
-  rw [← mfderiv_interiorDiffeomorph_fundamentalVectorField,
-    (interiorDiffeomorph I 1).mfderiv_symm_apply_mfderiv_apply one_ne_zero,
-    Diffeomorph.symm_apply_apply]
+  exact (interiorDiffeomorph I 1).symm.mfderiv_fundamentalVectorField one_ne_zero
+    (interiorDiffeomorph_symm_smul I 1) ξ y
 
 end FundamentalVectorField
 
