@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Manifold.Gluing.GlueData
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 
@@ -60,6 +61,8 @@ divisor is the image of the holomorphic (resp. smooth) embedding `Blowup.divisor
 * `SymplecticGeometry.Blowup.lift c`: the map `φ̃` to the model blowup, the inverse of `inr c`
   on its range.
 * `SymplecticGeometry.Blowup.blowdown c`: the blowdown `π_M : Blowup c → M`.
+* `SymplecticGeometry.Blowup.offDivisorOpens c`: the complement of the exceptional divisor, as an
+  open set.
 * `SymplecticGeometry.Blowup.blowdownDiffeomorph c`,
   `SymplecticGeometry.Blowup.blowdownRealDiffeomorph c`: the blowdown off the divisor, as a
   biholomorphism and as a diffeomorphism onto `M \ {p₀}`.
@@ -458,6 +461,19 @@ theorem inl_notMem_exceptionalDivisor (x : puncturedOpens c) :
   rw [← mem_compl_iff, ← range_inl]
   exact mem_range_self x
 
+/-- The complement of the exceptional divisor, the range of `inl c`, as an open set. -/
+def offDivisorOpens : Opens (Blowup c) := ⟨range (inl c), isOpen_range_inl c⟩
+
+theorem offDivisorOpens_def : offDivisorOpens c = ⟨range (inl c), isOpen_range_inl c⟩ := (rfl)
+
+@[simp]
+theorem coe_offDivisorOpens : (offDivisorOpens c : Set (Blowup c)) = (exceptionalDivisor c)ᶜ := by
+  rw [offDivisorOpens_def, Opens.coe_mk, range_inl]
+
+@[simp]
+theorem mem_offDivisorOpens {z : Blowup c} : z ∈ offDivisorOpens c ↔ z ∉ exceptionalDivisor c := by
+  rw [← SetLike.mem_coe, coe_offDivisorOpens, mem_compl_iff]
+
 /-- The image of the model in the blowup is the exceptional divisor together with the image of
 the punctured source of `c`. -/
 theorem range_inr :
@@ -807,90 +823,66 @@ theorem blowdown_eq_center_iff {z : Blowup c} : blowdown c z = p₀ ↔ z ∈ ex
     rw [h, c.symm_zero]
 
 /-- The blowdown sends the complement of the exceptional divisor into `M \ {p₀}`. -/
-theorem blowdown_mem_puncturedOpens {z : Blowup c} (hz : z ∈ range (inl c)) :
+theorem blowdown_mem_puncturedOpens {z : Blowup c} (hz : z ∈ offDivisorOpens c) :
     blowdown c z ∈ puncturedOpens c := by
-  rw [mem_puncturedOpens, Ne, blowdown_eq_center_iff, ← notMem_compl_iff, ← range_inl, not_not]
-  exact hz
-
-section Diffeomorph
-
-variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] [NormedSpace 𝕜 (Fin (n + 1) → ℂ)] {r : ℕ∞ω}
-
-/-- The blowdown off the exceptional divisor as a `C^r` diffeomorphism onto `M \ {p₀}`, when the
-blowdown and `inl c` are `C^r`. -/
-def blowdownDiffeomorphOfContMDiff
-    (hb : ContMDiff 𝓘(𝕜, Fin (n + 1) → ℂ) 𝓘(𝕜, Fin (n + 1) → ℂ) r (blowdown c))
-    (hi : ContMDiff 𝓘(𝕜, Fin (n + 1) → ℂ) 𝓘(𝕜, Fin (n + 1) → ℂ) r (inl c)) :
-    (⟨range (inl c), isOpen_range_inl c⟩ : Opens (Blowup c))
-      ≃ₘ^r⟮𝓘(𝕜, Fin (n + 1) → ℂ), 𝓘(𝕜, Fin (n + 1) → ℂ)⟯ puncturedOpens c where
-  toFun z := ⟨blowdown c z, blowdown_mem_puncturedOpens c z.property⟩
-  invFun x := ⟨inl c x, mem_range_self x⟩
-  left_inv := by
-    rintro ⟨_, x, rfl⟩
-    exact Subtype.ext (congrArg (inl c) (Subtype.ext (blowdown_inl c x)))
-  right_inv x := Subtype.ext (blowdown_inl c x)
-  contMDiff_toFun := (TauCeti.ContMDiff.subtypeVal_comp_iff _ _).1 (hb.comp contMDiff_subtypeVal)
-  contMDiff_invFun := (TauCeti.ContMDiff.subtypeVal_comp_iff _ _).1 hi
-
-end Diffeomorph
+  rw [mem_puncturedOpens, Ne, blowdown_eq_center_iff]
+  exact (mem_offDivisorOpens c).1 hz
 
 /-- **The blowdown off the exceptional divisor.** The blowdown is a biholomorphism from the
-complement of the exceptional divisor, the range of `inl c`, onto `M \ {p₀}`, with inverse
-`inl c`. -/
+complement of the exceptional divisor onto `M \ {p₀}`, with inverse `inl c`. -/
 def blowdownDiffeomorph [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M]
     [Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)] :
-    (⟨range (inl c), isOpen_range_inl c⟩ : Opens (Blowup c))
-      ≃ₘ^ω⟮𝓘(ℂ, Fin (n + 1) → ℂ), 𝓘(ℂ, Fin (n + 1) → ℂ)⟯ puncturedOpens c :=
-  blowdownDiffeomorphOfContMDiff c (contMDiff_blowdown c) (isLocalDiffeomorph_inl c).contMDiff
+    offDivisorOpens c ≃ₘ^ω⟮𝓘(ℂ, Fin (n + 1) → ℂ), 𝓘(ℂ, Fin (n + 1) → ℂ)⟯ puncturedOpens c :=
+  -- `offDivisorOpens c` is by definition the open set `IsLocalDiffeomorph.image` of `inl c`.
+  ((isLocalDiffeomorph_inl c).diffeomorphOfInjective (inl_injective c)).symm
 
 section Complex
 
 variable [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M]
   [Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)]
 
-/-- The biholomorphism `blowdownDiffeomorph c` is the blowdown. -/
-@[simp]
-theorem coe_blowdownDiffeomorph_apply
-    (z : (⟨range (inl c), isOpen_range_inl c⟩ : Opens (Blowup c))) :
-    (blowdownDiffeomorph c z : M) = blowdown c z :=
-  (rfl)
-
 /-- The inverse of `blowdownDiffeomorph c` is `inl c`. -/
 @[simp]
 theorem coe_blowdownDiffeomorph_symm_apply (x : puncturedOpens c) :
     ((blowdownDiffeomorph c).symm x : Blowup c) = inl c x :=
-  (rfl)
+  IsLocalDiffeomorph.coe_diffeomorphOfInjective_apply _ _ x
+
+/-- The biholomorphism `blowdownDiffeomorph c` is the blowdown. -/
+@[simp]
+theorem coe_blowdownDiffeomorph_apply (z : offDivisorOpens c) :
+    (blowdownDiffeomorph c z : M) = blowdown c z := by
+  conv_rhs => rw [← (blowdownDiffeomorph c).symm_apply_apply z]
+  rw [coe_blowdownDiffeomorph_symm_apply, blowdown_inl]
 
 end Complex
 
 open scoped TauCeti.ComplexManifold in
 /-- **The blowdown off the exceptional divisor, for the real structures.** The blowdown is a
-diffeomorphism from the complement of the exceptional divisor, the range of `inl c`, onto
-`M \ {p₀}`, with inverse `inl c`. -/
+diffeomorphism from the complement of the exceptional divisor onto `M \ {p₀}`, with inverse
+`inl c`. -/
 def blowdownRealDiffeomorph [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M]
     [Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M)] :
-    (⟨range (inl c), isOpen_range_inl c⟩ : Opens (Blowup c))
-      ≃ₘ^∞⟮𝓘(ℝ, Fin (n + 1) → ℂ), 𝓘(ℝ, Fin (n + 1) → ℂ)⟯ puncturedOpens c :=
-  blowdownDiffeomorphOfContMDiff c (contMDiff_blowdown_real c)
-    (isLocalDiffeomorph_inl_real c).contMDiff
+    offDivisorOpens c ≃ₘ^∞⟮𝓘(ℝ, Fin (n + 1) → ℂ), 𝓘(ℝ, Fin (n + 1) → ℂ)⟯ puncturedOpens c :=
+  -- `offDivisorOpens c` is by definition the open set `IsLocalDiffeomorph.image` of `inl c`.
+  ((isLocalDiffeomorph_inl_real c).diffeomorphOfInjective (inl_injective c)).symm
 
 section Real
 
 variable [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M]
   [Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M)]
 
-/-- The diffeomorphism `blowdownRealDiffeomorph c` is the blowdown. -/
-@[simp]
-theorem coe_blowdownRealDiffeomorph_apply
-    (z : (⟨range (inl c), isOpen_range_inl c⟩ : Opens (Blowup c))) :
-    (blowdownRealDiffeomorph c z : M) = blowdown c z :=
-  (rfl)
-
 /-- The inverse of `blowdownRealDiffeomorph c` is `inl c`. -/
 @[simp]
 theorem coe_blowdownRealDiffeomorph_symm_apply (x : puncturedOpens c) :
     ((blowdownRealDiffeomorph c).symm x : Blowup c) = inl c x :=
-  (rfl)
+  IsLocalDiffeomorph.coe_diffeomorphOfInjective_apply _ _ x
+
+/-- The diffeomorphism `blowdownRealDiffeomorph c` is the blowdown. -/
+@[simp]
+theorem coe_blowdownRealDiffeomorph_apply (z : offDivisorOpens c) :
+    (blowdownRealDiffeomorph c z : M) = blowdown c z := by
+  conv_rhs => rw [← (blowdownRealDiffeomorph c).symm_apply_apply z]
+  rw [coe_blowdownRealDiffeomorph_symm_apply, blowdown_inl]
 
 end Real
 

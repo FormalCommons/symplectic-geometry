@@ -342,7 +342,7 @@ Namespace `SymplecticGeometry`, for `M : Type` with `[TopologicalSpace M]
   `blowdownDiffeomorph c`: a biholomorphism (resp. diffeomorphism) from the
   complement of $Z$, the range of `inl`, onto `{x | x ≠ p₀}`, as open
   subsets, with inverse `inl c`.
-- `Blowup.divisorEmbedding c`, `Blowup.divisor c` as a `TauCeti.SmoothEmbedding
+- `Blowup.divisorEmbedding c` as a `TauCeti.SmoothEmbedding
   𝓘(ℂ, Fin n → ℂ) 𝓘(ℂ, E) ω (ℙ ℂ E) (Blowup c)` ($\tilde\iota$), `inr`
   composed with the model's `zeroSectionEmbedding n`, and the real one
   `Blowup.divisorRealEmbedding c`.
