@@ -29,8 +29,8 @@ half of the square, the map is the `C^n` homotopy `(t, s) ↦ c ((1 - β s) t + 
 smooth cutoff `β` that vanishes at `0` and equals `1` from `1 / 4` on (Tau Ceti's
 `ContMDiff.convexComb`); it runs from `c` to `c ∘ ρ`. On the upper half, it is a continuous
 homotopy, rel endpoints, from the loop `c` on `[a, b]` to the constant path (Mathlib's
-`SimplyConnectedSpace.paths_homotopic`), reparametrized like `ρ` in space and by a cutoff in time, so
-that it is constant near the edges of the square other than the bottom one.
+`SimplyConnectedSpace.paths_homotopic`), reparametrized like `ρ` in space and by a cutoff in
+time, so that it is constant near the edges of the square other than the bottom one.
 
 ## Main results
 
@@ -53,25 +53,10 @@ open scoped Manifold ContDiff unitInterval
 variable {F G M : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [TopologicalSpace G]
   {J : ModelWithCorners ℝ F G} [TopologicalSpace M] [ChartedSpace G M]
 
-/-- A `C^n` step `θ : I → I` from `0`, up to `a + (b - a) / 4`, to `1`, from `b - (b - a) / 4`
-on. -/
-private theorem exists_contMDiff_step (n : ℕ∞) {a b : ℝ} (hab : a < b) :
-    ∃ θ : I → I, ContMDiff (𝓡∂ 1) (𝓡∂ 1) n θ ∧ (∀ t : I, (t : ℝ) ≤ a + (b - a) / 4 → θ t = 0) ∧
-      ∀ t : I, b - (b - a) / 4 ≤ t → θ t = 1 := by
-  have hba : 0 < b - a := sub_pos.2 hab
-  have hf : ContDiff ℝ n fun r : ℝ ↦ 2 * (r - a) / (b - a) - 1 / 2 := by fun_prop
-  refine ⟨fun t ↦ ⟨Real.smoothTransition (2 * ((t : ℝ) - a) / (b - a) - 1 / 2),
-      Real.smoothTransition.nonneg _, Real.smoothTransition.le_one _⟩,
-    (hf.comp_contMDiff contMDiff_subtypeVal_Icc).smoothTransition (WithTop.coe_le_coe.2 le_top),
-    fun t ht ↦ Subtype.ext (Real.smoothTransition.zero_of_nonpos ?_),
-    fun t ht ↦ Subtype.ext (Real.smoothTransition.one_of_one_le ?_)⟩
-  · have : 2 * ((t : ℝ) - a) / (b - a) ≤ 1 / 2 := by rw [div_le_iff₀ hba]; linarith
-    linarith
-  · have : 3 / 2 ≤ 2 * ((t : ℝ) - a) / (b - a) := by rw [le_div_iff₀ hba]; linarith
-    linarith
-
 /-- The `C^n` homotopy `(t, s) ↦ c ((1 - β s) t + β s ρ t)`, for `ρ t = (1 - θ t) a + θ t b` and
-a smooth cutoff `β` with `β 0 = 0`, from `c` to `c ∘ ρ`, which it reaches at `s = 1 / 4`. -/
+a smooth cutoff `β` with `β 0 = 0`, from `c` to `c ∘ ρ`, which it reaches at `s = 1 / 4`. It
+is constant equal to `p₀` where `t ≤ a` or `b ≤ t`, if `c` is constant equal to `p₀` outside
+`(a, b)` and `θ` is `0` up to `a` and `1` from `b` on. -/
 private theorem exists_contMDiff_homotopy_reparam {n : ℕ∞} {c : I → M}
     (hc : ContMDiff (𝓡∂ 1) J n c) {p₀ : M} {a b : I}
     (hcp : ∀ t : I, (t : ℝ) ∉ Ioo (a : ℝ) b → c t = p₀) {θ : I → I}
@@ -118,7 +103,17 @@ private theorem exists_continuous_nullhomotopy [SimplyConnectedSpace M] {n : ℕ
   set b' : I := ⟨b, ha.trans hab.le, hb⟩
   have ha' : c a' = p₀ := hcp a' fun h ↦ lt_irrefl a h.1
   have hb' : c b' = p₀ := hcp b' fun h ↦ lt_irrefl b h.2
-  obtain ⟨θ, hθ, hθ₀, hθ₁⟩ := exists_contMDiff_step n hab
+  have hba : 0 < b - a := sub_pos.2 hab
+  -- a `C^n` step `θ`, equal to `0` near `a` and to `1` near `b`
+  set θ : I → I := fun t ↦ TauCeti.collaredSmoothTransitionUnit (((t : ℝ) - a) / (b - a))
+  have hθ : ContMDiff (𝓡∂ 1) (𝓡∂ 1) n θ :=
+    (TauCeti.contMDiff_collaredSmoothTransitionUnit (WithTop.coe_le_coe.2 le_top)).comp
+      ((by fun_prop : ContDiff ℝ n fun r : ℝ ↦ (r - a) / (b - a)).comp_contMDiff
+        contMDiff_subtypeVal_Icc)
+  have hθ₀ (t : I) (ht : (t : ℝ) ≤ a + (b - a) / 4) : θ t = 0 :=
+    TauCeti.collaredSmoothTransitionUnit_eq_zero_of_le (by rw [div_le_iff₀ hba]; linarith)
+  have hθ₁ (t : I) (ht : b - (b - a) / 4 ≤ (t : ℝ)) : θ t = 1 :=
+    TauCeti.collaredSmoothTransitionUnit_eq_one_of_ge (by rw [le_div_iff₀ hba]; linarith)
   obtain ⟨G, hG, hG₀, hGp, hGθ⟩ := exists_contMDiff_homotopy_reparam hc (a := a') (b := b') hcp
     hθ (fun t ht ↦ hθ₀ t (by simp only [a'] at ht; linarith))
     (fun t ht ↦ hθ₁ t (by simp only [b'] at ht; linarith))
