@@ -181,11 +181,11 @@ theorem exists_isOpen_homotopyEquiv :
     ∃ W : Set (ℙ ℂ (Fin (n + 2) → ℂ)), IsOpen W ∧
       ∃ e : ContinuousMap.HomotopyEquiv X W, ∀ x, (e.toFun x : ℙ ℂ (Fin (n + 2) → ℂ)) = x := by
   -- The inclusion of `X` is a holomorphic embedding, so a smooth embedding over `ℝ`.
-  let _ : IsManifold 𝓘(ℝ, Fin (n + 1 - Fintype.card Unit) → ℂ) ∞ X :=
+  let _ : IsManifold 𝓘(ℝ, Fin n → ℂ) ∞ X :=
     ((X.instIsManifold).of_le (m := ∞) (by simp)).restrictScalars ℝ
   have h := (X.embedding.isSmoothEmbedding.of_le (n := ∞) (by simp)).restrictScalars ℝ (by simp)
   rw [coe_embedding] at h
-  let f : SmoothEmbedding 𝓘(ℝ, Fin (n + 1 - Fintype.card Unit) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ X
+  let f : SmoothEmbedding 𝓘(ℝ, Fin n → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ X
       (ℙ ℂ (Fin (n + 2) → ℂ)) :=
     .ofIsSmoothEmbedding _ h
   obtain ⟨W, hW, -, e, he⟩ := f.exists_homotopyEquiv_subset isOpen_univ (subset_univ _)
