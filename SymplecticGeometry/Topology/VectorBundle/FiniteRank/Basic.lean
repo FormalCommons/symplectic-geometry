@@ -14,9 +14,15 @@ Tau Ceti's `TauCeti.FiniteRankBundleCore.isoOfContinuousEquiv` builds an isomorp
 finite-rank cores from a family of fibrewise continuous linear equivalences that is continuous on
 total spaces. This file gives the converse construction.
 
+* `TauCeti.FiniteRankBundleCore.fiberMap_hom_inv_id` and
+  `TauCeti.FiniteRankBundleCore.fiberMap_inv_hom_id`: the fibre maps of the two halves of an
+  isomorphism are inverse to each other;
 * `TauCeti.FiniteRankBundleCore.isoFiberEquiv e x`: the continuous linear equivalence between the
   fibres over `x`, in coordinates, given by an isomorphism `e : A ≅ D` of finite-rank cores, with
   the fibre map of `e.hom` as the map and that of `e.inv` as its inverse;
+* `TauCeti.FiniteRankBundleCore.isInvertible_fiberMap_hom` and
+  `TauCeti.FiniteRankBundleCore.inverse_fiberMap_hom`: the fibre map of `e.hom` is invertible, and
+  its inverse is the fibre map of `e.inv`;
 * `TauCeti.FiniteRankBundleCore.continuous_isoFiberEquiv`: this family is continuous on total
   spaces, in the form that `isoOfContinuousEquiv` takes;
 * `TauCeti.FiniteRankBundleCore.isoFiberEquiv_isoOfContinuousEquiv` and
@@ -46,13 +52,24 @@ namespace FiniteRankBundleCore
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {B : Type*} [TopologicalSpace B]
   {A D : FiniteRankBundleCore 𝕜 B}
 
+/-- The fibre map of `e.inv` after that of `e.hom`, for an isomorphism `e : A ≅ D` of finite-rank
+cores, is the identity of the fibre of `A`. -/
+@[simp] theorem fiberMap_hom_inv_id (e : A ≅ D) (x : B) :
+    (e.inv.fiberMap x).comp (e.hom.fiberMap x) = .id 𝕜 _ := by
+  rw [← fiberMap_comp, Iso.hom_inv_id, fiberMap_id]
+
+/-- The fibre map of `e.hom` after that of `e.inv`, for an isomorphism `e : A ≅ D` of finite-rank
+cores, is the identity of the fibre of `D`. -/
+@[simp] theorem fiberMap_inv_hom_id (e : A ≅ D) (x : B) :
+    (e.hom.fiberMap x).comp (e.inv.fiberMap x) = .id 𝕜 _ := by
+  rw [← fiberMap_comp, Iso.inv_hom_id, fiberMap_id]
+
 /-- The continuous linear equivalence between the fibres over `x` of two finite-rank cores, in
 their coordinates `Fin A.rank → 𝕜` and `Fin D.rank → 𝕜`, given by an isomorphism `e : A ≅ D`: the
 fibre map of `e.hom`, with inverse the fibre map of `e.inv`. -/
 def isoFiberEquiv (e : A ≅ D) (x : B) : (Fin A.rank → 𝕜) ≃L[𝕜] (Fin D.rank → 𝕜) :=
   ContinuousLinearEquiv.ofContinuousLinearMap (e.hom.fiberMap x) (e.inv.fiberMap x)
-    (by rw [← fiberMap_comp, Iso.inv_hom_id, fiberMap_id])
-    (by rw [← fiberMap_comp, Iso.hom_inv_id, fiberMap_id])
+    (fiberMap_inv_hom_id e x) (fiberMap_hom_inv_id e x)
 
 @[simp] theorem toContinuousLinearMap_isoFiberEquiv (e : A ≅ D) (x : B) :
     (isoFiberEquiv e x : (Fin A.rank → 𝕜) →L[𝕜] (Fin D.rank → 𝕜)) = e.hom.fiberMap x := by
@@ -68,6 +85,18 @@ def isoFiberEquiv (e : A ≅ D) (x : B) : (Fin A.rank → 𝕜) ≃L[𝕜] (Fin 
   rw [toContinuousLinearMap_isoFiberEquiv, Iso.symm_hom, isoFiberEquiv,
     ContinuousLinearEquiv.symm_ofContinuousLinearMap,
     ContinuousLinearEquiv.toContinuousLinearMap_ofContinuousLinearMap]
+
+/-- The fibre map over `x` of the forward half of an isomorphism `e : A ≅ D` of finite-rank cores
+is an invertible continuous linear map. -/
+@[simp] theorem isInvertible_fiberMap_hom (e : A ≅ D) (x : B) :
+    (e.hom.fiberMap x).IsInvertible :=
+  .of_inverse (fiberMap_inv_hom_id e x) (fiberMap_hom_inv_id e x)
+
+/-- The inverse of the fibre map over `x` of the forward half of an isomorphism `e : A ≅ D` of
+finite-rank cores is the fibre map over `x` of its backward half. -/
+@[simp] theorem inverse_fiberMap_hom (e : A ≅ D) (x : B) :
+    (e.hom.fiberMap x).inverse = e.inv.fiberMap x :=
+  ContinuousLinearMap.inverse_eq (fiberMap_inv_hom_id e x) (fiberMap_hom_inv_id e x)
 
 @[simp] theorem isoFiberEquiv_refl (A : FiniteRankBundleCore 𝕜 B) (x : B) :
     isoFiberEquiv (Iso.refl A) x = ContinuousLinearEquiv.refl 𝕜 (Fin A.rank → 𝕜) := by
@@ -142,7 +171,7 @@ theorem fiberMap_trans_trans_symm_hom {P Q R : FiniteRankBundleCore 𝕜 B} (a :
     simp
   rw [he, Iso.trans_hom, Iso.trans_hom, fiberMap_comp, fiberMap_comp, h,
     ContinuousLinearMap.comp_smul, ContinuousLinearMap.comp_id, ContinuousLinearMap.smul_comp,
-    ← fiberMap_comp, Iso.symm_hom, Iso.hom_inv_id, fiberMap_id]
+    Iso.symm_hom, fiberMap_hom_inv_id]
 
 end FiniteRankBundleCore
 
