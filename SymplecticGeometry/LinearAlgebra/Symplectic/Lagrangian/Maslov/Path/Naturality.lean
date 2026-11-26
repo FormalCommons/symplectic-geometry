@@ -10,6 +10,7 @@ public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Path
 public import TauCeti.Analysis.Matrix.SymplecticGroup.Connected
 import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Loop
 import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Fibration
+import TauCeti.Topology.Homotopy.Path
 
 /-!
 # The Maslov index of paths: naturality, values, homotopy and the reference Lagrangian
@@ -211,12 +212,7 @@ theorem pathMaslovIndex_eq_iff_homotopic {Λ Λ' : ℒ ι} {γ γ' : Path Λ Λ'
     rw [pathMaslovIndex_trans, pathMaslovIndex_symm, h] at h₁
     rw [pathMaslovIndex_trans, pathMaslovIndex_symm] at h₂
     exact_mod_cast h₁.symm.trans h₂
-  have hq := congrArg (fun q ↦ q.trans (Path.Homotopic.Quotient.mk γ'))
-    (Path.Homotopic.Quotient.eq.2 (maslovIndex_eq_iff_homotopic.1 hloop))
-  simp only [Path.Homotopic.Quotient.mk_trans, Path.Homotopic.Quotient.mk_symm,
-    Path.Homotopic.Quotient.trans_assoc, Path.Homotopic.Quotient.symm_trans,
-    Path.Homotopic.Quotient.trans_refl] at hq
-  exact Path.Homotopic.Quotient.eq.1 hq
+  exact Path.Homotopic.trans_right_cancel (maslovIndex_eq_iff_homotopic.1 hloop)
 
 /-- **The difference of the indices relative to two Lagrangians depends only on the ends.** For two
 paths `γ`, `γ'` from `Λ` to `Λ'` and two Lagrangians `V`, `V'`,
