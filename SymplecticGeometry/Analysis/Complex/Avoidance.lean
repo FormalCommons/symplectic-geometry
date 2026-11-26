@@ -221,9 +221,10 @@ private theorem exists_zeroLocus_near_image (hι : Fintype.card ι = Fintype.car
     exact Finset.prod_eq_zero hc (hQe c hc _)
   · rw [dist_eq_norm]
     simpa [e] using hPG c hc _ hzc
+
 /-- If the ball of radius `δ` lies in the `t`-neighbourhood of the zero set of a nonzero
-polynomial of degree at most `D` on `ℂ^ι`, then `t` is at least a constant times
-`δ / D ^ (2 * card ι)`: this is the tube-volume bound
+polynomial of degree at most `D` on `ℂ^ι`, then `vol (ball 0 1) * δ ≤ C * D ^ (2 * card ι) * t`
+for a constant `C > 0` that depends only on `ι`: this is the tube-volume bound
 `MvPolynomial.volume_thickening_zeroLocus_inter_ball_le` on `ball 0 δ`. -/
 private theorem exists_mul_le_of_ball_subset_thickening :
     ∃ C > 0, ∀ Q : MvPolynomial ι ℂ, Q ≠ 0 → ∀ D : ℕ, Q.totalDegree ≤ D → ∀ δ, 0 < δ →
