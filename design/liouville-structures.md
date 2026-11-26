@@ -108,11 +108,9 @@ by `coe_interiorₗ`. For a strong filling `h`, `hY` is
   speed `ε`, are the integral curves of `Y` through the boundary points, for
   times in $(-\varepsilon,0]$ (`TauCeti.SmoothCollar.exists_eq_of_isOutwardPointing`,
   in `Geometry/Manifold/Boundary/Collar/Flow/`). It is proved in the extended
-  chart at a boundary point, where the field is extended across the boundary
-  by Seeley's extension in the normal coordinate, from *Smooth families*'
-  `exists_contDiff_eqOn_of_contDiffOn_halfSpace`
-  (`Analysis/Calculus/ContDiff/Seeley/Extension.lean`);
-  the extended field has a flow (Tau Ceti's, on the boundaryless `ℝⁿ⁺¹`),
+  chart at a boundary point, where the negative of the field has a local flow
+  on the half-space (Tau Ceti's
+  `TauCeti.exists_contDiffOn_localFlow_euclideanHalfSpace`),
   whose backward lines from the boundary enter the interior and are there the integral curves of
   `Y`, so the local collars agree and patch. For a strong filling the
   collar formulas $\Phi^*\lambda=e^s\alpha$ and $\Phi^*\omega=-d(e^s\alpha)$
@@ -428,21 +426,17 @@ In `TauCeti`, for `W` as in *Decisions* (no compactness), a field `Y` with
 `hY : IsOutwardPointingField Y` (Tau Ceti's smooth field that points outward
 along the boundary), and a boundary point `p`:
 
-- In the extended chart at `p`, the coordinate expression of the field,
-  smooth on a relatively open part of the half-space, agrees near `p` with a
-  smooth field on `ℝⁿ⁺¹` (`exists_contDiff_eqOn_mpullbackWithin_extChartAt_symm`,
-  from *Smooth families*'
-  `SymplecticGeometry.exists_contDiff_eqOn_of_contDiffOn_halfSpace` in
-  `Analysis/Calculus/ContDiff/Seeley/Extension.lean`): Seeley's extension in
-  the normal coordinate.
+- In the extended chart at `p`, the negative of the coordinate expression of
+  the field, smooth on a relatively open part of the half-space, has a local
+  flow there (Tau Ceti's `TauCeti.exists_contDiffOn_localFlow_euclideanHalfSpace`).
 - `exists_isMIntegralCurveOn_of_isOutwardPointing`: there are an open
   `B ∋ p` of `∂W`, `η > 0` and a map `γ : ℝ × ∂W → W` such that for `x ∈ B`
   the curve `s ↦ γ (s, x)` starts at `x`, lies in the interior of `W` for
   `s ∈ (-η, 0)` and is an integral curve of `Y` on `Ioc (-η) 0`
   (`IsMIntegralCurveOn`), and `(x, t) ↦ γ (-t.val 0, x)` is a local
   diffeomorphism (`IsLocalDiffeomorphOn ((𝓡 n).prod (𝓡∂ 1)) (𝓡∂ (n + 1)) ∞`)
-  on `B ×ˢ EuclideanHalfSpace.normalIio η`. In charts it is the flow of the
-  extended field from the boundary hyperplane, a local diffeomorphism of
+  on `B ×ˢ EuclideanHalfSpace.normalIio η`. In charts it is that flow
+  from the boundary hyperplane, a local diffeomorphism of
   boundaryless spaces since `Y p` is transverse to the boundary, restricted
   to the half-spaces
   (`PartialDiffeomorph.isLocalDiffeomorphAt_symm_comp_comp_model`, in
