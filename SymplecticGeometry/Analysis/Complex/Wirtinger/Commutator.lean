@@ -82,6 +82,30 @@ theorem fderiv_wirtingerDeriv_apply (hv : ContDiffAt ℝ 2 v z) (a b : V) :
   simp only [hw]
   exact hv.fderiv_comp_fderiv_apply _ a
 
+/-- `∂̄` of a Wirtinger derivative `∂_b v` is controlled by the first derivatives of `∂̄v`: if
+`‖D(∂̄v(·) c)(z)‖ ≤ ε ‖c‖` for every `c`, then `‖∂̄(∂_b v)(z) a‖ ≤ 2 ε ‖b‖ ‖a‖`, for `v` of class
+`C²` at `z`. -/
+theorem norm_conjWirtingerDeriv_wirtingerDeriv_apply_le {ε : ℝ} (hv : ContDiffAt ℝ 2 v z)
+    (hε : ∀ c, ‖fderiv ℝ (fun w ↦ conjWirtingerDeriv v w c) z‖ ≤ ε * ‖c‖) (a b : V) :
+    ‖conjWirtingerDeriv (fun w ↦ wirtingerDeriv v w b) z a‖ ≤ 2 * ε * ‖b‖ * ‖a‖ := by
+  have hfun : (fun w ↦ wirtingerDeriv v w b) =
+      fun w ↦ fderiv ℝ v w b - conjWirtingerDeriv v w b :=
+    funext fun w ↦ eq_sub_of_add_eq (wirtingerDeriv_add_conjWirtingerDeriv v w b)
+  have h1 : DifferentiableAt ℝ (fun w ↦ fderiv ℝ v w b) z :=
+    ((hv.fderiv_right (m := 1) (by norm_num)).clm_apply contDiffAt_const).differentiableAt
+      one_ne_zero
+  have h2 : DifferentiableAt ℝ (fun w ↦ conjWirtingerDeriv v w b) z :=
+    (hv.conjWirtingerDeriv_apply (m := 1) (by norm_num) b).differentiableAt one_ne_zero
+  rw [hfun, conjWirtingerDeriv_fun_sub h1 h2, sub_apply, ← fderiv_conjWirtingerDeriv_apply hv]
+  calc _ ≤ ‖fderiv ℝ (fun w ↦ conjWirtingerDeriv v w a) z b‖ +
+        ‖conjWirtingerDeriv (fun w ↦ conjWirtingerDeriv v w b) z a‖ := norm_sub_le _ _
+    _ ≤ ε * ‖a‖ * ‖b‖ + ε * ‖b‖ * ‖a‖ :=
+        add_le_add (((fderiv ℝ _ z).le_opNorm b).trans
+          (mul_le_mul_of_nonneg_right (hε a) (norm_nonneg _)))
+          ((norm_conjWirtingerDeriv_apply_le _ _ a).trans
+          (mul_le_mul_of_nonneg_right (hε b) (norm_nonneg _)))
+    _ = 2 * ε * ‖b‖ * ‖a‖ := by ring
+
 /-- **The commutator of `∂̄ + μ ∂` with a partial derivative.** If `v` is `C²` at `z` and `μ` is
 differentiable there, then `P (∂ₐv) = ∂ₐ (P v) - (∂ₐμ) ∂v` at `z`, where
 `P u = ∂̄u(·) b + μ ∂u(·) b`. -/
