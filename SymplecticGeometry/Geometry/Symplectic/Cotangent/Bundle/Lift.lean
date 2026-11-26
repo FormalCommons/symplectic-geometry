@@ -18,6 +18,7 @@ public import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Classification
 public import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Lift
 public import TauCeti.Geometry.Symplectic.Hamiltonian.Manifold
 public import TauCeti.Topology.FiberBundle.Separation
+import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 
 /-!
 # Cotangent lifts of local flows
@@ -361,8 +362,7 @@ theorem flowOf_eq_liftFlow_of_isHamiltonianVectorField {t : ℝ} {z : CotangentB
     simp only [mpullback_apply_one, liouvilleForm_apply, Matrix.cons_val_zero] at h
     rw [← mfderiv_comp_apply z (hπ _) hΦ, hev.mfderiv_eq, ContinuousLinearMap.comp_apply,
       mfderiv_comp_apply z hφ (hπ z)] at h
-    -- `tangentSpaceCast` is the identity of the model space.
-    exact h
+    rwa [ContinuousLinearEquiv.coe_coe, tangentSpaceCast_apply] at h
   refine CotangentBundle.ext (hev.self_of_nhds) fun w ↦ ?_
   exact (congrArg (flowOf X t z).snd (mfderiv_flowOf_apply_mfderiv_flowOf_neg hY1 htY w)).symm.trans
     (hkey _)
