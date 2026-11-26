@@ -68,6 +68,8 @@ blowup constructions read the forms they build off `Z` in these terms.
 * `SymplecticGeometry.radialPotentialForm_log`: for `ι = Fin (n + 1)` and `g = log` it is the
   Fubini–Study lift `SymplecticGeometry.fubiniStudyLift n`, since its primitive is
   `(1/4) J* d log |z|²` (`SymplecticGeometry.fubiniStudyPrimitive_eq`).
+* `SymplecticGeometry.radialPotentialForm_add`, `SymplecticGeometry.radialPotentialForm_const_mul`:
+  the form is linear in `g`, as its value is.
 
 The second half of the file is about radial maps. For `h : ℝ → ℝ` positive on `(0, ∞)`:
 
