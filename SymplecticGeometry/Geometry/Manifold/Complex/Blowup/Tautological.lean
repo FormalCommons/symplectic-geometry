@@ -66,7 +66,7 @@ Lemma 7.1.1; Griffiths–Harris, Chapter 1, §4).
   ranges are the complex ones, so that its real normal spaces are the same quotients as the
   complex ones. They are invariant under the almost complex structure
   `TauCeti.SmoothAlmostComplexStructure.ofComplexManifold` of the blowup
-  (`SymplecticGeometry.BlowupModel.ofComplexManifold_mem_tangentRange_zeroSectionRealEmbedding`).
+  (`SymplecticGeometry.BlowupModel.mapsTo_ofComplexManifold_tangentRange_zeroSectionRealEmbedding`).
 * `SymplecticGeometry.BlowupModel.normalSpaceZeroSectionRealEquiv n hn ℓ`: the real form of
   `normalSpaceZeroSectionEquiv n ℓ`, a real-linear isomorphism from the real normal space onto
   the line `ℓ`, whose inverse is computed by
@@ -567,11 +567,13 @@ theorem coe_tangentRange_zeroSectionRealEmbedding (ℓ : ℙ ℂ (Fin (n + 1) �
 /-- The tangent images of the real zero section `zeroSectionRealEmbedding n` are invariant under
 the almost complex structure of the complex manifold `BlowupModel n`, which is multiplication by
 `Complex.I`. -/
-theorem ofComplexManifold_mem_tangentRange_zeroSectionRealEmbedding (ℓ : ℙ ℂ (Fin (n + 1) → ℂ))
-    (v : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) (zeroSectionRealEmbedding n ℓ))
-    (hv : v ∈ (zeroSectionRealEmbedding n).tangentRange ℓ hn) :
-    TauCeti.SmoothAlmostComplexStructure.ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n)
-      (zeroSectionRealEmbedding n ℓ) v ∈ (zeroSectionRealEmbedding n).tangentRange ℓ hn := by
+theorem mapsTo_ofComplexManifold_tangentRange_zeroSectionRealEmbedding
+    (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    Set.MapsTo
+      (TauCeti.SmoothAlmostComplexStructure.ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n)
+        (zeroSectionRealEmbedding n ℓ))
+      ((zeroSectionRealEmbedding n).tangentRange ℓ hn)
+      ((zeroSectionRealEmbedding n).tangentRange ℓ hn) := by
   -- The zero section is holomorphic, so pseudoholomorphic for the two almost complex structures.
   have hf : TauCeti.IsPseudoholomorphicAt
       (TauCeti.SmoothAlmostComplexStructure.ofComplexManifold (Fin n → ℂ) (ℙ ℂ (Fin (n + 1) → ℂ)))
@@ -579,7 +581,7 @@ theorem ofComplexManifold_mem_tangentRange_zeroSectionRealEmbedding (ℓ : ℙ �
       (zeroSectionRealEmbedding n) ℓ := by
     rw [coe_zeroSectionRealEmbedding, TauCeti.isPseudoholomorphicAt_ofComplexManifold_iff]
     exact (contMDiff_zeroSection 1).mdifferentiableAt one_ne_zero
-  exact (zeroSectionRealEmbedding n).mapsTo_tangentRange_of_isPseudoholomorphicAt hn hf hv
+  exact (zeroSectionRealEmbedding n).mapsTo_tangentRange_of_isPseudoholomorphicAt hn hf
 
 /-- The differential of `blowdown` at `zeroSection ℓ`, as a real-linear map into the line `ℓ`. -/
 private noncomputable def mfderivBlowdownZeroSectionReal (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
@@ -681,14 +683,14 @@ theorem normalSpaceZeroSectionRealEquiv_contMDiffNormalComplexStructure {P : Typ
         ((zeroSectionRealEmbedding n).contMDiffNormalComplexStructure hdim
           (TauCeti.SmoothAlmostComplexStructure.ofComplexManifold (Fin (n + 1) → ℂ)
             (BlowupModel n))
-          ofComplexManifold_mem_tangentRange_zeroSectionRealEmbedding ℓ v) =
+          mapsTo_ofComplexManifold_tangentRange_zeroSectionRealEmbedding ℓ v) =
       Complex.I • normalSpaceZeroSectionRealEquiv n hn ℓ v := by
   let := (zeroSectionRealEmbedding n).normalSpaceFiberBundle hn hdim
   let := (zeroSectionRealEmbedding n).normalSpaceVectorBundle hn hdim
   obtain ⟨w, rfl⟩ := (zeroSectionRealEmbedding n).normalClass_surjective ℓ hn v
   rw [TauCeti.SmoothEmbedding.contMDiffNormalComplexStructure_apply,
     TauCeti.SmoothEmbedding.normalComplexStructureAt_normalClass
-      (fun v hv ↦ ofComplexManifold_mem_tangentRange_zeroSectionRealEmbedding ℓ v hv),
+      (mapsTo_ofComplexManifold_tangentRange_zeroSectionRealEmbedding ℓ),
     TauCeti.SmoothAlmostComplexStructure.ofComplexManifold_apply (E := Fin (n + 1) → ℂ)
       (M := BlowupModel n) _ w,
     normalSpaceZeroSectionRealEquiv_normalClass]
