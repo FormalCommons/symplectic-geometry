@@ -13,6 +13,7 @@ public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Map
 public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Basic
+import SymplecticGeometry.Analysis.Real.Sqrt
 import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens.PartialDiffeomorph
 import TauCeti.Geometry.Symplectic.Manifold.NeighborhoodGerm
@@ -45,6 +46,9 @@ the divisor `Z`, the blowup is the image of `inl`, and so symplectomorphic to `M
 
 ## Main definitions
 
+* `SymplecticGeometry.WeightBlowup.complexPartialDiffeomorph hψ`: the map
+  `ψ ∘ complexToRealEuclidean` as a partial diffeomorphism from the preimage in `E` of the open
+  ball of radius `√(l² + ε²)` onto its image under `ψ`.
 * `SymplecticGeometry.WeightBlowup.outerPiece hψ`: the open subset `M ∖ ψ(B(l))` of `M`.
 * `SymplecticGeometry.WeightBlowup.modelPiece n ε`: the open subset `openNbhd n ε` of the model.
 * `SymplecticGeometry.WeightBlowup.shellImage hψ`: the image under `ψ` of the open shell
@@ -139,21 +143,39 @@ variable {n : ℕ} {M : Type} [TopologicalSpace M] [ChartedSpace (Fin (n + 1) �
 
 /-- `ψ` read on `E` through `complexToRealEuclidean`, as a partial diffeomorphism of `E` into `M`
 on the preimage of the open ball of radius `√(l² + ε²)`. -/
-private def complexPartialDiffeomorph
+def complexPartialDiffeomorph
     (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) :
     PartialDiffeomorph 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ) M ∞ :=
   (complexToRealEuclidean (Fin (n + 1))).toPartialDiffeomorph.trans
     (hψ.toPartialDiffeomorph (complexToRealEuclidean (Fin (n + 1))).toLinearEquiv.finrank_eq.symm)
 
-private theorem coe_complexPartialDiffeomorph
+@[simp]
+theorem coe_complexPartialDiffeomorph
     (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) :
     ⇑(complexPartialDiffeomorph hψ) = ψ ∘ complexToRealEuclidean (Fin (n + 1)) := by
   simp [complexPartialDiffeomorph]
 
-private theorem mem_complexPartialDiffeomorph_source_iff
+/-- The source of `complexPartialDiffeomorph hψ` is the preimage of the open ball of radius
+`√(l² + ε²)`. -/
+@[simp]
+theorem complexPartialDiffeomorph_source
+    (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) :
+    (complexPartialDiffeomorph hψ).source =
+      complexToRealEuclidean (Fin (n + 1)) ⁻¹' ball 0 √(l ^ 2 + ε ^ 2) := by
+  simp [complexPartialDiffeomorph]
+
+theorem mem_complexPartialDiffeomorph_source_iff
     (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) {w : Fin (n + 1) → ℂ} :
     w ∈ (complexPartialDiffeomorph hψ).source ↔
       ‖complexToRealEuclidean (Fin (n + 1)) w‖ < √(l ^ 2 + ε ^ 2) := by
+  simp
+
+/-- The target of `complexPartialDiffeomorph hψ` is the image under `ψ` of the open ball of radius
+`√(l² + ε²)`. -/
+@[simp]
+theorem complexPartialDiffeomorph_target
+    (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) :
+    (complexPartialDiffeomorph hψ).target = ψ '' ball 0 √(l ^ 2 + ε ^ 2) := by
   simp [complexPartialDiffeomorph]
 
 variable [T2Space M]
@@ -161,7 +183,7 @@ variable [T2Space M]
 /-- The first piece of the blowup: the open subset `M ∖ ψ(B(l))` of `M`. -/
 def outerPiece (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) : Opens M :=
   ⟨(ψ '' closedBall 0 l)ᶜ,
-    (hψ.isCompact_image_closedBall (Real.le_sqrt_of_sq_le (by nlinarith))).isClosed.isOpen_compl⟩
+    (hψ.isCompact_image_closedBall (Real.le_sqrt_sq_add_sq l ε)).isClosed.isOpen_compl⟩
 
 @[simp]
 theorem mem_outerPiece_iff (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) {x : M} :
@@ -183,7 +205,7 @@ open ball of radius `√(l² + ε²)` that are not in `ψ(B(l))`. -/
 def shellImage (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) : Opens M :=
   ⟨ψ '' ball 0 √(l ^ 2 + ε ^ 2) \ ψ '' closedBall 0 l,
     (hψ.isOpen_image_ball (complexToRealEuclidean (Fin (n + 1))).toLinearEquiv.finrank_eq.symm
-      ).sdiff (hψ.isCompact_image_closedBall (Real.le_sqrt_of_sq_le (by nlinarith))).isClosed⟩
+      ).sdiff (hψ.isCompact_image_closedBall (Real.le_sqrt_sq_add_sq l ε)).isClosed⟩
 
 @[simp]
 theorem mem_shellImage_iff (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) {x : M} :
@@ -204,7 +226,7 @@ theorem mem_openShell_iff_mem_shellImage (hψ : IsSymplecticBallEmbedding σ (�
   refine ⟨fun h ↦ ⟨⟨_, mem_ball_zero_iff.2 hw, rfl⟩, ?_⟩, fun h ↦ ⟨?_, hw⟩⟩
   · rintro ⟨v, hv, hvw⟩
     have hle : v ∈ closedBall 0 √(l ^ 2 + ε ^ 2) :=
-      closedBall_subset_closedBall (Real.le_sqrt_of_sq_le (by nlinarith)) hv
+      closedBall_subset_closedBall (Real.le_sqrt_sq_add_sq l ε) hv
     rw [hψ.injOn hle (ball_subset_closedBall (mem_ball_zero_iff.2 hw)) hvw,
       mem_closedBall_zero_iff] at hv
     exact h.1.not_ge hv

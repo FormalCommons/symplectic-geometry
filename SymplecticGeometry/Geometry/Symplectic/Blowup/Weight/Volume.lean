@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Weight.Basic
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Volume
+import SymplecticGeometry.Analysis.Real.Sqrt
 
 /-!
 # The volume of the blowup of weight `λ`
@@ -175,7 +176,7 @@ theorem liouvilleMeasure_form_add :
     ← measure_add_measure_compl (s := (outerPiece hψ : Set M)) (outerPiece hψ).isOpen.measurableSet,
     ← range_divisor, liouvilleMeasure_form_range_divisor, liouvilleMeasure_form_complDivisor,
     add_zero, hc, hψ.liouvilleMeasure_image
-      (closedBall_subset_ball (Real.lt_sqrt_of_sq_lt (by nlinarith)))]
+      (closedBall_subset_ball (Real.lt_sqrt_sq_add_sq l hε.ne'))]
 
 end WeightBlowup
 
