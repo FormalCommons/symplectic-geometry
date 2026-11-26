@@ -11,6 +11,7 @@ public import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import Mathlib.Analysis.Calculus.ContDiff.Deriv
 import TauCeti.Analysis.SpecialFunctions.SmoothTransition
+import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Defs
 
 /-!
 # A smoothed maximum of two real numbers
@@ -162,7 +163,7 @@ theorem convexOn_smoothedAbs (hδ : 0 ≤ δ) : ConvexOn ℝ univ (smoothedAbs �
 /-- For `δ ≥ 0`, the second derivative of `smoothedAbs δ` is nonnegative. -/
 theorem iteratedDeriv_two_smoothedAbs_nonneg (hδ : 0 ≤ δ) (t : ℝ) :
     0 ≤ iteratedDeriv 2 (smoothedAbs δ) t := by
-  rw [iteratedDeriv_succ, iteratedDeriv_one, deriv_smoothedAbs]
+  rw [iteratedDeriv_two, deriv_smoothedAbs]
   exact (monotone_smoothedSign hδ).deriv_nonneg
 
 /-- `smoothedAbs δ t = t` for `t ≥ δ > 0`. -/
