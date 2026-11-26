@@ -334,7 +334,7 @@ theorem mpullback_inclusion (hα : IsLocalDefiningFamily ξ U α a b) {V : Opens
     IsLocalDefiningFamily ξ V (mpullback (Prod.map id (Opens.inclusion hV))
       (contMDiff_id.prodMap (contMDiff_inclusion hV)) α) a b := by
   refine ⟨fun t ↦ ?_, fun t ht x ↦ ?_⟩
-  · rw [mpullback_prodMk_mpullback_prodMap]
+  · rw [SmoothForm.mpullback_prodMk_mpullback_prodMap]
     exact (hα.isContactForm t).mpullback _ (contMDiff_inclusion hV) fun y ↦
       TauCeti.bijective_mfderiv_inclusion hV y
   · ext v
