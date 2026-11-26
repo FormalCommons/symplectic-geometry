@@ -15,7 +15,6 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
 public import TauCeti.Geometry.Symplectic.Manifold.Kahler
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Restriction
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Pseudoholomorphic
-public import TauCeti.Geometry.Symplectic.Manifold.Opens
 public import TauCeti.Geometry.Symplectic.Lagrangian.Basic
 import SymplecticGeometry.LinearAlgebra.ComplexStructure.Hom
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
@@ -78,8 +77,11 @@ Nothing here assumes `N` nonempty or of positive dimension.
 
 Two related cases end the file. An open subset `U` needs no embedding: Tau Ceti restricts `J` to
 it as `J.restrictOpen U`, and a form taming `J` pulls back along the inclusion to one taming that
-restriction (`TauCeti.SmoothTwoForm.Tames.restrictOpen`). The kernel of the derivative of a
-pseudoholomorphic map is `J`-invariant, so by Tau Ceti's
+restriction (`TauCeti.SmoothTwoForm.Tames.restrictOpen`). The inclusion is pseudoholomorphic
+(Tau Ceti's `TauCeti.SmoothAlmostComplexStructure.isPseudoholomorphic_subtype_val`) and its
+differentials are injective (`TauCeti.Manifold.mfderiv_subtype_val_injective`), so this follows
+from the pull-back lemma along pseudoholomorphic maps, `TauCeti.SmoothTwoForm.Tames.mpullback`.
+The kernel of the derivative of a pseudoholomorphic map is `J`-invariant, so by Tau Ceti's
 `TauCeti.SymplecticForm.Tames.isSymplectic_of_mem_invtSubmodule` a taming form is nondegenerate
 on it (`TauCeti.SmoothTwoForm.Tames.nondegenerate_restrict_ker_mfderiv`).
 
@@ -437,11 +439,8 @@ theorem Tames.nondegenerate_restrict_ker_mfderiv (hσ : σ.Tames J)
 `J.restrictOpen U` of `J` to `U`. -/
 theorem Tames.restrictOpen (hσ : σ.Tames J) (U : TopologicalSpace.Opens X) :
     SmoothTwoForm.Tames (SmoothForm.mpullback (Subtype.val : U → X) contMDiff_subtypeVal σ)
-      (J.restrictOpen U) := tames_iff.2 fun x v hv ↦ by
-  rw [← SmoothForm.bilinFormAt_apply, bilinFormAt_mpullback_subtype_val,
-    SmoothAlmostComplexStructure.restrictOpen_apply]
-  simp only [Manifold.tangentSpaceOpenEquiv_apply, Manifold.tangentSpaceOpenEquiv_symm_apply]
-  exact lt_of_lt_of_eq (tames_iff.1 hσ x v hv) (SmoothForm.bilinFormAt_apply σ (x : X) _ _).symm
+      (J.restrictOpen U) :=
+  hσ.mpullback (J.isPseudoholomorphic_subtype_val U) _ Manifold.mfderiv_subtype_val_injective
 
 end SmoothTwoForm
 

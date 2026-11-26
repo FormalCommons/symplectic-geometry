@@ -363,12 +363,10 @@ private theorem mextDeriv_apply_rightFundamentalVectorField_prod_inl (ξ : Group
     simp only [Pi.zero_apply, ContinuousAlternatingMap.coe_zero] at hC
     rw [eq_neg_iff_add_eq_zero]
     exact hC.symm
-  · rw [SmoothForm.mpullback_apply]
-    simp only [Function.comp_apply]
-    congr 1
-    ext i
-    fin_cases i
-    exact mfderiv_prodMk_left_apply _
+  · rw [Function.comp_apply, SmoothForm.mpullback_apply_one, mfderiv_prodMk_left_apply]
+    dsimp only
+    -- The two sides differ only in implicit types and instances, which agree by definition.
+    rfl
 
 omit [IB.Boundaryless] in
 /-- The identity of `mextDeriv_apply_rightFundamentalVectorField_prod` on vectors tangent to `N`:
@@ -454,10 +452,8 @@ private theorem mextDeriv_apply_rightFundamentalVectorField_prod_inr (ξ : Group
         exact Prod.ext (one_smul ℝ _).symm rfl
       · exact Prod.ext (zero_smul ℝ _).symm rfl
     · exact Prod.ext (zero_smul ℝ _).symm rfl
-  · rw [SmoothForm.mpullback_apply, (hφ' q).mfderiv]
-    congr 1
-    funext i
-    fin_cases i
+  · rw [SmoothForm.mpullback_apply_one, (hφ' q).mfderiv]
+    congr 2
     rw [hW]
     exact Prod.ext (one_smul ℝ _) rfl
 

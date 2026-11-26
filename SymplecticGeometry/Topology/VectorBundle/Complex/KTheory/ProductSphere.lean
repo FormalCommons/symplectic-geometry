@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Clutching
+public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.LaurentApproximation
 
 /-!
 # Bundles over `X × ℂP¹` are clutchings
@@ -13,8 +14,10 @@ public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Clutching
 Let `X` be compact Hausdorff and `F` a finite-rank core over `X × ℙ ℂ (Fin 2 → ℂ)`, and let `E` be
 its restriction to `X × {[1 : 1]}`, that is its pullback along `x ↦ (x, [1 : 1])`. Then `F` is
 isomorphic to the clutching `E.clutching f` of `E` by some automorphism `f` of the pullback of `E`
-to `X × Circle` (`TauCeti.FiniteRankBundleCore.exists_iso_clutching`). This is the first step of
-the product theorem of [Hatcher2017, §2.1].
+to `X × Circle` (`TauCeti.FiniteRankBundleCore.exists_iso_clutching`), and over `ℂ` the
+automorphism may be taken a Laurent polynomial in the circle coordinate
+(`TauCeti.FiniteRankBundleCore.exists_iso_clutching_laurent`). These are the first steps of the
+product theorem of [Hatcher2017, §2.1].
 
 ## Main definitions and results
 
@@ -28,6 +31,9 @@ the product theorem of [Hatcher2017, §2.1].
   same holds for the restriction of `F` to `X × S`, for any set `S` inside an affine open.
 * `TauCeti.FiniteRankBundleCore.exists_iso_clutching`: every core over `X × ℙ ℂ (Fin 2 → ℂ)` is a
   clutching of its restriction to `X × {[1 : 1]}`.
+* `TauCeti.FiniteRankBundleCore.exists_iso_clutching_laurent`: for a complex core, the clutching
+  function may be taken a Laurent family `laurentHom N a`, with fibre map
+  `∑_{|i| ≤ N} u ^ i • (a i).fiberMap x` at `(x, u)`.
 
 The discs, the annulus and the maps between products with them that the proof uses, such as
 `ProjectiveLine.circleToAnnulus` and the radial deformation `ProjectiveLine.annulusDeformation`,
@@ -44,6 +50,9 @@ transition `g` of the two isomorphisms over the product of `X` with the annulus.
 restricted to `X × Circle`. The radial deformation of the annulus onto the circle joins `g` to
 `clutchingAut E f`, which glues to `E.clutching f`, and gluings by homotopic automorphisms are
 isomorphic (`TauCeti.FiniteRankBundleCore.nonempty_iso_glue_of_homotopic`).
+
+For a complex core, `TauCeti.FiniteRankBundleCore.exists_iso_clutching_laurentHom` then replaces
+`f` by a Laurent family whose clutching is isomorphic to that by `f`.
 
 ## References
 
@@ -130,23 +139,56 @@ theorem exists_iso_clutching :
   have hUV : (Prod.snd ⁻¹' innerDisc ∪ Prod.snd ⁻¹' outerDisc : Set (X × ℙ ℂ (Fin 2 → ℂ))) =
       univ := by
     rw [← preimage_union, innerDisc_union_outerDisc, preimage_univ]
+  -- The pullbacks of `E` along the restrictions of the projection to `X × Circle`, through
+  -- `circleToAnnulus`, and to the annulus part of `(X × ℙ ℂ (Fin 2 → ℂ)) × I`, through
+  -- `annulusDeformation`, are its pullbacks along the projections.
+  have hc : (((F.pullback (prodMkOne X)).pullback ContinuousMap.fst).pullback
+      (ContinuousMap.subtypeVal (Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc))).pullback
+        (circleToAnnulus X) = (F.pullback (prodMkOne X)).pullback ContinuousMap.fst := by
+    simp [pullback_comp]
+  have hd : (((F.pullback (prodMkOne X)).pullback ContinuousMap.fst).pullback
+      (ContinuousMap.subtypeVal (Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc))).pullback
+        (annulusDeformation X) =
+      (((F.pullback (prodMkOne X)).pullback ContinuousMap.fst).pullback
+        (ContinuousMap.fst : C((X × ℙ ℂ (Fin 2 → ℂ)) × unitInterval, X × ℙ ℂ (Fin 2 → ℂ)))).pullback
+        (ContinuousMap.subtypeVal (Prod.fst ⁻¹' (Prod.snd ⁻¹' innerDisc) ∩
+          Prod.fst ⁻¹' (Prod.snd ⁻¹' outerDisc))) := by
+    simp [pullback_comp]
+  -- The casts `eqToHom` have the identity as fibre maps.
+  have hc' : ∀ (y : X × Circle) (v : Fin (F.pullback (prodMkOne X)).rank → 𝕜),
+      (eqToHom hc.symm).fiberMap y v = v := fun _ _ ↦ funext fun _ ↦ by simp [Fin.cast_eq_self]
+  have hd' : ∀ y (v : Fin (F.pullback (prodMkOne X)).rank → 𝕜),
+      (eqToHom hd.symm).fiberMap y v = v := fun _ _ ↦ funext fun _ ↦ by simp [Fin.cast_eq_self]
   -- The clutching function: the transition of `φ` and `ψ` on `X × Circle`.
-  refine ⟨(pullbackFunctor (circleToAnnulus X)).mapIso (glueTransition φ ψ), ?_⟩
+  let f := eqToIso hc.symm ≪≫ (pullbackFunctor (circleToAnnulus X)).mapIso (glueTransition φ ψ) ≪≫
+    eqToIso hc
+  refine ⟨f, ?_⟩
   obtain ⟨e⟩ := nonempty_iso_glue_of_homotopic _ hU hV hUV
-    (g₀ := glueTransition φ ψ)
-    (g₁ := clutchingAut (F.pullback (prodMkOne X))
-      ((pullbackFunctor (circleToAnnulus X)).mapIso (glueTransition φ ψ)))
-    ((pullbackFunctor (annulusDeformation X)).mapIso (glueTransition φ ψ))
-    -- The cores of `fiberMap_pullbackMap` are those of the statement by `pullback_comp`: all are
-    -- the pullback of `E` along `w ↦ w.val.1.1`.
-    (fun w ↦ (fiberMap_pullbackMap (glueTransition φ ψ).hom (annulusDeformation X) _).trans
-      (congrArg _ (annulusDeformation_zero X w)))
-    (fun w ↦ (fiberMap_pullbackMap (glueTransition φ ψ).hom (annulusDeformation X) _).trans <|
-      (congrArg _ (annulusDeformation_one X w)).trans <|
-        (fiberMap_pullbackMap (glueTransition φ ψ).hom (circleToAnnulus X) _).symm.trans
-          (fiberMap_clutchingAut_hom (F.pullback (prodMkOne X))
-            ((pullbackFunctor (circleToAnnulus X)).mapIso (glueTransition φ ψ)) w).symm)
+    (g₀ := glueTransition φ ψ) (g₁ := clutchingAut (F.pullback (prodMkOne X)) f)
+    (eqToIso hd.symm ≪≫ (pullbackFunctor (annulusDeformation X)).mapIso (glueTransition φ ψ) ≪≫
+      eqToIso hd)
+    (fun w ↦ by
+      ext v i
+      simp [hd', annulusDeformation_zero, Fin.cast_eq_self])
+    (fun w ↦ by
+      ext v i
+      simp [f, hc', hd', annulusDeformation_one, Fin.cast_eq_self])
   exact ⟨isoGlue φ ψ hU hV hUV ≪≫ e⟩
+
+/-- **Every bundle over `X × ℂP¹` is a clutching by a Laurent clutching function.** Let `X` be
+compact Hausdorff and `F` a finite-rank complex core over `X × ℙ ℂ (Fin 2 → ℂ)`, and let `E` be its
+restriction to `X × {[1 : 1]}`. Then there are `N : ℕ`, endomorphisms `a i` of `E` and an
+automorphism `g` of the pullback of `E` to `X × Circle` whose underlying morphism is the Laurent
+family `laurentHom N a`, with fibre map `∑_{|i| ≤ N} u ^ i • (a i).fiberMap x` at `(x, u)`, such
+that `F` is isomorphic to the clutching of `E` by `g`. -/
+theorem exists_iso_clutching_laurent (F : FiniteRankBundleCore ℂ (X × ℙ ℂ (Fin 2 → ℂ))) :
+    ∃ (N : ℕ) (a : ℤ → (F.pullback (prodMkOne X) ⟶ F.pullback (prodMkOne X)))
+      (g : (F.pullback (prodMkOne X)).pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
+        (F.pullback (prodMkOne X)).pullback (ContinuousMap.fst : C(X × Circle, X))),
+      g.hom = laurentHom N a ∧ Nonempty (F ≅ (F.pullback (prodMkOne X)).clutching g) := by
+  obtain ⟨f, ⟨e⟩⟩ := F.exists_iso_clutching
+  obtain ⟨N, a, g, hg, ⟨e'⟩⟩ := exists_iso_clutching_laurentHom f
+  exact ⟨N, a, g, hg, ⟨e ≪≫ e'⟩⟩
 
 end TauCeti.FiniteRankBundleCore
 

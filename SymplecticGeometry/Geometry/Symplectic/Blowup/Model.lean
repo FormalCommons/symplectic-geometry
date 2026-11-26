@@ -11,7 +11,12 @@ public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
 public import TauCeti.Geometry.Symplectic.Manifold.Kahler
+public import SymplecticGeometry.Geometry.Symplectic.Complex.Radial
+public import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
+public import SymplecticGeometry.Geometry.Manifold.Diffeomorph.RestrictScalars
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Pseudoholomorphic
+import SymplecticGeometry.Analysis.Complex.Euclidean.Space
+public import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
@@ -23,15 +28,15 @@ For `n : ℕ` and `E := Fin (n + 1) → ℂ`, let `π : BlowupModel n → E` be 
 of the complex manifold (the scoped instance `TauCeti.ComplexManifold.isManifold_real`). Following
 McDuff–Salamon, §7.1, this file defines on the model the closed two-forms
 `ω̃_λ = π^* ω₀ + λ² pr^* ω_FS`, shows that they are Kähler for `λ ≠ 0`, computes their restriction
-to the exceptional divisor `Z`, and sets up the neighbourhoods `L(ε)` of `Z`.
+to the exceptional divisor `Z`, sets up the neighbourhoods `L(ε)` of `Z`, and identifies
+`(L(ε) ∖ Z, ω̃_λ)` with a shell of `(E, ω₀)` through the radial map `F_λ`.
 
 ## Main definitions and results
 
 * `SymplecticGeometry.BlowupModel.ω₀E n`: the standard symplectic form `ω₀` of `E`, as a constant
-  smooth form, and `SymplecticGeometry.BlowupModel.constSmooth_stdComplexPiSymplecticForm_eq`: for
-  any finite `ι`, the constant form `stdComplexPiSymplecticForm ι` is the pull-back of the
-  constant form `stdForm ι` along `complexToRealEuclidean ι`, by
-  `TauCeti.SymplecticForm.IsSymplectomorphism.mpullback_constSmooth`.
+  smooth form; `SymplecticGeometry.constSmooth_stdComplexPiSymplecticForm_eq`
+  (`Geometry/Symplectic/Complex/Radial.lean`) identifies it with the pull-back of the constant
+  form `stdForm` along `complexToRealEuclidean`.
 * `SymplecticGeometry.BlowupModel.closedNbhd n ε` and `SymplecticGeometry.BlowupModel.openNbhd n ε`:
   the points whose blowdown has Euclidean norm `≤ ε`, resp. `< ε`; the first is compact
   (`isCompact_closedNbhd`, since `ℙ ℂ E` is compact and the model is closed in `ℙ ℂ E × E`), the
@@ -51,6 +56,23 @@ to the exceptional divisor `Z`, and sets up the neighbourhoods `L(ε)` of `Z`.
   it restricts to `l² ω_FS`, since `π` is constant there; hence
   `SymplecticGeometry.BlowupModel.integralTopForm_blowupForm_line`: every projective line of the
   divisor has area `π l²`, by `integralTopForm_mpullback_map_fubiniStudyForm`.
+* `SymplecticGeometry.BlowupModel.blowdownPuncturedDiffeomorph n`: `blowdownDiffeomorph n` as a
+  real diffeomorphism from `L ∖ Z` onto `puncturedSpace E`, and
+  `SymplecticGeometry.BlowupModel.mpullback_blowdownDiffeomorph_symm_blowupForm`: along its
+  inverse, `ω̃_l` pulls back to `radialPotentialForm` of `s ↦ s + l² log s`, the sum of
+  `radialPotentialForm_id` (`ω₀`) and `l²` times `radialPotentialForm_log` (the pull-back of
+  `ω_FS` along `mkNonzero`), by `radialPotentialForm_add` and `radialPotentialForm_const_mul`.
+* `SymplecticGeometry.BlowupModel.mpullback_radialMap_blowdown`: for `h s = s + l²`, the radial
+  map `F_l z = √(1 + l² / |z|²) z` composed with the blowdown pulls `ω₀` back to `ω̃_l` off `Z`,
+  by `mpullback_radialMap_stdForm`, since `s + l² log s` has derivative `h(s) / s`.
+* `SymplecticGeometry.BlowupModel.radialBlowdownDiffeomorph n l`: `F_l ∘ π` as a diffeomorphism
+  of `L ∖ Z` onto the shell `{l² < |w|²}` (`radialMapDiffeomorph`), a symplectomorphism from
+  `ω̃_l` to `ω₀` (`isSymplectomorphism_radialBlowdownDiffeomorph`). For `0 ≤ l` and `0 ≤ ε` it
+  maps `L(ε) ∖ Z` onto the shell `l < |w| ≤ √(l² + ε²)`
+  (`image_closedNbhd_radialBlowdownDiffeomorph`).
+* `SymplecticGeometry.BlowupModel.shellSymplectomorph n l ε hl hε`: its restriction to a
+  diffeomorphism from `openNbhd n ε ∖ Z` onto the open shell `openShell n l ε`,
+  `l < |w| < √(l² + ε²)`, carrying `ω̃_l` to `ω₀` (`isSymplectomorphism_shellSymplectomorph`).
 
 ## References
 
@@ -86,16 +108,6 @@ theorem compatible_ω₀E :
       (SmoothAlmostComplexStructure.ofComplexManifold (Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ)) := by
   rw [ω₀E_def, SmoothAlmostComplexStructure.ofComplexManifold_self_eq_constSmooth]
   exact SymplecticForm.compatible_constSmooth_iff.2 stdComplexPiSymplecticForm_compatible
-
-/-- For a finite type `ι`, the constant form `stdComplexPiSymplecticForm ι` on `ι → ℂ` is the
-pull-back of the constant form `stdForm ι` of `StdSpace ι` along the real-linear identification
-`complexToRealEuclidean ι`. At `ι = Fin (n + 1)` its left side is `ω₀E n` (`ω₀E_def`). -/
-theorem constSmooth_stdComplexPiSymplecticForm_eq (ι : Type*) [Fintype ι] :
-    (stdComplexPiSymplecticForm ι).constSmooth = SmoothForm.mpullback (complexToRealEuclidean ι)
-      (complexToRealEuclidean ι).contDiff.contMDiff (stdForm ι).constSmooth :=
-  (SymplecticForm.IsSymplectomorphism.mpullback_constSmooth
-    (SymplecticForm.isSymplectomorphism_iff.2
-      stdForm_complexToRealEuclidean)).symm
 
 /-! ### The neighbourhoods `L(ε)` of the exceptional divisor -/
 
@@ -250,6 +262,239 @@ theorem integralTopForm_blowupForm_line (l : ℝ) (f : (Fin 2 → ℂ) →ₗ[�
     ((contMDiff_zeroSection ∞).restrictScalars' ℝ), mpullback_zeroSection_blowupForm, map_smul,
     SetLike.val_smul, integralTopForm_smul, integralTopForm_mpullback_map_fubiniStudyForm,
     mul_comm]
+
+/-! ### The forms `ω̃_λ` off the divisor, and the shell -/
+
+section Shell
+
+open TopologicalSpace
+
+variable (n) in
+/-- The blowdown off the exceptional divisor, `blowdownDiffeomorph n`, as a diffeomorphism of real
+manifolds onto the punctured space `E ∖ 0 = puncturedSpace E`, on which the radial forms and maps
+of `Geometry/Symplectic/Complex/Radial.lean` live. -/
+noncomputable def blowdownPuncturedDiffeomorph :
+    (⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ : Opens (BlowupModel n))
+      ≃ₘ⟮𝓘(ℝ, Fin (n + 1) → ℂ), 𝓘(ℝ, Fin (n + 1) → ℂ)⟯ puncturedSpace (Fin (n + 1) → ℂ) :=
+  (((blowdownDiffeomorph n).restrictScalars' ℝ).ofLE le_top).trans
+    ((Diffeomorph.refl _ _ _).subtype fun _ ↦ by simp)
+
+@[simp]
+theorem coe_blowdownPuncturedDiffeomorph_apply
+    (p : (⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ :
+      Opens (BlowupModel n))) :
+    (blowdownPuncturedDiffeomorph n p : Fin (n + 1) → ℂ) = p.val.blowdown := by
+  simp [blowdownPuncturedDiffeomorph]
+
+@[simp]
+theorem coe_blowdownPuncturedDiffeomorph_symm_apply (z : puncturedSpace (Fin (n + 1) → ℂ)) :
+    ((blowdownPuncturedDiffeomorph n).symm z : BlowupModel n) =
+      ⟨(mk ℂ z (mem_puncturedSpace.1 z.property), z), mk_self_mem_blowupModel _⟩ := by
+  simp [blowdownPuncturedDiffeomorph, blowdownDiffeomorph_symm_apply]
+
+/-- The radial potential `s ↦ s + l² log s` is smooth on `(0, ∞)`. -/
+theorem contDiffOn_add_mul_log (l : ℝ) :
+    ContDiffOn ℝ ∞ (fun s ↦ s + l ^ 2 * Real.log s) (Ioi 0) :=
+  contDiffOn_id.add (contDiffOn_const.mul (Real.contDiffOn_log.mono fun _ hs ↦ ne_of_gt hs))
+
+/-- Off the exceptional divisor, `ω̃_l` is the form of the radial potential `|z|² + l² log |z|²`:
+its pull-back along the inverse of the blowdown, from `E ∖ 0` to the complement of the divisor,
+is `radialPotentialForm` of `s ↦ s + l² log s`. -/
+theorem mpullback_blowdownDiffeomorph_symm_blowupForm (l : ℝ) :
+    SmoothForm.mpullback (blowdownPuncturedDiffeomorph n).symm
+        (blowdownPuncturedDiffeomorph n).symm.contMDiff
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (blowupForm n l)) =
+      radialPotentialForm (Fin (n + 1)) (fun s ↦ s + l ^ 2 * Real.log s)
+        (contDiffOn_add_mul_log l) := by
+  have hlog : ContDiffOn ℝ ∞ Real.log (Ioi 0) :=
+    Real.contDiffOn_log.mono fun _ hs ↦ ne_of_gt hs
+  rw [radialPotentialForm_add (g₁ := fun s ↦ s) contDiffOn_id (contDiffOn_const.mul hlog),
+    radialPotentialForm_const_mul _ hlog, radialPotentialForm_log n hlog,
+    radialPotentialForm_congr (g := fun s ↦ s) (g' := id) contDiffOn_id contDiffOn_id
+      fun _ _ ↦ rfl,
+    radialPotentialForm_id, blowupForm_def, map_add, map_smul, map_add, map_smul,
+    SmoothForm.mpullback_mpullback,
+    SmoothForm.mpullback_mpullback, SmoothForm.mpullback_mpullback,
+    SmoothForm.mpullback_mpullback, ← mpullback_mkNonzero_fubiniStudyForm, ω₀E_def]
+  congr 1
+  · refine SmoothForm.mpullback_congr _ _ (funext fun z ↦ ?_) _
+    rw [Function.comp_apply, Function.comp_apply, coe_blowdownPuncturedDiffeomorph_symm_apply,
+      blowdown_mk]
+  · refine congrArg _ (SmoothForm.mpullback_congr _ _ (funext fun z ↦ ?_) _)
+    rw [Function.comp_apply, Function.comp_apply, coe_blowdownPuncturedDiffeomorph_symm_apply,
+      pr_mk, mkNonzero_apply]
+
+/-- The radial map `F_l z = √(1 + l² / |z|²) z` of the profile `h s = s + l²`, composed with the
+blowdown, pulls `ω₀` back to `ω̃_l` off the exceptional divisor. -/
+theorem mpullback_radialMap_blowdown (l : ℝ) :
+    SmoothForm.mpullback
+        (radialMap (fun s ↦ s + l ^ 2) (fun _ hs ↦ add_pos_of_pos_of_nonneg hs (sq_nonneg l)) ∘
+          blowdownPuncturedDiffeomorph n)
+        ((contMDiff_radialMap (h := fun s ↦ s + l ^ 2) (contDiffOn_id.add contDiffOn_const) _).comp
+          (blowdownPuncturedDiffeomorph n).contMDiff)
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (ω₀E n)) =
+      SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (blowupForm n l) := by
+  have hgh : ∀ s ∈ Ioi (0 : ℝ), deriv (fun s ↦ s + l ^ 2 * Real.log s) s = (s + l ^ 2) / s :=
+    fun s hs ↦ by
+      have hs : s ≠ 0 := ne_of_gt hs
+      rw [deriv_fun_add (f := fun s ↦ s) differentiableAt_id
+          ((Real.differentiableAt_log hs).const_mul _),
+        deriv_const_mul_field, Real.deriv_log, deriv_id'']
+      field_simp
+  have hs : ContDiffOn ℝ ∞ (fun s ↦ s + l ^ 2) (Ioi 0) := contDiffOn_id.add contDiffOn_const
+  rw [← SmoothForm.mpullback_mpullback _ _ (blowdownPuncturedDiffeomorph n).contMDiff
+      (contMDiff_radialMap hs _), ω₀E_def,
+    mpullback_radialMap_stdForm (ι := Fin (n + 1)) hs _ (contDiffOn_add_mul_log l) hgh,
+    ← mpullback_blowdownDiffeomorph_symm_blowupForm, SmoothForm.mpullback_mpullback_symm]
+
+variable (n) in
+/-- The radial map `F_l z = √(1 + l² / |z|²) z` composed with the blowdown, as a diffeomorphism
+from the complement of the exceptional divisor onto the shell `{w | l² < |w|²}` of `E`, the shell
+of the profile `s ↦ s + l²` (`radialShell`). It carries `ω̃_l` to `ω₀`
+(`isSymplectomorphism_radialBlowdownDiffeomorph`). -/
+noncomputable def radialBlowdownDiffeomorph (l : ℝ) :
+    (⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ : Opens (BlowupModel n))
+      ≃ₘ⟮𝓘(ℝ, Fin (n + 1) → ℂ), 𝓘(ℝ, Fin (n + 1) → ℂ)⟯
+      radialShell (Fin (n + 1)) (fun s ↦ s + l ^ 2) (contDiffOn_id.add contDiffOn_const)
+        (fun _ _ ↦ by simp) :=
+  (blowdownPuncturedDiffeomorph n).trans
+    (radialMapDiffeomorph _ _ _ (fun _ hs ↦ add_pos_of_pos_of_nonneg hs (sq_nonneg l)) _)
+
+@[simp]
+theorem coe_radialBlowdownDiffeomorph_apply (l : ℝ)
+    (p : (⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ :
+      Opens (BlowupModel n))) :
+    (radialBlowdownDiffeomorph n l p : Fin (n + 1) → ℂ) =
+      radialMap (fun s ↦ s + l ^ 2) (fun _ hs ↦ add_pos_of_pos_of_nonneg hs (sq_nonneg l))
+        (blowdownPuncturedDiffeomorph n p) := by
+  rw [radialBlowdownDiffeomorph, Diffeomorph.coe_trans, Function.comp_apply,
+    coe_radialMapDiffeomorph_apply]
+
+/-- The map `F_l ∘ π` adds `l²` to the squared Euclidean norm of the blowdown. -/
+theorem norm_sq_radialBlowdownDiffeomorph (l : ℝ)
+    (p : (⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ :
+      Opens (BlowupModel n))) :
+    ‖complexToRealEuclidean (Fin (n + 1)) (radialBlowdownDiffeomorph n l p)‖ ^ 2 =
+      ‖complexToRealEuclidean (Fin (n + 1)) p.val.blowdown‖ ^ 2 + l ^ 2 := by
+  rw [coe_radialBlowdownDiffeomorph_apply, norm_radialMap, coe_blowdownPuncturedDiffeomorph_apply]
+
+/-- **`F_l ∘ π` is a symplectomorphism**: off the exceptional divisor it carries `ω̃_l` to the
+standard form `ω₀` of `E`, restricted to the shell `{w | l² < |w|²}`. -/
+theorem isSymplectomorphism_radialBlowdownDiffeomorph (l : ℝ) :
+    SmoothTwoForm.IsSymplectomorphism
+      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (blowupForm n l))
+      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (ω₀E n))
+      (radialBlowdownDiffeomorph n l) := by
+  rw [SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq, ← mpullback_radialMap_blowdown l]
+  exact SmoothForm.mpullback_mpullback_of_comp_eq _ _ _ _
+    (funext fun p ↦ coe_radialBlowdownDiffeomorph_apply l p) _
+
+/-- `F_l ∘ π` maps the complement of the divisor into `{w | l < |w|}`, for `0 ≤ l`. -/
+theorem lt_norm_radialBlowdownDiffeomorph {l : ℝ} (hl : 0 ≤ l)
+    (p : (⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ :
+      Opens (BlowupModel n))) :
+    l < ‖complexToRealEuclidean (Fin (n + 1)) (radialBlowdownDiffeomorph n l p)‖ := by
+  refine (pow_lt_pow_iff_left₀ hl (norm_nonneg _) two_ne_zero).1 ?_
+  rw [norm_sq_radialBlowdownDiffeomorph, lt_add_iff_pos_left]
+  have := norm_sq_complexToRealEuclidean_pos (blowdownPuncturedDiffeomorph n p)
+  rwa [coe_blowdownPuncturedDiffeomorph_apply] at this
+
+/-- For `0 ≤ ε`, a point off the divisor lies in the open neighbourhood of radius `ε` exactly when
+its image under `F_l ∘ π` has Euclidean norm less than `√(l² + ε²)`. -/
+theorem mem_openNbhd_iff_radialBlowdownDiffeomorph (l : ℝ) {ε : ℝ} (hε : 0 ≤ ε)
+    (p : (⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ :
+      Opens (BlowupModel n))) :
+    p.val ∈ openNbhd n ε ↔
+      ‖complexToRealEuclidean (Fin (n + 1)) (radialBlowdownDiffeomorph n l p)‖ <
+        √(l ^ 2 + ε ^ 2) := by
+  rw [mem_openNbhd_iff, Real.lt_sqrt (norm_nonneg _), norm_sq_radialBlowdownDiffeomorph,
+    add_comm (l ^ 2) (ε ^ 2), add_lt_add_iff_right,
+    pow_lt_pow_iff_left₀ (norm_nonneg _) hε two_ne_zero]
+
+/-- For `0 ≤ ε`, a point off the divisor lies in `L(ε)` exactly when its image under `F_l ∘ π`
+has Euclidean norm at most `√(l² + ε²)`. -/
+theorem mem_closedNbhd_iff_radialBlowdownDiffeomorph (l : ℝ) {ε : ℝ} (hε : 0 ≤ ε)
+    (p : (⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ :
+      Opens (BlowupModel n))) :
+    p.val ∈ closedNbhd n ε ↔
+      ‖complexToRealEuclidean (Fin (n + 1)) (radialBlowdownDiffeomorph n l p)‖ ≤
+        √(l ^ 2 + ε ^ 2) := by
+  rw [mem_closedNbhd_iff, Real.le_sqrt (norm_nonneg _) (by positivity),
+    norm_sq_radialBlowdownDiffeomorph, add_comm (l ^ 2) (ε ^ 2), add_le_add_iff_right,
+    pow_le_pow_iff_left₀ (norm_nonneg _) hε two_ne_zero]
+
+/-- **The closed shell.** For `0 ≤ l` and `0 ≤ ε`, `F_l ∘ π` maps `L(ε) ∖ Z` onto the shell
+`l < |w| ≤ √(l² + ε²)` of `E`; with `isSymplectomorphism_radialBlowdownDiffeomorph`,
+`(L(ε) ∖ Z, ω̃_l)` is symplectomorphic to this shell with `ω₀`. -/
+theorem image_closedNbhd_radialBlowdownDiffeomorph {l ε : ℝ} (hl : 0 ≤ l) (hε : 0 ≤ ε) :
+    (fun p ↦ (radialBlowdownDiffeomorph n l p : Fin (n + 1) → ℂ)) '' {p | p.val ∈ closedNbhd n ε} =
+      {w | l < ‖complexToRealEuclidean (Fin (n + 1)) w‖ ∧
+        ‖complexToRealEuclidean (Fin (n + 1)) w‖ ≤ √(l ^ 2 + ε ^ 2)} := by
+  ext w
+  refine ⟨?_, fun hw ↦ ?_⟩
+  · rintro ⟨p, hp, rfl⟩
+    exact ⟨lt_norm_radialBlowdownDiffeomorph hl p,
+      (mem_closedNbhd_iff_radialBlowdownDiffeomorph l hε p).1 hp⟩
+  · obtain ⟨p, hp⟩ :=
+      (radialBlowdownDiffeomorph n l).surjective ⟨w, (mem_radialShell_add_sq hl).2 hw.1⟩
+    have hp' : (radialBlowdownDiffeomorph n l p : Fin (n + 1) → ℂ) = w := congrArg Subtype.val hp
+    exact ⟨p, (mem_closedNbhd_iff_radialBlowdownDiffeomorph l hε p).2 (hp' ▸ hw.2), hp'⟩
+
+variable (n) in
+/-- The open shell `l < |w| < √(l² + ε²)` of `E`, for the Euclidean norm `|w|`. -/
+def openShell (l ε : ℝ) : Opens (Fin (n + 1) → ℂ) :=
+  ⟨{w | l < ‖complexToRealEuclidean (Fin (n + 1)) w‖ ∧
+      ‖complexToRealEuclidean (Fin (n + 1)) w‖ < √(l ^ 2 + ε ^ 2)},
+    (isOpen_lt continuous_const (complexToRealEuclidean (Fin (n + 1))).continuous.norm).inter
+      (isOpen_lt (complexToRealEuclidean (Fin (n + 1))).continuous.norm continuous_const)⟩
+
+@[simp]
+theorem mem_openShell_iff {l ε : ℝ} {w : Fin (n + 1) → ℂ} :
+    w ∈ openShell n l ε ↔ l < ‖complexToRealEuclidean (Fin (n + 1)) w‖ ∧
+      ‖complexToRealEuclidean (Fin (n + 1)) w‖ < √(l ^ 2 + ε ^ 2) :=
+  Iff.rfl
+
+variable (n) in
+/-- **The open shell.** For `0 ≤ l` and `0 ≤ ε`, the map `F_l ∘ π` as a diffeomorphism from the
+open neighbourhood of radius `ε` minus the exceptional divisor onto the open shell
+`l < |w| < √(l² + ε²)` of `E`. It carries `ω̃_l` to `ω₀`
+(`isSymplectomorphism_shellSymplectomorph`). -/
+noncomputable def shellSymplectomorph (l ε : ℝ) (hl : 0 ≤ l) (hε : 0 ≤ ε) :
+    (⟨openNbhd n ε \ exceptionalDivisor n,
+        (isOpen_openNbhd ε).sdiff isClosed_exceptionalDivisor⟩ : Opens (BlowupModel n))
+      ≃ₘ⟮𝓘(ℝ, Fin (n + 1) → ℂ), 𝓘(ℝ, Fin (n + 1) → ℂ)⟯ openShell n l ε :=
+  (Diffeomorph.nestedOpen (U := ⟨openNbhd n ε \ exceptionalDivisor n,
+      (isOpen_openNbhd ε).sdiff isClosed_exceptionalDivisor⟩)
+      (D := ⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩)
+      fun _ hp ↦ hp.2).symm.trans
+    (((radialBlowdownDiffeomorph n l).subtype fun p ↦ by
+        simp only [Opens.mem_comap]
+        exact ⟨fun hp ↦ ⟨lt_norm_radialBlowdownDiffeomorph hl p,
+            (mem_openNbhd_iff_radialBlowdownDiffeomorph l hε p).1 hp.1⟩,
+          fun hw ↦ ⟨(mem_openNbhd_iff_radialBlowdownDiffeomorph l hε p).2 hw.2, p.property⟩⟩).trans
+      (Diffeomorph.nestedOpen fun _ hw ↦ (mem_radialShell_add_sq hl).2 hw.1))
+
+@[simp]
+theorem coe_shellSymplectomorph_apply {l ε : ℝ} (hl : 0 ≤ l) (hε : 0 ≤ ε)
+    (p : (⟨openNbhd n ε \ exceptionalDivisor n,
+        (isOpen_openNbhd ε).sdiff isClosed_exceptionalDivisor⟩ : Opens (BlowupModel n))) :
+    (shellSymplectomorph n l ε hl hε p : Fin (n + 1) → ℂ) =
+      radialMap (fun s ↦ s + l ^ 2) (fun _ hs ↦ add_pos_of_pos_of_nonneg hs (sq_nonneg l))
+        (blowdownPuncturedDiffeomorph n ⟨p.val, p.property.2⟩) := by
+  simp [shellSymplectomorph]
+
+/-- **The shell symplectomorphism.** `shellSymplectomorph` carries `ω̃_l` on the open
+neighbourhood of radius `ε` minus the exceptional divisor to `ω₀` on the open shell
+`l < |w| < √(l² + ε²)`. -/
+theorem isSymplectomorphism_shellSymplectomorph {l ε : ℝ} (hl : 0 ≤ l) (hε : 0 ≤ ε) :
+    SmoothTwoForm.IsSymplectomorphism
+      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (blowupForm n l))
+      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (ω₀E n))
+      (shellSymplectomorph n l ε hl hε) := by
+  rw [shellSymplectomorph]
+  exact (isSymplectomorphism_radialBlowdownDiffeomorph l).subtype_nestedOpen _ _ _
+
+end Shell
 
 end BlowupModel
 

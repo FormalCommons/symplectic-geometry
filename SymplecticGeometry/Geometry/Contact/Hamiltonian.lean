@@ -7,7 +7,9 @@ module
 
 public import Mathlib.Geometry.Manifold.Algebra.SmoothFunctions
 public import TauCeti.Geometry.Contact.Flow
+public import TauCeti.Geometry.Contact.Hamiltonian.Naturality
 public import TauCeti.Geometry.Contact.Rescale
+public import TauCeti.Geometry.Contact.VectorField.Flow
 public import TauCeti.Geometry.Manifold.VectorBundle.Bilinear.SmulRight
 public import TauCeti.Geometry.Manifold.VectorBundle.Hom
 public import TauCeti.Geometry.Manifold.VectorBundle.Scalar
@@ -58,11 +60,18 @@ derivative in the vector field (`TauCeti.mlieDerivForm_add_left`,
 `TauCeti.mlieDerivForm_const_smul_left`, `TauCeti.mlieDerivForm_zero_left`).
 
 The file extends Tau Ceti's file of the same path, in its namespace; the submodule is modelled on
-`TauCeti.SmoothTwoForm.symplecticVectorFields`. The converse direction of the flow
-characterization adapts the proof of the forward direction of Tau Ceti's
-`TauCeti.SmoothForm.IsContactHamiltonianVectorField.mpullback_flowOf_apply_eq_self_iff`:
-differentiate the pulled back form at time `0` with `TauCeti.hasDerivAt_mpullback_flowOf_zero`,
-on the open set of times where the flow from `x` is defined.
+`TauCeti.SmoothTwoForm.symplecticVectorFields`. The flow characterization states an equality of
+kernels, which says more than the inclusion `dφ_t (ker α_x) ⊆ ker α_(φ_t x)` of Tau Ceti's
+`TauCeti.SmoothForm.IsContactForm.preservesDistribution_kerDistribution_iff_mfderiv_flowOf`. Its
+forward direction uses the rescaling of `α` by the flow
+(`TauCeti.SmoothForm.IsContactHamiltonianVectorField.mpullback_flowOf_apply`); its converse
+deduces the inclusion from the equality and applies Tau Ceti's
+`TauCeti.SmoothForm.preservesDistribution_kerDistribution_of_mfderiv_flowOf_mem` and
+`TauCeti.SmoothForm.IsContactForm.preservesDistribution_kerDistribution_iff`. The Reeb field of
+`f⁻¹ α` is the case `f = id` of Tau Ceti's
+`TauCeti.SmoothForm.IsContactForm.mfderiv_contactHamiltonianVectorField_inv`, which needs `f⁻¹ α`
+to be contact; this file proves that too, with
+`TauCeti.SmoothForm.isContactForm_iff_of_eq_smul`.
 
 The joint regularity of `X_{f_p}` adapts Tau Ceti's
 `TauCeti.SmoothForm.IsContactForm.contMDiff_contactHamiltonianVectorField` to a parameter, as
@@ -168,26 +177,17 @@ theorem mem_contactVectorFields_iff_kerDistribution_mpullback_flowOf [I.Boundary
     ext v
     rw [RoughForm.mem_ker, mem_kerDistribution, hpull, ContinuousAlternatingMap.smul_apply,
       smul_eq_mul, mul_eq_zero, or_iff_right (Real.exp_pos _).ne']
-  · -- Near time `0` the pullback at `x` is `c(s) α_x`; differentiate at `s = 0`.
-    refine ⟨fun x ↦ mlieDerivForm X α.val x ![α.reebVectorField x], funext fun x ↦ ?_⟩
-    have hZ : ContMDiff I I.tangent 2 (fun y ↦ (⟨y, X y⟩ : TangentBundle I M)) :=
+  · -- The flow condition gives `dφ_t (ker α_x) ⊆ ker α_(φ_t x)`, so `X` preserves `ker α`.
+    have hX1 : ContMDiff I I.tangent 1 (fun y ↦ (⟨y, X y⟩ : TangentBundle I M)) :=
       X.contMDiff.of_le (by simp)
-    have hZ1 := hZ.of_le one_le_two
-    have hd : HasDerivAt (F := E [⋀^Fin 1]→L[ℝ] ℝ)
-        (fun s ↦ TauCeti.mpullback I I (flowOf X s) α.val x) (mlieDerivForm X α.val x) 0 :=
-      hasDerivAt_mpullback_flowOf_zero hZ1 x (α.mdifferentiableAt x)
-    have hc : HasDerivAt (F := E [⋀^Fin 1]→L[ℝ] ℝ)
-        (fun s ↦ TauCeti.mpullback I I (flowOf X s) α.val x ![α.reebVectorField x] • α.val x)
-        (mlieDerivForm X α.val x ![α.reebVectorField x] • α.val x) 0 :=
-      ((ContinuousAlternatingMap.apply ℝ E ℝ ![α.reebVectorField x]).hasFDerivAt.comp_hasDerivAt
-        (0 : ℝ) hd).smul_const (F := E [⋀^Fin 1]→L[ℝ] ℝ) (α.val x)
-    have hopen : {s : ℝ | (s, x) ∈ flowDomain X} ∈ 𝓝 0 :=
-      ((isOpen_flowDomain hZ1).preimage (continuous_id.prodMk continuous_const)).mem_nhds
-        (mem_flowDomain_zero hZ1 x)
-    refine hd.unique (hc.congr_of_eventuallyEq ?_)
-    filter_upwards [hopen] with s hs
-    exact RoughForm.apply_eq_smul_of_ker_le
-      ((kerDistribution_eq_ker α x).symm.trans_le (h s x hs).ge) (hα.apply_reebVectorField x)
+    have hpres := preservesDistribution_kerDistribution_of_mfderiv_flowOf_mem
+      (fun x ↦ (isContactForm_iff_forall_isContactFormAt.1 hα x).ne_zero) hX1
+      fun t x hx v hv ↦ by
+        rw [← h t x hx, RoughForm.mem_ker, TauCeti.mpullback_apply_one] at hv
+        exact mem_kerDistribution.2 hv
+    exact mem_contactVectorFields_iff.2 ⟨_,
+      ((hα.preservesDistribution_kerDistribution_iff X.mdifferentiable).1 hpres
+        ).mlieDerivForm_eq X.mdifferentiable⟩
 
 /-- **The contact Hamiltonian of a contact vector field.** For a contact form `α`, the map
 `X ↦ α(X)` is a linear equivalence from the contact vector fields to the smooth functions. Its
@@ -240,10 +240,12 @@ theorem reebVectorField_eq_contactHamiltonianVectorField_of_eq_smul {f : M → �
   have hu : ContMDiff I 𝓘(ℝ) 1 f⁻¹ := fun x ↦ (hf x).inv₀ (hf₀ x)
   have hu₀ : ∀ x, f⁻¹ x ≠ 0 := fun x ↦ inv_ne_zero (hf₀ x)
   have hβc := (isContactForm_iff_of_eq_smul hu hu₀ hβ).2 hα
-  refine ⟨hβc, ?_⟩
-  have h1 : f⁻¹ * f = 1 := funext fun x ↦ inv_mul_cancel₀ (hf₀ x)
-  rw [← hα.contactHamiltonianVectorField_of_eq_smul hu hu₀ hβ (hf.mdifferentiable one_ne_zero),
-    h1, hβc.contactHamiltonianVectorField_one]
+  refine ⟨hβc, funext fun x ↦ ?_⟩
+  -- The identity map pulls `β` back to `f⁻¹ α`, so it carries `X^α_((f⁻¹)⁻¹)` to `R_β`.
+  have h := hβc.mfderiv_contactHamiltonianVectorField_inv (β := α) contMDiff_id
+    (fun y ↦ by rw [mfderiv_id, ContinuousLinearMap.coe_id']; exact Function.bijective_id) hu hu₀
+    (fun y ↦ by rw [coe_mpullback, TauCeti.mpullback_id, Pi.inv_apply]; exact hβ y) x
+  rwa [inv_inv, mfderiv_id, ContinuousLinearMap.id_apply, id_eq, eq_comm] at h
 
 /-! ### Time-dependent contact Hamiltonians -/
 

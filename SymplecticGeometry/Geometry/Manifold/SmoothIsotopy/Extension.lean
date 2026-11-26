@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
+import Mathlib.Analysis.Normed.Module.Ball.Pointwise
 import Mathlib.Geometry.Manifold.Algebra.Monoid
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Real
@@ -16,7 +17,6 @@ import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
 import TauCeti.Geometry.Manifold.ContMDiffMap.Extension
 import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
-import TauCeti.Geometry.Manifold.MFDeriv.Basic
 import TauCeti.Geometry.Manifold.PartitionOfUnity.Compact
 import TauCeti.Geometry.Manifold.SmoothEmbedding.Euclidean
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LeftInverse
@@ -40,13 +40,10 @@ The proof has three steps.
 1. The motion extends past both ends of `[0, 1]` near `A`
    (`TauCeti.SmoothIsotopy.exists_contMDiff_extend`): there are `δ > 0`, an open `V ⊇ A` and a
    map `G` on `ℝ × P`, smooth on `(-δ, 1 + δ) ×ˢ V`, equal to `F` on `[0, 1] ×ˢ V`, whose slices
-   at times in `(-δ, 1 + δ)` are smooth embeddings of `V`. A neighbourhood of the compact track
-   of `A` embeds into a Euclidean space (Tau Ceti's
-   `IsCompact.exists_opens_nonempty_smoothEmbedding_euclidean`, built on the map of Mathlib's
-   `SmoothBumpCovering.embeddingPiTangent`), and the image has a smooth retraction on a
-   neighbourhood (`TauCeti.SmoothEmbedding.exists_contMDiffOn_retraction`). Seeley's extension in
-   time of the composite with the embedding (`SymplecticGeometry.timeExtend`), followed by the
-   retraction, is the extension. Its slices are embeddings near `A` for times near `[0, 1]`
+   at times in `(-δ, 1 + δ)` are smooth embeddings of `V`. The isotopy, as a smooth map, extends
+   in time near `A` (`ContMDiff.exists_contMDiffOn_extend_unitInterval`, by Seeley's extension
+   composed with an embedding into a Euclidean space and a retraction), and the slices of the
+   extension are embeddings near `A` for times near `[0, 1]`
    (`TauCeti.exists_pos_forall_isSmoothEmbedding_of_eventuallyEq`).
 2. Composed with a smooth `c : ℝ → (-δ, 1 + δ)` that is the identity on `[0, 1]` and constant
    outside `(-δ / 2, 1 + δ / 2)` (*Smooth families*'
@@ -72,6 +69,9 @@ Steps 2 and 3 adapt the proof of Tau Ceti's `TauCeti.SmoothIsotopy.exists_diffeo
 * `TauCeti.exists_contMDiff_forall_isSmoothEmbedding_comp`: a motion through embeddings at times
   near `[0, 1]`, run at the time of a cut-off, is a motion over `ℝ` through embeddings that is
   stationary outside a bounded interval.
+* `ContMDiff.exists_contMDiffOn_extend_unitInterval`: a smooth map on `unitInterval × X`, for any
+  manifold `X` with or without boundary, extends near a compact subset of `X` to times in an open
+  interval around `[0, 1]`. The proof is the first half of step 1, with `X` in place of `P`.
 * `TauCeti.SmoothIsotopy.exists_contMDiff_extend`: a smooth isotopy extends near a compact set to
   times in an open interval around `[0, 1]`, with embedding slices.
 * `TauCeti.SmoothIsotopy.exists_contMDiff_diffeomorph_forall_apply_eq`: isotopy extension at every
@@ -143,6 +143,65 @@ theorem exists_contMDiff_forall_isSmoothEmbedding_comp {δ : ℝ} (hδ : 0 < δ)
     fun t ht ↦ (hc_lo t ht).trans (hc_lo _ le_rfl).symm,
     fun t ht ↦ (hc_hi t ht).trans (hc_hi _ le_rfl).symm⟩
 
+/-- **Extension of a map past both ends of `[0, 1]` near a compact set.** A smooth map
+`f : unitInterval × X → N`, from the product of the interval with any manifold `X`, possibly with
+boundary, into a finite-dimensional, Hausdorff boundaryless manifold `N`, extends near a compact
+`L ⊆ X` past both ends of `[0, 1]`: there are `δ > 0`, an open `U ⊇ L` and a map `G` on `ℝ × X`,
+smooth on `(-δ, 1 + δ) ×ˢ U`, with `G (t, x) = f (t, x)` for `t ∈ [0, 1]` and `x ∈ U`. -/
+theorem _root_.ContMDiff.exists_contMDiffOn_extend_unitInterval {EX HX X : Type*}
+    [NormedAddCommGroup EX] [NormedSpace ℝ EX] [TopologicalSpace HX]
+    {IX : ModelWithCorners ℝ EX HX} [TopologicalSpace X] [ChartedSpace HX X] [IsManifold IX ∞ X]
+    {f : unitInterval × X → N} (hf : ContMDiff ((𝓡∂ 1).prod IX) I ∞ f) {L : Set X}
+    (hL : IsCompact L) :
+    ∃ δ > 0, ∃ U : Set X, IsOpen U ∧ L ⊆ U ∧ ∃ G : ℝ × X → N,
+      ContMDiffOn (𝓘(ℝ, ℝ).prod IX) I ∞ G (Ioo (-δ) (1 + δ) ×ˢ U) ∧
+      ∀ t : unitInterval, ∀ x ∈ U, G (t, x) = f (t, x) := by
+  rcases L.eq_empty_or_nonempty with rfl | ⟨x₀, hx₀⟩
+  · exact ⟨1, one_pos, ∅, isOpen_empty, subset_rfl, fun p ↦ f (0, p.2),
+      (hf.comp (contMDiff_const.prodMk contMDiff_snd)).contMDiffOn, fun _ _ hx ↦ hx.elim⟩
+  -- A neighbourhood `W` of the compact track `T` of `L` embeds into a Euclidean space by `e`,
+  -- and `r` retracts a neighbourhood `O` of the image of `e`.
+  have hT : IsCompact (f '' (univ ×ˢ L)) := (isCompact_univ.prod hL).image hf.continuous
+  obtain ⟨W, hTW, -, n, ⟨e⟩⟩ := hT.exists_opens_nonempty_smoothEmbedding_euclidean (I := I)
+  have : Nonempty W := ⟨⟨f (0, x₀), hTW ⟨(0, x₀), ⟨mem_univ _, hx₀⟩, rfl⟩⟩⟩
+  obtain ⟨O, hO, heO, -, r, hr, hre⟩ := e.exists_contMDiffOn_retraction isOpen_univ (subset_univ _)
+  -- `g` is `e` on `W`, extended by `0`.
+  let g : N → EuclideanSpace ℝ (Fin n) := extend Subtype.val e 0
+  have hgW (y : W) : g y = e y := Subtype.val_injective.extend_apply _ _ y
+  have hg : ContMDiffOn I 𝓘(ℝ, EuclideanSpace ℝ (Fin n)) ∞ g W :=
+    ContMDiffMap.contMDiffOn_extend W ⟨e, e.contMDiff⟩ 0
+  -- The tube lemma gives an open `U ⊇ L` whose image stays in `W` at all times.
+  obtain ⟨u, U, -, hU, hu, hLU, hUW⟩ := generalized_tube_lemma isCompact_univ hL
+    (W.isOpen.preimage hf.continuous) (fun p hp ↦ hTW ⟨p, hp, rfl⟩)
+  have hUW' : univ ×ˢ U ⊆ f ⁻¹' W := (prod_mono hu subset_rfl).trans hUW
+  -- Seeley's extension in time of `g ∘ f`, smooth although `X` may have boundary.
+  let k : ℝ × X → EuclideanSpace ℝ (Fin n) := SymplecticGeometry.timeExtend fun p ↦ g (f p)
+  have hk : ContMDiffOn (𝓘(ℝ, ℝ).prod IX) 𝓘(ℝ, EuclideanSpace ℝ (Fin n)) ∞ k (univ ×ˢ U) :=
+    (hg.comp hf.contMDiffOn hUW').timeExtend hU
+  have hkf (t : unitInterval) (x : X) (hx : x ∈ U) : k (t, x) = e ⟨f (t, x), hUW' ⟨trivial, hx⟩⟩ :=
+    (SymplecticGeometry.timeExtend_apply_coe _ t x).trans (hgW ⟨_, hUW' ⟨trivial, hx⟩⟩)
+  -- `r ∘ k` is smooth on the open set `S` where `k` lands in `O`, which contains `[0, 1] ×ˢ U`.
+  let S : Set (ℝ × X) := univ ×ˢ U ∩ k ⁻¹' O
+  have hS : IsOpen S := hk.continuousOn.isOpen_inter_preimage (isOpen_univ.prod hU) hO
+  have hkO (t : unitInterval) (x : X) (hx : x ∈ U) : ((t : ℝ), x) ∈ S :=
+    ⟨⟨trivial, hx⟩, by rw [mem_preimage, hkf t x hx]; exact heO (mem_range_self _)⟩
+  -- A neighbourhood `(-δ, 1 + δ) ×ˢ V` of `[0, 1] ×ˢ L` inside `S`.
+  obtain ⟨u', V, hu', hV, hIu', hLV, hVS⟩ := generalized_tube_lemma isCompact_Icc hL hS
+    (fun p hp ↦ hkO ⟨p.1, hp.1⟩ p.2 (hLU hp.2))
+  obtain ⟨δ, hδ, hδu'⟩ := isCompact_Icc.exists_thickening_subset_open hu' hIu'
+  have hIoo : Ioo (-δ) (1 + δ) ⊆ u' := by
+    have h : Icc (0 : ℝ) 1 = Metric.closedBall (1 / 2) (1 / 2) := by
+      rw [Real.closedBall_eq_Icc]; norm_num
+    rw [h, thickening_closedBall hδ (by norm_num), Real.ball_eq_Ioo] at hδu'
+    convert hδu' using 2 <;> ring
+  have hVU (x : X) (hx : x ∈ V) : x ∈ U :=
+    (hVS (mk_mem_prod (a := (0 : ℝ)) (hIoo ⟨by linarith, by linarith⟩) hx)).1.2
+  refine ⟨δ, hδ, V, hV, hLV, fun p ↦ r (k p), ?_,
+    fun t x hx ↦ by simp only [hkf t x (hVU x hx), hre]⟩
+  exact (contMDiff_subtypeVal.comp_contMDiffOn
+    (hr.comp (hk.mono inter_subset_left) fun _ hp ↦ hp.2)).mono
+    ((prod_mono hIoo subset_rfl).trans hVS)
+
 namespace SmoothIsotopy
 
 /-- **Time extension of an isotopy near a compact set.** A smooth isotopy `F` of a boundaryless
@@ -156,57 +215,17 @@ theorem exists_contMDiff_extend {f₀ f₁ : C^∞⟮J, P; I, N⟯} (F : SmoothI
       ContMDiffOn (𝓘(ℝ).prod J) I ∞ G (Ioo (-δ) (1 + δ) ×ˢ (V : Set P)) ∧
       (∀ t : unitInterval, ∀ x ∈ V, G (t, x) = F (t, x)) ∧
       ∀ t ∈ Ioo (-δ) (1 + δ), IsSmoothEmbedding J I ∞ (fun x : V ↦ G (t, x)) := by
-  have : T2Space P := F.isSmoothEmbedding_left.isEmbedding.t2Space
-  rcases A.eq_empty_or_nonempty with rfl | ⟨x₀, hx₀⟩
-  · -- For `A = ∅`, the empty open set and the constant motion `f₀` will do.
-    refine ⟨1, one_pos, ⊥, empty_subset _, fun p ↦ f₀ p.2,
-      (f₀.contMDiff.comp contMDiff_snd).contMDiffOn, fun _ x hx ↦ hx.elim, fun _ _ ↦ ?_⟩
-    exact F.isSmoothEmbedding_left.comp_subtypeVal ⊥
-  -- The source model is finite-dimensional, since `f₀` is an immersion into `N`.
-  have : FiniteDimensional ℝ E' := finiteDimensional_of_injective_mfderiv
-    (F.isSmoothEmbedding_left.isImmersion.mfderiv_injective (by simp) x₀)
-  -- A neighbourhood `W` of the compact track `T` of `A` embeds into a Euclidean space by `e`,
-  -- and `r` retracts a neighbourhood `O` of the image of `e`.
-  have hT : IsCompact ((fun p : unitInterval × P ↦ F p) '' (univ ×ˢ A)) :=
-    (isCompact_univ.prod hA).image F.contMDiff.continuous
-  obtain ⟨W, hTW, -, n, ⟨e⟩⟩ := hT.exists_opens_nonempty_smoothEmbedding_euclidean (I := I)
-  have : Nonempty W := ⟨⟨F (0, x₀), hTW ⟨(0, x₀), ⟨mem_univ _, hx₀⟩, rfl⟩⟩⟩
-  obtain ⟨O, hO, heO, -, r, hr, hre⟩ := e.exists_contMDiffOn_retraction isOpen_univ (subset_univ _)
-  -- `g` is `e` on `W`, extended by `0`.
-  let g : N → EuclideanSpace ℝ (Fin n) := extend Subtype.val e 0
-  have hgW (y : W) : g y = e y := Subtype.val_injective.extend_apply _ _ y
-  have hg : ContMDiffOn I 𝓘(ℝ, EuclideanSpace ℝ (Fin n)) ∞ g W :=
-    ContMDiffMap.contMDiffOn_extend W ⟨e, e.contMDiff⟩ 0
-  -- The tube lemma gives an open `U ⊇ A` whose motion stays in `W`.
-  obtain ⟨u, U, -, hU, hu, hAU, hUW⟩ := generalized_tube_lemma isCompact_univ hA
-    (W.isOpen.preimage F.contMDiff.continuous) (fun p hp ↦ hTW ⟨p, hp, rfl⟩)
-  have hUW' : univ ×ˢ U ⊆ (fun p : unitInterval × P ↦ F p) ⁻¹' W :=
-    (prod_mono hu subset_rfl).trans hUW
-  -- Seeley's extension in time of `g ∘ F`.
-  let k : ℝ × P → EuclideanSpace ℝ (Fin n) := SymplecticGeometry.timeExtend fun p ↦ g (F p)
-  have hk : ContMDiffOn (𝓘(ℝ, ℝ).prod J) 𝓘(ℝ, EuclideanSpace ℝ (Fin n)) ∞ k (univ ×ˢ U) :=
-    (hg.comp F.contMDiff.contMDiffOn hUW').timeExtend hU
-  have hkF (t : unitInterval) (x : P) (hx : x ∈ U) : k (t, x) = e ⟨F (t, x), hUW' ⟨trivial, hx⟩⟩ :=
-    (SymplecticGeometry.timeExtend_apply_coe _ t x).trans (hgW ⟨_, hUW' ⟨trivial, hx⟩⟩)
-  -- The extension `G` is `r ∘ k`, smooth on the open set `S` where `k` lands in `O`.
-  let G : ℝ × P → N := fun p ↦ r (k p)
-  let S : Set (ℝ × P) := univ ×ˢ U ∩ k ⁻¹' O
-  have hS : IsOpen S := hk.continuousOn.isOpen_inter_preimage (isOpen_univ.prod hU) hO
-  have hG : ContMDiffOn (𝓘(ℝ).prod J) I ∞ G S :=
-    contMDiff_subtypeVal.comp_contMDiffOn
-      (hr.comp (hk.mono inter_subset_left) fun _ hp ↦ hp.2)
-  have hGF (t : unitInterval) (x : P) (hx : x ∈ U) : G (t, x) = F (t, x) := by
-    simp only [G, hkF t x hx, hre]
-  have hkO (t : unitInterval) (x : P) (hx : x ∈ U) : ((t : ℝ), x) ∈ S :=
-    ⟨⟨trivial, hx⟩, by rw [mem_preimage, hkF t x hx]; exact heO (mem_range_self _)⟩
-  -- The slices of `G` at times in `[0, 1]` are those of `F` near `A`.
-  obtain ⟨δ, hδ, V, hAV, hVS, hV⟩ := exists_pos_forall_isSmoothEmbedding_of_eventuallyEq hS hG hA
-    (fun p hp ↦ hkO ⟨p.1, hp.1⟩ p.2 (hAU hp.2))
+  -- Extend `F` in time near `A`; the slices of the extension at times in `[0, 1]` are those of
+  -- `F` near `A`.
+  obtain ⟨δ₀, hδ₀, U, hU, hAU, G, hG, hGF⟩ := F.contMDiff.exists_contMDiffOn_extend_unitInterval hA
+  have hAS : Icc 0 1 ×ˢ A ⊆ Ioo (-δ₀) (1 + δ₀) ×ˢ U :=
+    prod_mono (Icc_subset_Ioo (by linarith) (by linarith)) hAU
+  obtain ⟨δ, hδ, V, hAV, hVS, hV⟩ := exists_pos_forall_isSmoothEmbedding_of_eventuallyEq
+    (isOpen_Ioo.prod hU) hG hA hAS
     (fun t ↦ by simpa only [toContMDiffMap_apply] using F.isSmoothEmbedding t)
     fun t ht ↦ Filter.eventually_of_mem (hU.mem_nhdsSet.2 hAU) fun x hx ↦ hGF ⟨t, ht⟩ x hx
-  have hVU : (V : Set P) ⊆ U := fun x hx ↦
-    (hVS ⟨⟨by linarith, by linarith⟩, hx⟩ : ((0 : ℝ), x) ∈ S).1.2
-  exact ⟨δ, hδ, V, hAV, G, hG.mono hVS, fun t x hx ↦ hGF t x (hVU hx), hV⟩
+  exact ⟨δ, hδ, V, hAV, G, hG.mono hVS, fun t x hx ↦ hGF t x
+    (hVS (mk_mem_prod (a := (0 : ℝ)) ⟨by linarith, by linarith⟩ hx)).2, hV⟩
 
 /-- **Isotopy extension at every time, over `ℝ`.** A smooth isotopy `F` of a boundaryless
 manifold through smooth embeddings into a finite-dimensional, Hausdorff, σ-compact boundaryless

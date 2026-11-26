@@ -358,7 +358,7 @@ theorem flowOf_eq_liftFlow_of_isHamiltonianVectorField {t : ℝ} {z : CotangentB
       (flowOf X t z).snd (mfderiv I I (flowOf Y t) z.proj u) = z.snd u := by
     obtain ⟨v, rfl⟩ := Bundle.mfderiv_proj_surjective z u
     have h := congrArg (fun α ↦ α ![v]) hpres
-    simp only [mpullback_apply, liouvilleForm_apply, Matrix.cons_val_zero] at h
+    simp only [mpullback_apply_one, liouvilleForm_apply, Matrix.cons_val_zero] at h
     rw [← mfderiv_comp_apply z (hπ _) hΦ, hev.mfderiv_eq, ContinuousLinearMap.comp_apply,
       mfderiv_comp_apply z hφ (hπ z)] at h
     -- `tangentSpaceCast` is the identity of the model space.

@@ -8,7 +8,8 @@ module
 public import TauCeti.Geometry.Manifold.GroupAction.Restrict
 public import TauCeti.Geometry.Manifold.RegularValue.Level
 public import TauCeti.Topology.Algebra.ProperAction.Basic
-public import SymplecticGeometry.Geometry.Manifold.GroupAction.PrincipalBundle
+public import TauCeti.Geometry.Manifold.FiberBundle.Principal.Quotient
+public import SymplecticGeometry.GroupTheory.GroupAction.SubMulAction
 
 /-!
 # The circle bundle of a regular level
@@ -16,26 +17,29 @@ public import SymplecticGeometry.Geometry.Manifold.GroupAction.PrincipalBundle
 Let a commutative Lie group `G`, such as `Circle`, act smoothly on a boundaryless manifold `M`,
 and let `f : M → F` be a smooth `G`-invariant map with regular value `c`. The level
 `{x // f x = c}` carries Tau Ceti's atlas `TauCeti.regularLevelChartedSpace`. This file restricts
-the action to the level, written as a right action as principal bundles in Tau Ceti act: since
-`G` is commutative, `op g • x = g • x` is an action of `Gᵐᵒᵖ`
-(`SymplecticGeometry.levelOpMulAction`). The restricted action is
+the action to the level by inverses, `g` acting as `x ↦ g⁻¹ • x`, which is an action because `G`
+is commutative (`SymplecticGeometry.levelInvMulAction`). Tau Ceti's bundle of orbits
+`TauCeti.orbitRelFiber` of a left action acts on the right by `x · g = g⁻¹ • x`; for the action by
+inverses this right action is `x · g = g • x`, the action of `G` on `M`, which is the convention of
+`Geometry/Symplectic/Coupling/`. The restricted action is
 
-* smooth for the regular-level atlas (`SymplecticGeometry.contMDiffSMul_levelOpMulAction`), as
+* smooth for the regular-level atlas (`SymplecticGeometry.contMDiffSMul_levelInvMulAction`), as
   the inclusion of the level is a smooth embedding
   (`TauCeti.isSmoothEmbedding_coe_regularLevel`), by
   `Manifold.IsSmoothEmbedding.contMDiffSMul`;
 * free when `G` acts freely at the points of the level
-  (`SymplecticGeometry.isCancelSMul_levelOpMulAction`);
-* proper when `G` is compact and `M` Hausdorff
-  (`SymplecticGeometry.properSMul_levelOpMulAction`, by `TauCeti.properSMul_of_compactSpace`).
+  (`SymplecticGeometry.isCancelSMul_levelInvMulAction`);
+* proper when `G` is compact and `M` Hausdorff (`TauCeti.properSMul_of_compactSpace`).
 
-These are the hypotheses of `GroupAction/PrincipalBundle.lean`, so the orbits of the level form a
-smooth principal `G`-bundle `orbitFiber Gᵐᵒᵖ {x // f x = c}` over the orbit space, and Tau Ceti's
-`TauCeti.MapFiber.Atlas.totalSpaceDiffeomorph` identifies its total space with the level,
-equivariantly and over the orbit projection. The orbit space is Hausdorff (Mathlib's
-`t2Space_quotient_mulAction_of_properSMul`), compact when the level is, and a boundaryless
-finite-dimensional manifold modelled on `ProperSMul.QuotientModelSpace`; so it is a base as in
-`Geometry/Symplectic/Coupling/Basic.lean`. The example at the end of the file checks this.
+These are the hypotheses of Tau Ceti's `TauCeti/Geometry/Manifold/FiberBundle/Principal/Quotient`,
+so the orbits of the level form a smooth principal `G`-bundle `orbitRelFiber G {x // f x = c}`
+over the orbit space (`ProperSMul.orbitRelFiberBundle`, `ProperSMul.principalBundle_orbitRelFiber`,
+`ProperSMul.contMDiffFiberBundle_orbitRelFiber`), and `ProperSMul.orbitRelFiberDiffeomorph`
+identifies its total space with the level, equivariantly and over the orbit projection. The orbit
+space is Hausdorff (Mathlib's `t2Space_quotient_mulAction_of_properSMul`), compact when the level
+is, and a boundaryless finite-dimensional manifold modelled on `ProperSMul.QuotientModelSpace`; so
+it is a base as in `Geometry/Symplectic/Coupling/Basic.lean`. The example at the end of the file
+checks this.
 
 **Bundled instances.** None of the structures above is a global instance on `{x // f x = c}`:
 the action depends on the proof of invariance, the atlases on the models and on the regularity
@@ -44,33 +48,27 @@ smoothness of `f` at the points of the level, at order `∞`, the regularity of 
 `n`, the invariance of `f` and the freeness of the action on the level), and the type synonym
 `SymplecticGeometry.FreeRegularLevel IG h` of the level, for `h` such a proof and `IG` the model
 of `G`, carries all of them as instances: the atlas `TauCeti.regularLevelChartedSpace` and its
-manifold structure, the action `levelOpMulAction` and its smoothness, properness and freeness, the
-slice charts `ProperSMul.orbitRelQuotientChartedSpace` of the orbit space, and the fibre, principal
-and smooth bundle structures of `orbitFiber Gᵐᵒᵖ (FreeRegularLevel IG h)` from
-`GroupAction/PrincipalBundle.lean`. A statement about the bundle of a level then takes a proof
-`h` and needs only `attribute [local instance] MulOpposite.chartedSpace`, for the charts of `G` on
-`Gᵐᵒᵖ`; the band theorems and the converse of minimal coupling in
-`Geometry/Symplectic/Coupling/Converse.lean` are stated this way, for `G = Circle`. The inclusion
-into `M` is `FreeRegularLevel.val`, a topological and a smooth embedding
-(`FreeRegularLevel.isEmbedding_val`, `FreeRegularLevel.isSmoothEmbedding_val`), so the level is
-compact exactly when `{x | f x = c}` is (`FreeRegularLevel.compactSpace_iff`), and
-`FreeRegularLevel.totalSpaceDiffeomorph` is Tau Ceti's diffeomorphism of the total space with the
-level.
+manifold structure, the action `levelInvMulAction` and its smoothness, properness and freeness, the
+slice charts `ProperSMul.orbitRelQuotientChartedSpace` of the orbit space, and Tau Ceti's fibre,
+principal and smooth bundle structures of `orbitRelFiber G (FreeRegularLevel IG h)`. A statement
+about the bundle of a level then takes a proof `h` and needs no local instances; the band
+theorems and the converse of minimal coupling in `Geometry/Symplectic/Coupling/Converse.lean` are
+stated this way, for `G = Circle`. The inclusion into `M` is `FreeRegularLevel.val`, a
+topological and a smooth embedding (`FreeRegularLevel.isEmbedding_val`,
+`FreeRegularLevel.isSmoothEmbedding_val`), so the level is compact exactly when `{x | f x = c}` is
+(`FreeRegularLevel.compactSpace_iff`).
 
 ## Main definitions and results
 
-* `SymplecticGeometry.levelOpMulAction`: the right action of a commutative group on a level of an
-  invariant map, with `SymplecticGeometry.coe_levelOpMulAction_smul`.
-* `SymplecticGeometry.continuousSMul_levelOpMulAction`, `contMDiffSMul_levelOpMulAction`: it is
-  continuous, and smooth for the regular-level atlas.
-* `SymplecticGeometry.isCancelSMul_levelOpMulAction`: it is free where `G` acts freely.
-* `SymplecticGeometry.properSMul_levelOpMulAction`: it is proper for compact `G`.
+* `SymplecticGeometry.levelInvMulAction`: the action by inverses of a commutative group on a level
+  of an invariant map, with `SymplecticGeometry.coe_levelInvMulAction_smul`.
+* `SymplecticGeometry.contMDiffSMul_levelInvMulAction`: it is smooth for the regular-level atlas.
+* `SymplecticGeometry.isCancelSMul_levelInvMulAction`: it is free where `G` acts freely.
 * `SymplecticGeometry.IsFreeRegularLevel`, `SymplecticGeometry.FreeRegularLevel`: a free invariant
   regular level, and the level with the instances above and the principal bundle of its orbits.
-* `SymplecticGeometry.FreeRegularLevel.totalSpaceDiffeomorph`, with `totalSpaceDiffeomorph_smul`
-  and `mk_totalSpaceDiffeomorph`: the total space of that bundle is the level, with
-  `totalSpaceDiffeomorph_apply`, `totalSpaceDiffeomorph_homeomorph` and
-  `totalSpaceDiffeomorph_symm_apply` saying what it does on points.
+* `SymplecticGeometry.FreeRegularLevel.val_orbitRelFiberDiffeomorph_op_smul`: Tau Ceti's
+  diffeomorphism of the total space with the level carries the right action of `G` to the action
+  of `G` on `M`.
 
 ## References
 
@@ -88,64 +86,46 @@ open scoped ContDiff Manifold
 
 namespace SymplecticGeometry
 
-/-! ### The right action on a level -/
+/-! ### The action on a level by inverses -/
 
 section Action
 
 variable {G M F : Type*} [CommGroup G] [MulAction G M] {f : M → F}
 
 variable (c : F) in
-/-- The right action of a commutative group `G` on a level `{x // f x = c}` of a `G`-invariant
-map `f`, written as an action of `Gᵐᵒᵖ`: `op g` moves `x` to `g • x`. -/
+/-- The action of a commutative group `G` on a level `{x // f x = c}` of a `G`-invariant map `f`
+by inverses: `g` moves `x` to `g⁻¹ • x`. Tau Ceti's bundle of orbits `TauCeti.orbitRelFiber`
+acts on the right by `x · g = g⁻¹ • x`, so for this action its right action is `x · g = g • x`. -/
 @[instance_reducible]
-def levelOpMulAction (hinv : ∀ (g : G) (x : M), f (g • x) = f x) :
-    MulAction Gᵐᵒᵖ {x : M // f x = c} where
-  smul g x := ⟨unop g • (x : M), (hinv _ _).trans x.property⟩
-  one_smul x := Subtype.ext (one_smul G (x : M))
-  mul_smul g h x := Subtype.ext <| by
-    -- The goal is stated with the `smul` field being defined; `change` reads it on `M`.
-    change unop (g * h) • (x : M) = unop g • unop h • (x : M)
-    rw [unop_mul, mul_comm, mul_smul]
+def levelInvMulAction (hinv : ∀ (g : G) (x : M), f (g • x) = f x) :
+    MulAction G {x : M // f x = c} :=
+  -- The level is a sub-action of `M`, on which `G` acts through `g ↦ g⁻¹`.
+  MulAction.compHom
+    ({ carrier := {x | f x = c}, smul_mem' := fun g x hx ↦ (hinv g x).trans hx } :
+      SubMulAction G M)
+    (invMonoidHom : G →* G)
 
 variable (hinv : ∀ (g : G) (x : M), f (g • x) = f x) {c : F}
 
-/-- The action `levelOpMulAction` is the action of `G` on `M`, read through `unop`. -/
+/-- The action `levelInvMulAction` is the action of `G` on `M` by inverses. -/
 @[simp]
-theorem coe_levelOpMulAction_smul (g : Gᵐᵒᵖ) (x : {x : M // f x = c}) :
-    letI := levelOpMulAction c hinv
-    ((g • x : {x : M // f x = c}) : M) = unop g • (x : M) :=
+theorem coe_levelInvMulAction_smul (g : G) (x : {x : M // f x = c}) :
+    letI := levelInvMulAction c hinv
+    ((g • x : {x : M // f x = c}) : M) = g⁻¹ • (x : M) :=
   (rfl)
 
-/-- **Freeness on the level.** If `G` acts freely at every point of the level, then `Gᵐᵒᵖ` acts
-freely on it. -/
-theorem isCancelSMul_levelOpMulAction (hfree : ∀ x, f x = c → stabilizer G x = ⊥) :
-    letI := levelOpMulAction c hinv
-    IsCancelSMul Gᵐᵒᵖ {x : M // f x = c} :=
-  letI := levelOpMulAction c hinv
-  isCancelSMul_iff_stabilizer_eq_bot.2 fun x ↦ (Subgroup.eq_bot_iff_forall _).2 fun g hg ↦ by
-    have hg' : unop g ∈ stabilizer G (x : M) := by
-      rw [mem_stabilizer_iff, ← coe_levelOpMulAction_smul hinv, (mem_stabilizer_iff).1 hg]
-    rw [hfree x x.property, Subgroup.mem_bot] at hg'
-    rw [← op_unop g, hg', op_one]
-
-variable [TopologicalSpace G] [TopologicalSpace M] [ContinuousSMul G M]
-
-/-- The action `levelOpMulAction` is continuous, for the subspace topology of the level. -/
-theorem continuousSMul_levelOpMulAction :
-    letI := levelOpMulAction c hinv
-    ContinuousSMul Gᵐᵒᵖ {x : M // f x = c} :=
-  letI := levelOpMulAction c hinv
-  ⟨((continuous_unop.comp continuous_fst).smul
-    (continuous_subtypeVal.comp continuous_snd)).subtype_mk _⟩
-
-/-- **Properness on the level.** A compact group acts properly on a level of an invariant map in a
-Hausdorff space. -/
-theorem properSMul_levelOpMulAction [CompactSpace G] [T2Space M] :
-    letI := levelOpMulAction c hinv
-    ProperSMul Gᵐᵒᵖ {x : M // f x = c} :=
-  letI := levelOpMulAction c hinv
-  haveI := continuousSMul_levelOpMulAction (c := c) hinv
-  properSMul_of_compactSpace Gᵐᵒᵖ _
+/-- **Freeness on the level.** If `G` acts freely at every point of the level, then it acts
+freely on the level by `levelInvMulAction`. -/
+theorem isCancelSMul_levelInvMulAction (hfree : ∀ x, f x = c → stabilizer G x = ⊥) :
+    letI := levelInvMulAction c hinv
+    IsCancelSMul G {x : M // f x = c} :=
+  letI := levelInvMulAction c hinv
+  -- `G` acts freely on the sub-action `{x | f x = c}`, and acts on the level through the
+  -- injective map `g ↦ g⁻¹`.
+  have hp := SubMulAction.isCancelSMul_of_forall_stabilizer_eq_bot
+    { carrier := {x | f x = c}, smul_mem' := fun g x hx ↦ (hinv g x).trans hx } hfree
+  { left_cancel' g := hp.left_cancel' g⁻¹
+    right_cancel' g h x hgh := inv_injective (hp.right_cancel' g⁻¹ h⁻¹ x hgh) }
 
 end Action
 
@@ -153,12 +133,10 @@ end Action
 
 section Smooth
 
-attribute [local instance] MulOpposite.chartedSpace
-
 variable {𝕜 : Type*} [RCLike 𝕜] {m : ℕ∞ω}
   {EG : Type*} [NormedAddCommGroup EG] [NormedSpace 𝕜 EG]
   {HG : Type*} [TopologicalSpace HG] {IG : ModelWithCorners 𝕜 EG HG}
-  {G : Type*} [TopologicalSpace G] [ChartedSpace HG G] [CommGroup G]
+  {G : Type*} [TopologicalSpace G] [ChartedSpace HG G] [CommGroup G] [LieGroup IG m G]
   {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E] [FiniteDimensional 𝕜 E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H} [I.Boundaryless]
   {M : Type*} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I m M]
@@ -167,27 +145,25 @@ variable {𝕜 : Type*} [RCLike 𝕜] {m : ℕ∞ω}
   {f : M → F} {c : F} {n : ℕ}
 
 /-- **The action on a regular level is `C^m`.** Let `1 ≤ m`. For the regular-level atlas of
-`{x // f x = c}` and the charts of `G` on `Gᵐᵒᵖ`, the right action `levelOpMulAction` of a
-commutative group `G` acting `C^m` on `M` is `C^m`. -/
-theorem contMDiffSMul_levelOpMulAction (hm : 1 ≤ m)
+`{x // f x = c}`, the action `levelInvMulAction` by inverses of a commutative Lie group `G`
+acting `C^m` on `M` is `C^m`. -/
+theorem contMDiffSMul_levelInvMulAction (hm : 1 ≤ m)
     (hf : ∀ x, f x = c → ContMDiffAt I 𝓘(𝕜, F) m f x)
     (hreg : IsRegularValue I 𝓘(𝕜, F) f c) (hn : Module.finrank 𝕜 E - Module.finrank 𝕜 F = n)
     (hinv : ∀ (g : G) (x : M), f (g • x) = f x) :
     letI := regularLevelChartedSpace (fun x hx ↦ (hf x hx).of_le hm) hreg hn
-    letI := levelOpMulAction c hinv
-    ContMDiffSMul IG 𝓘(𝕜, Fin n → 𝕜) m Gᵐᵒᵖ {x : M // f x = c} :=
+    letI := levelInvMulAction c hinv
+    ContMDiffSMul IG 𝓘(𝕜, Fin n → 𝕜) m G {x : M // f x = c} :=
   letI := regularLevelChartedSpace (fun x hx ↦ (hf x hx).of_le hm) hreg hn
-  letI := levelOpMulAction c hinv
+  letI := levelInvMulAction c hinv
   (isSmoothEmbedding_coe_regularLevel hm hf hreg hn).contMDiffSMul
-    (contMDiff_unop IG m) fun g x ↦ coe_levelOpMulAction_smul hinv g x
+    (contMDiff_inv IG m) fun g x ↦ coe_levelInvMulAction_smul hinv g x
 
 end Smooth
 
 /-! ### The bundled free regular level -/
 
 section Bundled
-
-attribute [local instance] MulOpposite.chartedSpace
 
 variable {EG : Type*} [NormedAddCommGroup EG] [NormedSpace ℝ EG]
   {HG : Type*} [TopologicalSpace HG] {IG : ModelWithCorners ℝ EG HG}
@@ -217,9 +193,9 @@ structure IsFreeRegularLevel (f : M → F) (c : F) (n : ℕ) : Prop where
 variable {f : M → F} {c : F} {n : ℕ}
 
 /-- The level `{x // f x = c}` of a free invariant regular level `h`, for the model `IG` of the
-group. Its type determines `h` and `IG`, so the regular-level atlas, the right action
-`levelOpMulAction` of `Gᵐᵒᵖ`, the slice charts of its orbit space and the principal bundle
-structure of `orbitFiber Gᵐᵒᵖ` are instances on it. -/
+group. Its type determines `h` and `IG`, so the regular-level atlas, the action
+`levelInvMulAction` of `G` by inverses, the slice charts of its orbit space and Tau Ceti's
+principal bundle structure of `orbitRelFiber G` are instances on it. -/
 @[expose, nolint unusedArguments]
 def FreeRegularLevel (_IG : ModelWithCorners ℝ EG HG) (_h : IsFreeRegularLevel G I f c n) :
     Type _ := {x : M // f x = c}
@@ -282,16 +258,16 @@ theorem compactSpace_iff : CompactSpace (FreeRegularLevel IG h) ↔ IsCompact {x
 instance [T2Space M] : T2Space (FreeRegularLevel IG h) :=
   inferInstanceAs (T2Space {x : M // f x = c})
 
-/-- The right action `levelOpMulAction` of `Gᵐᵒᵖ` on the level. -/
-instance : MulAction Gᵐᵒᵖ (FreeRegularLevel IG h) := levelOpMulAction c h.apply_smul
+/-- The action `levelInvMulAction` of `G` on the level, by inverses. -/
+instance : MulAction G (FreeRegularLevel IG h) := levelInvMulAction c h.apply_smul
 
-/-- The action of `Gᵐᵒᵖ` on the level is the action of `G` on `M`, read through `unop`. -/
+/-- The action of `G` on the level is the action of `G` on `M` by inverses. -/
 @[simp]
-theorem val_smul (g : Gᵐᵒᵖ) (x : FreeRegularLevel IG h) : val (g • x) = unop g • val x :=
-  coe_levelOpMulAction_smul h.apply_smul g x
+theorem val_smul (g : G) (x : FreeRegularLevel IG h) : val (g • x) = g⁻¹ • val x :=
+  coe_levelInvMulAction_smul h.apply_smul g x
 
-instance : IsCancelSMul Gᵐᵒᵖ (FreeRegularLevel IG h) :=
-  isCancelSMul_levelOpMulAction h.apply_smul h.stabilizer_eq_bot
+instance : IsCancelSMul G (FreeRegularLevel IG h) :=
+  isCancelSMul_levelInvMulAction h.apply_smul h.stabilizer_eq_bot
 
 variable [FiniteDimensional ℝ E] [FiniteDimensional ℝ F] [I.Boundaryless]
 
@@ -310,96 +286,45 @@ theorem isSmoothEmbedding_val :
     Manifold.IsSmoothEmbedding 𝓘(ℝ, Fin n → ℝ) I ∞ (val : FreeRegularLevel IG h → M) :=
   isSmoothEmbedding_coe_regularLevel (by simp) h.contMDiffAt h.isRegularValue h.finrank_sub
 
-variable [TopologicalSpace G] [ChartedSpace HG G] [ContMDiffSMul IG I ∞ G M]
+variable [TopologicalSpace G] [ChartedSpace HG G] [LieGroup IG ∞ G] [ContMDiffSMul IG I ∞ G M]
 
-instance : ContMDiffSMul IG 𝓘(ℝ, Fin n → ℝ) ∞ Gᵐᵒᵖ (FreeRegularLevel IG h) :=
-  contMDiffSMul_levelOpMulAction (by simp) h.contMDiffAt h.isRegularValue h.finrank_sub
+instance : ContMDiffSMul IG 𝓘(ℝ, Fin n → ℝ) ∞ G (FreeRegularLevel IG h) :=
+  contMDiffSMul_levelInvMulAction (by simp) h.contMDiffAt h.isRegularValue h.finrank_sub
     h.apply_smul
 
-instance : ContinuousSMul Gᵐᵒᵖ (FreeRegularLevel IG h) :=
-  haveI := ContMDiffSMul.continuousSMul (I := IG) (I' := I) (G := G) (M := M) ∞
-  continuousSMul_levelOpMulAction h.apply_smul
+instance : ContinuousSMul G (FreeRegularLevel IG h) :=
+  ContMDiffSMul.continuousSMul (I := IG) (I' := 𝓘(ℝ, Fin n → ℝ)) ∞
 
-instance [CompactSpace G] [T2Space M] : ProperSMul Gᵐᵒᵖ (FreeRegularLevel IG h) :=
-  haveI := ContMDiffSMul.continuousSMul (I := IG) (I' := I) (G := G) (M := M) ∞
-  properSMul_levelOpMulAction h.apply_smul
+instance [CompactSpace G] [T2Space M] : ProperSMul G (FreeRegularLevel IG h) :=
+  properSMul_of_compactSpace G _
 
-variable [FiniteDimensional ℝ EG] [LieGroup IG ∞ G] [ContinuousInv G] [CompactSpace G]
-  [T2Space M]
+variable [FiniteDimensional ℝ EG] [CompactSpace G] [T2Space M]
 
 /-- The slice charts `ProperSMul.orbitRelQuotientChartedSpace` of the orbit space of the level. -/
 noncomputable instance : ChartedSpace (ProperSMul.QuotientModelSpace EG (Fin n → ℝ))
-    (orbitRel.Quotient Gᵐᵒᵖ (FreeRegularLevel IG h)) :=
-  ProperSMul.orbitRelQuotientChartedSpace IG Gᵐᵒᵖ 𝓘(ℝ, Fin n → ℝ) (FreeRegularLevel IG h)
+    (orbitRel.Quotient G (FreeRegularLevel IG h)) :=
+  ProperSMul.orbitRelQuotientChartedSpace IG G 𝓘(ℝ, Fin n → ℝ) (FreeRegularLevel IG h)
 
-/-- The fibre bundle structure of `orbitFiber.atlas` on the orbits of the level. -/
-noncomputable instance : FiberBundle G (orbitFiber Gᵐᵒᵖ (FreeRegularLevel IG h)) :=
-  (orbitFiber.atlas IG G 𝓘(ℝ, Fin n → ℝ) (FreeRegularLevel IG h)).fiberBundle
+/-- Tau Ceti's fibre bundle structure `ProperSMul.orbitRelFiberBundle` on the orbits of the
+level. -/
+noncomputable instance : FiberBundle G (orbitRelFiber G (FreeRegularLevel IG h)) :=
+  ProperSMul.orbitRelFiberBundle IG G 𝓘(ℝ, Fin n → ℝ) (FreeRegularLevel IG h)
 
-instance : PrincipalBundle G (orbitFiber Gᵐᵒᵖ (FreeRegularLevel IG h)) :=
-  orbitFiber.principalBundle IG G 𝓘(ℝ, Fin n → ℝ) (FreeRegularLevel IG h)
+instance : PrincipalBundle G (orbitRelFiber G (FreeRegularLevel IG h)) :=
+  ProperSMul.principalBundle_orbitRelFiber
 
-instance : ContMDiffFiberBundle ∞ G (orbitFiber Gᵐᵒᵖ (FreeRegularLevel IG h))
+instance : ContMDiffFiberBundle ∞ G (orbitRelFiber G (FreeRegularLevel IG h))
     𝓘(ℝ, ProperSMul.QuotientModelSpace EG (Fin n → ℝ)) IG :=
-  (orbitFiber.atlas IG G 𝓘(ℝ, Fin n → ℝ) (FreeRegularLevel IG h)).contMDiffFiberBundle
-    (orbitFiber.isContMDiff_atlas IG G 𝓘(ℝ, Fin n → ℝ) (FreeRegularLevel IG h))
+  ProperSMul.contMDiffFiberBundle_orbitRelFiber
 
-variable (IG h) in
-/-- The smooth diffeomorphism `TauCeti.MapFiber.Atlas.totalSpaceDiffeomorph` from the total space
-of the orbit bundle of the level to the level, `⟨q, x⟩ ↦ x`. -/
-noncomputable def totalSpaceDiffeomorph :
-    ManifoldTotalSpace G (orbitFiber Gᵐᵒᵖ (FreeRegularLevel IG h)) ≃ₘ⟮
-      𝓘(ℝ, ProperSMul.QuotientModelSpace EG (Fin n → ℝ)).prod IG, 𝓘(ℝ, Fin n → ℝ)⟯
-      FreeRegularLevel IG h :=
-  (orbitFiber.atlas IG G 𝓘(ℝ, Fin n → ℝ) (FreeRegularLevel IG h)).totalSpaceDiffeomorph
-    (orbitFiber.isContMDiff_atlas IG G 𝓘(ℝ, Fin n → ℝ) (FreeRegularLevel IG h))
-
-variable (IG h) in
-theorem totalSpaceDiffeomorph_def :
-    totalSpaceDiffeomorph IG h =
-      (orbitFiber.atlas IG G 𝓘(ℝ, Fin n → ℝ) (FreeRegularLevel IG h)).totalSpaceDiffeomorph
-        (orbitFiber.isContMDiff_atlas IG G 𝓘(ℝ, Fin n → ℝ) (FreeRegularLevel IG h)) :=
-  (rfl)
-
-/-- The diffeomorphism `totalSpaceDiffeomorph` sends a point of the fibre over an orbit to itself,
-as a point of the level. -/
-theorem totalSpaceDiffeomorph_apply
-    (p : ManifoldTotalSpace G (orbitFiber Gᵐᵒᵖ (FreeRegularLevel IG h))) :
-    totalSpaceDiffeomorph IG h p = ((ManifoldTotalSpace.homeomorph G _).symm p).snd.val :=
-  (MapFiber.Atlas.totalSpaceDiffeomorph_apply _ p).trans (MapFiber.totalSpaceHomeomorph_apply _)
-
-/-- The diffeomorphism `totalSpaceDiffeomorph` sends a point of the fibre over an orbit to that
-point of the level. -/
-@[simp]
-theorem totalSpaceDiffeomorph_homeomorph
-    (z : Bundle.TotalSpace G (orbitFiber Gᵐᵒᵖ (FreeRegularLevel IG h))) :
-    totalSpaceDiffeomorph IG h (ManifoldTotalSpace.homeomorph G _ z) = z.snd.val := by
-  rw [totalSpaceDiffeomorph_apply, Homeomorph.symm_apply_apply]
-
-/-- The inverse of `totalSpaceDiffeomorph` sends a point `y` of the level to itself, as a point of
-the fibre over its orbit. -/
-@[simp]
-theorem totalSpaceDiffeomorph_symm_apply (y : FreeRegularLevel IG h) :
-    (totalSpaceDiffeomorph IG h).symm y =
-      ManifoldTotalSpace.homeomorph G _ ⟨Quotient.mk _ y, ⟨y, rfl⟩⟩ := by
-  rw [totalSpaceDiffeomorph_def]
-  exact (MapFiber.Atlas.totalSpaceDiffeomorph_symm_apply _ _).trans
-    (congrArg _ (MapFiber.totalSpaceHomeomorph_symm_apply _))
-
-/-- The diffeomorphism `totalSpaceDiffeomorph` is equivariant for the right action of `G`. -/
-theorem totalSpaceDiffeomorph_smul (g : Gᵐᵒᵖ)
-    (p : ManifoldTotalSpace G (orbitFiber Gᵐᵒᵖ (FreeRegularLevel IG h))) :
-    totalSpaceDiffeomorph IG h (g • p) = g • totalSpaceDiffeomorph IG h p :=
-  MapFiber.Atlas.totalSpaceDiffeomorph_smul (a := g) (x := p)
-    (hproj := fun _ _ ↦ orbitRel.Quotient.quotient_smul_eq) _
-
-/-- The diffeomorphism `totalSpaceDiffeomorph` lies over the orbit space: it carries the bundle
-projection to the orbit projection. -/
-theorem mk_totalSpaceDiffeomorph
-    (p : ManifoldTotalSpace G (orbitFiber Gᵐᵒᵖ (FreeRegularLevel IG h))) :
-    Quotient.mk _ (totalSpaceDiffeomorph IG h p) =
-      ((ManifoldTotalSpace.homeomorph G _).symm p).proj :=
-  MapFiber.Atlas.proj_totalSpaceDiffeomorph (x := p) _
+/-- Tau Ceti's diffeomorphism `ProperSMul.orbitRelFiberDiffeomorph` of the total space of the
+bundle of orbits with the level intertwines the right action of `G` on the total space with the
+action of `G` on `M`, read on the level. -/
+theorem val_orbitRelFiberDiffeomorph_op_smul (g : G)
+    (p : ManifoldTotalSpace G (orbitRelFiber G (FreeRegularLevel IG h))) :
+    val (ProperSMul.orbitRelFiberDiffeomorph IG G 𝓘(ℝ, Fin n → ℝ) _ (op g • p)) =
+      g • val (ProperSMul.orbitRelFiberDiffeomorph IG G 𝓘(ℝ, Fin n → ℝ) _ p) := by
+  rw [ProperSMul.orbitRelFiberDiffeomorph_op_smul, val_smul, inv_inv]
 
 end FreeRegularLevel
 
@@ -412,31 +337,33 @@ example
     {EG : Type*} [NormedAddCommGroup EG] [NormedSpace ℝ EG] [FiniteDimensional ℝ EG]
     {HG : Type*} [TopologicalSpace HG] {IG : ModelWithCorners ℝ EG HG}
     {G : Type*} [TopologicalSpace G] [ChartedSpace HG G] [CommGroup G] [LieGroup IG ∞ G]
-    [ContinuousInv G] [CompactSpace G]
+    [CompactSpace G]
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
     {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]
     {M : Type*} [TopologicalSpace M] [T2Space M] [ChartedSpace H M] [IsManifold I ∞ M]
     [MulAction G M] [ContMDiffSMul IG I ∞ G M]
     {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
     {f : M → F} {c : F} {n : ℕ} (h : IsFreeRegularLevel G I f c n) :
-    PrincipalBundle G (orbitFiber Gᵐᵒᵖ (FreeRegularLevel IG h)) ∧
-      ContMDiffFiberBundle ∞ G (orbitFiber Gᵐᵒᵖ (FreeRegularLevel IG h))
+    PrincipalBundle G (orbitRelFiber G (FreeRegularLevel IG h)) ∧
+      ContMDiffFiberBundle ∞ G (orbitRelFiber G (FreeRegularLevel IG h))
         𝓘(ℝ, ProperSMul.QuotientModelSpace EG (Fin n → ℝ)) IG ∧
       IsManifold 𝓘(ℝ, ProperSMul.QuotientModelSpace EG (Fin n → ℝ)) ∞
-        (orbitRel.Quotient Gᵐᵒᵖ (FreeRegularLevel IG h)) ∧
+        (orbitRel.Quotient G (FreeRegularLevel IG h)) ∧
       (𝓘(ℝ, ProperSMul.QuotientModelSpace EG (Fin n → ℝ))).Boundaryless ∧
       FiniteDimensional ℝ (ProperSMul.QuotientModelSpace EG (Fin n → ℝ)) ∧
-      T2Space (orbitRel.Quotient Gᵐᵒᵖ (FreeRegularLevel IG h)) ∧
+      T2Space (orbitRel.Quotient G (FreeRegularLevel IG h)) ∧
       (CompactSpace (FreeRegularLevel IG h) →
-        CompactSpace (orbitRel.Quotient Gᵐᵒᵖ (FreeRegularLevel IG h))) ∧
-      ∀ (g : Gᵐᵒᵖ) (p : ManifoldTotalSpace G (orbitFiber Gᵐᵒᵖ (FreeRegularLevel IG h))),
-        FreeRegularLevel.totalSpaceDiffeomorph IG h (g • p) =
-            g • FreeRegularLevel.totalSpaceDiffeomorph IG h p ∧
-          Quotient.mk _ (FreeRegularLevel.totalSpaceDiffeomorph IG h p) =
+        CompactSpace (orbitRel.Quotient G (FreeRegularLevel IG h))) ∧
+      ∀ (g : G) (p : ManifoldTotalSpace G (orbitRelFiber G (FreeRegularLevel IG h))),
+        FreeRegularLevel.val
+            (ProperSMul.orbitRelFiberDiffeomorph IG G 𝓘(ℝ, Fin n → ℝ) _ (op g • p)) =
+            g • FreeRegularLevel.val
+              (ProperSMul.orbitRelFiberDiffeomorph IG G 𝓘(ℝ, Fin n → ℝ) _ p) ∧
+          Quotient.mk _ (ProperSMul.orbitRelFiberDiffeomorph IG G 𝓘(ℝ, Fin n → ℝ) _ p) =
             ((ManifoldTotalSpace.homeomorph G _).symm p).proj :=
   ⟨inferInstance, inferInstance, inferInstance, inferInstance, inferInstance, inferInstance,
-    fun _ ↦ inferInstance, fun g p ↦ ⟨FreeRegularLevel.totalSpaceDiffeomorph_smul g p,
-      FreeRegularLevel.mk_totalSpaceDiffeomorph p⟩⟩
+    fun _ ↦ inferInstance, fun g p ↦ ⟨FreeRegularLevel.val_orbitRelFiberDiffeomorph_op_smul g p,
+      ProperSMul.quotientMk_orbitRelFiberDiffeomorph p⟩⟩
 
 end Bundled
 
