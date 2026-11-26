@@ -10,14 +10,15 @@ public import TauCeti.Geometry.Manifold.Morse.Bott.Chart.Basic
 public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 public import Mathlib.Analysis.SpecialFunctions.Pow.Real
 public import SymplecticGeometry.Geometry.Manifold.Morse.Bott.Chart.Diffeomorph
-import Mathlib.Geometry.Manifold.LocalDiffeomorph
+public import Mathlib.Geometry.Manifold.LocalDiffeomorph
+import SymplecticGeometry.Geometry.Manifold.Morse.LocalDiffeomorph
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Pi
 import SymplecticGeometry.Analysis.Calculus.Hadamard
 import SymplecticGeometry.Geometry.Manifold.Morse.CriticalPoints
 import SymplecticGeometry.Topology.Maps.Proper
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
-import TauCeti.Geometry.Manifold.Morse.LocalDiffeomorph
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.Morse.ScalarComposition
 
 /-!
@@ -52,18 +53,23 @@ Weinstein homotopy.
   coordinates, weights and cubic coordinate, when `h` is smooth with `h' > 0`.
 * `TauCeti.BirthDeathChart.pullback`: a birth–death chart `φ` for `f` at `σ x'` gives the
   birth–death chart `φ ∘ σ` for `f ∘ σ` at `x'`, along a diffeomorphism `σ : M' ≃ M`.
+* `IsLocalDiffeomorphAt.exists_birthDeathChart_comp`: a birth–death chart for `f` at `Φ y` gives
+  one for `f ∘ Φ` at `y` of the same index, along a smooth local diffeomorphism `Φ : M' → M` at
+  `y`, where `M'` and `M` may be modelled on different spaces.
 * `TauCeti.IsGeneralizedMorse`: smooth, with nondegenerate or birth–death critical points;
   `TauCeti.IsMorse.isGeneralizedMorse`, `TauCeti.IsGeneralizedMorse.isClosed_criticalPoints`,
   `TauCeti.IsGeneralizedMorse.isDiscrete_criticalPoints`,
   `TauCeti.IsGeneralizedMorse.finite_criticalPoints_inter_preimage_Iic`,
-  `TauCeti.IsGeneralizedMorse.comp` and `TauCeti.IsGeneralizedMorse.comp_diffeomorph`.
+  `TauCeti.IsGeneralizedMorse.comp`, `TauCeti.IsGeneralizedMorse.comp_isLocalDiffeomorph` and its
+  special case `TauCeti.IsGeneralizedMorse.comp_diffeomorph`.
 * `TauCeti.isGeneralizedMorse_birthDeathPotential` and `TauCeti.not_isMorse_birthDeathPotential`:
   the cubic on the line is generalized Morse and not Morse.
 
 ## Implementation notes
 
-The declarations are in the namespace `TauCeti`, since they concern only Tau Ceti's notions. The
-chart `TauCeti.BirthDeathChart.comp` is built as Tau Ceti's
+The declarations are in the namespace `TauCeti`, since they concern only Tau Ceti's notions,
+except `IsLocalDiffeomorphAt.exists_birthDeathChart_comp`, which is found by dot notation on
+Mathlib's `IsLocalDiffeomorphAt`. The chart `TauCeti.BirthDeathChart.comp` is built as Tau Ceti's
 `TauCeti.IsManifoldNondegenerateCriticalPoint.nonempty_morseChart` builds a Morse chart: by
 composing the old chart with a local diffeomorphism of the model given by the inverse function
 theorem. In the chart, `h ∘ f - h (f x)` is the normal form of `f` times a smooth positive
@@ -73,6 +79,13 @@ diffeomorphism rescales the coordinates of weight `±1` by `√a` and the cubic 
 
 The chart `TauCeti.BirthDeathChart.pullback` pulls back the Morse–Bott chart of the quadratic
 part along the diffeomorphism (`TauCeti.MorseBottChart.pullback`), and keeps the cubic coordinate.
+
+Along a local diffeomorphism `Φ : M' → M` at `y` between different models, the chart of
+`IsLocalDiffeomorphAt.exists_birthDeathChart_comp` is `A⁻¹ ∘ ψ ∘ Φ` near `y`, where `ψ` is the
+chart of `φ` and `A : E' ≃L[ℝ] E` is the derivative of `Φ` at `y`; it lies in the maximal atlas
+by Tau Ceti's `IsManifold.mem_maximalAtlas_iff_forall_isLocalDiffeomorphAt`. Its coordinates are
+those of `φ` after `A`, reindexed along `finrank E' = finrank E`. Nondegenerate critical points
+pull back by `IsLocalDiffeomorphAt.isManifoldNondegenerateCriticalPoint_comp`.
 
 The finiteness of the critical points of a generalized Morse function in a compact set, or in a
 sublevel set of a proper one bounded below, uses only that its critical points are isolated:
@@ -526,6 +539,79 @@ end BirthDeathChart
 
 end Pullback
 
+/-! ### Pull-back along a local diffeomorphism -/
+
+section LocalDiffeomorph
+
+variable {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
+  {M' : Type*} [TopologicalSpace M'] [ChartedSpace E' M'] [IsManifold 𝓘(ℝ, E') ∞ M']
+  {Φ : M' → M} {y : M'}
+
+/-- **Birth–death charts along a local diffeomorphism.** If `Φ : M' → M` is a smooth local
+diffeomorphism at `y`, where `M'` is modelled on `E'` and `M` on `E`, then a birth–death chart for
+`f` at `Φ y` gives a birth–death chart for `f ∘ Φ` at `y` with the same index. -/
+theorem _root_.IsLocalDiffeomorphAt.exists_birthDeathChart_comp
+    (hΦ : IsLocalDiffeomorphAt 𝓘(ℝ, E') 𝓘(ℝ, E) ∞ Φ y) (φ : BirthDeathChart E f (Φ y)) :
+    ∃ φ' : BirthDeathChart E' (f ∘ Φ) y, φ'.index = φ.index := by
+  -- The derivative of `Φ` at `y` identifies the two models, which are its tangent spaces.
+  let A : E' ≃L[ℝ] E := hΦ.mfderivToContinuousLinearEquiv (by simp)
+  -- A partial diffeomorphism which agrees with `Φ` near `y`.
+  set Ψ := hΦ.localInverse.symm
+  have hyΨ : y ∈ Ψ.source := hΦ.localInverse_mem_target
+  have hΦΨ : EqOn Φ Ψ Ψ.source := hΦ.eqOn_localInverse_symm
+  set ψ := φ.toMorseBottChart.toChart
+  -- The new chart is `A⁻¹ ∘ ψ ∘ Φ`, near `y`.
+  set X : PartialDiffeomorph 𝓘(ℝ, E') 𝓘(ℝ, E') M' E' ∞ :=
+    (Ψ.trans (ψ.toPartialDiffeomorph φ.toMorseBottChart.mem_maximalAtlas)).trans
+      A.symm.toPartialDiffeomorph
+  set χ := X.toOpenPartialHomeomorph
+  have hsrc : ∀ z, z ∈ χ.source ↔ z ∈ Ψ.source ∧ Φ z ∈ ψ.source := fun z ↦ by
+    simp only [χ, X, PartialDiffeomorph.toOpenPartialHomeomorph_source,
+      PartialDiffeomorph.trans_source, OpenPartialHomeomorph.toPartialDiffeomorph_toPartialEquiv,
+      ContinuousLinearEquiv.toPartialDiffeomorph_toPartialEquiv, Equiv.toPartialEquiv_source,
+      mem_inter_iff, mem_preimage, mem_univ, and_true]
+    exact and_congr_right fun h ↦ by rw [hΦΨ h]
+  have hχ : ∀ z ∈ χ.source, A (χ z) = ψ (Φ z) := fun z hz ↦ by
+    simp [χ, X, hΦΨ ((hsrc z).1 hz).1]
+  have hyχ : y ∈ χ.source := (hsrc y).2 ⟨hyΨ, φ.toMorseBottChart.mem_source⟩
+  -- The coordinates are those of `φ` after `A`, reindexed along `finrank E' = finrank E`.
+  set e := finCongr A.toLinearEquiv.finrank_eq
+  set coord : E' ≃ₗ[ℝ] (Fin (Module.finrank ℝ E') → ℝ) :=
+    A.toLinearEquiv ≪≫ₗ φ.toMorseBottChart.coord ≪≫ₗ LinearEquiv.funCongrLeft ℝ ℝ e
+  have hcoord : ∀ v i, coord v i = φ.toMorseBottChart.coord (A v) (e i) := fun _ _ ↦ by
+    simp [coord]
+  set q : M' → ℝ := fun z ↦ f (Φ z) - birthDeathPotential 0 (coord (χ z) (e.symm φ.cubicIndex))
+  have hq : ∀ z ∈ χ.source, q z = φ.quadraticPart (Φ z) := fun z hz ↦ by
+    simp only [q, hcoord, Equiv.apply_symm_apply, hχ z hz]
+    rw [φ.quadraticPart_apply]
+  refine ⟨{
+    quadraticPart := q
+    toMorseBottChart := {
+      toChart := χ
+      mem_maximalAtlas := (IsManifold.mem_maximalAtlas_iff_forall_isLocalDiffeomorphAt χ).2
+        fun z hz ↦ X.isLocalDiffeomorphAt _ _ _ hz
+      mem_source := hyχ
+      apply_self := A.injective (by rw [hχ y hyχ, map_zero]; exact φ.toMorseBottChart.apply_self)
+      coord := coord
+      weight := φ.toMorseBottChart.weight ∘ e
+      weight_eq_neg_one_or_eq_zero_or_eq_one := fun i ↦
+        φ.toMorseBottChart.weight_eq_neg_one_or_eq_zero_or_eq_one (e i)
+      eq_quadratic := fun z hz ↦ by
+        rw [hq z hz, hq y hyχ, φ.toMorseBottChart.eq_quadratic (Φ z) ((hsrc z).1 hz).2]
+        simp only [comp_apply, hcoord, hχ z hz]
+        congr 2
+        exact (e.sum_comp fun j ↦ φ.toMorseBottChart.weight j *
+          φ.toMorseBottChart.coord (ψ (Φ z)) j ^ 2).symm }
+    cubicIndex := e.symm φ.cubicIndex
+    weight_cubicIndex := by simpa using φ.weight_cubicIndex
+    weight_ne_zero := fun i hi ↦ φ.weight_ne_zero (e i) fun h ↦ hi (by simp [← h])
+    eq_add := fun z ↦ by simp [q] }, ?_⟩
+  rw [BirthDeathChart.index_def, BirthDeathChart.index_def]
+  exact Set.ncard_preimage_of_injective_subset_range (s := {i | φ.toMorseBottChart.weight i < 0})
+    e.injective (by simp)
+
+end LocalDiffeomorph
+
 /-! ### Generalized Morse functions -/
 
 variable (E) in
@@ -608,17 +694,25 @@ theorem comp [IsManifold 𝓘(ℝ, E) ∞ M] (hf : IsGeneralizedMorse E f) {h : 
   · exact .inl (hnd.scalar_comp (hh.contDiffAt.of_le (by simp)) (hpos x).ne')
   · exact .inr ⟨hbd.some.comp hh (hpos x)⟩
 
+/-- **Generalized Morse functions pull back along local diffeomorphisms.** If `Φ : M' → M` is a
+smooth local diffeomorphism between boundaryless manifolds modelled on `E'` and on `E`, which may
+differ, and `f` is a generalized Morse function, then so is `f ∘ Φ`. -/
+theorem comp_isLocalDiffeomorph {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
+    {M' : Type*} [TopologicalSpace M'] [ChartedSpace E' M'] [IsManifold 𝓘(ℝ, E') ∞ M']
+    (hf : IsGeneralizedMorse E f) {Φ : M' → M} (hΦ : IsLocalDiffeomorph 𝓘(ℝ, E') 𝓘(ℝ, E) ∞ Φ) :
+    IsGeneralizedMorse E' (f ∘ Φ) := by
+  refine ⟨hf.contMDiff.comp hΦ.contMDiff, fun y hy ↦ ?_⟩
+  rw [(hΦ y).mem_criticalPoints_comp_iff (by simp)] at hy
+  rcases hf.2 (Φ y) hy with hnd | hbd
+  · exact .inl ((hΦ y).isManifoldNondegenerateCriticalPoint_comp (by simp) hnd)
+  · exact .inr ⟨((hΦ y).exists_birthDeathChart_comp hbd.some).choose⟩
+
 /-- Pulling a generalized Morse function back along a diffeomorphism `σ : M' ≃ M` gives a
 generalized Morse function. -/
-theorem comp_diffeomorph [IsManifold 𝓘(ℝ, E) ∞ M] {M' : Type*} [TopologicalSpace M']
-    [ChartedSpace E M'] [IsManifold 𝓘(ℝ, E) ∞ M'] (hf : IsGeneralizedMorse E f)
-    (σ : M' ≃ₘ^∞⟮𝓘(ℝ, E), 𝓘(ℝ, E)⟯ M) : IsGeneralizedMorse E (f ∘ σ) := by
-  refine ⟨hf.contMDiff.comp σ.contMDiff, fun x hx ↦ ?_⟩
-  rw [(σ.isLocalDiffeomorph x).mem_criticalPoints_comp_iff (by simp)] at hx
-  rcases hf.2 (σ x) hx with hnd | hbd
-  · exact .inl (((σ.isLocalDiffeomorph x).isManifoldNondegenerateCriticalPoint_comp_iff
-      (by simp)).2 hnd)
-  · exact .inr ⟨hbd.some.pullback σ⟩
+theorem comp_diffeomorph {M' : Type*} [TopologicalSpace M'] [ChartedSpace E M']
+    [IsManifold 𝓘(ℝ, E) ∞ M'] (hf : IsGeneralizedMorse E f) (σ : M' ≃ₘ^∞⟮𝓘(ℝ, E), 𝓘(ℝ, E)⟯ M) :
+    IsGeneralizedMorse E (f ∘ σ) :=
+  hf.comp_isLocalDiffeomorph σ.isLocalDiffeomorph
 
 end IsGeneralizedMorse
 

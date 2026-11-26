@@ -577,7 +577,7 @@ Named like Tau Ceti's file, in `SymplecticGeometry`.
   by `ℝ`, with the
   kernels prescribed at all real times near a given time, so it does not
   cover the ends of `[0, 1]`.
-- `IsContactFamily.exists_local_extension (hξ) (p)` (`[BoundarylessManifold I M]`): step 1
+- `IsContactFamily.exists_local_extension (hξ) (p)`: step 1
   of the extension in *Decisions*. For every `p : unitInterval × M` there
   are an open interval `J = Ioo a b ∋ p.1`, an open `U ∋ p.2`, and `α` with
   `IsLocalDefiningFamily ξ U α a b`. Uses `DifferentialForm/TimeExtension.lean` of
