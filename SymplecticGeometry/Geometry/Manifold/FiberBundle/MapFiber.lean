@@ -296,6 +296,14 @@ theorem IsContMDiff.mdifferentiable_trivAt (hA : A.IsContMDiff n IB IF IM) (hn :
   ⟨(hA.contMDiffOn_trivAt b).mdifferentiableOn hn,
     (hA.contMDiffOn_trivAt_symm b).mdifferentiableOn hn⟩
 
+/-- The fibre coordinate `y ↦ (A.trivAt b y).2` of a chart of a `C^n` atlas is `C^n` at every
+point of `M` over the base set of the chart. -/
+theorem IsContMDiff.contMDiffAt_snd_trivAt (hA : A.IsContMDiff n IB IF IM) {b : B} {x : M}
+    (hx : proj x ∈ (A.trivAt b).baseSet) :
+    ContMDiffAt IM IF n (fun y ↦ (A.trivAt b y).2) x :=
+  contMDiffAt_snd.comp x ((hA.contMDiffOn_trivAt b).contMDiffAt
+    ((A.trivAt b).open_source.mem_nhds ((A.trivAt b).mem_source.2 hx)))
+
 end TauCeti.MapFiber.Atlas
 
 namespace TauCeti.MapFiber.Atlas.IsContMDiff
