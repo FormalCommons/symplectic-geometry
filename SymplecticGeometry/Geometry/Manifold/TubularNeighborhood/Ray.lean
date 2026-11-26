@@ -154,7 +154,7 @@ theorem exists_rayTube (γ : SmoothEmbedding 𝓘(ℝ) I ∞ ℝ M)
   have := γ.normalSpaceContMDiffVectorBundle (m := ∞) hn (by simp) hdim
   obtain ⟨W, hWO, Φ₀, hΦ₀⟩ := γ.exists_diffeomorph_normalBundle_subset hdim hO hγO
   obtain ⟨h, L, hL⟩ :=
-    Bundle.exists_diffeomorph_prod_of_real (F := V) (T := fun x ↦ γ.NormalSpace x hn)
+    Bundle.exists_diffeomorph_prod_of_real (F := V) (T := fun x ↦ γ.isImmersion.NormalSpace x hn)
   -- `h` covers the identity of `ℝ` and is linear on the fibres.
   have hh_symm (q : ℝ × V) : h.symm q = ⟨q.1, (L q.1).symm q.2⟩ := by
     conv_rhs => rw [← h.symm_apply_apply ⟨q.1, (L q.1).symm q.2⟩, hL,
@@ -168,7 +168,7 @@ theorem exists_rayTube (γ : SmoothEmbedding 𝓘(ℝ) I ∞ ℝ M)
     (by simpa only [hΨ0] using hγ) hO' (a := -2) fun t ht ↦ hΨ0 t ▸ hγO' ⟨t, ht, rfl⟩
   have hr2 : ContMDiff 𝓘(ℝ) 𝓘(ℝ, ℝ) ∞ fun t ↦ r t / 2 :=
     contMDiff_iff_contDiff.2 (hr.div_const 2)
-  let S := vectorBundleScalarDiffeomorph (F := V) (V := fun x ↦ γ.NormalSpace x hn)
+  let S := vectorBundleScalarDiffeomorph (F := V) (V := fun x ↦ γ.isImmersion.NormalSpace x hn)
     (fun t ↦ r t / 2) hr2 fun t ↦ (half_pos (hr0 t)).ne'
   let e := h.symm.trans (S.trans Φ₀)
   have he (q : ℝ × V) : (e q : M) = Ψ (q.1, (r q.1 / 2) • q.2) := by

@@ -352,7 +352,7 @@ structure SymplecticFraming {hσ : σ.IsNondegenerate} {ι : SmoothEmbedding J I
     (hP : finrank ℝ ℂ = finrank ℝ E - finrank ℝ EQ) where
   /-- The isomorphism of normal spaces at `q`. -/
   toFun : ∀ q, (zeroSlice J Q).isImmersion.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero) ≃L[ℝ]
-    ι.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
+    ι.isImmersion.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
   /-- The framing is smooth as a map of normal bundles. -/
   contMDiff_toFun :
     letI := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
@@ -362,7 +362,7 @@ structure SymplecticFraming {hσ : σ.IsNondegenerate} {ι : SmoothEmbedding J I
       (fun p : TotalSpace ℂ
           (fun q ↦ (zeroSlice J Q).isImmersion.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) ↦
         (⟨p.proj, toFun p.proj p.snd⟩ :
-          TotalSpace ℂ (fun q ↦ ι.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero))))
+          TotalSpace ℂ (fun q ↦ ι.isImmersion.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero))))
   /-- The framing carries the normal symplectic form of the zero slice to that of `ι`. -/
   symplecticNormalForm_toFun : ∀ q v w,
     ι.symplecticNormalForm hι q (WithTop.coe_ne_zero.2 ENat.top_ne_zero) (toFun q v)
@@ -381,7 +381,7 @@ attribute [coe] toFun
 
 instance : CoeFun (SymplecticFraming hι hP) fun _ ↦ ∀ q,
     (zeroSlice J Q).isImmersion.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero) ≃L[ℝ]
-      ι.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero) :=
+      ι.isImmersion.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero) :=
   ⟨toFun⟩
 
 /-- Two framings are equal if their isomorphisms of normal spaces agree at every point. -/
@@ -418,7 +418,7 @@ section OfPos
 
 variable {hσ : σ.IsNondegenerate} {ι : SmoothEmbedding J I ∞ Q M}
   {hι : hσ.HasSymplecticTangentImages J ι} {hP : finrank ℝ ℂ = finrank ℝ E - finrank ℝ EQ}
-  {e : ∀ q, ℂ ≃L[ℝ] ι.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)}
+  {e : ∀ q, ℂ ≃L[ℝ] ι.isImmersion.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)}
 
 variable (e) in
 /-- **The symplectic framing of a positive trivialization of the normal bundle.** Let
@@ -432,7 +432,7 @@ def ofPos
     (he : letI := ι.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
       ContMDiff (J.prod 𝓘(ℝ, ℂ)) (J.prod 𝓘(ℝ, ℂ)) ∞
         (fun x : Q × ℂ ↦ (⟨x.1, e x.1 x.2⟩ :
-          TotalSpace ℂ (fun q ↦ ι.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)))))
+          TotalSpace ℂ (fun q ↦ ι.isImmersion.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)))))
     (hpos : ∀ q, 0 < ι.symplecticNormalForm hι q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
       (e q 1) (e q Complex.I)) :
     SymplecticFraming hι hP where
@@ -477,7 +477,7 @@ theorem ofPos_apply
     (he : letI := ι.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
       ContMDiff (J.prod 𝓘(ℝ, ℂ)) (J.prod 𝓘(ℝ, ℂ)) ∞
         (fun x : Q × ℂ ↦ (⟨x.1, e x.1 x.2⟩ :
-          TotalSpace ℂ (fun q ↦ ι.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)))))
+          TotalSpace ℂ (fun q ↦ ι.isImmersion.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)))))
     (hpos : ∀ q, 0 < ι.symplecticNormalForm hι q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
       (e q 1) (e q Complex.I)) (q : Q)
     (v : (zeroSlice J Q).isImmersion.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) :
