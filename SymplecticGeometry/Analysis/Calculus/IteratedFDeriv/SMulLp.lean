@@ -5,10 +5,13 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Analysis.Calculus.ContDiff.Bounds
+public import Mathlib.Analysis.Calculus.ContDiff.Defs
 public import Mathlib.MeasureTheory.Function.LpSeminorm.Basic
+import Mathlib.Analysis.Normed.Operator.Mul
 import Mathlib.MeasureTheory.Function.LpSeminorm.TriangleInequality
+import TauCeti.Analysis.Calculus.ContDiff.Bounds
 import TauCeti.Analysis.Calculus.ContDiff.Integrable
+import TauCeti.Analysis.Calculus.IteratedFDeriv.Bilinear
 
 /-!
 # The Leibniz rule in `Lᵖ` on an open set, for a coefficient smooth near its closure
@@ -20,8 +23,14 @@ class `C^k` on `s`, for the norms `∑_{l ≤ k} ‖Dˡf‖_{Lᵖ(s)}`: the deri
 (`exists_eLpNorm_iteratedFDeriv_smul_le_of_isOpen`).
 
 Unlike Tau Ceti's `ContinuousLinearMap.eLpNorm_iteratedFDeriv_le_of_bilinear`, nothing is assumed
-of `f` off `s`. The proof bounds the derivatives of `a` on `K` and applies Mathlib's pointwise
-`norm_iteratedFDerivWithin_smul_le` at the points of `s`.
+of `f` off `s`. Tau Ceti's `TauCeti.eLpNormWkp_bilin_le` proves a bound of the same shape, with a
+constant of the same form, for the `W^{k,p}` norms on planar open sets and Lebesgue measure; here
+`E` is any normed space and `μ` any measure, and the bound on the derivatives of `a` comes from the
+compactness of `K` instead of being a hypothesis. The proof follows that of
+`TauCeti.eLpNormWkp_bilin_le`: it bounds the derivatives of `a` on `K` by Tau Ceti's
+`ContDiffOn.exists_nonneg_bound_iteratedFDeriv_of_isOpen`, and applies Tau Ceti's
+pointwise Leibniz rule `ContinuousLinearMap.norm_iteratedFDeriv_le_of_bilinear_of_forall_le` to
+the bilinear map `ContinuousLinearMap.lsmul` at the points of `s`.
 
 ## Main results
 
@@ -51,40 +60,35 @@ theorem exists_eLpNorm_iteratedFDeriv_smul_le_of_isOpen (μ : Measure E) {p : �
     ∃ C : ℝ≥0, ∀ f : E → F, ContDiffOn ℝ k f s → ∀ j ≤ k,
       eLpNorm (iteratedFDeriv ℝ j (fun x ↦ a x • f x)) p (μ.restrict s) ≤
         C * ∑ l ∈ Finset.range (k + 1), eLpNorm (iteratedFDeriv ℝ l f) p (μ.restrict s) := by
-  -- A bound `M` on `K` of the derivatives of `a` of order at most `k`.
-  have hcont : ContinuousOn
-      (fun x ↦ ∑ i ∈ Finset.range (k + 1), ‖iteratedFDeriv ℝ i a x‖) t :=
-    continuousOn_finsetSum _ fun i hi ↦ (ContinuousOn.continuousOn_iteratedFDeriv ha ht
-      (by exact_mod_cast Finset.mem_range_succ_iff.1 hi)).norm
-  obtain ⟨M, hM⟩ := hK.exists_bound_of_continuousOn (hcont.mono hKt)
-  have hMi (i : ℕ) (hi : i ≤ k) (x : E) (hx : x ∈ s) : ‖iteratedFDeriv ℝ i a x‖ ≤ M := by
-    refine le_trans ?_ ((Real.le_norm_self _).trans (hM x (hsK hx)))
-    exact Finset.single_le_sum (f := fun i ↦ ‖iteratedFDeriv ℝ i a x‖)
-      (fun _ _ ↦ norm_nonneg _) (Finset.mem_range_succ_iff.2 hi)
-  set C : ℝ := (k + 1) * (2 ^ k * max M 0)
+  -- A bound `M ≥ 0` on `K` of the derivatives of `a` of order at most `k`.
+  obtain ⟨M, hM0, hM⟩ := ha.exists_nonneg_bound_iteratedFDeriv_of_isOpen ht hK hKt
+  set C : ℝ := (k + 1) * (2 ^ k * M)
   refine ⟨C.toNNReal, fun f hf j hj ↦ ?_⟩
   set S : E → ℝ := fun x ↦ ∑ l ∈ Finset.range (k + 1), ‖iteratedFDeriv ℝ l f x‖
-  -- The pointwise bound `‖Dʲ(a • f)(x)‖ ≤ C S(x)` on `s`.
+  -- The pointwise bound `‖Dʲ(a • f)(x)‖ ≤ C S(x)` on `s`: Tau Ceti's pointwise Leibniz rule for
+  -- the bilinear map `lsmul`, whose norm is at most `1`.
   have hpt : ∀ᵐ x ∂μ.restrict s, ‖iteratedFDeriv ℝ j (fun x ↦ a x • f x) x‖ ≤ ‖C * S x‖ := by
     filter_upwards [ae_restrict_mem hs.measurableSet] with x hx
-    have : 0 ≤ S x := Finset.sum_nonneg fun _ _ ↦ norm_nonneg _
-    rw [Real.norm_of_nonneg (by positivity), ← iteratedFDerivWithin_of_isOpen j hs hx]
-    refine (norm_iteratedFDerivWithin_smul_le (ha.mono (hsK.trans hKt)) hf hs.uniqueDiffOn hx
-      (by exact_mod_cast hj)).trans ?_
-    calc _ ≤ ∑ _i ∈ Finset.range (j + 1), 2 ^ k * max M 0 * S x := by
-          refine Finset.sum_le_sum fun i hi ↦ ?_
-          have hij : i ≤ j := Finset.mem_range_succ_iff.1 hi
-          rw [iteratedFDerivWithin_of_isOpen i hs hx, iteratedFDerivWithin_of_isOpen _ hs hx]
+    have hj' : (j : WithTop ℕ∞) ≤ k := by exact_mod_cast hj
+    have hB := (ContinuousLinearMap.lsmul ℝ 𝕜' : 𝕜' →L[ℝ] F →L[ℝ] F)
+      |>.norm_iteratedFDeriv_le_of_bilinear_of_forall_le
+        ((ha.contDiffAt (ht.mem_nhds (hKt (hsK hx)))).of_le hj')
+        ((hf.contDiffAt (hs.mem_nhds hx)).of_le hj') (M₁ := M) (M₂ := S x)
+        (fun i hi ↦ hM i (hi.trans hj) x (hsK hx))
+        (fun i hi ↦ Finset.single_le_sum (f := fun l ↦ ‖iteratedFDeriv ℝ l f x‖)
+          (fun _ _ ↦ norm_nonneg _) (Finset.mem_range_succ_iff.2 (hi.trans hj)))
+    simp only [ContinuousLinearMap.lsmul_apply] at hB
+    rw [Real.norm_of_nonneg (by positivity)]
+    refine hB.trans ?_
+    have h2 : (2 : ℝ) ^ j ≤ 2 ^ k := pow_le_pow_right₀ one_le_two hj
+    have h1 : (1 : ℝ) ≤ k + 1 := by linarith [(k.cast_nonneg : (0 : ℝ) ≤ k)]
+    calc _ ≤ 1 * 2 ^ k * M * S x := by
           gcongr
-          · exact_mod_cast (Nat.choose_le_two_pow j i).trans (Nat.pow_le_pow_right two_pos hj)
-          · exact (hMi i (hij.trans hj) x hx).trans (le_max_left _ _)
-          · exact Finset.single_le_sum (f := fun l ↦ ‖iteratedFDeriv ℝ l f x‖)
-              (fun _ _ ↦ norm_nonneg _) (Finset.mem_range_succ_iff.2 (by omega))
+          exact ContinuousLinearMap.opNorm_lsmul_le
       _ ≤ C * S x := by
-          rw [Finset.sum_const, Finset.card_range, nsmul_eq_mul, ← mul_assoc]
-          simp only [C]
-          gcongr
-          exact_mod_cast (by omega : j + 1 ≤ k + 1)
+          simp only [C, one_mul]
+          gcongr ?_ * _
+          exact le_mul_of_one_le_left (by positivity) h1
   have hC : ‖C‖ₑ = C.toNNReal := by
     rw [Real.eNorm_eq_ofReal (by positivity), ENNReal.ofReal]
   calc _ ≤ eLpNorm (C • S) p (μ.restrict s) :=
