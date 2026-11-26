@@ -234,7 +234,7 @@ theorem exists_weightModelChart_isotropy
   have hK := h.comp_monoidHom K.subtype hφ fun _ _ ↦ rfl
   obtain ⟨n, χ, α, chart, r, hα, -, hx, h0, hr, htarget, hequiv, hform, hgen, hμ⟩ :=
     hK.exists_weightModelChart hσ (fun g ↦ hG g) (p := x)
-      fun g ↦ Subgroup.map_subtype_le _ g.property
+      fun g ↦ Subgroup.ambientConnectedComponentOfOne_le _ g.property
   -- The differential of the inclusion `K → G` identifies the Lie algebra of `K` with `𝔤ₓ`.
   let e : GroupLieAlgebra 𝓘(ℝ, F) K ≃ₗ[ℝ] 𝔤ₓ := d.groupLieAlgebraEquivIsotropy (I' := I')
   have he (ξ : 𝔤ₓ) :
@@ -516,7 +516,7 @@ theorem exists_openPartialHomeomorph_weightMomentMap_prod
   obtain ⟨Φ, hΦ0, hΦa, hΦ⟩ := hF.exists_openPartialHomeomorph_fst_eq_snd_snd_eq <|
     LinearMap.range_eq_top.2 fun q ↦ by
       obtain ⟨b, hb⟩ := exists_fderiv_comp_symm_sub_comp_subtype_weightModelSplit_symm_eq h hx
-        (hform x hx) (fun g ↦ Subgroup.map_subtype_le _ g.property)
+        (hform x hx) (fun g ↦ Subgroup.ambientConnectedComponentOfOne_le _ g.property)
         (fun g ↦ Filter.eventually_of_mem (chart.open_source.mem_nhds hx)
           fun y hy ↦ (hequiv g y hy).2) h𝔮 (p := p) (fun k hk ↦ by rwa [Ne, hα]) q
       refine ⟨b, ?_⟩
