@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.GroupAction.LinearTube
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.TangentSpace
 
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 
 /-!
 # An equivariant local diffeomorphism from a local model at a point to `M`
@@ -39,11 +40,12 @@ sends `dπ_(1, 0, 0) (ξ, p)` to `ξ_M(x) + L p`
 `T`; since `dπ_(1, 0, 0)` is onto (`SymplecticGeometry.LocalModelData.surjective_mkTangentMap`),
 the two agree.
 
-When moreover `T` takes the descended form `ω` at `[1, 0]` to a `G`-invariant two-form `σ` at `x`,
-as `SymplecticGeometry.LocalModelData.exists_linearEquiv_tangentSpace_ofPoint` provides, any
-equivariant `Ψ₀`, differentiable along the zero section, with differential `T` at `[1, 0]` pulls
-`σ` back to `ω` at every point `[g, 0]` of the zero section. At `[1, 0]` this is the hypothesis
-on `T`; at `[g, 0] = g • [1, 0]` it follows from the invariance of `σ` and of `ω`
+Let `σ` be a `G`-invariant two-form on `M`. An equivariant `Ψ₀` with `Ψ₀ [1, 0] = x`,
+differentiable at `[1, 0]`, whose differential there takes `σ` at `x` to the descended form `ω`
+at `[1, 0]` (as the differential `T` given by
+`SymplecticGeometry.LocalModelData.exists_linearEquiv_tangentSpace_ofPoint` does), pulls `σ` back
+to `ω` at every point `[g, 0]` of the zero section. At `[1, 0]` this is the hypothesis on the
+differential; at `[g, 0] = g • [1, 0]` it follows from the invariance of `σ` and of `ω`
 (`SymplecticGeometry.LocalModelData.mpullback_smul_descendedForm`) by
 `TauCeti.mpullback_apply_smul_eq_of_apply_eq`. These are the forms that the equivariant relative
 Moser theorem `TauCeti.SmoothEmbedding.exists_equivariant_diffeomorph_opens_of_eq_along` compares
@@ -184,9 +186,9 @@ omit [FiniteDimensional ℝ E'] [I'.Boundaryless] [T2Space M] in
 /-- **The tube map pulls `σ` back to the descended form along the zero section**, as an equality
 of the pulled-back form and the descended form `ω` at each point `[g, 0]`. Let `σ` be a two-form
 on `M` invariant under the action of `G`, and let `Ψ₀ : Y → M` be a `G`-equivariant map with
-`Ψ₀ [1, 0] = x`, differentiable at every point `[g, 0]`, whose differential at `[1, 0]` is a
-linear isomorphism `T : T_{[1, 0]} Y ≃ T_x M` with `σ_x (T u, T v) = ω_{[1, 0]} (u, v)`. Then the
-pullback of `σ` along `Ψ₀` is `ω` at every point `[g, 0]` of the zero section. -/
+`Ψ₀ [1, 0] = x`, differentiable at `[1, 0]`, whose differential `dΨ₀` at `[1, 0]` satisfies
+`σ_x (dΨ₀ u, dΨ₀ v) = ω_{[1, 0]} (u, v)`. Then the pullback of `σ` along `Ψ₀` is `ω` at every
+point `[g, 0]` of the zero section. -/
 theorem mpullback_apply_mk_zero_eq_descendedForm :
     letI := D.fiberDistribMulAction
     haveI := D.contMDiffSMul_fiberDistribMulAction
@@ -196,20 +198,20 @@ theorem mpullback_apply_mk_zero_eq_descendedForm :
       (I := I) (IZ := 𝓘(ℝ, A × V)) (F := F)
     ∀ {σ : SmoothTwoForm I' M}, (∀ g : G, SmoothForm.mpullback (fun y : M ↦ g • y)
         (ContMDiffSMul.contMDiff_const_smul (I := I) (I' := I') g) σ = σ) →
-      ∀ {Ψ₀ : BalancedProduct (stabilizer G x) (stabilizer G x).RightTranslation (A × V) → M}
-        (T : TangentSpace 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
-          (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
-            ((0 : A), (0 : V))) ≃ₗ[ℝ] TangentSpace I' x),
+      ∀ {Ψ₀ : BalancedProduct (stabilizer G x) (stabilizer G x).RightTranslation (A × V) → M},
       (∀ (g : G) y, Ψ₀ (g • y) = g • Ψ₀ y) →
       Ψ₀ (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
         ((0 : A), (0 : V))) = x →
-      (∀ g : G, MDifferentiableAt 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))) I' Ψ₀
-        (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation g)
-          ((0 : A), (0 : V)))) →
-      (∀ u, mfderiv 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))) I' Ψ₀
+      MDifferentiableAt 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))) I' Ψ₀
         (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
-          ((0 : A), (0 : V))) u = T u) →
-      (∀ u v, SmoothBundleForm.eval₂ σ x (T u) (T v) =
+          ((0 : A), (0 : V))) →
+      (∀ u v, SmoothBundleForm.eval₂ σ x
+          (mfderiv 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))) I' Ψ₀
+            (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
+              ((0 : A), (0 : V))) u)
+          (mfderiv 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))) I' Ψ₀
+            (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
+              ((0 : A), (0 : V))) v) =
         SmoothBundleForm.eval₂ D.descendedForm
           (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
             ((0 : A), (0 : V))) u v) →
@@ -219,7 +221,7 @@ theorem mpullback_apply_mk_zero_eq_descendedForm :
         D.descendedForm.val
           (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation g)
             ((0 : A), (0 : V))) := by
-  intro σ hσ Ψ₀ T hΨ hΨ1 hdiff hdT hT g
+  intro σ hσ Ψ₀ hΨ hΨ1 hdiff hT g
   let := D.fiberDistribMulAction
   have := D.contMDiffSMul_fiberDistribMulAction
   let := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) (A × V) I 𝓘(ℝ, A × V) F
@@ -232,15 +234,11 @@ theorem mpullback_apply_mk_zero_eq_descendedForm :
   have hmk (g : G) : g • y₁ = BalancedProduct.mk (stabilizer G x)
       ((stabilizer G x).toRightTranslation g) ((0 : A), (0 : V)) := by
     rw [BalancedProduct.smul_mk_toRightTranslation, mul_one]
-  -- At `[1, 0]` this is the hypothesis on `T`.
+  -- At `[1, 0]` this is the hypothesis on the differential.
   have h₁ : mpullback _ I' Ψ₀ σ.val y₁ = D.descendedForm.val y₁ := by
-    ext w
-    have hw : w = ![w 0, w 1] := by
-      ext i
-      fin_cases i <;> rfl
-    rw [hw]
+    refine ContinuousAlternatingMap.ext_fin_two fun u v ↦ ?_
     rw [mpullback_apply_pair, ← SmoothBundleForm.eval₂_apply, ← SmoothBundleForm.eval₂_apply,
-      ← hT, hdT, hdT, hΨ1]
+      ← hT, hΨ1]
   -- At `[g, 0] = g • [1, 0]` it follows by the invariance of `σ` and of the descended form.
   have hk := ContMDiffSMul.contMDiff_const_smul (I := I) (n := ∞)
     (I' := 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))))
@@ -249,8 +247,7 @@ theorem mpullback_apply_mk_zero_eq_descendedForm :
   have hσg := congrArg Subtype.val (hσ g)
   rw [SmoothForm.coe_mpullback] at hω hσg
   rw [← hmk]
-  exact mpullback_apply_smul_eq_of_apply_eq (IG := I) g (hΨ g) hσg hω (hdiff 1)
-    (by rw [hmk]; exact hdiff g) h₁
+  exact mpullback_apply_smul_eq_of_apply_eq (IG := I) g (hΨ g) hσg hω hdiff h₁
 
 omit [FiniteDimensional ℝ E'] [I'.Boundaryless] [T2Space M] in
 /-- **The tube map pulls `σ` back to the descended form along the zero section**, on pairs of
@@ -267,20 +264,20 @@ theorem eval₂_mfderiv_mk_zero_eq_eval₂_descendedForm :
       (I := I) (IZ := 𝓘(ℝ, A × V)) (F := F)
     ∀ {σ : SmoothTwoForm I' M}, (∀ g : G, SmoothForm.mpullback (fun y : M ↦ g • y)
         (ContMDiffSMul.contMDiff_const_smul (I := I) (I' := I') g) σ = σ) →
-      ∀ {Ψ₀ : BalancedProduct (stabilizer G x) (stabilizer G x).RightTranslation (A × V) → M}
-        (T : TangentSpace 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
-          (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
-            ((0 : A), (0 : V))) ≃ₗ[ℝ] TangentSpace I' x),
+      ∀ {Ψ₀ : BalancedProduct (stabilizer G x) (stabilizer G x).RightTranslation (A × V) → M},
       (∀ (g : G) y, Ψ₀ (g • y) = g • Ψ₀ y) →
       Ψ₀ (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
         ((0 : A), (0 : V))) = x →
-      (∀ g : G, MDifferentiableAt 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))) I' Ψ₀
-        (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation g)
-          ((0 : A), (0 : V)))) →
-      (∀ u, mfderiv 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))) I' Ψ₀
+      MDifferentiableAt 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))) I' Ψ₀
         (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
-          ((0 : A), (0 : V))) u = T u) →
-      (∀ u v, SmoothBundleForm.eval₂ σ x (T u) (T v) =
+          ((0 : A), (0 : V))) →
+      (∀ u v, SmoothBundleForm.eval₂ σ x
+          (mfderiv 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))) I' Ψ₀
+            (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
+              ((0 : A), (0 : V))) u)
+          (mfderiv 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))) I' Ψ₀
+            (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
+              ((0 : A), (0 : V))) v) =
         SmoothBundleForm.eval₂ D.descendedForm
           (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
             ((0 : A), (0 : V))) u v) →
@@ -297,19 +294,20 @@ theorem eval₂_mfderiv_mk_zero_eq_eval₂_descendedForm :
           SmoothBundleForm.eval₂ D.descendedForm
             (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation g)
               ((0 : A), (0 : V))) u v := by
-  intro σ hσ Ψ₀ T hΨ hΨ1 hdiff hdT hT g u v
+  intro σ hσ Ψ₀ hΨ hΨ1 hdiff hT g u v
   let := D.fiberDistribMulAction
   have := D.contMDiffSMul_fiberDistribMulAction
   let := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) (A × V) I 𝓘(ℝ, A × V) F
   have := BalancedProduct.isManifold_rightTranslation (K := stabilizer G x) (Z := A × V)
     (I := I) (IZ := 𝓘(ℝ, A × V)) (F := F)
   rw [SmoothBundleForm.eval₂_apply, SmoothBundleForm.eval₂_apply, ← mpullback_apply_pair,
-    D.mpullback_apply_mk_zero_eq_descendedForm hσ T hΨ hΨ1 hdiff hdT hT g]
+    D.mpullback_apply_mk_zero_eq_descendedForm hσ hΨ hΨ1 hdiff hT g]
 
 omit [FiniteDimensional ℝ E'] [I'.Boundaryless] [T2Space M] in
 /-- **The tube map pulls `σ` back to the descended form along the zero section**, on an open set:
 in the setting of `SymplecticGeometry.LocalModelData.mpullback_apply_mk_zero_eq_descendedForm`,
-let `U` be an open set of `Y` that contains the zero section and on which `Ψ₀` is smooth. Then
+let `U` be an open set of `Y` that contains the zero section and on which `Ψ₀` is smooth (this
+replaces the differentiability of `Ψ₀` at `[1, 0]`). Then
 the pullbacks of `σ` along `Ψ₀` restricted to `U`, and of `ω` along the inclusion of `U`, agree at
 every point `[g, 0]`. This is the hypothesis `heq` of
 `TauCeti.SmoothEmbedding.exists_equivariant_diffeomorph_opens_of_eq_along` for the zero section. -/
@@ -322,17 +320,17 @@ theorem mpullback_subtypeVal_apply_mk_zero_eq :
       (I := I) (IZ := 𝓘(ℝ, A × V)) (F := F)
     ∀ {σ : SmoothTwoForm I' M}, (∀ g : G, SmoothForm.mpullback (fun y : M ↦ g • y)
         (ContMDiffSMul.contMDiff_const_smul (I := I) (I' := I') g) σ = σ) →
-      ∀ {Ψ₀ : BalancedProduct (stabilizer G x) (stabilizer G x).RightTranslation (A × V) → M}
-        (T : TangentSpace 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
-          (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
-            ((0 : A), (0 : V))) ≃ₗ[ℝ] TangentSpace I' x),
+      ∀ {Ψ₀ : BalancedProduct (stabilizer G x) (stabilizer G x).RightTranslation (A × V) → M},
       (∀ (g : G) y, Ψ₀ (g • y) = g • Ψ₀ y) →
       Ψ₀ (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
         ((0 : A), (0 : V))) = x →
-      (∀ u, mfderiv 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))) I' Ψ₀
-        (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
-          ((0 : A), (0 : V))) u = T u) →
-      (∀ u v, SmoothBundleForm.eval₂ σ x (T u) (T v) =
+      (∀ u v, SmoothBundleForm.eval₂ σ x
+          (mfderiv 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))) I' Ψ₀
+            (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
+              ((0 : A), (0 : V))) u)
+          (mfderiv 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))) I' Ψ₀
+            (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
+              ((0 : A), (0 : V))) v) =
         SmoothBundleForm.eval₂ D.descendedForm
           (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
             ((0 : A), (0 : V))) u v) →
@@ -345,21 +343,21 @@ theorem mpullback_subtypeVal_apply_mk_zero_eq :
         (SmoothForm.mpullback _ hΨU σ).val ⟨_, hU g⟩ =
           (SmoothForm.mpullback (Subtype.val : U → _) contMDiff_subtypeVal D.descendedForm).val
             ⟨_, hU g⟩ := by
-  intro σ hσ Ψ₀ T hΨ hΨ1 hdT hT U hU hΨU g
+  intro σ hσ Ψ₀ hΨ hΨ1 hT U hU hΨU g
   let := D.fiberDistribMulAction
   have := D.contMDiffSMul_fiberDistribMulAction
   let := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) (A × V) I 𝓘(ℝ, A × V) F
   have := BalancedProduct.isManifold_rightTranslation (K := stabilizer G x) (Z := A × V)
     (I := I) (IZ := 𝓘(ℝ, A × V)) (F := F)
-  have hdiff (g : G) : MDifferentiableAt 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))) I'
-      Ψ₀ (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation g)
+  have hdiff : MDifferentiableAt 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))) I' Ψ₀
+      (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
         ((0 : A), (0 : V))) :=
-    (contMDiffAt_subtype_iff.1 (hΨU ⟨_, hU g⟩)).mdifferentiableAt (by simp)
-  ext w
+    (contMDiffAt_subtype_iff.1 (hΨU ⟨_, hU 1⟩)).mdifferentiableAt (by simp)
+  refine ContinuousAlternatingMap.ext fun w ↦ ?_
   rw [SmoothForm.mpullback_comp_subtypeVal_apply, SmoothForm.coe_mpullback_subtype_val_apply]
   refine (mpullback_apply (I := 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))) Ψ₀ σ.val _
     w).symm.trans ?_
-  exact DFunLike.congr_fun (D.mpullback_apply_mk_zero_eq_descendedForm hσ T hΨ hΨ1 hdiff hdT hT g) w
+  exact DFunLike.congr_fun (D.mpullback_apply_mk_zero_eq_descendedForm hσ hΨ hΨ1 hdiff hT g) w
 
 end LocalModelData
 

@@ -67,10 +67,10 @@ pointwise forms, for a map that is a local diffeomorphism only near `x`, of Tau 
 `IsLocalDiffeomorph.isClosed_mpullback_iff` and `IsLocalDiffeomorph.isNondegenerate_mpullback_iff`.
 
 The group action also carries such an identity along an orbit: if a map `f` that commutes with
-`z ↦ g • z`, and is differentiable at `y` and at `g • y`, pulls a form `ω` back to `η` at `y`,
-both forms being invariant under `g`, then it does so at `g • y`
-(`TauCeti.mpullback_apply_smul_eq_of_apply_eq`), since the differential of `z ↦ g • z` at `y` is
-onto.
+`z ↦ g • z`, and is differentiable at `y`, pulls a form `ω` back to `η` at `y`, both forms being
+invariant under `g`, then it does so at `g • y` (`TauCeti.mpullback_apply_smul_eq_of_apply_eq`),
+since the differential of `z ↦ g • z` at `y` is onto. Such an `f` is differentiable at `g • y`
+too (`MDifferentiableAt.at_smul_of_map_smul`).
 
 For `f : M → M'` and a form `α` on `M`, `TauCeti.RoughForm.pushforwardAt I I' f α x z` is `α x`
 read through the inverse of the differential of `f` at `x`, as an alternating map on the tangent
@@ -315,17 +315,37 @@ end SmoothTwoForm
 
 open scoped ContDiff in
 /-- Let a group `G` act smoothly on `M` and on `M'`, and let `f : M → M'` commute with
-`z ↦ g • z`, and be differentiable at `y` and at `g • y`. Let the forms `α` on `M'` and `β` on `M`
-be invariant under `z ↦ g • z`. If `f` pulls `α` back to `β` at `y`, then it pulls `α` back to
-`β` at `g • y`. -/
+`z ↦ g • z`. If `f` is differentiable at `y`, then it is differentiable at `g • y`. -/
+theorem _root_.MDifferentiableAt.at_smul_of_map_smul {EG HG G : Type*}
+    [NormedAddCommGroup EG] [NormedSpace ℝ EG] [TopologicalSpace HG]
+    {IG : ModelWithCorners ℝ EG HG} [TopologicalSpace G] [ChartedSpace HG G] [Group G]
+    [MulAction G M] [ContMDiffSMul IG I ∞ G M] [MulAction G M'] [ContMDiffSMul IG I' ∞ G M']
+    (g : G) (hfg : ∀ z, f (g • z) = g • f z) {y : M} (hf : MDifferentiableAt I I' f y) :
+    MDifferentiableAt I I' f (g • y) := by
+  have hinv : MDifferentiableAt I I (g⁻¹ • ·) (g • y) :=
+    (ContMDiffSMul.contMDiff_const_smul (I := IG) (I' := I) (n := ∞) g⁻¹).mdifferentiable
+      (by simp) (g • y)
+  have hg : MDifferentiableAt I' I' (g • ·) (f y) :=
+    (ContMDiffSMul.contMDiff_const_smul (I := IG) (I' := I') (n := ∞) g).mdifferentiable
+      (by simp) (f y)
+  have hcomp : MDifferentiableAt I I' ((g • ·) ∘ f ∘ (g⁻¹ • ·)) (g • y) :=
+    hg.comp_of_eq (x := g • y) (hf.comp_of_eq (x := g • y) hinv (inv_smul_smul g y)) (by simp)
+  convert hcomp using 1
+  funext z
+  simp [← hfg]
+
+open scoped ContDiff in
+/-- Let a group `G` act smoothly on `M` and on `M'`, and let `f : M → M'` commute with
+`z ↦ g • z`, and be differentiable at `y`. Let the forms `α` on `M'` and `β` on `M` be invariant
+under `z ↦ g • z`. If `f` pulls `α` back to `β` at `y`, then it pulls `α` back to `β` at
+`g • y`. -/
 theorem mpullback_apply_smul_eq_of_apply_eq [IsManifold I 1 M] {EG HG G : Type*}
     [NormedAddCommGroup EG] [NormedSpace ℝ EG] [TopologicalSpace HG]
     {IG : ModelWithCorners ℝ EG HG} [TopologicalSpace G] [ChartedSpace HG G] [Group G]
     [MulAction G M] [ContMDiffSMul IG I ∞ G M] [MulAction G M'] [ContMDiffSMul IG I' ∞ G M']
     (g : G) (hfg : ∀ z, f (g • z) = g • f z) {α : RoughForm I' M' F k} {β : RoughForm I M F k}
     (hα : mpullback I' I' (g • ·) α = α) (hβ : mpullback I I (g • ·) β = β) {y : M}
-    (hf : MDifferentiableAt I I' f y) (hf' : MDifferentiableAt I I' f (g • y))
-    (h : mpullback I I' f α y = β y) :
+    (hf : MDifferentiableAt I I' f y) (h : mpullback I I' f α y = β y) :
     mpullback I I' f α (g • y) = β (g • y) := by
   have hgM : MDifferentiableAt I I (g • ·) y :=
     (ContMDiffSMul.contMDiff_const_smul (I := IG) (I' := I) (n := ∞) g).mdifferentiable
@@ -337,8 +357,8 @@ theorem mpullback_apply_smul_eq_of_apply_eq [IsManifold I 1 M] {EG HG G : Type*}
     (((Diffeomorph.smul IG I ∞ g).isLocalDiffeomorph y).isInvertible_mfderiv (by simp)).surjective
   refine (mpullback_apply_eq_mpullback_apply_iff hsurj).1 ?_
   -- Both sides at `y`: `(f ∘ (g • ·))^* α = ((g • ·) ∘ f)^* α = f^* α = β = (g • ·)^* β`.
-  rw [hβ, ← mpullback_comp_at hgM hf', show f ∘ (g • ·) = (g • ·) ∘ f from funext hfg,
-    mpullback_comp_at hf hgM', hα, h]
+  rw [hβ, ← mpullback_comp_at hgM (hf.at_smul_of_map_smul (IG := IG) g hfg),
+    show f ∘ (g • ·) = (g • ·) ∘ f from funext hfg, mpullback_comp_at hf hgM', hα, h]
 
 end TauCeti
 
