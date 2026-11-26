@@ -318,9 +318,8 @@ theorem powerConnection_const_smul (c : ℂ) {s : Π x, PowerBundle P k x} {x : 
       (c • s) y = AssociatedBundle.mk Circle (localSection Circle P x y) (c • f y) := by
     filter_upwards [hs'] with y hy
     rw [Pi.smul_apply, AssociatedBundle.mk_smul_scalar, ← hy]
-  -- `y ↦ c • f y` is `f` followed by the real linear map `c • ·`.
   have hcf : MDifferentiableAt IB 𝓘(ℝ, PowerModel k) (fun y ↦ c • f y) x :=
-    (ContinuousLinearMap.lsmul ℝ ℂ (E := PowerModel k) c).mdifferentiableAt.comp x hf
+    mdifferentiableAt_const.fun_smul_algebra hf
   ext v
   rw [powerConnection_apply_trivializationAt α k hcf hcs v, smul_apply,
     powerConnection_apply_of_mdifferentiableAt α k hs v, ← AssociatedBundle.mk_smul_scalar,
