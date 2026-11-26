@@ -132,7 +132,7 @@ theorem mpullback_symm_mextDerivₗ [IsManifold I ∞ M] (ψ : PartialDiffeomorp
     (mpullback 𝓘(ℝ, E) I ψ.symm (mextDerivₗ I k φ).val y : E [⋀^Fin (k + 1)]→L[ℝ] F) =
       extDeriv (mpullback 𝓘(ℝ, E) I ψ.symm φ.val : E → E [⋀^Fin k]→L[ℝ] F) y := by
   rw [mextDerivₗ_apply, mpullback_mextDeriv_at
-    ((ψ.symm.contMDiffOn.contMDiffAt (ψ.open_target.mem_nhds hy)).of_le (by simp))
+    ((ψ.symm.contMDiffAt hy).of_le (by simp))
     ((φ.contMDiff _).of_le (by simp)), mextDeriv_eq_extDeriv]
 
 /-! ### The derivation along an almost complex structure -/

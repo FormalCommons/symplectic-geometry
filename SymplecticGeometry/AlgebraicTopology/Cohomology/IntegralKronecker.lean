@@ -5,8 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
 public import TauCeti.AlgebraicTopology.Cohomology.CrossProduct
+public import TauCeti.AlgebraicTopology.Cohomology.IntegralCup
+import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
 
 /-!
 # The Kronecker pairing of integral cohomology with integral homology

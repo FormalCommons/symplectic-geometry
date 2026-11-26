@@ -6,14 +6,16 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.FirstChernClass
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Pullback
 public import TauCeti.AlgebraicTopology.Cohomology.HomotopyInvariance
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Family
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.ComplexTangentBundle
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Family
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Polar
+public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.Basic
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.FirstChernClass
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Pullback
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Family
 
 /-!

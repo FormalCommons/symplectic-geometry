@@ -5,12 +5,14 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Calculus.Gradient.MvPolynomial
+public import Mathlib.Analysis.Calculus.Gradient.Basic
+import SymplecticGeometry.Analysis.Calculus.Gradient.MvPolynomial
 import Mathlib.Analysis.Calculus.Deriv.Prod
 import SymplecticGeometry.Geometry.RealAlgebraic.Semialgebraic.Choice
 import SymplecticGeometry.Geometry.RealAlgebraic.Semialgebraic.DerivGrowth
 import SymplecticGeometry.Topology.Algebra.MvPolynomial
 import TauCeti.Analysis.MvPolynomial.Jacobian
+import SymplecticGeometry.Geometry.RealAlgebraic.Semialgebraic.Differentiable
 
 /-!
 # The Łojasiewicz gradient inequality for real polynomials

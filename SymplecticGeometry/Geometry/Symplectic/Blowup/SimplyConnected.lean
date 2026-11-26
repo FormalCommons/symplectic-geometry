@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Model
-public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.SimplyConnected
+import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.SimplyConnected
 import TauCeti.Analysis.Normed.Module.Connected
 import TauCeti.Topology.Homotopy.DeformationRetract
 

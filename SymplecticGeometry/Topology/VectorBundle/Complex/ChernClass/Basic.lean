@@ -5,9 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.Empty
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.LerayHirsch.Bundle
 public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.ProjectiveSpace
+import SymplecticGeometry.AlgebraicTopology.Cohomology.Empty
+import SymplecticGeometry.Topology.ComplexProjectiveSpace.Cohomology
 
 /-!
 # Chern classes

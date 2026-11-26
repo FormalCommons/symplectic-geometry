@@ -11,7 +11,7 @@ public import TauCeti.Analysis.Complex.Euclidean.Space
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.Circle
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Localization.WeightOneForm
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.WeightModel.NormalForm
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.GroupAction.InvariantCutoff
 import SymplecticGeometry.Geometry.Manifold.GroupAction.InvariantOneForm
@@ -151,7 +151,7 @@ smooth function `ρ` whose support lies in the image of `Φ`: the smooth one-for
 def cutoffWeightOneForm : SmoothForm I M ℝ 1 :=
   ⟨fun x ↦ ρ x • TauCeti.mpullback I 𝓘(ℝ, StdSpace ι) Φ.symm (weightOneForm k).val x,
     (isSmoothForm_fun_smul_mpullback hρ Φ.symm.open_source (by simpa using hs)
-      (fun _ hx ↦ Φ.symm.contMDiffAt hx)
+      (fun _ hx ↦ Φ.symm.contMDiffAt hx) (by simp)
       (weightOneForm k).isSmoothForm).mem_smoothBundleForms⟩
 
 theorem cutoffWeightOneForm_val :
@@ -314,7 +314,7 @@ theorem mextDerivₗ_cutoffWeightOneForm_apply_of_eventuallyEq_one {x : M}
   have hxt : x ∈ Φ.target := hs (subset_tsupport ρ (by simp [hx.self_of_nhds]))
   rw [mpullback_apply_eq_compContinuousLinearMap]
   refine mextDerivₗ_apply_eq_of_eventuallyEq_mpullback
-    ((Φ.symm.contMDiffOn.contMDiffAt (Φ.open_target.mem_nhds hxt)).of_le (by simp)) ?_
+    ((Φ.symm.contMDiffAt hxt).of_le (by simp)) ?_
   filter_upwards [hx] with y hy
   simp only [cutoffWeightOneForm_val, hy, Pi.one_apply, one_smul]
 

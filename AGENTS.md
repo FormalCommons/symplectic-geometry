@@ -104,7 +104,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.LinearAlgebra.Matrix.Trace
-public import SymplecticGeometry.Algebra.Foo.Basic
+import SymplecticGeometry.Algebra.Foo.Basic
 
 /-!
 # Title
@@ -168,11 +168,14 @@ end
     stays in a file with the header above, and its module docstring credits
     the declaration it adapts by name.
 - A module can import only modules, so every file starts with `module`.
-  Import with `public import`, so that files that import yours see the
-  declarations your statements use. Import the specific modules you need,
-  never all of `Mathlib` or `TauCeti`, and never `Lean`, `Lake` or
-  `Mathlib.Lean` modules. Specific `Mathlib.Tactic.*` modules are fine, but
-  not `Mathlib.Tactic` itself.
+  Import a module with `public import` only if your file's public statements
+  use its declarations: the statements of public declarations, the bodies of
+  `@[expose]` definitions, instances. Import everything else with plain
+  `import`. A public import is passed on to every file that imports yours,
+  and a change to a public statement then rebuilds all of them. Import the
+  specific modules you need, never all of `Mathlib` or `TauCeti`, and never
+  `Lean`, `Lake` or `Mathlib.Lean` modules. Specific `Mathlib.Tactic.*`
+  modules are fine, but not `Mathlib.Tactic` itself.
 - Only declarations in a `public section`, or marked `public`, are visible
   to other files. Other files see a definition's type, but not its body. Give
   a definition `foo` a lemma `foo_def` that states its body, proved by

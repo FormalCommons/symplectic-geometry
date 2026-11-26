@@ -5,10 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Normed.Module.Alternating.Uncurry.Fin
 public import TauCeti.Algebra.Lie.ExteriorPower
-public import SymplecticGeometry.Analysis.Normed.Module.Alternating.Derivation
 public import TauCeti.Analysis.InnerProductSpace.HodgeStar.AlternatingForm
+public import Mathlib.Analysis.Normed.Module.Alternating.Uncurry.Fin
+import SymplecticGeometry.Analysis.Normed.Module.Alternating.Uncurry.Fin
+import SymplecticGeometry.Analysis.Normed.Module.Alternating.Derivation
 import TauCeti.Analysis.InnerProductSpace.HodgeStar.Contraction
 import TauCeti.Analysis.Normed.Module.Alternating.Wedge.Uncurry
 

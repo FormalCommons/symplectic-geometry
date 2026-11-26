@@ -5,11 +5,13 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Symplectic
+public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Normal
+import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Symplectic
 import Mathlib.Geometry.Manifold.VectorBundle.LocalFrame
 import SymplecticGeometry.LinearAlgebra.BilinearMap.Alternating
 import TauCeti.Geometry.Manifold.ContMDiff.Sqrt
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
+import Mathlib.Geometry.Manifold.Algebra.Structures
 
 /-!
 # Symplectic neighbourhoods in codimension two from oriented normal isomorphisms

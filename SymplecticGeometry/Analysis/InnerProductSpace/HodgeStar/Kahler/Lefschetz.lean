@@ -5,11 +5,14 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.InnerProductSpace.HodgeStar.AlternatingForm
 public import TauCeti.Analysis.InnerProductSpace.HodgeStar.Kahler.Basic
 public import TauCeti.Analysis.Normed.Module.Alternating.Wedge.ContinuousLinearMap
-public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
+public import TauCeti.Analysis.InnerProductSpace.HodgeStar.AlternatingForm
+public import Mathlib.Analysis.Normed.Module.Alternating.Uncurry.Fin
+import SymplecticGeometry.Analysis.InnerProductSpace.HodgeStar.AlternatingForm
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import TauCeti.Analysis.Normed.Module.Alternating.Wedge.Uncurry
+import SymplecticGeometry.Analysis.Normed.Module.Alternating.Derivation
 
 /-!
 # The Lefschetz operator and the linear Kähler identity

@@ -8,16 +8,19 @@ module
 public import TauCeti.Geometry.Contact.Gray
 public import Mathlib.Geometry.Manifold.PartitionOfUnity
 public import SymplecticGeometry.Geometry.Contact.Family
-public import SymplecticGeometry.Geometry.Contact.Hamiltonian
-public import SymplecticGeometry.Geometry.Contact.Moser
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Opens
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
 public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Transports
-public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
-public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
+public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
+import SymplecticGeometry.Geometry.Contact.Hamiltonian
+import SymplecticGeometry.Geometry.Contact.Moser
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Opens
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
+import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Real
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.Flow.TimeDependent.Opens
+import SymplecticGeometry.Geometry.Manifold.SmoothTransition
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Family
 
 /-!
 # The Gray vector field, the Gray isotopy and Gray stability

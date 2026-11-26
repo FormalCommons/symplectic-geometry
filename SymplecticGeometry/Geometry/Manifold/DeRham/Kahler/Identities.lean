@@ -12,9 +12,9 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Leibniz
 public import TauCeti.Geometry.Manifold.Riemannian.HodgeStar
 public import TauCeti.Geometry.Manifold.TwoForm.Basic
 public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
-public import SymplecticGeometry.Geometry.Manifold.Riemannian.Codifferential
 public import TauCeti.Geometry.Manifold.DeRham.Harmonic
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartialDiffeomorph
+import SymplecticGeometry.Geometry.Manifold.Riemannian.Codifferential
 import SymplecticGeometry.Geometry.Manifold.Complex.KahlerCoordinates
 import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.Chart
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.AlmostComplexType

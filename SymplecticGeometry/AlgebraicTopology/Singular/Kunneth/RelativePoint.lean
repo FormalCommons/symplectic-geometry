@@ -5,10 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Singular.CrossProduct
 public import TauCeti.AlgebraicTopology.Singular.Kunneth.Relative
 public import TauCeti.AlgebraicTopology.Singular.Reduced
-public import SymplecticGeometry.Algebra.Category.ModuleCat.ULiftTensor
+public import TauCeti.Algebra.Category.ModuleCat.Monoidal.Unit
+import SymplecticGeometry.AlgebraicTopology.Singular.CrossProduct
+import SymplecticGeometry.Algebra.Category.ModuleCat.ULiftTensor
 import SymplecticGeometry.AlgebraicTopology.Singular.PairChangeOfCoefficients
 
 /-!

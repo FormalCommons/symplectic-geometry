@@ -7,7 +7,7 @@ module
 
 public import TauCeti.Topology.VectorBundle.FiniteRank.Basic
 public import SymplecticGeometry.Analysis.Normed.Algebra.UnitDiscRieszProjection
-public import SymplecticGeometry.Topology.VectorBundle.Core.Basic
+import SymplecticGeometry.Topology.VectorBundle.Core.Basic
 
 /-!
 # The Riesz projection of an endomorphism of a finite-rank core

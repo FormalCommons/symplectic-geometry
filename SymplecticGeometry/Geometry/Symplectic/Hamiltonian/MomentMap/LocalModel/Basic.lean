@@ -6,11 +6,11 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Symplectic.Coadjoint.LieGroup
-public import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.LeftTrivialization
 public import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
 public import TauCeti.Geometry.Manifold.MFDeriv.ContinuousLinearMap
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Linear
+import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.LeftTrivialization
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # The two-form of the local model of a Hamiltonian action near an orbit

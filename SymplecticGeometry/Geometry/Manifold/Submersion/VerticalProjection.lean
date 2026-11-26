@@ -6,7 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Submersion.HorizontalLiftField
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
+public import Mathlib.Topology.VectorBundle.ContinuousAlternatingMap
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
 import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
 import Mathlib.Topology.Algebra.Module.FiniteDimension
 import TauCeti.Geometry.Manifold.VectorBundle.Hom

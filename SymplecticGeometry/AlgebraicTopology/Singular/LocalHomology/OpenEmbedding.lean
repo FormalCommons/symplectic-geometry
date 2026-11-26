@@ -30,6 +30,8 @@ shows that these isomorphisms are natural along a commuting square `h ∘ ι = �
 * `TauCeti.localHomologyIsoOfIsOpenEmbedding_hom_comp_localHomologyMap`: along such a square,
   the isomorphism for `ι` followed by the map induced by `h` is the isomorphism for `φ` followed
   by the isomorphism for `ι'`.
+* `TauCeti.localHomologyPointClass_comp_localHomologyIsoOfIsOpenEmbedding_hom`: the isomorphism
+  at a point carries the class of the point to the class of its image.
 
 ## References
 
@@ -89,6 +91,16 @@ lemma localHomologyIsoOfIsOpenEmbedding_hom_comp_localHomologyMap {ι : M → X}
   simp only [localHomologyIsoOfIsOpenEmbedding_hom, localHomologyMap_comp]
   congr 1
   exact ContinuousMap.ext fun y ↦ congrFun hsq y
+
+/-- The identification `TauCeti.localHomologyIsoOfIsOpenEmbedding` of the local homology of `M`
+at `x` with that of `X` at `ι x` carries the class of the point `x` to the class of `ι x`. -/
+@[reassoc, elementwise]
+lemma localHomologyPointClass_comp_localHomologyIsoOfIsOpenEmbedding_hom {ι : M → X}
+    (hι : IsOpenEmbedding ι) (x : M) :
+    localHomologyPointClass R {x} x ≫ (localHomologyIsoOfIsOpenEmbedding R hι x 0).hom =
+      localHomologyPointClass R {ι x} (ι x) := by
+  rw [localHomologyIsoOfIsOpenEmbedding_hom]
+  exact localHomologyPointClass_map _ _ _ _
 
 end TauCeti
 

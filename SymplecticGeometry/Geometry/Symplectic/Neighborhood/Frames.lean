@@ -5,14 +5,15 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Subbundle
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.Flat
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Extension
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
+public import TauCeti.Geometry.Manifold.VectorBundle.Subbundle
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Subbundle
+import SymplecticGeometry.Geometry.Symplectic.Manifold.Flat
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Orthogonal
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 import TauCeti.Geometry.Manifold.Distribution.VectorBundle

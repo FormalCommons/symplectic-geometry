@@ -5,9 +5,16 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.Projectivization.EulerSequence
-public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.FirstChernClass
-public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Tensor
+public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
+public import SymplecticGeometry.Geometry.Manifold.Projectivization.TwistCore
+public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Basic
+import SymplecticGeometry.Geometry.Manifold.Projectivization.EulerSequence
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.FirstChernClass
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Tensor
+import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Tensor
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Whitney
+import SymplecticGeometry.Geometry.Manifold.Projectivization.Tautological
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Naturality
 
 /-!
 # Chern classes on complex projective space

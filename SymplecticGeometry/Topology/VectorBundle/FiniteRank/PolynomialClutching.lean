@@ -5,9 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Biproduct
-public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.ElementaryClutching
-public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.SMul
+public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Clutching
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Biproduct
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.ElementaryClutching
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.SMul
 
 /-!
 # Polynomial clutchings become linear on a sum of copies
