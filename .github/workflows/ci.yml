@@ -7,9 +7,14 @@ on:
 # CI runs the build scripts of every pull request's branch, so it gets no
 # secrets and only read access. It restores the dependencies and the build of
 # the library that the cache workflows saved on main, but never saves a cache
-# itself.
+# itself. A run of the merge queue that found no build of main's hands its
+# own to the workflow cache-library as an artifact, which needs no
+# permission; see the last steps. `actions: read` is for a pull request's
+# run that finds no build of main's: it looks for the build that an earlier
+# run for the same pull request kept, and downloads it.
 permissions:
   contents: read
+  actions: read
 
 jobs:
   build:
@@ -25,7 +30,69 @@ jobs:
     # check (the ruleset's limit).
     timeout-minutes: 150
     steps:
+      # For a pull request this is the merge of its branch with the base
+      # branch, and with a depth of 2 also the two commits that were merged,
+      # which the next step compares.
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: ${{ github.event_name == 'pull_request' && 2 || 1 }}
+      # A run for a pull request builds the merge of its branch with the base
+      # branch as that is when the run starts. For a move of Tau Ceti this
+      # costs much. No build of main's exists for the new dependencies, and
+      # the base branch gains about forty commits an hour, so each run of the
+      # move compiles again what those commits touched and all that imports
+      # it, and the build that the earlier run kept (see before the build)
+      # is worth less with every hour. So the run of a move builds the
+      # branch's own commit. A move, here, is a pull request whose merge
+      # changes lake-manifest.json or lean-toolchain on the base branch: the
+      # merge commit's first parent is the base branch's commit and its
+      # second the branch's. A pull request that only lags behind a move
+      # that has merged is not one, since its merge has the base branch's
+      # two files. The steps below then check and build the branch's own
+      # files; the base branch's rev is asked from GitHub as before.
+      #
+      # What this gives away: the run of a move no longer shows that the
+      # move builds together with the base branch's latest commits. The run
+      # of the merge queue is not changed. It builds exactly the commit that
+      # main gets, and nothing merges without it, so a move that does not
+      # fit the base branch fails there, later than it would have.
+      #
+      # The workflow's file is the merge's in either case, and its steps use
+      # the action and the scripts under .github as they are checked out. So
+      # the run stays with the merge when .github differs between the merge
+      # and the branch's commit: the two might not fit together.
+      - name: see whether this is a move of Tau Ceti
+        id: move
+        if: github.event_name == 'pull_request'
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          move=false
+          if [ "$(git rev-parse -q --verify 'HEAD^2')" != "$HEAD_SHA" ]; then
+            echo "the commit that is checked out is not a merge of $HEAD_SHA, so this run builds it as it is"
+          else
+            # git diff --quiet ends with 1 if the files differ, and with
+            # more if it could not compare them.
+            files=0 setup=0
+            git diff --quiet 'HEAD^1' HEAD -- lake-manifest.json lean-toolchain || files=$?
+            git diff --quiet 'HEAD^2' HEAD -- .github || setup=$?
+            if [ "$files" = 0 ]; then
+              echo "the merge leaves the base branch's lake-manifest.json and lean-toolchain as they are: not a move"
+            elif [ "$files" != 1 ] || [ "$setup" -gt 1 ]; then
+              echo "could not compare the merge with the commits that were merged, so this run builds the merge"
+            elif [ "$setup" = 1 ]; then
+              echo "a move, but .github differs between the merge and $HEAD_SHA, so this run builds the merge"
+            else
+              echo "a move, so this run builds $HEAD_SHA and not its merge with the base branch"
+              move=true
+            fi
+          fi
+          echo "move=$move" >> "$GITHUB_OUTPUT"
+      - name: check out the move's own commit
+        if: steps.move.outputs.move == 'true'
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
       # The setup follows Tau Ceti. lakefile.toml must be .github/lakefile.toml
       # but for Tau Ceti's rev; lean-toolchain, and every other package in
       # lake-manifest.json, must be as Tau Ceti has them at that commit. So a
@@ -132,11 +199,141 @@ jobs:
       # hour. GitHub looks for saves whose names begin with `key` before it
       # looks at `restore-keys`, so the kind to prefer is in `key`.
       - name: restore main's build of the library
+        id: library
         uses: actions/cache/restore@v6
         with:
           path: .lake/build
           key: ${{ steps.setup.outputs.build }}-inc-
           restore-keys: ${{ steps.setup.outputs.build }}-
+      # A move of Tau Ceti finds no build of main's, in any of its runs: each
+      # push to its pull request, such as a fix after a review, would build
+      # the whole library again, about half an hour. So a pull request's run
+      # that restored nothing above starts from the build that the latest
+      # earlier run for the same pull request kept (see the last steps), and
+      # Lake builds only what has changed since, as it does from a save of
+      # main's. The artifact's name has the pull request's number and the
+      # same hash of the toolchain and the dependencies as the saves, and it
+      # counts only if its run was a run of this workflow for this pull
+      # request, on its branch in this repository. A pull request from a fork
+      # gets none.
+      #
+      # What this gives away: such a run no longer starts from main's saves
+      # alone. It trusts files that an earlier commit of the same pull
+      # request built, so a pull request could make its own check pass with
+      # a doctored build from a commit that is no longer in it. That is why
+      # only a pull request's own runs read these artifacts. A run of the
+      # merge queue and the cache workflows never do, the review builds the
+      # pull request for itself, and so what main and its saves hold is
+      # checked as before. If anything here fails, the run builds from
+      # nothing, as it did before.
+      - name: take the build of this pull request's earlier run
+        if: >-
+          github.event_name == 'pull_request' &&
+          steps.library.outputs.cache-matched-key == '' &&
+          github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NAME: pr-${{ github.event.pull_request.number }}-${{ steps.setup.outputs.build }}
+          BRANCH: ${{ github.head_ref }}
+          PR: ${{ github.event.pull_request.number }}
+        # A step that runs out of time counts as failed, and the run goes on
+        # without the earlier build.
+        continue-on-error: true
+        timeout-minutes: 20
+        run: |
+          set -o pipefail
+          # The latest earlier run that kept a build, into `run`.
+          earlier() {
+            run=$(timeout 60 gh api -X GET "repos/$GITHUB_REPOSITORY/actions/artifacts" -f name="$NAME" -F per_page=100 |
+              jq -r --arg branch "$BRANCH" --argjson repo "$GITHUB_REPOSITORY_ID" '
+                [.artifacts[] | select((.expired | not) and .workflow_run.head_branch == $branch
+                  and .workflow_run.repository_id == $repo and .workflow_run.head_repository_id == $repo)]
+                | max_by(.created_at) | .workflow_run.id // empty') ||
+              { echo "::warning::could not ask GitHub for the builds of earlier runs"; return 1; }
+            [[ $run =~ ^[0-9]+$ ]] || { echo "no earlier run for this pull request kept a build for these dependencies"; return 1; }
+            timeout 60 gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run" |
+              jq -e --argjson pr "$PR" '.event == "pull_request" and .path == ".github/workflows/ci.yml"
+                and any(.pull_requests[]; .number == $pr)' >/dev/null ||
+              { echo "::warning::GitHub does not list run $run as a run of CI for this pull request"; return 1; }
+          }
+          if ! { earlier && .github/build-artifact.sh take "$run" "$NAME"; }; then
+            echo "this run builds the library from its source"
+          fi
       # --wfail fails the build on any warning, including a `sorry`.
       - name: build
+        id: build
         run: lake build --wfail
+      # A run of the merge queue builds the commit that main gets when the
+      # pull request merges. When it found no build of main's to start from,
+      # as the run of a move of Tau Ceti does, and the runs after it until
+      # main has a save again, it has built the whole library. After a build
+      # that passed, it hands `.lake/build` to the workflow cache-library,
+      # whose run for that commit saves it as main's build without building
+      # the whole library a second time; see there for why that is sound. A
+      # run that started from a save of main's hands over nothing: what
+      # cache-library compiles after it is little. A run for a pull request
+      # does not do this, and no run of CI reads such a build.
+      #
+      # The build is always one from nothing: the run restored no save, so
+      # it descends from no build from source. cache-library takes it only
+      # while main has no build from source for these dependencies. See
+      # build-artifact.sh for the artifact's form.
+      #
+      # GitHub deletes the artifact after a day, the shortest time it allows;
+      # a move leaves a few of them, about 320 MB each. If either step
+      # fails, the run still passes: main then gets its build as it did
+      # before.
+      - name: pack the build for main
+        id: pack
+        if: github.event_name == 'merge_group' && steps.library.outputs.cache-matched-key == ''
+        continue-on-error: true
+        timeout-minutes: 10
+        run: .github/build-artifact.sh pack "$RUNNER_TEMP/queue-build"
+      - name: hand the build to main
+        if: github.event_name == 'merge_group' && steps.library.outputs.cache-matched-key == '' && steps.pack.outcome == 'success'
+        continue-on-error: true
+        timeout-minutes: 10
+        uses: actions/upload-artifact@v7
+        with:
+          name: queue-build
+          path: ${{ runner.temp }}/queue-build
+          if-no-files-found: error
+          retention-days: 1
+          # The tar file is compressed already.
+          compression-level: 0
+      # A pull request's run that found no build of main's keeps its own for
+      # the pull request's next run; see the step before the build. It does
+      # so after a build that failed too, since the next run is then for the
+      # fix, and Lake takes from a build only the files that passed. Only
+      # later runs for the same pull request read this artifact. Its name
+      # differs from the merge queue's, and cache-library takes an artifact
+      # only from a run of the merge queue, so it can never be taken for
+      # one. GitHub deletes it after a day; nothing deletes it sooner, so a
+      # move with six runs leaves about 2 GB for that day. In the minutes
+      # between a move's merge and main's first build after it, the runs of
+      # other pull requests keep their builds in the same way. If either
+      # step fails, the run's result is the build's.
+      - name: pack the build for this pull request's next run
+        id: keep
+        if: >-
+          github.event_name == 'pull_request' && !cancelled() &&
+          (steps.build.outcome == 'success' || steps.build.outcome == 'failure') &&
+          steps.library.outputs.cache-matched-key == '' &&
+          github.event.pull_request.head.repo.full_name == github.repository
+        continue-on-error: true
+        timeout-minutes: 10
+        run: .github/build-artifact.sh pack "$RUNNER_TEMP/pr-build"
+      - name: keep the build for this pull request's next run
+        if: github.event_name == 'pull_request' && !cancelled() && steps.keep.outcome == 'success'
+        continue-on-error: true
+        timeout-minutes: 10
+        uses: actions/upload-artifact@v7
+        with:
+          name: pr-${{ github.event.pull_request.number }}-${{ steps.setup.outputs.build }}
+          path: ${{ runner.temp }}/pr-build
+          if-no-files-found: ignore
+          retention-days: 1
+          # The tar file is compressed already.
+          compression-level: 0
+          # A second attempt of a run replaces the first one's artifact.
+          overwrite: true
