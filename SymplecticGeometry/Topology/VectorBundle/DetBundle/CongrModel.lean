@@ -26,7 +26,8 @@ total spaces only for one model (`TauCeti.DetBundle.congrHomeomorph`). This file
   endomorphism `t' ∘ e ∘ t⁻¹ ∘ L` of `F'`;
 * `TauCeti.DetBundle.congrModelHomeomorph`: when `e` is continuous on total spaces, the
   homeomorphism of the total spaces of the determinant lines that is `congrModelEquiv e x` on
-  each fibre.
+  each fibre, which for one model is `TauCeti.DetBundle.congrHomeomorph`
+  (`TauCeti.DetBundle.congrModelHomeomorph_eq_congrHomeomorph`).
 
 The proof of continuity follows that of Tau Ceti's `TauCeti.DetBundle.congrHomeomorph`
 (through `FiberBundle.continuous_of_forall_trivialization`), with the chart coordinate of the
@@ -169,6 +170,23 @@ theorem congrModelHomeomorph_symm_apply (e : ∀ x, E x ≃L[𝕜] E' x)
     (congrModelHomeomorph e he).symm p =
       ⟨p.proj, (congrModelEquiv (F₁ := F) (F' := F') e p.proj).symm p.snd⟩ :=
   bundleHomeomorph_symm_apply _ _ p
+
+section SameModel
+
+variable {E₂ : B → Type*} [∀ x, AddCommGroup (E₂ x)] [∀ x, Module 𝕜 (E₂ x)]
+  [∀ x, TopologicalSpace (E₂ x)] [TopologicalSpace (TotalSpace F E₂)]
+  [FiberBundle F E₂] [VectorBundle 𝕜 F E₂]
+
+/-- For bundles with the same model, the homeomorphism `congrModelHomeomorph` is Tau Ceti's
+`TauCeti.DetBundle.congrHomeomorph`. -/
+@[simp]
+theorem congrModelHomeomorph_eq_congrHomeomorph (e : ∀ x, E x ≃L[𝕜] E₂ x)
+    (he : Continuous (fun p : TotalSpace F E ↦ TotalSpace.mk' F p.proj (e p.proj p.snd))) :
+    congrModelHomeomorph e he = congrHomeomorph e he := by
+  refine Homeomorph.ext fun p ↦ ?_
+  rw [congrModelHomeomorph_apply, congrHomeomorph_apply, congrModelEquiv_eq_congrEquiv]
+
+end SameModel
 
 end TauCeti.DetBundle
 
