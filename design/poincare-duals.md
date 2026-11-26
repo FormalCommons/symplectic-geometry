@@ -127,7 +127,7 @@ the only `dualClass` is a private helper of local orientations.
   and the fundamental classes take `ULift ℤ`. The library converts Thom
   classes between them (`IsThomClass.singularCohomologyChainCoefficientMap`,
   `IsThomClass.singularCohomologyValueMap` and
-  `eulerClass_comp_singularCohomologyChainCoefficientMap`, in
+  `eulerClass_uliftIntegralCohomologyEquiv`, in
   `Topology/VectorBundle/Thom/ChangeOfCoefficients.lean`). So the
   constructions are generic in the coefficients
   `(R : ModuleCat k) k (M : ModuleCat k)`, as `TauCeti.eulerClass` is, and
