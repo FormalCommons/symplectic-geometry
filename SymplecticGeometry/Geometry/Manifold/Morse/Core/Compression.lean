@@ -16,6 +16,8 @@ import SymplecticGeometry.Geometry.Manifold.Flow.Basic
 import SymplecticGeometry.Geometry.Manifold.ModelTransport.Boundaryless
 import SymplecticGeometry.Geometry.Manifold.Morse.Core.Cube
 import SymplecticGeometry.Geometry.Manifold.Morse.Core.PseudoGradient
+import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Diffeotopy
+import SymplecticGeometry.Geometry.Manifold.VectorField.Cutoff
 import SymplecticGeometry.Topology.Maps.Proper
 import SymplecticGeometry.Topology.Order.Sublevel
 import TauCeti.Geometry.Manifold.Flow.Locality
@@ -56,7 +58,7 @@ Put together, for a cutoff `ρ` of `g` that vanishes near `{g ≤ a}` and is one
 sublevel `{g ≤ b}` into any open set containing `{g ≤ a}` and the parts above `a` of the
 unstable sets of the critical points of the level `v`
 (`TauCeti.exists_diffeotopy_mapsTo_of_unstableSet_subset`). The cut-off field is
-`TauCeti.exists_cutoff_vectorField` (`Morse/Core/Basic.lean`).
+`TauCeti.exists_cutoff_vectorField` (`VectorField/Cutoff.lean`).
 
 On a manifold modelled on `E` itself, for a proper Morse function `g` bounded below whose
 critical points in `g⁻¹[a₀, b]` all lie on the level `v` and have index less than `dim E`, this
@@ -67,7 +69,8 @@ compactly supported pseudo-gradient of `IsCompact.exists_contMDiff_pseudoGradien
 points of the level `v`, disjoint because they lie in the unstable sets of distinct points
 (Tau Ceti's `Flow.disjoint_unstableSet`); and each open set containing `{g ≤ a}` and the cubes
 contains the parts above `a` of those unstable sets, so the diffeotopy above gives a compression
-(`TauCeti.Diffeotopy.exists_smoothIsotopy_id_of_mapsTo_final`).
+(`TauCeti.Diffeotopy.exists_smoothIsotopy_id_of_mapsTo_final`,
+`SmoothIsotopy/Diffeotopy.lean`).
 
 For a general boundaryless model `I`, the band core comes from that of `g` read on Tau Ceti's
 copy `TauCeti.BoundarylessModel I M`, a manifold modelled on `E` with the same topology, where
