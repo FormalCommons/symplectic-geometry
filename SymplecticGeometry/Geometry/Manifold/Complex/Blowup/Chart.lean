@@ -258,6 +258,17 @@ theorem fderivTransEquiv_eq :
     (congrArg (fderivTransEquiv c φ) ((mfderivCenterEquiv c).apply_symm_apply w)).symm.trans
       (fderivTransEquiv_mfderiv c φ ((mfderivCenterEquiv c).symm w))
 
+/-- The inverse of the derivative at `0` of `φ ∘ c⁻¹` is the derivative at `0` of `c ∘ φ⁻¹`. -/
+theorem fderivTransEquiv_symm : (fderivTransEquiv c φ).symm = fderivTransEquiv φ c := by
+  ext v
+  simp [fderivTransEquiv_eq]
+
+/-- The derivative at `0` of `c ∘ c⁻¹` is the identity. -/
+@[simp]
+theorem fderivTransEquiv_self : fderivTransEquiv c c = ContinuousLinearEquiv.refl ℂ _ := by
+  ext v
+  simp [fderivTransEquiv_eq]
+
 end BlowupChart
 
 namespace Blowup
@@ -345,6 +356,13 @@ theorem liftChart_ofDirection (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
       zeroSection ((c.fderivTransEquiv φ).mapProjectivization ℓ) := by
   rw [ofDirection_def, liftChart_inr c φ (by simpa using φ.mem_source),
     liftMap_zeroSection _ (c.symm_trans_apply_zero φ)]
+
+/-- Over the source of `φ`, the lifted chart lies over the target of `φ`, so in the second piece of
+the blowup `Blowup φ`. -/
+theorem liftChart_mem_modelOpens {z : Blowup c} (hz : blowdown c z ∈ φ.source) :
+    liftChart c φ z ∈ modelOpens φ := by
+  rw [mem_modelOpens, blowdown_liftChart c φ hz]
+  exact φ.map_source hz
 
 /-- Through `directionEquiv c`, the lifted chart sends the point of the exceptional divisor over
 the line of a tangent vector `v` at the centre to the point of the zero section over the line of

@@ -217,6 +217,11 @@ theorem mem_offDivisorOpens {p : BlowupModel n} :
     p ∈ offDivisorOpens n ↔ p ∉ exceptionalDivisor n := by
   rw [← SetLike.mem_coe, coe_offDivisorOpens, Set.mem_compl_iff]
 
+/-- A point of the blowup is off the exceptional divisor exactly when its blowdown is nonzero. -/
+theorem mem_offDivisorOpens_iff_blowdown_ne_zero {p : BlowupModel n} :
+    p ∈ offDivisorOpens n ↔ p.blowdown ≠ 0 := by
+  rw [mem_offDivisorOpens, mem_exceptionalDivisor_iff]
+
 /-- The zero section of the blowup over the projective space: `ℓ ↦ (ℓ, 0)`. -/
 def zeroSection (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) : BlowupModel n :=
   ⟨(ℓ, 0), ℓ.submodule.zero_mem⟩
@@ -739,11 +744,11 @@ noncomputable def blowdownDiffeomorph :
     offDivisorOpens n ≃ₘ^ω⟮𝓘(ℂ, Fin (n + 1) → ℂ), 𝓘(ℂ, Fin (n + 1) → ℂ)⟯
       TauCeti.puncturedSpace (Fin (n + 1) → ℂ) where
   toFun p := ⟨p.val.blowdown, TauCeti.mem_puncturedSpace.2 <|
-    mt mem_exceptionalDivisor_iff.2 (mem_offDivisorOpens.1 p.property)⟩
+    mem_offDivisorOpens_iff_blowdown_ne_zero.1 p.property⟩
   invFun z := ⟨ofNeZero (TauCeti.mem_puncturedSpace.1 z.property),
     mem_offDivisorOpens.2 (ofNeZero_notMem_exceptionalDivisor _)⟩
   left_inv p := Subtype.ext <| ofNeZero_blowdown <|
-    mt mem_exceptionalDivisor_iff.2 (mem_offDivisorOpens.1 p.property)
+    mem_offDivisorOpens_iff_blowdown_ne_zero.1 p.property
   right_inv z := Subtype.ext <| blowdown_ofNeZero (TauCeti.mem_puncturedSpace.1 z.property)
   contMDiff_toFun := (TauCeti.ContMDiff.subtypeVal_comp_iff _ _).1
     ((contMDiff_blowdown ω).comp contMDiff_subtypeVal)

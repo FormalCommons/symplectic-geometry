@@ -18,10 +18,8 @@ Let `f : Z → X` be a smooth embedding with normal bundle `π : ν → Z`, `Φ 
 `f` (a diffeomorphism onto an open set, equal to `f` on the zero section) and `oX` a homological
 orientation of `X` of dimension `n`. The class `tubeFundamentalClass f hn hdim Φ hΦ oX hnX hK` in
 `Hₙ(ν, ν ∖ 0; ℤ)` is the fundamental class of `W` along `f(Z)`, for `oX` restricted to `W`,
-carried to the normal bundle by the inverse of the pair isomorphism `tubePairIso` of `Φ`. It is
-the class `μ_Φ` of
-`TauCeti.SmoothEmbedding.exists_isNormalizedTube_singularCap_dualClassOf_fundamentalClass`, which
-`tubeFundamentalClass_def` unfolds to that form.
+carried to the normal bundle by the inverse of the pair isomorphism `tubePairIso` of `Φ`: the
+class `μ_Φ` of `TauCeti.SmoothEmbedding.tubeFundamentalClass`.
 
 This file computes its local classes at the points `0_z` of the zero section, its images in
 `Hₙ(ν, ν ∖ 0_z; ℤ)` under `TauCeti.thomPairLocalHomologyRestriction`, for every tube.
@@ -44,10 +42,6 @@ This file computes its local classes at the points `0_z` of the zero section, it
   cap computations of `Topology/VectorBundle/Thom/LocalCap.lean` take. A factor of dimension
   zero is the zero-dimensional local orientation `Orientation.localOrientationOfZeroDim` of the
   orientation at `z`: that of `Z`, or the normal orientation read in the trivialization.
-
-## Main definitions
-
-* `TauCeti.SmoothEmbedding.tubeFundamentalClass`: the class `μ_Φ ∈ Hₙ(ν, ν ∖ 0; ℤ)` of a tube.
 
 ## Main results
 
@@ -91,50 +85,6 @@ variable {H G : Type*} {E F V P Z X : Type} [NormedAddCommGroup E] [NormedSpace 
   [TopologicalSpace Z] [ChartedSpace H Z] [IsManifold I ∞ Z]
   [TopologicalSpace X] [ChartedSpace G X] [IsManifold J ∞ X] [T2Space X] {n : ℕ}
 
-/-- **The fundamental class of a tube.** For a tube `Φ` of `f`, a diffeomorphism of the total
-space of the normal bundle `ν` onto an open set `W` of `X` that is `f` on the zero section, and a
-homological orientation `oX` of `X` of dimension `n`, the class `μ_Φ ∈ Hₙ(ν, ν ∖ 0; ℤ)` that `Φ`
-carries to the fundamental class of `W` along `f(Z)`, for the orientation `oX` restricted to `W`.
-This is the class of `exists_isNormalizedTube_singularCap_dualClassOf_fundamentalClass`. -/
-def tubeFundamentalClass (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
-    (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) {W : TopologicalSpace.Opens X}
-    (Φ : letI := f.normalSpaceFiberBundle hn hdim
-      TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
-    (hΦ : letI := f.normalSpaceFiberBundle hn hdim
-      ∀ x, (Φ (zeroSection P _ x) : X) = f x)
-    [ChartedSpace F X] (oX : HomologicalOrientation X F n) (hnX : finrank ℝ F = n)
-    (hK : IsCompact (Subtype.val ⁻¹' range f : Set W)) :
-    letI := f.normalSpaceFiberBundle hn hdim
-    (thomPair P (fun x ↦ f.isImmersion.NormalSpace x hn)).singularHomology (C := ModuleCat.{0} ℤ)
-      (ModuleCat.of ℤ (ULift.{0} ℤ)) n :=
-  letI := f.normalSpaceFiberBundle hn hdim
-  (TopPair.singularHomologyMap
-    (TopPair.ofSubsetMap (X := TopCat.of W) (Y := TopCat.of W)
-      (B := (Subtype.val ⁻¹' range f)ᶜ) (B' := Subtype.val ⁻¹' (range f)ᶜ) (𝟙 _)
-      (fun _ hx ↦ hx) ≫ (f.tubePairIso hn hdim Φ hΦ).inv)
-    (ModuleCat.of ℤ (ULift.{0} ℤ)) n).hom
-    ((oX.comap W.isOpenEmbedding').fundamentalClassOn hnX hK)
-
-/-- The class `tubeFundamentalClass` is the image of the fundamental class of `W` along `f(Z)`
-under the identity of `W` followed by the inverse of the pair isomorphism of the tube. -/
-theorem tubeFundamentalClass_def (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
-    (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) {W : TopologicalSpace.Opens X}
-    (Φ : letI := f.normalSpaceFiberBundle hn hdim
-      TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
-    (hΦ : letI := f.normalSpaceFiberBundle hn hdim
-      ∀ x, (Φ (zeroSection P _ x) : X) = f x)
-    [ChartedSpace F X] (oX : HomologicalOrientation X F n) (hnX : finrank ℝ F = n)
-    (hK : IsCompact (Subtype.val ⁻¹' range f : Set W)) :
-    letI := f.normalSpaceFiberBundle hn hdim
-    f.tubeFundamentalClass hn hdim Φ hΦ oX hnX hK =
-      (TopPair.singularHomologyMap
-        (TopPair.ofSubsetMap (X := TopCat.of W) (Y := TopCat.of W)
-          (B := (Subtype.val ⁻¹' range f)ᶜ) (B' := Subtype.val ⁻¹' (range f)ᶜ) (𝟙 _)
-          (fun _ hx ↦ hx) ≫ (f.tubePairIso hn hdim Φ hΦ).inv)
-        (ModuleCat.of ℤ (ULift.{0} ℤ)) n).hom
-        ((oX.comap W.isOpenEmbedding').fundamentalClassOn hnX hK) :=
-  (rfl)
-
 /-- **The tube carries the local class of its fundamental class to the local orientation.** For
 `z : Z`, the image of `tubeFundamentalClass f hn hdim Φ hΦ oX hnX hK` in `Hₙ(ν, ν ∖ 0_z; ℤ)`,
 pushed forward along `v ↦ Φ v` to `Hₙ(X, X ∖ f z; ℤ)`, is the local orientation `oX (f z)`. -/
@@ -149,12 +99,8 @@ theorem localHomologyMap_tubeFundamentalClass (f : SmoothEmbedding I J ∞ Z X)
     (hK : IsCompact (Subtype.val ⁻¹' range f : Set W)) (z : Z) :
     letI := f.normalSpaceFiberBundle hn hdim
     localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
-        (⟨fun p ↦ (Φ p : X), continuous_subtypeVal.comp Φ.continuous⟩ :
-          C(TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn), X))
-        (S := {zeroSection P _ z}) (T := {f z})
-        (by
-          rintro p hp
-          exact Φ.injective (Subtype.ext (hp.trans (hΦ z).symm)))
+        (f.tubeMap hn hdim Φ) (S := {zeroSection P _ z}) (T := {f z})
+        (f.tubeMap_preimage_singleton hn hdim Φ hΦ z).subset
         n
         ((thomPairLocalHomologyRestriction (ModuleCat.of ℤ (ULift.{0} ℤ)) P
           (fun x ↦ f.isImmersion.NormalSpace x hn) z n).hom
@@ -177,7 +123,8 @@ theorem localHomologyMap_tubeFundamentalClass (f : SmoothEmbedding I J ∞ Z X)
   -- the pairs `TopPair.ofSubset`, so `rw` does not find them.
   erw [TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply,
     TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply, tubePairIso_inv_fst_apply]
-  simp only [TopCat.hom_ofHom, TopCat.hom_id, ContinuousMap.coe_mk, Diffeomorph.apply_symm_apply]
+  simp only [TopCat.hom_ofHom, TopCat.hom_id, ContinuousMap.coe_mk, tubeMap_apply,
+    Diffeomorph.apply_symm_apply]
   exact congrArg Subtype.val (ContinuousMap.id_apply (α := W) w)
 
 /-- **A local class of the tube's fundamental class, read in a chart of the total space.** Let `c`
@@ -208,12 +155,8 @@ theorem localChartLocalHomologyIso_inv_tubeFundamentalClass_of_localHomologyMap
       haveI : T1Space (TotalSpace P fun x ↦ f.isImmersion.NormalSpace x hn) :=
         Φ.toHomeomorph.isEmbedding.t1Space
       localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
-        (⟨fun p ↦ (Φ p : X), continuous_subtypeVal.comp Φ.continuous⟩ :
-          C(TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn), X))
-        (S := {zeroSection P _ z}) (T := {f z})
-        (by
-          rintro p hp
-          exact Φ.injective (Subtype.ext (hp.trans (hΦ z).symm)))
+        (f.tubeMap hn hdim Φ) (S := {zeroSection P _ z}) (T := {f z})
+        (f.tubeMap_preimage_singleton hn hdim Φ hΦ z).subset
         n
         ((Trivialization.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe
           (mem_centeredExtChartAt_source I z) (centeredExtChartAt_self I z) h0 n).hom a) =
@@ -231,19 +174,13 @@ theorem localChartLocalHomologyIso_inv_tubeFundamentalClass_of_localHomologyMap
   let := f.normalSpaceVectorBundle hn hdim
   have : T1Space (TotalSpace P fun x ↦ f.isImmersion.NormalSpace x hn) :=
     Φ.toHomeomorph.isEmbedding.t1Space
-  let g : C(TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn), X) :=
-    ⟨fun p ↦ (Φ p : X), continuous_subtypeVal.comp Φ.continuous⟩
+  let g := f.tubeMap hn hdim Φ
   -- The tube is an open embedding, so it induces an isomorphism of local homology at `0_z`.
-  have hg : Topology.IsOpenEmbedding g :=
-    W.isOpenEmbedding'.comp Φ.toHomeomorph.isOpenEmbedding
-  have hpre : g ⁻¹' {f z} = {zeroSection P _ z} := by
-    ext p
-    refine ⟨fun hp ↦ Φ.injective (Subtype.ext (hp.trans (hΦ z).symm)), fun hp ↦ ?_⟩
-    rw [mem_singleton_iff.1 hp]
-    exact hΦ z
+  have hg : Topology.IsOpenEmbedding g := f.isOpenEmbedding_tubeMap hn hdim Φ
+  have hpre : g ⁻¹' {f z} = {zeroSection P _ z} := f.tubeMap_preimage_singleton hn hdim Φ hΦ z
   have : IsIso (localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ)) g hpre.subset n) :=
     isIso_localHomologyMap _ g hg hpre isClosed_singleton
-      (singleton_subset_iff.2 ⟨_, hΦ z⟩) n
+      (singleton_subset_iff.2 ⟨_, f.tubeMap_zeroSection hn hdim Φ hΦ z⟩) n
   have hinj : Function.Injective
       (localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ)) g hpre.subset n) :=
     (ModuleCat.mono_iff_injective _).1 inferInstance
