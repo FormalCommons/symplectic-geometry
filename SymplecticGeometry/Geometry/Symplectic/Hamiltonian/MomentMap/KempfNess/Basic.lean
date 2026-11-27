@@ -416,7 +416,7 @@ theorem antitone_moment_expI [ContMDiffSMul IC I' ∞ Gc M] {C : LieComplexifica
   antitone_of_hasDerivAt_nonpos (hasDerivAt_moment_expI h hμ hg ξ p)
     fun _ ↦ neg_nonpos.2 (sq_nonneg _)
 
-/-- **The slope of `⟨μ, ξ⟩` at a zero of the moment map.** For a complexified action, with `-μ` a
+/-- **`⟨μ, ξ⟩` is positive at `exp(-iξ) p` when `μ p = 0`.** For a complexified action, with `-μ` a
 moment map for `σ` and the metric `g(u, w) = σ(u, J w)`, let `μ p = 0` and let the fundamental
 vector field of `ξ` not vanish at `p`. Then `0 < μ (C.expI (-ξ) • p) ξ`. -/
 theorem moment_expI_neg_smul_apply_pos [ContMDiffSMul IC I' ∞ Gc M]

@@ -576,7 +576,9 @@ omit [FiniteDimensional ℝ EC] [ConnectedSpace G] in
 /-- **A uniform positive slope at a zero of the moment map.** For a complexified action, with `-μ`
 a moment map for `σ` and the metric `g(u, w) = σ(u, J w)`, let `μ p = 0` and let `0` be the only
 `ξ` whose fundamental vector field vanishes at `p`. Then there is `c > 0` with
-`c ≤ μ (C.expI (-ξ) • p) ξ` for every unit vector `ξ` of the Lie algebra. -/
+`c ≤ μ (C.expI (-ξ) • p) ξ` for every unit vector `ξ` of the Lie algebra. For an equivariant moment
+map, this value is the derivative of `t ↦ Φ_p (C.expI (t • ξ))` at `t = 1`
+(`hasDerivAt_kempfNessFunction_geodesic`). -/
 theorem exists_pos_le_moment_expI_neg_smul_apply [FiniteDimensional ℝ E']
     (h : IsComplexifiedAction C J)
     (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental I G I' M) fun x ↦ -μ x)
@@ -591,11 +593,9 @@ theorem exists_pos_le_moment_expI_neg_smul_apply [FiniteDimensional ℝ E']
     moment_expI_neg_smul_apply_pos h hμ hg hp fun h0 ↦ by
       have h00 : ξ = (0 : E) := hξ ξ h0
       simp [h00] at h1
-  rcases (Metric.sphere (0 : E) 1).eq_empty_or_nonempty with he | hne
-  · exact ⟨1, one_pos, fun ξ h1 ↦ absurd (mem_sphere_zero_iff_norm.2 h1) (he ▸ id)⟩
-  obtain ⟨ξ₀, h₀, hmin⟩ := (isCompact_sphere (0 : E) 1).exists_isMinOn hne hcont.continuousOn
-  exact ⟨_, hpos ξ₀ (mem_sphere_zero_iff_norm.1 h₀),
-    fun ξ h1 ↦ hmin (mem_sphere_zero_iff_norm.2 h1)⟩
+  obtain ⟨c, hc, hle⟩ := (isCompact_sphere (0 : E) 1).exists_forall_le' hcont.continuousOn
+    fun ξ h1 ↦ hpos ξ (mem_sphere_zero_iff_norm.1 h1)
+  exact ⟨c, hc, fun ξ h1 ↦ hle ξ (mem_sphere_zero_iff_norm.2 h1)⟩
 
 /-- **Linear growth of the Kempf–Ness function at a zero of the moment map.** In the setting of
 `kempfNessFunction_add_moment_le`, let `μ p = 0` and let `0 ≤ c ≤ μ (C.expI (-ξ) • p) ξ` for every
