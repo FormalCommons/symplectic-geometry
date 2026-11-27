@@ -60,6 +60,9 @@ section whose antiholomorphic derivative is dominated by its holomorphic derivat
   (`TauCeti.complexAntilinearPart`) has smaller norm than its complex-linear part
   (`TauCeti.complexLinearPart`) is surjective, with symplectic kernel. This is the form needed
   at a zero of a section of a Hermitian line bundle, where the derivative takes values in the fibre.
+* `TauCeti.SymplecticForm.orientation_ker_eq_of_norm_complexAntilinearPart_lt`: for such a map,
+  the kernel orientation of the symplectic orientation of `V` and the complex orientation
+  `TauCeti.complexOrientation` of `W` is the symplectic orientation of the kernel.
 
 The proof is direct rather than by deforming `A + t B`: the Riesz vectors `a`, `b` of the real
 parts of `A` and `B` give `x = -J (a + b)` and `y = a - b`, with `ω x y = ‖a‖ ^ 2 - ‖b‖ ^ 2`, and
@@ -72,7 +75,10 @@ For a map to a complex line `W`, Tau Ceti's
 `W ≃ ℂ`. Composing with it keeps the norms of both parts
 (`TauCeti.IsComplexLinear.complexLinearPart_comp`,
 `TauCeti.IsComplexLinear.complexAntilinearPart_comp`), the kernel and surjectivity, so the case of
-`ℂ` applies.
+`ℂ` applies. Being complex linear, the isometry carries `complexOrientation W` to the orientation
+of `ℂ` (Tau Ceti's `LinearEquiv.map_complexOrientation` and
+`TauCeti.reindex_complexOrientation_complex`), and the kernel orientation is natural
+(`Orientation.map_kerOfExact`), so the orientation statement follows as well.
 
 ## References
 
@@ -330,28 +336,28 @@ variable {V W : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V] [FiniteD
   {ω : SymplecticForm V} {J : AlmostComplexStructure V}
 
 /-- If `F : V → W` has complex-antilinear part of smaller norm than its complex-linear part, there
-is a real-linear isometry `ψ : W → ℂ` such that `ψ ∘ F` has the same property. -/
+is a complex-linear isometric equivalence `φ : W ≃ ℂ` such that `φ ∘ F` has the same property. -/
 private theorem exists_norm_complexAntilinearPart_comp_lt (hW : finrank ℂ W = 1)
     {F : V →L[ℝ] W}
     (h : ‖LinearMap.toContinuousLinearMap (complexAntilinearPart J.toLinearMap
         (AlmostComplexStructure.ofComplexModule W).toLinearMap (F : V →ₗ[ℝ] W))‖ <
       ‖LinearMap.toContinuousLinearMap (complexLinearPart J.toLinearMap
         (AlmostComplexStructure.ofComplexModule W).toLinearMap (F : V →ₗ[ℝ] W))‖) :
-    ∃ ψ : W →ₗᵢ[ℝ] ℂ,
+    ∃ φ : W ≃ₗᵢ[ℂ] ℂ,
       ‖LinearMap.toContinuousLinearMap (complexAntilinearPart J.toLinearMap
         (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
-        (ψ.toLinearMap ∘ₗ (F : V →ₗ[ℝ] W)))‖ <
+        ((φ.toLinearEquiv.restrictScalars ℝ : W →ₗ[ℝ] ℂ) ∘ₗ (F : V →ₗ[ℝ] W)))‖ <
       ‖LinearMap.toContinuousLinearMap (complexLinearPart J.toLinearMap
         (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
-        (ψ.toLinearMap ∘ₗ (F : V →ₗ[ℝ] W)))‖ := by
+        ((φ.toLinearEquiv.restrictScalars ℝ : W →ₗ[ℝ] ℂ) ∘ₗ (F : V →ₗ[ℝ] W)))‖ := by
   obtain ⟨e⟩ := nonempty_linearIsometryEquiv_of_finrank_eq_one hW
   set φ := e.symm
-  set ψ : W →ₗᵢ[ℝ] ℂ := ⟨(φ : W →ₗ[ℂ] ℂ).restrictScalars ℝ, φ.norm_map⟩
+  set ψ : W →ₗᵢ[ℝ] ℂ := ⟨φ.toLinearEquiv.restrictScalars ℝ, φ.norm_map⟩
   have hψ : IsComplexLinear (AlmostComplexStructure.ofComplexModule W).toLinearMap
       (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap ψ.toLinearMap :=
     isComplexLinear_of_apply fun w ↦ by
       simp [ψ, AlmostComplexStructure.ofComplexModule_apply]
-  refine ⟨ψ, ?_⟩
+  refine ⟨φ, ?_⟩
   rw [hψ.complexLinearPart_comp, hψ.complexAntilinearPart_comp,
     LinearMap.norm_toContinuousLinearMap_linearIsometry_comp,
     LinearMap.norm_toContinuousLinearMap_linearIsometry_comp]
@@ -399,8 +405,65 @@ theorem SymplecticForm.isSymplectic_ker_of_norm_complexAntilinearPart_lt
       (AlmostComplexStructure.ofComplexModule ℂ).square_neg _) hψ
   rwa [ContinuousLinearMap.toLinearMap_add, LinearMap.coe_toContinuousLinearMap,
     LinearMap.coe_toContinuousLinearMap, complexLinearPart_add_complexAntilinearPart,
-    LinearMap.ker_comp_of_ker_eq_bot _
-      (LinearMap.ker_eq_bot.2 ψ.injective)] at hk
+    LinearEquiv.ker_comp] at hk
+
+/-- **The orientation of the kernel of a real-linear map to a complex line with dominant
+complex-linear part.** Let the inner product of `V` be the metric `ω(·, J ·)`, let `W` be a complex
+normed space of dimension one, and let `F : V →L[ℝ] W` be a real-linear map whose
+complex-antilinear part, for `J` and multiplication by `i` on `W`, has smaller operator norm than
+its complex-linear part. The kernel `K` of `F` is symplectic
+(`SymplecticForm.isSymplectic_ker_of_norm_complexAntilinearPart_lt`), and the orientation of `K`
+induced through `0 → K → V → W → 0` (`Orientation.kerOfExact`, kernel first) by the symplectic
+orientation of `V` and the complex orientation `complexOrientation W` of `W` is the symplectic
+orientation of `K`. -/
+theorem SymplecticForm.orientation_ker_eq_of_norm_complexAntilinearPart_lt
+    (hg : ∀ v w, ω v (J w) = ⟪v, w⟫_ℝ) (hW : finrank ℂ W = 1) {F : V →L[ℝ] W}
+    (h : ‖LinearMap.toContinuousLinearMap (complexAntilinearPart J.toLinearMap
+        (AlmostComplexStructure.ofComplexModule W).toLinearMap (F : V →ₗ[ℝ] W))‖ <
+      ‖LinearMap.toContinuousLinearMap (complexLinearPart J.toLinearMap
+        (AlmostComplexStructure.ofComplexModule W).toLinearMap (F : V →ₗ[ℝ] W))‖)
+    {m : ℕ} (hV : finrank ℝ V = m + 2) (hm : finrank ℝ (LinearMap.ker (F : V →ₗ[ℝ] W)) = m) :
+    haveI : FiniteDimensional ℂ W := Module.finite_of_finrank_eq_succ hW
+    haveI : FiniteDimensional ℝ W := Module.Finite.trans ℂ W
+    Orientation.kerOfExact (LinearMap.ker (F : V →ₗ[ℝ] W)).injective_subtype
+        (LinearMap.exact_subtype_ker_map _)
+        (surjective_of_norm_complexAntilinearPart_lt hg hW h) (ω.orientation hV)
+        (Orientation.reindex ℝ W (finCongr (by rw [hW])) (complexOrientation W)) hm
+        (by rw [finrank_real_eq_two_mul_finrank_complex, hW]) =
+      (ω.restrict _ (isSymplectic_ker_of_norm_complexAntilinearPart_lt hg hW
+        h).nondegenerate_restrict).orientation hm := by
+  have : FiniteDimensional ℂ W := Module.finite_of_finrank_eq_succ hW
+  have : FiniteDimensional ℝ W := Module.Finite.trans ℂ W
+  obtain ⟨φ, hφ⟩ := exists_norm_complexAntilinearPart_comp_lt hW h
+  set G := (φ.toLinearEquiv.restrictScalars ℝ : W →ₗ[ℝ] ℂ) ∘ₗ (F : V →ₗ[ℝ] W)
+  obtain ⟨x, y, hxy, hxyG⟩ := exists_apply_eq_of_norm_lt hg
+    (isComplexLinear_complexLinearPart J.square_neg
+      (AlmostComplexStructure.ofComplexModule ℂ).square_neg _)
+    (isComplexAntilinear_complexAntilinearPart J.square_neg
+      (AlmostComplexStructure.ofComplexModule ℂ).square_neg _) hφ
+  have hG (v : V) : G v = ⟨ω x v, ω y v⟩ := by
+    rw [← hxyG v, add_apply, LinearMap.coe_toContinuousLinearMap',
+      LinearMap.coe_toContinuousLinearMap', ← LinearMap.add_apply,
+      complexLinearPart_add_complexAntilinearPart]
+  have hker : LinearMap.ker G = LinearMap.ker (F : V →ₗ[ℝ] W) :=
+    (φ.toLinearEquiv.restrictScalars ℝ).ker_comp _
+  -- `φ` carries the complex orientation of `W` to the orientation of `ℂ`.
+  have hφo : Orientation.map (Fin 2) (φ.toLinearEquiv.restrictScalars ℝ)
+      (Orientation.reindex ℝ W (finCongr (by rw [hW])) (complexOrientation W)) =
+      Complex.orientation := by
+    rw [Orientation.map_reindex, φ.toLinearEquiv.map_complexOrientation,
+      Orientation.reindex_finCongr_reindex_finCongr, ← reindex_complexOrientation_complex]
+  have key := Orientation.map_kerOfExact (LinearMap.ker (F : V →ₗ[ℝ] W)).injective_subtype
+    (LinearMap.exact_subtype_ker_map _) (surjective_of_norm_complexAntilinearPart_lt hg hW h)
+    (LinearMap.ker G).injective_subtype (LinearMap.exact_subtype_ker_map G)
+    (surjective_of_apply_eq hG hxy.ne') (LinearEquiv.ofEq _ _ hker.symm) (LinearEquiv.refl ℝ V)
+    (φ.toLinearEquiv.restrictScalars ℝ) (fun _ ↦ by simp) (fun _ ↦ by simp [G]) (ω.orientation hV)
+    (Orientation.reindex ℝ W (finCongr (by rw [hW])) (complexOrientation W)) hm
+    (by rw [finrank_real_eq_two_mul_finrank_complex, hW])
+  rw [Orientation.map_refl, Equiv.refl_apply, hφo,
+    orientation_ker_eq_of_apply_eq hG hxy hV] at key
+  refine (Orientation.map (Fin m) (LinearEquiv.ofEq _ _ hker.symm)).injective (key.trans ?_)
+  exact (IsSymplectomorphism.map_orientation (isSymplectomorphism_iff.2 fun _ _ ↦ by simp) hm).symm
 
 end Line
 
