@@ -7,7 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.MomentMap
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.NormSq
-public import SymplecticGeometry.LinearAlgebra.Basis.PolynomialFunctions
+public import SymplecticGeometry.LinearAlgebra.Dual.PolynomialFunctions
 
 /-!
 # The norm square of the local model's moment map
@@ -22,26 +22,28 @@ induces on `𝔤*`.
 For an `Ad`-invariant `B`, the norm square `B^∨ (μ_Y [g, p]) (μ_Y [g, p])` does not depend on
 `g`: it is `B^∨ (ν p) (ν p)`, by the `G`-invariance of the norm square of an equivariant map
 (`SymplecticGeometry.momentNormSq_smul`). And for any `B`, the function
-`p ↦ B^∨ (ν p) (ν p)` on `A × V` is a real polynomial in the coordinates of any basis of
-`A × V`: `ν` is the sum of a constant, a linear map of `η` and the quadratic map `μ_V` of `v`,
-and `B^∨` is bilinear. Together, the norm square of the moment map of the local model is a
-polynomial in the fibre coordinates `(η, v)`.
+`p ↦ B^∨ (ν p) (ν p)` on `A × V` is a polynomial function (`Module.polynomialFunctions`), and
+so a real polynomial in the coordinates of any finite basis of `A × V`: `ν` is the sum of a
+constant, a linear map of `η` and the quadratic map `μ_V` of `v`, and `B^∨` is bilinear.
+Together, the norm square of the moment map of the local model is a polynomial in the fibre
+coordinates `(η, v)`.
 
 ## Main results
 
 * `SymplecticGeometry.LocalModelData.dualForm_descendedMomentMap_mk`: for `Ad`-invariant `B`,
   `B^∨ (μ_Y [g, p]) (μ_Y [g, p]) = B^∨ (ν p) (ν p)`.
-* `SymplecticGeometry.LocalModelData.dualForm_covector_mem_polynomialFunctions`,
-  `SymplecticGeometry.LocalModelData.exists_mvPolynomial_eval_eq_dualForm_covector`:
+* `SymplecticGeometry.LocalModelData.dualForm_covector_mem_polynomialFunctions`: the function
+  `p ↦ B^∨ (ν p) (ν p)` lies in `Module.polynomialFunctions ℝ (A × V)`.
+* `SymplecticGeometry.LocalModelData.exists_mvPolynomial_eval_eq_dualForm_covector`:
   `p ↦ B^∨ (ν p) (ν p)` is a polynomial in the coordinates of any finite basis of `A × V`.
 
 ## References
 
+* E. Lerman, *Gradient flow of the norm squared of a moment map*, Enseign. Math. 51 (2005),
+  117–127, for the route through the local model.
 * [V. Guillemin and S. Sternberg][GuilleminSternberg1990]
 * C.-M. Marle, *Modèle d'action hamiltonienne d'un groupe de Lie sur une variété symplectique*,
-  Rend. Sem. Mat. Univ. Politec. Torino 43 (1985).
-* [V. Georgoulas, J. W. Robbin and D. A. Salamon, *The Moment-Weight Inequality and the
-  Hilbert–Mumford Criterion*][GeorgoulasRobbinSalamon2021]
+  Rend. Sem. Mat. Univ. Politec. Torino 43 (1985), 227–251.
 -/
 
 public section
@@ -85,11 +87,11 @@ theorem dualForm_descendedMomentMap_mk
   exact h
 
 /-- The composite of the covectors `ν = D.covector` of the local model with any linear functional
-on `𝔤*` is a polynomial function in the coordinates of a finite basis `b` of `A × V`: it is the
-sum of a constant, a linear functional and a quadratic form. -/
-theorem apply_covector_mem_polynomialFunctions {ι : Type*} [Finite ι]
-    (b : Module.Basis ι ℝ (A × V)) (ℓ : Module.Dual ℝ (Module.Dual ℝ (GroupLieAlgebra I G))) :
-    (fun p ↦ ℓ (D.covector p)) ∈ b.polynomialFunctions := by
+on `𝔤*` is a polynomial function on `A × V`: it is the sum of a constant, a linear functional
+and a quadratic form. -/
+theorem apply_covector_mem_polynomialFunctions
+    (ℓ : Module.Dual ℝ (Module.Dual ℝ (GroupLieAlgebra I G))) :
+    (fun p ↦ ℓ (D.covector p)) ∈ Module.polynomialFunctions ℝ (A × V) := by
   -- `ν (η, v) = τ + ι𝔪 η + ι𝔥 (μ_V v)`, with `μ_V v = ½ (polarization of μ_V) v v`.
   have hν : (fun p ↦ ℓ (D.covector p)) = (algebraMap ℝ (A × V → ℝ) (ℓ D.τ) +
       ⇑(ℓ ∘ₗ D.ι𝔪 ∘ₗ LinearMap.fst ℝ A V)) +
@@ -102,21 +104,20 @@ theorem apply_covector_mem_polynomialFunctions {ι : Type*} [Finite ι]
       SymplecticForm.linearMomentMapCompPolar_self, map_smul, smul_eq_mul]
     ring
   have hsnd (ℓ' : Module.Dual ℝ V) :
-      (fun p ↦ ℓ' (LinearMap.snd ℝ A V p)) ∈ b.polynomialFunctions :=
-    b.linearMap_mem_polynomialFunctions (ℓ' ∘ₗ LinearMap.snd ℝ A V)
+      (fun p ↦ ℓ' (LinearMap.snd ℝ A V p)) ∈ Module.polynomialFunctions ℝ (A × V) :=
+    Module.linearMap_mem_polynomialFunctions (ℓ' ∘ₗ LinearMap.snd ℝ A V)
   rw [hν]
   exact Subalgebra.add_mem _ (Subalgebra.add_mem _ (Subalgebra.algebraMap_mem _ _)
-      (b.linearMap_mem_polynomialFunctions _))
-    (Subalgebra.smul_mem _ (b.bilin_apply_mem_polynomialFunctions _ hsnd hsnd) _)
+      (Module.linearMap_mem_polynomialFunctions _))
+    (Subalgebra.smul_mem _ (Module.bilin_apply_mem_polynomialFunctions _ hsnd hsnd) _)
 
 /-- For a nondegenerate form `B` on `𝔤`, the function `p ↦ B^∨ (ν p) (ν p)` on `A × V`, with
-`ν = D.covector` and `B^∨ = B.dualForm hB`, is a polynomial function in the coordinates of any
-finite basis `b` of `A × V`. -/
-theorem dualForm_covector_mem_polynomialFunctions {ι : Type*} [Finite ι]
-    (b : Module.Basis ι ℝ (A × V)) :
-    (fun p ↦ B.dualForm hB (D.covector p) (D.covector p)) ∈ b.polynomialFunctions :=
-  b.bilin_apply_mem_polynomialFunctions _ (D.apply_covector_mem_polynomialFunctions b)
-    (D.apply_covector_mem_polynomialFunctions b)
+`ν = D.covector` and `B^∨ = B.dualForm hB`, is a polynomial function on `A × V`. -/
+theorem dualForm_covector_mem_polynomialFunctions :
+    (fun p ↦ B.dualForm hB (D.covector p) (D.covector p)) ∈
+      Module.polynomialFunctions ℝ (A × V) :=
+  Module.bilin_apply_mem_polynomialFunctions _ D.apply_covector_mem_polynomialFunctions
+    D.apply_covector_mem_polynomialFunctions
 
 /-- For a nondegenerate form `B` on `𝔤` and any finite basis `b` of `A × V`, there is a real
 polynomial `P` in the coordinates of `b` with `P (b.equivFun p) = B^∨ (ν p) (ν p)` for every
@@ -127,7 +128,7 @@ theorem exists_mvPolynomial_eval_eq_dualForm_covector {ι : Type*} [Finite ι]
     (b : Module.Basis ι ℝ (A × V)) :
     ∃ P : MvPolynomial ι ℝ, ∀ p, MvPolynomial.eval (b.equivFun p) P =
       B.dualForm hB (D.covector p) (D.covector p) :=
-  b.mem_polynomialFunctions_iff.1 (D.dualForm_covector_mem_polynomialFunctions hB b)
+  b.mem_polynomialFunctions_iff.1 (D.dualForm_covector_mem_polynomialFunctions hB)
 
 end LocalModelData
 
