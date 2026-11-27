@@ -685,30 +685,12 @@ theorem two_le_sqrtAddLeaf_sub_struweShape (L : ℝ) {ℓ r : ℝ} (hℓ : ℓ �
     linarith [hℓ.2]
   -- The slope of `T` is at most `5 / 4` from `2` on.
   have hslope : T r - T 2 ≤ 5 / 4 * (r - 2) := by
-    have hd : ∀ u : ℝ, 1 < u → HasDerivAt (fun u ↦ T u - 5 / 4 * u)
-        (1 / √(log u) - 5 / 4) u := by
-      intro u hu
-      have h := hasDerivAt_struweShape one_pos le_rfl (2 * ℓ - 47 / 8) hu
-      rw [div_one] at h
-      have h₂ := h.sub ((hasDerivAt_id u).const_mul (5 / 4))
-      rw [mul_one (5 / 4 : ℝ)] at h₂
-      exact h₂
-    have hf : AntitoneOn (fun u ↦ T u - 5 / 4 * u) (Ici 2) := by
-      refine antitoneOn_of_deriv_nonpos (convex_Ici 2) ?_ ?_ ?_
-      · exact ((continuousOn_struweShape one_pos le_rfl _).mono
-          (Ici_subset_Ici.2 one_le_two)).sub (by fun_prop)
-      · rw [interior_Ici]
-        exact fun u (hu : 2 < u) ↦ (hd u (by linarith)).differentiableAt.differentiableWithinAt
-      · rw [interior_Ici]
-        intro u (hu : 2 < u)
-        have hlog : 0 < log u := log_pos (by linarith)
-        have := log_le_log two_pos hu.le
-        have hs : 4 / 5 ≤ √(log u) := le_sqrt_of_sq_le (by linarith [log_two_gt_d9])
-        rw [(hd u (by linarith)).deriv, sub_nonpos, div_le_iff₀ (sqrt_pos.2 hlog)]
-        linarith
-    have h := hf self_mem_Ici hr hr
-    simp only at h
-    linarith
+    have h := struweShape_sub_struweShape_le one_pos le_rfl (2 * ℓ - 47 / 8) one_lt_two hr
+    have hs : 4 / 5 ≤ √(log (2 / 1)) :=
+      le_sqrt_of_sq_le (by rw [div_one]; linarith [log_two_gt_d9])
+    calc T r - T 2 ≤ (r - 2) / √(log (2 / 1)) := h
+      _ ≤ (r - 2) / (4 / 5) := div_le_div_of_nonneg_left (by linarith) (by norm_num) hs
+      _ = 5 / 4 * (r - 2) := by ring
   -- The leaf is at least `8 √(r² - 1) ≥ 8 r - 3`.
   have hA := eight_mul_sqrt_le_sqrtAddLeaf L zero_le_one hℓ.1 r
   have hs : 8 * r - 3 ≤ 8 * √(r ^ 2 - 1 ^ 2) := by
