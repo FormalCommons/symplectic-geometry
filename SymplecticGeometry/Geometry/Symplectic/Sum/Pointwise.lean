@@ -16,12 +16,14 @@ public import Mathlib.Geometry.Manifold.Instances.Sphere
 public import TauCeti.Geometry.Manifold.ConnectedSum.Basic
 import SymplecticGeometry.Geometry.Manifold.ConnectedSum.ComplementaryBall
 import TauCeti.Geometry.Euclidean.Inversion
+import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Polar
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Sphere
 
 /-!
-# Nondegenerate forms that follow a homotopy outside a ball
+# The pointwise connected-sum obstruction
 
-This file holds the pointwise obstruction to symplectic connected sums
-[McDuffSalamon2017, Lemma 7.2.2], up to the input about almost complex structures on spheres.
+This file proves the pointwise obstruction to symplectic connected sums
+[McDuffSalamon2017, Lemma 7.2.2].
 
 Its one-chart step: a nondegenerate two-form `η` near a ball is joined, through a
 homotopy `β` of nondegenerate forms on the complement of a smaller ball ending at `η`, to the
@@ -51,6 +53,14 @@ point.
   correspond through the inversion on the shell `R₁ < ‖w‖ < R₂⁻¹`, and
   `TauCeti.IsComplementaryBall.exists_isNondegenerate_mpullback_eq` glues them along the
   stereographic balls `TauCeti.sphereBall v` and `w ↦ -TauCeti.sphereBall v (-w)`.
+* `SymplecticGeometry.not_exists_connectedSum`: for `n ∉ {0, 1, 3}` there is no such `σ`,
+  closed or not. A compatible almost complex structure for the form on the sphere
+  (`TauCeti.SmoothTwoForm.IsNondegenerate.exists_compatible`) would contradict
+  `SymplecticGeometry.isEmpty_smoothAlmostComplexStructure_sphere`.
+* `SymplecticGeometry.not_exists_isSymplectic_connectedSum`: in particular there is no such `σ`
+  that is symplectic.
+* `SymplecticGeometry.exists_isSymplectic_connectedSum_of_eq_zero`: for `n = 0` such a `σ`
+  always exists, so the hypothesis `n ≠ 0` cannot be dropped.
 
 ## References
 
@@ -303,6 +313,118 @@ theorem exists_isNondegenerate_sphere_of_connectedSum
     (isLocalDiffeomorph_sphereBall v ∞) (isLocalDiffeomorph_neg_sphereBall_neg v ∞) hR₁0 hR₂0 hR
     hτ₁ hτ₂ hshell
   exact ⟨α, hα⟩
+
+/-- **The connected-sum obstruction for two-forms.** Let `E = EuclideanSpace ℝ (Fin (2 * n))`
+with `n ∉ {0, 1, 3}`, that is, `2 * n ∉ {0, 2, 6}`, and let `e₁ : E → M₁`, `e₂ : E → M₂` be
+coordinate balls which are smooth local diffeomorphisms into manifolds with nondegenerate
+two-forms `α₁`, `α₂`. Give the connected sum `TauCeti.ConnectedSum e₁ e₂` a manifold structure for
+which `inl` and `inr` are smooth. Let `0 < ρ₁`, `0 < ρ₂` with `ρ₁ * ρ₂ < 1`, and for `i = 1, 2`
+let `Vᵢ` be an open subset of the punctured summand `Mᵢ ∖ {eᵢ 0}` that contains `eᵢ w` whenever
+`ρᵢ < ‖w‖`, such as `Mᵢ ∖ eᵢ '' closedBall 0 ρᵢ`. Then no two-form `σ` on the connected sum,
+closed or not, admits, for `i = 1, 2`, a smooth family `βᵢ` of two-forms on `Vᵢ`, nondegenerate
+for `t ∈ [0, 1]`, equal at `t = 0` to the pull-back of `σ` along `inl` (for `i = 1`) or `inr`
+(for `i = 2`) and at `t = 1` to the restriction of `αᵢ`.
+
+The summands need not be closed or connected, and `α₁`, `α₂` need not be closed. The case of a
+symplectic `σ` is `SymplecticGeometry.not_exists_isSymplectic_connectedSum`. -/
+theorem not_exists_connectedSum (h₀ : n ≠ 0) (h₁ : n ≠ 1) (h₃ : n ≠ 3)
+    (d₁ : IsLocalDiffeomorph 𝓘(ℝ, EuclideanSpace ℝ (Fin (2 * n))) I ∞ e₁)
+    (d₂ : IsLocalDiffeomorph 𝓘(ℝ, EuclideanSpace ℝ (Fin (2 * n))) I ∞ e₂)
+    (hinl : ContMDiff I I ∞ (inl e₁ e₂)) (hinr : ContMDiff I I ∞ (inr e₁ e₂))
+    {ρ₁ ρ₂ : ℝ} (hρ₁ : 0 < ρ₁) (hρ₂ : 0 < ρ₂) (hρ : ρ₁ * ρ₂ < 1)
+    {α₁ : SmoothTwoForm I M₁} {α₂ : SmoothTwoForm I M₂} (hα₁ : α₁.IsNondegenerate)
+    (hα₂ : α₂.IsNondegenerate) {V₁ : Opens M₁} {V₂ : Opens M₂} (hV₁ : V₁ ≤ puncture e₁)
+    (hV₂ : V₂ ≤ puncture e₂) (hρV₁ : ∀ w, ρ₁ < ‖w‖ → e₁ w ∈ V₁)
+    (hρV₂ : ∀ w, ρ₂ < ‖w‖ → e₂ w ∈ V₂) :
+    ¬∃ σ : SmoothTwoForm I (ConnectedSum e₁ e₂),
+      (∃ β₁ : ℝ → SmoothTwoForm I V₁, IsSmoothFamily 𝓘(ℝ, ℝ) β₁ ∧
+        (∀ t ∈ Icc (0 : ℝ) 1, (β₁ t).IsNondegenerate) ∧
+        β₁ 0 = SmoothForm.mpullback (inl e₁ e₂ ∘ Opens.inclusion hV₁)
+          (hinl.comp (contMDiff_inclusion hV₁)) σ ∧
+        β₁ 1 = SmoothForm.mpullback Subtype.val contMDiff_subtypeVal α₁) ∧
+      ∃ β₂ : ℝ → SmoothTwoForm I V₂, IsSmoothFamily 𝓘(ℝ, ℝ) β₂ ∧
+        (∀ t ∈ Icc (0 : ℝ) 1, (β₂ t).IsNondegenerate) ∧
+        β₂ 0 = SmoothForm.mpullback (inr e₁ e₂ ∘ Opens.inclusion hV₂)
+          (hinr.comp (contMDiff_inclusion hV₂)) σ ∧
+        β₂ 1 = SmoothForm.mpullback Subtype.val contMDiff_subtypeVal α₂ := by
+  rintro ⟨σ, ⟨β₁, hβ₁, hβ₁nd, hβ₁₀, hβ₁₁⟩, β₂, hβ₂, hβ₂nd, hβ₂₀, hβ₂₁⟩
+  obtain ⟨α, hα⟩ := exists_isNondegenerate_sphere_of_connectedSum d₁ d₂ hinl hinr hρ₁ hρ₂ hρ
+    hα₁ hα₂ σ hV₁ hV₂ hρV₁ hρV₂ hβ₁ hβ₂ hβ₁nd hβ₂nd hβ₁₀ hβ₂₀ hβ₁₁ hβ₂₁
+  have : Fact (Module.finrank ℝ (EuclideanSpace ℝ (Fin (2 * n + 1))) = 2 * n + 1) :=
+    ⟨finrank_euclideanSpace_fin⟩
+  obtain ⟨J, -⟩ := hα.exists_compatible
+  exact (isEmpty_smoothAlmostComplexStructure_sphere h₀ h₁ h₃).false J
+
+/-- **The pointwise connected-sum obstruction.** For `n ∉ {0, 1, 3}`, coordinate balls `e₁`,
+`e₂`, nondegenerate forms `α₁`, `α₂`, radii `ρ₁`, `ρ₂` and open sets `V₁`, `V₂` as in
+`SymplecticGeometry.not_exists_connectedSum`, no symplectic form `σ` on the connected sum
+`TauCeti.ConnectedSum e₁ e₂` admits, for `i = 1, 2`, a smooth family `βᵢ` of two-forms on `Vᵢ`,
+nondegenerate for `t ∈ [0, 1]`, equal at `t = 0` to the pull-back of `σ` along `inl` (for
+`i = 1`) or `inr` (for `i = 2`) and at `t = 1` to the restriction of `αᵢ`.
+
+The summands need not be closed or connected, and `α₁`, `α₂` need not be closed; nor need `σ`
+be, by `SymplecticGeometry.not_exists_connectedSum`. For `n = 0` the statement fails, by
+`SymplecticGeometry.exists_isSymplectic_connectedSum_of_eq_zero`.
+
+Milestone: *Pointwise connected-sum obstruction for symplectic forms*. -/
+theorem not_exists_isSymplectic_connectedSum (h₀ : n ≠ 0) (h₁ : n ≠ 1) (h₃ : n ≠ 3)
+    (d₁ : IsLocalDiffeomorph 𝓘(ℝ, EuclideanSpace ℝ (Fin (2 * n))) I ∞ e₁)
+    (d₂ : IsLocalDiffeomorph 𝓘(ℝ, EuclideanSpace ℝ (Fin (2 * n))) I ∞ e₂)
+    (hinl : ContMDiff I I ∞ (inl e₁ e₂)) (hinr : ContMDiff I I ∞ (inr e₁ e₂))
+    {ρ₁ ρ₂ : ℝ} (hρ₁ : 0 < ρ₁) (hρ₂ : 0 < ρ₂) (hρ : ρ₁ * ρ₂ < 1)
+    {α₁ : SmoothTwoForm I M₁} {α₂ : SmoothTwoForm I M₂} (hα₁ : α₁.IsNondegenerate)
+    (hα₂ : α₂.IsNondegenerate) {V₁ : Opens M₁} {V₂ : Opens M₂} (hV₁ : V₁ ≤ puncture e₁)
+    (hV₂ : V₂ ≤ puncture e₂) (hρV₁ : ∀ w, ρ₁ < ‖w‖ → e₁ w ∈ V₁)
+    (hρV₂ : ∀ w, ρ₂ < ‖w‖ → e₂ w ∈ V₂) :
+    ¬∃ σ : SmoothTwoForm I (ConnectedSum e₁ e₂), σ.IsSymplectic ∧
+      (∃ β₁ : ℝ → SmoothTwoForm I V₁, IsSmoothFamily 𝓘(ℝ, ℝ) β₁ ∧
+        (∀ t ∈ Icc (0 : ℝ) 1, (β₁ t).IsNondegenerate) ∧
+        β₁ 0 = SmoothForm.mpullback (inl e₁ e₂ ∘ Opens.inclusion hV₁)
+          (hinl.comp (contMDiff_inclusion hV₁)) σ ∧
+        β₁ 1 = SmoothForm.mpullback Subtype.val contMDiff_subtypeVal α₁) ∧
+      ∃ β₂ : ℝ → SmoothTwoForm I V₂, IsSmoothFamily 𝓘(ℝ, ℝ) β₂ ∧
+        (∀ t ∈ Icc (0 : ℝ) 1, (β₂ t).IsNondegenerate) ∧
+        β₂ 0 = SmoothForm.mpullback (inr e₁ e₂ ∘ Opens.inclusion hV₂)
+          (hinr.comp (contMDiff_inclusion hV₂)) σ ∧
+        β₂ 1 = SmoothForm.mpullback Subtype.val contMDiff_subtypeVal α₂ :=
+  fun ⟨σ, _, h⟩ ↦ not_exists_connectedSum h₀ h₁ h₃ d₁ d₂ hinl hinr hρ₁ hρ₂ hρ hα₁ hα₂ hV₁ hV₂
+    hρV₁ hρV₂ ⟨σ, h⟩
+
+/-- **The obstruction fails in dimension zero.** For `n = 0`, the connected sum of any two
+manifolds `M₁`, `M₂` with two-forms `α₁`, `α₂` carries a symplectic form `σ` with families
+`β₁`, `β₂` as in `SymplecticGeometry.not_exists_isSymplectic_connectedSum`, for any open subsets
+`V₁`, `V₂` of the punctured summands: on a manifold of dimension zero every two-form is
+nondegenerate, and any two two-forms are equal. -/
+theorem exists_isSymplectic_connectedSum_of_eq_zero (hn : n = 0)
+    (hinl : ContMDiff I I ∞ (inl e₁ e₂)) (hinr : ContMDiff I I ∞ (inr e₁ e₂))
+    (α₁ : SmoothTwoForm I M₁) (α₂ : SmoothTwoForm I M₂) {V₁ : Opens M₁} {V₂ : Opens M₂}
+    (hV₁ : V₁ ≤ puncture e₁) (hV₂ : V₂ ≤ puncture e₂) :
+    ∃ σ : SmoothTwoForm I (ConnectedSum e₁ e₂), σ.IsSymplectic ∧
+      (∃ β₁ : ℝ → SmoothTwoForm I V₁, IsSmoothFamily 𝓘(ℝ, ℝ) β₁ ∧
+        (∀ t ∈ Icc (0 : ℝ) 1, (β₁ t).IsNondegenerate) ∧
+        β₁ 0 = SmoothForm.mpullback (inl e₁ e₂ ∘ Opens.inclusion hV₁)
+          (hinl.comp (contMDiff_inclusion hV₁)) σ ∧
+        β₁ 1 = SmoothForm.mpullback Subtype.val contMDiff_subtypeVal α₁) ∧
+      ∃ β₂ : ℝ → SmoothTwoForm I V₂, IsSmoothFamily 𝓘(ℝ, ℝ) β₂ ∧
+        (∀ t ∈ Icc (0 : ℝ) 1, (β₂ t).IsNondegenerate) ∧
+        β₂ 0 = SmoothForm.mpullback (inr e₁ e₂ ∘ Opens.inclusion hV₂)
+          (hinr.comp (contMDiff_inclusion hV₂)) σ ∧
+        β₂ 1 = SmoothForm.mpullback Subtype.val contMDiff_subtypeVal α₂ := by
+  subst hn
+  -- In dimension zero every two-form is nondegenerate, and any two two-forms are equal.
+  have hE : Subsingleton (EuclideanSpace ℝ (Fin (2 * 0))) :=
+    ⟨fun x y ↦ by ext i; exact Fin.elim0 i⟩
+  have hT₁ (x : V₁) : Subsingleton (TangentSpace I x) := hE
+  have hT₂ (x : V₂) : Subsingleton (TangentSpace I x) := hE
+  have hT (x : ConnectedSum e₁ e₂) : Subsingleton (TangentSpace I x) := hE
+  refine ⟨0, ⟨SmoothForm.isClosed_zero, ?_⟩,
+    ⟨_, isSmoothFamily_const _, fun _ _ ↦ ?_, ?_, rfl⟩,
+    _, isSmoothFamily_const _, fun _ _ ↦ ?_, ?_, rfl⟩
+  all_goals first
+    | exact SmoothTwoForm.isNondegenerate_iff_separatingLeft.2 fun _ v _ ↦ Subsingleton.elim v 0
+    | ext x v
+      rw [Subsingleton.elim v 0, ContinuousAlternatingMap.map_zero,
+        ContinuousAlternatingMap.map_zero]
 
 end ConnectedSum
 
