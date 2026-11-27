@@ -72,6 +72,9 @@ normed spaces with their own models, `𝓘(ℝ, E₁ × E₂)` is not syntactica
   `(φ (f x)).compContinuousLinearMap (mfderiv I I' f x)`.
 * `TauCeti.mpullback_apply_eq_of_mfderiv_eq`: the pullback at `x` depends only on the value and
   the differential of the map at `x`.
+* `Filter.EventuallyEq.mpullback_apply_eq_self`, and its smooth case
+  `TauCeti.SmoothForm.mpullback_apply_eq_self_of_eventuallyEq_id`: pulling back along a map that
+  is the identity near `x` does not change the value of a form at `x`.
 * `TauCeti.mpullback_apply_basis_map`: the pullback at `x` on a basis `c` is `φ (f x)` on the
   image of `c` under the differential, when that is a linear equivalence.
 * `TauCeti.mextDerivₗ_apply_eq_of_eventuallyEq_mpullback`: if a smooth form agrees near `x` with
@@ -133,6 +136,12 @@ theorem mpullback_apply_eq_of_mfderiv_eq {f g : M → M'} {x : M} (h : f x = g x
     mpullback I I' f φ x = mpullback I I' g φ x := by
   rw [mpullback_apply_eq_compContinuousLinearMap, mpullback_apply_eq_compContinuousLinearMap, hd,
     h]
+
+/-- A map that is the identity near `x` pulls every form back to a form with the same value at
+`x`. -/
+theorem _root_.Filter.EventuallyEq.mpullback_apply_eq_self {f : M → M} {x : M}
+    (h : f =ᶠ[𝓝 x] id) (φ : RoughForm I M F k) : mpullback I I f φ x = φ x := by
+  rw [h.mpullback_eq, mpullback_id]
 
 /-- The pullback `f^* φ` at `x`, evaluated on a basis `c` of the tangent space at `x`, is `φ` at
 `f x` evaluated on the image of `c` under a linear equivalence `e` whose underlying map is the
@@ -244,6 +253,12 @@ theorem mpullback_eq_iff {f : M → M'} (hf : ContMDiff I I' ∞ f) {φ : Smooth
     {ψ : SmoothForm I M F k} :
     mpullback f hf φ = ψ ↔ TauCeti.mpullback (F := F) I I' f φ.val = ψ.val := by
   rw [← coe_mpullback _ hf, Subtype.ext_iff]
+
+/-- A smooth map that is the identity near `x` pulls a smooth form `θ` back to a form with the
+same value as `θ` at `x`. -/
+theorem mpullback_apply_eq_self_of_eventuallyEq_id {f : M → M} (hf : ContMDiff I I ∞ f) {x : M}
+    (h : f =ᶠ[𝓝 x] id) (θ : SmoothForm I M F k) : (mpullback f hf θ).val x = θ.val x := by
+  rw [coe_mpullback, h.mpullback_apply_eq_self]
 
 /-- The smooth pullbacks of `φ` along `f` and of `ψ` along `g` agree exactly when the rough
 pullbacks of the underlying rough forms agree. -/

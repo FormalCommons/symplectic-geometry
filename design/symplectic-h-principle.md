@@ -1714,7 +1714,7 @@ Proof, the same in both forms except in step 4:
    `P₀ ×ˢ univ`; the invariant gives it on `P₀ ×ˢ univ` only. With
    `T := closedBall 0 2`, the set
    `O := {l | ∀ i, ∀ x ∈ T, ‖fderiv ℝ (f i l) x - G i l x‖ < ε₁}` is open
-   and contains `P₀`: `IsCompact.isOpen_setOf_forall_norm_sub_lt`, in
+   and contains `P₀`: `IsCompact.isOpen_setOfPred_forall_norm_sub_lt`, in
    `Topology/Compactness/Normed.lean`, for jointly continuous
    `f g : Λ × D → F'` and a compact `T`
    (`IsCompact.eventually_forall_of_forall_eventually`); step 1 of the
@@ -2281,7 +2281,7 @@ Each is a few hundred lines; each issue's blockers come before it.
      and displacement clauses of
      `exists_holonomic_approximation_continuous_family` for every point of
      `(Fin n → ℝ) × D`, as in the statement of its section, and
-     `IsCompact.isOpen_setOf_forall_norm_sub_lt`, in
+     `IsCompact.isOpen_setOfPred_forall_norm_sub_lt`, in
      `Topology/Compactness/Normed.lean`. Blocked by
      nothing.
    - 8d. **Approximation over a band core.** `Relative/CoreApproximation.lean`,

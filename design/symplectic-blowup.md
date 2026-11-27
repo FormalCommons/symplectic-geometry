@@ -310,12 +310,14 @@ Namespace `SymplecticGeometry.BlowupModel`, on `BlowupModel n`.
 
 ### `Blowup/Area.lean`
 
-- `blowdown_profileForm_area`: for `Ω : Set ℂ` bounded open, `u : ℂ → E`
+- `blowdown_profileForm_area`: for every `h` with `IsBlowupProfile λ ε h`,
+  so for `blowupProfile λ ε`, `Ω : Set ℂ` bounded open, `u : ℂ → E`
   `C¹` near every point of `closure Ω` and holomorphic on `Ω`, with
   $|u|>\lambda+\varepsilon$ on `frontier Ω`, finitely many zeros in `Ω` of
   total order `m` (Mathlib's `analyticOrderNatAt`), and
   `ũ : ℂ → BlowupModel n` continuous on `Ω` with `blowdown ∘ ũ = u` there,
-  the integral over `Ω` of $u^*\omega_0$ is that of $\tilde u^*\tilde\omega_{\lambda,\varepsilon}$ plus
+  the integral over `Ω` of $u^*\omega_0$ is that of $\tilde u^*\tilde\omega_{\lambda,\varepsilon}$
+  (`profileForm n λ ε h`) plus
   $m\pi\lambda^2$. The integrals are Lebesgue integrals over `Ω` of the
   densities $\sigma(\partial_xu,\partial_yu)$. `ũ` is `curveLift u` on `Ω`,
   so holomorphic, by *Complex blowup*'s `eqOn_curveLift_of_blowdown_comp`

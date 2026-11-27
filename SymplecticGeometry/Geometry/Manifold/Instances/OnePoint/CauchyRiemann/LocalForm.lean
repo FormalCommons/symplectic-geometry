@@ -166,7 +166,7 @@ operator is the space `twistOneKernel J` of smooth solutions.
   continuation.
 * `SymplecticGeometry.eventually_ne_zero_of_mem_twistOneKernel`: the zeros of a nonzero smooth
   kernel element are isolated.
-* `SymplecticGeometry.finite_setOf_eq_zero_of_mem_twistOneKernel`: a nonzero smooth kernel
+* `SymplecticGeometry.finite_setOfPred_eq_zero_of_mem_twistOneKernel`: a nonzero smooth kernel
   element has finitely many zeros.
 * `SymplecticGeometry.exists_hasWeakConjWirtingerDerivOn_mul_of_twistOneDelBarSobolev_eq_zero`:
   the chart data of a Sobolev element of the kernel of `D_J`, read through an isothermal chart,
@@ -185,9 +185,10 @@ operator is the space `twistOneKernel J` of smooth solutions.
   of `D_J`, at any order, is represented by a smooth section, its continuous representative.
 * `SymplecticGeometry.ker_twistOneDelBarSobolev_eq`: the kernel of `D_J` on `W^{k+1,2}` sections is
   the image of `twistOneKernel J`.
-* `SymplecticGeometry.twistOneKernelToContMDiffSection` and
-  `SymplecticGeometry.finrank_ker_twistOneDelBarSobolev`: the elements of `twistOneKernel J`, as
-  `C^{k+1}` sections, map injectively onto that kernel, which so has the same real dimension.
+* `SymplecticGeometry.twistOneKernelSobolev`, `SymplecticGeometry.range_twistOneKernelSobolev`,
+  `SymplecticGeometry.twistOneKernelSobolevEquiv`
+  and `SymplecticGeometry.finrank_ker_twistOneDelBarSobolev`: the elements of `twistOneKernel J`,
+  as `W^{k+1,2}` sections, map injectively onto that kernel, which so has the same real dimension.
 
 ## References
 
@@ -494,7 +495,7 @@ theorem eventually_ne_zero_of_mem_twistOneKernel {s : OnePoint ℂ → ℂ}
 
 /-- **A nonzero smooth kernel element has finitely many zeros.** If `s ≠ 0` is a smooth section
 of `𝒪(1)` with `D_J s = 0`, then the set of zeros of `s` on the sphere is finite. -/
-theorem finite_setOf_eq_zero_of_mem_twistOneKernel {s : OnePoint ℂ → ℂ}
+theorem finite_setOfPred_eq_zero_of_mem_twistOneKernel {s : OnePoint ℂ → ℂ}
     (hs : s ∈ twistOneKernel J) (hs₀ : s ≠ 0) : {x | s x = 0}.Finite :=
   finite_setOf_eq_zero_of_forall_eventually
     (eventually_eq_zero_or_eventually_ne_zero_of_mem_twistOneKernel hs)
@@ -849,31 +850,83 @@ theorem coe_twistOneKernelToContMDiffSection (k : ℕ) (s : twistOneKernel J) :
     ⇑(twistOneKernelToContMDiffSection J k s) = s.val :=
   ContMDiffSection.coeFn_mk _ _
 
+/-- The smooth zeros of `D_J` as `W^{k+1,2}` sections of `𝒪(1)`: the real linear map sending an
+element of `twistOneKernel J` to its Sobolev section. -/
+def twistOneKernelSobolev (J : SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) (OnePoint ℂ)) (k : ℕ) :
+    twistOneKernel J →ₗ[ℝ] SobolevSection (twistCoreAtlas 1) volume 2 (k + 1) :=
+  (SobolevSection.ofContMDiffSection (twistCoreAtlas 1) volume 2 (k + 1)).comp
+    (twistOneKernelToContMDiffSection J k)
+
+theorem twistOneKernelSobolev_apply (k : ℕ) (s : twistOneKernel J) :
+    twistOneKernelSobolev J k s = SobolevSection.ofContMDiffSection (twistCoreAtlas 1) volume 2
+      (k + 1) (twistOneKernelToContMDiffSection J k s) :=
+  (rfl)
+
+/-- Distinct elements of `twistOneKernel J` have distinct Sobolev sections. -/
+theorem twistOneKernelSobolev_injective (k : ℕ) :
+    Function.Injective (twistOneKernelSobolev J k) :=
+  (SobolevSection.ofContMDiffSection_injective _ _ _ _).comp fun s t h ↦ Subtype.ext <| by
+    rw [← coe_twistOneKernelToContMDiffSection k s, ← coe_twistOneKernelToContMDiffSection k t, h]
+
+/-- The continuous representative of the Sobolev section of an element `s` of `twistOneKernel J`
+is `s`. -/
+@[simp]
+theorem toSection_twistOneKernelSobolev (k : ℕ) (s : twistOneKernel J) :
+    SobolevSection.toSection (twistOneKernelSobolev J k s) = s.val := by
+  rw [twistOneKernelSobolev_apply, SobolevSection.toSection_ofContMDiffSection,
+    coe_twistOneKernelToContMDiffSection]
+
+/-- **The kernel of `D_J` is the image of `twistOneKernel J`.** Let a two-form `σ` tame both
+`J` and the standard structure `i` of the sphere. For every order `k`, the Sobolev sections of
+the elements of `twistOneKernel J` form the kernel of `twistOneDelBarSobolev J k`. -/
+theorem range_twistOneKernelSobolev
+    {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)} (hJ : σ.Tames J) (hi : σ.Tames 𝒊) (k : ℕ) :
+    LinearMap.range (twistOneKernelSobolev J k) = (twistOneDelBarSobolev J k).ker := by
+  refine SetLike.coe_injective ?_
+  rw [ker_twistOneDelBarSobolev_eq hJ hi k, LinearMap.coe_range]
+  ext w
+  constructor
+  · rintro ⟨s, rfl⟩
+    refine ⟨twistOneKernelToContMDiffSection J k s, ?_, rfl⟩
+    rw [mem_ofPred_eq, coe_twistOneKernelToContMDiffSection]
+    exact s.property
+  · rintro ⟨s, hs, rfl⟩
+    exact ⟨⟨s, hs⟩, congrArg _ (ContMDiffSection.ext fun x ↦ by
+      rw [coe_twistOneKernelToContMDiffSection])⟩
+
+/-- The real linear isomorphism from `twistOneKernel J` onto the kernel of
+`twistOneDelBarSobolev J k` that sends an element to its Sobolev section, when a two-form `σ` tames
+both `J` and the standard structure `i` of the sphere. -/
+def twistOneKernelSobolevEquiv
+    {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)} (hJ : σ.Tames J) (hi : σ.Tames 𝒊) (k : ℕ) :
+    twistOneKernel J ≃ₗ[ℝ] (twistOneDelBarSobolev J k).ker :=
+  (LinearEquiv.ofInjective _ (twistOneKernelSobolev_injective k)).trans
+    (LinearEquiv.ofEq _ _ (range_twistOneKernelSobolev hJ hi k))
+
+@[simp]
+theorem coe_twistOneKernelSobolevEquiv_apply
+    {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)} (hJ : σ.Tames J) (hi : σ.Tames 𝒊) (k : ℕ)
+    (s : twistOneKernel J) :
+    (twistOneKernelSobolevEquiv hJ hi k s : SobolevSection (twistCoreAtlas 1) volume 2 (k + 1)) =
+      twistOneKernelSobolev J k s :=
+  (rfl)
+
+/-- The Sobolev section of the element of `twistOneKernel J` that corresponds to an element `w` of
+the kernel of `twistOneDelBarSobolev J k` is `w`. -/
+@[simp]
+theorem twistOneKernelSobolev_twistOneKernelSobolevEquiv_symm_apply
+    {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)} (hJ : σ.Tames J) (hi : σ.Tames 𝒊) (k : ℕ)
+    (w : (twistOneDelBarSobolev J k).ker) :
+    twistOneKernelSobolev J k ((twistOneKernelSobolevEquiv hJ hi k).symm w) = w := by
+  rw [← coe_twistOneKernelSobolevEquiv_apply hJ hi, LinearEquiv.apply_symm_apply]
+
 /-- **The kernel of `D_J` on Sobolev sections, as a space.** Let a two-form `σ` tame both `J` and
 the standard structure `i` of the sphere. For every order `k`, the kernel of
 `twistOneDelBarSobolev J k` has the same real dimension as `twistOneKernel J`. -/
 theorem finrank_ker_twistOneDelBarSobolev
     {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)} (hJ : σ.Tames J) (hi : σ.Tames 𝒊) (k : ℕ) :
-    Module.finrank ℝ (twistOneDelBarSobolev J k).ker = Module.finrank ℝ (twistOneKernel J) := by
-  set f := (SobolevSection.ofContMDiffSection (twistCoreAtlas 1) volume 2 (k + 1)).comp
-    (twistOneKernelToContMDiffSection J k)
-  have hrange : LinearMap.range f = (twistOneDelBarSobolev J k).ker := by
-    refine SetLike.coe_injective ?_
-    rw [ker_twistOneDelBarSobolev_eq hJ hi k, LinearMap.coe_range]
-    ext w
-    constructor
-    · rintro ⟨s, rfl⟩
-      refine ⟨twistOneKernelToContMDiffSection J k s, ?_, rfl⟩
-      rw [mem_ofPred_eq, coe_twistOneKernelToContMDiffSection]
-      exact s.property
-    · rintro ⟨s, hs, rfl⟩
-      exact ⟨⟨s, hs⟩, congrArg _ (ContMDiffSection.ext fun x ↦ by
-        rw [coe_twistOneKernelToContMDiffSection])⟩
-  have hinj : Function.Injective f :=
-    (SobolevSection.ofContMDiffSection_injective _ _ _ _).comp fun s t h ↦ Subtype.ext <| by
-      rw [← coe_twistOneKernelToContMDiffSection k s, ← coe_twistOneKernelToContMDiffSection k t,
-        h]
-  rw [← hrange, LinearMap.finrank_range_of_inj hinj]
+    Module.finrank ℝ (twistOneDelBarSobolev J k).ker = Module.finrank ℝ (twistOneKernel J) :=
+  (twistOneKernelSobolevEquiv hJ hi k).finrank_eq.symm
 
 end SymplecticGeometry
 

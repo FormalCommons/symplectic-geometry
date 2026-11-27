@@ -7,8 +7,7 @@ module
 
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import TauCeti.Geometry.Manifold.Complex.LeviForm
-public import TauCeti.Analysis.Complex.Wirtinger.Basic
-public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Shape
+public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Chart
 
 import SymplecticGeometry.Analysis.Complex.LeviForm.CompSymm
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
@@ -16,7 +15,8 @@ import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 /-!
 # Margins carried to the manifold by the chart along a disc
 
-Let `Φ` be a chart along an attached disc as `SymplecticGeometry.exists_modelChart` gives it:
+Let `Φ` be a chart along an attached disc as `SymplecticGeometry.exists_modelChart` gives it,
+holomorphic to order `N` along the core (`SymplecticGeometry.IsHolomorphicToOrderAlongCore`):
 near every point `p₀` of the core `ι₀ (ℝᵏ)` of the model space `ℂᵏ × ℂᵐ`, its reading `e` in the
 chart of `M` at `Φ p₀` has `‖∂̄e p‖ ≤ C √(t p) ^ N` and `‖D(∂̄e) p‖ ≤ C √(t p) ^ (N - 1)`, where
 `t p = (shape p).2`. This file shows that such a chart carries strict plurisubharmonicity with a
@@ -67,14 +67,7 @@ composite are bounded by one `K`, and the bounds on `∂̄` hold with one consta
 private theorem exists_uniform_bounds_modelChart {N : ℕ} [IsManifold 𝓘(ℝ, E) ∞ M]
     (Φ : PartialDiffeomorph 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
       𝓘(ℝ, E) (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) M ∞)
-    (hΦ : ∀ p₀ ∈ range (modelDisc k m), ∃ U ∈ 𝓝 p₀,
-      U ⊆ Φ.source ∧ U ⊆ Φ ⁻¹' (chartAt E (Φ p₀)).source ∧ ∃ C, ∀ p ∈ U,
-        ‖conjWirtingerDeriv (writtenInExtChartAt
-          𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) 𝓘(ℝ, E) p₀ Φ) p‖ ≤
-          C * √(shape p).2 ^ N ∧
-        ‖fderiv ℝ (conjWirtingerDeriv (writtenInExtChartAt
-          𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) 𝓘(ℝ, E) p₀ Φ)) p‖ ≤
-          C * √(shape p).2 ^ (N - 1)) :
+    (hΦ : IsHolomorphicToOrderAlongCore N Φ) :
     ∃ γ₁ ∈ Ioo (0 : ℝ) 1, ∃ K C : ℝ, 0 ≤ C ∧ ∀ p, (shape p).2 ≤ γ₁ ^ 2 →
       (shape p).1 ≤ (1 + γ₁) ^ 2 → ∃ y : M,
         p ∈ (Φ.toOpenPartialHomeomorph.trans (chartAt E y)).source ∧
@@ -102,7 +95,7 @@ private theorem exists_uniform_bounds_modelChart {N : ℕ} [IsManifold 𝓘(ℝ,
   have hw (x : V) : writtenInExtChartAt 𝓘(ℝ, V) 𝓘(ℝ, E) x Φ = e x := by
     simp [e]
   -- The neighbourhoods of the bounds, and closed balls inside them.
-  choose! U hU hUs hUc C hC using hΦ
+  choose! U hU hUs hUc C hC using (isHolomorphicToOrderAlongCore_def N Φ).1 hΦ
   have hball : ∀ x ∈ range (modelDisc k m), ∃ r > 0, closedBall x r ⊆ U x := fun x hx ↦
     nhds_basis_closedBall.mem_iff.1 (hU x hx)
   choose! r hr hrU using hball
@@ -166,10 +159,8 @@ private theorem exists_uniform_bounds_modelChart {N : ℕ} [IsManifold 𝓘(ℝ,
 
 /-- **Margins carried to the manifold by the chart along a disc.** Let `Φ` be a smooth partial
 diffeomorphism from the model space `ℂᵏ × ℂᵐ` to the complex manifold `M` that is holomorphic to
-order `N` along the core, as `SymplecticGeometry.exists_modelChart` gives it: every point `p₀` of
-the core has a neighbourhood `U` in the source of `Φ`, mapped into the source of the chart at
-`Φ p₀`, and a constant `C` with `‖∂̄e p‖ ≤ C √(t p) ^ N` and `‖D(∂̄e) p‖ ≤ C √(t p) ^ (N - 1)` on
-`U`, for the reading `e` of `Φ` in that chart. Let `c > 0` and `N₀ + 2 ≤ N`. Then there is
+order `N` along the core (`IsHolomorphicToOrderAlongCore`), as
+`SymplecticGeometry.exists_modelChart` gives it. Let `c > 0` and `N₀ + 2 ≤ N`. Then there is
 `γ₀ ∈ (0, 1]` such that, for `0 < γ < γ₀`, the handle `{p | t p ≤ γ² ∧ s p ≤ (1 + γ)²}` lies in
 the source of `Φ`, and for every `C²` function `u` on the model space that is strictly
 plurisubharmonic at each point `p` of the handle, with
@@ -179,14 +170,7 @@ theorem isManifoldStrictlyPlurisubharmonicAt_comp_modelChart_symm [IsManifold �
     [IsManifold 𝓘(ℝ, E) ∞ M] {N : ℕ}
     (Φ : PartialDiffeomorph 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
       𝓘(ℝ, E) (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) M ∞)
-    (hΦ : ∀ p₀ ∈ range (modelDisc k m), ∃ U ∈ 𝓝 p₀,
-      U ⊆ Φ.source ∧ U ⊆ Φ ⁻¹' (chartAt E (Φ p₀)).source ∧ ∃ C, ∀ p ∈ U,
-        ‖conjWirtingerDeriv (writtenInExtChartAt
-          𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) 𝓘(ℝ, E) p₀ Φ) p‖ ≤
-          C * √(shape p).2 ^ N ∧
-        ‖fderiv ℝ (conjWirtingerDeriv (writtenInExtChartAt
-          𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) 𝓘(ℝ, E) p₀ Φ)) p‖ ≤
-          C * √(shape p).2 ^ (N - 1))
+    (hΦ : IsHolomorphicToOrderAlongCore N Φ)
     {c : ℝ} (hc : 0 < c) {N₀ : ℕ} (hN : N₀ + 2 ≤ N) :
     ∃ γ₀ ∈ Ioc (0 : ℝ) 1, ∀ γ ∈ Ioo 0 γ₀,
       {p | (shape p).2 ≤ γ ^ 2 ∧ (shape p).1 ≤ (1 + γ) ^ 2} ⊆ Φ.source ∧

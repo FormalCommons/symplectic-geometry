@@ -130,7 +130,8 @@ fit this pattern, since pulling back along `q ↦ (q.1, f q)` adds the derivativ
 Instead, let `Ω` be a smooth form on `N × M'` whose slices are the pulled-back forms, and `L` a
 local inverse of `q ↦ (q.1, f q)` near `(p.1, f p)`. Since `L` keeps the first coordinate, the
 pullbacks of `Ω` along the maps `L (t, ·)` are the `α t` near `(p.1, f p)`, and they are jointly
-smooth there by Tau Ceti's `ContMDiffAt.mpullback_form_family`.
+smooth there by `SymplecticGeometry.contMDiffAt_sliceSection_of_eventually_eq_mpullback`, which
+applies Tau Ceti's `ContMDiffAt.mpullback_form_family`.
 
 The value of a form with no component along `N` is computed from its slices by
 `TauCeti.RoughForm.IsSemibasicAt.apply_eq_of_mfderiv_eq`, for the projection `Prod.fst`
@@ -609,15 +610,9 @@ theorem contMDiffAt_of_mpullback_family {f : N × M' → M} (hf : ContMDiff (J.p
     hΦ.localInverse_open_source.mem_nhds hΦ.localInverse_mem_source
   have hLd : ∀ z ∈ L.source, ContMDiffAt (J.prod I) (J.prod I') ∞ L z := fun z hz ↦
     hΦ.contMDiffOn_localInverse.contMDiffAt (hΦ.localInverse_open_source.mem_nhds hz)
-  -- The slices of the pullback of `Ω` along `L` are smooth at `(p.1, f p)`.
-  have key := ContMDiffAt.mpullback_form_family (J := J.prod I) (I := I) (m := ∞) (n := ∞)
-    (φ := Ω.val) (f := fun q y ↦ L (q.1, y)) (g := Prod.snd) (p₀ := (p.1, f p))
-    (Ω.contMDiff _)
-    ((hLd _ (mem_of_mem_nhds hsrc)).comp (f := fun r : (N × M) × M ↦ (r.1.1, r.2))
-      ((p.1, f p), f p) ((contMDiff_fst.comp contMDiff_fst).prodMk contMDiff_snd).contMDiffAt)
-    contMDiffAt_snd (by simp)
-  refine key.congr_of_eventuallyEq ?_
-  -- Near `(p.1, f p)`, these slices are the `α t`.
+  -- Near `(p.1, f p)`, the `α t` are the slices of the pullback of `Ω` along `L`.
+  refine contMDiffAt_sliceSection_of_eventually_eq_mpullback (g := fun t y ↦ L (t, y))
+    (Ω.contMDiff _) (hLd _ (mem_of_mem_nhds hsrc)) (by simp) ?_
   filter_upwards [hsrc] with q hq
   obtain ⟨t, y⟩ := q
   have hy : {y' | (t, y') ∈ L.source} ∈ 𝓝 y :=
@@ -642,15 +637,11 @@ theorem contMDiffAt_of_mpullback_family {f : N × M' → M} (hf : ContMDiff (J.p
     exact h1
   have hslice := congrArg Subtype.val (hΩ t)
   simp only [SmoothForm.coe_mpullback] at hslice
-  rw [sliceSection_apply]
-  refine congrArg (TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F)
-    (E := fun y : M ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] Trivial M F y) y) ?_
   have hmk : MDifferentiableAt I' (J.prod I') (Prod.mk t) (s y) :=
     (contMDiff_const.prodMk contMDiff_id (n := ∞)).mdifferentiableAt (by simp)
-  dsimp only
   symm
   rw [hL.mpullback_eq, mpullback_comp_at hs hmk, hslice, ← mpullback_comp_at hs hft,
-    hfs.mpullback_eq, mpullback_id]
+    hfs.mpullback_apply_eq_self]
 
 end Maps
 

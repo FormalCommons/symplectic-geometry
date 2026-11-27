@@ -297,7 +297,7 @@ theorem exists_contDiff_fderiv_apply_self_eq_on_sphere {g : F → ℝ} (hg : Con
   -- A closed shell `K` of width `w` around the sphere lies in `V`.
   obtain ⟨w, hw0, hw1, hKV⟩ := exists_abs_norm_sub_le_subset_of_sphere_subset one_pos hV hSV
   set K : Set F := {y | |‖y‖ - 1| ≤ w}
-  have hKc : IsCompact K := isCompact_setOf_abs_norm_sub_le 1 w
+  have hKc : IsCompact K := isCompact_setOfPred_abs_norm_sub_le 1 w
   -- Bounds on the shell.
   obtain ⟨m, hm0, hm⟩ := hKc.exists_forall_le' (f := fun y ↦ 1 + ‖y‖ * b y)
     (hq.mono (hKV.trans inter_subset_left)) fun y hy ↦ (hKV hy).2
