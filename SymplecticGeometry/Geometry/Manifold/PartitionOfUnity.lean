@@ -9,7 +9,7 @@ public import Mathlib.Geometry.Manifold.PartitionOfUnity
 import TauCeti.Topology.Algebra.Support
 
 /-!
-# Smooth cutoff functions near a closed set, and smooth majorants
+# Smooth cutoff functions near a closed set, smooth majorants, and partitions of unity
 
 ## Main results
 
@@ -25,6 +25,9 @@ import TauCeti.Topology.Algebra.Support
   function. It applies Mathlib's `exists_contMDiffMap_forall_mem_convex_of_local_const` to the
   convex sets `Ioi (f x)`, as Tau Ceti's `CompactExhaustion.exists_contMDiffMap_isProperMap`
   applies it to its own convex sets.
+* `SmoothPartitionOfUnity.exists_finset_finsum_smul_eq_sum_of_isCompact`: on a compact set,
+  only finitely many functions of a smooth partition of unity are nonzero, so that the sums
+  `∑ᶠ i, ρ i y • c i` there are sums over one finite set of indices.
 -/
 
 public section
@@ -67,3 +70,25 @@ theorem exists_contMDiffMap_forall_lt {f : M → ℝ} (hf : ∀ x, ∃ U ∈ �
         (hc (mem_image_of_mem f hy)).trans_lt (lt_add_one c)⟩
 
 end Cutoff
+
+namespace SmoothPartitionOfUnity
+
+variable {ι E H M F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] {s : Set M}
+  [AddCommMonoid F] [Module ℝ F]
+
+/-- On a compact set `K`, only the functions of a finite set `t` of indices of a smooth partition
+of unity `ρ` on `s` are nonzero: every sum `∑ᶠ i, ρ i y • c i`, for `y ∈ K`, is the sum over `t`,
+and the `ρ i y`, `i ∈ t`, sum to `1` at each `y ∈ K ∩ s`. -/
+theorem exists_finset_finsum_smul_eq_sum_of_isCompact (ρ : SmoothPartitionOfUnity ι I M s)
+    {K : Set M} (hK : IsCompact K) :
+    ∃ t : Finset ι, ∀ y ∈ K, (∀ c : ι → F, ∑ᶠ i, ρ i y • c i = ∑ i ∈ t, ρ i y • c i) ∧
+      (y ∈ s → ∑ i ∈ t, ρ i y = 1) := by
+  have hfin := ρ.locallyFinite.finite_nonempty_inter_compact hK
+  have hsupp : ∀ y ∈ K, Function.support (fun i ↦ ρ i y) ⊆ hfin.toFinset := fun y hy i hi ↦
+    hfin.mem_toFinset.2 ⟨y, hi, hy⟩
+  refine ⟨hfin.toFinset, fun y hy ↦ ⟨fun c ↦ finsum_eq_sum_of_support_subset _
+    ((Function.support_smul_subset_left _ _).trans (hsupp y hy)), fun hys ↦ ?_⟩⟩
+  rw [← finsum_eq_sum_of_support_subset _ (hsupp y hy), ρ.sum_eq_one hys]
+
+end SmoothPartitionOfUnity
