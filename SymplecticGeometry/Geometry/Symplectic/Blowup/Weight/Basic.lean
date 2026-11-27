@@ -867,7 +867,7 @@ theorem modelChart_inr (p : openNbhdOpens n ε) :
 
 /-- The inverse of the model chart sends a point `p` of the model piece to `inr p`. -/
 @[simp]
-theorem modelChart_symm_apply (p : openNbhdOpens n ε) :
+theorem modelChart_toPartialEquiv_symm_apply (p : openNbhdOpens n ε) :
     (modelChart hψ hl hε).toPartialEquiv.symm p =
       GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph p := by
   have h := (modelChart hψ hl hε).left_inv
