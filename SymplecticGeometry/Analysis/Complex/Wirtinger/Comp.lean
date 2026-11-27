@@ -10,6 +10,7 @@ public import TauCeti.Analysis.Complex.Wirtinger.Basic
 import Mathlib.Analysis.Calculus.FDeriv.CompCLM
 import Mathlib.Analysis.Normed.Group.Bounded
 import SymplecticGeometry.Analysis.Normed.Operator.ComplexLinearPart
+import TauCeti.Topology.Algebra.Module.Equiv.RestrictScalars
 
 /-!
 # `∂̄ (g ∘ D)` and its derivative after a holomorphic map
@@ -23,6 +24,9 @@ This file also differentiates that identity once more, by the product rule for c
 of operators (`HasFDerivAt.clm_comp`), and bounds the result. The defect `∂̄` is taken in the form
 `ContinuousLinearMap.complexAntilinearPartL (fderiv ℝ D z)`, a real-linear map, so that its
 derivative is a real derivative of a map into `V →L[ℝ] W`.
+
+The file ends with the bounds on `∂̄` and its derivative before a complex-linear change of
+variables, which need no differentiability.
 
 ## Main results
 
@@ -42,6 +46,9 @@ derivative is a real derivative of a map into `V →L[ℝ] W`.
   is `C²` with `D z ∈ K` and `‖dD z‖ ≤ B`. Thus a holomorphic change of coordinates, defined near
   a compact set, keeps the derivative of `∂̄` of a map small where `∂̄` and its derivative are
   small and the derivative of the map is bounded.
+* `TauCeti.norm_conjWirtingerDeriv_comp_continuousLinearEquiv_le` and
+  `TauCeti.norm_fderiv_complexAntilinearPartL_fderiv_comp_continuousLinearEquiv_le`: before a
+  complex-linear equivalence `L`, `∂̄` grows at most by `‖L‖` and its derivative by `‖L‖ ^ 2`.
 
 ## References
 
@@ -175,6 +182,55 @@ theorem eventually_norm_conjWirtingerDeriv_comp_le (hg : ContDiffAt ℂ 1 g (D z
   refine (opNorm_comp_le _ _).trans ?_
   calc _ ≤ (‖fderiv ℂ g (D z)‖ + 1) * ‖conjWirtingerDeriv D w‖ := by gcongr
     _ ≤ _ := by gcongr
+
+/-- **`∂̄` before a complex-linear change of variables, in norm.** For a complex-linear
+equivalence `L`, `‖∂̄ (g ∘ L) x‖ ≤ ‖∂̄ g (L x)‖ * ‖L‖`. -/
+theorem norm_conjWirtingerDeriv_comp_continuousLinearEquiv_le (L : V ≃L[ℂ] W) (g : W → X)
+    (x : V) :
+    ‖conjWirtingerDeriv (g ∘ L) x‖ ≤ ‖conjWirtingerDeriv g (L x)‖ * ‖(L : V →L[ℂ] W)‖ := by
+  rw [conjWirtingerDeriv_comp_continuousLinearEquiv]
+  exact opNorm_comp_le _ _
+
+/-- **The derivative of `∂̄` before a complex-linear change of variables, in norm.** For a
+complex-linear equivalence `L`, the derivative at `x` of
+`y ↦ complexAntilinearPartL (fderiv ℝ (g ∘ L) y)` has norm at most `‖L‖ ^ 2` times that of
+`w ↦ complexAntilinearPartL (fderiv ℝ g w)` at `L x`. No differentiability is needed. -/
+theorem norm_fderiv_complexAntilinearPartL_fderiv_comp_continuousLinearEquiv_le
+    (L : V ≃L[ℂ] W) (g : W → X) (x : V) :
+    ‖fderiv ℝ (fun y ↦ complexAntilinearPartL (fderiv ℝ (g ∘ L) y)) x‖ ≤
+      ‖(L : V →L[ℂ] W)‖ ^ 2 *
+        ‖fderiv ℝ (fun w ↦ complexAntilinearPartL (fderiv ℝ g w)) (L x)‖ := by
+  set Lr : V ≃L[ℝ] W := L.restrictScalars' ℝ
+  have hLr : ⇑Lr = ⇑L := ContinuousLinearEquiv.coe_restrictScalars' _ _
+  have hLc : (Lr : V →L[ℝ] W) = (L : V →L[ℂ] W).restrictScalars ℝ := by
+    ext v
+    simp [hLr]
+  -- `P`: precomposition with `Lr`, an equivalence of operator spaces.
+  set P : (W →L[ℝ] X) ≃L[ℝ] (V →L[ℝ] X) :=
+    Lr.symm.arrowCongr (ContinuousLinearEquiv.refl ℝ X)
+  have hP : ∀ Ψ : W →L[ℝ] X, P Ψ = Ψ.comp (Lr : V →L[ℝ] W) := fun Ψ ↦ by
+    ext v
+    simp [P]
+  have hf : (fun y ↦ complexAntilinearPartL (fderiv ℝ (g ∘ L) y)) =
+      P ∘ (fun w ↦ complexAntilinearPartL (fderiv ℝ g w)) ∘ Lr := by
+    funext y
+    rw [Function.comp_apply, Function.comp_apply, hP, ← hLr, Lr.comp_right_fderiv, hLc]
+    exact complexAntilinearPartL_comp_restrictScalars _ (L : V →L[ℂ] W)
+  have hLn : ‖(Lr : V →L[ℝ] W)‖ = ‖(L : V →L[ℂ] W)‖ := by
+    rw [hLc]
+    exact ContinuousLinearMap.norm_restrictScalars _
+  have hPn : ‖(P : (W →L[ℝ] X) →L[ℝ] (V →L[ℝ] X))‖ ≤ ‖(L : V →L[ℂ] W)‖ := by
+    refine ContinuousLinearMap.opNorm_le_bound _ (norm_nonneg _) fun Ψ ↦ ?_
+    rw [ContinuousLinearEquiv.coe_coe, hP, ← hLn, mul_comm]
+    exact opNorm_comp_le _ _
+  rw [hf, P.comp_fderiv, Lr.comp_right_fderiv, hLr, sq]
+  calc _ ≤ ‖(P : (W →L[ℝ] X) →L[ℝ] (V →L[ℝ] X))‖ *
+        (‖fderiv ℝ (fun w ↦ complexAntilinearPartL (fderiv ℝ g w)) (L x)‖ *
+          ‖(Lr : V →L[ℝ] W)‖) :=
+        (opNorm_comp_le _ _).trans (by gcongr; exact opNorm_comp_le _ _)
+    _ ≤ ‖(L : V →L[ℂ] W)‖ * (‖fderiv ℝ (fun w ↦ complexAntilinearPartL
+          (fderiv ℝ g w)) (L x)‖ * ‖(L : V →L[ℂ] W)‖) := by rw [hLn]; gcongr
+    _ = _ := by ring
 
 end TauCeti
 

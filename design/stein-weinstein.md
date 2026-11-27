@@ -1170,12 +1170,15 @@ containing `ι '' closedBall 0 1`:
   - `exists_modelChart` (14d13; Proposition 5.55 for integrable `J`):
     for `ι`, `O`, `A` as above and `N : ℕ`, there is `Φ` as in 14d10 (source,
     target, `Φ ∘ modelDisc k m = ι`, `mfderiv _ _ Φ (modelDisc k m x) = A x`
-    for all `x`) such that every point `p₀` of
-    `range (modelDisc k m)` has a neighbourhood `U ⊆ Φ.source`
+    for all `x`), when `A x (Complex.I • v) = Complex.I • A x v` for all
+    `x` and `v`, such that every point `p₀` of
+    `range (modelDisc k m)` has a neighbourhood `U ⊆ Φ.source` with
+    `U ⊆ Φ ⁻¹' (chartAt E (Φ p₀)).source`
     and a constant `C` with, for `e = writtenInExtChartAt 𝓘(ℝ, V)
     𝓘(ℝ, E) p₀ Φ` (the chart of `M` at `Φ p₀`, holomorphic) and all
     `p ∈ U`, `‖∂̄e p‖ ≤ C * √(t p) ^ N` and
-    `‖fderiv ℝ (fun q ↦ ∂̄e q) p‖ ≤ C * √(t p) ^ (N - 1)`. The bound is
+    `‖fderiv ℝ (fun q ↦ complexAntilinearPartL (fderiv ℝ e q)) p‖ ≤
+    C * √(t p) ^ (N - 1)`. The bound is
     stated near each point of the core in one fixed chart because
     `chartAt` need not vary continuously. Proof as in *Route* above:
     the local maps `G = h⁻¹ ∘ taylorExtension N (h ∘ ofReal)`,
