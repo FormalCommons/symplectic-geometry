@@ -447,8 +447,7 @@ theorem exists_isConvexShapeAt_sqrtSubLeaf :
 /-- The bottom leaf: the leaf `-8 δ` is `√(64 r² - 64 δ²)` at every `r`. -/
 theorem sqrtSubLeaf_neg_eight_mul (L δ r : ℝ) :
     sqrtSubLeaf L δ (-8 * δ) r = √(64 * r ^ 2 - 64 * δ ^ 2) := by
-  rw [sqrtSubLeaf_def, show -8 * δ + 8 * δ = 0 by ring, show 64 * δ ^ 2 - (-8 * δ) ^ 2 = 0 by ring,
-    zero_div, zero_mul, zero_mul, zero_add, add_zero, mul_sub]
+  rw [sqrtSubLeaf_def]; ring_nf
 
 /-- The family `(ℓ, r) ↦ sqrtSubLeaf L δ ℓ r` is smooth where `δ < r` and `|ℓ| < 8 r`, for
 `0 ≤ δ`: there the radicand is positive. -/
@@ -495,10 +494,10 @@ theorem tendsto_deriv_sqrtSubLeaf {L : ℝ} (hL : 0 ≤ L) (hδ : 0 < δ) (ℓ :
     filter_upwards [gt_mem_nhds hr.2] with x hx using sqrtSubLeaf_of_le hL hδ.le hx.le
   rw [he.deriv_eq, deriv_add_const]
 
-/-- At each `r > δ > 0`, the leaves `ℓ ∈ [-8 δ, 0]` are strictly increasing in `ℓ`: both terms
-of `sqrtSubLeaf` are nondecreasing in `ℓ ≤ 0`, the first strictly where the cutoff is below `1`
-and the second where it is positive. -/
-theorem strictMonoOn_sqrtSubLeaf (L : ℝ) (hδ : 0 < δ) {r : ℝ} (hr : δ < r) :
+/-- For `0 ≤ δ`, at each `r > δ`, the leaves `ℓ ∈ [-8 δ, 0]` are strictly increasing in `ℓ`:
+both terms of `sqrtSubLeaf` are nondecreasing in `ℓ ≤ 0`, the first strictly where the cutoff
+is below `1` and the second where it is positive. -/
+theorem strictMonoOn_sqrtSubLeaf (L : ℝ) (hδ : 0 ≤ δ) {r : ℝ} (hr : δ < r) :
     StrictMonoOn (fun ℓ ↦ sqrtSubLeaf L δ ℓ r) (Icc (-8 * δ) 0) := by
   intro ℓ₁ hℓ₁ ℓ₂ hℓ₂ h
   simp only [sqrtSubLeaf_def]
@@ -507,12 +506,10 @@ theorem strictMonoOn_sqrtSubLeaf (L : ℝ) (hδ : 0 < δ) {r : ℝ} (hr : δ < r
   have hH₁ : H ≤ 1 := smoothTransition.le_one _
   have hrδ : δ ^ 2 < r ^ 2 := by gcongr
   have hsq : ℓ₂ ^ 2 < ℓ₁ ^ 2 := by nlinarith [hℓ₂.2]
-  have hR : 0 ≤ 64 * (r ^ 2 - δ ^ 2) + (64 * δ ^ 2 - ℓ₁ ^ 2) * H := by
-    nlinarith [mul_nonneg (by nlinarith [hℓ₁.1, hℓ₁.2] : 0 ≤ 64 * δ ^ 2 - ℓ₁ ^ 2) hH₀]
   rcases hH₁.lt_or_eq with hH | hH
   · exact add_lt_add_of_lt_of_le (mul_lt_mul_of_pos_right (by linarith) (by linarith))
       (sqrt_le_sqrt (by nlinarith))
-  · rw [hH, sub_self, mul_zero, mul_zero, zero_add, zero_add, mul_one, mul_one]
+  · simp only [hH, sub_self, mul_zero, zero_add, mul_one]
     exact sqrt_lt_sqrt (by nlinarith [hℓ₁.1, hℓ₁.2]) (by linarith)
 
 /-- **The leaves `ℓ ∈ [-8 δ, 0]` of the family over the cylinder of radius `δ`**
@@ -543,7 +540,7 @@ theorem exists_convexShapeFamily_sqrt_sub :
     ⟨_, ?_, contDiffOn_uncurry_sqrtSubLeaf L hδ.le⟩,
     fun ℓ hℓ r hr ↦ hconv L le_rfl δ hδ ℓ hℓ r hr, sqrtSubLeaf_neg_eight_mul L δ,
     fun ℓ _ r hr ↦ ?_, fun ℓ _ ↦ tendsto_deriv_sqrtSubLeaf (by linarith) hδ ℓ,
-    fun ℓ hℓ r hr ↦ ?_, fun r hr ↦ strictMonoOn_sqrtSubLeaf L hδ hr⟩⟩
+    fun ℓ hℓ r hr ↦ ?_, fun r hr ↦ strictMonoOn_sqrtSubLeaf L hδ.le hr⟩⟩
   · refine ((isOpen_lt continuous_const continuous_snd).inter
       (isOpen_lt (by fun_prop : Continuous fun p : ℝ × ℝ ↦ |p.1|)
         (by fun_prop : Continuous fun p : ℝ × ℝ ↦ 8 * p.2))).mem_nhdsSet.2 ?_
