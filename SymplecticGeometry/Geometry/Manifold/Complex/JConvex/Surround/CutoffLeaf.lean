@@ -98,7 +98,8 @@ Both `SymplecticGeometry.sqrtAddLeaf` below and `SymplecticGeometry.sqrtSubLeaf`
 * Consequences for `ℓ ∈ [0, 7 δ]`: from `2 δ` on the leaf is `sqrtAddLeaf L δ ℓ`
   (`SymplecticGeometry.struweSwitchLeaf_of_two_mul_le`), hence standard from `(2 + L) δ` on
   (`SymplecticGeometry.struweSwitchLeaf_of_ge`), and on `(δ, 257 δ / 256]` the leaf `7 δ` is
-  Struwe's shape with value `65 δ / 8` at `δ` (`SymplecticGeometry.struweSwitchLeaf_seven_mul`).
+  Struwe's shape with value `65 δ / 8` at `δ`
+  (`SymplecticGeometry.struweSwitchLeaf_seven_mul_of_mem_Ioc`).
 * Near the cylinder, for `ℓ > 6 δ`, the leaf is Struwe's shape on some `[δ, δ + ε)`
   (`SymplecticGeometry.exists_eqOn_struweSwitchLeaf_struweShape`), since the gap `ℓ - 6 δ` at `δ`
   exceeds the width. So every leaf is continuous on `[δ, ∞)`
@@ -747,7 +748,7 @@ private theorem struweSwitchLeaf_one_seven {L r : ℝ} (hL : 0 ≤ L) (hr : r �
 
 /-- **The germ of the leaf `7 δ`.** For `0 ≤ L` and `δ > 0`, near the cylinder, on
 `(δ, 257 δ / 256]`, the leaf `7 δ` is Struwe's shape with value `65 δ / 8` at `δ`. -/
-theorem struweSwitchLeaf_seven_mul {L : ℝ} (hL : 0 ≤ L) (hδ : 0 < δ) {r : ℝ}
+theorem struweSwitchLeaf_seven_mul_of_mem_Ioc {L : ℝ} (hL : 0 ≤ L) (hδ : 0 < δ) {r : ℝ}
     (hr : r ∈ Ioc δ (257 * δ / 256)) :
     struweSwitchLeaf L δ (7 * δ) r = struweShape δ 1 (65 * δ / 8) r := by
   rw [struweSwitchLeaf_eq_mul_struweSwitchLeaf_one hδ, struweShape_eq_mul_struweShape_one hδ.ne',
