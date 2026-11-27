@@ -11,9 +11,8 @@ public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 import Mathlib.Geometry.Manifold.Instances.Icc
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 import SymplecticGeometry.Geometry.Symplectic.Moser.Stability
-import TauCeti.Geometry.Manifold.DeRham.Integration.Bijective
-import TauCeti.Geometry.Manifold.DeRham.PoincarePairing.Basic
 import TauCeti.Geometry.Symplectic.Manifold.Surface
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.Regularity
 
 /-!
 # Moser's theorem for area forms on closed surfaces
@@ -31,8 +30,8 @@ The proof is Moser's argument along the segment `σ_t = ω₀ + t (σ - ω₀)`,
 1. Every `σ_t` takes the value `(1 - t) ω₀(b) + t σ(b) > 0` on a positively oriented basis `b`,
    so it vanishes nowhere, and on a surface a nowhere-vanishing two-form is symplectic
    (`TauCeti.SmoothTwoForm.isSymplectic_iff_forall_ne_zero_of_finrank_eq_two`).
-2. The top form `σ - ω₀` has integral zero, so it is exact on the connected closed surface
-   (`TauCeti.mem_exactCompactlySupportedForms_iff_integralTopForm_eq_zero`); hence so is
+2. Since `σ` and `ω₀` have the same integral, `σ - ω₀` is exact on the connected closed surface
+   (`TauCeti.sub_mem_exactForms_iff_integralTopForm_eq`); hence so is
    `σ_t - σ_0 = t (σ - ω₀)`.
 3. The slices `σ_t` form a smooth family over `[0, 1]`, so Moser stability
    (`TauCeti.SmoothTwoForm.exists_diffeotopy_mpullback_eq`) gives a diffeotopy `Ψ` with
@@ -97,12 +96,7 @@ theorem exists_diffeotopy_mpullback_eq_of_integralTopForm_eq [PreconnectedSpace 
     nlinarith [hω x b hb, hσ x b hb, mul_nonneg (unitInterval.nonneg t) (hσ x b hb).le,
       mul_nonneg (unitInterval.one_sub_nonneg t) (hω x b hb).le]
   -- Step 2: `σ - ω₀` has integral zero, so it is exact.
-  have hcs (φ : SmoothTwoForm I M) : φ ∈ compactlySupportedForms I M 2 := by
-    simp [compactlySupportedForms_eq_top]
-  have hexact : σ - ω₀ ∈ exactForms I M 2 := by
-    rw [← exactCompactlySupportedForms_eq_exactForms,
-      mem_exactCompactlySupportedForms_iff_integralTopForm_eq_zero o (hcs _),
-      integralTopForm_sub_of_mem_compactlySupportedForms o (hcs σ) (hcs ω₀), hint, sub_self]
+  have hexact : σ - ω₀ ∈ exactForms I M 2 := (sub_mem_exactForms_iff_integralTopForm_eq o).2 hint
   -- Step 3: Moser stability along the segment.
   obtain ⟨Ω, hΩ⟩ := isSmoothFamily_def.mp <| (isSmoothFamily_const (J := 𝓡∂ 1) ω₀).add
     ((isSmoothFamily_const (σ - ω₀)).fun_smul (contMDiff_subtypeVal_Icc (x := 0) (y := 1)))

@@ -7,8 +7,6 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.CircleConnection
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.TopForm
-import TauCeti.Geometry.Manifold.DeRham.Integration.Bijective
-import TauCeti.Geometry.Manifold.DeRham.PoincarePairing.Basic
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.RealChernClass
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.Regularity
 
@@ -83,16 +81,9 @@ theorem IsCircleConnectionForm.exists_curvature_eq_of_integralTopForm_eq [Precon
     {σ : SmoothForm IB B ℝ 2}
     (hσ : integralTopForm o σ.val = integralTopForm o hα.curvature.val) :
     ∃ (β : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1)
-      (hβ : IsCircleConnectionForm β), hβ.curvature = σ := by
-  let : MeasurableSpace EB := borel EB
-  have : BorelSpace EB := ⟨rfl⟩
-  have hint : integralTopForm o (σ - hα.curvature).val = 0 := by
-    rw [Submodule.coe_sub, integralTopForm_sub_of_compactSpace o (σ.isSmoothForm.of_le (by simp))
-      (hα.curvature.isSmoothForm.of_le (by simp)), hσ, sub_self]
-  have hex := (mem_exactCompactlySupportedForms_iff_integralTopForm_eq_zero o
-    (compactlySupportedForms_eq_top (I := IB) (M := B) 2 ▸ Submodule.mem_top)).mpr hint
-  exact hα.exists_curvature_eq_of_sub_mem_exactForms
-    (exactCompactlySupportedForms_le_exactForms IB 2 hex)
+      (hβ : IsCircleConnectionForm β), hβ.curvature = σ :=
+  hα.exists_curvature_eq_of_sub_mem_exactForms
+    ((sub_mem_exactForms_iff_integralTopForm_eq o).2 hσ)
 
 end SymplecticGeometry
 
