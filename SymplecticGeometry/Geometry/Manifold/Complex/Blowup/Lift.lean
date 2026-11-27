@@ -586,7 +586,7 @@ theorem curveLift_smul_zero (hv : v ≠ 0) :
     curveLift (· • v) (0 : ℂ) = zeroSection (mk ℂ v hv) := by
   classical
   rw [curveLift_apply_self (by fun_prop) (zero_smul ℂ v) (k := 1)
-    (by simpa using analyticOrderAt_id_smul_const hv)]
+    (by simp [hv])]
   congr 1
   rw [mk_eq_mk_iff' ℂ _ _ _ hv]
   exact ⟨1, by simp [iteratedDeriv_one, deriv_smul_const]⟩

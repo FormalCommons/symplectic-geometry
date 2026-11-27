@@ -21,6 +21,7 @@ For a nonzero vector `v` of a normed space `E` over a nontrivially normed field 
 public section
 
 /-- For a nonzero vector `v`, the line `t ↦ t • v` has a simple zero at `0`. -/
+@[simp]
 theorem analyticOrderAt_id_smul_const {𝕜 E : Type*} [NontriviallyNormedField 𝕜]
     [NormedAddCommGroup E] [NormedSpace 𝕜 E] {v : E} (hv : v ≠ 0) :
     analyticOrderAt (fun t : 𝕜 ↦ t • v) 0 = 1 := by
