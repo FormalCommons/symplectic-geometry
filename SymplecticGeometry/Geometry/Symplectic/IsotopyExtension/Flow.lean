@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Velocity
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Transport
 import TauCeti.Geometry.Manifold.DifferentialForm.Squared
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 
 /-!
 # Extension of isotopies by symplectic and Hamiltonian flows
@@ -185,7 +186,7 @@ theorem exists_hasHamiltonian_forall_apply_eq (hσ : σ.IsSymplectic) (k : Smoot
   obtain ⟨Φ, G, L, hL, hG, hGL, hint, hpres, hfix, happly⟩ :=
     k.exists_diffeotopy_interior_velocity_eq_forall_apply_eq hσ hd hK
       (β := 0) (fun t ↦ by rw [h0, ZeroMemClass.coe_zero, mextDeriv_zero]) isCompact_empty
-      (fun t y _ ↦ by rw [h0, ZeroMemClass.coe_zero, Pi.zero_apply]) hh
+      (fun t y _ ↦ by rw [h0, SmoothBundleForm.zero_apply]) hh
       (fun t ↦ by rw [hα t, h0, ZeroMemClass.coe_zero, mpullback_zero, zero_add])
   have hgen : Φ.IsGeneratedBy σ G := Diffeotopy.isGeneratedBy_iff.2 ⟨hG, fun t ↦
     SmoothTwoForm.isHamiltonianVectorField_iff_interior_eq.2 (by
