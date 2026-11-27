@@ -12,7 +12,6 @@ import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Tautological
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 
 /-!
@@ -397,15 +396,14 @@ theorem inl_notMem_exceptionalDivisor (x : puncturedOpens c) :
 /-- The complement of the exceptional divisor, the range of `inl (gluingHomeomorph c)`, as an
 open set. -/
 def offDivisorOpens : Opens (Blowup c) :=
-  ⟨range (inl (gluingHomeomorph c)), GluedAlong.isOpen_range_inl (gluingHomeomorph c)⟩
+  GluedAlong.rangeInl (gluingHomeomorph c)
 
-theorem offDivisorOpens_def : offDivisorOpens c =
-    ⟨range (inl (gluingHomeomorph c)), GluedAlong.isOpen_range_inl (gluingHomeomorph c)⟩ :=
+theorem offDivisorOpens_def : offDivisorOpens c = GluedAlong.rangeInl (gluingHomeomorph c) :=
   (rfl)
 
 @[simp]
 theorem coe_offDivisorOpens : (offDivisorOpens c : Set (Blowup c)) = (exceptionalDivisor c)ᶜ := by
-  rw [offDivisorOpens_def, Opens.coe_mk, range_inl]
+  rw [offDivisorOpens_def, GluedAlong.coe_rangeInl, range_inl]
 
 @[simp]
 theorem mem_offDivisorOpens {z : Blowup c} : z ∈ offDivisorOpens c ↔ z ∉ exceptionalDivisor c := by
@@ -719,12 +717,9 @@ theorem blowdown_mem_puncturedOpens {z : Blowup c} (hz : z ∈ offDivisorOpens c
 /-- **The blowdown off the exceptional divisor.** The blowdown is a biholomorphism from the
 complement of the exceptional divisor onto `M \ {p₀}`, with inverse `inl (gluingHomeomorph c)`. -/
 def blowdownDiffeomorph [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M]
-    [Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)] :
+    [hc : Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)] :
     offDivisorOpens c ≃ₘ^ω⟮𝓘(ℂ, Fin (n + 1) → ℂ), 𝓘(ℂ, Fin (n + 1) → ℂ)⟯ puncturedOpens c :=
-  -- `offDivisorOpens c` is by definition the open set `IsLocalDiffeomorph.image` of
-  -- `inl (gluingHomeomorph c)`.
-  ((isLocalDiffeomorph_inl c).diffeomorphOfInjective
-    (GluedAlong.inl_injective (gluingHomeomorph c))).symm
+  GluedAlong.rangeInlDiffeomorph (isCompatible_complex c hc.out)
 
 section Complex
 
@@ -735,7 +730,7 @@ variable [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M]
 @[simp]
 theorem coe_blowdownDiffeomorph_symm_apply (x : puncturedOpens c) :
     ((blowdownDiffeomorph c).symm x : Blowup c) = inl (gluingHomeomorph c) x :=
-  IsLocalDiffeomorph.coe_diffeomorphOfInjective_apply _ _ x
+  GluedAlong.coe_rangeInlDiffeomorph_symm_apply _ x
 
 /-- The biholomorphism `blowdownDiffeomorph c` is the blowdown. -/
 @[simp]
@@ -757,23 +752,21 @@ open scoped TauCeti.ComplexManifold in
 diffeomorphism from the complement of the exceptional divisor onto `M \ {p₀}`, with inverse
 `inl (gluingHomeomorph c)`. -/
 def blowdownRealDiffeomorph [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M]
-    [Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M)] :
+    [hc : Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M)] :
     offDivisorOpens c ≃ₘ^∞⟮𝓘(ℝ, Fin (n + 1) → ℂ), 𝓘(ℝ, Fin (n + 1) → ℂ)⟯ puncturedOpens c :=
-  -- `offDivisorOpens c` is by definition the open set `IsLocalDiffeomorph.image` of
-  -- `inl (gluingHomeomorph c)`.
-  ((isLocalDiffeomorph_inl_real c).diffeomorphOfInjective
-    (GluedAlong.inl_injective (gluingHomeomorph c))).symm
+  GluedAlong.rangeInlDiffeomorph (isCompatible_real c hc.out)
 
 section Real
 
 variable [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M]
   [Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M)]
 
+open scoped TauCeti.ComplexManifold in
 /-- The inverse of `blowdownRealDiffeomorph c` is `inl (gluingHomeomorph c)`. -/
 @[simp]
 theorem coe_blowdownRealDiffeomorph_symm_apply (x : puncturedOpens c) :
     ((blowdownRealDiffeomorph c).symm x : Blowup c) = inl (gluingHomeomorph c) x :=
-  IsLocalDiffeomorph.coe_diffeomorphOfInjective_apply _ _ x
+  GluedAlong.coe_rangeInlDiffeomorph_symm_apply _ x
 
 /-- The diffeomorphism `blowdownRealDiffeomorph c` is the blowdown. -/
 @[simp]
