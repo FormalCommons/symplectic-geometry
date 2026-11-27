@@ -25,10 +25,6 @@ back to the sum of those of `(TM, j)` and of `ν`
 
 ## Main results
 
-* `TauCeti.SmoothEmbedding.normalSplitting_apply_almostComplexStructure`: for a form `ω`
-  compatible with the pull-back of `J`, the splitting `f *ᵖ TX ≃ TM ×ᵇ ν` of
-  `TauCeti.SmoothEmbedding.normalSplitting` carries `J` to `j` on the tangent component and to
-  the induced structure on the normal one.
 * `TauCeti.SmoothEmbedding.firstChernClass_pullback_eq_add`: the formula above.
 
 ## Proof
@@ -72,30 +68,6 @@ variable {E : Type} {H : Type*} {X : Type} [NormedAddCommGroup E] [NormedSpace �
   {hn : ((⊤ : ℕ∞) : WithTop ℕ∞) ≠ 0}
   {f : SmoothEmbedding I' I ((⊤ : ℕ∞) : WithTop ℕ∞) M X} {j : SmoothAlmostComplexStructure I' M}
   {J : SmoothAlmostComplexStructure I X}
-  {ω : ContMDiffTwoForm I' ⊤ E ((f : M → X) *ᵖ (TangentSpace I))}
-
-omit [FiniteDimensional ℝ E'] in
-/-- **The splitting along a pseudoholomorphic embedding is complex linear.** Let `f` be
-pseudoholomorphic from `j` to `J`, and `ω` a two-form compatible with the pull-back of `J`. The
-splitting `v ↦ (u, a)` of `T_{f x} X` into `T_x M × ν_x` along the `ω`-orthogonal of the tangent
-image sends `J v` to `(j u, J_ν a)`, with `J_ν` the structure that `J` induces on `ν_x`. -/
-theorem normalSplitting_apply_almostComplexStructure
-    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn)
-        (f.isImmersion.tangentRange x hn))
-    (hf : IsPseudoholomorphic j J f)
-    (hω : ω.Compatible (J.pullbackComplexStructure f f.contMDiff)) (x : M)
-    (v : TangentSpace I (f x)) :
-    f.normalSplitting hJ ω hω.tames x (J (f x) v) =
-      (j x (f.normalSplitting hJ ω hω.tames x v).1,
-        f.normalComplexStructureAt hn J x (hJ x) (f.normalSplitting hJ ω hω.tames x v).2) := by
-  set Φ := f.normalSplitting hJ ω hω.tames x
-  refine (Φ.symm_apply_eq.1 ?_).symm
-  rw [normalSplitting_symm_apply, (hf.isPseudoholomorphicAt x).mfderiv_apply_commute,
-    complementRepresentative_normalComplexStructureAt hJ hω, ← J.tangentEquiv_apply,
-    ← J.tangentEquiv_apply, ← map_add, J.tangentEquiv_apply,
-    ← normalSplitting_symm_apply hJ hω.tames x (Φ v)]
-  -- `v` is a vector of the pull-back fibre, `TangentSpace I (f x)` under another name.
-  erw [Φ.symm_apply_apply]
 
 variable {P : Type*} [NormedAddCommGroup P] [NormedSpace ℝ P] [FiniteDimensional ℝ P]
 
@@ -130,23 +102,11 @@ theorem firstChernClass_pullback_eq_add [T2Space M] [SigmaCompactSpace M]
   have hJ x := mapsTo_tangentRange_of_isPseudoholomorphicAt hn (hf.isPseudoholomorphicAt x)
   obtain ⟨ω, hω⟩ := (J.pullbackComplexStructure f f.contMDiff).exists_compatible
   have hΦ := contMDiff_normalSplitting hdim hJ hω.tames
-  -- The splitting carries the pull-back of `J` to the direct sum of `j` and the normal structure.
-  have hpush : (J.pullbackComplexStructure f f.contMDiff).pushforward _ hΦ =
-      (ContMDiffComplexStructure.tangentEquiv.symm (j.toContMDiff ⊤)).prod
-        (f.contMDiffNormalComplexStructure hdim J hJ) := by
-    refine ContMDiffComplexStructure.ext fun x v ↦ ?_
-    rw [ContMDiffComplexStructure.pushforward_apply,
-      ← SmoothAlmostComplexStructure.apply_eq_pullbackComplexStructure_apply]
-    -- The vector `(Φ x).symm v` of the pull-back fibre is one of `TangentSpace I (f x)`.
-    erw [normalSplitting_apply_almostComplexStructure hJ hf hω x
-      ((f.normalSplitting hJ ω hω.tames x).symm v)]
-    rw [ContinuousLinearEquiv.apply_symm_apply, ContMDiffComplexStructure.prod_apply,
-      ContMDiffComplexStructure.tangentEquiv_symm_apply,
-      SmoothAlmostComplexStructure.toContMDiff_apply, contMDiffNormalComplexStructure_apply]
   rw [← ContMDiffComplexStructure.toContinuousComplexStructure_tangentEquiv_symm,
     ← ContMDiffComplexStructure.firstChernClass_pullback G _ f f.contMDiff,
     ← SmoothAlmostComplexStructure.pullbackComplexStructure_def,
-    ← ContMDiffComplexStructure.firstChernClass_pushforward G (G' × Gν) _ hΦ, hpush,
+    ← ContMDiffComplexStructure.firstChernClass_pushforward G (G' × Gν) _ hΦ,
+    pushforward_pullbackComplexStructure_normalSplitting hdim hJ hf hω,
     firstChernClass_congr (ContMDiffComplexStructure.prodFiberEquiv _ _)
       (ContMDiffComplexStructure.continuous_prodFiberEquiv _ G' Gν _ _),
     firstChernClass_prod_of_chartedSpace I',

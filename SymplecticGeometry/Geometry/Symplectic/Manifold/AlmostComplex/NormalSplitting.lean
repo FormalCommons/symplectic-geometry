@@ -70,6 +70,10 @@ Hausdorff σ-compact `M`, a form compatible with `Jf` exists by
 * `TauCeti.SmoothEmbedding.contMDiff_normalSplitting`: the splitting is smooth on total spaces;
   `TauCeti.SmoothEmbedding.pushforward_normalSplitting`: it carries `ω` to
   `(ω.compMFDeriv f f.contMDiff).prod (normalForm f hdim hJ ω hω)`.
+* `TauCeti.SmoothEmbedding.normalSplitting_apply_almostComplexStructure`,
+  `TauCeti.SmoothEmbedding.pushforward_pullbackComplexStructure_normalSplitting`: for a
+  pseudoholomorphic `f` and a compatible `ω`, the splitting carries the pull-back of `J` to the
+  direct sum of the structure of `M` and the induced structure on `ν`.
 
 ## Implementation notes
 
@@ -540,6 +544,29 @@ theorem complementRepresentative_normalComplexStructureAt
     ← normalComplexStructureAt_normalClass (hJ x),
     normalClass_complementRepresentative]
 
+omit [FiniteDimensional ℝ E'] in
+/-- **The splitting along a pseudoholomorphic embedding is complex linear.** Let `f` be
+pseudoholomorphic from `j` to `J`, and `ω` a two-form compatible with the pull-back of `J`. The
+splitting `v ↦ (u, a)` of `T_{f x} X` into `T_x M × ν_x` along the `ω`-orthogonal of the tangent
+image sends `J v` to `(j u, J_ν a)`, with `J_ν` the structure that `J` induces on `ν_x`. -/
+theorem normalSplitting_apply_almostComplexStructure {j : SmoothAlmostComplexStructure I' M}
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn)
+        (f.isImmersion.tangentRange x hn))
+    (hf : IsPseudoholomorphic j J f)
+    (hω : ω.Compatible (J.pullbackComplexStructure f f.contMDiff)) (x : M)
+    (v : TangentSpace I (f x)) :
+    f.normalSplitting hJ ω hω.tames x (J (f x) v) =
+      (j x (f.normalSplitting hJ ω hω.tames x v).1,
+        f.normalComplexStructureAt hn J x (hJ x) (f.normalSplitting hJ ω hω.tames x v).2) := by
+  set Φ := f.normalSplitting hJ ω hω.tames x
+  refine (Φ.symm_apply_eq.1 ?_).symm
+  rw [normalSplitting_symm_apply, (hf.isPseudoholomorphicAt x).mfderiv_apply_commute,
+    complementRepresentative_normalComplexStructureAt hJ hω, ← J.tangentEquiv_apply,
+    ← J.tangentEquiv_apply, ← map_add, J.tangentEquiv_apply,
+    ← normalSplitting_symm_apply hJ hω.tames x (Φ v)]
+  -- `v` is a vector of the pull-back fibre, `TangentSpace I (f x)` under another name.
+  erw [Φ.symm_apply_apply]
+
 /-- If `ω` is compatible with the pull-back of `J`, the form on the normal bundle is compatible
 with the complex structure that `J` induces on the normal bundle. -/
 theorem compatible_normalForm (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E')
@@ -599,6 +626,33 @@ theorem pushforward_normalSplitting (hdim : finrank ℝ P = finrank ℝ E - finr
   -- so expanding the bilinear form needs `erw`.
   erw [map_add, map_add, LinearMap.add_apply, LinearMap.add_apply]
   erw [h₁, h₂, add_zero, zero_add]
+
+/-- If `f` is pseudoholomorphic from `j` to `J` and `ω` is compatible with the pull-back of `J`,
+the splitting carries the pull-back of `J` to the direct sum of `j` and of the complex structure
+that `J` induces on the normal bundle. -/
+theorem pushforward_pullbackComplexStructure_normalSplitting
+    {j : SmoothAlmostComplexStructure I' M} (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E')
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn)
+        (f.isImmersion.tangentRange x hn))
+    (hf : IsPseudoholomorphic j J f)
+    (hω : ω.Compatible (J.pullbackComplexStructure f f.contMDiff)) :
+    letI := f.normalSpaceFiberBundle hn hdim
+    letI := f.normalSpaceVectorBundle hn hdim
+    (J.pullbackComplexStructure f f.contMDiff).pushforward (f.normalSplitting hJ ω hω.tames)
+        (contMDiff_normalSplitting hdim hJ hω.tames) =
+      (ContMDiffComplexStructure.tangentEquiv.symm (j.toContMDiff ⊤)).prod
+        (f.contMDiffNormalComplexStructure hdim J hJ) := by
+  let := f.normalSpaceFiberBundle hn hdim
+  let := f.normalSpaceVectorBundle hn hdim
+  refine ContMDiffComplexStructure.ext fun x v ↦ ?_
+  rw [ContMDiffComplexStructure.pushforward_apply,
+    ← SmoothAlmostComplexStructure.apply_eq_pullbackComplexStructure_apply]
+  -- The vector `(Φ x).symm v` of the pull-back fibre is one of `TangentSpace I (f x)`.
+  erw [normalSplitting_apply_almostComplexStructure hJ hf hω x
+    ((f.normalSplitting hJ ω hω.tames x).symm v)]
+  rw [ContinuousLinearEquiv.apply_symm_apply, ContMDiffComplexStructure.prod_apply,
+    ContMDiffComplexStructure.tangentEquiv_symm_apply,
+    SmoothAlmostComplexStructure.toContMDiff_apply, contMDiffNormalComplexStructure_apply]
 
 end TauCeti.SmoothEmbedding
 
