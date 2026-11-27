@@ -10,14 +10,12 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.Hypersurface.LineBund
 public import TauCeti.Analysis.Normed.Module.Alternating.TopDegree
 public import TauCeti.Geometry.Manifold.VectorBundle.Cotangent.Canonical
 public import TauCeti.Geometry.Manifold.Projectivization.LineBundle
-public import TauCeti.Topology.VectorBundle.TensorProduct.Basic
 public import TauCeti.Topology.Algebra.Module.FiniteDimension
 
 import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.ChartChange
 import SymplecticGeometry.Geometry.Manifold.Projectivization.TwistCore
 import SymplecticGeometry.Analysis.Normed.Module.Alternating.TopDegree
 import SymplecticGeometry.Topology.Algebra.Module.TensorProduct
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.LinearAlgebra.TensorProduct.Separation
 import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 import TauCeti.Geometry.Manifold.VectorBundle.TensorProduct
@@ -987,12 +985,11 @@ theorem continuousDet_mfderiv_tmul_localTriv_symm_ne_zero {e : OpenPartialHomeom
     (b.continuousDet.compContinuousLinearMap
           (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) e (blowdown c z)) :
         Bundle.Pullback (blowdown c) (TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M) z) ⊗ₜ[ℂ]
-      (((hypersurfaceData c).lineBundleCore n).localTriv j).symm z 1 ≠ 0 := by
-  refine TauCeti.tmul_ne_zero (b.continuousDet_compContinuousLinearMap_ne_zero
-    ((e.isLocalDiffeomorphAt_of_mem_maximalAtlas he hze).isInvertible_mfderiv (by simp))) ?_
-  rw [VectorBundleCore.localTriv_symm_apply _ _ (by simpa using hz),
-    ScalarCocycle.lineBundleCore_coordChange_apply, ScalarCocycle.lineBundleCore_indexAt, mul_one]
-  exact zpow_ne_zero _ ((hypersurfaceData c).g_ne_zero ((hypersurfaceData c).mem_U_indexAt z) hz)
+      (((hypersurfaceData c).lineBundleCore n).localTriv j).symm z 1 ≠ 0 :=
+  TauCeti.tmul_ne_zero
+    (b.continuousDet_compContinuousLinearMap_mfderiv_extend_ne_zero he le_top hze)
+    (((((hypersurfaceData c).lineBundleCore n).localTriv j).symm_apply_ne_zero_iff ℂ
+      (by simpa using hz)).2 one_ne_zero)
 
 /-- **The local frame of `π^*K_M ⊗ 𝒪(nE)` on the chart `some i`.** The coordinate form of `c` at
 the blowdown of `z` tensored with the element of coordinate `1` in the chart `some i` of
