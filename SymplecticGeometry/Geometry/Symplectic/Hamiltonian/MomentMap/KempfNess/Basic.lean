@@ -61,7 +61,7 @@ and the moment weights.
   vector field of any `ζ` for the action of `Gc` is `X_{C.re ζ} + J X_{C.im ζ}`.
 * `SymplecticGeometry.IsComplexifiedAction.isMIntegralCurve_expI_smul`: the curve
   `t ↦ C.expI (t • ξ) • p` is an integral curve of `x ↦ J x (X_ξ x)`.
-* `SymplecticGeometry.IsComplexifiedAction.expI_smul_smul_eq_self_iff`: the curve
+* `SymplecticGeometry.IsComplexifiedAction.expI_smul_smul_eq_self_iff`:
   `C.expI (t • ξ)` fixes `x` for every `t` exactly when `X_ξ` vanishes at `x`.
 * `SymplecticGeometry.isComplexifiedAction_circle`: the action of `ℂˣ` on `ℂ` by multiplication,
   with `J` multiplication by `i`, is a complexified action of the rotation action of `Circle`, for
