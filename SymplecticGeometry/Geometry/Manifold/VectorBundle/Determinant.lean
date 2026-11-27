@@ -149,7 +149,7 @@ private theorem exists_contMDiffAt_chartCoord_congrModelEquiv (e : ∀ x, E x �
     ((finBasis 𝕜' G').equiv (finBasis 𝕜' G) (finCongr h) : G' ≃ₗ[𝕜'] G).toContinuousLinearMap
   -- The coordinate expression of `e` is `C^n` over `𝕜`, and so is its determinant after `L`.
   have hT := contMDiffAt_continuousLinearMapAt_comp_symmL_of_restrictScalars
-    (fun x ↦ (e x : E x →L[𝕜'] E' x)) he a
+    (fun x ↦ (e x : E x →L[𝕜'] E' x)) a fun _ ↦ he _
   have hdet : ContDiff 𝕜 n fun T : G →L[𝕜'] G' ↦ LinearMap.det ((T.comp L : G' →L[𝕜'] G') :
       G' →ₗ[𝕜'] G') :=
     (ContinuousLinearMap.contDiff_det.comp

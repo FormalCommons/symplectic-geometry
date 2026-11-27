@@ -35,7 +35,8 @@ complex vector bundle whose underlying real bundle is smooth.
 
 In the same way, a family of continuous `𝕜'`-linear maps `φ x : E x →L[𝕜'] E' x` between vector
 bundles over `𝕜'`, with models finite-dimensional over `𝕜`, whose map of total spaces is `C^n` over
-`𝕜`, has coordinate expressions in the trivializations at a point that are `C^n` over `𝕜` there
+`𝕜` along the fibre over a point, has coordinate expressions in the trivializations at that point
+that are `C^n` over `𝕜` there
 (`contMDiffAt_continuousLinearMapAt_comp_symmL_of_restrictScalars`). Here neither bundle needs a
 `C^n` structure. The proof that the scalar restrictions of these expressions are `C^n` follows
 Tau Ceti's `TauCeti.contMDiffAt_hom_bundle_prod_iff`, read on a constant section.
@@ -47,7 +48,8 @@ Tau Ceti's `TauCeti.contMDiffAt_hom_bundle_prod_iff`, read on a constant section
 * `contMDiffOn_coordChangeL_of_restrictScalars`: the coordinate changes over `𝕜'` of a bundle
   with finite-dimensional model that is `C^n` over `𝕜` are `C^n` over `𝕜`.
 * `contMDiffAt_continuousLinearMapAt_comp_symmL_of_restrictScalars`: the coordinate expressions
-  over `𝕜'` of a fibrewise linear map that is `C^n` over `𝕜` on total spaces are `C^n` over `𝕜`.
+  over `𝕜'` at a point of a fibrewise linear map that is `C^n` over `𝕜` along the fibre over that
+  point are `C^n` over `𝕜` there.
 
 ## References
 
@@ -144,14 +146,14 @@ variable {𝕜 𝕜' : Type*} [NontriviallyNormedField 𝕜] [CompleteSpace 𝕜
 /-- **A `C^n` fibrewise linear map has `C^n` coordinates.** Let `φ x : E x →L[𝕜'] E' x` be
 continuous linear maps of the fibres of two vector bundles over `𝕜'`, whose models are
 finite-dimensional over the smaller complete field `𝕜`. If the map of total spaces induced by `φ`
-is `C^n` over `𝕜`, then its expression `t' ∘ φ x ∘ t⁻¹` in the trivializations `t`, `t'` at a
-point `a` is a family of continuous `𝕜'`-linear maps `F → F'` that is `C^n` over `𝕜` at `a`.
-Neither bundle needs a `C^n` structure: smoothness on total spaces is read in the charts of the
-trivializations. -/
+is `C^n` over `𝕜` at each point of the fibre over `a`, then its expression `t' ∘ φ x ∘ t⁻¹` in
+the trivializations `t`, `t'` at `a` is a family of continuous `𝕜'`-linear maps `F → F'` that is
+`C^n` over `𝕜` at `a`. Neither bundle needs a `C^n` structure: smoothness on total spaces is read
+in the charts of the trivializations. -/
 theorem contMDiffAt_continuousLinearMapAt_comp_symmL_of_restrictScalars
-    (φ : ∀ x, E x →L[𝕜'] E' x)
-    (hφ : ContMDiff (IB.prod 𝓘(𝕜, F)) (IB.prod 𝓘(𝕜, F')) n
-      (fun p : TotalSpace F E ↦ TotalSpace.mk' F' p.proj (φ p.proj p.snd))) (a : B) :
+    (φ : ∀ x, E x →L[𝕜'] E' x) (a : B)
+    (hφ : ∀ v : E a, ContMDiffAt (IB.prod 𝓘(𝕜, F)) (IB.prod 𝓘(𝕜, F')) n
+      (fun p : TotalSpace F E ↦ TotalSpace.mk' F' p.proj (φ p.proj p.snd)) ⟨a, v⟩) :
     ContMDiffAt IB 𝓘(𝕜, F →L[𝕜'] F') n
       (fun x ↦ ((trivializationAt F' E' a).continuousLinearMapAt 𝕜' x).comp
         ((φ x).comp ((trivializationAt F E a).symmL 𝕜' x))) a := by
