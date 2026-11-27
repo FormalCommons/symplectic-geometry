@@ -43,7 +43,8 @@ equivariance or smoothness.
   `|μ x ξ| ≤ √(‖μ x‖²) √(B ξ ξ)` for a symmetric nonnegative `B`.
 * `SymplecticGeometry.momentSharp_neg`, `SymplecticGeometry.momentNormSq_neg`: replacing `μ`
   by `-μ`, as the sign convention of an equivariant moment map may require, negates `μ♯` and
-  leaves the norm square unchanged.
+  leaves the norm square unchanged; `SymplecticGeometry.momentNormSq_neg'` states the latter as
+  an equality of functions.
 * `SymplecticGeometry.momentSharp_smul`, `SymplecticGeometry.momentNormSq_smul`: for an
   `Ad`-invariant `B` and a coadjoint-equivariant `μ`, `μ♯` is equivariant and the norm square
   is `G`-invariant.
@@ -131,6 +132,10 @@ theorem momentNormSq_eq_apply_momentSharp :
 @[simp]
 theorem momentNormSq_neg : momentNormSq B hB (fun x ↦ -μ x) x = momentNormSq B hB μ x := by
   simp [momentNormSq_eq_momentSharp, momentSharp_neg]
+
+/-- The norm square of `-μ` is that of `μ`, as functions on `M`. -/
+theorem momentNormSq_neg' : momentNormSq B hB (fun x ↦ -μ x) = momentNormSq B hB μ :=
+  funext fun _ ↦ momentNormSq_neg
 
 /-- For a nonnegative form `B`, the norm square of `μ x` is nonnegative. -/
 theorem momentNormSq_nonneg (hpos : B.IsNonneg) : 0 ≤ momentNormSq B hB μ x := by
