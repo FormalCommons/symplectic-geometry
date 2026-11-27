@@ -297,8 +297,7 @@ theorem mpullback_smul_cutoffWeightOneForm {G : Type*} [SMul G M] (χ : ι → G
       (hcomm hxt).mpullback_eq,
       TauCeti.mpullback_comp_at (Φ.symm.mdifferentiableAt (by simp) (by simpa using hxt))
         (hRsmooth.mdifferentiableAt (by simp)), hθ]
-  refine Subtype.ext ?_
-  rw [SmoothForm.coe_mpullback, cutoffWeightOneForm_val]
+  rw [SmoothForm.mpullback_eq_iff, cutoffWeightOneForm_val]
   exact TauCeti.mpullback_fun_smul_eq_self hρg hφ
 
 /-! ### The exterior derivative where the cut-off is `1` -/
@@ -462,13 +461,10 @@ theorem exists_localizingForm_of_weightCharts [SigmaCompactSpace M] {ι : Type*}
     · exact Finset.sum_congr rfl fun i _ ↦
         mpullback_smul_cutoffWeightOneForm (hρ i) (hsupp i) (k i) (χ i) g (hequiv i g) _
           (hinv i g)
-    · refine Subtype.ext ?_
-      rw [SmoothForm.coe_mpullback, SmoothForm.coe_funSMulₗ]
+    · rw [SmoothForm.mpullback_eq_iff, SmoothForm.coe_funSMulₗ]
       refine TauCeti.mpullback_fun_smul_eq_self (fun x ↦ ?_) fun x _ ↦ ?_
       · simp [f, hinv]
-      · have h := congrArg Subtype.val (hβinv g)
-        rw [SmoothForm.coe_mpullback] at h
-        exact congrFun h x
+      · exact congrFun ((SmoothForm.mpullback_eq_iff _).1 (hβinv g)) x
   · rw [hvalX]
     exact add_nonneg (Finset.sum_nonneg fun i _ ↦ hτ i x) (hβX x)
   · -- Off the fixed points, `β(X) > 0`; so if `θ(X) = 0`, some cut-off is `1`, and the model

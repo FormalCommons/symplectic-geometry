@@ -19,6 +19,7 @@ import TauCeti.Geometry.Manifold.PartitionOfUnity.Compact
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.ProdIcc
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.BasicForm
 import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # Uniqueness of coupling forms
@@ -748,8 +749,8 @@ theorem exists_diffeomorph [IB.Boundaryless] [T2Space B] (h₀ : IsCouplingForm 
     have h := mpullback_prodMap_subtypeVal_prodIccExtension_add_smul h₀ h₁ 0
     rwa [zero_smul, zero_smul, add_zero, add_zero] at h
   rw [← hW₁, ← hW₀, Diffeomorph.mpullback_restrictProdIcc_mpullback_prodMap_subtypeVal]
-  refine Subtype.ext (funext fun p ↦ ?_)
-  rw [SmoothForm.coe_mpullback, SmoothForm.coe_mpullback, SmoothForm.coe_mpullback]
+  refine (SmoothForm.mpullback_eq_iff _).2 (funext fun p ↦ ?_)
+  rw [SmoothForm.coe_mpullback, SmoothForm.coe_mpullback]
   refine TauCeti.mpullback_apply_congr ?_
   rw [show ⇑Φ = _ from funext (timeDependentFlowDiffeomorph_apply hc le_top hX 0 1)]
   exact mpullback_timeDependentFlowOf_prodIccMoserField_apply h₀ h₁ hρ hρc hρ1 hnd p.1 p.2
