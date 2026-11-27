@@ -589,6 +589,7 @@ theorem twistOneKernelEquivOfProd_def (hJ : σ.Tames J) (hi : σ.Tames 𝒊)
 
 /-- The Sobolev section of `twistOneKernelEquivOfProd hJ hi h v` is the kernel section of the
 pair at `v`. -/
+@[simp]
 theorem twistOneKernelSobolev_twistOneKernelEquivOfProd (hJ : σ.Tames J) (hi : σ.Tames 𝒊)
     {Q : SobolevSection (twistCoreAtlas 1) volume 2 (0 + 1) →L[ℝ] ℂ × ℂ}
     (h : ((twistOneDelBarSobolev J 0).prod Q).IsInvertible) (v : ℂ × ℂ) :
@@ -644,6 +645,7 @@ noncomputable def twistOneKernelTransfer (J₀ : SmoothAlmostComplexStructure �
   ((twistOneKernelEquivOfProd hJ hi h).toLinearMap.complexOfMapISmul
     (twistOneKernelEquivOfProd_I_smul hJ hi h hQ)).comp (twistOneKernelEval J₀)
 
+@[simp]
 theorem twistOneKernelTransfer_apply (J₀ : SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) (OnePoint ℂ))
     (hJ : σ.Tames J) (hi : σ.Tames 𝒊)
     {Q : SobolevSection (twistCoreAtlas 1) volume 2 (0 + 1) →L[ℝ] ℂ × ℂ}
