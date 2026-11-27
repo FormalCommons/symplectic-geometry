@@ -82,9 +82,13 @@ The proof of `HasMFDerivAt.eval_affineChart_dehomogenize` adapts that of Tau Cet
 
 The fibres of a vector bundle core are its model fibre under the name `VectorBundleCore.Fiber`,
 and the body of `twistCore` is not visible here. The fibrewise maps are therefore built on the
-model fibres `𝕜` and `𝕜 × (κ → 𝕜)`, and their continuity on total spaces is checked in the
-preferred trivializations of the target bundles; that of the inverse of `twistSumCoreOptionEquiv`
-is proved directly, so that it needs no completeness of `𝕜`.
+model fibres `𝕜` and `𝕜 × (κ → 𝕜)`. Read in the trivializations at a point `x₀`,
+`twistSumCoreOptionEquiv`, its inverse and `twistSumCoreCongr` are one fixed linear map at every
+point near `x₀`, so their continuity on total spaces is Tau Ceti's
+`TauCeti.continuous_hom_bundle_of_inCoordinates_eq_const` with Mathlib's
+`Continuous.clm_bundle_apply`. That of the inverse of `twistSumCoreOptionEquiv` is proved in the
+same way, rather than by Tau Ceti's `TauCeti.continuous_bundle_symm`, so that it needs no
+completeness of `𝕜`.
 
 ## References
 
@@ -268,25 +272,31 @@ theorem twistSumCoreOptionEquiv_symm_apply_some (x : ℙ 𝕜 (Fin (n + 1) → �
 
 /-- In the trivializations at `x₀` of all three bundles, `twistSumCoreOptionEquiv` is
 `ContinuousLinearEquiv.piOptionEquivProd`. -/
-private theorem prod_trivializationAt_twistSumCoreOptionEquiv (x₀ : ℙ 𝕜 (Fin (n + 1) → 𝕜))
-    (p : TotalSpace (Option κ → 𝕜) (twistSumCore (𝕜 := 𝕜) (n := n) k).Fiber) :
-    (trivializationAt (𝕜 × (κ → 𝕜))
-        ((twistCore (k none)).Fiber ×ᵇ (twistSumCore fun l ↦ k (some l)).Fiber) x₀
-        (TotalSpace.mk' (𝕜 × (κ → 𝕜))
-          (E := (twistCore (k none)).Fiber ×ᵇ (twistSumCore fun l ↦ k (some l)).Fiber)
-          p.proj (twistSumCoreOptionEquiv k p.proj p.snd))).2 =
-      ContinuousLinearEquiv.piOptionEquivProd (M := fun _ ↦ 𝕜) 𝕜
-        (trivializationAt (Option κ → 𝕜) (twistSumCore k).Fiber x₀ p).2 := by
-  obtain ⟨x, v⟩ := p
+private theorem inCoordinates_twistSumCoreOptionEquiv (x₀ x : ℙ 𝕜 (Fin (n + 1) → 𝕜))
+    (hx : x ∈ (trivializationAt (Option κ → 𝕜) (twistSumCore k).Fiber x₀).baseSet)
+    (hx' : x ∈ (trivializationAt (𝕜 × (κ → 𝕜))
+      ((twistCore (k none)).Fiber ×ᵇ (twistSumCore fun l ↦ k (some l)).Fiber) x₀).baseSet) :
+    ContinuousLinearMap.inCoordinates (Option κ → 𝕜) (twistSumCore k).Fiber (𝕜 × (κ → 𝕜))
+        ((twistCore (k none)).Fiber ×ᵇ (twistSumCore fun l ↦ k (some l)).Fiber) x₀ x x₀ x
+        (twistSumCoreOptionEquiv k x : (twistSumCore k).Fiber x →L[𝕜] _) =
+      (ContinuousLinearEquiv.piOptionEquivProd (ι := κ) (M := fun _ ↦ 𝕜) 𝕜 : _ →L[𝕜] _) := by
+  refine ContinuousLinearMap.ext fun v ↦ ?_
+  simp only [ContinuousLinearMap.inCoordinates, ContinuousLinearMap.comp_apply,
+    Trivialization.symmL_apply _ hx, Trivialization.continuousLinearMapAt_apply_of_mem _ _ hx',
+    ContinuousLinearEquiv.coe_coe]
   -- In both, each coordinate is read in the trivialization of its summand `𝒪(k l)`
   -- (`twistSumCore_trivializationAt_apply_snd_eq_twistCore`).
+  have hv := congrArg Prod.snd
+    ((trivializationAt (Option κ → 𝕜) (twistSumCore k).Fiber x₀).apply_mk_symm hx v)
+  dsimp only at hv
+  conv_rhs => rw [← hv]
   refine Prod.ext ?_ (funext fun l ↦ ?_) <;>
   simp only [FiberBundle.prod_trivializationAt', Trivialization.prod_apply,
     Trivialization.Prod.toFun', twistSumCoreOptionEquiv_apply,
     ContinuousLinearEquiv.piOptionEquivProd_apply]
-  · exact (twistSumCore_trivializationAt_apply_snd_eq_twistCore k x₀ x v none).symm
+  · exact (twistSumCore_trivializationAt_apply_snd_eq_twistCore k x₀ x _ none).symm
   · exact (twistSumCore_trivializationAt_apply_snd_eq_twistCore (fun l ↦ k (some l)) x₀ x _ l).trans
-      (twistSumCore_trivializationAt_apply_snd_eq_twistCore k x₀ x v (some l)).symm
+      (twistSumCore_trivializationAt_apply_snd_eq_twistCore k x₀ x _ (some l)).symm
 
 /-- `twistSumCoreOptionEquiv` is continuous on total spaces. -/
 theorem continuous_twistSumCoreOptionEquiv :
@@ -294,29 +304,41 @@ theorem continuous_twistSumCoreOptionEquiv :
       TotalSpace.mk' (𝕜 × (κ → 𝕜))
         (E := (twistCore (k none)).Fiber ×ᵇ (twistSumCore fun l ↦ k (some l)).Fiber) p.proj
         (twistSumCoreOptionEquiv k p.proj p.snd) := by
-  refine continuous_iff_continuousAt.2 fun p₀ ↦ ?_
-  rw [FiberBundle.continuousAt_totalSpace]
-  refine ⟨(FiberBundle.continuous_proj _ _).continuousAt, ?_⟩
-  simp only [prod_trivializationAt_twistSumCoreOptionEquiv]
-  exact (ContinuousLinearEquiv.continuous _).continuousAt.comp
-    (continuous_snd.continuousAt.comp
-      ((trivializationAt _ _ p₀.proj).continuousAt FiberBundle.mem_trivializationAt_proj_source))
+  have h : Continuous fun x : ℙ 𝕜 (Fin (n + 1) → 𝕜) ↦
+      TotalSpace.mk' ((Option κ → 𝕜) →L[𝕜] 𝕜 × (κ → 𝕜))
+        (E := fun x ↦ (twistSumCore k).Fiber x →L[𝕜]
+          ((twistCore (k none)).Fiber ×ᵇ (twistSumCore fun l ↦ k (some l)).Fiber) x) x
+        (twistSumCoreOptionEquiv k x : (twistSumCore k).Fiber x →L[𝕜] _) := by
+    refine TauCeti.continuous_hom_bundle_of_inCoordinates_eq_const
+      (c := fun _ ↦ (ContinuousLinearEquiv.piOptionEquivProd (ι := κ) (M := fun _ ↦ 𝕜) 𝕜 :
+        _ →L[𝕜] _)) ?_
+    exact inCoordinates_twistSumCoreOptionEquiv k
+  exact Continuous.clm_bundle_apply (F₁ := Option κ → 𝕜) (E₁ := (twistSumCore k).Fiber)
+    (F₂ := 𝕜 × (κ → 𝕜))
+    (E₂ := (twistCore (k none)).Fiber ×ᵇ (twistSumCore fun l ↦ k (some l)).Fiber)
+    (h.comp (FiberBundle.continuous_proj _ _)) continuous_id
 
 /-- In the trivializations at `x₀` of all three bundles, the inverse of
 `twistSumCoreOptionEquiv` is the inverse of `ContinuousLinearEquiv.piOptionEquivProd`. -/
-private theorem trivializationAt_twistSumCoreOptionEquiv_symm (x₀ : ℙ 𝕜 (Fin (n + 1) → 𝕜))
-    (q : TotalSpace (𝕜 × (κ → 𝕜))
-      ((twistCore (𝕜 := 𝕜) (n := n) (k none)).Fiber ×ᵇ
-        (twistSumCore fun l ↦ k (some l)).Fiber)) :
-    (trivializationAt (Option κ → 𝕜) (twistSumCore k).Fiber x₀
-        (TotalSpace.mk' (Option κ → 𝕜) (E := (twistSumCore k).Fiber) q.proj
-          ((twistSumCoreOptionEquiv k q.proj).symm q.snd))).2 =
-      (ContinuousLinearEquiv.piOptionEquivProd (M := fun _ ↦ 𝕜) 𝕜).symm
-        (trivializationAt (𝕜 × (κ → 𝕜))
-          ((twistCore (k none)).Fiber ×ᵇ (twistSumCore fun l ↦ k (some l)).Fiber) x₀ q).2 := by
-  obtain ⟨x, v⟩ := q
-  -- As in `prod_trivializationAt_twistSumCoreOptionEquiv`, each coordinate is read in the
+private theorem inCoordinates_twistSumCoreOptionEquiv_symm (x₀ x : ℙ 𝕜 (Fin (n + 1) → 𝕜))
+    (hx : x ∈ (trivializationAt (𝕜 × (κ → 𝕜))
+      ((twistCore (k none)).Fiber ×ᵇ (twistSumCore fun l ↦ k (some l)).Fiber) x₀).baseSet)
+    (hx' : x ∈ (trivializationAt (Option κ → 𝕜) (twistSumCore k).Fiber x₀).baseSet) :
+    ContinuousLinearMap.inCoordinates (𝕜 × (κ → 𝕜))
+        ((twistCore (k none)).Fiber ×ᵇ (twistSumCore fun l ↦ k (some l)).Fiber)
+        (Option κ → 𝕜) (twistSumCore k).Fiber x₀ x x₀ x
+        ((twistSumCoreOptionEquiv k x).symm : _ →L[𝕜] (twistSumCore k).Fiber x) =
+      ((ContinuousLinearEquiv.piOptionEquivProd (ι := κ) (M := fun _ ↦ 𝕜) 𝕜).symm : _ →L[𝕜] _) := by
+  refine ContinuousLinearMap.ext fun v ↦ ?_
+  simp only [ContinuousLinearMap.inCoordinates, ContinuousLinearMap.comp_apply,
+    Trivialization.symmL_apply _ hx, Trivialization.continuousLinearMapAt_apply_of_mem _ _ hx',
+    ContinuousLinearEquiv.coe_coe]
+  -- As in `inCoordinates_twistSumCoreOptionEquiv`, each coordinate is read in the
   -- trivialization of its summand `𝒪(k l)`.
+  have hv := congrArg Prod.snd ((trivializationAt (𝕜 × (κ → 𝕜))
+    ((twistCore (k none)).Fiber ×ᵇ (twistSumCore fun l ↦ k (some l)).Fiber) x₀).apply_mk_symm hx v)
+  dsimp only at hv
+  conv_rhs => rw [← hv]
   funext l
   simp only [FiberBundle.prod_trivializationAt', Trivialization.prod_apply,
     Trivialization.Prod.toFun', ContinuousLinearEquiv.piOptionEquivProd_symm_apply]
@@ -324,7 +346,7 @@ private theorem trivializationAt_twistSumCoreOptionEquiv_symm (x₀ : ℙ 𝕜 (
   cases l
   · rw [twistSumCoreOptionEquiv_symm_apply_none]
   · rw [twistSumCoreOptionEquiv_symm_apply_some]
-    exact (twistSumCore_trivializationAt_apply_snd_eq_twistCore (fun l ↦ k (some l)) x₀ x v.2
+    exact (twistSumCore_trivializationAt_apply_snd_eq_twistCore (fun l ↦ k (some l)) x₀ x _
       _).symm
 
 /-- The inverse of `twistSumCoreOptionEquiv` is continuous on total spaces. -/
@@ -334,13 +356,19 @@ theorem continuous_twistSumCoreOptionEquiv_symm :
           (twistSumCore fun l ↦ k (some l)).Fiber) ↦
       TotalSpace.mk' (Option κ → 𝕜) (E := (twistSumCore k).Fiber) q.proj
         ((twistSumCoreOptionEquiv k q.proj).symm q.snd) := by
-  refine continuous_iff_continuousAt.2 fun q₀ ↦ ?_
-  rw [FiberBundle.continuousAt_totalSpace]
-  refine ⟨(FiberBundle.continuous_proj _ _).continuousAt, ?_⟩
-  simp only [trivializationAt_twistSumCoreOptionEquiv_symm]
-  exact (ContinuousLinearEquiv.continuous _).continuousAt.comp
-    (continuous_snd.continuousAt.comp
-      ((trivializationAt _ _ q₀.proj).continuousAt FiberBundle.mem_trivializationAt_proj_source))
+  have h : Continuous fun x : ℙ 𝕜 (Fin (n + 1) → 𝕜) ↦
+      TotalSpace.mk' (𝕜 × (κ → 𝕜) →L[𝕜] Option κ → 𝕜)
+        (E := fun x ↦ ((twistCore (k none)).Fiber ×ᵇ (twistSumCore fun l ↦ k (some l)).Fiber) x
+          →L[𝕜] (twistSumCore k).Fiber x) x
+        ((twistSumCoreOptionEquiv k x).symm : _ →L[𝕜] (twistSumCore k).Fiber x) := by
+    refine TauCeti.continuous_hom_bundle_of_inCoordinates_eq_const
+      (c := fun _ ↦ ((ContinuousLinearEquiv.piOptionEquivProd (ι := κ) (M := fun _ ↦ 𝕜) 𝕜).symm :
+        _ →L[𝕜] _)) ?_
+    exact inCoordinates_twistSumCoreOptionEquiv_symm k
+  exact Continuous.clm_bundle_apply (F₁ := 𝕜 × (κ → 𝕜))
+    (E₁ := (twistCore (k none)).Fiber ×ᵇ (twistSumCore fun l ↦ k (some l)).Fiber)
+    (F₂ := Option κ → 𝕜) (E₂ := (twistSumCore k).Fiber)
+    (h.comp (FiberBundle.continuous_proj _ _)) continuous_id
 
 variable (k : κ → ℤ)
 
@@ -383,6 +411,31 @@ theorem twistSumCoreCongr_apply {κ' : Type*} [Fintype κ'] (k : κ' → ℤ) (e
     twistSumCoreCongr k e x v (e a) = v a :=
   ContinuousLinearEquiv.piCongrLeft_apply_apply (R := 𝕜) (φ := fun _ ↦ 𝕜) e v a
 
+/-- In the trivializations at `x₀` of both bundles, `twistSumCoreCongr k e` is
+`ContinuousLinearEquiv.piCongrLeft`. -/
+private theorem inCoordinates_twistSumCoreCongr {κ' : Type*} [Fintype κ'] (k : κ' → ℤ)
+    (e : κ ≃ κ') (x₀ x : ℙ 𝕜 (Fin (n + 1) → 𝕜))
+    (hx : x ∈ (trivializationAt (κ → 𝕜) (twistSumCore fun a ↦ k (e a)).Fiber x₀).baseSet)
+    (hx' : x ∈ (trivializationAt (κ' → 𝕜) (twistSumCore k).Fiber x₀).baseSet) :
+    ContinuousLinearMap.inCoordinates (κ → 𝕜) (twistSumCore fun a ↦ k (e a)).Fiber (κ' → 𝕜)
+        (twistSumCore k).Fiber x₀ x x₀ x
+        (twistSumCoreCongr k e x : _ →L[𝕜] (twistSumCore k).Fiber x) =
+      (ContinuousLinearEquiv.piCongrLeft 𝕜 (fun _ ↦ 𝕜) e : (κ → 𝕜) →L[𝕜] κ' → 𝕜) := by
+  refine ContinuousLinearMap.ext fun v ↦ ?_
+  simp only [ContinuousLinearMap.inCoordinates, ContinuousLinearMap.comp_apply,
+    Trivialization.symmL_apply _ hx, Trivialization.continuousLinearMapAt_apply_of_mem _ _ hx',
+    ContinuousLinearEquiv.coe_coe]
+  have hv := congrArg Prod.snd
+    ((trivializationAt (κ → 𝕜) (twistSumCore fun a ↦ k (e a)).Fiber x₀).apply_mk_symm hx v)
+  dsimp only at hv
+  conv_rhs => rw [← hv]
+  funext b
+  obtain ⟨a, rfl⟩ := e.surjective b
+  -- Each coordinate is read in the trivialization of its summand `𝒪(k (e a))`.
+  refine (twistSumCore_trivializationAt_apply_snd_eq_twistCore k x₀ x _ (e a)).trans ?_
+  rw [ContinuousLinearEquiv.piCongrLeft_apply_apply, twistSumCoreCongr_apply]
+  exact (twistSumCore_trivializationAt_apply_snd_eq_twistCore (fun a ↦ k (e a)) x₀ x _ a).symm
+
 /-- `twistSumCoreCongr` is continuous on total spaces: in every standard chart it is the constant
 map `ContinuousLinearEquiv.piCongrLeft`, which commutes with the diagonal coordinate changes. -/
 theorem continuous_twistSumCoreCongr {κ' : Type*} [Fintype κ'] (k : κ' → ℤ) (e : κ ≃ κ') :
@@ -390,28 +443,17 @@ theorem continuous_twistSumCoreCongr {κ' : Type*} [Fintype κ'] (k : κ' → �
         (twistSumCore (𝕜 := 𝕜) (n := n) fun a ↦ k (e a)).Fiber ↦
       TotalSpace.mk' (κ' → 𝕜) (E := (twistSumCore k).Fiber) p.proj
         (twistSumCoreCongr k e p.proj p.snd) := by
-  refine continuous_iff_continuousAt.2 fun p₀ ↦ ?_
-  rw [FiberBundle.continuousAt_totalSpace]
-  refine ⟨(FiberBundle.continuous_proj _ _).continuousAt, ?_⟩
-  have h (p : TotalSpace (κ → 𝕜) (twistSumCore (𝕜 := 𝕜) (n := n) fun a ↦ k (e a)).Fiber) :
-      (trivializationAt (κ' → 𝕜) (twistSumCore k).Fiber p₀.proj
-          (TotalSpace.mk' (κ' → 𝕜) (E := (twistSumCore k).Fiber) p.proj
-            (twistSumCoreCongr k e p.proj p.snd))).2 =
-        ContinuousLinearEquiv.piCongrLeft 𝕜 (fun _ ↦ 𝕜) e
-          (trivializationAt (κ → 𝕜) (twistSumCore fun a ↦ k (e a)).Fiber p₀.proj p).2 := by
-    obtain ⟨x, v⟩ := p
-    funext b
-    obtain ⟨a, rfl⟩ := e.surjective b
-    -- Each coordinate is read in the trivialization of its summand `𝒪(k (e a))`.
-    refine (twistSumCore_trivializationAt_apply_snd_eq_twistCore k p₀.proj x
-      (twistSumCoreCongr k e x v) (e a)).trans ?_
-    rw [ContinuousLinearEquiv.piCongrLeft_apply_apply, twistSumCoreCongr_apply]
-    exact (twistSumCore_trivializationAt_apply_snd_eq_twistCore (fun a ↦ k (e a)) p₀.proj x v
-      a).symm
-  refine ContinuousAt.congr ?_ (Filter.Eventually.of_forall fun p ↦ (h p).symm)
-  exact (ContinuousLinearEquiv.continuous _).continuousAt.comp
-    (continuous_snd.continuousAt.comp
-      ((trivializationAt _ _ p₀.proj).continuousAt FiberBundle.mem_trivializationAt_proj_source))
+  have h : Continuous fun x : ℙ 𝕜 (Fin (n + 1) → 𝕜) ↦
+      TotalSpace.mk' ((κ → 𝕜) →L[𝕜] κ' → 𝕜)
+        (E := fun x ↦ (twistSumCore fun a ↦ k (e a)).Fiber x →L[𝕜] (twistSumCore k).Fiber x) x
+        (twistSumCoreCongr k e x : _ →L[𝕜] (twistSumCore k).Fiber x) := by
+    refine TauCeti.continuous_hom_bundle_of_inCoordinates_eq_const
+      (c := fun _ ↦ (ContinuousLinearEquiv.piCongrLeft 𝕜 (fun _ ↦ 𝕜) e :
+        (κ → 𝕜) →L[𝕜] κ' → 𝕜)) ?_
+    exact inCoordinates_twistSumCoreCongr k e
+  exact Continuous.clm_bundle_apply (F₁ := κ → 𝕜) (E₁ := (twistSumCore fun a ↦ k (e a)).Fiber)
+    (F₂ := κ' → 𝕜) (E₂ := (twistSumCore k).Fiber)
+    (h.comp (FiberBundle.continuous_proj _ _)) continuous_id
 
 end Sum
 
