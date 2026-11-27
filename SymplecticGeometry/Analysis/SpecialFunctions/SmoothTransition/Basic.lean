@@ -7,12 +7,13 @@ module
 
 public import Mathlib.Analysis.Calculus.BumpFunction.InnerProduct
 public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
+import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import Mathlib.Analysis.Calculus.LocalExtr.Basic
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Deriv
 import SymplecticGeometry.Topology.Order.NhdsSet
 public import TauCeti.Geometry.Manifold.Instances.Icc.CollaredSmoothTransition
 import TauCeti.Analysis.Calculus.Deriv.Parity
-import TauCeti.Analysis.SpecialFunctions.SmoothTransition
+public import TauCeti.Analysis.SpecialFunctions.SmoothTransition
 
 /-!
 # Cutoffs and reparametrizations built from the smooth transition function
@@ -43,6 +44,15 @@ it adds that the map is `0` near `0` and `1` near `1`
 `[0, η]` for `η ≥ 0` (`TauCeti.one_sub_collaredSmoothTransition_mul_mem_Icc`), and that its
 derivative is positive at every point where its value is neither `0` nor `1`
 (`TauCeti.deriv_collaredSmoothTransition_pos`).
+
+For Tau Ceti's smooth lower truncation `TauCeti.smoothLowerTruncation a b`, the map
+`s ↦ a + τ((s - a) / (b - a)) (s - a)` that is `a` up to `a` and the identity from `b` on, it
+computes the derivative (`TauCeti.hasDerivAt_smoothLowerTruncation`) and shows that the map is
+monotone for all `a` and `b` (`TauCeti.monotone_smoothLowerTruncation`), with positive derivative
+on `(a, ∞)` when `a < b` (`TauCeti.deriv_smoothLowerTruncation_pos`). Conjugating by `x ↦ -x`
+gives, for `c < b`, a smooth monotone map that is the identity up to `c`, equal to `b` from `b`
+on, at most `b`, and with positive derivative on `(-∞, b)`
+(`Real.exists_contDiff_monotone_eqOn_id_Iic_eqOn_const_Ici`).
 
 It also gives a smooth map `c : ℝ → ℝ` that is the identity on a closed interval `[a, b]`,
 takes its values in the open interval `(a - ε, b + ε)`, and is constant outside it
@@ -218,7 +228,67 @@ theorem deriv_collaredSmoothTransition_pos {s : ℝ}
   rw [hd.deriv, mul_one]
   exact mul_pos (Real.smoothTransition.deriv_pos hs₀ hs₁) two_pos
 
+/-- The derivative of the smooth lower truncation `a + τ((s - a) / (b - a)) (s - a)` is
+`τ'((s - a) / (b - a)) (s - a) / (b - a) + τ((s - a) / (b - a))`. -/
+theorem hasDerivAt_smoothLowerTruncation (a b s : ℝ) :
+    HasDerivAt (smoothLowerTruncation a b)
+      (deriv Real.smoothTransition ((s - a) / (b - a)) / (b - a) * (s - a) +
+        Real.smoothTransition ((s - a) / (b - a))) s := by
+  have hu := ((hasDerivAt_id s).sub_const a).div_const (b - a)
+  have h := (hu.smoothTransition.mul ((hasDerivAt_id s).sub_const a)).const_add a
+  convert h using 1
+  · exact funext (smoothLowerTruncation_def a b)
+  · simp only [id]
+    ring
+
+/-- The smooth lower truncation is monotone. -/
+theorem monotone_smoothLowerTruncation (a b : ℝ) : Monotone (smoothLowerTruncation a b) := by
+  refine monotone_of_deriv_nonneg
+    ((contDiff_smoothLowerTruncation a b (n := 1)).differentiable one_ne_zero) fun s ↦ ?_
+  rw [(hasDerivAt_smoothLowerTruncation a b s).deriv]
+  have h₁ := Real.smoothTransition.mul_deriv_nonneg ((s - a) / (b - a))
+  have h₂ := Real.smoothTransition.nonneg ((s - a) / (b - a))
+  have : deriv Real.smoothTransition ((s - a) / (b - a)) / (b - a) * (s - a) =
+      (s - a) / (b - a) * deriv Real.smoothTransition ((s - a) / (b - a)) := by ring
+  linarith
+
+/-- For `a < b`, the smooth lower truncation has positive derivative on `(a, ∞)`. -/
+theorem deriv_smoothLowerTruncation_pos {a b s : ℝ} (hab : a < b) (hs : a < s) :
+    0 < deriv (smoothLowerTruncation a b) s := by
+  rw [(hasDerivAt_smoothLowerTruncation a b s).deriv]
+  have := Real.smoothTransition.deriv_nonneg ((s - a) / (b - a))
+  have := Real.smoothTransition.pos_of_pos (div_pos (sub_pos.2 hs) (sub_pos.2 hab))
+  have := sub_pos.2 hab
+  have := sub_pos.2 hs
+  positivity
+
 end TauCeti
+
+namespace Real
+
+open Set
+open scoped ContDiff
+
+/-- For `c < b` there is a smooth monotone function `φ : ℝ → ℝ` that is the identity on
+`(-∞, c]`, equal to `b` on `[b, ∞)`, at most `b` everywhere, and with positive derivative on
+`(-∞, b)`. It is `x ↦ -smoothLowerTruncation (-b) (-c) (-x)`; the mirror form, constant up to `c`
+and the identity from `b` on, is `TauCeti.smoothLowerTruncation c b` itself
+(`TauCeti.monotone_smoothLowerTruncation`, `TauCeti.deriv_smoothLowerTruncation_pos`). -/
+theorem exists_contDiff_monotone_eqOn_id_Iic_eqOn_const_Ici {c b : ℝ} (hcb : c < b) :
+    ∃ φ : ℝ → ℝ, ContDiff ℝ ∞ φ ∧ Monotone φ ∧ EqOn φ id (Iic c) ∧
+      EqOn φ (fun _ ↦ b) (Ici b) ∧ (∀ x, φ x ≤ b) ∧ ∀ x < b, 0 < deriv φ x := by
+  have hbc : -b < -c := neg_lt_neg hcb
+  refine ⟨fun x ↦ -TauCeti.smoothLowerTruncation (-b) (-c) (-x),
+    ((TauCeti.contDiff_smoothLowerTruncation _ _).comp contDiff_neg).neg,
+    fun x y hxy ↦ neg_le_neg (TauCeti.monotone_smoothLowerTruncation _ _ (neg_le_neg hxy)),
+    fun x hx ↦ ?_, fun x hx ↦ ?_, fun x ↦ ?_, fun x hx ↦ ?_⟩
+  · simp [TauCeti.smoothLowerTruncation_of_right_le hbc (neg_le_neg (mem_Iic.1 hx))]
+  · simp [TauCeti.smoothLowerTruncation_of_le_left hbc.le (neg_le_neg (mem_Ici.1 hx))]
+  · exact neg_le.1 (TauCeti.le_smoothLowerTruncation hbc.le _)
+  · rw [deriv.fun_neg, deriv_comp_neg, neg_neg]
+    exact TauCeti.deriv_smoothLowerTruncation_pos hbc (neg_lt_neg hx)
+
+end Real
 
 namespace ContDiffOn
 

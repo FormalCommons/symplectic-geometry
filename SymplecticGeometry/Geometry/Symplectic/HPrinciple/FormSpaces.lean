@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
 public import TauCeti.Topology.CWComplex.Classical.CWType
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Topology
 public import TauCeti.Geometry.Manifold.DeRham.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
 import SymplecticGeometry.Geometry.Manifold.DeRham.Map
 import SymplecticGeometry.AlgebraicTopology.Homotopy.Domination
@@ -186,8 +187,7 @@ theorem Bundle.ContMDiffTwoForm.tangentEquiv_symm_mpullback_timeSlice_zero
     ContMDiffTwoForm.tangentEquiv.symm (TauCeti.SmoothForm.mpullback (h.timeSlice 0)
       (h.timeSlice 0).contMDiff (ContMDiffTwoForm.tangentEquiv σ)) = σ := by
   have h0 : (h.timeSlice 0 : M → M) = id := funext fun x ↦ by simp
-  rw [TauCeti.SmoothForm.mpullback_congr _ contMDiff_id h0, TauCeti.SmoothForm.mpullback_id,
-    LinearMap.id_apply, LinearEquiv.symm_apply_apply]
+  rw [TauCeti.SmoothForm.mpullback_eq_self_of_eq_id _ h0, LinearEquiv.symm_apply_apply]
 
 /-- Let `h` be a smooth isotopy from the identity of `M` to a map `j` whose image has compact
 closure, `C` a convex set of two-forms on the tangent bundle and `S` a set of nondegenerate forms
@@ -289,8 +289,7 @@ theorem cwType_symplecticFormsInClass (hcover : ∀ x, ∃ i, x ∈ U i)
   have hcl : ContMDiffTwoForm.tangentEquiv σ ∈ TauCeti.closedForms I M 2 := by
     simpa using add_mem (TauCeti.exactForms_le_closedForms I 2 hσ) hα
   have hex := TauCeti.SmoothForm.mpullback_sub_mpullback_timeSlice_mem_exactForms h t hcl
-  rw [TauCeti.SmoothForm.mpullback_congr _ contMDiff_id (funext ContMDiffMap.id_apply),
-    TauCeti.SmoothForm.mpullback_id, LinearMap.id_apply] at hex
+  rw [TauCeti.SmoothForm.mpullback_eq_self_of_eq_id _ (funext ContMDiffMap.id_apply)] at hex
   simp only [mem_symplecticFormsInClass, LinearEquiv.apply_symm_apply]
   refine ⟨⟨(TauCeti.SmoothForm.isClosed_iff_mem_closedForms _).2
     (TauCeti.SmoothForm.mpullback_mem_closedForms _ _ hcl), ?_⟩, ?_⟩

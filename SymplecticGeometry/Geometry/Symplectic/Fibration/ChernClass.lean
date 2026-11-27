@@ -11,6 +11,7 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.RealC
 public import SymplecticGeometry.Geometry.Symplectic.Fibration.HorizontalDistribution
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.MapFiber
+import SymplecticGeometry.Geometry.Symplectic.Fibration.Thurston
 
 /-!
 # The vertical bundle of a symplectic atlas and its real first Chern class
@@ -44,6 +45,13 @@ to every fibre is the real first Chern class of `σ`.
 * `TauCeti.MapFiber.Atlas.map_realFirstChernClass_vertical`: the pull-back of
   `realFirstChernClass_vertical A` along each fibre inclusion `j` of a chart is the real first
   Chern class of `σ`.
+* `TauCeti.MapFiber.Atlas.map_inv_smul_realFirstChernClass_vertical`: the Chern class criterion;
+  if `c₁(TF) = c • [σ]` with `c ≠ 0`, the class `c⁻¹ • realFirstChernClass_vertical A` restricts
+  to `[σ]` on every fibre.
+* `TauCeti.MapFiber.Atlas.exists_isSymplectic_compatible_of_realFirstChernClass_eq`: then, for
+  compact `M` and a connected symplectic base, Thurston's theorem
+  (`TauCeti.MapFiber.Atlas.exists_isSymplectic_restricts_mk_eq`) gives a symplectic form on `M`
+  that restricts to `σ` along `A`.
 
 ## Implementation notes
 
@@ -59,15 +67,14 @@ vertically closed form of `TauCeti.SmoothTwoForm.exists_restrictsTo_isVertically
 The proof of `map_realFirstChernClass_vertical` adapts that of
 `TauCeti.SmoothTwoForm.IsNondegenerate.realFirstChernClass_mpullback`: the derivatives of the
 fibre inclusion `j` are isomorphisms from `TF` onto the pull-back `j *ᵖ ker d proj`
-(`Bundle.Trivialization.injective_mfderiv_fiberInclusionMap` and
-`Bundle.Trivialization.range_mfderiv_fiberInclusionMap`), smooth on total spaces, which carry the
+(`Bundle.Trivialization.mfderivFiberInclusionMapEquiv`), smooth on total spaces, which carry the
 form of `σ = j^* τ` to the pull-back of the vertical restriction of `τ`. So the result follows from
 `realFirstChernClass_pushforward` and `realFirstChernClass_pullback` for forms on bundles.
 
 ## References
 
 * [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*, 3rd ed.][McDuffSalamon2017],
-  §6.1 and §6.3.
+  §6.1 (Lemma 6.1.7 and Corollary 6.1.8) and §6.3.
 -/
 
 public section
@@ -227,16 +234,19 @@ theorem map_realFirstChernClass_vertical [FiniteDimensional ℝ EF] [IF.Boundary
   have := _root_.Bundle.Pullback.contMDiffVectorBundle (F := Fin k → ℝ) (E := fun x ↦ V x) hj
   -- The derivative of `j` at `y` is an isomorphism from `T_y F` onto the vertical space at `j y`.
   let Φ (y : F) : TangentSpace IF y ≃L[ℝ] ((j : F → M) *ᵖ (fun x ↦ V x)) y :=
-    ((LinearEquiv.ofInjective _ ((A.trivAt b).injective_mfderiv_fiberInclusionMap hdj hb' y)).trans
-      (LinearEquiv.ofEq _ _
-        ((A.trivAt b).range_mfderiv_fiberInclusionMap hdj hb' y))).toContinuousLinearEquiv
+    (Trivialization.mfderivFiberInclusionMapEquiv hdj hb' y).toContinuousLinearEquiv
+  have hΦv (y : F) (v : TangentSpace IF y) :
+      (Subtype.val (Φ y v) : TangentSpace IM (j y)) = mfderiv IF IM j y v :=
+    Trivialization.coe_mfderivFiberInclusionMapEquiv_apply hdj hb' y v
   have hΦ : ContMDiff (IF.prod 𝓘(ℝ, EF)) (IF.prod 𝓘(ℝ, Fin k → ℝ)) ∞
       (fun p : TangentBundle IF F ↦ TotalSpace.mk' (Fin k → ℝ) p.proj (Φ p.proj p.snd)) := by
     rw [_root_.Bundle.Pullback.contMDiff_iff j hj]
-    exact ⟨contMDiff_proj _, fun p ↦ hD.contMDiffAt_totalSpace_mk
+    refine ⟨contMDiff_proj _, fun p ↦ hD.contMDiffAt_totalSpace_mk
       (b := fun p : TangentBundle IF F ↦ j p.proj)
-      (w := fun p ↦ mfderiv IF IM j p.proj p.snd) (hj.contMDiff_tangentMap (by simp) p)
+      (w := fun p ↦ Subtype.val (Φ p.proj p.snd)) ?_
       fun p ↦ (Φ p.proj p.snd).property⟩
+    simp_rw [hΦv]
+    exact hj.contMDiff_tangentMap (by simp) p
   obtain ⟨hτ, -⟩ := (SmoothTwoForm.exists_restrictsTo_isVerticallyClosed hA hH
     hσ.isClosed).choose_spec
   have hτj := hτ.mpullback_fiberInclusionMap_eq hA hb'
@@ -249,9 +259,68 @@ theorem map_realFirstChernClass_vertical [FiniteDimensional ℝ EF] [IF.Boundary
   rw [ContMDiffTwoForm.bilinFormAt_pullback, IsContMDiffDistribution.bilinFormAt_restrictTwoForm,
     ContMDiffTwoForm.bilinFormAt_tangentEquiv_symm]
   conv_rhs => rw [← hτj, SmoothForm.bilinFormAt_mpullback]
-  -- The fibre `(j *ᵖ V) y` is `V (j y)` only by definition, so the lemmas on `restrict` do not
-  -- match; both sides are `τ_{j y} (dj v, dj w)`, by the definition of `Φ`.
-  rfl
+  -- The fibre `(j *ᵖ V) y` is `V (j y)` only by definition, so `restrict_apply` does not match
+  -- the left side as it is stated.
+  change SmoothForm.bilinFormAt _ (j y) (Subtype.val (Φ y v)) (Subtype.val (Φ y w)) = _
+  rw [hΦv, hΦv, LinearMap.BilinForm.comp_apply, ContinuousLinearMap.coe_coe]
+
+/-! ### The Chern class criterion -/
+
+/-- **The Chern class criterion.** Let `A` be a symplectic atlas of `proj : M → B` for `(F, σ)`
+such that `c₁(TF) = c • [σ]` in `H²(F; ℝ)` for a real `c ≠ 0`. Then the fibre inclusion of every
+chart of `A` over every point of its base set pulls `c⁻¹ • realFirstChernClass_vertical A` back
+to `[σ]`.
+
+Milestone: *Chern class criterion for compatible symplectic forms*. -/
+theorem map_inv_smul_realFirstChernClass_vertical [FiniteDimensional ℝ EF] [IF.Boundaryless]
+    [T2Space F] [SigmaCompactSpace F] (G' : Type*) [NormedAddCommGroup G'] [NormedSpace ℂ G']
+    [FiniteDimensional ℂ G'] [Fact (finrank ℝ EF = 2 * finrank ℂ G')]
+    (hA : A.IsContMDiff ∞ IB IF IM)
+    (hH : A.HasStructureGroup (SmoothForm.diffeomorphStabilizer σ)) (hσ : σ.IsSymplectic)
+    {c : ℝ} (hc : c ≠ 0)
+    (hσc : hσ.isNondegenerate.realFirstChernClass G' =
+      c • deRhamCohomology.mk IF 2 ⟨σ, hσ.isClosed.mem_closedForms⟩)
+    {b b' : B} (hb' : b' ∈ (A.trivAt b).baseSet) :
+    deRhamCohomology.map ((A.trivAt b).fiberInclusionMap hb')
+        ((A.trivAt b).contMDiff_fiberInclusionMap (hA.contMDiffOn_trivAt_symm b) hb') 2
+        (c⁻¹ • A.realFirstChernClass_vertical G hA hH hσ) =
+      deRhamCohomology.mk IF 2 ⟨σ, hσ.isClosed.mem_closedForms⟩ := by
+  rw [map_smul, map_realFirstChernClass_vertical G G' hA hH hσ hb', hσc, smul_smul,
+    inv_mul_cancel₀ hc, one_smul]
+
+/-- **Compatible symplectic forms from the Chern class criterion.** Let `A` be a symplectic atlas
+of `proj : M → B` for `(F, σ)` such that `c₁(TF) = c • [σ]` in `H²(F; ℝ)` for a real `c ≠ 0`. If
+`M` is compact and `B` is connected and has a symplectic form `β`, then some symplectic form on
+`M` restricts to `σ` along `A`.
+
+This is the consequence that the milestone *Chern class criterion for compatible symplectic forms*
+states, there for a compact base: Thurston's theorem applies to the class
+`c⁻¹ • realFirstChernClass_vertical A`, computed with the complex model `G'` of `TF`, since the
+vertical bundle has the rank `dim F` (`TauCeti.MapFiber.Atlas.IsContMDiff.finrank_sub_finrank_eq`).
+-/
+theorem exists_isSymplectic_compatible_of_realFirstChernClass_eq [FiniteDimensional ℝ EF]
+    [IF.Boundaryless] [T2Space F] [SigmaCompactSpace F] [CompactSpace M] [ConnectedSpace B]
+    (G' : Type*) [NormedAddCommGroup G'] [NormedSpace ℂ G'] [FiniteDimensional ℂ G']
+    [Fact (finrank ℝ EF = 2 * finrank ℂ G')] (hA : A.IsContMDiff ∞ IB IF IM)
+    (hH : A.HasStructureGroup (SmoothForm.diffeomorphStabilizer σ)) (hσ : σ.IsSymplectic)
+    {c : ℝ} (hc : c ≠ 0)
+    (hσc : hσ.isNondegenerate.realFirstChernClass G' =
+      c • deRhamCohomology.mk IF 2 ⟨σ, hσ.isClosed.mem_closedForms⟩)
+    {β : SmoothTwoForm IB B} (hβ : β.IsSymplectic) :
+    ∃ θ : SmoothTwoForm IM M, θ.IsSymplectic ∧ A.RestrictsTo σ θ := by
+  rcases isEmpty_or_nonempty M with hM | hM
+  · -- Over an empty `M`, every form is symplectic, and the model fibre `F` is empty too.
+    exact ⟨0, ⟨SmoothForm.isClosed_zero,
+      SmoothTwoForm.isNondegenerate_iff_separatingLeft.2 fun x ↦ isEmptyElim x⟩,
+      restrictsTo_iff.2 fun b _ hb' ↦
+        funext fun v ↦ isEmptyElim ((A.trivAt b).fiberInclusionMap hb' v)⟩
+  have : Fact (finrank ℝ EM - finrank ℝ EB = 2 * finrank ℂ G') :=
+    ⟨(hA.finrank_sub_finrank_eq (by simp)).trans Fact.out⟩
+  obtain ⟨b⟩ := ‹ConnectedSpace B›.toNonempty
+  obtain ⟨K₀, hK₀⟩ := exists_isSymplectic_restricts_mk_eq hA hH hσ hβ (A.mem_baseSet_trivAt b)
+    (map_inv_smul_realFirstChernClass_vertical G' G' hA hH hσ hc hσc (A.mem_baseSet_trivAt b))
+  obtain ⟨θ, hθ, hθA, -⟩ := hK₀ K₀ le_rfl
+  exact ⟨θ, hθ, hθA⟩
 
 end TauCeti.MapFiber.Atlas
 

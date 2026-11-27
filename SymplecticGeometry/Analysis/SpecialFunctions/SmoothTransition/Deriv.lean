@@ -17,6 +17,8 @@ Mathlib's `Real.smoothTransition` is `0` on `(-∞, 0]`, `1` on `[1, ∞)`, and 
 vanishes outside `[0, 1]`. By the quotient rule, with `τ = Real.smoothTransition`, this file
 shows `τ' = τ (1 - τ) (x⁻² + (1 - x)⁻²)` (`Real.smoothTransition.deriv_eq_mul_one_sub_mul`).
 Hence the derivative is positive on the open interval `(0, 1)` (`Real.smoothTransition.deriv_pos`),
+and that of the rescaled transition `x ↦ τ((x - p) / (q - p))` on `(p, q)`
+(`Real.smoothTransition.deriv_comp_sub_div_pos`),
 and `8 τ (1 - τ) ≤ τ'`, since `x⁻² + (1 - x)⁻² ≥ 8` on `(0, 1)`
 (`Real.smoothTransition.eight_mul_mul_one_sub_le_deriv`). Since `τ'` vanishes outside `[0, 1]`,
 also `|x τ'(x)| ≤ τ'(x)` (`Real.smoothTransition.abs_mul_deriv_le_deriv`), and `x τ''(x)` is bounded
@@ -54,6 +56,15 @@ theorem deriv_pos {x : ℝ} (h₀ : 0 < x) (h₁ : x < 1) : 0 < deriv smoothTran
   have := pos_of_pos h₀
   rw [deriv_eq_mul_one_sub_mul]
   positivity
+
+/-- For `p < q`, the rescaled smooth transition `x ↦ smoothTransition ((x - p) / (q - p))`, which
+is `0` on `(-∞, p]` and `1` on `[q, ∞)`, has positive derivative on `(p, q)`. -/
+theorem deriv_comp_sub_div_pos {p q x : ℝ} (hx : x ∈ Set.Ioo p q) :
+    0 < deriv (fun y ↦ smoothTransition ((y - p) / (q - p))) x := by
+  have hpq : 0 < q - p := sub_pos.2 (hx.1.trans hx.2)
+  rw [(((hasDerivAt_id' x).sub_const p).div_const (q - p)).smoothTransition.deriv]
+  refine mul_pos (deriv_pos (div_pos (sub_pos.2 hx.1) hpq) ?_) (div_pos one_pos hpq)
+  exact (div_lt_one hpq).2 (by linarith [hx.2])
 
 /-- The derivative of the smooth transition function `τ` is at least `8 τ (1 - τ)`, since
 `x⁻² + (1 - x)⁻² ≥ 8` on `(0, 1)` and `τ (1 - τ)` vanishes outside it. -/
