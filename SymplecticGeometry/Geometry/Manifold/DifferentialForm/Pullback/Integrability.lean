@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import Mathlib.MeasureTheory.Function.LocallyIntegrable
+import TauCeti.Geometry.Manifold.ContMDiff.Defs
 
 /-!
 # Integrability of the density of a two-form along a `C¹` map
@@ -14,10 +15,10 @@ public import Mathlib.MeasureTheory.Function.LocallyIntegrable
 Let `u : E' → M` be a map from a normed space into a manifold and `φ` a continuous two-form on
 `M`. The density `z ↦ φ (u z) (du_z a, du_z b)` of `φ` along `u`, for fixed vectors `a` and `b`,
 is continuous where `u` is `C¹` (Tau Ceti's `TauCeti.IsSmoothForm.continuousOn_apply_mfderiv`),
-since the points where `u` is `C¹` form an open set. So it is integrable, for any measure finite
-on compact sets, over a compact set at each point of which `u` is `C¹`
-(`TauCeti.IsSmoothForm.integrableOn_apply_mfderiv`), and, in a proper space, over a bounded set
-at each point of whose closure `u` is `C¹`
+since the points where `u` is `C¹` form an open set (`TauCeti.isOpen_setOfPred_contMDiffAt`). So
+it is integrable, for any measure finite on compact sets, over a compact set at each point of
+which `u` is `C¹` (`TauCeti.IsSmoothForm.integrableOn_apply_mfderiv`), and, in a proper space,
+over a bounded set at each point of whose closure `u` is `C¹`
 (`TauCeti.SmoothForm.integrableOn_eval₂_mfderiv_of_isBounded`, for smooth forms and in the
 notation `eval₂`).
 
@@ -54,11 +55,8 @@ theorem IsSmoothForm.integrableOn_apply_mfderiv {φ : RoughForm I M F 2}
     (hφ : IsSmoothForm I 0 φ) {K : Set E'} (hK : IsCompact K)
     (hu : ∀ z ∈ K, ContMDiffAt 𝓘(ℝ, E') I 1 u z) (a b : E') :
     IntegrableOn (fun z ↦ φ (u z) ![mfderiv 𝓘(ℝ, E') I u z a, mfderiv 𝓘(ℝ, E') I u z b]) K μ := by
-  -- The points where `u` is `C¹` form an open set, on which `u` is `C¹`.
-  have hU : IsOpen {z | ContMDiffAt 𝓘(ℝ, E') I 1 u z} :=
-    isOpen_iff_mem_nhds.2 fun _ hz ↦ (contMDiffAt_iff_contMDiffAt_nhds (by simp)).1 hz
-  exact ((hφ.continuousOn_apply_mfderiv hU (fun _ hz ↦ hz.contMDiffWithinAt) a b).mono
-    hu).integrableOn_compact hK
+  exact ((hφ.continuousOn_apply_mfderiv (isOpen_setOfPred_contMDiffAt (by simp))
+    (fun _ hz ↦ hz.contMDiffWithinAt) a b).mono hu).integrableOn_compact hK
 
 /-- **The density of a smooth two-form along a `C¹` map is integrable on bounded sets.** In a
 proper space `E'`, if `u : E' → M` is `C¹` at each point of the closure of a bounded set `Ω`,
