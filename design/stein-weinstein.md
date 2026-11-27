@@ -768,15 +768,19 @@ containing `ι '' closedBall 0 1`:
        is smooth on a neighbourhood of `Icc c b` (convolution with a
        `ContDiffBump`, glued by a cutoff). It turns finitely many members
        into smooth convex shapes `A i` (step 1).
-    3. `exists_forall_isConvexShapeAt_smoothedMax_sub`
-       (`Surround/ConvexShape.lean`, making the step
-       `isConvexShapeAt_smoothedMax_of_le` public): for smooth `M`, `A`,
-       convex shapes on `Icc r₁ r₂`, and `η' > 0` with every `A - s`,
-       `s ∈ Icc 0 η'`, a convex shape there, one `δ > 0` makes
-       `fun r ↦ smoothedMax δ (M r) (A r - s)` a convex shape on
-       `Icc r₁ r₂` for all these `s` at once: the margins and bounds in the
-       proof of `exists_isConvexShapeAt_eq_max` do not change when `A` is
-       shifted by a constant.
+    3. `exists_forall_isConvexShapeAt_smoothedMax`
+       (`Surround/ConvexShape.lean`, through the public pointwise step
+       `exists_pos_forall_isConvexShapeAt_smoothedMax`, whose `δ₀` depends
+       only on a margin `a > 0` and bounds `G`, `Q`): for a compact `K`
+       and `C²` families `M p`, `A p`, `p ∈ K`, of convex shapes on
+       `Icc r₁ r₂`, whose values and first two `r`-derivatives are
+       continuous on `K ×ˢ Icc r₁ r₂`, some `δ₀ > 0` makes
+       `fun r ↦ smoothedMax δ (M p r) (A p r)` a convex shape on
+       `Icc r₁ r₂` for all `δ ∈ Ioc 0 δ₀` and `p ∈ K` at once:
+       the margins and bounds in the proof of
+       `exists_isConvexShapeAt_eq_max`, which is its case of one point, are
+       uniform over the compact set. Step 4 takes `A p = A - p`,
+       `p ∈ Icc 0 η'`.
     4. `exists_monotone_shapeChain` (`Surround/ShapeFoliation.lean`): a
        smooth family that is only weakly increasing. Take
        `ℓ₀ < a < b < ℓ₁` with `Icc ℓ₀ a ×ˢ Icc r₁ r₂` and
@@ -1655,8 +1659,9 @@ are set on compact manifolds. Three pieces are missing:
   (for each `n ≥ 1`, a map `ι : A.stableSubspace → M` with `ι 0 = p`,
   `C^n` with injective `mfderiv` on `ball 0 ρ`, whose image there lies in
   the stable set and contains the points of the stable set near `p` with
-  `f` near `f p`, and with `d(e ∘ φ_t ∘ ι)` bounded in `t ≥ 0`, `e` the
-  extended chart at `p`); and the main results
+  `f` near `f p`, and with `φ_t (ι z)` in the source of `e` and
+  `e ∘ φ_t ∘ ι` differentiable at `z`, with derivative bounded in `t ≥ 0`,
+  `e` the extended chart at `p`); and the main results
   `IsWeinsteinStructure.interior_apply_mfderiv_eq_zero_of_range_subset_stableSet`
   and `IsWeinsteinStructure.apply_mfderiv_mfderiv_eq_zero_of_range_subset_stableSet`.
 - Issue 15e, `Weinstein/Handle/AttachingSphere.lean`, for
