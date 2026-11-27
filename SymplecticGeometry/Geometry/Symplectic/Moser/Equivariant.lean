@@ -25,7 +25,6 @@ import SymplecticGeometry.Topology.Sets.Opens.Basic
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.NestedOpens
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
 /-!
 # The equivariant Moser flow and the equivariant relative Moser theorem

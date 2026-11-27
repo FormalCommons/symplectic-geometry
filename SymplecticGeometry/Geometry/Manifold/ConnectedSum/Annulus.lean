@@ -7,7 +7,6 @@ module
 
 public import SymplecticGeometry.Topology.Sets.Annulus
 public import SymplecticGeometry.Geometry.Manifold.Gluing.Pair
-public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 public import Mathlib.Analysis.Normed.Module.FiniteDimension
 public import TauCeti.Geometry.Manifold.ConnectedSum.Smooth
 public import SymplecticGeometry.Geometry.Manifold.ConnectedSum.OrientationPreserving
