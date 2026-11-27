@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Model
 public import Mathlib.Analysis.CStarAlgebra.Classes
 import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Tautological
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
@@ -90,6 +91,9 @@ divisor is the image of the holomorphic (resp. smooth) embedding `Blowup.divisor
 * `SymplecticGeometry.Blowup.contMDiff_blowdown`,
   `SymplecticGeometry.Blowup.blowdown_eq_center_iff`:
   the blowdown is holomorphic, and the preimage of `p₀` is the exceptional divisor.
+* `SymplecticGeometry.Blowup.isLocalDiffeomorphAt_blowdown`: off the divisor, the blowdown is a
+  local biholomorphism.
+* `SymplecticGeometry.Blowup.injOn_blowdown`: the blowdown is injective off the divisor.
 
 The Hausdorff property follows from the criterion `SymplecticGeometry.GluedAlong.t2Space_iff`:
 a point `x ≠ p₀` and a point of the divisor are separated by the preimages of disjoint
@@ -316,6 +320,9 @@ theorem ofDirection_def (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
 
 theorem ofDirection_injective : Injective (ofDirection c) := fun _ _ h ↦
   zeroSection_injective (congrArg Subtype.val (GluedAlong.inr_injective (gluingHomeomorph c) h))
+
+/-- The blowup is nonempty: it contains the exceptional divisor. -/
+instance : Nonempty (Blowup c) := ⟨ofDirection c (Classical.arbitrary _)⟩
 
 /-- The exceptional divisor of the blowup: the image of the zero section of the model, a copy
 of `ℙ ℂ (Fin (n + 1) → ℂ)`. -/
@@ -616,6 +623,13 @@ def blowdown : C(Blowup c, M) :=
 theorem blowdown_inl (x : puncturedOpens c) : blowdown c (inl (gluingHomeomorph c) x) = x :=
   GluedAlong.desc_inl _ _ x
 
+/-- The blowdown is injective off the exceptional divisor. -/
+theorem injOn_blowdown : InjOn (blowdown c) (exceptionalDivisor c)ᶜ := by
+  rw [← range_inl]
+  rintro _ ⟨x, rfl⟩ _ ⟨x', rfl⟩ h
+  rw [blowdown_inl, blowdown_inl] at h
+  rw [Subtype.ext h]
+
 /-- On the part of the model over the target of `c`, the blowdown is `c.symm ∘ π`. -/
 @[simp]
 theorem blowdown_inr (y : modelOpens c) :
@@ -705,6 +719,12 @@ theorem coe_blowdownDiffeomorph_apply (z : offDivisorOpens c) :
     (blowdownDiffeomorph c z : M) = blowdown c z := by
   conv_rhs => rw [← (blowdownDiffeomorph c).symm_apply_apply z]
   rw [coe_blowdownDiffeomorph_symm_apply, blowdown_inl]
+
+/-- Off the exceptional divisor, the blowdown `Blowup c → M` is a local biholomorphism. -/
+theorem isLocalDiffeomorphAt_blowdown {z : Blowup c} (hz : z ∉ exceptionalDivisor c) :
+    IsLocalDiffeomorphAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω (blowdown c) z :=
+  (blowdownDiffeomorph c).isLocalDiffeomorphAt_of_coe_eq
+    (fun v ↦ (coe_blowdownDiffeomorph_apply c v).symm) ⟨z, by simpa using hz⟩
 
 end Complex
 
