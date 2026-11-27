@@ -18,6 +18,7 @@ import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Injective
 import SymplecticGeometry.Topology.Sets.Opens.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 import TauCeti.Geometry.Manifold.DifferentialForm.Cutoff
+import TauCeti.Topology.Algebra.Support
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
@@ -87,10 +88,8 @@ and the pull-back of restricted forms along a partial diffeomorphism of open sub
 The proofs of the last item adapt those of Tau Ceti's `TauCeti.mpullback_inclusion_mextDeriv` and
 `TauCeti.RoughForm.inChartAt_mpullback_inclusion_eventuallyEq`, with Tau Ceti's
 `TopologicalSpace.Opens.coe_extChartAt_symm_apply` for the agreement of the inverse charts. The
-proofs of `TauCeti.RoughForm.tsupport_extendByZeroOfOpens_subset` and
-`TauCeti.RoughForm.mextDeriv_extendByZeroOfOpens` adapt those of Tau Ceti's
-`TauCeti.RoughForm.tsupport_extendByZero_subset` and `TauCeti.RoughForm.mextDeriv_extendByZero`
-to extension along `Subtype.val`.
+proof of `TauCeti.RoughForm.mextDeriv_extendByZeroOfOpens` adapts that of Tau Ceti's
+`TauCeti.RoughForm.mextDeriv_extendByZero` to extension along `Subtype.val`.
 
 ## Pull-back along a partial diffeomorphism of open subsets
 
@@ -207,30 +206,18 @@ theorem extendByZeroOfOpens_fun_smul {U : Opens M} (f : M → ℝ) (ξ : RoughFo
   · rw [extendByZeroOfOpens_apply_of_notMem _ hx, extendByZeroOfOpens_apply_of_notMem ξ hx,
       smul_zero]
 
-/-- Viewed as a function to the model fibre, the extension by zero to `M` is `Function.extend`
-along `Subtype.val`. -/
-private theorem extendByZeroOfOpens_eq_extend {U : Opens M} (ξ : RoughForm I U F k) :
-    (extendByZeroOfOpens ξ : M → E [⋀^Fin k]→L[ℝ] F) =
-      Function.extend (Subtype.val : U → M) (ξ : U → E [⋀^Fin k]→L[ℝ] F)
-        (0 : M → E [⋀^Fin k]→L[ℝ] F) := by
-  funext x
-  by_cases hx : x ∈ U
-  · exact (extendByZeroOfOpens_apply_of_mem ξ hx).trans
-      (Subtype.val_injective.extend_apply _ (0 : M → E [⋀^Fin k]→L[ℝ] F) ⟨x, hx⟩).symm
-  · have hxr : ¬∃ y : U, (y : M) = x := by
-      rintro ⟨y, rfl⟩
-      exact hx y.property
-    exact (extendByZeroOfOpens_apply_of_notMem ξ hx).trans
-      (Function.extend_apply' (γ := E [⋀^Fin k]→L[ℝ] F) (f := Subtype.val) ξ 0 x hxr).symm
-
 /-- On a Hausdorff manifold, the extension by zero to `M` of a compactly supported form on an
 open subset `U` is supported in the image of the support of the form. -/
 theorem tsupport_extendByZeroOfOpens_subset [T2Space M] {U : Opens M} {ξ : RoughForm I U F k}
     (hξ : IsCompact (_root_.tsupport (α := E [⋀^Fin k]→L[ℝ] F) ξ)) :
     _root_.tsupport (α := E [⋀^Fin k]→L[ℝ] F) (extendByZeroOfOpens ξ) ⊆
       Subtype.val '' _root_.tsupport (α := E [⋀^Fin k]→L[ℝ] F) ξ := by
-  rw [extendByZeroOfOpens_eq_extend]
-  exact HasCompactSupport.tsupport_extend_zero_subset hξ continuous_subtypeVal
+  refine TauCeti.tsupport_subset_of_forall_notMem_eq_zero (fun x hx ↦ ?_)
+    (hξ.image continuous_subtypeVal).isClosed
+  by_cases hU : x ∈ U
+  · rw [extendByZeroOfOpens_apply_of_mem ξ hU]
+    exact image_eq_zero_of_notMem_tsupport fun h ↦ hx ⟨_, h, rfl⟩
+  · exact extendByZeroOfOpens_apply_of_notMem ξ hU
 
 end RoughForm
 
