@@ -16,7 +16,6 @@ import SymplecticGeometry.Geometry.Manifold.FiberBundle.RestrictsTo
 import SymplecticGeometry.Geometry.Manifold.Orientation.PositiveForm
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.ChangeOfVariables
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Regularity
-import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.PartitionOfUnity
 
 /-!
 # Area forms on the fibres of an oriented surface fibration
@@ -29,9 +28,10 @@ integral one (`TauCeti.MapFiber.Atlas.exists_restricts_isPositive_area`).
 The construction: a top form on `F` inducing `o`, divided by its integral, is a form `σ₀`
 positive for `o` of integral one (`TauCeti.exists_smoothForm_pos_integralTopForm_eq_one`). Glue
 the pull-backs of `σ₀` along the fibre coordinates of the charts with a partition of unity of the
-base, as in the proof of `TauCeti.SmoothTwoForm.exists_restrictsTo_isVerticallyClosed`. On the
-fibre over `b'`, the glued form is the combination, with the weights at `b'`, of the pull-backs
-of `σ₀` along coordinate changes. These preserve `o`, so each pull-back is positive for `o`
+base (`TauCeti.MapFiber.Atlas.glueForm`). On the fibre over `b'`, the glued form is the
+combination, with the weights at `b'`, of the pull-backs of `σ₀` along coordinate changes
+(`TauCeti.MapFiber.Atlas.mpullback_fiberInclusionMap_glueForm`). These preserve `o`, so each
+pull-back is positive for `o`
 (`TauCeti.Manifold.Orientation.IsOrientationPreservingAt.mpullback_apply_pos`) and has integral
 one (change of variables,
 `Topology.IsOpenEmbedding.integralTopForm_mpullback_of_isOrientationPreservingAt`); and the
@@ -68,47 +68,6 @@ variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] {HB : Type*}
   [IsManifold IM ∞ M]
   {proj : M → B} {A : Atlas F proj} {o : Manifold.Orientation IF F (Fin 2)}
 
-omit [IsManifold IM ∞ M] in
-/-- On the fibre over `b'` of the chart `A.trivAt b`, the form glued from the pull-backs of `σ₀`
-along the fibre coordinates is the combination, with the weights at `b'`, of the pull-backs of
-`σ₀` along orientation-preserving coordinate changes. -/
-private theorem mpullback_fiberInclusionMap_sum_eq (hA : A.IsContMDiff ∞ IB IF IM)
-    (hH : A.HasStructureGroup (Diffeomorph.orientationPreservingSubgroup (n := ∞) (by simp) o))
-    {ρ : SmoothPartitionOfUnity B IB B univ}
-    (hρ : ρ.IsSubordinate fun i ↦ (A.trivAt i).baseSet) (σ₀ : SmoothTwoForm IF F) {b b' : B}
-    (hb' : b' ∈ (A.trivAt b).baseSet) :
-    ∃ φ : B → F ≃ₘ⟮IF, IF⟯ F, (∀ i ∈ ρ.finsupport b',
-      φ i ∈ Diffeomorph.orientationPreservingSubgroup (n := ∞) (by simp) o) ∧
-      TauCeti.mpullback IF IM ((A.trivAt b).fiberInclusionMap hb')
-        (fun x ↦ ∑ i ∈ ρ.finsupport (proj x),
-          ρ i (proj x) • TauCeti.mpullback IM IF (fun y ↦ (A.trivAt i y).2) σ₀.val x) =
-      ∑ i ∈ ρ.finsupport b', ρ i b' • TauCeti.mpullback IF IF (φ i) σ₀.val := by
-  set ι := (A.trivAt b).fiberInclusionMap hb'
-  have hmem : ∀ i ∈ ρ.finsupport b', b' ∈ (A.trivAt i).baseSet := fun i hi ↦
-    hρ i (subset_tsupport _ ((ρ.mem_finsupport b').1 hi))
-  have hφ : ∀ i, ∃ φ : F ≃ₘ⟮IF, IF⟯ F, i ∈ ρ.finsupport b' →
-      φ ∈ Diffeomorph.orientationPreservingSubgroup (n := ∞) (by simp) o ∧
-        TauCeti.mpullback IF IM ι (TauCeti.mpullback IM IF (fun y ↦ (A.trivAt i y).2) σ₀.val) =
-          TauCeti.mpullback IF IF φ σ₀.val := fun i ↦ by
-    by_cases hi : i ∈ ρ.finsupport b'
-    · obtain ⟨φ, hφ, hφe⟩ := hasStructureGroup_iff.1 hH b i b' hb' (hmem i hi)
-      have he := hA.mdifferentiable_trivAt (by simp) i
-      refine ⟨φ, fun _ ↦ ⟨hφ, ?_⟩⟩
-      rw [(A.trivAt b).mpullback_fiberInclusionMap_eq_mpullback_coordChange he hb' (hmem i hi)
-        (hφe ▸ φ.mdifferentiable (by simp)),
-        (A.trivAt i).mpullback_fiberInclusionMap_mpullback_snd he (hmem i hi), ← hφe]
-    · exact ⟨Diffeomorph.refl IF F ∞, fun h ↦ absurd h hi⟩
-  choose φ hφ using hφ
-  refine ⟨φ, fun i hi ↦ (hφ i hi).1, funext fun v ↦ ?_⟩
-  ext w
-  have hp : proj (ι v) = b' := (A.trivAt b).proj_fiberInclusionMap hb' v
-  rw [TauCeti.mpullback_apply, hp, Finset.sum_apply, ContinuousAlternatingMap.sum_apply,
-    ContinuousAlternatingMap.sum_apply]
-  refine Finset.sum_congr rfl fun i hi ↦ ?_
-  rw [Pi.smul_apply, ContinuousAlternatingMap.smul_apply, ContinuousAlternatingMap.smul_apply,
-    ← (hφ i hi).2]
-  simp only [TauCeti.mpullback_apply]
-
 variable [FiniteDimensional ℝ EB] [IsManifold IB ∞ B]
 
 /-- **Area forms on the fibres.** Let `A` be a smooth atlas of `proj : M → B`, over a Hausdorff
@@ -130,18 +89,26 @@ theorem exists_restricts_isPositive_area [T2Space B] [SigmaCompactSpace B] [T2Sp
   obtain ⟨ρ, hρ⟩ := SmoothPartitionOfUnity.exists_isSubordinate IB isClosed_univ
     (fun i ↦ (A.trivAt i).baseSet) (fun i ↦ (A.trivAt i).open_baseSet)
     A.iUnion_baseSet_trivAt.ge
-  have hτ := isSmoothForm_sum_finsupport_smul_mpullback hρ (fun i ↦ (A.trivAt i).open_baseSet)
-    hA.contMDiff_proj (fun _ _ ↦ hA.contMDiffAt_snd_trivAt) σ₀
-  refine ⟨⟨_, hτ.mem_smoothBundleForms⟩, fun b b' hb' ↦ ?_⟩
-  obtain ⟨φ, hφ, heq⟩ := mpullback_fiberInclusionMap_sum_eq hA hH hρ σ₀ hb'
-  rw [SmoothForm.coe_mpullback]
-  rw [heq]
+  refine ⟨⟨_, (isSmoothForm_glueForm hA hρ σ₀).mem_smoothBundleForms⟩, fun b b' hb' ↦ ?_⟩
+  -- On the fibre over `b'`, the glued form combines the pull-backs of `σ₀` along the coordinate
+  -- changes over `b'`, which are orientation-preserving diffeomorphisms `φ i`.
+  have hφ : ∀ i, ∃ φ : F ≃ₘ⟮IF, IF⟯ F, i ∈ ρ.finsupport b' →
+      φ ∈ Diffeomorph.orientationPreservingSubgroup (n := ∞) (by simp) o ∧
+        ⇑φ = (A.trivAt b).coordChange (A.trivAt i) b' := fun i ↦ by
+    by_cases hi : i ∈ ρ.finsupport b'
+    · obtain ⟨φ, hφ, hφe⟩ := hasStructureGroup_iff.1 hH b i b' hb'
+        (hρ i (subset_tsupport _ ((ρ.mem_finsupport b').1 hi)))
+      exact ⟨φ, fun _ ↦ ⟨hφ, hφe⟩⟩
+    · exact ⟨Diffeomorph.refl IF F ∞, fun h ↦ absurd h hi⟩
+  choose φ hφ using hφ
+  rw [SmoothForm.coe_mpullback, mpullback_fiberInclusionMap_glueForm hA hρ,
+    Finset.sum_congr rfl fun i hi ↦ by rw [← (hφ i hi).2]]
   have hsum : ∑ i ∈ ρ.finsupport b', ρ i b' = 1 := ρ.sum_finsupport (x₀ := b') (mem_univ _)
   have hpos : ∀ i ∈ ρ.finsupport b', 0 < ρ i b' := fun i hi ↦
     lt_of_le_of_ne (ρ.nonneg i b') (Ne.symm ((ρ.mem_finsupport b').1 hi))
   have hop : ∀ i ∈ ρ.finsupport b', ∀ x,
       Manifold.Orientation.IsOrientationPreservingAt o o (φ i) x := fun i hi ↦
-    Diffeomorph.mem_orientationPreservingSubgroup_iff.1 (hφ i hi)
+    Diffeomorph.mem_orientationPreservingSubgroup_iff.1 (hφ i hi).1
   refine ⟨fun x c hc ↦ ?_, ?_⟩
   · rw [Finset.sum_apply, ContinuousAlternatingMap.sum_apply]
     refine Finset.sum_pos (fun i hi ↦ ?_)
