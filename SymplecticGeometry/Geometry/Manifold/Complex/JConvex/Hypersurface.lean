@@ -11,6 +11,9 @@ import SymplecticGeometry.Geometry.Manifold.RegularValue.DefiningFunction
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Flat
 import TauCeti.Geometry.Manifold.RegularValue.NormSq
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Dolbeault.Potential
+import SymplecticGeometry.Geometry.Manifold.Complex.LeviForm
+import Mathlib.Analysis.SpecialFunctions.ExpDeriv
+import TauCeti.Topology.Algebra.Order.Field
 
 /-!
 # J-convex hypersurfaces and their contact structure
@@ -48,6 +51,17 @@ since `g = a * f` near `x` with `a x = c`, by
 of `f` is positive on the complex tangencies of `{f = 0}` at `x` iff that of `g` is positive on
 those of `{g = 0}` (`SymplecticGeometry.forall_re_manifoldLeviForm_pos_iff_of_mvfderiv_eq_smul`).
 
+If, at each point of a compact set `K`, the Levi form of `f` is positive on the nonzero vectors
+`v` with `df(v) = df(i v) = 0`, then a convex enough reparametrization of `f` is strictly
+plurisubharmonic on `K`
+(`SymplecticGeometry.exists_isManifoldStrictlyPlurisubharmonicAt_comp_of_isCompact`): there is
+`C ≥ 0` such that `g ∘ f` is strictly plurisubharmonic on `K` whenever `0 < g'` and
+`C g' ≤ g''` on `f '' K`. The real part of the Levi form of `g ∘ f` on `(v, v)` is
+`g' Re L_f(v, v) + g'' (df(v)² + df(i v)²) / 4`. At one point, the compactness of the unit
+sphere gives the constant (Tau Ceti's `IsCompact.eventually_forall_mul_add_pos`); since
+`exp (c f)` is then strictly plurisubharmonic there, the same constant works nearby, and a finite
+cover of `K` gives one constant for all of it.
+
 Examples: the regular levels of a Stein function
 (`SymplecticGeometry.IsSteinFunction.isJConvexLevel`) and the spheres `‖z‖² = c`, `c > 0`, of a
 complex inner product space
@@ -56,7 +70,8 @@ complex inner product space
 ## References
 
 * [K. Cieliebak, Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
-  Chapter 2, on J-convex functions and hypersurfaces.
+  Chapter 2, on J-convex functions and hypersurfaces, and Lemma 2.7 for
+  `SymplecticGeometry.exists_isManifoldStrictlyPlurisubharmonicAt_comp_of_isCompact`.
 -/
 
 public section
@@ -162,6 +177,117 @@ theorem forall_re_manifoldLeviForm_pos_iff_of_mvfderiv_eq_smul [CompleteSpace E]
   refine imp_congr_ctx (hdg v) fun hv ↦ imp_congr_ctx (hdg _) fun hIv ↦ imp_congr_right fun _ ↦ ?_
   rw [manifoldLeviForm_apply_of_mvfderiv_eq_smul hf hg hfx hf' hgf hfg hv hIv hv hIv,
     Complex.re_ofReal_mul, mul_pos_iff_of_pos_left hc]
+
+/-! ### Convex reparametrizations of a defining function -/
+
+/-- **Convex reparametrizations of a function with positive Levi form on its complex tangencies,
+on a compact set.** Let `f` be `C²` on an open set `U`, and `K ⊆ U` compact, such that at each
+point `x` of `K` the Levi form of `f` has positive real part on the nonzero vectors `v` with
+`df(v) = df(i v) = 0`. Then there is `C ≥ 0` such that `g ∘ f` is strictly plurisubharmonic at
+every point of `K`, for every `C²` function `g : ℝ → ℝ` with `0 < g'` and `C g' ≤ g''` on
+`f '' K`. -/
+theorem exists_isManifoldStrictlyPlurisubharmonicAt_comp_of_isCompact [FiniteDimensional ℂ E]
+    [IsManifold 𝓘(ℂ, E) 2 M] {f : M → ℝ} {U K : Set M} (hU : IsOpen U)
+    (hf : ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ) 2 f U) (hK : IsCompact K) (hKU : K ⊆ U)
+    (hL : ∀ x ∈ K, ∀ v : E, mvfderiv 𝓘(ℝ, E) f x v = 0 →
+      mvfderiv 𝓘(ℝ, E) f x (Complex.I • v) = 0 → v ≠ 0 → 0 < (manifoldLeviForm E f x v v).re) :
+    ∃ C, 0 ≤ C ∧ ∀ g : ℝ → ℝ, ContDiff ℝ 2 g → (∀ t ∈ f '' K, 0 < deriv g t) →
+      (∀ t ∈ f '' K, C * deriv g t ≤ iteratedDeriv 2 g t) →
+      ∀ x ∈ K, IsManifoldStrictlyPlurisubharmonicAt E (g ∘ f) x := by
+  have : FiniteDimensional ℝ E := .complexToReal E
+  have hfx {x : M} (hx : x ∈ U) : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) 2 f x :=
+    hf.contMDiffAt (hU.mem_nhds hx)
+  -- `Q x v = df(v)² + df(i v)²`, and `P x c` says that `Re L_f(v, v) + c Q(v) / 4 > 0` at `x`
+  -- for `v ≠ 0`.
+  set Q : M → E → ℝ := fun x v ↦
+    mvfderiv 𝓘(ℝ, E) f x v ^ 2 + mvfderiv 𝓘(ℝ, E) f x (Complex.I • v) ^ 2
+  have hQ0 (x : M) (v : E) : 0 ≤ Q x v := by positivity
+  set P : M → ℝ → Prop := fun x c ↦
+    ∀ v : E, v ≠ 0 → 0 < (manifoldLeviForm E f x v v).re + c / 4 * Q x v
+  have hPmono {x : M} {c c' : ℝ} (hc : c ≤ c') (h : P x c) : P x c' := fun v hv ↦ by
+    have := h v hv
+    have := hQ0 x v
+    nlinarith
+  -- At each point of `K`, some natural `n` gives `P x n`: by compactness of the unit sphere, on
+  -- which `Q x` is nonnegative and the Levi form is positive where `Q x` vanishes.
+  have hpt (x : M) (hx : x ∈ K) : ∃ n : ℕ, P x n := by
+    set B := fderiv ℝ (fderiv ℝ (f ∘ (chartAt E x).symm)) (chartAt E x x)
+    let D := mvfderiv 𝓘(ℝ, E) f x
+    have hQv (w : E) : Q x w = D w ^ 2 + D (Complex.I • w) ^ 2 := rfl
+    have hp (v : E) :
+        (manifoldLeviForm E f x v v).re = (B v v + B (Complex.I • v) (Complex.I • v)) / 4 := by
+      rw [manifoldLeviForm_def, re_leviForm_apply]
+    have hsmul (r : ℝ) (u : E) : Complex.I • (r • u) = r • (Complex.I • u) := smul_comm _ _ _
+    have hD (r : ℝ) (u : E) : D (r • u) = r * D u := map_smul D r u
+    have hDc : Continuous fun v : E ↦ D v := D.continuous
+    have hpq (v : E) (hv : v ∈ Metric.sphere (0 : E) 1) (h : Q x v / 4 = 0) :
+        0 < (manifoldLeviForm E f x v v).re := by
+      have h0 : D v ^ 2 + D (Complex.I • v) ^ 2 = 0 := by rw [hQv] at h; linarith
+      have h1 : D v = 0 := by nlinarith [sq_nonneg (D v), sq_nonneg (D (Complex.I • v))]
+      have h2 : D (Complex.I • v) = 0 := by
+        nlinarith [sq_nonneg (D v), sq_nonneg (D (Complex.I • v))]
+      refine hL x hx v h1 h2 ?_
+      rintro rfl
+      simp at hv
+    obtain ⟨n, hn⟩ := (tendsto_natCast_atTop_atTop.eventually
+      ((isCompact_sphere (0 : E) 1).eventually_forall_mul_add_pos
+        (f := fun v ↦ Q x v / 4) (g := fun v ↦ (manifoldLeviForm E f x v v).re)
+        (by simp only [hQv]; fun_prop) (by simp only [hp]; fun_prop)
+        (fun v _ ↦ by have := hQ0 x v; positivity) hpq)).exists
+    refine ⟨n, fun v hv ↦ ?_⟩
+    have hr : 0 < ‖v‖ := norm_pos_iff.2 hv
+    have hu : ‖v‖⁻¹ • v ∈ Metric.sphere (0 : E) 1 := by
+      rw [mem_sphere_zero_iff_norm, norm_smul, norm_inv, norm_norm, inv_mul_cancel₀ hr.ne']
+    have h := hn _ hu
+    have hv' : v = ‖v‖ • (‖v‖⁻¹ • v) := by rw [smul_smul, mul_inv_cancel₀ hr.ne', one_smul]
+    set u := ‖v‖⁻¹ • v
+    rw [hv']
+    simp only [hp, hQv, hsmul, hD, map_smul, smul_apply, smul_eq_mul] at h ⊢
+    have : 0 < ‖v‖ ^ 2 := by positivity
+    nlinarith [mul_pos this h]
+  -- If `P x c` with `c > 0`, then `P y c` for `y` near `x`: `exp (c f)` is strictly
+  -- plurisubharmonic at `x`, hence near `x`.
+  have hφc (c : ℝ) : ContDiff ℝ 2 fun t : ℝ ↦ Real.exp (c * t) := by fun_prop
+  have hnhds (x : M) (hx : x ∈ U) (c : ℝ) (hc : 0 < c) (h : P x c) :
+      x ∈ interior {y | P y c} := by
+    have hexp (y : M) (hy : y ∈ U) (v : E) :
+        (manifoldLeviForm E ((fun t ↦ Real.exp (c * t)) ∘ f) y v v).re =
+          c * Real.exp (c * f y) * ((manifoldLeviForm E f y v v).re + c / 4 * Q y v) := by
+      rw [re_manifoldLeviForm_scalar_comp_apply_self (hφc c).contDiffAt (hfx hy) v,
+        iteratedDeriv_exp_const_mul, ← iteratedDeriv_one, iteratedDeriv_exp_const_mul]
+      ring
+    have hx' : IsManifoldStrictlyPlurisubharmonicAt E ((fun t ↦ Real.exp (c * t)) ∘ f) x := by
+      rw [isManifoldStrictlyPlurisubharmonicAt_iff]
+      intro v hv
+      rw [hexp x hx]
+      exact mul_pos (by positivity) (h v hv)
+    refine mem_interior_iff_mem_nhds.2 ?_
+    filter_upwards [hx'.eventually ((hφc c).contDiffAt.comp_contMDiffAt (hfx hx)),
+      hU.mem_nhds hx] with y hy hyU v hv
+    have := (isManifoldStrictlyPlurisubharmonicAt_iff.1 hy) v hv
+    rw [hexp y hyU] at this
+    exact pos_of_mul_pos_right this (by positivity)
+  -- By compactness, a single `n` serves all of `K`.
+  have hcov : K ⊆ ⋃ n : ℕ, interior {y | P y n} := fun x hx ↦ by
+    obtain ⟨n, hn⟩ := hpt x hx
+    exact mem_iUnion.2 ⟨n + 1, by
+      exact_mod_cast hnhds x (hKU hx) (n + 1) (by positivity) (hPmono (by simp) hn)⟩
+  obtain ⟨n, hn⟩ := hK.elim_directed_cover (fun n : ℕ ↦ interior {y | P y n})
+    (fun _ ↦ isOpen_interior) hcov
+    (Monotone.directed_le fun m n hmn ↦ interior_mono fun y hy ↦
+      hPmono (by exact_mod_cast hmn) hy)
+  -- With `g' > 0` and `n g' ≤ g''`, the Levi form of `g ∘ f` is at least `g'` times
+  -- `Re L_f(v, v) + n Q(v) / 4`.
+  refine ⟨n, n.cast_nonneg, fun g hg hg' hg'' x hx ↦ ?_⟩
+  have hPx : P x n := interior_subset (hn hx)
+  rw [isManifoldStrictlyPlurisubharmonicAt_iff]
+  intro v hv
+  rw [re_manifoldLeviForm_scalar_comp_apply_self hg.contDiffAt (hfx (hKU hx)) v]
+  have h1 := hPx v hv
+  have h2 := hg' _ (mem_image_of_mem f hx)
+  have h3 := hg'' _ (mem_image_of_mem f hx)
+  have h4 := hQ0 x v
+  nlinarith [mul_pos h2 h1, mul_le_mul_of_nonneg_right h3 h4]
 
 /-! ### The contact structure of a J-convex level -/
 

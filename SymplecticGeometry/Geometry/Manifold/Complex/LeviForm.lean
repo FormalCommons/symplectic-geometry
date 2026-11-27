@@ -22,6 +22,11 @@ In the preferred chart at `x` this is `TauCeti.IsStronglyPseudoconvexAt.eventual
 Ceti's `isManifoldStronglyPseudoconvexAt_iff_of_mem_maximalAtlas` lets that one chart serve all
 nearby points.
 
+It also records the real part of the Levi form of a composition `φ ∘ f` with a real function
+`φ` on the diagonal, in terms of `df(v)` and `df(i v)`
+(`TauCeti.re_manifoldLeviForm_scalar_comp_apply_self`), from Tau Ceti's
+`TauCeti.manifoldLeviForm_scalar_comp_apply`.
+
 ## References
 
 * [K. Cieliebak, Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
@@ -34,6 +39,32 @@ open Filter Topology
 open scoped Manifold ContDiff
 
 namespace TauCeti
+
+section ScalarComp
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E]
+  {M : Type*} [TopologicalSpace M] [ChartedSpace E M]
+
+/-- **The real part of the Levi form of `φ ∘ f` on the diagonal.** For `f` of class `C²` at `x`
+and `φ : ℝ → ℝ` of class `C²` at `f x`, the real part of the Levi form of `φ ∘ f` at `x` on `(v, v)`
+is `φ'(f x)` times that of `f`, plus `φ''(f x) / 4` times `df(v)² + df(i v)²`. -/
+theorem re_manifoldLeviForm_scalar_comp_apply_self {φ : ℝ → ℝ} {f : M → ℝ} {x : M}
+    (hφ : ContDiffAt ℝ 2 φ (f x)) (hf : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) 2 f x) (v : E) :
+    (manifoldLeviForm E (φ ∘ f) x v v).re = deriv φ (f x) * (manifoldLeviForm E f x v v).re +
+      iteratedDeriv 2 φ (f x) / 4 * (mvfderiv 𝓘(ℝ, E) f x v ^ 2 +
+        mvfderiv 𝓘(ℝ, E) f x (Complex.I • v) ^ 2) := by
+  rw [manifoldLeviForm_scalar_comp_apply hφ hf v v]
+  -- `erw` and the closing `rfl`: Tau Ceti's lemma applies `StrongDual.extendRCLike` to
+  -- `mvfderiv`, a covector on `TangentSpace 𝓘(ℝ, E) x` rather than on `E`, so its terms match
+  -- those of the statement only up to unfolding `TangentSpace`; `rw` and `simp` fail on them.
+  erw [StrongDual.extendRCLike_apply]
+  simp [Complex.mul_re, Complex.mul_im, RCLike.I_to_complex]
+  ring_nf
+  rfl
+
+end ScalarComp
+
+section Eventually
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] [FiniteDimensional ℂ E]
   {M : Type*} [TopologicalSpace M] [ChartedSpace E M] [IsManifold 𝓘(ℂ, E) 2 M]
@@ -64,6 +95,8 @@ theorem IsManifoldStrictlyPlurisubharmonicAt.eventually
     ∀ᶠ y in 𝓝 x, IsManifoldStrictlyPlurisubharmonicAt E f y := by
   simpa only [isManifoldStronglyPseudoconvexAt_zero_iff] using
     (h.isManifoldStronglyPseudoconvexAt 0).eventually hf
+
+end Eventually
 
 end TauCeti
 
