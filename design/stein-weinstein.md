@@ -1734,8 +1734,12 @@ are set on compact manifolds. Three pieces are missing:
   the stable set and contains the points of the stable set near `p` with
   `f` near `f p`, and with `φ_t (ι z)` in the source of `e` and
   `e ∘ φ_t ∘ ι` differentiable at `z`, with derivative bounded in `t ≥ 0`,
-  `e` the extended chart at `p`, and a left inverse of `ι` on `ball 0 ρ`,
-  smooth on the source of `e`); and the main results
+  `e` the extended chart at `p`, with `‖e (ι z) - e p‖ ≤ C * ‖z‖` near `0`,
+  and with the left inverse `x ↦ Q (e x - e p)` of `ι` on `ball 0 ρ`,
+  smooth on the source of `e`, for an idempotent `P` commuting with `A`
+  with range `A.stableSubspace` and its corestriction `Q`, under which
+  the forward orbits of the points of a small ball stay on the disc over
+  any given ball); and the main results
   `IsWeinsteinStructure.interior_apply_mfderiv_eq_zero_of_range_subset_stableSet`
   and `IsWeinsteinStructure.apply_mfderiv_mfderiv_eq_zero_of_range_subset_stableSet`.
 - Issue 15e, `Weinstein/Handle/AttachingSphere.lean`, for
