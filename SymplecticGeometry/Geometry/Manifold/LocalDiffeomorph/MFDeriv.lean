@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.MFDeriv.ModelChart
+import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 
 /-!
 # The differential of the inverse of a partial diffeomorphism
@@ -24,6 +25,13 @@ determinant on their sources. Smoothness is Tau Ceti's
 Ceti's `TauCeti.det_fderiv_symm_trans_ne_zero`, since `Φ` lies in the maximal atlas of the
 manifold.
 
+For two `C^n` partial diffeomorphisms `Φ` and `Ψ` from a manifold into normed spaces, the
+transition `Ψ ∘ Φ⁻¹` is `C^n` on its source and, for `n ≠ 0`, differentiable there, with the
+chain rule `dΨ = dτ ∘ dΦ` at the points of its source. If `Φ` and `Ψ` take values in the same
+space and pull a form `B` there back to the same form on the tangent spaces, the derivative of
+the transition preserves `B`. The proof of this last fact follows that of Tau Ceti's
+`PartialDiffeomorph.inner_fderiv_comp_symm`, with `B` in place of the inner product.
+
 ## Main definitions
 
 * `PartialDiffeomorph.mfderivSymmEquiv`: the differential of `Φ.symm` at a point `y` of the target,
@@ -40,6 +48,11 @@ manifold.
   `PartialDiffeomorph.det_fderiv_symm_trans_chartAt_ne_zero` and
   `PartialDiffeomorph.det_fderiv_chartAt_symm_trans_ne_zero`: the transitions between `Φ` and a
   chart are smooth, with derivatives of nonzero determinant.
+* `PartialDiffeomorph.contDiffOn_symm_trans`, `PartialDiffeomorph.differentiableAt_symm_trans`
+  and `PartialDiffeomorph.mvfderiv_eq_fderiv_symm_trans_comp`: the transition between two
+  partial diffeomorphisms into normed spaces is smooth, and the chain rule through it.
+* `PartialDiffeomorph.apply_fderiv_symm_trans_eq_of_mvfderiv`: the derivative of the transition
+  between two partial diffeomorphisms that pull a form back to the same form preserves it.
 -/
 
 public section
@@ -151,5 +164,70 @@ theorem det_fderiv_chartAt_symm_trans_ne_zero
     hz
 
 end ChartTransition
+
+section SymmTrans
+
+variable {F F' : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F] [NormedAddCommGroup F']
+  [NormedSpace 𝕜 F']
+
+/-- For `C^n` partial diffeomorphisms `Φ` and `Ψ` from `M` into normed spaces, the transition
+`Ψ ∘ Φ⁻¹` is `C^n` on its source. -/
+theorem contDiffOn_symm_trans (Φ : PartialDiffeomorph I 𝓘(𝕜, F) M F n)
+    (Ψ : PartialDiffeomorph I 𝓘(𝕜, F') M F' n) :
+    ContDiffOn 𝕜 n (Φ.toOpenPartialHomeomorph.symm ≫ₕ Ψ.toOpenPartialHomeomorph)
+      (Φ.toOpenPartialHomeomorph.symm ≫ₕ Ψ.toOpenPartialHomeomorph).source :=
+  OpenPartialHomeomorph.contDiffOn_symm_trans_of_contMDiffOn Ψ.contMDiffOn Φ.symm.contMDiffOn
+
+/-- For `C^n` partial diffeomorphisms `Φ` and `Ψ` from `M` into normed spaces, `n ≠ 0`, the
+transition `Ψ ∘ Φ⁻¹` is differentiable at each point of its source. -/
+theorem differentiableAt_symm_trans (Φ : PartialDiffeomorph I 𝓘(𝕜, F) M F n)
+    (Ψ : PartialDiffeomorph I 𝓘(𝕜, F') M F' n) (hn : n ≠ 0) {w : F}
+    (hw : w ∈ (Φ.toOpenPartialHomeomorph.symm ≫ₕ Ψ.toOpenPartialHomeomorph).source) :
+    DifferentiableAt 𝕜 (Φ.toOpenPartialHomeomorph.symm ≫ₕ Ψ.toOpenPartialHomeomorph) w :=
+  ((Φ.contDiffOn_symm_trans Ψ).differentiableOn hn w hw).differentiableAt
+    ((Φ.toOpenPartialHomeomorph.symm ≫ₕ Ψ.toOpenPartialHomeomorph).open_source.mem_nhds hw)
+
+/-- **The chain rule through a transition.** For `C^n` partial diffeomorphisms `Φ` and `Ψ` from
+`M` into normed spaces, `n ≠ 0`, and `w` in the source of the transition `Ψ ∘ Φ⁻¹`, the
+derivative of `Ψ` at `Φ⁻¹ w` is the derivative of the transition at `w` after the derivative of
+`Φ` at `Φ⁻¹ w`. -/
+theorem mvfderiv_eq_fderiv_symm_trans_comp (Φ : PartialDiffeomorph I 𝓘(𝕜, F) M F n)
+    (Ψ : PartialDiffeomorph I 𝓘(𝕜, F') M F' n) (hn : n ≠ 0) {w : F}
+    (hw : w ∈ (Φ.toOpenPartialHomeomorph.symm ≫ₕ Ψ.toOpenPartialHomeomorph).source) :
+    mvfderiv I Ψ (Φ.symm w) =
+      (fderiv 𝕜 (Φ.toOpenPartialHomeomorph.symm ≫ₕ Ψ.toOpenPartialHomeomorph) w).comp
+        (mvfderiv I Φ (Φ.symm w)) := by
+  have hw' : w ∈ Φ.target ∧ Φ.symm w ∈ Ψ.source := by simpa using hw
+  exact Φ.toOpenPartialHomeomorph.mvfderiv_eq_fderiv_symm_trans_comp hw
+    (Φ.mdifferentiableAt hn (Φ.map_target hw'.1)) (Φ.differentiableAt_symm_trans Ψ hn hw)
+
+/-- **Transitions between charts that pull back the same form preserve it.** Let `Φ` and `Ψ` be
+`C^n` partial diffeomorphisms from `M` into `F`, `n ≠ 0`, that both pull the form `B` on `F`
+back to the same form `β` on the tangent spaces of `M`: `β p u v = B (dΦ_p u) (dΦ_p v)` on the
+source of `Φ`, and likewise for `Ψ`. Then at each point `w` of the source of the transition
+`Ψ ∘ Φ⁻¹`, its derivative `T` satisfies `B (T u) (T v) = B u v`. -/
+theorem apply_fderiv_symm_trans_eq_of_mvfderiv {R : Type*}
+    (Φ Ψ : PartialDiffeomorph I 𝓘(𝕜, F) M F n) (hn : n ≠ 0) (B : F → F → R)
+    (β : ∀ p : M, TangentSpace I p → TangentSpace I p → R)
+    (hΦ : ∀ p ∈ Φ.source, ∀ u v, β p u v = B (mvfderiv I Φ p u) (mvfderiv I Φ p v))
+    (hΨ : ∀ p ∈ Ψ.source, ∀ u v, β p u v = B (mvfderiv I Ψ p u) (mvfderiv I Ψ p v)) {w : F}
+    (hw : w ∈ (Φ.toOpenPartialHomeomorph.symm ≫ₕ Ψ.toOpenPartialHomeomorph).source)
+    (u v : F) :
+    B (fderiv 𝕜 (Φ.toOpenPartialHomeomorph.symm ≫ₕ Ψ.toOpenPartialHomeomorph) w u)
+        (fderiv 𝕜 (Φ.toOpenPartialHomeomorph.symm ≫ₕ Ψ.toOpenPartialHomeomorph) w v) =
+      B u v := by
+  have hw' : w ∈ Φ.target ∧ Φ.symm w ∈ Ψ.source := by simpa using hw
+  -- The preimage of a vector under the derivative of `Φ` at `Φ⁻¹ w`.
+  have hinv (u : F) : mvfderiv I Φ (Φ.symm w) (mfderiv 𝓘(𝕜, F) I Φ.symm w u) = u := by
+    rw [mvfderiv_apply_eq_mfderiv_apply]
+    exact Φ.mfderiv_apply_mfderiv_symm_apply hn hw'.1 u
+  have hT (u : F) :
+      fderiv 𝕜 (Φ.toOpenPartialHomeomorph.symm ≫ₕ Ψ.toOpenPartialHomeomorph) w u =
+        mvfderiv I Ψ (Φ.symm w) (mfderiv 𝓘(𝕜, F) I Φ.symm w u) := by
+    rw [Φ.mvfderiv_eq_fderiv_symm_trans_comp Ψ hn hw, ContinuousLinearMap.comp_apply, hinv]
+  rw [hT, hT, ← hΨ _ hw'.2]
+  exact (hΦ _ (Φ.map_target hw'.1) _ _).trans (congrArg₂ B (hinv u) (hinv v))
+
+end SymmTrans
 
 end PartialDiffeomorph

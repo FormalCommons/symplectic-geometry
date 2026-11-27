@@ -17,15 +17,14 @@ and two points `x` and `y`, the transition `D.chartTransition k x y` is the map
 `D.chart k x ∘ (D.chart k y)⁻¹` from the chart centred at `y` to the chart centred at `x`, as a
 partial homeomorphism of `StdSpace ι`. This file proves what the defining properties of `D` give
 for it, for `k ≥ k₀`:
-* it is smooth on its source, which is open; for `y` in the source of `D.chart k x`, its source
-  contains `0` and it sends `0` to `D.chart k x y`, which is `z` for `y = (D.chart k x)⁻¹ z`;
+* for `y` in the source of `D.chart k x`, its source contains `0` and it sends `0` to
+  `D.chart k x y`, which is `z` for `y = (D.chart k x)⁻¹ z`;
 * its derivative preserves `stdForm ι`, since both charts pull `stdForm ι` back to `2π k σ`
-  (`SymplecticGeometry.RescaledUnitaryCharts.stdForm_fderiv_chartTransition`);
-* its derivative intertwines `J` read in the chart at `y` with `J` read in the chart at `x`
-  (`SymplecticGeometry.RescaledUnitaryCharts.chartPushforward_comp_fderiv_chartTransition`), by
-  Tau Ceti's change of chart rule
-  `TauCeti.ContMDiffAlmostComplexStructure.chartPushforward_symm_trans_comp_fderiv`;
-* hence its derivative at `w` is an isometry from the bilinear form `ω₀(·, J_y(w) ·)` to the
+  (`SymplecticGeometry.RescaledUnitaryCharts.stdForm_fderiv_chartTransition`, from
+  `PartialDiffeomorph.apply_fderiv_symm_trans_eq_of_mvfderiv`);
+* since its derivative intertwines `J` read in the chart at `y` with `J` read in the chart at
+  `x` (`TauCeti.SmoothAlmostComplexStructure.chartPushforward_symm_trans_comp_fderiv`), its
+  derivative at `w` is an isometry from the bilinear form `ω₀(·, J_y(w) ·)` to the
   bilinear form `ω₀(·, J_x(τ w) ·)`, `J_y` and `J_x` being `J` read in the two charts
   (`SymplecticGeometry.RescaledUnitaryCharts.stdForm_fderiv_chartTransition_chartPushforward`);
 * with the comparison of `2π k σ(v, J v)` with the norm in the charts
@@ -85,19 +84,6 @@ theorem mem_chartTransition_source_iff {k : ℕ} {x y : M} {w : StdSpace ι} :
       w ∈ (D.chart k y).target ∧ (D.chart k y).symm w ∈ (D.chart k x).source := by
   simp [chartTransition_def]
 
-/-- The transition between two charts is smooth on its source. -/
-theorem contDiffOn_chartTransition (k : ℕ) (x y : M) :
-    ContDiffOn ℝ ∞ (D.chartTransition k x y) (D.chartTransition k x y).source :=
-  OpenPartialHomeomorph.contDiffOn_symm_trans_of_contMDiffOn (D.chart k x).contMDiffOn
-    (D.chart k y).symm.contMDiffOn
-
-/-- The transition between two charts is differentiable at each point of its source. -/
-theorem differentiableAt_chartTransition {k : ℕ} {x y : M} {w : StdSpace ι}
-    (hw : w ∈ (D.chartTransition k x y).source) :
-    DifferentiableAt ℝ (D.chartTransition k x y) w :=
-  ((D.contDiffOn_chartTransition k x y).differentiableOn (by simp) w hw).differentiableAt
-    ((D.chartTransition k x y).open_source.mem_nhds hw)
-
 /-- For `y` in the source of the chart centred at `x`, the centre `0` of the chart at `y` lies in
 the source of the transition from the chart at `y` to the chart at `x`. -/
 theorem zero_mem_chartTransition_source {k : ℕ} (hk : k₀ ≤ k) {x y : M}
@@ -120,18 +106,6 @@ theorem chartTransition_symm_zero {k : ℕ} (hk : k₀ ≤ k) {x : M} {z : StdSp
     D.chartTransition k x ((D.chart k x).symm z) 0 = z :=
   (D.chartTransition_zero hk x _).trans ((D.chart k x).right_inv hz)
 
-/-- The derivative of a chart at a point `(D.chart k y)⁻¹ w` of the source of the transition is
-the derivative of the transition at `w` after the derivative of the chart at `y`. -/
-theorem mvfderiv_chart_eq_fderiv_chartTransition_comp {k : ℕ} {x y : M} {w : StdSpace ι}
-    (hw : w ∈ (D.chartTransition k x y).source) :
-    mvfderiv I (D.chart k x) ((D.chart k y).symm w) =
-      (fderiv ℝ (D.chartTransition k x y) w).comp
-        (mvfderiv I (D.chart k y) ((D.chart k y).symm w)) := by
-  have hw' := D.mem_chartTransition_source_iff.1 hw
-  exact (D.chart k y).toOpenPartialHomeomorph.mvfderiv_eq_fderiv_symm_trans_comp hw
-    ((D.chart k y).mdifferentiableAt (by simp) ((D.chart k y).map_target hw'.1))
-    (D.differentiableAt_chartTransition hw)
-
 /-- **Transitions preserve the standard form.** For `k ≥ k₀`, the derivative of the transition
 from the chart centred at `y` to the chart centred at `x`, at a point of its source, preserves
 `stdForm ι`. Both charts pull `stdForm ι` back to `2π k σ`. -/
@@ -139,39 +113,10 @@ theorem stdForm_fderiv_chartTransition {k : ℕ} (hk : k₀ ≤ k) {x y : M} {w 
     (hw : w ∈ (D.chartTransition k x y).source) (u v : StdSpace ι) :
     stdForm ι (fderiv ℝ (D.chartTransition k x y) w u) (fderiv ℝ (D.chartTransition k x y) w v) =
       stdForm ι u v := by
-  have hw' := D.mem_chartTransition_source_iff.1 hw
-  set p := (D.chart k y).symm w
-  have hpy : p ∈ (D.chart k y).source := (D.chart k y).map_target hw'.1
-  -- The preimages of `u` and `v` under the derivative of the chart at `y`.
-  have hinv (u : StdSpace ι) :
-      mvfderiv I (D.chart k y) p (mfderiv 𝓘(ℝ, StdSpace ι) I (D.chart k y).symm w u) = u := by
-    rw [mvfderiv_apply_eq_mfderiv_apply]
-    exact (D.chart k y).mfderiv_apply_mfderiv_symm_apply (by simp) hw'.1 u
-  have hT (u : StdSpace ι) : fderiv ℝ (D.chartTransition k x y) w u =
-      mvfderiv I (D.chart k x) p (mfderiv 𝓘(ℝ, StdSpace ι) I (D.chart k y).symm w u) := by
-    rw [D.mvfderiv_chart_eq_fderiv_chartTransition_comp hw, ContinuousLinearMap.comp_apply,
-      hinv]
-  rw [hT, hT, ← D.eval₂_eq hk x p hw'.2, D.eval₂_eq hk y p hpy, hinv, hinv]
-
-/-- **Transitions intertwine the structures read in the charts.** For `w` in the source of the
-transition `τ` from the chart centred at `y` to the chart centred at `x`, the derivative of `τ`
-at `w` carries `J` read in the chart at `y` at `w` to `J` read in the chart at `x` at `τ w`. -/
-theorem chartPushforward_comp_fderiv_chartTransition {k : ℕ} {x y : M} {w : StdSpace ι}
-    (hw : w ∈ (D.chartTransition k x y).source) :
-    (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph (D.chartTransition k x y w)).comp
-        (fderiv ℝ (D.chartTransition k x y) w) =
-      (fderiv ℝ (D.chartTransition k x y) w).comp
-        (J.chartPushforward (D.chart k y).toOpenPartialHomeomorph w) := by
-  have hw' := D.mem_chartTransition_source_iff.1 hw
-  have h := (J.toContMDiff ⊤).chartPushforward_symm_trans_comp_fderiv hw
-    ((D.chart k y).mdifferentiableAt (by simp) ((D.chart k y).map_target hw'.1))
-    (by
-      rw [PartialDiffeomorph.coe_toOpenPartialHomeomorph_symm]
-      exact (D.chart k x).symm.mdifferentiableAt (by simp)
-        ((D.chart k x).map_source hw'.2))
-    (D.differentiableAt_chartTransition hw)
-  rwa [SmoothAlmostComplexStructure.toContMDiff_chartPushforward,
-    SmoothAlmostComplexStructure.toContMDiff_chartPushforward] at h
+  rw [chartTransition_def] at hw ⊢
+  exact (D.chart k y).apply_fderiv_symm_trans_eq_of_mvfderiv (D.chart k x) (by simp)
+    (stdForm ι · ·) (fun p u v ↦ 2 * Real.pi * k * σ.eval₂ p u v) (D.eval₂_eq hk y)
+    (D.eval₂_eq hk x) hw u v
 
 /-- **Transitions are isometries of the metrics read in the charts.** For `k ≥ k₀` and `w` in the
 source of the transition `τ` from the chart centred at `y` to the chart centred at `x`, the
@@ -184,8 +129,9 @@ theorem stdForm_fderiv_chartTransition_chartPushforward {k : ℕ} (hk : k₀ ≤
         (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph (D.chartTransition k x y w)
           (fderiv ℝ (D.chartTransition k x y) w v)) =
       stdForm ι u (J.chartPushforward (D.chart k y).toOpenPartialHomeomorph w v) := by
-  have h := DFunLike.congr_fun (D.chartPushforward_comp_fderiv_chartTransition hw) v
-  rw [ContinuousLinearMap.comp_apply, ContinuousLinearMap.comp_apply] at h
+  have h := DFunLike.congr_fun (J.chartPushforward_symm_trans_comp_fderiv (D.chart k y)
+    (D.chart k x) (by rwa [chartTransition_def] at hw)) v
+  rw [ContinuousLinearMap.comp_apply, ContinuousLinearMap.comp_apply, ← chartTransition_def] at h
   rw [h, D.stdForm_fderiv_chartTransition hk hw]
 
 /-- At the centre `x` of the chart `D.chart k x`, for `k ≥ k₀`, the quadratic form
@@ -212,7 +158,9 @@ theorem norm_fderiv_chartTransition_zero_le {ρ₁ : ℝ} {k : ℕ} (hk : k₀ �
   have hy0 : (D.chart k y).symm 0 = y := D.chart_symm_zero hk y
   -- The derivative of the chart at `y`, at its centre `y`, and the chain rule there.
   have hinv := (D.chart k y).mfderiv_apply_mfderiv_symm_apply (by simp) h0y
-  have hT := D.mvfderiv_chart_eq_fderiv_chartTransition_comp h0
+  have hT := (D.chart k y).mvfderiv_eq_fderiv_symm_trans_comp (D.chart k x) (by simp)
+    (by rwa [chartTransition_def] at h0)
+  rw [← chartTransition_def] at hT
   rw [hy0] at hinv hT
   refine ContinuousLinearMap.opNorm_le_bound _ (by positivity) fun u ↦ ?_
   -- The tangent vector `v` at `y` that the chart at `y` sends to `u`.
