@@ -490,7 +490,7 @@ symplectic, so it sits with the manifold topic, beside Tau Ceti's
   through `exists_partialDiffeomorph_mfderiv_eq'`, so that only `M₀` is
   second countable,
   with `hA` read in tangent coordinates through
-  `Bundle.Pullback.contMDiffAt_inCoordinates_of_contMDiffAt`, and its
+  `Bundle.Pullback.contMDiffAt_hom_section_iff_inCoordinates`, and its
   partial diffeomorphism restricted to its source and target. It needs no
   compactness and no closed image.
 
