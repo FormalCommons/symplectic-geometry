@@ -25,6 +25,11 @@ at two points through the identity of the model space: `tangentSpaceCast_apply` 
 each vector to itself. Tau Ceti's `TauCeti.tangentSpaceCast_self` covers only the case of a single
 point, while `Filter.EventuallyEq.mfderiv_eq` inserts the cast between two points that are equal
 only propositionally; rewriting with `tangentSpaceCast_apply` removes it there.
+
+Last, three instances compare smoothness exponents in `ℕ∞ω` as a `Fact`: `ENat.fact_le_refl`
+(`m ≤ m`), `ENat.fact_le_infty` (`m ≤ ∞`, from Mathlib's `ENat.LEInfty m`) and
+`ENat.fact_le_omega` (`m ≤ ω`). They let an instance that gives a `C^m` structure from a `C^n` one
+under `[Fact (m ≤ n)]` apply at `n = m`, `n = ∞` and `n = ω`.
 -/
 
 public section
@@ -61,5 +66,18 @@ theorem tangentSpaceCast_apply (x y : M) (v : TangentSpace I x) : tangentSpaceCa
   (rfl)
 
 end tangentSpaceCast
+
+namespace ENat
+
+/-- Every smoothness exponent is at most itself. -/
+instance fact_le_refl (m : ℕ∞ω) : Fact (m ≤ m) := ⟨le_rfl⟩
+
+/-- A smoothness exponent with `ENat.LEInfty` is at most `∞`. -/
+instance fact_le_infty (m : ℕ∞ω) [h : LEInfty m] : Fact (m ≤ ∞) := ⟨h.out⟩
+
+/-- Every smoothness exponent is at most `ω`. -/
+instance fact_le_omega (m : ℕ∞ω) : Fact (m ≤ ω) := ⟨le_top⟩
+
+end ENat
 
 end

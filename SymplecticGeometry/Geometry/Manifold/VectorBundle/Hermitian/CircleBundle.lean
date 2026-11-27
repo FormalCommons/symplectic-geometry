@@ -19,6 +19,7 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Hermitian
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Hermitian
 public import TauCeti.Topology.FiberBundle.ModelFiber
 public import Mathlib.Geometry.Manifold.Instances.Sphere
+public import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 import SymplecticGeometry.Topology.FiberBundle.Principal.ChangeGroup
 import SymplecticGeometry.Geometry.Manifold.Instances.Sphere
 import SymplecticGeometry.GroupTheory.GroupAction.Hom
@@ -549,18 +550,6 @@ theorem contMDiffFiberBundle_circleFiber [IsManifold I n B] :
       hy.1 hy.2
 
 namespace ContMDiffHermitianMetric
-
-/-! The comparisons of exponents that `contMDiffFiberBundle` below needs. They are scoped, as
-the instance is, so that they leave other searches for `Fact` alone. -/
-
-/-- Every exponent is at most itself. -/
-scoped instance fact_le_refl (m : ℕ∞ω) : Fact (m ≤ m) := ⟨le_rfl⟩
-
-/-- An exponent with `ENat.LEInfty` is at most `∞`. -/
-scoped instance fact_le_infty (m : ℕ∞ω) [h : ENat.LEInfty m] : Fact (m ≤ ∞) := ⟨h.out⟩
-
-/-- Every exponent is at most `ω`. -/
-scoped instance fact_le_omega (m : ℕ∞ω) : Fact (m ≤ ω) := ⟨le_top⟩
 
 /- The exponent `m` is separate from `n`, which the metric fixes, so that a search for a `C^m`
 structure, such as the `C^1` manifold structure of the total space, applies this instance once.
