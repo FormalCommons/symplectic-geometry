@@ -200,10 +200,10 @@ theorem exists_mextDeriv_eq_and_mpullback_eq (f : SmoothEmbedding J I ∞ Q M) {
     have hf' : f = (Subtype.val ∘ Subtype.val) ∘ j' := by
       rw [Function.comp_assoc, j.val_comp_codRestrict W' hjW', hvj]
     rw [hf', mpullback_comp (j'.contMDiff.mdifferentiable (by simp))
-      (SymplecticGeometry.mdifferentiable_subtypeVal.comp
-        SymplecticGeometry.mdifferentiable_subtypeVal),
-      mpullback_comp SymplecticGeometry.mdifferentiable_subtypeVal
-        SymplecticGeometry.mdifferentiable_subtypeVal, hγ, hγ',
+      (mdifferentiable_subtypeVal.comp
+        mdifferentiable_subtypeVal),
+      mpullback_comp mdifferentiable_subtypeVal
+        mdifferentiable_subtypeVal, hγ, hγ',
       ← SmoothForm.coe_mpullback _ j'.contMDiff, hjξ]
 
 

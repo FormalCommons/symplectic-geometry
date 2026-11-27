@@ -7,6 +7,8 @@ module
 
 public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.Morrey
 import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.ClosedGraph
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.Basic
+import TauCeti.Topology.MetricSpace.Pseudo.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.CriticalEmbedding
 import all TauCeti.Geometry.Manifold.VectorBundle.Sobolev.Morrey
 
@@ -24,7 +26,10 @@ derivatives of order at most `j` on a compact subset of a chart image by a const
 the Sobolev norm of `w` (`TauCeti.SobolevSection.exists_norm_iteratedFDeriv_coord_toSection_le`),
 and states the bound for a `Cᵏ` section and its Sobolev norm
 (`TauCeti.SobolevSection.exists_norm_iteratedFDeriv_coord_le_norm_ofContMDiffSection`). On a
-surface with `p = 2` this bounds the `Cʲ` chart norms by the `W^{j+2,2}` norm.
+surface with `p = 2` this bounds the `Cʲ` chart norms by the `W^{j+2,2}` norm. So convergence in
+`W^{k,p}(V)` makes the derivatives of order `j` of the chart readings converge locally uniformly
+on the chart images
+(`TauCeti.SobolevSection.tendstoLocallyUniformlyOn_iteratedFDeriv_coord_toSection`).
 
 The representatives come from Tau Ceti's critical embedding
 `TauCeti.SobolevSection.exists_continuous_contDiffOn_coord_ae_eq_of_finrank_le`, after lowering
@@ -45,6 +50,9 @@ family of `Cʲ` functions whose values are bounded on compact sets.
   of `W^{k,p}(V)`.
 * `TauCeti.SobolevSection.exists_norm_iteratedFDeriv_coord_le_norm_ofContMDiffSection`: the bound
   for `Cᵏ` sections.
+* `TauCeti.SobolevSection.tendstoLocallyUniformlyOn_iteratedFDeriv_coord_toSection`: convergence
+  in `W^{k,p}(V)` gives locally uniform convergence of the order-`j` derivatives of the chart
+  readings.
 
 ## References
 
@@ -117,6 +125,39 @@ theorem exists_norm_iteratedFDeriv_coord_le_norm_ofContMDiffSection [IsManifold 
   obtain ⟨C, hC⟩ := exists_norm_iteratedFDeriv_coord_toSection_le (p := p) hk i hK hKi
   refine ⟨C, fun s y hy m hm ↦ ?_⟩
   simpa only [toSection_ofContMDiffSection] using hC (ofContMDiffSection A volume p k s) y hy m hm
+
+/-- **Sobolev convergence gives locally uniform convergence of the `Cʲ` chart readings.** Let `M`
+have dimension `d` and `d + j ≤ k`. If `w q` tends to `w₀` in `W^{k,p}(V)` along `l`, then on
+the image of every chart `i` the derivatives of order `j` of the chart readings of the continuous
+representatives of `w q` tend locally uniformly to those of `w₀`. -/
+theorem tendstoLocallyUniformlyOn_iteratedFDeriv_coord_toSection {j : ℕ}
+    (hk : finrank ℝ E + j ≤ k) (i : Fin A.n) {ι : Type*} {l : Filter ι}
+    {w : ι → SobolevSection A volume p k} {w₀ : SobolevSection A volume p k}
+    (hw : Filter.Tendsto w l (nhds w₀)) :
+    TendstoLocallyUniformlyOn (fun q ↦ iteratedFDeriv ℝ j (A.coord i (toSection (w q))))
+      (iteratedFDeriv ℝ j (A.coord i (toSection w₀))) l (A.image i) := by
+  have hrep := HasContinuousRepresentatives.of_finrank_le (A := A) (p := p) (by omega : _ ≤ k)
+  have hopen := (A.image i).isOpen
+  -- The derivatives of the chart readings are additive in the Sobolev section.
+  have hsub (v v' : SobolevSection A volume p k) {y : E} (hy : y ∈ A.image i) :
+      iteratedFDeriv ℝ j (A.coord i (toSection v)) y -
+          iteratedFDeriv ℝ j (A.coord i (toSection v')) y =
+        iteratedFDeriv ℝ j (A.coord i (toSection (v - v'))) y := by
+    have hev : A.coord i (toSection (v - v')) =ᶠ[nhds y]
+        A.coord i (toSection v) - A.coord i (toSection v') :=
+      Filter.eventually_of_mem (hopen.mem_nhds hy) fun z hz ↦ by
+        rw [toSection_sub hrep, A.coord_sub i _ _ hz, Pi.sub_apply]
+    have hd (v : SobolevSection A volume p k) :=
+      (contDiffOn_coord_toSection_of_finrank_add_le hk v i).contDiffAt (hopen.mem_nhds hy)
+    rw [(hev.iteratedFDeriv ℝ j).eq_of_nhds, iteratedFDeriv_sub_apply (hd v) (hd v')]
+  rw [tendstoLocallyUniformlyOn_iff_forall_isCompact hopen]
+  intro K hKi hK
+  obtain ⟨C, hC⟩ := exists_norm_iteratedFDeriv_coord_toSection_le (p := p) hk i hK hKi
+  refine tendstoUniformlyOn_of_dist_le (u := fun q ↦ C * ‖w q - w₀‖) ?_ ?_
+  · simpa using (tendsto_iff_norm_sub_tendsto_zero.1 hw).const_mul C
+  · refine Filter.Eventually.of_forall fun q y hy ↦ ?_
+    rw [dist_eq_norm, hsub _ _ (hKi hy)]
+    exact hC _ y hy j le_rfl
 
 end SobolevSection
 
