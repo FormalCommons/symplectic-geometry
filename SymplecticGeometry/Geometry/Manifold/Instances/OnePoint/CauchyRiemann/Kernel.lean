@@ -9,7 +9,12 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.HomologicalOrientatio
 
 import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.ComplexLinear
 import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.TwistCore
+public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.LocalForm
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.HomologicalOrientation
+import TauCeti.Topology.VectorBundle.Orientation.SectionIndex.Holomorphic
+import TauCeti.Geometry.Manifold.MFDeriv.ContinuousLinearMap
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.LineBundle
+public import TauCeti.Geometry.Manifold.VectorBundle.Section.Linearization
 
 /-!
 # Kernels of Cauchy–Riemann operators on `𝒪(1)` over the sphere
@@ -25,6 +30,11 @@ This file is about the kernels of the real Cauchy–Riemann operators `D_J` on t
   and the Euler class (`TauCeti.VectorBundleOrientation.eulerClass`) is paired with the
   fundamental class, in the form of the left side of Tau Ceti's
   `TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_analyticOrderNatAt`.
+* `SymplecticGeometry.existsUnique_eq_zero_of_mem_twistOneKernel`: for `J` tamed together with
+  `i` by a two-form, a nonzero element of the kernel `twistOneKernel J` of `D_J` vanishes at
+  exactly one point of the sphere.
+* `SymplecticGeometry.surjective_sectionLinearization_of_mem_twistOneKernel`: that zero is
+  simple: the linearization `TauCeti.sectionLinearization` of the section there is onto.
 
 ## Proof
 
@@ -36,6 +46,24 @@ number is its local index at `0`. In the affine chart and the trivialization
 isomorphism, so this index is `1`
 (`SymplecticGeometry.sectionIndex_eq_one_of_complexLinear`). This is the argument of
 `Projectivization.complexManifoldEvalFundamentalClass_hyperplaneClass` on the sphere.
+
+For the zero count, let `s ≠ 0` lie in `twistOneKernel J`. Its zeros are finite
+(`SymplecticGeometry.finite_setOf_eq_zero_of_mem_twistOneKernel`), and at each of them it is
+complex analytic in an isothermal chart `ψ` and a rescaled frame of `L` that reads the orientation
+of the fibres as that of `ℂ`
+(`SymplecticGeometry.exists_trivialization_analyticAt_of_mem_twistOneKernel`);
+taming makes `ψ` carry the complex orientation of the sphere to that of `ℂ`
+(`SymplecticGeometry.localHomologyMap_sub_complexManifoldHomologicalOrientation_of_tames`). By
+`TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_analyticOrderNatAt` the
+orders of vanishing of `s` in these coordinates add up to the Euler number `1`, and each is
+positive (`TauCeti.VectorBundleOrientation.sectionIndex_pos_of_analyticAt`), since the zeros are
+isolated. So there is one zero, of order one. A holomorphic function with a zero of order one has
+a nonzero derivative there (`AnalyticAt.analyticOrderAt_deriv_add_one`). In the trivialization
+`(twistCore 1).localTriv z` the coordinate of `s` is that holomorphic reading, composed with `ψ`,
+times a factor that is only continuous but nonzero at the zero; at a zero such a factor multiplies
+the derivative and nothing more (`TauCeti.mvfderiv_eq_comp_of_eventuallyEq_clm_apply`), so the
+derivative of the coordinate is invertible, and so is the linearization
+(`TauCeti.surjective_sectionLinearization_iff`).
 
 ## References
 
@@ -50,7 +78,7 @@ public section
 
 open Bundle Module TauCeti
 open OnePoint (twistCore identitySection)
-open scoped Manifold VectorBundle.ComplexToReal
+open scoped Manifold VectorBundle.ComplexToReal ContDiff Topology TauCeti.ComplexManifold
 
 namespace SymplecticGeometry
 
@@ -86,6 +114,144 @@ theorem eulerNumber_twistCore_one :
     simp
   exact sectionIndex_eq_one_of_complexLinear (finrank_self ℂ) hs
     ((OnePoint.identitySection_eq_zero_iff (𝕜 := ℂ)).2 rfl) _ (by simp) _ hA
+
+variable {J : SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) (OnePoint ℂ)}
+
+/-- At each zero of a nonzero kernel element, its coordinate in the frame and chart of
+`exists_trivialization_analyticAt_of_mem_twistOneKernel` has order one, and there is one zero. -/
+private theorem exists_analyticOrderNatAt_eq_one_of_mem_twistOneKernel
+    {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)} (hJ : σ.Tames J) (hi : σ.Tames 𝒊)
+    {s : OnePoint ℂ → ℂ} (hs : s ∈ twistOneKernel J) (hs₀ : s ≠ 0) :
+    ∃ z₀, {x | s x = 0} = {z₀} ∧
+      ∃ (e : Trivialization ℂ (π ℂ (twistCore (𝕜 := ℂ) 1).Fiber))
+        (ψ : PartialDiffeomorph 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (OnePoint ℂ) ℂ ∞), z₀ ∈ e.baseSet ∧
+        z₀ ∈ ψ.source ∧
+        AnalyticAt ℂ (fun w ↦ (e (TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) 1).Fiber)
+          (ψ.toOpenPartialHomeomorph.symm w) (s (ψ.toOpenPartialHomeomorph.symm w)))).2)
+          (ψ.toOpenPartialHomeomorph z₀) ∧
+        analyticOrderNatAt (fun w ↦ (e (TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) 1).Fiber)
+          (ψ.toOpenPartialHomeomorph.symm w) (s (ψ.toOpenPartialHomeomorph.symm w)))).2)
+          (ψ.toOpenPartialHomeomorph z₀) = 1 ∧
+        ∃ c : OnePoint ℂ → ℂ, ContinuousAt c z₀ ∧ c z₀ ≠ 0 ∧
+          ∀ x (v : (twistCore (𝕜 := ℂ) 1).Fiber x), (e (TotalSpace.mk' ℂ x v)).2 =
+            c x * ((twistCore (𝕜 := ℂ) 1).localTriv z₀ (TotalSpace.mk' ℂ x v)).2 := by
+  -- The zeros, with `s` read as a section of `𝒪(1)`, as Tau Ceti's zero count reads them.
+  have hZ : {x | (s x : (twistCore (𝕜 := ℂ) 1).Fiber x) = 0}.Finite :=
+    finite_setOf_eq_zero_of_mem_twistOneKernel hs hs₀
+  choose e he ψ hze hzψ hψ hA ho c hc hc₀ hec using
+    fun z ↦ exists_trivialization_analyticAt_of_mem_twistOneKernel hs z
+  have hcont : Continuous fun x ↦ TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) 1).Fiber) x (s x) :=
+    ((mem_twistOneKernel_iff J).1 hs).1.continuous
+  have hsum := VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_analyticOrderNatAt
+    ((VectorBundleOrientation.complex ℂ (twistCore (𝕜 := ℂ) 1).Fiber).reindex
+      (finCongr (by simp : 2 * finrank ℂ ℂ = 1 + 1))) Complex.finrank_real_complex
+    (complexManifoldHomologicalOrientation ℂ (OnePoint ℂ) (finrank_self ℂ)) hcont
+    (fun z ↦ (ψ z).toOpenPartialHomeomorph) e
+    (fun _ ↦ Orientation.reindex ℝ ℂ (finCongr (by simp : 2 * Module.finrank ℂ ℂ = 1 + 1))
+      (complexOrientation ℂ)) (fun z _ ↦ hzψ z) hZ (fun z _ ↦ hze z)
+    (fun z _ ↦ .of_forall (ho z))
+    (fun z _ ↦ localHomologyMap_sub_complexManifoldHomologicalOrientation_of_tames hJ hi (ψ z)
+      (hzψ z) (hψ z z (hzψ z)))
+    (fun z _ ↦ hA z)
+  rw [eulerNumber_twistCore_one] at hsum
+  -- Each zero has positive order, since it is an isolated zero.
+  have hpos : ∀ z, s z = 0 → 0 < (analyticOrderNatAt (fun w ↦ (e z (TotalSpace.mk' ℂ
+      ((ψ z).toOpenPartialHomeomorph.symm w) (s ((ψ z).toOpenPartialHomeomorph.symm w)))).2)
+        ((ψ z).toOpenPartialHomeomorph z) : ℤ) := fun z hz ↦ by
+    have hφ := localHomologyMap_sub_complexManifoldHomologicalOrientation_of_tames hJ hi (ψ z)
+      (hzψ z) (hψ z z (hzψ z))
+    rw [← VectorBundleOrientation.sectionIndex_eq_analyticOrderNatAt _ _ _ hcont (e z) _ (hze z)
+      (hzψ z) (.of_forall (ho z)) hφ (hA z)]
+    exact VectorBundleOrientation.sectionIndex_pos_of_analyticAt _ _ _ hcont (e z) _ (hze z)
+      (hzψ z) (.of_forall (ho z)) hφ (hA z) hz (eventually_ne_zero_of_mem_twistOneKernel hs hs₀ z)
+  -- A sum of positive integers equal to `1` has one term, equal to `1`.
+  have hone : ∀ (T : Finset (OnePoint ℂ)) (f : OnePoint ℂ → ℤ), (∀ z ∈ T, 0 < f z) →
+      ∑ z ∈ T, f z = 1 → ∃ z₀, T = {z₀} ∧ f z₀ = 1 := fun T f hf h ↦ by
+    have hcard : (T.card : ℤ) ≤ 1 := by
+      rw [← h, Finset.card_eq_sum_ones, Nat.cast_sum, Nat.cast_one]
+      exact Finset.sum_le_sum fun z hz ↦ by have := hf z hz; omega
+    have hne : T.Nonempty := Finset.nonempty_of_sum_ne_zero (h ▸ one_ne_zero)
+    obtain ⟨z₀, rfl⟩ := (Finset.card_eq_one (s := T)).1 (by have := hne.card_pos; omega)
+    exact ⟨z₀, rfl, by simpa using h⟩
+  obtain ⟨z₀, hz₀, h1⟩ := hone _ _ (fun z hz ↦ hpos z ((Set.Finite.mem_toFinset _).1 hz))
+    hsum.symm
+  refine ⟨z₀, Set.ext fun x ↦ ?_, e z₀, ψ z₀, hze z₀, hzψ z₀, hA z₀, by exact_mod_cast h1, c z₀,
+    hc z₀, hc₀ z₀, hec z₀⟩
+  exact ((Set.Finite.mem_toFinset _).symm.trans (Iff.of_eq (congrArg (x ∈ ·) hz₀))).trans
+    Finset.mem_singleton
+
+/-- **A nonzero kernel element on `𝒪(1)` has exactly one zero.** Let a two-form `σ` on the
+sphere tame both `J` and the standard structure `i`, and let `s ≠ 0` be a smooth section of
+`𝒪(1)` with `D_J s = 0`. Then `s` vanishes at exactly one point of the sphere. -/
+theorem existsUnique_eq_zero_of_mem_twistOneKernel {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)}
+    (hJ : σ.Tames J) (hi : σ.Tames 𝒊) {s : OnePoint ℂ → ℂ} (hs : s ∈ twistOneKernel J)
+    (hs₀ : s ≠ 0) : ∃! z, s z = 0 := by
+  obtain ⟨z₀, hZ, -⟩ := exists_analyticOrderNatAt_eq_one_of_mem_twistOneKernel hJ hi hs hs₀
+  exact ⟨z₀, (Set.ext_iff.1 hZ z₀).2 rfl, fun z hz ↦ (Set.ext_iff.1 hZ z).1 hz⟩
+
+/-- **The zero of a nonzero kernel element on `𝒪(1)` is simple.** Let a two-form
+`σ` on the sphere tame both `J` and the standard structure `i`, and let `s ≠ 0` be a smooth
+section of `𝒪(1)` with `D_J s = 0`. At a zero `z` of `s`, the linearization of `s`
+(`TauCeti.sectionLinearization`: the derivative of the reading of `s` in the chart and the
+trivialization at `z`, carried back to the fibre) is onto the fibre at `z`. -/
+theorem surjective_sectionLinearization_of_mem_twistOneKernel
+    {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)} (hJ : σ.Tames J) (hi : σ.Tames 𝒊)
+    {s : OnePoint ℂ → ℂ} (hs : s ∈ twistOneKernel J) (hs₀ : s ≠ 0) {z : OnePoint ℂ}
+    (hz : s z = 0) :
+    Function.Surjective (sectionLinearization (F := ℂ) (E := (twistCore (𝕜 := ℂ) 1).Fiber)
+      𝓘(ℝ, ℂ) id s z) := by
+  obtain ⟨z₀, hZ, e, ψ, hze, hzψ, hA, hord, c, hc, hc₀, hec⟩ :=
+    exists_analyticOrderNatAt_eq_one_of_mem_twistOneKernel hJ hi hs hs₀
+  obtain rfl : z = z₀ := (Set.ext_iff.1 hZ z).1 hz
+  set h : ℂ → ℂ := fun w ↦ (e (TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) 1).Fiber)
+    (ψ.toOpenPartialHomeomorph.symm w) (s (ψ.toOpenPartialHomeomorph.symm w)))).2
+  set e₀ := (twistCore (𝕜 := ℂ) 1).localTriv z
+  -- The holomorphic reading `h` of `s` has order one at `ψ z`, so it vanishes there with a
+  -- nonzero complex derivative.
+  have hord' : analyticOrderAt h (ψ.toOpenPartialHomeomorph z) = 1 :=
+    (ENat.toNat_eq_iff one_ne_zero).1 hord
+  have h0 : h (ψ.toOpenPartialHomeomorph z) = 0 :=
+    not_not.1 fun h0 ↦ one_ne_zero (hord'.symm.trans (hA.analyticOrderAt_eq_zero.2 h0))
+  have hd : deriv h (ψ.toOpenPartialHomeomorph z) ≠ 0 := by
+    have := hA.analyticOrderAt_deriv_add_one
+    simp only [h0, sub_zero, hord'] at this
+    exact hA.deriv.analyticOrderAt_eq_zero.1 (by simpa using this)
+  -- Near `z`, the coordinate of `s` in `e₀` is `(c x)⁻¹ h (ψ x)`.
+  set C : OnePoint ℂ → ℂ →L[ℝ] ℂ := fun x ↦ (c x)⁻¹ • ContinuousLinearMap.id ℝ ℂ
+  have hC : ContinuousAt C z := (hc.inv₀ hc₀).smul continuousAt_const
+  have hu : (fun x ↦ C x ((h ∘ ψ.toOpenPartialHomeomorph) x)) =ᶠ[𝓝 z]
+      fun x ↦ (e₀ (TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) 1).Fiber) (id x) (s x))).2 := by
+    filter_upwards [ψ.open_source.mem_nhds hzψ, hc.eventually_ne hc₀] with x hx hcx
+    -- `ψ⁻¹ (ψ x) = x`, rewritten under the dependent pair through the map `p ↦ ⟨p, s p⟩`.
+    have hx' : (h ∘ ψ.toOpenPartialHomeomorph) x =
+        (e (TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) 1).Fiber) x (s x))).2 :=
+      congrArg (fun p ↦ (e (TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) 1).Fiber) p (s p))).2)
+        (ψ.toOpenPartialHomeomorph.left_inv hx)
+    simp only [C, hx', smul_apply, ContinuousLinearMap.id_apply, smul_eq_mul, id]
+    rw [inv_mul_eq_iff_eq_mul₀ hcx]
+    exact hec x (s x)
+  have hψd : MDifferentiableAt 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) ψ.toOpenPartialHomeomorph z :=
+    (ψ.isLocalDiffeomorphAt _ _ ∞ hzψ).mdifferentiableAt (by simp)
+  have hhd : MDifferentiableAt 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) h (ψ.toOpenPartialHomeomorph z) :=
+    (hA.differentiableAt.restrictScalars ℝ).mdifferentiableAt
+  have hcomp := hhd.comp z hψd
+  rw [surjective_sectionLinearization_iff (e := e₀) continuousAt_id
+    (by simp [e₀, OnePoint.twistCore_localTriv_baseSet])
+    (mdifferentiableAt_of_eventuallyEq_clm_apply hu hC hcomp h0) hz,
+    mvfderiv_eq_comp_of_eventuallyEq_clm_apply hu hC hcomp h0, mvfderiv_comp z hhd hψd,
+    mvfderiv_eq_fderiv,
+    (hA.differentiableAt.hasDerivAt.hasFDerivAt.restrictScalars ℝ).fderiv]
+  obtain ⟨D, hD⟩ := (ψ.isLocalDiffeomorphAt _ _ ∞ hzψ).isInvertible_mfderiv (by simp)
+  have hDs : Function.Surjective (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) ψ.toOpenPartialHomeomorph z) := by
+    have h' := D.surjective
+    rw [← ContinuousLinearEquiv.coe_coe, hD] at h'
+    exact h'
+  have hCs : Function.Surjective (C z) := fun y ↦ ⟨c z * y, by simp [C, hc₀]⟩
+  have hds : Function.Surjective ((ContinuousLinearMap.toSpanSingleton ℂ
+      (deriv h (ψ.toOpenPartialHomeomorph z))).restrictScalars ℝ) :=
+    fun y ↦ ⟨y / deriv h (ψ.toOpenPartialHomeomorph z), by simpa using div_mul_cancel₀ y hd⟩
+  simp only [ContinuousLinearMap.coe_comp]
+  exact hCs.comp ((hds.comp (NormedSpace.fromTangentSpace _).surjective).comp hDs)
 
 end SymplecticGeometry
 
