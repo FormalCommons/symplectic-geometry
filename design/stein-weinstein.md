@@ -915,15 +915,16 @@ containing `ι '' closedBall 0 1`:
   issue 14d8 has fixed `N₀`.
 
 - `Surround/ComplexFrame.lean` (issue 14d9): complex frames along a
-  disc. `exists_complexFrame_mfderiv`: for `ι` a smooth embedding of
+  disc. `exists_complexFrame_mfderiv`: for `ι` a smooth immersion (as a disc is) of
   `EuclideanSpace ℝ (Fin k)` whose tangent images are totally real in the
   weak sense, there is `A : ∀ x, V →L[ℝ] TangentSpace 𝓘(ℝ, E) (ι x)`,
   smooth in tangent coordinates (`inTangentCoordinates`, as Tau Ceti's
   `exists_partialDiffeomorph_mfderiv_eq` asks), with each `A x`
-  invertible, complex linear (`A x (Complex.I • v) = Complex.I • A x v`)
+  invertible, complex linear (`A x (Complex.I • v) = ofComplexManifold E M (ι x) (A x v)`)
   and `(A x).comp (mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin k)) 𝓘(ℝ, V)
   (modelDisc k m) x) = mfderiv _ _ ι x`. On the first factor `A x` is the
-  complex-linear extension of `dι x`, injective by weak total reality;
+  complex-linear extension of `dι x`, injective since `dι x` is and its
+  image is totally real;
   the second factor needs a frame of a complex complement, which exists
   because the base is contractible: Tau Ceti's
   `ContMDiffAlmostComplexStructure.exists_continuous_frame` and

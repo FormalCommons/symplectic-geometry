@@ -124,6 +124,30 @@ theorem continuousAt_inTangentCoordinates_of_continuous [CompleteSpace 𝕜] {G 
   -- `tangentBundleCore I M`, with no lemma that states it.
   rfl
 
+/-- Conversely, a family of maps `ϕ x` from a normed space `G` into the tangent spaces
+`T_(g x) M`, along a continuous map `g`, that is continuous at each `x₀` when read in the tangent
+coordinates at `x₀`, is continuous as a map `X × G → TM`. -/
+theorem continuous_of_continuousAt_inTangentCoordinates {G X : Type*} [NormedAddCommGroup G]
+    [NormedSpace 𝕜 G] [TopologicalSpace X] {f : X → G} {g : X → M}
+    {ϕ : ∀ x, G →L[𝕜] TangentSpace I (g x)} (hg : Continuous g)
+    (hϕ : ∀ x₀, ContinuousAt (inTangentCoordinates 𝓘(𝕜, G) I f g ϕ x₀) x₀) :
+    Continuous fun q : X × G ↦ (⟨g q.1, ϕ q.1 q.2⟩ : TangentBundle I M) := by
+  refine continuous_iff_continuousAt.2 fun q₀ ↦ (FiberBundle.continuousAt_totalSpace E _).2
+    ⟨(hg.comp continuous_fst).continuousAt, ?_⟩
+  have hΩ : g ⁻¹' (chartAt H (g q₀.1)).source ∈ 𝓝 q₀.1 :=
+    hg.continuousAt.preimage_mem_nhds
+      ((chartAt H (g q₀.1)).open_source.mem_nhds (mem_chart_source H (g q₀.1)))
+  refine (((hϕ q₀.1).comp continuousAt_fst).clm_apply continuousAt_snd).congr ?_
+  filter_upwards [continuousAt_fst.preimage_mem_nhds hΩ] with q hq
+  have hq' : g q.1 ∈ (chartAt H (g q₀.1)).source := hq
+  have hb : g q.1 ∈ (trivializationAt E (TangentSpace I) (g q₀.1)).baseSet := by simpa using hq'
+  rw [Function.comp_apply, inTangentCoordinates_eq_tangentCoordChange_comp I ϕ hq',
+    ← Bundle.Trivialization.continuousLinearMapAt_apply_of_mem (R := 𝕜) _ hb,
+    TangentBundle.continuousLinearMapAt_trivializationAt_eq_core hq']
+  -- Mathlib's `tangentCoordChange` is an abbreviation for this coordinate change of
+  -- `tangentBundleCore I M`, with no lemma that states it.
+  rfl
+
 /-- Carry a fixed map `C : G → E`, read in the chart at `ι x₀`, to the tangent spaces along `ι`:
 `y ↦ tangentCoordChange I (ι x₀) (ι y) (ι y) ∘ C`. If `ι` is `Cⁿ` at `y₁` and `ι y₁` lies in the
 source of the chart at `ι x₀`, this family is `Cⁿ` at `y₁` in tangent coordinates. -/
