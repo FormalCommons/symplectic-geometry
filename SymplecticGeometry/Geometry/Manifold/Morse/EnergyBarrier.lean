@@ -94,7 +94,7 @@ theorem mem_source_and_norm_extChartAt_sub_le_of_tendsto (hX : IsGradientLike f 
     by_contra! h
     nlinarith [hle 0]
   -- `b` is the first time at which `γ` leaves the open ball of radius `r` in the chart.
-  set O : Set M := SymplecticGeometry.chartBall 𝓘(ℝ, E) p r
+  set O : Set M := (SymplecticGeometry.chartBall 𝓘(ℝ, E) p r : Set M)
   have hO : IsOpen O := (SymplecticGeometry.chartBall 𝓘(ℝ, E) p r).isOpen
   have hmemO {y : M} : y ∈ O ↔ y ∈ e.source ∧ e y ∈ ball (e p) r :=
     SymplecticGeometry.mem_chartBall_iff _

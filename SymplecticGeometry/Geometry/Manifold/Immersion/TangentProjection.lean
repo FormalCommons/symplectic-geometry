@@ -382,7 +382,7 @@ private theorem exists_uniform_tangentProjectionChart_nhds [CompactSpace M]
     rwa [c.right_inv hw'] at h
   obtain ⟨S, ε, hε, η, hη, C, h, hηε, hεU, hmain⟩ :=
     hg.exists_uniform_inverse_starProjection isOpen_interior hw₀ hinjg
-  set s : Set M := chartBall I x₀ ε
+  set s : Set M := (chartBall I x₀ ε : Set M)
   have hs : IsOpen s := (chartBall I x₀ ε).isOpen
   have hx₀s : x₀ ∈ s := mem_chartBall_self I x₀ hε
   -- Points whose images are close to that of a point near `x₀` lie in `s`.
