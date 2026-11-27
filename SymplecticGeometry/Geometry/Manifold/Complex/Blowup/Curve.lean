@@ -5,8 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Basic
+public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Chart
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Lift
+public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Uniqueness
 import TauCeti.Geometry.Symplectic.JHolomorphic.RiemannSurface
 import TauCeti.Geometry.Manifold.Complex.Analytic
 import TauCeti.Geometry.Manifold.ChartedSpace
@@ -15,7 +16,7 @@ import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 
 /-!
-# Lifts of holomorphic curves to the blowup
+# Lifts of holomorphic curves to the blowup, and the complex blowup at a point
 
 Let `S` be a connected Riemann surface, `M` a Hausdorff complex manifold of dimension `n + 1`,
 `c` a holomorphic chart of `M` centred at `p₀` (a `SymplecticGeometry.BlowupChart M p₀` in the
@@ -35,6 +36,12 @@ holomorphic since the coordinate expression of `u` is analytic and does not vani
 fibre, where the blowdown is injective, and the complement of a discrete set is dense in a
 Riemann surface.
 
+The last section collects, in one theorem, what the library proves of the complex blowup at a
+point: the holomorphy of the blowdown and its biholomorphism off the exceptional divisor
+(`Blowup/Basic.lean`), the lifted charts (`Blowup/Chart.lean`), the holomorphic embedding of the
+divisor, the lifts of curves of this file, and the uniqueness of the complex structure
+(`Blowup/Uniqueness.lean`).
+
 ## Main definitions
 
 * `SymplecticGeometry.Blowup.curveLift c u`: the lift of `u : S → M` to `Blowup c`.
@@ -45,11 +52,14 @@ Riemann surface.
 * `SymplecticGeometry.Blowup.mdifferentiable_curveLift`: the lift of a nonconstant holomorphic
   curve is holomorphic.
 * `SymplecticGeometry.Blowup.curveLift_unique`: it is the only continuous map over `u`.
+* `SymplecticGeometry.Blowup.blowdown_liftChart_divisorEmbedding_curveLift`: the properties of
+  the complex blowup at a point, collected in one statement: the blowdown, the lifted charts, the
+  exceptional divisor, the lifts of curves, and the uniqueness of the complex structure.
 
 ## References
 
 * [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*, 3rd ed.][McDuffSalamon2017],
-  §7.1, Lemma 7.1.3 and Exercise 7.1.2 (iii).
+  §7.1, Lemma 7.1.1, Exercise 7.1.2 and Lemma 7.1.3.
 -/
 
 public section
@@ -58,6 +68,8 @@ namespace SymplecticGeometry
 
 open Set Filter Topology Function TopologicalSpace
 open scoped Manifold ContDiff
+
+universe uS
 
 variable {n : ℕ} {M : Type} [TopologicalSpace M] [ChartedSpace (Fin (n + 1) → ℂ) M] {p₀ : M}
   (c : BlowupChart (n := n) M p₀)
@@ -287,6 +299,86 @@ theorem curveLift_unique [PreconnectedSpace S]
   · rwa [mem_compl_iff, curveLift_mem_exceptionalDivisor_iff]
 
 end Holomorphic
+
+/-! ### The complex blowup at a point -/
+
+section Milestone
+
+open Projectivization BlowupModel
+open scoped LinearAlgebra.Projectivization
+
+variable (c) [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M] [T2Space M]
+  [Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)]
+
+/-- **The complex blowup at a point.** Let `M` be a Hausdorff complex manifold of dimension
+`n + 1`, and `c` a holomorphic chart of `M` with `c p₀ = 0`. The blowup `Blowup c` of `M` at `p₀`,
+with its complex structure, has the following properties.
+
+* The blowdown `Blowup c → M` is holomorphic.
+* It restricts to a biholomorphism from the complement of the exceptional divisor onto
+  `M \ {p₀}` (this is `blowdownDiffeomorph c`).
+* For every holomorphic chart `φ` of `M` with `φ p₀ = 0`, the lifted chart `liftChart c φ` is a
+  biholomorphism from `blowdown c ⁻¹' φ.source` onto the part `BlowupModel.blowdown ⁻¹' φ.target`
+  of the model blowup over the target of `φ`, and it is a chart of the complex structure of the
+  blowup: followed by any chart `blowupModelChart i` of the model, it is in the maximal atlas.
+  It lies over `φ`: the blowdown of `liftChart c φ z` is `φ (blowdown c z)`, which determines it
+  off the exceptional divisor. Through `directionEquiv c`, it sends the point of the divisor over
+  the line of a tangent vector `v ≠ 0` at `p₀` to the point of the zero section over the line of
+  `mfderiv φ p₀ v`.
+* The map `ofDirection c` from `ℙ ℂ ℂⁿ⁺¹` to the blowup is a holomorphic embedding, with image the
+  exceptional divisor (this is `divisorEmbedding c`).
+* Every nonconstant holomorphic curve `u` on a connected Riemann surface has a holomorphic lift
+  `v` with `blowdown c ∘ v = u`, and every continuous map over `u` is `v` (this is
+  `curveLift c u`).
+* The complex structure is unique: a bijection `e : X ≃ Blowup c` from a space charted on `ℂⁿ⁺¹`
+  such that `e.symm` after each of the two pieces of the gluing, the punctured manifold and the
+  part of the model over the target of `c`, is a local biholomorphism, is a biholomorphism (this
+  is `diffeomorphOfEquiv c`).
+
+Milestone: *Complex blowup at a point*. -/
+theorem blowdown_liftChart_divisorEmbedding_curveLift :
+    ContMDiff 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω (blowdown c) ∧
+    (∃ e : offDivisorOpens c ≃ₘ^ω⟮𝓘(ℂ, Fin (n + 1) → ℂ), 𝓘(ℂ, Fin (n + 1) → ℂ)⟯
+        puncturedOpens c, ∀ z, (e z : M) = blowdown c z) ∧
+    (∀ (φ : BlowupChart (n := n) M p₀)
+        [Fact (φ.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)],
+      (∃ Φ : PartialDiffeomorph 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) (Blowup c)
+          (BlowupModel n) ω,
+        ⇑Φ = liftChart c φ ∧ Φ.source = blowdown c ⁻¹' φ.source ∧
+        Φ.target = BlowupModel.blowdown ⁻¹' φ.target ∧
+        ∀ i, Φ.toOpenPartialHomeomorph.trans (blowupModelChart i) ∈
+          IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω (Blowup c)) ∧
+      (∀ z ∈ blowdown c ⁻¹' φ.source, (liftChart c φ z).blowdown = φ (blowdown c z)) ∧
+      ∀ (v : TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) p₀) (hv : v ≠ 0),
+        liftChart c φ (ofDirection c (directionEquiv c (mk ℂ v hv))) =
+          zeroSection (mk ℂ (V := Fin (n + 1) → ℂ)
+            (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) φ p₀ v)
+            (by simpa using (φ.mfderivCenterEquiv.injective.ne_iff' (map_zero _)).2 hv))) ∧
+    (∃ ι : TauCeti.SmoothEmbedding 𝓘(ℂ, Fin n → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω
+        (ℙ ℂ (Fin (n + 1) → ℂ)) (Blowup c),
+      ⇑ι = ofDirection c ∧ range ι = exceptionalDivisor c) ∧
+    (∀ (S : Type uS) [TopologicalSpace S] [ChartedSpace ℂ S] [IsManifold 𝓘(ℂ) ω S]
+        [PreconnectedSpace S] (u : S → M), MDifferentiable 𝓘(ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) u →
+        (∃ x₁ x₂, u x₁ ≠ u x₂) →
+      ∃ v : S → Blowup c, MDifferentiable 𝓘(ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) v ∧ blowdown c ∘ v = u ∧
+        ∀ w : S → Blowup c, Continuous w → blowdown c ∘ w = u → w = v) ∧
+    (∀ (X : Type) [TopologicalSpace X] [ChartedSpace (Fin (n + 1) → ℂ) X] (e : X ≃ Blowup c),
+      IsLocalDiffeomorph 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω
+          (e.symm ∘ inl (gluingHomeomorph c)) →
+      IsLocalDiffeomorph 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω
+          (e.symm ∘ inr (gluingHomeomorph c)) →
+      ∃ d : X ≃ₘ^ω⟮𝓘(ℂ, Fin (n + 1) → ℂ), 𝓘(ℂ, Fin (n + 1) → ℂ)⟯ Blowup c, ⇑d = e) :=
+  ⟨contMDiff_blowdown c, ⟨blowdownDiffeomorph c, coe_blowdownDiffeomorph_apply c⟩,
+    fun φ _ ↦ ⟨⟨liftChartPartialDiffeomorph c φ, coe_liftChartPartialDiffeomorph c φ,
+      liftChartPartialDiffeomorph_source c φ, liftChartPartialDiffeomorph_target c φ,
+      liftChart_mem_maximalAtlas c φ⟩, fun _ hz ↦ blowdown_liftChart c φ hz,
+      liftChart_ofDirection_directionEquiv_mk c φ⟩,
+    ⟨divisorEmbedding c, coe_divisorEmbedding c, range_divisorEmbedding c⟩,
+    fun _ _ _ _ _ u hu hne ↦ ⟨curveLift c u, mdifferentiable_curveLift hu hne,
+      funext (blowdown_curveLift c u), fun _ hw hwu ↦ curveLift_unique hu hne hw hwu⟩,
+    fun _ _ _ e hl hr ↦ ⟨diffeomorphOfEquiv c e hl hr, coe_diffeomorphOfEquiv c e hl hr⟩⟩
+
+end Milestone
 
 end Blowup
 
