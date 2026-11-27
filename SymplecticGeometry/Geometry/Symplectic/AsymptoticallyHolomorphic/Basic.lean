@@ -581,20 +581,20 @@ theorem dbarReading_fun_smul_eventuallyEq {k : ℕ} {x : M} {g : M → ℂ}
 
 /-- The **Leibniz bound for jet norms of sections**: for `G` the function `g` read in the chart
 centred at `x`, if `G` and the reading of `s` are `C^r` at `0`, the `r`-jet norm of `g • s` at
-`x` is at most `(r + 1) * 2 ^ r` times the product of the `r`-jet norms of `G` at `0` and of `s`
+`x` is at most `2 ^ r` times the product of the `r`-jet norms of `G` at `0` and of `s`
 at `x`. -/
 theorem jetNorm_fun_smul_le {k r : ℕ} {g : M → ℂ} {s : Π y, PowerBundle P k y} {x : M}
     (hg : ContDiffAt ℝ r (fun z ↦ g ((D.chart k x).symm z)) 0)
     (hs : ContDiffAt ℝ r (D.reading k x s) 0) :
     D.jetNorm k r (fun y ↦ g y • s y) x ≤
-      (r + 1) * 2 ^ r * jetNormAt ℝ r (fun z ↦ g ((D.chart k x).symm z)) 0 * D.jetNorm k r s x := by
+      2 ^ r * jetNormAt ℝ r (fun z ↦ g ((D.chart k x).symm z)) 0 * D.jetNorm k r s x := by
   rw [jetNorm_def, reading_fun_smul, jetNorm_def]
   exact jetNormAt_fun_smul_le hg hs
 
 /-- The **Leibniz bound for jet norms of `∂̄`**: for `G` the function `g` read in the chart
 centred at `x`, if `G` and the reading of `s` are differentiable near `0`, and `G`, the reading
 of `s`, `∂̄ G` and the `∂̄` reading of `s` are `C^r` at `0`, then the `r`-jet norm of
-`∂̄ (g • s)` at `x` is at most `(r + 1) * 2 ^ r` times
+`∂̄ (g • s)` at `x` is at most `2 ^ r` times
 `J(G) * J(∂̄ s) + J(s) * J(∂̄ G)`, each `J` an `r`-jet norm at `0` or at `x`. -/
 theorem dbarJetNorm_fun_smul_le {k r : ℕ} {g : M → ℂ} {s : Π y, PowerBundle P k y} {x : M}
     (hg : ∀ᶠ z in 𝓝 0, DifferentiableAt ℝ (fun w ↦ g ((D.chart k x).symm w)) z)
@@ -604,7 +604,7 @@ theorem dbarJetNorm_fun_smul_le {k r : ℕ} {g : M → ℂ} {s : Π y, PowerBund
     (hdg : ContDiffAt ℝ r (D.dbarFun k x fun z ↦ g ((D.chart k x).symm z)) 0)
     (hds : ContDiffAt ℝ r (D.dbarReading k x s) 0) :
     D.dbarJetNorm k r (fun y ↦ g y • s y) x ≤
-      (r + 1) * 2 ^ r * (jetNormAt ℝ r (fun z ↦ g ((D.chart k x).symm z)) 0 *
+      2 ^ r * (jetNormAt ℝ r (fun z ↦ g ((D.chart k x).symm z)) 0 *
           D.dbarJetNorm k r s x +
         D.jetNorm k r s x * jetNormAt ℝ r (D.dbarFun k x fun z ↦ g ((D.chart k x).symm z)) 0) := by
   rw [dbarJetNorm_def, jetNormAt_congr_of_eventuallyEq r
@@ -717,7 +717,7 @@ theorem IsAsymptoticallyHolomorphic.fun_smul {s : ∀ k : ℕ, Π y, PowerBundle
     · exact hf.eventually_differentiableAt (by exact_mod_cast le_top)
   obtain ⟨Cs, hCs⟩ := hs.2 r
   obtain ⟨Cg, hCg⟩ := hg r
-  set c : ℝ := (r + 1) * 2 ^ r
+  set c : ℝ := 2 ^ r
   have : 0 ≤ c := by positivity
   refine ⟨2 * c * Cg * Cs,
     (((hCs.and hCg).and hs.1).and hg').mono fun k ⟨⟨⟨hks, hkg⟩, hks'⟩, hkg'⟩ x ↦ ?_⟩
