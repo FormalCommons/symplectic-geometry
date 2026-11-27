@@ -14,6 +14,7 @@ import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 import Mathlib.Analysis.SpecialFunctions.Sqrt
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import SymplecticGeometry.Analysis.Polynomial.RealCubic
+import SymplecticGeometry.Analysis.SpecialFunctions.Log.Bounds
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Basic
 import SymplecticGeometry.Analysis.SpecialFunctions.Sqrt
 import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ConvexShape.SmoothedMax
@@ -37,7 +38,9 @@ Explicit `i`-convex shapes (`SymplecticGeometry.IsConvexShapeAt`) from Cieliebak
   smooth on `(δ, ∞)` and continuous and strictly increasing on `[δ, ∞)`
   (`SymplecticGeometry.contDiffOn_struweShape`, `SymplecticGeometry.continuousOn_struweShape`,
   `SymplecticGeometry.strictMonoOn_struweShape`). For `δ ≠ 0` it is the shape of width `1`
-  rescaled by `δ` (`SymplecticGeometry.struweShape_eq_mul_struweShape_one`).
+  rescaled by `δ` (`SymplecticGeometry.struweShape_eq_mul_struweShape_one`). The shape of width
+  `1` rises by at most `√2 * √(r ^ 2 - 1)` from `1` to `r ≥ 1`
+  (`SymplecticGeometry.struweShape_sub_struweShape_one_mem_Icc`).
 * `SymplecticGeometry.isConvexShapeAt_struweShape_of_lt`: at `r > δ`, Struwe's shape is an
   `i`-convex shape once its value at `r` exceeds `r √L` and `2 r √L³`, with `L = log (r / δ)`.
   On a whole interval `(δ, R]` it suffices that its value at `δ` bounds both quantities at `R`
@@ -296,6 +299,48 @@ theorem strictConcaveOn_struweShape (hδ : 0 < δ) (hK : 1 ≤ K) (c : ℝ) :
   have hLx : 0 < log (x / δ) := log_pos ((one_lt_div hδ).2 hx)
   exact one_div_lt_one_div_of_lt (sqrt_pos.2 hLx) (sqrt_lt_sqrt hLx.le
     (log_lt_log (div_pos (hδ.trans hx) hδ) (div_lt_div_of_pos_right hxy hδ)))
+
+/-- Near `r = 1`, Struwe's shape of width `1` rises by at most `√2 * √(r ^ 2 - 1)`: for
+`1 ≤ K` and `1 ≤ r`, `0 ≤ struweShape 1 K c r - struweShape 1 K c 1 ≤ √2 * √(r ^ 2 - 1)`.
+Its slope `1 / √(log r)` is at most `√2 * r / √(r ^ 2 - 1)` (`Real.one_div_sqrt_log_le`), the
+slope of `√2 * √(r ^ 2 - 1)`. -/
+theorem struweShape_sub_struweShape_one_mem_Icc (hK : 1 ≤ K) (c : ℝ) {r : ℝ} (hr : 1 ≤ r) :
+    struweShape 1 K c r - struweShape 1 K c 1 ∈ Icc 0 (√2 * √(r ^ 2 - 1)) := by
+  refine ⟨sub_nonneg.2 ((strictMonoOn_struweShape one_pos hK c).monotoneOn
+    self_mem_Ici hr hr), ?_⟩
+  set f : ℝ → ℝ := fun u ↦ struweShape 1 K c u - √2 * √(u ^ 2 - 1)
+  have hd : ∀ u : ℝ, 1 < u → HasDerivAt f (1 / √(log u) - √2 * (u / √(u ^ 2 - 1))) u := by
+    intro u hu
+    have h := (hasDerivAt_sqrt_sub (a := 1) (c := 1) (r := u) (by nlinarith)).const_mul √2
+    simp only [one_mul] at h
+    have hT := hasDerivAt_struweShape one_pos hK c hu
+    rw [div_one] at hT
+    exact hT.sub h
+  have hf : AntitoneOn f (Ici 1) := by
+    refine antitoneOn_of_deriv_nonpos (convex_Ici 1) ?_ ?_ ?_
+    · exact (continuousOn_struweShape one_pos hK c).sub (by fun_prop)
+    · rw [interior_Ici]
+      exact fun u hu ↦ (hd u hu).differentiableAt.differentiableWithinAt
+    · rw [interior_Ici]
+      intro u (hu : 1 < u)
+      rw [(hd u hu).deriv, sub_nonpos, ← mul_div_assoc]
+      exact one_div_sqrt_log_le hu
+  have h := hf self_mem_Ici hr hr
+  simp only [f, one_pow, sub_self, sqrt_zero, mul_zero, sub_zero] at h
+  linarith
+
+/-- From a point `a > δ` on, Struwe's shape rises by at most its slope `1 / √(log (a / δ))` at `a`
+times the distance, by concavity. -/
+theorem struweShape_sub_struweShape_le (hδ : 0 < δ) (hK : 1 ≤ K) (c : ℝ) {a r : ℝ}
+    (ha : δ < a) (hr : a ≤ r) :
+    struweShape δ K c r - struweShape δ K c a ≤ (r - a) / √(log (a / δ)) := by
+  rcases hr.eq_or_lt with rfl | hr
+  · simp
+  have h := (strictConcaveOn_struweShape hδ hK c).concaveOn.slope_le_of_hasDerivAt
+    (mem_Ici.2 ha.le) (mem_Ici.2 (ha.trans hr).le) hr (hasDerivAt_struweShape hδ hK c ha)
+  rw [slope_def_field, div_le_iff₀ (sub_pos.2 hr)] at h
+  rw [div_eq_mul_one_div, mul_comm]
+  exact h
 
 /-- If Struwe's shape with value `ℓ + d K δ` at `K δ` is at least `ℓ + d δ` at `δ`, its secant
 between `δ` and `K δ` has slope at most `d`. -/

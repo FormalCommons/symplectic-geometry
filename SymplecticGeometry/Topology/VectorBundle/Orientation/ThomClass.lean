@@ -105,7 +105,9 @@ in place of `localCohomologyClass`, so that they hold in rank zero too.
   restriction of the canonical class to the fibre pair over `b`, read in any linear trivialization
   at `b`, and `TauCeti.VectorBundleOrientation.eq_canonicalThomClass_iff`, the characterization by
   these restrictions.
-* `TauCeti.VectorBundleOrientation.isThomClass_canonicalThomClass`: it is a Thom class.
+* `TauCeti.VectorBundleOrientation.isThomClass_canonicalThomClass`: it is a Thom class, by
+  `TauCeti.isThomClass_of_forall_span_fiber`, which gives a Thom class, with any coefficients,
+  from a class restricting on each fibre to the pull-back of a generator of the model pair.
 * `TauCeti.VectorBundleOrientation.canonicalThomClass_neg`: reversing the orientation negates it.
 * `TauCeti.VectorBundleOrientation.canonicalThomClass_eq_thomClass`: in rank `n + 1` it is Tau
   Ceti's `thomClass`.
@@ -352,6 +354,42 @@ end RankZeroIntegral
 
 end Orientation
 
+namespace TauCeti
+
+section IsThomClass
+
+variable {C : Type*} [Category C] [Limits.HasCoproducts.{w} C] [Abelian C] {R : C} {k : Type*}
+  [Ring k] [Linear k C] {M : C} {B : Type w} [TopologicalSpace B] {F : Type w}
+  [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F] {E : B → Type w}
+  [TopologicalSpace (TotalSpace F E)] [∀ b, AddCommMonoid (E b)] [∀ b, Module ℝ (E b)]
+  [∀ b, TopologicalSpace (E b)] [FiberBundle F E] [VectorBundle ℝ F E]
+
+/-- A class `x ∈ Hᵈ(E, E₀)`, with `d = finrank ℝ F`, is a Thom class, once transported to the
+degree `finrank ℝ F`, if over every point `b` it restricts to the fibre pair as the pull-back,
+along the preferred trivialization `trivializationAt F E b`, of a generator of the `k`-module
+`Hᵈ(F, F ∖ {0})`. -/
+theorem isThomClass_of_forall_span_fiber {d : ℕ} (hd : finrank ℝ F = d)
+    (x : (thomPair F E).singularCohomology R k M d)
+    (hx : ∀ b, ∃ g, Submodule.span k {g} = ⊤ ∧
+      TopPair.singularCohomologyMap (fiberThomPairMap F E b) d x =
+        TopPair.singularCohomologyMap ((trivializationAt F E b).continuousLinearEquivAt ℝ b
+          (FiberBundle.mem_baseSet_trivializationAt' b)).complZeroPairIso.hom d g) :
+    IsThomClass F E (hd ▸ x : (thomPair F E).singularCohomology R k M (finrank ℝ F)) := by
+  subst hd
+  refine isThomClass_iff.2 ⟨inferInstance, fun b ↦ ?_⟩
+  obtain ⟨g, hg, hb⟩ := hx b
+  rw [hb]
+  -- An isomorphism of pairs induces a linear isomorphism in cohomology, carrying generators to
+  -- generators.
+  exact ((TopPair.singularCohomologyFunctor R k M _).mapIso
+      ((trivializationAt F E b).continuousLinearEquivAt ℝ b
+        (FiberBundle.mem_baseSet_trivializationAt' b)).complZeroPairIso.op
+    ).toLinearEquiv.span_singleton_apply_eq_top_iff.2 hg
+
+end IsThomClass
+
+end TauCeti
+
 namespace TauCeti.VectorBundleOrientation
 
 variable {B : Type w} [TopologicalSpace B] {F : Type w} [NormedAddCommGroup F] [NormedSpace ℝ F]
@@ -449,26 +487,9 @@ restricts to a generator of the integral cohomology of every fibre pair. -/
 theorem isThomClass_canonicalThomClass :
     IsThomClass F E (hr ▸ o.canonicalThomClass hr :
       (thomPair F E).singularCohomology (ModuleCat.of ℤ (ULift.{w} ℤ)) ℤ
-        (ModuleCat.of ℤ (ULift.{w} ℤ)) (finrank ℝ F)) := by
-  -- Transport along `finrank ℝ F = d` commutes with the fibre restrictions.
-  have key {d : ℕ} (hd : finrank ℝ F = d)
-      (x : (thomPair F E).singularCohomology (ModuleCat.of ℤ (ULift.{w} ℤ)) ℤ
-        (ModuleCat.of ℤ (ULift.{w} ℤ)) d)
-      (hx : ∀ b, Submodule.span ℤ
-        {(TopPair.singularCohomologyMap (fiberThomPairMap F E b) d x)} = ⊤) :
-      IsThomClass F E (hd ▸ x : (thomPair F E).singularCohomology
-        (ModuleCat.of ℤ (ULift.{w} ℤ)) ℤ (ModuleCat.of ℤ (ULift.{w} ℤ)) (finrank ℝ F)) := by
-    subst hd
-    exact isThomClass_iff.2 ⟨inferInstance, hx⟩
-  refine key hr _ fun b ↦ ?_
-  have hb := FiberBundle.mem_baseSet_trivializationAt' (F := F) (E := E) b
-  rw [o.singularCohomologyMap_fiberThomPairMap_canonicalThomClass hr _ hb]
-  -- An isomorphism of pairs induces a linear isomorphism in cohomology, carrying generators to
-  -- generators.
-  exact ((TopPair.singularCohomologyFunctor (ModuleCat.of ℤ (ULift.{w} ℤ)) ℤ
-    (ModuleCat.of ℤ (ULift.{w} ℤ)) r).mapIso
-      ((trivializationAt F E b).continuousLinearEquivAt ℝ b hb).complZeroPairIso.op
-    ).toLinearEquiv.span_singleton_apply_eq_top_iff.2 (Orientation.span_modelThomGenerator _ _)
+        (ModuleCat.of ℤ (ULift.{w} ℤ)) (finrank ℝ F)) :=
+  isThomClass_of_forall_span_fiber hr _ fun _ ↦ ⟨_, Orientation.span_modelThomGenerator _ hr,
+    o.singularCohomologyMap_fiberThomPairMap_canonicalThomClass hr _ _⟩
 
 section BaseMap
 

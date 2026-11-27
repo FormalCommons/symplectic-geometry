@@ -18,7 +18,6 @@ import TauCeti.Geometry.Manifold.MFDeriv.Curve
 import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 import SymplecticGeometry.Geometry.Manifold.Morse.EnergyBarrier
 import SymplecticGeometry.Geometry.Manifold.Flow.Chart
-import SymplecticGeometry.Geometry.Manifold.IsManifold.ChartBall
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Chart
 import SymplecticGeometry.Geometry.Manifold.VectorField.Chart
 import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.Linearization
@@ -137,7 +136,7 @@ therefore `TauCeti.Flow.le_of_mem_stableSet_of_antitone` applied to `-f`. A crit
 rest point, so by `Flow.eq_of_mem_stableSet` it lies on no stable set but its own; the orbit of
 a point `x ≠ p` of the stable set of `p` thus meets no critical point, and
 `TauCeti.IsGradientLike.strictMono_comp` makes the bound strict. The confinement near a
-critical point is `TauCeti.IsGradientLike.exists_forall_mem_source_and_norm_extChartAt_sub_le`
+critical point is `TauCeti.IsGradientLike.exists_forall_mem_source_and_norm_centeredExtChartAt_le`
 (`SymplecticGeometry.Geometry.Manifold.Morse.EnergyBarrier`), applied to the orbits of the flow;
 a nondegenerate critical point is isolated by Tau Ceti's
 `TauCeti.IsManifoldNondegenerateCriticalPoint.eventually_notMem_criticalPoints`.
@@ -329,15 +328,12 @@ theorem exists_forall_flow_mem_source_and_norm_centeredExtChartAt_le {p : M}
         ∀ t, 0 ≤ t → hW.flow t x ∈ (centeredExtChartAt 𝓘(ℝ, E) p).source ∧
           ‖centeredExtChartAt 𝓘(ℝ, E) p (hW.flow t x)‖ ≤ r := by
   obtain ⟨r₀, hr₀, hsub, h⟩ :=
-    hW.isGradientLike.exists_forall_mem_source_and_norm_extChartAt_sub_le
+    hW.isGradientLike.exists_forall_mem_source_and_norm_centeredExtChartAt_le
       (hW.isGeneralizedMorse.contMDiff.of_le (by simp)) hW.contMDiff_field.continuous
       (hp.eventually_notMem_criticalPoints.mono fun _ hy ↦ by rwa [mem_criticalPoints] at hy)
-  refine ⟨r₀, hr₀, fun v hv ↦ ?_, fun r hr ↦ ?_⟩
-  · rw [centeredExtChartAt_target]
-    exact hsub (by simpa [dist_eq_norm] using hv)
+  refine ⟨r₀, hr₀, hsub, fun r hr ↦ ?_⟩
   obtain ⟨ε, hε, hconf⟩ := h r hr
   have h₀ (x : M) : hW.flow 0 x = x := hW.flow.map_zero_apply x
-  simp only [centeredExtChartAt_source, centeredExtChartAt_apply, ← extChartAt_source 𝓘(ℝ, E)]
   exact ⟨ε, hε, fun x hx hxs hxr hfx t ht ↦ hconf (fun s ↦ hW.flow s x)
     (hW.isMIntegralCurve_flow x) (Flow.mem_stableSet.1 hx) (by rwa [h₀]) (by rwa [h₀])
     (by rwa [h₀]) t ht⟩
@@ -436,7 +432,7 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
     obtain ⟨hyi, hymaps, hy0, -⟩ := hy z (hball z hz)
     have htarget (s : ℝ) (hs : 0 ≤ s) : e p + y z s ∈ e.target := by
       have h := hr₀t (closedBall_subset_closedBall hrr₀ (hymaps (mem_Ici.2 hs)))
-      rwa [centeredExtChartAt_target, mem_preimage, add_comm] at h
+      rwa [mem_centeredExtChartAt_target_iff, add_comm] at h
     refine ⟨htarget t ht, ?_⟩
     have h := TauCeti.extChartAt_symm_add_eq_globalFlow hv hW.isCompleteVectorField hyi htarget ht
     rw [hy0, ← hW.flow_def] at h
@@ -522,12 +518,10 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
     have hback : hW.flow (-T) (ι (h z)) = ι z := by rw [hιh.self_of_nhds, hinv]
     -- The left inverse of `h`.
     have hk : ContDiffAt ℝ m (fun u ↦ Q (κ (hW.flow (-T) (ι u)))) (h z) := by
-      have hsrc : ι z ∈ κ.source := by
-        rw [hκ, centeredExtChartAt_source, ← extChartAt_source 𝓘(ℝ, E)]
-        exact e.map_target (hq z hz)
+      have hsrc : ι z ∈ κ.source :=
+        (centeredExtChartAt_source_eq_extChartAt_source _ p).symm.subset (e.map_target (hq z hz))
       have h1 : ContMDiffAt 𝓘(ℝ, S) 𝓘(ℝ, E) m (fun u ↦ κ (hW.flow (-T) (ι u))) (h z) :=
-        (((contMDiffOn_centeredExtChartAt (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) _ p).contMDiffAt
-          (κ.open_source.mem_nhds hsrc)).of_le
+        ((contMDiffAt_centeredExtChartAt' (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) hsrc).of_le
           (by exact_mod_cast le_top)).comp_of_eq
           ((((hW.contMDiff_flow_apply (-T)).of_le (by exact_mod_cast le_top)).contMDiffAt).comp
             (h z) hιhz) hback
@@ -570,10 +564,7 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
     have hδ : 0 < δ := lt_min (by positivity) (by positivity)
     refine ⟨chartBall 𝓘(ℝ, E) p δ, chartBall_mem_nhds _ p hδ, ε, hε, ?_⟩
     rintro x ⟨⟨hx, hxc⟩, hfx⟩
-    obtain ⟨hxs, hxb⟩ := (mem_chartBall_iff _).1 hxc
-    rw [mem_ball, dist_eq_norm, ← centeredExtChartAt_apply] at hxb
-    have hxκ : x ∈ κ.source := by
-      rwa [hκ, centeredExtChartAt_source, ← extChartAt_source 𝓘(ℝ, E)]
+    obtain ⟨hxκ, hxb⟩ := (mem_chartBall_iff_norm_centeredExtChartAt_lt _ _).1 hxc
     have hcx := hc x hx hxκ (hxb.le.trans (min_le_left _ _)) hfx
     set Y : ℝ → E := fun t ↦ κ (hW.flow t x)
     have hYi : IsIntegralCurveOn Y
@@ -596,7 +587,8 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
     have hw := hgraph Y hYi (fun t ht ↦ mem_closedBall_zero_iff.2 (hcx t ht).2) hPY.le
     refine ⟨Q (Y 0), by simpa [hQP] using hPY, ?_⟩
     simp only [hι, hQP]
-    rw [← hw, hY0, hκ, centeredExtChartAt_apply, add_sub_cancel, e.left_inv hxs]
+    rw [← hw, hY0, hκ, centeredExtChartAt_apply, add_sub_cancel,
+      e.left_inv ((centeredExtChartAt_source_eq_extChartAt_source _ p).subset hxκ)]
   -- The derivative of `w ↦ e (φ_t (ι w))` is bounded in `t ≥ 0`.
   have hbd (z : S) (hz : z ∈ ball (0 : S) ρ) : ∃ C : ℝ, ∀ t, 0 ≤ t →
       hW.flow t (ι z) ∈ e.source ∧ DifferentiableAt ℝ (fun w ↦ e (hW.flow t (ι w))) z ∧
@@ -724,21 +716,16 @@ theorem exists_forall_π_flow_mem_ball_and_ι_eq
     fun z hz t ht ↦ ?_⟩
   obtain ⟨hzc, hzf⟩ := hδW (ball_subset_ball (min_le_left _ _) hz)
   have hzf : f p - min ε ε' < f (D.ι z) := hzf
-  obtain ⟨hzs, hzb⟩ := (mem_chartBall_iff _).1 hzc
-  rw [mem_ball, dist_eq_norm] at hzb
+  obtain ⟨hzs, hzb⟩ := (mem_chartBall_iff_norm_centeredExtChartAt_lt _ _).1 hzc
   have hzst : D.ι z ∈ hW.flow.stableSet p :=
     D.image_ball_subset_stableSet
       ⟨z, ball_subset_ball ((min_le_right _ _).trans (min_le_left _ _)) hz, rfl⟩
-  obtain ⟨hts, htb⟩ := hc (D.ι z) hzst (by simpa using hzs) (by simpa using hzb.le)
+  obtain ⟨hts, htb⟩ := hc (D.ι z) hzst hzs hzb.le
     ((sub_le_sub_left (min_le_right _ _) _).trans_lt hzf) t ht
-  -- The chart balls are those of the extended chart, not of the centred one.
-  rw [centeredExtChartAt_source, ← extChartAt_source 𝓘(ℝ, E)] at hts
-  rw [centeredExtChartAt_apply] at htb
   have hfle : f (D.ι z) ≤ f (hW.flow t (D.ι z)) := by
     simpa using hW.monotone_comp_flow (D.ι z) ht
   have hxV : hW.flow t (D.ι z) ∈ U ∩ D.π ⁻¹' ball 0 ρ₁ :=
-    hr₁V ((mem_chartBall_iff _).2 ⟨hts, by
-      rw [mem_ball, dist_eq_norm]
+    hr₁V ((mem_chartBall_iff_norm_centeredExtChartAt_lt _ _).2 ⟨hts, by
       linarith [min_le_right r₀ (r₁ / 2)]⟩)
   obtain ⟨w, hw, hwx⟩ := hcov ⟨⟨(Flow.apply_mem_stableSet_iff _ _).2 hzst, hxV.1⟩,
     ((sub_le_sub_left (min_le_left _ _) _).trans_lt hzf).trans_le hfle⟩
@@ -829,7 +816,7 @@ theorem exists_forall_flow_strictAntiOn
       have h := TauCeti.isIntegralCurveOn_centeredExtChartAt_globalFlow
         (hW.contMDiff_field.of_le (by simp)) hW.isCompleteVectorField
         (s := {s | hW.flow s (D.ι z) ∈ e.source}) (p := p) (x := D.ι z) fun s hs ↦ by
-          rw [← hW.flow_def, centeredExtChartAt_source, ← extChartAt_source 𝓘(ℝ, E)]; exact hs
+          rw [← hW.flow_def, centeredExtChartAt_source_eq_extChartAt_source]; exact hs
       rwa [← hW.flow_def] at h
     have hwt : HasDerivAt w (Y (w t)) t :=
       (hwi t (hC' t ht).1).hasDerivAt (hO.mem_nhds (hC' t ht).1)
@@ -921,7 +908,7 @@ theorem exists_eventually_norm_mvfderiv_le_of_range_subset_stableSet {p : M}
   set e := extChartAt 𝓘(ℝ, E) p
   set π := D.π
   have hπ : ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ, A.stableSubspace) (⊤ : ℕ∞) π e.source := by
-    simpa only [e, extChartAt_source, centeredExtChartAt_source] using D.contMDiffOn_π
+    simpa only [e, ← centeredExtChartAt_source_eq_extChartAt_source] using D.contMDiffOn_π
   have hπι (z : A.stableSubspace) (hz : z ∈ ball 0 D.ρ) : π (D.ι z) = z := D.π_ι hz
   clear_value π
   have hfc : Continuous f := hW.isGeneralizedMorse.contMDiff.continuous

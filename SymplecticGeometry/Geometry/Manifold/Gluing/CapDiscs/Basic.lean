@@ -23,6 +23,7 @@ import TauCeti.Geometry.Manifold.LocalDiffeomorph.Deriv
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Sigma
 import TauCeti.Topology.Compactness.Normed
 import SymplecticGeometry.Geometry.Manifold.Boundary.Interior
+import SymplecticGeometry.Topology.Compactness.LocallyFinite
 
 /-!
 # Capping the boundary circles of a surface with discs
@@ -64,6 +65,12 @@ with `‖z‖ ≤ 1`. The point `p` lies off the compact circle `γ i`, hence, b
 collar points `c (γ i θ, t)` for every `θ` and every small enough `t`; these are the points of an
 annulus `1 < ‖z‖ < 1 + ε`.
 
+The capped surface is compact when `S` is compact and the `γ i` together cover the boundary.
+The ranges of the `γ i` are then disjoint open subsets that cover the compact boundary, so
+there are finitely many discs. The compact set of points of `S` that are not collar points of
+depth less than `1 / 2`, and the closed discs of radius `3 / 2`, then satisfy the hypotheses of
+`GluedAlong.compactSpace_of_isCompact`.
+
 ## Main definitions
 
 * `SymplecticGeometry.capDiscs`: the capped surface, a smooth manifold modelled on `ℝ²`.
@@ -87,6 +94,9 @@ annulus `1 < ‖z‖ < 1 + ε`.
   `disjoint_range_inr`: distinct discs are disjoint;
   `inr_mem_range_inl_iff`: a point of a disc lies in the interior exactly on the annulus.
 * `SymplecticGeometry.capDiscs.instT2Space`: the capped surface is Hausdorff when `S` is.
+* `SymplecticGeometry.capDiscs.compactSpace`: the capped surface is compact when `S` is compact
+  and the loops cover the boundary of `S`; `finite_of_compactSpace`: there are then finitely
+  many loops.
 
 ## References
 
@@ -711,6 +721,80 @@ theorem inr_mem_range_inl_iff {i : ι} {z : ball} :
   rw [inl, inr] at hp
   have h := (GluedAlong.inr_mem_range_inl_iff _).1 ⟨_, hp⟩
   rwa [mem_annuli, mem_annulus, DiscPiece.val_remodelDiffeomorph] at h
+
+/-! ### Compactness -/
+
+section Compact
+
+omit [IsManifold (𝓡∂ 2) ∞ S] in
+include hγ hinj in
+/-- If `S` is compact and the loops `γ i` together cover the boundary of `S`, there are finitely
+many of them: their ranges are disjoint, open and nonempty. -/
+theorem finite_of_compactSpace [CompactSpace S]
+    (hsurj : Surjective fun p : ι × AddCircle (1 : ℝ) ↦ γ p.1 p.2) : Finite ι := by
+  refine finite_of_compactSpace_of_pairwise_disjoint (fun i ↦ (hγ i).isOpenMap.isOpen_range)
+    (fun i ↦ range_nonempty _) (fun i j hij ↦ disjoint_left.2 ?_)
+    (eq_univ_of_forall fun x ↦ ?_)
+  · rintro _ ⟨θ, rfl⟩ ⟨θ', h⟩
+    exact hij (congrArg Prod.fst (hinj (a₁ := (j, θ')) (a₂ := (i, θ)) h)).symm
+  · obtain ⟨⟨i, θ⟩, rfl⟩ := hsurj x
+    exact mem_iUnion.2 ⟨i, θ, rfl⟩
+
+/-- The capped surface is compact when `S` is compact and the loops `γ i` together cover the
+boundary of `S`. -/
+theorem compactSpace [CompactSpace S]
+    (hsurj : Surjective fun p : ι × AddCircle (1 : ℝ) ↦ γ p.1 p.2) :
+    CompactSpace (capDiscs c γ hγ hinj) := by
+  have := finite_of_compactSpace γ hγ hinj hsurj
+  let e := (𝓡∂ 2).interiorOpensDiffeomorph S ∞
+  -- `K`: the points of `S` that are not collar points of depth less than `1 / 2`.
+  let K : Set S := (c '' {q | (q.2 : EuclideanHalfSpace 1).val 0 < 1 / 2})ᶜ
+  have hK : IsCompact K := by
+    refine (IsClosed.isCompact (isOpen_compl_iff.1 ?_))
+    rw [compl_compl]
+    exact c.isOpenEmbedding.isOpenMap _ (isOpen_lt (by fun_prop) continuous_const)
+  have hKint : K ⊆ range (Subtype.val : (𝓡∂ 2).interiorOpens S → S) := fun x hx ↦ by
+    rw [Subtype.range_coe, ModelWithCorners.coe_interiorOpens]
+    by_contra hxi
+    rw [← mem_compl_iff, ModelWithCorners.compl_interior] at hxi
+    refine hx ⟨(⟨x, hxi⟩, normalIioOpensZero one_pos), ?_, c.apply_zero _⟩
+    simp [coe_normalIioOpensZero]
+  -- `D`: the disc of radius `3 / 2`, and `K₂`: its copies in the disjoint union of the discs.
+  let D : Set ball := ((↑) : ball → ℂ) ⁻¹' Metric.closedBall 0 (3 / 2)
+  have hD : IsCompact D :=
+    IsInducing.subtypeVal.isCompact_preimage' (isCompact_closedBall 0 _) (fun w hw ↦ by
+      rw [Subtype.range_coe, SetLike.mem_coe, mem_ball_iff]
+      rw [mem_closedBall_zero_iff] at hw
+      linarith)
+  let K₂ : Set (DiscsPiece ι) := ⋃ i, (fun z : ball ↦
+    (⟨i, remodelDiffeomorph complexDiffeomorph ball z⟩ : DiscsPiece ι)) '' D
+  have hK₂ : IsCompact K₂ := isCompact_iUnion fun i ↦
+    hD.image (continuous_sigmaMk.comp (remodelDiffeomorph complexDiffeomorph ball).continuous)
+  refine GluedAlong.compactSpace_of_isCompact (annuliDiffeomorph (c := c) hγ hinj).toHomeomorph
+    ((IsInducing.subtypeVal.isCompact_preimage' hK hKint).image e.continuous) hK₂
+    (fun x hx ↦ ?_) (fun w hw ↦ ?_)
+  · -- A collar point of depth `t < 1 / 2` is the point of radius `1 + t` of a disc.
+    obtain ⟨p, rfl⟩ := e.surjective x
+    obtain ⟨⟨b, t⟩, ht, hpt⟩ := not_not.1 fun hp ↦ hx ⟨p, hp, rfl⟩
+    obtain ⟨⟨i, θ⟩, rfl⟩ := hsurj b
+    have h : c (γ i θ, t) ∈ (𝓡∂ 2).interiorOpens S := hpt ▸ p.property
+    have hglue :=
+      (inr_ofReal_mul_toCircle_eq_inl c γ hγ hinj h).trans (congrArg _ (Subtype.ext hpt))
+    rw [inr, inl] at hglue
+    refine ⟨_, mem_iUnion.2 ⟨i, _, ?_, rfl⟩, hglue⟩
+    have ht : (t : EuclideanHalfSpace 1).val 0 < 1 / 2 := ht
+    rw [mem_preimage, mem_closedBall_zero_iff, norm_ofReal_one_add_mul_toCircle]
+    linarith
+  · -- A point of a disc outside the annulus has radius at most `1`.
+    obtain ⟨i, u⟩ := w
+    have hu : ¬ 1 < ‖u.val‖ := fun h ↦ hw (mem_annuli.2 (mem_annulus.2 h))
+    refine mem_iUnion.2 ⟨i, (remodelDiffeomorph complexDiffeomorph ball).symm u, ?_,
+      congrArg _ (Diffeomorph.apply_symm_apply _ u)⟩
+    rw [mem_preimage, mem_closedBall_zero_iff]
+    rw [DiscPiece.val] at hu
+    linarith [not_lt.1 hu]
+
+end Compact
 
 /-! ### The Hausdorff property -/
 

@@ -12,6 +12,7 @@ import SymplecticGeometry.Algebra.Order.Ring.Basic
 import SymplecticGeometry.Order.Interval.Set.Piecewise
 import SymplecticGeometry.Topology.Order.Compact
 import SymplecticGeometry.Topology.Order.Piecewise
+import TauCeti.Analysis.Calculus.BumpFunction.FiniteDimension
 import TauCeti.Order.Interval.Set.Piecewise
 
 /-!
@@ -50,7 +51,9 @@ is `SymplecticGeometry.smoothedMax`.
   `SymplecticGeometry.two_mul_one_sub_smoothedSign_sq_div_le_iteratedDeriv_two_smoothedAbs`
   makes up for the loss of the cube under that condition alone. So under it the smoothed
   maximum of two `i`-convex shapes at `r` is one, for any such `δ`
-  (`SymplecticGeometry.isConvexShapeAt_smoothedMax`).
+  (`SymplecticGeometry.isConvexShapeAt_smoothedMax`). The shapes need only be `C²` at `r`: they
+  agree near `r` with `C²` functions on `ℝ`
+  (`ContDiffAt.exists_contDiff_eventuallyEq_of_finiteDimensional`).
   The condition bounds only the slopes, which the smoothed maximum does not raise, so it
   carries over to each member of a chain of smoothed maxima of shapes whose slopes are at most
   `G` with `δ G ≤ r` (`SymplecticGeometry.isConvexShapeAt_smoothedMaxChain`).
@@ -208,19 +211,30 @@ theorem min_le_iteratedDeriv_two_smoothedMax_add_pow_three_div_sub_one_div {χ�
   linarith
 
 /-- **The smoothed maximum of two `i`-convex shapes, for a moderate width.** Let `χ₁`,
-`χ₂` be `C²` and `i`-convex shapes at `r`, and `δ > 0` with `δ (χ₁' r + χ₂' r) ≤ 2 r`. Then
-`r ↦ smoothedMax δ (χ₁ r) (χ₂ r)` is an `i`-convex shape at `r`. -/
-theorem isConvexShapeAt_smoothedMax {χ₁ χ₂ : ℝ → ℝ} {δ : ℝ} (h₁ : ContDiff ℝ 2 χ₁)
-    (h₂ : ContDiff ℝ 2 χ₂) (hδ : 0 < δ) (hc₁ : IsConvexShapeAt χ₁ r)
+`χ₂` be `C²` at `r` and `i`-convex shapes at `r`, and `δ > 0` with `δ (χ₁' r + χ₂' r) ≤ 2 r`.
+Then `r ↦ smoothedMax δ (χ₁ r) (χ₂ r)` is an `i`-convex shape at `r`. -/
+theorem isConvexShapeAt_smoothedMax {χ₁ χ₂ : ℝ → ℝ} {δ : ℝ} (h₁ : ContDiffAt ℝ 2 χ₁ r)
+    (h₂ : ContDiffAt ℝ 2 χ₂ r) (hδ : 0 < δ) (hc₁ : IsConvexShapeAt χ₁ r)
     (hc₂ : IsConvexShapeAt χ₂ r) (hδr : δ * (deriv χ₁ r + deriv χ₂ r) ≤ 2 * r) :
     IsConvexShapeAt (fun r ↦ smoothedMax δ (χ₁ r) (χ₂ r)) r := by
-  have h := min_le_iteratedDeriv_two_smoothedMax_add_pow_three_div_sub_one_div h₁ h₂ hδ hc₁.pos
-    hc₁.pos_value hc₂.pos_value hc₁.deriv_pos.le hc₂.deriv_pos.le hδr
-  have hm := lt_min (sub_pos.2 hc₁.one_div_lt_iteratedDeriv_add)
-    (sub_pos.2 hc₂.one_div_lt_iteratedDeriv_add)
-  exact isConvexShapeAt_iff.2 ⟨hc₁.pos, hc₁.pos_value.trans_le
-    ((le_max_left _ _).trans (max_le_smoothedMax hδ _ _)),
-    one_div_smoothedMax_lt_deriv_div h₁ h₂ hδ hc₁ hc₂, by linarith⟩
+  -- Being a shape at `r` depends only on the germ at `r`, so replace `χ₁`, `χ₂` by `C²`
+  -- functions on `ℝ` with the same germs.
+  obtain ⟨f₁, hf₁, -, e₁⟩ := h₁.exists_contDiff_eventuallyEq_of_finiteDimensional
+  obtain ⟨f₂, hf₂, -, e₂⟩ := h₂.exists_contDiff_eventuallyEq_of_finiteDimensional
+  have hd₁ : IsConvexShapeAt f₁ r := hc₁.congr_of_eventuallyEq e₁
+  have hd₂ : IsConvexShapeAt f₂ r := hc₂.congr_of_eventuallyEq e₂
+  have h := min_le_iteratedDeriv_two_smoothedMax_add_pow_three_div_sub_one_div hf₁ hf₂ hδ hd₁.pos
+    hd₁.pos_value hd₂.pos_value hd₁.deriv_pos.le hd₂.deriv_pos.le
+    (by rwa [e₁.deriv_eq, e₂.deriv_eq])
+  have hm := lt_min (sub_pos.2 hd₁.one_div_lt_iteratedDeriv_add)
+    (sub_pos.2 hd₂.one_div_lt_iteratedDeriv_add)
+  have hs : IsConvexShapeAt (fun x ↦ smoothedMax δ (f₁ x) (f₂ x)) r :=
+    isConvexShapeAt_iff.2 ⟨hd₁.pos, hd₁.pos_value.trans_le
+      ((le_max_left _ _).trans (max_le_smoothedMax hδ _ _)),
+      one_div_smoothedMax_lt_deriv_div hf₁ hf₂ hδ hd₁ hd₂, by linarith⟩
+  refine hs.congr_of_eventuallyEq ?_
+  filter_upwards [e₁, e₂] with x hx₁ hx₂
+  rw [hx₁, hx₂]
 
 /-- **A chain of smoothed maxima of `i`-convex shapes.** Let `δ > 0`, and let `A 0, …, A n` be
 `C²` and `i`-convex shapes at `r` with slopes at most `G` there, where `δ G ≤ r`. Then the
@@ -237,7 +251,8 @@ theorem isConvexShapeAt_smoothedMaxChain {A : ℕ → ℝ → ℝ} {δ G : ℝ} 
       (fun j hj ↦ (hA' j hj).differentiable two_ne_zero r) fun j hj ↦ hG j (Nat.le_succ_of_le hj)
     have hδr := mul_le_mul_of_nonneg_left (add_le_add hM (hG (n + 1) le_rfl)) hδ.le
     rw [smoothedMaxChain_succ]
-    exact isConvexShapeAt_smoothedMax (contDiff_smoothedMaxChain δ hA') (hA (n + 1) le_rfl) hδ
+    exact isConvexShapeAt_smoothedMax (contDiff_smoothedMaxChain δ hA').contDiffAt
+      (hA (n + 1) le_rfl).contDiffAt hδ
       (ih hA' (fun j hj ↦ hc j (Nat.le_succ_of_le hj)) fun j hj ↦ hG j (Nat.le_succ_of_le hj))
       (hc (n + 1) le_rfl) (by linarith)
 

@@ -17,6 +17,7 @@ public import TauCeti.Topology.VectorBundle.Complex.Structure
 import SymplecticGeometry.Data.Bundle
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hom
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Prod
+import SymplecticGeometry.Topology.FiberBundle.Prod
 import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
 import SymplecticGeometry.Topology.VectorBundle.Pullback
 import TauCeti.Geometry.Symplectic.Finrank
@@ -517,6 +518,9 @@ def pullbackFiberEquiv (J : ContMDiffComplexStructure I n F V) (f : K)
     J.toContinuousComplexStructure (b₂ := f y) (ContinuousLinearEquiv.refl ℝ (V (f y)))
     fun v ↦ J.pullback_apply f hf y v
 
+/-- `pullbackFiberEquiv` at `y` sends a vector `v` of the complex fibre of `J.pullback f hf` at
+`y` to the vector of the complex fibre of `J` at `f y` that has the same underlying real vector:
+it reads `v` in `(f *ᵖ V) y` and then reads that vector back in the complex fibre of `J`. -/
 theorem pullbackFiberEquiv_apply (J : ContMDiffComplexStructure I n F V) (f : K)
     (hf : ContMDiff I' I n f) (y : N)
     (v : (J.pullback f hf).toContinuousComplexStructure.Fiber y) :
@@ -527,22 +531,29 @@ theorem pullbackFiberEquiv_apply (J : ContMDiffComplexStructure I n F V) (f : K)
   -- `exact` reads `refl` as the identity.
   exact TauCeti.Bundle.ContinuousComplexStructure.fiberEquivOfCommuteAt_apply _ _ _ _ v
 
-/-- `pullbackFiberEquiv` is continuous on total spaces, for any complex model `G`. -/
+/-- `pullbackFiberEquiv` is continuous as a map from the total space of the complex bundle of
+`J.pullback f hf` to that of the pull-back along `f` of the complex bundle of `J`, for any complex
+model fibre `G`. -/
 theorem continuous_pullbackFiberEquiv [FiniteDimensional ℝ F] (G : Type*) [NormedAddCommGroup G]
     [NormedSpace ℂ G] [FiniteDimensional ℂ G] [Fact (Module.finrank ℝ F = 2 * Module.finrank ℂ G)]
     (J : ContMDiffComplexStructure I n F V) (f : K) (hf : ContMDiff I' I n f) :
     Continuous fun p : TotalSpace G (J.pullback f hf).toContinuousComplexStructure.Fiber ↦
       TotalSpace.mk' G (E := (f : N → M) *ᵖ J.toContinuousComplexStructure.Fiber) p.proj
         (J.pullbackFiberEquiv f hf p.proj p.snd) := by
-  refine Pullback.continuous_iff.2 ⟨FiberBundle.continuous_proj G _,
-    ((J.toContinuousComplexStructure.totalSpaceHomeomorph G).symm.continuous.comp
-      ((Pullback.continuous_lift F V f).comp
-        ((J.pullback f hf).toContinuousComplexStructure.totalSpaceHomeomorph G).continuous)).congr
-      fun p ↦ ?_⟩
-  rw [Function.comp_apply, Function.comp_apply,
-    TauCeti.Bundle.ContinuousComplexStructure.totalSpaceHomeomorph_apply]
-  erw [Pullback.lift_mk, TauCeti.Bundle.ContinuousComplexStructure.totalSpaceHomeomorph_symm_apply]
-  simp only [pullbackFiberEquiv_apply, Pullback.lift_mk]
+  refine Pullback.continuous_iff.2 ⟨FiberBundle.continuous_proj G _, ?_⟩
+  refine (TauCeti.Bundle.ContinuousComplexStructure.continuous_fiberEquivOfCommuteAlong
+    (K₁ := (J.pullback f hf).toContinuousComplexStructure) (K₂ := J.toContinuousComplexStructure)
+    (g := f) (Ψ := fun y ↦ ContinuousLinearEquiv.refl ℝ (V (f y)))
+    (hΨ := fun y v ↦ J.pullback_apply f hf y v) (G₁ := G) (G₂ := G)
+    ((Pullback.continuous_lift F V f).congr fun p ↦ ?_)).congr fun p ↦ ?_
+  · exact (Pullback.lift_mk f p.proj p.snd).trans
+      (congrArg (TotalSpace.mk (f p.proj)) (ContinuousLinearEquiv.refl_apply ℝ _ p.snd).symm)
+  · simp only [pullbackFiberEquiv_apply, Pullback.lift_mk]
+    -- `fiberEquivOfCommuteAlong_apply` cannot be rewritten here, since `Ψ` has type
+    -- `V (f y) ≃L[ℝ] V (f y)` rather than `(f *ᵖ V) y ≃L[ℝ] V (f y)`; it is applied by `exact`.
+    exact congrArg (TotalSpace.mk (f p.proj))
+      ((TauCeti.Bundle.ContinuousComplexStructure.fiberEquivOfCommuteAlong_apply
+        _ _ _ _ _ _ _).trans (congrArg _ (ContinuousLinearEquiv.refl_apply ℝ _ _)))
 
 end Pullback
 
@@ -611,23 +622,11 @@ def prodFiberEquiv (J₁ : ContMDiffComplexStructure I n F₁ V₁)
     (J₂ : ContMDiffComplexStructure I n F₂ V₂) (x : M) :
     (J₁.prod J₂).toContinuousComplexStructure.Fiber x ≃L[ℂ]
       (J₁.toContinuousComplexStructure.Fiber ×ᵇ J₂.toContinuousComplexStructure.Fiber) x :=
-  ContinuousLinearEquiv.complexOfMapISmul
-    (((J₁.prod J₂).toContinuousComplexStructure.fiberEquiv x).trans
-      ((J₁.toContinuousComplexStructure.fiberEquiv x).symm.prodCongr
-        (J₂.toContinuousComplexStructure.fiberEquiv x).symm)) fun v ↦ by
-    have h := (J₁.prod J₂).toContinuousComplexStructure.fiberEquiv_I_smul x v
-    rw [toContinuousComplexStructure_apply, prod_apply] at h
-    rw [ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.trans_apply, h,
-      ContinuousLinearEquiv.prodCongr_apply, ContinuousLinearEquiv.prodCongr_apply, Prod.smul_mk]
-    congr 1
-    · refine (J₁.toContinuousComplexStructure.fiberEquiv x).injective ?_
-      rw [TauCeti.Bundle.ContinuousComplexStructure.fiberEquiv_I_smul,
-        ContinuousLinearEquiv.apply_symm_apply, ContinuousLinearEquiv.apply_symm_apply,
-        toContinuousComplexStructure_apply]
-    · refine (J₂.toContinuousComplexStructure.fiberEquiv x).injective ?_
-      rw [TauCeti.Bundle.ContinuousComplexStructure.fiberEquiv_I_smul,
-        ContinuousLinearEquiv.apply_symm_apply, ContinuousLinearEquiv.apply_symm_apply,
-        toContinuousComplexStructure_apply]
+  (J₁.prod J₂).toContinuousComplexStructure.fiberEquivOfCommuteI
+    (W := J₁.toContinuousComplexStructure.Fiber ×ᵇ J₂.toContinuousComplexStructure.Fiber)
+    (fun x ↦ (J₁.toContinuousComplexStructure.fiberEquiv x).symm.prodCongr
+      (J₂.toContinuousComplexStructure.fiberEquiv x).symm)
+    (fun x v ↦ by ext <;> simp [ContinuousLinearEquiv.symm_apply_eq]) x
 
 theorem prodFiberEquiv_apply (J₁ : ContMDiffComplexStructure I n F₁ V₁)
     (J₂ : ContMDiffComplexStructure I n F₂ V₂) (x : M)
@@ -653,17 +652,18 @@ theorem continuous_prodFiberEquiv (G G₁ G₂ : Type*)
       TotalSpace.mk' (G₁ × G₂)
         (E := J₁.toContinuousComplexStructure.Fiber ×ᵇ J₂.toContinuousComplexStructure.Fiber)
         p.proj (J₁.prodFiberEquiv J₂ p.proj p.snd) := by
-  have hd := (FiberBundle.Prod.isInducing_diag F₁ V₁ F₂ V₂).continuous.comp
-    ((J₁.prod J₂).toContinuousComplexStructure.totalSpaceHomeomorph G).continuous
-  refine (FiberBundle.Prod.isInducing_diag G₁ _ G₂ _).continuous_iff.2 <|
-    (((J₁.toContinuousComplexStructure.totalSpaceHomeomorph G₁).symm.continuous.comp
-      hd.fst).prodMk
-      ((J₂.toContinuousComplexStructure.totalSpaceHomeomorph G₂).symm.continuous.comp
-        hd.snd)).congr fun p ↦ ?_
-  simp only [Function.comp_apply]
-  rw [TauCeti.Bundle.ContinuousComplexStructure.totalSpaceHomeomorph_apply, prodFiberEquiv_apply,
-    TauCeti.Bundle.ContinuousComplexStructure.totalSpaceHomeomorph_symm_apply,
-    TauCeti.Bundle.ContinuousComplexStructure.totalSpaceHomeomorph_symm_apply]
+  have h₁ : Continuous fun p : TotalSpace F₁ V₁ ↦ TotalSpace.mk' G₁ p.proj
+      ((J₁.toContinuousComplexStructure.fiberEquiv p.proj).symm p.snd) :=
+    (J₁.toContinuousComplexStructure.totalSpaceHomeomorph G₁).symm.continuous.congr fun p ↦
+      TauCeti.Bundle.ContinuousComplexStructure.totalSpaceHomeomorph_symm_apply _ _ _
+  have h₂ : Continuous fun p : TotalSpace F₂ V₂ ↦ TotalSpace.mk' G₂ p.proj
+      ((J₂.toContinuousComplexStructure.fiberEquiv p.proj).symm p.snd) :=
+    (J₂.toContinuousComplexStructure.totalSpaceHomeomorph G₂).symm.continuous.congr fun p ↦
+      TauCeti.Bundle.ContinuousComplexStructure.totalSpaceHomeomorph_symm_apply _ _ _
+  exact (J₁.prod J₂).toContinuousComplexStructure.continuous_fiberEquivOfCommuteI _ _ G
+    (Bundle.Prod.continuous_prodCongr (R := ℝ)
+      (Φ₁ := fun x ↦ (J₁.toContinuousComplexStructure.fiberEquiv x).symm)
+      (Φ₂ := fun x ↦ (J₂.toContinuousComplexStructure.fiberEquiv x).symm) h₁ h₂)
 
 end Prod
 

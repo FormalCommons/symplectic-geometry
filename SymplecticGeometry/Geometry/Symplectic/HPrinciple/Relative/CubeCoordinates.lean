@@ -11,6 +11,7 @@ public import SymplecticGeometry.Geometry.Manifold.Morse.Core.Basic
 public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Injective
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Topology
 public import SymplecticGeometry.Geometry.Symplectic.HPrinciple.FormalPrimitive
+import SymplecticGeometry.Topology.MetricSpace.Thickening
 import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
 
 /-!
@@ -73,7 +74,7 @@ the regularity that the continuous version of holonomic approximation asks of a 
 public section
 
 open Function Metric Set
-open scoped ContDiff Manifold
+open scoped ContDiff Manifold Topology
 
 namespace SymplecticGeometry
 
@@ -175,11 +176,11 @@ theorem exists_relativeSet (c : BandCore I g a₀ a b) (hg : Continuous g) {N : 
   have hchart := (c.isSmoothEmbedding_chart i).contMDiff.continuous
   have hYc : IsCompact Y :=
     (isCompact_closedBall _ _).inter_left (isClosed_le (hg.comp hchart) continuous_const)
-  obtain ⟨δ₀, hδ₀, hδ₀N⟩ := hYc.exists_cthickening_subset_open (hN.preimage hchart)
-    (inter_subset_left.trans (preimage_mono haN))
-  set η := min δ₀ (1 / 2)
-  have hη0 : 0 < η := lt_min hδ₀ (by norm_num)
-  have hη1 : η ≤ 1 / 2 := min_le_right _ _
+  obtain ⟨η, ⟨hηN, hη1⟩, hη0⟩ :=
+    (((eventually_image_cthickening_subset hchart hYc hN
+      (image_subset_iff.2 (inter_subset_left.trans (preimage_mono haN)))).and
+      (Iic_mem_nhds (by norm_num : (0 : ℝ) < 1 / 2))).filter_mono nhdsWithin_le_nhds).and
+      self_mem_nhdsWithin |>.exists (f := 𝓝[>] (0 : ℝ))
   refine ⟨η, hη0, by linarith, _, rfl, ?_, ?_, ?_, ?_⟩
   · have hB : IsClosed {u : Fin (c.dim i) → ℝ | ‖u‖ ≤ 1 + η ∧ (u, 0) ∈ cthickening η Y} :=
       (isClosed_le continuous_norm continuous_const).inter
@@ -195,7 +196,7 @@ theorem exists_relativeSet (c : BandCore I g a₀ a b) (hg : Continuous g) {N : 
     · simp [Prod.norm_def, hu1]
   · rintro ⟨u, v⟩ ⟨hu, hv⟩
     obtain rfl : v = 0 := hv
-    exact hδ₀N (cthickening_mono (min_le_left _ _) _ hu.2)
+    exact image_subset_iff.1 hηN hu.2
   · intro δ hδ hδη p hp hpB
     obtain ⟨q, ⟨hq1, hq2⟩, hpq⟩ := mem_thickening_iff.1 hp
     rw [mem_singleton_iff] at hq2

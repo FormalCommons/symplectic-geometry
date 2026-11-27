@@ -32,7 +32,10 @@ For any reindexing:
 For a real-differentiable map `f : M → N` of complex manifolds,
 `TauCeti.orientationSign_complexManifoldOrientation_eq_comp_chart` computes its orientation
 sign for the complex orientations in holomorphic charts `e` at `x` and `e'` at `f x`, as that of
-`e' ∘ f ∘ e.symm` for the complex orientation of the model.
+`e' ∘ f ∘ e.symm` for the complex orientation of the model. Since the complex orientation of a
+tangent space is that of the model at every point, a real diffeomorphism preserves the complex
+orientations at `x` exactly when its derivative there has positive real determinant
+(`Diffeomorph.isOrientationPreservingAt_complexManifoldOrientation_iff_det_pos`).
 
 For a complex curve,
 `finrank ℂ E = 1`, statements about real surfaces use the index type `Fin 2` instead. This file
@@ -144,6 +147,22 @@ theorem orientationSign_complexManifoldOrientation_eq_comp_chart
       one_ne_zero) hf (o' := complexManifoldOrientation E N),
     Manifold.Orientation.orientationSign_of_isOrientationPreservingAt
       (he₂.isOrientationPreservingAt_complexManifoldOrientation 1), one_mul]
+
+/-- A `Cⁿ` diffeomorphism `Φ : M → N` (`n ≠ 0`) of the underlying real manifolds of two complex
+manifolds modelled on `𝓘(ℂ, E)` preserves their complex orientations at `x` exactly when the
+real determinant of its derivative at `x`, an endomorphism of `E`, is positive. -/
+theorem _root_.Diffeomorph.isOrientationPreservingAt_complexManifoldOrientation_iff_det_pos
+    {N : Type*} [TopologicalSpace N] [ChartedSpace E N] [IsManifold 𝓘(ℂ, E) 1 N] {n : ℕ∞ω}
+    (Φ : M ≃ₘ^n⟮𝓘(ℝ, E), 𝓘(ℝ, E)⟯ N) (hn : n ≠ 0) (x : M) :
+    Manifold.Orientation.IsOrientationPreservingAt (complexManifoldOrientation E M)
+        (complexManifoldOrientation E N) Φ x ↔
+      0 < LinearMap.det (M := E) (mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) Φ x).toLinearMap := by
+  rw [Manifold.Orientation.isOrientationPreservingAt_iff_of_coe_eq _ _ _ x
+    (Φ.mfderivToContinuousLinearEquiv hn x) (Φ.mfderivToContinuousLinearEquiv_coe hn),
+    ← Φ.mfderivToContinuousLinearEquiv_coe hn,
+    orientationAt_complexManifoldOrientation_eq_complexOrientation,
+    orientationAt_complexManifoldOrientation_eq_complexOrientation]
+  exact (complexOrientation E).map_eq_iff_det_pos _ card_fin_two_mul_finrank_complex
 
 end TauCeti
 

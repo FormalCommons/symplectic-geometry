@@ -9,13 +9,16 @@ public import SymplecticGeometry.Geometry.Manifold.Gluing.Pair
 public import SymplecticGeometry.Geometry.Symplectic.Sum.Collar
 public import SymplecticGeometry.Geometry.Symplectic.Sum.ProductNeighborhood
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
+public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import TauCeti.Geometry.Symplectic.Manifold.Opens
 import SymplecticGeometry.Analysis.Convex.PathConnected
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Analysis.Complex.ClosedAnnulus
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Prod.Basic
-import TauCeti.Geometry.Symplectic.Manifold.Opens
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
+import SymplecticGeometry.Geometry.Symplectic.Lagrangian.LocalDiffeomorph
 import SymplecticGeometry.Topology.Homotopy.Annulus
 
 /-!
@@ -41,12 +44,32 @@ component would lie in the removed tube of `M₂`. So `δ < |z| < ε`, and the p
 Gluing along open collars rather than along the circles of a fixed radius is what makes the
 glued space a manifold directly.
 
+When `M₁` and `M₂` are compact, so is the fiber sum (`FiberSum.instCompactSpace`). Put
+`r = √((δ² + ε²) / 2)`, the radius that the annulus map fixes, so that `δ < r < ε`. In each
+`Mᵢ`, the points outside the open tube `fᵢ (Q × B²(r))` form a compact subset of the
+complement of the closed tube (`ProductNeighborhood.isCompact_preimage_compl_image`). A point of
+`M₁` inside that tube but outside the closed tube is `f₁ (q, z)` with `δ < |z| < r`
+(`ProductNeighborhood.exists_collarMap_eq_of_mem_image`), and is glued to `f₂ (q, a z)`, whose
+radius `√(ε² + δ² - |z|²)` is at least `r` (`le_norm_annulusMap`). Every point of `M₂` outside
+the collar lies in the compact subset of `M₂`, so `GluedAlong.compactSpace_of_isCompact`
+applies. The argument adapts Tau Ceti's `TauCeti.ConnectedSum.compactSpace`, the compactness of
+the connected sum, to the fiber sum.
+
 When `ι₁` and `ι₂` pull `σ₁` and `σ₂` back to one form `τ` on `Q`, each collar diffeomorphism
 pulls the restriction of `σᵢ` back to the product form `τ ⊕ ω₀` of `Q × A(δ, ε)`
 (`ProductNeighborhood.mpullback_collarDiffeomorph`), and `id_Q × a` preserves that form
 (`mpullback_prodAnnulusDiffeomorph`). So the gluing map matches the two restrictions
 (`mpullback_fiberSumGluing`), and they glue, by `GluedAlong.gluedForm`, to a form on the fiber
 sum, which is symplectic when `σ₁` and `σ₂` are.
+
+An embedding `ι : Q' → M₁` of another manifold whose image misses the closed tube lands in the
+complement of the tube, and `inl` carries it into the fiber sum (`FiberSum.inlEmbedding`): `inl`
+is an open embedding and a local diffeomorphism, and it pulls the form of the sum back to `σ₁`. So
+the carried embedding pulls that form back to `ι^* σ₁`, has symplectic tangent images exactly when
+`ι` has them, and a symplectic framing of `ι` gives one of it (`FiberSum.inlEmbeddingFraming`),
+pulled back along the inclusion of the complement of the tube and moved along `inl` by
+`SymplecticFraming.ofTransLocalDiffeomorph` and `SymplecticFraming.transLocalDiffeomorph`. This is
+what lets one sum again along a second submanifold of `M₁` that misses the first.
 
 ## Main definitions
 
@@ -63,20 +86,31 @@ sum, which is symplectic when `σ₁` and `σ₂` are.
 * `SymplecticGeometry.FiberSum`: the fiber sum.
 * `SymplecticGeometry.FiberSum.symplecticForm`: the form of the fiber sum glued from `σ₁` and
   `σ₂`.
+* `SymplecticGeometry.FiberSum.inlEmbedding`: an embedding into `M₁` that misses the closed
+  tube, followed by `inl`, as an embedding into the fiber sum;
+  `SymplecticGeometry.FiberSum.inlEmbeddingFraming`, the symplectic framing of it given by one of
+  the original embedding.
 
 ## Main results
 
-* `SymplecticGeometry.FiberSum.inl_collarMap`: `inl (f₁ (q, z)) = inr (f₂ (q, a z))`, and
+* `SymplecticGeometry.FiberSum.inl_collarMap`: `inl (f₁ (q, z)) = inr (f₂ (q, a z))`, its
+  mirror `SymplecticGeometry.FiberSum.inr_collarMap`, and
   `SymplecticGeometry.FiberSum.inl_eq_inr_iff`: these are the only points that the gluing
   identifies.
 * `SymplecticGeometry.isClosed_graph_fiberSumGluing` and the instance
   `SymplecticGeometry.FiberSum.instT2Space`: the fiber sum is Hausdorff.
+* The instance `SymplecticGeometry.FiberSum.instCompactSpace`: the fiber sum of compact
+  manifolds is compact.
 * `SymplecticGeometry.FiberSum.mpullback_inl_symplecticForm`, `mpullback_inr_symplecticForm`,
   `eq_symplecticForm_iff` and `isSymplectic_symplecticForm`: the form of the fiber sum is the
   unique form that restricts to `σ₁` and `σ₂` on the two pieces, and it is symplectic.
 * `SymplecticGeometry.exists_isSymplectic_fiberSum`: for symplectic `σᵢ`, compact `Q` and
   symplectic framings, product neighbourhoods exist for all small radii, and every fiber sum
   built from them is a Hausdorff, second countable manifold with such a symplectic form.
+* `SymplecticGeometry.FiberSum.mpullback_inlEmbedding_symplecticForm` and
+  `hasSymplecticTangentImages_inlEmbedding_iff`: the carried embedding pulls the form of the fiber
+  sum back as the original one pulls back `σ₁`, and has symplectic tangent images exactly when the
+  original one has them.
 
 ## References
 
@@ -340,6 +374,40 @@ theorem not_mapClusterPt_of_tendsto (hδε : δ < ε) {α : Type*} {F : Filter �
   exact (f.mem_complTube.1 x.property)
     ⟨w', hw, eq_of_nhds_neBot (h₂.neBot.mono (inf_le_inf_left _ h₃))⟩
 
+/-- For compact `M` and `δ < a`, the points of the complement of the closed tube `Q × B̄²(δ)` that
+lie outside the open tube `f (Q × B²(a))` form a compact set. -/
+theorem isCompact_preimage_compl_image [CompactSpace M] (hδε : δ < ε) {a : ℝ} (ha : δ < a) :
+    IsCompact (((↑) : f.complTube hδε → M) ⁻¹' (f '' {p | ‖(p : Q × ℂ).2‖ < a})ᶜ) := by
+  rw [Subtype.isCompact_iff, image_preimage_eq_of_subset]
+  · refine IsClosed.isCompact (isClosed_compl_iff.2 (f.isOpenEmbedding.isOpenMap _ ?_))
+    exact isOpen_lt (continuous_norm.comp (continuous_snd.comp continuous_subtypeVal))
+      continuous_const
+  · intro x hx
+    rw [Subtype.range_coe, SetLike.mem_coe, mem_complTube]
+    rintro ⟨p, hp, rfl⟩
+    exact hx ⟨p, hp.trans_lt ha, rfl⟩
+
+/-- A point of the complement of the closed tube `Q × B̄²(δ)` that lies in the open tube
+`f (Q × B²(a))` is the image under the collar map of a point `(q, z)` of `Q × A(δ, ε)` with
+`|z| < a`. -/
+theorem exists_collarMap_eq_of_mem_image {hδε : δ < ε} {a : ℝ} {x : f.complTube hδε}
+    (hx : (x : M) ∈ f '' {p | ‖(p : Q × ℂ).2‖ < a}) :
+    ∃ p : Q × annulus ℂ δ ε, ‖(p.2 : ℂ)‖ < a ∧ f.collarMap hδε p = x := by
+  obtain ⟨p, hp, hpx⟩ := hx
+  have hδp : δ < ‖(p : Q × ℂ).2‖ :=
+    lt_of_not_ge fun h ↦ f.mem_complTube.1 x.property ⟨p, h, hpx⟩
+  refine ⟨((p : Q × ℂ).1, ⟨(p : Q × ℂ).2, mem_annulus.2 ⟨hδp, mem_prodBall.1 p.property⟩⟩),
+    hp, Subtype.ext ?_⟩
+  rw [coe_collarMap, annulusToProdBall_mk, hpx]
+
+/-- The image under the collar map of a point `(q, z)` of `Q × A(δ, ε)` with `a ≤ |z|` lies
+outside the open tube `f (Q × B²(a))`. -/
+theorem coe_collarMap_notMem_image (hδε : δ < ε) {a : ℝ} {p : Q × annulus ℂ δ ε}
+    (hp : a ≤ ‖(p.2 : ℂ)‖) :
+    (f.collarMap hδε p : M) ∉ f '' {p | ‖(p : Q × ℂ).2‖ < a} := by
+  rw [coe_collarMap, f.isOpenEmbedding.injective.mem_set_image]
+  exact hp.not_gt
+
 end ProductNeighborhood
 
 /-! ### The fiber sum -/
@@ -392,6 +460,14 @@ theorem inl_collarMap (p : Q × annulus ℂ δ ε) :
         (f₂.collarMap hδε (prodAnnulusDiffeomorph (I := J) Q δ ε hδ p)) := by
   rw [← f₁.coe_collarDiffeomorph_apply, ← f₂.coe_collarDiffeomorph_apply,
     ← fiberSumGluing_collarDiffeomorph f₁ f₂ hδ hδε, GluedAlong.inr_diffeomorph_apply]
+
+/-- The point `f₂ (q, z)` of the collar of `M₂` is glued to the point `f₁ (q, a z)` of that of
+`M₁`, where `a` is the annulus map. -/
+theorem inr_collarMap (p : Q × annulus ℂ δ ε) :
+    GluedAlong.inr (fiberSumGluing f₁ f₂ hδ hδε).toHomeomorph (f₂.collarMap hδε p) =
+      GluedAlong.inl (fiberSumGluing f₁ f₂ hδ hδε).toHomeomorph
+        (f₁.collarMap hδε (prodAnnulusDiffeomorph (I := J) Q δ ε hδ p)) := by
+  rw [inl_collarMap, prodAnnulusDiffeomorph_apply_apply]
 
 /-- A point `x` of the complement of the tube in `M₁` and a point `y` of that in `M₂` have the
 same image in the fiber sum exactly when they are `f₁ (q, z)` and `f₂ (q, a z)` for a point
@@ -488,6 +564,26 @@ theorem isClosed_graph_fiberSumGluing :
 instance FiberSum.instT2Space : T2Space (FiberSum f₁ f₂ hδ hδε) :=
   GluedAlong.t2Space_of_isClosed_graph _ (isClosed_graph_fiberSumGluing f₁ f₂ hδ hδε)
 
+/-- **The fiber sum of compact manifolds is compact.** -/
+instance FiberSum.instCompactSpace [CompactSpace M₁] [CompactSpace M₂] :
+    CompactSpace (FiberSum f₁ f₂ hδ hδε) := by
+  -- Away from the open tubes of radius `r = √((δ² + ε²) / 2)` the two pieces are compact, and
+  -- the annulus map sends the radii in `(δ, r)` to radii at least `r`, so these two sets cover.
+  set φ := (fiberSumGluing f₁ f₂ hδ hδε).toHomeomorph
+  set r := √((δ ^ 2 + ε ^ 2) / 2)
+  have hr : δ < r := (Real.lt_sqrt hδ).2 (by nlinarith)
+  have hP : ∀ p : Q × annulus ℂ δ ε, ‖(p.2 : ℂ)‖ < r →
+      r ≤ ‖((prodAnnulusDiffeomorph (I := J) Q δ ε hδ p).2 : ℂ)‖ := fun p hp ↦ by
+    rw [prodAnnulusDiffeomorph_apply, coe_annulusDiffeomorph_apply]
+    exact le_norm_annulusMap δ ε (ne_zero_of_mem_annulus hδ p.2.property) hp
+  refine GluedAlong.compactSpace_of_isCompact φ (f₁.isCompact_preimage_compl_image hδε hr)
+    (f₂.isCompact_preimage_compl_image hδε hr) (fun x hx ↦ ?_) (fun y hy hyr ↦ ?_)
+  · obtain ⟨p, hp, rfl⟩ := f₁.exists_collarMap_eq_of_mem_image (not_notMem.1 hx)
+    exact ⟨_, f₂.coe_collarMap_notMem_image hδε (hP p hp),
+      (FiberSum.inl_collarMap f₁ f₂ hδ hδε p).symm⟩
+  · obtain ⟨p, -, rfl⟩ := f₂.exists_collarMap_eq_of_mem_image hyr
+    exact hy (f₂.collarMap_mem_collar hδε p)
+
 /-- If `ι₁` and `ι₂` pull `σ₁` and `σ₂` back to the same form on `Q`, the gluing diffeomorphism
 of the fiber sum pulls the restriction of `σ₂` to the collar of `M₂` back to the restriction of
 `σ₁` to the collar of `M₁`. -/
@@ -560,6 +656,115 @@ theorem isSymplectic_symplecticForm (hω₁ : σ₁.IsSymplectic) (hω₂ : σ�
     (symplecticForm f₁ f₂ hδ hδε h).IsSymplectic :=
   GluedAlong.isSymplectic_gluedForm_iff.2
     ⟨hω₁.mpullback_subtype_val _, hω₂.mpullback_subtype_val _⟩
+
+end FiberSum
+
+/-! ### Embeddings that miss the tube -/
+
+namespace FiberSum
+
+variable {f₁ f₂ hδ hδε}
+  {EQ' HQ' : Type*} [NormedAddCommGroup EQ'] [NormedSpace ℝ EQ']
+  [TopologicalSpace HQ'] {J' : ModelWithCorners ℝ EQ' HQ'} {Q' : Type*} [TopologicalSpace Q']
+  [ChartedSpace HQ' Q'] (ι : SmoothEmbedding J' I ∞ Q' M₁)
+  (hι : ∀ q, ι q ∈ f₁.complTube hδε)
+
+variable (f₂ hδ) in
+/-- **An embedding that misses the tube, carried to the fiber sum.** An embedding `ι : Q' → M₁`
+whose image misses the closed tube of radius `δ`, followed by the inclusion `inl` of the
+complement of the tube into the fiber sum. -/
+def inlEmbedding : SmoothEmbedding J' I ∞ Q' (FiberSum f₁ f₂ hδ hδε) :=
+  (ι.codRestrict (f₁.complTube hδε) hι).transLocalDiffeomorph
+    (GluedAlong.inl (fiberSumGluing f₁ f₂ hδ hδε).toHomeomorph)
+    (fun x _ ↦ GluedAlong.isLocalDiffeomorph_inl _ x)
+    ((GluedAlong.isOpenEmbedding_inl _).isEmbedding.comp IsEmbedding.subtypeVal)
+    (subset_univ _)
+
+/-- The embedding carried to the fiber sum is `inl` after the embedding into the complement of
+the tube. -/
+theorem coe_inlEmbedding :
+    ⇑(inlEmbedding f₂ hδ ι hι) =
+      GluedAlong.inl (fiberSumGluing f₁ f₂ hδ hδε).toHomeomorph ∘
+        ι.codRestrict (f₁.complTube hδε) hι :=
+  SmoothEmbedding.coe_transLocalDiffeomorph _ _ _ _ _
+
+/-- The embedding carried to the fiber sum sends `q` to `inl (ι q)`. -/
+@[simp]
+theorem inlEmbedding_apply (q : Q') :
+    inlEmbedding f₂ hδ ι hι q =
+      GluedAlong.inl (fiberSumGluing f₁ f₂ hδ hδε).toHomeomorph ⟨ι q, hι q⟩ := by
+  rw [coe_inlEmbedding, Function.comp_apply]
+  exact congrArg _ (Subtype.ext (ι.val_codRestrict_apply _ hι q))
+
+variable [IsManifold J' ∞ Q']
+  (h : SmoothForm.mpullback ι₁ ι₁.contMDiff σ₁ = SmoothForm.mpullback ι₂ ι₂.contMDiff σ₂)
+
+/-- The embedding carried to the fiber sum pulls the form of the fiber sum back to the form that
+`ι` pulls `σ₁` back to. -/
+@[simp]
+theorem mpullback_inlEmbedding_symplecticForm :
+    SmoothForm.mpullback (inlEmbedding f₂ hδ ι hι) (inlEmbedding f₂ hδ ι hι).contMDiff
+        (symplecticForm f₁ f₂ hδ hδε h) =
+      SmoothForm.mpullback ι ι.contMDiff σ₁ := by
+  rw [SmoothForm.mpullback_congr _ ((GluedAlong.isLocalDiffeomorph_inl _).contMDiff.comp
+      (ι.codRestrict (f₁.complTube hδε) hι).contMDiff) (coe_inlEmbedding ι hι),
+    ← SmoothForm.mpullback_mpullback _ _ (ι.codRestrict (f₁.complTube hδε) hι).contMDiff
+      (GluedAlong.isLocalDiffeomorph_inl _).contMDiff, mpullback_inl_symplecticForm,
+    SmoothForm.mpullback_mpullback]
+  exact SmoothForm.mpullback_congr _ _ (ι.val_comp_codRestrict _ hι) _
+
+variable {h} (hω : (symplecticForm f₁ f₂ hδ hδε h).IsNondegenerate)
+
+omit [IsManifold J' ∞ Q'] in
+/-- The embedding carried to the fiber sum has symplectic tangent images for the form of the
+fiber sum exactly when `ι` has them for `σ₁`. -/
+theorem hasSymplecticTangentImages_inlEmbedding_iff :
+    hω.HasSymplecticTangentImages J' (inlEmbedding f₂ hδ ι hι) ↔
+      hσ₁.HasSymplecticTangentImages J' ι := by
+  rw [coe_inlEmbedding,
+    SmoothTwoForm.IsNondegenerate.hasSymplecticTangentImages_comp_iff_of_isLocalDiffeomorph
+      (hσ := hσ₁.mpullback_subtype_val _) (GluedAlong.isLocalDiffeomorph_inl _)
+      (mpullback_inl_symplecticForm h)
+      ((ι.codRestrict (f₁.complTube hδε) hι).contMDiff.mdifferentiable (by simp)),
+    SmoothTwoForm.IsNondegenerate.hasSymplecticTangentImages_codRestrict_iff]
+
+variable [FiniteDimensional ℝ EQ'] {ι hι} {hι' : hσ₁.HasSymplecticTangentImages J' ι}
+  {hP' : finrank ℝ ℂ = finrank ℝ E - finrank ℝ EQ'}
+
+/-- **A framing carried to the fiber sum.** A symplectic framing of an embedding `ι : Q' → M₁`
+that misses the closed tube gives one of the embedding carried to the fiber sum, for the form of
+the fiber sum: it is pulled back to the complement of the tube along the inclusion and then moved
+along `inl` (`SymplecticFraming.ofTransLocalDiffeomorph` and
+`SymplecticFraming.transLocalDiffeomorph`). -/
+def inlEmbeddingFraming (Φ : SymplecticFraming hι' hP') :
+    SymplecticFraming ((hasSymplecticTangentImages_inlEmbedding_iff ι hι hω).2 hι') hP' :=
+  (Φ.ofTransLocalDiffeomorph (hP := hP')
+      (hι := (SmoothTwoForm.IsNondegenerate.hasSymplecticTangentImages_codRestrict_iff
+        ι _ hι).2 hι')
+      isLocalDiffeomorph_subtype_val rfl
+      (ι.val_comp_codRestrict _ hι)).transLocalDiffeomorph
+    (GluedAlong.isLocalDiffeomorph_inl _) (mpullback_inl_symplecticForm h)
+    (coe_inlEmbedding ι hι).symm
+
+/-- The framing carried to the fiber sum sends a normal vector `v` of the zero slice at `q` to
+the image of `Φ q v` under the identification of the normal spaces of `ι` and of the carried
+embedding at `q`: back through the derivative of the inclusion of the complement of the tube,
+then forward through that of `inl`. -/
+theorem inlEmbeddingFraming_apply (Φ : SymplecticFraming hι' hP') (q : Q')
+    (v : (zeroSlice J' Q').isImmersion.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) :
+    inlEmbeddingFraming hω Φ q v =
+      (ι.codRestrict (f₁.complTube hδε) hι).normalSpaceEquivOfComp (inlEmbedding f₂ hδ ι hι)
+        (WithTop.coe_ne_zero.2 ENat.top_ne_zero) (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
+        (fun q ↦ (GluedAlong.isLocalDiffeomorph_inl _).isInvertible_mfderiv (by simp)
+          (ι.codRestrict (f₁.complTube hδε) hι q))
+        (coe_inlEmbedding ι hι).symm q
+        (((ι.codRestrict (f₁.complTube hδε) hι).normalSpaceEquivOfComp ι
+          (WithTop.coe_ne_zero.2 ENat.top_ne_zero) (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
+          (fun q ↦ (isLocalDiffeomorph_subtype_val (n := ∞)).isInvertible_mfderiv (by simp)
+            (ι.codRestrict (f₁.complTube hδε) hι q))
+          (ι.val_comp_codRestrict _ hι) q).symm (Φ q v)) :=
+  by rw [inlEmbeddingFraming, SymplecticFraming.transLocalDiffeomorph_apply,
+    SymplecticFraming.ofTransLocalDiffeomorph_apply]
 
 end FiberSum
 

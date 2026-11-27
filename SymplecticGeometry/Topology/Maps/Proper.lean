@@ -14,7 +14,7 @@ import TauCeti.Topology.Maps.Proper.CompactlyGenerated
 /-!
 # Proper maps into orders, and closed images of half-lines
 
-This file collects two facts about proper maps and maps tending to infinity.
+This file collects facts about proper maps and maps tending to infinity.
 
 ## Sublevel sets of proper maps bounded below
 
@@ -24,7 +24,8 @@ sublevel sets `f ⁻¹' Iic c` once its range is bounded below
 This is the step that makes a proper function bounded below an exhaustion function, as in Tau
 Ceti's `TauCeti.IsMorse.finite_criticalPoints_inter_preimage_Iic`, from whose proof it is taken.
 It follows that a continuous function into a linear order that lies above a proper function
-bounded below is proper (`IsProperMap.of_le`).
+bounded below is proper (`IsProperMap.of_le`), and that a proper map bounded below on a nonempty
+space attains its minimum (`IsProperMap.exists_isMinOn_of_bddBelow`).
 
 ## Closed images of half-lines
 
@@ -55,6 +56,22 @@ theorem IsProperMap.isCompact_preimage_Iic (hp : IsProperMap f) (hbdd : BddBelow
   exact hp.isCompact_preimage isCompact_Icc
 
 end Preorder
+
+section LinearOrder
+
+variable [LinearOrder α] [ClosedIicTopology α] [CompactIccSpace α]
+
+/-- A proper map into a linear order with compact closed intervals, from a nonempty space, whose
+range is bounded below attains its minimum. -/
+theorem IsProperMap.exists_isMinOn_of_bddBelow [Nonempty X] {f : X → α} (hp : IsProperMap f)
+    (hbdd : BddBelow (range f)) : ∃ x, IsMinOn f univ x := by
+  obtain ⟨x₀⟩ := ‹Nonempty X›
+  obtain ⟨x, hx⟩ := hp.continuous.exists_forall_le' x₀ <|
+    Filter.mem_of_superset (hp.isCompact_preimage_Iic hbdd (f x₀)).compl_mem_cocompact
+      fun y hy ↦ (not_le.1 hy).le
+  exact ⟨x, isMinOn_univ_iff.2 hx⟩
+
+end LinearOrder
 
 variable [LinearOrder α] [OrderTopology α] [CompactIccSpace α]
 

@@ -28,7 +28,10 @@ import SymplecticGeometry.LinearAlgebra.BilinearMap.Alternating
 import TauCeti.Geometry.Manifold.ContMDiff.Sqrt
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.ThomPairMap
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Diffeomorph
+import SymplecticGeometry.Geometry.Symplectic.Lagrangian.LocalDiffeomorph
+import TauCeti.Geometry.Manifold.VectorBundle.Hom
 public import TauCeti.Geometry.Symplectic.Lagrangian.SymplecticTangent
+public import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Normal.Bundle
 import Mathlib.Geometry.Manifold.Algebra.LieGroup
 
@@ -71,13 +74,17 @@ so the hypotheses on `ι` are stated with `HasSymplecticTangentImages`.
   `Bundle.Trivial.diffeomorphProd`.
 * `SymplecticGeometry.SymplecticFraming hι hP`: symplectic framings of the normal bundle of `ι`;
   `SymplecticGeometry.SymplecticFraming.refl`, the identity framing of the zero slice itself;
-  `SymplecticGeometry.SymplecticFraming.transDiffeomorph`, the framing of `ψ ∘ ι` for `σ'`
-  obtained from a framing of `ι` and a diffeomorphism `ψ : M ≃ M'`, possibly onto a manifold on
-  another model, with `ψ^* σ' = σ`. It follows the framing by the identification of normal
-  spaces by `dψ`, `TauCeti.SmoothEmbedding.normalSpaceEquivOfComp`, which is smooth by
+  `SymplecticGeometry.SymplecticFraming.transLocalDiffeomorph`, the framing of `ι' = k ∘ ι` for
+  `σ'` obtained from a framing of `ι` and a local diffeomorphism `k : M → M'`, possibly into a
+  manifold on another model, with `k^* σ' = σ`. It follows the framing by the identification of
+  normal spaces by `dk`, `TauCeti.SmoothEmbedding.normalSpaceEquivOfComp`, which is smooth by
   `TauCeti.SmoothEmbedding.contMDiff_normalSpaceEquivOfComp` and carries one normal form to the
-  other by `TauCeti.SmoothEmbedding.symplecticNormalForm_normalMap`. Its tangent images are
-  symplectic by
+  other by `TauCeti.SmoothEmbedding.symplecticNormalForm_normalSpaceEquivOfComp`;
+  `SymplecticGeometry.SymplecticFraming.ofTransLocalDiffeomorph`, its inverse, from a framing of
+  `ι'` to one of `ι`, by the inverse identification, which is smooth by Tau Ceti's
+  `TauCeti.contMDiff_bundle_symm`; and `SymplecticGeometry.SymplecticFraming.transDiffeomorph`,
+  the first along a diffeomorphism `ψ : M ≃ M'`, for the embedding `ψ ∘ ι`, whose tangent images
+  are symplectic by
   `TauCeti.SmoothTwoForm.IsNondegenerate.hasSymplecticTangentImages_diffeomorph_comp_iff`;
   `SymplecticGeometry.SymplecticFraming.ofPos`, the framing obtained from linear isomorphisms
   `e q : ℂ ≃ N_q ι`, smooth in `q`, on which the normal form `ω_ι` of `ι` is positive, by rescaling
@@ -110,11 +117,13 @@ so the hypotheses on `ι` are stated with `HasSymplecticTangentImages`.
 * `SymplecticGeometry.ProductNeighborhood.isClosed_image_closedBall`: for compact `Q` and
   Hausdorff `M`, the image of the closed tube of radius `δ < ε` is closed, and its complement
   is open (`isOpen_compl_image_closedBall`).
-* `SymplecticGeometry.ProductNeighborhood.exists`: for compact `Q`, a framing has product
-  neighbourhoods of every radius up to some `ε₀ > 0`. The neighbourhood theorem for the framing
-  gives a symplectomorphism `ψ` from an open neighbourhood `U₀` of the zero slice; by the tube
-  lemma `U₀` contains some `Q × B²(ε₀)`, and the restriction of `ψ` to it is the product
-  neighbourhood.
+* `SymplecticGeometry.ProductNeighborhood.exists_range_subset`: for compact `Q`, an open set `U`
+  containing `ι (Q)` and every radius up to some `ε₀ > 0`, a framing has a product
+  neighbourhood with range in `U`. The neighbourhood theorem for the framing gives a
+  symplectomorphism `ψ` from an open neighbourhood `U₀` of the zero slice; by the tube lemma the
+  open set of points of `U₀` that `ψ` sends into `U` contains some `Q × B²(ε₀)`, and the
+  restriction of `ψ` to it is the product neighbourhood.
+  `SymplecticGeometry.ProductNeighborhood.exists` is its case `U = M`.
 
 ## References
 
@@ -153,12 +162,6 @@ theorem zeroSlice_apply (q : Q) : zeroSlice J Q q = (q, 0) :=
 
 theorem coe_zeroSlice : ⇑(zeroSlice J Q) = fun q ↦ (q, 0) :=
   funext zeroSlice_apply
-
-/-- The real dimension of `ℂ` is the codimension of `Q` in `Q × ℂ`. This is the hypothesis on the
-model fibre that `TauCeti.SmoothEmbedding.normalSpaceFiberBundle` takes for the zero slice. -/
-theorem finrank_complex_eq_finrank_prod_sub [FiniteDimensional ℝ EQ] :
-    finrank ℝ ℂ = finrank ℝ (EQ × ℂ) - finrank ℝ EQ := by
-  rw [finrank_prod, Nat.add_sub_cancel_left]
 
 /-- The zero slice pulls the product form `τ ⊕ ω₀` back to `τ`. -/
 theorem mpullback_zeroSlice_prod (τ : SmoothTwoForm J Q) :
@@ -224,7 +227,7 @@ theorem finrank_normalSpace_zeroSlice (q : Q) :
     finrank ℝ ((zeroSlice J Q).isImmersion.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) =
       finrank ℝ ℂ :=
   ((zeroSlice J Q).isImmersion.finrank_normalSpace q _).trans
-      finrank_complex_eq_finrank_prod_sub.symm
+      Complex.finrank_real_eq_finrank_prod_complex_sub.symm
 
 variable (J Q) in
 /-- The identification of the normal space of the zero slice at `q` with `ℂ`, sending the normal
@@ -263,14 +266,14 @@ variable (J Q) in
 is diffeomorphic to `Q × ℂ` over the identity of `Q`, by `zeroSliceNormalEquiv` on each fibre. -/
 def zeroSliceNormalBundleDiffeomorph :
     letI := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-      (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+      (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ))
     TotalSpace ℂ (fun q ↦ (zeroSlice J Q).isImmersion.NormalSpace q
         (WithTop.coe_ne_zero.2 ENat.top_ne_zero))
       ≃ₘ⟮J.prod 𝓘(ℝ, ℂ), J.prod 𝓘(ℝ, ℂ)⟯ Q × ℂ :=
   letI := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-    (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+    (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ))
   ((zeroSlice J Q).normalBundleDiffeomorphOfKer (m := ∞) _ (by simp)
-    finrank_complex_eq_finrank_prod_sub (E₂ := Trivial Q ℂ) (W := ℂ)
+    Complex.finrank_real_eq_finrank_prod_complex_sub (E₂ := Trivial Q ℂ) (W := ℂ)
     (fun _ ↦ ContinuousLinearMap.snd ℝ EQ ℂ) snd_eq_zero_iff_mem_tangentRange_zeroSlice
     finrank_normalSpace_zeroSlice (by
       -- The `ℂ`-component of an ambient tangent vector is its image by the differential of
@@ -288,10 +291,10 @@ theorem zeroSliceNormalBundleDiffeomorph_apply
       (fun q ↦ (zeroSlice J Q).isImmersion.NormalSpace q
           (WithTop.coe_ne_zero.2 ENat.top_ne_zero))) :
     letI := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-      (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+      (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ))
     zeroSliceNormalBundleDiffeomorph J Q p = (p.proj, zeroSliceNormalEquiv J Q p.proj p.snd) := by
   let := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-    (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+    (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ))
   exact (congrArg (Trivial.diffeomorphProd J Q ℂ ∞)
     ((zeroSlice J Q).normalBundleDiffeomorphOfKer_apply _ _ _ _ _ _ _ p)).trans
     (Trivial.diffeomorphProd_apply ..)
@@ -301,11 +304,11 @@ theorem zeroSliceNormalBundleDiffeomorph_apply
 @[simp]
 theorem zeroSliceNormalBundleDiffeomorph_symm_apply (x : Q × ℂ) :
     letI := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-      (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+      (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ))
     (zeroSliceNormalBundleDiffeomorph J Q).symm x =
       ⟨x.1, (zeroSliceNormalEquiv J Q x.1).symm x.2⟩ := by
   let := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-    (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+    (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ))
   exact ((zeroSlice J Q).normalBundleDiffeomorphOfKer_symm_apply (m := ∞) _ (by simp) _ _ _ _ _
     ((Trivial.diffeomorphProd J Q ℂ ∞).symm x)).trans
       (by rw [Trivial.diffeomorphProd_symm_apply, zeroSliceNormalEquiv_def])
@@ -313,27 +316,27 @@ theorem zeroSliceNormalBundleDiffeomorph_symm_apply (x : Q × ℂ) :
 /-- The identification of the normal bundle of the zero slice with `Q × ℂ` is smooth. -/
 theorem contMDiff_zeroSliceNormalEquiv :
     letI := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-      (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+      (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ))
     ContMDiff (J.prod 𝓘(ℝ, ℂ)) (J.prod 𝓘(ℝ, ℂ)) ∞
       (fun p : TotalSpace ℂ
           (fun q ↦ (zeroSlice J Q).isImmersion.NormalSpace q
               (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) ↦
         (p.proj, zeroSliceNormalEquiv J Q p.proj p.snd)) := by
   let := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-    (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+    (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ))
   exact (zeroSliceNormalBundleDiffeomorph J Q).contMDiff.congr
     fun p ↦ (zeroSliceNormalBundleDiffeomorph_apply p).symm
 
 /-- The inverse identification of `Q × ℂ` with the normal bundle of the zero slice is smooth. -/
 theorem contMDiff_zeroSliceNormalEquiv_symm :
     letI := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-      (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+      (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ))
     ContMDiff (J.prod 𝓘(ℝ, ℂ)) (J.prod 𝓘(ℝ, ℂ)) ∞
       (fun x : Q × ℂ ↦ (⟨x.1, (zeroSliceNormalEquiv J Q x.1).symm x.2⟩ : TotalSpace ℂ
           (fun q ↦ (zeroSlice J Q).isImmersion.NormalSpace q
               (WithTop.coe_ne_zero.2 ENat.top_ne_zero)))) := by
   let := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-    (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+    (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ))
   exact (zeroSliceNormalBundleDiffeomorph J Q).symm.contMDiff.congr
     fun x ↦ (zeroSliceNormalBundleDiffeomorph_symm_apply x).symm
 
@@ -392,7 +395,7 @@ structure SymplecticFraming {hσ : σ.IsNondegenerate} {ι : SmoothEmbedding J I
   /-- The framing is smooth as a map of normal bundles. -/
   contMDiff_toFun :
     letI := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-      (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+      (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ))
     letI := ι.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
     ContMDiff (J.prod 𝓘(ℝ, ℂ)) (J.prod 𝓘(ℝ, ℂ)) ∞
       (fun p : TotalSpace ℂ
@@ -435,11 +438,11 @@ end Basic
 /-- The **identity framing** of the zero slice of `(Q × ℂ, τ ⊕ ω₀)`, for a nondegenerate `τ`. -/
 def refl {τ : SmoothTwoForm J Q} (hτ : τ.IsNondegenerate) :
     SymplecticFraming (hasSymplecticTangentImages_zeroSlice_prod hτ)
-      finrank_complex_eq_finrank_prod_sub where
+      Complex.finrank_real_eq_finrank_prod_complex_sub where
   toFun _ := .refl ℝ _
   contMDiff_toFun := by
     let := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-      (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+      (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ))
     -- The map of total spaces is the identity, up to the eta rule for `TotalSpace`.
     exact contMDiff_id
   symplecticNormalForm_toFun q v w :=
@@ -451,6 +454,106 @@ def refl {τ : SmoothTwoForm J Q} (hτ : τ.IsNondegenerate) :
 theorem refl_apply {τ : SmoothTwoForm J Q} (hτ : τ.IsNondegenerate) (q : Q) :
     refl hτ q = .refl ℝ _ :=
   (rfl)
+
+section TransLocalDiffeomorph
+
+variable {E' H' M' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
+  [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace M']
+  [ChartedSpace H' M'] [IsManifold I' ∞ M'] {σ' : SmoothTwoForm I' M'}
+  {hσ : σ.IsNondegenerate} {hσ' : σ'.IsNondegenerate} {ι : SmoothEmbedding J I ∞ Q M}
+  {ι' : SmoothEmbedding J I' ∞ Q M'} {hι : hσ.HasSymplecticTangentImages J ι}
+  {hι' : hσ'.HasSymplecticTangentImages J ι'} {hP : finrank ℝ ℂ = finrank ℝ E - finrank ℝ EQ}
+  {hP' : finrank ℝ ℂ = finrank ℝ E' - finrank ℝ EQ} {k : M → M'}
+  (hk : IsLocalDiffeomorph I I' ∞ k) (hkσ : SmoothForm.mpullback k hk.contMDiff σ' = σ)
+  (hkι : k ∘ ι = ι')
+
+/-- **A framing moved along a local symplectomorphism.** Let `k : M → M'` be a local
+diffeomorphism, possibly into a manifold on another model, pulling `σ'` back to `σ`, and let `ι'`
+be the embedding `k ∘ ι`. A framing `Φ` of `ι` for `σ` gives the framing of `ι'` for `σ'` that
+follows `Φ q` by the identification of the normal spaces of `ι` and of `ι'` at `q` induced by the
+derivative of `k` (`TauCeti.SmoothEmbedding.normalSpaceEquivOfComp`). -/
+def transLocalDiffeomorph (Φ : SymplecticFraming hι hP) : SymplecticFraming hι' hP' where
+  toFun q := (Φ q).trans (ι.normalSpaceEquivOfComp ι' _ _
+    (fun q ↦ hk.isInvertible_mfderiv (by simp) (ι q)) hkι q)
+  contMDiff_toFun := by
+    let := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
+      (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ))
+    let := ι.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
+    let := ι'.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP'
+    exact (ι.contMDiff_normalSpaceEquivOfComp (r := ∞) ι' _ _ le_rfl le_rfl hP hP' hk.contMDiff
+      (fun q ↦ hk.isInvertible_mfderiv (by simp) (ι q)) hkι).comp Φ.contMDiff_toFun
+  symplecticNormalForm_toFun q v w := by
+    rw [ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.trans_apply,
+      ι.symplecticNormalForm_normalSpaceEquivOfComp ι' hι hι' _ _ _ hkι q
+        (fun a b ↦ by rw [← hkσ, SmoothForm.eval₂_mpullback]),
+      Φ.symplecticNormalForm_toFun, symplecticNormalForm_zeroSlice, symplecticNormalForm_zeroSlice]
+
+/-- The framing `Φ.transLocalDiffeomorph hk hkσ hkι` sends a normal vector `v` of the zero slice
+at `q` to the image of `Φ q v` under the identification of the normal spaces of `ι` and of
+`ι' = k ∘ ι` induced by the derivative of `k`. -/
+@[simp]
+theorem transLocalDiffeomorph_apply (Φ : SymplecticFraming hι hP) (q : Q)
+    (v : (zeroSlice J Q).isImmersion.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) :
+    Φ.transLocalDiffeomorph (hι' := hι') (hP' := hP') hk hkσ hkι q v =
+      ι.normalSpaceEquivOfComp ι' _ _ (fun q ↦ hk.isInvertible_mfderiv (by simp) (ι q)) hkι q
+        (Φ q v) :=
+  (rfl)
+
+/-- **A framing pulled back along a local symplectomorphism.** Let `k : M → M'` be a local
+diffeomorphism, possibly into a manifold on another model, pulling `σ'` back to `σ`, and let `ι'`
+be the embedding `k ∘ ι`. A framing `Φ'` of `ι'` for `σ'` gives the framing of `ι` for `σ` that
+follows `Φ' q` by the inverse of the identification of the normal spaces of `ι` and of `ι'` at
+`q` induced by the derivative of `k`. This undoes `transLocalDiffeomorph`. -/
+def ofTransLocalDiffeomorph (Φ' : SymplecticFraming hι' hP') : SymplecticFraming hι hP where
+  toFun q := (Φ' q).trans (ι.normalSpaceEquivOfComp ι' _ _
+    (fun q ↦ hk.isInvertible_mfderiv (by simp) (ι q)) hkι q).symm
+  contMDiff_toFun := by
+    let := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
+      (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ))
+    let := ι.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
+    let := ι.normalSpaceVectorBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
+    let := ι'.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP'
+    let := ι'.normalSpaceVectorBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP'
+    -- The inverse identification is smooth, as the inverse of a smooth fibrewise isomorphism.
+    exact (contMDiff_bundle_symm _ (ι.contMDiff_normalSpaceEquivOfComp (r := ∞) ι' _ _ le_rfl
+      le_rfl hP hP' hk.contMDiff (fun q ↦ hk.isInvertible_mfderiv (by simp) (ι q)) hkι)).comp
+        Φ'.contMDiff_toFun
+  symplecticNormalForm_toFun q v w := by
+    rw [ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.trans_apply,
+      ← ι.symplecticNormalForm_normalSpaceEquivOfComp ι' hι hι' (by simp) (by simp)
+        (fun q ↦ hk.isInvertible_mfderiv (by simp) (ι q)) hkι q
+        (fun a b ↦ by rw [← hkσ, SmoothForm.eval₂_mpullback]),
+      ContinuousLinearEquiv.apply_symm_apply, ContinuousLinearEquiv.apply_symm_apply,
+      Φ'.symplecticNormalForm_toFun, symplecticNormalForm_zeroSlice, symplecticNormalForm_zeroSlice]
+
+/-- The framing `Φ'.ofTransLocalDiffeomorph hk hkσ hkι` sends a normal vector `v` of the zero
+slice at `q` to the preimage of `Φ' q v` under the identification of the normal spaces of `ι` and
+of `ι' = k ∘ ι` induced by the derivative of `k`. -/
+@[simp]
+theorem ofTransLocalDiffeomorph_apply (Φ' : SymplecticFraming hι' hP') (q : Q)
+    (v : (zeroSlice J Q).isImmersion.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) :
+    Φ'.ofTransLocalDiffeomorph (hι := hι) (hP := hP) hk hkσ hkι q v =
+      (ι.normalSpaceEquivOfComp ι' _ _ (fun q ↦ hk.isInvertible_mfderiv (by simp) (ι q)) hkι
+        q).symm (Φ' q v) :=
+  (rfl)
+
+/-- Pulling back a framing along `k` after moving it along `k` gives the framing back. -/
+@[simp]
+theorem ofTransLocalDiffeomorph_transLocalDiffeomorph (Φ : SymplecticFraming hι hP) :
+    (Φ.transLocalDiffeomorph (hι' := hι') (hP' := hP') hk hkσ hkι).ofTransLocalDiffeomorph hk hkσ
+      hkι = Φ := by
+  ext q v
+  simp
+
+/-- Moving a framing along `k` after pulling it back along `k` gives the framing back. -/
+@[simp]
+theorem transLocalDiffeomorph_ofTransLocalDiffeomorph (Φ' : SymplecticFraming hι' hP') :
+    (Φ'.ofTransLocalDiffeomorph (hι := hι) (hP := hP) hk hkσ hkι).transLocalDiffeomorph hk hkσ
+      hkι = Φ' := by
+  ext q v
+  simp
+
+end TransLocalDiffeomorph
 
 section TransDiffeomorph
 
@@ -465,38 +568,16 @@ diffeomorphism, possibly onto a manifold on another model, pulling a nondegenera
 to `σ`, such as `σ' = (ψ⁻¹)^* σ`. A framing `Φ` of `ι` for `σ` gives the framing of `ψ ∘ ι` for
 `σ'` that follows `Φ q` by the identification of the normal spaces of `ι` and of `ψ ∘ ι` at `q`
 induced by the derivative of `ψ` (`TauCeti.SmoothEmbedding.normalSpaceEquivOfComp` for the
-triangle `ψ ∘ ι = ψ ∘ ι`). -/
+triangle `ψ ∘ ι = ψ ∘ ι`): `transLocalDiffeomorph` along `ψ`. -/
 def transDiffeomorph (Φ : SymplecticFraming hι hP) (ψ : M ≃ₘ⟮I, I'⟯ M')
     (hσ' : σ'.IsNondegenerate) (hψ : SmoothForm.mpullback ψ ψ.contMDiff σ' = σ)
     (hP' : finrank ℝ ℂ = finrank ℝ E' - finrank ℝ EQ) :
     SymplecticFraming (hσ := hσ') (ι := ι.transDiffeomorphOfBoundaryless ψ (by simp))
       (SmoothEmbedding.coe_transDiffeomorphOfBoundaryless ι ψ _ ▸
         (SmoothTwoForm.IsNondegenerate.hasSymplecticTangentImages_diffeomorph_comp_iff ψ hψ).2 hι)
-      hP' where
-  toFun q := (Φ q).trans (ι.normalSpaceEquivOfComp (ι.transDiffeomorphOfBoundaryless ψ (by simp))
-    _ _ (fun _ ↦ ψ.isInvertible_mfderiv (by simp))
-    (SmoothEmbedding.coe_transDiffeomorphOfBoundaryless ι ψ _).symm q)
-  contMDiff_toFun := by
-    let := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-      (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
-    let := ι.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
-    let := (ι.transDiffeomorphOfBoundaryless ψ (by simp)).normalSpaceFiberBundle
-      (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP'
-    exact (ι.contMDiff_normalSpaceEquivOfComp (r := ∞)
-      (ι.transDiffeomorphOfBoundaryless ψ (by simp)) _ _ le_rfl le_rfl hP hP' ψ.contMDiff
-      (fun _ ↦ ψ.isInvertible_mfderiv (by simp))
-      (SmoothEmbedding.coe_transDiffeomorphOfBoundaryless ι ψ _).symm).comp Φ.contMDiff_toFun
-  symplecticNormalForm_toFun q v w := by
-    rw [ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.trans_apply,
-      SmoothEmbedding.normalSpaceEquivOfComp_def, ← ContinuousLinearEquiv.coe_coe,
-      SmoothEmbedding.normalSpaceEquiv_toContinuousLinearMap,
-      symplecticNormalForm_zeroSlice, ← symplecticNormalForm_zeroSlice
-        (hasSymplecticTangentImages_zeroSlice hι), ← Φ.symplecticNormalForm_toFun]
-    exact ι.symplecticNormalForm_normalMap _ hι _ (u := id) (v := ψ) _ _ _
-      (mdifferentiableAt_of_isInvertible_mfderiv
-        (ψ.isInvertible_mfderiv (WithTop.coe_ne_zero.2 ENat.top_ne_zero))) (fun a b ↦ by
-        rw [← hψ, SmoothForm.eval₂_mpullback])
-      (by rw [mfderiv_id]; exact Function.surjective_id) _ _
+      hP' :=
+  Φ.transLocalDiffeomorph ψ.isLocalDiffeomorph hψ
+    (SmoothEmbedding.coe_transDiffeomorphOfBoundaryless ι ψ _).symm
 
 /-- The framing `Φ.transDiffeomorph ψ hσ' hψ hP'` sends a normal vector `v` of the zero slice at
 `q` to the image of `Φ q v` under the identification of the normal spaces of `ι` and of `ψ ∘ ι`
@@ -542,7 +623,7 @@ def ofPos
       (e q Complex.I)))⁻¹ (inv_ne_zero (Real.sqrt_pos.2 (hpos q)).ne'))).trans (e q))
   contMDiff_toFun := by
     let := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-      (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+      (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ))
     let := ι.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
     -- The normal form of `ι` on the sections `q ↦ e q 1` and `q ↦ e q i` is smooth.
     have hl : ContMDiff J 𝓘(ℝ) ∞ fun q ↦
@@ -617,9 +698,9 @@ def compDiffeomorphOfBoundaryless (Φ : SymplecticFraming hι hP) (χ : Q' ≃�
     ((Φ (χ q)).trans (ι.normalSpaceEquivCompDiffeomorphOfBoundaryless χ _ _ q).symm))
   contMDiff_toFun := by
     let := (zeroSlice J' Q').normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-      (finrank_complex_eq_finrank_prod_sub (EQ := EQ'))
+      (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ'))
     let := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-      (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+      (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ))
     let := ι.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
     -- Read through the identification of normal spaces, the framing is `Φ` over `χ`, after the
     -- identifications of the normal bundles of the zero slices with `Q' × ℂ` and `Q × ℂ`.
@@ -668,7 +749,7 @@ def smul (Φ : SymplecticFraming hι hP) {c : ℝ} (hc : 0 < c) :
     (Units.mk0 (√c)⁻¹ (inv_ne_zero (Real.sqrt_pos.2 hc).ne'))).trans (Φ q)
   contMDiff_toFun := by
     let := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-      (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+      (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ))
     let := ι.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
     -- Rescale the `ℂ`-component of the normal bundle of the zero slice read in `Q × ℂ`.
     refine (Φ.contMDiff_toFun.comp (contMDiff_zeroSliceNormalEquiv_symm.comp
@@ -736,7 +817,8 @@ theorem exists_symplectomorphism_opens [J.Boundaryless] [I.Boundaryless] [T2Spac
       (Diffeomorph.refl J Q ∞) (by
         rw [mpullback_zeroSlice_prod,
           SmoothForm.mpullback_eq_self_of_eq_id _ (Diffeomorph.coe_refl _ _ _)])
-      (WithTop.coe_ne_zero.2 ENat.top_ne_zero) finrank_complex_eq_finrank_prod_sub hP Φ
+      (WithTop.coe_ne_zero.2 ENat.top_ne_zero) Complex.finrank_real_eq_finrank_prod_complex_sub
+      hP Φ
       Φ.contMDiff_toFun Φ.symplecticNormalForm_toFun
   exact ⟨U₀, U₁, ψ, fun q ↦ (hψ q).imp fun _ h ↦ ⟨h.1, h.2.2⟩, hψσ⟩
 
@@ -953,21 +1035,43 @@ variable [J.Boundaryless] [I.Boundaryless] [T2Space Q] [T2Space M]
   {hι : hσ.isNondegenerate.HasSymplecticTangentImages J ι}
   {hP : finrank ℝ ℂ = finrank ℝ E - finrank ℝ EQ}
 
+/-- **Existence of product neighbourhoods inside an open set.** For compact `Q` and closed
+nondegenerate `σ`, a symplectic framing `Φ` of `ι` and an open set `U ⊇ ι (Q)`, there is `ε₀ > 0`
+such that `Φ` has a product neighbourhood of every radius `ε ≤ ε₀` whose range lies in `U`. -/
+theorem exists_range_subset [CompactSpace Q] (Φ : SymplecticFraming hι hP) {U : Set M}
+    (hU : IsOpen U) (hιU : Set.range ι ⊆ U) :
+    ∃ ε₀ > 0, ∀ ε ≤ ε₀, ∃ f : ProductNeighborhood Φ ε, Set.range f ⊆ U := by
+  -- A compact manifold over a finite-dimensional model is second countable.
+  have := J.secondCountableTopology_of_sigmaCompact Q
+  obtain ⟨U₀, U₁, ψ, hψ, hψσ⟩ := Φ.exists_symplectomorphism_opens hσ
+  -- The points of `U₀` that `ψ` sends into `U` form an open neighbourhood of the zero slice.
+  set W : Set (Q × ℂ) := Subtype.val '' ((Subtype.val ∘ ψ) ⁻¹' U)
+  have hWo : IsOpen W := U₀.isOpen.isOpenMap_subtypeVal _
+    (hU.preimage (continuous_subtypeVal.comp ψ.continuous))
+  have hWU₀ : W ⊆ U₀ := Subtype.coe_image_subset _ _
+  have hW₀ : (Set.univ : Set Q) ×ˢ {(0 : ℂ)} ⊆ W := by
+    rintro ⟨q, z⟩ ⟨-, rfl : z = 0⟩
+    obtain ⟨h, hq, -⟩ := hψ q
+    refine ⟨⟨zeroSlice J Q q, h⟩, ?_, zeroSlice_apply q⟩
+    rw [Set.mem_preimage, Function.comp_apply, hq]
+    exact hιU (Set.mem_range_self q)
+  obtain ⟨ε₀, hε₀, hε₀W⟩ := isCompact_univ.exists_prod_ball_subset hWo hW₀
+  have hle : ∀ {ε}, ε ≤ ε₀ → ∀ p ∈ prodBall Q ε, p ∈ W := fun hε p hp ↦
+    hε₀W ⟨trivial, Metric.ball_subset_ball hε (by simpa using hp)⟩
+  refine ⟨ε₀, hε₀, fun ε hε ↦
+    ⟨ofSymplectomorphism Φ ψ hψ hψσ (ε := ε) fun p hp ↦ hWU₀ (hle hε p hp), ?_⟩⟩
+  rintro _ ⟨p, rfl⟩
+  obtain ⟨y, hy, hyp⟩ := hle hε p p.property
+  obtain rfl : y = Opens.inclusion (fun p hp ↦ hWU₀ (hle hε p hp)) p := Subtype.ext hyp
+  exact hy
+
 /-- **Existence of product neighbourhoods.** For compact `Q` and closed nondegenerate `σ`, a
 symplectic framing `Φ` of `ι` has product neighbourhoods of every radius `ε ≤ ε₀`, for some
 `ε₀ > 0`. -/
 theorem «exists» [CompactSpace Q] (Φ : SymplecticFraming hι hP) :
-    ∃ ε₀ > 0, ∀ ε ≤ ε₀, Nonempty (ProductNeighborhood Φ ε) := by
-  -- A compact manifold over a finite-dimensional model is second countable.
-  have := J.secondCountableTopology_of_sigmaCompact Q
-  obtain ⟨U₀, U₁, ψ, hψ, hψσ⟩ := Φ.exists_symplectomorphism_opens hσ
-  have hU₀ : (Set.univ : Set Q) ×ˢ {(0 : ℂ)} ⊆ U₀ := by
-    rintro ⟨q, z⟩ ⟨-, rfl : z = 0⟩
-    simpa using (hψ q).1
-  obtain ⟨ε₀, hε₀, hε₀U⟩ := isCompact_univ.exists_prod_ball_subset U₀.isOpen hU₀
-  refine ⟨ε₀, hε₀, fun ε hε ↦
-    ⟨ofSymplectomorphism Φ ψ hψ hψσ (ε := ε) fun p hp ↦ hε₀U ⟨trivial, ?_⟩⟩⟩
-  exact Metric.ball_subset_ball hε (by simpa using hp)
+    ∃ ε₀ > 0, ∀ ε ≤ ε₀, Nonempty (ProductNeighborhood Φ ε) :=
+  (exists_range_subset hσ Φ isOpen_univ (Set.subset_univ _)).imp fun _ ⟨hε₀, h⟩ ↦
+    ⟨hε₀, fun ε hε ↦ (h ε hε).elim fun f _ ↦ ⟨f⟩⟩
 
 end Exists
 
