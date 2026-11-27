@@ -7,8 +7,11 @@ module
 
 public import TauCeti.Geometry.Manifold.ExtChartAt
 public import Mathlib.Geometry.Manifold.ContMDiff.Defs
+public import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
 public import SymplecticGeometry.Topology.OpenPartialHomeomorph.SourceRestrict
+public import SymplecticGeometry.Geometry.Manifold.IsManifold.ChartBall
 import TauCeti.Geometry.Manifold.ContMDiff.Atlas
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.NormedSpace
 import SymplecticGeometry.Topology.OpenPartialHomeomorph.Ball
 
 /-!
@@ -18,12 +21,19 @@ For a manifold `M` modelled on a boundaryless `I : ModelWithCorners 𝕜 E H` an
 `SymplecticGeometry.centeredExtChartAt I x : OpenPartialHomeomorph M E` is the extended chart
 of `M` at `x` followed by the translation of `E` that sends the coordinate of `x` to the origin,
 built with Tau Ceti's `OpenPartialHomeomorph.extendTrans`. Its source is that of the chart at
-`x` (`centeredExtChartAt_source`), it sends `y` to `extChartAt I x y - extChartAt I x x`
-(`centeredExtChartAt_apply`), its inverse and target are given by
-`centeredExtChartAt_symm_apply` and `centeredExtChartAt_target`, it is smooth on its source
-(`contMDiffOn_centeredExtChartAt`, a case of Tau Ceti's
-`OpenPartialHomeomorph.contMDiffOn_extendTrans`), and, restricted to its source,
-it vanishes at `x` only (`sourceRestrict_centeredExtChartAt_preimage_zero`, from
+`x` (`centeredExtChartAt_source`), that is, that of the extended chart at `x`
+(`centeredExtChartAt_source_eq_extChartAt_source`), it sends `y` to
+`extChartAt I x y - extChartAt I x x` (`centeredExtChartAt_apply`), its inverse and target are
+given by `centeredExtChartAt_symm_apply` and `centeredExtChartAt_target`, it is smooth on its
+source (`contMDiffOn_centeredExtChartAt`, a case of Tau Ceti's
+`OpenPartialHomeomorph.contMDiffOn_extendTrans`) and so at each of its points
+(`contMDiffAt_centeredExtChartAt'`, a case of Tau Ceti's
+`OpenPartialHomeomorph.contMDiffAt_extendTrans`, and `mdifferentiableAt_centeredExtChartAt`),
+its derivative is
+that of the extended chart (`mvfderiv_centeredExtChartAt`, from `mvfderiv_sub_const`), the
+chart balls `chartBall I x r` are the points of its source that it sends into the ball of radius
+`r` about the origin (`mem_chartBall_iff_norm_centeredExtChartAt_lt`), and, restricted to
+its source, it vanishes at `x` only (`sourceRestrict_centeredExtChartAt_preimage_zero`, from
 `OpenPartialHomeomorph.sourceRestrict_preimage_singleton`). Its inverse carries some ball about
 the origin into any given neighbourhood of `x`
 (`exists_ball_mapsTo_centeredExtChartAt_symm`, a case of
@@ -67,6 +77,11 @@ theorem centeredExtChartAt_def :
 theorem centeredExtChartAt_source : (centeredExtChartAt I x).source = (chartAt H x).source := by
   simp [centeredExtChartAt_def]
 
+/-- The source of the centred chart at `x` is that of the extended chart at `x`. -/
+theorem centeredExtChartAt_source_eq_extChartAt_source :
+    (centeredExtChartAt I x).source = (extChartAt I x).source := by
+  simp
+
 /-- The point `x` lies in the source of its centred chart. -/
 theorem mem_centeredExtChartAt_source : x ∈ (centeredExtChartAt I x).source := by
   simp
@@ -76,6 +91,22 @@ theorem mem_centeredExtChartAt_source : x ∈ (centeredExtChartAt I x).source :=
 theorem centeredExtChartAt_apply (y : M) :
     centeredExtChartAt I x y = extChartAt I x y - extChartAt I x x := by
   simp [centeredExtChartAt_def]
+
+/-- The centred chart at `x` differs from the extended chart at `x` by a constant, so their
+derivatives, read in the model space, agree at every point. -/
+@[simp]
+theorem mvfderiv_centeredExtChartAt (y : M) :
+    mvfderiv I (centeredExtChartAt I x) y = mvfderiv I (extChartAt I x) y := by
+  rw [show ⇑(centeredExtChartAt I x) = fun z ↦ extChartAt I x z - extChartAt I x x from
+    funext (centeredExtChartAt_apply I x), mvfderiv_sub_const]
+
+/-- A point `y` lies in the chart ball of radius `r` at `x` if and only if it lies in the source
+of the centred chart at `x`, which sends it into the open ball of radius `r` about the origin. -/
+theorem mem_chartBall_iff_norm_centeredExtChartAt_lt {y : M} {r : ℝ} :
+    y ∈ chartBall I x r ↔
+      y ∈ (centeredExtChartAt I x).source ∧ ‖centeredExtChartAt I x y‖ < r := by
+  rw [mem_chartBall_iff, centeredExtChartAt_source_eq_extChartAt_source, centeredExtChartAt_apply,
+    Metric.mem_ball, dist_eq_norm]
 
 /-- The centred chart at `x` sends `x` to the origin. -/
 theorem centeredExtChartAt_self : centeredExtChartAt I x x = 0 := by
@@ -107,6 +138,23 @@ theorem contMDiffOn_centeredExtChartAt {n : WithTop ℕ∞} [IsManifold I n M] :
   rw [centeredExtChartAt_def]
   exact (chartAt H x).contMDiffOn_extendTrans (IsManifold.chart_mem_maximalAtlas x)
     (contDiff_id.sub contDiff_const)
+
+variable {I x} in
+/-- The centred chart at `x` is `C^n` at each point of its source, on a `C^n` manifold: a case
+of Tau Ceti's `OpenPartialHomeomorph.contMDiffAt_extendTrans`. -/
+theorem contMDiffAt_centeredExtChartAt' {n : WithTop ℕ∞} [IsManifold I n M] {y : M}
+    (hy : y ∈ (centeredExtChartAt I x).source) :
+    ContMDiffAt I 𝓘(𝕜, E) n (centeredExtChartAt I x) y :=
+  (chartAt H x).contMDiffAt_extendTrans (IsManifold.chart_mem_maximalAtlas x)
+    (contDiff_id.sub contDiff_const) (by simpa using hy)
+
+variable {I x} in
+/-- The centred chart at `x` is differentiable at each point of its source, on a `C^1`
+manifold. -/
+theorem mdifferentiableAt_centeredExtChartAt [IsManifold I 1 M] {y : M}
+    (hy : y ∈ (centeredExtChartAt I x).source) :
+    MDifferentiableAt I 𝓘(𝕜, E) (centeredExtChartAt I x) y :=
+  (contMDiffAt_centeredExtChartAt' hy).mdifferentiableAt one_ne_zero
 
 /-- Near a point `x` of a manifold, the centred chart at `x` has a ball about `0` in its
 target that its inverse carries into any given neighbourhood `T` of `x`. -/
