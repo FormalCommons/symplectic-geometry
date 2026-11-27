@@ -7,8 +7,10 @@ module
 
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Linearization
 public import TauCeti.Geometry.Symplectic.Liouville.VectorField
+public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv
 import TauCeti.Geometry.Manifold.VectorField.Chart.Linearization
+import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 
 /-!
 # Liouville vector fields: pullback along related fields, linearization at a zero
@@ -90,6 +92,35 @@ theorem IsLiouvilleVectorField.apply_sectionLinearization_add {σ : RoughForm I 
   congr 2 <;> funext i <;> fin_cases i <;> rfl
 
 end Linearization
+
+section Linear
+
+variable {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]
+
+/-- **Linear Liouville fields.** Let `σ` be a linear symplectic form and `A` an operator with
+`σ (A u) v + σ u (A v) = σ u v` for all `u`, `v`. Then the linear vector field `x ↦ A x` is a
+Liouville vector field of the constant form `σ`. -/
+theorem SymplecticForm.isLiouvilleVectorField_constSmooth (σ : SymplecticForm V)
+    {A : V →L[ℝ] V} (hA : ∀ u v, σ (A u) v + σ u (A v) = σ u v) :
+    IsLiouvilleVectorField σ.constSmooth.val
+      (fun x ↦ A x : (x : V) → TangentSpace 𝓘(ℝ, V) x) := by
+  refine isLiouvilleVectorField_iff.2 (funext fun x ↦ ?_)
+  refine (mlieDerivForm_eq_lieDerivForm _ _ x).trans ?_
+  ext v
+  refine (lieDerivForm_apply _ v).trans ?_
+  rw [Fin.sum_univ_two]
+  -- The form, read in the model space, is the constant map `u ↦ σ (u 0) (u 1)`.
+  set W : V → V [⋀^Fin 2]→L[ℝ] ℝ := σ.constSmooth.val
+  have h (y : V) (u : Fin 2 → V) : W y u = σ (u 0) (u 1) := by
+    have hu : u = ![u 0, u 1] := by ext i; fin_cases i <;> rfl
+    rw [hu]
+    exact (SmoothBundleForm.eval₂_apply _ _ _ _).symm.trans (σ.constSmooth_apply y (u 0) (u 1))
+  have hc : W = fun _ ↦ W x := funext fun y ↦ by ext u; rw [h, h]
+  rw [hc]
+  simp only [fderiv_fun_const, Pi.zero_apply, zero_apply, h, A.fderiv]
+  simpa using hA (v 0) (v 1)
+
+end Linear
 
 end TauCeti
 
