@@ -231,7 +231,7 @@ theorem IsNondegenerate.realFirstChernClass_eq_of_tames {σ : SmoothTwoForm I M}
     simpa using hJ
   exact ContMDiffTwoForm.IsNondegenerate.realFirstChernClass_eq_of_tames G _ hK
 
-/-- **The real first Chern class of a nondegenerate two-form on a manifold does not depend on the
+/-- **On a manifold, the real first Chern class of a nondegenerate `σ` does not depend on the
 complex model** `G` used to compute it. -/
 theorem IsNondegenerate.realFirstChernClass_congr_model
     (G' : Type*) [NormedAddCommGroup G'] [NormedSpace ℂ G'] [FiniteDimensional ℂ G']
