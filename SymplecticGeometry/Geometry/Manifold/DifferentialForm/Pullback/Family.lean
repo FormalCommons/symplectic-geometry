@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Family
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
@@ -58,8 +59,7 @@ theorem coe_mpullback_prodMk_lineMapFamily (α₀ α₁ : SmoothForm I M F k) {c
     (hc : ContDiff ℝ ∞ c) (t : ℝ) :
     TauCeti.mpullback (F := F) I (𝓘(ℝ, ℝ).prod I) (Prod.mk t) (lineMapFamily α₀ α₁ hc).val =
       (α₀ + c t • (α₁ - α₀)).val :=
-  (coe_mpullback _ _ _).symm.trans
-    (congrArg Subtype.val (mpullback_prodMk_lineMapFamily α₀ α₁ hc t))
+  (mpullback_eq_iff _).1 (mpullback_prodMk_lineMapFamily α₀ α₁ hc t)
 
 /-! ### Slices of pullbacks along `c × f` -/
 
