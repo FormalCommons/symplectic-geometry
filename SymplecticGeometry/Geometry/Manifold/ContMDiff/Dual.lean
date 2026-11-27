@@ -33,9 +33,10 @@ functionals on `E` whose values are `C^n` is `C^n` as a family of continuous lin
 `E →L[𝕜] 𝕜`, by Tau Ceti's `TauCeti.contMDiffAt_clm_apply`.
 Evaluated along a `C^n` map between manifolds on a `C^n` family of vectors, such a family then
 gives a `C^n` function, by Mathlib's `ContMDiffAt.clm_apply`.
-A family whose values are differentiable is likewise differentiable as such a family, by Tau
-Ceti's `TauCeti.differentiableAt_clm_apply`, and through it the derivative of the values of `ν`
-on a varying vector comes from Mathlib's `fderiv_clm_apply`.
+A family whose values are differentiable is likewise differentiable as such a family
+(`mdifferentiableAt_clm_apply`, from Tau Ceti's `TauCeti.differentiableWithinAt_clm_apply`), and
+through it the derivative of the values of `ν` on a varying vector comes from Mathlib's
+`fderiv_clm_apply`.
 
 ## Main results
 
@@ -222,8 +223,8 @@ theorem differentiableAt_toContinuousLinearMap_comp
     (hν : ∀ ξ, MDifferentiableAt J 𝓘(𝕜) (fun t ↦ ν t ξ) (x y))
     (hx : MDifferentiableAt 𝓘(𝕜, F) J x y) :
     DifferentiableAt 𝕜 (fun z ↦ LinearMap.toContinuousLinearMap (ν (x z))) y :=
-  TauCeti.differentiableAt_clm_apply.2 fun ξ ↦ by
-    simpa [Function.comp_def] using ((hν ξ).comp y hx).differentiableAt
+  ((mdifferentiableAt_clm_apply (f := fun t ↦ LinearMap.toContinuousLinearMap (ν t))).2 hν
+    |>.comp y hx).differentiableAt
 
 /-- **Differentiability of a family of functionals evaluated on a family of vectors.** Let
 `ν : N → Module.Dual 𝕜 X` be a family of functionals on a finite-dimensional normed space `X`,
