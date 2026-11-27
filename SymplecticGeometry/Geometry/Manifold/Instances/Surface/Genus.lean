@@ -486,7 +486,8 @@ def basePoint : ClosedSurface g := (closedSurfaceData g).basePoint
 
 /-- The `j`-th coordinate ball of the closed surface of genus `g`, along which a further torus can
 be summed; the surface of genus `g + 1` is summed along the ball `0`
-(`ClosedSurface.succDiffeomorph`). -/
+(`ClosedSurface.succDiffeomorph`). For `g = 0` the balls are explicit
+(`ClosedSurface.zeroDiffeomorph_ball`). -/
 def ball (j : ℕ) : EuclideanSpace ℝ (Fin 2) → ClosedSurface g := (closedSurfaceData g).ball j
 
 variable {g}
@@ -557,6 +558,7 @@ theorem coe_zeroDiffeomorph_basePoint :
 /-- The ball `j` of the closed surface of genus `0` is, on the sphere,
 `TauCeti.sphereBall v ∘ OpenPartialHomeomorph.univBall (j • e) (1 / 2)`, for its base point
 `v = (1, 0, 0)` and `e = (1, 0)`. -/
+@[simp]
 theorem zeroDiffeomorph_ball (j : ℕ) (w : EuclideanSpace ℝ (Fin 2)) :
     haveI := Fact.mk (finrank_euclideanSpace_fin (𝕜 := ℝ) (n := 2 + 1))
     zeroDiffeomorph (ball 0 j w) = TauCeti.sphereBall (zeroDiffeomorph (basePoint 0))
