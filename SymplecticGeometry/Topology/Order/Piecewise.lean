@@ -6,7 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Topology.Order.OrderClosed
-public import SymplecticGeometry.Order.Interval.Set.Piecewise
+
+import SymplecticGeometry.Order.Interval.Set.Piecewise
 
 /-!
 # Gluing two functions at a point of an ordered space, near a point

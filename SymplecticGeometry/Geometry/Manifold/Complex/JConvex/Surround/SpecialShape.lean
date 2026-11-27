@@ -17,6 +17,7 @@ import SymplecticGeometry.Analysis.Polynomial.RealCubic
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Basic
 import SymplecticGeometry.Analysis.SpecialFunctions.Sqrt
 import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ConvexShape.SmoothedMax
+import SymplecticGeometry.Order.Interval.Set.Piecewise
 import SymplecticGeometry.Topology.Order.Piecewise
 import TauCeti.Analysis.Calculus.Deriv.Second
 import TauCeti.Analysis.Real.Sqrt

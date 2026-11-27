@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Conv
 
 import SymplecticGeometry.Algebra.Order.Ring.Basic
 import SymplecticGeometry.Topology.Order.Compact
+import SymplecticGeometry.Order.Interval.Set.Piecewise
 import SymplecticGeometry.Topology.Order.Piecewise
 import TauCeti.Order.Interval.Set.Piecewise
 
