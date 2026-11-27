@@ -6,8 +6,11 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.Topology
+public import TauCeti.Geometry.Manifold.Morse.Generic.Relative
 public import TauCeti.Geometry.Manifold.Morse.Hessian
+public import TauCeti.Geometry.Manifold.Morse.Index
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Basic
+import SymplecticGeometry.Geometry.Manifold.Morse.ComplexIndex
 import SymplecticGeometry.Topology.Compactness.Compact
 import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 
@@ -21,9 +24,15 @@ complex negative at each of its critical points in `K`, then so is every `g` clo
 in the weak Whitney topology, at each of the critical points of `g` in `K`
 (`TauCeti.SmoothAlmostComplexStructure.eventually_criticalHessian_add_neg`). By
 `TauCeti.AlmostComplexStructure.complexFinrank_le_manifoldMorseIndex_of_criticalHessian_add_neg`
-the Morse index at such a critical point is at least the complex dimension, so a small
-perturbation, such as the one of `ContMDiffMap.exists_isMorseOn_hasCompactSupport_sub_compl`,
-keeps this lower bound on `K`.
+the Morse index at such a critical point is at least the complex dimension, that is half the
+real dimension (`TauCeti.SmoothAlmostComplexStructure.finrank_div_two_le_manifoldMorseIndex`),
+so a small perturbation, such as the one of
+`ContMDiffMap.exists_isMorseOn_hasCompactSupport_sub_compl`, keeps this lower
+bound on `K`. Thus `f` can be made Morse on `K` by a compactly supported change
+that vanishes near a closed set `C` on which it is already Morse, keeping complex negativity
+(`TauCeti.SmoothAlmostComplexStructure.exists_isMorseOn_criticalHessian_add_neg`), and hence with
+Morse index at least half the real dimension at each critical point in `K`
+(`TauCeti.SmoothAlmostComplexStructure.exists_isMorseOn_finrank_div_two_le_manifoldMorseIndex`).
 
 The condition is read in coordinates. In the extended chart at `a`, at a critical point, the
 critical Hessian is the second derivative of the coordinate expression of `f`, composed with
@@ -165,6 +174,23 @@ private theorem mem_negJets_iff (J : SmoothAlmostComplexStructure I M) (g : C^�
     exact (hhess (hcrit.mpr h0)).symm
   · exact iff_of_true (Or.inl h0) fun h ↦ absurd h h0
 
+omit [I.Boundaryless] in
+/-- If `Hess f(v, v) + Hess f(Jv, Jv) < 0` for every nonzero tangent vector `v` at `x`, for a
+smooth almost complex structure `J`, then the Morse index of `f` at `x` is at least half the
+dimension of the model space. -/
+theorem SmoothAlmostComplexStructure.finrank_div_two_le_manifoldMorseIndex
+    (J : SmoothAlmostComplexStructure I M) (f : M → ℝ) (x : M)
+    (h : ∀ v : TangentSpace I x, v ≠ 0 →
+      criticalHessian I f x v v + criticalHessian I f x (J x v) (J x v) < 0) :
+    Module.finrank ℝ E / 2 ≤ manifoldMorseIndex I f x := by
+  have hE : Module.finrank ℝ E = 2 * (J.almostComplexStructureAt x).complexFinrank :=
+    (J.almostComplexStructureAt x).finrank_real_eq_two_mul_complexFinrank
+  rw [hE, Nat.mul_div_cancel_left _ two_pos]
+  refine AlmostComplexStructure.complexFinrank_le_manifoldMorseIndex_of_criticalHessian_add_neg
+    (J.almostComplexStructureAt x) (I := I) f x fun v hv ↦ ?_
+  rw [SmoothAlmostComplexStructure.almostComplexStructureAt_toLinearMap]
+  exact h v hv
+
 variable [FiniteDimensional ℝ E] [T2Space M]
 
 /-- Let `J` be a smooth almost complex structure on a Hausdorff boundaryless manifold with a
@@ -217,6 +243,45 @@ theorem SmoothAlmostComplexStructure.eventually_criticalHessian_add_neg
   have hzS : z ∈ S i := ⟨(hab i).2.2.2.2.2.2.2 (mem_image_of_mem _ hi), by
     simpa only [mem_ofPred_eq, hzx] using hxK⟩
   exact (mem_negJets_iff J g (a i) z hzx).mp (mem_iInter.mp hg i hzS)
+
+/-- **Relative Morse perturbation keeping complex negativity.** In the setting of
+`TauCeti.SmoothAlmostComplexStructure.eventually_criticalHessian_add_neg`, let `C` be a closed set
+such that `f` is Morse on `K ∩ C`. Then every neighbourhood of `f` in the weak Whitney topology
+contains a function `g` which is Morse on `K`, such that `g - f` has compact support disjoint from
+`C`, and such that `Hess g(v, v) + Hess g(Jv, Jv) < 0` for every nonzero tangent vector `v` at each
+critical point of `g` in `K`. -/
+theorem SmoothAlmostComplexStructure.exists_isMorseOn_criticalHessian_add_neg
+    (J : SmoothAlmostComplexStructure I M) {K C : Set M} (hK : IsCompact K) (hC : IsClosed C)
+    {f : C^∞⟮I, M; 𝓘(ℝ), ℝ⟯} (hfKC : IsMorseOn I f (K ∩ C))
+    (hf : ∀ x ∈ K, x ∈ criticalPoints I f → ∀ v : TangentSpace I x, v ≠ 0 →
+      criticalHessian I f x v v + criticalHessian I f x (J x v) (J x v) < 0)
+    {𝒰 : Set C^∞⟮I, M; 𝓘(ℝ), ℝ⟯} (h𝒰 : 𝒰 ∈ 𝓝 f) :
+    ∃ g ∈ 𝒰, IsMorseOn I g K ∧ HasCompactSupport (fun y ↦ g y - f y) ∧
+      tsupport (fun y ↦ g y - f y) ⊆ Cᶜ ∧
+      ∀ x ∈ K, x ∈ criticalPoints I g → ∀ v : TangentSpace I x, v ≠ 0 →
+        criticalHessian I g x v v + criticalHessian I g x (J x v) (J x v) < 0 := by
+  obtain ⟨g, ⟨hg𝒰, hgJ⟩, hgm, hgc, hgs⟩ := f.exists_isMorseOn_hasCompactSupport_sub_compl hK hC
+    hfKC (inter_mem h𝒰 (J.eventually_criticalHessian_add_neg hK hf))
+  exact ⟨g, hg𝒰, hgm, hgc, hgs, hgJ⟩
+
+/-- **Relative Morse perturbation with Morse index at least half the dimension.** Under the
+hypotheses of `TauCeti.SmoothAlmostComplexStructure.exists_isMorseOn_criticalHessian_add_neg`,
+every neighbourhood of `f` in the weak Whitney topology contains a function `g` which is Morse on
+`K`, such that `g - f` has compact support disjoint from `C`, and whose Morse index at each of its
+critical points in `K` is at least `dim E / 2`. -/
+theorem SmoothAlmostComplexStructure.exists_isMorseOn_finrank_div_two_le_manifoldMorseIndex
+    (J : SmoothAlmostComplexStructure I M) {K C : Set M} (hK : IsCompact K) (hC : IsClosed C)
+    {f : C^∞⟮I, M; 𝓘(ℝ), ℝ⟯} (hfKC : IsMorseOn I f (K ∩ C))
+    (hf : ∀ x ∈ K, x ∈ criticalPoints I f → ∀ v : TangentSpace I x, v ≠ 0 →
+      criticalHessian I f x v v + criticalHessian I f x (J x v) (J x v) < 0)
+    {𝒰 : Set C^∞⟮I, M; 𝓘(ℝ), ℝ⟯} (h𝒰 : 𝒰 ∈ 𝓝 f) :
+    ∃ g ∈ 𝒰, IsMorseOn I g K ∧ HasCompactSupport (fun y ↦ g y - f y) ∧
+      tsupport (fun y ↦ g y - f y) ⊆ Cᶜ ∧
+      ∀ x ∈ K, x ∈ criticalPoints I g → Module.finrank ℝ E / 2 ≤ manifoldMorseIndex I g x := by
+  obtain ⟨g, hg𝒰, hgm, hgc, hgs, hgJ⟩ :=
+    J.exists_isMorseOn_criticalHessian_add_neg hK hC hfKC hf h𝒰
+  exact ⟨g, hg𝒰, hgm, hgc, hgs, fun x hxK hx ↦
+    J.finrank_div_two_le_manifoldMorseIndex g x (hgJ x hxK hx)⟩
 
 end TauCeti
 
