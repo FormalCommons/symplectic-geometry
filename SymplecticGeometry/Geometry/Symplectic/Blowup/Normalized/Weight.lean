@@ -104,6 +104,16 @@ theorem norm_radialMap_lt (hh : IsBlowupProfile l ε h) {r : ℝ} (hr : l + ε <
       _ = (l + ε) ^ 2 := hh.eq_of_ge le_rfl
       _ < r ^ 2 := pow_lt_pow_left₀ hr hle two_ne_zero
 
+/-- For `l + ε < r`, a point `z ≠ 0` whose image under the radial map of `h` lies in the open ball
+of radius `r` lies in it too: off `B(l + ε)` the radial map is the identity. -/
+theorem norm_lt_of_norm_radialMap_lt (hh : IsBlowupProfile l ε h) {r : ℝ} (hr : l + ε < r) {z : puncturedSpace (Fin (n + 1) → ℂ)}
+    (hz : ‖complexToRealEuclidean (Fin (n + 1))
+      (radialMap h (fun _ hs ↦ hh.pos (le_of_lt hs)) z)‖ < r) :
+    ‖complexToRealEuclidean (Fin (n + 1)) z‖ < r := by
+  by_contra hle
+  rw [hh.radialMap_of_le (hr.le.trans (not_lt.1 hle))] at hz
+  exact hle hz
+
 end BlowupModel.IsBlowupProfile
 namespace IsSymplecticBallEmbedding
 
@@ -214,6 +224,65 @@ theorem radialContraction_radialMap (hr : l + ε < r) (z : puncturedSpace (Fin (
     rw [coe_radialMapDiffeomorph_apply]
     exact hsymm
   rw [hR, coe_complexPartialDiffeomorph, Function.comp_apply]
+variable [T2Space M]
+
+/-- `radialContraction` is a local diffeomorphism at each point off `ψ(B(l))`, for `l + ε < r`. -/
+theorem isLocalDiffeomorphAt_radialContraction (hr : l + ε < r) {p : M}
+    (hp : p ∉ ψ '' closedBall 0 l) :
+    IsLocalDiffeomorphAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞
+      (hψ.radialContraction hh) p := by
+  classical
+  have hl : l ≤ r := by linarith [hh.collar_pos]
+  have hlε : l + ε ≤ r := hr.le
+  have hcl : IsClosed (ψ '' closedBall 0 l) := (hψ.isCompact_image_closedBall hl).isClosed
+  by_cases hpb : p ∈ ψ '' ball 0 r
+  · set Ψ := hψ.complexPartialDiffeomorph
+    set R := hh.radialDiffeomorph n
+    let U : Set M := ψ '' ball 0 r ∩ (ψ '' closedBall 0 l)ᶜ
+    have hUo : IsOpen U := by
+      refine IsOpen.inter ?_ hcl.isOpen_compl
+      have := Ψ.open_target
+      rwa [complexPartialDiffeomorph_target] at this
+    have hev : ∀ᶠ q in 𝓝 p, q ∈ U := hUo.mem_nhds ⟨hpb, hp⟩
+    let g : M → radialShell (Fin (n + 1)) h hh.contDiff.contDiffOn (fun s _ ↦ hh.deriv_pos s) :=
+      fun q ↦ if hq : q ∈ U then ⟨_, hψ.complexPartialDiffeomorph_symm_mem_radialShell hh hq⟩
+        else ⟨_, hψ.complexPartialDiffeomorph_symm_mem_radialShell hh ⟨hpb, hp⟩⟩
+    have hpt : p ∈ Ψ.symm.source := by
+      change p ∈ Ψ.target
+      rw [complexPartialDiffeomorph_target]; exact hpb
+    have hg : IsLocalDiffeomorphAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ g p := by
+      rw [← isLocalDiffeomorphAt_subtypeVal_comp_iff]
+      refine (Ψ.symm.isLocalDiffeomorphAt _ _ _ hpt).congr_of_eventuallyEq ?_
+      filter_upwards [hev] with q hq
+      simp only [g, dite_eq_left hq, Function.comp_apply]
+      rfl
+    have hz : ((R.symm (g p) : puncturedSpace (Fin (n + 1) → ℂ)) : Fin (n + 1) → ℂ) ∈
+        Ψ.source := by
+      rw [mem_complexPartialDiffeomorph_source_iff]
+      refine hh.norm_lt_of_norm_radialMap_lt hr ?_
+      rw [← coe_radialMapDiffeomorph_apply hh.contDiff.contDiffOn _ (fun s _ ↦ hh.deriv_pos s),
+        Diffeomorph.apply_symm_apply]
+      simp only [g, dite_eq_left (show p ∈ U from ⟨hpb, hp⟩)]
+      rw [← hψ.mem_complexPartialDiffeomorph_source_iff]
+      exact Ψ.map_target (by rw [complexPartialDiffeomorph_target]; exact hpb)
+    have hcomp := IsLocalDiffeomorphAt.comp (hf := hg) (hg := IsLocalDiffeomorphAt.comp
+      (hf := R.symm.isLocalDiffeomorph (g p))
+      (hg := isLocalDiffeomorph_subtype_val (R.symm (g p))))
+    refine (IsLocalDiffeomorphAt.comp (hf := hcomp) (hg := Ψ.isLocalDiffeomorphAt _ _ _ hz)
+      ).congr_of_eventuallyEq ?_
+    filter_upwards [hev] with q hq
+    rw [hψ.radialContraction_of_mem hh hq]
+    simp only [g, dite_eq_left hq, Function.comp_apply]
+    -- `Ψ` and `R` are local names for the two maps on the left.
+    rfl
+  · have hK : IsClosed (ψ '' closedBall 0 (l + ε)) :=
+      (hψ.isCompact_image_closedBall hlε).isClosed
+    have hpK : p ∉ ψ '' closedBall 0 (l + ε) := fun ⟨z, hz, hzp⟩ ↦
+      hpb ⟨z, mem_ball_zero_iff.2 ((mem_closedBall_zero_iff.1 hz).trans_lt hr), hzp⟩
+    refine ((Diffeomorph.refl 𝓘(ℝ, Fin (n + 1) → ℂ) M ∞).isLocalDiffeomorph p
+      ).congr_of_eventuallyEq ?_
+    filter_upwards [hK.isOpen_compl.mem_nhds hpK] with q hq
+    rw [hψ.radialContraction_of_notMem hh hq, Diffeomorph.coe_refl, id]
 
 end IsSymplecticBallEmbedding
 
