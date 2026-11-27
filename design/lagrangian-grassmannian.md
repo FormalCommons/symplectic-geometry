@@ -717,9 +717,10 @@ The topology of `ℒ ι` in terms of unitary frames.
 
 - `ℒ.continuous_unitaryFrame`: the projection is $R P_0 R^T$ with
   `R = Matrix.realify U`, by `TauCeti.GLSymplectic.coe_ofUnitary` and
-  `TauCeti.conj_complexToRealEuclidean_toLin'` (`Action.lean`), with Tau
-  Ceti's `LinearIsometryEquiv.conjStarAlgEquiv_starProjection` for the
-  projection onto the image of a subspace under a unitary operator.
+  `TauCeti.conj_complexToRealEuclidean_toLin'`
+  (`Analysis/Complex/Euclidean/Matrix.lean`), with Tau Ceti's
+  `LinearIsometryEquiv.conjStarAlgEquiv_starProjection` for the projection
+  onto the image of a subspace under a unitary operator.
 - `instance : CompactSpace (ℒ ι)`, as the image of a compact space.
 - `ℒ.isQuotientMap_unitaryFrame` and `ℒ.isOpenQuotientMap_unitaryFrame`. The
   map is open because it is the orbit map of a group action up to the
