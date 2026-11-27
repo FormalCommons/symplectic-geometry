@@ -8,9 +8,9 @@ module
 public import TauCeti.Geometry.Manifold.IntegralCurve.GlobalFlow
 public import Mathlib.Geometry.Manifold.VectorField.Pullback
 import SymplecticGeometry.Geometry.Manifold.Flow.Basic
+import SymplecticGeometry.Geometry.Manifold.VectorField.Chart
 import TauCeti.Geometry.Manifold.IntegralCurve.Basic
 import TauCeti.Geometry.Manifold.VectorField.Chart.Basic
-import TauCeti.Geometry.Manifold.VectorField.Regularity
 
 /-!
 # Integral curves and flows read in a chart
@@ -43,10 +43,9 @@ on the forward solutions near a rest point of a field on a normed space, such as
 graphs, over to the flow.
 
 The first statement follows Tau Ceti's `TauCeti.isMIntegralCurveOn_chartField`, using that on
-the chart target the chart field of `V` is `v`; the second reads the curve in the chart by Tau
-Ceti's `HasMFDerivWithinAt.hasDerivWithinAt_extChartAt_comp` and
-`VectorField.mpullbackWithin_extChartAt_symm_apply`, as in Tau Ceti's
-`HasMFDerivAt.hasDerivAt_extChartAt_comp_mpullbackWithin`.
+the chart target the chart field of `V` is `v`; the second reads the curve in the chart by
+`HasMFDerivWithinAt.hasDerivWithinAt_extChartAt_comp_mpullbackWithin`, the within-set form of
+Tau Ceti's `HasMFDerivAt.hasDerivAt_extChartAt_comp_mpullbackWithin`.
 
 ## References
 
@@ -89,14 +88,12 @@ theorem IsMIntegralCurveOn.isIntegralCurveOn_extChartAt_sub {γ : ℝ → M} {s 
     IsIntegralCurveOn (fun t ↦ extChartAt I p (γ t) - extChartAt I p p)
       (fun _ w ↦ mpullback 𝓘(ℝ, E) I (extChartAt I p).symm v (extChartAt I p p + w)) s := by
   intro t ht
-  have h := ((hγ t ht).hasDerivWithinAt_extChartAt_comp (hmem t ht)).sub_const
+  have h := ((hγ t ht).hasDerivWithinAt_extChartAt_comp_mpullbackWithin (hmem t ht)).sub_const
     (extChartAt I p p)
-  have hV := mpullbackWithin_extChartAt_symm_apply v (hmem t ht)
-  rw [I.range_eq_univ, mpullbackWithin_univ] at hV
+  rw [I.range_eq_univ, mpullbackWithin_univ] at h
   -- The two derivatives differ by `e p + (q - e p) = q`, inside a dependent type.
-  refine h.congr_deriv (Eq.trans ?_ (congrArg
-    (fun w : E ↦ (mpullback 𝓘(ℝ, E) I (extChartAt I p).symm v w : E)) (add_sub_cancel _ _).symm))
-  rw [hV, TangentBundle.trivializationAt_apply, tangentCoordChange_def, extChartAt, extChartAt]
+  exact h.congr_deriv (congrArg
+    (fun w : E ↦ (mpullback 𝓘(ℝ, E) I (extChartAt I p).symm v w : E)) (add_sub_cancel _ _).symm)
 
 end General
 

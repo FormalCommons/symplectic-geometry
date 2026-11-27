@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.VectorField.Chart.Linearization
+import TauCeti.Geometry.Manifold.MFDeriv.Curve
 import TauCeti.Geometry.Manifold.VectorField.Regularity
 
 /-!
@@ -30,6 +31,13 @@ in a normed space. The three statements are Tau Ceti's
 `MDifferentiableAt.differentiableAt_mpullbackWithin_extChartAt_symm` on a boundaryless model,
 where the pullback within the model range is the pullback, together with
 `TauCeti.sectionLinearization_eq_vectorFieldChartDerivative`.
+
+Away from the centre, and over any model with corners,
+`HasMFDerivWithinAt.hasDerivWithinAt_extChartAt_comp_mpullbackWithin` says that a curve moving
+with the velocity of `V` within a set of times moves, read in the extended chart, with the
+coordinate field of `V`. It is Tau Ceti's `HasMFDerivAt.hasDerivAt_extChartAt_comp_mpullbackWithin`
+for derivatives within a set, with the same proof, from Tau Ceti's
+`HasMFDerivWithinAt.hasDerivWithinAt_extChartAt_comp`.
 
 ## References
 
@@ -79,5 +87,23 @@ theorem MDifferentiableAt.hasFDerivAt_mpullback_extChartAt_symm
         TauCeti.vectorFieldChartDerivative_def])
   rw [hA]
   exact hU.hasFDerivAt
+
+omit [I.Boundaryless] in
+/-- Let `e` be the extended chart at `x`. If a curve `γ` has velocity `V (γ t)` within a set `s`
+of times at a time `t` with `γ t` in the chart source, then `e ∘ γ` has, within `s` at `t`, the
+derivative `mpullbackWithin 𝓘(𝕜, E) I e.symm V (range I) (e (γ t))`, the coordinate field of
+`V` at `e (γ t)`. -/
+theorem HasMFDerivWithinAt.hasDerivWithinAt_extChartAt_comp_mpullbackWithin {γ : 𝕜 → M}
+    {s : Set 𝕜} {t : 𝕜}
+    (hγ : HasMFDerivWithinAt 𝓘(𝕜, 𝕜) I γ s t ((1 : 𝕜 →L[𝕜] 𝕜).smulRight (V (γ t))))
+    (hsrc : γ t ∈ (extChartAt I x).source) :
+    HasDerivWithinAt (extChartAt I x ∘ γ)
+      (mpullbackWithin 𝓘(𝕜, E) I (extChartAt I x).symm V (range I) (extChartAt I x (γ t)))
+      s t := by
+  refine (hγ.hasDerivWithinAt_extChartAt_comp hsrc).congr_deriv ?_
+  rw [mpullbackWithin_extChartAt_symm_apply V hsrc]
+  -- `tangentCoordChange` is by definition this fibre coordinate of the trivialization
+  -- (`TangentBundle.trivializationAt_apply`, `tangentCoordChange_def`).
+  rfl
 
 end
