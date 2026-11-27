@@ -96,6 +96,8 @@ private theorem isOpenCover_cover : IsOpenCover (cover c) := by
   · exact ⟨false, (mem_offDivisorOpens c).2 (by rwa [range_inl] at h)⟩
   · exact ⟨true, (mem_cover_true c).2 h⟩
 
+section Smooth
+
 variable [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M]
   [hc : Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M)]
 
@@ -341,20 +343,24 @@ theorem isIntegrable_restrictOpen_rangeInr :
     restrictOpen_glue, h]
   exact isIntegrable_ofComplexManifold.pullback D
 
+end Smooth
+
 /-! ### The complex case -/
 
 section Complex
 
 variable [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M]
-  [Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)]
+  [hc : Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)]
 
 /-- **The almost complex blowup of a complex manifold is the complex blowup.** For a complex
 manifold `M` and a chart `c` of its complex atlas, the almost complex blowup of the structure of
-`M` is the structure of the complex manifold `Blowup c`. -/
-theorem almostComplexStructure_eq_ofComplexManifold
-    (hJ : IsPseudoholomorphicOn (ofComplexManifold (Fin (n + 1) → ℂ) M)
-      (ofComplexManifold (Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ)) c c.source) :
-    almostComplexStructure c (ofComplexManifold (Fin (n + 1) → ℂ) M) hJ =
+`M` is the structure of the complex manifold `Blowup c`. Being holomorphic, `c` is
+pseudoholomorphic for the structure of `M`, and it is a chart of the smooth atlas of `M`
+(`Blowup.instFactMemMaximalAtlasReal`), so the almost complex blowup is defined. -/
+theorem almostComplexStructure_eq_ofComplexManifold :
+    almostComplexStructure c (ofComplexManifold (Fin (n + 1) → ℂ) M)
+        (isPseudoholomorphicOn_ofComplexManifold_iff.2
+          ((contMDiffOn_of_mem_maximalAtlas hc.out).mdifferentiableOn (by simp))) =
       ofComplexManifold (Fin (n + 1) → ℂ) (Blowup c) := by
   ext z v
   rcases (Set.ext_iff.1 (GluedAlong.range_inl_union_range_inr (gluingHomeomorph c)) z).2
@@ -362,14 +368,14 @@ theorem almostComplexStructure_eq_ofComplexManifold
   · -- Off the exceptional divisor, the blowdown carries both to the structure of `M`.
     rw [range_inl] at h
     refine ((isLocalDiffeomorphAt_blowdown_real c h).isInvertible_mfderiv (by simp)).injective ?_
-    rw [mfderiv_blowdown_almostComplexStructure_apply c _ hJ h,
+    rw [mfderiv_blowdown_almostComplexStructure_apply c _ _ h,
       ((contMDiff_blowdown c).mdifferentiableAt (by simp)).mfderiv_ofComplexManifold_apply]
   · -- On the range of `inr`, `lift c` carries both to the structure of the model.
     have hl : MDifferentiableAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) (lift c) z :=
       ((contMDiffOn_lift c).contMDiffAt
         ((GluedAlong.isOpen_range_inr _).mem_nhds h)).mdifferentiableAt (by simp)
     refine ((isLocalDiffeomorphAt_lift c h).isInvertible_mfderiv (by simp)).injective ?_
-    rw [almostComplexStructure_lift c _ hJ h, hl.mfderiv_ofComplexManifold_apply]
+    rw [almostComplexStructure_lift c _ _ h, hl.mfderiv_ofComplexManifold_apply]
 
 end Complex
 
