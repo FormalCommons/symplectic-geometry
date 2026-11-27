@@ -45,8 +45,8 @@ every basis (`AlternatingMap.pos_apply_basis_of_pos`), which gives the claim.
 
 Then the file identifies the fibre with the standard symplectic torus. Since `σ` is positive,
 its integral `A` over `T` for the orientation `TauCeti.torusSymplecticOrientation p` is positive
-(`TauCeti.integralTopForm_pos_of_forall_pos`), and the standard form has integral
-`p inl * p inr` (`TauCeti.integralTopForm_torusSymplecticForm`). So for
+(`TauCeti.Manifold.Orientation.IsPositive.integralTopForm_pos`), and the standard form has
+integral `p inl * p inr` (`TauCeti.integralTopForm_torusSymplecticForm`). So for
 `c = torusScale p = p inl * p inr / A > 0`, the forms `c • σ` and `torusSymplecticForm p` have
 the same integral, and Moser's theorem gives a diffeomorphism `χ` of `T` with
 `χ^*(c • σ) = torusSymplecticForm p`. The diffeomorphism `torusDiffeomorph p` is `φ⁻¹ ∘ χ`.
@@ -166,9 +166,10 @@ theorem integralTopForm_mpullback_fibreEmbedding_comp_fermatCubicTorusDiffeomorp
       (SmoothForm.mpullback (fibreEmbedding ∘ (fermatCubicTorusDiffeomorph p).symm)
         (fibreEmbedding.contMDiff.comp (fermatCubicTorusDiffeomorph p).symm.contMDiff)
         symplecticForm).val :=
-  integralTopForm_pos_of_forall_pos _ (SmoothForm.isSmoothForm _ |>.of_le zero_le)
-    (isClosed_tsupport _).isCompact
-    (mpullback_fibreEmbedding_comp_fermatCubicTorusDiffeomorph_symm_apply_pos p)
+  Manifold.Orientation.IsPositive.integralTopForm_pos
+    (Manifold.Orientation.isPositive_iff_forall_apply_pos.2
+      (mpullback_fibreEmbedding_comp_fermatCubicTorusDiffeomorph_symm_apply_pos p))
+    (SmoothForm.isSmoothForm _ |>.of_le zero_le) (isClosed_tsupport _).isCompact
 
 /-- The constant by which the form of `E(1)` is rescaled so that its fibre, the Fermat cubic, has
 the area `p inl * p inr` of the standard torus `∀ i : Unit ⊕ Unit, AddCircle (p i)`: that area
@@ -207,7 +208,8 @@ theorem exists_diffeomorph_mpullback_torusScale_smul_eq :
   have hpos := mpullback_fibreEmbedding_comp_fermatCubicTorusDiffeomorph_symm_apply_pos p
   refine SmoothTwoForm.exists_diffeomorph_mpullback_eq_of_integralTopForm_eq
     (torusSymplecticOrientation p)
-    (fun x b hb ↦ ?_) (fun x b hb ↦ ?_) ?_
+    (Manifold.Orientation.isPositive_iff_forall_apply_pos.2 fun x b hb ↦ ?_)
+    (Manifold.Orientation.isPositive_iff_forall_apply_pos.2 fun x b hb ↦ ?_) ?_
   · exact (orientation_eq_orientationAt_torusSymplecticOrientation_iff p b).1 hb
   · simpa using mul_pos (torusScale_pos p) (hpos x b hb)
   · rw [map_smul, SetLike.val_smul, integralTopForm_smul, integralTopForm_torusSymplecticForm,
