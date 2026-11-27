@@ -6,10 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.AlgebraicTopology.FundamentalGroupoid.FundamentalGroup
-public import TauCeti.Topology.Homotopy.AddCircle
+public import SymplecticGeometry.Topology.Homotopy.AddCircle
 import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Basic
 import SymplecticGeometry.GroupTheory.Subgroup.NormalClosure
-import SymplecticGeometry.Topology.Homotopy.AddCircle
 import TauCeti.AlgebraicTopology.FundamentalGroup.Basic
 import TauCeti.AlgebraicTopology.FundamentalGroup.BasepointChange
 
@@ -41,6 +40,9 @@ Every loop is the loop of a circle map (`ContinuousMap.toLoop_toAddCircle`, in
   common base point, give conjugate classes in `π₁(X, x)`.
 * `ContinuousMap.normalClosure_range_toLoop_eq_of_homotopic`: termwise freely homotopic families
   of circle maps, conjugated to a common base point, have the same normal closure in `π₁(X, x)`.
+* `ContinuousMap.normalClosure_range_toLoop_eq_of_homotopic_toAddCircle`: circle maps freely
+  homotopic to those of given loops, conjugated to the base point of the loops, have the same
+  normal closure in `π₁(X, x)` as these loops.
 
 ## References
 
@@ -120,5 +122,31 @@ theorem normalClosure_range_toLoop_eq_of_homotopic {ι : Sort*} {f g : ι → C(
       Subgroup.normalClosure
         (Set.range fun i ↦ fromPath (.mk ((ψ i).trans ((g i).toLoop.trans (ψ i).symm)))) :=
   Subgroup.normalClosure_range_eq_of_isConj fun i ↦ (h i).isConj_fromPath_toLoop (χ i) (ψ i)
+
+/-- **Loops and circle maps homotopic to them have the same normal closure.** Let `γ i` be loops
+at `x`, and `g i` circle maps freely homotopic to the circle maps `(γ i).toAddCircle p` of these
+loops. For any paths `ψ i` from `x` to `g i 0`, the loops `ψ i · (g i).toLoop · (ψ i)⁻¹`
+normally generate the same subgroup of `π₁(X, x)` as the `γ i`. -/
+theorem normalClosure_range_toLoop_eq_of_homotopic_toAddCircle [Fact (0 < p)] {ι : Sort*}
+    {γ : ι → Path x x} {g : ι → C(AddCircle p, X)}
+    (h : ∀ i, ((γ i).toAddCircle p).Homotopic (g i)) (ψ : ∀ i, Path x (g i 0)) :
+    Subgroup.normalClosure
+        (Set.range fun i ↦ fromPath (.mk ((ψ i).trans ((g i).toLoop.trans (ψ i).symm)))) =
+      Subgroup.normalClosure (Set.range fun i ↦ fromPath (.mk (γ i))) := by
+  -- The loops of the `(γ i).toAddCircle p`, read at `x` along constant paths, are the `γ i`.
+  let χ : ∀ i, Path x ((γ i).toAddCircle p 0) := fun i ↦
+    (Path.refl x).cast rfl (γ i).toAddCircle_zero
+  have hχ (i : ι) : fromPath (.mk ((χ i).trans (((γ i).toAddCircle p).toLoop.trans
+      (χ i).symm))) = fromPath (.mk (γ i)) := by
+    have hpath : (χ i).trans (((γ i).toAddCircle p).toLoop.trans (χ i).symm) =
+        (Path.refl x).trans ((γ i).trans (Path.refl x).symm) := by
+      rw [toLoop_toAddCircle]
+      ext t
+      simp [χ, Path.trans_apply]
+    rw [hpath, Path.refl_symm]
+    exact congrArg _ (Path.Homotopic.Quotient.eq.2 ((Path.Homotopic.refl_trans _).trans
+      (Path.Homotopic.trans_refl _)))
+  rw [← normalClosure_range_toLoop_eq_of_homotopic h χ ψ]
+  simp_rw [hχ]
 
 end ContinuousMap
