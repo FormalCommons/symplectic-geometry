@@ -22,7 +22,11 @@ and that of the rescaled transition `x ↦ τ((x - p) / (q - p))` on `(p, q)`
 and `8 τ (1 - τ) ≤ τ'`, since `x⁻² + (1 - x)⁻² ≥ 8` on `(0, 1)`
 (`Real.smoothTransition.eight_mul_mul_one_sub_le_deriv`). Since `τ'` vanishes outside `[0, 1]`,
 also `|x τ'(x)| ≤ τ'(x)` (`Real.smoothTransition.abs_mul_deriv_le_deriv`), and `x τ''(x)` is bounded
-(`Real.smoothTransition.exists_forall_norm_mul_deriv_deriv_le`).
+(`Real.smoothTransition.exists_forall_norm_mul_deriv_deriv_le`). Finally, the quantities
+`τ'((x - a) / L) / L` and `x τ''((x - a) / L) / L²`, which by the chain rule are the first
+derivative and `x` times the second derivative of the cutoff `x ↦ τ ((x - a) / L)` of width `L`,
+are small once `L` is large compared with these bounds
+(`Real.smoothTransition.abs_deriv_sub_div_le`).
 -/
 
 public section
@@ -103,6 +107,39 @@ theorem exists_forall_norm_mul_deriv_deriv_le :
     ∃ M : ℝ, ∀ x, ‖x * deriv (deriv smoothTransition) x‖ ≤ M :=
   (continuous_id.mul (smoothTransition.contDiff.iterate_deriv 2).continuous
     ).bounded_above_of_compact_support hasCompactSupport_deriv.deriv.mul_left
+
+/-- Let `A`, `B` and `M` bound `|τ'|`, `|τ''|` and `|x τ''(x)|`, for the smooth transition
+function `τ`, and let `0 ≤ a`, `1 ≤ L` and `A + a B + M ≤ ε L`. Then, at every `x`, both
+`τ'((x - a) / L) / L` and `x τ''((x - a) / L) / L²` are at most `ε` in absolute value. By the chain
+rule these are the first derivative of the cutoff `x ↦ τ ((x - a) / L)` and `x` times its second
+derivative; the statement bounds these expressions, not `deriv` of the cutoff. -/
+theorem abs_deriv_sub_div_le {A B M L a ε : ℝ} (hA : ∀ x, |deriv smoothTransition x| ≤ A)
+    (hB : ∀ x, |deriv (deriv smoothTransition) x| ≤ B)
+    (hM : ∀ x, |x * deriv (deriv smoothTransition) x| ≤ M) (ha : 0 ≤ a) (hL₁ : 1 ≤ L)
+    (hL : A + a * B + M ≤ ε * L) (x : ℝ) :
+    |deriv smoothTransition ((x - a) / L) / L| ≤ ε ∧
+      |x * (deriv (deriv smoothTransition) ((x - a) / L) / L ^ 2)| ≤ ε := by
+  have hL₀ : 0 < L := by linarith
+  have hB₀ : 0 ≤ B := (abs_nonneg _).trans (hB 0)
+  have hM₀ : 0 ≤ M := (abs_nonneg _).trans (hM 0)
+  set y := (x - a) / L with hy
+  have hxy : x = a + L * y := by rw [hy]; field_simp; ring
+  refine ⟨?_, ?_⟩
+  · rw [abs_div, abs_of_pos hL₀, div_le_iff₀ hL₀]
+    nlinarith [hA y]
+  · set s := deriv (deriv smoothTransition) y
+    have e : x * (s / L ^ 2) = (a * s + L * (y * s)) / L ^ 2 := by
+      rw [hxy]
+      field_simp
+    rw [e, abs_div, abs_of_pos (pow_pos hL₀ 2), div_le_iff₀ (pow_pos hL₀ 2)]
+    have h1 := abs_add_le (a * s) (L * (y * s))
+    rw [abs_mul, abs_mul, abs_of_pos hL₀, abs_of_nonneg ha] at h1
+    have h2 : a * |s| ≤ a * B := mul_le_mul_of_nonneg_left (hB y) ha
+    have h3 := hM y
+    have h4 : a * B ≤ a * B * L := le_mul_of_one_le_right (mul_nonneg ha hB₀) hL₁
+    have hA₀ : 0 ≤ A := (abs_nonneg _).trans (hA 0)
+    refine h1.trans ?_
+    nlinarith
 
 end Real.smoothTransition
 
