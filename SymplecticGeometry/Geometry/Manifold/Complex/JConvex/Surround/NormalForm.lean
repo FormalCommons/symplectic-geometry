@@ -13,6 +13,7 @@ import Mathlib.Analysis.Calculus.ContDiff.FiniteDimension
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Coordinates
 import SymplecticGeometry.Analysis.Calculus.BumpFunction.UnitSlope
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Radial
+import SymplecticGeometry.Analysis.Normed.Module.Ball.Shell
 import TauCeti.Analysis.Calculus.BumpFunction.Cutoff
 import TauCeti.Analysis.InnerProductSpace.NormPow
 
@@ -286,29 +287,9 @@ theorem exists_contDiff_fderiv_apply_self_eq_on_sphere {g : F → ℝ} (hg : Con
     refine ⟨hax, ?_⟩
     simp only [mem_preimage, mem_Ioi, hx, one_mul, b]
     linarith
-  obtain ⟨δ, hδ, hδV⟩ := (isCompact_sphere (0 : F) 1).exists_thickening_subset_open hV hSV
-  set w := min δ 1 / 2 with hw_def
-  have hmin := min_le_left δ 1
-  have hmin' := min_le_right δ 1
-  have hw0 : 0 < w := by positivity
-  have hwδ : w < δ := by linarith
-  -- The closed shell `K` of width `w` around the sphere lies in `V`.
+  -- A closed shell `K` of width `w` around the sphere lies in `V`.
+  obtain ⟨w, hw0, hw1, hKV⟩ := exists_abs_norm_sub_le_subset_of_sphere_subset one_pos hV hSV
   set K : Set F := {y | |‖y‖ - 1| ≤ w}
-  have hKV : K ⊆ V := by
-    intro y hy
-    have hy0 : y ≠ 0 := by
-      rintro rfl
-      simp only [K, mem_ofPred_eq, norm_zero, zero_sub, abs_neg, abs_one] at hy
-      linarith
-    have hr : 0 < ‖y‖ := norm_pos_iff.2 hy0
-    refine hδV (Metric.mem_thickening_iff.2 ⟨‖y‖⁻¹ • y, ?_, ?_⟩)
-    · rw [mem_sphere_zero_iff_norm]
-      exact norm_smul_inv_norm hy0
-    · have : y - ‖y‖⁻¹ • y = (1 - ‖y‖⁻¹) • y := by rw [sub_smul, one_smul]
-      rw [dist_eq_norm, this, norm_smul, Real.norm_eq_abs]
-      calc |1 - ‖y‖⁻¹| * ‖y‖ = |(1 - ‖y‖⁻¹) * ‖y‖| := by rw [abs_mul, abs_of_pos hr]
-        _ = |‖y‖ - 1| := by congr 1; field_simp
-        _ < δ := lt_of_le_of_lt hy hwδ
   have hKc : IsCompact K := by
     refine (isCompact_closedBall (0 : F) 2).of_isClosed_subset
       (isClosed_le (by fun_prop) continuous_const) fun y hy ↦ ?_
