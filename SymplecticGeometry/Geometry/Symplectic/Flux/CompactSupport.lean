@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Flux.Hamiltonian
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.TimeExtension
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.TimeExtension
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 
 /-!
 # Compactly supported Hamiltonian diffeomorphisms
@@ -332,7 +333,7 @@ theorem exists_isCompactlySupportedHamiltonian (hσ : SmoothTwoForm.IsSymplectic
       = 0 := map_zero _
   obtain ⟨Φ, hint, hslice, hfix⟩ := exists_interior_velocity_eq_add_mextDeriv hσ (β := 0)
     (fun t ↦ by rw [h0, ZeroMemClass.coe_zero, mextDeriv_zero]) isCompact_empty
-    (fun t y _ ↦ by rw [h0, ZeroMemClass.coe_zero, Pi.zero_apply]) hG hK hGK
+    (fun t y _ ↦ by rw [h0, SmoothBundleForm.zero_apply]) hG hK hGK
   -- `ι_{X_t} σ = dG_t` says that `X_t` is the Hamiltonian vector field of `G_t`.
   have hgen : Φ.IsGeneratedBy σ G := isGeneratedBy_iff.2 ⟨hG, fun t ↦
     SmoothTwoForm.isHamiltonianVectorField_iff_interior_eq.2 (by
