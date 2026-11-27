@@ -152,12 +152,7 @@ angular coordinate `(φ i).phase (φ i z)` being `z / ‖z‖`, and `∑ i, k i`
 number of `V`. -/
 theorem exists_coordinateDisc_unitSection_eq_phase_zpow_smul
     (o : Manifold.Orientation (𝓡 2) M (Fin 2)) :
-    letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-    letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-    letI : IsContinuousRiemannianBundle F V :=
-      instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
-    haveI : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) (𝓡 2) (𝓡 1) :=
-      contMDiffFiberBundle_circleFiber g hI
+    letI : ContMDiffHermitianMetric (𝓡 2) ∞ F V := ⟨g, hI⟩
     ∃ (ι : Type) (_ : Fintype ι) (e : ι → OpenPartialHomeomorph M (EuclideanSpace ℝ (Fin 2)))
       (r : ι → ℝ) (hr : ∀ i, 0 < r i) (hc : ∀ i, Metric.ball 0 (r i) ⊆ (e i).target)
       (he : ∀ i, ∀ y ∈ (e i).source,
