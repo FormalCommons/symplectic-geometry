@@ -8,12 +8,11 @@ module
 public import Mathlib.GroupTheory.FreeGroup.Basic
 public import Mathlib.AlgebraicTopology.FundamentalGroupoid.FundamentalGroup
 public import Mathlib.Analysis.Complex.Basic
+public import Mathlib.Analysis.Convex.PathConnected
 public import Mathlib.Analysis.SpecialFunctions.Complex.CircleMap
-public import TauCeti.Topology.Homotopy.Path
 
 import Mathlib.Analysis.Complex.Convex
 import Mathlib.Analysis.Convex.Contractible
-import Mathlib.Analysis.Convex.PathConnected
 import Mathlib.LinearAlgebra.Complex.FiniteDimensional
 import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Basic
 import TauCeti.AlgebraicTopology.FundamentalGroup.BasepointChange
@@ -23,42 +22,57 @@ import TauCeti.AlgebraicTopology.FundamentalGroup.PuncturedStarConvex
 import TauCeti.AlgebraicTopology.FundamentalGroup.VanKampen.Basic
 import TauCeti.GroupTheory.CoprodI
 import TauCeti.Topology.Homotopy.DeformationRetract
+import TauCeti.Topology.Homotopy.Path
 import TauCeti.Topology.MetricSpace.SeparatedBalls
 
 /-!
 # The plane minus finitely many real points: a free basis of loops
 
-Let `c : ι → ℝ` be finitely many distinct nonzero reals. The fundamental group of `ℂ` with the
-points `c i` removed, based at `0`, is free on the loops `PlaneMinusRealPoints.loop hc h0 k`:
-each goes from `0` straight down into the lower half-plane and over to below `c k + r`, up to the
-circle of a small radius `r` about `c k`, once counterclockwise around that circle, and back the
-same way.
+Let `c : ι → ℝ` be finitely many distinct nonzero reals, indexed injectively by a finite type
+`ι` (for instance the elements of a finite set of reals not containing `0`). The fundamental
+group of `ℂ` with the points `c i` removed, based at `0`, is free on the loops
+`PlaneMinusRealPoints.loop hc h0 k`. The loop about `c k` runs along a segment from `0` into the
+lower half-plane to `c k + r - i`, then vertically up to `c k + r`, once counterclockwise around
+the circle of radius `r` about `c k`, and back along the same two segments. The radius `r` is the
+same for all `k`: a quarter of a number `sep hc h0 > 0` that is at most the distance between any
+two of the points and less than the distance of each from `0`.
 
 ## Main definitions
 
-* `SymplecticGeometry.PlaneMinusRealPoints.radius hc h0`: the common radius of the circles, a
-  quarter of a separation of the points from each other and from `0`.
-* `SymplecticGeometry.PlaneMinusRealPoints.loop hc h0 k`: the loop about `c k`, based at `0`.
+* `SymplecticGeometry.PlaneMinusRealPoints.sep hc h0`: the separation of the points.
+* `SymplecticGeometry.PlaneMinusRealPoints.loopAux x r`: the loop in `ℂ` about `x` of radius `r`,
+  made of `approach x r` and `circle x r`.
+* `SymplecticGeometry.PlaneMinusRealPoints.loop hc h0 k`: the loop about `c k`, based at `0`, in
+  the plane minus the points.
 * `SymplecticGeometry.PlaneMinusRealPoints.fundamentalGroupMulEquiv hc h0`: the isomorphism of
   `π₁(ℂ ∖ {c i}, 0)` with `FreeGroup ι`.
 
 ## Main results
 
 * `SymplecticGeometry.PlaneMinusRealPoints.fundamentalGroupMulEquiv_loop`: the isomorphism sends
-  the class of `loop hc h0 k` to `FreeGroup.of k`.
+  the class of `loop hc h0 k` to `FreeGroup.of k`; its inverse is `FreeGroup.lift` of the classes
+  of the loops (`fundamentalGroupMulEquiv_symm_apply`).
 
 ## Implementation notes
 
-The cover and its two deformations are those of Tau Ceti's proof of
-`TauCeti.nonempty_fundamentalGroup_compl_mulEquiv_freeGroup`
-(`TauCeti/AlgebraicTopology/FundamentalGroup/PlaneMinusPoints.lean`), whose declarations there
-are private: the definitions `lower`, `teeth`, `strip`, `comb`, `piece`, `model`, `pushDown`,
-`ramp`, `piecePush`, `cover` and the lemmas about them are taken from that file with their
-proofs, and the wide van Kampen theorem `TauCeti.vanKampenWideEquiv` is applied as there, now at
-the base point `0`, which lies in the comb. What is new is the generator of each factor: the
-loop about `c k` is carried, by base-point change along its approach path, to the counterclockwise
-circle about `c k`, which `TauCeti.StarConvex.fundamentalGroupMulEquivInt_sphereLoop` sends to
-`1 : ℤ`; the inclusion of the punctured model into the `k`-th member is a homotopy equivalence.
+Tau Ceti's `TauCeti.nonempty_fundamentalGroup_compl_mulEquiv_freeGroup`
+(`TauCeti/AlgebraicTopology/FundamentalGroup/PlaneMinusPoints.lean`, at the pinned commit) gives
+an isomorphism with the free group but no generators, and the declarations of its proof are
+private. This file takes over that proof's cover of the plane minus the points, with their
+proofs: the private definitions `lower`, `teeth`, `strip`, `comb`, `piece`, `model`,
+`pushDown`, `ramp`, `piecePush`, `cover`, `lowerHomotopyEquivComb`, `modelHomotopyEquivPiece`
+and `coverHomeomorph`, and the lemmas about them up to `isPathConnected_cover`. The separation
+`exists_sep_of_finite` follows the step of
+`TauCeti.nonempty_fundamentalGroup_compl_mulEquiv_freeGroup` that separates the points, now
+also from `0`, and `exists_mulEquiv_freeGroup` assembles the wide van Kampen theorem
+`TauCeti.vanKampenWideEquiv` as Tau Ceti's private
+`nonempty_fundamentalGroup_compl_range_mulEquiv_freeGroup` does, at the base point `0` of the
+comb instead of `-i`.
+
+What is new is the generator of each factor. In the `k`-th member, base-point change along the
+approach path carries the loop about `c k` to the circle about `c k`; the inclusion of the
+punctured model into the member is a homotopy equivalence, and
+`StarConvex.fundamentalGroupMulEquivInt_sphereLoop` sends the circle to `1 : ℤ`.
 
 ## References
 
@@ -126,13 +140,6 @@ private theorem ofReal_notMem_comb (hδ : 0 < δ) (k : ι) : (c k : ℂ) ∉ com
 
 private theorem mem_strip_self (hδ : 0 < δ) (k : ι) : (c k : ℂ) ∈ strip c δ k := by
   simp [strip, hδ]
-
-private theorem neg_I_mem_comb : -I ∈ comb c δ :=
-  .inl neg_I_mem_lower
-
-private theorem neg_I_mem_compl_range : -I ∈ (range fun i ↦ (c i : ℂ))ᶜ := by
-  rintro ⟨i, hi⟩
-  simpa using congrArg Complex.im hi
 
 private theorem comb_subset_piece (k : ι) : comb c δ ⊆ piece c δ k :=
   subset_union_left
@@ -380,60 +387,6 @@ private theorem isPathConnected_cover (hδ : 0 < δ) (hc : Pairwise fun i j ↦ 
   exact (isPathConnected_iff_pathConnectedSpace.2 ‹_›).preimage_coe
     (piece_subset_compl_range hδ hc k)
 
-/-- Each member of the cover has infinite cyclic fundamental group. -/
-private theorem nonempty_fundamentalGroup_cover_mulEquiv_int (hδ : 0 < δ)
-    (hc : Pairwise fun i j ↦ δ ≤ |c i - c j|) (k : ι) (z : cover c δ k) :
-    Nonempty (FundamentalGroup (cover c δ k) z ≃* Multiplicative ℤ) := by
-  have := isPathConnected_iff_pathConnectedSpace.1 (isPathConnected_cover hδ hc k)
-  have hV := starConvex_model (c := c) hδ k
-  have hr : (0 : ℝ) < δ / 4 := by positivity
-  let x : sphere (c k : ℂ) (δ / 4) := ⟨c k + (δ / 4 : ℝ), by simp [hδ.le]⟩
-  obtain ⟨e⟩ := ((coverHomeomorph hδ hc k).toHomotopyEquiv.trans
-    (modelHomotopyEquivPiece hδ k).symm).nonempty_fundamentalGroupMulEquiv z
-      (hV.sphereHomotopyEquiv hr (sphere_subset_model hδ k) x)
-  exact ⟨e.trans (hV.fundamentalGroupMulEquivInt hr (sphere_subset_model hδ k) x)⟩
-
-/-- The punctured plane is path connected when there is at least one puncture. -/
-private theorem pathConnectedSpace_compl_range [Nonempty ι] (hδ : 0 < δ)
-    (hc : Pairwise fun i j ↦ δ ≤ |c i - c j|) :
-    PathConnectedSpace ↥(range fun i ↦ (c i : ℂ))ᶜ := by
-  let b : ↥(range fun i ↦ (c i : ℂ))ᶜ := ⟨-I, neg_I_mem_compl_range⟩
-  have hb (z : ↥(range fun i ↦ (c i : ℂ))ᶜ) : Joined z b := by
-    obtain ⟨k, hk⟩ := exists_piece_mem_nhds hδ z.property
-    exact ((isPathConnected_cover hδ hc k).joinedIn z (mem_preimage.2 (mem_of_mem_nhds hk)) b
-      (comb_subset_piece k neg_I_mem_comb)).joined
-  exact ⟨⟨b⟩, fun z w ↦ (hb z).trans (hb w).symm⟩
-
-
-/-! ### Changing the base point of a generator -/
-
-/-- An isomorphism of `π₁(P, y)` with a group, moved to an equal base point `y'` along loops with
-the same points. -/
-private theorem exists_mulEquiv_of_eq {P G : Type*} [TopologicalSpace P] [Group G] {y y' : P}
-    (h : y = y') (σ : Path y y) (σ' : Path y' y') (hσ : ∀ t, σ t = σ' t)
-    (e : FundamentalGroup P y ≃* G) :
-    ∃ e' : FundamentalGroup P y' ≃* G,
-      e' (fromPath (Path.Homotopic.Quotient.mk σ')) =
-        e (fromPath (Path.Homotopic.Quotient.mk σ)) := by
-  subst h
-  obtain rfl : σ = σ' := Path.ext (funext hσ)
-  exact ⟨e, rfl⟩
-
-/-- An isomorphism of `π₁(P, y)` with a group, moved to the base point `a` along a path `ρ` from
-`a` to `y`: the loop `ρ · σ · ρ⁻¹` at `a` takes the value of `σ`. -/
-private theorem exists_mulEquiv_trans_trans_symm {P G : Type*} [TopologicalSpace P] [Group G]
-    {a y : P} (ρ : Path a y) (σ : Path y y) (e : FundamentalGroup P y ≃* G) :
-    ∃ e' : FundamentalGroup P a ≃* G,
-      e' (fromPath (Path.Homotopic.Quotient.mk (ρ.trans (σ.trans ρ.symm)))) =
-        e (fromPath (Path.Homotopic.Quotient.mk σ)) := by
-  refine ⟨(FundamentalGroup.fundamentalGroupMulEquivOfPath ρ).trans e, ?_⟩
-  have : fromPath (Path.Homotopic.Quotient.mk (ρ.trans (σ.trans ρ.symm))) =
-      (FundamentalGroup.fundamentalGroupMulEquivOfPath ρ).symm
-        (fromPath (Path.Homotopic.Quotient.mk σ)) := by
-    rw [FundamentalGroup.fundamentalGroupMulEquivOfPath_symm_apply]
-    rfl
-  rw [this, MulEquiv.trans_apply, MulEquiv.apply_symm_apply]
-
 /-! ### The separation of the points -/
 
 private theorem exists_sep_of_finite [Finite ι] (hc : Function.Injective c) (h0 : ∀ i, c i ≠ 0) :
@@ -479,6 +432,12 @@ then straight up to `x + r`. -/
 def approach (x r : ℝ) : Path (0 : ℂ) ((x + r : ℝ) : ℂ) :=
   (Path.segment (0 : ℂ) ((x + r : ℝ) - I)).trans (Path.segment ((x + r : ℝ) - I) ((x + r : ℝ) : ℂ))
 
+theorem approach_def (x r : ℝ) :
+    approach x r =
+      (Path.segment (0 : ℂ) ((x + r : ℝ) - I)).trans
+        (Path.segment ((x + r : ℝ) - I) ((x + r : ℝ) : ℂ)) :=
+  (rfl)
+
 /-- The circle about `x` of radius `r`, run once counterclockwise from `x + r`. -/
 def circle (x r : ℝ) : Path ((x + r : ℝ) : ℂ) ((x + r : ℝ) : ℂ) where
   toFun t := x + r * exp ((2 * Real.pi * t : ℝ) * I)
@@ -517,7 +476,7 @@ private theorem circle_mem_piece (hδ : 0 < δ) (k : ι) (t : unitInterval) :
 private theorem approach_mem_piece (hδ : 0 < δ) (hcδ : ∀ i, δ < |c i|) (k : ι)
     (t : unitInterval) : approach (c k) (δ / 4) t ∈ piece c δ k := by
   have h : range (approach (c k) (δ / 4)) ⊆ piece c δ k := by
-    rw [approach, Path.trans_range, union_subset_iff, range_subset_iff, range_subset_iff]
+    rw [approach_def, Path.trans_range, union_subset_iff, range_subset_iff, range_subset_iff]
     constructor
     · intro t
       have hre : (Path.segment (0 : ℂ) ((c k + δ / 4 : ℝ) - I) t).re = t * (c k + δ / 4) := by
@@ -589,17 +548,30 @@ private theorem exists_mulEquiv_piece (hδ : 0 < δ) (hcδ : ∀ i, δ < |c i|) 
     simpa using circle_mem_piece hδ k 0
   let y : piece c δ k := ⟨_, hy⟩
   let σP : Path y y := (circle (c k) (δ / 4)).codRestrict (x := y) (y := y) (circle_mem_piece hδ k)
-  obtain ⟨e2, he2⟩ := exists_mulEquiv_of_eq (y' := y)
-    (σ := ((Complex.sphereLoop (c k : ℂ) hr).map S.toFun.continuous).map E.toFun.continuous)
-    (Subtype.ext (by simp [E, S, y, modelHomotopyEquivPiece])) σP
-    (fun t ↦ Subtype.ext (by
+  -- Move the base point `E (S x0)` to the equal point `y`, and then to `0` along `ρP`.
+  have hyE : Homeomorph.refl _ (E.toFun (S x0)) = y :=
+    Subtype.ext (by simp [E, S, x0, y, modelHomotopyEquivPiece])
+  let e2 := (FundamentalGroup.homeomorphMulEquivOfEq (Homeomorph.refl _) hyE).symm.trans e1
+  have he2 : e2 (fromPath (Path.Homotopic.Quotient.mk σP)) = Multiplicative.ofAdd 1 := by
+    have hσ : FundamentalGroup.homeomorphMulEquivOfEq (Homeomorph.refl _) hyE
+        (fromPath (Path.Homotopic.Quotient.mk (((Complex.sphereLoop (c k : ℂ) hr).map
+          S.toFun.continuous).map E.toFun.continuous))) =
+        fromPath (Path.Homotopic.Quotient.mk σP) := by
+      rw [FundamentalGroup.homeomorphMulEquivOfEq_apply, FundamentalGroup.mapOfEq_fromPath_mk]
+      congr 2
+      ext t
       rw [Path.codRestrict_coe, circle_apply, ← Complex.coe_sphereLoop_apply (c k : ℂ) hr t]
-      simp only [Path.map_coe, Function.comp_apply]
-      simp [E, S, modelHomotopyEquivPiece])) e1
+      simp only [Path.cast_coe, Path.map_coe, Function.comp_apply]
+      simp [E, S, modelHomotopyEquivPiece]
+    rw [← hσ, MulEquiv.trans_apply, MulEquiv.symm_apply_apply, he1]
   let ρP : Path (⟨0, zero_mem_piece hδ hcδ k⟩ : piece c δ k) y :=
     (approach (c k) (δ / 4)).codRestrict (approach_mem_piece hδ hcδ k)
-  obtain ⟨e3, he3⟩ := exists_mulEquiv_trans_trans_symm ρP σP e2
-  refine ⟨e3, ?_⟩
+  refine ⟨(FundamentalGroup.fundamentalGroupMulEquivOfPath ρP).trans e2, ?_⟩
+  have he3 : fromPath (Path.Homotopic.Quotient.mk (ρP.trans (σP.trans ρP.symm))) =
+      (FundamentalGroup.fundamentalGroupMulEquivOfPath ρP).symm
+        (fromPath (Path.Homotopic.Quotient.mk σP)) := by
+    rw [FundamentalGroup.fundamentalGroupMulEquivOfPath_symm_apply]
+    rfl
   have h : (ρP.trans (σP.trans ρP.symm)).map continuous_subtypeVal = loopAux (c k) (δ / 4) := by
     rw [Path.map_trans, Path.map_trans, ← Path.map_symm]
     simp only [ρP, σP, Path.map_codRestrict]
@@ -612,7 +584,7 @@ private theorem exists_mulEquiv_piece (hδ : 0 < δ) (hcδ : ∀ i, δ < |c i|) 
     simp only [Path.map_coe, Function.comp_apply] at this
     rw [Path.codRestrict_coe]
     exact this.symm
-  rw [hL, he3, he2, he1]
+  rw [hL, he3, MulEquiv.trans_apply, MulEquiv.apply_symm_apply, he2]
 
 /-! ### The loops in the plane minus the points -/
 
