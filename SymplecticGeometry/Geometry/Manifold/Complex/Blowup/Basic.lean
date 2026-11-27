@@ -393,14 +393,11 @@ theorem inr_mem_exceptionalDivisor_iff {y : modelOpens c} :
 
 /-- Off the exceptional divisor, the blowup is the punctured space. -/
 theorem range_inl : range (inl (gluingHomeomorph c)) = (exceptionalDivisor c)ᶜ := by
+  rw [GluedAlong.range_inl_eq_compl_image_inr]
+  congr 1
   ext z
-  rcases GluedAlong.exists_inl_or_exists_inr _ z with ⟨x, rfl⟩ | ⟨y, rfl⟩
-  · simp only [mem_range_self, mem_compl_iff, true_iff, mem_exceptionalDivisor_iff, not_exists,
-      not_and]
-    exact fun y hy hxy ↦ (mem_modelOffDivisorOpens c).1
-      ((GluedAlong.inr_mem_range_inl_iff _).1 ⟨x, hxy.symm⟩) hy
-  · rw [GluedAlong.inr_mem_range_inl_iff, mem_modelOffDivisorOpens, mem_compl_iff,
-      inr_mem_exceptionalDivisor_iff]
+  simp only [mem_image, mem_compl_iff, SetLike.mem_coe, mem_modelOffDivisorOpens, not_not,
+    mem_exceptionalDivisor_iff]
 
 /-- No point of the punctured space is on the exceptional divisor. -/
 @[simp]
