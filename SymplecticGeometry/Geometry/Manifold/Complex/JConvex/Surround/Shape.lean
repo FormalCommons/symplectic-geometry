@@ -74,7 +74,9 @@ the strict plurisubharmonicity of `f(s) + g(t)`.
 The Levi form of `h ∘ shape` comes from `TauCeti.re_leviForm_comp_prodMk_apply_self` and the Levi
 forms of `s` and `t`, which Tau Ceti's `TauCeti.leviForm_re_sq_comp_apply` and
 `TauCeti.leviForm_norm_sq_comp_apply` give. The criterion follows from it by the Cauchy–Schwarz
-bounds `|σ|² ≤ s |v₁|²` and `|τ|² ≤ t (|v₁|² + |v₂|²)`.
+bounds `|σ|² ≤ s |v₁|²` and `|τ|² ≤ t (|v₁|² + |v₂|²)`; the second is a case of
+`SymplecticGeometry.norm_ofReal_mul_add_ofReal_mul_sq_le`, the bound
+`|c₁ σ + c₂ τ|² ≤ (c₁² s + c₂² t) |v|²` for real `c₁`, `c₂`.
 
 ## The model handle function and the model level
 
@@ -416,20 +418,41 @@ private theorem norm_sum_re_mul_sq_le (p v : EuclideanSpace ℂ (Fin k) × Eucli
   rw [← hX, ← hXn, ← mul_pow]
   exact pow_le_pow_left₀ (norm_nonneg _) (norm_inner_le_norm X v.1) 2
 
-/-- The bound `|τ|² ≤ t (|v₁|² + |v₂|²)` for `τ = ⟪w, v₂⟫ - i ∑ⱼ yⱼ v₁ⱼ`, by Cauchy–Schwarz in
-the `L²` product. -/
-private theorem norm_inner_sub_I_mul_sum_sq_le
+/-- The Cauchy–Schwarz bound `|c₁ σ + c₂ τ|² ≤ (c₁² s + c₂² t) |v|²` for real `c₁`, `c₂`, where
+`σ = ∑ⱼ xⱼ v₁ⱼ` and `τ = ⟪w, v₂⟫ - i ∑ⱼ yⱼ v₁ⱼ` at `p = (x + i y, w)`: the combination is the
+inner product of `v` with `(c₁ x + i c₂ y, c₂ w)`, whose real and imaginary parts are
+orthogonal. -/
+theorem norm_ofReal_mul_add_ofReal_mul_sq_le (c₁ c₂ : ℝ)
     (p v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
-    ‖⟪p.2, v.2⟫_ℂ - I * ∑ j, ((p.1 j).im : ℂ) * v.1 j‖ ^ 2 ≤
-      (shape p).2 * (‖v.1‖ ^ 2 + ‖v.2‖ ^ 2) := by
-  let Y : EuclideanSpace ℂ (Fin k) := WithLp.toLp 2 fun j ↦ I * ((p.1 j).im : ℂ)
-  let X : WithLp 2 (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) := WithLp.toLp 2 (Y, p.2)
+    ‖(c₁ : ℂ) * ∑ j, ((p.1 j).re : ℂ) * v.1 j +
+        (c₂ : ℂ) * (⟪p.2, v.2⟫_ℂ - I * ∑ j, ((p.1 j).im : ℂ) * v.1 j)‖ ^ 2 ≤
+      (c₁ ^ 2 * (shape p).1 + c₂ ^ 2 * (shape p).2) * (‖v.1‖ ^ 2 + ‖v.2‖ ^ 2) := by
+  let Y : EuclideanSpace ℂ (Fin k) :=
+    WithLp.toLp 2 fun j ↦ (c₁ : ℂ) * ((p.1 j).re : ℂ) + I * ((c₂ : ℂ) * ((p.1 j).im : ℂ))
+  let X : WithLp 2 (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :=
+    WithLp.toLp 2 (Y, (c₂ : ℂ) • p.2)
   let u : WithLp 2 (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) := WithLp.toLp 2 v
-  have hX : ⟪X, u⟫_ℂ = ⟪p.2, v.2⟫_ℂ - I * ∑ j, ((p.1 j).im : ℂ) * v.1 j := by
-    simp [X, Y, u, WithLp.prod_inner_apply, PiLp.inner_apply, Finset.mul_sum, sub_eq_neg_add,
-      mul_comm, mul_assoc]
-  have hXn : ‖X‖ ^ 2 = (shape p).2 := by
-    simp [X, Y, WithLp.prod_norm_sq_eq_of_L2, EuclideanSpace.norm_sq_eq]
+  have hX : ⟪X, u⟫_ℂ = (c₁ : ℂ) * ∑ j, ((p.1 j).re : ℂ) * v.1 j +
+      (c₂ : ℂ) * (⟪p.2, v.2⟫_ℂ - I * ∑ j, ((p.1 j).im : ℂ) * v.1 j) := by
+    simp only [X, Y, u, WithLp.prod_inner_apply, PiLp.inner_apply, inner_smul_left,
+      RCLike.inner_apply, map_add, map_mul, conj_ofReal, conj_I, Finset.mul_sum, mul_sub]
+    have e : ∑ j, v.1 j * ((c₁ : ℂ) * ((p.1 j).re : ℂ) + -I * ((c₂ : ℂ) * ((p.1 j).im : ℂ))) =
+        ∑ j, (c₁ : ℂ) * (((p.1 j).re : ℂ) * v.1 j) -
+          ∑ j, (c₂ : ℂ) * (I * (((p.1 j).im : ℂ) * v.1 j)) := by
+      rw [← Finset.sum_sub_distrib]
+      exact Finset.sum_congr rfl fun j _ ↦ by ring
+    rw [e]
+    ring
+  have hXn : ‖X‖ ^ 2 = c₁ ^ 2 * (shape p).1 + c₂ ^ 2 * (shape p).2 := by
+    simp only [X, Y, WithLp.prod_norm_sq_eq_of_L2, EuclideanSpace.norm_sq_eq, norm_smul,
+      shape_fst, shape_snd, Complex.sq_norm, normSq_apply, mul_pow, Finset.mul_sum, mul_add,
+      WithLp.toLp_fst, WithLp.toLp_snd, Real.norm_eq_abs, sq_abs,
+      Complex.norm_real]
+    rw [← add_assoc, ← Finset.sum_add_distrib]
+    congr 1
+    refine Finset.sum_congr rfl fun j _ ↦ ?_
+    simp only [add_re, add_im, mul_re, mul_im, ofReal_re, ofReal_im, I_re, I_im]
+    ring
   have hun : ‖u‖ ^ 2 = ‖v.1‖ ^ 2 + ‖v.2‖ ^ 2 := by
     simp [u, WithLp.prod_norm_sq_eq_of_L2]
   rw [← hX, ← hXn, ← hun, ← mul_pow]
@@ -469,7 +492,9 @@ theorem isStrictlyPlurisubharmonicAt_shape {f g : ℝ → ℝ}
   have hg₂ : deriv (fderiv ℝ g) t 1 = iteratedDeriv 2 g t := by
     simpa using fderiv_fderiv_apply_eq_smul_iteratedDeriv g t 1 1
   have hS := norm_sum_re_mul_sq_le p v
-  have hT := norm_inner_sub_I_mul_sum_sq_le p v
+  have hT : ‖⟪p.2, v.2⟫_ℂ - I * ∑ j, ((p.1 j).im : ℂ) * v.1 j‖ ^ 2 ≤
+      (shape p).2 * (‖v.1‖ ^ 2 + ‖v.2‖ ^ 2) := by
+    simpa using norm_ofReal_mul_add_ofReal_mul_sq_le 0 1 p v
   rw [← hs] at hS
   rw [← ht] at hT
   set S := ‖∑ j, ((p.1 j).re : ℂ) * v.1 j‖ ^ 2
