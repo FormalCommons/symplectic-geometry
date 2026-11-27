@@ -329,6 +329,19 @@ theorem struweShape_sub_struweShape_one_mem_Icc (hK : 1 ≤ K) (c : ℝ) {r : �
   simp only [f, one_pow, sub_self, sqrt_zero, mul_zero, sub_zero] at h
   linarith
 
+/-- From a point `a > δ` on, Struwe's shape rises by at most its slope `1 / √(log (a / δ))` at `a`
+times the distance, by concavity. -/
+theorem struweShape_sub_struweShape_le (hδ : 0 < δ) (hK : 1 ≤ K) (c : ℝ) {a r : ℝ}
+    (ha : δ < a) (hr : a ≤ r) :
+    struweShape δ K c r - struweShape δ K c a ≤ (r - a) / √(log (a / δ)) := by
+  rcases hr.eq_or_lt with rfl | hr
+  · simp
+  have h := (strictConcaveOn_struweShape hδ hK c).concaveOn.slope_le_of_hasDerivAt
+    (mem_Ici.2 ha.le) (mem_Ici.2 (ha.trans hr).le) hr (hasDerivAt_struweShape hδ hK c ha)
+  rw [slope_def_field, div_le_iff₀ (sub_pos.2 hr)] at h
+  rw [div_eq_mul_one_div, mul_comm]
+  exact h
+
 /-- If Struwe's shape with value `ℓ + d K δ` at `K δ` is at least `ℓ + d δ` at `δ`, its secant
 between `δ` and `K δ` has slope at most `d`. -/
 theorem struweShape_secant_le (hδ : 0 < δ) (hK : 1 < K) {ℓ d : ℝ}
