@@ -33,9 +33,15 @@ import TauCeti.Topology.Algebra.Support
 /-!
 # Differential forms read through a partial diffeomorphism onto a normed space
 
-Let `ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞` be a chart of `M` with values in its model vector
-space. A form `φ` on `M` is read in `ψ` as the flat form `mpullback 𝓘(ℝ, E) I ψ.symm φ` on `E`,
-which is meaningful on `ψ.target`.
+Let `ψ : PartialDiffeomorph I 𝓘(ℝ, D) M D ∞` be a chart of `M` with values in a real normed
+space `D`. A form `φ` on `M` is read in `ψ` as the flat form `mpullback 𝓘(ℝ, D) I ψ.symm φ` on
+`D`, which is meaningful on `ψ.target`. The extension by zero `extendByZeroAlong`, the
+localization `localize` with its lemmas, and `contDiffAt_mpullback_symm`,
+`differentiableAt_mpullback_symm` and `contDiffOn_fderiv_mpullback_symm_apply` allow any `D`.
+The other results take for `D` the model vector space `E` of `M`: those on the atlas chart, on
+the exterior derivative and on the derivation along an almost complex structure, and the values
+and derivatives of readings in a chart (`symbolInChart`, the Leibniz rule
+`fderiv_mpullback_symm_wedge_apply` and the rest of `section Readings`).
 
 ## Main declarations
 
@@ -69,7 +75,7 @@ which is meaningful on `ψ.target`.
   (`TauCeti.IsSmoothForm.extendByZeroAlong`), and bundled as
   `TauCeti.SmoothForm.extendByZeroAlong`. Both versions are linear in `a`
   (`extendByZeroAlong_zero`, `_add`, `_smul`, `_neg` and `_sub`).
-* `TauCeti.SmoothForm.localize ψ χ α`: in the other direction, the flat form on `E` that is the
+* `TauCeti.SmoothForm.localize ψ χ α`: in the other direction, the flat form on `D` that is the
   reading of a smooth form `α` in `ψ`, scaled by `χ ∘ ψ.symm` for a cutoff `χ` on `M`, on
   `ψ.target`, and zero elsewhere. It is continuous with compact support when `χ` is continuous
   with compact support in `ψ.source` (`TauCeti.SmoothForm.continuous_localize`,
@@ -529,67 +535,69 @@ end ExtendByZero
 
 namespace SmoothForm
 
+variable {D : Type*} [NormedAddCommGroup D] [NormedSpace ℝ D]
+
 section Localize
 
 variable [IsManifold I ∞ M]
 
-/-- The **localization** of a smooth `k`-form `α` to a chart `ψ : M → E` with a cutoff
-`χ : M → ℝ`: the flat form on `E` that sends a point `y` of `ψ.target` to
+/-- The **localization** of a smooth `k`-form `α` to a chart `ψ : M → D` with a cutoff
+`χ : M → ℝ`: the flat form on `D` that sends a point `y` of `ψ.target` to
 `χ (ψ.symm y) • (ψ.symm)^* α (y)`, the reading of `α` in `ψ` at `y` scaled by `χ (ψ.symm y)`,
 and every other point to `0`. -/
-def localize (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (χ : M → ℝ) (α : SmoothForm I M F k) :
-    E → E [⋀^Fin k]→L[ℝ] F :=
-  ψ.target.indicator fun y ↦ χ (ψ.symm y) • TauCeti.mpullback 𝓘(ℝ, E) I ψ.symm α.val y
+def localize (ψ : PartialDiffeomorph I 𝓘(ℝ, D) M D ∞) (χ : M → ℝ) (α : SmoothForm I M F k) :
+    D → D [⋀^Fin k]→L[ℝ] F :=
+  ψ.target.indicator fun y ↦ χ (ψ.symm y) • TauCeti.mpullback 𝓘(ℝ, D) I ψ.symm α.val y
 
-variable (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (χ : M → ℝ) (α β : SmoothForm I M F k)
+variable (ψ : PartialDiffeomorph I 𝓘(ℝ, D) M D ∞) (χ : M → ℝ) (α β : SmoothForm I M F k)
 
 theorem localize_def :
     α.localize ψ χ =
-      ψ.target.indicator fun y ↦ χ (ψ.symm y) • TauCeti.mpullback 𝓘(ℝ, E) I ψ.symm α.val y :=
+      ψ.target.indicator fun y ↦ χ (ψ.symm y) • TauCeti.mpullback 𝓘(ℝ, D) I ψ.symm α.val y :=
   (rfl)
 
 /-- The localization of `α` is the cutoff `χ` read in the chart and extended by `0` off
 `ψ.target`, times the reading of `α` in the chart. -/
 theorem localize_eq_indicator_smul :
     α.localize ψ χ = fun y ↦
-      ψ.target.indicator (fun y ↦ χ (ψ.symm y)) y • TauCeti.mpullback 𝓘(ℝ, E) I ψ.symm α.val y :=
+      ψ.target.indicator (fun y ↦ χ (ψ.symm y)) y • TauCeti.mpullback 𝓘(ℝ, D) I ψ.symm α.val y :=
   funext fun y ↦ by
     rw [localize_def]
-    -- The reading takes values in forms on `TangentSpace 𝓘(ℝ, E) y`, a synonym of `E`, which hides
-    -- the pattern from `rw`; naming the type of forms on `E` lets `exact` unify the two.
-    exact Set.indicator_smul_apply_left (M := E [⋀^Fin k]→L[ℝ] F) _ _ _ y
+    -- The reading takes values in forms on `TangentSpace 𝓘(ℝ, D) y`, a synonym of `D`, which hides
+    -- the pattern from `rw`; naming the type of forms on `D` lets `exact` unify the two.
+    exact Set.indicator_smul_apply_left (M := D [⋀^Fin k]→L[ℝ] F) _ _ _ y
 
 /-- On the target of the chart, the localization of `α` is the reading of `α` in the chart,
 scaled by `χ ∘ ψ.symm`. -/
-theorem localize_of_mem {y : E} (hy : y ∈ ψ.target) :
-    α.localize ψ χ y = χ (ψ.symm y) • TauCeti.mpullback 𝓘(ℝ, E) I ψ.symm α.val y := by
+theorem localize_of_mem {y : D} (hy : y ∈ ψ.target) :
+    α.localize ψ χ y = χ (ψ.symm y) • TauCeti.mpullback 𝓘(ℝ, D) I ψ.symm α.val y := by
   rw [localize_def]
   exact Set.indicator_of_mem hy _
 
 /-- On the target of the chart, the localization of `α` evaluated on vectors `v` is `χ (ψ⁻¹ y)`
 times `α` at `ψ⁻¹ y` evaluated on the images of `v` under the differential of `ψ.symm`. -/
-theorem localize_apply_of_mem {y : E} (hy : y ∈ ψ.target) (v : Fin k → E) :
+theorem localize_apply_of_mem {y : D} (hy : y ∈ ψ.target) (v : Fin k → D) :
     α.localize ψ χ y v =
-      χ (ψ.symm y) • α.val (ψ.symm y) (fun i ↦ mfderiv 𝓘(ℝ, E) I ψ.symm y (v i)) := by
-  refine (congrArg (fun f : E [⋀^Fin k]→L[ℝ] F ↦ f v) (localize_of_mem _ _ _ hy)).trans ?_
+      χ (ψ.symm y) • α.val (ψ.symm y) (fun i ↦ mfderiv 𝓘(ℝ, D) I ψ.symm y (v i)) := by
+  refine (congrArg (fun f : D [⋀^Fin k]→L[ℝ] F ↦ f v) (localize_of_mem _ _ _ hy)).trans ?_
   refine (ContinuousAlternatingMap.smul_apply (R' := ℝ)
-    (TauCeti.mpullback (F := F) 𝓘(ℝ, E) I ψ.symm α.val y) _ v).trans ?_
+    (TauCeti.mpullback (F := F) 𝓘(ℝ, D) I ψ.symm α.val y) _ v).trans ?_
   exact congrArg _ (TauCeti.mpullback_apply _ _ _ v)
 
 /-- On the target of the chart, the localization of `α` at `y` is `χ (ψ⁻¹ y)` times `α` at
-`ψ⁻¹ y` composed with the differential of `ψ.symm` at `y`, as a form on `E`. -/
-theorem localize_of_mem_eq_smul_compContinuousLinearMap {y : E} (hy : y ∈ ψ.target) :
-    α.localize ψ χ y = χ (ψ.symm y) • (show E [⋀^Fin k]→L[ℝ] F from
-      (α.val (ψ.symm y)).compContinuousLinearMap (mfderiv 𝓘(ℝ, E) I ψ.symm y)) := by
-  -- The `show` reads the composite, whose domain is `TangentSpace 𝓘(ℝ, E) y`, in
-  -- `E [⋀^Fin k]→L[ℝ] F`, so that the smul and the norm are those of forms on `E`. The closing
-  -- `rfl` unfolds `TangentSpace 𝓘(ℝ, E) y` to `E`, which no lemma rewrites.
+`ψ⁻¹ y` composed with the differential of `ψ.symm` at `y`, as a form on `D`. -/
+theorem localize_of_mem_eq_smul_compContinuousLinearMap {y : D} (hy : y ∈ ψ.target) :
+    α.localize ψ χ y = χ (ψ.symm y) • (show D [⋀^Fin k]→L[ℝ] F from
+      (α.val (ψ.symm y)).compContinuousLinearMap (mfderiv 𝓘(ℝ, D) I ψ.symm y)) := by
+  -- The `show` reads the composite, whose domain is `TangentSpace 𝓘(ℝ, D) y`, in
+  -- `D [⋀^Fin k]→L[ℝ] F`, so that the smul and the norm are those of forms on `D`. The closing
+  -- `rfl` unfolds `TangentSpace 𝓘(ℝ, D) y` to `D`, which no lemma rewrites.
   ext v
   rw [localize_apply_of_mem _ _ _ hy]
   rfl
 
 /-- Off the target of the chart, the localization vanishes. -/
-theorem localize_apply_of_notMem {y : E} (hy : y ∉ ψ.target) : α.localize ψ χ y = 0 := by
+theorem localize_apply_of_notMem {y : D} (hy : y ∉ ψ.target) : α.localize ψ χ y = 0 := by
   rw [localize_def]
   exact Set.indicator_of_notMem hy _
 
@@ -602,7 +610,7 @@ theorem localize_zero : (0 : SmoothForm I M F k).localize ψ χ = 0 := by
   · simp [localize_apply_of_notMem _ _ _ hy]
 
 /-- The localization vanishes off the image `ψ '' tsupport χ` of the support of the cutoff. -/
-theorem localize_apply_eq_zero_of_notMem {y : E} (hy : y ∉ ψ '' tsupport χ) :
+theorem localize_apply_eq_zero_of_notMem {y : D} (hy : y ∉ ψ '' tsupport χ) :
     α.localize ψ χ y = 0 := by
   by_cases hyt : y ∈ ψ.target
   · ext v
@@ -631,16 +639,16 @@ variable {χ}
 
 /-- If the reading of `α` in the chart agrees on `ψ.target` with a flat form `g` supported in
 `ψ.target`, and `χ ∘ ψ.symm = 1` on the support of `g`, the localization of `α` is `g`. -/
-theorem localize_eq_of_mpullback_symm_eq {g : E → E [⋀^Fin k]→L[ℝ] F}
+theorem localize_eq_of_mpullback_symm_eq {g : D → D [⋀^Fin k]→L[ℝ] F}
     (hg : ∀ y ∈ ψ.target,
-      (TauCeti.mpullback 𝓘(ℝ, E) I ψ.symm α.val y : E [⋀^Fin k]→L[ℝ] F) = g y)
+      (TauCeti.mpullback 𝓘(ℝ, D) I ψ.symm α.val y : D [⋀^Fin k]→L[ℝ] F) = g y)
     (hgt : Function.support g ⊆ ψ.target)
     (hgχ : ∀ y ∈ Function.support g, χ (ψ.symm y) = 1) :
     α.localize ψ χ = g := by
   ext1 y
   by_cases hy : y ∈ ψ.target
   · rw [localize_of_mem _ _ _ hy, hg y hy]
-    -- The reading lives in forms on the tangent space `TangentSpace 𝓘(ℝ, E) y`, a synonym of `E`,
+    -- The reading lives in forms on the tangent space `TangentSpace 𝓘(ℝ, D) y`, a synonym of `D`,
     -- so `smul_zero` and `one_smul` close the goals by unification rather than by rewriting.
     by_cases hgy : g y = 0
     · rw [hgy]
@@ -652,7 +660,7 @@ theorem localize_eq_of_mpullback_symm_eq {g : E → E [⋀^Fin k]→L[ℝ] F}
 
 /-- The localization, with a cutoff `χ` such that `χ ∘ ψ.symm = 1` on the support of `a`, of the
 extension by zero of a flat form `a` along the chart is `a`. -/
-theorem localize_extendByZeroAlong [T2Space M] {a : E → E [⋀^Fin k]→L[ℝ] F}
+theorem localize_extendByZeroAlong [T2Space M] {a : D → D [⋀^Fin k]→L[ℝ] F}
     (ha : ContDiff ℝ ∞ a) (hac : HasCompactSupport a) (hat : tsupport a ⊆ ψ.target)
     (haχ : ∀ y ∈ tsupport a, χ (ψ.symm y) = 1) :
     (extendByZeroAlong ψ a ha hac hat).localize ψ χ = a :=
@@ -702,8 +710,8 @@ theorem extendByZeroAlong_localize_apply (hχ : tsupport χ ⊆ ψ.source) (x : 
     ext v
     have h := congrArg (fun f ↦ f v) (ψ.mpullback_mpullback_symm_apply (by simp) α.val hx)
     simp only [TauCeti.mpullback_apply] at h
-    refine (TauCeti.mpullback_apply (I := I) (I' := 𝓘(ℝ, E)) ψ
-      (α.localize ψ χ : RoughForm 𝓘(ℝ, E) E F k) x v).trans ?_
+    refine (TauCeti.mpullback_apply (I := I) (I' := 𝓘(ℝ, D)) ψ
+      (α.localize ψ χ : RoughForm 𝓘(ℝ, D) D F k) x v).trans ?_
     refine (localize_apply_of_mem _ _ _ (ψ.map_source hx) _).trans ?_
     rw [h]
     exact (congrArg (· • α.val x v) (congrArg χ (ψ.left_inv hx))).trans
@@ -714,7 +722,7 @@ theorem extendByZeroAlong_localize_apply (hχ : tsupport χ ⊆ ψ.source) (x : 
 /-- A smooth form is the sum of the extensions by zero of its localizations to finitely many
 charts, with cutoffs a smooth partition of unity subordinate to their sources. -/
 theorem sum_extendByZeroAlong_localize [T2Space M] {ι : Type*} [Fintype ι]
-    (ψ : ι → PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (ρ : SmoothPartitionOfUnity ι I M univ)
+    (ψ : ι → PartialDiffeomorph I 𝓘(ℝ, D) M D ∞) (ρ : SmoothPartitionOfUnity ι I M univ)
     (hρ : ρ.IsSubordinate fun i ↦ (ψ i).source) (hK : ∀ i, IsCompact (tsupport (ρ i))) :
     ∑ i, SmoothForm.extendByZeroAlong (ψ i) (α.localize (ψ i) (ρ i))
       (α.contDiff_localize (ψ i) (ρ i).contMDiff (hK i) (hρ i))
@@ -734,26 +742,26 @@ end Localize
 /-- The reading `(ψ.symm)^* α` of a smooth form in a chart `ψ` is smooth at every point of the
 target of the chart. -/
 theorem contDiffAt_mpullback_symm [IsManifold I ∞ M] (α : SmoothForm I M F k)
-    (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) {y : E} (hy : y ∈ ψ.target) :
-    ContDiffAt ℝ (E := E) (F := E [⋀^Fin k]→L[ℝ] F) ∞
-      (TauCeti.mpullback 𝓘(ℝ, E) I ψ.symm α.val) y :=
+    (ψ : PartialDiffeomorph I 𝓘(ℝ, D) M D ∞) {y : D} (hy : y ∈ ψ.target) :
+    ContDiffAt ℝ (E := D) (F := D [⋀^Fin k]→L[ℝ] F) ∞
+      (TauCeti.mpullback 𝓘(ℝ, D) I ψ.symm α.val) y :=
   (α.contDiffOn_mpullback ψ.open_target ψ.symm.contMDiffOn).contDiffAt
     (ψ.open_target.mem_nhds hy)
 
 /-- The reading `(ψ.symm)^* α` of a smooth form in a chart `ψ` is differentiable at every point
 of the target of the chart. -/
 theorem differentiableAt_mpullback_symm [IsManifold I ∞ M] (α : SmoothForm I M F k)
-    (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) {y : E} (hy : y ∈ ψ.target) :
-    DifferentiableAt ℝ (E := E) (F := E [⋀^Fin k]→L[ℝ] F)
-      (TauCeti.mpullback 𝓘(ℝ, E) I ψ.symm α.val) y :=
+    (ψ : PartialDiffeomorph I 𝓘(ℝ, D) M D ∞) {y : D} (hy : y ∈ ψ.target) :
+    DifferentiableAt ℝ (E := D) (F := D [⋀^Fin k]→L[ℝ] F)
+      (TauCeti.mpullback 𝓘(ℝ, D) I ψ.symm α.val) y :=
   (α.contDiffAt_mpullback_symm ψ hy).differentiableAt (by simp)
 
 /-- The partial derivative `∂_v` of the reading `(ψ.symm)^* α` of a smooth form in a chart `ψ` is
 smooth on the target of the chart. -/
 theorem contDiffOn_fderiv_mpullback_symm_apply [IsManifold I ∞ M]
-    (α : SmoothForm I M F k) (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (v : E) :
-    ContDiffOn ℝ ∞ (fun z ↦ fderiv ℝ (F := E [⋀^Fin k]→L[ℝ] F)
-      (TauCeti.mpullback 𝓘(ℝ, E) I ψ.symm α.val) z v) ψ.target :=
+    (α : SmoothForm I M F k) (ψ : PartialDiffeomorph I 𝓘(ℝ, D) M D ∞) (v : D) :
+    ContDiffOn ℝ ∞ (fun z ↦ fderiv ℝ (F := D [⋀^Fin k]→L[ℝ] F)
+      (TauCeti.mpullback 𝓘(ℝ, D) I ψ.symm α.val) z v) ψ.target :=
   (α.contDiffOn_mpullback ψ.open_target ψ.symm.contMDiffOn).fderiv_apply_of_isOpen
     ψ.open_target (m := ∞) (by simp) v
 
