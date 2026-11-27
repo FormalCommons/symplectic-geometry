@@ -47,9 +47,8 @@ Explicit `i`-convex shapes (`SymplecticGeometry.IsConvexShapeAt`) from Cieliebak
   `SymplecticGeometry.linear_lt_quadratic_iff`. If the quadratic shape with `b, c > 0` is below
   `√(ℓ² + a r²)` somewhere, the two meet at exactly two points, with the quadratic shape below
   between them and above outside (`SymplecticGeometry.exists_crossings_quadratic_sqrt`):
-  there `(ℓ + b r + c r² / (2 ℓ))² - ℓ² - a r²` is `r` times a cubic whose coefficients of `1`,
-  `r²` and `r³` are positive, whose sign `SymplecticGeometry.exists_two_roots_cubic_of_neg`
-  gives.
+  there `(ℓ + b r + c r² / (2 ℓ))² - ℓ² - a r²` is `r` times a cubic whose coefficients of `1`
+  and `r³` are positive, whose sign `SymplecticGeometry.exists_two_roots_cubic_of_neg` gives.
 
 The shapes are checked with `SymplecticGeometry.isConvexShapeAt_iff`. For Struwe's shape the two
 inequalities read `r √L < χ` and `2 r √L³ < χ`, with `L = log (r / δ)`; the second follows from
@@ -592,7 +591,7 @@ theorem exists_crossings_quadratic_sqrt {ℓ a b c r₀ : ℝ} (hℓ : 0 < ℓ) 
       (√(ℓ ^ 2 + a * r ^ 2) < ℓ + b * r + c * r ^ 2 / (2 * ℓ) ↔ r < r₁ ∨ r₂ < r) ∧
       (ℓ + b * r + c * r ^ 2 / (2 * ℓ) = √(ℓ ^ 2 + a * r ^ 2) ↔ r = r₁ ∨ r = r₂) := by
   -- For `r > 0`, the square of the quadratic minus `ℓ² + a r²` is `r p(r)`, `p` a cubic whose
-  -- coefficients of `1`, `r²` and `r³` are positive.
+  -- coefficients of `1` and `r³` are positive.
   set p : ℝ → ℝ := fun r ↦
     2 * ℓ * b + (b ^ 2 + c - a) * r + b * c / ℓ * r ^ 2 + c ^ 2 / (4 * ℓ ^ 2) * r ^ 3 with hp
   have hsq : ∀ r, (ℓ + b * r + c * r ^ 2 / (2 * ℓ)) ^ 2 - (ℓ ^ 2 + a * r ^ 2) = r * p r := by
@@ -608,7 +607,7 @@ theorem exists_crossings_quadratic_sqrt {ℓ a b c r₀ : ℝ} (hℓ : 0 < ℓ) 
     fun r hr ↦ by
       rw [sqrt_lt' (by positivity), ← sub_pos, hsq, mul_pos_iff_of_pos_left hr]
   obtain ⟨r₁, hr₁, r₂, hr₂, hsign⟩ := exists_two_roots_cubic_of_neg (by positivity : 0 < 2 * ℓ * b)
-    (by positivity) (by positivity) hr₀ ((hlt r₀ hr₀).1 h)
+    (by positivity) hr₀ ((hlt r₀ hr₀).1 h)
   refine ⟨r₁, hr₁, r₂, hr₂, fun r hr ↦ ?_⟩
   obtain ⟨h₁, h₂, h₃⟩ := hsign r hr
   exact ⟨(hlt r hr).trans h₁, (hgt r hr).trans h₂,
