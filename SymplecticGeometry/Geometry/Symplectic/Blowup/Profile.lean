@@ -115,6 +115,14 @@ argument, which defaults to `blowupProfile l ε`, so that `profileForm n l ε` i
   (`covectorComplexStructure_mextDerivₗ_ofFunction_comp_of_hasDerivAt`), with `q'(s)` the
   integrand of `q`, smooth in `(l, ε, s)`; the coefficient is jointly smooth in the parameter
   and the point (`IsSmoothFamily.funSMul_family`).
+* `SymplecticGeometry.BlowupModel.IsBlowupProfile.image_Ioi`: a profile maps `(0, ∞)` onto
+  `(l², ∞)`, so its radial map `F_h` is a diffeomorphism of `E ∖ 0` onto `|w| > l`
+  (`IsBlowupProfile.radialDiffeomorph`, `IsBlowupProfile.mem_radialShell_iff`).
+* `SymplecticGeometry.BlowupModel.IsBlowupProfile.radialMap_of_le`,
+  `IsBlowupProfile.radialMap_of_le_collar`: `F_h` is the identity on `|z| ≥ l + ε` and the
+  radial map `F_l` of the model on `|z| ≤ ε`; for `l + ε < r` it maps the open ball of radius
+  `r` minus `0` into itself (`IsBlowupProfile.norm_radialMap_lt`), and only its points
+  there (`IsBlowupProfile.norm_lt_of_norm_radialMap_lt`).
 
 ## References
 
@@ -799,6 +807,95 @@ theorem isSmoothFamily_profileForm {l ε : unitInterval → ℝ} (hl : ContMDiff
     ((((isSmoothFamily_const _).funSMul_family a ha).mextDeriv.smul _).mpullback _ _)
 
 end ProfileForm
+
+/-! ### The radial map of a profile -/
+
+namespace IsBlowupProfile
+
+open TauCeti
+
+variable {n : ℕ} {h : ℝ → ℝ}
+
+/-- A profile of the blowup of weight `l` maps `(0, ∞)` onto `(l², ∞)`: it is increasing, equal
+to `l²` at `0` and to the identity far out. -/
+theorem image_Ioi (hh : IsBlowupProfile l ε h) : h '' Ioi 0 = Ioi (l ^ 2) := by
+  have h0 : h 0 = l ^ 2 := by rw [hh.eq_of_le (by positivity)]; ring
+  ext t
+  refine ⟨?_, fun ht ↦ ?_⟩
+  · rintro ⟨s, hs, rfl⟩
+    exact h0 ▸ hh.strictMono hs
+  · rw [mem_Ioi] at ht
+    have hs₁ : h (max t ((l + ε) ^ 2)) = max t ((l + ε) ^ 2) := hh.eq_of_ge (le_max_right _ _)
+    have hpos : 0 < max t ((l + ε) ^ 2) :=
+      lt_max_of_lt_left ((sq_nonneg l).trans_lt ht)
+    obtain ⟨s, hs, hst⟩ := intermediate_value_Ioc hpos.le hh.contDiff.continuous.continuousOn
+      ⟨by rw [h0]; exact ht, by rw [hs₁]; exact le_max_left _ _⟩
+    exact ⟨s, hs.1, hst⟩
+
+variable (n) in
+/-- The radial map `F_h z = √(h(|z|²) / |z|²) z` of a profile `h` of the blowup of weight `l`, as
+a diffeomorphism of `E ∖ 0` onto the complement of the closed ball `|w| ≤ l`. -/
+abbrev radialDiffeomorph (hh : IsBlowupProfile l ε h) :=
+  radialMapDiffeomorph (Fin (n + 1)) h hh.contDiff.contDiffOn (fun _ hs ↦ hh.pos (le_of_lt hs))
+    fun s _ ↦ hh.deriv_pos s
+
+/-- The shell of a profile of the blowup of weight `l` is the complement of the closed ball of
+radius `l`. -/
+theorem mem_radialShell_iff (hh : IsBlowupProfile l ε h) {w : Fin (n + 1) → ℂ} :
+    w ∈ radialShell (Fin (n + 1)) h hh.contDiff.contDiffOn (fun s _ ↦ hh.deriv_pos s) ↔
+      l < ‖complexToRealEuclidean (Fin (n + 1)) w‖ := by
+  rw [mem_radialShell, ← norm_sq_complexToRealEuclidean, hh.image_Ioi, mem_Ioi,
+    pow_lt_pow_iff_left₀ hh.weight_pos.le (norm_nonneg _) two_ne_zero]
+
+/-- The radial map of a profile of the blowup of weight `l` with collar `ε` is the identity on
+`|z| ≥ l + ε`. -/
+theorem radialMap_of_le (hh : IsBlowupProfile l ε h) {z : puncturedSpace (Fin (n + 1) → ℂ)}
+    (hz : l + ε ≤ ‖complexToRealEuclidean (Fin (n + 1)) z‖) :
+    radialMap h (fun _ hs ↦ hh.pos (le_of_lt hs)) z = z := by
+  have hz0 := norm_sq_complexToRealEuclidean_pos z
+  refine Subtype.ext ?_
+  rw [radialMap_apply, ← norm_sq_complexToRealEuclidean,
+    hh.eq_of_ge (pow_le_pow_left₀ (by linarith [hh.weight_pos, hh.collar_pos]) hz 2),
+    div_self hz0.ne', Real.sqrt_one, one_smul]
+
+/-- The radial map of a profile of the blowup of weight `l` with collar `ε` is the radial map
+`F_l z = √(1 + l² / |z|²) z` of the model on `|z| ≤ ε`. -/
+theorem radialMap_of_le_collar (hh : IsBlowupProfile l ε h)
+    {z : puncturedSpace (Fin (n + 1) → ℂ)} (hz : ‖complexToRealEuclidean (Fin (n + 1)) z‖ ≤ ε) :
+    radialMap h (fun _ hs ↦ hh.pos (le_of_lt hs)) z =
+      radialMap (fun s ↦ s + l ^ 2) (fun _ hs ↦ add_pos_of_pos_of_nonneg hs (sq_nonneg l)) z := by
+  refine Subtype.ext ?_
+  rw [radialMap_apply, radialMap_apply, ← norm_sq_complexToRealEuclidean,
+    hh.eq_of_le (pow_le_pow_left₀ (norm_nonneg _) hz 2), add_comm (l ^ 2)]
+
+/-- The radial map of a profile of the blowup of weight `l` with collar `ε` maps the open ball of
+radius `r > l + ε` into itself. -/
+theorem norm_radialMap_lt (hh : IsBlowupProfile l ε h) {r : ℝ} (hr : l + ε < r)
+    {z : puncturedSpace (Fin (n + 1) → ℂ)} (hz : ‖complexToRealEuclidean (Fin (n + 1)) z‖ < r) :
+    ‖complexToRealEuclidean (Fin (n + 1)) (radialMap h (fun _ hs ↦ hh.pos (le_of_lt hs)) z)‖ <
+      r := by
+  have hle : 0 ≤ l + ε := by linarith [hh.weight_pos, hh.collar_pos]
+  by_cases hzle : l + ε ≤ ‖complexToRealEuclidean (Fin (n + 1)) z‖
+  · rwa [hh.radialMap_of_le hzle]
+  · refine (pow_lt_pow_iff_left₀ (norm_nonneg _) (hle.trans hr.le) two_ne_zero).1 ?_
+    rw [norm_radialMap]
+    calc h (‖complexToRealEuclidean (Fin (n + 1)) z‖ ^ 2) < h ((l + ε) ^ 2) :=
+          hh.strictMono (pow_lt_pow_left₀ (not_le.1 hzle) (norm_nonneg _) two_ne_zero)
+      _ = (l + ε) ^ 2 := hh.eq_of_ge le_rfl
+      _ < r ^ 2 := pow_lt_pow_left₀ hr hle two_ne_zero
+
+/-- For `l + ε < r`, a point `z ≠ 0` whose image under the radial map of `h` lies in the open ball
+of radius `r` lies in it too: off `B(l + ε)` the radial map is the identity. -/
+theorem norm_lt_of_norm_radialMap_lt (hh : IsBlowupProfile l ε h) {r : ℝ} (hr : l + ε < r)
+    {z : puncturedSpace (Fin (n + 1) → ℂ)}
+    (hz : ‖complexToRealEuclidean (Fin (n + 1))
+      (radialMap h (fun _ hs ↦ hh.pos (le_of_lt hs)) z)‖ < r) :
+    ‖complexToRealEuclidean (Fin (n + 1)) z‖ < r := by
+  by_contra hle
+  rw [hh.radialMap_of_le (hr.le.trans (not_lt.1 hle))] at hz
+  exact hle hz
+
+end IsBlowupProfile
 
 end SymplecticGeometry.BlowupModel
 

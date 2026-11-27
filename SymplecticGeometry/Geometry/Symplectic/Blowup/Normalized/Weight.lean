@@ -8,13 +8,61 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Normalized.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Weight.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Complex.Radial
-import SymplecticGeometry.Analysis.Complex.QuadraticLeviForm
 import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
 
 /-!
-# The blowup forms and the blowup of weight `l`
+# The blowup form and the blowup of weight `l`
 
-Work in progress: see the pull request.
+Let `ψ` be a normalized ball embedding of radius `r`, weight `l` and width `ε` for a normalization
+`hN` of `(σ, J)` at `p₀`, let `c = hN.blowupChart`, and let `h` be a profile of the blowup of
+weight `l` with collar `ε`, with radial map `F_h z = √(h(|z|²) / |z|²) z`. For `0 < ε' ≤ ε`, this
+file compares the blowup `Blowup c` of `M` at `p₀`, with the form `ω̃_{ψ,l,ε}` of
+`Blowup/Normalized/Basic.lean`, with the blowup `WeightBlowup` of weight `l` with collar `ε'`
+along `ψ`, with its form `ω̃_ψ` of `Blowup/Weight/Basic.lean`: they are symplectomorphic
+(McDuff–Salamon, Theorem 7.1.21 (ii)).
+
+The map is built in the direction from the blowup of weight `l`, which is glued from two pieces,
+so that `GluedAlong.descDiffeomorph` applies. On the model piece `openNbhd n ε'` it is the lift
+`ψ̃`. On the outer piece `M ∖ ψ(B(l))` it is `radialContraction`, the map `ψ ∘ F_h⁻¹ ∘ ψ⁻¹`
+inside the image of the open ball and the identity outside, followed by the inclusion of
+`M ∖ p₀` in `Blowup c`. The two agree on the overlap since `F_h` is the radial map `F_l` of the
+model on `B(ε)`, which glues the blowup of weight `l`, and `ψ̃` is `ψ ∘ π` off the divisor.
+Both are injective local diffeomorphisms whose images cover `Blowup c`, the inverse of
+`radialContraction` being `radialExpansion`, the map `ψ ∘ F_h ∘ ψ⁻¹`.
+
+The forms are compared on the two pieces, by `WeightBlowup.eq_form_iff`. On the model piece,
+`ψ̃` pulls `ω̃_{ψ,l,ε}` back to `ω̃_{l,ε}`, which is `ω̃_l` on `L(ε)`. On the outer piece, off
+`ψ(B(l + ε))` the form is the pull-back of `σ` by the blowdown, and on the image of the open ball
+it is pulled back to `σ` along `ψ̃ ∘ π⁻¹ ∘ F_h⁻¹ ∘ ψ⁻¹`, since `π⁻¹` pulls `ω̃_{l,ε}` back to
+`F_h^* ω₀` (`BlowupModel.mpullback_radialMap_profileForm`) and `ψ` pulls `σ` back to `ω₀`.
+
+## Main definitions
+
+* `SymplecticGeometry.IsSymplecticBallEmbedding.radialContraction hψ hh`: the map
+  `ψ ∘ F_h⁻¹ ∘ ψ⁻¹` of `M`, extended by the identity, and
+  `SymplecticGeometry.IsSymplecticBallEmbedding.radialExpansion hψ hh`, the map `ψ ∘ F_h ∘ ψ⁻¹`
+  of `M`, extended by the identity.
+* `SymplecticGeometry.IsNormalizedBallEmbedding.normalizedBlowupSymplectomorph hψ hh hε' hε'ε`:
+  the diffeomorphism from `Blowup c` onto the blowup of weight `l` with collar `ε'` along `ψ`.
+
+## Main results
+
+* `SymplecticGeometry.IsSymplecticBallEmbedding.radialContraction_radialExpansion`,
+  `radialExpansion_radialContraction`: for `l + ε < r`, the two maps are inverse to each other,
+  between `M ∖ ψ 0` and `M ∖ ψ(B(l))`.
+* `SymplecticGeometry.IsSymplecticBallEmbedding.isLocalDiffeomorphAt_radialContraction`: for
+  `l + ε < r`, `radialContraction` is a local diffeomorphism off `ψ(B(l))`.
+* `SymplecticGeometry.IsNormalizedBallEmbedding.normalizedBlowupSymplectomorph_ballLift`,
+  `normalizedBlowupSymplectomorph_inl`: the diffeomorphism on the two pieces.
+* `SymplecticGeometry.IsNormalizedBallEmbedding.isSymplectomorphism_normalizedBlowupSymplectomorph`:
+  it is a symplectomorphism from `ω̃_{ψ,l,ε}` to `ω̃_ψ` (McDuff–Salamon, Theorem 7.1.21 (ii)).
+
+## Implementation notes
+
+The radius `√(l² + ε'²)` of the blowup of weight `l` is at most `l + ε' ≤ l + ε < r`, so `ψ` is a
+ball embedding of that radius (`isSymplecticBallEmbedding_sqrt`) and no further hypothesis is
+needed. The statements hold for every profile `h` of the blowup, the default of
+`normalizedBlowupForm` being `blowupProfile l ε`.
 
 ## References
 
@@ -33,90 +81,6 @@ namespace SymplecticGeometry
 
 open TauCeti
 
-namespace BlowupModel.IsBlowupProfile
-
-variable {n : ℕ} {l ε : ℝ} {h : ℝ → ℝ}
-
-/-- A profile of the blowup of weight `l` maps `(0, ∞)` onto `(l², ∞)`: it is increasing, equal
-to `l²` at `0` and to the identity far out. -/
-theorem image_Ioi (hh : IsBlowupProfile l ε h) : h '' Ioi 0 = Ioi (l ^ 2) := by
-  have h0 : h 0 = l ^ 2 := by rw [hh.eq_of_le (by positivity)]; ring
-  ext t
-  refine ⟨?_, fun ht ↦ ?_⟩
-  · rintro ⟨s, hs, rfl⟩
-    exact h0 ▸ hh.strictMono hs
-  · rw [mem_Ioi] at ht
-    have hs₁ : h (max t ((l + ε) ^ 2)) = max t ((l + ε) ^ 2) := hh.eq_of_ge (le_max_right _ _)
-    have hpos : 0 < max t ((l + ε) ^ 2) :=
-      lt_max_of_lt_left ((sq_nonneg l).trans_lt ht)
-    obtain ⟨s, hs, hst⟩ := intermediate_value_Ioc hpos.le hh.contDiff.continuous.continuousOn
-      ⟨by rw [h0]; exact ht, by rw [hs₁]; exact le_max_left _ _⟩
-    exact ⟨s, hs.1, hst⟩
-
-variable (n) in
-/-- The radial map `F_h z = √(h(|z|²) / |z|²) z` of a profile `h` of the blowup of weight `l`, as
-a diffeomorphism of `E ∖ 0` onto the complement of the closed ball `|w| ≤ l`. -/
-abbrev radialDiffeomorph (hh : IsBlowupProfile l ε h) :=
-  radialMapDiffeomorph (Fin (n + 1)) h hh.contDiff.contDiffOn (fun _ hs ↦ hh.pos (le_of_lt hs))
-    fun s _ ↦ hh.deriv_pos s
-
-/-- The shell of a profile of the blowup of weight `l` is the complement of the closed ball of
-radius `l`. -/
-theorem mem_radialShell_iff (hh : IsBlowupProfile l ε h) {w : Fin (n + 1) → ℂ} :
-    w ∈ radialShell (Fin (n + 1)) h hh.contDiff.contDiffOn (fun s _ ↦ hh.deriv_pos s) ↔
-      l < ‖complexToRealEuclidean (Fin (n + 1)) w‖ := by
-  rw [mem_radialShell, ← norm_sq_complexToRealEuclidean, hh.image_Ioi, mem_Ioi,
-    pow_lt_pow_iff_left₀ hh.weight_pos.le (norm_nonneg _) two_ne_zero]
-
-/-- The radial map of a profile of the blowup of weight `l` with collar `ε` is the identity on
-`|z| ≥ l + ε`. -/
-theorem radialMap_of_le (hh : IsBlowupProfile l ε h) {z : puncturedSpace (Fin (n + 1) → ℂ)}
-    (hz : l + ε ≤ ‖complexToRealEuclidean (Fin (n + 1)) z‖) :
-    radialMap h (fun _ hs ↦ hh.pos (le_of_lt hs)) z = z := by
-  have hz0 := norm_sq_complexToRealEuclidean_pos z
-  refine Subtype.ext ?_
-  rw [radialMap_apply, ← norm_sq_complexToRealEuclidean,
-    hh.eq_of_ge (pow_le_pow_left₀ (by linarith [hh.weight_pos, hh.collar_pos]) hz 2),
-    div_self hz0.ne', Real.sqrt_one, one_smul]
-
-/-- The radial map of a profile of the blowup of weight `l` with collar `ε` is the radial map
-`F_l z = √(1 + l² / |z|²) z` of the model on `|z| ≤ ε`. -/
-theorem radialMap_of_le_collar (hh : IsBlowupProfile l ε h)
-    {z : puncturedSpace (Fin (n + 1) → ℂ)} (hz : ‖complexToRealEuclidean (Fin (n + 1)) z‖ ≤ ε) :
-    radialMap h (fun _ hs ↦ hh.pos (le_of_lt hs)) z =
-      radialMap (fun s ↦ s + l ^ 2) (fun _ hs ↦ add_pos_of_pos_of_nonneg hs (sq_nonneg l)) z := by
-  refine Subtype.ext ?_
-  rw [radialMap_apply, radialMap_apply, ← norm_sq_complexToRealEuclidean,
-    hh.eq_of_le (pow_le_pow_left₀ (norm_nonneg _) hz 2), add_comm (l ^ 2)]
-
-/-- The radial map of a profile of the blowup of weight `l` with collar `ε` maps the open ball of
-radius `r > l + ε` into itself. -/
-theorem norm_radialMap_lt (hh : IsBlowupProfile l ε h) {r : ℝ} (hr : l + ε < r)
-    {z : puncturedSpace (Fin (n + 1) → ℂ)} (hz : ‖complexToRealEuclidean (Fin (n + 1)) z‖ < r) :
-    ‖complexToRealEuclidean (Fin (n + 1)) (radialMap h (fun _ hs ↦ hh.pos (le_of_lt hs)) z)‖ <
-      r := by
-  have hle : 0 ≤ l + ε := by linarith [hh.weight_pos, hh.collar_pos]
-  by_cases hzle : l + ε ≤ ‖complexToRealEuclidean (Fin (n + 1)) z‖
-  · rwa [hh.radialMap_of_le hzle]
-  · refine (pow_lt_pow_iff_left₀ (norm_nonneg _) (hle.trans hr.le) two_ne_zero).1 ?_
-    rw [norm_radialMap]
-    calc h (‖complexToRealEuclidean (Fin (n + 1)) z‖ ^ 2) < h ((l + ε) ^ 2) :=
-          hh.strictMono (pow_lt_pow_left₀ (not_le.1 hzle) (norm_nonneg _) two_ne_zero)
-      _ = (l + ε) ^ 2 := hh.eq_of_ge le_rfl
-      _ < r ^ 2 := pow_lt_pow_left₀ hr hle two_ne_zero
-
-/-- For `l + ε < r`, a point `z ≠ 0` whose image under the radial map of `h` lies in the open ball
-of radius `r` lies in it too: off `B(l + ε)` the radial map is the identity. -/
-theorem norm_lt_of_norm_radialMap_lt (hh : IsBlowupProfile l ε h) {r : ℝ} (hr : l + ε < r)
-    {z : puncturedSpace (Fin (n + 1) → ℂ)}
-    (hz : ‖complexToRealEuclidean (Fin (n + 1))
-      (radialMap h (fun _ hs ↦ hh.pos (le_of_lt hs)) z)‖ < r) :
-    ‖complexToRealEuclidean (Fin (n + 1)) z‖ < r := by
-  by_contra hle
-  rw [hh.radialMap_of_le (hr.le.trans (not_lt.1 hle))] at hz
-  exact hle hz
-
-end BlowupModel.IsBlowupProfile
 namespace IsSymplecticBallEmbedding
 
 open BlowupModel
@@ -141,9 +105,9 @@ theorem complexPartialDiffeomorph_symm_mem_radialShell {p : M}
 
 open scoped Classical in
 /-- The map `ψ ∘ F_h⁻¹ ∘ ψ⁻¹` of `M`, for the radial map `F_h` of a profile `h` of the blowup of
-weight `l`: on `ψ(B°(r)) ∖ ψ(B(l))` it is `ψ ∘ F_h⁻¹ ∘ ψ⁻¹`, and elsewhere the identity. For
-`l + ε < r` it is the identity off `ψ(B(l + ε))` (`radialContraction_of_notMem`) and undoes
-`ψ ∘ F_h ∘ ψ⁻¹` (`radialContraction_radialMap`). -/
+weight `l` with collar `ε`: on `ψ(B°(r)) ∖ ψ(B(l))` it is `ψ ∘ F_h⁻¹ ∘ ψ⁻¹`, and elsewhere the
+identity. It is the identity off `ψ(B(l + ε))` (`radialContraction_of_notMem`), and for
+`l + ε < r` it undoes `ψ ∘ F_h ∘ ψ⁻¹` (`radialContraction_radialMap`). -/
 def radialContraction (p : M) : M :=
   if hp : p ∈ ψ '' ball 0 r ∧ p ∉ ψ '' closedBall 0 l then
     hψ.complexPartialDiffeomorph
@@ -674,8 +638,9 @@ private def weightBlowupDiffeomorph :
 /-- **The blowup form and the blowup of weight `l`** (McDuff–Salamon, Theorem 7.1.21 (ii)): the
 diffeomorphism from the blowup `Blowup c` of `M` at `p₀` onto the blowup of weight `l` with
 collar `ε'` along `ψ`, for `0 < ε' ≤ ε`. It is the identity of the model on the image under the
-lift `ψ̃` of `openNbhd n ε'`, and `ψ ∘ F_h ∘ ψ⁻¹ ∘ π` elsewhere, for the blowdown `π` of
-`Blowup c` and the radial map `F_h` of the profile `h`. -/
+lift `ψ̃` of `openNbhd n ε'`, and elsewhere `radialExpansion ∘ π`, for the blowdown `π` of
+`Blowup c`: that is `ψ ∘ F_h ∘ ψ⁻¹ ∘ π` over the image of the open ball, for the radial map `F_h`
+of the profile `h`, and `π` outside it. -/
 def normalizedBlowupSymplectomorph :
     Blowup hN.blowupChart ≃ₘ⟮𝓘(ℝ, Fin (n + 1) → ℂ), 𝓘(ℝ, Fin (n + 1) → ℂ)⟯
       WeightBlowup (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε) hψ.weight_pos.le hε' :=
