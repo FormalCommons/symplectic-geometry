@@ -19,7 +19,9 @@ built with Tau Ceti's `OpenPartialHomeomorph.extendTrans`. Its source is that of
 (`centeredExtChartAt_apply`), its inverse and target are given by
 `centeredExtChartAt_symm_apply` and `centeredExtChartAt_target`, and, restricted to its source,
 it vanishes at `x` only (`sourceRestrict_centeredExtChartAt_preimage_zero`, from
-`OpenPartialHomeomorph.sourceRestrict_preimage_singleton`).
+`OpenPartialHomeomorph.sourceRestrict_preimage_singleton`). Its inverse carries some ball about
+the origin into any given open neighbourhood of `x`
+(`exists_ball_mapsTo_centeredExtChartAt_symm`).
 
 ## Main definitions
 
@@ -92,6 +94,21 @@ theorem sourceRestrict_centeredExtChartAt_preimage_zero :
     (centeredExtChartAt I x).sourceRestrict ⁻¹' {0} = {⟨x, mem_centeredExtChartAt_source I x⟩} := by
   rw [← centeredExtChartAt_self I x]
   exact (centeredExtChartAt I x).sourceRestrict_preimage_singleton _
+
+/-- Near a point `x` of a manifold, the centred chart at `x` has a ball about `0` in its
+target that its inverse carries into any given open neighbourhood `T` of `x`. -/
+theorem exists_ball_mapsTo_centeredExtChartAt_symm {T : Set M} (hT : IsOpen T) (hx : x ∈ T) :
+    ∃ ε > 0, Metric.ball (0 : E) ε ⊆ (centeredExtChartAt I x).target ∧
+      MapsTo (centeredExtChartAt I x).symm (Metric.ball 0 ε) T := by
+  set c := centeredExtChartAt I x
+  have hO : IsOpen (c.target ∩ c.symm ⁻¹' T) :=
+    c.continuousOn_symm.isOpen_inter_preimage c.open_target hT
+  have h0 : (0 : E) ∈ c.target ∩ c.symm ⁻¹' T := by
+    rw [← centeredExtChartAt_self I x]
+    exact ⟨c.map_source (mem_centeredExtChartAt_source I x),
+      by rwa [mem_preimage, c.left_inv (mem_centeredExtChartAt_source I x)]⟩
+  obtain ⟨ε, hε, hball⟩ := Metric.isOpen_iff.1 hO 0 h0
+  exact ⟨ε, hε, fun _ hy ↦ (hball hy).1, fun _ hy ↦ (hball hy).2⟩
 
 end SymplecticGeometry
 

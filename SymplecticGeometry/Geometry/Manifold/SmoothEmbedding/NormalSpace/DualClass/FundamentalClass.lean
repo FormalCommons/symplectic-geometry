@@ -212,22 +212,6 @@ variable {E : Type} {H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topo
   {I : ModelWithCorners ℝ E H} [I.Boundaryless] {M : Type} [TopologicalSpace M] [T1Space M]
   [ChartedSpace H M]
 
-omit [T1Space M] in
-/-- Near a point `x` of a manifold, the centred chart at `x` has a ball about `0` in its
-target that its inverse carries into any given neighbourhood `T` of `x`. -/
-theorem exists_ball_mapsTo_centeredExtChartAt_symm (x : M) {T : Set M} (hT : IsOpen T)
-    (hx : x ∈ T) : ∃ ε > 0, Metric.ball (0 : E) ε ⊆ (centeredExtChartAt I x).target ∧
-      MapsTo (centeredExtChartAt I x).symm (Metric.ball 0 ε) T := by
-  set c := centeredExtChartAt I x
-  have hO : IsOpen (c.target ∩ c.symm ⁻¹' T) :=
-    c.continuousOn_symm.isOpen_inter_preimage c.open_target hT
-  have h0 : (0 : E) ∈ c.target ∩ c.symm ⁻¹' T := by
-    rw [← centeredExtChartAt_self I x]
-    exact ⟨c.map_source (mem_centeredExtChartAt_source I x),
-      by rwa [mem_preimage, c.left_inv (mem_centeredExtChartAt_source I x)]⟩
-  obtain ⟨ε, hε, hball⟩ := Metric.isOpen_iff.1 hO 0 h0
-  exact ⟨ε, hε, fun _ hy ↦ (hball hy).1, fun _ hy ↦ (hball hy).2⟩
-
 /-- Reading local homology at `x` in the centred chart at `x`, by the source of the chart and
 then the chart, is injective. -/
 theorem injective_localHomologyMap_centeredExtChartAt (x : M) (q : ℕ) :
@@ -355,7 +339,7 @@ theorem map_proj_singularCap_tubeFundamentalClass
     Φ.toHomeomorph.isEmbedding.t1Space
   refine HomologicalOrientation.map_proj_singularCap_eq_fundamentalClass_of_centeredExtChartAt
     (I := I) _ hE _ _ _ fun z ↦ ?_
-  obtain ⟨ε, hε, hSc, hSe⟩ := exists_ball_mapsTo_centeredExtChartAt_symm (I := I) z
+  obtain ⟨ε, hε, hSc, hSe⟩ := exists_ball_mapsTo_centeredExtChartAt_symm I z
     (trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).open_baseSet
     (mem_baseSet_trivializationAt P _ z)
   have := Metric.contractibleSpace_ball (x := (0 : E)) hε
@@ -395,7 +379,7 @@ theorem map_proj_singularCap_tubeFundamentalClass_of_finrank_fiber_eq_zero
     Φ.toHomeomorph.isEmbedding.t1Space
   refine HomologicalOrientation.map_proj_singularCap_eq_fundamentalClass_of_centeredExtChartAt
     (I := I) _ hE _ _ _ fun z ↦ ?_
-  obtain ⟨ε, hε, hSc, hSe⟩ := exists_ball_mapsTo_centeredExtChartAt_symm (I := I) z
+  obtain ⟨ε, hε, hSc, hSe⟩ := exists_ball_mapsTo_centeredExtChartAt_symm I z
     (trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).open_baseSet
     (mem_baseSet_trivializationAt P _ z)
   have := Metric.contractibleSpace_ball (x := (0 : E)) hε
@@ -436,7 +420,7 @@ theorem map_proj_singularCap_tubeFundamentalClass_of_finrank_eq_zero
     Φ.toHomeomorph.isEmbedding.t1Space
   refine HomologicalOrientation.map_proj_singularCap_eq_fundamentalClass_of_centeredExtChartAt
     (I := I) _ hE _ _ _ fun z ↦ ?_
-  obtain ⟨ε, hε, hSc, hSe⟩ := exists_ball_mapsTo_centeredExtChartAt_symm (I := I) z
+  obtain ⟨ε, hε, hSc, hSe⟩ := exists_ball_mapsTo_centeredExtChartAt_symm I z
     (trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).open_baseSet
     (mem_baseSet_trivializationAt P _ z)
   have := Metric.contractibleSpace_ball (x := (0 : E)) hε
@@ -481,7 +465,7 @@ theorem
     Φ.toHomeomorph.isEmbedding.t1Space
   refine HomologicalOrientation.map_proj_singularCap_eq_fundamentalClass_of_centeredExtChartAt
     (I := I) _ hE _ _ _ fun z ↦ ?_
-  obtain ⟨ε, hε, hSc, hSe⟩ := exists_ball_mapsTo_centeredExtChartAt_symm (I := I) z
+  obtain ⟨ε, hε, hSc, hSe⟩ := exists_ball_mapsTo_centeredExtChartAt_symm I z
     (trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).open_baseSet
     (mem_baseSet_trivializationAt P _ z)
   have := Metric.contractibleSpace_ball (x := (0 : E)) hε
