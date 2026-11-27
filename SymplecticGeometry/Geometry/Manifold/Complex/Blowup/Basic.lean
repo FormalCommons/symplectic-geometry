@@ -11,9 +11,10 @@ public import Mathlib.Analysis.CStarAlgebra.Classes
 public import TauCeti.Geometry.Manifold.Complex.Orientation
 import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Tautological
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Injective
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import TauCeti.Geometry.Manifold.Complex.Analytic
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 
 /-!
@@ -427,20 +428,11 @@ the punctured source of `c`. -/
 theorem range_inr :
     range (inr (gluingHomeomorph c)) =
       exceptionalDivisor c ∪ inl (gluingHomeomorph c) '' {x | (x : M) ∈ c.source} := by
-  ext z
-  rcases GluedAlong.exists_inl_or_exists_inr _ z with ⟨x, rfl⟩ | ⟨y, rfl⟩
-  · rw [GluedAlong.inl_mem_range_inr_iff, mem_puncturedSourceOpens]
-    refine ⟨fun hx ↦ .inr ⟨x, hx, rfl⟩, ?_⟩
-    rintro (h | ⟨x', hx', h⟩)
-    · exact (inl_notMem_exceptionalDivisor c x h).elim
-    · rwa [← GluedAlong.inl_injective (gluingHomeomorph c) h]
-  · simp only [mem_range_self, true_iff, mem_union, inr_mem_exceptionalDivisor_iff]
-    by_cases hy : (y : BlowupModel n).blowdown = 0
-    · exact .inl hy
-    · have hy' : y ∈ modelOffDivisorOpens c := (mem_modelOffDivisorOpens c).2 hy
-      obtain ⟨x, hx⟩ := (GluedAlong.inr_mem_range_inl_iff (gluingHomeomorph c)).2 hy'
-      exact .inr ⟨x, (mem_puncturedSourceOpens c).1 ((GluedAlong.inl_mem_range_inr_iff _).1
-        ⟨y, hx.symm⟩), hx⟩
+  have h : (puncturedSourceOpens c : Set (puncturedOpens c)) =
+      {x : puncturedOpens c | (x : M) ∈ c.source} := by
+    ext; simp only [SetLike.mem_coe, mem_puncturedSourceOpens, mem_ofPred_eq]
+  rw [GluedAlong.range_inr_eq_compl_image_inl, (GluedAlong.inl_injective _).compl_image_eq,
+    compl_compl, range_inl, compl_compl, union_comm, h]
 
 theorem isClosed_exceptionalDivisor : IsClosed (exceptionalDivisor c) := by
   rw [← isOpen_compl_iff, ← range_inl]
@@ -597,6 +589,14 @@ instance instIsManifoldComplex [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M]
     [hc : Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)] :
     IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω (Blowup c) :=
   (isCompatible_complex c hc.out).isManifold
+
+/-- A chart of the holomorphic maximal atlas of `M` is a chart of its smooth real maximal atlas.
+As an instance, it makes the smooth constructions on the blowup available along a holomorphic
+chart. -/
+instance instFactMemMaximalAtlasReal [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M]
+    [hc : Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)] :
+    Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M) :=
+  ⟨IsManifold.maximalAtlas_subset_restrictScalars_of_ne_zero ∞ (by simp) hc.out⟩
 
 open scoped TauCeti.ComplexManifold in
 /-- The blowup along a smooth chart is a smooth manifold. -/
@@ -774,9 +774,7 @@ theorem contMDiffOn_lift :
     ContMDiffOn 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω (lift c)
       (range (inr (gluingHomeomorph c))) := by
   have hinj := (GluedAlong.inr_injective (gluingHomeomorph c)).injOn (s := univ)
-  have h := ((isLocalDiffeomorph_inr c).isLocalDiffeomorphOn univ).contMDiffOn_invFunOn
-    isOpen_univ hinj
-  rw [image_univ] at h
+  have h := (isLocalDiffeomorph_inr c).contMDiffOn_invFunOn (GluedAlong.inr_injective _)
   refine (contMDiff_subtypeVal.comp_contMDiffOn h).congr ?_
   rintro _ ⟨y, rfl⟩
   rw [lift_inr, Function.comp_apply, hinj.leftInvOn_invFunOn (mem_univ y)]
