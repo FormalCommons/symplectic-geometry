@@ -37,11 +37,13 @@ of the empty index type or its negative. It selects the local orientation
 (`Orientation.localOrientationOfZeroDim_neg`).
 
 Tau Ceti's `TauCeti.Manifold.Orientation.localOrientationOfZeroDim` selects a local orientation
-at each point of a zero-dimensional manifold from a smooth orientation. On the model space `P`
-with the constant orientation `Manifold.Orientation.model ω`, it selects at the origin the same
-class as `ω` does here (`TauCeti.Manifold.Orientation.localOrientationOfZeroDim_model`), although
-the two are not equal by definition: the manifold version reads the class in the chart `chartAt`
-and the sign from the tangent orientation.
+at each point of a zero-dimensional manifold from a smooth orientation `o`. It reads the class in
+the chart `chartAt` and the sign from the tangent orientation, so it is not the local orientation
+selected here by `o.orientationAt x` by definition. Still, any isomorphism of pairs
+`(M, M ∖ {x}) ≅ (E, E ∖ {0})` carries the one to the other
+(`TauCeti.Manifold.Orientation.localOrientationOfZeroDim_map`). In particular, on the model space
+`P` with the constant orientation `Manifold.Orientation.model ω`, it selects at the origin the
+same class as `ω` does here (`TauCeti.Manifold.Orientation.localOrientationOfZeroDim_model`).
 
 ## Main definitions
 
@@ -54,6 +56,9 @@ and the sign from the tangent orientation.
   zero-dimensional chart is natural under isomorphisms of pairs.
 * `Orientation.localOrientationOfZeroDim_map`: the local orientation selected by an orientation
   of a zero-dimensional space is natural under continuous linear equivalences.
+* `TauCeti.Manifold.Orientation.localOrientationOfZeroDim_map`: an isomorphism of pairs
+  `(M, M ∖ {x}) ≅ (E, E ∖ {0})` carries the local orientation of a zero-dimensional oriented
+  manifold at `x` to the one selected by its tangent orientation at `x`.
 * `TauCeti.Manifold.Orientation.localOrientationOfZeroDim_model`: the manifold local orientation
   of the constant orientation of the model space, at the origin, is the linear one.
 
@@ -175,6 +180,33 @@ namespace TauCeti.Manifold.Orientation
 
 open scoped _root_.Manifold
 
+section Chart
+
+variable {M E : Type w} {H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+  [FiniteDimensional ℝ E] [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  [TopologicalSpace M] [T2Space M] [ChartedSpace H M] [IsManifold I 1 M] [ChartedSpace E M]
+
+/-- Let `o` be an orientation of a zero-dimensional manifold `M` modelled on `E`, and `x ∈ M`.
+An isomorphism of pairs `e : (M, M ∖ {x}) ≅ (E, E ∖ {0})` carries the local orientation that `o`
+selects at `x` to the local orientation of `E` at the origin selected by the tangent orientation
+`o.orientationAt x`, an orientation of `E`. -/
+theorem localOrientationOfZeroDim_map (o : Manifold.Orientation I M (Fin 0)) (x : M)
+    (e : TopPair.ofSubset ({x}ᶜ : Set (TopCat.of M)) ≅
+      TopPair.ofSubset ({0}ᶜ : Set (TopCat.of E))) :
+    (o.localOrientationOfZeroDim x).map e =
+      _root_.Orientation.localOrientationOfZeroDim (P := E) (o.orientationAt x)
+        o.finrank_eq_zero := by
+  have hpt := localOrientationOfZeroDimChart_map (chartAt E x) (OpenPartialHomeomorph.refl E)
+    (mem_chart_source E x) (OpenPartialHomeomorph.mem_refl_source _) o.finrank_eq_zero
+    o.finrank_eq_zero e
+  rw [localOrientationOfZeroDim_eq_ite o (chartAt E x) (mem_chart_source E x) o.finrank_eq_zero,
+    apply_ite (LocalOrientation.map · e), LocalOrientation.map_neg, hpt]
+  -- The condition on the left compares orientations of `TangentSpace I x`, which is `E` by
+  -- definition, so the definition of the right side matches it only up to that unfolding.
+  exact (_root_.Orientation.localOrientationOfZeroDim_def (P := E) _ _).symm
+
+end Chart
+
 variable {P : Type w} [NormedAddCommGroup P] [NormedSpace ℝ P] [FiniteDimensional ℝ P]
 
 /-- On a zero-dimensional real normed space `P`, seen as a manifold modelled on itself, the
@@ -185,12 +217,8 @@ theorem localOrientationOfZeroDim_model (ω : _root_.Orientation ℝ P (Fin 0))
     (hι : Fintype.card (Fin 0) = finrank ℝ P) :
     (model (I := 𝓘(ℝ, P)) ω hι).localOrientationOfZeroDim (0 : P) =
       ω.localOrientationOfZeroDim (hι.symm.trans (Fintype.card_fin 0)) := by
-  have hP : finrank ℝ P = 0 := hι.symm.trans (Fintype.card_fin 0)
-  rw [localOrientationOfZeroDim_eq_ite _ (OpenPartialHomeomorph.refl P)
-    (OpenPartialHomeomorph.mem_refl_source _) hP, orientationAt_model,
-    _root_.Orientation.localOrientationOfZeroDim_def]
-  -- The left side compares orientations of the tangent space at `0`, which is `P` by definition.
-  congr 1
+  rw [← LocalOrientation.map_refl ((model (I := 𝓘(ℝ, P)) ω hι).localOrientationOfZeroDim 0),
+    localOrientationOfZeroDim_map, orientationAt_model]
 
 end TauCeti.Manifold.Orientation
 
