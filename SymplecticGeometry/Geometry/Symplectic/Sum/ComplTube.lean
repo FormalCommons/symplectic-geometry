@@ -9,7 +9,6 @@ public import Mathlib.AlgebraicTopology.FundamentalGroupoid.SimplyConnected
 public import Mathlib.GroupTheory.QuotientGroup.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Sum.Fibre
 import Mathlib.Analysis.Convex.Contractible
-import Mathlib.Analysis.Convex.PathConnected
 import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Prod.Basic
 import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.VanKampen
 import SymplecticGeometry.Topology.Connected.Clopen
@@ -262,16 +261,6 @@ theorem mem_collar_iff_coe_mem_range {hδε : δ < ε} {x : f.complTube hδε} :
     f.complTube_inter_range hδε ▸ ⟨x.property, hx⟩
   exact ⟨p, Subtype.ext ((f.coe_collarMap hδε p).trans hp)⟩
 
-omit [ConnectedSpace M] [CompactSpace Q] [T2Space M] in
-/-- The range of a product neighbourhood of radius `ε > 0` of a path connected `Q` is path
-connected. -/
-theorem isPathConnected_range (hε : 0 < ε) : IsPathConnected (range f) := by
-  have h := (isPathConnected_univ (X := Q)).prod
-    ((convex_ball (0 : ℂ) ε).isPathConnected ⟨0, Metric.mem_ball_self hε⟩)
-  have : PathConnectedSpace (prodBall Q ε) :=
-    isPathConnected_iff_pathConnectedSpace.1 (by simpa using h)
-  exact _root_.isPathConnected_range f.isOpenEmbedding.continuous
-
 omit [PathConnectedSpace Q] [ConnectedSpace M] in
 /-- The inclusion of the collar `f (Q × A(δ, ε))`, as the intersection of the complement of the
 tube with the range of `f`, into the range of `f` induces a surjection of fundamental groups:
@@ -444,13 +433,9 @@ theorem ker_mk_comp_map_subtypeVal_complTube (hδ : 0 ≤ δ) (hδε : δ < ε)
       (ContinuousMap.inclusion inter_subset_left) y) γ).symm.trans
     (DFunLike.congr_fun (FundamentalGroup.map_comp (ContinuousMap.subtypeVal (range f))
       (ContinuousMap.inclusion inter_subset_right) y) γ)
-  have hψ : Set.range ψ = φ '' Set.range legA := by
-    refine Set.ext fun z ↦ ⟨?_, ?_⟩
-    · rintro ⟨γ, rfl⟩
-      obtain ⟨γ', rfl⟩ := hsurj γ
-      exact ⟨legA γ', mem_range_self _, hsq γ'⟩
-    · rintro ⟨_, ⟨γ, rfl⟩, rfl⟩
-      exact ⟨legB γ, (hsq γ).symm⟩
+  have hψ : Set.range ψ = φ '' Set.range legA :=
+    (hsurj.range_comp ψ).symm.trans
+      ((congrArg Set.range (funext fun γ ↦ (hsq γ).symm)).trans (Set.range_comp _ _))
   have hN : f.tubeSubgroup x hxB = (Subgroup.normalClosure (Set.range legA)).map φ := by
     rw [Subgroup.map_normalClosure _ φ hφs, ← hψ]
     exact f.tubeSubgroup_def x hxB
@@ -483,8 +468,9 @@ closed tube to the class of the same loop in `M`. -/
 theorem complTubeQuotientMulEquiv_mk (hδ : 0 ≤ δ) (hδε : δ < ε) (x : f.complTube hδε)
     (hx : x ∈ f.collar hδε) (γ : FundamentalGroup (f.complTube hδε) x) :
     f.complTubeQuotientMulEquiv hδ hδε x hx γ =
-      QuotientGroup.mk' (f.tubeSubgroup x (f.mem_collar_iff_coe_mem_range.1 hx))
-        (FundamentalGroup.map (ContinuousMap.subtypeVal (f.complTube hδε : Set M)) x γ) :=
+      QuotientGroup.mk (s := f.tubeSubgroup x (f.mem_collar_iff_coe_mem_range.1 hx))
+        (FundamentalGroup.map (ContinuousMap.subtypeVal (f.complTube hδε : Set M)) x γ :
+          FundamentalGroup M x) :=
   (rfl)
 
 end SymplecticGeometry.ProductNeighborhood
