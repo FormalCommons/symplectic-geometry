@@ -11,8 +11,6 @@ public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.P
 public import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.JetNorm
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.Power.Connection
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.CauchyRiemann.OneZeroPart
-public import TauCeti.LinearAlgebra.Complex.LinearPart
-public import TauCeti.Geometry.Symplectic.Complex.Module.Basic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric
 import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ChartTransition
@@ -42,7 +40,11 @@ satisfies the triangle inequality.
 
 The connection `powerConnection α k` is read in the same chart and frame as
 `D.connectionReading k x s z = df_z + i A₀(z) f(z)`, for `f` the reading of `s` and
-`A₀(z) v = -ω₀(z, v) / 2` the model connection form, `ω₀` being `stdForm ι`.
+`A₀(z) v = -ω₀(z, v) / 2` the model connection form, `ω₀` being `stdForm ι`: it is
+`SymplecticGeometry.modelConnection` of the reading. The `∂̄` reading and `D.dbarFun` below are
+`SymplecticGeometry.modelDbarWith` and `SymplecticGeometry.flatDbarWith` for the structure `J`
+pushed forward by the chart, so that their linearity, Leibniz rules and smoothness come from
+the lemmas on those operators.
 `SymplecticGeometry.RescaledUnitaryCharts.powerConnection_chart_symm_apply` shows that, at a
 point `z` of the ball of radius `ρ₀ * √k` where the reading of `s` is differentiable, this is the
 coordinate of `D_k s` in the frame, at the image of `z` and on the image of a vector under the

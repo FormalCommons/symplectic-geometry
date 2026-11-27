@@ -36,10 +36,12 @@ The power `k ^ (1 / 6)` is the real power `(k : ℝ) ^ (1 / 6 : ℝ)`.
 * `SymplecticGeometry.peakFunction`: the cut-off Gaussian.
 * `SymplecticGeometry.peakFunction_mul`: a complex coordinate times the cut-off Gaussian.
 * `SymplecticGeometry.flatDbar`: the flat `∂̄` of a complex function on `StdSpace ι`, the
-  complex-antilinear part for `J₀` of `df_z`, through
-  `TauCeti.complexAntilinearPartContinuousLinearMap`.
+  complex-antilinear part for `J₀` of `df_z`: `SymplecticGeometry.flatDbarWith` for the constant
+  structure `J₀`.
 * `SymplecticGeometry.modelDbar`: the model `∂̄` of a complex function on `StdSpace ι`, the
-  complex-antilinear part for `J₀` of `v ↦ df_z v - (ω₀(z, v) / 2) • (i f(z))`.
+  complex-antilinear part for `J₀` of `v ↦ df_z v - (ω₀(z, v) / 2) • (i f(z))`:
+  `SymplecticGeometry.modelDbarWith` for the constant structure `J₀`. Their linearity, Leibniz
+  rules and smoothness come from those of `flatDbarWith` and `modelDbarWith`.
 
 ## Main results
 
