@@ -721,6 +721,7 @@ private def radialRescaleInv (p : BlowupModel n) : BlowupModel n :=
 theorem pr_radialRescale (p : BlowupModel n) : (radialRescale ε p).pr = p.pr :=
   pr_mk _ _ _
 
+@[simp]
 theorem blowdown_radialRescale (p : BlowupModel n) :
     (radialRescale ε p).blowdown =
       EuclideanSpace.equiv (Fin (n + 1)) ℂ
