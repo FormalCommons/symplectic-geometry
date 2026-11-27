@@ -11,7 +11,9 @@ public import TauCeti.Geometry.Manifold.Algebra.SMul
 public import TauCeti.Geometry.Manifold.Flow.Basic
 public import TauCeti.Geometry.Manifold.Flow.Complete
 public import TauCeti.Geometry.Manifold.Flow.Diffeomorph
+public import TauCeti.Geometry.Manifold.IntegralCurve.GlobalFlow
 import TauCeti.Geometry.Manifold.Flow.NormedSpace
+import TauCeti.Geometry.Manifold.IntegralCurve.Interval
 
 /-!
 # Maximal flows: time-map differentials, integral curves, equivariance, translation
@@ -34,6 +36,11 @@ Ceti's chain rule for the time maps, `TauCeti.mfderiv_flowOf_add_apply`, and
   integral curve, and for `t₀, t ∈ (a, b)` the maximal flow takes `γ t₀` to `γ t` in time
   `t - t₀`, from Tau Ceti's `IsMIntegralCurveOn.subset_maximalIntegralCurveInterval` and
   `IsMIntegralCurveOn.eqOn_maximalIntegralCurve`.
+* `IsMIntegralCurveOn.globalFlow_sub_eq_Ici`: for a complete field, an integral curve `γ` on the
+  closed ray `[a, ∞)` satisfies `γ t = φ_{t - a} (γ a)` for `t ≥ a`, including the endpoint where
+  `γ` has only a one-sided derivative. The shifted flow line and `γ` are integral curves on the
+  preconnected set `[a, ∞)` that agree at `a`, so they agree by Tau Ceti's
+  `IsMIntegralCurveOn.eqOn_of_isPreconnected`.
 * `TauCeti.eventuallyEq_flowOf_sub_of_isMIntegralCurveOn`,
   `TauCeti.contMDiffAt_of_isMIntegralCurveOn`: if the lines `t ↦ Φ (t, s)` of `Φ : ℝ × S → M`
   are integral curves on `(a, b)`, then near each point of `(a, b) × S` the map `Φ` is the flow
@@ -142,6 +149,21 @@ theorem _root_.IsMIntegralCurveOn.flowOf_sub_eq [T2Space M] [IsManifold I 1 M]
   rw [flowOf_apply, (hγ.comp_add_Ioo t₀).eqOn_maximalIntegralCurve hv
     ⟨by linarith [ht₀.1], by linarith [ht₀.2]⟩ (by simp) ⟨by linarith [ht.1], by linarith [ht.2]⟩]
   simp
+
+/-- **An integral curve on a closed forward ray is a trajectory of the flow.** On a Hausdorff
+boundaryless manifold, if `γ` is an integral curve of a complete `C¹` vector field `v` on
+`[a, ∞)`, then for every `t ≥ a` the flow of `v` takes `γ a` to `γ t` in time `t - a`. At the
+endpoint `a` the curve has only a one-sided derivative. -/
+theorem _root_.IsMIntegralCurveOn.globalFlow_sub_eq_Ici [CompleteSpace E] [T2Space M]
+    [IsManifold I 1 M] [BoundarylessManifold I M]
+    (hv : ContMDiff I I.tangent 1 (fun y ↦ (⟨y, v y⟩ : TangentBundle I M)))
+    (hcomplete : IsCompleteVectorField v) (hγ : IsMIntegralCurveOn γ v (Ici a)) (ht : a ≤ t) :
+    globalFlow v hv hcomplete (t - a) (γ a) = γ t := by
+  have hφ : IsMIntegralCurveOn (fun s ↦ globalFlow v hv hcomplete (s - a) (γ a)) v (Ici a) :=
+    (((isMIntegralCurve_globalFlow hv hcomplete (γ a)).comp_add (-a)).isMIntegralCurveOn _).congr
+      (fun s _ ↦ by simp [sub_eq_add_neg])
+  exact hφ.eqOn_of_isPreconnected hγ isPreconnected_Ici self_mem_Ici
+    (fun s _ ↦ hv.contMDiffAt) (by simp) ht
 
 /-- If the lines `t ↦ Φ (t, s)` of `Φ : ℝ × S → M` are integral curves of the `C¹` field `v` on
 `(a, b)` and `t₀, t ∈ (a, b)`, then near `(t, s)` the map `Φ` is the maximal flow of `v` out of the

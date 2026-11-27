@@ -14,13 +14,10 @@ public import TauCeti.Analysis.Complex.Euclidean.Matrix
 
 A complex matrix `A : Matrix ι ι ℂ` acts on `ι → ℂ`. Read in real coordinates, through Tau
 Ceti's `TauCeti.complexToRealEuclidean ι`, it acts on `EuclideanSpace ℝ (ι ⊕ ι)` as its
-realification `Matrix.realify A`. Both statements follow from Tau Ceti's
-`TauCeti.complexToRealEuclidean_mulVec`.
+realification `Matrix.realify A`; this is Tau Ceti's `TauCeti.complexToRealEuclidean_mulVec`.
 
-* `TauCeti.conj_complexToRealEuclidean_toLin'`: conjugating the complex-linear map of
-  `A` by `complexToRealEuclidean ι` gives `Matrix.toEuclideanLin A.realify`.
-* `TauCeti.complexToRealEuclideanIsometry_toEuclideanCLM`: the same through the isometry
-  `complexToRealEuclideanIsometry ι`, vector by vector.
+* `TauCeti.complexToRealEuclideanIsometry_toEuclideanCLM`: the same statement through the
+  isometry `complexToRealEuclideanIsometry ι` on `EuclideanSpace ℂ ι`, vector by vector.
 -/
 
 public section
@@ -28,15 +25,6 @@ public section
 namespace TauCeti
 
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
-
-/-- Conjugating the complex-linear map of a complex matrix `A` by `complexToRealEuclidean ι`,
-which splits a vector of `ι → ℂ` into its real and imaginary parts, gives the map of the
-realification `Matrix.realify A` on `EuclideanSpace ℝ (ι ⊕ ι)`. -/
-theorem conj_complexToRealEuclidean_toLin' (A : Matrix ι ι ℂ) :
-    (complexToRealEuclidean ι).toLinearEquiv.conj ((Matrix.toLin' A).restrictScalars ℝ) =
-      Matrix.toEuclideanLin A.realify := by
-  ext1 z
-  simpa using complexToRealEuclidean_mulVec A ((complexToRealEuclidean ι).symm z)
 
 /-- Through `complexToRealEuclideanIsometry ι`, a complex matrix acts on
 `EuclideanSpace ℝ (ι ⊕ ι)` as its realification. -/
