@@ -10,7 +10,7 @@ public import TauCeti.AlgebraicTopology.Cellular.EulerCharacteristic.Surface.Bas
 public import TauCeti.AlgebraicTopology.Cohomology.UniversalCoefficient.CapDuality
 public import TauCeti.AlgebraicTopology.Singular.Sphere
 public import TauCeti.AlgebraicTopology.Singular.SurfaceGenus
-import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.RationalCoefficients
+import TauCeti.AlgebraicTopology.Cohomology.CompactSupport.Duality.Coefficients
 
 /-!
 # The genus of surfaces
@@ -28,8 +28,8 @@ two can merge.
 * `TauCeti.HomologicalOrientation.even_finrank_singularHomology_of_odd`: for a compact
   homologically oriented manifold of dimension `n = 2p` with `p` odd, the middle rational Betti
   number `finrank ℚ Hₚ(M; ℚ)` is even. By rational Poincaré duality
-  (`TauCeti.HomologicalOrientation.bijective_singularCapLinearMap_fundamentalClass`), capping
-  with the image of the fundamental class in `Hₙ(M; ℚ)` is injective on `Hᵖ(M; ℚ)`, and
+  (`TauCeti.HomologicalOrientation.bijective_singularCapLinearMap_fundamentalClassOver`), capping
+  with the fundamental class over `ℚ` in `Hₙ(M; ℚ)` is injective on `Hᵖ(M; ℚ)`, and
   Tau Ceti's `TopCat.even_finrank_singularHomology_of_injective_singularCapLinearMap` turns this
   into evenness through the alternating cup product pairing.
 * `TauCeti.HomologicalOrientation.even_finrank_singularHomology_one`: the case `p = 1`; a compact
@@ -79,7 +79,7 @@ theorem HomologicalOrientation.even_finrank_singularHomology_of_odd {M E : Type}
     Even (Module.finrank ℚ (((AlgebraicTopology.singularHomologyFunctor (ModuleCat.{0} ℚ) p).obj
       (ModuleCat.of ℚ ℚ)).obj (TopCat.of M))) :=
   (TopCat.of M).even_finrank_singularHomology_of_injective_singularCapLinearMap ℚ two_ne_zero
-    hp h _ (o.bijective_singularCapLinearMap_fundamentalClass hn h).injective
+    hp h _ (o.bijective_singularCapLinearMap_fundamentalClassOver hn ℚ h).injective
 
 /-- **The first Betti number of a closed oriented surface is even.** If `M` is a compact
 Hausdorff space with charts in a real normed space of dimension `2` and a homological orientation,

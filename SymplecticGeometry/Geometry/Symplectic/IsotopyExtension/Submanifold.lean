@@ -19,6 +19,7 @@ import TauCeti.Geometry.Manifold.MFDeriv.Basic
 import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.TubularNeighborhood.Existence
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # Neighbourhood extension of isotopies of submanifolds
@@ -187,7 +188,7 @@ private theorem exists_diffeotopy_mpullback_eq [FiniteDimensional ℝ E']
       SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ := by
     rw [hslice 0 ⟨le_rfl, zero_le_one⟩]
     have h : (fun w : W ↦ ψ 0 w) = Subtype.val := funext fun w ↦ hψ₀ w
-    exact Subtype.ext (by rw [SmoothForm.coe_mpullback, SmoothForm.coe_mpullback, h])
+    rw [SmoothForm.mpullback_eq_iff, SmoothForm.coe_mpullback, h]
   rw [← h₀, ← hw t, hslice t t.property]
 
 /-- **Neighbourhood extension of isotopies of submanifolds.** Let `σ` be a symplectic form on a

@@ -13,6 +13,7 @@ import SymplecticGeometry.Geometry.Manifold.ContMDiff.TimeExtension
 import SymplecticGeometry.Topology.MetricSpace.Tube
 import TauCeti.Analysis.Calculus.InverseFunctionTheorem
 import TauCeti.Analysis.Calculus.InverseFunctionTheorem.Parametric
+import TauCeti.Geometry.Manifold.ContMDiff.Prod
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
 import TauCeti.Topology.Algebra.Module.FiniteDimension
@@ -112,9 +113,9 @@ theorem exists_contMDiffOn_apply_eq_apply_zero {e : unitInterval × F → M} {U 
   have hgraph {q : ℝ × F} (hq : q ∈ univ ×ˢ B) :
       Injective (mfderiv 𝓘(ℝ, ℝ × F) 𝓘(ℝ, ℝ × E) Φ q) ↔
         Injective (mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) (fun x ↦ G (q.1, x)) q.2) := by
-    have hGd : MDifferentiableAt (𝓘(ℝ, ℝ).prod 𝓘(ℝ, F)) 𝓘(ℝ, E) G q := by
-      rw [← modelWithCornersSelf_prod, chartedSpaceSelf_prod]
-      exact ((hG.contDiffAt (hO.mem_nhds hq)).differentiableAt (by simp)).mdifferentiableAt
+    have hGd : MDifferentiableAt (𝓘(ℝ, ℝ).prod 𝓘(ℝ, F)) 𝓘(ℝ, E) G q :=
+      (contMDiffAt_prod_modelWithCornersSelf_iff.2
+        (hG.contDiffAt (hO.mem_nhds hq)).contMDiffAt).mdifferentiableAt (by simp)
     have := hGd.injective_mfderiv_fst_prod_iff
     rwa [← modelWithCornersSelf_prod, ← modelWithCornersSelf_prod, chartedSpaceSelf_prod,
       chartedSpaceSelf_prod] at this
@@ -195,10 +196,9 @@ theorem exists_contMDiffOn_apply_eq_apply_zero {e : unitInterval × F → M} {U 
     fun q ↦ Ψ ((q.1 : ℝ), f (0, q.2)), ?_, fun t x hx ↦ ?_⟩
   · have hΨ : ContMDiffOn 𝓘(ℝ, ℝ × E) 𝓘(ℝ, F) ∞ Ψ (Φ '' S) := hκ.contMDiffOn
     have hin : ContMDiffOn ((𝓡∂ 1).prod 𝓘(ℝ, F)) 𝓘(ℝ, ℝ × E) ∞
-        (fun q : unitInterval × F ↦ ((q.1 : ℝ), f (0, q.2))) (univ ×ˢ V) := by
-      rw [modelWithCornersSelf_prod, ← chartedSpaceSelf_prod]
-      exact ((contMDiff_subtypeVal_Icc (x := (0 : ℝ)) (y := 1)).comp
-        contMDiff_fst).contMDiffOn.prodMk
+        (fun q : unitInterval × F ↦ ((q.1 : ℝ), f (0, q.2))) (univ ×ˢ V) :=
+      ((contMDiff_subtypeVal_Icc (x := (0 : ℝ)) (y := 1)).comp
+        contMDiff_fst).contMDiffOn.prodMk_space
         ((hf0.mono hVB).comp contMDiffOn_snd fun q (hq : q ∈ univ ×ˢ V) ↦ hq.2)
     exact hΨ.comp hin fun q (hq : q ∈ univ ×ˢ V) ↦ hVmem hq.2
   · obtain ⟨y, hy, hGy⟩ : ∃ y ∈ Prod.mk (t : ℝ) ⁻¹' S, G (t, y) = f (0, x) := by
