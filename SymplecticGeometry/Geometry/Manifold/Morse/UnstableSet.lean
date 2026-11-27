@@ -9,7 +9,8 @@ public import TauCeti.Geometry.Manifold.Morse.Stable.Manifold
 public import TauCeti.Geometry.Manifold.Morse.PseudoGradient.Existence
 public import TauCeti.Geometry.Manifold.IntegralCurve.GlobalFlow
 public import Mathlib.Analysis.InnerProductSpace.PiL2
-import TauCeti.Geometry.Manifold.IntegralCurve.Maximal
+import TauCeti.Analysis.ODE.ScalarLinear
+import TauCeti.Geometry.Manifold.IntegralCurve.Interval
 import TauCeti.Geometry.Manifold.MFDeriv.Curve
 import Mathlib.Analysis.Calculus.Deriv.Prod
 
@@ -35,16 +36,22 @@ the target of the chart. We show:
   `x ∈ B`, and `TauCeti.MorseChart.eq_of_globalFlow_eq_globalFlow`: the flow line of `x` meets that
   sphere only once.
 
-The last step rests on `TauCeti.MorseChart.coord_toChart_globalFlow_of_forall_mem_source`: while an
-orbit stays in the source of the chart, it is read in the coordinates as the linear flow
-`TauCeti.MorseBottChart.linearFlow`. The backward orbit of a point of the unstable set eventually
-stays in the chart, close to `p`; a coordinate of positive weight would grow like `e^{-t}` along it,
-so all of them vanish and the orbit runs along the coordinates of negative weight.
+The last step rests on `TauCeti.MorseBottChart.coord_toChart_of_isMIntegralCurve`: in any
+Morse–Bott chart in which `X` reads `(-wᵢ zᵢ)ᵢ`, an integral curve of `X` is read in the
+coordinates as the linear flow `TauCeti.MorseBottChart.linearFlow` while it stays in the source of
+the chart; each coordinate solves a scalar linear equation, solved by
+`TauCeti.eq_exp_smul_of_hasDerivAt_smul`. The backward orbit of a point of the unstable set
+eventually stays in the chart, close to `p`; a coordinate of positive weight would grow like
+`e^{-t}` along it, so all of them vanish and the orbit runs along the coordinates of negative
+weight.
 
-The radial flow comes from `TauCeti.MorseChart.globalFlow_toChart_symm_coord_symm`, which adapts
+The radial flow comes from `TauCeti.MorseBottChart.globalFlow_toChart_symm_coord_symm`, stated for
+the flow of any complete `C¹` field that reads `(-wᵢ zᵢ)ᵢ` in a Morse–Bott chart. It adapts
 `TauCeti.IsBottAdaptedPseudoGradient.flow_toChart_symm_of_forall_mem_uIcc`
-(`Morse/Bott/Flow.lean`) from the flow of an adapted pseudo-gradient to the flow of any complete
-field equal to the linear field on the chart. The use of the coordinates of negative weight follows
+(`Morse/Bott/Flow.lean`), which is stated for the flow of an adapted pseudo-gradient, and has the
+same two steps: the linear orbit is an integral curve, and two integral curves that agree at
+time `0` agree on `uIcc 0 t` (`IsMIntegralCurveOn.eqOn_of_isPreconnected`). The use of the
+coordinates of negative weight follows
 `TauCeti.MorseChart.linearFlow_coord_negativeExtend` and
 `TauCeti.IsAdaptedPseudoGradient.exists_isSliceChart_unstableSet` (`Morse/Stable/Manifold.lean`),
 which treat adapted pseudo-gradients on compact manifolds.
@@ -64,12 +71,65 @@ open scoped ContDiff Manifold
 
 namespace TauCeti
 
-namespace MorseChart
-
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   {M : Type*} [TopologicalSpace M] [ChartedSpace E M]
-  {g : M → ℝ} {p : M} (φ : MorseChart E g p)
-  {X : (x : M) → TangentSpace 𝓘(ℝ, E) x}
+  {g : M → ℝ} {p : M} {X : (x : M) → TangentSpace 𝓘(ℝ, E) x}
+
+namespace MorseBottChart
+
+variable (φ : MorseBottChart E g p)
+
+/-- **An integral curve inside the chart is a linear orbit.** If `X` reads `(-wᵢ zᵢ)ᵢ` in the
+coordinates of the Morse–Bott chart `φ` and the integral curve `γ` of `X` stays in the source for
+the times in `[u, T]`, then the coordinates of `γ u` are those of `γ T` moved by the linear flow
+for the time `u - T`. -/
+theorem coord_toChart_of_isMIntegralCurve
+    (hφ : ∀ y ∈ φ.toChart.source, φ.coord (mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) φ.toChart y (X y)) =
+      fun i ↦ -(φ.weight i * φ.coord (φ.toChart y) i))
+    {γ : ℝ → M} (hγ : IsMIntegralCurve γ X) {u T : ℝ} (huT : u ≤ T)
+    (hsrc : ∀ s ∈ Icc u T, γ s ∈ φ.toChart.source) :
+    φ.coord (φ.toChart (γ u)) = φ.linearFlow (u - T) (φ.coord (φ.toChart (γ T))) := by
+  set c : ℝ → Fin (Module.finrank ℝ E) → ℝ := fun s ↦ φ.coord (φ.toChart (γ s))
+  have hc (s : ℝ) (hs : s ∈ Icc u T) : HasDerivAt c (fun i ↦ -(φ.weight i * c s i)) s := by
+    have h := φ.coordL.hasFDerivAt.comp_hasDerivAt s <|
+      Manifold.hasDerivAt_comp_curve (φ.mdifferentiableAt_toChart (hsrc s hs)) (hγ s)
+    convert h using 1
+    · funext t
+      simp only [c, comp_apply, coordL_apply]
+    · exact ((φ.coordL_apply _).trans (hφ _ (hsrc s hs))).symm
+  funext i
+  have h := eq_exp_smul_of_hasDerivAt_smul (v := fun s ↦ c s i) (c := -φ.weight i) (s := T)
+    (t := u) fun τ hτ ↦ by
+      rw [uIcc_of_ge huT] at hτ
+      simpa [neg_mul] using hasDerivAt_pi.1 (hc τ hτ) i
+  rw [linearFlow_apply, ← neg_mul]
+  exact h
+
+variable [CompleteSpace E] [T2Space M] [IsManifold 𝓘(ℝ, E) 1 M]
+  (hX : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ, E).tangent 1 (fun y ↦ (⟨y, X y⟩ : TangentBundle 𝓘(ℝ, E) M)))
+  (hXc : IsCompleteVectorField X)
+
+/-- **The flow is linear in the chart along a linear orbit inside it.** If `X` reads `(-wᵢ zᵢ)ᵢ`
+in the coordinates of the Morse–Bott chart `φ` and the linear orbit of the coordinates `z` stays in
+the chart for all times between `0` and `t`, then the flow of `X` moves the point with coordinates
+`z` at time `t` to the point with coordinates `(e^{-wᵢ t} zᵢ)ᵢ`. -/
+theorem globalFlow_toChart_symm_coord_symm
+    (hφ : ∀ y ∈ φ.toChart.source, φ.coord (mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) φ.toChart y (X y)) =
+      fun i ↦ -(φ.weight i * φ.coord (φ.toChart y) i))
+    {z : Fin (Module.finrank ℝ E) → ℝ} {t : ℝ}
+    (hz : ∀ s ∈ uIcc 0 t, φ.coord.symm (φ.linearFlow s z) ∈ φ.toChart.target) :
+    globalFlow X hX hXc t (φ.toChart.symm (φ.coord.symm z)) =
+      φ.toChart.symm (φ.coord.symm (φ.linearFlow t z)) :=
+  ((φ.isMIntegralCurveOn_toChart_symm_linearFlow hφ hz).eqOn_of_isPreconnected
+    ((isMIntegralCurve_globalFlow hX hXc _).isMIntegralCurveOn _) isPreconnected_uIcc
+    left_mem_uIcc (fun _ _ ↦ hX _)
+    (by rw [linearFlow_zero, Flow.map_zero_apply]) right_mem_uIcc).symm
+
+end MorseBottChart
+
+namespace MorseChart
+
+variable (φ : MorseChart E g p)
 
 /-- A field equal to the linear field of a Morse chart on its source reads `(-wᵢ zᵢ)ᵢ` in the
 coordinates of the chart. -/
@@ -83,48 +143,12 @@ variable [CompleteSpace E] [T2Space M] [IsManifold 𝓘(ℝ, E) 1 M]
   (hX : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ, E).tangent 1 (fun y ↦ (⟨y, X y⟩ : TangentBundle 𝓘(ℝ, E) M)))
   (hXc : IsCompleteVectorField X)
 
-/-- **The flow is linear in the chart along a linear orbit inside it.** If `X` is the linear field
-of the Morse chart `φ` on its source and the linear orbit of the coordinates `z` stays in the
-chart for all times between `0` and `t`, then the flow of `X` moves the point with coordinates `z`
-at time `t` to the point with coordinates `(e^{-wᵢ t} zᵢ)ᵢ`. -/
-theorem globalFlow_toChart_symm_coord_symm (hXφ : ∀ y ∈ φ.toChart.source, X y = φ.field y)
-    {z : Fin (Module.finrank ℝ E) → ℝ} {t : ℝ}
-    (hz : ∀ s ∈ uIcc 0 t, φ.coord.symm (φ.linearFlow s z) ∈ φ.toChart.target) :
-    globalFlow X hX hXc t (φ.toChart.symm (φ.coord.symm z)) =
-      φ.toChart.symm (φ.coord.symm (φ.linearFlow t z)) := by
-  have := φ.finiteDimensional
-  -- The times at which the linear orbit lies in the chart form an open set containing the
-  -- closed interval between `0` and `t`, hence an open interval around it.
-  set U := {s : ℝ | φ.coord.symm (φ.linearFlow s z) ∈ φ.toChart.target}
-  have hU : IsOpen U :=
-    φ.toChart.open_target.preimage <|
-      φ.coord.symm.toLinearMap.continuous_of_finiteDimensional.comp <|
-        continuous_iff_continuousAt.2 fun s ↦ (φ.hasDerivAt_linearFlow z s).continuousAt
-  have hIcc : Icc (min 0 t) (max 0 t) ⊆ U := fun s hs ↦ hz s (by rwa [← Icc_min_max])
-  obtain ⟨a, b₁, ⟨ha, hb₁⟩, hab₁⟩ := mem_nhds_iff_exists_Ioo_subset.1 <|
-    hU.mem_nhds (hIcc ⟨le_rfl, min_le_max⟩)
-  obtain ⟨a₂, b, ⟨ha₂, hb⟩, hab₂⟩ := mem_nhds_iff_exists_Ioo_subset.1 <|
-    hU.mem_nhds (hIcc ⟨min_le_max, le_rfl⟩)
-  have hab : ∀ s ∈ Ioo a b, φ.coord.symm (φ.linearFlow s z) ∈ φ.toChart.target := fun s hs ↦ by
-    rcases lt_or_ge s (min 0 t) with hsm | hsm
-    · exact hab₁ ⟨hs.1, hsm.trans hb₁⟩
-    rcases le_or_gt s (max 0 t) with hsM | hsM
-    · exact hIcc ⟨hsm, hsM⟩
-    · exact hab₂ ⟨ha₂.trans hsM, hs.2⟩
-  have hmem {s : ℝ} (hs : s ∈ uIcc 0 t) : s ∈ Ioo a b := by
-    rw [← Icc_min_max] at hs
-    exact ⟨ha.trans_le hs.1, hs.2.trans_lt hb⟩
-  have heq := (φ.isMIntegralCurveOn_toChart_symm_linearFlow
-    (fun y hy ↦ φ.coord_mfderiv_of_forall_eq_field hXφ hy) hab).eqOn_maximalIntegralCurve hX
-    (hmem left_mem_uIcc) (by rw [MorseBottChart.linearFlow_zero])
-  rw [globalFlow_apply]
-  exact heq (hmem right_mem_uIcc)
-
 /-- The centre of a Morse chart on whose source `X` is the linear field is a rest point of the
 flow of `X`. -/
 theorem globalFlow_self (hXφ : ∀ y ∈ φ.toChart.source, X y = φ.field y) (t : ℝ) :
     globalFlow X hX hXc t p = p := by
-  have h := φ.globalFlow_toChart_symm_coord_symm hX hXc hXφ (z := 0) (t := t) fun s _ ↦ by
+  have h := φ.globalFlow_toChart_symm_coord_symm hX hXc
+    (fun _ hy ↦ φ.coord_mfderiv_of_forall_eq_field hXφ hy) (z := 0) (t := t) fun s _ ↦ by
     rw [MorseBottChart.linearFlow_zero_right, map_zero, ← φ.apply_self]
     exact φ.toChart.map_source φ.mem_source
   rwa [MorseBottChart.linearFlow_zero_right, φ.toChart_symm_coord_symm_zero] at h
@@ -141,7 +165,8 @@ theorem globalFlow_toChart_symm_negativeExtend (hXφ : ∀ y ∈ φ.toChart.sour
   have hlin (s : ℝ) : φ.coord.symm (φ.linearFlow s (φ.coord (φ.negativeExtend c))) =
       φ.negativeExtend (Real.exp s • c) := by
     rw [φ.linearFlow_coord_negativeExtend, ← map_smul, LinearEquiv.symm_apply_apply, map_smul]
-  have h := φ.globalFlow_toChart_symm_coord_symm hX hXc hXφ
+  have h := φ.globalFlow_toChart_symm_coord_symm hX hXc
+    (fun _ hy ↦ φ.coord_mfderiv_of_forall_eq_field hXφ hy)
     (z := φ.coord (φ.negativeExtend c)) (t := t) fun s hs ↦ by
       rw [hlin]
       exact hc s (by rwa [uIcc_of_ge ht] at hs)
@@ -186,57 +211,9 @@ theorem mapsTo_closedBall_unstableSet (hXφ : ∀ y ∈ φ.toChart.source, X y =
     (eventually_le_atBot 0).mono fun t ht ↦
       (φ.globalFlow_toChart_symm_negativeExtend_of_norm_le hX hXc hXφ hρ hc ht).symm
   refine Tendsto.congr' hev ?_
-  have h0 : φ.negativeExtend (0 : EuclideanSpace ℝ {i // φ.weight i < 0}).ofLp = 0 := by
-    rw [WithLp.ofLp_zero, map_zero]
-  have hsymm : φ.toChart.symm 0 = p := by
-    rw [← φ.apply_self, φ.toChart.left_inv φ.mem_source]
-  have hcont : Continuous fun c : EuclideanSpace ℝ {i // φ.weight i < 0} ↦
-      φ.negativeExtend c.ofLp :=
-    φ.negativeExtend.continuous_of_finiteDimensional.comp (PiLp.continuous_ofLp 2 _)
-  have hlim : Tendsto (fun t : ℝ ↦ Real.exp t • c) atBot (𝓝 0) := by
-    simpa using Real.tendsto_exp_atBot.smul_const c
-  have h := (φ.toChart.continuousAt_symm (h0 ▸ hρ 0 (by simpa using hc.trans' (norm_nonneg c))
-    )).tendsto.comp ((hcont.tendsto 0).comp hlim)
-  rwa [h0, hsymm] at h
-/-- **An orbit inside the chart is a linear orbit.** If `X` is the linear field of the Morse chart
-`φ` on its source and the orbit of `x` stays in the source for the times in `[u, T]`, then the
-coordinates of `Φ u x` are those of `Φ T x` moved by the linear flow for the time `u - T`. -/
-theorem coord_toChart_globalFlow_of_forall_mem_source
-    (hXφ : ∀ y ∈ φ.toChart.source, X y = φ.field y) {x : M} {u T : ℝ} (huT : u ≤ T)
-    (hsrc : ∀ s ∈ Icc u T, globalFlow X hX hXc s x ∈ φ.toChart.source) :
-    φ.coord (φ.toChart (globalFlow X hX hXc u x)) =
-      φ.linearFlow (u - T) (φ.coord (φ.toChart (globalFlow X hX hXc T x))) := by
-  set c : ℝ → Fin (Module.finrank ℝ E) → ℝ := fun s ↦ φ.coord (φ.toChart (globalFlow X hX hXc s x))
-  have hc (s : ℝ) (hs : s ∈ Icc u T) : HasDerivAt c (fun i ↦ -(φ.weight i * c s i)) s := by
-    have h := φ.coordL.hasFDerivAt.comp_hasDerivAt s <|
-      Manifold.hasDerivAt_comp_curve (φ.mdifferentiableAt_toChart (hsrc s hs))
-        (isMIntegralCurve_globalFlow hX hXc x s)
-    convert h using 1
-    · funext t
-      simp only [c, comp_apply, MorseBottChart.coordL_apply]
-    · exact ((φ.coordL_apply _).trans
-        (φ.coord_mfderiv_of_forall_eq_field hXφ (hsrc s hs))).symm
-  funext i
-  -- `s ↦ e^{wᵢ s} cᵢ(s)` has derivative `0` on `[u, T]`, so it takes the same value at `u` and `T`.
-  have hf (s : ℝ) (hs : s ∈ Icc u T) :
-      HasDerivAt (fun s ↦ Real.exp (φ.weight i * s) * c s i) 0 s := by
-    have h := (((hasDerivAt_id s).const_mul (φ.weight i)).exp).mul
-      (hasDerivAt_pi.1 (hc s hs) i)
-    convert h using 1
-    · funext t
-      simp only [Pi.mul_apply, id]
-    · simp only [id]
-      ring
-  have hconst := constant_of_has_deriv_right_zero
-    (fun s hs ↦ (hf s hs).continuousAt.continuousWithinAt)
-    (fun s hs ↦ (hf s (Ico_subset_Icc_self hs)).hasDerivWithinAt) T ⟨huT, le_rfl⟩
-  rw [MorseBottChart.linearFlow_apply]
-  have hpos := Real.exp_pos (φ.weight i * u)
-  have hexp : Real.exp (-(φ.weight i * (u - T))) =
-      Real.exp (φ.weight i * T) / Real.exp (φ.weight i * u) := by
-    rw [← Real.exp_sub]
-    ring_nf
-  rw [hexp, div_mul_eq_mul_div, hconst, mul_div_cancel_left₀ _ hpos.ne']
+  have h := φ.tendsto_toChart_symm_coord_symm_nhds_zero.comp
+    (by simpa using Real.tendsto_exp_atBot.smul_const (φ.coord (φ.negativeExtend c.ofLp)))
+  simpa [comp_def, WithLp.ofLp_smul] using h
 
 /-- **The backward orbit of a point of the unstable set runs along the coordinates of negative
 weight.** If `X` is the linear field of the Morse chart `φ` at `p` on its source and `x` lies in
@@ -267,7 +244,8 @@ theorem exists_globalFlow_eq_toChart_symm_negativeExtend_of_mem_unstableSet
     hT₀ u (hu.trans (min_le_left _ _))
   have hlin (u : ℝ) (hu : u ≤ T) : φ.coord (φ.toChart (Φ u x)) =
       φ.linearFlow (u - T) (φ.coord (φ.toChart (Φ T x))) :=
-    φ.coord_toChart_globalFlow_of_forall_mem_source hX hXc hXφ hu fun s hs ↦ (hT s hs.2).1
+    φ.coord_toChart_of_isMIntegralCurve (fun _ hy ↦ φ.coord_mfderiv_of_forall_eq_field hXφ hy)
+      (isMIntegralCurve_globalFlow hX hXc x) hu fun s hs ↦ (hT s hs.2).1
   set v := φ.toChart (Φ T x)
   -- The coordinates of positive weight of `v` vanish: along the backward orbit they grow like
   -- `e^{T - u}`, while the orbit stays in the unit ball of the coordinates.
@@ -316,8 +294,7 @@ theorem exists_globalFlow_eq_of_mem_unstableSet (hXφ : ∀ y ∈ φ.toChart.sou
   have hA : A ≠ 0 := by
     rintro hA0
     have ha0 : a = 0 := by simpa [A] using hA0
-    rw [haT, ha0, map_zero, ← φ.apply_self, φ.toChart.left_inv φ.mem_source,
-      φ.globalFlow_self hX hXc hXφ] at hx'
+    rw [haT, ha0, map_zero, φ.toChart_symm_zero, φ.globalFlow_self hX hXc hXφ] at hx'
     exact hxp hx'
   set n := ‖A‖
   have hn : 0 < n := norm_pos_iff.2 hA
