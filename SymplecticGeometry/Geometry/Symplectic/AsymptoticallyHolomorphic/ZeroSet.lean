@@ -34,7 +34,7 @@ taken for `g_J` and the norm of `L_x`, then
   symplectic submanifold: the inclusion `TauCeti.SmoothEmbedding.ofTransverseSection` is a
   symplectic submanifold embedding for `σ`
   (`isSymplecticSubmanifoldEmbedding_zeroSet_of_norm_dbar_lt`);
-* if `L` is moreover a complex vector bundle, the normal orientation of the zero set `Z` induced
+* if `L` is moreover a complex line bundle, the normal orientation of the zero set `Z` induced
   by the symplectic orientations of `M` and of `Z` (`TauCeti.SmoothEmbedding.normalOrientation`)
   is the one carried from the canonical orientation of `L` by the linearization of `s`
   (`SymplecticGeometry.normalOrientationOfSection`)
@@ -175,10 +175,10 @@ section Orientation
 open scoped InnerProductSpace
 
 /-- The pointwise comparison of orientations behind
-`normalOrientation_zeroSet_eq_normalOrientationOfSection`: Tau Ceti's
+`normalOrientation_zeroSet_eq_normalOrientationOfSection`:
 `TauCeti.SymplecticForm.orientation_ker_eq_of_norm_complexAntilinearPart_lt`, with the orientation
-of the kernel followed by that of `W` (`Orientation.ofExact`) and the rank `2` of `W` written as
-any `r = 2`, as the model fibre of a bundle gives it. -/
+of the kernel followed by that of `W` (`Orientation.ofExact`) and the real rank `2` of `W` written
+as any `r` with `2 * finrank ℂ W = r`, as the model fibre of a bundle gives it. -/
 private theorem ofExact_orientation_ker_of_norm_lt {V W : Type*} [NormedAddCommGroup V]
     [InnerProductSpace ℝ V] [FiniteDimensional ℝ V] [NormedAddCommGroup W] [NormedSpace ℝ W]
     [NormedSpace ℂ W] [IsScalarTower ℝ ℂ W]
@@ -188,7 +188,7 @@ private theorem ofExact_orientation_ker_of_norm_lt {V W : Type*} [NormedAddCommG
         (AlmostComplexStructure.ofComplexModule W).toLinearMap (F : V →ₗ[ℝ] W))‖ <
       ‖LinearMap.toContinuousLinearMap (complexLinearPart J.toLinearMap
         (AlmostComplexStructure.ofComplexModule W).toLinearMap (F : V →ₗ[ℝ] W))‖)
-    {m r : ℕ} (hr : 2 = r) (hV : finrank ℝ V = m + r)
+    {m r : ℕ} (hV : finrank ℝ V = m + r)
     (hm : finrank ℝ (LinearMap.ker (F : V →ₗ[ℝ] W)) = m) (hWr : finrank ℝ W = r)
     (he : 2 * finrank ℂ W = r) :
     haveI : FiniteDimensional ℂ W := Module.finite_of_finrank_eq_succ hW
@@ -202,7 +202,7 @@ private theorem ofExact_orientation_ker_of_norm_lt {V W : Type*} [NormedAddCommG
       «ω».orientation hV := by
   have : FiniteDimensional ℂ W := Module.finite_of_finrank_eq_succ hW
   have : FiniteDimensional ℝ W := Module.Finite.trans ℂ W
-  subst hr
+  obtain rfl : r = 2 := by rw [← he, hW]
   rw [← Orientation.kerOfExact_eq_iff]
   exact SymplecticForm.orientation_ker_eq_of_norm_complexAntilinearPart_lt hg hW h hV hm
 
@@ -311,7 +311,7 @@ theorem normalOrientation_zeroSet_eq_normalOrientationOfSection [I.Boundaryless]
     VectorBundleOrientation.complex_apply, Manifold.Orientation.orientationAt_reindex,
     SmoothTwoForm.IsNondegenerate.orientationAt_volumeOrientation,
     SmoothTwoForm.IsNondegenerate.orientationAt_volumeOrientation]
-  refine Eq.trans ?_ ((ofExact_orientation_ker_of_norm_lt hg (hL (f z)) hd hF2.symm
+  refine Eq.trans ?_ ((ofExact_orientation_ker_of_norm_lt hg (hL (f z)) hd
     (by rw [← hk]; exact hE.symm) (eA.finrank_eq.symm.trans hk) (VectorBundle.finrank_eq ℝ F L _)
     (by rw [hL, mul_one, hF2])).trans (SymplecticForm.reindex_orientation _ _ _).symm)
   congr 1
