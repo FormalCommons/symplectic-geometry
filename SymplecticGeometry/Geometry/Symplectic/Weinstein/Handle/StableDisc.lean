@@ -335,21 +335,19 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
         (by exact_mod_cast le_top)).contMDiffAt
         ((isOpen_extChartAt_target p).mem_nhds (hq z hz))
     exact hsymm.comp z (hF m z hgz).contMDiffAt
-  -- A point of a confined solution from the ball, over the ball, lies on the graph of `g`.
-  have hgraph (z : S) (hz : z ∈ ball (0 : S) ρ) (t : ℝ) (ht : 0 ≤ t) (hPy : ‖P (y z t)‖ ≤ ρ) :
-      y z t = P (y z t) + g (P (y z t)) := by
-    obtain ⟨hyi, hymaps, -⟩ := hy z (hball z hz)
-    have hmem : y z t ∈ {u : E | (∃ c : ℝ → E, IsIntegralCurveOn c
+  -- A confined forward solution that starts over the ball starts on the graph of `g`.
+  have hgraph (c : ℝ → E) (hc : IsIntegralCurveOn c
+      (fun _ w ↦ VectorField.mpullback 𝓘(ℝ, E) 𝓘(ℝ, E) e.symm X (e p + w)) (Ici 0))
+      (hcr : MapsTo c (Ici 0) (closedBall 0 r)) (hcP : ‖P (c 0)‖ ≤ ρ) :
+      c 0 = P (c 0) + g (P (c 0)) := by
+    have hmem : c 0 ∈ {u : E | (∃ c : ℝ → E, IsIntegralCurveOn c
         (fun _ w ↦ VectorField.mpullback 𝓘(ℝ, E) 𝓘(ℝ, E) e.symm X (e p + w)) (Ici 0) ∧
-          c 0 = u ∧ MapsTo c (Ici 0) (closedBall 0 r)) ∧ ‖P u‖ ≤ ρ} := by
-      refine ⟨⟨fun s ↦ y z (s + t), (IsIntegralCurveOn.comp_add hyi t).mono fun s hs ↦ ?_, by simp,
-        fun s hs ↦ hymaps (mem_Ici.2 (add_nonneg hs ht))⟩, hPy⟩
-      rw [mem_vadd_set_iff_neg_vadd_mem, neg_neg, vadd_eq_add, mem_Ici]
-      exact add_nonneg ht hs
+          c 0 = u ∧ MapsTo c (Ici 0) (closedBall 0 r)) ∧ ‖P u‖ ≤ ρ} :=
+      ⟨⟨c, hc, rfl, hcr⟩, hcP⟩
     rw [hset] at hmem
     obtain ⟨u, ⟨⟨v, hv⟩, -⟩, hu⟩ := hmem
     simp only at hu
-    have hPu : P (y z t) = u := by
+    have hPu : P (c 0) = u := by
       rw [← hu, map_add, hPg, add_zero, ← hv, ← mul_apply_eq_comp, hP.eq]
     rw [hPu, hu]
   have hinv (T : ℝ) (x : M) : hW.flow (-T) (hW.flow T x) = x := by simp
@@ -379,7 +377,15 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
     -- Along the flow, `φ_T ∘ ι = ι ∘ h` near `z`.
     have hιh : ∀ᶠ w in 𝓝 z, ι (h w) = hW.flow T (ι w) := hev.mono fun w ⟨hw, hhw⟩ ↦ by
       rw [hnorm] at hhw
-      rw [(horb w hw T hT0).2, hgraph w hw T hT0 (hhw.le.trans (min_le_left _ _))]
+      obtain ⟨hwi, hwmaps, -⟩ := hy w (hball w hw)
+      have hgw := hgraph (fun s ↦ y w (s + T))
+        ((hwi.comp_add T).mono fun s hs ↦ by
+          rw [mem_vadd_set_iff_neg_vadd_mem, neg_neg, vadd_eq_add, mem_Ici]
+          exact add_nonneg hT0 hs)
+        (fun s hs ↦ hwmaps (mem_Ici.2 (add_nonneg hs hT0)))
+        (by simpa using hhw.le.trans (min_le_left _ _))
+      simp only [zero_add] at hgw
+      rw [(horb w hw T hT0).2, hgw]
       simp only [hι, hh, hQdef, ContinuousLinearMap.coe_codRestrict_apply]
     obtain ⟨-, hhz⟩ := hev.self_of_nhds
     have hhzρ : h z ∈ ball (0 : S) ρ := mem_ball_zero_iff.2 (hhz.trans_le (min_le_left _ _))
@@ -458,19 +464,10 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
           rw [hY0]
           exact mul_le_mul_of_nonneg_left (hxb.le.trans (min_le_right _ _)) (norm_nonneg _)
         _ < ρ := h1
-    have hmem : Y 0 ∈ {z : E | (∃ y : ℝ → E, IsIntegralCurveOn y
-        (fun _ w ↦ VectorField.mpullback 𝓘(ℝ, E) 𝓘(ℝ, E) e.symm X (e p + w)) (Ici 0) ∧
-          y 0 = z ∧ MapsTo y (Ici 0) (closedBall 0 r)) ∧ ‖P z‖ ≤ ρ} :=
-      ⟨⟨Y, hYi, rfl, fun t ht ↦ by simpa [Y] using (hcx t ht).2⟩, hPY.le⟩
-    rw [hset] at hmem
-    obtain ⟨_, ⟨⟨w, rfl⟩, -⟩, hw⟩ := hmem
-    simp only at hw
-    have hPw : P (Y 0) = P w := by
-      rw [← hw, map_add, hPg, add_zero, ← mul_apply_eq_comp, hP.eq]
-    have hwS : P w ∈ S := hPS ▸ LinearMap.mem_range_self (P : E →ₗ[ℝ] E) w
-    refine ⟨⟨P w, hwS⟩, by simpa [← hPw] using hPY, ?_⟩
+    have hw := hgraph Y hYi (fun t ht ↦ by simpa [Y] using (hcx t ht).2) hPY.le
+    refine ⟨⟨P (Y 0), hQ (Y 0)⟩, by simpa using hPY, ?_⟩
     simp only [hι]
-    rw [hw, hY0, add_sub_cancel, e.left_inv hxs]
+    rw [← hw, hY0, add_sub_cancel, e.left_inv hxs]
   · -- The derivative of `w ↦ e (φ_t (ι w))` is bounded in `t ≥ 0`.
     obtain ⟨-, -, -, hyd, C, hC⟩ := hy z (hball z hz)
     refine ⟨C, fun t ht ↦ ?_⟩
