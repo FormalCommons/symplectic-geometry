@@ -284,7 +284,7 @@ theorem isRegular_ofSubmodule : (ofSubmodule S (n := ∞) ENat.LEInfty.out).IsRe
       (v : TangentSpace 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - finrank ℝ S))) u) :
       mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - finrank ℝ S))) 𝓘(ℝ, E)
         (f ∘ Subtype.val) u v = L v := by
-    rw [mfderiv_modelSpace_comp_subtype_val_apply, (L.hasFDerivAt.const_add x).fderiv]
+    rw [mfderiv_modelSpace_comp_subtypeVal_apply, (L.hasFDerivAt.const_add x).fderiv]
   refine ⟨⊤, f ∘ Subtype.val, ⟨hf.contMDiff.comp contMDiff_subtypeVal, fun u ↦ ?_, ?_⟩,
     ⟨⟨0, trivial⟩, by simp [f]⟩⟩
   · rw [ofSubmodule_distribution]

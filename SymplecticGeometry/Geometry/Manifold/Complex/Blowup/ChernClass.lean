@@ -13,6 +13,7 @@ import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.ComplexS
 import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.FirstChernClass
 import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
 import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
+import TauCeti.AlgebraicTopology.Cohomology.Point
 
 /-!
 # The first Chern class of the blowup
@@ -34,6 +35,10 @@ exceptional divisor with the complex structure induced by `J̃`, with complex mo
   isomorphism of the tangent bundle of the complement with the pull-back of `(TM, J)`, and the
   naturality of the first Chern class
   (`TauCeti.firstChernClass_eq_singularCohomologyMap_of_fiberwise`) applies.
+* `SymplecticGeometry.Blowup.singularCohomologyMap_divisorRealEmbedding_blowdown`: on the
+  exceptional divisor, the pull-back by the blowdown of a class of `M` of positive degree, such as
+  `c₁(TM, J)`, restricts to zero, since the blowdown maps the divisor to the point `p₀`
+  (`TopCat.singularCohomologyMap_eq_zero_of_nullhomotopic`).
 * `SymplecticGeometry.Blowup.divisorNormalEquiv_normalComplexStructureAt`: the isomorphism
   `SymplecticGeometry.Blowup.divisorNormalEquiv` from the normal spaces of the exceptional divisor
   onto the tautological line takes the normal complex structure induced by `J̃` to
@@ -49,7 +54,7 @@ exceptional divisor with the complex structure induced by `J̃`, with complex mo
   hyperplane class (`Projectivization.firstChernClass_tautological`). The complex isomorphisms
   are `TauCeti.Bundle.ContinuousComplexStructure.fiberEquivOfCommuteI`.
 
-The first result is step 1, and the last two are part of step 3, of the proof of the formula
+The first result is step 1, and the other three are part of step 3, of the proof of the formula
 `c₁(T Blowup c) = π^* c₁(TM) - n e`, where `e` is `SymplecticGeometry.Blowup.exceptionalClass`
 and Lean's `n` is the complex dimension of `M` minus one; McDuff–Salamon use this formula,
 (7.1.31), without proving it.
@@ -156,6 +161,27 @@ theorem firstChernClass_restrict_compl :
   rw [TopPair.ofSubset_map]
   exact h
 
+/-- On the exceptional divisor, the pull-back by the blowdown of a cohomology class of `M` of
+positive degree vanishes, since the blowdown is constant, equal to `p₀`, on the divisor. For
+instance the pull-back of `c₁(TM, J)` restricts to zero on the divisor. -/
+theorem singularCohomologyMap_divisorRealEmbedding_blowdown {C : Type*}
+    [CategoryTheory.Category C] [CategoryTheory.Limits.HasCoproducts.{0} C]
+    [CategoryTheory.Abelian C] {R : C} {k : Type*} [Ring k] [CategoryTheory.Linear k C] {N : C}
+    {m : ℕ} (hm : m ≠ 0) (x : (TopCat.of M).singularCohomology R k N m) :
+    TopCat.singularCohomologyMap
+        (TopCat.ofHom ⟨divisorRealEmbedding c, (divisorRealEmbedding c).isEmbedding.continuous⟩) m
+        (TopCat.singularCohomologyMap (TopCat.ofHom (blowdown c)) m x) = 0 := by
+  rw [← CategoryTheory.ConcreteCategory.comp_apply, ← TopCat.singularCohomologyMap_comp,
+    ← TopCat.ofHom_comp, TopCat.singularCohomologyMap_eq_zero_of_nullhomotopic _ hm]
+  · simp only [ModuleCat.hom_zero, LinearMap.zero_apply]
+  have h : (blowdown c).comp
+      ⟨divisorRealEmbedding c, (divisorRealEmbedding c).isEmbedding.continuous⟩ =
+      ContinuousMap.const _ p₀ := by
+    ext ℓ
+    simp only [ContinuousMap.comp_apply, ContinuousMap.coe_mk, coe_divisorRealEmbedding,
+      blowdown_ofDirection, ContinuousMap.const_apply]
+  rw [TopCat.hom_ofHom, h]
+  exact ContinuousMap.nullhomotopic_of_constant p₀
 
 /-! ### The normal bundle of the exceptional divisor -/
 
