@@ -28,7 +28,8 @@ norms `‖iteratedFDeriv 𝕜 j f z‖` of the derivatives of `f` at `z`.
 * `SymplecticGeometry.jetNormAt_nonneg` and `SymplecticGeometry.jetNormAt_mono`: the jet norm is
   nonnegative and monotone in the order.
 * `SymplecticGeometry.norm_iteratedFDeriv_le_jetNormAt`: each derivative of order at most `r` is
-  bounded in norm by the `r`-jet norm.
+  bounded in norm by the `r`-jet norm, and its cases `SymplecticGeometry.norm_le_jetNormAt` for the
+  value and `SymplecticGeometry.norm_fderiv_le_jetNormAt` for the first derivative.
 * `SymplecticGeometry.continuous_jetNormAt`: the `r`-jet norm of a `C^r` function is continuous.
 * `SymplecticGeometry.jetNormAt_zero`: the jet norm of order `0` is `‖f z‖`.
 * `SymplecticGeometry.jetNormAt_congr_of_eventuallyEq`: the jet norm at `z` depends only on the
@@ -126,6 +127,16 @@ theorem norm_iteratedFDeriv_le_jetNormAt {j r : ℕ} (hj : j ≤ r) (f : E → F
   rw [jetNormAt_def]
   exact Finset.single_le_sum (f := fun l ↦ ‖iteratedFDeriv 𝕜 l f z‖)
     (fun _ _ ↦ norm_nonneg _) (Finset.mem_range_succ_iff.2 hj)
+
+/-- The value is bounded in norm by every jet norm. -/
+theorem norm_le_jetNormAt (r : ℕ) (f : E → F) (z : E) : ‖f z‖ ≤ jetNormAt 𝕜 r f z := by
+  simpa only [norm_iteratedFDeriv_zero] using norm_iteratedFDeriv_le_jetNormAt (𝕜 := 𝕜)
+    (Nat.zero_le r) f z
+
+/-- The first derivative is bounded in norm by the `r`-jet norm for `1 ≤ r`. -/
+theorem norm_fderiv_le_jetNormAt {r : ℕ} (hr : 1 ≤ r) (f : E → F) (z : E) :
+    ‖fderiv 𝕜 f z‖ ≤ jetNormAt 𝕜 r f z := by
+  simpa only [norm_iteratedFDeriv_one] using norm_iteratedFDeriv_le_jetNormAt hr f z
 
 /-- The `r`-jet norm of a `C^r` function is a continuous function of the point. -/
 theorem continuous_jetNormAt {r : ℕ} {f : E → F} (hf : ContDiff 𝕜 r f) :
