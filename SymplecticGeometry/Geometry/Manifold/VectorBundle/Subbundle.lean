@@ -39,37 +39,26 @@ open scoped Manifold ContDiff
 
 namespace TauCeti.HasLocalContMDiffSubbundleFrames
 
-section OfEquiv
+section Operations
 
 variable {𝕜 𝕜' : Type*} [NontriviallyNormedField 𝕜] [NontriviallyNormedField 𝕜']
   {EB : Type*} [NormedAddCommGroup EB] [NormedSpace 𝕜 EB]
   {HB : Type*} [TopologicalSpace HB] {IB : ModelWithCorners 𝕜 EB HB}
   {B : Type*} [TopologicalSpace B] [ChartedSpace HB B] {n : ℕ∞ω}
   {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F] {E : B → Type*}
-  [∀ x, AddCommMonoid (E x)] [∀ x, Module 𝕜' (E x)] [TopologicalSpace (TotalSpace F E)]
-  [∀ x, TopologicalSpace (E x)] [FiberBundle F E]
-  {ι ι' : Type*} {V : Π x, Submodule 𝕜' (E x)}
+  [TopologicalSpace (TotalSpace F E)] [∀ x, TopologicalSpace (E x)] {ι ι' : Type*}
 
 /-- `C^n` local frames indexed by `ι` give `C^n` local frames indexed by any type equivalent
 to `ι`. -/
-theorem of_equiv (hV : HasLocalContMDiffSubbundleFrames IB n F ι V) (e : ι ≃ ι') :
-    HasLocalContMDiffSubbundleFrames IB n F ι' V :=
+theorem of_equiv [∀ x, AddCommMonoid (E x)] [∀ x, Module 𝕜' (E x)] [FiberBundle F E]
+    {V : Π x, Submodule 𝕜' (E x)} (hV : HasLocalContMDiffSubbundleFrames IB n F ι V)
+    (e : ι ≃ ι') : HasLocalContMDiffSubbundleFrames IB n F ι' V :=
     hasLocalContMDiffSubbundleFrames_iff.mpr fun x ↦ by
   obtain ⟨U, hU, hx, X, hX, hXs⟩ := hasLocalContMDiffSubbundleFrames_iff.mp hV x
   exact ⟨U, hU, hx, X ∘ e.symm, hX.comp_equiv e.symm, fun i ↦ hXs _⟩
 
-end OfEquiv
-
-section Operations
-
-variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
-  {EB : Type*} [NormedAddCommGroup EB] [NormedSpace 𝕜 EB]
-  {HB : Type*} [TopologicalSpace HB] {IB : ModelWithCorners 𝕜 EB HB}
-  {B : Type*} [TopologicalSpace B] [ChartedSpace HB B] {n : ℕ∞ω}
-  {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F] {E : B → Type*}
-  [∀ x, AddCommGroup (E x)] [∀ x, Module 𝕜 (E x)] [TopologicalSpace (TotalSpace F E)]
-  [∀ x, TopologicalSpace (E x)] [FiberBundle F E]
-  {ι ι' : Type*} {V W : Π x, Submodule 𝕜 (E x)}
+variable [∀ x, AddCommGroup (E x)] [∀ x, Module 𝕜' (E x)] [FiberBundle F E]
+  {V W : Π x, Submodule 𝕜' (E x)}
 
 /-- **The sum of two smooth subbundles meeting in `0`.** If the families of subspaces `V` and
 `W` of the fibres of `E` have `C^n` local frames indexed by `ι` and `ι'`, and `V x` and `W x`
@@ -108,7 +97,7 @@ theorem sup_fin {r s : ℕ} (hV : HasLocalContMDiffSubbundleFrames IB n F (Fin r
   (hV.sup hW hVW).of_equiv finSumFinEquiv
 
 variable {F₂ : Type*} [NormedAddCommGroup F₂] [NormedSpace 𝕜 F₂] {E₂ : B → Type*}
-  [∀ x, AddCommGroup (E₂ x)] [∀ x, Module 𝕜 (E₂ x)] [TopologicalSpace (TotalSpace F₂ E₂)]
+  [∀ x, AddCommGroup (E₂ x)] [∀ x, Module 𝕜' (E₂ x)] [TopologicalSpace (TotalSpace F₂ E₂)]
   [∀ x, TopologicalSpace (E₂ x)] [FiberBundle F₂ E₂]
 
 /-- **The image of a smooth subbundle under a smooth bundle map.** Let `P x : E x → E₂ x` be
@@ -116,7 +105,7 @@ linear maps such that `p ↦ ⟨p.proj, P p.proj p.snd⟩` is a `C^n` map of tot
 family of subspaces of the fibres of `E` with `C^n` local frames indexed by `ι`, on which every
 `P x` is injective. Then the images `(V x).map (P x)` have `C^n` local frames indexed by `ι`: the
 images of the frames of `V`. -/
-theorem map {P : Π x, E x →ₗ[𝕜] E₂ x}
+theorem map {P : Π x, E x →ₗ[𝕜'] E₂ x}
     (hP : ContMDiff (IB.prod 𝓘(𝕜, F)) (IB.prod 𝓘(𝕜, F₂)) n
       (fun p : TotalSpace F E ↦ (⟨p.proj, P p.proj p.snd⟩ : TotalSpace F₂ E₂)))
     (hV : HasLocalContMDiffSubbundleFrames IB n F ι V)
