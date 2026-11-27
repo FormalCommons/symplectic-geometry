@@ -37,10 +37,24 @@ into the bound on the distance. This adapts the proof of Tau Ceti's
 `θ = 1 / 2` for a trajectory converging to a critical point; its last step is that of Tau Ceti's
 private `pathELength_le_of_forall_abs_le`.
 
+If instead the forward part of `γ` stays in a compact set `K`, and such an inequality holds near
+each critical point of `f` in `K`, with constants depending on the point, then `γ` exists for all
+positive time and converges to a critical point in `K`, with the same bound
+(`SymplecticGeometry.exists_tendsto_maximalIntegralCurve_neg_mgradient_of_lojasiewicz`). The
+trapped trajectory exists for all positive time
+(`TauCeti.Ici_subset_maximalIntegralCurveInterval_neg_mgradient`) and has a cluster point in `K`,
+which is critical (`TauCeti.mem_criticalPoints_of_mapClusterPt_maximalIntegralCurve_neg_mgradient`);
+the first theorem applies there. This follows the proof of Tau Ceti's
+`exists_tendsto_and_riemannianEDist_le_mul_exp_maximalIntegralCurve_neg_mgradient_of_lojasiewicz`,
+the case `θ = 1 / 2` with an exponential bound.
+
 ## Main results
 
 * `SymplecticGeometry.tendsto_maximalIntegralCurve_neg_mgradient_of_lojasiewicz`: convergence to
   a cluster point at which a Łojasiewicz inequality holds, with the tail bound on the distance.
+* `SymplecticGeometry.exists_tendsto_maximalIntegralCurve_neg_mgradient_of_lojasiewicz`: a
+  trajectory trapped in a compact set where the inequality holds near every critical point
+  converges to one of them, with the same bound.
 
 ## References
 
@@ -63,7 +77,7 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimension
   [BoundarylessManifold I M]
   [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
   [IsContMDiffRiemannianBundle I 1 E (fun x : M ↦ TangentSpace I x)]
-  {f : M → ℝ} {x p : M} {c θ : ℝ}
+  {f : M → ℝ} {x p : M} {K : Set M} {c θ : ℝ}
 
 /-- **Convergence of a negative gradient trajectory under a Łojasiewicz inequality.** Let `f` be
 a `C²` function on a boundaryless finite-dimensional manifold with a `C¹` Riemannian metric, and
@@ -73,9 +87,10 @@ let the maximal integral curve `γ` of `-grad f` through `x` be defined for all 
 and for all large `t` the Riemannian distance from `γ t` to `p` is at most
 `(f (γ t) - f p) ^ (1 - θ) / (c * (1 - θ))`.
 
-A trajectory whose forward part lies in a compact set, for instance any trajectory on a compact
-manifold, is defined for all positive time
-(`TauCeti.Ici_subset_maximalIntegralCurveInterval_neg_mgradient`) and has a cluster point. -/
+For a trajectory whose forward part lies in a compact set, for instance any trajectory on a
+compact manifold, use
+`SymplecticGeometry.exists_tendsto_maximalIntegralCurve_neg_mgradient_of_lojasiewicz`, which
+needs neither global existence nor a cluster point as a hypothesis. -/
 theorem tendsto_maximalIntegralCurve_neg_mgradient_of_lojasiewicz (hf : ContMDiff I 𝓘(ℝ) 2 f)
     (hx : Ici 0 ⊆ maximalIntegralCurveInterval (-mgradient I f) x)
     (hp : MapClusterPt p atTop (maximalIntegralCurve (-mgradient I f) x)) (hc : 0 < c)
@@ -107,6 +122,42 @@ theorem tendsto_maximalIntegralCurve_neg_mgradient_of_lojasiewicz (hf : ContMDif
       (hT u (ht.trans hu.1)).1
   · gcongr
     exact sub_le_self _ (Real.rpow_nonneg (sub_nonneg.mpr (hb _ (ht0.trans hts))) _)
+
+/-- **Convergence of a trapped negative gradient trajectory under Łojasiewicz inequalities.** Let
+`f` be a `C²` function on a boundaryless finite-dimensional manifold with a `C¹` Riemannian
+metric, and let the forward part of the maximal integral curve `γ` of `-grad f` through `x` stay
+in a compact set `K`. Suppose that near every critical point `q` of `f` in `K` an inequality
+`c * |f y - f q| ^ θ ≤ ‖grad f y‖` holds, for some `c > 0` and `θ < 1` that may depend on `q`.
+Then `γ` is defined for all `t ≥ 0` and converges to a critical point `p` of `f` in `K`.
+Moreover, whenever `c * |f y - f p| ^ θ ≤ ‖grad f y‖` holds near `p`, with `c > 0` and `θ < 1`,
+the Riemannian distance from `γ t` to `p` is at most `(f (γ t) - f p) ^ (1 - θ) / (c * (1 - θ))`
+for all large `t`. The critical points in `K` need not be isolated. -/
+theorem exists_tendsto_maximalIntegralCurve_neg_mgradient_of_lojasiewicz
+    (hf : ContMDiff I 𝓘(ℝ) 2 f) (hK : IsCompact K)
+    (hmem : MapsTo (maximalIntegralCurve (-mgradient I f) x)
+      (maximalIntegralCurveInterval (-mgradient I f) x ∩ Ici 0) K)
+    (hL : ∀ q ∈ criticalPoints I f ∩ K, ∃ θ < (1 : ℝ), ∃ c > 0,
+      ∀ᶠ y in 𝓝 q, c * |f y - f q| ^ θ ≤ ‖mgradient I f y‖) :
+    Ici 0 ⊆ maximalIntegralCurveInterval (-mgradient I f) x ∧
+      ∃ p ∈ criticalPoints I f ∩ K,
+        Tendsto (maximalIntegralCurve (-mgradient I f) x) atTop (𝓝 p) ∧
+        ∀ ⦃c θ : ℝ⦄, 0 < c → θ < 1 →
+          (∀ᶠ y in 𝓝 p, c * |f y - f p| ^ θ ≤ ‖mgradient I f y‖) → ∀ᶠ t in atTop,
+            riemannianEDist I (maximalIntegralCurve (-mgradient I f) x t) p ≤
+              ENNReal.ofReal
+                ((f (maximalIntegralCurve (-mgradient I f) x t) - f p) ^ (1 - θ) /
+                  (c * (1 - θ))) := by
+  have hx := Ici_subset_maximalIntegralCurveInterval_neg_mgradient hK hmem hf
+  -- The trajectory has a cluster point in `K`, which is critical.
+  obtain ⟨p, hpK, hp⟩ := hK.exists_mapClusterPt (f := atTop)
+    (u := maximalIntegralCurve (-mgradient I f) x) (tendsto_principal.2
+      (by filter_upwards [eventually_ge_atTop 0] with t ht using hmem ⟨hx ht, ht⟩))
+  have hpc : p ∈ criticalPoints I f ∩ K :=
+    ⟨mem_criticalPoints_of_mapClusterPt_maximalIntegralCurve_neg_mgradient hK hmem hf hp, hpK⟩
+  obtain ⟨θ, hθ, c, hc, hLp⟩ := hL p hpc
+  exact ⟨hx, p, hpc, (tendsto_maximalIntegralCurve_neg_mgradient_of_lojasiewicz hf hx hp hc hθ
+    hLp).1, fun c' θ' hc' hθ' hL' ↦
+      (tendsto_maximalIntegralCurve_neg_mgradient_of_lojasiewicz hf hx hp hc' hθ' hL').2⟩
 
 end SymplecticGeometry
 
