@@ -85,7 +85,7 @@ private theorem eval₂_mpullback_fibreEmbedding_mfderiv_latticeTorusCover_pos (
     funext z
     simp only [coe_fibreEmbedding, Function.comp_apply, fermatCubicTorusDiffeomorph_symm_apply,
       coe_fermatCubicDiffeomorph_symm_apply, coe_analyticFibreEmbedding, Subtype.mk.injEq,
-      Prod.mk.injEq, EmbeddingLike.apply_eq_iff_eq, and_true, φ]
+      Prod.mk.injEq, EmbeddingLike.apply_eq_iff_eq, and_true, coe_fermatUniformization, φ]
     rw [← latticeTorusDiffeomorph_mk, Diffeomorph.symm_apply_apply]
   have hhol : MDifferentiableAt 𝓘(ℂ) 𝓘(ℂ, Fin 2 → ℂ)
       ((fibreEmbedding ∘ φ.symm) ∘ latticeTorusCover p fermatPeriodBasis) z := by
