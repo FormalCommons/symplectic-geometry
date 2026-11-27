@@ -411,6 +411,7 @@ theorem monotone_smoothedMax_right (δ a : ℝ) : Monotone fun b ↦ smoothedMax
       linarith [(abs_le.1 (abs_smoothedSign_le_one δ (a - b))).2]
 
 /-- The smoothed maximum is monotone in both arguments together. -/
+@[gcongr]
 theorem smoothedMax_le_smoothedMax {a a' b b' : ℝ} (ha : a ≤ a') (hb : b ≤ b') :
     smoothedMax δ a b ≤ smoothedMax δ a' b' :=
   (monotone_smoothedMax_left δ b ha).trans (monotone_smoothedMax_right δ a' hb)
@@ -428,12 +429,11 @@ theorem min_deriv_le_deriv_smoothedMax {f g : ℝ → ℝ} {x : ℝ} (hf : Diffe
     (hg : DifferentiableAt ℝ g x) :
     min (deriv f x) (deriv g x) ≤ deriv (fun x ↦ smoothedMax δ (f x) (g x)) x := by
   have hs := abs_le.1 (abs_smoothedSign_le_one δ (f x - g x))
-  rw [deriv_smoothedMax hf hg]
-  rcases le_total (deriv f x) (deriv g x) with h | h
-  · rw [min_eq_left h]
-    nlinarith
-  · rw [min_eq_right h]
-    nlinarith
+  convert Convex.min_le_combo (deriv f x) (deriv g x)
+    (a := (1 + smoothedSign δ (f x - g x)) / 2) (b := (1 - smoothedSign δ (f x - g x)) / 2)
+    (by linarith) (by linarith) (by ring) using 1
+  rw [deriv_smoothedMax hf hg, smul_eq_mul, smul_eq_mul]
+  ring
 
 /-- The derivative of the smoothed maximum of two functions differentiable at `x` is at most
 the larger of their derivatives. -/
@@ -441,12 +441,11 @@ theorem deriv_smoothedMax_le_max {f g : ℝ → ℝ} {x : ℝ} (hf : Differentia
     (hg : DifferentiableAt ℝ g x) :
     deriv (fun x ↦ smoothedMax δ (f x) (g x)) x ≤ max (deriv f x) (deriv g x) := by
   have hs := abs_le.1 (abs_smoothedSign_le_one δ (f x - g x))
-  rw [deriv_smoothedMax hf hg]
-  rcases le_total (deriv f x) (deriv g x) with h | h
-  · rw [max_eq_right h]
-    nlinarith
-  · rw [max_eq_left h]
-    nlinarith
+  convert Convex.combo_le_max (deriv f x) (deriv g x)
+    (a := (1 + smoothedSign δ (f x - g x)) / 2) (b := (1 - smoothedSign δ (f x - g x)) / 2)
+    (by linarith) (by linarith) (by ring) using 1
+  rw [deriv_smoothedMax hf hg, smul_eq_mul, smul_eq_mul]
+  ring
 
 /-- The second derivative of the smoothed maximum of two `C²` functions `f` and `g`: with
 `s = smoothedSign δ (f x - g x)`, it is
