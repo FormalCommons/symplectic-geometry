@@ -21,7 +21,7 @@ import SymplecticGeometry.LinearAlgebra.FiniteDimensional.RestrictScalars
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 import TauCeti.Geometry.Manifold.Instances.Sphere
 import TauCeti.Geometry.Manifold.MFDeriv.Basic
-import TauCeti.Geometry.Manifold.MFDeriv.Opens
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 import TauCeti.Geometry.Manifold.MFDeriv.Slice
 
 /-!
@@ -438,9 +438,7 @@ theorem mvfderiv_radialProjection (z : puncturedSpace (Fin (n + 1) → ℂ))
     funext fun y ↦ (radialProjection_apply y).trans (TauCeti.radialRescale_apply _ _).symm
   rw [← mvfderiv_comp_apply _ ((contMDiff_coe_sphere _).mdifferentiableAt one_ne_zero)
       ((contMDiff_radialProjection n 1 z).mdifferentiableAt one_ne_zero), hfun,
-    TauCeti.Manifold.mvfderiv_comp_subtype_val]
-  refine (TauCeti.mvfderiv_eq_fderiv_apply _ (z : Fin (n + 1) → ℂ) v).trans ?_
-  rw [hd.fderiv]
+    TauCeti.Manifold.mvfderiv_modelSpace_comp_subtype_val_apply, hd.fderiv]
   -- Read `v` as a vector of `Fin (n + 1) → ℂ`, so that the evaluation lemmas of continuous linear
   -- maps apply to it.
   revert v

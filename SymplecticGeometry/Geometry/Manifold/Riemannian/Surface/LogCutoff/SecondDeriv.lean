@@ -11,7 +11,7 @@ public import TauCeti.Geometry.Manifold.Riemannian.Surface.LogCutoff.Profile
 import TauCeti.Analysis.Calculus.Deriv.Second
 import TauCeti.Analysis.SpecialFunctions.Exp.Deriv
 import TauCeti.Analysis.SpecialFunctions.SmoothTransition
-import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
+import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Deriv
 
 /-!
 # The second derivative of the logarithmic cutoff profile

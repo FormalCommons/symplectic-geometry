@@ -11,7 +11,7 @@ import Mathlib.Topology.Algebra.Support
 import SymplecticGeometry.Analysis.Calculus.ConvexProfile
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Prod
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Radial
-import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
+import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Basic
 import TauCeti.Analysis.Calculus.Morse.Index
 
 /-!

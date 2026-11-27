@@ -24,7 +24,7 @@ import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 import TauCeti.Geometry.Manifold.Complex.DdbarForm.Basic
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
-import TauCeti.Geometry.Manifold.MFDeriv.Opens
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 import SymplecticGeometry.Geometry.Manifold.Complex.Plurisubharmonic
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 import SymplecticGeometry.Analysis.Complex.Euclidean.Space
@@ -552,11 +552,9 @@ theorem mpullback_radialMap_stdForm (hs : ContDiffOn ℝ ∞ h (Ioi 0))
   have hcomp : (Subtype.val ∘ radialMap h hh : puncturedSpace (ι → ℂ) → ι → ℂ) =
       radialScale h ∘ Subtype.val := funext (val_radialMap hh)
   rw [SmoothForm.mpullback_mpullback, SmoothForm.eval₂_mpullback,
-    SymplecticForm.eval₂_constSmooth_mfderiv_eq, hcomp]
-  have hD (u : TangentSpace 𝓘(ℝ, ι → ℂ) z) :
-      mvfderiv 𝓘(ℝ, ι → ℂ) (radialScale h ∘ Subtype.val) z u = fderiv ℝ (radialScale h) z u :=
-    by rw [mvfderiv_comp_subtype_val]; exact mvfderiv_eq_fderiv_apply _ _ u
-  rw [hD, hD, radialPotentialForm_apply, ← norm_sq_complexToRealEuclidean]
+    SymplecticForm.eval₂_constSmooth_mfderiv_eq, hcomp, mvfderiv_modelSpace_comp_subtype_val_apply,
+    mvfderiv_modelSpace_comp_subtype_val_apply, radialPotentialForm_apply,
+    ← norm_sq_complexToRealEuclidean]
   -- Read `v` and `w` as vectors of `ι → ℂ`.
   revert v w
   intro (v : ι → ℂ) (w : ι → ℂ)
