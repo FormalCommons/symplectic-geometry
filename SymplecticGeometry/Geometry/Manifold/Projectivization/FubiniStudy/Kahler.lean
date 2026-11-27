@@ -51,8 +51,9 @@ potentials in the affine charts. Each statement is proved on `ℂⁿ⁺¹ ∖ 0`
   (`TauCeti.SmoothTwoForm.Tames.isSymplectic_mpullback`, `TauCeti.SmoothTwoForm.IsKahler.restrict`
   and `TauCeti.SmoothAlmostComplexStructure.IsIntegrable.restrict`).
 * `SymplecticGeometry.hasSymplecticTangentImages_of_mpullback_eq_smul_fubiniStudyForm`: a smooth
-  map from `ℂPⁿ` pulling a nondegenerate form back to `l² ω_FS`, for `l ≠ 0`, has symplectic
-  tangent images, by `TauCeti.SmoothTwoForm.IsNondegenerate.isNondegenerate_mpullback_iff`.
+  map from `ℂPⁿ` pulling a nondegenerate form back to `c • ω_FS`, for `c ≠ 0`, has
+  symplectic tangent images, by
+  `TauCeti.SmoothTwoForm.IsNondegenerate.isNondegenerate_mpullback_iff`.
 * `SymplecticGeometry.mpullback_affineChart_symm_fubiniStudyForm` and
   `SymplecticGeometry.mpullback_affineChart_symm_fubiniStudyForm_eq_del_delBar`: along the inverse
   `w ↦ [Fin.insertNth j 1 w]` of each affine chart, the Fubini–Study form is
@@ -289,16 +290,16 @@ end Submanifold
 /-! ### Maps pulling a nondegenerate form back to a multiple of `ω_FS` -/
 
 /-- A smooth map `g` from `ℙ ℂ (Fin (n + 1) → ℂ)` pulling a nondegenerate two-form `σ` back to
-`l² ω_FS`, for `l ≠ 0`, has symplectic tangent images for `σ`. -/
+`c • ω_FS`, for a real `c ≠ 0`, has symplectic tangent images for `σ`. -/
 theorem hasSymplecticTangentImages_of_mpullback_eq_smul_fubiniStudyForm
     {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
     {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
     {σ : SmoothTwoForm I M} (hσ : σ.IsNondegenerate) {g : ℙ ℂ (Fin (n + 1) → ℂ) → M}
-    (hg : ContMDiff 𝓘(ℝ, Fin n → ℂ) I ∞ g) {l : ℝ} (hl : l ≠ 0)
-    (h : SmoothForm.mpullback g hg σ = l ^ 2 • fubiniStudyForm n) :
+    (hg : ContMDiff 𝓘(ℝ, Fin n → ℂ) I ∞ g) {c : ℝ} (hc : c ≠ 0)
+    (h : SmoothForm.mpullback g hg σ = c • fubiniStudyForm n) :
     hσ.HasSymplecticTangentImages 𝓘(ℝ, Fin n → ℂ) g :=
   ((SmoothTwoForm.IsNondegenerate.isNondegenerate_mpullback_iff hg).1
-    (h ▸ (isSymplectic_fubiniStudyForm n).isNondegenerate.smul _ (pow_ne_zero 2 hl))).1
+    (h ▸ (isSymplectic_fubiniStudyForm n).isNondegenerate.smul _ hc)).1
 
 end Kahler
 
