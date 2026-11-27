@@ -7,8 +7,11 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.RestrictsTo
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
+public import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
+public import TauCeti.Geometry.Manifold.DeRham.Map
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Symplectic.Fibration.Basic
+import SymplecticGeometry.Geometry.Symplectic.Fibration.ClosedExtension
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import TauCeti.Geometry.Manifold.DifferentialForm.Closed
 import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
@@ -31,16 +34,27 @@ form `LinearMap.BilinForm.pullbackProd` of these data at the parameter `0` is no
 in the point and the parameter, together with the compactness of `M`, gives one bound `K₀` for
 all points (`TauCeti.SmoothTwoForm.exists_forall_ge_forall_nondegenerate_add_smul_comp`).
 
+Thurston's theorem itself follows. Over a connected base whose atlas has coordinate changes
+preserving `σ`, a degree-two class that one fibre inclusion sends to `[σ]` is sent there by all
+of them (`TauCeti.MapFiber.Atlas.forall_map_eq_of_map_eq`), and is then the class of a closed
+form `τ` that restricts to `σ` (`TauCeti.MapFiber.Atlas.exists_isClosed_restricts_of_map_eq`,
+step 1). Step 2 applied to `τ` gives the forms, and their class is `a + K [π^* β]` since
+taking classes is linear.
+
 ## Main results
 
 * `TauCeti.MapFiber.Atlas.exists_forall_ge_isSymplectic_add_smul_mpullback`: for compact `M`,
   there is `K₀` such that for every `K ≥ K₀` the form `τ + K π^* β` is symplectic and restricts
   to `σ` along `A`.
+* `TauCeti.MapFiber.Atlas.exists_isSymplectic_restricts_mk_eq`: Thurston's theorem on
+  symplectic fibrations. For compact `M` over a connected symplectic base `(B, β)`, and a class
+  `a` that one fibre inclusion sends to `[σ]`, for every large enough `K` some symplectic form
+  that restricts to `σ` along `A` represents `a + K [π^* β]`.
 
 ## References
 
 * [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*, 3rd ed.][McDuffSalamon2017],
-  §6.1 (Theorem 6.1.4, step 2 of its proof).
+  §6.1 (Theorem 6.1.4 and step 2 of its proof).
 * [W. P. Thurston, *Some simple examples of symplectic manifolds*][Thurston1976].
 * [V. Guillemin, E. Lerman and S. Sternberg, *Symplectic Fibrations and Multiplicity
   Diagrams*][GuilleminLermanSternberg1996], §1.5
@@ -86,6 +100,37 @@ theorem exists_forall_ge_isSymplectic_add_smul_mpullback [CompactSpace M]
   refine ⟨K₀, fun K hK ↦ ⟨⟨hτc.add ((hβ.isClosed.mpullback _ _).smul K),
     SmoothTwoForm.isNondegenerate_def.2 fun x ↦ ?_⟩, hτ.add_mpullback two_ne_zero _ β K⟩⟩
   simpa using hK₀ K hK x
+
+/-- **Thurston's theorem on symplectic fibrations.** Let `A` be a smooth atlas of
+`proj : M → B` with compact total space, whose coordinate changes preserve a symplectic form `σ`
+on the model fibre, over a connected, Hausdorff, σ-compact base with a symplectic form `β`. Let
+`a` be a de Rham class of degree two on `M` that the fibre inclusion
+`v ↦ (A.trivAt b)⁻¹ (b', v)` of one chart over one point sends to the class of `σ`. Then there
+is `K₀` such that, for every `K ≥ K₀`, some symplectic form `θ` on `M` restricts to `σ` along `A`
+and represents the class `a + K [proj^* β]`.
+
+Milestone: *Thurston's theorem on symplectic fibrations*. -/
+theorem exists_isSymplectic_restricts_mk_eq [CompactSpace M] [PreconnectedSpace B] [T2Space B]
+    [SigmaCompactSpace B] (hA : A.IsContMDiff ∞ IB IF IM)
+    (hH : A.HasStructureGroup (SmoothForm.diffeomorphStabilizer σ)) (hσ : σ.IsSymplectic)
+    {β : SmoothTwoForm IB B} (hβ : β.IsSymplectic) {a : deRhamCohomology IM M 2} {b b' : B}
+    (hb' : b' ∈ (A.trivAt b).baseSet)
+    (ha : deRhamCohomology.map ((A.trivAt b).fiberInclusionMap hb')
+        ((A.trivAt b).contMDiff_fiberInclusionMap (hA.contMDiffOn_trivAt_symm b) hb') 2 a =
+      deRhamCohomology.mk IF 2 ⟨σ, hσ.isClosed.mem_closedForms⟩) :
+    ∃ K₀ : ℝ, ∀ K ≥ K₀, ∃ θ : SmoothTwoForm IM M, ∃ hθ : θ.IsSymplectic, A.RestrictsTo σ θ ∧
+      deRhamCohomology.mk IM 2 ⟨θ, hθ.isClosed.mem_closedForms⟩ =
+        a + K • deRhamCohomology.mk IM 2
+          ⟨SmoothForm.mpullback proj hA.contMDiff_proj β,
+            (hβ.isClosed.mpullback _ _).mem_closedForms⟩ := by
+  obtain ⟨τ, hτc, hτ, rfl⟩ := exists_isClosed_restricts_of_map_eq hA hH hσ.isClosed
+    fun c c' hc' ↦ forall_map_eq_of_map_eq hA hH hσ.isClosed hb' ha hc'
+  obtain ⟨K₀, hK₀⟩ :=
+    exists_forall_ge_isSymplectic_add_smul_mpullback hA hσ.isNondegenerate hτ hτc hβ
+  refine ⟨K₀, fun K hK ↦ ⟨_, (hK₀ K hK).1, (hK₀ K hK).2, ?_⟩⟩
+  refine (congrArg (deRhamCohomology.mk IM 2) (Subtype.ext ?_)).trans
+    ((map_add _ _ _).trans (congrArg _ (map_smul _ _ _)))
+  simp
 
 end TauCeti.MapFiber.Atlas
 
