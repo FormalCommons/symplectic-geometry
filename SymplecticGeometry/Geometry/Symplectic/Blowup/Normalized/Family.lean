@@ -9,7 +9,6 @@ public import SymplecticGeometry.Geometry.Symplectic.Blowup.Normalized.Basic
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.UnitInterval
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
 /-!
 # Families of normalized ball embeddings and their lifts
@@ -40,8 +39,8 @@ every lift is the inclusion of the model piece, so the family is locally the lif
 independent of `t`. Off the divisor every lift is `inl ∘ ψ (t, ·) ∘ π`, jointly smooth by the
 joint smoothness of `ψ`. Continuity of `ε` is all that is asked of the widths, and nothing is
 asked of the weights. The second result is
-`ContMDiff.isLocalDiffeomorphAt_prodMk_unitInterval`, each slice being a local diffeomorphism
-through `IsNormalizedBallEmbedding.ballLiftPartialDiffeomorph`.
+`ContMDiff.isLocalDiffeomorph_prodMk_unitInterval`, each slice being a local diffeomorphism by
+`IsNormalizedBallEmbedding.isLocalDiffeomorph_ballLift`.
 
 ## References
 
@@ -59,10 +58,6 @@ open scoped ContDiff Manifold TauCeti.ComplexManifold
 namespace SymplecticGeometry
 
 open TauCeti BlowupModel
-
-open GluedAlong (inl inr)
-
-open Blowup (gluingHomeomorph)
 
 variable {n : ℕ} {M : Type} [TopologicalSpace M] [ChartedSpace (Fin (n + 1) → ℂ) M]
   [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M]
@@ -107,7 +102,7 @@ private theorem contMDiffAt_ballLift_family_of_blowdown_ne_zero
         (hψ q.1).ballLift ⟨q.2, mem_openNbhdOpens_iff.1 q.2.property⟩) p := by
   classical
   set e := complexToRealEuclidean (Fin (n + 1))
-  obtain ⟨⟨U, hU, hrU, hψU⟩, -⟩ := (isSymplecticBallFamily_def _ _ _).1 hψf
+  obtain ⟨U, hU, hrU, hψU⟩ := hψf.exists_contMDiffOn
   let V : Set (unitInterval × openNbhdOpens n r) := {q | (q.2 : BlowupModel n).blowdown ≠ 0}
   have hV : IsOpen V := isOpen_ne_fun (continuous_blowdown.comp
     (continuous_subtypeVal.comp continuous_snd)) continuous_const
@@ -155,14 +150,7 @@ theorem contMDiff_ballLift_family
   by_cases hp : (p.2 : BlowupModel n).blowdown = 0
   · refine ContMDiffAt.congr_of_eventuallyEq ?_
       (ballLift_family_eventuallyEq_of_blowdown_eq_zero hψ hε hp)
-    set Φ := (hψ p.1).ballLiftPartialDiffeomorph
-    have hΦ : ContMDiffAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ Φ p.2 :=
-      Φ.contMDiffOn.contMDiffAt (Φ.open_source.mem_nhds (by
-        rw [ballLiftPartialDiffeomorph_source]; exact mem_openNbhdOpens_iff.1 p.2.property))
-    refine (hΦ.comp p (contMDiff_subtypeVal.comp contMDiff_snd).contMDiffAt).congr_of_eventuallyEq
-      (Filter.Eventually.of_forall fun q ↦ ?_)
-    exact ((hψ p.1).ballLiftPartialDiffeomorph_apply
-      ⟨q.2, mem_openNbhdOpens_iff.1 q.2.property⟩).symm
+    exact ((hψ p.1).contMDiff_ballLift.comp contMDiff_snd).contMDiffAt
   · exact contMDiffAt_ballLift_family_of_blowdown_ne_zero hψ hψf hp
 
 /-- **The lifts of a family of normalized ball embeddings give a local diffeomorphism.** For a
@@ -174,15 +162,9 @@ theorem isLocalDiffeomorph_prodMk_ballLift_family
     (hψf : IsSymplecticBallFamily σ r ψ) (hε : Continuous ε) :
     IsLocalDiffeomorph ((𝓡∂ 1).prod 𝓘(ℝ, Fin (n + 1) → ℂ)) ((𝓡∂ 1).prod 𝓘(ℝ, Fin (n + 1) → ℂ)) ∞
       (fun p : unitInterval × openNbhdOpens n r ↦
-        (p.1, (hψ p.1).ballLift ⟨p.2, mem_openNbhdOpens_iff.1 p.2.property⟩)) := by
-  refine (contMDiff_ballLift_family hψ hψf hε).isLocalDiffeomorph_prodMk_unitInterval fun t y ↦ ?_
-  set Φ := (hψ t).ballLiftPartialDiffeomorph
-  have hΦ : IsLocalDiffeomorphAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ Φ y :=
-    Φ.isLocalDiffeomorphAt (hx := by
-      rw [ballLiftPartialDiffeomorph_source]; exact mem_openNbhdOpens_iff.1 y.property)
-  refine (IsLocalDiffeomorphAt.comp (hf := isLocalDiffeomorph_subtype_val y) (hg := hΦ))
-    |>.congr_of_eventuallyEq (Filter.Eventually.of_forall fun x ↦ ?_)
-  exact ((hψ t).ballLiftPartialDiffeomorph_apply ⟨x, mem_openNbhdOpens_iff.1 x.property⟩).symm
+        (p.1, (hψ p.1).ballLift ⟨p.2, mem_openNbhdOpens_iff.1 p.2.property⟩)) :=
+  (contMDiff_ballLift_family hψ hψf hε).isLocalDiffeomorph_prodMk_unitInterval fun t ↦
+    (hψ t).isLocalDiffeomorph_ballLift
 
 end IsNormalizedBallEmbedding
 
