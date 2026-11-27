@@ -234,8 +234,10 @@ theorem surjective_collapseMap : Function.Surjective (collapseMap hψ hl hε) :=
   obtain ⟨x, rfl⟩ | ⟨y, rfl⟩ := GluedAlong.exists_inl_or_exists_inr _ p
   · exact hinl x
   by_cases hy : y ∈ modelOverlap n ε
-  · obtain ⟨x, hx⟩ := hinl (gluingDiffeomorph hψ hl.le hε ⟨y, hy⟩)
-    exact ⟨x, hx.trans (inl_gluingDiffeomorph hψ hl.le hε ⟨y, hy⟩)⟩
+  · obtain ⟨x', hx'⟩ :=
+      (GluedAlong.inr_mem_range_inl_iff (gluingDiffeomorphSymm hψ hl.le hε).toHomeomorph).2 hy
+    obtain ⟨x, hx⟩ := hinl x'
+    exact ⟨x, hx.trans hx'⟩
   rw [mem_modelOverlap_iff, not_not, exceptionalDivisor_eq_range] at hy
   obtain ⟨ℓ, hℓ⟩ := hy
   obtain ⟨s, rfl⟩ := surjective_sphereHopf n ℓ
