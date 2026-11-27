@@ -22,6 +22,7 @@ import TauCeti.Geometry.Manifold.LocalDiffeomorph.Section
 import TauCeti.Geometry.Manifold.ModelWithCorners.RestrictScalars.Chart
 import TauCeti.Analysis.Calculus.IteratedFDeriv.CompContinuousLinearEquiv
 import SymplecticGeometry.Analysis.Calculus.Jet.LocalInverse
+import SymplecticGeometry.Analysis.Complex.Wirtinger.Basic
 import SymplecticGeometry.Analysis.Complex.Wirtinger.Comp
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Chart
 
@@ -765,6 +766,105 @@ private theorem exists_norm_iteratedFDeriv_comp_sub_comp_le {F : Type*} [NormedA
   rw [nhdsSet_singleton] at hU
   exact ⟨U, hU, C, by rw [hD]; exact hC⟩
 
+/-- Let `G₁` and `G₂` have the same jets of order `N + 1` at the real points of an open set `B`,
+and let `h` be smooth on an open set containing their images. If the reading of `h ∘ G₁` through
+`EuclideanSpace.sumEquivProd` has `∂̄` of order `N + 1` and the derivative of `∂̄` of order `N`
+in the imaginary part on `B`, then so has that of `h ∘ G₂` near a real point `p₀ ∈ B`, with
+another constant. -/
+private theorem exists_norm_conjWirtingerDeriv_comp_le_of_iteratedFDeriv_sub_eq_zero
+    {F : Type*} [NormedAddCommGroup F] [NormedSpace ℂ F] {N : ℕ} {C₁ : ℝ}
+    {h : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) → F}
+    {S B : Set (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))} (hS : IsOpen S)
+    (hh : ContDiffOn ℝ ∞ h S) (hB : IsOpen B)
+    {G₁ G₂ : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) →
+      EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)}
+    (hG₁ : ContDiffOn ℝ ∞ G₁ B) (hG₂ : ContDiffOn ℝ ∞ G₂ B) (hG₁S : MapsTo G₁ B S)
+    (hG₂S : MapsTo G₂ B S)
+    (hjet : ∀ z ∈ B, (complexEuclideanEquivRealProd _ (EuclideanSpace.sumEquivProd.symm z)).2 = 0 →
+      ∀ l ≤ N + 1, iteratedFDeriv ℝ l (G₁ - G₂) z = 0)
+    {p₀ : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)} (hp₀ : p₀ ∈ B)
+    (hp₀re : (complexEuclideanEquivRealProd _ (EuclideanSpace.sumEquivProd.symm p₀)).2 = 0)
+    (hC₁ : ∀ z ∈ B, ‖conjWirtingerDeriv (fun w ↦ h (G₁ (EuclideanSpace.sumEquivProd w)))
+          (EuclideanSpace.sumEquivProd.symm z)‖ ≤
+        C₁ * ‖(complexEuclideanEquivRealProd _ (EuclideanSpace.sumEquivProd.symm z)).2‖ ^ (N + 1))
+    (hC₁' : ∀ z ∈ B, ‖fderiv ℝ (fun w ↦ ContinuousLinearMap.complexAntilinearPartL (fderiv ℝ
+          (fun w ↦ h (G₁ (EuclideanSpace.sumEquivProd w))) w))
+          (EuclideanSpace.sumEquivProd.symm z)‖ ≤
+        C₁ * ‖(complexEuclideanEquivRealProd _ (EuclideanSpace.sumEquivProd.symm z)).2‖ ^ N) :
+    ∃ U ∈ 𝓝 (EuclideanSpace.sumEquivProd.symm p₀), ∃ C₂, ∀ v ∈ U,
+      ‖conjWirtingerDeriv (fun w ↦ h (G₂ (EuclideanSpace.sumEquivProd w))) v‖ ≤
+          C₂ * ‖(complexEuclideanEquivRealProd _ v).2‖ ^ (N + 1) ∧
+        ‖fderiv ℝ (fun w ↦ ContinuousLinearMap.complexAntilinearPartL (fderiv ℝ
+          (fun w ↦ h (G₂ (EuclideanSpace.sumEquivProd w))) w)) v‖ ≤
+          C₂ * ‖(complexEuclideanEquivRealProd _ v).2‖ ^ N := by
+  obtain ⟨Lr, hLr, hLrs⟩ := exists_sumEquivProd_symm_restrictScalars (k := k) (m := m)
+  simp only [← hLr, ← hLrs] at hjet hp₀re hC₁ hC₁' ⊢
+  obtain ⟨Ub, hUb, Cb, hCb⟩ :=
+    exists_norm_iteratedFDeriv_comp_sub_comp_le Lr hS hh hB hG₁ hG₂ hG₁S hG₂S hjet hp₀ hp₀re
+  set UE := interior Ub ∩ Lr.symm ⁻¹' B
+  have hUE : IsOpen UE := isOpen_interior.inter (hB.preimage Lr.symm.continuous)
+  have h2 : (2 : WithTop ℕ∞) ≤ ∞ := by simp
+  have he₁ : ContDiffOn ℝ 2 (fun w ↦ h (G₁ (Lr.symm w))) UE :=
+    ((hh.comp hG₁ hG₁S).comp Lr.symm.contDiff.contDiffOn fun _ (hv : _ ∈ UE) ↦ hv.2).of_le h2
+  have he₂ : ContDiffOn ℝ 2 (fun w ↦ h (G₂ (Lr.symm w))) UE :=
+    ((hh.comp hG₂ hG₂S).comp Lr.symm.contDiff.contDiffOn fun _ (hv : _ ∈ UE) ↦ hv.2).of_le h2
+  obtain ⟨C₂, hC₂⟩ := exists_norm_conjWirtingerDeriv_le_of_norm_iteratedFDeriv_sub_le
+    (N := N + 1) hUE he₁ he₂
+    (fun v hv j hj ↦ hCb v (interior_subset hv.1) j (by simp at hj; omega))
+    (fun v hv ↦ by simpa only [Lr.apply_symm_apply] using hC₁ _ hv.2)
+    (fun v hv ↦ by simpa only [Lr.apply_symm_apply, Nat.add_sub_cancel] using hC₁' _ hv.2)
+  refine ⟨UE, hUE.mem_nhds ⟨mem_interior_iff_mem_nhds.2 hUb, by simpa using hp₀⟩, C₂,
+    fun v hv ↦ ?_⟩
+  simpa only [Nat.add_sub_cancel] using hC₂ v hv
+
+/-- Let `L = EuclideanSpace.sumEquivProd.symm`, and let `a` be the norm of the imaginary part of
+`L p`. Bounds `C * a ^ (N + 1)` on `∂̄ F` and `C * a ^ N` on its derivative at `L p`, where
+`a ≤ 1`, give bounds of order `N` and `N - 1` in `√(t p)` on `∂̄ (F ∘ L)` and on its derivative
+at `p`, with a constant that does not depend on `F` or `p`. -/
+private theorem exists_norm_conjWirtingerDeriv_comp_sumEquivProd_symm_le {W : Type*}
+    [NormedAddCommGroup W] [NormedSpace ℂ W] (N : ℕ) (C : ℝ) :
+    ∃ C', ∀ (F : EuclideanSpace ℂ (Fin k ⊕ Fin m) → W)
+      (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)),
+      ‖(complexEuclideanEquivRealProd _ (EuclideanSpace.sumEquivProd.symm p)).2‖ ≤ 1 →
+      ‖conjWirtingerDeriv F (EuclideanSpace.sumEquivProd.symm p)‖ ≤
+        C * ‖(complexEuclideanEquivRealProd _ (EuclideanSpace.sumEquivProd.symm p)).2‖ ^ (N + 1) →
+      ‖fderiv ℝ (fun w ↦ ContinuousLinearMap.complexAntilinearPartL (fderiv ℝ F w))
+          (EuclideanSpace.sumEquivProd.symm p)‖ ≤
+        C * ‖(complexEuclideanEquivRealProd _ (EuclideanSpace.sumEquivProd.symm p)).2‖ ^ N →
+      ‖conjWirtingerDeriv (F ∘ EuclideanSpace.sumEquivProd.symm) p‖ ≤ C' * √(shape p).2 ^ N ∧
+        ‖fderiv ℝ (conjWirtingerDeriv (F ∘ EuclideanSpace.sumEquivProd.symm)) p‖ ≤
+          C' * √(shape p).2 ^ (N - 1) := by
+  set L := (EuclideanSpace.sumEquivProd (𝕜 := ℂ) (ι := Fin k) (κ := Fin m)).symm
+  set nL := ‖(L : (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) →L[ℂ]
+    EuclideanSpace ℂ (Fin k ⊕ Fin m))‖
+  refine ⟨max C 0 * (nL + nL ^ 2), fun F p ha1 h₁ h₂ ↦ ?_⟩
+  set a := ‖(complexEuclideanEquivRealProd _ (L p)).2‖
+  have ha0 : 0 ≤ a := norm_nonneg _
+  have hat : a ≤ √(shape p).2 := norm_complexEuclideanEquivRealProd_sumEquivProd_symm_snd_le p
+  have hLn : 0 ≤ nL := norm_nonneg _
+  have hC : C ≤ max C 0 := le_max_left _ _
+  constructor
+  · rw [conjWirtingerDeriv_comp_continuousLinearEquiv]
+    refine (ContinuousLinearMap.opNorm_comp_le _ _).trans ?_
+    calc _ ≤ max C 0 * a ^ (N + 1) * nL := by
+          gcongr
+          exact h₁.trans (by gcongr)
+      _ ≤ max C 0 * √(shape p).2 ^ N * (nL + nL ^ 2) := by
+          gcongr
+          · exact (pow_le_pow_of_le_one ha0 ha1 (Nat.le_succ N)).trans (by gcongr)
+          · exact le_add_of_nonneg_right (by positivity)
+      _ = _ := by ring
+  · rw [← norm_fderiv_complexAntilinearPartL_fderiv]
+    refine (norm_fderiv_complexAntilinearPartL_fderiv_comp_continuousLinearEquiv_le L _ p).trans ?_
+    calc _ ≤ nL ^ 2 * (max C 0 * a ^ N) := by
+          gcongr
+          exact h₂.trans (by gcongr)
+      _ ≤ (nL + nL ^ 2) * (max C 0 * √(shape p).2 ^ (N - 1)) := by
+          gcongr
+          · exact le_add_of_nonneg_left hLn
+          · exact (pow_le_pow_of_le_one ha0 ha1 (Nat.sub_le N 1)).trans (by gcongr)
+      _ = _ := by ring
+
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] [FiniteDimensional ℂ E]
   {M : Type*} [TopologicalSpace M] [ChartedSpace E M] [IsManifold 𝓘(ℂ, E) 1 M]
   [IsManifold 𝓘(ℝ, E) ∞ M] [T2Space M]
@@ -778,8 +878,8 @@ there is a smooth partial diffeomorphism `Φ` from `ℂᵏ × ℂᵐ` to `M` who
 holomorphic to order `N` along the core: every point `p₀` of the core has a neighbourhood `U` in
 the source of `Φ`, mapped by `Φ` into the source of the chart of `M` at `Φ p₀`, and a constant `C`
 such that the reading `e` of `Φ` in that chart satisfies, at every `p ∈ U`,
-`‖∂̄ e p‖ ≤ C * √(t p) ^ N`, and the derivative of `q ↦ complexAntilinearPartL (de q)` at `p` has
-norm at most `C * √(t p) ^ (N - 1)`, where `t p = (shape p).2`. -/
+`‖∂̄ e p‖ ≤ C * √(t p) ^ N`, and the derivative of `∂̄ e` at `p` has norm at most
+`C * √(t p) ^ (N - 1)`, where `t p = (shape p).2`. -/
 theorem exists_modelChart {ι : EuclideanSpace ℝ (Fin k) → M}
     (hι : ContMDiff 𝓘(ℝ, EuclideanSpace ℝ (Fin k)) 𝓘(ℝ, E) ∞ ι)
     (hιi : Topology.IsInducing ι)
@@ -806,9 +906,9 @@ theorem exists_modelChart {ι : EuclideanSpace ℝ (Fin k) → M}
             ‖conjWirtingerDeriv (writtenInExtChartAt
               𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) 𝓘(ℝ, E) p₀ Φ) p‖ ≤
               C * √(shape p).2 ^ N ∧
-            ‖fderiv ℝ (fun q ↦ ContinuousLinearMap.complexAntilinearPartL (fderiv ℝ
-              (writtenInExtChartAt 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
-                𝓘(ℝ, E) p₀ Φ) q)) p‖ ≤ C * √(shape p).2 ^ (N - 1) := by
+            ‖fderiv ℝ (conjWirtingerDeriv (writtenInExtChartAt
+              𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) 𝓘(ℝ, E) p₀ Φ)) p‖ ≤
+              C * √(shape p).2 ^ (N - 1) := by
   -- Step 1: the first-order chart `Φ₀`.
   obtain ⟨Φ₀, hsrc, htgt, hval, hd⟩ :=
     exists_partialDiffeomorph_modelDisc hι hιi hA hAinv hAι hO hιO
@@ -825,7 +925,7 @@ theorem exists_modelChart {ι : EuclideanSpace ℝ (Fin k) → M}
     fun x : EuclideanSpace ℝ (Fin k) ↦ exists_almostHolomorphic_modelDisc (N := N + 1)
       (by omega) Φ₀ hΦ₀I (mem_range_self x) (hsrc (mem_range_self x))
   set w : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) → ℝ := fun y ↦
-    ‖(complexEuclideanEquivRealProd _ (EuclideanSpace.sumEquivProd.symm y)).2‖ with hw_def
+    ‖(complexEuclideanEquivRealProd _ (EuclideanSpace.sumEquivProd.symm y)).2‖
   have hw : Continuous w := (continuous_snd.comp ((complexEuclideanEquivRealProd _).continuous.comp
     EuclideanSpace.sumEquivProd.symm.continuous)).norm
   have hreal := complexEuclideanEquivRealProd_sumEquivProd_symm_modelDisc_snd (k := k) (m := m)
@@ -852,13 +952,10 @@ theorem exists_modelChart {ι : EuclideanSpace ℝ (Fin k) → M}
   have hΦ : ⇑Φ = Φ₀ ∘ G' := by rw [PartialDiffeomorph.coe_trans, hΨ]
   have hΦp₀ : Φ p₀ = Φ₀ p₀ := hval' x₀
   set κ := extChartAt 𝓘(ℝ, E) (Φ₀ p₀)
-  obtain ⟨Lr, hLr, hLrs⟩ := exists_sumEquivProd_symm_restrictScalars (k := k) (m := m)
   set S₀ := Φ₀.source ∩ Φ₀ ⁻¹' (chartAt E (Φ₀ p₀)).source
   have hS₀ : IsOpen S₀ :=
     Φ₀.toOpenPartialHomeomorph.isOpen_inter_preimage (chartAt E (Φ₀ p₀)).open_source
-  -- `h`: `Φ₀` read in the chart `κ`.
-  set h := κ ∘ Φ₀
-  have hh : ContDiffOn ℝ ∞ h S₀ := Φ₀.contMDiffOn.contDiffOn_extChartAt_comp _
+  have hh : ContDiffOn ℝ ∞ (fun y ↦ κ (Φ₀ y)) S₀ := Φ₀.contMDiffOn.contDiffOn_extChartAt_comp _
   -- Near `p₀`, `G'` agrees with the local map `G x₀` to order `N + 2`.
   obtain ⟨Cg, hCg⟩ := hG'b x₀ {p₀} isCompact_singleton
     (singleton_subset_iff.2 ⟨mem_range_self _, hpU x₀⟩)
@@ -867,94 +964,41 @@ theorem exists_modelChart {ι : EuclideanSpace ℝ (Fin k) → M}
   set B := B₀ ∩ U x₀ ∩ G' ⁻¹' S₀
   have hB : IsOpen B := (hB₀o.inter (hUo x₀)).inter (hS₀.preimage hG'.continuous)
   have hp₀B : p₀ ∈ B := ⟨⟨hpB₀, hpU x₀⟩, by rw [mem_preimage, hG'fix]; exact hUS x₀ (hpU x₀)⟩
-  have hjet : ∀ z ∈ B, (complexEuclideanEquivRealProd _ (Lr z)).2 = 0 →
+  have hjet : ∀ z ∈ B,
+      (complexEuclideanEquivRealProd _ (EuclideanSpace.sumEquivProd.symm z)).2 = 0 →
       ∀ l ≤ N + 1, iteratedFDeriv ℝ l (G x₀ - G') z = 0 := by
     intro z hz hz0 l hl
     have hb := hB₀sub hz.1.1 l (by omega)
-    rw [hLr] at hz0
     simp only [w, hz0, norm_zero, zero_pow (show N + 1 + 1 - l ≠ 0 by omega), mul_zero,
       norm_le_zero_iff] at hb
     rw [← neg_sub, iteratedFDeriv_neg, Pi.neg_apply, hb, neg_zero]
-  obtain ⟨Ub, hUb, Cb, hCb⟩ := exists_norm_iteratedFDeriv_comp_sub_comp_le Lr hS₀ hh hB
-    ((hGc x₀).mono fun _ hz ↦ hz.1.2) hG'.contDiffOn (fun z hz ↦ hGS x₀ ⟨z, hz.1.2, rfl⟩)
-    (fun _ hz ↦ hz.2) hjet hp₀B (by rw [hLr]; exact hreal x₀)
-  -- The bounds in the coordinates of `ℂ^(k ⊕ m)`.
-  set UE := interior Ub ∩ Lr.symm ⁻¹' (B ∩ {y | w y < 1})
-  have hUE : IsOpen UE := isOpen_interior.inter
-    ((hB.inter (isOpen_lt hw continuous_const)).preimage Lr.symm.continuous)
-  have hUEB : ∀ v ∈ UE, Lr.symm v ∈ B := fun _ hv ↦ hv.2.1
-  have h2 : (2 : WithTop ℕ∞) ≤ ∞ := by simp
-  have he₁ : ContDiffOn ℝ 2 (h ∘ G x₀ ∘ Lr.symm) UE :=
-    ((hh.comp (hGc x₀) fun z hz ↦ hGS x₀ ⟨z, hz, rfl⟩).comp Lr.symm.contDiff.contDiffOn
-      fun v hv ↦ (hUEB v hv).1.2).of_le h2
-  have he₂ : ContDiffOn ℝ 2 (h ∘ G' ∘ Lr.symm) UE :=
-    ((hh.comp hG'.contDiffOn fun z hz ↦ hz).comp Lr.symm.contDiff.contDiffOn
-      fun v hv ↦ (hUEB v hv).2).of_le h2
-  obtain ⟨C₂, hC₂'⟩ := exists_norm_conjWirtingerDeriv_le_of_norm_iteratedFDeriv_sub_le
-    (N := N + 1) (C₁ := C x₀) hUE he₁ he₂
-    (fun v hv j hj ↦ hCb v (interior_subset hv.1) j (by simp at hj; omega))
-    (fun v hv ↦ by
-      have := hC₁ x₀ _ (hUEB v hv).1.2
-      simp only [← hLr, ← hLrs, Lr.apply_symm_apply] at this
-      exact this)
-    (fun v hv ↦ by
-      have := hC₂ x₀ _ (hUEB v hv).1.2
-      simp only [← hLr, ← hLrs, Lr.apply_symm_apply] at this
-      exact this)
-  -- Back on the model space, through the complex-linear `L = sumEquivProd.symm`.
-  set L := (EuclideanSpace.sumEquivProd (𝕜 := ℂ) (ι := Fin k) (κ := Fin m)).symm
+  -- The bounds on `∂̄` of the reading of `Φ₀ ∘ G'` in the coordinates of `ℂ^(k ⊕ m)`.
+  obtain ⟨UE, hUE, C₂, hC₂'⟩ :=
+    exists_norm_conjWirtingerDeriv_comp_le_of_iteratedFDeriv_sub_eq_zero hS₀ hh hB
+      ((hGc x₀).mono fun _ hz ↦ hz.1.2) hG'.contDiffOn (fun z hz ↦ hGS x₀ ⟨z, hz.1.2, rfl⟩)
+      (fun _ hz ↦ hz.2) hjet hp₀B (hreal x₀) (fun z hz ↦ hC₁ x₀ z hz.1.2)
+      (fun z hz ↦ by simpa only [Nat.add_sub_cancel] using hC₂ x₀ z hz.1.2)
+  -- Back on the model space, through the complex-linear `sumEquivProd.symm`.
+  obtain ⟨C, hC⟩ := exists_norm_conjWirtingerDeriv_comp_sumEquivProd_symm_le (W := E) N C₂
   have he : writtenInExtChartAt 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
-      𝓘(ℝ, E) p₀ Φ = (h ∘ G' ∘ Lr.symm) ∘ L := by
+      𝓘(ℝ, E) p₀ Φ = (fun v ↦ κ (Φ₀ (G' (EuclideanSpace.sumEquivProd v)))) ∘
+        EuclideanSpace.sumEquivProd.symm := by
+    rw [writtenInExtChartAt_model_space_left, hΦp₀, hΦ]
     funext p
-    simp [writtenInExtChartAt, hΦ, hΦp₀, h, κ, hLrs, L]
-  set nL := ‖(L : (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) →L[ℂ]
-    EuclideanSpace ℂ (Fin k ⊕ Fin m))‖
-  refine ⟨Lr ⁻¹' UE ∩ (Φ.source ∩ Φ ⁻¹' (chartAt E (Φ p₀)).source), ?_,
-    fun _ hp ↦ hp.2.1, fun _ hp ↦ hp.2.2, max C₂ 0 * (nL + nL ^ 2),
+    simp only [Function.comp_apply, ContinuousLinearEquiv.apply_symm_apply, κ]
+  refine ⟨EuclideanSpace.sumEquivProd.symm ⁻¹' interior UE ∩ {y | w y < 1} ∩
+      (Φ.source ∩ Φ ⁻¹' (chartAt E (Φ p₀)).source), ?_, fun _ hp ↦ hp.2.1, fun _ hp ↦ hp.2.2, C,
     fun p hp ↦ ?_⟩
-  · refine (hUE.preimage Lr.continuous).inter
-      (Φ.toOpenPartialHomeomorph.isOpen_inter_preimage (chartAt E _).open_source)
-      |>.mem_nhds ⟨?_, hsrc' (mem_range_self x₀), mem_chart_source E _⟩
-    refine ⟨mem_interior_iff_mem_nhds.2 hUb, ?_⟩
-    rw [mem_preimage, Lr.symm_apply_apply]
-    refine ⟨hp₀B, ?_⟩
-    exact lt_of_eq_of_lt (norm_eq_zero.2 (hreal x₀)) zero_lt_one
-  -- `a`: the norm of the imaginary part of `L p`, below `1` and `√(t p)`.
-  set a := ‖(complexEuclideanEquivRealProd _ (Lr p)).2‖
-  have hLp : L p = Lr p := by rw [hLr]
-  have ha0 : 0 ≤ a := norm_nonneg _
-  have ha1 : a ≤ 1 := by
-    have := hp.1.2.2
-    simp only [mem_ofPred_eq, w, Lr.symm_apply_apply] at this
-    simpa only [a, hLr] using this.le
-  have hat : a ≤ √(shape p).2 := by
-    simpa only [a, hLr] using norm_complexEuclideanEquivRealProd_sumEquivProd_symm_snd_le p
-  have hb := hC₂' (Lr p) hp.1
-  have hLn : 0 ≤ nL := norm_nonneg _
-  have hC : C₂ ≤ max C₂ 0 := le_max_left _ _
+  · refine (((isOpen_interior.preimage EuclideanSpace.sumEquivProd.symm.continuous).inter
+      (isOpen_lt hw continuous_const)).inter
+      (Φ.toOpenPartialHomeomorph.isOpen_inter_preimage (chartAt E _).open_source)).mem_nhds
+      ⟨⟨mem_interior_iff_mem_nhds.2 hUE, ?_⟩, hsrc' (mem_range_self x₀), mem_chart_source E _⟩
+    simp only [mem_ofPred_eq, w]
+    exact (norm_eq_zero.2 (hreal x₀)).trans_lt zero_lt_one
+  have hp1 : w p < 1 := hp.1.2
+  have hb := hC₂' _ (interior_subset hp.1.1)
   rw [he]
-  constructor
-  · rw [conjWirtingerDeriv_comp_continuousLinearEquiv]
-    refine (ContinuousLinearMap.opNorm_comp_le _ _).trans ?_
-    rw [hLp]
-    calc _ ≤ max C₂ 0 * a ^ (N + 1) * nL := by
-          gcongr
-          exact hb.1.trans (by gcongr)
-      _ ≤ max C₂ 0 * √(shape p).2 ^ N * (nL + nL ^ 2) := by
-          gcongr
-          · exact (pow_le_pow_of_le_one ha0 ha1 (Nat.le_succ N)).trans (by gcongr)
-          · exact le_add_of_nonneg_right (by positivity)
-      _ = _ := by ring
-  · refine (norm_fderiv_complexAntilinearPartL_fderiv_comp_continuousLinearEquiv_le L _ p).trans ?_
-    rw [hLp]
-    calc _ ≤ nL ^ 2 * (max C₂ 0 * a ^ N) := by
-          gcongr
-          exact hb.2.trans (by rw [Nat.add_sub_cancel]; gcongr)
-      _ ≤ (nL + nL ^ 2) * (max C₂ 0 * √(shape p).2 ^ (N - 1)) := by
-          gcongr
-          · exact le_add_of_nonneg_left hLn
-          · exact (pow_le_pow_of_le_one ha0 ha1 (Nat.sub_le N 1)).trans (by gcongr)
-      _ = _ := by ring
+  exact hC _ p hp1.le hb.1 hb.2
 
 end ModelChart
 

@@ -37,6 +37,8 @@ so it is injective where the derivative of `h` is.
   chart.
 * `ContMDiffOn.contDiffOn_extChartAt_comp`: a map from a normed space into a manifold, `C^n` on a
   set, is `C^n` in every chart where its reading is defined.
+* `writtenInExtChartAt_model_space_left`: the reading of a map from a normed space in extended
+  charts.
 * `SymplecticGeometry.injective_mfderiv_extChartAt_symm_comp`: a map into the chart target with
   injective derivative, composed with the inverse chart, has injective differential.
 -/
@@ -98,5 +100,12 @@ theorem ContMDiffOn.contDiffOn_extChartAt_comp {n : WithTop ℕ∞} [IsManifold 
     {s : Set F} (hg : ContMDiffOn 𝓘(𝕜, F) I n g s) (x : M) :
     ContDiffOn 𝕜 n (extChartAt I x ∘ g) (s ∩ g ⁻¹' (chartAt H x).source) :=
   (contMDiffOn_extChartAt.comp (hg.mono Set.inter_subset_left) fun _ hy ↦ hy.2).contDiffOn
+
+/-- The reading of a map `g` from a normed space into `M` in extended charts at `x` and at
+`g x` is `extChartAt I (g x) ∘ g`: the chart of the normed space is the identity. -/
+theorem writtenInExtChartAt_model_space_left (g : F → M) (x : F) :
+    writtenInExtChartAt 𝓘(𝕜, F) I x g = extChartAt I (g x) ∘ g := by
+  rw [writtenInExtChartAt, extChartAt_model_space_eq_id, PartialEquiv.refl_symm,
+    PartialEquiv.refl_coe, Function.comp_id]
 
 end

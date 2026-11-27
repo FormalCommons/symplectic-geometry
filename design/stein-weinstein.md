@@ -1273,8 +1273,7 @@ containing `ι '' closedBall 0 1`:
     and a constant `C` with, for `e = writtenInExtChartAt 𝓘(ℝ, V)
     𝓘(ℝ, E) p₀ Φ` (the chart of `M` at `Φ p₀`, holomorphic) and all
     `p ∈ U`, `‖∂̄e p‖ ≤ C * √(t p) ^ N` and
-    `‖fderiv ℝ (fun q ↦ complexAntilinearPartL (fderiv ℝ e q)) p‖ ≤
-    C * √(t p) ^ (N - 1)`. The bound is
+    `‖fderiv ℝ (fun q ↦ ∂̄e q) p‖ ≤ C * √(t p) ^ (N - 1)`. The bound is
     stated near each point of the core in one fixed chart because
     `chartAt` need not vary continuously. Proof as in *Route* above:
     the local maps `G = h⁻¹ ∘ taylorExtension N (h ∘ ofReal)`,
