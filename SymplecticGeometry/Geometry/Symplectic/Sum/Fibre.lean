@@ -9,7 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.Gluing.Pair
 public import SymplecticGeometry.Geometry.Symplectic.Sum.Collar
 public import SymplecticGeometry.Geometry.Symplectic.Sum.ProductNeighborhood
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
-import Mathlib.Analysis.Convex.PathConnected
+import SymplecticGeometry.Analysis.Convex.PathConnected
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Analysis.Complex.ClosedAnnulus
@@ -58,6 +58,7 @@ sum, which is symplectic when `σ₁` and `σ₂` are.
   `Q × A(δ, ε)`, as a map into the complement of the tube;
   `SymplecticGeometry.ProductNeighborhood.collar`, its image, and
   `SymplecticGeometry.ProductNeighborhood.collarDiffeomorph`, the diffeomorphism onto it.
+* `SymplecticGeometry.ProductNeighborhood.isPathConnected_collar`: the collar is path connected.
 * `SymplecticGeometry.fiberSumGluing`: the gluing diffeomorphism between the two collars.
 * `SymplecticGeometry.FiberSum`: the fiber sum.
 * `SymplecticGeometry.FiberSum.symplecticForm`: the form of the fiber sum glued from `σ₁` and
@@ -174,27 +175,19 @@ theorem isPathConnected_range_comp_annulusToProdBall [PathConnectedSpace Q] {a :
 
 /-- The range of a product neighbourhood of radius `ε > 0` of a path connected `Q` is path
 connected. -/
-theorem isPathConnected_range [PathConnectedSpace Q] (hε : 0 < ε) : IsPathConnected (range f) := by
-  have h := (isPathConnected_univ (X := Q)).prod
-    ((convex_ball (0 : ℂ) ε).isPathConnected ⟨0, Metric.mem_ball_self hε⟩)
-  have : PathConnectedSpace (prodBall Q ε) :=
-    isPathConnected_iff_pathConnectedSpace.1 (by simpa using h)
-  exact _root_.isPathConnected_range f.isOpenEmbedding.continuous
+theorem isPathConnected_range [PathConnectedSpace Q] (hε : 0 < ε) : IsPathConnected (range f) :=
+  (prodBallHomeomorph Q ε).surjective.range_comp f ▸
+    isPathConnected_range_prod_ball hε (f.continuous.comp (prodBallHomeomorph Q ε).continuous)
 
 /-- A product neighbourhood `f`, as a homeomorphism from `Q × B²(ε)` onto its range. -/
 def rangeHomeomorph : Q × Metric.ball (0 : ℂ) ε ≃ₜ range f :=
-  ({ toFun := fun w ↦ ⟨(w.1, w.2), mem_prodBall.2 (mem_ball_zero_iff.1 w.2.property)⟩
-     invFun := fun w ↦ ((w : Q × ℂ).1,
-       ⟨(w : Q × ℂ).2, mem_ball_zero_iff.2 (mem_prodBall.1 w.property)⟩)
-     left_inv := fun _ ↦ rfl
-     right_inv := fun _ ↦ rfl } : Q × Metric.ball (0 : ℂ) ε ≃ₜ prodBall Q ε).trans
-    f.isOpenEmbedding.isEmbedding.toHomeomorph
+  (prodBallHomeomorph Q ε).trans f.isOpenEmbedding.isEmbedding.toHomeomorph
 
 @[simp]
 theorem coe_rangeHomeomorph_apply (w : Q × Metric.ball (0 : ℂ) ε) :
     (f.rangeHomeomorph w : M) =
       f ⟨(w.1, w.2), mem_prodBall.2 (mem_ball_zero_iff.1 w.2.property)⟩ :=
-  (rfl)
+  congrArg f (Subtype.ext (coe_prodBallHomeomorph_apply w))
 
 /-- For `0 < ε`, the image of `ι` lies in the range of a product neighbourhood. -/
 theorem range_embedding_subset_range (hε : 0 < ε) : range ι ⊆ range f := by
@@ -276,6 +269,16 @@ theorem mem_collar_iff {hδε : δ < ε} {x : f.complTube hδε} :
 theorem collarMap_mem_collar (hδε : δ < ε) (p : Q × annulus ℂ δ ε) :
     f.collarMap hδε p ∈ f.collar hδε :=
   f.mem_collar_iff.2 (mem_range_self p)
+
+/-- The collar `f (Q × A(δ, ε))` of a product neighbourhood of a path connected `Q`, for
+`0 ≤ δ < ε`, is path connected. -/
+theorem isPathConnected_collar [PathConnectedSpace Q] (hδ : 0 ≤ δ) (hδε : δ < ε) :
+    IsPathConnected (f.collar hδε : Set (f.complTube hδε)) := by
+  have h : (f.collar hδε : Set (f.complTube hδε)) = range (f.collarMap hδε) :=
+    Set.ext fun _ ↦ f.mem_collar_iff
+  rw [Topology.IsInducing.subtypeVal.isPathConnected_iff, h, ← range_comp]
+  convert f.isPathConnected_range_comp_annulusToProdBall hδ hδε using 2
+  exact funext (f.coe_collarMap hδε)
 
 /-- The collar of a product neighbourhood is diffeomorphic to `Q × A(δ, ε)`. -/
 def collarDiffeomorph (hδε : δ < ε) :
