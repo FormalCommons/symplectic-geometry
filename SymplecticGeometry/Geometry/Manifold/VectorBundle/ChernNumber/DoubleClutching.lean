@@ -14,6 +14,7 @@ public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Double.Topolo
 import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Clutching
 import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
+import TauCeti.Topology.Homeomorph.SetCongr
 
 /-!
 # The clutched bundle over the double of a surface
@@ -148,8 +149,8 @@ theorem boundaryMaslovIndex_eq_sublevelBoundaryMaslovIndex_height
     (isOpenEmbedding_inlInterior c).isEmbedding.toHomeomorph.trans
       (Homeomorph.setCongr (preimage_height_Iio c).symm)
   have hφ (p : (𝓡∂ 2).interior S) :
-      (φ p : c.Double) = inlInterior c p :=
-    rfl
+      (φ p : c.Double) = inlInterior c p := by
+    rw [Homeomorph.trans_apply, Homeomorph.setCongr_apply, IsEmbedding.toHomeomorph_apply_coe]
   have ho : (((orientation c o).toHomologicalOrientation hn).comap U.isOpenEmbedding').comap
       φ.isOpenEmbedding = o.toHomologicalOrientation hn :=
     (HomologicalOrientation.comap_comap_of_comp_eq _ U.isOpenEmbedding' φ.isOpenEmbedding

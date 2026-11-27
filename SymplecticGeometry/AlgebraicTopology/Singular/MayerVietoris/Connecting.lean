@@ -7,6 +7,7 @@ module
 
 public import TauCeti.AlgebraicTopology.Singular.MayerVietoris.Reduced
 public import SymplecticGeometry.AlgebraicTopology.Singular.PairMap
+import TauCeti.Topology.Homeomorph.SetCongr
 
 /-!
 # The Mayer–Vietoris connecting morphism through the connecting morphism of a pair
@@ -284,8 +285,13 @@ theorem mayerVietorisδ_eq_neg_singularHomologyδ_right (n m : ℕ) (h : m + 1 =
       ofHom (ContinuousMap.inclusion Set.inter_subset_right) := by
     rw [Iso.trans_inv, Category.assoc, TopPair.interPairSndIso_inv_comp_map]
     -- Both sides send a point `y` of `U ∩ V` to the point `y` of `V`.
-    ext
-    rfl
+    -- The `rw` above leaves a goal that is not type-correct at reducible transparency, so
+    -- `ConcreteCategory.comp_apply` does not fire; compose the bundled maps by `ofHom_comp`.
+    rw [TopCat.isoOfHomeo_inv]
+    refine (TopCat.ofHom_comp _ _).symm.trans
+      (congrArg TopCat.ofHom (ContinuousMap.ext fun y => Subtype.ext ?_))
+    simp only [ContinuousMap.comp_apply, ContinuousMap.coe_ofClass,
+      Homeomorph.setCongr_symm_apply, ContinuousMap.inclusion_apply_coe]
   obtain ⟨g, hgr, hgb⟩ : ∃ g, ((SSet.chainComplexFunctor C).obj R).map
         (toSmallSingularSubcomplex ![U, V] (Matrix.cons_val_zero U ![V]).superset) ≫ g = 0 ∧
       ((SSet.chainComplexFunctor C).obj R).map (toSmallSingularSubcomplex ![U, V]
