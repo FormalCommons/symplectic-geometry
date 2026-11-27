@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Lie.Adjoint.Representation.Coadjoint.Basic
 public import TauCeti.LinearAlgebra.BilinearForm.Dual.Form
 public import TauCeti.RepresentationTheory.InvariantForm
 public import Mathlib.Topology.Algebra.Module.FiniteDimensionBilinear
+public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
 import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 import TauCeti.Geometry.Manifold.MFDeriv.ContinuousLinearMap
@@ -41,12 +42,14 @@ equivariance or smoothness.
   vanishes exactly where `μ` does.
 * `SymplecticGeometry.momentSharp_neg`, `SymplecticGeometry.momentNormSq_neg`: replacing `μ`
   by `-μ`, as the sign convention of an equivariant moment map may require, negates `μ♯` and
-  leaves the norm square unchanged.
+  leaves the norm square unchanged; `SymplecticGeometry.momentNormSq_neg'` states the latter as
+  an equality of functions.
 * `SymplecticGeometry.momentSharp_smul`, `SymplecticGeometry.momentNormSq_smul`: for an
   `Ad`-invariant `B` and a coadjoint-equivariant `μ`, `μ♯` is equivariant and the norm square
   is `G`-invariant.
 * `SymplecticGeometry.contMDiff_momentNormSq`: if each component `x ↦ μ x ξ` is `C^n`, so is the
-  norm square.
+  norm square; by `SymplecticGeometry.contMDiff_momentNormSq_of_isMomentMap`, the norm square of
+  a moment map is smooth.
 * `SymplecticGeometry.mvfderiv_momentNormSq`: for a symmetric `B` and differentiable components,
   the derivative of the norm square at `x` is twice that of `y ↦ μ y (μ♯ x)`.
 
@@ -130,6 +133,10 @@ theorem momentNormSq_eq_apply_momentSharp :
 theorem momentNormSq_neg : momentNormSq B hB (fun x ↦ -μ x) x = momentNormSq B hB μ x := by
   simp [momentNormSq_eq_momentSharp, momentSharp_neg]
 
+/-- The norm square of `-μ` is that of `μ`, as functions on `M`. -/
+theorem momentNormSq_neg' : momentNormSq B hB (fun x ↦ -μ x) = momentNormSq B hB μ :=
+  funext fun _ ↦ momentNormSq_neg
+
 /-- For a nonnegative form `B`, the norm square of `μ x` is nonnegative. -/
 theorem momentNormSq_nonneg (hpos : B.IsNonneg) : 0 ≤ momentNormSq B hB μ x := by
   rw [momentNormSq_eq_momentSharp]
@@ -184,6 +191,16 @@ theorem contMDiff_momentNormSq [TopologicalSpace M] [ChartedSpace H' M] {n : Wit
   have hL := contMDiff_toContinuousLinearMap_of_contMDiff_apply (E := E) hμ
   rw [momentNormSq_eq_clm_apply]
   exact hL.clm_apply ((ContinuousLinearMap.contMDiff _).comp hL)
+
+/-- The norm square of a moment map `μ`, for a two-form `σ` on a smooth manifold, is smooth.
+When `-μ` is the moment map, `momentNormSq_neg'` turns this into the smoothness of the norm
+square of `μ`. -/
+theorem contMDiff_momentNormSq_of_isMomentMap [CompleteSpace E]
+    [LieGroup I (minSmoothness ℝ 3) G] [TopologicalSpace M] [ChartedSpace H' M]
+    [IsManifold I' ∞ M] {σ : SmoothTwoForm I' M}
+    {a : InfinitesimalAction (GroupLieAlgebra I G) I' M} (h : σ.IsMomentMap a μ) :
+    ContMDiff I' 𝓘(ℝ) ∞ (momentNormSq B hB μ) :=
+  contMDiff_momentNormSq h.contMDiff
 
 /-- For a symmetric form `B`, if each component `y ↦ μ y ξ` of `μ` is differentiable at `x`, the
 derivative of the norm square at `x` is twice that of the component `y ↦ μ y (μ♯ x)`. -/
