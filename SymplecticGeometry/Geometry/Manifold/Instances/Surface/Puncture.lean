@@ -13,6 +13,7 @@ import Mathlib.Analysis.Convex.PathConnected
 import SymplecticGeometry.Geometry.Manifold.ConnectedSum.FundamentalGroup
 import TauCeti.Analysis.Normed.Module.Ball.Homeomorph
 import TauCeti.Geometry.Manifold.ConnectedSum.Sphere
+import SymplecticGeometry.Geometry.Manifold.ConnectedSum.Sphere
 import SymplecticGeometry.Geometry.Manifold.ConnectedSum.Restrict
 import TauCeti.Geometry.Manifold.Connected
 
@@ -448,36 +449,6 @@ theorem continuous_sphereCoChart : Continuous sphereCoChart :=
 @[simp] theorem sphereCoChart_zero : sphereCoChart 0 = basePoint 0 := by
   rw [sphereCoChart_def, neg_zero, sphereBall_zero, neg_neg, Diffeomorph.symm_apply_apply]
 
-/-- Away from `0`, the complementary chart is the chart `sphereChart` after the inversion in the
-unit circle. -/
-theorem sphereCoChart_of_ne {w : EuclideanSpace ℝ (Fin 2)} (hw : w ≠ 0) :
-    sphereCoChart w = sphereChart (EuclideanGeometry.inversion 0 1 w) := by
-  rw [sphereCoChart_def, sphereChart_def,
-    ← (isComplementaryBall_sphereBall _).apply_eq_inversion w hw]
-
-/-- Away from `0`, the complementary chart after the inversion in the unit circle is the chart
-`sphereChart`. -/
-theorem sphereCoChart_inversion {w : EuclideanSpace ℝ (Fin 2)} (hw : w ≠ 0) :
-    sphereCoChart (EuclideanGeometry.inversion 0 1 w) = sphereChart w := by
-  rw [sphereCoChart_of_ne (by simpa [EuclideanGeometry.inversion_eq_center] using hw),
-    EuclideanGeometry.inversion_inversion _ one_ne_zero]
-
-/-- On the unit circle the two charts of the sphere agree. -/
-theorem sphereCoChart_of_norm_eq_one {w : EuclideanSpace ℝ (Fin 2)} (hw : ‖w‖ = 1) :
-    sphereCoChart w = sphereChart w := by
-  rw [sphereCoChart_of_ne (by rintro rfl; simp at hw),
-    EuclideanGeometry.inversion_of_mem_sphere (by simpa using hw)]
-
-/-- The point `(0, -1)` is the same point in both charts of the sphere. -/
-theorem sphereCoChart_zero_neg_one : sphereCoChart !₂[0, -1] = sphereChart !₂[0, -1] :=
-  sphereCoChart_of_norm_eq_one (by simp [EuclideanSpace.norm_eq, Fin.sum_univ_two])
-
-/-- The ball `j` of the sphere, read in the chart `sphereChart`, is the ball of radius `1 / 2`
-about `j • e`, for `e = (1, 0)`. -/
-theorem ball_zero_eq_sphereChart (j : ℕ) (w : EuclideanSpace ℝ (Fin 2)) :
-    ball 0 j w = sphereChart (univBall (j • EuclideanSpace.single 0 1) (1 / 2) w) := by
-  rw [sphereChart_def, ← zeroDiffeomorph_ball, Diffeomorph.symm_apply_apply]
-
 /-- The two charts of the sphere form a complementary pair of balls: the chart `sphereCoChart` is
 an open embedding that misses only the centre of `sphereChart`, and the two are glued by the
 inversion in the unit circle. -/
@@ -494,7 +465,36 @@ theorem isComplementaryBall_sphereChart : IsComplementaryBall sphereChart sphere
       rw [hc, range_comp, h.range_eq,
         image_compl_eq (f := zeroDiffeomorph.symm) zeroDiffeomorph.symm.toHomeomorph.bijective,
         image_singleton, sphereChart_def]
-    apply_eq_inversion := fun _ hw ↦ sphereCoChart_of_ne hw }
+    apply_eq_inversion := fun w hw ↦ by
+      rw [sphereCoChart_def, sphereChart_def, ← h.apply_eq_inversion w hw] }
+
+/-- Away from `0`, the complementary chart is the chart `sphereChart` after the inversion in the
+unit circle. -/
+theorem sphereCoChart_of_ne {w : EuclideanSpace ℝ (Fin 2)} (hw : w ≠ 0) :
+    sphereCoChart w = sphereChart (EuclideanGeometry.inversion 0 1 w) :=
+  isComplementaryBall_sphereChart.apply_eq_inversion w hw
+
+/-- Away from `0`, the complementary chart after the inversion in the unit circle is the chart
+`sphereChart`. -/
+theorem sphereCoChart_inversion {w : EuclideanSpace ℝ (Fin 2)} (hw : w ≠ 0) :
+    sphereCoChart (EuclideanGeometry.inversion 0 1 w) = sphereChart w :=
+  (isComplementaryBall_sphereChart.apply_eq_inversion_symm hw).symm
+
+/-- On the unit circle the two charts of the sphere agree. -/
+theorem sphereCoChart_of_norm_eq_one {w : EuclideanSpace ℝ (Fin 2)} (hw : ‖w‖ = 1) :
+    sphereCoChart w = sphereChart w := by
+  rw [sphereCoChart_of_ne (by rintro rfl; simp at hw),
+    EuclideanGeometry.inversion_of_mem_sphere (by simpa using hw)]
+
+/-- The point `(0, -1)` is the same point in both charts of the sphere. -/
+theorem sphereCoChart_zero_neg_one : sphereCoChart !₂[0, -1] = sphereChart !₂[0, -1] :=
+  sphereCoChart_of_norm_eq_one (by simp [EuclideanSpace.norm_eq, Fin.sum_univ_two])
+
+/-- The ball `j` of the sphere, read in the chart `sphereChart`, is the ball of radius `1 / 2`
+about `j • e`, for `e = (1, 0)`. -/
+theorem ball_zero_eq_sphereChart (j : ℕ) (w : EuclideanSpace ℝ (Fin 2)) :
+    ball 0 j w = sphereChart (univBall (j • EuclideanSpace.single 0 1) (1 / 2) w) := by
+  rw [sphereChart_def, ← zeroDiffeomorph_ball, Diffeomorph.symm_apply_apply]
 
 /-- The complementary chart of the sphere covers everything but the centre of the ball `0`. -/
 theorem range_sphereCoChart : range sphereCoChart = {ball 0 0 0}ᶜ := by
