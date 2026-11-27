@@ -12,6 +12,7 @@ public import TauCeti.LinearAlgebra.BilinearForm.Dual.Form
 public import TauCeti.RepresentationTheory.InvariantForm
 public import Mathlib.Topology.Algebra.Module.FiniteDimensionBilinear
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
+import SymplecticGeometry.LinearAlgebra.BilinearForm.CauchySchwarz
 import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 import TauCeti.Geometry.Manifold.MFDeriv.ContinuousLinearMap
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
@@ -154,10 +155,8 @@ theorem momentNormSq_eq_zero_iff (hB' : B.toQuadraticMap.Anisotropic) :
 theorem abs_apply_le_sqrt_momentNormSq_mul_sqrt (hBs : B.IsSymm) (hpos : B.IsNonneg)
     (ξ : GroupLieAlgebra I G) :
     |μ x ξ| ≤ √(momentNormSq B hB μ x) * √(B ξ ξ) := by
-  rw [← apply_momentSharp (hB := hB), momentNormSq_eq_momentSharp,
-    ← Real.sqrt_mul (hpos.nonneg _)]
-  exact Real.abs_le_sqrt
-    (B.apply_sq_le_of_symm hpos.nonneg (LinearMap.BilinForm.isSymm_iff.1 hBs) _ _)
+  rw [← apply_momentSharp (hB := hB), momentNormSq_eq_momentSharp]
+  exact B.abs_apply_le_sqrt_mul_sqrt hBs hpos _ _
 
 /-- For a coadjoint-equivariant `μ` and an `Ad`-invariant form `B`, the dual vector is
 `Ad`-equivariant: `μ♯ (g • x) = Ad_g (μ♯ x)`. -/
