@@ -32,9 +32,14 @@ the transition and its inverse are continuous on the preimage of the base set
 (`Bundle.Trivialization.continuousOn_frameTransition`,
 `Bundle.Trivialization.continuousOn_frameTransition_symm`), for fibres that are groups. Over the
 base set the transition is the frame read in `e`, which is continuous there by Tau Ceti's
-`TauCeti.continuousOn_continuousLinearMapAt_comp`. Composing the inverse of such a frame with a
-family of linear maps `L y : G → E (f y)` that is continuous into the total space gives a
-continuous family of maps `G → F` (`SymplecticGeometry.Bundle.continuous_frame_symm_comp`).
+`TauCeti.continuousOn_continuousLinearMapAt_comp`. More generally, a family of linear maps
+`L y : G → E (f y)` from a finite-dimensional space that is continuous into the total space is,
+read in `e`, continuous on the preimage of the base set
+(`Bundle.Trivialization.continuousOn_continuousLinearMapAt_comp`). Its proof adapts that of
+`TauCeti.continuousOn_continuousLinearMapAt_comp`, the case of a frame. Composing the inverse of
+a frame with such a family gives a continuous family of maps `G → F`
+(`SymplecticGeometry.Bundle.continuous_frame_symm_comp`); the proof follows that of Tau Ceti's
+`TauCeti.continuous_trans_symm_of_continuous_frame_aux`.
 
 ## References
 
@@ -175,6 +180,30 @@ theorem continuousOn_frameTransition_symm (e : Trivialization F (π F E)) [e.IsL
 
 end Bundle.Trivialization
 
+namespace Bundle.Trivialization
+
+variable {R : Type*} [NontriviallyNormedField R] [CompleteSpace R] {B X : Type*}
+  [TopologicalSpace B] [TopologicalSpace X] {F : Type*} [NormedAddCommGroup F] [NormedSpace R F]
+  {E : X → Type*} [∀ x, AddCommMonoid (E x)] [∀ x, Module R (E x)] [∀ x, TopologicalSpace (E x)]
+  [TopologicalSpace (TotalSpace F E)] [FiberBundle F E] {f : B → X}
+
+/-- Let `L y : G → E (f y)` be linear maps from a finite-dimensional space `G`, continuous as a
+map `B × G → TotalSpace F E`. Read in a linear trivialization `e`, they form a family of maps
+`G → F` that is continuous on the preimage of the base set of `e`. -/
+theorem continuousOn_continuousLinearMapAt_comp {G : Type*} [NormedAddCommGroup G]
+    [NormedSpace R G] [FiniteDimensional R G] {L : ∀ y, G →L[R] E (f y)}
+    (hL : Continuous fun q : B × G ↦ TotalSpace.mk' F (f q.1) (L q.1 q.2))
+    (e : Trivialization F (π F E)) [e.IsLinear R] :
+    ContinuousOn (fun y ↦ (e.continuousLinearMapAt R (f y)).comp (L y)) (f ⁻¹' e.baseSet) := by
+  refine continuousOn_clm_apply.2 fun v ↦ ?_
+  have hc : ContinuousOn (fun y ↦ (e (TotalSpace.mk' F (f y) (L y v))).2) (f ⁻¹' e.baseSet) :=
+    continuous_snd.comp_continuousOn (e.continuousOn.comp
+      (hL.comp (Continuous.prodMk_left v)).continuousOn fun y hy ↦ e.mem_source.2 hy)
+  refine hc.congr fun y (hy : f y ∈ e.baseSet) ↦ ?_
+  simp [e.coe_linearMapAt_of_mem hy]
+
+end Bundle.Trivialization
+
 namespace SymplecticGeometry.Bundle
 
 variable {R : Type*} [NontriviallyNormedField R] [CompleteSpace R] {B X : Type*}
@@ -198,17 +227,8 @@ theorem continuous_frame_symm_comp {G : Type*} [NormedAddCommGroup G] [NormedSpa
   have hU : f ⁻¹' e.baseSet ∈ nhds y₀ :=
     (TauCeti.continuous_of_continuous_frame hφ).continuousAt.preimage_mem_nhds
       (e.open_baseSet.mem_nhds (FiberBundle.mem_baseSet_trivializationAt' (f y₀)))
-  -- Read in `e`, the maps `L y` are a family of maps `G → F`, continuous over the base set.
-  have hcoord : ContinuousOn (fun y ↦ (e.continuousLinearMapAt R (f y)).comp (L y))
-      (f ⁻¹' e.baseSet) := by
-    refine continuousOn_clm_apply.2 fun v ↦ ?_
-    have hc : ContinuousOn (fun y ↦ (e (TotalSpace.mk' F (f y) (L y v))).2) (f ⁻¹' e.baseSet) :=
-      continuous_snd.comp_continuousOn (e.continuousOn.comp
-        (hL.comp (Continuous.prodMk_left v)).continuousOn fun y hy ↦ e.mem_source.2 hy)
-    refine hc.congr fun y (hy : f y ∈ e.baseSet) ↦ ?_
-    simp [e.coe_linearMapAt_of_mem hy]
   refine ((Bundle.Trivialization.continuousOn_frameTransition_symm hφ e).clm_comp
-    hcoord).continuousAt hU |>.congr_of_eventuallyEq ?_
+    (e.continuousOn_continuousLinearMapAt_comp hL)).continuousAt hU |>.congr_of_eventuallyEq ?_
   filter_upwards [hU] with y (hy : f y ∈ e.baseSet)
   ext v
   simp [Bundle.Trivialization.frameTransition_of_mem hy, e.coe_linearMapAt_of_mem hy,
