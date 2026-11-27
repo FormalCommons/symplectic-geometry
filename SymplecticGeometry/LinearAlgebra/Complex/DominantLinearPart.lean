@@ -63,6 +63,9 @@ section whose antiholomorphic derivative is dominated by its holomorphic derivat
 * `TauCeti.SymplecticForm.orientation_ker_eq_of_norm_complexAntilinearPart_lt`: for such a map,
   the kernel orientation of the symplectic orientation of `V` and the complex orientation
   `TauCeti.complexOrientation` of `W` is the symplectic orientation of the kernel.
+* `TauCeti.SymplecticForm.ofExact_orientation_ker_of_norm_complexAntilinearPart_lt`: the same,
+  read the other way: the symplectic orientation of the kernel, followed by the complex orientation
+  of `W` (`Orientation.ofExact`), is the symplectic orientation of `V`.
 
 The proof is direct rather than by deforming `A + t B`: the Riesz vectors `a`, `b` of the real
 parts of `A` and `B` give `x = -J (a + b)` and `y = a - b`, with `ω x y = ‖a‖ ^ 2 - ‖b‖ ^ 2`, and
@@ -464,6 +467,35 @@ theorem SymplecticForm.orientation_ker_eq_of_norm_complexAntilinearPart_lt
     orientation_ker_eq_of_apply_eq hG hxy hV] at key
   refine (Orientation.map (Fin m) (LinearEquiv.ofEq _ _ hker.symm)).injective (key.trans ?_)
   exact (IsSymplectomorphism.map_orientation (isSymplectomorphism_iff.2 fun _ _ ↦ by simp) hm).symm
+
+/-- **The orientation of `V` from a real-linear map to a complex line with dominant complex-linear
+part.** In the setting of `SymplecticForm.orientation_ker_eq_of_norm_complexAntilinearPart_lt`,
+the orientation of `V` induced through `0 → K → V → W → 0` (`Orientation.ofExact`, kernel first)
+by the symplectic orientation of the kernel `K` of `F` and the complex orientation
+`complexOrientation W` of `W` is the symplectic orientation of `V`. The real dimension of `W` is
+written as any `r` with `finrank ℝ W = r`, as the model fibre of a vector bundle gives it. -/
+theorem SymplecticForm.ofExact_orientation_ker_of_norm_complexAntilinearPart_lt
+    (hg : ∀ v w, ω v (J w) = ⟪v, w⟫_ℝ) (hW : finrank ℂ W = 1) {F : V →L[ℝ] W}
+    (h : ‖LinearMap.toContinuousLinearMap (complexAntilinearPart J.toLinearMap
+        (AlmostComplexStructure.ofComplexModule W).toLinearMap (F : V →ₗ[ℝ] W))‖ <
+      ‖LinearMap.toContinuousLinearMap (complexLinearPart J.toLinearMap
+        (AlmostComplexStructure.ofComplexModule W).toLinearMap (F : V →ₗ[ℝ] W))‖)
+    {m r : ℕ} (hV : finrank ℝ V = m + r)
+    (hm : finrank ℝ (LinearMap.ker (F : V →ₗ[ℝ] W)) = m) (hWr : finrank ℝ W = r) :
+    haveI : FiniteDimensional ℂ W := Module.finite_of_finrank_eq_succ hW
+    haveI : FiniteDimensional ℝ W := Module.Finite.trans ℂ W
+    Orientation.ofExact (LinearMap.ker (F : V →ₗ[ℝ] W)).injective_subtype
+        (LinearMap.exact_subtype_ker_map _) (surjective_of_norm_complexAntilinearPart_lt hg hW h)
+        ((ω.restrict _ (isSymplectic_ker_of_norm_complexAntilinearPart_lt hg hW
+          h).nondegenerate_restrict).orientation hm)
+        (Orientation.reindex ℝ W (finCongr (finrank_real_eq_two_mul_finrank_complex.symm.trans hWr))
+          (complexOrientation W)) hm hWr =
+      ω.orientation hV := by
+  have : FiniteDimensional ℂ W := Module.finite_of_finrank_eq_succ hW
+  have : FiniteDimensional ℝ W := Module.Finite.trans ℂ W
+  obtain rfl : r = 2 := by rw [← hWr, finrank_real_eq_two_mul_finrank_complex, hW]
+  rw [← Orientation.kerOfExact_eq_iff]
+  exact orientation_ker_eq_of_norm_complexAntilinearPart_lt hg hW h hV hm
 
 end Line
 

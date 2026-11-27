@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.Orientation.NormalOrientation
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSet.Embedding
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Basic
 public import TauCeti.Topology.VectorBundle.Orientation.Comap
@@ -45,6 +46,8 @@ orientation is pulled back by `TauCeti.VectorBundleOrientation.comap`.
 
 * `TauCeti.SmoothEmbedding.tangentRange_ofTransverseSection`: the tangent range of the zero set
   at `z` is the kernel of `L_z`.
+* `SymplecticGeometry.tangentSpaceEquivKerOfTransverseSection`: the differential of the inclusion,
+  as an isomorphism of the tangent space of the zero set at `z` with the kernel of `L_z`.
 * `SymplecticGeometry.normalSpaceEquivOfTransverseSection`: the isomorphism of the normal space
   of the zero set at `z` with `E'_z`, sending the normal class of `v` to `L_z v`
   (`SymplecticGeometry.normalSpaceEquivOfTransverseSection_normalClass`).
@@ -53,6 +56,10 @@ orientation is pulled back by `TauCeti.VectorBundleOrientation.comap`.
 * `SymplecticGeometry.normalOrientationOfSection`: for real bundles, the orientation of the
   normal bundle of the zero set carried from an orientation `o'` of `E'`, characterized by
   `SymplecticGeometry.map_normalOrientationOfSection_apply`.
+* `SymplecticGeometry.normalOrientation_ofTransverseSection_eq_normalOrientationOfSection_iff`:
+  the normal orientation induced by orientations of `X` and of the zero set is
+  `normalOrientationOfSection o'` exactly when, at each `z`, the orientation of the zero set
+  carried to `ker L_z`, followed by `o'` at `z`, gives the orientation of `X`.
 
 ## References
 
@@ -159,6 +166,33 @@ theorem normalSpaceEquivOfTransverseSection_symm_apply (z : ↥{x : X | s x = 0}
       (ofTransverseSection hm hsm hs hE).isImmersion.normalClass z hm v := by
   let := transverseZeroSetChartedSpace hm hsm hs hE
   rw [ContinuousLinearEquiv.symm_apply_eq, normalSpaceEquivOfTransverseSection_normalClass]
+
+/-- **The tangent space of the zero set as the kernel of the linearization.** At a point `z` of
+the zero set of a transverse section `s`, the differential of the inclusion of the zero set at `z`
+is a linear equivalence from the tangent space of the zero set at `z` onto the kernel of the
+linearization of `s` at `z` (`SymplecticGeometry.coe_tangentSpaceEquivKerOfTransverseSection`). -/
+noncomputable def tangentSpaceEquivKerOfTransverseSection (z : ↥{x : X | s x = 0}) :
+    letI := transverseZeroSetChartedSpace hm hsm hs hE
+    TangentSpace 𝓘(𝕜, E) z ≃ₗ[𝕜] LinearMap.ker (sectionLinearization (F := F') J _root_.id s
+      (ofTransverseSection hm hsm hs hE z)).toLinearMap :=
+  letI := transverseZeroSetChartedSpace hm hsm hs hE
+  ((ofTransverseSection hm hsm hs hE).isImmersion.tangentSpaceEquivTangentRange z
+      hm).toLinearEquiv.trans
+    (LinearEquiv.ofEq _ _ (by simpa using tangentRange_ofTransverseSection hm hsm hs hE z))
+
+/-- The equivalence `SymplecticGeometry.tangentSpaceEquivKerOfTransverseSection` sends a tangent
+vector `v` of the zero set at `z` to its image under the differential of the inclusion. -/
+@[simp]
+theorem coe_tangentSpaceEquivKerOfTransverseSection (z : ↥{x : X | s x = 0})
+    (v : letI := transverseZeroSetChartedSpace hm hsm hs hE; TangentSpace 𝓘(𝕜, E) z) :
+    letI := transverseZeroSetChartedSpace hm hsm hs hE
+    (tangentSpaceEquivKerOfTransverseSection hm hsm hs hE z v :
+        TangentSpace J (ofTransverseSection hm hsm hs hE z)) =
+      mfderiv 𝓘(𝕜, E) J (ofTransverseSection hm hsm hs hE) z v := by
+  let := transverseZeroSetChartedSpace hm hsm hs hE
+  rw [tangentSpaceEquivKerOfTransverseSection, LinearEquiv.trans_apply,
+    LinearEquiv.coe_ofEq_apply, ContinuousLinearEquiv.coe_toLinearEquiv,
+    Manifold.IsImmersion.coe_tangentSpaceEquivTangentRange_apply]
 
 /-- **The normal bundle of the zero set is the restriction of the bundle.** The total-space map
 `(z, ν) ↦ (z, φ_z ν)` of the normal-space equivalences `φ_z` of a transverse section, over the
@@ -275,6 +309,73 @@ theorem map_normalOrientationOfSection_apply (o' : VectorBundleOrientation F' E'
     (g := (ofTransverseSection hm hsm hs hE).toContinuousMap)
     hι o'
     (continuous_normalSpaceEquivOfTransverseSection hm hsm hs hE) z
+
+/-- **Comparing normal orientations of the zero set.** Orient `X` by `oX` and the zero set `Z`
+of the transverse section `s`, of dimension `k`, by `oZ`, and let `o'` be an orientation of
+`E'`. The normal orientation of `Z` induced by `oX` and `oZ`
+(`TauCeti.SmoothEmbedding.normalOrientation`) is the one carried from `o'`
+(`SymplecticGeometry.normalOrientationOfSection`) if and only if, at each `z ∈ Z`, the orientation
+of `T_z X` induced through `0 → ker L_z → T_z X → E'_z → 0` (`Orientation.ofExact`, kernel first)
+by the orientation of `T_z Z` carried to `ker L_z`
+(`SymplecticGeometry.tangentSpaceEquivKerOfTransverseSection`) and by `o'` at `z` is `oX` at
+`z`, where `L_z` is the linearization of `s` at `z`. -/
+theorem normalOrientation_ofTransverseSection_eq_normalOrientationOfSection_iff {k : ℕ}
+    (hk : finrank ℝ E = k) (oX : Manifold.Orientation J X (Fin (k + finrank ℝ F')))
+    (oZ : letI := transverseZeroSetChartedSpace hm hsm hs hE
+      Manifold.Orientation 𝓘(ℝ, E) ↥{x : X | s x = 0} (Fin k))
+    (o' : VectorBundleOrientation F' E' (Fin (finrank ℝ F'))) :
+    letI := transverseZeroSetChartedSpace hm hsm hs hE
+    haveI := isManifold_transverseZeroSet hm hsm hs hE
+    haveI : IsManifold 𝓘(ℝ, E) 1 ↥{x : X | s x = 0} :=
+      .of_le (ENat.one_le_iff_ne_zero_withTop.mpr hm)
+    haveI : IsManifold J 1 X := .of_le (ENat.one_le_iff_ne_zero_withTop.mpr hm)
+    haveI (x : X) : FiniteDimensional ℝ (E' x) := VectorBundle.finiteDimensional ℝ F' E' x
+    letI := (ofTransverseSection hm hsm hs hE).normalSpaceFiberBundle (P := F') hm
+      (Nat.eq_sub_of_add_eq' hE)
+    letI := (ofTransverseSection hm hsm hs hE).normalSpaceVectorBundle (P := F') hm
+      (Nat.eq_sub_of_add_eq' hE)
+    (ofTransverseSection hm hsm hs hE).normalOrientation hm (Nat.eq_sub_of_add_eq' hE) oX oZ =
+        normalOrientationOfSection hm hsm hs hE (Fintype.card_fin _) o' ↔
+      ∀ z : ↥{x : X | s x = 0},
+        Orientation.ofExact (LinearMap.ker (sectionLinearization (F := F') J _root_.id s
+            (ofTransverseSection hm hsm hs hE z)).toLinearMap).injective_subtype
+          (LinearMap.exact_subtype_ker_map _)
+          (hs _ (ofTransverseSection_apply_eq_zero hm hsm hs hE z))
+          (Orientation.map (Fin k) (tangentSpaceEquivKerOfTransverseSection hm hsm hs hE z)
+            (oZ.orientationAt z))
+          (o' (ofTransverseSection hm hsm hs hE z))
+          ((tangentSpaceEquivKerOfTransverseSection hm hsm hs hE z).finrank_eq.symm.trans hk)
+          (VectorBundle.finrank_eq ℝ F' E' _) =
+        oX.orientationAt (ofTransverseSection hm hsm hs hE z) := by
+  let := transverseZeroSetChartedSpace hm hsm hs hE
+  have := isManifold_transverseZeroSet hm hsm hs hE
+  have : IsManifold 𝓘(ℝ, E) 1 ↥{x : X | s x = 0} :=
+    .of_le (ENat.one_le_iff_ne_zero_withTop.mpr hm)
+  have : IsManifold J 1 X := .of_le (ENat.one_le_iff_ne_zero_withTop.mpr hm)
+  have (x : X) : FiniteDimensional ℝ (E' x) := VectorBundle.finiteDimensional ℝ F' E' x
+  let := (ofTransverseSection hm hsm hs hE).normalSpaceFiberBundle (P := F') hm
+    (Nat.eq_sub_of_add_eq' hE)
+  have := (ofTransverseSection hm hsm hs hE).normalSpaceVectorBundle (P := F') hm
+    (Nat.eq_sub_of_add_eq' hE)
+  rw [VectorBundleOrientation.ext_iff]
+  refine forall_congr' fun z ↦ ?_
+  have hr := (ofTransverseSection hm hsm hs hE).finrank_normalSpace_eq (P := F') hm
+    (Nat.eq_sub_of_add_eq' hE) z
+  rw [SmoothEmbedding.normalOrientation_eq_iff _ _ _ _ _ z _ hk hr]
+  set f := ofTransverseSection hm hsm hs hE
+  -- The differential of `f`, the identity and the normal-space equivalence carry the tangent
+  -- sequence of `f` at `z` onto `0 → ker L_z → T_z X → E'_z → 0`.
+  have key := Orientation.map_ofExact (f.isImmersion.mfderiv_injective hm z)
+    (f.exact_mfderiv_normalClass z hm) (f.isImmersion.normalClass_surjective z hm)
+    (LinearMap.ker _).injective_subtype (LinearMap.exact_subtype_ker_map _)
+    (hs _ (ofTransverseSection_apply_eq_zero hm hsm hs hE z))
+    (tangentSpaceEquivKerOfTransverseSection hm hsm hs hE z) (LinearEquiv.refl ℝ _)
+    (normalSpaceEquivOfTransverseSection hm hsm hs hE z).toLinearEquiv
+    (fun v ↦ (coe_tangentSpaceEquivKerOfTransverseSection hm hsm hs hE z v).symm)
+    (fun v ↦ normalSpaceEquivOfTransverseSection_normalClass hm hsm hs hE z v)
+    (oZ.orientationAt z) (normalOrientationOfSection hm hsm hs hE (Fintype.card_fin _) o' z) hk hr
+  rw [Orientation.map_refl, Equiv.refl_apply, map_normalOrientationOfSection_apply] at key
+  rw [key]
 
 /-- Reversing the orientation of `E'` reverses the normal orientation of the zero set. -/
 @[simp]
