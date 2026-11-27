@@ -1655,8 +1655,9 @@ are set on compact manifolds. Three pieces are missing:
   (for each `n ≥ 1`, a map `ι : A.stableSubspace → M` with `ι 0 = p`,
   `C^n` with injective `mfderiv` on `ball 0 ρ`, whose image there lies in
   the stable set and contains the points of the stable set near `p` with
-  `f` near `f p`, and with `d(e ∘ φ_t ∘ ι)` bounded in `t ≥ 0`, `e` the
-  extended chart at `p`); and the main results
+  `f` near `f p`, and with `φ_t (ι z)` in the source of `e` and
+  `e ∘ φ_t ∘ ι` differentiable at `z`, with derivative bounded in `t ≥ 0`,
+  `e` the extended chart at `p`); and the main results
   `IsWeinsteinStructure.interior_apply_mfderiv_eq_zero_of_range_subset_stableSet`
   and `IsWeinsteinStructure.apply_mfderiv_mfderiv_eq_zero_of_range_subset_stableSet`.
 - Issue 15e, `Weinstein/Handle/AttachingSphere.lean`, for

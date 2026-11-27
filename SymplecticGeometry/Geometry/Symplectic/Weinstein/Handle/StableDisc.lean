@@ -74,8 +74,9 @@ apply to `SymplecticGeometry.IsWeinsteinStructure.flow` after a rewrite with
 * `SymplecticGeometry.IsWeinsteinStructure.exists_localStableDisc`: the local stable disc of a
   nondegenerate critical point `p`, a `C^n` map from the stable subspace of the linearization
   with injective differential on a ball, whose image there lies in the stable set of `p` and
-  contains every point of it near `p` at which `f` is close to `f p`, and along which the
-  derivative of the flow, read in the chart at `p`, is bounded in positive time.
+  contains every point of it near `p` at which `f` is close to `f p`, whose orbits in positive
+  time stay in the chart at `p`, and along which the derivative of the flow, read in that chart,
+  exists and is bounded in positive time.
 
 ## Implementation notes
 
@@ -247,8 +248,9 @@ stable subspace of `A` to `M` with `ι 0 = p` and a radius `ρ > 0` such that:
 * `ι` maps that ball into the stable set of `p`;
 * the image of that ball contains every point of the stable set of `p` that lies in some
   neighbourhood `U` of `p` and at which `f` exceeds `f p - ε`, for some `ε > 0`;
-* at each point `z` of that ball, the derivative of `w ↦ e (φ_t (ι w))` is bounded independently
-  of `t ≥ 0`, where `φ` is the flow of the Liouville field. -/
+* at each point `z` of that ball and each `t ≥ 0`, where `φ` is the flow of the Liouville field,
+  the point `φ_t (ι z)` lies in the source of `e`, the map `w ↦ e (φ_t (ι w))` is differentiable
+  at `z`, and its derivative there is bounded independently of `t`. -/
 theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p)
     {A : E →L[ℝ] E} (hA : A = sectionLinearization (F := E) 𝓘(ℝ, E) id X p) {n : ℕ}
     (hn : 1 ≤ n) :
@@ -259,7 +261,9 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
       ι '' ball 0 ρ ⊆ hW.flow.stableSet p ∧
       (∃ U ∈ 𝓝 p, ∃ ε > 0, hW.flow.stableSet p ∩ U ∩ {x | f p - ε < f x} ⊆ ι '' ball 0 ρ) ∧
       ∀ z ∈ ball (0 : A.stableSubspace) ρ, ∃ C : ℝ, ∀ t, 0 ≤ t →
-        ‖fderiv ℝ (fun w ↦ extChartAt 𝓘(ℝ, E) p (hW.flow t (ι w))) z‖ ≤ C := by
+        hW.flow t (ι z) ∈ (extChartAt 𝓘(ℝ, E) p).source ∧
+          DifferentiableAt ℝ (fun w ↦ extChartAt 𝓘(ℝ, E) p (hW.flow t (ι w))) z ∧
+          ‖fderiv ℝ (fun w ↦ extChartAt 𝓘(ℝ, E) p (hW.flow t (ι w))) z‖ ≤ C := by
   have hXp : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ, E).tangent
       (fun x ↦ (X x : TangentBundle 𝓘(ℝ, E) M)) p :=
     (hW.contMDiff_field p).mdifferentiableAt (by simp)
@@ -374,6 +378,8 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
     have hD : HasFDerivAt (fun w : S ↦ e p + y w t)
         ((fderiv ℝ (fun v ↦ y v t) z).comp S.subtypeL) z :=
       ((hyd t ht).hasFDerivAt.comp (f := S.subtypeL) z S.subtypeL.hasFDerivAt).const_add _
+    refine ⟨(horb z hz t ht).2 ▸ e.map_target (horb z hz t ht).1,
+      (hD.congr_of_eventuallyEq heq).differentiableAt, ?_⟩
     rw [heq.fderiv_eq, hD.fderiv]
     exact (ContinuousLinearMap.opNorm_comp_le _ _).trans
       ((mul_le_of_le_one_right (norm_nonneg _) (Submodule.norm_subtypeL_le S)).trans (hC t ht))
