@@ -403,7 +403,7 @@ attribute [local instance high] IsManifold.instOfNatWithTopENat_1
 
 omit [T2Space M] in
 /-- `ψ ∘ complexToRealEuclidean` is a symplectic map from `ω₀` on `E` to `σ` on its source. -/
-private theorem isSymplecticMapOn_complexPartialDiffeomorph
+theorem isSymplecticMapOn_complexPartialDiffeomorph
     (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) :
     (ω₀E n).IsSymplecticMapOn σ hψ.complexPartialDiffeomorph
       hψ.complexPartialDiffeomorph.source := by
