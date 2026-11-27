@@ -19,7 +19,6 @@ import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Coordinates
 import SymplecticGeometry.Topology.VectorBundle.Complement
 import SymplecticGeometry.Topology.VectorBundle.Frame
-import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 import TauCeti.Geometry.Manifold.ModelWithCorners.RestrictScalars.Tangent.CoordChange
 import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.ComplexTangentBundle
@@ -142,6 +141,10 @@ theorem contMDiffAt_inTangentCoordinates_complexExtension_mfderiv
   filter_upwards [hnear] with x hx
   exact inTangentCoordinates_complexExtension_eq _ hx
 
+/-- The underlying real manifold of the complex manifold `M`. -/
+private local instance : IsManifold 𝓘(ℝ, E) ∞ M :=
+  IsManifold.restrictScalars ℝ (inferInstance : IsManifold 𝓘(ℂ, E) ∞ M)
+
 section ContinuousComplement
 
 open _root_.Bundle Function Module TauCeti.SmoothAlmostComplexStructure
@@ -150,10 +153,6 @@ variable [FiniteDimensional ℂ E]
   {Y : Type*} [TopologicalSpace Y] [R1Space Y] [ParacompactSpace Y] [ContractibleSpace Y]
   {G₁ G₂ : Type*} [NormedAddCommGroup G₁] [NormedSpace ℂ G₁] [FiniteDimensional ℂ G₁]
   [NormedAddCommGroup G₂] [NormedSpace ℂ G₂] [FiniteDimensional ℂ G₂]
-
-/-- The underlying real manifold of the complex manifold `M`. -/
-private local instance : IsManifold 𝓘(ℝ, E) ∞ M :=
-  IsManifold.restrictScalars ℝ (inferInstance : IsManifold 𝓘(ℂ, E) ∞ M)
 
 /-- **A continuous complex complement along a map from a contractible space.** Let `M` be a
 complex manifold modelled on a finite-dimensional space `E`, `Y` a contractible paracompact R₁
@@ -217,10 +216,6 @@ open _root_.Bundle Function Module TauCeti.SmoothAlmostComplexStructure
 variable {EX HX X : Type*} [NormedAddCommGroup EX] [NormedSpace ℝ EX] [TopologicalSpace HX]
   {IX : ModelWithCorners ℝ EX HX} [TopologicalSpace X] [ChartedSpace HX X]
 
-/-- The underlying real manifold of the complex manifold `M`. -/
-private local instance instIsManifoldRealSmoothing : IsManifold 𝓘(ℝ, E) ∞ M :=
-  IsManifold.restrictScalars ℝ (inferInstance : IsManifold 𝓘(ℂ, E) ∞ M)
-
 /-- On a neighbourhood `U` of each point `x₀` there is a family `s` of complex-linear maps,
 smooth in tangent coordinates at the points of `U`, whose defect
 `(L y, B₀ y)⁻¹ ∘ (s y - B₀ y) ∘ snd` from `B₀` has norm less than `1`: the map `B₀ x₀`, carried
@@ -251,19 +246,13 @@ private theorem exists_mem_nhds_frame_near [IsManifold 𝓘(ℝ, E) 1 M]
   have hsrc (y : X) (hy : y ∈ Ω) :
       ι y ∈ (extChartAt 𝓘(ℝ, E) (ι x₀)).source ∧ ι y ∈ (extChartAt 𝓘(ℝ, E) (ι y)).source :=
     ⟨by rwa [extChartAt_source], mem_extChartAt_source (ι y)⟩
-  have hRT (y : X) (hy : y ∈ Ω) : R y ∘L T y = .id ℝ E := by
-    ext v
-    exact TauCeti.tangentCoordChange_tangentCoordChange (hsrc y hy).2 (hsrc y hy).1 v
-  have hTR (y : X) (hy : y ∈ Ω) : T y ∘L R y = .id ℝ E := by
-    ext v
-    exact TauCeti.tangentCoordChange_tangentCoordChange (hsrc y hy).1 (hsrc y hy).2 v
-  have hTinv (y : X) (hy : y ∈ Ω) : (T y).IsInvertible := .of_inverse (hTR y hy) (hRT y hy)
-  have hTinverse (y : X) (hy : y ∈ Ω) : (T y).inverse = R y := by
-    calc (T y).inverse = (T y).inverse ∘L (T y ∘L R y) := by
-          rw [hTR y hy, ContinuousLinearMap.comp_id]
-      _ = R y := by
-          rw [← ContinuousLinearMap.comp_assoc, (hTinv y hy).inverse_comp_self,
-            ContinuousLinearMap.id_comp]
+  have hRT (y : X) (hy : y ∈ Ω) : R y ∘L T y = .id ℝ E :=
+    tangentCoordChange_comp_tangentCoordChange _ (hsrc y hy).2 (hsrc y hy).1
+  have hTinv (y : X) (hy : y ∈ Ω) : (T y).IsInvertible :=
+    .of_inverse (tangentCoordChange_comp_tangentCoordChange _ (hsrc y hy).1 (hsrc y hy).2)
+      (hRT y hy)
+  have hTinverse (y : X) (hy : y ∈ Ω) : (T y).inverse = R y :=
+    inverse_tangentCoordChange _ (hsrc y hy).2 (hsrc y hy).1
   have hT₀ : T x₀ = .id ℝ E := by
     ext v
     exact tangentCoordChange_self (hsrc x₀ hx₀Ω).1

@@ -6,21 +6,26 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.VectorBundle.Tangent
+import SymplecticGeometry.Topology.VectorBundle.Frame
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 
 /-!
-# Constant endomorphisms of the tangent bundle in tangent coordinates
+# Families of linear maps in tangent coordinates
 
-On a manifold `M` modelled on `E`, a continuous linear endomorphism `J₀` of `E` gives the
-constant family `y ↦ J₀` of endomorphisms of the tangent spaces `T_x M = E`. Read in the tangent
-coordinates of the chart at a point `x₀`, this family is `J₀` at each point `x` of the chart's
-source at which `J₀` commutes with the tangent coordinate change from the chart at `x` to the
-chart at `x₀` (`inTangentCoordinates_const`).
+This file reads families of continuous linear maps into the tangent spaces of a manifold `M`,
+modelled on `E`, in the tangent coordinates of a chart.
 
-The proof writes the reading by Mathlib's `inTangentCoordinates_eq` as a conjugate of `J₀` by
-tangent coordinate changes, and cancels them with Tau Ceti's
-`TauCeti.tangentCoordChange_tangentCoordChange`. It follows that of the private lemma
-`inTangentCoordinates_I_smul_id` of Tau Ceti's
+On the overlap of the charts at `x` and `y`, the tangent coordinate changes from `x` to `y` and
+from `y` to `x` are mutually inverse (`tangentCoordChange_comp_tangentCoordChange`,
+`inverse_tangentCoordChange`), by Tau Ceti's `TauCeti.tangentCoordChange_tangentCoordChange`.
+
+A continuous linear endomorphism `J₀` of `E` gives the constant family `y ↦ J₀` of endomorphisms
+of the tangent spaces `T_x M = E`. Read in the tangent coordinates of the chart at a point `x₀`,
+this family is `J₀` at each point `x` of the chart's source at which `J₀` commutes with the
+tangent coordinate change from the chart at `x` to the chart at `x₀`
+(`inTangentCoordinates_const`). The proof writes the reading by Mathlib's
+`inTangentCoordinates_eq` as a conjugate of `J₀` by tangent coordinate changes and cancels them.
+It follows that of the private lemma `inTangentCoordinates_I_smul_id` of Tau Ceti's
 `TauCeti/Geometry/Symplectic/Manifold/AlmostComplex/Basic.lean`, the case of multiplication by
 `i` on a complex model space.
 
@@ -28,9 +33,10 @@ For a family of maps from a model space into the tangent spaces, the coordinates
 play no role: in tangent coordinates the family is its composite with the tangent coordinate
 changes of `M` (`inTangentCoordinates_eq_tangentCoordChange_comp`). Such a family that is
 continuous as a map `X × G → TM` is continuous in tangent coordinates
-(`continuousAt_inTangentCoordinates_of_continuous`), and a fixed map read in one chart and carried
-to the tangent spaces along a `Cⁿ` map by the tangent coordinate changes is `Cⁿ` in tangent
-coordinates (`contMDiffAt_inTangentCoordinates_tangentCoordChange_comp`).
+(`continuousAt_inTangentCoordinates_of_continuous`, from
+`Bundle.Trivialization.continuousOn_continuousLinearMapAt_comp`), and a fixed map read in one
+chart and carried to the tangent spaces along a `Cⁿ` map by the tangent coordinate changes is
+`Cⁿ` in tangent coordinates (`contMDiffAt_inTangentCoordinates_tangentCoordChange_comp`).
 -/
 
 public section
@@ -42,6 +48,21 @@ open scoped Manifold Topology
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {E H M : Type*} [NormedAddCommGroup E]
   [NormedSpace 𝕜 E] [TopologicalSpace H] (I : ModelWithCorners 𝕜 E H) [TopologicalSpace M]
   [ChartedSpace H M] [IsManifold I 1 M]
+
+/-- On the overlap of the charts at `x` and `y`, the tangent coordinate change from `y` to `x`
+undoes that from `x` to `y`. -/
+theorem tangentCoordChange_comp_tangentCoordChange {x y z : M}
+    (hx : z ∈ (extChartAt I x).source) (hy : z ∈ (extChartAt I y).source) :
+    tangentCoordChange I y x z ∘L tangentCoordChange I x y z = .id 𝕜 E :=
+  ContinuousLinearMap.ext (TauCeti.tangentCoordChange_tangentCoordChange hx hy)
+
+/-- On the overlap of the charts at `x` and `y`, the tangent coordinate change from `x` to `y` is
+invertible, with inverse the tangent coordinate change from `y` to `x`. -/
+theorem inverse_tangentCoordChange {x y z : M} (hx : z ∈ (extChartAt I x).source)
+    (hy : z ∈ (extChartAt I y).source) :
+    (tangentCoordChange I x y z).inverse = tangentCoordChange I y x z :=
+  ContinuousLinearMap.inverse_eq (tangentCoordChange_comp_tangentCoordChange I hy hx)
+    (tangentCoordChange_comp_tangentCoordChange I hx hy)
 
 /-- Let `x` be in the source of the chart at `x₀`. If a continuous linear endomorphism `J₀` of the
 model space commutes with the tangent coordinate change at `x` from the chart at `x` to the chart
@@ -82,25 +103,17 @@ theorem continuousAt_inTangentCoordinates_of_continuous [CompleteSpace 𝕜] {G 
   have hg : Continuous g :=
     (FiberBundle.continuous_proj E _).comp (hϕ.comp (Continuous.prodMk_left 0))
   let e := trivializationAt E (TangentSpace I) (g x₀)
-  let Ω : Set X := g ⁻¹' (chartAt H (g x₀)).source
-  have hΩ : Ω ∈ 𝓝 x₀ :=
-    hg.continuousAt.preimage_mem_nhds ((chartAt H (g x₀)).open_source.mem_nhds
-      (mem_chart_source H (g x₀)))
-  have hbase (x : X) (hx : x ∈ Ω) : g x ∈ e.baseSet := by
-    simpa [e] using show g x ∈ (chartAt H (g x₀)).source from hx
-  refine (continuousOn_clm_apply.2 fun v ↦ ?_).continuousAt hΩ
-  have hc : ContinuousOn (fun x ↦ (e ⟨g x, ϕ x v⟩).2) Ω :=
-    continuous_snd.comp_continuousOn (e.continuousOn.comp
-      (hϕ.comp (continuous_id.prodMk continuous_const)).continuousOn
-      fun x hx ↦ e.mem_source.2 (hbase x hx))
-  refine hc.congr fun x hx ↦ ?_
-  rw [inTangentCoordinates_eq_tangentCoordChange_comp I ϕ hx]
-  -- `ContinuousLinearMap.comp_apply` does not rewrite here, since the target of `ϕ x` is
-  -- `TangentSpace I (g x)` and that of the composite is `E`.
-  change tangentCoordChange I (g x) (g x₀) (g x) (ϕ x v) = (e ⟨g x, ϕ x v⟩).2
-  rw [← e.continuousLinearMapAt_apply_of_mem (R := 𝕜) (hbase x hx),
-    TangentBundle.continuousLinearMapAt_trivializationAt_eq_core hx]
-  -- `tangentCoordChange` is this coordinate change of `tangentBundleCore I M`.
+  have hΩ : g ⁻¹' e.baseSet ∈ 𝓝 x₀ :=
+    hg.continuousAt.preimage_mem_nhds
+      (e.open_baseSet.mem_nhds (FiberBundle.mem_baseSet_trivializationAt' (g x₀)))
+  refine ((Bundle.Trivialization.continuousOn_continuousLinearMapAt_comp hϕ e).continuousAt
+    hΩ).congr_of_eventuallyEq ?_
+  filter_upwards [hΩ] with x hx
+  have hx' : g x ∈ (chartAt H (g x₀)).source := by simpa [e] using hx
+  rw [inTangentCoordinates_eq_tangentCoordChange_comp I ϕ hx',
+    TangentBundle.continuousLinearMapAt_trivializationAt_eq_core hx']
+  -- Mathlib's `tangentCoordChange` is an abbreviation for this coordinate change of
+  -- `tangentBundleCore I M`, with no lemma that states it.
   rfl
 
 /-- Carry a fixed map `C : G → E`, read in the chart at `ι x₀`, to the tangent spaces along `ι`:
