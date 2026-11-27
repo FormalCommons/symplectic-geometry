@@ -16,6 +16,7 @@ import SymplecticGeometry.Geometry.Manifold.FiberBundle.RestrictsTo
 import SymplecticGeometry.Geometry.Manifold.Orientation.PositiveForm
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.ChangeOfVariables
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Regularity
+import TauCeti.Geometry.Manifold.PartitionOfUnity.Basic
 
 /-!
 # Area forms on the fibres of an oriented surface fibration
@@ -96,8 +97,8 @@ theorem exists_restricts_isPositive_area [T2Space B] [SigmaCompactSpace B] [T2Sp
       φ ∈ Diffeomorph.orientationPreservingSubgroup (n := ∞) (by simp) o ∧
         ⇑φ = (A.trivAt b).coordChange (A.trivAt i) b' := fun i ↦ by
     by_cases hi : i ∈ ρ.finsupport b'
-    · obtain ⟨φ, hφ, hφe⟩ := hasStructureGroup_iff.1 hH b i b' hb'
-        (hρ i (subset_tsupport _ ((ρ.mem_finsupport b').1 hi)))
+    · obtain ⟨φ, hφ, hφe⟩ :=
+        hasStructureGroup_iff.1 hH b i b' hb' (hρ.mem_of_mem_finsupport hi)
       exact ⟨φ, fun _ ↦ ⟨hφ, hφe⟩⟩
     · exact ⟨Diffeomorph.refl IF F ∞, fun h ↦ absurd h hi⟩
   choose φ hφ using hφ
