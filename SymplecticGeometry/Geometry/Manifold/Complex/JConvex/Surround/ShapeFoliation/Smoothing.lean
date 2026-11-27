@@ -64,6 +64,11 @@ only weakly increasing in `ℓ` (`SymplecticGeometry.exists_monotone_shapeChain`
   `r`-derivative and from below in second `r`-derivative, gives the family
   `ρ r * ψ₀ ℓ r + (1 - ρ r) * χ ℓ r`. Its members are shapes by the one-sided blend lemma of
   `ConvexShape/Basic.lean`, and its `ℓ`-derivative is a convex combination of `∂ψ₀/∂ℓ` and `∂χ/∂ℓ`.
+* `SymplecticGeometry.exists_contDiff_eventuallyEq_of_eventuallyEq_Icc`: three families smooth
+  on `ℝ²` that agree near the joints `ℓ = a` and `ℓ = b` give one smooth family that is, near
+  each point of the rectangle, the piece of its interval in `ℓ`. The glued function is smooth on
+  the open set where it agrees locally with one of the pieces, and Tau Ceti's
+  `ContDiffOn.exists_contDiff_eventuallyEq_on_isCompact` extends it from near the rectangle.
 * `SymplecticGeometry.exists_shapeFoliation`: the assembly. Given a family `χ` on
   `Q = [ℓ₀, ℓ₁] × [r₁, r₂]` that is smooth with `∂χ/∂ℓ > 0` near the part
   `E = {ℓ₀, ℓ₁} × [r₁, r₂] ∪ [ℓ₀, ℓ₁] × {r₂}` of the boundary and whose members lie below
@@ -543,13 +548,14 @@ theorem exists_contDiff_eventuallyEq_of_eventuallyEq_Icc {T₀ T T₁ : ℝ → 
     Or.inr (Or.inr ⟨h1, (hψ₀eq x hx).trans h2⟩)]
 
 /-- **A strictly increasing smooth family of `i`-convex shapes with prescribed ends.** Let
-`Q = [ℓ₀, ℓ₁] × [r₁, r₂]`, `0 < r₁`, and let `E` be the part `{ℓ₀, ℓ₁} × [r₁, r₂] ∪
-[ℓ₀, ℓ₁] × {r₂}` of its boundary. Let `χ : ℝ → ℝ → ℝ` be a family of functions such that at
-each point of `Q`, `χ ℓ` is `C²` and an `i`-convex shape at `r`, with value and first two
-`r`-derivatives continuous in `(ℓ, r)` on `Q`, such that `χ ℓ r < χ ℓ₁ r` for `ℓ < ℓ₁`, and
-such that on a neighbourhood `U` of `E` the family is smooth in `(ℓ, r)` with `∂χ/∂ℓ > 0`.
-Then there is a family `ψ`, smooth in `(ℓ, r)` on `Q`, whose members are `i`-convex shapes
-with `∂ψ/∂ℓ > 0` on `Q`, and which equals `χ` near `E`. -/
+`Q = [ℓ₀, ℓ₁] × [r₁, r₂]` with `0 < r₁`, `ℓ₀ < ℓ₁` and `r₁ < r₂`, and let `E` be the part
+`{ℓ₀, ℓ₁} × [r₁, r₂] ∪ [ℓ₀, ℓ₁] × {r₂}` of its boundary. Let `χ : ℝ → ℝ → ℝ` be a family of
+functions such that at each point of `Q`, `χ ℓ` is `C²` and an `i`-convex shape at `r`, with
+value and first two `r`-derivatives continuous in `(ℓ, r)` on `Q`; such that
+`χ ℓ r < χ ℓ₁ r` for `ℓ ∈ [ℓ₀, ℓ₁)` and `r ∈ [r₁, r₂]`; and such that on a neighbourhood `U`
+of `E` the family is smooth in `(ℓ, r)` with `∂χ/∂ℓ > 0`. Then there is a family `ψ`, smooth in
+`(ℓ, r)` on `Q`, whose members are `i`-convex shapes with `∂ψ/∂ℓ > 0` at each point of `Q`,
+and which equals `χ` on a neighbourhood of `E`. -/
 theorem exists_shapeFoliation {χ : ℝ → ℝ → ℝ} {ℓ₀ ℓ₁ r₁ r₂ : ℝ} {U : Set (ℝ × ℝ)}
     (hr₁ : 0 < r₁) (hℓ : ℓ₀ < ℓ₁) (hr : r₁ < r₂)
     (hC2 : ∀ x ∈ Icc ℓ₀ ℓ₁ ×ˢ Icc r₁ r₂, ContDiffAt ℝ 2 (χ x.1) x.2)
