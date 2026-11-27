@@ -49,7 +49,9 @@ Eliashberg describe the hypersurfaces of their model handle by curves `R = χ(r)
   composed with `shape`, is the hypersurface of the shape. Its partial derivatives use
   `Real.iteratedDeriv_two_sqrt` for the second derivative of `√·`, and
   `SymplecticGeometry.fderiv_shapeGraph_comp_shape_apply` gives the differential of
-  `shapeGraph χ ∘ shape`.
+  `shapeGraph χ ∘ shape`. Over a point `(χ r ², r ²)` of the curve, `shapeGraph χ` vanishes
+  (`SymplecticGeometry.shapeGraph_sq_sq`) and that differential does not
+  (`SymplecticGeometry.fderiv_shapeGraph_comp_shape_ne_zero`).
 * `SymplecticGeometry.IsConvexShapeAt.re_leviForm_pos`: if `χ` is `C²` at `r` and
   `IsConvexShapeAt χ r`, then at every `p` with `shape p = (χ r ², r ²)` the Levi form of
   `shapeGraph χ ∘ shape` is positive on the nonzero complex tangencies of its level set.
@@ -522,6 +524,44 @@ theorem fderiv_shapeGraph_comp_shape_apply
   rw [Prod.mk.eta] at h
   rw [fderiv_comp_shape_apply hH, h]
 
+/-- `shapeGraph χ` vanishes at the point `(χ r ², r ²)` of the curve of the shape, for
+`χ r ≥ 0` and `r ≥ 0`. -/
+theorem shapeGraph_sq_sq (hR : 0 ≤ χ r) (hr : 0 ≤ r) : shapeGraph χ (χ r ^ 2, r ^ 2) = 0 := by
+  rw [shapeGraph_def, Real.sqrt_sq hr, Real.sqrt_sq hR, sub_self]
+
+/-- The differential of `shapeGraph χ ∘ shape` at a point `p` over the point `(χ r ², r ²)` of the
+curve of the shape, for `χ r > 0`, `r > 0` and `χ` differentiable at `r`:
+`v ↦ -ds_p v / (2 χ r) + dt_p v χ'(r) / (2 r)`. -/
+theorem fderiv_shapeGraph_comp_shape_apply_of_shape_eq (hχ : DifferentiableAt ℝ χ r)
+    (hR : 0 < χ r) (hr : 0 < r) {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)}
+    (hp : shape p = (χ r ^ 2, r ^ 2)) (v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    fderiv ℝ (shapeGraph χ ∘ shape) p v =
+      -fderiv ℝ (fun q ↦ (shape q).1) p v / (2 * χ r) +
+        fderiv ℝ (fun q ↦ (shape q).2) p v * deriv χ r / (2 * r) := by
+  have hsr : √(r ^ 2) = r := Real.sqrt_sq hr.le
+  rw [fderiv_shapeGraph_comp_shape_apply (by rwa [hp, hsr]) (by rw [hp]; positivity)
+    (by rw [hp]; positivity), hp, Real.sqrt_sq hR.le, hsr]
+
+/-- At a point `p` over the point `(χ r ², r ²)` of the curve of the shape, for `χ r > 0`, `r > 0`
+and `χ` differentiable at `r`, the differential of `shapeGraph χ ∘ shape` does not vanish: it
+takes the value `-χ r` on the vector `((Re p₁ⱼ)ⱼ, 0)`. -/
+theorem fderiv_shapeGraph_comp_shape_ne_zero (hχ : DifferentiableAt ℝ χ r) (hR : 0 < χ r)
+    (hr : 0 < r) {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)}
+    (hp : shape p = (χ r ^ 2, r ^ 2)) : fderiv ℝ (shapeGraph χ ∘ shape) p ≠ 0 := by
+  intro h0
+  have h1 := fderiv_shapeGraph_comp_shape_apply_of_shape_eq hχ hR hr hp
+    (WithLp.toLp 2 (fun j ↦ ((p.1 j).re : ℂ)), 0)
+  rw [h0, zero_apply, fderiv_shape_fst_apply, fderiv_shape_snd_apply] at h1
+  have hsum : ∑ j, (p.1 j).re * (p.1 j).re = χ r ^ 2 := by
+    have h2 : (shape p).1 = χ r ^ 2 := by rw [hp]
+    rw [shape_fst] at h2
+    rw [← h2]
+    exact Finset.sum_congr rfl fun j _ ↦ (sq _).symm
+  simp only [ofReal_re, ofReal_im, mul_zero, Finset.sum_const_zero,
+    inner_zero_right, zero_re, add_zero, hsum] at h1
+  field_simp at h1
+  exact hR.ne' (by nlinarith [h1])
+
 /-- On a complex tangency of `shapeGraph χ ∘ shape` at a point with `√s = R`, `√t = r` and
 `χ'(r) = d`, written through `fderiv_shapeGraph_comp_shape_apply`, the Wirtinger derivatives
 `σ = ∑ⱼ xⱼ v₁ⱼ` and `τ = ⟪w, v₂⟫ - i ∑ⱼ yⱼ v₁ⱼ` are proportional: `τ = r / (d R) σ`. -/
@@ -564,13 +604,8 @@ theorem IsConvexShapeAt.re_leviForm_pos (hχ : ContDiffAt ℝ 2 χ r) (h : IsCon
   have hs : 0 < χ r ^ 2 := by positivity
   have ht : 0 < r ^ 2 := by positivity
   have hH : ContDiffAt ℝ 2 (shapeGraph χ) (shape p) := hp ▸ contDiffAt_shapeGraph hχ' hs ht
-  have htan (u : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
-      fderiv ℝ (shapeGraph χ ∘ shape) p u =
-        -fderiv ℝ (fun q ↦ (shape q).1) p u / (2 * χ r) +
-          fderiv ℝ (fun q ↦ (shape q).2) p u * deriv χ r / (2 * r) := by
-    rw [fderiv_shapeGraph_comp_shape_apply (by rw [hp]; exact hχ'.differentiableAt (by norm_num))
-      (by rw [hp]; exact hs) (by rw [hp]; exact ht), hp, hsR, hsr]
-  rw [htan] at hv₁ hv₂
+  rw [fderiv_shapeGraph_comp_shape_apply_of_shape_eq (hχ.differentiableAt (by norm_num)) hR hr
+    hp] at hv₁ hv₂
   -- On a complex tangency, `τ = λ σ` with `λ = r / (χ' R)`.
   have hτσ := inner_sub_I_mul_sum_eq_of_tangent hR.ne' hr.ne' hd.ne' hv₁ hv₂
   rw [re_leviForm_comp_shape_apply_self hH v, hp,
