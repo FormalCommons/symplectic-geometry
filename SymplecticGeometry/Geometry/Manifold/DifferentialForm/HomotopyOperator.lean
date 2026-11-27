@@ -185,8 +185,8 @@ theorem mpullback_homotopyOperator {E' H' M' : Type*} [NormedAddCommGroup E'] [N
     (hg : ContMDiff I' I ∞ g) (φ : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc (0 : ℝ) 1) F (k + 1)) :
     mpullback g hg (homotopyOperator φ) =
       homotopyOperator (mpullback (Prod.map g id) (hg.prodMap contMDiff_id) φ) :=
-  Subtype.ext <| by
-    rw [coe_mpullback, coe_homotopyOperator, coe_homotopyOperator, coe_mpullback,
+  (mpullback_eq_iff _).2 <| by
+    rw [coe_homotopyOperator, coe_homotopyOperator, coe_mpullback,
       homotopyOperator_mpullback_prodMap_id_of_isSmoothForm (hg.mdifferentiable (by simp))
         (φ.isSmoothForm.of_le (by simp))]
 
