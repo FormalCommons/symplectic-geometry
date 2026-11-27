@@ -7,6 +7,11 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Determinant
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.RealChernClass
+public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
+public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
+public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.TopForm
+public import TauCeti.Geometry.Manifold.DeRham.PoincarePairing.Basic
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.ChernWeil
 
 /-!
 # The real first Chern class of a smooth complex vector bundle
@@ -29,6 +34,14 @@ unitary frames of the determinant line, carried along this identification, form 
 `Circle`-equivariant map to the nonzero vectors of the bundle, so the two real first Chern classes
 agree (`SymplecticGeometry.Bundle.realFirstChernClass_eq_of_equivariant`).
 
+Over a closed oriented surface, the class is compared with the integral first Chern class: a
+closed representative integrates to the Chern number `chernNumber` of the complex bundle. Under
+integration on de Rham cohomology, `TauCeti.deRhamCohomology.integral`, the class goes to the
+Chern number of the determinant line
+(`Bundle.ContMDiffRiemannianMetric.integral_realFirstChernClass`), which is that of the bundle
+(`SymplecticGeometry.Bundle.chernNumber_detBundle`), and a closed form goes to its integral
+(`TauCeti.deRhamCohomology.integral_mk`).
+
 ## Main definitions and results
 
 * `SymplecticGeometry.Bundle.ContMDiffComplexStructure.realFirstChernClass G J`: the real first
@@ -40,6 +53,11 @@ agree (`SymplecticGeometry.Bundle.realFirstChernClass_eq_of_equivariant`).
 * `SymplecticGeometry.Bundle.ContMDiffComplexStructure.realFirstChernClass_eq_of_finrank_eq_one`:
   for a line bundle, it is the real first Chern class of the unitary frame bundle of the bundle
   itself, for every smooth Hermitian metric on it.
+* `SymplecticGeometry.Bundle.ContMDiffComplexStructure.integral_realFirstChernClass`: over a
+  closed oriented surface, the integral of the class is the Chern number of the bundle.
+* `SymplecticGeometry.Bundle.ContMDiffComplexStructure.integralTopForm_realFirstChernClass`: over
+  a closed oriented surface, every closed representative of the class integrates to the Chern
+  number of the bundle.
 * `SymplecticGeometry.Bundle.ContMDiffComplexStructure.realFirstChernClass_pushforward`: a smooth
   isomorphism of real vector bundles that carries one smooth complex structure to another does not
   change the class, whatever the complex models of the two structures.
@@ -174,6 +192,46 @@ theorem realFirstChernClass_pushforward (J : ContMDiffComplexStructure I ⊤ F V
     ((DetBundle.contMDiff_congrModelHomeomorph e
       (J.contMDiff_fiberEquivOfCommute G J' G' Φ hΦ hK)).congr fun _ ↦
         (DetBundle.congrModelHomeomorph_apply ..).symm)
+
+section Surface
+
+variable {M : Type} [TopologicalSpace M] [ChartedSpace (EuclideanSpace ℝ (Fin 2)) M]
+  [IsManifold (𝓡 2) ∞ M] [T2Space M] [CompactSpace M]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
+  {V : M → Type} [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)]
+  [∀ x, TopologicalSpace (V x)] [∀ x, IsTopologicalAddGroup (V x)]
+  [∀ x, ContinuousSMul ℝ (V x)] [TopologicalSpace (TotalSpace F V)]
+  [FiberBundle F V] [VectorBundle ℝ F V] [ContMDiffVectorBundle ∞ F V (𝓡 2)]
+  (G : Type*) [NormedAddCommGroup G] [NormedSpace ℂ G] [FiniteDimensional ℂ G]
+  [Fact (finrank ℝ F = 2 * finrank ℂ G)]
+
+/-- **The real first Chern class integrates to the Chern number.** Let `M` be a closed smooth
+surface with an orientation `o`, and `J` a smooth complex structure on a smooth real vector bundle
+`V` over `M`. The integral over `M` of the real first Chern class of `J` is the first Chern number
+of the complex vector bundle given by `J`, for the homological orientation of `o`. -/
+theorem integral_realFirstChernClass (J : ContMDiffComplexStructure (𝓡 2) ⊤ F V)
+    (o : Manifold.Orientation (𝓡 2) M (Fin 2)) :
+    deRhamCohomology.integral o (realFirstChernClass G J) =
+      chernNumber (o.toHomologicalOrientation finrank_euclideanSpace_fin)
+        finrank_euclideanSpace_fin G J.toContinuousComplexStructure.Fiber := by
+  obtain ⟨g, hI⟩ := exists_hermitianMetric_detBundle G J
+  rw [realFirstChernClass_eq_of_metric G J g hI, g.integral_realFirstChernClass hI o,
+    chernNumber_detBundle]
+
+/-- **Closed representatives of the real first Chern class integrate to the Chern number.** Let
+`M` be a closed smooth surface with an orientation `o`, and `J` a smooth complex structure on a
+smooth real vector bundle `V` over `M`. The integral over `M` of every closed `2`-form whose de Rham
+class is the real first Chern class of `J` is the first Chern number of the complex vector bundle
+given by `J`, for the homological orientation of `o`. -/
+theorem integralTopForm_realFirstChernClass (J : ContMDiffComplexStructure (𝓡 2) ⊤ F V)
+    (o : Manifold.Orientation (𝓡 2) M (Fin 2)) {σ : SmoothForm (𝓡 2) M ℝ 2}
+    (hσ : σ ∈ closedForms (𝓡 2) M 2)
+    (hσJ : deRhamCohomology.mk (𝓡 2) 2 ⟨σ, hσ⟩ = realFirstChernClass G J) :
+    integralTopForm o σ.val = chernNumber (o.toHomologicalOrientation finrank_euclideanSpace_fin)
+      finrank_euclideanSpace_fin G J.toContinuousComplexStructure.Fiber := by
+  rw [← integral_realFirstChernClass G J o, ← hσJ, deRhamCohomology.integral_mk]
+
+end Surface
 
 end SymplecticGeometry.Bundle.ContMDiffComplexStructure
 
