@@ -82,15 +82,11 @@ theorem exists_diffeotopy_mpullback_eq_of_integralTopForm_eq [PreconnectedSpace 
   set α : unitInterval → SmoothTwoForm I M := fun t ↦ ω₀ + (t : ℝ) • (σ - ω₀) with hα
   -- Step 1: every form of the segment is symplectic.
   have hsymp (t : unitInterval) : IsSymplectic (α t) := by
-    refine (isSymplectic_iff_forall_ne_zero_of_finrank_eq_two hE).2 fun x h0 ↦ ?_
-    -- `TangentSpace I x` is the model space `E` by definition
-    have hx : Module.finrank ℝ (TangentSpace I x) = 2 := hE
-    let b := (Module.finBasisOfFinrankEq ℝ (TangentSpace I x) hx).adjustToOrientation
-      (o.orientationAt x)
-    have hb : b.orientation = o.orientationAt x := Module.Basis.orientation_adjustToOrientation _ _
+    refine (isSymplectic_iff_forall_ne_zero_of_finrank_eq_two hE).2 fun x ↦
+      Manifold.Orientation.IsPositiveAt.ne_zero (o := o) <|
+        Manifold.Orientation.isPositiveAt_iff.2 fun b hb ↦ ?_
     have hval : (α t).val x b = ω₀.val x b + (t : ℝ) * (σ.val x b - ω₀.val x b) := by
       simp [hα]
-    rw [h0, ContinuousAlternatingMap.coe_zero, Pi.zero_apply] at hval
     have hωb := hω.apply_pos hb
     have hσb := hσ.apply_pos hb
     nlinarith [mul_nonneg (unitInterval.nonneg t) hσb.le,

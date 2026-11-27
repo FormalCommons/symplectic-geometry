@@ -7,14 +7,22 @@ module
 
 public import TauCeti.Geometry.Manifold.Orientation.Preserving
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Basic
+public import TauCeti.Geometry.Manifold.Orientation.TopForm
 
 /-!
 # Top forms positive for an orientation
 
-A top form `φ` on a manifold with an orientation `o` is *positive for `o` at `x`*
-(`TauCeti.Manifold.Orientation.IsPositiveAt`) when it takes a positive value on every basis of
-the tangent space at `x` whose orientation is that of `o` there, and *positive for `o`*
+A top form `φ` on a manifold of positive dimension `k` with an orientation `o` is *positive for
+`o` at `x`* (`TauCeti.Manifold.Orientation.IsPositiveAt`) when it takes a positive value on every
+basis of the tangent space at `x` whose orientation is that of `o` there, and *positive for `o`*
 (`TauCeti.Manifold.Orientation.IsPositive`) when it is so at every point.
+
+The definitions ask for `NeZero k`. In dimension zero the only basis is the empty one, whose
+orientation is always the positive one, so at a point where `o` is the negative orientation the
+condition above would hold for every form, `0` included.
+
+A positive top form vanishes nowhere (`IsPositiveAt.ne_zero`), and a nowhere-vanishing top form
+is positive for the orientation it defines (`isPositive_ofTopForm`).
 
 Positivity is kept by positive multiples, sums, and combinations with nonnegative weights of
 which one is positive. It is carried back along maps that preserve orientation: if `f` preserves
@@ -55,17 +63,18 @@ section Positive
 
 variable [FiniteDimensional ℝ E] [IsManifold I 1 M] (o : Manifold.Orientation I M (Fin k))
 
-/-- The top form `φ` is *positive for the orientation `o` at `x`*: it takes a positive value on
-every basis of the tangent space at `x` with the orientation of `o` there. -/
-def IsPositiveAt (φ : RoughForm I M ℝ k) (x : M) : Prop :=
+/-- The top form `φ`, of positive degree `k`, is *positive for the orientation `o` at `x`*: it
+takes a positive value on every basis of the tangent space at `x` with the orientation of `o`
+there. -/
+def IsPositiveAt [NeZero k] (φ : RoughForm I M ℝ k) (x : M) : Prop :=
   ∀ c : Module.Basis (Fin k) ℝ (TangentSpace I x), c.orientation = o.orientationAt x → 0 < φ x c
 
-/-- The top form `φ` is *positive for the orientation `o`*: it is positive for `o` at every
-point. -/
-def IsPositive (φ : RoughForm I M ℝ k) : Prop :=
+/-- The top form `φ`, of positive degree `k`, is *positive for the orientation `o`*: it is
+positive for `o` at every point. -/
+def IsPositive [NeZero k] (φ : RoughForm I M ℝ k) : Prop :=
   ∀ x, IsPositiveAt o φ x
 
-variable {o} {φ ψ : RoughForm I M ℝ k} {x : M}
+variable [NeZero k] {o} {φ ψ : RoughForm I M ℝ k} {x : M}
 
 theorem isPositiveAt_iff : IsPositiveAt o φ x ↔
     ∀ c : Module.Basis (Fin k) ℝ (TangentSpace I x),
@@ -89,6 +98,22 @@ theorem IsPositive.apply_pos (h : IsPositive o φ) {x : M}
     {c : Module.Basis (Fin k) ℝ (TangentSpace I x)} (hc : c.orientation = o.orientationAt x) :
     0 < φ x c :=
   h x c hc
+
+/-- A top form positive for `o` at `x` does not vanish at `x`. -/
+theorem IsPositiveAt.ne_zero (h : IsPositiveAt o φ x) : φ x ≠ 0 := fun h0 ↦ by
+  classical
+  have hc := h.apply_pos ((o.orientationAt x).someBasis_orientation
+    (o.finrank_tangentSpace_eq x).symm)
+  simp [h0] at hc
+
+/-- A top form positive for `o` vanishes nowhere. -/
+theorem IsPositive.ne_zero (h : IsPositive o φ) (x : M) : φ x ≠ 0 :=
+  (h x).ne_zero
+
+/-- A nowhere-vanishing continuous top form is positive for the orientation it defines. -/
+theorem isPositive_ofTopForm (hk : Module.finrank ℝ E = k) (hφ : IsSmoothForm I 0 φ)
+    (h0 : ∀ x, φ x ≠ 0) : IsPositive (ofTopForm hk φ hφ h0) φ := fun _ c hc ↦
+  (orientation_eq_orientationAt_ofTopForm_iff hk hφ h0 c).1 hc
 
 theorem IsPositiveAt.smul (h : IsPositiveAt o φ x) {a : ℝ} (ha : 0 < a) :
     IsPositiveAt o (a • φ) x := fun c hc ↦ by
@@ -125,6 +150,7 @@ theorem IsPositive.sum_smul {ι : Type*} {s : Finset ι} {w : ι → ℝ} {φ : 
 end Positive
 
 variable [FiniteDimensional ℝ E] [IsManifold I 1 M] [FiniteDimensional ℝ E'] [IsManifold I' 1 M']
+  [NeZero k]
   {o : Manifold.Orientation I M (Fin k)} {o' : Manifold.Orientation I' M' (Fin k)} {f : M → M'}
 
 /-- **Pull-backs of positive top forms.** If `f` preserves the orientations `o` and `o'` at `x`
