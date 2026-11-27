@@ -119,9 +119,10 @@ theorem IsSemistable.iInf_momentNormSq_smul_eq_zero {hB : B.Nondegenerate} {p : 
 variable {hB : B.Nondegenerate}
 
 omit [ConnectedSpace G] [FiniteDimensional ℝ EC] [ContMDiffSMul IC I' ∞ Gc M] in
-/-- If the Kempf–Ness function of `p` is bounded below on `[0, ∞)` along a curve `g` in `Gc`
-with `g 0 = 1`, along which `(g t)⁻¹ • p` is the negative gradient flow of `‖μ‖²` from `p`, then
-`μ` vanishes at the limit `x` of the flow. -/
+/-- Let `g : ℝ → Gc` be a curve with `g 0 = 1` such that `(g t)⁻¹ • p` is the negative gradient
+flow of `‖μ‖²` from `p` at time `t`, and `t ↦ Φ_p (g t)` has derivative `-2 ‖μ ((g t)⁻¹ • p)‖²`;
+for a complexified action, `exists_mem_orbit_maximalIntegralCurve` gives such a curve. If
+`Φ_p ∘ g` is bounded below on `[0, ∞)`, then `μ` vanishes at the limit `x` of the flow. -/
 theorem moment_eq_zero_of_bddBelow_kempfNessFunction_image_Ici (hσc : σ.IsClosed)
     (hσ : σ.IsNondegenerate)
     (hσG : ∀ g : G, SmoothForm.mpullback (fun y : M ↦ g • y)
