@@ -179,9 +179,10 @@ and the note of the review of #3195.
    homotopies do not change the quotient. Fixing the loops and choosing only
    the $\beta_i$ does not suffice: for the relators $a_1^2$ and $a_1^3$ the
    difference of the two $\beta$-coordinates on the set where the loops
-   agree has nonzero degree, so it vanishes somewhere. Their normal
-   bundles are pulled back from the oriented normal bundles of circles in
-   the oriented three-manifold $F\times S^1_\beta$, so they are trivial, and a symplectic framing exists. The proof stays within the
+   agree has nonzero degree, so it vanishes somewhere. The normal
+   bundles of the $T_i$ are pulled back from the oriented normal bundles of
+   circles in the oriented three-manifold $F\times S^1_\beta$, so they are
+   trivial, and a symplectic framing exists. The proof stays within the
    milestone: its statement is only the existence of $M$.
 10. **The surface.** $F$ is the closed oriented surface of genus $g$, built
     as the iterated `TauCeti.ConnectedSum` of $g$ copies of the standard
