@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Contact.Slice
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.ExtDeriv
+import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 
 /-!
 # Contact forms on a slice transverse to the Reeb field
@@ -61,9 +62,8 @@ theorem isSymplectic_neg_mextDerivₗ_mpullback (hα : α.IsContactForm)
     (hιs : ∀ s, Injective (mfderiv J I ι s) ∧ α.reebVectorField (ι s) ∉ (mfderiv J I ι s).range) :
     SmoothTwoForm.IsSymplectic (-mextDerivₗ J 1 (SmoothForm.mpullback ι hι α)) :=
   ⟨(SmoothForm.isClosed_mextDerivₗ _).neg, SmoothTwoForm.IsNondegenerate.neg <|
-    SmoothTwoForm.isNondegenerate_iff_separatingLeft.2 fun s v hv ↦
-      (hα.nondegenerate_bilinFormAt_mextDerivₗ_mpullback hι hdim (hιs s).1 (hιs s).2).1 v
-        fun w ↦ by rw [SmoothForm.bilinFormAt_apply]; exact hv w⟩
+    SmoothTwoForm.isNondegenerate_def.2 fun s ↦
+      hα.nondegenerate_bilinFormAt_mextDerivₗ_mpullback hι hdim (hιs s).1 (hιs s).2⟩
 
 variable {ES HS S : Type*} [NormedAddCommGroup ES] [NormedSpace ℝ ES] [TopologicalSpace HS]
   {IS : ModelWithCorners ℝ ES HS} [TopologicalSpace S] [ChartedSpace HS S] [IsManifold IS ∞ S]

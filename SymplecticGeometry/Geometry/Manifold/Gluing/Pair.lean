@@ -15,6 +15,7 @@ import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 
 /-!
 # Gluing two spaces along open subsets
@@ -1060,8 +1061,7 @@ theorem isNondegenerate_iff_isNondegenerate_mpullback
           (SmoothForm.mpullback (inr φ.toHomeomorph) (isLocalDiffeomorph_inr φ).contMDiff α) := by
   refine ⟨fun h ↦ ⟨h.isNondegenerate_mpullback_of_isLocalDiffeomorph (isLocalDiffeomorph_inl φ),
     h.isNondegenerate_mpullback_of_isLocalDiffeomorph (isLocalDiffeomorph_inr φ)⟩,
-    fun ⟨h₁, h₂⟩ ↦ SmoothTwoForm.isNondegenerate_iff_forall_ker_bilinFormAt_eq_bot.2 fun z ↦ ?_⟩
-  suffices hz : (α.bilinFormAt z).Nondegenerate from LinearMap.separatingLeft_iff_ker_eq_bot.1 hz.1
+    fun ⟨h₁, h₂⟩ ↦ SmoothTwoForm.isNondegenerate_def.2 fun z ↦ ?_⟩
   rcases exists_inl_or_exists_inr φ.toHomeomorph z with ⟨x, rfl⟩ | ⟨y, rfl⟩
   · exact (SmoothTwoForm.nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv
       ((isLocalDiffeomorph_inl φ x).isInvertible_mfderiv (by simp))

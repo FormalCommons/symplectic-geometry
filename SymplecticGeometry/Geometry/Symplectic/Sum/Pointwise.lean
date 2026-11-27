@@ -16,6 +16,7 @@ public import Mathlib.Geometry.Manifold.Instances.Sphere
 public import TauCeti.Geometry.Manifold.ConnectedSum.Basic
 import SymplecticGeometry.Geometry.Manifold.ConnectedSum.ComplementaryBall
 import TauCeti.Geometry.Euclidean.Inversion
+import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Polar
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Sphere
 
@@ -114,8 +115,7 @@ theorem exists_isNondegenerate_eq_sliceAlong {V : Opens M} {W : Set M} (hW : IsO
           SmoothBundleForm.eval₂_apply, SmoothBundleForm.eval₂_apply]
         exact congrArg (fun a ↦ a ![v, w]) (hτW y hyW)
       exact this ▸ hη.nondegenerate_bilinFormAt y
-  exact ⟨τ, SmoothTwoForm.isNondegenerate_iff_forall_ker_bilinFormAt_eq_bot.2 fun y ↦
-    (hnd y).ker_eq_bot, hτW, hτV⟩
+  exact ⟨τ, SmoothTwoForm.isNondegenerate_def.2 hnd, hτW, hτV⟩
 
 end Manifold
 
