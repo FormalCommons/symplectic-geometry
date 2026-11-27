@@ -80,6 +80,9 @@ with a map differentiable at `y`, and the chain rule carries the bound of the di
   derivative `df(X)`, which is nonnegative, so it is monotone.
 * `SymplecticGeometry.IsWeinsteinStructure.apply_le_of_mem_stableSet`: `f x ≤ f p` for every `x`
   in the stable set of `p`.
+* `SymplecticGeometry.IsWeinsteinStructure.apply_lt_of_mem_stableSet` and
+  `SymplecticGeometry.IsWeinsteinStructure.notMem_criticalPoints_of_mem_stableSet`: a point
+  `x ≠ p` of the stable set of `p` has `f x < f p` and is not a critical point.
 * `SymplecticGeometry.IsWeinsteinStructure.exists_forall_flow_mem_source_and_norm_extChartAt_sub_le`
   states that at a nondegenerate critical point `p`, the orbits of the points of the stable set
   of `p` that start in a small ball of the chart at `p`, with `f` close to `f p`, stay in a
@@ -115,7 +118,10 @@ with a map differentiable at `y`, and the chain rule carries the bound of the di
 The definitions and lemmas follow those of Tau Ceti's `TauCeti.IsAdaptedPseudoGradient.flow`,
 which names the flow of an adapted pseudo-gradient in the same way. Tau Ceti's pseudo-gradients
 decrease the function, while a Weinstein field increases it; the bound on the stable set is
-therefore `TauCeti.Flow.le_of_mem_stableSet_of_antitone` applied to `-f`. The confinement near a
+therefore `TauCeti.Flow.le_of_mem_stableSet_of_antitone` applied to `-f`. A critical point is a
+rest point, so by `Flow.eq_of_mem_stableSet` it lies on no stable set but its own; the orbit of
+a point `x ≠ p` of the stable set of `p` thus meets no critical point, and
+`TauCeti.IsGradientLike.strictMono_comp` makes the bound strict. The confinement near a
 critical point is `TauCeti.IsGradientLike.exists_forall_mem_source_and_norm_extChartAt_sub_le`
 (`SymplecticGeometry.Geometry.Manifold.Morse.EnergyBarrier`), applied to the orbits of the flow;
 a nondegenerate critical point is isolated by Tau Ceti's
@@ -267,6 +273,28 @@ theorem apply_le_of_mem_stableSet {p x : M} (hx : x ∈ hW.flow.stableSet p) : f
     simpa using hW.monotone_comp_flow x hab
   simpa using Flow.le_of_mem_stableSet_of_antitone hx
     (hW.isGeneralizedMorse.contMDiff.continuous.neg.continuousAt) hanti
+
+/-- **No other critical point on a stable set.** A point `x ≠ p` of the stable set
+of `p` under the flow of a Weinstein structure `(ω, X, f)` is not a critical point of `f`. -/
+theorem notMem_criticalPoints_of_mem_stableSet {p x : M} (hx : x ∈ hW.flow.stableSet p)
+    (hxp : x ≠ p) : x ∉ criticalPoints 𝓘(ℝ, E) f := fun h ↦
+  hxp (Flow.eq_of_mem_stableSet (hW.flow_apply_of_mvfderiv_eq_zero (mem_criticalPoints.1 h)) hx)
+
+/-- **The function is strictly below its limit on a stable set.** If the orbit of `x ≠ p` under
+the flow of a Weinstein structure `(ω, X, f)` tends to `p`, then `f x < f p`. -/
+theorem apply_lt_of_mem_stableSet {p x : M} (hx : x ∈ hW.flow.stableSet p) (hxp : x ≠ p) :
+    f x < f p := by
+  -- The orbit of `x` never reaches the rest point `p`, so it meets no critical point.
+  have hcrit (t : ℝ) : mvfderiv 𝓘(ℝ, E) f (hW.flow t x) ≠ 0 := fun h ↦ by
+    refine hW.notMem_criticalPoints_of_mem_stableSet ((Flow.apply_mem_stableSet_iff _ t).2 hx)
+      (fun hpt ↦ hxp ?_) (mem_criticalPoints.2 h)
+    have hfix := Flow.fixed_of_mem_stableSet hx (-t)
+    rw [← hpt, ← Flow.map_add, neg_add_cancel, Flow.map_zero_apply] at hfix
+    exact hfix.trans hpt
+  calc f x = f (hW.flow 0 x) := by rw [Flow.map_zero_apply]
+    _ < f (hW.flow 1 x) :=
+      hW.isGradientLike.strictMono_comp (hW.isMIntegralCurve_flow x) hcrit one_pos
+    _ ≤ f p := hW.apply_le_of_mem_stableSet ((Flow.apply_mem_stableSet_iff _ 1).2 hx)
 
 /-- **Confinement of the stable set in the chart at a critical point.** Let `p` be a
 nondegenerate critical point of the function of a Weinstein structure, and `e` the extended chart

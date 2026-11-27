@@ -27,7 +27,12 @@ reads the chart as a partial diffeomorphism and applies Tau Ceti's
 
 A local diffeomorphism of a preconnected manifold preserves orientations at one point exactly when
 it does at any other (`IsLocalDiffeomorph.isOrientationPreservingAt_iff`), by Tau Ceti's
-`IsPreconnected.isOrientationPreservingAt_iff` on the whole manifold.
+`IsPreconnected.isOrientationPreservingAt_iff` on the whole manifold. So it preserves
+orientations at every point or reverses them at every point
+(`IsLocalDiffeomorph.forall_isOrientationPreservingAt_or_forall_isOrientationReversingAt`), and
+negating the target orientation where needed makes it preserve, or reverse, orientations at every
+point (`IsLocalDiffeomorph.exists_orientation_forall_isOrientationPreservingAt`,
+`IsLocalDiffeomorph.exists_orientation_forall_isOrientationReversingAt`).
 
 ## References
 
@@ -86,6 +91,56 @@ theorem _root_.IsLocalDiffeomorph.isOrientationPreservingAt_iff {H E' H' M M' : 
   isPreconnected_univ.isOrientationPreservingAt_iff
     (fun z _ ↦ (hf z).contMDiffAt.of_le (ENat.one_le_iff_ne_zero_withTop.mpr hn))
     (fun z _ ↦ (hf z).isInvertible_mfderiv hn) o o' (Set.mem_univ x) (Set.mem_univ y)
+
+/-- **A local diffeomorphism of a connected manifold preserves or reverses orientation.** A `Cⁿ`
+local diffeomorphism `f : M → M'`, for `n ≠ 0`, out of a preconnected manifold `M` either
+preserves the orientations `o` and `o'` at every point or reverses them at every point. -/
+theorem
+    _root_.IsLocalDiffeomorph.forall_isOrientationPreservingAt_or_forall_isOrientationReversingAt
+    {H E' H' M M' : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+    [TopologicalSpace M] [ChartedSpace H M] [IsManifold I 1 M] [PreconnectedSpace M]
+    [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E'] [TopologicalSpace H']
+    {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace M'] [ChartedSpace H' M']
+    [IsManifold I' 1 M'] {n : WithTop ℕ∞} {f : M → M'} (hf : IsLocalDiffeomorph I I' n f)
+    (hn : n ≠ 0) (o : Manifold.Orientation I M ι) (o' : Manifold.Orientation I' M' ι) :
+    (∀ x, IsOrientationPreservingAt o o' f x) ∨ ∀ x, IsOrientationReversingAt o o' f x := by
+  by_cases h : ∀ x, IsOrientationPreservingAt o o' f x
+  · exact .inl h
+  · obtain ⟨x, hx⟩ := not_forall.1 h
+    exact .inr fun y ↦ ((hf y).isOrientationPreservingAt_or_isOrientationReversingAt hn o o'
+      ).resolve_left fun hy ↦ hx ((hf.isOrientationPreservingAt_iff hn o o' x y).2 hy)
+
+/-- For a `Cⁿ` local diffeomorphism `f : M → M'`, `n ≠ 0`, out of a preconnected manifold `M`,
+and orientations `o` of `M` and `o'` of `M'`, either `o'` or `-o'` is an orientation of `M'` such
+that `f` preserves orientation from `o` at every point. -/
+theorem _root_.IsLocalDiffeomorph.exists_orientation_forall_isOrientationPreservingAt
+    {H E' H' M M' : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+    [TopologicalSpace M] [ChartedSpace H M] [IsManifold I 1 M] [PreconnectedSpace M]
+    [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E'] [TopologicalSpace H']
+    {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace M'] [ChartedSpace H' M']
+    [IsManifold I' 1 M'] {n : WithTop ℕ∞} {f : M → M'} (hf : IsLocalDiffeomorph I I' n f)
+    (hn : n ≠ 0) (o : Manifold.Orientation I M ι) (o' : Manifold.Orientation I' M' ι) :
+    ∃ o'' ∈ ({o', -o'} : Set (Manifold.Orientation I' M' ι)),
+      ∀ x, IsOrientationPreservingAt o o'' f x := by
+  rcases hf.forall_isOrientationPreservingAt_or_forall_isOrientationReversingAt hn o o' with h | h
+  · exact ⟨o', .inl rfl, h⟩
+  · exact ⟨-o', .inr rfl, fun x ↦ (isOrientationPreservingAt_neg_right _ _ _ _).2 (h x)⟩
+
+/-- For a `Cⁿ` local diffeomorphism `f : M → M'`, `n ≠ 0`, out of a preconnected manifold `M`,
+and orientations `o` of `M` and `o'` of `M'`, either `o'` or `-o'` is an orientation of `M'` such
+that `f` reverses orientation from `o` at every point. -/
+theorem _root_.IsLocalDiffeomorph.exists_orientation_forall_isOrientationReversingAt
+    {H E' H' M M' : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+    [TopologicalSpace M] [ChartedSpace H M] [IsManifold I 1 M] [PreconnectedSpace M]
+    [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E'] [TopologicalSpace H']
+    {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace M'] [ChartedSpace H' M']
+    [IsManifold I' 1 M'] {n : WithTop ℕ∞} {f : M → M'} (hf : IsLocalDiffeomorph I I' n f)
+    (hn : n ≠ 0) (o : Manifold.Orientation I M ι) (o' : Manifold.Orientation I' M' ι) :
+    ∃ o'' ∈ ({o', -o'} : Set (Manifold.Orientation I' M' ι)),
+      ∀ x, IsOrientationReversingAt o o'' f x := by
+  rcases hf.forall_isOrientationPreservingAt_or_forall_isOrientationReversingAt hn o o' with h | h
+  · exact ⟨-o', .inr rfl, fun x ↦ (isOrientationReversingAt_neg_right _ _ _ _).2 (h x)⟩
+  · exact ⟨o', .inl rfl, h⟩
 
 end TauCeti.Manifold.Orientation
 

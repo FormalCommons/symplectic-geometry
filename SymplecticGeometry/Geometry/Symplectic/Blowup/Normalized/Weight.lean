@@ -242,11 +242,9 @@ theorem radialContraction_ne (hr : l + ε < r) {p : M} (hp : p ∉ ψ '' closedB
     have hz : ‖complexToRealEuclidean (Fin (n + 1)) z‖ < r :=
       hh.norm_radialDiffeomorph_symm_lt hr (hψ.norm_complexPartialDiffeomorph_symm_lt hp'.1)
     rw [hψ.radialContraction_of_mem hh hp', coe_complexPartialDiffeomorph, Function.comp_apply]
-    intro h0
-    have hr0 : (0 : ℝ) ≤ r := (norm_nonneg _).trans hz.le
-    have := hψ.injOn (mem_closedBall_zero_iff.2 hz.le) (mem_closedBall_self hr0) h0
-    rw [map_eq_zero_iff _ (complexToRealEuclidean (Fin (n + 1))).injective] at this
-    exact mem_puncturedSpace.1 z.property this
+    refine hψ.apply_ne_apply_zero (mem_closedBall_zero_iff.2 hz.le) ?_
+    rw [Ne, map_eq_zero_iff _ (complexToRealEuclidean (Fin (n + 1))).injective]
+    exact mem_puncturedSpace.1 z.property
   · rw [hψ.radialContraction_of_not hh hp']
     rintro rfl
     exact hp ⟨0, mem_closedBall_self hh.weight_pos.le, rfl⟩
@@ -285,10 +283,10 @@ theorem radialExpansion_apply (z : puncturedSpace (Fin (n + 1) → ℂ))
         (radialMap h (fun _ hs ↦ hh.pos (le_of_lt hs)) z)) := by
   have hq : ψ (complexToRealEuclidean (Fin (n + 1)) z) ∈ ψ '' ball 0 r ∧
       ψ (complexToRealEuclidean (Fin (n + 1)) z) ≠ ψ 0 := by
-    refine ⟨⟨_, mem_ball_zero_iff.2 hz, rfl⟩, fun h0 ↦ mem_puncturedSpace.1 z.property ?_⟩
-    have hr0 : (0 : ℝ) ≤ r := (norm_nonneg _).trans hz.le
-    have := hψ.injOn (mem_closedBall_zero_iff.2 hz.le) (mem_closedBall_self hr0) h0
-    rwa [map_eq_zero_iff _ (complexToRealEuclidean (Fin (n + 1))).injective] at this
+    refine ⟨⟨_, mem_ball_zero_iff.2 hz, rfl⟩,
+      hψ.apply_ne_apply_zero (mem_closedBall_zero_iff.2 hz.le) ?_⟩
+    rw [Ne, map_eq_zero_iff _ (complexToRealEuclidean (Fin (n + 1))).injective]
+    exact mem_puncturedSpace.1 z.property
   have hz' : (⟨_, hψ.complexPartialDiffeomorph_symm_mem_puncturedSpace hq⟩ :
       puncturedSpace (Fin (n + 1) → ℂ)) = z :=
     Subtype.ext (hψ.complexPartialDiffeomorph_symm_apply_complexToRealEuclidean hz)
@@ -701,8 +699,7 @@ private theorem mpullback_outerMap_apply_of_notMem
   have hnot : hψ.outerMap hh hε' hε'ε x ∉
       hψ.ballLiftPartialDiffeomorph '' closedNbhd n (l + ε) := by
     rintro ⟨y, hy, hyx⟩
-    have hyr : y ∈ openNbhd n r :=
-      mem_openNbhd_iff.2 ((mem_closedNbhd_iff.1 hy).trans_lt hψ.weight_add_width_lt)
+    have hyr : y ∈ openNbhd n r := closedNbhd_subset_openNbhd hψ.weight_add_width_lt hy
     have hb := congrArg (Blowup.blowdown hN.blowupChart) hyx
     rw [hψ.blowdown_outerMap hh hε' hε'ε,
       hψ.isSymplecticBallEmbedding.radialContraction_of_notMem hh hx,
