@@ -1251,8 +1251,8 @@ containing `ι '' closedBall 0 1`:
     `0 < deriv (fun ℓ' ↦ χ ℓ' r) ℓ`. Conclusion: a `ψ : ℝ → ℝ → ℝ`,
     `ContDiffOn ℝ ∞ (Function.uncurry ψ) Q`, with
     `IsConvexShapeAt (ψ ℓ) r` and `0 < deriv (fun ℓ' ↦ ψ ℓ' r) ℓ` on
-    `Q`, and `Function.uncurry ψ = Function.uncurry χ` on some
-    `V ∈ 𝓝ˢ E`. "Increasing in `ℓ`" is always this strict sign of the
+    `Q`, and `Function.uncurry ψ =ᶠ[𝓝ˢ E] Function.uncurry χ`.
+    "Increasing in `ℓ`" is always this strict sign of the
     `ℓ`-derivative, the hypothesis of `exists_contDiff_shapeLevel`, and
     `ℓ` is whatever parameter the caller uses (issue 14d7 takes
     `u = ℓ * |ℓ|`, see there). No lower bound `χ ℓ₀ ≤ χ ℓ` is needed,
