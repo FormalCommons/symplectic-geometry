@@ -9,26 +9,26 @@ public import Mathlib.Analysis.Calculus.ContDiff.Defs
 public import TauCeti.Analysis.Normed.Operator.ComplexLinearPart
 import Mathlib.Analysis.Calculus.ContDiff.Operations
 import Mathlib.Topology.Instances.RealVectorSpace
-import TauCeti.Analysis.Complex.Wirtinger.Basic
 import TauCeti.Analysis.Normed.Module.RCLike.Basic
 
 /-!
 # Complex-linear and complex-antilinear parts of an operator: bounds, scalars, smoothness
 
-For a continuous real-linear operator `Ψ` between complex normed spaces, Tau Ceti's
+For a continuous real-linear operator `Ψ` between complex normed spaces, whose real structures may
+be given separately from the complex ones as long as they are compatible with them, Tau Ceti's
 `ContinuousLinearMap.complexLinearPart` and `ContinuousLinearMap.complexAntilinearPart` both have
 operator norm at most `‖Ψ‖` (`ContinuousLinearMap.norm_complexLinearPart_le`,
 `ContinuousLinearMap.norm_complexAntilinearPart_le`), with pointwise forms. Seen as a
 real-linear operator by Tau Ceti's `ContinuousLinearMap.complexAntilinearPartL`, the
 complex-antilinear part keeps its operator norm
-(`ContinuousLinearMap.norm_complexAntilinearPartL_apply`), and `complexAntilinearPartL` itself has
-operator norm at most `1` (`ContinuousLinearMap.norm_complexAntilinearPartL_le`), also for real
-structures on `E` and `F` given separately and compatible with the complex ones. The bound on the
-complex-antilinear part makes it a continuous real-linear map into the complex-antilinear
-operators, `ContinuousLinearMap.complexAntilinearPartCLM`, again of operator norm at most `1`
-(`ContinuousLinearMap.norm_complexAntilinearPartCLM_le`).
+(`ContinuousLinearMap.norm_complexAntilinearPartL_apply`), so `complexAntilinearPartL` itself has
+operator norm at most `1` (`ContinuousLinearMap.norm_complexAntilinearPartL_le`). The bound on
+the complex-antilinear part also makes it a continuous real-linear map into the
+complex-antilinear operators, `ContinuousLinearMap.complexAntilinearPartCLM`, again of operator
+norm at most `1` (`ContinuousLinearMap.norm_complexAntilinearPartCLM_le`).
 
-A continuous complex-antilinear operator is also a continuous real-linear one, by Mathlib's
+For complex normed spaces with the real structure they restrict to, a continuous
+complex-antilinear operator is also a continuous real-linear one, by Mathlib's
 `AddMonoidHom.toRealLinearMap`, with the same operator norm. This gives a real-linear isometry
 `ContinuousLinearMap.restrictScalarsₛₗLI` from the complex-antilinear operators into the
 real-linear ones. Tau Ceti's
@@ -38,10 +38,8 @@ followed by this isometry
 complex-antilinear operator is its own complex-antilinear part
 (`ContinuousLinearMap.complexAntilinearPart_restrictScalarsₛₗLI`).
 
-The Wirtinger derivatives of a map are the complex-linear and complex-antilinear parts of its
-real derivative, and the derivative of `Ψ` is `Ψ`. So the bounds are Tau Ceti's
-`TauCeti.norm_wirtingerDeriv_apply_le` and `TauCeti.norm_conjWirtingerDeriv_apply_le` for the
-map `Ψ` itself.
+Each value of either part is half the sum of two vectors of norm at most `‖Ψ‖ * ‖v‖`, so the
+pointwise bounds follow from Tau Ceti's `TauCeti.norm_two_inv_smul_add_le`.
 
 Both parts commute with complex scalars (`ContinuousLinearMap.complexLinearPart_complex_smul`,
 `ContinuousLinearMap.complexAntilinearPart_complex_smul`), next to Tau Ceti's versions for real
@@ -53,23 +51,38 @@ public section
 
 namespace ContinuousLinearMap
 
-variable {E F : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] [NormedAddCommGroup F]
-  [NormedSpace ℂ F]
+section CompatibleReal
+
+variable {E F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [NormedSpace ℂ E]
+  [IsScalarTower ℝ ℂ E] [NormedAddCommGroup F] [NormedSpace ℝ F] [NormedSpace ℂ F]
+  [IsScalarTower ℝ ℂ F]
+
+/-- The value of the complex-linear part of a real-linear operator `Ψ` at `v` has norm at most
+`‖Ψ‖ * ‖v‖`. -/
+theorem norm_complexLinearPart_apply_le (Ψ : E →L[ℝ] F) (v : E) :
+    ‖Ψ.complexLinearPart v‖ ≤ ‖Ψ‖ * ‖v‖ := by
+  rw [complexLinearPart_apply, sub_eq_add_neg]
+  exact TauCeti.norm_two_inv_smul_add_le (Ψ.le_opNorm v)
+    (by simpa [norm_smul] using Ψ.le_opNorm (Complex.I • v))
+
+/-- The value of the complex-antilinear part of a real-linear operator `Ψ` at `v` has norm at
+most `‖Ψ‖ * ‖v‖`. -/
+theorem norm_complexAntilinearPart_apply_le (Ψ : E →L[ℝ] F) (v : E) :
+    ‖Ψ.complexAntilinearPart v‖ ≤ ‖Ψ‖ * ‖v‖ := by
+  rw [complexAntilinearPart_apply]
+  exact TauCeti.norm_two_inv_smul_add_le (Ψ.le_opNorm v)
+    (by simpa [norm_smul] using Ψ.le_opNorm (Complex.I • v))
 
 /-- The complex-linear part of a real-linear operator has norm at most that of the operator. -/
 theorem norm_complexLinearPart_le (Ψ : E →L[ℝ] F) :
     ‖Ψ.complexLinearPart‖ ≤ ‖Ψ‖ :=
-  opNorm_le_bound _ (norm_nonneg Ψ) fun v ↦ by
-    simpa [TauCeti.wirtingerDeriv_eq_complexLinearPart] using
-      TauCeti.norm_wirtingerDeriv_apply_le (⇑Ψ) 0 v
+  opNorm_le_bound _ (norm_nonneg Ψ) Ψ.norm_complexLinearPart_apply_le
 
 /-- The complex-antilinear part of a real-linear operator has norm at most that of the
 operator. -/
 theorem norm_complexAntilinearPart_le (Ψ : E →L[ℝ] F) :
     ‖Ψ.complexAntilinearPart‖ ≤ ‖Ψ‖ :=
-  opNorm_le_bound _ (norm_nonneg Ψ) fun v ↦ by
-    simpa [TauCeti.conjWirtingerDeriv_eq_complexAntilinearPart] using
-      TauCeti.norm_conjWirtingerDeriv_apply_le (⇑Ψ) 0 v
+  opNorm_le_bound _ (norm_nonneg Ψ) Ψ.norm_complexAntilinearPart_apply_le
 
 /-- Tau Ceti's `ContinuousLinearMap.complexAntilinearPartL`, which sees the complex-antilinear part
 of an operator as a real-linear operator, preserves its operator norm. -/
@@ -82,15 +95,12 @@ theorem norm_complexAntilinearPartL_apply (Ψ : E →L[ℝ] F) :
   · rw [complexAntilinearPart_apply, ← complexAntilinearPartL_apply_apply]
     exact le_opNorm _ v
 
-/-- Pointwise form of `ContinuousLinearMap.norm_complexLinearPart_le`. -/
-theorem norm_complexLinearPart_apply_le (Ψ : E →L[ℝ] F) (v : E) :
-    ‖Ψ.complexLinearPart v‖ ≤ ‖Ψ‖ * ‖v‖ :=
-  Ψ.complexLinearPart.le_of_opNorm_le Ψ.norm_complexLinearPart_le v
-
-/-- Pointwise form of `ContinuousLinearMap.norm_complexAntilinearPart_le`. -/
-theorem norm_complexAntilinearPart_apply_le (Ψ : E →L[ℝ] F) (v : E) :
-    ‖Ψ.complexAntilinearPart v‖ ≤ ‖Ψ‖ * ‖v‖ :=
-  Ψ.complexAntilinearPart.le_of_opNorm_le Ψ.norm_complexAntilinearPart_le v
+/-- Tau Ceti's `ContinuousLinearMap.complexAntilinearPartL` has operator norm at most `1`. -/
+theorem norm_complexAntilinearPartL_le :
+    ‖(complexAntilinearPartL : (E →L[ℝ] F) →L[ℝ] E →L[ℝ] F)‖ ≤ 1 :=
+  opNorm_le_bound _ zero_le_one fun Ψ ↦ by
+    rw [one_mul, norm_complexAntilinearPartL_apply]
+    exact norm_complexAntilinearPart_le Ψ
 
 /-- The complex-antilinear part, as a continuous real-linear map from the real-linear operators
 to the complex-antilinear ones. Tau Ceti's `ContinuousLinearMap.complexAntilinearPartL` is the
@@ -112,6 +122,11 @@ operators, has operator norm at most `1`. -/
 theorem norm_complexAntilinearPartCLM_le :
     ‖(complexAntilinearPartCLM : (E →L[ℝ] F) →L[ℝ] E →L⋆[ℂ] F)‖ ≤ 1 :=
   LinearMap.mkContinuous_norm_le _ zero_le_one _
+
+end CompatibleReal
+
+variable {E F : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] [NormedAddCommGroup F]
+  [NormedSpace ℂ F]
 
 /-- The inclusion of the continuous complex-antilinear operators into the continuous real-linear
 ones, as a real-linear isometry: a complex-antilinear operator, being additive and continuous, is
@@ -165,25 +180,6 @@ theorem complexAntilinearPart_complex_smul (c : ℂ) (Ψ : E →L[ℝ] F) :
   simp only [complexAntilinearPart_apply, smul_apply]
   rw [smul_comm Complex.I c]
   module
-
-section CompatibleReal
-
-variable {E F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [NormedSpace ℂ E]
-  [IsScalarTower ℝ ℂ E] [NormedAddCommGroup F] [NormedSpace ℝ F] [NormedSpace ℂ F]
-  [IsScalarTower ℝ ℂ F]
-
-/-- Tau Ceti's `ContinuousLinearMap.complexAntilinearPartL`, for real structures on `E` and `F`
-compatible with the complex ones, has operator norm at most `1`. -/
-theorem norm_complexAntilinearPartL_le :
-    ‖(complexAntilinearPartL : (E →L[ℝ] F) →L[ℝ] E →L[ℝ] F)‖ ≤ 1 := by
-  refine opNorm_le_bound _ zero_le_one fun Ψ ↦ ?_
-  rw [one_mul]
-  refine opNorm_le_bound _ (norm_nonneg Ψ) fun v ↦ ?_
-  rw [complexAntilinearPartL_apply_apply]
-  exact TauCeti.norm_two_inv_smul_add_le (Ψ.le_opNorm v)
-    (by simpa [norm_smul] using Ψ.le_opNorm (Complex.I • v))
-
-end CompatibleReal
 
 end ContinuousLinearMap
 

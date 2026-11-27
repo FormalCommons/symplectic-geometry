@@ -11,9 +11,9 @@ public import TauCeti.Geometry.Manifold.IntegralCurve.GlobalFlow
 public import TauCeti.Geometry.Manifold.Morse.Stable.Manifold
 import SymplecticGeometry.Analysis.InnerProductSpace.RadialExtension
 import SymplecticGeometry.Geometry.Manifold.Flow.BandCrossing
+import SymplecticGeometry.Geometry.Manifold.Flow.Basic
 import SymplecticGeometry.Geometry.Manifold.Flow.LevelCrossing
 import SymplecticGeometry.Geometry.Manifold.Morse.UnstableSet
-import TauCeti.Geometry.Manifold.IntegralCurve.Monotone
 
 /-!
 # A time function on a ball of negative coordinates from the crossing time of a level
@@ -131,7 +131,7 @@ theorem exists_radial_extension_levelCrossingTime [IsManifold 𝓘(ℝ, E) ∞ M
   have hgd (y : M) : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ) g y := (hg y).mdifferentiableAt (by simp)
   -- Along each flow line `g` is antitone, and it meets the level `a` at most once.
   have hanti (y : M) : Antitone fun t ↦ g (Φ t y) :=
-    (isMIntegralCurve_globalFlow hX hXc y).antitone_comp (fun _ ↦ hgd _) fun _ ↦ hgX _
+    antitone_comp_globalFlow hX hXc (hg.mdifferentiable (by simp)) hgX y
   have huniq (y : M) : {t | g (Φ t y) = a}.Subsingleton :=
     (isMIntegralCurve_globalFlow hX hXc y).subsingleton_setOf_apply_eq (fun _ ↦ hgd _) (hanti y)
       fun _ ht ↦ (hneg _ ht.ge (ht.le.trans hab)).ne

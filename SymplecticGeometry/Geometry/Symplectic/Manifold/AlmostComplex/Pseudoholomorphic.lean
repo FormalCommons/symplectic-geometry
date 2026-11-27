@@ -15,7 +15,9 @@ public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 Let `f : M → N` be a smooth map that is pseudoholomorphic for almost complex structures `J` on
 `M` and `K` on `N`, so that `df ∘ J = K ∘ df`, and let `σ` be a smooth two-form on `N`.
 
-* If `σ` is `K`-invariant, then `f^* σ` is `J`-invariant
+* If `σ` is `K`-invariant, then `f^* σ (J v, J w) = f^* σ (v, w)` at each point where `f` is
+  pseudoholomorphic (`TauCeti.SmoothTwoForm.Invariant.eval₂_mpullback`), so `f^* σ` is
+  `J`-invariant when `f` is pseudoholomorphic everywhere
   (`TauCeti.SmoothTwoForm.Invariant.mpullback`).
 * If `σ` tames `K`, then `f^* σ (v, J v) = σ (df v, K df v)` is nonnegative for every tangent
   vector `v`, and positive when `df v ≠ 0` (`TauCeti.SmoothTwoForm.Tames.eval₂_mpullback_nonneg`,
@@ -50,14 +52,20 @@ variable {E H M E' H' N : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   {J : SmoothAlmostComplexStructure I M} {K : SmoothAlmostComplexStructure I' N}
   {σ : SmoothTwoForm I' N} {f : M → N} {x : M}
 
+/-- If `σ` is `K`-invariant and `f` is `(J, K)`-pseudoholomorphic at `x`, then
+`f^* σ (J v, J w) = f^* σ (v, w)` for all tangent vectors `v` and `w` at `x`. -/
+theorem Invariant.eval₂_mpullback (hσ : σ.Invariant K) (hf : IsPseudoholomorphicAt J K f x)
+    (hf' : ContMDiff I I' ∞ f) (v w : TangentSpace I x) :
+    (SmoothForm.mpullback f hf' σ).eval₂ x (J x v) (J x w) =
+      (SmoothForm.mpullback f hf' σ).eval₂ x v w := by
+  rw [SmoothForm.eval₂_mpullback, SmoothForm.eval₂_mpullback, hf.mfderiv_apply_commute,
+    hf.mfderiv_apply_commute, hσ.apply]
+
 /-- The pull-back of a `K`-invariant two-form along a `(J, K)`-pseudoholomorphic map is
 `J`-invariant. -/
 theorem Invariant.mpullback (hσ : σ.Invariant K) (hf : IsPseudoholomorphic J K f)
     (hf' : ContMDiff I I' ∞ f) : SmoothTwoForm.Invariant (SmoothForm.mpullback f hf' σ) J :=
-  invariant_iff.2 fun x v w ↦ by
-    rw [SmoothForm.eval₂_mpullback, SmoothForm.eval₂_mpullback,
-      (hf.isPseudoholomorphicAt x).mfderiv_apply_commute,
-      (hf.isPseudoholomorphicAt x).mfderiv_apply_commute, hσ.apply]
+  invariant_iff.2 fun x ↦ hσ.eval₂_mpullback (hf.isPseudoholomorphicAt x) hf'
 
 /-- If `σ` tames `K` and `f` is `(J, K)`-pseudoholomorphic at `x`, then `f^* σ (v, J v) > 0` for
 every tangent vector `v` at `x` with `df_x v ≠ 0`. -/
