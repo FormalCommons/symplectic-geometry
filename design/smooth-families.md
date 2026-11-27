@@ -578,12 +578,6 @@ centred at the point, used by `Immersion/TangentProjection.lean`: the
 `TauCeti.mfderiv_eq_fderiv_comp_mfderiv_extChartAt` and
 `TauCeti.range_mvfderiv_eq_range_fderiv_comp_extChartAt_symm`.
 
-- `ContMDiff.contDiffOn_mpullbackWithin_extChartAt_symm`: a `C^m` vector
-  field on a `C^n` manifold, `m + 1 ≤ n`, read in an extended chart, is
-  `C^m` on the chart's target; and
-  `VectorField.mfderivWithin_extChartAt_symm_mpullbackWithin`: the derivative
-  of the inverse chart sends that expression back to the field.
-
 ### `Geometry/Manifold/Immersion/TangentProjection.lean`
 
 The local graph charts of a compact manifold in a Euclidean space [Weil1952,
