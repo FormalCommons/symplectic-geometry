@@ -323,12 +323,10 @@ theorem IsSymplecticBallFamily.exists_contMDiffOn_eqOn_mpullback_eq
         he₀, he₁, fun z hz ↦ he.mfderiv_eq_of_eqOn hr₀ 0 hU₀ (hKr.trans hKU₀) hj₀U he₀ hz,
         fun z hz ↦ he.mfderiv_eq_of_eqOn hr₀ 1 hU₁ (hKr.trans hKU₁) hj₁U he₁ hz⟩
     · -- For `r₀ = 0`, the family of embeddings along the path of centres.
-      obtain ⟨Ue, -, hKUe, heU⟩ := he.exists_contMDiffOn
       have h0 : (0 : StdSpace (Fin n)) ∈ closedBall 0 0 := mem_closedBall_self le_rfl
       obtain ⟨k', U', hU', h0U', hk', hk'c, hk'σ, hk'₀, hk'₁⟩ :=
         exists_contMDiffOn_mpullback_eq_of_path (c := fun t ↦ e (t, 0)) hσ hdim hr hj₀ hj₁
-          (heU.comp_contMDiff (contMDiff_id.prodMk contMDiff_const) fun t ↦
-            ⟨mem_univ _, hKUe h0⟩) (he₀ 0 h0) (he₁ 0 h0)
+          (he.contMDiff_apply_mk h0) (he₀ 0 h0) (he₁ 0 h0)
       have hd₀ : mfderiv 𝓘(ℝ, StdSpace (Fin n)) I (fun z ↦ k' (0, z)) 0 =
           mfderiv 𝓘(ℝ, StdSpace (Fin n)) I j₀ 0 :=
         Filter.EventuallyEq.mfderiv_eq (Filter.eventually_of_mem (hU'.mem_nhds h0U') hk'₀)

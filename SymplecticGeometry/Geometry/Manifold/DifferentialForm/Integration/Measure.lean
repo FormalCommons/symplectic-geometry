@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Measure
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.TopForm
+import TauCeti.Algebra.Ring.Int.Units
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Operations
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Regularity
 import TauCeti.Geometry.Manifold.ExtChartAt
@@ -102,8 +103,7 @@ theorem signBasis_mul_signedInChartAt_eq_abs (l : Manifold.OrientationLift I M (
     rw [l.signBasis_orientationAt b x, Units.val_mul, Int.cast_mul] at h
     -- `h` reads `b` as a basis of the tangent space `TangentSpace I x`, which is `E`.
     exact h
-  have hsq : (l.signAt x x : ℝ) * l.signAt x x = 1 := by
-    exact_mod_cast Int.isUnit_mul_self (l.signAt x x).isUnit
+  have hsq : (l.signAt x x : ℝ) * l.signAt x x = 1 := Int.cast_units_mul_self _
   have habs (u : ℤˣ) : |(u : ℝ)| = 1 := by
     rcases Int.units_eq_one_or u with rfl | rfl <;> simp
   rw [RoughForm.signedInChartAt_apply_of_mem_source _ _ _ _ hx]
