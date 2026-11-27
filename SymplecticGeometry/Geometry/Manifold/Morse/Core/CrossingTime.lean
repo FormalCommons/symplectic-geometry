@@ -9,7 +9,6 @@ public import Mathlib.Analysis.InnerProductSpace.PiL2
 public import TauCeti.Dynamics.Flow.LevelCrossing
 public import TauCeti.Geometry.Manifold.IntegralCurve.GlobalFlow
 public import TauCeti.Geometry.Manifold.Morse.Stable.Manifold
-import SymplecticGeometry.Analysis.Calculus.Deriv.MeanValue
 import SymplecticGeometry.Analysis.InnerProductSpace.RadialExtension
 import SymplecticGeometry.Geometry.Manifold.Flow.BandCrossing
 import SymplecticGeometry.Geometry.Manifold.Flow.LevelCrossing
@@ -51,7 +50,7 @@ The construction:
   `SymplecticGeometry.exists_contDiff_radial_extension_hasDerivAt_add_log_pos`.
 * For `‖u‖ = ρ` and `0 < r ≤ 1`, `F (r • u) = Φ (θ (r • u) + log r) y_u`
   (`TauCeti.MorseChart.globalFlow_toChart_symm_negativeExtend_smul`), with a time at most `θ u`
-  since that time increases with `r` (`StrictMonoOn.of_forall_hasDerivAt_pos`),
+  since that time increases with `r` (`SymplecticGeometry.strictMonoOn_smul_add_log`),
   so `g ≥ a` there; and the description of the unstable set from the sphere
   (`TauCeti.MorseChart.exists_globalFlow_eq_of_mem_unstableSet`) with
   `TauCeti.MorseChart.globalFlow_mem_image_ball` gives the last property.
@@ -182,37 +181,12 @@ theorem exists_radial_extension_levelCrossingTime [IsManifold 𝓘(ℝ, E) ∞ M
       rw [norm_smul, hc, Real.norm_of_nonneg (inv_nonneg.2 hρ0.le), inv_mul_cancel₀ hρ0.ne']
     have h := hθτ₁ _ h1 ρ le_rfl
     rwa [smul_inv_smul₀ hρ0.ne'] at h
-  -- The derivative of `r ↦ θ (r • u) + log r`, from that along the unit vector `‖u‖⁻¹ • u`.
-  have hθd (u : EuclideanSpace ℝ {i // φ.weight i < 0}) (hu : u ≠ 0) (r : ℝ) (hr : 0 < r) :
-      ∃ d, 0 < d ∧ HasDerivAt (fun r ↦ θ (r • u) + Real.log r) d r := by
-    have hn : 0 < ‖u‖ := norm_pos_iff.2 hu
-    have h1 : ‖‖u‖⁻¹ • u‖ = 1 := by
-      rw [norm_smul, Real.norm_of_nonneg (inv_nonneg.2 hn.le), inv_mul_cancel₀ hn.ne']
-    obtain ⟨d, hd, hdd⟩ := hθ₁d _ h1 (‖u‖ * r) (mul_pos hn hr)
-    refine ⟨d * (‖u‖ * 1), mul_pos hd (by simpa using hn), ?_⟩
-    have h := (hdd.comp r ((hasDerivAt_id r).const_mul ‖u‖)).sub_const (Real.log ‖u‖)
-    refine h.congr_of_eventuallyEq ?_
-    filter_upwards [Ioi_mem_nhds hr] with s (hs : 0 < s)
-    simp only [comp_apply, smul_smul, mul_comm ‖u‖ s, mul_assoc, mul_inv_cancel₀ hn.ne', mul_one,
-      Real.log_mul hs.ne' hn.ne']
-    ring
-  -- So that function is strictly monotone on each ray.
+  -- Along each ray `r ↦ θ (r • u) + log r` is strictly monotone, and `0 < 1 + dθ_c(c)`.
   have hmono (u : EuclideanSpace ℝ {i // φ.weight i < 0}) (hu : u ≠ 0) :
       StrictMonoOn (fun r ↦ θ (r • u) + Real.log r) (Ioi 0) :=
-    StrictMonoOn.of_forall_hasDerivAt_pos (convex_Ioi 0) (hθd u hu)
-  -- Its derivative at `r = 1` for `u = c` is `1 + dθ_c(c)`.
-  have hθc (c : EuclideanSpace ℝ {i // φ.weight i < 0}) : 0 < 1 + fderiv ℝ θ c c := by
-    rcases eq_or_ne c 0 with rfl | hc0
-    · simp
-    obtain ⟨d, hd, hdd⟩ := hθd c hc0 1 one_pos
-    have h : HasDerivAt (fun r : ℝ ↦ θ (r • c) + Real.log r) (fderiv ℝ θ c c + 1) 1 := by
-      have hθc : HasFDerivAt θ (fderiv ℝ θ c) ((1 : ℝ) • c) := by
-        rw [one_smul]; exact ((hθs.differentiable (by simp)) c).hasFDerivAt
-      have h1 := hθc.comp_hasDerivAt (1 : ℝ) ((hasDerivAt_id (1 : ℝ)).smul_const c)
-      simp only [one_smul] at h1
-      exact h1.add (by simpa using Real.hasDerivAt_log one_ne_zero)
-    rw [add_comm, h.unique hdd]
-    exact hd
+    SymplecticGeometry.strictMonoOn_smul_add_log hθ₁d hu
+  have hθc (c : EuclideanSpace ℝ {i // φ.weight i < 0}) : 0 < 1 + fderiv ℝ θ c c :=
+    SymplecticGeometry.one_add_fderiv_apply_self_pos hθ₁d ((hθs.differentiable (by simp)) c)
   -- The centre of the ball goes to `p`.
   have hF0 : Φ (θ 0) (ι 0) = p := φ.globalFlow_toChart_symm_negativeExtend_zero hX hXc hXφ (θ 0)
   -- On the sphere, `F` lands on the level `a`.
