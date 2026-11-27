@@ -63,16 +63,14 @@ variable {E F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensi
 /-- **The Koszul formula for a map that preserves fields of bilinear forms.** Let `g` and `h` be
 fields of bilinear forms on `E` and `F`, and let `τ : E → F` be `C²` on an open set `U`, with
 `h (τ y) (Dτ(y) u) (Dτ(y) v) = g y u v` for `y ∈ U`. At a point `w ∈ U` where `Dτ(w)` is
-surjective, `g w` is nondegenerate, and `h` is differentiable at `τ w`, symmetric near `τ w` and
-nondegenerate at `τ w`,
+surjective, `g w` is nondegenerate, and `h` is differentiable at `τ w` and symmetric near `τ w`,
 `D²τ(w)(u, v) = Dτ(w) (Γ_g(w)(u, v)) - Γ_h(τ w)(Dτ(w) u, Dτ(w) v)`. -/
 theorem fderiv_fderiv_apply_eq_sub_christoffelSecondKind (hU : IsOpen U)
     (hτ : ContDiffOn ℝ 2 τ U)
     (hiso : ∀ y ∈ U, ∀ u v, h (τ y) (fderiv ℝ τ y u) (fderiv ℝ τ y v) = g y u v)
     (hw : w ∈ U) (hsurj : Function.Surjective (fderiv ℝ τ w))
     (hgnd : (g w).toBilinForm.Nondegenerate) (hh : DifferentiableAt ℝ h (τ w))
-    (hhsymm : ∀ᶠ y in 𝓝 (τ w), (h y).toBilinForm.IsSymm)
-    (hhnd : (h (τ w)).toBilinForm.Nondegenerate) (u v : E) :
+    (hhsymm : ∀ᶠ y in 𝓝 (τ w), (h y).toBilinForm.IsSymm) (u v : E) :
     fderiv ℝ (fderiv ℝ τ) w u v =
       fderiv ℝ τ w (christoffelSecondKind g w u v) -
         christoffelSecondKind h (τ w) (fderiv ℝ τ w u) (fderiv ℝ τ w v) := by
@@ -113,6 +111,15 @@ theorem fderiv_fderiv_apply_eq_sub_christoffelSecondKind (hU : IsOpen U)
     ext b
     simp [hgH, ha]
   have hbij : Function.Bijective (L : E →ₗ[ℝ] F) := ⟨hLinj, hsurj⟩
+  -- `h (τ w)` is nondegenerate, since `L` is onto and carries `g w` to it.
+  have hhnd : (h (τ w)).toBilinForm.Nondegenerate := by
+    refine .ofSeparatingLeft <|
+      (h (τ w)).separatingLeft_toBilinForm_iff_injective.2 fun p q hpq ↦ ?_
+    obtain ⟨a, rfl⟩ := hsurj p
+    obtain ⟨b, rfl⟩ := hsurj q
+    refine congrArg L ((g w).separatingLeft_toBilinForm_iff_injective.1 hgnd.1 ?_)
+    ext c
+    simp only [hgH, hpq]
   let e : E ≃L[ℝ] F := (LinearEquiv.ofBijective (L : E →ₗ[ℝ] F) hbij).toContinuousLinearEquiv
   -- The candidate for `Γ_g(w)`, pulled back from `D²τ(w) + Γ_h(τ w) ∘ (L × L)` by `L`.
   set A : E →L[ℝ] E →L[ℝ] E := compL ℝ E F E (e.symm : F →L[ℝ] E) ∘L
@@ -141,14 +148,12 @@ theorem fderiv_fderiv_eq_sub_christoffelSecondKind (hU : IsOpen U)
     (hiso : ∀ y ∈ U, ∀ u v, h (τ y) (fderiv ℝ τ y u) (fderiv ℝ τ y v) = g y u v)
     (hw : w ∈ U) (hsurj : Function.Surjective (fderiv ℝ τ w))
     (hgnd : (g w).toBilinForm.Nondegenerate) (hh : DifferentiableAt ℝ h (τ w))
-    (hhsymm : ∀ᶠ y in 𝓝 (τ w), (h y).toBilinForm.IsSymm)
-    (hhnd : (h (τ w)).toBilinForm.Nondegenerate) :
+    (hhsymm : ∀ᶠ y in 𝓝 (τ w), (h y).toBilinForm.IsSymm) :
     fderiv ℝ (fderiv ℝ τ) w =
       compL ℝ E E F (fderiv ℝ τ w) ∘L christoffelSecondKind g w -
         (christoffelSecondKind h (τ w)).bilinearComp (fderiv ℝ τ w) (fderiv ℝ τ w) := by
   ext u v
-  simp [fderiv_fderiv_apply_eq_sub_christoffelSecondKind hU hτ hiso hw hsurj hgnd hh hhsymm
-    hhnd u v]
+  simp [fderiv_fderiv_apply_eq_sub_christoffelSecondKind hU hτ hiso hw hsurj hgnd hh hhsymm u v]
 
 end SymplecticGeometry
 
