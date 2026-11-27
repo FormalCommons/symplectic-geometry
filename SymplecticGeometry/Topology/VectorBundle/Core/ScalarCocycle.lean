@@ -8,6 +8,7 @@ module
 public import TauCeti.Topology.VectorBundle.Hom
 public import TauCeti.Topology.VectorBundle.TensorProduct.Basic
 import SymplecticGeometry.Topology.Algebra.Module.TensorProduct
+import SymplecticGeometry.Topology.VectorBundle.Coordinates
 
 /-!
 # The line bundles of a scalar cocycle
@@ -46,7 +47,7 @@ library first gave for `Projectivization.twistCoreTensorEquiv`, which
 `lineBundleCoreTensorEquiv`. Its continuity on total spaces is Tau Ceti's
 `TauCeti.continuous_hom_bundle_of_inCoordinates_eq_const` with Mathlib's
 `Continuous.clm_bundle_apply`, since in the trivializations at every point it is the same map
-`a ↦ a ⊗ 1`.
+`a ↦ a ⊗ 1` (by the library's `ContinuousLinearMap.inCoordinates_eq_of_forall_apply`).
 
 ## References
 
@@ -197,14 +198,8 @@ private theorem inCoordinates_lineBundleCoreTensorEquiv (x₀ x : X)
         (fun x ↦ (c.lineBundleCore k).Fiber x ⊗[𝕜] (c.lineBundleCore l).Fiber x) x₀ x x₀ x
         (c.lineBundleCoreTensorEquiv k l x : _ →L[𝕜] _) =
       (TauCeti.ProjectiveTensor.tmulL 𝕜 𝕜 𝕜).flip 1 := by
-  refine ContinuousLinearMap.ext fun v ↦ ?_
-  simp only [ContinuousLinearMap.inCoordinates, ContinuousLinearMap.comp_apply,
-    Trivialization.symmL_apply _ hx, Trivialization.continuousLinearMapAt_apply_of_mem _ _ hx',
-    ContinuousLinearEquiv.coe_coe, ContinuousLinearMap.flip_apply]
-  have hv := congrArg Prod.snd
-    ((trivializationAt 𝕜 (c.lineBundleCore (k + l)).Fiber x₀).apply_mk_symm hx v)
-  dsimp only at hv
-  conv_rhs => rw [← hv]
+  refine ContinuousLinearMap.inCoordinates_eq_of_forall_apply hx hx' fun v ↦ ?_
+  simp only [ContinuousLinearEquiv.coe_coe, ContinuousLinearMap.flip_apply]
   -- All three trivializations at `x₀` are the charts `c.indexAt x₀`, where the map is
   -- `tensorProduct_localTriv_lineBundleCoreTensorEquiv`.
   rw [lineBundleCore_trivializationAt, lineBundleCore_localTriv_baseSet] at hx
