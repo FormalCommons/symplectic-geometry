@@ -6,7 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.ExtChartAt
+public import Mathlib.Geometry.Manifold.ContMDiff.Defs
 public import SymplecticGeometry.Topology.OpenPartialHomeomorph.SourceRestrict
+import TauCeti.Geometry.Manifold.ContMDiff.Atlas
 import SymplecticGeometry.Topology.OpenPartialHomeomorph.Ball
 
 /-!
@@ -18,7 +20,9 @@ of `M` at `x` followed by the translation of `E` that sends the coordinate of `x
 built with Tau Ceti's `OpenPartialHomeomorph.extendTrans`. Its source is that of the chart at
 `x` (`centeredExtChartAt_source`), it sends `y` to `extChartAt I x y - extChartAt I x x`
 (`centeredExtChartAt_apply`), its inverse and target are given by
-`centeredExtChartAt_symm_apply` and `centeredExtChartAt_target`, and, restricted to its source,
+`centeredExtChartAt_symm_apply` and `centeredExtChartAt_target`, it is smooth on its source
+(`contMDiffOn_centeredExtChartAt`, a case of Tau Ceti's
+`OpenPartialHomeomorph.contMDiffOn_extendTrans`), and, restricted to its source,
 it vanishes at `x` only (`sourceRestrict_centeredExtChartAt_preimage_zero`, from
 `OpenPartialHomeomorph.sourceRestrict_preimage_singleton`). Its inverse carries some ball about
 the origin into any given neighbourhood of `x`
@@ -96,6 +100,13 @@ theorem sourceRestrict_centeredExtChartAt_preimage_zero :
     (centeredExtChartAt I x).sourceRestrict ⁻¹' {0} = {⟨x, mem_centeredExtChartAt_source I x⟩} := by
   rw [← centeredExtChartAt_self I x]
   exact (centeredExtChartAt I x).sourceRestrict_preimage_singleton _
+
+/-- The centred chart at `x` is `C^n` on its source, on a `C^n` manifold. -/
+theorem contMDiffOn_centeredExtChartAt {n : WithTop ℕ∞} [IsManifold I n M] :
+    ContMDiffOn I 𝓘(𝕜, E) n (centeredExtChartAt I x) (centeredExtChartAt I x).source := by
+  rw [centeredExtChartAt_def]
+  exact (chartAt H x).contMDiffOn_extendTrans (IsManifold.chart_mem_maximalAtlas x)
+    (contDiff_id.sub contDiff_const)
 
 /-- Near a point `x` of a manifold, the centred chart at `x` has a ball about `0` in its
 target that its inverse carries into any given neighbourhood `T` of `x`. -/

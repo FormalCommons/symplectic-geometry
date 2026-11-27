@@ -15,6 +15,7 @@ public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Manifold.Submersion.Split
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Atlas
 import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
+import TauCeti.Geometry.Manifold.IsManifold.Basic
 
 /-!
 # Smooth atlases of a map, read pointwise
@@ -65,6 +66,8 @@ homeomorphism is `Bundle.Trivialization.mapFiberHomeomorph`.
 * `TauCeti.MapFiber.Atlas.IsContMDiff.surjective_mfderiv` and
   `TauCeti.MapFiber.Atlas.IsContMDiff.isSubmersion`: the map of a smooth atlas has onto
   derivative everywhere, and is a submersion.
+* `TauCeti.MapFiber.Atlas.IsContMDiff.finrank_sub_finrank_eq`: for nonempty finite-dimensional
+  `M`, the model fibre of a smooth atlas has dimension `dim M - dim B`.
 * `TauCeti.MapFiber.Atlas.IsContMDiff.isContMDiffDistribution_ker_mfderiv` and
   `TauCeti.MapFiber.Atlas.IsContMDiff.contMDiffVectorBundle_ker_mfderiv`: the vertical spaces of
   a `C^n` atlas form a `C^m` distribution and vector bundle of rank `dim M - dim B` when
@@ -385,6 +388,23 @@ theorem IsContMDiff.surjective_mfderiv (hA : A.IsContMDiff n IB IF IM) (hn : n �
   TauCeti.isRegularPoint_iff.1 <| (A.trivAt (proj x)).isRegularPoint_proj
     (hA.mdifferentiable_trivAt hn (proj x))
     ((A.trivAt (proj x)).mem_source.2 (A.mem_baseSet_trivAt (proj x)))
+
+/-- **The dimension of the fibre.** If `proj : M → B` has a `C^n` atlas with model fibre `F`,
+`n ≠ 0`, and `M` is nonempty and finite-dimensional, then `dim M - dim B = dim F`: the derivative
+of `proj` is onto, and its kernel is the image of the injective derivative of a fibre inclusion. -/
+theorem IsContMDiff.finrank_sub_finrank_eq [FiniteDimensional 𝕜 EM] [Nonempty M]
+    (hA : A.IsContMDiff n IB IF IM) (hn : n ≠ 0) :
+    Module.finrank 𝕜 EM - Module.finrank 𝕜 EB = Module.finrank 𝕜 EF := by
+  obtain ⟨x⟩ := ‹Nonempty M›
+  have hb := A.mem_baseSet_trivAt (proj x)
+  have he := hA.mdifferentiable_trivAt hn (proj x)
+  set e := A.trivAt (proj x)
+  set v := (e x).2
+  have hM := (e.isRegularPoint_proj he
+    (e.fiberInclusionMap_mem_source hb v)).finrank_ker_mfderiv_add_finrank
+  have hF := LinearMap.finrank_range_of_inj (e.injective_mfderiv_fiberInclusionMap he hb v)
+  rw [e.range_mfderiv_fiberInclusionMap he hb v, TauCeti.finrank_tangentSpace] at hF
+  omega
 
 /-- The fibre coordinate `y ↦ (A.trivAt b y).2` of a chart of a `C^n` atlas is `C^n` on the
 source of the chart. -/
