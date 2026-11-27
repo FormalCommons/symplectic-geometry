@@ -169,11 +169,8 @@ theorem momentNormSq_eq_clm_apply :
     momentNormSq B hB μ = fun y ↦ (LinearMap.toContinuousLinearMap (μ y) : E →L[ℝ] ℝ)
       ((LinearMap.toContinuousLinearMap
         ((B.toDual hB).symm.toLinearMap ∘ₗ ContinuousLinearMap.coeLM ℝ) : (E →L[ℝ] ℝ) →L[ℝ] E)
-          (LinearMap.toContinuousLinearMap (μ y))) := by
-  funext y
-  rw [momentNormSq_eq_apply_momentSharp, momentSharp_def]
-  -- The Lie algebra is `E` only up to definitional unfolding, so `μ y` is read on `E` by `show`.
-  exact (congrFun (LinearMap.coe_toContinuousLinearMap' (show E →ₗ[ℝ] ℝ from μ y)) _).symm
+          (LinearMap.toContinuousLinearMap (μ y))) :=
+  funext fun _ ↦ momentNormSq_eq_apply_momentSharp
 
 /-- If every component `x ↦ μ x ξ` of the moment map is `C^n`, so is its norm square. -/
 theorem contMDiff_momentNormSq [TopologicalSpace M] [ChartedSpace H' M] {n : WithTop ℕ∞}
