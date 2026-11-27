@@ -310,9 +310,9 @@ open scoped LinearAlgebra.Projectivization
 variable (c) [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M] [T2Space M]
   [Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)]
 
-/-- **The complex blowup at a point.** Let `M` be a Hausdorff complex manifold of dimension
-`n + 1`, and `c` a holomorphic chart of `M` with `c p₀ = 0`. The blowup `Blowup c` of `M` at `p₀`,
-with its complex structure, has the following properties.
+/-- **The complex blowup at a point.** Take a holomorphic chart `c` with `c p₀ = 0` of a Hausdorff
+complex manifold `M` of dimension `n + 1`. The blowup `Blowup c` of `M` at `p₀`, with its complex
+structure, has the following properties.
 
 * The blowdown `Blowup c → M` is holomorphic.
 * It restricts to a biholomorphism from the complement of the exceptional divisor onto
