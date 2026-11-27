@@ -9,12 +9,10 @@ public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.Cobordism
 public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.StableDisc
 public import TauCeti.Dynamics.Flow.LevelCrossing
 public import Mathlib.Geometry.Manifold.Instances.Sphere
-import SymplecticGeometry.Analysis.ODE.LyapunovBilinForm
 import SymplecticGeometry.Dynamics.Flow.Stable
 import SymplecticGeometry.Geometry.Manifold.Flow.BandCrossing
 import SymplecticGeometry.Geometry.Manifold.Flow.LevelCrossing
 import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.Linearization
-import TauCeti.LinearAlgebra.QuadraticForm.Real
 
 /-!
 # The stable set of a critical point in the lower level of a cobordism
@@ -34,13 +32,12 @@ the orbit of each point `x` with `a ≤ f x < c` meets `f ⁻¹' {a}` exactly on
 kills exactly the line through `X x`.
 
 Finally, it prepares the sphere that will be the attaching sphere of `p` inside the local stable
-disc. On a stable set, `f` lies strictly below its value at the limit `p` away from `p`, and `p`
-is the only critical point. When `p` has Morse index `m`, the negative of the Hessian of `f` in
-the chart at `p` is a Euclidean norm on the stable subspace of the linearization of `X`, through a
-continuous linear equivalence `L` with `EuclideanSpace ℝ (Fin m)`. For a disc `ι` with a left
-inverse on the ball of radius `ρ`, as given by `exists_localStableDisc`, and `0 < s` with
+disc. For a disc `ι` with a left inverse on the ball of radius `ρ`, as given by
+`exists_localStableDisc`, an injective continuous linear map `L` and `0 < s` with
 `s * ‖L‖ < ρ`, the map `u ↦ ι (s • L u)` on the unit sphere is a smooth injective immersion
-into the stable set of `p`, below the level `f p`, that meets no critical point.
+into the stable set of `p`, below the level `f p`, that meets no critical point. On the stable
+subspace, `L` can be taken from
+`TauCeti.IsGradientLike.exists_continuousLinearEquiv_stableSubspace`.
 
 ## Main declarations
 
@@ -60,13 +57,6 @@ into the stable set of `p`, below the level `f p`, that meets no critical point.
   sends a stable set into its part on the lower level.
 * `SymplecticGeometry.IsWeinsteinStructure.ker_mfderiv_flow_levelCrossingTime`: the kernel of the
   derivative of the backward map at `x` is the span of `X x`.
-* `QuadraticMap.PosDef.exists_continuousLinearEquiv_euclideanSpace`: a positive definite form on
-  a space of dimension `n` is `‖u‖ ^ 2` in a continuous linear coordinate `u` in
-  `EuclideanSpace ℝ (Fin n)`; `TauCeti.IsGradientLike.exists_continuousLinearEquiv_stableSubspace`
-  applies it to the negative of the Hessian on the stable subspace.
-* `SymplecticGeometry.IsWeinsteinStructure.apply_lt_of_mem_stableSet` and
-  `.notMem_criticalPoints_of_mem_stableSet`: a point `x ≠ p` of the stable set of `p` has
-  `f x < f p` and is not a critical point.
 * `SymplecticGeometry.contMDiff_comp_smul_coe_sphere`, `.injective_comp_smul_coe_sphere` and
   `.injective_mfderiv_comp_smul_coe_sphere`: a sphere scaled into the ball on which a disc is an
   immersion with a left inverse is a smooth injective immersion;
@@ -109,18 +99,11 @@ the implicit function theorem at the regular level `a`, in the form of Tau Ceti'
 The kernel is `TauCeti.ker_mfderiv_flow_levelCrossingTime`, whose hypotheses are checked as for
 the smoothness.
 
-The Euclidean coordinate is Tau Ceti's
-`TauCeti.nonempty_isometryEquiv_toQuadraticForm'_one_of_posDef`, which makes a positive definite
-form isometric to the sum of squares, read on `EuclideanSpace ℝ (Fin n)`, as in the proof of
-`QuadraticMap.PosDef.exists_linearEquiv_image_closedBall_eq`
-(`SymplecticGeometry.Analysis.InnerProductSpace.Ellipsoid`); the Hessian is negative definite on
-the stable subspace by `ContinuousLinearMap.apply_self_neg_of_mem_stableSubspace`. The strict
-bound on a stable set uses that `f` is monotone along orbits and at most `f p` on the stable set:
-if `f x = f p`, then `f` is constant on the forward orbit of `x`, so `df(X)` vanishes at the time
-`1` point, which is then a rest point in the stable set of `p`, hence `p`
-(`Flow.eq_of_mem_stableSet`). The immersion is the chain rule with Mathlib's
-`injective_mvfderiv_subtypeVal_sphere` for the inclusion of the sphere, and injectivity comes
-from the left inverse of the disc.
+The immersion is the chain rule with Mathlib's `injective_mvfderiv_subtypeVal_sphere` for the
+inclusion of the sphere, and injectivity comes from the left inverse of the disc. That the
+sphere lies below `f p` and off the critical points is
+`SymplecticGeometry.IsWeinsteinStructure.apply_lt_of_mem_stableSet` and
+`SymplecticGeometry.IsWeinsteinStructure.notMem_criticalPoints_of_mem_stableSet`.
 
 ## References
 
@@ -316,55 +299,6 @@ end IsWeinsteinStructure
 
 /-! ### A sphere in the local stable disc -/
 
-/-- **A positive definite form is a Euclidean norm.** A positive definite quadratic form `Q` on
-a real normed space `V` of dimension `n` is the squared norm of `EuclideanSpace ℝ (Fin n)`
-carried over by a continuous linear equivalence: `Q (L u) = ‖u‖ ^ 2`. -/
-theorem _root_.QuadraticMap.PosDef.exists_continuousLinearEquiv_euclideanSpace
-    {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]
-    {Q : QuadraticForm ℝ V} (hQ : Q.PosDef) {n : ℕ} (hn : finrank ℝ V = n) :
-    ∃ L : EuclideanSpace ℝ (Fin n) ≃L[ℝ] V, ∀ u, Q (L u) = ‖u‖ ^ 2 := by
-  subst hn
-  obtain ⟨φ⟩ := TauCeti.nonempty_isometryEquiv_toQuadraticForm'_one_of_posDef hQ
-  refine ⟨((WithLp.linearEquiv 2 ℝ _).trans φ.symm.toLinearEquiv).toContinuousLinearEquiv,
-    fun u ↦ ?_⟩
-  simp only [LinearEquiv.coe_toContinuousLinearEquiv', LinearEquiv.trans_apply,
-    QuadraticMap.IsometryEquiv.coe_toLinearEquiv]
-  rw [φ.symm.map_app, EuclideanSpace.real_norm_sq_eq]
-  simp [Matrix.toQuadraticForm', LinearMap.BilinMap.toQuadraticMap_apply,
-    Matrix.toLinearMap₂'_apply', dotProduct, pow_two]
-
-omit [T2Space M] in
-/-- **Euclidean coordinates on the stable subspace.** Let `X` be gradient-like for `f`, let `p`
-be a nondegenerate critical point of `f` of Morse index `m`, let `X` be differentiable at `p`,
-and let `A` be the linearization of `X` at `p`. Write `H` for the second derivative of `f` read
-in the chart at `p`, which is negative definite on the stable subspace of `A`. Then some
-continuous linear equivalence `L` from `EuclideanSpace ℝ (Fin m)` onto the stable subspace
-satisfies `-H (L u) (L u) = ‖u‖ ^ 2` for every `u`. -/
-theorem _root_.TauCeti.IsGradientLike.exists_continuousLinearEquiv_stableSubspace
-    (hX : IsGradientLike f X) {p : M} (hp : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p)
-    (hXp : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ, E).tangent
-      (fun x ↦ (X x : TangentBundle 𝓘(ℝ, E) M)) p)
-    {A : E →L[ℝ] E} (hA : A = sectionLinearization (F := E) 𝓘(ℝ, E) id X p) {m : ℕ}
-    (hm : manifoldMorseIndex 𝓘(ℝ, E) f p = m) :
-    ∃ L : EuclideanSpace ℝ (Fin m) ≃L[ℝ] A.stableSubspace, ∀ u,
-      -fderiv ℝ (fderiv ℝ (f ∘ (extChartAt 𝓘(ℝ, E) p).symm)) (extChartAt 𝓘(ℝ, E) p p)
-        (L u) (L u) = ‖u‖ ^ 2 := by
-  obtain ⟨c, hc, hcB⟩ := hX.exists_pos_mul_norm_sq_le_fderiv_fderiv hp hXp hA
-  have hB := ((isManifoldNondegenerateCriticalPoint_iff _).1 hp).contDiffAt.isSymmSndFDerivAt
-    (by simp)
-  set H := fderiv ℝ (fderiv ℝ (f ∘ (extChartAt 𝓘(ℝ, E) p).symm)) (extChartAt 𝓘(ℝ, E) p p)
-  set Q : QuadraticForm ℝ A.stableSubspace :=
-    -(H.toBilinForm.toQuadraticMap.comp A.stableSubspace.subtype)
-  have hQ (v : A.stableSubspace) : Q v = -H v v := by
-    simp [Q, LinearMap.BilinMap.toQuadraticMap_apply]
-  have hQpos : Q.PosDef := fun v hv ↦ by
-    rw [hQ, neg_pos]
-    exact ContinuousLinearMap.apply_self_neg_of_mem_stableSubspace hB hc hcB v.property
-      (by simpa using hv)
-  obtain ⟨L, hL⟩ := hQpos.exists_continuousLinearEquiv_euclideanSpace
-    ((hX.finrank_stableSubspace_eq_manifoldMorseIndex hp hXp hA).trans hm)
-  exact ⟨L, fun u ↦ (hQ _).symm.trans (hL u)⟩
-
 section Sphere
 
 variable {EN : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] {HN : Type*} [TopologicalSpace HN]
@@ -420,6 +354,8 @@ theorem injective_mfderiv_comp_smul_coe_sphere [TopologicalSpace N] [ChartedSpac
   have hc : MDifferentiableAt (𝓡 n) 𝓘(ℝ, V) ((↑) : sphere (0 : V) 1 → V) u :=
     (contMDiff_coe_sphere u).mdifferentiableAt one_ne_zero
   have hg : MDifferentiableAt 𝓘(ℝ, V) 𝓘(ℝ, F) (s • L) (u : V) := (s • L).mdifferentiableAt
+  -- The map is `ι ∘ (s • L) ∘ (↑)` by definition; `mfderiv_comp` needs it written as that
+  -- composite to match.
   rw [show (fun u : sphere (0 : V) 1 ↦ ι (s • L u)) = ι ∘ (s • L) ∘ (↑) from rfl,
     mfderiv_comp u hιd (hg.comp u hc), mfderiv_comp u hg hc, ContinuousLinearMap.mfderiv_eq]
   -- `mvfderiv` of the inclusion is its `mfderiv` followed by the identification of the tangent
@@ -452,34 +388,6 @@ namespace IsWeinsteinStructure
 
 variable (hW : IsWeinsteinStructure ω X f)
 include hW
-
-/-- **The function is strictly below its limit on a stable set.** If the orbit of `x ≠ p` under
-the flow of a Weinstein structure `(ω, X, f)` tends to `p`, then `f x < f p`. -/
-theorem apply_lt_of_mem_stableSet {p x : M} (hx : x ∈ hW.flow.stableSet p) (hxp : x ≠ p) :
-    f x < f p := by
-  refine (hW.apply_le_of_mem_stableSet hx).lt_of_ne fun hfx ↦ hxp ?_
-  -- `f` is constant on the forward orbit of `x`, so the point at time `1` is critical.
-  have hconst : ∀ t, 0 ≤ t → f (hW.flow t x) = f p := fun t ht ↦
-    le_antisymm (hW.apply_le_of_mem_stableSet ((Flow.apply_mem_stableSet_iff _ t).2 hx))
-      (hfx ▸ by simpa using hW.monotone_comp_flow x ht)
-  have h0 : HasDerivAt (fun t ↦ f (hW.flow t x)) 0 1 :=
-    (hasDerivAt_const (1 : ℝ) (f p)).congr_of_eventuallyEq <|
-      (eventually_gt_nhds one_pos).mono fun t ht ↦ hconst t ht.le
-  have hcrit : mvfderiv 𝓘(ℝ, E) f (hW.flow 1 x) = 0 := by
-    by_contra h
-    exact (hW.isGradientLike.mvfderiv_apply_pos h).ne' ((hW.hasDerivAt_comp_flow x 1).unique h0)
-  have h1 := Flow.eq_of_mem_stableSet (hW.flow_apply_of_mvfderiv_eq_zero hcrit)
-    ((Flow.apply_mem_stableSet_iff _ 1).2 hx)
-  have hfix := Flow.fixed_of_mem_stableSet hx (-1)
-  rw [← h1, ← Flow.map_add] at hfix
-  simp only [neg_add_cancel, Flow.map_zero_apply] at hfix
-  exact hfix.trans h1
-
-/-- **No other critical point on a stable set.** A point `x ≠ p` of the stable set
-of `p` under the flow of a Weinstein structure `(ω, X, f)` is not a critical point of `f`. -/
-theorem notMem_criticalPoints_of_mem_stableSet {p x : M} (hx : x ∈ hW.flow.stableSet p)
-    (hxp : x ≠ p) : x ∉ criticalPoints 𝓘(ℝ, E) f := fun h ↦
-  hxp (Flow.eq_of_mem_stableSet (hW.flow_apply_of_mvfderiv_eq_zero (mem_criticalPoints.1 h)) hx)
 
 /-- **A scaled sphere in a local stable disc.** Let `(ω, X, f)` be a Weinstein structure, and
 `ι : F → M` a map with `ι 0 = p` that sends the ball of radius `ρ` into the stable set of `p`
