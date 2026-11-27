@@ -150,9 +150,8 @@ theorem exists_radial_extension_levelCrossingTime [IsManifold 𝓘(ℝ, E) ∞ M
     fun c ↦ Flow.levelCrossingTime Φ g a (ι c)
   have hιs : ContDiff ℝ ∞ fun c : EuclideanSpace ℝ {i // φ.weight i < 0} ↦
       φ.negativeExtend c.ofLp := by
-    have := φ.finiteDimensional
-    exact (LinearMap.toContinuousLinearMap
-      (φ.negativeExtend ∘ₗ (WithLp.linearEquiv 2 ℝ _).toLinearMap)).contDiff
+    simp_rw [← negativeExtendL_apply]
+    exact φ.negativeExtendL.contDiff
   have hτs (c : EuclideanSpace ℝ {i // φ.weight i < 0}) (hc : ‖c‖ = ρ) :
       ContDiffAt ℝ ∞ τ c := by
     have hlev : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) ∞ (Flow.levelCrossingTime Φ g a) (ι c) :=
