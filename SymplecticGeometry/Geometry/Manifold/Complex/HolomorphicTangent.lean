@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.ComplexTangentB
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.FirstChernClass
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.RestrictScalars
 import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
+import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
 
 /-!
 # The tangent bundle of a complex manifold with multiplication by `i`
@@ -31,7 +32,10 @@ by `TangentBundle.restrictScalarsHomeomorph`. So the two bundles have the same f
 * `TauCeti.SmoothAlmostComplexStructure.firstChernClass_ofComplexManifold`: the first Chern class
   of `(TM, i)`, for any complex model fibre, is that of the holomorphic tangent bundle.
 
-The equivalence and its continuity follow the private `holomorphicTangentEquiv` of Tau Ceti's
+The equivalence is `TauCeti.Bundle.ContinuousComplexStructure.fiberEquivOfCommuteI` applied to
+the identity of `E`, and its continuity comes from
+`TauCeti.Bundle.ContinuousComplexStructure.continuous_fiberEquivOfCommuteI`. They follow the
+private `holomorphicTangentEquiv` of Tau Ceti's
 `TauCeti/Geometry/Symplectic/Manifold/AlmostComplex/Chern.lean` and the continuity step in the
 proof of `TauCeti.SmoothTwoForm.IsNondegenerate.firstChernHom_eq_clutchingNumberHom_tangentSpace`
 there; this file states them publicly.
@@ -61,27 +65,30 @@ identity of `E`. -/
 def ofComplexManifoldTangentEquiv (n : ℕ∞) (x : M) :
     ((ofComplexManifold E M).toContMDiff n).toContinuousComplexStructure.Fiber x ≃L[ℂ]
       TangentSpace 𝓘(ℂ, E) x :=
-  let J := ((ofComplexManifold E M).toContMDiff n).toContinuousComplexStructure
-  -- `J` is multiplication by `i` on `E`, so the real equivalence `J.fiberEquiv x` commutes
-  -- with `I •`.
-  ContinuousLinearEquiv.complexOfMapISmul (W := TangentSpace 𝓘(ℂ, E) x) (J.fiberEquiv x) fun v ↦
-    (J.fiberEquiv_I_smul x v).trans
-      (((ContMDiffAlmostComplexStructure.toContinuousComplexStructure_apply _ x _).trans
-        (toContMDiff_apply _ n x _)).trans (ofComplexManifold_apply x _))
+  -- The real equivalence onto the holomorphic tangent space is the identity of `E`; it carries
+  -- the structure, multiplication by `i`, to multiplication by `I`.
+  ((ofComplexManifold E M).toContMDiff n).toContinuousComplexStructure.fiberEquivOfCommuteI
+    (W := TangentSpace 𝓘(ℂ, E)) (fun _ ↦ ContinuousLinearEquiv.refl ℝ E)
+    (fun x v ↦ by
+      rw [ContMDiffAlmostComplexStructure.toContinuousComplexStructure_apply, toContMDiff_apply]
+      exact ofComplexManifold_apply (E := E) x v)
+    x
 
 @[simp]
 theorem ofComplexManifoldTangentEquiv_apply (n : ℕ∞) (x : M)
     (v : ((ofComplexManifold E M).toContMDiff n).toContinuousComplexStructure.Fiber x) :
     ofComplexManifoldTangentEquiv n x v =
       (((ofComplexManifold E M).toContMDiff n).toContinuousComplexStructure.fiberEquiv x v : E) :=
-  ContinuousLinearEquiv.complexOfMapISmul_apply _ _ v
+  Bundle.ContinuousComplexStructure.fiberEquivOfCommuteI_apply _ _ _ x v
 
 @[simp]
 theorem ofComplexManifoldTangentEquiv_symm_apply (n : ℕ∞) (x : M) (v : TangentSpace 𝓘(ℂ, E) x) :
     (ofComplexManifoldTangentEquiv n x).symm v =
       (((ofComplexManifold E M).toContMDiff n).toContinuousComplexStructure.fiberEquiv x).symm
         (v : E) :=
-  ContinuousLinearEquiv.complexOfMapISmul_symm_apply _ _ v
+  (ofComplexManifoldTangentEquiv n x).symm_apply_eq.2 <|
+    ((ofComplexManifoldTangentEquiv_apply n x _).trans
+      (ContinuousLinearEquiv.apply_symm_apply _ (v : E))).symm
 
 variable [FiniteDimensional ℂ E]
   (G : Type*) [NormedAddCommGroup G] [NormedSpace ℂ G] [FiniteDimensional ℂ G]
@@ -94,13 +101,12 @@ theorem continuous_ofComplexManifoldTangentEquiv (n : ℕ∞) :
         ((ofComplexManifold E M).toContMDiff n).toContinuousComplexStructure.Fiber ↦
       TotalSpace.mk' E (E := TangentSpace 𝓘(ℂ, E)) p.proj
         (ofComplexManifoldTangentEquiv n p.proj p.snd) := by
-  set J := ((ofComplexManifold E M).toContMDiff n).toContinuousComplexStructure
-  -- On total spaces the identification is the identity of the real tangent bundle, followed by
-  -- the identity from the real onto the holomorphic tangent bundle.
-  refine ((TangentBundle.restrictScalarsHomeomorph ℝ (𝕜' := ℂ) M).symm.continuous.comp
-    (J.totalSpaceHomeomorph G).continuous).congr fun v ↦ ?_
-  rw [Function.comp_apply, Bundle.ContinuousComplexStructure.totalSpaceHomeomorph_apply,
-    TangentBundle.restrictScalarsHomeomorph_symm_apply, ofComplexManifoldTangentEquiv_apply]
+  -- On total spaces the identity from the real onto the holomorphic tangent bundle is the inverse
+  -- of `TangentBundle.restrictScalarsHomeomorph`.
+  unfold ofComplexManifoldTangentEquiv
+  refine Bundle.ContinuousComplexStructure.continuous_fiberEquivOfCommuteI _ _ _ G
+    ((TangentBundle.restrictScalarsHomeomorph ℝ (𝕜' := ℂ) M).symm.continuous.congr fun p ↦ ?_)
+  rw [TangentBundle.restrictScalarsHomeomorph_symm_apply]
   -- The identifications `tangentSpaceCastModel` of tangent spaces with `E` are the identity by
   -- definition, and Mathlib states no evaluation lemma for them.
   rfl
