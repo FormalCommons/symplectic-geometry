@@ -13,6 +13,7 @@ public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Diffeomorph
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import SymplecticGeometry.Topology.OpenPartialHomeomorph.Compact
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
 
 /-!
 # Local diffeomorphisms at a point and their local inverses
@@ -63,6 +64,10 @@ target of `Λ`, not only at `x`.
 * `PartialDiffeomorph.left_inv`, `PartialDiffeomorph.right_inv`: a partial diffeomorphism and
   its inverse undo each other, on its source and on its target, stated for the coercions of `Φ`
   and `Φ.symm` to functions.
+* `PartialDiffeomorph.contMDiffAt_of_contDiffAt_comp_symm`: for a partial diffeomorphism `Φ` onto
+  an open subset of a normed space, a map `g` is `C^m` at a point of the source of `Φ` when
+  `g ∘ Φ.symm` is `C^m` at its image, for `m ≤ n`. It applies Tau Ceti's
+  `IsLocalDiffeomorphAt.contMDiffAt_comp_iff` to `Φ.symm`.
 * `PartialDiffeomorph.isCompact_image_of_subset_source`: a partial diffeomorphism sends compact
   subsets of its source to compact sets; it is
   `OpenPartialHomeomorph.isCompact_image_of_subset_source` applied to `Φ.toOpenPartialHomeomorph`.
@@ -231,6 +236,17 @@ theorem PartialDiffeomorph.right_inv (Φ : PartialDiffeomorph I J M N n) {y : N}
 theorem PartialDiffeomorph.map_target (Φ : PartialDiffeomorph I J M N n) {y : N}
     (hy : y ∈ Φ.target) : Φ.symm y ∈ Φ.source :=
   Φ.toPartialEquiv.map_target hy
+
+/-- If `Φ` is a `C^n` partial diffeomorphism from `M` onto an open subset of a normed space `G`,
+`m ≤ n`, and `g ∘ Φ.symm` is `C^m` at `Φ x` for a point `x` of the source, then `g` is `C^m`
+at `x`. -/
+theorem PartialDiffeomorph.contMDiffAt_of_contDiffAt_comp_symm {G : Type*} [NormedAddCommGroup G]
+    [NormedSpace 𝕜 G] {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F] {m : WithTop ℕ∞}
+    {g : M → F} (Φ : PartialDiffeomorph I 𝓘(𝕜, G) M G n) (hm : m ≤ n) (hx : x ∈ Φ.source)
+    (hg : ContDiffAt 𝕜 m (g ∘ Φ.symm) (Φ x)) :
+    ContMDiffAt I 𝓘(𝕜, F) m g x :=
+  Φ.left_inv hx ▸ ((Φ.symm.isLocalDiffeomorphAt _ _ _ (Φ.map_source hx)).contMDiffAt_comp_iff
+    hm).1 hg.contMDiffAt
 
 /-- The image of a compact subset of the source of a partial diffeomorphism is compact. -/
 theorem PartialDiffeomorph.isCompact_image_of_subset_source (Φ : PartialDiffeomorph I J M N n)
