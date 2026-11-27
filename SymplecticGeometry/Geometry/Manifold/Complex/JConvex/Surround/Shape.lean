@@ -966,6 +966,13 @@ theorem modelLevel_eq : modelLevel k m = fun p ↦ 1 + modelHandle k m 1 2 p := 
   rw [modelLevel_def, modelHandle_def]
   ring
 
+/-- The model level is smooth. -/
+theorem contDiff_modelLevel {n : WithTop ℕ∞} : ContDiff ℝ n (modelLevel k m) := by
+  have h : modelLevel k m = fun p ↦ 1 - (shape p).1 + 2 * (shape p).2 := funext modelLevel_def
+  rw [h]
+  exact (contDiff_const.sub (contDiff_fst.comp contDiff_shape)).add
+    (contDiff_const.mul (contDiff_snd.comp contDiff_shape))
+
 /-- The model level is strictly plurisubharmonic at every point of `ℂᵏ × ℂᵐ`, as a function on a
 complex vector space. -/
 theorem isStrictlyPlurisubharmonicAt_modelLevel
@@ -1008,11 +1015,6 @@ theorem isJConvexLevel_modelLevel :
   subst hp
   rw [modelLevel_zero] at hp0
   exact one_ne_zero hp0
-
-/-- The model level is smooth. -/
-theorem contDiff_modelLevel {n : WithTop ℕ∞} : ContDiff ℝ n (modelLevel k m) := by
-  simp only [funext modelLevel_def]
-  exact (contDiff_const.sub (contDiff_shape.fst)).add (contDiff_const.mul contDiff_shape.snd)
 
 /-- The Levi form of the model level `φ₀ = 1 - s + 2 t` on `v = (v₁, v₂)` has real part
 `|v₁|² / 2 + 2 |v₂|²`, at every point. -/

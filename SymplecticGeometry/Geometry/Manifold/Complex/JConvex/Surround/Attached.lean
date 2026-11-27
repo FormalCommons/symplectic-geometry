@@ -153,11 +153,16 @@ theorem mdifferentiableAt_apply (h : IsJOrthogonallyAttached E φ ι) {x : F} (h
   rw [mvfderiv, mfderiv_zero_of_not_mdifferentiableAt hφ] at this
   simp at this
 
+/-- On the unit sphere, the derivative of `φ ∘ ι` at `x` along `u` is `dφ (dι_x u)`. -/
+theorem fderiv_comp_apply (h : IsJOrthogonallyAttached E φ ι) {x : F} (hx : ‖x‖ = 1) (u : F) :
+    fderiv ℝ (φ ∘ ι) x u = mvfderiv 𝓘(ℝ, E) φ (ι x) (mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) ι x u) := by
+  have h1 := mvfderiv_comp_apply x (h.mdifferentiableAt_apply hx) (h.mdifferentiableAt hx) u
+  rwa [mvfderiv_eq_fderiv] at h1
+
 /-- On the unit sphere, the radial derivative of `φ ∘ ι` at `x` is `dφ (dι_x x)`. -/
 theorem fderiv_comp_apply_self (h : IsJOrthogonallyAttached E φ ι) {x : F} (hx : ‖x‖ = 1) :
-    fderiv ℝ (φ ∘ ι) x x = mvfderiv 𝓘(ℝ, E) φ (ι x) (mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) ι x x) := by
-  have h1 := mvfderiv_comp_apply x (h.mdifferentiableAt_apply hx) (h.mdifferentiableAt hx) x
-  rwa [mvfderiv_eq_fderiv] at h1
+    fderiv ℝ (φ ∘ ι) x x = mvfderiv 𝓘(ℝ, E) φ (ι x) (mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) ι x x) :=
+  h.fderiv_comp_apply hx x
 
 /-- On the unit sphere, the radial derivative of `φ ∘ ι` is negative. -/
 theorem fderiv_comp_apply_self_neg (h : IsJOrthogonallyAttached E φ ι) {x : F} (hx : ‖x‖ = 1) :
