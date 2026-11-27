@@ -35,11 +35,12 @@ lift to the total space of `V` are. The proof is that of `Bundle.Pullback.contin
   does.
 
 Tau Ceti's `Bundle.Pullback.instSMul` gives the fibres of `f *ᵖ E` a scalar action of their own,
-which agrees with the action of their module structure only once instances are unfolded. Where
-it is in scope, as here and in every file that imports this one, `IsModuleTopology R ((f *ᵖ E) y)`
-is stated for that action, and `Bundle.Pullback.instIsModuleTopology` of
-`SymplecticGeometry/Topology/VectorBundle/Pullback.lean`, which is for the action of the module
-structure, is not found for it; `Bundle.Pullback.instIsModuleTopologySMul` covers that case.
+which agrees with the action of their module structure only once instances are unfolded. Which of
+the two `IsModuleTopology R ((f *ᵖ E) y)` is elaborated with depends on the instances of the
+fibres of `E` and on what is imported. `Bundle.Pullback.instIsModuleTopologySMul` is for Tau
+Ceti's action, and `Bundle.Pullback.instIsModuleTopology` of
+`SymplecticGeometry/Topology/VectorBundle/Pullback.lean`, which imports this file, for the other;
+together they cover both.
 -/
 
 public section

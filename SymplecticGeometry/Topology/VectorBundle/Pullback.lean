@@ -12,6 +12,7 @@ public import Mathlib.Topology.Algebra.Module.ModuleTopology
 import SymplecticGeometry.Data.Bundle
 import SymplecticGeometry.Topology.VectorBundle.Coordinates
 import SymplecticGeometry.Topology.FiberBundle.Basic
+import SymplecticGeometry.Topology.FiberBundle.Pullback
 
 /-!
 # Alternating maps and fibre operations on a pull-back bundle
@@ -79,11 +80,12 @@ continuity of multiplication by a scalar on the fibres, for the action of their 
 `Bundle.Pullback.instT2Space`, `instModuleFinite` and `instIsModuleTopology` carry the Hausdorff
 property, finiteness and the module topology of `E (f y)` to `(f *ᵖ E) y`; each asks for it on
 `E (f y)` alone, so that it applies to tangent spaces, whose instances hold at each point.
-`instIsModuleTopology` is for the action of the fibres' module structure. A file that imports
-`TauCeti.Topology.FiberBundle.Pullback` states `IsModuleTopology` on these fibres for Tau Ceti's
-action `Bundle.Pullback.instSMul` instead; the instance for that action is
-`Bundle.Pullback.instIsModuleTopologySMul` of
-`SymplecticGeometry/Topology/FiberBundle/Pullback.lean`.
+`instIsModuleTopology` is for the action of the fibres' module structure. Which scalar action
+`IsModuleTopology R ((f *ᵖ E) y)` is elaborated with depends on the instances of the fibres of
+`E` and on what is imported: it can be that action or Tau Ceti's `Bundle.Pullback.instSMul`.
+The instance for Tau Ceti's action is `Bundle.Pullback.instIsModuleTopologySMul` of
+`SymplecticGeometry/Topology/FiberBundle/Pullback.lean`, which this file imports so that the two
+instances come together.
 
 `Bundle.Pullback.castEquiv f h χ` carries a continuous linear equivalence `χ : F ≃L[R] E a` to
 the fibre `(f *ᵖ E) b` along an equation `h : a = f b`, as for a frame of `E` at a point read
