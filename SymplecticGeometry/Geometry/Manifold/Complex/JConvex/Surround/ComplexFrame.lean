@@ -20,6 +20,7 @@ import SymplecticGeometry.Analysis.Normed.Operator.Perturbation
 import SymplecticGeometry.Geometry.Manifold.Complex.TangentCoordinates
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Coordinates
+import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 import SymplecticGeometry.Topology.VectorBundle.Complement
 import SymplecticGeometry.Topology.VectorBundle.Frame
 import TauCeti.Geometry.Manifold.VectorBundle.Pullback
@@ -190,7 +191,7 @@ theorem exists_continuous_isInvertible_coprod_tangentSpace [IsManifold 𝓘(ℝ,
       ∀ y, ((L y).coprod (K y)).IsInvertible := by
   have hf : Continuous f := (FiberBundle.continuous_proj E _).comp (hL.comp
     (Continuous.prodMk_left 0))
-  have : Fact (finrank ℝ E = 2 * finrank ℂ E) := ⟨finrank_real_of_complex E⟩
+  have := Complex.fact_finrank_real_eq_two_mul_finrank E
   -- A continuous frame of `TM` along `f` carrying multiplication by `i` to itself.
   obtain ⟨φ, hφ, hφI⟩ := ((TauCeti.SmoothAlmostComplexStructure.ofComplexManifold E M).toContMDiff
     ⊤).exists_continuous_frame (G := E) hf
