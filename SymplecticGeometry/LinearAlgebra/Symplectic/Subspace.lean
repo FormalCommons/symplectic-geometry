@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Symplectic.Rescale
 public import TauCeti.LinearAlgebra.BilinearForm.Isotropic
 public import TauCeti.LinearAlgebra.BilinearForm.LagrangianBasis
 public import TauCeti.LinearAlgebra.Dimension.Basis
+import SymplecticGeometry.LinearAlgebra.BilinearForm.Nondegenerate
 import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
 
 /-!
@@ -46,6 +47,11 @@ subspace `W`, this file adds to Tau Ceti's theory of the symplectic complement `
 * `TauCeti.SymplecticForm.orthogonal_sup`: `(L ⊔ L')^ω = L^ω ⊓ L'^ω`;
 * `TauCeti.SymplecticForm.isIsotropic_inf_orthogonal`: the radical `W ∩ W^ω` of a subspace is
   isotropic;
+* `TauCeti.SymplecticForm.isSymplectic_left_of_isCompl`,
+  `TauCeti.SymplecticForm.isSymplectic_right_of_isCompl` and
+  `TauCeti.SymplecticForm.orthogonal_eq_of_isCompl`: if `V = H ⊕ L` with `H` and `L` orthogonal
+  for `ω`, then both summands are symplectic and `L = H^ω`, in any dimension; the first two
+  apply the library's `LinearMap.BilinForm.IsRefl.nondegenerate_iff_of_isCompl` to `ω`;
 * `TauCeti.SymplecticForm.IsLagrangian.finrank_inf_add_finrank`: in finite dimension, for a
   Lagrangian `L` and any subspace `W`, `2 dim (L ∩ W) + dim V = 2 dim (L ∩ W^ω) + 2 dim W`.
 
@@ -184,6 +190,33 @@ theorem orthogonal_sup (ω : SymplecticForm V) (L L' : Submodule ℝ V) :
 theorem isIsotropic_inf_orthogonal (W : Submodule ℝ V) :
     ω.IsIsotropic (W ⊓ ω.orthogonal W) :=
   isIsotropic_iff.2 fun _ hv _ hw => mem_orthogonal_iff.1 hw.2 _ hv.1
+
+section IsCompl
+
+variable {H : Submodule ℝ V}
+
+/-- If `V = H ⊕ L` with `H` and `L` orthogonal for `ω`, then `H` is a symplectic subspace. -/
+theorem isSymplectic_left_of_isCompl (ω : SymplecticForm V) (hc : IsCompl H L)
+    (hHL : ∀ h ∈ H, ∀ l ∈ L, ω h l = 0) : ω.IsSymplectic H :=
+  isSymplectic_iff_nondegenerate_restrict.2
+    ((ω.isRefl.nondegenerate_iff_of_isCompl hc hHL).1 ω.nondegenerate).1
+
+/-- If `V = H ⊕ L` with `H` and `L` orthogonal for `ω`, then `L` is a symplectic subspace. -/
+theorem isSymplectic_right_of_isCompl (ω : SymplecticForm V) (hc : IsCompl H L)
+    (hHL : ∀ h ∈ H, ∀ l ∈ L, ω h l = 0) : ω.IsSymplectic L :=
+  isSymplectic_iff_nondegenerate_restrict.2
+    ((ω.isRefl.nondegenerate_iff_of_isCompl hc hHL).1 ω.nondegenerate).2
+
+/-- If `V = H ⊕ L` and `ω h l = 0` for all `h ∈ H` and `l ∈ L`, then `L` is the symplectic
+complement of `H`. -/
+theorem orthogonal_eq_of_isCompl (ω : SymplecticForm V) (hc : IsCompl H L)
+    (hHL : ∀ h ∈ H, ∀ l ∈ L, ω h l = 0) : ω.orthogonal H = L :=
+  (eq_of_le_of_inf_le_of_le_sup (fun l hl ↦ mem_orthogonal_iff.2 fun h hh ↦ hHL h hh l hl)
+    (by rw [inf_comm, (isSymplectic_iff_disjoint.1 (ω.isSymplectic_left_of_isCompl hc hHL)).eq_bot]
+        exact bot_le)
+    (by rw [hc.symm.sup_eq_top]; exact le_top)).symm
+
+end IsCompl
 
 variable [FiniteDimensional ℝ V]
 
