@@ -105,11 +105,7 @@ theorem fiberIntegral_wedge_mpullback {p q : ℕ} (β : SmoothForm I B ℝ p)
         (Nat.add_assoc p q m).symm
         (SmoothForm.wedge (SmoothForm.mpullback proj hA.contMDiff_proj β) α)) =
       SmoothForm.wedge β (A.fiberIntegral hA ho α) := by
-  refine SmoothForm.ext_of_mpullback_subtype_val
-    (U := fun b' ↦ (⟨(A.trivAt b').baseSet, (A.trivAt b').open_baseSet⟩ : Opens B))
-    (IsOpenCover.of_sets (fun b' ↦ (A.trivAt b').open_baseSet)
-      (Set.eq_univ_of_forall fun b ↦ Set.mem_iUnion.2 ⟨b, A.mem_baseSet_trivAt b⟩))
-    fun b' ↦ ?_
+  refine SmoothForm.ext_of_mpullback_subtype_val A.isOpenCover_baseSet_trivAt fun b' ↦ ?_
   rw [mpullback_subtype_val_fiberIntegral, SmoothForm.mpullback_cast, SmoothForm.mpullback_wedge,
     SmoothForm.mpullback_mpullback_of_comp_eq ((A.trivAt b').contMDiff_symm_val_prod
       (hA.contMDiffOn_trivAt_symm b') subset_rfl) hA.contMDiff_proj contMDiff_fst
