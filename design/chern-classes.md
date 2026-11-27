@@ -402,8 +402,9 @@ In the namespace `TopCat`, for `X : TopCat.{0}`, with
 - the inverse of Tau Ceti's `TopCat.integralCohomologyEquiv X n`, from
   cohomology with chain coefficients and values `ℤ`, in the form
   `TopCat.lerayHirsch` takes for `k = ℤ`, to `X.integralCohomology n`,
-  with `integralCohomologyEquiv_symm_naturality` and
-  `integralCohomologyEquiv_symm_singularCup`.
+  with `integralCohomologyEquiv_symm_naturality`,
+  its compatibility with cup products being Tau Ceti's
+  `TopCat.integralCohomologyEquiv_integralCup`.
 
 ### `AlgebraicTopology/Cohomology/ChangeOfValues.lean`
 
@@ -425,9 +426,9 @@ The change of cochain values in singular cohomology, in the namespace
 The change of linear structure in singular cohomology, in the namespace
 `TopCat`, for any abelian `C` and two equal structures `L₁ L₂ : Linear k C`:
 `singularCohomologyLinearCongr e X R M n` for `e : L₁ = L₂`, the linear
-equivalence `LinearEquiv.cast` along `e`, with `_refl`, `_symm`, `_trans`,
-`_naturality` (it commutes with `singularCohomologyMap f`) and `_singularCup`
-(it carries cup products to cup products). `IntegralCohomologyULift.lean` uses it to pass
+equivalence `LinearEquiv.cast` along `e`, with `_refl`, `_symm`, `_trans` and
+`_naturality` (it commutes with `singularCohomologyMap f`); cup products go through
+Tau Ceti's `TopCat.singularCup_eqToHom`. `IntegralCohomologyULift.lean` uses it to pass
 from `ModuleCat.instLinear` to `CategoryTheory.Linear.preadditiveIntLinear`.
 
 ### `Algebra/Homology/Monoidal/CupChangeOfValues.lean`

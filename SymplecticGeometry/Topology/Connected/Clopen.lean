@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Topology.Connected.Clopen
+public import Mathlib.Topology.Order.Basic
 
 /-!
 # Preconnected sets and clopen sets
@@ -32,6 +33,10 @@ with boundary, this shows that the interior of a connected manifold is connected
   the neighbourhoods taken inside `U`.
 * `IsPreconnected.of_isOpen_of_union_eq_univ`: in a preconnected space covered by open sets `s`
   and `t` that meet in a nonempty preconnected set, `s` is preconnected.
+* `Continuous.induction₂_of_mapsTo_nhds`: for a continuous map `γ` from a preconnected linearly
+  ordered space, and a neighbourhood `U b` of each point `b` of the target, a transitive relation
+  that holds between any two points of each closed interval that `γ` maps into some `U b` holds
+  between any two points.
 
 `PreconnectedSpace.eq_zero_of_eventually_eq_zero` abstracts the open-and-closed argument of
 Tau Ceti's `TauCeti.not_eventually_eq_zero_of_conjWirtingerDeriv_apply_one_eq_mul`.
@@ -296,5 +301,24 @@ theorem IsPreconnected.of_isOpen_of_union_eq_univ [PreconnectedSpace X] {s t : S
     hdisj' with h | h
   · exact Or.inl (key u v hu hv hsuv hdisj h)
   · exact Or.inr (key v u hv hu (union_comm u v ▸ hsuv) (inter_comm u v ▸ hdisj) h)
+
+open Set Filter Topology in
+/-- **Local-to-global along a continuous map out of an ordered space.** Let `γ` be a continuous
+map from a preconnected linearly ordered space `X`, such as `ℝ`, to a space `B`, let `U b` be a
+neighbourhood of each `b : B`, and let `R` be a transitive relation on `X`. If `R s t` holds for
+all `s` and `t` in each closed interval `Icc a c` that `γ` maps into some `U b`, then `R s t`
+holds for all `s` and `t`. -/
+theorem Continuous.induction₂_of_mapsTo_nhds [LinearOrder X] [OrderTopology X]
+    [PreconnectedSpace X] {B : Type*} [TopologicalSpace B] {γ : X → B} (hγ : Continuous γ)
+    {U : B → Set B} (hU : ∀ b, U b ∈ 𝓝 b) (R : X → X → Prop) [IsTrans X R]
+    (h : ∀ (b : B) (a c : X), MapsTo γ (Icc a c) (U b) → ∀ s ∈ Icc a c, ∀ t ∈ Icc a c, R s t)
+    (s t : X) : R s t := by
+  refine PreconnectedSpace.induction₂' R (fun u ↦ ?_) ‹_› s t
+  -- Near `u`, `γ` stays in `U (γ u)`.
+  obtain ⟨a, c, hu, hac, hmaps⟩ :=
+    exists_Icc_mem_subset_of_mem_nhds (hγ.continuousAt.preimage_mem_nhds (hU (γ u)))
+  have hmaps' : MapsTo γ (Icc a c) (U (γ u)) := mapsTo_iff_subset_preimage.2 hmaps
+  filter_upwards [hac] with v hv
+  exact ⟨h _ a c hmaps' u hu v hv, h _ a c hmaps' v hv u hu⟩
 
 end
