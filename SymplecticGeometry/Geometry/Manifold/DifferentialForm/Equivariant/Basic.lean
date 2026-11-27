@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Mixed
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.BoundarylessStokes
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 
 /-!
 # The Cartan differential
@@ -164,7 +165,7 @@ theorem cartanDiff_ofFunctionRingHom_mul_eq_zero (g : C^∞⟮I, M; ℝ⟯)
     rw [DirectSum.of_eq_same, mextDerivₗ_apply, SmoothForm.coe_ofFunction,
       mextDeriv_ofFunction_apply_eq_zero_iff]
     exact hx
-  · rw [DirectSum.of_eq_of_ne _ _ _ hi, Submodule.coe_zero, Pi.zero_apply]
+  · rw [DirectSum.of_eq_of_ne _ _ _ hi, SmoothBundleForm.zero_apply]
 
 /-- The power rule for the Cartan differential of a homogeneous form `φ` of even degree:
 `d_ħ φ ^ (n + 1) = (n + 1) φ ^ n d_ħ φ`. -/
