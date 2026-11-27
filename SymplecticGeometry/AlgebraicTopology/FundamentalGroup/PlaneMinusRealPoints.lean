@@ -28,10 +28,11 @@ import TauCeti.Topology.Homotopy.DeformationRetract
 /-!
 # The plane minus real points: a free basis of loops
 
-Let `c : ι → ℝ` be nonzero reals, any two of them at distance at least `δ > 0` (for instance
-finitely many distinct nonzero reals, with `δ` from
-`Function.Injective.exists_pos_pairwise_le_dist` and `Real.dist_eq`). The fundamental group of
-`ℂ` with the points `c i` removed, based at `0`, is free on the loops
+Let `c : ι → ℝ` be nonzero reals, any two of them at distance at least `δ > 0`. For finitely
+many distinct nonzero reals, at least two of them, `δ = Set.infsep (Set.range c)` will do: it is
+positive by `Set.Finite.infsep_pos_iff_nontrivial`, and at most each distance by
+`Set.infsep_le_dist_of_mem` and `Real.dist_eq`; with fewer points any `δ > 0` will do. The
+fundamental group of `ℂ` with the points `c i` removed, based at `0`, is free on the loops
 `PlaneMinusRealPoints.loop hδ hc h0 k`. The loop about `c k` goes from `0` straight down to `-i`,
 right or left to `c k + r - i` and straight up to `c k + r`, once counterclockwise around the
 circle of radius `r = δ / 4` about `c k`, and back the same way.
