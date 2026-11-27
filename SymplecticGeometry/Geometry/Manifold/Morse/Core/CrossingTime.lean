@@ -9,7 +9,6 @@ public import Mathlib.Analysis.InnerProductSpace.PiL2
 public import TauCeti.Dynamics.Flow.LevelCrossing
 public import TauCeti.Geometry.Manifold.IntegralCurve.GlobalFlow
 public import TauCeti.Geometry.Manifold.Morse.Stable.Manifold
-import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import SymplecticGeometry.Analysis.InnerProductSpace.RadialExtension
 import SymplecticGeometry.Geometry.Manifold.Flow.BandCrossing
 import SymplecticGeometry.Geometry.Manifold.Flow.LevelCrossing
@@ -42,10 +41,11 @@ The construction:
 * It crosses the level only once (`IsMIntegralCurve.subsingleton_setOf_apply_eq`), since `g` is
   antitone along it and `dg(X) < 0` on the level. So the crossing time is smooth near the sphere
   (`TauCeti.contMDiffAt_levelCrossingTime`).
-* Rescaled to the unit sphere, it extends radially by
+* Composed with `u ↦ ρ • u` on the unit sphere, it extends radially from the radius `ρ` by
   `SymplecticGeometry.exists_contDiff_radial_extension_hasDerivAt_add_log_pos`.
 * For `‖u‖ = ρ` and `0 < r ≤ 1`, `F (r • u) = Φ (θ (r • u) + log r) y_u`
-  (`TauCeti.MorseChart.globalFlow_toChart_symm_negativeExtend_smul`), with a time at most `θ u`,
+  (`TauCeti.MorseChart.globalFlow_toChart_symm_negativeExtend_smul`), with a time at most `θ u`
+  since that time increases with `r` (`SymplecticGeometry.strictMonoOn_add_log_of_hasDerivAt_pos`),
   so `g ≥ a` there; and the description of the unstable set from the sphere
   (`TauCeti.MorseChart.exists_globalFlow_eq_of_mem_unstableSet`) with
   `TauCeti.MorseChart.globalFlow_mem_image_ball` gives the last property.
@@ -164,39 +164,30 @@ theorem exists_radial_extension_levelCrossingTime [IsManifold 𝓘(ℝ, E) ∞ M
         (φ.toChart.open_target.mem_nhds (hρ c hc.le))
     exact contMDiffAt_iff_contDiffAt.1
       (hlev.comp c (hsymm.comp c hιs.contMDiff.contMDiffAt))
-  -- Rescale to the unit sphere and extend radially.
-  obtain ⟨θ₁, hθ₁, -, hθ₁τ, hθ₁d⟩ :=
+  -- Extend radially the crossing time from the sphere of radius `ρ`.
+  obtain ⟨θ, hθs, -, hθτ₁, hθ₁d⟩ :=
     SymplecticGeometry.exists_contDiff_radial_extension_hasDerivAt_add_log_pos (n := ⊤)
-      (τ := fun u ↦ τ (ρ • u)) (ρ := 1)
+      (τ := fun u ↦ τ (ρ • u)) (ρ := ρ)
       (fun u hu ↦ (hτs (ρ • u) (by rw [norm_smul, hu, mul_one, Real.norm_of_nonneg hρ0.le])).comp
-        u (contDiffAt_id.const_smul ρ)) one_pos
-  set θ : EuclideanSpace ℝ {i // φ.weight i < 0} → ℝ := fun c ↦ θ₁ (ρ⁻¹ • c) with hθ
-  have hθs : ContDiff ℝ ∞ θ := hθ₁.comp (contDiff_id.const_smul ρ⁻¹)
+        u (contDiffAt_id.const_smul ρ)) hρ0
   have hθτ (c : EuclideanSpace ℝ {i // φ.weight i < 0}) (hc : ‖c‖ = ρ) : θ c = τ c := by
     have h1 : ‖ρ⁻¹ • c‖ = 1 := by
       rw [norm_smul, hc, Real.norm_of_nonneg (inv_nonneg.2 hρ0.le), inv_mul_cancel₀ hρ0.ne']
-    have h := hθ₁τ _ h1 1 le_rfl
-    rw [one_smul, smul_inv_smul₀ hρ0.ne'] at h
-    exact h
-  -- The derivative of `r ↦ θ (r • u) + log r`.
+    have h := hθτ₁ _ h1 ρ le_rfl
+    rwa [smul_inv_smul₀ hρ0.ne'] at h
+  -- The derivative of `r ↦ θ (r • u) + log r`, from that along the unit vector `‖u‖⁻¹ • u`.
   have hθd (u : EuclideanSpace ℝ {i // φ.weight i < 0}) (hu : u ≠ 0) (r : ℝ) (hr : 0 < r) :
       ∃ d, 0 < d ∧ HasDerivAt (fun r ↦ θ (r • u) + Real.log r) d r := by
     have hn : 0 < ‖u‖ := norm_pos_iff.2 hu
-    set k := ρ⁻¹ * ‖u‖ with hk
-    have hk0 : 0 < k := mul_pos (inv_pos.2 hρ0) hn
     have h1 : ‖‖u‖⁻¹ • u‖ = 1 := by
       rw [norm_smul, Real.norm_of_nonneg (inv_nonneg.2 hn.le), inv_mul_cancel₀ hn.ne']
-    obtain ⟨d, hd, hdd⟩ := hθ₁d _ h1 (k * r) (mul_pos hk0 hr)
-    refine ⟨d * (k * 1), mul_pos hd (by simpa using hk0), ?_⟩
-    have h := (hdd.comp r ((hasDerivAt_id r).const_mul k)).sub_const (Real.log k)
+    obtain ⟨d, hd, hdd⟩ := hθ₁d _ h1 (‖u‖ * r) (mul_pos hn hr)
+    refine ⟨d * (‖u‖ * 1), mul_pos hd (by simpa using hn), ?_⟩
+    have h := (hdd.comp r ((hasDerivAt_id r).const_mul ‖u‖)).sub_const (Real.log ‖u‖)
     refine h.congr_of_eventuallyEq ?_
     filter_upwards [Ioi_mem_nhds hr] with s (hs : 0 < s)
-    have hkey : (k * s) • (‖u‖⁻¹ • u) = ρ⁻¹ • s • u := by
-      rw [smul_smul, smul_smul, hk]
-      congr 1
-      field_simp
-    simp only [comp_apply, hθ]
-    rw [hkey, Real.log_mul hk0.ne' hs.ne']
+    simp only [comp_apply, smul_smul, mul_comm ‖u‖ s, mul_assoc, mul_inv_cancel₀ hn.ne', mul_one,
+      Real.log_mul hs.ne' hn.ne']
     ring
   -- The centre of the ball goes to `p`.
   have hF0 : Φ (θ 0) (ι 0) = p := by
@@ -225,17 +216,10 @@ theorem exists_radial_extension_levelCrossingTime [IsManifold 𝓘(ℝ, E) ∞ M
       simp only [u, r, smul_smul]
       rw [div_mul_div_comm, mul_comm, div_self (mul_pos hρ0 hn).ne', one_smul]
     -- The time `θ (r • u) + log r` is at most `θ u`, by monotonicity along the ray.
-    have hmono : StrictMonoOn (fun s ↦ θ (s • u) + Real.log s) (Ioi 0) := by
-      have hu0 : u ≠ 0 := norm_pos_iff.1 (hu ▸ hρ0)
-      refine strictMonoOn_of_deriv_pos (convex_Ioi 0) (fun s hs ↦ ?_) fun s hs ↦ ?_
-      · obtain ⟨d, -, hd⟩ := hθd u hu0 s hs
-        exact hd.continuousAt.continuousWithinAt
-      · rw [interior_Ioi] at hs
-        obtain ⟨d, hd0, hd⟩ := hθd u hu0 s hs
-        rwa [hd.deriv]
     have hle : θ (r • u) + Real.log r ≤ θ u := by
-      have := hmono.monotoneOn hr0 (show (0 : ℝ) < 1 from one_pos) hr1
-      simpa using this
+      have hu0 : u ≠ 0 := norm_pos_iff.1 (hu ▸ hρ0)
+      simpa using (SymplecticGeometry.strictMonoOn_add_log_of_hasDerivAt_pos
+        (hθd u hu0)).monotoneOn hr0 (show (0 : ℝ) < 1 from one_pos) hr1
     simp only [mem_ofPred_eq]
     rw [← hru, φ.globalFlow_toChart_symm_negativeExtend_smul hX hXc hXφ hρ hu.le hr0 hr1]
     calc a = g (Φ (θ u) (ι u)) := (hsph u hu).symm

@@ -8,7 +8,7 @@ module
 public import TauCeti.Dynamics.Flow.LevelCrossing
 public import TauCeti.Geometry.Manifold.Flow.HittingTime
 public import TauCeti.Geometry.Manifold.Flow.Complete
-import TauCeti.Geometry.Manifold.MFDeriv.Curve
+import TauCeti.Geometry.Manifold.IntegralCurve.Monotone
 
 /-!
 # Smoothness of the level-crossing time of a complete flow
@@ -31,7 +31,8 @@ smoothness.
 
 An orbit along which `g` is antitone, and transverse to the level wherever it meets it, meets the
 level at most once (`IsMIntegralCurve.subsingleton_setOf_apply_eq`): two meetings would make `g`
-constant between them, so that its derivative along the orbit would vanish on the level.
+constant between them, so that its derivative along the orbit would vanish on the level, by Tau
+Ceti's `IsMIntegralCurveAt.mfderiv_apply_eq_zero_of_eventuallyEq_const`.
 
 ## Main results
 
@@ -73,8 +74,8 @@ theorem IsMIntegralCurve.subsingleton_setOf_apply_eq {E H M : Type*} [NormedAddC
     filter_upwards [Ioo_mem_nhds (show s < (s + t) / 2 by linarith)
       (show (s + t) / 2 < t by linarith)] with u hu
     exact le_antisymm (hs ▸ hanti hu.1.le) (ht ▸ hanti hu.2.le)
-  exact hc _ hconst.eq_of_nhds ((TauCeti.Manifold.hasDerivAt_comp_curve (hf _) (hγ _)).unique
-    ((hasDerivAt_const _ c).congr_of_eventuallyEq hconst))
+  exact hc _ hconst.eq_of_nhds
+    ((hγ.isMIntegralCurveAt _).mfderiv_apply_eq_zero_of_eventuallyEq_const (hf _) hconst)
 
 namespace TauCeti
 
@@ -90,7 +91,7 @@ then near `x` the time at which orbits cross the level is the hitting time
 `flowHittingTime v g T x`. -/
 theorem levelCrossingTime_eventuallyEq_flowHittingTime
     (hv : CMDiff 1 (fun y ↦ (⟨y, v y⟩ : TangentBundle I M))) (hcomplete : IsCompleteVectorField v)
-    (hΦ : flowOf v = ⇑Φ) (hinj : ∀ᶠ y in 𝓝 x, {t | g (Φ t y) = c}.Subsingleton)
+    (hΦ : flowOf v = ⇑Φ) (huniq : ∀ᶠ y in 𝓝 x, {t | g (Φ t y) = c}.Subsingleton)
     (hx : ∃ t, g (Φ t x) = c)
     (hg : ContMDiffAt I 𝓘(ℝ) 1 g (Φ (Flow.levelCrossingTime Φ g c x) x))
     (hgv : mvfderiv I g (Φ (Flow.levelCrossingTime Φ g c x) x)
@@ -100,10 +101,10 @@ theorem levelCrossingTime_eventuallyEq_flowHittingTime
   set T := Flow.levelCrossingTime Φ g c x
   have hc : g (Φ T x) = c := Flow.apply_flow_levelCrossingTime hx
   rw [← hΦ] at hg hgv
-  filter_upwards [eventually_flowHittingTime hv (hcomplete.mem_flowDomain T x) hg hgv, hinj]
-    with y hy hinj_y
+  filter_upwards [eventually_flowHittingTime hv (hcomplete.mem_flowDomain T x) hg hgv, huniq]
+    with y hy huniq_y
   have hyc : g (Φ (flowHittingTime v g T x y) y) = c := by rw [← hc, ← hΦ, hy.2]
-  exact hinj_y (Flow.apply_flow_levelCrossingTime ⟨_, hyc⟩) hyc
+  exact huniq_y (Flow.apply_flow_levelCrossingTime ⟨_, hyc⟩) hyc
 
 variable {n : ℕ∞} (hn : 1 ≤ n) [IsManifold I n M]
   (hv : CMDiff n (fun y ↦ (⟨y, v y⟩ : TangentBundle I M))) (hcomplete : IsCompleteVectorField v)
@@ -116,14 +117,14 @@ level `{g = c}` at most once. If the orbit of `x` meets the level at a point whe
 and `dg (v) ≠ 0`, then the time `Flow.levelCrossingTime Φ g c` at which orbits cross the level
 is `C^n` at `x`. -/
 theorem contMDiffAt_levelCrossingTime
-    (hinj : ∀ᶠ y in 𝓝 x, {t | g (Φ t y) = c}.Subsingleton)
+    (huniq : ∀ᶠ y in 𝓝 x, {t | g (Φ t y) = c}.Subsingleton)
     (hx : ∃ t, g (Φ t x) = c)
     (hg : ContMDiffAt I 𝓘(ℝ) n g (Φ (Flow.levelCrossingTime Φ g c x) x))
     (hgv : mvfderiv I g (Φ (Flow.levelCrossingTime Φ g c x) x)
       (v (Φ (Flow.levelCrossingTime Φ g c x) x)) ≠ 0) :
     ContMDiffAt I 𝓘(ℝ) n (Flow.levelCrossingTime Φ g c) x := by
   have hn' : ((1 : ℕ∞) : WithTop ℕ∞) ≤ n := by exact_mod_cast hn
-  have heq := levelCrossingTime_eventuallyEq_flowHittingTime (hv.of_le hn') hcomplete hΦ hinj hx
+  have heq := levelCrossingTime_eventuallyEq_flowHittingTime (hv.of_le hn') hcomplete hΦ huniq hx
     (hg.of_le hn') hgv
   rw [← hΦ] at hg hgv
   exact (contMDiffAt_flowHittingTime hn hv (hcomplete.mem_flowDomain _ x) hg
@@ -133,14 +134,14 @@ theorem contMDiffAt_levelCrossingTime
 `TauCeti.contMDiffAt_levelCrossingTime`, the map `y ↦ Φ (Flow.levelCrossingTime Φ g c y) y`, which
 flows each point to the point where its orbit crosses the level `{g = c}`, is `C^n` at `x`. -/
 theorem contMDiffAt_flow_levelCrossingTime
-    (hinj : ∀ᶠ y in 𝓝 x, {t | g (Φ t y) = c}.Subsingleton)
+    (huniq : ∀ᶠ y in 𝓝 x, {t | g (Φ t y) = c}.Subsingleton)
     (hx : ∃ t, g (Φ t x) = c)
     (hg : ContMDiffAt I 𝓘(ℝ) n g (Φ (Flow.levelCrossingTime Φ g c x) x))
     (hgv : mvfderiv I g (Φ (Flow.levelCrossingTime Φ g c x) x)
       (v (Φ (Flow.levelCrossingTime Φ g c x) x)) ≠ 0) :
     ContMDiffAt I I n (fun y ↦ Φ (Flow.levelCrossingTime Φ g c y) y) x := by
   have h := contMDiffAt_flowOf_comp hn hv
-    (contMDiffAt_levelCrossingTime hn hv hcomplete hΦ hinj hx hg hgv) contMDiffAt_id
+    (contMDiffAt_levelCrossingTime hn hv hcomplete hΦ huniq hx hg hgv) contMDiffAt_id
     (hcomplete.mem_flowDomain _ x)
   rwa [hΦ] at h
 
@@ -149,25 +150,25 @@ theorem contMDiffAt_flow_levelCrossingTime
 `U` meets the level `{g = c}` exactly once, at a point where `g` is `C^n` and `dg (v) ≠ 0`, then
 the crossing time `Flow.levelCrossingTime Φ g c` is `C^n` on `U`. -/
 theorem contMDiffOn_levelCrossingTime {U : Set M} (hU : IsOpen U)
-    (hinj : ∀ x ∈ U, {t | g (Φ t x) = c}.Subsingleton) (hx : ∀ x ∈ U, ∃ t, g (Φ t x) = c)
+    (huniq : ∀ x ∈ U, {t | g (Φ t x) = c}.Subsingleton) (hx : ∀ x ∈ U, ∃ t, g (Φ t x) = c)
     (hg : ∀ x ∈ U, ContMDiffAt I 𝓘(ℝ) n g (Φ (Flow.levelCrossingTime Φ g c x) x))
     (hgv : ∀ x ∈ U, mvfderiv I g (Φ (Flow.levelCrossingTime Φ g c x) x)
       (v (Φ (Flow.levelCrossingTime Φ g c x) x)) ≠ 0) :
     ContMDiffOn I 𝓘(ℝ) n (Flow.levelCrossingTime Φ g c) U := fun x hxU ↦
-  (contMDiffAt_levelCrossingTime hn hv hcomplete hΦ (eventually_of_mem (hU.mem_nhds hxU) hinj)
+  (contMDiffAt_levelCrossingTime hn hv hcomplete hΦ (eventually_of_mem (hU.mem_nhds hxU) huniq)
     (hx x hxU) (hg x hxU) (hgv x hxU)).contMDiffWithinAt
 
 /-- **The crossing point is `C^n` on an open set of transverse crossings.** Under the hypotheses
 of `TauCeti.contMDiffOn_levelCrossingTime`, the map `y ↦ Φ (Flow.levelCrossingTime Φ g c y) y`
 onto the level `{g = c}` is `C^n` on `U`. -/
 theorem contMDiffOn_flow_levelCrossingTime {U : Set M} (hU : IsOpen U)
-    (hinj : ∀ x ∈ U, {t | g (Φ t x) = c}.Subsingleton) (hx : ∀ x ∈ U, ∃ t, g (Φ t x) = c)
+    (huniq : ∀ x ∈ U, {t | g (Φ t x) = c}.Subsingleton) (hx : ∀ x ∈ U, ∃ t, g (Φ t x) = c)
     (hg : ∀ x ∈ U, ContMDiffAt I 𝓘(ℝ) n g (Φ (Flow.levelCrossingTime Φ g c x) x))
     (hgv : ∀ x ∈ U, mvfderiv I g (Φ (Flow.levelCrossingTime Φ g c x) x)
       (v (Φ (Flow.levelCrossingTime Φ g c x) x)) ≠ 0) :
     ContMDiffOn I I n (fun y ↦ Φ (Flow.levelCrossingTime Φ g c y) y) U := fun x hxU ↦
   (contMDiffAt_flow_levelCrossingTime hn hv hcomplete hΦ
-    (eventually_of_mem (hU.mem_nhds hxU) hinj) (hx x hxU) (hg x hxU)
+    (eventually_of_mem (hU.mem_nhds hxU) huniq) (hx x hxU) (hg x hxU)
     (hgv x hxU)).contMDiffWithinAt
 
 end TauCeti
