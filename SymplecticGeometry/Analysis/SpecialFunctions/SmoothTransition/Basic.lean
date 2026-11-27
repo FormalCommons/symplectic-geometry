@@ -7,24 +7,20 @@ module
 
 public import Mathlib.Analysis.Calculus.BumpFunction.InnerProduct
 public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
-import Mathlib.Analysis.Calculus.Deriv.Inv
 import Mathlib.Analysis.Calculus.LocalExtr.Basic
+import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Deriv
 import SymplecticGeometry.Topology.Order.NhdsSet
 public import TauCeti.Geometry.Manifold.Instances.Icc.CollaredSmoothTransition
 import TauCeti.Analysis.Calculus.Deriv.Parity
 import TauCeti.Analysis.SpecialFunctions.SmoothTransition
 
 /-!
-# The derivative of the smooth transition function, and a reparametrization of time
+# Cutoffs and reparametrizations built from the smooth transition function
 
-Mathlib's `Real.smoothTransition` is `0` on `(-∞, 0]`, `1` on `[1, ∞)`, and the quotient
-`f x / (f x + f (1 - x))` in between, with `f = expNegInvGlue`. Tau Ceti shows that its derivative
-vanishes outside `[0, 1]`. This file shows that the derivative is positive on the open interval
-`(0, 1)` (`Real.smoothTransition.deriv_pos`): by the quotient rule it is
-`(f' x f (1 - x) + f x f' (1 - x)) / (f x + f (1 - x)) ^ 2`, and `f` and `f'` are positive on
-`(0, ∞)`. Since the derivative `τ'` vanishes outside `[0, 1]`, also `|x τ'(x)| ≤ τ'(x)`
-(`Real.smoothTransition.abs_mul_deriv_le_deriv`), and `x τ''(x)` is bounded
-(`Real.smoothTransition.exists_forall_norm_mul_deriv_deriv_le`).
+This file collects smooth functions of one real variable built from `Real.smoothTransition`,
+`expNegInvGlue` and smooth bumps, with the properties that later constructions use. The facts
+about the derivative of `Real.smoothTransition` itself are in
+`SymplecticGeometry/Analysis/SpecialFunctions/SmoothTransition/Deriv.lean`.
 
 For a function `G` of class `C^n`, the product `t ↦ expNegInvGlue (t - t₀) * exp (G t)` is of
 class `C^n` (`expNegInvGlue.contDiff_sub_mul_exp`), and where `G` has derivative `G'` at `t`, its
@@ -85,42 +81,6 @@ half-cylinder in the proof of the symplectic h-principle (see McDuff–Salamon, 
 -/
 
 public section
-
-namespace Real.smoothTransition
-
-/-- The smooth transition function has positive derivative on the open interval `(0, 1)`. -/
-theorem deriv_pos {x : ℝ} (h₀ : 0 < x) (h₁ : x < 1) : 0 < deriv smoothTransition x := by
-  set f := expNegInvGlue
-  have hx : 0 < f x := expNegInvGlue.pos_of_pos h₀
-  have hy : 0 < f (1 - x) := expNegInvGlue.pos_of_pos (sub_pos.2 h₁)
-  have hd₁ := expNegInvGlue.hasDerivAt x
-  have hd₂ : HasDerivAt (fun y ↦ f (1 - y)) ((1 - x)⁻¹ ^ 2 * f (1 - x) * (-1)) x :=
-    (expNegInvGlue.hasDerivAt (1 - x)).comp x ((hasDerivAt_id x).const_sub 1)
-  have hd := hd₁.div (hd₁.add hd₂) (pos_denom x).ne'
-  -- `smoothTransition` is, by definition, the quotient that `hd` differentiates.
-  rw [show smoothTransition = f / (f + fun y ↦ f (1 - y)) from rfl, hd.deriv, Pi.add_apply]
-  refine div_pos ?_ (pow_pos (pos_denom x) 2)
-  have key : x⁻¹ ^ 2 * f x * (f x + f (1 - x)) -
-      f x * (x⁻¹ ^ 2 * f x + (1 - x)⁻¹ ^ 2 * f (1 - x) * (-1)) =
-      x⁻¹ ^ 2 * f x * f (1 - x) + f x * ((1 - x)⁻¹ ^ 2 * f (1 - x)) := by ring
-  rw [key]
-  positivity
-
-/-- The product `x τ'(x)` of the argument and the derivative of the smooth transition function
-`τ` is at most `τ'(x)` in absolute value, since `τ'` vanishes outside `[0, 1]`. -/
-theorem abs_mul_deriv_le_deriv (x : ℝ) :
-    |x * deriv smoothTransition x| ≤ deriv smoothTransition x := by
-  rw [abs_of_nonneg (mul_deriv_nonneg x)]
-  exact mul_deriv_le_deriv x
-
-/-- The product `x τ''(x)` of the argument and the second derivative of the smooth transition
-function `τ` is bounded, since `τ''` is continuous with compact support. -/
-theorem exists_forall_norm_mul_deriv_deriv_le :
-    ∃ M : ℝ, ∀ x, ‖x * deriv (deriv smoothTransition) x‖ ≤ M :=
-  (continuous_id.mul (smoothTransition.contDiff.iterate_deriv 2).continuous
-    ).bounded_above_of_compact_support hasCompactSupport_deriv.deriv.mul_left
-
-end Real.smoothTransition
 
 namespace expNegInvGlue
 

@@ -11,7 +11,7 @@ public import Mathlib.Geometry.Manifold.SmoothEmbedding
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
 import Mathlib.Geometry.Manifold.Instances.Icc
-import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
+import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Basic
 import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
 import SymplecticGeometry.Data.Set.Prod
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Real

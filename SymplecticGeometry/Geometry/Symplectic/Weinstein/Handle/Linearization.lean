@@ -11,6 +11,13 @@ public import TauCeti.Analysis.ODE.Linear
 public import TauCeti.Geometry.Manifold.Morse.Index
 public import TauCeti.Geometry.Manifold.Morse.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Linearization
+public import TauCeti.Geometry.Symplectic.Liouville.VectorField
+public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Basic
+import TauCeti.Analysis.Normed.Module.Alternating.Curry
+import TauCeti.Geometry.Manifold.Morse.CriticalPoints
+import SymplecticGeometry.Analysis.ODE.Linear
+import SymplecticGeometry.Geometry.Symplectic.Liouville.VectorField
+import TauCeti.LinearAlgebra.BilinearForm.Orthogonal
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
@@ -33,6 +40,14 @@ This is the first step of the analysis of the stable discs of a Weinstein struct
 nondegenerate critical point: it makes `A` hyperbolic and relates its stable dimension to the
 Morse index.
 
+At a zero `p` of a Liouville vector field `Z` of a two-form `σ`, the linearization `A` of `Z`
+satisfies `σ_p (A u, v) + σ_p (u, A v) = σ_p (u, v)`
+(`TauCeti.IsLiouvilleVectorField.apply_sectionLinearization_add`). Along the flow of `A` the
+form `σ_p` then grows like `e ^ t`, so it vanishes on the stable subspace of `A`. For a Weinstein
+structure, whose form is symplectic, the stable subspace at a nondegenerate critical point is
+thus isotropic, and its dimension, the Morse index, is at most half the dimension of the
+manifold.
+
 ## Main results
 
 * `TauCeti.IsGradientLike.exists_pos_mul_norm_sq_le_hessian`: there is `c > 0` with
@@ -43,6 +58,10 @@ Morse index.
   `TauCeti.IsGradientLike.finrank_range_eq_manifoldMorseIndex`: the stable subspace of `A`, which
   is the range of the projection of any such dichotomy, has dimension the Morse index of `f` at
   `p`.
+* `TauCeti.IsLiouvilleVectorField.apply_eq_zero_of_mem_stableSubspace`: at a zero of a Liouville
+  field, the form vanishes on the stable subspace of the linearization.
+* `SymplecticGeometry.IsWeinsteinStructure.two_mul_manifoldMorseIndex_le`: at a nondegenerate
+  critical point of a Weinstein structure, twice the Morse index is at most the dimension.
 
 In the dichotomy and index statements `A : E →L[ℝ] E` comes with a hypothesis
 `A = sectionLinearization …`, since the linearization itself is a map between tangent spaces,
@@ -65,7 +84,7 @@ inertia theorem to bilinear forms on a normed space.
 ## References
 
 * [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
-  Chapter 11
+  Chapter 11; Proposition 11.9 (a) for the isotropy of the stable subspace and the index bound
 -/
 
 public section
@@ -183,10 +202,9 @@ theorem IsGradientLike.exists_pos_mul_norm_sq_le_hessian (hX : IsGradientLike f 
       (by norm_num)).hasFDerivAt
   have hY : DifferentiableAt ℝ Y (φ p) := by
     have := mdifferentiableAt_section_iff_differentiableAt_mpullbackWithin_extChartAt_symm.1 hXp
-    rwa [𝓘(ℝ, E).range_eq_univ, mpullbackWithin_univ] at this
+    rwa [𝓘(ℝ, E).range_eq_univ, VectorField.mpullbackWithin_univ] at this
   have hY₀ : Y (φ p) = 0 := by
-    have hXp0 : X p = 0 := hX.eq_zero_iff.2 (by
-      rw [mvfderiv_eq_fderiv_comp_extChartAt_symm]; exact hp'.fderiv_eq_zero)
+    have hXp0 : X p = 0 := hX.eq_zero_iff.2 (mem_criticalPoints.1 hp.mem_criticalPoints)
     simp only [Y, VectorField.mpullback_apply]
     rw [φ.left_inv (mem_extChartAt_source p), hXp0, map_zero]
   -- The inequality at second order, for every `v` and every `e` with `‖e‖ ≤ 1`.
@@ -294,4 +312,62 @@ theorem IsGradientLike.finrank_range_eq_manifoldMorseIndex (hX : IsGradientLike 
   rw [ContinuousLinearMap.range_eq_stableSubspace_of_exponential_bounds hα hP hAP hs hu,
     hX.finrank_stableSubspace_eq_manifoldMorseIndex hp hXp hA]
 
+/-! ### Isotropy of the stable subspace at a zero of a Liouville field -/
+
+section Liouville
+
+variable {H N : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]
+  [TopologicalSpace N] [ChartedSpace H N] [IsManifold I 1 N]
+
+omit [FiniteDimensional ℝ E] in
+/-- **The stable subspace at a zero of a Liouville field is isotropic.** Let `Z` be a Liouville
+vector field of a two-form `σ` on a boundaryless manifold, let `p` be a zero of `Z`, and let `A`
+be the linearization of `Z` at `p`. Then `σ_p (u, v) = 0` for all `u`, `v` in the stable
+subspace of `A`. -/
+theorem IsLiouvilleVectorField.apply_eq_zero_of_mem_stableSubspace [CompleteSpace E]
+    {σ : RoughForm I N ℝ 2} {Z : (x : N) → TangentSpace I x} (hZ : IsLiouvilleVectorField σ Z)
+    {p : N} (hp : Z p = 0) {A : E →L[ℝ] E} (hA : A = sectionLinearization (F := E) I id Z p)
+    {u v : E} (hu : u ∈ A.stableSubspace) (hv : v ∈ A.stableSubspace) : σ p ![u, v] = 0 := by
+  subst hA
+  -- The value of `σ` at `p`, an alternating map on the tangent space `E` at `p`.
+  let σ₀ : E [⋀^Fin 2]→L[ℝ] ℝ := σ p
+  have hB (u v : E) : ContinuousAlternatingMap.flatL ℝ E ℝ σ₀ u v = σ p ![u, v] :=
+    ContinuousAlternatingMap.flatL_apply_apply σ₀ u v
+  rw [← hB]
+  refine ContinuousLinearMap.apply_eq_zero_of_mem_stableSubspace (fun u v ↦ ?_) hu hv
+  simp only [hB]
+  exact hZ.apply_sectionLinearization_add hp u v
+
+end Liouville
+
 end TauCeti
+
+/-! ### The index bound for a Weinstein structure -/
+
+namespace SymplecticGeometry
+
+open TauCeti
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  {M : Type*} [TopologicalSpace M] [ChartedSpace E M] [IsManifold 𝓘(ℝ, E) ∞ M]
+  {σ : SmoothTwoForm 𝓘(ℝ, E) M} {X : (x : M) → TangentSpace 𝓘(ℝ, E) x} {f : M → ℝ}
+
+/-- **The index bound for a Weinstein structure.** At a nondegenerate critical point `p` of the
+function of a Weinstein structure on a manifold modelled on `E`, twice the Morse index is at most
+`dim E`: the stable subspace of the linearization of the field at `p` is isotropic for the
+symplectic form, and has dimension the Morse index. -/
+theorem IsWeinsteinStructure.two_mul_manifoldMorseIndex_le (hW : IsWeinsteinStructure σ X f)
+    {p : M} (hp : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p) :
+    2 * manifoldMorseIndex 𝓘(ℝ, E) f p ≤ finrank ℝ E := by
+  have hXp : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ, E).tangent
+      (fun x ↦ (X x : TangentBundle 𝓘(ℝ, E) M)) p :=
+    (hW.contMDiff_field p).mdifferentiableAt (by simp)
+  have hp0 : X p = 0 := hW.isGradientLike.eq_zero_iff.2 (mem_criticalPoints.1 hp.mem_criticalPoints)
+  rw [← hW.isGradientLike.finrank_stableSubspace_eq_manifoldMorseIndex hp hXp rfl]
+  refine LinearMap.BilinForm.two_mul_finrank_le_finrank_of_le_orthogonal
+    (hW.isSymplectic.isNondegenerate.nondegenerate_bilinFormAt p) fun w hw ↦
+      LinearMap.BilinForm.mem_orthogonal_iff.2 fun v hv ↦ ?_
+  rw [SmoothForm.bilinFormAt_apply, SmoothBundleForm.eval₂_apply]
+  exact hW.isLiouvilleVectorField.apply_eq_zero_of_mem_stableSubspace hp0 rfl hv hw
+
+end SymplecticGeometry

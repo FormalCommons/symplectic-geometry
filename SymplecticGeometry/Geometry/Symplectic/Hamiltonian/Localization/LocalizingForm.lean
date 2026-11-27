@@ -183,7 +183,7 @@ theorem mpullback_symm_weightOneForm_apply_weightChart (k' : ι → ℝ)
         (weightGenerator ((2 * π) • k') (EuclideanSpace.sumEquivProd z)) := by
     rw [← hX]
     exact Φ.mfderiv_symm_apply_mfderiv_apply (by simp) hz _
-  rw [hv, Φ.symm_toPartialEquiv, Φ.left_inv hz]
+  rw [hv, Φ.left_inv hz]
   -- `hv` gives the vector as a point of `StdSpace ι`, the lemmas as a tangent vector at `z`.
   exact (weightOneForm_apply_weightGenerator_smul k k' (2 * π) z).trans
     (congrArg _ (weightOneForm_apply_weightGenerator k k' z))
@@ -279,7 +279,8 @@ theorem mpullback_smul_cutoffWeightOneForm {G : Type*} [SMul G M] (χ : ι → G
     filter_upwards [Φ.open_target.mem_nhds hx] with y hy
     obtain ⟨h₁, h₂⟩ := hR (Φ.map_target hy)
     rw [Φ.right_inv hy] at h₂
-    rw [Function.comp_apply, Function.comp_apply, ← h₂, Φ.symm_toPartialEquiv, Φ.left_inv h₁]
+    rw [Function.comp_apply, Function.comp_apply, ← h₂, Φ.left_inv h₁,
+      Φ.symm_toPartialEquiv]
   have hφ (x : M) (hx : ρ x ≠ 0) :
       TauCeti.mpullback I I (fun x ↦ g • x)
           (TauCeti.mpullback I 𝓘(ℝ, StdSpace ι) Φ.symm (weightOneForm k).val) x =
@@ -289,9 +290,8 @@ theorem mpullback_smul_cutoffWeightOneForm {G : Type*} [SMul G M] (χ : ι → G
       obtain ⟨h₁, h₂⟩ := hR (Φ.map_target hxt)
       rw [Φ.right_inv hxt] at h₂
       exact h₂ ▸ Φ.map_source h₁
-    have hθ := congrArg Subtype.val
+    have hθ := (SmoothForm.mpullback_eq_iff _).1
       (mpullback_weightRotation_weightOneForm k fun j ↦ Complex.arg (χ j g))
-    rw [SmoothForm.coe_mpullback] at hθ
     rw [← TauCeti.mpullback_comp_at (hg.mdifferentiableAt (by simp))
         (Φ.symm.mdifferentiableAt (by simp) (by simpa using hgx)),
       (hcomm hxt).mpullback_eq,

@@ -618,14 +618,14 @@ Proof, from the strengthened `exists_holonomic_approximation_cube_directions`:
 1. *Coordinates.* With `p := Module.finrank ℝ L`, a continuous linear
    equivalence `e : L ≃L[ℝ] (Fin p → ℝ)`
    (`(Module.finBasis ℝ L).equivFun.toContinuousLinearEquiv`) and `R > 0`
-   with `‖e l‖ < R` on `K` (`IsCompact.exists_bound_of_continuousOn`). Let
-   `Ψ : L × D ≃L[ℝ] D'`, `D' := (Fin (p + m) → ℝ) × (Fin k → ℝ)`, send
+   with `‖e l‖ < R` on `K` (`exists_pos_norm_finBasis_equivFun_lt`). Let
+   `Ψ : L × D ≃L[ℝ] D'` (`familyCubeEquiv`),
+   `D' := (Fin (p + m) → ℝ) × (Fin k → ℝ)`, send
    `(l, (u, v))` to `(A (R⁻¹ • e l, u), v)`, where
-   `A : (Fin p → ℝ) × (Fin m → ℝ) ≃L[ℝ] (Fin (p + m) → ℝ)` comes from
-   `LinearEquiv.sumArrowLequivProdArrow` and `LinearEquiv.funCongrLeft`
-   along `finSumFinEquiv`, and is an isometry for the sup norms
-   (`IsometryEquiv.sumArrowIsometryEquivProdArrow`, `IsometryEquiv.piCongrLeft`). The
-   core directions of the space are `J := Finset.univ.map (Fin.natAddEmb p m)`;
+   `A : (Fin p → ℝ) × (Fin m → ℝ) ≃L[ℝ] (Fin (p + m) → ℝ)` is Tau Ceti's
+   `(TauCeti.splitCoords p m).symm`, `Fin.append` on the two blocks, and is
+   an isometry for the sup norms (`Fin.appendIsometry`). The
+   core directions of the space are `J := Finset.univ.map (Fin.natAddEmb p)`;
    the parameters are the core coordinates outside `J`, and `Ψ` sends
    `K ×ˢ Q` into the cube `Q'` of `D'`. On the vectors `(0, w)` it is an
    isometry onto the vectors in the directions `J`.
@@ -1092,7 +1092,7 @@ The structure, in the namespace `SymplecticGeometry`, for levels
 `a₀ < a < b`:
 
 ```lean
-structure BandCore (g : M → ℝ) (a₀ a b : ℝ) where
+structure BandCore (I : ModelWithCorners ℝ E H) (g : M → ℝ) (a₀ a b : ℝ) where
   ι : Type
   [fintype : Fintype ι]
   dim : ι → ℕ
@@ -1120,10 +1120,9 @@ in a map sending `{g ≤ b}` into `U`. The sketch omits docstrings and the
 instance attribute on `fintype`. The API: `BandCore.cubes`, the union of
 the cubes, with `isCompact_cubes` and `cubes_subset` (they lie above `a₀`);
 and the example `BandCore.ofNoCriticalPoint`, the band core without cubes
-when `g` is proper with no critical value in `[a₀, b]`. Its compression is
-the flow of a field that vanishes near `{g ≤ a}`, lowers `g` at unit speed
-through the rest of the band and is cut off above `b`, built as in Tau Ceti's
-`exists_flow_apply_eq_sub` (`Geometry/Manifold/Morse/Deformation.lean`).
+when `g` is smooth and the band `g⁻¹[a, b]` is compact with no critical
+point (for any `a₀`). Its compression is `TauCeti.Diffeotopy.smoothIsotopy`
+of the diffeotopy `TauCeti.exists_diffeotopy_mapsTo_of_sublevel_subset`.
 
 #### `Morse/Core/Cube.lean`
 

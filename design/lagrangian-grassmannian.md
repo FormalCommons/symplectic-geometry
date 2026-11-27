@@ -312,7 +312,10 @@ find them there.
   and `y_complexEuclideanEquiv : (complexEuclideanEquiv ι v).y = fun i ↦ (v i).im`,
   from `x_complexToRealEuclidean` and `y_complexToRealEuclidean`. The `@[simp]` lemma
   `stdComplexStructure_complexEuclideanEquiv` says that it carries
-  multiplication by `I` to `J₀`. Building issue 3 adds it.
+  multiplication by `I` to `J₀`, and
+  `SymplecticGeometry.stdForm_apply_eq_im_inner (v w : EuclideanSpace ℂ ι) :
+  stdForm ι (complexEuclideanEquiv ι v) (complexEuclideanEquiv ι w) = (inner ℂ v w).im`
+  that it carries `ω₀` to `Im ⟪·, ·⟫`. Building issue 3 adds it.
 - `StdSpace.swap ι : StdSpace ι ≃ₗ[ℝ] StdSpace ι`, the coordinate swap
   `(x, y) ↦ (y, x)`, the composite of `equivProd`, `LinearEquiv.prodComm` and
   `equivProd.symm`. It goes beside `equivProd`, before the file's
@@ -411,10 +414,7 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
   `StdSpace.map_lagrangianChart (S : Matrix ι ι ℝ) :
   (Matrix.lagrangianChart S).map ε = StdSpace.graphY S`, both from
   `x_complexEuclideanEquiv`, `y_complexEuclideanEquiv` and Tau Ceti's
-  `Matrix.mem_lagrangianChart`. Also
-  `stdForm_apply_eq_im_inner (v w : EuclideanSpace ℂ ι) :
-  stdForm ι (ε v) (ε w) = (inner ℂ v w).im`, from `stdForm_apply` and
-  `PiLp.inner_apply`.
+  `Matrix.mem_lagrangianChart`.
 - `isLagrangian_range_fromRows_iff (X Y : Matrix ι ι ℝ) :
   (stdForm ι).IsLagrangian (LinearMap.range (Matrix.toEuclideanLin (Matrix.fromRows X Y)))
   ↔ (Matrix.fromRows X Y).rank = Fintype.card ι ∧ Xᵀ * Y = Yᵀ * X`.

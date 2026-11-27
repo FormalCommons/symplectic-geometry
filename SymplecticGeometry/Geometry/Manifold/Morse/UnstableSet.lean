@@ -12,6 +12,7 @@ public import Mathlib.Analysis.InnerProductSpace.PiL2
 import TauCeti.Analysis.ODE.ScalarLinear
 import TauCeti.Geometry.Manifold.IntegralCurve.Interval
 import TauCeti.Geometry.Manifold.MFDeriv.Curve
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import Mathlib.Analysis.Calculus.Deriv.Prod
 import SymplecticGeometry.Analysis.SpecialFunctions.Log.Unbounded
 
@@ -77,6 +78,11 @@ coordinates of negative weight follows
 `TauCeti.MorseChart.linearFlow_coord_negativeExtend` and
 `TauCeti.IsAdaptedPseudoGradient.exists_isSliceChart_unstableSet` (`Morse/Stable/Manifold.lean`),
 which treat adapted pseudo-gradients on compact manifolds.
+
+In the chart, `TauCeti.MorseChart.field_toChart_symm` writes the field of the chart at the point
+with coordinates `z` as the image of `(-wᵢ zᵢ)ᵢ` under the differential of the inverse chart;
+`TauCeti.MorseChart.field_toChart_symm_negativeExtend` specializes it to the point with
+coordinates `c` of negative weight, where that vector is `c`.
 
 ## References
 
@@ -160,6 +166,36 @@ theorem coord_mfderiv_of_forall_eq_field (hXφ : ∀ y ∈ φ.toChart.source, X 
     φ.coord (mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) φ.toChart y (X y)) =
       fun i ↦ -(φ.weight i * φ.coord (φ.toChart y) i) := by
   rw [hXφ y hy, φ.coord_mfderiv_field hy]
+
+/-- **The field of a Morse chart through the inverse chart.** At the point of the chart with
+coordinates `z`, the field of the Morse chart is the image of the vector `(-wᵢ zᵢ)ᵢ` under the
+differential of the inverse chart. -/
+theorem field_toChart_symm {z : E} (hz : z ∈ φ.toChart.target) :
+    φ.field (φ.toChart.symm z) = mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) φ.toChart.symm z
+      (φ.coord.symm fun i ↦ -(φ.weight i * φ.coord z i)) := by
+  refine (φ.eq_field_of_coord_mfderiv (φ.toChart.map_target hz) ?_).symm
+  have hmd := mdifferentiable_of_mem_maximalAtlas φ.mem_maximalAtlas_one
+  rw [φ.toChart.mfderiv_apply_mfderiv_symm_apply hz
+    (hmd.mdifferentiableAt (φ.toChart.map_target hz)) (hmd.mdifferentiableAt_symm hz)
+    (φ.coord.symm fun i ↦ -(φ.weight i * φ.coord z i) : E),
+    φ.toChart.right_inv hz, LinearEquiv.apply_symm_apply]
+
+/-- **The field of a Morse chart on the coordinates of negative weight.** At the point of the
+chart with coordinates `c` of negative weight and `0` of positive weight, the field of the Morse
+chart is the image of `c` under the differential of the inverse chart: the weights of these
+coordinates are `-1`. -/
+theorem field_toChart_symm_negativeExtend {c : {i // φ.weight i < 0} → ℝ}
+    (hc : φ.negativeExtend c ∈ φ.toChart.target) :
+    φ.field (φ.toChart.symm (φ.negativeExtend c)) =
+      mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) φ.toChart.symm (φ.negativeExtend c) (φ.negativeExtend c) := by
+  rw [φ.field_toChart_symm hc]
+  congr 1
+  refine φ.coord.symm_apply_eq.2 (funext fun i ↦ ?_)
+  by_cases hi : φ.weight i < 0
+  · have hw : φ.weight i = -1 := (φ.weight_eq_neg_one_or_eq_one i).resolve_right
+      fun h ↦ by rw [h] at hi; norm_num at hi
+    rw [hw]; ring
+  · rw [φ.coord_negativeExtend_of_not_weight_neg c hi]; ring
 
 variable [CompleteSpace E] [T2Space M] [IsManifold 𝓘(ℝ, E) 1 M]
   (hX : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ, E).tangent 1 (fun y ↦ (⟨y, X y⟩ : TangentBundle 𝓘(ℝ, E) M)))
@@ -290,6 +326,22 @@ theorem exists_globalFlow_eq_toChart_symm_negativeExtend_of_mem_unstableSet
     rw [hlin u hu, map_smul, map_smul, ← φ.linearFlow_coord_negativeExtend, hv]
   exact ⟨key ▸ φ.toChart.map_source (hT u hu).1, by rw [← key, φ.toChart.left_inv (hT u hu).1]⟩
 
+/-- **The flow along a ray of negative coordinates.** Let `X` be the linear field of the Morse
+chart `φ` on its source, and let the closed Euclidean ball of radius `ρ` in the coordinates of
+negative weight lie in the chart. For `‖u‖ ≤ ρ` and `0 < r ≤ 1`, running the flow of `X` for the
+time `s` from the point with coordinates `r • u` is running it for the time `s + log r` from the
+point with coordinates `u`. -/
+theorem globalFlow_toChart_symm_negativeExtend_smul
+    (hXφ : ∀ y ∈ φ.toChart.source, X y = φ.field y)
+    (hρ : ∀ c : EuclideanSpace ℝ {i // φ.weight i < 0}, ‖c‖ ≤ ρ →
+      φ.negativeExtend c.ofLp ∈ φ.toChart.target)
+    {u : EuclideanSpace ℝ {i // φ.weight i < 0}} (hu : ‖u‖ ≤ ρ) {r : ℝ} (hr0 : 0 < r)
+    (hr1 : r ≤ 1) (s : ℝ) :
+    globalFlow X hX hXc s (φ.toChart.symm (φ.negativeExtend (r • u).ofLp)) =
+      globalFlow X hX hXc (s + Real.log r) (φ.toChart.symm (φ.negativeExtend u.ofLp)) := by
+  rw [Flow.map_add, φ.globalFlow_toChart_symm_negativeExtend_of_norm_le hX hXc hXφ hρ hu
+    (Real.log_nonpos hr0.le hr1), Real.exp_log hr0]
+
 /-- **The unstable set is swept out from a sphere of negative coordinates.** Let `X` be the linear
 field of the Morse chart `φ` at `p` on its source, `Φ` its flow, and let the closed Euclidean ball
 of radius `ρ > 0` in the coordinates of negative weight lie in the chart. Every point `x ≠ p` of
@@ -321,16 +373,13 @@ theorem exists_globalFlow_eq_of_mem_unstableSet (hXφ : ∀ y ∈ φ.toChart.sou
   set n := ‖A‖
   have hn : 0 < n := norm_pos_iff.2 hA
   set c := (ρ / n) • A
-  have hc : ‖c‖ = ρ := by
-    rw [norm_smul, Real.norm_eq_abs, abs_of_pos (div_pos hρ0 hn), div_mul_cancel₀ _ hn.ne']
-  have hcA : (n / ρ) • c = A := by
-    rw [smul_smul, div_mul_div_comm, mul_comm n ρ, div_self (mul_pos hρ0 hn).ne', one_smul]
+  obtain ⟨hc, hcA⟩ : ‖c‖ = ρ ∧ (n / ρ) • c = A := by
+    simp [c, n, norm_smul, abs_of_pos hρ0, hA, smul_smul, hρ0.ne']
   -- The orbit of `x` meets the sphere of radius `ρ`, at the time `T - log (n / ρ)`.
   have hmeet : Φ T x = Φ (Real.log (n / ρ)) (φ.toChart.symm (φ.negativeExtend c.ofLp)) := by
     rcases le_or_gt n ρ with hnρ | hnρ
-    · rw [φ.globalFlow_toChart_symm_negativeExtend_of_norm_le hX hXc hXφ hρ hc.le
-        (Real.log_nonpos (div_pos hn hρ0).le ((div_le_one hρ0).2 hnρ)),
-        Real.exp_log (div_pos hn hρ0), hcA, haT]
+    · rw [← zero_add (Real.log _), ← φ.globalFlow_toChart_symm_negativeExtend_smul hX hXc hXφ hρ
+        hc.le (div_pos hn hρ0) ((div_le_one hρ0).2 hnρ), Flow.map_zero_apply, hcA, haT]
     · have hu : T + Real.log (ρ / n) ≤ T := by
         linarith [Real.log_nonpos (div_pos hρ0 hn).le ((div_le_one hn).2 hnρ.le)]
       have h := (ha _ hu).2
@@ -401,23 +450,6 @@ theorem eq_of_globalFlow_eq_globalFlow (hXφ : ∀ y ∈ φ.toChart.source, X y 
   · obtain ⟨h1, h2⟩ := φ.eq_of_globalFlow_eq_globalFlow_of_le hX hXc hXφ hρ0 hρ hc' hc hss' h.symm
     exact ⟨h1.symm, h2.symm⟩
 
-
-/-- **The flow along a ray of negative coordinates.** Let `X` be the linear field of the Morse
-chart `φ` on its source, and let the closed Euclidean ball of radius `ρ` in the coordinates of
-negative weight lie in the chart. For `‖u‖ ≤ ρ` and `0 < r ≤ 1`, running the flow of `X` for the
-time `s` from the point with coordinates `r • u` is running it for the time `s + log r` from the
-point with coordinates `u`. -/
-theorem globalFlow_toChart_symm_negativeExtend_smul
-    (hXφ : ∀ y ∈ φ.toChart.source, X y = φ.field y)
-    (hρ : ∀ c : EuclideanSpace ℝ {i // φ.weight i < 0}, ‖c‖ ≤ ρ →
-      φ.negativeExtend c.ofLp ∈ φ.toChart.target)
-    {u : EuclideanSpace ℝ {i // φ.weight i < 0}} (hu : ‖u‖ ≤ ρ) {r : ℝ} (hr0 : 0 < r)
-    (hr1 : r ≤ 1) (s : ℝ) :
-    globalFlow X hX hXc s (φ.toChart.symm (φ.negativeExtend (r • u).ofLp)) =
-      globalFlow X hX hXc (s + Real.log r) (φ.toChart.symm (φ.negativeExtend u.ofLp)) := by
-  rw [Flow.map_add, φ.globalFlow_toChart_symm_negativeExtend_of_norm_le hX hXc hXφ hρ hu
-    (Real.log_nonpos hr0.le hr1), Real.exp_log hr0]
-
 /-- **The time-`θ` flow-out of a ball of negative coordinates is injective.** Let `X` be the linear
 field of the Morse chart `φ` at `p` on its source, `Φ` its flow, and let the closed Euclidean ball
 of radius `ρ` in the coordinates of negative weight lie in the chart. Let `θ` be a function on
@@ -440,9 +472,8 @@ theorem injOn_globalFlow_toChart_symm_negativeExtend
       ‖(ρ / ‖c‖) • c‖ = ρ ∧ (‖c‖ / ρ) • (ρ / ‖c‖) • c = c ∧ 0 < ‖c‖ / ρ ∧ ‖c‖ / ρ ≤ 1 := by
     have hn : 0 < ‖c‖ := norm_pos_iff.2 hc0
     have hρ0 : 0 < ρ := hn.trans_le hc
-    refine ⟨?_, ?_, div_pos hn hρ0, (div_le_one hρ0).2 hc⟩
-    · simpa [div_eq_mul_inv] using norm_smul_inv_norm' (𝕜 := ℝ) hρ0.le hc0
-    · rw [← inv_div, inv_smul_smul₀ (div_pos hρ0 hn).ne']
+    refine ⟨?_, ?_, div_pos hn hρ0, (div_le_one hρ0).2 hc⟩ <;>
+      simp [norm_smul, abs_of_pos hρ0, hc0, smul_smul, hρ0.ne']
   -- The image of a nonzero point `c` of the ball, through the point of the sphere on its ray.
   have hray {c : EuclideanSpace ℝ {i // φ.weight i < 0}} (hc0 : c ≠ 0) (hc : ‖c‖ ≤ ρ) :
       Φ (θ c) (φ.toChart.symm (φ.negativeExtend c.ofLp)) =
