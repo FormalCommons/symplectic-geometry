@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.TopForm
 public import TauCeti.Geometry.Manifold.Orientation.Preserving
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.TwoForm.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.Positivity
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.MapFiber
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.RestrictsTo
 import SymplecticGeometry.Geometry.Manifold.Orientation.PositiveForm
@@ -134,7 +135,6 @@ theorem exists_restricts_isPositive_area [T2Space B] [SigmaCompactSpace B] [T2Sp
   refine ⟨⟨_, hτ.mem_smoothBundleForms⟩, fun b b' hb' ↦ ?_⟩
   obtain ⟨φ, hφ, heq⟩ := mpullback_fiberInclusionMap_sum_eq hA hH hρ σ₀ hb'
   rw [SmoothForm.coe_mpullback]
-  simp only at heq ⊢
   rw [heq]
   have hsum : ∑ i ∈ ρ.finsupport b', ρ i b' = 1 := ρ.sum_finsupport (x₀ := b') (mem_univ _)
   have hpos : ∀ i ∈ ρ.finsupport b', 0 < ρ i b' := fun i hi ↦
