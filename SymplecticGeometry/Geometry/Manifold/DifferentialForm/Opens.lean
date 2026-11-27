@@ -18,6 +18,7 @@ import SymplecticGeometry.Topology.Sets.Opens.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 import TauCeti.Geometry.Manifold.DifferentialForm.Cutoff
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # Differential forms restricted to open subsets
@@ -156,7 +157,7 @@ theorem SmoothForm.mpullback_inclusion_mpullback_subtype_val {V W : Opens M} (h 
     SmoothForm.mpullback (Opens.inclusion h) (contMDiff_inclusion h)
         (SmoothForm.mpullback (Subtype.val : W → M) contMDiff_subtypeVal σ) =
       SmoothForm.mpullback (Subtype.val : V → M) contMDiff_subtypeVal σ :=
-  Subtype.ext <| by
+  (SmoothForm.mpullback_eq_iff _).2 <| by
     simp only [SmoothForm.coe_mpullback, TauCeti.mpullback_inclusion_mpullback_subtype_val]
 
 /-- A form on `M` that is `C^n` on an open subset `U` restricts to a `C^n` form on `U`. -/
