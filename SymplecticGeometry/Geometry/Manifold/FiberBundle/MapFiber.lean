@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Topology.FiberBundle.Basic
 public import SymplecticGeometry.Topology.FiberBundle.Trivialization
+public import TauCeti.Geometry.Manifold.Distribution.Submersion
 public import TauCeti.Geometry.Manifold.FiberBundle.MapFiber
 public import TauCeti.Geometry.Manifold.MFDeriv.Basic
 public import TauCeti.Geometry.Manifold.RegularValue
@@ -24,11 +25,11 @@ set of `e`, read through `e` (`Bundle.Trivialization.fiberInclusionMap`), is a s
 `F → M` whose derivative is injective with image the vertical space, the kernel of the derivative
 of `proj`. The coordinate change between two such trivializations over `b` is a diffeomorphism of
 `F`. For Tau Ceti's smooth atlases of a map (`TauCeti.MapFiber.Atlas.IsContMDiff`) this says that
-`proj` is a submersion. Conversely, every smooth fibre bundle gives a smooth atlas of the
-projection of its charted total space. Finally, if the fibre over `b` carries a manifold structure
-whose inclusion into `M` is a smooth embedding, the fibre coordinate of `e` is a diffeomorphism
-from the fibre onto `F`, and its underlying homeomorphism is
-`Bundle.Trivialization.mapFiberHomeomorph`.
+`proj` is a submersion, so its vertical spaces form a vector bundle. Conversely, every smooth
+fibre bundle gives a smooth atlas of the projection of its charted total space. Finally, if the
+fibre over `b` carries a manifold structure whose inclusion into `M` is a smooth embedding, the
+fibre coordinate of `e` is a diffeomorphism from the fibre onto `F`, and its underlying
+homeomorphism is `Bundle.Trivialization.mapFiberHomeomorph`.
 
 ## Main definitions
 
@@ -62,6 +63,10 @@ from the fibre onto `F`, and its underlying homeomorphism is
 * `TauCeti.MapFiber.Atlas.IsContMDiff.surjective_mfderiv` and
   `TauCeti.MapFiber.Atlas.IsContMDiff.isSubmersion`: the map of a smooth atlas has onto
   derivative everywhere, and is a submersion.
+* `TauCeti.MapFiber.Atlas.IsContMDiff.isContMDiffDistribution_ker_mfderiv` and
+  `TauCeti.MapFiber.Atlas.IsContMDiff.contMDiffVectorBundle_ker_mfderiv`: the vertical spaces of
+  a `C^n` atlas form a `C^m` distribution and vector bundle of rank `dim M - dim B` when
+  `m + 1 ≤ n`, by Tau Ceti's lemmas for submersions.
 * `TauCeti.ManifoldTotalSpace.isContMDiff_mapFiberAtlas` and
   `TauCeti.ManifoldTotalSpace.coordChange_mapFiberAtlas`: the atlas of a smooth fibre bundle is
   smooth, with the bundle's coordinate changes.
@@ -385,6 +390,30 @@ theorem isSubmersion (hA : A.IsContMDiff n IB IF IM) (hn : 1 ≤ n) :
     Manifold.IsSubmersion IM IB n proj :=
   (hA.contMDiff_proj.isSubmersionOfComplement_of_surjective_mfderiv hn
     (hA.surjective_mfderiv (ne_of_gt (zero_lt_one.trans_le hn)))).isSubmersion
+
+/-- **The vertical distribution of a smooth atlas.** If `proj : M → B` has a `C^n` atlas, with
+`M` boundaryless and both models finite-dimensional, then for `m + 1 ≤ n` the vertical spaces, the
+kernels of the derivative of `proj`, form a `C^m` distribution of rank `dim M - dim B`. -/
+theorem isContMDiffDistribution_ker_mfderiv [IsManifold IM 1 M] (hA : A.IsContMDiff n IB IF IM)
+    {m : ℕ∞ω} (hmn : m + 1 ≤ n) :
+    TauCeti.IsContMDiffDistribution IM m (Module.finrank 𝕜 EM - Module.finrank 𝕜 EB)
+      fun x ↦ (mfderiv IM IB proj x).ker :=
+  have hn : 1 ≤ n := le_add_self.trans hmn
+  have := FiniteDimensional.completeSpace 𝕜 EM
+  (hA.isSubmersion hn).isContMDiffDistribution_ker_mfderiv hmn
+
+/-- **The vertical bundle of a smooth atlas.** With the bundle structure of
+`isContMDiffDistribution_ker_mfderiv`, the vertical spaces of a map with a `C^n` atlas form a
+`C^m` vector bundle with fibre `Fin (dim M - dim B) → 𝕜`, for `m + 1 ≤ n`. -/
+theorem contMDiffVectorBundle_ker_mfderiv [IsManifold IM 1 M] (hA : A.IsContMDiff n IB IF IM)
+    {m : ℕ∞ω} (hmn : m + 1 ≤ n) :
+    letI := (hA.isContMDiffDistribution_ker_mfderiv hmn).fiberBundle
+    letI := (hA.isContMDiffDistribution_ker_mfderiv hmn).vectorBundle
+    ContMDiffVectorBundle m (Fin (Module.finrank 𝕜 EM - Module.finrank 𝕜 EB) → 𝕜)
+      (fun x ↦ (mfderiv IM IB proj x).ker) IM :=
+  have : IsManifold IM (m + 1) M := .of_le hmn
+  have := FiniteDimensional.completeSpace 𝕜 EM
+  (hA.isContMDiffDistribution_ker_mfderiv hmn).contMDiffVectorBundle
 
 end TauCeti.MapFiber.Atlas.IsContMDiff
 
