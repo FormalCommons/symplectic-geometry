@@ -93,6 +93,16 @@ theorem diffeomorph_def :
         (remodelDiffeomorph e.toDiffeomorph _) :=
   (rfl)
 
+@[simp]
+theorem coe_diffeomorph :
+    ⇑(diffeomorph.{u} e) = remodelHomeomorph e.toDiffeomorph _ ∘ ULift.up := by
+  simp [diffeomorph_def]
+
+@[simp]
+theorem coe_diffeomorph_symm :
+    ⇑(diffeomorph.{u} e).symm = ULift.down ∘ (remodelHomeomorph e.toDiffeomorph _).symm := by
+  simp [diffeomorph_def]
+
 end OnModel
 
 variable (p : Unit ⊕ Unit → ℝ) [∀ i, Fact (0 < p i)]
