@@ -21,6 +21,7 @@ import TauCeti.LinearAlgebra.BilinearForm.Orthogonal
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
+import TauCeti.Geometry.Manifold.VectorField.Regularity
 import SymplecticGeometry.Geometry.Manifold.VectorField.Chart
 import TauCeti.Topology.VectorBundle.Riemannian.Basic
 import SymplecticGeometry.Analysis.Calculus.FDeriv.SecondOrder
@@ -211,9 +212,8 @@ theorem IsGradientLike.exists_pos_mul_norm_sq_le_hessian (hX : IsGradientLike f 
   have hH : QuadraticMap.associated (hessianQuadraticForm (f ∘ φ.symm) (φ p)) v
       (sectionLinearization (F := E) 𝓘(ℝ, E) id X p v) =
         B v (sectionLinearization (F := E) 𝓘(ℝ, E) id X p v) := by
-    simp only [associated_hessianQuadraticForm hp'.contDiffAt]
-    -- `B` is the local name of this second derivative.
-    rfl
+    rw [associated_hessianQuadraticForm hp'.contDiffAt]
+    exact B.toBilinForm_apply v _
   rw [hH]
   rcases eq_or_ne v 0 with hv | hv
   · -- Substituting `v = 0` would apply `sectionLinearization`, a map on the tangent space,
