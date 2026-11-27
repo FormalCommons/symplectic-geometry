@@ -9,6 +9,8 @@ public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Shape
 
 import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.Gluing
+import SymplecticGeometry.Analysis.InnerProductSpace.Euclidean.ComplexExtension
+import SymplecticGeometry.Analysis.InnerProductSpace.PiL2
 import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.MFDeriv
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
@@ -44,6 +46,17 @@ that such a `G` is a partial diffeomorphism near the core, by the inverse functi
 `ι₀`, whose continuous left inverse is the projection `SymplecticGeometry.modelDiscProj`; and
 that composing with it changes neither the values nor the differential of `Φ₀` along the core.
 
+The last part of the file reads the model space in the coordinates of one complex Euclidean
+space, those of `Surround/AlmostHolomorphic.lean`. Since `ℂᵏ × ℂᵐ` carries the sup norm of the
+product, it is not isometric to `EuclideanSpace ℂ (Fin k ⊕ Fin m)`; Mathlib's continuous complex
+linear equivalence `EuclideanSpace.sumEquivProd` identifies the two. Imaginary parts are taken
+with Tau Ceti's `TauCeti.complexEuclideanEquivRealProd`, and the real points through the inverse
+of `sumEquivProd` are described by
+`TauCeti.complexEuclideanEquivRealProd_sumEquivProd_symm_snd_eq_zero_iff` from
+`SymplecticGeometry/Analysis/InnerProductSpace/Euclidean/ComplexExtension.lean`. Here the core is
+shown to be real, and the imaginary part to have norm at most `√(t p)` for the shape coordinate
+`t p = (SymplecticGeometry.shape p).2`.
+
 ## Main results
 
 * `SymplecticGeometry.exists_partialDiffeomorph_modelDisc`: a partial diffeomorphism from the
@@ -59,6 +72,10 @@ that composing with it changes neither the values nor the differential of `Φ₀
   glue to one such map on the whole space, agreeing with each to the same order. This is the
   gluing along the core, which is not compact, of the proof of Proposition 5.55; it is the case
   of the core of `SymplecticGeometry.exists_contDiff_glue_of_norm_iteratedFDeriv_sub_le`.
+* `SymplecticGeometry.complexEuclideanEquivRealProd_sumEquivProd_symm_modelDisc_snd`: in the
+  coordinates of `EuclideanSpace ℂ (Fin k ⊕ Fin m)`, the core is real.
+* `SymplecticGeometry.norm_complexEuclideanEquivRealProd_sumEquivProd_symm_snd_le`: in those
+  coordinates, the imaginary part of `p` has norm at most `√(t p)`.
 
 ## References
 
@@ -239,6 +256,37 @@ theorem exists_contDiff_glue_modelDisc {ι : Type*}
     exact ((hval i _ ⟨mem_range_self x, hi⟩).2).trans (hd i x hi)
 
 end Correction
+
+section EuclideanCoordinates
+
+/-! ### The core and the shape in Euclidean coordinates -/
+
+open TauCeti
+
+/-- In the coordinates of `EuclideanSpace ℂ (Fin k ⊕ Fin m)`, the core is real: the point that
+corresponds to `ι₀ x = modelDisc k m x` has imaginary part `0`. -/
+theorem complexEuclideanEquivRealProd_sumEquivProd_symm_modelDisc_snd
+    (x : EuclideanSpace ℝ (Fin k)) :
+    (complexEuclideanEquivRealProd _ (EuclideanSpace.sumEquivProd.symm (modelDisc k m x))).2 =
+      0 :=
+  complexEuclideanEquivRealProd_sumEquivProd_symm_snd_eq_zero_iff.2
+    ⟨fun i ↦ by simp, fun j ↦ by simp⟩
+
+/-- In the coordinates of `EuclideanSpace ℂ (Fin k ⊕ Fin m)`, the imaginary part of the point
+that corresponds to `p` has norm at most `√(t p)`, where `t p = (shape p).2`. -/
+theorem norm_complexEuclideanEquivRealProd_sumEquivProd_symm_snd_le
+    (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    ‖(complexEuclideanEquivRealProd _ (EuclideanSpace.sumEquivProd.symm p)).2‖ ≤
+      √(shape p).2 := by
+  refine Real.le_sqrt_of_sq_le ?_
+  rw [EuclideanSpace.norm_sq_eq, Fintype.sum_sum_type, shape_snd, EuclideanSpace.norm_sq_eq]
+  simp only [complexEuclideanEquivRealProd_apply_snd, EuclideanSpace.sumEquivProd_symm_apply_inl,
+    EuclideanSpace.sumEquivProd_symm_apply_inr, Real.norm_eq_abs, sq_abs]
+  refine add_le_add le_rfl (Finset.sum_le_sum fun j _ ↦ ?_)
+  rw [sq, ← Complex.normSq_eq_norm_sq]
+  exact Complex.im_sq_le_normSq _
+
+end EuclideanCoordinates
 
 end SymplecticGeometry
 
