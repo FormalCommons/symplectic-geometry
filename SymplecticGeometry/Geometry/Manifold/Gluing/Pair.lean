@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
-public import SymplecticGeometry.Topology.Category.TopCat.GlueData.Pair
+public import TauCeti.Geometry.Manifold.Gluing.PartialDiffeomorph
 public import TauCeti.Geometry.Manifold.Gluing.GlueData
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
@@ -20,9 +20,13 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 Let `M₁` and `M₂` be topological spaces, let `U₁` and `U₂` be open subsets of them, and let
 `φ : U₁ ≃ₜ U₂` be a homeomorphism. The glued space `SymplecticGeometry.GluedAlong φ` is
-`M₁ ⊔ M₂` with each `x ∈ U₁` identified with `φ x ∈ U₂`. It is the glued space of the two-piece
-gluing data `TopCat.GlueData.ofHomeomorph φ`, and it comes with the
-canonical open embeddings `GluedAlong.inl : M₁ → GluedAlong φ` and
+`M₁ ⊔ M₂` with each `x ∈ U₁` identified with `φ x ∈ U₂`. It is the glued space of Tau Ceti's star
+gluing `TauCeti.starGlueData` of the pieces `M₂` (index `true`) and `M₁` (index `false`)
+about the centre `M₂`, the piece `M₂` attached by the identity and `M₁` by `φ`: the
+construction of Tau Ceti's `OpenPartialHomeomorph.glueData`, with `φ` in place of an open
+partial homeomorphism `M₁ ⇀ M₂`. Such a partial homeomorphism need not exist, since it needs
+maps between the whole spaces: for `M₁` a point, `M₂` empty and `U₁ = U₂ = ∅` there is none.
+The glued space comes with the canonical open embeddings `GluedAlong.inl : M₁ → GluedAlong φ` and
 `GluedAlong.inr : M₂ → GluedAlong φ`, whose ranges
 cover it. A point `x` of `M₁` and a point `y` of `M₂` have the same image exactly when `x ∈ U₁`
 and `φ x = y` (`GluedAlong.inl_eq_inr_iff`). The glued space need not be Hausdorff even when
@@ -100,7 +104,8 @@ pull-backs by the two maps (`mpullback_descContMDiffMap`, `mpullback_descDiffeom
 * `SymplecticGeometry.GluedAlong.desc_inl`, `desc_inr`, `continuousMap_ext`: continuous maps on `M₁`
   and `M₂` that agree on the overlap give one on the glued space, and a continuous map on the
   glued space is determined by its restrictions to `M₁` and `M₂`.
-* `SymplecticGeometry.GluedAlong.t2Space_iff`: when the glued space is Hausdorff.
+* `SymplecticGeometry.GluedAlong.t2Space_iff_isClosed_graph`, `t2Space_iff`: when the glued
+  space is Hausdorff.
 * `SymplecticGeometry.GluedAlong.t2Space_of_isClosed_graph`: the glued space is Hausdorff when
   `M₁` and `M₂` are and the graph of `φ` is closed in `M₁ × M₂`.
 * The instance `SecondCountableTopology (GluedAlong φ)`: the glued space of two second
@@ -113,8 +118,10 @@ pull-backs by the two maps (`mpullback_descContMDiffMap`, `mpullback_descDiffeom
 * `SymplecticGeometry.GluedAlong.mpullback_descContMDiffMap`, `mpullback_descDiffeomorph`: the
   pull-back of a form on `X` is the form glued from its pull-backs to `M₁` and `M₂`.
 
-The compatibility proof follows Tau Ceti's `TauCeti.isCompatible_doubleGlueData`, which treats
-the gluing of two copies of one space along an open subset by the identity. The smooth map
+The compatibility of the gluing is Tau Ceti's `TauCeti.isCompatible_starGlueData`. The proof of
+`t2Space_iff_isClosed_graph` follows that of Tau Ceti's
+`OpenPartialHomeomorph.t2Space_glueData_iff`, and the proof of `inl_eq_inr_iff` that of
+`OpenPartialHomeomorph.glueInl_eq_glueInr_iff`. The smooth map
 `descContMDiffMap` has the shape of Tau Ceti's `TopCat.GlueData.IsCompatible.descContMDiffMap`,
 for a target in any universe. The proofs that `descDiffeomorph` is a local diffeomorphism and
 that `desc` is bijective (`bijective_desc`) follow the steps of Tau Ceti's
@@ -146,23 +153,37 @@ variable {H : Type*} [TopologicalSpace H] {M₁ M₂ : Type u} [TopologicalSpace
 
 namespace GluedAlong
 
-/-- The gluing data of `GluedAlong φ`: the pieces `M₁` and `M₂`, glued along `φ`. -/
-@[expose] def glueData : TopCat.GlueData.{u} := TopCat.GlueData.ofHomeomorph φ
+open TauCeti
 
-variable [ChartedSpace H M₁] [ChartedSpace H M₂]
+variable (M₂ U₁) in
+/-- The attaching sets of the two pieces of the gluing: all of `M₂` (index `true`) and `U₁`
+(index `false`). -/
+@[expose] def glueSource : ∀ i, Opens (partialHomeomorphGluePiece M₂ M₁ i)
+  | ⟨true⟩ => ⊤
+  | ⟨false⟩ => U₁
 
-/-- Each piece of the gluing carries its own atlas: `M₁` for `false` and `M₂` for `true`. -/
-instance instChartedSpaceGlueDataU : ∀ i : (glueData φ).J, ChartedSpace H ((glueData φ).U i)
-  | ⟨false⟩ => inferInstanceAs (ChartedSpace H M₁)
-  | ⟨true⟩ => inferInstanceAs (ChartedSpace H M₂)
+variable (U₂) in
+/-- The images in `M₂` of the attaching sets of the two pieces: all of `M₂` and `U₂`. -/
+@[expose] def glueTarget : ULift.{u} Bool → Opens M₂
+  | ⟨true⟩ => ⊤
+  | ⟨false⟩ => U₂
 
-/-- Each overlap of the gluing carries its atlas as an open subset of its piece. -/
-instance instChartedSpaceGlueDataV (p : (glueData φ).J × (glueData φ).J) :
-    ChartedSpace H ((glueData φ).V p) :=
-  -- `show` gives the overlap the type `Opens ((glueData φ).U p.1)`, so that the atlas
-  -- `instChartedSpaceGlueDataU` of the piece applies.
-  Opens.instChartedSpace (show Opens ((glueData φ).U p.1) from
-    TopCat.GlueData.ofHomeomorphOverlap U₁ U₂ p.1 p.2)
+/-- The attaching maps of the two pieces to `M₂`: the identity of `M₂`, and `φ`. -/
+@[expose] def glueMap : ∀ i, glueSource M₂ U₁ i ≃ₜ glueTarget U₂ i
+  | ⟨true⟩ => Homeomorph.refl _
+  | ⟨false⟩ => φ
+
+/-- The piece `M₂` is attached to the centre `M₂` by the identity. -/
+@[simp] theorem coe_glueMap_true_apply (y : glueSource M₂ U₁ ⟨true⟩) :
+    (glueMap φ ⟨true⟩ y : M₂) = (y : partialHomeomorphGluePiece M₂ M₁ ⟨true⟩) := (rfl)
+
+/-- The piece `M₁` is attached to the centre `M₂` by `φ`. -/
+@[simp] theorem coe_glueMap_false_apply (x : U₁) :
+    (glueMap φ ⟨false⟩ x : M₂) = (φ x : M₂) := (rfl)
+
+/-- The gluing data of `GluedAlong φ`: the star gluing of `M₂` (index `true`) and `M₁` (index
+`false`) about the centre `M₂`, the piece `M₂` attached by the identity and `M₁` by `φ`. -/
+abbrev glueData : TopCat.GlueData.{u} := starGlueData (glueMap φ)
 
 end GluedAlong
 
@@ -171,6 +192,8 @@ with the point `φ x` of `U₂`. -/
 @[expose] def GluedAlong : Type u := (GluedAlong.glueData φ).toGlueData.glued
 
 namespace GluedAlong
+
+open TauCeti
 
 instance : TopologicalSpace (GluedAlong φ) :=
   inferInstanceAs (TopologicalSpace (glueData φ).toGlueData.glued)
@@ -183,7 +206,7 @@ instance [SecondCountableTopology M₁] [SecondCountableTopology M₂] :
     | ⟨false⟩ => inferInstanceAs (SecondCountableTopology M₁)
     | ⟨true⟩ => inferInstanceAs (SecondCountableTopology M₂)
   have : Countable (glueData φ).J := by
-    rw [glueData, TopCat.GlueData.ofHomeomorph_J]
+    rw [glueData, starGlueData_J]
     infer_instance
   TopCat.GlueData.secondCountableTopology (glueData φ)
 
@@ -228,22 +251,25 @@ theorem isOpen_range_inl : IsOpen (range (inl φ)) := (isOpenEmbedding_inl φ).i
 
 theorem isOpen_range_inr : IsOpen (range (inr φ)) := (isOpenEmbedding_inr φ).isOpen_range
 
-/-- Every point of the glued space comes from `M₁` or from `M₂`. -/
-theorem range_inl_union_range_inr : range (inl φ) ∪ range (inr φ) = univ :=
-  eq_univ_of_forall fun z ↦
-    (TopCat.GlueData.ofHomeomorph_ι_jointly_surjective φ z).imp id id
-
 /-- Every point of the glued space is `inl x` for a point `x` of `M₁` or `inr y` for a point `y`
 of `M₂`. -/
-theorem exists_inl_or_exists_inr (z : GluedAlong φ) : (∃ x, inl φ x = z) ∨ ∃ y, inr φ y = z :=
-  (range_inl_union_range_inr φ).ge (mem_univ z)
+theorem exists_inl_or_exists_inr (z : GluedAlong φ) : (∃ x, inl φ x = z) ∨ ∃ y, inr φ y = z := by
+  obtain ⟨⟨_ | _⟩, w, rfl⟩ := (glueData φ).ι_jointly_surjective z
+  exacts [Or.inl ⟨w, rfl⟩, Or.inr ⟨w, rfl⟩]
+
+/-- Every point of the glued space comes from `M₁` or from `M₂`. -/
+theorem range_inl_union_range_inr : range (inl φ) ∪ range (inr φ) = univ :=
+  eq_univ_of_forall (exists_inl_or_exists_inr φ)
 
 /-- A point `x` of `M₁` and a point `y` of `M₂` have the same image in the glued space exactly
 when `x ∈ U₁` and `φ x = y`. -/
 @[simp, grind =]
 theorem inl_eq_inr_iff {x : M₁} {y : M₂} :
     inl φ x = inr φ y ↔ ∃ h : x ∈ U₁, (φ ⟨x, h⟩ : M₂) = y :=
-  TopCat.GlueData.ofHomeomorph_ι_false_eq_ι_true_iff φ
+  -- In the star gluing, `M₁` is attached to the centre `M₂` by `φ` and `M₂` by the identity.
+  (starGlueData_ι_eq_iff_of_ne (ψ := glueMap φ) (i := ⟨false⟩) (j := ⟨true⟩) (by simp)
+    (x := x) (y := y)).trans
+    ⟨fun ⟨hx, _, h⟩ ↦ ⟨hx, h⟩, fun ⟨hx, h⟩ ↦ ⟨hx, trivial, h⟩⟩
 
 /-- A point `y` of `M₂` and a point `x` of `M₁` have the same image in the glued space exactly
 when `x ∈ U₁` and `φ x = y`. -/
@@ -377,23 +403,84 @@ theorem bijective_desc {f₁ : C(M₁, X)} {f₂ : C(M₂, X)} (h : ∀ x : U₁
 
 end Desc
 
+/-- The relation between the pieces `M₁` and `M₂` of the gluing is the graph of `φ`. -/
+private theorem chartRel_false_true :
+    (glueData φ).chartRel ⟨false⟩ ⟨true⟩ =
+      {p : M₁ × M₂ | ∃ u : U₁, (u : M₁) = p.1 ∧ (φ u : M₂) = p.2} :=
+  Set.ext fun p ↦ (glueData φ).mem_chartRel_iff.trans <| (inl_eq_inr_iff φ).trans <| by
+    obtain ⟨x, y⟩ := p
+    refine ⟨fun ⟨h, hy⟩ ↦ ⟨⟨x, h⟩, rfl, hy⟩, ?_⟩
+    rintro ⟨u, hu, hy⟩
+    simp only at hu hy
+    subst hu hy
+    exact ⟨u.property, rfl⟩
+
+/-- The relation between the pieces `M₂` and `M₁` of the gluing is the graph of `φ`, read with
+its two factors exchanged. -/
+private theorem chartRel_true_false :
+    (glueData φ).chartRel ⟨true⟩ ⟨false⟩ =
+      Prod.swap ⁻¹' {p : M₁ × M₂ | ∃ u : U₁, (u : M₁) = p.1 ∧ (φ u : M₂) = p.2} :=
+  Set.ext fun p ↦
+    (glueData φ).swap_mem_chartRel_iff.symm.trans (Set.ext_iff.1 (chartRel_false_true φ) p.swap)
+
 /-- **Hausdorff criterion for the glued space.** The glued space is Hausdorff exactly when `M₁`
-and `M₂` are and any point `x` of `M₁` outside `U₁` and point `y` of `M₂` outside `U₂` have
-neighbourhoods `A` and `B` such that `φ` maps no point of `U₁ ∩ A` into `B`. -/
-theorem t2Space_iff : T2Space (GluedAlong φ) ↔ T2Space M₁ ∧ T2Space M₂ ∧
-    ∀ x ∉ U₁, ∀ y ∉ U₂, ∃ A ∈ 𝓝 x, ∃ B ∈ 𝓝 y, ∀ z : U₁, (z : M₁) ∈ A → (φ z : M₂) ∉ B :=
-  TopCat.GlueData.ofHomeomorph_t2Space_iff φ
+and `M₂` are and the graph of `φ` is closed in `M₁ × M₂`. -/
+theorem t2Space_iff_isClosed_graph : T2Space (GluedAlong φ) ↔ T2Space M₁ ∧ T2Space M₂ ∧
+    IsClosed {p : M₁ × M₂ | ∃ u : U₁, (u : M₁) = p.1 ∧ (φ u : M₂) = p.2} := by
+  -- `t2Space_iff_isClosed_chartRel` is stated for the glued space of `glueData φ`, which is
+  -- `GluedAlong φ`, with its topology, by definition.
+  rw [show T2Space (GluedAlong φ) ↔ T2Space (glueData φ).toGlueData.glued from Iff.rfl,
+    (glueData φ).t2Space_iff_isClosed_chartRel]
+  refine ⟨fun h ↦ ⟨?_, ?_, chartRel_false_true φ ▸ h ⟨false⟩ ⟨true⟩⟩, fun ⟨h₁, h₂, hg⟩ ↦ ?_⟩
+  · exact t2_iff_isClosed_diagonal.2 ((glueData φ).chartRel_self ⟨false⟩ ▸ h ⟨false⟩ ⟨false⟩)
+  · exact t2_iff_isClosed_diagonal.2 ((glueData φ).chartRel_self ⟨true⟩ ▸ h ⟨true⟩ ⟨true⟩)
+  rintro ⟨_ | _⟩ ⟨_ | _⟩
+  · exact (glueData φ).chartRel_self ⟨false⟩ ▸ t2_iff_isClosed_diagonal.1 h₁
+  · exact chartRel_false_true φ ▸ hg
+  · rw [chartRel_true_false]
+    exact hg.preimage continuous_swap
+  · exact (glueData φ).chartRel_self ⟨true⟩ ▸ t2_iff_isClosed_diagonal.1 h₂
 
 /-- **Hausdorff criterion for the glued space.** If `M₁` and `M₂` are Hausdorff and the graph
 of `φ`, as a subset of `M₁ × M₂`, is closed, then the glued space is Hausdorff. -/
 theorem t2Space_of_isClosed_graph [T2Space M₁] [T2Space M₂]
     (hφ : IsClosed {p : M₁ × M₂ | ∃ u : U₁, (u : M₁) = p.1 ∧ (φ u : M₂) = p.2}) :
-    T2Space (GluedAlong φ) := by
-  -- `GluedAlong φ` is by definition the glued space of `glueData φ`.
-  refine TopCat.GlueData.ofHomeomorph_t2Space_of_isClosed_range φ ?_
-  convert hφ using 1
-  ext ⟨x, y⟩
-  simp [Prod.ext_iff]
+    T2Space (GluedAlong φ) :=
+  (t2Space_iff_isClosed_graph φ).2 ⟨‹_›, ‹_›, hφ⟩
+
+/-- **Hausdorff criterion for the glued space.** The glued space is Hausdorff exactly when `M₁`
+and `M₂` are and any point `x` of `M₁` outside `U₁` and point `y` of `M₂` outside `U₂` have
+neighbourhoods `A` and `B` such that `φ` maps no point of `U₁ ∩ A` into `B`. -/
+theorem t2Space_iff : T2Space (GluedAlong φ) ↔ T2Space M₁ ∧ T2Space M₂ ∧
+    ∀ x ∉ U₁, ∀ y ∉ U₂, ∃ A ∈ 𝓝 x, ∃ B ∈ 𝓝 y, ∀ z : U₁, (z : M₁) ∈ A → (φ z : M₂) ∉ B := by
+  rw [t2Space_iff_isClosed_graph]
+  refine and_congr_right fun h₁ ↦ and_congr_right fun h₂ ↦ ?_
+  -- The pieces of `glueData φ` are `M₁` and `M₂` by definition (`starGlueData_U`).
+  have : T2Space ((glueData φ).U ⟨false⟩) := h₁
+  have : T2Space ((glueData φ).U ⟨true⟩) := h₂
+  rw [← chartRel_false_true φ]
+  refine ((glueData φ).isClosed_chartRel_iff (i := ⟨false⟩) (j := ⟨true⟩)).trans ?_
+  have hne : (⟨false⟩ : ULift.{u} Bool) ≠ ⟨true⟩ := by simp
+  -- The overlaps of the two pieces are `U₁` and `U₂`, and the transition between them is `φ`.
+  have hU₁ (x : M₁) : x ∈ range ((glueData φ).f ⟨false⟩ ⟨true⟩) ↔ x ∈ U₁ :=
+    (Set.ext_iff.1 ((glueData φ).preimage_range ⟨true⟩ ⟨false⟩) x).symm.trans
+      (inl_mem_range_inr_iff φ)
+  have hU₂ (y : M₂) : y ∈ range ((glueData φ).f ⟨true⟩ ⟨false⟩) ↔ y ∈ U₂ :=
+    (Set.ext_iff.1 ((glueData φ).preimage_range ⟨false⟩ ⟨true⟩) y).symm.trans
+      (inr_mem_range_inl_iff φ)
+  have ht (z : starOverlap (glueMap φ) ⟨false⟩ ⟨true⟩)
+      (hz : (z : partialHomeomorphGluePiece M₂ M₁ ⟨false⟩) ∈ glueSource M₂ U₁ ⟨false⟩) :
+      (starTransition (glueMap φ) ⟨false⟩ ⟨true⟩ z : partialHomeomorphGluePiece M₂ M₁ ⟨true⟩) =
+        (φ ⟨(z : partialHomeomorphGluePiece M₂ M₁ ⟨false⟩), hz⟩ : M₂) :=
+    coe_starTransition_apply_of_ne hne z hz trivial
+  refine forall_congr' fun x ↦ imp_congr (not_congr (hU₁ x)) <| forall_congr' fun y ↦
+    imp_congr (not_congr (hU₂ y)) <| exists_congr fun A ↦ and_congr_right fun _ ↦
+      exists_congr fun B ↦ and_congr_right fun _ ↦ ⟨fun h z hA hB ↦ ?_, fun h z hA hB ↦ ?_⟩
+  · have hz : ((z : M₁) : partialHomeomorphGluePiece M₂ M₁ ⟨false⟩) ∈
+        starOverlap (glueMap φ) ⟨false⟩ ⟨true⟩ := mem_starOverlap.2 (.inr ⟨z.property, trivial⟩)
+    exact h ⟨_, hz⟩ hA ((ht ⟨_, hz⟩ z.property).symm.subst (motive := (· ∈ B)) hB)
+  · have hz := starOverlap_le hne z.property
+    exact h ⟨z.val, hz⟩ hA (ht z hz ▸ hB)
 
 end GluedAlong
 
@@ -414,29 +501,16 @@ section Homeomorph
 
 variable (φ : U₁ ≃ₜ U₂)
 
-/-- Each piece of the gluing of two `C^n` manifolds is a `C^n` manifold, whatever the
-homeomorphism they are glued along. -/
-instance instIsManifoldGlueDataU [IsManifold I n M₁] [IsManifold I n M₂] :
-    ∀ i : (glueData φ).J, IsManifold I n ((glueData φ).U i)
-  | ⟨false⟩ => inferInstanceAs (IsManifold I n M₁)
-  | ⟨true⟩ => inferInstanceAs (IsManifold I n M₂)
-
 /-- **The gluing along a `C^n` homeomorphism is compatible.** If `φ` and its inverse are
-`C^n`, the maps out of an overlap are the inclusion of an open subset, and `φ` or its inverse,
-so they are `C^n` local diffeomorphisms. -/
+`C^n`, both attaching maps of the star gluing, the identity of `M₂` and `φ`, are `C^n` local
+diffeomorphisms. -/
 theorem isCompatible_glueData_of_contMDiff (hφ : ContMDiff I I n φ)
-    (hφ' : ContMDiff I I n φ.symm) : (glueData φ).IsCompatible I n := by
-  let ψ : U₁ ≃ₘ^n⟮I, I⟯ U₂ :=
-    { φ.toEquiv with contMDiff_toFun := hφ, contMDiff_invFun := hφ' }
-  -- By definition (`TopCat.GlueData.ofHomeomorph_f`), each map `f i j` is the inclusion of an
-  -- open subset, and the transitions are the identity, `φ` and its inverse, that is `ψ` and
-  -- `ψ.symm`.
-  refine .of_isLocalDiffeomorph_t (fun i j ↦ TauCeti.isLocalDiffeomorph_subtype_val) ?_
-  rintro ⟨_ | _⟩ ⟨_ | _⟩
-  · exact isLocalDiffeomorph_id
-  · exact ψ.isLocalDiffeomorph
-  · exact ψ.symm.isLocalDiffeomorph
-  · exact isLocalDiffeomorph_id
+    (hφ' : ContMDiff I I n φ.symm) : (glueData φ).IsCompatible I n :=
+  TauCeti.isCompatible_starGlueData fun
+    | ⟨true⟩ => (Diffeomorph.refl I (⊤ : Opens M₂) n).isLocalDiffeomorph
+    | ⟨false⟩ =>
+      ({ φ.toEquiv with contMDiff_toFun := hφ, contMDiff_invFun := hφ' } :
+        U₁ ≃ₘ^n⟮I, I⟯ U₂).isLocalDiffeomorph
 
 variable {φ}
 

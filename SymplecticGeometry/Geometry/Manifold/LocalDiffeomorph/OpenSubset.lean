@@ -40,6 +40,14 @@ target (`PartialDiffeomorph.toDiffeomorphSourceTarget`), and identifies that tar
 restricted in this way to a product of balls, where the leaves become slices
 (`PartialDiffeomorph.exists_diffeomorph_ball_prod_ball`).
 
+A diffeomorphism `Φ` between open subsets `U₀` of `M` and `V₀` of `N` restricts to a
+diffeomorphism `Diffeomorph.restrOpens` from `U ≤ U₀` onto `V ≤ V₀`, for open sets that correspond
+under `Φ`; it takes the values of `Φ` (`Diffeomorph.coe_restrOpens_apply`). It is Tau Ceti's
+`Diffeomorph.subtype`, between the preimages of `U` and `V` in `U₀` and `V₀`, composed on both
+sides with Tau Ceti's `Diffeomorph.nestedOpen`. Applied to
+`PartialDiffeomorph.toDiffeomorphSourceTarget`, it restricts a partial diffeomorphism to open
+subsets of its source and target that correspond under it.
+
 Tau Ceti reads a partial diffeomorphism `Φ` between open subsets `U` and `V` in the ambient
 manifolds as `PartialDiffeomorph.liftOpens`. The points of the source of `Φ` lie in the source
 of the lift, and there the diffeomorphism between the source and the target of the lift takes the
@@ -88,6 +96,8 @@ diffeomorphism at each point of `U` (`Diffeomorph.isLocalDiffeomorphAt_of_coe_eq
   followed by the inclusion of that subset, is a local diffeomorphism.
 * `Diffeomorph.isLocalDiffeomorphAt_of_coe_eq`: a map that agrees on an open subset with a
   diffeomorphism onto an open subset is a local diffeomorphism at each point of that subset.
+* `Diffeomorph.restrOpens`, `Diffeomorph.coe_restrOpens_apply`: a diffeomorphism between open
+  subsets restricts to a diffeomorphism between smaller open subsets that correspond under it.
 -/
 
 public section
@@ -289,6 +299,56 @@ theorem isLocalDiffeomorphAt_of_coe_eq (Ψ : U ≃ₘ^n⟮I, J⟯ V) {f : M → 
     (Ψ.isLocalDiffeomorph_subtypeVal_comp x).congr_of_eventuallyEq
       (Filter.Eventually.of_forall hf)
   exact (TauCeti.isLocalDiffeomorph_subtype_val x).comp_iff_right.1 h
+
+section RestrOpens
+
+variable {U₀ : Opens M} {V₀ : Opens N}
+
+/-- The restriction of a `C^n` diffeomorphism `Φ` between open subsets `U₀` of `M` and `V₀` of
+`N` to open subsets `U ≤ U₀` and `V ≤ V₀` that correspond under `Φ`, in that a point of `U₀`
+lies in `U` exactly when its image lies in `V`: the diffeomorphism from `U` onto `V` that takes
+the values of `Φ` (`Diffeomorph.coe_restrOpens_apply`). -/
+noncomputable def restrOpens (Φ : U₀ ≃ₘ^n⟮I, J⟯ V₀) (hU : U ≤ U₀) (hV : V ≤ V₀)
+    (h : ∀ x : U₀, (x : M) ∈ U ↔ (Φ x : N) ∈ V) : U ≃ₘ^n⟮I, J⟯ V :=
+  (nestedOpen hU).symm.trans
+    ((Φ.subtype (U := Opens.comap ⟨Subtype.val, continuous_subtypeVal⟩ U)
+      (V := Opens.comap ⟨Subtype.val, continuous_subtypeVal⟩ V) h).trans (nestedOpen hV))
+
+/-- `Diffeomorph.restrOpens` is Tau Ceti's `Diffeomorph.subtype` of `Φ`, between the preimages of
+`U` in `U₀` and of `V` in `V₀`, read on `U` and `V` through `Diffeomorph.nestedOpen`. -/
+theorem restrOpens_def (Φ : U₀ ≃ₘ^n⟮I, J⟯ V₀) (hU : U ≤ U₀) (hV : V ≤ V₀)
+    (h : ∀ x : U₀, (x : M) ∈ U ↔ (Φ x : N) ∈ V) :
+    Φ.restrOpens hU hV h = (nestedOpen hU).symm.trans
+      ((Φ.subtype (U := Opens.comap ⟨Subtype.val, continuous_subtypeVal⟩ U)
+        (V := Opens.comap ⟨Subtype.val, continuous_subtypeVal⟩ V) h).trans (nestedOpen hV)) :=
+  (rfl)
+
+/-- The restriction `Diffeomorph.restrOpens` of `Φ` takes the values of `Φ`. -/
+@[simp]
+theorem coe_restrOpens_apply (Φ : U₀ ≃ₘ^n⟮I, J⟯ V₀) (hU : U ≤ U₀) (hV : V ≤ V₀)
+    (h : ∀ x : U₀, (x : M) ∈ U ↔ (Φ x : N) ∈ V) (x : U) :
+    (Φ.restrOpens hU hV h x : N) = Φ ⟨x, hU x.property⟩ := by
+  simp only [restrOpens_def, coe_trans, Function.comp_apply, nestedOpen_apply,
+    nestedOpen_symm_apply]
+  exact congrArg Subtype.val <| Φ.subtype_apply_coe
+    (U := Opens.comap ⟨Subtype.val, continuous_subtypeVal⟩ U)
+    (V := Opens.comap ⟨Subtype.val, continuous_subtypeVal⟩ V) h
+      ⟨⟨x, hU x.property⟩, x.property⟩
+
+/-- The inverse of the restriction `Diffeomorph.restrOpens` of `Φ` takes the values of the
+inverse of `Φ`. -/
+@[simp]
+theorem coe_restrOpens_symm_apply (Φ : U₀ ≃ₘ^n⟮I, J⟯ V₀) (hU : U ≤ U₀) (hV : V ≤ V₀)
+    (h : ∀ x : U₀, (x : M) ∈ U ↔ (Φ x : N) ∈ V) (y : V) :
+    ((Φ.restrOpens hU hV h).symm y : M) = Φ.symm ⟨y, hV y.property⟩ := by
+  simp only [restrOpens_def, symm_trans', symm_symm, coe_trans, Function.comp_apply,
+    nestedOpen_symm_apply, nestedOpen_apply]
+  exact congrArg Subtype.val <| Φ.subtype_symm_apply_coe
+    (U := Opens.comap ⟨Subtype.val, continuous_subtypeVal⟩ U)
+    (V := Opens.comap ⟨Subtype.val, continuous_subtypeVal⟩ V) h
+      ⟨⟨y, hV y.property⟩, y.property⟩
+
+end RestrOpens
 
 end Diffeomorph
 

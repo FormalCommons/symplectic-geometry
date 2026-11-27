@@ -43,6 +43,9 @@ norms `‖iteratedFDeriv 𝕜 j f z‖` of the derivatives of `f` at `z`.
   `2 ^ r * ‖B‖ * jetNormAt 𝕜 r f z * jetNormAt 𝕜 r g z`, from Tau Ceti's
   `ContinuousLinearMap.norm_iteratedFDeriv_le_of_bilinear_of_contDiffAt` (the Leibniz bound at a
   point).
+* `SymplecticGeometry.jetNormAt_fun_smul_le`: the Leibniz bound on the jet norm of a product
+  `fun y ↦ f y • g y` of functions that are `C^r` at `z`, from `jetNormAt_bilinear_le` applied to
+  `ContinuousLinearMap.lsmul`.
 
 ## References
 
@@ -216,8 +219,27 @@ theorem jetNormAt_bilinear_le (B : F →L[𝕜] G →L[𝕜] H) {r : ℕ} {f : E
         rw [← Finset.sum_mul]
         ring
 
-end Bounds
+/-- The **Leibniz bound for jet norms**: for functions `f` and `g` that are `C^r` at `z`, the
+`r`-jet norm of `fun y ↦ f y • g y` at `z` is at most `2 ^ r` times the product of the `r`-jet
+norms of `f` and `g`. -/
+theorem jetNormAt_fun_smul_le {𝕜' : Type*} [NormedField 𝕜'] [NormedAlgebra 𝕜 𝕜']
+    [NormedSpace 𝕜' F] [IsScalarTower 𝕜 𝕜' F] {r : ℕ} {f : E → 𝕜'} {g : E → F} {z : E}
+    (hf : ContDiffAt 𝕜 r f z) (hg : ContDiffAt 𝕜 r g z) :
+    jetNormAt 𝕜 r (fun y ↦ f y • g y) z ≤ 2 ^ r * jetNormAt 𝕜 r f z * jetNormAt 𝕜 r g z := by
+  have h := jetNormAt_bilinear_le (ContinuousLinearMap.lsmul 𝕜 𝕜' : 𝕜' →L[𝕜] F →L[𝕜] F) hf hg
+  simp only [ContinuousLinearMap.lsmul_apply] at h
+  refine h.trans ?_
+  have := jetNormAt_nonneg (𝕜 := 𝕜) r f z
+  have := jetNormAt_nonneg (𝕜 := 𝕜) r g z
+  -- The bilinear map `lsmul` has norm at most `1`.
+  calc 2 ^ r * ‖(ContinuousLinearMap.lsmul 𝕜 𝕜' : 𝕜' →L[𝕜] F →L[𝕜] F)‖ * jetNormAt 𝕜 r f z *
+        jetNormAt 𝕜 r g z
+      ≤ 2 ^ r * 1 * jetNormAt 𝕜 r f z * jetNormAt 𝕜 r g z := by
+        gcongr
+        exact ContinuousLinearMap.opNorm_lsmul_le
+    _ = 2 ^ r * jetNormAt 𝕜 r f z * jetNormAt 𝕜 r g z := by ring
 
+end Bounds
 end SymplecticGeometry
 
 end

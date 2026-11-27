@@ -199,24 +199,23 @@ theorem mem_openShell_iff_mem_shellImage (hψ : IsSymplecticBallEmbedding σ (�
 `l < |w| < √(l² + ε²)` of `E` onto `shellImage hψ`. -/
 def shellDiffeomorph (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) :
     openShell n l ε ≃ₘ⟮𝓘(ℝ, Fin (n + 1) → ℂ), 𝓘(ℝ, Fin (n + 1) → ℂ)⟯ shellImage hψ :=
-  (Diffeomorph.nestedOpen
-      (U := openShell n l ε) (D := ⟨_, hψ.complexPartialDiffeomorph.open_source⟩) fun _ hw ↦
-        hψ.mem_complexPartialDiffeomorph_source_iff.2 (mem_openShell_iff.1 hw).2).symm.trans
-    ((hψ.complexPartialDiffeomorph.toDiffeomorphSourceTarget.subtype fun w ↦ by
-        simp only [Opens.mem_comap, ContinuousMap.coe_mk,
-          PartialDiffeomorph.toDiffeomorphSourceTarget_apply_coe, hψ.coe_complexPartialDiffeomorph,
-          Function.comp_apply]
-        exact mem_openShell_iff_mem_shellImage hψ
-          (hψ.mem_complexPartialDiffeomorph_source_iff.1 w.property)).trans
-      (Diffeomorph.nestedOpen fun _ hx ↦ by
-        obtain ⟨⟨v, hv, rfl⟩, -⟩ := hx
-        have hv' : (complexToRealEuclidean (Fin (n + 1))).symm v ∈
-            hψ.complexPartialDiffeomorph.source := by
-          rw [hψ.mem_complexPartialDiffeomorph_source_iff]
-          simpa using hv
-        have := hψ.complexPartialDiffeomorph.map_source hv'
-        rwa [hψ.coe_complexPartialDiffeomorph, Function.comp_apply,
-          ContinuousLinearEquiv.apply_symm_apply] at this))
+  hψ.complexPartialDiffeomorph.toDiffeomorphSourceTarget.restrOpens
+    (U := openShell n l ε) (fun _ hw ↦
+      hψ.mem_complexPartialDiffeomorph_source_iff.2 (mem_openShell_iff.1 hw).2)
+    (fun _ hx ↦ by
+      obtain ⟨⟨v, hv, rfl⟩, -⟩ := hx
+      have hv' : (complexToRealEuclidean (Fin (n + 1))).symm v ∈
+          hψ.complexPartialDiffeomorph.source := by
+        rw [hψ.mem_complexPartialDiffeomorph_source_iff]
+        simpa using hv
+      have := hψ.complexPartialDiffeomorph.map_source hv'
+      rwa [hψ.coe_complexPartialDiffeomorph, Function.comp_apply,
+        ContinuousLinearEquiv.apply_symm_apply] at this)
+    fun w ↦ by
+      rw [PartialDiffeomorph.toDiffeomorphSourceTarget_apply_coe, hψ.coe_complexPartialDiffeomorph,
+        Function.comp_apply]
+      exact mem_openShell_iff_mem_shellImage hψ
+        (hψ.mem_complexPartialDiffeomorph_source_iff.1 w.property)
 
 @[simp]
 theorem coe_shellDiffeomorph_apply (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ)
@@ -284,10 +283,7 @@ theorem coe_gluingDiffeomorph_mem_image_ball
     (hδ : 0 ≤ δ) (p : modelOverlap n ε) (hp : (p.val : BlowupModel n) ∈ openNbhd n δ) :
     ((gluingDiffeomorph hψ hl hε p : outerPiece hψ) : M) ∈ ψ '' ball 0 √(l ^ 2 + δ ^ 2) := by
   rw [coe_gluingDiffeomorph_apply]
-  refine ⟨_, ?_, rfl⟩
-  rw [mem_ball_zero_iff, coe_shellSymplectomorph_apply,
-    ← coe_radialBlowdownDiffeomorph_apply]
-  exact (mem_openNbhd_iff_radialBlowdownDiffeomorph l hδ _).1 hp
+  exact ⟨_, mem_ball_zero_iff.2 ((norm_shellSymplectomorph_lt_iff hl hε.le hδ _).2 hp), rfl⟩
 
 /-- The inverse of the gluing map, from `shellImage hψ` in the outer piece onto
 `openNbhd n ε ∖ Z` in the model piece: the diffeomorphism along which the blowup is glued. -/
@@ -404,7 +400,7 @@ theorem isSymplectomorphism_shellDiffeomorph
     exact (SmoothForm.mpullback_toDiffeomorphSourceTarget_eq_iff _).2 fun _ hw ↦
       (ω₀E_def n ▸ hψ.isSymplecticMapOn_complexPartialDiffeomorph).mpullback_apply hw
   rw [shellDiffeomorph]
-  exact h.subtype_nestedOpen _ _ _
+  exact h.restrOpens _ _ _
 
 /-- **The gluing map is a symplectomorphism**: `gluingDiffeomorph` pulls the restriction of `σ`
 to `shellImage hψ` back to the restriction of `ω̃_l` to `openNbhd n ε ∖ Z`, both read on the
