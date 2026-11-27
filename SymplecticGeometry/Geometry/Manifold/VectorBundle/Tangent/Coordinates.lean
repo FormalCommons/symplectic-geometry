@@ -35,7 +35,10 @@ play no role: in tangent coordinates the family is its composite with the tangen
 changes of `M` (`inTangentCoordinates_eq_tangentCoordChange_comp`). Such a family that is
 continuous as a map `X × G → TM` is continuous in tangent coordinates
 (`continuousAt_inTangentCoordinates_of_continuous`, from
-`Bundle.Trivialization.continuousOn_continuousLinearMapAt_comp`), and a fixed map read in one
+`Bundle.Trivialization.continuousOn_continuousLinearMapAt_comp`). Conversely, along a continuous
+map, a family that is continuous in tangent coordinates is continuous as a map `X × G → TM`
+(`continuous_of_continuousAt_inTangentCoordinates`, from Mathlib's
+`ContinuousAt.clm_apply_of_inCoordinates`), and a fixed map read in one
 chart and carried to the tangent spaces along a `Cⁿ` map by the tangent coordinate changes is
 `Cⁿ` in tangent coordinates (`contMDiffAt_inTangentCoordinates_tangentCoordChange_comp`).
 -/
@@ -123,6 +126,22 @@ theorem continuousAt_inTangentCoordinates_of_continuous [CompleteSpace 𝕜] {G 
   -- Mathlib's `tangentCoordChange` is an abbreviation for this coordinate change of
   -- `tangentBundleCore I M`, with no lemma that states it.
   rfl
+
+/-- Conversely, a family of maps `ϕ x` from a normed space `G` into the tangent spaces
+`T_(g x) M`, along a continuous map `g`, that is continuous at each `x₀` when read in the tangent
+coordinates at `x₀` along a continuous map `f`, is continuous as a map `X × G → TM`. -/
+theorem continuous_of_continuousAt_inTangentCoordinates {G X : Type*} [NormedAddCommGroup G]
+    [NormedSpace 𝕜 G] [TopologicalSpace X] {f : X → G} {g : X → M}
+    {ϕ : ∀ x, G →L[𝕜] TangentSpace I (g x)} (hf : Continuous f) (hg : Continuous g)
+    (hϕ : ∀ x₀, ContinuousAt (inTangentCoordinates 𝓘(𝕜, G) I f g ϕ x₀) x₀) :
+    Continuous fun q : X × G ↦ (⟨g q.1, ϕ q.1 q.2⟩ : TangentBundle I M) :=
+  continuous_iff_continuousAt.2 fun q₀ ↦
+    ContinuousAt.clm_apply_of_inCoordinates (F₁ := G) (F₂ := E) (E₁ := TangentSpace 𝓘(𝕜, G))
+      (E₂ := TangentSpace I) (b₁ := fun q : X × G ↦ f q.1) (b₂ := fun q : X × G ↦ g q.1)
+      (v := fun q : X × G ↦ q.2) ((hϕ q₀.1).comp continuousAt_fst)
+      ((FiberBundle.continuousAt_totalSpace G _).2
+        ⟨(hf.comp continuous_fst).continuousAt, by simpa using continuousAt_snd⟩)
+      (hg.comp continuous_fst).continuousAt
 
 /-- Carry a fixed map `C : G → E`, read in the chart at `ι x₀`, to the tangent spaces along `ι`:
 `y ↦ tangentCoordChange I (ι x₀) (ι y) (ι y) ∘ C`. If `ι` is `Cⁿ` at `y₁` and `ι y₁` lies in the
