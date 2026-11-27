@@ -64,19 +64,20 @@ carried along, and embed it in `BlowupModel 1` as the zero section, the exceptio
 tangent planes of `Z`, the self-intersection number of `Z` is `-1`.
 
 Milestone: *Tautological line bundle and the exceptional divisor*. -/
-theorem selfIntersectionNumber_zeroSection {hn : (∞ : ℕ∞ω) ≠ 0}
+theorem selfIntersectionNumber_zeroSection
     (Φ : (Fin 1 → ℂ) ≃ₘ^∞⟮𝓘(ℝ, Fin 1 → ℂ), 𝓡 2⟯ EuclideanSpace ℝ (Fin 2)) :
     ((zeroSectionRealEmbedding 1).compDiffeomorphOfBoundaryless
         (remodelDiffeomorph Φ (ℙ ℂ (Fin 2 → ℂ))).symm (by simp)).selfIntersectionNumber
         (by simp [Module.finrank_pi_fintype])
         (SmoothAlmostComplexStructure.ofComplexManifold (Fin 2 → ℂ) (BlowupModel 1))
         ((zeroSectionRealEmbedding 1).mapsTo_tangentRange_compDiffeomorphOfBoundaryless _
-          (by simp) hn (A := (SmoothAlmostComplexStructure.ofComplexManifold (Fin 2 → ℂ)
+          (by simp) (by simp) (A := (SmoothAlmostComplexStructure.ofComplexManifold (Fin 2 → ℂ)
             (BlowupModel 1) ·))
           mapsTo_ofComplexManifold_tangentRange_zeroSectionRealEmbedding)
         ((complexCurveOrientation (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ)) (finrank_fin_fun ℂ)).map
-          (remodelDiffeomorph Φ (ℙ ℂ (Fin 2 → ℂ))) hn
+          (remodelDiffeomorph Φ (ℙ ℂ (Fin 2 → ℂ))) (by simp)
           (by rw [Fintype.card_fin, finrank_euclideanSpace_fin])) = -1 := by
+  have hn : (∞ : ℕ∞ω) ≠ 0 := by simp
   have hdim := finrank_real_complex_eq_sub_of_finrank_eq_four_of_finrank_eq_two
     (by simp [Module.finrank_pi_fintype] : finrank ℝ (Fin 2 → ℂ) = 4)
     (finrank_real_of_finrank_complex_eq_add_one (finrank_fin_fun ℂ (n := 1)))
@@ -96,7 +97,7 @@ theorem selfIntersectionNumber_zeroSection {hn : (∞ : ℕ∞ω) ≠ 0}
   have hφ : Continuous fun p : TotalSpace ℂ J.Fiber ↦
       TotalSpace.mk' ℂ (E := Projectivization.Tautological ℂ (Fin 2 → ℂ)) p.proj
         (φ p.proj p.snd) :=
-    ((continuous_normalSpaceZeroSectionRealEquiv hn hdim).comp
+    ((continuous_normalSpaceZeroSectionRealEquiv hn).comp
       (J.totalSpaceHomeomorph ℂ).continuous).congr fun p ↦ by
         rw [Function.comp_apply, Bundle.ContinuousComplexStructure.totalSpaceHomeomorph_apply]
         simp only [φ, ContinuousLinearEquiv.complexOfMapISmul_apply,
