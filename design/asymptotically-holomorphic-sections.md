@@ -233,7 +233,7 @@ $L$ from 2 with $b=-a$, and any connection form
 maps to the image of $a$, which is `deRhamHom` of $[\omega]$, so by 1 the
 real class is $[\omega]$. So the
 difference of the curvature from $-2\pi\omega$ is exact
-(`exists_isCircleConnectionForm_curvature_eq_iff`). Adding the
+(`isCircleConnectionCurvature_iff`). Adding the
 pull-back of a primitive (`IsCircleConnectionForm.add_mpullback`,
 `curvature_add_mpullback`) makes the curvature exactly $-2\pi\omega$.
 

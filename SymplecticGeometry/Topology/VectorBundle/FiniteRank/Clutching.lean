@@ -879,8 +879,11 @@ private theorem continuous_lineEquiv :
     refine Eq.trans ?_ (coe_lineEquiv_apply X p.proj p.snd).symm
     rw [VectorBundleCore.localTriv_apply, indexAt_eq, coordChange_clutching]
     dsimp only
-    -- `erw`: the fibre of the clutched core is `Fin 1 → ℂ` only up to unfolding its rank.
-    erw [inChartCoordinates_core_apply]
+    -- Name the vector at the fibre type of the pullback of the trivial line, the source of the
+    -- chart transition; the clutched core's fibre agrees with it only up to unfolding its rank.
+    set v : Fin ((trivial ℂ X 1).pullback (ContinuousMap.fst : C(X × ℙ ℂ (Fin 2 → ℂ), X))).rank →
+      ℂ := p.snd
+    rw [inChartCoordinates_core_apply]
     -- The transitions of the pullback of the trivial line are the identity by definition.
     exact glueCocycle_smul_discSection X _ _ p.proj (mem_disc_side X p.proj) hp p.snd
 
