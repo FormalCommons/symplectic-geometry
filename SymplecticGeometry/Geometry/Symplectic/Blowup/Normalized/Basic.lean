@@ -109,6 +109,9 @@ the blowdown.
   `SymplecticGeometry.IsNormalizedBallEmbedding.normalizedBlowupForm_eq_on_compl`: the two
   descriptions of `ω̃_{ψ,l,ε}`; by
   `SymplecticGeometry.IsNormalizedBallEmbedding.eq_normalizedBlowupForm`, they determine it.
+* `SymplecticGeometry.IsNormalizedBallEmbedding.normalizedBlowupForm_one_sub_smul_add_smul`:
+  along the segment `(1 - t) • h₀ + t • h₁`, `t ∈ [0, 1]`, between two profiles, `ω̃_{ψ,l,ε}` is
+  the segment between their forms.
 * `SymplecticGeometry.IsNormalizedBallEmbedding.normalizedBlowupForm_eq_blowupForm_on`: near the
   exceptional divisor, the lift pulls `ω̃_{ψ,l,ε}` back to `ω̃_l`.
 * `SymplecticGeometry.IsNormalizedBallEmbedding.isSymplectic_normalizedBlowupForm`: for symplectic
@@ -880,6 +883,23 @@ theorem eq_normalizedBlowupForm {h : ℝ → ℝ} (hh : IsBlowupProfile l ε h)
       hx (hyx ▸ hψ.ballLiftPartialDiffeomorph.map_source
         (hψ.closedNbhd_subset_source hψ.weight_add_width_lt hy))
     exact (hα' x hK).trans (hψ.normalizedBlowupForm_eq_on_compl x hK).symm
+
+/-- Along the segment `(1 - t) • h₀ + t • h₁`, `t ∈ [0, 1]`, between two profiles of the blowup
+of weight `l` with collar `ε`, the form `ω̃_{ψ,l,ε}` is the segment between those of `h₀` and
+`h₁`: the segment satisfies the two properties that determine the form
+(`eq_normalizedBlowupForm`), since `ω̃_{l,ε}` is affine in the profile
+(`profileForm_one_sub_smul_add_smul`). -/
+theorem normalizedBlowupForm_one_sub_smul_add_smul {h₀ h₁ : ℝ → ℝ}
+    (hh₀ : IsBlowupProfile l ε h₀) (hh₁ : IsBlowupProfile l ε h₁) {t : ℝ} (ht₀ : 0 ≤ t)
+    (ht₁ : t ≤ 1) :
+    hψ.normalizedBlowupForm ((1 - t) • h₀ + t • h₁) =
+      (1 - t) • hψ.normalizedBlowupForm h₀ + t • hψ.normalizedBlowupForm h₁ := by
+  refine (hψ.eq_normalizedBlowupForm (hh₀.one_sub_smul_add_smul hh₁ ht₀ ht₁)
+    (fun y hy ↦ ?_) fun x hx ↦ ?_).symm
+  · simp [profileForm_one_sub_smul_add_smul n hh₀ hh₁ ht₀ ht₁, TauCeti.mpullback_add,
+      TauCeti.mpullback_smul, hψ.normalizedBlowupForm_eq_on_ballLift hh₀ y hy,
+      hψ.normalizedBlowupForm_eq_on_ballLift hh₁ y hy]
+  · simp [hψ.normalizedBlowupForm_eq_on_compl x hx, ← add_smul]
 
 /-- On `L(ε) = closedNbhd n ε`, the lift `ψ̃` pulls `ω̃_{ψ,l,ε}` back to the form
 `ω̃_l = blowupForm n l` of the model (McDuff–Salamon, Theorem 7.1.21 (i)). -/
