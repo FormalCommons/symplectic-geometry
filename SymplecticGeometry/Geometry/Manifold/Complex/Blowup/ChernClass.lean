@@ -287,8 +287,7 @@ theorem firstChernClass_restrict_divisor :
           2 (firstChernClass G
             ((almostComplexStructure c J hJ).toContMDiff ⊤).toContinuousComplexStructure.Fiber)) =
       (n : ℤ) • Projectivization.hyperplaneClass (Fin (n + 1) → ℂ) := by
-  have : Fact (finrank ℝ (Fin n → ℂ) = 2 * finrank ℂ (Fin n → ℂ)) :=
-    ⟨finrank_real_of_complex _⟩
+  have := Complex.fact_finrank_real_eq_two_mul_finrank (Fin n → ℂ)
   have := Complex.finrank_real_complex_eq_two_mul_finrank_fact
   -- `ι^* c₁(T Blowup c) = c₁(Tℙ) + c₁(ν) = (n + 1) h - h`.
   rw [(divisorRealEmbedding c).firstChernClass_pullback_eq_add (hn := by simp)

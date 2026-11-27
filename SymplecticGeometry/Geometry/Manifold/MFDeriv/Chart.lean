@@ -6,16 +6,20 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
+public import Mathlib.Geometry.Manifold.VectorBundle.Tangent
 import Mathlib.Geometry.Manifold.ContMDiff.Atlas
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 import TauCeti.Geometry.Manifold.MFDeriv.IsInvertible
+import TauCeti.Geometry.Manifold.VectorBundle.Submersion
+import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 
 /-!
 # Differentials read in a chart
 
 This file reads differentials in an extended chart, in both directions: for maps from a manifold
 into a normed space, and for maps from a normed space into a manifold through the inverse chart.
+It also reads the tangent map of a map between manifolds in the charts of the tangent bundles.
 
 For a map `f : M → F` into a normed space and a point `y` of the source of the extended chart at
 `x`, which need not be centred at `y`, the range of `mvfderiv I f y` is the range of the Fréchet
@@ -29,6 +33,16 @@ of `(extChartAt I x).symm ∘ h` is the derivative of `h` followed by the differ
 inverse chart, which is invertible by Tau Ceti's `TauCeti.isInvertible_mfderiv_extChartAt_symm`;
 so it is injective where the derivative of `h` is.
 
+In the charts of the tangent bundles that Mathlib builds from base charts, the tangent map of
+`f : M → M'` reads as `(z, v) ↦ (f̃ z, Df̃(z) v)`, where
+`f̃ = extChartAt I' y ∘ f ∘ (extChartAt I x).symm` is the expression of `f` in the base charts and
+the derivative is taken within the target of the chart at `x`. The fibre coordinate of a
+tangent-bundle chart is a tangent coordinate change, so this rests on Tau Ceti's
+`ContinuousAt.fderivWithin_extChartAt_comp_extChartAt_symm`, which writes the derivative of `f̃`
+within `range I` as `mfderiv I I' f` conjugated by tangent coordinate changes. The targets and
+sources of the tangent-bundle charts are described by Mathlib's `FiberBundle.extChartAt_target`
+and `TangentBundle.mem_chart_source_iff`.
+
 ## Main results
 
 * `SymplecticGeometry.range_mvfderiv_eq_range_fderiv_comp_extChartAt_symm_of_mem_source`: the
@@ -41,6 +55,12 @@ so it is injective where the derivative of `h` is.
   charts.
 * `SymplecticGeometry.injective_mfderiv_extChartAt_symm_comp`: a map into the chart target with
   injective derivative, composed with the inverse chart, has injective differential.
+* `ContinuousAt.extChartAt_tangentMap_extChartAt_symm`: the tangent map of a map continuous at a
+  point, read in the charts of the tangent bundles.
+
+## References
+
+* [M. W. Hirsch, *Differential Topology*][Hirsch1976], Chapter 1, §2
 -/
 
 public section
@@ -107,5 +127,56 @@ theorem ContMDiffOn.contDiffOn_extChartAt_comp {n : WithTop ℕ∞} [IsManifold 
 theorem writtenInExtChartAt_model_space_left (g : F → M) (x : F) :
     writtenInExtChartAt 𝓘(𝕜, F) I x g = extChartAt I (g x) ∘ g :=
   rfl
+
+section TangentMap
+
+variable {E' : Type*} [NormedAddCommGroup E'] [NormedSpace 𝕜 E']
+  {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners 𝕜 E' H'}
+  {M' : Type*} [TopologicalSpace M'] [ChartedSpace H' M']
+  [IsManifold I 1 M] [IsManifold I' 1 M']
+
+/-- **Chart expression of a tangent map.** Let `p` be a tangent vector of `M` and `q` one of
+`M'`. A point `w = (z, v)` of the target of the tangent-bundle chart at `p` whose base point
+`x = (extChartAt I p.proj).symm z` is sent by `f` into the source of the chart at `q.proj` is
+sent by the tangent map of `f`, read in the tangent-bundle charts at `p` and `q`, to
+`(f̃ z, Df̃(z) v)`, where `f̃ = extChartAt I' q.proj ∘ f ∘ (extChartAt I p.proj).symm` and the
+derivative is taken within the target of the chart at `p.proj`. Only continuity of `f` at `x` is
+assumed: where `f` is not differentiable both derivatives are zero. -/
+theorem ContinuousAt.extChartAt_tangentMap_extChartAt_symm {f : M → M'}
+    {p : TangentBundle I M} {q : TangentBundle I' M'} {w : E × E}
+    (hw : w ∈ (extChartAt I.tangent p).target)
+    (hc : ContinuousAt f ((extChartAt I p.proj).symm w.1))
+    (hf : f ((extChartAt I p.proj).symm w.1) ∈ (extChartAt I' q.proj).source) :
+    extChartAt I'.tangent q (tangentMap I I' f ((extChartAt I.tangent p).symm w)) =
+      ((extChartAt I' q.proj ∘ f ∘ (extChartAt I p.proj).symm) w.1,
+        fderivWithin 𝕜 (extChartAt I' q.proj ∘ f ∘ (extChartAt I p.proj).symm)
+          (extChartAt I p.proj).target w.1 w.2) := by
+  set b := (extChartAt I.tangent p).symm w
+  set x := (extChartAt I p.proj).symm w.1
+  have hz : w.1 ∈ (extChartAt I p.proj).target := Bundle.fst_mem_extChartAt_target p hw
+  have hbx : b.proj = x := Bundle.proj_extChartAt_symm p hw
+  have hx : x ∈ (extChartAt I p.proj).source := (extChartAt I p.proj).map_target hz
+  have hxw : extChartAt I p.proj x = w.1 := (extChartAt I p.proj).right_inv hz
+  obtain ⟨-, hbv⟩ := TauCeti.Manifold.extChartAt_tangent_symm_mem_baseSet_and_snd p hw
+  rw [TangentBundle.trivializationAt_snd_eq_tangentCoordChange b.snd, hbx] at hbv
+  have hfb : (tangentMap I I' f b).proj ∈
+      (trivializationAt E' (TangentSpace I') q.proj).baseSet := by
+    rw [tangentMap_proj, hbx]
+    exact TangentBundle.mem_trivializationAt_baseSet_of_mem_extChartAt_source hf
+  rw [Bundle.extChartAt_apply_of_mem_baseSet q hfb]
+  refine Prod.ext ?_ ?_
+  · simp [tangentMap_proj, hbx, x]
+  clear_value b x
+  obtain ⟨y, u⟩ := b
+  obtain rfl : y = x := hbx
+  rw [fderivWithin_congr_set (extChartAt_target_eventuallyEqSet_of_mem hz), ← hxw,
+    hc.fderivWithin_extChartAt_comp_extChartAt_symm hx hf, ← hbv, tangentMap,
+    TangentBundle.trivializationAt_snd_eq_tangentCoordChange]
+  -- `TangentSpace I y` is `E` by definition, which hides the composite from
+  -- `ContinuousLinearMap.comp_apply`; it is the nested application by definition.
+  exact congrArg _ (congrArg _
+    (TauCeti.tangentCoordChange_tangentCoordChange (mem_extChartAt_source y) hx u).symm)
+
+end TangentMap
 
 end
