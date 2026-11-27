@@ -41,6 +41,8 @@ separate hypotheses.
 
 * `SymplecticGeometry.IsJOrthogonallyAttached.image_closedBall_inter`: the disc meets `W`
   exactly in its boundary sphere.
+* `SymplecticGeometry.IsJOrthogonallyAttached.fderiv_comp_apply_self_neg`: on the sphere, the
+  radial derivative of `φ ∘ ι` is negative.
 * `SymplecticGeometry.IsJOrthogonallyAttached.exists_lt_forall_neg`: for `C¹` data, just
   beyond the sphere the map `ι` takes values in `{φ < 0}`.
 * `SymplecticGeometry.IsJOrthogonallyAttached.comp`: the condition persists when `φ` is
@@ -142,6 +144,17 @@ theorem mdifferentiableAt_apply (h : IsJOrthogonallyAttached E φ ι) {x : F} (h
   rw [mvfderiv, mfderiv_zero_of_not_mdifferentiableAt hφ] at this
   simp at this
 
+/-- On the unit sphere, the radial derivative of `φ ∘ ι` at `x` is `dφ (dι_x x)`. -/
+theorem fderiv_comp_apply_self (h : IsJOrthogonallyAttached E φ ι) {x : F} (hx : ‖x‖ = 1) :
+    fderiv ℝ (φ ∘ ι) x x = mvfderiv 𝓘(ℝ, E) φ (ι x) (mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) ι x x) := by
+  have h1 := mvfderiv_comp_apply x (h.mdifferentiableAt_apply hx) (h.mdifferentiableAt hx) x
+  rwa [mvfderiv_eq_fderiv] at h1
+
+/-- On the unit sphere, the radial derivative of `φ ∘ ι` is negative. -/
+theorem fderiv_comp_apply_self_neg (h : IsJOrthogonallyAttached E φ ι) {x : F} (hx : ‖x‖ = 1) :
+    fderiv ℝ (φ ∘ ι) x x < 0 :=
+  h.fderiv_comp_apply_self hx ▸ h.mvfderiv_mfderiv_self_neg x hx
+
 /-- **The extended disc enters the domain beyond the sphere.** For `C¹` maps `φ` and `ι`, with
 `F` finite-dimensional, there is `r > 1` such that `φ (ι x) < 0` whenever `1 < ‖x‖ < r`. -/
 theorem exists_lt_forall_neg [FiniteDimensional ℝ F] (h : IsJOrthogonallyAttached E φ ι)
@@ -151,11 +164,7 @@ theorem exists_lt_forall_neg [FiniteDimensional ℝ F] (h : IsJOrthogonallyAttac
   have hg : ContDiff ℝ 1 g := contMDiff_iff_contDiff.1 (hφ.comp hι)
   have hgd : Differentiable ℝ g := hg.differentiable one_ne_zero
   -- The radial derivative of `g` is negative on the sphere.
-  have hneg : ∀ x : F, ‖x‖ = 1 → fderiv ℝ g x x < 0 := by
-    intro x hx
-    have h1 := mvfderiv_comp_apply x (h.mdifferentiableAt_apply hx) (h.mdifferentiableAt hx) x
-    rw [mvfderiv_eq_fderiv] at h1
-    exact h1 ▸ h.mvfderiv_mfderiv_self_neg x hx
+  have hneg : ∀ x : F, ‖x‖ = 1 → fderiv ℝ g x x < 0 := fun _ ↦ h.fderiv_comp_apply_self_neg
   -- By compactness of the sphere, it stays negative on `t • x` for `t` near `1`.
   have hcont : Continuous fun p : F × ℝ ↦ fderiv ℝ g (p.2 • p.1) p.1 :=
     ((hg.continuous_fderiv one_ne_zero).comp (continuous_snd.smul continuous_fst)).clm_apply
