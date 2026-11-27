@@ -6,9 +6,11 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
+public import SymplecticGeometry.Analysis.SpecialFunctions.SmoothedMax
 public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.SpecialShape
 
 import Mathlib.Analysis.Calculus.Deriv.Inv
+import Mathlib.Analysis.Complex.ExponentialBounds
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Comp
 import SymplecticGeometry.Analysis.SpecialFunctions.Sqrt
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Deriv
@@ -77,6 +79,21 @@ Both `SymplecticGeometry.sqrtAddLeaf` below and `SymplecticGeometry.sqrtSubLeaf`
   `8 √(r² - δ²) ≤ sqrtAddLeaf L δ ℓ r ≤ δ / 8 + ℓ + (8 r + ℓ)` and, for large `L`, the slope bound
   `11` from `2 δ` on are `SymplecticGeometry.eight_mul_sqrt_le_sqrtAddLeaf`,
   `SymplecticGeometry.sqrtAddLeaf_le` and `SymplecticGeometry.deriv_sqrtAddLeaf_le`.
+
+## The Struwe switch leaves
+
+* `SymplecticGeometry.struweSwitchLeaf L δ ℓ`: for `ℓ ≤ 6 δ` the leaf `sqrtAddLeaf L δ ℓ`
+  (`SymplecticGeometry.struweSwitchLeaf_of_le`), and for `ℓ > 6 δ` the smoothed maximum, of width
+  `(ℓ - 6 δ) / 200`, of that leaf and of Struwe's shape `T` with value `2 ℓ - 47 δ / 8` at `δ`
+  (`SymplecticGeometry.struweSwitchLeaf_of_lt`). At `δ` the value of `T` exceeds that of
+  `sqrtAddLeaf L δ ℓ` by `ℓ - 6 δ`, so that the width is proportional to that gap. The leaves for
+  `δ` are those for `δ = 1` rescaled
+  (`SymplecticGeometry.struweSwitchLeaf_eq_mul_struweSwitchLeaf_one`).
+* For `δ = 1`, `w = √(r² - 1)` and `0 ≤ L`, the difference `sqrtAddLeaf L 1 ℓ r - T r` lies
+  between `-(ℓ - 6) + (8 - √2) w` and `-(ℓ - 6) + 8 w` for `r ∈ [1, 2]`
+  (`SymplecticGeometry.sqrtAddLeaf_sub_struweShape_mem_Icc`), and is at least `2` for `r ≥ 2`
+  and `ℓ ∈ [0, 7]` (`SymplecticGeometry.two_le_sqrtAddLeaf_sub_struweShape`). These comparisons
+  say where each of the two pieces of the smoothed maximum is the larger one.
 
 ## References
 
@@ -586,6 +603,127 @@ theorem strictMonoOn_sqrtAddLeaf (L : ℝ) (hδ : 0 ≤ δ) {r : ℝ} (hr : δ <
   rw [mem_Ici] at hℓ₁ hℓ₂
   simp only [sqrtAddLeaf_eq_cutoffLeaf]
   exact cutoffLeaf_lt_cutoffLeaf (by linarith) (by nlinarith) (by positivity) (by gcongr)
+
+/-! ### The Struwe switch leaves -/
+
+/-- The leaf `ℓ` of the family over the cylinder of radius `δ` that switches from
+`sqrtAddLeaf L δ ℓ` to Struwe's shape near the cylinder. With `A = sqrtAddLeaf L δ ℓ` and
+`T = struweShape δ 1 (2 ℓ - 47 δ / 8)`, Struwe's shape with value `2 ℓ - 47 δ / 8` at `δ`, it is
+`A` for `ℓ ≤ 6 δ`, and the smoothed maximum of `A` and `T` of width `(ℓ - 6 δ) / 200` for
+`ℓ > 6 δ`. -/
+noncomputable def struweSwitchLeaf (L δ ℓ r : ℝ) : ℝ :=
+  if ℓ ≤ 6 * δ then sqrtAddLeaf L δ ℓ r
+  else smoothedMax ((ℓ - 6 * δ) / 200) (sqrtAddLeaf L δ ℓ r)
+    (struweShape δ 1 (2 * ℓ - 47 * δ / 8) r)
+
+theorem struweSwitchLeaf_def (L δ ℓ r : ℝ) : struweSwitchLeaf L δ ℓ r =
+    if ℓ ≤ 6 * δ then sqrtAddLeaf L δ ℓ r
+    else smoothedMax ((ℓ - 6 * δ) / 200) (sqrtAddLeaf L δ ℓ r)
+      (struweShape δ 1 (2 * ℓ - 47 * δ / 8) r) :=
+  (rfl)
+
+/-- For `ℓ ≤ 6 δ` the leaf `ℓ` is `sqrtAddLeaf L δ ℓ`. -/
+theorem struweSwitchLeaf_of_le {L ℓ : ℝ} (hℓ : ℓ ≤ 6 * δ) :
+    struweSwitchLeaf L δ ℓ = sqrtAddLeaf L δ ℓ := by
+  ext r
+  simp only [struweSwitchLeaf_def, hℓ, ↓reduceIte]
+
+/-- For `ℓ > 6 δ` the leaf `ℓ` is the smoothed maximum, of width `(ℓ - 6 δ) / 200`, of
+`sqrtAddLeaf L δ ℓ` and Struwe's shape with value `2 ℓ - 47 δ / 8` at `δ`. -/
+theorem struweSwitchLeaf_of_lt {L ℓ : ℝ} (hℓ : 6 * δ < ℓ) :
+    struweSwitchLeaf L δ ℓ = fun r ↦ smoothedMax ((ℓ - 6 * δ) / 200) (sqrtAddLeaf L δ ℓ r)
+      (struweShape δ 1 (2 * ℓ - 47 * δ / 8) r) := by
+  ext r
+  simp only [struweSwitchLeaf_def, hℓ.not_ge, ↓reduceIte]
+
+/-- The leaves for the radius `δ > 0` are those for the radius `1`, rescaled by `δ`. -/
+theorem struweSwitchLeaf_eq_mul_struweSwitchLeaf_one (hδ : 0 < δ) (L ℓ : ℝ) :
+    struweSwitchLeaf L δ ℓ = fun r ↦ δ * struweSwitchLeaf L 1 (ℓ / δ) (r / δ) := by
+  ext r
+  have hA := congrFun (sqrtAddLeaf_eq_mul_sqrtAddLeaf_one hδ L ℓ) r
+  rcases le_or_gt ℓ (6 * δ) with hℓ | hℓ
+  · have hℓ' : ℓ / δ ≤ 6 * 1 := by rw [mul_one, div_le_iff₀ hδ]; exact hℓ
+    rw [struweSwitchLeaf_of_le hℓ, struweSwitchLeaf_of_le hℓ', hA]
+  · have hℓ' : 6 * 1 < ℓ / δ := by rw [mul_one, lt_div_iff₀ hδ]; exact hℓ
+    have hT := congrFun (struweShape_eq_mul_struweShape_one hδ.ne' 1 (2 * ℓ - 47 * δ / 8)) r
+    have hc : (2 * ℓ - 47 * δ / 8) / δ = 2 * (ℓ / δ) - 47 * 1 / 8 := by field_simp
+    have hw : (ℓ - 6 * δ) / 200 = δ * ((ℓ / δ - 6 * 1) / 200) := by field_simp
+    have hw₀ : (ℓ / δ - 6 * 1) / 200 ≠ 0 := (div_pos (sub_pos.2 hℓ') (by norm_num)).ne'
+    rw [struweSwitchLeaf_of_lt hℓ, struweSwitchLeaf_of_lt hℓ']
+    dsimp only
+    rw [hA, hT, hc, hw,
+      smoothedMax_eq_mul_smoothedMax_one (mul_ne_zero hδ.ne' hw₀),
+      smoothedMax_eq_mul_smoothedMax_one hw₀, mul_div_mul_left _ _ hδ.ne',
+      mul_div_mul_left _ _ hδ.ne', mul_assoc]
+
+/-- For `0 ≤ L` and `r ∈ [1, 2]`, the difference of `sqrtAddLeaf L 1 ℓ` and Struwe's shape with
+value `2 ℓ - 47 / 8` at `1` lies between `-(ℓ - 6) + (8 - √2) √(r² - 1)` and
+`-(ℓ - 6) + 8 √(r² - 1)`: there the first is `1 / 8 + ℓ + 8 √(r² - 1)`, and the second rises by at
+most `√2 √(r² - 1)` from `1` to `r` (`struweShape_sub_struweShape_one_mem_Icc`). -/
+theorem sqrtAddLeaf_sub_struweShape_mem_Icc {L : ℝ} (hL : 0 ≤ L) (ℓ : ℝ) {r : ℝ}
+    (hr : r ∈ Icc 1 2) :
+    sqrtAddLeaf L 1 ℓ r - struweShape 1 1 (2 * ℓ - 47 / 8) r ∈
+      Icc (-(ℓ - 6) + (8 - √2) * √(r ^ 2 - 1)) (-(ℓ - 6) + 8 * √(r ^ 2 - 1)) := by
+  have hT := struweShape_sub_struweShape_one_mem_Icc le_rfl (2 * ℓ - 47 / 8) hr.1
+  have h1 : struweShape 1 1 (2 * ℓ - 47 / 8) 1 = 2 * ℓ - 47 / 8 := by
+    simpa using struweShape_apply_mul 1 1 (2 * ℓ - 47 / 8)
+  have h8 : √(64 * r ^ 2 - 64 * 1 ^ 2) = 8 * √(r ^ 2 - 1) := by
+    rw [show 64 * r ^ 2 - 64 * 1 ^ 2 = 8 ^ 2 * (r ^ 2 - 1) by ring, sqrt_mul (by norm_num),
+      sqrt_sq (by norm_num)]
+  rw [sqrtAddLeaf_of_le hL zero_le_one (by linarith [hr.2]), h8]
+  rw [h1] at hT
+  obtain ⟨hT₀, hT₁⟩ := hT
+  constructor <;> nlinarith
+
+/-- From `r = 2` on, `sqrtAddLeaf L 1 ℓ` exceeds Struwe's shape with value `2 ℓ - 47 / 8` at `1`
+by at least `2`, for `ℓ ∈ [0, 7]`: the first is at least `8 √(r² - 1) ≥ 8 r - 3`, the second is
+at most `11` at `2` and has slope at most `1 / √(log 2) < 5 / 4` from `2` on. -/
+theorem two_le_sqrtAddLeaf_sub_struweShape (L : ℝ) {ℓ r : ℝ} (hℓ : ℓ ∈ Icc 0 7) (hr : 2 ≤ r) :
+    2 ≤ sqrtAddLeaf L 1 ℓ r - struweShape 1 1 (2 * ℓ - 47 / 8) r := by
+  set T := struweShape 1 1 (2 * ℓ - 47 / 8)
+  -- The value of `T` at `2`.
+  have hT₂ : T 2 ≤ 11 := by
+    have h := (struweShape_sub_struweShape_one_mem_Icc le_rfl (2 * ℓ - 47 / 8)
+      one_le_two).2
+    have h1 : T 1 = 2 * ℓ - 47 / 8 := by
+      simpa using struweShape_apply_mul 1 1 (2 * ℓ - 47 / 8)
+    have h6 : √2 * √(2 ^ 2 - 1) < 5 / 2 := by
+      rw [← sqrt_mul zero_le_two, sqrt_lt' (by norm_num)]
+      norm_num
+    linarith [hℓ.2]
+  -- The slope of `T` is at most `5 / 4` from `2` on.
+  have hslope : T r - T 2 ≤ 5 / 4 * (r - 2) := by
+    have hd : ∀ u : ℝ, 1 < u → HasDerivAt (fun u ↦ T u - 5 / 4 * u)
+        (1 / √(log u) - 5 / 4) u := by
+      intro u hu
+      have h := hasDerivAt_struweShape one_pos le_rfl (2 * ℓ - 47 / 8) hu
+      rw [div_one] at h
+      have h₂ := h.sub ((hasDerivAt_id u).const_mul (5 / 4))
+      rw [mul_one (5 / 4 : ℝ)] at h₂
+      exact h₂
+    have hf : AntitoneOn (fun u ↦ T u - 5 / 4 * u) (Ici 2) := by
+      refine antitoneOn_of_deriv_nonpos (convex_Ici 2) ?_ ?_ ?_
+      · exact ((continuousOn_struweShape one_pos le_rfl _).mono
+          (Ici_subset_Ici.2 one_le_two)).sub (by fun_prop)
+      · rw [interior_Ici]
+        exact fun u (hu : 2 < u) ↦ (hd u (by linarith)).differentiableAt.differentiableWithinAt
+      · rw [interior_Ici]
+        intro u (hu : 2 < u)
+        have hlog : 0 < log u := log_pos (by linarith)
+        have := log_le_log two_pos hu.le
+        have hs : 4 / 5 ≤ √(log u) := le_sqrt_of_sq_le (by linarith [log_two_gt_d9])
+        rw [(hd u (by linarith)).deriv, sub_nonpos, div_le_iff₀ (sqrt_pos.2 hlog)]
+        linarith
+    have h := hf self_mem_Ici hr hr
+    simp only at h
+    linarith
+  -- The leaf is at least `8 √(r² - 1) ≥ 8 r - 3`.
+  have hA := eight_mul_sqrt_le_sqrtAddLeaf L zero_le_one hℓ.1 r
+  have hs : 8 * r - 3 ≤ 8 * √(r ^ 2 - 1 ^ 2) := by
+    rw [show 8 * √(r ^ 2 - 1 ^ 2) = √(64 * (r ^ 2 - 1 ^ 2)) by
+      rw [sqrt_mul (by norm_num), show (64 : ℝ) = 8 ^ 2 by norm_num, sqrt_sq (by norm_num)]]
+    exact le_sqrt_of_sq_le (by nlinarith)
+  linarith
 
 end SymplecticGeometry
 
