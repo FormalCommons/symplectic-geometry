@@ -9,9 +9,9 @@ public import SymplecticGeometry.Geometry.Symplectic.Sum.RationalEllipticSurface
 import SymplecticGeometry.Geometry.Manifold.IsManifold.SecondCountable
 import SymplecticGeometry.Geometry.Manifold.RegularValue.RestrictPreimage
 import SymplecticGeometry.Geometry.Manifold.Submersion.RadialTrivialization
-import SymplecticGeometry.Topology.FiberBundle.MapFiber
 import SymplecticGeometry.Topology.FiberBundle.Trivialization
 import TauCeti.Geometry.Manifold.RegularValue.Open
+import TauCeti.Topology.Category.TopCat.Fiber
 import TauCeti.Topology.OpenPartialHomeomorph.Constructions
 
 /-!
@@ -39,8 +39,8 @@ coordinate is a smooth proper submersion, and it is locally trivial over a neigh
 (`Manifold.IsSubmersion.exists_trivialization_of_isProperMap`), with the fibre over `0` as model
 fibre. This fibre is the Fermat cubic
 (`SymplecticGeometry.rationalEllipticSurface.fibreHomeomorph`,
-`TauCeti.MapFiber.restrictPreimageHomeomorph`). The inverse of the trivialization, over a smaller
-disc and read through the identification of the fibre over `0` with the model fibre
+`ContinuousMap.preimageSingletonHomeomorphFiber`). The inverse of the trivialization, over a
+smaller disc and read through the identification of the fibre over `0` with the model fibre
 (`Bundle.Trivialization.mapFiberHomeomorph`), is the product neighbourhood. The restriction to a
 disc of regular values follows the proof of `ContMDiff.nonempty_diffeomorph_fiber_of_isProperMap`.
 
@@ -93,7 +93,8 @@ theorem exists_isOpenEmbedding_prod_ball :
   -- The Fermat cubic is the fibre of `g` over `0`.
   set b₀ : R := ⟨0, mem_ball_self hε⟩
   set κ : SmoothProjectiveHypersurface.fermat 1 3 ≃ₜ MapFiber g b₀ :=
-    fibreHomeomorph.trans (MapFiber.restrictPreimageHomeomorph a R b₀).symm
+    fibreHomeomorph.trans
+      (ContinuousMap.preimageSingletonHomeomorphFiber (p := ⟨a, ha.continuous⟩) b₀.property)
   -- A trivialization of `g` around `0`, and a disc `ball 0 δ` inside its base set.
   obtain ⟨e, hb₀e, -, -⟩ := hg.exists_trivialization_of_isProperMap (hap.restrictPreimage _)
     ⟨(κ x₀).val, (κ x₀).property⟩
@@ -124,8 +125,8 @@ theorem exists_isOpenEmbedding_prod_ball :
   rw [Bundle.Trivialization.mapFiberHomeomorph_symm_apply] at h
   refine (congrArg (fun z : P ↦ z.val.val) h).trans ?_
   -- The points of `P` are those of `a ⁻¹' R`, the domain of `g`, as sets of points of `M`.
-  exact (congrArg Subtype.val
-    (MapFiber.coe_coe_restrictPreimageHomeomorph_symm_apply a R b₀ _)).trans
+  exact (congrArg Subtype.val (ContinuousMap.coe_coe_preimageSingletonHomeomorphFiber_apply
+    (p := ⟨a, ha.continuous⟩) b₀.property _)).trans
     (coe_coe_fibreHomeomorph_apply x)
 
 end SymplecticGeometry.rationalEllipticSurface
