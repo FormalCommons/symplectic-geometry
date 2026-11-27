@@ -168,10 +168,13 @@ theorem selfIntersectionNumber_exceptionalDivisor_almostComplexStructure
   refine SmoothEmbedding.selfIntersectionNumber_eq_of_comp _ _ _ _ _ _ _ _ (φ := lift c) ?_
     (fun x ↦ ?_) (fun x ↦ isPseudoholomorphicAt_lift c J hJ (hmem x)) (fun x ↦ ?_) _
   · rw [SmoothEmbedding.coe_compDiffeomorphOfBoundaryless,
-      SmoothEmbedding.coe_compDiffeomorphOfBoundaryless, coe_divisorRealEmbedding,
-      ← Function.comp_assoc, lift_comp_ofDirection, BlowupModel.coe_zeroSectionRealEmbedding]
-  · exact (isLocalDiffeomorphAt_lift c (hmem x)).contMDiffAt.of_le ENat.LEInfty.out
-  · exact (isLocalDiffeomorphAt_lift c (hmem x)).isInvertible_mfderiv (by simp)
+      SmoothEmbedding.coe_compDiffeomorphOfBoundaryless, ← Function.comp_assoc,
+      lift_comp_divisorRealEmbedding, BlowupModel.coe_zeroSectionRealEmbedding]
+  · rw [SmoothEmbedding.compDiffeomorphOfBoundaryless_apply]
+    exact (isLocalDiffeomorphAt_lift_divisorRealEmbedding c _).contMDiffAt.of_le
+      ENat.LEInfty.out
+  · rw [SmoothEmbedding.compDiffeomorphOfBoundaryless_apply]
+    exact isInvertible_mfderiv_lift_divisorRealEmbedding c _
 
 end AlmostComplex
 
