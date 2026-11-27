@@ -280,11 +280,13 @@ a square with any objects, since an object `G` is `GrpCat.of G` up to eta.
 `quotientNormalClosureMulEquiv_mk` is moreover stated for legs `GrpCat.ofHom φ` and
 `GrpCat.ofHom ψ`, so that its subgroup reads `normalClosure (ψ '' φ.ker)`. The `simp` index
 reduces a leg `GrpCat.ofHom φ` of a goal to `φ`, and a leg `f` of a lemma does not match that.
-A bundled leg `f` still matches the lemma, as `GrpCat.ofHom f.hom'` up to eta. The lemmas about
-the inverses cannot take this form: their right side lies in the quotient, which would then name
-`f.hom'` in place of the goal's `f.hom`, and `simp` could not close the result. So they are
-stated for bundled legs `f` and `g`, and `simp` does not use them when `f` or `g` is
-`GrpCat.ofHom`. For a leg `inr = GrpCat.ofHom j`, `simp` brings `inr x` to `j x`, so the lemmas
+A bundled leg `f` still matches the lemma, as `GrpCat.ofHom f.hom'` up to eta. The lemma about
+the inverse of `quotientNormalClosureMulEquiv` cannot take this form: its right side lies in the
+quotient, which would then name `f.hom'` in place of the goal's `f.hom`, and `simp` could not
+close the result. So it is stated for bundled legs `f` and `g`, and `simp` does not use it when
+`f` or `g` is `GrpCat.ofHom`. The lemmas about `inrMulEquivOfKerLe` and its inverse have no
+quotient on either side, and `simp` uses them for bundled and for `GrpCat.ofHom` legs alike. For
+a leg `inr = GrpCat.ofHom j`, `simp` brings `inr x` to `j x`, so the lemmas
 about the inverses have companions stated with `j x`. -/
 
 section ofTypes
