@@ -10,6 +10,7 @@ public import TauCeti.Analysis.Normed.Operator.ComplexLinearPart
 import Mathlib.Analysis.Calculus.ContDiff.Operations
 import Mathlib.Topology.Instances.RealVectorSpace
 import TauCeti.Analysis.Complex.Wirtinger.Basic
+import TauCeti.Analysis.Normed.Module.RCLike.Basic
 
 /-!
 # Complex-linear and complex-antilinear parts of an operator: bounds, scalars, smoothness
@@ -20,9 +21,12 @@ operator norm at most `‖Ψ‖` (`ContinuousLinearMap.norm_complexLinearPart_le
 `ContinuousLinearMap.norm_complexAntilinearPart_le`), with pointwise forms. Seen as a
 real-linear operator by Tau Ceti's `ContinuousLinearMap.complexAntilinearPartL`, the
 complex-antilinear part keeps its operator norm
-(`ContinuousLinearMap.norm_complexAntilinearPartL_apply`). The bound on the complex-antilinear
-part makes it a continuous real-linear map into the complex-antilinear operators,
-`ContinuousLinearMap.complexAntilinearPartCLM`.
+(`ContinuousLinearMap.norm_complexAntilinearPartL_apply`), and `complexAntilinearPartL` itself has
+operator norm at most `1` (`ContinuousLinearMap.norm_complexAntilinearPartL_le`), also for real
+structures on `E` and `F` given separately and compatible with the complex ones. The bound on the
+complex-antilinear part makes it a continuous real-linear map into the complex-antilinear
+operators, `ContinuousLinearMap.complexAntilinearPartCLM`, again of operator norm at most `1`
+(`ContinuousLinearMap.norm_complexAntilinearPartCLM_le`).
 
 A continuous complex-antilinear operator is also a continuous real-linear one, by Mathlib's
 `AddMonoidHom.toRealLinearMap`, with the same operator norm. This gives a real-linear isometry
@@ -103,6 +107,12 @@ theorem complexAntilinearPartCLM_apply (Ψ : E →L[ℝ] F) :
     complexAntilinearPartCLM Ψ = Ψ.complexAntilinearPart :=
   (rfl)
 
+/-- The complex-antilinear part, as a continuous real-linear map into the complex-antilinear
+operators, has operator norm at most `1`. -/
+theorem norm_complexAntilinearPartCLM_le :
+    ‖(complexAntilinearPartCLM : (E →L[ℝ] F) →L[ℝ] E →L⋆[ℂ] F)‖ ≤ 1 :=
+  LinearMap.mkContinuous_norm_le _ zero_le_one _
+
 /-- The inclusion of the continuous complex-antilinear operators into the continuous real-linear
 ones, as a real-linear isometry: a complex-antilinear operator, being additive and continuous, is
 real-linear (`AddMonoidHom.toRealLinearMap`), with the same operator norm. -/
@@ -155,6 +165,25 @@ theorem complexAntilinearPart_complex_smul (c : ℂ) (Ψ : E →L[ℝ] F) :
   simp only [complexAntilinearPart_apply, smul_apply]
   rw [smul_comm Complex.I c]
   module
+
+section CompatibleReal
+
+variable {E F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [NormedSpace ℂ E]
+  [IsScalarTower ℝ ℂ E] [NormedAddCommGroup F] [NormedSpace ℝ F] [NormedSpace ℂ F]
+  [IsScalarTower ℝ ℂ F]
+
+/-- Tau Ceti's `ContinuousLinearMap.complexAntilinearPartL`, for real structures on `E` and `F`
+compatible with the complex ones, has operator norm at most `1`. -/
+theorem norm_complexAntilinearPartL_le :
+    ‖(complexAntilinearPartL : (E →L[ℝ] F) →L[ℝ] E →L[ℝ] F)‖ ≤ 1 := by
+  refine opNorm_le_bound _ zero_le_one fun Ψ ↦ ?_
+  rw [one_mul]
+  refine opNorm_le_bound _ (norm_nonneg Ψ) fun v ↦ ?_
+  rw [complexAntilinearPartL_apply_apply]
+  exact TauCeti.norm_two_inv_smul_add_le (Ψ.le_opNorm v)
+    (by simpa [norm_smul] using Ψ.le_opNorm (Complex.I • v))
+
+end CompatibleReal
 
 end ContinuousLinearMap
 

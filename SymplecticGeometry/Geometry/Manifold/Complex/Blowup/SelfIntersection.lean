@@ -203,7 +203,7 @@ theorem selfIntersectionNumber_exceptionalDivisor
           (by rw [Fintype.card_fin, finrank_euclideanSpace_fin])) = -1 := by
   -- The almost complex blowup of the structure of `M` is the structure of `Blowup c`.
   have h := selfIntersectionNumber_exceptionalDivisor_almostComplexStructure c _
-    (isPseudoholomorphicOn_ofComplexManifold_blowupChart c) Φ
+    (isPseudoholomorphicOn_ofComplexManifold_of_mem_maximalAtlas (n := ω) Fact.out (by simp)) Φ
   simpa only [almostComplexStructure_eq_ofComplexManifold] using h
 
 end Complex

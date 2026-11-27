@@ -84,10 +84,9 @@ private theorem isSmoothForm_smul_extendByZeroOfOpens [IsManifold IX 1 X] {n : �
     (hproj : ContMDiff IX IB n proj) (hW : ∀ i, proj ⁻¹' tsupport (ρ i) ⊆ W i)
     {η : ∀ i, RoughForm IX (W i) F k} (hη : ∀ i, IsSmoothForm IX n (η i)) (i : ι) :
     IsSmoothForm IX n (fun y ↦ ρ i (proj y) • extendByZeroOfOpens (η i) y) :=
-  isSmoothForm_fun_smul_of_mpullback_subtype_val (f := ρ i ∘ proj)
+  (hη i).fun_smul_extendByZeroOfOpens (f := ρ i ∘ proj)
     (((ρ i).contMDiff.of_le (by exact_mod_cast le_top)).comp hproj)
     ((tsupport_comp_subset_preimage _ hproj.continuous).trans (hW i))
-    (by rw [mpullback_subtype_val_extendByZeroOfOpens]; exact hη i)
 
 /-- **The glued form is smooth.** Let `ρ` be a smooth partition of unity on `s ⊆ B`,
 `proj : X → B` a `C^n` map, and `η i` a `C^n` form on an open set `W i` of `X` that contains the
@@ -128,10 +127,8 @@ private theorem mextDeriv_smul_extendByZeroOfOpens_apply_of_mem_ker [IsManifold 
     mextDeriv_fun_smul (f := ρ i ∘ proj) (hρi.comp x hprojx) hμ v
   -- `d(ρ i ∘ proj)` is semibasic for `proj`, so it vanishes on vertical vectors.
   have hdf := isSemibasicAt_mextDeriv_ofFunction_comp hρi hprojx
-  have hd : mextDeriv (extendByZeroOfOpens (η i)) x = mextDeriv (η i) ⟨x, hx⟩ := by
-    have h := congrFun (mpullback_subtype_val_mextDeriv (U := W i)
-      (extendByZeroOfOpens (η i))) ⟨x, hx⟩
-    rwa [mpullback_subtype_val_apply, mpullback_subtype_val_extendByZeroOfOpens] at h
+  have hd : mextDeriv (extendByZeroOfOpens (η i)) x = mextDeriv (η i) ⟨x, hx⟩ :=
+    mextDeriv_extendByZeroOfOpens_coe (η i) ⟨x, hx⟩
   rw [hleib, RoughForm.wedge_apply, Finset.sum_eq_zero fun σ _ ↦ by
       rw [hdf.apply_eq_zero (fun j ↦ (v ∘ Fin.cast _) (σ (Fin.castAdd k j))) 0 (hv _), zero_mul,
         smul_zero],
