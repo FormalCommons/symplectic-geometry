@@ -31,7 +31,9 @@ subset `V`, restricts to a local diffeomorphism from `U` to `V`
 For a partial diffeomorphism `Φ`, Tau Ceti's diffeomorphism
 `PartialDiffeomorph.toDiffeomorphSourceTarget` between its source and target, followed by the
 inclusion of the target, is the inclusion of the source followed by `Φ`
-(`PartialDiffeomorph.subtypeVal_comp_toDiffeomorphSourceTarget`). Hence its differential is that
+(`PartialDiffeomorph.subtypeVal_comp_toDiffeomorphSourceTarget`), and `Φ` maps each point
+of its target, sent back to the source by the inverse diffeomorphism, back to itself
+(`PartialDiffeomorph.apply_toDiffeomorphSourceTarget_symm`). Hence its differential is that
 of `Φ` (`PartialDiffeomorph.mfderiv_toDiffeomorphSourceTarget_apply`, by Tau Ceti's
 `TauCeti.Manifold.mfderiv_apply_of_subtype_val_comp_eq`), as for Tau Ceti's
 `PartialDiffeomorph.liftOpens_comp_subtypeVal` and `PartialDiffeomorph.mfderiv_liftOpens_apply_coe`.
@@ -209,6 +211,13 @@ by the inclusion of the target, is `Φ` on the source. -/
 theorem subtypeVal_comp_toDiffeomorphSourceTarget (Φ : PartialDiffeomorph I J M N n) :
     Subtype.val ∘ ⇑Φ.toDiffeomorphSourceTarget = ⇑Φ ∘ Subtype.val :=
   funext Φ.toDiffeomorphSourceTarget_apply_coe
+
+/-- A partial diffeomorphism `Φ` maps the inverse of the diffeomorphism between its source and its
+target, at a point `x` of the target, back to `x`. -/
+theorem apply_toDiffeomorphSourceTarget_symm (Φ : PartialDiffeomorph I J M N n)
+    (x : (⟨Φ.target, Φ.open_target⟩ : Opens N)) : Φ (Φ.toDiffeomorphSourceTarget.symm x) = x := by
+  rw [toDiffeomorphSourceTarget_symm_apply_coe]
+  exact Φ.right_inv x.property
 
 /-- The diffeomorphism between the source and the target of a partial diffeomorphism `Φ` has the
 differential of `Φ`, the tangent spaces of the source and the target being those of `M` and
