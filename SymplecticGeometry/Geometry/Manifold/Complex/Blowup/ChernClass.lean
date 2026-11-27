@@ -32,17 +32,13 @@ exceptional divisor with the complex structure induced by `J̃`, with complex mo
 
 ## Main results
 
-* `SymplecticGeometry.Blowup.singularCohomologyMap_firstChernClass_eq_of_isLocalDiffeomorphAt`:
-  pulled back by a map into the set where the blowdown is a local diffeomorphism,
-  `c₁(T Blowup c, J̃)` and `π^* c₁(TM, J)` agree.
 * `SymplecticGeometry.Blowup.firstChernClass_restrict_compl`: on the complement of the
   exceptional divisor, `c₁(T Blowup c, J̃)` and the pull-back of `c₁(TM, J)` by the blowdown `π`
-  restrict to the same class. There `dπ` is invertible
-  (`SymplecticGeometry.Blowup.isLocalDiffeomorphAt_blowdown_real`) and complex linear
-  (`SymplecticGeometry.Blowup.mfderiv_blowdown_almostComplexStructure_apply`), so it is a complex
-  isomorphism of the tangent bundle of the complement with the pull-back of `(TM, J)`, and the
-  naturality of the first Chern class
-  (`TauCeti.firstChernClass_eq_singularCohomologyMap_of_fiberwise`) applies.
+  restrict to the same class. There the blowdown is a local diffeomorphism
+  (`SymplecticGeometry.Blowup.isLocalDiffeomorphAt_blowdown_real`) and pseudoholomorphic
+  (`SymplecticGeometry.Blowup.isPseudoholomorphicAt_blowdown`), so the naturality of the first
+  Chern class along such maps
+  (`TauCeti.IsPseudoholomorphicAt.singularCohomologyMap_firstChernClass_eq`) applies.
 * `SymplecticGeometry.Blowup.singularCohomologyMap_divisorRealEmbedding_blowdown`: on the
   exceptional divisor, the pull-back by the blowdown of a class of `M` of positive degree, such as
   `c₁(TM, J)`, restricts to zero, since the blowdown maps the divisor to the point `p₀`
@@ -84,11 +80,6 @@ exceptional divisor with the complex structure induced by `J̃`, with complex mo
   complex manifold `M`, a chart `c` of its complex atlas, and the tangent bundles of the complex
   manifolds `Blowup c` and `M`.
 
-The private steps of the proof adapt Tau Ceti's `mfderivFiberEquiv` and
-`continuous_mfderivFiberRealEquiv` (`TauCeti/Geometry/Symplectic/Manifold/AlmostComplex/Chern.lean`)
-from a diffeomorphism to the blowdown at points where it is a local diffeomorphism, and from the
-tangent bundle of the target to its pull-back.
-
 ## References
 
 * [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*, 3rd ed.][McDuffSalamon2017],
@@ -117,71 +108,8 @@ variable [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M]
   (hJ : IsPseudoholomorphicOn J (ofComplexManifold (Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ)) c
     c.source)
 
-variable {X : Type} [TopologicalSpace X] (ι : C(X, Blowup c))
-  (hι : ∀ x, IsLocalDiffeomorphAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ (blowdown c)
-    (ι x))
-
-/-- `dπ` intertwines `J̃` with `J` at the points `ι x`, where the blowdown is a local
-diffeomorphism, read on the differential of the blowdown as a real-linear isomorphism. -/
-private theorem mfderivToContinuousLinearEquiv_blowdown_apply (x : X)
-    (v : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) (ι x)) :
-    (hι x).mfderivToContinuousLinearEquiv (by simp)
-        (((almostComplexStructure c J hJ).toContMDiff ⊤).toContinuousComplexStructure (ι x) v) =
-      (J.toContMDiff ⊤).toContinuousComplexStructure (blowdown c (ι x))
-        ((hι x).mfderivToContinuousLinearEquiv (by simp) v) := by
-  simp only [toContMDiff_apply, ContMDiffAlmostComplexStructure.toContinuousComplexStructure_apply]
-  rw [← ContinuousLinearEquiv.coe_coe, IsLocalDiffeomorphAt.mfderivToContinuousLinearEquiv_coe]
-  -- `J̃ z` and `J (blowdown c z)` are applied through `toEndomorphism`, their coercion.
-  exact mfderiv_blowdown_almostComplexStructure_apply c J hJ (ι x) _
-
-/-- At the points `ι x`, the differential of the blowdown, as a complex-linear isomorphism of the
-fibres of the complex tangent bundles `(T Blowup c, J̃)` and `(TM, J)`. -/
-private def mfderivBlowdownEquiv (x : X) :
-    ((almostComplexStructure c J hJ).toContMDiff ⊤).toContinuousComplexStructure.Fiber (ι x) ≃L[ℂ]
-      (J.toContMDiff ⊤).toContinuousComplexStructure.Fiber (blowdown c (ι x)) :=
-  Bundle.ContinuousComplexStructure.fiberEquivOfCommuteAt _ _
-    ((hι x).mfderivToContinuousLinearEquiv (by simp))
-    (mfderivToContinuousLinearEquiv_blowdown_apply c J hJ ι hι x)
-
 variable (G : Type*) [NormedAddCommGroup G] [NormedSpace ℂ G] [FiniteDimensional ℂ G]
   [Fact (finrank ℝ (Fin (n + 1) → ℂ) = 2 * finrank ℂ G)]
-
-/-- The isomorphisms `mfderivBlowdownEquiv` are continuous on total spaces, from the pull-back
-of `(T Blowup c, J̃)` by `ι` to `(TM, J)`. -/
-private theorem continuous_mfderivBlowdownEquiv :
-    Continuous fun v : TotalSpace G (⇑ι *ᵖ
-        ((almostComplexStructure c J hJ).toContMDiff ⊤).toContinuousComplexStructure.Fiber) ↦
-      TotalSpace.mk' G (E := (J.toContMDiff ⊤).toContinuousComplexStructure.Fiber)
-        (blowdown c (ι v.proj)) (mfderivBlowdownEquiv c J hJ ι hι v.proj v.snd) := by
-  simp only [mfderivBlowdownEquiv]
-  refine Bundle.ContinuousComplexStructure.continuous_fiberEquivOfCommuteAt_pullback _ _
-    (X := X) ι (fun x ↦ blowdown c (ι x)) _
-    (mfderivToContinuousLinearEquiv_blowdown_apply c J hJ ι hι)
-    ((((contMDiff_blowdown_real c).continuous_tangentMap (by simp)).comp
-      (Pullback.continuous_lift _ _ _)).congr fun v ↦ ?_)
-  rw [Function.comp_apply]
-  -- The map is `tangentMap (blowdown c)` after `Pullback.lift`. Neither has a lemma that reads it
-  -- at `v`, and `IsLocalDiffeomorphAt.mfderivToContinuousLinearEquiv_coe` cannot be rewritten at
-  -- the fibre of the pull-back that `v.snd` lies in, so all three are unfolded.
-  rfl
-
-include hι in
-/-- **Naturality of the first Chern class where the blowdown is a local diffeomorphism.** For a
-continuous map `ι : X → Blowup c` whose image lies where the blowdown `π` is a local
-diffeomorphism, the pull-backs by `ι` of the first Chern class of `(T Blowup c, J̃)` and of
-`π^* c₁(TM, J)` agree; both are computed with the complex model `G`. -/
-theorem singularCohomologyMap_firstChernClass_eq_of_isLocalDiffeomorphAt :
-    TopCat.singularCohomologyMap (TopCat.ofHom ι) 2
-        (firstChernClass G
-          ((almostComplexStructure c J hJ).toContMDiff ⊤).toContinuousComplexStructure.Fiber) =
-      TopCat.singularCohomologyMap (TopCat.ofHom ι) 2
-        (TopCat.singularCohomologyMap (TopCat.ofHom (blowdown c)) 2
-          (firstChernClass G (J.toContMDiff ⊤).toContinuousComplexStructure.Fiber)) := by
-  have h := firstChernClass_eq_singularCohomologyMap_of_fiberwise
-    (g := (blowdown c).comp ι) (continuous_mfderivBlowdownEquiv c J hJ ι hι G)
-  rw [firstChernClass_pullback, TopCat.ofHom_comp, TopCat.singularCohomologyMap_comp,
-    CategoryTheory.ConcreteCategory.comp_apply] at h
-  exact h
 
 /-- **The first Chern class of the blowup off the exceptional divisor.** On the complement of
 the exceptional divisor, the first Chern class of the complex tangent bundle of the blowup, with
@@ -198,8 +126,11 @@ theorem firstChernClass_restrict_compl :
         (TopCat.singularCohomologyMap (TopCat.ofHom (blowdown c)) 2
           (firstChernClass G (J.toContMDiff ⊤).toContinuousComplexStructure.Fiber)) := by
   rw [TopPair.ofSubset_map]
-  exact singularCohomologyMap_firstChernClass_eq_of_isLocalDiffeomorphAt c J hJ
-    (ContinuousMap.subtypeVal _) (fun z ↦ isLocalDiffeomorphAt_blowdown_real c z.property) G
+  exact IsPseudoholomorphicAt.singularCohomologyMap_firstChernClass_eq G
+    (ContinuousMap.subtypeVal _)
+    ((contMDiff_blowdown_real c).of_le (by simp))
+    (fun _ ↦ isPseudoholomorphicAt_blowdown c J hJ _)
+    (fun z ↦ isLocalDiffeomorphAt_blowdown_real c z.property) (by simp)
 
 /-- On the exceptional divisor, the pull-back by the blowdown of a cohomology class of `M` of
 positive degree vanishes, since the blowdown is constant, equal to `p₀`, on the divisor. For
@@ -322,9 +253,11 @@ private theorem firstChernClass_tangent_of_pos (hn0 : 0 < n) :
   -- Step 2: `a` vanishes off the divisor (step 1), so it is a multiple of the dual class `e`.
   have hcompl : TopCat.singularCohomologyMap
       (TopCat.ofHom (ContinuousMap.subtypeVal (exceptionalDivisor c)ᶜ)) 2 a = 0 := by
-    have h₁ := singularCohomologyMap_firstChernClass_eq_of_isLocalDiffeomorphAt c J hJ
+    have h₁ := IsPseudoholomorphicAt.singularCohomologyMap_firstChernClass_eq G
       (ContinuousMap.subtypeVal (exceptionalDivisor c)ᶜ)
-      (fun z ↦ isLocalDiffeomorphAt_blowdown_real c z.property) G
+      ((contMDiff_blowdown_real c).of_le (by simp))
+      (fun _ ↦ isPseudoholomorphicAt_blowdown c J hJ _)
+      (fun z ↦ isLocalDiffeomorphAt_blowdown_real c z.property) (by simp)
     have h₂ : TopCat.singularCohomologyMap
         (TopCat.ofHom (ContinuousMap.subtypeVal (exceptionalDivisor c)ᶜ)) 2 (exceptionalClass c) =
           0 := by
@@ -370,8 +303,11 @@ theorem firstChernClass_tangent :
         n • exceptionalClass c := by
   rcases Nat.eq_zero_or_pos n with rfl | hn0
   · -- For `n = 0` the blowdown is a local diffeomorphism everywhere, so naturality applies.
-    have h := singularCohomologyMap_firstChernClass_eq_of_isLocalDiffeomorphAt c J hJ
-      (ContinuousMap.id _) (fun z ↦ isLocalDiffeomorph_blowdown_real c z) G
+    have h := IsPseudoholomorphicAt.singularCohomologyMap_firstChernClass_eq G
+      (ContinuousMap.id _)
+      ((contMDiff_blowdown_real c).of_le (by simp))
+      (fun _ ↦ isPseudoholomorphicAt_blowdown c J hJ _)
+      (fun z ↦ isLocalDiffeomorph_blowdown_real c z) (by simp)
     rw [TopCat.ofHom_id, TopCat.singularCohomologyMap_id] at h
     rw [zero_smul, sub_zero]
     exact h
